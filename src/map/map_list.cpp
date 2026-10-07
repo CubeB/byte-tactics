@@ -84,7 +84,7 @@ void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, 
 void __stdcall HAPI_ReadFileAt(char* filename, void* buffer, int offset, int size);
 void __cdecl FUN_004d85a0(void* p);
 
-int FUN_0049f580(void);
+int GetPreferredLanguage(void);
 char* __stdcall StripExtension(char* name);
 void* __stdcall HAPI_OpenFileRead(char* path);
 int __stdcall HAPI_CloseFile(void* file);
@@ -623,7 +623,7 @@ void Mission::FUN_004353b0(int index, char* text)
 }
 
 // Builds the path of a campaign file and stores it in name slot `index`
-// (an inlined copy of 0x4353b0.cpp). With a side prefix (FUN_0049f580) it
+// (an inlined copy of 0x4353b0.cpp). With a side prefix (GetPreferredLanguage) it
 // first tries "<dir>-<side>\<name>.<ext>" and keeps it when that file opens;
 // otherwise it uses "<dir>\<name>.<ext>". An empty name stores the blank
 // string DAT_005119b8.
@@ -635,7 +635,7 @@ void Mission::BuildCampaignFilePath(int index, char* dir, char* name, char* ext)
         FUN_004353b0(index, DAT_005119b8);
         return;
     }
-    char* side = (char*)FUN_0049f580();
+    char* side = (char*)GetPreferredLanguage();
     if (side) {
         sprintf(path, "%s-%s\\%s", dir, side, name);
         StripExtension(path);
@@ -802,7 +802,7 @@ int Mission::LoadMissionByName(char* map)
     if (type != 1) {
         if (type > 1 && type <= 3) {
             res = LoadMission(map);
-            if (res && FUN_0049f580() && _strcmpi((char*)FUN_0049f580(), "english")) {
+            if (res && GetPreferredLanguage() && _strcmpi((char*)GetPreferredLanguage(), "english")) {
                 char lower[200];
                 strcpy(lower, map);
                 _strlwr(lower);

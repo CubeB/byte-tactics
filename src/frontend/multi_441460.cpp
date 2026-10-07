@@ -83,7 +83,7 @@ void FlipScreen();
 int __stdcall HAPINET_getgames(char* net, void* desc, int a);
 void __stdcall CloseTopScreen(Sub_00441460* sub);
 void __stdcall FUN_004a32a0(Sub_00441460* sub, const char* name, char* text, int count, int flag);
-char* FUN_0049f580();
+char* GetPreferredLanguage();
 int __stdcall FindGadgetIndex(void* entries, const char* name, int type);
 void __stdcall FUN_00441220(Sub_00441460* sub, char* entry);
 
@@ -173,8 +173,8 @@ shown:
                     break;
                 *e = 0;
             }
-            if (FUN_0049f580() != 0) {
-                if (_strcmpi(FUN_0049f580(), "english") != 0) {
+            if (GetPreferredLanguage() != 0) {
+                if (_strcmpi(GetPreferredLanguage(), "english") != 0) {
                     _strlwr(temp);
                     lang = Translate(temp);
                     strncpy(temp, lang, 0x80);

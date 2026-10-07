@@ -251,7 +251,7 @@ void __stdcall HAPI_FindClose(int handle);
 void __stdcall BuildScreenshotPath(char* out, const char* dir, const char* name, const char* ext);
 Class_004b8da0* __stdcall AllocFrame(const char* name, int width, int height);
 void __cdecl SetOutOfMemoryHandler(int param);
-void __stdcall FUN_0049e6f0();
+void __stdcall InstallOutOfMemoryHandler();
 void __stdcall SurfaceFromFrame(Surface_00495a30* dst, void* src);
 void* __stdcall GetDisplay();
 void __stdcall FrameFromSurface(Dst_004b8ae0* dst, Src_004b8ae0* src);
@@ -391,7 +391,7 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
             bh /= 2;
             bm = AllocFrame("ScreenShot", w, bh);
         }
-        FUN_0049e6f0();
+        InstallOutOfMemoryHandler();
         if (bm != 0) {
             int scrollX;
             Surface_00495a30 surf;

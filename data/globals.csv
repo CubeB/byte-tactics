@@ -153,7 +153,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x50499c,DAT_0050499c,.data,16,gap,string,char[],1,0,1,one type,1,,s_BUILD_TIME___s_0050499c,,,4255494c442054494d453a2025730000
 0x5049ac,DAT_005049ac,.data,16,gap,string,char[],1,0,1,one type,1,,s_BUILD_DATE___s_005049ac,,,4255494c4420444154453a2025730000
 0x504a64,DAT_00504a64,.data,8,gap,string,char[],1,0,1,one type,1,,s_camps_00504a64,,,63616d7073000000
-0x504ab8,DAT_00504ab8,.data,8,gap,string,const char[],1,0,1,one type,1,,s_english_00504ab8,,,656e676c69736800
+0x504ab8,g_defaultLanguage,.data,8,gap,string,const char[],1,0,1,one type,1,,s_english_00504ab8,,,656e676c69736800
 0x504e98,DAT_00504e98,.data,8,gap,string,char[],1,0,1,one type,1,,DAT_00504e98,,,4861726400000000
 0x504ea0,DAT_00504ea0,.data,8,gap,string,char[],1,0,1,one type,1,,s_Medium_00504ea0,,,4d656469756d0000
 0x504ea8,DAT_00504ea8,.data,8,gap,string,char[],1,0,1,one type,1,,DAT_00504ea8,,,4561737900000000
@@ -269,13 +269,13 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x50966c,DAT_0050966c,.data,12,gap,string,char[],1,0,1,one type,1,,DAT_0050966c,,,53484f540000000000000000
 0x509678,DAT_00509678,.data,16,type,data,char*[4],3,0,2,one type,3,,PTR_s_FirePrimary_00509678,3,,dc965000cc965000bc96500000000000
 0x509688,DAT_00509688,.data,12,type,data,char*[3],1,0,1,one type,1,,PTR_s_AimPrimary_00509688,3,,b0965000a096500094965000
-0x509718,DAT_00509718,.data,4,type,data,char*,1,0,1,one type,1,,PTR_s_Total_Annihilation_Class_00509718,1,,24975000
-0x50971c,DAT_0050971c,.data,4,type,string,char*,1,0,1,one type,1,,PTR_s_Total_Annihilation_0050971c,1,,587a5000
-0x509720,DAT_00509720,.data,4,type,data,int,1,0,1,one type,1,,DAT_00509720,,,01000000
-0x5097a8,DAT_005097a8,.data,8,gap,string,const char[],1,0,1,one type,1,,s_cdshell_005097a8,,,63647368656c6c00
-0x5097b0,DAT_005097b0,.data,32,gap,string,const char[],1,0,1,one type,1,,s_SOFTWARE_Classes_AudioCD_shell_005097b0,,,534f4654574152455c436c61737365735c417564696f43445c7368656c6c0000
-0x5097d0,DAT_005097d0,.data,24,gap,string,const char[],1,0,1,one type,1,,s_gamedata_translate_tdf_005097d0,,,67616d65646174615c7472616e736c6174652e7464660000
-0x5097e8,DAT_005097e8,.data,12,gap,string,const char[],1,0,1,one type,1,,s_language_005097e8,,,6c616e677561676500000000
+0x509718,g_windowClassName,.data,4,type,data,char*,1,0,1,one type,1,,PTR_s_Total_Annihilation_Class_00509718,1,,24975000
+0x50971c,g_appName,.data,4,type,string,char*,1,0,1,one type,1,,PTR_s_Total_Annihilation_0050971c,1,,587a5000
+0x509720,g_cdNeedsReopenAfterFocus,.data,4,type,data,int,1,0,1,one type,1,,DAT_00509720,,,01000000
+0x5097a8,g_cdShellValueName,.data,8,gap,string,const char[],1,0,1,one type,1,,s_cdshell_005097a8,,,63647368656c6c00
+0x5097b0,g_audioCdShellKey,.data,32,gap,string,const char[],1,0,1,one type,1,,s_SOFTWARE_Classes_AudioCD_shell_005097b0,,,534f4654574152455c436c61737365735c417564696f43445c7368656c6c0000
+0x5097d0,g_translationFile,.data,24,gap,string,const char[],1,0,1,one type,1,,s_gamedata_translate_tdf_005097d0,,,67616d65646174615c7472616e736c6174652e7464660000
+0x5097e8,g_languageValueName,.data,12,gap,string,const char[],1,0,1,one type,1,,s_language_005097e8,,,6c616e677561676500000000
 0x5097f4,DAT_005097f4,.data,8,gap,string,const char[],1,0,1,one type,1,,,,,57617267616d6500
 0x509edc,g_errorCaption,.data,20,gap,string,const char[],1,0,1,one type,1,,s_Error_00509edc,,,4572726f72000000000000000000000000000000
 0x509ef0,DAT_00509ef0,.data,8,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,,,,,8ac7c96d305fc440
@@ -739,13 +739,13 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51f304,g_netHeartbeatNextTick,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051f304,,,
 0x51f308,g_loadingBarFlashDecayTick,.bss,8,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,,DAT_0051f308,,,
 0x51f310,DAT_0051f310,.bss,12,definition,data,TdfFile,1,0,1,one type,1,,DAT_0051f310,,src/weapons/weapons_49e610.cpp,
-0x51f31c,DAT_0051f31c,.bss,1,type,data,unsigned char,1,0,1,one type,1,,DAT_0051f31c,,,
-0x51f320,DAT_0051f320,.bss,2088,gap,data,App_0049e830,1,0,1,one type,1,0x202,DAT_0051f320,,,
-0x51fb48,DAT_0051fb48,.bss,4,type,data,int,2,0,1,one type,2,,DAT_0051fb48,,,
+0x51f31c,g_atexitRegistered,.bss,1,type,data,unsigned char,1,0,1,one type,1,,DAT_0051f31c,,,
+0x51f320,g_displayContext,.bss,2088,gap,data,App_0049e830,1,0,1,one type,1,0x202,DAT_0051f320,,,
+0x51fb48,g_cmdlineDisplaySeed,.bss,4,type,data,int,2,0,1,one type,2,,DAT_0051fb48,,,
 0x51fb4c,DAT_0051fb4c,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
-0x51fb50,DAT_0051fb50,.bss,64,gap,data,char[],2,0,1,one type,2,,DAT_0051fb50,,,
-0x51fb90,DAT_0051fb90,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051fb90,,,
-0x51fb94,DAT_0051fb94,.bss,4,type,data,unsigned long,1,0,1,one type,1,,DAT_0051fb94,,,
+0x51fb50,g_preferredLanguage,.bss,64,gap,data,char[],2,0,1,one type,2,,DAT_0051fb50,,,
+0x51fb90,g_cdTrackCategory,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051fb90,,,
+0x51fb94,g_lastSoundReapTick,.bss,4,type,data,unsigned long,1,0,1,one type,1,,DAT_0051fb94,,,
 0x51fb98,DAT_0051fb98,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
 0x51fb9c,g_loopingWav,.bss,4,type,data,char*,1,0,1,one type,1,,DAT_0051fb9c,,,
 0x51fba0,g_diskWav,.bss,4,type,data,int*,1,0,1,one type,1,,DAT_0051fba0,,,

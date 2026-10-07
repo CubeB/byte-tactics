@@ -93,7 +93,7 @@ char DAT_00504994[8] = "Mission";  // 0x504994 .data
 char DAT_0050499c[16] = "BUILD TIME: %s";  // 0x50499c .data
 char DAT_005049ac[16] = "BUILD DATE: %s";  // 0x5049ac .data
 char DAT_00504a64[8] = "camps";  // 0x504a64 .data
-const char DAT_00504ab8[8] = "english";  // 0x504ab8 .data
+const char g_defaultLanguage[8] = "english";  // 0x504ab8 .data
 char DAT_00504e98[8] = "Hard";  // 0x504e98 .data
 char DAT_00504ea0[8] = "Medium";  // 0x504ea0 .data
 char DAT_00504ea8[8] = "Easy";  // 0x504ea8 .data
@@ -203,13 +203,13 @@ char DAT_0050940c[12] = "LIVEPLYR";  // 0x50940c .data
 char DAT_0050966c[12] = "SHOT";  // 0x50966c .data
 char* DAT_00509678[4] = {(char*)"FirePrimary", (char*)"FireSecondary", (char*)"FireTertiary"};  // 0x509678 .data
 char* DAT_00509688[3] = {(char*)"AimPrimary", (char*)"AimSecondary", (char*)"AimTertiary"};  // 0x509688 .data
-char* DAT_00509718 = (char*)"Total Annihilation Class";  // 0x509718 .data
-char* DAT_0050971c = (char*)"Total Annihilation";  // 0x50971c .data
-int DAT_00509720 = 1;  // 0x509720 .data
-const char DAT_005097a8[8] = "cdshell";  // 0x5097a8 .data
-const char DAT_005097b0[32] = "SOFTWARE\\Classes\\AudioCD\\shell";  // 0x5097b0 .data
-const char DAT_005097d0[24] = "gamedata\\translate.tdf";  // 0x5097d0 .data
-const char DAT_005097e8[12] = "language";  // 0x5097e8 .data
+char* g_windowClassName = (char*)"Total Annihilation Class";  // 0x509718 .data
+char* g_appName = (char*)"Total Annihilation";  // 0x50971c .data
+int g_cdNeedsReopenAfterFocus = 1;  // 0x509720 .data
+const char g_cdShellValueName[8] = "cdshell";  // 0x5097a8 .data
+const char g_audioCdShellKey[32] = "SOFTWARE\\Classes\\AudioCD\\shell";  // 0x5097b0 .data
+const char g_translationFile[24] = "gamedata\\translate.tdf";  // 0x5097d0 .data
+const char g_languageValueName[12] = "language";  // 0x5097e8 .data
 const char DAT_005097f4[8] = "Wargame";  // 0x5097f4 .data
 const char g_errorCaption[20] = "Error";  // 0x509edc .data
 double DAT_00509ef0 = 10430.37835047;  // 0x509ef0 .data
@@ -660,13 +660,13 @@ int DAT_0051f2fc;  // 0x51f2fc .bss
 int g_netProbeNextTick;  // 0x51f300 .bss
 int g_netHeartbeatNextTick;  // 0x51f304 .bss
 unsigned char g_loadingBarFlashDecayTick[8];  // 0x51f308 .bss
-unsigned char DAT_0051f31c;  // 0x51f31c .bss
-unsigned char DAT_0051f320[2088];  // 0x51f320 .bss
-int DAT_0051fb48;  // 0x51fb48 .bss
+unsigned char g_atexitRegistered;  // 0x51f31c .bss
+unsigned char g_displayContext[2088];  // 0x51f320 .bss
+int g_cmdlineDisplaySeed;  // 0x51fb48 .bss
 unsigned char DAT_0051fb4c[4];  // 0x51fb4c .bss
-char DAT_0051fb50[64];  // 0x51fb50 .bss
-int DAT_0051fb90;  // 0x51fb90 .bss
-unsigned long DAT_0051fb94;  // 0x51fb94 .bss
+char g_preferredLanguage[64];  // 0x51fb50 .bss
+int g_cdTrackCategory;  // 0x51fb90 .bss
+unsigned long g_lastSoundReapTick;  // 0x51fb94 .bss
 unsigned char DAT_0051fb98[4];  // 0x51fb98 .bss
 char* g_loopingWav;  // 0x51fb9c .bss
 int* g_diskWav;  // 0x51fba0 .bss

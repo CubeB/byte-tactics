@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
-int FUN_0049f580(void);
+int GetPreferredLanguage(void);
 char* __stdcall StripExtension(char* name);
 void* __stdcall HAPI_OpenFileRead(char* path);
 int __stdcall HAPI_CloseFile(void* file);
@@ -13,7 +13,7 @@ int __stdcall HAPI_CloseFile(void* file);
 // FUNCTION: 0x4290f0
 char* __stdcall BuildDataPath(char* buf, char* dir, char* name, char* ext)
 {
-    char* side = (char*)FUN_0049f580();
+    char* side = (char*)GetPreferredLanguage();
     if (side) {
         sprintf(buf, "%s-%s\\%s", dir, side, name);
         if (ext != 0 && strlen(ext) != 0) {

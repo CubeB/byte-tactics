@@ -54,7 +54,7 @@ void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void __stdcall SetMissionType(int owner);
 void __stdcall FUN_004a0570(Menu_004777a0* menu, const char* name, int value);
 void __stdcall ToggleAnyMission(void* gadget);
-int FUN_0049f580();
+int GetPreferredLanguage();
 void __stdcall FUN_004a1530(Menu_004777a0* menu, const char* name, char value);
 void __stdcall FUN_0049fb10(Menu_004777a0* menu, int value);
 void __stdcall FUN_00491c80(int value);
@@ -85,7 +85,7 @@ void OpenSingleMenu()
         g_game->flags_38d7f |= 1;
     }
     g_game->menu.layer->field_3b = ToggleAnyMission;
-    if (FUN_0049f580() && _strcmpi((char*)FUN_0049f580(), "spanish") == 0) {
+    if (GetPreferredLanguage() && _strcmpi((char*)GetPreferredLanguage(), "spanish") == 0) {
         FUN_004a1530(&g_game->menu, "Skirmish", 0x73);
     }
     FUN_0049fb10(&g_game->menu, 1);

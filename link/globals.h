@@ -95,7 +95,7 @@ extern char DAT_00504994[8];                                                    
 extern char DAT_0050499c[16];                                                                 // 0x50499c, 16 bytes; 1 of 1 files
 extern char DAT_005049ac[16];                                                                 // 0x5049ac, 16 bytes; 1 of 1 files
 extern char DAT_00504a64[8];                                                                  // 0x504a64, 8 bytes; 1 of 1 files
-extern const char DAT_00504ab8[8];                                                            // 0x504ab8, 8 bytes; 1 of 1 files
+extern const char g_defaultLanguage[8];                                                       // 0x504ab8, 8 bytes; 1 of 1 files
 extern char DAT_00504e98[8];                                                                  // 0x504e98, 8 bytes; 1 of 1 files
 extern char DAT_00504ea0[8];                                                                  // 0x504ea0, 8 bytes; 1 of 1 files
 extern char DAT_00504ea8[8];                                                                  // 0x504ea8, 8 bytes; 1 of 1 files
@@ -196,13 +196,13 @@ extern char DAT_0050940c[12];                                                   
 extern char DAT_0050966c[12];                                                                 // 0x50966c, 12 bytes; 1 of 1 files
 extern char* DAT_00509678[4];                                                                 // 0x509678, 16 bytes; 3 of 3 files
 extern char* DAT_00509688[3];                                                                 // 0x509688, 12 bytes; 1 of 1 files
-extern char* DAT_00509718;                                                                    // 0x509718, 4 bytes; 1 of 1 files
-extern char* DAT_0050971c;                                                                    // 0x50971c, 4 bytes; 1 of 1 files
-extern int DAT_00509720;                                                                      // 0x509720, 4 bytes; 1 of 1 files
-extern const char DAT_005097a8[8];                                                            // 0x5097a8, 8 bytes; 1 of 1 files
-extern const char DAT_005097b0[32];                                                           // 0x5097b0, 32 bytes; 1 of 1 files
-extern const char DAT_005097d0[24];                                                           // 0x5097d0, 24 bytes; 1 of 1 files
-extern const char DAT_005097e8[12];                                                           // 0x5097e8, 12 bytes; 1 of 1 files
+extern char* g_windowClassName;                                                               // 0x509718, 4 bytes; 1 of 1 files
+extern char* g_appName;                                                                       // 0x50971c, 4 bytes; 1 of 1 files
+extern int g_cdNeedsReopenAfterFocus;                                                         // 0x509720, 4 bytes; 1 of 1 files
+extern const char g_cdShellValueName[8];                                                      // 0x5097a8, 8 bytes; 1 of 1 files
+extern const char g_audioCdShellKey[32];                                                      // 0x5097b0, 32 bytes; 1 of 1 files
+extern const char g_translationFile[24];                                                      // 0x5097d0, 24 bytes; 1 of 1 files
+extern const char g_languageValueName[12];                                                    // 0x5097e8, 12 bytes; 1 of 1 files
 extern const char DAT_005097f4[8];                                                            // 0x5097f4, 8 bytes; 1 of 1 files
 extern const char g_errorCaption[20];                                                         // 0x509edc, 20 bytes; 1 of 1 files
 extern "C" double DAT_00509ef0;                                                               // 0x509ef0, 8 bytes; declared extern "C" in 1 of 1 files
@@ -564,13 +564,13 @@ extern int DAT_0051f2fc;                                                        
 extern int g_netProbeNextTick;                                                                // 0x51f300, 4 bytes; 1 of 1 files
 extern int g_netHeartbeatNextTick;                                                            // 0x51f304, 4 bytes; 1 of 1 files
 extern "C" unsigned char g_loadingBarFlashDecayTick[8];                                       // 0x51f308, 4 bytes; extern "C" (no type) in declared extern "C" in 1 of 1 files, but used past its end
-extern unsigned char DAT_0051f31c;                                                            // 0x51f31c, 1 bytes; 1 of 1 files
-extern unsigned char DAT_0051f320[2088];                                                      // 0x51f320, 2088 bytes; App_0049e830 by value in 1 of 1 files
-extern int DAT_0051fb48;                                                                      // 0x51fb48, 4 bytes; 2 of 2 files
+extern unsigned char g_atexitRegistered;                                                      // 0x51f31c, 1 bytes; 1 of 1 files
+extern unsigned char g_displayContext[2088];                                                  // 0x51f320, 2088 bytes; App_0049e830 by value in 1 of 1 files
+extern int g_cmdlineDisplaySeed;                                                              // 0x51fb48, 4 bytes; 2 of 2 files
 extern unsigned char DAT_0051fb4c[4];                                                         // 0x51fb4c, 4 bytes; nothing refers to it
-extern char DAT_0051fb50[64];                                                                 // 0x51fb50, 64 bytes; 2 of 2 files
-extern int DAT_0051fb90;                                                                      // 0x51fb90, 4 bytes; 1 of 1 files
-extern unsigned long DAT_0051fb94;                                                            // 0x51fb94, 4 bytes; 1 of 1 files
+extern char g_preferredLanguage[64];                                                          // 0x51fb50, 64 bytes; 2 of 2 files
+extern int g_cdTrackCategory;                                                                 // 0x51fb90, 4 bytes; 1 of 1 files
+extern unsigned long g_lastSoundReapTick;                                                     // 0x51fb94, 4 bytes; 1 of 1 files
 extern unsigned char DAT_0051fb98[4];                                                         // 0x51fb98, 4 bytes; nothing refers to it
 extern char* g_loopingWav;                                                                    // 0x51fb9c, 4 bytes; 1 of 1 files
 extern int* g_diskWav;                                                                        // 0x51fba0, 4 bytes; 1 of 1 files

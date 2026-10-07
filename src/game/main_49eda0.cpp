@@ -18,8 +18,8 @@ struct Game_0049ee30 {
 #pragma pack(pop)
 
 extern Game_0049ee30* g_game;
-extern int DAT_0051fb48;
-extern char DAT_0051fb50[];
+extern int g_cmdlineDisplaySeed;
+extern char g_preferredLanguage[];
 extern GUID DAT_004fcfb8;
 
 // dsetup.h's DIRECTXREGISTERAPPA.
@@ -77,7 +77,7 @@ int __stdcall ParseCommandLine(char* cmdLine, char* appName)
     char* p = strtok(copy, " \t");
     while (p) {
         if (*p != '-' && *p != '/') {
-            strcpy(DAT_0051fb50, p);
+            strcpy(g_preferredLanguage, p);
         } else if (!FUN_004da0e0(p)) {
             switch (p[1]) {
             case 'B':
@@ -126,9 +126,9 @@ int __stdcall ParseCommandLine(char* cmdLine, char* appName)
             case 'd':
             {
                 char mode = p[2];
-                DAT_0051fb48 = 2;
+                g_cmdlineDisplaySeed = 2;
                 if (mode != 'f' && mode != 'F')
-                    DAT_0051fb48 = 3;
+                    g_cmdlineDisplaySeed = 3;
                 break;
             }
             case 'E':

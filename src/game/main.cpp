@@ -31,7 +31,7 @@ void OutOfMemoryHandler();
 void __cdecl SetOutOfMemoryHandler(void (*param_1)());
 
 // FUNCTION: 0x49e6f0
-void FUN_0049e6f0()
+void InstallOutOfMemoryHandler()
 {
     SetOutOfMemoryHandler(OutOfMemoryHandler);
 }
@@ -71,7 +71,7 @@ void OutOfMemoryHandler()
 }
 
 // space-bunny-free retry: MATCH (1365 of 1365 bytes), from 89.2%. Three
-// changes, all in the DAT_0051f320 initialisation block, none of them a new
+// changes, all in the g_displayContext initialisation block, none of them a new
 // construct: the or chain, the b0 read-modify-write register and the whole
 // eax/ecx/edx rotation fall out of them.
 //  1. The field stores are in plain program order (startWidth, b0, b1, b8,
@@ -83,10 +83,10 @@ void OutOfMemoryHandler()
 //     stores matters for the bytes: hInstance BEFORE nCmdShow is the original
 //     (className, hInstance, nCmdShow in that order scores 99.5%, nCmdShow,
 //     className, hInstance 99.3%).
-//  2. The bit-0 write is a bare `video.bits.b0 = ~DAT_0051fb48;`. A named
+//  2. The bit-0 write is a bare `video.bits.b0 = ~g_cmdlineDisplaySeed;`. A named
 //     `int notFlags` local compiles to 1367 bytes and a different schedule.
-//     `b0 = b0 ^ notFlags`, `b0 ^= notFlags`, `b0 = (int)(~DAT_0051fb48) & 1`
-//     and an explicit `video.value ^ ((video.value ^ ~DAT_0051fb48) & 1)` all
+//     `b0 = b0 ^ notFlags`, `b0 ^= notFlags`, `b0 = (int)(~g_cmdlineDisplaySeed) & 1`
+//     and an explicit `video.value ^ ((video.value ^ ~g_cmdlineDisplaySeed) & 1)` all
 //     give the same 1365 bytes, so the lowering (byte load of the old b0, xor
 //     into DL, and 1, xor into the word) is the only one available and the
 //     delta register is not a source-level choice.
@@ -155,15 +155,15 @@ struct Game {
 
 extern Game* g_game;
 
-extern unsigned char DAT_0051f31c;
-extern char* DAT_0050971c;
-extern char* DAT_00509718;
-extern int DAT_0051fb48;
-extern char DAT_0051fb50[];
+extern unsigned char g_atexitRegistered;
+extern char* g_appName;
+extern char* g_windowClassName;
+extern int g_cmdlineDisplaySeed;
+extern char g_preferredLanguage[];
 extern char DAT_005119b8[];
-extern int DAT_0051fb90;
-extern int DAT_00509720;
-extern DWORD DAT_0051fb94;
+extern int g_cdTrackCategory;
+extern int g_cdNeedsReopenAfterFocus;
+extern DWORD g_lastSoundReapTick;
 
 union Word_0051f522 {
     unsigned short value;
@@ -218,17 +218,17 @@ struct App_0049e830 {
     Word_0051f522 video;               // +0x202
 };
 #pragma pack(pop)
-extern App_0049e830 DAT_0051f320;
+extern App_0049e830 g_displayContext;
 
 
 extern const char DAT_005097f4[];
-extern const char DAT_005097e8[];
-extern const char DAT_005097d0[];
-extern const char DAT_005097b0[];
-extern const char DAT_005097a8[];
-extern const char DAT_00504ab8[];
+extern const char g_languageValueName[];
+extern const char g_translationFile[];
+extern const char g_audioCdShellKey[];
+extern const char g_cdShellValueName[];
+extern const char g_defaultLanguage[];
 
-void FUN_0049ed90();
+void AtexitNoOp();
 void __cdecl InitDebugSupport(int param_1);
 void CreateGameObject();
 void RegisterDataArchives();
@@ -267,52 +267,52 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
     InitDebugSupport(8);
     SetOutOfMemoryHandler(OutOfMemoryHandler);
-    if ((DAT_0051f31c & 1) == 0) {
-        DAT_0051f31c |= 1;
-        // atexit wants a __cdecl handler; /Gz makes FUN_0049ed90 __stdcall.
-        atexit((void (__cdecl *)(void))FUN_0049ed90);
+    if ((g_atexitRegistered & 1) == 0) {
+        g_atexitRegistered |= 1;
+        // atexit wants a __cdecl handler; /Gz makes AtexitNoOp __stdcall.
+        atexit((void (__cdecl *)(void))AtexitNoOp);
     }
     CreateGameObject();
-    HANDLE hSem = OpenSemaphoreA(0x1f0003, lzero, DAT_0050971c);
+    HANDLE hSem = OpenSemaphoreA(0x1f0003, lzero, g_appName);
     if (hSem != (HANDLE)lzero)
         return -1;
-    CreateSemaphoreA(NULL, 1, 1, DAT_0050971c);
+    CreateSemaphoreA(NULL, 1, 1, g_appName);
     srand(time(0));
-    if (ParseCommandLine(lpCmdLine, DAT_0050971c) == 0)
+    if (ParseCommandLine(lpCmdLine, g_appName) == 0)
         return 1;
-    InitDisplayDefaults(&DAT_0051f320);
-    DAT_0051f320.startWidth = 0x280;
-    DAT_0051f320.video.bits.b0 = ~DAT_0051fb48;
-    DAT_0051f320.video.bits.b1 = 1;
-    DAT_0051f320.video.bits.b8 = 1;
-    DAT_0051f320.video.bits.b4 = 1;
-    DAT_0051f320.video.bits.b9 = 1;
-    DAT_0051f320.video.bits.b5 = 1;
-    DAT_0051f320.video.bits.b6 = 1;
-    DAT_0051f320.video.bits.b7 = 1;
-    DAT_0051f320.startHeight = 0x1e0;
-    DAT_0051f320.hInstance = (int)hInstance;
-    DAT_0051f320.nCmdShow = nCmdShow;
-    DAT_0051f320.className = (int)DAT_00509718;
-    DAT_0051f320.title = (int)DAT_0050971c;
-    DAT_0051f320.menuId = 0;
-    int bGameOk = InitEnvironment(&DAT_0051f320);
+    InitDisplayDefaults(&g_displayContext);
+    g_displayContext.startWidth = 0x280;
+    g_displayContext.video.bits.b0 = ~g_cmdlineDisplaySeed;
+    g_displayContext.video.bits.b1 = 1;
+    g_displayContext.video.bits.b8 = 1;
+    g_displayContext.video.bits.b4 = 1;
+    g_displayContext.video.bits.b9 = 1;
+    g_displayContext.video.bits.b5 = 1;
+    g_displayContext.video.bits.b6 = 1;
+    g_displayContext.video.bits.b7 = 1;
+    g_displayContext.startHeight = 0x1e0;
+    g_displayContext.hInstance = (int)hInstance;
+    g_displayContext.nCmdShow = nCmdShow;
+    g_displayContext.className = (int)g_windowClassName;
+    g_displayContext.title = (int)g_appName;
+    g_displayContext.menuId = 0;
+    int bGameOk = InitEnvironment(&g_displayContext);
     if (bGameOk == lzero)
         return 0;
     InitTimers(0x1e);
     RegisterDataArchives();
     FUN_004b62c0(DAT_005097f4);
-    g_game->field_c = &DAT_0051f320;
+    g_game->field_c = &g_displayContext;
     g_game->field_1 = 3;
     g_game->field_2 = 1;
     g_game->field_3 = 1;
-    if (strlen(DAT_0051fb50) == 0) {
+    if (strlen(g_preferredLanguage) == 0) {
         size1c = 0x40;
-        ReadGameRegistryValue(DAT_005097e8, DAT_0051fb50, (int*)&size1c);
-        if (DAT_0051fb50[0] == 0)
-            strcpy(DAT_0051fb50, DAT_00504ab8);
+        ReadGameRegistryValue(g_languageValueName, g_preferredLanguage, (int*)&size1c);
+        if (g_preferredLanguage[0] == 0)
+            strcpy(g_preferredLanguage, g_defaultLanguage);
     }
-    LoadTranslations(DAT_005097d0, DAT_0051fb50);
+    LoadTranslations(g_translationFile, g_preferredLanguage);
     g_game->field_10 = new Sound;
     FUN_00428bb0();
     InitGame();
@@ -320,49 +320,49 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     size20 = 0x32;
     hKey = NULL;
     size14 = 0x32;
-    if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, DAT_005097b0, 0, 0xf003f, &hKey) == 0) {
+    if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, g_audioCdShellKey, 0, 0xf003f, &hKey) == 0) {
         if (RegQueryValueExA(hKey, NULL, NULL, &type, (LPBYTE)buf40, &size20) == 0) {
             RegSetValueExA(hKey, NULL, 0, type, (const BYTE*)DAT_005119b8, 1);
         } else {
             strcpy(buf40, DAT_005119b8);
         }
         size14 = 0x32;
-        ReadGameRegistryValue(DAT_005097a8, buf74, (int*)&size14);
+        ReadGameRegistryValue(g_cdShellValueName, buf74, (int*)&size14);
         if (strlen(buf74) != 0)
             strcpy(buf40, buf74);
         else
-            WriteGameRegistryValue(DAT_005097a8, buf40, 0x32);
+            WriteGameRegistryValue(g_cdShellValueName, buf40, 0x32);
         RegFlushKey(hKey);
         RegCloseKey(hKey);
     }
 
     for (;;) {
         for (;;) {
-            if (DAT_0051f320.field_e0 == lzero && *(int*)g_game->field_10 != 0) {
+            if (g_displayContext.field_e0 == lzero && *(int*)g_game->field_10 != 0) {
                 SaveCdLists();
-                DAT_0051fb90 = ((Class_004ce680*)g_game->field_10)->GetTrackCategory();
+                g_cdTrackCategory = ((Class_004ce680*)g_game->field_10)->GetTrackCategory();
                 ((Class_004ce410*)g_game->field_10)->CloseCdAudio();
-                DAT_00509720 = 1;
-            } else if (DAT_0051f320.field_e0 != lzero && *(int*)g_game->field_10 == 0
-                       && DAT_00509720 != 0) {
+                g_cdNeedsReopenAfterFocus = 1;
+            } else if (g_displayContext.field_e0 != lzero && *(int*)g_game->field_10 == 0
+                       && g_cdNeedsReopenAfterFocus != 0) {
                 ((Class_004ce260*)g_game->field_10)->OpenCdAudio();
                 ((Class_004cd9d0*)g_game->field_10)->SetCdCallback(FUN_00490fe0);
                 ((Class_004cedc0*)g_game->field_10)->EnableCdAudio(g_game->field_37f14 & 1);
                 ((Class_004ce7a0*)g_game->field_10)->SetPlaybackOrder(g_game->field_37f16);
-                ((Sound*)g_game->field_10)->SetTrackCategory(DAT_0051fb90);
+                ((Sound*)g_game->field_10)->SetTrackCategory(g_cdTrackCategory);
                 FUN_00490fe0();
-                DAT_00509720 = 0;
+                g_cdNeedsReopenAfterFocus = 0;
             }
             if (PeekMessageA(&msg, NULL, 0, 0, 0) != 0)
                 break;
-            if (DAT_0051f320.field_e0 == 0 && (g_game->field_2a44 & 1) == 0)
+            if (g_displayContext.field_e0 == 0 && (g_game->field_2a44 & 1) == 0)
                 break;
             FUN_00499890();
             {
                 DWORD tick = GetTickCount();
-                if ((int)(tick - DAT_0051fb94) >= 100) {
+                if ((int)(tick - g_lastSoundReapTick) >= 100) {
                     ((Sound*)g_game->field_10)->ReapFinishedBuffers();
-                    DAT_0051fb94 = tick;
+                    g_lastSoundReapTick = tick;
                 }
             }
         }
@@ -372,24 +372,24 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         DispatchMessageA(&msg);
     }
 
-    if (DAT_0051f320.flags.bits.b11) {
+    if (g_displayContext.flags.bits.b11) {
         ShutdownMouse();
         ShutdownGame();
     }
-    if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, DAT_005097b0, 0, 0xf003f, &hKey) == 0) {
+    if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, g_audioCdShellKey, 0, 0xf003f, &hKey) == 0) {
         RegSetValueExA(hKey, NULL, 0, type, (const BYTE*)buf40,
                        (DWORD)strlen(buf40) + 1);
         RegFlushKey(hKey);
         RegCloseKey(hKey);
         strcpy(buf40, DAT_005119b8);
-        WriteGameRegistryValue(DAT_005097a8, buf40, 0x32);
+        WriteGameRegistryValue(g_cdShellValueName, buf40, 0x32);
     }
-    ShutdownEnvironment(&DAT_0051f320);
+    ShutdownEnvironment(&g_displayContext);
     return msg.wParam;
 }
 
 // FUNCTION: 0x49ed90
-void FUN_0049ed90(void)
+void AtexitNoOp(void)
 {
 }
 
@@ -407,9 +407,9 @@ void ChdirToExeDirectory()
 }
 
 // FUNCTION: 0x49f580
-int FUN_0049f580(void)
+int GetPreferredLanguage(void)
 {
-    return 0 < strlen(DAT_0051fb50) ? (int)(const void*)DAT_0051fb50 : 0;
+    return 0 < strlen(g_preferredLanguage) ? (int)(const void*)g_preferredLanguage : 0;
 }
 
 // FUNCTION: 0x49f5a0

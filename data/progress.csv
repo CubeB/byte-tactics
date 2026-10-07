@@ -2125,12 +2125,12 @@ address,size,file,symbol,status,similarity
 0x49e610,24,src/weapons/weapons_49e610.cpp,_$E4,matched,100.0
 0x49e630,10,src/weapons/weapons_49e610.cpp,_$E2,matched,100.0
 0x49e640,64,src/game/main.cpp,?AppendToDebugFile@@YGXPAD@Z,matched,100.0
-0x49e6f0,14,src/game/main.cpp,?FUN_0049e6f0@@YGXXZ,matched,100.0
+0x49e6f0,14,src/game/main.cpp,?InstallOutOfMemoryHandler@@YGXXZ,matched,100.0
 0x49e700,291,src/game/main.cpp,?OutOfMemoryHandler@@YGXXZ,matched,100.0
 0x49e830,1365,src/game/main.cpp,?GameMain@@YGHPAX0PADH@Z,matched,100.0
-0x49ed90,1,src/game/main.cpp,?FUN_0049ed90@@YGXXZ,matched,100.0
+0x49ed90,1,src/game/main.cpp,?AtexitNoOp@@YGXXZ,matched,100.0
 0x49f540,52,src/game/main.cpp,?ChdirToExeDirectory@@YGXXZ,matched,100.0
-0x49f580,27,src/game/main.cpp,?FUN_0049f580@@YGHXZ,matched,100.0
+0x49f580,27,src/game/main.cpp,?GetPreferredLanguage@@YGHXZ,matched,100.0
 0x49f5a0,104,src/game/main.cpp,?GetPreferenceInt@@YGIPADH@Z,matched,100.0
 0x49f610,6,src/sound/play_sound.cpp,?IsWindowsSoundAvailable@@YGHXZ,matched,100.0
 0x49f620,21,src/sound/play_sound.cpp,?ResumeLoopingWav@@YGXXZ,matched,100.0

@@ -479,7 +479,7 @@ int __cdecl GetTextKeyColor();
 int __cdecl GetFontHeight();
 int __cdecl FUN_004568c0();
 unsigned int __cdecl GetTicks();
-char* __cdecl FUN_0049f580();
+char* __cdecl GetPreferredLanguage();
 
 int __stdcall FUN_00484b50(int x, int y, int param_3);
 void __stdcall FUN_00484b50(int x, int y, Pos_00498da0* out);
@@ -1034,7 +1034,7 @@ void LoadingScreenFrame(void)
             char* name = ((Mission*)g_game->field_391e9)->FUN_00435c30();
             strncpy(namebuf, name, 100);
             namebuf[99] = 0;
-            if (FUN_0049f580() != 0 && _strcmpi((const char*)FUN_0049f580(), "english") != 0) {
+            if (GetPreferredLanguage() != 0 && _strcmpi((const char*)GetPreferredLanguage(), "english") != 0) {
                 _strlwr(namebuf);
             }
             wsprintfA(buf, "%s: %s", (char*)Translate("Map"), (char*)Translate(namebuf));

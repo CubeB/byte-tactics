@@ -16,14 +16,14 @@ int __stdcall IsCurrentGadgetNamed(Gadget_0045f770* gadget, char* name);
 void __stdcall PlaySoundByName(char* str, int flag);
 void __stdcall FUN_0049fa90(Gadget_0045f770* gadget);
 void __stdcall FUN_004ab0a0(Gadget_0045f770* gadget);
-void __stdcall FUN_004afcf0(int param_1);
+void __stdcall FreeBlinkWords(int param_1);
 void DrawHelpPage();
 
 // FUNCTION: 0x45f770
 void __stdcall HandleBriefingClick(Gadget_0045f770* gadget)
 {
     if (gadget->field_60 == -1) {
-        FUN_004afcf0((int)g_game->field_519);
+        FreeBlinkWords((int)g_game->field_519);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "OK")) {

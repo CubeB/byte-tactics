@@ -48,14 +48,14 @@ int __stdcall GetButtonStageByName(Menu_00478cb0* menu, char* name);
 void __stdcall StreamSoundDelayed(char* text, int param_2, int param_3);
 void __stdcall FUN_0049fa90(Menu_00478cb0* menu);
 void DrawHelpPage();
-void __stdcall FUN_004afcf0(char* menu);
+void __stdcall FreeBlinkWords(char* menu);
 void __cdecl FUN_004d85a0(void* param_1);
 
 // FUNCTION: 0x478cb0
 void __stdcall HandleMissionBriefingClick(Menu_00478cb0* menu)
 {
     if (menu->field_60 == -1) {
-        FUN_004afcf0(g_game->menu);
+        FreeBlinkWords(g_game->menu);
         FUN_004d85a0(DAT_0051e63c);
         DAT_0051e63c = 0;
         return;

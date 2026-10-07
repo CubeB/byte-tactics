@@ -2522,7 +2522,7 @@ address,size,file,symbol,status,similarity
 0x4b7440,162,src/util/commands.cpp,?Tokenize@CommandArgs@@QAEXPAD0@Z,matched,100.0
 0x4b74f0,79,src/util/commands.cpp,?SubstituteArgs@Class_004b74f0@@QAEXPAV1@@Z,matched,100.0
 0x4b7540,77,src/util/commands.cpp,?ShiftArgs@CommandArgs@@QAEXH@Z,matched,100.0
-0x4b7590,13,src/util/commands.cpp,?FUN_004b7590@@YGXXZ,matched,100.0
+0x4b7590,13,src/util/commands.cpp,?ClearDefaultCommandHandler@@YGXXZ,matched,100.0
 0x4b75a0,42,src/util/commands.cpp,_$E5,matched,100.0
 0x4b75d0,67,src/util/commands.cpp,_$E3,matched,100.0
 0x4b7620,319,src/util/commands.cpp,?RegisterCommand@@YGXPBDP6GXPAX@ZH@Z,matched,100.0
@@ -2531,7 +2531,7 @@ address,size,file,symbol,status,similarity
 0x4b7900,270,src/util/commands.cpp,?ExecuteCommand@@YGHPAVCommandArgs@@H@Z,matched,100.0
 0x4b7a10,30,src/util/commands.cpp,?FindLineEnd@@YGHPADH@Z,matched,100.0
 0x4b7a30,142,src/util/commands.cpp,?ExecuteCommandText@@YGHPADHPAVClass_004b74f0@@H@Z,matched,100.0
-0x4b7ac0,1,src/util/commands.cpp,?FUN_004b7ac0@@YGXXZ,matched,100.0
+0x4b7ac0,1,src/util/commands.cpp,?NopRet@@YGXXZ,matched,100.0
 0x4b7ad0,45,src/util/commands.cpp,?ClearCommandTable@@YGXXZ,matched,100.0
 0x4b7b00,755,src/util/commands.cpp,?insert@?$vector@VCommandEntry@@V?$allocator@VCommandEntry@@@std@@@std@@QAEXPAVCommandEntry@@IABV3@@Z,matched,100.0
 0x4b7e00,33,src/util/commands.cpp,?AssignEntry@Class_004b7e00@@QAEPAXPAH@Z,matched,100.0

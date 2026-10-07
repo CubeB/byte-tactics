@@ -270,7 +270,7 @@ void Class_004b74f0::SubstituteArgs(Class_004b74f0* other)
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4b7590
-void FUN_004b7590()
+void ClearDefaultCommandHandler()
 {
     g_defaultCommandHandler = 0;
     g_defaultCommandMask = 0;
@@ -442,7 +442,7 @@ int __stdcall ExecuteCommandText(char* text, int len, Class_004b74f0* vars, int 
 }
 
 // FUNCTION: 0x4b7ac0
-void FUN_004b7ac0(void)
+void NopRet(void)
 {
 }
 

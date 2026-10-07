@@ -5940,7 +5940,7 @@ piece,0x501048,4,LIBCPMT.LIB#10,2,0,library data
 piece,0x501004,4,init/?FUN_004205f0@@YGXXZ,1,0,game data
 piece,0x501020,4,init/?FUN_00463ba0@@YGXXZ,1,0,game data
 piece,0x501024,4,init/?FUN_00471c80@@YGXXZ,1,0,game data
-piece,0x501038,4,init/?FUN_004b7590@@YGXXZ,1,0,game data
+piece,0x501038,4,init/?ClearDefaultCommandHandler@@YGXXZ,1,0,game data
 piece,0x501040,4,init/?InitBlitLock@@YGXXZ,1,0,game data
 piece,0x501044,4,init/?FUN_004d09e0@@YGXXZ,1,0,game data
 piece,0x501068,4,LIBCMT.LIB#344,2,0,library data

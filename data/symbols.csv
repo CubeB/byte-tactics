@@ -2519,14 +2519,14 @@ address,name
 0x4b7440,CommandArgs::Tokenize
 0x4b74f0,Class_004b74f0::SubstituteArgs
 0x4b7540,CommandArgs::ShiftArgs
-0x4b7590,FUN_004b7590
+0x4b7590,ClearDefaultCommandHandler
 0x4b7620,RegisterCommand
 0x4b7760,RegisterCommands
 0x4b78e0,SetDefaultCommandHandler
 0x4b7900,ExecuteCommand
 0x4b7a10,FindLineEnd
 0x4b7a30,ExecuteCommandText
-0x4b7ac0,FUN_004b7ac0
+0x4b7ac0,NopRet
 0x4b7ad0,ClearCommandTable
 0x4b7b00,VCommandEntry::?$vector::insert
 0x4b7e00,Class_004b7e00::AssignEntry

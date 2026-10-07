@@ -162,7 +162,7 @@ struct Smk_0047bf70_b {
     DWORD field_43c;                   // +0x43c
 };
 
-extern int __stdcall FUN_0049f710(int guid, void *display, int zero);
+extern int __stdcall DirectDrawCreateThunk(int guid, void *display, int zero);
 
 // smackw32.dll, imported by ordinal, so the exe holds no name for these three.
 // Ordinal 2 opens the decoder state (HWND, HDC, 640, 480, 0, 0), ordinal 5
@@ -323,7 +323,7 @@ int Class_0047bf70::SetupDirectDraw()
     point.x = 0;
     point.y = 0;
     ClientToScreen(hwnd, &point);
-    if (FUN_0049f710(0, ddraw, 0) != 0)
+    if (DirectDrawCreateThunk(0, ddraw, 0) != 0)
         goto fail;
     if (ddraw->lpDD->SetCooperativeLevel(hwnd, 8) != 0) {
         ddraw->lpDD->Release();

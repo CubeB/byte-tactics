@@ -48,12 +48,7 @@ struct Game {
 
 extern Game* g_game;
 
-class HapiBank {
-public:
-    void OpenAccount(const char* name);
-    int GetIntegerItem(char* name, int def);
-    void SetIntegerItem(const char* name, int value);
-};
+#include "../util/hapi_bank.h"
 
 extern char DAT_005090fc[]; // "DefeatCondition_AllUnitsKilled"
 extern char DAT_00508f30[]; // "Satisfied"

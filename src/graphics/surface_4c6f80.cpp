@@ -32,11 +32,7 @@ struct Surface_004c6f80 {
     unsigned char pixels[1];           // +0x30
 };
 
-class HapiBank {
-public:
-    void SeekBox(int pos);
-    int ReadBox(void* dst, int len);
-};
+#include "../util/hapi_bank.h"
 
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* ptr);

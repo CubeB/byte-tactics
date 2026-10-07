@@ -56,18 +56,7 @@ struct Game_00466050 {
 
 extern Game_00466050* g_game;
 
-class HapiBank {
-public:
-    int OpenAccount(char* name);
-    int SetIntegerItem(const char* name, int value);
-    int SetDoubleItem(const char* name, double value);
-    int GetIntegerItem(char* name, int def);
-    double GetDoubleItem(char* name, double def);
-    int OpenNamedBox(char* name);
-    int GetBoxSize();
-    int ReadBox(void* dst, int len);
-    int WriteBox(void* src, int len);
-};
+#include "../util/hapi_bank.h"
 
 // Loads the "Players" section of a saved game: the human player, the game
 // clock, and each player's resources, statistics, logo, side and alliances

@@ -109,13 +109,7 @@ struct SavedPiece {
     int shaded;
 };
 
-class HapiBank {
-public:
-    void SeekBox(int pos);
-    int WriteBox(void* src, int len);
-    int GetBoxSize();
-    int ReadBox(void* dst, int len);
-};
+#include "../util/hapi_bank.h"
 
 extern int GetTickRate();
 void __cdecl FUN_004d85a0(void* p);

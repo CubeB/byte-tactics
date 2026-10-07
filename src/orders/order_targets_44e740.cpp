@@ -51,13 +51,7 @@ struct Header_0044e740 {
 };
 #pragma pack(pop)
 
-class HapiBank {
-public:
-    int OpenNamedBox(char* name);
-    void SeekBox(int pos);
-    int ReadBox(void* buf, int size);
-    int WriteBox(void* src, int len);
-};
+#include "../util/hapi_bank.h"
 
 class BitWriter {
 public:

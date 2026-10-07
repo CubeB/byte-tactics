@@ -187,17 +187,7 @@ struct Struct_00487af0 {
 };
 #pragma pack(pop)
 
-class HapiBank {
-public:
-    int OpenAccount(char* name);
-    int GetIntegerItem(char* name, int def);
-    int SetIntegerItem(char* name, int value);
-    int OpenNumberedBox(int a);
-    int OpenNamedBox(char* name);
-    void SeekBox(int pos);
-    int ReadBox(void* buf, int len);
-    int WriteBox(void* buf, int len);
-};
+#include "../util/hapi_bank.h"
 
 class CobScript {
 public:

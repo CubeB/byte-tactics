@@ -140,39 +140,7 @@ struct BoxRecord {                   // 16 bytes
     int len;
 };
 
-class HapiBank {
-public:
-    AccountList* bank;               // +0x00
-    char unknown_4[4];
-    int field_8;
-
-    HapiBank* InitBank();
-    void CloseBank();
-    void NewBank();
-    int OpenBank(char* filename, char* name, char* account);
-    int SaveBank(char* filename, char* name, int compress, int audit);
-    void SaveAccount(int index, FILE* file, StringPool* pool, int compress);
-    void LoadAccount(HapiFile* file, int* image, char* name);
-    int OpenAccount(char* name);
-    int SetIntegerItem(const char* name, int value);
-    int SetDoubleItem(const char* name, double value);
-    int SetStringItem(const char* name, char* value);
-    int GetIntegerItem(char* name, int def);
-    double GetDoubleItem(char* name, double def);
-    char* GetStringItem(char* name, char* def);
-    int HasItem(const char* name);
-    int FindItem(const char* name, int create);
-    int FindNumberedBox(int number, int create);
-    int FindNamedBox(char* name, int create);
-    int OpenNumberedBox(int number);
-    int OpenNamedBox(char* name);
-    int GetBoxSize();
-    void SeekBox(int pos);
-    int SeekBoxEnd();
-    int ReadBox(void* dst, int len);
-    int WriteBox(void* src, int len);
-    void WriteAuditFile(char* filename);
-};
+#include "hapi_bank.h"
 
 // FUNCTION: 0x4b3620
 HapiBank* HapiBank::InitBank()

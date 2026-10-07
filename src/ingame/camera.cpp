@@ -56,12 +56,7 @@ struct Game {
 };
 #pragma pack(pop)
 
-class HapiBank {
-public:
-    void OpenAccount(const char* name);
-    int GetIntegerItem(char* name, int def);
-    void SetIntegerItem(const char* name, int value);
-};
+#include "../util/hapi_bank.h"
 
 // GLOBAL: 0x511de8
 extern Game* g_game;

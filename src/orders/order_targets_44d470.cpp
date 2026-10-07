@@ -1,12 +1,6 @@
 // Decompiled by Opus and DeepSeek V4.1 Flash. Names are provisional.
 
-class HapiBank {
-public:
-    int OpenNamedBox(char* name);
-    void SeekBox(int pos);
-    int ReadBox(void* buf, int size);
-    int WriteBox(void* src, int len);
-};
+#include "../util/hapi_bank.h"
 
 struct Data_0044d470 {
     int a;

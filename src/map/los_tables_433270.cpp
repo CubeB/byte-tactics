@@ -26,6 +26,9 @@ struct Elem_00434360 {
 
 typedef std::vector<Elem_00434360> Column_00433270;
 
+// Stays in its own file: the Wrap_00433270 element view keeps the innermost
+// _Destroy/deallocate calls out of line, and los_tables_432ba0.cpp's direct
+// Elem_00434360 view (which 0x433380 needs) inlines them.
 class LosTables : public std::vector<Column_00433270> {
 public:
     void FUN_00433270(short n);

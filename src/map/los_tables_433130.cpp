@@ -75,6 +75,9 @@ public:
     void LoadLosTable(TdfFile* tdf, short index);
 };
 
+// Stays in its own file: it needs a hand-written std::vector so that insert
+// and erase stay out of line, and los_tables_432ba0.cpp's real <vector>
+// would redefine it.
 class Class_00433130 {
 public:
     W2_00433130 tables;                // +0x0

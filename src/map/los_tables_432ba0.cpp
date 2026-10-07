@@ -1,7 +1,19 @@
-// Decompiled by Opus. Names are provisional.
-// std::vector<Elem_00432be0>::~vector() (its size() is 0x432be0). Each element
-// is a reference-counted string handle released by ReleaseRef. The original
-// calls it on a local vector in 0x42a8d0.
+// Decompiled by Opus, Haiku, Sonnet, deepseek-v4.1-flash, space-bunny-free, DeepSeek V4.1 Flash, Claude Opus 5.5, deepseek-v4.1 and mimo-v2.6-pro. Names are provisional.
+// The line-of-sight tables loaded from gamedata\los.tdf (numtables /
+// TABLEINFO / numlines / TABLE%d): the LosTables object at 0x51e6a0, its
+// table and line vectors, and the STL instantiations that build them.
+// Two of the part's functions stay in files of their own: 0x433130
+// (los_tables_433130.cpp) needs a hand-written std::vector so that insert and
+// erase stay out of line, which the real <vector> here would redefine, and
+// 0x433270 (los_tables_433270.cpp) needs its Wrap_00433270 element view so
+// that the innermost _Destroy/deallocate calls stay out of line.
+#include <windows.h>
+#include <algorithm>
+#include <memory>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 #include <vector>
 
 class Class_004c9390 {
@@ -16,6 +28,160 @@ struct Elem_00432be0 {
     ~Elem_00432be0() { ((Class_004c9390*)this)->ReleaseRef(); }
 };
 
+class Class_004c91a0 {
+public:
+    char* ptr;
+
+    Class_004c91a0(const Class_004c91a0& other);
+};
+
+struct Entry_00432cf0 {
+    Class_004c91a0 name;     // +0x0
+    int value;               // +0x4
+};
+
+class Class_004c93b0 {
+public:
+    char* ptr;                         // +0x0
+    int field_4;                       // +0x4
+
+    void* FUN_00432d20(Class_004c93b0* param);
+    Class_004c93b0* Assign(Class_004c93b0* param_1);
+};
+
+// An 8-byte element: the string handle itself (the decomp's separate int
+// field is the handle's field_4, so the two views agree on the layout).
+struct Elem_432cb0 {
+    Class_004c93b0 handle;
+};
+
+class Class_00432c00 {
+public:
+    void* FUN_00432c00(unsigned char param_1);
+};
+
+class Class_00432c20 {
+public:
+    void* FUN_00432c20(unsigned char param_1);
+};
+
+#pragma pack(push, 1)
+class UnitDef {
+public:
+    char unknown_0[0x249];
+    UnitDef& operator=(const UnitDef& src);
+};
+#pragma pack(pop)
+
+typedef int (__stdcall* Compare)(const UnitDef&, const UnitDef&);
+
+struct Elem_00434020 {
+    unsigned short a;                  // +0x0
+    unsigned short b;                  // +0x2
+};
+
+struct Elem_00434360 {
+    std::vector<Elem_00434020> v;      // +0x0
+};
+
+typedef std::vector<Elem_00434360> Column_00433270;
+
+class TdfRecord {
+public:
+    int GetFieldInt(const char* name, int def);
+    int GetFieldString(char* dst, char* key, int size, char* def);
+};
+
+class TdfFile {
+public:
+    void* root;                        // +0x0
+    TdfRecord* current;                // +0x4
+
+    int SelectRecord(char* name);
+    void ResetCurrentRecord();
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    int LoadFile(char* path);
+    void StripComments(char* text);
+    int SelectRecordAt(int index);
+    void LoadBuffer(char* buffer, int size, int flags, char* name);
+};
+
+typedef std::vector<Elem_00434020> Vec_004336f0;
+
+class LosLine : public Vec_004336f0 {
+public:
+    int GetLosLineStepCount();
+    void LoadLosLine(TdfFile* obj, short line, short mode);
+};
+
+// One table: a vector of lines (see 0x4335f0 below).
+class LosTable : public std::vector<Elem_00434360> {
+public:
+    // Inline copy of GetLosLine.
+    Elem_00434360* GetLine(short i) { return &(*this)[i]; }
+    // Inline copy of FUN_004335f0.
+    void SetNumLines(short n) { resize(n * 4); }
+
+    int GetLosLineCount();
+    void FUN_004335f0(short n);
+};
+
+typedef std::vector<Elem_00434020> Inner_00433500;
+
+class LosTables {
+public:
+    std::vector<Column_00433270> tables; // +0x0
+
+    void FUN_004330b0();
+    // Inline copy of GetLosTable: table number n, counted from 1.
+    LosTable* GetTable(short n)
+    {
+        // Decrements the parameter itself: keeps table 16 bits wide.
+        n--;
+        return (LosTable*)&tables[n];
+    }
+    void LoadLosTable(TdfFile* file, short table);
+    Inner_00433500* GetLosTable(int n);
+};
+
+#pragma pack(push, 1)
+class Class_00433520 {
+public:
+    char unknown_0[4];
+    int field_4;
+    int field_8;
+
+    int GetLosTableCount();
+};
+#pragma pack(pop)
+
+class Class_00433540 {
+public:
+    void FUN_00433540();
+};
+
+struct Class_4335e0 {
+public:
+    char unknown_0[4];
+    int field_4;
+
+    int GetLosLine(short param_1);
+};
+
+struct Elem_004336c0 {
+    int value;                         // +0x0
+};
+
+class Class_004339e0 {
+public:
+    void GetLosLineStep(short index, unsigned short* out1, unsigned short* out2);
+};
+
+extern void __cdecl operator delete(void*);
+
+// std::vector<Elem_00432be0>::~vector() (its size() is 0x432be0 below). Each
+// element is a reference-counted string handle released by ReleaseRef. The
+// original calls it on a local vector in 0x42a8d0.
 typedef std::vector<Elem_00432be0> Inner_00432ba0;
 typedef std::vector<Inner_00432ba0> Outer_00432ba0;
 typedef Outer_00432ba0& (Outer_00432ba0::*AssignFn_00432ba0)(const Outer_00432ba0&);
@@ -24,3 +190,366 @@ typedef Outer_00432ba0& (Outer_00432ba0::*AssignFn_00432ba0)(const Outer_00432ba
 AssignFn_00432ba0 g_assign_00432ba0 = &Outer_00432ba0::operator=;
 
 // FUNCTION: 0x432ba0 ??1?$vector@UElem_00432be0@@V?$allocator@UElem_00432be0@@@std@@@std@@QAE@XZ
+
+// std::vector<T>::size() from MSVC 5's <vector>, out of line, for a vector of
+// 4-byte string handles (its destructor is 0x432ba0 above). Taking the
+// member's address makes the compiler emit the template instantiation out of
+// line.
+typedef std::vector<Elem_00432be0> Vec_00432be0;
+typedef Vec_00432be0::size_type (Vec_00432be0::*SizeFn_00432be0)() const;
+
+// FUNCTION: 0x432be0 ?size@?$vector@UElem_00432be0@@V?$allocator@UElem_00432be0@@@std@@@std@@QBEIXZ
+SizeFn_00432be0 g_size_00432be0 = &Vec_00432be0::size;
+
+// FUNCTION: 0x432c00
+void* Class_00432c00::FUN_00432c00(unsigned char param_1)
+{
+    ((Class_004c9390*)this)->ReleaseRef();
+    if ((param_1 & 1) != 0) {
+        operator delete(this);
+    }
+    return this;
+}
+
+// Same shape as the matched sibling 0x432c00 above: a scalar deleting
+// destructor that calls the reference-count release at 0x4c9390 (already
+// named Class_004c9390::ReleaseRef in data/symbols.csv and called as a plain
+// method by every other caller) then conditionally frees this.
+// FUNCTION: 0x432c20
+void* Class_00432c20::FUN_00432c20(unsigned char param_1)
+{
+    ((Class_004c9390*)this)->ReleaseRef();
+    if ((param_1 & 1) != 0) {
+        operator delete(this);
+    }
+    return this;
+}
+
+// std::vector<Entry_00432cf0>::_Ucopy(first, last, dest): copy-constructs
+// {string handle, int} pairs into raw storage (the placement-new construct of
+// 0x432cf0 below). Called with ecx set to the vector.
+typedef std::vector<Entry_00432cf0> Vec_00432c40;
+typedef Vec_00432c40::iterator (Vec_00432c40::*UcopyFn_00432c40)(
+    Vec_00432c40::const_iterator, Vec_00432c40::const_iterator, Vec_00432c40::iterator);
+
+// _Ucopy is protected: a derived class takes its address to get it emitted.
+struct Access_00432c40 : Vec_00432c40 {
+    static UcopyFn_00432c40 fn;
+};
+
+// FUNCTION: 0x432c40 ?_Ucopy@?$vector@UEntry_00432cf0@@V?$allocator@UEntry_00432cf0@@@std@@@std@@IAEPAUEntry_00432cf0@@PBU3@0PAU3@@Z
+UcopyFn_00432c40 Access_00432c40::fn = &Access_00432c40::_Ucopy;
+
+// std::fill over an array of 8-byte string handles (compare the
+// copy_backward at 0x432cb0 below): assigns the handle through its assignment
+// operator 0x4c93b0 and copies its field_4. The function was compiled with
+// __stdcall as the default, hence `ret 0xc`.
+// FUNCTION: 0x432c80
+void __stdcall FUN_00432c80(Elem_432cb0* first, Elem_432cb0* last, Elem_432cb0* value)
+{
+    for (; first != last; ++first) {
+        first->handle.Assign(&value->handle);
+        first->handle.field_4 = value->handle.field_4;
+    }
+}
+
+// FUNCTION: 0x432cb0
+Elem_432cb0* __stdcall FUN_00432cb0(Elem_432cb0* param_1, Elem_432cb0* param_2, Elem_432cb0* param_3)
+{
+    while (param_1 != param_2) {
+        --param_2;
+        --param_3;
+        param_3->handle.Assign(&param_2->handle);
+        param_3->handle.field_4 = param_2->handle.field_4;
+    }
+    return param_3;
+}
+
+// std::allocator<Entry_00432cf0>::construct: placement-new copy of a string
+// handle plus an int. Taking the member's address makes the compiler emit the
+// template instantiation out of line.
+typedef std::allocator<Entry_00432cf0> Alloc_00432cf0;
+typedef void (Alloc_00432cf0::*ConstructFn_00432cf0)(Entry_00432cf0*, const Entry_00432cf0&);
+
+// FUNCTION: 0x432cf0 ?construct@?$allocator@UEntry_00432cf0@@@std@@QAEXPAUEntry_00432cf0@@ABU3@@Z
+ConstructFn_00432cf0 g_construct_00432cf0 = &Alloc_00432cf0::construct;
+
+// A reference-counted string handle, with the count in the dword before the
+// characters, and an int after it.
+// FUNCTION: 0x432d20
+void* Class_004c93b0::FUN_00432d20(Class_004c93b0* param)
+{
+    Assign(param);
+    field_4 = param->field_4;
+    return this;
+}
+
+// The original calls this from 0x432d20 above rather than inlining it.
+#pragma auto_inline(off)
+// FUNCTION: 0x4c93b0
+Class_004c93b0* Class_004c93b0::Assign(Class_004c93b0* param_1)
+{
+    *(int*)(param_1->ptr - 4) += 1;
+    *(int*)(ptr - 4) -= 1;
+    if (*(int*)(ptr - 4) == 0) {
+        free(ptr - 4);
+    }
+    ptr = param_1->ptr;
+    return this;
+}
+#pragma auto_inline(on)
+
+// 585-byte GUI list entry (same class as 0x432fb0 below). The 4th parameter is
+// the template's unused _Ty* tag, passed as 0 and never read.
+// Must come first: changes the evaluation order of the final count comparison.
+// FUNCTION: 0x432d40
+void __stdcall FUN_00432d40(UnitDef* first, UnitDef* last,
+                            Compare comp, int unused)
+{
+    for (; std::_SORT_MAX < last - first; ) {
+        UnitDef* _M = std::_Unguarded_partition(first, last,
+            std::_Median(UnitDef(*first),
+                UnitDef(*(first + (last - first) / 2)),
+                UnitDef(*(last - 1)), comp), comp);
+        if (last - _M <= _M - first)
+            FUN_00432d40(_M, last, comp, 0), last = _M;
+        else
+            FUN_00432d40(first, _M, comp, 0), first = _M;
+    }
+}
+
+// Element type: 0x249 bytes with a name string at +0x20 (see 0x42db60.cpp).
+static UnitDef* __inline Copy_backward(UnitDef* F, UnitDef* L, UnitDef* X)
+{
+    while (F != L)
+        *--X = *--L;
+    return X;
+}
+
+static void __inline Unguarded_insert(UnitDef* L, UnitDef V, Compare P)
+{
+    for (UnitDef* M = L; P(V, *--M); L = M)
+        *L = *M;
+    *L = V;
+}
+
+// FUNCTION: 0x432fb0
+void __stdcall FUN_00432fb0(UnitDef* first, UnitDef* last, Compare comp, void* tag)
+{
+    if (first != last)
+        for (UnitDef* M = first; ++M != last; ) {
+            UnitDef V = *M;
+            if (!comp(V, *first))
+                Unguarded_insert(M, V, comp);
+            else {
+                Copy_backward(first, M, M + 1);
+                *first = V;
+            }
+        }
+}
+
+// The out-of-line destructor body of the global at 0x51e6a0 (see
+// 0x4814c0.cpp and 0x4814f0.cpp): a std::vector of std::vector<Elem_00434360>,
+// where Elem_00434360 is a struct holding one std::vector<Elem_00434020>. The
+// Elem_00434360 elements are destroyed through allocator::destroy (0x434400).
+typedef std::vector<Column_00433270> Outer_004330b0;
+
+// FUNCTION: 0x4330b0
+void LosTables::FUN_004330b0()
+{
+    ((Outer_004330b0*)this)->~vector();
+}
+
+// The object at +0 is a std::vector<Column_00433270>, where the column is a
+// std::vector<Elem_00434360> and Elem_00434360 is a struct holding one
+// std::vector<Elem_00434020> (see docs/consolidation.md, STL instantiations):
+// its insert is 0x4340f0, the column's operator= 0x434770 and destructor
+// 0x433a80, and the held vector's _Destroy 0x433d90 and deallocate 0x433da0.
+//
+// Loads table number `table` (0-based) of gamedata\los.tdf: builds the
+// section name "TABLE%d" (table + 1), rewinds the TDF reader, finds the
+// section and, if it is there, resizes the table to numlines * 4 lines and
+// has each line read itself (LoadLosLine) from the four quarter blocks
+// (line i, numlines + i, 2 * numlines + i, 3 * numlines + i).
+// Header set matters: fewer headers change the table index's register choice.
+// FUNCTION: 0x433380
+void LosTables::LoadLosTable(TdfFile* file, short table)
+{
+    char name[32];
+    sprintf(name, "TABLE%d", table + 1);
+    ((TdfFile*)file)->ResetCurrentRecord();
+    if (file->SelectRecord(name)) {
+        LosTable* t = GetTable(table + 1);
+        short numlines = (short)file->current->GetFieldInt("numlines", 0);
+        t->SetNumLines(numlines);
+        // Short locals before the loop: match the original induction variables.
+        short n2 = numlines * 2;
+        short n3 = numlines * 3;
+        for (short i = 0; i < numlines; i++) {
+            ((LosLine*)t->GetLine(i))->LoadLosLine(file, i, 0);
+            ((LosLine*)t->GetLine(numlines + i))->LoadLosLine(file, i, 1);
+            ((LosLine*)t->GetLine(n2 + i))->LoadLosLine(file, i, 2);
+            ((LosLine*)t->GetLine(n3 + i))->LoadLosLine(file, i, 3);
+        }
+    }
+}
+
+// Returns the address of element n - 1 of the vector at +0 (the global at
+// 0x51e6a0). Callers pass size() - 1, so this is the last element. The index
+// is narrowed to a short before indexing.
+// FUNCTION: 0x433500
+Inner_00433500* LosTables::GetLosTable(int n)
+{
+    return (Inner_00433500*)&tables[(short)(n - 1)];
+}
+
+// FUNCTION: 0x433520
+int Class_00433520::GetLosTableCount()
+{
+    if (field_4 == 0) {
+        return 0;
+    }
+    return (field_8 - field_4) >> 4;
+}
+
+// std::vector<std::vector<Elem_00434020> >::~vector(): each inner vector's
+// elements are destroyed through allocator::destroy (empty for a trivial
+// element), then its _First is freed and its three pointers zeroed; finally
+// the outer _First is freed and zeroed.
+typedef std::vector<Elem_00434020> Inner_00434020;
+typedef std::vector<Inner_00434020> Outer_00434020;
+typedef void (std::allocator<Elem_00434020>::*DestroyFn_00434020)(Elem_00434020*);
+
+// Taking this address makes allocator::destroy get emitted out of line.
+DestroyFn_00434020 g_destroy_00434020 = &std::allocator<Elem_00434020>::destroy;
+
+// FUNCTION: 0x433540
+void Class_00433540::FUN_00433540()
+{
+    // Explicit destructor call from a method, as in 0x4330b0 above.
+    ((Outer_00434020*)this)->~vector();
+}
+
+// FUNCTION: 0x4335c0
+int LosTable::GetLosLineCount()
+{
+    return size();
+}
+
+// Resizes the table vector at +0 (its _First at +4) to the argument times 4
+// (the number of lines), filling with a default Elem_00434360, a struct
+// holding one std::vector<Elem_00434020> (see docs/consolidation.md). Used by
+// the table code built by 0x433130/0x433380.
+//
+// The sibling 0x433270 is the same wrapper for the next element level up
+// (`vector<vector<Elem_00434360>>`), where `resize(n, x)` has no `* 4`.
+// FUNCTION: 0x4335f0
+void LosTable::FUN_004335f0(short n)
+{
+    Elem_00434360 x;
+    resize(n * 4, x);
+}
+
+// FUNCTION: 0x4335e0
+int Class_4335e0::GetLosLine(short param_1)
+{
+    int f = field_4;
+    int val = param_1;
+    val *= 0x10;
+    return val + f;
+}
+
+// std::vector<T>::~vector() from MSVC 5's <vector>, out of line, for a
+// trivial element type: byte-identical to 0x433a30 (vector<Elem_00434020>),
+// but a separate instantiation with no callers, so the element type is not
+// known. Emitted the way 0x433a30 emits its copy.
+typedef std::vector<Elem_004336c0> Inner_004336c0;
+typedef std::vector<Inner_004336c0> Outer_004336c0;
+typedef Outer_004336c0& (Outer_004336c0::*AssignFn_004336c0)(const Outer_004336c0&);
+
+AssignFn_004336c0 g_assign_004336c0 = &Outer_004336c0::operator=;
+
+// FUNCTION: 0x4336c0 ??1?$vector@UElem_004336c0@@V?$allocator@UElem_004336c0@@@std@@@std@@QAE@XZ
+
+extern char DAT_005119b8[];
+
+// FUNCTION: 0x4336f0
+void LosLine::LoadLosLine(TdfFile* obj, short line, short mode)
+{
+    char name[32];
+    char buf[0x200];
+
+    sprintf(name, "line%d", line + 1);
+    if (obj->current->GetFieldString(buf, name, 0x200, DAT_005119b8) != 0) {
+        char* tok = strtok(buf, ", ");
+        if (tok == 0)
+            return;
+        short n = atoi(tok);
+        Elem_00434020 x;
+        resize(n, x);
+        // short counter: gives the original's countdown loop.
+        short i;
+        switch (mode) {
+        case 0:
+            // strtok called inside atoi: the element address is loaded after the call.
+            for (i = 0; i < n; i++) {
+                (*this)[i].a = atoi(tok = strtok(0, ", "));
+                (*this)[i].b = -atoi(tok = strtok(0, ", "));
+            }
+            break;
+        case 1:
+            for (i = 0; i < n; i++) {
+                (*this)[i].b = atoi(tok = strtok(0, ", "));
+                (*this)[i].a = atoi(tok = strtok(0, ", "));
+            }
+            break;
+        case 2:
+            for (i = 0; i < n; i++) {
+                (*this)[i].a = -atoi(tok = strtok(0, ", "));
+                (*this)[i].b = atoi(tok = strtok(0, ", "));
+            }
+            break;
+        case 3:
+            for (i = 0; i < n; i++) {
+                (*this)[i].b = -atoi(tok = strtok(0, ", "));
+                (*this)[i].a = -atoi(tok = strtok(0, ", "));
+            }
+            break;
+        }
+    } else {
+        Elem_00434020 x;
+        resize(0, x);
+    }
+}
+
+// FUNCTION: 0x4339c0
+int LosLine::GetLosLineStepCount()
+{
+    return size();
+}
+
+// FUNCTION: 0x4339e0
+void Class_004339e0::GetLosLineStep(short index, unsigned short* out1, unsigned short* out2)
+{
+    int idx = index;
+    unsigned char* base = (unsigned char*)*(void**)((char*)this + 4);
+    unsigned char* ptr = base + idx * 4;
+    unsigned short val1 = *(unsigned short*)ptr;
+    *out1 = val1;
+    unsigned short val2 = *(unsigned short*)(ptr + 2);
+    *out2 = val2;
+}
+
+// std::vector<Elem_00434020>::vector(const allocator&): copies the empty
+// allocator byte and zeroes _First, _Last and _End. It is also the default
+// constructor (the allocator is a default argument). Its caller 0x433380
+// builds the fill value of a vector<Elem_00434360> resize with it (the held
+// vector's destructor is 0x433a30).
+bool operator==(const Elem_00434020&, const Elem_00434020&);
+bool operator<(const Elem_00434020&, const Elem_00434020&);
+
+// A constructor's address can't be taken: explicit instantiation emits it, and
+// needs the comparison operators above.
+template class std::vector<Elem_00434020>;
+
+// FUNCTION: 0x433a10 ??0?$vector@UElem_00434020@@V?$allocator@UElem_00434020@@@std@@@std@@QAE@ABV?$allocator@UElem_00434020@@@1@@Z

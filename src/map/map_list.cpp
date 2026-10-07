@@ -304,9 +304,9 @@ public:
     bool FUN_00435c40();
     int FUN_00435c50();
     int AdvanceMission();
-    void FUN_00435d30(int param_1);
+    void RefreshMapList(int param_1);
     int LoadMission(char* map);
-    int FUN_00436860(int type, TdfFile* parser, char* schema);
+    int SelectSchema(int type, TdfFile* parser, char* schema);
     void LoadMissionData(char* name, TdfFile* parser);
     void FreeMissionData();
     int CountStartPositions();
@@ -445,7 +445,7 @@ int __stdcall LoadMapList(void** param_1, int param_2, int param_3)
         BuildDataPath(a.path, "Maps", files[s.i].data, "OTA");
         TdfFile parser;
         if (parser.LoadFile(a.path) != 0
-            && g_game->field_391e9->FUN_00436860(3, &parser, 0) != 0) {
+            && g_game->field_391e9->SelectSchema(3, &parser, 0) != 0) {
             strcpy(a.name, files[s.i].data);
             StripExtension(a.name);
             strcpy(a.lower, a.name);
@@ -945,7 +945,7 @@ int Mission::AdvanceMission()
 // Makes sure the map list at +0xd24 is loaded (dropping it first when the
 // multiplayer flag changes back to 0), then passes it to LoadMissionByName.
 // FUNCTION: 0x435d30
-void Mission::FUN_00435d30(int param_1)
+void Mission::RefreshMapList(int param_1)
 {
     if (multi != 0 && param_1 == 0 && mapList != 0) {
         FUN_004d85a0((int*)mapList);
@@ -1129,7 +1129,7 @@ int Mission::LoadMission(char* map)
     ((MissionConditions*)g_game->field_391ed)->RegisterConditions(&parser);
     killMul = GetFloat(parser.current, "killmul");
     timeMul = GetFloat(parser.current, "timemul");
-    if (!FUN_00436860(type, &parser, schema)) {
+    if (!SelectSchema(type, &parser, schema)) {
         ShowErrorBox("No suitable schema type in mission file!", "Map error");
         return 0;
     }
@@ -1167,7 +1167,7 @@ int Mission::LoadMission(char* map)
 // of players best. The chosen block's name goes to `schema` and its section
 // becomes the parser's current section. Returns 1 when one was found.
 // FUNCTION: 0x436860
-int Mission::FUN_00436860(int type, TdfFile* parser, char* schema)
+int Mission::SelectSchema(int type, TdfFile* parser, char* schema)
 {
     int order[4];
     char name[0x10];

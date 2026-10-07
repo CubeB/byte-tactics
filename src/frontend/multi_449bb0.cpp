@@ -419,7 +419,7 @@ void OpenBattleRoom()
     }
     FUN_00445e50("ENERGY", 0x2711, energy, UpdateEnergyText);
 
-    ((Class_00435d30*)g_game->map)->FUN_00435d30(1);
+    ((Class_00435d30*)g_game->map)->RefreshMapList(1);
     if (isHost && IsOnlineConfigLoaded() && DAT_00512ce8[0])
         ((Class_00435a20*)g_game->map)->LoadMissionByName(DAT_00512ce8);
     if (!((Class_00435c40*)g_game->map)->FUN_00435c40())

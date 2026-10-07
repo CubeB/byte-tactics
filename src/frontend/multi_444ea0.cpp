@@ -46,7 +46,7 @@ public:
     int LoadMissionByName(char* name);
     char* FUN_00435c30();
     bool FUN_00435c40();
-    void FUN_00435d30(int param_1);
+    void RefreshMapList(int param_1);
 };
 
 #pragma pack(push, 1)
@@ -79,7 +79,7 @@ void __stdcall FUN_0049fb10(Menu_00444ea0* menu, int value);
 void __stdcall RenderLayer(Menu_00444ea0* menu, int value);
 void __stdcall FUN_004a0570(Menu_00444ea0* menu, char* name, int value);
 
-// The call to Mission::FUN_00435d30(0) is compiled without its
+// The call to Mission::RefreshMapList(0) is compiled without its
 // argument push, although the callee ends in "ret 4" (see 0x435d30) and every
 // other call site of it does push (0x430b98, 0x4446d7, 0x44a49e). That leaves
 // the stack 4 bytes short, so this call is kept exactly as the original has
@@ -101,7 +101,7 @@ void OpenMultiMapSelector()
 
     strcpy(DAT_00512990,
            ((Mission*)g_game->field_391e9)->FUN_00435c30());
-    ((Mission*)g_game->field_391e9)->FUN_00435d30(0);
+    ((Mission*)g_game->field_391e9)->RefreshMapList(0);
 
     int n = LoadMapList(0, 0, 0);
     if (n == 0) {

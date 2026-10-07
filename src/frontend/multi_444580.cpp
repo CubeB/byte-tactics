@@ -43,7 +43,7 @@ struct Conn_00444580 {
 
 class Mission {
 public:
-    void FUN_00435d30(int param_1);
+    void RefreshMapList(int param_1);
 };
 
 struct Game_00444580 {
@@ -130,7 +130,7 @@ void FillProviderList()
     g_game->conns = (Conn_00444580*)FUN_004d83b0("DPLAY CONNECTIONS", 0x50);
     if (g_game->conns != 0)
         memset(g_game->conns, 0, 0x50);
-    g_game->field_391e9->FUN_00435d30(1);
+    g_game->field_391e9->RefreshMapList(1);
     HAPINET_uninitmultiplay(g_game->field_14);
     HAPINET_getconnections(g_game->field_14, g_game->guids, g_game->conns, g_game->descriptions, DAT_004fcfb8);
     Entry_00444580* entries = menu->entries;

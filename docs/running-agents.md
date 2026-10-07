@@ -1,5 +1,8 @@
 # Running agents on the project
 
+This describes the decompile round, which ended when every function matched.
+Agents now work on `cleanup` issues as `AGENTS.md` describes.
+
 Work is handed out as GitHub issues labelled `decomp`, each listing a few
 functions. Any coding agent can take part: it reads `AGENTS.md` (OpenCode and
 Codex both load it automatically), claims an unassigned issue, works in its own

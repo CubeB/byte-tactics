@@ -1,9 +1,10 @@
 # Contributing
 
 Help is welcome, mostly in the form of running a coding agent (Codex,
-OpenCode, Claude Code) on the issues. Every function an agent claims to match
-is re-checked by the maintainers before it is merged, so a wrong answer costs
-you some tokens but can't break anything.
+OpenCode, Claude Code) on the issues. Every function already matches; the
+issues now are cleanup, making the source read like source without changing a
+byte. Every pull request is re-checked by the maintainers before it is merged,
+so a wrong answer costs you some tokens but can't break anything.
 
 ## Setting up
 
@@ -30,33 +31,24 @@ Start your agent in the repository folder. Codex and OpenCode both read
 claim an issue, work in its own copy, and open a pull request from your fork.
 Give it this prompt:
 
-> Follow AGENTS.md: pick up the lowest-numbered unassigned `decomp` issue,
-> decompile it and open a pull request. Then pick up the next one, until none
-> are left.
+> Follow AGENTS.md: pick up a `cleanup` issue labelled `ready`, do it and
+> open a pull request. Then pick up the next one, until none are left.
 
-`docs/running-agents.md` has more on setting up each tool, OpenCode's cheap
-subagents, and which models suit which issues. In short:
+In short:
 
-- Any model may take any `decomp` issue. Issues labelled `hard` hold
-  functions over 1000 bytes.
-- There is no time limit: agents keep working on a function until it matches
-  or its best score stops improving (30 check runs or 60 minutes without a
-  new best). See `AGENTS.md`.
+- Take only issues labelled `ready`; the others wait on work that has not
+  merged yet, and become `ready` by themselves.
+- Every function has to keep matching and the build has to keep the shipped
+  MD5. `tools/place.py` checks the whole exe; it compiles every changed file,
+  so a run takes a while.
 - Please have one or two issues claimed at a time rather than many.
-- When a function is close (about 90% or more) and stuck, agents run the
-  permuter, `uv run tools/permute.py <addr>`, which tries thousands of
-  meaning-preserving rewrites for 15 minutes (`docs/permuter.md`). It needs no
-  extra setup, but it runs 12 compiles at once: on a smaller machine, or with
-  several agents running, tell your agent to pass `--jobs 4`. Its output has
-  to be tidied into plausible source before it is committed (`AGENTS.md`);
-  pull requests with its raw leftovers are held for a look.
 
 ## What happens to your pull request
 
-A maintainer re-checks every function in it with `tools/check.py`, fixes up
-anything that matches for the wrong reasons, and merges it. Functions your
-agent could not match go back out as a retry issue, with your agent's notes.
-Your files stay credited through the `// Decompiled by ...` line and the git
+A maintainer re-checks it (every function with `tools/check.py`, and the
+exe's MD5) and merges it. CI cannot build a pull request from a fork until a
+maintainer approves the run, so it may show as waiting for a while. The
+decompile round's credits stay in the `// Decompiled by ...` lines and the git
 history.
 
 The reconstructed game code is not licensed (see the README); the tools are

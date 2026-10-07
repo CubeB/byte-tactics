@@ -1,5 +1,8 @@
 # Brief for a region agent
 
+This is from the decompile round, which ended when every function matched.
+Agents now work on `cleanup` issues as `AGENTS.md` describes.
+
 Give this to every agent of a `tools/regionrun.sh` run, with the function
 address, file and region names filled in (`<...>`). See
 `splitting-huge-functions.md` for the workflow.

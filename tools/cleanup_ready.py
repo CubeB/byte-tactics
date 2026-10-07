@@ -6,8 +6,8 @@
 An issue is blocked while any issue it waits on is open. It waits on the
 issues GitHub links to it as "blocked by", and on every `#<number>` in a
 `**Blocked by:**` paragraph of its body, for issues that wait on more than
-GitHub's 50 links allow. Agents pick only `ready` issues (AGENTS.md, "Cleanup
-issues"). The build workflow runs this whenever an issue closes.
+GitHub's 50 links allow. Agents pick only `ready` issues (AGENTS.md, "Pick and
+claim an issue"). The build workflow runs this whenever an issue closes.
 """
 
 import argparse

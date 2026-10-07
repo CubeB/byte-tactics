@@ -3902,10 +3902,10 @@ piece,0x4fefd8,16,src/util/logic_error.cpp,18,0,game data
 piece,0x4fefc8,12,src/util/logic_error.cpp,17,0,game data
 piece,0x50a60c,9,src/util/tdf_4c3120.cpp,4,0,game data
 piece,0x50a604,5,src/util/tdf_4c3120.cpp,3,0,game data
-piece,0x50a5f4,13,src/gui/mouse_4c2bd0.cpp,6,0,game data
-piece,0x50a5e8,12,src/gui/mouse_4c2bd0.cpp,5,0,game data
-piece,0x50a5dc,12,src/gui/mouse_4c2bd0.cpp,4,0,game data
-piece,0x50a5d0,12,src/gui/mouse_4c2bd0.cpp,3,0,game data
+piece,0x50a5f4,13,src/gui/mouse.cpp,30,0,game data
+piece,0x50a5e8,12,src/gui/mouse.cpp,29,0,game data
+piece,0x50a5dc,12,src/gui/mouse.cpp,28,0,game data
+piece,0x50a5d0,12,src/gui/mouse.cpp,27,0,game data
 piece,0x505f10,3,src/util/hpi_4be180.cpp,3,0,game data
 piece,0x50a5a8,23,src/util/hpi_4bdd70.cpp,6,0,game data
 piece,0x50a564,5,src/util/hpi_4bdd70.cpp,5,0,game data

@@ -6,6 +6,8 @@
 // No <windows.h>: with it the two divisions below merge into one.
 extern unsigned int g_randomSeed;
 
+// Stays in its own file: it matches only with /Gi, and that per-file flag
+// moves DotProduct and CrossProduct in src/util/math.cpp.
 // FUNCTION: 0x4b6c30
 int __stdcall RandomInt(int range)
 {

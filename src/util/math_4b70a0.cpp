@@ -26,6 +26,8 @@ extern "C" double DAT_00509ef0;         // 0x8000 / pi: radians to angle units
 extern "C" double DAT_00509ef8;         // pi / 0x8000: angle units to radians
 extern "C" int DAT_0050a400[9];         // the rotation matrix FUN_004b71a7 builds
 
+// Stays in its own file: it is a gap region's hand-written assembly, which
+// the builds place apart from the game's functions in src/util/math.cpp.
 // FUNCTION: 0x4b70a0
 extern "C" __declspec(naked) int __cdecl FixedSine(unsigned short angle)
 {

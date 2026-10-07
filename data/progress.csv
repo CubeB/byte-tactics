@@ -705,7 +705,7 @@ address,size,file,symbol,status,similarity
 0x437c80,16,src/units/unit_motion.cpp,?FlushCache@CMemoryCache@@QAEXXZ,matched,100.0
 0x437c90,50,src/units/unit_motion.cpp,?ReleaseHandle@CMemoryCache@@QAEXH@Z,matched,100.0
 0x437cd0,86,src/map/meteors.cpp,?InitMeteors@@YGXXZ,matched,100.0
-0x437d30,1,src/map/meteors.cpp,?FUN_00437d30@@YGXXZ,matched,100.0
+0x437d30,1,src/map/meteors.cpp,?EmptyShutdownPreCleanup@@YGXXZ,matched,100.0
 0x437d40,11,src/map/meteors.cpp,?EnableMeteors@@YGXXZ,matched,100.0
 0x437d50,11,src/map/meteors.cpp,?DisableMeteors@@YGXXZ,matched,100.0
 0x437d60,113,src/map/meteors.cpp,?SetMeteorParams@@YGXPAVMeteorParams@@@Z,matched,100.0

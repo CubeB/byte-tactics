@@ -54,7 +54,7 @@ extern const char DAT_00502e30[8];                                              
 extern char DAT_00502e78[12];                                                                 // 0x502e78, 12 bytes; 1 of 1 files
 extern char DAT_00502f9c[104];                                                                // 0x502f9c, 104 bytes; 1 of 1 files
 extern char DAT_00503004[32];                                                                 // 0x503004, 32 bytes; 1 of 1 files
-extern char DAT_0050310c[4];                                                                  // 0x50310c, 4 bytes; 1 of 1 files
+extern char g_extTdf[4];                                                                      // 0x50310c, 4 bytes; 1 of 1 files
 extern char DAT_00503120[8];                                                                  // 0x503120, 8 bytes; 1 of 1 files
 extern char DAT_00503128[8];                                                                  // 0x503128, 8 bytes; 1 of 1 files
 extern char DAT_00503130[12];                                                                 // 0x503130, 12 bytes; 1 of 1 files
@@ -302,18 +302,18 @@ extern int g_otaEnumFileCount;                                                  
 extern unsigned char DAT_005122e4[4];                                                         // 0x5122e4, 4 bytes; nothing refers to it
 extern int g_meteorNextStrikeTime;                                                            // 0x5122e8, 4 bytes; 1 of 1 files
 extern unsigned char DAT_005122ec[4];                                                         // 0x5122ec, 4 bytes; nothing refers to it
-extern char DAT_005122f0[32];                                                                 // 0x5122f0, 32 bytes; 1 of 1 files
-extern int DAT_00512310;                                                                      // 0x512310, 4 bytes; 1 of 1 files
-extern int DAT_00512314;                                                                      // 0x512314, 4 bytes; 1 of 1 files
+extern char g_meteorWeaponName[32];                                                           // 0x5122f0, 32 bytes; 1 of 1 files
+extern int g_meteorSpawnMagnitude;                                                            // 0x512310, 4 bytes; 1 of 1 files
+extern int g_meteorSpawnInterval;                                                             // 0x512314, 4 bytes; 1 of 1 files
 extern int g_meteorActive;                                                                    // 0x512318, 4 bytes; 1 of 1 files
 extern int g_meteorStrikeEndTime;                                                             // 0x51231c, 4 bytes; 1 of 1 files
 extern unsigned char g_meteorOrigin[4];                                                       // 0x512320, 4 bytes; Point16 by value in 1 of 1 files
-extern int DAT_00512324;                                                                      // 0x512324, 4 bytes; 1 of 1 files
-extern Player_00437cd0* DAT_00512328;                                                         // 0x512328, 4 bytes; 1 of 1 files
+extern int g_meteorShowerDuration;                                                            // 0x512324, 4 bytes; 1 of 1 files
+extern Player_00437cd0* g_meteorWeapon;                                                       // 0x512328, 4 bytes; 1 of 1 files
 extern int g_meteorsEnabled;                                                                  // 0x51232c, 4 bytes; 1 of 1 files
 extern int g_meteorNextHitTime;                                                               // 0x512330, 4 bytes; 1 of 1 files
 extern unsigned char g_meteorTarget[4];                                                       // 0x512334, 4 bytes; Point16 by value in 1 of 1 files
-extern int DAT_00512338;                                                                      // 0x512338, 4 bytes; 1 of 1 files
+extern int g_meteorScheduleGap;                                                               // 0x512338, 4 bytes; 1 of 1 files
 extern unsigned char DAT_0051233c[4];                                                         // 0x51233c, 4 bytes; nothing refers to it
 extern unsigned char DAT_00512350[8];                                                         // 0x512350, 8 bytes; nothing refers to it
 extern unsigned char DAT_00512758[8];                                                         // 0x512758, 8 bytes; nothing refers to it

@@ -52,7 +52,7 @@ const char DAT_00502e30[8] = "anims";  // 0x502e30 .data
 char DAT_00502e78[12] = "Description";  // 0x502e78 .data
 char DAT_00502f9c[104] = "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]";  // 0x502f9c .data
 char DAT_00503004[32] = "c:\\cavedog\\wargame\\frontend.cpp";  // 0x503004 .data
-char DAT_0050310c[4] = "tdf";  // 0x50310c .data
+char g_extTdf[4] = "tdf";  // 0x50310c .data
 char DAT_00503120[8] = "CHOICE2";  // 0x503120 .data
 char DAT_00503128[8] = "CHOICE1";  // 0x503128 .data
 char DAT_00503130[12] = "SmallButton";  // 0x503130 .data
@@ -398,18 +398,18 @@ int g_otaEnumFileCount;  // 0x5122e0 .bss
 unsigned char DAT_005122e4[4];  // 0x5122e4 .bss
 int g_meteorNextStrikeTime;  // 0x5122e8 .bss
 unsigned char DAT_005122ec[4];  // 0x5122ec .bss
-char DAT_005122f0[32];  // 0x5122f0 .bss
-int DAT_00512310;  // 0x512310 .bss
-int DAT_00512314;  // 0x512314 .bss
+char g_meteorWeaponName[32];  // 0x5122f0 .bss
+int g_meteorSpawnMagnitude;  // 0x512310 .bss
+int g_meteorSpawnInterval;  // 0x512314 .bss
 int g_meteorActive;  // 0x512318 .bss
 int g_meteorStrikeEndTime;  // 0x51231c .bss
 unsigned char g_meteorOrigin[4];  // 0x512320 .bss
-int DAT_00512324;  // 0x512324 .bss
-Player_00437cd0* DAT_00512328;  // 0x512328 .bss
+int g_meteorShowerDuration;  // 0x512324 .bss
+Player_00437cd0* g_meteorWeapon;  // 0x512328 .bss
 int g_meteorsEnabled;  // 0x51232c .bss
 int g_meteorNextHitTime;  // 0x512330 .bss
 unsigned char g_meteorTarget[4];  // 0x512334 .bss
-int DAT_00512338;  // 0x512338 .bss
+int g_meteorScheduleGap;  // 0x512338 .bss
 unsigned char DAT_0051233c[4];  // 0x51233c .bss
 unsigned char DAT_00512350[8];  // 0x512350 .bss
 unsigned char DAT_00512758[8];  // 0x512758 .bss

@@ -33,7 +33,7 @@ struct Game {
 extern Game* g_game;
 
 void __cdecl FUN_0041dc20();
-void FUN_00437d30();
+void EmptyShutdownPreCleanup();
 void FreeUnitMemory();
 void DestroyParticleLists();
 void FreeExplosions();
@@ -58,7 +58,7 @@ void FUN_00491b60()
     ((Class_004ced40*)g_game->field_10)->StopCdAudio();
     g_game->field_10->SetTrackCategory(4);
     FUN_0041dc20();
-    FUN_00437d30();
+    EmptyShutdownPreCleanup();
     FreeUnitMemory();
     DestroyParticleLists();
     FreeExplosions();

@@ -68,21 +68,21 @@ public:
     T* end;
 };
 
-extern char DAT_0050310c[];
+extern char g_extTdf[];
 extern char DAT_005119b8[];
-extern char DAT_005122f0[];
-extern int DAT_00512310;               // strike radius
-extern int DAT_00512314;               // ticks between meteors
-extern int DAT_00512324;
-// Declared before DAT_00512338 on purpose: in the sum the operand with the
+extern char g_meteorWeaponName[];
+extern int g_meteorSpawnMagnitude;     // strike radius
+extern int g_meteorSpawnInterval;      // ticks between meteors
+extern int g_meteorShowerDuration;
+// Declared before g_meteorScheduleGap on purpose: in the sum the operand with the
 // larger symbol id goes first, and the original computes it in edx.
 extern int g_meteorStrikeEndTime;      // time the strike ends
-extern int DAT_00512338;
+extern int g_meteorScheduleGap;
 extern int g_meteorActive;             // shower active
 extern int g_meteorNextStrikeTime;     // next strike time
 extern int g_meteorsEnabled;           // enabled
 extern int g_meteorNextHitTime;        // next meteor time
-extern Player_00437cd0* DAT_00512328;  // owning player
+extern Player_00437cd0* g_meteorWeapon;  // owning player
 extern Game* g_game;
 extern Point16 g_meteorOrigin;         // origin
 extern Point16 g_meteorTarget;         // target
@@ -98,18 +98,18 @@ void __stdcall FatalError(char* text);
 void InitMeteors()
 {
     g_meteorActive = 0;
-    g_meteorNextStrikeTime = DAT_00512314;
-    DAT_00512328 = FindWeaponByName(DAT_005122f0);
-    if (DAT_00512328 == 0) {
-        DAT_00512328 = (Player_00437cd0*)((char*)g_game + 0x2cf3);
+    g_meteorNextStrikeTime = g_meteorSpawnInterval;
+    g_meteorWeapon = FindWeaponByName(g_meteorWeaponName);
+    if (g_meteorWeapon == 0) {
+        g_meteorWeapon = (Player_00437cd0*)((char*)g_game + 0x2cf3);
         return;
     }
-    if (!(DAT_00512328->flags & 0x20))
-        DAT_00512328 = (Player_00437cd0*)((char*)g_game + 0x2cf3);
+    if (!(g_meteorWeapon->flags & 0x20))
+        g_meteorWeapon = (Player_00437cd0*)((char*)g_game + 0x2cf3);
 }
 
 // FUNCTION: 0x437d30
-void FUN_00437d30(void)
+void EmptyShutdownPreCleanup(void)
 {
 }
 
@@ -128,11 +128,11 @@ void DisableMeteors()
 // FUNCTION: 0x437d60
 void __stdcall SetMeteorParams(MeteorParams* p)
 {
-    strcpy(DAT_005122f0, p->name);
-    DAT_00512310 = p->radius;
-    DAT_00512314 = (int)(30.0f / p->density);
-    DAT_00512324 = (int)(p->duration * 30.0f);
-    DAT_00512338 = (int)(p->interval * 30.0f);
+    strcpy(g_meteorWeaponName, p->name);
+    g_meteorSpawnMagnitude = p->radius;
+    g_meteorSpawnInterval = (int)(30.0f / p->density);
+    g_meteorShowerDuration = (int)(p->duration * 30.0f);
+    g_meteorScheduleGap = (int)(p->interval * 30.0f);
 }
 
 // C-style helpers returning the struct by value; with a constructor and
@@ -157,8 +157,8 @@ static inline Point16 AddPoints(Point16 a, Point16 b)
 static inline void StartShower()
 {
     g_meteorActive = 1;
-    g_meteorStrikeEndTime = DAT_00512324 + g_game->ticks;
-    g_meteorNextStrikeTime = DAT_00512338 + g_meteorStrikeEndTime;
+    g_meteorStrikeEndTime = g_meteorShowerDuration + g_game->ticks;
+    g_meteorNextStrikeTime = g_meteorScheduleGap + g_meteorStrikeEndTime;
     g_meteorNextHitTime = g_game->ticks;
     g_meteorTarget = MakePoint((int)((__int64)rand() * g_game->mapWidth / 0x8000),
                              (int)((__int64)rand() * g_game->mapHeight / 0x8000));
@@ -169,7 +169,7 @@ static inline void StartShower()
 
 // Meteor shower update, run once per game tick: starts a new shower when
 // its time comes (an inline copy of StartMeteorShower), and while one is active
-// drops a meteor every DAT_00512314 ticks from a random point around the
+// drops a meteor every g_meteorSpawnInterval ticks from a random point around the
 // origin, high up, with a velocity that carries it to the target in 90
 // ticks.
 // FUNCTION: 0x437de0
@@ -182,12 +182,12 @@ void UpdateMeteors()
     }
     if (g_meteorActive != 0) {
         if (g_meteorNextHitTime <= g_game->ticks) {
-            g_meteorNextHitTime = DAT_00512314 + g_game->ticks;
+            g_meteorNextHitTime = g_meteorSpawnInterval + g_game->ticks;
             Vec3_00437de0 vel;
             vel.x = ((g_meteorTarget.x - g_meteorOrigin.x) << 20) / 90;
             vel.y = -15 << 16;
             vel.z = ((g_meteorTarget.y - g_meteorOrigin.y) << 20) / 90;
-            int r = (int)((__int64)rand() * DAT_00512310 / 0x8000);
+            int r = (int)((__int64)rand() * g_meteorSpawnMagnitude / 0x8000);
             // The radius shift is its own statement.
             int radius = r << 16;
             int angle = (int)((__int64)rand() * 0x10000 / 0x8000);
@@ -200,7 +200,7 @@ void UpdateMeteors()
             pos.x += g_meteorOrigin.x << 20;
             pos.y = -vel.y * 90;
             pos.z += g_meteorOrigin.y << 20;
-            FUN_0049df10(DAT_00512328, &pos, &vel, 1);
+            FUN_0049df10(g_meteorWeapon, &pos, &vel, 1);
         }
         if (g_meteorStrikeEndTime <= g_game->ticks)
             g_meteorActive = 0;
@@ -211,8 +211,8 @@ void UpdateMeteors()
 void StartMeteorShower()
 {
     g_meteorActive = 1;
-    g_meteorStrikeEndTime = DAT_00512324 + g_game->field_38a47;
-    g_meteorNextStrikeTime = DAT_00512338 + g_meteorStrikeEndTime;
+    g_meteorStrikeEndTime = g_meteorShowerDuration + g_game->field_38a47;
+    g_meteorNextStrikeTime = g_meteorScheduleGap + g_meteorStrikeEndTime;
     g_meteorNextHitTime = g_game->field_38a47;
     g_meteorTarget = MakePoint((int)((__int64)rand() * g_game->mapWidth / 0x8000),
                              (int)((__int64)rand() * g_game->mapHeight / 0x8000));
@@ -258,7 +258,7 @@ void MeteorParams::LoadMeteorDefaults()
 {
     TdfFile parser;
     char path[256];
-    BuildDataPath(path, "gamedata", "meteor", DAT_0050310c);
+    BuildDataPath(path, "gamedata", "meteor", g_extTdf);
     if (parser.LoadFile(path)
         && parser.SelectRecord("Default")) {
         if (parser.current->GetFieldString((char*)this, "MeteorWeapon", 0x20, DAT_005119b8)) {

@@ -1514,7 +1514,7 @@ void UpdateMetalExtraction(Unit_437840*);
 void UpdateWindGenerator(Unit_00437910*);
 int GetHandleSize(int);
 void InitMeteors(void);
-void FUN_00437d30(void);
+void EmptyShutdownPreCleanup(void);
 void EnableMeteors(void);
 void DisableMeteors(void);
 void SetMeteorParams(Params_00437d60*);

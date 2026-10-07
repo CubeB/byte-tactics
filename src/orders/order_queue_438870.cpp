@@ -212,7 +212,7 @@ public:
     int field_4e;                      // +0x4e
     Attached_0043a1f0* attached;       // +0x52
 
-    // In order_list_43a0c0.cpp: it needs `kind(k)` as a plain member
+    // In order_list_439b30.cpp: it needs `kind(k)` as a plain member
     // initialiser, which this class's second base rules out (98.9%).
     Class_0043a1f0(int k, Unit* o, Vec3_0043a1f0* p, int a, int b, int c);
     ~Class_0043a1f0();

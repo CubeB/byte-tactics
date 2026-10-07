@@ -5772,8 +5772,8 @@ piece,0x4fcc7c,4,src/game/console_commands_4170c0.cpp,3,0,game data
 piece,0x5024b4,6,src/game/console_commands_416e90.cpp,6,0,game data
 piece,0x4fcc78,4,src/game/console_commands_416db0.cpp,3,0,game data
 piece,0x50248c,21,src/game/console_commands_4168d0.cpp,3,0,game data
-piece,0x502484,5,src/game/console_commands_416860.cpp,3,0,game data
-piece,0x4fcc70,8,src/game/console_commands_416780.cpp,3,0,game data
+piece,0x502484,5,src/game/console_commands_416240.cpp,59,0,game data
+piece,0x4fcc70,8,src/game/console_commands_416240.cpp,50,0,game data
 piece,0x502478,12,src/game/console_commands_416240.cpp,3,0,game data
 piece,0x50244c,44,src/network/net_stats.cpp,27,0,game data
 piece,0x4fcc40,4,src/orders/vtol_orders_4158d0.cpp,3,0,game data

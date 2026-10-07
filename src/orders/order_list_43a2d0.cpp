@@ -20,11 +20,7 @@ struct Game {
 
 extern Game* g_game;
 
-class HapiBank {
-public:
-    int HasItem(const char* param_1);
-    void SetStringItem(char* key, char* value);
-};
+#include "../util/hapi_bank.h"
 
 // FUNCTION: 0x43a2d0
 void __stdcall WriteUnitTypeNameKey(HapiBank* file, unsigned short id)

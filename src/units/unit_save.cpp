@@ -187,17 +187,7 @@ struct Struct_00487af0 {
 };
 #pragma pack(pop)
 
-class HapiBank {
-public:
-    int OpenAccount(char* name);
-    int GetIntegerItem(char* name, int def);
-    int SetIntegerItem(char* name, int value);
-    int OpenNumberedBox(int a);
-    int OpenNamedBox(char* name);
-    void SeekBox(int pos);
-    int ReadBox(void* buf, int len);
-    int WriteBox(void* buf, int len);
-};
+#include "../util/hapi_bank.h"
 
 class CobScript {
 public:
@@ -253,13 +243,13 @@ void __stdcall FUN_0047db20(Unit* unit);
 void __stdcall LoadUnits(HapiBank* file)
 {
     if (file->OpenAccount("Units")) {
-        if (((HapiBank*)file)->GetIntegerItem("Version", 0) == 0x11) {
-            int n = ((HapiBank*)file)->GetIntegerItem("Number of Units", 0);
+        if (file->GetIntegerItem("Version", 0) == 0x11) {
+            int n = file->GetIntegerItem("Number of Units", 0);
             for (int i = 0; i < n; i++) {
-                if (((HapiBank*)file)->OpenNumberedBox(i)) {
-                    ((HapiBank*)file)->SeekBox(0);
+                if (file->OpenNumberedBox(i)) {
+                    file->SeekBox(0);
                     SaveRec rec;
-                    int len = ((HapiBank*)file)->ReadBox(&rec, 0xb8);
+                    int len = file->ReadBox(&rec, 0xb8);
                     if (len != 0xb8) {
                         if (len + 2 != 0xb8)
                             continue;
@@ -312,14 +302,14 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
     SaveRec rec;
     char name[32];
     char script[32];
-    int n = ((HapiBank*)file)->GetIntegerItem("Number of Units", 0);
+    int n = file->GetIntegerItem("Number of Units", 0);
     int found = 0;
     int i;
     for (i = 0; i < n; i++) {
-        if (!((HapiBank*)file)->OpenNumberedBox(i))
+        if (!file->OpenNumberedBox(i))
             return 0;
-        ((HapiBank*)file)->SeekBox(0);
-        if (((HapiBank*)file)->ReadBox(&rec, 0xb8) != 0xb8)
+        file->SeekBox(0);
+        if (file->ReadBox(&rec, 0xb8) != 0xb8)
             return 0;
         if (rec.id == id) {
             found = 1;
@@ -407,7 +397,7 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
     if (unit->listHead != 0)
         ((Class_004388b0*)unit->listHead)->FUN_004388b0();
     sprintf(script, "Script%i", i);
-    ((HapiBank*)file)->OpenNamedBox(script);
+    file->OpenNamedBox(script);
     ((CobScript*)unit->field_9a)->LoadScriptState(file);
 
     for (int j = 0; j < 3; j++) {
@@ -465,7 +455,7 @@ void __stdcall SaveUnits(HapiBank* file)
             char bufHead[32];
 
             sprintf(script, "Script%i", count);
-            ((HapiBank*)file)->OpenNamedBox(script);
+            file->OpenNamedBox(script);
             ((CobScript*)unit->field_9a)->SaveScriptState(file);
 
             int n = 0;
@@ -553,14 +543,14 @@ void __stdcall SaveUnits(HapiBank* file)
                 rec.pieces[k].fl.b4 = unit->pieces[k].fl.b4;
             }
 
-            ((HapiBank*)file)->OpenNumberedBox(count);
-            ((HapiBank*)file)->WriteBox(&rec, 0xb8);
+            file->OpenNumberedBox(count);
+            file->WriteBox(&rec, 0xb8);
             count++;
         }
     }
     if (count > 0) {
-        ((HapiBank*)file)->SetIntegerItem("Number of Units", count);
-        ((HapiBank*)file)->SetIntegerItem("Version", 0x11);
+        file->SetIntegerItem("Number of Units", count);
+        file->SetIntegerItem("Version", 0x11);
     }
 }
 

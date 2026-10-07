@@ -51,13 +51,7 @@ struct Header_0044e740 {
 };
 #pragma pack(pop)
 
-class HapiBank {
-public:
-    int OpenNamedBox(char* name);
-    void SeekBox(int pos);
-    int ReadBox(void* buf, int size);
-    int WriteBox(void* src, int len);
-};
+#include "../util/hapi_bank.h"
 
 class BitWriter {
 public:
@@ -124,9 +118,9 @@ Class_0044e740::Class_0044e740(int owner, HapiBank* file, char* name)
     field_4 = (Source_0044e740*)owner;
     vtable = DAT_004fd3f8;
     file->OpenNamedBox(name);
-    ((HapiBank*)file)->SeekBox(0);
+    file->SeekBox(0);
     Header_0044e740 hdr;
-    if (((HapiBank*)file)->ReadBox(&hdr, 0x2a) == 0x2a) {
+    if (file->ReadBox(&hdr, 0x2a) == 0x2a) {
         self = LoadUnit(hdr.id, file);
         field_8 = hdr.flag;
         target = hdr.target;
@@ -160,8 +154,8 @@ int Class_0044e740::FUN_0044e880(int unused, HapiBank* file, char* name)
     hdr.heading = heading;
     hdr.value_28 = value_26;
     file->OpenNamedBox(name);
-    ((HapiBank*)file)->SeekBox(0);
-    ((HapiBank*)file)->WriteBox(&hdr, 0x2a);
+    file->SeekBox(0);
+    file->WriteBox(&hdr, 0x2a);
     return 1;
 }
 

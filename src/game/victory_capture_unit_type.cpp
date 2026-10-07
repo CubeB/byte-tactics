@@ -18,12 +18,7 @@ struct Unit {
 
 void __stdcall PlaySoundByName(char* str, int flag);
 
-class HapiBank {
-public:
-    void OpenAccount(const char* name);
-    void SetIntegerItem(const char* name, int value);
-    int GetIntegerItem(char* name, int def);
-};
+#include "../util/hapi_bank.h"
 
 // The "capture unit type" victory condition (vtable 0x4fd8e8). Same family
 // as VictoryBuildUnitType and VictoryKillAllOfType.

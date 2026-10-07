@@ -3,10 +3,7 @@
 // result goes through an int local; assigning it directly keeps the old field
 // value in a separate register (esi).
 
-class TdfRecord {
-public:
-    int GetFieldInt(const char* name, int def);
-};
+#include "../util/tdf.h"
 
 struct Source_004ae410 {
     char unknown_0[4];

@@ -22,17 +22,17 @@ int __stdcall SuppressOrder(Unit* unit,Order* order,unsigned flags)
         order->radius=FUN_0049adf0(unit,order->weapon); return 1;
     case 1:
         if(order->weapon==2) {
-            ((Unit*)unit)->ClaimWeapons(3);
+            unit->ClaimWeapons(3);
             SetWeaponTargetPos(unit,&order->pos,2);
             order->flags=0x1c00; return 1;
         }
-        ((Unit*)unit)->ClaimWeapons(0);
-        ((Unit*)unit)->ClaimWeapons(1);
+        unit->ClaimWeapons(0);
+        unit->ClaimWeapons(1);
         SetWeaponTargetPos(unit,&order->pos,0);
         SetWeaponTargetPos(unit,&order->pos,1);
         order->flags=0x1c00; return 1;
     case 2:
-        ((Unit*)unit)->ReleaseWeapons(3);
+        unit->ReleaseWeapons(3);
         if(flags&0x400) { order->state=1; return 6; }
         if(unit->active) {
             if(order->radius<=0) return 9;

@@ -15,12 +15,7 @@ struct Unit {
     short id;                          // +0xa8
 };
 
-class HapiBank {
-public:
-    int OpenNamedBox(char* name);
-    void SeekBox(int pos);
-    int ReadBox(void* buf, int size);
-};
+#include "../util/hapi_bank.h"
 
 Unit* __stdcall LoadUnit(unsigned short index, void* file);
 

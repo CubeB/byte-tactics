@@ -142,7 +142,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
             ((Class_00439e80*)order)->FUN_00439e80(30);
             return 2;
         }
-        ((Unit*)unit)->ClaimWeapons(3);
+        unit->ClaimWeapons(3);
         FUN_0047ddc0(def, &order->pos);
         ((Class_004895c0*)((char*)order + 0x12))->SetUnit(
             CreateUnit(unit->player, (short)order->type, order->pos, 0, 1, 0));
@@ -214,7 +214,7 @@ int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
             return 8;
         }
         if (target->progress == 0.0f) return 5;
-        ((Unit*)unit)->ClaimWeapons(3);
+        unit->ClaimWeapons(3);
         StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &order->target->pos) - unit->angle);
         FUN_0041c110(unit);
         return 1;
@@ -325,7 +325,7 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
         int experience = 0;
         experience = order->target.Get()->experience;
         order->duration = ((experience / 5 + 10) * order->duration * 10) / 100;
-        ((Unit*)unit)->ClaimWeapons(3);
+        unit->ClaimWeapons(3);
         ((Class_00438ad0*)order)->FUN_00438ad0(order->target.Get()->cell, order->target.Get()->footprint);
         order->flags = 0x100e8;
         return 1;

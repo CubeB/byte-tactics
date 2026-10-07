@@ -77,13 +77,13 @@ int __stdcall ReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
     switch (state) {
     case 0:
         if (unit->active && (unit->def->flags & 0x400)) {
-            if (!((Unit*)unit)->CanReclaim(target)) {
+            if (!unit->CanReclaim(target)) {
                 QueueUnitSpeech(unit, 7, "That unit cannot be reclaimed");
                 QueueUnitSpeech(unit, 7, "Reclamation failed");
                 return 8;
             }
             ((Class_00438880*)order)->FUN_00438880("Reclaiming");
-            ((Unit*)unit)->ClaimWeapons(3);
+            unit->ClaimWeapons(3);
             return 1;
         }
         QueueUnitSpeech(unit, 7, "Reclamation failed");
@@ -111,7 +111,7 @@ int __stdcall ReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
         range = unit->def->buildRange;
         range += target->def->radius;
         int square = delta.Square();
-        if (square <= range * range && ((Unit*)unit)->CanReclaim(order->target.Get())) {
+        if (square <= range * range && unit->CanReclaim(order->target.Get())) {
             if (order->duration >= 15) {
                 DamageUnit(unit, order->target.Get(), order->elapsed, 5, 0);
                 order->duration = 0;

@@ -12,12 +12,7 @@
 // third copy, reached 84.1%; those passes are in git history.
 #include <vector>
 
-class TdfFile {
-public:
-    void* data;                        // +0x0
-    int field_4;                       // +0x4
-    int field_8;                       // +0x8
-};
+#include "../util/tdf.h"
 
 typedef std::vector<TdfFile*> Vec_00425480;
 typedef void (Vec_00425480::*InsertFn_00425480)(

@@ -18,15 +18,7 @@
 #include <string.h>
 #include <vector>
 
-class HapiBank {
-public:
-    void OpenAccount(char* name);
-    int SetIntegerItem(const char* name, int value);
-    int OpenNamedBox(char* name);
-    int GetBoxSize();
-    void SeekBox(int pos);
-    int WriteBox(void* src, int len);
-};
+#include "../util/hapi_bank.h"
 
 struct Vec3_00424890 {
     int x, y, z;

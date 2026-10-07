@@ -2,14 +2,7 @@
 // Walks the list of entries held by the global at DAT_00511fb4 and returns
 // the first one that contains `name` (0 if none does).
 
-class TdfFile {
-public:
-    char unknown_0[4];
-    int field_0x4;
-
-    void ResetCurrentRecord();
-    int SelectRecord(char* name);
-};
+#include "../util/tdf.h"
 
 struct Class_00422460 {
     int unknown_0;

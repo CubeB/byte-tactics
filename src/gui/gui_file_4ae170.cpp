@@ -1,11 +1,7 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 #include <string.h>
 
-class TdfRecord {
-public:
-    int GetFieldString(char* dst, char* key, size_t size, char* def);
-    int GetFieldInt(const char* name, int def);
-};
+#include "../util/tdf.h"
 
 struct Source_004ae170 {
     char unknown_0[4];
@@ -32,10 +28,10 @@ char* __stdcall Translate(char* text);
 // FUNCTION: 0x4ae170
 void __stdcall ReadSliderFields(Obj_004ae170* obj, Source_004ae170* src)
 {
-    obj->range = ((TdfRecord*)src->tdf)->GetFieldInt("range", 0);
-    obj->thick = (short)((TdfRecord*)src->tdf)->GetFieldInt("thick", 0);
-    obj->knobpos = ((TdfRecord*)src->tdf)->GetFieldInt("knobpos", 0);
-    obj->knobsize = ((TdfRecord*)src->tdf)->GetFieldInt("knobsize", 0);
+    obj->range = src->tdf->GetFieldInt("range", 0);
+    obj->thick = (short)src->tdf->GetFieldInt("thick", 0);
+    obj->knobpos = src->tdf->GetFieldInt("knobpos", 0);
+    obj->knobsize = src->tdf->GetFieldInt("knobsize", 0);
     obj->field_144 = 0;
     src->tdf->GetFieldString(obj->text, "text", 0x80, DAT_005119b8);
     strcpy(obj->text, Translate(obj->text));

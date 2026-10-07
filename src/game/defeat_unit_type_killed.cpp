@@ -14,12 +14,7 @@ struct Unit {
 };
 #pragma pack(pop)
 
-class HapiBank {
-public:
-    void OpenAccount(const char* name);
-    void SetIntegerItem(const char* name, int value);
-    int GetIntegerItem(char* name, int def);
-};
+#include "../util/hapi_bank.h"
 
 class DefeatUnitTypeKilled {
 public:

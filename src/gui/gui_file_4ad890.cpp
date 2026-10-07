@@ -1,15 +1,7 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 
-class TdfRecord {
-public:
-    int GetFieldString(char* dst, char* key, unsigned size, char* def);
-    int GetFieldInt(const char* name, int def);
-};
+#include "../util/tdf.h"
 
-class TdfFile {
-public:
-    int SelectRecord(char* name);
-};
 
 struct Source_004ad890 {
     char unknown_0[4];
@@ -36,14 +28,14 @@ extern char DAT_005119b8[];
 // FUNCTION: 0x4ad890
 void __stdcall ReadPanelFields(Obj_004ad890* obj, Source_004ad890* src)
 {
-    obj->field_b6 = (short)((TdfRecord*)src->tdf)->GetFieldInt("totalgadgets", 0);
+    obj->field_b6 = (short)src->tdf->GetFieldInt("totalgadgets", 0);
     src->tdf->GetFieldString(obj->panel, "panel", 0x10, DAT_005119b8);
     src->tdf->GetFieldString(obj->crdefault, "crdefault", 0x10, DAT_005119b8);
     src->tdf->GetFieldString(obj->escdefault, "escdefault", 0x10, DAT_005119b8);
     src->tdf->GetFieldString(obj->defaultfocus, "defaultfocus", 0x10, DAT_005119b8);
     if (((TdfFile*)src)->SelectRecord("VERSION") == 1) {
-        obj->major = (char)((TdfRecord*)src->tdf)->GetFieldInt("major", 0);
-        obj->minor = (char)((TdfRecord*)src->tdf)->GetFieldInt("minor", 0);
-        obj->revision = (char)((TdfRecord*)src->tdf)->GetFieldInt("revision", 0);
+        obj->major = (char)src->tdf->GetFieldInt("major", 0);
+        obj->minor = (char)src->tdf->GetFieldInt("minor", 0);
+        obj->revision = (char)src->tdf->GetFieldInt("revision", 0);
     }
 }

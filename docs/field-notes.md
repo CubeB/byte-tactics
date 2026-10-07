@@ -199,14 +199,18 @@ not count against the run budget, so use it freely.
 
 ### 12. When matching the bytes would require a spelling you believe is buggy
 
-`0x4caa40`'s height guard is `dec esi / js / inc esi` in the original, reachable
-only from `if (--h < 0) { h++; ... }`, which **stores `h-1` and decodes one row
-too few**. The worker kept the correct `cmp esi, 1 / jl`, cost 0.7%, and reported
-it as a possible original bug with the evidence.
+`0x4caa40`'s height guard is `dec esi / js / inc esi` in the original. A worker
+first read it as `if (--h < 0) { h++; ... }` storing `h-1`, a decoder that drops
+the last row of every image, kept a different guard (`cmp esi, 1 / jl`) at a cost
+of 0.7%, and reported a possible original bug. That reading was wrong: the `inc`
+restores `h` before the row counter is saved (0x4cab3a), and each row then counts
+it down to 0, so `h` rows are decoded (#5772). The original is a
+`for (rows = h - 1; rows >= 0; rows--)` loop and matches exactly.
 
-Matching the instruction stream there would have satisfied `check.py` and left a
-decoder that drops the last row of every image. **Say which you did and why**, so
-the residual reads as a decision rather than an oversight.
+The lesson stands with a better example. If matching the bytes seems to require a
+spelling you believe is buggy, **trace the stored value through the loop before
+calling it a bug** (count the iterations for h = 0, 1, 2), and say which spelling
+you kept and why, so the residual reads as a decision rather than an oversight.
 
 ### 13. Re-derive inherited "suspected original bug" notes
 
@@ -368,8 +372,11 @@ guide's "known wall" note on `vector::insert`.*
    chosen would pay for itself across all of them.
 3. **An x87 zero-compare inversion** affecting six functions, where `0x405300`
    and `0x403a20` contradict each other on the same construct.
-4. **`0x48a870` looks like a genuine original bug**: `draft*0xffff + seaLevel`
-   overflows. Still unresolved.
+4. **`0x48a870` is not an overflow bug**: its on-water branch computes
+   `(draft*0xffff + seaLevel) << 16`, which wraps to exactly
+   `(seaLevel - draft) << 16` (the `draft * 2^32` term vanishes in 32 bits; checked
+   over all 65,536 byte pairs), the same value the neighbouring branch computes
+   directly (#5772).
 5. **Similarity percentage can rise while code is deleted.** Always read the byte
    counts, not just the percentage.
 6. The exe holds **both** register variants of `vector<T>::insert` (`0x46e640`

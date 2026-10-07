@@ -1,10 +1,6 @@
 // Decompiled by Sonnet. Names are provisional.
 
-class TdfRecord {
-public:
-    char unknown_0[0x21];
-    int GetFieldInt(const char* name, int def);
-};
+#include "../util/tdf.h"
 
 struct StructA_004ada10 {
     char unknown_0[0xb6];

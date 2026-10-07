@@ -26,6 +26,8 @@ If any of these fail, stop and tell the human; do not try to install things.
 
 ## 2. Pick and claim an issue
 
+For a `cleanup` issue, pick it as in section 6 and claim it as below.
+
 Every `decomp` issue is open to every model. Issues labelled
 `hard` hold the biggest functions (over 1000 bytes); the label only marks
 their size, not a narrower list of models. Every function is worked until it
@@ -244,6 +246,38 @@ work on the same issue afterwards, open a new pull request for it.
 
 If you have to stop before finishing, open the pull request with what you have
 and list the functions you did not reach as `not reached`.
+
+## 6. Cleanup issues
+
+Issues labelled `cleanup` reshape matched code without changing the exe:
+gathering a module's files into one translation unit, then naming its
+placeholders. Each issue's body says exactly what to do and how to check it;
+this section says which one to take.
+
+**Take only issues labelled `ready`.** An issue labelled `blocked` waits on
+others (listed under "Blocked by" on the issue) and becomes `ready` by itself
+when they close; never relabel one by hand.
+
+```sh
+gh issue list --label cleanup --label ready --state open --search "no:assignee" --limit 20
+```
+
+Claim it as in section 2, then follow its body. The work goes in this order,
+and the labels enforce it:
+
+1. **Gather** (`Clean-up: gather <module> ...`): every one is ready now.
+2. **Join** (`Clean-up: join the <module> parts ...`): after all of that
+   module's gather parts are merged.
+3. **Name** (`Clean-up: name the placeholders in <module>`): after that
+   module's gather or join is merged, since both rewrite the same files.
+4. **Shared names** (`Clean-up: name the placeholders shared across modules`):
+   last, one group per claim.
+
+Work on one module at a time, and do not take a second issue on a module
+someone else has claimed. A rename rewrites every file that spells the name,
+in other modules too; if its rebase conflicts, reset to main and run
+`tools/rename.py` again with the same pairs. Put `Closes #<N>` in the pull
+request body: closing the issue is what frees the issues waiting on it.
 
 ## Writing style
 

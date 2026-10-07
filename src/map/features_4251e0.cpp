@@ -8,15 +8,7 @@
 // The same vector's insert is 0x425480 (called from 0x4222e0).
 #include <vector>
 
-class TdfFile {
-public:
-    void* data;                        // +0x0
-    int field_4;                       // +0x4
-    int field_8;                       // +0x8
-
-    TdfFile();
-    ~TdfFile();
-};
+#include "../util/tdf.h"
 
 typedef std::vector<TdfFile*> Vec_004251e0;
 typedef void (Vec_004251e0::*DestroyFn_004251e0)(Vec_004251e0::iterator, Vec_004251e0::iterator);

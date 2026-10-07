@@ -6,21 +6,8 @@
 
 class TdfRecord;
 
-class TdfFile {
-public:
-    int field_0;
-    TdfRecord* current;                 // +0x4
-    int field_8;
-    TdfFile();
-    ~TdfFile();
-    int LoadFile(char* file);
-    int SelectRecord(char* name);
-};
+#include "../util/tdf.h"
 
-class TdfRecord {
-public:
-    int GetFieldInt(const char* name, int def);
-};
 
 struct FindData_0041d4c0 {
     char unknown_0[0x14];

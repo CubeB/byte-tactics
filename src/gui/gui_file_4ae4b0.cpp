@@ -2,10 +2,7 @@
 // Reads the "filename" key of a TDF entry (sibling of 0x4ae300).
 #include <string.h>
 
-class TdfRecord {
-public:
-    int GetFieldString(char* dst, char* key, size_t size, char* def);
-};
+#include "../util/tdf.h"
 
 struct Source_004ae4b0 {
     char unknown_0[4];

@@ -35,30 +35,10 @@ struct Vec3_00437de0 {
     int z;
 };
 
-class HapiBank {
-public:
-    void OpenAccount(const char* name);
-    void SetIntegerItem(const char* name, int value);
-    int GetIntegerItem(char* name, int def);
-};
+#include "../util/hapi_bank.h"
 
-class TdfRecord {
-public:
-    int GetFieldString(char* dst, char* key, size_t size, char* def);
-    int GetFieldInt(const char* name, int def);
-    double GetFieldDouble(const char* name, double def);
-};
+#include "../util/tdf.h"
 
-class TdfFile {
-public:
-    int field_0;
-    TdfRecord* current;            // +0x4
-    int field_8;
-    TdfFile();
-    ~TdfFile();
-    int LoadFile(char* file);
-    int SelectRecord(char* name);
-};
 
 class MeteorParams {
 public:

@@ -1,12 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 
-class HapiBank {
-public:
-    int OpenNamedBox(char* name);
-    void SeekBox(int pos);
-    int ReadBox(void* buf, int size);
-    int WriteBox(void* src, int len);
-};
+#include "../util/hapi_bank.h"
 
 struct Vec3_0044d010 {
     int x;
@@ -57,9 +51,9 @@ Class_0044d010::Class_0044d010(int owner, HapiBank* file, char* name)
         bad = 1;
     if (!bad) {
         file->OpenNamedBox(name);
-        ((HapiBank*)file)->SeekBox(0);
+        file->SeekBox(0);
         Header_0044d010 hdr;
-        if (((HapiBank*)file)->ReadBox(&hdr, 16) == 16) {
+        if (file->ReadBox(&hdr, 16) == 16) {
             v.x = hdr.v.x;
             v.y = hdr.v.y;
             v.z = hdr.v.z;
@@ -78,7 +72,7 @@ int Class_0044d010::FUN_0044d090(int unused, HapiBank* file, char* name)
     hdr.v.y = v.y;
     hdr.v.z = v.z;
     file->OpenNamedBox(name);
-    ((HapiBank*)file)->SeekBox(0);
-    ((HapiBank*)file)->WriteBox(&hdr, 16);
+    file->SeekBox(0);
+    file->WriteBox(&hdr, 16);
     return 1;
 }

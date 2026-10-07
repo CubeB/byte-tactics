@@ -14,11 +14,7 @@ struct Surface_004c6f10 {
     char* data;                        // +0xc
 };
 
-class HapiBank {
-public:
-    void SeekBox(int pos);
-    int WriteBox(void* src, int len);
-};
+#include "../util/hapi_bank.h"
 
 // FUNCTION: 0x4c6f10
 void __stdcall SaveSurface(Surface_004c6f10* surface, HapiBank* file)

@@ -1052,8 +1052,8 @@ void UnitMotion::SaveMotion(Unit* info, HapiBank* file)
     hdr.flag = flag;
     sprintf(name, "u%04xmob", info->id);
     file->OpenNamedBox(name);
-    ((HapiBank*)file)->SeekBox(0);
-    ((HapiBank*)file)->WriteBox(&hdr, 0x23);
+    file->SeekBox(0);
+    file->WriteBox(&hdr, 0x23);
 }
 
 // Load counterpart of 0x43dd70: reads this unit type's movement state back
@@ -1065,8 +1065,8 @@ void UnitMotion::LoadMotion(Unit* unit, HapiBank* file)
     Record_0043dd70 rec;
     sprintf(name, "u%04xmob", unit->id);
     file->OpenNamedBox(name);
-    ((HapiBank*)file)->SeekBox(0);
-    ((HapiBank*)file)->ReadBox(&rec, 0x23);
+    file->SeekBox(0);
+    file->ReadBox(&rec, 0x23);
     velocity = rec.velocity;
     p2 = rec.p2;
     field_20 = rec.field_20;

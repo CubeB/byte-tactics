@@ -2,9 +2,9 @@
 // Adds build progress to a unit under construction: `amount` build points
 // (negative when it is being taken apart) move the remaining fraction at
 // +0x104 towards 0 (done) or 1 (nothing built), clamped to [0, 1]. Building
-// charges the builder's resource store (FUN_004011c0) for the metal and
-// energy share of the step and only proceeds when the store accepts it.
-// Unbuilding adds the energy share to the unit's float at +0xd4 (times 0.5 or
+// charges the builder's resource store (FUN_004011c0, energy first) for the
+// energy and metal share of the step and only proceeds when the store accepts it.
+// Unbuilding adds the metal share to the unit's float at +0xd4 (times 0.5 or
 // 0.7 for a type 2 player when g_game+0x37eee is 0 or 1) and destroys the
 // unit through DamageUnit once nothing is left. Either way the unit's hit
 // points follow the progress, and a finished unit goes to FinishConstruction.
@@ -19,8 +19,8 @@
 #pragma pack(push, 1)
 struct UnitType_0041ba60 {
     char unknown_0[0x186];
-    float metalCost;                   // +0x186
-    float energyCost;                  // +0x18a
+    float energyCost;                  // +0x186 (TDF buildcostenergy)
+    float metalCost;                   // +0x18a (TDF buildcostmetal)
     char unknown_18e[0x1ea - 0x18e];
     int buildTime;                     // +0x1ea
     char unknown_1ee[0x1fa - 0x1ee];
@@ -57,7 +57,7 @@ struct Game {
 
 class UnitResources {
 public:
-    int FUN_004011c0(float dx, float dy);
+    int FUN_004011c0(float energy, float metal);
 };
 
 struct Builder_0041ba60 {
@@ -84,11 +84,11 @@ int __stdcall AddBuildProgress(Builder_0041ba60* builder, Unit* unit, float amou
     float prev = unit->remaining;
     float next = min(max(prev - amount / type->buildTime, 0.0f), 1.0f);
     float step = prev - next;
-    float metal = type->metalCost * step;
-    float energy = type->energyCost * step;
+    float energyCharge = type->energyCost * step;
+    float metalCharge = type->metalCost * step;
     int hp = (int)(prev * type->maxHp) - (int)(next * type->maxHp);
     if (amount < 0.0f) {
-        float refund = -energy;
+        float refund = -metalCharge;
         float& store = unit->field_d4;
         if (unit->player->active != 0 && unit->player->type == 2) {
             switch (g_game->difficulty) {
@@ -110,7 +110,7 @@ int __stdcall AddBuildProgress(Builder_0041ba60* builder, Unit* unit, float amou
         unit->flags |= 0x2000;
         if (next >= 1.0f)
             DamageUnit(unit, unit, 30000, 9, 0);
-    } else if (builder->store.FUN_004011c0(metal, energy)) {
+    } else if (builder->store.FUN_004011c0(energyCharge, metalCharge)) {
         unit->hp = min(hp + unit->hp, unit->type->maxHp);
         unit->remaining = next;
         unit->flags |= 0x2000;

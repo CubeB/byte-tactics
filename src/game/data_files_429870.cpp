@@ -97,24 +97,8 @@ void* __stdcall LoadAnimGaf(char* name);
 void* __stdcall FindGafEntry(void* gaf, const char* name);
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 
-class TdfFile {
-public:
-    int field_0;
-    void* current;                      // +0x4
-    int field_8;
-    TdfFile();
-    ~TdfFile();
-    int LoadFile(char* file);
-    void ResetCurrentRecord();
-    int SelectRecord(char* name);
-    void Unload();
-};
+#include "../util/tdf.h"
 
-class TdfRecord {
-public:
-    int GetFieldString(char* dst, char* key, int size, char* def);
-    int GetFieldInt(const char* name, int def);
-};
 
 struct Frame_00429870 {
     char unknown_0[2];
@@ -215,7 +199,7 @@ void LoadGameResources()
     sprintf(buf, "GENERAL");
     ((TdfFile*)&parser)->ResetCurrentRecord();
     if (((TdfFile*)&parser)->SelectRecord(buf) == 1) {
-        g_game->baseHeight = ((TdfRecord*)parser.current)->GetFieldInt("baseheight", 0x1e0);
+        g_game->baseHeight = parser.current->GetFieldInt("baseheight", 0x1e0);
     } else {
         g_game->baseHeight = 0x1e0;
     }
@@ -226,7 +210,7 @@ void LoadGameResources()
         ((TdfFile*)&parser)->ResetCurrentRecord();
         if (!((TdfFile*)&parser)->SelectRecord(buf))
             break;
-        int intgaf = ((TdfRecord*)parser.current)->GetFieldString(buf, "intgaf", 0x1e, DAT_005119b8);
+        int intgaf = parser.current->GetFieldString(buf, "intgaf", 0x1e, DAT_005119b8);
         if (intgaf != 0) {
             char* side = (char*)LoadAnimGaf(buf);
             if (side) {

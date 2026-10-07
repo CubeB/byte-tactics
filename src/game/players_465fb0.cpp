@@ -24,11 +24,7 @@ struct Game {
 
 extern Game* g_game;
 
-class HapiBank {
-public:
-    int OpenAccount(char* name);
-    int GetIntegerItem(char* name, int def);
-};
+#include "../util/hapi_bank.h"
 
 // FUNCTION: 0x465fb0
 void __stdcall LoadPlayerControllers(HapiBank* file)

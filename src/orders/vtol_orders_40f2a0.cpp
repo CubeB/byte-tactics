@@ -98,10 +98,10 @@ static inline void CellToWorld(Point origin, Point c, Vec3* v)
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
 void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Unit*)unit)->ClaimWeapons(3);
+    unit->ClaimWeapons(3);
     if (unit->field_86)
         AttachUnitToPiece(unit, 0, -1, 2);
-    ((Unit*)unit)->SetStateBits(1, 1);
+    unit->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
@@ -152,7 +152,7 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
             ((Class_0044e6c0*)obj)->FUN_0044e6c0(h <= g_game->seaLevel ? GetGroundHeight(&unit->pos) - g_game->seaLevel : 0);
             ((Class_004388d0*)order)->FUN_004388d0((int)obj);
             order->flags = 0xe0;
-            ((Unit*)unit)->SetStateBits(1, 0);
+            unit->SetStateBits(1, 0);
             return 1;
         }
         for (int r = 0x40; r < 0x100; r += 0x10) {

@@ -112,16 +112,7 @@ struct Owner_0043a1f0 {
     Slot_0043a1f0* slot;               // +0x0
 };
 
-class HapiBank {
-public:
-    int SetStringItem(const char* name, char* value);
-    char* GetStringItem(char* name, char* def);
-    int HasItem(const char* name);
-    int OpenNamedBox(char* name);
-    void SeekBox(int pos);
-    int ReadBox(void* dst, int len);
-    int WriteBox(void* src, int len);
-};
+#include "../util/hapi_bank.h"
 
 int __stdcall OrderTypeNameLess(int param_1, char* param_2);
 Entry_0043a1f0* __stdcall FUN_0043c6b0(Entry_0043a1f0* first, Entry_0043a1f0* last,
@@ -248,7 +239,7 @@ Class_0043a1f0::~Class_0043a1f0()
     if (flags & 0x400000) {
         Unit* obj = unit;
         int index = obj->names->FindScript("StopBuilding");
-        ((CobScript*)obj->names)->StartScriptWithArgsByIndex(index, 0, 0, 0, 0, 0, 0, 0);
+        obj->names->StartScriptWithArgsByIndex(index, 0, 0, 0, 0, 0, 0, 0);
         SendScriptCallNoArgs(obj, index);
         flags &= ~0x400000;
     }
@@ -266,7 +257,7 @@ Class_0043a1f0::~Class_0043a1f0()
         }
     }
     if (!(flags & 0x10000)) {
-        ((Unit*)unit)->ReleaseWeapons(3);
+        unit->ReleaseWeapons(3);
     }
     ((UnitRef*)&link)->FUN_00489650();
 }

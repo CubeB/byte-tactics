@@ -1,9 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 
-class TdfRecord {
-public:
-    int GetFieldInt(const char* name, int def);
-};
+#include "../util/tdf.h"
 
 #pragma pack(push, 1)
 struct StructA_004ae610 {

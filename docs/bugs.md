@@ -1105,3 +1105,9 @@ Things that look wrong in the original but have no effect, kept for the record.
   so the guard never fails and the function recurses with index 0 instead of
   skipping. An initial `found = -1` would match the evident intent. Found by
   OpenCode / deepseek-v4.1-flash in #6089.
+- **0x440d70, 0x4437c0** (possible): both look up the PASSWORD entry with
+  FUN_004a0010 and use `entry + 0xb6` without testing the result, though
+  0x4437c0's own UPDATE path (0x443895) does test it (`cmp eax, edi; je`). A
+  NEWMULTI or SELGAME dialog without a PASSWORD entry would read through
+  address 0xb6. Harmless while the shipped GUI files have the entry. Found by
+  OpenCode / deepseek-v4.1-flash in #6093.

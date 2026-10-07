@@ -1,0 +1,28 @@
+name: Cleanup issue labels
+
+# Moves cleanup issues from `blocked` to `ready` once what they wait on has
+# closed (tools/cleanup_ready.py).
+
+on:
+  issues:
+    types: [closed, reopened]
+  workflow_dispatch:
+
+concurrency:
+  group: cleanup-ready
+  cancel-in-progress: false
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  relabel:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.issue.labels.*.name, 'cleanup')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv run --no-project tools/cleanup_ready.py
+        env:
+          GH_TOKEN: ${{ github.token }}

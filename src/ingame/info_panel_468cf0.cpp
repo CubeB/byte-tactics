@@ -62,8 +62,8 @@ int GetFontHeight();
 int __stdcall GetTextWidth(int,int);
 int __stdcall DrawString(int,int,int,int,int);
 int __stdcall IsKeyDown(int);
-int FUN_004c2470();
-int FUN_004c2870();
+int HideSoftwareCursor();
+int ShowSoftwareCursor();
 int __stdcall Translate(int);
 int FlipScreen();
 int __stdcall SetOffscreenSurface(int);
@@ -239,7 +239,7 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
   SetOffscreenSurface(*(int *)(g_game + 0x37e1b));
   ctx = **(Surface **)(g_game + 0x37e1b);
   colors = (byte *)(g_game + 0xdcb);
-  FUN_004c2470();
+  HideSoftwareCursor();
   ctx.SetClipRect(*(OverlayRect *)(g_game + 0x37e27));
   ProfileMark((FrameTimers *)(g_game + 0x38d85), 8);
   DrawMapTiles((int)&ctx);
@@ -559,7 +559,7 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
     FUN_0046b900((int)&ctx, (int)"Misc", 8);
   }
   DrawOptionsScrollBar((int)&ctx);
-  FUN_004c2870();
+  ShowSoftwareCursor();
   if (param_1 != 0 && param_2 != 0)
     FlipScreen();
   ((FrameTimers *)(g_game + 0x38d85))->AccumulateProfileTime(3);

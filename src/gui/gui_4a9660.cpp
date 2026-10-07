@@ -22,9 +22,9 @@ struct Gui_004a9660 {
     int field_68;                      // +0x68
 };
 
-void FUN_004c2470();
+void HideSoftwareCursor();
 void __stdcall RenderLayer(Gui_004a9660* gui, int value);
-void FUN_004c2870();
+void ShowSoftwareCursor();
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4a9660
@@ -35,9 +35,9 @@ void __stdcall CloseTopScreen(Gui_004a9660* gui)
         gui->field_68 = gui->field_60 = gui->field_64 = -1;
         if (gui->top->handler)
             gui->top->handler(gui);
-        FUN_004c2470();
+        HideSoftwareCursor();
         RenderLayer(gui, 2);
-        FUN_004c2870();
+        ShowSoftwareCursor();
         Screen_004a9660* old = gui->top;
         gui->top = old->next;
         if (gui->top)

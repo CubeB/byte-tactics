@@ -43,7 +43,7 @@ struct Game {
 
 extern Game* g_game;
 void __stdcall SetCursorPosition(int x, int y);
-void FUN_004c2870();
+void ShowSoftwareCursor();
 void ClampCameraPosition();
 
 // The same scroll-and-clamp sequence is written out in 0x41c7c0, 0x41c8e0,
@@ -78,6 +78,6 @@ void UpdateMouseScroll()
         CursorState_0041cd50* cursor = &g_game->cursor;
         cursor->flag = 0;
         SetCursorPosition(cursor->rect.x, cursor->rect.y);
-        FUN_004c2870();
+        ShowSoftwareCursor();
     }
 }

@@ -144,7 +144,7 @@ static inline void UnlockMain(LONG held)
 // Blits the cursor's current frame at its position when the cursor is
 // visible (count <= 0) and the mouse thread does not own the blit (mode != 1).
 // FUNCTION: 0x4c2380
-void FUN_004c2380()
+void DrawSoftwareCursor()
 {
     Obj_004c2380* obj = GetDisplay();
     if (obj->mode != 1 && obj->count <= 0) {
@@ -158,7 +158,7 @@ void FUN_004c2380()
 // (LockPrimary), blits with the hand-written routine BlitSurface, then
 // unlocks with the rectangle that was drawn.
 // FUNCTION: 0x4c23e0
-void __stdcall FUN_004c23e0(Obj_004c2380* obj)
+void __stdcall RestoreCursorBackground(Obj_004c2380* obj)
 {
     if (obj->visible) {
         Desc_004c25e0* bmp = obj->saved;
@@ -178,7 +178,7 @@ void __stdcall FUN_004c23e0(Obj_004c2380* obj)
 // Increments the hide counter and restores the saved background from the
 // screen when the counter was zero.
 // FUNCTION: 0x4c2470
-void FUN_004c2470()
+void HideSoftwareCursor()
 {
     Obj_004c2380* o = GetDisplay();
     if (o->mode != 1 && o->count++ == 0)
@@ -188,7 +188,7 @@ void FUN_004c2470()
 // Captures the background under the cursor position and blits the cursor's
 // bitmap there.
 // FUNCTION: 0x4c24b0
-void __stdcall FUN_004c24b0(Obj_004c2380* obj)
+void __stdcall CaptureBackgroundAndDrawCursor(Obj_004c2380* obj)
 {
     if (obj->visible) {
         Surface_004c23e0 s;
@@ -278,7 +278,7 @@ void __stdcall RedrawMouseCursor(Obj_004c2380* app)
 // with DrawFrame.
 // Must be __fastcall: the original file was built with /Gr.
 // FUNCTION: 0x4c2870
-void __fastcall FUN_004c2870(void)
+void __fastcall ShowSoftwareCursor(void)
 {
     Obj_004c2380* o = GetDisplay();
     if (o->mode != 1) {
@@ -355,7 +355,7 @@ int __stdcall StopMouseThread(Obj_004c2380* s)
 // Stores `value` at +0x1b2 of the object GetDisplay returns while holding
 // the "MAIN" spin lock; a lock already held by "MAIN" is not released here.
 // FUNCTION: 0x4c2b20
-void __stdcall FUN_004c2b20(int value)
+void __stdcall SetCursorSprite(int value)
 {
     LONG held = LockMain();
     GetDisplay()->sprite = (Sprite_004c24b0*)value;
@@ -364,14 +364,14 @@ void __stdcall FUN_004c2b20(int value)
 
 // Returns the shared cursor bitmap pointer.
 // FUNCTION: 0x4c2ba0
-int FUN_004c2ba0()
+int GetCursorSprite()
 {
     return (int)GetDisplay()->sprite;
 }
 
 // Resets the event ring buffer's head and tail.
 // FUNCTION: 0x4c2bb0
-void FUN_004c2bb0()
+void ClearMouseEventQueue()
 {
     Obj_004c2380* p = GetDisplay();
     p->head = 0;
@@ -380,7 +380,7 @@ void FUN_004c2bb0()
 
 // Initialises the mouse-event input object: allocates the event queue,
 // resets it, creates the three save-mouse surfaces, and optionally starts
-// the worker thread at 0x4c2990. The second GetDisplay call is FUN_004c2bb0
+// the worker thread at 0x4c2990. The second GetDisplay call is ClearMouseEventQueue
 // inlined.
 // FUNCTION: 0x4c2bd0
 void __stdcall InitMouse(int count, int start)

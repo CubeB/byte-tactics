@@ -4,7 +4,7 @@
 // local, which keeps the `add eax, 0x2cc7` the original has.
 
 void __stdcall SetCursorPosition(int x, int y);
-void FUN_004c2870();
+void ShowSoftwareCursor();
 
 #pragma pack(push, 1)
 struct CursorState_0041cd20 {
@@ -28,5 +28,5 @@ void EndMouseScroll()
     CursorState_0041cd20* cursor = &g_game->cursor;
     cursor->flag = 0;
     SetCursorPosition(cursor->x, cursor->y);
-    FUN_004c2870();
+    ShowSoftwareCursor();
 }

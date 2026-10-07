@@ -149,8 +149,8 @@ void __stdcall FUN_004ab6c0(Menu_004a9fd0*, int, char*, int, int);
 void ClearKeyQueue();
 void __stdcall SetFont(int);
 char* __stdcall Translate(void*);
-void FUN_004c2470();
-void FUN_004c2870();
+void HideSoftwareCursor();
+void ShowSoftwareCursor();
 void __cdecl FUN_004d85a0(Layer_004a9fd0*);
 
 static inline int FindEntry(Entry_004a9fd0* entries, char* name)
@@ -255,9 +255,9 @@ static inline void CloseTopScreen(Menu_004a9fd0* gui)
         gui->field_68 = gui->field_60 = gui->focus = -1;
         if (gui->layer->cb8)
             gui->layer->cb8(gui);
-        FUN_004c2470();
+        HideSoftwareCursor();
         RenderLayer(gui, 2);
-        FUN_004c2870();
+        ShowSoftwareCursor();
         Layer_004a9fd0* old = gui->layer;
         gui->layer = old->prev;
         if (gui->layer)

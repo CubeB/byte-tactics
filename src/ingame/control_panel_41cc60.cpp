@@ -34,7 +34,7 @@ struct Game {
 
 extern Game* g_game;
 
-void FUN_004c2470();
+void HideSoftwareCursor();
 int GetScreenWidth();
 int GetScreenHeight();
 void __stdcall SetCursorPosition(int x, int y);
@@ -45,7 +45,7 @@ void BeginMouseScroll()
     g_game->field_1434b = 0;
     g_game->field_142f3 = 0;
     g_game->field_142f7 = 0;
-    FUN_004c2470();
+    HideSoftwareCursor();
     CursorState_0041cc60* cursor = &g_game->cursor;
     cursor->flag = 1;
     cursor->rect = g_game->view;

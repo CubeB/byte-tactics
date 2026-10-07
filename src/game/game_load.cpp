@@ -442,7 +442,7 @@ void __cdecl OnlineUnload();
 void __cdecl DrawLightBars();
 void __cdecl StopAllSounds();
 void __cdecl MainLoopTick();
-void __cdecl FUN_004c2870();
+void __cdecl ShowSoftwareCursor();
 void __stdcall UnlockScreen(void*);
 void __cdecl RestoreScreen();
 void __cdecl FlipScreen();
@@ -974,7 +974,7 @@ void LoadingScreenFrame(void)
         }
         DrawLightBars();
         MainLoopTick();
-        FUN_004c2870();
+        ShowSoftwareCursor();
         g_game->field_391f1 = 6;
         g_game->field_391f5 = BattleFrame;
         SetCloseHandler(FUN_004609a0, 0);

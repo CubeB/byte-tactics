@@ -57,7 +57,7 @@ int __stdcall IsScreenNamed(Dialog*,const char*);
 void __stdcall DrawMessages(void*);
 void __stdcall UpdateMenu(Dialog*);
 void __stdcall FUN_004ab170(Dialog*,void*,void*);
-void FUN_004c2870();
+void ShowSoftwareCursor();
 unsigned GetTicks();
 int GetTickRate();
 void __stdcall SetCursorOverlayEnabled(int);
@@ -85,7 +85,7 @@ void __stdcall FUN_00491c80(int);
 void __stdcall FUN_004a0570(Dialog*,const char*,int);
 void __stdcall PlaySoundByName(const char*,int);
 void __stdcall SendPlayerEconomy(Player*,int,int);
-void FUN_004c2470();
+void HideSoftwareCursor();
 #define ENABLE_BARS(name) \
     for(int i=0;i<10;++i) { \
         if(g_game->slots[i].active) { \
@@ -138,7 +138,7 @@ void __stdcall RunEndGameState()
                 DrawMessages(g_game->surface);
                 UpdateMenu(&g_game->menu);
                 FUN_004ab170(&g_game->menu,0,0);
-                FUN_004c2870();
+                ShowSoftwareCursor();
                 FlipScreen();
             }
         } else g_game->state=2;
@@ -260,8 +260,8 @@ void __stdcall RunEndGameState()
         break;
     }
     case 8:
-        FUN_004c2470(); UpdateMenu(&g_game->menu); FUN_004c2870(); FlipScreen();
-        FUN_004c2470(); FUN_004ab170(&g_game->menu,0,0); FUN_004c2870();
+        HideSoftwareCursor(); UpdateMenu(&g_game->menu); ShowSoftwareCursor(); FlipScreen();
+        HideSoftwareCursor(); FUN_004ab170(&g_game->menu,0,0); ShowSoftwareCursor();
         break;
     }
     FlipScreen();

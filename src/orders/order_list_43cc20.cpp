@@ -318,7 +318,7 @@ public:
     void UpdatePosition(Unit* unit);
     void UpdateMoveRate(Unit* unit);
     UnitMotion(Unit* unit);
-    void FUN_0043dd10();
+    void DestroyObject();
     void UpdateMotion(Unit* u);
     void SaveMotion(Unit* info, HapiBank* file);
     void LoadMotion(Unit* unit, HapiBank* file);
@@ -1018,7 +1018,7 @@ UnitMotion::UnitMotion(Unit* unit)
 }
 
 // FUNCTION: 0x43dd10
-void UnitMotion::FUN_0043dd10()
+void UnitMotion::DestroyObject()
 {
     if (obj != 0) {
         obj->v0(1);

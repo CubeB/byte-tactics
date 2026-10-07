@@ -798,7 +798,7 @@ address,name
 0x43da70,UnitMotion::UpdateMoveRate
 0x43db50,Class_0043db50::UpdateSfxOccupy
 0x43dc00,UnitMotion::UnitMotion
-0x43dd10,UnitMotion::FUN_0043dd10
+0x43dd10,UnitMotion::DestroyObject
 0x43dd20,UnitMotion::UpdateMotion
 0x43dd70,UnitMotion::SaveMotion
 0x43de30,UnitMotion::LoadMotion
@@ -811,7 +811,7 @@ address,name
 0x43e2e0,GetAimFromPosition
 0x43e3c0,GetSweetSpot
 0x43e400,GetNanoPiecePosition
-0x43e470,FUN_0043e470
+0x43e470,OrderModeTakesTarget
 0x43e490,GetOrderCursor
 0x43f0e0,FUN_0043f0e0
 0x4402e0,MovementClass::MovementClass

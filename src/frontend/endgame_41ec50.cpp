@@ -105,7 +105,7 @@ void ShowSaveGameScreen();
 void __stdcall FUN_004ab0a0(void* param_1);
 void __stdcall SetFrontendState(int state, int line, char* file);
 void __stdcall SetGameMode(int a);
-void __stdcall FUN_004c22d0(int param);
+void __stdcall SetCursorOverlayEnabled(int param);
 void __stdcall FUN_00491c80(int n);
 char __stdcall FindGameCdDrive(int param_1);
 char* __stdcall Translate(char* text);
@@ -175,7 +175,7 @@ void __stdcall HandleEndMissionClick(Gadget_0041ec50* gadget)
         RegisterDataArchives();
         PlaySoundByName("BigButton", 0);
         g_game->field_2bc0 = 10;
-        FUN_004c22d0(1);
+        SetCursorOverlayEnabled(1);
         FUN_00491c80(0x14);
         if (g_game->campaign->FUN_00435c00(FindGadgetChecked(entries, "Missions")->field_ba)) {
             EnterMainMenuState();
@@ -193,7 +193,7 @@ void __stdcall HandleEndMissionClick(Gadget_0041ec50* gadget)
         PlaySoundByName("BigButton", 0);
         SetFrontendState(2, 770, "c:\\cavedog\\wargame\\endgame.cpp");
         SetGameMode(1);
-        FUN_004c22d0(1);
+        SetCursorOverlayEnabled(1);
         FUN_00491c80(0x14);
         return;
     } else if (IsCurrentGadgetNamed(gadget, "Difficulty")) {

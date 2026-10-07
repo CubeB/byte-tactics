@@ -585,8 +585,8 @@ extern unsigned char DAT_0051fbd8[172];                                         
 extern unsigned int DAT_0051fc84;                                                             // 0x51fc84, 4 bytes; 4 of 4 files
 extern unsigned int g_randomSeed;                                                             // 0x51fc88, 4 bytes; 2 of 2 files
 extern unsigned char DAT_0051fc8c[4];                                                         // 0x51fc8c, 4 bytes; nothing refers to it
-extern int g_defaultCommandHandler;                                                           // 0x51fc90, 4 bytes; 3 of 3 files
-extern int g_defaultCommandMask;                                                              // 0x51fc94, 4 bytes; 3 of 3 files
+extern int g_defaultCommandHandler;                                                           // 0x51fc90, 4 bytes; 1 of 1 files
+extern int g_defaultCommandMask;                                                              // 0x51fc94, 4 bytes; 1 of 1 files
 extern unsigned char DAT_0051fcb0[256];                                                       // 0x51fcb0, 256 bytes; 2 of 2 files
 extern int DAT_0051fdb0;                                                                      // 0x51fdb0, 4 bytes; 3 of 3 files
 extern unsigned char DAT_0051fdb4[4];                                                         // 0x51fdb4, 4 bytes; nothing refers to it

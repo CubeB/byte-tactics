@@ -26,7 +26,7 @@ struct Display_004b6110 {
 
 extern int g_display;
 
-void FUN_004c1aa0(void);
+void DestroyPreCleanup(void);
 void ShutdownMouse(void);
 void __stdcall FreeAlphaTable(Display_004b6110* obj);
 void __stdcall FreeShadeTable(Display_004b6110* obj);
@@ -40,7 +40,7 @@ void __cdecl FUN_004d85a0(void* p);
 // FUNCTION: 0x4b6110
 void __stdcall ShutdownEnvironment(Display_004b6110* d)
 {
-    FUN_004c1aa0();
+    DestroyPreCleanup();
     ShutdownMouse();
     for (int i = 0; i < d->item_count; i++)
         HAPI_CloseArchive(d->items[i]);

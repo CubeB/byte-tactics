@@ -6,7 +6,7 @@ int __stdcall HAPI_FileLengthByName(char* path);
 void __stdcall SetOffscreenSurface(int param);
 void __stdcall FillSurface(int a, int b);
 void FlipScreen();
-void __stdcall FUN_004c22d0(int param);
+void __stdcall SetCursorOverlayEnabled(int param);
 int PopKey(void);
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
@@ -47,7 +47,7 @@ void __stdcall PlayMovie(char* param_1)
         SetOffscreenSurface(g_game->field_37e1b);
         FillSurface(0, 0);
         FlipScreen();
-        FUN_004c22d0(0);
+        SetCursorOverlayEnabled(0);
         do {
             g_game->field_38d7b = new MoviePlayer(path, 0, 600000, 1, 2000000, 1);
             ((MoviePlayer*)g_game->field_38d7b)->Play();

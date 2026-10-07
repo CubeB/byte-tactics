@@ -101,7 +101,7 @@ struct App_4b5980 {
 extern App_4b5980* g_display;
 
 void SaveStartDirectory(void);
-void __stdcall FUN_004c2360(int* p);
+void __stdcall SetCurrentMouseEvent(int* p);
 void __stdcall InitKeyQueue(int size);
 void __stdcall InitMouse(int count, int start);
 int __stdcall AllocShadeTable(App_4b5980* d);
@@ -147,7 +147,7 @@ int __stdcall InitEnvironment(App_4b5980* d)
     view.z = 0;
     d->unknown_728 = 0;
     SaveStartDirectory();
-    FUN_004c2360((int *)&view);
+    SetCurrentMouseEvent((int *)&view);
 
     d->items = 0;
     d->itemCount = 0;

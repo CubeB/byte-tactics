@@ -47,7 +47,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004c2340(Mouse_0041ce90* mouse);
+void __stdcall GetCurrentMouseEvent(Mouse_0041ce90* mouse);
 Display_0041ce90* GetDisplay();
 int __stdcall IsScreenNamed(void* obj, const char* name);
 int __stdcall IsKeyDown(int key);
@@ -63,7 +63,7 @@ void UpdateEdgeScroll()
         speed = 0x80;
     if (speed == 0)
         return;
-    FUN_004c2340(&mouse);
+    GetCurrentMouseEvent(&mouse);
     Display_0041ce90* d = GetDisplay();
     if (!(d->flags_f0 & 2)) {
         GetCursorPos(&pt);

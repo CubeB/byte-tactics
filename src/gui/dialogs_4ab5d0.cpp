@@ -14,7 +14,7 @@ extern void __stdcall AdvanceGafSequence(Ref_004ab5d0* ref, int step);
 extern int __stdcall GetGafSequenceFrame(Ref_004ab5d0* ref);
 extern void __stdcall FUN_004c2b20(int handle);
 extern int __stdcall PeekMouseEvent(Event_004ab5d0* out);
-extern void __stdcall FUN_004c2340(Event_004ab5d0* out);
+extern void __stdcall GetCurrentMouseEvent(Event_004ab5d0* out);
 extern void __stdcall PopMouseEvent(Event_004ab5d0* out);
 extern void __stdcall FUN_004a1680(char* table, int index, Rect_004ab5d0* out);
 extern int __stdcall FUN_004a1920(Rect_004ab5d0* r, int px, int py);
@@ -85,6 +85,6 @@ void __stdcall FUN_004ab5d0(Dialog* p)
             }
         }
     } else {
-        FUN_004c2340(&p->event);
+        GetCurrentMouseEvent(&p->event);
     }
 }

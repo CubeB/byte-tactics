@@ -84,7 +84,7 @@ void __stdcall UpdateHelpText(void* param_1);
 void __stdcall FUN_004a0bf0(Menu_0047ae60* menu, char* key, char* value, int flag);
 void __stdcall FUN_004ab0a0(void* param_1);
 void __stdcall OpenMessageBox(void* menu, char* text, int width, int a, int b);
-void __stdcall FUN_004c2340(int* out);
+void __stdcall GetCurrentMouseEvent(int* out);
 char* __stdcall Translate(char* text);
 
 // FUNCTION: 0x47ae60
@@ -234,7 +234,7 @@ void __stdcall HandleSkirmishClick(Menu_0047ae60* menu)
         RefreshAllyIcons();
     } else if (strcmp(frame.bf, "Color") == 0) {
         PlaySoundByName("Skirmish", 0);
-        FUN_004c2340(frame.ev);
+        GetCurrentMouseEvent(frame.ev);
         if (menu->holder->field_37 == 1) {
             CyclePlayerColor(0);
         }
@@ -242,7 +242,7 @@ void __stdcall HandleSkirmishClick(Menu_0047ae60* menu)
             CyclePlayerColor(1);
         }
     } else if (strcmp(frame.bf, "Energy") == 0) {
-        FUN_004c2340(frame.ev);
+        GetCurrentMouseEvent(frame.ev);
         if (menu->holder->field_37 == 1) {
             PlaySoundByName("Skirmish", 0);
             Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);

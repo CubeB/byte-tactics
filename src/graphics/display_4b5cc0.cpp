@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <ddraw.h>
 
-// 24 byte event packet shared with FUN_004c2360 and PushMouseEvent.
+// 24 byte event packet shared with SetCurrentMouseEvent and PushMouseEvent.
 struct Event_4b5cc0 {
     int x;          // +0x00
     int y;          // +0x04
@@ -54,7 +54,7 @@ extern int g_closeHandlerArg;
 void __stdcall SetFullScreen(int param);
 void __stdcall PushKeyCode(int v);
 void __stdcall HandleVirtualKey(int v, int flag);
-void __stdcall FUN_004c2360(int* p);
+void __stdcall SetCurrentMouseEvent(int* p);
 void __stdcall PushMouseEvent(Event_4b5cc0* ev);
 
 // FUNCTION: 0x4b5cc0
@@ -103,7 +103,7 @@ long __stdcall WindowProc(HWND hwnd, unsigned int msg, unsigned int wparam,
         e.time = GetTickCount() * g_display->tickScale / 1000;
         e.flag = 0;
         e.message = msg;
-        FUN_004c2360((int*)&e);
+        SetCurrentMouseEvent((int*)&e);
         return 0;
     case WM_LBUTTONDOWN:
     case WM_LBUTTONUP:

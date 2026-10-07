@@ -870,7 +870,7 @@ class Class_004e3030;
 class Class_004e8230;
 class Class_4335e0;
 class Class_44ef90;
-struct Class_4b6220;
+struct DisplayContext;
 struct Cmd_004866d0;
 struct Cmp_0046d040;
 struct CobFile_0042d1f0;
@@ -16770,7 +16770,7 @@ struct Queue_004c1ab0_5 {  // 0x176 bytes, 1 view
     int tail;  // +0x172
 };
 
-struct Class_4b6220 {  // 0x1d6 bytes, 1 view
+struct DisplayContext {  // 0x1d6 bytes, 1 view
     char unknown_0[466];
     int field_at_0x1d2;  // +0x1d2
 };

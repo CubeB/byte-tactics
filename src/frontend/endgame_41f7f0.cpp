@@ -60,7 +60,7 @@ void __stdcall FUN_004ab170(Dialog*,void*,void*);
 void FUN_004c2870();
 unsigned GetTicks();
 int GetTickRate();
-void __stdcall FUN_004c22d0(int);
+void __stdcall SetCursorOverlayEnabled(int);
 void FUN_00491a70();
 void __stdcall FadeRectangle(void*,int*,int);
 char __stdcall FindGameCdDrive(int);
@@ -77,7 +77,7 @@ void FillEndGameStatistics();
 void EnableEndMissionButtons();
 void StepPaletteFade();
 void FUN_00476ca0();
-void __stdcall FUN_004c2340(int*);
+void __stdcall GetCurrentMouseEvent(int*);
 int PopKey();
 void __stdcall DrawOutlinedString(void*,const char*,int,int,int);
 void __stdcall FUN_0049fa50(Dialog*);
@@ -147,7 +147,7 @@ void __stdcall RunEndGameState()
         g_game->fade=10;
         g_game->tick=GetTicks()+1;
         g_game->complete=0;
-        FUN_004c22d0(0);
+        SetCursorOverlayEnabled(0);
         g_game->state=3;
         break;
     case 3:
@@ -169,7 +169,7 @@ void __stdcall RunEndGameState()
         if(g_game->campaign->FUN_00435100()==1 && !FindGameCdDrive(0)) {
             Layer* l=LoadGuiLayer(&g_game->menu,"CDCHECK.GUI",0x101);
             l->handler=HandleCdCheckClick;
-            FUN_004c22d0(1);
+            SetCursorOverlayEnabled(1);
             FUN_0049fb10(&g_game->menu,1);
             RenderLayer(&g_game->menu,0x40);
             g_game->state=8;
@@ -207,7 +207,7 @@ void __stdcall RunEndGameState()
         } else {
             if(!DAT_00511dec) { FUN_00476ca0(); DAT_00511dec=1; }
             if(g_game->deadline<GetTicks()) {
-                FUN_004c2340(event);
+                GetCurrentMouseEvent(event);
                 if(PopKey() || g_game->advance) {
                     g_game->input->StopStream();
                     OpenEndMissionScreen(); EnableEndMissionButtons(); FillEndGameStatistics();
@@ -223,7 +223,7 @@ void __stdcall RunEndGameState()
     case 7: {
         if(StatsComplete()) {
             FUN_0049fa50(&g_game->menu);
-            g_game->state=8; FUN_00491c80(19); FUN_004c22d0(1);
+            g_game->state=8; FUN_00491c80(19); SetCursorOverlayEnabled(1);
             break;
         }
         UpdateMenu(&g_game->menu); FUN_004ab170(&g_game->menu,0,0);

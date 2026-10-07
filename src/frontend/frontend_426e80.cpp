@@ -82,7 +82,7 @@ struct Pd_00426e80 {
 
 int CodeChecksumFailed(void);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
-void __stdcall FUN_004c22d0(int param);
+void __stdcall SetCursorOverlayEnabled(int param);
 void __stdcall FUN_00434ab0(int param);
 void __stdcall PlayMovie(char* param);
 void __stdcall OpenNewGameMenu(int param);
@@ -262,7 +262,7 @@ void RunFrontendStateMachine(void)
     switch ((unsigned char)g_game[0x2bbe]) {
     case 0: {
         Obj_00426e80* p = GetDisplay();
-        FUN_004c22d0(0);
+        SetCursorOverlayEnabled(0);
         if (p->flag) {
             if (*(int*)(g_game + 0x3923d)) {
                 PlayMovie(DAT_0050329c);
@@ -290,7 +290,7 @@ void RunFrontendStateMachine(void)
                 ((Bits_00426e80*)(g_game + 0x2bee))->b4 = 1;
                 SetState(0x10, 0x403, DAT_00503004);
                 SetSubState(0x12, 0x404, DAT_00503004);
-                FUN_004c22d0(1);
+                SetCursorOverlayEnabled(1);
                 return;
             }
             FUN_00434ab0(0);
@@ -298,11 +298,11 @@ void RunFrontendStateMachine(void)
             OpenMainMenu();
             if (DAT_00512c80 == 0) {
                 SetSubState(1, 0x40d, DAT_00503004);
-                FUN_004c22d0(1);
+                SetCursorOverlayEnabled(1);
                 return;
             }
             SetSubState(6, 0x40f, DAT_00503004);
-            FUN_004c22d0(1);
+            SetCursorOverlayEnabled(1);
             return;
         case 1:
             FUN_00425b60();

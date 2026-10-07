@@ -20,7 +20,7 @@ struct Gadget_0041f700 {
 extern Game* g_game;
 
 Gadget_0041f700* __stdcall LoadGuiLayer(Sub_0041f700* sub, const char* name, int flags);
-void __stdcall FUN_004c22d0(int param);
+void __stdcall SetCursorOverlayEnabled(int param);
 void __stdcall FUN_0049fb10(Sub_0041f700* sub, int value);
 void __stdcall RenderLayer(Sub_0041f700* sub, int value);
 int __stdcall HandleCdCheckClick(void* gadget);
@@ -29,7 +29,7 @@ int __stdcall HandleCdCheckClick(void* gadget);
 void OpenCdCheckDialog()
 {
     LoadGuiLayer(&g_game->sub, "CDCHECK.GUI", 0x101)->handler = HandleCdCheckClick;
-    FUN_004c22d0(1);
+    SetCursorOverlayEnabled(1);
     FUN_0049fb10(&g_game->sub, 1);
     RenderLayer(&g_game->sub, 0x40);
 }

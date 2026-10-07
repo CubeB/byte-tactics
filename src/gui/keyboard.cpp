@@ -15,7 +15,7 @@ struct Queue_004c1ab0 {
 #pragma pack(pop)
 
 #pragma pack(push, 1)
-struct Class_4b6220
+struct DisplayContext
 {
     char unknown_0[0x1d2];
     int field_at_0x1d2;
@@ -53,7 +53,7 @@ void __stdcall InitKeyQueue(int size)
 }
 
 // FUNCTION: 0x4c1aa0
-void FUN_004c1aa0(void)
+void DestroyPreCleanup(void)
 {
 }
 
@@ -217,7 +217,7 @@ void __stdcall HandleVirtualKey(int key, int flag)
 }
 
 // FUNCTION: 0x4c22a0
-void FUN_004c22a0()
+void InitBlitLock()
 {
     DAT_0052a4e8 = 0;
     if (DAT_0052a4f0) {
@@ -228,9 +228,9 @@ void FUN_004c22a0()
 }
 
 // FUNCTION: 0x4c22d0
-void __stdcall FUN_004c22d0(int param)
+void __stdcall SetCursorOverlayEnabled(int param)
 {
-    Class_4b6220* obj = (Class_4b6220*)GetDisplay();
+    DisplayContext* obj = (DisplayContext*)GetDisplay();
     obj->field_at_0x1d2 = param;
 }
 
@@ -250,14 +250,14 @@ void __stdcall GetCursorPosition(int* x, int* y)
 }
 
 // FUNCTION: 0x4c2340
-void __stdcall FUN_004c2340(int* param_1)
+void __stdcall GetCurrentMouseEvent(int* param_1)
 {
     int ptr = (int)GetDisplay();
     memcpy(param_1, (void*)(ptr + 0x196), 6 * 4);
 }
 
 // FUNCTION: 0x4c2360
-void __stdcall FUN_004c2360(int* param_1)
+void __stdcall SetCurrentMouseEvent(int* param_1)
 {
     int eax = (int)GetDisplay();
     int edi = eax + 0x196;

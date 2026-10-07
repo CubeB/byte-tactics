@@ -481,8 +481,7 @@ extern int DAT_00512c70;                                                        
 extern int g_loungeRefreshTime;                                                               // 0x512c78, 4 bytes; 1 of 1 files
 extern unsigned int g_timeoutTimerStart;                                                      // 0x512c7c, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00512c80[336];                                                       // 0x512c80, 336 bytes; int in 3 of 4 files (conflicting: shape), but used past its end
-extern char DAT_00512dd0[260];                                                                // 0x512dd0, 260 bytes; 3 of 3 files
-extern unsigned char DAT_00512ed4[20];                                                        // 0x512ed4, 20 bytes; nothing refers to it
+extern unsigned char DAT_00512dd0[260];                                                       // 0x512dd0, 260 bytes; nothing refers to it
 extern int g_onlineConfigLoaded;                                                              // 0x512ee8, 4 bytes; 2 of 2 files
 extern void* g_onlineDll;                                                                     // 0x512eec, 4 bytes; 4 of 4 files
 extern int DAT_00512ef0;                                                                      // 0x512ef0, 4 bytes; 3 of 3 files

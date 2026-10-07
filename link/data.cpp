@@ -577,8 +577,7 @@ int DAT_00512c70;  // 0x512c70 .bss
 int g_loungeRefreshTime;  // 0x512c78 .bss
 unsigned int g_timeoutTimerStart;  // 0x512c7c .bss
 unsigned char DAT_00512c80[336];  // 0x512c80 .bss (the type runs past the next known address, 0x512c80+0x4)
-char DAT_00512dd0[260];  // 0x512dd0 .bss
-unsigned char DAT_00512ed4[20];  // 0x512ed4 .bss
+unsigned char DAT_00512dd0[260];  // 0x512dd0 .bss
 int g_onlineConfigLoaded;  // 0x512ee8 .bss
 void* g_onlineDll;  // 0x512eec .bss
 int DAT_00512ef0;  // 0x512ef0 .bss

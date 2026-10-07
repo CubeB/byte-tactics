@@ -3,7 +3,7 @@
 #include <windows.h>
 #include <string.h>
 
-extern char DAT_00512dd0[MAX_PATH + 1];
+extern char g_onlineDllPath[MAX_PATH + 1];
 extern HMODULE g_onlineDll;
 
 char* __stdcall Translate(char* text);
@@ -19,12 +19,12 @@ typedef unsigned int (__stdcall* OnlGetLinkInfo)(LinkInfo* links);
 // Builds the path of online.dll beside the executable and loads it.
 static BOOL LoadOnline(void)
 {
-    if (DAT_00512dd0[0] == 0) {
-        int len = GetModuleFileNameA(0, DAT_00512dd0, MAX_PATH);
-        DAT_00512dd0[MAX_PATH] = 0;
-        char* p = DAT_00512dd0;
+    if (g_onlineDllPath[0] == 0) {
+        int len = GetModuleFileNameA(0, g_onlineDllPath, MAX_PATH);
+        g_onlineDllPath[MAX_PATH] = 0;
+        char* p = g_onlineDllPath;
         if (len > 0) {
-            for (p = &DAT_00512dd0[len - 1]; len > 0; p--, len--) {
+            for (p = &g_onlineDllPath[len - 1]; len > 0; p--, len--) {
                 if (strchr("/\\", *p))
                     break;
             }
@@ -32,7 +32,7 @@ static BOOL LoadOnline(void)
         strcpy(p + ((len > 0) & 1), "online.dll");
     }
     if (g_onlineDll == 0) {
-        g_onlineDll = LoadLibraryA(DAT_00512dd0);
+        g_onlineDll = LoadLibraryA(g_onlineDllPath);
         if (g_onlineDll == 0)
             return FALSE;
     }

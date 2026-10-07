@@ -2444,8 +2444,8 @@ address,name
 0x4b4d70,HapiBank::WriteAuditFile
 0x4b4f10,??2@YAPAXI@Z
 0x4b4f20,??3@YAXPAX@Z
-0x4b4f30,FUN_004b4f30
-0x4b4f40,FUN_004b4f40
+0x4b4f30,??_U@YAPAXI@Z
+0x4b4f40,??_V@YAXPAX@Z
 0x4b4f50,ApplyPalette
 0x4b4fd0,SetCloseHandler
 0x4b4ff0,ReleaseDirectDraw

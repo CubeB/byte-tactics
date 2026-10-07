@@ -2626,8 +2626,6 @@ Data_004b2450* LoadCobScript(char*);
 void FreeCobScript(int);
 int GetCobChecksum(int);
 Node_004b3370* FUN_004b3370(Node_004b3370*);
-void __cdecl FUN_004b4f30(unsigned int);
-void __cdecl FUN_004b4f40(int*);
 int ApplyPalette(void);
 void SetCloseHandler(void (__cdecl *)(int), int);
 void ReleaseDirectDraw(Display_004b4ff0*);

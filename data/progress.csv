@@ -2452,8 +2452,8 @@ address,size,file,symbol,status,similarity
 0x4b4d70,409,src/util/hapi_bank.cpp,?WriteAuditFile@HapiBank@@QAEXPAD@Z,matched,100.0
 0x4b4f10,14,src/util/operator_new.cpp,??2@YAPAXI@Z,matched,100.0
 0x4b4f20,14,src/util/operator_new.cpp,??3@YAXPAX@Z,matched,100.0
-0x4b4f30,14,src/util/operator_new.cpp,?FUN_004b4f30@@YAXI@Z,matched,100.0
-0x4b4f40,14,src/util/operator_new.cpp,?FUN_004b4f40@@YAXPAX@Z,matched,100.0
+0x4b4f30,14,src/util/operator_new.cpp,??_U@YAPAXI@Z,matched,100.0
+0x4b4f40,14,src/util/operator_new.cpp,??_V@YAXPAX@Z,matched,100.0
 0x4b4f50,117,src/graphics/display_4b4f50.cpp,?ApplyPalette@@YGHXZ,matched,100.0
 0x4b4fd0,22,src/graphics/display_4b4fd0.cpp,?SetCloseHandler@@YGXP6AXH@ZH@Z,matched,100.0
 0x4b4ff0,127,src/graphics/display_4b4ff0.cpp,?ReleaseDirectDraw@@YGXPAUDisplay_004b4ff0@@@Z,matched,100.0

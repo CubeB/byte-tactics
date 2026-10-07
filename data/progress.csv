@@ -592,9 +592,9 @@ address,size,file,symbol,status,similarity
 0x431950,199,src/game/side_data.cpp,?ReadSideRect@@YGXPAUObj_00431950@@PAHPAD2@Z,matched,100.0
 0x431a20,59,src/game/side_data.cpp,?FreeSideFonts@@YGXXZ,matched,100.0
 0x431a60,2737,src/game/side_data.cpp,?LoadSideData@@YGXXZ,matched,100.0
-0x432520,102,src/game/settings_campaign.cpp,?FUN_00432520@@YGPAVHapiBank@@PAD@Z,matched,100.0
-0x432590,29,src/game/settings_campaign.cpp,?FUN_00432590@@YGXPAVHapiBank@@@Z,matched,100.0
-0x4325b0,84,src/game/settings_campaign.cpp,?FUN_004325b0@@YGPAVHapiBank@@PAD@Z,matched,100.0
+0x432520,102,src/game/settings_campaign.cpp,?OpenSummaryBank@@YGPAVHapiBank@@PAD@Z,matched,100.0
+0x432590,29,src/game/settings_campaign.cpp,?FreeSummaryBank@@YGXPAVHapiBank@@@Z,matched,100.0
+0x4325b0,84,src/game/settings_campaign.cpp,?OpenHapiBank@@YGPAVHapiBank@@PAD@Z,matched,100.0
 0x432610,148,src/game/settings_campaign.cpp,?LoadSavedGameState@@YGHPAVHapiBank@@@Z,matched,100.0
 0x4326b0,976,src/game/settings_campaign.cpp,?SaveGameFile@@YGHPAD0H@Z,matched,100.0
 0x432a80,120,src/game/settings_campaign.cpp,?LoadCampaignRegistryName@@YGXHPAD@Z,matched,100.0

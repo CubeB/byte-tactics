@@ -215,9 +215,9 @@ char* __stdcall SkipTextLines(char* text, int n);
 void __stdcall FrameFromSurface(void* dst, void* src);
 void __stdcall FreeSurface(void* image);
 void* __stdcall LoadSurface(HapiBank* obj);
-HapiBank* __stdcall FUN_00432520(char* name);
-void __stdcall FUN_00432590(void* handle);
-void* __stdcall FUN_004325b0(char* path);
+HapiBank* __stdcall OpenSummaryBank(char* name);
+void __stdcall FreeSummaryBank(void* handle);
+void* __stdcall OpenHapiBank(char* path);
 void __stdcall SetMissionType(int value);
 void __stdcall PlaySoundByName(char* name, int param);
 void __stdcall FUN_00491b60();
@@ -300,7 +300,7 @@ void __stdcall ShowSavedGameInfo()
         SetGadgetText(menu, index, desc);
         char* fname = SkipTextLines(DAT_0051f2e0, games->field_ba);
         sprintf(path, "%s\\%s", DAT_005091c8, fname);
-        HapiBank* file = FUN_00432520(path);
+        HapiBank* file = OpenSummaryBank(path);
         if (file != 0) {
             ((HapiBank*)file)->OpenNamedBox("Radar Image");
             Entry_00491ec0* radar = FUN_004a0280(menu->layer->entries, "RADAR");
@@ -367,7 +367,7 @@ void __stdcall ShowSavedGameInfo()
             sprintf(name, "%s",
                     diffs[((HapiBank*)file)->GetIntegerItem("Difficulty", 0)]);
             FUN_004a0bf0(menu, "DIFF", name, 0);
-            FUN_00432590(file);
+            FreeSummaryBank(file);
             goto done;
         }
     }
@@ -429,10 +429,10 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
     }
     Entry_00492360* e = FindGadgetChecked(entries, "GAMES");
     sprintf(buf, "%s\\%s", DAT_005091c8, SkipTextLines(DAT_0051f2e0, e->field_ba));
-    void* save = FUN_00432520(buf);
+    void* save = OpenSummaryBank(buf);
     if (save != 0) {
         int type = ((HapiBank*)save)->GetIntegerItem("Gametype", 0);
-        FUN_00432590(save);
+        FreeSummaryBank(save);
         switch (type) {
         case 1:
             if (!FindGameCdDrive(0)) {
@@ -471,7 +471,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
             FUN_00491b60();
         g_game->flags_3923b.b3 = 1;
 
-        g_game->p38d6b = FUN_004325b0(g_game->saveName);
+        g_game->p38d6b = OpenHapiBank(g_game->saveName);
         if (g_game->p38d6b == 0)
             goto invalid;
         ((HapiBank*)g_game->p38d6b)->OpenAccount("summary");
@@ -592,7 +592,7 @@ char* __stdcall ListSavedGames(int* count)
     memcpy(copy, DAT_0051f2e0, *count << 8);
     for (i = 0; i < *count; i++) {
         sprintf(buf, "%s\\%s", DAT_005091c8, SkipTextLines(copy, i));
-        HapiBank* file = FUN_00432520(buf);
+        HapiBank* file = OpenSummaryBank(buf);
         char* desc = 0;
         if (file)
             desc = ((HapiBank*)file)->GetStringItem("Description", 0);

@@ -36,7 +36,7 @@ extern double DAT_004fdbe8;                                                     
 extern char g_hapiCopyright[40];                                                              // 0x4fdbf0, 40 bytes; 1 of 1 files
 extern int g_aiCommandsEnabled;                                                               // 0x501774, 4 bytes; 4 of 4 files
 extern unsigned char DAT_00501d18[32];                                                        // 0x501d18, 32 bytes; 1 of 1 files
-extern char DAT_00502288[8];                                                                  // 0x502288, 8 bytes; 1 of 1 files
+extern char g_mappingKey[8];                                                                  // 0x502288, 8 bytes; 1 of 1 files
 extern char g_screenshotDirFormat[16];                                                        // 0x5024fc, 16 bytes; 1 of 1 files
 extern const char DAT_00502820[8];                                                            // 0x502820, 8 bytes; 1 of 1 files
 extern char g_cameraXPosition[12];                                                            // 0x502878, 12 bytes; 1 of 1 files
@@ -44,14 +44,14 @@ extern char g_cameraZPosition[12];                                              
 extern char g_cameraAccount[8];                                                               // 0x502890, 8 bytes; 1 of 1 files
 extern int g_commandLineUnusedFlagL;                                                          // 0x502898, 4 bytes; 1 of 1 files
 extern int DAT_0050289c;                                                                      // 0x50289c, 4 bytes; 1 of 1 files
-extern char DAT_005028f8[12];                                                                 // 0x5028f8, 12 bytes; 1 of 1 files
+extern char g_campaignKey[12];                                                                // 0x5028f8, 12 bytes; 1 of 1 files
 extern char DAT_00502910[4];                                                                  // 0x502910, 4 bytes; 1 of 1 files
 extern char DAT_00502a20[4];                                                                  // 0x502a20, 4 bytes; 3 of 3 files
 extern char DAT_00502a78[12];                                                                 // 0x502a78, 12 bytes; 2 of 2 files
 extern char DAT_00502b38[8];                                                                  // 0x502b38, 8 bytes; 2 of 2 files
 extern unsigned char DAT_00502bf8[64];                                                        // 0x502bf8, 64 bytes; Shape[6] by value in 1 of 1 files
 extern const char DAT_00502e30[8];                                                            // 0x502e30, 8 bytes; 1 of 1 files
-extern char DAT_00502e78[12];                                                                 // 0x502e78, 12 bytes; 1 of 1 files
+extern char g_descriptionKey[12];                                                             // 0x502e78, 12 bytes; 1 of 1 files
 extern char DAT_00502f9c[104];                                                                // 0x502f9c, 104 bytes; 1 of 1 files
 extern char DAT_00503004[32];                                                                 // 0x503004, 32 bytes; 1 of 1 files
 extern char g_extTdf[4];                                                                      // 0x50310c, 4 bytes; 1 of 1 files
@@ -69,31 +69,31 @@ extern char DAT_00503284[8];                                                    
 extern char DAT_0050328c[8];                                                                  // 0x50328c, 8 bytes; 1 of 1 files
 extern char DAT_00503294[8];                                                                  // 0x503294, 8 bytes; 1 of 1 files
 extern char DAT_0050329c[8];                                                                  // 0x50329c, 8 bytes; 1 of 1 files
-extern char* DAT_0050331c;                                                                    // 0x50331c, 4 bytes; 1 of 1 files
-extern char* DAT_00503320;                                                                    // 0x503320, 4 bytes; 1 of 1 files
+extern char* g_saveBankName;                                                                  // 0x50331c, 4 bytes; 1 of 1 files
+extern char* g_summaryAccountName;                                                            // 0x503320, 4 bytes; 1 of 1 files
 extern char DAT_00503374[4];                                                                  // 0x503374, 4 bytes; 3 of 3 files
 extern const char DAT_0050338c[8];                                                            // 0x50338c, 8 bytes; 1 of 1 files
 extern char DAT_0050341c[4];                                                                  // 0x50341c, 4 bytes; 1 of 1 files
 extern char DAT_0050372c[4];                                                                  // 0x50372c, 4 bytes; 3 of 3 files
 extern char DAT_00503ea0[8];                                                                  // 0x503ea0, 8 bytes; 1 of 1 files
 extern char DAT_00504314[20];                                                                 // 0x504314, 20 bytes; 1 of 1 files
-extern char DAT_005048f8[12];                                                                 // 0x5048f8, 12 bytes; 1 of 1 files
-extern char DAT_00504904[12];                                                                 // 0x504904, 12 bytes; 1 of 1 files
-extern char DAT_00504910[12];                                                                 // 0x504910, 12 bytes; 1 of 1 files
-extern char DAT_0050491c[8];                                                                  // 0x50491c, 8 bytes; 1 of 1 files
-extern char DAT_00504924[16];                                                                 // 0x504924, 16 bytes; 1 of 1 files
-extern char DAT_00504934[16];                                                                 // 0x504934, 16 bytes; 1 of 1 files
-extern char DAT_00504944[12];                                                                 // 0x504944, 12 bytes; 1 of 1 files
-extern char DAT_00504950[12];                                                                 // 0x504950, 12 bytes; 1 of 1 files
-extern char DAT_0050495c[16];                                                                 // 0x50495c, 16 bytes; 1 of 1 files
-extern char DAT_0050496c[8];                                                                  // 0x50496c, 8 bytes; 1 of 1 files
-extern char DAT_00504974[12];                                                                 // 0x504974, 12 bytes; 1 of 1 files
-extern char DAT_00504980[8];                                                                  // 0x504980, 8 bytes; 1 of 1 files
-extern char DAT_00504988[8];                                                                  // 0x504988, 8 bytes; 1 of 1 files
-extern char DAT_00504990[4];                                                                  // 0x504990, 4 bytes; 1 of 1 files
-extern char DAT_00504994[8];                                                                  // 0x504994, 8 bytes; 1 of 1 files
-extern char DAT_0050499c[16];                                                                 // 0x50499c, 16 bytes; 1 of 1 files
-extern char DAT_005049ac[16];                                                                 // 0x5049ac, 16 bytes; 1 of 1 files
+extern char g_maxUnitsKey[12];                                                                // 0x5048f8, 12 bytes; 1 of 1 files
+extern char g_radarImageBoxName[12];                                                          // 0x504904, 12 bytes; 1 of 1 files
+extern char g_gameTimeKey[12];                                                                // 0x504910, 12 bytes; 1 of 1 files
+extern char g_gameIdKey[8];                                                                   // 0x50491c, 8 bytes; 1 of 1 files
+extern char g_betweenMissionsKey[16];                                                         // 0x504924, 16 bytes; 1 of 1 files
+extern char g_lineOfSightTypeKey[16];                                                         // 0x504934, 16 bytes; 1 of 1 files
+extern char g_lineOfSightKey[12];                                                             // 0x504944, 12 bytes; 1 of 1 files
+extern char g_locationKey[12];                                                                // 0x504950, 12 bytes; 1 of 1 files
+extern char g_commanderDeathKey[16];                                                          // 0x50495c, 16 bytes; 1 of 1 files
+extern char g_thumbsKey[8];                                                                   // 0x50496c, 8 bytes; 1 of 1 files
+extern char g_gameTypeKey[12];                                                                // 0x504974, 12 bytes; 1 of 1 files
+extern char g_playersKey[8];                                                                  // 0x504980, 8 bytes; 1 of 1 files
+extern char g_sideKey[8];                                                                     // 0x504988, 8 bytes; 1 of 1 files
+extern char g_mapKey[4];                                                                      // 0x504990, 4 bytes; 1 of 1 files
+extern char g_missionKey[8];                                                                  // 0x504994, 8 bytes; 1 of 1 files
+extern char g_buildTimeFormat[16];                                                            // 0x50499c, 16 bytes; 1 of 1 files
+extern char g_buildDateFormat[16];                                                            // 0x5049ac, 16 bytes; 1 of 1 files
 extern char DAT_00504a64[8];                                                                  // 0x504a64, 8 bytes; 1 of 1 files
 extern const char g_defaultLanguage[8];                                                       // 0x504ab8, 8 bytes; 1 of 1 files
 extern char DAT_00504e98[8];                                                                  // 0x504e98, 8 bytes; 1 of 1 files

@@ -1,7 +1,7 @@
 // Decompiled by Opus, space-bunny-free, DeepSeek V4.1 Flash and Sonnet. Names are provisional.
-// The game file a saved game is written to and read from (the HapiBank "3P"
-// file: a game summary plus each subsystem's state), and the campaign name
-// and a few settings saved in the registry.
+// The game file a saved game is written to and read from (a HapiBank named
+// "Total Annihilation 3.0": a game summary plus each subsystem's state), and
+// the campaign name and a few settings saved in the registry.
 #include <stdio.h>
 #include <string.h>
 
@@ -95,29 +95,29 @@ public:
 };
 
 extern Game* g_game;
-extern char* DAT_0050331c;            // ",3P"
-extern char* DAT_00503320;            // "Summary"
-extern char DAT_005049ac[];           // "BUILD DATE: %s"
-extern char DAT_0050499c[];           // "BUILD TIME: %s"
-extern char DAT_005048f8[];           // "maxunits"
-extern char DAT_005028f8[];           // "Campaign"
-extern char DAT_00504994[];           // "Mission"
-extern char DAT_00504990[];           // "Map"
+extern char* g_saveBankName;          // "Total Annihilation 3.0"
+extern char* g_summaryAccountName;    // "Summary"
+extern char g_buildDateFormat[];      // "BUILD DATE: %s"
+extern char g_buildTimeFormat[];      // "BUILD TIME: %s"
+extern char g_maxUnitsKey[];          // "maxunits"
+extern char g_campaignKey[];          // "Campaign"
+extern char g_missionKey[];           // "Mission"
+extern char g_mapKey[];               // "Map"
 extern char DAT_00502a78[];           // "Difficulty"
-extern char DAT_00504988[];           // "Side"
-extern char DAT_00504980[];           // "Players"
-extern char DAT_00504974[];           // "Gametype"
-extern char DAT_0050496c[];           // "Thumbs"
-extern char DAT_0050495c[];           // "CommanderDeath"
-extern char DAT_00504950[];           // "Location"
-extern char DAT_00502288[];           // "Mapping"
-extern char DAT_00504944[];           // "LineOfSight"
-extern char DAT_00504934[];           // "LineOfSightType"
-extern char DAT_00504924[];           // "BetweenMissions"
-extern char DAT_00502e78[];           // "Description"
-extern char DAT_0050491c[];           // "Game ID"
-extern char DAT_00504910[];           // "Game Time"
-extern char DAT_00504904[];           // "Radar Image"
+extern char g_sideKey[];              // "Side"
+extern char g_playersKey[];           // "Players"
+extern char g_gameTypeKey[];          // "Gametype"
+extern char g_thumbsKey[];            // "Thumbs"
+extern char g_commanderDeathKey[];    // "CommanderDeath"
+extern char g_locationKey[];          // "Location"
+extern char g_mappingKey[];           // "Mapping"
+extern char g_lineOfSightKey[];       // "LineOfSight"
+extern char g_lineOfSightTypeKey[];   // "LineOfSightType"
+extern char g_betweenMissionsKey[];   // "BetweenMissions"
+extern char g_descriptionKey[];       // "Description"
+extern char g_gameIdKey[];            // "Game ID"
+extern char g_gameTimeKey[];          // "Game Time"
+extern char g_radarImageBoxName[];    // "Radar Image"
 
 void __stdcall LoadPlayers(HapiBank* file);
 void __stdcall ReadCameraPosition(HapiBank* file);
@@ -145,7 +145,7 @@ extern int __stdcall WriteRegistryDword(const char* param1, const char* param2, 
 // Allocates a 4-byte object, initialises it, and opens it with the given
 // name and two global strings; frees it and returns 0 on failure.
 // FUNCTION: 0x432520
-HapiBank* __stdcall FUN_00432520(char* name)
+HapiBank* __stdcall OpenSummaryBank(char* name)
 {
     HapiBank* mem = new HapiBank;
     HapiBank* obj;
@@ -154,20 +154,20 @@ HapiBank* __stdcall FUN_00432520(char* name)
     } else {
         obj = 0;
     }
-    if (((HapiBank*)obj)->OpenBank(name, DAT_0050331c, DAT_00503320) == 0) {
+    if (((HapiBank*)obj)->OpenBank(name, g_saveBankName, g_summaryAccountName) == 0) {
         if (obj != 0) {
             ((HapiBank*)obj)->CloseBank();
             delete obj;
         }
         return 0;
     }
-    ((HapiBank*)obj)->OpenAccount(DAT_00503320);
+    ((HapiBank*)obj)->OpenAccount(g_summaryAccountName);
     return obj;
 }
 
 // Deletes an object whose (out-of-line) destructor is CloseBank.
 // FUNCTION: 0x432590
-void __stdcall FUN_00432590(HapiBank* obj)
+void __stdcall FreeSummaryBank(HapiBank* obj)
 {
     if (obj) {
         obj->CloseBank();
@@ -179,7 +179,7 @@ void __stdcall FUN_00432590(HapiBank* obj)
 // name and a global string; frees it and returns 0 on failure.
 // Sibling of 0x432520.
 // FUNCTION: 0x4325b0
-HapiBank* __stdcall FUN_004325b0(char* name)
+HapiBank* __stdcall OpenHapiBank(char* name)
 {
     HapiBank* mem = new HapiBank;
     HapiBank* obj;
@@ -188,7 +188,7 @@ HapiBank* __stdcall FUN_004325b0(char* name)
     } else {
         obj = 0;
     }
-    if (((HapiBank*)obj)->OpenBank(name, DAT_0050331c, 0) == 0) {
+    if (((HapiBank*)obj)->OpenBank(name, g_saveBankName, 0) == 0) {
         if (obj != 0) {
             ((HapiBank*)obj)->CloseBank();
             delete obj;
@@ -202,7 +202,7 @@ HapiBank* __stdcall FUN_004325b0(char* name)
 // FUNCTION: 0x432610
 int __stdcall LoadSavedGameState(HapiBank* file)
 {
-    file->OpenAccount(DAT_00503320);
+    file->OpenAccount(g_summaryAccountName);
     if (((HapiBank*)file)->HasItem("maxunits"))
         g_game->maxUnits = ((HapiBank*)file)->GetIntegerItem("maxunits", 0);
     LoadPlayers(file);
@@ -221,7 +221,7 @@ int __stdcall LoadSavedGameState(HapiBank* file)
 // Writes the game summary file named by argument 1 (the "Summary" section of
 // a freshly built parse tree, plus the radar image and every subsystem's save
 // state when the game is in state 6) and hands it to SaveBank, which
-// writes the ",3P" file and returns its result. Argument 2 is an optional
+// writes the save file and returns its result. Argument 2 is an optional
 // description string, argument 3 the game id.
 // FUNCTION: 0x4326b0
 int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
@@ -231,42 +231,42 @@ int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
 
     ((HapiBank*)&file)->InitBank();
     file.NewBank();
-    ((HapiBank*)&file)->OpenAccount(DAT_00503320);
+    ((HapiBank*)&file)->OpenAccount(g_summaryAccountName);
 
-    sprintf(buf, DAT_005049ac, g_game->buildDate);
+    sprintf(buf, g_buildDateFormat, g_game->buildDate);
     ((HapiBank*)&file)->SetIntegerItem(buf, 0);
-    sprintf(buf, DAT_0050499c, g_game->buildTime);
+    sprintf(buf, g_buildTimeFormat, g_game->buildTime);
     ((HapiBank*)&file)->SetIntegerItem(buf, 0);
-    ((HapiBank*)&file)->SetIntegerItem(DAT_005048f8, g_game->maxUnits);
-    ((HapiBank*)&file)->SetStringItem(DAT_005028f8, ((Mission*)g_game->campaign)->FUN_004352b0());
+    ((HapiBank*)&file)->SetIntegerItem(g_maxUnitsKey, g_game->maxUnits);
+    ((HapiBank*)&file)->SetStringItem(g_campaignKey, ((Mission*)g_game->campaign)->FUN_004352b0());
     if (g_game->state != 6) {
         ((Mission*)g_game->campaign)->AdvanceMission();
     }
-    ((HapiBank*)&file)->SetStringItem(DAT_00504994, ((Mission*)g_game->campaign)->FUN_00435c30());
-    ((HapiBank*)&file)->SetStringItem(DAT_00504990, ((Mission*)g_game->campaign)->FUN_00435c30());
+    ((HapiBank*)&file)->SetStringItem(g_missionKey, ((Mission*)g_game->campaign)->FUN_00435c30());
+    ((HapiBank*)&file)->SetStringItem(g_mapKey, ((Mission*)g_game->campaign)->FUN_00435c30());
     ((HapiBank*)&file)->SetIntegerItem(DAT_00502a78, g_game->difficulty);
-    ((HapiBank*)&file)->SetIntegerItem(DAT_00504988, g_game->players[g_game->localPlayer].unit->side);
-    ((HapiBank*)&file)->SetIntegerItem(DAT_00504980, g_game->numPlayers);
-    ((HapiBank*)&file)->SetIntegerItem(DAT_00504974, ((Mission*)g_game->campaign)->FUN_00435100());
-    ((HapiBank*)&file)->SetStringItem(DAT_0050496c, g_game->thumbs);
+    ((HapiBank*)&file)->SetIntegerItem(g_sideKey, g_game->players[g_game->localPlayer].unit->side);
+    ((HapiBank*)&file)->SetIntegerItem(g_playersKey, g_game->numPlayers);
+    ((HapiBank*)&file)->SetIntegerItem(g_gameTypeKey, ((Mission*)g_game->campaign)->FUN_00435100());
+    ((HapiBank*)&file)->SetStringItem(g_thumbsKey, g_game->thumbs);
     if (((Mission*)g_game->campaign)->FUN_00435100() == 2) {
-        ((HapiBank*)&file)->SetIntegerItem(DAT_0050495c, g_game->options->commanderDeath);
-        ((HapiBank*)&file)->SetIntegerItem(DAT_00504950, g_game->options->location);
-        ((HapiBank*)&file)->SetIntegerItem(DAT_00502288, g_game->options->mapping);
-        ((HapiBank*)&file)->SetIntegerItem(DAT_00504944, g_game->options->lineOfSight);
-        ((HapiBank*)&file)->SetIntegerItem(DAT_00504934, g_game->options->lineOfSightType);
+        ((HapiBank*)&file)->SetIntegerItem(g_commanderDeathKey, g_game->options->commanderDeath);
+        ((HapiBank*)&file)->SetIntegerItem(g_locationKey, g_game->options->location);
+        ((HapiBank*)&file)->SetIntegerItem(g_mappingKey, g_game->options->mapping);
+        ((HapiBank*)&file)->SetIntegerItem(g_lineOfSightKey, g_game->options->lineOfSight);
+        ((HapiBank*)&file)->SetIntegerItem(g_lineOfSightTypeKey, g_game->options->lineOfSightType);
     }
     if (g_game->state != 6) {
-        ((HapiBank*)&file)->SetIntegerItem(DAT_00504924, 1);
+        ((HapiBank*)&file)->SetIntegerItem(g_betweenMissionsKey, 1);
         ((Mission*)g_game->campaign)->FUN_00435c00(g_game->mission);
     }
     if (param_2 != 0) {
-        ((HapiBank*)&file)->SetStringItem(DAT_00502e78, param_2);
+        ((HapiBank*)&file)->SetStringItem(g_descriptionKey, param_2);
     }
-    ((HapiBank*)&file)->SetIntegerItem(DAT_0050491c, param_3);
-    ((HapiBank*)&file)->SetIntegerItem(DAT_00504910, g_game->ticks);
+    ((HapiBank*)&file)->SetIntegerItem(g_gameIdKey, param_3);
+    ((HapiBank*)&file)->SetIntegerItem(g_gameTimeKey, g_game->ticks);
     if (g_game->state == 6) {
-        ((HapiBank*)&file)->OpenNamedBox(DAT_00504904);
+        ((HapiBank*)&file)->OpenNamedBox(g_radarImageBoxName);
         SaveSurface(g_game->finalSurface, &file);
         WriteCameraPosition(&file);
         SavePlayers(&file);
@@ -278,7 +278,7 @@ int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
         SaveMeteors(&file);
         g_game->field_391ed->SaveConditions(&file);
     }
-    int result = file.SaveBank(param_1, DAT_0050331c, 1, 0);
+    int result = file.SaveBank(param_1, g_saveBankName, 1, 0);
     ((HapiBank*)&file)->CloseBank();
     return result;
 }

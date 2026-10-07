@@ -92,7 +92,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x501f48,g_cheatCommands,.data,132,gap,data,Option_00419560,1,1,2,conflicting: shape,2,,PTR_s_Radar_00501f48,20,src/game/console_commands.cpp,a022500090704100020000009c225000c07041000200000094225000506b41000200000090225000506d41000200000088225000806d4100020000007c225000
 0x501fcc,DAT_00501fcc,.data,4,type,data,int,1,0,1,one type,1,,,,src/game/console_commands.cpp,00000000
 0x501fd0,g_debugCommands,.data,432,gap,data,Option_00419560,1,1,2,conflicting: shape,2,,PTR_DAT_00501fd0,60,src/game/console_commands.cpp,e018500080624100040000004c225000b06a41000400000044225000b0644100040000003c225000d06941000400000034225000306a4100040000002c225000
-0x502288,DAT_00502288,.data,8,gap,string,char[],1,0,1,one type,1,,s_Mapping_00502288,,,4d617070696e6700
+0x502288,g_mappingKey,.data,8,gap,string,char[],1,0,1,one type,1,,s_Mapping_00502288,,,4d617070696e6700
 0x5024fc,g_screenshotDirFormat,.data,16,gap,string,char[],1,0,1,one type,1,,s__s_screenshots_005024fc,,,25735c73637265656e73686f74730000
 0x502820,DAT_00502820,.data,8,gap,string,const char[],1,0,1,one type,1,,DAT_00502820,,,6775697300000000
 0x502878,g_cameraXPosition,.data,12,gap,string,char[],1,0,1,one type,1,,s_X_Position_00502878,,,5820506f736974696f6e0000
@@ -100,7 +100,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x502890,g_cameraAccount,.data,8,gap,string,char[],1,0,1,one type,1,,s_Camera_00502890,,,43616d6572610000
 0x502898,g_commandLineUnusedFlagL,.data,4,type,data,int,1,0,1,one type,1,,_DAT_00502898,,,01000000
 0x50289c,DAT_0050289c,.data,4,type,data,int,1,0,1,one type,1,,DAT_0050289c,,,01000000
-0x5028f8,DAT_005028f8,.data,12,gap,string,char[],1,0,1,one type,1,,s_Campaign_005028f8,,,43616d706169676e00000000
+0x5028f8,g_campaignKey,.data,12,gap,string,char[],1,0,1,one type,1,,s_Campaign_005028f8,,,43616d706169676e00000000
 0x502910,DAT_00502910,.data,4,gap,data,char[],1,0,1,one type,1,,DAT_00502910,,,2e000000
 0x502a20,DAT_00502a20,.data,4,gap,string,char[],3,0,1,one type,3,,DAT_00502a20,,,26470000
 0x502a78,DAT_00502a78,.data,12,gap,string,char[],2,0,1,one type,2,,s_Difficulty_00502a78,,,446966666963756c74790000
@@ -108,7 +108,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x502b38,DAT_00502b38,.data,8,gap,string,char[],2,0,1,one type,2,,s_Options_00502b38,,,4f7074696f6e7300
 0x502bf8,DAT_00502bf8,.data,64,gap,data,Shape[6],1,0,1,one type,1,0x30,DAT_00502bf8,,,0000010002000300020001000600050000000300040007000100000007000600030002000500040004000500060007006578706c6f6465706965636500000000
 0x502e30,DAT_00502e30,.data,8,gap,string,const char[],1,0,1,one type,1,,s_anims_00502e30,,,616e696d73000000
-0x502e78,DAT_00502e78,.data,12,gap,string,char[],1,0,1,one type,1,,s_Description_00502e78,,,4465736372697074696f6e00
+0x502e78,g_descriptionKey,.data,12,gap,string,char[],1,0,1,one type,1,,s_Description_00502e78,,,4465736372697074696f6e00
 0x502f98,DAT_00502f98,.data,4,type,data,int,1,0,1,one type,1,,,,src/data/unused.cpp,10000000
 0x502f9c,DAT_00502f9c,.data,104,gap,data,char[],1,0,1,one type,1,,s_Code_segment_checksum_error_foun_00502f9c,,,436f6465207365676d656e7420636865636b73756d206572726f7220666f756e64207768656e20737769746368696e67204645207374617465732e0a53746174
 0x503004,DAT_00503004,.data,32,gap,string,char[],1,0,1,one type,1,,,,,633a5c63617665646f675c77617267616d655c66726f6e74656e642e63707000
@@ -127,31 +127,31 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x50328c,DAT_0050328c,.data,8,gap,string,char[],1,0,1,one type,1,,s_5_zrb_0050328c,,,352e7a7262000000
 0x503294,DAT_00503294,.data,8,gap,string,char[],1,0,1,one type,1,,s_2_zrb_00503294,,,322e7a7262000000
 0x50329c,DAT_0050329c,.data,8,gap,string,char[],1,0,1,one type,1,,s_1_zrb_0050329c,,,312e7a7262000000
-0x50331c,DAT_0050331c,.data,4,type,string,char*,1,0,1,one type,1,,PTR_s_Total_Annihilation_3_0_0050331c,1,,2c335000
-0x503320,DAT_00503320,.data,4,type,string,char*,1,0,1,one type,1,,PTR_s_Summary_00503320,1,,24335000
+0x50331c,g_saveBankName,.data,4,type,string,char*,1,0,1,one type,1,,PTR_s_Total_Annihilation_3_0_0050331c,1,,2c335000
+0x503320,g_summaryAccountName,.data,4,type,string,char*,1,0,1,one type,1,,PTR_s_Summary_00503320,1,,24335000
 0x503374,DAT_00503374,.data,4,gap,data,char[],3,0,1,one type,3,,DAT_00503374,,,5c000000
 0x50338c,DAT_0050338c,.data,8,gap,string,const char[],1,0,1,one type,1,,s_fonts_0050338c,,,666f6e7473000000
 0x50341c,DAT_0050341c,.data,4,gap,string,char[],1,0,1,one type,1,,DAT_0050341c,1,,54444600
 0x50372c,DAT_0050372c,.data,4,gap,data,char[],3,0,1,one type,3,,DAT_0050372c,,,2a000000
 0x503ea0,DAT_00503ea0,.data,8,gap,string,char[],1,0,1,one type,1,,DAT_00503ea0,,,6e6f6e6500000000
 0x504314,DAT_00504314,.data,20,gap,string,char[],1,0,1,one type,1,,s_Say_Choice_Array_00504314,,,5361792043686f69636520417272617900000000
-0x5048f8,DAT_005048f8,.data,12,gap,string,char[],1,0,1,one type,1,,s_maxunits_005048f8,,,6d6178756e69747300000000
-0x504904,DAT_00504904,.data,12,gap,string,char[],1,0,1,one type,1,,s_Radar_Image_00504904,,,526164617220496d61676500
-0x504910,DAT_00504910,.data,12,gap,string,char[],1,0,1,one type,1,,s_Game_Time_00504910,,,47616d652054696d65000000
-0x50491c,DAT_0050491c,.data,8,gap,string,char[],1,0,1,one type,1,,s_Game_ID_0050491c,1,,47616d6520494400
-0x504924,DAT_00504924,.data,16,gap,string,char[],1,0,1,one type,1,,s_BetweenMissions_00504924,,,4265747765656e4d697373696f6e7300
-0x504934,DAT_00504934,.data,16,gap,string,char[],1,0,1,one type,1,,s_LineOfSightType_00504934,,,4c696e654f6653696768745479706500
-0x504944,DAT_00504944,.data,12,gap,string,char[],1,0,1,one type,1,,s_LineOfSight_00504944,,,4c696e654f66536967687400
-0x504950,DAT_00504950,.data,12,gap,string,char[],1,0,1,one type,1,,s_Location_00504950,,,4c6f636174696f6e00000000
-0x50495c,DAT_0050495c,.data,16,gap,string,char[],1,0,1,one type,1,,s_CommanderDeath_0050495c,,,436f6d6d616e64657244656174680000
-0x50496c,DAT_0050496c,.data,8,gap,string,char[],1,0,1,one type,1,,s_Thumbs_0050496c,,,5468756d62730000
-0x504974,DAT_00504974,.data,12,gap,string,char[],1,0,1,one type,1,,s_Gametype_00504974,,,47616d657479706500000000
-0x504980,DAT_00504980,.data,8,gap,string,char[],1,0,1,one type,1,,s_Players_00504980,,,506c617965727300
-0x504988,DAT_00504988,.data,8,gap,string,char[],1,0,1,one type,1,,DAT_00504988,,,5369646500000000
-0x504990,DAT_00504990,.data,4,gap,string,char[],1,0,1,one type,1,,DAT_00504990,,,4d617000
-0x504994,DAT_00504994,.data,8,gap,string,char[],1,0,1,one type,1,,s_Mission_00504994,,,4d697373696f6e00
-0x50499c,DAT_0050499c,.data,16,gap,string,char[],1,0,1,one type,1,,s_BUILD_TIME___s_0050499c,,,4255494c442054494d453a2025730000
-0x5049ac,DAT_005049ac,.data,16,gap,string,char[],1,0,1,one type,1,,s_BUILD_DATE___s_005049ac,,,4255494c4420444154453a2025730000
+0x5048f8,g_maxUnitsKey,.data,12,gap,string,char[],1,0,1,one type,1,,s_maxunits_005048f8,,,6d6178756e69747300000000
+0x504904,g_radarImageBoxName,.data,12,gap,string,char[],1,0,1,one type,1,,s_Radar_Image_00504904,,,526164617220496d61676500
+0x504910,g_gameTimeKey,.data,12,gap,string,char[],1,0,1,one type,1,,s_Game_Time_00504910,,,47616d652054696d65000000
+0x50491c,g_gameIdKey,.data,8,gap,string,char[],1,0,1,one type,1,,s_Game_ID_0050491c,1,,47616d6520494400
+0x504924,g_betweenMissionsKey,.data,16,gap,string,char[],1,0,1,one type,1,,s_BetweenMissions_00504924,,,4265747765656e4d697373696f6e7300
+0x504934,g_lineOfSightTypeKey,.data,16,gap,string,char[],1,0,1,one type,1,,s_LineOfSightType_00504934,,,4c696e654f6653696768745479706500
+0x504944,g_lineOfSightKey,.data,12,gap,string,char[],1,0,1,one type,1,,s_LineOfSight_00504944,,,4c696e654f66536967687400
+0x504950,g_locationKey,.data,12,gap,string,char[],1,0,1,one type,1,,s_Location_00504950,,,4c6f636174696f6e00000000
+0x50495c,g_commanderDeathKey,.data,16,gap,string,char[],1,0,1,one type,1,,s_CommanderDeath_0050495c,,,436f6d6d616e64657244656174680000
+0x50496c,g_thumbsKey,.data,8,gap,string,char[],1,0,1,one type,1,,s_Thumbs_0050496c,,,5468756d62730000
+0x504974,g_gameTypeKey,.data,12,gap,string,char[],1,0,1,one type,1,,s_Gametype_00504974,,,47616d657479706500000000
+0x504980,g_playersKey,.data,8,gap,string,char[],1,0,1,one type,1,,s_Players_00504980,,,506c617965727300
+0x504988,g_sideKey,.data,8,gap,string,char[],1,0,1,one type,1,,DAT_00504988,,,5369646500000000
+0x504990,g_mapKey,.data,4,gap,string,char[],1,0,1,one type,1,,DAT_00504990,,,4d617000
+0x504994,g_missionKey,.data,8,gap,string,char[],1,0,1,one type,1,,s_Mission_00504994,,,4d697373696f6e00
+0x50499c,g_buildTimeFormat,.data,16,gap,string,char[],1,0,1,one type,1,,s_BUILD_TIME___s_0050499c,,,4255494c442054494d453a2025730000
+0x5049ac,g_buildDateFormat,.data,16,gap,string,char[],1,0,1,one type,1,,s_BUILD_DATE___s_005049ac,,,4255494c4420444154453a2025730000
 0x504a64,DAT_00504a64,.data,8,gap,string,char[],1,0,1,one type,1,,s_camps_00504a64,,,63616d7073000000
 0x504ab8,g_defaultLanguage,.data,8,gap,string,const char[],1,0,1,one type,1,,s_english_00504ab8,,,656e676c69736800
 0x504e98,DAT_00504e98,.data,8,gap,string,char[],1,0,1,one type,1,,DAT_00504e98,,,4861726400000000

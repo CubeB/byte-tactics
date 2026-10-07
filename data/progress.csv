@@ -1381,9 +1381,9 @@ address,size,file,symbol,status,similarity
 0x46bc60,13,src/ingame/info_panel_46bc60.cpp,?FUN_0046bc60@@YGXH@Z,matched,100.0
 0x46bc70,108,src/ingame/info_panel_46bc70.cpp,?ShowGameMessage@@YGHPADH@Z,matched,100.0
 0x46bce0,542,src/game/statistics.cpp,?AllocScoreTables@@YGHXZ,matched,100.0
-0x46bf00,27,src/game/statistics.cpp,?FUN_0046bf00@@YGHH@Z,matched,100.0
-0x46bf20,14,src/game/statistics.cpp,?FUN_0046bf20@@YG_NXZ,matched,100.0
-0x46bf30,602,src/game/statistics.cpp,?FUN_0046bf30@@YGHPAHH@Z,matched,100.0
+0x46bf00,27,src/game/statistics.cpp,?EnableReporter@@YGHH@Z,matched,100.0
+0x46bf20,14,src/game/statistics.cpp,?IsReporterDllLoaded@@YG_NXZ,matched,100.0
+0x46bf30,602,src/game/statistics.cpp,?LoadReporterDll@@YGHPAHH@Z,matched,100.0
 0x46c190,259,src/game/statistics.cpp,?ShutdownScoreTables@@YGXXZ,matched,100.0
 0x46c620,486,src/network/unit_sync_46c620.cpp,?ReportGameEvent@@YGHH@Z,matched,100.0
 0x46c810,157,src/network/unit_sync_46c810.cpp,?ReportGameChat@@YGHH@Z,matched,100.0

@@ -15,7 +15,7 @@ extern Game* g_game;
 extern int g_usePacketManager;
 extern PacketManager g_packetManager;
 
-bool FUN_0046bf20();
+bool IsReporterDllLoaded();
 void __stdcall HAPINET_uninitmultiplay(void* param_1);
 
 // FUNCTION: 0x450dd0
@@ -25,7 +25,7 @@ void CloseNetSession()
         if (g_usePacketManager != 0) {
             g_packetManager.SendAllQueued(1);
         }
-        if (!FUN_0046bf20()) {
+        if (!IsReporterDllLoaded()) {
             HAPINET_uninitmultiplay(g_game->field_14);
         }
         g_game->flags_2a44 &= 0xfffe;

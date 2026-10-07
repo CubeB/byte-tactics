@@ -10,7 +10,7 @@ void __stdcall OpenReportDialog(unsigned int* a, unsigned int* b);
 void __stdcall OpenMessageBox(void* p, char* text, int a, int b, int c);
 void __stdcall LoadPictureCached(char* name, int a, int b, int c);
 void __stdcall RunWhileScreenNamed(void* p, char* name);
-int __stdcall FUN_0046bf30(unsigned int* a, unsigned int* b);
+int __stdcall LoadReporterDll(unsigned int* a, unsigned int* b);
 char* __stdcall Translate(char* text);
 void __stdcall SetOffscreenSurface(int x);
 
@@ -25,7 +25,7 @@ int InitScoreReporting(void)
         return 0;
     int saved = *(signed char*)(g_game + 0x2cbe);
     FUN_00491c80(0x14);
-    int r = FUN_0046bf30(&DAT_005054a8, &DAT_00512788);
+    int r = LoadReporterDll(&DAT_005054a8, &DAT_00512788);
     if (r == 0) {
         if (DAT_005054a8 > 0) {
             FUN_00491c80(0x13);

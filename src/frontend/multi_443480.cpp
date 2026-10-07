@@ -26,7 +26,7 @@ int __stdcall FindGadgetIndex(int a, char* name, int flag);
 char __stdcall FUN_004a04f0(Gadget_00443480* obj, char* name);
 int __stdcall GetGadgetStatus(Gadget_00443480* obj, int handle);
 void __stdcall FUN_00491c80(int value);
-void __stdcall FUN_0046bf00(int value);
+void __stdcall EnableReporter(int value);
 void __stdcall FUN_004ab0a0(Gadget_00443480* obj);
 
 // FUNCTION: 0x443480
@@ -54,7 +54,7 @@ void __stdcall HandleReportClick(Gadget_00443480* obj)
         }
 
         FUN_00491c80(0x14);
-        FUN_0046bf00(acc);
+        EnableReporter(acc);
         if ((g_game->field_2bee & 0x10) || g_game->field_2bbf == 0x14) {
             g_game->field_2bc0 = 0x15;
         } else {

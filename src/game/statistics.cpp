@@ -11,7 +11,7 @@ struct Guid_0046bf30 {
     unsigned long data4;
 };
 
-// The game state FUN_0046bf30 and ShutdownScoreTables share: the network game
+// The game state LoadReporterDll and ShutdownScoreTables share: the network game
 // at +0x4e5 and the service provider GUID it copies out at +0x39201.
 #pragma pack(push, 1)
 struct Game {
@@ -54,11 +54,11 @@ typedef void (__stdcall *SetCbFn_0046bf30)(void (__stdcall* cb1)(int), int (__st
 typedef int (__stdcall *TimerFn_0046bf30)();
 typedef void (__cdecl *TermFn_0046bf30)();
 
-extern EnableFn_0046bf30 DAT_0051e588;         // _RIEnable@4
-extern InitFn_0046bf30 DAT_0051e54c;           // _RIInitializeEx@8
-extern VersionFn_0046bf30 DAT_0051e554;        // _RIGetVersion@4
-extern TermFn_0046bf30 DAT_0051e558;           // _RITerminate@0
-extern SetCbFn_0046bf30 DAT_0051e578;         // _RISetCallbacks@8
+extern EnableFn_0046bf30 g_riEnable;           // _RIEnable@4
+extern InitFn_0046bf30 g_riInitializeEx;       // _RIInitializeEx@8
+extern VersionFn_0046bf30 g_riGetVersion;      // _RIGetVersion@4
+extern TermFn_0046bf30 g_riTerminate;          // _RITerminate@0
+extern SetCbFn_0046bf30 g_riSetCallbacks;     // _RISetCallbacks@8
 extern TimerFn_0046bf30 DAT_0051e580;         // _RIIntervalTimer@0
 extern ReportFn_0046bf30 DAT_0051e584;         // _RIReport@40
 extern ChatFn_0046bf30 DAT_0051e548;          // _RIReportGameChat@8
@@ -161,16 +161,16 @@ failed:
 }
 
 // FUNCTION: 0x46bf00
-int __stdcall FUN_0046bf00(int param_1)
+int __stdcall EnableReporter(int param_1)
 {
-    if (DAT_0051e588 != 0) {
-        return DAT_0051e588(param_1);
+    if (g_riEnable != 0) {
+        return g_riEnable(param_1);
     }
     return 1;
 }
 
 // FUNCTION: 0x46bf20
-bool FUN_0046bf20()
+bool IsReporterDllLoaded()
 {
     return DAT_0051e58c != 0;
 }
@@ -182,7 +182,7 @@ bool FUN_0046bf20()
 // Returns 0 once the console is up, 2 when reporter.dll could not be loaded
 // complete, and 4 when there is still nothing to report to.
 // FUNCTION: 0x46bf30
-int __stdcall FUN_0046bf30(int* param_1, int param_2)
+int __stdcall LoadReporterDll(int* param_1, int param_2)
 {
     char* net;
 
@@ -215,32 +215,32 @@ int __stdcall FUN_0046bf30(int* param_1, int param_2)
         if (DAT_0051e58c != 0) {
             // Nested, so the cleanup is the fall-through out of all eight: a goto
             // target would be laid out before the block below.
-            DAT_0051e588 = (EnableFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RIEnable@4");
-            if (DAT_0051e588 != 0) {
-                DAT_0051e554 = (VersionFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RIGetVersion@4");
-                if (DAT_0051e554 != 0) {
-                    DAT_0051e54c = (InitFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RIInitializeEx@8");
-                    if (DAT_0051e54c != 0) {
+            g_riEnable = (EnableFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RIEnable@4");
+            if (g_riEnable != 0) {
+                g_riGetVersion = (VersionFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RIGetVersion@4");
+                if (g_riGetVersion != 0) {
+                    g_riInitializeEx = (InitFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RIInitializeEx@8");
+                    if (g_riInitializeEx != 0) {
                         DAT_0051e584 = (ReportFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RIReport@40");
                         if (DAT_0051e584 != 0) {
                             DAT_0051e548 = (ChatFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RIReportGameChat@8");
                             if (DAT_0051e548 != 0) {
-                                DAT_0051e578 = (SetCbFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RISetCallbacks@8");
-                                if (DAT_0051e578 != 0) {
+                                g_riSetCallbacks = (SetCbFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RISetCallbacks@8");
+                                if (g_riSetCallbacks != 0) {
                                     DAT_0051e580 = (TimerFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RIIntervalTimer@0");
                                     if (DAT_0051e580 != 0) {
-                                        DAT_0051e558 = (TermFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RITerminate@0");
-                                        if (DAT_0051e558 != 0) {
-                                            if (DAT_0051e554("Total Annihilation") != 0) {
-                                                DAT_0051e558();
+                                        g_riTerminate = (TermFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RITerminate@0");
+                                        if (g_riTerminate != 0) {
+                                            if (g_riGetVersion("Total Annihilation") != 0) {
+                                                g_riTerminate();
                                                 FreeLibrary(DAT_0051e58c);
                                                 DAT_0051e58c = 0;
-                                            } else if (DAT_0051e54c(param_1, param_2) == 4) {
-                                                DAT_0051e558();
+                                            } else if (g_riInitializeEx(param_1, param_2) == 4) {
+                                                g_riTerminate();
                                                 FreeLibrary(DAT_0051e58c);
                                                 DAT_0051e58c = 0;
                                             } else {
-                                                DAT_0051e578(FUN_0046bc60, ShowGameMessage);
+                                                g_riSetCallbacks(FUN_0046bc60, ShowGameMessage);
                                             }
                                             goto tail;
                                         }
@@ -273,8 +273,8 @@ void ShutdownScoreTables()
     RISetCallbacks(0, 0);
     if (DAT_0051e58c != 0) {
         HAPINET_uninitmultiplay(g_game->field_14);
-        if (DAT_0051e558 != 0)
-            DAT_0051e558();
+        if (g_riTerminate != 0)
+            g_riTerminate();
         FreeLibrary(DAT_0051e58c);
         DAT_0051e58c = 0;
     }

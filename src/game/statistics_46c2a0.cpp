@@ -96,8 +96,8 @@ struct ScoreBoard_0046c2a0 {           // 0xc bytes
 extern Game_0046c2a0* g_game;
 extern PlayerInfo_0046c2a0** DAT_0051e574;
 extern ScoreBoard_0046c2a0** DAT_0051e57c;
-extern char* DAT_00507948[2];          // "Arm", "Core"
-extern char* DAT_00507950[9];          // "Kills", "Losses", ..., "I am Winner"
+extern char* g_sideNames[2];           // "Arm", "Core"
+extern char* g_scoreNames[9];          // "Kills", "Losses", ..., "I am Winner"
 
 // Fills the player and score-board tables AllocScoreTables allocated (handed to
 // the stats DLL by ReportGameEvent) for every player in the game, and returns
@@ -122,7 +122,7 @@ int FillScoreTables()
                 DAT_0051e574[i]->flags |= 4;
             if (p->active && (p->data->field_97 & 1))
                 DAT_0051e574[i]->flags |= 8;
-            DAT_0051e574[i]->side = DAT_00507948[p->data->side];
+            DAT_0051e574[i]->side = g_sideNames[p->data->side];
             int n = 0;
             PlayerInfo_0046c2a0** allies = DAT_0051e574[i]->allies;
             PlayerInfo_0046c2a0** a = allies;
@@ -142,31 +142,31 @@ int FillScoreTables()
             DAT_0051e57c[i]->count = 9;
             Score_0046c2a0* s;
             s = DAT_0051e57c[i]->scores[0];
-            s->name = DAT_00507950[0];
+            s->name = g_scoreNames[0];
             s->value = p->kills;
             s = DAT_0051e57c[i]->scores[1];
-            s->name = DAT_00507950[1];
+            s->name = g_scoreNames[1];
             s->value = p->losses;
             s = DAT_0051e57c[i]->scores[2];
-            s->name = DAT_00507950[2];
+            s->name = g_scoreNames[2];
             s->value = (int)p->field_ac;
             s = DAT_0051e57c[i]->scores[3];
-            s->name = DAT_00507950[3];
+            s->name = g_scoreNames[3];
             s->value = (int)p->field_b4;
             s = DAT_0051e57c[i]->scores[4];
-            s->name = DAT_00507950[4];
+            s->name = g_scoreNames[4];
             s->value = (int)p->field_cc;
             s = DAT_0051e57c[i]->scores[5];
-            s->name = DAT_00507950[5];
+            s->name = g_scoreNames[5];
             s->value = (int)p->field_d4;
             s = DAT_0051e57c[i]->scores[6];
-            s->name = DAT_00507950[6];
+            s->name = g_scoreNames[6];
             s->value = p->commandersKilled;
             s = DAT_0051e57c[i]->scores[7];
-            s->name = DAT_00507950[7];
+            s->name = g_scoreNames[7];
             s->value = p->commandersLost;
             s = DAT_0051e57c[i]->scores[8];
-            s->name = DAT_00507950[8];
+            s->name = g_scoreNames[8];
             s->value = (i == g_game->localPlayer || (p->active && p->type == 2)) ? g_game->bit4_3923b : 0;
         }
     }

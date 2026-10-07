@@ -145,12 +145,6 @@ char g_radarPicTempName[16] = "RADARPIC TEMP";  // 0x5074e8 .data
 char g_radarPictureName[16] = "RADAR PICTURE";  // 0x5074f8 .data
 char g_radarMappedName[16] = "RADAR MAPPED";  // 0x507508 .data
 char g_radarFinalName[12] = "RADAR FINAL";  // 0x507518 .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
-char* DAT_00507948[2] = {(char*)"Arm", (char*)"Core"};  // 0x507948 .data
-// 0x507950 .data (the type runs past the next known address, 0x507950+0x20)
-char* DAT_00507950[9] = {
-    (char*)"Kills", (char*)"Losses", (char*)"Energy Produced", (char*)"Metal Produced", (char*)"Excess Energy", (char*)"Excess Metal", (char*)"Commanders Killed", (char*)"Commanders Lost",
-    (char*)"I am Winner"
-};
 int DAT_00507b6c = 1;  // 0x507b6c .data
 char* DAT_00507b88[3] = {(char*)"forces have been obliterated", (char*)"vermin have been exterminated", (char*)"forces have gone to a better place"};  // 0x507b88 .data
 char DAT_00508384[8] = "Allies";  // 0x508384 .data
@@ -597,13 +591,13 @@ unsigned char DAT_00512ffc[4];  // 0x512ffc .bss
 int DAT_0051e53c;  // 0x51e53c .bss
 int DAT_0051e540;  // 0x51e540 .bss
 int DAT_0051e544;  // 0x51e544 .bss
-int (__stdcall* DAT_0051e54c)(int*, int);  // 0x51e54c .bss
-int (__stdcall* DAT_0051e554)(char*);  // 0x51e554 .bss
-void (__cdecl* DAT_0051e558)(void);  // 0x51e558 .bss
+int (__stdcall* g_riInitializeEx)(int*, int);  // 0x51e54c .bss
+int (__stdcall* g_riGetVersion)(char*);  // 0x51e554 .bss
+void (__cdecl* g_riTerminate)(void);  // 0x51e558 .bss
 unsigned char DAT_0051e55c[4];  // 0x51e55c .bss
 unsigned char g_reportPlayerName[20];  // 0x51e560 .bss
-void (__stdcall* DAT_0051e578)(void (__stdcall*)(int), int (__stdcall*)(char*, int));  // 0x51e578 .bss
-int (__stdcall* DAT_0051e588)(int);  // 0x51e588 .bss
+void (__stdcall* g_riSetCallbacks)(void (__stdcall*)(int), int (__stdcall*)(char*, int));  // 0x51e578 .bss
+int (__stdcall* g_riEnable)(int);  // 0x51e588 .bss
 int DAT_0051e58c;  // 0x51e58c .bss
 int DAT_0051e590;  // 0x51e590 .bss
 int g_reportFlags;  // 0x51e594 .bss

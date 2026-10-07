@@ -1078,3 +1078,14 @@ Things that look wrong in the original but have no effect, kept for the record.
   fills it comes back short (`cmp eax, edi; je` at 0x4b2161). The total size
   is checked against the record's length first, so only a failed read can
   get there.
+- **0x4390a0** (`DrawUnitRangeRings`, likely): the weapon3 ring tests
+  `slots[0].flags` (unit+0x1f) but takes the range from `slots[2].weapon`
+  (unit+0x48); weapon3's own flags are `slots[2].flags` at unit+0x57. So the
+  third ring follows weapon1's flag bit. Thaldren's note for 0x439740 records
+  the same. Found by OpenCode / deepseek-v4.1-flash in #6054.
+- **0x491200** (`InitGame`, possible): calls `SetMissionType(0)` and then
+  tests `g_game->field_391e9->FUN_00435100() == 3`, but 0x435100 returns the
+  Mission's type at +0x0, which that call has just made 0, so the two `= 10`
+  stores (`field_38a4b`, `field_38a4d`) never run. Harmless dead code unless
+  the test was meant to come before the reset. Found by OpenCode /
+  deepseek-v4.1-flash in #6051.

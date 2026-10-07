@@ -62,14 +62,14 @@ extern Game* g_game;
 void __stdcall PlaySoundByName(char* name, int param_2);
 int __stdcall IsScreenNamed(Sub_00495010* sub, const char* name);
 void __stdcall CloseTopScreen(Sub_00495010* sub);
-void FUN_004c2470();
+void HideSoftwareCursor();
 Gadget_00495010* __stdcall LoadGuiLayer(Sub_00495010* sub, const char* name, int flags);
 void __stdcall HandleTabMenuEvent(Gadget_00495010* gadget);
 int IsHostLocal();
 void __stdcall FUN_004a0570(Sub_00495010* sub, char* name, int value);
 void __stdcall FUN_0049fa50(Sub_00495010* sub);
 void __stdcall RenderLayer(Sub_00495010* sub, int value);
-void FUN_004c2870();
+void ShowSoftwareCursor();
 
 // FUNCTION: 0x495010
 void ToggleTabMenu()
@@ -83,7 +83,7 @@ void ToggleTabMenu()
         return;
     }
     g_game->flags = (f & 0xff3f) | 0x20;
-    FUN_004c2470();
+    HideSoftwareCursor();
     Gadget_00495010* d = LoadGuiLayer(&g_game->sub, "TABMENU.GUI", 0x800);
     d->owner = g_game;
     d->handler = HandleTabMenuEvent;
@@ -113,5 +113,5 @@ void ToggleTabMenu()
     }
     FUN_0049fa50(&g_game->sub);
     RenderLayer(&g_game->sub, 0x40);
-    FUN_004c2870();
+    ShowSoftwareCursor();
 }

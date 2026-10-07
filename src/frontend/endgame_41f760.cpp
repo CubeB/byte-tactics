@@ -33,7 +33,7 @@ void __stdcall DrawSurface(void* dest, void* image, int x, int y);
 void __stdcall DrawMessages(void* surface);
 void __stdcall UpdateMenu(Sub_0041f760* sub);
 void __stdcall FUN_004ab170(Sub_0041f760* sub, unsigned int* param_2, int* param_3);
-void FUN_004c2870();
+void ShowSoftwareCursor();
 void FlipScreen();
 
 // FUNCTION: 0x41f760
@@ -45,7 +45,7 @@ int FUN_0041f760()
         DrawMessages(g_game->surface);
         UpdateMenu(&g_game->sub);
         FUN_004ab170(&g_game->sub, 0, 0);
-        FUN_004c2870();
+        ShowSoftwareCursor();
         FlipScreen();
         return 1;
     }

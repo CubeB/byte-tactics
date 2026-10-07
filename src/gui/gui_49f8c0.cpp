@@ -86,7 +86,7 @@ struct Obj2_49fd20 {
 
 void __stdcall UpdateMenu(Dialog* menu);
 void __stdcall FUN_004ab0b0(void* param_1, unsigned int* param_2, int* param_3);
-void FUN_004c2870();
+void ShowSoftwareCursor();
 void FlipScreen();
 void __stdcall FatalError(char* path);
 char* __stdcall Translate(char* text);
@@ -140,7 +140,7 @@ void __stdcall RunWhileScreenNamed(Dialog* menu, char* name)
         }
         UpdateMenu(menu);
         FUN_004ab0b0(menu->holder, 0, 0);
-        FUN_004c2870();
+        ShowSoftwareCursor();
         FlipScreen();
     }
 }

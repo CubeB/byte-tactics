@@ -9,9 +9,9 @@ struct Game {
 
 extern Game* g_game;
 
-void FUN_004c2470();
+void HideSoftwareCursor();
 void BlankScreen();
-void FUN_004c2870();
+void ShowSoftwareCursor();
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void* __stdcall LoadBitmapByName(char* name, unsigned char* palette);
 void __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
@@ -27,7 +27,7 @@ void __stdcall DrawBitmapBackground(char* name, int lock)
     void* image;
 
     if (lock) {
-        FUN_004c2470();
+        HideSoftwareCursor();
         BlankScreen();
     }
     BuildDataPath(path, "bitmaps", name, "PCX");
@@ -37,6 +37,6 @@ void __stdcall DrawBitmapBackground(char* name, int lock)
     DrawSurface(0, image, 0, 0);
     FreeSurface(image);
     if (lock) {
-        FUN_004c2870();
+        ShowSoftwareCursor();
     }
 }

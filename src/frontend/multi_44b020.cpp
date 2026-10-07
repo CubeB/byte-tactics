@@ -41,7 +41,7 @@ void __stdcall HandleEndMultiClick(void* gadget);
 int __stdcall Translate(const char* str);
 void __stdcall FUN_004a0bf0(Sub_0044b020* sub, char* name, int param_3, int param_4);
 void __stdcall RenderLayer(Sub_0044b020* sub, int value);
-void FUN_004c2870();
+void ShowSoftwareCursor();
 
 // FUNCTION: 0x44b020
 void OpenEndMultiScreen()
@@ -60,5 +60,5 @@ void OpenEndMultiScreen()
     FUN_004a0bf0(&g_game->sub, "RESULT",
                  Translate(g_game->flag4_3923b ? "Victory" : "Failure"), 0);
     RenderLayer(&g_game->sub, 0xc0);
-    FUN_004c2870();
+    ShowSoftwareCursor();
 }

@@ -65,7 +65,7 @@ extern int DAT_0051229c;
 extern char* DAT_00512298;
 
 void __stdcall CloseTopScreen(Sub_004263b0* sub);
-void FUN_004c2470();
+void HideSoftwareCursor();
 void __stdcall SetOffscreenSurface(int param);
 void __stdcall FillSurface(int a, int b);
 void FlipScreen();
@@ -90,8 +90,8 @@ int __stdcall GetTextPixelWidth(const char* text);
 int __stdcall FindGadgetIndex(char* gadgets, const char* name, int type);
 int GetTextKeyColor();
 void __stdcall SetTextColors(unsigned int a, int b);
-void FUN_004c2870();
-void FUN_004c2bb0();
+void ShowSoftwareCursor();
+void ClearMouseEventQueue();
 void* __cdecl FUN_004d83b0(const char* name, int size);
 void __stdcall OpenCloseCdPlayerDialog();
 int __stdcall CheckDirectXVersion(int a, int b, int c, int d, int e);
@@ -106,7 +106,7 @@ void __stdcall OpenMainMenu()
         CloseTopScreen(&g_game->sub);
     }
 
-    FUN_004c2470();
+    HideSoftwareCursor();
     SetOffscreenSurface(g_game->field_37e1b);
     FillSurface(0, 0);
     FlipScreen();
@@ -148,8 +148,8 @@ void __stdcall OpenMainMenu()
     *px += -(width / 2);
 
     SetTextColors(g_game->field_dda, GetTextKeyColor());
-    FUN_004c2870();
-    FUN_004c2bb0();
+    ShowSoftwareCursor();
+    ClearMouseEventQueue();
 
     DAT_00512298 = (char*)FUN_004d83b0("SPARKS", 0x514);
     memset(DAT_00512298, 0, 0x145 * 4);

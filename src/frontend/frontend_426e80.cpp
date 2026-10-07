@@ -133,8 +133,8 @@ void __stdcall ShutdownScoreTables(void);
 void __stdcall FUN_00491a70(void);
 int __stdcall InitScoreReporting(void);
 void __stdcall ShowEndMissionScreen(void);
-void __stdcall FUN_004c2470(void);
-void __stdcall FUN_004c2870(void);
+void __stdcall HideSoftwareCursor(void);
+void __stdcall ShowSoftwareCursor(void);
 struct Player { void SetType(int param); };
 struct Mission { void LoadMissionByName(int param); };
 
@@ -224,8 +224,8 @@ void BlankScreen()
 void FUN_00425b60()
 {
     SetOffscreenSurface(*(int*)(g_game + 0x37e1b));
-    FUN_004c2470();
-    FUN_004c2870();
+    HideSoftwareCursor();
+    ShowSoftwareCursor();
     FlipScreen();
 }
 
@@ -485,11 +485,11 @@ void RunFrontendStateMachine(void)
                 SetSubState(1, 0x50b, DAT_00503004);
                 return;
             case 0xd:
-                FUN_004c2470();
+                HideSoftwareCursor();
                 ShowEndMissionScreen();
                 SetGameMode(7);
                 FUN_0041d9f0(7);
-                FUN_004c2870();
+                ShowSoftwareCursor();
                 return;
             case 0xe:
                 SetGameMode(2);

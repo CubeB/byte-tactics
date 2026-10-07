@@ -78,9 +78,9 @@ void __stdcall BuildDataPath(char* out, const char* dir, const char* name,
 void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 int __stdcall CountDirectoryEntries(char* name, int flag);
 int __stdcall FindGadgetIndex(Entry_00478240* entries, const char* name, int type);
-void FUN_004c2470();
+void HideSoftwareCursor();
 void __stdcall RenderLayer(void* menu, int value);
-void FUN_004c2870();
+void ShowSoftwareCursor();
 void* __stdcall FindGafEntry(void* gaf, const char* name);
 int __stdcall GetGafFrame(unsigned short* p, int index);
 void FUN_00477360();
@@ -156,9 +156,9 @@ void __stdcall OpenNewGameMenu(int param_1)
             ((Entry_00478240*)((char*)entries + i * 0x15b))->height = 0x3e;
     }
 
-    FUN_004c2470();
+    HideSoftwareCursor();
     RenderLayer(&g_game->menu, 1);
-    FUN_004c2870();
+    ShowSoftwareCursor();
 
     unsigned short* p =
         (unsigned short*)FindGafEntry(((GafEntry_00478240*)entries)->gaf, "Side0");

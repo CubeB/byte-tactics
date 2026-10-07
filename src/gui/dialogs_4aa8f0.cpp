@@ -187,8 +187,8 @@ extern void* __cdecl FUN_004d83b0(const char* path, unsigned int size);
 extern int __stdcall ReadGuiFile(void* entry, char* path);
 extern void __cdecl FUN_004d85a0(void* p);
 extern int __stdcall RenderLayer(Menu_004aa8f0* menu, unsigned int flags);
-extern void __cdecl FUN_004c2470(void);
-extern void __cdecl FUN_004c2870(void);
+extern void __cdecl HideSoftwareCursor(void);
+extern void __cdecl ShowSoftwareCursor(void);
 extern void __stdcall FUN_004a7960(Menu_004aa8f0* menu, int value);
 extern void __stdcall FUN_0049fc50(Menu_004aa8f0* menu, int value);
 extern int __cdecl GetTextKeyColor(void);
@@ -204,8 +204,8 @@ extern void __stdcall DrawSurface(void* dest, void* image, int x, int y);
 
 extern void __stdcall InitGafSequence(Ref_004ab400* ref, Src_004ab400* src, int index);
 extern int __stdcall GetGafSequenceFrame(Ref_004ab400* ref);
-extern void __stdcall FUN_004c2b20(int handle);
-int FUN_004c2ba0();
+extern void __stdcall SetCursorSprite(int handle);
+int GetCursorSprite();
 
 extern void __stdcall AdvanceGafSequence(Ref_004ab400* ref, int step);
 extern int __stdcall PeekMouseEvent(Event_004ab5d0* out);
@@ -344,9 +344,9 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Menu_004aa8f0* menu, const char* name,
     strncpy((char*)entry + 2, guiName, 0x10);
     menu->field_64 = -1;
     if ((flags & 0x400) == 0) {
-        FUN_004c2470();
+        HideSoftwareCursor();
         ret = RenderLayer(menu, flags | 1);
-        FUN_004c2870();
+        ShowSoftwareCursor();
     }
     {
         char* dst = entry->okName;
@@ -614,19 +614,19 @@ int __stdcall FUN_004ab3a0(Menu_004aa8f0* obj, Record_004ab3a0* record)
 
 // Compare 0x4ab4e0: stores the source, points the reference at +0x30 at its
 // first entry, sets the active flag and passes the entry's value on to
-// FUN_004c2b20.
+// SetCursorSprite.
 // FUNCTION: 0x4ab400
 void __stdcall FUN_004ab400(Menu_004aa8f0* p, Src_004ab400* src)
 {
     p->src_2c = src;
     InitGafSequence(&p->ref, src, 0);
     p->flags_5c.active = 1;
-    FUN_004c2b20(GetGafSequenceFrame(&p->ref));
+    SetCursorSprite(GetGafSequenceFrame(&p->ref));
 }
 
 // Picks the source at +0x28 (alt) or +0x2c; with a source, points the
 // reference at +0x30 at it (compare 0x4ab400) and sets the active flag,
-// otherwise passes the plain value at +0x24 or +0x20 on to FUN_004c2b20
+// otherwise passes the plain value at +0x24 or +0x20 on to SetCursorSprite
 // (compare 0x4ab4e0) and clears the flag. Nothing happens when the source
 // or value is already current.
 static inline void SetSource(Menu_004aa8f0* p, Src_004ab400* src)
@@ -634,15 +634,15 @@ static inline void SetSource(Menu_004aa8f0* p, Src_004ab400* src)
     if (p->ref.src == src)
         return;
     InitGafSequence(&p->ref, src, 0);
-    FUN_004c2b20(GetGafSequenceFrame(&p->ref));
+    SetCursorSprite(GetGafSequenceFrame(&p->ref));
     p->flags_5c.active = 1;
 }
 
 static inline void SetValue(Menu_004aa8f0* p, int value)
 {
-    if (FUN_004c2ba0() == value)
+    if (GetCursorSprite() == value)
         return;
-    FUN_004c2b20(value);
+    SetCursorSprite(value);
     p->ref.src = 0;
     p->flags_5c.active = 0;
 }
@@ -670,19 +670,19 @@ void __stdcall FUN_004ab440(Menu_004aa8f0* p, int alt)
 // FUNCTION: 0x4ab4c0
 void __stdcall FUN_004ab4c0(Menu_004aa8f0* p)
 {
-    FUN_004c2b20(p->field_1c);
+    SetCursorSprite(p->field_1c);
     p->flags_5c.active = 0;
 }
 
 // Compare 0x4ab4c0 and 0x4ab400: sets the three values at +0x1c..+0x24,
-// passes the value on to FUN_004c2b20 and clears the active flag.
+// passes the value on to SetCursorSprite and clears the active flag.
 // FUNCTION: 0x4ab4e0
 void __stdcall FUN_004ab4e0(Menu_004aa8f0* p, int value)
 {
     p->field_1c = value;
     p->field_20 = value;
     p->field_24 = value;
-    FUN_004c2b20(value);
+    SetCursorSprite(value);
     p->flags_5c.active = 0;
     p->field_54 = 0;
     p->src_28 = 0;
@@ -745,7 +745,7 @@ void __stdcall FUN_004ab5d0(Menu_004aa8f0* p)
         int old = p->ref.index;
         AdvanceGafSequence(&p->ref, p->field_9a);
         if (p->ref.index != old)
-            FUN_004c2b20(GetGafSequenceFrame(&p->ref));
+            SetCursorSprite(GetGafSequenceFrame(&p->ref));
     }
 
     Event_004ab5d0 e;

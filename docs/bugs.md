@@ -17,6 +17,35 @@ called a stack slot in 0x43cd20 uninitialised (#714) was withdrawn too: it
 misread the push depth, and the writes it named go to two different slots,
 each written before it is read. An entry on 0x4a4170's 16-bit `sub ax` / `add eax` was withdrawn in #5063: the sum is stored with `mov word ptr [ebx+0x140], ax` (0x4a427b), so the high half never matters.
 
+An independent review (#5772) led to these changes, each checked against the
+disassembly. Withdrawn: the "inverted" test on the piece flag in 0x45b030 (the
+word at piece +0x26 is cleared by every change to the piece, at 0x480c85,
+0x480d17, 0x480d8f and, for the root, 0x45ab7a, and nothing in the exe stores a
+nonzero value to it, so 0x45b030 and 0x45b150 share the same normal test and
+displaced vertices are restored); `field_152` cleared with `field_156` in
+0x42db90 (both stores sit inside the `field_156 != 0` branch, `je 0x42dc66`
+skips both); the two "CHOICE2" names in the surrender dialog 0x460680 (the
+stores fill the layer's Enter and Escape default-gadget fields, the Yes and No
+gadgets keep their own names, and both defaults pick No, as the dialog's initial
+selection does); the position pointer passed to `FUN_004b7123` by 0x49c9c0 (the
+argument slot is reused as scratch and holds the computed speed there; the
+source already matched 600 of 600 bytes with that reading); the slider rounding
+in 0x45d7c0 and 0x45b9b0 (the fraction test works on a copy, the position is
+`ceil(value * (steps - 1) / 64)`); and the inverted fade return in 0x4c6890
+(slot 5 is the DirectDraw `Blt` colour fill, whose `DD_OK` of 0 the wrapper turns
+into 1); the "never runs" scroll-down test in 0x4a99c0 (the source reads
+`sel < last + step && sel >= last`, an interval that is nonempty for any
+positive step, and the disassembly agrees); the footprint scan in 0x47db70 (the
+index is `y * width + x` with a stride of `width - footprint width`, and the
+second argument is a 16-bit owner id that is compared but never dereferenced);
+the saved `esi` overwrite in 0x45ffb0 (the saved register sits at the lowest
+stack slot, below the 0x40 bytes of locals, so the store at 0x46011a stays
+inside them and `pop esi` restores it); and the unstored `field_4` in 0x4743a0
+(the 0x3c-byte record holds it at +0x38, stored at 0x4744d7, and the frame-count
+store goes to +0x28, not into the third position). Corrected in place: 0x445b70,
+0x445c70, 0x440940, 0x4a1b40, 0x4af320, 0x425b80, 0x4ab1b0, 0x4373a0, 0x4a36a0,
+0x4ba9d0, 0x464060, 0x498da0 and 0x476cd0.
+
 ## Bit writer grows its buffer into a single dword (likely)
 
 **0x415bb0**, also inlined into 0x415c10. `Class_00415b60` is a bit writer with
@@ -186,20 +215,16 @@ into a buffer with `sprintf` and then passes that buffer to `fprintf` as the
 format string (0x40c4b0 pushes only the `FILE*` and the buffer), so any `%` in
 unit text is interpreted again. Found by ozgb's Codex / GPT-6 Astra in #78.
 
-## Watching another player overwrites your own unit limit (likely)
+## The unit limit is stored twice (likely, harmless)
 
-**0x445b70**: when FindHostSlot names a player other than the local one, the
-code reads that player's maxunits (+0xa5) but stores it into the local
-player's record (via +0x2a42), so watching someone else replaces your own
-unit limit. It also stores the value twice. Found by Space Bunny Free in #125.
-
-## Displaced piece vertices never restored (likely)
-
-**0x45b030** (inlined into 0x45ab10) restores a piece's vertices only when its
-flag at +0x26 is 0 (`cmp word ptr [ebx+0x26], bp; je` into the `rep movsd`),
-then clears that flag, so the clear does nothing and a piece whose vertices
-were actually displaced (flag set) is never restored. The test looks
-inverted. Found by Space Bunny Free in #142.
+**0x445b70** stores the unit limit into the local player's lobby record
+(+0xa5) twice, the second time through a fresh lookup of the record (0x445c25,
+0x445c51). FindHostSlot returns the host's slot (the first active slot whose
+record has bit 0 of +0x97, the host flag, set), so when another player hosts,
+the value shown and stored is the host's limit: a joining client follows the
+host's setting. An earlier reading of this entry as a watching bug that
+overwrites your own limit was withdrawn in #5772. Found by Space Bunny Free in
+#125.
 
 ## Segment vertices overflow a 25-entry stack buffer (likely)
 
@@ -207,13 +232,6 @@ inverted. Found by Space Bunny Free in #142.
 its stack and passes that count on to FillFlatPolygon, with no bound; a segment
 with more than 25 vertices overruns `tmp` into the vertex array above it.
 Found by Space Bunny Free in #142.
-
-## Both dialog choices named "CHOICE2" (likely)
-
-**0x460680** stores the same literal, "CHOICE2" (0x503120), as the name of two
-gadgets (at 0x4606d9 and 0x460710), where the matching dialog setup 0x464e70
-names them "CHOICE1" and "CHOICE2": a copy-paste slip. Found by DeepSeek V4.1
-Flash in #167.
 
 ## Cloak state always "mixed" for several cloakable units (likely)
 
@@ -452,10 +470,6 @@ Things that look wrong in the original but have no effect, kept for the record.
   name, so paths come out as `D:\\dir\file`. Windows accepts the doubled
   separator. Found by DeepSeek V4.1 Flash in #21.
 
-- **0x42db90**: clears `field_152` together with `field_156` although only
-  `field_156` is tested, so `field_152` is zeroed even when `field_156` is
-  already null. Found by Space Bunny Free in #27.
-
 - **0x428d10** (a script tokenizer): the number branch tests `c != '-'`, but
   the punctuation branch above it already returns on any `-`, so that test
   can never fail. Found by Space Bunny Free in #25.
@@ -466,8 +480,9 @@ Things that look wrong in the original but have no effect, kept for the record.
 - **0x440940** (loading progress): the counter starts at 100 and adds 100
   before each division, so entry i reports `100 * (i + 2) / count`, starting
   one step ahead and passing 100 near the end; a final store of 100 hides it.
-  Entries skipped for a zero field still count in the divisor. Found by Space
-  Bunny Free in #34.
+  Entries with a zero first field are skipped by the counting pass and the
+  build pass alike, so they are not in the divisor. Found by Space Bunny Free
+  in #34.
 
 - **0x446310**: allocates an "AVAILABLE MODES" buffer (`count << 8` bytes at
   `obj+0x14`), zeroes its first byte and never reads or frees it, so it leaks.
@@ -479,9 +494,11 @@ Things that look wrong in the original but have no effect, kept for the record.
   the branch reaching it has already tested `deep` as 1. Found by Space Bunny
   Free in #143.
 
-- **0x445c70** stores the same value to unit+0xa3 twice, the second time
-  through a fresh lookup of the local player's unit (0x445d08, 0x445d36); its
-  sibling 0x445d60 stores once. Found by Space Bunny Free in #125.
+- **0x445c70** stores the same value to +0xa3 (the starting metal, in
+  hundreds) of the local player's lobby record twice, the second time through
+  a fresh lookup of that record (0x445d08, 0x445d36); its sibling 0x445d60
+  (energy, +0xa1) stores once. The record is the player-setup record, not a
+  battle unit. Found by Space Bunny Free in #125.
 
 - **0x452570** searches the ten player entries for the same id twice; the
   second search's result is thrown away. Found by DeepSeek V4.1 Flash in #139.
@@ -550,9 +567,10 @@ Things that look wrong in the original but have no effect, kept for the record.
 
 - **0x4a1b40**: both arms of `if (holder->field_20 == param_2)` (0x4a1fb3) call
   FadeRectangle with the same surface, rectangle and colour 0x1e (0x4a1fb8,
-  0x4a1fcb), so the selected row is drawn like the others; a different colour
-  for the selection was probably meant. Found by ozgb's OpenCode /
-  deepseek-v4.1 in #2152.
+  0x4a1fcb). Only the selected row reaches them (the other rows just set their
+  text colours), so the selection is shaded the same whether or not this
+  gadget is the holder's current one; a different colour for the unfocused
+  case was probably meant. Found by ozgb's OpenCode / deepseek-v4.1 in #2152.
 
 - **0x4a7960**: the tail that refreshes a type-3 (text) selection is emitted
   twice in a row (0x4a7c76 to 0x4a7d81, then 0x4a7d86 to 0x4a7e98), so its
@@ -673,11 +691,12 @@ Things that look wrong in the original but have no effect, kept for the record.
   last three payload bytes of every outgoing packet are neither XORed nor
   added to the checksum. Harmless if the receiver skips the same bytes, which
   is not checked yet. Found by Space Bunny Free in #137.
-- **0x4af320** (possible): the mode test and the find-handle test both fail
-  to the same one-instruction block (+0x438), and the finished directory walk
-  jumps over it, so the file walk runs whatever either test says; if it was
-  meant to be conditional, the flag is ignored. Read from the disassembly of
-  a partial match. Found by Space Bunny Free (CubeB) in #861.
+- **0x4af320** (not a bug): the `mode == 1` test controls only whether
+  directories are listed first; the file pass that follows always runs and
+  continues the same list. The callers rely on that: the save-game, campaign
+  and multiplayer lists pass mode 0 and read only files, the directory browser
+  (0x4af5b0) passes 1. An earlier reading of this as an ignored flag was
+  withdrawn in #5772. Found by Space Bunny Free (CubeB) in #861.
 - **0x47bf70** (possible): passes a 16-bit field (`mov cx, word ptr
   [eax+0x370]` at 0x47c111) to smackw32.dll ordinal 5 with `push ecx`, and the
   upper half of `ecx` still holds a pointer from 0x47c0ea, so the call gets
@@ -688,15 +707,21 @@ Things that look wrong in the original but have no effect, kept for the record.
   the zero-extended word at +0x00, has no guard, so a record with 0 there
   faults with a divide error. Read from the disassembly of a partial match.
   Found by Space Bunny Free in #797.
-- **0x425b80** (likely): a running smoke puff copies the template byte over
-  the cell it occupies (`dest[s->pos] = src[s->pos]`), and 0xaa's low nibble
-  is 10, so a burnt feature under a puff stops reading as burnt and later
-  puffs die there: the smoke suppresses itself. Found by Space Bunny Free
-  (CubeB) in #399.
-- **0x4ab1b0** (likely): copies a controller name into a 0x10-byte field with
-  an unbounded `strcpy`, and the caller at 0x4abe6b passes the 18-character
-  `"Player%dController"`, so it spills into the field at +0x13. Found by
-  DeepSeek V4.1 Flash in #366.
+- **0x425b80** (possible, probably harmless): the main-menu spark animation
+  (UpdateMenuSparks, installed as the layer's per-tick callback at 0x426440)
+  works on the 640x480 screen surface and a second surface it restores from.
+  A spark spawns only on, and keeps moving only over, pixels whose low nibble
+  is above 12, and it paints index 0xaa (low nibble 10), so a spark dies on a
+  pixel another spark has painted and none can spawn there. The pixel is put
+  back from the second surface when the spark moves on. An earlier reading of
+  the cells as burnt battlefield features was withdrawn in #5772. Found by
+  Space Bunny Free (CubeB) in #399.
+- **0x4ab1b0** (possible, no known trigger): AddTextGadget copies its name
+  argument into the entry's name field with an unbounded `strcpy`; a name of
+  18 or more characters would spill into the field at +0x13. The caller at
+  0x4abe6b (OpenMessageBox) passes the literal "TEXT" (0x5029f8), so that call
+  is safe; an earlier note that it passed `"Player%dController"` misread the
+  string. Found by DeepSeek V4.1 Flash in #366.
 - **0x4a5d50** (likely): the loop that shortens a label until it fits
   re-measures the empty string forever when the entry's height is below 6,
   since `w <= height - 6` can then never hold for `w == 0`. Found by DeepSeek
@@ -708,10 +733,6 @@ Things that look wrong in the original but have no effect, kept for the record.
 - **0x4b0160** (possible): both callers (0x4b0320, 0x4b0498) push three colour
   bytes, but the function reads only two, so the third, apparently meant for
   a highlight, is ignored. Found by DeepSeek V4.1 Flash in #369.
-- **0x49c9c0** (possible): passes the position pointer as the integer scale
-  argument of `FUN_004b7123`, which multiplies it as a length, where the
-  neighbouring calls pass the launch angle and a computed value. Read from
-  the disassembly of a partial match. Found by Space Bunny Free in #556.
 - **0x4b9d70** (possible): clamps the horizontal copy count to the
   destination width without subtracting the destination column, so a copy
   with a column offset can write past the end of the row (the vertical clip
@@ -731,22 +752,26 @@ Things that look wrong in the original but have no effect, kept for the record.
   0x80-byte stack buffer, while the name comes from a 0x100-byte field, so a
   long name overruns the frame; 0x435da0 formats the same message into 0x100
   bytes. Found by Space Bunny Free (CubeB) in #401.
-- **0x4373a0** (likely): ignores the result of the 0x40-byte header read
-  (0x43742f), so a truncated campaign file still passes the version test and
-  the checksum folds in stale stack; the two allocations after it are not
-  null-tested, and the header's offsets are not checked against the file
-  size. Found by Space Bunny Free (CubeB) in #401.
-- **0x4a99c0** (likely): the scroll-down block needs `sel > last + step` and
-  `sel <= last` at once, which holds only for `step <= 0`, so with the usual
-  positive step it never runs. Found by Space Bunny Free in #559.
+- **0x4373a0** (likely): the map checksum for the lobby (it reads the map's
+  .tnt header, not a campaign file). It ignores the result of the 0x40-byte
+  header read (0x43742f), so a map file cut off after its first four bytes
+  still passes the 0x2000 test and the checksum folds in the uninitialised
+  rest of the header; the later reads' results are ignored too, the two
+  allocations are not null-tested, and the header's offsets are not checked
+  against the file size. It also returns without closing the file when the
+  magic is wrong (0x437439). Found by Space Bunny Free (CubeB) in #401.
 - **0x4a7f70** (possible): the loops that reset every frame's size and pick
   the frame nearest the object run only on the CHECKBOX, `stagebuttn%d` and
   BUTTONS0 fallbacks; a successful name lookup jumps past them (0x4a7fbf,
   0x4a7fca, 0x4a7fdf). Found by Space Bunny Free in #559.
 - **0x4ba9d0** (likely): when no palette entry falls in the brightness band,
-  the fallback uses the loop counter after the loop, 256, which truncates to
-  0 in an `unsigned char`, so it returns `order[0]`. Found by Space Bunny
-  Free in #572.
+  the fallback uses the loop counter after the loop. When the scan runs off
+  the end (the target is more than 40 brighter than every entry) that is 256,
+  which truncates to 0 in an `unsigned char`, so it returns `order[0]`, the
+  darkest entry. When the scan stops early at the first entry above the band,
+  the counter is that position and it returns `order[i]`, the first entry
+  above the band, which is probably intended. Found by Space Bunny Free in
+  #572.
 - **0x4baf30** (possible): the blue clamp tests `(blue >> 1) + 0x3c > 0xff` but
   stores `(blue >> 1) + 0x32`; the sum can never pass 0xff, so the clamp is
   dead and the two constants disagree. Found by DeepSeek V4.1 Flash in #375.
@@ -757,22 +782,26 @@ Things that look wrong in the original but have no effect, kept for the record.
   FUN_004d83b0 and never frees it, where the siblings 0x41eaa0 and 0x41eb60
   free the same kind of block with FUN_004d85a0. Found by DeepSeek V4.1 Flash
   in #363.
-- **0x4a36a0** and **0x4a35a0** (possible): when the layout entry is not
-  found they report "Error in GUI layout" and then store through the null
-  entry (0x4a3716 onwards), which crashes unless that report never returns.
-  Found by DeepSeek V4.1 Flash in #363.
+- **0x4a36a0** and **0x4a35a0** (not a bug): when the layout entry is not
+  found they call FatalError (0x4b6290) with "Error in GUI layout" and then
+  fall into stores through a null entry (0x4a3716 onwards), but FatalError
+  shows a message box and calls `exit(1)` (0x4e4600, ending in
+  `ExitProcess`), so it never returns and the null stores never run. Found by
+  DeepSeek V4.1 Flash in #363.
 - **0x4b7620** (likely): finds the insertion point with a case-insensitive
   compare (`_strcmpi` at 0x4b7656) but tests for an existing key with a
   case-sensitive one (inlined `strcmp` at 0x4b769b), so a key differing only
   in case ("ABC", then "abc") is inserted as a duplicate instead of updating
   the entry. Read from the disassembly of a partial match. Found by DeepSeek
   V4.1 Flash in #373.
-- **0x464060** (possible): in mode 1, the arm for team 2 jumps past the only
-  store to the `show` flag (0x46413d), so it keeps the previous entry's value,
-  or an uninitialised one on the first pass; and `y += start` reuses the
-  timestamp read once before the loop (0x46423e), so every drawn entry moves
-  by the same amount. Read from the disassembly of a partial match. Found by
-  Space Bunny Free in #413.
+- **0x464060** (possible, latent): in mode 1, the arm for team 2 jumps past
+  the only store to the `show` flag (0x46413d), so it keeps the previous
+  entry's value, or an uninitialised one on the first pass. The only store to
+  the mode (g_game+0x37efe) found in the exe is the 3 written at 0x491316, so
+  mode 1 is never selected by any path found. `y += start` (0x46423e) adds the
+  font height read once after SetFont (0x4640b7), a constant line spacing, not
+  a bug. Read from the disassembly of a partial match. Found by Space Bunny
+  Free in #413.
 - **0x497ce0** (likely): while it still waits for players (network flag
   bit 3 clear), it divides 620 by the count of player records that are
   present, on team 1 to 3 and not kind 10 (`idiv dword ptr [esp+0x10]` at
@@ -780,20 +809,15 @@ Things that look wrong in the original but have no effect, kept for the record.
   path. Read from the disassembly of a partial match. Found by Space Bunny
   Free in #502.
 - **0x498da0** (possible): keeps bit 2 of the byte at g_game+0x2cc6 as a cache
-  of bits 0 and 1, which nothing else writes, and its two branches disagree:
-  inside the view rect with bit 3 clear it sets the bit without testing the
-  map limits at +0x37e27, while the other branch sets it only when the point
-  is inside them, so one cursor position gives 1 or 0 depending on bit 3.
-  0x469e70 reads it with mask 6. It also passes `GetMapCell`'s result,
-  which is 0 for a cell off the map, to `GetCellFeature` (0x498f49), which
-  reads its +8 without a null test. Found by Space Bunny Free in #502.
-- **0x47db70** (possible): the map index is `(cell.x + cell.y) * width +
-  cell.x` with a row stride of `width - cell.y`, which reads like a mistyped
-  `cell.y * width + cell.x` with the footprint width lost; and the owner test
-  at 0x47dd05 compares against the raw low 16 bits of the second argument,
-  while 0x47dd48 dereferences it, so the fallback path would read through the
-  0 that seven of eight callers pass. Read from the disassembly of a partial
-  match. Found by Space Bunny Free in #495.
+  of bits 0 and 1 (`b2 = b0 || b1`), which nothing else writes. The two
+  branches test different regions, not the same one: the radar rect at
+  +0x142bb (scaled by world size over screen size, bit 0) and the main view
+  rect at +0x37e27 (clamped and translated by the camera, bit 1), so bit 2
+  means the cursor is over either. 0x469e70 reads it with mask 6. It also
+  passes `GetMapCell`'s result, which is 0 for a cell off the map, to
+  `GetCellFeature` (0x498f49), which reads its +8 without a null test;
+  whether a cursor position can reach that is not settled. Found by Space
+  Bunny Free in #502.
 - **0x4bf4d0** (likely): locks the screen surface itself (0x4bf4eb), but
   its three failure exits (null low map, null high map, null computed map, at
   0x4bf589, 0x4bf5a9 and 0x4bf5c0) return 0 without the unlock call that only
@@ -821,32 +845,10 @@ Things that look wrong in the original but have no effect, kept for the record.
   does start with '|', the two `SkipTextLines(value, 0/1)` calls read
   uninitialised stack at `value + 0x10` and `+0x14`. Read from the
   disassembly of a partial match. Found by Space Bunny Free in #411.
-- **0x45ffb0** (likely, from the compiler): the matched source is valid C++,
-  but MSVC 5 gave the last dword of the second 32-byte quad local the stack
-  slot of the saved `esi` (`[esp+0x40]`, pushed at 0x45ffc5), so the store at
-  0x46011a overwrites it and the function returns with `esi` holding the
-  graphic's height minus one. Harmless at its one call site (0x46a3c2), which
-  restores `esi` from its own frame. Found by Space Bunny Free in #411.
-- **0x45d7c0** and **0x45b9b0** (possible): the slider position stores only
-  the result of the second `_ftol`, after `fsubr st(1)` has discarded the
-  integer part of `value * (steps - 1) / 64`, so the position field ends up
-  0 or 1 rather than the step index (0x45d8e6 to 0x45d90f). Found by Space
-  Bunny Free in #411.
 - **0x4565a0** (possible): the same player search returns 10 when the id is
   -1 or not found, and this net-message handler uses it unchecked, so it reads
   and writes the spare eleventh slot (`players[10]`) instead of skipping the
   message. Found by Space Bunny Free in #408.
-- **0x4743a0** (possible): the record's third position is copied to the
-  stack and its z component is then overwritten with
-  `GetGafFrameCount(g_game+0x147f3) - 1` (0x47454a), and `field_4` is stored one
-  dword past the 0x3c-byte record that 0x475bd0 appends, so it is never
-  stored. Read from the disassembly of a partial match. Found by Space Bunny
-  Free in #419.
-- **0x4c6890** (possible): a non-zero return from the driver's slot 5 (the
-  fade) makes the function return 0 (`test` at 0x4c690d, `xor ebp, ebp` at
-  0x4c6914), while the in-process fill paths return 1. Either slot 5 returns a
-  failure code on success or the test is inverted. Found by Space Bunny Free
-  in #386.
 - **0x4523e0** (possible): when `to` is -1, its inlined player search returns
   10 and the function writes the new group through the spare eleventh slot's
   `players[10].data` (a pointer read from g_game+0x2878); the other users of
@@ -867,10 +869,13 @@ Things that look wrong in the original but have no effect, kept for the record.
   byte, so `.` becomes `N` and `a` becomes 0x81; fine only if the input is
   always upper case. It also writes one byte past a `count * 30` buffer for a
   30-character name. Found by Space Bunny Free in #207.
-- **0x476cd0** (possible): the copy loop tests the next byte rather than the
-  current one, so the last input character is never copied, and the
-  quoted-newline path overwrites the byte just written with `&`. Found by
-  Space Bunny Free in #207.
+- **0x476cd0** (possible): inside a colour run (an odd number of `&` seen) a
+  `\n` overwrites the byte just written with `&`, writes `\r\n`, then reopens
+  the run with `&` and the colour byte. After a CRLF the overwritten byte is
+  the `\r`, which is written again, so nothing is lost; after a bare `\n` the
+  preceding visible character is replaced by `&`. The copy loop copies the
+  current byte before testing the next, so the last input character is kept.
+  Found by Space Bunny Free in #207.
 - **0x417890** (likely): a debug console command formats
   `debugdat\%s.txt` with its argument into a 60-byte stack buffer using
   `sprintf`, with no bound, so a long argument overflows it. Found by ozgb's

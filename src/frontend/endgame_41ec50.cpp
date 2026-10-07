@@ -12,7 +12,7 @@ public:
 
 class Mission {
 public:
-    int FUN_00435c00(int param_1);
+    int SelectMission(int param_1);
 };
 
 #pragma pack(push, 1)
@@ -177,7 +177,7 @@ void __stdcall HandleEndMissionClick(Gadget_0041ec50* gadget)
         g_game->field_2bc0 = 10;
         SetCursorOverlayEnabled(1);
         FUN_00491c80(0x14);
-        if (g_game->campaign->FUN_00435c00(FindGadgetChecked(entries, "Missions")->field_ba)) {
+        if (g_game->campaign->SelectMission(FindGadgetChecked(entries, "Missions")->field_ba)) {
             EnterMainMenuState();
             g_game->bit2_2a44 = 0;
             g_game->bit3_2a44 = 1;

@@ -4,7 +4,7 @@
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 struct Input_00499890 {
@@ -78,7 +78,7 @@ void MainFrameTick()
         PopKey();
         FUN_00491d70(0);
         g_game->orderFlags &= 0xfffe;
-        if (g_game->manager->FUN_00435100() != 3)
+        if (g_game->manager->GetGameType() != 3)
             g_game->otherFlags &= 0xfffe;
     }
     if (key == 0xd6) {

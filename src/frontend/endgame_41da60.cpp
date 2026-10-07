@@ -8,8 +8,8 @@
 
 class Mission {
 public:
-    char* FUN_004356c0(int index);
-    int FUN_00435100();
+    char* GetNameSlot(int index);
+    int GetGameType();
 };
 
 struct Display_0041da60 {
@@ -54,10 +54,10 @@ void SetUpEndMissionScreen()
     g_game->field_3906f = display->field_614;
     display->field_614 = 1.0f;
     unsigned char* palette = (unsigned char*)FUN_004d83b0("Palette", 0x400);
-    char* name = g_game->campaign->FUN_004356c0(5);
+    char* name = g_game->campaign->GetNameSlot(5);
     if (name == 0)
         g_game->image_3907b = 0;
-    if (((Mission*)g_game->campaign)->FUN_00435100() == 1
+    if (((Mission*)g_game->campaign)->GetGameType() == 1
         && (g_game->flags_3923b & 0x10) && name != 0) {
         BuildDataPath(path, "bitmaps\\glamour", name + 1, "PCX");
         if (HAPI_FileLengthByName(path) == 0)
@@ -68,7 +68,7 @@ void SetUpEndMissionScreen()
         g_game->palette_3907f = palette;
         return;
     }
-    if (((Mission*)g_game->campaign)->FUN_00435100() == 1)
+    if (((Mission*)g_game->campaign)->GetGameType() == 1)
         LoadPictureCached("Outcome1", 0, 0, 1);
     else
         LoadPictureCached("Outcome0", 0, 0, 1);

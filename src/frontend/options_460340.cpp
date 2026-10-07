@@ -5,7 +5,7 @@
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 struct Gadget_00460340 {
@@ -44,7 +44,7 @@ void __stdcall HandleRestartDialogClick(Gadget_00460340* gadget)
     PlaySoundByName("Options", 0);
     if (IsCurrentGadgetNamed(gadget, "RESTART")) {
         int ok = 0;
-        int mode = g_game->mode->FUN_00435100();
+        int mode = g_game->mode->GetGameType();
         switch (mode) {
         case 1:
             if (!FindGameCdDrive(0)) {

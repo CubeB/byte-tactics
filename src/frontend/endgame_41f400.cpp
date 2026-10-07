@@ -6,7 +6,7 @@
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
     int MissionExists(int index);
 };
 
@@ -49,7 +49,7 @@ void __stdcall FUN_0049fa90(Menu_0041f400* menu);
 // Inlined copy of FUN_0041f040.
 static inline int HasNextMission()
 {
-    if (g_game->campaign->FUN_00435100() == 1 &&
+    if (g_game->campaign->GetGameType() == 1 &&
         ((g_game->field_391af == 0 &&
           ((Mission*)g_game->campaign)->MissionExists(g_game->mission + 1) == 0) ||
          ((Mission*)g_game->campaign)->MissionExists(g_game->mission + 1) != 0)) {

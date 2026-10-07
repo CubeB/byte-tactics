@@ -6,7 +6,7 @@
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 class Class_004ce910 {
@@ -68,16 +68,16 @@ void OpenInGameOptions()
     Gadget_00460cc0* gadget = LoadGuiLayer(&g_game->sub, "ARMOPT.GUI", 0x800);
     gadget->handler = HandleInGameOptionsClick;
     FUN_004a1200(&g_game->sub, FindGadgetIndex(gadget->info, "SAVEGAME", 1),
-                 g_game->mode->FUN_00435100() == 3);
+                 g_game->mode->GetGameType() == 3);
     FUN_004a1200(&g_game->sub, FindGadgetIndex(gadget->info, "LOADGAME", 1),
-                 g_game->mode->FUN_00435100() == 3);
-    if (g_game->mode->FUN_00435100() == 3 || g_game->mode->FUN_00435100() == 2) {
+                 g_game->mode->GetGameType() == 3);
+    if (g_game->mode->GetGameType() == 3 || g_game->mode->GetGameType() == 2) {
         FUN_004a0bf0(&g_game->sub, "MISSION", Translate("Settings"), 0x80);
     }
     FUN_0049fa50(&g_game->sub);
     FUN_0049fb10(&g_game->sub, 1);
     RenderLayer(&g_game->sub, 0x40);
-    if (g_game->mode->FUN_00435100() != 3) {
+    if (g_game->mode->GetGameType() != 3) {
         g_game->flags_38a51 |= 1;
     }
     g_game->field_10->PauseCdAudio(1);

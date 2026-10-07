@@ -187,7 +187,7 @@ struct Player_00440cd0 {
 
 class Mission {
 public:
-    int FUN_004358f0();
+    int GetTerrainLength();
     unsigned int ComputeMapChecksum();
 };
 
@@ -643,7 +643,7 @@ unsigned char FindHostSlot();
 // FUNCTION: 0x440cd0
 int CheckMapCrc()
 {
-    if (!g_game->field_391e9->FUN_004358f0()) {
+    if (!g_game->field_391e9->GetTerrainLength()) {
         return 0;
     }
     unsigned char me = FindHostSlot();

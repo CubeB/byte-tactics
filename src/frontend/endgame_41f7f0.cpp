@@ -3,7 +3,7 @@
 #include <string.h>
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
     int MissionExists(int);
     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
     void LoadCampaign(char* name);
@@ -114,7 +114,7 @@ void __stdcall RunEndGameState()
     HandleNetPackets();
     switch(g_game->state) {
     case 0:
-        if(g_game->campaign->FUN_00435100()==3) {
+        if(g_game->campaign->GetGameType()==3) {
             Engine* e=GetDisplay();
             g_game->lastFrame=AllocSurface("Copy of last game frame",e->width,e->height);
             DrawSurface(g_game->lastFrame,g_game->surface,e->width,e->height);
@@ -166,7 +166,7 @@ void __stdcall RunEndGameState()
         }
         break;
     case 4:
-        if(g_game->campaign->FUN_00435100()==1 && !FindGameCdDrive(0)) {
+        if(g_game->campaign->GetGameType()==1 && !FindGameCdDrive(0)) {
             Layer* l=LoadGuiLayer(&g_game->menu,"CDCHECK.GUI",0x101);
             l->handler=HandleCdCheckClick;
             SetCursorOverlayEnabled(1);
@@ -178,13 +178,13 @@ void __stdcall RunEndGameState()
     case 5: {
         SetUpEndMissionScreen();
         int next=((Mission*)g_game->campaign)->MissionExists(g_game->mission+1);
-        if(g_game->campaign->FUN_00435100()==1 && (g_game->flags&0x10) && !next && !g_game->skip) {
+        if(g_game->campaign->GetGameType()==1 && (g_game->flags&0x10) && !next && !g_game->skip) {
             if((unsigned char)GetDisplay()->network) {
                 if(!g_game->players[0].owner->flag) SetFrontendState(4,0x4ce,"c:\\cavedog\\wargame\\endgame.cpp");
                 else SetFrontendState(5,0x4d3,"c:\\cavedog\\wargame\\endgame.cpp");
             } else SetFrontendState(2,0x4d9,"c:\\cavedog\\wargame\\endgame.cpp");
             SetGameMode(2);
-        } else if(g_game->campaign->FUN_00435100()==1 && (g_game->flags&0x10) && g_game->image) {
+        } else if(g_game->campaign->GetGameType()==1 && (g_game->flags&0x10) && g_game->image) {
             memset(palette,0,sizeof(palette));
             StartPaletteFade(g_game->palette,palette,5);
             g_game->tick=GetTicks()+1;
@@ -229,7 +229,7 @@ void __stdcall RunEndGameState()
         UpdateMenu(&g_game->menu); FUN_004ab170(&g_game->menu,0,0);
         int skip=0;
         int clicked=PopKey();
-        if(clicked && g_game->campaign->FUN_00435100()!=3) skip=1;
+        if(clicked && g_game->campaign->GetGameType()!=3) skip=1;
         if(g_game->deadline<GetTicks() || skip) {
             if(clicked) {
                 { ENABLE_BARS("Kills") }
@@ -250,7 +250,7 @@ void __stdcall RunEndGameState()
             case 5: { ENABLE_BARS("MWasted") } PlaySoundByName("EndGameStatBar",0); break;
             case 6: { ENABLE_BARS("Score") } PlaySoundByName("EndGameScore",0); break;
             }
-            if(g_game->campaign->FUN_00435100()==3) {
+            if(g_game->campaign->GetGameType()==3) {
                 Player* player=&g_game->players[g_game->localPlayer];
                 for(int j=0;j<2;++j) SendPlayerEconomy(player,0,0);
             }

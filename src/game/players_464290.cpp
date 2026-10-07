@@ -8,7 +8,7 @@
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 // The object at g_game + 0x0c. Only the field at +0x620 is read here.
@@ -112,7 +112,7 @@ void __stdcall FUN_00464290(int player, char type)
         p->info->field_99 = g_game->map->field_620 / 0x100000 + 1;
     }
 
-    if (g_game->campaign->FUN_00435100() == 1) {
+    if (g_game->campaign->GetGameType() == 1) {
         if (type == 1) {
             sprintf(p->name, Translate("Player"));
         } else if (type == 2) {
@@ -126,7 +126,7 @@ void __stdcall FUN_00464290(int player, char type)
         strcpy(p->fullName, p->name);
     }
 
-    if (g_game->campaign->FUN_00435100() == 2) {
+    if (g_game->campaign->GetGameType() == 2) {
         if (type == 1) {
             sprintf(p->name, Translate("Player"));
         } else if (type == 2) {

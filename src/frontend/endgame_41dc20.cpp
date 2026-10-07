@@ -10,11 +10,11 @@
 // The campaign object at g_game+0x391e9 (Mission in 0x435da0.cpp).
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
     char unknown_0[0xd54];
     float killMul;                     // +0xd54
     float timeMul;                     // +0xd58
-    int FUN_00435c50();
+    int GetMissionIndex();
 };
 
 #pragma pack(push, 1)
@@ -99,8 +99,8 @@ void FUN_0041dc20()
 {
     Stat_0041dc20* stats = g_game->stats;
     g_game->won = g_game->bit4_3923b;
-    if (g_game->campaign->FUN_00435100() == 1) {
-        g_game->mission = ((Mission*)g_game->campaign)->FUN_00435c50();
+    if (g_game->campaign->GetGameType() == 1) {
+        g_game->mission = ((Mission*)g_game->campaign)->GetMissionIndex();
         g_game->results[g_game->mission] = g_game->won ? 'W' : 'L';
     }
     g_game->maxKills = 10;

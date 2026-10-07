@@ -5,8 +5,8 @@
 
 class Mission {
 public:
-    char* FUN_004353a0();
-    char* FUN_004356c0(int param_1);
+    char* GetBriefing();
+    char* GetNameSlot(int param_1);
 };
 
 #pragma pack(push, 1)
@@ -58,7 +58,7 @@ void __stdcall StreamSoundDelayed(char* text, int a, int b);
 // FUNCTION: 0x476d80
 void FUN_00476d80()
 {
-    char* text = g_game->net->FUN_004353a0();
+    char* text = g_game->net->GetBriefing();
     if (text) {
         Gadget_00476d80* gadgets = g_game->dialog->gadgets;
         int i = FindGadgetIndex(gadgets, "SOLARSYSTEM", 0xe);
@@ -74,7 +74,7 @@ void FUN_00476d80()
         DrawHelpPage();
     }
     if (g_game->field_391f1 != 6) {
-        char* name = ((Mission*)g_game->net)->FUN_004356c0(3);
+        char* name = ((Mission*)g_game->net)->GetNameSlot(3);
         if (name) {
             StreamSoundDelayed(name, 0, 0x3c);
         }

@@ -60,7 +60,7 @@ struct Game {
 class Mission {
 public:
     int LoadMissionByName(char* name);
-    char* FUN_00435c30();
+    char* GetMissionName();
     unsigned int ComputeMapChecksum();
 };
 
@@ -105,7 +105,7 @@ void __stdcall HandleMapSelectClick(Gadget_00444cb0* param_1)
 
         Player_00444cb0* player = &g_game->players[g_game->localPlayer];
         strcpy(player->data->name,
-               ((Mission*)g_game->field_391e9)->FUN_00435c30());
+               ((Mission*)g_game->field_391e9)->GetMissionName());
         player->data->field_a9 =
             ((Mission*)g_game->field_391e9)->ComputeMapChecksum();
 

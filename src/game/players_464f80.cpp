@@ -11,7 +11,7 @@ struct SquadManager { void TickIfActive(); };
 struct Mission {
     char unknown_0[0xd44];
     int field_d44;                     // +0xd44
-    int FUN_00435100();
+    int GetGameType();
 };
 struct MissionConditions { int CheckVictory(); int CheckDefeat(); };
 #pragma pack(push, 1)
@@ -294,7 +294,7 @@ void __stdcall FUN_00464f80()
         pi->field_f0 += 0x1e;
 
         if (bl == g_game->localPlayer) {
-            if (g_game->mode->FUN_00435100() == 1) {
+            if (g_game->mode->GetGameType() == 1) {
                 if (g_game->list->CheckVictory() == 0) {
                     if (((MissionConditions*)g_game->list)->CheckDefeat() != 0) {
                         if (g_game->field_39239 < 0) {
@@ -459,7 +459,7 @@ void __stdcall FUN_00464f80()
         if (bl == g_game->field_2a43) {
             FUN_00467440();
             UpdateRadarMapped();
-            if (g_game->mode->FUN_00435100() == 3) {
+            if (g_game->mode->GetGameType() == 3) {
                 DAT_0051e53c++;
                 if ((DAT_0051e53c & 3) == 0)
                     SendPlayerEconomy(pi, 0, 0);
@@ -468,7 +468,7 @@ void __stdcall FUN_00464f80()
         goto next_bl;
 
     watch_check:
-        if (g_game->mode->FUN_00435100() == 3 &&
+        if (g_game->mode->GetGameType() == 3 &&
             pi->field_22 == 0) {
             if ((g_game->players[FindHostSlot()].data->flags_9b & 0x80) != 0 ||
                 FUN_00457bc0() > 0) {
@@ -537,7 +537,7 @@ void __stdcall FUN_00464f80()
             break;
     }
 
-    if (g_game->mode->FUN_00435100() == 3 &&
+    if (g_game->mode->GetGameType() == 3 &&
         g_game->field_37ef6 != 2 &&
         FUN_00457cb0() == 0) {
         if (g_game->field_39239 < 0) {

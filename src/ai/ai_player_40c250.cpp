@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <vector>
-class Mission { public: const char* FUN_004356c0(int); };
+class Mission { public: const char* GetNameSlot(int); };
 #pragma pack(push, 1)
 struct Player { char name[0x48]; unsigned char control; char pad49[331-0x49]; };
 struct UnitDef { char name[32]; char description[585-32]; };
@@ -39,8 +39,8 @@ void __stdcall DumpPlayerAI(int player, FILE* file)
     default: strcpy(buffer,"INVALID"); break;
     }
     fprintf(file,"controller: %s\r\n",buffer);
-    fprintf(file,"terrain:    '%s'\r\n",g_game->net->FUN_004356c0(1));
-    fprintf(file,"profile:    '%s'\r\n",g_game->net->FUN_004356c0(7));
+    fprintf(file,"terrain:    '%s'\r\n",g_game->net->GetNameSlot(1));
+    fprintf(file,"profile:    '%s'\r\n",g_game->net->GetNameSlot(7));
     const char* difficulties[]={"EASY","MEDIUM","HARD"};
     fprintf(file,"difficulty: '%s'\r\n",difficulties[g_game->difficulty]);
     fprintf(file,"================================================\r\n");

@@ -49,11 +49,11 @@ union Flags16_00499200 {
 
 class Mission {
 public:
-    int FUN_00435100();
-    int FUN_00435c50();
-    char* FUN_004352b0();
+    int GetGameType();
+    int GetMissionIndex();
+    char* GetCampaignName();
     void LoadCampaign(void* p);
-    int FUN_00435c00(int a);
+    int SelectMission(int a);
     void LoadMissionByName(void* p);
 };
 
@@ -375,13 +375,13 @@ void BattleFrame(void)
     }
 
     if (g_game->field_3923b.bits.b2 || g_game->field_3923b.bits.b4) {
-        if (g_game->net->FUN_00435100() != 3 ||
-            (((Mission*)g_game->net)->FUN_00435100() == 3 &&
+        if (g_game->net->GetGameType() != 3 ||
+            (((Mission*)g_game->net)->GetGameType() == 3 &&
              FUN_004572a0() != 0)) {
             SetCursor(0x13);
             FUN_00491d70(1);
             CloseTopScreen(g_game->field_519);
-            if (g_game->net->FUN_00435100() == 3) {
+            if (g_game->net->GetGameType() == 3) {
                 FUN_00463c80();
                 MainLoopTick();
             }
@@ -397,15 +397,15 @@ void BattleFrame(void)
 
     if (g_game->field_39249 != 0) {
         // Each arm keeps its own copy of the hook stores, and `|= 4` in both: the compiler merges them.
-        if (g_game->net->FUN_00435100() == 1) {
+        if (g_game->net->GetGameType() == 1) {
             FUN_00491b60();
             FUN_00491d70(1);
             CloseTopScreen(g_game->field_519);
             BlankScreen();
-            int a = ((Mission*)g_game->net)->FUN_00435c50();
-            char* b = ((Mission*)g_game->net)->FUN_004352b0();
+            int a = ((Mission*)g_game->net)->GetMissionIndex();
+            char* b = ((Mission*)g_game->net)->GetCampaignName();
             ((Mission*)g_game->net)->LoadCampaign(b);
-            if (((Mission*)g_game->net)->FUN_00435c00(a) != 0) {
+            if (((Mission*)g_game->net)->SelectMission(a) != 0) {
                 g_game->field_2a44.bits.b3 = 1;
                 g_game->field_2a44.value |= 4;
             }

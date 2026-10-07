@@ -95,12 +95,12 @@ struct Gadget_00448c70 {
 
 class Mission {
 public:
-    int FUN_004358f0();
-    int FUN_00435920();
+    int GetTerrainLength();
+    int GetTerrainSizeTier();
     int LoadMissionByName(char* map);
-    char* FUN_00435c20();
-    char* FUN_00435c30();
-    bool FUN_00435c40();
+    char* GetTranslatedName();
+    char* GetMissionName();
+    bool HasMissionName();
     unsigned int ComputeMapChecksum();
 };
 class UnitSync {
@@ -208,7 +208,7 @@ static inline int IsLocal_00448c70(Player_00448c70* p)
 // The map check at 0x440cd0, which has no callers: /Ob2 inlined it.
 int CheckMapCrc()
 {
-    if (!g_game->map->FUN_004358f0()) {
+    if (!g_game->map->GetTerrainLength()) {
         return 0;
     }
     unsigned char me = FindHostSlot();
@@ -276,12 +276,12 @@ void RefreshBattleRoomRows()
     output->list.count = count;
 
     Gadget_00448c70* mapname = FUN_004a0180(g_game->table->entries, "MAPNAME");
-    char* map = ((Mission*)g_game->map)->FUN_00435c30();
-    if (!((Mission*)g_game->map)->FUN_00435c40()) {
+    char* map = ((Mission*)g_game->map)->GetMissionName();
+    if (!((Mission*)g_game->map)->HasMissionName()) {
         mapname->colour = 0xc;
         FUN_004a0bf0(g_game->gui, "MAPNAME", "NOT SELECTED", 0);
     } else {
-        char* cur = ((Mission*)g_game->map)->FUN_00435c20();
+        char* cur = ((Mission*)g_game->map)->GetTranslatedName();
         str = mapname->text;
         int differs = strcmp(str, cur);
         if (differs) {
@@ -305,7 +305,7 @@ void RefreshBattleRoomRows()
             mapname->colour = 0;
             FUN_004a1450(g_game->gui, "MAP", 0);
         }
-        strcpy(str, ((Mission*)g_game->map)->FUN_00435c20());
+        strcpy(str, ((Mission*)g_game->map)->GetTranslatedName());
     }
 
     int i;
@@ -473,11 +473,11 @@ void RefreshBattleRoomRows()
             // Full tail in each arm, not shared: gives p and n their registers.
             if (!IsLocalHuman_00448c70(p) && !IsRemoteHuman_00448c70(p)) {
                 sprintf(e->text, "%s", "n/a");
-                e->colour = p->info->memory < ((Mission*)g_game->map)->FUN_00435920() ? 0xc : 0;
+                e->colour = p->info->memory < ((Mission*)g_game->map)->GetTerrainSizeTier() ? 0xc : 0;
                 e->visible = 1;
             } else {
                 sprintf(e->text, "%d", p->info->memory);
-                e->colour = p->info->memory < ((Mission*)g_game->map)->FUN_00435920() ? 0xc : 0;
+                e->colour = p->info->memory < ((Mission*)g_game->map)->GetTerrainSizeTier() ? 0xc : 0;
                 e->visible = 1;
             }
             sprintf(name, "READY%d", n);

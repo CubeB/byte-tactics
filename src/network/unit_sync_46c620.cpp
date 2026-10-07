@@ -144,7 +144,7 @@ struct Class_0046c620 {                 // the object at g_game+0x14
 
 class Mission {
 public:
-    int FUN_00435c30();
+    int GetMissionName();
 };
 
 #pragma pack(push, 1)
@@ -245,7 +245,7 @@ int __stdcall ReportGameEvent(int msg)
         if (g_reportFlags & 3) {
             // its own statement, not an argument: the call has to be emitted
             // ahead of the other nine arguments being set up
-            int team = g_game->field_391e9->FUN_00435c30();
+            int team = g_game->field_391e9->GetMissionName();
             if (RIReport(msg, &rect, (char*)&g_game->field_39201, thing, &g_reportPlayerName,
                              team, g_game->player,
                              id, DAT_0051e574, DAT_0051e57c))
@@ -254,7 +254,7 @@ int __stdcall ReportGameEvent(int msg)
     }
 
     if (DAT_0051e58c) {
-        int team = g_game->field_391e9->FUN_00435c30();
+        int team = g_game->field_391e9->GetMissionName();
         DAT_0051e584(msg, &rect, (char*)&g_game->field_39201, thing, &g_reportPlayerName,
                      team, g_game->player,
                      id, DAT_0051e574, DAT_0051e57c);

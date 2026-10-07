@@ -61,7 +61,7 @@ public:
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 extern Game* g_game;
@@ -185,7 +185,7 @@ int __stdcall AddNetPlayer(int param_1)
         FUN_00450530();
         g_packetManager.SendAllQueued(1);
     }
-    if (g_game->campaign->FUN_00435100() == 3 && g_game->count > 1) {
+    if (g_game->campaign->GetGameType() == 3 && g_game->count > 1) {
         ReportGameEvent(2);
     }
     return 1;

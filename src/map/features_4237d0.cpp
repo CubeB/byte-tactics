@@ -54,7 +54,7 @@ struct Packet_004237d0 {
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 #pragma pack(push, 1)
@@ -148,7 +148,7 @@ int __stdcall ReclaimFeature(Unit* unit, Vec3_004237d0* pos)
         unit->metal += metal;
     }
     KillFeature(x, z, 1);
-    if (g_game->net->FUN_00435100() == 3) {
+    if (g_game->net->GetGameType() == 3) {
         Packet_004237d0 packet;
         packet.type = 0xf;
         packet.sub = 0xff;

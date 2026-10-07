@@ -110,7 +110,7 @@ struct Vec3_00437320 {
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
     int GetStartPosition(Vec3_00437320* out, int id);
 };
 
@@ -459,7 +459,7 @@ void ReturnToMainMenuFrame()
     SetCloseHandler(LeaveNetGameCallback, 0);
 }
 
-// Picks the next game-setup state: 4 or 5 from what FUN_00435100 returns when
+// Picks the next game-setup state: 4 or 5 from what GetGameType returns when
 // bit 2 of +0x2a44 is set, otherwise 3 for state 0x11 with that bit, or for
 // state 0x10 with bit 4 of +0x2b4c and a sub-state of 0x12 or 0x13.
 // FUNCTION: 0x496bb0
@@ -467,12 +467,12 @@ void MenuFrame()
 {
     RefreshUnitInfo();
     RunFrontendStateMachine();
-    if (g_game->bit2 && g_game->obj_391e9->FUN_00435100() == 1) {
+    if (g_game->bit2 && g_game->obj_391e9->GetGameType() == 1) {
         FUN_004c2470();
         g_game->mode = 4;
         g_game->handler = CampaignSetupFrame;
         SetCloseHandler(LeaveNetGameCallback, 0);
-    } else if (g_game->bit2 && g_game->obj_391e9->FUN_00435100() == 2) {
+    } else if (g_game->bit2 && g_game->obj_391e9->GetGameType() == 2) {
         FUN_004c2470();
         g_game->mode = 5;
         g_game->handler = LoadingScreenFrame;

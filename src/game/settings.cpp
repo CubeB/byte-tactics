@@ -207,8 +207,8 @@ public:
 
 class Mission {
 public:
-    char* FUN_004356c0(int index);
-    char* FUN_00435c30();
+    char* GetNameSlot(int index);
+    char* GetMissionName();
     void RefreshMapList(int arg);
 };
 
@@ -614,7 +614,7 @@ void LoadSettings()
         SetMissionType(2);
         ((Mission*)g_game->campaign)->RefreshMapList(0);
         strncpy(g_game->options->skirmishMap,
-                ((Mission*)g_game->campaign)->FUN_00435c30(), 0x100);
+                ((Mission*)g_game->campaign)->GetMissionName(), 0x100);
         SetMissionType(0);
         WriteRegistryString("Total Annihilation", "SkirmishMap", g_game->options->skirmishMap);
     }
@@ -793,7 +793,7 @@ void ApplyUseOnlyUnits()
 {
     TdfFile parser;
     char name[256];
-    char* file = ((Mission*)g_game->campaign)->FUN_004356c0(6);
+    char* file = ((Mission*)g_game->campaign)->GetNameSlot(6);
     if (file == 0)
         return;
     if (!parser.LoadFile(file))

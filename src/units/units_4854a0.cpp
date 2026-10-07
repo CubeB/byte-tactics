@@ -85,7 +85,7 @@ template<class _RI, class _Ty, class _Pr> void __stdcall FUN_00488810(_RI _F, _R
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 struct Player_004854a0 {
@@ -127,7 +127,7 @@ void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 
 int __stdcall ComparePlayers(Player_004854a0* a, Player_004854a0* b)
 {
-    if (g_game->mode->FUN_00435100() == 3)
+    if (g_game->mode->GetGameType() == 3)
         return a->key < b->key;
     return a < b;
 }

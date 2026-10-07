@@ -17,7 +17,7 @@ public:
     char unknown_0[0xd34];
     int field_d34;                      // +0xd34
     int field_d38;                      // +0xd38
-    char* FUN_00435910();
+    char* GetPlanet();
 };
 
 #pragma pack(push, 1)
@@ -128,7 +128,7 @@ void OpenMissionBriefing(void)
                    rand() % (((Game*)g_game)->net->field_d38 - ((Game*)g_game)->net->field_d34 + 1);
     DAT_0051e670 = rand() % 64;
 
-    name = ((Game*)g_game)->net->FUN_00435910();
+    name = ((Game*)g_game)->net->GetPlanet();
     if (strcmp(name, "Lunar") == 0 && ((Game*)g_game)->flag_37ef2 != 0)
         strcat(name, "2");
 

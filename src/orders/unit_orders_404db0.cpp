@@ -57,7 +57,7 @@ public:
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 #pragma pack(push, 1)
@@ -264,7 +264,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
         if (spot)
             order->target.owner->rot = spot->rot;
         RemoveFeature(GetMapCellAtPosition(&order->pos), 0);
-        if (g_game->net->FUN_00435100() == 3) {
+        if (g_game->net->GetGameType() == 3) {
             Packet packet;
             int n = c - g_game->cells;
             int w = g_game->width;

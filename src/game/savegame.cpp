@@ -184,7 +184,7 @@ struct Game {
 };
 #pragma pack(pop)
 
-struct Mission { int FUN_00435100(); void LoadCampaign(char* name); void* LoadMissionByName(char* name); };
+struct Mission { int GetGameType(); void LoadCampaign(char* name); void* LoadMissionByName(char* name); };
 
 #include "../util/hapi_bank.h"
 
@@ -481,7 +481,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
             ((Mission*)g_game->p391e9)->LoadCampaign(campaign);
         g_game->field_37ef2 = ((HapiBank*)g_game->p38d6b)->GetIntegerItem("Side", 0);
         g_game->field_37eee = ((HapiBank*)g_game->p38d6b)->GetIntegerItem("Difficulty", 0);
-        if (((Mission*)g_game->p391e9)->FUN_00435100() == 1) {
+        if (((Mission*)g_game->p391e9)->GetGameType() == 1) {
             if (g_game->field_37ef2 == 0) {
                 *(unsigned char*)((char*)g_game->p1b8a + 0x95) = 0;
                 *(unsigned char*)((char*)g_game->p1cd5 + 0x95) = 1;
@@ -502,7 +502,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         strncpy(g_game->buf391cf, thumbs, 0x19);
         if (strlen(g_game->buf391cf) != 0x19)
             FUN_0041da30();
-        if (((Mission*)g_game->p391e9)->FUN_00435100() == 2) {
+        if (((Mission*)g_game->p391e9)->GetGameType() == 2) {
             ((HapiBank*)g_game->p38d6b)->OpenAccount("summary");
             g_game->field_2a3c =
                 (short)((HapiBank*)g_game->p38d6b)->GetIntegerItem("Players", 0);
@@ -534,7 +534,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
             FUN_004d85a0(DAT_0051f2ec);
         DAT_0051f2ec = 0;
         FUN_00491d70(1);
-        if (((Mission*)g_game->p391e9)->FUN_00435100() == 1 &&
+        if (((Mission*)g_game->p391e9)->GetGameType() == 1 &&
             ((HapiBank*)g_game->p38d6b)->HasItem("BetweenMissions")) {
             g_game->flags_2a44.b3 = 1;
             if (g_game->p38d6b) {

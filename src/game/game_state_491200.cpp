@@ -6,7 +6,7 @@
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 class Class_004cedc0 {
@@ -176,7 +176,7 @@ void InitGame()
     g_game->field_3923b &= 0xfffd;
     g_game->field_39249 = 0;
     SetMissionType(0);
-    if (g_game->field_391e9->FUN_00435100() == 3) {
+    if (g_game->field_391e9->GetGameType() == 3) {
         g_game->field_38a4b = 10;
         g_game->field_38a4d = 10;
     }

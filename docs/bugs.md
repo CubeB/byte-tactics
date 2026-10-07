@@ -1084,7 +1084,7 @@ Things that look wrong in the original but have no effect, kept for the record.
   third ring follows weapon1's flag bit. Thaldren's note for 0x439740 records
   the same. Found by OpenCode / deepseek-v4.1-flash in #6054.
 - **0x491200** (`InitGame`, possible): calls `SetMissionType(0)` and then
-  tests `g_game->field_391e9->FUN_00435100() == 3`, but 0x435100 returns the
+  tests `g_game->field_391e9->GetGameType() == 3`, but 0x435100 returns the
   Mission's type at +0x0, which that call has just made 0, so the two `= 10`
   stores (`field_38a4b`, `field_38a4d`) never run. Harmless dead code unless
   the test was meant to come before the reset. Found by OpenCode /

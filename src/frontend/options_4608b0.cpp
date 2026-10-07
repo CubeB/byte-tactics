@@ -5,7 +5,7 @@
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 struct Sub_004608b0 {
@@ -52,14 +52,14 @@ void OpenExitMenu()
     Dialog_004608b0* dialog = LoadGuiLayer(&g_game->sub, "EXITMENU.GUI", 0x1800);
     dialog->handler = HandleExitMenuClick;
     FindGadgetIndex(dialog->gadgets, "RESTART", 1);
-    if (g_game->field_391e9->FUN_00435100() == 1) {
+    if (g_game->field_391e9->GetGameType() == 1) {
         FUN_004a0570(&g_game->sub, "RESTART", 1);
         FUN_004a0bf0(&g_game->sub, "RESTART", (int)Translate("Restart"), 0x80);
         goto tail;
     }
     // Restart body written twice on purpose: the compiler merges them and lays
     // restart out before main-menu.
-    if (g_game->field_391e9->FUN_00435100() == 2) {
+    if (g_game->field_391e9->GetGameType() == 2) {
         FUN_004a0570(&g_game->sub, "RESTART", 1);
         FUN_004a0bf0(&g_game->sub, "RESTART", (int)Translate("Restart"), 0x80);
         goto tail;

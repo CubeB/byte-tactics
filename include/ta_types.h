@@ -4649,7 +4649,7 @@ class Class_004379a0 {  // 0x1 bytes, 4 views
 public:
     char unknown_0[1];
     int AllocHandle(int*, int);
-    void FUN_004379a0(void);
+    void ClearPointers(void);
     void InitCache(int);
     void FUN_00437a20(void);
 };
@@ -6246,7 +6246,7 @@ public:
     int field_4;  // +0x4
     char unknown_8[4];
     int field_c;  // +0xc
-    Class_004379a0_2* FUN_004379a0(void);
+    Class_004379a0_2* ClearPointers(void);
 };
 
 struct Chunk {  // 0x8 bytes, 4 views

@@ -1348,7 +1348,7 @@ address,size,file,symbol,status,similarity
 0x4669b0,227,src/map/radar.cpp,?InitRadar@@YGXXZ,matched,100.0
 0x466aa0,92,src/map/radar.cpp,?FreeRadar@@YGXXZ,matched,100.0
 0x466b00,103,src/map/radar.cpp,?DrawRadar@@YGXPAX@Z,matched,100.0
-0x466b70,165,src/map/radar.cpp,?FUN_00466b70@@YGXPAH@Z,matched,100.0
+0x466b70,165,src/map/radar.cpp,?CalcRadarViewportRect@@YGXPAH@Z,matched,100.0
 0x466c20,402,src/map/radar.cpp,?UpdateRadarMapped@@YGXXZ,matched,100.0
 0x466dc0,1662,src/map/radar.cpp,?DrawRadarUnits@@YGXXZ,matched,100.0
 0x467440,1015,src/ingame/info_panel_467440.cpp,?FUN_00467440@@YGXXZ,matched,100.0

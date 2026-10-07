@@ -1343,7 +1343,7 @@ address,name
 0x4669b0,InitRadar
 0x466aa0,FreeRadar
 0x466b00,DrawRadar
-0x466b70,FUN_00466b70
+0x466b70,CalcRadarViewportRect
 0x466c20,UpdateRadarMapped
 0x466dc0,DrawRadarUnits
 0x467440,FUN_00467440
@@ -4231,10 +4231,10 @@ address,name
 0x5069d8,DAT_005069d8
 0x506dbc,g_usePacketManager
 0x507318,DAT_00507318
-0x5074e8,DAT_005074e8
-0x5074f8,DAT_005074f8
-0x507508,DAT_00507508
-0x507518,DAT_00507518
+0x5074e8,g_radarPicTempName
+0x5074f8,g_radarPictureName
+0x507508,g_radarMappedName
+0x507518,g_radarFinalName
 0x507b6c,DAT_00507b6c
 0x507b70,DAT_00507b70
 0x507b88,DAT_00507b88

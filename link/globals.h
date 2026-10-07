@@ -138,10 +138,10 @@ extern char DAT_005069d0[8];                                                    
 extern char DAT_005069d8[20];                                                                 // 0x5069d8, 20 bytes; 1 of 1 files
 extern int g_usePacketManager;                                                                // 0x506dbc, 4 bytes; 24 of 24 files
 extern char DAT_00507318[32];                                                                 // 0x507318, 32 bytes; 1 of 1 files
-extern char DAT_005074e8[16];                                                                 // 0x5074e8, 16 bytes; 1 of 1 files
-extern char DAT_005074f8[16];                                                                 // 0x5074f8, 16 bytes; 1 of 1 files
-extern char DAT_00507508[16];                                                                 // 0x507508, 16 bytes; 1 of 1 files
-extern char DAT_00507518[12];                                                                 // 0x507518, 12 bytes; 1 of 1 files
+extern char g_radarPicTempName[16];                                                           // 0x5074e8, 16 bytes; 1 of 1 files
+extern char g_radarPictureName[16];                                                           // 0x5074f8, 16 bytes; 1 of 1 files
+extern char g_radarMappedName[16];                                                            // 0x507508, 16 bytes; 1 of 1 files
+extern char g_radarFinalName[12];                                                             // 0x507518, 12 bytes; 1 of 1 files
 extern char* DAT_00507948[2];                                                                 // 0x507948, 8 bytes; 1 of 1 files
 extern char* DAT_00507950[9];                                                                 // 0x507950, 36 bytes; 1 of 1 files
 extern int DAT_00507b6c;                                                                      // 0x507b6c, 4 bytes; 2 of 2 files

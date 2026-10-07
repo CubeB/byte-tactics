@@ -141,10 +141,10 @@ char DAT_005069d0[8] = "MODE";  // 0x5069d0 .data
 char DAT_005069d8[20] = "sounds\\explode.wav";  // 0x5069d8 .data
 int g_usePacketManager = 1;  // 0x506dbc .data
 char DAT_00507318[32] = "You're out!  Continue Watching?";  // 0x507318 .data
-char DAT_005074e8[16] = "RADARPIC TEMP";  // 0x5074e8 .data
-char DAT_005074f8[16] = "RADAR PICTURE";  // 0x5074f8 .data
-char DAT_00507508[16] = "RADAR MAPPED";  // 0x507508 .data
-char DAT_00507518[12] = "RADAR FINAL";  // 0x507518 .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
+char g_radarPicTempName[16] = "RADARPIC TEMP";  // 0x5074e8 .data
+char g_radarPictureName[16] = "RADAR PICTURE";  // 0x5074f8 .data
+char g_radarMappedName[16] = "RADAR MAPPED";  // 0x507508 .data
+char g_radarFinalName[12] = "RADAR FINAL";  // 0x507518 .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
 char* DAT_00507948[2] = {(char*)"Arm", (char*)"Core"};  // 0x507948 .data
 // 0x507950 .data (the type runs past the next known address, 0x507950+0x20)
 char* DAT_00507950[9] = {

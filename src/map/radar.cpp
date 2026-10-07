@@ -322,10 +322,10 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern char DAT_005074f8[];
-extern char DAT_005074e8[];
-extern char DAT_00507518[];
-extern char DAT_00507508[];
+extern char g_radarPictureName[];
+extern char g_radarPicTempName[];
+extern char g_radarFinalName[];
+extern char g_radarMappedName[];
 
 void* __stdcall AllocFrame(char* name, int width, int height);
 void __stdcall SurfaceFromFrame(Surface_4665d0* surface, void* pic);
@@ -439,7 +439,7 @@ void __stdcall BuildRadarPicture()
     }
     g_game->width = width;
     g_game->height = height;
-    g_game->pictureSurface = AllocSurface(DAT_005074f8, width, height);
+    g_game->pictureSurface = AllocSurface(g_radarPictureName, width, height);
     Frame_004b8ae0 frame;
     FrameFromSurface(&frame, g_game->pictureSurface);
     if (g_game->radarFrame) {
@@ -448,7 +448,7 @@ void __stdcall BuildRadarPicture()
     }
     int h2 = height * 2;
     int w2 = width * 2;
-    void* temp = AllocSurface(DAT_005074e8, w2, h2);
+    void* temp = AllocSurface(g_radarPicTempName, w2, h2);
     for (int j = 0; j < h2; j++) {
         for (int i = 0; i < w2; i++) {
             int x = g_game->mapWidth * i / w2;
@@ -473,8 +473,8 @@ void __stdcall BuildRadarPicture()
 void InitRadar()
 {
     BuildRadarPicture();
-    g_game->finalSurface = AllocSurface(DAT_00507518, g_game->dim.v[2], g_game->dim.v[3]);
-    g_game->mappedSurface = AllocSurface(DAT_00507508, g_game->dim.v[2], g_game->dim.v[3]);
+    g_game->finalSurface = AllocSurface(g_radarFinalName, g_game->dim.v[2], g_game->dim.v[3]);
+    g_game->mappedSurface = AllocSurface(g_radarMappedName, g_game->dim.v[2], g_game->dim.v[3]);
     g_game->viewLeft = g_game->dim.v[0];
     g_game->viewTop = g_game->dim.v[1];
     // viewRight indexes the four radar shorts, viewBottom goes through a char*:
@@ -511,7 +511,7 @@ void __stdcall DrawRadar(void* param_1)
 }
 
 // FUNCTION: 0x466b70
-void __stdcall FUN_00466b70(int* param_1)
+void __stdcall CalcRadarViewportRect(int* param_1)
 {
     param_1[0] = g_game->sizeX * g_game->scaleX / g_game->mapWidth + g_game->originX;
     param_1[1] = g_game->sizeY * g_game->scaleY / g_game->mapHeight + g_game->originY;

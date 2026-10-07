@@ -203,10 +203,10 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x5069d8,DAT_005069d8,.data,20,gap,string,char[],1,0,1,one type,1,,s_sounds_explode_wav_005069d8,,,736f756e64735c6578706c6f64652e7761760000
 0x506dbc,g_usePacketManager,.data,4,type,data,int,24,0,1,one type,24,,DAT_00506dbc,,,01000000
 0x507318,DAT_00507318,.data,32,gap,string,char[],1,0,1,one type,1,,s_You_re_out__Continue_Watching__00507318,,,596f75277265206f7574212020436f6e74696e7565205761746368696e673f00
-0x5074e8,DAT_005074e8,.data,16,gap,string,char[],1,0,1,one type,1,,s_RADARPIC_TEMP_005074e8,,,52414441525049432054454d50000000
-0x5074f8,DAT_005074f8,.data,16,gap,string,char[],1,0,1,one type,1,,s_RADAR_PICTURE_005074f8,,,52414441522050494354555245000000
-0x507508,DAT_00507508,.data,16,gap,string,char[],1,0,1,one type,1,,s_RADAR_MAPPED_00507508,,,5241444152204d415050454400000000
-0x507518,DAT_00507518,.data,12,gap,string,char[],1,0,1,one type,1,,s_RADAR_FINAL_00507518,1,,52414441522046494e414c00
+0x5074e8,g_radarPicTempName,.data,16,gap,string,char[],1,0,1,one type,1,,s_RADARPIC_TEMP_005074e8,,,52414441525049432054454d50000000
+0x5074f8,g_radarPictureName,.data,16,gap,string,char[],1,0,1,one type,1,,s_RADAR_PICTURE_005074f8,,,52414441522050494354555245000000
+0x507508,g_radarMappedName,.data,16,gap,string,char[],1,0,1,one type,1,,s_RADAR_MAPPED_00507508,,,5241444152204d415050454400000000
+0x507518,g_radarFinalName,.data,12,gap,string,char[],1,0,1,one type,1,,s_RADAR_FINAL_00507518,1,,52414441522046494e414c00
 0x507948,DAT_00507948,.data,8,type,data,char*[2],1,0,1,one type,1,,,2,,e0725000d8725000
 0x507950,DAT_00507950,.data,36,type>gap,data,char*[9],1,0,1,one type,1,0x20,,9,,b82b5000b02b5000d4795000c4795000b4795000a4795000907950008079500074795000
 0x507b64,DAT_00507b64,.data,4,type,data,int,1,0,1,one type,1,,,,src/data/unused.cpp,00000000

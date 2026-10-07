@@ -17,7 +17,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_00466b70(void* param_1);
+void __stdcall CalcRadarViewportRect(void* param_1);
 
 // FUNCTION: 0x41c3c0
 void ClampCameraPosition()
@@ -34,5 +34,5 @@ void ClampCameraPosition()
     } else if (g_game->y > maxY) {
         g_game->y = maxY;
     }
-    FUN_00466b70(g_game->field_142cb);
+    CalcRadarViewportRect(g_game->field_142cb);
 }

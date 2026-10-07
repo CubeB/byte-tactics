@@ -1933,7 +1933,7 @@ void BuildRadarPicture(void);
 void InitRadar(void);
 void FreeRadar(void);
 void DrawRadar(void*);
-void FUN_00466b70(int*);
+void CalcRadarViewportRect(int*);
 void UpdateRadarMapped(void);
 void DrawRadarUnits(void);
 void FUN_00467440(void);

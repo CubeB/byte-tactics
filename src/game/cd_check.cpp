@@ -16,7 +16,7 @@ struct FindData_0041d4c0 {
 
 extern int DAT_0050289c;
 extern int DAT_00511de0;
-extern int DAT_00511de4;
+extern int g_cdPathMismatch;
 
 void HAPI_DropMissingArchives();
 void ChdirToExeDirectory();
@@ -126,7 +126,7 @@ char __stdcall FindGameCdDrive(int side)
         char path[256];
         sprintf(path, "%c:\\TOTALA.ID", drive);
         if (path[0] != drive)
-            DAT_00511de4 = 1;
+            g_cdPathMismatch = 1;
         TdfFile parser;
         if (parser.LoadFile(path)
             && parser.SelectRecord("Contents")
@@ -137,7 +137,7 @@ char __stdcall FindGameCdDrive(int side)
 }
 
 // FUNCTION: 0x41d7b0
-char* __stdcall FUN_0041d7b0(char* out, const char* dir, const char* name, const char* ext)
+char* __stdcall BuildCdFilePath(char* out, const char* dir, const char* name, const char* ext)
 {
     if (DAT_0050289c != 0) {
         char c = 0;
@@ -170,13 +170,13 @@ int FUN_0041d8a0(void)
 }
 
 // FUNCTION: 0x41d8b0
-int FUN_0041d8b0(void)
+int GetCdPathMismatch(void)
 {
-    return DAT_00511de4;
+    return g_cdPathMismatch;
 }
 
 // FUNCTION: 0x41d8c0
-void* __stdcall FUN_0041d8c0(unsigned int size)
+void* __stdcall AllocZeroedWithTickOffset(unsigned int size)
 {
     unsigned int pad = GetTickCount() % 1000 * 7;
     unsigned int total = pad + size;

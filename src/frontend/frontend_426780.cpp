@@ -1,7 +1,7 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 
 void StopAllSounds();
-void __stdcall FUN_0041d7b0(char* dest, const char* a, const char* b, const char* c);
+void __stdcall BuildCdFilePath(char* dest, const char* a, const char* b, const char* c);
 int __stdcall HAPI_FileLengthByName(char* path);
 void __stdcall SetOffscreenSurface(int param);
 void __stdcall FillSurface(int a, int b);
@@ -42,7 +42,7 @@ void __stdcall PlayMovie(char* param_1)
     char path[256];
 
     StopAllSounds();
-    FUN_0041d7b0(path, "Data", param_1, "zrb");
+    BuildCdFilePath(path, "Data", param_1, "zrb");
     if (HAPI_FileLengthByName(path) != 0) {
         SetOffscreenSurface(g_game->field_37e1b);
         FillSurface(0, 0);

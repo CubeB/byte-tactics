@@ -213,7 +213,7 @@ static int DAT_005122a8;
 extern char DAT_005119b8[];
 
 int FUN_0041d8a0();
-int FUN_0041d8b0();
+int GetCdPathMismatch();
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void* __cdecl FUN_004d83b0(char* name, int size);
 void __cdecl FUN_004d85a0(void* p);
@@ -346,7 +346,7 @@ int LoadUnitInfo()
                 u->flags1 |= 0x800000;
             else
                 u->flags1 &= ~0x800000;
-            if ((HAPI_IsInArchive(f) == 0 && FUN_0041d8a0() != 0) || FUN_0041d8b0() != 0) {
+            if ((HAPI_IsInArchive(f) == 0 && FUN_0041d8a0() != 0) || GetCdPathMismatch() != 0) {
                 u->flags1 &= ~0x800000;
                 bad = 1;
             }

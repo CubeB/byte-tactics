@@ -402,10 +402,10 @@ address,size,file,symbol,status,similarity
 0x41d4b0,12,src/ingame/camera.cpp,?FUN_0041d4b0@@YGXH@Z,matched,100.0
 0x41d4c0,471,src/game/cd_check.cpp,?RegisterDataArchives@@YGXXZ,matched,100.0
 0x41d6a0,271,src/game/cd_check.cpp,?FindGameCdDrive@@YGDH@Z,matched,100.0
-0x41d7b0,229,src/game/cd_check.cpp,?FUN_0041d7b0@@YGPADPADPBD11@Z,matched,100.0
+0x41d7b0,229,src/game/cd_check.cpp,?BuildCdFilePath@@YGPADPADPBD11@Z,matched,100.0
 0x41d8a0,6,src/game/cd_check.cpp,?FUN_0041d8a0@@YGHXZ,matched,100.0
-0x41d8b0,6,src/game/cd_check.cpp,?FUN_0041d8b0@@YGHXZ,matched,100.0
-0x41d8c0,81,src/game/cd_check.cpp,?FUN_0041d8c0@@YGPAXI@Z,matched,100.0
+0x41d8b0,6,src/game/cd_check.cpp,?GetCdPathMismatch@@YGHXZ,matched,100.0
+0x41d8c0,81,src/game/cd_check.cpp,?AllocZeroedWithTickOffset@@YGPAXI@Z,matched,100.0
 0x41d920,203,src/frontend/endgame_41d920.cpp,?CreateGameObject@@YGXXZ,matched,100.0
 0x41d9f0,24,src/frontend/endgame_41d9f0.cpp,?FUN_0041d9f0@@YGXI@Z,matched,100.0
 0x41da10,26,src/frontend/endgame_41da10.cpp,?FUN_0041da10@@YGXHHH@Z,matched,100.0

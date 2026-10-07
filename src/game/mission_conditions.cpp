@@ -336,7 +336,7 @@ struct Game {
 
 extern Game* g_game;
 
-extern int FUN_0041d8b0();
+extern int GetCdPathMismatch();
 
 extern unsigned int DAT_0051e6c4;
 
@@ -593,7 +593,7 @@ int MissionConditions::AnyDefeatConditionMet()
 int MissionConditions::CheckDefeat()
 {
     if (active) {
-        if (FUN_0041d8b0()) {
+        if (GetCdPathMismatch()) {
             if (DAT_0051e6c4 == 0) {
                 DAT_0051e6c4 = (int)((__int64)rand() * 0x2328 / 0x8000) + 0x2328;
             }

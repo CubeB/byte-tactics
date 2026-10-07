@@ -8,7 +8,6 @@
 #define LINK_GLOBALS_H
 
 class FreeBlockMap;
-class MapCacheEntry;
 class NameTable;
 class SpeechQueue;
 class TranslationTable;
@@ -75,7 +74,7 @@ extern char DAT_00503374[4];                                                    
 extern const char DAT_0050338c[8];                                                                // 0x50338c, 8 bytes; 1 of 1 files
 extern char DAT_0050341c[4];                                                                      // 0x50341c, 4 bytes; 1 of 1 files
 extern char DAT_0050372c[4];                                                                      // 0x50372c, 4 bytes; 3 of 3 files
-extern char DAT_00503ea0[8];                                                                      // 0x503ea0, 8 bytes; 1 of 1 files
+extern char g_noneString[8];                                                                      // 0x503ea0, 8 bytes; 1 of 1 files
 extern char g_sayChoiceArrayName[20];                                                             // 0x504314, 20 bytes; 1 of 1 files
 extern char g_maxUnitsKey[12];                                                                    // 0x5048f8, 12 bytes; 1 of 1 files
 extern char g_radarImageBoxName[12];                                                              // 0x504904, 12 bytes; 1 of 1 files
@@ -216,7 +215,7 @@ extern char DAT_0050a57c[4];                                                    
 extern char DAT_0050a5c0[16];                                                                     // 0x50a5c0, 16 bytes; 1 of 1 files
 extern int g_emptyStringRefs;                                                                     // 0x50a778, 4 bytes; 5 of 5 files
 extern void* g_emptyString;                                                                       // 0x50a77c, 4 bytes; 5 of 5 files
-extern int g_guaranteePackets;                                                                    // 0x50a780, 4 bytes; 4 of 4 files
+extern int g_guaranteePackets;                                                                    // 0x50a780, 4 bytes; 3 of 3 files
 extern int g_cdNextTrackTimer;                                                                    // 0x50b540, 4 bytes; 8 of 8 files
 extern int g_cdFadeTimer;                                                                         // 0x50b544, 4 bytes; 7 of 7 files
 extern void* g_squashErrorNames[7];                                                               // 0x50b9e0, 28 bytes; 1 of 1 files
@@ -270,7 +269,7 @@ extern unsigned int g_netStatsTick;                                             
 extern unsigned int g_byteRatesTick;                                                              // 0x511ddc, 4 bytes; 1 of 1 files
 extern int DAT_00511de0;                                                                          // 0x511de0, 4 bytes; 2 of 2 files
 extern int g_cdPathMismatch;                                                                      // 0x511de4, 4 bytes; 1 of 1 files
-extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 775 of 879 files (conflicting: shape)
+extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 772 of 875 files (conflicting: shape)
 extern int DAT_00511dec;                                                                          // 0x511dec, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00511f80[16];                                                            // 0x511f80, 16 bytes; CMemoryCache by value in 5 of 5 files
 extern int DAT_00511f90;                                                                          // 0x511f90, 4 bytes; 1 of 1 files
@@ -290,9 +289,6 @@ extern int DAT_00512290;                                                        
 extern int DAT_00512294;                                                                          // 0x512294, 4 bytes; 1 of 1 files
 extern int DAT_0051229c;                                                                          // 0x51229c, 4 bytes; 1 of 1 files
 extern unsigned char DAT_005122a0[4];                                                             // 0x5122a0, 4 bytes; nothing refers to it
-extern MapCacheEntry* g_mapCacheBegin;                                                            // 0x5122c4, 4 bytes; 1 of 1 files
-extern MapCacheEntry* g_mapCacheEnd;                                                              // 0x5122c8, 4 bytes; 1 of 1 files
-extern unsigned char DAT_005122cc[4];                                                             // 0x5122cc, 4 bytes; nothing refers to it
 extern char* g_otaEnumFileList;                                                                   // 0x5122d4, 4 bytes; 1 of 1 files
 extern int g_otaEnumCacheComplete;                                                                // 0x5122d8, 4 bytes; 1 of 1 files
 extern int g_otaEnumFileListBytes;                                                                // 0x5122dc, 4 bytes; 1 of 1 files
@@ -597,7 +593,7 @@ extern int DAT_0051fefc;                                                        
 extern int DAT_0051ff00;                                                                          // 0x51ff00, 4 bytes; 1 of 1 files
 extern int DAT_0051ff04;                                                                          // 0x51ff04, 4 bytes; 1 of 1 files
 extern int DAT_0051ff08;                                                                          // 0x51ff08, 4 bytes; 1 of 1 files
-extern int g_enumSessionsResult;                                                                  // 0x51ff0c, 4 bytes; 2 of 2 files
+extern int g_enumSessionsResult;                                                                  // 0x51ff0c, 4 bytes; 1 of 1 files
 extern int g_cdFadeVolume;                                                                        // 0x51ff10, 4 bytes; 2 of 2 files
 extern void* g_cdPlayerWindow;                                                                    // 0x51ff18, 4 bytes; 3 of 3 files
 extern unsigned char DAT_0051ff1c[4];                                                             // 0x51ff1c, 4 bytes; nothing refers to it
@@ -702,7 +698,7 @@ extern int DAT_0052a4f4;                                                        
 extern void* DAT_0052a4f8;                                                                        // 0x52a4f8, 4 bytes; 3 of 3 files
 extern long DAT_0052a4fc;                                                                         // 0x52a4fc, 4 bytes; 2 of 3 files (conflicting: signedness or const)
 
-// Not declared: 231 globals defined in a data file or whose type is not settled (see data/globals.csv).
+// Not declared: 233 globals defined in a data file or whose type is not settled (see data/globals.csv).
 //   0x513000 g_packetManager: defined in src/network/packets_460e20.cpp
 //   0x5119c0 g_playerAI: PlayerAI*[] (11), void*[] (5), Owner*[] (3), Player_40b0d0*[] (1), and 2 more
 //   0x51fbd0 g_display: void* (4), int (2), Display_004b4f50* (1), Display_004b5370* (1), and 14 more
@@ -710,9 +706,8 @@ extern long DAT_0052a4fc;                                                       
 //   0x51fbbc std::HH::HU?$pair::?$_Tree::_Nil: defined in src/util/int_map_4b26f0.cpp
 //   0x4fd2f8 DAT_004fd2f8: defined in src/data/vtables.cpp
 //   0x5292c4 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib_4e17c0.cpp
-//   0x512344 DAT_00512344: part of another global: DAT_00512340$S5516+0x4
-//   0x51fe00 g_screenLockCount: part of another global: g_language+0x40
 //   0x528a54 std::IH::IU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib_4db610.cpp
+//   0x512344 DAT_00512344: part of another global: DAT_00512340$S5516+0x4
 //   0x4fcdc8 DPSPGUID_MODEM: defined in src/data/guids.cpp
 //   0x4fcdb8 DPSPGUID_SERIAL: defined in src/data/guids.cpp
 //   0x4fd3b8 DAT_004fd3b8: defined in src/data/vtables.cpp
@@ -746,6 +741,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x512fe8 DAT_00512fe8: Class_004c6a60* (2), void* (1), int (1)
 //   0x51e574 DAT_0051e574: PlayerInfo_0046c2a0** (1), PlayerInfo_0046bce0** (1), void* (1), int* (1)
 //   0x51fbc0 DAT_0051fbc0$S425: defined in src/util/int_map_4b2290.cpp
+//   0x51fe00 g_screenLockCount: part of another global: g_language+0x40
 //   0x528ab4 DAT_00528ab4: void* (2), void (__stdcall*)(void) (1), int (__stdcall*)(void*, unsigned long, unsigned long*, Line_004de550*) (1)
 //   0x528acc DAT_00528acc: void* (2), void (__stdcall*)(void) (1), int (__stdcall*)(void*, unsigned long, int*, void*) (1)
 //   0x529e00 DAT_00529e00: Counter_004e1e50 (1), Entry_004df590[] (1), unsigned int (1), EventEntry (1)
@@ -772,7 +768,6 @@ extern long DAT_0052a4fc;                                                       
 //   0x51e57c DAT_0051e57c: ScoreBoard_0046c2a0** (1), ScoreBoard_0046bce0** (1), void* (1)
 //   0x51e660 DAT_0051e660: int* (2), char* (1)
 //   0x51f2e8 DAT_0051f2e8: int (1), int* (1), char* (1)
-//   0x51fe08 g_screenLocks: part of another global: g_language+0x48
 //   0x528a10 DAT_00528a10: void* (2), Node_004ddc00* (1)
 //   0x528ac0 DAT_00528ac0: void* (1), void (__stdcall*)(void) (1), int (__stdcall*)(unsigned long, void*, void*, void*, void*, void*, void*, void*, void*) (1)
 //   0x528ac4 DAT_00528ac4: void* (2), void (__stdcall*)(void) (1)
@@ -889,6 +884,8 @@ extern long DAT_0052a4fc;                                                       
 //   0x5086fc g_speechCategories: defined in src/units/unit_messages.cpp
 //   0x50b6e0 DAT_0050b6e0: defined in src/data/unused.cpp
 //   0x5120bc DAT_005120bc: part of another global: DAT_005120b8+0x4
+//   0x5122c4 g_mapCacheBegin: part of another global: src/map/map_list.cpp:0x5122c0+0x4
+//   0x5122c8 g_mapCacheEnd: part of another global: src/map/map_list.cpp:0x5122c0+0x8
 //   0x512340 DAT_00512340$S5516: defined in src/map/meteors.cpp
 //   0x512370 DAT_00512370: part of another global: MovementClassTable::g_movementClasses+0x18
 //   0x512774 DAT_00512774: part of another global: DAT_00512770+0x4
@@ -931,6 +928,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x51e854 DAT_0051e854: part of another global: DAT_0051e828+0x2c
 //   0x51e858 DAT_0051e858: part of another global: DAT_0051e828+0x30
 //   0x51f310 DAT_0051f310: defined in src/weapons/weapons_49e610.cpp
+//   0x51fe08 g_screenLocks: part of another global: g_language+0x48
 //   0x51fe40 DAT_0051fe40: part of another global: g_language+0x80
 //   0x51fe98 DAT_0051fe98: part of another global: g_language+0xd8
 //   0x528a58 std::IH::IU?$pair::?$_Tree::_Nilrefs: defined in src/debug/debug_lib_4db610.cpp

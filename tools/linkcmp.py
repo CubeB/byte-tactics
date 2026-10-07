@@ -277,6 +277,29 @@ def main() -> None:
             else:
                 dstats["pieces of data that differ"] += 1
                 bad.append(line)
+    # A stand-in the link defines for a global the source names by address
+    # (link/data.cpp) must not lie inside a piece another file defines. The
+    # original holds them as one thing (a field of a file static, like the
+    # std::vector at 0x5122c0 whose _First and _Last the source names as
+    # globals of their own), and apart they are two variables: the code writes
+    # one and reads the other, and a null insert position crashed the battle
+    # room. Two pieces of one file are not this (an int placed in an array's
+    # padding), so only pieces of link/data.obj are looked at.
+    standins, held = [], []
+    for row in (ROOT / "data/layout.csv").read_text().splitlines():
+        cols = row.split(",")
+        if cols[0] == "piece" and len(cols) >= 7:
+            piece = (int(cols[1], 16), int(cols[2]), cols[3])
+            if cols[3] == "link/data.obj":
+                standins.append(piece)
+            elif cols[3].startswith("src/"):
+                held.append(piece)
+    for start, size, _ in standins:
+        for lo, n, file in held:
+            if lo < start < lo + n:
+                dstats["stand-ins inside a piece another file defines"] += 1
+                bad.append(f"  {start:#x}: link/data.cpp defines it ({size} bytes), but {file} places it inside "
+                           f"the piece at {lo:#x}: {start - lo:#x} bytes into it, so the link has two variables")
     for k, v in sorted(dstats.items()):
         print(f"{k}: {v:,}")
     print("\n".join(bad if args.verbose else bad[:30]))

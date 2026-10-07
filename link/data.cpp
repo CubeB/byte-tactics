@@ -73,7 +73,7 @@ char DAT_00503374[4] = "\\";  // 0x503374 .data
 const char DAT_0050338c[8] = "fonts";  // 0x50338c .data
 char DAT_0050341c[4] = "TDF";  // 0x50341c .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
 char DAT_0050372c[4] = "*";  // 0x50372c .data
-char DAT_00503ea0[8] = "none";  // 0x503ea0 .data
+char g_noneString[8] = "none";  // 0x503ea0 .data
 char g_sayChoiceArrayName[20] = "Say Choice Array";  // 0x504314 .data
 char g_maxUnitsKey[12] = "maxunits";  // 0x5048f8 .data
 char g_radarImageBoxName[12] = "Radar Image";  // 0x504904 .data
@@ -382,9 +382,6 @@ int DAT_00512290;  // 0x512290 .bss
 int DAT_00512294;  // 0x512294 .bss
 int DAT_0051229c;  // 0x51229c .bss
 unsigned char DAT_005122a0[4];  // 0x5122a0 .bss
-MapCacheEntry* g_mapCacheBegin;  // 0x5122c4 .bss
-MapCacheEntry* g_mapCacheEnd;  // 0x5122c8 .bss
-unsigned char DAT_005122cc[4];  // 0x5122cc .bss
 char* g_otaEnumFileList;  // 0x5122d4 .bss
 int g_otaEnumCacheComplete;  // 0x5122d8 .bss
 int g_otaEnumFileListBytes;  // 0x5122dc .bss

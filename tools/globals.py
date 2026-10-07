@@ -267,6 +267,25 @@ def row_element(t: tuple | None) -> int | None:
     return size
 
 
+def static_pieces() -> list[tuple[int, int, str]]:
+    """(address, size, file) of every piece of data a tree file places, from
+    data/layout.csv: the globals and statics the source files define."""
+    out = []
+    for line in (ROOT / "data/layout.csv").read_text().splitlines():
+        p = line.split(",")
+        if p[0] == "piece" and len(p) >= 7 and p[6] == "game data" and p[3].startswith("src/"):
+            out.append((int(p[1], 16), int(p[2]), p[3]))
+    return sorted(out)
+
+
+def inside_piece(pieces: list[tuple[int, int, str]], addr: int) -> tuple[int, int, str] | None:
+    """The piece that holds addr strictly inside it (not at its start), if any."""
+    for lo, size, name in pieces:
+        if lo < addr < lo + size:
+            return lo, size, name
+    return None
+
+
 def build(objects, img: Image) -> list[dict]:
     symbols = load_symbols()
     extents = data_source_extents(symbols)
@@ -387,6 +406,18 @@ def build(objects, img: Image) -> list[dict]:
             continue
         if addr + int(row["size"]) > end:
             end, outer = addr + int(row["size"]), row
+    # The same goes for a global that starts inside a piece of data a tree file
+    # defines (a file static, like the std::vector at 0x5122c0 whose _First and
+    # _Last the source names DAT_005122c4 and DAT_005122c8 to carry the
+    # original's addresses): data/layout.csv gives those pieces. A definition of
+    # its own would be a second variable that nothing writes.
+    statics = static_pieces()
+    for row in rows:
+        if not row["defined"]:
+            addr = int(row["address"], 16)
+            held = inside_piece(statics, addr)
+            if held:
+                row["defined"] = f"in {held[2]}:{held[0]:#x}+{addr - held[0]:#x}"
     return sorted(rows + bss_tails(rows, img, ordered, labels), key=lambda r: int(r["address"], 16))
 
 

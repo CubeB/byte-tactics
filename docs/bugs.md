@@ -1099,3 +1099,9 @@ Things that look wrong in the original but have no effect, kept for the record.
   (`packet.flag = unit->def->f111 >> 30`), so the other seven bits go over the
   network as whatever the stack held. Harmless if receivers only test bit 0.
   Found by OpenCode / deepseek-v4.1-flash in #6085.
+- **0x4a03f0** (possible): when a multi-state button's group entry is not
+  found, the search leaves `found` at 0, but the recursive call is guarded by
+  `found != -1` (0x4a0491 sets the local to 0, 0x4a0493 compares it with -1),
+  so the guard never fails and the function recurses with index 0 instead of
+  skipping. An initial `found = -1` would match the evident intent. Found by
+  OpenCode / deepseek-v4.1-flash in #6089.

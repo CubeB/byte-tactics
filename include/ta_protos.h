@@ -1484,7 +1484,7 @@ void WriteGameRegistryValue(void*, void*, int);
 int ReadGameRegistryValue(const char*, void*, unsigned int*);
 void LoadSettings(void);
 void SaveSettings(void);
-void FUN_00431740(void);
+void ApplyUseOnlyUnits(void);
 void LoadLogos(void);
 void FreeLogos(void);
 void ReadSideRect(Obj_00431950*, int*, char*, char*);

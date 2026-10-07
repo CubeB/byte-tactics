@@ -292,13 +292,13 @@ extern int DAT_00512290;                                                        
 extern int DAT_00512294;                                                                      // 0x512294, 4 bytes; 1 of 1 files
 extern int DAT_0051229c;                                                                      // 0x51229c, 4 bytes; 1 of 1 files
 extern unsigned char DAT_005122a0[4];                                                         // 0x5122a0, 4 bytes; nothing refers to it
-extern MapCacheEntry* DAT_005122c4;                                                           // 0x5122c4, 4 bytes; 1 of 1 files
-extern MapCacheEntry* DAT_005122c8;                                                           // 0x5122c8, 4 bytes; 1 of 1 files
+extern MapCacheEntry* g_mapCacheBegin;                                                        // 0x5122c4, 4 bytes; 1 of 1 files
+extern MapCacheEntry* g_mapCacheEnd;                                                          // 0x5122c8, 4 bytes; 1 of 1 files
 extern unsigned char DAT_005122cc[4];                                                         // 0x5122cc, 4 bytes; nothing refers to it
-extern char* DAT_005122d4;                                                                    // 0x5122d4, 4 bytes; 1 of 1 files
-extern int DAT_005122d8;                                                                      // 0x5122d8, 4 bytes; 1 of 1 files
-extern int DAT_005122dc;                                                                      // 0x5122dc, 4 bytes; 1 of 1 files
-extern int DAT_005122e0;                                                                      // 0x5122e0, 4 bytes; 1 of 1 files
+extern char* g_otaEnumFileList;                                                               // 0x5122d4, 4 bytes; 1 of 1 files
+extern int g_otaEnumCacheComplete;                                                            // 0x5122d8, 4 bytes; 1 of 1 files
+extern int g_otaEnumFileListBytes;                                                            // 0x5122dc, 4 bytes; 1 of 1 files
+extern int g_otaEnumFileCount;                                                                // 0x5122e0, 4 bytes; 1 of 1 files
 extern unsigned char DAT_005122e4[4];                                                         // 0x5122e4, 4 bytes; nothing refers to it
 extern int g_meteorNextStrikeTime;                                                            // 0x5122e8, 4 bytes; 1 of 1 files
 extern unsigned char DAT_005122ec[4];                                                         // 0x5122ec, 4 bytes; nothing refers to it

@@ -52,7 +52,7 @@ extern Game* g_game;
 extern int DAT_00512288;
 
 int CodeChecksumFailed(void);
-void __stdcall FUN_00434ab0(int param);
+void __stdcall SetMissionType(int param);
 void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 int GetTicks(void);
@@ -97,7 +97,7 @@ void HandleFrontendDebugKey(void)
         wsprintfA(key, "warp%dmission", event - 0x30);
         {
             int n = GetPrivateProfileIntA("WARPLEVELS", key, 0, path);
-            FUN_00434ab0(1);
+            SetMissionType(1);
             g_game->level->LoadCampaign(buf);
             if (((Mission*)g_game->level)->FUN_00435c00(n)) {
                 g_game->flags.b3 = 1;

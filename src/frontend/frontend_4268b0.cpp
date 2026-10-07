@@ -28,7 +28,7 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall GetStartDirectory(char* param);
-void __stdcall FUN_00434ab0(int param);
+void __stdcall SetMissionType(int param);
 
 // FUNCTION: 0x4268b0
 void __stdcall LoadWarpLevel(int param_1)
@@ -43,7 +43,7 @@ void __stdcall LoadWarpLevel(int param_1)
     GetPrivateProfileStringA("WARPLEVELS", key, "default", value, 0x100, path);
     wsprintfA(key, "warp%dmission", param_1);
     int n = GetPrivateProfileIntA("WARPLEVELS", key, 0, path);
-    FUN_00434ab0(1);
+    SetMissionType(1);
     g_game->level->LoadCampaign(value);
     if (((Mission*)g_game->level)->FUN_00435c00(n)) {
         g_game->flags.b3 = 1;

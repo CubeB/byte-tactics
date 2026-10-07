@@ -116,7 +116,7 @@ int GetScreenHeight();
 int __stdcall AllocSurface(const char* name, int width, int height);
 void __stdcall SetRestoreSurface(int param_1);
 void __stdcall SetPageFlipping(int param_1);
-void __stdcall FUN_00434ab0(int param_1);
+void __stdcall SetMissionType(int param_1);
 void LoadGameResources();
 void InitSound();
 void ResetFrontendState();
@@ -175,7 +175,7 @@ void InitGame()
     g_game->field_3923b &= 0xfffe;
     g_game->field_3923b &= 0xfffd;
     g_game->field_39249 = 0;
-    FUN_00434ab0(0);
+    SetMissionType(0);
     if (g_game->field_391e9->FUN_00435100() == 3) {
         g_game->field_38a4b = 10;
         g_game->field_38a4d = 10;

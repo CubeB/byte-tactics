@@ -11,7 +11,7 @@ extern char DAT_00512c98[];
 int __stdcall HAPINET_initlobbiedconnection(void* p);
 void __stdcall HAPINET_initmultiplaydefaults(void* p);
 int __stdcall InitPacketManager(int a, int b);
-void __stdcall FUN_00434ab0(int a);
+void __stdcall SetMissionType(int a);
 
 // FUNCTION: 0x457710
 int InitLobbiedConnection()
@@ -23,7 +23,7 @@ int InitLobbiedConnection()
         HAPINET_initmultiplaydefaults(g_game + 0x14);
         *(int*)(g_game + 0x4f1) = 10;
         if (InitPacketManager(2, 100)) {
-            FUN_00434ab0(3);
+            SetMissionType(3);
             char* name = *(char**)(*(char**)(*(char**)(g_game + 0x4e5) + 8) + 0x30);
             if (name != 0) {
                 strncpy(g_game + 0x14, name, 0x10);

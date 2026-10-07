@@ -1506,8 +1506,8 @@ void FUN_00432fb0(Class_0042b370*, Class_0042b370*, int (__stdcall *)(const Clas
 void FUN_00434430(int);
 void FUN_00434440(Elem_00434360*);
 void FUN_004345c0(int*, int*);
-void FUN_00434ab0(int);
-void FUN_00434b90(void);
+void SetMissionType(int);
+void FreeOtaEnumCacheAndMission(void);
 int LoadMapList(void**, int, int);
 int CampaignFileExists(char*);
 void UpdateMetalExtraction(Unit_437840*);

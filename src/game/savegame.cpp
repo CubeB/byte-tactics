@@ -218,7 +218,7 @@ void* __stdcall LoadSurface(HapiBank* obj);
 HapiBank* __stdcall FUN_00432520(char* name);
 void __stdcall FUN_00432590(void* handle);
 void* __stdcall FUN_004325b0(char* path);
-void __stdcall FUN_00434ab0(int value);
+void __stdcall SetMissionType(int value);
 void __stdcall PlaySoundByName(char* name, int param);
 void __stdcall FUN_00491b60();
 void __stdcall FUN_00491d70(int flag);
@@ -475,7 +475,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         if (g_game->p38d6b == 0)
             goto invalid;
         ((HapiBank*)g_game->p38d6b)->OpenAccount("summary");
-        FUN_00434ab0(((HapiBank*)g_game->p38d6b)->GetIntegerItem("Gametype", 0));
+        SetMissionType(((HapiBank*)g_game->p38d6b)->GetIntegerItem("Gametype", 0));
         char* campaign = ((HapiBank*)g_game->p38d6b)->GetStringItem("Campaign", 0);
         if (campaign != 0)
             ((Mission*)g_game->p391e9)->LoadCampaign(campaign);

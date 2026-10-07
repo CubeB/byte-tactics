@@ -312,7 +312,7 @@ void __stdcall FUN_00468cf0(int a, int b);
 void __stdcall SaveScreenshot(char* buf, char* name);
 void __stdcall FUN_004ab400(Obj_004ab400* p, Src_004ab400* src);
 void FUN_004c2870();
-void __stdcall FUN_00434ab0(int param);
+void __stdcall SetMissionType(int param);
 void ClearKeyQueue();
 void __cdecl LeaveNetGameCallback(int param);
 void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
@@ -433,7 +433,7 @@ void InitFrame()
     g_game->bit2 = 0;
     g_game->bit3 = 0;
     g_game->bit0 = 0;
-    FUN_00434ab0(0);
+    SetMissionType(0);
     g_game->flag4_3923b = 0;
     g_game->flag2_3923b = 0;
     ClearKeyQueue();
@@ -449,7 +449,7 @@ void ReturnToMainMenuFrame()
     g_game->bit2 = 0;
     g_game->bit3 = 0;
     g_game->bit0 = 0;
-    FUN_00434ab0(0);
+    SetMissionType(0);
     g_game->flag4_3923b = 0;
     g_game->flag2_3923b = 0;
     ClearKeyQueue();

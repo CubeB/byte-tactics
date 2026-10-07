@@ -66,10 +66,10 @@ public:
     void SendAllQueued(int param);
 };
 
-extern char* DAT_005122d4;
-extern int DAT_005122d8;
-extern int DAT_005122dc;
-extern int DAT_005122e0;
+extern char* g_otaEnumFileList;
+extern int g_otaEnumCacheComplete;
+extern int g_otaEnumFileListBytes;
+extern int g_otaEnumFileCount;
 extern int g_usePacketManager;
 extern PacketManager g_packetManager;
 
@@ -331,9 +331,9 @@ public:
 };
 
 // The vector at 0x5122c0: MSVC 5 puts the empty allocator byte at +0, so
-// _First is DAT_005122c4 and _Last is DAT_005122c8.
-extern MapCacheEntry* DAT_005122c4;
-extern MapCacheEntry* DAT_005122c8;
+// _First is g_mapCacheBegin and _Last is g_mapCacheEnd.
+extern MapCacheEntry* g_mapCacheBegin;
+extern MapCacheEntry* g_mapCacheEnd;
 
 class MapCache : public std::vector<MapCacheEntry> {
 public:
@@ -349,14 +349,14 @@ public:
 // reloads _First after the destroy loop.
 // FUNCTION: 0x434a30 _$E5
 // FUNCTION: 0x434a60 _$E3
-static MapCache DAT_005122c0;
+static MapCache s_mapCache;
 
 
 // Replaces the singleton at g_game+0x391e9 with a fresh Mission when the
 // current one belongs to a different owner, then stores it back (NULL when the
 // allocation failed). The constructor body is inlined here.
 // FUNCTION: 0x434ab0
-void __stdcall FUN_00434ab0(int owner)
+void __stdcall SetMissionType(int owner)
 {
     if (g_game->field_391e9 != 0) {
         if (g_game->field_391e9->type == owner) {
@@ -372,15 +372,15 @@ void __stdcall FUN_00434ab0(int owner)
 // g_game+0x391e9.
 
 // FUNCTION: 0x434b90
-void FUN_00434b90()
+void FreeOtaEnumCacheAndMission()
 {
-    if (DAT_005122d4) {
-        FUN_004d85a0(DAT_005122d4);
-        DAT_005122d4 = 0;
+    if (g_otaEnumFileList) {
+        FUN_004d85a0(g_otaEnumFileList);
+        g_otaEnumFileList = 0;
     }
-    DAT_005122d8 = 0;
-    DAT_005122dc = 0;
-    DAT_005122e0 = 0;
+    g_otaEnumCacheComplete = 0;
+    g_otaEnumFileListBytes = 0;
+    g_otaEnumFileCount = 0;
     delete g_game->field_391e9;
     g_game->field_391e9 = 0;
 }
@@ -388,18 +388,18 @@ void FUN_00434b90()
 // FUNCTION: 0x434bf0
 int __stdcall LoadMapList(void** param_1, int param_2, int param_3)
 {
-    if (DAT_005122d4 != 0) {
+    if (g_otaEnumFileList != 0) {
         if (param_1 != 0) {
-            if (param_3 != 0 && DAT_005122d8 == 0) {
-                *param_1 = DAT_005122d4;
-                DAT_005122d4 = 0;
+            if (param_3 != 0 && g_otaEnumCacheComplete == 0) {
+                *param_1 = g_otaEnumFileList;
+                g_otaEnumFileList = 0;
             } else {
-                char* p = (char*)FUN_004d83b0("MULTI MAPS", DAT_005122dc);
+                char* p = (char*)FUN_004d83b0("MULTI MAPS", g_otaEnumFileListBytes);
                 *param_1 = p;
-                memcpy(p, DAT_005122d4, DAT_005122dc);
+                memcpy(p, g_otaEnumFileList, g_otaEnumFileListBytes);
             }
         }
-        return DAT_005122e0;
+        return g_otaEnumFileCount;
     }
 
     FUN_00491c80(0x14);
@@ -414,13 +414,13 @@ int __stdcall LoadMapList(void** param_1, int param_2, int param_3)
         s.bFlag = 0;
     }
     int offset = 0;
-    DAT_005122dc = 1;
-    DAT_005122d4 = (char*)FUN_004d83b0("MULTI MAPS", 1);
-    *(char*)DAT_005122d4 = 0;
+    g_otaEnumFileListBytes = 1;
+    g_otaEnumFileList = (char*)FUN_004d83b0("MULTI MAPS", 1);
+    *(char*)g_otaEnumFileList = 0;
 
     std::vector<Class_004c91a0> files;
     ListDirectory("Maps\\*.ota", 0, &files);
-    DAT_005122e0 = 0;
+    g_otaEnumFileCount = 0;
 
     s.count = files.size();
     for (s.i = 0; s.i < s.count; s.i++) {
@@ -438,13 +438,13 @@ int __stdcall LoadMapList(void** param_1, int param_2, int param_3)
             if (_strcmpi(src, a.lower) == 0)
                 src = a.name;
             int len = strlen(src) + 1;
-            DAT_005122d4 = (char*)FUN_004d84a0(DAT_005122d4, "MULTI MAPS",
-                                               len + DAT_005122dc);
-            strcpy(DAT_005122d4 + offset, src);
-            DAT_005122d4[offset + len] = 0;
+            g_otaEnumFileList = (char*)FUN_004d84a0(g_otaEnumFileList, "MULTI MAPS",
+                                               len + g_otaEnumFileListBytes);
+            strcpy(g_otaEnumFileList + offset, src);
+            g_otaEnumFileList[offset + len] = 0;
             offset += len;
-            DAT_005122dc += len;
-            DAT_005122e0++;
+            g_otaEnumFileListBytes += len;
+            g_otaEnumFileCount++;
             if (param_2 != 0)
                 break;
         }
@@ -455,8 +455,8 @@ int __stdcall LoadMapList(void** param_1, int param_2, int param_3)
         }
     }
     FUN_00491c80(0x13);
-    if (DAT_005122d8 == 0)
-        DAT_005122d8 = (param_2 == 0);
+    if (g_otaEnumCacheComplete == 0)
+        g_otaEnumCacheComplete = (param_2 == 0);
     int result = LoadMapList(param_1, param_2, param_3);
     return result;
 }
@@ -1426,8 +1426,8 @@ int Mission::ComputeMapChecksum()
     char* name = FUN_004356c0(1);
     MapCacheEntry* it;
     // The two pointers stay separate globals: a single std::vector would
-    // reference DAT_005122c0 with a displacement, the wrong address.
-    for (it = DAT_005122c4; it != DAT_005122c8; it++) {
+    // reference s_mapCache with a displacement, the wrong address.
+    for (it = g_mapCacheBegin; it != g_mapCacheEnd; it++) {
         if (_strcmpi(it->handle.data, name) == 0) {
             field_c1c = it->field_4;
             return field_c20 ^ field_c1c;
@@ -1460,6 +1460,6 @@ int Mission::ComputeMapChecksum()
     HAPI_CloseFile(file);
     // The checksum is stored after the copy constructor, not inside it:
     // a two-argument constructor hoists the +0xc1c load above the call.
-    DAT_005122c0.FUN_00437580(DAT_005122c8, 1, MapCacheEntry(Class_004c91b0(name)).SetChecksum(this));
+    s_mapCache.FUN_00437580(g_mapCacheEnd, 1, MapCacheEntry(Class_004c91b0(name)).SetChecksum(this));
     return field_c20 ^ field_c1c;
 }

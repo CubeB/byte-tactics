@@ -388,13 +388,13 @@ int DAT_00512290;  // 0x512290 .bss
 int DAT_00512294;  // 0x512294 .bss
 int DAT_0051229c;  // 0x51229c .bss
 unsigned char DAT_005122a0[4];  // 0x5122a0 .bss
-MapCacheEntry* DAT_005122c4;  // 0x5122c4 .bss
-MapCacheEntry* DAT_005122c8;  // 0x5122c8 .bss
+MapCacheEntry* g_mapCacheBegin;  // 0x5122c4 .bss
+MapCacheEntry* g_mapCacheEnd;  // 0x5122c8 .bss
 unsigned char DAT_005122cc[4];  // 0x5122cc .bss
-char* DAT_005122d4;  // 0x5122d4 .bss
-int DAT_005122d8;  // 0x5122d8 .bss
-int DAT_005122dc;  // 0x5122dc .bss
-int DAT_005122e0;  // 0x5122e0 .bss
+char* g_otaEnumFileList;  // 0x5122d4 .bss
+int g_otaEnumCacheComplete;  // 0x5122d8 .bss
+int g_otaEnumFileListBytes;  // 0x5122dc .bss
+int g_otaEnumFileCount;  // 0x5122e0 .bss
 unsigned char DAT_005122e4[4];  // 0x5122e4 .bss
 int g_meteorNextStrikeTime;  // 0x5122e8 .bss
 unsigned char DAT_005122ec[4];  // 0x5122ec .bss

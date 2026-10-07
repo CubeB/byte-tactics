@@ -153,7 +153,7 @@ void __stdcall WriteRegistryDword(void* section, void* key, int value);
 int __stdcall ReadRegistryValue(const char* app, const char* key, void* buf, unsigned int* size);
 void __stdcall WriteRegistryBinary(void* param_1, void* param_2, void* param_3, int unused);
 int __stdcall GetWindowsUserName(void* buf);
-void __stdcall FUN_00434ab0(int mode);
+void __stdcall SetMissionType(int mode);
 int __cdecl IsOnlineConfigLoaded();
 void __cdecl ProtectBlockReadWrite(void* param_1);
 void __cdecl ProtectBlockReadOnly(void* param_1);
@@ -611,11 +611,11 @@ void LoadSettings()
     value = 0x100;
     if (ReadRegistryData("Total Annihilation", "SkirmishMap",
                      g_game->options->skirmishMap, &value) == 0) {
-        FUN_00434ab0(2);
+        SetMissionType(2);
         ((Mission*)g_game->campaign)->RefreshMapList(0);
         strncpy(g_game->options->skirmishMap,
                 ((Mission*)g_game->campaign)->FUN_00435c30(), 0x100);
-        FUN_00434ab0(0);
+        SetMissionType(0);
         WriteRegistryString("Total Annihilation", "SkirmishMap", g_game->options->skirmishMap);
     }
     for (i = 0; i < g_game->numSkirmishPlayers; i++) {

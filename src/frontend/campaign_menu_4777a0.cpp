@@ -51,7 +51,7 @@ Layer_004777a0* __stdcall LoadGuiLayer(Menu_004777a0* menu, const char* name, in
 void __stdcall HandleSingleMenuClick(void* layer);
 void BlankScreen();
 void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
-void __stdcall FUN_00434ab0(int owner);
+void __stdcall SetMissionType(int owner);
 void __stdcall FUN_004a0570(Menu_004777a0* menu, const char* name, int value);
 void __stdcall ToggleAnyMission(void* gadget);
 int FUN_0049f580();
@@ -78,7 +78,7 @@ void OpenSingleMenu()
         g_game->players[g_game->localPlayer + 1].unit->side = 0;
         break;
     }
-    FUN_00434ab0(1);
+    SetMissionType(1);
     if (g_game->flags_38d7f & 1) {
         FUN_004a0570(&g_game->menu, "AnyMsn", 1);
         // Original oddity, kept: the test guards an |= of the same bit.

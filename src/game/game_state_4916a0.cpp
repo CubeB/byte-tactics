@@ -44,7 +44,7 @@ void RestoreScreen();
 void FUN_0043c350();
 void FreeUnitInfo();
 void __stdcall ReleasePacketData(Class_00452370* obj);
-void FUN_00434b90();
+void FreeOtaEnumCacheAndMission();
 
 // FUNCTION: 0x4916a0
 void ShutdownGame(void)
@@ -72,5 +72,5 @@ void ShutdownGame(void)
     *(int*)(g_game + 0x29a0) = 0;
     FreeUnitInfo();
     ReleasePacketData((Class_00452370*)(g_game + 0x12ef));
-    FUN_00434b90();
+    FreeOtaEnumCacheAndMission();
 }

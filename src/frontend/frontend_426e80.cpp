@@ -83,7 +83,7 @@ struct Pd_00426e80 {
 int CodeChecksumFailed(void);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 void __stdcall SetCursorOverlayEnabled(int param);
-void __stdcall FUN_00434ab0(int param);
+void __stdcall SetMissionType(int param);
 void __stdcall PlayMovie(char* param);
 void __stdcall OpenNewGameMenu(int param);
 void __stdcall SetGameMode(int param);
@@ -293,7 +293,7 @@ void RunFrontendStateMachine(void)
                 SetCursorOverlayEnabled(1);
                 return;
             }
-            FUN_00434ab0(0);
+            SetMissionType(0);
             ((Bits_00426e80*)(g_game + 0x2bee))->b4 = 0;
             OpenMainMenu();
             if (DAT_00512c80 == 0) {
@@ -308,7 +308,7 @@ void RunFrontendStateMachine(void)
             FUN_00425b60();
             return;
         case 6:
-            FUN_00434ab0(3);
+            SetMissionType(3);
             ((Bits_00426e80*)(g_game + 0x2a44))->b3 = 0;
             SetState(0xf, 0x41c, DAT_00503004);
             return;
@@ -387,7 +387,7 @@ void RunFrontendStateMachine(void)
             return;
         case 11:
             LoadSettings();
-            FUN_00434ab0(2);
+            SetMissionType(2);
             SetState(9, 0x493, DAT_00503004);
             return;
         case 13:
@@ -424,11 +424,11 @@ void RunFrontendStateMachine(void)
             FUN_00425b60();
             return;
         case 15:
-            FUN_00434ab0(1);
+            SetMissionType(1);
             SetState(0xb, 0x4c2, DAT_00503004);
             return;
         case 16:
-            FUN_00434ab0(1);
+            SetMissionType(1);
             SetState(0xc, 0x4c7, DAT_00503004);
             return;
         case 3:

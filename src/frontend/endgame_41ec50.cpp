@@ -113,7 +113,7 @@ void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, 
 void RegisterDataArchives();
 Entry_0041ec50* __stdcall FindGadgetChecked(Entry_0041ec50* entries, char* name);
 void EnterMainMenuState();
-void __stdcall FUN_00434ab0(int param);
+void __stdcall SetMissionType(int param);
 
 // FUNCTION: 0x41ec50
 void __stdcall HandleEndMissionClick(Gadget_0041ec50* gadget)
@@ -182,7 +182,7 @@ void __stdcall HandleEndMissionClick(Gadget_0041ec50* gadget)
             g_game->bit2_2a44 = 0;
             g_game->bit3_2a44 = 1;
             g_game->bit0_2a44 = 0;
-            FUN_00434ab0(1);
+            SetMissionType(1);
             g_game->bit4_3923b = 0;
             g_game->bit2_3923b = 0;
             SetFrontendState(13, 757, "c:\\cavedog\\wargame\\endgame.cpp");

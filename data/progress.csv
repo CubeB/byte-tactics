@@ -176,8 +176,8 @@ address,size,file,symbol,status,similarity
 0x40d550,46,src/ai/ai_player_40d550.cpp,?_Ucopy@?$vector@UElem_0040d550@@V?$allocator@UElem_0040d550@@@std@@@std@@IAEPAUElem_0040d550@@PBU3@0PAU3@@Z,matched,100.0
 0x40d580,35,src/ai/ai_player_40d580.cpp,?_Ufill@?$vector@UElem_0040d550@@V?$allocator@UElem_0040d550@@@std@@@std@@IAEXPAUElem_0040d550@@IABU3@@Z,matched,100.0
 0x40d5b0,41,src/ai/ai_player_40d5b0.cpp,?_Ufill@?$vector@UElem_0040cc40@@V?$allocator@UElem_0040cc40@@@std@@@std@@IAEXPAUElem_0040cc40@@IABU3@@Z,matched,100.0
-0x40d5e0,25,src/ai/pathfind.cpp,?FUN_0040d5e0@@YGXPAH0@Z,matched,100.0
-0x40d600,19,src/ai/pathfind.cpp,?FUN_0040d600@@YGXPAD0@Z,matched,100.0
+0x40d5e0,25,src/ai/pathfind.cpp,?CopyDwordPair@@YGXPAH0@Z,matched,100.0
+0x40d600,19,src/ai/pathfind.cpp,?CopyOneByte@@YGXPAD0@Z,matched,100.0
 0x40d620,73,src/ai/pathfind.cpp,?MakeHeap@@YGXPAUEntry_40d670@@0PAH0@Z,matched,100.0
 0x40d670,132,src/ai/pathfind.cpp,?AdjustHeap@@YGXPAUEntry_40d670@@HHU1@@Z,matched,100.0
 0x40d700,57,src/ai/pathfind.cpp,?PopHeapFirst@@YGXPAUEntry_40d670@@00U1@PAX@Z,matched,100.0
@@ -193,8 +193,8 @@ address,size,file,symbol,status,similarity
 0x40e050,270,src/ai/pathfind.cpp,?TracePath@Pathfinder@@QAEXXZ,matched,100.0
 0x40e160,1224,src/ai/pathfind.cpp,?ProbeStraightPath@Pathfinder@@QAEHXZ,matched,100.0
 0x40e630,880,src/ai/pathfind.cpp,?StartSearch@Pathfinder@@QAEXPAVTarget@@@Z,matched,100.0
-0x40e9a0,25,src/ai/pathfind.cpp,?FUN_0040e9a0@Pathfinder@@QAEXXZ,matched,100.0
-0x40e9c0,28,src/ai/pathfind.cpp,?FUN_0040e9c0@Pathfinder@@QAEXH@Z,matched,100.0
+0x40e9a0,25,src/ai/pathfind.cpp,?ReleaseHeldPathLock@Pathfinder@@QAEXXZ,matched,100.0
+0x40e9c0,28,src/ai/pathfind.cpp,?AbortIfGoalMatch@Pathfinder@@QAEXH@Z,matched,100.0
 0x40e9e0,326,src/ai/pathfind.cpp,??0Pathfinder@@QAE@XZ,matched,100.0
 0x40eb30,52,src/ai/pathfind.cpp,??1Pathfinder@@QAE@XZ,matched,100.0
 0x40eb70,937,src/ai/pathfind.cpp,?RunSearches@Pathfinder@@QAEXXZ,matched,100.0

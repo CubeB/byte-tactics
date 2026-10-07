@@ -6,9 +6,9 @@ struct Elem_0040cc40 {
     Elem_0040cc40() {}
     Elem_0040cc40(const Elem_0040cc40& o) : pos(o.pos), key(o.key) {}
 };
-void __stdcall FUN_0040d5e0(Elem_0040cc40*, const Elem_0040cc40*);
+void __stdcall CopyDwordPair(Elem_0040cc40*, const Elem_0040cc40*);
 namespace std {
-inline void _Construct(Elem_0040cc40* dest, const Elem_0040cc40& src) { FUN_0040d5e0(dest,&src); }
+inline void _Construct(Elem_0040cc40* dest, const Elem_0040cc40& src) { CopyDwordPair(dest,&src); }
 }
 #include <vector>
 typedef std::vector<Elem_0040cc40> Vec;

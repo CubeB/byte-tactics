@@ -167,7 +167,7 @@ What stands out:
   byte-identical build it must be the original's.
 - **`.bss` starts before the raw end of `.data`.** The section's raw bytes run
   to 0x511a00 (file alignment), but the last non-zero byte is at 0x5119b3 and
-  `DAT_005119e8` (an `int[10]`) runs past 0x511a00, so uninitialised data
+  `g_playerBudgetCap` (an `int[10]`) runs past 0x511a00, so uninitialised data
   begins at about 0x5119b8.
 
 ## The global data manifest

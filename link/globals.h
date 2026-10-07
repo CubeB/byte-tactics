@@ -21,7 +21,7 @@ struct Player_00437cd0;
 struct Record_005129b4;
 struct Struct_00526ff0;
 
-extern unsigned char DAT_004fca10[8];                                                         // 0x4fca10, 8 bytes; const Table_0040d880 by value in 1 of 1 files
+extern unsigned char g_turnCosts[8];                                                          // 0x4fca10, 8 bytes; const Table_0040d880 by value in 1 of 1 files
 extern unsigned char DAT_004fcc68[8];                                                         // 0x4fcc68, 8 bytes; 1 of 1 files
 extern char DAT_004fd050[200];                                                                // 0x4fd050, 200 bytes; 1 of 1 files
 extern double TWO_PI;                                                                         // 0x4fd2b0, 8 bytes; 1 of 1 files
@@ -231,9 +231,9 @@ extern char* DAT_0050d660;                                                      
 extern char DAT_0050d6b4[36];                                                                 // 0x50d6b4, 36 bytes; 1 of 1 files
 extern char* DAT_0050d72c;                                                                    // 0x50d72c, 4 bytes; 3 of 3 files
 extern char DAT_005119b8[8];                                                                  // 0x5119b8, 8 bytes; 67 of 72 files (conflicting: shape)
-extern int DAT_005119e8[10];                                                                  // 0x5119e8, 40 bytes; 1 of 1 files
-extern int DAT_00511a10[10];                                                                  // 0x511a10, 40 bytes; 1 of 1 files
-extern int DAT_00511a38;                                                                      // 0x511a38, 4 bytes; 1 of 1 files
+extern int g_playerBudgetCap[10];                                                             // 0x5119e8, 40 bytes; 1 of 1 files
+extern int g_playerTickLoad[10];                                                              // 0x511a10, 40 bytes; 1 of 1 files
+extern int g_budgetRefreshCounter;                                                            // 0x511a38, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00511a3c[4];                                                         // 0x511a3c, 4 bytes; nothing refers to it
 extern int g_byteRatesLastReceived;                                                           // 0x511a40, 4 bytes; 1 of 1 files
 extern int g_compressionPercent;                                                              // 0x511a44, 4 bytes; 1 of 1 files

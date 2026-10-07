@@ -7,7 +7,7 @@
 
 class Pathfinder {
 public:
-    void FUN_0040e9c0(void* param);
+    void AbortIfGoalMatch(void* param);
 };
 
 #pragma pack(push, 1)
@@ -276,7 +276,7 @@ int Class_0044f010::FUN_0044ef80()
 // FUNCTION: 0x44f2a0
 void Class_0044f010::FUN_0044ef90(void* param)
 {
-    g_game->field_14207->FUN_0040e9c0(this);
+    g_game->field_14207->AbortIfGoalMatch(this);
     if (field_4)
         ((Class_0044ced0*)field_4)->FUN_0044ced0(0x80);
     active = 0;
@@ -329,7 +329,7 @@ void Class_0044f010::FUN_0044ef90(void* param)
 // FUNCTION: 0x44f450
 Class_0044f010::~Class_0044f010()
 {
-    g_game->field_14207->FUN_0040e9c0(this);
+    g_game->field_14207->AbortIfGoalMatch(this);
 }
 
 // Slot 7: true when there is something to send: flag 3 of +0x64 (the path changed) is

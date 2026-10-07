@@ -3359,7 +3359,7 @@ public:
     ~PathMap(void);
     int Size(void);
     void ClearDirtyCells(void);
-    void FUN_0040e9c0(int);
+    void AbortIfGoalMatch(int);
     void RunSearches(void);
     void Release(void);
 };
@@ -3702,7 +3702,7 @@ public:
     void* field_0x58;  // +0x58
     char unknown_5c[8];
     void* field_0x64;  // +0x64
-    void FUN_0040e9a0(void);
+    void ReleaseHeldPathLock(void);
 };
 
 class Class_0040ef20 {  // 0x18 bytes, 2 views

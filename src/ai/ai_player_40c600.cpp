@@ -1,8 +1,8 @@
 // Decompiled by GPT-6 Astra. Names are provisional.
 struct Elem_0040d4f0 { char value; };
-void __stdcall FUN_0040d600(Elem_0040d4f0*, const Elem_0040d4f0*);
+void __stdcall CopyOneByte(Elem_0040d4f0*, const Elem_0040d4f0*);
 namespace std {
-inline void _Construct(Elem_0040d4f0* dest, const Elem_0040d4f0& src) { FUN_0040d600(dest,&src); }
+inline void _Construct(Elem_0040d4f0* dest, const Elem_0040d4f0& src) { CopyOneByte(dest,&src); }
 }
 #include <vector>
 typedef std::vector<Elem_0040d4f0> Vec;

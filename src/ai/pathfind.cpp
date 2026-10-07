@@ -33,7 +33,7 @@ void __stdcall PushHeapSiftUp(Entry_40d670* first, int hole, int top, Entry_40d6
 
 // Placement copy of a pair of ints (an STL construct helper), like 0x40d600.
 // FUNCTION: 0x40d5e0
-void __stdcall FUN_0040d5e0(int* param_1, int* param_2) {
+void __stdcall CopyDwordPair(int* param_1, int* param_2) {
     if (param_1 != 0) {
         param_1[0] = param_2[0];
         param_1[1] = param_2[1];
@@ -42,7 +42,7 @@ void __stdcall FUN_0040d5e0(int* param_1, int* param_2) {
 
 // Placement copy of one char (an STL construct helper), like 0x40d600.
 // FUNCTION: 0x40d600
-void __stdcall FUN_0040d600(char* param_1, char* param_2)
+void __stdcall CopyOneByte(char* param_1, char* param_2)
 {
     if (param_1 != 0) {
         *param_1 = *param_2;
@@ -223,7 +223,7 @@ struct Pair_0040d880 {
     unsigned char b;
 };
 
-extern const Table_0040d880 DAT_004fca10;
+extern const Table_0040d880 g_turnCosts;
 extern signed char DAT_004fd670[];     // dx per direction
 extern signed char DAT_004fd678[];     // dy per direction
 
@@ -274,9 +274,9 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern int DAT_00511a38;
-extern int DAT_00511a10[10];
-extern int DAT_005119e8[10];
+extern int g_budgetRefreshCounter;
+extern int g_playerTickLoad[10];
+extern int g_playerBudgetCap[10];
 
 // The movement class the searched unit belongs to, and its pass map.
 class MovementClass {
@@ -519,7 +519,7 @@ public:
     }
     void ResetTable()
     {
-        table = DAT_004fca10;
+        table = g_turnCosts;
         pairs[0].a = pairs[1].a = pairs[2].a = pairs[3].a = 0x10;
         pairs[0].b = pairs[1].b = pairs[2].b = pairs[3].b = 0x16;
     }
@@ -603,8 +603,8 @@ public:
     void TracePath();
     int ProbeStraightPath();
     void StartSearch(Target* t);
-    void FUN_0040e9a0();
-    void FUN_0040e9c0(int param_1);
+    void ReleaseHeldPathLock();
+    void AbortIfGoalMatch(int param_1);
     Pathfinder();
     ~Pathfinder();
     void RunSearches();
@@ -695,7 +695,7 @@ int Pathfinder::GetCellState(int x, int y)
 // FUNCTION: 0x40d880
 void Pathfinder::InitCostTables()
 {
-    table = DAT_004fca10;
+    table = g_turnCosts;
     pairs[0].a = pairs[1].a = pairs[2].a = pairs[3].a = 0x10;
     pairs[0].b = pairs[1].b = pairs[2].b = pairs[3].b = 0x16;
 }
@@ -1042,7 +1042,7 @@ void Pathfinder::StartSearch(Target* t)
 }
 
 // FUNCTION: 0x40e9a0
-void Pathfinder::FUN_0040e9a0()
+void Pathfinder::ReleaseHeldPathLock()
 {
     owner->RefreshUnitIfStale(object);
     object = 0;
@@ -1050,7 +1050,7 @@ void Pathfinder::FUN_0040e9a0()
 }
 
 // FUNCTION: 0x40e9c0
-void Pathfinder::FUN_0040e9c0(int param_1)
+void Pathfinder::AbortIfGoalMatch(int param_1)
 {
     if (param_1 == (int)path) {
         object = 0;
@@ -1108,7 +1108,7 @@ Pathfinder::Pathfinder()
     baseScale = 0x18000;
 
     for (unsigned int k = 0; k < 10; k++) {
-        DAT_005119e8[k] = baseScale;
+        g_playerBudgetCap[k] = baseScale;
         budget[k] = 0;
         cursor[k] = *(Unit**)((char*)g_game + 0x1a7f + 0x14b * (k + 1));
     }
@@ -1135,19 +1135,19 @@ void Pathfinder::RunSearches()
         return;
     int share = stepsPerTick / players;
     int total = 0;
-    if (++DAT_00511a38 >= 150) {
-        DAT_00511a38 = 0;
+    if (++g_budgetRefreshCounter >= 150) {
+        g_budgetRefreshCounter = 0;
         for (int i = 0; i < 10; i++) {
-            int r = DAT_00511a10[i] / g_game->field_1434f;
+            int r = g_playerTickLoad[i] / g_game->field_1434f;
             if (r < 1)
-                DAT_005119e8[i] = baseScale * 6;
+                g_playerBudgetCap[i] = baseScale * 6;
             else if (r < 2)
-                DAT_005119e8[i] = baseScale * 3;
+                g_playerBudgetCap[i] = baseScale * 3;
             else if (r < 3)
-                DAT_005119e8[i] = baseScale;
+                g_playerBudgetCap[i] = baseScale;
             else
-                DAT_005119e8[i] = baseScale;
-            DAT_00511a10[i] = 0;
+                g_playerBudgetCap[i] = baseScale;
+            g_playerTickLoad[i] = 0;
         }
     }
     for (int i = 0; i < 10; i++) {
@@ -1165,7 +1165,7 @@ void Pathfinder::RunSearches()
                     player = 0;
             }
             Player* pl = &g_game->players[player];
-            DAT_00511a10[player]++;
+            g_playerTickLoad[player]++;
             Unit** c = &cursor[player];
             if (*c == pl->unitsEnd)
                 *c = pl->unitsBegin;
@@ -1177,7 +1177,7 @@ void Pathfinder::RunSearches()
                 if (path != 0) {
                     object = u;
                     steps += 100;
-                    costScale = DAT_005119e8[player];
+                    costScale = g_playerBudgetCap[player];
                     // The redundant ((Pathfinder*)this)-> casts stay; removing them changes ProbeStraightPath.
                     ((Pathfinder*)this)->StartSearch(path->target);
                 }

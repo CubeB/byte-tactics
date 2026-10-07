@@ -178,8 +178,8 @@ address,name
 0x40d550,UElem_0040d550::?$vector::_Ucopy
 0x40d580,UElem_0040d550::?$vector::_Ufill
 0x40d5b0,UElem_0040cc40::?$vector::_Ufill
-0x40d5e0,FUN_0040d5e0
-0x40d600,FUN_0040d600
+0x40d5e0,CopyDwordPair
+0x40d600,CopyOneByte
 0x40d620,MakeHeap
 0x40d670,AdjustHeap
 0x40d700,PopHeapFirst
@@ -195,8 +195,8 @@ address,name
 0x40e050,Pathfinder::TracePath
 0x40e160,Pathfinder::ProbeStraightPath
 0x40e630,Pathfinder::StartSearch
-0x40e9a0,Pathfinder::FUN_0040e9a0
-0x40e9c0,Pathfinder::FUN_0040e9c0
+0x40e9a0,Pathfinder::ReleaseHeldPathLock
+0x40e9c0,Pathfinder::AbortIfGoalMatch
 0x40e9e0,Pathfinder::Pathfinder
 0x40eb30,Pathfinder::~Pathfinder
 0x40eb70,Pathfinder::RunSearches
@@ -4025,7 +4025,7 @@ address,name
 0x4fc9a0,DAT_004fc9a0
 0x4fc9a8,??_7Class_004085d0@@6B@
 0x4fc9b0,??_7Class_00408810@@6B@
-0x4fca10,DAT_004fca10
+0x4fca10,g_turnCosts
 0x4fca18,g_vtolOrders
 0x4fcc60,??_7Class_00410c70@@6B@
 0x4fcc64,??_7Class_004158d0@@6B@
@@ -4329,9 +4329,9 @@ address,name
 0x50da00,DAT_0050da00
 0x5119b8,DAT_005119b8
 0x5119c0,g_playerAI
-0x5119e8,DAT_005119e8
-0x511a10,DAT_00511a10
-0x511a38,DAT_00511a38
+0x5119e8,g_playerBudgetCap
+0x511a10,g_playerTickLoad
+0x511a38,g_budgetRefreshCounter
 0x511a40,g_byteRatesLastReceived
 0x511a44,g_compressionPercent
 0x511a48,g_bytesSentPerSecond

@@ -172,13 +172,13 @@ void AIProfileParser::ReportParseError(char* text)
 }
 
 // FUNCTION: 0x428fc0
-void FUN_00428fc0()
+void ProtectUnitDefsReadOnly()
 {
     ProtectBlockReadOnly(g_game->field_1439b);
 }
 
 // FUNCTION: 0x428fe0
-void FUN_00428fe0()
+void ProtectUnitDefsReadWrite()
 {
     ProtectBlockReadWrite(g_game->field_1439b);
 }

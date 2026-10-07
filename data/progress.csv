@@ -531,8 +531,8 @@ address,size,file,symbol,status,similarity
 0x428e90,164,src/ai/ai_profile.cpp,?ReadInt@AIProfileParser@@QAEHXZ,matched,100.0
 0x428f40,22,src/ai/ai_profile.cpp,?TokenEquals@AIProfileParser@@QAE_NPAD@Z,matched,100.0
 0x428f60,86,src/ai/ai_profile.cpp,?ReportParseError@AIProfileParser@@QAEXPAD@Z,matched,100.0
-0x428fc0,21,src/ai/ai_profile.cpp,?FUN_00428fc0@@YGXXZ,matched,100.0
-0x428fe0,21,src/ai/ai_profile.cpp,?FUN_00428fe0@@YGXXZ,matched,100.0
+0x428fc0,21,src/ai/ai_profile.cpp,?ProtectUnitDefsReadOnly@@YGXXZ,matched,100.0
+0x428fe0,21,src/ai/ai_profile.cpp,?ProtectUnitDefsReadWrite@@YGXXZ,matched,100.0
 0x429000,235,src/game/data_files_429000.cpp,?CheckGpfVersion@@YGXXZ,matched,100.0
 0x4290f0,402,src/game/data_files_4290f0.cpp,?BuildDataPath@@YGPADPAD000@Z,matched,100.0
 0x429290,78,src/game/data_files_429290.cpp,?LoadBitmapByName@@YGPAXPBDH@Z,matched,100.0

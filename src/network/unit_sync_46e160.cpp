@@ -83,8 +83,8 @@ public:
 
 extern Game* g_game;
 
-void FUN_00428fe0();
-void FUN_00428fc0();
+void ProtectUnitDefsReadWrite();
+void ProtectUnitDefsReadOnly();
 
 // FUNCTION: 0x46e160
 void Class_0046e160::ApplyToUnitTypes()
@@ -95,14 +95,14 @@ void Class_0046e160::ApplyToUnitTypes()
         Def_0046e160* def = &g_game->defs[i];
         Iter_0046e160 it = Find(&def->key);
         if (it == End()) {
-            FUN_00428fe0();
+            ProtectUnitDefsReadWrite();
             def->field_15a = 0;
             def->flags_241.flag_23 = 0;
         } else {
-            FUN_00428fe0();
+            ProtectUnitDefsReadWrite();
             def->flags_241.flag_23 = (it.ptr->value.w != 0 && it.ptr->value.h != 0);
             def->field_15a = it.ptr->value.unknown_c;
         }
-        FUN_00428fc0();
+        ProtectUnitDefsReadOnly();
     }
 }

@@ -535,8 +535,8 @@ address,name
 0x428e90,AIProfileParser::ReadInt
 0x428f40,AIProfileParser::TokenEquals
 0x428f60,AIProfileParser::ReportParseError
-0x428fc0,FUN_00428fc0
-0x428fe0,FUN_00428fe0
+0x428fc0,ProtectUnitDefsReadOnly
+0x428fe0,ProtectUnitDefsReadWrite
 0x429000,CheckGpfVersion
 0x4290f0,BuildDataPath
 0x429290,LoadBitmapByName

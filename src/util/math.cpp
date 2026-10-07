@@ -193,7 +193,7 @@ Vec3f_004b6eb0 __stdcall NormalizeVector(Vec3f_004b6eb0 v)
 }
 
 // FUNCTION: 0x4b7070
-float __stdcall FUN_004b7070(float x, float y, float z)
+float __stdcall VectorLengthFloat(float x, float y, float z)
 {
     return sqrtf(x * x + y * y + z * z);
 }

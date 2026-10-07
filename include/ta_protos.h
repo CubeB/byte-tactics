@@ -2686,7 +2686,7 @@ Vec3f_004b6eb0 VectorFromTo(Vec3f_004b6eb0, Vec3f_004b6eb0);
 Vec3f_004b6f00 VectorFromToInt(Vec3i_004b6f00, Vec3i_004b6f00);
 Vec3f_004b6f70 CrossProduct(Vec3f_004b6f70, Vec3f_004b6f70);
 Vec3f_004b6ff0 NormalizeVector(Vec3f_004b6ff0);
-float FUN_004b7070(float, float, float);
+float VectorLengthFloat(float, float, float);
 void ClearDefaultCommandHandler(void);
 void RegisterCommand(const char*, void (__stdcall *)(void*), int);
 void RegisterCommands(ConsoleCommand*);

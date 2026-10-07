@@ -36,6 +36,7 @@ struct ByteMap_00475470 {
     unsigned char* data;               // +0x0
     MapSize_00475470 size;             // +0x4
     int Index(int x, int y) { return size.width * y + x; }
+    // Get goes through Index: the extra register shapes both arms.
     unsigned char Get(int x, int y) { return data[Index(x, y)]; }
 };
 
@@ -96,6 +97,8 @@ static inline int IsSeen(Player_00475470* map, Position_00475470* pos)
     if (!map->explored.size.Contains(tx, ty)) {
         return 0;
     }
+    // Pointer local declared after the Contains test: the extra register
+    // makes the width load materialise.
     ByteMap_00475470* b = &map->explored;
     return (g_game->visibilityMask[b->Index(tx, ty)] &
             (1 << g_game->playerIndex)) != 0;
@@ -177,12 +180,7 @@ public:
 };
 
 // The constructor: an empty vector of particles, and the current tick as the
-// next emit time. The base constructor is called out of line. Its vtable
-// reference makes the compiler emit the scalar deleting destructor here too:
-// the implicit destructor destroys the std::vector at +0xc (the inlined
-// ~vector leaves the dead store of _First in the `push ecx` slot) and calls
-// the base destructor (0x471d00), and the class's operator delete (0x471d50)
-// frees it; both are called out of line.
+// next emit time. The base constructor is called out of line.
 // FUNCTION: 0x474cd0
 // FUNCTION: 0x474d10 ??_GSmokeParticles@@UAEPAXI@Z
 SmokeParticles::SmokeParticles()
@@ -299,30 +297,13 @@ int SmokeParticles::FUN_00475440()
 }
 
 // Slot 2, the fog-culled twin of Class_004750b0::FUN_00472e30 (0x475700). Every
-// particle is drawn through an inlined record
-// method that computes the screen position first and only draws when the
-// particle's world cell is visible to the local player: the player's explored
-// byte map (+0x7c data, +0x80 width, +0x84 height) when bit 1 of the flag byte
-// at +0x14281 is set, else that player's bit in the global short map at
-// +0x14273 (the matched 0x408090, inlined here). The same explored-map inline
-// appears in 0x407e90 (0x407f74), 0x465ac0 (0x465b6a) and 0x473a00.
-//
-// What fixed it (DeepSeek V4.1 Flash). The last two spots, the folded
-// `add ebx, [ebp+0x7c]` in the explored arm and the folded
-// `imul eax, [ebp+0x80]` in the mask arm, are decided by the allocator, and
-// the compiler state can be shifted with declarations (that is why the two
-// arms never folded or materialised together in any earlier attempt). Two
-// source changes move the mask arm and then the explored arm to the original:
-//   1. `ByteMap::Index(x, y) { return size.width * y + x; }`, used by `Get`
-//      and by the mask arm through a ByteMap pointer local declared after the
-//      Contains test. The extra virtual register makes MSVC materialise the
-//      width (`mov ebp, [ebp+0x80]; imul ebp, eax`) instead of folding it, and
-//      the same register pressure then makes the explored arm load the data
-//      pointer into a register (`add ebx, ecx; mov ecx, [ebp+0x7c]`).
-//   2. `Get` spelled `data[Index(x, y)]` rather than `data[size.width * y + x]`.
-// The earlier measurements that led here: the twin 0x475700 loop shape, the
-// sx-before-sy order and the ByteMap::Get method all stand; `tools/headers.py`
-// and every earlier declaration/local sweep did not reach past 89.9.
+// particle is drawn through a record method that computes the screen position
+// first and only draws when the particle's world cell is visible to the local
+// player: the player's explored byte map (+0x7c data, +0x80 width, +0x84
+// height) when bit 1 of the flag byte at +0x14281 is set, else that player's
+// bit in the global short map at +0x14273 (the matched 0x408090). The same
+// explored-map test appears in 0x407e90 (0x407f74), 0x465ac0 (0x465b6a) and
+// 0x473a00.
 // FUNCTION: 0x475470
 void SmokeParticles::FUN_00472e30(int dest)
 {

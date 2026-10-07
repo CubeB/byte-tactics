@@ -1,26 +1,9 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Claude Opus 5.5. Names are provisional.
-// MATCH. Formats a call stack into dest: "Call stack:" then one entry per
+// Formats a call stack into dest: "Call stack:" then one entry per
 // address, with file/line and symbol information when imagehlp lines are on.
 //
-// What took it from 97.3% to MATCH: each separator is its own strcat call in
-// its own branch, and the found case has a strcat of its own:
-//     if (found) strcat(dest, "\n");
-//     else if (i == n - 1 || i % per == per - 1) strcat(dest, "\n");
-//     else strcat(dest, " ");
-// MSVC cross-jumps the inlined strcats into the original's single
-// `mov edi, sep; jmp tail`, so a `sep` variable with one shared strcat
-// compiles to the same instructions, but the extra strcat copies are still
-// code-generated first and each one moves C2's eax/ecx/edx rotation for
-// expression temporaries (c2prio.py --rotation). The found branch's copy is
-// generated before the `i == n - 1` test and leaves the rotation on eax, which
-// gives the original's `mov eax,n; lea ecx,[eax-1]` there; the lines arm's
-// other copies leave it on eax again for the plain arm, which gives
-// `mov eax,[esi]` and `mov ecx,n; dec ecx`. Every `sep` spelling (ternary,
-// helpers, De Morgan, locals, headers, the permuter) stayed at 97.3%.
-//
 // `found` is set before the loop and never reset, so once any address
-// resolves, every later separator is "\n" (no zeroing store in the loop; the
-// mov bl,1 stores at 0x4deb29 and 0x4dec6f). Probably intended: once there is
+// resolves, every later separator is "\n". Probably intended: once there is
 // symbol information, one entry per line.
 #include <stdio.h>
 #include <string.h>
@@ -103,6 +86,7 @@ void __cdecl FormatCallStack(char* dest, int space, int per, int n, unsigned lon
                 sprintf(end, " - %s + %d", str, disp);
                 found = 1;
             }
+            // One strcat per branch, no shared `sep` variable: moves the temp register rotation.
             if (found)
                 strcat(dest, "\n");
             else if (i == n - 1 || i % per == per - 1)

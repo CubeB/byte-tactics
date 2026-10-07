@@ -1,9 +1,7 @@
 // Decompiled by Opus. Names are provisional.
-// std::_Construct(TdfField*, const TdfField&) from MSVC 5's
-// <xmemory>: placement-new copy of the pair of string handles, called
-// without ecx from the inlined copy loops of vector insert (0x4c59d0). Like
-// its neighbours (see 0x4c5d10.cpp) the original file used __stdcall as the
-// default convention, so the template is written as a __stdcall function.
+// std::_Construct(TdfField*, const TdfField&): placement-new copy of the pair
+// of string handles, called without ecx from the copy loops of vector insert
+// (0x4c59d0).
 #include <new>
 
 class Class_004c91a0 {
@@ -18,6 +16,7 @@ struct TdfField {
     Class_004c91a0 b;                  // +0x4
 };
 
+// __stdcall: the original file's default convention (see 0x4c5d10.cpp).
 // FUNCTION: 0x4c5d60
 void __stdcall FUN_004c5d60(TdfField* p, const TdfField& value)
 {

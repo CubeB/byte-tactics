@@ -4,13 +4,6 @@
 // player (from in state 1 or 2, to in state 3), then the packet is either
 // accepted because the recipient is already in state 1 or 2, or handed to the
 // network layer (and the local byte counters updated).
-//
-// What made it match: the two lookups use a helper with the `id != -1` guard
-// hoisted into the caller (`if (from == -1) fi = 10; else fi = FindIndex(...)`),
-// which is what keeps a separate `mov bl, 10` at the helper's loop exit while
-// the sentinel case stores 10 directly, and gives each lookup its own stack
-// slot (from at [esp+0x10], to at [esp+0x1c]). The third lookup is a separate
-// inline helper whose getter reads the slot state directly.
 
 #pragma pack(push, 1)
 struct Player_00451bc0 {
@@ -77,6 +70,7 @@ static inline unsigned char FindPlayerIndex_00451bc0(int id)
 // FUNCTION: 0x451bc0
 int __stdcall SendPacketToPlayer(int from, int to, unsigned char* packet, int size)
 {
+    // The id != -1 guard stays in the caller, not in the lookup helper.
     unsigned char fi;
     if (from == -1)
         fi = 10;

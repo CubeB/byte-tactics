@@ -1,40 +1,4 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by claude-sonnet-5-5, finished by DeepSeek V4.1 Flash, finished by claude-opus-5-5. Names are provisional.
-// MATCH (claude-opus-5-5, #4996; 94.2% before). What finished it:
-//  (1) Case 1's flags pointer comes from an entry pointer, not from
-//      `&entries[i].flags`: `cur = &entries[i]; cur->colours = 0;
-//      pf = &cur->flags; if ((cur->flags & 0x1800) || ...)`, while the 0x80
-//      test still reads `entries[i].flags`. With `pf = &entries[i].flags` MSVC
-//      makes one CSE temp for the address and the 0x1800/0x80 tests read
-//      through it ([edi], 4 bytes short). Built from `cur`, pf is a plain
-//      variable (lea eax, spilled to [esp+0x20]) and both tests address
-//      [ebp+ebx+0x1b] directly. Reading the 0x80 test through cur or *pf
-//      merges it again (87.4%/87.5%). A separate `me` pointer instead of
-//      reusing `cur` also matches.
-//  (2) No do { } while (0) around the button lookup. It only existed to
-//      give the old CSE temp edi; without the temp it costs the tail merge.
-//  (3) In the inlined AddGadgetEntry, `memset(&entries[entries->u.count], 0,
-//      sizeof(Entry))` rather than `memset(e, ...)`. With (1) in place,
-//      `memset(e, ...)` makes case 4's slider keep &x in edx and reassociate
-//      `x - fw + w` to `w - fw + x` (8 bytes short, 86.7%) whatever the
-//      slider spelling. The standalone 0x4a8150.cpp matches with this
-//      memset too. Found by tools/permute.py in 25 seconds, then minimised.
-//  (4) The three changes the #4890 notes listed: case 2's max computed
-//      once into `scroll`, the slider as `x - (fw - w)` (the plain
-//      `x - fw + w` gives 86.7% here), and `int best = 1000;` before the
-//      clearing loop with a plain `for (j = 0; j < g->count; j += 4)`.
-// Earlier work (#4890, claude-opus-5-5): case 4's append blocks are the real
-// AddGadgetEntry inlined (`&entries[AddGadgetEntry(menu, 1)]`), the three
-// `buf1[0] = 0; if (prefix) strncpy(...)` sequences are FUN_004a81b0 inlined,
-// and the buffers are declared at the top of the main loop body, so the
-// scheduler can sink `textbuf[0x10] = 0` past the next `entries[...]` load.
-// Older notes (DeepSeek V4.1 Flash, claude-sonnet-5-5):
-// (1) The post-loop name scan is the inline helper FindByName (the same shape as
-//     0x4a9fd0's FindEntry).
-// (2) The PopKey wait stores the call result in a variable and compares it:
-//     `do { i = PopKey(); } while (i != 0);` (gives the hoisted
-//     `xor esi, esi` and `cmp eax, esi`).
-// (3) The `field_70` loop is `for (i = 0; i <= count; i++) if (entries[i].type == 1)
-//     entries[i].field_13a = 0;` with no `walk` pointer.
 #include <math.h>
 #include <string.h>
 #include <windows.h>
@@ -281,6 +245,7 @@ int __stdcall RenderLayer(Menu_004a81e0* menu, unsigned int flags)
     force = flags & 1;
     if (force) {
 
+    // The result goes through a variable and is compared against it.
     do {
         i = PopKey();
     } while (i != 0);
@@ -296,6 +261,7 @@ int __stdcall RenderLayer(Menu_004a81e0* menu, unsigned int flags)
     entries[0].u.assets.archive = 0;
     i = 0;
     while (i < entries[0].u.count + 1) {
+        // Buffers stay declared at the top of the loop body (scheduling of textbuf stores).
         char stagebuf[0x20];
         char textbuf[0x100];
         char buf1[0x100];
@@ -401,6 +367,7 @@ int __stdcall RenderLayer(Menu_004a81e0* menu, unsigned int flags)
                 secondEnd->h = frame->h;
                 frame = (Glyph_004a81e0*)GetGafFrame(g, entries[i].sliderStyle + 6);
                 if (entries[i].w > entries[i].h) {
+                    // Spelled x - (fw - w), not x - fw + w.
                     secondEnd->x = entries[i].x - (frame->w - entries[i].w);
                     entries[i].w += (short)(frame->w * -2);
                     entries[i].x += frame->w;
@@ -474,6 +441,7 @@ int __stdcall RenderLayer(Menu_004a81e0* menu, unsigned int flags)
         }
 
         case 1: {
+            // pf is built from cur, not &entries[i].flags; the 0x80 test reads entries[i].flags.
             Entry_004a81e0* cur = &entries[i];
             cur->colours = 0;
             pf = &cur->flags;

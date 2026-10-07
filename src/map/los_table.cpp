@@ -23,20 +23,10 @@ int LosTable::GetLosLineCount()
     return size();
 }
 
-//
-// Inlined std::vector<Elem_00434360>::resize(_N, _X) for the table code built
-// by 0x433130/0x433380: the object at +0 is the vector (its _First at +4), the
-// element Elem_00434360 is a struct holding one std::vector<Elem_00434020>
-// (see docs/consolidation.md), and _N is the argument times 4 (the number of
-// lines). The value _X is a default-constructed Elem_00434360 local; its held
-// vector's inline constructor copies the empty (one byte) allocator, which is
-// where the `mov al, byte [n]` / `mov byte [x], al` pair comes from, and the
-// compiler reuses the low byte of the argument for that otherwise undefined
-// byte. insert, the element's operator= and the element destructor stay out
-// of line (0x433db0, 0x4345e0, 0x433a30), so the real <vector> header
-// reproduces the original exactly. Hand-writing erase() only got close: MSVC
-// merged the two argument reads into one word load plus `movsx eax, ax`,
-// while the original keeps a separate byte load and word load.
+// Resizes the table vector at +0 (its _First at +4) to the argument times 4
+// (the number of lines), filling with a default Elem_00434360, a struct
+// holding one std::vector<Elem_00434020> (see docs/consolidation.md). Used by
+// the table code built by 0x433130/0x433380.
 //
 // The sibling 0x433270 is the same wrapper for the next element level up
 // (`vector<vector<Elem_00434360>>`), where `resize(n, x)` has no `* 4`.

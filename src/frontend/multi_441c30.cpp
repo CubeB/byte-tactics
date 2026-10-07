@@ -49,32 +49,13 @@ extern Serial_00441c30 DAT_00512770;
 char* __stdcall GetGadgetText(void* obj, char* name, char* buf);
 int __stdcall HAPINET_createcompoundaddress(void* net, void* elements, unsigned long count, void* address,
                            unsigned long* size);
+// __cdecl; the other two callees are __stdcall.
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 
-// MATCH. The tail is a block-ordering question, and the ordering rule is that
-// MSVC 5 lays out a conditional's TRUE successor first, in a depth-first walk
-// from the entry block. The original wants the retry test's true arm to be the
-// cleanup (so the test emits `jge success` and falls into the cleanup), and the
-// cleanup to stay the single block shared by the first call's failure, the
-// failed allocation and the retry's failure. Putting the cleanup label inside
-// the `if (result < 0)` body, with both earlier failures reaching it by `goto`,
-// gives exactly that: the label is the true arm, the shared block keeps three
-// predecessors, and the success stores move after it. Writing the same control
-// flow as a structured if/else, or with the label after the retry, makes the
-// success block the fallthrough instead and scores 94.0%.
-//
-// The frame is `sub esp, 0x2b4` with `size` at +0xc, `elements[3]` at +0x10,
-// `guid` at +0x58 and the three `char[200]` buffers at +0x68, +0x130 and +0x1f8,
-// which needs all three declared at function top so MSVC does not merge two of
-// them; `memset(buf1, 0, sizeof buf1)` for the plain `rep stosd` (a `= ""`
-// initialiser produces MSVC's byte-then-stosd trick instead); `FUN_004d83b0`
-// is `__cdecl` and the other two callees `__stdcall`; and `HGLOBAL block = 0;`
-// declared before `unsigned long size = 0;` gives the `xor ebx,ebx` and the
-// `[esp+4],ebx` in the prologue.
-//
 // FUNCTION: 0x441c30
 int __stdcall BuildCompoundAddress(HGLOBAL* addressOut, unsigned long* sizeOut)
 {
+    // block before size, all three buffers at function top: prologue and frame layout.
     HGLOBAL block = 0;
     unsigned long size = 0;
     Elem_00441c30 elements[3];
@@ -91,6 +72,7 @@ int __stdcall BuildCompoundAddress(HGLOBAL* addressOut, unsigned long* sizeOut)
         elements[0].guid = DAT_004fce88;
         elements[0].size = 0x10;
         elements[0].data = &DAT_004fcdc8;
+        // memset, not = "": plain rep stosd.
         memset(buf1, 0, sizeof(buf1));
         char* s = DAT_00512980;
         if (s == 0) {
@@ -150,6 +132,7 @@ int __stdcall BuildCompoundAddress(HGLOBAL* addressOut, unsigned long* sizeOut)
     }
     result = HAPINET_createcompoundaddress(g_game + 0x14, elements, count, block, &size);
     if (result < 0) {
+        // Label inside this body, reached by goto: the shared cleanup block is the true arm.
 cleanup:
         if (block != 0) {
             GlobalUnlock(GlobalHandle(block));

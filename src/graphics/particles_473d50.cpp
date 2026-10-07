@@ -10,30 +10,6 @@
 // per-particle kind, and finally pushes the clock at +0x8 one tick ahead.
 // The expiry is the high half of (length << 16) / 0x40000, so it is 2^16 /
 // step ticks away; a zero step drops the particle.
-//
-// MATCHES (983 bytes). What the earlier pass could not get was the vector:
-// with the real <vector> the function came out 52 bytes over, and all of it
-// was the reallocating branch of the inlined insert. MSVC 5 decides per
-// function, from an inline budget, whether each of <vector>'s tiny members is
-// expanded or called, and with the real header it expands all three size()
-// calls there (the original calls two of them) and inlines reserve (the
-// original calls it, at 0x475770). Writing the vector out by hand, as
-// 0x470c10.cpp does, puts the calls back: reserve, size, _Ucopy, _Ufill and
-// _Destroy are declared and never defined, so the calls the original makes
-// are the calls we make, with the same mangled names. Three spellings then
-// decide the last differences:
-//   - raw_size() is the one place the original expands size() rather than
-//     calling it: the argument of the reserve call at 0x473d71;
-//   - the append is push_back, not insert(end(), e): with the two-argument
-//     insert the insert position is kept in esi across the three idivs and
-//     reloaded from the member, where the original copies it out of ecx;
-//   - the delta is written straight into e.vel (no named Vec3 for it), which
-//     is what puts the three vel stores after the first fild and gives the
-//     loop counter the [esp+0x10] slot and the step union [esp+0x14].
-// The out-of-line size() is declared as Class_00475840::FUN_00475840 because
-// that is the name data/symbols.csv gives 0x475840, and the allocation goes
-// through scalar operator new / operator delete (??2 / ??3), which is what
-// _Allocate and allocator::deallocate call.
 #include <math.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -226,12 +202,14 @@ void NanoParticles::Emit()
         step.whole = (int)(((__int64)len << 16) / 0x40000);
         short s = step.half[1];
         if (s != 0) {
+            // Divided straight into e.vel, no named Vec3: fixes the vel store order.
             e.vel.x = e.vel.x / s;
             e.vel.y = e.vel.y / s;
             e.vel.z = e.vel.z / s;
             e.endTime = *(int*)(g_game + 0x38a47) + s;
             e.field_24 = 0x100;
             e.flags = i % 7 + 0xa1;
+            // push_back, not insert(end(), e): the insert position is copied out of ecx.
             records.push_back(e);
         }
         i++;

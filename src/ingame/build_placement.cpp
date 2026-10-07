@@ -275,18 +275,6 @@ static inline void SetCursor(int n)
 // off the flags byte at +0x2cc6 and the mouse message stored in the block.
 // Advances the frame queues and, on the network/skirmish paths, flips the
 // end-of-frame hooks.
-//
-// MATCH (#5290). The g_game loads in the last block take eax, ecx, edx in
-// turn from C2's scratch rotation (FUN_00435c37, pointer at 0x491120, reset
-// once per function), in code-generation order. Earlier files were stuck
-// because the else arm started one step off the original. Each arm of the
-// `FUN_00435100() == 1` test ends with its own copy of the
-// `field_391f1 = 2; field_391f5 = FUN_00496bb0; SetCloseHandler(...)` sequence:
-// the then arm's copy takes two rotation steps before the else arm is
-// generated, and MSVC then merges the two copies into one. The FUN_00435c00
-// call's g_game load is an ordinary rotating load again (edx), with no local.
-// The same two stores alone in both arms match too. `|= 4` in both arms is
-// what keeps the 4 in edi.
 // FUNCTION: 0x499200
 void BattleFrame(void)
 {
@@ -408,6 +396,7 @@ void BattleFrame(void)
     }
 
     if (g_game->field_39249 != 0) {
+        // Each arm keeps its own copy of the hook stores, and `|= 4` in both: the compiler merges them.
         if (g_game->net->FUN_00435100() == 1) {
             FUN_00491b60();
             FUN_00491d70(1);

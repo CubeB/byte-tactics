@@ -6,9 +6,7 @@
 // then drop _Nilrefs under a lock. The real template reproduces every call:
 // _Erase() is inlined once and its recursion calls 0x46f6d0, erase(_F++)
 // calls iterator::_Inc() (0x46ea10) and then erase(iterator) (0x46f1e0).
-// The two erase overloads share one name for tools/check.py (it compares
-// names without their argument lists), so the reference to erase(iterator)
-// needs an entry in data/aliases.csv; see docs/consolidation.md.
+// The reference to erase(iterator) needs an entry in data/aliases.csv.
 #include <map>
 
 struct UnitSyncEntry {                 // 0x10 bytes

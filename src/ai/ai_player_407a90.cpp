@@ -133,43 +133,24 @@ Class_00407a90::Class_00407a90(SquadManager* p, Group* q)
 {
 }
 
-//
 // Slot 0 of Class_00407a90 (vtable 0x4fc998), derived from SquadTimer
 // (the family is listed in src/ai/squad_timer.cpp).
 // Sets `next` to 30..929 ticks from now. A group of fewer than 5 units
 // either moves (mode 9) to the unit nearest its average position, or, when
-// GetBasePosition gives a rally point for the player, is sent to 2..3 random points
-// around it (mode 2 first, then mode 9). A bigger group is sent to a random
-// point on the map edge. The unit FindNearestEnemyUnit returns is used without a null
-// check.
-//
-// Matched (Claude Opus 5.5, 2026-10-03; nine passes had stopped at 91.1-92.1%).
-// The earlier notes put the residual on the scatter loop: the original tests
-// the loop with `cmp ecx, ebx` before computing w/2 and h/2, keeps w/2 in ebp
-// and spills `this`, and no spelling of the loop gave both. The loop was never
-// the cause. Deleting statements one at a time and recording only where the
-// loop's values landed showed that the loop allocation flips to the original's
-// as soon as `pos` stops being the local whose address goes to GetBasePosition.
-// Reading the rally point through a small inline that returns it by value
-// (GetRallyPoint) does that, and then the plain `for` loop with `w / 2` in the
-// body (hoisted by the compiler after the entry test) gives the original's
-// preheader. The last hunk was the sum's register: `dest.x = pos.x.value + dx`
-// with `dx` holding the shifted offset puts the sum in pos.x's register, as
-// the original has; shifting inside the sum does not. Both `dx` and `dz` have
-// to be named.
-//
-// `next = g_game->time + RandomInt(900) + 30` in one expression folds
-// to `lea eax, [eax+edx+0x1e]`; the delay has to be computed first. The final
-// MakeFixed ternaries give the `lea eax, [tmp]; mov ecx, [eax]` selection.
-// Group::Send is the inline from the matched sibling 0x4077e0 (calling
-// OrderSquad directly compiles to the same bytes).
+// GetBasePosition gives a rally point for the player, is sent to 2..3 random
+// points around it (mode 2 first, then mode 9). A bigger group is sent to a
+// random point on the map edge. The unit FindNearestEnemyUnit returns is used
+// without a null check.
 // FUNCTION: 0x407ae0
 void Class_00407a90::OnTimer()
 {
     Vec dest;
+    // Computed first: in one expression with next it folds into a lea.
     int delay = RandomInt(900) + 30;
     next = g_game->time + delay;
     if ((int)group->units.size() < 5) {
+        // Read through an inline returning by value: pos must not be the local
+        // whose address goes to GetBasePosition.
         Pos_00407ae0 pos = GetRallyPoint(player);
         if ((pos.x.s.whole | pos.z.s.whole) == 0) {
             GetAveragePosition(&dest);
@@ -179,6 +160,7 @@ void Class_00407a90::OnTimer()
             int n = RandomInt(2) + 2;
             int w = g_game->baseX / 8, h = g_game->baseY / 8;
             for (int i = 0; i < n; i++) {
+                // dx and dz stay named: the sum then lands in pos's register.
                 int dx = (RandomInt(w) - w / 2) << 16;
                 dest.x = pos.x.value + dx;
                 dest.y = pos.y.value;

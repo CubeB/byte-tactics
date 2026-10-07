@@ -6,8 +6,6 @@
 // from the group's centre to that kind while its squared distance is at least
 // limit * group size, then takes over every unit of the other group that lies
 // closer than that. SetUnitSquad(unit, id) moves a unit to a group.
-// In the last scan the squared distance must be its own statement (`int d`);
-// written inside the comparison, MSVC computes the size() ternary first.
 #include <vector>
 
 #pragma pack(push, 1)
@@ -91,6 +89,7 @@ void Class_00407560::FUN_00407560(int kind, int limit)
     for (it = other->group->units.begin(); it != other->group->units.end(); ++it) {
         int dx = (*it)->x - cx;
         int dz = (*it)->z - cz;
+        // Own statement: inside the comparison the size() ternary goes first.
         int d = dx * dx + dz * dz;
         if (d < limit * (int)group->units.size())
             list.push_back(*it);

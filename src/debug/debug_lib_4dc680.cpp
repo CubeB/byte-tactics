@@ -1,35 +1,8 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// check.py: MATCH, 643 of 643 bytes, every reference the linker fills in ok.
-//
-// The call to the out-of-line _Insert (0x4dd430) is declared on Class_004dd430
-// rather than on Class_004dc680, and that is not cosmetic. When 0x4dd430 was
-// matched, data/symbols.csv gave it the canonical name
-// Class_004dd430::FUN_004dd430, and a caller that still spells the reference as
-// a member of Class_004dc680 is then rejected: the bytes are identical but the
-// checker reports "bytes match, but a reference is wrong" and does NOT print
-// MATCH. So a MATCH here can be invalidated by matching one of its callees.
-//
-// The declaration keeps the result slot as an explicit first argument rather
-// than using the class-return-by-hidden-pointer form that 0x4dd430's own file
-// uses for the same four dwords. Switching to the class-return form fixes the
-// name but drops the function to 99.6%, because the caller then needs a
-// temporary and MSVC puts it in the wrong stack slot. So the class qualifier
-// has to be right for the reference and the argument shape has to stay
-// explicit for the codegen; the two are independent, and getting one without
-// the other is easy.
-//
 // The tree's insert for the game's file-record map: the value_type is a 0x30
 // byte record whose first dword is the key, the node is {left, parent, right,
 // value, color} with the color at +0x3c, and DAT_00528a50 is the tree's _Nil
-// node (head->parent is the root, head->left is begin()). The argument is a
-// POINTER to the record, not a reference, and that is what the code proves: the
-// call to the out-of-line _Insert (0x4dd430) passes `&p`, the address of the
-// parameter variable itself (lea edx,[esp+0x30]), and the callee stores the new
-// node's iterator there and hands the same pointer back in eax, which the
-// caller dereferences. So the parameter slot is reused as the callee's result
-// slot. With a `const Pair&` parameter the address of the *referred-to* object
-// is taken instead, the two call sites collapse into one, the frame layout
-// changes and the function no longer matches.
+// node (head->parent is the root, head->left is begin()).
 //
 // The search runs under one std::_Lockit and leaves y (the node to hang the new
 // one off) and x (the _Nil it stopped at) plus the direction flag `less`.
@@ -38,19 +11,11 @@
 // the color and sets them in the callee), both children on _Nil, the record
 // placement-new'd into it, the size bumped, the node linked in and the
 // red-black fixup run, with _Lrotate (0x4dd710) and _Rrotate (0x4dd770) out of
-// line. The return is OUTSIDE that _Lockit's scope, so the (iterator, 1) pair
-// is built after ~_Lockit; `x = y->parent` sits before the first _Lockit, which
-// is why the load precedes the constructor call.
+// line.
 //
 // Otherwise the node to insert is handed to the out-of-line _Insert, twice:
 // once when the search went left and y is begin(), and once when the
-// predecessor's key is still below the new key. The two argument setups are
-// kept separate by MSVC (the first uses ecx/edx, the second eax) and only the
-// call and the result stores are shared, which is what the original does.
-//
-// The (iterator, inserted) result is built by an inlined constructor taking the
-// iterator by value and the flag, so the first field is copied out of the
-// iterator's stack slot and the flag is stored as a byte.
+// predecessor's key is still below the new key.
 //
 // Casts: `(Class_004dd820*)&p` is a type pun, the callee only ever stores a
 // four-byte node pointer through that argument; `(int)y` is only there because
@@ -125,6 +90,7 @@ public:
 
     Class_004dd820 Begin() { return Class_004dd820(head->left); }
 
+    // A pointer, not a const&: the _Insert call passes &p as its result slot.
     Class_004ddbe0 FUN_004dc680(Pair_004dc680* p);
 };
 
@@ -148,6 +114,7 @@ Class_004ddbe0 Class_004dc680::FUN_004dc680(Pair_004dc680* p)
 {
     Node_004dc680* y = head;
     bool less = true;
+    // Read before the first _Lockit.
     Node_004dc680* x = y->parent;
     Class_004dd820 it2;
     Class_004dd820 it;
@@ -219,6 +186,7 @@ Class_004ddbe0 Class_004dc680::FUN_004dc680(Pair_004dc680* p)
             }
             head->parent->color = 1;
         }
+        // Outside the _Lockit scope: the pair is built after ~_Lockit.
         return Class_004ddbe0(it, 1);
     }
     it2 = Class_004dd820(y);

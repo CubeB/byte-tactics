@@ -1,9 +1,8 @@
 // Decompiled by Haiku; renamed to the real template member by the orchestrator (#418). Names are provisional.
-// std::vector<Elem_00473500>::size() from MSVC 5's <vector>, out of line
-// (`sar eax, 2`: a 4-byte element). It belongs to the same vector as _Ucopy
+// std::vector<Elem_00473500>::size(). It belongs to the same vector as _Ucopy
 // (0x473500), _Ufill (0x473530) and _Destroy (0x4732d0); 0x471820 and 0x471a50
-// call it where their inlined insert needs the size. Taking the member's
-// address makes the compiler emit it.
+// call it.
+// Taking the member's address emits the out-of-line copy.
 #include <vector>
 
 struct Elem_00473500 {

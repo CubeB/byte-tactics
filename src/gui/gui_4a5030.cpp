@@ -1,9 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // Width of a string in pixels: the sum of the glyph widths of the current
-// font, or GetTextWidth's measurement when no font is loaded. The loop has to
-// index the string (text[i]) with the character in its own local: walking the
-// pointer lets MSVC reuse the loop test's load, and without the local the
-// character is widened in a register instead of through its stack slot.
+// font, or GetTextWidth's measurement when no font is loaded.
 
 struct Font_004a5030 {
     char unknown_0[0xc];
@@ -29,6 +26,7 @@ int __stdcall GetTextPixelWidth(unsigned char* text)
         return 0;
     if (g_guiContext->font == 0)
         return GetTextWidth(GetFont(), text);
+    // Index text[i] and hold the character in its own local, not a walked pointer.
     for (int i = 0; text[i]; i++) {
         unsigned char c = text[i];
         unsigned short* glyph = (unsigned short*)GetGafFrame(g_guiContext->font->glyphs, c);

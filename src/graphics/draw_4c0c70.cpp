@@ -1,50 +1,4 @@
 // Decompiled by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// deepseek-v4.1-flash retry (#3585): still 94.5%, same five hunks (surf in eax,
-// ours, versus ecx, original; eax again for the spans base at 0x4c0d78). New
-// negatives: explicit unsigned short pitch/height locals, a raw unsigned short*
-// view of the surface for both fields, a reference alias (Surface& sfr = *sf)
-// for both reads, and a register storage class on sf, all exactly 94.5%.
-// Merging the pitch and maxY guards into one || condition drops to 868 bytes /
-// 79.8%, confirming the source really is two separate ifs. The two eax/ecx ties
-// did not move.
-// deepseek-v4.1-flash retry (#3146): 94.5% re-confirmed. All five residual hunks
-// are one allocation choice: surf in eax (ours) versus ecx (original), which then
-// frees ecx for maxY and forces the height zero-extend through esi. Tried and
-// inert at 94.5%: member __thiscall Pitch()/Height() accessors (int and unsigned
-// short, const and not), a shared limit/maxRow variable for both clamps, reusing
-// the existing locals x/dx/y0 as the pitch temporary, reading pitch through a raw
-// unsigned short pointer, a nested block around the checks, sf reassigned after
-// the scan, passing sf to the final call, and defining the real preceding
-// functions 0x4c0b10 (and 0x4c0a90) with <windows.h> above ours to reproduce the
-// original translation unit. An unused extern int sweep (N = 0 to 160, step 8)
-// never moves it, so it is not translation-unit or header state. The remaining
-// difference is a compiler allocator tie, not a source-shape lever.
-// PARTIAL 94.5%, 897 bytes. Share y0, y1, x, dx and dz across the two
-// edge walks, but retain block-local z/shade values. Declare bounds in the
-// order maxX, minY, maxY, minX. Both together restore all original local
-// slots and edge-loop instructions. Give the scan its own index initialized
-// before the positive-count guard, and increment it before the point cursor.
-// Remaining differences are prologue scheduling and clipping-register choices.
-// Sharing every temporary instead is worse. Two 768-header sweeps and
-// surface getters/clamping helpers did not resolve the remaining differences.
-// GPT-6.1-sol refinement: reference aliases, a height accessor, changing the
-// maxRow declaration point, and moving the surface alias after the scan all
-// kept 94.5%. The root pass tried the equivalent pitch-bound form; it scored 86.6%, so the original source shape is restored below.
-// deepseek-v4.1-flash: all 5 residual hunks are one eax/ecx rotation. The
-// original keeps the surface pointer in ecx (live across the pitch and height
-// reads) and uses eax for maxY and maxRow; ours swaps the two. No change from:
-// dropping/keeping the sf alias, unsigned short* views, thiscall Width()/Height()
-// accessors, merged || condition, reference parameter, swapped or negated pitch
-// comparisons, &spans[0] and cast forms for the edge-walk cursor lea, reordering
-// locals, dummy prefix functions, or headers.py (128 sets, all 94.5%).
-// deepseek-v4.1-flash retry (#2960): the 0x4c0a90 lever (an unsigned short
-// pitch local keeping surf in ecx) does not transfer here because the local is
-// optimized away: unsigned short pitch/height locals, int pitch local, const
-// pointer, reference alias (sf.pitch) and no-alias direct surf-> use all give
-// the identical 897-byte 94.5% image. The surf pointer load at 0x4c0cf0 is a
-// free eax/ecx tie (ebx/ebp/edi/edx all live there); the compiler picks eax,
-// then maxY takes ecx and the height zero-extend needs an extra `mov eax,esi`.
-// This looks like an allocator tie-break, not a source-shape lever.
 
 struct Span_004c0c70 {
     int x1; // +0x0
@@ -74,15 +28,13 @@ struct Surface_004c0c70 {
 void __stdcall FillShadedSpan(int row, Span_004c0c70* span, Surface_004c0c70* surf,
                             unsigned char color);
 
-// deepseek-v4.1-flash (#3755): MATCH. Testing the height inline in the minY guard
-// (minY > (int)sf->height - 1) and then assigning maxRow from the same expression
-// CSEs the two loads and flips the whole rotation: surf stays in ecx, maxY gets eax
-// and maxRow eax, killing all five residual hunks.
 // FUNCTION: 0x4c0c70
 int __stdcall FillShadedPolygon(Surface_004c0c70* surf, Point_004c0c70* pts, int n,
                            unsigned char color) {
+    // Shared by both edge walks; z and shade values stay block-local.
     int y0, y1, x, dx, dz;
     Span_004c0c70 spans[2048];
+    // Bounds declared in the order maxX, minY, maxY, minX.
     int maxX = -999999;
     int minY = 999999;
     int maxY = -999999;
@@ -91,6 +43,7 @@ int __stdcall FillShadedPolygon(Surface_004c0c70* surf, Point_004c0c70* pts, int
     int maxYi;
     int i;
     Surface_004c0c70* sf = surf;
+    // Scan index initialised before the n > 0 guard, incremented before p.
     int scanIndex = 0;
     if (n > 0) {
         Point_004c0c70* p = pts;
@@ -115,6 +68,7 @@ int __stdcall FillShadedPolygon(Surface_004c0c70* surf, Point_004c0c70* pts, int
         return 0;
     if (maxY < 0)
         return 0;
+    // Height tested inline here and reused for maxRow: the two loads must CSE.
     if (minY > (int)sf->height - 1)
         return 0;
     int maxRow = (int)sf->height - 1;

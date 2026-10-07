@@ -3,11 +3,8 @@
 // gadget is -1) it frees the DESCLIST/PICLIST scratch globals (0x5129b4,
 // 0x5129b8, 0x5129c4) and unregisters the queued unit rectangles; otherwise it
 // dispatches the gadget named Load/Save/Reset/OK/Cancel.
-//
-// <stdio.h> is only here to fix the addressing-mode operand order and the
-// instruction scheduling in this function (tools/headers.py); with
-// <windows.h> instead, two instructions come out swapped.
 
+// <stdio.h>, not <windows.h>: fixes the operand order and scheduling.
 #include <stdio.h>
 
 #pragma pack(push, 1)

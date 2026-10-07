@@ -1,9 +1,7 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // The 0xbc-byte frame is `Msg_004437c0 msg;`: the group of four dwords is
 // copied out of g_game+0x2b6e at msg+0x99, so the leading pad is real and the
-// trailing pad keeps the struct at 0xbc exactly. The compatible-version test
-// needs `int ver` (zero-extended by the `& 0xff`) to stay a signed compare,
-// `jg`/`jl` rather than `ja`/`jb`.
+// trailing pad keeps the struct at 0xbc exactly.
 // Handler for the SELGAME (multiplayer game list) screen. Processes the
 // UPDATE / PREVMENU / WATCH / JOINGAME / STARTNEW buttons and the per-entry
 // "compatible version" check. param_1 is &g_game->sub (g_game+0x519); its
@@ -169,6 +167,7 @@ void __stdcall HandleSelectGameClick(Sub_004437c0* param_1)
         Entry_004437c0* e = FindGadgetChecked(entries, "GAMENAME");
         Msg_004437c0 msg;
         unsigned int flags;
+        // int, not unsigned: keeps the version test a signed compare (jg/jl).
         int ver;
         char* pass;
         unsigned int b;

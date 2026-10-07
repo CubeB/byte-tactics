@@ -22,9 +22,9 @@ extern const double DAT_004fda70 = 2.0;
 extern const unsigned char DAT_004fdbe0[8] = {0};
 
 // Four bytes at the start of the game's constants, before 0x401360's: what
-// they were is unknown. (Last of the constants here: tools/place.py takes
-// each global up to the next one in its section, so no eight-byte one may
-// follow it.)
+// they were is unknown.
+// Last of the constants here: no eight-byte global may follow it (tools/place.py
+// sizes a global up to the next one).
 // GLOBAL: 0x4fc474
 extern const unsigned char DAT_004fc474[4] = {0x00, 0x02, 0xfc, 0x07};
 

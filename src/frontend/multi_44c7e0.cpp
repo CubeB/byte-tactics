@@ -4,19 +4,8 @@
 // unit type (name, description, costs, its type index and its current
 // limit), sorts the records by name, sets up the twelve SLIDERn gadgets and
 // the SCROLLSLIDER, and fills the energy and metal costs of the selected
-// unit. Only the host may load, save or reset the restrictions.
-//
-// MATCH. What it took (from 85.2%):
-// - The SCROLLSLIDER block is the slider set-up 0x445e50, which has no
-//   callers, defined above unannotated and inlined (0x449bb0 calls it too).
-//   It keeps the menu in esi and the index in edi for the UpdateUnitSliders and
-//   FUN_0049fa90 calls, which the older file could not reproduce.
-// - SetGadgetRows takes the menu's table (g_game+0x531), not its entries.
-// - The scan loop skips with `continue` on the unit type's bit 15 (an int
-//   bitfield, tested positively: shr/test) and on its name.
-// - The limit is one ternary (`count = info.field_c == -1 ? 0x65 :
-//   info.field_c;`); the if-statement form put the record offset in ebx and
-//   the DESCLIST gadget in ebp, the other way round from the original.
+// unit. Only the host may load, save or reset the restrictions. SetGadgetRows
+// takes the menu's table (g_game+0x531), not its entries.
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -217,6 +206,7 @@ void OpenUnitRestrictions()
 
     n = 0;
     for (i = 1; i < g_game->numUnitTypes; i++) {
+        // continue on the bit, an int bitfield tested positively.
         if (g_game->unitTypes[i].f245_15)
             continue;
         if (!g_game->unitTypes[i].name)
@@ -230,6 +220,7 @@ void OpenUnitRestrictions()
                     (int)type->metalCost, (int)type->energyCost);
             DAT_005129b4[n].type = i;
             g_game->queue->GetUnitEntry(&g_game->unitTypes[i], &info);
+            // One ternary: the if-statement form swaps the ebx/ebp registers.
             count = info.field_c == -1 ? 0x65 : info.field_c;
             DAT_005129b4[n].count = count;
             DAT_005129c4[n] = count;

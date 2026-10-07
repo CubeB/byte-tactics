@@ -2,8 +2,7 @@
 // Binary search (lower_bound-style) over the sorted vector held by the global
 // at 0x51fdb8, then a final key check. Each 8-byte element is {key, value};
 // the value field is at +4 (the vector member sits at offset 1 of the packed
-// singleton, so _First/_Last land at +5/+9). A char** intermediate is what
-// produces the lea/mov pair for the second field.
+// singleton, so _First/_Last land at +5/+9).
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -43,6 +42,7 @@ char* __stdcall Translate(char* key)
             last = mid;
     }
 
+    // char** intermediate: gives the lea/mov pair for the value field.
     char** found;
     if (first != end) {
         bool before = strcmp(key, first->key) < 0;

@@ -1,18 +1,9 @@
 // Decompiled by Opus. Names are provisional.
 // The compiler-generated scalar deleting destructor of the TDF entry (a key
 // and a value, both reference-counted string handles; the vector<entry>
-// _Ucopy is 0x4c5bc0). The entry's destructor is implicit, so MSVC only
-// emits this ??_G, and calls it with flag 0 where the inline depth runs out:
-// in the destroy loop of the entry vector inside TdfFile's destructor
-// (0x4c2eb0), which `delete`s the root section.
-//
-// That destructor is defined again below, unannotated, to emit this COMDAT;
-// with this layout it compiles byte-identical to 0x4c2eb0. The entry vector
-// sits two (implicit-destructor) wrapper levels deep in the section: with one
-// level, MSVC calls ~TdfField out of line instead of this ??_G. The
-// real wrapper classes are unknown (0x4c48c0 binary-searches the entries).
-// 0x4c9390 is really the handle's destructor, but it is established as
-// Class_004c9390::ReleaseRef, so the handle's inline destructor calls it.
+// _Ucopy is 0x4c5bc0). It is called with flag 0 in the destroy loop of the
+// entry vector inside TdfFile's destructor (0x4c2eb0), which `delete`s the
+// root section.
 #include <vector>
 
 class Class_004c9390 {
@@ -37,6 +28,7 @@ struct TdfField {
 void __cdecl FUN_004d85a0(int* param_1);
 
 #pragma pack(push, 1)
+// Two wrapper levels around the vector: with one, ~TdfField is called out of line.
 struct Inner_004c51b0 {
     std::vector<TdfField> v;
 };

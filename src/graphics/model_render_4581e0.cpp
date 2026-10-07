@@ -1,13 +1,8 @@
 // Decompiled by Opus, space-bunny-free, longcat-2.5-preview-free, GPT-6, GPT-6.1-sol, deepseek-v4.1, deepseek-v4.1-flash and claude-opus-5-5. Names are provisional.
 // The object-picture builder: measures a unit model's projected pieces, gets
 // a bitmap of that size from the memory cache and draws the pieces into it,
-// flat (0x459830) or lit per vertex (0x459c70). DrawLitPieces comes first:
-// compiled after any other function here, its summing loop's `lea` moves
-// above the fadd (99.8%).
-//
-// Without <stdio.h> and <stdlib.h>, MeasureModel's offset->y + v->y sum
-// swaps its operands and DrawPieces is 63%; without <math.h>, DrawLitPieces
-// is 98.9%.
+// flat (0x459830) or lit per vertex (0x459c70).
+// Keep <stdio.h>, <stdlib.h> and <math.h>: without them operand orders change.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -165,42 +160,8 @@ static __inline int shade_bias(List_459c70* list)
 // a shade from the averaged normal. The anti-aliased path is the same as
 // 0x459830's (draw into the doubled shadow bitmap, then downsample).
 //
-// MATCH (#5138), rewritten from 0x459830's matched source (was 73.5%).
-// What it took (each step measured):
-//  * Head, piece tests, face draw and downsampling tail are 0x459830's code:
-//    `src = bitmap; bitmap = shadow;` last in the shadow branch, the piece
-//    flags as positive `list->pieces[p].flags.visible/colored` tests, and
-//    each coordinate arm reading `v->x` itself.
-//  * `weight[k] = 0;` is a store in the vertex loop, not a memset before
-//    it. MSVC turns it into the `rep stosd` itself and puts that after the
-//    loop's pointer set-up, so the vertex and accum pointers live across it
-//    and lose ecx/edi: that is what puts them in esi and ebx.
-//  * There is no `if (n > 0)` and no `n` local: the loop runs to
-//    `info->vertexCount` and the division loop re-reads
-//    `list->pieces[p].info->vertexCount`. The bitmap offsets are read inside
-//    the loop (`vertex[k].x += (short)bitmap->field_4`), as in 0x459830.
-//  * The walking pointer is its own read, `Vec3* v =
-//    list->pieces[p].vertices;`, after `verts` and before `info`; written
-//    `v = verts` MSVC rebases it to `verts + 8`.
-//  * The shade is `int s = (k * 3) & 0x1f;` (MSVC makes the k * 3 counter
-//    and zeroes it after the loop guard), computed right after the
-//    coordinate arms, before `vertex[k].x = x`: s then overlaps x, x gets
-//    the original's stack slot and the frame grows to the original's
-//    0x159d4 (69.6% -> 97.6%, then 98.7% for the k * 3 form).
-//  * The division loop divides by `weight[k]` directly (no float local),
-//    and accum[k][2] is summed through a temporary.
-//  * g_lightY is declared before g_lightX. The order of those
-//    extern declarations decides which product of the lighting sum MSVC
-//    loads first (the later-declared constant's goes first); declared in
-//    address order, accum[k][1] was loaded before accum[k][0]. (Indexing
-//    with `idx[j]` instead of the walking `*idx` also flips it, but then
-//    the lighting loop steps its two pointers in the wrong order.) <math.h>
-//    matters too: with <string.h> alone this is 98.9%.
-//  * The empty `do {} while (0);` in the summing loop emits no code. It ends
-//    the basic block after the accum[k][2] load, so the scheduler keeps the
-//    store address `lea` after the fadd, as in the original; without it
-//    this is 99.8%. `if (0) {}` there matches too, so it is most likely a
-//    debug macro that compiles to nothing. Found by tools/permute.py.
+// Must stay the first function in the file: compiled later, a lea in the
+// summing loop moves above the fadd.
 // FUNCTION: 0x459c70
 void Class_004581e0::DrawLitPieces(Bitmap_459c70* bitmap, List_459c70* list,
     int kind, int useColor)
@@ -226,6 +187,7 @@ void Class_004581e0::DrawLitPieces(Bitmap_459c70* bitmap, List_459c70* list,
             shadow->field_6 = (short)(bitmap->field_6 << 1);
             memset(shadow->data2, 0, shadow->width * shadow->height);
             memset(shadow->data, 1, shadow->width * shadow->height);
+            // Last in the shadow branch.
             src = bitmap;
             bitmap = shadow;
         } else {
@@ -240,8 +202,10 @@ void Class_004581e0::DrawLitPieces(Bitmap_459c70* bitmap, List_459c70* list,
             if (useColor == -1 || useColor == list->pieces[p].flags.colored
                     || list->owner->field_104 != 0.0f) {
                 Vec3* verts = list->pieces[p].vertices;
+                // Own read of the vertices, between verts and info: not v = verts.
                 Vec3* v = list->pieces[p].vertices;
                 info = list->pieces[p].info;
+                // No n local or count guard: the loop runs to info->vertexCount.
                 for (int k = 0; k < info->vertexCount; k++, v++) {
                     int x;
                     int y;
@@ -255,6 +219,8 @@ void Class_004581e0::DrawLitPieces(Bitmap_459c70* bitmap, List_459c70* list,
                         y = (short)(v->y >> 16);
                         z = (short)(-v->z >> 16);
                     }
+                    // Computed right after the coordinate arms, before vertex[k].x = x:
+                    // sets the frame size.
                     int s = (k * 3) & 0x1f;
                     vertex[k].x = x;
                     vertex[k].y = z - (y >> 1);
@@ -264,6 +230,7 @@ void Class_004581e0::DrawLitPieces(Bitmap_459c70* bitmap, List_459c70* list,
                     vertex[k].x += (short)bitmap->field_4;
                     vertex[k].y += (short)bitmap->field_6;
                     accum[k][0] = accum[k][1] = accum[k][2] = 0.0f;
+                    // A store here, not a memset before the loop.
                     weight[k] = 0;
                 }
 
@@ -307,13 +274,15 @@ void Class_004581e0::DrawLitPieces(Bitmap_459c70* bitmap, List_459c70* list,
                     for (int j = 0; j < face->count; j++, idx++) {
                         accum[*idx][0] += normal[fi].x;
                         accum[*idx][1] += normal[fi].y;
+                        // The empty do-while ends the block: keeps the store lea after the fadd.
                         float t2 = accum[*idx][2];
-                        do {} while (0);    // no code: see the notes at the top
+                        do {} while (0);    // emits no code; needed for the match
                         accum[*idx][2] = t2 + normal[fi].z;
                         weight[*idx]++;
                     }
                 }
 
+                // Divides by weight[k] directly, re-reading the vertex count.
                 for (k = 0; k < list->pieces[p].info->vertexCount; k++) {
                     if (weight[k] != 0) {
                         accum[k][0] /= weight[k];
@@ -447,12 +416,10 @@ void Class_004581e0::MeasureModel(int* width, int* height, int* originX, int* or
 // bounds, allocates a one-plane (0x437b50) or two-plane (0x437be0) bitmap for
 // them, stores the origin in the bitmap header and hands the drawing to
 // 0x459c70 / 0x459830.
-// Notes: all four bounds results are plain ints (the bitmap header fields are
-// shorts, so the stores narrow them); `kind` is an int parameter so the byte at
-// owner+0xff is pushed zero-extended.
 // FUNCTION: 0x4586a0
 int Class_004581e0::BuildObjectPicture(List_459c70* list, int param_2, int param_3)
 {
+    // Plain ints: the stores into the short header fields narrow them.
     int w;
     int h;
     int oy;
@@ -468,6 +435,7 @@ int Class_004581e0::BuildObjectPicture(List_459c70* list, int param_2, int param
     if (bitmap != 0) {
         bitmap->field_4 = (short)oy;
         bitmap->field_6 = (short)ox;
+        // kind is an int parameter so the byte at owner+0xff is pushed zero-extended.
         if ((owner->field_110 & 0x20000000) != 0
             && (*(unsigned char*)(g_game + 0x37f06) & 0x20) != 0) {
             DrawLitPieces(bitmap, list, owner->kind, param_3);
@@ -482,24 +450,6 @@ int Class_004581e0::BuildObjectPicture(List_459c70* list, int param_2, int param
 // Draws a unit model's pieces into a bitmap. With anti-aliasing on and the
 // unit flagged, it draws into the doubled shadow bitmap instead and then
 // downsamples that back into the caller's bitmap.
-//
-// MATCH (#5138). The last two changes, on top of #4924's head and tail:
-//  * The piece flags are an `unsigned short` bitfield tested with positive
-//    nested ifs (`if (list->pieces[p].flags.visible) { if (useColor == -1 ||
-//    useColor == list->pieces[p].flags.colored || ...) { ... } }`), as in
-//    0x459c70. Reading the info and vertices through a `piece` pointer
-//    instead biases the walking pointer to +0x28 (98.2%).
-//    The two bitfields are two loads to the global optimiser, and the code
-//    generator reuses the `al` it already holds for the second, which costs
-//    one more scratch register in the eax/ecx/edx rotation than a `pflags`
-//    local or a mask test. That one step put the owner load at the field_104
-//    test in ecx and the bitmap offsets' loads in the original's order.
-//  * Each arm of the doubled-bitmap test reads `verts->x` itself. MSVC
-//    hoists the identical first load of both arms above the `je` (after the
-//    mode test), which is where the original has it; a separate
-//    `x = verts->x;` before the test put the mode test in edx and loaded z
-//    first in the else arm. (The earlier note that MSVC never hoists it was
-//    measured with the rotation one step off.)
 // FUNCTION: 0x459830
 void Class_004581e0::DrawPieces(Bitmap_459c70* bitmap, List_459c70* list,
     int kind, int useColor)
@@ -521,6 +471,7 @@ void Class_004581e0::DrawPieces(Bitmap_459c70* bitmap, List_459c70* list,
             shadow->field_6 = (short)(bitmap->field_6 << 1);
             memset(shadow->data2, 0, shadow->width * shadow->height);
             memset(shadow->data, 1, shadow->width * shadow->height);
+            // Last in the shadow branch.
             src = bitmap;
             bitmap = shadow;
         } else {
@@ -531,6 +482,7 @@ void Class_004581e0::DrawPieces(Bitmap_459c70* bitmap, List_459c70* list,
     }
 
     for (int p = list->count - 1; p >= 0; p--) {
+        // Flags tested as positive nested ifs on the bitfield, not via a piece pointer.
         if (list->pieces[p].flags.visible) {
             if (useColor == -1 || useColor == list->pieces[p].flags.colored
                     || list->owner->field_104 != 0.0f) {
@@ -541,6 +493,7 @@ void Class_004581e0::DrawPieces(Bitmap_459c70* bitmap, List_459c70* list,
                     int x;
                     int y;
                     int z;
+                    // Each arm reads verts->x itself, not a shared x load before the test.
                     if (mode) {
                         x = (short)(verts->x >> 16) << 1;
                         y = (short)(verts->y >> 16) << 1;

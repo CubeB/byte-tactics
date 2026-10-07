@@ -3,8 +3,7 @@
 // and the remaining ones are moved down. Each projectile's own old index is
 // written to field_67 first, so the pointers held at field_56 (relinked to the
 // moved targets in the second pass) can be resolved by searching for that
-// index. Reading the one-bit bitfield into a bool before testing it is what
-// makes MSVC emit the shr/test pair instead of a mask test.
+// index.
 
 #pragma pack(push, 1)
 struct Projectile_0049ae20 {
@@ -41,6 +40,7 @@ void CompactProjectiles()
 
     for (i = 0; i < g_game->projectileCount; i++) {
         Projectile_0049ae20* p = &projectiles[i];
+        // Read the bitfield into a bool first: gives the shr/test pair.
         bool dead = p->dead;
         p->field_67 = (short)i;
         if (dead) {

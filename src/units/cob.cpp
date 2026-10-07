@@ -274,12 +274,7 @@ int CobScript::FUN_004b07b0(int, int)
 
 // Looks a name up in the table at +8 and claims a channel slot for its index
 // (StartThread, see 0x4b0a10.cpp); -1 when there is no table.
-//
-// The name lookup at 0x4b07c0 (the function just before this one in the
-// original file), defined here so /Ob2 inlines it as the original did. With
-// only a static inline helper, and no function compiled before this one, MSVC
-// gives the loop guard its own copy of the "-1" call instead of sharing the
-// loop exit.
+// The name lookup is defined as a member here, not a static inline helper, so it is inlined.
 // FUNCTION: 0x4b07c0
 int CobScript::FindScript(const char* name)
 {
@@ -373,8 +368,7 @@ int CobScript::StartScriptWithArgs(char* name, Callback* callback, int update, i
 // param_4 - 1 and refreshes the channels when asked. Compare 0x4b0a10 (same
 // shape without the frame) and 0x4b0c40.
 //
-// The channel array is viewed from `this + i * 0xa4` because that is the base
-// register the original uses (`lea eax, [edi + edx*4]`) with the fields at
+// The channel array is viewed from `this + i * 0xa4` with the fields at
 // +0x24 (stack pointer, starts at -1), +0x3c (value) and +0x40 (stack). The
 // real 0x1c-byte channel header sits 0x1c before this view, which is why the
 // array is declared at offset 0 here; the offsets are what the code reads.
@@ -421,20 +415,17 @@ int CobScript::QueryScript(char* name, int* param_2, int* param_3, int* param_4,
 //
 // The channel is viewed from `this + index * 0xa4` with the fields at +0x24
 // (the real `sp`, starts at -1), +0x3c (the real `callback`) and +0x40 (the
-// real `stack`), the offsets 0x1c past the real Channel; addressing it through
-// the real `channels[i]` makes MSVC fold the 0x1c base into every field offset
-// instead of the original's single scaled base.
-//
-// Binding a reference to the count (`int& cnt = c->count;`) is what keeps the
-// count store in the fourth push, which a plain `++c->count` drops.
+// real `stack`), the offsets 0x1c past the real Channel.
 // FUNCTION: 0x4b0c40
 int CobScript::QueryScriptByIndex(int index, int* p2, int* p3, int* p4, int* p5)
 {
     int i = ((CobScript*)this)->StartThread(index);
     if (i < 0)
         return 0;
+    // Not the real channels[i]: that folds the 0x1c base into every field offset.
     Channel_004b0c40* c = (Channel_004b0c40*)((char*)this + i * 0xa4);
     c->unknown_3c = 0;
+    // The reference keeps the count store in the fourth push; ++c->count drops it.
     int& cnt = c->count;
     c->values[++cnt] = p2 ? *p2 : 0;
     c->values[++cnt] = p3 ? *p3 : 0;
@@ -472,81 +463,6 @@ void CobScript::RunScripts(int param_1)
     AnimatePieces(param_1);
 }
 
-// Body started by GPT-6, continued by space-bunny-free, edited by deepseek-v4.1.
-// deepseek-v4.1-flash #2072: MATCH. The last hunk in case 0x10001000 was the
-// packer swapping the pieces base and the move[] offset between [esp+0x10] and
-// [esp+0x1c]. The fix is that `pieces` is one shared pointer variable declared
-// in the do-block and reused by both 0x10001000 and 0x10002000 (`p = pieces;`
-// then `p[piece]` in each), so the base is a single lifetime and lands in
-// [esp+0x10]; before that, case 0x10001000 had its own `Piece *p;` inside the
-// case block and the base ended up sharing the index's [esp+0x18]. Nothing else
-// changed. Every earlier note below is history: the 99.6%/99.5% hunks and the
-// shapes that failed are kept for reference, do not re-try them.
-// deepseek-v4.1-flash: 99.6%. The 0x10059000 hunk is FIXED by moving the
-// expression into an inline Channel::XorOp() (the inline boundary flips the
-// pop registers to ecx/edx). One hunk remains, in case 0x10001000: the stack
-// packer gives the move[] byte offset [esp+0x10] and reuses [esp+0x18] for the
-// piece base, while the original gives the base [esp+0x10] and the offset
-// [esp+0x1c] (the dword index piece*19+axis keeps [esp+0x18]). The instruction
-// sequence is otherwise byte-identical, so it is a slot pick, not a code shape.
-// Tried with no change: p only in the `if` (current), p declared first in the
-// block, p at function scope, no p at all, an `int&` reference, wrapping the
-// whole body in an inline method, and building the real function 0x4b0d60
-// above this one. p before the stores and p for the stores both cost ~80%.
-// The note below is the earlier attempt; its hunk 2 parts are now fixed.
-// Partial was 99.5%. Two hunks remain (checked again in #1641 and #2072):
-//   1. case 0x10001000 (0x4b0ebf, 0x4b0eec, 0x4b0ef3). The original keeps three
-//      frame slots live across the call: [esp+0x10] = the piece array base,
-//      [esp+0x18] = the dword index piece*19+axis, [esp+0x1c] = the move[]
-//      byte offset. We reuse the now-dead index slot [esp+0x18] for the piece
-//      array, so only two slots appear and the two live values swap offsets.
-//      Declaring the `p` pointer local at function scope instead of inside the
-//      case block (so its slot is reserved early) changes nothing: MSVC5 gives
-//      an enregistered local its spill slot lazily, at its first spill point,
-//      so declaration scope does not move it. Note [esp+0x14] is never touched
-//      by the original even though case 0x10002000 needs the same three slots
-//      in the same order, so the free-slot search skips it.
-//   2. case 0x10059000 (0x4b1866). The original loads the first pop into ecx
-//      and the second into edx before `xor ecx,edx`; we load them the other
-//      way round. `Push(Pop() ^ Pop())` compiles identically to
-//      `int a=Pop(); Push(a ^ Pop())`, so MSVC5 evaluates the right operand
-//      of ^ first and hands it ecx; the xor destination is always the left
-//      operand's register. Untried: two named locals with `Push(a ^ b)`
-//      (both pops hoisted out of the expression), which is the only spelling
-//      left that can give the first pop ecx. Tested in #2072 and it cannot:
-//      `int a = c->Pop(); c->Push(a ^ c->Pop());` and the two-local spellings
-//      `int a = c->Pop(); int b = c->Pop(); c->Push(b ^ a);` / `(a ^ b)` all
-//      compile to the identical edx/ecx pair, so the pick is a function-wide
-//      register allocation decision, not something the local source can steer.
-//      Hunk 1 tested in #2072 as well: the frame slot pick survives moving the
-//      `pieces[piece].move[axis] = c->Pop();` lines before `p = pieces;` (that
-//      costs a lot, 99.5% -> 81.4%) and swapping the `Piece *p;` declaration
-//      order (no change).
-//      Also tried in #2072 (all kept 99.5% with the same two hunks, or worse):
-//      `int a = Pop() ^ Pop(); Push(a);`, `int a = Pop(); a ^= Pop(); Push(a);`,
-//      `int a = Pop(); int b = Pop(); a = a ^ b; Push(a);`,
-//      `int a = Pop(); Push(Pop() ^ a);` for hunk 2; and `p = pieces;` moved
-//      after the second Pop (99.2%) or `p[piece].moveSpeed[...]` (80.5%) for
-//      hunk 1. Using the shared function-scope `value` as the XOR temp does
-//      give the original's ecx-first pop order, but it re-colours the whole
-//      function (86.2%), proof the pick is global allocation. A fresh
-//      function-scope temp (`int t;` next to `value`) keeps 99.5% but does
-//      not flip the order either.
-// deepseek-v4.1-flash #2072 second pass (17 check.py runs, best stays 99.6%): the
-// remaining hunk is only the packer swapping base and offset slots, and it is
-// not reachable from the case body. Same 99.6% with the same hunk: no `p` at
-// all (direct pieces[piece] in the if), `Piece *p = pieces;` at the assignment
-// point instead of a forward declaration, an unused `int index = piece*19+axis;`
-// local, the two *declarations* swapped (axis first), forward declarations with
-// the assignments kept in place, `p` declared in the do-block before the
-// switch, and `(p = pieces)[piece].move[axis]` inside the condition. Worse:
-// `Piece *p = pieces;` before the stores (99.3%, base gets the third slot
-// [esp+0x1c] and the packer stores it early), `int& movep =`
-// pieces[piece].move[axis] (82.3%), `int* movep = &pieces[piece].move[axis]`
-// (82.3%), `Piece *p = pieces + piece;` with p-> (81.4%), p used for both
-// stores (81.6%), `Piece *p = pieces;` between the two stores (99.4%).
-// The emitted instruction stream is identical apart from the slot numbers, so
-// the pick is made by a global pass, not by the shape of this case.
 // FUNCTION: 0x4b0da0
 void CobScript::RunThread(unsigned int channel, int elapsed)
 {
@@ -579,6 +495,7 @@ void CobScript::RunThread(unsigned int channel, int elapsed)
         int arguments[4];
         do
         {
+            // One shared p, declared here and used by both the move and turn cases.
             Piece *p;
             unsigned int opcode = table->code[c->pc];
             switch (opcode & 0x100ff000)
@@ -920,6 +837,7 @@ void CobScript::RunThread(unsigned int channel, int elapsed)
                 break;
             }
             case 0x10059000: {
+                // Through the inline XorOp(): the inline boundary sets the pop registers.
                 c->XorOp();
                 c->pc++;
                 break;
@@ -1062,16 +980,6 @@ void CobScript::RunThread(unsigned int channel, int elapsed)
     }
 }
 
-// MATCH. The last 2 bytes (584 of 586) were the multiply: the original loads the
-// parameter into the destination register first (`mov ebp, [esp+0x2c]; imul ebp, edx`,
-// and in the turn block `mov ecx, [esp+0x2c]; ... imul ecx, eax`), so which operand of
-// the commutative `*` MSVC loads first matters here.
-// In the function's own file the multiply only landed with `#include <windows.h>`; in
-// the merged file it lands without it. What the merge does need is the record indexed
-// through Piece's e[6][3] view: with the named arrays (`pieces[i].move[i]` and friends)
-// MSVC swaps the base and index of every piece access (`[ecx + esi]` for the original's
-// `[esi + ecx]`, 96.9%); the two-dimensional view gives the original stream.
-//
 // Advance every moving piece by param_1 (a percentage) of its per-axis speed:
 // e[1] is the translation speed toward the e[0] limit, e[5] the turn speed with the
 // e[4] limit, e[3] the current angle, e[2] the wanted angle (-1 means none). Each
@@ -1085,6 +993,7 @@ void CobScript::AnimatePieces(int param_1)
     if (changed == 0)
         return;
     changed = 0;
+    // Piece records are indexed through the e[6][3] view, not the named arrays.
     for (int i = 0; i < table->pieceCount; i++) {
         if (pieces[i].active != 0) {
             pieces[i].active = 0;
@@ -1228,15 +1137,9 @@ void CobScript::SaveScriptState(HapiBank* file)
     }
 }
 
-// Finishing note (deepseek-v4.1-flash): the loader walks the source buffer with an INDEX
-// (buffer[i]), not with a walking pointer.  As a pointer the two loop-carried values came
-// out in the other stack slots and MSVC picked e[2] (0x18) as the block pivot, giving
-// "add esi,-0x4c"; as an index the record is the plain 0x6c struct (int e[6][3] at 0,
-// a[3] at 0x48, b[3] at 0x54, h[3] at 0x60), MSVC picks e[1] at 0x0c and emits the
-// original's "add esi,-0x58".  The esi bias is per outer iteration only: the latch stores
-// the unbiased buffer pointer back into [esp+0x10], so the j loop's "+4" never carries.
-// The three virtual calls before the j loop read the record's h[3] at 0x60; the two in the
-// j loop read a[j] at 0x48 and b[j] at 0x54.
+// The record is the plain 0x6c struct (int e[6][3] at 0, a[3] at 0x48, b[3] at
+// 0x54, h[3] at 0x60). The three virtual calls before the j loop read the
+// record's h[3] at 0x60; the two in the j loop read a[j] at 0x48 and b[j] at 0x54.
 // FUNCTION: 0x4b2040
 int CobScript::LoadScriptState(HapiBank* file)
 {
@@ -1265,6 +1168,7 @@ int CobScript::LoadScriptState(HapiBank* file)
     if (file->ReadBox(buffer, bytes) != bytes) {
         return 0;
     }
+    // Walk the buffer by index (buffer[i]), not with a moving pointer.
     for (int i = 0; i < table->pieceCount; i++) {
         pieces[i].active = 1;
         SetPieceVisible(i, buffer[i].visible);

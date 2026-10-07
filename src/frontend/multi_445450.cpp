@@ -1,30 +1,6 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
-// Matched: two independent fixes were needed on top of the earlier partial.
-//
-// 1. The scan loop's guard was wrong. The original requires p < end for both
-//    ways of stepping over a slot, so the source is
-//    `((active && type in 1..3 && field_146 != 10) || type == 4) && p < end`,
-//    not a `p < end` attached only to the type-4 clause. The earlier partial
-//    produced the same instructions but let the `jne` after the field_146
-//    compare jump straight to the `add edx, 0x14b`, skipping the bound test
-//    (original: `jne 0x4454a8`, the `cmp edx, ecx`).
-//
-// 2. The SIB base/index order in the renumbering loop (`[ecx + eax + 0x1b63]`
-//    with g_game as the base, not `[eax + ecx + 0x1b63]`) is the guide's
-//    header-dependent operand order: with `#include <windows.h>` at the top
-//    (and the corrected scan guard) MSVC emits the right SIB. `<windows.h>`
-//    on its own fixed the SIB but left the guard difference; the guard fix on
-//    its own left the SIB swapped. Neither header set from tools/headers.py
-//    matched by itself because the guard still differed.
-//
-// The earlier writer's two findings still hold and should not be undone:
-//  - reading the global into a local (`Game* g = g_game;`) as the
-//    first statement of the loop body moves the reloaded global into ecx;
-//  - taking the field through a byte pointer (`unsigned char* f =
-//    &g->players[i].field_146;` then `*f`) stops MSVC emitting an extra
-//    `lea ecx, [eax + ecx + 0x1ca9]` and reloading through it, so the store
-//    is written straight back to the same address as the compare.
 
+// Needed: gives the original SIB base/index order in the renumbering loop.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -96,7 +72,9 @@ void FUN_00445450()
         ((Player*)q)->SetType(0);
         q->active = 0;
         for (int i = 0; i <= 10; i++) {
+            // Global read into a local first: moves the reload into ecx.
             Game* g = g_game;
+            // Through a byte pointer: avoids a reload via an extra lea.
             unsigned char* f = &g->players[i].field_146;
             if (g->players[i].active != 0
                 && (g->players[i].type == 1 || g->players[i].type == 2

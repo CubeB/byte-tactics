@@ -1,16 +1,11 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 // VTOL transport (air lift) order handler. Fails when there is no target,
 // with flags 0x10048, or when the target sits below sea level. State 0
-// prepares the order ("Loading"; FUN_0040f200 is defined here because /Ob2
-// inlined it), state 1 flies to the target, state 2 asks the script for the
-// attach piece (QueryTransport), state 3 starts BeginTransport and hovers
-// down to the piece's height, state 4 ends the pickup (EndTransport when
-// cancelled) and state 5 finishes.
-// Match notes: the sea level test needs an inline helper that re-reads
-// order->target (see BelowSeaLevel), AttachUnitToPiece takes an int p3, and the
-// sea level sum's register order needs a header before the declarations
-// (<math.h>, which the file's neighbours use for _hypot; tools/headers.py
-// lists the others that work, but <vector> alone does not).
+// prepares the order ("Loading"; FUN_0040f200), state 1 flies to the target,
+// state 2 asks the script for the attach piece (QueryTransport), state 3
+// starts BeginTransport and hovers down to the piece's height, state 4 ends
+// the pickup (EndTransport when cancelled) and state 5 finishes.
+// Kept before the declarations: the sea level sum's register order needs a header.
 #include <math.h>
 
 struct Vec3 {

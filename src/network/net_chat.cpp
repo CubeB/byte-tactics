@@ -117,12 +117,11 @@ void __stdcall AddMessage(char* param_1, int param_2, int param_3, int param_4);
 // Appends a line to the ring buffer of 0x48-byte entries at g_game+0x12ef,
 // indexed by the short at g_game+0x2a3e (wrapped at 30). If the divisor at
 // g_game+0x37f27 says the head is one behind the tail, the head is advanced so
-// the oldest entry is dropped. Every access re-reads g_game and the tail from
-// memory, so the expressions are written out in full, and the object at
-// g_game+0x519 is recomputed for each of the last three calls.
+// the oldest entry is dropped.
 // FUNCTION: 0x463ca0
 void __stdcall AddMessage(char* text, unsigned char key, unsigned short value, char last)
 {
+    // Keep g_game, tail and the g_game+0x519 object written out at each use (no locals).
     if (!*text)
         return;
     if (g_game->field_37f27 == 0)
@@ -211,21 +210,11 @@ int ScrollToNextMessageUnit(void)
     return 0;
 }
 
-// MATCH. The last two instructions were the only difference for five earlier
-// passes, which all sat at 87.8%: ours hoisted the rectangle fill's two integer
-// computations (lea edx,[eax+0x8a] and the y + t sum) above the store of
-// r.top and gave the sum t's register (add eax,ecx), while the original stores
-// r.top first and then accumulates into y's register (add ecx,eax).
-// The lever was a declaration in the enclosing scope, not a spelling of the
-// block: `t` belongs to the function, not to the `if (id != 10)` body. With
-// `int t` there the store of r.top comes out first and the add drains ecx;
-// declared inside the body it does not, whatever the four stores, the sum, the
-// operand order, the read-backs, the helpers, the aggregates or the position
-// of the height statement are.
 // FUNCTION: 0x464060
 void __stdcall DrawMessages(void* surf)
 {
     int max_lines = g_game->max_lines;
+    // Function scope, not inside the if (id != 10) body: orders the r.top store first.
     int t;
     if (max_lines == 0)
         return;

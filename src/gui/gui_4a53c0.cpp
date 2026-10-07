@@ -1,34 +1,10 @@
 // Decompiled by space-bunny-free, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by Sonnet 5.5. Names are provisional.
-// MATCH 100% (748 bytes), found by Sonnet 5.5 (was 76.7%, 697 bytes).
-// What the function does: it walks the entry list of a layout object looking
-// for the n-th tab stop (entries whose +0x00 byte is 7), sets the language from
-// that entry, computes the line height, then lays the entry's text out right
-// aligned (+0x1b bit 2), centred (bit 1) or left at its measured width (bit 0),
-// writing the new x, width and line height back into the entry. The struct shape
-// comes from the matched sibling 0x4a4660; +0xb6 is a union (count on entry 0,
-// NUL terminated text elsewhere); +0x1b is a 4-byte field.
-//
-// Three things were needed, in this order of effect:
-//  1. The original keeps TWO live copies of x (esi from the ternary, ebx for the
-//     new x). A plain copy `int nx = x;` is copy-propagated away. It survives
-//     only when nx is a real variable with several definitions that meet at a
-//     common tail: `int nx = x;` (declared right after the ternary, before the
-//     line height), then each arm assigns nx (`nx = entry->w + x; nx -=
-//     Measure(..)` in the right arm, `nx = entry->w / 2 + x; ...; nx -= half;`
-//     in the centred arm) and ONE shared tail stores nx and the line height.
-//     MSVC tail-duplicates that tail into every exit by itself. Declaring nx
-//     later (after the line height) puts the `mov ebx, esi` after `test al,4`.
-//  2. In the centred arm the width store is the expression
-//     `entry->w = (short)(half * 2);` with NO named `nw` local (a local made lh
-//     load into ax instead of dx), after `nx -= half;`.
-//  3. The final x store goes through `entries[index].x`, not `entry->x`. The
-//     compiler cannot prove the two spellings are the same object, so it keeps
-//     the x store after the w store and before the h store; with every store
-//     through `entry` the scheduler freely reorders them (97.8%: h before x in
-//     the right and loop-exit tails, x before w in the centred tail, `pop edi`
-//     before the x store in the left tail). Routing the x store through
-//     `entries[index]` (alone, or together with h or w) is a MATCH; routing
-//     only h or only the w stores gives 98.9%.
+// Walks the entry list of a layout object looking for the n-th tab stop
+// (entries whose +0x00 byte is 7), sets the language from that entry, computes
+// the line height, then lays the entry's text out right aligned (+0x1b bit 2),
+// centred (bit 1) or left at its measured width (bit 0), writing the new x,
+// width and line height back into the entry. +0xb6 is a union (count on entry
+// 0, NUL terminated text elsewhere); +0x1b is a 4-byte field.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -115,6 +91,7 @@ void __stdcall FUN_004a53c0(Dialog* obj, int index)
     if (i == entries[0].b6.count + 1)
         SetFont(g_guiContext->language0);
     int x = !entry->type ? 0 : entry->x;
+    // Real variable declared here, assigned in each arm, one shared tail stores it.
     int nx = x;
     int lh;
     if (g_guiContext->language == 0)
@@ -128,9 +105,11 @@ void __stdcall FUN_004a53c0(Dialog* obj, int index)
         nx = entry->w / 2 + x;
         int half = Measure_004a53c0(entry->b6.text) / 2;
         nx -= half;
+        // No named local for the width: it changes how lh is loaded.
         entry->w = (short)(half * 2);
     } else if (entry->align & 1)
         entry->w = (short)Measure_004a53c0(entry->b6.text);
+    // Stored via entries[index], not entry: pins the store order of x, w and h.
     entries[index].x = (short)nx;
     entry->h = (short)lh;
 }

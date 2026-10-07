@@ -175,16 +175,14 @@ Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit* unit, Unit* targ
 void __stdcall AppendOrder(Unit* owner, Class_0043a1f0* node);
 
 // Order handler "Resurrecting": raises the unit a wreck (feature) came from.
-// The feature pointer starts at entry 0xffff (the "no feature" index), which
-// the original computes before the state test even though no path reads it.
-// The cell coordinates for the network packet go through a Point16 local:
-// MSVC then keeps x in bx with a 16-bit move and stores both fields late;
-// a plain short or int local gives `mov ebx, edx`.
 // FUNCTION: 0x404db0
 int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
 {
+    // Point16, not a short or int: a plain local changes how x is moved.
     Point16 cell;
     Point16 size;
+    // Set before the state test although no path reads it: the original
+    // computes it there.
     Feature* f = &g_game->features[0xffff];
     if (order->state <= 5) {
         unsigned short index = FindFeatureAtPos(&order->pos, &cell, &size);

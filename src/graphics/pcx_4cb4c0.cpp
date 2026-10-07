@@ -2,8 +2,7 @@
 // Relocates a tree of nodes loaded from a file: adds `delta` to each
 // (non-null) stored pointer of the node, its element array and, recursively,
 // its sibling and child nodes, then hands the node to SortPrimitives.
-// Any one of the common headers is needed for the `lea` on ptr_20 (with none,
-// MSVC emits `add`; tools/headers.py).
+// Any common header must be included: it makes ptr_20 compile to lea.
 #include <windows.h>
 
 struct Elem_004cb4c0 {                 // 0x20 bytes
@@ -29,7 +28,6 @@ struct Node_004cb4c0 {
 void __stdcall SortPrimitives(Node_004cb4c0* node);
 void __stdcall RelocateObject(int delta, Node_004cb4c0* node);
 
-// The loop only matches with a pointer walking the element array.
 // FUNCTION: 0x4cb4c0
 void __stdcall RelocateObject(int delta, Node_004cb4c0* node)
 {
@@ -47,6 +45,7 @@ void __stdcall RelocateObject(int delta, Node_004cb4c0* node)
         node->child = (Node_004cb4c0*)((char*)node->child + delta);
         RelocateObject(delta, node->child);
     }
+    // Pointer walking the element array: the loop needs it.
     Elem_004cb4c0* e = node->elems;
     for (int i = 0; i < node->count; i++, e++) {
         if (e->ptr_8)

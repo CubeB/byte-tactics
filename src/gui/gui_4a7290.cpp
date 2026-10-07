@@ -3,26 +3,7 @@
 // click inside the entry's rect (left or right button) selects its group and
 // gives it the focus; with the focus, the typed key is handled and Enter or
 // Escape (which also clears the text) end the edit.
-//
-// MATCH (claude-opus-5-5, from 85.8%). The earlier passes wrote everything
-// out by hand and fought the rect block for many sessions (their notes are in
-// the file's history). The whole function is real helpers from the same GUI
-// unit, defined here without FUNCTION lines and left to /Ob2:
-// - The rect at the top is FUN_004a15c0 inlined: its stores and the x0/y0
-//   reloads go through the out pointer, and the zero it keeps in eax across
-//   both arms is the inlined SelectFontForEntry's `n = 0`, which is the shape every
-//   hand-written rect missed. The group scan after it is SelectFontForEntry.
-// - The hit test is FUN_004a1920, and the focus test and the two focus
-//   resets are FUN_0049fcf0 and FUN_0049fc40 (both have no callers in the
-//   exe because /Ob2 inlined every call).
-// - Each button's action is one inline helper (Activate) with its own rect.
-//   Its FUN_004a15c0 and SelectFontForEntry stay calls because their share of the
-//   inline budget is (budget left - Activate's size) / R, and the three
-//   focus helper sites after it raise R to 5 (tools/c2prio.py --inline).
-//   Passing the outer rect instead keeps it address-taken, and MSVC then
-//   holds x0/y0 in registers across the rect block.
-// - Some CRT header is needed for the compiler state (<string.h>, <stdio.h>,
-//   <stdlib.h> and <windows.h> all match; with none it is 87.2%).
+// Some CRT header is needed for the compiler state.
 #include <string.h>
 
 #pragma pack(push, 1)

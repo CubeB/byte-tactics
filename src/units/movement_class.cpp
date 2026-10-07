@@ -9,6 +9,7 @@
 // SetPassMapCell in the symbol-id windows they match in (docs/c2-regalloc.md).
 #include <windows.h>
 #include <string.h>
+// Unused by the code, but it puts the pointer first in v[n] in BuildPassMap.
 #include <stdio.h>
 
 void __cdecl FUN_004d85a0(void* p);
@@ -342,11 +343,6 @@ static inline void setcell(unsigned int* q, int sh, unsigned int val)
 // reads the map back column by column and marks 1 on the inner edge. Each pass
 // works on a scratch row whose two bytes in front and field_4/field_6 cells
 // past the end are zeroed.
-//
-// <stdio.h> is load bearing: it changes nothing the function uses, but it is
-// what makes MSVC put the pointer first in `v[n]` instead of the index.
-// The extra braces around the two loops are needed because MSVC 5 leaks a
-// for-init variable into the enclosing scope, so the two `int j` clash.
 // FUNCTION: 0x440500
 void Class_00440500::BuildPassMap()
 {
@@ -364,6 +360,7 @@ void Class_00440500::BuildPassMap()
     buf = (unsigned char*)operator new(size + 3);
     v = buf + 2;
 
+    // Braces keep the two int j apart: MSVC 5 leaks a for-init variable into the enclosing scope.
     {
     for (int j = 0; j < field_14; j++) {
         Cell_00440500* c = &g_game->cells[j * field_10];
@@ -428,19 +425,6 @@ void Class_00440500::BuildPassMap()
 
 // Writes a rectangle of 2-bit cells into the transposed bitmap whose dword at
 // column x of row band (y>>4) holds 16 cells stacked down the column.
-//
-// The key to the original's 5 stack homes and its 0x14 frame is that the
-// two-bit cell mask is written as `~(3 << shift)` in the source, with only
-// the `3 << shift` part in a local (`m`) and the `~` written where the mask
-// is used. That leaves an extra NOT node in the expression tree, and MSVC 5
-// then keeps `~m` in ebp with a stack home: it stores it in the outer loop
-// body and reloads it at the top of the inner loop, exactly like the original
-//   mov [esp+0x18], ebp / jmp body / mov ebp, [esp+0x18]
-// With the whole mask as one local (`mask = ~(3 << shift)`) the NOT is folded
-// away, the mask is promoted straight into ebp with no home, and the frame
-// drops back to 0xc with the `v << shift` scheduled first, so the masked old
-// value is never live at the same time and never needs a home either. That
-// version is 71.2%.
 // FUNCTION: 0x440830
 void MovementClass::RefreshPassMap(Point a, Point b)
 {
@@ -464,6 +448,7 @@ void MovementClass::RefreshPassMap(Point a, Point b)
         for (int y = top; y < bottom; y++) {
             for (int x = left; x < right; x++) {
                 unsigned int v = FUN_0047e1f0(this, x, y);
+                // m holds only 3 << shift; the ~ stays at the use (a whole-mask local changes the frame).
                 unsigned int m = 3 << ((y & 0xf) * 2);
                 unsigned int* p = &cells[(y >> 4) * width + x];
                 *p = (*p & ~m) | (v << ((y & 0xf) * 2));
@@ -479,10 +464,6 @@ void FUN_00440930(void)
 
 // Rebuilds every in-use entry of the 32-entry table at 0x512358 for the
 // current map size and tracks the progress percentage in g_game+0x38d73.
-//
-// The size is computed from the entry fields just stored (q[-1], q[-2]), not
-// from the width/height locals. That makes MSVC 5 keep the table cursor in esi
-// and the size in edi; reading the locals instead gives edi/esi swapped.
 // FUNCTION: 0x440940
 void BuildAllPassMaps(void)
 {
@@ -504,6 +485,7 @@ void BuildAllPassMaps(void)
             unsigned int w = g_game->width;
             q[-2] = w;
             q[-1] = h;
+            // Size from the stored entry fields q[-1], q[-2], not the w/h locals.
             n = ((unsigned)(q[-1] + 0xf) >> 4) * q[-2];
             operator delete((void*)q[0]);
             if (n != 0) {

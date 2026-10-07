@@ -4,10 +4,8 @@
 // when it is not positive it takes the amount off the matching node, deleting
 // nodes (and asking again) until the amount is used up. The kind table's flag
 // 0x40000 selects which of the object's two lists (+0x60 or +0x5c) is used.
-// Header dependence: with <windows.h> (or most other headers) the kind table
-// read inside the loop keeps the table pointer as the base of the address and
-// the hoisted entry offset as its index; without a header MSVC swaps them.
 
+// Needs a header: without one the kind table's base and index swap.
 #include <windows.h>
 
 #pragma pack(push, 1)

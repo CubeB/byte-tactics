@@ -2,12 +2,8 @@
 // Two order handlers from the order table at 0x4fc490: "Repairing"
 // (0x402430) and the "Nanolathing" handler of mobile builders (0x402640).
 //
-// 0x402430 is defined in this file, before 0x402640, as in the original
-// source file: its 0.0f constant then comes first in the constant pool, so
-// 0x402640's 1.0f is followed directly by the -0.7 double, as in the
-// original (compiled alone, 1.0f gets four bytes of padding after it).
-// Any header include is needed: without one, 0x402430 swaps eax and edx in
-// the health compare and 0x402640 gets different register choices.
+// 0x402430 stays defined before 0x402640: the constant pool order follows it.
+// Keep a header include: without one the register choices change.
 #include <stdio.h>
 
 struct Vec3 {
@@ -209,15 +205,13 @@ static inline Point16 GridCell(Vec3 pos, Point16 size)
 // at the script's build piece, then spends worker time on it. When the order
 // is cancelled, the metal already spent is refunded (only half or 70% of it
 // for AI players on some difficulty settings).
-// The (double) casts on the full refund emit nothing; without them MSVC keeps
-// `refund` on the FP stack in that path (fld; fadd st, st(1); fstp; fstp st(0))
-// instead of adding it straight to the field.
 // FUNCTION: 0x402640
 int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
 {
     if (flags & 2) {
         if (order->target.owner != 0) {
             float refund = (unsigned int)((1.0f - order->target.owner->buildLeft) * order->target.owner->type->metalCost);
+            // The (double) casts on the full refund stay: they keep refund off the FP stack.
             if (unit->player->active && unit->player->type == 2) {
                 switch (g_game->difficulty) {
                 case 1:

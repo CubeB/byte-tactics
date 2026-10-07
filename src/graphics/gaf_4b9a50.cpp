@@ -4,11 +4,6 @@
 // is not the transparent colour straight into the surface. A child whose kind
 // byte (+0xb) is set is drawn by the blending version 0x4b9740, any other by
 // this function again.
-// Matching notes: the three rects are declared before w and h, which fixes
-// the base/index order of the rect-edge leas (they are not an MSVC tie-break
-// that no source reaches, as an earlier note claimed). The two outer loop
-// variables are the dead x / y argument slots, and col is declared before
-// rowBase inside the body.
 #include <windows.h>
 
 struct Rect_004b9a50 {
@@ -69,6 +64,7 @@ void __stdcall DrawFrameScaled(Surface* dst, Bitmap_004b9a50* bmp, int x, int y,
                 DrawFrameScaled(dst, e, x, y, sx, sy);
         }
     } else {
+        // The rects are declared before w and h: sets the order of the edge leas.
         Rect_004b9a50 src;
         Rect_004b9a50 dest;
         Rect_004b9a50 bounds;

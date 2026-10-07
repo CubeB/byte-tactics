@@ -1,19 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by opus. Names are provisional.
-// MATCH. Click handler of the campaign screen.
-//
-// What made it match:
-//  * The two blocks written out twice are the zero-caller neighbours
-//    FillCampaignList (rebuild the campaign list for a side) and FillMissionList
-//    (rebuild the missions list), matched in their own files and defined
-//    here unannotated so /Ob2 inlines them. Each compiles to its own file's
-//    bytes on its own. Inlined, FillMissionList re-reads the campaign holder
-//    from g_game after FUN_004d85a0 and takes the menu at g_game + 0x519 as
-//    its parameter, which gave the original's esi/edi choice. Its second
-//    parameter is unused; the caller passes FindGadgetChecked(entries,
-//    "Campaign"), which is why that call's result is dropped.
-//  * The Difficulty arm is an if/else-if chain that sets the new value and
-//    falls into one shared `FUN_004ab0a0(menu); return;` (a switch, or a
-//    return in each arm, puts g_game in eax and the value in ecx).
+// Click handler of the campaign screen.
 #pragma pack(push, 1)
 struct Entry_00477ab0 {
     char unknown_0[0xba];
@@ -70,6 +56,8 @@ char* __stdcall Translate(char* text);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 void __stdcall FUN_004ab0a0(void* menu);
 
+// FillCampaignList and FillMissionList stay unannotated so they inline into the
+// handler; FillMissionList takes the menu and re-reads the holder from g_game.
 void __stdcall FillCampaignList(int side)
 {
     Holder_00477ab0* gadget = *(Holder_00477ab0**)(g_game + 0x531);
@@ -169,6 +157,7 @@ void __stdcall HandleNewGameClick(Menu_00477ab0* menu)
         }
         if (IsCurrentGadgetNamed(menu, "Difficulty")) {
             PlaySoundByName("SmlButton", 0);
+            // If/else-if chain into one shared exit: a switch or per-arm return changes registers.
             int diff = *(int*)(g_game + 0x37eee);
             if (diff == 0) {
                 *(int*)(g_game + 0x37eee) = 1;

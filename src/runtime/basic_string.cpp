@@ -1,14 +1,11 @@
-// std::basic_string<char> members from the compiler's own <xstring>, compiled
-// with the game's options. LIBCPMT.LIB's copies are built with other options,
-// and only their smallest members are byte-identical to these.
+// std::basic_string<char> members from the compiler's own <xstring>.
 //  - 0x4c4ac0 to 0x4c50a0 sit among Cavedog's own functions: the copies one of
 //    Cavedog's objects instantiated. _Copy (0x4c4fa0) is between them too; it
 //    has a try/catch frame and no FPO record, so it is the gap region
 //    src/runtime/basic_string_4c4fa0.cpp.
 //  - assign (0x4e3c00) sits among the members of the original's string.obj
 //    (_Xlen before it, max_size, length_error and _Xran after it), compiled
-//    the same way. It calls max_size, the game row 0x4e3e10 (matched as
-//    FUN_004e3e10, so data/aliases.csv gives the name that address too).
+//    the same way. It calls max_size, the game row 0x4e3e10.
 #include <string>
 
 typedef std::basic_string<char, std::char_traits<char>, std::allocator<char> > String;

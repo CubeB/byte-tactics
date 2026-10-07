@@ -3,7 +3,7 @@
 // "." and "..", and, when param_2 is set, only directories) into the vector-like
 // container param_3 through its out-of-line insert at 0x4be6c0. The handle is a
 // directory search built by 0x4bc4b0 and advanced by 0x4bc640, and is closed by
-// 0x4bc8d0, whose body is inlined at the tail.
+// 0x4bc8d0.
 #include <string.h>
 #include <io.h>
 

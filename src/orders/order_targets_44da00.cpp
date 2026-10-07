@@ -3,21 +3,6 @@
 // std::vector<Point_0044eec0>: first the two vertical edges (for each x, the
 // bottom and top points), then the two horizontal edges (for each interior y,
 // the left and right points). Every point is appended with push_back.
-//
-// The translation unit was compiled with /Gz. The std::vector<Point> methods
-// (insert, size, _Ucopy, _Ufill, _Destroy) are members, so __thiscall either
-// way, but the free template functions in <xutility> became __stdcall there.
-// The original therefore calls its out-of-line copy (which data/symbols.csv
-// records as FUN_0044eef0, ret 0xc) without an `add esp` cleanup. Defining
-// _XUTILITY_ keeps the header's own __cdecl templates out, and the generic
-// ones below are written __stdcall so the inlined vector::clear tail calls
-// FUN_0044eef0 the way the original does.
-//
-// FUN_0044eef0 is the same 4-byte element copy loop as the generic std::copy
-// here, but its symbol in the exe is the placeholder FUN_0044eef0, not
-// std::copy. Declaring the Point* copy as a specialization that forwards to
-// it makes the call sit at the right address under a name the checker
-// accepts, while the body it forwards to is already matched in 0x44eef0.cpp.
 #include <string.h>
 #include <utility>
 

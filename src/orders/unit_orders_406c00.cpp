@@ -1,7 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // std::vector<Unit*>::_Destroy(first, last) from MSVC 5's <vector>: empty,
-// since the element type is trivial. _Destroy is protected, so a derived
-// class takes its address to make the compiler emit it out of line.
+// since the element type is trivial.
 // Its callers (0x405d90, 0x40b530, 0x480250 and others) inline
 // vector::insert and call 0x406c40 (_Ufill), 0x406c10 (_Ucopy) and 0x406c00
 // (_Destroy) with ecx set to the vector. 0x40ad80 calls _Ucopy, _Ufill,
@@ -17,6 +16,7 @@ struct Unit {
 typedef std::vector<Unit*> Vec_00406c00;
 typedef void (Vec_00406c00::*DestroyFn_00406c00)(Vec_00406c00::iterator, Vec_00406c00::iterator);
 
+// _Destroy is protected: the derived class takes its address to emit it out of line.
 struct Access_00406c00 : Vec_00406c00 {
     static DestroyFn_00406c00 fn;
 };

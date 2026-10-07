@@ -5,15 +5,14 @@
 // this function. The derived class has no destructor of its own, so the
 // implicit one only calls the base destructor.
 //
-// The overrides live at 0x480770-0x481470. An override has to keep the base
-// slot's name, so slots 7-19 here carry the base names while their addresses
-// (from 0x4fd698) are noted beside them. All 20 are defined as members of
-// UnitScript (src/units/unit_script.cpp).
+// The overrides live at 0x480770-0x481470. Slots 7-19 here carry the base
+// names, with their addresses (from 0x4fd698) noted beside them. All 20 are
+// defined as members of UnitScript (src/units/unit_script.cpp).
 //
-// InitUnitScript builds the object (`new` of 0x544 bytes, the base constructor
-// inlined call, then this class's vtable). It is not decompiled yet, so the
-// global below exists only to make the compiler emit the vtable and with it
-// this COMDAT here, as in src/game/data_files_42a870.cpp.
+// InitUnitScript builds the object (`new` of 0x544 bytes, then this class's
+// vtable).
+// The global below exists only to emit the vtable and this COMDAT, as in
+// src/game/data_files_42a870.cpp.
 
 struct Elem_4b0610 {
     int value;         // +0x0

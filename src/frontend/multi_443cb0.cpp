@@ -9,20 +9,6 @@
 // message box is shown, g_game->field_2bc0 is set to 3 and the function
 // returns. On success the game name is put on the menu, and a connection that
 // came back with an error status (neither 0 nor 2) is reported and cleared.
-//
-// Two source shapes are load bearing and are not the obvious spelling:
-//
-// - The gadget loop indexes gadget->entries[i] inline and binds the element to
-//   a reference inside the if. The entries pointer must NOT be held in a named
-//   pointer local: with a local MSVC encodes the load as `[eax + ecx]` (eax the
-//   table, ecx the 0x15b index) and reloads the table between the two stores;
-//   with the inline member access the encoding is the original's `[ecx + eax]`
-//   and one table load is reused for both stores.
-// - The description table loop is `for (j = 0; j < 20; j++)` with the shared
-//   offset computed as `j * 0xb9`. MSVC derives j*0xb9 as its own induction
-//   variable, which is what gives the original's `cmp eax,0xe74`, the
-//   `add eax,0xb9` increment and the `xor ecx,ecx; xor eax,eax` init order.
-//   A separate `off` counter emits the two xors the other way round.
 #include <stdio.h>
 #include <string.h>
 
@@ -124,6 +110,7 @@ void OpenSelectGameDialog()
         sprintf(name, "DATA%d", i);
         g_game->data[i] = FUN_004d83b0(name, 0xa00);
     }
+    // Offset is j * 0xb9, no separate off counter.
     for (j = 0; j < 20; j++) {
         g_game->desc[j].size = 0xb9;
         g_game->desc[j].offset = (int)(g_game->shared + j * 0xb9);
@@ -134,6 +121,7 @@ void OpenSelectGameDialog()
     FUN_004a1250(&g_game->sub, "WATCH", 1);
     for (i = 1; i < gadget->entries->count; i++) {
         if (gadget->entries[i].type == 2) {
+            // Indexed inline and bound by reference: no named entries pointer local.
             Entry_00443cb0& e = gadget->entries[i];
             e.handler = FUN_00441220;
             e.data = (int)g_game->desc;

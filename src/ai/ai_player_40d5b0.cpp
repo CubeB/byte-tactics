@@ -1,8 +1,6 @@
 // Decompiled by Opus. Names are provisional.
-// std::vector<Elem_0040cc40>::_Ufill(first, n, value) from MSVC 5's <vector>:
-// copy-constructs n copies of value into raw storage at first. _Ufill is
-// protected, so a derived class takes its address to make the compiler
-// emit it out of line.
+// std::vector<Elem_0040cc40>::_Ufill(first, n, value): copy-constructs n
+// copies of value into raw storage at first.
 // The element is a map cell and its sort key, as 0x40a7b0 and 0x40a260 use
 // it (its copy constructor is 0x40a5b0). Its callers (0x40a7b0, 0x40ca50)
 // inline vector::insert and call 0x40d5b0 (_Ufill), 0x40cc40 (_Ucopy) and

@@ -1,9 +1,7 @@
 // Decompiled by Opus. Names are provisional.
-// std::vector<Entry_00432cf0>::_Ucopy(first, last, dest) from MSVC 5's
-// <vector>: copy-constructs {string handle, int} pairs into raw storage
-// (the placement-new construct of 0x432cf0, inlined). Called with ecx set to
-// the vector. _Ucopy is protected, so a derived class takes its address to
-// make the compiler emit it out of line.
+// std::vector<Entry_00432cf0>::_Ucopy(first, last, dest): copy-constructs
+// {string handle, int} pairs into raw storage (the placement-new construct of
+// 0x432cf0). Called with ecx set to the vector.
 #include <vector>
 
 class Class_004c91a0 {
@@ -22,6 +20,7 @@ typedef std::vector<Entry_00432cf0> Vec_00432c40;
 typedef Vec_00432c40::iterator (Vec_00432c40::*UcopyFn_00432c40)(
     Vec_00432c40::const_iterator, Vec_00432c40::const_iterator, Vec_00432c40::iterator);
 
+// _Ucopy is protected: a derived class takes its address to get it emitted.
 struct Access_00432c40 : Vec_00432c40 {
     static UcopyFn_00432c40 fn;
 };

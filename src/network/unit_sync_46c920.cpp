@@ -3,14 +3,6 @@
 // Releases the overlay object at g_game+0x2a30 (UnitSync, built by
 // 0x46c8e0 and its constructor 0x46d040): `if (obj) delete obj;` with the
 // whole ~UnitSync inlined here.
-//
-// The function must be __fastcall (or the TU was built with /Gr). As a plain
-// __cdecl or a __thiscall method, MSVC reloads the list iterator before the
-// erase loop's bottom test, `mov ecx,[esp+0x10]; cmp ecx,ebx`; the original
-// compares the stack slot directly, `cmp [esp+0x10],ebx`. With __fastcall
-// (no arguments, so the code is otherwise unchanged) it is byte-identical.
-// The map at +0x00 is the real std::map<unsigned int, UnitSyncEntry>, so its
-// erase keeps the name 0x46e890 has in data/symbols.csv, as in 0x46d1a0.cpp.
 #include <list>
 #include <map>
 #include <vector>
@@ -39,6 +31,7 @@ public:
 
 class UnitSync {
 public:
+    // Real std::map: its erase keeps the symbols.csv name.
     std::map<unsigned int, UnitSyncEntry> map;     // +0x00
     std::vector<UnitSyncPlayer> elems;             // +0x10
     std::list<int> ids;                            // +0x20
@@ -63,6 +56,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x46c920
+// __fastcall: keeps the erase loop comparing the iterator slot directly.
 void __fastcall DeleteUnitSync()
 {
     if (g_game->field_2a30)

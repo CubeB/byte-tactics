@@ -1,22 +1,11 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
-// A method of PlayerAI, whose other methods are in player_ai.cpp; this one
-// stays apart because it builds the unit lists one and two wrapper levels
-// deep, to spend its inline budget as the original does.
+// A method of PlayerAI, whose other methods are in player_ai.cpp.
 //
 // Constructor of a player's AI state object (g_playerAI[player], built by
 // 0x40b320; 0x40b390 destroys it). Its out-of-line STL callees are
 // std::vector<Unit*>::vector(const allocator&) (0x40c510),
 // std::vector<short>::size() (0x40d000) and
 // std::vector<Elem_0040cfb0>::size() (0x40cc80), among others.
-//
-// Which calls MSVC 5 inlines here depends on its inline budget, and the
-// member layout below is what reproduces the original's choices: the unit
-// lists at +0x05 and +0x15 are one wrapper deep (their vector constructors
-// are inlined), the one at +0x25 two wrappers deep (its vector constructor
-// is called out of line), the first resize() inlines size() but not
-// insert/erase, the next two call size() out of line, and the last four
-// resize() calls are out of line. The fill values of the struct vectors live
-// in block scopes so they share the dead parameter slot, as in the original.
 #include <vector>
 
 struct Unit {
@@ -85,6 +74,8 @@ class PlayerAI {
 public:
     char* player;                      // +0x00
     unsigned char index;               // +0x04
+    // Wrapper depth decides which vector constructors inline: list_5 and
+    // list_15 are one level deep, group_25 two.
     UnitList_00409160 list_5;          // +0x05
     UnitList_00409160 list_15;         // +0x15
     Group_00409160 group_25;           // +0x25
@@ -129,6 +120,7 @@ PlayerAI::PlayerAI(unsigned char p)
     int n = g_game->count;
     vec_9d.resize(n, 0);
     vec_7d.resize(n, 0);
+    // Fill values stay in block scopes so they share the dead parameter slot.
     {
         Elem_0040cfb0 e;
         e.a = 0;

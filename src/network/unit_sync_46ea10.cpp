@@ -4,9 +4,6 @@
 // lock) for the std::map<unsigned int, UnitSyncEntry> tree whose _Nil node
 // is DAT_0051e598. Its callers are the tree's erase(first, last) (0x46e890)
 // and erase(iterator) (0x46f1e0), both through erase(_F++), and 0x46dad0.
-// Renamed from Class_0046ea10::FUN_0046ea10 in #249; the real template
-// compiles to the same bytes. Built without /GX, as Cavedog did, so the
-// locks need no EH frame.
 #include <map>
 
 struct UnitSyncEntry {                 // 0x10 bytes

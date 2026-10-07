@@ -2,9 +2,7 @@
 // Class_004750b0 (vtable 0x4fd638, 0x34 bytes), derived from ParticleSystem
 // (the family is listed in 0x471cc0.cpp): the same shape as SmokeParticles,
 // without the fog culling.
-//
-// <windows.h> is needed (found with tools/headers.py): without it slot 2
-// subtracts the scroll y before the half height.
+// Needed: without <windows.h> slot 2 subtracts the scroll y before the half height.
 #include <windows.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -115,12 +113,7 @@ public:
 };
 
 // The constructor: an empty vector of particles, and the current tick as the
-// next emit time. The base constructor is called out of line. Its vtable
-// reference makes the compiler emit the scalar deleting destructor here too:
-// the implicit destructor destroys the std::vector at +0xc (the inlined
-// ~vector leaves the dead store of _First in the `push ecx` slot) and calls
-// the base destructor (0x471d00), and the class's operator delete (0x471d50)
-// frees it; both are called out of line.
+// next emit time. The base constructor is called out of line.
 // FUNCTION: 0x4750b0
 // FUNCTION: 0x475110 ??_GClass_004750b0@@UAEPAXI@Z
 Class_004750b0::Class_004750b0()
@@ -145,9 +138,7 @@ void Class_004750b0::FUN_00475150(Vec3_00475150* p, int a, int b, int c)
 
 // Slot 4: appends one particle holding the effect named by
 // g_game->unknown_147cf at this->pos, a random lifetime of 2 to unknown_24 - 1
-// periods, and a countdown of unknown_20 periods. The body runs once per call
-// inside a countdown loop: MSVC 5 folds a one trip loop away when the body is
-// small, and keeps it as a counter when it is not.
+// periods, and a countdown of unknown_20 periods.
 // FUNCTION: 0x4751c0
 void Class_004750b0::Emit()
 {
@@ -159,6 +150,7 @@ void Class_004750b0::Emit()
     // position and the vector's _Last through them.
     Vec3_00475150* p = &pos;
     std::vector<Class_00474fc0>* v = &records;
+    // One-trip countdown loop stays: the original keeps it as a counter.
     int i = 1;
     do {
         Class_00474fc0 rec;

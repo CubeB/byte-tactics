@@ -1,21 +1,7 @@
 // Decompiled by GPT-6 Astra, finished by space-bunny-free, finished by deepseek-v4.1-flash,
 // finished by GPT-6.1-sol, finished by Claude Opus 5.5. Names are provisional.
-//
-// What made this match (91.3% before):
-// - Vec3::operator- is the explicit-component form the matched sibling 0x413d80
-//   (same translation unit) uses. That makes the state 3 block byte exact, but
-//   on its own it ties `range` and `order` at priority 130 (c2prio), and range
-//   wins the tie on its +0x40 key, so order and range trade esi and edi.
-// - `int ok = AddBuildProgress(...); if (ok)` adds a candidate to a block that
-//   references order, which raises order to 134 and gives it esi again (97.1%
-//   with <stdlib.h>; only the six bounds adds were left).
-// - The operand order of the six bounds adds (pos.x + min.x and so on) follows
-//   the symbol ids, so it moves with the headers and with code-neutral
-//   spellings. What puts all six in place (found by the permuter): <memory.h>
-//   plus <windows.h>, the state 0 test written as two nested ifs, and an empty
-//   `do {} while (0);` in UnitRef::Get(), a debug check that compiles to
-//   nothing. Without the do-while no header set gets past 97.1%; without the
-//   `ok` local the function drops to 73.3%.
+// Kept: the operand order of the six bounds adds follows symbol ids, so this
+// header set matters.
 #include <memory.h>
 #include <windows.h>
 struct Point { short x, y; };
@@ -71,7 +57,7 @@ void __stdcall DetonateUnitWeapon(Unit*, int);
 struct UnitRef {
     void* table;
     Unit* ptr;
-    // The empty do-while is a debug check that compiles to nothing; see the notes.
+    // The empty do-while is a debug check that compiles to nothing.
     Unit* Get() { do {} while (0); return ptr; }
 };
 struct Order {
@@ -130,6 +116,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
         unsigned int state=0; state=order->state;
         switch(state) {
         case 0:
+        // Two nested ifs, not one &&: part of what places the bounds adds.
         if (unit->motion) {
             if (unit->def->flags&0x800) {
                 if (!unit->def->canBuild) return 7;
@@ -173,6 +160,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
             ((Class_004388d0*)order)->FUN_004388d0((int)move);
         }
         int rate=0; rate=unit->def->buildRate;
+        // The ok local is needed: it adds a register candidate that keeps order in esi.
         int ok=AddBuildProgress(unit,order->target.Get(),(float)(rate/30));
         if (ok) {
             Vec3 start;

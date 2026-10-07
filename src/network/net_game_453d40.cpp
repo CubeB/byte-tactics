@@ -1,34 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by claude-opus-5-5, finished by DeepSeek V4.1 Flash,
 // checked by GPT-6, finished by claude-opus-5-5. Names are provisional.
-//
-// MATCH (claude-opus-5-5, #5136), from the #4288 rewrite (63.3%) in four steps:
-//  - FindPlayerIndex and FindPlayerSlot test `if (id == -1) return 10;` first
-//    instead of wrapping the loop in `if (id != -1)`. The code is the same,
-//    but each inlined result now counts one more reference, which puts the
-//    16 result slots below the ~40 loop counters as in the original: every
-//    scalar frame slot lands right (63.3 -> 79.2). The two copies of the slot
-//    lookup (one had the early return already) are one helper now.
-//  - case 24's reply buffer is declared in the loop body, not inside the
-//    IsConnected block, so the argument pushes stay after the InfoPacket
-//    stores and p->id is reloaded for the call (79.2 -> 95.9); the stores
-//    are memcpy, the id, then the type byte.
-//  - <windows.h> (WIN32_LEAN_AND_MEAN): with that many declarations before
-//    the function every two-register address takes the pointer as its base
-//    ([edx+eax+K], [ebx+esi+K]); dummy declarations do the same from about
-//    3200 on. <memory.h> sets the count to a value where case 35's
-//    allies[a->index][b->index] store has the original's form; that store
-//    flips with period 16 in the declaration count (see #4992's notes).
-//  - case 3 reads info before payload: on equal priority C2 gives esi to the
-//    variable written first in the block (tools/c2prio.py).
-//
-// Shape facts from the earlier rounds that still hold:
-//  - The lookups are the real helpers next door (0x44fdb0 .. 0x450910);
-//    MSVC 5 inlines a helper only while its size budget lasts, so the same
-//    lookup appears inlined, half inlined (GetSlotDpid called) or called
-//    (FindSlotByDpid). Each variant is spelled out below.
-//  - `int target = FindPlayerIndex(..)` (not unsigned char).
-//  - InGame(p) is one helper; GetHostDpid (HostId) is a real function.
-//  - RejectPlayer's second parameter is an int.
+// Headers and declaration count are load-bearing: windows.h sets the base/index
+// order of address operands, memory.h the form of the case 35 allies store.
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <string.h>
@@ -235,6 +208,7 @@ void RebuildAllyList();
 int __stdcall GetSlotDpid(unsigned char);
 unsigned char __stdcall FindSlotByDpid(int);
 int __stdcall AddNetPlayer(int);
+// Second parameter must be an int.
 int __stdcall RejectPlayer(int, int);
 void __stdcall BuildGameInfo(char*, int*, int*, int*, int*);
 void __stdcall HAPINET_updategameinfo(void*, char*, char*, int, int, int, int);
@@ -270,6 +244,8 @@ void __stdcall ShareMapInfo(unsigned char, unsigned char);
 void __stdcall HandlePlayerEconomy(void*, Player*);
 void __stdcall SetGameSpeed(int, int);
 
+// The lookups below stay spelled out as inlined, half inlined or called: the
+// inline budget makes each variant differ.
 static inline int GetPlayerId(unsigned char i)
 {
     if (i != 10 && g_game->players[i].state)
@@ -277,6 +253,8 @@ static inline int GetPlayerId(unsigned char i)
     return -1;
 }
 
+// FindPlayerIndex and FindPlayerSlot test `id == -1` first, not a wrapped loop:
+// adds a reference per inlined result, which orders the frame slots.
 static inline unsigned char FindPlayerIndex(int id)
 {
     if (id == -1)
@@ -331,6 +309,7 @@ static inline unsigned char FindHost()
     return 10;
 }
 
+// A real function, not inline.
 int GetHostDpid()
 {
     int i;
@@ -381,6 +360,7 @@ static inline int IsValid(Player* p)
     return p->active && (p->state == 1 || p->state == 2 || p->state == 3);
 }
 
+// One helper, not split.
 static inline int InGame(Player* p)
 {
     return IsValid(p) && p->index != 10;
@@ -497,9 +477,11 @@ int HandleNetPackets()
                 if (!AddNetPlayer(msg->id))
                     break;
                 PlayerById(msg->id);
+                // int, not unsigned char.
                 int target = FindPlayerIndex(msg->id);
                 if (!((Class_00456030*)&g_game->players[FindHost()])->FUN_00456030())
                     break;
+                // info is read before payload: on equal priority the register goes to the first written.
                 PlayerInfo* info = LocalPlayer()->info;
                 char* payload = msg->field_10;
                 if (info->w9b.bit15) {
@@ -608,6 +590,7 @@ int HandleNetPackets()
             if (to == g_game->local && (g_game->flags_2a44 & 1)) {
                 for (int i = 0; i < 10; i++) {
                     Player* p = &g_game->players[i];
+                    // Declared here, not inside the IsConnected block: keeps the pushes after the stores.
                     unsigned char reply[0xba];
                     if (IsConnected(p)) {
                         BroadcastPacket(p->id, InfoPacket(reply, p), 0xba);

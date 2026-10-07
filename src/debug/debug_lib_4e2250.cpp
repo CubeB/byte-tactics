@@ -1,27 +1,7 @@
 // Decompiled by space-bunny-free, finished by Claude Opus 5.5. Names are provisional.
-// std::_Tree<...>::insert(const value_type&) from MSVC 5's <xtree>, for the
-// name map whose key is a C-string class and whose value is a 500-byte
-// buffer (pair<const key, value> is 0x1f8 bytes, the node 0x208). The <map>
-// instantiation, std::map<NameKey, Value_004e2250,
-// std::less<NameKey>, pooled allocator>, compiles to these 801 bytes
-// exactly; this file transcribes it member for member so that every
-// out-of-line callee keeps the name it already has in data/symbols.csv.
 // Each _Tree member lives on the class that names its address, chained by
 // inheritance: _Rrotate 0x4e29b0, _Lrotate 0x4e2950, _Buynode 0x4e2a30,
 // _Insert 0x4e2620, iterator::_Dec 0x4e2ab0, the key's operator< 0x4e1a30.
-// The /Ob2 budget decides the shape, so the transcription keeps the XTREE
-// bodies and accessors as they are (c2prio.py --inline shows the same
-// decisions as the real template): the key compare inlines only in the
-// search loop (it must be the one-expression `return a != b && strcmp(a, b)
-// < 0;`; the if/return form is 60 IL, over the loop's share of 55), _Insert
-// (788 IL) inlines only on the _Multi path, and the budget left after the
-// second pair<iterator, bool> constructor (41 IL) is 39, so the last two
-// call the constructor out of line at 0x4e2a10. That constructor is matched
-// as the method Class_004e2a10::FUN_004e2a10 in 0x4e2a30.cpp, so
-// data/aliases.csv gives it its constructor name as well.
-// The iterator returned by the out-of-line _Insert at 0x4e24c3 is built in
-// the _V argument slot, which is dead once _V has been pushed; that is the
-// compiler reusing the slot, not a bug.
 #include <string.h>
 #include <map>
 
@@ -33,6 +13,7 @@ public:
 
     bool FUN_004e1a30(const NameKey& o) const
     {
+        // One expression: the if/return form changes what inlines.
         return name != o.name && strcmp(name, o.name) < 0;
     }
 };
@@ -79,6 +60,7 @@ typedef Node_004e2250* _Nodeptr;
 extern _Nodeptr DAT_005292c4;          // the tree's _Nil
 
 // The members and static accessors of std::_Tree.
+// Kept as the XTREE bodies and accessors: the inline budget follows their shape.
 class Tree_004e2250 {
 public:
     static _Redbl_004e2250& _Color(_Nodeptr _P)

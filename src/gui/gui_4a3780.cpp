@@ -1,40 +1,4 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Space Bunny Free, rewritten by claude-opus-5-5, finished by DeepSeek V4.1 Flash, notes by claude-opus-5-5, checked by GPT-6, improved by claude-opus-5-5, matched by claude-opus-5-5. Names are provisional.
-// MATCH (#5337). The last difference (obj reloaded into ecx at the
-// field_cca store instead of kept in esi across the join, plus two scratch
-// registers in the scroll paths) was the shared `return 1` block. In C2's
-// joint live-range split (FUN_00438f79) every block joins the region of its
-// first predecessor, in block order, that still has a free register, and a
-// split point goes at the end of each predecessor in another region. With
-// one label, the return block's first predecessor was the first arm's
-// `!(flags & 0x200)` test, so a split was put at the end of the 0x40 test
-// and cut obj's live range before the store. The original has two labels
-// at the return: the `field_ba < 0` exit goes to `above:`, which the 0x40
-// test falls into, and the other two first-arm exits go to `ret1:` just
-// after it. `above:` stays an empty block until after allocation; its first
-// predecessor with a region is the 0x40 test (the `field_ba < 0` block has
-// no free register), so the split lands at the end of the empty block,
-// where obj is not live. The labels in the other order, or any other pair
-// of exits on `above:`, stay at 93.4%; an empty statement between the two
-// labels, or both labels at the end of the function, also match.
-// Load-bearing, from earlier passes (#5158 and before):
-//  - The flag8 block declares `k` after the pointer choice and indexes the
-//    rows with me->field_bc directly; with `int k = me->field_bc;` before
-//    the `if (flag8)` the flags local takes ecx and loses its frame slot.
-//  - `int remain` before `int n2 = 0;`, and the 0x10 clamps written plainly
-//    (`>= field_c0 - 1`, then `if (me->field_ba < 0) me->field_ba = 0;`).
-//  - The rectangle is the inlined GetGadgetRect (matched), called as
-//    `GetGadgetRect(&entries[index], &r)` like the sibling 0x4a1b40; with
-//    `me` the y1 lea's operands swap.
-//  - `if (me->field_c0 == 0) goto skip0;` with skip0 at the end of the
-//    in-rect block: the original reloads point.x on that edge only.
-//  - The scroll-up/scroll-down tails share one DrawListBox/FUN_004a2be0
-//    pair through `goto finish` (MSVC 5 does not merge return blocks, so
-//    the first arm's exits are gotos too).
-//  - The 0x10 line computation stores straight into me->field_ba and tests
-//    the field; the SkipTextLines result goes through `char* s`; the sync
-//    loop clamp is min().
-//  - The 0x20 test is `flags & 0x20 | 0x80`, an original bug kept as is: it
-//    parses as `(flags & 0x20) | 0x80` and is always true (docs/bugs.md).
 #include <string.h>
 #include <windows.h>
 
@@ -168,6 +132,7 @@ int __stdcall HandleListBoxInput(Object_004a3780* obj, int index, int param_3)
         return 0;
     Rect_004a3780 r;
     unsigned int flags;
+    // Called on &entries[index], not me: with me the y1 lea operands swap.
     GetGadgetRect(&entries[index], &r);
     int n = 0;
     r.y0 += 2;
@@ -192,10 +157,12 @@ int __stdcall HandleListBoxInput(Object_004a3780* obj, int index, int param_3)
     short da = me->field_da;
     int span = (da != 0) ? da : size + 1;
     int step = (me->field_19 - 2) / span;
+    // The SkipTextLines results go through this s.
     char* s;
 
     if (IsDoubleClickMessage(obj, 1)) {
         if (point.x >= r.x0 && point.x <= r.x1 && point.y >= r.y0 && point.y <= r.y1) {
+            // skip0 sits at the end of the in-rect block: reloads point.x on this edge only.
             if (me->field_c0 == 0) goto skip0;
             if (!(me->flags & 0x200))
                 goto ret1;
@@ -233,6 +200,7 @@ skip0:;
         obj->holder->field_20 = index;
         flags = me->flags;
         if (flags & 0x10) {
+            // Stores straight into me->field_ba and tests the field; clamps written plainly.
             me->field_ba = (point.y - r.y0) / span + me->field_bc;
             if (me->field_ba >= 0) {
                 if (me->field_ba - me->field_bc > step - 1)
@@ -248,6 +216,7 @@ skip0:;
                 }
                 for (i = 1; i <= entries[0].count; i++) {
                     if (entries[i].type == 2 && entries[i].kind == me->kind)
+                        // min() for the sync clamp.
                         entries[i].field_ba = min(entries[i].field_c0 - 1, me->field_ba);
                 }
             } else {
@@ -263,7 +232,9 @@ skip0:;
                 fixed = &((Row_004a3780*)me->field_c6)[me->field_bc];
             else
                 ip = &((Item_004a3780**)me->field_c6)[me->field_bc];
+            // k is declared after the pointer choice, not before the if (flag8).
             int k = me->field_bc;
+            // remain stays declared before n2.
             int remain = point.y - r.y0 - 2;
             int n2 = 0;
             for (;;) {
@@ -292,6 +263,7 @@ skip0:;
                 me->field_ce(obj, me);
         }
         if (me->flags & 0x40) {
+            // Two labels in this order: the return block's live-range split depends on it.
 above:
 ret1:
             return 1;
@@ -326,6 +298,7 @@ ret1:
                 if (strncmp(DAT_00502a20, s, 2) == 0)
                     me->field_ba = orig_sel;
             }
+            // Shared by both scroll tails via goto: MSVC 5 does not merge return blocks.
 finish:
             DrawListBox(obj, index);
             FUN_004a2be0(obj, index);

@@ -1,8 +1,7 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 // lower_bound over the sorted vector held by the global at 0x51fdb8, keyed by
-// the string handle in the first field of each 8-byte element (see the
-// inlined copy in 0x4c5740, which is the same loop followed by a final key
-// check). The vector member sits at offset 1 of the packed singleton object,
+// the string handle in the first field of each 8-byte element (0x4c5740
+// repeats this loop followed by a final key check). The vector member sits at offset 1 of the packed singleton object,
 // so its _First/_Last land at +5/+9.
 #include <string.h>
 

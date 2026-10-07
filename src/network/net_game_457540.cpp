@@ -10,30 +10,8 @@
 // team number, the two tables at +0x11e and +0x129 are eleven bytes each, one
 // entry per team.
 //
-// Two things are load bearing for the byte match:
-//
-// 1. The third byte of the 3-byte packet built in the second pass must be
-//    written as an if/else pair of constant stores,
-//        if (p->t0[team] != 0) team.flag2 = 1; else team.flag2 = 0;
-//    and not as the single expression `team.flag2 = (p->t0[team] != 0);`.
-//    Both give the same `test bl,bl; setne dl; mov [esp+N],dl`, but the
-//    expression form makes MSVC 5 materialise the bool as a 32 bit temporary
-//    and prepend a `xor edx,edx` to define it (hoisted to the top of the
-//    block). That costs 2 bytes, and because it also pushes the loop body's
-//    end past 127 bytes it turns the loop head's `je` from a short jump into a
-//    near one, another 4: 457 bytes against the original's 451. The if/else
-//    form if-converts to the setcc with a byte sized result and needs no
-//    zeroing. (The same trick with `? 1 : 0` also works; an `unsigned char`
-//    or `(unsigned char)` cast of the expression does not.)
-// 2. `#include <stdlib.h>` is load bearing although nothing here calls a
-//    library function. With `<string.h>` instead (the header the matched
-//    siblings 0x4572a0 and 0x4573d0 need), the first loop's last read comes out
-//    as `add ecx,edx; add ecx,eax; cmp byte [ecx+ebx+0x1c8c],0` where the
-//    original has `add ecx,ebx; add ecx,edx; cmp byte [ecx+eax+0x1c8c],0`:
-//    the same address, but with the loop pointer and g_game swapped between
-//    the base and the added-in register: 96.7% (same length, wrong operand).
-//    tools/headers.py says <windows.h>, <stdlib.h>, <math.h> and <ddraw.h> all
-//    flip it, so this is the first thing to try if the SIB order ever breaks.
+// <stdlib.h> must stay although unused: it sets the operand order of the
+// first loop's address sums.
 #include <stdlib.h>
 
 struct PlayerData_00457540 {
@@ -177,6 +155,8 @@ void __stdcall HandlePlayerEconomy(Packet_00457540* packet, Player_00457540* pla
         if (p->field_22 != 0)
             continue;
         p->t1[player->field_146] = 1;
+        // Must be an if/else of constant stores, not a bool expression, which
+        // adds a 32 bit temporary.
         if (p->t0[player->field_146] != 0)
             team.flag2 = 1;
         else

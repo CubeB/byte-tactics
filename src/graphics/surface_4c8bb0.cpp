@@ -1,23 +1,4 @@
 // Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by fledge-alpha-free, finished by claude-opus-5-5, finished by GPT-6, matched by claude-opus-5-5. Names are provisional.
-// MATCH (#5391), from 94.2%. Two changes, both needed (each alone scores
-// 94.2% or 88.6%):
-//  1. Both walks read y1 as `vertices[next*4+1]` instead of `nextVertex[1]`.
-//     That second use of `vertices + next*16` makes it a CSE, which each walk
-//     head builds in two expression temporaries (eax, ecx). In the right walk
-//     those two temporaries put the eax/ecx/edx rotation on the original's
-//     phase, so du through the y0<0 clamp get edx/eax as in the original.
-//     (The left walk's registers come out the same either way.)
-//  2. `next` is one function-scope variable shared by both walks, not a
-//     separate `int next` in each. With per-walk `next`, (1) forwards the right
-//     walk's nextVertex into a CSE home of its own (3 references), nextVertex
-//     drops from 6 references to 3 and six frame slots move (88.6%). With one
-//     `next`, the address CSE is the same expression in both walks and keeps
-//     the 6-reference home that pairs with dl in the frame, as in the
-//     original. This is the same trick as the shared index in the matched
-//     sibling 0x4c1000.
-// Earlier leads, kept for reference: a `currentVertex` local in the right walk
-// gets the rotation but changes the head (94.18%); `index=next` makes `next`
-// a register candidate and moves vertices into esi (42%).
 struct Surface_4c8bb0 { unsigned short width, height; };
 void __stdcall DrawLitTexturedSpan(int, int*, Surface_4c8bb0*, Surface_4c8bb0*);
 
@@ -58,6 +39,7 @@ void __stdcall DrawLitTexturedPolygon(Surface_4c8bb0* target, Surface_4c8bb0* te
                         int y1; int x;
                         int* out;
                         int* nextVertex;
+                        // One variable shared by both walks: a per-walk next moves six frame slots.
                         int next;
                         {
                             out=&spans[0][0];
@@ -67,6 +49,7 @@ void __stdcall DrawLitTexturedPolygon(Surface_4c8bb0* target, Surface_4c8bb0* te
                                 if (next<0) next=3;
                                 y0=vertices[index*4+1];
                                 nextVertex=vertices+next*4;
+                                // Read through vertices, not nextVertex: makes the address a shared subexpression.
                                 y1=vertices[next*4+1];
                                 if (y1>0 && y0<y1) {
                                     int dy = y1-y0;

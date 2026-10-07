@@ -2,11 +2,7 @@
 // Smooths the map cells of a rectangle: each cell keeps the lowest (+6) and
 // highest (+5) of its own terrain height (+4) and those of its right, lower
 // and lower-right neighbours.
-// <stdio.h> is included because headers.py needs it: without it MSVC 5 picks
-// the row stride as the base of the two neighbour height loads
-// ([edx+eax+4] instead of [eax+edx+4]), which is 2 bytes out of 347. The same
-// state is reached with 20 to 58 unused extern declarations in front, so the
-// source shape is right and only the compiler's state was wrong.
+// Needed: it changes the operand order of the neighbour height loads.
 #include <stdio.h>
 #pragma pack(push, 1)
 

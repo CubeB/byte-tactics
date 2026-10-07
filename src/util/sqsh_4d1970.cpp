@@ -1,10 +1,5 @@
 // Decompiled by deepseek-v4.1, finished by Sonnet 5.5. Names are provisional.
 // Unpacks a "SQSH" chunk (see SquashPack for the packer).
-// Two things made this match. `data` is advanced past the header (`data += 0x13`)
-// while a separate `chunk` pointer keeps the original address, which gives the
-// original's edx/ebx split: edx walks the payload, ebx is the chunk for the case-2
-// size check. And the size is chosen as `memcmp(...) ? 0 : chunk->size` through a
-// temporary (`== 0 ? size : 0` compiles to an extra `jmp` and `xor eax, eax`).
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -26,6 +21,7 @@ int __stdcall _uncompress(unsigned char* dest, unsigned long* destLen, unsigned 
 int __stdcall SquashUnpack(char* dest, char* data)
 {
     Chunk_4d1970 header;
+    // Separate from data, which is advanced past the header: keeps the address.
     Chunk_4d1970* chunk = (Chunk_4d1970*)data;
     memcpy(&header, data, 0x13);
     if (memcmp(&header, "SQSH", 4) != 0) {
@@ -54,6 +50,7 @@ int __stdcall SquashUnpack(char* dest, char* data)
         length = LzssExpand((unsigned char*)dest, (unsigned char*)data);
         break;
     case 2:
+        // Through a temporary: the `== 0 ? size : 0` form adds a jmp.
         { int t = memcmp(chunk, "SQSH", 4) ? 0 : chunk->size;
         length = t; }
         _uncompress((unsigned char*)dest, (unsigned long*)&length, (unsigned char*)data, header.compressedSize);

@@ -5,9 +5,6 @@
 // the same amount, so the source follows the clip), clips the right edge, and
 // then blits: 8 bits per pixel is an inline loop, 0x10/0x20/0x40/0x80 go to
 // helpers, and anything else is an inline loop with a per-row byte stride.
-// The left-edge clip repeats (bounds.left - rect[0]) inline in both updates
-// instead of using a skip temporary; the compiler keeps the common difference
-// in ecx and both updates are read-modify-writes straight to memory.
 #include <stdio.h>
 
 struct Rect_4c7310 {
@@ -52,6 +49,7 @@ void __stdcall DrawQuadRow(int param_1, int* rect, Surface* surf, Info_4c7310* i
     int x;
 
     surf->GetClipRect(&bounds);
+    // bounds.left - rect[0] is repeated inline in both updates, no skip temporary.
     if (rect[0] < bounds.left) {
         rect[2] += rowstep * (bounds.left - rect[0]);
         rect[3] += colstep * (bounds.left - rect[0]);

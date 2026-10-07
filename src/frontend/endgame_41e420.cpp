@@ -4,8 +4,6 @@
 // player's colour), the player's name as a TEXT gadget, and seven bars
 // (Kills, Losses, EProduced, MProduced, EWasted, MWasted, Score) scaled
 // against the per-stat values at +0x3918f, one row every 0x14 pixels.
-// The setup statements before the loop must stay in this order: moving the
-// button's flag bit or the four bar fields changes the register choice.
 #include <windows.h>
 #include <string.h>
 
@@ -132,6 +130,7 @@ void FillEndGameStatistics(void)
     char name[64];
     Menu_0041e420* menu = &g_game->menu;
     Entry_0041e420* entries = menu->holder->entries;
+    // Keep the setup statements in this order: it fixes the register choice.
     memset(&bar, 0, sizeof(bar));
     bar.h.flag = 0;
     bar.h.y = 0x5d;

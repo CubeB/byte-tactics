@@ -2,29 +2,11 @@
 //
 // Draws the outline of `r` (top, right, bottom, left edges in that order) into
 // `surface`, or into the screen when `surface` is 0 (locked with
-// LockScreen, unlocked with UnlockScreen). Each edge is a segment drawer of
-// the same shape as DrawLine (clip with ClipLine, fill with
-// FUN_004cc7ab); the screen path carries four hand-inlined copies of it whose
-// null-surface lock arm survives because the compiler only tests the address
-// of the local `screen`, exactly as in 0x4bf260.
-//
-// check.py prints MATCH (1172 bytes). The one source shape that carries it:
-// each edge's four clipped coordinates must be assigned y1, x1, y0, x0 (the
-// order 0x4bf260 documents), with `int x0, y0, x1, y1;` declared first and
-// assigned on separate statements. Writing one initialising declaration
-// (`int x0 = ...;`) instead compiles to exactly the same size but only 61.7
-// percent: it changes which dead argument slot each coordinate lands in and
-// the load order of the FUN_004cc7ab arguments.
-//
-// The surface != 0 path inlines only the first two edges (top, right) and
-// emits real DrawLine calls for the last two, i.e. the compiler ran its
-// inline expansion budget out after six copies; the two calls pass the
-// segment helper's spilled parameter slots, not fresh r-> loads.
+// LockScreen, unlocked with UnlockScreen). Each edge is a segment drawer of the
+// same shape as DrawLine (clip with ClipLine, fill with FUN_004cc7ab).
 //
 // Suspected original bug: the surface != 0 path returns an uninitialised
-// `result`. Its tail loads [esp+0x7c] (the arg2 slot, last written with
-// r->bottom by the right edge's inlined body) into eax, because `r` is dead
-// after being copied to esi; the screen path returns the lock result from ebx.
+// `result`.
 
 struct Surface {
     int unknown_0[2];
@@ -56,7 +38,9 @@ int __stdcall DrawRectangle(Surface* surface, Rect_004bf8c0* r, int color)
         result = LockScreen(&screen);
         if (result != 0) {
             {
+                // Declared first, then assigned y1, x1, y0, x0 as separate statements.
                 int x0, y0, x1, y1; y1 = r->top; x1 = r->right; y0 = r->top; x0 = r->left;
+                // Kept as in the original: the lock arm tests the address of `screen`.
                 if (&screen == 0) {
                     Surface inner;
                     if (LockScreen(&inner)) {

@@ -1,5 +1,5 @@
 // Decompiled by DeepSeek V4.1 Flash, GPT-6, GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
-// MATCH. This translation unit stands in for <algorithm> with __stdcall
+// This translation unit stands in for <algorithm> with __stdcall
 // instantiations, because the original was built with /Gz and its sort helpers
 // are callee-clean (0x488810, 0x488920, 0x488960). The three helper templates
 // carry their real global names (FUN_00488810/FUN_00488920/FUN_00488960) so
@@ -7,11 +7,6 @@
 // reference the names data/symbols.csv already has, while the body and
 // one-level inline stay exactly as the std:: originals. The std headers are
 // included for their __cdecl helper templates (copy_backward) and type traits.
-// The tail free-list loop is written with the item fields themselves (no
-// `slot` local): reading `item->0x67` back for the start and `item->0x6b` for
-// the end leaves the compiler's edx/esi roles exactly as the original (slot in
-// esi, zero-extended unitsPerPlayer in edx). A named `slot` local makes it put
-// slot in edx, unitsPerPlayer in esi and hoist `xor esi, esi`, 94.3%.
 
 #include <windows.h>
 #include <iterator>
@@ -179,6 +174,7 @@ void __stdcall AllocateUnitMemory(void)
             *(unsigned short*)(*(unsigned char**)((char*)item + 0x67) + 0xa8);
         *(unsigned short*)((char*)item + 0x71) =
             *(unsigned short*)(*(unsigned char**)((char*)item + 0x6b) + 0xa8);
+        // Item fields read back directly, no `slot` local: keeps the edx/esi roles.
         for (unsigned char* q = *(unsigned char**)((char*)item + 0x67);
              q <= *(unsigned char**)((char*)item + 0x6b); q += 0x118) {
             *(void**)(q + 0x96) = item;

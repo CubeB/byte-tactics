@@ -19,12 +19,6 @@ struct ArchiveDirectory {
 };
 
 // The entry a backslash-separated path names, walking down from `list`, or 0.
-//
-// The copy of a path component goes into its own `buf` and only then into
-// `name`. Written straight into `name` (as the sibling 0x4bc800 does), `path`
-// outranks `name` in C2's priorities and the two swap ebx and edi; the extra
-// local makes `name` a copy with few references of its own, so `buf` and `i`
-// are coloured before `path`.
 // FUNCTION: 0x4bb4e0
 ArchiveEntry* __stdcall HAPI_FindEntry(ArchiveDirectory* list, char* path)
 {
@@ -36,6 +30,7 @@ ArchiveEntry* __stdcall HAPI_FindEntry(ArchiveDirectory* list, char* path)
         sep = strchr(path, '\\');
         if (sep) {
             len = sep - path;
+            // Copy into its own buf, then into name: copying straight into name swaps registers.
             char* buf = (char*)_alloca(len + 1);
             strncpy(buf, path, len);
             buf[len] = 0;

@@ -138,6 +138,8 @@ void __stdcall FUN_00491c80(int n);
 void __stdcall ListDirectory(const char* pattern, int flags, std::vector<Class_004c91a0>* out);
 void HandleNetPackets();
 
+// Every float field is read through this: the double result goes into a float
+// local and is returned, which delays the x87 store.
 static inline float GetFloat(TdfRecord* section, const char* key)
 {
     double value = section->GetFieldDouble(key, 0.0);
@@ -343,9 +345,8 @@ public:
 // (0x434a30) and the destructor it registers with atexit (0x434a60).
 //
 // The element is 8 bytes and its destructor releases the reference-counted
-// string at +0 through ReleaseRef. The vector must be `static`: for an
-// external global MSVC reloads _First after the destroy loop on both paths
-// (into eax), while for a static it keeps _First in esi on the empty path.
+// string at +0 through ReleaseRef. Must stay file-static: an external global
+// reloads _First after the destroy loop.
 // FUNCTION: 0x434a30 _$E5
 // FUNCTION: 0x434a60 _$E3
 static MapCache DAT_005122c0;
@@ -354,10 +355,6 @@ static MapCache DAT_005122c0;
 // Replaces the singleton at g_game+0x391e9 with a fresh Mission when the
 // current one belongs to a different owner, then stores it back (NULL when the
 // allocation failed). The constructor body is inlined here.
-//
-// The original re-reads the global in the delete (the compiler keeps the
-// delete's null check because its operand is a load, not the condition's
-// value); loading it into a local first drops the check and is 4 bytes short.
 // FUNCTION: 0x434ab0
 void __stdcall FUN_00434ab0(int owner)
 {
@@ -365,6 +362,7 @@ void __stdcall FUN_00434ab0(int owner)
         if (g_game->field_391e9->type == owner) {
             return;
         }
+        // Re-read the global here, not through a local: keeps the delete's null check.
         delete g_game->field_391e9;
     }
     g_game->field_391e9 = new Mission(owner);
@@ -387,22 +385,6 @@ void FUN_00434b90()
     g_game->field_391e9 = 0;
 }
 
-// Aggregate grouping pins the frame order. The original's scalar locals were
-// members of one small local struct and its three 256-byte buffers were members
-// of another, so their frame offsets follow member order instead of MSVC5's
-// free-list order. With `struct { int count; int bFlag; int i; } s;` declared at
-// the top of the slow path and `struct { char name[256]; char lower[256];
-// char path[256]; } a;` at the top of the loop body the frame comes out:
-// allocator temp 0x10, s.count 0x14, s.bFlag 0x18, s.i 0x1c, files 0x20,
-// parser 0x30, a.name 0x3c, a.lower 0x13c, a.path 0x23c, byte-exact (886).
-// Earlier attempts (declaration/statement reordering, explicit allocator,
-// unsigned/size_t counts, header sets, N-declaration sweeps) all stalled at
-// 92.9% because MSVC5 numbers these slots by free-list order, which no scalar
-// declaration order moves. Grouping the two 256-byte pairs in the base version
-// was already right; grouping the scalars is what fixed the five small homes,
-// and grouping the buffers with name before lower fixes the last two.
-// The odd `mov al, [esp+0x13]` / `mov [files], al` pair is the inlined vector
-// default constructor copying the empty allocator temporary; no local for it.
 // FUNCTION: 0x434bf0
 int __stdcall LoadMapList(void** param_1, int param_2, int param_3)
 {
@@ -421,6 +403,7 @@ int __stdcall LoadMapList(void** param_1, int param_2, int param_3)
     }
 
     FUN_00491c80(0x14);
+    // The scalar locals are members of one struct: frame offsets follow member order.
     struct S { int count; int bFlag; int i; } s;
     
     if (param_2 == 0) {
@@ -441,6 +424,7 @@ int __stdcall LoadMapList(void** param_1, int param_2, int param_3)
 
     s.count = files.size();
     for (s.i = 0; s.i < s.count; s.i++) {
+        // The buffers are members of one struct, name before lower: same reason.
         struct A { char name[256]; char lower[256]; char path[256]; } a;
         BuildDataPath(a.path, "Maps", files[s.i].data, "OTA");
         TdfFile parser;
@@ -700,10 +684,7 @@ int Mission::CountMissions()
 }
 
 // Fills *param_1 with the mission list and returns how many missions there
-// are. Neighbours 0x4356f0 and 0x435980 share the same layout. The mission
-// count is built by a separate counter `m` and copied into `n` after the
-// loop; writing the loop directly on `n` makes MSVC 5 spill the zero to the
-// stack at the loop head as well as at the loop exit.
+// are. Neighbours 0x4356f0 and 0x435980 share the same layout.
 // FUNCTION: 0x435760
 int Mission::BuildMissionList(char** out)
 {
@@ -715,6 +696,7 @@ int Mission::BuildMissionList(char** out)
     if (strlen(&campaign[0]) == 0) {
         n = 0;
     } else {
+        // Counted in `m` and copied to `n` after the loop, not counted on `n`.
         int m = 0;
         while (1) {
             sprintf(buf, "MISSION%d", m);
@@ -806,31 +788,14 @@ int Mission::MissionExists(int index)
 // that mission. Types 2 and 3 load the map and, when the language is not
 // "english", put the translated name (0x4c5740) into the name slot at +0xb14,
 // keeping the original spelling when the lookup changed nothing. Every other
-// type returns 0. The load result and the mission list share one stack slot,
-// which is why `res` is passed as the list out-parameter in the type 1 branch.
-//
-// The single thing that decides the register allocation here is what
-// 0x4c5740 is given. Handed `(char*)this` the lowercased copy is dead after
-// the `_strlwr`, so nothing is live across the call: `this` then takes ebp with
-// no stack home, `count` is spilled to +0x14 and the loop is not rotated
-// (79.9%). Handed the buffer, `&lower` is live across the call, and the
-// allocator then keeps `this` in edi with its home at +0x14, `count` in ebp
-// and the 0 in ebx from the prologue, and rotates the mission loop so its head
-// is the reload of `this` that the inlined `strlen` clobbers.
-//
-// Tried without effect: `if (type == 1) A else if (type > 1 && type <= 3) B`
-// (matches the registers but lays A out first), the type 1 branch after the if
-// with its own `return 0`, nested ifs instead of `&&`, `0 < count`, `p` and `i`
-// at function scope, a `self = this` local used for every access, a shared vs
-// a separate local for the load result and the list head (the shared one is
-// what this file uses, it puts `res` at +0x10 as the original does), while
-// loops, `!_strcmpi` and `!= 0` spellings.
+// type returns 0.
 //
 // The `field_c1c = 0` store in the mission-loop branch repeats the one at the
 // top of the function, kept as the original has it.
 // FUNCTION: 0x435a20
 int Mission::LoadMissionByName(char* map)
 {
+    // One local for the load result and the mission list out-parameter.
     int res;
 
     field_c1c = 0;
@@ -841,6 +806,7 @@ int Mission::LoadMissionByName(char* map)
                 char lower[200];
                 strcpy(lower, map);
                 _strlwr(lower);
+                // Translate gets the buffer, not (char*)this: keeps `lower` live across the call.
                 strncpy(text_b14, Translate(lower), 0xff);
                 if (_strcmpi(text_b14, map) == 0)
                     strcpy(text_b14, map);
@@ -903,18 +869,8 @@ int Mission::FUN_00435c50()
 // Advances the current mission index when the embedded list holds more than
 // "current index + 1" consecutive MISSION<n> rules; resets the list cursor
 // first. Same scan and side effects as 0x435980.cpp and 0x435c00.cpp.
-//
-// check.py reports one BAD reference: the tail call at 0x435d02. The machine
-// code is byte-identical (100%), but data/symbols.csv records 0x435da0 as the
-// bare name "LoadMission", left there by 0x435c00.cpp, which declared it a
-// free __stdcall function. That worked in 0x435c00 only because ecx already
-// held `this` there. Here the original explicitly loads ecx = this with
-// `mov ecx, ebx` (0x435d00) before the call, so 0x435da0 is a __thiscall method
-// of this class; a free declaration drops that instruction and cannot match.
-// Fix: keep the existing entry and add
-//   0x435da0,Mission::LoadMission
-// to data/symbols.csv. That is the name its own author will use, since this
-// object's class is already recorded as Mission by 0x435c00.cpp.
+// LoadMission (0x435da0) is a __thiscall method of this class: the original
+// loads ecx = this before the call, which a free declaration would drop.
 // FUNCTION: 0x435c60
 int Mission::AdvanceMission()
 {
@@ -958,32 +914,14 @@ void Mission::RefreshMapList(int param_1)
     multi = param_1;
 }
 
-// MATCH. Loads the current mission: resets the mission state, finds the
+// Loads the current mission: resets the mission state, finds the
 // mission's OTA file (from the campaign list entry MISSION<n> for type 1, or
 // from the map name for types 2 and 3), reads its GlobalHeader block into the
 // fields and the name slots (0x435430.cpp), and passes the schema to
 // 0x436c30. Returns 1 on success, 0 after reporting an error. 0x435320
 // (LoadBriefing) and 0x4356c0 (GetName) are inlined.
-//
-// What made it match (it sat at 89.5% for many passes):
-//  * The constant registers (0 in ebx, -1 in esi; with them name/size in
-//    esi/edi and the old object in esi) came from case 2/3: the found-at-once
-//    arm calls BuildCampaignFilePath and breaks, and only the fallback reassigns
-//    `map`. That splits map into two webs, so its priority drops from 76 to
-//    46/44, below LoadBriefing's `name` (56). name is then coloured before
-//    map takes ebx and gets esi while no constant piece is pinned there, and
-//    the 0 and -1 pieces end up in ebx and esi as in the original. Found with
-//    tools/c2prio.py --trace (which prints the -1 constant as "const 0").
-//    The old 95% lever (extra field_c1c = -1 / field_c20 = 0 stores) only
-//    tipped the same race from the other side.
-//  * The late x87 stores after the float getters: every float field is read
-//    through an inline GetFloat that converts the double result into a float
-//    local and returns it. A plain `(float)` call, a double local alone or a
-//    float local alone all keep the fstp right after the call whenever the
-//    next call also returns a double.
-//  * The 0x48e010 callee is MissionConditions::RegisterConditions (data/symbols.csv).
-// 0x437280 (the buffer reset, no callers) is written out: C1 does not
-// auto-inline it out of class (IL 180), while 0x435320 (IL 157) is.
+// The 0x48e010 callee is MissionConditions::RegisterConditions
+// (data/symbols.csv).
 // FUNCTION: 0x435da0
 int Mission::LoadMission(char* map)
 {
@@ -1006,6 +944,7 @@ int Mission::LoadMission(char* map)
     noSeaLevelTrigger = 0;
     planet[0] = 0;
     description[0] = 0;
+    // 0x437280 (the buffer reset) is written out here, not called: it is not auto-inlined.
     if (units)
         FUN_004d85a0(units);
     units = 0;
@@ -1067,6 +1006,7 @@ int Mission::LoadMission(char* map)
         exists = 0;
         strcpy(missionName, map);
         BuildDataPath(path, "Maps", map, "OTA");
+        // The found-at-once arm breaks; only the fallback reassigns `map`.
         if (parser.LoadFile(path)) {
             BuildCampaignFilePath(1, "Maps", map, "TNT");
             break;
@@ -1286,8 +1226,6 @@ int Mission::SelectSchema(int type, TdfFile* parser, char* schema)
 // selects [globalheader] and then the mission's own section, and copies the
 // "units", "specials" and "features" subsections into three tables. The
 // unit strings are packed after the unit records in the same allocation.
-// The unit table's byte size is its own local, computed before unitCount is
-// stored: that keeps the count in ecx at the end of the first loop.
 // FUNCTION: 0x436c30
 void Mission::LoadMissionData(char* name, TdfFile* parser)
 {
@@ -1318,6 +1256,7 @@ void Mission::LoadMissionData(char* name, TdfFile* parser)
         if (s->GetFieldString(buf, "InitialMission", 0x400, DAT_005119b8))
             total += strlen(buf) + 1;
     }
+    // Own local, computed before unitCount is stored: keeps the count in ecx.
     int unitBytes = count * sizeof(MissionUnit);
     unitCount = count;
     units = (MissionUnit*)FUN_004d83b0("MISSIONUNIT DATA",
@@ -1413,12 +1352,11 @@ void Mission::LoadMissionData(char* name, TdfFile* parser)
 }
 
 // Frees three buffers (clearing each pointer and its size) and a fourth
-// buffer at +0xc14. Written out in full: an inline Free() helper keeps the
-// two clearing stores together instead of letting them sink past the next
-// load.
+// buffer at +0xc14.
 // FUNCTION: 0x437280
 void Mission::FreeMissionData()
 {
+    // Written out in full, no Free() helper: the two clearing stores stay together.
     if (units)
         FUN_004d85a0(units);
     units = 0;
@@ -1478,16 +1416,7 @@ int Mission::GetStartPosition(Vec3_00437320* out, int id)
 // feature data (features * 0x84 bytes at the offset in +0x20) into +0xc1c,
 // then appends the new pair. The result is +0xc20 xor +0xc1c throughout.
 //
-// The two vector pointers are declared as globals in their own right so that
-// each reference carries the address the original uses: through a single
-// std::vector both would be DAT_005122c0 with a displacement, which check.py
-// reports as a reference to the wrong address.
-//
-// SetChecksum is not a real method: it is how the new entry gets +0xc1c. The
-// store happens after the entry's copy constructor, not inside it, so giving
-// the element a two-argument constructor makes MSVC hoist the load of +0xc1c
-// ahead of the call and keeps it in a callee-saved register, which costs the
-// match.
+// SetChecksum is not a real method: it is how the new entry gets +0xc1c.
 // FUNCTION: 0x4373a0
 int Mission::ComputeMapChecksum()
 {
@@ -1496,6 +1425,8 @@ int Mission::ComputeMapChecksum()
     }
     char* name = FUN_004356c0(1);
     MapCacheEntry* it;
+    // The two pointers stay separate globals: a single std::vector would
+    // reference DAT_005122c0 with a displacement, the wrong address.
     for (it = DAT_005122c4; it != DAT_005122c8; it++) {
         if (_strcmpi(it->handle.data, name) == 0) {
             field_c1c = it->field_4;
@@ -1527,6 +1458,8 @@ int Mission::ComputeMapChecksum()
         FUN_004d85a0(data);
     }
     HAPI_CloseFile(file);
+    // The checksum is stored after the copy constructor, not inside it:
+    // a two-argument constructor hoists the +0xc1c load above the call.
     DAT_005122c0.FUN_00437580(DAT_005122c8, 1, MapCacheEntry(Class_004c91b0(name)).SetChecksum(this));
     return field_c20 ^ field_c1c;
 }

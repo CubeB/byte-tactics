@@ -4,27 +4,7 @@
 // MAXUNITS/METAL/ENERGY sliders (or map) to a client, runs the host's start
 // countdown, draws each player's version under their logo, and refreshes the
 // local player's bit at +0x9d once a minute.
-//
-// MATCH. What it took (from 92.9%):
-// - Five functions of this file with no callers are inlined here and defined
-//   above, unannotated: the map check 0x440cd0 (as in 0x448c70), the slot
-//   compaction 0x445450 and the slot swap 0x4453a0 it calls (both declared
-//   inline: MSVC does not inline their loops on its own), the ENERGY slider
-//   handler 0x445d60 and the slider setter 0x445e20 (its gadget local keeps
-//   the value in edi across FUN_004a0200, which the one-expression form does
-//   not).
-// - The map check is the second test of an else-if chain, so both arms start
-//   with the g_game load that MSVC hoists above the jne.
-// - With the swap inlined, the reindex loop has the original's addressing,
-//   and the loop's exit reloads (entries into ebx, pl into ebp) keep the
-//   compaction loop in line after the FUN_004455b0 call. Without those
-//   reloads MSVC moves the whole else arm after the final ret.
-// - The LOGO loop counter is an unsigned char (a short works too): with an
-//   int, MSVC tests the strength-reduced offset instead of counting ebx down
-//   from 10, entries stays in ebx and `pl` loses ebp.
-// - The rect sums follow the symbol count: with windows.h's RECT the natural
-//   (left + right) and (top + bottom) orders match; with a one-line local
-//   Rect struct the y sum had to be written (bottom + top).
+// RECT comes from windows.h: the rect sums follow the symbol count.
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -256,6 +236,7 @@ void __stdcall UpdateEnergyText(Gui_0044a680* gui, int unused)
 // The slider setter at 0x445e20, which has no callers: /Ob2 inlined it.
 void __stdcall FUN_00445e20(Gui_0044a680* gui, char* name, int value)
 {
+    // Gadget kept in a local: holds the value in edi across FUN_004a0200.
     Gadget_0044a680* gadget = FUN_004a0200(gui->table->entries, name);
     SetSliderFromValue(gadget, value);
 }
@@ -370,6 +351,7 @@ void UpdateBattleRoom()
     if (IsScreenNamed(&g_game->gui, "LOUNGE2.GUI") != 0) {
         FUN_004a5d30(&g_game->gui, 1);
         {
+            // unsigned char counter (a short works too), not int.
             for (unsigned char i = 0; i < 10; i++) {
                 Player_0044a680* p = &g_game->players[i];
                 if (p->type != 0 && p->type != 4) {

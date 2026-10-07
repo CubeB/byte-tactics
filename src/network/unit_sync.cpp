@@ -1,8 +1,7 @@
 // Decompiled by Opus, Sonnet, space-bunny-free and DeepSeek V4.1 Flash. Names are provisional.
 // UnitSync (the object at g_game+0x2a30, built by 0x46c8e0): the check that
 // every player has the same units allowed. These methods reach the unit map
-// only through its out-of-line lower_bound (FUN_0046fe60), with find()
-// written out inline as in MSVC 5's <xtree>.
+// only through its out-of-line lower_bound (FUN_0046fe60).
 #include <stdio.h>
 #include <vector>
 
@@ -249,10 +248,7 @@ void UnitSync::SendSyncPacket(unsigned int* param_1, Packet_0046d530* param_2, i
 }
 
 // Builds a 0xe-byte packet of type 0x1a and sends it, unless sending is
-// disabled. The send goes through an inline helper taking a target, called
-// here with no target: in "direct" mode it reads the id through that null
-// pointer, which is the `mov eax, [0]` in the original.
-// Sibling of SendEntryTo (same object, same packet type).
+// disabled. Sibling of SendEntryTo (same object, same packet type).
 
 // FUNCTION: 0x46d530
 void UnitSync::SendSyncMessage(unsigned char arg, int a, int b, int unused)
@@ -263,6 +259,7 @@ void UnitSync::SendSyncMessage(unsigned char arg, int a, int b, int unused)
         packet.arg = arg;
         packet.field_6 = a;
         packet.field_a = b;
+        // Send takes a target and is called with none: direct mode reads the id through it.
         Send(0, &packet);
     }
 }
@@ -410,8 +407,6 @@ char* UnitSync::GetSyncStatusText()
 // is not zero, matches the size of its id vector, and its two counters agree.
 // Returns 1 when nothing needs checking (disabled set, direct clear, no
 // entries) or when every entry passes, 0 on the first entry that does not.
-// The entry's second half is walked through a second pointer that steps with
-// the entry's stride, which is what the original's code does.
 
 // FUNCTION: 0x46e000
 int UnitSync::AllPlayersSynced()
@@ -423,6 +418,7 @@ int UnitSync::AllPlayersSynced()
     Entry_0046e000* p = (Entry_0046e000*)players.begin();
     if (p == (Entry_0046e000*)players.end())
         return 1;
+    // The second half is walked through its own pointer stepping with the entry stride.
     Sub_0046e000* s = (Sub_0046e000*)((char*)p + 8);
     for (; p != (Entry_0046e000*)players.end(); p++, s++) {
         Player_0046e0b0* pl = FindPlayerByDpid(p->id);
@@ -447,13 +443,10 @@ int UnitSync::AllPlayersSynced()
     return 1;
 }
 
-// Reports whether one player's copy of the shared unit list has
-// caught up. The player whose id matches is looked up with FindPlayerByDpid, the
-// four early "already done" cases are one || chain, and the entry's
+// Reports whether one player's copy of the shared unit list has caught up. The
+// player whose id matches is looked up with FindPlayerByDpid, and the entry's
 // std::vector of 0x5c-byte per-player records (the same records 0x46df40
-// reports on) is scanned for the id. The last test of a record is a
-// sent == acked comparison written as `return 1; break;`, which is what keeps
-// the shared return-0 block the loop's fallthrough instead of a copy of it.
+// reports on) is scanned for the id.
 // FUNCTION: 0x46e0b0
 int UnitSync::IsPlayerSynced(int id)
 {
@@ -470,6 +463,7 @@ int UnitSync::IsPlayerSynced(int id)
             continue;
         if (it->expected == 0 || it->units.size() != it->expected)
             return 0;
+        // Written as return 1; break;: keeps the shared return-0 block as the fallthrough.
         if (it->sent == it->ackd)
             return 1;
         break;

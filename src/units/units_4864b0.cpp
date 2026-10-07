@@ -6,12 +6,6 @@
 // the command kind: 7 means a spy / non-kill path, 4/5/9 or a positive
 // field_108 skip the recount, otherwise the kills are a percentage of the
 // type's field_1fa.
-//
-// Two 4-bit bitfields in the packed record (count at +0xa bit 0, kind at bit 4)
-// are what produce MSVC's XOR read-modify-writes and the byte-sized
-// arithmetic; a plain unsigned char field gives a different sequence. The
-// source statement order matters for the register roles: field_1 before
-// field_9 is what puts the kills in al and the unit id in dx.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -81,6 +75,7 @@ struct Cmd_4864b0 {
     int field_3;                       // +0x3
     unsigned short field_7;            // +0x7
     signed char field_9;               // +0x9
+    // 4-bit bitfields, not a plain char: they give the XOR read-modify-writes.
     unsigned char count : 4;           // +0xa
     unsigned char kind : 4;            // +0xa
 };
@@ -123,6 +118,7 @@ void __stdcall KillUnit(Unit* unit, int param_2)
             flag = 0;
         }
         Cmd_4864b0 cmd;
+        // field_1 before field_9: sets the register roles.
         cmd.field_1 = unit->field_a8;
         cmd.field_9 = amount;
         cmd.type = 0xc;

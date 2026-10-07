@@ -1,40 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by deepseek-v4.1, finished by
 // deepseek-v4.1-flash, finished by space-bunny-free, finished by
 // deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-//
-// MATCH, 1174 of 1174 bytes.
-//
-// The whole function was byte-identical except the second GlobalMemoryStatus,
-// where the original fills the call's delay slot
-//     lea edx, [esp+0x10]; push edx; mov dword ptr [esp+0x14], 0x20; call esi
-// and this file emitted
-//     lea edx, [esp+0x10]; mov dword ptr [esp+0x10], 0x20; push edx; call esi
-// Five earlier passes (about 200 spellings of the second call) all left that
-// tie alone, and concluded it was unreachable. It is reachable, and the lever
-// is the SCOPE of the local, not its spelling:
-//
-//     { MEMORYSTATUS mem;  mem.dwLength = 0x20; GlobalMemoryStatus(&mem);  }
-//     ...
-//     { MEMORYSTATUS mem2; mem2.dwLength = 0x20; GlobalMemoryStatus(&mem2); }
-//
-// Each call needs its own block because that is what puts the dwLength store
-// into the call's delay slot, and the two blocks are what makes both locals
-// share one stack slot (the first is dead when the second block opens, so
-// MSVC reuses [esp+0x10] and the frame stays 0x24 dwords). Both blocks must
-// be nested: nesting only the second one grows the frame to 0x44 and moves
-// the struct, nesting only the first does the same.
-//
-// How it was found (see build/scratch/0x491200/): a miniature of the tail
-// (two `p->dwLength = 0x20; GlobalMemoryStatus(&p);` around a call) compiles
-// in about 0.15 s, and shows that with one MEMORYSTATUS local shared by both
-// calls the FIRST call gets the delay slot and the second never does, with
-// the same statement lists either side. Giving the second call a block of its
-// own with its own MEMORYSTATUS flips it to match. The mini also shows what
-// else moves that store: three or more stores to globals between the two
-// calls, and any call between them (which is why every spelling tried before
-// could not reach it: SetCloseHandler sits between the two sites here).
-//
-// Scratch used: build/scratch/0x491200/{probe,mini,orc}.py and s1-s5.py.
 #include <string.h>
 #include <windows.h>
 
@@ -194,6 +160,8 @@ void InitGame()
 {
     int size;
 
+    // Each GlobalMemoryStatus call in its own nested block: sets the dwLength
+    // store position and shares one stack slot.
     {
         MEMORYSTATUS mem;
         mem.dwLength = 0x20;

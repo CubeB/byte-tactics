@@ -1,16 +1,3 @@
-// #3047 retry (deepseek-v4.1-flash): SOLVED 872/872 -> MATCH.
-// Fix: use the strcpy intrinsic directly for all four copies and precompute the
-// two destination pointers into locals (char* d_full = p->fullName;
-// char* d_name = p->name;) just before the network/COMPUTER branch, then call
-// strcpy(d_full, ...) / strcpy(d_name, ...). With the destinations already in
-// registers, the inlined strcpy keeps its canonical source scan
-// (mov edi,[src]; repne scasb; not ecx; sub edi,ecx; mov eax,ecx; mov esi,edi;
-// lea edi,[dst]) instead of hoisting the destination lea into esi and spilling
-// it, and the frame stays 0x4c4. The previous best, a strlen+memcpy helper, is
-// 90.5%: it keeps the source in esi from the start (mov esi,[src]; mov edi,esi)
-// where the original rewinds the scan cursor (sub edi,ecx; mov esi,edi).
-//
-// History kept for reference:
 // Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, retried by deepseek-v4.1-flash, retried by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 #include <string.h>
 #include <windows.h>
@@ -152,6 +139,7 @@ int __stdcall AddNetPlayer(int param_1)
     Packet_00450a10 packet;
     char buf[0x400];
     int result;
+    // Destinations precomputed before the branch: keeps the strcpy source scan canonical.
     char* d_full = p->fullName;
     char* d_name = p->name;
     if (param_1 != -1) {

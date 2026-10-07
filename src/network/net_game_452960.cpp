@@ -6,22 +6,8 @@
 // table to be written as well. When the other player cannot be reached locally
 // (state 3) a 14-byte packet 0x23 is sent instead, and the game-mode object at
 // g_game+0x391e9 is asked for a value of 3 afterwards.
-//
-// Notes on what the byte match needs:
-//  * The first lookup is the inlined FindIndex helper: an `unsigned char`
-//    counter calling the out-of-line GetSlotDpid, with `from == -1` handled
-//    in the caller (that is what leaves the separate `mov bl, 10` at the loop
-//    exit while the sentinel case stores 10 directly).
-//  * The state tests are inlined helpers with one `return` per outcome; the
-//    p2 branch's second test re-reads `active` because its helper tests it
-//    again, which is why the original has `test edi, edi` twice.
-//  * The index is a reference to a local (`unsigned char& idx`). The original
-//    keeps this byte in its stack slot and reloads it as a dword with an
-//    `and 0xff` at each of the four stores; a plain byte local is
-//    register-allocated by MSVC and comes out 48 bytes shorter.
-//  * `<stdio.h>` is load-bearing although nothing here calls a CRT function:
-//    it decides the base/index order of the four byte stores (`[idx + player]`
-//    in the original, `[player + idx]` without it).
+// Needed although no CRT function is called: sets the base/index order of the
+// byte stores.
 #include <stdio.h>
 
 #pragma pack(push, 1)
@@ -92,6 +78,7 @@ static inline unsigned char FindIndex_00452960(int id)
     return 10;
 }
 
+// The state helpers keep one return per outcome and each re-tests active.
 static inline int IsActive12_00452960(Player_00452960* p)
 {
     if (p->active == 0)
@@ -132,6 +119,7 @@ static inline int IsState3_00452960(Player_00452960* p)
 int __stdcall SetAlliance(int from, int to, unsigned char value, int extra)
 {
     unsigned char fi;
+    // -1 handled here, not in the helper: keeps the separate store of 10.
     if (from == -1)
         fi = 10;
     else

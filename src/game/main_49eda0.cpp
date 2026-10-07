@@ -65,17 +65,6 @@ extern "C" int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 // Parses the command line. Returns 0 when the game should quit at once
 // (after -r registered it with DirectPlay), 1 otherwise.
-//
-// The frame: in a function with a try block MSVC 5 gives EVERY local its own
-// frame slot, even one that lives in a register, and lays them out from the
-// top down scope by scope (outer scope first, nested scopes in source order).
-// Within a scope the order is that of the front end's symbol hash table:
-// 16 buckets, ascending, the newest declaration first within a bucket, and
-// the bucket depends only on the name (single letters: the character code
-// mod 16). So the names of the -r locals here were picked to give the
-// original's slot order (build/scratch/gap/0x49eda0/bucket.py measures a
-// name's bucket), and the message text reuses `p` because one more named
-// local would add a slot.
 // FUNCTION: 0x49ee30
 int __stdcall ParseCommandLine(char* cmdLine, char* appName)
 {
@@ -208,6 +197,8 @@ int __stdcall ParseCommandLine(char* cmdLine, char* appName)
                 char* args = cmdLine + (p - copy) + 2;
                 while (isspace(*args))
                     args++;
+                // Local names are chosen for the frame slot order, and the message
+                // reuses p: one more named local would add a slot.
                 char moduleName[MAX_PATH];
                 HMODULE setupDll;
                 DWORD len = GetModuleFileNameA(NULL, moduleName, MAX_PATH);

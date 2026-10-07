@@ -8,11 +8,6 @@
 // 0.7 for a type 2 player when g_game+0x37eee is 0 or 1) and destroys the
 // unit through DamageUnit once nothing is left. Either way the unit's hit
 // points follow the progress, and a finished unit goes to FinishConstruction.
-// Notes: min/max are the <windows.h> macros (the clamp evaluates max twice).
-// The +0xd4 updates go through a `float&`: written as unit->field_d4, MSVC
-// hoists the hit point load above the store and moves the `next >= 1.0f`
-// compare. The unbuild path sets the hit points before the remaining
-// fraction; the other order changes the registers in the build path too.
 
 #include <windows.h>
 
@@ -89,6 +84,7 @@ int __stdcall AddBuildProgress(Builder_0041ba60* builder, Unit* unit, float amou
     int hp = (int)(prev * type->maxHp) - (int)(next * type->maxHp);
     if (amount < 0.0f) {
         float refund = -metalCharge;
+        // Through a float&: writing unit->field_d4 directly moves the hp load and compare.
         float& store = unit->field_d4;
         if (unit->player->active != 0 && unit->player->type == 2) {
             switch (g_game->difficulty) {
@@ -105,6 +101,7 @@ int __stdcall AddBuildProgress(Builder_0041ba60* builder, Unit* unit, float amou
         } else {
             store += refund;
         }
+        // hp is set before remaining; the other order also changes the build path.
         unit->hp = max(hp + unit->hp, 0);
         unit->remaining = next;
         unit->flags |= 0x2000;

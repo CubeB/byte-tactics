@@ -10,39 +10,7 @@
 //
 // The object layout is XTREE's own (XTREE lines 593-597): allocator at +0,
 // key_compare at +1, the _Head node pointer at +4, the _Multi flag at +8 and
-// _Size at +0xc. That flag is why insert has two arms: with _Multi set it goes
-// straight to _Insert, whose body (node creation, the _Head-linking step and
-// the whole rebalance loop, XTREE lines 459-508) /Ob2 inlines here, and with
-// _Multi clear it steps back one node with iterator::_Dec to look for an equal
-// key first, the duplicate check only a map needs, and then calls the out-of-line
-// _Insert.
-//
-// Two source shapes below are load bearing, and both were measured with
-// tools/check.py on this function:
-//   * The copy of insert has to come from a real call in a caller too big for
-//     /Ob2 to inline it. Forcing the copy into the object with
-//     `&Map::insert` instead (a member-pointer initialiser) also emits it, but
-//     in that state /Ob2 does NOT inline _Insert at the _Multi site: the
-//     function then comes out 283 bytes, all four _Insert calls out of line.
-//     A real call from a big caller gives the original's 624 bytes.
-//   * The first _Lockit, the one in the search block (XTREE lines 215-220),
-//     gets its own stack slot and is destroyed before the _Multi test, and the
-//     second one (the _Insert's own _Lockit) gets the next slot, which is why
-//     both must stay in their own braced blocks.
-//
-// check.py reports 100.0% (all 624 bytes identical) but still marks five
-// references BAD, and only for the three helpers data/symbols.csv files under
-// provisional placeholder names: 0x4b3310 is Class_004b3310::FUN_004b3310, and
-// 0x4b33b0 is Class_004b33b0::FUN_004b33b0, where the real template members
-// are _Tree<...>::_Lrotate and _Rrotate, and 0x4b3410 is
-// Class_004b3410::FUN_004b3410 where the real member is _Tree<...>::_Buynode.
-// All three are COMDAT template instantiations, the kind of symbol the linker
-// discards, which is presumably why they never got a real name. Every other
-// reference here checks out: _Insert at 0x4b3020, iterator::_Dec at 0x4b34f0,
-// _Nil at 0x51fbbc and both std::_Lockit members. Reaching those three
-// through the placeholder names would mean hand-writing the tree class, and
-// that drops the byte match to 38% (see 0x4b26f0.cpp for the same trade-off),
-// so the real <map> source is kept.
+// _Size at +0xc.
 #include <map>
 
 typedef std::map<int,int> Map_004b2850;

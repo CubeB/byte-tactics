@@ -1,32 +1,12 @@
 // Decompiled by deepseek-v4.1, finished by xiaomi/mimo-v2.6-pro, finished by fledge-alpha-free, finished by Claude Opus 5.5, finished by GPT-6, finished by Claude Opus 5.5. Names are provisional.
 // Breaks a unit piece into debris: for each quad face of the piece, takes a
-// free debris slot and a free 3D object (AllocExplodePieceObject, inlined), gives it a
-// random velocity and spin, copies the face's four vertices into the object
+// free debris slot and a free 3D object (AllocExplodePieceObject, inlined),
+// gives it a random velocity and spin, copies the face's four vertices into the
+// object
 // (twice, as a box), pushes the back four out along the face normal by
 // param->scale, centres the box on its own origin and copies the face's
 // texture and colour into the object's faces.
-//
-// MATCH (#5457, Claude Opus 5.5; 76.6% before). Three things were missing:
-//  * The nine scaled vertex components go through a FIX2F macro,
-//    `(((float)(x)) / 65535.0f)`, with the cast and the whole expression each
-//    in their own parentheses. Then the stores into a, b and c are
-//    list-scheduled (interleaved fild/fmul/fstp) as in the original, even
-//    though the block has struct-returning calls. Dropping either pair of
-//    parentheses, or any plain `x * k`, serialises them (the wall every
-//    earlier pass hit). `* (1.0f / 65535.0f)` compiles the same. Only the
-//    a, b, c / x, y, z statement order gives the original's schedule.
-//  * The second difference goes into n itself: `ab = VectorFromTo(b, a);
-//    n = VectorFromTo(b, c); n = NormalizeVector(CrossProduct(n, ab));`. Nested
-//    as CrossProduct(VectorFromTo(b, c), ab), b's three loads were CSEd
-//    across the first call, which made C2 split d and the loop invariants as
-//    soon as o took esi (the whole head allocation changed: 51.6%). This
-//    form also gives ab its own frame slot, as in the original.
-//  * piece is computed from unit (`unit->pieces`) and desc is read before
-//    verts. That order of first uses sets the candidate ids, and with them
-//    the order of the reloads at the bottom of the loop and the frame slots
-//    of piece, count, unit and desc (96.2% -> MATCH).
-// <windows.h> and <minmax.h> are needed for the symbol count (without
-// <minmax.h> one load pair in d->pos swaps).
+// Both includes are needed for the symbol count.
 #include <windows.h>
 #include <minmax.h>
 
@@ -166,6 +146,8 @@ Vec3f_00421700 __stdcall CrossProduct(Vec3f_00421700 a, Vec3f_00421700 b);
 Vec3f_00421700 __stdcall NormalizeVector(Vec3f_00421700 v);
 int __stdcall GetGafFrame(unsigned short* list, int index);
 
+// Cast and whole expression each parenthesised: keeps the a, b, c stores
+// list-scheduled.
 #define FIX2F(x) (((float)(x)) / 65535.0f)
 // AllocExplodePieceObject, inlined
 static inline Object3D_00421700* NewObject()
@@ -183,6 +165,8 @@ static inline Object3D_00421700* NewObject()
 void __stdcall BreakPieceIntoDebris(Header_00421700* param)
 {
     Unit* unit = param->obj;
+    // piece is computed from unit, and desc is read before verts: the order of
+    // first uses sets the frame slots.
     Piece_00421700* piece =
         (Piece_00421700*)(unit->pieces + 0x22 + param->index * 0x36);
     int* count = &g_game->debrisCount;
@@ -235,6 +219,7 @@ void __stdcall BreakPieceIntoDebris(Header_00421700* param)
             c.z = FIX2F(v[2].z);
             Vec3f_00421700 ab, n;
             ab = VectorFromTo(b, a);
+            // Second difference goes into n itself, not nested in CrossProduct.
             n = VectorFromTo(b, c);
             n = NormalizeVector(CrossProduct(n, ab));
             d->vel.x += RandomInt(200) * (short)(n.x * 512.0f);

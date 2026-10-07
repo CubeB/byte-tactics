@@ -1,28 +1,7 @@
 // Decompiled by deepseek-v4.1, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Fable 5.1, finished by DeepSeek V4.1 Flash, finished by claude-opus-5-5, finished by GPT-6, finished by claude-opus-5-5. Names are provisional.
-// MATCH (claude-opus-5-5, #5089, 2026-10-03), from 91.8%.
 // Draws one list-gadget entry: its glyph or frame, then the text (left,
 // right, centred, or centred with an underlined hotkey letter, flags 1/4/2/0x20).
-// What the last steps changed, each measured:
-//  - The key1 hotkey width is the plain inlined GetTextPixelWidth again, and the
-//    flags 0x20 y (`ys`) is a block local. The previous `int* pm = &measured`
-//    alias and the by-reference MeasureInto copy are gone: MSVC packs the
-//    inline's accumulator and ys into one slot by itself ([esp+0x20]).
-//  - `#include <math.h>` plus LineHeight returning through a named `glyph`
-//    local gives the flags 0x20 branch the original's registers: xb in ebx
-//    computed before the LineHeight call, ys in esi with its home store
-//    (82.5% -> 96.1%; the include alone gives 89.2%). Found by permute.py.
-//  - Frame order, worked out with docs/agent-guide.md's frame-layout rule
-//    (refs counted in code order, `inc [mem]` counting twice, then the
-//    refs*1000/size quicksort, which reproduced both our old and new frames):
-//    the tab scan counts in its own `tab` (it shares t's slot), and each
-//    hotkey branch declares its own `found` (one slot, created at 3 refs
-//    instead of 6). 96.1% -> 99.9%.
-//  - key1 declared in the hotkey block lets the scheduler hoist
-//    `key1[1] = 0` into the inlined strcpy, as the original has it.
-//  - Declaration order is load-bearing: `rect` before `flagy` and `t` (the
-//    operand order of their adds), and `textw` last: several other places
-//    for it make MSVC share `rect.right - rect.left` between x and width
-//    (2696 bytes).
+// Needed with the named glyph local in LineHeight: sets the flags 0x20 registers.
 #include <math.h>
 #include <windows.h>
 #include <stdio.h>
@@ -158,6 +137,7 @@ void __stdcall DrawButton(Menu_004a5f40* menu, int index)
     char key2[2];
     void* surface;
     Entry_004a5f40* me;
+    // Declaration order matters: rect before flagy and t, textw last.
     Rect_004a5f40 rect;
     int x;
     int width;
@@ -188,6 +168,7 @@ void __stdcall DrawButton(Menu_004a5f40* menu, int index)
     if (me->flags & 0x8000)
         menu->current = menu->values[1];
 
+    // Own counter, not t: it shares the slot of t.
     int tab = 0;
     for (i = 1; i < entries->u.list.count + 1; i++) {
         if (entries[i].type == 7) {
@@ -290,7 +271,9 @@ void __stdcall DrawButton(Menu_004a5f40* menu, int index)
             if (me->field_13a == 0 || (me->field_13c & 1)) {
                 FUN_004a50e0(surface, p, x, y, 1 + (rect.right - rect.left), 0);
             } else {
+                // Declared in this block: key1[1] = 0 hoists into the inlined strcpy.
                 char key1[2];
+                // Each hotkey branch declares its own found: one frame slot.
                 char* found;
                 key1[0] = me->field_13a;
                 width = rect.right - rect.left + 1;

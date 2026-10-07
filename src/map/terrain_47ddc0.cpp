@@ -2,8 +2,7 @@
 // Snaps a 16.16 fixed-point world position to the centre of its grid cell
 // (cells are 16 units, relative to the unit's origin in 8-unit steps), then
 // sets the height from the cell. The two conversions are inlined helpers that
-// take the origin and the position by value; the origin must be the last
-// parameter of WorldToCell so that it is read before the position.
+// take the origin and the position by value.
 
 struct Point_0047ddc0 {
     short x;
@@ -27,6 +26,7 @@ struct Unit_0047ddc0 {
 
 int __stdcall GetFootprintHeight(Unit_0047ddc0* unit, Point_0047ddc0 cell);
 
+// The origin stays the last parameter: it is read before the position.
 static inline Point_0047ddc0 WorldToCell(Vec3_0047ddc0 v, Point_0047ddc0 origin)
 {
     Point_0047ddc0 c;

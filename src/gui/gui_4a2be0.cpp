@@ -1,9 +1,4 @@
 // Decompiled by GPT-5.6-Terra and GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
-// The single test is the loop's pre-test: write the loop body with a fresh
-// char* built from `entries + i*0x15b + 0x140` inside the body so MSVC strength
-// reduces it into the rotated preheader (add ebp,0x29b). Splitting the first
-// float ratio into `float ratio = a * b; result = (int)(ratio / c);` fixes the
-// x87 operand-staging order.
 #include <string.h>
 #include <windows.h>
 
@@ -59,6 +54,7 @@ void __stdcall FUN_004a2be0(Dialog* param_1, int param_2)
     int type = *(unsigned char*)me;
     int field_1b = *(int*)(me + 0x1b);
     for (; i < (short)entries->count + 1; i++) {
+        // Built fresh inside the loop body: strength reduction then rotates the preheader.
         char* entry = (char*)entries + i * 0x15b + 0x140;
         if (i != param_2) {
             if (entry[-0x13f] == me[1]) {
@@ -102,6 +98,7 @@ void __stdcall FUN_004a2be0(Dialog* param_1, int param_2)
                                 short scale = *(short*)(me + 0xbc);
                                 short height = *(short*)(entry - 0xa);
                                 short count = *(short*)(me + 0xbe);
+                                // Split into a named ratio: fixes the x87 operand-staging order.
                                 float ratio = (float)scale * height;
                                 result = (int)(ratio / count);
                             } else {

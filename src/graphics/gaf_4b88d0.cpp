@@ -14,10 +14,7 @@
 // A leaf builds the source rect (0, 0, w - 1, h - 1) and the destination
 // rect (x - dx, y - dy, ...), clips the destination to the destination's
 // own clip rect with ClipRects, then walks the clipped rows and
-// columns. The source row index has to be a plain local in the row loop's
-// initialiser (`sy`), not `other.top++`: that is what pins the rects'
-// stack slots, the loop latch's instruction order and the spill of the
-// row index into the dead `x` argument slot.
+// columns.
 #include <windows.h>
 
 struct Rect_004b88d0 {
@@ -91,6 +88,7 @@ void __stdcall EraseFrameDithered(Surface* dst, Bitmap_004b88d0* bmp, int x, int
                 ClipRects(&other, &rect, &bounds);
                 if (rect.right >= rect.left && rect.bottom >= rect.top &&
                     other.right >= other.left && other.bottom >= other.top) {
+                    // `sy` must be a plain local here, not other.top++: pins stack slots and loop order.
                     for (int yy = rect.top, sy = other.top; yy <= rect.bottom; yy++, sy++) {
                         unsigned char* s = (unsigned char*)bmp->field_10
                             + sy * bmp->width + other.left;

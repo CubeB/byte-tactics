@@ -1,9 +1,4 @@
 // Decompiled by space-bunny-free, finished by mimo-v2.6-flash, finished by space-bunny-free. Names are provisional.
-// MATCH: all 494 bytes, 0x495010 to 0x4951fd. Re-verified with check.py after a
-// forced rebuild, so the score below is measured, not carried over from an
-// earlier note. Nothing is left outstanding: the body is plain C++ with no
-// volatile, no casts that change behaviour and no codegen tricks.
-//
 // What the code does: it opens (or closes) the TABMENU.GUI tab menu page. If any
 // of bits 5 to 7 of the flags word at +0x2bee is set the page is being closed:
 // the bits are cleared and the gui is either hidden, or torn down when
@@ -13,19 +8,6 @@
 // are enabled when the player count of free, non allied slots is positive and
 // the net mode is 3, CONTROL also needs bit 0 of +0x2c74 clear and IsHostLocal
 // true.
-//
-// Two things in the disassembly that the source has to reproduce rather than
-// avoid:
-// - The scan loop keeps its count in esi and its "1" constant in ebx, so the
-//   player type test reads `cmp byte ptr [eax + 0x73], bl` and the CONTROL test
-//   reads `test byte ptr [edx + 0x2c74], bl`. Only the `for` loop written as a
-//   single `count++` body with no extra locals gets that register split.
-// - The scale by 0x14b for players[localPlayer].info is left to the compiler:
-//   it emits the shl 5 / add / lea sequence. Spelling the multiply by hand gives
-//   a different form.
-//
-// No volatile field here: the flags word at +0x2bee is written once per branch
-// and never re-read, so it is a plain unsigned short.
 
 class Mission {
 public:
@@ -106,6 +88,7 @@ void ToggleTabMenu()
     d->owner = g_game;
     d->handler = HandleTabMenuEvent;
 
+    // Single count++ body, no extra locals: sets the register split of the scan.
     int count = 0;
     Player_00495010* p = g_game->players;
     for (int i = 0; i < 10; i++, p++) {
@@ -115,6 +98,7 @@ void ToggleTabMenu()
             continue;
         count++;
     }
+    // The players[localPlayer] scale by 0x14b is left to the compiler.
     int mode = g_game->net->FUN_00435100();
     if (mode == 3 && !g_game->players[g_game->localPlayer].info->flag_9b_6) {
         int v = count > 0;

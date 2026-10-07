@@ -3,17 +3,7 @@
 // it through virtual slot 6, then appends it to the
 // std::vector<ParticleSystem*> selected by the short index. When that list
 // already holds more than 400 entries its oldest element is deleted and erased
-// first. The append lives in an inlined member helper, which is what leaves
-// std::vector::insert (0x4732e0) out of line. Class family listed in
-// 0x471cc0.cpp; operator new (0x471d10) is inlined here, the constructor
-// (0x474cd0) is not.
-//
-// This is the twin of 0x472810 (98.8 percent identical, only the internal jump
-// displacements differ, and slot 6 gets (0, 1, 0, 0, 1) here against
-// (0, 0, 0, 1, 0, 0) there), so 0x472810 can copy this file and change only
-// the // FUNCTION: annotation, the file's names and the slot 6 constants.
-// 0x4729d0 and 0x472c50 are the same shape with other constants again and are
-// matched with the same two points below.
+// first. Class family listed in 0x471cc0.cpp.
 #include <stddef.h>
 #include <string.h>
 #include <vector>
@@ -124,6 +114,7 @@ public:
 struct Lists_004728f0 {
     std::vector<ParticleSystem*> lists[10];             // 0x10 bytes each
 
+    // Inlined member helper: leaves std::vector::insert (0x4732e0) out of line.
     void Add(short index, ParticleSystem* p)
     {
         if (lists[index].size() > 400) {

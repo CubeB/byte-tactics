@@ -1,16 +1,9 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// MATCH. Keys to the match: the Entry stride is 0x15b (the packed struct needs
-// 0xd bytes of trailing padding), `int i = 0` is declared up front so esi holds
-// the zero reused by the optvisual4x args, `layer->data` and the map/vid loops,
-// the video/else pair is a single if/else with `layer->data = i` plus a nested
-// redundant `if (flags & 1)` for the MAP/VID strip loops, and `w`/`mode` are
-// computed inside the for body so MSVC hoists them into the preheader after the
-// count guard rather than before it.
 // Builds the visual / video-mode options page (SELVMODE.GUI when param_1 is
 // set, otherwise the VISUALS or VISUALRT page next to the normal menu),
-// installs HandleVisualOptionsClick as its handler, fills the video mode list and the
-// VIDSLDR / GAMMA sliders, then writes the ANTISHADING, BSHADOWS and SHADING
-// checkboxes back from the flags word at g_game+0x37f06.
+// installs HandleVisualOptionsClick as its handler, fills the video mode list
+// and the VIDSLDR / GAMMA sliders, then writes the ANTISHADING, BSHADOWS and
+// SHADING checkboxes back from the flags word at g_game+0x37f06.
 #include <stdio.h>
 #include <string.h>
 
@@ -105,6 +98,7 @@ void __stdcall RenderLayer(Menu_0045e5e0* menu, int value);
 // FUNCTION: 0x45e5e0
 void __stdcall OpenVisualOptions(int param_1)
 {
+    // Declared up front: esi holds this zero for the later args and stores.
     int i = 0;
     Layer_0045e5e0* layer;
     Menu_0045e5e0* menu;
@@ -140,6 +134,7 @@ void __stdcall OpenVisualOptions(int param_1)
                 e->data = list;
                 menu = &g_game->menu;
                 for (int j = 0; j < list->count; j++) {
+                    // Computed inside the loop body: hoisted after the count guard.
                     int w = g_game->width;
                     Mode_0045e5e0* mode = &list->modes[j];
                     if (w == mode->width && g_game->height == mode->height) {
@@ -162,6 +157,7 @@ void __stdcall OpenVisualOptions(int param_1)
         }
     } else {
         layer->data = (void*)i;
+        // Redundant test: keeps the MAP/VID loops in this shape.
         if (g_game->flags_37ebe & 1) {
             for (i = 0; i <= g_game->menu.holder->entries->count; i++) {
                 if (strncmp(g_game->menu.holder->entries[i].name, "MAP", strlen("MAP")) == 0) {

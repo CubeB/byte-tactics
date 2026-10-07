@@ -3,18 +3,6 @@
 // position DAT_00512fec is animated towards the limit DAT_00512f14, the pixel
 // offset DAT_00512ff0 chases it, and the marker is blitted as a trapezoid
 // (dst quad) out of the lightbar graphic (src quad) on the given surface.
-//
-// The offset update is `if (DAT_00512fec < DAT_00512f14) DAT_00512ff0 += 6;`
-// (the `<`, so the increase is the fallthrough). The `<` is not cosmetic: the
-// opposite spelling still produces the same `cmp eax, ecx` but inverts the
-// branch, which puts the load of DAT_00512ff0 inside the else arm and gives
-// a memory `add dword ptr [0x512ff0], 6` instead of the original's hoisted
-// `mov edx, [0x512ff0]` before the branch with `add edx, 6` after it. A local
-// for the offset (int d = DAT_00512ff0) also hoists the load, but then MSVC
-// folds the three stores into one shared `mov [0x512ff0], edx` at the join
-// and forwards the register into the quad code below, which has to re-read the
-// global (87.6%). Reading the global directly and getting the polarity right
-// is the whole fix.
 
 struct Point_45ffb0 {
     int x;
@@ -80,6 +68,8 @@ void __stdcall DrawOptionsScrollBar(void* surf)
                 DrawFrame(DAT_00512fe8, s, s->start, s->end);
             }
         }
+        // Test with `<` so the increase is the fallthrough, and use the global
+        // directly, not a local: keeps the load before the branch.
         if (DAT_00512fec < DAT_00512f14) {
             DAT_00512ff0 += 6;
         } else {

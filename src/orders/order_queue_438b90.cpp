@@ -4,10 +4,6 @@
 // keeping the object's own bits 9 and 10 (0x600; the constructor 0x43a0c0
 // clears them individually). The layout (kind at +0x4, flags at +0x42)
 // matches Class_0043a1f0, which this probably is.
-// The original reads the table entry twice with separately computed
-// addresses: once indexed by the parameter masked to a byte, once by the
-// kind field just stored. Any pair of identical index expressions (or an
-// unsigned char parameter) lets MSVC share one load.
 
 #pragma pack(push, 1)
 struct Entry_00438b90 {                // 0x19 bytes, table at DAT_00512344
@@ -35,5 +31,6 @@ public:
 void Class_00438b90::FUN_00438b90(int k)
 {
     kind = k;
+    // The two table index expressions must differ, or the entry load is shared.
     flags = ((DAT_00512344[k & 0xff].flags ^ flags) & 0x600) ^ DAT_00512344[kind].flags;
 }

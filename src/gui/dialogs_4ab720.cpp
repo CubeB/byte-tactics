@@ -1,35 +1,4 @@
 // Decompiled by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// (earlier work by deepseek-v4.1-flash and GPT-6.1-sol)
-//
-// STATUS MATCH (1015/1015 bytes).
-//
-// The only block that ever differed was the char-insert default case
-// (0x4ab972): the original evaluates GetTextPixelWidth(text) first, ours evaluated
-// GetTextPixelWidth(c) first. The cause is argument-temporary allocation, not the
-// expression's operand order: with `text` already live in ebp, the call whose
-// argument needs a `lea` is the "harder" operand and MSVC evaluates it first,
-// whichever way the sum is written. Spelling the first operand as
-// `entry->text` instead of the `text` local reloads the entry pointer, which
-// makes that operand the harder one, so MSVC evaluates the text call first.
-// Everything downstream (the `add edi, eax` sum in edi, entry reloaded into
-// ecx, and the `mov eax, ecx` copy at 0x4ab99e) then falls out of the same
-// allocation change. Every two-statement split of the sum gives the right call
-// order but loses 2 bytes and the ecx entry allocation, so it is not a near
-// miss; do not spend time on it.
-//
-// Confirmed non-levers, all measured byte-identical to the combined expression:
-// swapped operands `FUN(c) + FUN(text)`, `&c[0]` / `&text[0]` spellings, a
-// local `char*` for c, `char c[2] = { (char)key, 0 }`, unsigned char c[2],
-// `(char*)&c`, and the sum inlined in the if condition. `int w = F(text);
-// int width = w + F(c);` gives the order but `add eax, edi` and 733 code bytes.
-//
-// The `char c[2]` buffer is not a separate frame local: MSVC 5 shares the dead
-// `key` parameter's slot with it, so the stores land on the incoming argument
-// home at frame+0x2c. A plain `char c[2]` reproduces that exactly; it is not a
-// bug in Cavedog's code. The entry struct must be padded to 0x15b bytes or
-// MSVC scales the subscript by 0x13a. The char-insert `int i;` local is
-// declared before `char* text` so MSVC makes the subscript the addressing-mode
-// index, giving `[ebp+eax]` rather than `[eax+ebp]` in the copy loops.
 //
 // Text-edit key handler for one GUI entry (stride 0x15b, text at +0xb6).
 // __stdcall(control, entryIndex, key): when the holder has no pending
@@ -49,6 +18,7 @@ struct Entry_004ab720 {                 // 0x15b bytes
     char text[0x80];                    // +0xb6
     char unknown_136[0x138 - 0x136];
     short capacity;                     // +0x138 (max text length)
+    // Padded to 0x15b bytes, or the subscript scale changes.
     char unknown_13a[0x15b - 0x13a];
 };
 #pragma pack(pop)
@@ -80,6 +50,7 @@ int __stdcall HandleTextEditKey(Control_004ab720* control, int index, int key)
 {
     Holder_004ab720* holder = control->holder;
     Entry_004ab720* entry = &holder->entries[index];
+    // Declared before text: makes the subscript the addressing-mode index.
     int i;
     char* text = entry->text;
     int changed = 0;
@@ -160,9 +131,11 @@ int __stdcall HandleTextEditKey(Control_004ab720* control, int index, int key)
                     if (!isalnum(key) && key != '_' && key != ' ' && key != '\'')
                         break;
                 }
+                // A plain char c[2]: it shares the dead key parameter's slot.
                 char c[2];
                 c[0] = (char)key;
                 c[1] = 0;
+                // entry->text, not the text local: sets the evaluation order of the two calls.
                 int width = GetTextPixelWidth(entry->text) + GetTextPixelWidth(c);
                 if (width > entry->w - 4)
                     break;

@@ -4,11 +4,6 @@
 // type byte at +0, read through a switch). With a non-zero third argument the
 // text is copied there as well; the return value is the text either way, 0 when
 // the entry is missing or of another type.
-//
-// The single `return` at the end is what keeps the local in memory: with an
-// early return of the local, MSVC 5 promotes it to ebx (from `xor ebx, ebx` at
-// the top) and then folds the not-found path's value, which drops the reload
-// the original has in its out-of-line "not found" block.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -67,5 +62,6 @@ char* __stdcall GetGadgetText(Object_004a0d00* obj, char* name, char* buf)
             strcpy(buf, desc);
         }
     }
+    // Single return at the end: keeps the local in memory.
     return desc;
 }

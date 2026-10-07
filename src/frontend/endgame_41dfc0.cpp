@@ -2,8 +2,8 @@
 // Starts a palette fade: keeps copies of the target and current palettes,
 // shows the current one and works out a signed step per channel (at least
 // 1 towards the target) that 0x41e270 then adds on each tick.
-// Needs a header set such as <windows.h> + <ddraw.h> (or <memory.h> alone)
-// for the loop pointers to be advanced in the original order.
+// Include <windows.h> + <ddraw.h> (or <memory.h> alone): sets the loop pointer
+// advance order.
 #include <windows.h>
 #include <ddraw.h>
 

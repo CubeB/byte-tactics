@@ -1,9 +1,7 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Fills the SOLARSYSTEM and TextRegion gadgets of the current dialog: both get
 // g_game + 0x37ef2 incremented, and the TextRegion's text is replaced with the
-// string built from the net object's data. Gadget records are 0x15b bytes, so
-// the index arithmetic below is a plain gadgets[i], not a double addition (see
-// 0x45f800, which reaches the same addresses with a 0x15a record).
+// string built from the net object's data. Gadget records are 0x15b bytes.
 
 class Mission {
 public:

@@ -2,27 +2,7 @@
 //
 // Class_004cff30 is a prefix of Sound (the 0x294-byte sound object);
 // 0x4cff30 is its "open the devices and cache the volumes" method. The exe's
-// 0x4cfff0 (wave volume) and 0x4d0040 (aux volume) are inlined here by /Ob2,
-// which is what produces the shared `or eax,-1` store and the two epilogues.
-//
-// The one thing that finally decided the callee-saved register permutation:
-// holding the auxGetDevCapsA RESULT in a named local inside the device loop
-//     int r = auxGetDevCapsA(i, &caps, sizeof(caps));
-//     if (r == 0 && caps.wTechnology == AUXCAPS_CDAUDIO) { ... }
-// rather than comparing the call inline. Inline, MSVC 5 gives the values the
-// callee-saved registers in the order (this, aux_count, import address); with
-// the named result the order becomes (import address, this, aux_count), which
-// is the original's: import in edi, `this` in ebx, count in ebp. It is the
-// only one of about twenty forms tried that moves it, and it moves it all the
-// way. The same named result in the WAVE loop instead makes things worse
-// (75.5% at 189 bytes), so it is specifically the aux loop.
-//
-// Ruled out by measurement along the way, so nobody repeats them: named temps
-// for waveOutGetNumDevs, for the two volume getter results, `AUXCAPSA *pc =
-// &caps`, a named `int tech` for caps.wTechnology, `__inline` member
-// accessors, `Class_004cff30 *p = this`, source-level local function pointers
-// for the dllimports, the aux search in its own inlined member, do/while loops
-// and UINT index/count types. All 77.3% or worse.
+// 0x4cfff0 (wave volume) and 0x4d0040 (aux volume) are inlined here.
 #include <windows.h>
 #include <mmsystem.h>
 
@@ -70,6 +50,7 @@ void Class_004cff30::InitMixerVolumes()
 
     int aux_count = auxGetNumDevs();
     for (int i = 0; i < aux_count; i++) {
+        // Result held in a named local: sets the callee-saved register order.
         int result = auxGetDevCapsA(i, &caps, sizeof(caps));
         if (result == 0 && caps.wTechnology == AUXCAPS_CDAUDIO) {
             aux_device = i;

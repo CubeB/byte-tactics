@@ -5,12 +5,8 @@
 // times 100 (read from players[index] but stored into players[i], as the
 // original does, so a player with a colour index other than its own slot
 // gets the other player's view position).
-//
-// Without a header in front (79.6%), MSVC 5 promotes the i*0x14b offset into
-// esi and reuses it for the player pointer; the original keeps the offset in
-// its stack slot. The compiler state after <windows.h> (tools/headers.py; 84
-// or more unused declarations do the same) gives the original's allocation
-// with the source unchanged.
+// Included only for its compiler state: without a header in front, the i*0x14b
+// offset is promoted into esi.
 #include <windows.h>
 
 #pragma pack(push, 1)

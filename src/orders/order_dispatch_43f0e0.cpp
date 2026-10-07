@@ -1,24 +1,9 @@
 // Decompiled by Claude Sonnet 5.5, finished by DeepSeek V4.1 Flash and GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by claude-opus-5-5. Names are provisional.
 //
-// MATCH (4420 bytes). Returns the order type (Class_00438760, built from its name) for an order of
+// Returns the order type (Class_00438760, built from its name) for an order of
 // type `mode` given by `unit` on `target` / `pos`. GetOrderCursor, the function just before this one
-// in the exe, is its sibling that returns the cursor code. What took it from 65.6% to MATCH:
-//  - The real GetOrderCursor is compiled first in this file: an unannotated copy of 0x43e490.cpp
-//    (which stays the annotated, canonical file), with g_game's struct and the two callee classes
-//    shared between the two functions. The compiler state it leaves is what lets MSVC cross-jump
-//    case 1's two identical `return GetOrderType(3, ...)` blocks into the original's single block
-//    (the multiplayer arm's `jne` into the other arm's copy). Without it this file keeps both
-//    copies: 28 bytes too long, 84.1%, with everything else identical.
-//  - Both of those recursions are written out. One statement reached by a goto merges them, but
-//    without the second call's uses unit and target swap ebp and edi for the whole function.
-//  - Visible() is the sibling's helper: a `p` local for the bounds, `unit->player` again for the
-//    index. That gives the original's second load of the width before the imul.
-//  - Pick() is a ternary, so the flag is tested before the name is loaded (the sites that use eax
-//    for the flag); `def` is used everywhere (the original never re-reads unit->def).
-//  - case 12 nests its RESURRECT check (`if (pos && (def->f245 & 0x800)) { ... }`) and tests pos
-//    again for RECLAIM; the lookup result is a plain local.
-//  - Headers <windows.h> <stdio.h> <math.h> (<windows.h> <ddraw.h> also works). An unused-
-//    declaration sweep keeps the match from 3 fewer to 12 more declarations before the function.
+// in the exe, is its sibling that returns the cursor code.
+// Keep the headers and the unused declarations below: their count before the function matters.
 #include <windows.h>
 #include <stdio.h>
 #include <math.h>
@@ -515,6 +500,7 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
     return 0x13;
 }
 
+// A ternary: the flag is tested before the name is loaded.
 static inline Class_00438760 Pick(Def_0043f0e0* def, const char* vtol, const char* ground) {
     return Class_00438760(def->f241bits.flag_11 ? vtol : ground);
 }
@@ -658,6 +644,7 @@ Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
         // Suspected original bug: the lookup runs before pos is tested, and GetMapCellAtPosition reads
         // [pos] unchecked (0x4815a5), so a null pos crashes here although the tests below allow it.
         Thing_0043f0e0* t = Lookup(pos);
+        // RESURRECT check stays nested, with pos tested again for RECLAIM.
         if (pos && (def->f245 & 0x800)) {
             if (Visible(unit, pos) && t && (t->ffe & 0x80))
                 return Class_00438760("RESURRECT");
@@ -719,6 +706,7 @@ Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
         return Pick(def, "VTOL_MOVE", "MOVE_GROUND");
     case 1: {
         if (g_game->flag37efa == 1) {
+            // Both arms write out their recursive calls; a shared goto breaks register use.
             if ((def->f245 & 0x10) && enemy)
                 return GetOrderType(3, unit, target, pos);
             if ((def->f245 & 0x400) && enemy)

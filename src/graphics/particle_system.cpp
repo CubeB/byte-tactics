@@ -60,19 +60,9 @@ public:
 //
 // The base destructor is 0x471d00. An override keeps the name of the base
 // slot it overrides, so slots 1-3 of every derived class carry the names of
-// TeleportParticles's (0x472d50, 0x472e30, 0x472e70); the matched slot methods
-// are still recorded under their own placeholder classes, which the checker
-// accepts for vtable slots.
+// TeleportParticles's (0x472d50, 0x472e30, 0x472e70).
 //
-// The first four derived classes have no out-of-line constructor: the
-// functions that create them (0x471340, 0x471470, 0x4715a0, 0x4716e0 and
-// others) inline it after the inlined operator new. Those functions sit in
-// this class's own file, which is why their ??_G inline the base destructor
-// and operator delete, while 0x474d10 and 0x475110 (compiled with
-// 0x474cd0 and 0x4750b0) call them. The derived classes' files copy the
-// declarations below.
-// The scalar deleting destructor (0x471cd0) inlines the destructor and the
-// class's operator delete, which are defined below.
+// The derived classes' files copy the declarations below.
 // FUNCTION: 0x471cc0
 // FUNCTION: 0x471cd0 ??_GParticleSystem@@UAEPAXI@Z
 ParticleSystem::ParticleSystem()
@@ -81,9 +71,7 @@ ParticleSystem::ParticleSystem()
 }
 
 // The out-of-line destructor of ParticleSystem (the family is listed at
-// the constructor): an empty body, so only the vtable store is left. The
-// scalar deleting destructors compiled in the same file inline it; 0x474d10
-// and 0x475110, compiled elsewhere, call it.
+// the constructor): an empty body, so only the vtable store is left.
 // FUNCTION: 0x471d00
 ParticleSystem::~ParticleSystem()
 {
@@ -104,10 +92,7 @@ void* __stdcall ParticleSystem::operator new(size_t size)
 }
 
 // The class-specific operator delete of ParticleSystem (the family is listed
-// at the constructor): returns the object to the pool DAT_0051e610. It ends in
-// `ret 4`, so it is __stdcall (its operator new, 0x471d10, is too). The
-// scalar deleting destructors compiled in the same file inline it; 0x474d10
-// and 0x475110, compiled elsewhere, call it.
+// at the constructor): returns the object to the pool DAT_0051e610.
 // FUNCTION: 0x471d50
 void __stdcall ParticleSystem::operator delete(void* p)
 {

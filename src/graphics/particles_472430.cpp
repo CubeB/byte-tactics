@@ -3,12 +3,8 @@
 // slot 6, then appends it to the std::vector<ParticleSystem*> selected by the
 // short index in the ten per-index lists at g_game->lists (created by 0x471d90,
 // walked by 0x471eb0, 0x471f40 and 0x471f90). When that list already holds
-// more than 400 entries its oldest element is deleted and erased first. The
-// append lives in an inlined member helper, which is what leaves
-// std::vector::insert (0x4732e0) out of line.
-// Class family listed in 0x471cc0.cpp; operator new (0x471d10) is inlined here.
-// The byte stored at +0xc is MSVC copying the vector's empty allocator
-// temporary, not a constructor parameter (see particles_470f80.cpp).
+// more than 400 entries its oldest element is deleted and erased first.
+// Class family listed in 0x471cc0.cpp.
 #include <stddef.h>
 #include <string.h>
 #include <vector>
@@ -83,6 +79,7 @@ class Lists_00472430 {
 public:
     std::vector<ParticleSystem*> lists[10];             // 0x10 bytes each
 
+    // Inlined member helper: leaves std::vector::insert out of line.
     void Add(short index, ParticleSystem* p)
     {
         if (lists[index].size() > 400) {

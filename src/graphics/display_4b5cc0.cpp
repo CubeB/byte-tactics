@@ -1,16 +1,4 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
-// MATCH, 100% (1104 bytes). Session 5 (deepseek-v4.1): the whole 8-byte gap was
-// the 0x30f arm's return path. Writing the two paths as an if/else where each
-// arm stores its own result into a plain `long ok` local and a single
-// `return ok;` follows makes MSVC 5 constant-fold the hpalette arm to the
-// original's `mov eax,1 / pop esi / add esp,0x18 / ret 0x10` (12 bytes) and
-// keeps that block out of the ret-1 tail-merge group, so the 0x219/0x3b9
-// `je`s stay short and land on the 0x3b9 copy at 0x4b5fe9 exactly as the
-// original. `long ok` is register-promoted, no extra frame slot. Every earlier
-// spelling (early `return 1;`, `hr = DD_OK` plus a shared
-// `return hr == DD_OK ? 1 : 0;`, `return DD_OK ? 1 : 0;`) either joined the
-// tail-merge group or left the comparison unfolded; the `ok` local with the
-// ternary materialised in the else arm is the one that folds.
 // Window procedure of the main application window: translates the custom
 // display messages and forwards the rest to the default handler.
 #include <windows.h>
@@ -140,6 +128,7 @@ long __stdcall WindowProc(HWND hwnd, unsigned int msg, unsigned int wparam,
             g_display->callback(0x219, wparam, lparam);
         return 1;
     case 0x30f: {
+        // Single result local and one `return ok;`: keeps the return path folded.
         long ok;
         if (g_display->hpalette) {
             HDC dc = GetDC(g_display->hwnd);

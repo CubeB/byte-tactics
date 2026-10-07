@@ -3,12 +3,7 @@
 // matches the side name at g_game+0x37f3d + side*0x232, or the literal "ALL",
 // and returns how many matched. Two buffers come out of FUN_004d83b0: the
 // packed name list from the camps\*.TDF directory (ScanDirectory) and the
-// result list handed back through *out. The side name is the second parameter,
-// not a loop counter, so the loop over the file list has no induction variable
-// of its own and MSVC rotates it into a countdown.
-// The append is written through a static inline helper and `q` is declared
-// before `p`: that order is what puts the append cursor in ebx and the walking
-// name pointer in a stack slot, which is the original's allocation.
+// result list handed back through *out.
 #include <string.h>
 
 #include "../util/tdf.h"
@@ -50,6 +45,7 @@ int __stdcall BuildCampaignNameList(char** out, int side)
     char* names = (char*)FUN_004d83b0("CAMPAIGN NAMES1", n << 8);
     *out = (char*)FUN_004d83b0("CAMPAIGN NAMES2", n << 8);
     ScanDirectory(path, names, 0, 0, 1, 2);
+    // q declared before p, and the append goes through the inline helper.
     char* q = names;
     char* p = *out;
     for (int i = 0; i < n; i++) {

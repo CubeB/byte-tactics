@@ -11,18 +11,8 @@
 // std::map<unsigned int, UnitSyncEntry> at +0x0 and calls 0x46d860.
 //
 // The map store is `map[key] = r` with <map>'s operator[] (see Map_0046d6c0):
-// it inserts a default-constructed value, which MSVC 5 builds as an
-// uninitialised temporary (the copies of uninitialised stack words in the
-// original), then the locally built rectangle is copied over the mapped value.
-// The rectangle's fields live in registers across the insert call, which is
-// where the zero in ebx comes from (`r.y = 0`). Earlier passes wrote the store
-// as a hand-built pair and field-by-field writes and stopped at 83.6%.
-//
-// The tree is declared by hand as a template called _Tree with the real tree's
-// first two arguments, only so that the call to its out-of-line insert carries
-// the name data/symbols.csv gives 0x46ef50 (check.py derives it from the
-// mangled name); the real std::map here expands the whole insert inline (700
-// bytes).
+// it inserts a default-constructed value, then the locally built rectangle is
+// copied over the mapped value.
 #include <utility>
 #include <vector>
 

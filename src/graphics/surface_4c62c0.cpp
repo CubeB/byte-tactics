@@ -3,10 +3,8 @@
 // flags at +0xf0 is set, check whether the surface at +0x88 reports
 // DDERR_SURFACELOST, restore the two surfaces at screen+0x8 and screen+0xc,
 // lock the screen with LockScreen, blit the object at +0x98 onto it with
-// BlitSurface, then unlock with the +0x80 method (UnlockScreen inlined). The
-// screen surface at +0x8c is saved to +0xb4 and +0xdc is always cleared.
-// The unlock is a local inline helper because MSVC then keeps the tested
-// surface pointer in ecx and copies it to eax for the call, as in 0x4c5fa0.
+// BlitSurface, then unlock with the +0x80 method. The screen surface at +0x8c
+// is saved to +0xb4 and +0xdc is always cleared.
 #include <ddraw.h>
 
 struct Surface_004c62c0 {
@@ -47,6 +45,7 @@ int __stdcall LockScreen(Surface_004c62c0* out);
 void __cdecl BlitSurface(void* dst, void* src, int x, int y);
 
 // 0x4c5fa0, inlined here.
+// Local inline helper: keeps the tested surface pointer in ecx.
 static inline int UnlockScreenInline()
 {
     Display_004c62c0* d = GetDisplay();

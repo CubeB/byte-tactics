@@ -19,7 +19,7 @@
 // shared return-value register here. With the natural `result = value;`
 // this function scores 59.0 percent; with `return value;` in an early-return
 // else arm it scores 87.6 percent. The original source most likely used some
-// spelling this session could not guess (see the notes at the end).
+// spelling this session could not guess.
 //
 // What the machine code fixes, and what to attack first in any rewrite:
 // - one saved register only (`push esi`), so the result variable, `surface`

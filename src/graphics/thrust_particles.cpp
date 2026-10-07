@@ -122,26 +122,15 @@ void __stdcall ParticleSystem::operator delete(void* p)
     DAT_0051e610.FreeSlot(p);
 }
 
-// The compiler-generated scalar deleting destructor. Its implicit destructor destroys the std::vector at +0xc
-// (the inlined ~vector leaves the dead store of _First in the `push ecx`
-// slot), then the inlined base destructor stores the base vtable, and the
-// inlined operator delete returns the object to the pool.
-//
-// The class has no out-of-line constructor: 0x4715a0, 0x472330 and 0x472ab0
-// create it with `new`, inlining it. None is decompiled yet, so the global
-// below exists only to make the compiler emit the vtable and with it this
-// COMDAT.
+// The compiler-generated scalar deleting destructor.
 // FUNCTION: 0x4716a0 ??_GThrustParticles@@UAEPAXI@Z
+// Must stay: it makes the compiler emit the vtable and with it this COMDAT.
 static ThrustParticles* s_object = new ThrustParticles;
 
 // Slot 1, Update: walks the std::vector of 0x3c-byte
 // elements at +0xc, advances each one with Step, and erases every
 // element IsExpired reports as expired, then, when virtual slot 5
 // (0x4730c0) is true, calls virtual slot 4 (0x4743a0).
-// The inlined vector::erase is what leaves the 0x3c-byte per-element
-// `rep movsd` shift loop, the dead reload of the p + 1 local after it, and
-// the reload of _Last in the loop test. The two callees have placeholder
-// names from two different classes, so the second is reached by a cast.
 // FUNCTION: 0x473010
 void ThrustParticles::Update()
 {
@@ -179,8 +168,7 @@ void ThrustParticles::FUN_00472e30(int param_1)
     }
 }
 
-// Slot 3: whether there are no particles; the bool from the inlined
-// vector::empty() is widened to the int return value.
+// Slot 3: whether there are no particles.
 // FUNCTION: 0x473130
 int ThrustParticles::FUN_00472e70()
 {
@@ -195,9 +183,7 @@ int ThrustParticles::FUN_00472e70()
 //
 // The record has no leading image pointer: bitmask sits at +0x00, so the three
 // positions land at +0x04/+0x10/+0x1c and field_4 is the record's last dword
-// at +0x38, inside the 0x3c bytes. The earlier attempt's phantom `image` at
-// +0x00 shifted every store up by 4 and made the compiler drop field_4 as a
-// separate dead local.
+// at +0x38, inside the 0x3c bytes.
 // FUNCTION: 0x4743a0
 void ThrustParticles::FUN_004743a0()
 {

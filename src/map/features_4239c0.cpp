@@ -27,6 +27,7 @@ struct Feature_004239c0 {
     unsigned char spreadChance;        // +0xfb
     unsigned char unknown_fc;          // +0xfc
     unsigned char unknown_fd;          // +0xfd
+    // An unsigned short bitfield, not unsigned char: changes the flag test code.
     unsigned short flag0 : 1;          // +0xfe
     unsigned short bits1 : 3;
     unsigned short flammable : 1;
@@ -78,10 +79,6 @@ union Coord_004239c0 {
 // within 3 cells, then to up to five cells downwind (the wind vector at
 // +0x37ecc/+0x37ed4 times 2.0 in 16.16), and leaves its burnt remains
 // (ApplyAreaDamageAt) at its centre.
-// The flag bits at +0xfe are an unsigned short bitfield: an unsigned char one
-// gives `test byte ptr` instead of the original's `mov cl; shr cl, 4`, and the
-// flag test must be its own `if` rather than part of the `&&` chain. pz must
-// be computed from its own read of cell->z before lastZ copies it.
 // FUNCTION: 0x4239c0
 void __stdcall SpreadFire(Feature_004239c0* f, Point16_004239c0* cell)
 {
@@ -91,6 +88,7 @@ void __stdcall SpreadFire(Feature_004239c0* f, Point16_004239c0* cell)
                 Cell_004239c0* c = GetMapCell(x, z);
                 if (c && c->feature < 0xfffb && !(c->flags & 1)) {
                     Feature_004239c0* g = &g_game->features[c->feature];
+                    // Its own `if`, not part of the `&&` chain.
                     if (g->flammable) {
                         if (RandomInt(100) < g->spreadChance)
                             StartFeatureBurning(x, z, 0);
@@ -102,6 +100,7 @@ void __stdcall SpreadFire(Feature_004239c0* f, Point16_004239c0* cell)
     Coord_004239c0 px;
     Coord_004239c0 pz;
     px.value = cell->x << 16;
+    // Computed from its own read of cell->z, before lastZ copies it.
     pz.value = cell->z << 16;
     int lastX = cell->x;
     int lastZ = cell->z;

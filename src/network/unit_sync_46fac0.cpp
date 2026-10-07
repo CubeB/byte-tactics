@@ -4,8 +4,7 @@
 // the inlined list::erase(first, last) loop, `erase(_F++)`, on the list at
 // +0x20 of the object 0x46d040 builds. The node is 0xc bytes (the constructor
 // allocates the head with `new(0xc)`), so the element is a 4-byte value
-// compared against an id (0x46d860); int is a guess. Taking the operator's
-// address makes the compiler emit the template instantiation out of line.
+// compared against an id (0x46d860); int is a guess.
 #include <list>
 
 typedef std::list<int> List_0046fac0;

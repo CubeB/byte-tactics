@@ -1,16 +1,9 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 // Order handler that ends a transport (the unit script's "EndTransport").
 // When unit->field_82 equals g_game->field_142b7 the unit heads towards the
-// map centre instead. State 0 prepares the order (FUN_0040f200 is defined
-// here because /Ob2 inlined it), state 1 tries the unit's own spot, then
-// twelve random nearby cells snapped to the map grid, then a point circling
-// the order's position; state 2 finishes.
-// Match notes: WorldToCell needs `origin.x * 0x80000` (the `<< 19` spelling
-// computes the shift straight into esi instead of `mov ecx, edx; shl ecx,
-// 0x13; mov esi, ecx`); the post-loop flags test needs the (unsigned char)
-// cast for `mov ebx, 0xe0; test bl, al`; and the circle position is summed
-// into a temporary and then copied (`Vec3 dest = sum;`), which keeps all three
-// sums live at once so y lands in edi.
+// map centre instead. State 0 prepares the order, state 1 tries the unit's
+// own spot, then twelve random nearby cells snapped to the map grid, then a
+// point circling the order's position; state 2 finishes.
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
 struct Point { short x, y; };
@@ -85,6 +78,7 @@ static inline Vec3 Offset(short angle, int distance)
 static inline Point WorldToCell(Vec3 v, Point origin)
 {
     Point c;
+    // Multiply by 0x80000, not shift by 19: the shift changes the register use.
     c.x = (v.x - origin.x * 0x80000 + 0x80000) >> 20;
     c.y = (v.z - origin.y * 0x80000 + 0x80000) >> 20;
     return c;
@@ -168,6 +162,7 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
                 return 2;
             }
         }
+        // The (unsigned char) cast selects the original's flags test.
         if ((unsigned char)flags & 0xe0)
             order->angle -= 0x5555;
         Vec3 off = Offset(order->angle, 0xa00000);
@@ -175,6 +170,7 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
         sum.x = order->pos.x + off.x;
         sum.y = order->pos.y + off.y;
         sum.z = order->pos.z + off.z;
+        // Summed into a temporary then copied: keeps all three sums live at once.
         Vec3 dest = sum;
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->FUN_0044e730(0x40);

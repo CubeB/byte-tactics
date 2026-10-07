@@ -1,38 +1,4 @@
 // Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, deepseek-v4.1-flash, space-bunny-free, deepseek-v4.1-flash, GPT-6.1-sol and mimo-v2.6-pro. Names are provisional.
-// mimo-v2.6-pro: MATCH (325 bytes). What fixed the two long-standing defects:
-//
-//   1. The esi/edi swap of i and s, and the preheader def schedule that
-//      follows it, is a register-priority tie. One extra *weighted* reference
-//      pair for i flips it. The pair that works is `i += 1; i -= 1;` written
-//      in the loop: it compiles to zero bytes (the two updates fold away
-//      completely, no inc/dec is emitted) but the allocator still counts the
-//      reads/writes, so i outranks s and takes esi. All of these did NOT flip
-//      it: `i += 0;`, a doubled `buf[i] = 0;` store (CSE'd away before
-//      weighting), a dead `int j = i;`, a comma `(i, buf + i)`, an inline
-//      `LineEnd(buf, i)` helper (beta reduced before weighting), and a real
-//      `if (i < 0) break;` compare (a read alone is not enough; the trigger
-//      needs the write pair). Placement matters: a pair in the inner
-//      wrap-back loop or in the outer loop body flips it, the same pair in
-//      the `if (width <= m)` block does not.
-//   2. The 9-byte `if (text == buf) buf[0] = 1;` tail hack (which kept the
-//      `text` parameter live so MSVC emits `mov ebp,[esp+0x10]` instead of
-//      copy-propagating `s = text`) is replaced by the same zero-cost trick
-//      on the parameter itself: `text += 1; text -= 1;` at the top of the
-//      body. It folds to nothing but records reads/writes of text early, the
-//      parameter stays in ebp across the calls, and the copy `mov edi, ebp`
-//      survives. The tail `cmp [esp+0x18],ebx / jne / mov [ebx],1` is gone
-//      and the size is exactly 325.
-//   3. With the registers flipped the increment source order has to be
-//      i first, s second (`i++; s++;` at the loop top and
-//      `buf[i]='\n'; i++; s++;` after the CRLF stores); the old order only
-//      matched by accident while the registers were swapped.
-//
-// WARNING: the two `+= 1; -= 1;` pairs are diagnostic-shaped. They are the
-// only spelling found that is byte-free and moves the allocator, but the
-// natural construct Cavedog actually wrote is unknown; it folds exactly like
-// a net-zero read/modify/write pair of the same variable. If a cleaner
-// spelling is found (an inlined helper whose body touches text/i, or a
-// duplicated update the back end folds), swap it in and re-check.
 //
 // Function: builds a word-wrapped copy of `text` in a buffer allocated from
 // the pool: the number of characters per line is width / (width of one
@@ -40,7 +6,7 @@
 // line would exceed `width` pixels. `index` selects the current font entry
 // (SelectFontForEntry) when it is not -1; measurements go through the same
 // GetTextPixelWidth / GetFont+GetTextWidth pair the sibling text fitter
-// 0x4ac610 uses (likely via the same kind of inlined Measure helper).
+// 0x4ac610 uses.
 // The preheader size estimate `len + 3 * (len / (width / w)) + 2` allocates
 // room for the CRLF pairs; the wrap-back loop overwrites the break character
 // with the CR, so `s` is only advanced past it once.
@@ -66,6 +32,7 @@ int __stdcall GetTextWidth(int font, unsigned char* text);
 char* __stdcall WordWrapText(Menu_004ac4c0* menu, char* text, int width, int index)
 {
     Gadget_004ac4c0* gadgets = menu->dialog->gadgets;
+    // Net-zero update: makes the allocator count an early use of text.
     text += 1; text -= 1;
     int len = strlen(text);
     if (index != -1)
@@ -87,6 +54,7 @@ char* __stdcall WordWrapText(Menu_004ac4c0* menu, char* text, int width, int ind
             break;
         buf[i] = *s;
         char next = s[1];
+        // i is incremented before s: the source order sets the instruction order.
         i++;
         s++;
         if (next == ' ' || next == '\n' || next == '-') {
@@ -103,6 +71,7 @@ char* __stdcall WordWrapText(Menu_004ac4c0* menu, char* text, int width, int ind
                 i--;
                 s--;
                 while (ch != ' ' && ch != '-') {
+                    // Net-zero update: makes the allocator count an extra use of i.
                     i += 1; i -= 1;
                     buf[i] = 0;
                     ch = s[-1];

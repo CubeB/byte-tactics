@@ -2,20 +2,6 @@
 // Walks a loaded 3DO model: recurses into its two child models, then for each
 // object resolves its texture name against the loaded GAF files and either
 // points it at a plain texture or starts an animation sequence.
-//
-// NOTE: "entry" is deliberately left uninitialised, as in the original (likely
-// an original bug). The original has no store before the first lookup loop, so
-// on the (never taken in practice) path where g_game->blockCount <= 0 the
-// parameter pointer is used as if it were a GAF entry. Initialising it to 0
-// changes the generated code.
-//
-// Statement order in two blocks decides the plain-texture branch: the
-// not-found block sets flag 1 before storing the colour 0xd1, and the plain
-// branch stores the texture before clearing flag 2. Both blocks then end in
-// the same flags store "mov [esi+0x1c], eax"; with the colour stored last in
-// the not-found block, MSVC does not tail-merge them (it compares the blocks
-// before scheduling), and the scheduler then interleaves the plain branch as
-// the original does.
 
 #pragma pack(push, 1)
 struct Game {
@@ -71,6 +57,7 @@ void __stdcall FUN_0042a140(Model_0042a140* model, const char* name)
     Elem_0042a140* elem = model->entries;
     for (int i = 0; i < model->count; i++, elem++) {
         if (elem->name) {
+            // Left uninitialised: initialising it to 0 changes the code.
             unsigned short* entry;
             elem->flags &= ~4;
             for (int j = 0; j < g_game->blockCount; j++) {
@@ -83,6 +70,7 @@ void __stdcall FUN_0042a140(Model_0042a140* model, const char* name)
                 if (entry != 0 && *entry == 10)
                     elem->flags |= 4;
                 if (entry == 0) {
+                    // Flag 1 before the colour store, which stays last: keeps the blocks from tail-merging.
                     elem->flags |= 1;
                     elem->type = 0xd1;
                     continue;
@@ -98,6 +86,7 @@ void __stdcall FUN_0042a140(Model_0042a140* model, const char* name)
                 }
                 continue;
             }
+            // Texture stored before the flag 2 clear.
             elem->name = *(void**)((char*)entry + 0x28);
             elem->flags &= ~2;
         }

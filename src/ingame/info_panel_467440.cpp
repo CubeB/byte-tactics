@@ -1,104 +1,6 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, GPT-6.1-sol, finished by mimo-v2.6-pro, finished by DeepSeek V4.1 Flash, checked by GPT-6. Names are provisional.
-// GPT-6 retry (#4891): checkall.py confirms this file prints MATCH.
-// DeepSeek V4.1 Flash 2026-10-02: MATCH (1015 bytes). The last Loop C
-// mismatch is fixed by giving the field_ff load its own condition term:
-//   (u->flags & 0x10000000) && (ff = u->field_ff, 1) && ff != pl->field_146
-// The `, 1` keeps the assignment as a separate term, so MSVC emits
-// `test dword ptr [u+0x7e],0x10000000` first and then
-// `mov al,[u+0xff]; mov cl,[pl+0x146]; cmp al,cl`, and the first visitor call
-// keeps the original vptr store after the pushes. Writing the compare as
-// `pl->field_146 != ff` flips the cmp operands (99.6); folding the compare
-// into the comma term (`(ff = u->field_ff, pl->field_146 != ff)`) moves it to
-// the register form and reschedules the visitor block (97.5).
-// mimo-v2.6-pro 2026-10-01 (timeboxed retry, second pass): 97.9 -> 98.6
-// percent. Loop D's flags-load hoist is fixed by writing the field_b0 store
-// through an `int&` to the field (the 0x41ba60 pattern from the guide): the
-// reference keeps MSVC from moving the `mov eax,[esi+0x7e]` load above the
-// store.
-// Still differs (98.6): Loop C compare only. Original:
-//   test dword ptr [esi+0x7e],0x10000000 / je
-//   mov al,[esi+0x6d] / mov cl,[ebp+0x146] / cmp al,cl / je
-// Ours (with the single `unsigned char ff` local that fixes the first visitor
-// call block's vptr store and arg registers):
-//   mov ecx,[esi+0x7e] / mov al,[esi+0x6d] / test ecx / je
-//   cmp byte ptr [ebp+0x146],al / je
-// The ff local fixes call 1 but makes the compiler hoist the flags load into
-// ecx and compare memory-to-al. Tried and flat/worse this pass: inline
-// `u->field_ff != pl->field_146` (96.5, gets `test [esi+0x7e]` back but swaps
-// al/cl in the compare and breaks the visitor-call block), inline reversed
-// (96.8, same), nested if with two byte locals either order (96.5/96.8, same
-// al/cl swap). Remaining idea not tried: two locals `ff`/`f146` with one of
-// them as `char` (signed) or the compare written through a tiny inline helper,
-// to force al=field_ff / cl=field_146 while keeping the call block.
-// mimo-v2.6-pro 2026-10-01 (timeboxed retry): 75.9 -> 97.9 percent (1015 of
-// 1015 bytes). What fixed it: Loop E split into IsExplored/IsSeen inline
-// helpers (the matched 0x4658e0 pattern, Contains/Get on a ByteMap at
-// player+0x7c, tx/ty computed inside each helper) with the player pointer
-// built by an inline Game::Current() member (the 0x47f300 trick) and a plain
-// `unsigned int vis` result local (int vis tail-merged the two zero blocks and
-// lost 4 bytes). Loop C's compare now uses an `unsigned char ff` local before
-// the if, which also fixed the first visitor call block's vptr store and arg
-// registers.
-// deepseek-v4.1-flash 2026-10-01 (retry 7, timeboxed): 75.2 -> 75.9 percent
-// (975 bytes). Moving the Loop E `int pi = g_game->playerIndex;` and the p2 lea
-// chain to AFTER the y/x pos loads (`int y ...; int x ...;`) gains 0.7 percent:
-// the original schedules the p2 chain and the field_14281 test ahead of the
-// f70/f74/f6c loads, and this source order gets the pos loads after p2.
-// Flat at 75.9: fresh loop variable for Loop E (declared outside or in the for),
-// x-before-y swap, dropping the pi local (p2 from g_game->playerIndex inline).
-// Regressed or flat otherwise: removing the Loop E `unsigned int f` temp 75.5,
-// `vis = (a && b && c) != 0` 75.2 / 989, declaring the Loop C visitor before pp
-// 75.2, `u->flags = u->flags | 0x1000` 75.2. Still open: Loop E cursor in ebp
-// (original esi) with flags in ebx (original ebp), Loop C push/vptr schedule,
-// Loop D flags-load order.
-
-// deepseek-v4.1-flash 2026-10-01 (retry 6, timeboxed): no gain, stays 75.2 /
-// 975 bytes. Two fresh spellings are neutral/negative: Loop C `u->field_ff !=
-// pl->field_146` regresses to 74.8 / 975, and Loop D `u->flags |= 0x1000` is
-// byte-neutral at 75.2 / 975.
-// deepseek-v4.1-flash 2026-10-01 (retry 5, timeboxed): no gain, stays 75.2 /
-// 975 bytes. Removing the Loop E `unsigned int f = u->flags;` temp (using
-// u->flags directly in the two tests and the store) regresses 75.2 to 74.8 /
-// 981 bytes, so the shared temp is required; the ebx-vs-ebp flags pick stands.
-
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, GPT-6.1-sol. Names are provisional.
-// deepseek-v4.1-flash 2026-10-01 (retry 4, timeboxed): no new gains, stays at
-// the 75.2% / 975-byte best. Open sites unchanged: Loop E keeps the pos loads
-// hoisted before the field_14281 test and allocates flags in ebx (original:
-// ebp) with the cursor in ebp (original: esi); Loop C and Loop D scheduling
-// differences as noted below.
-
-// deepseek-v4.1-flash 2026-10-01 (retry 3): Loop E's `unsigned char pi` local
-// forced a spill of playerIndex to [esp+0x1c] plus and 0xff reload; changing it
-// to `int pi` deletes the spill and gains 74.6 -> 75.2 (975 bytes). Duplicating
-// y/x declarations inside both vis arms regressed to 72.5, so the single
-// pre-if y/x pair stays.
-// PARTIAL STILL OPEN (75.2%): Loop E keeps the pos loads hoisted before the
-// field_14281 test and allocates flags in ebx (original: ebp) with the cursor
-// in ebp (original: esi); Loop C push/vptr scheduling and Loop D flags-load
-// order are unchanged from the notes below.
-// deepseek-v4.1-flash 2026-10-01 (retry 2): spelling the Loop C compare as
-// `u->field_ff != pl->field_146` regresses 74.6 to 74.2 (986 bytes), so the
-// original cl-first load plus `cmp al, cl` is not reachable by operand swap.
-// deepseek-v4.1-flash retry 2026-10-01: moving `vis = 0;` to the head of the else arm (dropping the explicit else) regressed 74.6 to 74.1 (991 bytes), so the original really has the neg/sbb/neg before the bounds-failure path. Restored base.
-// PARTIAL: 74.6% (986 of the original's 1015 bytes). Five loops over the unit
-// array (stride 0x118). Loop B now matches after computing t = a + f70*2
-// BEFORE loading b, then t = t*t, s = b*b, then if (a <= b) a = b; and calling
-// with (int)a << 16. Loop C's compare matches with pl->field_146 != u->field_ff.
-//
-// What still differs (74.6%):
-//  - Loop C first visitor call: the original stores the vptr AFTER the three
-//    pushes (mov [esp+0x24], ebx) and materialises pp into edx before them;
-//    ours stores the vptr before the pushes and computes pp at the third push.
-//  - Loop C body: the original loads u->field_ff into al and pl->field_146
-//    into cl; ours still swaps those two registers (the compare operands now
-//    match, the register names do not).
-//  - Loop D: the original loads u->flags AFTER the field_b0 store
-//    (mov [esi+0x1e],edx; mov eax,[esi+0x7e]; or eax,edi); ours hoists the
-//    flags load above the g_game reload. |= vs = x | 1000 makes no difference.
-//  - Loop E: the original anchors the cursor at u+0x74 in esi with flags in
-//    ebp (test ebp,0x100), ours anchors with add edi,0x74 and flags in ebx
-//    (test bh,1); body register allocation (x/y/pl) differs throughout.
+// Five loops over the unit array (stride 0x118).
 
 #pragma pack(push, 1)
 
@@ -290,6 +192,7 @@ void FUN_00467440(void)
     for (u = pl->field_67; u <= pl->field_6b; u++) {
         if ((u->flags & 0x10000000) && !(u->flags & 0x4000) && (u->field_10e & 1)) {
             if (u->def->field_204 != 0 || u->def->field_206 != 0) {
+                // t is computed before b is loaded, then squared.
                 short a = u->def->field_204;
                 int t = a + u->pos.half.f70 * 2;
                 short b = u->def->field_206;
@@ -309,6 +212,7 @@ void FUN_00467440(void)
     }
 
     for (u = first; u <= last; u++) {
+        // The ff local and the `, 1` term keep the field_ff load a separate term.
         unsigned char ff;
         if ((u->flags & 0x10000000) && (ff = u->field_ff, 1) && ff != pl->field_146 && (u->field_10e & 1)) {
             if (u->def->field_20a != 0) {
@@ -332,6 +236,7 @@ void FUN_00467440(void)
             if (c == 1 || c == 2) {
                 if (u->def->field_245 & 0x2000) {
                     if (HasReadyUnitInRange(u->field_ff, &u->pos.vec, u->def->field_208)) {
+                        // Written through an int& so the flags load stays after the store.
                         int& b0 = u->field_b0;
                         b0 = g_game->field_38a47 + 0x5a;
                         u->flags |= 0x1000;
@@ -342,10 +247,13 @@ void FUN_00467440(void)
     }
 
     for (u = first; u <= last; u++) {
+        // Shared temp: using u->flags directly changes the code.
         unsigned int f = u->flags;
         if ((f & 0x10000000) && !(f & 0x100) && !(u->field_10e & 4)) {
+            // int, not unsigned char: the latter spills playerIndex.
             int pi = g_game->playerIndex;
             PlayerInfo_00467440* p2 = g_game->Current();
+            // unsigned int: an int merges the two zero blocks.
             unsigned int vis;
             if ((g_game->field_14281 & 2) == 2) {
                 vis = IsExplored_00467440(p2, &u->pos);

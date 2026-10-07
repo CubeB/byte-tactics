@@ -2,8 +2,7 @@
 // std::vector<Class_004c91a0>::insert(iterator, size_type, const T&), out of
 // line, for a vector of reference-counted string handles (4 bytes each). The
 // copy constructor is 0x4c91a0, the assignment 0x4c93b0 and the destructor
-// releases the handle through 0x4c9390. Taking insert's address makes the
-// compiler emit the template instantiation, as in 0x488fb0.cpp.
+// releases the handle through 0x4c9390.
 #include <vector>
 
 class Class_004c9390 {

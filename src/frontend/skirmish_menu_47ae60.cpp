@@ -1,19 +1,4 @@
 // Decompiled by deepseek-v4.1, edited by deepseek-v4.1 and GPT-6.1-sol, deepseek-v4.1-flash, mimo-v2.6-pro and Space Bunny Free, finished by opus. Names are provisional.
-// MATCH (opus pass). The last 12 points came from the shape of the command
-// chain after "PrevMenu": it is one if / else-if chain whose arms fall through
-// to a single FUN_004ab0a0(menu) at the end of the function. MSVC duplicates
-// that small tail block (call plus epilogue) into the arms, and because the
-// block was built at the join point, every copy reloads menu from its stack
-// slot ("mov edx,[esp+0x84]"). With a "FUN_004ab0a0(menu); return;" in every
-// arm instead, the arms reuse whatever register already held menu (the
-// Energy and Metal arms kept it in ebp for the whole arm), which left the
-// file 71 bytes short at 88.2%.
-// Earlier findings that still hold: the Energy/Metal clamps are windef.h's
-// min()/max() on the pointee (the down clamp written "*p + -0x1f4"); the c2/c1
-// player counts are nested loop1 / test-c2 / loop2 / test-c1 with one shared
-// error stub; the LineOfSight "field_114 = 1" stores precede the strcpy; the
-// Difficulty arm calls PlaySoundByName("SKirmish", 0) with the original's typo'd
-// literal (0x502a6c), not "Skirmish".
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>
@@ -231,6 +216,8 @@ void __stdcall HandleSkirmishClick(Menu_0047ae60* menu)
     }
 
 
+    // One if/else-if chain falling through to a single FUN_004ab0a0 at the end:
+    // no per-arm return.
     if (strcmp(frame.bf, "Player") == 0) {
         PlaySoundByName("Skirmish", 0);
         CycleSlotController(player);
@@ -273,6 +260,7 @@ void __stdcall HandleSkirmishClick(Menu_0047ae60* menu)
             PlaySoundByName("Skirmish", 0);
             Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
             int* p = (int*)((char*)t + player * 24 + 0x10);
+            // min()/max() from windef.h on the pointee; down clamp is *p + -0x1f4.
             *p = max(*p + -0x1f4, 0xc8);
             wsprintfA(frame.sB, "Energy%d", player);
             _itoa((*(Table_0047ae60**)(g_game + 0x29a0))->players[player].energy, frame.sA, 10);
@@ -341,6 +329,7 @@ void __stdcall HandleSkirmishClick(Menu_0047ae60* menu)
         Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
         if (t->field_110 == 0) {
             t->field_110 = 1;
+            // The field_114 stores precede the strcpy.
             (*(Table_0047ae60**)(g_game + 0x29a0))->field_114 = 1;
             strcpy(e->text, Translate("Terrain elevations affect a unit's view."));
         } else if (t->field_114 == 1) {
@@ -357,6 +346,7 @@ void __stdcall HandleSkirmishClick(Menu_0047ae60* menu)
         FUN_00491c80(0x14);
         OpenSkirmishMapSelector();
     } else if (IsCurrentGadgetNamed(menu, "Difficulty")) {
+        // The original's typo, "SKirmish", not "Skirmish".
         PlaySoundByName("SKirmish", 0);
         int d = *(int*)(g_game + 0x37eee);
         if (d == 0) {

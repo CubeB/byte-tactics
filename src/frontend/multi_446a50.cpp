@@ -2,8 +2,6 @@
 // Refreshes the "TEAMICONS%d" gadget for every active player: the name uses
 // either the player index or a running icon counter, and the value comes from
 // the player's alliance and how many players are still counted on that side.
-// The three SetButtonStageByName calls in the switch are written out separately so
-// MSVC tail-merges them and keeps the original register allocation.
 #include <windows.h>
 
 struct Class_004a1080;
@@ -107,6 +105,7 @@ void RefreshTeamIcons()
             int alliance = p->alliance;
             int count = CountAlliance_00446a50(alliance);
 
+            // Three separate calls: they tail-merge in the original.
             switch (count) {
             case 0:
                 SetButtonStageByName((Class_004a1080*)g_game->gui, buffer, 10);

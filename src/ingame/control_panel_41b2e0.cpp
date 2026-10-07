@@ -3,31 +3,14 @@
 // (g_game->unitIndex) or every selected unit of the local player, merging
 // their fire and move orders, cloak and on/off states and the can* bits into
 // g_game->orders, then opens the unit's build menu page or redraws the bar.
-//
-// #5634 Claude Opus 5.5: MATCH without /Gi, with the game types header and
-// two real headers in front: include/ta_types.h, <shlobj.h> and <memory.h>.
-// - What decides is this function's locals' symbol ids (docs/c2-regalloc.md,
-//   "Symbol ids"): `first` has to be at 64550 to 64582, 64614 to 64646,
-//   64678 to 64710, 64742 to 64774 or 64806 to 64826. ta_types.h alone puts
-//   it at 62415; <shlobj.h> and <memory.h> put it at 64626. Other real sets
-//   that match: <shlobj.h> with <time.h>, <malloc.h> or <direct.h>, and
-//   <vfw.h> with <imagehlp.h>. <shlobj.h> alone (64599) and with
-//   <imagehlp.h> (65009, the set that matches 0x424c00 and 0x471de0) do not.
-// - The file keeps its own views of the unit, unit type, player, build type,
-//   order flags and game: the header's Unit, UnitDef and Game have plain
-//   words where this function uses bitfields (flags at Unit+0x110,
-//   UnitDef+0x245, Game+0x37ebe), and Menu_0041b2e0 is only declared there.
-// - The source is the one the /Gi version had (94.9%): first and count left
-//   uninitialised and zeroed at the top of the else, cloak declared before
-//   onOff, the nine flags in the original's store order. Under /Gi only the
-//   tail bitfield ORs and the first/count slot tie still differed; both were
-//   this symbol-id window.
+// This include set decides the symbol ids of the locals: do not change it.
 #include <windows.h>
 #include <shlobj.h>
 #include <memory.h>
 #include "ta_types.h"
 
 
+// Own views of the unit, unit type and game: the shared header's types have plain words where bitfields are needed.
 #pragma pack(push, 1)
 struct UnitType_0041b2e0 {
     char unknown_0[0x22e];
@@ -153,6 +136,8 @@ static inline Unit_0041b2e0* GetUnit(unsigned short index)
 void RefreshSelectionOrders()
 {
     g_game->orders.refresh = 1;
+    // Declaration order matters: cloak before onOff, first and count left
+    // uninitialised and set at the top of each branch.
     int fireOrder = 4;
     int moveOrder = 4;
     int cloak = 3;
@@ -237,6 +222,7 @@ void RefreshSelectionOrders()
                 canBlast = 1;
             count++;
         }
+        // Stores in the original's order.
         g_game->orders.fireOrder = fireOrder;
         g_game->orders.moveOrder = moveOrder;
         g_game->orders.cloak = cloak;

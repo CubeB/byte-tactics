@@ -4,9 +4,6 @@
 // Outside a corner it is 16 * major + 6 * minor axis distance (compare the
 // 18/7 ring metric of 0x44d350/0x44d840); straight out from an edge it is
 // 16 * distance; inside it is 16 * distance to the nearest edge.
-// The nearest-edge part is three inlined `min` selects; written out as a
-// function or as a chain of ifs the compiler picks a different register for
-// the first argument, so keep the macro form.
 
 class Class_0044dd00 {
 public:
@@ -19,6 +16,7 @@ public:
     int FUN_0044dd00(int x, int y);
 };
 
+// Stays a macro: as a function or an if chain the first argument gets another register.
 #define Min_0044dd00(a, b) ((a) < (b) ? (a) : (b))
 
 // FUNCTION: 0x44dd00

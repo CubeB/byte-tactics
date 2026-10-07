@@ -4,10 +4,8 @@
 // Its slots move and query the pieces of the unit's model and read and set
 // the unit's properties for the script.
 
-// <windows.h> plus <string> are load bearing for the compiler state, with no
-// symbol from either used: without them GetUnitValue's two 16.16 packers
-// (cases 7 and 9) put the masked operand in the accumulator, and without a
-// header ExplodePiece's merge block keeps its accumulator in eax.
+// Unused, but <windows.h> and <string> must stay: they change register use
+// in GetUnitValue and ExplodePiece.
 #include <windows.h>
 #include <string>
 #include <math.h>
@@ -40,6 +38,7 @@ struct Unit {
     unsigned short id;                  // +0xa8
     char unknown_aa[0xba - 0xaa];
     unsigned short unknown_ba : 2;      // +0xba
+    // A 1-bit bitfield, not a byte: gives a single `or` in SetUnitValue.
     unsigned short dirty : 1;
     unsigned short unknown_ba_3 : 13;
     char unknown_bc[0x104 - 0xbc];
@@ -309,15 +308,6 @@ int UnitScript::GetUnitValue(int which, int a, int b, int c, int d)
 
 // Slot 16 of UnitScript (vtable 0x4fd698); see src/units/units_485e30.cpp
 // and the sibling slots 0x480ce0, 0x480d50, 0x480db0, 0x480df0.
-//
-// The flag at +0xba is a 1-bit `unsigned short` bitfield at bit 2, not a whole
-// byte: `dirty |= 4` on a plain byte makes MSVC 5 emit a load/or/store pair,
-// while the bitfield gives the single `or byte ptr [esi+0xba], 4` the original
-// has. The compiler copies the post-switch `dirty = true` into every case body
-// (leaving case 20 and the default to share one copy), so keep the assignment
-// after the switch, not inside the cases. Case 5 assigns to bit 0, it does not
-// toggle it: the original's `xor cl, al; and cl, 1; xor cl, al` clears the
-// other bits of the byte and puts `value & 1` in bit 0.
 // FUNCTION: 0x480b20
 void UnitScript::SetUnitValue(int which, int value)
 {
@@ -342,11 +332,11 @@ void UnitScript::SetUnitValue(int which, int value)
         ((Unit*)unit)->SetStateBits(2, value);
         break;
     }
+    // After the switch, not inside the cases.
     unit->dirty = true;
 }
 
-// The original splits the address as `lea [.. + 0x22]` then `[.. + 4]`:
-// the piece array starts at +0x22 of the object state.
+// The piece array starts at +0x22 of the object state.
 // FUNCTION: 0x480c30
 int UnitScript::GetPieceTranslation(int index, int slot)
 {
@@ -543,21 +533,12 @@ void UnitScript::EmitSfx(int a, int b)
 //    it to up to six tables in g_game (+0x147f7, a six-pointer array) with
 //    AddExplosionEffect(&v, table, 2, 0).
 //
-// `b` must be unsigned (so CobScript declares the slot with an unsigned
-// int too): the merge block's `(b >> 2)` / `(b >> 4)` are `shr`, not `sar`.
-// The header's flag dword at +0x28 is a plain unsigned int, not a bitfield:
-// assigning `(b & 2) << 4` to a 1-bit field would truncate it to zero, while
-// the original ORs the shifted value straight in.
-//
-// The two arms of the if/else keep their h.f24 store in different places:
-// the taken arm stores 1 after the OR (and before the trailing `or al, 4`),
-// the else arm stores 0 before the OR. Swapping only the else arm's two
-// statements is what reproduces the original's scheduling.
-//
 // Suspected original bug: h.bits is read before it is ever written (the
 // first `h.bits & ~0x30` in each arm, and the three merge assignments, all
 // load the uninitialised local). Only bits 6 and up survive the masks, so
 // whatever the stack held leaks into the record StartExplodePiece copies.
+// `b` must stay unsigned (shr, not sar) and the header's flag dword a plain
+// unsigned int: a 1-bit field would truncate `(b & 2) << 4`.
 // FUNCTION: 0x481140
 void UnitScript::ExplodePiece(int a, unsigned int b)
 {
@@ -572,6 +553,7 @@ void UnitScript::ExplodePiece(int a, unsigned int b)
         h.y = RandomInt(10) << 16;
         h.z = (0x14 - RandomInt(0x28)) << 14;
         h.f20 = 900;
+        // h.f24 is stored after the OR in this arm and before it in the else arm.
         if (b & 1) {
             h.bits = (h.bits & ~0x30) | ((b & 2) << 4);
             h.f24 = 1;

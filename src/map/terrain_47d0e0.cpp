@@ -1,26 +1,6 @@
 // Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, checked by GPT-6, finished by claude-opus-5-5. Names are provisional.
-// MATCH (claude-opus-5-5, #5131). The earlier passes (96.1% at best) were
-// missing two things, and each one alone changes nothing:
-//  - The cell index reads the position through a helper taking a
-//    `const Point&`. Written inline, `obj->pos.y` in the index and
-//    `pad.y = obj->pos.y - 1` below become one common subexpression in C2
-//    (c2prio lists a temp on both lines), and while it exists the multiply
-//    never takes the width as a memory operand. Through the reference the two
-//    reads stay separate and `imul eax, [ebx+0x14233]` can fold.
-//  - `#include <windows.h>` (the full header, as in the matched sibling
-//    0x47cc30). Whether C2 folds that multiply also depends on how many types
-//    are declared before the function: in a small test it folds only while
-//    that count has bit 14 set (about 2300 to 4650 and 7000 to 9300
-//    one-member structs), and the full windows.h lands in such a window
-//    where the lean one does not. Without the header this file is 79.0%.
-//    That count is g_game's symbol id (`c2prio.py --symbols g_game`,
-//    docs/c2-regalloc.md "Symbol ids"; a one-member struct takes 7 ids):
-//    29019 with the full header, 12192 with the lean one; 3748 extra
-//    declarations before g_game (id 32767) still match, 3749 (32768) do
-//    not, and the function's own id or the file total crossing 32768 do
-//    nothing.
-// With both, the guard is the obj-first compare and the width-pointer local
-// of the 96.1% version is not needed.
+// The full windows.h stays: its declaration count decides how the cell index
+// multiply folds.
 
 #include <windows.h>
 
@@ -88,6 +68,8 @@ void __stdcall UpdateCellHeightRange(Point pos, Point size);
 void __stdcall VisitObjectsInArea(Point pos, Point size, Class_0047db20* visitor);
 void __stdcall RefreshPassMapsForUnit(Obj_0047db20* obj);
 
+// Reads the position through a const reference: written inline, the two
+// obj->pos.y reads become one common subexpression.
 static inline Cell_0047db20* CellAt(const Point& p)
 {
     return &g_game->cells[p.y * g_game->width + p.x];

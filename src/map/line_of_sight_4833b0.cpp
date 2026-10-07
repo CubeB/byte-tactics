@@ -4,13 +4,11 @@
 // the bottom until the cell's ground height passes the scan line, and finally,
 // when the game is networked, every cell whose ground is at or below sea level.
 //
-// <windows.h> is included only for MSVC's register allocation: without a header
-// the first cell lookup takes eax for the map width, and the whole function is
-// 62.7% instead of 100%.
-//
 // The second scan's lower bound test is on the pixel row (`py >= 0`), not on the
 // cell row, which is why it needs its own accessor; the cell row differs from
 // the pixel row by the `>> 4` the loop never writes out.
+//
+// Needed: it changes the register allocation of the first cell lookup.
 #include <windows.h>
 
 #pragma pack(push, 1)

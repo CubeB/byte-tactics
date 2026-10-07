@@ -44,6 +44,7 @@ public:
         return 0;
     }
 
+    // The extra inline level keeps logic_error's constructor out of line.
     TdfRecord* GetChild(int index)
     {
         return index >= children.size() ? 0 : children.at(index);
@@ -130,17 +131,12 @@ TdfFile::TdfFile()
 // Destructor-shaped method: frees the TDF section tree hanging off root and
 // zeroes the 12-byte object. Same body as TdfFile's destructor
 // (0x4c2eb0, in tdf_4c51b0.cpp), but the entry vector here is a direct
-// std::vector<TdfField> member, so its destroy loop calls ~Elem
-// out of line (0x4c5190) instead of the scalar deleting destructor 0x4c51b0.
-//
-// The one byte-level difference from `delete root;` on its own is the register
-// allocator: without the explicit test it keeps root in edi and the loops in
-// esi, the original has them the other way round. Spelling the null test out
-// (the redundant `if (root)` folds into delete's own check) makes MSVC give
-// root esi, exactly as the original does.
+// std::vector<TdfField> member, so its destroy loop calls ~Elem (0x4c5190)
+// instead of the scalar deleting destructor 0x4c51b0.
 // FUNCTION: 0x4c3240
 void TdfFile::Unload()
 {
+    // Explicit null test kept: it gives root the original's register.
     if (root)
         delete root;
     root = 0;
@@ -174,11 +170,9 @@ int TdfFile::SelectRecord(char* name)
 // Moves the cursor to the child of the current TDF node (or of the root when
 // there is none) at the given index. The node's child vector is a
 // std::vector<TdfRecord*> at +4 (_First at +8, _Last at +0xc), and the
-// out-of-range case throws out_of_range through the inlined vector::at()
-// (the literal "invalid vector<T> subscript"). The inline GetChild wrapper is
-// what keeps logic_error's constructor out of line: without one extra inline
-// level MSVC 5 inlines it into this function too, and the call to the
-// out-of-line logic_error constructor (0x4c35c0) is lost.
+// out-of-range case throws out_of_range through vector::at() (the literal
+// "invalid vector<T> subscript"), calling the logic_error constructor
+// (0x4c35c0).
 // FUNCTION: 0x4c3490
 int TdfFile::SelectRecordAt(int index)
 {

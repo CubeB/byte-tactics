@@ -9,18 +9,6 @@
 // sees a failure. The tail is HAPI_CloseFile (close, release the two block
 // pointers, free the handle) written out inline, with its fclose results dead
 // because the return value is the block.
-// Two shapes had to be spelled exactly this way:
-//   * the length/rewind/read tests are an `if / else if / else` chain with the
-//     failure arms as the earlier branches. Written as a chain of `if` blocks
-//     with gotos, or with the success tests first, MSVC 5 merges the two
-//     identical `data = 0; goto close` blocks and lays the whole success path
-//     out as the fallthrough, which is the mirror image of the original.
-//   * the in-place strip is two indices into the same array, copied from 0x4bb150.
-//     Pointer versions let MSVC address the destination as an offset from the
-//     source and peel the first iteration, which the original does not do.
-// The `name` argument is enregistered in edi, the handle in ebp, the length in
-// ebx and `data` shares esi with the `size` argument, which is reloaded from
-// its stack slot for its last use.
 #include <stdio.h>
 #include <string.h>
 #include <io.h>
@@ -78,6 +66,7 @@ char* __stdcall HAPI_LoadFile(char* name, int* size)
     } else {
         len = 0;
     }
+    // An if / else if / else chain with the failure arms first, not gotos or success-first.
     if (len <= 0) {
         data = 0;
     } else if (HAPI_SeekFile(f, 0) == -1) {
@@ -85,6 +74,7 @@ char* __stdcall HAPI_LoadFile(char* name, int* size)
     } else {
         strcpy(buf, name);
         {
+            // Two indices into the same array: pointers would peel the first iteration.
             int n = (int)strlen(buf);
             int i = n - 1;
             while (i >= 0 && buf[i] != '\\') {

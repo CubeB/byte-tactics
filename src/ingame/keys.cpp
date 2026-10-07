@@ -9,7 +9,7 @@
 // 0x495a30 names as `field_37f2f`/`field_38a51` are anonymous unions with the
 // bitfield views 0x495e90 uses.
 //
-// <windows.h> is load-bearing for 0x495a30: without it the score drops to 83.3%.
+// Needed by 0x495a30: its frame layout depends on this header.
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,9 +24,8 @@ struct Struct_00495860 {
     int value;                       // +0x4
 };
 
-// 0x4958c0's name for the same object; the Game field below uses it. The name
-// is load-bearing: without the extra front-end symbol, 0x495a30's frame puts
-// two locals the other way round (99.3%).
+// 0x4958c0's name for the same object; the Game field below uses it.
+// Keep the name: the extra front-end symbol decides 0x495a30's frame layout.
 typedef Struct_00495860 Struct_004958c0;
 
 class Mission;
@@ -110,6 +109,7 @@ struct Class_004cb7d0 {
     void Close();
 };
 
+// 24 bytes, not 20: keeps the trailing 4 bytes of the sprite record.
 struct Dst_004b8ae0 {
     unsigned short a;                       // +0x0
     unsigned short b;                       // +0x2
@@ -197,6 +197,7 @@ struct Game {
     char unknown_37f08[0x37f27 - 0x37f08];
     int field_37f27;                    // +0x37f27
     char unknown_37f2b[0x37f2f - 0x37f2b];
+    // Both views of the flag word are used: raw `& 2` tests and the b1 bitfield.
     union {
         unsigned short field_37f2f;     // +0x37f2f
         Flags_00495e90_37f2f flags_37f2f;
@@ -363,17 +364,6 @@ void __stdcall BuildScreenshotPath(char* out, const char* dir, const char* name,
 
 // Screenshot writer: renders the map in screen-sized tiles into an offscreen
 // bitmap and appends each band to a .bmp file.
-// The frame layout that stalled this at 93.9% is decided by MSVC 5's local
-// ordering rule (measured in build/scratch/0x495a30/model2.py): locals are
-// sorted by memory references divided by size, highest ratio nearest esp,
-// ties broken in favour of the earlier declared object. The clip rect is a
-// plain 16-byte Rect (2 refs, 0.125) and the sprite reference built by
-// FrameFromSurface is 24 bytes, not 20 (3 refs, 0.125): the tie puts the sprite
-// at 0x64 and the rect at 0x7c, under the 48-byte surface (5 refs, 0.104).
-// With a 20-byte sprite the rect would have to be 20 bytes to put its bottom
-// at 0x88, and a 20-byte rect (0.100) sorts above the surface. 0x44c0d0.cpp
-// records the same 24-byte record ("0x14-byte sprite reference plus 4
-// trailing bytes").
 // FUNCTION: 0x495a30
 void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h)
 {
@@ -500,38 +490,7 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
 
 // In-game keyboard command dispatcher: PopKey returns the event (0 means
 // return), IsKeyDown(0xf9) the "key down" flag. The switch is value sorted
-// into a 0xf0-byte index table and a 40-entry jump table; the case bodies are
-// written in the original's physical order so the jump table lines up.
-//
-// The two residues that held this at 79.6% for many passes:
-// - Case 0xd7 (movie recording toggle) is an if/else with the counter reset in
-//   BOTH arms: `if (counter != 0) counter = 0; else { counter = 0; ...start... }`.
-//   MSVC 5 hoists the common store above the compare, which gives the
-//   original's `mov ecx,[eax+0x38c53]; mov [eax+0x38c53],ebx; cmp ecx,ebx`
-//   with g_game in EAX (the 5-byte moffs load) and the flag byte in CL. Every
-//   `int old = counter; counter = 0; if (old == 0)` spelling, hoisted or not,
-//   mirrors the registers (pointer ECX, byte AL, old EAX) and loses one byte.
-// - The case 0xab CTRL buffer is 7 bytes ("CTRL_x" plus the NUL), not 16.
-//   MSVC 5 lays locals out by (memory references / size), highest ratio
-//   nearest esp; a 16-byte buffer (2/16) sorts after the vector case's
-//   locals and reuses the vector's dead 16-byte slot at esp+0x18, while a
-//   7-byte one (2/7) sorts before the vector's 4-byte allocator temporary
-//   (1/4) and lands at esp+0x10 with the frame unchanged at 0x230. Sizes 3 to
-//   7 are byte-identical; 8 ties the allocator temporary and moves the frame.
-//   (Rule measured in build/scratch/0x495a30/model2.py for issue 4408.)
-//
-// Other facts that matter:
-// - `char path[0x100]` in case 0xd7 and `unsigned char data[4]` in case 0xf8
-//   pin the frame at 0x230 and findData at esp+0x28.
-// - The 0x2d/0x5f and 0x2b/0x3d guards are a raw `& 2` test (test byte,2) while
-//   the tail and 0xec use the `b1` bitfield (mov al; shr; test); the union
-//   keeps both spellings.
-// - Case 0xf8: writing `BroadcastPacket(GetLocalDpid(), data, 3)` as one expression
-//   pushes the literal 3 before the toggle, as the original does.
-// - The `key == 0` arms are written as `if (key != 0) { ... } else`, so the
-//   `key == 0` arm is out of line.
-// - Class_00438760 is a one-byte order-type class passed by value (pushed as
-//   the containing dword).
+// The key == 0 arms are written as `if (key != 0) { ... } else` to stay out of line.
 // FUNCTION: 0x495e90
 void HandleGameKey(void)
 {
@@ -541,6 +500,7 @@ void HandleGameKey(void)
 
     int key = IsKeyDown(0xf9);
 
+    // Case bodies stay in the original physical order: the jump table depends on it.
     switch (event) {
     case 0x1b:
         if (g_game->flags_37ebe.b0) {
@@ -641,6 +601,7 @@ void HandleGameKey(void)
         data[1] = 0;
         g_game->flags_38a51.b0 = !g_game->flags_38a51.b0;
         data[2] = (unsigned char)(g_game->flags_38a51.b0);
+        // One expression: the literal 3 must be pushed before the toggle.
         BroadcastPacket(GetLocalDpid(), data, 3);
         break;
     }
@@ -690,7 +651,9 @@ void HandleGameKey(void)
             if (g_game->field_38c53 != 0) {
                 g_game->field_38c53 = 0;
             } else {
+                // Reset in both arms: the compiler hoists the common store.
                 g_game->field_38c53 = 0;
+                // path[0x100] and data[4] (case 0xf8) pin the frame size.
                 char path[0x100];
                 char findData[0x118];
                 sprintf(path, "%s\\MOVIE*", g_game->field_38a53);
@@ -766,6 +729,7 @@ void HandleGameKey(void)
     case 0xc0:
     case 0xc1:
     case 0xc2: {
+        // Exactly 7 bytes: a larger buffer moves the frame layout.
         char buf[7];
         sprintf(buf, "CTRL_%c", event - 0x69);
         SelectUnitsByCategory(buf, key);

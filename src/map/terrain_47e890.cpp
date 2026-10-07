@@ -5,18 +5,6 @@
 // (the one in 0x405d90 and its two siblings). The distance test is the fixed
 // point one the game uses everywhere: only the high dword of each 64 bit product
 // is kept, so the 32 bit add of the two terms can never overflow.
-//
-// Two spellings here are load bearing:
-//  - The distance goes through a helper taking the two points as pointers, with
-//    the z difference written first. Written inline the function is 6 bytes
-//    shorter: the reload of the point pointer that the call clobbers then stays
-//    in the loop latch instead of getting its own block at the top of the object
-//    loop, and the extra reload after the loop disappears.
-//  - Each of the four cell clamps goes through its own one line helper taking
-//    the point pointer. All four in one helper (or written out by hand) gives the
-//    same code except for the order of the two reloads at the end of the object
-//    loop: the point pointer is reloaded before the x counter instead of after.
-//    Only the separate helpers make x outrank pos in the allocator's priority.
 #pragma pack(push, 1)
 struct Vec3 {
     int x;
@@ -62,6 +50,7 @@ static inline int Clamp_0047e890(int v, unsigned int size)
     return size - 1;
 }
 
+// Four separate one-line helpers taking the point pointer: keeps x outranking pos.
 static inline int ClampX_0047e890(Vec3* p, int range, unsigned int size)
 {
     return Clamp_0047e890((p->x - range) >> 23, size);
@@ -82,6 +71,7 @@ static inline int ClampZ2_0047e890(Vec3* p, int range, unsigned int size)
     return Clamp_0047e890((p->z + range) >> 23, size);
 }
 
+// Pointer arguments, z difference first: written inline the code changes.
 static inline int Dist2_0047e890(Vec3* b, Vec3* a)
 {
     int dz = a->z - b->z;

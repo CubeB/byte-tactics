@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+// Must stay, though unused: LoadUnit's flag chain registers depend on it.
 #include <math.h>
 
 struct FlagBits {
@@ -265,29 +266,8 @@ void __stdcall LoadUnits(HapiBank* file)
 // Loads one unit (and, recursively, the units it carries or is built by) from the "Units"
 // section of a saved game: finds its 0xb8-byte record by id, creates the unit and copies the
 // record into it.
-//
-// MATCH (pass 18, claude-opus-5-5, from 97.1%). What closed it:
-//  - The record's flags word is the save function's layout (0x4876c0): a0-a3, a 12-bit
-//    block b, a bit c and a 12-bit block e. Each unit+0x110 flag is merged from those
-//    blocks straight into unit->flags, `unit->flags = (unit->flags & ~m) | (rec.flags.b & m);`,
-//    with no `u` local and no reload after the field_b0 store.
-//  - <math.h> is included. Which step of the 0x110 chain keeps its result in the old
-//    flags register (the original's edx step at 0x4873c7, the one that ors 0x200) depends
-//    on how many symbols the translation unit declares before the function. Without
-//    <math.h>, 286 to 797 unused `extern int` lines in front also match; 285 or fewer, or
-//    798 up to at least 1830, do not. It is not the scratch rotation: removing any one
-//    statement before the chains leaves their registers alone, while the chain's own
-//    spelling (a `u` local, these direct merges, unit-side bitfields) moves the edx step.
 // 0x43a420 runs on the result of operator new and stores vtables, so it is written as a
 // constructor, `new Class_0043a420(unit, file, name)`, as the naming rule asks.
-// Earlier passes (condensed):
-//  - Pass 17: <stdio.h>, <string.h> and <stdlib.h> (for sprintf) and plain bitfield
-//    copies for the 0x10f byte (`unit->bf.b0 = rec.flags.a0;`).
-//  - Pass 16: the piece copy loop is plain array indexing in the original field order
-//    (f0, f4, obj, fc, ...); MSVC anchors the strength-reduced pointer on the second
-//    distinct non-zero offset. The piece flags are real bitfields.
-//  - Pass 14: the failure paths fall out of `if (unit != 0) { ... return unit; } return 0;`
-//    so the final `xor eax, eax` is the last block, as in the original.
 // FUNCTION: 0x487080
 Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
 {
@@ -354,6 +334,7 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
     unit->bf.b1 = rec.flags.a1;
     unit->bf.b2 = rec.flags.a2;
     unit->bf.b3 = rec.flags.a3;
+    // Direct merges into unit->flags, no `u` local and no reload.
     unit->flags = (unit->flags & ~0xc) | (rec.flags.b & 0xc);
     unit->flags = (unit->flags & ~0x10) | (rec.flags.b & 0x10);
     unit->flags = (unit->flags & ~0x20) | (rec.flags.b & 0x20);
@@ -400,6 +381,7 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
     file->OpenNamedBox(script);
     ((CobScript*)unit->field_9a)->LoadScriptState(file);
 
+    // Plain array indexing in this field order: it anchors the loop pointer.
     for (int j = 0; j < 3; j++) {
         unit->pieces[j].f0 = rec.pieces[j].f0;
         unit->pieces[j].f4 = rec.pieces[j].f4;
@@ -425,20 +407,6 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
 
 // Saves every live unit (g_game+0x14357..+0x1435b, stride 0x118) as a 0xb8
 // byte record; inverse of the 0x487080 loader, whose field map it shares.
-//
-// MATCH. What closed it from 90.1%:
-//  - the low four bits of the record's flags word are four 1-bit copies,
-//    `rec.flags.a0 = unit->bf.b0;` and so on, as in the loader. MSVC merges
-//    them into one `& 0xf` but keeps the zero extension (`xor ecx, ecx` before
-//    `mov cl, [ebp+0x10f]`), which a 4-bit field or `& 0xf` spelling folds away.
-//  - the piece loop is plain array indexing in field order (f0, f4, obj, fc,
-//    ...), as in the loader; MSVC anchors the pointers on the second offset.
-//  - id8b is a plain `short` local assigned in the nested if (no pointer).
-//  - the sixteen field copies after `rec.f8b = id8b;`: the three scratch
-//    registers rotate with each statement, and the scheduler keeps each
-//    register's loads in source order. The original's per-register chains
-//    (ecx: f93 f9f fac fb0 fa3, edx: f8e f97 fa7 fad fb1, eax: f8f f9b fab
-//    fae fb2) interleaved as ecx, edx, eax give the order below.
 // FUNCTION: 0x4876c0
 void __stdcall SaveUnits(HapiBank* file)
 {
@@ -489,6 +457,7 @@ void __stdcall SaveUnits(HapiBank* file)
             rec.f3f = unit->field_b8;
             rec.f27 = unit->vtable != 0;
 
+            // Plain short local assigned in the nested if, not a pointer.
             short id8b = 0;
             Unit* a = (Unit*)unit->f86;
             if (a != 0 && (a->flags & 0x10000000)) {
@@ -504,6 +473,7 @@ void __stdcall SaveUnits(HapiBank* file)
                     id8b = unit->child == 0 ? 0 : a2->id;
             }
             rec.childB = id8b;
+            // Keep this statement order: it decides the scratch register chains.
             rec.f93 = unit->field_76;
             rec.b8e = unit->b_f4;
             rec.f8f = unit->field_58;
@@ -520,6 +490,7 @@ void __stdcall SaveUnits(HapiBank* file)
             rec.bb1 = unit->b_fa;
             rec.fb2 = unit->b_10e;
             unsigned int u = unit->flags;
+            // Four 1-bit copies: a 4-bit field or `& 0xf` loses the zero extension.
             rec.flags.a0 = unit->bf.b0;
             rec.flags.a1 = unit->bf.b1;
             rec.flags.a2 = unit->bf.b2;
@@ -528,6 +499,7 @@ void __stdcall SaveUnits(HapiBank* file)
             rec.flags.c = (u >> 13) & 1;
             rec.flags.e = (u >> 14) & 0xfff;
 
+            // Plain array indexing in this field order: it anchors the loop pointer.
             for (int k = 0; k < 3; k++) {
                 rec.pieces[k].f0 = unit->pieces[k].f0;
                 rec.pieces[k].f4 = unit->pieces[k].f4;

@@ -1,18 +1,9 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // The mission's defeat check. It does nothing unless the mission is active
 // (the dword at +0x88, set to 1 by Class_0048df90), then asks the game mode
-// which test to run: 1 runs the victory conditions (0x48fed0, defined inline
-// here so /Ob2 inlines it, which is also what makes the constant 0 live in
-// ebp), 2 runs the "every other player is dead or allied" loop (0x48ffd0)
+// which test to run: 1 runs the victory conditions (0x48fed0),
+// 2 runs the "every other player is dead or allied" loop (0x48ffd0)
 // and 3 calls FUN_00490080.
-//
-// The loop counter is copied into a second unsigned char before the player
-// test. That copy is what makes MSVC put the counter in the base slot of
-// [ecx + edi + 0x108] (matching the original, and unlike the otherwise
-// identical loop in 0x48ffd0); an unsigned int copy flips the SIB the right
-// way too but makes MSVC hoist the zero-extension above the player test,
-// which costs more bytes than the SIB saves. An unsigned char copy keeps the
-// zero-extension where the original has it.
 
 class Mission {
 public:
@@ -109,6 +100,8 @@ int MissionConditions::CheckVictory()
         unsigned char player = g_game->player;
         Player_00490230* me = &g_game->players[player];
         for (unsigned char i = 0; i < 10; i++) {
+            // Separate unsigned char copy of the counter: puts it in the base slot
+            // and keeps the zero-extension after the player test.
             unsigned char j = i;
             if (i == g_game->player)
                 continue;

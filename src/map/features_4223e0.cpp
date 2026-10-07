@@ -4,12 +4,7 @@
 // calls the vector's _Destroy out of line, 0x4251e0).
 //
 // The vector pointer is a file-scope `static` in this TU (0x4222e0 fills it,
-// 0x422460 searches it, 0x424c00 inlines this function). With an `extern`
-// declaration every spelling stayed at 65.9%: MSVC must assume the inlined
-// ~vector's stores through the vector could change the global, so it keeps
-// the destructor's `this` in esi and the zero in ebx. Declared `static`, the
-// plain `delete` gives the original's `lea esi,[eax+4]` / `lea ebx,[eax+8]`
-// for &_First and &_Last, the immediate zeros and `test esi,esi` in the loop.
+// 0x422460 searches it, 0x424c00 inlines this function).
 #include <vector>
 
 class TdfFile {
@@ -24,6 +19,7 @@ public:
 
 typedef std::vector<TdfFile*> FeatureList;
 
+// Must be static: an extern global changes register use in the inlined ~vector.
 static FeatureList* DAT_00511fb4;
 
 // FUNCTION: 0x4223e0

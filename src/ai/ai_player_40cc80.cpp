@@ -1,9 +1,8 @@
 // Decompiled by Sonnet. Names are provisional.
-// std::vector<Elem_0040cfb0>::size() from MSVC 5's <vector>, out of line, for
-// the 3-byte element type (the `/ 3` is the pointer difference). Taking the
-// member's address makes the compiler emit it. 0x409160 calls it with ecx
-// set to its vector at +0x65, from the inlined resize() around the
-// out-of-line insert (0x40cca0) and erase (0x40cfb0).
+// std::vector<Elem_0040cfb0>::size() for the 3-byte element type (the `/ 3`
+// is the pointer difference). 0x409160 calls it with ecx set to its vector at
+// +0x65, from the inlined resize() around the insert (0x40cca0) and erase
+// (0x40cfb0).
 #include <vector>
 
 struct Elem_0040cfb0 {

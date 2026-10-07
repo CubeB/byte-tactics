@@ -119,14 +119,13 @@ void Class_00407930::OnTimer()
 
 // Constructor of Class_00407930 (vtable 0x4fc988), derived from SquadTimer
 // (the family is listed in src/ai/squad_timer.cpp). The owner creates two of
-// them, with (3, 20000) and (7, 50000). MSVC stores the vtable after the
-// member initialisers, so +0x1c and +0x20 are initialised in the list and the
-// rest in the body.
+// them, with (3, 20000) and (7, 50000).
 // FUNCTION: 0x407930
 // FUNCTION: 0x407980 ??_GClass_00407930@@UAEPAXI@Z
 Class_00407930::Class_00407930(SquadManager* p, Group* q, int a, int b)
     : SquadTimer(p, q), limit(b), kind(a)
 {
+    // limit and kind stay in the initialiser list, the rest in the body.
     attacking = 0;
     maximum = 6;
     minimum = 3;

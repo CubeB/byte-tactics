@@ -7,33 +7,8 @@
 // 0x14-byte sprite reference built by FrameFromSurface plus 4 trailing bytes.
 //
 // Suspected original bug: `if (def->name)` tests the address of the name
-// array inside the unit definition (lea eax, [esi+0x20]; test eax, eax), which
-// can never be null. Kept as the original has it.
-//
-// MATCHED (335 bytes). The old 4-hunk wall was one compiler decision. The
-// original keeps the def base in esi and rematerialises the BuildDataPath name
-// argument from defs (edx) and type (ecx) instead of reusing the base. Neither
-// a local `def` nor a local `defs` breaks that CSE: MSVC folds every spelling
-// of `defs[type].name` back to the condition's temporary.
-//
-// What breaks it: index the body argument by the *reloaded* entry field,
-//     BuildDataPath(path, "unitpics", defs[DAT_005129b4[i].unitType].name, "PCX");
-// The reloaded load is CSE'd to the same register, but the value numbering no
-// longer ties this address to the condition's `defs[type].name`, so MSVC
-// rebuilds the whole address from defs/type at the call, which then forces the
-// condition base into esi and pic into edi. Identical to `defs[(int)DAT..]`.
-//
-// After that only one hunk was left, the else branch: the original loads
-// pic->field_17 (`mov cx, [edi+0x17]`) before storing rec.b = 0x20. Source
-// order rec.a (field_17) before rec.b produces exactly that; rec.b first makes
-// MSVC emit the 0x20 store first. So `rec.a = pic->field_17;` comes first.
-//
-// History: earlier passes (77.0%/76.3%) tried def->name / defs[type].name /
-// g_game->defs[type].name as the argument, defs/type/def as locals in many
-// orders, scoped def with early returns, inline getters and validity helpers,
-// a real bitfield for the +0x245 bit, casts, `register`, a store to path
-// between test and call, a local `Def* defs` (65.5%), no def local (65.9%)
-// and (char*)def + 0x20 (76.3%). None moved the recompute.
+// array inside the unit definition, which can never be null. Kept as the
+// original has it.
 #pragma pack(push, 1)
 
 struct Entry_0044c0d0 {
@@ -117,6 +92,7 @@ void LoadUnitPortrait()
         int type = DAT_005129b4[i].unitType;
         Def_0044c0d0* defs = g_game->defs;
         if (defs[type].name && ((unsigned char)(defs[type].field_245 >> 15) & 1) == 0) {
+            // Indexed by the reloaded entry field, not defs[type].name.
             BuildDataPath(path, "unitpics", defs[DAT_005129b4[i].unitType].name, "PCX");
             void* img = LoadPcx(path, 0);
             *(void**)DAT_00512978 = img;
@@ -125,6 +101,7 @@ void LoadUnitPortrait()
                 FrameFromSurface(&rec, img);
                 rec.flag8 = 9;
             } else {
+                // rec.a before rec.b: field_17 is loaded before the 0x20 store.
                 rec.a = pic->field_17;
                 rec.b = 0x20;
                 rec.d = 0;

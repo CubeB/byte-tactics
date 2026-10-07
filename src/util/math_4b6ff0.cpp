@@ -9,12 +9,10 @@ struct Vec3f_004b6ff0 {
 
 // Returns v scaled to unit length. The vector is passed and returned by value
 // (the results are spilled into v's own stack slots before being copied out).
-// Keeping the squares in their own float locals is what makes MSVC schedule
-// the x87 loads as in the original; an inline x*x + y*y + z*z hoists the
-// loads for the divisions one step earlier.
 // FUNCTION: 0x4b6ff0
 Vec3f_004b6ff0 __stdcall NormalizeVector(Vec3f_004b6ff0 v)
 {
+    // Squares stay in their own locals: an inline sum hoists the x87 loads.
     Vec3f_004b6ff0 sq;
     sq.x = v.x * v.x;
     sq.y = v.y * v.y;

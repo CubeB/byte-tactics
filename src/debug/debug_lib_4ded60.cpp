@@ -1,35 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free,
 // matched by deepseek-v4.1-flash. Names are provisional.
-// MATCH, 1013 bytes. Calling convention is __cdecl (original symbol
-// ?FormatSystemInfo@@YAXPADH@Z; the original ends in plain `ret`), so the /Gz
-// __stdcall lever does not apply here: __stdcall gives ?...@@YG... and `ret 8`.
-// /Gz changes nothing, and dropping the explicit convention on the
-// GetStackLow/GetStackHigh externs changes nothing (0-arg callees).
-//
-// Two source facts took it from 94.2% to MATCH. Both are about VALUE NUMBERS.
-//
-// 1. The link-time block. The old one-expression form
-//        DWORD* linkTime = (DWORD*)((char*)hMod + e_lfanew + 8);
-//    let MSVC fold the NT header pointer away:
-//        mov edx,[eax+0x3c]; lea ebx,[edx+eax+8]
-//    and choosing edx there cascaded into every later scratch register.
-//    Naming the NT header and USING IT TWICE (once for &FileHeader.
-//    TimeDateStamp, once for the value) forces it to live in a register:
-//        mov ecx,[eax+0x3c]; add ecx,eax; lea ebx,[ecx+8]
-//    which is the original, and the whole function falls into place.
-//    A named pointer to TimeDateStamp (used once) still folds.
-//
-// 2. The processor arms are asymmetric in the original: the then arm keeps the
-//    p temporary, the else arm calls sprintf(buf + strlen(buf), ...) directly.
-//    then: p = buf + strlen(buf); sprintf(p, "%d processors\n", count);
-//    else: sprintf(buf + strlen(buf), "1 processor\n");
-//    With p in both arms MSVC CSEs buf+strlen(buf) and hoists `lea edi` above
-//    the cmp (1005 bytes); with direct in both it moves the count to eax.
-//
-// Scratch: build/scratch/0x4ded60/v0..v7,e1..e7,f1..f4,g1..g9,k1..k5,m1;
-// build/scratch/refine/L1,L1D..L1H.
-// Original bug preserved: CreateFileA failure is tested against zero at
-// 0x4deee1, so INVALID_HANDLE_VALUE reaches GetFileSize at 0x4deeec.
+// Original bug preserved: CreateFileA failure is tested against zero,
+// so INVALID_HANDLE_VALUE reaches GetFileSize.
 #include <windows.h>
 #include <time.h>
 #include <stdlib.h>
@@ -101,6 +73,7 @@ void __cdecl FormatSystemInfo(char* dest, int destLen)
     }
 
     HANDLE hMod = GetModuleHandleA(NULL);
+    // NT header named and used twice: forces it into a register.
     IMAGE_NT_HEADERS* pNT = (IMAGE_NT_HEADERS*)((char*)hMod + ((IMAGE_DOS_HEADER*)hMod)->e_lfanew);
     gmTimeCopy = *gmtime((time_t*)&pNT->FileHeader.TimeDateStamp);
     p = buf + strlen(buf);
@@ -112,6 +85,7 @@ void __cdecl FormatSystemInfo(char* dest, int destLen)
 
     GetSystemInfo(&sysInfo);
     if (sysInfo.dwNumberOfProcessors > 1) {
+        // Then arm keeps the p temporary, else arm calls sprintf directly: not interchangeable.
         p = buf + strlen(buf);
     sprintf(p, "%d processors\n", sysInfo.dwNumberOfProcessors);
     } else {

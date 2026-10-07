@@ -1,18 +1,4 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by Space Bunny Free. finished by claude-sonnet-5-5, finished by claude-opus-5-5. Names are provisional.
-// MATCH (claude-opus-5-5, 2026-10-02), from 96.3%. Two changes on top of the previous
-// pass, both needed:
-//  1. The field_148 branch does not end in its own `obj->field_14 = obj->field_08;
-//     return;`: it is the then-arm of an if/else whose else-arm is the field_147
-//     underline block, and ONE final `obj->field_14 = obj->field_08;` follows both.
-//     MSVC clones that small tail into all three exits after allocating it once,
-//     which is why every exit in the original reloads obj into ebx (the
-//     field_148 arm has edi busy with entries2). With separate statements the
-//     two later exits used edi and x0 stayed in ebx.
-//  2. The underline's x positions accumulate in one variable:
-//         int x0 = rect.left; x0 += Measure(buf); int x1 = x0; x0 += Measure(pat);
-//     With obj now owning ebx, this is the spelling that spills x0 (to the
-//     Measure byte slot [esp+0x18]) and keeps x1 in ebp, as the original does;
-//     `left + w1` style locals spill x1 instead or grow the frame.
 #include <windows.h>
 #include <string.h>
 
@@ -219,6 +205,7 @@ void __stdcall FUN_004a56b0(Dialog* obj, int index)
             if (p != 0) {
                 int y = rect.top;
                 *p = 0;
+                // Both x positions accumulate in x0, with x1 copied off it.
                 int x0 = rect.left;
                 x0 += Measure_004a56b0(buf);
                 int x1 = x0;
@@ -231,5 +218,6 @@ void __stdcall FUN_004a56b0(Dialog* obj, int index)
         }
     }
 
+    // One tail after both arms of the field_148 if/else, not a copy per exit.
     obj->field_14 = obj->field_08;
 }

@@ -5,67 +5,6 @@
 // has bit 0, from = first slot in state 1 or 2). State 1 sets the flag byte and
 // arg = -1, state 2 sets the flag byte and arg = the local player's id, state 3
 // clears the flag and arg = -1.
-//
-// Status: MATCH, 977 of 977 bytes, all 15 linker references resolve.
-//
-// The inner code is built from inlined helpers, and writing them as the
-// original did reproduces its block layout: IsPlaying (active && state 1 or 2,
-// as in 0x450e20/0x450f90) for the q test, the A/B dispatch
-// `IsPlaying(p) && p->state == 1/2` (this is where the original's redundant
-// cmp al,1 / cmp al,2 chains come from), FindFrom (first IsPlaying slot's id,
-// else -1, with `return` inside the loop), FindTo (flags loop,
-// `return GetSlotDpid(j)` else -1), FindToB (same with GetPlayerId) and
-// FindPlayer (the uchar loop that is FindHostSlot inlined, in state 3 only).
-// `from` and `to` are call arguments, not locals: SendPacketToPlayer(FindFrom(),
-// FindTo(), &msg, 10) gives the original's duplicated push sequences with one
-// shared `push eax; call`. `msg` has to be declared at function scope, before
-// the `mode == 6` guard, or the three branches order their stores differently.
-//
-// The wall was the outer loop. The original keeps the raw index in ebp and
-// recomputes i*0x14b every iteration (mov eax,ebp; shl eax,5; add eax,ebp;
-// add ecx,ebp; lea eax,[eax+eax*4]; lea esi,[ecx+eax*2+0x1b63]), frame 0x10,
-// msg at [esp+0x14]. MSVC strength-reduces ours instead (esi holds a byte
-// offset, add esi,0x14b; cmp esi,0xcee; the counter is spilled to the stack),
-// which gives frame 0x14, msg at [esp+0x18], and -1 hoisted into ebp.
-//
-// What unblocks it: the loop index compared with `==` against a constant, in a
-// branch with a body that falls through. That is what the `if (i == 9)` in the
-// state-3 arm below is for, and the body has to be something the optimiser can
-// delete completely, so it is a self-assignment. Ladder: 59.8% (975B) clean,
-// 75.9% with `if (i == 11) GetSlotDpid(0);` at the end of the body, 88.3% with
-// a dead `if (i == 9)` store in the state-3 arm, 98.0% once msg is hoisted out
-// of the loop, MATCH at 977B. Storing a constant instead (`p->field_c = 0`)
-// does not work: MSVC 5 will not drop the store, and the cmp ebp,9 / jne pair
-// survives into the output, costing 3 instructions and 10 bytes. Only
-// self-assignments vanish (p->field_c, p->state, p->f_146, p->data->flags and
-// g_game->local_player all match; a bare read or `i = i` does not block at all).
-//
-// The `if (i == 9) p->field_c = p->field_c;` line in the state-3 arm is NOT
-// real logic. It is dead code kept only because the emitted bytes need it: the
-// original's last-slot case is unobservable in the bytecode, and an `== 9` test
-// is the only construct found that reproduces this register allocation. Delete
-// it and the file drops to 59.8%.
-//
-// What I learned about when MSVC 5 skips the reduction of `p = &players[i]`
-// (tiny tests, all with calls in the body; none of this exists visibly in the
-// original, so the real cause is still unknown, and no natural spelling of the
-// loop reproduces it):
-//  * it is skipped when the loop index is compared with `==` to a constant
-//    and the true branch is a block that falls through (cmp; jne skip), e.g.
-//    `if (i == 11) F(2);`. `if (i != 11) F(2);` and `if (i == 11) continue;`
-//    are converted instead (cmp esi,3641) and the reduction still happens; a
-//    `switch` on the index blocks it too, a `switch` on a record field does not;
-//  * it is skipped when the loop has a second entry (a goto into its body);
-//  * it is NOT affected by body size, number of branches, register pressure,
-//    p live across calls, i used by other calls, i declared outside, i used
-//    after the loop, while/do/for forms, `unsigned`, an inline helper taking
-//    `int&`, or an explicit (char*) address;
-//  * unsigned char / short loop indices are range-analysed and reduced too, and
-//    so are `g_game + 0x1b63 + 0x14b * i` spelled by hand instead of
-//    `&g_game->players[i]` (the trick 0x497180 uses to keep a live index
-//    elsewhere, but it masks the multiply and still leaves a 0x14 frame here).
-// Earlier workers' variants (pointer vs index, i/p scope, a switch, a base
-// pointer, raw offsets) all reduce for the same reason.
 #pragma pack(push, 1)
 struct PlayerData_00450530 {
     char unknown_0[0x97];
@@ -164,6 +103,7 @@ static inline int FindToB_00450530()
 // FUNCTION: 0x450530
 void FUN_00450530()
 {
+    // Function scope, before the mode == 6 guard: orders the stores in the three branches.
     Msg_00450530 msg;
     if (g_game->mode == 6)
         return;
@@ -185,6 +125,7 @@ void FUN_00450530()
                 msg.arg = -1;
                 if (FindHostSlot() == 10)
                     continue;
+                // from and to stay call arguments, not locals.
                 SendPacketToPlayer(FindFrom_00450530(), FindTo_00450530(), &msg, 10);
             }
             else if (IsPlaying_00450530(p) && p->state == 2) {

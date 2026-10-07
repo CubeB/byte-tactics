@@ -1,39 +1,7 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by GPT-6, finished by Claude Opus 5.5. Names are provisional.
-// A method of PlayerAI, whose other methods are in player_ai.cpp; this one
-// stays apart because it needs a cut-down <vector> for its symbol ids.
-//
-// MATCH (Claude Opus 5.5, #5541, 2026-10-04), after many passes at 99.8% with
-// one wrong byte, the store SIB at 0x4099f6. Two things together:
-// - The real neighbours. 0x409520 and 0x4095d0, just before this function,
-//   have no callers in the exe, and the first half of this loop is 0x4095d0's
-//   body (which inlines 0x409520's weapon loop): the same three-weapon pointer
-//   walk with a count of 3 and the same double MIN clamp. They are defined
-//   below with their matched bodies and no FUNCTION lines, and the loop calls
-//   `RateUnitType(def)`. For /Ob2 to inline 0x409520 inside it, the e->b bonus
-//   is a plain conditional; the old Bonus1ce() method was four inline sites
-//   (the min/max macros copy it) and left the nested site 109 of the 148 it
-//   needs. HasField1ce() in the second half stays: without it the first
-//   resize's erase loses its inline budget (1700 bytes).
-// - Symbol ids. The store SIB and the order of the two weapon divisions
-//   (field_dc / 100 first) follow i's id modulo 65536: the original's TU had
-//   about 65000 declarations ahead of it, so its ids had wrapped to small
-//   numbers. Real code cannot supply that: with <windows.h>, <math.h> and
-//   <vector> i's id was 33684, all 40 functions of this TU before it (each
-//   with its own struct views and vector instantiations) add 5027, and the
-//   generous plausible header set (docs/c2-regalloc.md) with them reaches
-//   57276, 8260 short of 65536. So instead the ids are small to begin with:
-//   MSVC 5's <vector> is cut down below to the members this function uses
-//   (bodies copied from VECTOR, XMEMORY and XUTILITY, as in 0x437580 and
-//   0x4bca30), and <minmax.h> gives the min/max macros <windows.h> gave.
-//   i's id is then 946 (c2prio --symbols), inside the window the original's
-//   wrapped id sits in (about 898 to 958 here). <stdio.h>, which this TU
-//   includes (0x40c250 takes a FILE*), puts it there; <string.h> does too.
-//   With dummy declarations instead, it matches for 0 to 12 more and is 99.6%
-//   from 14 to 46 more (scratch only, never committed).
-// - With these ids the read no longer needs the reference-to-a-pointer trick
-//   the 99.8% version used; it is the plain `(char)vec_8d[i] / 2`.
-// Scratch: build/scratch/0x409730i/ (mkinl.py, clean.py) and
-// build/scratch/0x409730n/ (the TU concatenation and id measurements).
+// A method of PlayerAI, whose other methods are in player_ai.cpp.
+// Symbol ids must stay small: the cut-down <vector> below and this header set
+// decide the store SIB and the order of the weapon divisions.
 #include <stdio.h>
 #include <minmax.h>
 typedef int ptrdiff_t;
@@ -356,6 +324,7 @@ void PlayerAI::ComputeBaseWeights()
             a += 30;
         if (GetEnergyUse(def) < 0.0f)
             a += 50;
+        // Stays a method: the first resize's erase needs its inline budget.
         if (def->HasField1ce())
             a += 50;
         if (def->field_22d)
@@ -386,6 +355,7 @@ void PlayerAI::ComputeBaseWeights()
         x = min(x, 100);
         e->a = x;
         e->c = (char)max(0.0f, min(100.0f, def->field_186 * -0.0025f - GetEnergyUse(def) * 5.0f));
+        // The e->b bonus is a plain conditional: RateWeapons only inlines then.
         e->b = (char)max(0.0f, min(100.0f, (float)(def->field_18a * -0.02f) + (def->field_22d ? 25 : 0) + (def->field_1ce != 0.0f ? 100 : 0)));
     }
 }

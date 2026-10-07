@@ -1,9 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // std::vector<Elem_00434020>::_Ucopy(first, last, dest) from MSVC 5's
-// <vector> for a 4-byte element type (byte-identical to 0x40d550). Called
-// with ecx set to the destination vector from the inlined vector copy inside
-// the outer vector's operator= (0x434770). _Ucopy is protected, so a derived
-// class takes its address to make the compiler emit it out of line.
+// <vector> for a 4-byte element type.
 #include <vector>
 
 struct Elem_00434020 {
@@ -15,6 +12,7 @@ typedef std::vector<Elem_00434020> Vec_004349c0;
 typedef Vec_004349c0::iterator (Vec_004349c0::*UcopyFn_004349c0)(
     Vec_004349c0::const_iterator, Vec_004349c0::const_iterator, Vec_004349c0::iterator);
 
+// _Ucopy is protected: a derived class takes its address to emit it out of line.
 struct Access_004349c0 : Vec_004349c0 {
     static UcopyFn_004349c0 fn;
 };

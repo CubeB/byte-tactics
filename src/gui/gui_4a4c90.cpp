@@ -2,15 +2,6 @@
 // Draws one side of a GUI entry's rectangle when bit 0 of param_3 is set; the
 // side is chosen by bits 0/1/2 of the entry's flags and the colour comes from
 // the index `(int)obj + 0x8b2` into the entry's colour table at +0x1f.
-//
-// The breakthrough (from 62.4% to MATCH) was the colour parameter of
-// DrawLine: declared `int`, not `unsigned char`. An unsigned char argument
-// gives a bare `mov bl,[eax+edx+0x8b2]`; the int parameter forces the
-// zero-extension `xor ebx,ebx / mov bl,[...]` the original has, and that extra
-// use of ebx is what pushes obj into edx and spills y2, producing the 16-byte
-// frame the unsigned-char versions could not reproduce. With the correct type
-// the three calls in the if/else-if chain are written out in full (the last
-// two tail-merge into one call site) and everything falls into place.
 
 #pragma pack(push, 1)
 struct Entry_004a4c90 {                // 0x15b bytes
@@ -42,6 +33,7 @@ struct Rect_004a4c90 {
     int x1, y1, x2, y2;
 };
 
+// The colour parameter must be int, not unsigned char: forces a zero-extending load.
 void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2,
                             int color);
 

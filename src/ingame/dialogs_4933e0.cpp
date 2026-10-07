@@ -1,14 +1,11 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
-// CollectSelectedUnits clears the vector and fills it with the local player's units
-// that have bit 4 of +0x110 set (probably the selected units); each one whose
-// low two flag bits are not 2, with +0x86 and +0x8a clear and whose type is
-// not in the "Commander" set, is handed to the given player with GiveUnitToPlayer.
+// CollectSelectedUnits clears the vector and fills it with the local player's
+// units that have bit 4 of +0x110 set (probably the selected units); each one
+// whose low two flag bits are not 2, with +0x86 and +0x8a clear and whose type
+// is not in the "Commander" set, is handed to the given player with
+// GiveUnitToPlayer.
 // The list is a real std::vector<Unit*> (0x48ca20 calls the vector's _Ucopy,
-// _Ufill and _Destroy). Its default constructor copies the empty allocator
-// byte from an uninitialised temporary, which MSVC places in the parameter's
-// stack slot, hence the `mov al, [esp+0x14]` at the start; a hand-written
-// list struct reads the player index back from that byte instead of from the
-// parameter.
+// _Ufill and _Destroy).
 #include <vector>
 
 #pragma pack(push, 1)
@@ -46,6 +43,7 @@ static inline int TestBit(unsigned int* set, unsigned short n)
 // FUNCTION: 0x4933e0
 void __stdcall GiveSelectedUnitsToPlayer(unsigned char player)
 {
+    // Must be a real std::vector: its constructor leaves the player index in place.
     std::vector<Unit*> list;
     CollectSelectedUnits(&list);
     Player_004933e0* p = &g_game->players[player];

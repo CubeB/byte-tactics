@@ -11,17 +11,7 @@
 // GetOrderType picks.
 //
 // The explored-map test is the inlined player method 0x475470 describes: a
-// {data, width, height} ByteMap at +0x7c whose Get() keeps `width * y + x`
-// as an unfolded index (the data pointer is loaded after the multiply).
-// The coordinates are plain ints, so `pos->x >> 5` stays a 32-bit sar; the
-// earlier attempt's `unsigned int tx` shortened it to a 16-bit shift. All of
-// the scratch registers then fall into place.
-//
-// The dead std::vector local is the `push 0; call operator delete` after the
-// loop. `delay` must be computed first or the sum folds into one lea (as in
-// 0x407ae0); Offset() as in 0x406300 keeps the call order and the zero y in
-// ebp; `RandomInt(r) > RandomInt(field_38)` calls the field_38 roll
-// first.
+// {data, width, height} ByteMap at +0x7c.
 #include <vector>
 
 #pragma pack(push, 1)
@@ -81,6 +71,7 @@ int __stdcall IsPointVisible(Player_00408090* player, Position_00408090* pos);
 
 static inline int IsExplored(Player_00408090* player, Position_00408090* pos)
 {
+    // Plain int: an unsigned tx shortens the shift to 16 bits.
     int tx = pos->x >> 5;
     int ty = (pos->z - (pos->y >> 1)) >> 5;
     if (player->explored.size.Contains(tx, ty) && player->explored.Get(tx, ty))
@@ -175,11 +166,8 @@ Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit* unit,
 void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* unit,
                             Unit* target, Vec3_00407d40* pos, int a, int b);
 
-// The constructor (0x407d40, matched in ai_player_407d40.cpp, which needs its
-// own view of the class: it stores both vtables by hand), defined here again,
-// unannotated, to emit the vtable and with it the scalar deleting destructor.
-// That destructor is trivial, so only the inlined base destructor's store of
-// 0x4fc980 is left.
+// Constructor 0x407d40 defined again, unannotated: emits the vtable and the
+// scalar deleting destructor.
 // FUNCTION: 0x407e70 ??_GClass_00407d40@@UAEPAXI@Z
 Class_00407d40::Class_00407d40(SquadManager* p, void* q)
     : SquadTimer(p, q)
@@ -197,19 +185,23 @@ Class_00407d40::Class_00407d40(SquadManager* p, void* q)
 // FUNCTION: 0x407e90
 void Class_00407d40::OnTimer()
 {
+    // Computed first or the sum folds into one lea.
     int delay = RandomInt(150) + 30;
     field_c = g_game->ticks + delay;
     if (((Group_00407e90*)field_8)->units.empty())
         return;
+    // Unused on purpose: it emits the operator delete call after the loop.
     std::vector<Unit*> unused;
     if (RandomInt(10) == 0) {
         b = a;
         int angle = RandomInt(0x10000);
+        // Offset() keeps the call order and the zero y.
         c = Offset(angle, 0x1400000);
     }
     b += c;
     if (IsVisible(((Group_00407e90*)field_8)->player, (Position_00408090*)&b)) {
         int r = SumUnitRatingsInRange(field_10, &b, 0xa0);
+        // Operand order: the field_38 roll is called first.
         if (RandomInt(r) > RandomInt(field_38)) {
             field_38 = r;
             a = b;

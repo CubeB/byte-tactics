@@ -1,46 +1,4 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
-//
-// MATCH (gapcheck). No /Op: the aligned frame comes from the double locals of
-// the inlined Length.
-//
-// Fixed in the second attempt:
-//  - The falloff square: the original consumes t at t * t (`fld st(1);
-//    fmulp st(2); fmulp st(1)`) and keeps edge in memory. MSVC 5 pops an x87
-//    value at its last use only when that use redefines it, so t is squared
-//    in place and the whole falloff assigned back to t before `scale = t`.
-//    Square(), `t * t` in the scale expression, or `scale = (1 - edge) * t +
-//    edge` after `t *= t` keep t on the stack until the block ends; finishing
-//    with `t = t * (1 - edge); scale = t + edge;` puts edge on the x87 stack
-//    and drops its frame slot (about 75%).
-//  - The weapon loop reads every field through `other` (no `weapons[j]`), so
-//    the derived pointer (other + 0xc) is stepped after `other`, as in the
-//    original.
-//
-// Fixed in the third attempt (97.7% to 99.3%):
-//  - The upper-bound branch of each axis (`mov edx, [max]; add edi, edx`,
-//    the sum in unit->pos's register). A named `int b = upos + max;` used in
-//    both the test and the subtraction is lowered as two tuples (b = max;
-//    b += upos), so b interferes with the upos temporary and can never get
-//    its edi (c2prio --trace: with upos coloured first, b's allowed set loses
-//    edi). A common subexpression is one three-operand tuple instead: C2
-//    gives it upos's edi, and the code generator loads max into a scratch
-//    register because the destination is also the second operand. So the sum
-//    is written in the test and again in a block local used once (`hi`),
-//    which C2 forwards into the subtraction: the two sums become one
-//    temporary. Writing `p - (upos + max)` directly does not work, since the
-//    front end reassociates it into two subtractions.
-//
-// Matched in the fourth (99.3% to MATCH): the spot address (`idx * 48 +
-// spots`, the base loaded into edi first) and the feature definition's
-// address (`features + feature * 256`) follow symbol ids, not spelling. Both
-// come out as in the original only while cell's id is about 16587 to 16639
-// and feature's (54 later) about 16640 to 16900, and g_game's id stays small
-// (912 and 1012 work, 1912 does not), measured with throwaway dummy
-// declarations at three places, never committed. `<windows.h>` with
-// WIN32_LEAN_AND_MEAN and `<vector>`, included after the game's declarations,
-// put cell at 16600 and leave g_game at 912. Included at the top of the
-// file (g_game moves too), or with the full `<windows.h>`, `<ddraw.h>`,
-// `<dsound.h>` or `<dplay.h>`, the two adds stay wrong (91.6% or 99.3%).
 #include <math.h>
 #include <string.h>
 
@@ -183,8 +141,9 @@ struct Game_0049a120 {
 
 extern Game_0049a120* g_game;
 
-// The system headers come after the game's own declarations, as if from a
-// game header included first (see the notes at the top).
+// The system headers come after the game's own declarations, and only these
+// (lean windows.h, vector): the symbol ids they give cell, feature and g_game
+// decide the spot and feature address arithmetic.
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <vector>
@@ -297,6 +256,8 @@ void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
                 UnitDef_0049a120* def = unit->def;
                 Vec3_0049a120 d;
                 {
+                    // The upper-bound sum is written in the test and again in the
+                    // block local `hi`, used once: the two sums become one temporary.
                     int p = pos->x;
                     if (p < unit->pos.x + def->boxMin.x) {
                         int lo = unit->pos.x + def->boxMin.x;
@@ -340,6 +301,8 @@ void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
                     float scale;
                     if (distance) {
                         float t = (float)distance / radius - 1.0f;
+                        // Square t in place and assign the whole falloff back to t
+                        // before `scale = t`: sets the x87 stack lifetimes.
                         t *= t;
                         t = (1.0f - edge) * t + edge;
                         scale = t;
@@ -394,6 +357,8 @@ void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
     }
 
     if (weapon->def->flags.bits.detonatesWeapons) {
+        // Every field is read through `other` (no weapons[j]): the derived
+        // pointer is stepped after it.
         Weapon_0049a120* other = g_game->weapons;
         for (int j = 0; j < g_game->numWeapons; j++, other++) {
             if ((other->flags & 2) || other == weapon)

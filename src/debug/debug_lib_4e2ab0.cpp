@@ -1,13 +1,7 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// Shaped like std::_Tree<...>::iterator::_Dec() from MSVC 5's <XTREE> (the
-// toolchain's own copy is in toolchain/msvc5-sp3/INCLUDE/XTREE): moves the
-// iterator's node pointer (at +0) to the previous node in order, under a
-// std::_Lockit. DAT_005292c4 is the tree's _Nil node and the node colour sits
+// DAT_005292c4 is the tree's _Nil node and the node colour sits
 // at +0x204 (see the _Buynode copy, 0x4e2a30). The _Max helper takes its own
 // lock, the mirror of _Min (0x4e04e0) inside _Inc (0x4e0450).
-// The accessors return references, as _REFERENCE_X does in <XTREE>; that is
-// what puts the node pointer itself in eax and makes the parent walk re-read
-// the member instead of reusing the loaded value.
 #include <yvals.h>
 
 enum Redbl_004e2ab0 { _Red, _Black };
@@ -22,6 +16,7 @@ struct Node_004e2ab0 {
 
 extern Node_004e2ab0* DAT_005292c4;
 
+// Accessors return references, as in <XTREE>: changes how the node pointer is held.
 static inline Redbl_004e2ab0& Colour(Node_004e2ab0* p) { return p->colour; }
 static inline Node_004e2ab0*& Left(Node_004e2ab0* p) { return p->left; }
 static inline Node_004e2ab0*& Parent(Node_004e2ab0* p) { return p->parent; }

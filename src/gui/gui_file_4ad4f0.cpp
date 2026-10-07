@@ -5,21 +5,8 @@
 // preceded by `indent` tabs, except the three lines inside [VERSION], which
 // get one more, and the "}" that closes the block, which also gets one more.
 //
-// Frame notes (all three locals are needed to get `sub esp,0xcc`):
-//   char tab        S+0x13, 1 byte, its address is taken
-//   char line[100]  S+0x14, the sprintf target and the strlen source
-//   char num[100]   S+0x78, the _itoa buffer, reused for the "panel" copy
-// `int d` and `int i` must both stay in registers, which only works while
-// `char* value` holds the _itoa results: the four callee-saved registers then
-// are ebx=value, ebp=d, esi=out, edi=the loop counter, and `obj` is loaded
-// from its incoming slot on demand. Drop `value` and MSVC promotes `obj`
-// instead, runs out of callee-saved registers, gives the loop counter a stack
-// home and grows the frame to 0xd0.
-//
 // `d` is a copy of `indent` that is bumped once, so the [VERSION] body and its
-// closing brace sit one level deeper. It dies inside the loop before "}\n";
-// the code after that reloads `indent` from its incoming stack slot (0x4ad76d),
-// so the parameter itself is never modified.
+// closing brace sit one level deeper.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -49,10 +36,13 @@ void __stdcall WriteKeyValue(FileHandle* out, char* name, char* value, int inden
 // FUNCTION: 0x4ad4f0
 void __stdcall WritePanelFields(Obj_004ad4f0* obj, FileHandle* out, int indent)
 {
+    // All three locals are needed for the frame size.
     char tab;
     char line[100];
     char num[100];
+    // Holds the _itoa results: keeps d and i in registers.
     char* value;
+    // Copy of indent: the parameter itself must stay unmodified.
     int d = indent;
     int i;
 

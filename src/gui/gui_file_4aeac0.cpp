@@ -1,17 +1,6 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by opus. Names are provisional.
-// MATCH. Two things were missing, and earlier notes blamed the wrong one:
-// - The real preceding function, 0x4ae630 (the matching GUI writer, matched
-//   in its own file), is defined above this one without an annotation, as the
-//   guide's preceding-function rule says. Without it MSVC tail-duplicates the
-//   six-instruction loop latch into every switch case (880 bytes, 75.3 %);
-//   with it the latch stays shared as in the original. Earlier passes tried
-//   made-up preceding functions, which did nothing; only the real one works.
-//   No extra latch statement is needed (the old `e->body.nuttin = i;` probe
-//   is gone).
-// - hotornot is a 1-bit bitfield, read through an int local exactly as the
-//   standalone reader 0x4ae410 does. Assigning the call result directly
-//   copies the old field into edx; the hand-written xor/and/xor form loads
-//   the field before the call.
+// The preceding function 0x4ae630 must be defined above this one, or the loop
+// latch gets duplicated into every switch case.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -267,6 +256,7 @@ int __stdcall ReadGuiFile(Elem_004aeac0* obj, char* name)
                 break;
             case 6:
                 {
+                    // Through an int local: assigning the call result directly changes the code.
                     int value = parser.current->GetFieldInt("hotornot", 0);
                     e->body.s6.hotornot = value;
                 }

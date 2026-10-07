@@ -4,12 +4,8 @@
 // unit at +0x142f3 while it is still alive), centres the scroll target on it
 // and clamps it to the map, then moves the scroll position halfway towards
 // the target (at most 320 pixels per axis) and re-clamps it.
-// Needs <windows.h> (found with tools/headers.py): without it the view
-// centre x is computed after viewWidth / 2 and lands in edx instead of esi.
-// The halfway step is an inline helper with `cur + -320`: written in place,
-// MSVC emits `sub ecx, 0x140` and a `neg`/`add` for `cur - d / 2`, and the
-// SetTarget/ClampTarget helpers give the original's load order.
 
+// Needed: without it the view centre x is computed in the wrong order.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -60,6 +56,7 @@ extern Game* g_game;
 void UpdateScreenShake();
 void ClampCameraPosition();
 
+// SetTarget/ClampTarget stay helpers: they give the original's load order.
 static inline void SetTarget(int x, int y)
 {
     g_game->x2 = x;
@@ -82,6 +79,7 @@ static inline void ClampTarget()
     }
 }
 
+// Stays an inline helper written as `cur + -320`: other forms change the arithmetic.
 static inline int Approach(int cur, int target)
 {
     int d = cur - target;

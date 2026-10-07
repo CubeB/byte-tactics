@@ -8,9 +8,6 @@
 // refreshes the gadget. When the selection is already at the last line
 // nothing happens. A selection sitting on a line whose text starts with
 // "&G" is not moved either.
-// `isel` is the int copy of the selected line that the original keeps live
-// across the calls further down (it is spilled to the dead argument slot and
-// reloaded); writing the int uses directly does not compile to the same code.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -87,6 +84,7 @@ void __stdcall FUN_004a99c0(Dialog* param_1, int index)
     int step = (me->field_19 - 2) / size;
     short last = me->field_bc;           // last line of the window
     short sel = me->field_ba;            // selected line
+    // Int copy of sel, kept live across the calls below: using sel directly changes the code.
     int isel = sel;
     if (isel < last + step && sel >= last) {
         if (me->field_c0 != 0) {

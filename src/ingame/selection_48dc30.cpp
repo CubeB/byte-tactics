@@ -4,9 +4,7 @@
 // the first match. The unit's own flags at +0x110 are read as a byte here, but
 // the owner object's flags at the same offset are read as a dword (0x40000000),
 // so the two are separate struct types. The guard before the loop (u > end) and
-// the test at the bottom are both present in the original, and the player
-// address is computed into eax and left dead, which is what the &players[n]
-// expression costs here.
+// the test at the bottom are both present in the original.
 
 #pragma pack(push, 1)
 struct Team_0048dc30 {

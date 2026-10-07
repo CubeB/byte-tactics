@@ -2,8 +2,7 @@
 // Constructor of a Class_0044ce20 subclass (vtable 0x4fd358, the same class
 // as Class_0044d470's file-loading constructor) that stores a point converted
 // from fixed-point world coordinates relative to the map origin, two radii
-// and each (radius / 16) squared. Two-radius version of 0x44cf60; the
-// radius2 store has to come after the conversion.
+// and each (radius / 16) squared. Two-radius version of 0x44cf60.
 
 struct Point_0044d3b0 {
     short x;
@@ -59,6 +58,7 @@ Class_0044d3b0::Class_0044d3b0(Source_0044d3b0* source, int x, int y, int r1, in
     p.x = (x - (org.x << 19) + 0x80000) >> 20;
     p.y = (y - (org.y << 19) + 0x80000) >> 20;
     pos = p;
+    // Stays after the point conversion.
     radius2 = r2;
     radius1 = r1;
     radius1Sq = (r1 / 16) * (r1 / 16);

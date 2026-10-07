@@ -1,19 +1,4 @@
 // Decompiled by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by opus. Names are provisional.
-// MATCH (opus pass, from 84.7%). The bounds test reads the position into
-// short locals, px before its own test and py after it:
-//     short px = obj->pos.x; if (px < 0) goto remove;
-//     short py = obj->pos.y; if (py < 0 || px + size.x >= width || ...)
-// With int locals, or obj->pos.x written in the sum, MSVC put the size.x
-// temporary first in the add, so it copied it ("mov eax,ebx; add eax,edx")
-// instead of adding into px's register, and the width load moved below the
-// add. The short locals give "movsx edx,ax; ...; add edx,ebx" as in the
-// original. Declaring py next to px (before px's test) hoists the pos.y load
-// above the first jl and scores 99.7%. In a cut-down copy of the function
-// with one loop instead of three, the plain obj->pos.x spelling already
-// added into px, so the operand order depended on how often size.x was used.
-// The sums must stay on the left of >= (width on the left gives jle).
-// Earlier passes' notes on the rest (owner surgery, loops, mask path, calls)
-// are unchanged by this: that code was already byte-identical.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -144,6 +129,8 @@ void __stdcall AddUnitToMap(Obj_0047cc30* obj)
     if (obj->field_0 != 0)
         *(int*)(obj->field_0 + 0x26) = g_game->field_38a47;
     {
+        // px and py are short locals, py declared after px's test; the sums
+        // stay on the left of >=.
         short px = obj->pos.x;
         if (px < 0)
             goto remove;

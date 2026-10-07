@@ -1,38 +1,9 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by claude-sonnet-5-5, finished by DeepSeek V4.1 Flash, finished by opus. Names are provisional.
-// MATCH. Writes the file data of one package directory, recursing into
+// Writes the file data of one package directory, recursing into
 // subdirectories. For each file entry it records the data offset, size and
 // compression flag in the directory buffer, then copies the file, either as
 // 64K blocks packed by SquashPack behind a table of block sizes, or raw in
 // 4K pieces, scrambling the bytes when a key is set.
-// What made it match, after sessions stuck between 66 and 81 percent:
-//  - HAPI_FileLength (the handle's file size) is defined in this file, as in the
-//    original translation unit, and /Ob2 inlines it. Its result goes straight
-//    into info->size, so the size lives in a scratch register (ecx) and every
-//    later use re-reads info->size: the block loop's remaining count is
-//    reloaded from [info+4] after the allocations. A `size` local put it in a
-//    callee-saved register instead.
-//  - Both loops are plain indexed for-loops that MSVC strength-reduces. The
-//    block loop writes table[n], which becomes a walking pointer plus a
-//    down-counter, and the directory loop indexes the entry array with i,
-//    which becomes the hidden i*9 offset ([esp+0x20]) and the hoisted record
-//    array pointer ([esp+0x3c]); the count is re-read from the directory
-//    header on every test. Writing those pointers and counters by hand, as
-//    earlier versions did, always left one slot wrong. Together with the
-//    previous item: 80.8 -> 98.4.
-//  - `remaining -= 0x10000` belongs in the for-increment after n++. As the
-//    last body statement it swaps the frame slots of remaining and the table
-//    pointer (98.4 -> MATCH).
-//  - Declarations that emit nothing still decide the last few bytes (the
-//    compiler-state effect of docs/field-notes.md section 10): the forward
-//    declaration of this function, the Node struct behind Shared::node and
-//    the casts in nblocks are each needed, and dropping any one of them
-//    scores 94 to 97 percent (1334 bytes).
-// HAPI_CloseFile (the handle close) is not inlined by MSVC 5 even when defined
-// here, so the close sequence near the end is written out by hand.
-// Earlier notes called the SquashPack size argument a bug (a heap address
-// passed as the limit). It is not: 0x4bda5e stores SquashMaxPackedSize's result
-// (packlen) before the "Pack Buffer" call, and the loop copies packlen into
-// clen before passing &clen.
 #include <stdio.h>
 #include <string.h>
 #include <io.h>
@@ -82,6 +53,7 @@ int __stdcall SquashPack(void* chunk, int* chunkSize, char* data,
 unsigned int __stdcall SquashMaxPackedSize(unsigned int value, int mode);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
+// This forward declaration, Node_004bd830 and the casts in nblocks all stay.
 void __stdcall HAPI_WriteArchiveData(char* path, char* base, int off, FILE* f,
                             void (__cdecl* cb)(unsigned), unsigned extra,
                             int key, int flags);
@@ -150,6 +122,7 @@ void __stdcall HAPI_WriteArchiveData(char* path, char* base, int off, FILE* f,
                 pack = (unsigned char*)FUN_004d83b0("Pack Buffer", packlen);
                 data = (unsigned char*)FUN_004d83b0("Data Buffer", 0x10000);
                 remaining = info->size;
+                // remaining is decremented in the for-increment, not as the last body statement.
                 for (n = 0; n < blocks; n++, remaining -= 0x10000) {
                     int chunk;
                     chunk = remaining >= 0x10000 ? 0x10000 : remaining;

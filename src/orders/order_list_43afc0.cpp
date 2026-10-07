@@ -3,9 +3,6 @@
 // given kind (and id, and within 0x100000 of `pos` in x and z, when those are
 // given) and deletes it; otherwise, or when nothing matches, hands all the
 // arguments on to AddOrder.
-// The match test and the removal are inlined helpers; written in place,
-// MSVC assigns the parameters other registers and lays out the blocks
-// differently.
 
 #pragma pack(push, 1)
 class Class_0043a1f0 {
@@ -41,6 +38,8 @@ static inline int InRange(int d)
     return (unsigned int)(d + 0x100000) <= 0x200000;
 }
 
+// Matches and RemoveNode stay helpers: written in place, the parameters
+// get other registers and the blocks lay out differently.
 static inline int Matches(Class_0043a1f0* node, unsigned char kind, int id, int* pos)
 {
     return kind == node->kind && (id == 0 || id == node->id) &&

@@ -9,13 +9,8 @@
 // FireBallisticProjectile, FireVLaunchProjectile (given the matching live projectile, if any),
 // FireLineOfSightProjectile, or a spawn aimed from the firing unit.
 //
-// MATCH (Claude Opus 5.5, issue 4785). The projectile scan is FindRemoteProjectile
-// inlined (it has no callers in the exe and sits just before this function).
-// Earlier passes stopped at 91.7% with a hand-written scan helper taking the
-// count as an `unsigned short` parameter: that was the only way they found to
-// keep the count in a register, at the price of an `and edi, 0xffff`. In the
-// original the count is the loop-invariant `g_game->projCount` that MSVC hoists
-// out of FindRemoteProjectile's loop by itself.
+// The projectile scan is FindRemoteProjectile inlined (it has no callers in the
+// exe and sits just before this function).
 #pragma pack(push, 1)
 
 struct Vec3_0049d270 {

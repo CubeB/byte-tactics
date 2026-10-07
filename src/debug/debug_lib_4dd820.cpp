@@ -1,6 +1,5 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// std::_Tree<...>::iterator::_Dec() from MSVC 5's <xtree> (step an iterator
-// back to its in-order predecessor), with _Max inlined under its own lock;
+// Tree iterator _Dec(): steps an iterator back to its in-order predecessor;
 // DAT_00528a50 is the tree's _Nil node. The counterpart of the _Dec wrapper at
 // 0x4dbe10 (which copies the iterator first), for the tree whose _Inc is at
 // 0x4dde70. The node's _Color sits at +0x3c (the value type is 0x30 bytes).

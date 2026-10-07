@@ -2,10 +2,10 @@
 // DeleteNode() of the classic LZSS binary-tree window: unlinks node t from
 // the tree, promoting its only child, or its in-order successor when it has
 // two children. Field names follow the matched 0x4d0b80.cpp (parent, smaller,
-// larger). The parent index is read back from the array on each use rather
-// than kept in a local: that is what puts the index in edi and the 16-bit
-// parent in bx, and it needs <stdio.h> plus <stdlib.h> to hold.
+// larger).
 
+// Keep <stdio.h> and <stdlib.h>, and read the parent from the array on each
+// use (no local): the register allocation depends on both.
 #include <stdio.h>
 #include <stdlib.h>
 

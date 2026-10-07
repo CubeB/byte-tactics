@@ -1,13 +1,6 @@
 // Decompiled by space-bunny-free, finished by Sonnet 5.5. Names are provisional.
 // Bilinear terrain height at a 12.4 fixed point position (x in the high word at
 // +2, z at +10), or -1 outside the map.
-//
-// Two things mattered: the second row is reached by advancing the pointer
-// (`c += width`), not by indexing c[width], which gives the original's
-// `lea ecx,[ecx+edi*4]; lea edi,[ecx+edx]` address chain; and the first row's
-// interpolation is a named local (r1) used inside the second expression, so it
-// is computed once and stays in ecx. Earlier notes had the return expression
-// written out twice, which needed the c[width] spelling and left r1 split in two.
 #pragma pack(push, 1)
 struct Cell_00485070 {
     char unknown_0[0x4];
@@ -51,9 +44,11 @@ int __stdcall GetGroundHeight(Pos_00485070* p)
     Cell_00485070* c = &g_game->cells[zc * g_game->width + xc];
     int a = c->height;
     int b = c[1].height;
+    // Advance the pointer instead of indexing c[width]: gives the original's address chain.
     c += g_game->width;
     int e = c->height;
     int f = c[1].height;
+    // Named local used inside the second expression: computed once, stays in ecx.
     int r1 = a + (b - a) * xf / 16;
     return r1 + ((e + (f - e) * xf / 16) - r1) * zf / 16;
 }

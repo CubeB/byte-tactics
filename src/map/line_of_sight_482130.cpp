@@ -1,10 +1,7 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by Sonnet 5.5. Names are provisional.
 // The original is std::remove_if (find_if, then remove_copy_if after the first
-// expired element) plus vector::erase's count update. The predicate is a function
-// object whose operator() returns int, not bool: a bool return materialises
-// through sbb/neg/test and breaks the fused cmp/jb. Eye::operator= re-points the
-// two self pointers (screen at +4, flagPtr at +0xc). `changed` is never
-// initialised in the original.
+// expired element) plus vector::erase's count update. Eye::operator= re-points
+// the two self pointers (screen at +4, flagPtr at +0xc).
 #include <stddef.h>
 #include <algorithm>
 
@@ -62,12 +59,14 @@ void __stdcall RemoveLineOfSight(Eye_00482130* eye);
 
 
 struct Expired {
+    // Returns int, not bool: a bool return breaks the fused compare.
     int operator()(const Eye_00482130& e) const { return e.expires < g_game->ticks; }
 };
 
 // FUNCTION: 0x482130
 void ExpireEyeballs()
 {
+    // Left uninitialised, as in the original.
     int changed;
     Eye_00482130* p = g_game->eyes;
     for (int i = 0; i < g_game->count; i++, p++) {

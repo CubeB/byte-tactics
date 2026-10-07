@@ -1,23 +1,4 @@
 // Decompiled by GPT-5.6-Terra, finished by GPT-6 and deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
-// MATCH 100% (556 bytes), found by deepseek-v4.1-flash.
-//
-// The whole residual at 86.8% was the live zero register in edi. The original
-// materialises a 32-bit zero at the prologue (`xor edi,edi`) and keeps it
-// live: `cmp ebx,edi` for the surface null test, `cmp [esi+0xd2],edi` for the
-// showText test, `mov [esp+0x38],edi` for the width initial value and
-// `cmp [ecx+0x14],edi` for the first language test. edi is then reused as the
-// text pointer and reloaded from the width home after the loop. Writing the
-// width measurement inline never forms that register: MSVC emits `test ebx,ebx`
-// and immediate-zero stores. Moving the measurement into a `static inline`
-// helper (exactly the shape of Measure_004a4d70 in 0x4a4d70) makes the inliner
-// hoist the helper's `int width = 0` zero into edi at the function prologue and
-// reuse it for every later zero, which also pushes the rect-inset temporary off
-// edi onto edx/ecx. One source shape explains every hunk.
-//
-// Measured dead ends (all scratch, free --sym): inline measurement with width
-// declared/initialised at every position, `char *p = 0` or `int zero = 0` at
-// function scope (constant-propagated away), reversing every comparison,
-// `while`/`for` loop forms and `char *q` loop pointer: all 86.8% or worse.
 #include <stdlib.h>
 #include <windows.h>
 
@@ -78,6 +59,7 @@ int GetFontHeight();
 void __stdcall UnlockScreen(void *);
 
 
+// Kept as a separate static inline: its zero is hoisted into edi at the prologue.
 static inline int Measure_004a4660(char *text)
 {
     int width = 0;

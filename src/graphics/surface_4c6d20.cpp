@@ -1,9 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 // Draws through the blitter at 0x4cbdd1 (hand-written assembly in a gap
 // region) into `dst`, or, when `dst` is null, into the screen: lock it with
-// LockScreen, draw, then unlock. The unlock is UnlockScreen inlined; its
-// Unlock call goes through a method of the embedded screen struct, which is
-// why the tested surface pointer is copied (and re-read in 0x4c5fa0 itself).
+// LockScreen, draw, then unlock.
 #include <ddraw.h>
 
 struct Surface {
@@ -17,6 +15,7 @@ struct Screen_004c6d20 {
     char unknown_0[0xc];
     IDirectDrawSurface* surface;       // +0xc
 
+    // Unlock through a method of this struct: the tested pointer gets copied.
     void UnlockSurface() { surface->Unlock(0); }
 };
 

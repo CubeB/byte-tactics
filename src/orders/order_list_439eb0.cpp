@@ -4,8 +4,6 @@
 // object of the list at +0x60, unlinking each from the list its flag 0x40000
 // selects. Every deleted object except the list's head is marked 0x10000
 // first.
-// `first` must be read through the owner and the loop through a separate
-// link pointer; reading both through one pointer local merges the two loads.
 
 #pragma pack(push, 1)
 class Class_0043a1f0 {
@@ -28,6 +26,8 @@ struct Owner_00439eb0 {
 // FUNCTION: 0x439eb0
 void __stdcall DeleteOrders(Owner_00439eb0* owner, int all)
 {
+    // Read through the owner, loop through a separate link pointer: one
+    // shared local merges the two loads.
     Class_0043a1f0* first = owner->list;
     Class_0043a1f0** pp = &owner->list;
     Class_0043a1f0* node;

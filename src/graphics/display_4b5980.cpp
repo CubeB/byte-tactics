@@ -1,31 +1,4 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash, retried by Claude Fable 5.1, finished by DeepSeek V4.1 Flash, worked on by Space Bunny Free, finished by Claude Opus 5.5. Names are provisional.
-// Space Bunny Free (89.2% -> 93.6%): `d->width = w; d->height = h;` written
-// directly and the flag-word update after them fixed the schedule of that
-// block; `int w` must be declared before `int h`, or edi and ebp swap.
-//
-// Claude Opus 5.5 (93.6% -> MATCH), two changes:
-//  * The first flag update is three plain statements on the bitfields,
-//    `no_video = 0; hwnd = 0; sound_opt = (videoFlags >> 9) & 1;`. Written as
-//    a whole-word expression it needed a `Flags*` alias to keep MSVC from
-//    folding the two masks, and the alias also stopped the scheduler from
-//    hoisting the videoFlags load above the in-memory bit-11 clear.
-//  * Every bit test is a bitfield test, as in the original
-//    (`mov cl,[esi+0xf0]; shr cl,5; test cl,1`). What made the bit-5 test
-//    misbehave before was the scratch-register rotation: MSVC 5 hands out
-//    eax/ecx/edx in turn, and the original has one more temporary in the
-//    second flag update than a single expression gives. Naming the shifted
-//    videoFlags bits as an `int` local (`int t = ...; flags = ... | t | 1;`)
-//    adds it at no code cost, which moves the bit-5 test to cl and every
-//    later test to the original's register. Without it the bitfield test
-//    lands on dl and the allocator CSEs `&d->wc` into edi and spills the
-//    height (826 bytes); the old mask spelling `flags.value & 0x20` only hid
-//    that by folding the test into memory.
-// The struct needs `#pragma pack(2)`: the mode struct at +0x1ea and the two
-// ints after it sit at 0x1ea, 0x1fa and 0x1fe, and videoFlags is a word at
-// +0x202. WNDCLASSA has to be padded to +0x18 by hand for the same reason.
-// IDC_ARROW is passed as the raw Win16 value 103 (0x67). `push 0x7f00` at the
-// top of the GDI block is MSVC hoisting LoadIconA's IDI_APPLICATION (0x7f00
-// in this SDK), not a source statement.
 //
 // Suspected original bug: the work area rectangle fetched with
 // SystemParametersInfoA(SPI_GETWORKAREA) at +0xec overlaps the flag word at
@@ -33,6 +6,8 @@
 // three instructions later, so the fetch is pointless.
 #include <windows.h>
 
+// Packed to 2: the mode struct and the two ints after it sit at 0x1ea, 0x1fa and
+// 0x1fe, and videoFlags is a word at +0x202.
 #pragma pack(push, 2)
 
 struct View_4b5980 {
@@ -80,6 +55,7 @@ struct App_4b5980 {
     char* title;                         // +0x0c
     WNDPROC wndProc;                     // +0x10
     unsigned short menuId;               // +0x14
+    // Pads WNDCLASSA to +0x18 by hand, for the same packing reason.
     char unknown_16[2];
     WNDCLASSA wc;                        // +0x18
     HWND hwnd;                           // +0x40
@@ -159,6 +135,7 @@ int __stdcall InitEnvironment(App_4b5980* d)
     d->scratch[5] = 0;
     d->unknown_624 = 0;
     d->unknown_dc = 0;
+    // Three plain bitfield statements, not one whole-word expression.
     d->flags.bits.no_video = 0;
     d->hwnd = 0;
     d->flags.bits.sound_opt = (d->videoFlags >> 9) & 1;
@@ -174,11 +151,13 @@ int __stdcall InitEnvironment(App_4b5980* d)
 
     d->items = 0;
     d->itemCount = 0;
+    // w is declared before h.
     int w = d->startWidth;
     int h = d->startHeight;
     d->width = w;
     d->height = h;
     // bits 1..8 of the video flags become bits 2..9 of the flag word
+    // Named int local: adds the temporary the original's second flag update has.
     int subsys = (d->videoFlags & 0x1fe) << 1;
     d->flags.value = (d->flags.value & 0xfc03) | subsys | 1;
     if (d->flags.bits.has_c4) {
@@ -211,6 +190,7 @@ int __stdcall InitEnvironment(App_4b5980* d)
         d->wc.hInstance = d->hInstance;
         d->wc.lpszClassName = d->className;
         d->wc.hIcon = LoadIconA(d->hInstance, IDI_APPLICATION);
+        // IDC_ARROW passed as the raw Win16 value 103.
         d->wc.hCursor = LoadCursorA(d->hInstance, (LPCSTR)103);
         d->wc.lpszMenuName = (LPSTR)d->menuId;
         d->wc.cbClsExtra = 0;

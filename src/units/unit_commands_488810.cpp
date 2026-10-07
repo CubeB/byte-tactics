@@ -6,14 +6,13 @@
 // larger one. The fourth parameter is never read: both call sites (0x48576d
 // and 0x485778, which pass the first level of this sort inline) and the
 // recursive calls pass 0.
-// The byte count of a range, rounded down to a whole number of pointers. It
-// is written as a helper because MSVC 5 only keeps the left size in eax when
-// the two halves are compared through inlined calls.
+// The byte count of a range, rounded down to a whole number of pointers.
 
 struct Item_00485940;
 
 typedef int (__stdcall* Pred_00488810)(Item_00485940*, Item_00485940*);
 
+// Stays a helper: the left size is only kept in eax through inlined calls.
 static inline int RangeSize_00488810(Item_00485940** low, Item_00485940** high)
 {
     return (int)((char*)high - (char*)low) & ~3;

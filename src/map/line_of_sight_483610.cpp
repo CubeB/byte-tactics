@@ -3,15 +3,6 @@
 // Map loader: reads a TNT map (version 0x1020 or 0x2000) into the game state
 // and allocates the tile map, plot memory, tile set, sort lists and the
 // mapped and eyeball memory blocks.
-//
-// STATUS: MATCH (1975/1975 bytes). `uv run tools/check.py 0x483610` prints
-// MATCH. Instruction order was fixed by: moving attr_b ahead of attr_a in the
-// 0x1020 case, hoisting the attr_b plot pointer above the count test, moving
-// `b.n = a.n` inside the attr_a count test, giving the attr_a second loop its
-// own `int n` counter, inverting the zero-size test around operator new, and
-// declaring r4's `int cols, rows;` in that order while assigning rows first.
-// Two constant multiplies survive only because `(x * 65536.0) * 0.0011111111111111111`
-// is parenthesised; without it the compiler folds them into one.
 
 // SHARED begin
 #include <string.h>
@@ -159,6 +150,7 @@ void LoadTntMap()
     else
         *(int*)((char*)tmp0 + 0x64) = info.sea_b;
     a.n = *(int*)(*(int*)(DAT_00511de8 + 0x391e9) + 0xd3c);
+    // Parenthesised so the two constant multiplies are not folded into one.
     if (a.n >= 0 && info.version >= 0x2000)
         *(int*)((char*)tmp0 + 0x68) = (int)((a.n * 65536.0) * 0.0011111111111111111);
     else if (info.sea_d != 0)

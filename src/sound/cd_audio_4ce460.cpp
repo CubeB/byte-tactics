@@ -1,11 +1,6 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 // Returns 0 when MCI reports the type of track 1 on the CD as "audio",
 // otherwise 1.
-//
-// The second comparison ("other") assigns its strcmp result to a local that is
-// then tested against 0 with both outcomes returning 1. A flattened
-// `type = strcmp(...); return 1;` gets the store eliminated by the optimiser,
-// so the read (if (type == 0)) has to stay for the code to match.
 #include <windows.h>
 #include <mmsystem.h>
 #include <string.h>
@@ -26,6 +21,7 @@ int Class_004ce460::IsFirstTrackData()
     if (strcmp(buf, "audio") == 0) {
         return 0;
     } else {
+        // Keep the type == 0 test even though both branches return 1.
         type = strcmp(buf, "other");
         if (type == 0) {
             return 1;

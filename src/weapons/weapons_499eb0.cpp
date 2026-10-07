@@ -1,9 +1,4 @@
 // Decompiled by GPT-5.6-Terra, finished by claude-sonnet. Names are provisional.
-// Matched. The flags dword at +0x111 is a bitfield struct (bit10 and bit22): a bitfield
-// test gives the original's shr/test al,1. The sound id is passed as unsigned int, which
-// gives the original's xor reg,reg / mov reg16 zero extension. The +0x69 flag is a plain
-// unsigned short OR'd with 2 (see git history for the measurements); its width is a shape
-// that reproduces the single 'or byte ptr [esi+0x69], 2', not a known declaration.
 #pragma pack(push, 1)
 
 struct Vec3_00499eb0 {
@@ -25,6 +20,7 @@ struct ProjectileType_00499eb0 {
     unsigned short sound1;
     unsigned short sound2;
     char unknown_fa[0x111 - 0xfa];
+    // Bitfield struct: the bit tests need this form.
     struct {
         unsigned int bits0_9 : 10;
         unsigned int bit10 : 1;
@@ -49,6 +45,7 @@ struct Projectile_00499eb0 {
     char unknown_56[0x66 - 0x56];
     unsigned char owner;
     char unknown_67[2];
+    // Stays unsigned short: gives the single byte OR with 2.
     unsigned short field_69;
 };
 
@@ -81,6 +78,7 @@ void* __stdcall GetMapCellAtPosition(Vec3_00499eb0* position);
 void __stdcall FUN_0041c640(int a, int b, int c);
 void __stdcall AddExplosionEffect(Vec3_00499eb0* position, void* value, int a, int b);
 void __stdcall EmitWhiteSmoke(Vec3_00499eb0* position, int value);
+// The sound id stays unsigned int: gives the original's zero extension.
 void __stdcall PlaySoundAt(unsigned int sound, Vec3_00499eb0* position, int value);
 int __stdcall ApplyWeaponDamage(Projectile_00499eb0* projectile, Unit* unit, float scale);
 void __stdcall ApplyAreaDamage(Projectile_00499eb0* projectile, Vec3_00499eb0* position);

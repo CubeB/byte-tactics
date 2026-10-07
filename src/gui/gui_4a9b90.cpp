@@ -13,17 +13,6 @@
 // A handled command is returned as 0, an unhandled one unchanged. The common
 // tail refreshes the holder when nothing consumed the command and records the
 // newly selected gadget in obj->field_60.
-//
-// The one construct that decides the whole function: the field_137 wrap in the
-// type-1 case must be written through a POINTER (`unsigned char* p =
-// &e->field_137; if (++*p >= e->field_136) *p = 0;`). Written with a local
-// (`v = e->field_137 + 1; e->field_137 = v; if (v >= e->field_136)`) MSVC keeps
-// the guard's field_136 in a register and sinks the store past the compare,
-// costing 8 bytes and 36 points; the pointer store is what makes MSVC reload
-// field_136 into cl after the store and materialise the `mov al,dl` copy, which
-// is what the original has. The case bodies are laid out in the order the
-// original emits them (9, 0x1b, 0xd, 0x20, 0xf5, 0xf4, 0xf7, 0xf6), not in
-// ascending order, so the switch is written in that order.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -111,6 +100,7 @@ int __stdcall HandleGuiCommand(Object_004a9b90* obj, int cmd)
     Entry_004a9b90* e = &entries[index];
     int type = e->type;
 
+    // Case order follows the original emit order, not ascending.
     switch (cmd) {
     case 9:
         if (IsKeyDown(0xf9))
@@ -160,6 +150,7 @@ int __stdcall HandleGuiCommand(Object_004a9b90* obj, int cmd)
             }
         }
         if (type == 1 && e->field_136 != 0) {
+            // Wrap through a pointer: a local copy makes the field_136 reload differ.
             unsigned char* p = &e->field_137;
             if (++*p >= e->field_136)
                 *p = 0;

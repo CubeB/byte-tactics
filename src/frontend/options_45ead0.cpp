@@ -5,15 +5,6 @@
 // the saved settings and "RESTORE" puts the defaults back; anything else is
 // only accepted when its option record is enabled (first byte 1), in which case
 // the option is re-selected and the link's own reselect callback runs.
-//
-// The index is deliberately written as `gadget->field_60 * 347` rather than
-// reusing the local `i`. Both are the same value, but the second read is one
-// more node in the expression graph, and that is what makes MSVC 5 emit the
-// original's 7-byte `lea eax, [edi*8 + 0]` (0x45ed07) instead of
-// `mov eax, edi / shl eax, 3`. The same shape, and the same fix, appear in
-// 0x45e100 (matched), whose identical 0x15b-entry chain also starts with a
-// padded `lea ecx, [eax*8 + 0]`.
-//
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x519];
@@ -113,6 +104,7 @@ void __stdcall FUN_0045ead0(Gadget_0045ead0* gadget)
         return;
     }
     int i = gadget->field_60;
+    // Index with gadget->field_60 * 347, not the local i: selects the original lea.
     if (data[gadget->field_60 * 347] != 1) {
         FUN_004ab0a0(gadget);
         return;

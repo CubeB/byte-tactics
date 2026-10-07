@@ -5,49 +5,15 @@
 // MEM, START, the METAL/MAXUNITS/ENERGY sliders and the map, then refreshes
 // the whole room.
 //
-// #5637 Claude Opus 5.5: MATCH with the project's two generated headers in
-// the order types, the globals this file uses, prototypes:
-// include/ta_types.h, then this file's views and its extern declarations,
-// then include/ta_protos.h.
-// - The flag word's cheating and fixedloc bits are `unsigned short`, as
-//   0x447b10 and 0x445ed0 have them (the signed version, 95.3% before, only
-//   imitated the order). Their three writes compute the value before masking
-//   the word, as the original does, when g_game's and the lobby DATs' symbol
-//   ids are high (docs/c2-regalloc.md, "Symbol ids"; from 56338, measured up
-//   to 64483). ta_types.h puts g_game at 62433, which gives those three: 99.7%.
-// - The last byte was the commander write through the block-local Player
-//   pointer (`or edx, eax`, the word as the destination): it needs this
-//   function's locals numbered past 65536 while g_game and the DATs stay
-//   below. Scratch counts showed any 2950 to at least 11750 ids between the
-//   DAT declarations and the function do it; ta_protos.h there adds about
-//   7200 (`commander` is 69503, 3967 after the wrap), and the file total does
-//   not matter. ta_protos.h before the externs instead wraps g_game too.
-// - Clashes with the headers, resolved by using the headers' declarations:
-//   Class_00435920, Class_00435c40, Class_00435d30, Class_004373a0 and
-//   UnitSync are the header's classes; FUN_004455b0 is the header's
-//   `__cdecl` one (the same call, it has no parameters) and HandleBattleRoomClick the
-//   header's, so `layer->handler = HandleBattleRoomClick` has one candidate. The
-//   other prototypes stay, since they take this file's views (the header's
-//   Game, PlayerInfo and gadget types have plain words where this function
-//   uses bitfields).
-// Earlier findings that still hold:
-// - The three slider blocks are the slider set-up 0x445e50 (no callers),
-//   defined above unannotated and inlined. ENERGY's handler 0x445d60 (no
-//   callers) is inlined through it; METAL's 0x445c70 and MAXUNITS' 0x445b70
-//   stay calls, as in the original. MAXUNITS passes `g_game->maxUnits - 20`
-//   twice (one CSE, homed in the slot `player` used), not a named local.
-// - The flag word at +0x9b is the bitfield layout of 0x447b10; the game's
-//   mapping/los/losType/commander and the options' fixedloc are ints read
-//   for their low bit. f97 (host) and the word at +0x9d are unsigned short
-//   bitfields, as in 0x44a680.
-// - `info` is read before `player` is formed: that is what stores the
-//   player pointer without its 0x1b63 bias, as the original does.
-// - The commander write goes through a block-local Player pointer (the
-//   original forms the 0x1b63 address and then reads +0x27).
+// The flag word at +0x9b is the bitfield layout of 0x447b10; the game's
+// mapping/los/losType/commander and the options' fixedloc are ints read for
+// their low bit. f97 (host) and the word at +0x9d are unsigned short
+// bitfields, as in 0x44a680.
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+// First: gives g_game a symbol id below 65536.
 #include "ta_types.h"
 
 #pragma pack(push, 1)
@@ -69,6 +35,7 @@ struct PlayerInfo_00449bb0 {
         unsigned short los : 1;
         unsigned short losType : 1;
         unsigned short commander : 2;
+        // Unsigned short, not signed: the writes compute the value before masking.
         unsigned short cheating : 1;
         unsigned short fixedloc : 1;
         unsigned short closed : 1;
@@ -209,6 +176,7 @@ extern int DAT_00512d8c;
 extern char DAT_00512ce8[];
 extern char* DAT_00505518[];
 extern char* DAT_005054b0[];
+// After the externs: keeps the locals' symbol ids past 65536 (g_game stays below).
 #include "ta_protos.h"
 
 char __stdcall FindGameCdDrive(int side);
@@ -303,6 +271,7 @@ void OpenBattleRoom()
     DAT_0050550c = -1;
     g_game->dirty = 1;
     memset(g_game->field_2c28, 0, sizeof(g_game->field_2c28));
+    // info before player: stores the player pointer without its 0x1b63 bias.
     info = g_game->players[g_game->localPlayer].info;
     player = &g_game->players[g_game->localPlayer];
     host = info->f97_0;
@@ -342,6 +311,7 @@ void OpenBattleRoom()
             if (commander >= 0 && commander <= 2) {
                 g_game->commander = commander;
                 g_game->field_37ef6 = commander;
+                // Block-local pointer: the original forms 0x1b63 first, then reads +0x27.
                 Player_00449bb0* p = &g_game->players[g_game->localPlayer];
                 p->info->b.commander = commander;
             }
@@ -410,6 +380,7 @@ void OpenBattleRoom()
 
     FUN_00445e50("METAL", 0x2711, metal, UpdateMetalText);
     {
+        // maxUnits - 20 twice, not a named local: one CSE in the slot `player` used.
         FUN_00445e50("MAXUNITS", g_game->maxUnits - 20, g_game->maxUnits - 20, UpdateMaxUnitsText);
     }
     if (!isHost || g_game->locked) {

@@ -5,16 +5,6 @@
 // belongs to another player, carries weapon flag bit 29 and lies inside that
 // radius is a candidate, and the first candidate that no other projectile
 // points at is returned.
-//
-// Three source details decide the shape, all of them load bearing:
-//   - the flag byte is read before the radius, and the radius is built with
-//     the shift inside the initialiser, or MSVC hoists the flag load into the
-//     prologue, ahead of the register saves, and everything after shifts;
-//   - `g_game->projs` is read before `g_game->projCount`, which keeps the
-//     g_game pointer in ecx instead of eax;
-//   - the two range tests are nested `if`s rather than one `&&` chain, or the
-//     bitfield test folds into `test [mem], 0x20000000` instead of the
-//     load/shift/test the original uses.
 #pragma pack(push, 1)
 struct Vec3_0049d120 {
     int x;
@@ -78,13 +68,17 @@ extern Game* g_game;
 Proj_0049d120* __stdcall FindTargetableProjectile(Table_0049d120* table, int index)
 {
     Entry_0049d120* entry = &table->entries[index & 0xff];
+    // Flag read before the radius, shift inside its initialiser: else the flag
+    // load hoists into the prologue.
     if (!entry->active)
         return 0;
     int radius = entry->def->radius << 16;
+    // projs is read before projCount: keeps g_game in ecx.
     Proj_0049d120* proj = g_game->projs;
     int count = g_game->projCount;
     for (int i = 0; i < count; i++, proj++) {
         if (proj->player != table->player) {
+            // Nested ifs, not one && chain: else the bitfield test folds into a mem test.
             if (proj->def->flags.hitscan) {
                 if ((unsigned)(table->pos.x - proj->pos.x + radius) <= 2u * radius) {
                     if ((unsigned)(table->pos.z - proj->pos.z + radius) <= 2u * radius) {

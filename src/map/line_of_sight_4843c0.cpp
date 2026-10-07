@@ -1,10 +1,4 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
-// MATCH. Two upstream facts closed the 86.7% gap: (1) the two scroll loads must
-// be interleaved with their modulo uses (y0, ry, x0, rx rather than x0, y0, ry,
-// rx), which makes MSVC coalesce the g_game address temp with x0 in edi and
-// turns the 5-byte mov eax,[g_game] into the original 6-byte mov edi,[g_game];
-// (2) the last border loop is a guarded do-while, not a for-loop, so its
-// counter init lands after the unsigned guard (jbe) instead of before it.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -75,6 +69,7 @@ void BuildFogTiles(void)
 
     memset(grid->cells, 0, grid->count * 2);
 
+    // Interleaved: each scroll load is followed by its modulo (y0, ry, x0, rx).
     int y0 = g_game->scrollY;
     int ry = y0 % 32;
     int x0 = g_game->scrollX;
@@ -154,6 +149,7 @@ void BuildFogTiles(void)
     }
 
     if (xEnd > info->width / 2) {
+        // Guarded do-while, not a for: the counter init follows the guard.
         if (grid->height > 0) {
             unsigned int i = 1;
             do {

@@ -59,14 +59,11 @@ static inline void ScrollTo(int x, int y)
     g_game->flags_14281 &= 0xfff7;
 }
 
-// All field accesses go through one pointer c, so MSVC keeps each field's
-// address in a register (the four lea's) and knows they do not overlap: that
-// lets it load center.y before the savedScroll.y store. int& locals per field
-// give the same lea's but no such knowledge. The quarter offsets need their
-// own locals (dx, dy) for savedScroll to get esi/ebp and center.x the spill.
 // FUNCTION: 0x41cd50
 void UpdateMouseScroll()
 {
+    // All fields go through one pointer c, and the quarter offsets keep their own
+    // locals dx, dy: both fix the load order and register use.
     CursorState_0041cd50* c = &g_game->cursor;
     Rect_0041cd50 r = g_game->view;
     int dx = (r.x - c->center.x) / 4;

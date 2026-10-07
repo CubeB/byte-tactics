@@ -182,17 +182,6 @@ void PacketManager::FUN_00461610()
 // first an unused slot (field_14 == -1), otherwise the first slot whose
 // field_14 is not the color of any of the ten player slots in g_game. The
 // chosen entry is re-initialised with InitPools and returned.
-//
-// The one instruction that decides the whole register allocation is in the
-// player-colour scan: walking a pointer (`Player* p = &g_game->players[0]; for
-// (j = 0; j < 10; j++, p++)`) instead of indexing `g_game->players[j]` adds
-// just enough register pressure that MSVC 5 stops assuming ecx survives the two
-// InitPools calls, and gives the object pointer the callee-saved ebx
-// (`push ebx; mov ebx, ecx`, plus a spill to [esp+0x10] for the block that
-// later borrows ebx as a cursor). With plain array indexing every instruction
-// is identical but for that missing `mov ebx, ecx` and the rotation it causes,
-// which is 74.9%. The outer loops stay plain array indexing, which is what
-// gives the `add esi, 0x1044` after the loop guard.
 // FUNCTION: 0x461630
 PacketChannel* PacketManager::FindChannel(int param_1, int param_2)
 {
@@ -211,6 +200,7 @@ PacketChannel* PacketManager::FindChannel(int param_1, int param_2)
     }
     for (i = 1; i <= 10; i++) {
         int used = 0;
+        // Must walk a pointer here; the outer loops stay plain array indexing.
         Player_00461630* p = &g_game->players[0];
         for (int j = 0; j < 10; j++, p++) {
             if (p->color == channels[i].field_14) {
@@ -226,27 +216,14 @@ PacketChannel* PacketManager::FindChannel(int param_1, int param_2)
     return 0;
 }
 
-// The last remaining hunk was the allocation-failure epilogue: the original
-// ends with `pop edi; pop esi; xor eax, eax; pop ebx; ret 8` while every
-// helper based shape emitted `xor eax, eax; pop edi; pop esi; pop ebx; ret 8`.
-// The fix is the shape the matched sibling 0x461020 uses: the whole body after
-// the network check is a flat `do { ... } while (0)` region whose exit is
-// BEFORE the SetThreadPriority call, and the failure `return 0` lives inside
-// the region. C2 then moves that `return 0` out to the end of the function and
-// emits it as the function's last block, and the last block is the one that
-// puts the register restores before the return value. Without the `while (0)`
-// region (or with the failure return written as an out-of-line helper's
-// `return 0`, which was the previous 98.6% version) the network check's
-// `return 0` is either merged into the failure block or duplicated with the
-// xor first. The region must end before SetThreadPriority: putting the call
-// inside the region adds a third edge into the `return 1` epilogue and C2
-// duplicates that epilogue.
 // FUNCTION: 0x461750
 int PacketManager::InitChannels(int arg1, int arg2)
 {
     if (g_usePacketManager == 0) {
         return 0;
     }
+    // The do/while (0) must end before SetThreadPriority; the failure return
+    // stays inside it.
     do {
         if (member.field_18 == 0) {
             if (member.field_1c != 0) {

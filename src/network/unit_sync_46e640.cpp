@@ -1,17 +1,8 @@
 // Decompiled by space-bunny-free, deepseek-v4.1-flash and GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by Claude Opus 5.5, verified by GPT-6. Names are provisional.
-// Issue #4927 retry: confirmed MATCH on the current main /Gi source.
 // FLAGS: /Gi
 // std::vector<int>::insert(iterator, size_type, const _Ty&), stock MSVC 5
 // <vector>, emitted out of line through a member pointer. The caller
 // (0x46d6c0) appends one int at a time with insert(end(), 1, x).
-//
-// The original's translation unit was built with /Gi (#5035), and the bytes
-// also depend on which other vector<int> members the TU instantiates: with a
-// reserve use (as below), a resize or a copy constructor this MATCHes; with
-// operator= it is 58.0%. Without /Gi the best file reached 99.6%, one swapped
-// SIB byte at 0x46e708 (`lea eax,[ebx+ecx]` against ours `lea eax,[ecx+ebx]`)
-// that docs/field-notes.md Part 6 took for a different compiler build. It is
-// not: it is /Gi plus the TU's other member uses (Part 7 there).
 #include <vector>
 
 typedef std::vector<int> Vec_0046e640;

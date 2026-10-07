@@ -4,13 +4,6 @@
 // pointers is reallocated with FUN_004d8580, the raw memory for the new
 // slots comes from FUN_004d8450, and the base of that block is pushed on
 // the vector of blocks that the destructor frees one by one (0x470e50).
-// The push is the shape of std::vector<Elem>::insert from MSVC 5's
-// <vector> (its out-of-line _Ucopy 0x470f00, _Ufill 0x470f30 and _Destroy
-// 0x470ef0 are only declared, so the compiler emits the same calls), with
-// two changes the original clearly makes: the first copy of the old
-// elements into the new buffer is a loop over FUN_00470f60, and _N is
-// built as size() + (1 < size() ? size() : 1) with the allocation done
-// through _Allocate's negative-count guard (operator new, not new[]).
 #include <stddef.h>
 
 void* __cdecl FUN_004d8450(int size);

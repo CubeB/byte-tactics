@@ -2,9 +2,6 @@
 // Decrements the scroll offset (field_140) of GUI entry `index`, clamped to
 // [0, field_136 - 1]. When the value actually changes it marks the object
 // changed, refreshes the gadget and runs the entry's callback (if any).
-// The int copy of the old value is what makes MSVC keep the sign-extended old
-// in edx and compute the entry address before the first load; using only the
-// short local lets it fold the base+index into the load.
 
 #pragma pack(push, 1)
 struct Entry_004a96d0 {                // 0x15b-byte entry
@@ -40,6 +37,7 @@ void __stdcall DecrementKnobPos(Object_004a96d0* obj, int index)
 {
     Entry_004a96d0* e = &obj->data->entries[index];
     short raw = e->field_140;
+    // Keep the int copy of the old value: it fixes the register order of the entry address.
     int old = raw;
     e->field_140 = raw - 1;
     if (e->field_140 > e->field_136 - 1) {

@@ -1,10 +1,9 @@
 // Decompiled by Opus and space-bunny-free. Names are provisional.
 // The map's saved plot maps: the metal byte, the player-feature nibble and the
 // mapping buffer, read from and written to a chunked HapiBank file.
-//
-// <windows.h> / <string.h> decide which of width and height is loaded before
-// the multiply in each function.
 
+// Both includes stay: they decide whether width or height is loaded first in
+// each multiply.
 #include <windows.h>
 #include <string.h>
 
@@ -52,8 +51,7 @@ public:
 };
 
 // Writes the "Metal" "Plotmap" chunk: the metal byte of every map cell
-// (the save counterpart of 0x484d60). Without a header such as <windows.h>,
-// MSVC loads height before width for the multiply (as in 0x484df0).
+// (the save counterpart of 0x484d60).
 // FUNCTION: 0x484ce0
 void __stdcall SaveMetalPlotmap(HapiBank* file)
 {
@@ -72,8 +70,6 @@ void __stdcall SaveMetalPlotmap(HapiBank* file)
 // Writes the "PlayerFeatures" "Plotmap" chunk: the low four bits of the
 // feature field of every map cell, two cells packed per byte (the even cell
 // in the high nibble). Compare 0x484d60, which reads the "Metal" plot map.
-// Without a header such as <windows.h>, MSVC loads height before width for
-// the multiply.
 // FUNCTION: 0x484df0
 void __stdcall SavePlayerFeaturesPlotmap(HapiBank* file)
 {
@@ -92,9 +88,8 @@ void __stdcall SavePlayerFeaturesPlotmap(HapiBank* file)
 }
 
 // Reads the "Metal" "Plotmap" chunk into the metal byte of every map cell.
-// It sits after SavePlayerFeaturesPlotmap, not in address order: with this
-// cell loop before the feature save, MSVC bases that loop's induction variable
-// at the first cell instead of the second.
+// Defined after SavePlayerFeaturesPlotmap, not in address order: the order
+// decides the base of this cell loop's induction variable.
 // FUNCTION: 0x484d60
 void __stdcall LoadMetalPlotmap(HapiBank* file)
 {
@@ -115,7 +110,6 @@ void __stdcall LoadMetalPlotmap(HapiBank* file)
 
 // Reads the "PlayerFeatures" "Plotmap" chunk into the feature field of every
 // map cell, two cells per byte (the reading counterpart of 0x484df0).
-// Without a header such as <windows.h>, MSVC loads height before width.
 // FUNCTION: 0x484e80
 void __stdcall LoadPlayerFeaturesPlotmap(HapiBank* file)
 {
@@ -150,7 +144,6 @@ void __stdcall SaveMappingData(HapiBank* file)
 }
 
 // Reads the "Mapping" "Data" chunk into the map's mapping buffer.
-// <string.h> decides which of width and height is loaded before the imul.
 // FUNCTION: 0x484fa0
 void __stdcall LoadMappingData(HapiBank* file)
 {

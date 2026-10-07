@@ -5,18 +5,7 @@
 //
 // The map at +0x00 is the std::map<unsigned int, UnitSyncEntry> whose tree
 // header lives at 0x46f720 (written out by hand there as
-// Class_0046f720::FUN_0046f720). Because that file named the tree's _Init
-// Class_0046f720::FUN_0046f720, the member is a hand-written Class_0046f720
-// with the same four fields, not a real std::map (a real one would emit the
-// library's mangled ?_Init@?$_Tree@... symbol at +0x1d).
-//
-// The original's map constructor copies two empty objects (the key_compare and
-// the allocator) into bytes +0 and +1 from the still-live `param` stack slot,
-// which is why the prologue stores param's low byte twice, then 0 at +8. Taking
-// the two empty classes by value in Class_0046f720's constructor reproduces
-// that exactly. The insert itself still goes through the real std::map
-// instantiation, so the pair buffers and the _Tree::insert call at +0x111 come
-// out right.
+// Class_0046f720::FUN_0046f720).
 #include <list>
 #include <map>
 #include <vector>
@@ -91,6 +80,7 @@ public:
     char unknown_9[3];
     int size;                          // +0xc
 
+    // Empty classes taken by value: the prologue copies them from the param slot.
     Class_0046f720(Cmp_0046d040 c, Alloc_0046d040 a)
         : field_0(c.x), field_1(a.x), multi(0)
     {
@@ -107,6 +97,7 @@ public:
 
 class UnitSync {
 public:
+    // Hand-written header, not a real std::map: a real one emits another _Init symbol.
     Class_0046f720 rects;                            // +0x00
     std::vector<PlayerSync_0046d040> players;        // +0x10
     std::list<int> ids;                              // +0x20
@@ -118,9 +109,7 @@ public:
     UnitSync(int param);
 };
 
-// A plain inline helper makes MSVC keep the tested bit in ebx, the callee-saved
-// register the flag value lives in across the insert call; written out in place
-// the expression lands in eax and adds a `mov ebx, eax`.
+// Plain inline helper: keeps the tested bit in ebx across the insert call.
 static inline bool FlagOf_0046d040(Def_0046d040* d)
 {
     return (d->flags >> 16) & 1;

@@ -3,14 +3,6 @@
 // (copied out of obj->name) is looked up in the screen's GAF, then in the
 // object's own GAF, and only when both fail does it fall back to "CHECKBOX",
 // "stagebuttn%d" or "BUTTONS0".
-//
-// The control flow matters for the match: the two loops that clear the w/h of
-// every frame and pick the frame nearest to (obj->x, obj->y) sit INSIDE the
-// last `if (entry == 0)` block, so a successful name lookup jumps straight to
-// the tail at +0x1a1 and skips them. Moving the loops out (to just before
-// obj->entry = entry) still gives 468 bytes, but the three early-exit jumps
-// then target the top of the loop block instead of the tail and the bytes
-// differ.
 
 #include <string.h>
 #include <stdio.h>
@@ -100,6 +92,7 @@ void __stdcall FindButtonGaf(Button_004a7f70* button, Obj_004a7f70* obj)
                     strcpy(str, "BUTTONS0");
                     entry = FindGafEntry(button->gaf, str);
                 }
+                // Both loops stay inside this block: early exits must jump to the tail.
                 if (entry != 0) {
                     best = 1000;
                     for (int i = 0; i < entry->count; i++) {

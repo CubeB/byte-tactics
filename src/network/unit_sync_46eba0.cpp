@@ -5,17 +5,6 @@
 // packet to the queue at +0x1c of PacketSequencer with push_back, whose inlined
 // insert(end(), x) calls this with a count of 1. The element is the 14-byte
 // packed packet of 0x46cef0 (copied as three dwords and a word).
-//
-// Built with /Gi like the original's translation unit (the same recipe as the
-// 0x4758c0 to 0x476490 inserts, #5035): the real header plus one push_back on
-// the same vector type matches. Without /Gi this source is 62.7%. Under /Gi,
-// operator= or resize in place of push_back match too, while no other use,
-// reserve, the copy constructor or erase give 63.3%. Under the default
-// flags the best was a hand-written clone of the template at 86.1% (the third
-// copy walking _P with _Last in a local), because there the grow arm's third
-// copy derives its source start dest first, where the original has the
-// _P-first `sub esi, edx; add esi, ecx; sub esi, eax`; /Gi's per-function
-// symbol numbering is what reverses that order.
 #include <vector>
 
 #pragma pack(push, 1)

@@ -1,54 +1,16 @@
 // Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Claude Opus 5.5, finished by GPT-6, finished by Claude Opus 5.5. Names are provisional.
 // Loads the map's features: the type-name table into a remap vector, then
 // the "Normal", "Animating" and "3D" feature records. The save counterpart is
-// 0x424890 (matched, same TU).
-//
-// #5634 Claude Opus 5.5: MATCH with the game types header and the two system
-// headers of the DLLs TA imports that it does not already include
-// (SHELL32 and IMAGEHLP): include/ta_types.h, <shlobj.h> and <imagehlp.h>.
-// - The one byte left at 99.8% was the 3D loop's store, [spots + offset +
-//   0x26] in the original. It is a symbol-id window (docs/c2-regalloc.md,
-//   "Symbol ids"): the 3D loop's `c` has to be numbered past 65536 while the
-//   Animating loop's `c` and `s` stay below it, which is g_game at 64976 to
-//   64995. ta_types.h alone puts g_game at 62385; <shlobj.h> and <imagehlp.h>
-//   put it at 64979. The same three headers match 0x471de0 (file total
-//   65433, window 65257 to 65554).
-// - The file uses the header's types where they hold what the function
-//   reads: Game, Feature, HapiBank (the file object; OpenNamedBox and
-//   ReadBox are its members there, so data/aliases.csv names them),
-//   Class_004b4800, Class_004b4bf0, Class_004b4c10, Class_004c2ea0,
-//   FeatureName_00424c00, Normal_00424890 and Rot16. It keeps its own views
-//   of the cell (the header's Cell has two bytes at +0xa), the feature spot
-//   (the header's FeatureSpot has a pointer at +0x4 and a bitfield at +0x2e)
-//   and the Animating record (the header's Anim_00424890 has no byte view of
-//   the animation bits).
-// - The 3D record is plain data. The header's Model_00424c00 holds a Vec3,
-//   whose declared default constructor adds an /Ob2 call site; that leaves
-//   the second resize's erase out of line (89.6%, 94.9% with an inline empty
-//   Vec3()).
-// - The static's $S suffix is its symbol id (64984 here), so
-//   data/aliases.csv names DAT_00511fb4$S64984 too; 0x4224b0, 0x422ea0,
-//   0x424050 and 0x4223e0 use the same static.
-//
-// Earlier findings that still hold:
-// - DAT_00511fb4 is a file-scope static in this TU (as in 0x4223e0), and the
-//   vectors are the real <vector> with plain resize() calls. No /Gi: the TU's
-//   other functions only match without it.
-// - The /Ob2 budget (c2prio --inline) decides the second resize's erase: the
-//   original inlines it (copy and _Destroy out of line), which needs the
-//   function's IL size at 1055 or more with the ternary FeatureIndex (IL 38,
-//   free). The `got` and `type` locals add the IL; plain loops without them
-//   keep erase out of line (89.6%). Above about 1150 FreeFeatureFileList's ~vector
-//   inlines its _Destroy too (63.7%).
-// - Both loops' spot address orders follow bit 14 of g_game's id below the
-//   wrap; no declaration count without the wrap gives the original's mix of
-//   one store each way (#5201, #5348).
+// 0x424890.
+// These headers set g_game's symbol id: the 3D loop's `c` must be numbered
+// past 65536, the Animating loop's `c` and `s` below it.
 #include <windows.h>
 #include <shlobj.h>
 #include <imagehlp.h>
 #include "ta_types.h"
 #include <string.h>
 
+// Own views of the cell, spot and Animating record: the header's differ.
 struct Spot_00424c00 {
     char unknown_0[4];
     unsigned short frame;              // +0x4
@@ -86,6 +48,7 @@ struct Anim_00424c00 {
     };
 };
 
+// Plain data: a Vec3 with a declared constructor changes the inlining.
 struct Model3D_00424c00 {
     unsigned short x;
     unsigned short y;
@@ -98,6 +61,7 @@ struct Model3D_00424c00 {
 
 extern Game* g_game;
 typedef std::vector<Class_004c2ea0*> FeatureList;
+// File-scope static, as in 0x4223e0.
 static FeatureList* DAT_00511fb4;
 
 void __stdcall LoadFeatureFileList();
@@ -172,6 +136,7 @@ void __stdcall LoadFeatures(HapiBank* file)
     for (k = 0; k < n; k++) {
         Normal_00424890 rec;
         ((Class_004b4c10*)file)->SeekBox(k * sizeof(Normal_00424890));
+        // The `got` and `type` locals add IL size that the inlining depends on.
         int got = file->ReadBox(&rec, sizeof(Normal_00424890));
         if (got >= sizeof(Normal_00424890)) {
             Cell_00424c00* c = GetMapCell(rec.x, rec.y);

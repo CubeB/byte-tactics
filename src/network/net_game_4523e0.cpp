@@ -5,13 +5,6 @@
 // local player is updated directly; anyone else is sent packet 0x18 with the
 // group, and the group is recorded locally once the send succeeds.
 //
-// What made it match: the id search in the second half is an inlined
-// FindPlayerIndex with its own early `return 10` for id -1 (the two
-// `return 10`s give the two separate stores of 10), used straight as the
-// index. Comparing `to` inside the search helper instead of in this function
-// is what lets `to` stay in its argument slot during the first loop and
-// frees ebp for the outer counter.
-//
 // Suspected original bug: when `to` is -1, FindPlayerIndex returns 10 and the
 // last store goes through players[10].data, the spare eleventh slot of the
 // table (a pointer read from g_game+0x2878). Nothing guards the index here,
@@ -60,6 +53,7 @@ static inline int GetPlayerId(unsigned char i)
     return -1;
 }
 
+// Early return 10 for id -1, used straight as the index: two separate stores of 10.
 static inline unsigned char FindPlayerIndex(int id)
 {
     if (id == -1)

@@ -1,35 +1,7 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash; further tried by GPT-6.1-sol, edited by deepseek-v4.1, further tried by Space Bunny Free, finished by claude-sonnet-5-5. Names are provisional.
-// MATCH, 583/583 bytes. Reloads one TDF file into the global map (g_translations):
+// Reloads one TDF file into the global map (g_translations):
 // frees the old map when the section name changed, builds a new one and inserts
 // every (name, value) pair of the file's sections.
-//
-// What got it from 80.4 percent to MATCH (claude-sonnet-5-5, issue 4641):
-//  * The key test is `e == last || Ne(e->key, key)` with two nested inline
-//    helpers (operator== on the handles using strcmp, and Ne returning
-//    !(a == b)). The inlined bool result goes through the exe's
-//    `sete cl; neg cl; sbb ecx,ecx; inc ecx` form. The old file had the sense
-//    of the test inverted (insert on equal keys).
-//  * The new entry is built by a by-value helper (MakeElem) with the empty
-//    handle as a temporary, and the whole insert plus the `&entry->value`
-//    is the return value of an inline helper (InsertNew). That gives the
-//    exe's order: ctor of the empty handle, ctor of the entry into a hidden
-//    result slot (its address by lea, the handle's constructor result in eax),
-//    insert, then both destructors, with `&value` already computed in esi and
-//    the single shared AssignText call (`mov ecx,esi` / `lea ecx,[edi+4]`).
-//    The pair is passed as `const Elem&`, so the call is the real member
-//    Class_004c5ba0::FUN_004c59d0 (same class as 0x4c59d0).
-//  * Freeing the old map is written out in the caller as
-//        if (g_translations) { TranslationTable* old = g_translations;
-//                            DestroyVec(&g_translations->v); ::operator delete(old); }
-//    DestroyVec is a static inline taking the vector pointer. Reading the
-//    global once for the vector and once into `old` keeps the vector pointer
-//    (edi) and the map pointer (ebx) in separate registers, and the plain
-//    pointer test gives `test eax,eax` instead of a materialised bool.
-//    Written with a local `s = g_translations` for both, or with a destructor,
-//    MSVC folds the vector onto the map pointer (59 percent).
-//  * `index` is an ordinary local now (the old int idx[1] was not needed).
-//  * `flag` is deliberately uninitialised: it is the stack byte the exe's
-//    inlined vector constructor copies into the new map at +1.
 #include <string.h>
 #include <memory.h>
 #include <stdio.h>
@@ -200,11 +172,13 @@ static inline void LoadMap(char flag, char* section)
 // FUNCTION: 0x4c54f0
 void __stdcall LoadTranslations(char* filename, char* section)
 {
+    // Deliberately uninitialised: the exe copies this stack byte into the new map.
     char flag;
     TranslationTable* s;
 
     if (_strcmpi(section, g_language) == 0)
         return;
+    // Global read once for the vector and once into old: separate registers.
     if (g_translations) {
         TranslationTable* old = g_translations;
         DestroyVec(&g_translations->v);
@@ -227,6 +201,7 @@ void __stdcall LoadTranslations(char* filename, char* section)
                     s = g_translations;
                     e = ((Class_004c5c60*)g_translations)->FindLowerBound(key.ptr);
                     Class_004c93f0* r;
+                    // Nested inline == and Ne helpers give the exe's bool sequence.
                     if (e == ((Class_004c5c60*)s)->last || Ne(e->key, key)) {
                         r = InsertNew(s, e, key);
                     } else {

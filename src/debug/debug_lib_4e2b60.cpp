@@ -2,8 +2,7 @@
 // Same allocator as 0x4dddf0 for a second free list.
 // Pool allocator for the DAT_00529e58 free list: refills it 0x2000 bytes at a
 // time (GlobalAlloc, retrying through the out-of-memory handler) by carving
-// n-byte pieces, then pops one piece. Same shape as 0x4e2b60; 0x4ddce0 has
-// an inlined copy for 0x40-byte nodes.
+// n-byte pieces, then pops one piece.
 #include <windows.h>
 
 extern void* DAT_00529e58;             // free list

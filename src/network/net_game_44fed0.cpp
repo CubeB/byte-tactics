@@ -1,9 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // Finds the player whose field_4 equals the given id and returns a pointer to
-// it, or null when there is none. The index search was an inlined helper and
-// appears twice in the original; the getter it uses treats the not-found
-// sentinel 10 as an out-of-range index, which is why the loop keeps a
-// redundant "i != 10" test.
+// it, or null when there is none.
 
 #pragma pack(push, 1)
 struct Player_0044fed0 {
@@ -24,6 +21,7 @@ extern Game* g_game;
 
 static inline int GetPlayerField_0044fed0(unsigned char i)
 {
+    // Redundant i != 10 test must stay: 10 is the not-found index.
     if (i != 10 && g_game->players[i].flag_73)
         return g_game->players[i].field_4;
     return -1;

@@ -1,11 +1,7 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// 585-byte GUI list entry (same class as 0x432fb0.cpp). This is MSVC 5's
-// <algorithm> _Sort instantiated for the 585-byte element with a __stdcall
-// comparison callback, so the real header supplies _Median and
-// _Unguarded_partition (both inlined here). The 4th parameter is the
-// template's unused _Ty* tag, passed as 0 and never read.
-// <windows.h> must come first: it flips the evaluation order of the final
-// element-count comparison to match the original.
+// 585-byte GUI list entry (same class as 0x432fb0.cpp). The 4th parameter is
+// the template's unused _Ty* tag, passed as 0 and never read.
+// Must come first: changes the evaluation order of the final count comparison.
 #include <windows.h>
 #include <algorithm>
 

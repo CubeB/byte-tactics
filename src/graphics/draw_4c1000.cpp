@@ -4,26 +4,6 @@
 // backwards to the bottom one filling the left end of each row, walks it
 // forwards for the right end, and hands every row to FillFlatSpan. The 2048
 // entry span array is what puts the frame at 0x14028.
-//
-// MATCH. The walks share one function-scope `j` and each has its own
-// block-scoped `int i = minYi;`. Both walks spill the addresses &pts[i] and
-// &pts[j] after the y0 < y1 test. The optimiser keeps one temporary per
-// address expression, so the expression whose index variable is the same in
-// both walks gets a single temporary with a stack home used by both walks
-// (four references), and that home is the one that shares the dead minX slot
-// at frame + 4. With a shared `i` and per-walk `j` that was &pts[i]; the
-// original shares &pts[j]. Read from C2's frame list (FUN_0043f93b and the
-// slot table at 0x4910b8): one temporary with 4 references paired with minX,
-// four with 2 references paired per walk.
-//
-// Two other shape choices carry most of the score:
-// - Testing the height inline in the minY guard and then assigning maxRow from
-//   the same expression, `if (minY > (int)sf->height - 1) return 0;` followed
-//   by `int maxRow = (int)sf->height - 1;`, lets MSVC CSE the two loads. With
-//   maxRow assigned first it moves surf into ecx and every guard register with
-//   it (74.5% to 87.7%).
-// - Indexing pts[i]/pts[j] straight into the reads, with no `Point *p, *q`
-//   locals for the two walks (named pointers re-pack the frame).
 #include <string.h>
 
 struct Span_004c1000 {
@@ -64,6 +44,7 @@ int __stdcall FillFlatPolygon(Surface_004c1000* surf, Point_004c1000* pts, int n
     int minYi;
     int maxYi;
     int i;
+    // One function-scope j shared by both walks; each walk has its own block-scoped i.
     int j;
     Surface_004c1000* sf = surf;
     int scanIndex = 0;
@@ -90,6 +71,7 @@ int __stdcall FillFlatPolygon(Surface_004c1000* surf, Point_004c1000* pts, int n
         return 0;
     if (maxY < 0)
         return 0;
+    // Height tested inline here and reused for maxRow: the two loads must CSE.
     if (minY > (int)sf->height - 1)
         return 0;
     int maxRow = (int)sf->height - 1;
@@ -107,6 +89,7 @@ int __stdcall FillFlatPolygon(Surface_004c1000* surf, Point_004c1000* pts, int n
                 j = i - 1;
                 if (j < 0)
                     j = n - 1;
+                // pts[i] and pts[j] indexed directly: named pointers would re-pack the frame.
                 y0 = pts[i].y;
                 y1 = pts[j].y;
                 if (y0 < y1) {

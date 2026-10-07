@@ -4,14 +4,8 @@
 // entry whose type has field_22f == 0 switches to mode 0xe with that type,
 // the orders buttons go to HandleOrdersPanelClick, and any other entry adds or removes
 // build queue entries (5 at a time when IsKeyDown(0xf9) is set).
-// Notes: the per-button FUN_004ab0a0 calls are one call after an if/else-if
-// chain (MSVC duplicates it into every branch; writing it in each branch puts
-// the menu in esi instead of edi). The type-id buffer is char[17]: a [20]
-// buffer is placed above the name buffer. The canBuild bit is tested in its
-// own nested if (inside the && chain it becomes `test byte ptr`). <windows.h>
-// is needed for the base/index order in the buildTypes lookup (found with
-// tools/headers.py).
 
+// Needed for the base/index order in the buildTypes lookup.
 #include <windows.h>
 #include <string.h>
 
@@ -98,6 +92,7 @@ void __stdcall HandleBuildPanelClick(Menu_0041aa00* menu)
 {
     if (menu->index != -1) {
         Entry_0041aa00* entries = menu->layer->entries;
+        // char[17]: a [20] buffer is placed above the name buffer.
         char idName[17];
         GetGadgetName(entries, idName, menu->index);
         idName[16] = 0;
@@ -120,6 +115,7 @@ void __stdcall HandleBuildPanelClick(Menu_0041aa00* menu)
             g_game->field_2cc4 = id;
             PlaySoundByName("addbuild", 0);
         } else if (!HandleOrdersPanelClick(menu, entries) && !HandleOrderButtonClick(menu, entries)) {
+            // Own nested if: inside the && chain the bit test is compiled differently.
             if (unit->canBuild) {
                 char text[256];
                 GetGadgetName(entries, text, menu->index);
@@ -139,6 +135,7 @@ void __stdcall HandleBuildPanelClick(Menu_0041aa00* menu)
                 FUN_0049fa90(&g_game->menu);
             }
         }
+        // One call after the chain, not one per branch.
         FUN_004ab0a0(menu);
     }
 }

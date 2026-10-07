@@ -1,12 +1,4 @@
 // Decompiled by Sonnet 5.5, finished by space-bunny-free, deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// MATCH. The key derivation needed a separate byte local `key` for the
-// condition and an unsigned int `w` for the rotate, with the rotate split
-// into `unsigned int hi = w >> 6; w = w << 2; hi = hi | w;` and a *second*
-// byte local `r` fed by `key` to receive `(unsigned char)~hi`. That extra
-// byte copy pins the allocator to the original roles (base=ecx, key=dl,
-// w=eax, hi=edx) and yields the original `test dl, dl` before the branch.
-// With `key = (unsigned char)~hi` the byte lands in al and the whole block
-// rotates (90.6%); with the condition on `w` the test folds into `and`.
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -90,6 +82,8 @@ OPENHAPIFILE* __stdcall HAPI_OpenArchive(const char* name, int mode)
     fread(h->header, hdr.size, 1, f);
     {
         Header_004bdd70* base = h->header;
+        // Key derivation: a byte key for the condition, an unsigned w for the split rotate,
+        // and a second byte local r receiving the result.
         unsigned char key = base->key;
         unsigned int w = key;
         unsigned char r = key;

@@ -3,9 +3,7 @@
 // Compiler-generated dynamic initialiser for the global red-black tree (map)
 // at DAT_0051fbc0, the tree whose methods are 0x4b26f0, 0x4b3020, 0x4b3430 and
 // friends. DAT_0051fbbc is its shared _Nil node and DAT_0051fbb8 its reference
-// count, so the compiler emits this function (and the atexit destructor at
-// 0x4b2340) for the object; like other compiler-generated initialisers it is
-// annotated with its own symbol name.
+// count.
 //
 // The object layout (from 0x4b3020 and 0x4b3490): an empty allocator byte at
 // +0, an empty comparator byte at +1, the head node pointer at +4, a byte flag

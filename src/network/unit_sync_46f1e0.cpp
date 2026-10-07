@@ -1,10 +1,7 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // std::_Tree<...>::erase(iterator) from MSVC 5's <xtree> for the
 // std::map<unsigned int, UnitSyncEntry> tree whose _Nil node is
-// DAT_0051e598. The real template reproduces the function: it inlines one
-// level of _Erase (0x46f6d0) and calls iterator::_Inc (0x46ea10) and
-// _Lockit/_Lockit::~_Lockit around the node unlinks. data/aliases.csv gives
-// both erase overloads the one name used by the map instantiation.
+// DAT_0051e598.
 #include <map>
 
 struct UnitSyncEntry {                 // 0x10 bytes

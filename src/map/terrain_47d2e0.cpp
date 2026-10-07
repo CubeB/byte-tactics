@@ -1,6 +1,4 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, retried by claude-opus-5-5, finished by GPT-6, retried by claude-opus-5-5, retried by claude-opus-5-5, retried by claude-opus-5-5, finished by claude-opus-5-5. Names are provisional.
-// MATCH (claude-opus-5-5, #5647, 2026-10-04; 89.5% before this pass).
-//
 // Can a unit's footprint stand on the map cell `cell`? The guards are the map
 // bounds, then the line-of-sight tests (the player's bit in the shared
 // visibility mask, then either the explored byte map or the mask again,
@@ -8,44 +6,8 @@
 // that accumulates the build cost into DAT_0051e688 and the height envelope
 // into the returned DAT_0051e684.
 //
-// What made it match, in the order it paid:
-//  1. IsSeen takes the player bit as a parameter and declares
-//     `unsigned int w = los->explored.size.width;` after tx/ty, and IsExplored
-//     is the matched sibling 0x4658e0's form (MapSize-level Contains, then
-//     ByteMap::Get). The inline local w, declared after ty, makes the seen
-//     arm's multiply width-first (`imul esi, eax`) and lifts the width (W1,
-//     shared with the first vis test) to priority 74; the sibling IsExplored
-//     lifts los to 74 as well, above bit's 70, and W1 wins the tie on +0x40.
-//     That is the original's allocation: width in esi, los in edi, bit split
-//     with its stack home at [esp+0x4c] (tools/c2prio.py).
-//  2. Headers: the cell multiply's fold (`imul eax, [ebp+0x14233]`), the
-//     bounds guard's lea operand order and the explored arm's index-then-data
-//     add all follow symbol ids. <stdlib.h> + <string.h> + <math.h> puts all
-//     three right (a 320-set sweep, with lean and full <windows.h>, found no
-//     better set). 96.4%.
-//  3. The cell pointer `c` is computed before the min6/max5/... initialisers.
-//     That moves the eax/ecx/edx temporary rotation one step: the cell block's
-//     `lea edx`, `or dl, 0xff` after it, and the loop's unit/mask registers and
-//     mask SIB all follow. 99.5%.
-//  4. The first vis test reads the word through VisWord, an inline helper
-//     that takes main's x but derives ty and the width as its own locals (w
-//     after ty). The multiply then comes out width-first like the original's
-//     (`mov ebx, esi; imul ebx, eax`). Written in main, `width * y` is y-first
-//     whenever main's locals have large symbol ids (scratch scans with dummy
-//     declarations: only with y's id under about 690 here), and no main-scope
-//     spelling moves it (a w local, Los*/ByteMap*/MapSize* locals, index or
-//     width methods, operand and sum orders), because main's single-use
-//     locals are forwarded before the order is fixed. Passing x instead of
-//     deriving tx in the helper keeps x used twice in main, so its computation
-//     stays ahead of y's in the first Contains block. MATCH.
-//
-// Load-bearing from earlier passes: `hgt` is a separate Fix local (it shares
-// the dead los argument slot [esp+0x4c] with the bit spill); the helpers read
-// the position through the six-short Position cast; the bounds guard reads
-// cell.x/cell.y directly; the bit is computed after the first Contains test;
-// the footprint loop is the rotated do/while with a positive bottom test;
-// Blocked_ and Terrain_ are early-return helpers. The earlier passes' long
-// analysis of the 88.5% residual is in this file's git history.
+// <stdlib.h>, <string.h> and <math.h> stay: their symbol ids decide operand
+// orders in the cell multiply, the bounds guard and the explored arm.
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -145,6 +107,7 @@ struct Position_0047d2e0 {              // 16.16 fixed point, only high words re
     short z;
 };
 
+// The helpers read the position through the six-short Position cast.
 static inline int IsExplored_0047d2e0(Los_0047d2e0* los, Position_0047d2e0* pos,
     Fix_0047d2e0* hgt)
 {
@@ -160,6 +123,7 @@ static inline int IsSeen_0047d2e0(Los_0047d2e0* los, Position_0047d2e0* pos,
 {
     int tx = pos->x >> 5;
     int ty = (pos->z - (hgt->p.hi >> 1)) >> 5;
+    // Declared after tx/ty: makes the multiply width-first.
     unsigned int w = los->explored.size.width;
     int r;
     if (!los->explored.size.Contains(tx, ty))
@@ -169,6 +133,8 @@ static inline int IsSeen_0047d2e0(Los_0047d2e0* los, Position_0047d2e0* pos,
     return r;
 }
 
+// Takes the caller's x but derives ty and the width itself: no spelling in
+// the caller gives the original's width-first multiply.
 static inline unsigned short VisWord_0047d2e0(Los_0047d2e0* los, int tx,
     Position_0047d2e0* pos, Fix_0047d2e0* hgt)
 {
@@ -177,6 +143,7 @@ static inline unsigned short VisWord_0047d2e0(Los_0047d2e0* los, int tx,
     return g_game->field_14273[w * ty + tx];
 }
 
+// Blocked_ and Terrain_ stay early-return helpers.
 static int Blocked_0047d2e0(Cell_0047d2e0* c)
 {
     unsigned short v = c->field_8;
@@ -223,6 +190,7 @@ int __stdcall CanBuildAt(Unit_0047d2e0* unit, Point cell, short type, Los_0047d2
     DAT_0051e684 = 0;
     DAT_0051e688 = 0;
     Point origin = unit->origin;
+    // The guard reads cell.x and cell.y directly.
     if (cell.x < 1 || cell.y < 1 || cell.x + origin.x >= g_game->width ||
         cell.y + origin.y >= g_game->height)
         return 0;
@@ -232,6 +200,7 @@ int __stdcall CanBuildAt(Unit_0047d2e0* unit, Point cell, short type, Los_0047d2
     ok = 1;
     if (los != 0) {
         Pos_0047d2e0 pos;
+        // A separate Fix local: it shares the dead los argument slot with the bit spill.
         Fix_0047d2e0 hgt;
         pos.x.v = (origin.x + cell.x * 2) << 19;
         pos.z.v = (origin.y + cell.y * 2) << 19;
@@ -240,6 +209,7 @@ int __stdcall CanBuildAt(Unit_0047d2e0* unit, Point cell, short type, Los_0047d2
         y = (pos.z.p.hi - (hgt.p.hi >> 1)) >> 5;
         if (!los->explored.size.Contains(x, y))
             return 0;
+        // Computed after the first Contains test.
         unsigned int bit = 1 << g_game->player;
         if ((VisWord_0047d2e0(los, x, (Position_0047d2e0*)&pos, &hgt) & bit) == 0)
             return 0;
@@ -248,6 +218,7 @@ int __stdcall CanBuildAt(Unit_0047d2e0* unit, Point cell, short type, Los_0047d2
         else
             ok = IsSeen_0047d2e0(los, (Position_0047d2e0*)&pos, &hgt, bit);
     }
+    // The cell pointer is computed before the min6/max5 initialisers.
     Cell_0047d2e0* c = &g_game->cells[cell.y * g_game->width + cell.x];
     unsigned char min6 = 0xff;
     unsigned char max5 = 0;
@@ -259,6 +230,7 @@ int __stdcall CanBuildAt(Unit_0047d2e0* unit, Point cell, short type, Los_0047d2
     int col;
     row = 0;
     if (origin.y > row) {
+        // Rotated do/while with a positive bottom test.
         do {
             for (col = 0; col < cols; col++) {
                 DAT_0051e688 += c->field_7;

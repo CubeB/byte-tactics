@@ -76,7 +76,7 @@ void __stdcall FreeSquads(Owner* owner)
 }
 
 // Removes `u` from `v` by moving the last element into its slot and erasing
-// the last element. Kept as an inline helper (see the note above): the
+// the last element. Kept as an inline helper: the
 // original translation unit had this as its own small function.
 static inline void RemoveFast(std::vector<Unit*>& v, Unit* u)
 {
@@ -84,6 +84,7 @@ static inline void RemoveFast(std::vector<Unit*>& v, Unit* u)
     if (it != v.end()) {
         std::vector<Unit*>::iterator last = v.end() - 1;
         *it = *last;
+        // erase(end() - 1), not pop_back().
         v.erase(last);
     }
 }
@@ -94,19 +95,12 @@ static inline void RemoveFast(std::vector<Unit*>& v, Unit* u)
 // 0x20-byte Squad squads at player+0x78 (built by 0x480190); the
 // squad holds its units in the std::vector<Unit*> at +0x10.
 //
-// The removal (`RemoveFast`) is a separate inline helper: inlining it is what
-// leaves the compiler unable to also inline the four size() occurrences in
-// push_back's reallocation branch, so three of them stay out-of-line calls to
-// 0x40c560 exactly as in the original. Written as one flat body the compiler
-// inlines all of them and the function is 16 bytes too long.
-//
 // The removal itself overwrites the found slot with the last element and then
-// erases the last element (order is not preserved); the original used
-// v.erase(v.end() - 1) rather than pop_back(), and that shape (the dead
-// "copy(end, end, end-1)" loop before --_Last) is what makes block 1 match.
+// erases the last element (order is not preserved).
 // FUNCTION: 0x480250
 void __stdcall SetUnitSquad(Unit* unit, int index)
 {
+    // RemoveFast stays a separate inline helper: a flat body inlines push_back's size() calls too.
     if (unit->group != -1)
         RemoveFast(unit->owner->squads[unit->group].items, unit);
     if (index != -1)

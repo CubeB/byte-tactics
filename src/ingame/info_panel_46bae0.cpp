@@ -7,20 +7,6 @@
 // is a flat filled polygon (FillPolygon); otherwise a 4-vertex textured quad
 // (DrawFrameQuad), whose texture is either the direct pointer at +0x10 or, when
 // bit 1 is set, the entry GetGafSequenceFrame looks up from the reference at +0x10.
-//
-// MATCH. Two things the compiler only does when the per-iteration pointer
-// updates sit in the loop's increment clause:
-//
-// 1. Both loops must put every increment in the `for` header
-//    (`i++, v++, scratch++, points++` and `k++, idx++, dst++`). With the
-//    pointer bumps written as statements at the end of the body, MSVC 5 keeps
-//    the vertex pointer in ebp and spills the counter, which is one register
-//    the wrong way round.
-//
-// 2. The primitive flag is a dword bitfield (`flag0`, `texIndexed`), not an
-//    int tested with `>>`/`&`: a bitfield read gives the original's
-//    `mov eax, [e+0x1c]; test al, 1` then `shr eax, 1; test al, 1`, while
-//    `(flags >> 1) & 1` folds to `test cl, 2`.
 
 struct Vec3_0046bae0 {
     int x;
@@ -41,6 +27,7 @@ public:
     unsigned short* indices;           // +0x0c
     int field_10;                      // +0x10 texture pointer or index ref
     char unknown_14[8];
+    // Dword bitfield, not an int tested with >> and &: the read codegen differs.
     unsigned int flag0 : 1;            // +0x1c bit 0
     unsigned int texIndexed : 1;       // +0x1c bit 1
     unsigned int rest : 30;            // +0x1c
@@ -81,6 +68,7 @@ void __stdcall FUN_0046bae0(void* surface, Vec3_0046bae0* offset,
     Vec3_0046bae0* scratch = g_game->scratch;
     Point_0046bae0* points = g_game->points;
     int i = 0;
+    // Every increment of both loops stays in the for header.
     for (; i < obj->count; i++, v++, scratch++, points++) {
         RotateByAngles(v, scratch, angles);
         int y = (short)((scratch->y + offset->y) >> 16);

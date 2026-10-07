@@ -2,9 +2,7 @@
 // Builds the 256x256 colour-blend table at obj->buffer when flag5 is set:
 // diagonal entries are the palette index itself, off-diagonal entries are the
 // palette index closest to the per-channel average of palette entries row and
-// col. The palette is walked as 4-byte RGBA structs; MSVC picks the +2 byte of
-// each entry as the induction pointer and reaches r/g/b at -2/-1/0, which is
-// why the pointer arithmetic looks odd.
+// col.
 #include <windows.h>
 
 #pragma pack(push, 1)

@@ -4,11 +4,9 @@
 // entries have a destructor.
 //
 // The real constructor of PacketReceiver (vtable 0x4fd518, scalar deleting
-// destructor 0x462cc0, destructor 0x462d30). 0x4611e0.cpp already matches this
-// same constructor inlined into PacketManager's constructor, so the member
-// declarations are copied from there: the ten entries are the array member, and
-// MSVC 5 builds their ten constructions as the loop, with the first field
-// written through the array index and the rest through the walking pointer.
+// destructor 0x462cc0, destructor 0x462d30). The member declarations are
+// copied from 0x4611e0.cpp, where the same constructor is part of
+// PacketManager's constructor.
 
 #include <stdlib.h>
 
@@ -66,6 +64,7 @@ struct PlayerFrameInfo : public F0_00462d30 {
     }
 };
 
+// Copied from 0x4611e0.cpp: the ten entries stay an array member.
 class PacketReceiver {
 public:
     virtual ~PacketReceiver();

@@ -1,6 +1,4 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// check.py: MATCH, 730 of 730 bytes, both the original and this file.
-//
 // The tree's _Insert(node search result, node to hang the new node on,
 // value), shaped like std::_Tree<...>::_Insert from MSVC 5's <xtree>: take a
 // _Lockit, carve a 0x40-byte node from the pool allocator (Class_004dddf0,
@@ -9,12 +7,7 @@
 // value_type into it, bump the size at +0xc, then hang it off _Y as the left
 // or right child (the "right" case is the one where the search ran all the
 // way down, _X == _Nil, and the key compare is false) and fix up the
-// leftmost/rightmost/root pointers. The red-black rebalance loop follows, and
-// both _Lrotate and _Rrotate are inlined, each bringing its own _Lockit; the
-// compiler then parks four of those lock objects in the stack slots of the
-// three parameters that are dead by then (x at +0x24, y at +0x28, v at +0x2c).
-// The iterator result comes back through the hidden return pointer, which is
-// also the value in eax at the ret.
+// leftmost/rightmost/root pointers.
 #include <yvals.h>
 #include <new.h>
 

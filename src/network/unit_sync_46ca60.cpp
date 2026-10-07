@@ -1,11 +1,4 @@
 // Decompiled by GPT-5.6-Terra, finished by Sonnet 5.5. Names are provisional.
-//
-// The function must be __fastcall (no arguments, so the code is otherwise
-// unchanged; or the TU was built with /Gr). As a plain __cdecl function MSVC
-// reloads the list iterator before the erase loop's bottom test, `mov edx,[esp+0x10];
-// cmp edx,ebp`, where the original compares the slot directly. The map at +0x00 is
-// the real std::map<unsigned int, UnitSyncEntry> so its erase keeps its data/symbols.csv
-// name, as in 0x46d1a0.cpp.
 #include <list>
 #include <map>
 #include <xmemory>
@@ -124,6 +117,7 @@ static inline void DestroyR2_0046ca60(UnitSyncPlayer* _F, UnitSyncPlayer* _L)
 
 class UnitSync {
 public:
+    // Real std::map: its erase keeps the symbols.csv name.
     std::map<unsigned int, UnitSyncEntry> rects;
     VecElems_0046ca60 elems;
     std::list<int> ids;
@@ -153,6 +147,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x46ca60
+// __fastcall: keeps the erase loop comparing the iterator slot directly.
 void __fastcall FinishUnitSync()
 {
     ((Class_0046e160*)g_game->field_2a30)->ApplyToUnitTypes();

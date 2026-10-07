@@ -1,28 +1,4 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free. finished by claude-sonnet-5-5, finished by claude-opus-5-5, finished by DeepSeek V4.1 Flash, finished by Space Bunny Free, finished by claude-opus-5-5. Names are provisional.
-// 2026-10-03 (claude-opus-5-5): MATCH. The last residual (the w<h arm's two
-// frame slots swapped: lc nearest esp here, limit/lim2 nearest in the original)
-// was variable identity, not spelling:
-//  - the function has ONE glyph pointer, `g`, reused for every glyph it fetches
-//    (no separate mid/first/last), and the w<h arm has ONE `limit`, reused for
-//    the clamped bound of its second stack (the old `lim2`);
-//  - MSVC 5 packs spilled variables into shared frame slots per variable, so
-//    the merged `limit` is heavy enough to take the nearest slot before `lc`,
-//    and the merged `g` is heavier still and keeps the dead `index` home that
-//    the glyph pointers use. Merging only limit/lim2 sent limit to the `index`
-//    home (94.6%); merging only the glyph pointers changed nothing (96.8%).
-// The three clamps are now all the <windows.h> min() macro (<ddraw.h> pulls it
-// in); the old "add edi,-2 needs double evaluation" note no longer applies, a
-// plain if for `a` matches too.
-// FUN_004a2480, the function just before this one in the exe, is defined above
-// without an annotation (it has its own file). It replaces the old unused
-// `int b;` local and unused Smaller() helper: like them it only moves MSVC's
-// symbol counter, which decides a tie in the lc computation (filler sweeps show
-// a period of 32 global declarations, half of them matching). The old pair
-// still matches in place of the predecessor; with neither, the lc lines come
-// out reordered (91.9%). With FUN_004a23b0 defined above it as well, both predecessors
-// reproduce their own bytes here but this function drops to 91.5%; this file's
-// copy of FUN_004a2480 compiles to 84.1% of its original, which only says the
-// TU state differs.
 #include <ddraw.h>
 #include <string.h>
 #include <stdlib.h>
@@ -118,7 +94,7 @@ static inline void* Surface_004a2580(Object_004a2580* o)
 }
 
 // FUN_004a2480 (src/gui/gui_4a2480.cpp), the preceding function in the
-// exe, copied here without its annotation: see the note at the top.
+// exe, copied here without its annotation.
 #pragma pack(push, 1)
 struct Entry_004a2480 {
     char unknown_0[0x13];
@@ -147,6 +123,7 @@ struct Class_004a2480 {
 #pragma pack(pop)
 
 
+// Must stay defined here: it only moves the symbol counter, which decides a tie in lc.
 void __stdcall FUN_004a2480(Class_004a2480* param_1, int index)
 {
     Entry_004a2480* base = param_1->holder->entries;
@@ -181,6 +158,7 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
     Entry_004a2580* entries = obj->holder->entries;
     Entry_004a2580* e = &entries[index];
     void* surface = Surface_004a2580(obj);
+    // One glyph pointer for every fetch, and one limit in the w<h arm: frame slot order.
     Glyph_004a2580* g;
 
     int n = 0;
@@ -228,6 +206,7 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
             g = GetGafFrame(e->glyphs, e->field_152 + 3);
             x -= g->width / 2;
             int ybase = e->off + e->y + 3;
+            // The clamps use the <windows.h> min() macro, pulled in by <ddraw.h>.
             int lc = min(e->h - 6, e->size);
             limit = lc + ybase - 1;
             int t = e->h + e->y - 4;

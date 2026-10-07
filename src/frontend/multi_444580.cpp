@@ -109,11 +109,6 @@ static int __stdcall FUN_004444d0(Entry_00444580* entries, int from, short y, in
 
 // Opens the SELPROV.GUI menu (choose a connection provider) and adds a button
 // for each online service online.dll reports, copied from the SERVICEX one.
-// The try block (built without /GX) gives every local a stack slot, ordered by
-// a hash of its name, so `tmpl` and the function-scope `y`, `k` and `n` are
-// what give the original frame. `n = 0` at its declaration is a dead store,
-// but it makes `n` the first of the loop's variables the compiler meets, which
-// decides the order of the reloads at the end of the loop body.
 // FUNCTION: 0x444580
 void FillProviderList()
 {
@@ -134,9 +129,11 @@ void FillProviderList()
     HAPINET_uninitmultiplay(g_game->field_14);
     HAPINET_getconnections(g_game->field_14, g_game->guids, g_game->conns, g_game->descriptions, DAT_004fcfb8);
     Entry_00444580* entries = menu->entries;
+    // The names tmpl, y, k and n, at function scope, set the stack slot order.
     int tmpl = FindGadgetIndex(entries, "SERVICEX", 1);
     int y;
     int k;
+    // n = 0 is a dead store: makes n the first loop variable seen, fixing the reload order.
     int n = 0;
     int count = 0;
     try {

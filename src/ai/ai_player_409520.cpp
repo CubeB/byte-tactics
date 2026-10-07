@@ -25,8 +25,7 @@ struct UnitDef {
 // Sums a score over the three sub-objects at +0x1ee: each live sub-object
 // contributes its +0xdc value / 100 plus its +0xd4 value / 40 plus 5. The
 // seed is 1, or 0xb when bit 4 of the flags at +0x245 is set. The result is
-// clamped to [-100, 100]; the upper clamp is a MIN() macro used twice, which
-// is why the compare-and-select appears twice.
+// clamped to [-100, 100].
 // FUNCTION: 0x409520
 int __stdcall RateWeapons(UnitDef* p)
 {
@@ -40,6 +39,7 @@ int __stdcall RateWeapons(UnitDef* p)
             result = result + s->field_d4 / 40 + s->field_dc / 100 + 5;
         pp++;
     }
+    // MIN() used twice: the compare-and-select appears twice.
     if (MIN(result, 100) < -100)
         return -100;
     return MIN(result, 100);

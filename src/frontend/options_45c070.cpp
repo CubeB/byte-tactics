@@ -3,9 +3,6 @@
 // player (a non-empty player slot whose info has bit 6 of the byte at +0x9b
 // set), it reads the "GAME" slider, clamps the slider value to at least 1 and
 // pushes it into the game setting at g_game+0x38a4b, then applies the control.
-// The clamped value comes from the inlined slider reader (ReadSliderValue), which
-// is expanded a second time for the "not clamped" branch, so it is written
-// twice in the source too.
 
 #pragma pack(push, 1)
 struct PlayerInfo_45c070 {
@@ -70,6 +67,7 @@ void __stdcall HandleGameSpeedSlider(Object_45c070* obj, int unused)
     if (player->field_0 == 0 || !player->info->flag_9b_6) {
         Entry_45c070* e = FUN_004a0200(obj->holder->entries, "GAME");
         if (e != 0) {
+            // Written twice, as in the original.
             int value = SliderValue(e);
             g_game->field_38a4b = (unsigned short)(value < 1 ? 1 : SliderValue(e));
             SetGameSpeed(g_game->field_38a4b, 1);

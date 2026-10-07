@@ -45,18 +45,6 @@ public:
 // own file through the memory-mapped-file base class (0x4e1560), then finds
 // the image's debug directory, which GetFpoRecords and 0x4ddfe0 search for the FPO
 // records.
-// The last block's eax/ecx pair is won by writing the sum through a `char*`
-// local assigned inside the if-body and read after a second test of
-// numDebugDirs, not as one expression over the members (see the note below).
-//
-// The count must be stored before debugDirs is cleared (that order makes
-// MSVC reload ntHeaders for the final sum, as the original does).
-// `base` and the second `if (numDebugDirs)` are what pick the registers: the
-// load of imageBase then lands in EAX and the data-directory RVA in ECX, so
-// the sum is `add ecx, eax`, exactly as the original does. Written any other
-// way (a local assigned before the if, a one-expression sum over the members,
-// any cast of either operand) MSVC always gives the mirror image
-// `mov ecx,[base] / mov eax,[rva] / add eax,ecx`, whatever the header set.
 // FUNCTION: 0x4ddf00
 LoadedImage::LoadedImage(HMODULE m) : MappedFile(0)
 {
@@ -71,9 +59,11 @@ LoadedImage::LoadedImage(HMODULE m) : MappedFile(0)
     ((Class_004e1590*)this)->OpenMappedFile(path);
     ntHeaders = (IMAGE_NT_HEADERS*)((char*)dosHeader + dosHeader->e_lfanew);
     numDebugDirs = ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG].Size / sizeof(IMAGE_DEBUG_DIRECTORY);
+    // Count stored before debugDirs is cleared: ntHeaders is reloaded for the sum.
     debugDirs = 0;
     if (numDebugDirs)
     {
+        // base local and the second test pick the registers of the sum.
         char* base = (char*)imageBase;
         if (numDebugDirs)
             debugDirs = (IMAGE_DEBUG_DIRECTORY*)((char*)base + ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG].VirtualAddress);

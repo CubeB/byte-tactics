@@ -2,10 +2,8 @@
 // The radar: builds the minimap picture from the terrain icon map, keeps its
 // view and zoom, and draws the units, projectiles and fog over it.
 //
-// <stdio.h>, <math.h> and <ddraw.h> are only for their symbol ids: with
-// <windows.h> alone three functions (0x466780, 0x466b70, 0x466dc0) take the
-// wrong side of an operand-order tie, and the declaration count these add
-// restores the original's choice.
+// <stdio.h>, <math.h> and <ddraw.h> stay: their symbol ids decide operand order
+// in 0x466780, 0x466b70 and 0x466dc0.
 #include <windows.h>
 #include <stdio.h>
 #include <math.h>
@@ -418,16 +416,9 @@ void __stdcall ResizeRadarPicture(Pic_4665d0* pic, int x, int y, int w, int h)
     FUN_004d85a0(temp);
 }
 
-// This function was built with /Gz, so it is __stdcall.
 // Rebuilds the radar picture: fits the map onto 126 pixels along its long side,
 // then blits it onto the stored radar frame, or, when there is none, scales the
 // 8x8 icon map up to twice that size through a temporary picture.
-//
-// The top and bottom of the fill loop schedule two independent operations on
-// opposite sides of each other; over 50 loop shapes the compiler emits the same
-// orders, so the original's needs the declaration count the headers above
-// supply. <windows.h> alone leaves the `(y / 32) * (rowWidth / 2)` multiply's
-// operands the other way round.
 // FUNCTION: 0x466780
 void __stdcall BuildRadarPicture()
 {
@@ -477,10 +468,7 @@ void __stdcall BuildRadarPicture()
     FreeSurface(temp);
 }
 
-// The two rectangle edges are `size + pos - 1`. MSVC 5 orders the two
-// commutative loads by the shape of the address expression, not by the source
-// order, so `viewRight` has to be written as an index into the four radar
-// shorts and `viewBottom` through a char* to get the original's registers.
+// The two rectangle edges are `size + pos - 1`.
 // FUNCTION: 0x4669b0
 void InitRadar()
 {
@@ -489,6 +477,8 @@ void InitRadar()
     g_game->mappedSurface = AllocSurface(DAT_00507508, g_game->dim.v[2], g_game->dim.v[3]);
     g_game->viewLeft = g_game->dim.v[0];
     g_game->viewTop = g_game->dim.v[1];
+    // viewRight indexes the four radar shorts, viewBottom goes through a char*:
+    // the shape of each address decides the load order.
     g_game->viewRight = g_game->dim.v[2] + g_game->dim.v[0] - 1;
     {
         char* c = (char*)g_game;
@@ -520,10 +510,6 @@ void __stdcall DrawRadar(void* param_1)
     }
 }
 
-// Without a header in front, MSVC 5 puts each short in a scratch register and
-// the int in eax (`movsx edx, ...; mov eax, ...; imul eax, edx`, 75%); the
-// original's `movsx eax, ...; imul eax, [mem]` comes from the compiler state
-// after <windows.h>, which tools/headers.py found. The source is unchanged.
 // FUNCTION: 0x466b70
 void __stdcall FUN_00466b70(int* param_1)
 {
@@ -533,13 +519,6 @@ void __stdcall FUN_00466b70(int* param_1)
     param_1[3] = g_game->sizeY * g_game->zoomY * 16 / g_game->mapHeight + param_1[1] - 1;
 }
 
-// MATCH. The inner loop had to be a `while (j < width)` whose tail is
-// `j++; mapX += halfWidth; src++; dst++;` to reproduce the original's
-// loop-bottom schedule exactly: j++, mapX += halfWidth, src++ all before the
-// store through dst, then dst++ last. The `for` form made MSVC compute dst+1
-// into eax before the store. Direct output assignments in each branch (no
-// pixel temporary) and the `unsigned short` cast on the visibility test are
-// required. /Gz makes no difference for this no-arg function.
 // FUNCTION: 0x466c20
 void UpdateRadarMapped()
 {
@@ -556,8 +535,11 @@ void UpdateRadarMapped()
             int mapY = i * halfHeight;
             int mapX = 0;
             int j = 0;
+            // A while loop, tail in this order: a for loop computes dst+1 before the store.
             while (j < g_game->width) {
                 int index = (mapY / g_game->height) * halfWidth + mapX / g_game->width;
+                // Outputs assigned directly in each branch, no pixel temporary;
+                // the unsigned short cast stays.
                 if (!(unsigned short)(g_game->visibilityMask[index] & mask)) {
                     *dst = fog;
                 } else if (t->explored.data[index]) {

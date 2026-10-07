@@ -5,12 +5,9 @@
 // feature footprint.
 //
 // The flags are a 16-bit word at +0xfe (0x423c50 and 0x422170 test other
-// bits of it). MSVC narrows the test to `test byte ptr [esi+0xff], 2` either
-// way, but declaring the field as an `unsigned char` at +0xff swaps which of
-// the outer index `i` and the footprint row `y` get ebx and ebp.
-// `<windows.h>` is needed: without it the cells walk loses its absolute
-// pointer.
+// bits of it).
 
+// Needed: without it the cells walk loses its absolute pointer.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -21,6 +18,7 @@ struct Feature {
     char unknown_98[0xf0 - 0x98];
     float value;                       // +0xf0
     char unknown_f4[0xfe - 0xf4];
+    // A 16-bit word, not an unsigned char at +0xff: that swaps two registers.
     unsigned short flags;              // +0xfe
 };
 

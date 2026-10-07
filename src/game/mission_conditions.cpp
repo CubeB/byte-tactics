@@ -10,6 +10,7 @@ struct Unit;
 class HapiBank;
 
 // Mission victory/defeat condition (6 virtual slots).
+// Derived classes declare exactly the slots they override, no appended virtuals.
 class MissionCondition {
 public:
     int satisfied;                       // +0x4
@@ -33,6 +34,7 @@ public:
 
 // The same one-slot interface again, as its own type (vtable 0x4fd8a8),
 // whose slot returns nothing.
+// Must stay a separate type: VictoryMoveUnitToRadius's base uses this vtable.
 class Listener_0048f250 {
 public:
     virtual void VisitUnit(Unit* unit) = 0;
@@ -84,6 +86,7 @@ public:
 };
 
 // BuildUnitType (vtable 0x4fd908, listener vtable 0x4fd900).
+// pack(2): size 0x32 would otherwise be allocated as 0x34.
 #pragma pack(push, 2)
 class VictoryBuildUnitType : public MissionCondition, public Listener_0048ff40 {
 public:
@@ -114,6 +117,7 @@ public:
 };
 
 // KillAllOfType (vtable 0x4fd8d0, listener vtable 0x4fd8c8).
+// pack(2): size 0x36 would otherwise be allocated as 0x38.
 #pragma pack(push, 2)
 class VictoryKillAllOfType : public MissionCondition, public Listener_0048ff40 {
 public:
@@ -161,6 +165,7 @@ public:
         pos.x = x;
         pos.z = z;
         radius = r << 16;
+        // Stored after pos.z and radius.
         pos.y = 0x12345678;
     }
     virtual int IsSatisfied();
@@ -365,53 +370,15 @@ public:
 
 // MissionConditions::RegisterConditions, the victory/defeat condition registration
 // function (counterpart of 0x48ff40). All ~18 registration blocks plus the two
-// "if none registered" defaults are here, written from the disassembly and the
-// class declarations of the sibling condition files (0x48eeb0, 0x48efb0,
-// 0x48f0f0, 0x48f250, 0x48f3e0, 0x48f530, 0x48f610, 0x48f6b0, 0x48f7e0,
-// 0x48f8c0, 0x48f9d0, 0x48fb60, 0x48fc70, 0x48fd50).
-// MATCH.
-//
-// Three things were needed on top of the 98.2% version, and each is a
-// declaration-shape fix rather than a code-shape fix, so none of them moves a
-// single byte of the function:
-// 1. Every reader call's result goes into a named int before the `!= 0` test.
-//    The original writes `cmp eax, ebx` at all 16 sites, where ebx is the
-//    live zero that is also the `push ebx` argument, and a bare
-//    `reader->FUN_...(...) != 0` folds to `test eax, eax`. Assigning the
-//    result to a local first is what stops the fold (docs/agent-guide.md,
-//    "cmp reg, reg against a zero register instead of test reg, reg").
-// 2. The two one-virtual listener bases are separate types. The nine
-//    conditions that listen take Listener_0048ff40 (vtable 0x4fd940), while
-//    VictoryMoveUnitToRadius's base subobject is initialised from 0x4fd8a8, a second
-//    vtable with the same single _purecall slot. Declaring both bases as the
-//    same class made the reference at +0x3b7 resolve to 0x4fd940.
-// 3. Every derived class's virtual is an OVERRIDE of a base slot, never a new
-//    appended slot: the base is `Listener_0048ff40::VisitUnit` (a pure
-//    virtual, so slot 0 holds _purecall in the original), and
-//    VictoryDestroyAllUnits, VictoryKillAllMobileUnits and DefeatCommanderKilled override the
-//    condition base's existing slots 0 and 1 rather than appending a 7th.
-//    Appending ran the vtable into the next class's, which check.py catches.
-//
-// Two other things that mattered for the bytes: the condition classes whose
-// size is not a multiple of 4 (BuildUnitType 0x32, KillAllOfType 0x36) need
-// `#pragma pack(2)` or `operator new` asks for 0x34/0x38; and
-// VictoryMoveUnitToRadius's constructor must store pos.z and radius before
-// pos.y = 0x12345678.
-//
-// For the vtables' sake (not the bytes), each class declares exactly the
-// slots it overrides in the original, with the base's name and parameter
-// types, so a slot names the function its own file defines as
-// `Class_0048xxxx::<base name>`, or the base's own default in 0x48ea00 to
-// 0x48ea30 (tools/vtablecheck.py): IsSatisfied, the unit slots 1 to 3, Save
-// and Load (which take the HapiBank section), and the visitor slot,
-// which returns whether to keep visiting (Listener_0048f250's returns
-// nothing).
+// "if none registered" defaults are here.
 // FUNCTION: 0x48e010
 void MissionConditions::RegisterConditions(Param_0048e010* p)
 {
     char buf[0x100];
     char stype[0x100];
 
+    // Every reader result goes into a named int before the != 0 test: a bare
+    // call folds to test instead of cmp against the zero register.
     int r1 = ((TdfRecord*)p->reader)->GetFieldInt("KillEnemyCommander", 0);
     if (r1 != 0) {
         victory[victoryCount] = new VictoryKillEnemyCommander;

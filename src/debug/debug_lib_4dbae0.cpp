@@ -5,17 +5,6 @@
 // inline find() (lower_bound plus the `_P == end() || _Kfn(_Kv, _Key(_P)) ?
 // end() : _P` test) and returns the found record's second dword, or 0 when the
 // lookup yields end().
-//
-// Shape notes that decide the bytes:
-//  - `tree` must be a named local fetched BEFORE `rec` is constructed: that is
-//    what lands `call GetBlockMap` before the Class_004d8820 ctor argument
-//    pushes (writing `GetBlockMap()->find(rec.key)` instead evaluates the ctor
-//    first and scores 95.3 percent with that single reordered block as the
-//    only hunk). The final end() test calls GetBlockMap() a second time, so
-//    the local only supplies the lower_bound `this`.
-//  - the frame is 13 dwords: 12 for the record plus one for the unnamed End()
-//    temporary of the ternary; the iterator itself has no slot, it reuses the
-//    key parameter's home.
 #include <windows.h>
 
 class Class_004d8820 {
@@ -73,6 +62,7 @@ unsigned int __cdecl LookupBlockSize(unsigned int key)
 {
     LPCRITICAL_SECTION cs = FUN_004da780();
     EnterCriticalSection(cs);
+    // Named local fetched before rec is built: GetBlockMap must be called first.
     Class_004dd3d0* tree = GetBlockMap();
     Class_004d8820 rec(key, 0, 0, 0, 0);
     Iter_004dd3d0 it = tree->find(rec.key);

@@ -1,10 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // Clamps a 16.16 fixed-point position's x and z to the map
 // ([0, baseX) and [0, baseY) in whole units).
-//
-// `add reg, 0xffff; shl reg, 16` for (size - 1) << 16 only comes from
-// copying a bitfield struct {frac : 16, whole : 16} built in a local; plain
-// integer arithmetic always folds to `shl; sub reg, 0x10000`.
 
 #pragma pack(push, 1)
 struct Game {
@@ -32,6 +28,7 @@ struct Vec3_004853b0 {
     Fixed_004853b0 z;
 };
 
+// Built as a bitfield struct in a local: plain integer arithmetic folds (size - 1) << 16.
 static inline Fixed_004853b0 MakeFixed(int i)
 {
     Fixed_004853b0 f;

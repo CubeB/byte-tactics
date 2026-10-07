@@ -1,25 +1,6 @@
 // Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free. Names are provisional.
-// MATCH (2026-10-02). The last hunk for four rounds was the SIB base/index
-// slot of `test byte ptr [eax + ecx + 0x241], 0x20`: the original wants the
-// defs pointer in base and the type*585 temp in index, and every source
-// spelling emitted the pair the other way round (subscript vs pointer
-// arithmetic, Def& / Def* locals, char* index arithmetic, inline flag
-// helpers, unsigned char and bitfield flags, nested ifs, a local for type).
-// The lever is the header set, not the spelling: with <windows.h> MSVC gives
-// [ecx+eax+0x241], and it gives the wanted [eax+ecx+0x241] for <minmax.h>,
-// <string.h>, <math.h>, <memory.h> or no include at all. What matters is the
-// pair: <minmax.h> alone fixes the slot but drops the rest to 77.5% (682
-// bytes, energy lands in ebx instead of ebp), <minmax.h> + <stdlib.h> gets to
-// 98.2%, and <minmax.h> + <math.h> keeps both and matches. headers.py could
-// not find this because it only tries windows.h/stdio.h/stdlib.h/string.h/
-// math.h/memory.h/ddraw.h, and the file's min/max come from <minmax.h>, which
-// is not in its list.
-//
-// Everything else is from the earlier rounds: the SHARED.md recipe
-// (min(1000,cap) / min(500,cap) for the caps, fresh clamped locals metal2 and
-// energy2, owner->counts[type] sign-extended at the FUN_00406ee0 call), Max()
-// for the two float clamps, and the /10000 divide as the multiply by
-// 0x68db8bad with the signed shift round-up.
+// Both <minmax.h> and <math.h> are needed: together they set the SIB slot of
+// the flags test and the register use.
 #include <minmax.h>
 #include <math.h>
 struct Rating { signed char normal,metal,energy; };

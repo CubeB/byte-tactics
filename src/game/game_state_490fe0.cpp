@@ -5,10 +5,6 @@
 // front and re-reads its track bytes. A disc not in the table is inserted at the
 // front after shifting the others up, provided the drive reports 16 audio
 // tracks. The final cleanup call depends on the game mode.
-//
-// Both table walks are load bearing. The search loop must test `*slot != id`
-// first and keep the `break` as its own block, otherwise MSVC rotates it. The
-// shift-up loop is a downward pointer walk against the addresses.
 #include <string.h>
 #include <windows.h>
 
@@ -105,6 +101,7 @@ void FUN_00490fe0()
     int id = ((Sound*)g_game->cd)->FUN_004cd9c0();
     int index = 0;
     int* slot = &DAT_0051e848;
+    // Test *slot != id first, with the break as its own block: else the loop is rotated.
     while (1) {
         if (*slot != id) {
             slot = (int*)((char*)slot + 0x88);
@@ -130,6 +127,7 @@ newdisc:
                 ((Class_004ce3e0*)g_game->cd)->FUN_004ce3e0(tracks);
             }
         }
+        // Downward pointer walk against the addresses, not an index loop.
         int p = (int)DAT_0051e828 + 0xa18;
         for (; p > (int)DAT_0051e828; p -= 0x88)
             memcpy((void*)p, (void*)(p - 0x88), 0x88);

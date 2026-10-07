@@ -3,22 +3,7 @@
 // Surface drawing, hand-written in assembly: blitters, run-length sprite
 // blitters, lines, rectangle fills and a glyph blitter, all __cdecl with
 // MASM-style frames (`push ebp / mov ebp, esp / add esp, -N ... leave / ret`)
-// that save every register they use. The region is five modules: each starts
-// on a 16-byte boundary after the linker's int3 padding (0x4cc3cd, 0x4cc643,
-// 0x4ccf5f, 0x4cd00f), so each is one naked function here, and the routines
-// inside a module run into one another with no alignment, so they are `__asm`
-// labels with an ENTRY annotation. Translated instruction by instruction:
-//
-//   * `ALIGN 4` is MASM's padding before a loop or jump target (nop,
-//     `mov edi, edi` or `lea ecx, [ecx + 0]`), and the inline assembler pads
-//     with the same bytes;
-//   * the line drawers store the address of their inner loop in [ebp - 0xc]
-//     and jump through it (`mov dword ptr [ebp - 0xc], offset L...`);
-//   * `_emit` for two encodings the inline assembler cannot produce: `cmp`
-//     of two byte registers in the r/m8, r8 form (38 /r; it only writes
-//     3a /r), and one backward near jump at 0x4cc195 that it sizes as short
-//     because it leaves the ALIGN padding between it and its target out, and
-//     then wraps the displacement.
+// that save every register they use.
 //
 // 0x4cbbe0  BlitSurface(dst, src, x, y)                   blit a bitmap at (x, y), clipped
 // 0x4cbcd5  FUN_004cbcd5(dst, src, x, y, key)              the same, skipping the key colour

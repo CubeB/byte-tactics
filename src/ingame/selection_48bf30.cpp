@@ -2,11 +2,6 @@
 // Sets or clears flag 0x10 on every finished unit of the local player that
 // stands in the line-of-sight bitmask named by the first argument, then clears
 // the selected unit and re-sends the stop order.
-// The head of the unit range is read through its own pointer to the player
-// element while the end of the range is read through p: that is what makes
-// MSVC materialise the element address (lea with the 0x1b63 array offset in it)
-// for the end field and use the plain array-indexed form for the head load,
-// which is what the original does (see also 0x486f10.cpp).
 
 #pragma pack(push, 1)
 
@@ -61,6 +56,7 @@ void __stdcall SelectUnitsByCategory(char* name, int param_2)
 {
     int* mask = (int*)GetCategoryMask(name);
     int player = g_game->localPlayer;
+    // Head read through q, end read through p: two pointers fix the address forms.
     Player_0048bf30* p = &g_game->players[player];
     Player_0048bf30* q = &g_game->players[player];
     Unit* u = q->units_begin;

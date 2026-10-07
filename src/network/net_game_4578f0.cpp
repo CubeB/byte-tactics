@@ -5,21 +5,9 @@
 // the game flag at +0x3923b and quits with the text for the local player's
 // rejection reason (+0x22), the same text GetRejectReasonText returns, and no text at
 // all when the reason is 0.
-//
-// `#include <string.h>` is load bearing here even though nothing in this file
-// calls a string function. Without it the three player-loop reads of
-// g_game->players[i] come out as [esi + ecx + disp] (SIB 0x0e) where the
-// original has [ecx + esi + disp] (SIB 0x31, g_game as base and the byte offset
-// of the induction variable as index), leaving the function 3 bytes out.
-// Everything else, including the block order, the jump table and the
-// `mov eax, <text>; push eax` per case, already matched.
-//
-// The loop below is character for character the loop of the matched sibling
-// 0x451b60, and the original disassembly of the two is the same loop, which is
-// what pointed at the header: 0x451b60 carries `<string.h>` and this file did
-// not. The include is here only for the compiler state it sets up. 0x4573d0
-// needed the same include for the same reason, see the note in that file.
 
+// <string.h> must stay although unused: it sets the index order of the
+// players[i] reads.
 #include <string.h>
 
 #pragma pack(push, 1)

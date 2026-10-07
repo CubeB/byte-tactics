@@ -1,19 +1,4 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// Earlier attempts by space-bunny-free, deepseek-v4.1-flash and GPT-6.
-// Fixed by deepseek-v4.1-flash: all 895 bytes now match (was 897 bytes at
-// 56.9 percent). In the FindChunk helper the locals must be declared
-// `unsigned int limit, id, offset, size;` with offset before size. With size
-// first, MSVC picked edx as the destination of `size + offset` and emitted
-// `lea eax,[edi+edx]` instead of the original `mov edx,[esp+0x38]; add
-// edx,edi`, which then rotated every later lea register. All locals stay
-// unsigned so the two chunk tests keep `jb` / `jle`.
-// check.py reports 100.0% bytes but not MATCH: the only failing reference is
-// the callee name (see NAMING NOTE below).
-// NAMING NOTE: the original calls 0x4d01b0 as a __thiscall method
-// (`push esi; mov ecx,edi; call 0x4d01b0`, and 0x4d01b0 never reads ecx), but
-// data/symbols.csv names 0x4d01b0 as the bare `DetectSampleFormat`, so check.py
-// reports our member reference as a name mismatch. The orchestrator should add
-// the class-qualified name for 0x4d01b0 to data/symbols.csv.
 #include <string.h>
 
 struct FileHandle;
@@ -47,6 +32,7 @@ struct WaveFormat {
 };
 
 static inline unsigned int FindChunk(FileHandle* file, const char* tag) {
+    // Declared in this order, all unsigned: offset before size, and the chunk tests keep jb/jle.
     unsigned int limit, id, offset, size;
     HAPI_SeekFile(file, 4);
     HAPI_readfromfile(file, &limit, 4);

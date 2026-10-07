@@ -278,38 +278,13 @@ Class_004ddbe0 Class_004dce60::FUN_004dbbc0(const Pair_004dbbc0& V)
 }
 
 // The out-of-line tree insert for the allocator's free-block map, shaped like
-// std::_Tree<...>::_Insert from MSVC 5's <xtree> but written out by hand. The
-// caller passes the _Nil node its search stopped at, the node to hang the new
-// one off, and the map's value_type (a block's base offset and its length, 8
-// bytes) by pointer; the tree's iterator comes back through a hidden pointer,
-// so the callee hands the caller's buffer back in eax and does `ret 0x10`.
+// std::_Tree<...>::_Insert from MSVC 5's <xtree> but written out by hand.
 //
 // Under the outer std::_Lockit a 0x18-byte node is carved from the pool
 // (0x4ddd70), the pair is placement-new'd into it, the map's size is bumped and
 // the node is linked in. Then the red-black fixup walks up from the new node
 // with a cursor z, colouring and rotating until z's parent is black or the root
-// is reached, and finally blackens the root. Lrotate and Rrotate are the tree's
-// own rotation methods (0x4dd150 and 0x4dd1f0 as separate functions); /Ob2
-// inlines them here, and each inlined copy brings its own std::_Lockit scope
-// with it, which is where the four extra lock objects come from.
-//
-// Three spellings are load-bearing for the code that comes out:
-//   * the link-in test is a POSITIVE disjunction, `y == head || x != _Nil ||
-//     key_compare(v->offset, y->value.offset)`, with the shared left-child block
-//     as its then-part. That puts the right-child block in the fallthrough and
-//     makes all three tests jump to the left-child block. Because the third
-//     operand goes through the bool-returning comparator, MSVC 5 materialises it
-//     (cmp; sbb; neg; test cl,cl) instead of branching on the flags; writing the
-//     comparison inline gives a plain `jb` instead.
-//   * inside the left-child block the empty-tree case is the FIRST `if`, and it
-//     updates head->right (the rightmost node), not head->left: the leftmost
-//     node is already covered by the `y->left = p` above it.
-//   * the fixup loop tests its exit through an explicit `break`, and the
-//     re-colouring and the rotation argument are written as
-//     `z->parent->...` expressions rather than through the parent and
-//     grandparent locals, so each is re-read from the cursor. Declaring those
-//     two as locals costs a register: the cursor then shares p's and the whole
-//     fixup changes shape.
+// is reached, and finally blackens the root.
 // FUNCTION: 0x4dce60
 Class_004dd2a0 Class_004dce60::FUN_004dce60(Node_004dbbc0* x, Node_004dbbc0* y,
                                             const Pair_004dbbc0* v)
@@ -323,8 +298,10 @@ Class_004dd2a0 Class_004dce60::FUN_004dce60(Node_004dbbc0* x, Node_004dbbc0* y,
     new ((void*)&p->value) Pair_004dbbc0(*v);
     ++size;
 
+    // A positive disjunction through the bool comparator: keeps the left-child block as the then-part.
     if (y == head || x != DAT_00528a54 || key_compare(v->offset, y->value.offset)) {
         y->left = p;
+        // The empty-tree case comes first and updates head->right, not head->left.
         if (y == head) {
             head->parent = p;          // the root
             head->right = p;           // the rightmost node
@@ -338,6 +315,7 @@ Class_004dd2a0 Class_004dce60::FUN_004dce60(Node_004dbbc0* x, Node_004dbbc0* y,
     }
 
     Node_004dbbc0* z = p;
+    // Explicit break, and z->parent->... re-read from the cursor: parent/grandparent locals cost a register.
     while (z != head->parent) {
         if (z->parent->color != 0)
             break;

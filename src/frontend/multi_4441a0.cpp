@@ -62,18 +62,13 @@ void __stdcall OpenMessageBox(void* menu, char* text, int size, int param_4, int
 void __stdcall FUN_004ab0a0(void* menu);
 void OpenOptionsPanel();
 
-// The SELPROV.GUI menu's handler. A function with a try block, built without
-// /GX, gives every local a stack slot, used or not: `id` and `cur` (unused, as
-// in the SELGAME handler 0x4437c0's declarations) fill two of the original's
-// slots. The slots are ordered scope by scope, and within a scope by a hash of
-// the name (16 buckets, the later declaration first within a bucket), so the
-// names `link`, `message`, `result` and `msg` are what give the original
-// layout.
+// The SELPROV.GUI menu's handler.
 // FUNCTION: 0x4441a0
 void __stdcall FUN_004441a0(Menu_004441a0* menu)
 {
     Entry_004441a0* entries = menu->holder->entries;
     int i;
+    // Unused id and cur, and the names link/message/result/msg, set the stack slot order.
     int id;
     int cur;
     if (menu->selected == -1) {

@@ -238,46 +238,6 @@ void LoadWeaponTypes()
 // Loads one weapon from a .TDF section: the numbers and flags, the model, the
 // explosion animations, the sounds and the DAMAGE sub-section, which goes into
 // a table sorted by unit name (w->sub).
-//
-// The bytes match (claude-opus-5.5, #4194, from 84.7%). Three changes did it:
-//
-// 1. 84.7% to 99.1%: the DAMAGE table is written on the real <vector>, in
-//    the shape of the matched TDF section map in 0x4c3e40 and 0x4c54f0 (a
-//    byte, then a std::vector of {name handle, int} at +1, a first != last
-//    binary search taking the key's char* by value, and the
-//    `e == end || Ne(e->name, key)` test). The old hand-made vector could not
-//    get the signed `(last - first) / 2`, the materialised `!(a == b)` or the
-//    inline decisions right. The insert must be called in the function body:
-//    `m->v.insert(e, Entry(name, 0))` at depth 1 leaves 555 budget for
-//    insert(P, 1, X)'s own sites, so the first two arms are inlined and the
-//    third arm's _Ucopy, copy_backward and fill stay out of line, as in the
-//    original (inside an InsertNew helper it is one level deeper: 71.7%).
-//    Assigning `e` first and taking `&e->value` in each arm puts the
-//    temporary's destructor before the `lea esi, [ebx+ecx*8+4]` (98.9% with
-//    `&insert(...)->value`).
-//
-// 2. 99.1% to 99.6%: ballistic and dropped are read into named locals. That
-//    makes their `or` take the shifted value as its destination (`or eax,
-//    ecx`, then the store from eax), as in the original; the permuter found
-//    the same. Without them those two statements differ.
-//
-// 3. 99.6% to 100%: minbarrelangle is assigned without a `(float)` cast. The
-//    old `float mba = (float)(...); w->minbarrelangle = mba;` (and a plain
-//    `(float)` cast) put the fstp in the same place but cost the scheduler
-//    one extra unit, and the scheduler treats every 8th bitfield statement
-//    after it differently depending on that count (tracks, turret and
-//    stockpile were one step off). Found by deleting each earlier statement
-//    and putting back as many one-instruction stores: only this statement
-//    did not come back to the same shapes.
-//
-// Names: the out-of-line callees of the inlined vector::insert are real
-// <vector>/<algorithm> instantiations that data/symbols.csv knows by other
-// names: 0x432cf0 is std::_Construct<Entry_00432cf0, Entry_00432cf0> (ecx is
-// never set at its call sites; symbols.csv says allocator::construct, which
-// compiles to the same bytes), 0x432c20 is ??_GEntry_00432cf0 (the scalar
-// deleting destructor, called with 0 from _Destroy), 0x432d20 is
-// Entry_00432cf0::operator=, 0x432c80 is std::fill and 0x432cb0 is
-// std::copy_backward. data/aliases.csv lets these names reach them.
 // FUNCTION: 0x42e440
 void __stdcall LoadWeaponType(Class_004c4440* parser) {
     char* id = parser->GetRecordName();
@@ -311,6 +271,7 @@ void __stdcall LoadWeaponType(Class_004c4440* parser) {
     w->smokedelay = (short)(((TdfRecord*)parser)->GetFieldDouble("smokedelay", 0.0) * 30.0);
     w->flighttime = (short)(((TdfRecord*)parser)->GetFieldDouble("flighttime", 0.0) * 30.0);
     w->holdtime = (short)(((TdfRecord*)parser)->GetFieldDouble("holdtime", 0.0) * 30.0);
+    // No (float) cast: it costs the scheduler one unit and shifts later bitfield stores.
     w->minbarrelangle =
         ((TdfRecord*)parser)->GetFieldDouble("minbarrelangle", -11.25) * (PI / 180);
     w->firestarter = (unsigned char)((TdfRecord*)parser)->GetFieldInt("firestarter", 0);
@@ -321,6 +282,7 @@ void __stdcall LoadWeaponType(Class_004c4440* parser) {
     w->guidance = ((TdfRecord*)parser)->GetFieldInt("guidance", 0);
     w->tracks = ((TdfRecord*)parser)->GetFieldInt("tracks", 0);
     w->lineofsight = ((TdfRecord*)parser)->GetFieldInt("lineofsight", 0);
+    // Named local: makes the bitfield `or` take the shifted value as destination.
     int ballistic = ((TdfRecord*)parser)->GetFieldInt("ballistic", 0);
     w->ballistic = ballistic;
     w->unitsonly = ((TdfRecord*)parser)->GetFieldInt("unitsonly", 0);
@@ -341,6 +303,7 @@ void __stdcall LoadWeaponType(Class_004c4440* parser) {
     w->interceptor = ((TdfRecord*)parser)->GetFieldInt("interceptor", 0);
     w->beamweapon = ((TdfRecord*)parser)->GetFieldInt("beamweapon", 0);
     w->shellweapon = ((TdfRecord*)parser)->GetFieldInt("shellweapon", 0);
+    // Named local, as for ballistic.
     int dropped = ((TdfRecord*)parser)->GetFieldInt("dropped", 0);
     w->dropped = dropped;
     w->vlaunch = ((TdfRecord*)parser)->GetFieldInt("vlaunch", 0);
@@ -438,6 +401,8 @@ model_done:
                 Class_004c91b0 name(key);
                 Map_0042e440* m = w->sub;
                 Entry_00432cf0* e = m->LowerBound(name.ptr);
+                // insert called here, not in a helper (inline depth); e assigned
+                // first, then &e->value taken in each arm.
                 int* r;
                 if (e == m->v.end() || Ne(e->name, name)) {
                     e = m->v.insert(e, Entry_00432cf0(name, 0));

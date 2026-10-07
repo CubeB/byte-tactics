@@ -1,13 +1,4 @@
 // Decompiled by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
-// Credit: started by GPT-6, continued by space-bunny-free (left at 94.8%).
-// MATCH. The last hunk was the two-tab loop, where the original emits
-// `mov ebx, 2` before `mov byte ptr [esp + 0x13], 9`; the cause is a
-// block-scope definition for both the counter and the char (`int j = 2;`
-// then `char t = '\t';` in one block), which MSVC 5 emits in source order.
-// Loops 1 and 3 must keep the plain `tab = '\t';` plus `for` spelling: an
-// assignment sinks behind the counter and stores first, which is what the
-// original does there. The three block-scope chars (t1, t2, t3) share the
-// one slot at [esp+0x13], so the frame is unchanged.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -56,6 +47,7 @@ void __stdcall WriteGuiFile(char* obj, char* name)
         WriteTabs(out, 1);
         HAPI_WriteFile(out, "{\n", 2);
         sprintf(common, "[%s]", "COMMON");
+        // Block-scope char with a plain for loop: the three tab chars share one frame slot.
         {
             char t1 = '\t';
             for (int i = 0; i < 1; i++) HAPI_WriteFile(out, &t1, 1);
@@ -65,6 +57,7 @@ void __stdcall WriteGuiFile(char* obj, char* name)
         WriteTabs(out, 2);
         HAPI_WriteFile(out, "{\n", 2);
         WriteCommonFields(p, out, 2);
+        // Counter and char defined in this block, in this order: emitted in source order.
         {
             int j = 2;
             char t2 = '\t';

@@ -9,15 +9,11 @@ void AbortProgram(void);
 // The fatal error handler: appends `message` to ErrorLog.txt beside the exe,
 // breaks into the debugger with a register dump and stack trace, shows the
 // message and shuts down.
-//
-// In a function with a __try every local gets a frame slot, one scope after
-// another and by name within a scope, so `length` (otherwise unused) and the
-// block that declares `sep`, `file` and `written` give the original's frame:
-// `written` at ebp-0x40c.
 // FUNCTION: 0x4d9ab0
 void __cdecl FatalError(const char* message)
 {
     char path[1000];
+    // `length` (otherwise unused) and the sep/file/written block give the frame layout.
     DWORD length;
     if (message && (length = GetModuleFileNameA(0, path, sizeof path)) > 0) {
         char* sep = strrchr(path, '\\');

@@ -3,19 +3,7 @@
 // resources (an AI player only half on the easy and 70% on the medium
 // setting), the feature is replaced by its reclaimed state (KillFeature
 // with flag 1) and the reclaim is sent to the other players.
-//
-// Notes for matching:
-// - GetFeature must read the origin cell's feature through the full
-//   expression twice (CSE'd into one load). A local for the origin cell or
-//   its feature moves the id into the wrong register, and `cell -= ...`
-//   gives a negated multiply. It must end with the feature return, not a
-//   `return 0`, or MSVC merges the null returns.
-// - The energy add is an inline helper taking the field by reference (the
-//   store then makes MSVC reload unit->player for the metal add) and the
-//   amount as a double (the default path keeps it on the FP stack, then
-//   pops it). The metal add is plain code on a float local.
-// - No header: with <windows.h> the width multiply loads its operands in
-//   the other order (84%).
+// No header on purpose: <windows.h> reorders the width multiply operands.
 #pragma pack(push, 1)
 struct Feature_004237d0 {
     char unknown_0[0xec];
@@ -105,11 +93,13 @@ static inline Feature_004237d0* GetFeature(Cell_004237d0* cell)
     }
     if (cell->feature != 0xfffe)
         return 0;
+    // Full expression twice, no locals or `cell -=`; ends with the feature return.
     if ((cell - (cell->offsetY * g_game->width + cell->offsetX))->feature >= 0xfffb)
         return 0;
     return &g_game->features[(cell - (cell->offsetY * g_game->width + cell->offsetX))->feature];
 }
 
+// Takes the field by reference and the amount as a double; the metal add stays plain code.
 static inline void AddScaled(Unit* unit, float& res, double amount)
 {
     if (unit->player->active && unit->player->type == 2) {

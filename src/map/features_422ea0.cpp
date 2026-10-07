@@ -2,6 +2,7 @@
 // Resolves every feature type's "featuredead", "featurereclamate" and
 // "featureburnt" names to feature type numbers (loading them when needed),
 // updating the load progress byte as it goes.
+// Must stay the only header.
 #include <string.h>
 
 class TdfFile {
@@ -80,11 +81,8 @@ static inline unsigned short FeatureIndex(char* name)
     return LoadFeatureType(name);
 }
 
-// The loop is a do/while behind its own guard: the pointer to the feature
-// table is taken only once the guard has passed, and i = 0 is stored before
-// the count pointer. This matches with <string.h> as the only header; the
-// register order of `features + i` depends on compiler state (the
-// N-declarations test matches only for N = 0 and 1).
+// Do/while behind its own guard, table pointer taken after the guard; i = 0 is
+// stored before the count pointer.
 // FUNCTION: 0x422ea0
 void ResolveFeatureLinks()
 {

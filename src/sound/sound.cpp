@@ -4,6 +4,7 @@
 #include <mmsystem.h>
 #include <stdlib.h>
 #include <string.h>
+// <stdio.h> must stay: the header state decides StartStream's multiply register.
 #include <stdio.h>
 #include <dsound.h>
 #include <float.h>
@@ -211,82 +212,6 @@ int Sound::FUN_004cd9c0()
     return discSerial;
 }
 
-//
-// MATCH (check.py, 4 real runs; every candidate variant was first scored free
-// with `check.py --sym`).
-//
-// WHAT THE LAST 1.8% WAS, AND WHAT FIXED IT
-// Six earlier passes got 98.2% and the one difference left was a single
-// basic-block BOUNDARY in the exit code: the original has the mci-failure
-// `xor eax, eax` in its own two-byte block that only the failure `jne` enters,
-// with the done-side `je` jumping PAST it into the shared epilogue, while ours
-// had one shared block with the `xor` sunk between `pop esi` and `pop ebx`.
-//
-// The fix is the SHAPE OF THE FUNCTION, not the spelling of the return. Nestle
-// the whole body, including the done tail, inside `if (hr == 0) { ... }` and let
-// the mci failure be a trailing `return 0;` AFTER the closing brace:
-//
-//     int hr = mciSendStringA("status cdaudio number of tracks", buf, 0x20, 0);
-//     if (hr == 0) {
-//         trackCount = atoi(buf);
-//         ...
-//     done:
-//         if (trackCount != 0)
-//             currentTrack = 1;
-//         return trackCount;
-//     }
-//     return 0;
-//
-// That gives the original's three return blocks: the `return trackCount` keeps its
-// own epilogue copy at the end of the body, the trailing `return 0` is the
-// out-of-line `xor eax, eax` block the failure `jne` reaches, and the done-side
-// `je` lands on the epilogue both of them share. Written the other way round
-// (`if (hr != 0) return 0;` first, with the zero return inside the body) MSVC 5
-// sees two identical `return 0` sites, folds them into one block and the
-// scheduler is free to sink the `xor` into the middle of the epilogue.
-//
-// Note that the tail is now a SINGLE return statement (`if (trackCount != 0)
-// currentTrack = 1; return trackCount;`). A two-statement tail with a trailing
-// `return 0;` inside the body merges the zero returns again, and the single
-// return is what makes the value on the zero path already sit in eax.
-//
-// WHY THE EARLIER PASSES COULD NOT SEE IT: every one of them tried the return
-// VALUE (constant 0, the field itself, a local, a goto, a helper, a label, an
-// if/else, a loop region). The lever was the position of the `if` around the
-// body, which none of them varied. The same idea is what the guide's 0x461db0
-// and 0x461750 entries describe from the other side ("`if (!p) return 0;` does
-// not", "an inline helper tested with `if (!Helper()) return 0;`"): when a
-// failure exit cannot be written as an early `return`, write the SUCCESS as the
-// `if` body and let the failure fall out of the end of the function.
-//
-// Two codegen details that are load bearing and should be kept:
-//   * both mciSendStringA results are assigned to a local `int` before they are
-//     tested. `mciSendStringA(...) != 0` compiles to `test eax, eax`, and only
-//     the assigned form gives the original's `cmp eax, ebx`.
-//   * `other` is written to the stack and never read (`mov [esp+0xc], eax`).
-//     MSVC 5 only gives `other` a stack slot when it is live across a loop, so
-//     the no-op loop below (which compiles to nothing) reproduces that dead store
-//     and the 0x44-byte frame.
-//
-// TRIED THIS PASS AND STILL 98.2% or worse (all scored free with `check.py --sym`):
-//   * `return trackCount;` on the done-side zero path, so the two zero return
-//     sites are different expressions in the source: 98.2%, byte-identical diff.
-//     MSVC 5's value numbering sees through `cmp eax, ebx / je` and folds the
-//     field back to the constant 0 at that site, so the sites merge again. This
-//     is why the return VALUE is the wrong lever and the block GRAPH is the
-//     right one.
-//   * `goto fail` with a trailing `fail: return 0;`: 98.2% (constant tail) and
-//     79.8% / 303 bytes (single register tail), the two known families.
-//   * an exit test that does not prove the returned dword is zero
-//     (`> 0`, `< 0`, `>= 0`) does keep the two exits apart and does reach the
-//     original's block graph, but the branch becomes `jle` and MSVC 5 inlines
-//     the failure epilogue after the inverted branch: the 79.8% family.
-//   * `(char)trackCount != 0` as the exit test: MSVC 5 reloads the field from
-//     memory (`cmp byte ptr [edi + 0x200], bl`) and the shared
-//     `mov eax, [edi + 0x200]` leaves the done block. Much worse.
-//
-// Suspected original bugs: none found. The reader/writer sides of
-// trackCount/currentTrack/dataTrack in this file and its callers agree.
 // FUNCTION: 0x4cda00
 int Sound::QueryDisc()
 {
@@ -300,7 +225,10 @@ int Sound::QueryDisc()
     int drive = FindNextCdDrive(0);
     if (drive != 0)
         discSerial = GetVolumeSerial(drive);
+    // Both mciSendStringA results are assigned to an int local before being tested.
     int hr = mciSendStringA("status cdaudio number of tracks", buf, 0x20, 0);
+    // The whole body, tail included, nests in this if; the failure is the
+    // trailing return 0 after it.
     if (hr == 0) {
         trackCount = atoi(buf);
         mciSendStringA("set cdaudio time format tmsf", 0, 0, 0);
@@ -308,6 +236,7 @@ int Sound::QueryDisc()
         if (hr != 0)
             goto notAudio;
         if (strcmp(type, "audio") != 0) {
+            // other is a dead store; the no-op loop keeps its stack slot and the frame size.
             other = strcmp(type, "other");
             for (i = 0; i < other; i++) {
             }
@@ -321,6 +250,7 @@ notAudio:
         if (--trackCount < 0)
             trackCount = 0;
 done:
+        // The tail stays a single return statement.
         if (trackCount != 0)
             currentTrack = 1;
         return trackCount;
@@ -418,16 +348,6 @@ int Sound::IsCdPlaying()
 // position is inside the last track) plus " notify" for the main window, and
 // the time format is switched back to milliseconds. Returns whether the
 // mciSendStringA of the play command succeeded.
-// The mode test is a conditional expression, not `&&`: `a && b` short-circuits
-// into one shared exit block, while `a ? b == 0 : 0` keeps the strcmp's two
-// exits, each with its own test/sete pair, and lands on the mci result in eax.
-// The 3 text buffers (20, 64 and 200 bytes) plus the four 4-byte homes of
-// same, hwnd, err and this give the 0x11c frame.
-// " notify" is a separate strcat statement, not an argument of the
-// mciSendStringA: nesting it moves the push of hwnd ahead of the first strlen
-// and turns the second lea into a reuse of edx.
-// The mciSendStringA result goes through the `err` local: comparing the call
-// itself emits neg/sbb/inc in the epilogue instead of test/sete.
 // FUNCTION: 0x4ceb60
 int Sound::PlayCdTrack(int index, int flag)
 {
@@ -445,6 +365,7 @@ int Sound::PlayCdTrack(int index, int flag)
         ((Class_004cdb40*)this)->PlayNextTrack();
         return 1;
     }
+    // A conditional expression, not &&: keeps the strcmp's two separate exits.
     same = mciSendStringA("status cdaudio mode", status, 0x40, 0) == 0
             ? strcmp(status, "playing") == 0
             : 0;
@@ -461,7 +382,9 @@ int Sound::PlayCdTrack(int index, int flag)
         sprintf(to, " to %i", index + 1);
         strcat(cmd, to);
     }
+    // " notify" is its own strcat, not an argument of mciSendStringA.
     strcat(cmd, " notify");
+    // The result goes through the err local: comparing the call itself changes the epilogue.
     err = mciSendStringA(cmd, 0, 0, hwnd);
     mciSendStringA("set cdaudio time format milliseconds", 0, 0, 0);
     return err == 0;
@@ -649,10 +572,7 @@ int Sound::GetMaxBuffers()
 // Creates a DirectSound buffer from a block of raw sample data, locks it,
 // memcpy's the data in and unlocks it, then wraps the buffer in a 4-slot set
 // (only slot 0 is used) allocated with the tagged allocator. Releases the
-// buffer and returns 0 on any failure. The Lock outputs must be separate
-// `void* ptr; DWORD size;` locals (MSVC coalesces them onto the dead `src`
-// and `channels` parameter slots); passing &channels/&bytes makes the
-// parameters address-taken and stops `bytes` from staying in ebp.
+// buffer and returns 0 on any failure.
 // FUNCTION: 0x4cf230
 IDirectSoundBuffer** Sound::CreateSampleFromMemory(void* src, DWORD bytes,
                                                   int sampleRate, int bits, int channels)
@@ -678,6 +598,7 @@ IDirectSoundBuffer** Sound::CreateSampleFromMemory(void* src, DWORD bytes,
         goto error;
 
     {
+        // The Lock outputs must be their own locals, not &channels/&bytes.
         void* ptr;
         DWORD size;
         if (buf->Lock(0, bytes, &ptr, &size, 0, 0, 0) != 0)
@@ -802,21 +723,6 @@ void Sound::PlayLooping(IDirectSoundBuffer** set, LONG volume)
 // looping flags +0x138, IDirectSound +0x24). IDirectSound3DBuffer is declared
 // by hand because the toolchain's <dsound.h> is DirectX 3; DAT_004fcf68 is its
 // IID.
-//
-// #5115 (Claude Opus 5.5): MATCH. The last difference was C2's register
-// allocation (docs/c2-regalloc.md): the original gives ebp, the fourth
-// callee-saved register, to bestidx (sharing it with the zero constant) and
-// splits `this` around the scan loop. Priorities read out of C2.EXE under gdb
-// for the earlier plain-loop source: this 8, bestidx -50 (bestidx set at the
-// top), so `this` took ebp and bestidx stayed in memory. Two changes that
-// leave the bytes alone reverse the order: `bestidx = 0` after the null test
-// (bestidx -7, no longer live through the earlier blocks) and the channel
-// table loop ending in `break` with one `return 1` after it, instead of a
-// `return 1` inside the loop (this -11). `best = 0` stays before the null
-// test (its `xor ebx, ebx` comes before the cmp), and bestidx must be the
-// last variable set to 0, or the zero constant shares best's register
-// instead. The do-while of #4337 got the same order by pushing `this` to -104
-// and bestidx to -78 through the doubled loop weight, at the cost of a test.
 // FUNCTION: 0x4cf570
 int Sound::PlaySampleSet(IDirectSoundBuffer** set, LONG volume, Pos_004cf570* pos)
 {
@@ -830,6 +736,7 @@ int Sound::PlaySampleSet(IDirectSoundBuffer** set, LONG volume, Pos_004cf570* po
     }
     while (count >= maxBuffers)
         StopOldestBuffer();
+    // best = 0 stays before the null test; bestidx must be the last variable set to 0.
     DWORD best = 0;
     if (set == 0)
         return 0;
@@ -943,36 +850,13 @@ int Sound::PlayFileSample(FileHandle* file, DWORD bytes, int sampleRate, int bit
 // previous handle and streaming buffer, then creates a new looping
 // DirectSound buffer twice the size of one block, sets its volume and starts
 // it. On any failure the buffer is stopped, released and its file closed.
-//
-// MATCH (499 bytes, all 8 linker references check out).
-//
-// The last 2 percent was the SOURCE ORDER of the ten desc/wfx field
-// assignments, and only their order: every spelling, cast and statement
-// grouping is the obvious one, but the store scheduler sinks
-// `desc.dwBufferBytes = n;` to the end of the block unless that statement
-// sits in the first half of the group. Then ecx still holds n when the
-// scheduler needs a register for `lea <&wfx>`, so the lea takes eax, ds gets
-// reloaded after it, and the buffer-bytes store lands after the two word
-// stores. Writing dwBufferBytes second (after dwReserved, before
-// lpwfxFormat) puts the store back where the original has it and frees ecx
-// in time. Five different orders of these ten statements all match, so the
-// original's own order is not recoverable, only a member of the class.
-//
-// What the earlier model established, still true: adding `#include <stdio.h>`
-// (time.h, string.h, stdlib.h, math.h, mmsystem.h do the same) flips the
-// multiply from `mov ebx,eax / imul ebx,edx` to the original's
-// `and edx,0xffff / mov ebx,[esp+0x48] / imul edx,eax`, so the multiply's
-// destination register was decided by compiler/header state, not by the
-// expression. malloc.h and io.h give the 501-byte form instead.
-// `(WORD)(sampleRate * wfx.nBlockAlign)` reaches 96.3% by moving the 0xffff
-// mask after the imul, but the original zero-extends the operand first.
-// n must be a signed int (unsigned gives shr instead of sar).
 // FUNCTION: 0x4cf940
 void Sound::StartStream(FileHandle* file, int sampleRate, int bits,
                                   int channels, LONG volume)
 {
     WAVEFORMATEX wfx;
     DSBUFFERDESC desc;
+    // Signed: unsigned would change the shift.
     int n;
 
     if (streamTimer != -1) {
@@ -995,6 +879,7 @@ void Sound::StartStream(FileHandle* file, int sampleRate, int bits,
     n = channels * sampleRate * (bits / 8) * 2;
     streamSize = n / 2;
     desc.dwReserved = 0;
+    // dwBufferBytes stays early in this group of stores, or the scheduler sinks it.
     desc.dwBufferBytes = n;
     desc.lpwfxFormat = &wfx;
     wfx.wFormatTag = 1;
@@ -1255,24 +1140,11 @@ int Sound::StreamSampleDelayed(char* name, int value, int delay)
     return 1;
 }
 
-// MATCH. Thirteen earlier passes left one two-instruction displacement in the
-// rotated loop preheader: the original loads the `target` parameter into ebx
-// before the `push 4` of the strncmp argument setup, while a free __stdcall
-// function always emitted the same load one push later (its displacement is
-// 0x20 against the original's 0x1c, which is the same fault). The lever is the
-// calling convention: the original is a member function with an unused `this`
-// (a `this`-less __thiscall, the same shape the guide records at 0x4c5b70).
-// Declaring the function as a class method makes MSVC 5 hoist the parameter
-// load to the top of the preheader, byte for byte as the original has it.
-// Everything else (the frame, both epilogues, the rotated loop and the latch)
-// was already exact, and no source shape of the free function could reach the
-// load's position (the earlier passes swept declaration orders, loop shapes,
-// target copies, headers and flags without moving it).
-//
 // Walks a chunked file's marker table: the header holds the table size (plus
 // the 8 bytes of the two header fields) and the first marker, then the table
 // is a run of [4 byte name][4 byte offset] pairs. Returns the offset of the
 // named marker, or 0 when the table runs out.
+// Must stay a class method: the original is a this-less __thiscall.
 // FUNCTION: 0x4d0720
 int Sound::FindChunkSize(void* file, char* target)
 {
@@ -1301,27 +1173,7 @@ int Sound::FindChunkSize(void* file, char* target)
     }
 }
 
-// MATCH. Eleven passes as a free __stdcall function stalled at 88.7% with the
-// same three hunks (the `total + 8` temp in edi against the original's edx,
-// `mov edi, 0x14` one slot early, and both epilogue pops hoisted to the top of
-// the tail). The fix is the same lever that matched the sibling 0x4d0720: the
-// original is a member function with an unused `this` (a this-less __thiscall,
-// docs/agent-guide.md 0x4c5b70). Declaring it as a class method took it to
-// 95.9% and fixed the whole epilogue (both pops now interleave with the three
-// fmt stores exactly as the original has them, at the +8 displacements), so
-// the third hunk was never a scheduler tie: it followed the implicit `this`'s
-// effect on the allocator.
-// The last hunk was the preheader schedule. In the free-function form the
-// `pos = 0x14` statement had to sit BETWEEN the tag and len reads to keep the
-// read modify write of `total` unfolded, but that placement also kept the temp
-// in edi and emitted `mov edi, 0x14` before the last strncmp push. In the
-// member form the same source scores 95.9% either way, and moving `pos = 0x14`
-// to AFTER the len read (its natural position in the source, just before the
-// loop) reaches the original byte for byte: the RMW still survives unfolded and
-// `mov edi, 0x14` lands after the last push, where the original schedules it.
-// So the earlier passes' "statement after it" lever and this pass's placement
-// are two spellings of the same block schedule, and the member declaration is
-// what makes the late one reachable.
+// Must stay a class method: the original is a this-less __thiscall.
 // FUNCTION: 0x4d07f0
 int Sound::ReadWaveFormat(void* file, int* sampleRate, int* bitsPerSample, int* channels)
 {
@@ -1338,6 +1190,7 @@ int Sound::ReadWaveFormat(void* file, int* sampleRate, int* bitsPerSample, int* 
     HAPI_SeekFile(file, 0xc);
     HAPI_readfromfile(file, tag, 4);
     HAPI_readfromfile(file, &len, 4);
+    // Set after the len read, just before the loop.
     pos = 0x14;
     for (;;) {
         if (strncmp(tag, "fmt ", 4) == 0) {
@@ -1363,23 +1216,10 @@ int Sound::ReadWaveFormat(void* file, int* sampleRate, int* bitsPerSample, int* 
     return 1;
 }
 
-// MATCH (deepseek-v4.1-flash). Fourteen earlier passes as a free __stdcall
-// function stalled at 94.7% with exactly two preheader diffs: the `size + 8`
-// temp sat in edi instead of the original's edx, and `mov edi, 0x14` was
-// emitted one slot early (before the last push of the first strncmp).
-// The fix is the same lever that matched the siblings 0x4d0720 and 0x4d07f0
-// in this issue: the original is a member function with an unused `this` (a
-// this-less __thiscall, docs/agent-guide.md 0x4c5b70). Declaring it as a class
-// method changes the implicit `this` register's effect on the allocator, and
-// with the `pos = 0x14` statement in its natural place after the len read the
-// size update keeps its register form AND the copy lands after the last push,
-// byte for byte as the original has it. The earlier passes could only trade
-// one diff for the other because the free-function allocator reserved edi for
-// pos as soon as pos was live.
-//
 // Walks a chunked file's marker table looking for the record tagged "data" and
 // returns that record's 4 byte header field (the record length), or 0 when the
 // walk runs past the table.
+// Must stay a class method: the original is a this-less __thiscall.
 // FUNCTION: 0x4d0910
 int Sound::FindDataChunkSize(void* file)
 {
@@ -1394,6 +1234,7 @@ int Sound::FindDataChunkSize(void* file)
     HAPI_SeekFile(file, 0xc);
     HAPI_readfromfile(file, tag, 4);
     HAPI_readfromfile(file, &len, 4);
+    // Set after the len read, just before the loop.
     pos = 0x14;
     for (;;) {
         if (strncmp(tag, "data", 4) == 0)

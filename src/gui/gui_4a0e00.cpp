@@ -1,14 +1,4 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// The previous attempt (space-bunny-free) had the switch and the caller layout
-// right but nested the two guards, and used a `static inline` find helper. That
-// made MSVC 5 duplicate the shared `changed = 1` tail into the case 3 exit
-// (318 bytes against the original 299). Two changes fix it:
-//   - write the two guards as early `return`s, not nested `if`s;
-//   - make `FindEntry` a real (emitted) helper instead of `static inline`.
-// With the find loop inlined from a helper that also exists as a function
-// before the caller, MSVC allocates the blocks as in the exe: the tail stays
-// shared at 0x4a0f0f and case 3 short-jumps to it.
-//
 // Sets the text of the GUI entry named `name`: entries of type 1 and 5 take
 // strncpy of 0x80 bytes, type 3 a plain strcpy, and for type 3, when the entry
 // is the current one, the text length is stored. Then the list is marked
@@ -69,6 +59,7 @@ void __stdcall FUN_004a0e00(Dialog* obj, char* name, char* text)
     // Loaded before the null test on purpose: the original loads the entries
     // pointer before the `je`.
     Entry_004a0e00* entries = obj->holder->unknown_0->entries;
+    // Guards are early returns, not nested ifs.
     if (obj->holder->unknown_0 == 0)
         return;
     int index = FindEntry(entries, name);

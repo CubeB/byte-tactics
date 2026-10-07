@@ -5,7 +5,7 @@
 // visible when the local player's team has more than one member on it, or
 // when bit 6 of its info byte at +0x9b is set. The second loop in
 // CountAlliance_004478b0 repeats the type test that IsPlaying already made,
-// which is dead: the type is 1, 2 or 3 there too. Kept as the compiler has it.
+// which is dead: the type is 1, 2 or 3 there too.
 #include <stdio.h>
 
 struct Class_004a1080;
@@ -83,6 +83,7 @@ static inline int IsPlaying_004478b0(Player_004478b0* p)
         && p->field_146 != 10;
 }
 
+// Repeats the type test of IsPlaying (dead): must stay.
 static inline int IsCounted_004478b0(Player_004478b0* p)
 {
     return (p->type == 1 || p->type == 2 || p->type == 3)

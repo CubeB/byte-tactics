@@ -1,17 +1,4 @@
 // Decompiled by Space Bunny Free, finished by space-bunny-free and GPT-6.1-sol, edited by deepseek-v4.1, retried by Sonnet 5.5, retried by space-bunny-free, finished by claude-sonnet-5-5. Names are provisional.
-// MATCH. What it took (earlier retries sat at 98.1% with three stack-slot
-// displacements): the map work after the reservation loop is an inlined
-// helper (Tail) whose locals are `n` (lower_bound result) and one 16-byte
-// frame object holding the 8-byte {iterator, bool} that insert() returns
-// followed by the 8-byte value_type. Two things follow from that:
-//   * the spilled `this` of the prologue can reuse the dead home of a 4-byte
-//     local of an inlined helper (it never shares a slot with a local of the
-//     outer function), and with the pair as the only other 4-byte-sized
-//     object it must reuse n's home (esp0-0x14);
-//   * the pair is the begin() out slot, both erase out slots and the insert's
-//     hidden return slot (all esp0-0x10), and its second dword is the one
-//     frame dword the original never touches.
-// Splitting those into separate locals (n, it2, p) gives 98.1% at best.
 #include <windows.h>
 
 struct Node_004db450 {
@@ -81,6 +68,7 @@ public:
     inline void Tail(unsigned base, unsigned len, Class_004dd2a0& it) {
     total += len;
     Class_004dd2a0 n;
+    // One frame object (pair, then value_type): separate locals move the stack slots.
     Frame_004db450 f;
     f.p.offset = base;
     f.p.length = len;

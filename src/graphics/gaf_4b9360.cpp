@@ -4,12 +4,7 @@
 // that buffer (32000 uses the sprite's flat colour), and the result is drawn
 // with DrawFrame.
 //
-// The two scratch buffers are swapped twice around the blit. That swap must go
-// through a reference-taking helper: written inline, MSVC 5 forwards the
-// stored value into the later `sprite->buffers[0]` read and sinks a store,
-// which cascades through the whole first block and the remap loop. The
-// reference parameters give MSVC two aliasing pointers, so every read after a
-// swap is a fresh load, as in the original.
+// The two scratch buffers are swapped twice around the blit.
 #include <string.h>
 
 struct Sprite_4b9360 {
@@ -50,6 +45,7 @@ void __stdcall ResetClipRect(Surface* surface);
 void __stdcall CopySurfaceRect(void* dst, void* src, Rect_4b9360* rect, Rect_4b9360* pos);
 void __stdcall DrawFrame(void* dst, Sprite_4b9360* sprite, int x, int y);
 
+// The swap must go through a reference helper: inline, stores get forwarded.
 static void SwapPtr(unsigned char*& a, unsigned char*& b)
 {
     unsigned char* t = a;

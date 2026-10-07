@@ -4,22 +4,6 @@
 // flag, then, when the state is dirty, restores the piece tree's vertices,
 // rebuilds the root entry and clears the dirty flag. 0x45ac20 inlines this
 // whole function twice.
-//
-// What made it match:
-//  - The distance test is an inline helper taking the state and a pointer to
-//    the unit's position. This was the missing piece. Written out in the
-//    function, or with the helper taking (state, unit) or (position, unit),
-//    MSVC gives the unit ebp and keeps no zero register; with the helper
-//    taking both positions by pointer, the registers are right but the
-//    position copy loses its `lea edx, [ecx+0x18]`.
-//  - RestorePieceVertices is written recursively (the sibling is a tail call). /Ob2
-//    inlines one level of it here, which is why the original calls it for the
-//    child and again for the sibling (`xor edx, edx ; mov ecx, ebx ; call`)
-//    instead of looping. Out of line, MSVC turns the tail call into the loop
-//    at 0x45b030, byte for byte (checked against 0x45b030 in scratch). Once
-//    the helper above is in place, that level written out by hand (calling
-//    a declared RestorePieceVertices) matches too; the loop form never can.
-//  - The position is one 6-byte struct copy.
 #include <stdlib.h>
 #include <string.h>
 
@@ -96,6 +80,7 @@ int __fastcall RestorePieceVertices(Entry_0045ab10* piece, int force)
         piece->unknown_26 = 0;
         result = 1;
     }
+    // Recursive, not a loop: the first level gets inlined.
     if (piece->child)
         result = RestorePieceVertices(piece->child, result);
     if (piece->sibling)
@@ -106,6 +91,7 @@ int __fastcall RestorePieceVertices(Entry_0045ab10* piece, int force)
 void __fastcall PoseModel(State_0045ab10* state, Entry_0045ab10* entry, int flag);
 
 // Nonzero when the state's position is 8 or more away from `pos` on any axis.
+// Takes a pointer to the position: other signatures change the register use.
 static inline int FarFrom(State_0045ab10* state, const Vec3s_0045ab10* pos)
 {
     return abs((short)(state->pos.z - pos->z)) >= 8
@@ -118,6 +104,7 @@ void __stdcall UpdateObjectState(Unit* unit)
 {
     State_0045ab10* state = unit->state;
     if (FarFrom(state, &unit->pos)) {
+        // One 6-byte struct copy.
         state->pos = unit->pos;
         state->field_8 = 1;
         state->root->unknown_26 = 0;

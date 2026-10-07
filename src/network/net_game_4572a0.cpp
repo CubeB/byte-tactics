@@ -4,24 +4,8 @@
 // inner pass then looks for a network slot (active, type 3) whose data->field_94
 // is 1 and whose team (field_146) is still clear in the target's three per-team
 // byte tables, and hands the pair to SendPlayerEconomy, returning 0 in that case.
-// The three tables live at +0x11e, +0x129 and +0x134, eleven bytes each: the
-// first test reads them in the order t0, t2, t1 and the second reads t1 again.
-//
-// The two tests both re-test `active` and `type == 3`, and the original falls
-// out of the first one into the second, so they are two sibling ifs rather than
-// an if/else-if chain. Both must end in the *same* call block: writing the call
-// twice and letting MSVC 5 tail-merge the two blocks into the second if's body
-// puts the first branch's jump where the original has it. The entry test
-// `(a && b) || field_140 == 0 || field_22 != 0` reproduces the original's
-// redundant tests, and having two calls in the loop body is also what puts the
-// constant 1 in ebx and the return value in ebp: a single call reached by a
-// goto gives the same control flow but leaves g_game in ebp instead.
-//
-// `#include <string.h>` is load bearing although nothing here calls a string
-// function. Without it the two loop heads index g_game as `[ecx + eax + 0x1b63]`
-// (SIB 0x06) where the original has `[eax + ecx + 0x1b63]` (SIB 0x30), which
-// is the same 5 bytes and the only difference. The matched sibling 0x4573d0
-// needs the same include for the same reason.
+// The three tables live at +0x11e, +0x129 and +0x134, eleven bytes each.
+// Unused here, but changes how g_game is indexed in the loop heads.
 #include <string.h>
 
 struct PlayerData_004572a0 {
@@ -79,6 +63,8 @@ int FUN_004572a0()
             Player_004572a0* pj = &g_game->players[j];
             if (pj->active != 0 && pj->type == 3 || pj->field_140 == 0
                 || pj->field_22 != 0) {
+                // Two sibling ifs, each with its own call: the jump layout and
+                // registers follow the original.
                 if (pj->active != 0 && pj->type == 3) {
                     if (pj->data->field_94 == 1
                         && (pi->t0[pj->field_146] == 0

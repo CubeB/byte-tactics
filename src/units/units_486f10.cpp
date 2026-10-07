@@ -2,9 +2,6 @@
 // Walks one player slot's unit list and either damages every unit whose owner
 // is a human or computer player (DamageUnit) or fires its second weapon and
 // flags it (DetonateUnitWeapon / KillUnit).
-// The unit range is read from a second indexing of the array rather than from
-// p: that keeps MSVC's index base free of the 0x1b63 array offset, which is
-// what the original does (disp 0x1bca off eax, element address in ecx).
 
 #pragma pack(push, 1)
 
@@ -52,6 +49,7 @@ void __stdcall KillPlayerUnits(unsigned char player)
     Player_00486f10* p = &g_game->players[player];
     if (p != 0) {
         if (p->field_144 != 0) {
+            // Indexed again from g_game, not through p: keeps the index base clean.
             Unit* u = g_game->players[player].units_begin;
             Unit* last = g_game->players[player].units_end;
             if (u != 0) {

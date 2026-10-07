@@ -1,14 +1,8 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // std::_Tree<...>::erase(iterator) for the 500-byte-value name map that lives
-// at NameTable+0x21c (tree at 0x5294ec, _Nil at 0x5292c4). Transcribed by
-// hand from MSVC 5's <xtree> (erase, and the inlined _Min/_Max/_Lrotate/
-// _Rrotate/_Freenode) rather than instantiated through <map>, because the
-// callees 0x4e0450 and 0x4dfea0 already carry the literal names
-// Class_004e0450::FUN_004e0450 and Class_004dfea0::FUN_004dfea0 in
-// data/symbols.csv and only classes with those names produce them. The
-// 0x1f8-byte _Value setting _Color at +0x204 is the only thing the erased
-// node's value type contributes (its destructor is trivial, so _Destval
-// emits nothing).
+// at NameTable+0x21c (tree at 0x5294ec, _Nil at 0x5292c4). The 0x1f8-byte
+// _Value setting _Color at +0x204 is the only thing the erased node's value
+// type contributes (its destructor is trivial, so _Destval emits nothing).
 #include <yvals.h>
 #include <algorithm>
 
@@ -22,6 +16,8 @@ struct Node_004dfea0 {
 
 // The tree iterator; passed by value and returned by value, so the caller
 // supplies a hidden return buffer.
+// Hand-written <xtree>, not <map>: only classes with the literal callee names
+// (Class_004e0450, Class_004dfea0) produce those symbols.
 class Class_004e0450 {
 public:
     Node_004dfea0* _Ptr;               // +0x0

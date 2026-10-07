@@ -167,8 +167,7 @@ public:
                       int param_4, short index);
 };
 
-// Out-of-line constructor of the ten lists (0x471d90 inlines this same loop after its `new`). Each vector's
-// empty allocator byte is copied from an uninitialised temporary.
+// Out-of-line constructor of the ten lists.
 // FUNCTION: 0x470f80
 ParticleLists::ParticleLists()
 {
@@ -232,8 +231,7 @@ void ParticleLists::DrawList(void* param, short index)
 // Creates a TeleportParticles (vtable 0x4fd588), initialises it through virtual
 // slot 6, then appends it to the std::vector<ParticleSystem*> selected by the
 // short index. When that list already holds more than 400 entries its oldest
-// element is deleted and erased first. The append lives in an inlined member
-// helper, which is what leaves std::vector::insert (0x4732e0) out of line.
+// element is deleted and erased first.
 // FUNCTION: 0x471340
 void ParticleLists::AddTeleportParticles(int param_1, int param_2, int param_3, short index)
 {
@@ -247,10 +245,7 @@ void ParticleLists::AddTeleportParticles(int param_1, int param_2, int param_3, 
 // Creates a NanoParticles (vtable 0x4fd5b8), initialises it through virtual
 // slot 6, then appends it to the std::vector<ParticleSystem*> selected by the
 // short index. When that list already holds more than 400 entries its oldest
-// element is deleted and erased first. The append lives in an inlined member
-// helper, which is what leaves std::vector::insert (0x4732e0) out of line.
-// The byte stored at +0xc is MSVC copying the vector's empty allocator
-// temporary, not a constructor parameter (see particles_470f80.cpp).
+// element is deleted and erased first.
 // FUNCTION: 0x471470
 void ParticleLists::AddNanoParticles(int param_1, int param_2, int param_3, short index)
 {
@@ -264,16 +259,9 @@ void ParticleLists::AddNanoParticles(int param_1, int param_2, int param_3, shor
 // Creates a ThrustParticles (vtable 0x4fd5d8), initialises it through virtual
 // slot 6, then appends it to the std::vector<ParticleSystem*> selected by the
 // short index. When that list already holds more than 400 entries its oldest
-// element is deleted and erased first. The append lives in an inlined member
-// helper, which is what leaves std::vector::insert (0x4732e0) out of line.
+// element is deleted and erased first.
 //
 // Signature: four ints forwarded to virtual slot 6, then the short index.
-// ret 0x14 is five dwords, and the virtual callee (a __thiscall, so it pops its
-// own four arguments) receives the slots at [esp+0x14]..[esp+0x20] while the
-// index is the slot at [esp+0x24], read once as a byte (the vector's empty
-// allocator temporary at +0xc) and once as a word. That is the same shape as
-// 0x471340 with one extra int, so the trailing `short` really is the last
-// parameter, not a leading one.
 // FUNCTION: 0x4715a0
 void ParticleLists::AddThrustParticles(int param_1, int param_2, int param_3, int param_4, short index)
 {
@@ -288,10 +276,7 @@ void ParticleLists::AddThrustParticles(int param_1, int param_2, int param_3, in
 // slot 6 with five arguments, then appends it to the
 // std::vector<ParticleSystem*> selected by the short index. When that list
 // already holds more than 400 entries its oldest element is deleted and erased
-// first. The append lives in an inlined member helper, which is what leaves
-// 0x471cc0.cpp; operator new (0x471d10) is inlined here. The byte stored at
-// +0xc is MSVC copying the vector's empty allocator temporary, not a
-// constructor parameter (see particles_470f80.cpp).
+// first.
 // FUNCTION: 0x4716e0
 void ParticleLists::AddWakeParticles(int param_1, int param_2, int param_3,
                                   int param_4, short index, int param_6)

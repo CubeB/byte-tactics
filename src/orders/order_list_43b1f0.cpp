@@ -5,17 +5,8 @@
 // +0x110 gate it (bits 18-19 and 20-21), except when the third argument is
 // non-zero, and when bit 18 alone is set a second, positional command is made
 // at the unit's own position before the one aimed at the target.
-// The one-byte class Class_00438760 has a user-declared default constructor,
-// so it is returned by value through a hidden pointer: both calls here write
-// their result into a temporary that MSVC 5 puts in a dead parameter slot
-// (the unit pointer's at +4 and the target pointer's at +8), and the
-// temporaries are then read back a byte at a time (the `if (kind.index)`
-// test) and as a whole dword (the constructor's first argument, which has to
-// be declared as this class rather than as an int, or the byte is widened in
-// a register). The unit's position is a triple of shorts here, so only its
+// The unit's position is a triple of shorts here, so only its
 // middle element is read as data.
-// The list insertion is the body of 0x43acb0, inlined three times, with the
-// last two sharing the flag-merge tail; see src/orders/order_list_43acb0.cpp.
 
 #pragma pack(push, 1)
 
@@ -47,6 +38,7 @@ public:
     Class_0043a1f0* next;                         // +0x4a
     char unknown_4e[0x56 - 0x4e];
 
+    // kind is declared as Class_00438760, not an int, or the byte gets widened in a register.
     Class_0043a1f0(Class_00438760 kind, Unit* owner, Vec3* pos, int a, int b, int c);
 };
 

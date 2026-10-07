@@ -5,15 +5,6 @@
 // `param` is applied locally (through AssignPlayerColor when the group is taken);
 // otherwise packet 0x17 is sent to that player, or broadcast when there is
 // none.
-//
-// What made it match: the search is an inlined helper returning an
-// `unsigned char` that the caller widens into an `int` (the widening is what
-// makes MSVC store the result straight into a stack byte on both exits), the
-// loop tests the fields directly rather than through a per-index helper
-// (which moves the "found" exit block), and the local player index is
-// re-read from g_game in the compare instead of being cached in a local.
-// The flag at info+0x97 is bit 0 of an `unsigned short` bitfield (0x451220
-// writes it as a word); a byte field with `& 1` compiles the same here.
 #pragma pack(push, 1)
 struct PlayerInfo_004526c0 {
     char unknown_0[0x96];
@@ -57,6 +48,7 @@ int __stdcall IsColorFree(int a, int b);
 
 static inline unsigned char FindReadyPlayer()
 {
+    // Tests the fields directly, not through a per-index helper.
     for (unsigned char i = 0; i < 10; i++) {
         if (g_game->players[i].flag_73 && g_game->players[i].info->ready)
             return i;
@@ -68,6 +60,7 @@ static inline unsigned char FindReadyPlayer()
 int __stdcall RequestPlayerColor(int param)
 {
     Player_004526c0* p = &g_game->players[g_game->localPlayer];
+    // Widened into an int; localPlayer re-read from g_game, not cached.
     int i = FindReadyPlayer();
     if (i == g_game->localPlayer) {
         if (IsColorFree(p->field_4, param) == 0) {

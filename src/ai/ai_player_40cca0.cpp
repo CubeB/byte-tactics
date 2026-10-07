@@ -1,16 +1,7 @@
 // Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by mimo-v2.6-pro, retried by space-bunny-free, finished by Claude Opus 5.5. Names are provisional.
 // FLAGS: /Gi
-// std::vector<Elem_0040cfb0>::insert(iterator, size_type, const _Ty&), stock
-// MSVC 5 <vector> on a 3-byte element, emitted out of line through a member
-// pointer. Callers 0x409160 and 0x409730 call it.
-//
-// The original's translation unit was built with /Gi (#5035), and the bytes
-// also depend on which other vector members the TU instantiates: with a
-// reserve use (as below) or a copy constructor this MATCHes
-// (docs/field-notes.md Part 7). Without /Gi the best file reached 99.5%: the
-// library's `mov / sub / add / sub` source-start derivation against the
-// original's `lea eax,[ebp+ecx] / sub / sub`, which Part 6 took for a
-// different compiler build. The earlier passes are in git history.
+// std::vector<Elem_0040cfb0>::insert(iterator, size_type, const _Ty&) on a
+// 3-byte element. Callers 0x409160 and 0x409730 call it.
 #include <vector>
 
 struct Elem_0040cfb0 { char a, b, c; };

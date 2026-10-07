@@ -118,11 +118,6 @@ void FinishUnitSync()
 // +0x3c at +0x40 and the one at +0x4c at +0x50.
 // Each vector member is copied by the copy constructor of MSVC 5's <vector>:
 // size(), allocator.allocate() (??2@YAPAXI@Z, the array new) and _Ucopy.
-// /Ob2 inlines the first three _Ucopy loops, but the fourth one is a call to
-// 0x46faf0 (UElem_0046faf0::?$vector::_Ucopy) with ecx set to the vector.
-// The inline budget is reached because the two 14-byte-element vectors are
-// members of one sub-struct with a copy constructor of its own: declaring
-// them as two plain members inlines all four loops and gives 493 bytes.
 // FUNCTION: 0x470390
 UnitSyncPlayer::UnitSyncPlayer(const UnitSyncPlayer& other)
     : field_0(other.field_0), list_a(other.list_a), list_b(other.list_b),

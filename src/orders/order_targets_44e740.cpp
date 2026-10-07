@@ -136,12 +136,12 @@ Class_0044e740::Class_0044e740(int owner, HapiBank* file, char* name)
 // header (whose first eight bytes are left as they are, exactly as 0x44d500
 // leaves its magic dword alone) and appends it to the file. The reader takes
 // the id as a dword but only its low word (0x487080 masks with 0xffff), so
-// writing it as a word is harmless. The unit id needs the "if (!self) ... else
-// ..." form, not a ternary: that puts the store of 0 on the fallthrough path.
+// writing it as a word is harmless.
 // FUNCTION: 0x44e880
 int Class_0044e740::FUN_0044e880(int unused, HapiBank* file, char* name)
 {
     Header_0044e740 hdr;
+    // if/else, not a ternary: puts the store of 0 on the fallthrough path.
     if (!self) {
         hdr.unit_id = 0;
     } else {

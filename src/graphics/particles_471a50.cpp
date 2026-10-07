@@ -1,41 +1,9 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// A method of ParticleLists, whose other methods are in particles_470f80.cpp;
-// this one sees a list as a std::vector<Elem_00473500> and inlines its insert,
-// which comes out differently there.
-//
 // Creates a Class_004750b0 (vtable 0x4fd638) from the object pool, initialises
 // it through virtual slot 6 (0x475150) with the first four arguments, then
 // appends it to the std::vector of pointers selected by the short index in the
 // last argument. When that list already holds more than 400 entries its oldest
-// element is deleted and erased first. The append lives in an inlined member
-// helper, and here std::vector::insert is inlined too, so both its fast path
-// and its growth path (0x4b4f10 / 0x4b4f20) appear in the body; the class
-// declaration is the one in particles_4750b0.cpp, so the constructor stays an
-// out-of-line call. Closest match is 0x472c50.cpp, which builds the same
-// class; the differences are the owner (a member here, g_game there) and that
-// the insert is out of line there. Operator new (0x471d10) is inlined here as
-// memset: one builtin node, which leaves /Ob2's inline budget free for insert.
-// The dword loop spelling used in 0x472c50.cpp charges the budget and leaves
-// the insert out of line.
-// The vector's element type is the one the _Ucopy / _Ufill / _Destroy symbols
-// are named after in 0x4732d0.cpp (0x473500, 0x473530 and 0x4732d0 are one
-// COMDAT folded from several instantiations, and data/symbols.csv holds the
-// Elem_00473500 name for all three), so the appended pointer is cast to it,
-// exactly as 0x471820.cpp does.
-//
-// NOT MATCHING, and only because of a name in data/symbols.csv: every one of
-// the 546 bytes matches, and the four references to 0x472d30 are reported as
-// "0x472d30 is already named 'Class_00472d30::FUN_00472d30'". 0x472d30 is
-// std::vector<T>::size for every T (its body is "_Last ? _Last - _First : 0"
-// with the sar 2 of a 4-byte element, one __thiscall argument in ecx), and
-// this file has to call it as the size() of a real vector, so the name it emits
-// is "UElem_00473500::?$vector::size". No vector instantiation can produce
-// the recorded name, so it cannot be fixed from the source. It is the same
-// conflict 0x471820.cpp hits, and 0x471a50 is the only caller of 0x472d30
-// that inlines the insert, so it is the only file it blocks. A one-line
-// aliases.csv entry ("UElem_00473500::?$vector::size,0x472d30,folded COMDAT
-// of vector<T>::size, as the _Ucopy entry above is") would settle it, the
-// same way the erase overload is handled.
+// element is deleted and erased first.
 #include <stddef.h>
 #include <string.h>
 #include <vector>
@@ -73,6 +41,7 @@ public:
             return 0;
         void* p = ((Class_00470eb0*)&DAT_0051e610)->AllocSlot(size);
         if (p)
+            // memset, not a dword loop: keeps inline budget free for insert.
             memset(p, 0, size);
         return p;
     }
@@ -126,6 +95,7 @@ public:
             delete lists[index][0].p;
             lists[index].erase(lists[index].begin());
         }
+        // Cast to the element type the vector helper symbols are named after.
         lists[index].push_back(*(Elem_00473500*)&p);
     }
 

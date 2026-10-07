@@ -1,24 +1,6 @@
 // Decompiled by deepseek-v4.1, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by claude-sonnet-5-5, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
 // FLAGS: /Gi
 // Draws the selected unit / feature info panel (and the PFSTATE debug overlay).
-// What the match needed, after earlier passes had reached 95.7% at the right
-// size with the default flags:
-// - /Gi: this translation unit was built with it. With the old source it alone
-//   fixed the strncpy, entry, sprintf and font-load register hunks (the "g_game
-//   in eax" pair the old notes blamed on allocation), leaving two real hunks.
-//   Without the FLAGS line the file below is 93.1%, one byte long.
-// - pfstate is `g_game->... - GetFontHeight() - 1` with no pfable or field_c
-//   locals, and the PFSTATE sprintf re-reads *(g_game + 0xc) for each argument.
-// - the weapon loop writes `*out = -1` twice (nested ifs); MSVC merges the two
-//   stores, but the extra use gives `out` the original's eax and `slot` ecx.
-// - amount and killsText are declared inside the block that uses them. MSVC 5
-//   lets a pointer derived from g_game alias any function-scope buffer whose
-//   address escapes, but not a buffer whose scope opens after the pointer was
-//   computed, so only then is the orderName font load ([panel + 0x22e])
-//   scheduled above the inlined strcpy's rep movsd. The title strcpy into the
-//   function-scope `text` keeps its load after the copy, as in the original.
-// - the four snapshot.values copies go through float temporaries (fld/fstp);
-//   direct assignment gives integer moves (98.8%).
 #include <windows.h>
 #include <stdio.h>
 
@@ -115,6 +97,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
 
         SetFont(*(int*)(g_game + 0x391f9));
         SetTextColors(0x53, GetTextKeyColor());
+        // No pfable or field_c locals: the PFSTATE sprintf re-reads *(g_game + 0xc) per argument.
         int pfstate = *(int*)(g_game + 0x37e23) - GetFontHeight() - 1;
         sprintf(text, "PFSTATE %d, PFABLE %d\n", *(unsigned char*)(*(char**)(g_game + 0xc) + 0xf0) & 1,
                 *(int*)(*(char**)(g_game + 0xc) + 0x9c));
@@ -166,6 +149,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
         snapshot.health = *(unsigned short*)(unit + 0x108);
         snapshot.build = *(unsigned short*)(unit + 0xb8);
         snapshot.orderName = FUN_00439df0(unit);
+        // Copied through float temporaries; direct assignment gives integer moves.
         float f0 = *(float*)(unit + 0xd0);
         float f1 = *(float*)(unit + 0xcc);
         float f2 = *(float*)(unit + 0xe8);
@@ -176,6 +160,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
         snapshot.values[3] = f3;
         char* slot = unit + 0x1f;
         int* out = snapshot.weapons;
+        // Keep both `*out = -1` stores (nested ifs): the extra use sets the register of out.
         for (int i = 0; i < 3; i++, out++, slot += 0x1c) {
             char* weapon = *(char**)(slot - 0xf);
             if (*(unsigned short*)(weapon + 0xe4) > 0x1e) {
@@ -265,6 +250,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
                 FUN_00467c00(surface, *(void**)(unit + 0x96), panel + 0x132, yOffset);
                 if (*(unsigned char*)(unit + 0xff) == *(unsigned char*)(g_game + 0x2a43) ||
                     (*(unsigned char*)(g_game + 0x3923b) & 2)) {
+                    // Declared in this block, not at function scope: affects load scheduling.
                     char amount[100];
                     char killsText[100];
                     SetTextColors((unsigned char)palette[10], GetTextKeyColor());

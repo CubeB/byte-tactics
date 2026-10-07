@@ -1,10 +1,9 @@
 // Decompiled by Opus. Names are provisional.
-// std::vector<Unit*>::erase(iterator first, iterator last) from MSVC 5's
-// <vector>. Taking the member's address makes the compiler emit the template
-// instantiation out of line. 0x40aa40 calls it (through clear()) on the unit
-// lists at +0x05, +0x15 and +0x25 of the player AI object, whose destructor
-// is 0x40c530, and 0x48d220 calls it together with _Destroy (0x406c00), so
-// it is a member of the same std::vector<Unit*> (see 0x406c00.cpp).
+// std::vector<Unit*>::erase(iterator first, iterator last). 0x40aa40 calls it
+// (through clear()) on the unit lists at +0x05, +0x15 and +0x25 of the player
+// AI object, whose destructor is 0x40c530, and 0x48d220 calls it together
+// with _Destroy (0x406c00), so it is a member of the same std::vector<Unit*>
+// (see 0x406c00.cpp).
 #include <vector>
 
 struct Unit {

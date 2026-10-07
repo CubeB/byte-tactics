@@ -3,20 +3,6 @@
 // at g_game+0x1439b): a newline separated list of four fields, then three
 // speed readouts that are either a number with a unit label or the string N/A
 // when the unit type's +0x22f says it has no speeds.
-//
-// Two shapes the compiler forces:
-//  - every append advances with `p += strlen(p) + 1`, stepping over the NUL the
-//    call just wrote; the next call overwrites it, so the string comes out
-//    right, but the pointer arithmetic has to be written out like this for the
-//    `repne scasb` reload of p to land where it does. `p += wsprintfA(p, ...)`
-//    does not match (the return value is never used).
-//  - the two speed readouts scale their field by 1/65536 in float, and that
-//    product has to be computed (and spilled) before the call to GetTickRate.
-//    Written inline, MSVC evaluates the call first and emits the multiply after
-//    it; wrapping it in the `static inline` helper below makes the compiler
-//    materialise it in the pointer local's own frame slot, which is where the
-//    original has it. A named float local does not work (it lands in the slot
-//    above, and the call result then lands in the slot the float wanted).
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -44,6 +30,7 @@ void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 char* __stdcall Translate(const char* text);
 int GetTickRate();
 
+// A helper, not inline or a float local: the product is spilled before GetTickRate.
 static inline float spd(int v)
 {
     return v * 1.52587890625e-05f;
@@ -56,6 +43,7 @@ char* __stdcall MakePropList(UnitType_00489280* obj)
     memset(buf, 0, 0xc0);
     char* p = buf;
 
+    // Every append advances with `p += strlen(p) + 1`, not by wsprintfA's result.
     wsprintfA(p, "\n");
     p += strlen(p) + 1;
 

@@ -1,35 +1,6 @@
 // Decompiled by deepseek-v4.1, edited by deepseek-v4.1-flash. Names are provisional.
 //
-// MATCH: GUI layer loader (0x4aa8f0, 1762 bytes, byte-identical).
-//
-// Techniques that mattered (earlier passes, then the pass that finished it):
-//  * `int mask = flags & 0x200;` must be declared inside the block with its
-//    initializer. MSVC5 then spills it to the +0x18 slot and keeps the 0x21c
-//    frame; any other shape CSEs it into a register and the whole frame
-//    shifts by 4, which costs 20 points.
-//  * The PANEL search is an inlined helper returning an index or -1:
-//    `static inline int FindPanel(Layer*)` with
-//    `for (i = 1; i < base->count + 1; i++) if (strncmp(base[i].name,
-//    "PANEL", 0x10) == 0) return i; return -1;`, called as
-//    `int idx = FindPanel(layer);`. That produces the original's EBX = base,
-//    ESI = i, EDI = e, the reload of EDI from [S+0x10] on both loop exits,
-//    and the shared `cmp ecx,-1` test.
-//  * The found arm reloads `layer->entries` per use (write
-//    `layer->entries[idx]` out in dx/dy instead of a local `base`), which is
-//    what gives the two `mov ecx,[edi+4]` / `mov edx,[edi+4]` reloads.
-//  * The final 7/field_28 search is array indexing, not a walking pointer:
-//    `int n = base->count + 1; for (j = 1; j < n; j++) { if (base[j].type
-//    != 7) continue; if (i == base[1].field_28) {...break;} i++; }`. That
-//    spelling puts count+1 in EAX, j in ESI, i in EDX and keeps the `jl` at
-//    the bottom; a pointer-walking `e` variable instead spills i to memory.
-//  * okName and prevName are both `while (i <= entry->count)` loops (a
-//    do/while for prevName emits the mirrored `jg exit; jmp body`).
-//  * Other load-bearing shapes: `entry[i].name` indexing in the name
-//    searches, `base[1].field_28`, focusName searched with a `while` and
-//    `i < entry->count + 1`, the Dialog field at +0x60 as a second field
-//    (field_64 at +0x64), `if (ret == 1) { ...; return layer; }` with the
-//    free path last, and SetTextColors declared `(int, int)` with a zeroed
-//    `unsigned int v` before the byte load.
+// GUI layer loader.
 //
 // Suspected original bug: when HAPI_FileLengthByName(layerName) returns 0 (GUI file
 // missing) the code jumps to 0x4aac2d, which loads `layer` from [S+0x10]
@@ -88,6 +59,7 @@ struct Menu_004aa8f0 {
     Layer_004aa8f0* layer;         // +0x18
     char unknown_1c[0x44];
     int field_60;                  // +0x60
+    // Must stay a second field after field_60.
     int field_64;                  // +0x64
     char unknown_68[0x8b2 - 0x68];
     unsigned char field_8b2[0x104];// +0x8b2
@@ -116,6 +88,7 @@ extern void __stdcall FUN_004ab6c0(Menu_004aa8f0* menu, int a, char* text,
                                    int maxLength, int clear);
 extern int* g_guiContext;
 
+// Must stay an inline helper returning an index or -1: sets the search's registers.
 static inline int FindPanel_004aa8f0(Layer_004aa8f0* layer)
 {
     Entry_004aa8f0* base = layer->entries;
@@ -165,6 +138,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Menu_004aa8f0* menu, const char* name,
     StripPath(guiName);
     ChangeExtension(layerName, layerName, "GUI");
     if (HAPI_FileLengthByName(layerName) != 0) {
+        // Declared here with its initializer: it spills to the +0x18 slot and keeps the frame.
         int mask = flags & 0x200;
         if (mask != 0) {
             layer = menu->layer;
@@ -180,6 +154,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Menu_004aa8f0* menu, const char* name,
             if (idx != -1) {
                 layer->entries[idx].field_29 = 0;
                 flags |= 0x20;
+                // Index layer->entries at each use, no local base: gives the reloads.
                 int dx = (layer->entries[idx].w - entry->w) / 2 + layer->entries[idx].x;
                 int dy = (layer->entries[idx].h - entry->h) / 2 + layer->entries[idx].y;
                 int j = 1;
@@ -251,6 +226,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Menu_004aa8f0* menu, const char* name,
         dst = entry->prevName;
         if (strlen(dst) == 0) {
             int i = 1;
+            // while, not do/while, as for okName; names indexed as entry[i].name.
             while (i <= entry->count) {
                 if (entry[i].type == 1 && (_strnicmp(entry[i].name, "PREV", 4) == 0
                         || _strnicmp(entry[i].name, "Cancel", 6) == 0)) {
@@ -264,6 +240,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Menu_004aa8f0* menu, const char* name,
         if (strlen(dst) != 0) {
             int i = 1;
             Entry_004aa8f0* e = &entry[1];
+            // A while over i < count + 1.
             while (i < entry->count + 1) {
                 if (strncmp(e->name, dst, 0x10) == 0)
                     goto focusFound;
@@ -279,16 +256,19 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Menu_004aa8f0* menu, const char* name,
         }
     }
     menu->field_60 = -1;
+    // The free path stays last.
     if (ret == 1) {
         if (entry->count == 1 && ((char*)entry)[0x15b] == 3) {
         Entry_004aa8f0* base = menu->layer->entries;
         Entry_004aa8f0* sub = &base[1];
         int r = GetTextKeyColor();
+        // Zeroed before the byte load; SetTextColors stays declared (int, int).
         unsigned int v = 0;
         v = menu->field_8b2[sub->field_1f];
         SetTextColors(v, r);
         int i = 0;
         int j;
+        // Array indexing, not a walking pointer: a pointer spills i to memory.
         int n = base->count + 1;
         for (j = 1; j < n; j++) {
             if (base[j].type != 7) {

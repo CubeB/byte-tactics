@@ -3,11 +3,6 @@
 // entry, sizes the Campaign / CampaignKnob / Missions gadgets, clears the two
 // side GAF lists, selects the difficulty, fills the Campaign and (for a
 // campaign) Missions lists, then switches the visible pane.
-//
-// Suspected original bug, kept exactly: the "Campaign" gadget lookup at
-// 0x478514 stores its result in eax, tests eax for null at 0x478519, and then
-// dereferences [eax+0xce] on BOTH branches (0x478525 and 0x478531), so a
-// null return would still be written through.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -206,6 +201,7 @@ void __stdcall OpenNewGameMenu(int param_1)
         FUN_004a0570(&g_game->menu, "Campaign", 1);
         FUN_004a0570(&g_game->menu, "CampaignKnob", 1);
         Entry_00478240* c = FindGadgetChecked(entries, "Campaign");
+        // Original bug, kept: c is dereferenced on both branches even if null.
         if (c != 0 && DAT_0051e668 != 0)
             c->callback = FillMissionList;
         else

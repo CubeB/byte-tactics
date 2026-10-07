@@ -4,9 +4,7 @@
 // into a fresh "Point List" block, sets flag bit 0 when the point count is at
 // least 3 (else clears it) and flag bit 2, bumps the state's entry count, then
 // recurses into the object's child (passing the new entry as its parent) and
-// sibling (passing this call's parent). The parent store has to sit after the
-// sibling if/else, with no early return, so that the null tests stay `test
-// reg,reg` and the third argument gets loaded into edi before the test.
+// sibling (passing this call's parent).
 
 #include <string.h>
 
@@ -70,6 +68,8 @@ Entry_0045aec0* __stdcall AddStateEntries(ObjectState_0045aec0* state, Object3do
     } else {
         e->sibling = 0;
     }
+    // Stored after the sibling if/else, with no early return: keeps the null
+    // tests as `test reg,reg` and the argument load order.
     e->parent = parent;
     return e;
 }

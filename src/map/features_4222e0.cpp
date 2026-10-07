@@ -4,13 +4,6 @@
 // std::vector<Elem_004222e0>, then parses each file name into a new
 // TdfFile and appends it to the global vector DAT_00511fb4.
 //
-// The function must be __stdcall (or __fastcall): with the default __cdecl
-// convention MSVC 5 schedules the loop entry as `cmp esi,eax; mov edi,esi`,
-// while the original emits `mov edi,esi; cmp esi,eax`. A non-cdecl convention
-// on this no-argument function changes only the instruction order.
-// push_back inlines to a call of the out-of-line
-// std::vector<TdfFile*>::insert (0x425480); #335 replaced the
-// placeholder Class_00425480::FUN_00425480 that stood for it.
 #include <vector>
 
 #include "../util/tdf.h"
@@ -31,6 +24,7 @@ extern std::vector<TdfFile*>* DAT_00511fb4;
 
 void __stdcall FindFilesRecursive(char* dir, char* pattern, void* list, int flags, char recurse);
 
+// Must not be __cdecl: the calling convention changes the loop entry order.
 // FUNCTION: 0x4222e0
 void __stdcall LoadFeatureFileList()
 {

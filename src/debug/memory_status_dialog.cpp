@@ -120,23 +120,6 @@ void MemoryStatusDialog::CreateMemoryStatusDialog()
         MessageBoxA(0, DAT_0050d6b4, DAT_0050c8ac, 0);
 }
 
-// MATCH (check.py, 2150 bytes).
-//
-// The last diff was the /Ob2 inline budget in the formatter section: the ten
-// fmt_004e0b90 call sites need eleven inline expansions, which is one more
-// than this function gets (the rate_add helper takes the other slot), so the
-// tenth formatter was always emitted as a call to an out of line copy, which
-// also shifted the temporary slots and every internal jump target (2058 vs
-// 2150 bytes, 90.5%). Writing the tenth site (s6, DAT_00528a08) out by hand
-// as a plain block costs no inline budget and the whole function snaps into
-// place. The nine helper sites and the rate_add helper are untouched, so the
-// x87 rate update keeps its original `fdiv st(2)` with the quotient spilled
-// to [esp+0x10] (0x4e0c45 `fst`, reloaded at 0x4e0c54), which only the
-// inlined helper shape produces.
-//
-// Findings kept elsewhere: the 0x111 switch handles only 1 and 2 (0x4e12e3
-// `jle`, not `jl`), and strcmp wants the global as the first argument
-// (0x4e1236 `lea esi` before the `mov eax`).
 // FUNCTION: 0x4e0b90
 int MemoryStatusDialog::HandleMemoryStatusMessage(unsigned int msg, int wParam, int lParam)
 {
@@ -234,6 +217,7 @@ int MemoryStatusDialog::HandleMemoryStatusMessage(unsigned int msg, int wParam, 
         fmt_004e0b90(s3, DAT_005289f8);
         fmt_004e0b90(s4, (unsigned int)field_4);
         fmt_004e0b90(s5, DAT_00528a1c);
+        // Written out by hand: a tenth helper call would exceed the inline budget.
         {
             char* buf = s6;
             unsigned int n = DAT_00528a08;

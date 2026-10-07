@@ -1,9 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // std::_Tree<unsigned int, ...>::lower_bound(const key&) from MSVC 5's
-// <xtree>: the body of _Lbound (0x4ddc90 for another tree) is inlined and its
-// lock is scoped inside it, so ~_Lockit runs before the iterator is built from
-// the node pointer. DAT_00528a50 is the tree's _Nil node and head->parent is
-// the root.
+// <xtree>. DAT_00528a50 is the tree's _Nil node and head->parent is the root.
 #include <yvals.h>
 
 struct Node_004dd3d0 {

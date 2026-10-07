@@ -1,16 +1,12 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 //
 // Sends the local player's incoming message `packet` (network layer, `size`)
-// to `id` if that player is a live client. The player id search is the inlined
-// FindPlayer helper: it searches twice (once to decide whether the player
-// exists, once to take the address), which is what produces the two copies of
-// the id loop. When the net layer has no DirectPlay interface (g_usePacketManager
-// clear) it goes through HAPINET_sendpacket on g_game + 0x14 and reports the packet
-// as forwarded with CountMessage/CountPacket. If instead g_game + 0x299c is
-// non-zero this is a broadcast round: every in-use player in state 3 whose
-// target group has not been told yet gets the packet, and the group is marked
-// in DAT_00512b90. A single shared `return 1` at the end is what made the
-// `flags_2a44` test compile as a forward `je`.
+// to `id` if that player is a live client. When the net layer has no DirectPlay
+// interface (g_usePacketManager clear) it goes through HAPINET_sendpacket on
+// g_game + 0x14 and reports the packet as forwarded with
+// CountMessage/CountPacket. If instead g_game + 0x299c is non-zero this is a
+// broadcast round: every in-use player in state 3 whose target group has not
+// been told yet gets the packet, and the group is marked in DAT_00512b90.
 //
 // Nothing guards the two inlined index searches: an id of -1 makes
 // FindPlayerIndex return 10 and FindPlayer tests that against 10, so the -1
@@ -75,6 +71,7 @@ static inline Player_00451df0* FindPlayer(int id)
 {
     if (FindPlayerIndex(id) == 10)
         return 0;
+    // Searched twice: gives the two copies of the id loop.
     return &g_game->players[FindPlayerIndex(id)];
 }
 
@@ -112,5 +109,6 @@ int __stdcall BroadcastPacket(int id, unsigned char* packet, int size)
                 DAT_00512b90[c] = 1;
         }
     }
+    // Single shared return: makes the flags_2a44 test a forward je.
     return 1;
 }

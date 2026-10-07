@@ -1,75 +1,7 @@
 // Decompiled by space-bunny-free, finished by mimo-v2.6-flash, then by Claude Sonnet 5.5. Names are provisional.
 //
-// PARTIAL: 76.4%. The feature dispatch now matches the original instruction for
-// instruction: `else if (feature != 0xfffe) { blocked = 1; } else { ... }` writes
-// the outer `blocked = 1` as its own block, and the reversed inner arms
-// (`if (feature >= count) blocked = 1; else bit`, `if (f2 >= 0xfffb) blocked = 0;
-// else bit`) give each trivial arm the original's inline fall-through. With the
-// two `mov ecx, 1; jmp` blocks shared (a plain `else if (feature == 0xfffe)`
-// chain) the compiler hoists one copy to the end, costs 5 bytes and shifts the
-// whole tail.
-//
-// What is left is ONLY the prologue (+2 bytes): the original keeps `y` in ecx and
-// computes `imul ecx, ebx` directly, ours keeps `y` in esi and needs an extra
-// `mov ecx, ebx` first. The original's bound-check temporaries are
-// h->eax / height->esi, ours are h->ecx / height->eax. Everything from the
-// unit-record test onward is identical.
-//
-// Ruled out for the prologue: index operand order (`x + y*width`, `width*y + x`,
-// split into two statements), `h + y` operand order, all four bound checks in one
-// `||` chain or two, declaration order of index/result/row/locals, an unsigned
-// cast on y, and repeating all of those on top of the fixed dispatch. None of
-// them moves `y` off esi.
-//
-// Already correct and worth keeping: `Cell` needs `unknown_2[2]` so its size is
-// exactly 0xd, `Feature` needs a tail pad to be exactly 0x100; comparing
-// `(int)cell->low` inline instead of naming an `unsigned char low` local removes
-// three spill/reload pairs; the loop increments belong in the `for` header
-// (`row++, cell += rowStep` and `col++, cell++`); and the unit pointer must be a
-// reference, `Unit_0047dfc0*& unit = g_game->units[cell->spot].unit;`, which
-// reproduces the original's two-step `lea ecx, [edx+ecx*8]; mov ecx, [ecx]`.
-//
-// PARTIAL: 74.9%. This is the pathfinder's "can this rectangle be crossed"
-// scan. The unit-record access, the loop tail and the result downgrade match;
-// what is left is the prologue and the feature dispatch.
-//
-// Prologue (about 8 instructions): the original keeps `y` in ecx and computes
-// the cell index with `imul ecx, ebx; add ecx, edx`, ours keeps `y` in esi and
-// needs a `mov ecx, ebx` first. Its `y + h` bound is `mov eax, [h]; mov esi,
-// height; add eax, ecx`, ours is `mov ecx, [h]; mov eax, height; add ecx, esi`.
-// Feature dispatch (about 6 instructions): the original has two separate
-// `mov ecx, 1; jmp` exits reached by `jl` and by `je`, ours merges them into
-// shared `jge`/`jne` targets and has an extra `mov ecx, 1` tail, which suggests
-// the two "blocked" assignments live in genuinely separate inlined scopes rather
-// than one merged variable.
-//
-// Ruled out: about thirty permutations of the bound checks and the local
-// declaration order; the index through a `static inline CellIndex(y, x)`; each
-// bound test through its own `static inline` helper; both together; and every
-// header set headers.py tries, none of which changes anything here (unlike
-// 0x4399f0 and 0x490080, where an unused include was the whole fix).
-//
-// Already correct and worth keeping: `Cell` needs `unknown_2[2]` so its size is
-// exactly 0xd, `Feature` needs a tail pad to be exactly 0x100; comparing
-// `(int)cell->low` inline instead of naming an `unsigned char low` local removes
-// three spill/reload pairs (that alone was 33.5% to 71.5%); the loop increments
-// belong in the `for` header (`row++, cell += rowStep` and `col++, cell++`)
-// rather than as body statements, which is what matches the pointer-advance
-// scheduling; and the unit pointer must be declared as a reference,
-// `Unit_0047dfc0*& unit = g_game->units[cell->spot].unit;`, which reproduces the
-// original's two-step `lea ecx, [edx+ecx*8]; mov ecx, [ecx]` load that a plain
-// pointer folds into a single instruction.
-
-// Claude Sonnet 5.5 (#599): MATCH. The two bytes and the register differences in
-// the prologue were compiler state, not source: the source below was already
-// right. Scoring it with N unused `extern int dummyK;` declarations in front gives
-// 76.4 for N = 84 and below (which is why the old 0 to 82 sweep looked flat) and
-// MATCH at 559 bytes for every N from 92 to 404. tools/headers.py then finds that
-// 30 of the 128 header sets reach the same state, among them <stdio.h>,
-// <stdlib.h>, <string.h> and <math.h> on their own. The earlier note that no
-// header set helped was wrong (or from a version of headers.py that only said
-// "identical bytes"). <stdlib.h> is used here because the neighbouring pathfinder
-// function 0x4851c0 includes it for abs().
+// This is the pathfinder's "can this rectangle be crossed" scan.
+// Kept only for its effect on compiler state: without a header the match breaks.
 #include <stdlib.h>
 
 #pragma pack(push, 2)
@@ -153,6 +85,7 @@ int __stdcall FUN_0047dfc0(Pathfinder_0047dfc0* obj, int x, int y, int w, int h)
     int rowStep = g_game->width - w;
     int minHeight = g_game->seaLevel - obj->minHeight;
     int maxHeight = g_game->seaLevel - obj->maxHeight;
+    // Increments live in the for headers: schedules the pointer advance.
     for (row = 0; row < h; row++, cell += rowStep) {
         for (int col = 0; col < w; col++, cell++) {
             unsigned short feature = cell->feature;
@@ -179,10 +112,12 @@ int __stdcall FUN_0047dfc0(Pathfinder_0047dfc0* obj, int x, int y, int w, int h)
             if (blocked)
                 return 0;
             if (cell->spot != 0) {
+                // A reference, not a pointer: gives the original's two-step load.
                 Unit_0047dfc0*& unit = g_game->units[cell->spot].unit;
                 if (!unit || unit->lastTick < obj->lastTick)
                     return 0;
             }
+            // Compared inline via the cast: a named local adds spill/reload pairs.
             if ((int)cell->low < minHeight)
                 return 0;
             if ((int)cell->high > maxHeight)

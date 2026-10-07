@@ -1,40 +1,8 @@
 // Decompiled by longcat-2.5-preview-free, edited and finished by deepseek-v4.1-flash, finished by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
 //
 // The front-end state machine of frontend.cpp (line numbers in the
-// CheckFrontendStateChange calls are the original __LINE__ values). MATCH.
-//
-// What made it match, after many attempts that wrote every inlined helper out
-// by hand (86.9% best):
-//  - The case bodies are calls of small frontend.cpp helpers that /Ob2
-//    inlined: CheckFrontendStateChange (log a state change), SetFrontendSubState (set the
-//    sub-state), SetFrontendState (set the state, then the sub-state to 0, from
-//    its own line 155 = 0x9b), ApplyPendingSubState (apply a pending sub-state),
-//    SetFrontendErrorText / ShowFrontendErrorText (set / show the error text), BlankScreen and
-//    FUN_00425b60 (redraw), ConnectToService (use the service or set the error
-//    state). Writing them as calls instead of expanded code fixed every
-//    register rotation the hand-expanded version had.
-//  - In this huge function MSVC's inline budget ran out, so the same helper is
-//    inlined at one site and called at another, and an inlined helper's own
-//    callees are sometimes left as calls. Defining the real helpers here lets
-//    MSVC choose for itself, and it chooses differently from the original (it
-//    inlines CheckFrontendStateChange at most of the early sites, where the exe calls it,
-//    and grows the function by 1-2 KB). So the helpers are static
-//    copies, one per inlining outcome the exe shows, and the calls that stayed
-//    out of line call the real functions: SetState and SetSubState call
-//    CheckFrontendStateChange, SetStateSubCall calls SetFrontendSubState, the *Logged forms have
-//    the log inlined too (lines 0x5ea, 0x5f0, 0x613, 0x640, 0x643), and the two
-//    ConnectToService expansions differ (UseService in case 15, UseServiceCalls in
-//    case 20, where its SetFrontendState call stayed out of line).
-//  - Case 15's draw-only case 1 sits between cases 13 and 2. Its code is
-//    entirely cross-jumped into case 20's redraw tail, but its position decides
-//    the register of case 20's bit test (dl, not cl) and all of case 20 after.
-//    Moving the other fully merged cases (2:1, 8:1, 9:2, 10:1, 11-14:1 and 2)
-//    changed neither case 20 nor the loop below.
-//  - Case 15:3 ends with break, not return: that lets case 7:11's state change
-//    cross-jump into case 16:17's tail as in the exe.
-//  - <string> (compiler state only, nothing from it is used): without it the
-//    case 16:21 player loop addresses [esi+ecx] instead of [ecx+esi]. Any
-//    <windows.h> set also fixes that loop but changes other code (84.6%).
+// CheckFrontendStateChange calls are the original __LINE__ values).
+// Unused: without it the case 16:21 player loop addresses [esi+ecx].
 #include <string>
 #include <string.h>
 #include <stdio.h>
@@ -555,6 +523,7 @@ void RunFrontendStateMachine(void)
             OpenOptionsPanel();
             SetSubState(1, 0x53d, DAT_00503004);
             return;
+        // Stays between cases 13 and 2: its position decides case 20 registers.
         case 1:
             FUN_00425b60();
             return;
@@ -584,6 +553,7 @@ void RunFrontendStateMachine(void)
             return;
         case 3:
             SetState(2, 0x564, DAT_00503004);
+            // break, not return: lets case 7:11 cross-jump into case 16:17.
             break;
         }
         break;

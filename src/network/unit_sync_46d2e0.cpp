@@ -1,56 +1,11 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, GPT-6.1-sol
+// and space-bunny-free, edited by deepseek-v4.1, retried by Sonnet 5.5. Names are provisional.
 // A method of UnitSync, whose other methods are in unit_sync.cpp; this one
 // stays apart because it needs the real <map>, <list> or <vector>
 // instantiations its own way.
 //
-// and space-bunny-free, edited by deepseek-v4.1, retried by Sonnet 5.5. Names are provisional.
-//
-// MATCH (space-bunny-free, issue 3009). The two blocks that every earlier pass
-// left at 88-89% are not a scheduling puzzle at all: they are what MSVC 5 emits
-// for one `map::operator[]`, that is
-//     rects[v.x] = v;
-// with the value a plain struct local. So the whole body is a Rect local and a
-// for loop, and the loads the earlier notes called "reloads that survive every
-// statement order" are the copy of the pair's second out of the *uninitialised*
-// temporary `map::operator[]` builds (`insert(value_type(_Kv, _Ty()))`, MSVC 5
-// leaves that _Ty() uninitialised). Because the temporary is a different
-// memory node from the local, the store `v.x = key` does not forward into the
-// pair's copy, which is exactly the two `mov ecx, [esp+0x38]` /
-// `mov ecx, [esp+0x44]` the pre-insert block needed, and the post-insert
-// `= v` then has one live value fewer. Same mechanism as 0x46d6c0, but there
-// the temporary is a separate Rect, here it shares the local's slot.
-//
-// Three details the bytes need, all settled by experiment here:
-//  * `v.y = 0` is dead code the optimiser keeps only as a value: the pair's copy
-//    of y is emitted before the store, so the store is dropped and the
-//    uninitialised slot is what the insert copies. That is the bug below. Do
-//    not "fix" it by initialising y in a way the compiler can see.
-//  * the flag expression has to be a small `static inline` helper. Written out
-//    in the loop it lands in eax and costs a `mov ebx, eax`.
-//  * `field_58` is an int member read into a short field (`v.h`), and `v.w = 1`
-//    is the statement MSVC sinks into the pre-guard preheader.
-//
-// Why the tree is declared as below. The two callee names the checker wants
-// are mixed: data/symbols.csv has 0x46e880 and 0x46fad0 as hand-rolled
-// (`Class_0046e880::FUN_0046e880`, `Class_0046fad0::Class_0046fad0`, from the
-// matched 0x46e880.cpp and 0x46fad0.cpp) but 0x46fb80 and 0x46ff90 under the
-// crude demangle of the real MSVC 5 template symbols
-// (`IURect_0046e160::IU?$pair::?$_Tree::_Insert`, `...::iterator::_Dec`, from
-// 0x46fb80.cpp and 0x46ef50.cpp). Using the real <map> gives the right two but
-// the wrong other two; hand-rolling everything gives the right other two but
-// the wrong two. Declaring a `_Tree` template whose first two arguments are
-// `unsigned int` and the map's real `value_type` gives the STL mangled names
-// while the walk itself stays hand written: MSVC 5 concatenates template
-// arguments with no separator, so `_Tree<unsigned int, std::pair<const
-// unsigned int, UnitSyncEntry>, ...>` mangles as `?$_Tree@IU?$pair@IURect...`,
-// and check.py's base_name() only looks at the part before the first `@@`.
-//
-// BUG (kept as the original has it): the value handed to the map insert has an
-// uninitialised y. There is no store to the local's y slot anywhere in the
-// function; the insert copies four words out of that slot into the pair, so the
-// node briefly holds stack garbage before `= v` overwrites y with 0. The
-// evidence is that instruction: `mov edx, [esp+0x3c] / mov [esp+0x50], edx`
-// copies the word, and nothing ever writes it.
+// The value handed to the map insert has an uninitialised y: the node briefly
+// holds stack garbage before `= v` overwrites y with 0.
 #include <map>
 
 struct UnitSyncEntry {                // the std::map's value, 0x10 bytes
@@ -78,7 +33,7 @@ typedef std::pair<const unsigned int, UnitSyncEntry> Pair_0046d2e0;
 
 // std::_Tree<...> out of MSVC 5's <xtree>, with only the two members this
 // function calls out of line. The template arguments are the point of writing
-// it this way (see the note at the top): the walk itself is hand written below.
+// it this way: the walk itself is hand written below.
 template <class Kty, class Ty, class Kfn, class Pr, class Alloc>
 struct _Tree {
     struct iterator {
@@ -221,8 +176,10 @@ void UnitSync::ResetEntries()
     UnitSyncEntry v;
     for (unsigned short i = 1; i < g_game->count; i++) {
         v.x = g_game->defs[i].key;
+        // Dead store that must stay: the uninitialised slot is what the insert copies.
         v.y = 0;
         v.w = 1;
+        // field_58 is an int read into the short field.
         v.h = (short)field_58;
         v.flag = FlagOf_0046d2e0(&g_game->defs[i]) ? 0 : -1;
         rects[v.x] = v;

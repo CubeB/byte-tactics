@@ -3,14 +3,6 @@
 // std::vector<Element_00475ef0>::insert(iterator, size_type, const _Ty&),
 // stock MSVC 5 <vector>, emitted out of line through a member pointer. The
 // caller (0x474880) grows the vector with reserve and fills it with insert.
-//
-// The original's translation unit was built with /Gi (#5035): /Gi numbers
-// internal symbols per function instead of TU-wide, which flips the ties that
-// put _P in edx and _N/_S in the original's frame slots. The bytes also depend
-// on which other vector members the TU instantiates: with an operator= use (or
-// resize) this MATCHes; with only reserve, a copy constructor, erase or no
-// other use it is 83.0%. Without /Gi no spelling got past 83.0% (the earlier
-// passes, in git history, measured that wall in detail).
 #include <vector>
 
 struct Element_00475ef0 {

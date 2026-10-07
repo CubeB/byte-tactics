@@ -217,19 +217,14 @@ void __stdcall CmdShareAll(int unused)
 
 // Chat command: sets the local player's metal-sharing threshold to the
 // argument, capped at field_a8, and prints a confirmation.
-//
-// The cap is a min() macro (stdlib.h __min here; any macro with the usual
-// parentheses does the same) with an explicit (float) cast on the argument.
-// The macro's parentheses make MSVC load and spill field_a8 before the
-// first call, and the cast is what moves the store of the result after the
-// next call's `push 0; push 1`. Without the cast the store comes before the
-// pushes (85.7%).
 // FUNCTION: 0x419340
 void __stdcall CmdSetShareMetal(CommandArgs* args)
 {
     char buf[256];
     if (g_game->flags & 1) {
         Player* p = &g_game->players[g_game->localPlayer];
+        // __min macro with an explicit (float) cast: the cast places the store
+        // after the next call's pushes.
         p->share_metal = __min(p->field_a8, (float)args->GetIntArg(1, 0));
         sprintf(buf, "OK.  Will share metal if above %d", args->GetIntArg(1, 0));
         AddMessage(buf, 2, 0, 10);
@@ -239,16 +234,14 @@ void __stdcall CmdSetShareMetal(CommandArgs* args)
 // Chat command: sets the local player's energy-sharing threshold to the
 // argument, capped at field_a4 (a min() macro, so the argument is read twice),
 // and prints a confirmation.
-//
-// The min() macro's parentheses load field_a4 before the call and spill it,
-// and the explicit (float) cast on the argument makes the store come after
-// the next call's pushes, as in the original (see 0x419340, #106).
 // FUNCTION: 0x419400
 void __stdcall CmdSetShareEnergy(CommandArgs* args)
 {
     char buf[256];
     if (g_game->flags & 1) {
         Player* p = &g_game->players[g_game->localPlayer];
+        // __min macro with an explicit (float) cast: the cast places the store
+        // after the next call's pushes.
         p->share_energy = __min(p->field_a4, (float)args->GetIntArg(1, 0));
         sprintf(buf, "OK.  Will share energy if above %d", args->GetIntArg(1, 0));
         AddMessage(buf, 2, 0, 10);

@@ -1,52 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1,
 // finished by space-bunny-free, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by deepseek-v4.1-flash. Names are provisional.
-//
-// MATCH (1874 of 1874 bytes). The last residual was the zeroing loop's load
-// g_game->data[i]: [edx+eax+0x2a47] where the original has [eax+edx+0x2a47]
-// (SIB base and index swapped, same registers). About 25 source spellings were
-// tried (struct element `.ptr`, `i[arr]`, pointer arithmetic with i*4, i<<2, a
-// byte-offset loop var, for vs do-while, unsigned/char index, a cached `g_game`
-// local, a block-local pointer with a reference as in 0x409730) and all emit
-// the same bytes. The fix is the include set: `#include <stdio.h>
-// #include <string.h> #include <ddraw.h>`. tools/headers.py found 22 header
-// sets that make the function MATCH (smallest: <stdio.h> <ddraw.h>), so the
-// swapped SIB byte was translation-unit state from the original's header list,
-// not a source difference (same family as 0x408f30's wall).
-//
-// What made the big jump (84.1% -> 99.8%), so nobody has to rediscover it:
-//   * SETTINGS ARE A SEPARATE, NEVER-ADDRESS-TAKEN LOCAL STRUCT (`sb`), not a slice of
-//     the temp buffer. Then the struct copy `sb.s = *(Settings*)(p[0] - 0x14)` compiles
-//     to the original's `lea ecx,[esi-0x14]` + four `mov reg,[ecx+N]` / store pairs, the
-//     later reads of field_0 and field_8 are value-numbered to ebp and ebx by the
-//     compiler (no `f0`/`f8` locals, no `rdw` pointer needed), and the flags dword in
-//     ebx for p[9..11] appears by itself. The old 'buf + 0x119' macro made the whole
-//     buffer escape (strncpy(temp, ...)), so every read was reloaded from the frame.
-//   * The struct is `{ char pre[0x99]; Settings s; char pad[0x13]; }` (0x1a1 offset,
-//     0x23-byte tail) because MSVC orders frame objects by size: it must be bigger than
-//     `temp` (0x80) and `names` (0x20) to land after them, as in the original frame.
-//   * The settings flags word is a set of `unsigned short` BIT-FIELDS (players:4,
-//     playing:1, black:1 (bit 8), nocmd:1 (bit 9), mode:2 (bits 11-12), lock:1 (bit
-//     15)). That reproduces `mov edx,eax / shr edx,0xf / test dl,1`, `shr al,4`,
-//     `test ax,ax / cmp ax,0x800` and the bh/bl byte tests exactly; plain masks and
-//     shifts fold to `test ah,0x80`.
-//   * `p[4] += strlen(p[4]) + 1;` (the earlier `p[5] = p[4] + ...` trick wrote the
-//     status text into the wrong column buffer, a semantic bug that only helped the score).
-//   * `char* dsc = (char*)g_game->desc;` before `if (count > 0)` and `p[0] = dsc + 0x18;`
-//     inside it gives the original's `mov ecx,[eax+0x2aa7] / jle / lea esi,[ecx+0x18]`.
-//   * a separate loop counter `left` (`left = count;` at loop entry) gives the original's
-//     `mov [esp+0x10],ebx` after the `jle` instead of before the 0x4a9660 call.
-//   * THE DEAD memcmp STORES: the original keeps both `x = memcmp(.., DAT_004fcdb8)` stores
-//     (sbb/sbb/mov [esp+0x10]) although nothing reads them. MSVC deletes a dead store to
-//     a plain local, and deletes the first of two. Writing them as an int store through
-//     an element of the p[] array (`*(int*)&p[20] = ...`, element 20 is never used) keeps
-//     both, as a compiler temp that shares the [esp+0x10] slot with `left`, exactly like
-//     the original. `if (PE(b8)) ; else store` (the compare once for both) is the shape
-//     that keeps the `je`-over-`sbb` form.
-//   * THE BLOCK LAYOUT of the provider chain ([store][CONN: mov+jmp][UPD][shown], every
-//     jump to the two shared blocks) comes from structuring the second chain as
-//     `if (c8) goto conn; if (!a8) { if (!98) {store} goto conn; }` and letting the a8
-//     case FALL INTO the `upd:` label (which is followed by `conn:`). With a plain
-//     `if (a8) goto upd;` MSVC moves a copy of the UPD block next to the a8 test (97.9%).
+// Include set <stdio.h> <string.h> <ddraw.h>: gives the original SIB operand order.
 #include <stdio.h>
 #include <string.h>
 #include <ddraw.h>
@@ -61,9 +15,10 @@ struct Sub_00441460 {
 
 #pragma pack(push, 1)
 // The record header: field_0, a 16-bit flag word with bit-fields at offset 2, then
-// field_4..version. Read by the original as unaligned dwords (see the notes above).
+// field_4..version. Read by the original as unaligned dwords.
 struct Settings_00441460 {
     unsigned short field_0;
+    // Bit-fields: reproduce the original shifts and byte tests.
     unsigned short players : 4;
     unsigned short playing : 1;
     unsigned short pad5 : 3;
@@ -140,6 +95,7 @@ int __stdcall ConnectToGame(Gadget_00441460* gadget) {
     char* p[21];
     char names[0x20];
     char buf[0x80];
+    // Never address-taken, bigger than temp and names so it lands after them.
     struct { char pre[0x99]; Settings_00441460 s; char pad[0x13]; } sb;
     const char* msg;
     char* lang;
@@ -149,11 +105,13 @@ int __stdcall ConnectToGame(Gadget_00441460* gadget) {
     if (!PE(DAT_004fcdc8) && !PE(DAT_004fcda8)) {
         if (PE(DAT_004fcd98))
             goto upd;
+        // Stores through the unused p[20]: keeps both dead memcmp results.
         if (PE(DAT_004fcdb8))
             ;
         else
             *(int*)&p[20] = memcmp(g_game->provider, &DAT_004fcdb8, 0x10) != 0;
     }
+    // The a8 case falls into upd:, which is followed by conn:.
     if (PE(DAT_004fcdc8))
         goto conn;
     if (!PE(DAT_004fcda8)) {
@@ -189,9 +147,11 @@ shown:
         memset(p[i], 0, 0xa00);
     } while (i < 15);
 
+    // dsc is loaded before the if and used inside it.
     char* dsc = (char*)g_game->desc;
     if (count > 0) {
         p[0] = dsc + 0x18;
+        // Separate counter: its store lands after the jle.
         left = count;
         do {
             char* e;

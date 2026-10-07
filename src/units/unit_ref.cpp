@@ -90,9 +90,8 @@ void UnitRef::UnlinkFromUnit()
 
 // The out-of-line destructor of Class_004895c0 (vtable 0x4fd754): unlinks
 // the object from its owner's list (head at +0xa2) and clears the link.
-// Its ??_G (0x489600) inlines the same body. Callers already call it as
-// UnitRef::FUN_00489650, so it is written as that method, which runs
-// the real destructor non-virtually.
+// Callers already call it as UnitRef::FUN_00489650, so it is written as that
+// method, which runs the real destructor non-virtually.
 // FUNCTION: 0x489650
 void UnitRef::FUN_00489650()
 {

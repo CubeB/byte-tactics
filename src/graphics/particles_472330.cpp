@@ -4,16 +4,9 @@
 // std::vector<ParticleSystem*> selected by the short index in the ten
 // per-index lists at g_game->lists (created by 0x471d90, walked by 0x471eb0,
 // 0x471f40 and 0x471f90). When that list already holds more than 400 entries
-// its oldest element is deleted and erased first. The append lives in an
-// inlined member helper, which is what leaves std::vector::insert (0x4732e0)
-// out of line.
-// Class family listed in 0x471cc0.cpp; operator new (0x471d10) is inlined
-// here. Same shape as the matched particles_470f80.cpp and 0x472430.cpp.
-// The byte stored at +0xc is MSVC copying the vector's empty allocator
-// temporary, not a constructor parameter (see particles_470f80.cpp).
-// g_game->lists is bound to a local at the top: that is what makes the original
-// load g_game before the prologue pushes and keep the lists pointer in ebp for
-// the whole function instead of reloading it at the Add call.
+// its oldest element is deleted and erased first.
+// Class family listed in 0x471cc0.cpp. Same shape as particles_470f80.cpp and
+// 0x472430.cpp.
 #include <stddef.h>
 #include <string.h>
 #include <vector>
@@ -88,6 +81,7 @@ class Lists_00472330 {
 public:
     std::vector<ParticleSystem*> lists[10];             // 0x10 bytes each
 
+    // Inlined member helper: leaves std::vector::insert out of line.
     void Add(short index, ParticleSystem* p)
     {
         if (lists[index].size() > 400) {
@@ -111,6 +105,7 @@ extern Game* g_game;
 void __stdcall EmitThrustParticles(int param_1, int param_2, int param_3, int param_4,
                             short index)
 {
+    // Bound to a local at the top: g_game is loaded before the prologue pushes.
     Lists_00472330* lists = g_game->lists;
     ThrustParticles* p = new ThrustParticles;
     if (p) {

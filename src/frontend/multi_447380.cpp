@@ -1,10 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-opus-5-5. Names are provisional.
 // Refreshes the ally screen: for every playing slot it fills the next
 // consecutive PLAYER/LOGO/ALLY/TEAMICONS entries and the LIVEPLYR/LIVEALLY
-// markers. The slot test is two inline helpers, !IsWatching(p) && IsActive(p),
-// the same pair 0x448c70 uses: that split is what gives the original's
-// register rotation for the second sprintf group (earlier attempts that
-// wrote it as one helper stayed at 93.5%, or 95.1% with lstrcpynA moved).
+// markers. The slot test is two inline helpers, !IsWatching(p) && IsActive(p).
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>
@@ -129,6 +126,7 @@ void __stdcall RefreshAlliesScreen(int param_1)
         FUN_004a0570((char*)g_game + 0x519, teamicons, 0);
 
         Player_00447380* p = &g_game->players[i];
+        // Two helpers, not one: gives the register rotation of the second sprintf group.
         if (!IsWatching_00447380(p) && IsActive_00447380(p)
             && (i != g_game->localPlayer || param_1 == 0)
             && (!(g_game->flags_2a44 & 4) || IsCounted_00447380(p))

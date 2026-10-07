@@ -1,9 +1,7 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 // The compiler-generated static destructor (_$E2) of the global object
 // g_packetManager, whose dynamic initialiser is 0x460e20 and whose out-of-line
-// destructor is 0x461420. The class is built so the compiler inlines the
-// embedded PacketReceiver destructor and the two array destructors in the same
-// order as the original.
+// destructor is 0x461420.
 
 void __cdecl operator delete(void*);
 
@@ -56,6 +54,7 @@ struct Sub_00460f60 {
     ~Sub_00460f60();
 };
 
+// Member layout sets the order in which the destructors are inlined.
 class PacketManager {
 public:
     char pad0[0xc];

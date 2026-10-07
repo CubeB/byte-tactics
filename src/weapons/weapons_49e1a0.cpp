@@ -1,16 +1,6 @@
 // Decompiled by LongCat 2.5 Preview Free, finished by space-bunny-free, finished by GPT-6,
 // finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Claude Opus 5.5.
 // Names are provisional.
-//
-// What made this match (87.4% before):
-// - Both aim arms read DAT_00509688[(e->flags >> 2) & 3] afresh for each call,
-//   as the original does; no cached name local. With the temporaries in the
-//   original's rotation, MSVC merges the two SendScriptCallByName tails at 0x49e393.
-// - The bit-4 test in the non-b19 arm goes through a `bool` local. Testing the
-//   bitfield in place compiles to `test al, 0x10`, which skips one step of the
-//   eax/ecx/edx rotation, so the later temporaries land one register off and
-//   the tails stop merging. The `bool` (or an `unsigned char`) gives the
-//   original's `mov edx, eax; shr edx, 4; test dl, 1`.
 #include <string.h>
 
 struct Vec3_0049e1a0 {
@@ -182,6 +172,7 @@ void __stdcall UpdateUnitWeapons(Unit* unit) {
                     e->f_18 = angle;
                     e->f_16 = heading;
                     e->f_8 = 0;
+                    // Name read afresh for each call, no cached local: lets the two tails merge.
                     unit->script->StartScriptWithArgs(DAT_00509688[(e->flags >> 2) & 3], &e->name, 0, 2,
                                                heading, angle, 0, 0);
                     SendScriptCallByName(unit, DAT_00509688[(e->flags >> 2) & 3], 2, heading, angle, 0, 0);
@@ -189,6 +180,7 @@ void __stdcall UpdateUnitWeapons(Unit* unit) {
                 }
             }
         } else {
+            // Via a bool local: testing the bitfield in place shifts the register rotation.
             bool armed = attached->f_111.b4;
             if (armed && (!attached->f_111.b28 || e->f_1a) && !(e->flags & 1)) {
                 e->f_8 = 0;

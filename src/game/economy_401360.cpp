@@ -3,43 +3,11 @@
 // production is summed, the player's totals and storage are updated, and the
 // share of the demand that could be met is fed back into every account.
 //
-// MATCH (Claude Opus 5.5, #5604). The last difference was tidal's AI
-// dispatch (`je E0; dec; je E1; jmp En` in the original, where the case 1
-// block is merged whole into the else branch's E1). What gave it:
-//  - Tidal and the else branch's income add (UseEnergyD's negative arm) go
-//    through AddIncomeDB, the AI scaling written as in the matched 0x4237d0:
-//    `if (AI) switch { case ...: ...; break; default: ...; break; } else
-//    *dst += v;` with a double amount. With the return form (AddIncomeD) or
-//    the form without a default case for either one, tidal's case 1 block
-//    keeps its own `fmul; jmp` and the dispatch folds to `jne En`.
-//  - <float.h> after <ddraw.h>. Without it the then-branch UseEnergy's x87
-//    code switches to the keep-and-pop form (98.0%) or the whole layout
-//    changes (84.4%); <time.h> or <malloc.h> there match as well, <math.h>,
-//    <stdlib.h> or <windows.h> do not. So the file's symbol count decides it.
-//  - The `goto done` exits and the label the 89.2% version needed are gone:
-//    `if (ok) AddIncome(...)` gives the same bytes now.
-// Earlier findings that still hold:
-// - The accumulators are separate float[2] arrays, not one struct: with one
-//   aggregate MSVC strength-reduces the normalisation loop to a pointer and a
-//   countdown, the original keeps `i * 4` in ecx ([esp+ecx+N]). The frame
-//   order comes out right only with `avail` (production plus stock) and
-//   `demandRatio` split off into their own arrays.
-// - `avail[i] -= take; float left = avail[i];` keeps the remaining amount on
-//   the x87 stack for the second half of the loop, as the original does.
-// - The unit's resource account is a class at +0xbc whose owner pointer is at
-//   +0x30 (unit+0xec); 0x401180..0x4012a0 are its methods and 0x401320 is the
-//   end-of-tick update, all defined above without FUNCTION lines. The cost
-//   block is SpendEnergy inlined.
-// - UseEnergy's positive arm is a helper taking the unit whose `used` store
-//   goes through a float* (otherwise the backlog compare is scheduled above
-//   it). UseEnergyD's positive arm converts the amount to a double for the
-//   demand add, which shares the backlog > 0 pop with the default add.
-// - Income adds: a float amount adds straight to the field (`fadd [m]`), a
-//   double one keeps the amount and pops it (`fld [m]; fadd st(1); fstp [m];
-//   fstp st(0)`). Wind's AddIncomeW takes a double but adds `(float)v` in its
-//   default and non-AI paths, so its case blocks merge into the else
-//   branch's (C2's cross-jumper compares tuples, not bytes).
+// The unit's resource account is a class at +0xbc whose owner pointer is at
+// +0x30 (unit+0xec); 0x401180..0x4012a0 are its methods and 0x401320 is the
+// end-of-tick update, all defined above without FUNCTION lines.
 #include <ddraw.h>
+// <float.h> after <ddraw.h>: the file's symbol count decides the x87 code of UseEnergy.
 #include <float.h>
 struct Unit;
 struct Player_00401360;
@@ -280,6 +248,7 @@ static inline void AddIncomeDB(Unit* u, float* dst, double v)
         *dst += v;
 }
 
+// Takes a double but adds (float)v: its case blocks merge into the else branch's.
 static inline void AddIncomeW(Unit* u, float* dst, double v)
 {
     Player_00401360* o = u->econ.owner;
@@ -301,6 +270,7 @@ static inline void AddIncomeW(Unit* u, float* dst, double v)
 
 static int Use_00401180(Unit* u, float amount)
 {
+    // The used store goes through a float*: else the backlog compare is scheduled above it.
     float* used = &u->econ.res[0].used;
     *used += amount;
     if (u->econ.res[0].backlog > 0.0f)
@@ -337,6 +307,7 @@ static int UseEnergyD(Unit* u, float v)
 // FUNCTION: 0x401360
 void __stdcall UpdatePlayerEconomy(Player_00401360* p)
 {
+    // Separate float[2] arrays, with avail and demandRatio split off: sets the frame order.
     float usedA[2];
     float backlogA[2];
     float demandA[2];
@@ -436,6 +407,7 @@ void __stdcall UpdatePlayerEconomy(Player_00401360* p)
             ratioA[i] = avail[i] / backlogA[i];
         }
         avail[i] -= take;
+        // Local copy keeps the remaining amount on the x87 stack.
         float left = avail[i];
         if (demandA[i] <= left) {
             take = demandA[i];

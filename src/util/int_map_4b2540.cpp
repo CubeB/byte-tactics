@@ -2,28 +2,6 @@
 //
 // This is the game's `g_map.erase(key)` where g_map is the file-local
 // std::map<int,int> at 0x51fbc0, followed by the key object's release.
-// MSVC 5 /Ob2 inlines map::erase(const _K&) and _Tree::erase(const _K&):
-// equal_range calls _Ubound (0x4b3490) and _Lbound (0x4b3430) out of line,
-// _Distance is the count loop, and erase(_F,_L) is inlined. Inside that,
-// erase(_F++) stays out of line (0x4b2ac0) and the fast-path _Erase is
-// inlined once with its self-recursive call kept out of line (0x4b2fb0).
-// The count loop's prefix ++_F inlines iterator::_Inc, which keeps its own
-// _Lockit and calls _Min (0x4b3370) out of line; the erase loop's _F++
-// reaches _Inc out of line (0x4b3590).
-//
-// The out-of-line members are hand-rolled under the names data/symbols.csv
-// already has for their addresses (Class_004b3490::FUN_004b3490 and so on);
-// the real <map> instantiation would emit the template's mangled names
-// instead, which the checker rejects. The Map wrapper is load bearing: the
-// extra inlined erase layer is what makes MSVC reserve the erase iterator's
-// slot before the count lock and produce the original's 0x18-byte frame.
-//
-// The tree is file-static, which is what lets MSVC keep the lower bound in a
-// register across the bounds calls; an external object makes it spill, 435
-// bytes against 423. A file-static's symbol is named `name$S<n>` with n a
-// per-TU counter, and symbols.csv records this one as DAT_0051fbc0$S425, so
-// the 72 unused statics below restore the original TU's counter. They emit
-// no code and change nothing else.
 #include <yvals.h>
 
 struct Node_004b2540 {
@@ -142,12 +120,15 @@ public:
     }
 };
 
+// Keep the Map wrapper: its extra inlined erase layer shapes the stack frame.
 class Map_004b2540 {
 public:
     Class_004b2fb0 _Tr;             // +0x0
     int erase(const int& key) { return _Tr.erase(key); }
 };
 
+// Keep the 72 unused statics and the file-static tree: they restore the
+// original's static symbol counter and register use.
 static int dummy_004b2540_00, dummy_004b2540_01, dummy_004b2540_02, dummy_004b2540_03;
 static int dummy_004b2540_04, dummy_004b2540_05, dummy_004b2540_06, dummy_004b2540_07;
 static int dummy_004b2540_08, dummy_004b2540_09, dummy_004b2540_10, dummy_004b2540_11;

@@ -1,11 +1,7 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Reads back a surface written by 0x4c6f10: an 8-byte header of width and
 // height, then one row per scan line into a freshly allocated surface.
-// The allocation and the header set-up (the body of 0x4c6a60) are one inlined
-// helper, so its width and height arguments live in callee-saved registers
-// across the FUN_004d83b0 call.
-// <ddraw.h> decides the operand order of the i * s->pitch multiply in the row
-// loop (compiler state, not header content; see 0x4c6f10.cpp).
+// Must stay: <ddraw.h> decides the operand order of the row-loop multiply.
 #include <ddraw.h>
 
 struct Rect_004c6f80 {
@@ -37,6 +33,7 @@ struct Surface_004c6f80 {
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* ptr);
 
+// Allocation and header set-up (the body of 0x4c6a60), kept inline.
 static inline Surface_004c6f80* NewSurface(char* name, int w, int h)
 {
     Surface_004c6f80* s = (Surface_004c6f80*)FUN_004d83b0(name, h * w + 0x30);

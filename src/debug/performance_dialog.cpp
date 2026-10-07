@@ -130,26 +130,10 @@ static inline bool NamesEqual_004df590(const char* a, const char* b) { return a 
 // combo boxes picking entries from a list, five check boxes, a list box of
 // names, a help link), WM_TIMER (refills the name list box from the global
 // name table when it changed), WM_INITDIALOG and WM_HOTKEY.
-//
-// What took it from 78.3% to MATCH (Claude Opus 5.5, #3293):
-// - The case order in the source: WM_COMMAND before WM_TIMER before
-//   WM_INITDIALOG (WM_HOTKEY can go anywhere). The machine-code layout is
-//   the same for every order, but the order decides the register
-//   candidates' ids and so which split pieces are reloaded first and which
-//   locals share frame slots (the mask/nmask and info/sel slot pairs). The
-//   other 20 orders score 94.3 to 95.1%.
-// - The WM_TIMER loop written as a guarded do-while. A plain while or for
-//   loop compiles to the same WM_TIMER code but moves the 0x3ed/0x3ee case's
-//   loop registers and its `push 0` tail (87.3%).
-// - HIWORD(wParam) for the notification tests, which keeps the shr and lets
-//   C2 reuse the register known to hold 1 for b; the id branch
-//   `if (i == 1) id = 0x3ee;` in WM_INITDIALOG, which stops the strength
-//   reduction of DAT_00529e00[i]; the inlined _Min taking `node->right` as an
-//   argument, which loads it before the lock.
-// - The help URL literal ends in ".html" (the old file had a truncated one).
 // FUNCTION: 0x4df590
 BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 {
+    // Case order WM_COMMAND, WM_TIMER, WM_INITDIALOG: decides register ids and frame slots.
     switch (msg) {
     case 0x111: {
         int id = LOWORD(wParam);
@@ -161,6 +145,7 @@ BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM
 
         case 0x3ed:
         case 0x3ee: {
+                // HIWORD(wParam) for the notification tests: keeps the shr.
                 if (HIWORD(wParam) != CBN_SELCHANGE)
                     return 0;
                 int b = 0;
@@ -240,6 +225,7 @@ BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM
                     }
                     j++;
                     {
+                        // Min_004df590 inlined with node->right as argument: loads it before the lock.
                         std::_Lockit lock;
                         if (node->right != DAT_005292c4) {
                             node = Min_004df590(node->right);
@@ -278,6 +264,7 @@ BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM
             Node_004df590* node = info->names.head->left;
             SendDlgItemMessageA(hwnd, 0x3f4, 0x184, 0, 0);
             ((Class_004e18c0*)&set)->FUN_004e18c0();
+            // Guarded do-while: a while or for loop moves the loop registers.
             if (Iterator_004df590(node) != Iterator_004df590(info->names.head)) {
                 do {
                     ((Class_004e1990*)&set)->FUN_004e1990(&node->value);
@@ -305,6 +292,7 @@ BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM
         for (int i = 0; i < 2; i++) {
             int mask = 1 << i;
             int id = 0x3ed;
+            // Branch, not arithmetic: stops strength reduction of DAT_00529e00[i].
             if (i == 1)
                 id = 0x3ee;
             int sel = 0;

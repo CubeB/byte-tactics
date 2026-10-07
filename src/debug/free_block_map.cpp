@@ -77,6 +77,7 @@ public:
     Class_004dd2a0 first;
     unsigned char second;
     Class_004ddbe0() {}
+    // const reference: the hidden return pointer of insert is what gets pushed.
     Class_004ddbe0* FUN_004ddbe0(const Class_004dd2a0& first, unsigned char& second);
 };
 
@@ -122,6 +123,7 @@ public:
     // 0x4db450: reserve more address space and add it to the free blocks.
     bool Grow(unsigned int size)
     {
+        // len declared before base: the other order swaps the operands of base + len.
         unsigned int len = 0x10000000;
         unsigned int base;
 
@@ -154,26 +156,12 @@ public:
 // "block covers offset" tests come before the node is erased; then the tree is
 // searched for the offset and the pair inserted if nothing is there. Same shape
 // as 0x4db450 and 0x4db7d0.
-//
-// The three Class_004ddbe0 calls (one per exit from the search) are the same
-// call in the source, written on one function-scope object, so MSVC 5 merges
-// their identical endings (lea ecx; call; epilogue) into the one at 0x4db1a4
-// that the first two reach with a jmp. Two details make that happen:
-//   * the insert call is passed straight to FUN_004ddbe0 as its first
-//     argument, rather than through a named local. MSVC then lays the
-//     argument pushes out interleaved (push &inserted, then the insert's four
-//     arguments, then push eax for the returned iterator), which is what the
-//     original does at 0x4db13f-0x4db154.
-//   * that parameter is a const reference. The insert returns a class with a
-//     constructor, so MSVC 5 passes a hidden return pointer to it and the
-//     callee hands the same pointer back in eax, which becomes the pushed
-//     first argument; a by-value or non-const-reference parameter does not
-//     reproduce the `push eax`.
 // FUNCTION: 0x4db000
 void FreeBlockMap::AddFreeBlock(Pair_004db000 p)
 {
     Class_004dd2a0 it;
     Class_004dd2a0 it2;
+    // One function-scope object for all three calls: lets their identical endings merge.
     Class_004ddbe0 result;
     unsigned char inserted;
 
@@ -219,6 +207,7 @@ void FreeBlockMap::AddFreeBlock(Pair_004db000 p)
     if (less) {
         if (Class_004dd2a0(y) == begin()) {
             inserted = 1;
+            // Insert call passed straight in, not via a local: fixes the argument push order.
             result.FUN_004ddbe0(((Class_004dce60*)this)->FUN_004dce60(x, y, &p), inserted);
             goto done;
         }
@@ -240,35 +229,15 @@ done: ;
 // if two passes over the set find nothing, reserve more address space (Grow,
 // the out-of-line copy of which is 0x4db450) and try again. DAT_00528a00
 // counts the wraps around the set and DAT_00528a54 is the tree's _Nil node.
-//
-// What matched it (it sat at 80.5 percent for ten passes with `this` and
-// `bytes` in each other's registers):
-//  * The body is the one 0x4dacf0 inlines (matched in #5052), written the same
-//    way: STL-style iterators (`lb != begin()`, `it--`, `cur++`, `cur->length`)
-//    whose operator--(int) calls _Dec (0x4dd2a0) out of line and whose
-//    operator++(int) inlines _Inc with _Min (0x4dd1b0) out of line. Only the
-//    callee addresses differ, since this file's copy of the set's members is
-//    0x4dd250 (_Ubound), 0x4dc130 (erase) and 0x4dbec0 (insert).
-//  * The lookup key `k` is declared at function scope. Inside the `if` MSVC
-//    turns the recursive `return TakeFreeBlock(bytes)` into a jump (589 bytes).
-//  * In Grow, `len` is declared before `base` (the other order swaps the
-//    operands of `base + len`).
-//  * In the found block, `len` is declared before `base` but `base` is read
-//    first. The declaration order decides the operand order of the second
-//    leftover's length (`base - bytes + len - mark` in `base`'s register, with
-//    `base + len` from the test not reused), the read order keeps the loads in
-//    place.
-//  * The symbol count before it is right. With fewer symbols MSVC keeps
-//    `base + len` from the test and reuses it for the length, two bytes
-//    shorter; a dummy-declaration scan shows the reuse comes and goes with
-//    the symbol count in a period of 512.
 // FUNCTION: 0x4db1c0
 unsigned int FreeBlockMap::TakeFreeBlock(unsigned int bytes)
 {
+    // Function scope, not inside the if: otherwise the recursive return becomes a jump.
     Pair_004db000 k;
     if (size() > 0) {
         k.offset = DAT_005289d4;
         k.length = 0;
+        // STL-style iterator operators (--, ++, ->) throughout: their inlining shapes the code.
         Class_004dd2a0 lb = upper_bound(k);
         if (lb != begin()) {
             Class_004dd2a0 it = lb;
@@ -286,6 +255,7 @@ unsigned int FreeBlockMap::TakeFreeBlock(unsigned int bytes)
                 tries++;
             }
             if (cur->length >= bytes) {
+                // len declared before base but base read first: sets operand and load order.
                 unsigned int len, base;
                 base = cur->offset;
                 len = cur->length;

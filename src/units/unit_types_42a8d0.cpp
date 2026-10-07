@@ -3,38 +3,9 @@
 // reads the UNITINFO section of every units\*.fbi into the unit type table at
 // g_game+0x1439b, then drops the units whose version or copyright does not
 // check out and compacts the table.
-//
-// The bytes match. The one reference check.py rejects is the call in the
-// `return 0` path's inlined ~vector: its _Destroy calls Elem_00432be0's scalar
-// deleting destructor with 0 (??_GElem_00432be0@@QAEPAXI@Z, 0x432c00), which
-// data/symbols.csv knows as Class_00432c00::FUN_00432c00. It needs a
-// data/aliases.csv row like the one for 0x432c20 (0x42e440's ??_GEntry).
-//
-// What the match needed (no FLAGS line; the aligned frame comes from the
-// `double version` local):
-//  * The weapon part is an inline helper: its size(), ~vector() and ??_H stay
-//    out of line only because a helper's call sites share (budget - cost) / R
-//    of the /Ob2 budget. The TDF getters are inline wrappers too: they raise
-//    R, so the `return 0` path's ~vector inlines _Destroy but calls ??_G,
-//    while the final one inlines it all (`uv run tools/c2prio.py --inline`).
-//  * The weapon TDF globals are file statics: with an extern count, new[]
-//    computes its size from its own copy of the count (esi/edi swapped).
-//  * `char copyright[128]`: a 0x80 local sorts before the 0x100 paths, which
-//    gives C2's slot quicksort (FUN_00459eb7, a K&R quicksort) the
-//    original's order of the three path buffers.
-//  * The file names go through an inline `operator char*`; with `.data` the
-//    path temporary is generated after the name's and the rotation is off.
-//  * The compaction keeps the byte offset `size` and decrements it: with
-//    `unitinfo[count - 1]` the compiler makes its own induction variable,
-//    which loses ebp to j * 0x249.
-//  * Four base/index orders (the weapon searches' `[k * 12 + tdfs]`, the file
-//    name loads `[i * 4 + first - 4]` and the compaction's `[size + unitinfo]`)
-//    follow front-end symbol ids modulo 65536 (docs/c2-regalloc.md, "Symbol
-//    ids"): the TDF statics, `files` and `size` all need ids just past 65536.
-//    The plausible header set below with the game types header in its own
-//    namespace (as in 0x410850) puts `size` at 66413; `<memory.h>` on top, or
-//    `<float.h>` left out, already breaks one of them.
 
+// This header set (with ta_types.h in its own namespace) must stay as is: it
+// sets symbol ids that fix several base/index operand orders.
 #include <windows.h>
 #include <ddraw.h>
 #include <dsound.h>
@@ -68,6 +39,7 @@ struct Elem_00432be0 {
     char* data;                        // +0x0
 
     ~Elem_00432be0() { ((Class_004c9390*)this)->ReleaseRef(); }
+    // Used instead of `.data`: keeps the path temporary's order.
     operator char*() const { return data; }
 };
 
@@ -206,6 +178,7 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
+// File statics, not externs: with an extern count new[] reads its own copy.
 static TdfFile* DAT_005122a0;
 static int DAT_005122a4;
 static int DAT_005122a8;
@@ -232,6 +205,7 @@ void __stdcall GetLocalizedString(void* parser, char* dst, char* key, int size, 
 #define COPYRIGHT "Copyright 0000 Humongous Entertainment. All rights reserved."
 
 // Loads every Weapons\*.tdf into the weapon TDF table.
+// Must stay an inline helper (like the TDF getters): it sets the inline budget.
 static inline void LoadWeaponTDFs()
 {
     FileList files;
@@ -350,6 +324,7 @@ int LoadUnitInfo()
                 u->flags1 &= ~0x800000;
                 bad = 1;
             }
+            // 128 bytes, so it sorts before the 0x100 path buffers.
             char copyright[128];
             parser.GetString(copyright, "Copyright", 0x80, "Run to the Village!  Warn your brother!");
             memcpy(copyright + offset, "0000", 4);
@@ -370,6 +345,7 @@ int LoadUnitInfo()
 
     // Drop the units marked incompatible, moving the last kept one into each
     // hole; `size` is the byte offset of the end of the kept units.
+    // Keep `size` and decrement it; indexing unitinfo[count - 1] loses ebp.
     int oldcount = count;
     for (unsigned short j = count - 1; j > 0; j--) {
         UnitDef* u = &g_game->unitinfo[j];

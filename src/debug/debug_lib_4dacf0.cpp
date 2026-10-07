@@ -4,34 +4,6 @@
 // takes `want` bytes of reserved address space from the free-block set (the
 // allocator's TakeFreeBlock, inlined here), commits `need` of it with
 // VirtualAlloc, pads the block and records it in the second set.
-//
-// MATCH (claude-opus-5-5, #5052; was 79.8% after #5034, 66.4% before that).
-//  * The search is TakeFreeBlock's body inlined one level deep, which is why
-//    the set's own members (lower_bound 0x4dc620, begin 0x4dbeb0, the
-//    postfix -- and ++ 0x4dbe10/0x4dbd80, erase 0x4dbd00, insert 0x4dbbc0)
-//    are called out of line here, and the "grow and retry" tail is a call to
-//    0x4db450 plus the recursive call to 0x4db1c0. It needs `inline`, since
-//    MSVC 5 does not inline the recursive member on its own, and it is
-//    defined here without a FUNCTION line because free_block_map.cpp owns that
-//    address.
-//  * `int tries = 0;` sits just before the loop, not at the top. At the top,
-//    MSVC counts the zero of tries and of the size() test together with the
-//    loop's `DAT_005289d4 = 0` and keeps a constant 0 in ebx for the whole
-//    search. Declared before the loop, the zero for size(), k.length and
-//    the --(0) is the register tries later lives in (esi), and the loop's
-//    zeros are immediates, as in the original.
-//  * The found block copies the free block's value (`Pair b = *cur;`), so
-//    its offset and length are fields of one 8-byte local: the length's
-//    spill slot is 0x20, next to the begin()/`it` slot at 0x1c, which is
-//    what puts res, lock and need at 0x24/0x28/0x2c. `lb != begin()` uses
-//    the temporary, so it shares 0x1c with `it` and the loop's begin().
-//  * The clamp reads DAT_005289d4 directly, the way the prev-block test
-//    does, and only then picks `mark`. Writing it with `mark` (`mark = DAT;
-//    if (mark < b.offset || ...) mark = b.offset;`) gives the same
-//    instructions but one more use of mark, and that use alone made MSVC
-//    give `this` ebx and mark edi (lock and need swap with them).
-//  * The second free block's length is `b.offset - mark + b.length - bytes`
-//    (sub, add, mov, sub); `b.offset + b.length - end` is 3 bytes shorter.
 #include <windows.h>
 #include <set>
 
@@ -120,9 +92,10 @@ char IsBackAlign();
 int FUN_004db7c0();
 void __cdecl FillPattern(void* at, int value, unsigned int count);
 
-// The allocator's alloc() (0x4db1c0, see the notes above): find a free block
+// The allocator's alloc() (0x4db1c0): find a free block
 // of `bytes`, preferring the one the last allocation came from, and hand back
 // the leftovers around the request as new free blocks.
+// Needs `inline`: MSVC 5 does not inline the recursive member on its own.
 inline unsigned int FreeBlockMap::TakeFreeBlock(unsigned int bytes)
 {
     if (size() > 0) {
@@ -137,6 +110,7 @@ inline unsigned int FreeBlockMap::TakeFreeBlock(unsigned int bytes)
                 lb = it;
         }
         Class_004dbe10 cur = lb;
+        // Declared just before the loop, not at the top: it changes how zeros are allocated.
         int tries = 0;
         do {
             if (cur == end()) {
@@ -146,10 +120,12 @@ inline unsigned int FreeBlockMap::TakeFreeBlock(unsigned int bytes)
                 tries++;
             }
             if (cur->length >= bytes) {
+                // Copies the free block's value: its fields share one 8-byte local.
                 Pair_004db000 b = *cur;
                 ((Class_004dbd00*)this)->FUN_004dbd00(cur);
                 if (DAT_005289d4 == 0)
                     DAT_005289d4 = b.offset;
+                // The clamp reads DAT_005289d4 directly; going through mark shifts registers.
                 unsigned int mark;
                 if (DAT_005289d4 >= b.offset && DAT_005289d4 + bytes <= b.offset + b.length)
                     mark = DAT_005289d4;
@@ -158,6 +134,7 @@ inline unsigned int FreeBlockMap::TakeFreeBlock(unsigned int bytes)
                 if (mark > b.offset)
                     ((Class_004dce60*)this)->FUN_004dbbc0(Pair_004db000(b.offset, mark - b.offset));
                 unsigned int end = mark + bytes;
+                // Length written as offset - mark + length - bytes: the other form is shorter.
                 if (end < b.offset + b.length)
                     ((Class_004dce60*)this)->FUN_004dbbc0(Pair_004db000(end, b.offset - mark + b.length - bytes));
                 DAT_005289d4 = end;

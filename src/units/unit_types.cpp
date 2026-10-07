@@ -178,6 +178,7 @@ public:
             unsigned int c17 : 1;
             unsigned int c18 : 1;
             unsigned int c19 : 1;
+            // A 3-bit bitfield store in LoadUnitFbi, not a wider field.
             unsigned int selfdestructcountdown : 3;
         };
     };
@@ -513,16 +514,11 @@ void RefreshUnitInfo()
 // the table at g_game+0x391cb (0xbd-byte entries). For every pair that shares a
 // name, if the def's bit 5 at +0x241 is clear it prints a warning and sets the
 // "downloadable" bit (the table's lock is taken around the update).
-//
-// Best so far 100%: the loop must be `for (i = 0; i < count; i++, def += 0x249)`
-// with the whole thing a single for statement. That is what puts `inc i` before
-// `add esi, 0x249` and the bitfield access at +0x241 makes MSVC pick the
-// bitfield storage word as the element base (name is then esi-0x221).
-// The initial `i = 0` test must be MSVC's own rotation: no source guard.
 // FUNCTION: 0x42bd40
 void CheckDownloadableFlags()
 {
     UnitDef* def = g_game->field_1439b;
+    // One for statement with `i++, def += 0x249`; no source guard on the first test.
     for (int i = 0; i < g_game->field_1438f;
          i++, def = (UnitDef*)((char*)def + 0x249)) {
         for (int j = 0; j < g_game->field_391c7; j++) {
@@ -570,49 +566,6 @@ void AddDownloadBuildOptions()
 // unit definition: names, costs, movement, energy, the two flag words, the
 // self-destruct countdown, the sound category, corpse, movement class,
 // weapons, the yard map and the footprint extents.
-//
-// Claude Opus 5.5 (#4745): 81.0% -> 94.5%, same size as the original (4772
-// bytes). The earlier notes (passes 3 to 16, in git history) chased one
-// shared-zero register; these were the real causes:
-//   1. Every default argument is a literal 0, and the sound category loop has
-//      its own counter (`for (sound = 0; ...)` inside the if, with the store
-//      and `goto` on a hit and `= 0` in the else). Then the constant 0 and
-//      the counter share esi, as in the original (81.0 -> 89.9).
-//   2. The YardMap pointer is cleared twice: once before `if (bmcode == 0)`
-//      and again in its else branch (the original has both stores).
-//   3. GetFieldFixed returns its 16.16 value by value through a hidden
-//      pointer (`Fixed` has constructors), so its result temporaries, the
-//      fild temporaries and the yard loop's y all share the frame slot at
-//      [esp+0x1c], as in the original; no `scratch` local is needed
-//      (89.2 -> 92.7).
-//   4. The extents tail is `size = max - min` with an inline Vec3
-//      operator- returning by value (92.7 -> 94.0).
-//   5. The self-destruct countdown is a 3-bit bitfield store (`= atoi(...)`
-//      or `= 5`), and the sound category test goes through an int local
-//      (`cmp eax, esi` instead of `test eax, eax`).
-//   6. The minimum and maximum extents read the footprint fields directly,
-//      with no w/h locals.
-// Claude Opus 5.5 (#5476): 94.5% -> MATCH (the bytes and every name match;
-// the checker still needs a data/constants.csv row for the immediate
-// 0x500000, the countdown's `5 << 20`, which lies in the image's range).
-//   7. The x87 stores: each float field is read through GETFLOAT, whose body
-//      is a parenthesised cast, `((float)call)`. With the parentheses the
-//      fstp lands after the next call's pushes and `this` load, as in the
-//      original; `(float)call` alone stores right after the call. The same
-//      parentheses inside an inline helper (`return ((float)value);`) work
-//      too, and GetFieldDouble is declared with its real double return. This
-//      also fixed the six flag-word statements, which no longer differ.
-//   8. The YardMap stores read the map through `char*& map =
-//      unitdef->yardmap;` declared after the loop locals, so map has the
-//      larger symbol id and is the base of `[map + cell]`.
-//   9. `w * h` for the yard allocation loads footprintz first only with the
-//      parentheses of 7; without them every spelling of the multiply, its
-//      locals and the loops kept footprintx first (it moved only when
-//      distinct pointer-based memory expressions were added or removed
-//      before the footprint stores).
-//  10. The `(TdfRecord*)` casts left on parser.current change nothing in
-//      type, but each takes a symbol id; dropping any of them moves the
-//      register allocation.
 // FUNCTION: 0x42bf40
 void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
     TdfFile parser;
@@ -664,6 +617,7 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
                 parser.current->GetFieldFixed("moverate2", Fixed(unitdef->maxvelocity * 2)).value;
             unitdef->turnrate =
                 (short)parser.current->GetFieldInt("turnrate", 0);
+            // Keep the (TdfRecord*) casts on parser.current: each takes a symbol id.
             unitdef->waterline = (char)((TdfRecord*)parser.current)->GetFieldInt("waterline", 0);
             unitdef->transportsize =
                 (char)((TdfRecord*)parser.current)->GetFieldInt("transportsize", 0);
@@ -859,9 +813,11 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
                 unitdef->selfdestructcountdown = 5;
             ((TdfRecord*)parser.current)->GetFieldString(buf, "category", 100, DAT_005119b8);
             unitdef->AddToCategories(buf);
+            // The test goes through an int local, and default arguments are literal 0.
             int found = ((TdfRecord*)parser.current)
                     ->GetFieldString(buf, "soundcategory", 100, DAT_005119b8);
             if (found) {
+                // Own loop counter, with the store and goto on a hit.
                 int sound;
                 for (sound = 0; sound < g_game->field_37e17; sound++) {
                     if (_strcmpi(g_game->field_37e13 + sound * 0x160, buf) == 0) {
@@ -918,6 +874,7 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
                 unitdef->flags1 &= ~0x10000;
             else
                 unitdef->flags1 |= 0x10000;
+            // Cleared here and again in the else branch: the original has both stores.
             unitdef->yardmap = 0;
             if (unitdef->bmcode == 0) {
                 ((TdfRecord*)parser.current)
@@ -927,6 +884,7 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
                 int cell = 0;
                 char* cursor = yard;
                 int y = 0;
+                // Declared after the loop locals: its larger symbol id makes it the base.
                 char*& map = unitdef->yardmap;
                 while (y < unitdef->footprintz) {
                     for (int x = 0; x < unitdef->footprintx;) {
@@ -975,10 +933,12 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
             } else {
                 unitdef->yardmap = 0;
             }
+            // Footprint fields read directly, no w/h locals.
             unitdef->extentmin.x = (unitdef->footprintx * -0x100000) / 2;
             unitdef->extentmin.z = (unitdef->footprintz * -0x100000) / 2;
             unitdef->extentmax.x = (unitdef->footprintx << 20) / 2;
             unitdef->extentmax.z = (unitdef->footprintz << 20) / 2;
+            // Inline Vec3 operator- returning by value.
             unitdef->extentsize = unitdef->extentmax - unitdef->extentmin;
             unitdef->radius = (unitdef->extentsize.z + unitdef->extentsize.x) / 3;
             parser.Unload();
@@ -1018,118 +978,6 @@ void __stdcall ReloadUnitType(unsigned short index)
     }
 }
 
-// MATCH (deepseek-v4.1-flash). The 96.8 residual was one loop-carried CSE: the units loop's
-// latch loaded g_game->field_1438f into ecx and the idiv reused it (`idiv ecx`) with g_game
-// parked in edi. Reading the divisor through a body-local pointer (`Game* gp = g_game;`
-// then `gp->field_1438f`) makes that load a different value, so it rematerialises as
-// `idiv [ecx+0x1438f]`, g_game takes ecx, and the mov cx placement and lea order follow.
-// `else break;` in the GUI suffix do-while fixes the tail (`jmp`, not test/jne) and is exactly
-// the 2 bytes the count-into-memory adds. The last hunk (the canbuild `je` skipping the list
-// reload on the zero-iteration edge) needs the index store form `list[count] = val; count++;`
-// instead of the walking `*out = val; out++;`. Finally `new Class_00458160` had to become
-// `operator new(0x14)` + `obj = obj ? obj->Construct() : 0;` because data/symbols.csv names
-// that address Class_00458160::Construct, not the constructor.
-// Pass 15 (deepseek-v4.1-flash): shape unchanged, re-confirmed 2173/2173 at 96.8. The whole
-// residual diff is three adjacent spots from one allocator decision: (1) the units-loop entry
-// guard, ours materialises the count (`mov ecx,[edi+0x1438f]; cmp ecx,esi`) where the original
-// folds it (`cmp [ecx+0x1438f],esi`); (2) the divide, ours `idiv ecx` reusing that materialised
-// count across the `jle`, the original `idiv [ecx+0x1438f]`; (3) the latch, ours reloads g_game
-// into edi and then the count into ecx, the original reloads g_game into ecx and the count into
-// eax. `mov edi,[0x511de8]` and `mov ecx,[0x511de8]` are both 6 bytes, so that register pick is
-// not a size effect: with the reloaded g_game parked in edi our count takes ecx and survives to
-// the divide, while with g_game in ecx the count cannot live across the pushes/cdq and both uses
-// fold into memory operands. The remaining GUI suffix tail (`test eax,eax; jne` here against the
-// original `jmp`) is the `else break;` form, which alone gives 2171 bytes / 94.4.
-// Pass 14 (deepseek-v4.1-flash): byte accounting confirms the pair exactly. Against 2173/96.8
-// the original hunk1 (entry test, `cmp [ecx+0x1438f],esi`) is 2 bytes shorter than ours and the
-// original hunk3 (`idiv [ecx+0x1438f]`) is 4 bytes longer, while the GUI tail `jmp` is 3 shorter
-// than our `test/jne`: -4 +3 = -1, which the jump-displacement byte restores, so count-into-memory
-// (+2) and `else break;` (-2) really are the whole gap. Tried this pass: a union alias
-// (field_1438f vs field_1438f_alt at the same offset, used for the divisor) compiles to exactly the
-// same 2173 bytes, MSVC treats same-offset union members as one location; moving `type->field_21e
-// = u;` in front of the percent store inserts the store between the latch count load and the idiv
-// but grows the file to 2181 (95.2), it re-schedules the whole body top. Restored 96.8. The div
-// reuses the latch value only because the allocator parks that load in ecx (caller-saved, survives
-// to the idiv); the original parks it in eax, which cdq kills, so the divisor stays a memory
-// operand and ecx stays free for g_game. That pick is not source-spellable with the forms tried.
-// Pass 13 (deepseek-v4.1-flash): kept 96.8% (2173 bytes against 2173). Re-read the original:
-// at the units-loop entry 0x42d6b0..0x42d6e3 it holds g_game in ecx (`mov ecx,[0x511de8]`),
-// folds the count into `cmp dword ptr [ecx+0x1438f],esi`, and divides with
-// `idiv dword ptr [ecx+0x1438f]`; the back edge reloads g_game into ecx and the count into eax
-// (`cmp esi,eax; jl`). Ours holds g_game in edi and CSEs the count into ecx across the guard
-// and the div (`mov ecx,[edi+0x1438f]; cmp ecx,esi; idiv ecx`), which also forces the extra
-// `mov cx,[esp+0x14]` and shifts u's home 0x10 -> 0x14; the original's `mov cx,[esp+0x20]`
-// (base+0x10 after 16 bytes of pushes) and `lea edx,[esp+0x74]`/`[esp+0x78]` both resolve to
-// base+0x70, so only u's slot differs. The CSE is the whole wall: every structural form that
-// would separate the guard from the div either duplicates the tail test or breaks the frame,
-// so the ecx/edi pick is not source-spellable with the forms tried.
-// Pass 12 (deepseek-v4.1-flash): the do-while respelling of the units loop
-// (`u = 1; if (1 < g_game->field_1438f) { do { ... u++; } while ((int)u < g_game->field_1438f); }`)
-// plus `else break;` in the GUI suffix loop lands exactly on the original tail (no duplicated
-// test) at 2171 bytes / 94.4%: the guard/idiv count-in-register CSE
-// (`mov ecx,[edi+0x1438f]; cmp ecx,esi; idiv ecx`) is unchanged, so the allocator pick is not
-// structure-spelled. Restored the 96.8% for-loop version (which keeps the wrong tail but the
-// right 2173-byte length). Both fixes are complementary: count into memory (+2) + else break (-2).
-// Pass 10 (deepseek-v4.1-flash): tried the GUI suffix loop again; back to 96.8%. Appending
-// `else break;` to the if inside the do-while (keeping `} while (more);`) DOES produce the
-// original tail exactly (`test eax,eax; je exit; inc ebx; mov esi,1; jmp head`, no duplicated
-// test), but the build is then 2171 bytes, 2 short, so every later jump displacement is off and
-// difflib drops the score to 94.4%; the units-loop hunks are unchanged, so the missing 2 bytes
-// are in the count load/compare shape there (ours loads field_1438f into ecx and uses `idiv ecx`
-// plus a near jle, the original uses two memory operands and a short jle). Fix that pair together
-// and the function should land. for(;;) and do-while(1) with break both re-emit the redundant
-// test or peel the first iteration (2230 bytes / 90.3%).
-// Pass 11 (deepseek-v4.1-flash): the loop/tail pair is one-way so far. Adding `else break;`
-// inside the GUI do-while (keeping `} while (more);`) reproduces the original tail exactly at
-// 2171 bytes / 94.4% for every divisor spelling tried: `(int)g_game->field_1438f` and
-// `*(int*)((char*)g_game + 0x1438f)` compile byte-identically to the plain form, so the
-// hoisted count (`mov ecx,[edi+0x1438f]; cmp ecx,esi; idiv ecx`) does not turn into the
-// original's two memory operands (`cmp [ecx+0x1438f],esi`, `idiv [ecx+0x1438f]`) from the
-// divisor expression. `int u` instead of `unsigned short u` in the units loop breaks the
-// whole loop (2198 bytes / 71.6%). Hoisting the `type` declaration out of the units loop and
-// declaring `u` outside it are byte-identical at 96.8% (2173), so the ecx/edi flip for
-// g_game is still the only thing left; nothing tried this pass moved it.
-// Pass 9 (deepseek-v4.1-flash): 96.8% (2173 bytes against 2173, sizes equal). The cursor swap
-// that held this at 91.4% is gone: the copy loop must be `*w++ = *s` (not `*w = *s; w++;`), so
-// MSVC emits `mov ecx,w; push s; add w,0x249; call` like the original and keeps the cursor in
-// edi / the end pointer in ebp. What still differs is one allocator pick, twice: the original
-// holds g_game in ecx and re-reads [ecx+0x1438f] for the loop test and the idiv, ours holds the
-// count in ecx and g_game in edi (mov ecx,[edi+0x1438f]; idiv ecx). Units-loop for/do-while
-// shapes, the unsigned char cast on the quotient and swapping the test operands are all
-// byte-neutral at 96.8%; the GUI suffix loop must stay the condition-tested do-while (`for(;;)`
-// plus `if (!more) break;` and `do ... while (1);` both duplicate the body, 2230 bytes / 90.3).
-// Everything else, including the frame and the jump offsets, matches.
-// Older notes (passes 1-8), kept for context. Best was 91.4% (2175 bytes against 2173), deepseek-v4.1-flash. The compaction copy loop
-// takes a separate write cursor (`w = p; ... *w = *s; w++;` then `d = w;` after the loop): that
-// removes the [esp+0x10] spill of d (the single-variable form scores 91.2 with d reloaded and
-// stored around every operator= call). What still differs is only the cursor/end register swap:
-// ours keeps the cursor in ebp and `end` in edi, the original has d in edi and `end` in ebp,
-// which cascades into the unit-loop hunks. Rejected this pass: `for(;;) { ...; if
-// (!HAPI_FileLengthByName(path)) break; ... }` for the suffix loop (rotated, 2240 bytes, 87.2), inert
-// file-scope extern declarations (16 / 48 / 80 -> 91.2 / 90.8 / 91.2), moving the w or end
-// declaration, `end` declared last (87.7), making w span both branches with `d = w` after the
-// if/else (91.2), `d += 1`, `d = 0` initialiser, `last` alias removed, while-copy with s
-// declared outside.
-// Best 91.2% (2183 bytes against 2173) shape: the GUI suffix loop must be written as a do-while
-// whose condition re-reads the HAPI_FileLengthByName result from a local:
-//   more = HAPI_FileLengthByName(path); if (more) { suffix++; found = 1; } while (more);
-// That stops /O2 from peeling the first iteration; for(;;), while(1) and a goto loop all score
-// 86.2 (2240 bytes) because MSVC duplicates the loop body ahead of a rotated loop.
-// The compaction keeps the earlier winning shape: keep bit-23-set elements, scan loop and copy
-// loop separate, `*d = *s` (not `*d++`, which reshuffles the callee-saved registers and 89.2).
-// Restructuring the guard as `if (p != end) { while(...) }` followed by
-// `if (p == end) { d = p; } else { d = p; for(...) }` fixed the inverted first guard,
-// 90.2 -> 91.2: the original emits `cmp; je Ld` (scan is the fall-through) then after the loop
-// `cmp; jne Lelse`, and this shape reproduces both branch layouts.
-// Remaining (as of the 91.2 shape; the spill below was later fixed by the write cursor,
-// everything after it is an offset cascade):
-// the compaction copy loop spills d to [esp+0x10] and reloads/gathers it around every
-// operator= call; the original emits `lea esi,[eax+0x249]; mov edi,eax` and keeps d in edi for
-// the whole loop, storing it once after (about 6 bytes). Tried and rejected: `*d++ = *s` (89.2,
-// moves `end` out of ebp), reusing p as the write pointer (77.7, drops `xor ebx,ebx` early),
-// init d=p before the guard (84.1), while-loop copy, swapped declaration order, moving the
-// count/last computation (all still 91.2). The unit-loop idiv difference noted by the previous
-// worker disappears once the compaction size matches.
 // FUNCTION: 0x42d2e0
 void LoadUnitTypes() {
     char namebuf[32];
@@ -1162,6 +1010,7 @@ void LoadUnitTypes() {
         parser.Unload();
     }
 
+    // operator new plus Construct(), not `new`: the symbol table has no constructor here.
     Class_00458160* obj = (Class_00458160*)operator new(0x14);
     obj = obj ? obj->Construct() : 0;
     g_game->field_1437b = obj;
@@ -1188,6 +1037,7 @@ void LoadUnitTypes() {
 
     UnitDef* p = start;
     UnitDef* d;
+    // This guard shape (if p != end, then if p == end) gives the original's branch layout.
     if (p != end) {
         while (p != end && !(~(p->flags1) & 0x800000))
             p++;
@@ -1198,6 +1048,7 @@ void LoadUnitTypes() {
         UnitDef* w = p;
         for (UnitDef* s = p + 1; s != end; s++) {
             if (!(~(s->flags1) & 0x800000)) {
+                // Must be `*w++ = *s`, not a separate increment.
                 *w++ = *s;
             }
         }
@@ -1246,8 +1097,10 @@ void LoadUnitTypes() {
 
     g_game->field_14377 = (void**)FUN_004d83b0("MODEL PTRS", g_game->field_1438f * 4);
 
+    // `u` must be an unsigned short: an int counter breaks the loop.
     for (unsigned short u = 1; u < g_game->field_1438f; u++) {
         UnitDef* type = &g_game->field_1439b[u];
+        // Divisor read through this body-local pointer: g_game then takes ecx.
         Game* gp = g_game;
         g_game->field_38d71 = (unsigned char)((u * 100) / gp->field_1438f);
         type->id = u;
@@ -1280,6 +1133,7 @@ void LoadUnitTypes() {
         int suffix = 1;
         int found = 0;
         int more;
+        // Condition-tested do-while on a `more` local, with `else break;`.
         do {
             sprintf(section, "%s%d", namebuf, suffix);
             BuildDataPath(path, "guis", section, "GUI");
@@ -1323,6 +1177,7 @@ void LoadUnitTypes() {
                     while (parser2.current->GetFieldString(valbuf, objpath, 0x20, DAT_005119b8)) {
                         short val = FindUnitTypeId(valbuf);
                         if (val != 0) {
+                            // Index store, not a walking `*out = val; out++;`.
                             list[count] = val;
                             count++;
                         }
@@ -1502,17 +1357,14 @@ void FreeDownloadMenus()
 // looked up in the name to mask table (GetCategoryMask) and this object's team bit
 // is set in the mask that name maps to, then the same is done for "ALL", so the
 // team always ends up in the ALL mask.
-// The first test sits outside the loop (a do/while): that is what puts the
-// loop's register save between the test and the body, and it is also what wins
-// ebx for `this` instead of edi.
-// The original translation unit of LoadUnitFbi saw only this declaration; in
-// the merged file /Ob2 would inline the body into it, so keep it out of line.
+// Must stay out of line: inlining the body into LoadUnitFbi breaks the match.
 #pragma auto_inline(off)
 // FUNCTION: 0x488e70
 void UnitDef::AddToCategories(char* names)
 {
     int n;
     char buf[256];
+    // First test outside the loop (a do/while): it decides the register save and `this`.
     if (sscanf(names, " %s %n", buf, &n) == 1) {
         do {
             names += n;

@@ -1,32 +1,11 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, edited by Claude Opus 5.5, finished by Claude Opus 5.5. re-verified by GPT-6. Names are provisional.
 // "Attacking" order handler of aircraft (VTOL). Interrupts hand over to a
 // "VTOL_SEEKATTACK" order; the order follows its target unit and gives up
-// outside its range. State 0 prepares the order (FUN_0040f200 is defined here
-// because /Ob2 inlined it), states 1 and 2 make attack runs past the target,
-// state 4 turns around after a pause, state 5 aims at the target again and
-// state 6 flies on and, when the unit is below three quarters of its health,
-// sends it to a random repair pad ("VTOL_LANDING").
-//
-// MATCH (Claude Opus 5.5, #5142). The last difference was state 4's turn
-// time, `fmul [30.0f]` then `fimul [field_22]` and a positive `inc`/`add`
-// sum. Three things together give it:
-//  - the product `(float)sqrt(size * 2.0 / rate) * 30.0f` goes into a float
-//    local `x`, which stops VC5 moving the constant multiply to the outside
-//    (with the constant outermost it folds the sum's sign into it and gives
-//    `fimul; fmul [-30.0f]` and `sub`);
-//  - the time is `(int)(x * field_22) + 1` and field_216 is added in a
-//    second statement, `time += def->field_216;`. With the whole sum in one
-//    statement, or with `time += 1 + field_216`, VC5 evaluates the division's
-//    operands the other way round (`fild rate; fild size; fxch; fdivp`),
-//    multiplies field_22 with `fild; fmulp` and folds the sum into `lea`;
-//    with the int product in its own local (`t + 1 + field_216`) the x87
-//    part is right but the sum is still one `lea`;
-//  - size and rate are still loaded before the `if (!rate) break;` test.
-// In small test functions the same x87 shape flips with code after the
-// expression (a test and call between the sum and its use also gave the fdivp
-// form), so it is decided by the integer sum's shape, not by the float part.
-// Cases 1 and 2 need their pointer locals declared without an initialiser and
-// assigned &order->pos first, which orders the two `lea`s (deepseek-v4.1).
+// outside its range. State 0 prepares the order (FUN_0040f200), states 1 and
+// 2 make attack runs past the target, state 4 turns around after a pause,
+// state 5 aims at the target again and state 6 flies on and, when the unit is
+// below three quarters of its health, sends it to a random repair pad
+// ("VTOL_LANDING").
 #include <list>
 #include <windows.h>
 #include <math.h>
@@ -207,6 +186,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
     case 1: {
         unit->ReleaseWeapons(3);
         unit->ClaimWeapons(0);
+        // Pointer locals declared bare, then &order->pos assigned first: orders the two lea.
         Vec3* op;
         Vec3* up;
         op = &order->pos;
@@ -223,6 +203,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
         return 1;
     }
     case 2: {
+        // Declared bare and assigned in this order, as in case 1.
         Vec3* op2;
         Vec3* up2;
         op2 = &order->pos;
@@ -243,11 +224,14 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
         if (flags & 0xe0)
             return 1;
         UnitDef* def = unit->def;
+        // size and rate are loaded before the !rate test.
         int size = def->field_21c;
         int rate = g_game->field_391e9->field_d3c;
         if (!rate)
             break;
+        // Float local x: keeps the constant multiply from moving outermost.
         float x = (float)sqrt(size * 2.0 / rate) * 30.0f;
+        // field_216 is added in a second statement: one sum changes the x87 order.
         int time = (int)(x * unit->type->field_22) + 1;
         time += def->field_216;
         Class_0044e2d0* obj;

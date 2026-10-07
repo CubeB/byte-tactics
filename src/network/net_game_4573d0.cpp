@@ -4,22 +4,8 @@
 // six doubles (+0xac, +0xbc, +0xcc, +0xb4, +0xc4, +0xd4) as floats, plus the
 // caller's flag byte. It goes to `target` when there is one, otherwise to
 // every occupied player slot of type 3 whose data->field_94 is 1.
-//
-// `#include <string.h>` is load bearing here even though nothing in this file
-// calls a string function. Without it the five player-loop reads of
-// g_game->players[i] come out as `[esi+eax+0x1b63]` (SIB 0x06) where the
-// original has `[eax+esi+0x1b63]` (SIB 0x30, g_game as base and the byte
-// offset of the induction variable as index), and the function is 5 bytes out.
-// Everything else about the loop already matched, so this was the only
-// difference, and it is the same header the matched sibling 0x451b60 carries.
-// Worth knowing for the next one: the flip tracks how many memory references
-// the loop body has, not how it is phrased. With the call plus three of the
-// four tests the accesses come out right, and adding the fourth test flips all
-// five, which is what sent the earlier search through every ordering of the
-// tests, the address expression, the call's arguments, the static inline
-// helpers, tools/headers.py's 128 sets and the N-declarations test without
-// finding it. 0x4578f0 needed the same include for the same reason.
 
+// Unused here, but changes how g_game->players is indexed in the loop.
 #include <string.h>
 
 #pragma pack(push, 1)

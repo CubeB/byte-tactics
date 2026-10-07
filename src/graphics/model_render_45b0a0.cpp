@@ -1,7 +1,5 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// <string.h> is not used, but dropping it changes MSVC's register choice in
-// the box sums below (the object field lands in a different register), so the
-// include has to stay for byte-identical output.
+// Unused, but must stay: dropping it changes the register choice in the box sums.
 #include <string.h>
 
 struct Object3do {

@@ -1,20 +1,6 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
-// This file of the original was built with /Gz, so the function is __stdcall;
-// found by the orchestrator's calling-convention sweep of every partial.
-// Partial, 99.1%: the only difference left is the scheduling of the copy of
-// FootprintCentre's result right after the GetGroundHeight call in SmokeAt. The
-// original issues `shl eax, 0x10` first and stores q.x before `push ecx`;
-// ours hoists `mov edx, [esp+0x2c]` and `lea ecx, [esi+4]` above the shl
-// and stores q.x after the push. The N-declarations test (0 to 600) and every
-// headers.py set leave that window unchanged; <ddraw.h> is needed for the
-// width * height operand order in the scan reset.
-// What did help: the y offset must not be a linear expression MSVC can
-// factor. `(oy - r) * 2 - (h >> 2) * 2` always compiles to
-// `(oy - (h >> 2) - r) << 1`, whatever temporaries or casts are used; writing
-// the second term as a shift of a narrowed value, `(unsigned short)(h >> 2)
-// << 1`, keeps the original's two shl. The x offset likewise needs
-// `(unsigned short)(w >> 2)` to keep `r - originX` before the add.
 #include <windows.h>
+// Needed for the width * height operand order in the scan reset.
 #include <ddraw.h>
 #include <stdlib.h>
 
@@ -199,8 +185,10 @@ static inline SmokePos_00424050 SmokeAt_00424050(Spot_00424050* spot, Feature_00
     SmokePos_00424050 p = FootprintCentre_00421eb0(&spot->cell, f);
     Frame_00424050* frame = GetGafSequenceFrame(&spot->anim);
     unsigned short w = frame->width;
+    // The narrowed (unsigned short)(w >> 2) keeps `r - originX` before the add.
     p.x.f.whole += Rand_00424050(w >> 1) - frame->originX + (unsigned short)(w >> 2);
     unsigned short h = frame->height;
+    // The second term is a shift of a narrowed value: a linear form gets factored.
     p.y.f.whole += (frame->originY - Rand_00424050(h >> 1)) * 2 - ((unsigned short)(h >> 2) << 1);
     return p;
 }

@@ -7,12 +7,7 @@
 // 0x433a80, and the held vector's _Destroy 0x433d90 and deallocate 0x433da0.
 //
 // LosTables::FUN_00433270(short): resizes the vector at +0 (its _First at
-// +4, 16-byte elements) through the inlined std::vector<Column>::resize(_N, _X),
-// with _X the default-constructed Column temporary in this frame (which is why
-// its destructor runs here and why the function pops 4 argument bytes). The
-// extra Wrap_00433270 layer inside Elem_00434360 is what keeps the innermost
-// _Destroy/allocator::deallocate calls out of line at the original's exact
-// inline depth; without it they inline and the code is 10 bytes short.
+// +4, 16-byte elements) to n columns, filled with a default-constructed Column.
 #include <vector>
 
 struct Elem_00434020 {
@@ -20,6 +15,7 @@ struct Elem_00434020 {
     unsigned short b;                  // +0x2
 };
 
+// Extra layer: keeps the innermost _Destroy/deallocate calls out of line.
 struct Wrap_00433270 {
     std::vector<Elem_00434020> v;      // +0x0
 };

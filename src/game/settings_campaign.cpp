@@ -223,7 +223,6 @@ int __stdcall LoadSavedGameState(HapiBank* file)
 // state when the game is in state 6) and hands it to SaveBank, which
 // writes the ",3P" file and returns its result. Argument 2 is an optional
 // description string, argument 3 the game id.
-// check.py: MATCH (976 bytes, both).
 // FUNCTION: 0x4326b0
 int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
 {

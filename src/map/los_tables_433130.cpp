@@ -2,8 +2,6 @@
 // The object at +0 is a std::vector<std::vector<Elem_00434360> > (the same
 // class as 0x433380), where Elem_00434360 is a struct holding one
 // std::vector<Elem_00434020>; the fill value is a std::vector<Elem_00434360>.
-// Its out-of-line members are declared only, so the compiler emits the same
-// calls the original does instead of inlining them.
 
 namespace std {
     template<class T> class allocator {
@@ -28,6 +26,7 @@ namespace std {
         iterator begin() { return _First; }
         iterator end() { return _Last; }
         size_type size() const { return _First == 0 ? 0 : (_Last - _First); }
+        // Declared only, never defined: keeps the calls out of line.
         iterator erase(iterator first, iterator last);
         void _Destroy(iterator first, iterator last);
         void insert(iterator pos, size_type n, const T& x);

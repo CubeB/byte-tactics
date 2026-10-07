@@ -2,16 +2,7 @@
 // Selects the menu entry named `name` (16 bytes of its name at +0x02 of the
 // 0x15b-byte entry, so entry i's name is at entries + i*0x15b + 2). When the
 // selected entry is type 3 it makes its group's type-7 entry current and
-// refreshes its edit field. FindEntry is inlined from the same helper as
-// 0x4a1810/0x4a30c0; the group loop is SelectFontForEntry's body inlined.
-//
-// The type==3 body is the inlined helper DoSelect. The call passes a fresh
-// `menu->layer->entries` and a fresh read of `menu->layer->field_20` (the
-// store to field_20 above invalidates both, so the compiler reloads them into
-// esi and ebx), while the type==3 test itself still reads the local `entries`
-// and the field. That split is what makes the original's register choices:
-// esi for the index, ebx reloaded from layer+4 rather than kept, and the test's
-// `add ebx,esi` addressing that destroys the dead local.
+// refreshes its edit field.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -103,6 +94,7 @@ void __stdcall SelectGadgetByName(Menu_004a76b0* menu, char* name)
         menu->focus = -1;
         menu->layer->field_20 = index;
         if (entries[menu->layer->field_20].type == 3) {
+            // The test reads the local entries; the call re-reads layer->entries and field_20.
             DoSelect(menu, menu->layer->entries, menu->layer->field_20);
         }
     }

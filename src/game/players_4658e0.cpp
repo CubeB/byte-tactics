@@ -1,22 +1,10 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// MATCH (469 bytes). The 96.5% partial compared a masked local, which loaded a
-// byte, masked EAX twice and spilled a dword. Testing the global inline,
-// `(g_game->flags & 2) == 2`, makes MSVC load the word, mask AX, spill AX and
-// compare the spilled word; the two identical tests share the one load. The
-// result local must be `unsigned int vis`, not `char` or `int`: char narrows
-// the test to `test dl, dl`, and `int` rotates the callee-saved assignment
-// (size/pos.y/pos.x shift registers), while `unsigned int` gives the original's
-// `test edx, edx` and keeps esi = size>>1, bx = pos.z, di = pos.x.
 // Is point (x, y) or point (x+dx, y+dy) visible to the local player?  The
 // 12-byte Position local (6 shorts, x/y/z among them) is zeroed with an
-// inlined memset and then filled from the arguments; the compiler promotes the
-// fields to registers but keeps the three dead zero dword stores, which is the
-// only source spelling that reproduces the original prologue.  When bit 1 of
-// the game flags word at g_game+0x14281 is set the player's explored byte map
-// at +0x7c (width +0x80, height +0x84) is used, otherwise the shared
-// visibility bit mask at +0x14273 with this player's bit (g_game+0x2a43).
-// The `Map_004658e0* m = map;` local is what puts the map in eax and lets the
-// pointer stay in eax across both visibility evaluations.
+// inlined memset and then filled from the arguments. When bit 1 of the game
+// flags word at g_game+0x14281 is set the player's explored byte map at +0x7c
+// (width +0x80, height +0x84) is used, otherwise the shared visibility bit
+// mask at +0x14273 with this player's bit (g_game+0x2a43).
 #include <memory.h>
 #pragma pack(push, 1)
 struct MapSize_004658e0 {
@@ -71,9 +59,12 @@ static inline int IsSeen(Map_004658e0* map, Pos_004658e0* pos)
 // FUNCTION: 0x4658e0
 int __stdcall FUN_004658e0(Map_004658e0* map, int x, int y, int dx, int dy, short size)
 {
+    // Local copy of map: keeps the pointer in eax across both evaluations.
     Map_004658e0* m = map;
+    // unsigned int: char or int changes the test and the register assignment.
     unsigned int vis;
     Pos_004658e0 pos;
+    // Kept even though the stores are dead: reproduces the original prologue.
     memset(&pos, 0, sizeof(pos));
     pos.x = (short)(x << 4);
     pos.y = size;

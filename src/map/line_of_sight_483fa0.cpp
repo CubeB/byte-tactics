@@ -1,23 +1,8 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by opus. Names are provisional.
-// MATCH. Draws the visible map tiles into `surface`: the partial tiles along
+// Draws the visible map tiles into `surface`: the partial tiles along
 // the left/right edges and then the top/bottom edges through DrawFrameOpaque
 // (a 32x32 Bitmap whose data points at the tile's icon), then the whole
 // interior tiles through DrawTile.
-// opus rewrote the earlier 77.2% file from scratch. What it took:
-// * The edge and interior loops are index loops: the screen coordinate is
-//   written from the index (`screenY + j * 32 - offY`, `screenX + i * 32`),
-//   so MSVC strength-reduces it into a register and builds the down-counter
-//   and the `stride * 2` step itself, in the preheader after the guard. The
-//   earlier explicit `y += 32` / `n--` counters put them before the guard
-//   and moved the zero register (`mov edx, ebp; xor ebp, ebp`).
-// * All the prologue locals are declared together at the top and the view
-//   size is loaded before the divisions; that keeps viewW/viewH in ebx/ebp
-//   across them, so tileX is reloaded for offX as in the original and the
-//   frame slots come out in the original's order. Declaration order still
-//   matters: tilesX/tilesY must be declared before tileX/tileY (74.2%
-//   otherwise) and offX/offY before viewW/viewH (about 53% otherwise).
-// * The interior inner loop advances the map pointer in the `for` increment,
-//   `i++, p++`, which orders the two `add`s as the original does.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -67,6 +52,8 @@ void __stdcall DrawTile(void* dst, int x, int y, unsigned char* pix);
 // FUNCTION: 0x483fa0
 void __stdcall DrawMapTiles(void* surface)
 {
+    // Declared together: tilesX/tilesY before tileX/tileY, offX/offY before
+    // viewW/viewH.
     int tilesX, tilesY;
     int tileX, tileY;
     int screenX, screenY;
@@ -78,6 +65,7 @@ void __stdcall DrawMapTiles(void* surface)
     screenY = g_game->viewY;
     scrollX = g_game->scrollX;
     scrollY = g_game->scrollY;
+    // View size is loaded before the divisions.
     viewW = g_game->viewW;
     viewH = g_game->viewH;
     tileX = scrollX / 32;
@@ -104,6 +92,7 @@ void __stdcall DrawMapTiles(void* surface)
     if (offX != 0 || edgeX != 0) {
         unsigned short* left = g_game->mapValues + tileY * stride + tileX;
         unsigned short* right = g_game->mapValues + tileY * stride + tileX + tilesX - 1;
+        // Index loops: screen coordinates are written from the index, no counters.
         for (int j = 0; j < tilesY; j++) {
             if (offX != 0) {
                 bmp.data = g_game->iconSet->data + *left * 0x400;
@@ -154,6 +143,7 @@ void __stdcall DrawMapTiles(void* surface)
 
     for (int j = 0; j < tilesY; j++) {
         unsigned short* p = g_game->mapValues + (tileY + j) * (unsigned short)stride + tileX;
+        // Map pointer advanced in the for increment.
         for (int i = 0; i < tilesX; i++, p++) {
             DrawTile(surface, screenX + i * 32, screenY + j * 32, g_game->iconSet->data + *p * 0x400);
         }

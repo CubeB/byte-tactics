@@ -1,24 +1,9 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// This is 0x45ab10 (which is matched) applied to a unit, to every unit on
-// its child list, and then one call to DrawObjectState; the whole body is inside
-// `if (unit->field_86 == 0)`, which is why the early exit jumps straight to
-// the three-push epilogue.
-//
-// What made it match (all of it inherited from src/graphics/model_render_45ab10.cpp):
-//  - The distance test has to be an inline helper taking the state and a
-//    POINTER to the unit's position. Written out inline, or with a helper
-//    taking (state, unit), MSVC 5 gives the unit ebp, keeps no zero register
-//    and loses the `lea edx, [ecx+0x18]` of the position copy.
-//  - RestorePieceVertices is spelled RECURSIVELY here so /Ob2 inlines its first level
-//    into BOTH copies of the body. Out of line, MSVC makes of it the sibling
-//    loop, which the original does not have. The flag the first level
-//    computes is passed to the child but the sibling always gets 0
-//    (`xor edx,edx ; mov ecx,ebp ; call`), which is what the recursive
-//    spelling gives and what the `result` spelling of 0x45b030.cpp would not.
-//  - The position is one 6-byte struct copy, which MSVC splits into a dword
-//    store plus a word store with `state->field_8 = 1` scheduled between them.
-//  - <string.h> is needed for the inlined memcpy.
+// This is 0x45ab10 applied to a unit, to every unit on its child list, and
+// then one call to DrawObjectState; the whole body is inside
+// `if (unit->field_86 == 0)`.
 #include <stdlib.h>
+// Needed for the inlined memcpy.
 #include <string.h>
 
 #pragma pack(push, 2)
@@ -98,6 +83,7 @@ int __fastcall RestorePieceVertices(Entry_0045ac20* piece, int force)
         piece->unknown_26 = 0;
         result = 1;
     }
+    // Recursive, not a loop: the first level gets inlined into both copies.
     if (piece->child)
         result = RestorePieceVertices(piece->child, result);
     if (piece->sibling)
@@ -123,6 +109,7 @@ struct Game {
 extern Game* g_game;
 
 // Nonzero when the state's position is 8 or more away from `pos` on any axis.
+// Takes a pointer to the position: other signatures change the register use.
 static inline int FarFrom(State_0045ac20* state, const Vec3s_0045ac20* pos)
 {
     return abs((short)(state->pos.z - pos->z)) >= 8
@@ -136,6 +123,7 @@ void __stdcall DrawUnit(void* context, Unit* unit)
     if (unit->field_86 == 0) {
         State_0045ac20* state = unit->state;
         if (FarFrom(state, &unit->pos)) {
+            // One 6-byte struct copy.
             state->pos = unit->pos;
             state->field_8 = 1;
             state->root->unknown_26 = 0;

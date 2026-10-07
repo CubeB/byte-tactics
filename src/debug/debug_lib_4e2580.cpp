@@ -1,6 +1,4 @@
 // Decompiled by Opus. Names are provisional.
-// std::_Tree<...>::lower_bound(const key&) from MSVC 5's <xtree> with
-// _Lbound (which holds a std::_Lockit) inlined (the second copy at 0x4e1480).
 // Keys are C strings ordered by strcmp; DAT_005292c4 is the tree's _Nil
 // node. The iterator has constructors, so it is returned through a hidden
 // pointer.

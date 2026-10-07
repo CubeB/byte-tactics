@@ -2,9 +2,7 @@
 // Draws one gadget entry's three glyphs (start, repeated middle, end) across
 // the span [x, x + w] on the surface of the entry table. Same entry table as
 // 0x4a23b0 (fields x/y/w/h at 0x13..0x19) and 0x4a0f30 (holder at +0x18).
-// <windows.h> is needed only for the compiler state: without it MSVC keeps
-// the loop test's sum in the width register (add eax, esi) instead of a fresh
-// one (lea ecx, [esi+eax]).
+// Needed only for compiler state: changes how the loop test's sum is formed.
 #include <windows.h>
 
 struct Glyph_004a2480 {

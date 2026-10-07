@@ -2,35 +2,6 @@
 // Appends `count` 25-byte records to the global registration table (a
 // std::vector at 0x512340) and sorts the whole table by name. The record has a
 // per-kind notify callback at +4 (0x43bad0 calls it) and its name at +0x15.
-//
-// What the match needed (previous passes stopped at 83.6%):
-//  * The table is a `static std::vector<Elem_0043c390>` defined in this
-//    translation unit. Internal linkage is what lets MSVC 5 keep _First and
-//    _Last in ecx/ebp from the prologue to the sort, reloading them only on the
-//    edges after a call (`mov ebp,[_Last]` after each insert, `mov ecx,[_First]`
-//    on the copy loop's exit). With `extern` every build reloaded on both paths
-//    and swapped the registers. The compiler-generated initialiser and atexit
-//    destructor of this definition are byte-identical to 0x438450 and 0x438480,
-//    so the table really is this std::vector and really is defined here.
-//  * The real <vector> and <algorithm> code: reserve, std::copy into a
-//    std::back_inserter, then std::sort. MSVC's /Ob2 budget then keeps
-//    vector::size, _Destroy and insert out of line, calls _Insertion_sort_1 in
-//    the small case and inlines it (calling _Unguarded_insert) in the big one.
-//    The sort helpers are written out below as MSVC 5's <algorithm> templates,
-//    under the names the exe already gives their out-of-line copies; the
-//    recursive _Sort calls itself, so only its first level is inlined.
-//  * `int sz = size();` as its own statement puts size in the base of
-//    `lea esi, [edx + edi]` (`size() + count` in one expression swaps them).
-//  * The rest of the translation unit around it: 0x43bad0 before, and
-//    0x43c020, 0x43c050 and 0x43c350 after, as in the exe. The order in which
-//    the inlined _Sort evaluates `_L - _M` and `_M - _F` is a tie that depends
-//    on the compiler's state (0x43c050's inlined copy of this same code takes
-//    the other order), and this layout reproduces it.
-//
-// Reference names: real reserve calls std::vector<Elem_0043c390>::size, which
-// data/symbols.csv names Class_0043c360::FUN_0043c360 (0x43c360 is matched under
-// that view name), so the size reference needs the data/aliases.csv row for
-// UElem_0043c390::?$vector::size.
 #include <vector>
 #include <algorithm>
 #include <iterator>
@@ -50,6 +21,7 @@ struct Elem_0043c390 {
 typedef std::vector<Elem_0043c390> Vec_0043c390;
 typedef int(__stdcall* Pred_0043c390)(const Elem_0043c390&, const Elem_0043c390&);
 
+// File-static: internal linkage keeps the vector bounds in registers across the sort.
 static Vec_0043c390 DAT_00512340;
 
 int __stdcall CompareOrderTypeNames(const Elem_0043c390& a, const Elem_0043c390& b);
@@ -243,6 +215,7 @@ void __stdcall FUN_0043bad0(Parent_0043bad0* p)
 // FUNCTION: 0x43bc90
 void __stdcall RegisterOrderTypes(Elem_0043c390* from, int count)
 {
+    // Own statement: `size() + count` in one expression swaps the lea operands.
     int sz = DAT_00512340.size();
     DAT_00512340.reserve(sz + count);
     std::copy(from, from + count, std::back_inserter(DAT_00512340));

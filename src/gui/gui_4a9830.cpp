@@ -8,26 +8,7 @@
 // selection one line up, scrolls the window if needed and refreshes the
 // gadget. A selection on line 0 is not moved, and a line whose text starts
 // with "&G" is not moved either.
-//
-// MATCH (390 of 390 bytes) with two changes to the earlier 89.4% version
-// (Claude Sonnet 5.5, #683):
-//  1. Compiler state. The value that merges the two font-size arms stayed in edx
-//     (an extra `mov edx, eax`) because the file was built in the wrong compiler
-//     state. Scoring with N unused `extern int` declarations after the includes
-//     gives 391 bytes and 91.3% for N = 24 to 80, 152 to 208 and 288 to 336 (three
-//     windows) and 393 bytes and 89.4% for every other N up to 400. In the
-//     window the merged value is in eax as in the original. headers.py finds that
-//     `<stdlib.h>` or `<stdio.h>` together with `<string.h>` reach it, so the file
-//     includes `<stdlib.h>` too (it is a guess which of them the original had).
-//  2. Source shape, only visible inside the window: the 16-bit read is
-//     `unsigned short* pg = (unsigned short*)GetGafFrame(...); size = pg[1] + 2;`.
-//     That gives `xor ecx, ecx; mov cx, word ptr [eax + 2]; mov eax, ecx; add eax, 2`
-//     of the original. The old `unsigned short g = *(unsigned short*)(call + 2)`
-//     gives `mov ax, ...; and eax, 0xffff`, a bare `*(unsigned short*)(call + 2) + 2`
-//     gives 395 bytes, and a pointer local dereferenced at +2 folds the +2 into a
-//     separate `add eax, 2`; only the indexed `pg[1]` keeps the offset in the load.
-//  (The group loop written as `i < entries->count + 1` is what keeps `n` in the
-//  dead argument slot and the walking pointer in ecx.)
+// <stdlib.h> must stay: with <string.h> it puts the file in the right compiler state.
 #include <stdlib.h>
 #include <string.h>
 
@@ -87,6 +68,7 @@ void __stdcall FUN_004a9830(Dialog* param_1, int index)
     Entry_004a9830* me = &entries[index];
     int n = 0;
     int i = 1;
+    // The `count + 1` condition keeps n in the dead argument slot.
     for (; i < entries->count + 1; i++) {
         if (entries[i].type == 7) {
             if (n == me->group) {
@@ -103,6 +85,7 @@ void __stdcall FUN_004a9830(Dialog* param_1, int index)
     if (g_guiContext->list == 0) {
         size = GetFontHeight();
     } else {
+        // Indexed pg[1], not a pointer local: keeps the +2 offset in the load.
         unsigned short* pg = (unsigned short*)GetGafFrame(g_guiContext->list->field_0c, 0x49);
         size = pg[1] + 2;
     }

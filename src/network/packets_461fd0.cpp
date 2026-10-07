@@ -3,26 +3,6 @@
 // packets and a new entry array of `growpackets` more entries, then moves every
 // entry that still belongs to a packet into the new entry array, re-queueing the
 // pending ones (the inlined 0x4623e0 and 0x461f90) and relinking the in-use list.
-// The rest of PacketChannel is in packet_channel.cpp; this stays apart because
-// its inlined DequeuePacket calls the ring's out-of-line pop and push, where
-// 0x4623e0 inlines them.
-//
-// MATCH (#5283). The earlier 99.0% file duplicated `j++` into both arms of the
-// head test, which got the global allocation right but left j's latch
-// temporary in ecx instead of esi. That temporary is picked by C2's
-// Pentium-pairing rename pass (FUN_0042b3e2), which walks each codegen block
-// from the bottom up and hands every flagged tuple the next free register of
-// eax, ecx, edx, esi, edi, ebx, ebp from a pointer reset at each block. With a
-// single `j++` in the latch, the `c != 0` compare below it takes ecx first, so
-// j++ gets esi as in the original. With j++ in the latch, though, c outranked e
-// (516 against 496 in tools/c2prio.py) and took ebp. The tail append written
-// as `if (tail) { tail->next = e; tail = e; } else { tail = e; }` gives e the
-// extra weight (c 500, e 528); MSVC merges the two `tail = e` stores again, so
-// the code is unchanged apart from the allocation.
-//
-// The allocations call `operator new` / `operator delete` (??2 / ??3, the
-// names data/symbols.csv has at 0x4b4f10 / 0x4b4f20); `operator new[]`
-// compiles to the same code but references ??_U / ??_V.
 
 #include <string.h>
 
@@ -158,6 +138,7 @@ int PacketChannel::GrowPools(int growbufs, int growpackets)
         return 1;
     }
 
+    // operator new/delete, not new[]: new[] references ??_U / ??_V instead.
     int total = field_c + growbufs;
     Packet_00461fd0** np = (Packet_00461fd0**)operator new(total * 4);
     if (np) {
@@ -249,6 +230,8 @@ int PacketChannel::GrowPools(int growbufs, int growpackets)
                             e->field_18 = field_34;
                             e->field_c = p;
                             e->field_1c = 0;
+                            // Both arms store tail = e: gives e the register weight the
+                            // allocation needs; the stores are merged again.
                             if (field_34) {
                                 field_34->field_1c = e;
                                 field_34 = e;
@@ -258,6 +241,7 @@ int PacketChannel::GrowPools(int growbufs, int growpackets)
                             if (!field_30) {
                                 field_30 = e;
                             }
+                            // One j++ in the latch: keeps its temporary in esi.
                             j++;
                             c = c->field_1c;
                         }

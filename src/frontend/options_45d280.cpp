@@ -4,18 +4,6 @@
 // and RESTORE reload the saved or the default sound settings, and any other
 // selection on a valid entry (state 1) closes the screen and runs the next
 // screen's handler. Selection -1 stops or restarts the sound object.
-//
-// MATCH (claude-opus-5-5, from 93.1%). The UNDO flag flip every earlier pass
-// fought (f in ebp, a widened byte xor) was never a spelling problem: UNDO and
-// RESTORE are the zero-caller neighbours LoadSavedAudioSettings and FUN_0045c630, and
-// TRACKMODE's lookup is ApplyTrackType, all defined here without FUNCTION lines
-// and left to /Ob2. Both settings helpers end in ApplyBrightnessAndVolume (the brightness
-// and volume tail), and that matters: with the tail written out,
-// LoadSavedAudioSettings's IL size is 197, which /Ob2 never even considers (145 is), so
-// it stays a call. The remaining `lea eax,[edi*8]` in the tail came from
-// indexing with `obj->field_60` itself rather than the saved copy, as the
-// sibling handler 0x45e100 does. The NOTRAK test still needs its result in a
-// local (`notrak`); testing the call directly is 1 byte longer.
 
 #pragma pack(push, 1)
 
@@ -245,6 +233,7 @@ void __stdcall HandleMusicOptionsClick(Object_0045d280* obj)
         return;
     }
     FUN_0049fa90(obj);
+    // Result kept in a local: testing the call directly is longer.
     int notrak = IsCurrentGadgetNamed(obj, DAT_005067bc);
     if (notrak != 0) {              // "NOTRAK"
         PlaySoundByName(DAT_00502b38, 0);
@@ -273,6 +262,7 @@ void __stdcall HandleMusicOptionsClick(Object_0045d280* obj)
         return;
     } else if (IsCurrentGadgetNamed(obj, DAT_0050692c)) {  // "TRACKTYPE"
         PlaySoundByName(DAT_00502b38, 0);
+        // Index with obj->field_60 itself, not the saved copy.
         int i = obj->field_60;
         ((Class_004ce7c0*)g_game->sound)->SetCategoryOfTrack(DAT_00512fe0, entries[i].value);
         UpdateTrackGadgets();

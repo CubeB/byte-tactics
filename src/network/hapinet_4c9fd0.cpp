@@ -3,10 +3,6 @@
 // application GUID (+0x43d) and the requested instance GUID, opens it, then
 // re-reads the negotiated description and copies the session name into the
 // object's name buffer.
-// The body is nested in `if (net->dp != 0)` with a single trailing `return 0`
-// and `return 1` inside: writing the two failures as early `return 0`s makes
-// MSVC give the `size` local its own slot (`push ecx`) instead of reusing the
-// first parameter's home.
 #include <windows.h>
 #include <string.h>
 
@@ -78,6 +74,7 @@ void __cdecl FUN_004d85a0(void* p);
 int __stdcall HAPINET_joingame(Net_4c9fd0* net, Guid_4c9fd0 guid)
 {
     HapinetTrace("HAPINET_joingame\n");
+    // Nested with one trailing return 0: early returns give `size` its own slot.
     if (net->dp != 0) {
         memset(&net->desc, 0, 0x50);
         net->desc.dwSize = 0x50;

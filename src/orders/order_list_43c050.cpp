@@ -2,25 +2,6 @@
 // Registers this module's own entry of the global registration table (the
 // 25-byte record at 0x4fd288) and then calls four other modules' registration
 // functions, each of which calls 0x43bc90 with its own records.
-//
-// The whole first part is `RegisterOrderTypes(DAT_004fd288, 1)` inlined: reserve,
-// the copy loop (with constant bounds, so it has no entry test and reloads
-// _Last at the top of each pass) and std::sort, with the same out-of-line
-// calls 0x43bc90 makes. What the match needed, as in 0x43bc90.cpp (see its
-// notes): the table as a `static std::vector<Elem_0043c390>` defined in this
-// translation unit, the real <vector>/<algorithm> code with the sort helpers
-// written out under the exe's names, and the real neighbours (0x43bad0 before,
-// 0x43bc90 and 0x43c020 between). Previous passes stopped at 92.0% because
-// reserve's empty _Destroy was inlined; with the faithful source it stays an
-// out-of-line call, as in the original. The order in which the inlined _Sort
-// evaluates `_L - _M` and `_M - _F` is a tie that depends on the compiler's
-// state; it is the opposite of 0x43bc90's, and this file reaches it by ending
-// at this function (adding 0x43c350 after it flips the tie here, and dropping
-// it flips 0x43bc90's).
-//
-// Reference names: reserve calls std::vector<Elem_0043c390>::size, which
-// data/symbols.csv names Class_0043c360::FUN_0043c360, so the size reference
-// needs the data/aliases.csv row for UElem_0043c390::?$vector::size.
 #include <vector>
 #include <algorithm>
 #include <iterator>
@@ -40,6 +21,7 @@ struct Elem_0043c390 {
 typedef std::vector<Elem_0043c390> Vec_0043c390;
 typedef int(__stdcall* Pred_0043c390)(const Elem_0043c390&, const Elem_0043c390&);
 
+// File-static: internal linkage keeps the vector bounds in registers across the sort.
 static Vec_0043c390 DAT_00512340;
 
 int __stdcall CompareOrderTypeNames(const Elem_0043c390& a, const Elem_0043c390& b);
@@ -251,6 +233,7 @@ void FUN_00415b20();
 void RegisterAICommands();
 void RegisterUnitOrders();
 
+// Nothing may follow this function in the file: a later function flips the sort order tie.
 // FUNCTION: 0x43c050
 void RegisterAllOrderTypes()
 {

@@ -4,8 +4,6 @@
 // flags into bits 0 and 1 of that block's trailing word, then saves the
 // track number, the option byte, the current track index and the 100
 // track-name characters read from the object at g_game+0x10.
-// The flags live in the settings struct (not a standalone global) so MSVC
-// schedules the flag loads after the memcpy remainder, as in the original.
 #include <string.h>
 
 class Class_004ce5a0 {
@@ -46,6 +44,7 @@ struct Settings_45cde0 {
 #pragma pack(pop)
 
 extern Game* g_game;
+// Flags live in this struct, not a standalone global: keeps the load order.
 extern Settings_45cde0 DAT_00512f18;
 extern int DAT_00512f6d;
 extern int DAT_00512f71;

@@ -1,25 +1,4 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by DeepSeek V4.1 Flash, checked by GPT-6., retried by Claude Opus 5.5, finished by GPT-6, matched by claude-opus-5-5. Names are provisional.
-// MATCH (#5387), from 99.5%. The last difference was the order of the two
-// reloads after walk1's fill loop (original: the `i - 1` temporary, then pts).
-// They come from C2 splitting both values when walk1's ebp temporary is
-// coloured; the one split later is reloaded first, and a step's splits go in
-// candidate id order. The `i - 1` temporary is #49, so pts's piece has to get
-// a lower id. Pieces take ids from C2's LIFO of freed ids, and the candidates
-// dropped before colouring go onto it in reverse code order, so the earliest
-// drops sit on top: here the scan's `p++` constant, then walk1's two address
-// temporaries (ids 58 and 57). pts's piece is the third piece made at walk2's
-// split (after the zero constant's and count's), so it took 57.
-// Reading `p->y` and `p->x` into the block locals `py` and `px` for the first
-// test of each pair (and its store), while the second test re-reads the field,
-// leaves two named copies of the scan's CSE temporaries that C2 drops before
-// colouring. They are dropped early in code order, so pts's piece gets a
-// named local's id and the reloads come out in the original's order.
-// Using py and px in both tests of a pair makes them the CSE values
-// themselves (no drop, 99.5%); naming only one of them is not enough.
-// The `int color` parameter (not `unsigned char`) is still needed for the
-// final call's ebx/ebp pair (98.0% with a byte).
-// Diagnosed with tools/c2prio.py --json plus a breakpoint on C2's candidate
-// free (0x40ed2b in FUN_0040ecd2) to see the freed-id order.
 struct Point_004c0820 {
     int x;
     int y;
@@ -48,6 +27,7 @@ void __stdcall PlotSpanEnds(int row, Span_004c0a90* span, Surface_004c0a90* surf
 // FUNCTION: 0x4c0820
 int __stdcall DrawPolygonEdges(Surface_004c0a90* surf, Point_004c0820* pts, int count,
                            int color) {
+    // color stays int, not unsigned char: the final call's register pairing.
     Span_004c0a90 spans[2048];
     Span_004c0a90* out;
     Point_004c0820* b;
@@ -65,6 +45,7 @@ int __stdcall DrawPolygonEdges(Surface_004c0a90* surf, Point_004c0820* pts, int 
     if (count > 0) {
         p = pts;
         do {
+            // Only the first test of each pair uses py/px; the second re-reads the field.
             int py = p->y;
             if (py < ymin) {
                 ymin = py;

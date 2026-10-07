@@ -2,19 +2,6 @@
 // Cycles a player slot's controller (open, computer, player) in the setup
 // screen and refreshes that row's menu entries; a newly occupied slot whose
 // colour clashes with another active player gets the first free colour.
-//
-// How it matched (Claude Opus 5.5; earlier passes stopped at 84.6% with a
-// `Game* game` local): the three zero-caller neighbours 0x479500 (count of
-// controller-1 players), 0x479590 (colour used by another active player) and
-// 0x4795e0 (first free colour) are this file's helpers, defined above
-// without annotations and inlined by /Ob2. Each still compiles to its own
-// matched bytes (check.py <addr> this file --sym <name>). Every access reads
-// the global g_game, so MSVC keeps g_game in ebp and reloads it after the
-// calls, which no local spelling can do. The colour fix-up is its own inline
-// helper with its own name buffer; inside the else-branch it re-read the
-// players array and freed ebx for the scaled index (84.6% to 97.0%).
-// 0x4795e0 needs its outer loop as a do/while: a `for` loop leaves its
-// `return color` block at the end of the function (97.0%).
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -92,6 +79,7 @@ int __stdcall IsColorTaken(int color, int skip)
 int FindFreeColor()
 {
     int color = 0;
+    // do/while, not for: a for loop moves the return block to the function end.
     do {
         int i;
         for (i = 0; i < g_game->numPlayers; i++) {
@@ -108,6 +96,7 @@ int FindFreeColor()
 // Gives the player the first free colour and updates the "Color<n>" entry.
 static void NewColour(int playerIndex)
 {
+    // Separate helper with its own name buffer: the players array is re-read.
     char name[64];
     Entry_004797e0* entries = g_game->holder->entries;
     g_game->players[playerIndex].color = FindFreeColor();

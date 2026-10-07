@@ -103,9 +103,6 @@ int DefeatAllUnitsKilledOfType::VisitUnit(Unit* unit)
 // 0x4fd7e0, visitor vtable 0x4fd7d8 holding 0x48f9a0; state saved by
 // 0x48fab0). Like 0x48efb0, but it counts the live units of the two lists in
 // g_game (the ones at +0x1bca and +0x1d15) and only then decides.
-// Each ForEach call converts `this` to the visitor subobject at +0xc, and the
-// compiler emits a null test of `this` per conversion, so a null `this` runs
-// both loops with a null visitor pointer.
 // FUNCTION: 0x48f9d0
 void DefeatAllUnitsKilledOfType::OnUnitDied(Unit* unit)
 {

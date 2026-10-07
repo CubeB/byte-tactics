@@ -1,9 +1,7 @@
 // Decompiled by Haiku. Names are provisional.
-// std::vector<Elem_0040cc40>::capacity() from MSVC 5's <vector>, out of
-// line. Taking the member's address makes the compiler emit it. 0x40a260
-// calls it from its inlined vector::reserve, where /Ob2's budget ran out
-// (its neighbours there are size(), 0x40c5b0, and Elem_0040cc40's copy
-// constructor, 0x40a5b0).
+// std::vector<Elem_0040cc40>::capacity(). 0x40a260 calls it from its inlined
+// vector::reserve (its neighbours there are size(), 0x40c5b0, and
+// Elem_0040cc40's copy constructor, 0x40a5b0).
 #include <vector>
 
 struct Point16 {

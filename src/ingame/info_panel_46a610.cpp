@@ -5,15 +5,6 @@
 // then either blits the spot's animation, copies the spot's position and
 // rotation into the local unit, or draws the feature's own frames (with the
 // shadow layer when bit 4 of the draw flags is set).
-//
-// Two shapes were needed for the bytes to land. The mirrored blit is a macro,
-// not an inlined function: the function form gives the two copies of the flip
-// test the other way round from the original (and swaps x and y with them).
-// The shading sum indexes the second row of the block as cell[width] instead
-// of going through a next pointer: with a pointer MSVC loads the four shades
-// as cell, next[1], cell[1], next, where the original loads them in source
-// order. The two DrawFlip calls in the feature branch share one tail, so the
-// anim frame is drawn by writing the body out in each branch.
 
 #include <ddraw.h>
 
@@ -147,6 +138,7 @@ void __stdcall FUN_0046a610(void* dest, Cell* cell, int ix, int iy)
 {
     Feature* f = &g_game->features[cell->feature];
     int x = f->footprint.x * 16 / 2 + (ix + 8) * 16 - g_game->scroll_x;
+    // Second row indexed as cell[width], not through a next pointer: load order.
     int s = cell->shade;
     s += cell[1].shade;
     s += cell[g_game->width].shade;
@@ -160,6 +152,7 @@ void __stdcall FUN_0046a610(void* dest, Cell* cell, int ix, int iy)
                 short* frame = (short*)GetGafSequenceFrame(&spot->shadow);
                 DrawFrame(dest, frame, x, y);
             }
+            // The anim frame draw is written out here, not shared through one tail.
             {
                 short* frame = (short*)GetGafSequenceFrame(&spot->anim);
                 DrawFrame(dest, frame, x, y);

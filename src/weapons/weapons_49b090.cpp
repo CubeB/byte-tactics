@@ -1,120 +1,4 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
-//
-// MATCH, 844 bytes against 844 (Space Bunny Free, issue 4156). It sat at 82.3% /
-// 847 bytes for many passes. Four source changes took it to MATCH, and every one
-// of them is load-bearing, so do not "tidy" any of them away:
-//
-//  1. The height test has to be written in the positive direction:
-//         if (mf->height + cell->ground > proj->py.s.hi) { ... } else { mf = 0; }
-//     and not as `if (mf->height + cell->ground <= proj->py.s.hi) mf = 0; else
-//     ...`. The positive form is what puts the sum in eax and proj->py.s.hi in
-//     edx (`cmp eax, edx / jle`, the original's own order) and frees ax for the
-//     cellZ compare. The negative form gives `xor edx,edx` first and swaps both.
-//     Worth 0.7 points on its own and it was the unblocking change.
-//  2. There is NO `Game* g = g_game;` local. Reading `g_game->` at
-//     every use is what keeps g_game in edi from 0x49b1ca to 0x49b3ba, which in
-//     turn spills cz to [esp+0x30], produces the single `mov edi,[g_game]` in
-//     the cellX/cellZ store branch, and lets both feature-map arms merge into
-//     the shared `g->mapping + f*256` tail at 0x49b31b. A local holding g_game
-//     is live across the two DetonateProjectile calls in the unit blocks, so MSVC 5
-//     gives it a stack home, and one compile state change then moves every other
-//     allocation with it. Worth 7.3 points.
-//  3. The 0xfffe arm's index is spelled `cell->offX + g_game->width * cell->offY`
-//     and its feature id is an `unsigned short`. Together they give the original's
-//     `mov ecx,[width] / xor eax,eax / mov al,[ebx+0xa] / xor edx,edx /
-//     imul ecx,eax` instead of `imul ecx,[edi+0x14233]` with offY in cl, and the
-//     `mov dx,[edx+8] / cmp dx,0xfffb` with the `and edx,0xffff` after the
-//     branch. With `int f2` the address register ends up in ecx and the two
-//     mapping tails never merge; with `unsigned short f2` and the old index
-//     spelling they do. The two are not independent, and the branch shape below
-//     is part of the same allocation.
-//  4. The outer chain is `if (f < 0xfffb) { ... } else if (!(f == 0xfffe)) {
-//     mf = 0; } else { <0xfffe arm> }`, not `else if (f == 0xfffe) { <arm> }
-//     else { mf = 0; }`. The same CFG, but the block order and therefore the
-//     three separate `xor ecx,ecx` blocks and the jump into 0x49b31b come out
-//     right only in this spelling.
-//
-// `tools/headers.py` also matters here, and not for the SIB swaps this file used
-// to need: <windows.h> alone scores 90.6% and <windows.h> plus <ddraw.h> scores
-// 91.3% (ddraw.h fixes the unit0 `mov ebp,[eax+0x6e]` vs `mov ecx,...` swap on
-// its own, which no source shape ever reached), but only <stdio.h> gets the
-// feature block's allocation right. So the header is <stdio.h> and nothing else.
-//
-// The harness for the last part is in build/scratch/0x49b090/: hs.py applies a
-// list of text rewrites to base.cpp, writes each variant into v/ and scores it
-// with `check.py <addr> <file> --sym <mangled>`, which never touches
-// src/weapons/weapons_49b090.cpp and takes about 0.6 s a variant. Roughly 130 source
-// shapes are recorded below as flat 90.6%.
-//
-// Everything after this point is the record of the earlier partial attempts and
-// of the negative results, kept because they say what does not work.
-// deepseek-v4.1-flash (issue 3314 retry, 10 min): body reconfirmed at 82.3% / 847 bytes against 844;
-// no new shape tried beat it. Left as is, with the diff exactly as described below.
-// deepseek-v4.1-flash (issue 2893 retry, 10 min): body left at 82.3% / 847 bytes against 844, still the
-// best. This pass tried ~35 more source shapes, all CSE'd or scored lower: feature-block ternaries
-// (v_tern1/v_tern2, equal), branch reorder 0xfffe-first (80.6), `mf = 0` init with conditional assigns
-// (79.1), a single mapping tail via an fi sentinel (79.3), named `map`/`fc` feature locals (80.6/73.7),
-// redundant callee-saved aliases c2/p2/t2 (equal) and a second g2 (75.2), `int f` (81.1), `int cx/cz`
-// (81.7), `unsigned short` cx/cz (81.2/81.5), moving cx/cz inside `if (mf)` (77.5), unit0 spellings
-// `u->elev + u->type->high`, subtraction, `>` and hi/el/sum temps (equal/81.6/81.3/79.7/69.3), inlining
-// cx/cz at both uses (76.9/75.8/63.1), a named `owner` local (63.5), `py` local (76.6), reference g
-// (78.0), no-g direct g_game (81.1), direct g_game only in the feature block (75.2). Every spelling of
-// the feature block CSEs to the same 847 bytes, so the g-in-edi vs cz-in-edi split is a global
-// allocation choice that no source shape tried reaches; the mapping tail stays duplicated.
-// deepseek-v4.1-flash (issue 2421 retry, 10 min): current body scores 82.3% / 847 bytes against 844, and
-// nothing in this retry beat it, so the body is unchanged. Tried and scored lower or equal: unit0
-// operand swap `u->elev + u->type->high` (same bytes, same diff), `int` cx/cz (81.7/82.2), cz declared
-// first (80.2), extra `(void)cz` use (equal), two fresh locals gu/gf instead of reusing `g` (equal),
-// the whole feature block written with direct `g_game->` (81.1: this DOES put g_game in edi, but it
-// changes the feature-block expression shapes and duplicates the mapping tail anyway), direct `g_game->`
-// only after the flags test (81.1), `g = g_game;` moved inside the block after the flags test (76.3),
-// `g` left uninitialised and assigned (equal), local sum/fresh-elev spellings of the unit0 high test
-// (69.3/79.7/81.6), rewriting the feature block with a shared `f` index (equal), a flag + single
-// `mapping + f` tail (75.3), and adding `g = g_game;` in the cellX/cellZ store branch (82.0 / 856).
-// What still differs is unchanged: g_game is not kept in edi after 0x49b284 (ours copies it to ecx and
-// spills to [esp+0x30], and cz takes edi), plus the unit0 elev/high pair is swapped, the mapping tail
-// is duplicated instead of merged at 0x49b31b, and the final block reloads g from [esp+0x30].
-// deepseek-v4.1-flash (issue 1715): 73.6% -> 81.9% (855 bytes against 844). Three changes, all in the
-// source shape, none of them register hints: (1) delete the `int oz = proj->py.i;` local and read
-// `proj->py.i` directly in the unit0 test, which removes the hoisted `mov ebp,[esi+8]`; (2) declare
-// `Game* g = g_game;` and reassign `g = g_game;` immediately before the 0x4000 flags test,
-// which is what makes MSVC emit the single `mov edi,[g_game]` reload at 0x49b284 instead of keeping a
-// spilled g; (3) replace `MapFeature* mf = 0;` with an uninitialised `mf` and explicit `else mf = 0;`
-// in every arm, which moves the `xor` out of the declaration and lands the feature-id load at the
-// original's position. Still differs (all ~11 bytes): MSVC homes the new g in ecx and re-spills it to
-// [esp+0x30] so the cellZ temp takes edi (`mov ecx,edi` + `mov [esp+0x30],ecx` extra), the unit0
-// elev/high pair is swapped (ours ecx=elev,ebp=high; original ebp=elev,ecx=high), and the
-// `mapping + f` tail is duplicated instead of merged at 0x49b31b. Ledger has the scored variants.
-// GPT-6 retry: <windows.h> improves to 75.2%, not MATCH. Collision and
-// feature lookup helper, width and reference variants did not improve the
-// baseline. Game/height allocation and feature tail still differ.
-// deepseek-v4.1-flash (issue 1400 retry): reconfirmed 73.6% / 842 bytes against
-// 844, no variant beat it. Scored with check.py --sym: removing oz, using
-// proj->py.i directly twice, drops to 62% / 866 and moves cell to ebp, g to ebx;
-// block-local oz in each unit block is 59.2% / 869; oz = pos->y is 53.1% / 878;
-// an early `unsigned short u1 = cell->unit1` is 61% / 847. The allocator always
-// refuses g_game in edi once proj->py.i is a live value, so the first diff (the
-// hoisted `mov ebp,[esi+8]` plus the g spill) is the whole problem; see below.
-// deepseek-v4.1-flash retry: still 73.6%, 842 bytes against 844, no variant
-// improved on it. Removing the `oz` local (direct proj->py.i in both unit
-// blocks), moving it into the unit0 block, reading it through `pos`, swapping
-// which block uses it, adding a second pointer local `q = proj`, and moving
-// `g = g_game` earlier or later all produced the same 842-byte code (MSVC CSEs
-// every spelling of the py load into one hoisted load in ebp). Declaring `g`
-// early or dropping the `g` local entirely scored lower (59.3%, 72.8%). So the
-// py load hoist and the g spill are one allocator state, not source-shape
-// problems, and the notes below about the g-in-edi cause still stand.
-// Not matched yet: 73.6%, 842 bytes against 844 (Sonnet 5.5 retry, #1097; was 72.8%). This header was rewritten
-// because the previous one still described the 66.0% / 870-byte state, which
-// the current body no longer has.
-// Retry note: a `Game* g = g_game;` local declared just before
-// `if (cell->unit0)` (all later g_game-> uses go through it) gave +0.8 points and the
-// right size. Still differs as described below: `oz` is hoisted into a register
-// (ebp) where the original loads proj->py.i inside each unit block, and g then
-// spills to [esp+0x30] and mf takes edi. About 150 variants (oz and g placement,
-// block-local y, extra locals for ground and height, declaration order of
-// cx/cz/f/mf) never moved it; without oz the cell lands in ebp, with it in ebx.
-//
 // 0x49b090 is the projectile collision test. It looks up the map cell holding
 // the projectile with GetMapCellAtPosition(&proj->pos); if there is none it stores the
 // selected projectile's last position and sound, clears the selection, sets the
@@ -129,102 +13,15 @@
 // rules, the g_game->limit ceiling and the netgame check are applied before the
 // final kill.
 //
-// Two fixes moved it from 66.0% / 870 bytes to 72.8% / 852 bytes, and both are
-// counter-intuitive, so do not "tidy" either one away:
-//
-// 1. The prologue register swap IS solved, and the fix is in the position
-//    spelling rather than in any register hint. The position must be read
-//    through a NAMED `Pos_0049b090* pos` local whose value is used again after
-//    the cell lookup (as in `int dx = pos->x - proj->unit->pos.x;`), not read
-//    inline as `proj->px.i`. That alone makes the original's own prologue
-//    (`lea edi, [esi+4] / push edi`), its entire 64-bit distance block and its
-//    radius block come out byte exact, including the interleaved load order
-//    (py, px, pz) and the `mov ebp, eax / mov [esp+0x1c], edx` spill sequence.
-//    The previous header concluded from a true longest-common-subsequence over
-//    instructions that neither ordering wins (165/282 against 168/282). That
-//    comparison was sound but it was made before the position was read through
-//    a named local, and with the named local the original's order does win.
-// 2. The cell register is `ebx`, not `ebp`, and about 30 expression-shape
-//    variants (declaration orders, commutativity, control flow, extra locals in
-//    other regions) all failed to move it. The only thing that flipped it was a
-//    change to the SET of live variables: one extra `int` local, declared just
-//    before the `if (cell->unit0)` block and used once inside that block, makes
-//    MSVC 5 give the cell ebx instead of ebp. 64.9% before, 72.8% after. This
-//    is the reusable lesson: in a register-starved function the choice between
-//    ebx and ebp for a long-lived local can be flipped by adding a single live
-//    local in a specific region, and the two orderings are otherwise
-//    indistinguishable to every spelling sweep.
-//
-// 3. The flag word at ProjType+0x111 is a bitfield struct, not a plain unsigned
-//    int. The original tests bit 14 as `test ah, 0x40` and bit 16 as
-//    `test dword ptr [m], 0x10000`, but bit 15 as
-//    `mov eax,[m]; shr eax,0xf; test al,1; je`. ONLY a 1-bit bitfield read
-//    produces the shift form: `flags & 0x8000` and `(flags >> 15) & 1` both
-//    fold to `test ah, 0x80` (probed directly in
-//    build/scratch/0x49b090/probe1..3.cpp). The working spelling is a union of
-//    the raw word with a bitfield view:
-//        union TypeFlags_0049b090 {
-//            unsigned int raw;
-//            struct { unsigned int low : 15; unsigned int b15 : 1;
-//                     unsigned int high : 16; } b;
-//        };
-//    used as `type->flags.raw & 0x4000`, `type->flags.b.b15`,
-//    `type->flags.raw & 0x10000`. Worth about 3 points once the register
-//    layout is right.
-//
-// What still differed at the time this note was written (the 73.6% source; all of
-// it is fixed now, see the MATCH note at the top), all of it in the last third
-// of the function, and all of it traced to one cause: `g_game` was not kept in
-// edi across the unit blocks and the feature block. In the original edi holds
-// g_game from 0x49b1ca to 0x49b3ba; in that source the extra local from fix 2
-// above took edi and g_game was reloaded (`mov eax,[g_game]; mov ecx,[eax+0x14357]`).
-// That one cause explained all of:
-//   - the duplicated `mapping + f*256` tail, because the original merges both
-//     arms into the shared block at 0x49b31b and that build did not;
-//   - `mf` living in edi instead of ecx;
-//   - `cmp cx, ax` against the original's `cmp dx, ax` at 0x49b3ad;
-//   - the `mov [esp+0x30]` reload of g_game at 0x49b3ad and 0x49b3ba.
-// Two smaller items alongside it:
-//   - `cz` is kept in ax instead of being spilled to [esp+0x30], so the cellZ
-//     test is `cmp word ptr [esi+0x5c], ax` where the original has
-//     `mov ax,[esi+0x5c]; cmp ax, word ptr [esp+0x30]`.
-//   - in the feature block the feature id is zero-extended eagerly
-//     (`xor edx,edx` + `and ecx,0xffff`) where the original defers it to
-//     `mov dx,[ebx+8]` and an `and edx,0xffff` on the taken path only.
-//
-// Where to look next, in order (items 1 and 2 were the answer: delete the
-// `Game* g` local entirely, item 3 became hs.py in the scratch dir):
-//   1. The g_game-in-edi problem, which is the highest value. Not yet tried: an
-//      extra variable live only in a region where edi is dead (before
-//      0x49b1ca or after 0x49b284), two extra variables whose net register cost
-//      is zero, or a `Game*` local declared so the compiler
-//      rematerialises g_game rather than keeping it.
-//   2. Forcing the cz spill to [esp+0x30], for instance by giving cz a second
-//      use, which should also fix the cellX/cellZ compare shape.
-//   3. The reusable harness is in build/scratch/0x49b090/ (gen.py, rg.py,
-//      try*.py, probe*.cpp, sweep1.py). It scores a variant in about 0.3 s
-//      with `check.py --sym`, which is why this pass used no check.py runs at
-//      all.
-//
-// Suspected original bug, now confirmed byte for byte: 0x49b2c8 to 0x49b2d6 range-checks the map-feature id against
+// Original bug: 0x49b2c8 to 0x49b2d6 range-checks the map-feature id against
 // g_game+0x14253, but the 0xfffe reload path at 0x49b2e7 to 0x49b30f re-tests
 // only against 0xfffb and skips the count check, so a feature id read from the
 // neighbouring cell indexes g_game->mapping unchecked.
 
-// Only <stdio.h>, and only because tools/headers.py found it: <windows.h> scores
-// 90.6% and <windows.h> plus <ddraw.h> scores 91.3%, but neither gives the
-// feature block the register plan the original has. Nothing here is used from it.
+// Only <stdio.h>: no other header set gives the feature block the original's
+// register plan. Nothing here is used from it.
 #include <stdio.h>
 
-// deepseek-v4.1-flash (issue 4021 retry, 10 min): body kept at 82.3% / 847
-// bytes. One more shape tried: arm2 of the feature map reusing the same `f`
-// variable (`f = (cell - n)->feature;`) instead of a separate f2, hoping VC5
-// would merge the two mapping tails at 0x49b31b; it is byte-neutral at 82.3% /
-// 847 (same diff), so the merge is still out of reach. The residual is
-// unchanged: g_game is not kept in edi after 0x49b284 (ours copies it to ecx
-// and spills to [esp+0x30]), the unit0 elev/high pair is swapped, the mapping
-// tail is duplicated instead of merged at 0x49b31b, and the final block
-// reloads g from [esp+0x30].
 #pragma pack(push, 1)
 
 struct Pos_0049b090 {
@@ -254,6 +51,7 @@ struct MapFeature_0049b090 {
     char unknown_fb[0x100 - 0xfb];
 };
 
+// A 1-bit bitfield view is needed: only it produces the shr/test on bit 15.
 union TypeFlags_0049b090 {
     unsigned int raw;
     struct {
@@ -360,13 +158,11 @@ extern Game* g_game;
 Cell_0049b090* __stdcall GetMapCellAtPosition(Pos_0049b090* pos);
 void __stdcall DetonateProjectile(Proj_0049b090* proj, Unit* unit);
 
-// The second argument (the type) is the first stack dword: the prologue's
-// spill to [esp+0x30] overwrites arg1, and both later reloads of the type
-// read [esp+0x2c]. `pos` stays in edi across the cell lookup, which is what
-// makes the original load the three differences through it.
 // FUNCTION: 0x49b090
 void __stdcall CheckProjectileCollision(ProjType_0049b090* type, Proj_0049b090* proj)
 {
+    // No `Game* g = g_game` local: g_game is read at each use to stay in edi.
+    // Named pos local, used again after the lookup: gives the original's prologue.
     Pos_0049b090* pos = (Pos_0049b090*)&proj->px;
     Cell_0049b090* cell = GetMapCellAtPosition(pos);
 
@@ -414,9 +210,7 @@ void __stdcall CheckProjectileCollision(ProjType_0049b090* type, Proj_0049b090* 
         short cz = proj->pz.s.hi / 16;
         unsigned short f = cell->feature;
         MapFeature_0049b090* mf;
-        // The `!(f == 0xfffe)` spelling, the `cell->offX + width * offY` index
-        // and the `unsigned short f2` are each load-bearing; see the note at the
-        // top of the file.
+        // The `!(f == 0xfffe)` chain shape sets the block order.
         if (f < 0xfffb) {
             if (f < g_game->featureCount)
                 mf = g_game->mapping + f;
@@ -425,6 +219,7 @@ void __stdcall CheckProjectileCollision(ProjType_0049b090* type, Proj_0049b090* 
         } else if (!(f == 0xfffe)) {
             mf = 0;
         } else {
+            // This index spelling and `unsigned short f2` merge the mapping tails.
             int n = cell->offX + g_game->width * cell->offY;
             unsigned short f2 = (cell - n)->feature;
             if (f2 >= 0xfffb) {
@@ -434,6 +229,7 @@ void __stdcall CheckProjectileCollision(ProjType_0049b090* type, Proj_0049b090* 
             }
         }
         if (mf) {
+            // Positive direction (sum > hi, else mf = 0): sets the compare operand order.
             if (mf->height + cell->ground > proj->py.s.hi) {
                 if (proj->cellX == cx && proj->cellZ == cz) {
                     mf = 0;

@@ -4,14 +4,6 @@
 // g_screenLocks) so UnlockAllScreens can unlock it later. When the display is
 // already locked (+0xdc) or using the cached descriptor (+0x44) it copies
 // the cached block instead.
-//
-// How it matches (earlier versions stopped at 97.8%): the body is a method of
-// the display object so `this` is the call result and MSVC does not order the
-// desc.dwSize store before the surface load; the Lock call sits in a
-// one-expression method of the embedded screen struct (+0x80), which gives the
-// separate reload of the surface after the null test (see UnlockSurface in
-// 0x4c5fa0); a one-case switch on the result gives `test eax, eax`. Same
-// recipe as 0x4c5ff0.
 #include <ddraw.h>
 
 #pragma pack(push, 1)
@@ -49,6 +41,7 @@ struct Display_004c5e70 {
     int field_44;                    // +0x44
     char unknown_48[0x8];
     Surface cached;                  // +0x50
+    // Lock in a one-expression method: gives the separate surface reload.
     struct Screen {
         char unknown_0[0xc];
         IDirectDrawSurface* surface; // +0x8c
@@ -63,6 +56,7 @@ struct Display_004c5e70 {
     int field_d8;                    // +0xd8
     int field_dc;                    // +0xdc
 
+    // Method of the display object: this is the call result.
     int LockMe(Surface* out)
     {
         if (field_dc != 0) {
@@ -77,6 +71,7 @@ struct Display_004c5e70 {
             return 0;
         DDSURFACEDESC desc;
         desc.dwSize = sizeof(desc);
+        // One-case switch: tests the result with test eax, eax.
         switch (screen.Lock(&desc)) { case 0: break; default: return 0; }
         out->field_0 = field_d4;
         out->field_4 = field_d8;

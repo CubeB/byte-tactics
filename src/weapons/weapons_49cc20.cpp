@@ -2,14 +2,6 @@
 // Fires one projectile from a firing unit: takes a slot from the 300 entry
 // projectile pool, initialises it through InitProjectile, then plays the aim and
 // fire animations of the shooting unit.
-// Two shapes here are not the obvious ones:
-//  - the per-direction aim data at +0x1a has four byte elements, so the
-//    address is `base + index*4` for a 16 bit load. Declaring it as a plain
-//    `short` array gives `base + index*2` and does not match.
-//  - the flag word at +0x111 is used two ways: bit 27 as a plain int (the
-//    inlined FUN_0049c920 gives a dword test) and bit 9 as a bitfield (the
-//    original shifts and tests bit 0, no `test ch, 2`). A union holding both
-//    views is the only declaration that gives both.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -25,6 +17,7 @@ struct FlagsBits_0049cc20 {
     unsigned int high : 22;
 };
 
+// Union of int and bitfield views: bit 27 is tested as an int, bit 9 as a bitfield.
 union Flags_0049cc20 {
     unsigned int all;
     FlagsBits_0049cc20 bits;
@@ -68,6 +61,7 @@ struct Head_0049cc20 {
 struct Unit {
     char unknown_0[0x1a];
     union {
+        // Four-byte elements: a plain short array addresses base + index*2.
         short aim[4][7][2];            // +0x1a, the four aim directions
         Head_0049cc20 head;            // heading at +0x66
     };

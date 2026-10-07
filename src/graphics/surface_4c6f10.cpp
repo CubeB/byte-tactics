@@ -3,8 +3,7 @@
 // width and height, then one row per scan line. The read counterpart is
 // 0x4c6f80, which allocates a surface of width*height and reads the rows back.
 // The surface layout matches the one built by 0x4c69f0.
-// <ddraw.h> decides the multiply operand order (tools/headers.py stops at the
-// C runtime headers and never tries it).
+// Must stay: <ddraw.h> decides the multiply operand order.
 #include <ddraw.h>
 
 struct Surface_004c6f10 {

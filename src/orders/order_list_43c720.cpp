@@ -1,9 +1,9 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // std::_Sort (the recursive quicksort step of std::sort WITH PRED) from MSVC
 // 5's <algorithm>, instantiated for 25-byte records with a __stdcall
-// comparison callback. _Median and _Unguarded_partition are inlined here;
-// the rest of the family is 0x43c940/0x43c990 (insertion sort), 0x43cb20
-// (_Unguarded_partition) and 0x43c6b0 (lower_bound).
+// comparison callback. The rest of the family is 0x43c940/0x43c990
+// (insertion sort), 0x43cb20 (_Unguarded_partition) and 0x43c6b0
+// (lower_bound).
 #include <algorithm>
 
 #pragma pack(push, 1)

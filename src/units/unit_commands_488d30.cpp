@@ -3,10 +3,6 @@
 // 0x249 bytes per item, name at +0x20, id at +0x21e) and, on a hit, sets that
 // id's bit in the 0x40-byte set; on a miss it merges the mask that GetCategoryMask
 // returns for an alias name. *out is 1 for a single item, 0 for an alias.
-// The search and the final comparison are one inlined helper: that is what puts
-// the object pointer in ebx and the walking pointer in ebp, and it is also why
-// the two strcmpi calls pass their arguments in opposite order
-// (item name first inside the loop, the text first after it).
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -37,6 +33,8 @@ public:
 
 UnitTypeSet* __stdcall GetCategoryMask(char* name);
 
+// Search and final comparison stay one inlined helper: it fixes the register
+// use and the opposite strcmpi argument orders.
 static inline char* FindByName(char* first, char* last, char* text)
 {
     int n = (last - first) / 0x249;

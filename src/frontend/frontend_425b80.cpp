@@ -8,14 +8,6 @@
 // a puff drifting vertically starts drifting horizontally, and the other way
 // round, three cells a tick in the direction its (parity) cell suggests, and
 // refills its fuel.
-// Three source details decide the code, all found by reading the listing:
-//   - the heading is a conditional expression with char-typed arms
-//     (`(s->x & 1) ? (char)-3 : (char)3`), which is what keeps the whole
-//     computation in 8-bit registers; with int arms MSVC uses edx and eax.
-//   - the same heading written as an if/else in the other turn branch, which
-//     is what stops MSVC from hoisting the `s->dx = 0` store above it.
-//   - the map cell test on the spawning side is `> 12`, not `<= 12` with a
-//     continue, because every path has to reach the `s++` at the loop bottom.
 // Suspected original bug: a running puff writes the smoke template byte over
 // the feature nibble of the cell it stands on (`dest[s->pos] = src[s->pos]`,
 // and 0xaa, whose low nibble is 10) instead of only setting a smoke bit, so
@@ -99,9 +91,11 @@ void UpdateMenuSparks()
                         if (s->fuel == 0) {
                             if (s->dy != 0) {
                                 s->dy = 0;
+                                // Char-typed arms keep the computation in 8-bit registers.
                                 s->dx = (s->x & 1) ? (char)-3 : (char)3;
                                 s->fuel = (rand() & 0xf) + 1;
                             } else {
+                                // if/else, not a conditional: stops the dx = 0 store hoisting above.
                                 if (s->y & 1) {
                                     s->dy = 3;
                                 } else {
@@ -119,6 +113,7 @@ void UpdateMenuSparks()
                 s->x = rand() % 640;
                 s->y = rand() % 220;
                 s->pos = s->x + s->y * 640;
+                // `> 12`, not `<= 12` with continue: every path must reach the s++ below.
                 if ((dest[s->pos] & 0xf) > 12) {
                     s->active = 1;
                     s->life = rand() + 1;

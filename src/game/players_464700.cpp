@@ -3,47 +3,7 @@
 // dwords and six shorts, allocates the 0x34-byte UnitResources and the squads table,
 // sizes and clears the map-cell buffer at (width/2) * (height/2) rounded up to
 // eight, and gives an inactive or non-network (type 3) player a SquadManager.
-//
-// How the first block matched (#5560), read out of C2 with the #5288
-// scheduler tracer (build/scratch/0x464700/c2order.py, hook 0x4315f1):
-// - The original keeps only p and the constant 0 as register candidates in
-//   the first block. Any value carried across the six clears (a tick local,
-//   an inline parameter) raises that block's K from 2 to 3 and the zero's
-//   priority from 67 to 89, above w's 70, which moves the zero from ebp to
-//   ebx. So the third tick's load and store stay one statement, and C2's
-//   post-allocation scheduler has to sink the store below the six clears.
-// - The scheduler orders two accesses through p when C2's alias table
-//   (FUN_00422afb) says they may alias. It numbers p's memory locations in
-//   tuple order, gives each the bit min(31, number of locations found after
-//   it), and makes all locations at bit 31 alias each other. The original's
-//   order (three loads, six clears, cmp, ff8 store, f8c store, ...) needs the
-//   six clears and f8c, and nothing stored after them, at bit 31, and the ff8
-//   store below bit 31.
-// - So the ff8 stamp is written after the clears and reached by `goto`:
-//   it still runs before them (C2 lays the blocks out in execution order
-//   before scheduling), but its location is numbered after f90. This is
-//   probably not the original's spelling; it is the one found that gives C2
-//   this tuple order without adding code. In the natural order (stamp third)
-//   the ff8 store chains in front of the clears (98.3%).
-// - The size field is written through the reference `sz`, which takes one
-//   location out of p's count (41 to 40) and so drops f90 out of bit 31;
-//   with `p->f88 = ...` f90 stays in the chain and the f8c store lands
-//   before the cmp (99.2%). Writing p->flags or p->unit through a reference
-//   does the same.
-//
-// The 22 zero stores come out in the order the source writes them (0xac, 0xb4,
-// 0xbc, 0xc4, 0xcc, 0xd4, then 0x8c..0xc8, then 0xe8, 0xe4, 0xd0, 0xd8).
-//
-// MSVC 5 gives the first *declared* of two uninitialised locals ebx and the
-// second edi, so the width/2 temporary is declared first even though the
-// height/2 temporary is assigned first. That is what puts height/2 in edi and
-// width/2 in ebx across the operator delete call, as the original has; with
-// initialised locals (int h = ...; int w = ...) the allocation comes out the
-// other way round.
-//
-// The last test is `!p->active || p->type != 3`, not `p->active && p->type != 3`:
-// the original's first branch is `je` into the allocation and the second `je`
-// over it, which is the `||` with both tests left as they are.
+
 #include <string.h>
 
 class UnitResources {
@@ -137,8 +97,7 @@ void __stdcall InitPlayerSlot(Player_00464700* p)
 {
     p->ff0 = g_game->ticks;
     p->ff4 = g_game->ticks;
-    // The third stamp runs here but is written after the clears (see the
-    // notes at the top): C2 has to number its location after theirs.
+    // The third stamp runs here but is written after the clears: C2 has to number its location after theirs.
     goto stamp;
 back:
     p->fac = 0;
@@ -178,6 +137,7 @@ guard:
     p->f104 = 0;
     p->f106 = 0;
     p->f102 = p->f100 = -1;
+    // w declared first: puts height/2 in edi and width/2 in ebx.
     int w, h;
     h = g_game->height / 2;
     w = g_game->width / 2;
@@ -187,8 +147,7 @@ guard:
     int& sz = p->f88;
     sz = (h * w + 7) & ~7;
     p->buffer = sz ? operator new(sz) : 0;
-    // Both references are load-bearing (`sz` also for the first block, see
-    // the notes at the top). With `memset(p->buffer, 0, p->f88)`
+    // Both references are load-bearing (`sz` also for the first block). With `memset(p->buffer, 0, p->f88)`
     // MSVC propagates the phi and the size into the inlined memset, which puts
     // the phi in edi and stores it from edi; the original reloads [esi+0x7c]
     // into edi and keeps the phi in eax. Reading the fields through references
@@ -198,6 +157,7 @@ guard:
     void*& bref = p->buffer;
     memset(bref, 0, sz);
     CreateSquads(p);
+    // Keep `||` with both tests as written: the branch layout depends on it.
     if (!p->active || p->type != 3) {
         p->unit = new SquadManager(p);
         CreatePlayerAI(p->team);

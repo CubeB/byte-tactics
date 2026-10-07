@@ -1,9 +1,8 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Reads the "MAXLINES" slider into the max lines field of g_game and shows it
-// as "<n>", or "None" when it is 0. The slider value is the same inlined
-// SliderValue helper as in 0x45c330; it is evaluated twice, and only the second
-// result is kept unless the first one was negative (both are identical, so the
-// store is a clamp to 0 either way).
+// as "<n>", or "None" when it is 0. The slider value is evaluated twice, and
+// only the second result is kept unless the first one was negative (both are
+// identical, so the store is a clamp to 0 either way).
 #include <stdio.h>
 #include <string.h>
 

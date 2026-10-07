@@ -59,13 +59,6 @@ void FUN_004c1aa0(void)
 
 // Pops the next entry from a small ring buffer (0 when empty); 0x4c1b00
 // peeks at it and 0x4c1b20 pushes.
-// Matching the original's instruction order needs the same idiom the push
-// sibling uses: hold the *next* index in a local (`int next = q->tail + 1;`)
-// and read the entry as `entries[next - 1]`. VC5 folds `next - 1` back into
-// the pre-increment index register (displacement 0xf6, `inc ecx` after the
-// load), and the local makes it schedule the `size` load before the entry
-// load. Writing the plain `v = entries[q->tail]; q->tail++;` reads the entry
-// first and swaps exactly those two loads.
 // FUNCTION: 0x4c1ab0
 int PopKey(void)
 {
@@ -74,6 +67,7 @@ int PopKey(void)
     if (q->head == q->tail) {
         v = 0;
     } else {
+        // Next index in a local, entry read as entries[next - 1]: sets the load order.
         int next = q->tail + 1;
         v = q->entries[next - 1];
         q->tail++;
@@ -97,19 +91,15 @@ int __cdecl PeekKey()
 
 // Pushes an entry onto the small ring buffer that 0x4c1ab0 pops and 0x4c1b00
 // peeks at; the entry is dropped when the buffer is full.
-// The store indexes with a separate `next` local (the original writes through
-// entries[next - 1], displacement 0xf2), while the full test recomputes
-// q->head + 1 itself; using `next` in the test too loads head straight into
-// the callee-saved register, and indexing with q->head gives displacement
-// 0xf6.
 // 0x4c1d50 calls this out of line at the variable-key sites; only its own
-// static inline clone (PushKey) is expanded, for the constant-key cases. With
-// the body in this file the compiler otherwise auto-inlines PushKeyCode.
+// static inline clone (PushKey) is expanded, for the constant-key cases.
+// Must not be auto-inlined: 0x4c1d50 calls it out of line.
 #pragma auto_inline(off)
 // FUNCTION: 0x4c1b20
 void __stdcall PushKeyCode(int v)
 {
     Queue_004c1ab0* q = GetDisplay();
+    // Store indexes with `next`, but the full test recomputes q->head + 1 itself.
     int next = q->head + 1;
     if ((q->head + 1) % q->size != q->tail) {
         q->entries[next - 1] = v;

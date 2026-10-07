@@ -2,9 +2,7 @@
 // Reads a whole file into the caller's buffer: open "rb", take its size, seek
 // to the start and read that many bytes. The buffer is returned when the read
 // succeeds; a read of zero bytes frees it and returns null. On any failure the
-// file is closed and null is returned. The refcount/fclose/buffer-free block is
-// the inlined body of HAPI_CloseFile, and the size block the inlined body of
-// HAPI_FileLength, so both appear twice.
+// file is closed and null is returned.
 #include <stdio.h>
 #include <io.h>
 

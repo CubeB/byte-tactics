@@ -5,50 +5,6 @@
 // the elapsed time to a bucket after each. Then the input/UI part, the
 // mouse-capture and hotkey flag handling, the per-frame render step and the
 // periodic "FRAM" marker.
-//
-// MATCH (711 of 711). Three changes to the previous 67.2% version, in the
-// order they were found. The previous file's own diagnosis ("the clear of bit
-// 2 folds to a memory `and`, whatever the field type, a local copy of the
-// flag struct or an int temporary") was correct about the symptom and wrong
-// about the cause: the spelling of the clear was never the problem, and no
-// non-volatile spelling of it can produce the original's code.
-//
-// 1. The bit-4 test at the end has to be a bitfield READ of memory, not a
-//    shift of a copy. The previous file tested `flags` held in a local:
-//        unsigned short flags = g_game->word_37ebe;
-//        if ((flags >> 4) & 1) ...
-//    MSVC 5 folds that to `test al, 0x10` (2 bytes), where the original has
-//    `mov dl,al; shr dl,4; test bl,dl` in the else branch (which must keep
-//    `al` for the `and eax, 0xffef` store) and `shr al,4; test bl,al` in the
-//    other (where `al` is dead). Writing the test as `if (g_game->bit4_37ebe)`
-//    reads the 1-bit field, which MSVC 5 does NOT fold, and the compiler then
-//    CSEs the second load against the `mov ax, word ptr [ecx+0x37ebe]` already
-//    done for the 0x800 and 0x65 tests. This one change made 280 bytes of the
-//    function identical, including the whole flag block and the last timer
-//    charge, and it is why the check.py percentage barely moved: with 12
-//    bytes still missing, every jump target in the function was wrong, and
-//    difflib reshuffles the text diff. Read the lengths, not the percentage.
-//
-// 2. The word at g_game+0x38d75 is `volatile`. The original clears bit 2 of it
-//    through a register (`mov cx,[m]; and ecx,0xfffb; mov [m],cx`) and MSVC 5
-//    folds every plain spelling of that store into `and word ptr [m], 0xfffb`,
-//    including a whole-struct copy, a local word, a pointer to the struct and
-//    `m.word = m.word & 0xfffb`. The evidence in the exe is the AGENTS.md
-//    criterion for this field, and it is strong: 0x498556 does
-//    `mov cx,[m]; and ecx,0xfffb; mov [m],cx` and then 0x49856f, with nothing
-//    in between but a reload of g_game, does `mov dx,[m]; or edx,8; mov [m],dx`
-//    on the same location. A non-volatile field would be CSE'd and folded to
-//    `and [m],0xfffb; or [m],8`. The same two shapes are at 0x497c57, 0x498323
-//    and here. The union is what makes this work: the bitfield overlay is not
-//    volatile (so the test at 0x496846 keeps its `mov al,byte; shr al,2;
-//    test bl,al`, an 8-bit container would have folded to `test byte [m],4`),
-//    and the word overlay is (so the clear stays a read-modify-write).
-//
-// 3. Nothing else. The register choice around the timer charges in the bit-2
-//    block (`mov edx,[esi]; mov ecx,eax; sub ecx,edx` rather than the
-//    swapped pair) and the one-byte `mov edx, g_game` before the paused
-//    branch's charge were both fixed by 1 and 2, not by touching the charge
-//    helper.
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
@@ -206,6 +162,7 @@ struct Player_00496ce0 {               // 0x14b bytes, array at g_game+0x1b63
         };
         struct {
             char unknown_148[0x149 - 0x148];
+            // Stays a 1-bit bitfield: a plain unsigned char moves the allocation.
             unsigned short flag_149 : 1;   // +0x149
             unsigned short rest_149 : 15;
         };
@@ -442,6 +399,7 @@ void FUN_00496790()
     }
     FUN_0048bae0();
     unsigned short flags = g_game->word_37ebe;
+    // The bit 4 tests read the bitfield from memory, not a shift of the flags copy.
     if ((flags & 0x800) || (flags & 0x65) || g_game->flags_2bee) {
         if (g_game->bit4_37ebe)
             g_game->field_37e9c = 0;
@@ -504,12 +462,6 @@ void FUN_00496b10()
 // Picks the next game-setup state: 4 or 5 from what FUN_00435100 returns when
 // bit 2 of +0x2a44 is set, otherwise 3 for state 0x11 with that bit, or for
 // state 0x10 with bit 4 of +0x2b4c and a sub-state of 0x12 or 0x13.
-//
-// The last two branches are written as nested ifs, each with its own copy of
-// the state change; MSVC merges the copies (the 0x11 case ends in
-// "je <tail>; jmp <body>"). A standalone "if (bitfield)" on an unsigned short
-// bitfield compiles to "mov cl, [m]; shr cl, N; test cl, 1", while the same
-// test inside an && chain folds to "test byte ptr [m], mask".
 // FUNCTION: 0x496bb0
 void FUN_00496bb0()
 {
@@ -526,6 +478,8 @@ void FUN_00496bb0()
         g_game->handler = LoadingScreenFrame;
         SetCloseHandler(LeaveNetGameCallback, 0);
     } else if (g_game->state_2bbe == 0x11) {
+        // This branch and the 0x10 one stay nested ifs, each with its own copy of
+        // the state change; a && chain would fold the bitfield test.
         if (g_game->bit2) {
             FUN_004c2470();
             g_game->mode = 3;
@@ -551,15 +505,13 @@ void FUN_00496bb0()
 // message 8 to its id; otherwise, with bit 4 of +0x2b4c set, calls
 // SendNetHeartbeat once GetTicks() passes DAT_0051f304 (then 0x3c later).
 // Every path then switches to state 5 (LoadingScreenFrame).
-//
-// Each branch has its own copy of the state change; MSVC merges the first two
-// and keeps the third, which reuses the g_game pointer still in edx. `msg`
-// declared at function scope keeps its store before the pushes.
 // FUNCTION: 0x496ce0
 void FUN_00496ce0()
 {
+    // Declared at function scope: keeps its store before the pushes.
     char msg;
     Player_00496ce0* p = &g_game->players[g_game->localPlayer];
+    // Each branch keeps its own copy of the state change.
     if (p->info->flags & 1) {
         msg = 8;
         BroadcastPacket(p->dpid, &msg, 1);
@@ -631,16 +583,12 @@ void __stdcall FUN_00496e90(Struct_00496e90* obj, int height, int width)
 // - the ten team records at g_game+0x1b63 are 0x14b bytes: +0x27 the player
 //   (its +0x95 is the index into the name table, its +0x96 the second copied
 //   byte), +0xdc and +0xe0 the two clamped sizes as floats, +0x149 a 1-bit
-//   unsigned short bitfield (setting it gives the straight-to-memory
-//   `or byte ptr [ecx+0x149], 1`; a plain unsigned char field goes through a
-//   register, which moves the whole allocation).
+//   unsigned short bitfield.
 // - the team definitions are 0x18-byte records behind the pointer at
 //   g_game+0x29a0: +0x4 and +0x14 the two copied bytes, +0xc and +0x10 the two
 //   sizes, +0x10 first stored to +0xdc.
 // - the name table at g_game+0x37f5f is 0x232 bytes per entry and the player
-//   index selects the entry, whose name is looked up by FindUnitTypeId. MSVC 5
-//   gives `Entry names[8]` a size of 0x1190, not 8 * 0x232, so the field after
-//   it starts at +0x390ef.
+//   index selects the entry, whose name is looked up by FindUnitTypeId.
 // - the position is a Vec3 of 16.16 values; the view is centred on the whole
 //   part of x and z, read as the high half of each fixed-point int through a
 //   `union Fixed`. x goes with the view width and z with the view height.

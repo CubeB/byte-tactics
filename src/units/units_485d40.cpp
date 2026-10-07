@@ -5,14 +5,11 @@
 // the definition reached through +0x92 has object data at +0x18e; a 0x544-byte
 // variable block is allocated for the object first and told about that data.
 // Without the data the plain CreateObjectState builds the block and the owner
-// pointer at +0xc is filled in by hand. Both arms store the block at +0x9e,
-// and clearing its flag at +0x10 as a shared tail after the if/else is what
-// makes MSVC 5 reload the block into eax in both exits and give each exit its
-// own copy of the store.
+// pointer at +0xc is filled in by hand. Both arms store the block at +0x9e and
+// clear its flag at +0x10.
 //
-// Both calls take the definition object (g_game->definitions[id], in ebx) as
-// their argument. The cold arm pushes it at the top of its block, which looks
-// like a spare register save but is the argument CreateObjectState pops itself.
+// Both calls take the definition object (g_game->definitions[id]) as their
+// argument.
 
 #include <stddef.h>
 
@@ -146,5 +143,6 @@ void __stdcall InitUnitScript(Object_00485d40* self)
         self->state = CreateObjectState(obj);
         self->state->field_c = self;
     }
+    // Shared tail after the if/else: reloads the block in both exits.
     self->state->field_10 = 0;
 }

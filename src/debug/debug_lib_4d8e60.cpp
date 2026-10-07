@@ -1,26 +1,10 @@
 // Decompiled by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by claude-sonnet-5-5. Names are provisional.
-// MATCH. Notes on what made it match (from 92.9%):
-//  - sprintf destination form matters at every site. `char* d = log + strlen(log);
-//    sprintf(d, ...)` computes the pointer before any argument is pushed (the
-//    lea displacement has no pending pushes), `size_t L = strlen(log);
-//    sprintf(log + L, ...)` pushes the arguments first and does `lea eax,[esp+ecx+..]`
-//    last, and a plain `sprintf(log + strlen(log), ...)` pushes the last argument
-//    before running the strlen. Each site uses the form the disassembly shows.
-//  - the parameter loop is `for (i = 0; i < rec->NumberParameters; i++)` indexing
-//    rec->ExceptionInformation[i] directly (MSVC strength-reduces it to a pointer
-//    in the preheader) with the separator char computed in its own local before
-//    the destination pointer.
-//  - the whole tail of the dump (lstrcpynA, the Dr/FPU lines, Cr0NpxState and the
-//    trailing newlines) is inside `if (room > 0)`; the original's jle jumps
-//    straight to the NormalizeLineEndings call.
-//  - `log[0] = 0` after the first WriteFile is inside the GetModuleFileNameA
-//    success block, so the failure path skips it.
-//  - the EAX register-dump format string really reads "EFLGS" in the exe.
 // Suspected original bugs: the `i % 3 == 3` test in the parameters loop can never
 // be true, so the per-three newline is dead code; CreateFileA's result is tested
 // against 0 rather than INVALID_HANDLE_VALUE, so a failed open passes the check;
 // and the lstrcpynA dump buffer at obj+0x2084 is copied with
 // room = 0x7358 - strlen(log) - 0x3e8 regardless of its own length.
+// The EAX register-dump format string really reads "EFLGS" in the exe.
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -64,6 +48,7 @@ int __cdecl ReportException(EXCEPTION_POINTERS* ep, char* handlerName)
     obj.CaptureStack(ctx->Ebp, ctx->Esp, ctx->Eip, 0);
     ((Class_004d9ca0*)&obj)->FormatStackReport();
 
+    // Each sprintf site keeps its destination form (`d`, `L` or inline strlen): it sets push order.
     // find the executable's directory and open the log there
     char* slash;
     if (0 == GetModuleFileNameA(0, path, 1000) || !(((slash = strrchr(path, '\\')) != 0) != 0)) { strcpy(path, "C:\\"); } else { slash[1] = 0; }
@@ -86,6 +71,7 @@ int __cdecl ReportException(EXCEPTION_POINTERS* ep, char* handlerName)
         if (file) {
             WriteFile(file, log, strlen(log), &written, 0);
         }
+        // Stays inside this block.
         log[0] = 0;
     }
 
@@ -114,6 +100,7 @@ int __cdecl ReportException(EXCEPTION_POINTERS* ep, char* handlerName)
     { char* d = log + strlen(log); sprintf(d, "ExceptionAddress = %08lX\n", rec->ExceptionAddress); }
     if (rec->NumberParameters > 0) {
         { size_t L = strlen(log); sprintf(log + L, "Parameters = "); }
+        // Index ExceptionInformation[i] directly; `c` is its own local before `d`.
         for (unsigned int i = 0; i < rec->NumberParameters; i++) {
             char c = ((((int)i) == rec->NumberParameters - 1) || i % 3 == 3) ? '\n' : '\t';
             char* d = log + strlen(log);
@@ -152,6 +139,7 @@ int __cdecl ReportException(EXCEPTION_POINTERS* ep, char* handlerName)
     // the disassembler's own dump, the debug registers and the saved FPU state
     int room = 0x7358 - (int)strlen(log);
     room = room - 0x3e8;
+    // The whole tail of the dump stays inside this if.
     if (room > 0) {
         lstrcpynA(log + strlen(log), obj.dump_text, room);
         { size_t L = strlen(log); sprintf(log + L, "\n"); }

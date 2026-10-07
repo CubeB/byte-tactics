@@ -1,45 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, deepseek-v4.1-flash, GPT-6, GPT-6.1-sol, deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
-// Space Bunny Free: MATCH (was 80.6%).
-// The break came from the matched twin 0x481d50 (the same line-of-sight update
-// with a decrement instead of an increment): copying its source shape fixed
-// five things at once.
-// (1) The x/y frame transposition was never a declaration-order question. The
-// x/y slots follow from the whole local set, and this source's extra locals (an
-// `idx` temporary, the ternary limits, direct `player->grid.cells` /
-// `grid.width` pointer arithmetic, and `src` declared before `dst`) had shifted
-// the allocator's order. Removing them puts x back at 0x1c and y at 0x20, and
-// every other slot on the original's offset.
-// (2) The lod clamp is the ternary written inline as the argument of
-// GetLosTable, with no `idx` local; the spill to 0x34 is then the same.
-// (3) limitX/limitY as `if (c) v = a; else v = b;` statements (not `?:`), and
-// the byte map reached through a named `ByteMap_482270* ex` local inside the
-// loop: that is what gives `mov edx,[ebx]; add edx,0x7c; imul ecx,[edx+4]`
-// and with it the whole `add reg,0x7c` grid-accessor shape in the destination
-// address. Declaring `dst` before `src` then no longer reshuffles the frame (it
-// did before, which is what every earlier attempt ran into), and the loop body,
-// the loop-head reloads and the `limitX - nx` counter recomputed in esi all
-// land on the original's code.
-// (4) The inner loop is `for (int j = nx; j < limitX; j++)`; MSVC proves
-// limitX - nx > 0 from the two guards and rewrites it to `dec esi; jne`.
-// (5) The inner lod loop is `int bestIdx = 0; int j1; int bestDiff = -1;
-// short j = 0;` with `if ((short)num > 0) { j1 = 1; do {...} while (j++, j1++,
-// (short)j < (short)num); }`, and the neighbour coordinates are the int locals
-// `dx`/`dy` used through `(short)`. That declaration order puts bestDiff in eax
-// for `bestDiff * j1` (the imul operand order no source spelling could move on
-// its own) and gives dx/dy slots 0x24/0x14.
-// That left four bytes: the original computes `i * frame->width` as
-// `mov dx,[ebp]; imul edx, eax`, with the 16-bit width as the imul destination
-// and the loop counter as the source, while this source copied the width into
-// esi first (`mov esi,edx; mov edx,eax; imul edx,esi`), i.e. MSVC's canonical
-// operand order for the commutative multiply was the other way round. Source
-// operand order (`i * frame->width` vs `frame->width * i`), casts on either
-// side, a named offset temporary, a hoisted width local, `src += nx` as its own
-// statement, `i` declared outside the loop and a 16-bit cast on `i` were all
-// tried and none flips it. `<math.h>` (used for nothing here) does: it is
-// pure compiler state, it moves the value numbering enough to canonicalise the
-// multiply the other way, and with it the function matches byte for byte.
-// Not used by the code; MSVC 5's value numbering with it in scope
-// canonicalises `i * frame->width` the way the original does (see above).
+// Unused by the code but needed: it flips the operand order of `i * frame->width`.
 #include <math.h>
 #include <windows.h>
 
@@ -168,6 +128,7 @@ void __stdcall AddLineOfSight(Params_482270* params)
             return;
         if ((unsigned)y >= grid->height)
             return;
+        // Clamp written inline as the GetLosTable argument, with no temporary.
         void* table = ((LosTables*)g_losTables)
                           ->GetLosTable(
                               (params->field_8 / 32 < 0 ? 0 : params->field_8 / 32)
@@ -183,6 +144,7 @@ void __stdcall AddLineOfSight(Params_482270* params)
         for (i = 0; i < count; i++) {
             void* line = ((Class_4335e0*)table)->GetLosLine(i);
             short num = ((LosLine*)line)->GetLosLineStepCount();
+            // Declared in this order: bestIdx, j1, bestDiff, j; dx and dy stay int locals.
             int bestIdx = 0;
             int j1;
             int bestDiff = -1;
@@ -218,6 +180,7 @@ void __stdcall AddLineOfSight(Params_482270* params)
         int ref = *params->field_c;
         Frame_482270* frame =
             GetGafFrame((unsigned short*)g_game->losTable, ref);
+        // limitX and limitY are if/else statements, not ?:.
         int limitX;
         if (x + frame->width >= halfW)
             limitX = halfW - x;
@@ -235,9 +198,11 @@ void __stdcall AddLineOfSight(Params_482270* params)
         if (nx >= limitX)
             return;
         for (int i = ny; i < limitY; i++) {
+            // Named ex local: shapes the destination address.
             ByteMap_482270* ex = &((Player_482270*)params->field_0)->grid;
             unsigned char* dst = ex->data + (y + i) * ex->size.width + nx + x;
             unsigned char* src = frame->data + i * frame->width + nx;
+            // Counted j loop: lets the compiler turn it into dec/jne.
             for (int j = nx; j < limitX; j++) {
                 if (*src != frame->mask)
                     (*dst)++;

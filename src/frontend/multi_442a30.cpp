@@ -3,8 +3,7 @@
 // NAME/NUMBER select an account; HOST and JOIN move the selected account to the
 // front of the modem number list, save it under MODEMNUMBERS and connect; PREV
 // goes back; anything else resets the gadget.
-// <windows.h> is required: without it MSVC emits the shift loop's address as
-// `lea edi, [eax+ecx]` instead of the original `lea edi, [ecx+eax]`.
+// Needed: it flips the shift loop address to lea edi, [ecx+eax].
 #include <windows.h>
 #include <string.h>
 

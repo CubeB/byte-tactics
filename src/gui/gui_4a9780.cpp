@@ -4,12 +4,6 @@
 // changed, refreshes the gadget and runs the entry's callback (if any).
 // Note: the upper clamp still uses field_136 - 1, as the copy-paste source of
 // this function did, even though this side scrolls the other way.
-// The int copy of the old value is what makes MSVC keep the sign-extended old
-// in edx. Getting the address chain into the original's register order needs
-// the entry lookup in a `static inline` helper: written inline, MSVC loads
-// obj->data and data->entries up front and keeps the 347*index leas in
-// eax/edx; through the helper the two loads land between the leas exactly as
-// the original has them.
 
 #pragma pack(push, 1)
 struct Entry_004a9780 {                // 0x15b-byte entry
@@ -40,6 +34,7 @@ struct Object_004a9780 {
 void __stdcall FUN_004a2580(Object_004a9780* obj, int index);
 void __stdcall FUN_004a2be0(Object_004a9780* obj, int index);
 
+// Must stay a static inline helper: written inline it changes the load order.
 static inline Entry_004a9780* entry_at(Object_004a9780* obj, int index)
 {
     return &obj->data->entries[index];
@@ -50,6 +45,7 @@ void __stdcall IncrementKnobPos(Object_004a9780* obj, int index)
 {
     Entry_004a9780* e = entry_at(obj, index);
     short raw = e->field_140;
+    // Keep the int copy of the old value: it fixes the register used for it.
     int old = raw;
     e->field_140 = raw + 1;
     if (e->field_140 > e->field_136 - 1) {

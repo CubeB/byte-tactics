@@ -1,8 +1,6 @@
 // Decompiled by Opus. Names are provisional.
-// std::vector<Elem_0040d550>::_Ufill(first, n, value) from MSVC 5's <vector>:
-// copy-constructs n copies of value into raw storage at first. _Ufill is
-// protected, so a derived class takes its address to make the compiler
-// emit it out of line.
+// std::vector<Elem_0040d550>::_Ufill(first, n, value): copy-constructs n
+// copies of value into raw storage at first.
 // The same vector as 0x40d550 (_Ucopy): its resize (0x40c7f0) calls
 // 0x40d550, 0x40d580 (_Ufill) and 0x40d4e0 (_Destroy) with ecx set to it.
 #include <vector>

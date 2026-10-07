@@ -1,31 +1,10 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
-// check.py: MATCH, 624 of 624 bytes.
-//
 // The game's free() for its own heap, the partner of malloc() at 0x4dacf0:
 // under the allocator lock it finds the block's record in the live-block map,
 // fills the slack after (or before) the block with the debug pattern, keeps a
 // copy of the record in the debug ring (the last 0x2000 freed blocks), drops
 // it from the live map, decommits the pages and gives the reserved range back
 // to the free-block set.
-//
-// What matched it (it sat at 83.0 percent with a hand-built nested block):
-//  * The give-back is AddFreeBlock (0x4db000, add a free block merged with its
-//    neighbours) inlined, written as in its own file, but with this file's
-//    copies of the set's members out of line: upper_bound 0x4dbd20, begin
-//    0x4dbeb0, operator--(int) 0x4dbe10, erase 0x4dbd00 and insert 0x4dbbc0
-//    (the same copies 0x4dacf0 calls). Its `it` lands in the dead slot of
-//    `p` by itself.
-//  * The live map's erase is an inline wrapper around the out-of-line
-//    _Tree::erase (0x4dc910), as std::map::erase is. The wrapper's parameter
-//    is why `it` is loaded into esi before GetBlockMap is called.
-//  * The ring is a real std::vector of the 0x30-byte record (0x4dd8c0 is its
-//    out-of-line insert): `push_back` when it is not full, `ring[count &
-//    0x1fff] = *old` when it is. The record pointer is taken before
-//    GetFreedBlockRing, the live map before the record is built, and the commit and
-//    reserve sizes and the free-block set are fetched into locals first.
-//  * The record and the ring's element are one 0x30-byte record type in the
-//    original; they have two names here because 0x4d8820's and 0x4dd8c0's
-//    files named them, and the cast between them is ours.
 #include <windows.h>
 #include <vector>
 

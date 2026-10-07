@@ -4,10 +4,6 @@
 // reads width and height (two dwords), allocates a RADARPIC bitmap and reads
 // width*height pixels into it. Otherwise it returns null. The two dwords at
 // header+4 and header+8 are reported through the output pointers.
-//
-// The local frame is a single struct: the pixel dimensions live at +0/+4, a
-// never-read dword sits at +8 (it is what makes the frame 0x4c bytes), and the
-// 0x40-byte header starts at +0xc.
 
 struct Bitmap_004b8da0 {
     short width;              // +0x0
@@ -27,6 +23,7 @@ struct Bitmap_004b8da0 {
 struct Pic_004295b0 {
     int w;               // +0x0
     int h;               // +0x4
+    // Never read, but makes the local frame 0x4c bytes.
     int unknown;         // +0x8
     char header[0x40];   // +0xc
 };

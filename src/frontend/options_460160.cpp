@@ -4,9 +4,6 @@
 // handler, saves the game settings the same way SaveGameSettings does, then pushes
 // the panel menu. The bit at g_game+0x2a44 bit 2 suppresses the two video
 // calls.
-// The holder at g_game+0x531 is a local, but its +4 layer pointer is not: the
-// original re-reads [ebp+4] for every statement that uses it, so each use here
-// goes through holder->field_4 again.
 #include <string.h>
 
 class Class_004ce5a0 {
@@ -121,6 +118,7 @@ void OpenOptionsPanel()
     if (!g_game->flags.bit2) {
         BlankScreen();
     }
+    // Re-read holder->field_4 at every use; do not cache it in a local.
     DAT_00512fe8 = AllocSurface("FLIPSURFACE", holder->field_4->field_17, holder->field_4->field_19);
     memcpy(DAT_00512fe8->pixels, holder->field_4->field_bc->pixels,
            holder->field_4->field_17 * holder->field_4->field_19);

@@ -1,20 +1,14 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // Constructor of the global name-table singleton (allocated by GetNameTable).
-// It is an MSVC 5 std::map whose value is a 500-byte buffer, so the tree node
-// is 0x208 bytes with the colour at +0x204 (see 0x4df380.cpp, 0x4e1990.cpp).
 // The tree's static _Nil / _Nilrefs are DAT_005292c4 / DAT_00529500 and the
 // pooled node free list is DAT_00529e58, exactly as in <xtree>'s _Init with a
 // pooled allocator. The map member sits at +0, the "changed" flag at +0x10.
 //
-// The map's allocator pools 0x208-byte nodes. Its _Charalloc is the routine
-// matched as 0x4e2b60; /Ob2 inlines it into the second _Buynode call and
-// leaves the first as an out-of-line call, which is what the original does.
-// _Charalloc is renamed to FUN_004e2b60 so the call uses the same name as the
-// already-matched 0x4e2b60 file (the real symbol is the STL allocator's
-// _Charalloc, which no natural instantiation can spell that way).
+// The map's allocator pools 0x208-byte nodes.
 #include <windows.h>
 #include <string.h>
 
+// Renames the allocator's _Charalloc so the call carries the symbol name FUN_004e2b60.
 #define _Charalloc FUN_004e2b60
 #include <map>
 #undef _Charalloc

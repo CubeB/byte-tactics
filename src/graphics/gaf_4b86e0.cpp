@@ -1,8 +1,7 @@
 // Decompiled by mimo-v2.6-pro. Names are provisional.
 // Recursively draws a bitmap tree (`param_2`) at x, y into `param_1`, or into
 // the locked screen when `param_1` is null. Runs only when the display flag
-// word at +0xf0 has bit 0x100 set (which is byte +0xf1 bit 0, and that spelling
-// is what fuses the read into `test byte [eax + 0xf1], 1`) and the record's
+// word at +0xf0 has bit 0x100 set (which is byte +0xf1 bit 0) and the record's
 // byte at +9 is clear (note the record is tested for null only after that byte
 // is read). A record with a child count
 // draws every child through this same function; a leaf builds the source rect
@@ -78,6 +77,7 @@ void __stdcall DrawFrameGray(Surface* param_1, Bitmap_004b86e0* param_2, int x, 
 void __stdcall DrawFrameGray(Surface* param_1, Bitmap_004b86e0* param_2, int x, int y)
 {
     Display_004b86e0* d = GetDisplay();
+    // Flag tested as bit 0x100 of the word: fuses into a byte test at +0xf1.
     if ((d->flags & 0x100) != 0 && param_2->flag9 == 0) {
         Surface_004b86e0 screen;
         if (param_1 == 0) {

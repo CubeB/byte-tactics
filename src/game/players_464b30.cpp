@@ -5,21 +5,6 @@
 // `to`'s economy object. An AI player (type 2) on easy or medium only counts
 // 0.5 or 0.7 of it, and the transfer is announced over the network when `flag`
 // is set. Same shape as 0x464c60, which moves energy with UnitResources.
-//
-// Two things were needed, both of them read off the already-matched energy
-// twin 0x464c60:
-// 1. The receiver is read through a ternary whose two arms are identical apart
-//    from the withdrawal, so the receiver's address computation is duplicated
-//    into both arms of the flag test. That is what homes `to` rather than
-//    `from` in ebx. With a plain assignment after the withdrawal MSVC keeps
-//    `from` in ebx and the function is 18 bytes out.
-// 2. The plain (non-AI, and AI-on-hard) add is routed through a local float:
-//        float m = econ->metal; m += amount; econ->metal = m;
-//    Writing it directly as `econ->metal = econ->metal + amount` (or `+=`, or
-//    with the operands the other way round: all three desugar to the same IR)
-//    makes MSVC canonicalise the x87 operand order and emit `fld amount;
-//    fadd [econ->metal]`, whereas the original loads the destination first
-//    (`fld [eax]; fadd [esp+0x1c]`). Going through a local forces that.
 
 class UnitResources;
 
@@ -71,6 +56,7 @@ void __stdcall TransferMetal(unsigned char from, unsigned char to, float amount,
     if (amount == 0.0f)
         return;
     Player_00464b30* player;
+    // Receiver read inside both arms of the flag test: homes `to` in ebx.
     player = flag ? (g_game->players[from].econ->SpendEnergy(amount),
                      g_game->players[to].econ->player)
                   : g_game->players[to].econ->player;
@@ -85,6 +71,7 @@ void __stdcall TransferMetal(unsigned char from, unsigned char to, float amount,
                 = g_game->players[to].econ->metal - amount * -0.7;
             break;
         default: {
+            // Add goes through a local float: fixes the x87 operand order.
             float m = g_game->players[to].econ->metal;
             m += amount;
             g_game->players[to].econ->metal = m;
@@ -92,6 +79,7 @@ void __stdcall TransferMetal(unsigned char from, unsigned char to, float amount,
         }
         }
     } else {
+        // Add goes through a local float: fixes the x87 operand order.
         float m = g_game->players[to].econ->metal;
         m += amount;
         g_game->players[to].econ->metal = m;

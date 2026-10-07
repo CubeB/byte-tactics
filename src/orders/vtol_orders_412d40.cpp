@@ -2,14 +2,10 @@
 // VTOL strafing attack order handler. With flags 0x10008, or with no target
 // and order flag 0x200, it queues VTOL_SEEKATTACK; on the map-edge player it
 // heads for the map centre. State 0 prepares the order ("Attacking";
-// FUN_0040f200 is defined here because /Ob2 inlined it). State 1 attacks:
+// FUN_0040f200). State 1 attacks:
 // when the target lies ahead (IsAhead) it makes a strafing run, otherwise it
 // circles, leading the target by its velocity, and after 90 ticks of that
 // it queues VTOL_EVADE.
-// Match notes: IsAhead must be an inline helper (its locals then share stack
-// slots with the later ones, giving the 0x38 frame; a plain block does not),
-// and FUN_004103a0's scale is a by-value 4-byte union, which is why every
-// caller loads the constant into a register before pushing it.
 #include <math.h>
 
 struct Vec3 {
@@ -114,6 +110,7 @@ void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
 void __stdcall FUN_0043ad10(Unit*, Class_0043a1f0*);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
 
+// scale is a by-value 4-byte union: callers load the constant into a register first.
 Vec3 __stdcall FUN_004103a0(short angle, Fixed scale);
 Vec3 __stdcall FUN_0040f790(const Vec3& a, const Vec3& b);
 
@@ -151,6 +148,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
     }
 }
 
+// Stays an inline helper: its locals then share stack slots with the later ones.
 static inline int IsAhead(Unit* unit, Order* order)
 {
     Vec3 toward = Offset(GetHeadingBetween(&unit->pos, &order->target->pos), 0x140000);

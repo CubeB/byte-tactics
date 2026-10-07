@@ -8,16 +8,6 @@
 // entry's +0xda is non-zero it overrides the row height with its own value.
 // A missing entry is reported and then treated as a null entry (the stores
 // that follow then go through a null pointer, as in the original).
-//
-// The row pointer must be computed right after the +0xc6 store (from
-// `rows + count - 1`, which MSVC expands as `rows + count*0x18 - 0x18`) and
-// before the +0xc0 store. The loop test must be `i > -1` rather than `i >= 0`.
-//
-// What made the last two bytes match: the subtraction has to be written as
-// an if/else with one `remain -=` statement in each arm, not as one
-// `remain -= cond ? a : b`. The compiler then no longer folds the sign test
-// into the subtraction (`js`) and emits `cmp edi, ebp; jl` against its zero
-// register, as the original does.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -78,6 +68,7 @@ void __stdcall SetGadgetRows(Table_004a35a0* table, char* name,
         e = 0;
     }
     e->f_c6 = (int)rows;
+    // Computed right after the f_c6 store and before the num store.
     Row_004a35a0* row = rows + count - 1;
     e->num = (short)count;
     e->flags |= 0x80;
@@ -85,7 +76,9 @@ void __stdcall SetGadgetRows(Table_004a35a0* table, char* name,
     e->f_ba = 0;
     e->first = (short)(count - 1);
     int remain = e->height;
+    // The test is i > -1, not i >= 0.
     for (int i = count - 1; i > -1; i--, row--) {
+        // An if/else with one remain -= per arm, not one remain -= cond ? a : b.
         if (e->f_da != 0) remain -= e->f_da; else remain -= row->height;
         if (remain < 0)
             break;

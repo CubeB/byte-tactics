@@ -2,17 +2,10 @@
 // Creates a WakeParticles (vtable 0x4fd5f8, 0x48 bytes), initialises it
 // through virtual slot 6, then appends it to the std::vector<ParticleSystem*>
 // selected by the short index. When that list already holds more than 400
-// entries its oldest element is deleted and erased first. The append lives in
-// an inlined member helper, which is what leaves std::vector::insert (0x4732e0)
-// out of line. Same shape as 0x471340, which builds a TeleportParticles instead;
-// 0x471340 is a method on the lists owner, so its `this` lands in ebp, here the
-// lists pointer is a local read before the `new` (without it MSVC reloads
-// g_game after the virtual call instead of keeping the base in ebp).
-// The byte copied to +0xc is MSVC copying the vector's empty allocator
-// temporary, not a constructor parameter: the fourth argument (the index) is
-// dead after that, as in 0x471340.
-// Class family listed in wake_particles.cpp; operator new (0x471d10) is
-// inlined here.
+// entries its oldest element is deleted and erased first. Same shape as
+// 0x471340, which builds a TeleportParticles instead; 0x471340 is a method on
+// the lists owner, here the lists pointer is a local.
+// Class family listed in wake_particles.cpp.
 #include <stddef.h>
 #include <string.h>
 #include <vector>
@@ -86,6 +79,7 @@ public:
 struct Lists_00472530 {
     std::vector<ParticleSystem*> lists[10];             // 0x10 bytes each
 
+    // Inlined member helper: leaves std::vector::insert out of line.
     void Add(short index, ParticleSystem* p)
     {
         if (lists[index].size() > 400) {
@@ -108,6 +102,7 @@ extern Game* g_game;
 // FUNCTION: 0x472530
 void __stdcall EmitBubbles(int param_1, int param_2, int param_3, short index)
 {
+    // Local read before the new: otherwise g_game is reloaded after the virtual call.
     Lists_00472530* l = g_game->lists;
     WakeParticles* p = new WakeParticles;
     if (p) {

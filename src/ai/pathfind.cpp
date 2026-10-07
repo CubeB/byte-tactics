@@ -3,6 +3,7 @@
 // heap of nodes (the OpenHeap base, whose sift-up and sift-down are defined
 // here too, at their place in the original file), a per-tick scheduler that
 // shares the search steps among the players, and the trace back from the goal.
+// Needed: without it GetCellState's first argument lands in eax, not edx.
 #include <stdlib.h>
 #include <string.h>
 #include <windows.h>
@@ -674,10 +675,6 @@ static int IsPlaying(unsigned char i)
 // Looks up the 2-bit state of map cell (x, y): 0 when the cell is off the map
 // or its visibility cell is off the game grid, 2 when the player's bit is not
 // set in that visibility cell, else the cell's stored value.
-// The map's bounds check and cell read are inline methods (the cell read
-// re-reads the width after the bounds check), `g_game->width >> 1` is written
-// twice rather than held in a local, and <stdlib.h> is needed: without it the
-// first argument lands in eax instead of edx.
 // FUNCTION: 0x40d7b0
 int Pathfinder::GetCellState(int x, int y)
 {
@@ -685,6 +682,7 @@ int Pathfinder::GetCellState(int x, int y)
         return 0;
     int cx = (x >> 1) + (owner->originX >> 2);
     int cy = (y >> 1) + (owner->originY >> 2);
+    // `g_game->width >> 1` stays written twice, not held in a local.
     if (cx >= (g_game->width >> 1) || cy >= (g_game->height >> 1))
         return 0;
     if (!((1 << player) & g_game->visibilityMask[cy * (g_game->width >> 1) + cx]))
@@ -703,18 +701,17 @@ void Pathfinder::InitCostTables()
 }
 
 // Marks the cell at (x, y) with kind 4 and sets the dirty
-// bit of the block of eight cells that holds it. The grid's methods are
-// inline; calling them on the embedded member (rather than writing the body
-// here) is what makes MSVC re-read the width after the bounds check.
+// bit of the block of eight cells that holds it.
 // FUNCTION: 0x40d8b0
 void Pathfinder::MarkGoalCell(unsigned int x, unsigned int y)
 {
+    // Call the grid methods on the member; writing their bodies here breaks the match.
     if (grid.InBounds(x, y))
         grid.Set(x, y, 4);
 }
 
 // Clears the kind of every cell in the dirty blocks of the grid, and the dirty
-// bits. The store of a dead local in Grid::ClearLast is needed: see there.
+// bits.
 // FUNCTION: 0x40d900
 void Pathfinder::ClearDirtyCells()
 {
@@ -819,7 +816,6 @@ void Pathfinder::ExpandNeighbour(NodeData* from, Cell* fromCell, int turn)
 }
 
 // Pops the best node from an open list and expands it on the navigation grid.
-// Both copies of the pop are an inlined heap-remove helper.
 // FUNCTION: 0x40df00
 int Pathfinder::ExpandBestNode()
 {
@@ -850,12 +846,6 @@ int Pathfinder::ExpandBestNode()
 // (+0x34) to the start (+0x30) by following each cell's direction byte, keeps
 // the points where the direction changes (a ring of 64), and hands them to the
 // path object in world coordinates, start first. Called from 0x40eb70.
-//
-// Three details decide the match: the loop test is an inline
-// `Point::operator!=` (a plain `||` loads cur.y before cur.x), the cell is
-// taken through an inline grid method returning a pointer, and its direction
-// is read twice (`if (c->dir != dir) dir = c->dir;`), which keeps
-// the `lea` of the cell address in the loop.
 // FUNCTION: 0x40e050
 void Pathfinder::TracePath()
 {
@@ -866,8 +856,10 @@ void Pathfinder::TracePath()
     pts[0] = cur;
     int n = 1;
 
+    // Point::operator!= inline, not a plain `||`: sets the cur.x/cur.y load order.
     while (cur != start) {
         Cell* c = grid.At(cur.x, cur.y);
+        // dir is read twice on purpose: keeps the cell address lea in the loop.
         if ((char)c->dir != dir) {
             dir = (char)c->dir;
             pts[n & 0x3f] = cur;
@@ -893,13 +885,6 @@ void Pathfinder::TracePath()
 // until blocked, then follows the obstacle's outline both ways at once until
 // one side reaches the x-then-y line to the goal again. Returns the lowest
 // cost seen, or 0 when the walk reaches a goal cell or a zero-cost cell.
-//
-// Matching notes: the return to the straight walk is a `goto`; an outer
-// `for (;;)` loop gives `this` a lower register priority (ebp instead of
-// esi). The two cost helpers (CostFix and Cost) differ only in how the
-// 64-bit multiply is spelled, which decides whether MSVC commutes the `imul`
-// at each site.
-
 // FUNCTION: 0x40e160
 int Pathfinder::ProbeStraightPath()
 {
@@ -911,6 +896,7 @@ int Pathfinder::ProbeStraightPath()
     char dir;
     int nx;
     int ny;
+    // The return to the straight walk is a goto; CostFix and Cost must stay two helpers.
 greedy:
         for (;;) {
             steps++;
@@ -998,15 +984,6 @@ greedy:
 // target reports, picks the goal nearest to the start as the probe's aim,
 // runs the straight-line probe (0x40e160) and, when that did not reach a
 // goal, seeds the open heap with the start cell.
-//
-// What made this match (99.7% before, with a 3-argument `__fastcall` Cost as
-// a stand-in): every early exit is its own `Finish(); return;`, not a
-// `goto finish` into one shared block. MSVC tail-merges the copies into the
-// one block at the end, so the bytes are the same, but the copy in the
-// IsGoal branch is generated before the Cost call, and its two temporaries
-// (ecx and edx, c2prio --rotation) move the eax/ecx/edx rotation two steps.
-// With that, Cost is the plain thiscall the out-of-line copy 0x40da40 shows
-// (arguments in edx, vtable in eax).
 // FUNCTION: 0x40e630
 void Pathfinder::StartSearch(Target* t)
 {
@@ -1032,6 +1009,7 @@ void Pathfinder::StartSearch(Target* t)
         }
     }
 
+    // Each early exit is its own `Finish(); return;`, not a goto to a shared block.
     if (target->IsGoal(start.x, start.y)) {
         ((Class_0044ced0*)target)->FUN_0044ced0(0x100);
         Finish();
@@ -1085,14 +1063,6 @@ void Pathfinder::FUN_0040e9c0(int param_1)
 // AISearch constructor (201-byte object): seeds the per-player search cost
 // table, sizes the map cell array from the game's map dimensions, and builds
 // the "touched" bitmap.
-//
-// Two details the compiler forces and that look odd in C++:
-//  - the grid's cells pointer is cleared with memset, not `grid.cells = 0`. With a plain
-//    assignment MSVC folds the later `operator delete(grid.cells)` to a push of
-//    the zero register (1 byte instead of mov+push), so the original source
-//    must have gone through an opaque memory clear.
-//  - The dirty bits are filled with 0xff for n - 1 bytes only, and its last dword is
-//    then forced to zero and partially re-set by the loop below.
 // FUNCTION: 0x40e9e0
 Pathfinder::Pathfinder()
 {
@@ -1106,6 +1076,7 @@ Pathfinder::Pathfinder()
     grid.width = 0;
     grid.height = 0;
     grid.count = 0;
+    // memset, not `grid.cells = 0`: an assignment changes the later operator delete call.
     memset(&grid.cells, 0, sizeof(grid.cells));
 
     int w, h;
@@ -1120,6 +1091,7 @@ Pathfinder::Pathfinder()
     unsigned int m = (grid.count + 0xff) >> 8;
     unsigned int n = m * 4;
     grid.dirty = (unsigned int*)FUN_004d83b0("AISearch touched mapentries", n);
+    // Only n - 1 bytes are filled; the last dword is zeroed separately.
     memset(grid.dirty, 0xff, n - 1);
     *(int*)((char*)grid.dirty + n - 4) = 0;
 
@@ -1155,15 +1127,6 @@ Pathfinder::~Pathfinder()
 // active players, then spends it on their path requests in turn, starting a
 // new search (0x40e630) for the next unit of the current player or expanding
 // the open heap of the running one until it reaches a goal or runs dry.
-//
-// Matching notes: the expansion loop is `while (1)` with the empty test
-// inside, under an `else if (Size() != 0)` whose else is the failure path;
-// that keeps the loop tested at the top and the failure block after it.
-// Two oddities are kept as the original has them: the `r < 3` case and the
-// final `else` both reset the scale to baseScale, and the second
-// RemoveNode path can never run because the pop above already cleared
-// topPopped. The redundant `((Pathfinder*)this)->` casts stay: without
-// them ProbeStraightPath (0x40e160) drops to 90.3%.
 // FUNCTION: 0x40eb70
 void Pathfinder::RunSearches()
 {
@@ -1215,9 +1178,11 @@ void Pathfinder::RunSearches()
                     object = u;
                     steps += 100;
                     costScale = DAT_005119e8[player];
+                    // The redundant ((Pathfinder*)this)-> casts stay; removing them changes ProbeStraightPath.
                     ((Pathfinder*)this)->StartSearch(path->target);
                 }
             }
+        // Loop is `while (1)` with the empty test inside, under this else-if.
         } else if (Size() != 0) {
             while (1) {
                 if (Size() == 0)
@@ -1265,7 +1230,7 @@ void Pathfinder::RunSearches()
 
 // Removes node `k` from the open heap: puts it back on the free list, shrinks
 // the heap by one, moves the last heap element into the freed slot and sifts it
-// down. Inlines the free and the sift-down (0x40f060).
+// down.
 // FUNCTION: 0x40ef20
 void Pathfinder::RemoveNode(int k)
 {

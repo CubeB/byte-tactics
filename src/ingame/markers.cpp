@@ -1,4 +1,5 @@
 // Decompiled by DeepSeek V4.1 Flash, Space Bunny Free, GPT-6.1-sol, deepseek-v4.1, deepseek-v4.1-flash, mimo-v2.6-pro, Claude Sonnet 5.5 and Claude Opus 5.5. Names are provisional.
+// The include set is load-bearing for 0x4399f0: it changes how the compiler reassociates.
 #include <windows.h>
 #include <stdlib.h>
 #include <math.h>
@@ -286,6 +287,7 @@ static inline Vec3 Offset(int angle, int distance)
     Vec3 v;
     v.x = -FUN_004b70ef(angle, distance);
     v.y = 0;
+    // Named before negation: `v.z = -FUN_004b7123(...)` changes register use.
     int z = FUN_004b7123(angle, distance);
     v.z = -z;
     return v;
@@ -300,34 +302,9 @@ static inline Pos operator-(const Pos& p, const Vec3& v)
     return r;
 }
 
-// MATCH. Draws a ring of n + 1 line segments around a 16.16 map position,
+// Draws a ring of n + 1 line segments around a 16.16 map position,
 // where n = radius * 2pi / 8, and the label text at the end of segment number
 // index * 3 (or of the last segment when that one ended at 0, 0).
-//
-// What took it from 82.8% to MATCH (Claude Opus 5.5, #4991). The previous
-// pass's file subtracted the loop counter instead of scroll_y in y1 and
-// needed an int-returning `Higher` predicate and a y getter to place `pos` in
-// edi and `rad` in ebx; all three are gone.
-//  * Each ring point is `*pos - Offset(angle, rad)`, the Offset helper the
-//    matched unit code uses ({-FUN_004b70ef, 0, -FUN_004b7123}, see 0x407e90
-//    and 0x406300), with a Pos minus Vec3 operator. That alone gives the
-//    original's x, z, y load order and edi/ebx/ebp for pos, rad and angle
-//    (34.3% with the coordinates written out by hand, 63.3% with Offset).
-//  * In Offset, the second call's result is named before it is negated
-//    (`int z = ...; v.z = -z;`). That keeps angle in ebp through the drawing
-//    block, so the correct `- sy` in y1 spills scroll_y into pos's dead
-//    argument slot as the original does (63.3% to 98.8%). Writing
-//    `v.z = -FUN_004b7123(...)` directly, as 0x407e90 does, gives 63.3%; naming
-//    both results first gives 81.7%.
-//  * The label index is compared as `i == index * 3`; MSVC hoists the
-//    product into index's slot, as `index *= 3` did, but the uninitialised
-//    x2 and y2 then take i's slot as their home on the n < 0 path (99.4%).
-//  * y2 is assigned before x2, which orders that path's two reloads (MATCH).
-//
-// The fmul order still stands: `d = radius * DAT_004fd2b0`, then
-// `n = (int)(d * DAT_004fd2b8)`. check.py masks both operands, so the product
-// could be in the wrong order and still score, but the references would then
-// point at the wrong constants.
 // FUNCTION: 0x438ea0
 void __stdcall DrawRangeCircle(void* surface, View* view, Pos* pos, int radius,
                             int color, const char* text, int index)
@@ -336,6 +313,7 @@ void __stdcall DrawRangeCircle(void* surface, View* view, Pos* pos, int radius,
     if (radius) {
         int lx = 0;
         int ly = 0;
+        // Product order d = radius * a, n = d * b: picks the right constants.
         double d = radius * DAT_004fd2b0;
         int n = (int)(d * DAT_004fd2b8);
         int i = 0;
@@ -354,10 +332,12 @@ void __stdcall DrawRangeCircle(void* surface, View* view, Pos* pos, int radius,
                 p2.y.whole = __max(pos->y.whole, GetGroundHeight(&p2));
                 int sx = view->scroll_x;
                 int sy = view->scroll_y;
+                // y2 before x2: orders the two reloads on the n < 0 path.
                 y2 = p2.z.whole - (p2.y.whole >> 1) - sy + 0x20;
                 x2 = p2.x.whole - sx + 0x80;
                 DrawLine(surface, p1.x.whole - sx + 0x80,
                              p1.z.whole - (p1.y.whole >> 1) - sy + 0x20, x2, y2, color);
+                // Compared as i == index * 3, not `index *= 3`: x2 and y2 would take i's slot.
                 if (i == index * 3) {
                     lx = x2;
                     ly = y2;
@@ -375,14 +355,6 @@ void __stdcall DrawRangeCircle(void* surface, View* view, Pos* pos, int radius,
     }
 }
 
-// The animated-radius clamp has to be a single ternary
-//     int radius = (t < 8) ? 8 : t;
-// Any if-form makes MSVC spill radius (radius homed in the view argument slot
-// and the 8 store hoisted above the flags test) and swap view into ebp, which
-// costs the whole block. The ternary keeps radius in ebp and view in edi and
-// reproduces the original `mov ebp,8 / cmp edx,8 / jb / mov ebp,edx` exactly.
-// `t` is unsigned (jb), r and radius are int (jl), and the position is read as
-// `&node->unit->pos` (a `unit` local makes MSVC emit `lea` and drops to 49.6%).
 // Suspected bug: the weapon3 test reads slots[0].flags (unit+0x1f) but the
 // range from slots[2].weapon (unit+0x48); slots[2].flags is at unit+0x57.
 // FUNCTION: 0x4390a0
@@ -401,9 +373,11 @@ void __stdcall DrawUnitRangeRings(void* surface, View* view, Order* order,
             int r = def->weapon_220->field_d6;
             r = r >> 1;
             unsigned int t = (g_game->frame % 60) * r * 2 / 60;
+            // Single ternary: any if-form spills radius.
             int radius = (t < 8) ? 8 : t;
             if (radius >= r)
                 radius = r;
+            // Read as &order->unit->pos: a unit local would change it to lea.
             DrawRangeCircle(surface, view, &order->unit->pos, radius, g_game->field_dd7, 0, 0);
             if (unit->field_0 != 0) {
                 DrawRangeCircle(surface, view, &order->unit->pos, def->kamikazeDistance,
@@ -518,31 +492,12 @@ struct Trail_004394e0 {
     }
 };
 
-// MATCH. What it does: snapshots the position the caller passed in `out`,
+// Snapshots the position the caller passed in `out`,
 // calls DrawWeaponCoverage (which draws the order's icon and writes the new position
 // to `out`), and when `flag` is set walks the line from the snapshot to the
 // new position in 0x300000 steps, drawing frame `idx` of g_game->anims[21] at
 // each step. idx starts at (frames since order->timestamp, clamped at 0) /
 // max(1, anim->field_2c) % anim->count.
-//
-// The last piece (Claude Opus 5.5, #4994, 84.0 -> MATCH) was the order of the
-// statements after the flag test: read the new position into its own local
-// first (`Pos end = *out;`), then the clamped timestamp age, then the deltas
-// from `end`, with `order->timestamp` read directly (no `int& ts` reference).
-// The original's code after `test ebp, ebp` shows it: g_game is loaded, then
-// all three of out's components, then `sub eax, [ebx+0x46]`, and only then
-// the delta subtractions. With that order the old prologue rotation
-// ({out, flag, order, start.x} in {esi, ebx, edi, ebp} instead of the
-// original's {esi, ebp, ebx, edi}) and the dist/d.z choice for esi both fall
-// into place; the same order with the `int& ts` reference scores 98.0, the
-// age computed after the deltas 82.1, and between the copy and the deltas
-// without `end` 79.8.
-//
-// Earlier findings that the match still depends on: the deltas in a Vec3 of
-// plain ints whose Length() converts each component to its own double (the
-// fild order, from the matched sibling 0x40beb0), the walk behind an inlined
-// Trail::Run() (76.7 with the same loop written inline), and the three 16.16
-// steps built in a helper returning a Pos (the products stay in memory).
 // FUNCTION: 0x4394e0
 void __stdcall FUN_004394e0(void* surface, View* view,
                             Order* order, Pos* out, int flag)
@@ -552,8 +507,10 @@ void __stdcall FUN_004394e0(void* surface, View* view,
     if (flag == 0)
         return;
 
+    // Order matters: end, then the clamped age, then the deltas; no `int&` for the timestamp.
     Pos end = *out;
     int t = __max(g_game->frame - order->timestamp, 0);
+    // Plain-int Vec3: Length() converts each component to its own double.
     Vec3 d;
     d.x = end.x.value - start.x.value;
     d.y = end.y.value - start.y.value;
@@ -568,6 +525,7 @@ void __stdcall FUN_004394e0(void* surface, View* view,
     int frames = len < 1 ? 1 : (int)len;
     unsigned int idx = (t / frames) % anim->count;
 
+    // The walk stays behind the inlined Trail::Run(); written inline it changes register use.
     Trail_004394e0 tr;
     tr.start = start;
     tr.delta = d;
@@ -639,18 +597,6 @@ void __stdcall DrawWeaponCoverage(void* surface, View* view, Order* order,
 
 // Draws an ellipse (radius `height`, 0.89 of it vertically) of 16 segments
 // around an object's screen position, then copies the position to `out`.
-//
-// The two earlier attempts (#31, #158) stopped at 94.8 percent with the same
-// source: without these headers MSVC reassociates
-// `p.z - view->cy - (p.y >> 1)` into `(p.z - (p.y >> 1)) - view->cy`, loads
-// p.y first and reuses ecx for view->cy. That is compiler state, not source
-// shape: with N unused `extern int` declarations in front of this source and
-// no headers, it matches for N = 43 to 298, and the pattern repeats every 512
-// declarations (half of every period matches). `<windows.h>` + `<memory.h>`
-// puts N = 0 near the middle of a matching window (it still matches with 109
-// fewer or 146 more declarations). `<stdlib.h>` + `<math.h>` + `<memory.h>`
-// is the most centred set (-134 to +121); `<windows.h>` alone also matches
-// (-82 to +173).
 // FUNCTION: 0x4399f0
 void __stdcall FUN_004399f0(void* surface, View* view, Order* order,
                             Pos* out, int unused)

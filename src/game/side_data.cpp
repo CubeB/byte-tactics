@@ -148,9 +148,6 @@ void FreeSideFonts()
     }
 }
 
-// This file of the original was built with /Gz, so the function is __stdcall.
-// Declared __cdecl it scores 95.4%: 34 calls schedule the reload of
-// parser.current before their `push 0` instead of after it.
 // Loads gamedata\sidedata.tdf. For every SIDE<n> section, n counting from 0
 // until the section is missing, it reads the side's name, name prefix,
 // commander name and font file (LoadFontByName's body inlined), its two colours
@@ -158,32 +155,12 @@ void FreeSideFonts()
 // the three RELOAD<n> rectangles to the shared reader ReadSideRect. The
 // number of sections found is left in g_game+0x37f39.
 //
-// Three source shapes the match depends on, none of them obvious:
-//  - `int* r = &s->field; r[0]..r[3]` rather than named fields is what selects
-//    the biased side pointer. With `s->logo.x1 = ...` MSVC 5 chose
-//    `ebx = side+0x22`; with the `int*` form it chose `side+0x4a`, the original's
-//    bias. Worth 22 points. The `&s->field` address expression being present is
-//    what makes the back end pick that middle-field bias.
-//  - `while (1)` with a `break` inside is NOT rotated, while `for (init;; incr)`
-//    is. `for (side = 0;; side++)` made MSVC rotate into test-at-bottom form
-//    and peel the first iteration, which pushed edi/ebx inside the loop instead
-//    of into the prologue and shifted the whole frame. `while (1)` reproduced
-//    the unrotated loop, the four-register prologue and the exact
-//    `sub esp,0xd14` with the parser at `[esp+0x10]`.
-//  - Frame slack tells you the loop shape: a peeled loop leaves 8 unused bytes
-//    at the bottom of the frame, the unpeeled one leaves none, and the original
-//    has none.
-//
-// The eleven per-block error buffers are declared in the source in a different
-// order from the one the frame uses. The frame order is ENERGYNUM, TOTALUNITS,
-// TOTALTIME, LOGO, ENERGY0, METALNUM, METAL0, METALBAR, ENERGYMAX, ENERGYBAR,
-// METALMAX. That is deliberate and load-bearing; do not "tidy" it.
-//
 // Suspected original bug, unconfirmed: the store `s->sideNumber = side` at
 // +0x22a writes the loop counter, so the field is 0 for side 0 and the index
 // otherwise. If that field is meant to hold something else, this is where the
 // source is wrong. I could not confirm its meaning from the rest of the repo;
 // 0x476830, 0x476a60 and 0x496ee0 only read the name at +0.
+// __stdcall because the original file was built with /Gz.
 // FUNCTION: 0x431a60
 void __stdcall LoadSideData(void)
 {
@@ -191,6 +168,8 @@ void __stdcall LoadSideData(void)
     int side;
     char name[0x100];
     char fontPath[0x100];
+    // Declaration order is deliberate and differs from the frame order: do not
+    // reorder.
     char msgEnergynum[0x100];
     char msgTotalunits[0x100];
     char msgTotaltime[0x100];
@@ -208,6 +187,7 @@ void __stdcall LoadSideData(void)
     parser.LoadFile(name);
     s = g_game->sides;
     side = 0;
+    // `while (1)`, not `for (;; side++)`: a for loop is rotated and peeled.
     while (1) {
         int saved;
         s->sideNumber = side;
@@ -237,6 +217,8 @@ void __stdcall LoadSideData(void)
             sprintf(msgLogo, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "LOGO", s->name);
             FatalError(msgLogo);
         } else {
+            // Written through `int* r = &s->field`: selects the original's biased
+            // side pointer; named fields do not.
             int* r = &s->logo.x1;
             r[0] = parser.current->GetFieldInt("x1", 0);
             r[1] = parser.current->GetFieldInt("y1", 0);

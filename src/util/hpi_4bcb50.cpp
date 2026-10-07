@@ -4,49 +4,6 @@
 // subdirectory or, when the name matches the wildcard pattern, appends
 // "path\\name" to the vector passed in. The search handle is closed at the end
 // (the inlined body of 0x4bc8d0).
-//
-// SOLVED: the register rotation. Four earlier sessions left this at 90.2
-// percent with the path parameter in ebp and the search handle in ebx, the
-// reverse of the original (path ebx, handle ebp, tree edi, the string constant
-// esi), and concluded the allocation was insensitive to the source after
-// trying about forty shapes. It is not. The lever is a SINGLE dead-looking
-// local assigned in the loop condition:
-//
-//     int r;
-//     do { ... } while ((r = HAPI_FindNext((FindFiles*)h, &fd)) != -1);
-//
-// `r` is never read (the classic pointer tail below tests the separate `f`),
-// but the assignment still reaches the allocator as a live graph node, and one
-// extra live node demotes the handle from ebx to ebp, which in turn frees ebx
-// for the path parameter. That is confirmed technique 2 in the brief, and it
-// is worth 9.8 points: 90.2 to 100. Four spellings of the same statement all
-// give an exact match (int r, long r, and a FindFiles* r), so the fix is
-// the extra node, not its type. Variants that only add a use of path
-// (`path = path`, `path ? path : path`) do nothing, so the demotion is of the
-// handle, not a promotion of the path.
-//
-// Two source details in the tail are load-bearing and are kept. The
-// `f != (FindFiles*)-1` test only survives if it names a second variable:
-// written on the loop's own handle, MSVC knows from the `h != -1` above that
-// the -1 test is redundant and drops it (438 bytes, 96.5 percent). And the
-// tail's variable has to be the pointer cast of the int, because MSVC folds
-// the comparison against the -1 the loop already left in eax, giving the
-// original's `cmp ebp, eax`. Skipping `r` entirely and writing only the tail
-// gives 90.2 with the wrong rotation.
-//
-// The insert call is reachable only as the protected std::vector member, so
-// the container is hand-rolled and `tree` is a std::vector<Class_004c91a0>
-// (same shape as the matching sibling 0x4bca30), which keeps 0x4be6c0 an
-// out-of-line call under the name data/symbols.csv gives it.
-//
-// Ruled out across the earlier sessions, so nobody repeats them: the header
-// set (tools/headers.py --cpp over all 768 sets, plus the N-unused-declarations
-// calibration, is flat at 90.2); the handle and path types (int, long,
-// unsigned, void*, FindFiles*); the parameter positions; a local copy of
-// the path, name or buffer; nested ifs, for/while/goto loop shapes; swapping
-// the loop branches or the strcmp operands; hoisting tree->_Last, fd.attrib or
-// the state; and `register`/casts. All of those stay at 90.2 (or 88.0 for the
-// pure pointer model) except the header-negative cases noted above.
 #include <io.h>
 #include <stdio.h>
 #include <string.h>
@@ -113,6 +70,7 @@ void __stdcall FindFilesRecursive(char* path, const char* pat, Class_004be6c0* t
     sprintf(buf, "%s\\*", path);
     int h = HAPI_FindFirst(buf, &fd, state, recursive);
     if (h != -1) {
+        // Never read: the extra live value demotes the handle from ebx to ebp.
         int r;
         do {
             if (strcmp(fd.name, ".") != 0 && strcmp(fd.name, "..") != 0) {
@@ -126,6 +84,7 @@ void __stdcall FindFilesRecursive(char* path, const char* pat, Class_004be6c0* t
                 }
             }
         } while ((r = HAPI_FindNext((FindFiles*)h, &fd)) != -1);
+        // A second variable, cast from h: the -1 test is dropped if written on h.
         FindFiles* f = (FindFiles*)h;
         if (f != (FindFiles*)-1 && f != 0) {
             if (f->state < 0)

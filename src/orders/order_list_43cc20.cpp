@@ -2,8 +2,8 @@
 // A unit's mover (the 0x2f-byte object at unit+0): its velocity, speed and
 // turn, the steering for ground units and aircraft, and the position update.
 //
-// <stdlib.h> is part of UpdatePosition's header state and <memory.h> of
-// SteerAircraft's (see there).
+// <stdlib.h> and <memory.h> must stay: header state UpdatePosition and
+// SteerAircraft depend on.
 #include <math.h>
 #include <stdlib.h>
 #include <memory.h>
@@ -358,256 +358,14 @@ void UnitMotion::FUN_0043cc20(Unit* unit, int amount)
     velocity = v;
 }
 
-// Claude Opus 5.5, 2026-10-03: the bytes now match (943 bytes, up from
-// 94.8%). check.py still prints "bytes match, but a reference is wrong"
-// because it reads the two 0x500000 immediates (`gap1 > 0x500000`, `gap1 -
-// 0x500000`: 80.0 in 16.16 fixed point) as hard-coded addresses; they are
-// plain constants, and no spelling can give them a relocation. Three changes:
-//  1. The real preceding function, UnitMotion::FUN_0043cc20 (0x43cc20), is
-//     defined above this one. With it in the file the two
-//     final calls cross-jump as in the original (one shared `mov
-//     ecx,[esp+0x10]; push eax; push edi; call`, the then arm ending in a
-//     `jmp`): 94.8 -> 96.7. Its Unit and UnitDef declarations are merged with
-//     this file's; +0x70 (the whole part of pos.y that 0x43cc20 reads) is a
-//     union view in Vec3.
-//  2. The `imul ecx`: VC5 only narrows a 64-bit multiply to a one-operand
-//     imul when neither operand's sign extension is shared with another
-//     multiply. `(__int64)field_20 * field_20` below used to CSE the same
-//     `(__int64)field_20`, which forced `_allmul` (87.7). Reading field_20
-//     into a local (`spd`) for that square, and writing the turned product as
-//     `(__int64)(adiff & 0xffff) * (__int64)field_20`, gives the original's
-//     `mov eax,esi; and eax,0xffff; ... imul ecx` (96.7 -> 98.1). The
-//     `(unsigned short)adiff` spelling swaps the operands' registers (95.8).
-//  3. The hasPath==0 arm binds its amount to a const reference,
-//     `const int& amount = -unit->type->field_19a;` (found by permute.py as an
-//     address-taken copy, then reduced to this). The bound temporary is what
-//     makes VC5 load unit into ecx before the `mov [esi+0x24],ax` store and
-//     keep the rate in eax (98.1 -> bytes match). A plain int, a named rate,
-//     `turn = hasPath`, type locals, local unit copies, inline Brake helpers,
-//     an out-parameter helper and every shared-call spelling leave unit in eax
-//     (or edi) there.
-// The turn block also compiles byte-identically as an inlined call of 0x43cbb0
-// (Class_0043cbb0::FUN_0043cbb0(unit, diff), the same clamp, defined above).
-//
-// The older notes below predate these changes; their tail, imul and arm
-// findings were measured without the preceding function and no longer hold.
-//
-// DeepSeek V4.1 Flash, 2026-10-02 (fresh continuation worker, 94.8% kept,
-// no new best). Re-ran check.py on the file as it stands: 94.8% (943 original,
-// 964 ours), the same three hunks (arm rotation, imul ecx, tail call split).
-// stackcmp shows the frame fully aligned (0x44 + 0x10 saved), so only
-// registers and instruction order remain. Measurements this pass, all on the
-// 94.8 base and all byte-identical to it unless noted:
-//  - arm: `turn = 0` (any spelling) still stores ax and keeps the store first;
-//    keeping hasPath live through the argument (`-r2 + hasPath`,
-//    `-(r2 - hasPath)`, `*hp`) folds to the immediate 0 and drops to 92.9
-//    (rate-first) or stays 94.8; per-arm `Unit* u` copies, `&unit`, `unit + 0`
-//    and a `Unit** up` all scalarise and sink the load past the store. The
-//    original's unit-in-ecx only appears when the rate load is written first,
-//    which then folds the store to `mov [esi+0x24], 0`; the two requirements
-//    (store ax first, unit loaded before it) remain antagonistic.
-//  - tail: EVERY value-select spelling duplicates the call in both arms
-//    (if/else amount, ternary as argument or assigned, nested ternary, goto,
-//    switch, do/while, block-local amount in each arm, trailing return,
-//    inverted condition with bodies swapped). Only the pointer select joins
-//    (84.1, 949 bytes) and its join adds a `lea`/load and pushes in edx, not
-//    the original's `mov eax,[esp+0x14]; neg eax` phi. All 16 tail rewrites
-//    this pass scored <= 94.8 (the two-call base and the inverted-condition
-//    variant are byte-identical). Cross-jumping the two identical call tails
-//    is what the original shows, but VC5 will not do it from here.
-//  - imul: the turned block differs by only `imul ecx` vs `imul eax,ecx; cdq`.
-//    The 64-bit form `(__int64)(unsigned short)adiff * field_20` does narrow
-//    to `imul ecx` in an isolated function but not inside this one: every
-//    in-function spelling (adiff temp of every width, field_20 temp, cast
-//    order, operand order, separate __int64 product temp, `prod *= field_20`,
-//    an __inline helper, abs respelled as a ternary) raises the score drop to
-//    87.7 (972 bytes, extra _allmul). The abs()-derived adiff is the likely
-//    trigger: a small standalone with abs() also widens to _allmul, while a
-//    plain parameter does not.
-//  - tools/permute.py 3 min, 2087 candidates, 2 jobs: no gain (94.8 -> 94.8).
-//    tools/headers.py, 256 sets: closest is the current <math.h> at 94.8,
-//    no set matches. So this is not compiler state.
-// What still differs: the three hunks above. Best left as is.
-//
-// space-bunny-free, 2026-10-02 (about 15 check/compile rounds, best still
-// 94.8%, file unchanged). New measurements, all on the 94.8% base:
-//  - arm, the fold can be stopped. Taking the address of the v5 result keeps
-//    the `mov [esi+0x24],ax` store: `int* hp = &hasPath; turn = *hp;` compiles
-//    the store from ax (VC5's conditional propagation cannot see through the
-//    pointer, and the back end still coalesces the load), whether `hp` is
-//    declared before the `if` or inside the arm, and also with a local
-//    `Unit* u = unit` next to it. So the store form is no longer the blocker.
-//    What is still missing is the position: the unit load sinks past the store
-//    in every combination (hp alone, u alone, both, and rate-first), and
-//    rate-first plus the pointer store is 92.9 (966 bytes), worse than the
-//    94.8 store-first version. The two requirements really are antagonistic:
-//    store first keeps the rotation (unit=eax, type=ecx, rate=edx), rate
-//    first keeps the rotation the original wants (unit=ecx, type=edx,
-//    rate=eax) but moves the store after all three loads instead of after the
-//    first one, and folds it.
-//  - tail, new positive result: the original's diamond (one shared call, the
-//    then arm ending in `jmp` over the else arm) IS reachable. Selecting a
-//    POINTER rather than a value leaves the join alone:
-//      int negrate = -rate;
-//      int amount = *(d1 > lim && d2 > r ? &unit->type->field_19e : &negrate);
-//    compiles to `mov eax,[edi+0x92]; add eax,0x19e; jmp $L; $L: lea
-//    eax,_negrate; $L: mov edx,[eax]; mov ecx,_this; push edx; push edi;
-//    call`. Every value phi with two non-empty arms is duplicated into both
-//    arms by VC5 instead (if/else assign, ternary assigned or as the argument,
-//    braces, else first, goto, switch, and an inline helper returning the
-//    amount: all 986 bytes, 82.6%). The join also survives when the else arm
-//    is EMPTY, because the CFG is then not a diamond:
-//      int amount = -rate; if (d1 > lim && d2 > r) amount = unit->type->field_19e;
-//    keeps one call, but hoists `neg` above the tests, lands the phi in esi
-//    (callee-saved) and needs no `jmp`. Note the criterion is the empty arm,
-//    not a value before the branch: `int amount = rate; if (...) amount =
-//    field_19e; else amount = -amount;` still duplicates. So for the original
-//    the remaining lead is the duplication threshold: the pointer join is 11
-//    instructions against the value join's 10, so if a select can be spelled
-//    with one more instruction in the join (or one less in each arm) the
-//    shared call may survive.
-//  - imul: the one-operand `imul ecx` is reachable from the 64-bit spelling,
-//    but not inside this function. Standalone, `(__int64)(unsigned short)a *
-//    s->f / s->m` (a, s->f, s->m all different pointers, member field_20
-//    through this too) compiles to `and eax,0xffff; imul DWORD PTR [ecx];
-//    mov esi,edx; ...; cdq; push edx; push eax; push esi; push ecx; call
-//    _alldiv`, exactly the original's shape. Inside 0x43cd20 every spelling
-//    drops to `_allmul` with an early `cdq` (87.7%, 972 bytes): the member or
-//    a local copy of field_20, either operand order, and an `unsigned short`
-//    temp for the other operand all behave the same. So this is register
-//    pressure where the multiply sits, not the expression, and it is worth
-//    revisiting only together with a fix for the tail (the two interact: the
-//    64-bit form moves the _alldiv arguments and the whole tail block with
-//    them).
-//
-// mimo-v2.6-pro, 2026-10-01 third retry (fresh continuation worker): re-ran
-// check.py on the file as it stands: 94.8% (original 943, ours 964), kept.
-// New measurements this pass (all scored on scratch copies):
-//  - tail: every one-call (phi) spelling still sinks the call into both arms
-//    AND shifts the whole allocation (lazy callee-saved pushes at the branch
-//    target, this at [esp+4], d1 in ebx instead of ebp): nested ternary
-//    `d1 > lim ? (d2 > r ? A : B) : B` 81.7, `goto callit` before one call
-//    82.6 (same as the if/else select and the ternary argument). New two-call
-//    spellings (braced arms + goto to a shared label after (94.8), explicit
-//    `return` after the last call (94.8), else arm reloading
-//    `-unit->type->field_19a` so both arms read unit->type (94.8), a named
-//    amount local in each arm (94.8)) are all byte-identical to this file.
-//    Guide research: 0x4034a0's cross-jump merges a call tail AFTER the
-//    differing argument's push (RTL push order puts the last parameter's push
-//    in the arm: `push x; jmp L` / `L: mov ecx, this; push common; call`), so
-//    even a successful two-call merge would push the amount in the arms and
-//    share only `push edi; mov ecx, this; call`, which is NOT the original
-//    (`mov ecx,[esp+0x10]; push eax; push edi; call` with both pushes in the
-//    join). So the original's join shape can only come from a phi feeding one
-//    call, and every phi spelling found duplicates that call into the arms.
-//  - arm, the key finding: the rotation IS reachable. Writing the rate
-//    statement BEFORE the turn store (`int r2 = unit->type->field_19a; turn =
-//    hasPath; call(unit, -r2);`) produces the original's rotation exactly:
-//    `mov ecx,[esp+0x58]; mov edx,[ecx+0x92]; mov eax,[edx+0x19a]; ...
-//    neg eax; push eax; push ecx; mov ecx,esi; call` (92.9). It fails only
-//    because the store folds to `mov word ptr [esi+0x24], 0` instead of the
-//    original's `mov [esi+0x24], ax`: once the arm's first statement is past,
-//    VC5 has propagated `hasPath == 0` from the branch test and constant-folds
-//    the assignment. With `turn = hasPath` written FIRST (this file) the store
-//    stays `mov [esi+0x24], ax` but the unit load then sinks past it and the
-//    rotation goes one step off (unit=eax). Stopping the fold with `short* tp
-//    = &turn; *tp = hasPath;` (still `mov [esi+0x24], 0`) and with an inline
-//    `SetTurn((short)hasPath)` member (still folds) both stay 92.9. The rule
-//    is statement position, not the store's form: inside an inline helper
-//    body, `*turnSlot = t` through a pointer parameter keeps the ax store
-//    only when it is the body's FIRST statement (receiver load still sinks
-//    past it); moved after another statement it folds to the immediate 0
-//    again. So the whole arm gap is: keep the store as the FIRST statement
-//    (for the ax store) yet make the compiler evaluate `unit` before it and
-//    hold it in a register (for the ecx rotation). Likely candidates not yet
-//    tried: a value for the store that is in ax but not the branch-zero name
-//    (some alias of the v5 result the optimizer cannot see through), or a
-//    receiver/argument expression for an inlined helper whose `unit` load
-//    cannot sink because it is computed rather than reloaded from the
-//    parameter slot.
-//  - arm: the store `turn = hasPath` always hoists to the front of its
-//    statement no matter where the comma puts it (arg1 comma 94.8, arg2 comma
-//    94.8, double comma 94.8), and every copy of `unit` is scalarised with its
-//    load sunk past the store: block-scoped `Unit* u = unit;` (94.8), `u =
-//    unit + 0` (94.8), rate named before the store (92.9), an inline member
-//    helper `SlowStep(unit, hasPath)` whose parameter bind loads unit before
-//    the body's store (94.8, still sunk), a free static inline helper with
-//    this passed explicitly (91.2). The load-store-rotate sequence
-//    (`mov ecx,[esp+0x58]; mov [esi+0x24],ax; mov edx,[ecx+0x92];
-//    mov eax,[edx+0x19a]`) is still unmatched.
-//  - imul: `((__int64)((unsigned short)adiff) * field_20)` (64-bit product)
-//    matches `imul ecx` but sign-extends field_20 early (cdq + spill, _alldiv
-//    args reordered) and drags the turned block with it: 87.7 (972 bytes),
-//    confirming the earlier combined measurement. Syntax gotcha: VC5 rejects
-//    `(__int64)(unsigned short)adiff * field_20` with C2059; it needs
-//    `(__int64)((unsigned short)adiff)`.
-//
-// mimo-v2.6-pro, 2026-10-01 second retry: 94.8% (original 943 bytes, ours
-// 964). Two spellings lifted the 81.7% base (the old negative measurements
-// below were all made on the 74.8% base and no longer hold):
-//  1) the tail is TWO call statements, one in each arm of
-//     `if (d1 > lim && d2 > r) call(unit, unit->type->field_19e); else
-//     call(unit, -rate);`. Every select spelling (if/else amount plus one
-//     call, ternary as the argument or assigned, braced or not) makes MSVC
-//     sink the call into both arms with two epilogues (988 bytes, 83.5);
-//     with the call written in each arm the whole register allocation falls
-//     into place at once: the ebx<->ebp swap, the prologue register saves
-//     and the v3 call setup all match the original (81.7 -> 92.9).
-//  2) the hasPath arm is `turn = hasPath; int r2 = unit->type->field_19a;
-//     call(unit, -r2);` (store first, rate named after it): that stores ax
-//     as in the original instead of an immediate 0 (92.9 -> 94.8).
-// Still differs (three things, all small):
-//  - the arm's load order: the original loads unit into ecx BEFORE the turn
-//    store (eax is still busy with the v5 result, so the scratch rotation
-//    runs unit=ecx, type=edx, rate=eax with `neg eax; push eax; push ecx;
-//    mov ecx,esi`); ours stores first and the rotation is one step off
-//    (unit=eax, type=ecx, rate=edx). Forcing the unit load above the store
-//    failed: `Unit* u = unit;` is scalarised and its load sinks past the
-//    store (94.8 same), a type-pointer copy before the store (87.1), the
-//    comma forms `(turn = hasPath, unit)` and `(turn = hasPath,
-//    -unit->type->field_19a)` (identical to store-first), an inline rate
-//    chain (identical), `turn = 0` with the literal-reuse trick (94.8
-//    same), a doubled `turn = hasPath; turn = hasPath;` pair (dead-store
-//    folded, identical) and the fold-away `u += 1; u -= 1` pointer pair
-//    (91.1; it does not fold and keeps two adds).
-//  - `imul ecx` (one-operand 64-bit multiply) against our `imul eax,ecx;
-//    cdq`: the `(__int64)(unsigned short)adiff * field_20` spelling matches
-//    those two bytes on its own (81.7 -> 84.2) but breaks the tail's
-//    register allocation in every combination with the new arm and tail
-//    (92.9 -> 85.8, 94.8 -> 87.7), so the int-product spelling stays.
-//  - the tail arm layout: the original merges the two arms before ONE call
-//    (`mov eax,[ebx+0x19e]; jmp join; mov eax,[esp+0x14]; neg eax; join:
-//    mov ecx,[esp+0x10]; push eax; push edi; call`); the two-call spelling
-//    leaves the else arm's copy of the whole call tail out of line after
-//    `ret 4` (about 27 diff lines, most of the remaining gap). Also tried:
-//    switch on the condition (85.8), a goto label before one shared call
-//    (82.6), explicit returns in both arms and else-first (both 94.8
-//    same), reverse default-first (77.7) and two `if` assignments of
-//    -rate (77.9).
-// Earlier attempts (deepseek-v4.1-flash et al, 74.8% base) are kept below for
-// the history; their measured negatives still hold where re-measured (the
-// 64-bit `(__int64)(unsigned short)adiff * field_20` imul spelling: 71.5
-// alone, 67.2 with the merged tail; if/else and ternary selects: 62-66; t1
-// with the neg before the tests: 73.4; recompute through ppos: 46.5; ppos
-// before the v3 call: 69.6; reversed operator- operands: 71.6).
-//
-// ---------------------------------------------------------------------------
-// Earlier notes (deepseek-v4.1-flash et al), kept for the history:
-//
 // Decompiled by Space Bunny Free, finished by space-bunny-free, edited by
 // deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-//
-// deepseek-v4.1-flash, 2026-10-01, second probe: `Vec3* const ppos` is
-// byte-identical (74.8%, 964 bytes); moving the hasPath==0 FUN_0043cc20 call
-// before `turn = hasPath` regresses to 71.2 (966 bytes); hoisting `int rate`
-// above the diff block regresses to 71.8 (978 bytes). Best stays the version
-// below.
-//
 // FUNCTION: 0x43cd20
 void UnitMotion::SteerGroundUnit(Unit* unit)
 {
     if (obj->v5() == 0) {
         field_24 = 0;
+        // Bound temporary: loads unit before the turn store and keeps the rate in eax.
         const int& amount = -unit->type->field_19a;
         FUN_0043cc20(unit, amount);
         return;
@@ -663,6 +421,8 @@ void UnitMotion::SteerGroundUnit(Unit* unit)
         field_24 = 0;
     }
 
+    // field_20 is copied to spd below so its sign extension is not shared with this
+    // multiply; otherwise it becomes _allmul instead of a one-operand imul.
     int turned = (int)((((__int64)(adiff & 0xffff) * (__int64)field_20)
                         / unit->type->max_turn));
     int rate = unit->type->field_19a;
@@ -672,6 +432,7 @@ void UnitMotion::SteerGroundUnit(Unit* unit)
     int r = (int)(((__int64)q * q) >> 32);
     int lim = (int)(((__int64)turned * turned) >> 32) * 4;
 
+    // FUN_0043cc20 stays defined above this function so the two calls cross-jump.
     if (d1 > lim && d2 > r)
         FUN_0043cc20(unit, unit->type->field_19e);
     else
@@ -683,24 +444,16 @@ void UnitMotion::SteerGroundUnit(Unit* unit)
 // short offsets from the rotated components and the owner type's fields at
 // +0x1a2/+0x1a6.
 //
-// The two Vec3 helpers must stay as inlined methods: written as three separate
-// statements on `p2` the compiler keeps the scaled x and y live in callee
-// saved registers and emits an extra push; as methods it stores each field
-// immediately, as the original does.
-//
 // Suspected original bug: the second FUN_004b715a call reads xz[0] (the rotated
-// x component) instead of xz[1]. Both reads are of the same stack slot:
-//   first  call: mov ecx,[esp+8]          (xz[0])
-//   second call: push edi; mov ecx,[esp+0xc]  ([esp+0xc] is the same xz[0]
-//                                               after the push)
-// so field_68 (the z offset) is computed from the rotated x. Kept as-is to
-// match the original.
-// The original calls this from SetFlightMode and SteerAircraft rather than
-// inlining it.
+// x component) instead of xz[1], so field_68 (the z offset) is computed from
+// the rotated x.
+// The original calls this from SetFlightMode and SteerAircraft.
 #pragma auto_inline(off)
 // FUNCTION: 0x43d0d0
 void UnitMotion::ApplyBankAndPitch(Unit* owner, Vec3* v)
 {
+    // Scale and Add stay inlined methods, not separate statements on p2:
+    // each field is then stored immediately.
     p2.Scale(0xf333);
     p2.Add(v);
     int xz[2];
@@ -738,22 +491,6 @@ void UnitMotion::SetFlightMode(Unit* owner, int newState)
 // along the unit's heading), turns the unit towards the heading, then steers
 // p1 towards the target: k * (pos - a) - (velocity - b), limited to the acceleration
 // f18. Finally it stores the new speed and hands the velocity change on.
-//
-// What made it match (Claude Opus 5.5; earlier attempts sat at 91.9%):
-//  - The steering term is (pos - a) * k - (velocity - b). Earlier versions had the
-//    two deltas the other way round, which compiled to the same x87 shape
-//    with the operands loaded from each other's slots.
-//  - The two deltas are 12-byte Vec3 locals: dax/daz sit 8 bytes apart with
-//    the clamp factor's high dword between them (da shares f's slot), and
-//    dbx/dbz sit in the final delta's slot. That needs delta in its own
-//    block, so the address-taken local can share a slot.
-//  - The fixed-point helpers take the component by reference: MulFixed for
-//    Scale and the speed clamp, AddFixed for the final x87 adds. Written
-//    inline, the clamp's _allmul pushed the component before the factor and
-//    the tail forwarded velocity.x in a register instead of reloading it.
-//  - da is assigned x, y, z in order, and <memory.h> is needed: without it
-//    the |v| > f18 rescale keeps vx and vz in memory (98.2%). A dummy
-//    declaration scan shows two states repeating every 512 symbols.
 // FUNCTION: 0x43d290
 void UnitMotion::SteerAircraft(Unit* unit) {
     if (mode != 2) {
@@ -781,6 +518,8 @@ void UnitMotion::SteerAircraft(Unit* unit) {
     float maxd = (float)unit->type->field_19a * eps;
     if (dist > maxd) {
         int f = (int)((double)(maxd / dist) * 65536.0);
+        // MulFixed and AddFixed take the component by reference; written
+        // inline the clamp differs.
         MulFixed(velocity.x, f);
         MulFixed(velocity.z, f);
         int g = (int)((double)(dist - maxd) * 65536.0);
@@ -836,6 +575,7 @@ void UnitMotion::SteerAircraft(Unit* unit) {
     AddFixed(velocity.z, vz);
     field_20 = velocity.Length();
 
+    // Own block so the address-taken delta shares a stack slot with db.
     {
         Vec3 delta = velocity - old;
         ApplyBankAndPitch(unit, &delta);
@@ -848,45 +588,15 @@ void UnitMotion::SteerAircraft(Unit* unit) {
 // velocity to the position, and if the unit moves into a new cell that the
 // target says is blocked it clamps the position to the current cell and caps
 // the speed at half the type's range.
-//
-// MATCH (Claude Opus 5.5, 2026-10-03; earlier attempts stopped at 74.3%).
-// What the bytes needed, each measured:
-//   - (mimo-v2.6-pro) the floor clamp's address select (`lea eax,[esp+0x24];
-//     jmp` / `mov [esp+0x3c],eax; lea eax,[esp+0x3c]`, then one load) is a
-//     MAX macro over the Fixed union with a prvalue second operand; an int
-//     max hoists the lea and folds the shift chain.
-//   - the path branch is `Vec3 v; v = GetPiecePosition(...)`: the copy through the
-//     returned pointer. It only lands right once the no-path branch gives the
-//     frame its real layout.
-//   - the new position is `pos = velocity + u->pos` through an inline
-//     `operator+(const Vec3&, const Vec3&)`, assigned (not initialised): the
-//     operator's result temporary is the 12-byte object at frame+0x1c whose y
-//     the exe spills to its own home and reloads later (the "ny inside the
-//     dead GetPiecePosition temp" the old notes could not place), and its
-//     reference to velocity is the `lea ecx,[ebp+8]` the exe keeps at frame+0x8 for
-//     the later `velocity = vec`. Separate int sums, a named n, `Vec3 pos = ...`
-//     and a `Vec3* pp` all schedule the three adds differently.
-//   - u->pos is written with whole-struct copies (`u->pos = pos`), which is
-//     what gives the clamp tail its `or dword ptr [esi+0x110],0x10000`.
-//   - the cell is assigned field by field, with the half-cell offset written
-//     as `draft.x * 0x80000` (the `<< 19` spelling evaluates draft.x first).
-//   - the clamp to the current cell is an inline helper taking both Points by
-//     value: its parameters are the exe's second dword copies of u->cell and
-//     u->draft (into the dead parameter slot and draft's slot), read back
-//     through the registers.
-//   - `u->mode = (short)m`: a narrow source is what makes VC5 store the
-//     2-bit field with `and/and/or` instead of its `xor/and/xor` form.
-//   - the target test is two nested ifs, the z component of the speed cap
-//     goes through an int temporary, and the file includes <stdlib.h> (the
-//     header state; 0x43cd20, which uses abs(), likely shared this file).
-//     Each of these three alone scores lower; together they match.
 // FUNCTION: 0x43d6d0
 void UnitMotion::UpdatePosition(Unit* u)
 {
     if (u->obj != 0) {
+        // Copy through the returned pointer, not an initialiser.
         Vec3 v;
         v = GetPiecePosition(u->obj, u->index);
         if (u->type->b19) {
+            // MAX stays a macro over the Fixed union with a prvalue second operand.
             v.fy = MAXM_0043d6d0(v.fy, MakeFixed_0043d6d0(u->type->draft * 0xffff + g_game->seaLevel));
         }
         SetUnitPosition(u, v, mode);
@@ -904,6 +614,8 @@ void UnitMotion::UpdatePosition(Unit* u)
         return;
     }
 
+    // Assigned (not initialised) through the inline operator+: its result temporary
+    // fixes the frame layout.
     Vec3 pos;
     pos = velocity + u->pos;
     int m = mode;
@@ -912,6 +624,7 @@ void UnitMotion::UpdatePosition(Unit* u)
 
     field_2a = g_game->field_38a47;
     Point draft = u->draft;
+    // Field by field, with draft.x * 0x80000 (a << 19 evaluates draft.x first).
     Point cell;
     cell.x = (pos.x - draft.x * 0x80000 + 0x80000) >> 20;
     cell.y = (pos.z - draft.y * 0x80000 + 0x80000) >> 20;
@@ -927,6 +640,7 @@ void UnitMotion::UpdatePosition(Unit* u)
     }
 
     if (flag) {
+        // ClampToCell stays an inline helper taking both Points by value.
         ClampToCell(pos, u->cell, u->draft);
 
         if (field_20 > (u->type->field_192 / 2)) {
@@ -936,6 +650,7 @@ void UnitMotion::UpdatePosition(Unit* u)
             Vec3 vec;
             vec.x = -FUN_004b70ef(angle, half);
             vec.y = 0;
+            // z goes through an int temporary.
             int z = -FUN_004b7123(angle, half);
             vec.z = z;
             velocity = vec;
@@ -948,6 +663,7 @@ void UnitMotion::UpdatePosition(Unit* u)
     RemoveUnitFromMap(u);
     u->pos = pos;
     u->cell = cell;
+    // The (short) cast gives the and/and/or store of the 2-bit field.
     u->mode = (short)m;
     AddUnitToMap(u);
     u->moved = 1;

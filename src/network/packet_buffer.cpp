@@ -47,23 +47,6 @@ public:
     int IsReusable(int minRetain);
 };
 
-// MATCH (deepseek-v4.1-flash, retry after the 96.6% baseline). The single
-// missing instruction was the post-copy member reload `mov eax,[ebx+0xc]` for
-// `p->offset`. The fix is the guide's "a store MSVC deletes can still move
-// registers" pattern (0x461b10): after the copy, read the member into a local
-// and store it straight back before using the local.
-//
-//     int t = length;
-//     length = t;          // eliminated, but keeps `t` a memory reload
-//     p->offset = t;       // emits mov eax,[ebx+0xc]; mov [esi+4],eax
-//
-// Without `length = t;` MSVC forwards the value loaded for the size check into
-// the offset store (216 bytes, 96.6%). With the store written as
-// `p->offset = length;` directly, the reload appears but the allocator hoists
-// the stack arg 5 load into ecx above the offset store and rotates the
-// count/length update (219 bytes, 90.7%). The dead store keeps the reload
-// while leaving the rest of the allocation untouched.
-//
 // Appends `size` bytes at `data` to the buffer's inline storage (at +0x14),
 // fills in the output packet `p`, and bumps the buffer's packet count.
 // `value` is the previously queued packet (0x462710 passes its tail), stored
@@ -78,6 +61,7 @@ int PacketBuffer::AppendPacket(Packet* p, int index, const void* data,
                  size, 0x42a);
     if (length + size <= 0x42a) {
         memcpy(buffer + length, data, size);
+        // The dead store `length = t` must stay: it keeps t a memory reload.
         int t = length;
         length = t;
         p->offset = t;

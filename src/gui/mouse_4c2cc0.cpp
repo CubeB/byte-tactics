@@ -3,9 +3,6 @@
 // the worker at +0x1ca is running, asks it to stop (+0x1d6) and waits up to
 // 20 x 100 ms for it to acknowledge; then releases the three objects at
 // +0x1be..+0x1c6 and frees the event buffer at +0x18a (see 0x4c2d60).
-// The bit test and the running test must be separate nested ifs: `&&` makes
-// MSVC test the bit with `test byte ptr` instead of a word load and shift,
-// and the wait loop must be `while (1)` so it stays tested at the top.
 
 #pragma pack(push, 2)
 struct Input_004c2cc0 {
@@ -35,10 +32,12 @@ void ShutdownMouse(void)
 {
     Input_004c2cc0* o = GetDisplay();
     if (o->entries) {
+        // Separate nested ifs, not `&&`: it changes how the bit is tested.
         if (o->active) {
             if (o->running) {
                 o->stopping = 1;
                 int i = 0;
+                // while (1) keeps the loop test at the top.
                 while (1) {
                     if (++i > 20)
                         break;

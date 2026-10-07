@@ -3,12 +3,6 @@
 // end until it (plus the "..." marker, when flag is set) fits, then append the
 // marker. Charset -1 means the default font (GetTextPixelWidth), anything else
 // selects the holder entry (SelectFontForEntry) and measures with GetTextWidth.
-//
-// The two locals `dots` and `width` must be declared in this order even though
-// `dots` is only assigned after `width` is computed. With `int width;` first
-// MSVC keeps width in edi at the truncation test and emits `lea edx,[ebp+edi]`
-// (254 bytes, 89.6%); with `int dots;` declared first the allocator knows width
-// is dead there and emits `add edi,ebp` as the original does.
 #include <string.h>
 
 struct Entry_004a1810;
@@ -43,6 +37,7 @@ void __stdcall TruncateTextWithEllipsis(Dialog* obj, unsigned char* text, int li
     if (charset != -1)
         SelectFontForEntry((Entry_004a1810*)entries, charset);
 
+    // Declared before width: the allocator then knows width is dead at the truncation test.
     int dots;
     int width;
     if (charset == -1) {

@@ -1,9 +1,4 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, continued by GPT-6.1-sol, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// MATCH. The two CD globals are released in the original's order: the source
-// was `g_cdNextTrackTimer = g_cdFadeTimer = -1;` (it stores 0x50b544 first, then
-// 0x50b540), not the reverse. The mciSendStringA("status cdaudio mode",...)
-// results are held in a local before the `res == zero ? ...` ternary, which
-// stops MSVC folding func()==0 into `test eax,eax`.
 #include <windows.h>
 #include <mmsystem.h>
 #include <stdlib.h>
@@ -70,6 +65,7 @@ void Class_004cdb40::PlayNextTrack()
         field_284 = zero;
         RemoveTimer(g_cdNextTrackTimer);
         RemoveTimer(g_cdFadeTimer);
+        // Chained store, as in the original: g_cdNextTrackTimer is written first.
         g_cdNextTrackTimer = g_cdFadeTimer = -1;
         return;
     }
@@ -84,6 +80,7 @@ void Class_004cdb40::PlayNextTrack()
                 if (field_20c == zero)
                     return;
                 field_20c = zero;
+                // Result kept in a local so the call is not folded into test eax,eax.
                 res = mciSendStringA("status cdaudio mode", buf, 0x40, (HWND)zero);
                 playing = res == none ? strcmp(buf, "playing") == none : none;
                 if (playing == none)

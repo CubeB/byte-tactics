@@ -49,8 +49,6 @@ static inline int IsTimedOut(Player_00453c20* p, unsigned int now)
     return 0;
 }
 
-// The first loop walks a pointer (p++) and the second indexes the array;
-// indexing in the first loop biases the loop pointer to +0xc instead.
 // FUNCTION: 0x453c20
 void CheckPlayerTimeouts()
 {
@@ -65,6 +63,7 @@ void CheckPlayerTimeouts()
     int team = -1;
     int i;
     Player_00453c20* p = g_game->players;
+    // Walks a pointer: indexing here would bias the loop pointer to +0xc.
     for (i = 0; i < 10; i++, p++) {
         if (IsTimedOut(p, now)) {
             if (team < 0)

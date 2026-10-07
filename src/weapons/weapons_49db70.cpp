@@ -4,19 +4,6 @@
 // FindTargetableProjectile, then hand everything to FireVLaunchProjectile. When the game flag
 // g_game+0x2a44 is set the shot is also packed into a 0x24 byte network
 // packet and sent through BroadcastPacket.
-//
-// Three details are load bearing:
-//   - `dy` must be a 4-byte union whose high half is read as `movsx cx, word
-//     ptr [esp+..]`. As a plain int MSVC keeps it in a register and the whole
-//     arithmetic block changes (this was the difference between 57.7% and the
-//     match).
-//   - `p` is declared uninitialised and set to 0 only in the `else` arm, so the
-//     `xor eax,eax` lands after the flags test instead of before it.
-//   - FindTargetableProjectile takes an `unsigned char` index, which is what makes MSVC
-//     compute `(shot->weapon >> 2) & 3` with byte registers (`shr cl, 2`).
-//   - the team fields are written from a reversed ternary, `source == 0 ? 0 :
-//     source->team`; that puts the zero store on the fall-through and branches
-//     to the real store, as the original does.
 #pragma pack(push, 1)
 struct Vec3_0049db70 {
     int x;
@@ -83,6 +70,7 @@ extern Game* g_game;
 
 void __stdcall GetWeaponPiecePosition(Object_0049db70* obj, Vec3_0049db70* out, unsigned char weapon, int piece);
 short __cdecl FUN_004b715a(int a, int b);
+// The weapon index must stay an unsigned char: it makes the shift use byte registers.
 int* __stdcall FindTargetableProjectile(Object_0049db70* obj, unsigned char weapon);
 int __stdcall FireVLaunchProjectile(Shot_0049db70* shot, Object_0049db70* source, Vec3_0049db70* pos,
                            Vec3_0049db70* aim, Object_0049db70* target, int* param_6);
@@ -98,12 +86,14 @@ int __stdcall FireVLaunchWeapon(Object_0049db70* source, Shot_0049db70* shot,
     if (shot->piece != 0) {
         GetWeaponPiecePosition(source, &pos, (shot->weapon >> 2) & 3, -1);
         int dx = pos.x - aim->x;
+        // dy must be a 4-byte union read by its high half, not a plain int.
         union { int value; short halves[2]; } dy;
         dy.value = pos.y - aim->y;
         int dz = pos.z - aim->z;
         shot->heading = FUN_004b715a(dx, dz);
         int dist = (int)_hypot((double)dx, (double)dz);
         shot->pitch = FUN_004b715a(-(int)dy.halves[1], (short)(dist >> 16));
+        // Uninitialised here and zeroed only in the else arm.
         int* p;
         if (shot->def->flags.special) {
             p = FindTargetableProjectile(source, (shot->weapon >> 2) & 3);
@@ -120,6 +110,7 @@ int __stdcall FireVLaunchWeapon(Object_0049db70* source, Shot_0049db70* shot,
                 packet.aim = *aim;
                 packet.field_19 = shot->def->field_10a;
                 packet.weapon = (shot->weapon >> 2) & 3;
+                // Keep the `== 0 ? 0 : team` ternaries: they put the zero store on the fall-through.
                 packet.source_team = source == 0 ? 0 : source->team;
                 packet.target_team = target == 0 ? 0 : target->team;
                 packet.heading = shot->heading;

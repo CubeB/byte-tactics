@@ -2,8 +2,6 @@
 // Builds the four corners of an object's bounding box footprint at the box's low
 // y, rotates each corner by the object's three angles, converts it to screen space
 // and runs a point-in-polygon test against the rotated quad.
-// The three screen offsets live in one Vec3 so that only o.y is spilled; that
-// 12-byte local is what fixes this function's 0x88 frame.
 
 struct Vec3_0048c6a0 {
     int x;
@@ -42,6 +40,7 @@ int __stdcall FUN_0048c6a0(Object_0048c6a0* obj, Point_0048c6a0* p)
     Vec3_0048c6a0 corners[4];
     Point_0048c6a0 pts[4];
     int i;
+    // The three screen offsets stay in one Vec3: that local fixes the 0x88 frame.
     Vec3_0048c6a0 o;
     Vec3_0048c6a0 lo;
     Vec3_0048c6a0 hi;

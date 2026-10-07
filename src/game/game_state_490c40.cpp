@@ -5,18 +5,6 @@
 // not zero, a fresh direction, then turns direction and speed into the two wind
 // vector components and a 0..1 strength. Once the counter has caught up with the
 // tick count the wind is switched off instead.
-//
-// Three spellings here are load bearing:
-//  - The __int64 cast. MSVC knows rand()'s range, so plain `rand() * 10 / 0x8000`
-//    is folded into `and edx,0x7fff; add eax,edx; sar eax,0xf`; the 64-bit
-//    product and division are what the original calls _allmul and _alldiv for.
-//  - The counter update is one inline expression with no temporary: MSVC then
-//    keeps the address of the field in esi (saved inside the guarded block) and
-//    does the read-modify-write through it, instead of reloading g_game.
-//  - The range and the random number are separate statements. Written as one
-//    expression, the add of the low bound to the result is emitted as
-//    `add edx, [eax+0x1425b]`; as two statements it is the original's load of
-//    the low bound into edx followed by a register add.
 #include <stdlib.h>
 
 #pragma pack(push, 1)
@@ -50,8 +38,11 @@ int __stdcall RandomInt(int range);
 void __cdecl UpdateWind()
 {
     if (g_game->windCounter < g_game->field_38a47) {
+        // The __int64 cast keeps the _allmul/_alldiv calls; keep this one
+        // expression with no temporary.
         g_game->windCounter += ((int)((__int64)rand() * 10 / 0x8000) + 5) * 30;
 
+        // Separate statements: one expression changes how the low bound is added.
         int range = g_game->field_1425f - g_game->field_1425b;
         int n = RandomInt(range);
         g_game->windSpeed = g_game->field_1425b + n;

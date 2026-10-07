@@ -317,16 +317,9 @@ void SquadManager::AssignSquads()
     }
 }
 
-// Walks
-// the player's units round-robin through the cursor at +0x39, a slice of them
-// per call, and for each finished unit that has a weapon without a valid
-// target, retargets that weapon with RetargetWeapon (inlined).
-//
-// Notes: the weapon loop counter is a byte (MSVC then counts down from 3);
-// the bit-8 test needed the (unsigned char) cast to extract with shr; the
-// target filter is one `target = 0` whose block MSVC splits per spill state;
-// any header (here <windows.h>) fixes the base/index order in the inlined
-// RetargetWeapon.
+// Walks the player's units round-robin through the cursor at +0x39, a slice of
+// them per call, and for each finished unit that has a weapon without a valid
+// target, retargets that weapon with RetargetWeapon.
 // FUNCTION: 0x4089a0
 void SquadManager::RetargetWeapons(int force)
 {
@@ -337,6 +330,7 @@ void SquadManager::RetargetWeapons(int force)
             cursor = player->firstUnit;
         if (cursor->category != 0 && cursor->progress == 0.0f && (cursor->flags & 0x80000000)
             && (cursor->flags & 0x300000) == 0x200000) {
+            // The counter stays a byte, and the flag8 test keeps its (unsigned char) cast.
             for (unsigned char w = 0; w < 3; w++) {
                 if ((cursor->weapons[w].flags & 2) && (cursor->weapons[w].flags & 0x10)
                     && !(unsigned char)cursor->weapons[w].def->flag8
@@ -376,12 +370,8 @@ void SquadManager::TickIfActive()
 // Constructor of SquadManager, the owner of the SquadTimer family (listed
 // in src/ai/squad_timer.cpp): one per player, it creates a timer object for nine of its
 // ten slots, each given the player's unit group of the same index.
-//
-// All family constructors are defined in this file before it, as in the
-// original translation unit. /Ob2 inlines the first seven; its inlining budget
-// then runs out, so the eighth (Class_00407a90) is inlined without its base
-// constructor, and Class_00407d40's constructor is called out of line. Without
-// the Class_00407d40 body the budget does not run out and nothing matches.
+// The family constructors stay defined in this file before this one, bodies
+// included: the inlining budget depends on it.
 // FUNCTION: 0x408cb0
 SquadManager::SquadManager(Player* p)
 {

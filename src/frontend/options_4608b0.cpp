@@ -1,11 +1,7 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 // Opens the EXITMENU.GUI dialog (handler 0x460800). When the current mode is
 // restart (1 or 2) it selects RESTART and renames the button; otherwise, when
-// flag bit 4 of g_game+0x2bee is set, it shows MAINMENU. The restart body is
-// written twice on purpose: MSVC 5 merges the two identical blocks into one,
-// and that is what lays the restart block out before the main-menu block and
-// allocates the registers the original uses. A plain if/else-if puts the
-// main-menu block first and comes out 4 bytes different.
+// flag bit 4 of g_game+0x2bee is set, it shows MAINMENU.
 
 class Mission {
 public:
@@ -61,6 +57,8 @@ void OpenExitMenu()
         FUN_004a0bf0(&g_game->sub, "RESTART", (int)Translate("Restart"), 0x80);
         goto tail;
     }
+    // Restart body written twice on purpose: the compiler merges them and lays
+    // restart out before main-menu.
     if (g_game->field_391e9->FUN_00435100() == 2) {
         FUN_004a0570(&g_game->sub, "RESTART", 1);
         FUN_004a0bf0(&g_game->sub, "RESTART", (int)Translate("Restart"), 0x80);

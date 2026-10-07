@@ -1,11 +1,7 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Binary search over the 0x249-byte item table at g_game+0x1439b, comparing
 // the name at +0x20 case-insensitively, returning the entry whose name matches
-// exactly (0 when there is none). The search window starts one entry in, so the
-// loop count is (end - lo) as a pointer difference, which MSVC turns into one
-// signed divide by 0x249 (the same imul 0xe00e00e1 / sar 9 sequence as
-// 0x419940's neighbours). Note the source order: `end` must be computed before
-// `lo`, otherwise the two base loads swap edx/ecx for ecx/ebp.
+// exactly (0 when there is none).
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -33,6 +29,7 @@ static inline int Less_00488a50(const char* a, const char* b)
 // FUNCTION: 0x488a50
 Item_00488a50* __stdcall FindUnitType(const char* name)
 {
+    // `end` before `lo`: the order decides which registers the base loads use.
     Item_00488a50* end = g_game->items + g_game->count;
     Item_00488a50* lo = g_game->items + 1;
     int n = (int)(end - lo);

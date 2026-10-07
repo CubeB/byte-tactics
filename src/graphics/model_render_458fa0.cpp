@@ -1,37 +1,6 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free, verified by GPT-6., retried by Claude Opus 5.5, matched by claude-opus-5-5. Names are provisional.
-// MATCH (#5333), from 95.2%. Measured from the natural copy loop
-// (`for (k = 0; k < f->count; k++, ip++)`, 84.1%, view in ebx):
-//  1. The first-face choice assigns `f` in both arms (`f = info->faces + 1`
-//     and `f = info->faces`) instead of `f = info->faces;` before the `if`
-//     and `f++` in it. MSVC hoists the common load above the branch, so the
-//     code is the same, but C2 counts a read of `info` in each arm: after
-//     the copy-loop and vertex-loop pressure splits, info's piece and view's
-//     piece reach the colouring at 232 each (info's was 160 against view's
-//     240), info's goes first and takes ebx, and view is left with ebp, as
-//     in the original. 84.1 -> 99.3. This replaces the old
-//     `bool NoMorePoints()` guard, which got view out of ebx through C2's
-//     byte-register check at the cost of two extra instructions.
-//  2. The last difference was the reload order after the copy loop
-//     (original faceno, view, info; ours view, faceno, info). C2 reloads
-//     split pieces in the order of their candidate ids. Reading the flags
-//     byte into `unsigned char flags` and an empty `do {} while (0);` after
-//     it (most likely a debug macro that compiled to nothing; `if (0) {}`
-//     and `while (0) {}` work too, `;` and `{}` do not) put them in the
-//     original's order; each alone stays at 99.3%. Found by tools/permute.py
-//     (do_while0 plus a byte temporary for the flags) and minimised by hand.
-//     A byte colour parameter (`unsigned char` here and in the DrawPolygonEdges
-//     prototype) also matches without these two, but 0x4c0820's own notes
-//     found `int color` better in its definition, so it is not used here.
-//     With an int colour and neither change, none of these moved the reload:
-//     a local copy of the colour, declaration order or scope of faceno, f,
-//     ip, k, j, v and info, the face loop's latch order or a `while` form,
-//     a named `f->count + 1`, single-use locals in either loop, and any
-//     count of unused externs (before or after the function).
-// The symbol count matters with a period of 128: 0 to 57 unused externs
-// after <windows.h> match, about 60 to 122 give 81.4% (453 B), and so on.
-// No header, the lean <windows.h>, <math.h> or <vector> land in the bad
-// half; <windows.h> alone (or with <ddraw.h>, <memory.h> or
-// stdlib/string/stdio) in the good one.
+// Keep <windows.h> and fewer than 58 symbols after it: the symbol count sets
+// the register choice.
 #include <windows.h>
 
 struct Vertex_0045a610 {
@@ -114,6 +83,7 @@ void Class_00458fa0::DrawPieceEdges(View_0045a610* view, Model_00458fa0* model, 
     if (i >= 0) {
         Piece_00458310* piece = &model->pieces[i];
         while (i >= 0) {
+            // Byte flags local plus the empty do-while set the reload order after the copy loop.
             unsigned char flags = piece->flags;
             do {} while (0);  // emits no code; without it 99.3% (header note 2)
             if (flags & 1) {
@@ -130,6 +100,7 @@ void Class_00458fa0::DrawPieceEdges(View_0045a610* view, Model_00458fa0* model, 
                     verts[j].x += view->field_4;
                     verts[j].y += view->field_6;
                 }
+                // f is assigned in both arms, not set before the if.
                 Face_00458fa0* f;
                 if (info->field_c != -1) {
                     f = info->faces + 1;

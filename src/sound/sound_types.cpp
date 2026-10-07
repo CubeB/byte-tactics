@@ -106,9 +106,6 @@ int __stdcall ReadSoundEntry(Source_0042f450* param_1, char* param_2, int* param
 // entries named after the rows of the global table DAT_005086fc ("select",
 // "select1", "select2", ...); the second and third dwords of each group are
 // allocated by ReadSoundEntry as the values are added.
-//
-// The table walk compares as signed ints, not pointers: the original keeps
-// `jl` instead of the `jb` a pointer compare would give.
 // FUNCTION: 0x42f580
 void LoadSoundCategories()
 {
@@ -132,6 +129,7 @@ void LoadSoundCategories()
                 ((TdfRecord*)obj.field_4)->CopyRecordName(rec, 0x3f);
                 p = DAT_005086fc;
                 int* vals = (int*)(rec + 0x4c);
+                // Compared as signed ints, not pointers: keeps jl instead of jb.
                 while ((int)p < (int)(DAT_005086fc + 23)) {
                     ReadSoundEntry((Source_0042f450*)&obj, p->name, vals);
                     for (int n = 1; ; n++) {

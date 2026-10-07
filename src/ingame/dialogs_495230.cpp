@@ -6,33 +6,6 @@
 // fraction is carried over in a float), which is clamped to 0..5 and to 0
 // while paused. Too many capped frames in a row lowers the current speed step,
 // a long run of idle ones raises it again.
-//
-// MATCH (601 of 601). The whole fix was to DELETE a cast: the previous attempt
-// wrote `g_game->carry = (float)(x - whole);` and this file writes
-// `g_game->carry = x - whole;`.
-//
-// The cast is the natural thing to write, because the field is a `float`, and
-// writing it changes the order of the x87 pair. With the explicit cast MSVC 5
-// treats the narrowing as a value conversion to be performed at the assignment
-// and sinks the store, so the `fsub` drifts to *after* the frames store. With
-// no cast the assignment's own double-to-float conversion keeps the pair
-// together in source order, and the emission becomes, byte for byte:
-//
-//   ours      fld QWORD PTR _x$[esp+20] / mov edx,g_game / fsub ST(0),ST(1)
-//             / mov [edx+0x38a3b],eax / mov eax,g_game / fstp [eax+0x38a43]
-//   original  mov edx,g_game / fsub st(1) / mov [edx+0x38a3b],eax
-//             / mov eax,g_game / fstp dword ptr [eax+0x38a43]
-//
-// Worth recording because the previous attempt had already localised the
-// symptom exactly ("the original loads the saved x first and then g_game, here
-// g_game is loaded before the fld and the fsub comes after the frames store")
-// and then tried six source rearrangements, none of which questioned the cast:
-// whole in a local or not, frames and carry in temporaries, swapped store
-// order. The cast looked like part of the intended code precisely because the
-// field is a float, so it was never the thing under suspicion. This is the same
-// shape as 0x4b91b0's `w/2/2` and 0x48a490's three misreadings of MSVC's signed
-// division fixup: a spelling that looks obviously right, is locally plausible,
-// and nobody asks what it is doing to the code generator.
 
 #include <math.h>
 
@@ -113,6 +86,7 @@ void UpdateFramePacing()
     double x = g_game->elapsed * rate + g_game->carry;
     double whole = floor(x);
     g_game->frames = (int)whole;
+    // No (float) cast: with it the fsub moves after the frames store.
     g_game->carry = x - whole;
     if (g_game->frames < 0)
         g_game->frames = 0;

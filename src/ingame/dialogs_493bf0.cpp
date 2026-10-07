@@ -1,51 +1,4 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, edited by deepseek-v4.1-flash, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, checked by GPT-6, finished by Claude Opus 5.5. Names are provisional.
-//
-// MATCH (Claude Opus 5.5, #5294). The last 0.6% was the SIB base/index order
-// of the two byte stores `g_game->field_2bf1[n] = v` and
-// `g_game->field_2bf1[d] = 1`: the original has `[edx + esi + 0x2bf1]` and
-// `[edx + eax + 0x2bf1]` (g_game in the base slot), every earlier version had
-// the index there. The rule, measured with `tools/c2prio.py --symbols` and
-// enum padding in scratch copies:
-//
-//   In the address add, the operand whose front-end symbol id is larger
-//   (compared modulo 65536) goes into the SIB base slot.
-//
-// With `extern g_game;` at file scope its id (29010) is below every local of
-// the function (n 29077, d 29113), so n and d take the base slot. The
-// measurements that pin it down:
-//   * padding before the file-scope `extern g_game`: MATCH only while g_game
-//     stays below 65536 and n wraps past it (an enum of 36458 to 36524
-//     entries); at 36440 only d has wrapped and only the d store is fixed
-//     (99.7%); padding of 36530 wraps g_game too and both stores flip back;
-//   * the same padding between g_game and the function: MATCH at 36500,
-//     40000, 50000 and 60000 entries (n and d wrapped, g_game not);
-//   * padding at the end of the file (the file total alone): no effect.
-// A function-scope extern declared after n and d is the plausible spelling
-// that gives g_game the larger id: the front end numbers the global when it
-// first sees a declaration, so with no file-scope declaration it comes after
-// the locals. A block-scope `extern` added next to a file-scope one changes
-// nothing (the symbol already exists), and n and d must be declared before
-// the extern, so both are function-scope locals here. The other explanation
-// is a lost header prefix that puts the 65536 wrap between g_game and this
-// function, as in the 0x41b2e0 / 0x471de0 family (docs/c2-regalloc.md,
-// "Symbol ids"), but no real header set reaches that.
-//
-// Spellings earlier passes found that the match still needs:
-//  * The strlen block only lands when the four statements that open it are
-//    in this order: oldmode, to, base, saved (all 24 orders scored; saved
-//    must be last).
-//  * The guard on p[1] is `if (!cond) goto skip0;` followed by the body, and
-//    `skip0:;` immediately before `after:`. The natural `if (cond) { ... }`
-//    or `goto after` costs 9 points; the empty statement is load bearing.
-//  * The 0x37f2f bit test materialises the byte (`mov dl, [ecx + 0x37f2f];
-//    shr dl, 1; test al, dl`) and pushes the flags dword, so `flags` is an
-//    `int`, the field is an `unsigned short`, and the shifted value is cast
-//    back to `(unsigned char)`. Every byte-field spelling folds to
-//    `test byte ptr [ecx + 0x37f2f], 2`.
-//  * `mode` and `oldmode` are both `int` (oldmode wins ebx, mode lives at
-//    [esp+0x10]); `gadget->field_60` is read directly rather than through an
-//    `id` local; the digit case computes `to` before the memset;
-//    `sizeof(Player_00493bf0)` is 0x14b.
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>
@@ -146,13 +99,16 @@ void __stdcall HandleTalkDialogEvent(Gadget_00493bf0* gadget)
 {
     char buf2[0x12c];
     char buf[0x100];
+    // mode and oldmode must both be int.
     int oldmode;
     int mode;
     int n;
     int d;
-    // Declared here, after n and d, not at file scope: see the notes above.
+    // Declared here, after n and d, not at file scope: g_game's symbol id sets
+    // the base/index order of the byte stores.
     extern Game* g_game;
     Entry_00493bf0* entries = gadget->layer->entries;
+    // field_60 is read directly, not through an id local.
     if (gadget->field_60 == -1) {
         g_game->flags_37ebe &= ~4;
         return;
@@ -213,6 +169,7 @@ void __stdcall HandleTalkDialogEvent(Gadget_00493bf0* gadget)
                 mode = 0;
         }
         if (strlen(p) != 0) {
+            // These four statements stay in this order: oldmode, to, base, saved.
             oldmode = g_game->mode_2bf0;
             char* to = 0;
             Player_00493bf0* base = &g_game->players[g_game->localPlayer];
@@ -226,6 +183,7 @@ void __stdcall HandleTalkDialogEvent(Gadget_00493bf0* gadget)
                     goto clear;
                 p += 2;
                 mode = 3;
+                // to is computed before the memset.
                 to = (char*)&g_game->players[d] + 0x2b;
                 memset(g_game->field_2bf1, 0, 11);
                 g_game->field_2bf1[d] = 1;

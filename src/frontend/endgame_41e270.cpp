@@ -3,8 +3,8 @@
 // due, moves every channel of the current palette by its step without
 // overshooting the target, marks the fade done when the palettes are equal,
 // shows the palette and schedules the next tick.
-// <string.h> alone (or <windows.h>) gives the original register order;
-// adding <ddraw.h> swaps the delta and current loads.
+// Include <string.h> or <windows.h>, not <ddraw.h>: it swaps the delta and
+// current loads.
 #include <string.h>
 
 #pragma pack(push, 1)

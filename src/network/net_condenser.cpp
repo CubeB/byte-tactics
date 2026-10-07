@@ -50,8 +50,8 @@ public:
 };
 #pragma pack(pop)
 
-// Two global instances; the compiler builds their initialisers (0x44f720,
-// 0x44f7e0) and atexit destructors (0x44f7a0, 0x44f860) with the bodies inlined.
+// Two global instances, with initialisers (0x44f720, 0x44f7e0) and atexit
+// destructors (0x44f7a0, 0x44f860).
 // FUNCTION: 0x44f720 _$E4
 // FUNCTION: 0x44f7a0 _$E2
 NetCondenser g_receiveCondenser;
@@ -108,12 +108,6 @@ void NetCondenser::Accumulate(void* data, int size)
 // still pending it is copied out first; otherwise a DirectPlay packet is
 // received, its header and XOR checksum are verified and the payload is
 // decompressed (kind 4) or copied (kind 3).
-//
-// The `goto` at the tail is not dead: it gives the shared error test two
-// predecessors (the 0x887700be path and the 0x8877001e path), which is what
-// stops MSVC 5 from propagating the branch's known value into the test and
-// folding the (always taken) compare away. Without it the tail loses the
-// second `cmp esi, 0x8877001e`.
 // FUNCTION: 0x44f9c0
 int NetCondenser::ReceivePacket(void* net, char* data, int* size)
 {
@@ -174,6 +168,7 @@ int NetCondenser::ReceivePacket(void* net, char* data, int* size)
             if (result != 0x8877001e)
                 return result;
         } else {
+            // Not dead: gives the shared error test two predecessors, so the compare is kept.
             goto common_check;
         }
 common_check:

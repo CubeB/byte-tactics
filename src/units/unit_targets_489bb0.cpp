@@ -6,16 +6,8 @@
 // point of (armour / 5), capped at five points.
 // Afterwards the damage is spread to every unit of the target's kind, but only
 // when the target's kind is flagged (f0 set, f73 == 3) and the type is not 11.
-//
-// Two spellings here are load bearing:
-//  - the last call is written in both arms of the inner if/else. One call with
-//    a ternary argument lets MSVC merge the two argument push sequences into a
-//    single one, and the two tails collapse; the duplicated call is what keeps
-//    the shared `lea`/`push 9`/`push` hoisted in front of the null test.
-//  - the fifth argument is a 16 bit value of which only the HIGH byte reaches
-//    the record (MSVC turns `extra >> 8` into a byte load at offset +1 of the
-//    argument slot). Every caller found fills the low byte, so the record's
-//    byte +7 is zero on all of them; see the note in the bug list.
+// Every caller found fills the low byte, so the record's
+// byte +7 is zero on all of them; see the note in the bug list.
 
 #pragma pack(push, 1)
 struct Def_00489bb0 {
@@ -76,10 +68,12 @@ void __stdcall DamageUnit(Unit* source, Unit* target, int amount, int type, unsi
     d.team_target = !target ? 0 : target->team;
     d.team_source = !source ? 0 : source->team;
     d.amount = dmg;
+    // extra is a 16-bit value of which only the high byte reaches the record.
     d.extra = (unsigned char)(extra >> 8);
     d.type = type;
     ApplyUnitDamage(&d);
     if (target->kind->f0 != 0 && target->kind->f73 == 3 && type != 11) {
+        // The call is written in both arms: a ternary argument merges the tails.
         if (source)
             BroadcastPacket(source->kind->f4, &d, 9);
         else

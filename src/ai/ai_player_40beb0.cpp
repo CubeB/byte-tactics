@@ -2,10 +2,6 @@
 // Moves `from` towards `to` by at most maxLen: returns `to` when it is within
 // maxLen, else `from` plus the difference scaled (16.16 fixed point) to length
 // maxLen. Returns the vector by value (hidden return buffer).
-// The difference must come from an inline `operator-` returning a struct by
-// value: that keeps it in memory (the frame's second set of three dwords)
-// instead of in registers. The length helper converts each component into
-// its own double local; writing `(double)x * x` directly reorders the sum.
 #include <math.h>
 
 struct Vec3_0040beb0 {
@@ -15,6 +11,7 @@ struct Vec3_0040beb0 {
 
     int Length() const
     {
+        // One double local per component: `(double)x * x` reorders the sum.
         double fx = x;
         double fy = y;
         double fz = z;
@@ -41,6 +38,7 @@ static inline Vec3_0040beb0 operator-(const Vec3_0040beb0& p, const Vec3_0040beb
 Vec3_0040beb0 __stdcall MoveToward(const Vec3_0040beb0* from, const Vec3_0040beb0* to,
                                      int maxLen)
 {
+    // From an inline operator- returning by value: keeps it in memory.
     Vec3_0040beb0 d = *to - *from;
     int len = d.Length();
     if (maxLen >= len)

@@ -4,19 +4,9 @@
 // world position of the aim's weapon piece, let the two "can I shoot" helpers
 // have a say, and, if both agree, fire and tell the other players.
 //
-// Three details decide the code shape. The frame is 0x30 with the 12 dwords
-// holding the aim position Vec3 and the network packet; the packet is a
-// packed struct, so the 0x24 bytes go out from the byte after the type byte.
-// The packet's byte at +0x1a is never assigned in this function, yet the last
-// store folds the type's flag bit 30 into it, so the compiler has to keep the
-// byte in memory and re-load it. The `unit == 0 ? 0 : unit->field_a8` written
-// as a ternary comes out with the two branches the other way round; the if/else
-// with the test on the unit gives the original's `jne` over the null store.
-//
 // Point a unit's aim object at a point: work out the two aim angles, then
 // ask the two "can I shoot" helpers and, if both agree, fire and tell the
 // other players about it.
-
 #include <math.h>
 
 #pragma pack(push, 1)
@@ -117,6 +107,7 @@ int __stdcall FireLineOfSightWeapon(Unit* unit, Aim_0049d9c0* aim,
                 msg.b = *point;
                 msg.team = aim->type->team;
                 msg.weapon = aim->weapon >> 2 & 3;
+                // if/else testing the unit, not a ternary: the ternary flips the branches.
                 if (unit == 0)
                     msg.unit_a8 = 0;
                 else

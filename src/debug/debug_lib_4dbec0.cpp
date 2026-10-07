@@ -1,26 +1,10 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by
 // deepseek-v4.1, finished by Claude Opus 5.5. Names are provisional.
-// check.py: MATCH, 621 of 621 bytes.
-//
 // The red-black tree insert behind std::map<unsigned int, Pair> (MSVC 5's
-// _Tree::insert, XTREE lines 211-232), the same idiom as the matched sibling
-// 0x4dc680, whose shape this file now copies. DAT_00528a54 is the tree's _Nil
+// _Tree::insert, XTREE lines 211-232). DAT_00528a54 is the tree's _Nil
 // node, head->left is begin() and head->parent is the root. When the tree's
 // +0x8 flag (_Multi) is set, _Insert is inlined here under its own _Lockit;
 // otherwise the out-of-line _Insert (0x4dce60) is called, twice.
-//
-// What matched it after nine passes at 95.6 percent: the function RETURNS the
-// (iterator, inserted) pair by value (the `out` pointer is the hidden return
-// pointer), and _Insert returns its iterator by value too. MSVC then puts
-// _Insert's hidden result temporary in the dead slot of `p`, which is the
-// original's `lea edx,[esp+0x28]`. The old file wrote the result through an
-// explicit `out` parameter and was left with one eax/ecx swap in the else arm
-// that no spelling moved. Passing `&p` as an explicit result slot (as
-// 0x4dc680 does) fixes the else arm but makes `p` address-taken, so the
-// rebuild arm reloads it instead of keeping it in ecx.
-//
-// The null test on the destination address (`lea eax,[edx+0xc]; cmp eax,ebx;
-// je`) is placement new, `new ((void*)&z->value) Pair(*p)`, as in _Construct.
 #include <yvals.h>
 #include <new.h>
 
@@ -98,6 +82,8 @@ public:
 // FUNCTION: 0x4dbec0
 Class_004ddbe0 Class_004dbec0::FUN_004dbec0(Pair_004dbec0* p)
 {
+    // The pair is returned by value (no out parameter) and _Insert returns its
+    // iterator by value too; a &p result slot would make p address-taken.
     Node_004dbec0* y = head;
     bool less = true;
     Node_004dbec0* x = y->parent;

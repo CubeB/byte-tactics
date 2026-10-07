@@ -2,9 +2,6 @@
 // Selecting the entry with the index the caller passes: remembers the index,
 // and if the entry it names is a type 3 (text) control it makes the group's
 // type 7 list entry current and puts the entry's own text back into the field.
-// The entry array is loaded twice, once into the `first` copy used by the type
-// test and once inside the branch; the type test needs its copy in a register
-// before the two stores, which is what makes the reload land in ebx.
 #pragma pack(push, 1)
 
 // A window's colour table: indexed from the window pointer itself.
@@ -65,6 +62,7 @@ void __stdcall FUN_004ab6c0(Menu_004a7830* control, int param_2, char* text,
 // FUNCTION: 0x4a7830
 void __stdcall SelectGadgetByIndex(Menu_004a7830* menu, int index)
 {
+    // The array is loaded twice: this copy for the type test, again inside the branch.
     Entry_004a7830* first = menu->holder->entries;
     menu->focus = -1;
     menu->holder->field_20 = index;

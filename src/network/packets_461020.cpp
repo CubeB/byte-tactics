@@ -1,33 +1,6 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// MATCH. The function guards a body on g_usePacketManager and returns 1 from a single
-// shared epilogue, with the allocation-failure `return 0` as a second, out of
-// line epilogue reached by `je` from the new() null test.
-//
-// The shape that reproduces it: the `do { } while (0)` region must end BEFORE
-// the SetThreadPriority call, not around the whole body. The region is what
-// makes C2 move the failure `return 0` out to the end of the function and give
-// it the `pop edi; xor eax, eax; pop esi; ret 8` form (the last block C2 emits
-// puts the register restores before the return value; an earlier one keeps the
-// xor first). But with the call inside the region the region exit is a third
-// entry edge into the shared `return 1`, and C2 tail duplicates that epilogue
-// (10 extra bytes) with the flag test's `je` aiming at the copy. Leaving
-// SetThreadPriority after the region, still inside the `if`, gives the success
-// epilogue exactly its original two entry edges (the `je` and the call's fall
-// through) and the layout is identical. The same problem is unsolved in the
-// near-identical sibling 0x461750.
-//
-// Two things the disassembly forces:
-//
-//  - The object at g_packetManager holds m_defaultSendPacingMs at +4 and the
-//    0x1044 byte entries at +8: the first PacketChannel::InitPools call
-//    sets ecx to 0x513008 and the pacing store lands on 0x51300c, so the
-//    per-entry pacing field is entry+4. 0x4619e0.cpp models the same array as
-//    channels at +0xc with pacing at +0, which is indistinguishable there.
-//  - The pacing block is 0x4619e0 (PacketManager::SetDefaultSendPacing) inlined, and
-//    it has to be inlined from source with `__inline`: written out inline in
-//    the body, MSVC 5 folds its second `rate == 0` test away, and called out of
-//    line, as in 0x4578d0, it would not be inlined at all. Inlined it keeps the
-//    redundant test, which is what the original has.
+// The object at g_packetManager holds m_defaultSendPacingMs at +4 and the
+// 0x1044 byte entries at +8.
 #include <windows.h>
 
 void* __cdecl operator new(unsigned int size);
@@ -71,6 +44,8 @@ extern void* DAT_0051e31c;
 extern int DAT_0051e528;
 extern int DAT_0051e52c;
 
+// Must be __inline: written out in the body, the second `rate == 0` test is
+// folded away; called out of line, it is not inlined at all.
 __inline void PacketManager::SetDefaultSendPacing(int rate)
 {
     unsigned long pace;
@@ -103,6 +78,8 @@ int __stdcall InitPacketManager(int param_1, int param_2)
         g_packetManager.SetDefaultSendPacing(DAT_00512c94);
     }
     if (g_usePacketManager != 0) {
+        // The do/while region must end before SetThreadPriority, which stays
+        // inside the if.
         do {
             if (DAT_0051e318 == 0) {
                 if (DAT_0051e31c != 0) {

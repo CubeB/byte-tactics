@@ -7,25 +7,6 @@
 // 0x4399f0, bit 3 -> 0x439740, bit 4 -> 0x4390a0. Bit 4 is only acted on for the
 // first object of the list (`done`). Every helper is __stdcall with five dword
 // arguments and takes the position as a pointer to a 12-byte object.
-//
-// MATCH (441 of 441 bytes, Claude Sonnet 5.5 #702). Two things were wrong in the
-// earlier 29% version, both found from the original's disassembly:
-//  1. The position is a struct of three INTS, not the x_frac/x pair layout of
-//     0x4399f0. With three int members MSVC 5 keeps a copy of it in edi, ebp, ebx.
-//     The source keeps two copies, `Pos base = unit->pos; Pos pos = unit->pos;`
-//     (the address-taken `pos` is the frame slot at [esp+0x10]); every helper
-//     call is preceded by `pos = base;` (the three stores after the five pushes),
-//     except the bit-4 call, which has none; and the loop ends with `base = pos;`
-//     (the three reloads from the slot). So the helpers may move `pos` and the
-//     next object starts from that. Declaring `base` first and `pos` second, both
-//     from unit->pos, gives 64.2%; `pos` then `base = pos` is 53.2%; without the
-//     final `base = pos` it is 30.0%.
-//  2. The table entries are 0x19 bytes (`kind * 5 + kind * 20` in the original,
-//     `lea eax,[eax+eax*4]; lea edx,[ecx+eax*4]; mov eax,[eax+edx+0xc]`), not 0x14
-//     as the old note said; with the struct padded to 0x19 the flag lookup and all
-//     branch offsets match.
-// Compiler state was not involved (the file is in the right state without extra
-// declarations or headers).
 
 #pragma pack(push, 1)
 struct Entry_00439b30 {
@@ -34,6 +15,7 @@ struct Entry_00439b30 {
     char unknown_10[0x19 - 0x10];
 };
 
+// Three plain ints, not the x_frac/x pair layout of 0x4399f0.
 struct Pos_00439b30 {
     int x;
     int y;
@@ -67,6 +49,8 @@ void __stdcall FUN_004399f0(void* a, void* b, Obj_00439b30* e, Pos_00439b30* p, 
 void __stdcall FUN_00439b30(Unit* unit, unsigned int mask, void* obj,
                             void* sel, int flag)
 {
+    // Two copies, base first: each call but bit 4's is preceded by pos = base,
+    // and the loop ends with base = pos.
     Pos_00439b30 base = unit->pos;
     Pos_00439b30 pos = unit->pos;
     bool done = false;

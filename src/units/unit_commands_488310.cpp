@@ -3,16 +3,10 @@
 // one entry per list slot, then the per-unit "extra" strings through
 // RunInitialMission, which walks the same list again and looks units up in the
 // vector passed as its third argument.
-// The 0x80-byte frame is [the constructor's dead _Al slot][its _V temporary]
-// [the player byte][the vector][the sprintf buffer], so the vector has to be
-// 16 bytes with the empty allocator at +0: that is what RunInitialMission and
-// 0x487af0 read as Table_00488310's +0 and +4.
-// Two apparently cosmetic things decide the byte match, so do not tidy them
-// away: the mask on e->flags is 0xffffff80, not 0x80, because MSVC 5 narrows a
-// 0xFFFFFFxx mask to `and al` and so keeps the xor eax,eax / mov al
-// zero-extension (0x80 gives a 5-byte dword and), and <math.h> is included
-// because dropping it moves the f108 multiply onto the other register.
+// The vector is 16 bytes with the empty allocator at +0: RunInitialMission and
+// 0x487af0 read it as Table_00488310's +0 and +4.
 #include <stdio.h>
+// Needed though unused: dropping it moves the f108 multiply onto the other register.
 #include <math.h>
 #include <memory>
 
@@ -168,6 +162,7 @@ void __cdecl CreateMissionUnits()
         FUN_0047ddc0(item, &e->pos);
         Unit* u = CreateUnit((unsigned char)(e->player - 1), item->id, e->pos, 1, 1, 0);
         if (u) {
+            // The mask is 0xffffff80, not 0x80: keeps the byte zero-extension.
             u->flags = (u->flags & ~0x8000) | ((e->flags & 0xffffff80) << 8);
             u->f108 = (unsigned short)((unsigned)(u->def->f1fa * e->f1a) / 100);
             u->f66 = e->f18;

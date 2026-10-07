@@ -1,15 +1,11 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 // "Landing" order handler of air units landing on a pad unit (the order's
-// target). State 0 prepares the order (FUN_0040f200 is defined here because
-// /Ob2 inlined it) and picks a random angle, state 1 looks for a free pad
-// (FindLandingPad is defined here because /Ob2 inlined it) and circles the pad
+// target). State 0 prepares the order (FUN_0040f200) and picks a random
+// angle, state 1 looks for a free pad (FindLandingPad) and circles the pad
 // unit until one is free, states 2 to 5 approach the pad and land, and state
 // 6 hands the unit (or its cargo) to the pad and starts a "SELFREPAIR" order
 // when the pad repairs and the unit is damaged.
-// Match notes: a header set is needed (<windows.h> and <math.h> here, several
-// others work): without one the health compare in state 6 swaps ecx and edx.
-// The pad index is passed to Class_0044e250's constructor and AttachUnitToPiece as
-// a full dword load, so those parameters are declared int here.
+// Kept: some header set is needed here or the state 6 health compare changes.
 #include <windows.h>
 #include <math.h>
 
@@ -92,6 +88,7 @@ public:
 class Class_0044e250 {
 public:
     char unknown_0[0x36];
+    // The pad index parameters are int, not char: the original loads a full dword.
     Class_0044e250(Order* order, Unit* unit, int value);
 };
 #pragma pack(pop)

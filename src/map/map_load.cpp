@@ -1,29 +1,9 @@
 // Decompiled by Claude Opus 5.5, Sonnet, Haiku, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
 // FLAGS: /Gi
-// std::vector<MapCacheEntry>::insert(iterator, size_type, const T&) from
-// MSVC 5's <vector>, for the 8-byte {string handle, int} element of the
-// static vector at 0x5122c0 (see map_list.cpp); its only caller, 0x4373a0,
-// does a push_back. The element's copy constructor (0x437820) and operator=
-// (0x437800) are out-of-line calls. Taking the member's address makes the
-// compiler emit the template instantiation out of line.
-//
-// BYTES MATCH (Claude Opus 5.5, #4416).
-//
-// How it matched. Without /Gi the grow arm's third copy is always built dest
-// first and _P loses edi (79.3% was the best in eight earlier passes, notes
-// in git history). /Gi gives the _P-first affine the original has (as for
-// 0x46eba0 and the 4-byte inserts of field-notes Part 7), but with the real
-// header it also leaves the sixth std::_Construct (the third arm's first
-// _Ucopy) as an out-of-line call (34.7 to 46%). That is MSVC's per-function
-// inline budget, not anything specific to _Construct: under /Gi, deleting
-// any one earlier expansion (arm 2's fill, _Destroy, or one of the size()
-// calls) lets it inline, and copy_backward or fill after it do not matter.
-// Writing out one of the four inlined size() calls as its body (any of the
-// three that are not the first operand of _N; the first changes the order _N
-// is evaluated in) frees enough, and the whole function then matches with
-// header-order helpers. The element must declare its copy constructor and
-// operator=: with implicit ones the freed budget inlines operator= into
-// fill and copy_backward.
+// std::vector<MapCacheEntry>::insert(iterator, size_type, const T&), for the
+// 8-byte {string handle, int} element of the static vector at 0x5122c0 (see
+// map_list.cpp); its only caller, 0x4373a0, does a push_back. The element's
+// copy constructor (0x437820) and operator= (0x437800) are out-of-line calls.
 #include <climits>
 #include <memory>
 #include <xutility>
@@ -46,6 +26,7 @@ public:
     void Assign(const Class_004c91a0& param);
 };
 
+// Declares its own copy constructor and operator=: implicit ones get inlined into insert.
 class MapCacheEntry {
 public:
     Class_004c91a0 handle;             // +0x0
@@ -87,6 +68,7 @@ public:
             _Destroy(_First, _Last);
             allocator.deallocate(_First, _End - _First);
             _End = _S + _N;
+            // size() is written out here: it frees inline budget for the copies.
             _Last = _S + (_First == 0 ? 0 : _Last - _First) + _M;
             _First = _S; }
         else if (_Last - _P < _M)

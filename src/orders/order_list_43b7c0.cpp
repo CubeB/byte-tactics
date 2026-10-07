@@ -4,28 +4,7 @@
 // and the answer decides what happens to it. The list head is re-read after
 // every node, so a node the callback re-queues is seen again in the same
 // pass. 0x43bad0 is the twin for the +0x60 list.
-//
-// The list helpers are the real neighbouring functions of this file,
-// defined here (without FUNCTION lines, they match in their own files) so
-// that /Ob2 makes the original's choices: DeleteOrder (unlink and delete)
-// inlines in cases 5/8 and 9, FUN_00439fe0 (move to the end, 0 callers)
-// inlines in case 6, DeleteOrders (clear the lists) inlines in case 7 with
-// its own DeleteOrder call left out of line, but stays an out-of-line call
-// in the default case, and FUN_0043b730 (0 callers) inlines at the end with
-// its FUN_0043ac60 call out of line. The Wait and ClearTargets helpers spend
-// the budget that leaves the default case's DeleteOrders out of line; with
-// the target loop written out in place it is inlined there too. The
-// countdown register of the target loop (ebx = 3) needs the char counter.
-//
-// `for (;;) { node = unit->list; if (node == 0) break; ... }` is the loop
-// shape: it is what puts the early returns on the default case's epilogue
-// (near jumps) and keeps node->next in edx across case 9's inlined unlink.
-// The two Wait copies (cases 3 and 9) are merged by MSVC after allocation,
-// so they only become one `push 0xf; jmp` when the temporaries' rotation
-// agrees at both. That rotation, and the pending block's mask in cx and
-// flags6 in eax, need one header before the declarations: without one the
-// mask goes to eax (71.2%). headers.py finds 252 of 256 header sets that
-// match, <windows.h>, <string.h> or <stdlib.h> alone among them.
+// Some header must precede the declarations: it fixes the temporaries' rotation.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -188,6 +167,7 @@ static void Wait_0043b7c0(Class_0043a1f0* node, int n)
 // Clears the unit's three weapon targets.
 static void ClearTargets_0043b7c0(Unit* unit)
 {
+    // Char counter: the loop countdown register depends on it.
     for (char i = 0; i < 3; i++)
         ClearWeaponTarget(unit, i);
 }
@@ -196,6 +176,7 @@ static void ClearTargets_0043b7c0(Unit* unit)
 void __stdcall RunOrders(Unit* unit)
 {
     Class_0043a1f0* node;
+    // This loop shape puts the early returns on the default case's epilogue.
     for (;;) {
         node = unit->list;
         if (node == 0)

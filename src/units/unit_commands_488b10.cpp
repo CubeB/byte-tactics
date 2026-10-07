@@ -3,9 +3,6 @@
 // entry 0, for an entry whose name at +0x20 matches case-insensitively. Returns
 // the entry's index at +0x21e, or 0 when there is no such entry (callers mask
 // the result with 0xffff, so the return type is unsigned short).
-// The source builds the end pointer before the first entry pointer: that
-// statement order is what puts the table base straight into ebp and leaves the
-// `+1` as the `add ebp, 0x249` in the middle of the end-pointer arithmetic.
 
 extern "C" int __cdecl _strcmpi(const char* str1, const char* str2);
 
@@ -30,6 +27,7 @@ extern Game* g_game;
 // FUNCTION: 0x488b10
 unsigned short __stdcall FindUnitTypeId(const char* name)
 {
+    // `last` before `first`: the order decides the register of the table base.
     UnitType_00488b10* last = g_game->types + g_game->count;
     UnitType_00488b10* first = g_game->types + 1;
     int n = ((char*)last - (char*)first) / 0x249;

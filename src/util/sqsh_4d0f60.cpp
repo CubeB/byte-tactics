@@ -1,12 +1,4 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
-// Partial: 84.1%. One-child tree updates are inlined in the executable;
-// supplying the matched helper body restores those missing blocks. The
-// byte-copy loop must be a plain `while (n0 < 0x11)` with the src check
-// inside (do-while gets rotated), and the lit/lenstack `n` assignment must
-// live inside each branch. Still differs: the window pointer sits in ebp
-// where the original keeps it in esi, so `n` spills to [esp+0x24] and mask
-// lands at [esp+0x28] instead of the original [esp+0x24]; the encode-loop
-// register/slot swap and a few operand orders (edx+eax vs eax+edx) remain.
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -113,6 +105,7 @@ int __stdcall LzssCompress(unsigned char *dest, unsigned char *src, int len) {
     }
     {
         int n0 = 0;
+        // Plain while with the src check inside: a do-while gets rotated.
         while (n0 < 0x11) {
             if (src >= end)
                 break;
@@ -127,6 +120,7 @@ int __stdcall LzssCompress(unsigned char *dest, unsigned char *src, int len) {
     flags = 0;
     while (state.count > 0) {
         int j;
+        // n is assigned inside each branch below, not before the if.
         int n;
         if (state.cur > state.count)
             state.cur = state.count;

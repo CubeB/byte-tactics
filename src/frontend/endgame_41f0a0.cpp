@@ -4,12 +4,8 @@
 // FUN_0041f040) it plays "outcome1", makes Start the default button and
 // fills the Missions list; otherwise it plays "outcome0" and focuses
 // MainMenu. Then it draws the outcome image and shows the menu.
-//
-// The function is __stdcall although it takes no arguments (plain ret): as
-// __cdecl, MSVC 5 hoists the load of `entries` above the "KNOB" push. The
-// include must come first: after the declarations, the mission index and
-// the (field_391af != 0) term of the last FUN_004a2e40 call are added the
-// other way round.
+// This include comes first: later declarations flip the operand order of the last
+// FUN_004a2e40 call.
 #include <string.h>
 
 class Mission {
@@ -128,6 +124,7 @@ static inline int HasNextMission()
     return 0;
 }
 
+// __stdcall although it takes no arguments: as __cdecl the load of `entries` moves up.
 // FUNCTION: 0x41f0a0
 void __stdcall OpenEndMissionScreen()
 {

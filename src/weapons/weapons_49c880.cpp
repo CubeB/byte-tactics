@@ -3,41 +3,6 @@
 // walks the 300-entry projectile array, and for every active projectile owned
 // by that unit runs the inlined untrack helper (0x499e50) and compacts the
 // array (0x49ae20).
-//
-// MATCH (147 of 147 bytes). The whole function was held back by one
-// declaration: the flag word at +0x69 is a 16-bit `unsigned short`, not a
-// `char`/`unsigned char`. With the byte field the loop's constant 0 is parked
-// in ebp and `owner` in ebx (78.3%, byte-identical to the original except that
-// one register pair); with the 16-bit field the allocator puts the 0 in ebx
-// and `owner` in ebp, exactly as the original does. The emitted OR is the same
-// four-byte `or byte ptr [esi+0x69], 2` either way, because the immediate's
-// high byte is 0, so MSVC 5 narrows the 16-bit `|= 2` to a byte OR. The struct
-// must end at +0x6b (the flag word occupies +0x69..+0x6a), which is what makes
-// the loop stride 0x6b; a trailing padding byte gives `add esi, 0x6c` (97.8%).
-//
-// How it was found, in case a sibling needs the same: a micro-function
-// reproducing this loop (build/scratch/0x49c880/micro/) showed the pair is
-// decided by the *width of the flags field's OR*, not by any source shape:
-// `or byte [p+0x69], 2` keeps the zero in ebp while a word/dword OR of the same
-// shape puts it in ebx. A byte-typed flags field therefore cannot produce the
-// original's allocation; the 16-bit field can, and still compiles to the byte
-// OR. The struct offsets in this file are byte-exact, so only the field type
-// mattered.
-//
-// Measured and rejected on the way (all with check.py or check.py --sym):
-// the constant 0 as a named int/short/pointer/bool/char local (folds away),
-// a bool/char local for the active test (forces the zero into ebx via
-// `cmp cl, bl` but costs seven bytes of setne, 88.4%), `(unsigned char)` on
-// the active test (146 bytes, 89.1%, a metric artifact: the original compares
-// a word), the flags field as a `char` (78.3%) or a `char` bitfield (78.3%),
-// duplicated tests, extra depth-1 zero stores, `g_game`/`Game*` aliases,
-// accessor helpers, a `char*` walk with `+= 0x6b`, for/while/do-while/
-// while(1)+break loops, an index-only loop, and `int`/`void*`/`Unit* const`
-// parameter types. tools/headers.py --cpp (all 768 sets) was flat.
-// Earlier passes (deepseek-v4.1-flash, GPT-6.1-sol, Codex / GPT-6,
-// space-bunny-free in #1887) reached 78.3% and left the notes that the tie was
-// source-shape insensitive; it was, because the lever is a declaration in the
-// struct, not the body.
 
 struct Vec3_0049c880 {
     int x;
@@ -53,6 +18,7 @@ struct UnitType_0049c880 {
 };
 
 #pragma pack(push, 1)
+// Must end at +0x6b with no trailing padding: the loop stride follows it.
 struct Projectile_0049c880 {
     UnitType_0049c880* type;           // +0x0
     Vec3_0049c880 pos;                 // +0x4

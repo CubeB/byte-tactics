@@ -5,23 +5,13 @@
 // 1 and a fourth random number, and finally appends it to the
 // std::vector<ParticleSystem*> selected by the short index. When that list
 // already holds more than 400 entries its oldest element is deleted and erased
-// first. The append lives in an inlined member helper, which is what leaves
-// std::vector::insert (0x4732e0) out of line. Twin of 0x472330, which takes the
-// four arguments of slot 6 as parameters instead of building them here; the
-// class family is listed in 0x471cc0.cpp and thrust_particles.cpp, operator new
-// (0x471d10) is inlined here and the constructor is inlined too.
-// The 12-byte point is three pairs of shorts: the three `add word ptr [..], ax`
-// land on the high half of each pair, at +2, +6 and +10, so the copy is one
-// 12-byte struct assignment followed by three separate `+=` statements (a loop
-// would have been rotated, and MSVC keeps each rand() call with its own add).
-// The fourth random number is a statement of its own before the allocation:
-// its value has to live in a callee-saved register (ebp) across the call to the
-// pool, and its call to rand() is emitted before the load of g_game.
+// first. Twin of 0x472330, which takes the four arguments of slot 6 as
+// parameters instead of building them here; the class family is listed in
+// 0x471cc0.cpp and thrust_particles.cpp.
 // Suspected original bug: the same point is passed as both of the first two
 // arguments of slot 6, so 0x4742c0 copies the same data into unknown_20 and
 // unknown_2c and their difference (unknown_38, the vector from the first to the
-// second point, scaled by 1/b) is always zero. Both `lea` instructions compute
-// the same address, which is the evidence.
+// second point, scaled by 1/b) is always zero.
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -107,6 +97,7 @@ class Lists_00472ab0 {
 public:
     std::vector<ParticleSystem*> lists[10];             // 0x10 bytes each
 
+    // Inlined member helper: leaves std::vector::insert (0x4732e0) out of line.
     void Add(short index, ParticleSystem* p)
     {
         if (lists[index].size() > 400) {
@@ -129,10 +120,12 @@ extern Game* g_game;
 // FUNCTION: 0x472ab0
 void __stdcall FUN_00472ab0(Shape_00472ab0* param_1, short index)
 {
+    // One struct copy, then three separate += statements, not a loop.
     Shape_00472ab0 s = *param_1;
     s.v[0].hi += (int)((__int64)rand() * 3 / 0x8000) - 1;
     s.v[1].hi += (int)((__int64)rand() * 3 / 0x8000) - 1;
     s.v[2].hi += (int)((__int64)rand() * 3 / 0x8000) - 1;
+    // A statement of its own before the allocation: rand() runs before the g_game load.
     int r = (int)((__int64)rand() * 3 / 0x8000) + 1;
     Lists_00472ab0* lists = g_game->lists;
     ThrustParticles* p = new ThrustParticles;

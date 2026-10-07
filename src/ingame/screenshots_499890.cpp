@@ -1,10 +1,5 @@
 // Decompiled by GPT-5.6-Terra, finished by Space Bunny Free. Names are provisional.
-// The key test is a plain `unsigned char` shift in the original disassembly
-// (mov cl, [eax+0x37f2f]; shr cl, 1; test cl, 1), which only comes out of a
-// standalone `if` on the second bit of an `unsigned short` bitfield; the
-// storage unit of that bitfield is two bytes, so the padding after it starts
-// at 0x37f31. g_game+0xc is a pointer, the final test reads a byte at +0xf1
-// through it.
+// g_game+0xc is a pointer, the final test reads a byte at +0xf1 through it.
 #include <stdio.h>
 
 class Mission {
@@ -32,6 +27,7 @@ struct Game {
     char unknown_2c8e[0x37ebe - 0x2c8e];
     unsigned short orderFlags;
     char unknown_37ec0[0x37f2f - 0x37ec0];
+    // The key test is a standalone if on bit 1 of this unsigned short bitfield.
     unsigned short screenBitA : 1;
     unsigned short screenBitB : 1;
     char unknown_37f31[0x38a37 - 0x37f31];

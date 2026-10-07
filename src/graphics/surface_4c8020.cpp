@@ -7,9 +7,7 @@
 // width. The texture width selects the texel layout: 8/16/32/64/128 pick the
 // sub-texel mask, anything else uses the width itself as a row stride. With no
 // depth buffer the four power-of-two formats dispatch to the FUN_004cd8xx span
-// helpers and the remaining formats run inline loops. value is one
-// function-scope temporary shared by every body; giving it a single slot keeps
-// the per-body loop counters in the slots the original used.
+// helpers and the remaining formats run inline loops.
 #include <ddraw.h>
 struct Surface_004c8020 {
     unsigned short width;
@@ -50,6 +48,7 @@ void __stdcall DrawLitTexturedSpan(int row, int* span, Surface_004c8020* target,
         int v = span[3];
         int z = span[6];
         int light = span[8];
+        // One temporary shared by every body: keeps the loop counters in the original slots.
         int value;
         dest += target->width * row + span[0];
         if (depth) {

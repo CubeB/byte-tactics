@@ -2,36 +2,12 @@
 // PacketSequencer::operator=: copies three ints, then assigns two vectors of a
 // 14-byte element type (Elem_0046faf0, packed to 2 bytes, so the three ints and
 // the short give 14 bytes and the copy loops move three dwords and a word).
-// The first vector's operator= is inlined by /Ob2, the second stays a call to
-// its out-of-line copy (0x4707a0), and the same inline budget is why three of
-// the seven size() calls are calls to 0x470770 while the other four are
-// expanded inline. The element type's _Ucopy (0x46faf0) and _Destroy
-// (0x46e870) are called, and the 14-byte std::copy of the "enough room, but
-// longer" branch is 0x470a40.
-// The file of the original was compiled with /Gz, so <xutility>'s templates
-// are __stdcall there and the std::copy call cleans up its own arguments.
-// Defining _XUTILITY_ keeps out the header's __cdecl ones, which <vector>
-// would otherwise include; the block below stands in for <xutility> (the same
-// stand-in 0x424c00.cpp uses, with the C4666 warnings it gives).
-//
-// Every byte matches, but check.py still reports two references as wrong, both
-// of them names in data/ that this file cannot use and should not work around:
-//
-//  0. The three calls to 0x470770 come out as `Elem_0046faf0::?$vector::size`,
-//     which is what they are: taking the address of the real
-//     `std::vector<Elem_0046faf0>::size` compiles to 0x470770 byte for byte
-//     (checked with `?size@?$vector@UElem_0046faf0@@...@QBEIXZ`). data/symbols.csv
-//     gives 0x470770 the placeholder name `Class_00470770::FUN_00470770` from
-//     0x470770.cpp, a hand-written stand-in for the same body. Renaming that
-//     row the way 0x40c5b0.cpp names vector<Elem_0040cc40>::size would make
-//     these three references right.
-//  1. The std::copy at 0x470a40 is the second `std::copy` instantiation the
-//     checker sees (0x4256a0 is the first, for unsigned short). Overloads and
-//     duplicate instantiations share one name in base_name, which is the case
-//     docs/consolidation.md predicts needs a row in data/aliases.csv:
-//     `std::copy,0x470a40,...`.
+// The element type's _Ucopy (0x46faf0) and _Destroy (0x46e870) are called, and
+// the 14-byte std::copy of the "enough room, but longer" branch is 0x470a40.
 #include <utility>
 
+// This block must stay: it stands in for <xutility> with __stdcall templates,
+// and _XUTILITY_ keeps out the header's __cdecl ones.
 #define _XUTILITY_
 namespace std {
 template <class _II, class _OI>

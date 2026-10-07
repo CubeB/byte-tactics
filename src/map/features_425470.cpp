@@ -1,17 +1,16 @@
 // Decompiled by Opus. Names are provisional.
-// std::vector<unsigned short>::_Destroy(first, last) from MSVC 5's <vector>:
-// empty for a trivial element type. Its caller (0x424c00) shrinks its
+// std::vector<unsigned short>::_Destroy(first, last): empty for a trivial
+// element type. Its caller (0x424c00) shrinks its
 // feature type remap table twice, once through the out-of-line erase
 // 0x425430 and once through an inlined erase that calls std::copy
-// (0x4256a0) and then this with ecx set to the vector. Renamed in #335 from
-// vector<Elem_00425430>; the byte-identical 0x40d280 is
-// vector<short>::_Destroy. _Destroy is protected, so a derived class takes
-// its address to make the compiler emit it out of line.
+// (0x4256a0) and then this with ecx set to the vector. The byte-identical
+// 0x40d280 is vector<short>::_Destroy.
 #include <vector>
 
 typedef std::vector<unsigned short> Vec_00425470;
 typedef void (Vec_00425470::*DestroyFn_00425470)(Vec_00425470::iterator, Vec_00425470::iterator);
 
+// _Destroy is protected: the derived class takes its address to emit it out of line.
 struct Access_00425470 : Vec_00425470 {
     static DestroyFn_00425470 fn;
 };

@@ -1,39 +1,9 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6, verified by GPT-6.1-Sol, finished by space-bunny-free, edited by deepseek-v4.1-flash, edited by Claude Opus 5.5, matched by Claude Opus 5.5. Names are provisional.
 // VTOL patrol order handler for construction aircraft. State 0 starts
-// patrolling ("Patrolling"; FUN_0040f200 is defined here because /Ob2
-// inlined it). State 1 sets the next waypoint, then lands on a free pad when
-// damaged (VTOL_LANDING), helps build or guards a unit it can see
-// (VTOL_HELPBUILD), or reclaims metal or energy (VTOL_RECLAIM).
-//
-// MATCH (Claude Opus 5.5, #5602). Three things were needed together:
-//  - The switch sits in a `for (;;)` loop, as in the matched RECLAIM handler
-//    0x405980 (no `continue`, so no back edge and every block keeps weight
-//    1). Only then do all four reclaim arms, each written with its own
-//    `AppendOrder(unit, new ...); order->flags = 0; return 3;`, cross-jump
-//    into the last arm's constructor tail. Without the loop MSVC merges at
-//    most two arms into the last one; a loop around case 1's body or around
-//    the reclaim chain alone does not merge them either. Matched functions
-//    with three or more arms cross-jumped into one call tail (0x408830,
-//    0x4ae630, 0x405980) all have the arms inside a loop.
-//  - `flags` is `unsigned int`, as in the sibling handler 0x414a80. Then the
-//    0xe0 in `flags & 0xe0` and in `order->flags |= 0xe0` is one constant,
-//    used twice on one path, so C2 makes it a register candidate (it still
-//    ends up an immediate). That adds one candidate to the set-up block and
-//    lifts order's priority above case 0's unit web (tools/c2prio.py), so
-//    order takes esi and unit edi as in the original. With `int flags` the
-//    two 0xe0 differ in type, neither is a candidate, and the registers swap
-//    (89.1%). `(unsigned int)flags & 0xe0` gives the same MATCH.
-//  - Land returns 1 or 0 and has an empty `do {} while (0);` (a debug macro
-//    that compiled to nothing) after the health test, with FUN_0040f200
-//    `inline` so nothing is compiled before VtolRepairPatrolOrder. The landed test
-//    then folds away and the landed path returns 0 straight after ~vector.
-//    Any function compiled first in the file (FUN_0040f200 out of line
-//    included) brings the test back (1520 bytes). Land's /Ob2 share keeps the
-//    pads vector's constructor, empty()'s size() and ~vector out of line
-//    while pads.size() inlines; a Done(unit, order, obj) helper per arm adds
-//    four call sites and pushes size() out of line.
-// The reads of the amounts through Owner::GetEnergy/GetMetal and Total give
-// the arms' x87 load order.
+// patrolling ("Patrolling"; FUN_0040f200). State 1 sets the next waypoint,
+// then lands on a free pad when damaged (VTOL_LANDING), helps build or guards
+// a unit it can see (VTOL_HELPBUILD), or reclaims metal or energy
+// (VTOL_RECLAIM).
 #include <vector>
 
 struct Vec3 { int x, y, z; };
@@ -124,6 +94,7 @@ int __stdcall FUN_0043b400(Unit*, Unit*, int);
 union Fixed { int v; struct { unsigned short frac; short whole; } p; };
 int __stdcall FUN_0047ea40(Vec3*, Fixed, Vec3**, float*, Vec3**, float*);
 
+// inline: no function may be compiled before VtolRepairPatrolOrder, or the landed test returns.
 inline void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
     unit->ClaimWeapons(3);
@@ -152,6 +123,7 @@ static inline int Land(Unit* unit, Order* order)
             return 1;
         }
     }
+    // Empty statement after the health test folds the landed test away.
     do {} while (0);
     return 0;
 }
@@ -166,10 +138,12 @@ static inline float Total(float base, float amount)
 // FUNCTION: 0x4152f0
 int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags)
 {
+    // flags is unsigned int: the repeated 0xe0 then keeps order in esi.
     if ((flags & 0x48) != 0) {
         ((Class_00439e80*)order)->FUN_00439e80(0x1e);
         return 0;
     }
+    // The loop lets the four reclaim arms share the last arm's constructor tail.
     for (;;) {
         switch (order->state) {
         case 0:
@@ -218,6 +192,7 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
             Fixed range;
             range.v = 0xf00000;
             if (FUN_0047ea40(&unit->pos, range, &energy, &energyAmount, &metal, &metalAmount)) {
+                // Amounts read through GetEnergy/GetMetal and Total: gives the x87 load order.
                 if (unit->owner->GetMetal() < unit->owner->metalCapacity * 0.2 && metal) {
                     ((Class_004388d0*)order)->FUN_004388d0(0);
                     AppendOrder(unit, new Class_0043a1f0("VTOL_RECLAIM", 0, metal, 0, 0, 0));

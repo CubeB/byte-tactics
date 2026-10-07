@@ -6,29 +6,6 @@
 // two offsets with the fixed point sine/cosine helpers, schedule the impact
 // time with the 0x49c920 helper, then play the firing and "RockUnit" sounds
 // and animations. Returns 0 when the array is full.
-//
-// MATCH (600 of 600 bytes). The whole gap of the earlier 74.6% version was one
-// argument: the last FUN_004b7123 call takes `t` (the result of the FUN_004b7123
-// call before it, which has a stack home in the dead `fire` argument slot), not
-// the position pointer p3. The earlier notes read the `mov ecx, [esp+0x1c]` at
-// 0x49caff as dz, and then wrote the call as `FUN_004b7123(a1, (int)p3)` with a
-// "suspected original bug" comment. Counting the stores: 0x49ca59 puts dz into
-// E0+0x14, 0x49caad overwrites it with a2, and 0x49caf4 overwrites it again with
-// t (the result of the FUN_004b7123 call), so the load at 0x49caff, with two
-// pushes outstanding, reads t. The extra use of p3 in that call is what gave p3
-// the fourth callee-saved register instead of `unit`; without it the allocation is
-// the original's (esi = proj, edi = fire, ebx = p4, ebp = unit) and p3 is
-// rematerialised from its argument slot. Compiler state is not involved: the
-// declaration-count sweep (0 to 400 in steps of 8) is flat at 74.6% for the old
-// source.
-//
-// Two details are needed to get the numbers right:
-//   - `dy` has to be a 4-byte union: the original reads only its high half,
-//     as `movsx ecx, word ptr [esp+0x22]`, so the local needs a real frame
-//     home and the read has to be a 16-bit load at +2. A plain int gives
-//     `sar edi, 0x10` in a register instead (same trick as 0x49b520).
-//   - the second FUN_004b715a argument is `(short)(dist >> 16)` with a
-//     *logical* shift (`shr eax, 0x10`), so `dist` is unsigned.
 #include <math.h>
 
 struct Vec3_0049c9c0 {
@@ -150,10 +127,12 @@ int __stdcall FireLineOfSightProjectile(Fire_0049c9c0* fire, Unit* unit,
     InitProjectile(proj, fire->shot, p3, p4, g_game->frame, unit);
 
     int dx = p3->x - p4->x;
+    // 4-byte union: only the high half is read, as a 16-bit load from a frame slot.
     union { int value; short halves[2]; } dy;
     dy.value = p3->y - p4->y;
     int dz = p3->z - p4->z;
     short a1 = FUN_004b715a(dx, dz);
+    // Unsigned: the >> 16 below is a logical shift.
     unsigned int dist = (int)_hypot(dx, dz);
     proj->f_3e = (int)dist;
     short a2 = FUN_004b715a(-(int)dy.halves[1], (short)(dist >> 16));

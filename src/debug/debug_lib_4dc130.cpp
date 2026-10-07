@@ -1,13 +1,7 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// std::_Tree<...>::erase(iterator) from MSVC 5's <xtree>, written out by hand
-// rather than via <map> so that the iterator increment is the call the original
-// makes: 0x4dd340, which data/symbols.csv names
-// Class_004dd340::FUN_004dd340. The real std::map template compiles this body
-// to byte-identical code too, but it emits the callee as iterator::_Inc and the
-// checker then refuses the reference. The tree's _Nil node is DAT_00528a54 and
-// its node allocator is the pool at 0x4ddd70 (free list DAT_00528a10, node size
-// 0x18, _Color at +0x14). _Min, _Max, _Lrotate and _Rrotate are inlined, each
-// dragging in its own std::_Lockit.
+// std::_Tree<...>::erase(iterator) from MSVC 5's <xtree>. The tree's _Nil node
+// is DAT_00528a54 and its node allocator is the pool at 0x4ddd70 (free list
+// DAT_00528a10, node size 0x18, _Color at +0x14).
 #include <yvals.h>
 #include <map>
 
@@ -23,6 +17,7 @@ struct Node_004dc130 {
 extern Node_004dc130* DAT_00528a54;    // _Nil
 extern void* DAT_00528a10;             // pool free list
 
+// Hand-written iterator: the increment must call FUN_004dd340 (0x4dd340).
 class Class_004dd340 {
 public:
     Node_004dc130* ptr;                // +0x0

@@ -33,6 +33,7 @@ struct FrameRing {                     // 0x180c bytes
 
     FrameRing() { count = 0; head = 0; tail = -1; }
 
+    // Pop and Push stay inline members: the requeue loop's registers follow.
     Frame_00463790* Pop()
     {
         if (count > 0) {
@@ -118,8 +119,6 @@ int FrameQueue::ResetFrames()
     return 1;
 }
 
-// Rewritten (pass 14, Opus): 75.0% -> 85.2%; pass 15: 86.6%; pass 16 (#5358): 88.8%;
-// pass 17 (#5515): 89.3%; pass 18 (Opus, #5559): MATCH.
 // Queues one received packet's commands in the ring at +0x10. If frames are
 // already queued, it only re-stamps each of them with the new tick (pop, push) and
 // returns 0. Otherwise it copies the packet into the buffer at +0xc, counts the
@@ -127,32 +126,6 @@ int FrameQueue::ResetFrames()
 // own 16-bit length, the others' lengths are in the table at 0x512ad8), skips the
 // first n - 0x200 0x2c commands when there are more than 0x200 commands, and pushes
 // the rest: spread over up to 30 ticks when a6 is set, all at `tick` otherwise.
-//
-// What matched it (pass 18):
-//  * The a6 loop counts n down with `n--` at the end of each of its two tails
-//    (the 0x2c skip path and the push path) and tests `while (n > 0)`, instead of
-//    `while (--n > 0)` in the latch. The code is the same (the original's skip path
-//    jumps to the shared `dec ebp`), but C2's priorities are not: in the re-sort
-//    after progress takes ebx, n's and remaining's pieces both had only ebp left, and
-//    remaining's piece won (123 against -23) mostly on the push tail block (w 4,
-//    K 12, +96), where n was not referenced. With `n--` in both tails n gains those
-//    blocks and keeps ebp through the scan and the a6 loop, as in the original.
-//  * The scan locals are declared n, remaining, p. With the tails above, this
-//    order gives the original's reload of `this` into edx for the field_c read
-//    (p, remaining, n reads it through ebp, 88.4%).
-//  * Both tails are written `remaining -= w; q += w; n--;` (the push path's old
-//    `q += w; remaining -= w;` order put the remaining temporary in ecx).
-//
-// What moved it earlier:
-//  * The ring as a struct with inline Pop and Push (the pop is the same code 0x462f30
-//    inlines) fixed the requeue loop's registers.
-//  * `delete field_c; field_c = new char[size + 0x100];` instead of the operator calls
-//    shifts the temporary rotation by one, which fixes the delete argument and the
-//    a4/a5 loads and stores around the memcpy.
-//  * The tick copy in the a6 path is its own local (x), stored to the tick slot, and
-//    x, progress, i, q are defined in that order after the spacing computation.
-//  * The a6 == 0 loop's exits are `break` (to the one `return 1` after it), which
-//    puts its back edge's `xor edx, edx` block before the loop head.
 // FUNCTION: 0x463790
 int FrameQueue::QueueFrames(char* src, unsigned int size, int tick, int a4, int a5, int a6)
 {
@@ -170,6 +143,7 @@ int FrameQueue::QueueFrames(char* src, unsigned int size, int tick, int a4, int 
 
     field_8 = 0;
     if (size > field_4) {
+        // delete/new expressions, not operator calls: fixes the temporary rotation.
         delete field_c;
         field_c = new char[size + 0x100];
         if (field_c == 0) {
@@ -183,6 +157,7 @@ int FrameQueue::QueueFrames(char* src, unsigned int size, int tick, int a4, int 
     field_18 = a5;
     size -= 4;
 
+    // Declared in this order: gives the original's reload of this for field_c.
     int n = 0;
     int remaining = size;
     char* p = field_c + 4;
@@ -219,10 +194,12 @@ int FrameQueue::QueueFrames(char* src, unsigned int size, int tick, int a4, int 
             int spacing = 0x10;
             if (n > span)
                 spacing = (n << 4) / span;
+            // x is its own local, defined before progress, i and q.
             int x = tick;
             unsigned int progress = 0;
             unsigned int i = 0;
             char* q = field_c + 4;
+            // Both tails end `remaining -= w; q += w; n--;` and the loop tests n > 0.
             do {
                 unsigned char c = *q;
                 unsigned short w;
@@ -259,6 +236,7 @@ int FrameQueue::QueueFrames(char* src, unsigned int size, int tick, int a4, int 
 
         char* q = field_c + 4;
         int rem = size;
+        // Exits are `break` to the single return 1 below.
         while (rem > 0) {
             unsigned char c = *q;
             if (c <= 1 || c >= 0x2d)

@@ -65,12 +65,6 @@ void __stdcall FillRectangle(void* surface, Rect_004848e0* rect, int color);
 void __stdcall GrayRectangle(void* surface, Rect_004848e0* rect);
 void __stdcall DitherRectangle(void* surface, Rect_004848e0* rect, int color);
 
-// The parity sum at 0x484943 is written with one operand read back through
-// g_game (g_game->scrollX) instead of the local. That read is CSE'd with the
-// earlier local, so no reload appears, but it makes MSVC emit the LEA with
-// ebx as base and edi as index, which is the original's encoding. Writing the
-// sum from the two locals alone always gives the mirrored [edi+ebx].
-//
 // FUNCTION: 0x4848e0
 void __stdcall DrawFogOfWar(void* surface)
 {
@@ -83,6 +77,7 @@ void __stdcall DrawFogOfWar(void* surface)
     int scrollY = g_game->scrollY;
     int scrollX = g_game->scrollX;
     int q = (scrollY + 16) / 32 + (scrollX + 16) / 32;
+    // One operand read through g_game, not the local: fixes the LEA operand order.
     int parity = (g_game->scrollX + scrollY) & 1;
     int rX = scrollX % 32;
     int rY = scrollY % 32;

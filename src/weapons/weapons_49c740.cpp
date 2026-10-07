@@ -3,24 +3,6 @@
 // copies the muzzle position into two fields, optionally a third position,
 // clears flag bits, and takes the firing unit's colour, its tracked
 // projectile slot, the barrel the shot came out of and the frame number.
-//
-// The one shape that matters here: the two flag clears must not fold into a
-// single `and word ptr [esi+0x69], 0xffce`. The original does
-//   and word ptr [esi+0x69], 0xfffe     <- the first clear, stored in place
-//   mov ax, word ptr [esi+0x69]          <- a 16-bit local re-reads the word
-//   ...
-//   and eax, 0xffcf                     <- the mask, at 32 bits
-//   ...
-//   mov word ptr [esi+0x69], ax         <- the store sinks below field_4e
-// so the second clear goes through an `unsigned short` local taken from the
-// field after the first clear, and the store of that local is the last of the
-// run. A local alone is not enough: taken as `int` it stays 16-bit folded,
-// and without the later stores to field_4a, field_56 and field_4e the reload
-// folds back to one in-place mask. The 32-bit `and eax` with a 16-bit store
-// is what an `unsigned short` local gives; a plain `&=` on the field is
-// emitted as an in-place `and word ptr` and can never produce it.
-// The frame number store (field_4a) has to be read before the mask, which
-// puts g_game into edx rather than eax.
 
 #pragma pack(push, 1)
 struct Vec3_0049c740 {
@@ -108,7 +90,9 @@ void __stdcall InitProjectile(Proj_0049c740* proj, Shot_0049c740* shot, Vec3_004
     proj->field_42 = field_5;
     proj->flags &= ~1;
     proj->active = 0;
+    // Second clear via an unsigned short local, stored last: `&=` folds into one mask.
     unsigned short f = proj->flags;
+    // field_4a is stored before the mask clear: puts g_game in edx.
     proj->field_4a = g_game->field_38a47;
     proj->field_56 = 0;
     proj->field_4e = 0;

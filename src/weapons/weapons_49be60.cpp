@@ -1,35 +1,12 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by claude-sonnet-5-5, finished by claude-opus-5-5. Names are provisional.
-// MATCH (claude-opus-5-5, #4983, 2026-10-03; was 87.5%). The projectile render
-// pass: it walks the 300-entry projectile array (count g_game+0x141f3, base
+// The projectile render pass: it walks the 300-entry projectile array (count g_game+0x141f3, base
 // g_game+0x141f7, stride 0x6b) and draws every live projectile (counter at
 // +0x60 is 0) that the local player can see, by the shot kind at type+0x10c
 // (0..7). The visibility test mirrors 0x481930/0x482c20: with viewFlags bit 2
 // set it reads the player's explored-cell grid (PlayerInfo+0x7c data, +0x80
 // width, +0x84 height), otherwise it calls IsPointVisible.
-// What decided the last 10 points, each measured with check.py:
-//  - AllocProjectile is defined above this function. With no earlier function in
-//    the file, MSVC never cross-jumps kind 0's two line arms (the y-major arm
-//    gets its own copy after the loop, 2308 bytes); with any function before
-//    it, the arms share their tail exactly as in the original (87.5% to
-//    95.9%). 0x49b6e0 and 0x49b720 precede this function in the exe. Defining
-//    0x49b720 too (with one Game struct shared by both) also gives 97.8% and
-//    leaves 0x49b720 a MATCH; writing it with cast macros instead breaks the
-//    tail merge again (78.1%).
-//  - <minmax.h> (tools/headers.py): kind 0 then computes abs(x1 - x2) before
-//    abs(y1 - y2), as the original does (95.9% to 96.6%).
-//  - Kind 7's segment start `pt` lives in eax/ecx/edx on the loop entry, and
-//    which component gets which register follows the components' reference
-//    weights (equal weights: first component first). The original gives z
-//    edx, then x ecx and y eax, so z carries one more reference than x and y:
-//    the unused `int z = pt.z;` before `prev = pt;` emits no code and is
-//    that reference. Without it the plain copy gets x edx, y ecx, z eax
-//    (96.6%); copying the fields as z, x, y gets the registers but stores z
-//    first (97.8%). A dead `prev.z = pt.z;` before the copy, or
-//    `pt.z = start->z;` before `pt = *start;`, matches the same way; a second
-//    use after the rand() calls makes z live across calls and moves it to esi.
-// Earlier passes (still accurate):
 //  - Kind 0's two line arms each make both DrawLine calls (colour2, then
-//    colour1); one shared colour1 call after the arms swaps the colour slots.
+//    colour1).
 //  - Kinds 1, 3 and 6 pass a 3-short angle struct (the projectile's +0x34);
 //    kind 3 passes its own `rot3`, which is never written (docs/bugs.md).
 //  - Kind 7's dx/dy/dz are one Vec3 `d`, and the three 16.16 steps are written
@@ -60,6 +37,7 @@
 #include <string.h>
 #include <math.h>
 #include <memory.h>
+// <minmax.h> is needed: kind 0 then computes abs(x1 - x2) before abs(y1 - y2).
 #include <minmax.h>
 
 #pragma pack(push, 1)
@@ -180,7 +158,8 @@ int __stdcall IsPointVisible(PlayerInfo_0049be60* pi, Vec3_0049be60* pos);
 
 
 // AllocProjectile (matched in its own file), which comes before this function in
-// the original file; see the note at the top.
+// the original file. It must be defined above: with no earlier function the
+// two kind 0 line arms stop sharing their tail.
 Proj_0049be60* AllocProjectile()
 {
     Proj_0049be60* p = 0;
@@ -245,6 +224,7 @@ void __stdcall DrawProjectiles(void* surface)
                               - ((int)*(short*)((char*)&p->start + 6) >> 1))
                              - (short)g_game->scrollY + 0x20;
                     if (type->field_10e != 0) {
+                        // Both calls stay in each arm: one shared colour1 call swaps the colour slots.
                         if (abs(x1 - x2) > abs(y1 - y2)) {
                             if (x1 > x2) {
                                 int t = x1; x1 = x2; x2 = t;
@@ -364,7 +344,9 @@ void __stdcall DrawProjectiles(void* surface)
                                 if (n > 0) {
                                     int i = n;
                                     do {
-                                        int z = pt.z;  // unused, see the note at the top
+                                        // The unused z stays: it gives pt.z the extra reference
+                                        // that sets the register assignment.
+                                        int z = pt.z;  // unused; needed for the match
                                         prev = pt;
                                         sp.x += d.x;
                                         sp.y += d.y;

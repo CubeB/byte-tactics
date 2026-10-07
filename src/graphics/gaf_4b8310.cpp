@@ -4,12 +4,6 @@
 // into `param_1` or, when that is null, into the locked screen. When the
 // bitmap has more than one texture every texture is drawn with DrawFrameBlended,
 // which is this function again for the next level down.
-// The source rectangle inside the bitmap is built as one aggregate
-// initialiser, and that is what interleaves the stores with the loads of
-// width and height the way the original does; the same struct also fixes the
-// order the two rects get their stack slots in.
-// The locked surface is a member at +0x20 of a bigger local, which is what
-// puts the lock argument at esp+0x74 and makes the frame 0x94 bytes.
 #include <ddraw.h>
 
 struct Rect_004b8310 {
@@ -84,6 +78,7 @@ void __stdcall DrawFrameLit(Surface* param_1, Sprite_004b8310* param_2, int x, i
 {
     Display_004b8310* d = GetDisplay();
     if ((d->flags & 0x80) == 0x80) {
+        // Surface stays a member at +0x20 of a bigger local: sets the frame layout.
         Screen_004b8310 screen;
         if (param_1 == 0) {
             int locked = LockScreen(&screen.surf);
@@ -97,6 +92,7 @@ void __stdcall DrawFrameLit(Surface* param_1, Sprite_004b8310* param_2, int x, i
                     DrawFrameBlended(param_1, param_2->items[i], x, y);
             } else {
                 Rect_004b8310 screen_rect;
+                // Aggregate initialiser: orders the stores and the rect stack slots.
                 Rect_004b8310 sprite_rect = { 0, 0, param_2->width - 1, param_2->height - 1 };
                 int w = param_2->width;
                 int h = param_2->height;

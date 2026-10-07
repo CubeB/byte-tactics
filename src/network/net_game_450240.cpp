@@ -1,21 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by gpt-6-luna, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by Claude Opus 5.5. Names are provisional.
 // Finds the highest field_4 among the active players of type 1 or 3, looks
-// that player up by field_4 (0x44fed0's lookup, inlined, so its index search
-// appears twice) and sets bit 0 of its info flags. Nothing in the exe calls
-// it. It returns the constant 10, the "no player" index.
-//
-// Two things put the constant 10 in eax for the whole function, which every
-// earlier attempt was missing:
-// - The function returns 10. That copy gives the constant 10 a preference for
-//   eax, so every candidate that overlaps it (all of them) pays +1 for eax and
-//   takes ecx, edx, esi instead, and the constant gets eax when it is coloured
-//   last. As a void function it scores 10.1%.
-// - FindPlayerIndex returns 10 early for id == -1 instead of wrapping the loop
-//   in `if (id != -1)`. Both compile to the same code, but the early return
-//   is one more store of 10 into the inline's result in C2's IL, which gives
-//   the constant a positive spill cost (C2 skips a constant whose spill cost
-//   is not positive, and then 10 stays an immediate everywhere).
-// Both int and unsigned char return types match.
+// that player up by field_4 and sets bit 0 of its info flags. Nothing in the
+// exe calls it. It returns the constant 10, the "no player" index.
 
 #pragma pack(push, 1)
 struct Info_00450240 {
@@ -50,6 +36,7 @@ static inline int GetPlayerField(unsigned char i)
 
 static inline unsigned char FindPlayerIndex(int id)
 {
+    // Early return, not a loop wrapped in if (id != -1).
     if (id == -1)
         return 10;
     for (unsigned char i = 0; i < 10; i++) {
@@ -84,5 +71,6 @@ unsigned char PickNewHost()
     Player_00450240* q = FindPlayer(max);
     if (q)
         q->info->flags |= 1;
+    // Must return 10, not void.
     return 10;
 }

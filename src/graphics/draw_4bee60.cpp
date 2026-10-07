@@ -5,11 +5,6 @@
 // LockScreen instead, and if that lock fails a second surface is tried.
 // UnlockScreen then unlocks whatever LockScreen left in `screen`, even on
 // the fallback path where the lock failed.
-//
-// The four clipped-coordinate locals are declared in this order because the
-// order decides which stack slot each one gets: two of them are coalesced into
-// argument slots that are dead by then (the `surface` slot, and the `x`/`y`
-// slots whose copies become self-stores).
 
 struct Surface {
     int unknown_0[2];
@@ -31,6 +26,7 @@ int __stdcall DrawPixel(Surface* surface, int x, int y, int ch)
         Surface screen;
         ret = LockScreen(&screen);
         if (ret) {
+            // Declared in this order: it decides each local's stack slot.
             int y1 = y, x1 = x, y0 = y, x0 = x;
             if (&screen == 0) {
                 Surface other;

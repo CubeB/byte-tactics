@@ -3,22 +3,6 @@
 //
 // Reports the process working set into a caller-supplied buffer, with a
 // psapi.dll QueryWorkingSet refresh at most once every ten calls.
-//
-// deepseek-v4.1-flash: the three counters are not locals: the five
-// number-formatting blocks all reload them from DAT_005295c0/b8/28, so the
-// loop increments the globals directly and MSVC promotes them to esi/ebx/edi,
-// storing the initial zeros before the loop (the n==0 path needs them) and the
-// final values after it. A separate `cnt = n` assigned just after the pointer
-// lea puts `mov ebp,eax` after `lea edx` like the original.
-//
-// The last piece (space-bunny-free left this at 99.4%, a register-order
-// difference in the pre-loop zero block) is a single chained assignment:
-//   DAT_00529528 = DAT_005295b8 = DAT_005295c0 = 0;
-// Right-to-left evaluation makes the allocator's first-mention order
-// c0, b8, 28 while the emitted stores stay in the chained (reverse) order, so
-// both the xor order esi, ebx, edi and the store order c0, b8, 28 come out
-// right. Separate statements put the first mention and the store order in the
-// same order and cannot reproduce the original; chaining decouples them.
 #include <windows.h>
 #include <stdio.h>
 
@@ -114,9 +98,12 @@ char __cdecl FormatWorkingSet(char *dest)
         if (n > DAT_005295d4) {
             DAT_005295d4 = n;
         }
+        // Chained, not separate statements: decouples register order from store order.
         DAT_00529528 = DAT_005295b8 = DAT_005295c0 = 0;
+        // Counters stay globals, incremented in the loop: the formatters reload them.
         if (n > 0) {
             p = (DWORD *)&ws.WorkingSetInfo[0];
+            // Separate copy of n, assigned after p: fixes the instruction order.
             DWORD cnt = n;
             do {
                 w = *p;

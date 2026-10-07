@@ -73,12 +73,9 @@ public:
     Class_004dbe10 FUN_004dbe10(int);
 };
 
-// std::_Tree<...>::iterator::operator++(int) from MSVC 5's <xtree>: copy the
-// iterator, step it to the in-order successor (_Inc, with _Min inlined, each
-// under a std::_Lockit) and return the copy. The counterpart of
-// operator--(int) at 0x4dbe10 on the same tree (DAT_00528a54 is its _Nil
-// node). The iterator has constructors, so it is returned through a hidden
-// pointer.
+// Tree iterator operator++(int): copy the iterator, step it to the in-order
+// successor and return the copy. The counterpart of operator--(int) at
+// 0x4dbe10 on the same tree (DAT_00528a54 is its _Nil node).
 // FUNCTION: 0x4dbd80
 Class_004dbe10 Class_004dbe10::FUN_004dbd80(int)
 {
@@ -87,11 +84,8 @@ Class_004dbe10 Class_004dbe10::FUN_004dbd80(int)
     return tmp;
 }
 
-// std::_Tree<...>::iterator::operator--(int) from MSVC 5's <xtree>: copy the
-// iterator, step it to the in-order predecessor (_Dec, with _Max inlined,
-// each under a std::_Lockit) and return the copy. DAT_00528a54 is the tree's
-// _Nil node. The iterator has constructors, so it is returned through a
-// hidden pointer.
+// Tree iterator operator--(int): copy the iterator, step it to the in-order
+// predecessor and return the copy. DAT_00528a54 is the tree's _Nil node.
 // FUNCTION: 0x4dbe10
 Class_004dbe10 Class_004dbe10::FUN_004dbe10(int)
 {

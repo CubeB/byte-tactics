@@ -5,11 +5,7 @@
 // counter is still not positive, copies the rectangle and draws the bitmap
 // with DrawFrame. GetRect is the inlined copy helper (memcpy of the 24 byte
 // rectangle at +0x196).
-//
-// The whole difference (the null test of the bitmap scheduled before the two
-// cursor stores) came from the calling convention: the original file was built
-// with /Gr, so the function is __fastcall. About 100 source shapes at the
-// default convention never moved it (earlier notes listed many more).
+// Must be __fastcall: the original file was built with /Gr.
 #include <string.h>
 #include <windows.h>
 

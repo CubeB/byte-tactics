@@ -1,26 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by opus. Names are provisional.
-// MATCH. Draws one page of the help text (DAT_0051e63c) into the dialog's
+// Draws one page of the help text (DAT_0051e63c) into the dialog's
 // "TextRegion" gadgets, one gadget per line, with "&R", "&Y", "&G" colour
 // sections drawn over the line through AddBlinkWord.
-//
-// What made it match (earlier notes misread the frame: they counted slot
-// offsets without the pending argument pushes):
-//  * The page scans are the zero-caller neighbour FUN_00476e90 (matched in
-//    0x476e90.cpp), defined here unannotated so /Ob2 inlines it twice. This
-//    spelling compiles to the same 86 bytes as that file's; inlined it must
-//    walk two pointers in step (the test reads one, the body the other) and
-//    declare found and count first. With one pointer MSVC carries the byte
-//    load across the back edge (79.2%); with p and q declared first the
-//    second scan loses its zero register in edx (87.7%).
-//  * The table colour goes into its own local, `colour`, which is the fifth
-//    argument of AddBlinkWord, not the gadget count. It shares count's slot
-//    once count is dead, and `colourState = 0` is then a live store.
-//  * The gadget index is count itself, incremented in the loop, so the
-//    entry pointer is a strength-reduced induction variable set up after the
-//    loop guard (a pointer local set up before the loop puts it first).
-//  * `lineStart++; code = *lineStart;` (not `code = lineStart[1]`) gives
-//    the entry pointer esi and lineStart ebp, and the closing '&' arm is
-//    `colourState = 1; lineStart++;`.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -86,6 +67,8 @@ void __stdcall FUN_004a0c70(Menu_476ef0* menu, const char* name, int value);
 void __stdcall AddBlinkWord(Menu_476ef0* menu, char* text, int x, int y,
                             int count, int colour, float a, float b);
 
+// Left unannotated so it inlines twice; two pointers walk in step, found and
+// count declared first.
 char* __stdcall FUN_00476e90(char* start, int lines, int page)
 {
     if (!page) return start;
@@ -164,6 +147,7 @@ void DrawHelpPage()
     for (int i = linesPerPage * DAT_0051e64c;
          i < (DAT_0051e64c + 1) * linesPerPage; i++) {
         AddTextGadget(dialog, "TextRegion", &DAT_005119b8, textX, y, -1, 2);
+        // The gadget index is count itself, incremented here.
         count++;
         char* dst = gadgets[count].u.text;
         gadgets[count].flags = 0x411;
@@ -180,6 +164,7 @@ void DrawHelpPage()
                 break;
             if (c == '&') {
                 if (colourState != 0) {
+                    // Increment then read, not lineStart[1]: fixes the pointer registers.
                     lineStart++;
                     char code = *lineStart;
                     colourState = 0;
@@ -187,6 +172,7 @@ void DrawHelpPage()
                             : code == 'Y' ? 2
                             : code == 'G' ? 1 : 3;
                     lineStart++;
+                    // Own local, not the gadget count: it shares count's slot once count is dead.
                     int colour =
                         DAT_00507b70[g_game->field_37ef2 * 4 + sel];
                     int x = GetTextWidth(GetFont(), gadgets[count].u.text) + textX;

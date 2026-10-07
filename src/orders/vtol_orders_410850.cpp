@@ -1,65 +1,6 @@
 // Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by Claude Opus 5.5, finished by Claude Opus 5.5. re-verified by GPT-6, retried by Claude Opus 5.5, finished by GPT-6, retried by Claude Opus 5.5, finished by GPT-6, matched by Claude Opus 5.5. Names are provisional.
-// MATCH (Claude Opus 5.5, #5656). The code was right at 98.6%; the last six
-// lines (the health test's def, health and limit registers) are decided by
-// the front-end id of `unit`, and match when it is 65808 to 65919. The
-// headers above the types put it at 65854: include/ta_types.h (the game's
-// merged types, standing in for the declarations Cavedog's headers put in
-// front of this file) and real headers from docs/c2-regalloc.md's plausible
-// set. ta_types.h's views of the types defined below differ from this file's
-// (it flattens Class_00410830's std::vector<Unit*> base into fields and splits
-// Order's flags into bitfields), so it is kept in its own namespace; the
-// system headers it includes come first and stay global.
-//
-// How the test's order is decided, read out of C2.EXE (Ghidra on the C2
-// project, gdb watchpoints through a patched tools/c2prio.py):
-//  * FUN_004056cf, which lays out each tree's tuples, emits a binary node's
-//    second operand first when FUN_00406912 says the operator may be swapped
-//    (the compares 0x141 to 0x157 are) and FUN_00408d58 finds the second
-//    operand's key at +0xc larger than the first's (unsigned).
-//  * FUN_004071f1 sets the keys: (level << 24) | (count << 16) | hash.
-//    FUN_00405301's level is Sethi-Ullman-like and the count adds up the
-//    variables; FUN_004053bf's 16-bit hash XORs the operands' hashes and the
-//    opcode, down to a variable's front-end id (low 16 bits XOR high 16 bits)
-//    or, for a C2 temporary, its symbol record's pool number (+0x1c, numbered
-//    in blocks of 32 by FUN_0040c75a).
-//  * Health and limit both have level 1 and count 1, so the hashes decide:
-//    health's is id(unit) ^ 0x17c. The test's `unit + 0x92` is a common
-//    subexpression of SearchRange's `unit->def` read, so limit's hash comes
-//    from that temporary's pool number (0x1e2, giving 0x72) instead of from
-//    unit. The limit goes first (def edx, health ecx, `lea eax`, the
-//    original) only when id(unit) ^ 0x17c is below 0x72: ids 65808 to 65919
-//    (a few just below; 272 to 383 by the same rule). That is why no
-//    spelling of the test or of the second def read moved it, and why the
-//    toy files followed u's id. Without the pairing the two hashes differ
-//    only in bit 4 of id(unit).
-//  * Other sets that land (unit's id): the same with <memory.h> for
-//    <float.h> (65845), <time.h> alone (65818), <conio.h> for <time.h> and
-//    <float.h> (65836). A regenerated ta_types.h that moves unit by more than
-//    about 60 ids needs the set retuned (`tools/c2prio.py --symbols unit`).
-//
-// Earlier notes (the Patrol() inline budget, read out of C2.EXE):
-// a function's inline budget is max(1000, 2 * its own IL size). Call sites are
-// taken in source order. A callee is inlined when its IL size is at most the
-// budget left, or under 41 whatever the budget; only callees of 41 or more
-// subtract their size. The calls inside an inlined callee get budget / R,
-// where R is the number of this level's call sites still to come, including
-// this one. Case 1's body is the inline helper Patrol(), which makes the
-// function small (budget 1000) and leaves Patrol's own sites 1000 minus its
-// IL, which puts every vector site on the original's side (the landing pads'
-// constructor, empty()'s size(), both pads destructors, the units' vector
-// constructor and the `return 3` destructor are calls; pads.size(),
-// units.empty()'s size() and the final destructor are inline). The pads
-// class keeps a declared (never inlined) constructor, as in the matched
-// 0x4103e0; units is a separate class with an implicit one.
-//  * The tail is `order->pos + Offset(...)`, with no `off` local, and Offset
-//    names its second call's result (`int z`): that raises the Offset
-//    distance's priority over order's so unit and order keep esi and edi.
-//  * The visitor has the 3-argument constructor, which puts the vtable store
-//    after the member stores. operator+ is a free function (65 IL, the
-//    member one is 78), and IsDamaged, FindPads and SearchRange are small
-//    helpers before units.empty() (each under 41 IL and so free); without
-//    any one of them a vector call goes in or out of line.
-// Older notes (ten passes of spellings, all flat) are in this file's history.
+// The include set (ta_types.h in namespace ta, then the system headers) fixes
+// unit's front-end id, which decides the register order of the health test.
 #include <windows.h>
 #include <ddraw.h>
 #include <dsound.h>
@@ -117,6 +58,7 @@ int __cdecl FUN_004b7123(short, int);
 Vec3 __stdcall FUN_0040f790(const Vec3& a, const Vec3& b);
 union Fixed { int value; struct { unsigned short frac; short whole; } parts; };
 Vec3 __stdcall FUN_004103a0(short angle, Fixed scale);
+// A free function, not a member: its smaller IL size keeps it inlined.
 static inline Vec3 operator+(const Vec3& a, const Vec3& b) { Vec3 r; r.x=a.x+b.x; r.y=a.y+b.y; r.z=a.z+b.z; return r; }
 static inline Vec3 Direction(short angle, int range) { Fixed distance; distance.value=range; return FUN_004103a0(angle,distance); }
 static inline Vec3 Offset(short angle, int distance)
@@ -124,11 +66,13 @@ static inline Vec3 Offset(short angle, int distance)
     Vec3 v;
     v.x=-FUN_004b70ef(angle,distance);
     v.y=0;
+    // Names its result: keeps unit and order in esi and edi.
     int z=FUN_004b7123(angle,distance);
     v.z=-z;
     return v;
 }
 
+// Keeps a declared constructor (never inlined); UnitList below is a separate class.
 class Class_00410830 : public std::vector<Unit*> { public: Class_00410830(); };
 void __stdcall GetFactoriesInRadius(int, Vec3*, int, std::vector<Unit*>*);
 class UnitList : public std::vector<Unit*> {};
@@ -136,10 +80,13 @@ class UnitList : public std::vector<Unit*> {};
 class Class_00410c70 {
 public:
     virtual void FUN_00410c70(Unit*);
+    // Three-argument constructor: puts the vtable store after the member stores.
     Class_00410c70(Owner* o, std::vector<Unit*>* u, Unit* s) : owner(o), units(u), self(s) {}
     Owner* owner; std::vector<Unit*>* units; Unit* self;
 };
 void __stdcall VisitObjectsInRange(Vec3*, int, const Class_00410c70&);
+// IsDamaged, FindPads and SearchRange stay small helpers: the vector calls
+// inline or not according to the original.
 static inline int IsDamaged(Unit* u) { return (unsigned int)u->health < (u->def->maxHealth>>2)*3; }
 static inline void FindPads(Unit* u, std::vector<Unit*>* pads) { GetFactoriesInRadius(u->owner->index,&u->pos,0xf00,pads); }
 static inline int SearchRange(Unit* u) { return u->def->searchRange<<16; }

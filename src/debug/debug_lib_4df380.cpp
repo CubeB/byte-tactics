@@ -4,10 +4,6 @@
 // does not already hold that text. The whole scan runs under the global
 // critical section (FUN_004e1ac0) and stops at the first key that matches, so
 // a duplicate key leaves the later entry unused.
-// The table is an MSVC 5 std::map tree: the node value is a 500-byte buffer
-// (the node's _Color sits at +0x204, the node is 0x208 bytes, see the
-// singleton's constructor 0x4e17c0), its iterator increment holds a
-// std::_Lockit and the successor search is the out-of-line _Min at 0x4e04e0.
 #include <string.h>
 #include <windows.h>
 #include <yvals.h>

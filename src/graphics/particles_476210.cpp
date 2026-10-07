@@ -3,15 +3,6 @@
 // std::vector<Elem_00476210>::insert(iterator, size_type, const _Ty&), stock
 // MSVC 5 <vector> on a 32-byte record, emitted out of line through a member
 // pointer.
-//
-// The original's translation unit was built with /Gi (#5035), and the bytes
-// also depend on which other vector members the TU instantiates: with a
-// reserve use (which the caller 0x474df0 really makes, as below) or a copy
-// constructor this MATCHes; with operator= or resize it compiles to
-// 0x476490's shape instead (632 bytes, 61.2%). Without /Gi the best file reached 99.6%, one SIB
-// byte in the third copy's source pointer (`lea eax,[src0+dest]` against ours
-// `lea eax,[dest+src0]`) that no spelling moved; the earlier passes are in git
-// history.
 #include <vector>
 
 struct Elem_00476210 {

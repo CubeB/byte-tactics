@@ -2,21 +2,6 @@
 // Sends a chat/text message (type 5, up to 64 characters) to the players
 // selected by the game's chat mode at +0x2bf0, from the first player in state
 // 1 (GetLocalHumanDpid inlined), and returns the last send's result.
-//
-// What earlier passes were missing (54.4%):
-// - The function returns an int: `result` takes each send's return value and
-//   is never initialised, so a path with no send returns whatever is in its
-//   home. MSVC homes it in the dead `text` argument slot, which is the bare
-//   `mov eax, [esp+0x14]` at the top of the mode-3 and default arms that no
-//   dead-code spelling could produce (an original bug: the caller 0x463e50
-//   ignores the value, so it is harmless). That alone gives 99.2%.
-// - The last byte is the SIB order of `g_game->field_2bf1[i]`
-//   (`[ecx + edi + 0x2bf1]`): the operand with the larger symbol id takes the
-//   base slot, so g_game must be numbered after the mode-3 loop's `i`. That is
-//   the function-scope `extern` declared after `i` (as in 0x493bf0), with no
-//   file-scope declaration before it, so the inlined target search takes the
-//   game pointer as a parameter. Sharing `i` with the default arm's loop too
-//   gives 98.3%.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -59,8 +44,11 @@ static inline int FindTarget(Game* game)
 // FUNCTION: 0x453360
 int __stdcall SendChatPacket(char* text)
 {
+    // Never initialised: a path with no send returns garbage, as in the
+    // original (the caller ignores it).
     int result;
     int i;
+    // Function-scope and declared after i: symbol order sets the SIB operand order.
     extern Game* g_game;
     g_game->buffer[0] = 5;
     strncpy(g_game->buffer + 1, text, 0x40);

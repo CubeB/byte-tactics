@@ -2,14 +2,6 @@
 // Starts a player: clears the five 11-byte per-team tables, records the side,
 // the alliance and the player index, then builds the player's short name
 // ("Player", "Core" or "Arm") for a campaign and for a skirmish game.
-//
-// Two spellings here are chosen for the register allocator, not for style:
-// the local `idx` (declared after the player pointer) puts the pointer in the
-// addressing-mode index slot, which is what the original's
-// `mov byte [eax+ebp+0x113], 1` wants, and writing the side test as
-// `side == 0` puts the "Arm" arm inline and jumps to the "Core" arm, which
-// is the original's block layout. The second name block really does pass the
-// raw "Core" and "Arm" strings while the first wraps them in Translate.
 
 #include <stdio.h>
 #include <string.h>
@@ -90,6 +82,7 @@ char* __stdcall Translate(char* text);
 void __stdcall FUN_00464290(int player, char type)
 {
     Player_00464290* p = &g_game->players[player & 0xff];
+    // Declared after p: puts the pointer in the addressing-mode index slot.
     int idx = player & 0xff;
 
     memset(p->team_108, 0, 11);
@@ -123,6 +116,7 @@ void __stdcall FUN_00464290(int player, char type)
         if (type == 1) {
             sprintf(p->name, Translate("Player"));
         } else if (type == 2) {
+            // Tested as `== 0`: keeps the Arm arm inline, matching the block layout.
             if (p->info->side == 0) {
                 sprintf(p->name, "Arm");
             } else {

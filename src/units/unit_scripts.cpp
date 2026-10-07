@@ -1,6 +1,8 @@
 // Decompiled by DeepSeek V4.1 Flash, Opus, space-bunny-free, Claude Opus 5.5, deepseek-v4.1, GPT-6, deepseek-v4.1-flash, Space Bunny Free and claude-opus-5-5. Names are provisional.
 
+// Must stay: decides which register GetOrderCursor's GetFeature results use.
 #include <windows.h>
+// Must stay: GetPieceOffset's main path depends on the symbols it declares.
 #include <string.h>
 
 struct Vec3 {
@@ -150,26 +152,6 @@ struct Object_0043def0 {
 };
 #pragma pack(pop)
 
-// MATCH (Claude Opus 5.5, #5127). Eleven earlier passes reached 99.2%. They
-// left one pair of xors in the out-of-range return in the wrong order.
-// tools/c2prio.py shows why no spelling of that block on its own can work.
-// Its three zeros are three local temps of equal priority in one block, so
-// their def order sets both their registers (by the +0x40 key: ecx, edx, esi)
-// and the order of the xors, and the original needs two different orders.
-// The fix is one `Vec3 out`, filled in both arms of an if/else and returned
-// once. Each field of `out` is then one web across both arms, so the
-// out-of-range zeros share their registers with the computed values. z wants
-// ecx, because `-result.z` is copied from the loop's ecx temporary, and that
-// pushes x to edx and y to esi. C2 still copies the return tail into each arm,
-// so the out-of-range block keeps its own `ret`, now with the xors in
-// x, y, z order.
-// `Vec3 result` has to be declared outside the else arm: declared inside it,
-// the function falls to 48.1%. As before, `<string.h>` (or about 40 to 295 unused
-// declarations in front) is the compiler state the main path needs; without it
-// this is 70.3%. Earlier notes found that an unrolled loop copy was the only
-// way to give the end block its three-value shape. The shared `out` makes
-// that copy unnecessary.
-//
 // Returns the world position of animation piece `index` of `obj` (with z
 // negated, as the callers add it to obj->pos at +0x6a):
 //
@@ -194,6 +176,7 @@ Vec3 __stdcall GetPieceOffset(Object_0043def0* obj, int index)
         return v;
     }
     Block_0043def0* block = obj->recs;
+    // One `out` filled in both arms, returned once; `result` outside the else.
     Vec3 out;
     Vec3 result;
     if (index < 0 || index >= block->count) {
@@ -227,8 +210,7 @@ Vec3 __stdcall GetPieceOffset(Object_0043def0* obj, int index)
     return out;
 }
 
-// The symbol count <io.h> adds puts 43e060 and the functions after it in the
-// range their register allocation needs; without it 43e060 is 52.5%.
+// Must stay: its symbol count sets register allocation from 43e060 on.
 #include <io.h>
 
 // FUNCTION: 0x43e060
@@ -264,18 +246,16 @@ struct Obj_0043e0b0 {
 // per-component minima and maxima, offset by the object's world position at
 // +0x6a. The minima and maxima start at 0, so a piece whose vertices are all
 // positive on an axis keeps 0 as its minimum.
-// The six min/max locals are declared before the piece pointer so the four
-// register-resident ones are zeroed first; the loop is written as
-// `while (n > 0) { ...; n--; }` so MSVC rotates it and spills the counter to
-// the (dead) third argument's stack slot only after the entry test.
 // FUNCTION: 0x43e0b0
 void __stdcall GetPieceCenter(Obj_0043e0b0* obj, Vec3* out, int value)
 {
+    // Declared before the piece pointer: the register-resident ones zero first.
     int minx = 0, miny = 0, minz = 0;
     int maxx = 0, maxy = 0, maxz = 0;
     Piece_0043e0b0* p = (Piece_0043e0b0*)(obj->table + value * 0x36 + 0x22);
     Vec3* v = p->verts;
     int n = p->geom->count;
+    // Written as while (n > 0) { ...; n--; } so the compiler rotates the loop.
     while (n > 0) {
         int x = v->x;
         if (x < minx) minx = x;
@@ -318,6 +298,7 @@ struct Out_0043e180 {
     short z;
 };
 
+// Operand order (object field first, record second) must stay in both helpers.
 static inline short SumY_0043e180(Obj_0043e180* obj, Rec_0043e180* q)
 {
     return obj->f66 + q->c;
@@ -331,8 +312,7 @@ static inline short SumZ_0043e180(Obj_0043e180* obj, Rec_0043e180* q)
 // Builds a three-short offset from the object's position fields (+0x64,
 // +0x66, +0x68) and the animation record at obj->recs[index] (+0x9e): the
 // record's +0x32/+0x34 words pair with y/z and the next record's +0 word
-// with x. The two static helpers keep the operand order (object field
-// first, record second) that the original used.
+// with x.
 // FUNCTION: 0x43e180
 Out_0043e180 __stdcall GetPieceAngles(Obj_0043e180* obj, int index)
 {
@@ -369,14 +349,14 @@ void __stdcall GetWeaponPiecePosition(Object* obj, Vec3* out, unsigned char weap
 // Returns the world position of a weapon's aim piece: it first asks the
 // unit's script for the "AimFrom" piece, and if the script has none
 // (-1), falls back to the "Query" piece. The unit's position is then
-// added to the piece offset. The two branches each build the
-// GetPieceOffset call, which is how the original lays the code out.
+// added to the piece offset.
 // FUNCTION: 0x43e2e0
 void __stdcall GetAimFromPosition(Object* obj, Vec3* out, unsigned char weapon)
 {
     char* names[3] = { "AimFromPrimary", "AimFromSecondary", "AimFromTertiary" };
     int piece = -1;
     obj->script->QueryScript(names[weapon], &piece, 0, 0, 0);
+    // Each branch builds its own GetPieceOffset call.
     if (piece == -1) {
         char* qnames[3] = { "QueryPrimary", "QuerySecondary", "QueryTertiary" };
         int q = 0;
@@ -598,32 +578,13 @@ static inline int Selectable(Unit_0043e490* t) {
            (t->f86 == 0 || (t->f86->f110 & 0x40000000));
 }
 
-// MATCH (3152 bytes). Returns the cursor/action code for an order of type
+// Returns the cursor/action code for an order of type
 // `mode` given by `unit` on `target` / `pos`; GetOrderType is the sibling that
-// returns the action's name. What the earlier 68.2% version was missing:
-//  - case 1 recurses with `return GetOrderCursor(3/0xc, unit, target, pos)`. MSVC
-//    turns the self tail calls into `mov byte [esp+0x18], 3; jmp` back to the
-//    top, which is the original's loop; a hand-written goto loop allocates
-//    differently.
-//  - `def = unit->def` is a real local (its home is target's dead argument
-//    slot), g_game is read directly everywhere (no `game` local), and the
-//    declarations are friendly, enemy, then `def = unit->def`.
-//  - Visible re-reads the width through unit->player (see the helper).
-//  - GetFeature is the plain multi-return form, and it only puts its result in
-//    eax (with the shape-B `xor eax, eax` blocks at the first of two
-//    consecutive checks) under the compiler state <windows.h> gives. Without
-//    the header the result lands in ecx at four of the six sites.
-//  - the six visible-feature checks are one RECLAIM_CHECK statement macro;
-//    its do/while(0) is load-bearing (see the macro).
-//  - case 4 declares the f48 pointer before the fec one (later-declared
-//    loads first).
-// Every Reclaim-style helper that wrapped Visible and GetFeature in one inline
-// function exceeded MSVC 5's per-function inline budget and left the first
-// GetFeature as a call; writing each check out (here through the macro) keeps
-// all six inline.
+// returns the action's name.
 // FUNCTION: 0x43e490
 int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e490* target,
                            Pos_0043e490* pos) {
+    // Declared friendly, enemy, then def (a real local); g_game read directly.
     Def_0043e490* def;
     Node_0043e490* node;
     int friendly;
@@ -664,6 +625,7 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
             return 5;
         break;
     case 12:
+        // Every check goes through the macro: an inline helper blows the budget.
         RECLAIM_CHECK(def, unit, pos, 0x400, 0xb);
         if (target && ((Unit*)unit)->CanReclaim(target))
             return 0xb;
@@ -684,6 +646,7 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
         return 0x10;
     case 4:
         if (def->f245b.b14) {
+            // f48 pointer declared before the fec one.
             Limits_0043e490* l = unit->f48;
             Stats_0043e490* s = unit->fec;
             if (s->f8c < l->fc0 || s->f98 < l->fc4)
@@ -726,6 +689,7 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
             RECLAIM_CHECK(def, unit, pos, 0x400, 0x12);
             break;
         }
+        // Self calls, not a goto loop: they become the original's jump to the top.
         if ((def->f245 & 0x10) && enemy)
             return GetOrderCursor(3, unit, target, pos);
         if ((def->f245 & 0x400) && enemy)

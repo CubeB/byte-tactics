@@ -8,20 +8,6 @@
 // HAPINET_enumplayers), broadcasts every playing player's 0xb9-byte data block and
 // 6-byte message (the same code as BroadcastPlayerInfo), and finishes with
 // RequestPlayerColor(0).
-//
-// What made this match:
-// - The user name read into the 0x100-byte stack buffer is never read again:
-//   the original computes it with GetUserNameA/strcpy and drops it, so the
-//   buffer has to stay dead here too (an early `return 0` would move the
-//   epilogues, so the whole body sits under `if (player == localPlayer)`).
-// - info+0x9d is a 16-bit 1-bit field, not a byte field. With a byte field
-//   MSVC emits a load/or/store (9 bytes) for `field_9d = 1`; with the 16-bit
-//   bitfield it emits the single `or byte [eax+0x9d],1` the original has.
-// - info+0x97 is likewise a 1-bit field: `ready = net->field_4 >> 1` gives the
-//   (old ^ value) & 1 ^ old word sequence, and `ready = 0` the `and word,
-//   0xfffe`.
-// - The flag test reloads g_game->field_4e5 and reads a byte of its +4 dword,
-//   which is why it is written as a cast rather than through a cached local.
 #include <windows.h>
 #include <string.h>
 
@@ -137,6 +123,8 @@ void __stdcall FatalError(char* msg);
 // FUNCTION: 0x4517b0
 int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
 {
+    // The name buffer is never read again and must stay dead; the whole body
+    // stays under the if (an early return would move the epilogues).
     char name[0x100];
     Packet_4517b0 packet;
     DWORD size;
@@ -170,7 +158,9 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
 
             if (v != 0 && DAT_00512d28 != 0) {
                 lstrcpynA(p->info->name, &DAT_00512d28, 0xb);
+                // field_9d must be a 16-bit 1-bit field, not a byte field.
                 p->info->field_9d = 1;
+                // Cast on a reloaded field_4e5, not a cached local.
                 if ((*(unsigned char*)((char*)g_game->field_4e5 + 4) & 2) != 0)
                     lstrcpynA(g_game->field_2be3, &DAT_00512d28, 0xb);
             }
@@ -185,6 +175,7 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
             strcpy(name, g_game->field_2bd2);
         }
 
+        // ready must be a 1-bit field.
         if (g_game->field_4e5 != 0) {
             p->info->ready = g_game->field_4e5->field_4 >> 1;
         } else {

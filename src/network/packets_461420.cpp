@@ -1,11 +1,9 @@
 // Decompiled by Space Bunny Free. Names are provisional.
 // Out-of-line destructor of the class whose vtable is 0x4fd514 (its scalar
-// deleting destructor is 0x461340, which has this body inlined). It first
-// destroys the PacketReceiver member at +0xb300, then the eleven big entries
-// at +0x10 in reverse order. The class declarations for PacketReceiver are
-// copied from packet_receiver.cpp so its destructor is inlined here.
+// deleting destructor is 0x461340). It first destroys the PacketReceiver
+// member at +0xb300, then the eleven big entries at +0x10 in reverse order.
 // The channels start at +0x08; the +0x10 here is each channel's own
-// items/count pair at its +0x08 (settled in #225, see 0x460e20.cpp).
+// items/count pair at its +0x08 (see 0x460e20.cpp).
 //
 // The rest of PacketManager is in packet_manager.cpp; this view of the
 // channel cannot be shared with the constructor (see there).
@@ -41,6 +39,7 @@ struct PlayerFrameInfo {
     int field_30;
 };
 
+// Declarations copied from packet_receiver.cpp so its destructor is inlined here.
 class PacketReceiver {
 public:
     PacketReceiver();

@@ -1,10 +1,9 @@
 // Decompiled by Opus. Names are provisional.
 // Under the global critical section (FUN_004e1ac0), re-inserts a name key
 // into the std::set-like tree at +0x0: an existing entry is erased first,
-// otherwise the "changed" flag at +0x10 is set. The tree's find() is
-// inlined (lower_bound is FUN_004e2580, the key's operator< FUN_004e1a30);
-// FUN_004dfea0 is erase(iterator) and FUN_004e2250 is insert(key), both
-// returning through a hidden pointer.
+// otherwise the "changed" flag at +0x10 is set. FUN_004dfea0 is
+// erase(iterator) and FUN_004e2250 is insert(key), both returning through a
+// hidden pointer.
 #include <windows.h>
 
 class CritSec_004e1ac0 {

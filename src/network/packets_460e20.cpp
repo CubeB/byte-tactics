@@ -1,29 +1,14 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
 // The compiler-generated dynamic initialiser (_$E4) of the global
-// g_packetManager (vtable 0x4fd514): its constructor (out of line at 0x4611e0)
-// is inlined, and registers the atexit destructor _$E2 (0x460f60).
+// g_packetManager (vtable 0x4fd514): it runs the constructor (0x4611e0) and
+// registers the atexit destructor _$E2 (0x460f60).
 //
 // Layout: m_defaultSendPacingMs at +0x04 (the name comes from 0x461020's
 // debug string), eleven 0x1044-byte per-player channels from +0x08, a
 // {buffer, used, capacity} triple at +0xb2f4 and a PacketReceiver member at
 // +0xb300 that is handed the owner. The destructors 0x460f60, 0x461340 and
 // 0x461420 walk "entries at +0x10": that is each channel's own +0x08 (the
-// items/count pair), not a second array. This same class definition also
-// compiles _$E2 byte for byte (0x460f60 matched with it in scratch).
-//
-// What decides the match is which calls /Ob2 leaves out of line. The two
-// element types need their destructors (the channel frees its item list,
-// PlayerFrameInfo frees three buffers): with them the entries array is built
-// through the `vector constructor iterator' (0x401000) instead of an inlined
-// loop. The tail at +0x228 has to be initialised in the member-initialiser
-// list, so that the PacketReceiver vtable store comes after it. The two
-// channel setters (0x462860, 0x4628a0) are only declared: with their bodies
-// in the file /Ob2 inlines 0x4628a0, which the original does not.
-//
-// NOT A CHECKER MATCH YET: every byte matches, but the call at +0xd0 goes to
-// the compiler's `vector constructor iterator' ??_H@YGXPAXIHP6EX0@Z@Z, which
-// data/symbols.csv calls FUN_00401000 (the ??_H this file emits matches
-// 0x401000 byte for byte).
+// items/count pair), not a second array.
 
 class PacketRing {
 public:
@@ -34,6 +19,7 @@ public:
     PacketRing() { field_0 = 0; field_4 = 0; field_8 = -1; }
 };
 
+// Only declared: with bodies in this file /Ob2 inlines 0x4628a0.
 class Class_00462860 {
 public:
     void SetMinRetainMs(unsigned int ms);
@@ -98,6 +84,8 @@ struct PacketChannel {
         ((Class_00462860*)this)->SetMinRetainMs(4000);
         ((Class_004628a0*)this)->SetSendPacingMs(200);
     }
+    // Element destructors (here and PlayerFrameInfo's) make the entries array
+    // use the vector constructor iterator, not an inlined loop.
     ~PacketChannel()
     {
         if (items) {
@@ -132,6 +120,7 @@ public:
     int field_234;                     // +0x234
     int field_238;                     // +0x238
 
+    // field_228 stays in the initialiser list: the vtable store must come after it.
     PacketReceiver(void* o)
         : field_4(0), owner(o), field_c(-1), field_10(-1), field_14(0), field_18(0), field_1c(0),
           field_228(0), field_22c(0), field_230(0), field_234(-1), field_238(-1)

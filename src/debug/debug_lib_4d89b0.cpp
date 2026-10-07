@@ -1,10 +1,5 @@
 // Decompiled by deepseek-v4.1. Names are provisional.
 // Builds a "name(line) : <call stack>" debug string.
-// MATCH: the argument block pins the two length expressions in locals, in the
-// source order q first then space. Passing the expressions inline made MSVC5
-// evaluate stack.count before `space`, keep it in eax and re-materialise al=0
-// with a second `xor eax,eax` (295 bytes). With the locals the count load sinks
-// past the `sub eax,ecx` and lands in ecx, as in the original.
 #include <stdio.h>
 #include <string.h>
 
@@ -39,6 +34,7 @@ void CallSite::FormatCallSite(char* out, int size)
         strcat(out, "\n");
     }
     Stack_004d89b0& s = stack;
+    // q then space stay locals, in this order: inline expressions change the count load.
     char* q = out + strlen(out);
     int space = size - strlen(out);
     FormatCallStack(q, space, 14, s.count, s.addrs);

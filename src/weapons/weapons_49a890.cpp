@@ -1,30 +1,12 @@
 // Decompiled by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, edited by deepseek-v4.1-flash, finished by mimo-v2.6-pro, re-verified by space-bunny-free, edited and finished by Claude Opus 5.5. Names are provisional.
-// Claude Opus 5.5 (#5569): MATCH. Ballistic launch-angle solver: the two roots
+// Ballistic launch-angle solver: the two roots
 // of the trajectory quadratic, each turned into a launch angle with
 // acos(sqrt(root) / speed), pi/2 when a root is not positive.
-// Two things made it match after many passes at 83.6% to 97.9%:
-//  - The square of (v^2 + g*h) is expanded as `(s2 + 2*gh) * s2 + h2 * gg`.
-//    MSVC 5 turns the `+ 2*gh` into the original's `- gh * -2.0` (a constant
-//    moved outward takes the sign of the sum) and then schedules that
-//    subtraction before the fild of gg, as the original does; spelling
-//    `- gh*-2.0` itself never did.
-//  - The redundant parentheses are load-bearing. The front end keeps a node
-//    for each pair around a floating-point expression (one pair at the top
-//    of an initializer is dropped, and pairs around integer expressions or
-//    call arguments change nothing), and those nodes steer C2's x87
-//    schedule: the pairs on `_hypot` load g before height after the call,
-//    the four pairs on h2 put the reload of height before the s2 multiply,
-//    and the pairs on (s2 + 2*gh) * s2, on its sum with h2 * gg and on
-//    d * d * gg give the original's order (A, gg, A*s2, h2*gg, sum,
-//    d*d*gg). The counts are exact: one pair more or fewer on h2 gives 94.4%
-//    or 97.9%, and one or two pairs on _hypot give 68%. This is the smallest
-//    set a search over paren counts found; no no-op casts are needed (the
-//    old 97.9% lead needed `(double)` casts of doubles).
-// Constants: 1/PI only matches the pool as 1/3.14159265358979, so PI is that
-// literal and `use / PI` stays a separate statement from `use * 32768.0`.
 #include <stdio.h>
 #include <math.h>
 
+// PI stays this literal and `use / PI` a separate statement from
+// `use * 32768.0`: the constant pool depends on it.
 #define PI 3.14159265358979
 
 extern "C" double __cdecl _hypot(double x, double y);
@@ -43,6 +25,8 @@ short __stdcall SolveLaunchAngle(int x, int height, int z, int speed, float angl
 {
     int g = g_game->gravity;
     int gg = g * g;
+    // The redundant parentheses stay, with these exact counts: they steer the
+    // x87 schedule. disc is expanded as (s2 + 2*gh) * s2 + h2 * gg.
     double distance = (((_hypot(x, z))));
     double d = distance * distance;
     double gh = (double)g * (double)height;

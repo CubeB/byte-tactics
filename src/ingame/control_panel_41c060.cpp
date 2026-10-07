@@ -1,10 +1,7 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
 // Opens the selected unit's build menu at page param_1 (closes it for 0),
 // if the unit has that many pages.
-// The unit lookup is written out in place (the GetSelectedUnit helper used by
-// 0x41c180 gives different code here), and <windows.h> is needed: without it
-// MSVC loads the page count before param_1 and swaps ecx/edx/ebx (found with
-// tools/headers.py; <ddraw.h> works too).
+// Needed: without it the page count is loaded before param_1.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -42,6 +39,7 @@ void __stdcall PlaySoundByName(char* name, int param);
 // FUNCTION: 0x41c060
 void __stdcall OpenBuildMenuPage(int param_1)
 {
+    // Unit lookup written out in place: a GetSelectedUnit helper changes the code.
     unsigned short index = g_game->unitIndex;
     if (index != 0) {
         Unit* unit = &g_game->units[index];

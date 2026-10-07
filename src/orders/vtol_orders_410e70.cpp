@@ -1,16 +1,10 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // VTOL patrol order handler ("Patrolling"). State 0 prepares the order
-// (FUN_0040f200 is defined here because /Ob2 inlined it), state 1 clears the
-// order's 0xe0 bits, state 2 flies to a point 0x140 units away along the
-// heading to the order's position, lands on a free pad when damaged
-// (VTOL_LANDING, as in 0x412710), or takes the next queued order.
-//
-// Matched by writing state 2's landing block inline (no helper, so the landed
-// path returns 0 through the plain scope-exit destructor) and consuming the
-// /Ob2 inline budget with empty Dummy() calls after the block, which is what
-// makes both vector destructor sites call vector::_Destroy (0x406c00) out of
-// line. The register allocation in the flags/health block needs the
-// <windows.h> include (tools/headers.py).
+// (FUN_0040f200), state 1 clears the order's 0xe0 bits, state 2 flies to a
+// point 0x140 units away along the heading to the order's position, lands on a
+// free pad when damaged (VTOL_LANDING, as in 0x412710), or takes the next
+// queued order.
+// Kept: the flags/health block's register allocation depends on this include.
 #include <windows.h>
 #include <vector>
 
@@ -139,6 +133,8 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
         ((Class_0044e730*)obj)->FUN_0044e730(0x150);
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);
         order->flags |= 0xe0;
+        // Landing block stays inline, no helper: the landed path returns 0
+        // through the plain scope-exit destructor.
         if ((unsigned int)unit->field_108 < (unit->def->field_1fa >> 2) * 3) {
             std::vector<Unit*> v;
             GetFactoriesInRadius(unit->player->index, &unit->pos, 0xf00, &v);
@@ -150,6 +146,8 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
                 return 0;
             }
         }
+        // Empty Dummy() calls use up the inline budget so both vector
+        // destructor sites call _Destroy out of line.
         Dummy();
         Dummy();
         Dummy();

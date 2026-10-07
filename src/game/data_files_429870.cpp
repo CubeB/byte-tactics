@@ -2,18 +2,6 @@
 // Loads the game's GAF files into the g_game resource fields (fx, igtitles,
 // vismasks, fog, cursors, one per side) and then, from gamedata/sidedata.TDF,
 // the base height and the per-side panel graphics.
-//
-// The long straight-line head re-reads g_game-><group> into a local (`gaf`)
-// after the LoadAnimGaf group load, which is what keeps the pointer in esi
-// across the FindGafEntry calls; storing straight into the field and reusing
-// the call's eax instead loses the reload and the register.
-//
-// Two things in the tail are load-bearing: the parser local (and buf) must be
-// declared at its point of use, not at the top, or MSVC hoists the
-// TdfFile constructor above the whole head block; and the loop must be
-// `while (1)` with a mid-body break (a `for (;;)` gets rotated). The
-// GetFieldString result goes into an `int` local before the test, which is what
-// makes MSVC emit `cmp eax, ebx` instead of `test eax, eax`.
 #include <stdio.h>
 
 #pragma pack(push, 1)
@@ -113,6 +101,7 @@ void LoadGameResources()
     char* gaf;
 
     g_game->fxGaf = (int)LoadAnimGaf("fx");
+    // Re-read the field into gaf after each group load, not the call's result.
     gaf = (char*)g_game->fxGaf;
     g_game->smoke1 = (int)FindGafEntry(gaf, "smoke 1");
     g_game->smoke2 = (int)FindGafEntry(gaf, "smoke 2");
@@ -191,6 +180,7 @@ void LoadGameResources()
     g_game->pathIcon = (int)FindGafEntry(gaf, "pathicon");
     g_game->cursorRevive = (int)FindGafEntry(gaf, "cursorrevive");
 
+    // Declared here, not at the top: keeps the TdfFile constructor after the head.
     TdfFile parser;
     char buf[256];
 
@@ -205,11 +195,13 @@ void LoadGameResources()
     }
 
     int i = 0;
+    // while (1) with a mid-body break: a for (;;) gets rotated.
     while (1) {
         sprintf(buf, "SIDE%d", i);
         ((TdfFile*)&parser)->ResetCurrentRecord();
         if (!((TdfFile*)&parser)->SelectRecord(buf))
             break;
+        // Kept in an int local before the test: gives cmp instead of test.
         int intgaf = parser.current->GetFieldString(buf, "intgaf", 0x1e, DAT_005119b8);
         if (intgaf != 0) {
             char* side = (char*)LoadAnimGaf(buf);

@@ -1,23 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
-// MATCH. The source below is deepseek-v4.1-flash's, unchanged except for the
-// one added include. The whole function is byte identical once
-// `#include <windows.h>` is in the file, and nothing else had to move: with
-// only <stdlib.h> the same source scored 86.7 percent, because in the else
-// branch MSVC 5 then scheduled the operands of the cell-y subtraction the
-// wrong way round (y_hi / 64 first, into edi, which forced a spill of the
-// pos.z result to [esp+0x20] and left the function five bytes long).
-// The big header changes the compiler's state enough to make the linearizer
-// emit pos.z / 0x200000 first, into edi, with y_hi / 64 in eax, exactly as
-// the original does, with cx in ebp and no spill. tools/headers.py showed it
-// on this source: 96.6 percent with <windows.h> or <ddraw.h> before any
-// source change, and the source order fix (cx declared before cy) then makes
-// it a MATCH: the header is what fixed the subtraction, the statement order
-// below (cx first) is what puts its magic multiply in front of the subtraction
-// instead of behind it. So the order was never a wrong reading of the
-// expression, only the wrong compiler state (the same expression is in the
-// MATCHed 0x482ac0, which does not need the header).
-// The near-copy 0x482830 is stuck on the very same order (see its notes), and
-// <windows.h> is worth trying there too.
+// Needed: it changes how the operands of the cell-y subtraction are scheduled.
 #include <windows.h>
 #include <stdlib.h>
 
@@ -110,6 +92,7 @@ void __stdcall UpdateLineOfSight(Params_4825b0* params)
         } else if (i >= g_game->field_1485b->count) {
             i = g_game->field_1485b->count - 1;
         }
+        // cx before cy: puts its magic multiply ahead of the subtraction.
         int cx = params->pos.x / 0x200000;
         int cy = params->pos.z / 0x200000 - ((short*)&params->pos.y)[1] / 64;
         Entry_4825b0* e = GetGafFrame(g_game->field_1485b, i);

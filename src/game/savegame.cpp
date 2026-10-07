@@ -6,6 +6,7 @@
 #include <string.h>
 #include <time.h>
 
+// Pack 1: the 4-byte pad after the pointer at +0x391e9 would shift later fields.
 #pragma pack(push, 1)
 struct Entry_00491ec0 {
     char unknown_0[0xba];
@@ -134,6 +135,7 @@ struct Game {
     char unknown_29a4[0x2a3c - 0x29a4];
     short field_2a3c;                    // +0x2a3c
     char unknown_2a3e[0x2a44 - 0x2a3e];
+    // Bitfield union: reads give shr/test instead of a folded byte test.
     union Flags_2a44 {
         unsigned short value;
         struct {
@@ -264,6 +266,8 @@ void __stdcall FUN_00492de0(int a, int b);
 char* __stdcall ListSavedGames(int* count);
 void ShowSavedGameInfo();
 
+// Stays an inline helper, with the field test outside it: gives the original's
+// registers at both delete sites.
 __inline void DeleteSave_00492360(HapiBank* obj)
 {
     if (obj) {
@@ -271,39 +275,6 @@ __inline void DeleteSave_00492360(HapiBank* obj)
         operator delete(obj);
     }
 }
-
-// Started by deepseek-v4.1-flash, space-bunny-free and GPT-6; kept as they left it.
-// Partial: 96.0%, 1126 bytes versus 1124 (one extra instruction).
-// The only difference is the second gametype test at 0x492078: the original
-// emits `push 0 / cmp dword ptr [esp+0x14], 1 / jne` (direct memory compare)
-// while ours emits `mov eax, dword ptr [esp+0x10] / push 0 / cmp eax, 1 /
-// jne`, 2 bytes longer. Every other instruction is identical and only the
-// jump targets shift by 2, so the frame is right (0x144, 81 locals) and the
-// locals sit at the original slots (gametype 0x10, name 0x14, diffs 0x48,
-// path 0x54).
-// Tried and rejected, all 96.0 percent or worse: plain locals instead of the
-// Buf struct (90.8, name buffer drifts to esp+0x20), gametype split out of
-// the struct in two declaration orders, an int/union alias for the second
-// read, Buf& / Buf* indirection, an int temp or a bool temp for the second
-// test, `1 == gametype`, an unsigned cast, (int) cast of the field address,
-// `!= 1` with the arms swapped, and inlining the single-use fname temp. A
-// switch for the second test costs 4 bytes (`mov eax,[..] / dec eax / je`).
-// A minimal repro with the same flags shows MSVC5 always reloads a
-// call-result local into a register at its second use after intervening
-// calls, using the memory form only at a later use in another block, so this
-// looks like a function-wide allocator decision, not a local source lever.
-// deepseek-v4.1-flash re-checked every local lever by compiling each variant to
-// /Fa and reading the selector output: a separate `int gametype`, `char name`
-// and `char* diffs[3]`, a struct field read as `b.gametype`, an initialized
-// copy, a temp before the FUN_004a0bf0 call, a pointer local, nested blocks,
-// reordered first-test arms, reordered struct fields, a switch, and every pure
-// `== 1` spelling (`1 ==`, `== 1U`, `== 0x1`, `- 1 == 0`, `!(gametype - 1)`,
-// `== 1 ? 1 : 0`) all emit `mov eax,[esp+0x10] / push 0 / cmp eax,1`. The
-// direct memory compare appears only when the condition has a SECOND unproven
-// operand (`gametype == 1 && players`, or `&& menu`), as
-// `cmp [esp+0x14],1 / jne / test ..,.. / je`, which adds a test the original
-// does not have. So the memory-versus-register choice is upstream allocation,
-// not the condition expression, and `&&` arms cannot be folded away.
 
 // FUNCTION: 0x491ec0
 void __stdcall ShowSavedGameInfo()
@@ -424,23 +395,6 @@ void __stdcall FUN_00492330(void* param_1)
 }
 
 // Load game screen click handler (sibling of 0x492df0, save game screen).
-//
-// MATCHED (1964 of 1964 bytes).
-//
-// The last fault was a one-byte register-allocation difference that showed up
-// as jump targets one byte off: the store `g_game->p38d6b = 0;` after freeing
-// the save object used ecx for the g_game load where the original used the
-// 5-byte `mov eax, [g_game]`. The original source called the already-matched
-// helper 0x432590 (FUN_00432590, "if (obj) { obj->CloseBank(); operator
-// delete(obj); }") and /Ob2 inlined it; reproducing that call through an
-// inline helper, with the field test outside it, gives the original's
-// registers at both delete sites. A bare local pointer could not.
-//
-// The game struct needs #pragma pack(1); missing the 4-byte pad between the
-// pointer at +0x391e9 and +0x391f1 shifts every later g_game field by 4.
-// The flags at +0x2a44 are a bitfield union: reading one gives the original's
-// `mov cl,[..]; shr cl,2; test cl,1` (a plain `(v >> 2) & 1` folds to
-// `test byte ptr [..],4`), and setting one still gives `or byte ptr`.
 // FUNCTION: 0x492360
 void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
 {
@@ -675,27 +629,6 @@ void __stdcall FUN_00492de0(int arg1, int arg2)
 // removes the chosen save file, rebuilds the list and redraws; GAMES, LOAD and
 // GAMENAME all take the name typed in the GAMENAME box and, when it is not
 // empty, write the save under that name with a timestamp.
-//
-// MATCHED (618 of 618 bytes, 187 of 187 instructions).
-//
-// The last fault, and the one that had been open at 98.4%, was the dead store
-// `mov [frame+0], eax` of FindGadgetChecked(entries, "GAMES")'s result in the last
-// block. It is dead in the source (nothing reads the slot again) and MSVC
-// deletes such a store, so it has to be kept by making the variable's ADDRESS
-// escape. The only addresses of locals that escape in this function are the
-// path buffer (sprintf and RemoveFile) and the count (ListSavedGames), and
-// the store is at frame+0 while `&count` is at frame+4 and the buffer at
-// frame+8, so all three cannot be separate locals: they are ONE local
-// aggregate, {int, int, char[0x100]}, and taking the buffer's address
-// (array-to-pointer decay of a member) is what stops the optimiser removing
-// the store to the first member. Declaring the two ints separately does not
-// work at all: an assigned-but-never-read int gets no stack slot, so the
-// frame came out at 0x104 instead of 0x108 and the store disappeared with it.
-// Measured, all one compile each, all 618 bytes:
-//   * `int` + `int` + `char[0x100]` as separate locals: 0x104 frame, no store.
-//   * the same with the path padded to 0x104: 0x108 frame, no store (98.4%).
-//   * one local struct {int, int, char[0x100]}, `&save.count` to
-//     ListSavedGames, `save.path` to sprintf and RemoveFile: MATCH.
 // FUNCTION: 0x492df0
 void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
 {

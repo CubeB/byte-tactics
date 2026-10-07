@@ -4,10 +4,6 @@
 // after the sound object is switched by the low three bits), the byte at
 // +0x37f17, then the brightness and both volume levels (same tail as
 // 0x45c630 and 0x45bcc0).
-//
-// DAT_00512f4b is a byte in the original but is declared as unsigned int here:
-// the compiler then keeps it in bl and emits the xor/and/xor bitfield-merge
-// idiom the original used. The low-three-bit test reads it as a byte again.
 
 class Sound {
 public:
@@ -46,6 +42,7 @@ struct Game {
 extern Game* g_game;
 extern int DAT_00512f3e;
 extern unsigned char DAT_00512f49;
+// A byte in the original: declared unsigned int to keep it in bl for the bitfield merge.
 extern unsigned int DAT_00512f4b;
 
 void __stdcall SetBrightness(float value);

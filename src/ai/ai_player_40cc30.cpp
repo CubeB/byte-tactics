@@ -1,8 +1,6 @@
 // Decompiled by Opus. Names are provisional.
-// std::vector<Elem_0040cc40>::_Destroy(first, last) from MSVC 5's <vector>:
-// empty, since the element's destructor is trivial. _Destroy is protected,
-// so a derived class takes its address to make the compiler emit it out of
-// line.
+// std::vector<Elem_0040cc40>::_Destroy(first, last): empty, since the
+// element's destructor is trivial.
 // The element is a map cell and its sort key, as 0x40a7b0 and 0x40a260 use
 // it (its copy constructor is 0x40a5b0). Its callers (0x40a7b0, 0x40ca50)
 // inline vector::insert and call 0x40d5b0 (_Ufill), 0x40cc40 (_Ucopy) and

@@ -1,40 +1,11 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by claude-opus-5-5, finished by Space Bunny Free, rewritten by claude-opus-5-5, finished by Fledge Alpha Free, finished by claude-opus-5-5. Names are provisional.
-// MATCH (claude-opus-5-5, #4997, 2026-10-03), from 97.5%.
 // Draws one entry of a list gadget: the frame, then either the text rows
 // (flags 0x10) or the cell rows (flags 0x20/0x80).
-// The last two steps:
-//  - The entry rectangle comes from GetGadgetRect (src/gui/gui_4a1630.cpp),
-//    defined below without an annotation and inlined (the matched sibling
-//    0x4a4c90 inlines a rect helper of the same shape). That puts
-//    bounds.right's `lea eax, [esi + eax - 1]`
-//    (0x4a1bb9) in the original's operand order (97.5% -> 97.7%); the same
-//    code written out gives `[eax + esi - 1]`.
-//  - The text branch and the cell branch each declare their own Rect
-//    (rowRect, cellRect); MSVC gives both the one frame slot at [esp+0x18].
-//    With one function-scope rect, the text loop's me->w load
-//    (`movsx eax, word ptr [edi+0x17]`, 0x4a1d35) stays below the
-//    rowRect.left store, and the spill homes of me, step and xx come out
-//    rotated (step, xx, me at 0x50..0x58 instead of me, step, xx).
-//    97.7% -> MATCH.
-// Both were found by deleting or changing one statement at a time and
-// printing only where me, step and xx land and where the movsx sits. With one
-// shared rect, merging the text and cell `y` into one function-scope int also
-// fixes the frame order (99.8%), but not the movsx.
-// Earlier fixes that are still load-bearing:
-//  - Cell mode zeroes colPtr only in the bp (cell array) arm (0x4a20cd), and
-//    the cell loop increments k before the colPtr step (0x4a2278).
-//  - The tab scan runs to `entries->count + 1` in the loop test and in the
-//    not-found test (0x4a1c89, 0x4a1cdb).
-//  - The glyph width is the inlined Measure_004a1b40 helper its matched
-//    siblings use (0x4a4660, 0x4a53c0); the "&G" test is
-//    `field_d6 && field_d6[y] == 1` (0x4a1df9 and 0x4a1e03 both fall into it).
-//  - The text loop's exit tests `h >= lh` first:
-//    `if (h >= lh) { if (line + bc >= c0) return; } else break;`.
-//  - The cell rect's stores go x pair then y pair (left, right, top, bottom).
-//  - `#include <stdlib.h>` next to `<stdio.h>` (windows.h is worse).
+//
 // Known original quirks kept as they are (docs/bugs.md): a selected cell row
 // reads cell->width/height even when the cell pointer is null (0x4a2233,
 // 0x4a224c), and both arms of `holder->field_20 == index` draw with 0x1e.
+// Needed next to <stdio.h>; <windows.h> instead is worse.
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -157,6 +128,7 @@ void __stdcall FadeRectangle(void* surface, Rect_004a1b40* rect, int id);
 void __stdcall DrawFrameQuad(void* surface, void* bitmap, Quad_004a1b40* dst,
                             Quad_004a1b40* src);
 
+// Must stay an inlined helper: the glyph width is measured through it.
 static inline int Measure_004a1b40(char* text)
 {
     int width = 0;
@@ -183,6 +155,7 @@ static inline int LineHeight_004a1b40()
     return ((Glyph_004a1b40*)GetGafFrame(g_guiContext->language->glyphs, 0x49))->height + 2;
 }
 
+// Defined unannotated and inlined: sets the operand order of the bounds sums.
 void __stdcall GetGadgetRect(Entry_004a1b40* entry, Rect_004a1b40* rect)
 {
     if (entry->type == 0) {
@@ -230,9 +203,11 @@ void __stdcall DrawListBox(Dialog* obj, int index)
     unsigned int flags;
     flags = me->flags;
     if ((flags & 0x10) && me->text && 0 != me->field_c0) {
+        // Separate from cellRect: one shared rect changes the spill homes.
         Rect_004a1b40 rowRect;
         int i;
         int t = 0;
+        // Loop test and not-found test both use count + 1.
         for (i = 1; i < entries->count + 1; i++) {
             if (7 == entries[i].type) {
                 if (t == me->tab) {
@@ -302,6 +277,7 @@ void __stdcall DrawListBox(Dialog* obj, int index)
             yoff += step;
             ++y;
             h -= step;
+            // Tests h >= lh first.
             if (h >= lh) {
                 if (line + me->field_bc >= me->field_c0)
                     return;
@@ -322,6 +298,7 @@ void __stdcall DrawListBox(Dialog* obj, int index)
         if (!bp) {
             colPtr = &((Item_004a1b40**)me->field_c6)[k];
         } else {
+            // colPtr is zeroed only in this arm.
             colPtr = 0;
             cellPtr = &((Cell_004a1b40*)me->field_c6)[k];
         }
@@ -356,6 +333,7 @@ void __stdcall DrawListBox(Dialog* obj, int index)
                 src.points[2].y = cell->height - 1;
                 src.points[3].y = cell->height - 1;
                 DrawFrameQuad(surf, cell, &dst, &src);
+                // Stores go x pair, then y pair.
                 cellRect.left = dst.points[0].x;
                 cellRect.right = dst.points[1].x;
                 cellRect.top = dst.points[0].y;
@@ -380,6 +358,7 @@ void __stdcall DrawListBox(Dialog* obj, int index)
                 hl.bottom = yy + cell->height - 1;
                 FadeRectangle(surf, &hl, 0x14);
             }
+            // k increments before the colPtr step.
             k++;
             if (!bp)
                 colPtr++;

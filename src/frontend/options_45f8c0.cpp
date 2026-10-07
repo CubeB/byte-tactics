@@ -2,27 +2,6 @@
 // Fills a help page (gamedata/help.TDF, node "Help", keys "Line<n>"): for every
 // line of the page it looks the line up, cuts it at the '|' into a left and a
 // right half and adds two TEXT entries for them, 0x12 pixels lower each time.
-//
-// MATCH. The '|' scan is `do {} while (*p++ != '|');` with the character
-// left as an expression, not a `char c` local. The loaded byte is then an
-// expression temporary, so code generation hands it a register from the
-// eax/ecx/edx rotation (it lands in cl, the same instruction as before), and
-// that one extra rotation step moves the first value-buffer `lea` at
-// 0x45f9f7 from ecx to the original's edx. With `c = *p++; } while (c !=
-// '|');` the byte is a register variable coloured by the global allocator,
-// which does not advance the rotation. Found with a gdb trace of C2's
-// FUN_00435c37 (the expression-temporary allocator): the first lea was taken
-// with the rotation pointer on ecx, one step short.
-//
-// The loop preheader needs both multiply operands read through locals that
-// are not bare loads: with `page * lineCount` MSVC folds `page` into the
-// imul's memory operand (`mov ecx,[lineCount] / mov eax,ecx / imul
-// eax,[page]`), two bytes shorter. A ternary with identical arms (`page ?
-// page : page`) is not folded away by MSVC 5, so it fails codegen's "this is
-// a load" test while emitting nothing. The two operands are read through
-// locals declared in the opposite order to the multiply (`p2` then `n`, used
-// `n * p2`) because the load order follows the declaration order and the
-// original loads `page` first.
 #include <windows.h>
 #include <string.h>
 
@@ -78,6 +57,7 @@ static inline void AddLine(Page_0045f8c0* page, Layer_0045f8c0* layer, char* val
     if (value[0] == '|') {
         strcpy(value, page->blank);
     } else {
+        // Keep the scanned char an expression, not a local.
         char* p = value + 1;
         do {
         } while (*p++ != '|');
@@ -104,6 +84,8 @@ void __stdcall FillHelpPage(Sub_0045f8c0* sub, int page, int lineCount)
         if (((TdfFile*)&parser)->SelectRecord("Help")) {
             Page_0045f8c0 lines;
             Page_0045f8c0* pp = &lines;
+            // Operands read through non-bare-load locals, declared in the opposite
+            // order to the multiply: load order follows declaration order.
             int p2 = (page ? page : page);
             int n = (lineCount ? lineCount : lineCount);
             int first = (n ? n : n) * (p2 ? p2 : p2);

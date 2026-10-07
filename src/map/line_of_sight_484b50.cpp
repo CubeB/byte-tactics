@@ -2,12 +2,6 @@
 // Maps a map pixel (x, y) onto the terrain: walks z down from just above row y
 // 16 cells at a time until the projected row (z - ground / 2) reaches y, then
 // interpolates between that row and the next one.
-//
-// The starting z was never a variable of its own: the loop computes
-// z = ((y & ~0xf) + i) << 16 from the counter i (0x80 down to 0), and MSVC
-// strength-reduces it into the `sub edi, 0x100000` and the lea before the loop.
-// Writing z as a separate variable made the compiler share the constant 0x80
-// with the counter and mask in edi, which is what all the earlier notes fought.
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x14223];
@@ -59,6 +53,7 @@ void __stdcall FUN_00484b50(int x, int y, Pos_00484b50* out)
     int t = y & ~0xf;
     int i;
     for (i = 0x80; i >= 0; i -= 0x10) {
+        // z comes from the counter, not from a variable of its own.
         p.z.value = (t + i) << 16;
         p.y.value = max(GetGroundHeight(&p), g_game->seaLevel) << 16;
         s1 = p.z.parts.whole - (p.y.parts.whole >> 1);

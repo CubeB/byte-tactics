@@ -4,9 +4,8 @@
 // every type-1 entry with the same byte at +0x01 whose flags word has both
 // bits 0x1800. The other types write one flag bit. The `or`/`and` in type 2
 // and the `& 1` merges come from the source's explicit masks.
-// <windows.h> is needed: without it MSVC 5 swaps which operand of the
-// commutative `xor` it loads first, and the value lands in ebx instead of edx.
 
+// Needed: changes which operand of the commutative xor is loaded first.
 #include <windows.h>
 
 #pragma pack(push, 1)

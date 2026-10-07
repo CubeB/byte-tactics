@@ -4,27 +4,7 @@
 // MSVC 5's <vector>, for the 0x5c-byte element (four vectors and a sub-struct,
 // see 0x46eaa0.cpp) of the vector that 0x46dad0 appends to with an inlined
 // push_back. The element's copy constructor (0x470390), destructor (0x46ded0)
-// and operator= (0x470040) are out-of-line calls. Taking the member's address
-// makes the compiler emit the template instantiation out of line.
-//
-// MATCH (Claude Opus 5.5, #5042). Without /Gi this was stuck at 83.8% for
-// eleven passes (notes in git history): the grow arm's third copy was always
-// built dest first and _P lost edi. /Gi gives the original's _P-first
-// affine, as for its twin 0x46eba0 in this translation unit, but with the
-// real header it also leaves the sixth std::_Construct as an out-of-line call
-// (52%): that is MSVC's per-function inline budget under /Gi (see
-// map_load.cpp). Freeing one expansion fixes it, and which one decides the
-// last byte. Writing out a size() (as 0x437580 does) gives 99.7%, with the
-// third copy's destination `lea esi, [eax + ebx]` (_M*0x5c as the base);
-// which of the last three size() calls is written out, a full header-order
-// clone and any one use of
-// push_back, operator=, reserve, resize, erase, the destructor or the copy
-// constructor leave that byte as it is. Writing out the grow arm's first
-// _Ucopy, as below, frees the budget and gives `lea esi, [ebx + eax]` (_Q as
-// the base), which matches. Writing out _Destroy (91.7%), arm 2's fill
-// (88.7%), the allocate (51.6%), the deallocate (31.3%) or the third _Ucopy
-// (40.4%) instead does not. The element must declare its copy constructor and
-// operator=, as for 0x437580.
+// and operator= (0x470040) are out-of-line calls.
 #include <climits>
 #include <memory>
 #include <xutility>
@@ -35,6 +15,7 @@ public:
     Class_0046eaa0& operator=(const Class_0046eaa0& rhs);
 };
 
+// Must declare its copy constructor and operator=: the original calls both.
 class UnitSyncPlayer : public Class_0046eaa0 {
 public:
     UnitSyncPlayer(const UnitSyncPlayer& other);
@@ -72,6 +53,7 @@ public:
             {size_type _N = size() + (_M < size() ? size() : _M);
             iterator _S = allocator.allocate(_N, (void *)0);
             iterator _Q = _S;
+            // Written out instead of _Ucopy: frees inline budget for a later call.
             for (const_iterator _F = _First; _F != _P; ++_Q, ++_F)
                 allocator.construct(_Q, *_F);
             _Ufill(_Q, _M, _X);

@@ -3,20 +3,14 @@
 // initialises it through virtual slot 6 (0x473b50), then appends it to the
 // std::vector<ParticleSystem*> that g_game->lists[index] selects. When that
 // list already holds more than 400 entries its oldest element is deleted and
-// erased first. The append lives in a small inlined helper, which is what
-// leaves std::vector::insert (0x4732e0) out of line. Same shape as the matched
-// siblings 0x471340 and 0x4716e0, except that the per-index lists come from
-// the game state at g_game + 0x38d77 instead of from a `this` pointer, so this
-// is a __stdcall free function of three arguments: a pointer to the struct, a
-// second pointer passed straight to slot 6, and the list index. Class family
-// listed in 0x471cc0.cpp; operator new (0x471d10) is inlined here. The byte
-// stored at +0xc is MSVC copying the vector's empty allocator temporary, not a
-// constructor parameter (see particles_470f80.cpp).
+// erased first. Same shape as the siblings 0x471340 and 0x4716e0, except that
+// the per-index lists come from the game state at g_game + 0x38d77 instead of
+// from a `this` pointer, so this is a __stdcall free function of three
+// arguments: a pointer to the struct, a second pointer passed straight to slot
+// 6, and the list index. Class family listed in 0x471cc0.cpp.
 //
 // The 12-byte argument is copied twice into one 24-byte local and only the
-// first copy is read (its address is slot 6's first argument). The original
-// kept the dead second copy, so the local has to be a struct whose address
-// escapes, which is what stops MSVC 5 removing the second copy's stores.
+// first copy is read (its address is slot 6's first argument).
 #include <stddef.h>
 #include <string.h>
 #include <vector>
@@ -103,6 +97,7 @@ struct Game {
 
 extern Game* g_game;
 
+// Separate helper: leaves std::vector::insert out of line.
 static void Add_004720d0(Lists_004720d0* lists, short index, ParticleSystem* p)
 {
     if (lists->lists[index].size() > 400) {
@@ -115,6 +110,7 @@ static void Add_004720d0(Lists_004720d0* lists, short index, ParticleSystem* p)
 // FUNCTION: 0x4720d0
 void __stdcall EmitNanoParticles(Vec3_004720d0* p, void* param_2, short index)
 {
+    // A struct whose address escapes: keeps the dead second copy's stores.
     Ctx_004720d0 ctx;
     ctx.a = *p;
     ctx.b = *p;

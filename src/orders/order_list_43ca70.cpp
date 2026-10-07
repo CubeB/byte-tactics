@@ -2,11 +2,8 @@
 // Picks the best of three 25-byte records with a __stdcall comparison callback
 // (0x43c020 compares the name at +0x15 with _strcmpi) and stores it through
 // the first argument, then returns that argument: both callers (0x43be6a,
-// 0x43c20c) copy 25 bytes out of the returned pointer, so the load of the
-// destination has to stay live across the block copy. That is what produces
-// `mov eax,[esp+0xc] / ... / mov edi,eax` instead of a folded
-// `mov edi,[esp+0xc]`. Same element type and callback style as the rest of
-// this sort family (0x43c940 _Unguarded_insert, 0x43c990 the insertion sort,
+// 0x43c20c) copy 25 bytes out of the returned pointer. Same element type and
+// callback style as the rest of this sort family (0x43c940 _Unguarded_insert, 0x43c990 the insertion sort,
 // 0x43cb20 _Unguarded_partition, 0x43c6b0 lower_bound), which all pass the
 // callback as a __stdcall function pointer.
 //

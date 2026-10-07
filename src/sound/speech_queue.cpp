@@ -117,7 +117,6 @@ public:
 };
 #pragma pack(pop)
 
-// Copies ecx (this) into eax up front and returns it: a constructor.
 // FUNCTION: 0x47f960
 SpeechQueue::SpeechQueue(int param_1, int param_2)
 {
@@ -216,7 +215,6 @@ void SpeechQueue::PlayNextSpeechEntry()
     count--;
 }
 
-//
 // Handles one entry of the nine-entry sound request list: picks a random
 // sample from the entry's sound category slot, plays "sounds/<name>.WAV" when
 // the entry is due, re-arms the repeat timer, and (when logging is enabled)
@@ -224,15 +222,11 @@ void SpeechQueue::PlayNextSpeechEntry()
 //
 // The structs are packed: pointer fields sit at odd offsets in the original
 // (entry +0x8/+0xc, emitter +0x92, game +0x37e13).
-//
-// The first two accesses go through the array expression instead of the e
-// pointer: written that way MSVC 5 keeps the index in eax and forms the entry
-// address as `lea esi, [eax+ecx]`, as the original does. Using e for them
-// materialises the sum early (`add eax, ecx; mov esi, eax`).
 // FUNCTION: 0x47fd70
 void SpeechQueue::PlaySpeech(int index, int param_2, int param_3)
 {
     SpeechEntry* e = &entries[index];
+    // The first two accesses use entries[index], not e: the entry address then forms as one lea.
     int slot = entries[index].kind;
     unsigned int catIndex = 0;
     catIndex = *(unsigned short*)(entries[index].unit->name + 0x20e);

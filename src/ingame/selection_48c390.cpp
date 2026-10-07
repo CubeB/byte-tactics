@@ -1,41 +1,8 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// MATCH, 773 of 773 bytes. (Was 96.8%: the size was already exact and the whole
-// residual was one group of loads at the head of the function, in a different
-// order. It was a source-STATEMENT ordering problem, not a scheduling problem,
-// and the previous note here called it unfixable after 647 variants. It was not:
-// the previous sweep varied how the two halvings were interleaved with the
-// subtractions, and that is the wrong axis. The axis is the order of the four
-// corner declarations, and only one interleaving works, `ymin, xmin, ymax, xmax`.)
-//
-// The lever, precisely. The original emits, for the group:
-//   mov eax,[0x1431f] scroll_x      mov edi,[0x2c92] rect_x1
-//   mov ebx,[0x2c96] rect_x2        mov ebp,[0x2c9e] rect_y2
-//   mov edx,[0x2c9a] rect_y1        mov ecx,[0x14323] scroll_y
-// then `sar ebx,1`/`sub edx,ebx` and `sar eax,1`/`sub ebx,eax`. So the second
-// corner's fields (0x2c9a and 0x2c96) are hoisted up with the FIRST corner's,
-// not the fourth's. `ymin, ymax, xmin, xmax` puts the second corner third and
-// MSVC sinks its loads below the two `sub`s, which is the 96.8% version.
-// Interleaving them as `ymin, xmin, ymax, xmax` gives the original's grouping,
-// the two spills `mov [esp+0x14],edx` / `mov [esp+0x10],ebp` fall into the
-// original's order at the same time, and it matches.
-//
-// The other half of the fix is dropping the two `sx`/`sy` temporaries. With
-// them, `scroll_x` and `scroll_y` are named locals, which changes which
-// register MSVC gives the second corner's halving; reading `g_game->scroll_x`
-// and `g_game->scroll_y` straight out of the two corner expressions matches.
-// So: `ymin, ymax, xmin, xmax` WITH the temporaries is 96.8%, and
-// `ymin, xmin, ymax, xmax` with them is 88.4%: the two changes are not
-// independent, and the earlier sweep never tried this pair at all.
-//
 // Rubber-band unit selection: converts the drag rectangle in map units to
 // screen coordinates, marks every unit of the local player inside it
 // selected, then normalises the player's selection state and reports how
 // many units ended up selected.
-//
-// Suspected original bug: none. Every field offset, sign and comparison
-// re-derives from the operand bytes, and `0x2c9a`/`0x2c9e` really are `top`
-// and `bottom` while `0x2c92`/`0x2c96` are `left` and `right`, so the halving
-// is applied to the horizontal edges only, as the code implies.
 
 #pragma pack(push, 1)
 struct Unit {
@@ -119,6 +86,8 @@ int __stdcall PlaySoundByName(char* msg, int a);
 int __stdcall SelectUnitsInBox(void* param_1)
 {
     int found = 0;
+    // Declared in the order ymin, xmin, ymax, xmax, reading g_game->scroll_x/y
+    // directly (no scroll temporaries): fixes the order of the loads.
     int ymin = (g_game->rect_x1 - g_game->scroll_x) + 0x80;
     int xmin = ((g_game->rect_y1 - (g_game->rect_x2 >> 1)) - g_game->scroll_y) + 0x20;
     int ymax = (g_game->rect_y2 - g_game->scroll_x) + 0x80;

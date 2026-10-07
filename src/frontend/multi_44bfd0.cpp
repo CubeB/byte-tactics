@@ -3,11 +3,6 @@
 // one from the per-player slider array (DAT_005129b4), sets its position from
 // the array value (or the gadget's own max when the value is -1), then tells
 // the menu about it and calls the gadget's own callback.
-//
-// The locals are declared C-style at the top with the loop counter first:
-// that alone makes MSVC compute the flags store as (flags + base)[i]. With
-// `for (int i ...)` (i declared after base) it builds (flags + i)[base] and
-// rotates the later scratch registers, whatever the index expression.
 #include <stdio.h>
 
 #pragma pack(push, 1)
@@ -54,6 +49,7 @@ void __stdcall FUN_004a1450(Menu_0044bfd0* obj, char* name, int param_3);
 // FUNCTION: 0x44bfd0
 void __stdcall UpdateUnitSliders(Menu_0044bfd0* param_1, int unused)
 {
+    // C-style locals, loop counter first: sets the operand order of the flags store.
     int i;
     Entry_0044bfd0* desc;
     int human;

@@ -2,19 +2,9 @@
 // VTOL attack order handler for a unit target. With flags 0x10008, or with
 // no target and order flag 0x200, it queues VTOL_SEEKATTACK; on the map-edge
 // player it heads for the map centre. State 0 prepares the order
-// ("Attacking"; FUN_0040f200 is defined here because /Ob2 inlined it), state
-// 1 flies to a random point halfway to the target, state 2 attacks, state 3
-// circles the target, alternating sides, and lands on a free pad when
-// damaged (VTOL_LANDING).
-//
-// MATCH (Claude Opus 5.5, #4169). The last difference was the state 3 waypoint
-// after two misses: the original adds off.x to target->pos.x before it loads
-// pos.y, so pos.y reuses off.x's register (edi). operator+ (copy, then +=)
-// loads all three components first and puts pos.y in ebx; a member-wise
-// `r.x = a.x + b.x` helper gets the order right but makes off.x the add's
-// destination. The Add helper below, which assigns each component and then
-// adds to it, gives both. The range test's `short&` references (deepseek-v4.1,
-// #2541) fixed the first _hypot's load order.
+// ("Attacking"; FUN_0040f200), state 1 flies to a random point halfway to
+// the target, state 2 attacks, state 3 circles the target, alternating
+// sides, and lands on a free pad when damaged (VTOL_LANDING).
 //
 // Suspected original bug: that same branch builds a Class_0044e2d0 waypoint
 // and sets its speed, but never passes it to the order (no FUN_004388d0
@@ -189,6 +179,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);
         return 2;
     }
+    // short& references: they fix the first _hypot's load order.
     short& ox = order->x;
     short& oz = order->z;
     if (order->range && (int)_hypot(unit->pos.xw - ox, unit->pos.zw - oz) >= order->range)

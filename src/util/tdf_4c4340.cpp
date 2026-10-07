@@ -3,8 +3,7 @@
 // from a C string, 0x4c91a0 for the copy constructor, 0x4c9390 for the
 // destructor) out of the text between start and end, with leading and trailing
 // whitespace trimmed. The handle is constructed in place at out, which is
-// returned. The three handle helpers are really one class, but the symbol map
-// already gives each address its own class name, so they are cast here.
+// returned.
 extern char DAT_005119b8[];
 
 class Class_004c91a0 {

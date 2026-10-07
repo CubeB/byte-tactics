@@ -1,24 +1,6 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Claude Sonnet 5.5. Names are provisional.
-// MATCH (372 of 372 bytes). Marks, for each active player (active 1 or 2), every
-// player slot that shares its team type (or is the player itself), in the entry's
-// `marks` array.
-//
-// What decided it (#743, was 83.3% and 368 bytes): the search for the next mark
-// is written with an out-of-line found path,
-//     for (ii = j; ii < n; ii++) { if (match) goto found; if (ii == i) goto found; }
-//     k = -1; goto done;
-//   found: k = ii;
-//   done:
-// which is what the original has: the normal loop exit falls into `or eax, -1`,
-// and the found path (`mov ebp, [esp+0x14]; mov eax, ecx; jmp`) is laid out after
-// the function's `ret`. The compiler knows `ii >= n` on the normal exit, so it
-// drops the `cmp ecx, esi; jge` the old `k = ii < n ? ii : -1` form needed. The same
-// control flow through an inline helper with early `return ii` gives the right
-// search but the two per-player offsets (players at 0x18, entries at 0x14b) swap
-// registers (71.6%), and `k = ii; break;` on the found paths is 408 bytes. The
-// declaration-count sweep (0 to 400) and all 128 header sets are flat at the old
-// 83.3%, so compiler state is not involved. The goto is a reproduction device: the
-// original was probably an inlined find helper, but no helper form matched.
+// Marks, for each active player (active 1 or 2), every player slot that shares
+// its team type (or is the player itself), in the entry's `marks` array.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -86,6 +68,7 @@ void FUN_0047a760()
                 int n = g_game->playerCount;
                 int k;
                 int ii;
+                // Out-of-line found path via gotos: lays the found block after the ret.
                 if (j != n) {
                     for (ii = j; ii < n; ii++) {
                         if (players[ii].type == players[i].type && players[ii].active != 0 && players[ii].type != 5)

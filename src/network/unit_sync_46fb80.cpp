@@ -2,9 +2,7 @@
 // std::_Tree<...>::_Insert(_Nodeptr _X, _Nodeptr _Y, const _Ty& _V) from
 // MSVC 5's <xtree> for the std::map<unsigned int, UnitSyncEntry> tree whose
 // _Nil node is DAT_0051e598. It is the red-black tree insert: allocate and
-// link a new red node below _Y, then fix the tree up in the loop. Taking the
-// protected member's address makes the compiler emit the instantiation out of
-// line, exactly as 0x46e890 does for erase and 0x46f6d0 for _Erase.
+// link a new red node below _Y, then fix the tree up in the loop.
 #include <map>
 
 struct UnitSyncEntry {                 // 0x10 bytes

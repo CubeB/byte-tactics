@@ -1,27 +1,9 @@
 // Decompiled by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by claude-opus-5-5. Names are provisional.
-// MATCH (claude-opus-5-5, issue 4160), from 93.1%. The list gadget's
+// The list gadget's
 // scroll-up step, the mirror image of 0x4a99c0: find the entry of type 2
 // whose +0x01 byte equals this entry's, then, by the flag bits 0x10, 0x20 and
 // 0x80 of that entry, recompute the size of a line (+0x142) and the scroll
 // position (+0x136), and refresh the gadget with FUN_004a2580.
-//
-// The two hunks that were left (the 0x10 arm's denominator registers and the
-// 0x20 arm's `e->field_c6` load before `test eax,eax`) both came from two
-// inline helpers:
-//  - GetGlyph, the one helper for every GetGafFrame glyph fetch (the same
-//    helper matched 0x4a4d70), used for the line height in the 0x10 arm. With
-//    it the ternary denominator compiles to the original's registers.
-//  - LineSize reads the count AND the font pointer before its `count > 0`
-//    test, so the pointer load sits before the test, in edx.
-//
-// The `lines` union is inherited and is still load-bearing: with a plain
-// `int lines` (declared anywhere, or a local of the 0x20 arm) the 0x10 arm's
-// denominator comes out as `inc eax / cmp edi,eax` (89.3%), and the
-// two-statement clamp that fixes that loses the shared ecx zero altogether
-// (36.3%), so the union's two zero stores, which emit no code, are
-// evidently weighed by MSVC's register choices (probably the same decision
-// that keeps the constant 0 in ecx for the found test, the counter `n` and
-// the 0x80 arm's `field_da` compare). A plainer source was not found.
 //
 // Suspected original bug, reproduced: the 0x20 arm divides by the line total
 // unguarded, so a `field_c0` of zero or less divides by zero (the jle at
@@ -87,6 +69,7 @@ int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 int GetFontHeight();
 void __stdcall FUN_004a2580(Dialog* param_1, int param_2);
 
+// The one helper for every GetGafFrame glyph fetch.
 static inline Glyph_004a3ef0* GetGlyph_004a3ef0(unsigned char c)
 {
     return (Glyph_004a3ef0*)GetGafFrame(g_guiContext->list->field_0c, c);
@@ -101,6 +84,7 @@ static inline int Find_004a3ef0(Entry_004a3ef0* entries, unsigned char kind)
     return 0;
 }
 
+// Reads the count and the font pointer before the count > 0 test.
 static inline int LineSize_004a3ef0(Entry_004a3ef0* e)
 {
     int count = e->field_c0;
@@ -118,6 +102,7 @@ void __stdcall DrawSlider(Dialog* param_1, int param_2)
     Entry_004a3ef0* me = &entries[param_2];
     unsigned char kind = me->kind;
     int found = Find_004a3ef0(entries, kind);
+    // Must stay a union with both zero stores: a plain int changes the register choices.
     union { int full; short word; } lines;
     lines.full = 0;
     lines.word = 0;

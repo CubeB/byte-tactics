@@ -6,18 +6,6 @@
 // initialises the unit (the matched InitUnit, inlined), then registers it
 // with UpdateUnitHeight, AddUnitToMap, FUN_00482ac0 and the list manager and bumps
 // the player's counters at +0x144 and +0x140.
-//
-// The middle of the function is InitUnit (src/units/units_485e90.cpp)
-// inlined by /Ob2: the 12-byte local frame is its by-value position argument,
-// and its type argument stays in dx because it is an unsigned short. Written
-// out in the body, or with an int type parameter as 0x485e90.cpp has it, the
-// type load gets a `xor edx, edx` zero-extension the original does not have.
-// 0x485e90 also matches with `unsigned short unitType`.
-//
-// The player's record is taken once as a pointer for the test at the top and
-// indexed again from g_game for the counters at the end, as in 0x486f10 from
-// the same file. That keeps only the scaled index (player * 0x14b) alive, in
-// the dead first-parameter slot, and puts its multiply before the unit lookup.
 
 struct Unit;
 
@@ -108,6 +96,7 @@ void* __cdecl operator new(unsigned int size);
 
 // Inlined copy of InitUnit. As there, the three vtable stores are guarded
 // by `if (unit)` but the +0xa6 store and the new expression are not.
+// Separate inline helper with an unsigned short type: avoids a zero-extension.
 static inline void __stdcall InitUnit_00485e90(unsigned short unitType, Pos_004861d0 pos,
                                                int param_5, Unit* unit)
 {
@@ -150,6 +139,7 @@ Unit* __stdcall CreateUnitFromPacket(unsigned char player, Spawn_004861d0* spawn
     UpdateUnitHeight(unit);
     AddUnitToMap(unit);
     FUN_00482ac0(unit);
+    // Indexed again from g_game, not through pl: keeps the player index live early.
     g_game->players[player].field_144++;
     g_game->players[player].field_140++;
     g_game->list->NotifyUnitCreated(unit);

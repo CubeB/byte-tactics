@@ -2,16 +2,6 @@
 //
 // Aim angles from a unit's AimFrom piece to a point: writes the heading
 // difference and the pitch through two out-pointers and returns 1.
-//
-// Two details decide the code shape. GetAimFromPosition fills a local Vec3, so the
-// three differences are named locals; the y difference is read back through a
-// 16.16 fixed-point union, which is what makes the compiler load only the high
-// word (`movsx ecx, word [slot+2]`) where a plain `>> 16` shifts the whole dword
-// in a register instead. The y difference must be initialised before the
-// heading statement, so that its only use is a reload from the stack and
-// `point` is already dead at the first call; initialising it after the heading
-// store keeps `point` live across that call and moves all three of `unit`,
-// `point` and `dy` into callee-saved registers.
 #include <math.h>
 
 struct Vec3 {
@@ -38,6 +28,7 @@ int __stdcall CalcAimAngles(Unit* unit, Unit* target, short* out_heading, short*
     Vec3 p;
     GetAimFromPosition(unit, &p, weapon);
     int dx = p.x - point->x;
+    // Read through the 16.16 union and initialised before the heading: loads only the high word.
     Fixed dy;
     dy.value = p.y - point->y;
     int dz = p.z - point->z;

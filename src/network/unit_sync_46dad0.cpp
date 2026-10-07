@@ -2,26 +2,6 @@
 // A method of UnitSync, whose other methods are in unit_sync.cpp; this one
 // stays apart because it needs the real <map>, <list> or <vector>
 // instantiations its own way.
-//
-// MATCH (was 29.8%). What made it match:
-// - The tail (field_5c > 0) is a nested if/else (field_60 < count, else the
-//   arg-4 packet last), with `for (n = 0; n < 4;) { ...; n++; field_60++; }`
-//   whose first statement re-reads g_game and returns when field_60 >= count.
-// - The loop's direct send is an inlined copy of SendUnsequenced (Class_0046cec0::Inl:
-//   field_2 = 0, then SendPacketToPlayer(GetLocalHumanDpid(), id, &packet, 0xe)); all other
-//   sends are real SendUnsequenced calls with the id read into a local first.
-// - key and y are read into locals (y first) before the `disabled` test.
-// - The vector members of Class_0046eaa0 are the classes symbols.csv names:
-//   Class_0046e5c0::FUN_0046e5c0 is the vector ctor body (inline, so list_a gets
-//   it inlined and list_b, one wrapper level deeper, keeps the call), and
-//   ~Class_0046e5e0 / ~Class_0046e610 are the vector dtors. field_24/28/2c are
-//   zeroed by assignments after id (the compiler sinks them below the pushes).
-// - Which STL helpers stay out of line (vector::_Destroy in the inlined erase,
-//   the list_b ctor) is the /Ob2 inline budget: Pass() below is a trivial inline
-//   used 10 deep in the map walk purely to spend that budget. 9 or fewer keeps
-//   _Destroy inlined, 11 or more un-inlines the list_b wrapper too.
-// - Push() on the Vec_0046d860 subclass models the inlined push_back, so
-//   `lea ecx, [this+0x10]` comes before the end() load.
 #include <list>
 #include <map>
 #include <vector>
@@ -222,9 +202,12 @@ void UnitSync::ProcessSync() {
                 if (found == 0) {
                     Class_0046eaa0 entry;
                     entry.id = p->field_4;
+                    // field_24/28/2c are zeroed by assignments after id.
                     entry.field_24 = 0;
                     entry.field_28 = 0;
                     entry.field_2c = 0;
+                    // Push models the inlined push_back: the lea of this+0x10
+                    // comes before the end() load.
                     ((Vec_0046d860*)&players)->Push(entry);
                     Class_0046eaa0* e = &players.back();
                     if (disabled == 0) {
@@ -245,6 +228,8 @@ void UnitSync::ProcessSync() {
             typedef std::map<unsigned int, UnitSyncEntry>::_Imp Tree;
             typedef void (Tree::iterator::*Increment)();
             Increment increment = &Tree::iterator::_Inc;
+            // Exactly ten Pass calls spend the inline budget: 9 or fewer inlines
+            // vector::_Destroy, 11 or more also un-inlines the list_b wrapper.
             for (std::map<unsigned int, UnitSyncEntry>::iterator k = map.begin(); k != map.end();
                  (k.*increment)()) {
                 CheckUnitAvailable(Pass(Pass(Pass(Pass(Pass(Pass(Pass(Pass(Pass(Pass(k->second.x)))))))))), 0);
@@ -276,12 +261,15 @@ void UnitSync::ProcessSync() {
                 return;
             }
 
+            // Nested if/else with this loop: it re-reads g_game first and returns
+            // when field_60 >= count.
             for (int n = 0; n < 4;) {
                 Game* game = (Game*)g_game;
                 if (field_60 >= game->count)
                     return;
                 Def_0046dad0* def = &game->defs[field_60];
                 FUN_0042a610(def);
+                // y then key, read into locals before the disabled test.
                 int y = def->y;
                 unsigned int key = def->key;
                 if (disabled == 0) {
@@ -290,6 +278,8 @@ void UnitSync::ProcessSync() {
                     packet.arg = 2;
                     packet.field_6 = key;
                     packet.field_a = y;
+                    // Only this send is the inlined copy (Inl); all others are real
+                    // SendUnsequenced calls with the id read into a local first.
                     if (direct != 0) {
                         ((Class_0046cec0*)((char*)this + 0x2c))->Inl(DAT_00000000, &packet);
                     } else {

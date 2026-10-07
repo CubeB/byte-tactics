@@ -3,10 +3,6 @@
 // handler and g_game as its data, paints the "singlebg" background, marks which
 // of the two side objects shows which side from the flag at +0x37ef2, installs
 // ToggleAnyMission on the layer at +0x531 and pushes the menu.
-//
-// Suspected original oddity, kept exactly as the original has it: the test of
-// bit 0 of g_game+0x38d7f guards an |= 1 of the very same bit, so the OR can
-// never change anything (0x477898 tests the bit, 0x4778b6 sets it again).
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -85,6 +81,7 @@ void OpenSingleMenu()
     FUN_00434ab0(1);
     if (g_game->flags_38d7f & 1) {
         FUN_004a0570(&g_game->menu, "AnyMsn", 1);
+        // Original oddity, kept: the test guards an |= of the same bit.
         g_game->flags_38d7f |= 1;
     }
     g_game->menu.layer->field_3b = ToggleAnyMission;

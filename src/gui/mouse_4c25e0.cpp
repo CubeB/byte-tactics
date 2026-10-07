@@ -5,14 +5,6 @@
 // descriptors at +0x1be, +0x1c2 and +0x1c6 (each resized to the sprite),
 // restores what the old cursor covered, draws the sprite, and hands the union
 // of the old and new cursor rectangles to UnlockPrimary to be shown.
-//
-// The 0x30-byte surface descriptor LockPrimary fills (F+0x28) is itself the
-// first rectangle handed to BlitSurface, so it needs no rect local of its
-// own; the two cursor rectangles sit at F+0x08 (new) and F+0x18 (old), which
-// is what makes the frame 0x58. Computing the old rectangle's right and
-// bottom from its own just-stored left and top fields is what puts
-// app->savedX in edx, app->savedY in ebp and app->saved in ecx and makes the
-// original re-read app->savedY for the call.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -65,6 +57,7 @@ int __stdcall UnlockPrimary(void* out, Rect_004c25e0* a, Rect_004c25e0* b);
 // FUNCTION: 0x4c25e0
 void __stdcall RedrawMouseCursor(App_004c25e0* app)
 {
+    // info doubles as the first rect for BlitSurface: no separate rect local.
     Info_004c25e0 info;
     Rect_004c25e0 r1;
     Rect_004c25e0 r2;
@@ -94,6 +87,7 @@ void __stdcall RedrawMouseCursor(App_004c25e0* app)
     BlitSurface(app->saved, app->work, x - app->savedX, y - app->savedY);
     r1.left = app->savedX;
     r1.top = app->savedY;
+    // Right and bottom computed from the just-stored left and top fields.
     r1.right = r1.left + app->saved->width;
     r1.bottom = app->saved->height + r1.top;
     r2.left = x;

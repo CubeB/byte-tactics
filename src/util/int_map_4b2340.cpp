@@ -1,26 +1,13 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 //
 // Compiler-generated atexit destructor of the file-local std::map<int,int> at
-// 0x51fbc0, whose initialiser is 0x4b2290. The body is MSVC 5's
-// _Tree<...>::~_Tree() from <xtree>: erase(begin(), end()), free the head,
-// zero head and size, then drop the shared _Nil node's reference count under a
-// lock and free _Nil when it reaches zero.
+// 0x51fbc0, whose initialiser is 0x4b2290.
 //
 // The tree layout (see 0x4b2290 and 0x4b3490): allocator byte at +0, empty
 // comparator byte at +1, _Head at +4, the _Multi flag at +8 and _Size at +0xc.
 // A node is 0x18 bytes: left, parent, right, key, value, then the red/black
 // colour at +0x14. DAT_0051fbbc is the tree's shared _Nil node and
 // DAT_0051fbb8 its reference count.
-//
-// The global is declared with internal linkage: only for a static object does
-// MSVC 5 fold the already-true `_L != end()` term of erase(_F, _L) into the
-// `_F != begin()` term and pick the original's registers; an external object
-// keeps a third, dead comparison and allocates edx/eax differently. The real
-// map is used only by the 0x4b26f0 / 0x4b3020 family in this one translation
-// unit, so internal linkage is the plausible original declaration too. The
-// erase(iterator), _Erase and iterator::_Inc helpers stay out of line under the
-// symbols.csv names Class_004b2fb0::FUN_004b2fb0 (0x4b2fb0),
-// Class_004b3590::FUN_004b3590 (0x4b3590) and FUN_004b2ac0 (0x4b2ac0).
 #include <yvals.h>
 #include <new>
 
@@ -107,5 +94,6 @@ public:
     }
 };
 
+// The global must stay static (internal linkage): it changes how erase compiles.
 // FUNCTION: 0x4b2340 _$E2
 static Class_004b2fb0 DAT_0051fbc0;

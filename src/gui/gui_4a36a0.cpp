@@ -7,14 +7,6 @@
 // still fits in the entry's field +0x19 when the item heights are summed from
 // the bottom of the array. Item heights are the unsigned short at offset +2 of
 // the object found through each item's field +0x28.
-//
-// The `field_c0` store must be written before the `field_c6` store: that makes
-// MSVC load the count into ecx before the item array into edx, and keeps the
-// rest of the tail's stores in the original's order. The loop is written with
-// the counter and pointer decrements inside the body (and no for-increment):
-// with `for (...; j--, p--)` MSVC computes the initial field_be in the wrong
-// register, and with `for (j = count - 1; j >= 0; j--)` it rotates the loop
-// test and keeps the sign flag instead of comparing with -1.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -71,6 +63,7 @@ void __stdcall SetGadgetItems(Table_004a36a0* table, char* name, int* items, int
         FatalError("Error in GUI layout");
         e = 0;
     }
+    // field_c0 is stored before field_c6: keeps the tail's store order.
     e->field_c0 = (short)count;
     e->field_c6 = (int)items;
     int v = e->field_19;
@@ -79,6 +72,7 @@ void __stdcall SetGadgetItems(Table_004a36a0* table, char* name, int* items, int
     e->flags_1b |= 0x20;
     int* p = &items[count - 1];
     e->field_be = (short)(count - 1);
+    // Decrements stay in the body with no for-increment, and the test is j > -1.
     for (int j = count - 1; j > -1; ) {
         Item_004a36a0* item = (Item_004a36a0*)*p;
         unsigned short w = *(unsigned short*)(item->field_28 + 2);

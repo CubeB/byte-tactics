@@ -1,24 +1,12 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-opus-5-5. Names are provisional.
 //
-// MATCH (claude-opus-5-5, #4267; was 33.0%). The projectile update loop.
-// Rebuilt from the disassembly as one if/else-if chain over the type's flag
+// The projectile update loop. One if/else-if chain over the type's flag
 // bits (b20 guided, b0 straight, b1 timed drift, b8 drift, b5 tumbling), with
-// a burst-fire branch for projectiles whose counter is not 0. What decided it:
-//  - AllocProjectile (the projectile allocator just before this function) is
-//    defined here and inlined, as in the original source file.
-//  - Gravity on the guided arms goes through `Fall(&p->vel)`, a pointer to the
-//    velocity. That store may alias p->type, so MSVC reloads p->type in the
-//    state block (`mov ecx, [ebp]`) and the `type` local is no longer the
-//    same value as p->type. With a plain `p->vel.y -= ...` MSVC propagates
-//    `type` there instead, `type` wins ebx over the cloned projectile `q`,
-//    and the whole function is 53%; the pointer store alone gave 93.1%.
-//  - `type` is read before `oldY`, which orders the two spill stores.
-//  - <stdio.h>: without it the b0 arm loads g_game first and gets the 5-byte
-//    `mov eax, [g_game]` (93.5%, 1852 bytes); tools/headers.py found 120
-//    header sets that match, the sibling 0x49b090 uses <stdio.h> too.
+// a burst-fire branch for projectiles whose counter is not 0.
 // Remove() is the inlined "deselect and mark dead" block that 0x49b090 also
-// writes out; it reads p->type again, as the original does.
+// writes out.
 
+// Needed: without <stdio.h> the b0 arm loads g_game first and gets a 5-byte mov.
 #include <stdio.h>
 
 #pragma pack(push, 1)
@@ -188,6 +176,8 @@ Proj_0049b720* AllocProjectile()
     return p;
 }
 
+// Gravity goes through this pointer store, not `p->vel.y -= ...`: it makes
+// p->type get reloaded, so `type` is not propagated.
 static inline void Fall(Vec3_0049b720* v)
 {
     v->y -= g_game->gravity;
@@ -209,6 +199,7 @@ void UpdateProjectiles()
     int n = g_game->projCount;
     for (int i = 0; i < n; i++) {
         Proj_0049b720* p = &g_game->projs[i];
+        // type is read before oldY: orders the two spill stores.
         ProjType_0049b720* type = p->type;
         int oldY = p->pos.yw.hi;
 

@@ -10,11 +10,6 @@
 // member, so the out-of-line find at 0x46e9b0 is called on this), a
 // std::vector<Player> at +0x10 and a std::list<unsigned int> at +0x20
 // (_Head +0x24, _Size +0x28).
-// Two source details the scheduler needs: taking Event* v = &it.ptr->value
-// before the disabled check makes MSVC hoist it.ptr into eax and keep it
-// across the loop, and writing the check as a positive `if (disabled == 0)`
-// block (not `if (disabled != 0) continue;`) makes it defer the type/arg/
-// field_b/field_c stores until after the call arguments are pushed.
 #include <list>
 #include <map>
 #include <vector>
@@ -95,6 +90,8 @@ void UnitSync::NotifyEntryChanged(unsigned int param_1)
     if (direct != 0) {
         Iter_0046d860 it = ((Class_0046e9b0*)this)->FUN_0046e9b0(param_1);
         for (std::vector<Player_0046d860>::iterator i = players.begin(); i != players.end(); ++i) {
+            // v is taken before the disabled check: MSVC then keeps it.ptr in eax
+            // across the loop. The check stays a positive block, not a continue.
             Event_0046d860* v = &it.ptr->value;
             if (disabled == 0) {
                 Packet_0046d860 packet;

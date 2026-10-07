@@ -1,12 +1,4 @@
 // Decompiled by space-bunny-free, finished by space-bunny-free. Names are provisional.
-// Full match. The only thing that ever differed was the base/index order of the
-// inner load: the original has [edx+esi+0x108] (the loop counter in the base
-// slot) and an earlier attempt produced [esi+edx+0x108]. In `p[a+b]` MSVC makes
-// the variable declared first the addressing-mode index, so declaring the two
-// Player pointers (mine, other) before the loop counters (i, j) puts `other` in
-// the index slot of the inner load and leaves the two outer loads (which want
-// the counter indexed) untouched. <windows.h> is still needed to keep those two
-// the right way round.
 #include <windows.h>                    // unused, but it picks the operand order
 
 #pragma pack(push, 1)
@@ -49,7 +41,7 @@ extern Game* g_game;
 int FUN_00490080()
 {
     // declared before the loop counters on purpose: that is what puts `other`
-    // in the index slot of the inner load (see the note at the top)
+    // in the index slot of the inner load
     Player_00490080* mine;
     Player_00490080* other;
     unsigned char i;

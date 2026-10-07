@@ -1,7 +1,6 @@
 // Decompiled by space-bunny-free, class hierarchy fixed by Claude Opus 5.5. Names are provisional.
 // The constructor of Class_0043a1f0 (destructor 0x43a1f0, vtable 0x4fd2c8).
-// The rest of the class is in order_queue_438870.cpp; this one stays apart
-// because it needs `kind(k)` as a plain member initialiser (see there).
+// The rest of the class is in order_queue_438870.cpp.
 // It first stores 0x4fd2cc, the vtable of the inline constructor of the base
 // class Class_0043a1e0, then runs the member initialisers, then stores its
 // own vtable. Each vtable has one slot: the base's is the empty 0x43a1e0 and
@@ -13,12 +12,8 @@
 // body then points the link's value at the object; the kind's default flag
 // bits come from the kind table at DAT_00512344, with bits 9 and 10 cleared
 // when the list owner or the position pointer is absent.
-// The two 4-byte fields at +0x2e and +0x32 are pairs of shorts built through
-// a temporary (a derived point, sliced into the member), which is why the
-// original writes each pair with two 16-bit stores and copies the result.
-// The link's value is set through an inline method: a plain
-// `link.value = this` schedules the position pointer's compare before the
-// vtable store (98.9%).
+// Stays apart from the rest of the class: it needs `kind(k)` as a plain
+// member initialiser.
 
 #pragma pack(push, 1)
 struct Entry_0043a1f0 {              // 0x19-byte entries, table at DAT_00512344
@@ -111,6 +106,8 @@ Class_0043a1f0::Class_0043a1f0(int k, ListOwner_0043a1f0* o, Vec3_0043a1f0* p, i
     : kind(k), link(o, 0), field_2e(PointInit_0043a1f0(0, 0)), field_32(PointInit_0043a1f0(0, 0)),
       field_36(a), field_3a(b), field_3e(c), created(g_game->ticks)
 {
+    // Through the inline method: a plain `link.value = this` reorders the
+    // position pointer's compare before the vtable store.
     link.SetValue(this);
     flag5 = 0;
     flags6 = 0;

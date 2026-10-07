@@ -4,13 +4,6 @@
 // colour map that sits in the last 0x300 bytes of the file, and the width and
 // height from the header's Xmin/Ymin/Xmax/Ymax words. The four output fields
 // are cleared first, and a header that does not match leaves them all zero.
-// The row decoder is a static inline helper: it is the only shape that puts its
-// three locals (the count x, the byte b, the run length) in the first three
-// stack slots and the pointer p in the fourth, which is what the frame layout
-// and the parameter register choice (esi = the struct, edi = the file) need.
-// The row loop counts down from height - 1 to 0, not from height to 1: MSVC
-// strength-reduces that into a counter biased by one, which is the dec/js/inc
-// guard at the loop entry and the `dec; jne` at its back edge.
 // The colour map is read by seeking back 0x300 from the end of the file (that
 // is ftell, not a size), so the body is decoded from the 0x80 byte header on.
 #include <string.h>
@@ -27,6 +20,8 @@ void __stdcall HAPI_SeekFile(void* file, int pos);
 int __stdcall HAPI_FileLength(void* file);
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 
+// Static inline: the only shape that puts x, b, run, then p in the first four
+// stack slots.
 static inline void FUN_row(void* file, unsigned char* p, int x)
 {
     unsigned char b;
@@ -72,6 +67,7 @@ int __stdcall DecodePcx(void* file, PCX_004caa40* pcx)
             int rows;
             int w;
             w = pcx->width;
+            // Counts down from height - 1 to 0, not from height to 1.
             for (rows = pcx->height - 1; rows >= 0; rows--) {
                 FUN_row(file, p, w);
                 p += w;

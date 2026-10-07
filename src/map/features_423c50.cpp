@@ -117,9 +117,6 @@ static inline Vec3_00423c50 FootprintCentre_00421eb0(Point16_00423c50* cell, Fea
 // removed (RemoveFeature), takes a spot for features that keep state, marks the
 // other footprint cells 0xfffe with their offsets from the corner, and returns
 // the spot (0 when none).
-// Both footprint loops walk an explicit `c++` pointer; indexing `row[x]`
-// gives other registers in the first loop and no strength reduction in the
-// second. `f` must be computed before the cell index.
 // FUNCTION: 0x423c50
 Spot_00423c50* __stdcall PlaceFeature(Cell_00423c50* cell, unsigned short feature,
                                       Vec3_00423c50* pos, Rot16_00423c50* rot,
@@ -132,6 +129,7 @@ Spot_00423c50* __stdcall PlaceFeature(Cell_00423c50* cell, unsigned short featur
         cell->feature = feature;
         return 0;
     }
+    // Computed before the cell index.
     Feature_00423c50* f = &g_game->features[feature];
     int n = cell - g_game->cells;
     int w = g_game->width;
@@ -142,6 +140,7 @@ Spot_00423c50* __stdcall PlaceFeature(Cell_00423c50* cell, unsigned short featur
         return 0;
     if (at.z + f->footprint.z > g_game->height)
         return 0;
+    // Both footprint loops walk an explicit `c++` pointer, not `row[x]`.
     for (int z = 0; z < f->footprint.z; z++) {
         Cell_00423c50* c = &cell[z * g_game->width];
         for (int x = 0; x < f->footprint.x; x++, c++) {

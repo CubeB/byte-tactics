@@ -1,34 +1,6 @@
 // Decompiled by space-bunny-free, deepseek-v4.1-flash, deepseek-v4.1, mimo-v2.6-pro, claude-sonnet-5-5 and Haiku. Names are provisional.
-// std::vector<TdfField>::insert(iterator, const Elem&)
-// from MSVC 5's <vector> (insert(_P, 1, _X) inlined into insert(_P, _X)), for
-// the reallocating, shift-up and in-place arms. It is the out-of-line
+// std::vector<TdfField>::insert(iterator, const Elem&). It is the out-of-line
 // instantiation the 0x4c54f0 map code calls.
-//
-// What the earlier passes (stuck at 93.3 percent for ten retries) were
-// missing, found by claude-sonnet-5-5 in issue 4641:
-//  * The tail of the reallocating arm is the header's own order,
-//        _Destroy(_First, _Last);
-//        alloc.deallocate(_First, _End - _First);
-//        _End = _S + _N; _Last = _S + size() + _M; _First = _S;
-//    and the function ends in ONE shared `return begin() + _O;` after the
-//    whole if / else if / else chain (arms 2 and 3 do their own `_Last += 1`).
-//    Both were already known, but together with the next item they were
-//    never tried in the same file: the "authentic" order alone scored 84.2.
-//  * The deallocation must be the header's allocator call with its unused
-//    second argument, `alloc.deallocate(_First, _End - _First)`, a real
-//    member that discards the count. With a bare `::operator delete(_First)`
-//    the delete argument lands in edx and the whole tail rotates its
-//    registers (n, the _End sum and the _Last sum), which is what the old
-//    "allocation tie" notes were chasing. The dead `_End - _First` costs no
-//    code but keeps the register order.
-//  * The vector is a cut-down hand-written std::vector in namespace std
-//    (as in 0x470c10) whose _Ucopy, _Ufill and _Destroy are protected and only
-//    declared. That keeps them out-of-line calls and gives them the exe's
-//    mangled names, so check.py's reference column is ok for them. size() is
-//    the header's inline one; the last use calls the out-of-line copy at
-//    0x4c5ba0 (the inline budget ran out there in the original).
-//  * The first _Ucopy and the one-element _Ufill are written out as loops
-//    over FUN_004c5d60 (inlined in the original); the rest are calls.
 #include <stddef.h>
 
 class Class_004c91a0 {
@@ -109,6 +81,7 @@ TdfField* Class_004c5ba0::FUN_004c59d0(iterator p, const TdfField& x)
         size_type n = size() + ((size_type)1 < size() ? size() : 1);
         iterator s = alloc.allocate(n, (void*)0);
         iterator q = s;
+        // Loops over FUN_004c5d60 (inlined in the original), not calls.
         for (iterator i = _First; i != p; ++i, ++q)
             FUN_004c5d60(q, *i);
         {
@@ -120,7 +93,9 @@ TdfField* Class_004c5ba0::FUN_004c59d0(iterator p, const TdfField& x)
             } while (--count != 0);
         }
         _Ucopy(p, _Last, q + 1);
+        // Tail in the header's order: destroy, deallocate, then End/Last/First.
         _Destroy(_First, _Last);
+        // The allocator call with its unused count argument keeps the register order.
         alloc.deallocate(_First, _End - _First);
         _End = s + n;
         _Last = s + FUN_004c5ba0() + 1;
@@ -136,6 +111,7 @@ TdfField* Class_004c5ba0::FUN_004c59d0(iterator p, const TdfField& x)
         FUN_004c5cd0(p, p + 1, x);
         _Last += 1;
     }
+    // One shared return after the chain; arms 2 and 3 do their own _Last += 1.
     return begin() + off;
 }
 // The original calls this from 0x4c59d0 rather than inlining it.

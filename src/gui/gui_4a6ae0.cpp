@@ -1,21 +1,5 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, space-bunny-free, finished by Sonnet 5.5, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Fable 5.1, finished by claude-opus-5-5. Names are provisional.
 // Command-button click/key handler for the 0x15b-byte entry table.
-//
-// MATCH (claude-opus-5-5, #4904), from 93.4%. Two pieces, both needed:
-//  1. The field_138 block is the correct-semantics if / else-if / else chain
-//     the earlier passes called v1: it reproduces the original's block
-//     layout, including the `mov ax,[f138]; test ax,ax` load and its two
-//     re-tests (0x4a6f43, 0x4a7060).
-//  2. The search for the kind-4 entry is an inline helper, FindKind (the same
-//     helper 0x4a2e40 matched with), fed a byte local for the kind. The
-//     helper's function boundary settles the obj/entry register tie: with the
-//     search written out in place, obj outweighs entry by one reference and
-//     takes ebp instead of ebx, every later byte moves and the score is
-//     64.1%. The helper also gives the bound's `movsx eax` / `lea ebp,[eax+1]`.
-//     Passing `entry->team` to it directly re-reads the field inside the loop
-//     (58.6%), and an `int` kind scores 82.8%.
-// The earlier 93.4% file kept a semantically inverted field_138 block only
-// because that spelling happened to give the right homes.
 #pragma pack(push, 1)
 
 struct Dialog;
@@ -241,6 +225,7 @@ int __stdcall HandleButtonInput(Dialog* obj, int index, int param_3)
             DrawButton(obj, index);
             return 0;
         }
+        // Keep this if / else-if / else chain: it gives the original block layout.
         if (entry->field_138 != 0 && (entry->flags & 0x2000)) {
             if (DAT_0051fbb0 == GetTicks())
                 goto fail;
@@ -268,6 +253,7 @@ int __stdcall HandleButtonInput(Dialog* obj, int index, int param_3)
         int flags = entry->flags;
         if (!(flags & 0x1800))
             goto fail;
+        // Inline FindKind fed a byte local: fixes the obj/entry register choice.
         unsigned char team = entry->team;
         int found = FindKind_004a6ae0(entries, team);
         // FindKind returns 0, not -1, when nothing matches, so this test can

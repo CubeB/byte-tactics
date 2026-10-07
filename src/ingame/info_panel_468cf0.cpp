@@ -5,40 +5,9 @@
 // visible map rows (first bucketed per row into the unit lists at
 // g_game+0x141fb), the unit group numbers, the selection box and the debug and
 // timing text. Profile marks go to g_game+0x38d85 (phases 8, 3, 4 and 5); the
-// last mark (phase 3) is the out-of-line AccumulateProfileTime, which the original file
-// defines after this function.
-//
-// Claude Opus 5.5 pass (#4765): 84.2 percent -> MATCH. The old version kept
-// every local in one packed OverlayLocals struct; this is a rewrite as plain C
-// with ordinary locals. What mattered:
-// - Plain locals. MSVC 5 lays the frame out by density (bytes per static
-//   reference, the least used at the top, compiler temporaries included),
-//   reverses `for (i = 0; i < n; i++)` counters into down-counters and puts
-//   dead locals and temporaries in shared slots. That only happens for locals
-//   whose address never escapes, so the struct (escaping through ctx) could not
-//   give the down-counters at [esp+0x64]/[esp+0x18] or the register choice
-//   (mv in edi).
-// - Loop shapes: the feature pass starts `y = y0`, sets `x = x0` per row and
-//   indexes `(width * y + x)`; the unit pass computes `row = i + skip; y = y0 +
-//   i;` inside the loop, so MSVC picks y as the induction variable and keeps
-//   (skip - y0) in y0's slot, as the original does. The gaf strip is a do/while.
-// - DrawResourcePanel(ctx, pl, &res): the original issues `fld [pl+0xa4]` and
-//   `fcomp` before each 16-byte bar rect copy, and MSVC only schedules a load
-//   through pl above the copy when pl is a parameter (of the function or of an
-//   inlined one); computed in the caller it stays after the copy.
-// - Approach() takes and returns floats; res.owner is read through pl
-//   (`pl + 0x146`), which gives the folded [eax+edx*2+disp] addresses.
-// - <stdio.h> <math.h> <memory.h> (abs comes from math.h) and no <windows.h>:
-//   windows.h flips the imul operand order in the row and unit loops.
-// - y0 is assigned before h and x0 before w (store order).
-// The rest is compiler state, found with tools/permute.py and reduced by hand:
-// the cursor cross subtracts (h >> 1) before viewY only with viewY read through
-// the `game` alias of g_game below (every plain spelling, header set and
-// operand order gives viewY first), and the end of the function (the 0x38a51
-// test and the cx/cy loads) only comes out right with this exact mix of
-// declaration order, while loops and explicit (int) promotions. Each of those
-// is byte-neutral where it stands; reverting any one of them moves one of the
-// two spots back.
+// last mark (phase 3) is the out-of-line AccumulateProfileTime, which the
+// original file defines after this function.
+// No <windows.h>: it flips the imul operand order in the row and unit loops.
 #include <stdio.h>
 #include <math.h>
 #include <memory.h>
@@ -139,6 +108,7 @@ struct MapGrid { int *buf; int **cursor; ushort *count; char pad1[0x2c]; int wid
 struct Bits8 { ushort b0:1; ushort b1:1; ushort b2:1; ushort b3:1; ushort b4:1; ushort b5:1; ushort b6:1; ushort b7:1; };
 struct UnitFlags { uint kind:2; uint b2:1; uint b3:1; uint b4:1; uint b5:1; uint b6:1; uint b7:1; };
 
+// Takes and returns floats.
 static inline float Approach(float fcur, float ftarget)
 {
   int cur = (int)fcur;
@@ -158,6 +128,7 @@ static inline float Approach(float fcur, float ftarget)
   return (float)(d + cur);
 }
 
+// pl must be a parameter: a load through it then schedules above the bar copy.
 static void DrawResourcePanel(Surface *ctx, int pl, Resources *res)
 {
   OverlayRect bar, box;
@@ -169,6 +140,7 @@ static void DrawResourcePanel(Surface *ctx, int pl, Resources *res)
   byte *pal = (byte *)(g_game + 0xdcb);
   SetTextColors(pal[0xf], GetTextKeyColor());
   int bx = 0x81;
+  // do/while, not a for loop.
   do {
     ushort *gaf = (ushort *)GetGafFrame(*(int *)(g_game + 0x1481f + (side + (bx > 0x81) * 5) * 4), 0);
     FUN_00467a20((int)ctx, (int)gaf, bx, 0);
@@ -246,6 +218,8 @@ static inline int ShowSelectBox(int drawObjects)
 // FUNCTION: 0x468cf0
 void __stdcall FUN_00468cf0(int param_1, int param_2)
 {
+  // Plain locals in this order (an escaping struct changes the frame layout);
+  // the tail also needs these while loops and (int) casts.
   char debugText[80];
   int y2;
   Surface ctx;
@@ -286,6 +260,7 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
   {
     int pl = (int)g_game + *(byte *)(g_game + 0x2a43) * 0x14b + 0x1b63;
     res = *(Resources *)(g_game + 0x37e3f);
+    // owner is read through pl: gives the folded addresses.
     res.owner = *(char *)(pl + 0x146);
     res.metal = Approach(res.metal, *(float *)(pl + 0x8c));
     res.energy = Approach(res.energy, *(float *)(pl + 0x98));
@@ -326,6 +301,7 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
       mv->count[i] = 0;
       i++;
     }
+    // y0 is assigned before h, and x0 before w.
     y0 = vy - 16;
     h = mv->rows;
     if (y0 < 0) {
@@ -364,6 +340,7 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
     DrawParticleList((int)&ctx, 0);
     DrawParticleList((int)&ctx, 1);
     DrawParticleList((int)&ctx, 2);
+    // y = y0 here and x = x0 per row, indexed (width * y + x).
     y = y0;
     i = 0;
     while (i < h) {
@@ -395,6 +372,7 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
     DrawParticleList((int)&ctx, 3);
     DrawParticleList((int)&ctx, 4);
     for (i = 0; i < h; i++) {
+      // row and y are computed inside the loop: y becomes the induction variable.
       int row = i + skip;
       y = y0 + i;
       int *pUnit = mv->buf + row * mv->stride;

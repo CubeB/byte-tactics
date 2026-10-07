@@ -1,76 +1,4 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// Claude Sonnet 5.5 (#3273): 88.5% (was 85.9%), still 915 bytes. Found by an
-// automated hill-climb over source mutations scored with check.py --sym (about
-// 3100 variants): the gain comes from reordering independent stores (the
-// registers handed to the constants 1, 6 and 2 follow where their first uses
-// sit) plus `return 0 != field_1749`. The stores are to distinct globals so
-// the order is only a source choice; the three register hunks listed below are
-// reduced but not gone, and the same search stalled at 88.5% for 2500 variants.
-// #3078 retry by GPT-6.1-sol: one check reconfirmed 85.9%; the three constant
-// register assignments remain the only recorded differences.
-// deepseek-v4.1-flash (#3429): moved `DAT_00512b80 = 2;` from the very end up
-// into the store run, between `DAT_00512bcc = 7;` and `DAT_00512ac8 =
-// DefaultPacketHandler;`, which is exactly where the original emits that store (the
-// stray trailing store hunk is gone, four hunks remain instead of five). The
-// score is byte-flat at 88.5% / 915 bytes: only the 1/6/2 register hunks are
-// left, and no tried source shape moves them.
-// Partial: 85.9%, 915 bytes, exactly the original's size. The store sequence,
-// every immediate and the whole prologue and epilogue match; what is left is
-// only the register the allocator hands to three of the hoisted constants.
-//
-// The block is zeroed by a memset written AFTER nine of the fourteen stores of
-// 4, not before them. MSVC 5 then hoists the rep stosd back to the top of the
-// block anyway, but the constant 4 is live across it, so 4 keeps EDX. Written
-// before the stores, the allocator picks the eight-use constant 1 for EDX and
-// pushes 4 into EAX (76.3%, 901 bytes). Every memset position from 1 to 13 of
-// the fourteen stores gives the same 85.9%.
-//
-// Remaining diff hunks, by original address:
-//   0x452040  mov esi, 1  ->  mov edx, 1
-//   0x45204f  mov edi, 6  ->  mov esi, 6
-//   0x452059  mov edx, 2  ->  mov edi, 2
-// and then every store of 1, 6 or 2 uses the register above. 4 keeps EDX, 7
-// keeps ECX, DefaultPacketHandler keeps EAX and 3 keeps EBP in both. The original
-// gives 1 ESI, 6 EDI and 2 EDX (reusing 4's dead slot last); ours gives 1 EDX
-// (reusing 4's slot immediately), 6 ESI and 2 EDI. Tried and flat at 85.9%:
-// memset through a char* or void*, length as 176, sizeof(int) * 44, 44 * 4, a
-// zeroing for loop, the stores through a static set4() helper, long / unsigned
-// / int globals, and explicit (int) casts.
-//
-// deepseek-v4.1 also tried and left flat at 85.9%: #include <windows.h>;
-// a dead `if (0) { DAT_00512b34 = 2; }` after the memset to create the value 2
-// earlier; `const int c1 = 1, c6 = 6, c2 = 2;` declared before the 4-block and
-// used for the first store of each of 1, 6 and 2; 1u / 6u / 2u spellings of
-// those stores; and vD_locals (see build/scratch/0x451fd0/). Swapping two
-// adjacent independent stores (vA_swap) falls to 85.3%, which shows the
-// scheduler does not reorder this store run, so the emitted order really is
-// the source order and the original's source has the same interleaving. The
-// only remaining freedom is the allocator's register choice, which no source
-// shape tried so far moves.
-//
-// deepseek-v4.1-flash retry, all flat at 85.9% with the byte-identical diff:
-// making 4 and 2 one reassigned variable `int v` (int v = 4; ... v = 2; and
-// every 4/2 store through v), which should have kept EDX continuously live
-// across the birth of 1 and so forced 1 into ESI; the same per constant
-// (one/six/two declared at first use and reused for every store); declaring
-// one, six and two at the very top of the function; and declaring two just
-// before the memset so it is live across the rep stosd. MSVC 5 splits these
-// pseudo-registers back into per-store constants, so all of them compile to
-// the same 915 bytes. The fix is in the allocator, not the source shape.
-//
-// deepseek-v4.1-flash second retry, all flat at 85.9% with the same three
-// register hunks: every header set (tools/headers.py, 128 sets); the
-// N-declarations test (N unused `extern int dummyN;` for N = 0..400, all
-// 85.9%, so the difference is not compiler symbol-table state); routing the
-// 1/6/2 stores through `(unsigned char)`/`(short)` casts and through a
-// `static inline int id(int)` (MSVC folds both back); the memset value through
-// an `int zero` local; and declaring the 1 and 2 globals `unsigned`. Merging
-// 4 and 2 into one reassigned `int v` drops to 85.3% / 914 bytes (MSVC keeps
-// the variable in EDX but emits a different tail), so it is not the shape
-// either. In the original the free list gives 4 EDX, then 7 ECX, then 1 ESI,
-// 6 EDI, 2 EDX; ours reuses 4's just-freed EDX for 1 (so 6 ESI, 2 EDI). That
-// is a one-slot rotation of the same three registers, and nothing that keeps
-// all 915 bytes fixed moves it.
 
 #include <string.h>
 
@@ -239,6 +167,7 @@ int __stdcall InitPacketTables(Class_00451fd0* param_1)
     DAT_00512bf8 = 4;
     DAT_00512bfc = 4;
     DAT_00512c00 = 4;
+    // After nine of the stores of 4: keeps 4 live across the zeroing.
     memset(&DAT_00512adc, 0, 0xb0);
     DAT_00512b1c = 4;
     DAT_00512c04 = 4;

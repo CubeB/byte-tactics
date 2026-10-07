@@ -195,6 +195,7 @@ void __stdcall DrawFrameDepth(Image_4589c0* bmp, Image_4589c0* param_2, int x, i
 void __stdcall TintFrameBelow(Image_4589c0* param_1, int value);
 void __stdcall CutFrameBelow(Image_4589c0* param_1, int value);
 
+// team_bias (if/return) is used only in the b30 arm; other sites keep shade_bias.
 static inline int team_bias(Model_459200* model)
 {
     if (model->owner->field_92->flags.bits.b30)
@@ -220,48 +221,13 @@ public:
 // Draws a model relative to the camera position `v` (the 16.16 vector the
 // callers pass by value), then its attached units.
 //
-// It comes before MergeIntoComposite (0x4589c0) on purpose: compiled after it,
-// the b3 arm's `diff += shade_bias(model)` sums into ecx (`add ecx, eax`)
-// instead of diff's register, whatever the symbol count.
-//
-// MATCH (#5309, from 90.1%). The last two changes:
-//  * The camera copy reads the argument list, not `v` itself:
-//    `cv = *(Vec3_459200*)(&param_2 + 2);`. The original loads v.x twice
-//    (for the copy, then `sub ebx, [esp+0x3c]` for the x delta) but keeps
-//    the copy's z in edx for the z delta (`sub eax, edx`). With any copy
-//    that MSVC sees as a read of `v` (`cv = v`, member copies in every order,
-//    memcpy, a pointer to v, inline copy helpers by pointer, reference or
-//    value: several hundred spellings over five passes) the copy's x load becomes
-//    a common subexpression of the x delta's read, and tools/c2prio.py shows
-//    both x and z as 2-reference candidates at the same priority; register
-//    pressure at the x delta (owner, the lea'd argument, bmp, this, model)
-//    then makes C2 split z, the one live through it, and keep x in edx.
-//    Read through another argument's address, the copy's loads belong to
-//    that argument, so the x delta reads v.x afresh and the z delta, which
-//    reads the copy (`cv.v[2]`), gets the copy's own load forwarded in edx.
-//    Anchored on `model` (`&model + 1`) the registers are right but the
-//    owner load stays below the copy's stores (99.8%); a struct view of the
-//    whole argument list or a memcpy from `&param_2 + 2` moves the loop
-//    counters out of param_2's slot (98.7%). Writing the deltas into an
-//    uninitialised local that shares v's dead slot gives the same prologue
-//    code, but then f and d take that slot and the frame shrinks by 4, so
-//    the deltas do live in `v` itself.
-//  * The z delta reads the copy and the x delta reads `v`; reading both from
-//    `v` loads x early into ebx and z from memory (87.1%).
-//  * One empty `do {} while (0);` after `diff += shade_bias(model)` in the b3
-//    arm: it emits no code but ends the code generator's block there, so the
-//    sum goes into diff's register (`add eax, ecx`) as in the original. It is
-//    most likely a debug macro that compiled to nothing (as in 0x459830 and
-//    0x459c70); without it this is 99.6%.
-// Earlier levers that still matter (#4924): the b30 arm's bias is the
-// if/return helper `team_bias` and the other two sites keep the ternary
-// `shade_bias`; the second half's altitude test is the inline
-// `model->owner->field_a6 != 0`; the attached-unit deltas read the owner's
-// position through `int* op` (the original's `add eax, 0x6a` base).
 // BUG/ODDITY (kept as found): the far-sprite test is `field_a6 != 0 || dx >=
 //   field_1427f`, so the sprite is drawn when the unit is off the ground OR
 //   in view range, which reads as if it should be AND. Both halves have it.
 //   Also `v.v[1] = pos_y` is a plain copy where x and z are deltas.
+//
+// Must stay before MergeIntoComposite (0x4589c0): compiled after it, the sum in
+// the b3 arm goes into the wrong register.
 // FUNCTION: 0x459200
 void Class_00459200::DrawObjectPicture(int param_2, Model_459200* model, Vec3_459200 v, int useColor)
 {
@@ -272,8 +238,8 @@ void Class_00459200::DrawObjectPicture(int param_2, Model_459200* model, Vec3_45
 
     Vec3_459200 cv;
     Vec3_459200 d;
-    // The camera copy, read through the argument list rather than `v`: see
-    // the notes at the top.
+    // The copy must read through the argument list, not `v`: x delta reads v,
+    // z delta reads the copy, and the deltas are written into v itself.
     cv = *(Vec3_459200*)(&param_2 + 2);
     v.v[0] = model->owner->pos_x - v.v[0];
     v.v[1] = model->owner->pos_y;
@@ -358,7 +324,8 @@ void Class_00459200::DrawObjectPicture(int param_2, Model_459200* model, Vec3_45
                                 int diff = g_game->field_1427f - dx;
                                 if (diff > 0) {
                                     diff += shade_bias(model);
-                                    do {} while (0);    // no code: see the notes at the top
+                                    // The empty do-while ends the block: keeps the sum in diff's register.
+                                    do {} while (0);    // emits no code; needed for the match
                                     CutFrameBelow(this->bitmap, diff);
                                 }
                                 DrawFrameBlended(param_2, this->bitmap, v.p.x.whole + 0x85, y);
@@ -381,6 +348,7 @@ void Class_00459200::DrawObjectPicture(int param_2, Model_459200* model, Vec3_45
                 ((Class_004581e0*)this)->BuildObjectPicture(unit->sprites,1,-1);
                 if (unit->sprites->bitmap) {
                     ((Class_00458d30*)this)->ShadeByIntensity(unit->sprites->bitmap,unit->sprites);
+                    // Owner position read through int* op.
                     int* op = &model->owner->pos_x;
                     d.v[0] = unit->pos_x - op[0];
                     d.v[1] = unit->pos_y - op[1];
@@ -410,27 +378,15 @@ void Class_00459200::DrawObjectPicture(int param_2, Model_459200* model, Vec3_45
     }
 }
 
-// MATCH (claude-opus-5-5, #5067, from 93.6%). Grows this->bitmap to cover the model
-// and its child pieces, then copies or re-blits `bmp` (pixels, then the shade plane
-// through a pixels/shade swap) into it. The last three levers:
-//   * One named `origin(0, 0, 0)` is passed to both AddModelBounds calls. Built in
-//     place for the first call it gives the three separate zero registers; in the
-//     loop its fields are rematerialised from one `xor eax, eax`. A fresh
-//     `Pos_4589c0()` (memset) in the loop stores the middle field through a
-//     `mov ecx, eax` copy, and three-store constructors give three xors.
-//   * The pixels/shade swaps and the dx/dy save and restore go through one inline
-//     `Swap(T&, T&)`. Through the references MSVC 5 keeps each load and store in
-//     source order (load dx, store dx, load dy, store dy); written out by hand it
-//     hoists the second load above the first store.
-// Earlier levers that still matter: the y projection goes through a `Fixed`
-// temporary (one expression folds to `(z - ya) << 16` and loses the 16-bit sar);
-// the outer bounds are declared `minX, maxX, minY, maxY` and the child ones
-// `cminX, cminY, cmaxX, cmaxY` (frame order); `surface.bits = ...shade` is read
-// before the first swap, as the original loads it before the swap stores.
+// Grows this->bitmap to cover the model and its child pieces, then copies or
+// re-blits `bmp` (pixels, then the shade plane through a pixels/shade swap) into
+// it.
 // FUNCTION: 0x4589c0
 void Class_00459200::MergeIntoComposite(Image_4589c0* bmp, Model_459200* model)
 {
+    // One named origin is passed to both AddModelBounds calls.
     Pos_4589c0 origin(0, 0, 0);
+    // Outer bounds declared in this order, child bounds as cminX, cminY, cmaxX, cmaxY.
     int minX = 0;
     int maxX = 0;
     int minY = 0;
@@ -446,6 +402,7 @@ void Class_00459200::MergeIntoComposite(Image_4589c0* bmp, Model_459200* model)
             int cmaxY = 0;
             ((Class_00458310*)this)->AddModelBounds(&cminX, &cmaxX, &cminY, &cmaxY,
                                                   child->sprites, origin);
+            // The y projection goes through a Fixed temporary.
             struct Vec { Fixed x, y, z; };
             int* op = &model->owner->pos_x;
             Vec d;
@@ -494,6 +451,7 @@ void Class_00459200::MergeIntoComposite(Image_4589c0* bmp, Model_459200* model)
     } else {
         short sdx = 0;
         short sdy = 0;
+        // All swaps and save/restores go through the inline Swap(T&, T&).
         Swap(bmp->dx, sdx);
         Swap(bmp->dy, sdy);
         Surface_4589c0 surface;
@@ -503,6 +461,7 @@ void Class_00459200::MergeIntoComposite(Image_4589c0* bmp, Model_459200* model)
         memset(this->bitmap->shade, 0, this->bitmap->height * this->bitmap->width);
         DrawFrame((Surface*)&surface, bmp,
                      this->bitmap->dx - sdx, this->bitmap->dy - sdy);
+        // Read before the first swap.
         surface.bits = this->bitmap->shade;
         Swap(bmp->pixels, bmp->shade);
         DrawFrame((Surface*)&surface, bmp,

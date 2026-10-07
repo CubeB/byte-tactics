@@ -1,14 +1,4 @@
 // Decompiled by Sonnet 5.5, finished by deepseek-v4.1-flash, GPT-6, GPT-6.1-sol, and deepseek-v4.1. Names are provisional.
-// MATCH: 1042 bytes. The 0x4bb807 reload of the clamped length n must be written as
-// `i = 0; blocks = ...; tableSize = ...; remaining = n; dst = buf;` in the compressed
-// branch: with `remaining = n;` first, VC5 keeps the reload in esi and folds the
-// block-end lea into the same register (`lea esi,[esi+eax-1]`), but with blocks and
-// tableSize ahead of it the reload lands in ebx and the lea gets its own esi, exactly
-// as the original. The scheduler then hoists the remaining store between the reload
-// and the lea. Earlier passes fixed the 98.6 percent hunk by writing
-// `int off = file->pos + file->info->offset;` through file->info rather than the
-// cached info local. 24+ other permutations, comma/identity/clamp-variant spellings,
-// unsigned/long types, declaration-scope and header-set sweeps all stayed at 99.2.
 #include <stdio.h>
 #include <string.h>
 
@@ -84,6 +74,7 @@ int __stdcall HAPI_readfromfile(FileHandle* file, unsigned char* buf, int size)
             n = info->size - (int)file->pos;
         if (info->compressed != 0) {
             i = 0;
+            // Statement order i, blocks, tableSize, remaining decides where n is reloaded.
             blocks = (((n + file->pos - 1) & 0xffff0000) - (file->pos & 0xffff0000) >> 16) + 1;
             tableSize = ((info->size % 65536 != 0) + info->size / 65536) * 4;
             remaining = n;
@@ -138,6 +129,7 @@ int __stdcall HAPI_readfromfile(FileHandle* file, unsigned char* buf, int size)
             }
             goto done;
         }
+        // Read through file->info, not the cached info local.
         int off = file->pos + file->info->offset;
         if (off != item->pos) {
             fseek(item->fp, off, 0);

@@ -1,10 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 // std::vector<Elem_004702a0>::_Destroy(first, last) from MSVC 5's <vector>:
-// empty, since the element type is trivial. _Destroy is protected, so a
-// derived class takes its address to make the compiler emit it out of line.
-// The element type is a guess: any 4-byte trivially copyable type compiles
-// to the same code. Its caller 0x470040 calls 0x4702a0 (_Ucopy) and
-// 0x470290 (_Destroy) with ecx set to the vector.
+// empty, since the element type is trivial. Its caller 0x470040 calls
+// 0x4702a0 (_Ucopy) and 0x470290 (_Destroy) with ecx set to the vector.
 #include <vector>
 
 struct Elem_004702a0 {

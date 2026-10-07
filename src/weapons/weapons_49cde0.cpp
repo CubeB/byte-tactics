@@ -5,19 +5,6 @@
 // to the aim point when the unit type's flag bit 23 is set, from a stored
 // flight time otherwise), plays the firing and the "RockUnit" anim and drops a
 // scorch mark. Returns 0 when no slot was free.
-//
-// Match notes: three shapes here are not the obvious ones.
-// - The `+0x111` flags are read as a bitfield, not masked: the original does
-//   `shr ecx, 0x17; test cl, 1` for bit 23 and `shr eax, 9; test al, 1` for
-//   bit 9, and `& 0x800000` / `& 0x200` compile to a single `test` instead.
-// - The four aim directions are indexed with a 28 byte stride, so they are an
-//   `int[4][7]` and the unit's own heading at +0x66 lies inside that block
-//   (hence the union).
-// - The direction's y term is `sin * scale - (a / b) * game->field`, and only
-//   a statement of its own for the whole product puts the division and the
-//   multiply before the call; inside the assignment the compiler sinks them
-//   after it. The last two stores are the other way round from what reads
-//   naturally (`active` then `field_4e`), which is what the original does.
 #include <math.h>
 
 #pragma pack(push, 1)
@@ -27,6 +14,7 @@ struct Vec3_0049cde0 {
     int z;
 };
 
+// Bitfields, not masks: `& 0x800000` / `& 0x200` compile to a single test.
 struct Flags_0049cde0 {
     unsigned int a : 9;
     unsigned int f9 : 1;               // bit 9
@@ -132,6 +120,8 @@ int __stdcall FireBallisticProjectile(Shot_0049cde0* shot, Unit* unit, Vec3_0049
         InitProjectile(proj, shot->def, pos, 0, g_game->field_38a47, unit);
         proj->angle = shot->heading;
         proj->pitch0 = shot->pitch;
+        // The whole product is its own statement: inside the assignment the
+        // division and multiply sink after the call.
         int q = (shot->field_10 / shot->def->f_68) * g_game->field_14263;
         proj->diry = FUN_004b70ef(shot->pitch, shot->def->f_68) - q;
         int scale = FUN_004b7123(shot->pitch, shot->def->f_68);
@@ -143,6 +133,7 @@ int __stdcall FireBallisticProjectile(Shot_0049cde0* shot, Unit* unit, Vec3_0049
         } else {
             proj->time = g_game->field_38a47 + shot->def->f_e6;
         }
+        // active before field_4e: the reverse of the natural order is the original's.
         proj->active = shot->def->f_ea;
         proj->field_4e = param_5;
         ((CobScript*)unit->anims)->StartScript(DAT_00509678[(shot->field_1b >> 2) & 3], 0, 0);

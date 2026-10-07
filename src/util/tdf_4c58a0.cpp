@@ -2,8 +2,7 @@
 // Looks a key up in a TDF section: builds the key by prepending the current
 // section name (g_language), tries that first and falls back to the plain
 // key. param_5 (or the empty default DAT_005119b8) is the TDF default value.
-// param_1 is the open file object, its section parser at +4. The intermediate
-// int is what makes MSVC 5 keep each argument in the original's register.
+// param_1 is the open file object, its section parser at +4.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,6 +30,7 @@ int __stdcall GetLocalizedString(TdfFile* file, char* dst, char* key, size_t siz
     char full[256];
     strcpy(full, g_language);
     strcat(full, key);
+    // Intermediate int keeps each argument in the original's register.
     int r;
     if (def) {
         r = file->current->GetFieldString(dst, full, size, def);

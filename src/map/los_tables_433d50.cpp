@@ -1,9 +1,8 @@
 // Decompiled by Opus. Names are provisional.
 // std::vector<Elem_00434020>::erase(iterator first, iterator last) for a
 // 4-byte element (its caller at 0x4336f0 shrinks the vector with it, as an
-// inlined resize). Taking the member's address makes the compiler emit the
-// template instantiation out of line. The element layout (two unsigned
-// shorts) follows 0x4339e0, which reads entries of a vector at +0x4.
+// inlined resize). The element layout (two unsigned shorts) follows 0x4339e0,
+// which reads entries of a vector at +0x4.
 #include <vector>
 
 struct Elem_00434020 {
@@ -12,6 +11,7 @@ struct Elem_00434020 {
 };
 
 typedef std::vector<Elem_00434020> Vec_00433d50;
+// Taking the member's address makes the compiler emit it.
 typedef Vec_00433d50::iterator (Vec_00433d50::*EraseFn_00433d50)(
     Vec_00433d50::iterator, Vec_00433d50::iterator);
 

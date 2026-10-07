@@ -3,11 +3,7 @@
 // find the feature definition by name (loading it with LoadFeatureType when it
 // is not in the table yet), then put it on the map cell at the placement's
 // position, centred on its footprint unless flags bit 0 is set.
-//
-// The cell must be a local assigned from one GetMapCell call per branch:
-// MSVC merges the two calls, so each branch pushes its own arguments. With
-// x and y locals and a single call, the two coordinates take edi and esi,
-// which pushes the feature index out of edi into ebp. `<windows.h>` is needed.
+// Needed for the register allocation.
 #include <windows.h>
 #include <string.h>
 
@@ -77,6 +73,7 @@ void PlaceMissionFeatures(void)
                 continue;
         }
         Feature* f = &g_game->features[id];
+        // A cell local with one GetMapCell call per branch, not x/y locals and one call.
         Cell* cell;
         if (f->flags & 1)
             cell = GetMapCell(p->x, p->y);

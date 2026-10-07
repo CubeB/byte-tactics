@@ -8,18 +8,6 @@
 // The rest of PacketManager is in packet_manager.cpp; this view of the
 // channel cannot be shared with the destructors (see there).
 //
-// The eleven channels come from a hand-written loop that writes the first
-// field through the array index and the rest through a walking pointer: that
-// is what leaves the loop with the two induction variables the original has
-// (the array start in ecx, and in eax the group member the inlined Init runs
-// from). MSVC 5 anchors that second variable on the third store of the first
-// inlined member function, so the shape of the members decides every
-// displacement in the run: the three-dword PacketRing at +0x38 gives
-// loop one its +0x40, the four-dword Mid_00462d30 at +0x18 gives the ten small
-// entries their +0x20. The two setters (Class_00462860::SetMinRetainMs with
-// 4000 ms and Class_004628a0::SetSendPacingMs with 200 ms) are inlined and
-// constant-folded into the two trailing stores, 0x78 and 6.
-//
 // The small entries are built by the array member's own constructor loop, with
 // each tail's buffer allocated by operator new and null-checked: 0x4b4f10 is
 // operator new, and the three dwords the constructor writes at the start of the
@@ -80,6 +68,8 @@ struct Table_004611e0 {
 
     Table_004611e0()
     {
+        // First field by array index, the rest by walking pointer; the member
+        // shapes (PacketRing, Mid_00462d30) set the displacements.
         PacketChannel* p = channels;
         for (int i = 0; i < 11; i++, p++) {
             channels[i].field_0 = -1;

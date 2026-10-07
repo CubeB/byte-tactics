@@ -3,40 +3,7 @@
 // TEAMICONS, RES and READY, then PREVMENU, MESSAGE, COMMANDER, LOSTYPE,
 // WATCHING, CHEATING, FIXEDLOC, MAPPING, START, GAMEOPEN, RESTRICTIONS and
 // MAP/MAPNAME, and finally FUN_004ab0a0 on the gadget.
-//
-// What the match needed, in the order it was found:
-// - <windows.h> and real Player/Game structs: the loop head builds the player
-//   pointer from the spilled i*331 the way the original does.
-// - Functions of this file with no callers, defined above unannotated and
-//   inlined: 0x440c10 (free slot search, in PLAYER; it needs `inline`, MSVC
-//   does not inline its two loops on its own), 0x440cd0 (map check, in READY)
-//   and 0x446f50 (colour cycle, in TEAMICONS; `player` declared before
-//   `colour`, which still matches 0x446f50 out of line). START's team test is
-//   the CountAlliance helper of 0x446a50 with the flag byte read once, as in
-//   0x4478b0.
-// - The text buffer is 249 or 250 bytes (rounded to 252 in the frame): with
-//   the inlined 0x440c10's used[10] that puts used[] above the text, as in the
-//   original frame (frame order is references per byte).
-// - g_game+0x2bee is one 1-bit unsigned short bitfield (`dirty`). In the tail
-//   MSVC hoists the constant 1 into ebp, which gives the original's
-//   `or word ptr [..],bp` next to the plain `or byte ptr [..],1` ones.
-// - The slot loop as `while (1) { ...; i++; if (i >= 10) break; }`: the plain
-//   for loop gives the tail's registers to the wrong values.
-// - The map check's version test is `if (major >= 2) check = 1; else if
-//   (major == 1 && minor >= 2) check = 1;`, as 0x448c70 needs too.
-// - `goto done;` on START's "no map selected" path (93.8% to 99.0%). It emits
-//   nothing, but with it the gadget is kept in esi only for the chain of
-//   button tests and the final FUN_004ab0a0 reloads it from the stack.
-// - The MAP/MAPNAME test written into a local (`hit = MAP; if (!hit) hit =
-//   MAPNAME; if (hit)`), which took it from 99.2% to MATCH (#5533). Every
-//   spelling of the test as one condition (`||`, `!A && !B` with a goto,
-//   `?:`, a do/while around the body) left the body in the constant 1's ebp
-//   region (`push ebp`, or a second `mov ebp,1` at 99.0%), and a local
-//   assigned once from the `||` keeps a test of the materialised value
-//   (99.0%). The earlier passes' C2 traces of that region (FUN_00438f79) are
-//   in the git history of this file.
-// - SetType is Player's method in data/symbols.csv, so it is
-//   called through a cast of the player pointer, as 0x445450 does.
+// Needed with the real Player/Game structs: shapes the loop-head pointer arithmetic.
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -166,6 +133,7 @@ struct Game {
     char unknown_2a9f[0x2bc0 - 0x2a9f];
     char state;                         // +0x2bc0
     char unknown_2bc1[0x2bee - 0x2bc1];
+    // One 1-bit unsigned short bitfield: MSVC hoists the constant 1 into ebp for the tail.
     unsigned short dirty : 1;           // +0x2bee
     unsigned short dirty_rest : 15;
     char unknown_2bf0[0x37eee - 0x2bf0];
@@ -311,6 +279,7 @@ int CheckMapCrc()
     int check = 0;
     if (me != 10) {
         data = g_game->players[me].info;
+        // Version test form must stay: `>= 2`, else `== 1 && minor >= 2`.
         if (data->versionMajor >= 2)
             check = 1;
         else if (data->versionMajor == 1 && data->versionMinor >= 2)
@@ -327,6 +296,7 @@ int CheckMapCrc()
 // The colour cycle at 0x446f50, which has no callers: /Ob2 inlined it.
 void __stdcall CyclePlayerAlliance(int index)
 {
+    // Declared before colour.
     Player_00447b10* player = &g_game->players[index];
     int colour = g_game->players[index].colour;
     FUN_00446e90(player);
@@ -339,6 +309,7 @@ void __stdcall CyclePlayerAlliance(int index)
 // FUNCTION: 0x447b10
 void __stdcall HandleBattleRoomClick(Gadget_00447b10* gadget)
 {
+    // 249 or 250 bytes: puts used[] of the inlined FindUnusedLogo above the text.
     char text[250];
     Entry_00447b10* entries = gadget->table->entries;
 
@@ -354,6 +325,7 @@ void __stdcall HandleBattleRoomClick(Gadget_00447b10* gadget)
     Player_00447b10* me = &g_game->players[lp];
     int canAdd = IsHostLocal();
     int i = 0;
+    // Not a for loop: that gives the tail's registers to the wrong values.
     while (1) {
         Player_00447b10* p = &g_game->players[i];
 
@@ -370,6 +342,7 @@ void __stdcall HandleBattleRoomClick(Gadget_00447b10* gadget)
             PlaySoundByName("Multi", 0);
             char type = p->type;
             if (type == 0 && canAdd) {
+                // SetType is a Player method: called through a cast, as 0x445450 does.
                 ((Player*)p)->SetType(4);
                 p->id = -1;
                 g_game->field_499--;
@@ -594,6 +567,7 @@ void __stdcall HandleBattleRoomClick(Gadget_00447b10* gadget)
         if (!((Mission*)g_game->map)->FUN_00435c40()) {
             PlaySoundByName("Multi", 0);
             OpenMultiMapSelector();
+            // Emits no code, but keeps the gadget in esi for the button tests.
             goto done;
         }
         if (!me->info->b.watching) {

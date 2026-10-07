@@ -7,12 +7,6 @@
 // FUN_004ab690; when the entry was already focused and FUN_004ab5b0 says no
 // button of mask 3 is down, focus is cleared. Returns 1 when the click landed
 // inside the rectangle of the entry whose focus was just cleared.
-//
-// Register notes that decide the match: the rectangle is a 16-byte stack
-// struct (that is what makes the frame `sub esp,0x10`), the entry is reached
-// as `entries[index]` rather than a stored pointer, and each hit test copies
-// the object's position (+0x3c) into a local Point first. The last test uses a
-// Point* so its two loads stay after the focus store, as in the original.
 #pragma pack(push, 1)
 
 struct Dialog;
@@ -56,6 +50,8 @@ extern int __stdcall FUN_0049fc50(Dialog* obj, int index);
 int __stdcall FUN_004a4b50(Dialog* obj, int index)
 {
     Entry_004a4b50* entries = obj->table->entries;
+    // Entries are indexed as entries[index], not through a stored pointer.
+    // 16-byte stack struct: gives the frame its size.
     struct Rect { int left, top, right, bottom; } r;
     if (entries[index].type == 0) {
         r.left = 0;
@@ -70,6 +66,7 @@ int __stdcall FUN_004a4b50(Dialog* obj, int index)
         entries[index].callback(obj, &entries[index]);
     if (entries[index].flags & 1) {
         if (IsMouseButtonMessage(obj, 1)) {
+            // Position copied into a local Point before each hit test.
             Point_004a4b50 p = obj->pos;
             if (p.x >= r.left && p.x <= r.right && p.y >= r.top && p.y <= r.bottom) {
                 FUN_0049fc50(obj, index);
@@ -84,6 +81,7 @@ int __stdcall FUN_004a4b50(Dialog* obj, int index)
         }
         if (obj->focus == index && !FUN_004ab5b0(obj, 3)) {
             obj->focus = -1;
+            // Read through a pointer so the two loads stay after the focus store.
             Point_004a4b50* pp = &obj->pos;
             int py2 = pp->y;
             int px2 = pp->x;

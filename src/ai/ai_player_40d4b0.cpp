@@ -1,7 +1,6 @@
 // Decompiled by Opus. Names are provisional.
-// std::vector<Elem_0040d4f0>::_Destroy(first, last) from MSVC 5's <vector>:
-// empty, since the element type is trivial. _Destroy is protected, so a
-// derived class takes its address to make the compiler emit it out of line.
+// std::vector<Elem_0040d4f0>::_Destroy(first, last): empty, since the element
+// type is trivial.
 // A 1-byte element type other than unsigned char (vector<unsigned char> has
 // its own _Destroy, 0x40d4a0); the type is a guess. Its insert (0x40c600)
 // calls 0x40d520 (_Ufill), 0x40d4f0 (_Ucopy) and 0x40d4b0 (_Destroy) with

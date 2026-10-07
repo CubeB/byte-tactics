@@ -2,19 +2,9 @@
 //
 // Sends the "AI:" or nickname name to DirectPlay for one player slot and
 // fills in that slot's PlayerInfo. The two "is any player connected" searches
-// are the inlined FindPlayerInUse helper below, called once before the name is
+// use the FindPlayerInUse helper below, called once before the name is
 // built and once on the failure path; see 0x4515d0, 0x451bc0 and 0x451df0 for
-// the same helper matched out of line.
-//
-// What made it match: the searches have to be a `static inline` helper with
-// `return i` in the body and `return 10` after the loop, not a `for` loop with
-// a `break` in the caller. The helper form is what gives the first search a
-// register phi (mov al, 0xa on the fall-through, the out-of-line mov al, bl
-// for the found case, the return block parked after the last ret) and the
-// second search its three write-backs into the shared slot, and it is what
-// leaves the second parameter in edi and the loop counter in bl. Writing the
-// comparison as `playerIndex == FindPlayerInUse()` puts the parameter first
-// and gives `cmp cl, al`.
+// the same helper.
 #include <stdio.h>
 #include <string.h>
 
@@ -84,6 +74,7 @@ char* __stdcall Translate(const char* text);
 int __cdecl GetTicks();
 
 // The index of the first connected player, or 10 when there is none.
+// Must stay a static inline helper: return i in the loop, return 10 after it.
 static inline unsigned char FindPlayerInUse()
 {
     for (unsigned char i = 0; i < 10; i++) {
@@ -101,6 +92,7 @@ int __stdcall CreateLocalPlayer(unsigned char playerIndex, int flag)
     Player* player = &g_game->players[playerIndex];
     player->SetType(flag);
 
+    // Parameter on the left of the compare.
     int same = (playerIndex == FindPlayerInUse());
 
     if (flag == 1) {

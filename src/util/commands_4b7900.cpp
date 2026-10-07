@@ -5,11 +5,8 @@
 // mask matches param_2, or else the global default handler registered by
 // 0x4b78e0. Returns the mask of the handler that ran, or 0.
 //
-// The element is declared with plain ints at +4/+8 exactly as 0x4b7ad0.cpp
-// does, which is also what fixes the compiler's file-local name for the vector
-// (s_commandTable$S4554): only the declarations above the vector affect it, so
-// every other class is declared after it. The handler is called through a
-// reinterpreted HandlerSlot view of those two fields.
+// The handler is called through a reinterpreted HandlerSlot view of the two
+// ints at +4/+8 of the element.
 #include <string.h>
 #include <vector>
 
@@ -19,6 +16,8 @@ public:
     void ReleaseRef();
 };
 
+// Plain ints at +4/+8; other classes stay below the vector: only declarations
+// above it change the name s_commandTable$S4554.
 struct CommandEntry {
     Class_004c9390 name;               // +0x0
     int value1;                        // +0x4

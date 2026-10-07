@@ -2,11 +2,6 @@
 // Moves the element selected by node->index to the front (if any), then bubble
 // sorts the remaining elements ascending by the integer average of
 // node->table[3 * index + 1] over each element's `count` ushort indices.
-//
-// The one construct that decided the register allocation: each averaging loop
-// caches the index pointer in a local and counts DOWN (`for (k = e->count;
-// k > 0; k--)` over `*q++`). That is what puts `node` in ebp, the way the
-// original holds it, and everything else then falls into place.
 
 struct Elem_004cb4c0 {              // 0x20 bytes
     int unknown_0;                  // +0x0
@@ -44,6 +39,7 @@ void __stdcall SortPrimitives(Node_004cb4c0* node)
         swapped = 0;
         e = node->elems + 1;
         for (i = 1; i < node->count - 1; i++, e++) {
+            // Pointer cached in a local, counting down: keeps node in ebp.
             unsigned short* q = e->indices;
             int a = 0;
             for (int k = e->count; k > 0; k--)

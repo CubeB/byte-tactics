@@ -11,22 +11,6 @@
 // The members are destroyed last-declared first: the trivial vector at +0x48,
 // the vector<Elem_0046faf0> at +0x38, the list<int> at +0x20, the
 // vector<UnitSyncPlayer> at +0x10 and the std::map at +0x00.
-//
-// vector<Elem_0046faf0>::_Destroy is empty (its element is trivial), yet the
-// original calls it out of line from the +0x38 member only. As in
-// 0x46ca60.cpp, std::vector is declared here with _Destroy declared but not
-// defined (the real one lives at 0x46e870), and the trivial-element vectors at
-// +0x48 and +0x10 are hand-written lookalikes. Three details keep the other
-// calls out of line where /Ob2 would otherwise inline them:
-//  - ~Vec_0046d1a0 and ~VecElems_0046d1a0 call _Destroy(_First, _Last) the way
-//    the real vector does, so the element walk keeps _Last in a callee-saved
-//    register across the element destructor (otherwise it reloads it).
-//  - the list member is one derived class deeper (ListWrap_0046d1a0): at the
-//    extra inline depth ~list's erase(_F++) calls iterator::operator++
-//    (0x46fac0) and erase (0x46eb60) instead of folding the increment.
-//  - the map is the real std::map<unsigned int, UnitSyncEntry>, so its erase
-//    keeps the name 0x46e890 already has in data/symbols.csv, and the shared
-//    _Nil / _Nilrefs globals the tree frees come out named too.
 #include <list>
 #include <map>
 
@@ -47,6 +31,7 @@ public:
         _First = 0, _Last = 0, _End = 0;
     }
 protected:
+    // Declared, not defined: the real one is the out-of-line 0x46e870.
     void _Destroy(iterator _F, iterator _L);
 };
 
@@ -88,6 +73,7 @@ public:
             alloc.destroy(_F);
     }
 
+    // _Destroy(_First, _Last) like the real vector: keeps _Last in a saved register.
     ~Vec_0046d1a0()
     {
         _Destroy(_First, _Last);
@@ -109,6 +95,7 @@ public:
             alloc.destroy(_F);
     }
 
+    // _Destroy(_First, _Last) like the real vector: keeps _Last in a saved register.
     ~VecElems_0046d1a0()
     {
         _Destroy(_First, _Last);
@@ -129,6 +116,7 @@ class ListWrap_0046d1a0 : public List_0046d1a0 {   // one inline level deeper, s
 
 class UnitSync {
 public:
+    // Real std::map: its erase keeps the symbols.csv name.
     std::map<unsigned int, UnitSyncEntry> rects;  // +0x00
     VecElems_0046d1a0 elems;              // +0x10
     ListWrap_0046d1a0 ids;                // +0x20

@@ -4,17 +4,7 @@
 // already loaded item whose name tree has an entry without bit 0 of its flags
 // set, reads that entry's texture block into a fresh "Block Sizes" buffer and
 // un-obfuscates it in place.
-// The block size is the 16.16 field rounded up to whole pixels, times 4. Written
-// as w / 65536 + (w % 65536 != 0) (through the inlined helper) so that MSVC
-// expands it to exactly the original's cdq / and edx,0xffff / add / sar plus the
-// neg / sbb / neg remainder test.
-// The four locals of the loading block are declared at the top of the function,
-// in the order size, off, k, p. That order is not cosmetic: MSVC 5 puts the
-// later-declared of two operands of a commutative add first, and the first
-// operand becomes the base register of a two-register address, so the order
-// fixes all three of the original's operand choices (off + size, k + off and
-// p[k]) at once. Declaring them in the blocks where they are used, or in any
-// other order, puts one of the three the wrong way round.
+// The block size is the 16.16 field rounded up to whole pixels, times 4.
 #include <stdio.h>
 #include <string.h>
 
@@ -75,6 +65,7 @@ void __cdecl FUN_004d85a0(void* p);
 ArchiveEntry* __stdcall HAPI_FindEntry(ArchiveDirectory* list, char* name);
 
 // Whole pixels of a 16.16 size, rounded up.
+// Written as w / 65536 + (w % 65536 != 0) to expand to the original's code.
 static inline int nblocks(int w)
 {
     return w / 65536 + (w % 65536 != 0);
@@ -83,6 +74,7 @@ static inline int nblocks(int w)
 // FUNCTION: 0x4bb2e0
 FileHandle* __stdcall HAPI_OpenFile(char* filename, const char* mode)
 {
+    // Declared here in the order size, off, k, p: it fixes the operand order of the sums.
     int size;
     int off;
     int k;

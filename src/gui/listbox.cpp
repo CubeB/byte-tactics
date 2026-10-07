@@ -119,17 +119,6 @@ void __stdcall DrawBevelBorderDarkFirst(void* surface, Rect_004b0160* rect, int 
 // row and column pinned to the far edges; with one child or less it is blitted
 // at the origin. The colours are the object's bytes at +0x8b2 (dark), +0x8c3
 // (light) and +0x8c6 (fill).
-//
-// What matched it (opus, #5479), after many passes stuck at 82.9%:
-//  * `y0 + yoff` is written in the DrawFrame call, not kept in a local:
-//    the original's [esp+0x18] is MSVC's hoisted loop invariant, computed
-//    after the inner loop's `width > 0` guard (86.4%).
-//  * Both extents follow the x0/y0 branch, height first, then `yoff = 0`, and
-//    the `yoff == 0` arm of the row choice comes first (99.6%).
-//  * The row counter is its own local, not the reused `index` parameter
-//    (MSVC puts it in index's dead slot anyway). A variable first seen after
-//    `width` gets a later candidate id, so at the loop latch it is reloaded
-//    before height and h, as in the original (MATCH).
 // FUNCTION: 0x4b0230
 void __stdcall DrawListboxFrame(Object_004b0230* obj, int index, Bits_004b0230* bmp)
 {
@@ -143,6 +132,7 @@ void __stdcall DrawListboxFrame(Object_004b0230* obj, int index, Bits_004b0230* 
     Rect_004b0230 rect;
     Pic_004b0230* tile;
     int w;
+    // Own local, not the reused index parameter: orders the loop-latch reloads.
     int row;
     int y;
     int yoff;
@@ -188,6 +178,8 @@ void __stdcall DrawListboxFrame(Object_004b0230* obj, int index, Bits_004b0230* 
                 y0 = 0;
                 x0 = 0;
             }
+            // Extents follow the x0/y0 branch, height first, then yoff = 0;
+            // the yoff == 0 arm of the row choice comes first.
             height = rect.y1 - rect.y0 + 1;
             width = rect.x1 - rect.x0 + 1;
             yoff = 0;
@@ -206,6 +198,7 @@ void __stdcall DrawListboxFrame(Object_004b0230* obj, int index, Bits_004b0230* 
                         col = (x != 0) ? 1 : 0;
                     }
                     tile = GetGafFrame(bmp, row + col);
+                    // y0 + yoff stays in the call, not a local: it is a hoisted loop invariant.
                     DrawFrame(surface, tile, x0 + x, y0 + yoff);
                 }
                 yoff += h;

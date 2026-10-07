@@ -3,9 +3,6 @@
 // State 0 targets the cargo and heads for the order's position, state 1
 // checks the cargo fits there and moves on, state 2 checks again, runs the
 // script's "EndTransport" and drops the cargo, state 3 reports and ends.
-// Match note: the cargo's field_170 goes through an int local (`int h`);
-// passing the expression straight to FUN_0044e6c0 sign-extends into edx
-// instead of eax.
 
 struct Point { short x, y; };
 struct Vec3 {
@@ -89,6 +86,7 @@ int __stdcall VtolUnloadOrder(Unit* unit, Order* order, int flags)
         Unit* cargo = order->target.owner;
         if (FUN_0047db70(cargo->def, 0, WorldToCell(order->pos, cargo->footprint), 1)) {
             Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
+            // Through an int local: passing the expression straight sign-extends differently.
             int h = unit->cargo->def->field_170;
             ((Class_0044e6c0*)obj)->FUN_0044e6c0(h);
             ((Class_004388d0*)order)->FUN_004388d0((int)obj);

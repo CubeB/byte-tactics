@@ -2,10 +2,7 @@
 // std::_Tree<...>::_Erase(_Nodeptr) from MSVC 5's <xtree> (recursively frees
 // a subtree under a lock) for the std::map<unsigned int, UnitSyncEntry> tree
 // whose _Nil node is DAT_0051e598. Its callers are itself and the tree's
-// erase(first, last) (0x46e890), which inlines one level of it. Renamed from
-// Class_0046f6d0::FUN_0046f6d0 in #249; the real template compiles to the
-// same bytes. _Erase is protected, so a derived class takes its address to
-// make the compiler emit it out of line.
+// erase(first, last) (0x46e890), which inlines one level of it.
 #include <map>
 
 struct UnitSyncEntry {                 // 0x10 bytes

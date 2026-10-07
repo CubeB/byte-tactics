@@ -4,13 +4,7 @@
 // root in root_larger, comparing 17 window bytes at cur + n against pos + n and
 // keeping the longest run, then inserts or replaces a node. The window is the
 // 0x1011 byte buffer DAT_00526ff4 and every index is masked with 0xfff.
-// The inner loop index must be (cur + n), not (cur - pos) + j: referencing cur
-// inside the loop is what makes MSVC give cur esi, pos ecx, best edi and the
-// differing byte edx, which put the frame and every tree-walk address in place
-// (57% to 93%, and the file shrank from 362 to the original's 373 bytes).
-// The tree addressing modes ([edx + edi] rather than [edi + edx]) depend on the
-// compiler state: <stdio.h> (or <windows.h>) at the top makes them match the
-// original (tools/headers.py reports 126 sets that do).
+// Keep <stdio.h> (or <windows.h>): it decides the tree addressing modes.
 #include <stdio.h>
 
 struct Node_004d0de0 {
@@ -39,6 +33,7 @@ int __stdcall LzssAddString(int pos, int* out)
     for (;;) {
         int n, j, diff;
         for (n = 0, j = pos; n < 0x11; n++, j++) {
+            // Index is (cur + n), not (cur - pos) + j: it fixes the registers.
             diff = DAT_00526ff4[j & 0xfff] - DAT_00526ff4[(cur + n) & 0xfff];
             if (diff != 0)
                 break;

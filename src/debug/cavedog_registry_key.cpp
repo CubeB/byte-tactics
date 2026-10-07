@@ -34,8 +34,6 @@ public:
 // HKCU\Software\Cavedog Entertainment, the destructor is empty.
 // `readOnly` selects the family: nonzero only opens, zero creates as well.
 // A null `section` falls back to the DAT_00529e80 default section name.
-// Note: 0x4e2cb0 is this class's (empty, out-of-line) destructor; it is
-// called with ecx = the local key object at the end of its scope.
 // FUNCTION: 0x4e2be0
 CavedogRegistryKey::CavedogRegistryKey(char readOnly, char* app, char* section)
 {

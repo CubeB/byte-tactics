@@ -3,22 +3,6 @@
 // deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash
 // (notes only, code unchanged at 86.8), finished by claude-opus-5-5, checked by GPT-6,
 // finished by claude-opus-5-5. Names are provisional.
-//
-// MATCH (claude-opus-5-5, #5136). What finished it was the PlayerId helper:
-// `if (pi == 10) return -1;` as its own statement, then the player read
-// through a widened copy `int i = pi;`. With the combined test
-// `if (pi != 10 && g_game->players[pi].state != 0)` (the out-of-line form of
-// 0x44ffd0) a plain send copies the base like the original but colours res,
-// the zero and the k4 offset wrongly (84.6); the do/while(0) around the send
-// that the earlier file used fixed the colouring but lost the base copy, the
-// k4 lookup addressing [edx+eax+K] (90.9). A Player* local in the helper adds
-// 0x1b63 to the shared pointer. This helper gives both, and the send is a
-// plain call.
-//
-// Earlier notes, still true:
-//  - the k4 loop skips with `continue` (`if (field_29d0[k4] != 0) continue;`);
-//  - the tail is `if (res == 0) {...} else if (ok) {...} return ok;`;
-//  - the k2 loop reads the shuffled candidates by index (`cand[j++]`).
 #include <stdlib.h>
 #include <algorithm>
 
@@ -98,6 +82,7 @@ static inline int IsConnected_004568c0(Player_004568c0* p) {
 }
 
 static inline int PlayerId_004568c0(unsigned char pi) {
+    // Separate pi == 10 test, then a widened copy; no Player* local, no combined test.
     if (pi == 10)
         return -1;
     int i = pi;
@@ -145,6 +130,7 @@ int FUN_004568c0() {
                     if (g_game->players[k2].active != 0 && (q2->info->flag_9b_6))
                         out[k2] = -1;
                     else
+                        // Candidates read by index, cand[j++].
                         out[k2] = cand[j++];
                 } else {
                     out[k2] = -1;
@@ -173,6 +159,7 @@ int FUN_004568c0() {
     }
     if (res != 0) {
         for (int k4 = 0; k4 < 10; k4++) {
+            // Skip with continue; the send stays a plain call.
             if (g_game->field_29d0[k4] != 0)
                 continue;
             unsigned char packet[2];
@@ -189,6 +176,7 @@ int FUN_004568c0() {
         }
     }
     unsigned char pkt = 0x15;
+    // Tail shape: if (res == 0) {...} else if (ok) {...}, then return ok.
     if (res == 0) {
         for (int k6 = 0; k6 < 10; k6++) {
             if (IsConnected_004568c0(&g_game->players[k6]))

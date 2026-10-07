@@ -2,17 +2,6 @@
 // finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by
 // claude-sonnet-5-5, finished by Space Bunny Free, finished by claude-opus-5-5.
 // Names are provisional.
-// MATCH. What it took (from 90.5%):
-// - The frame slots: the original keeps one `nextVertex` pointer, one `out`,
-//   `y1` and `x` for both edge walks (declared once in the enclosing block),
-//   `dx`/`du`/`dv` at function scope, but a separate `next` declared inside
-//   each walk's body. MSVC 5 then packs next1 with dv, and next2 with lowX and
-//   the first inner counter, as in the original. A shared `next`, an unnamed
-//   `vertices[next*3+k]` or a per-walk `nextVertex` each cost a slot.
-// - `y0` declared before the slopes, so `dx*y0` loads dx first
-//   (`mov ecx,[dx]; imul ecx,ebp`), the later-declared operand going first.
-// - The right walk recomputes `index=(index+1)&3` rather than `index=next`;
-//   with the copy, MSVC compared next and loaded highIndex into ecx.
 
 struct Surface_4c8760 { unsigned short width, height; };
 void __stdcall DrawTexturedSpan(int, int*, Surface_4c8760*, Surface_4c8760*);
@@ -22,6 +11,7 @@ void __stdcall DrawTexturedPolygon(Surface_4c8760* target, Surface_4c8760* textu
 {
     int i, defaults[8];
     int spans[800][10];
+    // Declared before the slopes: dx*y0 then loads dx first.
     int y0;
     int dv, dx, du;
     int lowY, highY, highX, lowX;
@@ -58,6 +48,7 @@ void __stdcall DrawTexturedPolygon(Surface_4c8760* target, Surface_4c8760* textu
                             out=&spans[0][0];
                             int index = lowIndex;
                             do {
+                                // Declared per walk body, not shared: sets the frame slot packing.
                                 int next=index-1;
                                 if (next<0) next=3;
                                 int* currentVertex=vertices+index*3;
@@ -133,6 +124,7 @@ void __stdcall DrawTexturedPolygon(Surface_4c8760* target, Surface_4c8760* textu
                                         } while(--n);
                                     }
                                 }
+                                // Recomputed, not index=next: a copy changes the compares and loads.
                                 index=(index+1)&3;
                             } while(index!=highIndex);
                         }

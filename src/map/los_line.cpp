@@ -31,18 +31,6 @@ public:
     void LoadLosLine(TdfFile* obj, short line, short mode);
 };
 
-// Claude Opus 5.5 rebuilt the loops from the disassembly and matched it:
-// - Each arm is a plain `for (i = 0; i < n; i++)` with a `short i`. MSVC turns
-//   it into the original's countdown (ebp = (int)n, shared with resize's
-//   conversion) plus a byte offset in edi, guarded by `test di, di`. An `int i`
-//   keeps i as a scaled index instead, and the old hand-written
-//   `do {} while (--count)` arms got the registers one step round.
-// - `atoi(tok = strtok(0, ", "))` evaluates strtok before the element address,
-//   so _First is reloaded after the strtok call as in the original. A separate
-//   `tok = strtok(...);` statement gives the same order but adds 5 IL per
-//   site; with all eight the function's IL passes 556, its /Ob2 budget grows
-//   and the failed path's resize(0) inlines vector::_Destroy, which the
-//   original calls.
 // FUNCTION: 0x4336f0
 void LosLine::LoadLosLine(TdfFile* obj, short line, short mode)
 {
@@ -57,9 +45,11 @@ void LosLine::LoadLosLine(TdfFile* obj, short line, short mode)
         short n = atoi(tok);
         Elem_00434020 x;
         resize(n, x);
+        // short counter: gives the original's countdown loop.
         short i;
         switch (mode) {
         case 0:
+            // strtok called inside atoi: the element address is loaded after the call.
             for (i = 0; i < n; i++) {
                 (*this)[i].a = atoi(tok = strtok(0, ", "));
                 (*this)[i].b = -atoi(tok = strtok(0, ", "));

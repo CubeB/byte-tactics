@@ -6,12 +6,6 @@
 // installed through GDI (a new logical palette plus SetDIBColorTable on the
 // display's DC, when the display has a window DC) or handed to the
 // DirectDraw palette object, whose failure returns 0.
-//
-// MATCHED. What finally worked (after 66.2%): the destination pointer `p` and
-// a second walking source pointer `s` (both advanced in the for header), an
-// `end = start + count` local, and the statement order brightness, p, end, s
-// before the copy loop. Declaring the SetEntries result in a named HRESULT
-// gives the original's `cmp eax, edi` against the hoisted zero.
 #include <windows.h>
 #include <ddraw.h>
 
@@ -75,6 +69,8 @@ int __stdcall SetPaletteColors(unsigned char* src, int start, int count)
     int i;
     int end;
     d = GetDisplay();
+    // Statement order brightness, p, end, s before the copy loop; p and s both
+    // advance in the for header.
     brightness = *(float*)((char*)d + 0x614);
     unsigned int* p = d->entries + start;
     end = start + count;
@@ -114,6 +110,7 @@ int __stdcall SetPaletteColors(unsigned char* src, int start, int count)
         SetDIBColorTable(d->dc, 0, 0x100, (RGBQUAD*)quad);
         FUN_004d85a0(lp);
     } else if (d->bit2) {
+        // Named HRESULT: gives the compare against the hoisted zero.
         HRESULT hr = d->ddPalette->SetEntries(0, start, count, (LPPALETTEENTRY)(local + start * 4));
         if (hr != 0) {
             Unlock(held);

@@ -1,21 +1,4 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by GPT-6, retried by claude-opus-5-5, finished by claude-opus-5-5. Names are provisional.
-// MATCH (claude-opus-5-5, #5611). The whole residual of the earlier passes
-// (84.7%) was one colouring order in the prologue: the x difference had to be
-// coloured before the |dx| temporary and the step count n, so that it takes ecx
-// and they take esi. Read with tools/c2prio.py, two things were needed:
-//  * n computed in each arm of an if/else with one `n++` after it (n 130 -> 96;
-//    the two tails merge into the original's bytes);
-//  * the x and z differences as named locals that are written back into b
-//    before the copy (`int dx = b.x - a.x; b.x = dx;`). A local whose definition
-//    is the subtraction is its own candidate and keeps the write-back as a
-//    reference, where `b.x -= a.x` or a plain copy of b.x into a local is
-//    forwarded into b.x and loses it: dx rises from 68 to 108, above |dx| (106)
-//    and n (96). Comparing `abs(dx) < abs(dz)` on the two locals keeps |dx|
-//    computed first, in esi, as the original's `cmp esi, eax; jl` needs.
-// A batch of 72 prologue orders (each difference in place or as a local, the
-// compare written `<` or `>`) gave four matches, all with this shape; the dz
-// local must come first and the y difference stays in place on b.
-//
 // The step loop walks from a to b in n + 1 steps and returns the highest
 // ground or unit top it crosses. The y step is the undivided y difference,
 // as in the original (only x and z are divided).
@@ -75,12 +58,14 @@ static inline Cell_004851c0* GetCell(int x, int y)
 // FUNCTION: 0x4851c0
 int __stdcall FindHighestPointOnLine(Vec3_004851c0 a, Vec3_004851c0 b)
 {
+    // dz, then dx, as named locals written back into b before the copy; y stays in place on b.
     int dz = b.z - a.z;
     b.z = dz;
     b.y -= a.y;
     int dx = b.x - a.x;
     b.x = dx;
     Vec3_004851c0 d = b;
+    // n computed in each arm with one `n++` after: the two tails merge.
     int n;
     if (abs(dx) < abs(dz))
         n = abs(dz) / 0x100000;

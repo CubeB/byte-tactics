@@ -12,9 +12,6 @@ extern int DAT_00529ea0;                // the CPU family, 4 for anything but 5 
 // Opens Cavedog's GDPERF performance-counter driver (the device on NT, the
 // VxD on Windows 95) on an Intel Pentium or Pentium Pro, and sets the Pentium
 // Pro's counters up. Whether the counters can be read.
-//
-// The two CreateFileA calls are the original's: the compiler merges their
-// common argument pushes, so the call pushes the name last, on a branch.
 // FUNCTION: 0x4e35b0
 char OpenGdperf(void)
 {

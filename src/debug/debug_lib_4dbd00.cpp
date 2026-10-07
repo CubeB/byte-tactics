@@ -1,9 +1,7 @@
 // Decompiled by Opus. Names are provisional.
-// Shaped like std::set<...>::erase(iterator) from MSVC 5's <set>: forwards to
-// the tree's erase (0x4dc130; the tree is the set's first member) and
-// converts the tree iterator it returns into the set's iterator (the tree's
-// const_iterator), which goes through a temporary. Both iterators have
-// constructors, so they are returned through a hidden pointer.
+// Set erase(iterator): forwards to the tree's erase (0x4dc130; the tree is the
+// set's first member) and converts the tree iterator it returns into the set's
+// iterator (the tree's const_iterator).
 
 struct Node_004dbd00;
 

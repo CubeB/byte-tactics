@@ -3,9 +3,6 @@
 // built (clears its build progress and sets flag 0x2000), updates the
 // BUILDER.GUI panel or starts the builder's nanolathe, syncs two unit-type
 // flag bits and the selection flag.
-// The flag read-modify-write is written in place (not through a local) so the
-// compiler reuses the OR result for the 0x20000000 test, keeping it in ecx
-// while the player pointer is loaded into eax.
 
 class Unit;
 
@@ -87,6 +84,7 @@ void __stdcall FinishConstruction(Unit_0041b8d0* unit, Unit_0041b8d0* target)
         && target && (target->flags & 0x10000000)) {
         target->field_9e->field_10 = 0;
         target->field_104 = 0;
+        // In place, not through a local: the OR result is reused for the 0x20000000 test.
         target->flags |= 0x2000;
         if (target->player->active != 0
             && (target->player->type == 1 || target->player->type == 2)) {

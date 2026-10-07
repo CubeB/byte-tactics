@@ -1,9 +1,7 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // Empties the given list, then walks the local player's team list at
 // g_game + player*0x14b + 0x1b63 and appends every unit whose bit 4 flag at
-// +0x110 is set. The vector clear and push_back are inlined; vector::insert
-// leaves the STL helpers (_Ucopy, _Ufill, _Destroy, size) and operator
-// new/delete out of line.
+// +0x110 is set.
 #include <vector>
 
 #pragma pack(push, 1)

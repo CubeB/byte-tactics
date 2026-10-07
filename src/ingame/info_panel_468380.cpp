@@ -1,7 +1,7 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Network statistics: two rows, each a "Send"/"Receive" rate label with a
 // 64x8 bar under it. The bar is full at 56 K/s (the rate times 100 over 5600,
-// capped at 100 inside the bar helper, which is DrawPercentBar inlined twice).
+// capped at 100 inside the bar helper).
 // Both rows sit at x 0x81..0xc1; the first row's y comes from the game,
 // the second one starts just under the first bar.
 #include <stdio.h>

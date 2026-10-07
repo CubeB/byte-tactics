@@ -1,26 +1,4 @@
 // Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, finished by deepseek-v4.1-flash. Names are provisional.
-// MATCH, 517 of 517 bytes.
-//
-// The last defect was the operand width of the two `ge == 0` tests
-// (`test di, di` / `test si, si` where the original has `test edi, edi` /
-// `test esi, esi`). `short ge` makes MSVC test the low 16 bits because a
-// short's upper half is not meaningful; a plain `int ge` makes MSVC fold
-// `(x >= y) == 0` into a single `setl` and reallocate everything.
-//
-// The fix is to give `ge` a 32-bit lvalue identity without changing its
-// value range or its register home: declare `int gv;` and bind the name
-// `ge` to it with a reference, `int& ge = gv;`. The reference forces every
-// use of `ge` to be a real 32-bit read of `gv` (so `ge == 0` becomes
-// `test edi, edi`), but MSVC removes the reference itself, so `gv` still
-// lands in edi (WATCH) and reuses esi (JOIN) exactly as before, and the
-// assignment stays branchless (`setge cl` + `mov edi, ecx`).
-//
-// Rejected here and in earlier passes: every scalar spelling of `ge`
-// (short/unsigned short/char/unsigned char/bool/int/unsigned/long), the
-// ternary removed, `if/else`, struct and array wrappers (MSG_00441220
-// struct copy of the record), and every narrowing spelling of the `on`
-// helper. Only the int reference keeps the materialised comparison and the
-// 32-bit test at the same time.
 #include <string.h>
 
 struct Holder_00441220 {
@@ -81,6 +59,7 @@ static inline void Apply_00441220(unsigned short* p, unsigned short r, int ge, E
 void __stdcall FUN_00441220(Menu_00441220* menu, Entry_00441220* entry)
 {
     void* gadgets = menu->holder->gadgets;
+    // Reference to gv: makes ge a real 32-bit read, so ge == 0 tests edi.
     int gv; int& ge = gv;
     unsigned short* p;
     Entry_00441220* gd;

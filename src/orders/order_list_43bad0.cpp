@@ -5,9 +5,6 @@
 // restarted from the head after every node, so nodes added by the callback
 // are seen in the same pass. The field names follow order_queue_438870.cpp and
 // 0x43b730.cpp, which own Class_0043a1f0 and the list head at +0x5c/+0x60.
-// The switch cases are in the order the original emitted the bodies
-// (3, 1, 0, 2/4, 5/8/9, 6/7, default) and cases 6 and 7 return from the
-// function while the other deleting cases just go on with the next node.
 
 #pragma pack(push, 1)
 
@@ -84,6 +81,7 @@ void __stdcall FUN_0043bad0(Parent_0043bad0* p)
     while (child != 0) {
         if (child->flags_6 == 0 || g_game->frame >= child->wakeFrame) {
             child->flags_6 = 0;
+            // Case order (3, 1, 0, 2/4, 5/8/9, 6/7, default) sets the body layout.
             switch (DAT_00512344[child->kind].notify(child->unit, child, 0)) {
             case 3: {
                 // Ask again in a while. The temporary keeps the sum from being

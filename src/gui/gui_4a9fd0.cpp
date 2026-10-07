@@ -1,43 +1,4 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by claude-sonnet-5-5, finished by DeepSeek V4.1 Flash, finished by claude-opus-5-5. Names are provisional.
-//
-// MATCH. claude-opus-5-5 (#4890), from 94.4%:
-//  - The first hit test builds a 16-byte Rect local (`box`, block scoped). Its
-//    left/top live in eax/ecx and its right/bottom spill into box's own slots,
-//    which share the frame with the later `point` copy: [esp+0x34]/[esp+0x38]
-//    are box.right/box.bottom (point is [esp+0x2c..0x43]). Two named ints
-//    could never land there. 94.4 -> 95.0.
-//  - Case 13 is the real FUN_004a4890 (matched) inlined, written with the
-//    entry array in its own local first (`entries = menu->layer->entries;
-//    e = &entries[i];`, the way FUN_004a7190 starts). The standalone 0x4a4890
-//    matches with either that or `e = &obj->table->entries[i]`, but inlined
-//    here the one-expression form scores 91.6%: the layer load is right but
-//    value/max, the loop-end reload of `entries` and the whole help-text
-//    block each come out one register along an edx->eax->ecx rotation.
-//    95.0 -> MATCH.
-//  - The tail is the real SelectGadgetByIndex (matched) inlined with the real
-//    FUN_004a7190 inside it, then the real CloseTopScreen (the layer pop); the
-//    help-text block is the real UpdateHelpText. These give the same bytes as
-//    the hand-written forms they replace. The SelectFontForEntry group scan stays a
-//    call on the case 5 path only, so that path keeps its own helper
-//    (SelectCurrentByName) with the explicit call; writing it as
-//    SelectGadgetByIndex -> FUN_004a7190 -> SelectFontForEntry inlines the scan there
-//    too (2292 bytes), even one inline level deeper.
-//  - Case 1/12's shared `menu->layer->dirty = 1` tail is MSVC's own tail
-//    merge: writing it in both cases gives the same bytes as a goto.
-//
-// Older notes (DeepSeek V4.1 Flash and earlier), still true:
-//   * Real early returns: the original has a full prologue, then `test layer;
-//     jne body; xor eax,eax; pop x4; ret 4`. MSVC 5 shrink-wraps a lone early
-//     return but not once the function has further early `return`s, so the
-//     middle of the function uses them too.
-//   * `entries` is read after the field_cca block, not at the top.
-//   * The first hit test loads the point's y early (`int ptY = pt.y;` before
-//     right and bottom); without it, and with a PtInBox-style helper, the
-//     score drops to 79-82%.
-//   * `int k; Entry* e;` declared at the top of the function.
-//   * Case 5 is `if (found != sel) { big } else { sel = i; }`, and the
-//     non-type-1 arm nests `if (field_29 != 0) { if (type == 4 && field_157 !=
-//     0) sel = -1; else {...} } else sel = -1;`.
 #include <windows.h>
 #include <string.h>
 
@@ -232,6 +193,7 @@ static inline void UpdateHelpText(Menu_004a9fd0* obj)
 // The real FUN_004a4890 (matched in 0x4a4890.cpp), inlined here by /Ob2.
 static inline void FUN_004a4890(Menu_004a9fd0* menu, int i)
 {
+    // Entries in their own local first: the one-expression form shifts registers.
     Entry_004a9fd0* entries = menu->layer->entries;
     Entry_004a9fd0* e = &entries[i];
     if (e->u_b6.anim.field_ce && e->u_b6.anim.field_ba < e->u_b6.anim.field_be) {
@@ -309,11 +271,13 @@ static inline void CloseTopScreen(Menu_004a9fd0* gui)
 // FUNCTION: 0x4a9fd0
 int __stdcall UpdateMenu(Menu_004a9fd0* menu)
 {
+    // Declared at the top of the function.
     int k;
     Entry_004a9fd0* e;
     int i;
     Entry_004a9fd0* entries = 0;
 
+    // Real early returns: the original has several, so no shrink-wrapping.
     if (menu->layer == 0)
         return 0;
 
@@ -351,12 +315,14 @@ int __stdcall UpdateMenu(Menu_004a9fd0* menu)
         RenderLayer(menu, menu->layer->flags | 0x40);
     }
 
+    // Read after the field_cca block, not at the top.
     entries = menu->layer->entries;
     if (entries == 0)
         return 1;
 
     Point_004a9fd0& pt = menu->point;
     {
+        // Rect local, not named ints: right/bottom spill into slots shared with `point`.
         Rect_004a9fd0 box;
         box.left = entries->x;
         box.top = entries->y;
@@ -364,6 +330,7 @@ int __stdcall UpdateMenu(Menu_004a9fd0* menu)
             box.left *= 2;
             box.top *= 2;
         }
+        // Load y early, before right and bottom.
         int ptY = pt.y;
         box.right = entries->w + box.left - 1;
         box.bottom = entries->h + box.top - 1;
@@ -432,6 +399,7 @@ int __stdcall UpdateMenu(Menu_004a9fd0* menu)
                 if (FUN_004a4440(menu, i, key) != 0) {
                     sel = -1;
                     int found = FindEntry(entries, e->u136.name);
+                    // Keep this if/else nesting, with sel = i in the else.
                     if (found != sel) {
                         Entry_004a9fd0* me;
                         sel = found;
@@ -450,6 +418,7 @@ int __stdcall UpdateMenu(Menu_004a9fd0* menu)
                                 if (me->type == 4 && me->field_157 != 0) {
                                     sel = -1;
                                 } else {
+                                    // Helper call, not the inline chain: keeps the group scan an explicit call.
                                     Entry_004a9fd0* entriesNow = menu->layer->entries;
                                     menu->focus = -1;
                                     menu->layer->current = found;

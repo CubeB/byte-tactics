@@ -1,8 +1,6 @@
 // Decompiled by Opus. Names are provisional.
-// std::vector<Elem_0040cc40>::_Ucopy(first, last, dest) from MSVC 5's
-// <vector>: copies [first, last) into raw storage at dest and returns the
-// end of the copies. _Ucopy is protected, so a derived class takes its
-// address to make the compiler emit it out of line.
+// std::vector<Elem_0040cc40>::_Ucopy(first, last, dest): copies
+// [first, last) into raw storage at dest and returns the end of the copies.
 // The element is a map cell and its sort key, as 0x40a7b0 and 0x40a260 use
 // it (its copy constructor is 0x40a5b0). Its callers (0x40a7b0, 0x40ca50)
 // inline vector::insert and call 0x40d5b0 (_Ufill), 0x40cc40 (_Ucopy) and

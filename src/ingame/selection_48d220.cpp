@@ -4,19 +4,6 @@
 // With no other selected unit it returns 0xf when arg is 1 and that unit is
 // finished and valid, else 0x13; otherwise it folds 0x13 with GetOrderCursor
 // over the remaining units and returns the minimum.
-//
-// The selection loop uses push_back, not insert(end(), u): push_back puts the
-// two-argument insert at inline depth 1, so /Ob2 leaves the out-of-line
-// two-argument overload as a direct call, exactly as the original does.
-// insert(end(), u) inlines that wrapper and calls the three-argument overload
-// instead (an extra push of the constant 1).
-//
-// The dead Dummy() call sites at the end of the body are the /Ob2 inline budget
-// lever: each direct inline call site consumes budget, and the original's
-// translation unit had roughly thirteen more of them than this source. With
-// fewer, MSVC inlines vector::~vector's _Destroy helper (a no-op for Unit*) and
-// drops the original's out-of-line _Destroy calls; with twelve to fifteen it
-// matches. They compile to nothing.
 #include <vector>
 
 struct Unit;
@@ -92,6 +79,7 @@ int __stdcall FUN_0048d220(char arg)
     Player_0048d220* player = &g_game->players[g_game->player];
     for (Unit* u = player->units_first; u <= player->units_last; u++) {
         if (u->u.bits.selected)
+            // push_back, not insert(end(), u): picks the out-of-line insert overload.
             vec.push_back(u);
     }
 
@@ -116,7 +104,7 @@ int __stdcall FUN_0048d220(char arg)
             result = r;
     }
 
-    // /Ob2 inline budget markers; see the header comment.
+    // Keep these Dummy() calls: they use inline budget so the _Destroy calls stay out of line.
     Dummy();
     Dummy();
     Dummy();

@@ -1,9 +1,8 @@
 // Decompiled by Opus. Names are provisional.
 // The out-of-line destructor body of the global at 0x51e6a0 (see 0x4814c0.cpp
-// and 0x4814f0.cpp): it is a std::vector of std::vector<Elem_00434360>,
-// where Elem_00434360 is a struct holding one std::vector<Elem_00434020>,
-// destroyed by the inlined ~vector; the Elem_00434360 elements go through
-// allocator::destroy out of line (0x434400).
+// and 0x4814f0.cpp): a std::vector of std::vector<Elem_00434360>, where
+// Elem_00434360 is a struct holding one std::vector<Elem_00434020>. The
+// Elem_00434360 elements are destroyed through allocator::destroy (0x434400).
 #include <vector>
 
 struct Elem_00434020 {

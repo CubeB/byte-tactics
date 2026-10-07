@@ -2,15 +2,6 @@
 // Skirmish setup screen builder: for each player it fills two menu-object
 // templates (rec1 = the name/side/colour/resource buttons, rec2 = the colour
 // and allegiance buttons) and registers them with the menu.
-//
-// The one non-obvious detail is the explicit `rec1.entry = 0;` in the metal
-// block, which the original really does (it stores entry twice: once here and
-// once inside the inlined SetEntry). It is not redundant for matching: that
-// extra use of the live zero is the allocator lever that puts the zero in EBX
-// (the only callee-saved byte-addressable register, so the byte stores become
-// `mov [..], bl` and the wsprintfA import lands in ESI and is reloaded after the
-// inlined strcpy clobbers it). Without it the zero lands in ESI and the whole
-// function is one register swap away (99.7%).
 #include <windows.h>
 #include <string.h>
 
@@ -157,6 +148,7 @@ void BuildSkirmishPlayerRows(void)
         rec1.h.attr |= 0x10000;
         rec1.f136 = 0;
         rec1.f138 = 0;
+        // Explicit store, not redundant: the extra use of the zero keeps it in EBX.
         rec1.entry = 0;
         SetEntry_00479c50(&rec1, "skirmmet");
         strcpy(rec1.text, Translate("Left click to increase metal. Right click to decrease metal."));

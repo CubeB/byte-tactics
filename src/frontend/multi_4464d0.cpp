@@ -3,13 +3,6 @@
 // reject dialog for that player, WATCHING toggles the local player's watching
 // flag and republishes the GUI values, OK kicks every playing player in state
 // 3 without watch permission, and any other gadget clears the current one.
-//
-// The WATCHING and OK tests are one if/else-if chain and the final
-// FUN_004ab0a0(gui) is written once after it, not at the end of each path.
-// MSVC duplicates that call into the WATCHING fall-through and the
-// neither-gadget fall-through, and the lower source use count of `gui` is what
-// lands it in ebp with `info` in edi (writing the call in both arms keeps gui
-// in edi instead). The OK arm returns early so it skips the shared call.
 #include <stdio.h>
 
 struct Class_004a1080;
@@ -97,6 +90,7 @@ void __stdcall HandleControlDialogClick(Gui_004464d0* gui)
             }
             return;
         }
+        // Written once after the chain, not in each arm; the OK arm returns early.
         FUN_004ab0a0(gui);
     }
 }

@@ -5,12 +5,6 @@
 // tree's allocator is a pool: _Freenode inlines to a push onto the free list
 // at DAT_005289e0, not an operator delete call. The value_type is 0x30 bytes
 // (key first), so the node's colour flag lands at +0x3c.
-//
-// Written out by hand rather than through a std::map instantiation because the
-// iterator's out-of-line _Inc (0x4dde70) is already recorded in
-// data/symbols.csv as Class_004dde70::FUN_004dde70, and check.py rejects any
-// other name for that call target. The hand-written operator++ therefore calls
-// that exact member, which both matches the bytes and satisfies the reference.
 #include <yvals.h>
 #include <algorithm>
 
@@ -37,6 +31,7 @@ public:
     Node_004dc910* _Ptr;
     Iter_004dc910() {}
     Iter_004dc910(Node_004dc910* _P) : _Ptr(_P) {}
+    // Calls Class_004dde70::FUN_004dde70 (the _Inc at 0x4dde70) by that exact name.
     Iter_004dc910 operator++(int)
         { Iter_004dc910 _Tmp = *this;
           ((Class_004dde70*)this)->FUN_004dde70();

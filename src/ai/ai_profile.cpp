@@ -82,12 +82,7 @@ int AIProfileParser::NextToken()
     return field_94;
 }
 
-// AI profile tokenizer. The number scan is written as
-// `char* q = field_88; field_88 = q + 1;` rather than `*++field_88` or a bare
-// `field_88++` statement: the two-register form (increment in edx, then a
-// `mov eax, edx` copy for the load) is what MSVC emits for every pre-increment
-// spelling, while going through a pointer local that is stored back to the
-// member makes it increment and store in eax directly, as the original does.
+// AI profile tokenizer.
 // FUNCTION: 0x428d10
 int AIProfileParser::ScanToken()
 {
@@ -119,6 +114,7 @@ int AIProfileParser::ScanToken()
     token[0] = *field_88;
     int i = 1;
     for (;;) {
+        // Increment through a local, not `++field_88`: the stores differ.
         char* q = field_88;
         field_88 = q + 1;
         if (!(isdigit(*field_88) || *field_88 == '.'))

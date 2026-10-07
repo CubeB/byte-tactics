@@ -8,11 +8,6 @@
 // constructor from a string (0x4c35c0) needs the class written by hand, so it
 // has a file of its own.
 //
-// The two static objects exist only to make the compiler emit the vtable
-// (and with it what, _Doraise and the deleting destructor) and the implicit
-// copy constructor out of line, as in the original; in the game they came
-// from inlined STL code that throws.
-//
 // _Doraise is the header's {_RAISE(*this); }, i.e. `throw (*this)`: it copies
 // *this onto the stack (the exception base through exception(const
 // exception&) at 0x4e8230, then the message string _Str at +0xc) and calls
@@ -21,6 +16,9 @@
 // _Str: the (empty) allocator byte at +0xc, _Tidy zeroing _Ptr/_Len/_Res at
 // +0x10/+0x14/+0x18, and the inlined assign(_X, 0, npos) with its
 // self-assign, share and grow paths.
+//
+// Keep the two statics at the end: they make the vtable and copy constructor
+// get emitted out of line.
 #include <stdexcept>
 
 // FUNCTION: 0x4c3730 ?what@logic_error@std@@UBEPBDXZ

@@ -2,28 +2,6 @@
 // Loads IMAGEHLP.DLL, resolves the symbol functions the crash reporter and the
 // stack walker need, then SymInitialize()s the symbol handler with a search
 // path of "<windir>;<directory of this exe>".
-//
-// check.py prints MATCH.
-//
-// Two source-level facts carry the whole match, both about VARIABLES that must
-// be live rather than folded:
-//
-// 1. One search-path pointer, not a constant. The original materialises the
-//    module handle it passes to GetModuleFileNameA into esi
-//    (`xor esi, esi; push esi`) instead of using `push 0`, and it reuses that
-//    same esi for the symPath argument of SymInitialize. Both fall out of a
-//    single `char* searchPath;` that is assigned 0 as a statement just before
-//    the GetModuleFileNameA call and is then set to symPath inside the if, so
-//    its 0 is still live on the path where GetModuleFileNameA fails (and is
-//    pushed as a NULL search path there: a suspected original bug). Declaring
-//    it as `char* searchPath = 0;` instead puts the `xor` in the function's
-//    entry block and in ebp, which costs two bytes and the tail's esi/edi
-//    roles.
-// 2. The second SymInitialize call passes the FIRST call's result as its
-//    fSearchSymbols argument: the original has `push 1` for the first call and
-//    `push eax` for the second, where eax is the failed BOOL. Hence
-//    `BOOL inited = ...` and `SymInitialize(..., inited)`. A literal 1 in both
-//    calls, or a literal 0 in the second, both miss.
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>
@@ -64,6 +42,7 @@ char __cdecl LoadImageHelp(char param)
                                    "-disableimagehlp", 0, 0);
     char path[0x100];
     char symPath[0x3e8];
+    // Declared bare and assigned 0 as a statement just before GetModuleFileNameA.
     char* searchPath;
     char* windir;
     char* slash;
@@ -113,6 +92,7 @@ char __cdecl LoadImageHelp(char param)
             }
         }
     }
+    // The second SymInitialize passes this result as its last argument, not a literal.
     BOOL inited = DAT_00528ab8(getCurrentProcess(), searchPath, 1);
     if (!inited) {
         DAT_00528ac4 = (SymProc_004de180)FUN_004de0a0;

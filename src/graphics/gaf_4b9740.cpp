@@ -7,10 +7,6 @@
 // destination pixels with 16.16 steps through the bitmap, blending every
 // pixel that is not the transparent colour through the display's 256x256
 // table at +0xc0.
-// Matching notes: the three rects are declared before w and h (that decides
-// the base/index order of the rect-edge leas), the loop counters row and fy are
-// declared together and advanced in the for header, and col is declared before
-// rowBase in the body (that decides the order of the pixel address adds).
 #include <windows.h>
 
 struct Rect_004b9740 {
@@ -72,6 +68,7 @@ void __stdcall DrawFrameScaledBlended(Surface* dst, Bitmap_004b9740* bmp, int x,
         for (int i = 0; i < (int)bmp->count; i++)
             DrawFrameScaledBlended(dst, ((Bitmap_004b9740**)bmp->field_10)[i], x, y, sx, sy);
     } else {
+        // The rects are declared before w and h: sets the order of the edge leas.
         Rect_004b9740 src;
         Rect_004b9740 dest;
         Rect_004b9740 bounds;
@@ -98,8 +95,10 @@ void __stdcall DrawFrameScaledBlended(Surface* dst, Bitmap_004b9740* bmp, int x,
                 src.top = (int)(src.top / sy);
                 src.right = (int)(src.right / sx);
                 src.bottom = (int)(src.bottom / sy);
+                // row and fy are declared together and advanced in the for header.
                 int fy, row;
                 for (row = dest.top, fy = src.top << 16; row <= dest.bottom; row++, fy += stepY) {
+                    // col is declared before rowBase: sets the pixel address add order.
                     int srcRow = (fy >> 16) * bmp->width;
                     int col = dest.left;
                     int rowBase = row * dst->pitch;

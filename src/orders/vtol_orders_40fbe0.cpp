@@ -3,18 +3,6 @@
 // unit, fights back against its attacker, repairs it, and takes over the
 // guarded unit's own build or reclaim order (as the VTOL_ variant of that
 // order). The ground twin is 0x406300.
-//
-// Matched by writing case 2's order-steal chain the way the matched ground
-// twin 0x406300 writes it: every branch issues its own
-// `AppendOrder(unit, new Class_0043a1f0(...)); order->flags = 0; return 3;`
-// and MSVC tail-merges them by itself (the two order-steal branches share one
-// `new` site, and the null paths of both `new` sites share one block at
-// 0x410120). The earlier version spelled that sharing out with
-// `goto BuildOrder` / `goto NullCmd`, a named `cmd` and an explicit null
-// test, which gave every site its own null stub (91.6%). The OrderTarget()
-// helper on the target argument is still needed (91.7% with the plain
-// `order->target->order->target`), and so is the `dst` pointer for the
-// position copy (88.4% with `order->pos = order->target->pos;`).
 #include <stdio.h>
 struct Vec3 {
     int x, y, z;
@@ -72,6 +60,7 @@ int __cdecl FUN_004b7123(short, int);
 static inline int Contains(unsigned int* bits, unsigned short index) { return bits[index >> 5] & (1 << (index & 31)); }
 static inline Vec3 Offset(short angle, int distance) { Vec3 v; v.x=-FUN_004b70ef(angle,distance); v.y=0; v.z=-FUN_004b7123(angle,(int)distance); return v; }
 
+// Used on the target argument of the order-steal calls: the plain chain changes codegen.
 static inline Unit* OrderTarget(Order*order) { return order->target; }
 
 // FUNCTION: 0x40fbe0
@@ -90,6 +79,7 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
             ((Class_004388d0*)order)->FUN_004388d0((int)move);
             return 2;
         }
+        // Copied through a pointer: assigning order->pos directly changes codegen.
         Vec3* dst=&order->pos;
         *dst=order->target->pos;
         switch(order->state) {

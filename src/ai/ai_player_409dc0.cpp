@@ -2,9 +2,6 @@
 // For each entry whose bit is set in `mask` and that has not been initialised
 // yet (d[i] == 0), scales the byte table c[i] by `scale`, clamps it to 0..100
 // and stores it, marking the entry as done (d[i] = 1) when `lock` is set.
-//
-// The byte offset of d[i] is kept in its own local so the compiler encodes the
-// address as [offset + base], which is what the original does.
 #include <stdlib.h>
 
 #pragma pack(push, 1)
@@ -32,6 +29,7 @@ void __stdcall ScaleUnitWeights(int player, unsigned int* mask, float scale, int
     PlayerAI* p = g_playerAI[player];
     for (unsigned short i = 1; i < g_game->count; i++) {
         if (mask[i >> 5] & (1 << (i & 0x1f))) {
+            // Own local: the address is then encoded as [offset + base].
             int off = i * 4;
             if (*(int*)(off + (int)p->d) == 0) {
                 p->c[i] = (unsigned char)__min(__max((int)(p->c[i] * scale), 0), 100);

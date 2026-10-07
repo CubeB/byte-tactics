@@ -199,3 +199,8 @@ commit messages, pull requests and issue comments.
   subject is imperative, capitalised, at most 50 characters, with no full stop.
 - Do not add "Co-Authored-By" lines, "Generated with ..." lines or any other
   attribution to commits or pull requests.
+- Comments in the source say what the code does. Where a construct must stay
+  as it is for the match (a declaration order, an unused local, a cast), one
+  short line above it says so. Scores, attempts and how a match was found go
+  in the pull request, not the file; the matching notes files used to carry
+  were removed in one commit and are in git history.

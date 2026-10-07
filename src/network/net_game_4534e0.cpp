@@ -4,15 +4,6 @@
 // 0x8877001e (buffer too small), through DAT_0051e300 when g_usePacketManager is
 // set, else through DirectPlay (HAPINET_receivepacket), and counts it in the
 // network statistics.
-//
-// MATCH. The one instruction that used to be out of place is fixed by
-// declaring the function itself __stdcall (it still returns with a plain
-// `ret`, it only takes no arguments): as __cdecl, MSVC 5 hoists the reload
-// of the size local above the two `push 0` of CountPacket, as __stdcall it
-// emits it late, as `mov ecx, [esp+8]`, right before the `push ecx`. The
-// same trick is used at 0x41f0a0. Notes from Claude Opus 5.5 (#295): the
-// include must not be needed, but adding unrelated externs/prototypes or
-// headers never changes this now.
 
 #pragma pack(push, 1)
 struct Game {
@@ -39,6 +30,7 @@ void __stdcall CountMessage(unsigned char kind, int amount, int player);
 void __stdcall CountPacket(int size, int overhead, int sent);
 void* __cdecl FUN_004d84a0(void* param_1, const char* name, unsigned int param_3);
 
+// Declared __stdcall although it takes no arguments: places the size reload late.
 // FUNCTION: 0x4534e0
 int __stdcall ReceiveNetPacket(void)
 {

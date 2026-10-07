@@ -4,13 +4,6 @@
 // tears the flip surfaces down. Each named button loads the saved settings and
 // calls its page's setup routine; PREV/CANCEL reload the saved settings inline
 // (as 0x45cc50 does) and mark DAT_00506788 = 1, the rest mark it 0.
-// Two constructs decide the code. The +0x2a44 bit-2 test must read as
-// `if (bit2) {} else { ... }`: the standalone positive form makes MSVC emit
-// the original's `mov cl,[eax+0x2a44]; shr cl,2; test cl,1` instead of
-// `test byte ptr [eax+0x2a44],4`. And the field_60 == -1 path must be a
-// `goto cleanup;` whose label sits after the DAT_00506788 = 0 store, so MSVC
-// keeps the tail shared (jmp 0x45ff4a) instead of duplicating the whole
-// teardown into the SPEEDS arm.
 class Class_004cdb40 {
 public:
     void PlayNextTrack();
@@ -119,10 +112,13 @@ void __stdcall FreeSurface(void* surface);
 // FUNCTION: 0x45fc60
 void __stdcall HandleOptionsPanelClick(Gadget_0045fc60* gadget)
 {
+    // goto, not a return: the label after the DAT_00506788 = 0 store keeps the
+    // teardown tail shared.
     if (gadget->field_60 == -1)
         goto cleanup;
     {
         SetGadgetStatus(gadget, gadget->field_60, 1);
+        // Empty then-arm: the positive test alone changes the codegen.
         if (g_game->bit2) {
         } else {
             RenderLayer(g_game->menu_519, 0x40);

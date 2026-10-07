@@ -2,18 +2,7 @@
 // Saves the map's features: the feature type names, then one record per
 // occupied map cell ("3D Features", "Normal Features" or "Animating
 // Features") and the three counts. The load counterpart is 0x424c00.
-//
-// MATCH. Two source details drive the whole loop layout. The feature test
-// `if (c->feature < 0xfffb)` must be written before the
-// `Feature_00424890* f = &g_game->features[c->feature]` definition (MSVC
-// then emits cmp/jae before the address arithmetic), and the cell pointer
-// must be declared before `end` and the counters
-// (`Cell_00424890* c = g_game->cells;` above `end`, with
-// `for (; c < end; c++)`). That declaration order is what keeps the cell
-// pointer in esi and the feature pointer in edi. A loop-scope c with the
-// same test-first body scores 91.9% (esi/edi swapped), test-last scores
-// 99.2% (right registers, cmp after the arithmetic).
-// <windows.h> is needed (83% without it).
+// Needed.
 #include <windows.h>
 #include <string.h>
 #include <vector>
@@ -127,6 +116,7 @@ void __stdcall SaveFeatures(HapiBank* file)
     file->OpenNamedBox("Feature Type Names");
     file->WriteBox(names.begin(), g_game->featureCount * sizeof(FeatureName_00424890));
 
+    // Declared before `end` and the counters, and walked by `for (; c < end; c++)`.
     Cell_00424890* c = g_game->cells;
     Cell_00424890* end = g_game->cells + g_game->width * g_game->height;
     int normalCount = 0;
@@ -135,6 +125,7 @@ void __stdcall SaveFeatures(HapiBank* file)
     int x = 0;
     int y = 0;
     for (; c < end; c++) {
+        // The test comes before the definition of `f`.
         if (c->feature < 0xfffb) {
             Feature_00424890* f = &g_game->features[c->feature];
             if (!(f->flags & 1)) {

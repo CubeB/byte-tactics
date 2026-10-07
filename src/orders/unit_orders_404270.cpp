@@ -1,18 +1,5 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 // Capture order handler, a state machine on order->state.
-//
-// The two handlers before it in the original source file, 0x403a20 and
-// 0x403f70 (matched in their own files), are defined again below, unannotated
-// and in a namespace of their own, so that their float constants (8.0, -8.0,
-// 0.0f and 16.0) come first in the constant pool, as in the original. Compiled
-// alone, -150.0f is followed by padding before the 8.0 double instead of the
-// original's next constant (-0.5f), and the checker rejects that reference.
-//
-// Matching notes:
-// - EnergyCost() and MetalCost() cast their product to float; without the
-//   cast MSVC folds the 30 into the reciprocals of 2000 and 140.
-// - The health scaling reads maxHealth once through MaxHealth() and once as a
-//   plain field; two identical reads are merged into a single load.
 #include <windows.h>
 #include <math.h>
 
@@ -93,6 +80,8 @@ static inline void CellToWorld(Point origin, Point c, Vec3* v)
     v->x = (origin.x + c.x * 2) << 19;
     v->z = (origin.y + c.y * 2) << 19;
 }
+// 0x403a20 and 0x403f70 stay defined here, unannotated, in this namespace: their
+// float constants must come first in the constant pool.
 // 0x403a20, matched in 0x403a20.cpp
 int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
 {
@@ -262,8 +251,11 @@ struct UnitDef {
     char pad18e[0x1fa-0x18e]; unsigned int maxHealth;
     char pad1fe[0x212-0x1fe]; unsigned short buildRange;
     char pad214[0x245-0x214];
+    // The float casts stay: without them the 30 folds into the reciprocals.
     float EnergyCost() { return (float)(energy * 30); }
     float MetalCost() { return (float)(metal * 30); }
+    // maxHealth is read once through MaxHealth() and once as a plain field:
+    // two identical reads merge into one load.
     unsigned int MaxHealth() { return maxHealth; }
     union { unsigned int flags; struct { unsigned int lo:12; unsigned int capture:1; unsigned int hi:19; }; };
 };

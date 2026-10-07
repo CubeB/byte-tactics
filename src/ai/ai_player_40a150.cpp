@@ -3,8 +3,7 @@
 // { short v0, v1, v2, v3; int v4; }; the object has one at +0xf1 (s0) and a
 // second at +0xfd (s1). v0/v1 become a size from the base v4 plus a random
 // amount (+8), and v2/v3 become a random offset centred on that size
-// (rand(size) - size/2). The base ints are read only as their low 16 bits,
-// which is what the original source produced.
+// (rand(size) - size/2).
 struct Sub {
     short v0;                          // +0x00
     short v1;                          // +0x02

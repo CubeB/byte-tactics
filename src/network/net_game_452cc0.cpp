@@ -4,26 +4,6 @@
 // session (or only resets it when the 0x2a44 bit 2 mode keeps playing
 // players), and when that player was the host (bit 0 of +0x97) hands the
 // host bit to the type 3 or type 1 player with the highest id.
-//
-// MATCH. What it took (from 87.7%):
-// - The player lookups are the real neighbours GetSlotDpid, FindSlotByDpid
-//   and FindPlayerByDpid, defined here without FUNCTION lines and left to /Ob2.
-//   That alone gives the original's mix: the first FindPlayerByDpid inlines one
-//   FindSlotByDpid (whose GetSlotDpid stays a call) and calls the other, and
-//   the later lookups are inlined whole.
-// - The bit 2 test is an if/else that resets the player through one inline
-//   helper (Remove) written in both arms. With that, the cyclic register
-//   rotation every earlier pass fought (g_game, p and the slot in edi, ebx
-//   and esi instead of ebx, esi and edi) is gone.
-// - The highest-id loop indexes g_game->players[j] directly; a `q` pointer
-//   gets rebased to +0x1b67, the field it reads last.
-// - The host bit read still needs the no-op `|= 0` the previous pass found:
-//   without it MSVC folds the zero-extension into the mask
-//   (`mov dl,[ecx+0x97]; and edx,1`) and the function is 2 bytes short
-//   (79.6%). Dead second uses of the byte (unused locals, empty inline
-//   calls, `if (f & 2) {}`), int and short bitfields, helpers taking the
-//   byte by value or reference and the `!= 0`, `?:` and `!!` forms all
-//   fold the same way.
 #include <stdio.h>
 #include <string.h>
 
@@ -91,6 +71,7 @@ void __stdcall KillPlayerUnits(unsigned char player);
 void __stdcall ReportGameEvent(int msg);
 int __stdcall HAPINET_removeplayer(void* net, int id);
 
+// The three lookups below stay defined here without FUNCTION lines, left to /Ob2.
 // 0x44ffd0 (matched in its own file).
 int __stdcall GetSlotDpid(unsigned char index)
 {
@@ -169,7 +150,8 @@ void __stdcall RemovePlayer(int id)
 
     unsigned char slot = p->field_146;
     int f = p->data->flags;
-    p->data->flags |= 0;               // emits no code; see the notes above
+    // The no-op |= 0 must stay: without it the zero-extension folds into the mask.
+    p->data->flags |= 0;               // emits no code; needed for the match
     int host = f & 1;
 
     for (int i = 0; i < 10; i++) {
@@ -182,6 +164,7 @@ void __stdcall RemovePlayer(int id)
 
     KillPlayerUnits(FindSlotByDpid(id));
 
+    // Remove stays an inline helper written in both arms.
     if (g_game->flags.b2) {
         if (!IsPlaying(p))
             Remove(p);
@@ -199,6 +182,7 @@ void __stdcall RemovePlayer(int id)
 
     if ((g_game->flags.value & 4) && host != 0) {
         unsigned int best = 0;
+        // Index g_game->players[j] directly: a q pointer would be rebased.
         for (int j = 0; j < 10; j++) {
             if (IsType3(&g_game->players[j]) || IsType1(&g_game->players[j])) {
                 if (g_game->players[j].id > best)

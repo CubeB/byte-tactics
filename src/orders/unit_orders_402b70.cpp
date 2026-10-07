@@ -51,9 +51,6 @@ void __stdcall FUN_0041c150(Unit* unit);
 // rounds for weapon `weapon`, 5 ticks of build time per step, paying the
 // energy and metal share of each step (energy first, as FUN_004011c0 takes
 // them), up to 200 stockpiled rounds.
-// The float locals must be declared next, total, prev (the reverse of their
-// first use) for the fild order; `total` after the ternary gives the
-// lea ecx, [eax+5] temp.
 // FUNCTION: 0x402b70
 int __stdcall BuildWeaponOrder(Unit* unit, Order* order, int unused)
 {
@@ -72,6 +69,8 @@ int __stdcall BuildWeaponOrder(Unit* unit, Order* order, int unused)
         int prev = order->progress;
         int next = prev + 5 < t->buildTime ? prev + 5 : t->buildTime;
         int total = t->buildTime;
+        // Float locals declared next, total, prev (reverse of first use): fixes the
+        // fild order; total stays after the ternary.
         float fnext = next;
         float ftotal = total;
         float fprev = prev;

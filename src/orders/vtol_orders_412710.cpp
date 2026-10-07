@@ -1,30 +1,12 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, matched by Claude Opus 5.5. Names are provisional.
 // VTOL attack order handler ("Attacking"). With flags 0x1000a, or with no
 // target and order flag 0x200, it queues VTOL_SEEKATTACK instead; when out of
-// the order's range it gives up. State 0 prepares the order (FUN_0040f200 is
-// defined here because /Ob2 inlined it), state 1 flies to a random point
-// halfway to the target, state 2 attacks, state 3 pulls away from the target,
-// state 4 lands on a free pad when damaged (VTOL_LANDING) or circles.
-//
-// MATCH (Claude Opus 5.5, #4169). The blocker for many passes was the landing
-// block's destructor: the original calls vector<Unit*>::_Destroy (0x406c00)
-// out of line where it returns 0, but inlines it (to nothing) on the empty
-// path. tools/c2prio.py --inline shows why no plain std::vector can do that:
-// the landed ~vector is visited first and the empty one right after, and a
-// ~vector's nested sites get (budget - 94) / R, which only shrinks from one
-// site to the next. With the sibling files' Class_00410830 (a class derived
-// from the vector, so the implicit, free destructor wraps ~vector) _Destroy
-// gets budget / R - 94 instead, and an R of 14 at the landed site puts the
-// landed share at 45 (out of line) and the empty one at exactly 49 (inlined).
-// The eleven empty Dummy() calls supply that R, the way 16 of them do in the
-// matched 0x410e70; the original probably had tiny inline accessors there.
-// Without them the file is 93.9%, the same as the natural std::vector form.
-// The explicit-destructor hack is gone, and the state 4 distance reload now
-// matches too. The health test's scratch registers (edx/ecx/eax in the
-// original) follow the file's symbol count: dummy externs showed 5 to 19
-// extra symbols match, and so do these real ones, the IsDamaged helper (as in
-// 0x410850) with <math.h> and <vector> only (<memory.h> is no longer needed),
-// or <windows.h> or <list> + <windows.h> in front of the old includes.
+// the order's range it gives up. State 0 prepares the order (FUN_0040f200),
+// state 1 flies to a random point halfway to the target, state 2 attacks,
+// state 3 pulls away from the target, state 4 lands on a free pad when damaged
+// (VTOL_LANDING) or circles.
+// Kept: the health test's registers follow the file's symbol count, which the
+// IsDamaged helper and this include set fix.
 
 
 #include <math.h>
@@ -256,6 +238,8 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
         ((Class_0044e730*)obj)->FUN_0044e730(0x80);
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);
         order->flags = 0x100ea;
+        // The empty Dummy() calls make the landed ~vector call _Destroy out of
+        // line and the empty one inline it.
         Dummy();
         Dummy();
         Dummy();

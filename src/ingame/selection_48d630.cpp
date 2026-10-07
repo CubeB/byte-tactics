@@ -11,10 +11,6 @@
 //   flags dword at +0x110, +0x92 the type (name at +0x20), +0xa6 a type
 //   index, +0xfb an int, +0x104 the build fraction, +0x110 the flags dword.
 // - the unit array at g_game+0x14357 is indexed by the same 0x118 stride.
-// Notes on the two spots that cost a run each: the float test at +0x104 is
-// `== 0.0f` (`fcomp`, then `je` to the loop increment, so the body needs
-// C3), and the clear loop masks 0xffffff2f, so it clears bits 4, 6 and 7 of
-// +0x110, not bit 5.
 #include <string.h>
 
 #pragma pack(push, 1)

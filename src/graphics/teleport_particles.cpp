@@ -7,6 +7,7 @@
 #include <math.h>
 #include <vector>
 
+// The helpers must stay inlined methods: free expressions change the load order.
 struct Vec3_004736e0 {
     int x;
     int y;
@@ -128,14 +129,8 @@ void __stdcall ParticleSystem::operator delete(void* p)
     DAT_0051e610.FreeSlot(p);
 }
 
-// The compiler-generated scalar deleting destructor. The implicit destructor
-// destroys the std::vector at +0xc (the inlined ~vector leaves the dead store
-// of _First in the `push ecx` slot), then the inlined base destructor stores
-// the base vtable, and the inlined operator delete returns the object to the
-// pool. The class has no out-of-line constructor: 0x471340 and 0x471fd0
-// create it with `new`, inlining it. Neither is decompiled yet, so the global
-// below exists only to make the compiler emit the vtable and with it this
-// COMDAT.
+// The compiler-generated scalar deleting destructor.
+// The global below exists only to make the compiler emit the vtable and this COMDAT.
 // FUNCTION: 0x471430 ??_GTeleportParticles@@UAEPAXI@Z
 static TeleportParticles* s_object = new TeleportParticles;
 
@@ -184,8 +179,7 @@ void TeleportParticles::FUN_00472e30(void* p)
     }
 }
 
-// Returns whether the particle vector is empty; the bool from
-// the inlined vector::empty() is widened to the int return value.
+// Returns whether the particle vector is empty.
 // FUNCTION: 0x472e70
 int TeleportParticles::FUN_00472e70()
 {
@@ -196,19 +190,6 @@ int TeleportParticles::FUN_00472e70()
 // same difference of the two and the same trailing virtual call, but this one
 // divides the difference by how many 327680-unit segments its length holds
 // instead of multiplying it by a reciprocal id.
-//
-// The Vec3 helpers have to stay inlined methods. Written as free expressions
-// the compiler loads the three components in the order y, z, x (three filds
-// before the squares are folded) and gives the three divisions one base
-// register; as methods with the components in locals of their own, the loads
-// come out in source order and the first division keeps the pointer it already
-// has while the other two go back through `this`.
-//
-// The scale is the high half of the 32-bit 16.16 quotient, so that quotient
-// has to sit in memory: writing it into a union of the int and a pair of shorts
-// and reading the upper one gives the original's `mov dword ptr [esp+0x18],
-// eax` followed by `movsx ecx, word ptr [esp+0x1a]`. An int local keeps the
-// quotient in a register and compiles to `mov ecx, eax` and `sar ecx, 0x10`.
 // FUNCTION: 0x4736e0
 void TeleportParticles::FUN_004736e0(Vec3_004736e0* a, Vec3_004736e0* b, int c)
 {
@@ -217,6 +198,7 @@ void TeleportParticles::FUN_004736e0(Vec3_004736e0* a, Vec3_004736e0* b, int c)
     pos2 = *b;
     dir = pos2 - pos1;
     int dist = dir.Length();
+    // The quotient goes through a union so it sits in memory; the high half is read back.
     Fix_004736e0 scale;
     scale.whole = (int)(((__int64)dist << 16) / 327680);
     int step = scale.half[1];
@@ -231,24 +213,12 @@ void TeleportParticles::FUN_004736e0(Vec3_004736e0* a, Vec3_004736e0* b, int c)
 // units field_4 has fallen behind the current tick with items.reserve(...),
 // then appends one element built from the three positions plus a random value,
 // and finally sets field_8 ten ticks ahead of the current tick.
-//
-// Letting the compiler inline <vector>'s reserve is what reproduces the
-// original byte for byte, including the allocator read that spills _First into
-// a dead stack slot just after the delete[] argument is pushed (the extra
-// `mov [esp+0x18], eax` that hand-writing the same block leaves out). The
-// capacity check inside reserve is the vector's unsigned `capacity() < _N`, so
-// it is a `jae`, and `_End - _First` on char pointers divides by 52 only once.
-//
-// push_back would inline the whole three-argument insert here (932 bytes,
-// wrong); the original keeps it out of line at 0x4758c0. Naming the vector
-// through the List_004737c0 layout and calling FUN_004758c0 on it keeps the
-// call out of line and lands the loop in the original's registers: &items in
-// esi, &pos1 in ebp and the (single iteration) counter in edi.
 // FUNCTION: 0x4737c0
 void TeleportParticles::Emit()
 {
     int grow = (field_4 - g_game->field_38a47 + 10) / 10;
 
+    // The inlined vector::reserve itself is needed, not a hand-written block.
     if (grow > 0)
         items.reserve(grow + items.size());
 
@@ -262,6 +232,7 @@ void TeleportParticles::Emit()
         e.field_0 = g_game->unknown_147f3;
         e.field_28 = GetGafFrameCount(g_game->unknown_147f3) - 1;
         e.field_2c = (int)(((__int64)rand() * e.field_28) / 0x8000);
+        // Not push_back: calling through the List layout keeps the insert out of line.
         List_004737c0* v = (List_004737c0*)&items;
         v->FUN_004758c0(v->last, 1, e);
     }

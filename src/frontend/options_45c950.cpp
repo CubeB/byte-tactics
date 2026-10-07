@@ -1,10 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // Loads the saved audio settings (globals around 0x512f42) into the game and
 // applies them to the sound object at g_game+0x10.
-//
-// DAT_00512f46 is the saved "sound enabled" flag byte. It is declared int
-// because the flag-sync xor below is computed at int width: `and ecx, 1` then
-// `xor ecx, eax` (a byte-typed operand would give `and cl, 1; movsx dx, cl`).
 
 class Class_004cdb40 {
 public:
@@ -51,6 +47,7 @@ struct Game {
 
 extern Game* g_game;
 extern int DAT_00512f42;
+// Declared int: the flag-sync xor must be computed at int width.
 extern int DAT_00512f46;
 extern char DAT_00512f48;
 extern char DAT_00512f75;

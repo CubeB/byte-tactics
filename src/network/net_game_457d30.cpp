@@ -4,21 +4,9 @@
 // half for metal) of the surplus to the neediest ally that shows up in the
 // per-player array. Every 450 ticks it also sends the subtype-3 share packet
 // (the same one 0x4571c0 sends) to every allied player.
-//
-// Three things were load bearing, all verified by check.py:
-//  - The min() must be a ternary assigned to a fresh local
-//    (`float result = amount < limit ? amount : limit;`), not an
-//    `if (limit < amount) amount = limit;`. The ternary keeps amount and the
-//    clamp on the x87 stack the way the original does; the if-form spills and
-//    emits `fcomp [esp+0x10]` instead of `fcomp st(1)`.
-//  - The bit at info+0x97 bit 5 is a standalone `if (flags.b5)` over an
-//    `unsigned short` bitfield. As `(flags & 0x20)` or `(flags >> 5) & 1`
-//    MSVC folds it to `test byte ptr [m], 0x20`; the other two tests (bits 1
-//    and 2) sit inside `&&` chains and stay byte tests.
-//  - `#include <windows.h>` is what flips the SIB base/index order of the
-//    third loop's `[esi + edi + 0x1b63]` (g_game base, index), matching
-//    0x445450's note. Without it the same instructions use `[edi + esi + ...]`.
 
+// <windows.h> must stay: it sets the base/index order of the third loop's
+// players[i] address.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -130,6 +118,7 @@ void __stdcall UpdateResourceSharing(Player_00457d30* player)
         if (found != player && player->energy > player->field_e4) {
             float amount = (player->energy - player->field_e4) * 0.33333334f;
             float limit = found->field_a8 - found->energy;
+            // The min() must be a ternary into a fresh local, not an if.
             float result = amount < limit ? amount : limit;
             amount = result;
             TransferEnergy(player->field_146, found->field_146, amount, 1);
@@ -154,6 +143,7 @@ void __stdcall UpdateResourceSharing(Player_00457d30* player)
         if (found != player && player->metal > player->field_e8) {
             float amount = (player->metal - player->field_e8) * 0.5f;
             float limit = found->field_a4 - found->metal;
+            // The min() must be a ternary into a fresh local, not an if.
             float result = amount < limit ? amount : limit;
             amount = result;
             TransferMetal(player->field_146, found->field_146, amount, 1);
@@ -161,6 +151,7 @@ void __stdcall UpdateResourceSharing(Player_00457d30* player)
     }
 
     if (g_game->ticks % 450 == 0) {
+        // Must stay a standalone bitfield test, not a mask or shift.
         if (player->info->flags.b5) {
         for (int i = 0; i < 10; i++) {
             Player_00457d30* p = &g_game->players[i];

@@ -2,8 +2,7 @@
 // std::vector<CommandEntry>::insert(iterator, size_type, const T&), out of
 // line: 12-byte elements holding a reference-counted string handle and two
 // ints. The copy constructor is 0x4b7e30 and the assignment 0x4b7e00; the
-// destructor releases the handle through 0x4c9390. Taking insert's address
-// makes the compiler emit the template instantiation, as in 0x488fb0.cpp.
+// destructor releases the handle through 0x4c9390.
 #include <vector>
 
 class Class_004c9390 {
@@ -37,5 +36,6 @@ typedef std::vector<CommandEntry> Vec_004b7b00;
 typedef void (Vec_004b7b00::*InsertFn_004b7b00)(
     Vec_004b7b00::iterator, Vec_004b7b00::size_type, const CommandEntry&);
 
+// Taking insert's address is what emits the template instantiation.
 // FUNCTION: 0x4b7b00 ?insert@?$vector@VCommandEntry@@V?$allocator@VCommandEntry@@@std@@@std@@QAEXPAVCommandEntry@@IABV3@@Z
 InsertFn_004b7b00 g_insert_004b7b00 = &Vec_004b7b00::insert;

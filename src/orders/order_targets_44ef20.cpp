@@ -45,9 +45,7 @@ public:
     virtual void FUN_0044ef50(void*);               // slot 10
 };
 
-// The constructor. Its vtable reference makes the compiler emit the scalar
-// deleting destructor here too; the destructor is empty and inline, so only
-// the vtable store is left in it.
+// The constructor.
 // FUNCTION: 0x44ef20
 // FUNCTION: 0x44ef60 ??_GClass_0044ef20@@UAEPAXI@Z
 Class_0044ef20::Class_0044ef20(Struct_004907e0* p)

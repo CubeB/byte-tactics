@@ -1,13 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1, re-tried by
 // space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash.
 // Names are provisional.
-// MATCH. The last difference was the `bestDiff * j1` imul operand order: MSVC
-// picks the register operand from declaration order, so declaring `int j1;`
-// before `int bestDiff = -1;` (with `j1 = 1;` assigned inside the if) makes it
-// load bestDiff into eax first, as the original does. The declaration order
-// bestIdx, j1, bestDiff, j also keeps the bestDiff init before the `jle` and
-// the `j = 0` store after it.
-// <windows.h> is required.
+// Required include.
 #include <windows.h>
 #include <stdio.h>
 
@@ -150,6 +144,7 @@ void __stdcall RemoveLineOfSight(Params_00481d50* params)
         for (i = 0; i < count; i++) {
             void* line = ((Class_4335e0*)table)->GetLosLine(i);
             short num = ((LosLine*)line)->GetLosLineStepCount();
+            // Declared in this order: bestIdx, j1, bestDiff, j; j1 is set in the guard.
             int bestIdx = 0;
             int j1;
             int bestDiff = -1;

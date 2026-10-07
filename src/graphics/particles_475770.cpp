@@ -1,13 +1,7 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // std::vector<Class_004739b0>::reserve from MSVC 5's <vector>: the 48-byte
 // element type is the same one as in 0x475880 (_Ucopy), 0x475870 (_Destroy)
-// and 0x476710 (_Ufill), all siblings in this container's family. The
-// pointer differences in the header (`_End - _First`, `_Last - _First`) are
-// what compile to the signed division by 0x30, and `allocator::allocate` is
-// MSVC 5's `_Allocate` with its `if (_N < 0) _N = 0;` clamp, so nothing here
-// is hand-written. The store of _First into the dead parameter slot is
-// `allocator<Elem>::deallocate`'s inlined first parameter; see
-// particles_4750b0.cpp for the same store from the inlined ~vector.
+// and 0x476710 (_Ufill), all siblings in this container's family.
 // Its caller 0x473d50 inlines vector::insert and calls this reserve (and
 // vector::size, out of line at 0x475840) with ecx set to the vector.
 #include <vector>

@@ -114,8 +114,7 @@ public:
 
 // The constructor: the base constructor (0x44ef20) is out of line, the middle
 // class's (out-of-line copy at 0x4905e0) is inlined. The middle class assigns
-// its members in the body (struct assignments, so the zero vector is built in
-// three registers and stored through a pointer). Its vtable reference makes the
+// its members in the body. Its vtable reference makes the
 // compiler emit the scalar deleting destructor here too; both derived
 // destructors are trivial, so only the inlined base destructor's store of
 // 0x4fd428 is left in it.
@@ -156,8 +155,6 @@ int Class_004907e0::FUN_0044efe0()
 // Slot 8: writes the object at +0x4 (a 2-bit kind, then its own data) and the
 // owner's mode to the stream, then takes that mode as its own and clears the
 // dirty bit. The matching reader looks like 0x490a10 (Class_00490880's slot 9).
-// Separate dirty:1 and mode:2 fields give two masks (0xfe, 0xf9); the original
-// clears all three bits with one 0xf8 mask.
 // FUNCTION: 0x4908c0
 void Class_004907e0::FUN_0044efc0(BitWriter* stream)
 {

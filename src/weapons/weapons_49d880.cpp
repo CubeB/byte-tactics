@@ -23,9 +23,6 @@ struct Unit {
 // True when both of the aim object's angles are within tolerance of the
 // corresponding unit angles. With no tolerance in the type, a moved unit
 // (flags 0xc) gets a generous one, a still unit a tighter one.
-// The tolerance for the second angle is written as an if/else re-reading the
-// field, not as `b ? b : a`: the ternary gives the two tolerances the other
-// way round in ecx/esi and the bytes no longer match.
 // FUNCTION: 0x49d880
 int __stdcall AimWithinTolerance(Unit* unit, Aim_0049d880* aim, short angle1, short angle2)
 {
@@ -42,6 +39,7 @@ int __stdcall AimWithinTolerance(Unit* unit, Aim_0049d880* aim, short angle1, sh
         }
     } else {
         x = a;
+        // if/else re-reading the field, not a ternary: it swaps the two tolerances.
         if (aim->type->field_108)
             y = aim->type->field_108;
         else

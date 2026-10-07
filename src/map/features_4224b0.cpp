@@ -3,6 +3,8 @@
 // record to the feature table in g_game, fills it from the record's TDF
 // fields (3D object, or GAF file and sequences, flags, resources, burn
 // weapon) and returns the new feature type number.
+// <windows.h> must come before <stdio.h>: it decides the registers of
+// `features[j].anims`.
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -132,18 +134,16 @@ static inline Seq_004224b0* SeqByName(Gaf_004224b0* gaf, int unused, char* name)
     return FindGafEntry(gaf, name);
 }
 
-// The TDF lookups that are tested go through an int local (`cmp eax, esi`
-// against the zero register rather than `test eax, eax`). The two sequence
-// references are cleared field by field; an inline Reset() method or a
-// pointer local stores through the `lea` register instead. The return value
-// is the full old count (0x422e40.cpp declares it unsigned short).
-// <windows.h> before <stdio.h> decides the base and index of
-// `features[j].anims`.
+// The return value is the full old count (0x422e40.cpp declares it unsigned
+// short).
+// The sequence references must be cleared field by field, not by a Reset()
+// method or a pointer local.
 // FUNCTION: 0x4224b0
 int __stdcall LoadFeatureType(char* name)
 {
     Gaf_004224b0* anims;
     int j;
+    // Tested TDF lookups go through an int local: it changes the zero compare.
     int ok;
     char seqname[0x100];
     char file[0x100];

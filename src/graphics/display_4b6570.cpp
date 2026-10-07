@@ -3,11 +3,6 @@
 // a second stores the number of frames in that second as the frame rate. When
 // there is no offscreen GDI device context it draws "FRATE <rate>" over the
 // frame through the surface's device context.
-//
-// The three "scheduler tie" reloads of the address-taken `dc` that about 100
-// shapes never moved came from the calling convention: the original file was
-// built with /Gz, so this function is __stdcall (scoring the unchanged file
-// with /Gz printed MATCH).
 #include <windows.h>
 
 // The surface at +0x8c is used through its vtable. Only two slots matter here:

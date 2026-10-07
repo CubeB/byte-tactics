@@ -1,30 +1,13 @@
 // Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5, finished by space-bunny-free, finished by DeepSeek V4.1 Flash, finished by claude-opus-5-5. Names are provisional.
-// MATCH (claude-opus-5-5, issue 4160), from 99.1%. Draws one list-gadget
+// Draws one list-gadget
 // entry: makes the entry's language current, fills or blits its rectangle,
 // draws its text, and when the entry has the focus draws the text cursor (a
 // vertical line) after the text up to the cursor position.
 //
-// What it took, in order of weight:
-//  1. DrawLine's colour parameter is `int`, as in 0x4be950 itself and in
-//     the matched siblings 0x4a4c90 and 0x4a56b0. The old `unsigned char`
-//     declaration (with an `int colour` local to get the zero extension) was
-//     a local optimum at 99.1% that could never fix the cursor call's surface
-//     load.
-//  2. Every glyph fetch goes through one inline helper, GetGlyph, which wraps
-//     GetGafFrame on the current language's glyph table. Used for the line
-//     height, it is what keeps the text width in esi (so the zero register
-//     appears in the inlined Measure) while the glyph table still loads into
-//     ecx; spelling the height fetch out in full gives 87.9% with this
-//     prototype.
-//  3. The cursor call takes its arguments as expressions (`height +
-//     rect.top`, `obj->colours[9]`); only x is a local.
-//
-// Two old "suspected original bugs" in this file were misreadings and are
-// withdrawn: the +0x1f field is an int colour INDEX into the object's colour
-// table at +0x8b2 (`obj->colours[entry->colours]`), not a pointer indexed by
-// the object's address; and the byte saved, zeroed and restored around the
-// width measurement is `text[obj->cursor]`, the character at the cursor, so
-// the measured width is that of the text before the cursor.
+// The +0x1f field is an int colour index into the object's colour table at
+// +0x8b2 (`obj->colours[entry->colours]`). The byte saved, zeroed and restored
+// around the width measurement is `text[obj->cursor]`, the character at the
+// cursor, so the measured width is that of the text before the cursor.
 
 #pragma pack(push, 1)
 struct Entry_004a4d70 {                // 0x15b bytes
@@ -99,6 +82,7 @@ int __stdcall DrawListboxFrame(Dialog* obj, int index, void* bmp);
 void __stdcall CopySurfaceRect(void* dst, void* src, Rect_004a4d70* rect, int* pos);
 int __stdcall FillRectangle(void* surface, Rect_004a4d70* rect, int colour);
 int __stdcall FUN_004a50e0(void* surface, char* text, int x, int y, int maxw, int style);
+// The colour parameter must be int: forces the zero extension of the colour load.
 void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2,
                             int colour);
 
@@ -188,8 +172,10 @@ void __stdcall DrawTextInput(Dialog* obj, int index)
         if (g_guiContext->language == 0)
             height = GetFontHeight();
         else
+            // Via GetGlyph, like every glyph fetch: keeps the width in esi.
             height = GetGlyph_004a4d70(0x49)->height + 2;
         int x = rect.left + w;
+        // Arguments stay expressions; only x is a local.
         DrawLine(entries->surface, x, rect.top, x, height + rect.top, obj->colours[9]);
     }
 }

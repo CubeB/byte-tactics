@@ -3,23 +3,6 @@
 // Rotates the four corners of a box by the given angles, projects each rotated
 // corner to screen space (16.16 fixed point down to short) and outlines the
 // resulting quad on the surface.
-//
-// MATCH. Two things were needed on top of the obvious decompilation.
-//
-// 1. The three projected values must be separate int locals evaluated in the
-//    order y (the height), z, x, the same idiom as the matched 0x4581e0,
-//    because the original loads scratch->y and offset->y first and the other
-//    two pairs after it.
-//
-// 2. `corners` must be copied into a local pointer that is then the loop's
-//    induction variable. The loop counter is spilled to a stack slot, and with
-//    `corners` used as the induction variable directly its argument home is
-//    still considered occupied, so MSVC 5 drops the counter one slot lower,
-//    onto `offset`'s home ([esp+0x1c]). Copying `corners` to a local `c`
-//    makes that home dead from the prologue on, and the counter then lands on
-//    `corners`' home, [esp+0x20], as in the original. The generated code is
-//    otherwise unchanged (the copy is the same `mov ebp, [esp + 0x18]` the
-//    direct use produced), so only the slot choice moves.
 
 struct Vec3_00467a50 {
     int x;
@@ -54,10 +37,13 @@ void __stdcall FUN_00467a50(void* surface, Vec3_00467a50* offset,
     Vec3_00467a50* scratch = g_game->scratch;
     Point_00467a50* points = g_game->points;
     unsigned char color = g_game->color;
+    // corners is copied to c, which is the loop's induction variable: this
+    // fixes the stack slot of the loop counter.
     Vec3_00467a50* c = corners;
 
     for (int i = 0; i < 4; i++) {
         RotateByAngles(c, scratch, angles);
+        // Separate int locals, evaluated in the order y, z, x.
         int y = (short)((scratch->y + offset->y) >> 16);
         int z = (short)((offset->z - scratch->z) >> 16);
         int x = (short)((scratch->x + offset->x) >> 16);

@@ -4,27 +4,7 @@
 // section and, if it is there, resizes the table to numlines * 4 lines and
 // has each line read itself (LoadLosLine) from the four quarter blocks
 // (line i, numlines + i, 2 * numlines + i, 3 * numlines + i).
-//
-// The shape comes from the out-of-line helpers later in the same original
-// file, which /Ob2 inlined here: GetTable is GetLosTable (a 1-based table
-// number that it decrements in place), GetLine is GetLosLine and
-// SetNumLines is FUN_004335f0 (the inlined vector::resize). What they pin
-// down:
-//   * `n--` on GetTable's own short parameter keeps `table` 16 bits wide in
-//     di with a separate `movsx` at each use; indexing tables[table]
-//     directly lets MSVC share one sign-extended copy and puts `this` in edi.
-//   * Going through the helpers spends the inline budget the way the
-//     original did, so the vector<Elem_00434360> size/insert/erase and the
-//     fill value's constructor and destructor stay out of line with the
-//     real <vector> header.
-//   * n2 and n3 as short locals before the loop give the original's
-//     induction variables (2n spilled, n + i and 3n + i rebuilt from 2n + i);
-//     writing numlines * 2 + i in the calls makes separate counters instead.
-// The headers set the compiler state: with only <stdio.h> and <vector> the
-// same source gives 81% (`movsx edi, di` instead of `movsx eax, di` for the
-// table index). <windows.h> alone also matches, but at the edge: three more
-// declarations flip it back. With <ddraw.h> as well, the file sits in the
-// middle of the matching range.
+// Header set matters: fewer headers change the table index's register choice.
 #include <windows.h>
 #include <ddraw.h>
 #include <stdio.h>
@@ -82,6 +62,7 @@ public:
     // Inline copy of GetLosTable: table number n, counted from 1.
     LosTable* GetTable(short n)
     {
+        // Decrements the parameter itself: keeps table 16 bits wide.
         n--;
         return &tables[n];
     }
@@ -98,6 +79,7 @@ void LosTables::LoadLosTable(TdfFile* file, short table)
         LosTable* t = GetTable(table + 1);
         short numlines = (short)file->current->GetFieldInt("numlines", 0);
         t->SetNumLines(numlines);
+        // Short locals before the loop: match the original induction variables.
         short n2 = numlines * 2;
         short n3 = numlines * 3;
         for (short i = 0; i < numlines; i++) {

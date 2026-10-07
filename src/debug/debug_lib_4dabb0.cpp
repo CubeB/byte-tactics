@@ -2,10 +2,7 @@
 // Sibling of 0x4dab10: under the allocator lock, walks the 0x30-byte block
 // records from the container's last element down to its first and appends the
 // info line of every block whose range covers `address`, separating records
-// with a newline. `found` shares the dead `buf` argument home and the walk is
-// one `&&` loop condition: `p != end && n > 100` gives the original's single
-// top test plus the bottom pointer test, where a do/while with a break
-// duplicates the size test.
+// with a newline.
 #include <windows.h>
 #include <string.h>
 
@@ -38,6 +35,7 @@ char __cdecl FUN_004dabb0(unsigned int address, char* buf, unsigned int n)
     if (IsMemFussy()) {
         BlockInfo* p = (BlockInfo*)GetFreedBlockRing()->field_8;
         char found = 0;
+        // One `&&` loop condition: a do/while with a break duplicates the size test.
         while (p != (BlockInfo*)GetFreedBlockRing()->field_4 && n > 100) {
             p = (BlockInfo*)((char*)p - 0x30);
             BlockInfo info = *p;

@@ -6,15 +6,6 @@
 // game registered, matching each group's entries against the stored pattern.
 // Attribute 0x11 with a zero size marks a directory, 1 with the node's size a
 // file, and flag bit 2 hides an entry from the walk entirely.
-//
-// Two source details are load-bearing for the byte match. The outer loop is a
-// `for` whose increment clause holds both latch statements, which is what makes
-// MSVC rotate it and reload the group index in the body instead of keeping the
-// guard's value in a register. Inside the inner loop the index has to sit in a
-// local (`int i = f->index`): with the field read inline, the commutative add
-// that forms the entry address takes its operands the other way round and the
-// address lands in edx instead of edi, which moves three instructions and the
-// whole register allocation of the found path with them.
 #include <io.h>
 #include <string.h>
 
@@ -84,6 +75,7 @@ int __stdcall HAPI_FindNext(FindFiles* f, struct _finddata_t* fd)
             return -1;
     }
     Groups_004bc640* g = (Groups_004bc640*)GetDisplay();
+    // Both latch statements stay in the increment clause.
     for (; f->state < g->count; f->index = -1, f->state++) {
         if (f->index < 0) {
             f->handle = (long)HAPI_FindDirectory(((Path_004bc640*)((Group_004bc640*)g->group[f->state])->path)->list, f);
@@ -91,6 +83,7 @@ int __stdcall HAPI_FindNext(FindFiles* f, struct _finddata_t* fd)
                 continue;
         }
         while (++f->index < ((ArchiveDirectory*)f->handle)->count) {
+            // The index sits in a local: read inline, the entry address operands swap.
             int i = f->index;
             ArchiveEntry* e = &((ArchiveDirectory*)f->handle)->entries[i];
             if (MatchWildcard(e->name, f->pattern) && !(e->flags & 2)) {

@@ -8,17 +8,6 @@
 // (SelectStopOrder) and sets order flag 0x10 at +0x37ebe. It is the mirror image
 // of 0x48c9b0, which clears the same bit under the opposite conditions, and it
 // repeats the loop 0x48bd50 does without the two-pass bitmap.
-//
-// Fixed the last four instructions by declaring +0x37ebe as the 16-bit
-// bitfield group the rest of the game uses (see 0x432610.cpp): bit 4 is one
-// named member, and writing it compiles to the original's single
-// `or byte ptr [eax + 0x37ebe], 0x10` instead of a load/or/store in cl.
-// Suspected original bug: MSVC 5 inverts the sense of a float comparison
-// against zero here, so the source `== 0.0f` tags units whose +0x104 value is
-// NOT 0.0f (the same inversion is visible in 0x48c9b0, which is written `!=
-// 0.0f` and matched with `je` to its body). Checked with
-// 0x48c9b0.cpp, 0x48bd00.cpp, 0x48bd50.cpp, 0x48d920.cpp and
-// 0x495860.cpp.
 
 #include <string.h>
 
@@ -58,6 +47,7 @@ struct Game {
     char unknown_2a43[0x37e9c - 0x2a43];
     unsigned short field_37e9c;         // +0x37e9c
     char unknown_37e9e[0x37ebe - 0x37e9e];
+    // Bitfield group: the bit-4 store compiles to a single `or byte ptr`.
     unsigned short flags_0 : 4;         // +0x37ebe
     unsigned short orderFlag : 1;       // +0x37ebe, bit 4
     unsigned short flags_5 : 11;

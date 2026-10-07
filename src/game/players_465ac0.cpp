@@ -1,5 +1,4 @@
 // Decompiled by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, ninth pass by space-bunny-free, finished by opus. Names are provisional.
-// MATCH (865 bytes). Pass by opus (issue 5023), from 98.3%.
 //
 // What the function does: a visibility test for one unit. It returns 1 at once
 // if the unit's map pointer (f96) is the map asked about, or 0 if flag 4 of the
@@ -9,38 +8,6 @@
 // p + (def->f176,0,0), at p + (f176,-f17a,f17e), and finally at p again. The
 // first three go through IsPointVisible unless the player's flags say to use the
 // explored byte map instead; the fourth inlines the shared visibility bit mask.
-//
-// The fix for the last 6 bytes (the fourth test's g_game load, which every
-// earlier pass had one block too high, in EBP at the join after the third
-// test's call, instead of in the fourth block, in EBX, right after the
-// `u->def` load): the two call-site helpers IsVisible and IsVisible2 are single
-// `return cond ? explored : IsPointVisible(...)` ternaries, not an `if` with two
-// returns. With the `if` form the inlined helper's two returns make the join a
-// merge of two return paths and MSVC hoists the next test's g_game CSE up to
-// it; with the ternary it stays where the original has it. The fourth test's
-// helper (IsVisible3) must keep its `if` form, which is what gives the
-// `xor ecx,ecx / test eax,eax / setne cl` normalisation on all four exits (as a
-// ternary it scores 95.9).
-//
-// Modelling points the bytes force, kept from the earlier passes:
-//  - The 12-byte local is three ints (16.16), but every test reads only the
-//    HIGH word of each, through a cast to a struct of six shorts (the shape
-//    already matched in src/ai/ai_player_408090.cpp).
-//  - The explored byte map is spelled differently per call site: test 1
-//    through the Get method (IsExplored), tests 2 and 3 as a plain index
-//    (IsExplored2; using one helper for tests 1 to 3 scores 89.0 / 89.6), and
-//    test 4 through a row pointer local (IsExplored3).
-//  - IsExplored3 keeps its branchy `if (contains) { if (d[tx] != 0) return 1; }
-//    return 0;` shape so MSVC cannot range-track the value and keeps the
-//    normalisation.
-//
-// Background for the inliner, measured this pass: with IsPointVisible defined
-// inline and one uniform IsVisible for all four tests, MSVC 5 inlines it at
-// some call sites and calls it at others (patterns such as CCII, CICI, ICIC
-// over the four tests, depending only on the helper spellings), so the
-// original's "call, call, call, inline" can also be a single inline helper
-// whose last call site won the inline budget. That route scored at most 63.6
-// here; the explicit IsSeen for the fourth test is what matches.
 #pragma pack(push, 1)
 struct MapSize_00465ac0 {
     unsigned int width;
@@ -130,6 +97,8 @@ static inline int IsSeen(Map_00465ac0* map, Position_00465ac0* pos)
             (1 << g_game->playerIndex)) != 0;
 }
 
+// Plain index here, Get method in IsExplored: one helper for tests 1 to 3
+// does not match.
 static inline int IsExplored2(Map_00465ac0* map, Position_00465ac0* pos)
 {
     int tx = pos->x >> 5;
@@ -140,6 +109,7 @@ static inline int IsExplored2(Map_00465ac0* map, Position_00465ac0* pos)
     }
     return 0;
 }
+// IsVisible and IsVisible2 stay single ternaries, not an if with two returns.
 static inline int IsVisible(Map_00465ac0* map, Position_00465ac0* pos)
 {
     return (g_game->flags & 2) == 2 ? IsExplored(map, pos) : IsPointVisible(map, pos);
@@ -148,6 +118,7 @@ static inline int IsVisible2(Map_00465ac0* map, Position_00465ac0* pos)
 {
     return (g_game->flags & 2) == 2 ? IsExplored2(map, pos) : IsPointVisible(map, pos);
 }
+// Branchy shape stays: lets nothing range-track the value.
 static inline int IsExplored3(Map_00465ac0* map, Position_00465ac0* pos)
 {
     int tx = pos->x >> 5;
@@ -161,6 +132,7 @@ static inline int IsExplored3(Map_00465ac0* map, Position_00465ac0* pos)
 }
 
 
+// Stays an if: gives the normalisation on all four exits.
 static inline int IsVisible3(Map_00465ac0* map, Position_00465ac0* pos)
 {
     if ((g_game->flags & 2) == 2)

@@ -1,7 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // std::_Tree<...>::upper_bound(const _K&) from MSVC 5's <xtree>: it returns
-// iterator(_Ubound(_Kv)); _Ubound is inlined here, so its std::_Lockit scope
-// ends before the iterator is constructed into the hidden return buffer.
+// iterator(_Ubound(_Kv)).
 // DAT_00528a54 is the tree's _Nil node and head->parent is the root. Same
 // shape as 0x4dd250 (the standalone _Ubound) and 0x4dc620.
 #include <yvals.h>

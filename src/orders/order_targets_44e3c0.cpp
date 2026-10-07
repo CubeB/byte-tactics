@@ -4,10 +4,6 @@
 // set, it aims at the reference unit's predicted position, optionally adding
 // a direction offset from the fixed-point trig helpers; otherwise it just
 // places itself at terrain level using the unit definition's height.
-// Match notes: `pos` must be taken through a local pointer (`p = &pos`) so the
-// struct-assignment destination stays in edi, and bit 22 of the unit
-// definition flags must be a 1-bit bitfield so MSVC emits `shr` + `test dl,1`
-// instead of folding it into `test [mem], 0x400000`.
 #pragma pack(push, 1)
 
 struct Vec3_0044e3c0 {
@@ -21,6 +17,7 @@ struct UnitDef_0044e3c0 {
     short field_21c;                       // +0x21c
     char unknown_21e[0x241 - 0x21e];
     unsigned int unused : 22;              // +0x241
+    // Must be a 1-bit bitfield, not folded into a mask test.
     unsigned int flag22 : 1;               // bit 22 of the flags
 };
 
@@ -81,6 +78,7 @@ int Class_0044e3c0::FUN_0044e3c0(Vec3_0044e3c0* out)
     if ((f & 1) && !(f & 0x80)) {
         if (target == 0 || target->field_82 == g_game->field_142b7)
             return 0;
+        // Through a local pointer: keeps the struct-assignment destination in edi.
         Vec3_0044e3c0* p = &pos;
         *p = GetPiecePosition(target, field_10);
         if (flags & 2) {

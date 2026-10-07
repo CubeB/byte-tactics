@@ -1,166 +1,5 @@
 // Decompiled by GPT-5.6-Terra, finished by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
-//
-// ---- mimo-v2.6-pro pass (issue 4035), best still 93.7% (576/568) ----
-// Mapped every spelling to one of two clean attractors, and the target sits
-// between them. (A) plain by-value pair (this file): `add ebx,0x6a` (the
-// inliner turns `from` into a live pointer, evicting unit2 from ebx), from
-// fields interleaved with the to loads, sub order dy,dz,dx, f/s loaded last,
-// from.x/from.z spilled to [esp+0x10]/[esp+0x18] with from.y in ebx. (B) any
-// real copy of unit2->pos (CopyPos struct-return helper, call-site Vec3
-// aggregate init, or helper taking Unit* and copying inside): the original's
-// `lea edx,[ebx+0x6a]` with ebx kept as unit2 (tail reload gone), but MSVC
-// enters the inlined call's argument setup: f/s are loaded and PUSHED FIRST,
-// all THREE copy fields are stored (from.y store NOT dead), and the sub order
-// is dz,dy,dx with pushes interleaved. The target = A's spill layout (only
-// x/z stored, y kept in ebp) + B's edx addressing + a third schedule (subs
-// dx,dy,dz batched before the f/s loads).
-// New facts this round: (1) the frame's middle slot [esp+0x14] is NOT from.y's
-// home; it is the dz.hi spill of both distance tails (`mov [esp+0x24],edx`
-// after the four _allmul pushes), so the three slots are +0x10 from.x, +0x14
-// dz.hi, +0x18 from.z, and the from reads go through &unit2->pos (a forwarded
-// copy), not through a home; (2) named dx/dy/dz and fx/fy/fz locals are ALWAYS
-// flattened into the same schedule (singly and combined, with and without
-// CopyPos), so statement order is not the lever; (3) moving w (s/f source) into
-// the helper body so f/s load late does not survive CopyPos's arg setup (f/s
-// still push first); (4) out-param delta helpers (the 0x49e570 shape, both
-// aggregate-by-value and all-scalar forms), reference params, `Vec3* p=&from`
-// in the body, a dead `unit2 = keep` store, and swap/assign forms of the body
-// all flatten to attractor A or to the 49.8% direct shape (no spills, w moves
-// to ebx, register rotation of the whole function changes).
-// Scored this round: only check.py on the saved 93.7% file (confirmed); all
-// new variants judged from their /Fa blocks, none reached the target block's
-// 22 instructions. Remaining lever per the guide is the register-allocator
-// tie that puts &from in ebx/ebp instead of scratch edx in shape A.
-// issue-3175-r1 GPT-6.1-sol: baseline confirmed at 93.7% (576/568). Changing the
-// inline helper's two range parameters from int to unsigned int was byte-identical;
-// introducing a named Vec3 copy of unit2->pos before the helper fell to 92.1%
-// (579 bytes), so the original by-value argument form remains best. One malformed
-// scratch edit failed to compile and is not a scored variant. Still differs in the
-// line-of-fire block: MSVC materializes unit2->pos as a pointer in ebx/ebp and reloads
-// unit2/x, while the target copies x/z into dead argument homes and keeps ebx as unit2.
-// #2981 retry by GPT-6.1-sol: three checks retained 93.7% (576/568); the
-// line-of-fire block still reloads unit2 after copying its position.
-// Retry #1736: GPT-6.1-sol verified the saved source at 93.7% (576/568); no MATCH. The line-of-fire block still reloads unit2 after copying its position.
-// deepseek-v4.1 pass (issue 2573): the helpers' parameter ORDER is not the lever either.
-// Reversing the two by-value aggregates (and swapping the call arguments and the
-// subtraction so the code stays semantically identical, which per the guide should make
-// MSVC copy unit2->pos first, as the original does) perturbs the ENTIRE function's
-// register rotation (first block emits `mov ecx,[edi+0x111]` for `mov eax,...`) and lands
-// at 81.3%/579 (v1); moving the scalars in front of the aggregates, (int s, int f, Vec3 to,
-// Vec3 from), gives the same 81.3%/579 shape (v2). The complete 768-set headers.py --cpp
-// sweep is inert: every set is at most 93.7%, the best ones (`<string>`, `<vector>`,
-// `<map>`, `<list>`, `<iostream>` on top) byte-identical to this file, and adding
-// <string.h>, <stdio.h> or <memory.h>, or swapping the two includes already present, is
-// byte-identical too. Still exactly the one diff: ours materialises &from in ebp
-// (`mov ebp,ebx` after `add ebx,0x6a`) and reloads ebx for the second distance tail.
-// Partial, 93.7% (576 of 568 bytes; up from 90.9%). Logic, offsets and every branch match.
-// Two things moved it: `(height >> 1) + whole` (not `whole + (height >> 1)`) gives the
-// original's `add edx, ecx` operand order in the half-height test, and the two includes
-// below change MSVC's register choice in the sea-level tests (headers.py found them;
-// without them the def pointer and the y word swap registers).
-// What still differs, all in the line-of-fire block: the original copies unit2->pos
-// (x to [esp+0x10], z to [esp+0x18], y kept in ebp) with `lea edx,[ebx+0x6a]`, keeping
-// unit2 in ebx for the second distance tail; here MSVC does `add ebx,0x6a` and reloads
-// ebx from the stack afterwards, so the tail differs by one reload (8 bytes).
-// Tried: by-value and by-pointer Vec3 params in every order, plain-int Vec3, local
-// copies (the copy is then optimised away, frame shrinks to 8), dx/dy/dz statement
-// orders, def pointer locals; pointer params make MSVC merge the two distance tails.
-//
-// ---- space-bunny-free pass, 23 scratch variants, no improvement, best still 93.7% ----
-// Verified first, both cheap: the call count is 9 in the original and 9 here (4x
-// _allmul, 4x _allshr, 1x SolveLaunchAngle), so no call is missing. `ret 0xc` against
-// the 3-arg declaration and SolveLaunchAngle's `ret 0x14` against 5 int args are both
-// right, so the calling convention is NOT the cause.
-// One divergence region, at 0x49ad2c (`je`), class (d)/(c): the whole line-of-fire
-// block is rescheduled and ours carries 3 extra instructions. First divergence is
-// 0x49ad2e `lea edx,[ebx+0x6a]` against our `add ebx,0x6a`, class (c) plus a
-// register-allocation consequence: MSVC turns the by-value `from` aggregate into a
-// live POINTER (ebx, then ebp) and reads the three fields through it, instead of
-// materialising the copy and reading the fields from the source with a lea'd scratch.
-// Killing that `add` is worth 3 instructions: the pointer copy, the reload of ebx
-// from the stack before the second distance tail, and one field access.
-// The frame is `sub esp,0xc` (3 dwords). With no pushes outstanding, [esp+0x10] is
-// the unit1 argument home and [esp+0x18] the weapon argument home, so the original
-// stores the 3-dword `from` copy over two DEAD argument homes and never writes its
-// third dword (from.y stays in ebp). Ours writes exactly the same two slots, so the
-// aggregate home is already right; only the access path is wrong.
-// Best new lead, not enough on its own: making the aggregate copy REAL, by feeding
-// the first by-value parameter from a helper that returns Vec3 by value
-// (`static inline Vec3 CopyPos(Unit* u) { return u->pos; }`), does produce the
-// original's `lea edx,[ebx+0x6a]`, keeps ebx alive and deletes the tail reload. But
-// it scores 92.1% (579 bytes) because MSVC then stores all THREE fields (the return
-// buffer is filled completely), loads w->field_c8 and w->field_68 and pushes them
-// FIRST instead of last, and orders the differences dz, dy, dx instead of dx, dy, dz;
-// its aggregate home also lands 4 bytes higher. So: real copy fixes the register
-// choice, and the next person needs a form that is a real copy without the full
-// three-field store.
-// Everything measured, all scratch variants in build/scratch/0x49abb0/: 93.7%/576 is
-// the ceiling and is byte-stable for w1 (block-scoped `Unit* t = unit2` copy), w2
-// (the two scalar params swapped), w11 (`== -32768` instead of `(short)0x8000`) and
-// v16 (dx/dy/dz in named int locals), all byte-identical to this file. Worse: v2 and
-// w10 (Vec3 param order swapped) 92.1%/579, v5/v8/v12/v13/v14/v15 (a real local copy
-// of unit2->pos, by assignment, by struct-returning helper, or with named dx/dy/dz)
-// 92.1%/579, v1/v7/x3/x5 (the 0x49aa80 form, plain expressions, no by-value Vec3)
-// 49.8%/538 - and that last one shows why the by-value aggregate is load-bearing:
-// without it the line-of-fire block steals edi, the weapon-def pointer, and the tail
-// has to reload it. v3/v4 (one Vec3 by value, the other by pointer) 76.8% and 75.2%,
-// w8 (`const Vec3&`) 75.2%, and a Vec3 class with a user copy constructor does
-// not emit the function at all (0 bytes).
-// GPT-6.1-sol attempted two-field by-value aggregates with 8-byte and padded 12-byte
-// layouts; both changed the frame/register allocation and scored 75.2%. A malformed
-// aggregate call failed to compile. Best remains 93.7%, with the line-of-fire block
-// differences described above.
-// Conclusion: the by-value Vec3 pair is right, and the last 6.3% is one register
-// allocator decision inside the line-of-fire block. Lead #1431 introduced a local pointer to unit2->pos at the call site; output stayed byte-identical at 93.7%. It is not an operand order, a
-// frame size, a call count or a convention problem, and it is not reachable by
-// reordering the arguments.
-// DeepSeek V4.1 Flash pass (issue 1732): 25 scratch variants, no gain, best still 93.7%.
-// Established: the from=x/z stores already land in the original's [esp+0x10]/[esp+0x18]
-// slots; the whole 8-byte gap is 2 instructions: `mov ebp,ebx` (the inliner materialises
-// &from in ebx/ebp instead of the original's scratch edx) plus the resulting from.x
-// reload `mov ebx,[esp+0x10]` and the tail `mov ebx,[esp+0x24]` unit2 reload. The
-// original keeps ebx=unit2 and reads from.x straight from [ebx+0x6a]. Only the FIRST
-// by-value aggregate param (from=unit2) keeps this shape: making unit2 the second
-// aggregate param, or a CopyPos struct-return helper for unit2, makes MSVC fully copy
-// all three fields into [esp+0x18..0x20] and scores 92.1 (579). CopyPos for unit1
-// (second param) or both scores 93.7 (576, byte-identical). Direct expressions (49.8),
-// one by-value + one pointer/reference (76.8/75.2), pointer params (49.8), named dx/dy/dz
-// temps, param-order permutations of s/f all stay flat or worse. It is the register the
-// inliner picks for &from, not the expression.
-// deepseek-v4.1 pass (issue 2357): v1 Dist2 taking Unit* instead of Vec3*, v2 inline
-// definition order swapped, v3 named `short angle` local, v4 a local `Unit* u2`, v6 both
-// helpers declared `static` without `inline`, v7 named s/f locals: all byte-identical to
-// this file at 93.7%/576, so the spill of unit2 and the ebx vs edx choice for &from are
-// not reachable from those. v5 (one `&&` condition instead of nested ifs) drops the
-// original's `shr eax,1; test al,1` for `test al,2`, so the nested-if shape is load-bearing:
-// 574 bytes but 93.0%. Still 3 extra instructions in the line-of-fire block.
-//
-// ---- space-bunny-free pass (issue 4352): 93.7% -> MATCH (576 -> 568 bytes) ----
-// The lever every earlier pass missed: the subtraction in the line-of-fire helper
-// is a real `operator-` on the point struct taking both operands BY VALUE and
-// returning a Vec3 by value. Nothing else about the block changes: the same two
-// by-value aggregates, the same four pushed arguments, the same -0x8000 test.
-// With the operator- boundary MSVC builds the two 12-byte argument copies as one
-// setup unit, so it emits `lea edx,[ebx+0x6a]`, keeps unit2 in ebx across the
-// call and reloads nothing in the second distance tail. Written as plain field
-// expressions (or with a real local copy, a struct-returning CopyPos helper, or
-// pointer parameters) the block collapses to the 93.7% attractor, which spends
-// `add ebx,0x6a` on &unit2->pos and pays for it with the pointer move, the
-// from.x reload and the unit2 reload: 3 extra instructions, 8 extra bytes.
-// The copy order is what the allocator is sensitive to, and by-value aggregates
-// are set up right to left, so the parameter order has to be the reverse of the
-// arithmetic's: the helper is declared (to, from) and called
-// (unit1->pos, unit2->pos), and its body reads `from - to`. That reads
-// backwards, so both the operator's parameters and the helper's are named for the
-// order the caller passes them rather than for the order the subtraction consumes
-// them; see the two comments below. Swapping either one back (getting the
-// "obvious" source spelling right) costs the match: 92.9% and 80.9%.
-// The permuter (15 minutes, 8230 candidates, no gain from 93.7%) is what pointed
-// at statement reordering and operand order as exhausted; the missing construct
-// was an inlined operator, which its catalogue cannot invent.
-// Verified byte-identical by tools/check.py 0x49abb0: MATCH, 568 of 568 bytes,
-// all eleven linker-filled references resolving (g_game, _allmul, _allshr,
-// SolveLaunchAngle).
+// Both includes change the register choice in the sea-level tests.
 #include <stdlib.h>
 #include <math.h>
 #pragma pack(push, 1)
@@ -271,37 +110,7 @@ static inline int Dist2_0049abb0(Vec3_0049abb0* b, Vec3_0049abb0* a)
     return (int)(((__int64)dx * dx) >> 32) + (int)(((__int64)dz * dz) >> 32);
 }
 
-// deepseek-v4.1-flash pass (issue 3386): ~50 scratch variants, no gain, best still
-// 93.7% (576/568). Confirmed the inlined helper BODY is inert: the two by-value
-// aggregates, const-qualified or not, named or not, with fx/fy/fz locals read in
-// every order, all compile byte-identical to this file. So is the signature
-// permutation (from/to/s/f: FTSE is the only 93.7 order; FTES 92.7, TFSE/TFES 92.1)
-// and the from-by-value/to-by-pointer, to-by-value/from-by-pointer, both-pointer,
-// Unit*-taking forms (76.8, 75.2, 49.8). A real copy of unit2->pos at the call site
-// reaches the original's `lea edx,[ebx+0x6a]` but stores all three fields into a
-// 4-higher home and pushes s/f first (92.1), so the original copy is the inlined
-// FORMAL materialization with the dead y store eliminated, not a source local.
-// <windows.h>, <stdio.h>, <memory.h>, <vector>, <string>, <iostream>, <map>, <list>
-// on top of the existing includes: 93.7 or worse. The only remaining diff is the
-// register the inliner picks for &from (ours ebx then ebp, original edx), which forces
-// the `add ebx,0x6a` / tail reload of unit2 in the line-of-fire block.
 // FUNCTION: 0x49abb0
-// deepseek-v4.1-flash (issue 3404): five checker runs, no gain, best still 93.7% (576/568).
-// A `Vec3_0049abb0* from = &unit2->pos;` local at the call site, helper-body `int fx/fy/fz`
-// copies, `Vec3_0049abb0* p = &from;` inside the helper and a compound
-// `w->flags.bit1 && LineOfFire(...) == (short)0x8000` condition are all byte-identical (93.7)
-// or worse (the compound condition: 93.0 / 574). The single residual hunk is unchanged: ours
-// does `add ebx,0x6a` and reloads unit2 from [esp+0x24] after the call, the original
-// `lea edx,[ebx+0x6a]` keeps unit2 in ebx live for the second distance tail.
-// deepseek-v4.1-flash (issue 3914): four checker runs, no gain, best still 93.7% (576/568).
-// Spelling the line-of-fire call DIRECTLY (no helper) drops to 49.8% (538 bytes), so the
-// inlined by-value-helper form is confirmed. Pre-reading from.x/from.y/from.z into named
-// ints inside the helper is byte-identical (93.7/576), and declaring the helper as
-// (Vec3 to, Vec3 from, ...) with the call made (unit1->pos, unit2->pos, ...) so the
-// semantics stay identical gives 92.1% (579 bytes): the copy of the to aggregate moves to
-// the front and perturbs the block. The single residual hunk is unchanged: ours does
-// `add ebx,0x6a` and reloads unit2 from [esp+0x24] after the call, the original
-// `lea edx,[ebx+0x6a]` keeps unit2 in ebx live for the second distance tail.
 int __stdcall WeaponCanReachUnit(Unit* unit1, Unit* unit2, unsigned char weapon)
 {
     WeaponDef_0049abb0* w = unit1->weapons[weapon].def;
@@ -309,6 +118,7 @@ int __stdcall WeaponCanReachUnit(Unit* unit1, Unit* unit2, unsigned char weapon)
     if (w->flags.bit16) {
         if (!unit2->def->flags.bit19 && unit2->pos.y.parts.whole > g_game->sea_level)
             return 0;
+        // Written (height >> 1) + whole: sets the add's operand order.
         if (unit2->def->flags.bit12 && (unit2->def->height >> 1) + unit2->pos.y.parts.whole > g_game->sea_level)
             return 0;
         return Dist2_0049abb0(&unit1->pos, &unit2->pos) <= w->range * w->range;
@@ -320,6 +130,7 @@ int __stdcall WeaponCanReachUnit(Unit* unit1, Unit* unit2, unsigned char weapon)
         return 0;
     if (w->flags.bit17 && (unit2->state & 3) != 2)
         return 0;
+    // Nested ifs, not one && condition: the flag test codegen differs.
     if (w->flags.bit1) {
         if (LineOfFire_0049abb0(unit1->pos, unit2->pos, w->field_68, w->field_c8) == (short)0x8000)
             return 0;

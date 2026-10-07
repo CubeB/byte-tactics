@@ -1,16 +1,12 @@
 // Decompiled by mimo-v2.6-flash. Names are provisional.
 // std::vector<Unit*>::insert(iterator _P, const T& _X) from MSVC 5's <vector>
 // (the two-argument overload, VECTOR line 146): remembers the offset, calls
-// insert(_P, 1, _X) (inlined here), then returns begin() + offset. This is the
-// overload the push_back sites inline; taking its address emits it out of
-// line. Element type is Unit* (0x406c00.cpp).
-//
-// The original's file was compiled with __stdcall as the default, so its
-// std::_Construct instantiation (0x406c70, ret 8) pops its own arguments; a
-// non-template overload forwarding to it reproduces that (0x405d90.cpp).
+// insert(_P, 1, _X), then returns begin() + offset. Element type is Unit*
+// (0x406c00.cpp).
 struct Unit;
 void __stdcall FUN_00406c70(Unit**, Unit* const*);
 namespace std {
+// Non-template overload forwarding to the __stdcall 0x406c70: it pops its own arguments.
 inline void _Construct(Unit** dest, Unit* const& src) { FUN_00406c70(dest, &src); }
 }
 #include <vector>

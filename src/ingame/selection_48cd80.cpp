@@ -2,16 +2,6 @@
 // Picks what lies under the view point: in the unit area, the listed unit
 // with the lowest value whose box contains the point (branch A); otherwise
 // the nearest slot within distance 2 (branch B).
-//
-// Claude Opus 5.5 (#4722): MATCH. Branch A walks the id list with the
-// pointer itself (`i++, ids++` and `units[*ids]`), not `ids[i]`, and branch B
-// reads both coordinates through p, dy first. c2prio showed what decided the
-// mirrored p/zero pair of every earlier pass: with `ids[i]`, the strength-
-// reduced id pointer was a compiler temporary of priority 21, coloured after
-// the two hoisted branch-B coordinate loads (28 each), which then took esi
-// and edi and left p's split piece only edi. As a named, incremented local
-// the pointer has priority 30 and takes ebp first; the coordinate loads then
-// get edi/esi and p's piece esi, as in the original.
 #pragma pack(push, 1)
 struct Point_0048cd80 {
     int x;                             // +0x0
@@ -84,6 +74,7 @@ unsigned short __stdcall FUN_0048cd80(void)
         unsigned short* ids = g_game->list;
         if (ids == 0)
             return 0;
+        // Walk the id list with the pointer itself (i++, ids++), not ids[i].
         for (int i = 0; i < g_game->count; i++, ids++) {
             Unit* u = &g_game->units[*ids];
             if (u->field_a6 != 0) {
@@ -102,6 +93,7 @@ unsigned short __stdcall FUN_0048cd80(void)
         int best = 99999;
         Slot_0048cd80* s = g_game->list2;
         for (int i = g_game->count2; i > 0; i--) {
+            // Both coordinates are read through p, dy first.
             int dy = s->y - p->y;
             int dx = s->x - p->x;
             int d = dx * dx + dy * dy;

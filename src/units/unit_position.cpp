@@ -370,10 +370,6 @@ void __stdcall SnapUnitToGround(Unit* unit)
 //
 // The bit 19 branch builds the height in a 16.16 `Fixed` union local and
 // copies the whole union into pos.y (as 0x4589c0 does with its `Fixed yv`).
-// Every spelling that assigned an int let MSVC 5 fold
-// `(draft * 0xffff + sea) << 16` into `(sea - draft) << 16`, or, with the fold
-// blocked by a pointer or volatile, rotate the registers (88.8% at best); the
-// union copy keeps the original's product, sum and shift in place.
 // FUNCTION: 0x48a870
 void __stdcall UpdateUnitHeight(Unit* unit)
 {
@@ -388,6 +384,7 @@ void __stdcall UpdateUnitHeight(Unit* unit)
                     unit->pos.y.value = GetGroundHeight(&unit->pos) << 16;
                 }
             } else if (unit->type->f241.bits.on_water) {
+                // Union copy: an int would fold the product, sum and shift into (sea - draft) << 16.
                 Fixed h;
                 h.value = unit->type->draft * 0xffff + g_game->seaLevel;
                 h.value <<= 16;
@@ -426,21 +423,10 @@ unsigned short __stdcall GetHeadingBetweenOrDefault(Vec3* from, Vec3* to, unsign
 // the map (AddUnitToMap) with its path redone (UpdateUnitLineOfSight). Either way flag
 // 0x10000 (the "position changed" bit UpdateUnitHeight tests) is set, and the new
 // flags value is returned.
-//
-// MATCH (206 of 206 bytes; was 87.2%, Claude Sonnet 5.5 #755). The flag update
-// was already right (`and edi, 3` masking param_5 in place and `and al, 0xfc`
-// clearing the two low bits, thanks to the `(short)` cast on the OR operand). The
-// last difference was the first block: the original sign-extends origin.x into eax,
-// shifts it there and copies it to ecx (`movsx eax, ax; shl eax, 0x13; mov ecx, eax`)
-// after storing the origin copy, which is what writing the offset as a
-// multiplication, `origin.x * 0x80000`, gives (the shift `origin.x << 19` sign-extends
-// straight into ecx). The declaration-count sweep has only two states (84.2 and 87.2
-// percent, neither a match), so compiler state was not involved, and named
-// temporaries for the shifted offsets, a flags-carrying helper, a local copy of
-// param_5 and reordering the condition did nothing.
 static inline Point16 WorldToCell(Vec3 v, Point16 origin)
 {
     Point16 c;
+    // Multiplication, not a shift: the offset is sign-extended and copied in one go.
     c.x = (v.x - origin.x * 0x80000 + 0x80000) >> 20;
     c.y = (v.z - origin.y * 0x80000 + 0x80000) >> 20;
     return c;
@@ -456,6 +442,7 @@ int __stdcall SetUnitPosition(Unit* unit, Vec3 pos, int param_5)
         RemoveUnitFromMap(unit);
         unit->pos = pos;
         unit->cell = cell;
+        // The (short) cast gives the in-place two-bit mask.
         unit->flags = (unit->flags & 0xfffffffc) | (short)(param_5 & 3);
         AddUnitToMap(unit);
         UpdateUnitLineOfSight(unit);
@@ -503,30 +490,11 @@ void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4)
 // the unit is either re-attached under the second unit (which then also gets
 // bit 17 of +0x110 when the order byte is 0xff) or detached (bit 17 cleared,
 // the list object's push is run). The byte at +6 is then blended into the two
-// low bits of the type's byte at +0x2e (the XOR blend is MSVC 5's read
-// modify write of a two bit field), and a "BECARRIED" child is created when the
+// low bits of the type's byte at +0x2e, and a "BECARRIED" child is created when the
 // owner is a human or computer player, its unit list is not empty, a second
 // unit was given, and that unit's type does not have bit 9 of the word at
 // +0x241 set. FUN_0048c9b0 then refreshes the order, and it is only reached on
 // the paths that got that far: every test that fails jumps past it.
-//
-// MATCH. The block that stores bit 17 is a named bool plus a bitfield store,
-// with the comparison done on a `char` against -1 and its result masked with
-// `& 1` before the assignment:
-//
-//     bool v = ((order->param == -1) & 1);
-//     u->f110.bits.b17 = v;
-//
-// That combination gives every part of the original's ten instruction block:
-// the `& 1` keeps the field width mask `and eax, 1` (which a plain bitfield
-// store of the comparison drops), the named bool keeps the compare's byte
-// operand in its own register (cl instead of folding it into the result
-// register), and the `char` against -1 is a byte compare (`cmp cl, 0xff`) whose
-// operand load is scheduled between the storage word's load and its clear.
-// Earlier passes tried each half alone: a bitfield store of `param == 0xff`
-// with an `unsigned char` sinks the clear below the comparison and puts the
-// operand in dl, and `& 1` inside a whole word read modify write keeps the
-// operand in cl but loses the width mask and gets the value computed first.
 // FUNCTION: 0x48ab70
 void __stdcall ApplyAttachUnit(Order* order)
 {
@@ -557,6 +525,7 @@ void __stdcall ApplyAttachUnit(Order* order)
                             u->owner = t;
                             u->next = t->first;
                             t->first = u;
+                            // Named bool, `char` compared with -1, masked with `& 1`: keeps the field width mask.
                             bool v = ((order->param == -1) & 1);
                             u->f110.bits.b17 = v;
                         } else {
@@ -581,37 +550,7 @@ void __stdcall ApplyAttachUnit(Order* order)
     }
 }
 
-// MATCH (Claude Opus 5.5, #5296). What was left at 98.7% (the `off = 0` store
-// scheduled early, the loop head loading off before g_game, and the
-// `if (0) { g_leak = &off; }` escape that kept off in memory) all came from
-// one thing: the front-end symbol id of g_game against those of the locals.
-// With `extern g_game;` at file scope g_game is numbered before every local
-// of the function. Declared inside the function after off, it is numbered
-// after it, and then the plain source (no escape, the stores in the
-// original's order `*cnt = 0; i = 0; off = 0;`) compiles to the original:
-// off stays in its frame slot, g_game is the SIB base at the loop head and is
-// loaded first.
-//
-// Checked with tools/c2prio.py --symbols and enum padding in scratch copies:
-// with g_game back at file scope (id 258), an enum of 65400 or 65450 entries
-// between g_game and the function also matches (off's id wraps past 65536
-// to 166 or 216 in 16 bits, below g_game's 258), while 65500 (off at 266)
-// and no padding both give 75.5% / 844 bytes. So the deciding comparison is
-// g_game's id against off's, modulo 65536, as in 0x493bf0 (SIB base order of
-// the g_game stores there). The other explanation is a lost header prefix that
-// puts the 65536 wrap between g_game and this function (docs/c2-regalloc.md,
-// "Symbol ids"); no real header set reaches that, so the function-scope extern
-// is what is written here. The merged Game view keeps g_game at file scope out
-// of this file so the block-scope extern stays a separate symbol.
-//
-// The merged Game view is `int ticks` (0x48b710 divides it signed), so the two
-// `% 30` tests here cast it to unsigned to keep the original's `div`.
-//
-// Kept from earlier passes, still needed: the flat continue chain with
-// PlayerMore(i) (a static inline testing the byte counter, which gives the
-// original's unfolded `xor al,al / cmp al,0xa / jae` entry test), and
-// RunOrders, FUN_0043bad0 and the def block inside
-// `if (k3 == 1 || k3 == 2)` (Claude Opus 5.5, #5106).
+// A static inline byte counter test: gives the unfolded loop entry test.
 static inline int PlayerMore(unsigned char i)
 {
     if (i >= 10) return 0;
@@ -624,7 +563,7 @@ void __stdcall UpdateAllUnits(void)
     int* cnt;
     unsigned char i;
     int off;
-    // Declared here, after the locals, not at file scope: see the notes above.
+    // Declared after the locals, not at file scope: its symbol id must follow off's.
     extern Game* g_game;
     cnt = &g_game->f14353;
     *cnt = 0;
@@ -665,6 +604,7 @@ void __stdcall UpdateAllUnits(void)
                                 u->f110.bits.b4 = 0;
                             }
                         }
+                        // Unsigned `% 30` (here and below) keeps the original's `div`.
                         if ((unsigned int)g_game->ticks % 30 == 0) {
                             int v = u->field_108 * 100 / u->type->f1fa;
                             if (v < 0) {
@@ -731,12 +671,7 @@ void __stdcall UpdateAllUnits(void)
 // counterpart is 0x48b3f0). The unit's type index (+0xa6) goes out in a bit
 // count taken from g_game+0x14393, and a unit with none of that is done.
 // The "advance one bit" tail is the tail of WriteBits's fast path written
-// out by hand, as in the matched 0x44f4a0, and it is the store through
-// stream->data that makes the compiler reload the unit's link pointer and test
-// it a second time. `!= 0.0f` is what MSVC 5 turns into the fcomp / C3 test
-// the original uses, and writing the conditional value as `!link ? 0 : ...`
-// (not `link ? ... : 0`) is what lays the zero arm out ahead of the load; the
-// `& 0xffff` is redundant on an unsigned short but the original keeps it.
+// out by hand, as in the matched 0x44f4a0.
 // FUNCTION: 0x48b200
 void __stdcall WriteUnitState(BitWriter* stream, Unit* u)
 {
@@ -745,10 +680,12 @@ void __stdcall WriteUnitState(BitWriter* stream, Unit* u)
     if (u->field_a6 == 0)
         return;
     stream->WriteBits(u->field_108, 0x10);
+    // `!= 0.0f` gives the original's fcomp / C3 test.
     stream->WriteBits((u->field_104 != 0.0f) ? 1 - (int)(u->field_104 * -254.0f) : 0, 8);
     stream->WriteBits(u->field_10e, 8);
     stream->WriteBits(u->flags & 3, 2);
     if (u->owner) {
+        // Hand-written advance: the store through stream->data reloads and retests the link.
         stream->data[stream->bit] |= 1 << stream->index;
         stream->index++;
         if (stream->index == 0x20) {
@@ -759,6 +696,7 @@ void __stdcall WriteUnitState(BitWriter* stream, Unit* u)
             }
             stream->data[stream->bit] = 0;
         }
+        // `!owner ? 0 : ...` lays the zero arm ahead of the load; keep the redundant `& 0xffff`.
         stream->WriteBits((!u->owner ? 0 : u->owner->id) & 0xffff, 0xf);
         stream->WriteBits(u->f9, 8);
     } else {
@@ -803,85 +741,12 @@ void __stdcall WriteUnitState(BitWriter* stream, Unit* u)
 // is re-registered (0x47cc30 then 0x4827b0). The last word in the packet goes
 // to the int at +0x20 of whatever the unit's own first pointer (at +0x00, not
 // the owner at +0x86 that the order record tests) points at.
-//
-// MATCHES (790 bytes). What the earlier 80.8% attempt had left as "one
-// allocator decision" was really three, and each needed its own source shape:
-//
-// 1. The order record's byte at +6 is the COLOUR, not the complement of the
-//    state byte. That is what puts the colour in ebx: the original's four uses
-//    of ebx between 0x48b532 and 0x48b6b3 are the two `order.param2` byte
-//    stores, the compare and the bitfield store, and nothing ever nots it, so
-//    the not-ed state temp is dead at the push of 0x48b516 and leaves ebx free
-//    for the colour. 0x48ab70's own comments agree: the byte at +6 is blended
-//    into two bits of the type's byte, and the matched writer 0x48b200 sends
-//    the colour as a two bit field of its own. `~state` there is 80.8% with
-//    ebx, ebp and the frame all shuffled; `colour` is 82.7% with the right
-//    registers.
-// 2. The colour is read as `int` but written through `(unsigned short)` in the
-//    bitfield store. A plain `int` local live across nine calls gets a frame
-//    home in MSVC 5 (`mov ebx,eax` *and* `mov [esp+0x34],ebx`, then a reload at
-//    the compare), and only the narrow store stops the home from existing. The
-//    narrowing cast is free (no instruction) and the value keeps the original's
-//    32 bit `cmp ebx, eax`, where an `unsigned short` local narrows it to
-//    `cmp bx, ax` (94.3%). 82.7% -> 95.2%.
-// 3. `fixed.x * 0x80000` instead of `(fixed.x << 19)`. Both lower to the same
-//    `shl`, but the multiply gives the front end a different tree to walk, and
-//    that is what produces the original's order: spill the pair to the frame,
-//    take the high half out of the frame first, then the low half out of the
-//    register. With the shift the high half is extracted five instructions
-//    late (95.2% -> MATCH). Reading +0x7e as a two short struct and copying it
-//    into a named local is also needed: it is the only way to get the high
-//    half out of the frame at all.
-// 4. The unit pointer read at the very end is +0x00, not the owner at +0x86
-//    that the 0x48b590 order record tests. Two different pointers, and the
-//    first attempt had both at +0x86.
-// 5. In the first order record the source assigns `param` before `param2`, and
-//    only that order leaves MSVC 5's `mov byte [esp+0x16], bl` after the two
-//    read calls, where the reverse order hoists it above them.
-//
-// The rest of the earlier notes still hold and are worth keeping:
-// - `int zero = 0` after the first read is what puts a 0 in ebp, and it is
-//   compared with `cmp ax, bp` (16 bit) and stored and pushed from ebp. Any
-//   spelling that lets the front end fold the 0 (a literal, or the declaration
-//   before the call) gives `test ax,ax`, `mov [eax+0x10],0` and `push 0`.
-// - `(u->tail.a & ~0xff) | u->player` is what the first argument of 0x4861d0
-//   is: MSVC 5 keeps the mask in the loaded dword and only replaces the low
-//   byte (`mov edx,[u+0x64] / ... / mov dl,[u+0xff] / push edx`), so the
-//   argument really does carry the tail's upper three bytes into a parameter
-//   that CreateUnitFromPacket uses as a player index (see "suspected bug" below).
-// - `__int64 alpha = (unsigned int)reader->ReadBits(8)` gives the original's
-//   `fild qword` with a constant 0 in the high word. A signed int gives a
-//   `cdq` the original does not have and `unsigned __int64` does not convert
-//   to float at all in VC5.
-// - 0x48b090's first parameter is a byte: the state byte is spilled with a
-//   byte store and pushed as a dword read back from that slot, and the second
-//   call pushes ebx (only its low byte is not-ed), neither of which MSVC 5
-//   does for an int parameter.
-// - The two order records share the slot of the 64 bit alpha, and its type
-//   byte is never stored: the original leaves the alpha's low byte there.
-// - The frame is 0x20 with the saved registers at the bottom, so the order
-//   record, the alpha, the tail and the spawn record all share those 32 bytes,
-//   the state byte and the 1/16 pair share the first dead argument slot, and
-//   the fixed point copy at +0x7e lives in the second one (MSVC 5 does overlay
-//   locals on dead incoming arguments).
-//
-// Dead ends, all of which the fix above supersedes, kept so nobody repeats
-// them: one shared order record instead of two (66.8%); reading the 1/16
-// pair's y before its x (80.2%, and it moves the np frame slot with it); the
-// colour compared through `u->f110.bits.colour` or written as a hand written
-// `u->f110.all = (u->f110.all & ~3) | colour` (both give the xor/and/xor
-// bitfield form, or `and al, 0xfc`); an `int colour` with an `& 3` at the read
-// (89.8%, but the mask is emitted eagerly and the store then needs the
-// xor/and/xor form); `unsigned short colour` as the local (94.3%, right
-// registers but `cmp bx, ax`); the colour through a `static inline` read
-// helper, which MSVC 5 inlines back to a range analysed int (66.4%); a union
-// around the colour (61.5%); the fixed pair read as two shorts out of the unit
-// (70.7%, two loads instead of one dword load and a spill).
 // FUNCTION: 0x48b3f0
 void __stdcall ReadUnitState(BitReader* reader, Unit* u)
 {
     extern Game* g_game;
     unsigned short type = (unsigned short)reader->ReadBits(g_game->field_14393);
+    // A local declared after the first read: keeps the 0 in ebp, compared as 16 bit.
     int zero = 0;
     if (type == zero) {
         if (u->field_a6 != zero)
@@ -899,12 +764,14 @@ void __stdcall ReadUnitState(BitReader* reader, Unit* u)
     }
     ((Block*)u->block)->field_10 = zero;
     u->field_108 = reader->ReadBits(0x10);
+    // Unsigned into an __int64: gives `fild qword` with no `cdq`.
     __int64 alpha = (unsigned int)reader->ReadBits(8);
     float scale = (float)alpha * DAT_004fd750;
     if (scale != u->field_104) {
         u->field_104 = scale;
         u->f110.bits.b13 = 1;
     }
+    // Byte-typed: SetStateBits takes a byte, spilled with a byte store.
     unsigned char state = (unsigned char)reader->ReadBits(8);
     u->SetStateBits(state, 1);
     u->SetStateBits((unsigned char)~state, zero);
@@ -913,6 +780,7 @@ void __stdcall ReadUnitState(BitReader* reader, Unit* u)
         Order order;
         order.id1 = u->id;
         order.id2 = (unsigned short)reader->ReadBits(0xf);
+        // `param` before `param2`: the reverse order hoists the byte store above the reads.
         order.param = (unsigned char)reader->ReadSignedBits(8);
         order.param2 = (unsigned char)colour;
         ApplyAttachUnit(&order);
@@ -934,6 +802,8 @@ void __stdcall ReadUnitState(BitReader* reader, Unit* u)
     tail.b = (unsigned short)reader->ReadBits(0x10);
     tail.c = (unsigned short)reader->ReadBits(0x10);
     tail.a = (unsigned short)reader->ReadBits(0x10);
+    // Named local copy of the +0x7e pair and `* 0x80000` rather than a shift:
+    // both keep the original's frame order.
     Point16 fixed = u->origin;
     Point16 np;
     np.x = (short)((pos.x - fixed.x * 0x80000 + 0x80000) >> 20);
@@ -944,6 +814,7 @@ void __stdcall ReadUnitState(BitReader* reader, Unit* u)
         RemoveUnitFromMap(u);
         u->pos = pos;
         u->cell = np;
+        // The (unsigned short) cast stops the int colour getting a frame home.
         u->f110.bits.colour = (unsigned int)(unsigned short)colour;
         AddUnitToMap(u);
         UpdateUnitLineOfSight(u);
@@ -961,11 +832,6 @@ void __stdcall ReadUnitState(BitReader* reader, Unit* u)
 // accepts it, until the stream is half full; then a 16-bit -1 end marker, one
 // more bit, the player's own unit (the one at ticks % the unit count) written
 // in full, the length patched into the header as two bytes, and the packet.
-//
-// The operand order of the byte-wide add in the first length byte is the one
-// register choice no source rewrite settled; the compiler state these two
-// headers leave behind does (36 sets in tools/headers.py's list, this the
-// smallest).
 // FUNCTION: 0x48b710
 void __stdcall SendUnitStates(Player* p)
 {
@@ -1024,9 +890,6 @@ void __stdcall SendUnitStates(Player* p)
 // every live owned unit is cleaned up (0x43dd20 and 0x48a870), and one more
 // stream bit picks the unit (tick % unit count) handed to the per unit reader
 // 0x48b3f0.
-//
-// `spawn` is declared inside the `if`: at function scope MSVC schedules the
-// two struct copies (pos, tail) one after the other instead of interleaved.
 // FUNCTION: 0x48b920
 void __stdcall ReceiveUnitStates(Player* p, unsigned int* data)
 {
@@ -1048,6 +911,7 @@ void __stdcall ReceiveUnitStates(Player* p, unsigned int* data)
         Unit* unit = &p->f67[index];
         unsigned short type = (unsigned short)reader.ReadBits(g_game->field_14393);
         if (unit->field_a6 != type) {
+            // Declared inside the `if`: at function scope the two struct copies are not interleaved.
             Spawn spawn;
             spawn.id = unit->id;
             spawn.type = type;

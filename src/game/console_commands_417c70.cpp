@@ -1,9 +1,7 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 // Draws a line from a world position to the same position shifted by
 // (dx, dz) whole map units, converting both ends to screen coordinates.
-// <stdio.h> is included for the only reason that it makes MSVC 5's register
-// allocator keep the shifted z value in ebx (as the original does); nothing
-// from it is used.
+// Unused include, kept: it makes the shifted z value stay in ebx.
 #include <stdio.h>
 
 struct Pos_00417bb0 {

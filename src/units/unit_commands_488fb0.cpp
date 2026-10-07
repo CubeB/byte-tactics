@@ -3,8 +3,7 @@
 // line, for the global vector of 0x488a00.cpp: 8-byte elements holding a
 // reference-counted string handle and an int. The copy constructor is
 // 0x489260 and the assignment 0x489240; the destructor releases the handle
-// through 0x4c9390. Taking insert's address makes the compiler emit the
-// template instantiation, as in 0x434470.cpp.
+// through 0x4c9390.
 #include <vector>
 
 class Class_004c9390 {
@@ -33,6 +32,7 @@ public:
     ~UnitCategory() { name.ReleaseRef(); }
 };
 
+// Taking insert's address is what makes the compiler emit the instantiation.
 typedef std::vector<UnitCategory> Vec_00488fb0;
 typedef void (Vec_00488fb0::*InsertFn_00488fb0)(
     Vec_00488fb0::iterator, Vec_00488fb0::size_type, const UnitCategory&);

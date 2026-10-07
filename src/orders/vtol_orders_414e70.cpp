@@ -123,10 +123,6 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 // Order handler "Repairing" (the hovering variant of 0x405300): the order
 // position follows the target, state 1 moves over it, state 2 spends worker
 // time on it until its health is full.
-// The order position is copied through a pointer local: MSVC then treats the
-// store as possibly aliasing order->target and re-reads it in state 0, and
-// keeps &order->pos in ebx for state 1. A plain `order->pos = ...` keeps the
-// target in ebx instead.
 // FUNCTION: 0x414e70
 int __stdcall VtolRepairUnitOrder(Unit* unit, Order* order, int flags)
 {
@@ -140,6 +136,7 @@ int __stdcall VtolRepairUnitOrder(Unit* unit, Order* order, int flags)
         QueueUnitSpeech(unit, 7, "Repairs unsuccessful.");
         return 5;
     }
+    // Copied through a pointer local, not `order->pos = ...`: changes what stays in ebx.
     Vec3* dst = &order->pos;
     *dst = order->target->pos;
     switch (order->state) {

@@ -1,29 +1,4 @@
 // Decompiled by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
-// MATCH. The one thing that fixed the last diff (the +0x1b63 player-base
-// materialization in esi at 0x48da14): the outer scan must read its bounds
-// through its own Player pointer local while the nested scan reads through a
-// SECOND, separate Player pointer local. A pointer local whose accesses all
-// fold into raw addressing (the outer loads sit where g_game+i and i*165 are
-// still live in ecx/eax) still makes MSVC emit the element address as a kept
-// `lea esi, [ecx+eax*2+0x1b63]` (the 0x4679a0 dead-lea pattern), and the
-// nested scan's folded accesses then rebase their displacements onto that
-// register (+0x67/+0x6b) instead of onto the partial base. Sharing one local
-// between the two scans makes MSVC merge the nested bounds loads with the
-// outer ones; using no local for the outer scan gives it no kept lea and the
-// nested loads fold 0x1b63 into +0x1bca (the old 79.1% shape). Compare the
-// matched siblings 0x48bf30 (head through one local, end through another) and
-// 0x48be00 (one local for both scans, everything through the kept lea).
-//
-// Notes on the rest of the match: at 0x48d9d3 and 0x48d9e1 a string argument
-// is still pushed, so [esp+0x14] is the counter's normal +0x10 slot and
-// [esp+0x1c] the player's normal +0x18 slot; these are allocated locals, not
-// saved registers. The first set (setA) stays at +0x1c and the final loop
-// tests it through that slot. The floating comparison tests x87 C3 and
-// accepts equality with zero as the source does. The original writes found =
-// 0 at 0x48db0e and found = 1 at 0x48dc17; a shared selection label gives
-// both paths their own store and the out-of-line success block. The counter
-// lives in ebx through the final loop and is spilled around the bit-test
-// masks that clobber it.
 
 #pragma pack(push, 1)
 
@@ -113,6 +88,8 @@ bool __stdcall SelectSquad(int id, int param_2)
     Unit32_0048d9a0* v;
     Unit32_0048d9a0* w;
     int found;
+    // The outer and nested scans each read through their own Player pointer
+    // local (q, r); sharing or dropping one changes the addressing.
     Player_0048d9a0* q = &g_game->players[g_game->localPlayer];
     for (u = q->unitsBegin; u <= q->unitsEnd; u++) {
         if ((u->flags & 0x20) && u->field_104 == 0.0f && u->field_fb == 0

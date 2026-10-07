@@ -1,26 +1,11 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by claude-opus-5-5. Names are provisional.
-// MATCH (claude-opus-5-5, issue 5064), from 86.5%. The list gadget's scroll
+// The list gadget's scroll
 // bar thumb: while the entry has the focus, either drag the offset (+0x140)
 // with the mouse or step it by one when the mouse is outside the thumb, then
 // clamp it to 0..field_136-1 and, if it changed, mark the holder dirty,
 // redraw (FUN_004a2580, FUN_004a2be0) and call the entry's callback. Without
 // the focus, a left or right press inside the gadget takes the focus, and a
 // press on the thumb starts a drag.
-//
-// What closed it: the clamp-and-notify tail is one inline helper,
-// OffsetChanged, called at the end of BOTH arms (drag and step). MSVC
-// cross-jumps the two identical copies into one, so the code is the same as a
-// single shared tail, but the duplicated zero uses (the clamp's compare and
-// store, the holder test) are what make MSVC keep the constant 0 in EDX from
-// the FUN_004ab5b0 test to the FUN_004a2580 call: the original's per-arm
-// `xor edx,edx`, `cmp [ebp+0x78],edx`, `cmp/mov word [ebx+0x140],dx` and
-// `cmp eax,edx`. With one shared tail (the 74.4% to 86.5% bodies of earlier
-// passes) the body was byte-identical to the original except that zero
-// register; a throwaway `e->field_157 = 0;` before the call proved it.
-// Spelling the arms with `e->off--` / `e->off++` and a store per path (not one
-// `e->off = v` after the if/else) is what gives the original's 16-bit
-// `mov ax,[ebx+0x140]` / `movsx ecx,ax` and the store that the no-change path
-// skips.
 
 #pragma pack(push, 1)
 struct Entry_004a4170 {                // 0x15b bytes, the table of 0x4a23b0
@@ -114,6 +99,7 @@ void __stdcall HandleSliderInput(Object_004a4170* obj, int index)
             obj->focus = -1;
             obj->field_78 = 0;
         }
+        // Inline OffsetChanged ends both arms: the duplicated zero uses keep 0 in EDX.
         if (obj->field_78) {
             int old = e->off;
             if (e->flags & 1)
@@ -122,6 +108,7 @@ void __stdcall HandleSliderInput(Object_004a4170* obj, int index)
                 e->off = obj->field_94 - obj->saved.y + p.y;
             OffsetChanged_004a4170(obj, index, e, old);
         } else {
+            // Per-path stores to e->off (not one after the if/else): keeps the 16-bit loads.
             int old = e->off;
             if (e->flags & 1) {
                 if (p.x < r2[0])

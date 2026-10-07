@@ -1,9 +1,7 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6. Names are
-// provisional. MATCH, 640 bytes. Adding <iostream> and <math.h> restores the shared floating-point
-// tail instead of duplicating the epilogue into both arms. Inline scale helpers and control-flow
-// rewrites did not change the previous 96.0% result. The quotient and comparison must retain float
-// conversions to reproduce the original integer-memory FPU multiply/divide forms. FindKind returns
-// zero on a miss, so the rescale then uses entry zero.
+// provisional.
+// FindKind returns zero on a miss, so the rescale then uses entry zero.
+// <iostream> and <math.h> are needed: they restore the shared floating-point tail.
 #include <iostream>
 #include <math.h>
 #include <string.h>
@@ -118,6 +116,7 @@ void __stdcall FUN_004a2e40(Dialog* param_1, char* param_2, int param_3) {
         Entry_004a2e40* peer = &entries[FindEntry(entries, param_2)];
         unsigned char pkind = peer->kind;
         Entry_004a2e40* e3 = &entries[FindKind(entries, pkind)];
+        // Keep the float conversions: the original uses integer-memory FPU multiply/divide.
         float q = (float)e3->field_136 * me->field_bc / me->field_be;
         if ((float)e3->field_140 != q)
             e3->field_140 = (short)q;

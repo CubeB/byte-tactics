@@ -1,29 +1,9 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by opus. Names are provisional.
-// MATCH. Builds one package directory in the growing buffer `out` (size,
+// Builds one package directory in the growing buffer `out` (size,
 // pointer): a header {count, entries offset}, then one 9-byte entry per file
 // or subdirectory (name offset, data offset, directory bit), recursing into
 // subdirectories and adding a 9-byte file record per file. Returns the
 // header's offset; *total collects the file sizes.
-// What made it match, after many sessions that stopped at or below 92.6:
-//  - The three later allocations go through one inline Grow() helper that
-//    returns the old size. That alone fixed the "second allocator block"
-//    (mov eax,[ebp]; mov esi,eax; ... lea eax,[ecx+edx]) that earlier notes
-//    called an allocator tie, and removed the need for the old isDirAttr
-//    padding hack. The first allocation stays written out: through Grow it
-//    loads out->size straight into root's register (94.9 against 95.6).
-//  - Each entry pointer is built in two steps, `e = (Entry*)(out->buf +
-//    entries); e += k;`. The one-expression form (out->buf + entries + k, any
-//    order, cast or integer form, about 20 spellings, all byte-identical)
-//    lets MSVC regroup it as (entries + k) + buf; the two-step form keeps
-//    (entries + buf) + k and materialises e, as the original does
-//    (95.6 -> 97.9).
-//  - The file record is addressed through the entry's own data field,
-//    `node = out->buf + e->data`, right after storing it. That second use of
-//    e is what stops MSVC folding the entry address into the store
-//    (add ecx,eax; mov [ecx+4],esi), and the read itself is folded away
-//    (97.9 -> MATCH).
-// The entry index k is a plain counter; MSVC strength-reduces it into the
-// k*9 byte offset kept at [esp+0x10].
 #include <io.h>
 #include <string.h>
 
@@ -90,6 +70,7 @@ unsigned int __stdcall HAPI_BuildArchiveDirectory(char* path, HapiBuf_004bd3b0* 
     unsigned int entries;
     int k;
 
+    // Written out, not through Grow: Grow loads out->size into the wrong register.
     unsigned int nsize = out->size;
     root = nsize;
     nsize += 8;
@@ -130,6 +111,7 @@ unsigned int __stdcall HAPI_BuildArchiveDirectory(char* path, HapiBuf_004bd3b0* 
             if (strcmp(fd.name, DAT_00502910) != 0 && strcmp(fd.name, DAT_0050a548) != 0) {
                 unsigned int nameOff = Grow(out, strlen(fd.name) + 1);
                 strcpy(out->buf + nameOff, fd.name);
+                // Two steps: a one-expression pointer gets regrouped as (entries + k) + buf.
                 ArchiveEntry* e = (ArchiveEntry*)(out->buf + entries);
                 e += k;
                 e->name = nameOff;
@@ -150,6 +132,7 @@ unsigned int __stdcall HAPI_BuildArchiveDirectory(char* path, HapiBuf_004bd3b0* 
                     e = (ArchiveEntry*)(out->buf + entries);
                     e += k;
                     e->data = nodeOff;
+                    // Addressed through e->data: this second use of e keeps the store unfolded.
                     Node_004bd3b0* node = (Node_004bd3b0*)(out->buf + e->data);
                     node->size = fd.size;
                     node->offset = 0;

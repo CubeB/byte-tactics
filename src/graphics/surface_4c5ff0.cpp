@@ -4,15 +4,6 @@
 // +0x50; otherwise it locks the primary DirectDraw surface, builds the
 // descriptor from the locked DDSURFACEDESC and from the block at +0xa0, and
 // clears bit 0 of the flag at +0x2c.
-//
-// How it matches (the earlier notes were stuck at 97.2%): the whole body is a
-// method of the display object, so `this` is the call result and MSVC does not
-// treat the desc.dwSize store as aliasing the surface loads; the store then
-// sinks between the argument pushes like the original. The Lock call lives in
-// a one-expression method of the embedded screen struct (+0x80), which keeps
-// the null test as `cmp [esi+0x88], edi` with a separate reload of the surface
-// (the same trick as UnlockSurface in 0x4c5fa0). Testing the result with a
-// one-case switch gives `test eax, eax` instead of `cmp eax, edi`.
 #include <string.h>
 #include <ddraw.h>
 
@@ -41,6 +32,7 @@ struct Display_004c5ff0 {
     int field_44;                    // +0x44
     char unknown_48[0x8];
     Out_004c5ff0 cached;             // +0x50
+    // Lock in a one-expression method: gives the separate surface reload.
     struct Screen {
         char unknown_0[0x8];
         IDirectDrawSurface* primary;
@@ -52,6 +44,7 @@ struct Display_004c5ff0 {
     int field_d4;                    // +0xd4
     int field_d8;                    // +0xd8
 
+    // Method of the display object: this is the call result.
     int LockMe(Out_004c5ff0* out)
     {
         if (field_44 != 0) {
@@ -62,6 +55,7 @@ struct Display_004c5ff0 {
             return 0;
         DDSURFACEDESC desc;
         desc.dwSize = sizeof(desc);
+        // One-case switch: tests the result with test eax, eax.
         switch (screen.Lock(&desc)) { case 0: break; default: return 0; }
         out->field_0 = field_d4;
         out->field_4 = field_d8;

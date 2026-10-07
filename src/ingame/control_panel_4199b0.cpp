@@ -4,10 +4,7 @@
 // as a short at +0xb6 (the same offset entry 1..n use for their text). Entries
 // whose byte at +0 is 1 have either a name at +2 looked up with FindUnitTypeId
 // (printing "+<amount>") or show the unit's own count at +0x1e. Entry 0 holds
-// only the count, so the loop starts at entry 1. The "count" field is read as
-// an int so MSVC sign-extends it once and keeps the decrementing loop counter
-// in eax; the entry pointer must be incremented after the read so the chain
-// stays in ecx.
+// only the count, so the loop starts at entry 1.
 #include <stdio.h>
 #include <string.h>
 
@@ -51,6 +48,7 @@ void __stdcall FUN_0049fa90(void* obj);
 void __stdcall RefreshBuildCountTexts(Menu_004199b0* menu, Unit* unit)
 {
     Entry_004199b0* e = menu->data->entries;
+    // Read as an int so it is sign-extended once.
     int count = e->u.count;
     e++;
     for (int i = 1; i < count + 1; i++) {
@@ -75,6 +73,7 @@ void __stdcall RefreshBuildCountTexts(Menu_004199b0* menu, Unit* unit)
                     sprintf(text + strlen(text), " +%d", r);
             }
         }
+        // Incremented after the reads, not before.
         e++;
     }
     FUN_0049fa90(g_game + 0x519);

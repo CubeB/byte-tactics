@@ -2,9 +2,7 @@
 // Substring of the reference-counted string handle (see 0x4c9180 for the
 // default constructor and 0x4c9230 for the constructor from the first len
 // characters of a string): returns a new handle for ptr[start..end), with
-// start clamped to 0 and end to the string length. The handle is returned by
-// value through the hidden return pointer, and both constructors are inlined.
-// The class is named after this address.
+// start clamped to 0 and end to the string length. The class is named after this address.
 #include <stdlib.h>
 #include <string.h>
 

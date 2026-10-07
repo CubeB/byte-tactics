@@ -1,15 +1,9 @@
 // Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by DeepSeek V4.1 Flash, checked by GPT-6, finished by Claude Opus 5.5. Names are provisional.
 //
-// MATCH (Claude Opus 5.5, #5252). Writes an HPI package: a 20-byte "HAPI"
+// Writes an HPI package: a 20-byte "HAPI"
 // header in a growing buffer {size, buf}, the directory built by HAPI_BuildArchiveDirectory,
 // the file data from HAPI_WriteArchiveData, the directory encrypted with the key, and
 // a copyright line at the end.
-//
-// The buffer setup (`xor ecx,ecx / mov eax,ecx / mov [buf],ecx / mov eax,0x14`)
-// that held this file at 99.3% for many passes is the inlined Grow helper of
-// the matched HAPI_BuildArchiveDirectory on a memset-cleared buffer: the dead `mov eax,ecx`
-// is Grow's unused `old = b->size`, the zero is memset's (so it is not the
-// `extra = 0` constant in ebp), and `size += 20` folds to `mov eax,0x14`.
 
 #include <stdio.h>
 #include <string.h>

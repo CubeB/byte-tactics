@@ -8,29 +8,6 @@
 // pitch difference between the two as the reload time at +0x4. The largest
 // reload time over the three slots is handed to the script as
 // "SetMaxReloadTime" in ticks (maxTime * 1000 / 30).
-//
-// What made this match (the previous 79.4 percent version had the maximum in
-// ebp and the index in ebx, i.e. the opposite of the original):
-//
-// - The third argument of GetWeaponPiecePosition / GetAimFromPosition is the loop index, not
-//   the reload-time maximum. The parameters are `unsigned char` (see
-//   0x43e240.cpp and 0x49d910.cpp), and for a char parameter MSVC 5 passes the
-//   dword at the char's stack slot without widening it, so the original's
-//   `mov ebx, [esp + 0x14]` at 0x49e0d1 (esp is 4 lower there because arg 4 was
-//   pushed first) reads the loop counter's slot. Declaring the third parameter
-//   `int` instead makes the compiler hoist the counter into a register.
-// - Folding the `...->team` read directly into the second flags expression,
-//   with no named team temporary, is what keeps the weapon-index load late
-//   (`mov ebx, [esp + 0x14]` after `setne dl`) and the team byte in bl. With a
-//   named temporary the allocator grabs ebx for the weapon value and the team
-//   lands in cl, dragging the load and the push order with it.
-// - Putting `s->field_e = 0` after the second flags assignment is what places
-//   the byte store at 0x49e0c8, between the team load and the test. Before the
-//   flags assignment it is hoisted above the `attached` store.
-//
-// The frame layout depends on the counter byte and the maximum sharing one
-// 8-byte local (`Frame_0049e070`, initialized `{0, 0}`). Two separate locals
-// put the counter in a slot of its own and shift the Vec3s.
 #include <windows.h>
 
 struct Vec3_0049e070 {
@@ -84,6 +61,7 @@ struct Frame_0049e070 {
     int maxTime;                      // +0x4
 };
 
+// The weapon parameters must stay unsigned char: the loop counter slot is passed unwidened.
 void __stdcall GetWeaponPiecePosition(Unit*, Vec3_0049e070*, unsigned char, int);
 void __stdcall GetAimFromPosition(Unit*, Vec3_0049e070*, unsigned char);
 
@@ -96,6 +74,7 @@ void __stdcall InitUnitWeaponSlots(Unit* unit)
         s->field_8 = 0;
         s->flags = (s->flags & 0xf2) | ((frame.i & 3) << 2);
         s->attached = unit->type->attached[frame.i];
+        // Read team inline with no named temporary; field_e is zeroed after this line.
         s->flags = (s->flags & 0xfd) | (((unit->type->attached[frame.i]->team != 0) & 1 | 8) * 2);
         s->field_e = 0;
         Vec3_0049e070 a;

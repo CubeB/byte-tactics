@@ -2,13 +2,8 @@
 // Draws the local player's three light bar frames (one frame table per side)
 // onto the blit surface: the first bar twice, the second copy also shifted
 // down by the status bar height, then the third bar where it sits.
-//
-// The include of <stdio.h> is not used by the body. It is the missing piece
-// that makes MSVC 5 materialise `side * 4` in edi only after the first table
-// load and pick the game pointer as the addressing base; without it the same
-// C++ compiles to the shared index built one instruction early and to the
-// base/index operands swapped (95.7%).
 
+// Unused by the body, but needed: it changes how `side * 4` and the base are scheduled.
 #include <stdio.h>
 
 #pragma pack(push, 1)

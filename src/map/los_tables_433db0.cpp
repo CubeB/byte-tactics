@@ -1,11 +1,7 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
-// std::vector<Elem_00434360>::insert(iterator, size_type, const T&) from
-// MSVC 5's <vector>, where Elem_00434360 is a struct holding one
-// std::vector<Elem_00434020>. The element's implicit copy constructor
-// (0x434470) and its held vector's operator= (0x4345e0) and destructor
-// (0x433a30) stay out of line. Its callers, 0x433380 and 0x4335f0, resize a
-// vector<Elem_00434360> with it. Taking the member's address makes the
-// compiler emit the template instantiation out of line.
+// std::vector<Elem_00434360>::insert(iterator, size_type, const T&), where
+// Elem_00434360 is a struct holding one std::vector<Elem_00434020>. Its
+// callers, 0x433380 and 0x4335f0, resize a vector<Elem_00434360> with it.
 #include <vector>
 
 struct Elem_00434020 {
@@ -18,6 +14,7 @@ struct Elem_00434360 {
 };
 
 typedef std::vector<Elem_00434360> Vec_00433db0;
+// Taking the member's address makes the compiler emit it.
 typedef void (Vec_00433db0::*InsertFn_00433db0)(
     Vec_00433db0::iterator, Vec_00433db0::size_type, const Elem_00434360&);
 

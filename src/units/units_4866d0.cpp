@@ -1,40 +1,7 @@
 // Decompiled by Claude Sonnet 5.5, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by claude-opus-5-5. Names are provisional.
 // Handles the "unit died" record that 0x4864b0 builds: credits the kill, updates the
 // kill leaderboard ("%s has taken the lead with %d kills"), then tears the unit down.
-//
-// Pass 16 (claude-opus-5-5): 92.5 -> MATCH. The last differences were all register choices
-// in the kind==5 block, the tail calls and the script's virtual delete, and they moved
-// together; four things were needed at once:
-//  - <stdio.h> for sprintf instead of a hand declaration, with the kind==5 block storing
-//    xd4 in each arm: together they put cmd in edi for the tail and keep the original's
-//    x87 shape (93.0). With only <string.h> the per-arm stores break the x87 shape, and a
-//    single `par->xd4 = f;` after the arms never gets edi.
-//  - `Unit** par = &unit->parent;` read through `(*par)->`, a field pointer (found by
-//    tools/permute.py). A `Unit* par` copy or plain `unit->parent->` both leave info in
-//    the wrong register.
-//  - `float health = 1.0f - x104; float f = health; f *= info->x18a;`: the copy into f
-//    matters. `(1.0f - x104) * info->x18a`, `info->x18a * health` and inline helpers taking
-//    the health all put info in eax (97.7 at best).
-//  - `int flag = cmd->kind != 7;` inside the count block, passed to CreateUnitCorpse: without
-//    it everything else matched but the virtual delete's vtable went to edx (97.7).
-// The register choices of the three spots were coupled: every single change above that
-// fixed one of them broke another, so they were found by scoring all combinations of the
-// candidate spellings in one batch, not one change at a time.
-//
-// Pass 15 (claude-opus-5-5): 87.0 -> 92.5 percent. Rewritten on real types (Game/Player/Unit/
-// Cmd structs, the record's count and kind as 4-bit bitfields, a virtual destructor for the
-// script object) instead of at<> offsets. What moved it, in order:
-//  - the typed rewrite itself put the tail's `cmd->count > 0` test back to `jbe` and the
-//    script/head teardown on the original registers; but the leaderboard loop must stay a
-//    do/while over a Player pointer with `mine` read through a ternary, or MSVC keeps the
-//    loop's g_game->mode in a register across the loop and grows the frame to 0x6c.
-//  - `flags &= ~0x10000000; info = g_game->x1439b; flags &= ~0x30;` in that order: with
-//    the two clears adjacent MSVC folds them into one `and` (+1.2).
-//  - the leaderboard compare as `int ahead; if (mode == 2) ahead = mine > p->kills2; else
-//    ahead = mine > p->kills;`, with rank and best set before mine. MSVC tail-merges the two
-//    setg arms, which is exactly the original's per-arm movsx, `setg bl` and `mov ecx, ebx`
-//    (+3.5; the whole leaderboard now matches).
-// Passes 1 to 14 (several models) reached 87.0 on an at<>-offset version of this function.
+// Needed for sprintf: <string.h> alone changes the kind==5 block's register use.
 #include <stdio.h>
 #include <string.h>
 
@@ -312,10 +279,12 @@ void __stdcall ApplyUnitDeath(Cmd_004866d0* cmd, int local)
             int mine = g_game->mode == 2 ? rec->kills2 : rec->kills;
             int i = 10;
             Player_004866d0* p = g_game->players;
+            // do/while over a Player pointer: otherwise the frame grows.
             do {
                 if (p->state != 0) {
                     bool hid = p->owner->b6;
                     if (!hid) {
+                        // Two compare arms: the compiler merges their setg.
                         int ahead;
                         if (g_game->mode == 2)
                             ahead = mine > p->kills2;
@@ -353,6 +322,7 @@ void __stdcall ApplyUnitDeath(Cmd_004866d0* cmd, int local)
     }
 
     if (cmd->kind == 5 && unit->parent != 0) {
+        // Field pointer, not a Unit* copy; and the copy into f is needed too.
         Unit** par = &unit->parent;
         float health = 1.0f - unit->x104;
         float f = health;
@@ -375,6 +345,7 @@ void __stdcall ApplyUnitDeath(Cmd_004866d0* cmd, int local)
     if (cmd->amount > 0 && unit->x104 == 0.0f)
         DetonateUnitWeapon(unit, cmd->kind == 3);
     if (cmd->count > 0) {
+        // Local flag: without it the script's virtual delete uses another register.
         int flag = cmd->kind != 7;
         CreateUnitCorpse(unit, cmd->count, flag);
     }
@@ -395,6 +366,7 @@ void __stdcall ApplyUnitDeath(Cmd_004866d0* cmd, int local)
         unit->head = 0;
     }
     unit->xa6 = 0;
+    // Keep this order: adjacent clears would fold into one `and`.
     unit->flags &= ~0x10000000;
     unit->info = g_game->x1439b;
     unit->flags &= ~0x30;

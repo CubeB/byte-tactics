@@ -3,11 +3,6 @@
 // at +0xb6, set up by 0x479330): jitters the wind speed and its timer, fills
 // the SOLARSYSTEM gadget, prints the wind and gravity lines, draws the menu
 // word list, then runs the gadget's GAF animation and its "Panmask" overlay.
-// Constructs kept exactly as the original: the second fill's colour is read
-// through `((unsigned char*)arg2->colours)[(int)arg1 + 0x8b2]`, an index that
-// is the window pointer rather than a palette slot (same expression in the
-// sibling 0x478b40), and the frame loop runs `k <= n`, one frame past the
-// count.
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -207,6 +202,7 @@ void __stdcall UpdateSolarSystem(Window_00478790* arg1, Item_00478790* arg2)
         if (f == 0)
             return;
 
+        // Original quirk, kept: indexed by the window pointer, not a palette slot.
         unsigned char colour =
             ((unsigned char*)arg2->colours)[(int)arg1 + 0x8b2];
         FillRectangle(surface, &rect2, colour);
@@ -214,6 +210,7 @@ void __stdcall UpdateSolarSystem(Window_00478790* arg1, Item_00478790* arg2)
         int x = arg2->x - DAT_0051e674;
         int y = arg2->y;
         int n = *(unsigned short*)arg2->gaf;
+        // Original quirk, kept: `<=` runs one frame past the count.
         for (int k = 0; k <= n; k++) {
             Frame_00478790* fr =
                 (Frame_00478790*)GetGafFrame((unsigned short*)arg2->gaf, k % n);

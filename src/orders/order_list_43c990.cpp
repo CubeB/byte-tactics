@@ -2,8 +2,7 @@
 // Insertion sort over 25-byte records with a __stdcall comparison callback,
 // the same element type and callback style as the rest of this sort family
 // (0x43c940 the unguarded insert, 0x43cb20 the unguarded partition). The
-// insert of one element into the sorted prefix is the body of 0x43c940,
-// inlined with the value passed by value.
+// insert of one element into the sorted prefix is the body of 0x43c940.
 
 #pragma pack(push, 1)
 struct Elem_0043c990 {
@@ -13,6 +12,7 @@ struct Elem_0043c990 {
 
 typedef int (__stdcall* Pred_0043c990)(const Elem_0043c990&, const Elem_0043c990&);
 
+// The value is passed by value.
 static inline void Insert_0043c990(Elem_0043c990* last, Elem_0043c990 value,
                                     Pred_0043c990 pred)
 {

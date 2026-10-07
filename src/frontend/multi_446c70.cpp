@@ -4,12 +4,7 @@
 // corresponding bytes of field_108/field_113 and bit 1 of the player info
 // flags, then keeps that bit only when at least two players share the
 // alliance (CountAlliance, inlined from 0x4468c0).
-//
-// <windows.h> is not used, but including it is what makes MSVC emit the three
-// base/index addressing modes the original has: [eax+ecx+0x1b63],
-// [esi+ecx+0x13f] and [ebp+eax+0x113]. Declaring the inner search's j and k
-// before the player pointer p is what puts p in the base slot of the two
-// field_113/field_108 stores (the variable declared first becomes the index).
+// Unused, but needed: changes the addressing modes MSVC emits.
 #include <windows.h>
 #pragma pack(push, 1)
 
@@ -95,6 +90,7 @@ static inline int FindNextAlly(int player, int start)
 void FUN_00446c70()
 {
     for (int i = 0; i < 10; i++) {
+        // j and k before p: puts p in the base slot of the field stores.
         int j;
         int k;
         Player_00446c70* p = &g_game->players[i];

@@ -3,17 +3,7 @@
 // buildable or the player already has its limit of that type, takes the
 // requested unit slot (or the first free one) from the player's unit list,
 // initialises it (InitUnit inlined) and registers it.
-//
-// Two spellings decide the match, and neither is arbitrary:
-// - #include <windows.h>. With no header the 2-bit store at +0x110 costs one
-//   more instruction (`mov edx,[arg]; mov ecx,eax; xor ecx,edx`) than the
-//   original's `mov ecx,[arg]; xor ecx,eax`, and every jump past the two loops
-//   lands 2 bytes late: 633 bytes against 631.
-// - The two counter updates at the end are written as players[player] rather
-//   than through the byte-offset cast. That array subscript is what puts
-//   g_game in the base register of `[edi+edx+K]`, which the original uses
-//   everywhere the player record is read. The cast spelling gives
-//   `[edx+edi+K]` (a different SIB byte) at all seven sites.
+// Must stay: without this header the 2-bit store at +0x110 grows by an instruction.
 #include <windows.h>
 
 struct Unit;
@@ -191,6 +181,7 @@ found:
         }
     }
     FUN_00482ac0(unit);
+    // Array subscript, not a byte-offset cast: it fixes the SIB operand order.
     g_game->players[player].field_144++;
     g_game->players[player].field_140++;
     g_game->list->NotifyUnitCreated(unit);

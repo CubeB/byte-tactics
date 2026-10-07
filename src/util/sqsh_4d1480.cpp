@@ -8,23 +8,16 @@
 // LzssEnablePreset / LzssDisablePreset). The bit stream that follows is read
 // through a mask that counts 1, 2, 4 ... 0x80 and then reloads a fresh flag
 // byte: a clear bit is a literal byte, a set bit is a 16 bit word whose high
-// 12 bits are the
-// distance back into the window and whose low four bits are the length minus
-// two, and a distance of zero ends the stream. Every output byte also goes
-// into the window at the current position, which starts at 1 and wraps at
-// 0xfff. The window is freed at the end, the lock released if this thread took
-// it, and the number of bytes written returned.
-// The last byte, the operand order of the loop head's flags & mask test, comes
-// from the header block, not from the source: which of the two byte loads MSVC
-// emits first depends on how many declarations the file has seen. With
-// <windows.h>, <stdio.h>, <stdlib.h> and <string.h> this file was one
-// register pair out (98.7%, 493 bytes on both sides, mask loaded first instead
-// of flags). Adding <math.h>, which the function does not use, fixes it and
-// nothing else in the source had to change.
+// 12 bits are the distance back into the window and whose low four bits are
+// the length minus two, and a distance of zero ends the stream. Every output
+// byte also goes into the window at the current position, which starts at 1
+// and wraps at 0xfff. The window is freed at the end, the lock released if
+// this thread took it, and the number of bytes written returned.
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+// Unused but kept: the declaration count sets the loop test's operand order.
 #include <math.h>
 
 extern HANDLE DAT_0052a4f8;

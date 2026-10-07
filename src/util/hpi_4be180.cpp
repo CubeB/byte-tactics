@@ -3,9 +3,6 @@
 // opens the record's filename in "rb" and, if it can be opened, closes it
 // again (the record only checks that the file exists). If the open fails the
 // record is freed and removed from the list, shifting the tail down.
-// The cleanup is a shared helper (also out of line at 0x4be270) that /Ob2
-// inlines here; passing it state->records[i] rather than the local keeps the
-// redundant file test the original has.
 
 #include <stdio.h>
 
@@ -47,6 +44,7 @@ void HAPI_DropMissingArchives(void)
             state->records[i]->file = fopen(state->records[i]->name, "rb");
             OPENHAPIFILE* rec = state->records[i];
             if (rec->file == 0) {
+                // Passed state->records[i], not rec: keeps the redundant file test.
                 FreeRecord_004be180(state->records[i]);
                 state->records[i] = 0;
                 for (int j = i; j < state->numRecords - 1; j++)

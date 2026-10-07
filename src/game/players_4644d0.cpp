@@ -1,20 +1,9 @@
 // Decompiled by space-bunny-free, finished by Sonnet 5.5. Names are provisional.
 // Resets the game for a new battle. The first loop clears the eleven player
 // slots (0x14b bytes each, at g_game + 0x1b63) while keeping each slot's info
-// pointer, which is read before the clear and written back to the same address
-// (MSVC reaches that address as g_game + 0x1a3f + (i+1) * 0x14b, one slot
-// below the players array, hence the infos[] member kept for the addressing).
+// pointer, which is read before the clear and written back to the same address.
 // The second loop then gives every slot its default "Player %d First" /
 // "Player %d Second" names and its default state.
-//
-// What fixed the last two scheduling differences (94.5% before): the two
-// stores "active = 0; type = 0" are an inlined helper (Player::Clear), which
-// stops MSVC hoisting the reload of p->info above them, and the "field_21 &=
-// 0xfe" statement sits before "field_140 = 0", not after it. Statement order
-// was found by scripted move searches over the loop body, then the helper by
-// wrapping each run of adjacent stores in a static inline function. (Note: a
-// mask written 0xfffe >> 8 is 0xff, not 0xfe, and MSVC then deletes the
-// statement as a no-op, which fakes a higher score.)
 
 #include <stdio.h>
 #include <string.h>
@@ -70,6 +59,7 @@ struct Player_004644d0 {
 
 struct Game {
     char unknown_0[0x1a3f];
+    // Unused but must stay: the info pointer is addressed one slot below players.
     PlayerInfo_004644d0* infos[11];    // +0x1a3f (addressing only, see above)
     char unknown_1a6b[0x1b63 - 0x1a6b];
     Player_004644d0 players[11];        // +0x1b63
@@ -111,6 +101,7 @@ void ResetPlayerSlots()
         sprintf(p->fullName, "Player %d Second", i);
         p->team_108[i] = 1;
         p->team_113[i] = 1;
+        // Inlined helper: separate stores let the reload of p->info be hoisted.
         p->Clear();
         p->info->field_94 = 0;
         p->info->field_99 = 0;
@@ -127,6 +118,7 @@ void ResetPlayerSlots()
         p->field_6f = 0;
         p->field_71 = 0;
         p->field_144 = 0;
+        // Stays before field_140 = 0.
         p->field_21 &= 0xfe;
         p->field_140 = 0;
         p->field_4 = -1;

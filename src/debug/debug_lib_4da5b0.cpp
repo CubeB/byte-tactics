@@ -6,13 +6,6 @@
 // key's default value into buf2, trims the program path out of the command
 // line and finally runs that program with the URL as its parameter. If any of
 // that fails, the message box at the end reports the last ShellExecute result.
-// Notes on the shape the compiler needs:
-// - the sub-key path and the error text are the same `sub` buffer, and the
-//   registry key handle and the size/result dword are reused across both
-//   RegQueryValueA calls (499 then 999);
-// - the `if (p) *p = 0;` is written out in both arms of the quote test: that
-//   duplication is what makes MSVC 5 emit a separate strchr call per arm
-//   (448 bytes against the original's 460 with the store shared instead).
 // Callers pass a http:// URL and the extension to look up (".htm").
 #include <windows.h>
 #include <stdio.h>
@@ -42,6 +35,7 @@ void __cdecl OpenUrl(HWND hwnd, char* url, char* ext)
             goto failed;
         }
     }
+    // `sub` is shared by the sub-key path and the error text; key and len are reused across both queries.
     len = 499;
     if (RegOpenKeyA(HKEY_CLASSES_ROOT, ext, &key) == 0) {
         if (RegQueryValueA(key, 0, buf1, &len) == 0) {
@@ -53,6 +47,7 @@ void __cdecl OpenUrl(HWND hwnd, char* url, char* ext)
                 if (RegQueryValueA(key, 0, buf2, &len) == 0) {
                     RegCloseKey(key);
                     buf2[len] = 0;
+                    // `if (p) *p = 0;` stays written out in both arms, not shared.
                     if (buf2[0] == '"') {
                         p = strchr(buf2 + 1, '"');
                         if (p) {

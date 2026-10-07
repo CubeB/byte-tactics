@@ -1,9 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 // A lazily created singleton: a vector-like container (an empty allocator,
 // copied from an uninitialised default-argument temporary, then four zeroed
-// dwords) allocated with a class operator new that calls GlobalAlloc. The
-// "xor eax, eax" on the allocation-failed path comes from returning the
-// pointer.
+// dwords) allocated with a class operator new that calls GlobalAlloc.
 #include <windows.h>
 #include <memory>
 

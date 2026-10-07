@@ -1,16 +1,6 @@
 // Decompiled by deepseek-v4.1-flash and space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-//
-// Two levers finished this. First, adding <math.h> to the file (an include is
-// an allocation lever, see 0x482830) stops MSVC 5 sinking the high-word
-// division of pos.y below the pos.z division, which is what produced the
-// original's y-in-esi, z-in-eax schedule and the spill of y to the dead
-// incoming-argument slot at [esp+0x40]. Before that the function was 640 bytes
-// at 88.5 percent. Second, the two cell stores must be written as full 32 bit
-// subtractions (int locals vx, vz) and only truncated at the store; writing
-// `params.field_4[0] = (short)(cx - e->field_4)` narrows the subtraction to
-// `sub di, word ptr [eax+4]` and loses 6 bytes of the original's `movsx edx,
-// word ptr [eax+4]` plus `sub edi, edx`.
 #include <string.h>
+// Needed: it changes the schedule of the pos.y and pos.z divisions.
 #include <math.h>
 
 #pragma pack(push, 1)
@@ -161,6 +151,7 @@ void __stdcall RecalculateLineOfSight(int arg)
                 int cx = params.pos.x / 0x200000;
                 int cy = params.pos.z / 0x200000 - y;
                 Entry_004816a0* e = GetGafFrame(g_game->field_1485b, i);
+                // Full 32 bit subtractions, truncated only at the stores.
                 int vx = cx - e->field_4;
                 int vz = cy - e->field_6;
                 params.field_4[0] = (short)vx;

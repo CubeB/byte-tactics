@@ -38,14 +38,13 @@ public:
     int OpenCdAudio();
 };
 
-// Initialises the CD player object and opens the MCI cdaudio device. The
-// mciSendStringA results go through the `hr` local: comparing the call
-// directly emits `test eax, eax` instead of the original's `cmp eax, ebp`.
+// Initialises the CD player object and opens the MCI cdaudio device.
 // The store to arr_214[0] before the loop is overwritten by the loop's first
 // iteration (0 % 4 + 1 == 1), so it is redundant in the original.
 // FUNCTION: 0x4ce260
 int Class_004ce260::OpenCdAudio()
 {
+    // Results go through hr: comparing the calls directly changes the test emitted.
     MCIERROR hr;
     if (open != 0)
         return 1;

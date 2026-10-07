@@ -1,8 +1,7 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 // FLAGS: /Od /Gy
 //
-// The debug thread InitDebugSupport starts, compiled without optimisation like
-// the rest of Cavedog's debug helpers.
+// The debug thread InitDebugSupport starts.
 #include <windows.h>
 
 void StartMemoryStatus(void);
@@ -23,14 +22,10 @@ DWORD __stdcall DebugThreadProc(void* param)
 
 // Sets up the debug windows at raised priority, says it is running, then
 // pumps this thread's messages until WM_QUIT.
-//
-// Without optimisation the compiler lays the locals out in the order of its
-// symbol table, which follows their names rather than their declarations:
-// these four names give the original's frame (hThread at -4, ret at -8,
-// message at -0x24, priority at -0x28); `thread` / `result` do not.
 // FUNCTION: 0x4da2e0
 void __cdecl RunDebugThread(void* param)
 {
+    // Frame layout follows these local names (hThread, ret, message, priority), not declaration order.
     HANDLE hThread = GetCurrentThread();
     int ret;
     MSG message;
@@ -49,11 +44,11 @@ void __cdecl RunDebugThread(void* param)
     }
 }
 
-// Lets the dialog at the top of msg's window chain handle it (the names give
-// the original's frame, as in RunDebugThread).
+// Lets the dialog at the top of msg's window chain handle it.
 // FUNCTION: 0x4da380
 BOOL __cdecl HandleDialogMessage(MSG* msg)
 {
+    // Local names set the frame layout, as in RunDebugThread.
     HWND root;
     HWND parent = msg->hwnd;
     root = parent;

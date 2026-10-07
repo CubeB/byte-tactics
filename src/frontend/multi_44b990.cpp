@@ -3,11 +3,6 @@
 // Opens the "SAVELIST.GUI" save dialog: copies each save name into the
 // description buffer with its extension stripped, fills the "GAMES" list,
 // wires up the list callbacks and shows the current game's name.
-//
-// The whole "scheduler tie" (count load before the ebx load in the loop head)
-// was the calling convention: the original file was built with /Gz, so this
-// function and the argument-less FUN_00428b60 are __stdcall. Earlier shape
-// sweeps could never move it.
 #include <string.h>
 
 #pragma pack(push, 1)

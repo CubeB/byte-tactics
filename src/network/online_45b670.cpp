@@ -1,9 +1,6 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 // The online.dll glue (0x45b250, 0x45b490, 0x45b670 share these inline
-// helpers). Built without /GX like the rest of the game: MSVC 5 still builds
-// the C++ exception frame for try/catch (warning C4530) and then keeps every
-// local of the function, those of inlined callees too, in a stack slot of its
-// own, storing each one there whenever it changes inside the try block.
+// helpers).
 #include <windows.h>
 #include <string.h>
 

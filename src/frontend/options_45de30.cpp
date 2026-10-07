@@ -3,27 +3,6 @@
 // adds the SOUND group and an FXVOL slider seeded from the saved effects
 // volume, runs every type 4 entry, then writes the speech and mode gadgets
 // back out from the sound flag word at g_game+0x37f19.
-//
-// MATCH, 710 of 710 bytes.
-//
-// The last piece was the FindGadgetIndex result. The two FXVOL calls take
-// DIFFERENT expressions for the same array base: fdf0 re-reads [obj+4] into
-// eax and a0200 gets the `entries` local that was loaded into esi three calls
-// earlier, so the source has both an `obj->entries` and an `entries`. Naming
-// the fdf0 result in a local, `int found = ...; if (found != -1)`, is what
-// keeps obj in EDI.
-//
-// The float block copies the shape that matches in 0x45d7c0 exactly:
-// `f - (int)f != 0.0f` is what produces `fsubr st(1) / fcomp 0.0f / test ah,0x40`
-// and the double `+= 1.0` is what produces `fsub qword ptr [-1.0]`. The bit
-// at 0x37f19 has to be read through an unaligned `unsigned short` bitfield
-// to get `mov al, [m]; shr al, 6; test al, 1` rather than `test byte ptr [m], 0x40`.
-// Tried and did NOT help: indexing the type 4 loop body through
-// `Entry* e = &obj->entries[i]` (or `obj->entries + i`); wrapping the fdf0
-// first argument in a `__inline` accessor; spelling that argument as a
-// hand-rolled `*(Entry**)((char*)obj+4)` cast; hoisting the `entries`
-// declaration above the layout calls; and `const`-qualifying the local. An
-// early-skip form (`if (... == -1) goto done;`) also changes nothing.
 
 #pragma pack(push, 1)
 struct Entry_0045de30 {                  // 0x15b bytes
@@ -75,6 +54,7 @@ struct Game {
     char unknown_37f0e[0x37f17 - 0x37f0e];
     unsigned char field_37f17;           // +0x37f17
     char unknown_37f18;
+    // Read through an unaligned unsigned short bitfield.
     Flags_0045de30 flags;              // +0x37f19
 };
 #pragma pack(pop)
@@ -116,6 +96,7 @@ void OpenSoundOptions()
     obj->fn = HandleSoundOptionsClick;
     FUN_0049fa50(&g_game->menu);
     SetGadgetStatusByName(&g_game->menu, "SOUND", 1);
+    // Result in a local; the call reads obj->entries while later calls use entries.
     int found = FindGadgetIndex(obj->entries, "FXVOL", 0xe);
     if (found != -1) {
         Entry_0045de30* e = FUN_004a0200(entries, "FXVOL");

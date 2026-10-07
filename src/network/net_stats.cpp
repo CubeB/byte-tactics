@@ -2,8 +2,7 @@
 // The network statistics module: a bit writer and reader, and the counters and
 // text that report packet and byte rates.
 
-// <windows.h> <stdio.h> and <ddraw.h> are the header set FormatNetStats
-// matches at (tools/headers.py).
+// This header set must stay: FormatNetStats needs it.
 #include <windows.h>
 #include <stdio.h>
 #include <ddraw.h>
@@ -268,10 +267,6 @@ void __stdcall CountPacket(int size, int overhead, int sent)
 // Network statistics text: about once a second (more than 30 ticks), turns
 // the packet and byte counters (see 0x415f40 and 0x416150) into per-second
 // rates and a compression percentage, then prints the latest values.
-// Match notes: the "previous" counters are all updated after the rates are
-// computed (the scheduler moves the stores up again), which is what keeps the
-// current counters in callee-saved registers; and it needs a header set
-// (headers.py: <windows.h> <stdio.h> <ddraw.h>).
 // FUNCTION: 0x415fa0
 void __stdcall FormatNetStats(char* text)
 {
@@ -282,6 +277,7 @@ void __stdcall FormatNetStats(char* text)
         g_messageBytesReceivedRate = (DAT_00511bc0 * 30 - g_lastMessageBytesReceived * 30) / elapsed;
         int packets = DAT_00511bc4 - g_lastMessageBytesSent;
         g_messageBytesSentRate = packets * 30 / elapsed;
+        // The previous counters are updated only after the rates are computed.
         g_lastMessageBytesReceived = DAT_00511bc0;
         g_lastMessageBytesSent = DAT_00511bc4;
         if (packets > 0)

@@ -3,30 +3,7 @@
 // list, the MAPNAME/MAP state, the ready bits of the local players, then the
 // ten player rows (CD, PLAYER, LOGO, SIDE, ALLY, TEAMICONS, RES, PING, MEM,
 // READY), and finally the lowest ping limit.
-//
-// MATCH. What it took, largest first:
-// - Two functions of this file that have no callers are inlined here and are
-//   defined above, unannotated: the map check 0x440cd0 (CheckMapCrc) and the
-//   SIDE%d update 0x448bf0 (UpdateSideGadget). Both still compile to their own
-//   original bytes out of line.
-// - <windows.h> (the file's other functions use it too): it gives the
-//   original's base/index order and the loop-head shape.
-// - The mapname text and the PING text share one `char* str` (one frame slot);
-//   the row loop counter is a plain unsigned char `n` with no int copy.
-// - MEM writes its whole tail (the FUN_00435920 compare, colour and visible
-//   stores) in each arm of the n/a / %d test. MSVC cross-jumps the two copies
-//   back down to the shared call, but the duplicated tail is what gives `p`
-//   ebp and the int value of `n` ebx through the whole row loop (86.2% to
-//   99.7% in one change). One call per arm with the compare after the if/else
-//   was 84.5%, and the compare and colour per arm with `visible = 1` after it
-//   86.9%, both with the two registers still swapped.
-// - TEAMICONS lays out the 1 before the 0, the layout MSVC gives the last
-//   term of an `||` chain (as in ALLY); the plain IsWatching test gives the 0
-//   first. `|| 0` emits no code and gives that layout; it is probably a term
-//   that the release build compiled to 0.
-// - In CheckMapCrc the version test is `if (major >= 2) check = 1; else if
-//   (major == 1 && minor >= 2) check = 1;`. Same bytes out of line, but inlined
-//   it gives the original's edi/edx for g_game/check.
+// <windows.h> must stay: gives the original's base/index order and loop-head shape.
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -239,6 +216,7 @@ int CheckMapCrc()
     int check = 0;
     if (me != 10) {
         data = g_game->players[me].info;
+        // Version test form must stay: inlined, it gives the right registers for g_game/check.
         if (data->versionMajor >= 2)
             check = 1;
         else if (data->versionMajor == 1 && data->versionMinor >= 2)
@@ -267,6 +245,7 @@ void __stdcall UpdateSideGadget(int side)
 void RefreshBattleRoomRows()
 {
     char name[20];
+    // Shared by the mapname and PING text: one frame slot.
     char* str;
     unsigned int minPing = 0xffffffff;
     int count = 0;
@@ -358,6 +337,7 @@ void RefreshBattleRoomRows()
 
     char* entries = g_game->table->entries;
     Player_00448c70* local = &g_game->players[g_game->localPlayer];
+    // Plain unsigned char counter, no int copy.
     for (unsigned char n = 0; n < 10; n++) {
         char text[32];
         char res[52];
@@ -454,6 +434,7 @@ void RefreshBattleRoomRows()
             sprintf(name, "TEAMICONS%d", n);
             e = FindGadgetOrNull(entries, name);
             if (e) {
+                // `|| 0` emits no code but gives the 1-before-0 layout.
                 e->visible = (IsWatching_00448c70(p) || 0) ? 0 : 1;  // see the top
                 FUN_004a1450(g_game->gui, name, (IsLocal_00448c70(p) && !ready) ? 0 : 1);
             }
@@ -489,6 +470,7 @@ void RefreshBattleRoomRows()
             }
             sprintf(name, "MEM%d", n);
             e = FUN_004a0180(entries, name);
+            // Full tail in each arm, not shared: gives p and n their registers.
             if (!IsLocalHuman_00448c70(p) && !IsRemoteHuman_00448c70(p)) {
                 sprintf(e->text, "%s", "n/a");
                 e->colour = p->info->memory < ((Mission*)g_game->map)->FUN_00435920() ? 0xc : 0;

@@ -1,13 +1,4 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5. Names are provisional.
-// MATCH. Levers that closed the last 13%:
-//  * the two max/min propagation loops are `last = prev; prev = p[..]; if
-//    (prev <= t) prev = t; p[1] = last > prev ? last : prev;` (the ternary,
-//    not an if/res local), with the pointer bump in the for-increment clause;
-//  * `int w1, h1; h1 = ...; w1 = ...;` as separate declaration and
-//    assignments (puts h1 in esi and w1 in edi);
-//  * the big loop is a guarded do-while (`if (inner < height) { accum = 0;
-//    do {...} while (...); }`), which sinks the `accum = 0` store below the
-//    guard's jle as in the original.
 #include <new.h>
 #include <windows.h>
 
@@ -124,6 +115,7 @@ void FUN_00482c20(void)
             prev = p[0];
             if (prev <= t)
                 prev = t;
+            // Ternary, not an if with a result local.
             p[1] = last > prev ? last : prev;
         }
         p[1] = prev;
@@ -145,6 +137,7 @@ void FUN_00482c20(void)
     }
 
     Grid_482c20* grid1 = &g_game->grid1;
+    // Declared apart from the assignments: decides which register each takes.
     int w1, h1;
     h1 = g_game->height / 2;
     w1 = g_game->width / 2;
@@ -166,6 +159,7 @@ void FUN_00482c20(void)
         unsigned char* p1 = 0;
         unsigned char* p2 = 0;
         inner = 0;
+        // Guarded do-while: sinks the accum = 0 store below the guard.
         if (inner < g_game->height) {
             accum = 0;
             do {

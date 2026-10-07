@@ -5,10 +5,7 @@
 // the same rectangle when entry flag +0xbc has bit 0 set. The glyph's own x/y
 // come from the loaded glyph's +4/+6.
 //
-// The rectangle must be one struct local (`Rect_004a5e50 rect;`): as four
-// separate scalars MSVC dead-store-eliminates right/bottom (only `left`'s
-// address is taken) and reuses the parameter slots, losing the `sub esp,0x10`
-// frame entirely. The +0xbc field is a union because entry 0 holds the
+// The +0xbc field is a union because entry 0 holds the
 // destination surface pointer there while every other entry holds flag bits.
 
 #pragma pack(push, 1)
@@ -73,6 +70,7 @@ void __stdcall FUN_004a5e50(Obj_004a5e50* obj, int index)
     Glyph_004a5e50* glyph = e->glyph;
     if (glyph == 0)
         return;
+    // One struct local, not four scalars: keeps right/bottom stored and the frame size.
     Rect_004a5e50 rect;
     if (e->type == 0) {
         rect.left = 0;

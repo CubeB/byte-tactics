@@ -6,21 +6,6 @@
 // Names are provisional.
 // Draws the 16 x 16 palette grid: one 8 x 8 cell per colour, at the "COLS"
 // gadget's position.
-//
-// Claude Opus 5.5 (#5155), from 89.8%: two changes.
-// 1. The loop is written the way the matched sibling 0x4ac970 writes one
-//    cell: a separate `void* surface` and `Rect rect` (no surface-plus-rect
-//    aggregate), `rect.left = x0 + col * 8`, `rect.top = y + row * 8`,
-//    `rect.right = rect.left + 7`, `rect.bottom = rect.top + 7`. That loop is
-//    byte-identical to the original (93.2%).
-// 2. `grid` is declared before `gadgets`. The operand order MSVC 5 picks for
-//    the two prologue sums (which load goes straight into esi or ebx) follows
-//    the two pointers' symbol order, not the order of the operands in the
-//    source: with `gadgets` declared first every spelling gave
-//    gadgets->x + grid->x and grid->y + gadgets->y. With `grid` first both
-//    sums come out as in the original.
-// The match depends on the declaration count in front of the function: one
-// extra `extern int` above this function gives 91.5% (two give MATCH again).
 
 #pragma pack(push, 1)
 struct Gadget_004ac8c0 {               // 0x15b bytes
@@ -56,6 +41,7 @@ void __stdcall FillRectangle(void* surface, Rect_004ac8c0* rect, int color);
 // FUNCTION: 0x4ac8c0
 void __stdcall FUN_004ac8c0(Object_004ac8c0* obj)
 {
+    // grid before gadgets: operand order of the prologue sums follows symbol order.
     Gadget_004ac8c0 *grid, *gadgets;
     gadgets = obj->holder->gadgets;
     int index = FindGadgetIndex(gadgets, "COLS", 6);

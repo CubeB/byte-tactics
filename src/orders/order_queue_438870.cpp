@@ -182,7 +182,7 @@ public:
 
 #pragma pack(push, 1)
 // The fields between the vtable pointer and the link, as a second base whose
-// inline constructor clears the kind (see the notes at 0x43a420).
+// inline constructor clears the kind.
 struct Head_0043a1f0 {
     unsigned char kind;                // +0x4
     unsigned char flag5;               // +0x5
@@ -190,6 +190,7 @@ struct Head_0043a1f0 {
     int last_id;                       // +0xa
     Unit* unit;                        // +0xe
 
+    // The second base clears the kind: as a member initialiser the stores reorder.
     Head_0043a1f0() : kind(0) {}
 };
 
@@ -292,6 +293,7 @@ static unsigned char KindByName_0043a420(char* s)
 
 static unsigned char KindByIndex_0043a420(unsigned char want)
 {
+    // Stays a helper with idx declared before k: inline, the scan keeps its counter in ECX.
     int idx = 0;
     int k = 0;
     for (Entry_0043a1f0* p = DAT_00512344; p <= DAT_00512348; p++, idx++) {
@@ -310,26 +312,11 @@ static unsigned char KindByIndex_0043a420(unsigned char want)
 // (the name its caller 0x487080 uses), but the vtables it stores are
 // Class_0043a1f0's, so it is that class's second constructor.
 //
-// The kind is resolved by two inlined helpers, one per branch, each
+// The kind is resolved by two helpers, one per branch, each
 // returning an unsigned char: by name through the sorted kind table
 // (lower_bound), or, for files without a "<name>_name" key, by counting the
-// entries without flag bit 0. Written inline (as earlier attempts did) the
-// fallback scan put the compared counter in ECX and lost the `mov dl, cl`
-// that copies the helper's result into place; as a helper with `int idx`
-// declared before `int k` the scan is byte-identical. The real resolver
-// ResolveUnitTypeKey is defined above and inlined, as in the original file.
-//
-// The prologue (Claude Opus 5.5, #5496; 96.6% to MATCH): the original stores
-// the base vtable 0x4fd2cc between the two `push edi` arguments of the link
-// constructor. That happens when the kind is cleared by the inline
-// constructor of a second base class (Head_0043a420, the fields from +0x4 to
-// +0x11). Its `this` is the object plus 4, so MSVC 5 cannot tell that the kind
-// store and the vtable store do not overlap, keeps them in order, and
-// schedules the vtable store first. With `kind(0)` as a member initialiser
-// (every earlier attempt) the stores are independent and both sink below the
-// pushes. A base holding only the kind byte gives the same bytes; a member of
-// class type with its own constructor does not (96.4%), and moving the link
-// into the base breaks the rest (66.9%).
+// entries without flag bit 0. The real resolver
+// ResolveUnitTypeKey is defined above.
 // The case-3 attachment constructor is Class_0044e740's second constructor,
 // 0x44e7d0, which shares its name with 0x44e740; data/aliases.csv has a row
 // for it.

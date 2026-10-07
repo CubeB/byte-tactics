@@ -1,17 +1,8 @@
 // Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by GPT-6.1-sol, finished by DeepSeek V4.1 Flash, finished by Claude Opus 5.5, verified by GPT-6. Names are provisional.
-// Issue #4931 retry: check.py MATCH on the current main translation-unit setup.
 // FLAGS: /Gi
 // std::vector<Record_00475bd0>::insert(iterator, size_type, const _Ty&), stock
 // MSVC 5 <vector> on a 0x3c-byte record, emitted out of line through a member
 // pointer.
-//
-// The original's translation unit was built with /Gi (#5035), and the bytes
-// also depend on which other vector members the TU instantiates: with a
-// reserve use (which the caller 0x4743a0 really makes, as below) or a copy
-// constructor this MATCHes; with operator= or resize it is 82.6%. Without
-// /Gi the best file reached 99.7%, one mirrored SIB byte at 0x475d01
-// (`lea eax,[esi+edx]` against ours `lea eax,[edx+esi]`) that no spelling
-// moved; the earlier passes are in git history.
 #include <vector>
 
 struct Record_00475bd0 {

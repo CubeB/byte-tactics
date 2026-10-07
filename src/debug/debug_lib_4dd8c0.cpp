@@ -3,18 +3,10 @@
 // <vector> (the body at lines 152-170), emitted out of line by taking the
 // member's address, the same family as 0x408f30 / 0x40d020 / 0x40d290.
 //
-// The real header, not a hand-rolled copy, is what fixes the register family:
-// the original keeps `this` in esi, n in edi, _Last in ebx and the byte count in
-// ebp, and the plain instantiation reproduces all of that (the hand-written
-// version in the previous revision rotated the saved registers and scored 32%).
-//
 // The object layout is the header's own: the empty allocator byte sits at +0
 // (padded to 4), so _First/_Last/_End land at +4/+8/+0xc. The allocator is the
 // game's GlobalAlloc/GlobalFree one, retrying through the out-of-memory handler
-// at DAT_005289bc; its deallocate tests the pointer before freeing, which is the
-// last instruction block the match needed (without the `if (_P != 0)` the
-// function was four bytes short and the _First spill was scheduled after the
-// push instead of before the branch).
+// at DAT_005289bc; its deallocate tests the pointer before freeing.
 //
 // Previously suspected as a bug: the in-place path where n > (_Last - _P) copies
 // the tail forward with _Ucopy(_P, _Last, _P + _M). It is safe, because that
@@ -22,6 +14,7 @@
 // in-place path uses copy_backward. This is the standard library's own code, so
 // nothing here looks like a Cavedog mistake.
 #include <windows.h>
+// The real <vector> header must supply the body; a hand-rolled copy does not match.
 #include <vector>
 
 extern void (*DAT_005289bc)();
@@ -52,6 +45,7 @@ public:
     }
     void deallocate(pointer _P, size_type)
     {
+        // Must test the pointer before freeing.
         if (_P != 0)
             GlobalFree(_P);
     }

@@ -75,13 +75,9 @@ public:
 
 // Constructor of SquadTimer, the base of a family of small classes with
 // two virtual slots: slot 0 is a method each class overrides, slot 1 the
-// virtual destructor. The owner's constructor (0x408cb0) creates one object
-// of each class; it calls this constructor out of line once and inlines the
-// others.
+// virtual destructor.
 //
-// Every derived destructor is trivial, so each class's scalar deleting
-// destructor only stores the base vtable 0x4fc980 (the inlined base
-// destructor). The derived classes' files copy the declarations below.
+// The derived classes' files copy the declarations below.
 //
 //   class           vtable    constructor  ??_G      slot 0
 //   SquadTimer  0x4fc980  0x407350     0x407390  0x407380 (empty)
@@ -91,11 +87,6 @@ public:
 //   Class_00407d40  0x4fc9a0  0x407d40     0x407e70  0x407e90
 //   Class_004085d0  0x4fc9a8  0x4085d0     0x408600  0x408100
 //   Class_00408810  0x4fc9b0  0x4087e0     0x408810  0x4086d0
-//
-// Class_004079d0 and Class_00408810 keep the names their scalar deleting
-// destructors gave them first. The derived constructors inline this one
-// (/Ob2), so their files define it again, unannotated, as the original
-// translation unit did.
 // FUNCTION: 0x407350
 SquadTimer::SquadTimer(SquadManager* p, Group* q)
     : owner(p), group(q), field_c(0), field_10(p->field_4)
@@ -128,11 +119,9 @@ int SquadTimer::FUN_004073b0(Vec3_00407410* out)
     return owner->objs[4]->GetAveragePosition(out) != 0;
 }
 
-// Averages the positions (16.16 fixed
-// point, integer parts at +0x6c/+0x70/+0x74) of the units in the group that
-// `group` points to; returns 0 when the group is empty.
-// The result must be built as a temporary and assigned whole: storing the
-// three fields one by one interleaves the stores with the divisions.
+// Averages the positions (16.16 fixed point, integer parts at
+// +0x6c/+0x70/+0x74) of the units in the group that `group` points to; returns
+// 0 when the group is empty.
 // FUNCTION: 0x407410
 int SquadTimer::GetAveragePosition(Vec3_00407410* out)
 {
@@ -146,6 +135,7 @@ int SquadTimer::GetAveragePosition(Vec3_00407410* out)
         y += (*it)->y.whole;
         z += (*it)->z.whole;
     }
+    // Built as a temporary and assigned whole: per-field stores interleave with the divisions.
     *out = Vec3_00407410(x / n << 16, y / n << 16, z / n << 16);
     return 1;
 }

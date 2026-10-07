@@ -2,10 +2,6 @@
 // Writes the red, green and blue bytes of one entry of a palette (4 bytes per
 // entry) into the field_140 word of the "RED", "GREN" and "BLUE" GUI entries,
 // then refreshes the object's gadget state.
-// The entry pointer is held in a local `e`; with the entry addressed directly
-// (`entries[i].field_140`) the compiler hoists the colour byte load above the
-// FindGadgetIndex call and keeps it in bp, which pushes the object pointer out of
-// ebp and changes the whole allocation.
 #pragma pack(push, 1)
 struct Entry_004aca20 {                // 0x15b-byte entry
     char unknown_0[0x140];
@@ -31,6 +27,7 @@ void __stdcall RenderLayer(Object_004aca20* obj, int value);
 void __stdcall ShowPaletteEntryRgb(Object_004aca20* obj, unsigned char* colors, int index)
 {
     Entry_004aca20* entries = obj->data->entries;
+    // Entry via a local: addressing entries[i] directly changes the allocation.
     Entry_004aca20* e;
     e = &entries[FindGadgetIndex(entries, "RED", 4)];
     e->field_140 = colors[index * 4];

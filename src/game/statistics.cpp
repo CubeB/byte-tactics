@@ -79,11 +79,6 @@ void __cdecl FUN_004d85a0(void* p);
 // comes back null tears the lot down again through ShutdownScoreTables and reports 1,
 // so the slot loop only records the failure in a flag and breaks; the
 // epilogue tests that flag.
-// Both loops are `while (1)` with the test as an early `break`, not a `for`:
-// /O2 rotates a `for` and gives a bottom test, the original tests at the top.
-// The pointer walk in the inner loop must be three separate statements
-// (store, byte offset, pointer step) or /O2 turns the pointer into an
-// induction variable and emits `add ecx,4` with a `[ecx-4]` store.
 // The inner loop writes 0x48 bytes of pointers into the 0x24 byte ppScores
 // block, the original's bug: 18 pointers of 4 bytes into a 36 byte block, so
 // 36 bytes land past the end of the allocation.
@@ -108,6 +103,8 @@ int AllocScoreTables()
     memset(DAT_0051e550, 0, 0x28);
     failed = 0;
     i = 0;
+    // Both loops are `while (1)` with an early `break`: a `for` is rotated to a
+    // bottom test.
     while (1) {
         if (i >= 10)
             break;
@@ -148,6 +145,8 @@ int AllocScoreTables()
         while (1) {
             if (j >= 0x48)
                 break;
+            // Three separate statements: otherwise the pointer becomes an induction
+            // variable.
             *slot = (int*)(DAT_0051e550[i] + j);
             j += 8;
             slot++;
@@ -182,13 +181,6 @@ bool FUN_0046bf20()
 // Interface entry points into the DAT_0051e5xx globals.
 // Returns 0 once the console is up, 2 when reporter.dll could not be loaded
 // complete, and 4 when there is still nothing to report to.
-// The eight GetProcAddress calls are nested one inside the next so that the
-// cleanup is the fall-through out of all eight, not a goto target: MSVC 5 lays
-// a goto target out right after the last branch that reaches it, which would
-// put it before the block below instead of between it and the tail.
-// The first two GUID tests jump to the shared "return 4" at the end while the
-// third returns inline; the original duplicates that epilogue only for the
-// third, and writing all three the same way does not match.
 // FUNCTION: 0x46bf30
 int __stdcall FUN_0046bf30(int* param_1, int param_2)
 {
@@ -202,6 +194,7 @@ int __stdcall FUN_0046bf30(int* param_1, int param_2)
     }
 
     if (DAT_00512c98[0] == 0) {
+        // First two jump to the shared return 4, the third returns inline.
         if (memcmp(g_game->field_39201, &DAT_004fcd98, 16) == 0) goto four;
         if (memcmp(g_game->field_39201, &DAT_004fcdb8, 16) == 0) goto four;
         if (memcmp(g_game->field_39201, &DAT_004fcdc8, 16) == 0) {
@@ -220,6 +213,8 @@ int __stdcall FUN_0046bf30(int* param_1, int param_2)
     if (DAT_0051e58c == 0) {
         DAT_0051e58c = LoadLibraryA("reporter.dll");
         if (DAT_0051e58c != 0) {
+            // Nested, so the cleanup is the fall-through out of all eight: a goto
+            // target would be laid out before the block below.
             DAT_0051e588 = (EnableFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RIEnable@4");
             if (DAT_0051e588 != 0) {
                 DAT_0051e554 = (VersionFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RIGetVersion@4");

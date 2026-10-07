@@ -9,8 +9,7 @@
 // (x - dx, y - dy, ...), clips the destination to the destination's own clip
 // rect with ClipRects and blits through FUN_004cbe70, or, when the mode
 // byte at +9 is set, through FUN_004cc51d.
-// <windows.h> is needed although nothing of it is used: without a header
-// MSVC 5 picks the other base/index order for the second lea.
+// Needed though unused: without a header the second lea gets the other base/index order.
 #include <windows.h>
 
 struct Rect_004b7f90 {

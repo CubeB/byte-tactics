@@ -1,10 +1,5 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PALETTE CACHE. check.py: MATCH (646 bytes).
-// The tail must be a nested `if (param_4 == 0) { ... } return 0;` so both
-// failure exits share one return block at the very end; only then does the
-// original load g_game fresh for the +0x531 test (leaving edx free for the
-// strcpy length) and keep surface in ebp. The name == 0 arm writes surface = 0
-// and jumps to the shared tail, which is what puts that block after the return.
+// PALETTE CACHE.
 // Suspected original bug: the name search matches a cached entry whose surface
 // is already 0, moves it to the front, then the alloc path shifts and inserts a
 // second entry with the same name at index 0, leaving a duplicate at index 1.
@@ -72,10 +67,12 @@ int __stdcall LoadPictureCached(const char* name, int param_2, int param_3, int 
         }
     } else {
         surface = 0;
+        // Shared tail via goto: places that block after the return.
         goto after;
     }
 
 after:
+    // Nested if, one trailing return 0: both failure exits share one return block.
     if (param_4 == 0) {
         if (*(int*)(g_game + 0x531) != 0) {
             FUN_004ab290((int)(g_game + 0x519), (int)surface);

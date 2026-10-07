@@ -4,11 +4,6 @@
 // "MOBILEBUILD" (def flag bit 11 clear) or "VTOL_MOBILEBUILD" (bit 11 set)
 // order for each of the local player's units with flag 0x10 whose def has
 // flag 0x40. Bit 2 of the argument's field_8 is passed through.
-//
-// The fixed-point conversion is the WorldToCell/CellToWorld pair of inline
-// helpers (as in 0x403a20 and 0x47ddc0), with def->origin read once into a
-// local Point. Passing def->origin to each helper instead folds `cell` into
-// registers and shrinks the frame from 0x10 to 0xc.
 #pragma pack(push, 1)
 struct Point { short x, y; };
 struct Vec3 { int x, y, z; };
@@ -102,6 +97,7 @@ void __stdcall IssueMobileBuildOrders(Arg_00419670* arg)
     unsigned short index = g_game->field_2cc4;
     UnitDef_00419670* def = &g_game->defs[index];
     Vec3 pos = g_game->pos;
+    // origin read once into a local: passing def->origin to each helper changes the frame.
     Point origin = def->origin;
     Point cell = WorldToCell(pos, origin);
     CellToWorld(origin, cell, &pos);

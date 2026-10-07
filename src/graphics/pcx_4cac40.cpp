@@ -6,21 +6,6 @@
 // run length compresses `height` rows of `width` bytes from `data`, then
 // writes the 0x0c marker byte and the 0x300 byte VGA palette `block`.
 // Returns 1 only if the header and the palette went out in full.
-//
-// What matched it (#5018, after many passes stuck at 95-96% on the byte
-// slots), all of it about MSVC 5's frame layout rather than the code:
-// * One `cur` variable, not a register copy plus a memory copy. MSVC splits
-//   it by itself: al in the column loop, a home at [esp+0x12] that the chunk
-//   loops reload. That split variable carries one more reference than its
-//   four visible memory accesses, which is what puts it first in the frame.
-// * The final 0x0c byte is its own variable in its own block, and the outer
-//   literal byte `t` is declared in the row loop. That makes the two share
-//   [esp+0x13] while the outer run count, declared in the else block, shares
-//   `next`'s [esp+0x15] instead of joining them.
-// * Plain locals for total/rows/n/row/p: the earlier Locs struct was only
-//   there to pin a layout that these declarations give anyway.
-// * `total = 0` before `cur = *row` keeps cur's spill store after it.
-// The layout model (C2.EXE's slot sorting) is written up in the pull request.
 #include <stdio.h>
 #include <string.h>
 
@@ -65,6 +50,7 @@ int __stdcall WritePcx(void* filename, unsigned char* data, int width, int heigh
     unsigned char* p;
     int run;
     int wrote;
+    // One cur variable, no separate register and memory copies.
     unsigned char cur;
     unsigned char next;
     unsigned char rep;
@@ -97,7 +83,9 @@ int __stdcall WritePcx(void* filename, unsigned char* data, int width, int heigh
     if (rows >= 0) {
         ++rows;
         do {
+            // t is declared in the row loop, not at function scope: shares its slot.
             unsigned char t;
+            // total = 0 comes before cur = *row: keeps cur's spill store after it.
             total = 0;
             cur = *row;
             run = 1;
@@ -135,6 +123,7 @@ int __stdcall WritePcx(void* filename, unsigned char* data, int width, int heigh
                 t = cur;
                 HAPI_WriteFile(file, &t, 1);
             } else {
+                // Declared in this else block: shares a slot with next.
                 unsigned char ocnt;
                 while (run > 0) {
                     int chunk = run > 0x3f ? 0x3f : run;
@@ -150,6 +139,7 @@ int __stdcall WritePcx(void* filename, unsigned char* data, int width, int heigh
     }
 
     {
+        // Own variable in its own block: shares a slot with t.
         unsigned char marker = 0x0c;
         HAPI_WriteFile(file, &marker, 1);
     }

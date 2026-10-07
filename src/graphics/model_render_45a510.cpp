@@ -1,15 +1,11 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// UNVERIFIED: my session had no shell, so tools/check.py could not be run even
-// once. The body follows the matched near-copy 0x4581e0 (same function with an
-// extra offset argument) and the 0x36-byte entry walk of 0x45aec0 / 0x45af90.
-// The two points Ghidra shows that the sibling does not have are kept as they
-// are: the four out parameters are stored with 0 before the loop, and the
-// shared (y >> 2) term is added to x as well as subtracted from z.
 // Bounding box of every flagged 0x36-byte piece entry of a model, walked last
 // to first: writes width, height, origin x and origin y, each grown by 2 on
-// every side (so an empty model leaves all four at 0). The two headers are the
-// ones 0x4581e0 needed to keep the operand order of its offset sums; the only
-// sums here are x + (y >> 2) and z - (y >> 2).
+// every side (so an empty model leaves all four at 0). The four out parameters
+// are stored with 0 before the loop, and the shared (y >> 2) term is added to x
+// as well as subtracted from z. The only sums here are x + (y >> 2) and
+// z - (y >> 2).
+// Keep both headers: they fix the operand order of the offset sums.
 #include <stdio.h>
 #include <stdlib.h>
 

@@ -3,8 +3,6 @@
 // object at g_game+0x10, with the from/to position range and the "notify"
 // keyword so MCI posts a message back to the main window. Returns 1 when
 // there was nothing to send, otherwise whether MCI accepted the command.
-// The mciSendStringA result goes through the `err` local: comparing the call
-// itself emits neg/sbb/inc in the epilogue instead of test/sete.
 #include <windows.h>
 #include <mmsystem.h>
 #include <stdio.h>
@@ -68,6 +66,7 @@ int Class_004ce910::PauseCdAudio(int pause)
         field_20c = 2;
     }
 
+    // The result goes through the err local: comparing the call itself changes the epilogue.
     MCIERROR err = mciSendStringA(buf, 0, 0, hwnd);
     return err == 0;
 }

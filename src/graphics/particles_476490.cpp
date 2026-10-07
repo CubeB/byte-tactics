@@ -5,14 +5,8 @@
 // pointer. The caller (0x4751c0) grows the vector with reserve and fills it
 // with insert.
 //
-// The original's translation unit was built with /Gi (#5035), and the bytes
-// also depend on which other vector members the TU instantiates: with an
-// operator= use (or resize) this MATCHes; with only reserve, a copy
-// constructor, erase or no other use it compiles to 0x476210's shape (60.8%).
-// Without /Gi the best file reached 78.9%, through a hand-written clone that
-// put deallocate before _Destroy (the earlier passes are in git history). This
-// function and 0x476210 are the same insert on two identically laid out
-// records; they differ only in the TU's other vector uses.
+// This function and 0x476210 are the same insert on two identically laid out
+// records.
 #include <vector>
 
 struct Elem_00476490 { int dwords[8]; };

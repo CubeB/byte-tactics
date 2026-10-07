@@ -36,10 +36,6 @@ void __cdecl FUN_004d83a0(int);
 // rev31.GP3, then every *.CCX, *.UFO and *.HPI file in the current directory
 // (stopping after 10 HPI files that HAPI_AddArchive accepts), then the *.hpi
 // files in the root of every CD-ROM drive.
-//
-// The drive loop needs `continue` (as in FindGameCdDrive), not `break`: with
-// `break` MSVC passes a constant 0 to the first FindNextCdDrive call and rotates
-// the loop, where the original stores 0 to the drive slot and reloads it.
 // FUNCTION: 0x41d4c0
 void RegisterDataArchives()
 {
@@ -84,6 +80,7 @@ void RegisterDataArchives()
         do {
             drive = FindNextCdDrive(drive);
             if (drive == 0)
+                // continue, not break: break changes the first FindNextCdDrive argument.
                 continue;
             sprintf(path, "%c:\\*.hpi", drive);
             h = HAPI_FindFirst(path, &fd, -1, 1);

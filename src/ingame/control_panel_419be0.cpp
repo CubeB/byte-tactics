@@ -3,15 +3,6 @@
 // contains and selects that order mode (FUN_00419bc0 inlined), plays the
 // "immediateorders" or "specialorders" sound and returns 1; returns 0 when the
 // name is no order. STOP issues the stop order at once.
-//
-// Suspected original bug, and what made this match: `e` is only assigned when
-// the button's entry has type 1. Otherwise it is read uninitialised. It still
-// works in the game because MSVC gives `e` the dead stack slot of the `button`
-// argument (button itself lives in edi), so the uninitialised read at 0x419c1c,
-// `mov ebp, [esp+0x34]`, loads the button pointer. Every earlier attempt wrote
-// the fallback as `: button` (84.1%, or 92.2% with permuter padding): that is a
-// register use of button, which ties button with entries for esi (c2prio:
-// 58 against 58, button ahead on the +0x40 key) and gives `mov ebp, esi`.
 #include <string.h>
 
 class Class_00438760 {
@@ -56,6 +47,7 @@ int __stdcall HandleOrderButtonClick(Entry_00419be0* button, Entry_00419be0* ent
 {
     char name[32];
     void* orders = g_game->orders;
+    // Uninitialised unless the entry is type 1, as in the original: a `: button` fallback changes the code.
     Entry_00419be0* e;
     if (entries[button->index].type == 1) e = &entries[button->index];
 

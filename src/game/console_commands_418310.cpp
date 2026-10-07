@@ -5,23 +5,7 @@
 // contents, 3: metal values, 4: fog of war), plus the contour lines of
 // 0x4181d0 when DAT_00511dd0 is set.
 //
-// What took it from 65.2% (with /Gi) to MATCH, without /Gi like every other
-// function around it:
-// * The path cell lookup is an inlined method of the path grid at
-//   paths+0x1c (`add eax, 0x1c` then [eax+4] and [eax]); the same grid
-//   (cells, width, ...) is Grid_0040d900 in 0x40d900.cpp. That one change put
-//   the whole frame in place (y below the quad, the tile/cell slot shared).
-// * `cell->flags & ~4` is tested through an `unsigned char` (byte compares
-//   `and cl, 0xfb` / `cmp cl, 3`), and the tile's unit, feature and object
-//   words are masked with `& 0xff` rather than cast, so the word loaded for
-//   the test is reused for the argument (`mov ax, [ebx]` / `and eax, 0xff`).
-// * lastX is `__min(...)` from <stdlib.h> (one store of lastX after the
-//   select; an if-clamp stores it in both arms).
-// * The headers: the two multiplies (`y * width` for the tile and
-//   `fogWidth * (y / 2)` for the fog) take their operand order from the
-//   declaration count. <stdio.h>, <math.h>, <malloc.h> and <stdlib.h> give
-//   both; <stdio.h> with <ctype.h> and <malloc.h>, or with <math.h> and
-//   <direct.h>, also match.
+// This header set fixes the operand order of the tile and fog multiplies.
 #include <stdio.h>
 #include <math.h>
 #include <malloc.h>
@@ -59,6 +43,7 @@ struct PathCell {
 struct PathGrid {
     PathCell* cells;                   // +0x0
     int width;                         // +0x4
+    // Inlined cell lookup on the path grid: puts the whole frame in place.
     PathCell* At(int x, int y) { return &cells[width * y + x]; }
 };
 struct PathMap {
@@ -128,6 +113,7 @@ void __stdcall FUN_00418310(void* surface)
     }
     int firstY = g_game->scrollY / 16;
     int firstX = g_game->scrollX / 16;
+    // __min, not an if-clamp: one store of lastX after the select.
     int lastX = __min(g_game->viewWidth + firstX + 1, g_game->width - 1);
     int lastY = g_game->height - 1;
     unsigned char* colors = g_game->colors;
@@ -171,6 +157,7 @@ void __stdcall FUN_00418310(void* surface)
                     SetTextColors(rand() & 255, GetTextKeyColor());
                     DrawString(surface, "G", p[0].x, p[0].y, -1);
                 }
+                // unsigned char: gives the byte compares.
                 unsigned char kind = cell->flags & ~4;
                 if (kind != 0 && kind != 3) {
                     int cx = p[0].x + 8, cy = p[0].y + 8;
@@ -197,6 +184,7 @@ void __stdcall FUN_00418310(void* surface)
                     DrawLine(surface, p[0].x, p[0].y, p[1].x, p[1].y, colors[13]);
                     DrawLine(surface, p[0].x, p[0].y, p[3].x, p[3].y, colors[13]);
                 }
+                // Masked with & 0xff, not cast: the loaded word is reused for the argument.
                 if (tile->unit) FillPolygon(surface, p, 4, tile->unit & 0xff);
                 else if (tile->object != 0xffff) FillPolygon(surface, p, 4, (tile->object - 56) & 0xff);
                 if (tile->feature) {

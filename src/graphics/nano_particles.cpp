@@ -61,6 +61,8 @@ public:
     void SetLifetime(int ticks);
 };
 
+// Works on direct members, not references, and reads `d = e - s` after `v = s`:
+// the store scheduling and the CSE depend on both.
 #define SPLIT_SEG(g)                         \
     {                                        \
         int v, d;                            \
@@ -111,22 +113,15 @@ void __stdcall ParticleSystem::operator delete(void* p)
     DAT_0051e610.FreeSlot(p);
 }
 
-// The compiler-generated scalar deleting destructor. The implicit destructor
-// destroys the std::vector at +0xc (the inlined ~vector leaves the dead store
-// of _First in the `push ecx` slot), then the inlined base destructor stores
-// the base vtable, and the inlined operator delete returns the object to the
-// pool. The class has no out-of-line constructor: 0x471470, 0x4720d0 and
-// 0x472200 create it with `new`, inlining it. None is decompiled yet, so the
-// global below exists only to make the compiler emit the vtable and with it
-// this COMDAT.
+// The compiler-generated scalar deleting destructor. The global below exists
+// only to make the compiler emit the vtable and with it this COMDAT.
 // FUNCTION: 0x471560 ??_GNanoParticles@@UAEPAXI@Z
 static NanoParticles* s_object = new NanoParticles;
 
-// Slot 1: steps every item in the std::vector at +0xc, drops the ones whose field_2c is
-// below the current game tick (the vector erase is inlined, so the shift down is
-// the rep movsd loop), then asks the two virtuals at +0x14 and +0x10 whether the
-// container needs a rebuild. Sibling of 0x472d50, which only differs in the
-// element size (0x34) and its two callees.
+// Slot 1: steps every item in the std::vector at +0xc, drops the ones whose
+// field_2c is below the current game tick, then asks the two virtuals at +0x14
+// and +0x10 whether the container needs a rebuild. Sibling of 0x472d50, which
+// only differs in the element size (0x34) and its two callees.
 // FUNCTION: 0x472eb0
 void NanoParticles::Update()
 {
@@ -164,8 +159,7 @@ void NanoParticles::FUN_00472e30(int param_1)
         it->DrawParticle(param_1, g_game->scroll_x, g_game->scroll_y);
 }
 
-// Slot 3: whether there are no particles; the bool from the inlined
-// vector::empty() is widened to the int return value.
+// Slot 3: whether there are no particles.
 // FUNCTION: 0x472fd0
 int NanoParticles::FUN_00472e70()
 {
@@ -173,15 +167,6 @@ int NanoParticles::FUN_00472e70()
 }
 
 // Slot 6: takes the two segments and keeps the middle 3/11 of each.
-// MATCH (Claude Opus 5.5, #4321). What every earlier pass was missing: the
-// original reads and writes the segment fields as direct members of `this`
-// (macro-expanded code, see SPLIT_SEG), not through Vec3& or int& parameters.
-// With direct members MSVC knows the fields do not alias, so it schedules each
-// e.x/e.y store after the next component's loads and runs the first segment's
-// last store into the second segment's loads, which no reference spelling
-// does. Each component has to read its start into v first and then subtract
-// the field again (`d = e - s`, a CSE use of v: `mov edx, esi; sub ecx, edx`
-// in the z part); `d = e - v` drops 4 bytes and the CSE copy.
 // FUNCTION: 0x473b50
 void NanoParticles::FUN_00473b50(Seg_00473b50* a, Seg_00473b50* b, int c)
 {

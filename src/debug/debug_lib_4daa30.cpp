@@ -7,24 +7,6 @@
 // record of the first key above `key` (8 zero bytes when it is end()), arg1
 // gets the record of the last key at or below it (8 zero bytes when it is
 // begin(), which costs the extra _Dec).
-//
-// MATCH: 214 of 214 bytes. The previous 82.9 percent attempt was one chained
-// call away: the first lookup must go through a named tree local,
-//
-//     Class_004dd7d0* tree = GetBlockMap();
-//     it.ptr = tree->FUN_004dd7d0(rec.key);
-//
-// because the chained form GetBlockMap()->FUN_004dd7d0(rec.key) evaluates
-// the `lea ecx,[esp+0x10]` argument before the object call and homes the
-// critical section in ebp; the split form calls GetBlockMap first and keeps
-// its result in eax across the lea/push, which flips cs to ebx and every
-// register choice after it (esi for the end() compare and the following
-// `add esi,0xc` copy) falls into place. The iterator type must also be
-// Class_004dd820 (the map's _Dec) rather than an ad hoc name, or the
-// +0xb2 reference check fails.
-// Negative results from the 82.9 percent attempt, still valid: explicit
-// iterator temps, a `bool isEnd = ...` local and swapping the rec/it
-// declaration order all scored worse or changed nothing.
 #include <windows.h>
 
 struct Node_004daa30;
@@ -78,7 +60,9 @@ void __cdecl FindBlocksAroundAddress(unsigned int key, Class_004d8820* prev, Cla
     LPCRITICAL_SECTION cs = FUN_004da780();
     EnterCriticalSection(cs);
     Class_004d8820 rec(key, 0, 0, 0, 0);
+    // Named local: chaining the call changes the register allocation.
     Class_004dd7d0* tree = GetBlockMap();
+    // Must be Class_004dd820 (the map's _Dec), not an ad hoc type.
     Class_004dd820 it;
     it.ptr = tree->FUN_004dd7d0(rec.key);
     if (it == GetBlockMap()->End()) {

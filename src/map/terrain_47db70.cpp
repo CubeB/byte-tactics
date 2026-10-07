@@ -1,16 +1,9 @@
 // Decompiled by space-bunny-free, finished by mimo-v2.6-flash. Names are provisional.
 //
 // Suspected original bug, 0x47dd05: the cell's owner word is compared against
-// the raw low 16 bits of the second argument (`cmp ax, word ptr [esp+0x2c]`),
-// and that argument is never dereferenced anywhere in the function, while the
-// first one is (`mov eax, dword ptr [esp+0x28]` at 0x47dd48, then
-// `byte ptr [eax+0x229]`). So either the parameter really is an owner id
-// dressed up as a pointer, or the original meant other->field_0.
-//
-// The declarations `int minHeight, maxHeight, stride;` ahead of the assignments
-// and `c += stride` in the outer loop's increment expression are load bearing:
-// both move MSVC's scheduling of the tolerance load and of `row++` into the
-// original's positions.
+// the raw low 16 bits of the second argument, and that argument is never
+// dereferenced anywhere in the function. So either the parameter really is an
+// owner id dressed up as a pointer, or the original meant other->field_0.
 #pragma pack(push, 1)
 
 struct Point_0047db70 {
@@ -106,6 +99,7 @@ int __stdcall FUN_0047db70(Unit_0047db70* unit, Unit_0047db70* other, Point_0047
     if (!unit->field_22f)
         return CanBuildAt(unit, cell, 0, 0);
     Cell_0047db70* c = &g_game->cells[cell.y * g_game->width + cell.x];
+    // Declared ahead of the assignments: places the tolerance load.
     int minHeight, maxHeight, stride;
     stride = g_game->width - fx;
     unsigned char tolerance = unit->field_228;
@@ -113,6 +107,7 @@ int __stdcall FUN_0047db70(Unit_0047db70* unit, Unit_0047db70* other, Point_0047
     maxHeight = g_game->seaLevel - unit->field_1c0;
     if (flags != 1)
         return 1;
+    // `c += stride` stays in the increment expression: places `row++`.
     for (int row = 0; row < fp.y; row++, c += stride) {
         for (int col = 0; col < fx; col++, c++) {
             if (SteepCell(c))

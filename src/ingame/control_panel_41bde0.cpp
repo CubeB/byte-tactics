@@ -1,9 +1,7 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
 // Steps the selected unit's build menu to the next page (wrapping to page 1),
 // or closes it after the last page when param_1 is set.
-// The page is compared as `page == pageCount - 1`, and <stdlib.h> is needed:
-// without it MSVC loads the page count first and the sub-object pointer lands
-// in edx instead of esi (found with tools/headers.py).
+// Needed: without it the sub-object pointer is allocated to edx, not esi.
 #include <stdlib.h>
 
 #pragma pack(push, 1)
@@ -57,6 +55,7 @@ void __stdcall StepBuildMenuPage(int param_1)
                     unit->page++;
                 }
             } else {
+                // Compared as page == pageCount - 1; keeps the original load order.
                 if (unit->page == unit->sub->pageCount - 1)
                     unit->page = 1;
                 else

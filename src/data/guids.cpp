@@ -2,8 +2,7 @@
 // lobby and DirectSound that the game's code passes to the SDK (QueryInterface,
 // CoCreateInstance, the lobby's address parsing), defined here as one file of
 // the game defined them: with INITGUID before the DirectX 5 SDK's headers,
-// which defines every id each header declares, in its order. The toolchain's
-// own headers are older (DirectDraw 3), so the values are written out.
+// which defines every id each header declares, in its order.
 
 #include <windows.h>
 

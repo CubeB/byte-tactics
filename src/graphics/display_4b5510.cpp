@@ -1,20 +1,9 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by DeepSeek V4.1 Flash, checked by GPT-6, finished by Claude Opus 5.5. Names are provisional.
 //
-// MATCH (Claude Opus 5.5, #5256). Switches the display between DirectDraw
-// full screen (mode != 0: cooperative level, display mode, flipping primary
-// with one back buffer, clipper, palette, then redraws the saved picture) and
-// a windowed GDI DIB section (mode == 0), under the display lock at
-// DAT_0052a4e8, and finally reloads the palette.
-//
-// What held it at 99.7% was one reload of [esp+0x14] that the original makes
-// at the head of the GDI cleanup block, above the hpalette and dib stores. The
-// cleanup is an inline helper that takes the DC by reference,
-// FreeGdi_004b5510(d, d->dc): the reference is a value live across the three
-// GDI calls with no callee-saved register left, so C2 splits it into the stack
-// slot and reloads it at the block head. Being an inline helper's value, its
-// slot is reused later by the `bits` pointer that CreateDIBSection fills, which
-// the earlier struct wrapper imitated. (The same shutdown sequence is written
-// out inline in the matched 0x4b6110.)
+// Switches the display between DirectDraw full screen (mode != 0: cooperative
+// level, display mode, flipping primary with one back buffer, clipper, palette,
+// then redraws the saved picture) and a windowed GDI DIB section (mode == 0),
+// under the display lock at DAT_0052a4e8, and finally reloads the palette.
 
 
 #include <windows.h>
@@ -71,6 +60,7 @@ void __cdecl BlitSurface(Surface *dst, void *src, int x, int y);
 int __stdcall UnlockScreen(Surface *s);
 int __stdcall SetPaletteColors(PALETTEENTRY *entries, int start, int count);
 
+// Takes the DC by reference: the original reloads it at the block head.
 static inline void FreeGdi_004b5510(Display_004b5510 *d, HDC &dc)
 {
     if (dc)

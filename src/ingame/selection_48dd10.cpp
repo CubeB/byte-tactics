@@ -5,11 +5,6 @@
 // argument. Returns 1 for the first such unit, else 0. The predicate is the
 // negation of the one in the matched FUN_0048c9b0, which clears the unit's
 // 0x10 flag when exactly this state no longer holds.
-// The +0x104 test is MSVC 5's x87 lowering of `== 0.0f`: it reads only the C3
-// bit, so at run time the body is entered when the float is above zero, the
-// opposite of what the source says. The same is true of the `!= 0.0f` test in
-// FUN_0048c9b0, so both functions select the complement of the intended unit.
-// Writing it `!(... != 0.0f)` compiles to the same bytes.
 
 #pragma pack(push, 1)
 struct Unit {                            // 0x118 bytes

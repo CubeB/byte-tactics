@@ -8,14 +8,6 @@
 // the key). The return value is the global byte counter DAT_0051fdb0, so a
 // null `out` only measures the row, which is how CompressFrame asks for the
 // size before compressing.
-//
-// What made it match (claude-opus-5-5, #4733): the loop head is ONE
-// statement, `DAT_0051fcb0[n++] = c = *p++;`. The earlier 98.7% versions
-// wrote the history store as `DAT_0051fcaf[n] = c` after a separate `n++`
-// (the exe's operand is 0x51fcaf because MSVC folds the post-increment's -1
-// into the address), and every spelling with a separate increment left the
-// history store at the end of the block instead of right after the byte
-// load. Writing the store with the post-increment index puts it in place.
 extern unsigned char DAT_0051fcb0[];
 extern int DAT_0051fdb0;
 
@@ -49,6 +41,7 @@ int __stdcall CompressRow(char* dest, char* src, int width, unsigned char key)
     int state = (c == key);
     while (width) {
         width--;
+        // One statement: a separate increment moves the history store.
         DAT_0051fcb0[n++] = c = *p++;
         value = c;
         switch (state) {

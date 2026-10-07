@@ -7,12 +7,6 @@
 // apart: x1, y1, z1, x2, y2, z2. The screen box is (x + xOff - scrollX,
 // z + zOff - scrollY - (y + yOff) / 2), so the top corner pairs x1 with y2
 // and z1 and the bottom corner pairs x2 with y1 and z2.
-//
-// Two source-shape details matter: the four clipped bounds have to be named
-// locals (left, top, right, bottom) for MSVC to keep u in ebx and g_game in
-// esi, and `top` has to be declared before `right`, otherwise the two `add reg,
-// 0x20/0x80` at the end swap. Reading the position through the Fixed union
-// (whole part at +2) is what gives the original `movsx` loads.
 
 #pragma pack(push, 1)
 
@@ -23,6 +17,7 @@ struct Rect_0048bae0 {
     int bottom;                        // +0xc
 };
 
+// Positions are read through this union (whole part at +2): gives the movsx loads.
 union Fixed_0048bae0 {
     int value;
     struct {
@@ -131,6 +126,7 @@ void FUN_0048bae0(void)
                         y1 = h;
                 }
             }
+            // Named locals, with top declared before right: keeps register use and the final adds.
             int left = x1 + 0x80;
             int top = z1 - (y2 >> 1) + 0x20;
             int right = x2 + 0x80;

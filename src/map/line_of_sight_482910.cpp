@@ -3,15 +3,6 @@
 // record type as 0x482130), then runs the same inlined processing tail as
 // 0x482ac0 / 0x482830. The tail is the body of 0x482830 inlined on the new
 // record, so the flags & 2 test appears twice.
-// Two things were needed for the match:
-// - The three value parameters are plain int (the caller sign-extends the
-//   short fields before pushing, so int and short arguments look identical at
-//   the call; but declaring the byte parameter as unsigned char / char made
-//   MSVC reserve an extra 4-byte home slot and spill the y_hi / 64 temporary
-//   to [esp+0x24] instead of reusing [esp+0x20]).
-// - e->player must be assigned before e->screen in the source, otherwise the
-//   compiler clobbers ecx (still holding g_game) computing &e->screenPos and
-//   has to reload g_game.
 
 struct Vec3_482910 {
     int x;
@@ -73,11 +64,13 @@ void __stdcall FUN_00481930(Eye_482910* e);
 Entry_482910* __stdcall GetGafFrame(unsigned short* table, int index);
 
 // FUNCTION: 0x482910
+// Plain int parameters: a char or unsigned char one changes the stack frame.
 void __stdcall AddEyeball(Vec3_482910* src, int a, int b, int c)
 {
     if ((g_game->flags & 2) == 2 && g_game->count < 0x14) {
         Eye_482910* e = &g_game->eyes[g_game->count];
         e->player = (char*)g_game + g_game->playerIndex * 0x14b + 0x1b63;
+        // Assigned before screen: &e->screenPos would clobber ecx, which holds g_game.
         e->screen = &e->screenPos;
         e->x = a;
         e->flagPtr = &e->flagB;

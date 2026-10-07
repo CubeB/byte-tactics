@@ -4,15 +4,6 @@
 // size matches GetScreenWidth/GetScreenHeight) into the locked primary surface;
 // else it flips, or Blts the back surface to the window's client rect,
 // retrying after DDERR_SURFACELOST.
-// The two "MAIN" Lock()/Unlock() pairs share one Unlock body in the exe.
-// That merge needs the bitmap path's Lock to keep InterlockedExchange in ebp
-// and the lock result in ebx, as the first path does. Earlier attempts (up to
-// 90.7%) forced it with a dead `if ((held = Lock()) == 0) held = 0;` test; the
-// real cause was the surface-restore chain, which the original wrote once as
-// an inline helper (RestoreSurfaces below) and used in both places. With the
-// helper the function matches with a plain `LONG held = Lock();`.
-// Frame: held, bmp and pt share 0x10, rect 0x18, src 0x28, out 0x38,
-// screen 0x68, desc 0x98.
 #include <windows.h>
 #include <ddraw.h>
 
@@ -119,10 +110,8 @@ static inline int UnlockScreenInline()
     return 1;
 }
 
-// Restores both surfaces after DDERR_SURFACELOST and redraws the screen. An
-// inline helper in the original: its two uses here (after the failed primary
-// Lock and in the Blt retry loop) are what let MSVC give the bitmap-path
-// Lock the same registers as the first path and tail-merge the two Unlocks.
+// Restores both surfaces after DDERR_SURFACELOST and redraws the screen.
+// Must stay an inline helper used in both places: gives matching registers.
 static inline HRESULT RestoreSurfaces(Display_004c63a0* d)
 {
     Display_004c63a0* dd = GetDisplay();

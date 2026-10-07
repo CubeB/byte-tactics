@@ -3,15 +3,7 @@
 // 4-byte elements, each with an out-of-line capacity() (0x470250) and size()
 // (0x470270) that both return the element count, i.e. a byte difference
 // shifted right by 2. list_a's class inlines its size() for the first
-// comparison, list_b's does not, and that is why the two assignments are two
-// separate inline bodies with different register allocations rather than one
-// body used twice.
-//
-// The spelling inside assign_first is load-bearing: s->begin() and s->end()
-// there, where assign_second uses the raw _First and _Last, are what makes
-// MSVC put the delete argument in eax and the reallocation size in edx
-// (lea edx, [eax*4]) instead of rolling both into eax (shl eax, 2). Widening
-// the accessors to the other two call sites, or back to raw fields, loses it.
+// shifted right by 2.
 #include <vector>
 
 struct Elem_004702a0 {
@@ -53,6 +45,7 @@ public:
         (void)t;
     }
 
+    // Separate from assign_second: list_a inlines size(), list_b does not.
     // the first list
     void __inline assign_first(Class_00470270* d, const Class_00470270* s)
     {
@@ -76,6 +69,7 @@ public:
                 d->_Last = d->_First + s->FUN_00470270();
             } else {
                 d->_Destroy(d->_First, d->_Last);
+                // begin()/end() here, raw fields in assign_second: sets the register split.
                 operator delete(d->begin());
                 int n = (int)s->FUN_00470270();
                 if (n < 0)

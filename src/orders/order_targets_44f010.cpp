@@ -131,6 +131,7 @@ public:
         struct {
             unsigned char active : 1;  // +0x64 bit 0
             unsigned char flag_1 : 1;  // bit 1
+            // flag_2 and flag_3 stay 1-bit bitfields: an int mode store gives and/or.
             unsigned char flag_2 : 1;  // bit 2
             unsigned char flag_3 : 1;  // bit 3, the path changed
         };
@@ -153,8 +154,7 @@ public:
     void FUN_0044f100(int n);
 };
 
-// The constructor: the base constructor is inlined, and its vtable store is
-// dead.
+// The constructor.
 // FUNCTION: 0x44f010
 Class_0044f010::Class_0044f010(Struct_004907e0* p)
     : Class_0044ef20(p)
@@ -216,8 +216,7 @@ void Class_0044f010::FUN_0044ef40(Vec3_004907e0* out, int unused, int n)
 
 // Slot 2: tells the object at +0x4 about the owner, then, when the unit has reached
 // its second path point (within 5 units of the owner), drops that point with
-// an overlapping std::copy and refreshes the flags. std::copy, not memmove:
-// memmove stays a library call, std::copy is the loop the original has.
+// an overlapping std::copy and refreshes the flags.
 // FUNCTION: 0x44f1a0
 void Class_0044f010::FUN_0044efb0()
 {
@@ -232,6 +231,7 @@ void Class_0044f010::FUN_0044efb0()
         int dx = owner->pos.z.half[1] - points[1].y;
         int dy = owner->pos.x.half[1] - points[1].x;
         if (dy * dy + dx * dx <= 25) {
+            // std::copy, not memmove: memmove stays a library call.
             std::copy(points + 1, points + count, points);
             int n = --count;
             if (n < 2)
@@ -324,7 +324,7 @@ void Class_0044f010::FUN_0044ef90(void* param)
 }
 
 // The out-of-line destructor: it stores its own vtable, unregisters the object, then the empty inline base destructor
-// stores 0x4fd428. Its scalar deleting destructor 0x44f040 inlines it.
+// stores 0x4fd428.
 // FUNCTION: 0x44f040 ??_GClass_0044f010@@UAEPAXI@Z
 // FUNCTION: 0x44f450
 Class_0044f010::~Class_0044f010()
@@ -345,9 +345,6 @@ int Class_0044f010::FUN_0044efe0()
 // unit's mode asks for it, writes the point count in 2 bits, then up to three
 // points of 16 bits each, and finally copies the unit's mode into flag 2 while
 // clearing flag 3 (the "changed" flag the readers rely on).
-// The tail only compiles to the original's `and 0xf3` / `xor` pair when the
-// two flag bits are written as 1-bit bitfields: assigning the mode as an int
-// value gives `and/or` instead.
 // FUNCTION: 0x44f4a0
 void Class_0044f010::FUN_0044efc0(BitWriter* stream)
 {

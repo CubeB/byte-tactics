@@ -27,11 +27,13 @@ struct Vec3_00474760 {
     };
     int Length() const
     {
+        // Each component converts into its own double local.
         double fx = x;
         double fy = y;
         double fz = z;
         return (int)sqrt(fx * fx + fy * fy + fz * fz);
     }
+    // Must be a member: the components are then reached through the vector's address.
     void Scale(int s)               // s is 16.16 fixed point
     {
         x = (int)(((__int64)x * s) >> 16);
@@ -151,14 +153,8 @@ void __stdcall ParticleSystem::operator delete(void* p)
     DAT_0051e610.FreeSlot(p);
 }
 
-// The compiler-generated scalar deleting destructor. Its implicit destructor
-// destroys the std::vector at +0xc (the inlined ~vector leaves the dead store
-// of _First in the `push ecx` slot), then the inlined base destructor stores
-// the base vtable, and the inlined operator delete returns the object to the
-// pool. The class has no out-of-line constructor: 0x4716e0, 0x472430 and
-// 0x472530 create it with `new`, inlining it. None is decompiled yet, so the
-// global below exists only to make the compiler emit the vtable and with it
-// this COMDAT.
+// The compiler-generated scalar deleting destructor.
+// The global below exists only to make the compiler emit the vtable and this COMDAT.
 // FUNCTION: 0x4717e0 ??_GWakeParticles@@UAEPAXI@Z
 static WakeParticles* s_object = new WakeParticles;
 
@@ -203,22 +199,16 @@ void WakeParticles::FUN_00472e30(int param_1)
     }
 }
 
-// Slot 3: whether there are no particles; the bool from the inlined
-// vector::empty() is widened to the int return value.
+// Slot 3: whether there are no particles.
 // FUNCTION: 0x473290
 int WakeParticles::FUN_00472e70()
 {
     return items.empty();
 }
 
-// Slot 6: stores the two points it
-// is given, the vector between them scaled to a length of 32768 (2^31/len as
-// 16.16), and the two arguments it passes on, then updates itself.
-// Three source shapes are needed for the code to line up: the difference must
-// come from an inline `operator-` returning the struct by value, the length
-// must convert each component into its own double local, and the scaling must
-// be a `Scale` member, so the three components are reached through the
-// vector's address instead of through `this`.
+// Slot 6: stores the two points it is given, the vector between them scaled to
+// a length of 32768 (2^31/len as 16.16), and the two arguments it passes on,
+// then updates itself.
 // FUNCTION: 0x474760
 void WakeParticles::FUN_00474760(Vec3_00474760* a, Vec3_00474760* b, int param_3,
                                   int param_4, int param_5)
@@ -227,6 +217,7 @@ void WakeParticles::FUN_00474760(Vec3_00474760* a, Vec3_00474760* b, int param_3
     field_1c = param_3;
     pos_a = *a;
     pos_b = *b;
+    // The difference must come from an inline operator- returning the struct by value.
     dir = pos_b - pos_a;
     // The divisor is twice the length, with no test for zero: two identical
     // points raise a divide exception here (0x474811, _alldiv).
@@ -241,11 +232,8 @@ void WakeParticles::FUN_00474760(Vec3_00474760* a, Vec3_00474760* b, int param_3
 // one element built from the object's three points, with the first point
 // jittered by up to 3 units on each axis, and finally sets field_8 one tick
 // ahead of the current tick.
-// The append runs once inside a countdown loop: MSVC 5 keeps the
-// `do { ... } while (--i)` as a counter (i = 1) because the body is large,
-// exactly as in the sibling 0x4751c0. The element is a 12-byte point made of
-// three 16.16 fixed-point pairs of shorts, so the jitter is three `+=` on the
-// high half, and the vector insert stays out of line at 0x475ef0.
+// The element is a 12-byte point made of three 16.16 fixed-point pairs of
+// shorts, so the jitter is three `+=` on the high half.
 // FUNCTION: 0x474880
 void WakeParticles::Emit()
 {
@@ -254,6 +242,7 @@ void WakeParticles::Emit()
     if (grow > 0)
         items.reserve(grow + items.size());
 
+    // Keep the do/while countdown with its counter (i = 1).
     int i = 1;
     do {
         Class_00474580 e;

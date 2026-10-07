@@ -2,8 +2,7 @@
 // std::vector<Class_004c54a0>::insert(iterator, size_type, const T&), out of
 // line: 8-byte elements holding two reference-counted string handles. The
 // copy constructor is 0x4c54a0, the assignment 0x4c5470 and the destructor
-// 0x4c5190. Taking insert's address makes the compiler emit the template
-// instantiation, as in 0x488fb0.cpp.
+// 0x4c5190.
 #include <vector>
 
 struct TdfField {
@@ -32,6 +31,7 @@ public:
 };
 
 typedef std::vector<Class_004c54a0> Vec_004c51e0;
+// Taking insert's address is what emits the instantiation out of line.
 typedef void (Vec_004c51e0::*InsertFn_004c51e0)(
     Vec_004c51e0::iterator, Vec_004c51e0::size_type, const Class_004c54a0&);
 

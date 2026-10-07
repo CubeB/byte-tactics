@@ -1,5 +1,4 @@
 // Decompiled by space-bunny-free, finished by Space Bunny Free, finished by muse-spark-1.3-free. Names are provisional.
-// MATCH (454 of 454 bytes).
 // Copies a file into an already open destination handle, 0x19000 bytes at a
 // time, and returns the number of bytes copied (0 on failure). The size to
 // copy comes from the source handle: the cached block size when it is one of
@@ -7,15 +6,6 @@
 // empty source is a failure. The destination has to be a real file: when it
 // is a packed item itself the write is refused by counting -1 bytes written,
 // which never matches the chunk size.
-// The fix from the 81.6 percent base was the return value: the success path
-// reloads the size from its home in the dead name argument slot
-// (mov eax, [esp+0x20]), it does not return the destination pointer from ebp.
-// Returning len keeps its live range spanning the loop (esi is busy with the
-// chunk count there), so MSVC homes the size in the name slot, reloads it
-// into esi before the seek, copies it to the fresh local for the loop counter
-// after the allocation, and reloads it again for the return. A single
-// variable cannot express those two homes, and returning dst lets the single
-// variable fold to 0 at the exit, which is why that shape stalled at 81.6.
 #include <stdio.h>
 #include <io.h>
 
@@ -107,6 +97,7 @@ int __stdcall HAPI_CopyIntoFile(FileHandle* dst, char* name)
         left -= got;
     }
     Close_004bcf80(f);
+    // Returns len, kept separate from the loop counter left; not dst.
     return len;
 fail:
     if (buf)

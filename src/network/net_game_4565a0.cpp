@@ -7,12 +7,6 @@
 // When it is already set the message is a later update: find the sending
 // player in the table, and if they are an active client (state 1 or 2) record
 // the round trip into the slot of the player in g_game + 0x4c9.
-//
-// The two id searches are the inlined FindPlayerIndex helper, each with its
-// own early `return 10` for the -1 case, which is what produces the two
-// separate stores of 10. Writing the table lookups through a pointer local
-// (`pl`) is what makes the compiler materialise &players[index] in a register
-// while re-deriving the same address for the first field load.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -65,6 +59,7 @@ static inline int GetPlayerId(unsigned char i)
 
 static inline unsigned char FindPlayerIndex(int id)
 {
+    // Early return 10 for -1, not a guarded loop.
     if (id == -1)
         return 10;
     for (unsigned char i = 0; i < 10; i++) {
@@ -94,6 +89,7 @@ void __stdcall HandlePing(Message_004565a0* p)
     }
 
     unsigned char index = FindPlayerIndex(p->id);
+    // Table lookup goes through the pl pointer local.
     Player_004565a0* pl = &g_game->players[index];
     if (pl->active == 0) {
         return;

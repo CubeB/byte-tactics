@@ -3,20 +3,8 @@
 // it through virtual slot 6, then appends it to the
 // std::vector<ParticleSystem*> picked by the short index. When that list
 // already holds more than 400 entries its oldest element is deleted and erased
-// first; the surviving push_back is what leaves std::vector::insert (0x4732e0)
-// out of line. That only works if this function's /Ob2 inline budget is
-// already spent, which is what the zeroing loop in operator new below is for;
-// spelling it memset leaves the budget unspent and inlines the insert instead
-// (224 bytes of ours were the 550-byte insert). Twin of 0x4728f0: this file
-// with the // FUNCTION: annotation, the function's own name, and the last
-// constant of the slot 6 call changed to 1, nothing else.
-// 0x472630 is the matched copy of the same helper with more arguments;
-// 0x471340 is the matched copy with its base in this. operator new (0x471d10)
-// is inlined here, the constructor is not.
-// Measured dead ends: a memset in operator new, an append that is not
-// push_back (insert(end(),1,p), resize(size()+1,p)), Add taking the vector by
-// reference or by pointer, Add as a free or static function, an inline ctor
-// body, the block read from g_game after the new.
+// first. Twin of 0x4728f0 with the last constant of the slot 6 call changed to
+// 1.
 #include <stddef.h>
 #include <vector>
 

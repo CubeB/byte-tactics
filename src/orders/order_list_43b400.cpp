@@ -6,11 +6,7 @@
 // made at the unit's own position before the one aimed at the target.
 // The two-command cases differ only in the last constructor argument: the
 // first reads a signed short at def+0x202, the second an unsigned short at
-// def+0x214. The list insertion is the body of 0x43acb0, inlined five times;
-// the second command's two copies in the 0x40000 and 0x80000 cases write the
-// link and the flag merge once and the earlier loop jumps forward to it, which
-// needs the explicit `return 1;` in each case (a single trailing return makes
-// MSVC keep two store blocks). See 0x43b1f0.cpp.
+// def+0x214.
 
 #pragma pack(push, 1)
 
@@ -106,6 +102,7 @@ int __stdcall FUN_0043b400(Unit* unit, Unit* target, int param_3)
         cmd2->field_2e = unit->pos.y;
         cmd2->field_30 = unit->field_74;
         Insert(unit, cmd2, (cmd2->flags & 0x40000) ? unit->list2 : unit->list);
+        // Explicit `return 1;` in each case: a single trailing return splits the store blocks.
         return 1;
     } else if (f == 0x40000 && !param_3) {
         Class_00438760 kind2 = GetOrderType(2, unit, 0, &unit->pos);

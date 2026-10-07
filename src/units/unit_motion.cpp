@@ -1,10 +1,7 @@
 // Decompiled by DeepSeek V4.1 Flash, Opus, Haiku, GPT-6-Luna, Space Bunny Free, deepseek-v4.1, Fledge Alpha Free, GPT-6 and claude-opus-5-5. Names are provisional.
 // The memory cache: an arena of chunks {owner handle, size} that hands out
 // bitmaps, and the object pictures built in it.
-//
-// <windows.h> decides two operand orders in AllocHandle: `lea ebp,[ebx+eax]`
-// (size+cur, not cur+size) and the wrap-loop reload of this->base before
-// this->cap.
+// Needed for AllocHandle's operand orders.
 #include <windows.h>
 #include <string.h>
 
@@ -387,8 +384,7 @@ int CMemoryCache::AllocBitmap(Bitmap_00437b50** handle, int w, int h)
 #pragma auto_inline(on)
 
 // Allocates a two-plane w*h bitmap from the arena (0x437a30): a 0x18-byte
-// header, then a plane filled with 1 and a plane cleared to 0. The plane
-// pointer is taken before the header stores (it keeps the zero out of eax).
+// header, then a plane filled with 1 and a plane cleared to 0.
 // FUNCTION: 0x437be0
 int CMemoryCache::AllocTwoPlaneBitmap(Bitmap_00437b50** handle, int w, int h)
 {
@@ -398,6 +394,7 @@ int CMemoryCache::AllocTwoPlaneBitmap(Bitmap_00437b50** handle, int w, int h)
     Bitmap_00437b50* b = *handle;
     if (!b)
         return 0;
+    // Plane pointer taken before the header stores: it keeps the zero out of eax.
     unsigned char* p = (unsigned char*)(b + 1);
     b->field_4 = 0;
     b->field_6 = 0;
@@ -447,24 +444,6 @@ int __stdcall GetHandleSize(int param_1)
     return *(int*)(param_1 - 4);
 }
 
-// MATCH (claude-opus-5-5, #5153). Earlier passes reached 97.2% with the frame
-// test and the bitmap test emitted in the wrong order; writing them in the
-// original's order recoloured the function. What was missing:
-//  - The whole tail (fast path through DrawObjectPicture, or the piece loop) is the
-//    neighbouring Class_00458430::DrawObjectPieces, which has no callers in the exe
-//    and is inlined here. Its by-value Vec3 parameter is also what copies the
-//    never-written `coords.y` through its own frame slot, so the old `src`
-//    trick is gone. Inlined, it raises x and z from priority 27 to 35
-//    (c2prio), well clear of the coords copies at 26 to 32.
-//  - With that margin the frame test can come first, as in the original, if the
-//    bitmap-null case inside the 0x20000000 block is its own `rebuild = 1`
-//    statement (`if (!bitmap) ... else if (...)`): MSVC merges the two stores
-//    in the output, but the extra block lowers the bitmap temp from 16 to 14,
-//    below the flags temp (15), so flags take edx and the bitmap ebx.
-//  - The class is CMemoryCache, the name data/symbols.csv and the caller
-//    0x45ac20 use.
-// The doubled `test eax, eax` still needs the last conjunct spelled through the
-// `bitmap` local and the one before it through `list->bitmap`.
 // FUNCTION: 0x458810
 void CMemoryCache::DrawObjectState(List_458810* list, Vec3_458810* result)
 {
@@ -488,8 +467,10 @@ void CMemoryCache::DrawObjectState(List_458810* list, Vec3_458810* result)
         list->field_14 = 0;
     Bitmap_00437b50* bitmap = list->bitmap;
     if ((owner->flags & 0x20000000) != 0) {
+        // The bitmap-null case is its own `rebuild = 1` statement.
         if (list->bitmap == 0)
             rebuild = 1;
+        // The last conjunct goes through `bitmap`, the one before it through `list->bitmap`.
         else if (owner->intensity != 0.0f
                 && (owner->flags & 0x2000) != 0
                 && list->bitmap->plane2 == 0

@@ -132,20 +132,13 @@ void __stdcall SelectFontForEntry(Entry_004a1810* entries, int index);
 void __stdcall SetTextColors(int param_1, int param_2);
 void __stdcall DrawString(void* surface, const char* text, int x, int y, int maxWidth);
 
-// MATCH. Earlier passes chased a register/frame-slot tie in the first loop for
-// seven rounds, but the real cause was the control flow after it: the
-// `je 0x4af11e` at 0x4af05a (n == -1) jumps to the start/end setup of the
-// SECOND bubble pass, not past it. So only the first pass (over 0..n) sits
-// inside `if (n != -1)`; start = n + 1, end = count - 1 and the second pass
-// always run, which sorts the whole list when no line starts with a
-// backslash. With that fixed, the first loop is a plain `for` and every slot
-// and register falls into place.
-// The second pass compares keys the other way round, keys[i+1] - keys[i]
-// (0x4af174: `mov eax,[esi+ebx]` is keys[i+1], `mov edx,[edi]` is keys[i]),
-// so with keys the part after the split sorts descending while the part
-// before it sorts ascending; both _strcmpi calls compare ptr1[i] with
-// ptr1[i+1]. n records the LAST line starting with a backslash (0x4af03f
-// stores i on every hit).
+// Only the first pass (over 0..n) sits inside `if (n != -1)`; start = n + 1,
+// end = count - 1 and the second pass always run, which sorts the whole list
+// when no line starts with a backslash.
+// The second pass compares keys the other way round, keys[i+1] - keys[i], so
+// with keys the part after the split sorts descending while the part before
+// it sorts ascending; both _strcmpi calls compare ptr1[i] with ptr1[i+1]. n
+// records the LAST line starting with a backslash.
 // FUNCTION: 0x4aefa0
 void __stdcall SortFileList(char* list1, char* list2, int* keys, int count)
 {
@@ -248,14 +241,8 @@ void __stdcall SortFileList(char* list1, char* list2, int* keys, int count)
     FUN_004d85a0(buf1);
 }
 
-// MATCH. What the earlier 92.9 percent versions missed: the entry counter
-// (num++) sits inside the "is a wanted entry" if of each loop (the name and
-// attribute tests jump past it), and the close call HAPI_FindClose sits inside
-// the `find != -1` guard together with the do/while (a failed search jumps
-// over the close). The check.py diff normalises jump targets, so both showed
-// up only as different jump distances (0x4af418 against 0x4af40b).
-// Frame notes: one function scope search handle shared by both searches; the
-// file walk runs in every case and continues the sizes list of the directory walk.
+// The file walk runs in every case and continues the sizes list of the
+// directory walk.
 // FUNCTION: 0x4af320
 int __stdcall ScanDirectory(char* path, char* list, char* sizes, int mode, int flag, int what)
 {
@@ -339,15 +326,6 @@ void __stdcall RefreshFileList(FileRequester* obj)
 // frees the request data. Otherwise it acts on the entry the user clicked:
 // LOAD/SWIN enter a directory, CANC accepts, NAME takes the highlighted file,
 // PATH walks one level up and the *DRV entries pick a drive letter.
-//
-// MATCH. The last three instructions (the SIB base/index order of the
-// cwd[n-1], cwd[n+1], cwd[n] accesses in the PATH branch) were decided by the
-// order of the function-scope declarations: all locals are declared
-// uninitialised at the top, with `req` LAST (after `n`), and assigned later.
-// With req declared first (or initialised in its declaration) MSVC 5 puts the
-// counter in the SIB base slot; with req numbered after n it puts req there,
-// as the original does. Half of the 720 orders of {entries, drive, result, i,
-// n, req} match, so any order with n before req works.
 // FUNCTION: 0x4af670
 void __stdcall FileRequesterHandler(Gadget* gadget)
 {
@@ -356,6 +334,7 @@ void __stdcall FileRequesterHandler(Gadget* gadget)
     int result;
     int i;
     int n;
+    // Declared after n: the operand order of the cwd[] accesses follows it.
     FileRequester* req;
     req = gadget->layer->req;
     if (gadget->field_60 == -1) {
@@ -446,16 +425,8 @@ void __stdcall FileRequesterHandler(Gadget* gadget)
     }
 }
 
-// MATCH. Notes on the shape, since they are not obvious from the disassembly:
-//  * The object is passed as the FIRST STACK argument; ecx (`this`) is dead on entry,
-//    which is why the prologue saves a register it never reads. The result of
-//    LoadGuiLayer is the object that gets the vtable slot at +8, not the argument.
-//  * `push ecx` is the 4-byte frame local, not a save: it holds the LoadGuiLayer
-//    result, and later the "TITL" entry, whose live ranges do not overlap.
-//  * The empty-path test is `strlen(cwd) == 0`. MSVC 5's inlined strlen leaves
-//    length+1 in ecx after `not ecx`, so the compare against 0 becomes `dec ecx / jne`.
-//    Written as `cwd[0] == 0` it folds to a byte test instead, and as `== 1` it grows
-//    a `cmp ecx, 1`.
+// The result of LoadGuiLayer is the object that gets the vtable slot at +8, not
+// the argument.
 // FUNCTION: 0x4afa30
 FileRequester* Dialog::OpenFileRequester(Dialog* self, char* arg2, char* arg3, char* arg4)
 {
@@ -469,6 +440,7 @@ FileRequester* Dialog::OpenFileRequester(Dialog* self, char* arg2, char* arg3, c
     strcpy(obj->cwd, arg2);
     StripFileName(obj->cwd);
 
+    // Must stay strlen(...) == 0: other spellings change the compare.
     if (strlen(obj->cwd) == 0) {
         strcpy(obj->cwd, "NO PATH");
     }

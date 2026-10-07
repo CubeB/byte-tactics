@@ -1,13 +1,4 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// MATCH, 1468 bytes. The last diff was the SIB base/index byte of the three
-// player accesses in cases 2, 3 and 6: the original has g_game as the base
-// (`[ecx+eax]`). Writing the loop as an ordinary `for (p = 0; p < 10; p++)`
-// over the member array `g_game->players[p]` (instead of an explicit byte
-// offset variable) lets MSVC strength-reduce p*0x14b into the same memory
-// induction variable `off`, and the array base forces g_game into the SIB
-// base field. A separately declared `off` in the source always emitted
-// base = off (`[eax+ecx]`), whatever the operand order or pointer cast.
-// The jump-table entry itself displays as <addr> in the diff, which is normal.
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -143,6 +134,7 @@ void __cdecl FUN_004455b0(void)
                     break;
                 case 2:
                     {
+                        // Indexed through g_game->players[p], not a byte offset: g_game is the SIB base.
                         Player_004455b0* pl = &g_game->players[p];
                         if (pl->active == 0 || (pl->type != 1 && pl->type != 2))
                             dst->field_29 = 0;

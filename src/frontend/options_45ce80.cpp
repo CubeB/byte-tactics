@@ -4,10 +4,6 @@
 // layout grows by 0x96, and if there is no PANEL entry yet a cleared one is
 // appended: type 0xb, x = 0x80, its width shrunk by x, height copied from the
 // table, named "PANEL", and the table's +0xc4 field copied into it.
-// The append reads the count into a short, sign-extends it once for the
-// element address and once more for the stored count; indexing `entries[i]`
-// at every field (rather than a local pointer) is what reproduces the
-// original's scheduling of the string setup.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -59,6 +55,7 @@ void FUN_0045ce80()
             c++;
             entries->count = c;
             memset(&entries[i], 0, sizeof(Entry_0045ce80));
+            // Index entries[i] at every field, not a local pointer: keeps the string setup order.
             entries[i].type = 0xb;
             entries[i].x = 0x80;
             entries[i].width = entries->width;

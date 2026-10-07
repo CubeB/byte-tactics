@@ -34,13 +34,13 @@ public:
 
 // The compiler-generated scalar deleting destructor of the class whose
 // vtable (one slot) is at 0x4fd580. Its constructor is 0x470a90 and its
-// out-of-line destructor 0x470b80; the destructor is inlined here. It frees
-// field_14, then frees each item of a std::vector while erasing it from the
-// front, then the vector's own destructor frees the storage.
+// out-of-line destructor 0x470b80. It frees field_14, then frees each item of
+// a std::vector while erasing it from the front, then the vector's own
+// destructor frees the storage.
 //
-// The static object below exists only to make the compiler emit the vtable
-// (and with it this COMDAT) here; the game's instance is the function-local
-// static DAT_0051e610 constructed with (1000, 0x4c) at 0x471c80.
+// The game's instance is the function-local static DAT_0051e610 constructed
+// with (1000, 0x4c) at 0x471c80. The static object below must stay: it makes
+// the compiler emit the vtable and with it this COMDAT.
 // FUNCTION: 0x470ae0 ??_GObjectPool@@UAEPAXI@Z
 static ObjectPool s_obj(1000, 0x4c);
 

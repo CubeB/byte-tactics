@@ -2,15 +2,8 @@
 // Edge and arrow-key scrolling: moves the view by the scroll speed (capped at
 // 0x80) when an arrow key is held (unless the TALK.GUI chat box is open) or
 // the mouse sits on the edge of the screen, then clamps and saves it.
-//
-// Nothing from <string> is used. It is here for compiler state only (see
-// "Why headers matter at all" in docs/agent-guide.md): without it MSVC 5
-// computes the scroll speed as `xor ecx, ecx; mov cl, [speed]; mov ebx,
-// [scale]; imul ebx, ecx` instead of loading the byte straight into ebx and
-// multiplying by memory, and no rewrite of the multiply changed that. A
-// scratch copy with 2000 or more unused prototypes (0 to 1750 do not) matches
-// too, as do <vector> + <map> and <iostream>.
 #include <windows.h>
+// Unused, but needed: changes how the scroll speed multiply is compiled.
 #include <string>
 
 struct Mouse_0041ce90 {

@@ -240,27 +240,8 @@ int __stdcall ReadGameRegistryValue(const char* key, void* buf, unsigned int* si
     return ReadRegistryValue("Total Annihilation", key, buf, size);
 }
 
-// deepseek-v4.1 retry #3 (1852): MATCH, 5472 of 5472 bytes.
-// The last 27 register-name hunks were NOT a free allocator pick. The compare
-// fold was solved earlier by writing a call result into a NAMED local before the
-// test (`int ok = ReadRegistryDword(...); if (ok != 0)`), because the direct spelling
-// `if (ReadRegistryDword(...) != 0)` folds to `test eax,eax`. That trick was applied
-// at every early option site, including two where the original does NOT fold:
-// Gamma (0x4301a5, `test eax,eax / mov ebx,0xa`) and SwitchAlt (0x430215), where
-// the constant 10 kills the ebx zero beforehand, so those two compares fold and
-// the tail (PlayMovie, AllMissions, after the skirmish loop) gets a fresh
-// `xor esi,esi` zero source instead. Reverting exactly those two sites to the
-// direct spelling flipped the early zero register from esi to ebx and removed
-// all 27 hunks at once: `xor ebx,ebx` at 0x42f9be, every early `cmp eax,ebx`,
-// the two `mov dword ptr [..+0x37efa/0x37ef2], ebx` zero stores, `push ebx`,
-// `mov esi,2` at 0x42fdc0 (with `or word ptr [..],si` for the Sound Mode mask)
-// and `cmp dword ptr [esp+0x10], esi`. So the esi-vs-ebx pick was not allocator
-// state at all, it was caused by those two extra register compares keeping the
-// early zero live past 0x4301a5.
-// Sites that keep the named-local spelling: the 23 early options up to
-// DitheredFog, plus PlayMovie and AllMissions in the tail. Everything else
-// (the middle options, the whole multi/skirmish block and the six skirmish
-// player-loop sites) uses the direct spelling because the original folds there.
+// Reads up to DitheredFog, PlayMovie and AllMissions go through a named local;
+// every other site compares the call directly.
 // FUNCTION: 0x42f9a0
 void LoadSettings()
 {

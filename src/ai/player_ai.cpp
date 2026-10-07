@@ -1,10 +1,7 @@
 // Decompiled by GPT-6, Claude Opus 5.5, space-bunny-free, deepseek-v4.1, deepseek-v4.1-flash and DeepSeek V4.1 Flash. Names are provisional.
 // PlayerAI: one AI player's view of the game (g_playerAI[player]): its units
 // sorted into lists, per-unit-type tables, and where to place new buildings.
-//
-// <windows.h> (or one of several other header sets) is needed by
-// FindRandomPlacementCell: without it the distance and the direction's x swap
-// esi and edi, and the add of pos.x loads pos.x first.
+// Needed: without a header like this, FindRandomPlacementCell's operand order changes.
 #include <windows.h>
 #include <vector>
 #include <math.h>
@@ -32,6 +29,7 @@ struct Elem_0040cc40 {
     Point16 pos;                       // +0x0
     float key;                         // +0x4
     Elem_0040cc40() {}
+    // The value is taken as a float parameter: gives the original's fld/fstp copy.
     Elem_0040cc40(short x, short y, float k) { pos.x = x; pos.y = y; key = k; }
     Elem_0040cc40(const Elem_0040cc40& o) : pos(o.pos), key(o.key) {}
     bool operator<(const Elem_0040cc40& o) const { return key < o.key; }
@@ -217,20 +215,6 @@ void PlayerAI::InitUnitTables()
 // first and tried with CanBuildAt. The best-scoring cell (GetBuildSiteMetal)
 // wins; once one is found, candidates more than 160 beyond the first hit's
 // squared distance stop the search.
-//
-// It matches with the real MSVC 5 std::vector. Three callees the compiler
-// emits out of line, 0x40ca30 (vector<Elem_0040cc40>::capacity()), 0x40c5b0
-// (vector<Elem_0040cc40>::size()) and 0x40a5b0 (Elem_0040cc40's copy
-// constructor), are called from the inlined vector::reserve and pop_heap
-// here, where /Ob2's budget ran out.
-//
-// The heap functions 0x40d620 (_Make_heap) and 0x40d700 (_Pop_heap) end in
-// `ret N`: the original file was compiled with __stdcall as the default, so
-// they are declared explicitly __stdcall and called through what the inline
-// std::make_heap and std::pop_heap would expand to. make_heap's
-// `2 <= last - first` test is written out because the inline helper count
-// decides where the /Ob2 budget runs out: with make_heap as one more inline
-// helper, the second vector destructor calls _Destroy out of line.
 // FUNCTION: 0x40a260
 bool PlayerAI::FindCellNearFeatures(UnitDef* type, Vec3* pos, ElemVec* list, int range, Point16* out)
 {
@@ -247,6 +231,7 @@ bool PlayerAI::FindCellNearFeatures(UnitDef* type, Vec3* pos, ElemVec* list, int
             heap.back().key = -d;
         }
     }
+    // Written out, not an inline make_heap helper: the inline count sets the budget.
     if (2 <= heap.end() - heap.begin())
         MakeHeap(heap.begin(), heap.end(), (int*)0, (Elem_0040cc40*)0);
     int limit = -1;
@@ -282,10 +267,6 @@ bool PlayerAI::FindCellNearFeatures(UnitDef* type, Vec3* pos, ElemVec* list, int
 // non-negative). A cell is accepted when FUN_0047db70 allows the type there
 // and the score GetBuildSiteMetal is at most the type's footprint area times
 // twice net->field_d30.
-//
-// <windows.h> (or one of several other header sets) is needed: without it
-// the distance and the direction's x swap esi and edi, and the add of pos.x
-// loads pos.x first.
 // FUNCTION: 0x40a5d0
 bool PlayerAI::FindRandomPlacementCell(UnitDef* type, Vec3* pos, int range, Point16* out)
 {
@@ -313,17 +294,8 @@ bool PlayerAI::FindRandomPlacementCell(UnitDef* type, Vec3* pos, int range, Poin
 // walks every map cell and adds (x, y, feature value) for each cell whose
 // feature (index below 0xfffb) has a non-zero value at +0xf0 and bit 9 of
 // its flags word set. 0x40a260 later sorts these by distance.
-//
 // The feature's flags are the 16-bit word at +0xfe, tested with 0x200, as in
-// 0x422040 (the same test) and 0x423160. MSVC narrows the test to
-// `test byte ptr [ecx + 0xff], 2` either way, but with the field declared as
-// an `unsigned char` at +0xff (tested with 2) the reallocating push_back
-// swaps its two callee-saved registers (the new buffer _S in ebp, the first
-// _Ucopy result _Q in ebx), which held this file at 88.7% for many passes.
-// The earlier passes are in git history.
-//
-// Elem's constructor takes the value as a float parameter: that gives the
-// original's fld/fstp copy of the feature value (a plain field copy uses mov).
+// 0x422040 (the same test) and 0x423160.
 // FUNCTION: 0x40a7b0
 void PlayerAI::BuildFeatureCells()
 {
@@ -334,6 +306,7 @@ void PlayerAI::BuildFeatureCells()
         for (int x = 0; x < w; x++) {
             if (row[x].feature < 0xfffb) {
                 Feature* f = &g_game->features[row[x].feature];
+                // Keep flags a 16-bit word tested with 0x200, not a byte at +0xff.
                 if (f->value != 0.0f && (f->flags & 0x200))
                     cells.push_back(Elem_0040cc40(x, y, f->value));
             }
@@ -343,7 +316,7 @@ void PlayerAI::BuildFeatureCells()
 
 // Clears the three unit lists (+0x05, +0x15, +0x25) through
 // std::vector<Unit*>::erase (0x40c9f0) and refills them with insert
-// (0x408f30), the members named in #135.
+// (0x408f30).
 // FUNCTION: 0x40aa40
 void PlayerAI::RefreshUnitLists()
 {

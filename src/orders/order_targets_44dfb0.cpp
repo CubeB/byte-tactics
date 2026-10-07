@@ -8,7 +8,7 @@
 // The record's first 8 bytes are never assigned and are still written out:
 // 0x36 bytes of stack, 8 of them uninitialised, go to the save file. The read
 // counterpart (0x44de80) reads all 0x36 bytes but never looks at 0..7, so the
-// bytes are only leaked, never used. Kept as the original does it.
+// bytes are only leaked, never used.
 
 #include "../util/hapi_bank.h"
 
@@ -76,6 +76,7 @@ public:
 // FUNCTION: 0x44dfb0
 int Class_0044dfb0::FUN_0044dfb0(int unused, HapiBank* file, char* name)
 {
+    // The first 8 bytes of rec stay unassigned, as in the original.
     Rec_0044dfb0 rec;
     Class_004895c0* ref = (Class_004895c0*)&rec.ref_vt;
     ref->Class_004895c0::Class_004895c0(0, 0);

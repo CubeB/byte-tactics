@@ -10,31 +10,7 @@
 // `remove` is clear) and linked in: in front of the old list head, taking over
 // its flag 0x4000, through the code of 0x43acb0 when the new node has flag
 // 0x20 or 0x40000, otherwise right after the node that carries flag 0x1000, as
-// 0x43ad50 does.  All three helpers are inlined.
-//
-// MATCH (500 of 500 bytes, Claude Sonnet 5.5 #702).  Two source changes fixed
-// the two things the earlier 80.7% version got wrong; compiler state is not
-// involved (the declaration-count sweep 0 to 400 and all 128 header sets stay at
-// 80.7% for the old source).
-//  1. The dead compare of the second loop (`cmp esi, esi` at 0x43aea5, and the
-//     `or dword ptr [esi+0x42], 0x10000` behind it).  MSVC 5 folds `node != first`
-//     when both are copies of the same value, but keeps it when `first` is a fresh
-//     read of the list head made at the call: `Class_0043a1f0* node = n;
-//     RemoveFromList(sel, node, owner->list);`.  The read is merged into the same
-//     register afterwards, so no extra load or register appears.  (The `node = n`
-//     copy is still needed: it is what puts 0x40000 and 0x4000 into ebx and ebp.)
-//     Passing the fresh read without the copy keeps the compare but loses ebx and
-//     ebp (72.4%).
-//  2. The first loop's double load of owner->list (0x43ae18 and 0x43ae1b).  With
-//     the helper taking the link and the head as arguments, called as
-//     `PruneLoose(&owner->list, owner->list)`, and starting from `n = *link`, the
-//     two loads stay separate (`mov esi, [eax+0x5c]; mov ebp, [eax+0x5c]`).  Taking
-//     only the owner and reading `owner->list` twice inside, in either order, or
-//     declaring the locals in any order, gives one load and a copy (`mov ebp, ...;
-//     mov esi, ebp`), one byte shorter.
-//  The constructor's second argument is this function's fourth parameter (the
-//  `Unit*` target the callers pass), not `owner`, which is what keeps `owner` in
-//  its stack slot and re-read at every use.
+// 0x43ad50 does.
 
 #pragma pack(push, 1)
 
@@ -111,6 +87,7 @@ static inline void PruneUsed(Owner_0043adc0* owner)
     for (Class_0043a1f0* n = owner->list; n != 0; n = owner->list) {
         if (!(n->flags & 0x4000))
             break;
+        // Keep the `node = n` copy and the fresh owner->list read at the call.
         Class_0043a1f0* node = n;
         RemoveFromList((node->flags & 0x40000) ? &owner->list2 : base, node, owner->list);
     }
@@ -156,9 +133,12 @@ static inline void AddMarked(Owner_0043adc0* owner, Class_0043a1f0* node)
 void __stdcall AddOrder(int kind, int remove, Owner_0043adc0* owner, void* id,
                             Vec3_0043adc0* pos, int param_6, int param_7)
 {
+    // The constructor's owner argument is the fourth parameter, not `owner`,
+    // which stays in its stack slot.
     Class_0043a1f0* obj = new Class_0043a1f0(kind, id, pos, param_6, param_7, 0);
 
     if (remove == 0 && !(obj->flags & 0x40))
+        // Link and head passed separately so the two loads of owner->list stay.
         PruneLoose(&owner->list, owner->list);
 
     if (!(obj->flags & 0x40000))

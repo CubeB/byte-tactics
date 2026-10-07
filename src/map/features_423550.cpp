@@ -4,8 +4,7 @@
 // reclaimed. A feature with an animation for that case (flags bit 0) takes a
 // spot from the pool (the inlined AllocFeatureSpot) that plays it; any other is
 // handed to ReplaceFeatureWithDead, which replaces it straight away.
-// Needs <windows.h>: 78.1% without it. The if/else around the spot code
-// (not an early return for a null animation) puts the ReplaceFeatureWithDead call last.
+// Needed: without it the code differs.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -122,6 +121,7 @@ void __stdcall KillFeature(int x, int z, int flag)
         else
             pair = f->death[0];
     }
+    // If/else, not an early return: keeps the ReplaceFeatureWithDead call last.
     if (pair.anim != 0) {
         if (cell->flags & 1)
             return;

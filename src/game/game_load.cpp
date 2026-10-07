@@ -7,8 +7,7 @@
 // player records, the loaded/slots block and the map rectangles), one Mission,
 // one PacketManager and the module's classes.
 //
-// <memory.h> before <windows.h>: without it the x87 schedule of LoadingScreenFrame's
-// map-name block and the two pointer parameters of FUN_00498cd0 land differently.
+// <memory.h> stays before <windows.h>: it fixes the map-name block's x87 schedule.
 #include <memory.h>
 #include <windows.h>
 #include <stdio.h>
@@ -16,6 +15,7 @@
 #include <string.h>
 #include <algorithm>
 #include <time.h>
+// Needed: without it the x87 schedule of the map-name block differs.
 #include <ddraw.h>
 
 #pragma pack(push, 1)
@@ -306,6 +306,7 @@ struct Game {
     char pad_38a4b[0x38a4f - 0x38a4b];
     short field_38a4f;                  // +0x38a4f
     char unknown_38a51[0x38d6f - 0x38a51];
+    // volatile: the loader thread writes these; gives the bars' byte loads.
     volatile unsigned char progress[6]; // +0x38d6f
     union {                             // +0x38d75
         volatile LoadFlags_00497f40 flags38d75;
@@ -865,31 +866,10 @@ void __stdcall DrawSyncStatus(void* surface)
 
     FUN_004a50e0(surface, text, 10, 400, -1, 0);
 }
-//
-// MATCH (claude-opus-5-5, #4267; was 84.3%). The loading-screen frame: on the
-// first call it starts the loader thread (LoadThreadMain), once the loader sets
-// the "loaded" bit it restores the game screen and installs the game frame
-// handler (BattleFrame), and otherwise it draws the six progress bars.
-// What it took, from the earlier partial:
-//  - The six stage bytes at g_game+0x38d6f are volatile, like the flags word
-//    after them (the loader thread writes both; 0x456de0 reads the same bytes
-//    as volatile). That is what gives each bar's `mov cl, [m]; and ecx, 0xff`.
-//  - The flags word is a volatile bitfield union: the bit tests are bitfield
-//    reads (`mov dl, [m]; shr dl, N; test dl, 1`), and the b2 test is nested
-//    rather than `b2 && FUN_004568c0()`, which folds to `test byte ptr`.
-//  - The zeroing is four memsets (10, 10, 6 and 6 bytes) and one 8-byte
-//    memset over the stage bytes and the flags word.
-//  - Each bar's rect is written left, right, top, bottom.
-//  - The two player loops index g_game->players[i]; the explicit offsets of
-//    the old version gave the reversed SIB base and index.
-//  - `int ok` for LockScreen's result (`cmp eax, ebp`) and a `name` local
-//    for the strncpy source (the call comes before `push 100`).
-//  - <ddraw.h>: without it the map-name block's x87 schedule differs (97.3%);
-//    tools/headers.py found it, and the gadget is a DirectDraw surface lock.
-// The tail loop in the "loaded" branch stores each active player's +0x73 byte
-// to frame +0x23, the byte just past `rect`, and nothing reads it. A byte local
-// is dead-store eliminated, so it is written here as the store past rect that
-// the original evidently made.
+// The loading-screen frame: on the first call it starts the loader thread
+// (LoadThreadMain), once the loader sets the "loaded" bit it restores the game
+// screen and installs the game frame handler (BattleFrame), and otherwise it
+// draws the six progress bars.
 // FUNCTION: 0x497f40
 void LoadingScreenFrame(void)
 {
@@ -969,6 +949,7 @@ void LoadingScreenFrame(void)
         if (!StartThread(LoadThreadMain, 0, 0)) {
             FatalError("Unable to start the loading thread!");
         }
+        // Four memsets (10, 10, 6, 6 bytes); the stage bytes get one 8-byte memset.
         memset(DAT_0051f2c8, 0, 10);
         memset(DAT_0051e810, 0, 10);
         memset(&DAT_0051e6c8, 0, 6);
@@ -1003,7 +984,9 @@ void LoadingScreenFrame(void)
         if (!((Sound*)g_game->field_10)->IsCdPlaying()) {
             ((Class_004cdb40*)g_game->field_10)->PlayNextTrack();
         }
+        // Index players[i], not explicit offsets: keeps the SIB base and index order.
         for (i = 0; i < 10; i++) {
+            // Store past rect: a byte local would be dead-store eliminated.
             if (g_game->players[i].active != 0)
                 ((unsigned char*)rect)[19] = g_game->players[i].control;
         }
@@ -1018,6 +1001,7 @@ void LoadingScreenFrame(void)
         }
     }
     HandleNetPackets();
+    // Nested, not `b2 && FUN_004568c0()`: that folds to a test on the byte.
     if (g_game->flags38d75.bits.b2) {
         if (FUN_004568c0() != 0) {
             g_game->flags38d75.bits.b2 = 0;
@@ -1029,6 +1013,7 @@ void LoadingScreenFrame(void)
         ((PacketManager*)&g_packetManager)->SendAllQueued(1);
     }
     SetOffscreenSurface((void*)g_game->field_37e1b);
+    // The result stays in a local: it gives the compare against a register.
     int ok = LockScreen(&gadget);
     if (ok != 0) {
         color = g_game->palette[15];
@@ -1045,6 +1030,7 @@ void LoadingScreenFrame(void)
         DrawSurface(&gadget, (void*)g_game->field_11eb, 0, 0);
         if (((Mission*)g_game->field_391e9)->FUN_00435100() != 1) {
             SetTextColors(color, 0xfe);
+            // Local for the strncpy source: the call comes before the length push.
             char* name = ((Mission*)g_game->field_391e9)->FUN_00435c30();
             strncpy(namebuf, name, 100);
             namebuf[99] = 0;
@@ -1072,6 +1058,7 @@ void LoadingScreenFrame(void)
             flash = ((unsigned char*)&DAT_0051e6c8)[0];
             DAT_0051e820 = g_game->progress[0];
             FUN_004a50e0(&gadget, (char*)Translate("Textures"), 0x5a, 0x87, -1, flash);
+            // Each bar's rect is written left, right, top, bottom.
             rect[0] = 0xcd;
             rect[2] = ((int)g_game->progress[0] * 7) / 2 + 0xcd;
             rect[1] = 0x87;

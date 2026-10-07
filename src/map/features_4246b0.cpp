@@ -3,12 +3,7 @@
 // footprint (0xfffe), step back to the feature's origin cell first, release
 // its spot, then clear the origin cell and every footprint cell of the
 // feature, and tell RefreshAllPassMaps which area changed.
-//
-// The two clears are one inline helper (feature first, then flags). Written
-// out by hand in the inner loop, MSVC either keeps the stores in source order
-// with the wrong one first or moves the 0xfe constant into bl; only the
-// helper gives the original's `and byte ptr [eax], 0xfe` before
-// `mov word ptr [eax-4], bx`. `<windows.h>` is needed for the first block.
+// Needed for the first block.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -65,6 +60,7 @@ void __stdcall MoveFeatureSpot(int index, int* head);
 void __stdcall FreeObjectState(void* state);
 void __stdcall RefreshAllPassMaps(Point16_004246b0 a, Point16_004246b0 b);
 
+// Must stay an inline helper, feature then flags: by hand in the loop the store order changes.
 static inline void ClearCell(Cell_004246b0* c)
 {
     c->feature = 0xffff;

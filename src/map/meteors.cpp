@@ -50,6 +50,7 @@ public:
     void LoadMeteorDefaults();
 };
 
+// Not std::vector: its destructor would add a dead element-destroy store.
 template <class T, class A = std::allocator<T> >
 class Vector_00438480 {
 public:
@@ -170,9 +171,7 @@ static inline void StartShower()
 // its time comes (an inline copy of StartMeteorShower), and while one is active
 // drops a meteor every DAT_00512314 ticks from a random point around the
 // origin, high up, with a velocity that carries it to the target in 90
-// ticks. The random offset is a struct copied into the position (which
-// keeps the first stores of pos.x and pos.y), and the radius is shifted
-// into 16.16 as its own statement; both decide the registers.
+// ticks.
 // FUNCTION: 0x437de0
 void UpdateMeteors()
 {
@@ -189,12 +188,14 @@ void UpdateMeteors()
             vel.y = -15 << 16;
             vel.z = ((g_meteorTarget.y - g_meteorOrigin.y) << 20) / 90;
             int r = (int)((__int64)rand() * DAT_00512310 / 0x8000);
+            // The radius shift is its own statement.
             int radius = r << 16;
             int angle = (int)((__int64)rand() * 0x10000 / 0x8000);
             Vec3_00437de0 offset;
             offset.x = -FUN_004b70ef(angle, radius);
             offset.y = 0;
             offset.z = -FUN_004b7123(angle, radius);
+            // The offset is copied into pos as a struct: keeps the first stores of pos.x, pos.y.
             Vec3_00437de0 pos = offset;
             pos.x += g_meteorOrigin.x << 20;
             pos.y = -vel.y * 90;
@@ -275,11 +276,8 @@ void MeteorParams::LoadMeteorDefaults()
 
 // The global at 0x512340, its initialiser (0x438450) and the destructor the
 // compiler registers for it with atexit (0x438480). It is laid out like
-// std::vector (an empty allocator, then first/last/end), but it is not one:
-// MSVC 5's ~vector runs an element-destroy loop, and for a trivial element type
-// the emptied loop still leaves a dead store (and a `push ecx` to make room for
-// it), as the game's own inlined ~vector<int> at 0x434400 shows. This
-// destructor only frees the storage.
+// std::vector (an empty allocator, then first/last/end), but it is not one.
+// This destructor only frees the storage.
 // FUNCTION: 0x438450 _$E4
 // FUNCTION: 0x438480 _$E2
 Vector_00438480<int> DAT_00512340;

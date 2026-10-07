@@ -3,9 +3,8 @@
 // 0x20-byte packet records that point into them, and a ring of queued
 // packets that SendQueued hands to the outgoing buffer.
 //
-// <memory.h> is needed by AllocBuffer, <windows.h> and <ddraw.h> by AllocPacket
-// (see there). <new.h> is here for its symbol ids: AllocBuffer and SendQueued
-// match only in windows of the symbol count.
+// All four includes must stay: <memory.h> for AllocBuffer, <windows.h> and
+// <ddraw.h> for AllocPacket, <new.h> for its symbol ids.
 #include <memory.h>
 #include <windows.h>
 #include <ddraw.h>
@@ -200,13 +199,6 @@ PacketChannel::~PacketChannel()
     delete packets;
 }
 
-// MATCH. The body is exactly the version deepseek-v4-flash left: the only
-// change needed to reach 100% was `#include <memory.h>`, which changes the
-// frame layout enough for the register allocator to restore
-// `this` before the index on the reuse-success path (the two reloads at
-// 0x461bcf/0x461bd3 that were swapped in the 99.0% version). The bodies of
-// the earlier attempts (this->head = ix, a duplicated store, a temporary, an
-// unsigned long index) were all attempts to fix that reload order by hand.
 // FUNCTION: 0x461b10
 PacketBuffer* PacketChannel::AllocBuffer()
 {
@@ -235,9 +227,6 @@ PacketBuffer* PacketChannel::AllocBuffer()
     }
 }
 
-// The buffer scan is an inline helper with one `return` per outcome (as in
-// 0x461b10), which gives the original's un-rotated scan loop and its block
-// order. The stack slots of `this` and idx swap without the two headers.
 // FUNCTION: 0x461c20
 Packet* PacketChannel::AllocPacket(int param_1)
 {
@@ -282,33 +271,13 @@ int PacketChannel::GetPacketEntry(int param_1)
     return param_1 * 0x20 + (int)packets;
 }
 
-// Matches (468 of 468 bytes). The previous attempt (space-bunny-free) had the
-// whole function right except the final countdown loop: the original re-reads
-// queue.count at the top of the loop (`mov eax,[ebx+0x38]; cmp eax,ebp; jle
-// latch` at 0x461f43) and compares the field in memory at the latch
-// (`cmp dword ptr [ebx+0x38],ebp; jne` at 0x461f61), while a plain
-// `while (queue.count != 0) { if (queue.count > 0) ... }` keeps the loop's test
-// value in a register across the back edge.
-// The fix is to split the loop's condition from the entry guard: the guard
-// tests queue.count directly, so its value is loaded into eax, while the do/while
-// condition goes through a local `int* p = &queue.count`, so MSVC compares it in
-// memory at the latch. The body then reloads queue.count at the top. Folding the
-// guard and the loop into one `while` lets MSVC share the load and lose the
-// 3 bytes.
-//
-// The three failure exits all jump to one shared epilogue at 0x461f78 in the
-// original, which needs a single `return 0` in the source, hence `goto fail`.
-// The loop counters are declared at function scope (uninitialised) so the
-// jumps do not skip an initialiser.
-//
-// Two oddities kept as the original has them: the fresh pool entries get only
-// dwords 1..7 of each 0x20-byte record initialised (0x461e11), and the reset
-// copy at the end copies a stack template whose first dword is never written
-// (0x461ee8 writes 0x4614..0x462c, the copy starts at 0x4610), so a new
-// pool's first dword stays whatever operator new returned. It does not matter
-// because nothing in this function reads it. Also `q->count = 0` before
-// FreePackets() (0x461ecb) is redundant: that method sets count to 0 itself
-// (0x4629b0.cpp).
+// The fresh pool entries get only dwords 1..7 of each 0x20-byte record
+// initialised (0x461e11), and the reset copy at the end copies a stack
+// template whose first dword is never written (0x461ee8 writes 0x4614..0x462c,
+// the copy starts at 0x4610), so a new pool's first dword stays whatever
+// operator new returned. It does not matter because nothing in this function
+// reads it. Also `q->count = 0` before FreePackets() (0x461ecb) is redundant:
+// that method sets count to 0 itself (0x4629b0.cpp).
 // FUNCTION: 0x461db0
 int PacketChannel::InitPools(int a1, unsigned int a2, int a3, int a4)
 {
@@ -403,6 +372,8 @@ int PacketChannel::InitPools(int a1, unsigned int a2, int a3, int a4)
     }
     field_20 = 0;
     return 1;
+    // Single shared `return 0` via goto; counters sit at function scope so no
+    // jump skips an initialiser.
 fail:
     return 0;
 }
@@ -447,23 +418,15 @@ void PacketChannel::ResetChannel()
 // back on the queue, and the buffer is handed to g_sendCondenser with the frame
 // and the player's DPID.
 //
-// What matched it (opus, #4310), rebuilt from the disassembly instead of the
-// 81.7% file's address-escape and do/while(0) devices:
-//  * A packet's data is `owner->data[offset]`: +0x4 is the offset and +0xc
-//    the owning buffer (PacketBuffer, data at +0x14). Written twice as an
-//    expression, it gives the original's base+offset for the log call and
-//    the fresh reload after GetTicks, with the zero kept in ebx.
-//  * `if (now >= nextSend || force != 0) { ...; while ((n = queue.count) != 0)
-//    {...} } return 1;` gives the original's three epilogues.
-//  * The send block reads DAT_0051e2f8, dpid and DAT_0051e2f4 into locals
-//    before the log call, in that order: equal priorities, so the one written
-//    first takes edi (`nbytes` before `id`; 97.5% the other way round).
+// A packet's data is `owner->data[offset]`: +0x4 is the offset and +0xc the
+// owning buffer (PacketBuffer, data at +0x14).
 // FUNCTION: 0x4624a0
 int PacketChannel::SendQueued(int force)
 {
     unsigned int now = GetTicks();
     PacketTrace("player: %ld, ticks betw sends=%lu, nextsend=%lu, gametimereal=%lu\n",
                  field_14, field_4, field_24, now);
+    // Keep this nesting with the trailing `return 1`: it gives the three epilogues.
     if (now >= field_24 || force != 0) {
         field_24 = now + field_4;
         int n;
@@ -475,6 +438,7 @@ int PacketChannel::SendQueued(int force)
                 Packet* entry = queue.Peek();
                 queue.Pop();
                 if (entry->frame == headFrame) {
+                    // Keep owner->data[offset] written out as an expression each time.
                     PacketTrace("extracted packet (len=%ld, type=%d, data=\"%s\")\n",
                                  entry->size, entry->owner->data[entry->offset],
                                  &entry->owner->data[entry->offset + 1]);
@@ -491,6 +455,7 @@ int PacketChannel::SendQueued(int force)
             if (sent > 0) {
                 PacketTrace("sending %ld packets in frame: %ld\n", sent, field_10);
                 *DAT_0051e2f4 = field_14 != 0 ? -1 : field_10;
+                // Read in this order (nbytes, id, data) before the log call.
                 unsigned int nbytes = DAT_0051e2f8;
                 int id = field_14;
                 int* data = DAT_0051e2f4;

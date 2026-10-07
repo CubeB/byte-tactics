@@ -1,8 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 // std::vector<Elem_0046faf0>::_Ucopy(first, last, dest) from MSVC 5's
 // <vector>: copies [first, last) into raw storage at dest and returns the
-// end of the copies. _Ucopy is protected, so a derived class takes its
-// address to make the compiler emit it out of line.
+// end of the copies.
 // A 14-byte element type (its layout is a guess). Its callers (0x46cc10,
 // 0x470390, 0x470560, 0x46ca60 and others) call 0x46fb40 (_Ufill), 0x46faf0
 // (_Ucopy) and 0x46e870 (_Destroy) with ecx set to the vector.

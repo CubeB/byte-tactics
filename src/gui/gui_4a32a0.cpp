@@ -1,9 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6. Names are
-// provisional. MATCH, 765 bytes. Capture g_guiContext in a root local before searching its entry
-// names, and pass that captured root to FUN_004a03f0. The final scroll call uses a fresh global
-// lookup, as in the original. This fixes the earlier register family and permits a normal integer
-// remain local instead of overwriting param_1 with the remaining height. Initialize remain before
-// storing me->first to reproduce the final stack-store ordering.
+// provisional.
 // The missing-name path calls the fatal-error routine FatalError, which
 // exits the process. Its following null-entry accesses are unreachable.
 #include <string.h>
@@ -118,6 +114,7 @@ void __stdcall FUN_004a32a0(Dialog* param_1, char* name, int bitmap, int count, 
     }
     me->f_bc = 0;
     me->f_ba = 0;
+    // Initialised before the me->first store: sets the final stack-store order.
     int remain = me->height;
     me->first = (short)(count - 1);
     int step;
@@ -141,6 +138,7 @@ void __stdcall FUN_004a32a0(Dialog* param_1, char* name, int bitmap, int count, 
     if (found == -1)
         return;
     char* text = (char*)&holder->entries[found].name;
+    // Captured in a local before the name search, and passed on to FUN_004a03f0.
     Root_004a32a0* root = g_guiContext;
     if (root->holder != 0) {
         int j2 = FindName_004a32a0(root->holder->entries, text);
@@ -149,6 +147,7 @@ void __stdcall FUN_004a32a0(Dialog* param_1, char* name, int bitmap, int count, 
         }
     }
     if (remain < 0) {
+        // A fresh global lookup, not root.
         DrawSlider(g_guiContext, found);
     }
 }

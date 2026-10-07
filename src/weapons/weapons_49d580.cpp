@@ -3,25 +3,6 @@
 // Aim a unit's gun at a point and fire it: work out the two aim angles (a
 // ballistic solve when weapon flag bit 1 is set, CalcAimAngles when bit 0 is),
 // check them, add a random spread, then fire and tell the network.
-//
-// The last diff was the failure path's `or byte ptr [edi + 0xbb], 0x10`.
-// That is a 1-bit store, not an `unsigned char` `|=`: declaring +0xba as an
-// `unsigned short` bitfield (bit 12 lands on bit 4 of byte 0xbb) gives the
-// memory read-modify-write and leaves eax holding the zero `ok` already put
-// there, so the `return 0` costs nothing. A plain `unsigned char f_bb |= 0x10`
-// loads through al and needs a fresh `xor eax, eax` (4 extra instructions).
-//
-// What earlier passes got wrong, all corrected here:
-//  - the spread divisor is f_b8 / 12, not / 3: 0x2aaaaaab with `sar edx, 1` is
-//    the signed magic for 12 (this was the "signed magic for 3" mystery).
-//  - `def` is only used for the two flag tests, speed, pitch and the pointer
-//    passed to CalcAimAngles; the spread reads unit->f_c->f_104 afresh. That
-//    made def spill to [esp+0x10] as in the original (77.6 to 87.1).
-//  - CalcAimAngles's weapon parameter is an unsigned char (the argument is built
-//    with `shr al, 2; and al, 3` and pushed whole).
-//  - the spread block uses `range >> 1` inline, not a `half` local (89.7 to 93.2).
-//  - the two fire calls take the f_1b group first; heading and pitch are
-//    `short`; the tail re-reads unit->f_c instead of using def.
 #include <math.h>
 
 #pragma pack(push, 1)
@@ -83,6 +64,7 @@ struct Unit {
     short f_a8;
     char unknown_aa[0xb8 - 0xaa];
     unsigned short f_b8;              // the aiming inaccuracy
+    // Must be an unsigned short bitfield: gives the 1-bit store the original has.
     union {                           // +0xba, bit 12 is the "cannot aim" flag
         unsigned short value;
         struct {
@@ -121,6 +103,7 @@ void __stdcall GetAimFromPosition(Unit* obj, Vec3_0049d580* out, unsigned char w
 void __stdcall GetWeaponPiecePosition(Unit* obj, Vec3_0049d580* out, unsigned char weapon, int piece);
 int __cdecl FUN_004b715a(int x, int z);
 int __stdcall SolveLaunchAngle(int dx, int dy, int dz, int speed, float pitch);
+// The weapon parameter must stay an unsigned char.
 int __stdcall CalcAimAngles(Unit* unit, Weapon_0049d580* target, short* out_heading,
                            short* out_pitch, unsigned char weapon, Vec3_0049d580* point);
 int __stdcall AimWithinTolerance(Unit* unit, Unit* aim, short angle1, short angle2);
@@ -167,11 +150,13 @@ int __stdcall FireTurretWeapon(Unit* fire, Unit* unit,
         Vec3_0049d580 gunpos;
         GetWeaponPiecePosition(fire, &gunpos, unit->f_1b >> 2 & 3, -1);
         unit->f_16 += fire->f_66;
+        // Re-read unit->f_c here and in the tail instead of using def.
         short spread = unit->f_c->f_104 - (short)((fire->f_108 << 11) / fire->f_92->divisor) + 0x800;
         int parts = fire->f_b8 / 12;
         if (parts > 1)
             spread = (unsigned short)spread / parts;
         if (spread) {
+            // Keep `range >> 1` inline, no `half` local.
             unsigned short range = spread;
             unit->f_16 += (short)(RandomInt(range) - (range >> 1));
             unit->f_18 += (short)(RandomInt(range) - (range >> 1));

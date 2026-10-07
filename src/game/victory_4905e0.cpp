@@ -10,6 +10,7 @@ struct Vec3_004907e0 {
     Vec3_004907e0(int ax, int ay, int az) : x(ax), y(ay), z(az) {}
 };
 
+// Inline and by value: all three differences are computed before the first store.
 static inline Vec3_004907e0 operator-(const Vec3_004907e0& p, const Vec3_004907e0& q)
 {
     Vec3_004907e0 r;
@@ -149,15 +150,6 @@ void Class_00490630::FUN_0044f000(Vec3_004907e0* outPos, Vec3_004907e0* outVel,
 // 0x1400000 (or 0x100000 with slot 9 refusing) it turns to face the owner. Then
 // the object at +0x4 gets the last word: slot 4 saying it is done, plus slot
 // 11, means slot 1 with 0.
-//
-// Match notes: `vel = pos - old` needs an inline `operator-` returning the
-// struct by value, so that all three differences are computed before the
-// first store. The flag at def+0x241 is a 1-bit bitfield at bit 22
-// (`shr ecx, 0x16; test cl, 1`). In the else branch field_21c has to be
-// reached through `owner->def->` and be the *first* operand of the add:
-// MSVC orders the operands of a commutative add by the size of the two
-// expression trees, and only the longer path makes the add asymmetric
-// enough for the two branches not to be tail-merged into one.
 // FUNCTION: 0x490690
 void Class_00490630::FUN_0044efb0()
 {
@@ -171,6 +163,8 @@ void Class_00490630::FUN_0044efb0()
         if (owner->def->seaUnit)
             pos.y = (g_game->seaLevel + owner->def->field_21c) << 16;
         else
+            // field_21c via owner->def-> and first in the add: keeps the two
+            // branches from being tail-merged.
             pos.y = (owner->def->field_21c + owner->field_82[1]) << 16;
     }
     if (dist > 0x1400000 || (!field_4->FUN_0044efd0(&field_24) && dist > 0x100000))

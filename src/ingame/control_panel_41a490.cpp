@@ -2,8 +2,6 @@
 // Click handler for the unit orders panel: cycles the move order, fire order,
 // activation or cloak setting named by the clicked entry, sends the matching
 // order and updates the button. Returns 0 when the entry is none of these.
-// SetGadgetStatus's value is declared int here (its own file has short): with
-// short, MSVC shifts the 2-bit fields in a byte register (shr dl, 3).
 
 #include <string.h>
 
@@ -54,6 +52,7 @@ extern Game* g_game;
 void __stdcall GetGadgetName(Entry_0041a490* entries, char* name, int index);
 void __stdcall IssueOrderToSelection(void* a, int b, Class_00438760 kind, int d, int e, int f);
 void __stdcall PlaySoundByName(char* name, int param_2);
+// value is int here, not short: short shifts the 2-bit fields in a byte register.
 void __stdcall SetGadgetStatus(Sub_0041a490* menu, int index, int value);
 void __stdcall RefreshOrderButtons(Unit* unit);
 void __stdcall RenderLayer(Sub_0041a490* menu, int value);

@@ -4,28 +4,6 @@
 // ENERGY sliders at the local counts, and finishes with the menu setup calls.
 // A resource's owner is flagged 0x40 in the player record; the two sliders are
 // the "METAL#" and "ENERGY#" texts.
-//
-// MATCH, 100% (994 bytes).
-//
-// The one thing that had this stuck at 97.1% was the shape of the two tail
-// blocks that look up the "METAL"/"ENERGY" entries. They must be written
-// through the menu pointer, menu first, with no self-comparison:
-//
-//     menu = &g_game->menu;
-//     lyr  = menu->layer;
-//     ents = lyr->entries;
-//     e    = FUN_004a0200(ents, "METAL");
-//
-// Reading the layer off g_game directly (`lyr = g_game->menu.layer;`) made the
-// allocator coalesce `ents` onto the layer register (`mov ecx,[ecx+4]` where the
-// original has `mov edx,[ecx+4]`), and adding a self-comparison such as
-// `ents == lyr->entries ? "METAL" : "METAL"` to pin the load order only forced
-// the same coalescing. Going through the local `menu` gives both blocks the
-// original's distinct g_game/layer/entries registers (block 1 wants
-// eax/ecx/edx, block 2 wants edx/eax/ecx), because the layer is then loaded out
-// of esi (the live menu) rather than out of the freshly loaded g_game. Both
-// blocks use the identical shape, so the allocator's own rotation between them
-// falls out for free.
 #include <stdio.h>
 #include <string.h>
 
@@ -175,6 +153,8 @@ void OpenShareDialog()
     }
     FUN_004a32a0(&g_game->menu, "PLYRLIST", names, count, 0);
     char text[0x34];
+    // Both tail blocks go through the local menu pointer, menu first, with no
+    // self-comparison: this fixes their register choice.
     Menu_004936f0* menu = &g_game->menu;
     Layer_004936f0* lyr = menu->layer;
     char* ents = lyr->entries;

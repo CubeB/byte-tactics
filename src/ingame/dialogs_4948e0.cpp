@@ -1,24 +1,4 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash. Names are provisional.
-// MATCH (deepseek-v4.1-flash, issue #4340): 100%, 1418 bytes. What made it match:
-// (1) the draw block lives INSIDE the search loop body (the match check breaks into
-// it), with `if (n == 10) { cleanup }` after the loop; that gives the original's
-// `je <draw>` / `jmp <guard>` / shared `cmp edi,0xa` tail with no extra test.
-// (2) the dst quad is written with chained assignments (p0.x = p3.x = ...,
-// p2.x = p1.x = ..., p0.y = p1.y = ..., p2.y = p3.y = ...): that reproduces the
-// original's store order (p3.x,p0.x,p1.x,p2.x,p1.y,p0.y,p3.y,p2.y) AND stops MSVC
-// strength-reducing y+0x25 into ebx, so y stays in ebx with no stack home and the
-// frame map matches (maxw 0x10, i 0x14, panel 0x18, counter 0x28, dst 0x2c,
-// hr 0x4c, src 0x5c, buf 0x7c).  The plain p0..p3 assignment order instead made
-// ebx hold y+0x25 and gave y a home at 0x18, shifting every panel ref 4 bytes.
-// (3) dst.p[1].x = panel.left + maxw (not panel.right - 6) for the right edge,
-// and the last text x reads dst.p[1].x.
-// (4) the cleanup is a pointer walk with a countdown `for (int k = n; k != 0;
-// k--, q++)`: k gets the stack slot at 0x28 (which the old indexed walk did not
-// have, leaving the frame 4 bytes short) and `k = n` reproduces the original's
-// `mov [esp+0x28], edi` (edi == 10 there).
-// (5) hr assignments in source order left, right, top, bottom (top,left,right,bottom
-// emitted top first and cost the last hunk).
-// SUPERSEDED notes: everything below is the history of the earlier partials.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -173,12 +153,15 @@ void __stdcall FUN_004948e0(void* surface)
 
     for (int i = 0; i < (int)g_game->numPlayers; i++) {
         Player_004948e0* p = g_game->players;
+        // Chained assignments fix the store order; the right edge is
+        // panel.left + maxw.
         Quad_004948e0 dst;
         dst.p[0].x = dst.p[3].x = panel.left + 7;
         dst.p[2].x = dst.p[1].x = panel.left + maxw;
         dst.p[0].y = dst.p[1].y = y + 1;
         dst.p[2].y = dst.p[3].y = y + 0x25;
 
+        // The draw block stays inside the search loop; cleanup follows the loop.
         int n;
         for (n = 0; n < 10; n++, p++) {
             if (p->field_0 == 0)
@@ -194,6 +177,7 @@ void __stdcall FUN_004948e0(void* surface)
                 continue;
             if (p->field_148 != i)
                 continue;
+            // Assigned in the order left, right, top, bottom.
             Rect_004948e0 hr;
             hr.left = panel.left + 4;
             hr.right = panel.right - 4;
@@ -226,6 +210,7 @@ void __stdcall FUN_004948e0(void* surface)
         }
         if (n == 10) {
             Player_004948e0* q = g_game->players;
+            // Countdown k = n gives the frame its stack slot.
             for (int k = n; k != 0; k--, q++) {
                 if (q->field_0 == 0)
                     continue;

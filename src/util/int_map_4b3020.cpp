@@ -9,15 +9,11 @@
 // hidden first stack argument: that is why the callee takes four dwords of
 // stack arguments and returns that pointer in eax.
 //
-// Taking the member's address is only there to keep this out-of-line copy in
-// the object file: /Ob2 inlines every call of _Insert. _Insert and _Nodeptr are
-// protected members of _Tree, and VC5 accepts neither a using-declaration for
-// them nor a derived class (the base has no default constructor), so the access
-// specifier is changed around the include instead. That is compile time only:
-// access never reaches the code, and the bytes below are the toolchain's own
-// XTREE compiled by the same compiler as the original. The tree is
+// The tree is
 // std::map<int,int> because the _Nil node at 0x51fbbc and the 0x18-byte nodes
 // with an 8-byte value at +0xc and a colour at +0x14 are that instantiation's.
+//
+// _Insert is protected and VC5 offers no other way in than this define.
 #define protected public
 #include <map>
 #undef protected
@@ -30,6 +26,7 @@ typedef Map_004b3020::iterator Iter_004b3020;
 typedef Iter_004b3020 (Tree_004b3020::*InsertFn_004b3020)(
     Tree_004b3020::_Nodeptr, Tree_004b3020::_Nodeptr, const Vt_004b3020&);
 
+// Taking the address keeps the out-of-line copy in the object file.
 InsertFn_004b3020 g_insert_004b3020 = &Tree_004b3020::_Insert;
 
 // FUNCTION: 0x4b3020 ?_Insert@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@std@@QAE?AViterator@12@PAU_Node@12@0ABU?$pair@HH@2@@Z

@@ -3,8 +3,7 @@
 // feature pool cleanup (0x422170), then releases the radar frame, the map
 // tables, the two map grids and several unnamed buffers, nulling each slot.
 // Every slot is freed without a null test except the radar frame, the
-// 0x1421f pair and the four word/height fields of the grids; the grid
-// destroys keep `&grid` in edi across the operator delete call.
+// 0x1421f pair and the four word/height fields of the grids.
 #pragma pack(push, 1)
 struct Grid_00483dd0 {
     void* cells;                       // +0x0

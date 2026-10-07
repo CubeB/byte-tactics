@@ -5,11 +5,6 @@
 // slots: a slot takes a logo index j when its type byte is neither 0 nor 4
 // and its player data's logo byte is at least j. The pointer list and the
 // byte array are filled in from the slots that no player claimed.
-//
-// Two source details were needed: the inner scan is written as array indexing
-// (g_game->players[k]), which makes MSVC strength-reduce it to a pointer over
-// the type byte at +0x73; and the bookkeeping at the end of each iteration
-// increments n before cursor, which flips the eax/ecx roles in that block.
 
 #pragma pack(push, 1)
 struct PlayerData_00445110 {
@@ -103,6 +98,7 @@ void OpenLogoSelectDialog()
     void** cursor = layout->ptrList;
     int n = 0;
     for (int j = 0; j < count; j++) {
+        // Array indexing (players[k]): strength-reduced to a pointer over the type byte.
         int k;
         for (k = 0; k < 10; k++) {
             if (g_game->players[k].type != 0 && g_game->players[k].type != 4
@@ -114,6 +110,7 @@ void OpenLogoSelectDialog()
         if (k == 10) {
             *cursor = &layout->seqs[j];
             ((char*)layout)[n] = (char)j;
+            // n before cursor: sets the eax/ecx roles in this block.
             n++;
             cursor++;
         }

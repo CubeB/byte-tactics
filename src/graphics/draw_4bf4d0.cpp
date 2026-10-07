@@ -3,25 +3,6 @@
 // `surface` (or in the locked screen when `surface` is 0). `level` selects one
 // of 32 fade-in tables at +0xc4 (for negative levels, offset by 32) or one of 32
 // fade-out tables at +0xc8.
-//
-// MATCHED (mimo-v2.6-pro): earlier passes sat at 89.6 percent with the
-// engine/surface registers swapped (ours engine=ebx, surface=ebp; the original
-// is the reverse) and the `t == 0` null test folded into the flags of the
-// `add`, dropping `test ebp, ebp` and adding `xor eax, eax` at that return. The
-// fix is the one docs/agent-guide.md records for this address: compute
-// `t = table + (level << 8)` in EACH branch of the level test instead of once
-// after the merge. The null test then cannot fold into the add's flags (`test
-// ebp, ebp` stays and the bare return reuses the zero eax proves to hold), and
-// the callee-saved allocation falls into the original's engine=ebp,
-// surface=ebx, which also restores the pointer block's `mov eax, [esp+0x2c]`
-// and the `je` that skips the surface reload on the zero-height path.
-// Still load-bearing from the earlier passes: the inner loop advances `p`
-// itself (`while (w--) { *p = t[*p]; p++; }`), `height` is computed before `p`,
-// and `w` is declared before `next` in the row body.
-//
-// The 0x4bf4d0 entry in docs/bugs.md (three failure exits skip the unlock, and
-// `movsx` indexes the table with a sign-extended byte) is confirmed by the
-// disassembly and is reproduced here.
 
 #include <string.h>
 
@@ -76,10 +57,12 @@ int __stdcall FadeRectangle(Surface* surface, Rect_004bf4d0* rect, int level)
     }
     int clipped = ClipRectangle(&screen, rect) != 0;
     if (clipped) {
+        // height is computed before p.
         int height = rect->bottom - rect->top + 1;
         char* p = screen.pixels + screen.pitch * rect->top + rect->left;
         unsigned char* table;
         unsigned char* t;
+        // t is computed in each branch, not once after the merge.
         if (level < 0) {
             if (level < -0x20)
                 level = -0x20;
@@ -99,8 +82,10 @@ int __stdcall FadeRectangle(Surface* surface, Rect_004bf4d0* rect, int level)
         if (t == 0)
             return 0;
         while (height--) {
+            // w is declared before next.
             int w = rect->right - rect->left + 1;
             char* next = p + screen.pitch;
+            // Advances p itself in the body, not in a for header.
             while (w--) {
                 *p = t[*p];
                 p++;

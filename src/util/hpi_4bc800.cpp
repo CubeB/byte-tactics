@@ -21,22 +21,19 @@ struct ArchiveDirectory {
 // The list of the directory a backslash-separated path ends in (everything up
 // to its last backslash), walking down from `list`; 0 when a part of it is
 // missing or is a file.
-//
-// The search loop tests its index at the top (an endless loop that returns,
-// not a `for`, which MSVC would rotate), `name` is declared before `len` (the
-// later of two operands of an add goes first: [len + name]), and `path` is
-// advanced before `list` (otherwise ecx and edx swap).
 // FUNCTION: 0x4bc800
 ArchiveDirectory* __stdcall HAPI_FindDirectory(ArchiveDirectory* list, char* path)
 {
     char* sep;
     while ((sep = strchr(path, '\\')) != 0) {
+        // Declared before len: operand order of the add.
         char* name;
         int len = sep - path;
         name = (char*)_alloca(len + 1);
         strncpy(name, path, len);
         name[len] = 0;
         int i = list->count - 1;
+        // Endless loop that tests i at the top, not a for loop.
         for (;;) {
             if (i < 0)
                 return 0;
@@ -46,6 +43,7 @@ ArchiveDirectory* __stdcall HAPI_FindDirectory(ArchiveDirectory* list, char* pat
         }
         if (!(list->entries[i].flags & 1))
             return 0;
+        // path advances before list: otherwise ecx and edx swap.
         path = sep + 1;
         list = list->entries[i].child;
     }

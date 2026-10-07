@@ -6,10 +6,6 @@
 // many bytes tagged with the base name, reads the file into them and returns
 // the buffer. The size is written back through the third argument, which is
 // preset to -1 so a failure leaves it at -1.
-//
-// The base-name copy uses two indices into the same array, not pointers:
-// pointer versions let MSVC address the destination as an offset from the
-// source instead of keeping two walking pointers (same idiom as 0x4bb150).
 #include <io.h>
 #include <string.h>
 
@@ -72,6 +68,7 @@ void* __stdcall HAPI_LoadOpenFile(char* name, FileHandle* file, unsigned int* ou
     }
     j = i + 1;
     k = 0;
+    // Two indices into the same array, not pointers.
     do {
         buf[k] = buf[j];
         k++;

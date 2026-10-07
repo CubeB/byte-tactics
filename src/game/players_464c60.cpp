@@ -4,17 +4,6 @@
 // `from`'s economy object and added to `to`'s. An AI player (type 2) on easy or
 // medium only counts 0.5 or 0.7 of it, and the transfer is announced over the
 // network when `flag` is set (the amount travels as its bit pattern).
-//
-// Two phrasings here are load bearing, both verified by check.py:
-// - `player` is picked inside a conditional whose two arms are the same
-//   expression, so the address of `to`'s economy is computed on both arms of
-//   the flag test (as in the original) and `to`, not `from`, is the parameter
-//   MSVC keeps in a callee-saved register. A plain assignment after the call
-//   gives the same code with `from` in ebx instead, 18 bytes out.
-// - The energy is written through the full `g_game->players[to].econ`
-//   expression, so MSVC does not fold the store into the load; the plain
-//   `amount + energy` path is then `fld amount; fadd [field]`, the other way
-//   round from a simple field destination.
 
 class UnitResources;
 
@@ -67,6 +56,7 @@ void __stdcall TransferEnergy(unsigned char from, unsigned char to, float amount
     if (amount == 0.0f)
         return;
     Player_00464c60* player;
+    // Receiver read inside both arms of the flag test: homes `to` in ebx.
     player = flag ? (g_game->players[from].econ->SpendMetal(amount), g_game->players[to].econ->player)
                   : g_game->players[to].econ->player;
     if (player->active != 0 && player->type == 2) {
@@ -78,6 +68,8 @@ void __stdcall TransferEnergy(unsigned char from, unsigned char to, float amount
             g_game->players[to].econ->energy += amount * 0.7;
             break;
         default:
+            // Full `players[to].econ` expression: keeps the store from folding
+            // into the load.
             g_game->players[to].econ->energy = amount + g_game->players[to].econ->energy;
             break;
         }

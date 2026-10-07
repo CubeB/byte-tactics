@@ -3,13 +3,6 @@
 // std::vector<TdfFile*>::insert(iterator, size_type, const _Ty&), stock
 // MSVC 5 <vector>, emitted out of line through a member pointer. The caller
 // is 0x4222e0 (push_back on the global feature vector).
-//
-// The original's translation unit was built with /Gi, and the bytes also
-// depend on which other members of this vector type the TU instantiates: with
-// an operator= use (as below) this MATCHes; with reserve, resize, the copy
-// constructor or no other use it is 58.0% (docs/field-notes.md Part 7). The
-// best file without /Gi, a hand copy of the <vector> class with a renumbered
-// third copy, reached 84.1%; those passes are in git history.
 #include <vector>
 
 #include "../util/tdf.h"

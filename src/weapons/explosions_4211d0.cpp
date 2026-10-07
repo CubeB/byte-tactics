@@ -1,113 +1,12 @@
 // Decompiled by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by
 // space-bunny-free, retried by Sonnet 5.5, finished by deepseek-v4.1-flash,
 // finished by mimo-v2.6-pro. Names are provisional.
-// MATCH (mimo-v2.6-pro): the last diff was the copy loop's 3-instruction
-// scheduling. `poly[j] = projected[*idx]; ++j; ++idx;` (three top-level
-// statements, index load NOT folded into `*idx++`) emits the original's
-// `inc ecx; mov di,[edx]; add eax,8; add edx,2` order. Every variant with the
-// load written as `*idx++` (and every `++j; poly[j-1] = ...` spelling, split
-// or not) emits `add eax,8; mov di,[edx]; inc ecx` instead and stays at 98.7%,
-// so the lever is MSVC 5 sinking the pointer side effect past the address
-// computation only when it is its own statement.
-// GPT-6.1-sol retry (#3174): changing the face-index copy into a guarded do/while
-// and incrementing j before the copy raises the best from 96.1% to 98.7%. The
-// only remaining bytes are the order of add eax, 8 vs mov di, [edx] and
-// inc ecx in the copy loop: target loads the index and increments j before
-// advancing the destination cursor. Pointer-cursor and materialized-index
-// spellings regressed to 91.9% and 73.0%; keep the guarded do/while.
-// deepseek-v4.1-flash retry (#2977): 90.6 -> 96.1%. The first-face setup now
-// matches instruction for instruction. The lever is to assign `face` in BOTH
-// arms instead of incrementing it in one arm:
-//     if (arr->firstFace != -1) { face = arr->faces + 1; i = 1; }
-//     else                       { face = arr->faces;     i = 0; }
-// A ternary (setne/shl/add) scored 90.6%, `i = 0; if (...) { i = 1; face++; }`
-// scored 92.5% but spilled `i` twice (once per definition). The both-arms form
-// keeps arr in ebp and stores `i` exactly once at the join, as the original
-// does (0x4212a3..0x4212c1). Everything before and after this block matches.
-// The ONLY remaining difference is the copy loop's ecx/edx tie: original gives
-// idx=edx / j=ecx (`mov edx,[esi+0xc]; xor ecx,ecx; inc ecx` at the loop top),
-// this file gives idx=ecx / j=edx (`mov ecx,[esi+0xc]; xor edx,edx`), which
-// also flips the increment scheduling (ours `add eax,8` before the load, `inc`
-// at the bottom; original `inc` at the top). Declaration order (idx/j at
-// function or block scope, either order), unsigned counters, do/while, while,
-// indexed source (`projected[idx[j]]`), dest walk and pointer-range loops are
-// all flat at 96.1% with the same swap, so it is a compiler register tie-break,
-// not a source lever.
-// Sonnet 5.5 retry (#2451), still 90.6%. The diff of this version is now only
-// the first-face setup (original: branches, `add esi,0x20; mov edi,1` or
-// `xor edi,edi`; ours: setne/shl/add) and the ecx/edx swap in the copy loop,
-// which follows from it (the setne sequence leaves ecx in use, so the copy
-// loop's first temp lands in ecx instead of edx). Note that this 90.6% version
-// already has the original's `i` spill at [esp+0x10] and `arr` in ebp; the
-// branchy spelling (`if (arr->firstFace != -1) { face++; i = 1; } else i = 0;`)
-// has the original's instructions but loses it (82.0%, 459 bytes: arr evicted
-// instead of i). Not tried before, all no change (90.6% or 82.0% as before):
-// `register` on arr, i and j; idx and j declared at function scope in either
-// order, `for (idx = face->indices, j = 0; ...)`, a while-form copy loop; a
-// sweep of 0..500 unused declarations on the branchy spelling; headers.py on
-// the branchy spelling. Siblings 0x4584d0, 0x459830 and 0x459c70 use the
-// branchy spelling and stop at the same tie, so they share this problem.
-// PARTIAL, 90.6% (refined by GPT-6.1-sol). Changing the first-face setup to
-// `i = arr->firstFace == -1 ? 0 : 1; face += i;` moves the score from 82.0% to
-// 90.6%. The remaining main difference starts at the outer face-loop setup:
-// original branches to increment `face` and stores the counter in the frame;
-// this version forms `face + i` with a shift/add. In the polygon copy loop,
-// original uses edx for indices and ecx for j, while this version uses ecx for
-// indices and edx for j. Tried `face++` under `if (i)`, which scored 82.5%.
-// PARTIAL, 82.0% (fourth pass: unchanged). What still differs is ONE eviction:
-// the original spills the face counter `i` to frame+0x10 (`mov [esp+0x10],edi`
-// at 0x4212bd, reloaded by `mov edi,[esp+0x10]` at 0x421307, stored again at
-// 0x42138e) and keeps `arr` in ebp, while this file keeps `i` in edi and leaves
-// `arr` in the frame+0x10 slot (it reloaded that slot at 0x42129f for the
-// vertex loop and reloads it again after the copy loop). Everything downstream
-// is a consequence: with `i` in edi the copy loop has to borrow ebx for its
-// index and ebp for the loaded point, so it runs ecx = indices / edx = j and
-// reloads `surface` then `arr`, where the original runs ecx = j / edx = indices
-// and reloads `i` then `surface`. Everything before 0x4212ba and after the
-// dispatch already matches instruction for instruction.
-// Two more negative results on that tie (both measured with check.py --sym):
-// 1. headers.py over all 128 sets is flat at 82.0%, so no header side effect.
-// 2. Neither declaration order nor loop weighting decides it. Declaring `arr`
-// before `int i;` (so C1 sees the variable the original keeps first) is exactly
-// 82.0%, and giving the vertex loop its own counter so that `i` is referenced in
-// only one loop instead of two (which would change MSVC's loop-weighted register
-// priority, the lever that worked at 0x40e160) is also exactly 82.0% with the
-// same diff hunk, and the frame does not move. The tie is not decided by
-// declaration order, use count or loop depth; it needs a construct that changes
-// how many callee-saved registers the loop body wants at once.
-// PARTIAL, 82.0%. Lead probes: taking the face index address and using it
-// through a pointer kept 82.0%; hoisting faceCount scored 75.8%, reversing the
-// loop comparison scored 81.3%, and reversing the firstFace branch scored 80.0%.
-// Restored this best version.
-// PARTIAL, 82.0%. Frame size (0x3f58), the prologue, the vertex loop and the
-// flag dispatch now match the original instruction for instruction. What
-// still differs is one register-priority tie, the same one 0x4584d0 hit:
-// - the face counter `i` keeps edi here, so the pre-loop test is
-//   `cmp edi,[ebp+8]` and there is no `mov [esp+0x10],edi`; the original
-//   spills `i` to [esp+0x10] (0x4212bd and 0x42138e) and reloads it at
-//   0x421307, which frees edi for the copy-loop index.
-// - consequently the copy loop runs `edx = j, ecx = indices, ebx = index`
-//   here vs the original's `ecx = j, edx = indices, edi = index`, and after
-//   it the original reloads `i` then `surface` where this file reloads
-//   `surface` then `arr`.
-// What fixed the prologue: take the address of the offset aggregate once
-// (`short* hp = (short*)&off;`) and read the high words as hp[1]/hp[3]/hp[5].
-// That forces MSVC to spill `off` and emit the original's
-// `movsx r, word ptr [esp+0x16/0x1a/0x1e]` sequence (54.4 -> 64.2).
-// What fixed the vertex loop: make BOTH accesses indexed (`projected[i].x`
-// with `v[i].x`) so MSVC biases the destination by +4, then switch the
-// SOURCE to a walked pointer `Vec3* u = v; for (; ; i++, u++)` with
-// `u->x/u->z/u->y`. Indexed destination plus walked source is byte-exact
-// (73.4 -> 82.0); walked destination plus indexed source and both-walked are
-// both much worse.
-// The flag tests come from the bitfield union Flags_004211d0, copied from the
-// already-partial near-copy 0x4584d0.cpp: it emits the original's
-// `shr ecx,1 / test cl,1` and `shr eax,2 / test al,1` chain.
 struct Point_004211d0 { int x; int y; };
 struct Vec3_004b6cc0 { int x; int y; int z; };
 
 struct Pic_004211d0 { void* pic; int unknown_4; };
 
+// Bitfield union: gives the original's shr/test chain for the flag tests.
 struct Flags_004211d0 {
     union {
         unsigned int raw;
@@ -190,6 +89,7 @@ void __stdcall DrawExplodedPieceFaces(void* surface, Obj_00421170* obj, Inner_00
     off.y = inner->f1a;
     off.b = inner->f1e - (g_game->cameraZ << 16);
 
+    // Address of off taken once, high words read as hp[n]: forces the original's spill.
     short* hp = (short*)&off;
     int sy = hp[5] - (hp[3] >> 1) + 0x20;
     int sx = hp[1] + 0x80;
@@ -198,6 +98,7 @@ void __stdcall DrawExplodedPieceFaces(void* surface, Obj_00421170* obj, Inner_00
     }
 
     Vec3_004b6cc0* v = inner->f22;
+    // Indexed destination with a walked source pointer u: the byte-exact form.
     Vec3_004b6cc0* u = v;
     for (i = 0; i < arr->count; i++, u++) {
         projected[i].x = (short)((u->x + off.a) >> 16) + 0x80;
@@ -207,6 +108,7 @@ void __stdcall DrawExplodedPieceFaces(void* surface, Obj_00421170* obj, Inner_00
 
     int j;
     Face_004211d0* face;
+    // face and i assigned in both arms: keeps arr in a register, i stored once.
     if (arr->firstFace != -1) {
         face = arr->faces + 1;
         i = 1;
@@ -217,6 +119,7 @@ void __stdcall DrawExplodedPieceFaces(void* surface, Obj_00421170* obj, Inner_00
     for (; i < arr->faceCount; i++, face++) {
         unsigned short* idx = face->indices;
         j = 0;
+        // Guarded do/while with the load, ++j and ++idx as separate statements.
         if (face->count > 0) {
             do {
                 poly[j] = projected[*idx];

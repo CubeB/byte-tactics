@@ -5,14 +5,6 @@
 // at most the unit type's turn rate (+0xE8), and if the wanted angle is more
 // than 27000 (about 148 degrees) away while the type's flag bit 22 of +0x111 is
 // set, the function gives up and returns 0. Otherwise it returns 1.
-//
-// Two details decide the shape. The vertical difference is a 16.16 fixed point
-// value kept in a 4 byte union, so only its high word is read
-// (`movsx ... word [slot+2]`) and it needs a real stack home; an 8 byte union
-// (or short[4]) makes the frame `sub esp,8` and shifts every slot. And the
-// declarations must be dx, then dy, then dz: that is what makes the register
-// allocator put dy in the fresh `push ecx` slot and send dx and dz to the dead
-// argument slots, with dy's subtraction before dx's.
 #include <math.h>
 #include <stdlib.h>
 
@@ -39,6 +31,7 @@ struct Unit_0049b520 {
     short pitch;                       // +0x38
 };
 
+// 16.16 value in a 4 byte union: an 8 byte one (or short[4]) changes the frame.
 union Fixed_0049b520 {
     int value;
     struct { unsigned short fraction; short whole; };
@@ -50,6 +43,7 @@ short __cdecl FUN_004b715a(int x, int z);
 int __stdcall TurnUnitTowardsPoint(Unit_0049b520* unit, Vec3_0049b520* target)
 {
     UnitType_0049b520* type = unit->type;
+    // Declared dx, dy, dz in this order: it decides the stack slot assignment.
     int dx = unit->x - target->x;
     Fixed_0049b520 dy;
     dy.value = unit->y - target->y;

@@ -3,9 +3,7 @@
 // insert is 0x4dc680 and whose erase is 0x4dc910): allocate the 0x10-byte tree
 // object, make the _Nil node DAT_00528a50 (black, self-null children) and the
 // head node (red, parent _Nil, both children itself), both carved from the
-// pooled free list at DAT_005289e0. It is `new _Tree(...)` with the ctor inlined
-// (the two seed chars are the uninitialised allocator and key_compare copies), so
-// the stores to the singleton go through eax in both tails.
+// pooled free list at DAT_005289e0.
 #include <windows.h>
 #include <yvals.h>
 

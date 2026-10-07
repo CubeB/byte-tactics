@@ -4,10 +4,6 @@
 // an int id at +0x00, a Unit* at +0x23 and a byte "in use" flag at +0x6f. The
 // function returns true when no in-use entry other than the given id maps its
 // Unit's +0x96 byte to the given slot.
-//
-// The two identical searches for `id` are in the original: only the first
-// result is used, and the second loop's result is discarded. The compiled loop
-// also carries a redundant `if (i == 10)` guard, so it is reproduced as is.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -41,6 +37,7 @@ static __inline unsigned char FindSlot_00452570(int id)
     unsigned char i;
     for (i = 0; i < 10; i++) {
         int v;
+        // Redundant guard: kept as in the original.
         if (i == 10) {
             v = -1;
         } else {
@@ -69,6 +66,7 @@ int __stdcall IsColorFree(int id, int slot)
     } else {
         found = FindSlot_00452570(id);
     }
+    // Second search, result discarded: kept as in the original.
     if (found != 10 && id != -1) {
         FindSlot_00452570(id);
     }

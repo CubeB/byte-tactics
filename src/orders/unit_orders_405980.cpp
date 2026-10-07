@@ -1,15 +1,4 @@
 // Decompiled by Claude Opus 5.5, finished by GPT-6, verified by GPT-6.1-sol, edited by deepseek-v4.1, gate polarity checked by space-bunny-free, gate spelling changed by space-bunny-free, finished by Claude Sonnet 5.5, finished by Claude Opus 5.5. Names are provisional.
-// MATCH. What the bytes needed, for anyone working on a sibling:
-// - The switch sits in a loop (`for (;;)`; `do { } while (0)` or `while (1)`
-//   give the same bytes). Without one, B and C keep their own inline copy of
-//   the `new Class_0043a1f0` tail (1081 bytes) instead of jumping to D's.
-// - Second gate: `energy < 0.2 * owner->energyCapacity` with an `Owner*` local
-//   (energy loaded first, `test ah, 0x41`). `<=` gives `test ah, 1`; the
-//   `capE * 0.2` operand order loads the product first and adds an fxch.
-// - range2 is computed after the two pointer stores and kept in eax across the
-//   argument pushes. Written straight before the call, MSVC folds it into the
-//   call (92.2%); the empty `do {} while (0);` (a debug macro that compiled to
-//   nothing) between them stops that and gives the original's rotation.
 #include <vector>
 struct Vec3 { int x, y, z; };
 struct Unit;
@@ -54,6 +43,7 @@ void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
 // FUNCTION: 0x405980
 int __stdcall RepairPatrolOrder(Unit* unit, Order* order, int flags)
 {
+    // The loop around the switch lets the cases share one `new` tail.
     for (;;) {
         switch (order->state) {
         case 0:
@@ -80,6 +70,7 @@ int __stdcall RepairPatrolOrder(Unit* unit, Order* order, int flags)
                     }
                 }
             }
+            // Owner* local with `energy < 0.2 * capacity` in this operand order and `<`.
             Owner* owner = unit->owner;
             if (unit->owner->energy < 0.2 * owner->energyCapacity ||
                 unit->owner->metal < unit->owner->metalCapacity * 0.2) {
@@ -87,6 +78,7 @@ int __stdcall RepairPatrolOrder(Unit* unit, Order* order, int flags)
                 Vec3* energy = &energyPos;
                 Vec3* metal = &metalPos;
                 int range2 = unit->def->range << 16;
+                // Empty statement stops range2 being folded into the call.
                 do {} while (0); // emits no code; keeps range2 out of the call (see top)
                 float energyAmount, metalAmount;
                 if (FUN_0047ea40(&unit->pos, range2, &energy, &energyAmount, &metal, &metalAmount)) {

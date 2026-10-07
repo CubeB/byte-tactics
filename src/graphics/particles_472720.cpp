@@ -1,14 +1,9 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Creates a SmokeParticles (vtable 0x4fd618) from the object pool, initialises
-// it through virtual slot 6 with the trailing alt flag 1, then appends it to the
-// std::vector<ParticleSystem*> picked by the short index. When that list
+// it through virtual slot 6 with the trailing alt flag 1, then appends it to
+// the std::vector<ParticleSystem*> picked by the short index. When that list
 // already holds more than 400 entries its oldest element is deleted and erased
-// first; the surviving push_back is what leaves std::vector::insert (0x4732e0)
-// out of line. That only works if this function's /Ob2 inline budget is already
-// spent, which is what the zeroing loop in operator new below is for; spelling
-// it memset leaves the budget unspent and inlines the insert instead (223 bytes
-// of ours were the 551-byte insert). Twin of 0x472630 (alt flag 0), 0x4728f0 and
-// 0x4729d0. operator new (0x471d10) is inlined here, the constructor is not.
+// first. Twin of 0x472630 (alt flag 0), 0x4728f0 and 0x4729d0.
 #include <stddef.h>
 #include <vector>
 

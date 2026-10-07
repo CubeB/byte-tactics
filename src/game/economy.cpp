@@ -1,15 +1,12 @@
 // Decompiled by Sonnet, Claude Opus 5.5, GPT-6, GPT-6.1-sol, Opus, deepseek-v4.1 and deepseek-v4.1-flash. Names are provisional.
 // The compiler-generated `vector constructor iterator` (??_H), which constructs
-// each element of an array of a class with a constructor. MSVC 5 inlines it as
-// a loop unless /Ob2's inline budget has run out; an element type with both a
-// constructor and a destructor in an array member of a global's class keeps
-// it out of line.
+// each element of an array of a class with a constructor.
 //
 // UpdatePlayerEconomy (0x401360) and its income helpers stay in
-// economy_401360.cpp: that function does not reproduce byte for byte in this
-// merged file (its best is 95.3%, an x87 operand order in the inlined income
-// adds), so its original file is kept. The resource account's methods below
-// and the end-of-tick update (0x401320) are shared with it by address.
+// economy_401360.cpp. The resource account's methods below and the
+// end-of-tick update (0x401320) are shared with it by address.
+//
+// The included headers decide which operand of the float adds is loaded first.
 #include <ddraw.h>
 #include <float.h>
 #include <stdio.h>
@@ -199,7 +196,6 @@ void __stdcall FUN_00401030(Obj* base, int stride, int count, ThisFn func)
     }
 }
 
-// Pilot functions used to validate the toolchain. Names are provisional.
 // FUNCTION: 0x401070
 void UnitResources::Reset(unsigned char playerIndex)
 {
@@ -232,8 +228,6 @@ void Class_00401110::LoadUnitAccounts(UnitInfo* info, HapiBank* file)
     }
 }
 
-// As in 0x4011c0, the header include decides whether MSVC loads the float
-// parameter or the field first.
 // FUNCTION: 0x401180
 int UnitResources::FUN_00401180(UnitResources* r, float amount)
 {
@@ -244,8 +238,6 @@ int UnitResources::FUN_00401180(UnitResources* r, float amount)
     return 1;
 }
 
-// Any header include matters here: with the larger symbol table MSVC loads
-// the float parameter first (fld dx; fadd [ecx+4]) instead of the field.
 // FUNCTION: 0x4011c0
 int UnitResources::FUN_004011c0(float dx, float dy)
 {
@@ -259,8 +251,6 @@ int UnitResources::FUN_004011c0(float dx, float dy)
     return 0;
 }
 
-// As in 0x4012a0, the header include decides whether MSVC loads the float
-// parameter or the field first.
 // FUNCTION: 0x401220
 int UnitResources::SpendEnergy(float amount)
 {
@@ -284,8 +274,6 @@ int UnitResources::SpendMetal(float amount)
     return 0;
 }
 
-// The header include matters, as in 0x4011c0: without it MSVC loads the
-// field before the parameter in energyUsed += energy.
 // FUNCTION: 0x4012a0
 int UnitResources::SpendEnergyAndMetal(float energy, float metal)
 {
@@ -301,15 +289,12 @@ int UnitResources::SpendEnergyAndMetal(float energy, float metal)
     return 0;
 }
 
-// As in 0x401220 and 0x4012a0, the header include decides which operand
-// MSVC loads first (<stdlib.h> here). The update is written as one combined
-// expression: as two statements this merged file's symbol state evaluates the
-// demand term before the backlog one and only reaches 66.7%.
 // FUNCTION: 0x401320
 void __stdcall FUN_00401320(Obj_00401320* p, float a, float b)
 {
     p->prev1 = p->x1;
     p->prev0 = p->x0;
+    // One combined expression: as two statements the demand term is evaluated first.
     p->x3 = p->x3 - a * p->x3 + (p->x2 - b * p->x2);
     p->x1 = 0;
     p->x0 = 0;

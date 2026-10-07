@@ -53,7 +53,7 @@ struct BuildList_0041ace0;
 
 class UnitResources {
 public:
-    int FUN_004011c0(float energy, float metal);
+    int RequestEnergyAndMetal(float energy, float metal);
 };
 
 struct Nano_0041b8d0 {
@@ -1243,7 +1243,7 @@ void __stdcall FinishConstruction(Unit* unit, Unit* target)
 // Adds build progress to a unit under construction: `amount` build points
 // (negative when it is being taken apart) move the remaining fraction at
 // +0x104 towards 0 (done) or 1 (nothing built), clamped to [0, 1]. Building
-// charges the builder's resource store (FUN_004011c0, energy first) for the
+// charges the builder's resource store (RequestEnergyAndMetal, energy first) for the
 // energy and metal share of the step and only proceeds when the store accepts it.
 // Unbuilding adds the metal share to the unit's float at +0xd4 (times 0.5 or
 // 0.7 for a type 2 player when g_game+0x37eee is 0 or 1) and destroys the
@@ -1291,7 +1291,7 @@ int __stdcall AddBuildProgress(Unit* builder, Unit* unit, float amount)
         unit->flags.raw |= 0x2000;
         if (next >= 1.0f)
             DamageUnit(unit, unit, 30000, 9, 0);
-    } else if (builder->store.FUN_004011c0(energyCharge, metalCharge)) {
+    } else if (builder->store.RequestEnergyAndMetal(energyCharge, metalCharge)) {
         unit->hp = min(hp + unit->hp, unit->type->maxHp);
         unit->field_104 = next;
         unit->flags.raw |= 0x2000;

@@ -2147,12 +2147,12 @@ class UnitResources {  // 0x34 bytes, 10 views
 public:
     int unknown[12];  // +0x0
     Player* store;  // +0x30
-    int FUN_00401180(UnitResources*, float);
+    int RequestEnergy(UnitResources*, float);
     int SpendEnergy(float);
     int SpendMetal(float);
     int SpendEnergyAndMetal(float, float);
     void Reset(unsigned char);
-    int FUN_004011c0(float, float);
+    int RequestEnergyAndMetal(float, float);
 };
 
 class Class_004010b0 {  // 0x30 bytes, 2 views
@@ -2195,7 +2195,7 @@ public:
     float x0;  // +0x4
     float x1;  // +0x8
     float x2;  // +0xc
-    int FUN_00401180(Class_00401180*, float);
+    int RequestEnergy(Class_00401180*, float);
 };
 
 class Class_004011c0 {  // 0x28 bytes, 2 views
@@ -2208,7 +2208,7 @@ public:
     float y0;  // +0x1c
     float y1;  // +0x20
     float y2;  // +0x24
-    int FUN_004011c0(float, float);
+    int RequestEnergyAndMetal(float, float);
 };
 
 struct Obj_00401320 {  // 0x18 bytes, 2 views

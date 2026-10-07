@@ -19,12 +19,12 @@ struct Unit {
 #pragma pack(pop)
 
 // The call site sets ecx to the resource block and also pushes it, so
-// FUN_00401180 is a __thiscall method that takes the block explicitly too
+// RequestEnergy is a __thiscall method that takes the block explicitly too
 // (its body never reads ecx).
 class UnitResources {
 public:
     char unknown_0[0x10];
-    int FUN_00401180(UnitResources* r, float amount);
+    int RequestEnergy(UnitResources* r, float amount);
 };
 
 struct Obj_0041bd10 {
@@ -53,7 +53,7 @@ int __stdcall FUN_0041bd10(Obj_0041bd10* obj, Unit* unit, float f)
         n1 = 1;
     if (n2 >= 1)
         n2 = 1;
-    if (obj->field_bc.FUN_00401180(&obj->field_bc, (float)n2)) {
+    if (obj->field_bc.RequestEnergy(&obj->field_bc, (float)n2)) {
         DamageUnit(obj, unit, n1, 10, 0);
         result = 1;
     }

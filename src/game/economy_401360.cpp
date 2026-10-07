@@ -27,8 +27,8 @@ class Econ_00401360 {
 public:
     Res_00401360 res[2];               // +0x0
     Player_00401360* owner;            // +0x30
-    int FUN_00401180(Econ_00401360* e, float amount);
-    int FUN_004011c0(float energy, float metal);
+    int RequestEnergy(Econ_00401360* e, float amount);
+    int RequestEnergyAndMetal(float energy, float metal);
     int SpendEnergy(float amount);
     int SpendMetal(float amount);
     int SpendEnergyAndMetal(float energy, float metal);
@@ -123,7 +123,7 @@ extern Game* g_game;
 
 // The functions before 0x401360 in the original file (each matched in its own
 // file under another class name), defined here without FUNCTION lines.
-int Econ_00401360::FUN_00401180(Econ_00401360* e, float amount)
+int Econ_00401360::RequestEnergy(Econ_00401360* e, float amount)
 {
     e->res[0].used += amount;
     if (e->res[0].backlog > 0.0f)
@@ -132,7 +132,7 @@ int Econ_00401360::FUN_00401180(Econ_00401360* e, float amount)
     return 1;
 }
 
-int Econ_00401360::FUN_004011c0(float energy, float metal)
+int Econ_00401360::RequestEnergyAndMetal(float energy, float metal)
 {
     res[0].used += energy;
     res[1].used += metal;
@@ -178,7 +178,7 @@ int Econ_00401360::SpendEnergyAndMetal(float energy, float metal)
     return 0;
 }
 
-void __stdcall FUN_00401320(Res_00401360* r, float ratioBacklog, float ratioDemand)
+void __stdcall SettleResourceAccount(Res_00401360* r, float ratioBacklog, float ratioDemand)
 {
     r->lastUsed = r->used;
     r->lastProduced = r->produced;
@@ -430,10 +430,10 @@ void __stdcall UpdatePlayerEconomy(Player_00401360* p)
     }
     for (u = p->units; u <= p->units_end; u++) {
         if (u->flags & 0x10000000) {
-            FUN_00401320(&u->econ.res[0], ratioA[0], demandRatio[0]);
-            FUN_00401320(&u->econ.res[1], ratioA[1], demandRatio[1]);
+            SettleResourceAccount(&u->econ.res[0], ratioA[0], demandRatio[0]);
+            SettleResourceAccount(&u->econ.res[1], ratioA[1], demandRatio[1]);
         }
     }
-    FUN_00401320(&p->econ->res[0], ratioA[0], demandRatio[0]);
-    FUN_00401320(&p->econ->res[1], ratioA[1], demandRatio[1]);
+    SettleResourceAccount(&p->econ->res[0], ratioA[0], demandRatio[0]);
+    SettleResourceAccount(&p->econ->res[1], ratioA[1], demandRatio[1]);
 }

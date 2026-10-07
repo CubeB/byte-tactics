@@ -150,7 +150,7 @@ int __stdcall FUN_0048d220(char mode);
 void FUN_00491b60();
 void __stdcall FUN_00491d70(int a);
 void FUN_00496790();
-void __stdcall FUN_00498da0(View* p);
+void __stdcall UpdateCursorWorldPos(View* p);
 void __stdcall IssueMobileBuildOrders(View* arg);
 void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall FUN_0048c7f0(View* arg);
@@ -279,7 +279,7 @@ static inline void SetCursor(int n)
 void BattleFrame(void)
 {
     View view = g_game->view;
-    FUN_00498da0(&view);
+    UpdateCursorWorldPos(&view);
 
     unsigned char flags = g_game->flags_2cc6;
     if ((flags & 2) != 0 && g_game->orderMode == 0xe) {

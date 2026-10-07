@@ -335,11 +335,11 @@ extern Game* g_game;
 
 extern unsigned char DAT_0051f2c8[10];
 extern unsigned char DAT_0051e810[10];
-extern "C" int DAT_0051e6c8;
+extern "C" int g_loadingBarFlashAlpha;
 extern "C" int DAT_0051e6cc;
-extern "C" int DAT_0051f308;
+extern "C" int g_loadingBarFlashDecayTick;
 extern int g_usePacketManager;
-extern "C" unsigned char DAT_0051e820, DAT_0051e821, DAT_0051e822;
+extern "C" unsigned char g_loadingBarPrevPercent, DAT_0051e821, DAT_0051e822;
 extern "C" unsigned char DAT_0051e823, DAT_0051e824, DAT_0051e825;
 extern int DAT_005091cc;
 
@@ -952,8 +952,8 @@ void LoadingScreenFrame(void)
         // Four memsets (10, 10, 6, 6 bytes); the stage bytes get one 8-byte memset.
         memset(DAT_0051f2c8, 0, 10);
         memset(DAT_0051e810, 0, 10);
-        memset(&DAT_0051e6c8, 0, 6);
-        memset(&DAT_0051e820, 0, 6);
+        memset(&g_loadingBarFlashAlpha, 0, 6);
+        memset(&g_loadingBarPrevPercent, 0, 6);
         g_game->flags38d75.bits.started = 1;
         OnlineUnload();
     }
@@ -1018,11 +1018,11 @@ void LoadingScreenFrame(void)
     if (ok != 0) {
         color = g_game->palette[15];
         stamp = GetTicks();
-        if (DAT_0051f308 < (int)stamp) {
-            DAT_0051f308 = GetTicks();
+        if (g_loadingBarFlashDecayTick < (int)stamp) {
+            g_loadingBarFlashDecayTick = GetTicks();
             for (i = 0; i < 6; i++) {
-                if (((char*)&DAT_0051e6c8)[i] != 0) {
-                    ((char*)&DAT_0051e6c8)[i] -= 2;
+                if (((char*)&g_loadingBarFlashAlpha)[i] != 0) {
+                    ((char*)&g_loadingBarFlashAlpha)[i] -= 2;
                 }
             }
         }
@@ -1052,11 +1052,11 @@ void LoadingScreenFrame(void)
             *((short*)lightbar + 2) = 0;
             color = g_game->palette[g_game->progress[0] < 100 ? 12 : 10];
             SetTextColors(color, GetTextKeyColor());
-            if(g_game->progress[0] == 100 && DAT_0051e820 != 100) {
-                ((unsigned char*)&DAT_0051e6c8)[0] = 0x1e;
+            if(g_game->progress[0] == 100 && g_loadingBarPrevPercent != 100) {
+                ((unsigned char*)&g_loadingBarFlashAlpha)[0] = 0x1e;
             }
-            flash = ((unsigned char*)&DAT_0051e6c8)[0];
-            DAT_0051e820 = g_game->progress[0];
+            flash = ((unsigned char*)&g_loadingBarFlashAlpha)[0];
+            g_loadingBarPrevPercent = g_game->progress[0];
             FUN_004a50e0(&gadget, (char*)Translate("Textures"), 0x5a, 0x87, -1, flash);
             // Each bar's rect is written left, right, top, bottom.
             rect[0] = 0xcd;
@@ -1068,9 +1068,9 @@ void LoadingScreenFrame(void)
             color = g_game->palette[g_game->progress[1] < 100 ? 12 : 10];
             SetTextColors(color, GetTextKeyColor());
             if(g_game->progress[1] == 100 && DAT_0051e821 != 100) {
-                ((unsigned char*)&DAT_0051e6c8)[1] = 0x1e;
+                ((unsigned char*)&g_loadingBarFlashAlpha)[1] = 0x1e;
             }
-            flash = ((unsigned char*)&DAT_0051e6c8)[1];
+            flash = ((unsigned char*)&g_loadingBarFlashAlpha)[1];
             DAT_0051e821 = g_game->progress[1];
             FUN_004a50e0(&gadget, (char*)Translate("Terrain"), 0x5a, 0xb1, -1, flash);
             rect[0] = 0xcd;
@@ -1082,9 +1082,9 @@ void LoadingScreenFrame(void)
             color = g_game->palette[g_game->progress[2] < 100 ? 12 : 10];
             SetTextColors(color, GetTextKeyColor());
             if(g_game->progress[2] == 100 && DAT_0051e822 != 100) {
-                ((unsigned char*)&DAT_0051e6c8)[2] = 0x1e;
+                ((unsigned char*)&g_loadingBarFlashAlpha)[2] = 0x1e;
             }
-            flash = ((unsigned char*)&DAT_0051e6c8)[2];
+            flash = ((unsigned char*)&g_loadingBarFlashAlpha)[2];
             DAT_0051e822 = g_game->progress[2];
             FUN_004a50e0(&gadget, (char*)Translate("Units"), 0x5a, 0xda, -1, flash);
             rect[0] = 0xcd;
@@ -1096,9 +1096,9 @@ void LoadingScreenFrame(void)
             color = g_game->palette[g_game->progress[3] < 100 ? 12 : 10];
             SetTextColors(color, GetTextKeyColor());
             if(g_game->progress[3] == 100 && DAT_0051e823 != 100) {
-                ((unsigned char*)&DAT_0051e6c8)[3] = 0x1e;
+                ((unsigned char*)&g_loadingBarFlashAlpha)[3] = 0x1e;
             }
-            flash = ((unsigned char*)&DAT_0051e6c8)[3];
+            flash = ((unsigned char*)&g_loadingBarFlashAlpha)[3];
             DAT_0051e823 = g_game->progress[3];
             FUN_004a50e0(&gadget, (char*)Translate("Animation"), 0x5a, 0x106, -1, flash);
             rect[0] = 0xcd;
@@ -1150,7 +1150,7 @@ void LoadingScreenFrame(void)
 // Converts a point by the view origin at +0x2c/+0x30 (less a 0x80 by 0x20
 // border) and passes it on to FUN_00484b50.
 // FUNCTION: 0x498cd0
-void __stdcall FUN_00498cd0(Point_00498cd0* p, View_00498cd0* view, int param_3)
+void __stdcall OffsetWorldPosFromView(Point_00498cd0* p, View_00498cd0* view, int param_3)
 {
     FUN_00484b50((view->x - 0x80) + p->x, (view->y - 0x20) + p->y, param_3);
 }
@@ -1158,7 +1158,7 @@ void __stdcall FUN_00498cd0(Point_00498cd0* p, View_00498cd0* view, int param_3)
 // (scaled from the view origin), with the height taken from the ground there.
 #include <string.h>
 // FUNCTION: 0x498d00
-void __stdcall FUN_00498d00(Pos_00498d00* out)
+void __stdcall MinimapCursorToWorldPos(Pos_00498d00* out)
 {
     Rect_00498d00 r = g_game->view;
     int dx = r.x - g_game->origin_x;
@@ -1206,7 +1206,7 @@ void __stdcall FUN_00498d00(Pos_00498d00* out)
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 
 // FUNCTION: 0x498da0
-void __stdcall FUN_00498da0(View_00498da0* r)
+void __stdcall UpdateCursorWorldPos(View_00498da0* r)
 {
     int mx, my;
 

@@ -544,14 +544,14 @@ extern unsigned char DAT_0051e6b0[12];                                          
 extern unsigned char DAT_0051e6bc[4];                                                         // 0x51e6bc, 4 bytes; nothing refers to it
 extern int DAT_0051e6c0;                                                                      // 0x51e6c0, 4 bytes; 2 of 2 files
 extern unsigned int DAT_0051e6c4;                                                             // 0x51e6c4, 4 bytes; 1 of 1 files
-extern "C" unsigned char DAT_0051e6c8[8];                                                     // 0x51e6c8, 4 bytes; extern "C" (no type) with the globals inside it
+extern "C" unsigned char g_loadingBarFlashAlpha[8];                                           // 0x51e6c8, 4 bytes; extern "C" (no type) with the globals inside it
 extern int DAT_0051e6d0[10];                                                                  // 0x51e6d0, 40 bytes; 2 of 2 files
 extern char DAT_0051e6f8[24];                                                                 // 0x51e6f8, 24 bytes; 1 of 1 files
 extern int DAT_0051e710[30];                                                                  // 0x51e710, 120 bytes; 3 of 3 files
 extern char DAT_0051e788[136];                                                                // 0x51e788, 136 bytes; 2 of 2 files
 extern unsigned char DAT_0051e810[10];                                                        // 0x51e810, 10 bytes; 2 of 3 files (conflicting: signedness or const)
 extern unsigned char DAT_0051e81a[6];                                                         // 0x51e81a, 6 bytes; nothing refers to it
-extern "C" unsigned char DAT_0051e820[5];                                                     // 0x51e820, 1 bytes; extern "C" (no type) in declared extern "C" in 1 of 1 files, but used past its end
+extern "C" unsigned char g_loadingBarPrevPercent[5];                                          // 0x51e820, 1 bytes; extern "C" (no type) in declared extern "C" in 1 of 1 files, but used past its end
 extern "C" unsigned char DAT_0051e825[3];                                                     // 0x51e825, 1 bytes; extern "C" (no type) in declared extern "C" in 1 of 1 files, but used past its end
 extern unsigned char DAT_0051f2c8[10];                                                        // 0x51f2c8, 10 bytes; 2 of 3 files (conflicting: signedness or const)
 extern unsigned char DAT_0051f2d2[6];                                                         // 0x51f2d2, 6 bytes; nothing refers to it
@@ -563,7 +563,7 @@ extern unsigned int DAT_0051f2f8;                                               
 extern int DAT_0051f2fc;                                                                      // 0x51f2fc, 4 bytes; 1 of 1 files
 extern int DAT_0051f300;                                                                      // 0x51f300, 4 bytes; 1 of 1 files
 extern int DAT_0051f304;                                                                      // 0x51f304, 4 bytes; 1 of 1 files
-extern "C" unsigned char DAT_0051f308[8];                                                     // 0x51f308, 4 bytes; extern "C" (no type) in declared extern "C" in 1 of 1 files, but used past its end
+extern "C" unsigned char g_loadingBarFlashDecayTick[8];                                       // 0x51f308, 4 bytes; extern "C" (no type) in declared extern "C" in 1 of 1 files, but used past its end
 extern unsigned char DAT_0051f31c;                                                            // 0x51f31c, 1 bytes; 1 of 1 files
 extern unsigned char DAT_0051f320[2088];                                                      // 0x51f320, 2088 bytes; App_0049e830 by value in 1 of 1 files
 extern int DAT_0051fb48;                                                                      // 0x51fb48, 4 bytes; 2 of 2 files
@@ -923,11 +923,11 @@ extern long DAT_0052a4fc;                                                       
 //   0x51e31c DAT_0051e31c: part of another global: g_packetManager+0xb31c
 //   0x51e528 DAT_0051e528: part of another global: g_packetManager+0xb528
 //   0x51e52c DAT_0051e52c: part of another global: g_packetManager+0xb52c
-//   0x51e6cc DAT_0051e6cc: part of another global: DAT_0051e6c8+0x4
-//   0x51e821 DAT_0051e821: part of another global: DAT_0051e820+0x1
-//   0x51e822 DAT_0051e822: part of another global: DAT_0051e820+0x2
-//   0x51e823 DAT_0051e823: part of another global: DAT_0051e820+0x3
-//   0x51e824 DAT_0051e824: part of another global: DAT_0051e820+0x4
+//   0x51e6cc DAT_0051e6cc: part of another global: g_loadingBarFlashAlpha+0x4
+//   0x51e821 DAT_0051e821: part of another global: g_loadingBarPrevPercent+0x1
+//   0x51e822 DAT_0051e822: part of another global: g_loadingBarPrevPercent+0x2
+//   0x51e823 DAT_0051e823: part of another global: g_loadingBarPrevPercent+0x3
+//   0x51e824 DAT_0051e824: part of another global: g_loadingBarPrevPercent+0x4
 //   0x51e848 DAT_0051e848: part of another global: DAT_0051e828+0x20
 //   0x51e84c DAT_0051e84c: part of another global: DAT_0051e828+0x24
 //   0x51e850 DAT_0051e850: part of another global: DAT_0051e828+0x28

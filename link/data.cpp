@@ -640,14 +640,14 @@ unsigned char DAT_0051e6b0[12];  // 0x51e6b0 .bss
 unsigned char DAT_0051e6bc[4];  // 0x51e6bc .bss
 int DAT_0051e6c0;  // 0x51e6c0 .bss
 unsigned int DAT_0051e6c4;  // 0x51e6c4 .bss
-unsigned char DAT_0051e6c8[8];  // 0x51e6c8 .bss
+unsigned char g_loadingBarFlashAlpha[8];  // 0x51e6c8 .bss
 int DAT_0051e6d0[10];  // 0x51e6d0 .bss
 char DAT_0051e6f8[24];  // 0x51e6f8 .bss
 int DAT_0051e710[30];  // 0x51e710 .bss
 char DAT_0051e788[136];  // 0x51e788 .bss
 unsigned char DAT_0051e810[10];  // 0x51e810 .bss (the type runs past the next known address, 0x51e810+0x8)
 unsigned char DAT_0051e81a[6];  // 0x51e81a .bss
-unsigned char DAT_0051e820[5];  // 0x51e820 .bss
+unsigned char g_loadingBarPrevPercent[5];  // 0x51e820 .bss
 unsigned char DAT_0051e825[3];  // 0x51e825 .bss
 unsigned char DAT_0051f2c8[10];  // 0x51f2c8 .bss (the type runs past the next known address, 0x51f2c8+0x8)
 unsigned char DAT_0051f2d2[6];  // 0x51f2d2 .bss
@@ -659,7 +659,7 @@ unsigned int DAT_0051f2f8;  // 0x51f2f8 .bss
 int DAT_0051f2fc;  // 0x51f2fc .bss
 int DAT_0051f300;  // 0x51f300 .bss
 int DAT_0051f304;  // 0x51f304 .bss
-unsigned char DAT_0051f308[8];  // 0x51f308 .bss
+unsigned char g_loadingBarFlashDecayTick[8];  // 0x51f308 .bss
 unsigned char DAT_0051f31c;  // 0x51f31c .bss
 unsigned char DAT_0051f320[2088];  // 0x51f320 .bss
 int DAT_0051fb48;  // 0x51fb48 .bss

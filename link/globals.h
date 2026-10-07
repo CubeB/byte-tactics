@@ -37,7 +37,7 @@ extern char g_hapiCopyright[40];                                                
 extern int g_aiCommandsEnabled;                                                               // 0x501774, 4 bytes; 4 of 4 files
 extern unsigned char DAT_00501d18[32];                                                        // 0x501d18, 32 bytes; 1 of 1 files
 extern char DAT_00502288[8];                                                                  // 0x502288, 8 bytes; 1 of 1 files
-extern char DAT_005024fc[16];                                                                 // 0x5024fc, 16 bytes; 1 of 1 files
+extern char g_screenshotDirFormat[16];                                                        // 0x5024fc, 16 bytes; 1 of 1 files
 extern const char DAT_00502820[8];                                                            // 0x502820, 8 bytes; 1 of 1 files
 extern char g_cameraXPosition[12];                                                            // 0x502878, 12 bytes; 1 of 1 files
 extern char g_cameraZPosition[12];                                                            // 0x502884, 12 bytes; 1 of 1 files
@@ -193,7 +193,7 @@ extern char DAT_005093f4[4];                                                    
 extern char DAT_005093f8[8];                                                                  // 0x5093f8, 8 bytes; 1 of 1 files
 extern char DAT_00509400[12];                                                                 // 0x509400, 12 bytes; 1 of 1 files
 extern char DAT_0050940c[12];                                                                 // 0x50940c, 12 bytes; 1 of 1 files
-extern char DAT_0050966c[12];                                                                 // 0x50966c, 12 bytes; 1 of 1 files
+extern char g_screenshotPrefix[12];                                                           // 0x50966c, 12 bytes; 1 of 1 files
 extern char* DAT_00509678[4];                                                                 // 0x509678, 16 bytes; 3 of 3 files
 extern char* DAT_00509688[3];                                                                 // 0x509688, 12 bytes; 1 of 1 files
 extern char* g_windowClassName;                                                               // 0x509718, 4 bytes; 1 of 1 files

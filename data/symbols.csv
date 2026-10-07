@@ -2064,7 +2064,7 @@ address,name
 0x499100,HandleRightClick
 0x499200,BattleFrame
 0x499880,EndGameFrame
-0x499890,FUN_00499890
+0x499890,MainFrameTick
 0x499a30,AllocWeaponArray
 0x499a80,FreeWeaponArray
 0x499ab0,SendWeaponFirePacket
@@ -4127,7 +4127,7 @@ address,name
 0x501f48,DAT_00501f48
 0x501fd0,DAT_00501fd0
 0x502288,DAT_00502288
-0x5024fc,DAT_005024fc
+0x5024fc,g_screenshotDirFormat
 0x502820,DAT_00502820
 0x502878,g_cameraXPosition
 0x502884,g_cameraZPosition
@@ -4289,7 +4289,7 @@ address,name
 0x5093f8,DAT_005093f8
 0x509400,DAT_00509400
 0x50940c,DAT_0050940c
-0x50966c,DAT_0050966c
+0x50966c,g_screenshotPrefix
 0x509678,DAT_00509678
 0x509688,DAT_00509688
 0x509718,g_windowClassName

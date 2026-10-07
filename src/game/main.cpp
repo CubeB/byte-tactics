@@ -241,7 +241,7 @@ void __stdcall FUN_004b62c0(const char* param_1);
 void __stdcall ShutdownEnvironment(void* param_1);
 void SaveCdLists();
 void FUN_00490fe0();
-void FUN_00499890();
+void MainFrameTick();
 void ShutdownMouse();
 void ShutdownGame();
 int __stdcall ParseCommandLine(char* param_1, char* param_2);
@@ -357,7 +357,7 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                 break;
             if (g_displayContext.field_e0 == 0 && (g_game->field_2a44 & 1) == 0)
                 break;
-            FUN_00499890();
+            MainFrameTick();
             {
                 DWORD tick = GetTickCount();
                 if ((int)(tick - g_lastSoundReapTick) >= 100) {

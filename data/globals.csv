@@ -93,7 +93,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x501fcc,DAT_00501fcc,.data,4,type,data,int,1,0,1,one type,1,,,,src/game/console_commands.cpp,00000000
 0x501fd0,g_debugCommands,.data,432,gap,data,Option_00419560,1,1,2,conflicting: shape,2,,PTR_DAT_00501fd0,60,src/game/console_commands.cpp,e018500080624100040000004c225000b06a41000400000044225000b0644100040000003c225000d06941000400000034225000306a4100040000002c225000
 0x502288,DAT_00502288,.data,8,gap,string,char[],1,0,1,one type,1,,s_Mapping_00502288,,,4d617070696e6700
-0x5024fc,DAT_005024fc,.data,16,gap,string,char[],1,0,1,one type,1,,s__s_screenshots_005024fc,,,25735c73637265656e73686f74730000
+0x5024fc,g_screenshotDirFormat,.data,16,gap,string,char[],1,0,1,one type,1,,s__s_screenshots_005024fc,,,25735c73637265656e73686f74730000
 0x502820,DAT_00502820,.data,8,gap,string,const char[],1,0,1,one type,1,,DAT_00502820,,,6775697300000000
 0x502878,g_cameraXPosition,.data,12,gap,string,char[],1,0,1,one type,1,,s_X_Position_00502878,,,5820506f736974696f6e0000
 0x502884,g_cameraZPosition,.data,12,gap,string,char[],1,0,1,one type,1,,s_Z_Position_00502884,,,5a20506f736974696f6e0000
@@ -266,7 +266,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x5093f8,DAT_005093f8,.data,8,gap,string,char[],1,0,1,one type,1,,s_SENDTO_005093f8,,,53454e44544f0000
 0x509400,DAT_00509400,.data,12,gap,string,char[],1,0,1,one type,1,,s_SENDTYPE_00509400,,,53454e445459504500000000
 0x50940c,DAT_0050940c,.data,12,gap,string,char[],1,0,1,one type,1,,s_LIVEPLYR_0050940c,,,4c495645504c595200000000
-0x50966c,DAT_0050966c,.data,12,gap,string,char[],1,0,1,one type,1,,DAT_0050966c,,,53484f540000000000000000
+0x50966c,g_screenshotPrefix,.data,12,gap,string,char[],1,0,1,one type,1,,DAT_0050966c,,,53484f540000000000000000
 0x509678,DAT_00509678,.data,16,type,data,char*[4],3,0,2,one type,3,,PTR_s_FirePrimary_00509678,3,,dc965000cc965000bc96500000000000
 0x509688,DAT_00509688,.data,12,type,data,char*[3],1,0,1,one type,1,,PTR_s_AimPrimary_00509688,3,,b0965000a096500094965000
 0x509718,g_windowClassName,.data,4,type,data,char*,1,0,1,one type,1,,PTR_s_Total_Annihilation_Class_00509718,1,,24975000

@@ -2072,7 +2072,7 @@ address,size,file,symbol,status,similarity
 0x499100,254,src/ingame/build_placement.cpp,?HandleRightClick@@YGXPAUView@@@Z,matched,100.0
 0x499200,1655,src/ingame/build_placement.cpp,?BattleFrame@@YGXXZ,matched,100.0
 0x499880,5,src/ingame/build_placement.cpp,?EndGameFrame@@YGXXZ,matched,100.0
-0x499890,411,src/ingame/screenshots_499890.cpp,?FUN_00499890@@YGXXZ,matched,100.0
+0x499890,411,src/ingame/screenshots_499890.cpp,?MainFrameTick@@YGXXZ,matched,100.0
 0x499a30,69,src/weapons/weapons_499a30.cpp,?AllocWeaponArray@@YGXXZ,matched,100.0
 0x499a80,37,src/weapons/weapons_499a80.cpp,?FreeWeaponArray@@YGXXZ,matched,100.0
 0x499ab0,230,src/weapons/weapons_499ab0.cpp,?SendWeaponFirePacket@@YGXPAUUnit@@PAUObj_00499ab0@@1PAUVec3_00499ab0@@2@Z,matched,100.0

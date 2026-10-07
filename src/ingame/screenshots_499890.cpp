@@ -43,8 +43,8 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern char DAT_005024fc[];
-extern char DAT_0050966c[];
+extern char g_screenshotDirFormat[];
+extern char g_screenshotPrefix[];
 
 int PeekKey();
 void PopKey();
@@ -61,7 +61,7 @@ void UpdateTimers();
 void __stdcall SaveScreenshot(char*, char*);
 
 // FUNCTION: 0x499890
-void FUN_00499890()
+void MainFrameTick()
 {
     Input_00499890 first;
     Input_00499890 second;
@@ -84,9 +84,9 @@ void FUN_00499890()
     if (key == 0xd6) {
         PopKey();
         MakeDirectoryPath(g_game->path);
-        sprintf(path, DAT_005024fc, g_game->path);
+        sprintf(path, g_screenshotDirFormat, g_game->path);
         MakeDirectoryPath(path);
-        SaveScreenshot(path, DAT_0050966c);
+        SaveScreenshot(path, g_screenshotPrefix);
         g_game->screenshot = GetTicks();
     }
     PeekMouseEvent(&first);

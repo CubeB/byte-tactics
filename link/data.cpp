@@ -29,7 +29,7 @@ unsigned char DAT_00501d18[32] = {
     88, 87, 86, 85, 84, 83, 82, 81, 80, 255, 255, 255, 255, 255, 255, 255
 };
 char DAT_00502288[8] = "Mapping";  // 0x502288 .data
-char DAT_005024fc[16] = "%s\\screenshots";  // 0x5024fc .data
+char g_screenshotDirFormat[16] = "%s\\screenshots";  // 0x5024fc .data
 const char DAT_00502820[8] = "guis";  // 0x502820 .data
 char g_cameraXPosition[12] = "X Position";  // 0x502878 .data
 char g_cameraZPosition[12] = "Z Position";  // 0x502884 .data
@@ -200,7 +200,7 @@ char DAT_005093f4[4] = ",:;";  // 0x5093f4 .data
 char DAT_005093f8[8] = "SENDTO";  // 0x5093f8 .data
 char DAT_00509400[12] = "SENDTYPE";  // 0x509400 .data
 char DAT_0050940c[12] = "LIVEPLYR";  // 0x50940c .data
-char DAT_0050966c[12] = "SHOT";  // 0x50966c .data
+char g_screenshotPrefix[12] = "SHOT";  // 0x50966c .data
 char* DAT_00509678[4] = {(char*)"FirePrimary", (char*)"FireSecondary", (char*)"FireTertiary"};  // 0x509678 .data
 char* DAT_00509688[3] = {(char*)"AimPrimary", (char*)"AimSecondary", (char*)"AimTertiary"};  // 0x509688 .data
 char* g_windowClassName = (char*)"Total Annihilation Class";  // 0x509718 .data

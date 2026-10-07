@@ -2325,7 +2325,7 @@ void HandleLeftClick(Arg_00498f70*);
 void HandleRightClick(Arg_00499100*);
 void BattleFrame(void);
 void EndGameFrame(void);
-void FUN_00499890(void);
+void MainFrameTick(void);
 void AllocWeaponArray(void);
 void FreeWeaponArray(void);
 void SendWeaponFirePacket(Unit_00499ab0*, Obj_00499ab0*, Obj_00499ab0*, Vec3_00499ab0*, Vec3_00499ab0*);

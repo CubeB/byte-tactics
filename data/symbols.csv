@@ -1712,7 +1712,7 @@ address,name
 0x4804e0,StepTowards
 0x480510,StepPointTowards
 0x480570,ChebyshevDistance
-0x4805b0,FUN_004805b0
+0x4805b0,ClampPointToSegment
 0x480720,OctantBetween
 0x480770,UnitScript::GetUnitValue
 0x480b20,UnitScript::SetUnitValue
@@ -1727,8 +1727,8 @@ address,name
 0x480e30,UnitScript::IsPieceVisible
 0x480e50,UnitScript::IsPieceCached
 0x480e70,UnitScript::IsPieceShaded
-0x480e90,UnitScript::FUN_004b1e80
-0x480ea0,UnitScript::FUN_004b1e90
+0x480e90,UnitScript::ExplodeLegacy
+0x480ea0,UnitScript::PlaySoundNoop
 0x480eb0,UnitScript::EmitSfx
 0x481140,UnitScript::ExplodePiece
 0x481340,UnitScript::AttachUnit
@@ -1736,7 +1736,7 @@ address,name
 0x481430,UnitScript::IsCarryingUnit
 0x481470,UnitScript::GetTransporterId
 0x481490,Class_00481490::FUN_00481490
-0x4814b0,FUN_004814b0
+0x4814b0,AimCobStub
 0x4814f0,FUN_004814f0
 0x481500,InitEyeballs
 0x481530,FreeEyeballs
@@ -2393,8 +2393,8 @@ address,name
 0x4b1e50,CobScript::IsPieceVisible
 0x4b1e60,CobScript::IsPieceCached
 0x4b1e70,CobScript::IsPieceShaded
-0x4b1e80,CobScript::FUN_004b1e80
-0x4b1e90,CobScript::FUN_004b1e90
+0x4b1e80,CobScript::ExplodeLegacy
+0x4b1e90,CobScript::PlaySoundNoop
 0x4b1ea0,CobScript::EmitSfx
 0x4b1eb0,CobScript::ExplodePiece
 0x4b1ec0,CobScript::SaveScriptState

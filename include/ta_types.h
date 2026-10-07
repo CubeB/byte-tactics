@@ -12174,8 +12174,8 @@ public:
     virtual int IsPieceVisible(int);
     virtual int IsPieceCached(int);
     virtual int IsPieceShaded(int);
-    virtual void FUN_004b1e80(int, int, int);
-    virtual void FUN_004b1e90(int);
+    virtual void ExplodeLegacy(int, int, int);
+    virtual void PlaySoundNoop(int);
     virtual void EmitSfx(int, int);
     virtual void ExplodePiece(int, int);
     virtual void AttachUnit(int, int, int);
@@ -12202,8 +12202,8 @@ public:
     virtual int IsPieceVisible(int);
     virtual int IsPieceCached(int);
     virtual int IsPieceShaded(int);
-    virtual void FUN_004b1e80(int, int, int);
-    virtual void FUN_004b1e90(int);
+    virtual void ExplodeLegacy(int, int, int);
+    virtual void PlaySoundNoop(int);
     virtual void EmitSfx(int, int);
     virtual void ExplodePiece(int, int);
     virtual void AttachUnit(int, int, int);
@@ -15618,8 +15618,8 @@ public:
     virtual int IsPieceVisible(int);
     virtual int IsPieceCached(int);
     virtual int IsPieceShaded(int);
-    virtual void FUN_004b1e80(int, int, int);
-    virtual void FUN_004b1e90(int);
+    virtual void ExplodeLegacy(int, int, int);
+    virtual void PlaySoundNoop(int);
     virtual void EmitSfx(int, int);
     virtual void ExplodePiece(int, int);
     virtual void AttachUnit(int, int, int);

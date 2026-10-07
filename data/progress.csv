@@ -1717,7 +1717,7 @@ address,size,file,symbol,status,similarity
 0x4804e0,40,src/units/unit_script_calls.cpp,?StepTowards@@YGHHHH@Z,matched,100.0
 0x480510,83,src/units/unit_script_calls.cpp,?StepPointTowards@@YG?AUPoint_00480510@@U1@0F@Z,matched,100.0
 0x480570,49,src/units/unit_script_calls.cpp,?ChebyshevDistance@@YGHUPoint_00480570@@0@Z,matched,100.0
-0x4805b0,366,src/units/unit_script_calls.cpp,?FUN_004805b0@@YGXPAUPoint_004805b0@@U1@1@Z,matched,100.0
+0x4805b0,366,src/units/unit_script_calls.cpp,?ClampPointToSegment@@YGXPAUPoint_004805b0@@U1@1@Z,matched,100.0
 0x480720,78,src/units/unit_script_calls.cpp,?OctantBetween@@YGDUPoint_00480720@@0@Z,matched,100.0
 0x480770,932,src/units/unit_script.cpp,?GetUnitValue@UnitScript@@UAEHHHHHH@Z,matched,100.0
 0x480b20,268,src/units/unit_script.cpp,?SetUnitValue@UnitScript@@UAEXHH@Z,matched,100.0
@@ -1732,8 +1732,8 @@ address,size,file,symbol,status,similarity
 0x480e30,26,src/units/unit_script.cpp,?IsPieceVisible@UnitScript@@UAEHH@Z,matched,100.0
 0x480e50,28,src/units/unit_script.cpp,?IsPieceCached@UnitScript@@UAEHH@Z,matched,100.0
 0x480e70,29,src/units/unit_script.cpp,?IsPieceShaded@UnitScript@@UAEHH@Z,matched,100.0
-0x480e90,3,src/units/unit_script.cpp,?FUN_004b1e80@UnitScript@@UAEXHHH@Z,matched,100.0
-0x480ea0,3,src/units/unit_script.cpp,?FUN_004b1e90@UnitScript@@UAEXH@Z,matched,100.0
+0x480e90,3,src/units/unit_script.cpp,?ExplodeLegacy@UnitScript@@UAEXHHH@Z,matched,100.0
+0x480ea0,3,src/units/unit_script.cpp,?PlaySoundNoop@UnitScript@@UAEXH@Z,matched,100.0
 0x480eb0,656,src/units/unit_script.cpp,?EmitSfx@UnitScript@@UAEXHH@Z,matched,100.0
 0x481140,508,src/units/unit_script.cpp,?ExplodePiece@UnitScript@@UAEXHI@Z,matched,100.0
 0x481340,111,src/units/unit_script.cpp,?AttachUnit@UnitScript@@UAEXGHH@Z,matched,100.0
@@ -1741,7 +1741,7 @@ address,size,file,symbol,status,similarity
 0x481430,62,src/units/unit_script.cpp,?IsCarryingUnit@UnitScript@@UAEHH@Z,matched,100.0
 0x481470,32,src/units/unit_script.cpp,?GetTransporterId@UnitScript@@UAEHXZ,matched,100.0
 0x481490,18,src/units/unit_script_calls.cpp,?FUN_00481490@Class_00481490@@QAEXH@Z,matched,100.0
-0x4814b0,5,src/units/unit_script_calls.cpp,?FUN_004814b0@@YGHHHHH@Z,matched,100.0
+0x4814b0,5,src/units/unit_script_calls.cpp,?AimCobStub@@YGHHHHH@Z,matched,100.0
 0x4814c0,42,src/map/line_of_sight_4814c0.cpp,_$E4,matched,100.0
 0x4814f0,10,src/map/line_of_sight_4814f0.cpp,?FUN_004814f0@@YGXXZ,matched,100.0
 0x481500,46,src/map/line_of_sight_481500.cpp,?InitEyeballs@@YGXXZ,matched,100.0
@@ -2399,8 +2399,8 @@ address,size,file,symbol,status,similarity
 0x4b1e50,5,src/units/cob.cpp,?IsPieceVisible@CobScript@@UAEHH@Z,matched,100.0
 0x4b1e60,5,src/units/cob.cpp,?IsPieceCached@CobScript@@UAEHH@Z,matched,100.0
 0x4b1e70,5,src/units/cob.cpp,?IsPieceShaded@CobScript@@UAEHH@Z,matched,100.0
-0x4b1e80,3,src/units/cob.cpp,?FUN_004b1e80@CobScript@@UAEXHHH@Z,matched,100.0
-0x4b1e90,3,src/units/cob.cpp,?FUN_004b1e90@CobScript@@UAEXH@Z,matched,100.0
+0x4b1e80,3,src/units/cob.cpp,?ExplodeLegacy@CobScript@@UAEXHHH@Z,matched,100.0
+0x4b1e90,3,src/units/cob.cpp,?PlaySoundNoop@CobScript@@UAEXH@Z,matched,100.0
 0x4b1ea0,3,src/units/cob.cpp,?EmitSfx@CobScript@@UAEXHH@Z,matched,100.0
 0x4b1eb0,3,src/units/cob.cpp,?ExplodePiece@CobScript@@UAEXHI@Z,matched,100.0
 0x4b1ec0,381,src/units/cob.cpp,?SaveScriptState@CobScript@@QAEXPAVHapiBank@@@Z,matched,100.0

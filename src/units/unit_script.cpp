@@ -172,8 +172,8 @@ public:
     virtual int IsPieceVisible(int);                  // slot 7
     virtual int IsPieceCached(int);                   // slot 8
     virtual int IsPieceShaded(int);                   // slot 9
-    virtual void FUN_004b1e80(int, int, int);         // slot 10
-    virtual void FUN_004b1e90(int);                   // slot 11
+    virtual void ExplodeLegacy(int, int, int);        // slot 10
+    virtual void PlaySoundNoop(int);                  // slot 11
     virtual void EmitSfx(int, int);                   // slot 12
     virtual void ExplodePiece(int, unsigned int);     // slot 13
     virtual void AttachUnit(unsigned short, int, int); // slot 14
@@ -199,8 +199,8 @@ public:
     virtual int IsPieceVisible(int index);
     virtual int IsPieceCached(int index);
     virtual int IsPieceShaded(int index);
-    virtual void FUN_004b1e80(int, int, int);
-    virtual void FUN_004b1e90(int);
+    virtual void ExplodeLegacy(int, int, int);
+    virtual void PlaySoundNoop(int);
     virtual void EmitSfx(int a, int b);
     virtual void ExplodePiece(int a, unsigned int b);
     virtual void AttachUnit(unsigned short id, int a, int b);
@@ -436,16 +436,16 @@ int UnitScript::IsPieceShaded(int index)
 }
 
 // Slot 10 of UnitScript (vtable 0x4fd698), overriding
-// CobScript::FUN_004b1e80.
+// CobScript::ExplodeLegacy.
 // FUNCTION: 0x480e90
-void UnitScript::FUN_004b1e80(int, int, int)
+void UnitScript::ExplodeLegacy(int, int, int)
 {
 }
 
 // Slot 11 of UnitScript (vtable 0x4fd698), overriding
-// CobScript::FUN_004b1e90.
+// CobScript::PlaySoundNoop.
 // FUNCTION: 0x480ea0
-void UnitScript::FUN_004b1e90(int)
+void UnitScript::PlaySoundNoop(int)
 {
 }
 

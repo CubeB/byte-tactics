@@ -142,8 +142,8 @@ class CobScript
     virtual int IsPieceVisible(int);                  // slot 7
     virtual int IsPieceCached(int);                   // slot 8
     virtual int IsPieceShaded(int);                   // slot 9
-    virtual void FUN_004b1e80(int, int, int);         // slot 10
-    virtual void FUN_004b1e90(int);                   // slot 11
+    virtual void ExplodeLegacy(int, int, int);        // slot 10
+    virtual void PlaySoundNoop(int);                  // slot 11
     virtual void EmitSfx(int, int);                   // slot 12
     virtual void ExplodePiece(int, unsigned int);     // slot 13
     virtual void AttachUnit(unsigned short, int, int); // slot 14
@@ -576,12 +576,12 @@ void CobScript::RunThread(unsigned int channel, int elapsed)
             case 0x10009000: {
                 int a = c->Pop();
                 int b = c->Pop();
-                FUN_004b1e80(table->code[c->pc + 1], b, a);
+                ExplodeLegacy(table->code[c->pc + 1], b, a);
                 c->pc += 2;
                 break;
             }
             case 0x1000a000: {
-                FUN_004b1e90(table->code[c->pc + 1]);
+                PlaySoundNoop(table->code[c->pc + 1]);
                 c->pc += 2;
                 break;
             }
@@ -1081,12 +1081,12 @@ int CobScript::IsPieceShaded(int)
 }
 
 // FUNCTION: 0x4b1e80
-void CobScript::FUN_004b1e80(int, int, int)
+void CobScript::ExplodeLegacy(int, int, int)
 {
 }
 
 // FUNCTION: 0x4b1e90
-void CobScript::FUN_004b1e90(int)
+void CobScript::PlaySoundNoop(int)
 {
 }
 

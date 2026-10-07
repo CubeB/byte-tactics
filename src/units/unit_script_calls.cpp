@@ -144,7 +144,7 @@ int __stdcall ChebyshevDistance(Point_004805b0 a, Point_004805b0 b)
 }
 
 // FUNCTION: 0x4805b0
-void __stdcall FUN_004805b0(Point_004805b0* p, Point_004805b0 b, Point_004805b0 c)
+void __stdcall ClampPointToSegment(Point_004805b0* p, Point_004805b0 b, Point_004805b0 c)
 {
     int d1 = ChebyshevDistance(*p, b);
     int d2 = ChebyshevDistance(*p, c);
@@ -175,7 +175,7 @@ void Class_00481490::FUN_00481490(int enable)
 }
 
 // FUNCTION: 0x4814b0
-int __stdcall FUN_004814b0(int, int, int, int)
+int __stdcall AimCobStub(int, int, int, int)
 {
     return 0;
 }

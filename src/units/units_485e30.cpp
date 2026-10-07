@@ -42,8 +42,8 @@ public:
     virtual int IsPieceVisible(int);                  // slot 7
     virtual int IsPieceCached(int);                   // slot 8
     virtual int IsPieceShaded(int);                   // slot 9
-    virtual void FUN_004b1e80(int, int, int);         // slot 10
-    virtual void FUN_004b1e90(int);                   // slot 11
+    virtual void ExplodeLegacy(int, int, int);        // slot 10
+    virtual void PlaySoundNoop(int);                  // slot 11
     virtual void EmitSfx(int, int);                   // slot 12
     virtual void ExplodePiece(int, unsigned int);     // slot 13
     virtual void AttachUnit(unsigned short, int, int); // slot 14
@@ -69,8 +69,8 @@ public:
     virtual int IsPieceVisible(int);                  // slot 7, 0x480e30
     virtual int IsPieceCached(int);                   // slot 8, 0x480e50
     virtual int IsPieceShaded(int);                   // slot 9, 0x480e70
-    virtual void FUN_004b1e80(int, int, int);         // slot 10, 0x480e90
-    virtual void FUN_004b1e90(int);                   // slot 11, 0x480ea0
+    virtual void ExplodeLegacy(int, int, int);        // slot 10, 0x480e90
+    virtual void PlaySoundNoop(int);                  // slot 11, 0x480ea0
     virtual void EmitSfx(int, int);                   // slot 12, 0x480eb0
     virtual void ExplodePiece(int, unsigned int);     // slot 13, 0x481140
     virtual void AttachUnit(unsigned short, int, int); // slot 14, 0x481340

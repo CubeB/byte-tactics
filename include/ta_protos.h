@@ -2108,11 +2108,11 @@ void OrderSquad(Owner_00480460*, int, unsigned char, int, Unit_00480460*, int, i
 int StepTowards(int, int, int);
 Point_00480510 StepPointTowards(Point_00480510, Point_00480510, short);
 int ChebyshevDistance(Point_00480570, Point_00480570);
-void FUN_004805b0(Point_004805b0*, Point_004805b0, Point_004805b0);
+void ClampPointToSegment(Point_004805b0*, Point_004805b0, Point_004805b0);
 char OctantBetween(Point_00480720, Point_00480720);
 void FUN_00480e90(int, int, int);
 void FUN_00480ea0(int);
-int FUN_004814b0(int, int, int, int);
+int AimCobStub(int, int, int, int);
 void FUN_004814f0(void);
 void InitEyeballs(void);
 void FreeEyeballs(void);

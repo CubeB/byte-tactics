@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Appends a command object (Class_0043a1f0, 0x56 bytes) to the unit's list
-// when the unit is allowed to use one on the target: FUN_0043f0e0 (with
+// when the unit is allowed to use one on the target: GetOrderType (with
 // relation 3, then 2) picks the kind of the command. The unit's flags at
 // +0x110 gate it (bits 18-19 and 20-21), except when the third argument is
 // non-zero, and when bit 18 alone is set a second, positional command is made
@@ -73,7 +73,7 @@ struct Unit {
 
 void* __cdecl operator new(unsigned int size);
 
-Class_00438760 __stdcall FUN_0043f0e0(unsigned char relation, Unit* unit, Unit* target, Vec3* pos);
+Class_00438760 __stdcall GetOrderType(unsigned char relation, Unit* unit, Unit* target, Vec3* pos);
 
 // Puts `cmd` in front of `before` in the list its own flag 0x40000 picks, and
 // copies bit 0x4000 of the command it displaces.
@@ -102,11 +102,11 @@ int __stdcall FUN_0043b1f0(Unit* unit, Unit* target, int param_3)
         return 0;
     if (!(unit->flags & 0x300000) && !param_3)
         return 0;
-    Class_00438760 kind = FUN_0043f0e0(3, unit, target, 0);
+    Class_00438760 kind = GetOrderType(3, unit, target, 0);
     if (!kind.index)
         return 0;
     if ((unit->flags & 0xc0000) == 0x40000 && !param_3) {
-        Class_00438760 kind2 = FUN_0043f0e0(2, unit, 0, &unit->pos);
+        Class_00438760 kind2 = GetOrderType(2, unit, 0, &unit->pos);
         Class_0043a1f0* cmd = new Class_0043a1f0(kind2, 0, &unit->pos, 0, 0, 0);
         Insert(unit, cmd, (cmd->flags & 0x40000) ? unit->list2 : unit->list);
         Class_0043a1f0* cmd2 = new Class_0043a1f0(kind, target, 0, 0, 0, unit->def->field_214);

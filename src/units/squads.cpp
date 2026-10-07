@@ -49,7 +49,7 @@ public:
 
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __cdecl FUN_004d85a0(int* param_1);
-Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit* unit,
+Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit* unit,
                                        Unit* target, int flags);
 void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* owner, Unit* id, int flags, int param_6, int param_7);
 
@@ -115,7 +115,7 @@ void __stdcall SetUnitSquad(Unit* unit, int index)
 }
 
 // For every active unit in the array owned by `owner` whose field at +0xac
-// equals `key`, asks FUN_0043f0e0 for an order kind and hands it, with the
+// equals `key`, asks GetOrderType for an order kind and hands it, with the
 // remaining arguments, to AddOrder.
 // FUNCTION: 0x480460
 void __stdcall OrderSquad(Owner* owner, int key, unsigned char mode, int remove,
@@ -123,7 +123,7 @@ void __stdcall OrderSquad(Owner* owner, int key, unsigned char mode, int remove,
 {
     for (Unit* u = owner->first; u <= owner->last; u++) {
         if (u->active != 0 && u->group == key) {
-            Class_00438760 kind = FUN_0043f0e0(mode, u, target, flags);
+            Class_00438760 kind = GetOrderType(mode, u, target, flags);
             AddOrder(kind, remove, u, target, flags, param_7, param_8);
         }
     }

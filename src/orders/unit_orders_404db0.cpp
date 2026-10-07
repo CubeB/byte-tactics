@@ -171,7 +171,7 @@ Cell* __stdcall GetMapCellAtPosition(Vec3* pos);
 void __stdcall RemoveFeature(void* target, int flag);
 int __stdcall BroadcastPacket(int player, void* data, int size);
 void __stdcall FUN_0041c110(Unit* unit);
-Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit* unit, Unit* target, int flags);
+Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit* unit, Unit* target, int flags);
 void __stdcall AppendOrder(Unit* owner, Class_0043a1f0* node);
 
 // Order handler "Resurrecting": raises the unit a wreck (feature) came from.
@@ -286,7 +286,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
     }
     case 6: {
         QueueUnitSpeech(unit, 8, "Resurrection complete");
-        Class_00438760 kind = FUN_0043f0e0(8, unit, order->target.owner, 0);
+        Class_00438760 kind = GetOrderType(8, unit, order->target.owner, 0);
         if (kind.index)
             AppendOrder(unit, new Class_0043a1f0(kind, order->target.owner, 0, 0, 0, 0));
         return 5;

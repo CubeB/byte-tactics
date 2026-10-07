@@ -8,7 +8,7 @@
 // has explored b, keeps b as the new target a if a random roll favours its
 // SumUnitRatingsInRange score. Then orders every unit whose def has flag4 set, and
 // that is active or can reach a (WeaponCanReachPos), to move to a with the order
-// FUN_0043f0e0 picks.
+// GetOrderType picks.
 //
 // The explored-map test is the inlined player method 0x475470 describes: a
 // {data, width, height} ByteMap at +0x7c whose Get() keeps `width * y + x`
@@ -170,7 +170,7 @@ static inline Vec3_00407d40 Offset(int angle, int distance)
 
 int __stdcall SumUnitRatingsInRange(int index, Vec3_00407d40* pos, int range);
 int __stdcall WeaponCanReachPos(Unit* unit, Vec3_00407d40* from, Vec3_00407d40* to, int flags);
-Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit* unit,
+Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit* unit,
                                       Unit* target, Vec3_00407d40* pos);
 void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* unit,
                             Unit* target, Vec3_00407d40* pos, int a, int b);
@@ -220,7 +220,7 @@ void Class_00407d40::OnTimer()
         Unit* u = *it;
         if (u->def->flag4) {
             if (u->field_0 || WeaponCanReachPos(u, &u->pos, &a, 0)) {
-                Class_00438760 kind = FUN_0043f0e0(3, u, 0, &a);
+                Class_00438760 kind = GetOrderType(3, u, 0, &a);
                 if (kind.index)
                     AddOrder(kind, 0, u, 0, &a, 0, 0);
             }

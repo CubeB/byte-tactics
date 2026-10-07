@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-// Order handler: asks FUN_0043f0e0 for the next order kind (returned as a
+// Order handler: asks GetOrderType for the next order kind (returned as a
 // Class_00438760 by value), passes it on by value (the 0x406240 call site
 // builds the same argument in place) and returns state 2.
 
@@ -23,13 +23,13 @@ public:
 };
 #pragma pack(pop)
 
-Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_00403190* unit,
+Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit_00403190* unit,
                                        Unit_00403190* target, int flags);
 
 // FUNCTION: 0x403190
 int __stdcall AttackSpecialOrder(Unit_00403190* unit, Class_00438b90* order, int unused)
 {
-    order->FUN_00438b90(FUN_0043f0e0(3, unit, order->target, 0));
+    order->FUN_00438b90(GetOrderType(3, unit, order->target, 0));
     order->state = 2;
     return 2;
 }

@@ -21,7 +21,7 @@ public:
 
 class UnitMotion {
 public:
-    void FUN_0043dd10();
+    void DestroyObject();
 };
 
 class CobScript {
@@ -361,7 +361,7 @@ void __stdcall ApplyUnitDeath(Cmd_004866d0* cmd, int local)
     }
     UnitMotion* head = unit->head;
     if (head != 0) {
-        head->FUN_0043dd10();
+        head->DestroyObject();
         operator delete(head);
         unit->head = 0;
     }

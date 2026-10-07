@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free. Names are provisional.
+// Stays in its own file: it needs the std::vector<Elem_00473500> view of the
+// lists, whose inlined insert cannot agree with particles_470a40.cpp's.
 // Creates a SmokeParticles (vtable 0x4fd618), initialises it through virtual
 // slot 6 (0x474d50) with the first five arguments and the last, then appends it
 // to the std::vector<Elem_00473500> selected by the short index. When that list

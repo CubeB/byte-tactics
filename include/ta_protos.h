@@ -1583,7 +1583,7 @@ void GetWeaponPiecePosition(Object*, Vec3*, unsigned char, int);
 void GetAimFromPosition(Object*, Vec3*, unsigned char);
 void GetSweetSpot(Obj_0043e3c0*, int);
 void GetNanoPiecePosition(Object*, Vec3*);
-int FUN_0043e470(unsigned char);
+int OrderModeTakesTarget(unsigned char);
 int GetOrderCursor(unsigned char, Unit_0043e490*, Unit_0043e490*, Pos_0043e490*);
 Class_00438760 GetOrderType(unsigned char, Unit_0043f0e0*, Unit_0043f0e0*, Pos_0043f0e0*);
 MovementClass* FindMovementClass(char*);

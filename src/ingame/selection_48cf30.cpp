@@ -73,7 +73,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_0043e470(unsigned char type);
+int __stdcall OrderModeTakesTarget(unsigned char type);
 Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit* unit,
                                        Unit* target, void* param_5);
 void __stdcall FUN_0043afc0(OrderType kind, int flag, Unit* unit,
@@ -89,7 +89,7 @@ void __stdcall IssueOrderToSelection(UnitType_0048cf30* entry, unsigned char mod
     Unit* except = 0;
     int flag_b;
     if (mode)
-        flag_b = FUN_0043e470(mode);
+        flag_b = OrderModeTakesTarget(mode);
     else
         flag_b = (kind.FUN_00438830()->flags >> 9) & 1;
     if (flag_b) {

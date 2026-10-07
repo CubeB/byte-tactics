@@ -3193,7 +3193,7 @@ struct UnitMotion {      // 0x115 bytes, 58 views
     char unknown_10f[2];
     unsigned int flags;  // +0x111
     UnitMotion(Unit*);
-    void FUN_0043dd10(void);
+    void DestroyObject(void);
     void UpdateMotion(Unit*);
 };
 

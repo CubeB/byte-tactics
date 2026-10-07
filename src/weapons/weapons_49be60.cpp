@@ -171,6 +171,8 @@ Proj_0049be60* AllocProjectile()
     return p;
 }
 
+// Stays in its own file: its palette and scroll register plan follows this
+// file's symbol ids, which the gathered weapons_499a30.cpp moves.
 // FUNCTION: 0x49be60
 void __stdcall DrawProjectiles(void* surface)
 {

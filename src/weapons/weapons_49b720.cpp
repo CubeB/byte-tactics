@@ -193,6 +193,8 @@ static inline void Remove(Proj_0049b720* p)
     p->flags.dead = 1;
 }
 
+// Stays in its own file: the b0 arm's register tie follows this file's symbol
+// ids, which the gathered weapons_499a30.cpp moves.
 // FUNCTION: 0x49b720
 void UpdateProjectiles()
 {

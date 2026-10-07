@@ -218,6 +218,10 @@ static inline Vec3_0049a120 Sub(const Vec3_0049a120& a, const Vec3_0049a120& b)
 // Splash damage: every unit and feature within the weapon's radius of `pos`
 // takes damage that falls off from the centre, and weapons in flight close
 // enough are detonated too.
+// Stays in its own file: it is a gap region (one of data/functions.csv's 29
+// gap rows), and a file holding both a gap function and game functions is
+// classified gap by tools/sources.py, so the game build would leave the
+// other functions out.
 // FUNCTION: 0x49a120
 void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
 {

@@ -158,6 +158,8 @@ extern Game* g_game;
 Cell_0049b090* __stdcall GetMapCellAtPosition(Pos_0049b090* pos);
 void __stdcall DetonateProjectile(Proj_0049b090* proj, Unit* unit);
 
+// Stays in its own file: its feature block matches only at this file's symbol
+// count, which the gathered weapons_499a30.cpp moves.
 // FUNCTION: 0x49b090
 void __stdcall CheckProjectileCollision(ProjType_0049b090* type, Proj_0049b090* proj)
 {

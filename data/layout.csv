@@ -5767,10 +5767,10 @@ piece,0x5024f4,8,src/game/console_commands_417600.cpp,3,0,game data
 piece,0x5024e4,16,src/game/console_commands_417430.cpp,5,0,game data
 piece,0x5024d8,9,src/game/console_commands_417430.cpp,4,0,game data
 piece,0x5024bc,25,src/game/console_commands_417430.cpp,3,0,game data
-piece,0x4fcc80,4,src/game/console_commands_417290.cpp,3,0,game data
-piece,0x4fcc7c,4,src/game/console_commands_4170c0.cpp,3,0,game data
-piece,0x5024b4,6,src/game/console_commands_416e90.cpp,6,0,game data
-piece,0x4fcc78,4,src/game/console_commands_416db0.cpp,3,0,game data
+piece,0x4fcc80,4,src/game/console_commands_4168d0.cpp,28,8,game data
+piece,0x4fcc7c,4,src/game/console_commands_4168d0.cpp,28,4,game data
+piece,0x5024b4,6,src/game/console_commands_4168d0.cpp,40,0,game data
+piece,0x4fcc78,4,src/game/console_commands_4168d0.cpp,28,0,game data
 piece,0x50248c,21,src/game/console_commands_4168d0.cpp,3,0,game data
 piece,0x502484,5,src/game/console_commands_416240.cpp,59,0,game data
 piece,0x4fcc70,8,src/game/console_commands_416240.cpp,50,0,game data

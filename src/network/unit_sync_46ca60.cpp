@@ -1,4 +1,7 @@
 // Decompiled by GPT-5.6-Terra, finished by Sonnet 5.5. Names are provisional.
+// Stays in its own file: it needs the hand-written std::vector below (the
+// element vector's _Destroy is the out-of-line 0x46e870), which cannot share a
+// file with unit_sync_46c620.cpp's real <vector>.
 #include <list>
 #include <map>
 #include <xmemory>

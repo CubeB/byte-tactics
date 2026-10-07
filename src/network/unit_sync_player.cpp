@@ -1,6 +1,9 @@
 // Decompiled by Opus and space-bunny-free. Names are provisional.
 // UnitSyncPlayer (0x5c bytes): one player's unit-sync state, with four
 // std::vector members.
+// Stays in its own file: the ??_GUnitSyncPlayer COMDAT below is emitted with
+// ~UnitSyncPlayer inlined, while 0x46c920 in unit_sync_46c620.cpp calls that
+// destructor out of line; one file cannot have it both ways.
 #include <map>
 #include <list>
 #include <vector>

@@ -1,7 +1,7 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5. Names are provisional.
-// A method of UnitSync, whose other methods are in unit_sync.cpp; this one
-// stays apart because it needs the real <map>, <list> or <vector>
-// instantiations its own way.
+// A method of UnitSync, whose other methods are in unit_sync_46c620.cpp.
+// Stays in its own file: its PacketSequencer holds Class_0046e610 members, so
+// its element view cannot share unit_sync_46c620.cpp's PacketSequencer.
 #include <list>
 #include <map>
 #include <vector>

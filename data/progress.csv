@@ -2048,7 +2048,7 @@ address,size,file,symbol,status,similarity
 0x495490,547,src/ingame/dialogs_495490.cpp,?RunGameSteps@@YGXH@Z,matched,100.0
 0x4956c0,416,src/ingame/dialogs_4956c0.cpp,?FUN_004956c0@@YGXH@Z,matched,100.0
 0x495860,83,src/ingame/keys.cpp,?SelectStopOrder@@YGXXZ,matched,100.0
-0x4958c0,103,src/ingame/keys.cpp,?FUN_004958c0@@YGXH@Z,matched,100.0
+0x4958c0,103,src/ingame/keys.cpp,?SetOrSelectStopOrder@@YGXH@Z,matched,100.0
 0x495930,256,src/ingame/keys.cpp,?BuildScreenshotPath@@YGXPADPBD11@Z,matched,100.0
 0x495a30,1105,src/ingame/keys.cpp,?WriteScreenshot@@YGXPAD0HHHH@Z,matched,100.0
 0x495e90,2292,src/ingame/keys.cpp,?HandleGameKey@@YGXXZ,matched,100.0

@@ -822,7 +822,7 @@ address,name
 0x4404c0,MovementClass::SetPassMapCell
 0x440500,Class_00440500::BuildPassMap
 0x440830,MovementClass::RefreshPassMap
-0x440930,FUN_00440930
+0x440930,NopAfterFeatureEnum
 0x440940,BuildAllPassMaps
 0x440a00,FreeMovementClasses
 0x440a40,RefreshAllPassMaps
@@ -830,7 +830,7 @@ address,name
 0x440af0,MovementClass::RefreshMovedUnits
 0x440be0,MovementClass::RefreshUnitIfStale
 0x440c10,FindUnusedLogo
-0x440ca0,FUN_00440ca0
+0x440ca0,CopyPathLockFields
 0x440cd0,CheckMapCrc
 0x440d70,HandleNewMultiClick
 0x441080,OpenNewMultiDialog

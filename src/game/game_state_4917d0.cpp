@@ -103,7 +103,7 @@ void ResetSpeech();
 void LoadTextureGafs();
 void LoadFeatureFileList();
 void InitUnitCategories();
-void FUN_00440930();
+void NopAfterFeatureEnum();
 void CreateParticleLists();
 void AllocWeaponArray();
 void LoadWeaponTypes();
@@ -146,7 +146,7 @@ void FUN_004917d0()
     LoadTextureGafs();
     LoadFeatureFileList();
     InitUnitCategories();
-    FUN_00440930();
+    NopAfterFeatureEnum();
     CreateParticleLists();
     AllocWeaponArray();
     LoadWeaponTypes();

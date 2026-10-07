@@ -458,7 +458,7 @@ void MovementClass::RefreshPassMap(Point a, Point b)
 }
 
 // FUNCTION: 0x440930
-void FUN_00440930(void)
+void NopAfterFeatureEnum(void)
 {
 }
 
@@ -633,7 +633,7 @@ int FindUnusedLogo()
 }
 
 // FUNCTION: 0x440ca0
-void __stdcall FUN_00440ca0(Dst_00440ca0* dst, Src_00440ca0* src)
+void __stdcall CopyPathLockFields(Dst_00440ca0* dst, Src_00440ca0* src)
 {
     dst->rect = src->rect;
 }

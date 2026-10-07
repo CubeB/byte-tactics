@@ -823,7 +823,7 @@ address,size,file,symbol,status,similarity
 0x4404c0,60,src/units/movement_class.cpp,?SetPassMapCell@MovementClass@@QAEXHHH@Z,matched,100.0
 0x440500,816,src/units/movement_class.cpp,?BuildPassMap@Class_00440500@@QAEXXZ,matched,100.0
 0x440830,242,src/units/movement_class.cpp,?RefreshPassMap@MovementClass@@QAEXUPoint@@0@Z,matched,100.0
-0x440930,1,src/units/movement_class.cpp,?FUN_00440930@@YGXXZ,matched,100.0
+0x440930,1,src/units/movement_class.cpp,?NopAfterFeatureEnum@@YGXXZ,matched,100.0
 0x440940,189,src/units/movement_class.cpp,?BuildAllPassMaps@@YGXXZ,matched,100.0
 0x440a00,57,src/units/movement_class.cpp,?FreeMovementClasses@@YGXXZ,matched,100.0
 0x440a40,47,src/units/movement_class.cpp,?RefreshAllPassMaps@@YGXUPoint@@0@Z,matched,100.0
@@ -831,7 +831,7 @@ address,size,file,symbol,status,similarity
 0x440af0,225,src/units/movement_class.cpp,?RefreshMovedUnits@MovementClass@@QAEXPAUObject_00440af0@@@Z,matched,100.0
 0x440be0,34,src/units/movement_class.cpp,?RefreshUnitIfStale@MovementClass@@QAEXPAUObject_00440af0@@@Z,matched,100.0
 0x440c10,143,src/units/movement_class.cpp,?FindUnusedLogo@@YGHXZ,matched,100.0
-0x440ca0,42,src/units/movement_class.cpp,?FUN_00440ca0@@YGXPAUDst_00440ca0@@PAUSrc_00440ca0@@@Z,matched,100.0
+0x440ca0,42,src/units/movement_class.cpp,?CopyPathLockFields@@YGXPAUDst_00440ca0@@PAUSrc_00440ca0@@@Z,matched,100.0
 0x440cd0,151,src/units/movement_class.cpp,?CheckMapCrc@@YGHXZ,matched,100.0
 0x440d70,775,src/frontend/multi_440d70.cpp,?HandleNewMultiClick@@YGXPAUGadget_00440d70@@@Z,matched,100.0
 0x441080,401,src/frontend/multi_441080.cpp,?OpenNewMultiDialog@@YGXXZ,matched,100.0

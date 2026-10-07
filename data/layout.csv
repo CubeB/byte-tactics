@@ -5709,9 +5709,9 @@ piece,0x5028bc,6,src/game/cd_check.cpp,6,0,game data
 piece,0x5028b4,6,src/game/cd_check.cpp,5,0,game data
 piece,0x5028a8,10,src/game/cd_check.cpp,4,0,game data
 piece,0x5028a0,7,src/game/cd_check.cpp,3,0,game data
-piece,0x502850,14,src/ingame/control_panel_41c060.cpp,3,0,game data
-piece,0x4fcc8c,4,src/ingame/control_panel_41bd10.cpp,3,0,game data
-piece,0x4fcca0,4,src/ingame/control_panel_41bd10.cpp,3,4,game data
+piece,0x502850,14,src/ingame/control_panel_41bd10.cpp,7,0,game data
+piece,0x4fcc8c,4,src/ingame/control_panel_41bd10.cpp,4,0,game data
+piece,0x4fcca0,4,src/ingame/control_panel_41bd10.cpp,4,4,game data
 piece,0x4fcc88,4,src/ingame/control_panel_419560.cpp,83,0,game data
 piece,0x4fcc90,8,src/ingame/control_panel_419560.cpp,83,8,game data
 piece,0x4fcc98,8,src/ingame/control_panel_419560.cpp,83,16,game data

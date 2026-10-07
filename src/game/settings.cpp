@@ -808,7 +808,7 @@ void SaveSettings()
 // Mission returns for index 6: clears bit 23 (0x800000) on every unit
 // type, then sets it on each type named by the entry.
 // FUNCTION: 0x431740
-void FUN_00431740()
+void ApplyUseOnlyUnits()
 {
     TdfFile parser;
     char name[256];

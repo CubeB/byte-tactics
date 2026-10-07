@@ -3739,20 +3739,20 @@ piece,0x50c348,18,src/debug/block_history.cpp,6,0,game data
 piece,0x50c338,14,src/debug/block_history.cpp,5,0,game data
 piece,0x50c330,7,src/debug/debug_lib_4d89b0.cpp,4,0,game data
 piece,0x50c32c,4,src/debug/debug_lib_4d89b0.cpp,3,0,game data
-piece,0x50c2f8,51,src/debug/debug_lib_4d8790.cpp,4,0,game data
-piece,0x50c2cc,44,src/debug/debug_lib_4d8790.cpp,3,0,game data
-piece,0x5289a8,1,src/debug/debug_lib_4d8260.cpp,3,4,game data
-piece,0x50c2c0,9,src/debug/debug_lib_4d8260.cpp,4,0,game data
-piece,0x528998,4,src/debug/debug_lib_4d8260.cpp,3,0,game data
-piece,0x5289ac,4,src/debug/debug_lib_4d8200.cpp,3,0,game data
-piece,0x50c2a0,10,src/debug/debug_lib_4d8200.cpp,4,0,game data
-piece,0x52899c,1,src/debug/debug_lib_4d8200.cpp,3,4,game data
-piece,0x5289b0,1,src/debug/debug_lib_4d8140.cpp,3,4,game data
-piece,0x50c290,6,src/debug/debug_lib_4d8140.cpp,4,0,game data
-piece,0x5289a0,4,src/debug/debug_lib_4d8140.cpp,3,0,game data
-piece,0x528994,1,src/debug/debug_lib_4d80d0.cpp,3,4,game data
-piece,0x50c25c,9,src/debug/debug_lib_4d80d0.cpp,4,0,game data
-piece,0x5289a4,4,src/debug/debug_lib_4d80d0.cpp,3,0,game data
+piece,0x50c2f8,51,src/debug/debug_lib_4d80b0.cpp,89,0,game data
+piece,0x50c2cc,44,src/debug/debug_lib_4d80b0.cpp,88,0,game data
+piece,0x5289a8,4,src/debug/debug_lib_4d80b0.cpp,5,24,game data
+piece,0x50c2c0,9,src/debug/debug_lib_4d80b0.cpp,35,0,game data
+piece,0x528998,4,src/debug/debug_lib_4d80b0.cpp,5,4,game data
+piece,0x5289ac,1,src/debug/debug_lib_4d80b0.cpp,5,28,game data
+piece,0x50c2a0,10,src/debug/debug_lib_4d80b0.cpp,26,0,game data
+piece,0x52899c,4,src/debug/debug_lib_4d80b0.cpp,5,20,game data
+piece,0x5289b0,4,src/debug/debug_lib_4d80b0.cpp,5,8,game data
+piece,0x50c290,6,src/debug/debug_lib_4d80b0.cpp,16,0,game data
+piece,0x5289a0,4,src/debug/debug_lib_4d80b0.cpp,5,0,game data
+piece,0x528994,4,src/debug/debug_lib_4d80b0.cpp,5,16,game data
+piece,0x50c25c,9,src/debug/debug_lib_4d80b0.cpp,6,0,game data
+piece,0x5289a4,4,src/debug/debug_lib_4d80b0.cpp,5,12,game data
 piece,0x50baf0,27,src/util/sqsh_4d1c00.cpp,6,0,game data
 piece,0x50bad4,26,src/util/sqsh_4d1c00.cpp,5,0,game data
 piece,0x50bab8,27,src/util/sqsh_4d1c00.cpp,4,0,game data
@@ -11979,10 +11979,7 @@ fill,0x51f31d,3,,,00,padding
 fill,0x51fc98,1,,,00,uninitialised
 fill,0x51fca9,7,,,00,padding
 fill,0x5278ec,4,,,00,padding
-fill,0x528995,3,,,00,padding
-fill,0x52899d,3,,,00,padding
-fill,0x5289a9,3,,,00,padding
-fill,0x5289b1,3,,,00,padding
+fill,0x5289ad,3,,,00,padding
 fill,0x5289b5,3,,,00,padding
 fill,0x5289b9,3,,,00,padding
 fill,0x5289c9,3,,,00,padding
@@ -12470,10 +12467,10 @@ same,0x5119b8,1,src/util/tdf_4c35c0.cpp,6,0,
 same,0x5119b8,1,src/util/tdf_4c44c0.cpp,12,0,
 same,0x50b530,16,src/debug/debug_helper_4cbb70.cpp,6,0,
 same,0x50b524,11,src/debug/debug_helper_4cbb70.cpp,5,0,
-same,0x4d8130,16,src/debug/debug_lib_4d80d0.cpp,9,0,
-same,0x4d8190,16,src/debug/debug_lib_4d8140.cpp,7,0,
-same,0x4d8250,16,src/debug/debug_lib_4d8200.cpp,8,0,
-same,0x4d82b0,16,src/debug/debug_lib_4d8260.cpp,7,0,
+same,0x4d8130,16,src/debug/debug_lib_4d80b0.cpp,11,0,
+same,0x4d8190,16,src/debug/debug_lib_4d80b0.cpp,19,0,
+same,0x4d8250,16,src/debug/debug_lib_4d80b0.cpp,30,0,
+same,0x4d82b0,16,src/debug/debug_lib_4d80b0.cpp,37,0,
 same,0x502910,2,src/debug/debug_lib_4da5b0.cpp,7,0,
 same,0x50c8ac,8,src/debug/debug_lib_4da5b0.cpp,3,0,
 same,0x4da7c0,16,src/debug/debug_lib_4da780.cpp,5,0,

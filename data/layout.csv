@@ -3872,7 +3872,7 @@ piece,0x50a828,76,src/network/hapinet_4c9530.cpp,6,0,game data
 piece,0x50a7fc,44,src/network/hapinet_4c9530.cpp,5,0,game data
 piece,0x50a7c4,54,src/network/hapinet_4c9530.cpp,4,0,game data
 piece,0x50a798,43,src/network/hapinet_4c9530.cpp,3,0,game data
-piece,0x50a768,15,src/graphics/surface_4c6f80.cpp,3,0,game data
+piece,0x50a768,15,src/graphics/surface_4c6d20.cpp,11,0,game data
 piece,0x4fdc18,1,src/util/tdf_4c49a0.cpp,6,0,game data
 piece,0x4fdc20,8,src/util/tdf_record.cpp,30,0,game data
 piece,0x50a670,28,src/util/tdf_4c44c0.cpp,13,0,game data

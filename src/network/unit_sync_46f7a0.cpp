@@ -1,10 +1,12 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
 // FLAGS: /Gi
+// Stays in its own file: it is built with /Gi, and its hand-written cut-down
+// std::vector cannot share unit_sync_46e9b0.cpp's real <vector>.
 // std::vector<UnitSyncPlayer>::insert(iterator, size_type, const T&) from
 // MSVC 5's <vector>, for the 0x5c-byte element (four vectors and a sub-struct,
-// see 0x46eaa0.cpp) of the vector that 0x46dad0 appends to with an inlined
-// push_back. The element's copy constructor (0x470390), destructor (0x46ded0)
-// and operator= (0x470040) are out-of-line calls.
+// see unit_sync_46e9b0.cpp) of the vector that 0x46dad0 appends to with an
+// inlined push_back. The element's copy constructor (0x470390), destructor
+// (0x46ded0) and operator= (0x470040) are out-of-line calls.
 #include <climits>
 #include <memory>
 #include <xutility>

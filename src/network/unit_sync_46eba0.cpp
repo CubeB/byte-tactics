@@ -1,5 +1,7 @@
 // Decompiled by longcat-2.5-preview-free, finished by space-bunny-free and deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by Claude Opus 5.5. Names are provisional.
 // FLAGS: /Gi
+// Stays in its own file: it is built with /Gi, which unit_sync_46e9b0.cpp
+// cannot carry.
 // std::vector<Packet_0046cef0>::insert(iterator, size_type, const T&) from
 // MSVC 5's <vector>, emitted out of line. Its one caller, 0x46cef0, appends a
 // packet to the queue at +0x1c of PacketSequencer with push_back, whose inlined

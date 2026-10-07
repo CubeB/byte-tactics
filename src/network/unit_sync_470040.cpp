@@ -1,4 +1,7 @@
 // Decompiled by space-bunny-free. Names are provisional.
+// Stays in its own file: its Class_00470250 and Class_00470270 views (const,
+// with the inline assign helpers) cannot share unit_sync_46e9b0.cpp's plain
+// views, and unifying them would change 0x470250's and 0x470270's signatures.
 // Class_0046eaa0::operator= (0x470040). list_a and list_b are two vectors of
 // 4-byte elements, each with an out-of-line capacity() (0x470250) and size()
 // (0x470270) that both return the element count, i.e. a byte difference

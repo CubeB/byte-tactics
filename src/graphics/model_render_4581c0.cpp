@@ -4,7 +4,7 @@ extern "C" void __cdecl FUN_004d85a0(void* p);
 
 class CMemoryCache {
 public:
-    void FUN_00437a20();
+    void FreeBuffer();
 };
 
 class Class_004581c0 {
@@ -21,5 +21,5 @@ void Class_004581c0::Destroy()
     if (ptr) {
         FUN_004d85a0(ptr);
     }
-    ((CMemoryCache*)this)->FUN_00437a20();
+    ((CMemoryCache*)this)->FreeBuffer();
 }

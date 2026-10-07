@@ -697,10 +697,10 @@ address,name
 0x437820,MapCacheEntry::MapCacheEntry
 0x437840,UpdateMetalExtraction
 0x437910,UpdateWindGenerator
-0x4379a0,CMemoryCache::FUN_004379a0
+0x4379a0,CMemoryCache::ClearPointers
 0x4379b0,CMemoryCache::InitCache
 0x437a00,CMemoryCache::FreeCache
-0x437a20,CMemoryCache::FUN_00437a20
+0x437a20,CMemoryCache::FreeBuffer
 0x437a30,CMemoryCache::AllocHandle
 0x437b30,GetHandleSize
 0x437b50,CMemoryCache::AllocBitmap

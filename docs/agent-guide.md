@@ -102,7 +102,7 @@ The `// FUNCTION: 0x<addr>` line must sit directly above the definition.
 - A callee called as a method (ecx set to an object just before the call)
   that `ctx.py` shows without a name is always `Class_<callee address>::FUN_<callee address>`,
   the same name its own author will give it. If your object has a different
-  class, cast: `((Class_00437a20*)obj)->FUN_00437a20()`. Once a callee has a
+  class, cast: `((Class_00437a20*)obj)->FreeBuffer()`. Once a callee has a
   name in `data/symbols.csv`, `ctx.py` shows it and you must use it.
 - A callee that is a **constructor** (called on the result of `operator new`,
   or one that stores a vtable and returns `this`) is named as a constructor,

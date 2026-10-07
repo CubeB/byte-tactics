@@ -2,7 +2,7 @@
 
 class CMemoryCache {
 public:
-    void FUN_004379a0(void);
+    void ClearPointers(void);
 };
 
 class Class_00458160 {
@@ -16,7 +16,7 @@ public:
 // FUNCTION: 0x458160
 Class_00458160* Class_00458160::Construct(void)
 {
-    ((CMemoryCache*)this)->FUN_004379a0();
+    ((CMemoryCache*)this)->ClearPointers();
     field_10 = 0;
     return this;
 }

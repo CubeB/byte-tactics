@@ -192,10 +192,10 @@ public:
     void* handle;                      // +0xc
     Bitmap_00437b50* image;            // +0x10, the scratch image
 
-    CMemoryCache* FUN_004379a0();
+    CMemoryCache* ClearPointers();
     int InitCache(unsigned int size);
     void FreeCache();
-    void FUN_00437a20();
+    void FreeBuffer();
     int AllocHandle(void** p, int need);
     int AllocBitmap(Bitmap_00437b50** handle, int w, int h);
     int AllocTwoPlaneBitmap(Bitmap_00437b50** handle, int w, int h);
@@ -252,7 +252,7 @@ void __stdcall UpdateWindGenerator(Unit* unit)
 }
 
 // FUNCTION: 0x4379a0
-CMemoryCache* CMemoryCache::FUN_004379a0()
+CMemoryCache* CMemoryCache::ClearPointers()
 {
     int zero = 0;
     base = zero;
@@ -289,7 +289,7 @@ void CMemoryCache::FreeCache()
 }
 
 // FUNCTION: 0x437a20
-void CMemoryCache::FUN_00437a20()
+void CMemoryCache::FreeBuffer()
 {
     FUN_004d85a0((int*)base);
 }

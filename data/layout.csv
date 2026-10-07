@@ -5117,9 +5117,9 @@ piece,0x504ee4,9,src/map/map_list.cpp,158,0,game data
 piece,0x504e30,9,src/map/map_list.cpp,141,0,game data
 piece,0x504ed0,17,src/map/map_list.cpp,157,0,game data
 piece,0x504e24,12,src/map/map_list.cpp,140,0,game data
-piece,0x5122b8,4,src/map/map_list.cpp,4,28,game data
+piece,0x5122b8,1,src/map/map_list.cpp,4,28,game data
 piece,0x504e18,9,src/map/map_list.cpp,139,0,game data
-piece,0x5122b4,8,src/map/map_list.cpp,4,0,game data
+piece,0x5122b4,4,src/map/map_list.cpp,4,0,game data
 piece,0x502c7c,9,src/map/map_list.cpp,156,0,game data
 piece,0x504ebc,20,src/map/map_list.cpp,155,0,game data
 piece,0x504eb0,12,src/map/map_list.cpp,154,0,game data
@@ -5131,8 +5131,8 @@ piece,0x504d8c,13,src/map/map_list.cpp,133,0,game data
 piece,0x504e50,24,src/map/map_list.cpp,144,0,game data
 piece,0x504e44,10,src/map/map_list.cpp,143,0,game data
 piece,0x504e3c,5,src/map/map_list.cpp,142,0,game data
-piece,0x5122b0,1,src/map/map_list.cpp,4,32,game data
-piece,0x5122d0,4,src/map/map_list.cpp,4,24,game data
+piece,0x5122b0,4,src/map/map_list.cpp,4,24,game data
+piece,0x5122d0,4,src/map/map_list.cpp,4,4,game data
 piece,0x504a78,10,src/map/map_list.cpp,46,0,game data
 piece,0x504de8,48,src/map/map_list.cpp,136,0,game data
 piece,0x504aa0,12,src/map/map_list.cpp,50,0,game data
@@ -11845,8 +11845,7 @@ fill,0x5115fc,4,,,00,padding
 fill,0x5116ec,4,,,00,padding
 fill,0x5119ac,4,,,00,padding
 fill,0x5122ac,4,,,00,padding
-fill,0x5122b1,3,,,00,uninitialised
-fill,0x5122bc,4,,,00,padding
+fill,0x5122b9,7,,,00,padding
 fill,0x512a1d,3,,,00,padding
 fill,0x512fdd,3,,,00,padding
 fill,0x51e676,2,,,00,padding

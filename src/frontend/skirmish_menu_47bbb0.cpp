@@ -26,7 +26,7 @@ void __stdcall HandleSkirmishCheatText(void *);
 class Mission {
 public:
     int LoadMissionByName(char *);
-    void FUN_00435d30(int);
+    void RefreshMapList(int);
     char *FUN_00435c30();
 };
 // FUNCTION: 0x47bbb0
@@ -58,7 +58,7 @@ void OpenSkirmishMenu(void)
     FUN_0049fa90(g_game + 0x519);
 
     if (!((Mission *)*(int *)(g_game + 0x391e9))->LoadMissionByName(*(char **)(g_game + 0x29a0) + 0x11c)) {
-        ((Mission *)*(int *)(g_game + 0x391e9))->FUN_00435d30(0);
+        ((Mission *)*(int *)(g_game + 0x391e9))->RefreshMapList(0);
         strncpy(*(char **)(g_game + 0x29a0) + 0x11c,
                 ((Mission *)*(int *)(g_game + 0x391e9))->FUN_00435c30(), 0x100);
     }

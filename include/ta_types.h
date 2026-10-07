@@ -5621,7 +5621,7 @@ public:
     char* list;  // +0xd24
     int count;  // +0xd28
     int multi;  // +0xd2c
-    void FUN_00435d30(int);
+    void RefreshMapList(int);
 };
 
 class Class_004cf210 {  // 0x30 bytes, 2 views
@@ -6033,7 +6033,7 @@ public:
     int LoadMissionByName(char*);
     int FUN_00435c30(void);
     int AdvanceMission(void);
-    int FUN_00436860(int, Unit*, char*);
+    int SelectSchema(int, Unit*, char*);
     int GetStartPosition(Vec3*, int);
     void LoadCampaign(char*);
     void FUN_00435c00(int);

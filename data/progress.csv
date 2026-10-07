@@ -681,9 +681,9 @@ address,size,file,symbol,status,similarity
 0x435c40,14,src/map/map_list.cpp,?FUN_00435c40@Mission@@QAE_NXZ,matched,100.0
 0x435c50,7,src/map/map_list.cpp,?FUN_00435c50@Mission@@QAEHXZ,matched,100.0
 0x435c60,196,src/map/map_list.cpp,?AdvanceMission@Mission@@QAEHXZ,matched,100.0
-0x435d30,100,src/map/map_list.cpp,?FUN_00435d30@Mission@@QAEXH@Z,matched,100.0
+0x435d30,100,src/map/map_list.cpp,?RefreshMapList@Mission@@QAEXH@Z,matched,100.0
 0x435da0,2740,src/map/map_list.cpp,?LoadMission@Mission@@QAEHPAD@Z,matched,100.0
-0x436860,972,src/map/map_list.cpp,?FUN_00436860@Mission@@QAEHHPAVTdfFile@@PAD@Z,matched,100.0
+0x436860,972,src/map/map_list.cpp,?SelectSchema@Mission@@QAEHHPAVTdfFile@@PAD@Z,matched,100.0
 0x436c30,1613,src/map/map_list.cpp,?LoadMissionData@Mission@@QAEXPADPAVTdfFile@@@Z,matched,100.0
 0x437280,127,src/map/map_list.cpp,?FreeMissionData@Mission@@QAEXXZ,matched,100.0
 0x437300,31,src/map/map_list.cpp,?CountStartPositions@Mission@@QAEHXZ,matched,100.0

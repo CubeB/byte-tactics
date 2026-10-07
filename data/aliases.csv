@@ -33,7 +33,7 @@ DAT_00511fb4$S64984,0x511fb4,"DAT_00511fb4$S4411 in 0x424c00, where the static's
 ??_GElem_00432be0@@QAEPAXI@Z,0x432c00,"Elem_00432be0's scalar deleting destructor, called with 0 by the vector _Destroy inlined into the gap region 0x42a8d0's return-0 path; matched as Class_00432c00::FUN_00432c00"
 std::D::DU?$char_traits::?$basic_string::max_size,0x4e3e10,"basic_string<char>::max_size, matched as FUN_004e3e10 in 0x4e3e10.cpp; basic_string::assign at 0x4e3c00 (src/lib/basic_string.cpp) calls it"
 Class_00435920::FUN_00435920,0x435920,"Mission::FUN_00435920 under its view class in include/ta_protos.h, which 0x449bb0 includes"
-Class_00435d30::FUN_00435d30,0x435d30,"Mission::FUN_00435d30 under its view class in include/ta_protos.h, which 0x449bb0 includes"
+Class_00435d30::RefreshMapList,0x435d30,"Mission::RefreshMapList under its view class in include/ta_protos.h, which 0x449bb0 includes"
 Class_00435a20::LoadMissionByName,0x435a20,"Mission::LoadMissionByName under its view class in include/ta_protos.h, which 0x449bb0 includes"
 Class_00435c40::FUN_00435c40,0x435c40,"Mission::FUN_00435c40 under its view class in include/ta_protos.h, which 0x449bb0 includes"
 Class_00435c30::FUN_00435c30,0x435c30,"Mission::FUN_00435c30 under its view class in include/ta_protos.h, which 0x449bb0 includes"

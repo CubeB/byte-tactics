@@ -684,9 +684,9 @@ address,name
 0x435c40,Mission::FUN_00435c40
 0x435c50,Mission::FUN_00435c50
 0x435c60,Mission::AdvanceMission
-0x435d30,Mission::FUN_00435d30
+0x435d30,Mission::RefreshMapList
 0x435da0,Mission::LoadMission
-0x436860,Mission::FUN_00436860
+0x436860,Mission::SelectSchema
 0x436c30,Mission::LoadMissionData
 0x437280,Mission::FreeMissionData
 0x437300,Mission::CountStartPositions

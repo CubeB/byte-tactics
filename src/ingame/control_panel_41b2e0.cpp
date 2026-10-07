@@ -132,6 +132,8 @@ static inline Unit_0041b2e0* GetUnit(unsigned short index)
     return u;
 }
 
+// Stays in its own file: its locals' symbol ids decide the match, and only
+// this include set puts them in the window (docs/c2-regalloc.md).
 // FUNCTION: 0x41b2e0
 void RefreshSelectionOrders()
 {

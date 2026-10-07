@@ -5712,45 +5712,45 @@ piece,0x5028a0,7,src/game/cd_check.cpp,3,0,game data
 piece,0x502850,14,src/ingame/control_panel_41c060.cpp,3,0,game data
 piece,0x4fcc8c,4,src/ingame/control_panel_41bd10.cpp,3,0,game data
 piece,0x4fcca0,4,src/ingame/control_panel_41bd10.cpp,3,4,game data
-piece,0x4fcc88,4,src/ingame/control_panel_41ba60.cpp,3,0,game data
-piece,0x4fcc90,8,src/ingame/control_panel_41ba60.cpp,3,8,game data
-piece,0x4fcc98,8,src/ingame/control_panel_41ba60.cpp,3,16,game data
-piece,0x502844,12,src/ingame/control_panel_41b8d0.cpp,3,0,game data
+piece,0x4fcc88,4,src/ingame/control_panel_419560.cpp,83,0,game data
+piece,0x4fcc90,8,src/ingame/control_panel_419560.cpp,83,8,game data
+piece,0x4fcc98,8,src/ingame/control_panel_419560.cpp,83,16,game data
+piece,0x502844,12,src/ingame/control_panel_419560.cpp,96,0,game data
 piece,0x502838,9,src/ingame/control_panel_41b2e0.cpp,3,0,game data
-piece,0x50282c,10,src/ingame/control_panel_41b0f0.cpp,3,0,game data
-piece,0x502818,5,src/ingame/control_panel_41ace0.cpp,6,0,game data
-piece,0x5027e4,7,src/ingame/control_panel_41ace0.cpp,5,0,game data
-piece,0x5027dc,7,src/ingame/control_panel_41ace0.cpp,4,0,game data
-piece,0x502670,6,src/ingame/control_panel_41ace0.cpp,3,0,game data
-piece,0x50274c,7,src/ingame/control_panel_41aa00.cpp,7,0,game data
-piece,0x5027f8,13,src/ingame/control_panel_41aa00.cpp,6,0,game data
-piece,0x502754,6,src/ingame/control_panel_41aa00.cpp,5,0,game data
-piece,0x5027ec,12,src/ingame/control_panel_41aa00.cpp,4,0,game data
-piece,0x5026b8,9,src/ingame/control_panel_41aa00.cpp,3,0,game data
-piece,0x50273c,8,src/ingame/control_panel_41a490.cpp,16,0,game data
-piece,0x5027c8,19,src/ingame/control_panel_41a490.cpp,15,0,game data
-piece,0x5027b8,14,src/ingame/control_panel_41a490.cpp,14,0,game data
-piece,0x502734,8,src/ingame/control_panel_41a490.cpp,13,0,game data
-piece,0x5027a4,19,src/ingame/control_panel_41a490.cpp,12,0,game data
-piece,0x502794,14,src/ingame/control_panel_41a490.cpp,11,0,game data
-piece,0x502744,6,src/ingame/control_panel_41a490.cpp,8,0,game data
-piece,0x502780,10,src/ingame/control_panel_41a490.cpp,7,0,game data
-piece,0x502774,9,src/ingame/control_panel_41a490.cpp,6,0,game data
-piece,0x5026e4,14,src/ingame/control_panel_41a490.cpp,5,0,game data
-piece,0x502768,9,src/ingame/control_panel_41a490.cpp,4,0,game data
-piece,0x50275c,11,src/ingame/control_panel_41a490.cpp,3,0,game data
-piece,0x50272c,5,src/ingame/control_panel_41a120.cpp,13,0,game data
-piece,0x50270c,7,src/ingame/control_panel_41a120.cpp,11,0,game data
-piece,0x5026fc,7,src/ingame/control_panel_41a120.cpp,10,0,game data
-piece,0x5026f4,7,src/ingame/control_panel_41a120.cpp,7,0,game data
-piece,0x5026cc,7,src/ingame/control_panel_41a120.cpp,4,0,game data
-piece,0x502704,6,src/ingame/control_panel_41a120.cpp,3,0,game data
-piece,0x50271c,16,src/ingame/control_panel_419be0.cpp,14,0,game data
-piece,0x5026ac,9,src/ingame/control_panel_419b00.cpp,8,0,game data
-piece,0x5026a0,9,src/ingame/control_panel_419b00.cpp,7,0,game data
-piece,0x502694,9,src/ingame/control_panel_419b00.cpp,6,0,game data
-piece,0x502660,4,src/ingame/control_panel_4199b0.cpp,5,0,game data
-piece,0x502664,5,src/ingame/control_panel_4199b0.cpp,3,0,game data
+piece,0x50282c,10,src/ingame/control_panel_419560.cpp,86,0,game data
+piece,0x502818,5,src/ingame/control_panel_419560.cpp,80,0,game data
+piece,0x5027e4,7,src/ingame/control_panel_419560.cpp,69,0,game data
+piece,0x5027dc,7,src/ingame/control_panel_419560.cpp,68,0,game data
+piece,0x502670,6,src/ingame/control_panel_419560.cpp,22,0,game data
+piece,0x50274c,7,src/ingame/control_panel_419560.cpp,53,0,game data
+piece,0x5027f8,13,src/ingame/control_panel_419560.cpp,73,0,game data
+piece,0x502754,6,src/ingame/control_panel_419560.cpp,54,0,game data
+piece,0x5027ec,12,src/ingame/control_panel_419560.cpp,72,0,game data
+piece,0x5026b8,9,src/ingame/control_panel_419560.cpp,30,0,game data
+piece,0x50273c,8,src/ingame/control_panel_419560.cpp,51,0,game data
+piece,0x5027c8,19,src/ingame/control_panel_419560.cpp,65,0,game data
+piece,0x5027b8,14,src/ingame/control_panel_419560.cpp,64,0,game data
+piece,0x502734,8,src/ingame/control_panel_419560.cpp,50,0,game data
+piece,0x5027a4,19,src/ingame/control_panel_419560.cpp,63,0,game data
+piece,0x502794,14,src/ingame/control_panel_419560.cpp,62,0,game data
+piece,0x502744,6,src/ingame/control_panel_419560.cpp,52,0,game data
+piece,0x502780,10,src/ingame/control_panel_419560.cpp,60,0,game data
+piece,0x502774,9,src/ingame/control_panel_419560.cpp,59,0,game data
+piece,0x5026e4,14,src/ingame/control_panel_419560.cpp,40,0,game data
+piece,0x502768,9,src/ingame/control_panel_419560.cpp,58,0,game data
+piece,0x50275c,11,src/ingame/control_panel_419560.cpp,57,0,game data
+piece,0x50272c,5,src/ingame/control_panel_419560.cpp,47,0,game data
+piece,0x50270c,7,src/ingame/control_panel_419560.cpp,44,0,game data
+piece,0x5026fc,7,src/ingame/control_panel_419560.cpp,42,0,game data
+piece,0x5026f4,7,src/ingame/control_panel_419560.cpp,41,0,game data
+piece,0x5026cc,7,src/ingame/control_panel_419560.cpp,36,0,game data
+piece,0x502704,6,src/ingame/control_panel_419560.cpp,43,0,game data
+piece,0x50271c,16,src/ingame/control_panel_419560.cpp,46,0,game data
+piece,0x5026ac,9,src/ingame/control_panel_419560.cpp,29,0,game data
+piece,0x5026a0,9,src/ingame/control_panel_419560.cpp,28,0,game data
+piece,0x502694,9,src/ingame/control_panel_419560.cpp,27,0,game data
+piece,0x502660,4,src/ingame/control_panel_419560.cpp,15,0,game data
+piece,0x502664,5,src/ingame/control_panel_419560.cpp,18,0,game data
 piece,0x502614,43,src/game/share_commands.cpp,30,0,game data
 piece,0x5025f0,35,src/game/share_commands.cpp,25,0,game data
 piece,0x5025cc,34,src/game/share_commands.cpp,22,0,game data
@@ -12075,9 +12075,8 @@ same,0x4fcc40,4,src/orders/vtol_orders_413d80.cpp,4,0,
 same,0x4fcc40,4,src/orders/vtol_orders_414380.cpp,4,0,
 same,0x4fcc40,4,src/orders/vtol_orders_4152f0.cpp,6,8,
 same,0x5024fc,15,src/game/console_commands_417600.cpp,4,0,
-same,0x4fcc88,4,src/ingame/control_panel_41ace0.cpp,9,0,
-same,0x502820,5,src/ingame/control_panel_41ace0.cpp,7,0,
-same,0x4fcc8c,4,src/ingame/control_panel_41ba60.cpp,3,4,
+same,0x502820,5,src/ingame/control_panel_419560.cpp,81,0,
+same,0x4fcc8c,4,src/ingame/control_panel_419560.cpp,83,4,
 same,0x5028f8,9,src/game/cd_check.cpp,14,0,
 same,0x502910,2,src/game/cd_check.cpp,18,0,
 same,0x502a20,3,src/frontend/endgame_41eb60.cpp,3,0,

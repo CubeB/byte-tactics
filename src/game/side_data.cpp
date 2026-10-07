@@ -107,7 +107,7 @@ void LoadLogos()
 }
 
 // FUNCTION: 0x431920
-void FUN_00431920(void)
+void FreeLogos(void)
 {
     int val = g_game->field_148d7;
     FUN_004d85a0((int*)val);
@@ -137,7 +137,7 @@ void __stdcall ReadSideRect(Obj_00431950* obj, int* out, char* name, char* side)
 // Frees the buffer of each of the five entries at g_game+0x3816b and clears
 // the pointers.
 // FUNCTION: 0x431a20
-void FUN_00431a20()
+void FreeSideFonts()
 {
     for (int i = 0; i < 5; i++) {
         int*& buffer = g_game->entries[i].buffer;

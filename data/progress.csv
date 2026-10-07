@@ -588,9 +588,9 @@ address,size,file,symbol,status,similarity
 0x430f00,2112,src/game/settings.cpp,?SaveSettings@@YGXXZ,matched,100.0
 0x431740,382,src/game/settings.cpp,?FUN_00431740@@YGXXZ,matched,100.0
 0x4318c0,94,src/game/side_data.cpp,?LoadLogos@@YGXXZ,matched,100.0
-0x431920,37,src/game/side_data.cpp,?FUN_00431920@@YGXXZ,matched,100.0
+0x431920,37,src/game/side_data.cpp,?FreeLogos@@YGXXZ,matched,100.0
 0x431950,199,src/game/side_data.cpp,?ReadSideRect@@YGXPAUObj_00431950@@PAHPAD2@Z,matched,100.0
-0x431a20,59,src/game/side_data.cpp,?FUN_00431a20@@YGXXZ,matched,100.0
+0x431a20,59,src/game/side_data.cpp,?FreeSideFonts@@YGXXZ,matched,100.0
 0x431a60,2737,src/game/side_data.cpp,?LoadSideData@@YGXXZ,matched,100.0
 0x432520,102,src/game/settings_campaign.cpp,?FUN_00432520@@YGPAVHapiBank@@PAD@Z,matched,100.0
 0x432590,29,src/game/settings_campaign.cpp,?FUN_00432590@@YGXPAVHapiBank@@@Z,matched,100.0

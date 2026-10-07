@@ -35,8 +35,8 @@ extern "C" __declspec(dllimport) void __stdcall SmackDoFrame(Smk_0047c3a0* smk);
 extern "C" __declspec(dllimport) void __stdcall SmackNextFrame(Smk_0047c3a0* smk);
 extern "C" __declspec(dllimport) void __stdcall SmackToBuffer(Smk_0047c3a0* smk, unsigned int left, unsigned int top, unsigned int width, unsigned int height, unsigned int bufferHeight, void* buffer);
 extern "C" __declspec(dllimport) int __stdcall SmackToBufferRect(Smk_0047c3a0* smk, int flag);
-// Ordinal 32, imported by no name, so it has no symbol of its own here.
-extern "C" __declspec(dllimport) unsigned int __stdcall DAT_004fc40c(Smk_0047c3a0* smack);
+// Ordinal 32: SmackWait, the DLL's export name.
+extern "C" __declspec(dllimport) unsigned int __stdcall SmackWait(Smk_0047c3a0* smack);
 
 // smackw32.dll ordinal 18 (SmackClose), called through its import slot.
 extern "C" __declspec(dllimport) void __stdcall SmackClose(void* smack);
@@ -164,13 +164,12 @@ struct Smk_0047bf70_b {
 
 extern int __stdcall DirectDrawCreateThunk(int guid, void *display, int zero);
 
-// smackw32.dll, imported by ordinal, so the exe holds no name for these three.
-// Ordinal 2 opens the decoder state (HWND, HDC, 640, 480, 0, 0), ordinal 5
-// takes the movie's 256 colour palette, and ordinal 25 is given the movie and
-// three fields of that state.
-extern "C" __declspec(dllimport) Smk_0047bf70_b *__stdcall DAT_004fc410(HWND hwnd, HDC hdc, int width, int height, int flags, int background);
-extern "C" __declspec(dllimport) void __stdcall DAT_004fc414(Smk_0047bf70_b *smk, unsigned char *rgb, unsigned short flag);
-extern "C" __declspec(dllimport) void __stdcall DAT_004fc418(Smk_0047bf70 *smk, DWORD *field_3c, DWORD field_2c, DWORD field_43c);
+// smackw32.dll's buffer API, imported by ordinal: ordinal 2 opens the decoder
+// state (HWND, HDC, 640, 480, 0, 0), ordinal 5 takes the movie's 256 colour
+// palette, and ordinal 25 is given the movie and three fields of that state.
+extern "C" __declspec(dllimport) Smk_0047bf70_b *__stdcall SmackBufferOpen(HWND hwnd, HDC hdc, int width, int height, int flags, int background);
+extern "C" __declspec(dllimport) void __stdcall SmackBufferNewPalette(Smk_0047bf70_b *smk, unsigned char *rgb, unsigned short flag);
+extern "C" __declspec(dllimport) void __stdcall SmackColorRemap(Smk_0047bf70 *smk, DWORD *field_3c, DWORD field_2c, DWORD field_43c);
 
 class MoviePlayer {
 public:
@@ -348,9 +347,9 @@ int Class_0047bf70::SetupDirectDraw()
         SetWindowPos(hwnd, 0, 0, 0, video->width, video->height, 2);
     }
     if (video->newPalette) {
-        Smk_0047bf70_b *smk = DAT_004fc410(hwnd, 0, 0x280, 0x1e0, 0, 0);
-        DAT_004fc414(smk, &video->rgb[0][0], video->field_370);
-        DAT_004fc418(video, &smk->field_3c, smk->field_2c, smk->field_43c);
+        Smk_0047bf70_b *smk = SmackBufferOpen(hwnd, 0, 0x280, 0x1e0, 0, 0);
+        SmackBufferNewPalette(smk, &video->rgb[0][0], video->field_370);
+        SmackColorRemap(video, &smk->field_3c, smk->field_2c, smk->field_43c);
     }
     return 1;
 fail:
@@ -525,7 +524,7 @@ void MoviePlayer::Play()
             }
             TranslateMessage(&msg);
             DispatchMessageA(&msg);
-        } else if (!DAT_004fc40c(smack)) {
+        } else if (!SmackWait(smack)) {
             PlayFrame(hwnd);
         }
     }

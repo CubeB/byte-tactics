@@ -4011,10 +4011,10 @@ address,name
 0x4fc400,_imp__SmackSoundUseDirectSound
 0x4fc404,_imp__SmackOpen
 0x4fc408,_imp__SmackSoundOnOff
-0x4fc40c,_imp__DAT_004fc40c
-0x4fc410,_imp__DAT_004fc410
-0x4fc414,_imp__DAT_004fc414
-0x4fc418,_imp__DAT_004fc418
+0x4fc40c,_imp__SmackWait
+0x4fc410,_imp__SmackBufferOpen
+0x4fc414,_imp__SmackBufferNewPalette
+0x4fc418,_imp__SmackColorRemap
 0x4fc490,DAT_004fc490
 0x4fc6e8,DAT_004fc6e8
 0x4fc960,??_7Class_00405d90@@6B@

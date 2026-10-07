@@ -5895,13 +5895,13 @@ piece,0x4fc928,8,src/orders/unit_orders_403f70.cpp,4,0,game data
 piece,0x5015bc,18,src/orders/unit_orders_403f70.cpp,5,0,game data
 piece,0x501580,36,src/orders/unit_orders_403a20.cpp,10,0,game data
 piece,0x5012ec,9,src/orders/unit_orders_403a20.cpp,5,0,game data
-piece,0x4fc6d0,4,src/orders/unit_orders_402da0.cpp,6,0,game data
-piece,0x501358,5,src/orders/unit_orders_402da0.cpp,3,0,game data
-piece,0x4fc6d4,4,src/orders/unit_orders_402640.cpp,3,4,game data
-piece,0x4fc6d8,8,src/orders/unit_orders_402640.cpp,3,8,game data
-piece,0x4fc6e0,8,src/orders/unit_orders_402640.cpp,3,16,game data
-piece,0x501340,21,src/orders/unit_orders_402640.cpp,12,0,game data
-piece,0x501330,15,src/orders/unit_orders_402640.cpp,11,0,game data
+piece,0x4fc6d0,4,src/orders/unit_orders_401c20.cpp,20,0,game data
+piece,0x501358,5,src/orders/unit_orders_401c20.cpp,36,0,game data
+piece,0x4fc6d4,4,src/orders/unit_orders_401c20.cpp,20,4,game data
+piece,0x4fc6d8,8,src/orders/unit_orders_401c20.cpp,20,8,game data
+piece,0x4fc6e0,8,src/orders/unit_orders_401c20.cpp,20,16,game data
+piece,0x501340,21,src/orders/unit_orders_401c20.cpp,29,0,game data
+piece,0x501330,15,src/orders/unit_orders_401c20.cpp,28,0,game data
 piece,0x4fc478,8,src/game/economy_401360.cpp,3,0,game data
 piece,0x4fc480,8,src/game/economy_401360.cpp,3,8,game data
 piece,0x4fc488,8,src/game/economy_401360.cpp,3,16,game data
@@ -12053,7 +12053,6 @@ common,0x52b650,4,__acmdln,,,
 common,0x52b654,4,___onexitend,,,
 common,0x52b658,4,___onexitbegin,,,
 same,0x4fc478,4,src/game/economy.cpp,22,0,
-same,0x4fc6d0,4,src/orders/unit_orders_402640.cpp,3,0,
 same,0x4fc910,8,src/orders/unit_orders_403a20.cpp,4,0,
 same,0x4fc918,8,src/orders/unit_orders_403a20.cpp,4,8,
 same,0x4fc920,4,src/orders/unit_orders_403a20.cpp,4,16,

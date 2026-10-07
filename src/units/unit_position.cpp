@@ -345,7 +345,7 @@ Unit* __stdcall CreateUnitFromPacket(unsigned char player, Spawn* spawn);
 void __stdcall WriteUnitState(BitWriter* stream, Unit* u);
 void __stdcall ReadUnitState(BitReader* reader, Unit* u);
 
-extern float DAT_004fd750;
+extern float g_buildPercentScale;
 
 // Snaps a unit's height (pos.y, 16.16 fixed point) to the ground. Units
 // whose type has the flag at +0x241 bit 12 (floating) stay at least at the
@@ -766,7 +766,7 @@ void __stdcall ReadUnitState(BitReader* reader, Unit* u)
     u->field_108 = reader->ReadBits(0x10);
     // Unsigned into an __int64: gives `fild qword` with no `cdq`.
     __int64 alpha = (unsigned int)reader->ReadBits(8);
-    float scale = (float)alpha * DAT_004fd750;
+    float scale = (float)alpha * g_buildPercentScale;
     if (scale != u->field_104) {
         u->field_104 = scale;
         u->f110.bits.b13 = 1;

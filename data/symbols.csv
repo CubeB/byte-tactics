@@ -4078,7 +4078,7 @@ address,name
 0x4fd678,DAT_004fd678
 0x4fd698,??_7UnitScript@@6B@
 0x4fd6f0,DAT_004fd6f0
-0x4fd750,DAT_004fd750
+0x4fd750,g_buildPercentScale
 0x4fd754,??_7Class_004895c0@@6B@
 0x4fd768,??_7DefeatAnyUnitPassesZ@@6BListener_0048ff40@@@
 0x4fd770,??_7DefeatAnyUnitPassesZ@@6BMissionCondition@@@

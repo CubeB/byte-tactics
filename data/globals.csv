@@ -80,7 +80,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x4fd670,DAT_004fd670,.rdata,8,gap,data,signed char[],2,0,1,one type,2,,DAT_004fd670,,,00ffffff00010101
 0x4fd678,DAT_004fd678,.rdata,8,gap,data,signed char[],2,0,1,one type,2,,DAT_004fd678,,,ffff0001010100ff
 0x4fd6f0,DAT_004fd6f0,.rdata,8,gap,vtable,void*[],3,1,2,conflicting: shape,4,,PTR_FUN_004fd6f0,2,src/data/vtables.cpp,90144800b0144800
-0x4fd750,DAT_004fd750,.rdata,4,type,float,float,1,0,1,one type,1,,,,,8180803b
+0x4fd750,g_buildPercentScale,.rdata,4,type,float,float,1,0,1,one type,1,,,,,8180803b
 0x4fda70,DAT_004fda70,.rdata,8,type,float,const double,1,0,1,one type,1,,,,src/data/unused.cpp,0000000000000040
 0x4fdaf0,DAT_004fdaf0,.rdata,16,gap,data,V4i,1,1,2,conflicting: struct names only,2,0xc,,,,00000000000000000000000000000000
 0x4fdbe0,DAT_004fdbe0,.rdata,4,type,data,const unsigned char*,1,0,1,one type,1,,,,src/data/unused.cpp,00000000

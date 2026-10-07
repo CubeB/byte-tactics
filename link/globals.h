@@ -30,7 +30,7 @@ extern const float DAT_004fd4c0;                                                
 extern const float DAT_004fd4cc;                                                              // 0x4fd4cc, 4 bytes; 1 of 1 files
 extern signed char DAT_004fd670[8];                                                           // 0x4fd670, 8 bytes; 2 of 2 files
 extern signed char DAT_004fd678[8];                                                           // 0x4fd678, 8 bytes; 2 of 2 files
-extern float DAT_004fd750;                                                                    // 0x4fd750, 4 bytes; 1 of 1 files
+extern float g_buildPercentScale;                                                             // 0x4fd750, 4 bytes; 1 of 1 files
 extern unsigned char DAT_004fdaf0[16];                                                        // 0x4fdaf0, 16 bytes; V4i by value in 1 of 2 files (conflicting: struct names only)
 extern double DAT_004fdbe8;                                                                   // 0x4fdbe8, 8 bytes; 1 of 1 files
 extern char g_hapiCopyright[40];                                                              // 0x4fdbf0, 40 bytes; 1 of 1 files

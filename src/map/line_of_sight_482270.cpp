@@ -56,13 +56,15 @@ struct Player_482270 {
     unsigned char playerIndex;         // +0x146
 };
 
-struct Params_482270 {
-    void* field_0;                     // +0x00
-    short* field_4;                    // +0x04
-    short field_8;                     // +0x08
-    unsigned char field_a;             // +0x0a
+// One unit's sight query (Thaldren's LosSightQuery): the player, the unit's cached sight
+// cell, its sight distance and eye height, and the byte that holds its sight frame.
+struct SightQuery {
+    void* player;                      // +0x00
+    short* cacheCell;                  // +0x04
+    short sightDistance;               // +0x08
+    unsigned char eyeHeight;           // +0x0a
     char unknown_b;                    // +0x0b
-    unsigned char* field_c;            // +0x0c
+    unsigned char* frameIdx;           // +0x0c
     char unknown_10[0xc];              // +0x10
 };
 
@@ -106,16 +108,16 @@ extern Game* g_game;
 GafFrame* __stdcall GetGafFrame(unsigned short* table, int index);
 
 // FUNCTION: 0x482270
-void __stdcall AddLineOfSight(Params_482270* params)
+void __stdcall AddLineOfSight(SightQuery* params)
 {
-    if (((Player_482270*)params->field_0)->playerIndex == g_game->playerIndex) {
+    if (((Player_482270*)params->player)->playerIndex == g_game->playerIndex) {
         g_game->flag3 = 0;
         g_game->flagA = 1;
     }
     int halfW = g_game->width / 2;
     int halfH = g_game->height / 2;
-    int x = params->field_4[0];
-    int y = params->field_4[1];
+    int x = params->cacheCell[0];
+    int y = params->cacheCell[1];
     if (g_game->flag2 == 1) {
         Grid_482270* grid = &g_game->grid1;
         if ((unsigned)x >= grid->width)
@@ -125,16 +127,16 @@ void __stdcall AddLineOfSight(Params_482270* params)
         // Clamp written inline as the GetLosTable argument, with no temporary.
         void* table = ((LosTables*)g_losTables)
                           ->GetLosTable(
-                              (params->field_8 / 32 < 0 ? 0 : params->field_8 / 32)
+                              (params->sightDistance / 32 < 0 ? 0 : params->sightDistance / 32)
                                       < ((LosTables*)g_losTables)
                                             ->GetLosTableCount() - 1
-                                  ? (params->field_8 / 32 < 0 ? 0 : params->field_8 / 32)
+                                  ? (params->sightDistance / 32 < 0 ? 0 : params->sightDistance / 32)
                                   : ((LosTables*)g_losTables)
                                         ->GetLosTableCount() - 1);
         short count = ((LosTable*)table)->GetLosLineCount();
         short i = 0;
-        ((Player_482270*)params->field_0)->grid.at(x, y)++;
-        int ref = *params->field_c;
+        ((Player_482270*)params->player)->grid.at(x, y)++;
+        int ref = *params->frameIdx;
         for (i = 0; i < count; i++) {
             void* line = ((LosTable*)table)->GetLosLine(i);
             short num = ((LosLine*)line)->GetLosLineStepCount();
@@ -160,7 +162,7 @@ void __stdcall AddLineOfSight(Params_482270* params)
                     int d1 = cell[1] - ref;
                     int d0 = cell[0] - ref;
                     if (d0 * bestIdx > bestDiff * j1) {
-                        ((Player_482270*)params->field_0)
+                        ((Player_482270*)params->player)
                             ->grid.at((short)dx, (short)dy)++;
                         if (d1 * bestIdx > bestDiff * j1) {
                             bestIdx = j1;
@@ -171,7 +173,7 @@ void __stdcall AddLineOfSight(Params_482270* params)
             }
         }
     } else {
-        int ref = *params->field_c;
+        int ref = *params->frameIdx;
         GafFrame* frame =
             GetGafFrame((unsigned short*)g_game->losTable, ref);
         // limitX and limitY are if/else statements, not ?:.
@@ -193,7 +195,7 @@ void __stdcall AddLineOfSight(Params_482270* params)
             return;
         for (int i = ny; i < limitY; i++) {
             // Named ex local: shapes the destination address.
-            ByteMap_482270* ex = &((Player_482270*)params->field_0)->grid;
+            ByteMap_482270* ex = &((Player_482270*)params->player)->grid;
             unsigned char* dst = ex->data + (y + i) * ex->size.width + nx + x;
             unsigned char* src = frame->data + i * frame->width + nx;
             // Counted j loop: lets the compiler turn it into dec/jne.

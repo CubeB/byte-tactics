@@ -192,20 +192,21 @@ struct Piece_459c70 {
 };
 #pragma pack(pop)
 
-// The team's map and flag word at +0x241; bit 30 is the bright-faces flag.
+// The unit def's type flags at +0x241 (Thaldren's UnitTypeFlags): bit 25 is noshadow and
+// bit 30 is digger.
 #pragma pack(push, 1)
-union TeamFlags_459200 {
+union UnitTypeFlags_459200 {
     unsigned int word;
     struct {
         unsigned int hi : 30;
-        unsigned int b30 : 1;
+        unsigned int digger : 1;
         unsigned int lo : 1;
     } bits;
 };
 
-struct Team_459200 {
+struct UnitDef_459200 {
     char unknown_0[0x241];
-    TeamFlags_459200 flags;            // +0x241
+    UnitTypeFlags_459200 flags;        // +0x241
 };
 #pragma pack(pop)
 
@@ -295,24 +296,24 @@ struct Unit_459200 {
     int pos_y;                         // +0x6e
     int pos_z;                         // +0x72
     char unknown_76[0x86 - 0x76];
-    int field_86;                      // +0x86
+    int carrier;                       // +0x86
     Unit_459200* list_head;            // +0x8a
     Unit_459200* list_next;            // +0x8e
-    Team_459200* field_92;             // +0x92
+    UnitDef_459200* def;               // +0x92
     char unknown_96[8];
     Model_459200* sprites;             // +0x9e
     char unknown_a2[4];
-    short field_a6;                    // +0xa6
+    short unitDefIndex;                // +0xa6
     unsigned short palette;            // +0xa8
     char unknown_aa[0xff - 0xaa];
     unsigned char kind;                // +0xff
     char unknown_100[4];
     float intensity;                   // +0x104
     char unknown_108[6];
-    unsigned char field_10e;           // +0x10e
+    unsigned char activateFlags;       // +0x10e
     char unknown_10f;
     unsigned int flags;                // +0x110
-    unsigned char field_114;           // +0x114
+    unsigned char zBufferFlag;         // +0x114
 };
 #pragma pack(pop)
 
@@ -437,7 +438,7 @@ void UnitTable::Destroy()
 // doubled-bitmap test, once per projected vertex.
 static __inline int shade_bias(Unit_459200* owner)
 {
-    bool c = ((owner->field_92->flags.word >> 30) & 1) != 0;
+    bool c = ((owner->def->flags.word >> 30) & 1) != 0;
     return c ? 125 : 50;
 }
 
@@ -498,7 +499,7 @@ int UnitTable::BuildObjectPicture(Model_459200* list, int param_2, int param_3)
     int ox;
     Unit_459200* owner = list->owner;
     MeasureModel(&w, &h, &oy, &ox, list, 0);
-    if (param_2 == 0 && (owner->field_114 & 1) == 0 && owner->intensity == 0.0f) {
+    if (param_2 == 0 && (owner->zBufferFlag & 1) == 0 && owner->intensity == 0.0f) {
         ((CMemoryCache*)this)->AllocBitmap(&list->bitmap, w, h);
     } else {
         ((CMemoryCache*)this)->AllocTwoPlaneBitmap(&list->bitmap, w, h);
@@ -1147,7 +1148,7 @@ void __stdcall UpdateObjectState(Unit_459200* unit)
 // FUNCTION: 0x45ac20
 void __stdcall DrawUnit(void* context, Unit_459200* unit)
 {
-    if (unit->field_86 == 0) {
+    if (unit->carrier == 0) {
         Model_459200* state = unit->sprites;
         if (FarFrom(state, &unit->pos)) {
             // One 6-byte struct copy.

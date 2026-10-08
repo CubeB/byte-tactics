@@ -133,14 +133,16 @@ struct Unit {                           // 0x118 bytes
     char unknown_7a[4];
     Point size;                         // +0x7e, footprint in map cells
     Owner* owner;                       // +0x82
-    int unknown_86;                     // +0x86
+    int carrier;                        // +0x86, the unit carrying this one
     Unit* child;                        // +0x8a
     Unit* next;                         // +0x8e
     UnitDef* def;                       // +0x92
     Player* player;                     // +0x96
     char unknown_9a[0xa8 - 0x9a];
     unsigned short id;            // +0xa8, the owner's own id
-    char unknown_aa[0xff - 0xaa];
+    char unknown_aa[0xf9 - 0xaa];
+    char transportPiece;                // +0xf9, the carrier piece this unit sits on
+    char unknown_fa[0xff - 0xfa];
     unsigned char playerId;             // +0xff
     char unknown_100[0x10f - 0x100];
     unsigned char bit0 : 1;             // +0x10f
@@ -267,18 +269,25 @@ public:
     virtual void CollectDamagedAlly(Unit* unit);
 };
 
-struct Node_0047e570 {
-    char unknown_0[0x8e];
-    Node_0047e570* next;     // +0x8e
-    char unknown_92[0xf9 - 0x92];
-    char id;                 // +0xf9
-};
-
-struct Struct_0047e570 {
-    char unknown_0[0x86];
-    int field_86;            // +0x86
-    Node_0047e570* list;     // +0x8a
-};
+// Unused here: these forward declarations take the symbol ids that keep 0x47d2e0 matching
+// after IsPadSlotFree took the file's Unit (docs/c2-regalloc.md).
+struct Sound;
+struct HapiBank;
+struct TdfFile;
+struct TdfRecord;
+struct Gadget;
+struct Layer;
+struct Packet;
+struct Pathfinder;
+struct Mission;
+struct Weapon;
+struct Amount;
+struct Box;
+struct Channel;
+struct Chunk;
+struct MovementClassTable;
+struct PointMarker;
+class OpenHeap;
 
 struct Entry_0047ea40 {
     Vec3 pos;                          // +0x0
@@ -437,7 +446,7 @@ void __stdcall SetOwner(Unit* unit, Owner* owner)
 {
     Owner* cur = unit->owner;
     if (owner != cur) {
-        if (unit->unknown_86 == 0) {
+        if (unit->carrier == 0) {
             if (cur != 0) {
                 Unit** pp = &cur->first;
                 while (*pp != unit)
@@ -461,7 +470,7 @@ void __stdcall RemoveUnitFromMap(Unit* unit);
 void __stdcall ClearFootprintAndUnlink(Unit* unit)
 {
     RemoveUnitFromMap(unit);
-    if (unit->unknown_86 == 0) {
+    if (unit->carrier == 0) {
         Owner* cur = unit->owner;
         if (cur != 0) {
             Unit** pp = &cur->first;
@@ -1018,13 +1027,13 @@ unsigned int __stdcall GetPassMapFootprintValueWithEdgeStrips(MovementClass* obj
 }
 
 // FUNCTION: 0x47e570
-int __stdcall IsPadSlotFree(Struct_0047e570* p, int id)
+int __stdcall IsPadSlotFree(Unit* pad, int id)
 {
-    if (p->field_86 != 0) {
+    if (pad->carrier != 0) {
         return 0;
     }
-    for (Node_0047e570* n = p->list; n != 0; n = n->next) {
-        if (n->id == id) {
+    for (Unit* n = pad->child; n != 0; n = n->next) {
+        if (n->transportPiece == id) {
             return 0;
         }
     }

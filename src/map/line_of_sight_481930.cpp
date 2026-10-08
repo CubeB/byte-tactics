@@ -47,13 +47,15 @@ struct Player_00481930 {
     unsigned char index;               // +0x146
 };
 
-struct Params_00481930 {
-    Player_00481930* field_0;          // +0x00
-    short* field_4;                    // +0x04
-    short field_8;                     // +0x08
-    unsigned char field_a;             // +0x0a
+// One unit's sight query (Thaldren's LosSightQuery): the player, the unit's cached sight
+// cell, its sight distance and eye height, and the byte that holds its sight frame.
+struct SightQuery {
+    Player_00481930* player;           // +0x00
+    short* cacheCell;                  // +0x04
+    short sightDistance;               // +0x08
+    unsigned char eyeHeight;           // +0x0a
     char unknown_b;                    // +0x0b
-    unsigned char* field_c;            // +0x0c
+    unsigned char* frameIdx;           // +0x0c
     char unknown_10[0xc];              // +0x10
 };
 
@@ -98,19 +100,19 @@ extern Game* g_game;
 
 GafFrame* __stdcall GetGafFrame(LosTable_00481930* table, int index);
 
-inline int LodRaw_00481930(Params_00481930* params)
+inline int LodRaw_00481930(SightQuery* params)
 {
-    return params->field_8 / 32;
+    return params->sightDistance / 32;
 }
 
-inline int Lod_00481930(Params_00481930* params)
+inline int Lod_00481930(SightQuery* params)
 {
     int v = LodRaw_00481930(params);
     return v < 0 ? 0 : v;
 }
 
 // FUNCTION: 0x481930
-void __stdcall RevealAroundUnit(Params_00481930* params)
+void __stdcall RevealAroundUnit(SightQuery* params)
 {
     // Both branches' locals, x and y included, are declared here and assigned
     // later; frame stays declared after bit.
@@ -118,21 +120,21 @@ void __stdcall RevealAroundUnit(Params_00481930* params)
     int x, y;
     int limitX, limitY, nx, ny;
     int i, stride, off;
-    unsigned int bit = 1 << params->field_0->index;
+    unsigned int bit = 1 << params->player->index;
     GafFrame* frame;
     int halfW = g_game->width / 2;
     int halfH = g_game->height / 2;
-    x = params->field_4[0];
-    y = params->field_4[1];
+    x = params->cacheCell[0];
+    y = params->cacheCell[1];
     if (g_game->flag2 == 1) {
         Grid_00481930* grid = &g_game->grid1;
         if ((unsigned)x < grid->width && (unsigned)y < grid->height) {
             void* table =
                 ((LosTables*)g_losTables)
                     ->GetLosTable(
-                        (params->field_8 / 32 < 0 ? 0 : params->field_8 / 32) <
+                        (params->sightDistance / 32 < 0 ? 0 : params->sightDistance / 32) <
                                 ((LosTables*)g_losTables)->GetLosTableCount() - 1
-                            ? (params->field_8 / 32 < 0 ? 0 : params->field_8 / 32)
+                            ? (params->sightDistance / 32 < 0 ? 0 : params->sightDistance / 32)
                             : ((LosTables*)g_losTables)->GetLosTableCount() - 1);
             short count = ((LosTable*)table)->GetLosLineCount();
             unsigned short* cell = &g_game->visibilityMask[halfW * y + x];
@@ -140,7 +142,7 @@ void __stdcall RevealAroundUnit(Params_00481930* params)
                 *cell ^= bit;
                 changed = 1;
             }
-            int ref = *params->field_c;
+            int ref = *params->frameIdx;
             for (short i = 0; (short)i < count; i++) {
                 void* line = ((LosTable*)table)->GetLosLine(i);
                 short num = ((LosLine*)line)->GetLosLineStepCount();
@@ -218,7 +220,7 @@ void __stdcall RevealAroundUnit(Params_00481930* params)
             } while (i < limitY);
         }
     }
-    if (changed && params->field_0->index == g_game->playerIndex) {
+    if (changed && params->player->index == g_game->playerIndex) {
         g_game->flag3 = 0;
         g_game->flags_142f1 |= 4;
     }

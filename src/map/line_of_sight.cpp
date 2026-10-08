@@ -212,14 +212,15 @@ struct Eye {
     }
 };
 
-// The parameter block the line-of-sight functions share.
-struct Params {
-    void* field_0;                     // +0x00
-    short* field_4;                    // +0x04
-    short field_8;                     // +0x08
-    unsigned char field_a;             // +0x0a
+// One unit's sight query (Thaldren's LosSightQuery): the player, the unit's cached sight
+// cell, its sight distance and eye height, and the byte that holds its sight frame.
+struct SightQuery {
+    void* player;                      // +0x00
+    short* cacheCell;                  // +0x04
+    short sightDistance;               // +0x08
+    unsigned char eyeHeight;           // +0x0a
     char unknown_b;                    // +0x0b
-    unsigned char* field_c;            // +0x0c
+    unsigned char* frameIdx;           // +0x0c
     Vec3 pos;                          // +0x10
     int unknown_1c;                    // +0x1c
     int unknown_20;                    // +0x20
@@ -403,10 +404,10 @@ void __cdecl GameFreeThunk(void* p);
 void __stdcall FatalError(char* message);
 int* __stdcall LoadFileWithProgress(int* file);
 GafFrame* __stdcall GetGafFrame(void* table, int index);
-void __stdcall UpdateLineOfSight(Params* params);
-void __stdcall AddLineOfSight(Params* params);
-void __stdcall RemoveLineOfSight(Params* params);
-void __stdcall RevealAroundUnit(Params* params);
+void __stdcall UpdateLineOfSight(SightQuery* params);
+void __stdcall AddLineOfSight(SightQuery* params);
+void __stdcall RemoveLineOfSight(SightQuery* params);
+void __stdcall RevealAroundUnit(SightQuery* params);
 void __stdcall UpdateCellHeightRange(Point pos, Point size);
 void UpdateRadarMapped();
 void DrawRadarUnits();
@@ -469,12 +470,12 @@ static inline void ClearFeature(Cell* c)
         c->feature = 0xfffd;
 }
 
-inline int LodRaw_00481930(Params* params)
+inline int LodRaw_00481930(SightQuery* params)
 {
-    return params->field_8 / 32;
+    return params->sightDistance / 32;
 }
 
-inline int Lod_00481930(Params* params)
+inline int Lod_00481930(SightQuery* params)
 {
     int v = LodRaw_00481930(params);
     return v < 0 ? 0 : v;
@@ -543,13 +544,13 @@ Cell* __stdcall GetOriginCellAtPosition(Vec3* pos)
 // FUNCTION: 0x482090
 void __stdcall RemoveUnitLineOfSight(Unit* unit)
 {
-    Params p;
-    p.field_0 = unit->owner;
-    p.field_4 = unit->cell;
-    p.field_8 = unit->type->range;
-    p.field_c = unit->losSightFrameIdx;
+    SightQuery p;
+    p.player = unit->owner;
+    p.cacheCell = unit->cell;
+    p.sightDistance = unit->type->range;
+    p.frameIdx = unit->losSightFrameIdx;
     p.pos = unit->pos;
-    p.field_a = unit->type->field_170;
+    p.eyeHeight = unit->type->field_170;
     int minY = (g_game->seaLevel + 1) << 16;
     if (p.pos.y < minY) {
         p.pos.y = minY;
@@ -573,7 +574,7 @@ void ExpireEyeballs()
     Eye* p = g_game->eyes;
     for (int i = 0; i < g_game->count; i++, p++) {
         if (p->expires < g_game->ticks) {
-            RemoveLineOfSight((Params*)p);
+            RemoveLineOfSight((SightQuery*)p);
             changed = 1;
         }
     }
@@ -590,11 +591,11 @@ void ExpireEyeballs()
 #include <float.h>
 
 // FUNCTION: 0x4825b0
-void __stdcall UpdateLineOfSight(Params* params)
+void __stdcall UpdateLineOfSight(SightQuery* params)
 {
     if ((g_game->mapFlags.raw & 4) == 4) {
         int x = ((short*)&params->pos.x)[1] >> 5;
-        int v = params->field_a + ((short*)&params->pos.y)[1];
+        int v = params->eyeHeight + ((short*)&params->pos.y)[1];
         if (v < 0) {
             v = 0;
         }
@@ -602,19 +603,19 @@ void __stdcall UpdateLineOfSight(Params* params)
             v = 0xff;
         }
         int y = (((short*)&params->pos.z)[1] - (v >> 1)) >> 5;
-        int diff = abs((int)*params->field_c - v);
-        unsigned char c = *params->field_c;
-        if (params->field_4[0] != x || params->field_4[1] != y || diff > 5) {
+        int diff = abs((int)*params->frameIdx - v);
+        unsigned char c = *params->frameIdx;
+        if (params->cacheCell[0] != x || params->cacheCell[1] != y || diff > 5) {
             if (c != 0 && (g_game->mapFlags.raw & 2)) {
                 RemoveLineOfSight(params);
             }
-            params->field_4[0] = (short)x;
-            params->field_4[1] = (short)y;
+            params->cacheCell[0] = (short)x;
+            params->cacheCell[1] = (short)y;
             if ((unsigned)x >= g_game->grid1.width || (unsigned)y >= g_game->grid1.height) {
-                *params->field_c = 0;
+                *params->frameIdx = 0;
                 return;
             }
-            *params->field_c = (unsigned char)v;
+            *params->frameIdx = (unsigned char)v;
             if ((unsigned char)(g_game->mapFlags.raw >> 1) & 1) {
                 AddLineOfSight(params);
             }
@@ -624,7 +625,7 @@ void __stdcall UpdateLineOfSight(Params* params)
         }
     }
     else {
-        int i = (short)params->field_8 / 32 - 5;
+        int i = (short)params->sightDistance / 32 - 5;
         if (i < 0) {
             i = 0;
         } else if (i >= g_game->losTable->count) {
@@ -636,17 +637,17 @@ void __stdcall UpdateLineOfSight(Params* params)
         GafFrame* e = GetGafFrame(g_game->losTable, i);
         cx -= e->xOffset;
         cy -= e->yOffset;
-        if (params->field_4[0] != cx || params->field_4[1] != cy || *params->field_c != i) {
+        if (params->cacheCell[0] != cx || params->cacheCell[1] != cy || *params->frameIdx != i) {
             if ((g_game->mapFlags.raw & 2) == 2) {
                 RemoveLineOfSight(params);
-                params->field_4[0] = (short)cx;
-                params->field_4[1] = (short)cy;
-                *params->field_c = (unsigned char)i;
+                params->cacheCell[0] = (short)cx;
+                params->cacheCell[1] = (short)cy;
+                *params->frameIdx = (unsigned char)i;
                 AddLineOfSight(params);
             } else {
-                params->field_4[0] = (short)cx;
-                params->field_4[1] = (short)cy;
-                *params->field_c = (unsigned char)i;
+                params->cacheCell[0] = (short)cx;
+                params->cacheCell[1] = (short)cy;
+                *params->frameIdx = (unsigned char)i;
             }
             if (g_game->mapFlags.raw & 1) {
                 RevealAroundUnit(params);
@@ -658,13 +659,13 @@ void __stdcall UpdateLineOfSight(Params* params)
 // FUNCTION: 0x4827b0
 void __stdcall UpdateUnitLineOfSight(Unit* unit)
 {
-    Params p;
-    p.field_0 = unit->owner;
-    p.field_4 = unit->cell;
-    p.field_8 = unit->type->range;
-    p.field_c = unit->losSightFrameIdx;
+    SightQuery p;
+    p.player = unit->owner;
+    p.cacheCell = unit->cell;
+    p.sightDistance = unit->type->range;
+    p.frameIdx = unit->losSightFrameIdx;
     p.pos = unit->pos;
-    p.field_a = unit->type->field_170;
+    p.eyeHeight = unit->type->field_170;
     int minY = (g_game->seaLevel + 1) << 16;
     if (p.pos.y < minY) {
         p.pos.y = minY;
@@ -673,18 +674,18 @@ void __stdcall UpdateUnitLineOfSight(Unit* unit)
 }
 
 // FUNCTION: 0x482830
-void __stdcall InitUnitSightCircleReveal(Params* params)
+void __stdcall InitUnitSightCircleReveal(SightQuery* params)
 {
     if ((g_game->mapFlags.rawByte & 2) != 2) {
         return;
     }
-    *params->field_c = 0;
+    *params->frameIdx = 0;
     if ((g_game->mapFlags.rawByte & 4) == 4) {
         UpdateLineOfSight(params);
         return;
     }
     // Clamp reads g_game->losTable->count twice, not through a local table pointer.
-    int lod = params->field_8 / 32 - 5;
+    int lod = params->sightDistance / 32 - 5;
     if (lod < 0) {
         lod = 0;
     } else {
@@ -697,9 +698,9 @@ void __stdcall InitUnitSightCircleReveal(Params* params)
     GafFrame* entry = GetGafFrame(g_game->losTable, lod);
     x -= entry->xOffset;
     y -= entry->yOffset;
-    params->field_4[0] = (short)x;
-    params->field_4[1] = (short)y;
-    *params->field_c = (char)lod;
+    params->cacheCell[0] = (short)x;
+    params->cacheCell[1] = (short)y;
+    *params->frameIdx = (char)lod;
     AddLineOfSight(params);
     RevealAroundUnit(params);
 }

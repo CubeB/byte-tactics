@@ -52,45 +52,47 @@ struct Game {
 };
 #pragma pack(pop)
 
-struct Params_482ac0 {
-    void* field_0;                      // +0x0
-    short* field_4;                     // +0x4
-    short field_8;                      // +0x8
-    unsigned char field_a;              // +0xa
+// One unit's sight query (Thaldren's LosSightQuery): the player, the unit's cached sight
+// cell, its sight distance and eye height, and the byte that holds its sight frame.
+struct SightQuery {
+    void* player;                      // +0x0
+    short* cacheCell;                  // +0x4
+    short sightDistance;               // +0x8
+    unsigned char eyeHeight;           // +0xa
     char unknown_b;
-    unsigned char* field_c;             // +0xc
-    Vec3_482ac0 pos;                    // +0x10
+    unsigned char* frameIdx;           // +0xc
+    Vec3_482ac0 pos;                   // +0x10
     int unknown_1c;
     int unknown_20;
 };
 
 extern Game* g_game;
 
-void __stdcall UpdateLineOfSight(Params_482ac0* params);
-void __stdcall AddLineOfSight(Params_482ac0* params);
-void __stdcall RevealAroundUnit(Params_482ac0* params);
+void __stdcall UpdateLineOfSight(SightQuery* params);
+void __stdcall AddLineOfSight(SightQuery* params);
+void __stdcall RevealAroundUnit(SightQuery* params);
 int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 
 // FUNCTION: 0x482ac0
 void __stdcall RevealNewUnit(Unit* unit)
 {
-    Params_482ac0 p;
-    p.field_0 = unit->player;
-    p.field_4 = unit->cell;
-    p.field_8 = unit->type->range;
-    p.field_c = unit->cell_id;
+    SightQuery p;
+    p.player = unit->player;
+    p.cacheCell = unit->cell;
+    p.sightDistance = unit->type->range;
+    p.frameIdx = unit->cell_id;
     p.pos = unit->pos;
-    p.field_a = unit->type->field_170;
+    p.eyeHeight = unit->type->field_170;
     int min_y = (g_game->seaLevel + 1) << 16;
     if (p.pos.y < min_y) {
         p.pos.y = min_y;
     }
     if ((g_game->mapFlags & 2) == 2) {
-        *p.field_c = 0;
+        *p.frameIdx = 0;
         if ((g_game->mapFlags & 4) == 4) {
             UpdateLineOfSight(&p);
         } else {
-            int i = p.field_8 / 32 - 5;
+            int i = p.sightDistance / 32 - 5;
             if (i < 0) {
                 i = 0;
             } else if (i >= g_game->losTable->count) {
@@ -101,9 +103,9 @@ void __stdcall RevealNewUnit(Unit* unit)
             Entry_482ac0* e = (Entry_482ac0*)GetGafFrame((unsigned short*)g_game->losTable, i);
             cell_x -= e->field_4;
             cell_y -= e->field_6;
-            p.field_4[0] = (short)cell_x;
-            p.field_4[1] = (short)cell_y;
-            *p.field_c = i;
+            p.cacheCell[0] = (short)cell_x;
+            p.cacheCell[1] = (short)cell_y;
+            *p.frameIdx = i;
             AddLineOfSight(&p);
             RevealAroundUnit(&p);
         }

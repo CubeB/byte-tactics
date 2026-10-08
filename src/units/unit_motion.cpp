@@ -83,8 +83,10 @@ struct GafFrame {
 
 struct Vertex_458810 { int x; int y; int z; };
 
-struct Owner_458810 {
-    void* relation;               // +0x00
+// The unit whose object state is drawn: its motion pointer, the draw flags and the
+// z-buffer flag.
+struct Unit_458810 {
+    void* motion;                 // +0x00
     char unknown_4[0x1c];
     int field_20;                 // +0x20
     char unknown_24[0xff - 0x24];
@@ -92,10 +94,10 @@ struct Owner_458810 {
     char unknown_100[4];
     float intensity;              // +0x104
     char unknown_108[6];
-    unsigned char field_10e;      // +0x10e
+    unsigned char activateFlags;  // +0x10e
     char unknown_10f;
     unsigned int flags;           // +0x110
-    unsigned char field_114;      // +0x114
+    unsigned char zBufferFlag;    // +0x114
     char unknown_115[3];
 };
 
@@ -115,7 +117,7 @@ struct List_458810 {
     int pieceCount;               // +0x00
     int frame;                    // +0x04
     char unknown_8[4];
-    Owner_458810* owner;          // +0x0c
+    Unit_458810* owner;           // +0x0c
     GafFrame* bitmap;               // +0x10
     int field_14;                 // +0x14
     char unknown_18[0x22 - 0x18];
@@ -431,15 +433,15 @@ void CMemoryCache::DrawObjectState(List_458810* list, Vec3_458810* result)
     int x = *(int*)((char*)g_game + 0x1431f) << 16;
     int z = *(int*)((char*)g_game + 0x14323) << 16;
     int visible;
-    Owner_458810* owner = list->owner;
+    Unit_458810* owner = list->owner;
     if (owner->flags & 0x20000000) {
-        int t = (unsigned char)~owner->field_10e;
+        int t = (unsigned char)~owner->activateFlags;
         if (t & 1)
             visible = 1;
         else
             visible = 0;
     } else {
-        visible = *(int*)((char*)owner->relation + 0x20) == 0;
+        visible = *(int*)((char*)owner->motion + 0x20) == 0;
     }
     if (list->frame == 0)
         rebuild = 1;
@@ -459,7 +461,7 @@ void CMemoryCache::DrawObjectState(List_458810* list, Vec3_458810* result)
     }
     if (list->bitmap == 0 && (owner->flags & 0x20000000) != 0)
         rebuild = 1;
-    if ((owner->field_114 & 1) != 0 && list->bitmap == 0)
+    if ((owner->zBufferFlag & 1) != 0 && list->bitmap == 0)
         rebuild = 1;
     if (rebuild) {
         list->field_14 = 0;

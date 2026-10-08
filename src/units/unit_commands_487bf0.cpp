@@ -507,8 +507,8 @@ void __stdcall GiveUnitToPlayer(Unit* unit, Player_00488310* other, OwnershipTra
             n->b56 = unit->b56;
         DamageUnit(0, unit, 30000, 4, 0);
     }
-    ((Unit*)n)->SetStateBits(unit->activateFlags, 1);
-    ((Unit*)n)->SetStateBits(~unit->activateFlags, 0);
+    n->SetStateBits(unit->activateFlags, 1);
+    n->SetStateBits(~unit->activateFlags, 0);
 }
 
 // A quicksort of a range of item pointers ordered by ComparePlayers through a

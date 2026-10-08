@@ -419,7 +419,7 @@ int CobScript::QueryScript(char* name, int* param_2, int* param_3, int* param_4,
 // FUNCTION: 0x4b0c40
 int CobScript::QueryScriptByIndex(int index, int* p2, int* p3, int* p4, int* p5)
 {
-    int i = ((CobScript*)this)->StartThread(index);
+    int i = this->StartThread(index);
     if (i < 0)
         return 0;
     // Not the real channels[i]: that folds the 0x1c base into every field offset.
@@ -432,7 +432,7 @@ int CobScript::QueryScriptByIndex(int index, int* p2, int* p3, int* p4, int* p5)
     c->values[++cnt] = p4 ? *p4 : 0;
     c->values[++cnt] = p5 ? *p5 : 0;
     c->count = 3;
-    ((CobScript*)this)->RunThread(i, 0);
+    this->RunThread(i, 0);
     if (p2) *p2 = c->values[0];
     if (p3) *p3 = c->values[1];
     if (p4) *p4 = c->values[2];
@@ -850,7 +850,7 @@ void CobScript::RunThread(unsigned int channel, int elapsed)
             }
             case 0x10061000: {
                 int count = table->code[c->pc + 2];
-                int child = ((CobScript *)this)->StartThread(table->code[c->pc + 1]);
+                int child = this->StartThread(table->code[c->pc + 1]);
                 if (child >= 0)
                 {
                     if (count > 0)
@@ -872,7 +872,7 @@ void CobScript::RunThread(unsigned int channel, int elapsed)
             }
             case 0x10062000: {
                 int count = table->code[c->pc + 2];
-                int child = ((CobScript *)this)->StartThread(table->code[c->pc + 1]);
+                int child = this->StartThread(table->code[c->pc + 1]);
                 if (child >= 0)
                 {
                     if (count > 0)

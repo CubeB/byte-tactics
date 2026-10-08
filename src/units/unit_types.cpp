@@ -1000,7 +1000,7 @@ void LoadUnitTypes() {
             scale = (float)d;
     }
     int size = (int)(v * scale);
-    ((UnitTable*)g_game->unitTable)->Initialize((size + 0xfff) & 0xfffff000);
+    g_game->unitTable->Initialize((size + 0xfff) & 0xfffff000);
 
     ProtectBlockReadWrite(g_game->unitDefs);
 

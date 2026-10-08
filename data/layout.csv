@@ -5658,46 +5658,46 @@ piece,0x4fd024,4,src/weapons/explosions_420620.cpp,35,4,game data
 piece,0x4fd028,4,src/weapons/explosions_420620.cpp,35,8,game data
 piece,0x502c38,16,src/weapons/explosions_420620.cpp,4,0,game data
 piece,0x502c28,13,src/weapons/explosions_420620.cpp,3,0,game data
-piece,0x502be0,24,src/frontend/endgame_41f7f0.cpp,18,0,game data
-piece,0x502b40,12,src/frontend/endgame_41f7f0.cpp,16,0,game data
-piece,0x502a84,31,src/frontend/endgame_41f7f0.cpp,15,0,game data
-piece,0x502bc0,19,src/frontend/endgame_41f7f0.cpp,14,0,game data
-piece,0x502ba4,10,src/frontend/endgame_41f7f0.cpp,10,0,game data
-piece,0x502b98,10,src/frontend/endgame_41f7f0.cpp,9,0,game data
-piece,0x502b90,8,src/frontend/endgame_41f7f0.cpp,8,0,game data
-piece,0x502b88,8,src/frontend/endgame_41f7f0.cpp,7,0,game data
-piece,0x502b80,6,src/frontend/endgame_41f7f0.cpp,6,0,game data
-piece,0x502b6c,20,src/frontend/endgame_41f7f0.cpp,5,0,game data
-piece,0x502b5c,15,src/frontend/endgame_41f7f0.cpp,4,0,game data
-piece,0x502b4c,13,src/frontend/endgame_41f7f0.cpp,3,0,game data
-piece,0x502aec,5,src/frontend/endgame_41f400.cpp,7,0,game data
-piece,0x502b24,11,src/frontend/endgame_41f400.cpp,4,0,game data
-piece,0x502aa4,9,src/frontend/endgame_41f400.cpp,3,0,game data
-piece,0x502b18,11,src/frontend/endgame_41f0a0.cpp,11,0,game data
-piece,0x502b0c,10,src/frontend/endgame_41f0a0.cpp,10,0,game data
-piece,0x502b00,9,src/frontend/endgame_41f0a0.cpp,9,0,game data
-piece,0x502af4,9,src/frontend/endgame_41f0a0.cpp,7,0,game data
-piece,0x502a24,13,src/frontend/endgame_41eb60.cpp,4,0,game data
-piece,0x502a10,13,src/frontend/endgame_41eaa0.cpp,3,0,game data
-piece,0x502a00,14,src/frontend/endgame_41e420.cpp,12,0,game data
-piece,0x4fd008,4,src/frontend/endgame_41e420.cpp,10,0,game data
-piece,0x4fd00c,4,src/frontend/endgame_41e420.cpp,10,4,game data
-piece,0x5029f0,8,src/frontend/endgame_41e420.cpp,9,0,game data
-piece,0x5029e4,9,src/frontend/endgame_41e420.cpp,8,0,game data
-piece,0x5029d8,12,src/frontend/endgame_41e420.cpp,7,0,game data
-piece,0x5029cc,12,src/frontend/endgame_41e420.cpp,6,0,game data
-piece,0x5029c0,10,src/frontend/endgame_41e420.cpp,5,0,game data
-piece,0x5029b4,10,src/frontend/endgame_41e420.cpp,4,0,game data
-piece,0x5029ac,8,src/frontend/endgame_41e420.cpp,3,0,game data
-piece,0x5029a0,10,src/frontend/endgame_41da60.cpp,11,0,game data
-piece,0x502990,15,src/frontend/endgame_41da60.cpp,10,0,game data
-piece,0x502980,15,src/frontend/endgame_41da60.cpp,9,0,game data
-piece,0x502964,16,src/frontend/endgame_41da60.cpp,6,0,game data
-piece,0x502950,18,src/frontend/endgame_41da60.cpp,5,0,game data
-piece,0x502944,9,src/frontend/endgame_41da60.cpp,4,0,game data
-piece,0x502938,9,src/frontend/endgame_41da60.cpp,3,0,game data
-piece,0x50292c,12,src/frontend/endgame_41d920.cpp,6,0,game data
-piece,0x502920,9,src/frontend/endgame_41d920.cpp,5,0,game data
+piece,0x502be0,24,src/frontend/endgame.cpp,109,0,game data
+piece,0x502b40,12,src/frontend/endgame.cpp,92,0,game data
+piece,0x502a84,31,src/frontend/endgame.cpp,62,0,game data
+piece,0x502bc0,19,src/frontend/endgame.cpp,107,0,game data
+piece,0x502ba4,10,src/frontend/endgame.cpp,104,0,game data
+piece,0x502b98,10,src/frontend/endgame.cpp,103,0,game data
+piece,0x502b90,8,src/frontend/endgame.cpp,102,0,game data
+piece,0x502b88,8,src/frontend/endgame.cpp,101,0,game data
+piece,0x502b80,6,src/frontend/endgame.cpp,100,0,game data
+piece,0x502b6c,20,src/frontend/endgame.cpp,99,0,game data
+piece,0x502b5c,15,src/frontend/endgame.cpp,98,0,game data
+piece,0x502b4c,13,src/frontend/endgame.cpp,97,0,game data
+piece,0x502aec,5,src/frontend/endgame.cpp,74,0,game data
+piece,0x502b24,11,src/frontend/endgame.cpp,81,0,game data
+piece,0x502aa4,9,src/frontend/endgame.cpp,63,0,game data
+piece,0x502b18,11,src/frontend/endgame.cpp,78,0,game data
+piece,0x502b0c,10,src/frontend/endgame.cpp,77,0,game data
+piece,0x502b00,9,src/frontend/endgame.cpp,76,0,game data
+piece,0x502af4,9,src/frontend/endgame.cpp,75,0,game data
+piece,0x502a24,13,src/frontend/endgame.cpp,56,0,game data
+piece,0x502a10,13,src/frontend/endgame.cpp,52,0,game data
+piece,0x502a00,14,src/frontend/endgame.cpp,47,0,game data
+piece,0x4fd008,4,src/frontend/endgame.cpp,45,0,game data
+piece,0x4fd00c,4,src/frontend/endgame.cpp,45,4,game data
+piece,0x5029f0,8,src/frontend/endgame.cpp,44,0,game data
+piece,0x5029e4,9,src/frontend/endgame.cpp,43,0,game data
+piece,0x5029d8,12,src/frontend/endgame.cpp,42,0,game data
+piece,0x5029cc,12,src/frontend/endgame.cpp,41,0,game data
+piece,0x5029c0,10,src/frontend/endgame.cpp,40,0,game data
+piece,0x5029b4,10,src/frontend/endgame.cpp,39,0,game data
+piece,0x5029ac,8,src/frontend/endgame.cpp,38,0,game data
+piece,0x5029a0,10,src/frontend/endgame.cpp,23,0,game data
+piece,0x502990,15,src/frontend/endgame.cpp,22,0,game data
+piece,0x502980,15,src/frontend/endgame.cpp,21,0,game data
+piece,0x502964,16,src/frontend/endgame.cpp,18,0,game data
+piece,0x502950,18,src/frontend/endgame.cpp,17,0,game data
+piece,0x502944,9,src/frontend/endgame.cpp,16,0,game data
+piece,0x502938,9,src/frontend/endgame.cpp,15,0,game data
+piece,0x50292c,12,src/frontend/endgame.cpp,6,0,game data
+piece,0x502920,9,src/frontend/endgame.cpp,5,0,game data
 piece,0x502914,10,src/game/cd_check.cpp,19,0,game data
 piece,0x502904,12,src/game/cd_check.cpp,15,0,game data
 piece,0x5028e8,14,src/game/cd_check.cpp,13,0,game data
@@ -12072,12 +12072,10 @@ same,0x5024fc,15,src/game/console_commands_417430.cpp,23,0,
 same,0x502820,5,src/ingame/control_panel.cpp,82,0,
 same,0x5028f8,9,src/game/cd_check.cpp,14,0,
 same,0x502910,2,src/game/cd_check.cpp,18,0,
-same,0x502a20,3,src/frontend/endgame_41eb60.cpp,3,0,
-same,0x502a78,11,src/frontend/endgame_41ec50.cpp,5,0,
-same,0x502ae8,3,src/frontend/endgame_41f0a0.cpp,3,0,
-same,0x502a78,11,src/frontend/endgame_41f400.cpp,5,0,
-same,0x502ae8,3,src/frontend/endgame_41f680.cpp,5,0,
-same,0x502b38,8,src/frontend/endgame_41f680.cpp,4,0,
+same,0x502a20,3,src/frontend/endgame.cpp,55,0,
+same,0x502a78,11,src/frontend/endgame.cpp,61,0,
+same,0x502ae8,3,src/frontend/endgame.cpp,73,0,
+same,0x502b38,8,src/frontend/endgame.cpp,89,0,
 same,0x511fb4,4,src/map/features_4223e0.cpp,3,0,
 same,0x502e78,12,src/map/features_4224b0.cpp,43,0,
 same,0x502e30,6,src/map/features_4224b0.cpp,35,0,

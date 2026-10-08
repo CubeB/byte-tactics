@@ -16,32 +16,31 @@ class TdfRecord {
     char* GetFieldName(int index);
 };
 
-// The reference-counted string handle: a pointer to the characters with the
-// reference count in the int just before them (0x4c91a0 copies, 0x4c91b0
-// builds from text and 0x4c9390 releases).
-class StringRef {
+class Class_004c9390 {
   public:
     char* ptr;
-    StringRef(const StringRef& other);
-    StringRef(const char* text);
-    StringRef(const char* text, int len);
-    ~StringRef() { ReleaseRef(); }
-    StringRef& operator=(const StringRef& other);
     void ReleaseRef();
-    StringRef* Assign(const StringRef* other);
-    StringRef* Append(const StringRef& other);
-    StringRef* MakeLower();
-    StringRef* MakeUpper();
-    StringRef* AssignText(const char* text);
-    char* GetUnique();
-    StringRef SubString(int start, int end) const;
 };
 
-static inline bool operator==(const StringRef& a, const StringRef& b) {
+// A reference-counted string handle (0x4c91a0 copies, 0x4c9390 releases).
+class Class_004c91a0 {
+  public:
+    char* ptr;
+    Class_004c91a0(const Class_004c91a0& other);
+    ~Class_004c91a0() { ((Class_004c9390*)this)->ReleaseRef(); }
+    Class_004c91a0& operator=(const Class_004c91a0& other);
+};
+
+class Class_004c91b0 : public Class_004c91a0 {
+  public:
+    Class_004c91b0(const char* text);
+};
+
+static inline bool operator==(const Class_004c91a0& a, const Class_004c91a0& b) {
     return strcmp(a.ptr, b.ptr) == 0;
 }
 
-static inline bool Ne(const StringRef& a, const StringRef& b) {
+static inline bool Ne(const Class_004c91a0& a, const Class_004c91a0& b) {
     return !(a == b);
 }
 
@@ -51,10 +50,10 @@ static inline bool Less(const char* a, const char* b) {
 
 // One entry of a weapon's damage table: a unit name and its damage.
 struct Entry_00432cf0 {
-    StringRef name; // +0x0
+    Class_004c91a0 name; // +0x0
     int value;           // +0x4
 
-    Entry_00432cf0(const StringRef& n, int v) : name(n), value(v) {}
+    Entry_00432cf0(const Class_004c91a0& n, int v) : name(n), value(v) {}
 };
 
 #pragma pack(push, 1)
@@ -193,7 +192,7 @@ public:
     int SelectRecordAt(int index);
 };
 
-void __stdcall ListDirectory(const char* pattern, int flags, std::vector<StringRef>* out);
+void __stdcall ListDirectory(const char* pattern, int flags, std::vector<Class_004c91a0>* out);
 void __stdcall LoadWeaponType(int section);
 int FUN_0041d8a0(void);
 extern void __cdecl operator delete(void*);
@@ -212,10 +211,10 @@ void LoadWeaponTypes()
     }
 
     char path[256];
-    std::vector<StringRef> files;
+    std::vector<Class_004c91a0> files;
     ListDirectory("Weapons\\*.tdf", 0, &files);
 
-    for (StringRef* p = files.begin(); p < files.end(); p++) {
+    for (Class_004c91a0* p = files.begin(); p < files.end(); p++) {
         TdfFile parser;
         BuildDataPath(path, "Weapons", p->ptr, "TDF");
         if (parser.LoadFile(path)
@@ -391,7 +390,7 @@ model_done:
                 int value = ((TdfRecord*)damage)->GetFieldInt(key, 0);
                 if (!w->sub)
                     w->sub = new Map_0042e440;
-                StringRef name(key);
+                Class_004c91b0 name(key);
                 Map_0042e440* m = w->sub;
                 Entry_00432cf0* e = m->LowerBound(name.ptr);
                 // insert called here, not in a helper (inline depth); e assigned

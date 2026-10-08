@@ -8,26 +8,23 @@
 #include <vector>
 #include <string.h>
 
-// The reference-counted string handle: a pointer to the characters with the
-// reference count in the int just before them.
-class StringRef {
+class Class_004c9390 {
 public:
-    char* p;                           // count in the dword before p
-
-    StringRef();
-    StringRef(const StringRef& other);
-    StringRef(const char* text);
-    ~StringRef() { ReleaseRef(); }
+    char* data;
     void ReleaseRef();
-    StringRef* Assign(const StringRef* other);
-    StringRef* AssignText(const char* text);
-    StringRef* MakeLower();
-    StringRef* MakeUpper();
+};
+
+class Class_004c91a0 {
+public:
+    char* p;
+    Class_004c91a0();
+    Class_004c91a0(const Class_004c91a0& other);
+    ~Class_004c91a0() { ((Class_004c9390*)this)->ReleaseRef(); }
 };
 
 struct TdfField {
-    StringRef a;                // +0x0 key
-    StringRef b;                // +0x4 value
+    Class_004c91a0 a;                  // +0x0 key
+    Class_004c91a0 b;                  // +0x4 value
 };
 
 void __cdecl GameFreeThunk(int* param_1);

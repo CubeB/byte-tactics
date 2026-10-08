@@ -345,7 +345,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Menu_004aa8f0* menu, const char* name,
         menu->layer->field_14 = 1;
     if (menu->layer != 0)
         menu->layer->field_18 = 0;
-    strncpy((char*)entry + 2, guiName, 0x10);
+    strncpy((char*)&entry->name[0], guiName, 0x10);
     menu->field_64 = -1;
     if ((flags & 0x400) == 0) {
         HideSoftwareCursor();
@@ -426,7 +426,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Menu_004aa8f0* menu, const char* name,
             SetFont(*g_guiContext);
         TrySetFocus(menu, 1);
         menu->layer->field_20 = 1;
-        CommitTextEdit(menu, 1, (char*)sub + 0xb6,
+        CommitTextEdit(menu, 1, (char*)&sub->count,
                      *(short*)((char*)sub + 0x138), 0);
         ClearKeyQueue();
         }
@@ -464,7 +464,7 @@ int __stdcall HasLayer(Menu_004aa8f0* obj)
 int __stdcall IsScreenNamed(Menu_004aa8f0* obj, const char* name)
 {
     // The entries pointer, two bytes in, is the first entry's name.
-    if (obj->layer && _strnicmp((char*)obj->layer->entries + 2, name, 0x10) == 0)
+    if (obj->layer && _strnicmp((char*)&obj->layer->entries->name[0], name, 0x10) == 0)
         return 1;
     return 0;
 }
@@ -1050,7 +1050,7 @@ int __stdcall IsMessageBoxScreen(Menu_004aa8f0* obj)
 {
     if (!obj->layer)
         return 0;
-    return strcmp((char*)obj->layer->entries + 2, "MSGBOX.GUI") == 0;
+    return strcmp((char*)&obj->layer->entries->name[0], "MSGBOX.GUI") == 0;
 }
 
 // Builds the MSGBOX.GUI dialog: word-wraps the (translated) message text, adds

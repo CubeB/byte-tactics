@@ -9,7 +9,7 @@
 
 // The cursor bitmap at +0x1b2: its size and the hotspot its origin is
 // offset by.
-struct Sprite_004c24b0 {
+struct GafFrame {
     unsigned short width;              // +0x0
     unsigned short height;             // +0x2
     short dx;                          // +0x4
@@ -49,7 +49,7 @@ struct Obj_004c2380 {
     int tail;                          // +0x192
     Event_4c2d60 rect;                 // +0x196, the last mouse event
     int count;                         // +0x1ae
-    Sprite_004c24b0* sprite;           // +0x1b2
+    GafFrame* sprite;                  // +0x1b2
     int x;                             // +0x1b6
     int y;                             // +0x1ba
     Desc_004c25e0* saved;              // +0x1be
@@ -70,7 +70,7 @@ extern LONG DAT_0052a4ec;
 extern HANDLE DAT_0052a4f0;
 
 void __cdecl BlitSurface(void* dst, void* src, int x, int y);
-void __stdcall DrawFrame(void* dst, Sprite_004c24b0* bmp, int x, int y);
+void __stdcall DrawFrame(void* dst, GafFrame* bmp, int x, int y);
 void __stdcall DrawSurface(Desc_004c25e0* dst, Desc_004c25e0* bmp, int x, int y);
 int __stdcall LockPrimary(void* out);
 int __stdcall UnlockPrimary(void* unused, RECT* r1, RECT* r2);
@@ -358,7 +358,7 @@ int __stdcall StopMouseThread(Obj_004c2380* s)
 void __stdcall SetCursorSprite(int value)
 {
     LONG held = LockMain();
-    GetDisplay()->sprite = (Sprite_004c24b0*)value;
+    GetDisplay()->sprite = (GafFrame*)value;
     UnlockMain(held);
 }
 

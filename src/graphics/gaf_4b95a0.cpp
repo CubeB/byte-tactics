@@ -8,7 +8,7 @@
 // Must include <stdlib.h>: the header state sets the pixel read order.
 #include <stdlib.h>
 
-struct Image_004b95a0 {
+struct GafFrame {
     unsigned short width;   // +0x0
     unsigned short height;  // +0x2
     char unknown_4[4];      // +0x4
@@ -26,7 +26,7 @@ struct Palette_004b95a0 {
 Palette_004b95a0* GetDisplay();
 
 // FUNCTION: 0x4b95a0
-void __stdcall DownsampleFrame(Image_004b95a0* src, Image_004b95a0* dst)
+void __stdcall DownsampleFrame(GafFrame* src, GafFrame* dst)
 {
     Palette_004b95a0* pal = GetDisplay();
     int row = 0;

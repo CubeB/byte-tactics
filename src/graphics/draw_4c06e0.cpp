@@ -7,7 +7,7 @@
 #include <string.h>
 
 struct Span_004c06e0 { int x1; int x2; char unknown_8[0x18 - 0x8]; int z1; int z2; };
-struct Surface_004c06e0 {
+struct GafFrame {
     unsigned short pitch;              // +0x0
     char unknown_2[0x10 - 0x2];
     unsigned char* bits;               // +0x10
@@ -18,7 +18,7 @@ struct Surface_004c06e0 {
 
 // Not gathered into draw.cpp: its register allocation follows symbol ids.
 // FUNCTION: 0x4c06e0
-void __stdcall FillFlatSpan(int row, Span_004c06e0* span, Surface_004c06e0* surf, unsigned char color)
+void __stdcall FillFlatSpan(int row, Span_004c06e0* span, GafFrame* surf, unsigned char color)
 {
     unsigned char* p = surf->bits;
     unsigned char* d = surf->depth;

@@ -12,7 +12,7 @@ struct Pos_4589c0 {
     Pos_4589c0(int a, int b, int c) { x = a; y = b; z = c; }
 };
 
-struct Image_4589c0 {
+struct GafFrame {
     unsigned short width;           // +0x00
     unsigned short height;          // +0x02
     short dx;                       // +0x04
@@ -24,15 +24,6 @@ struct Image_4589c0 {
     char unknown_c[4];
     unsigned char* pixels;          // +0x10
     unsigned char* shade;           // +0x14
-};
-
-struct Src_4589c0 {
-    unsigned short width;           // +0x00
-    unsigned short height;          // +0x02
-    unsigned short x;               // +0x04
-    unsigned short y;               // +0x06
-    char unknown_8[8];
-    int bits;                       // +0x10
 };
 
 struct Surface_4589c0 {
@@ -103,8 +94,8 @@ struct Model_459200 {
     int count;                         // +0x0
     char unknown_4[0xc - 0x4];
     Unit_459200* owner;                // +0xc
-    Image_4589c0* bitmap;              // +0x10
-    Image_4589c0* field_14;            // +0x14
+    GafFrame* bitmap;                  // +0x10
+    GafFrame* field_14;                // +0x14
     char unknown_18[0x22 - 0x18];
     Piece_459200 pieces[1];            // +0x22
     char unknown_58[0x6a - 0x58];
@@ -166,13 +157,13 @@ public:
 
 class Class_00458d30 {
 public:
-    int ShadeByIntensity(Image_4589c0* image, Model_459200* model);
+    int ShadeByIntensity(GafFrame* image, Model_459200* model);
 };
 
 class Surface;
 
-void __stdcall SurfaceFromFrame(Surface_4589c0* dst, Src_4589c0* src);
-void __stdcall DrawFrame(Surface* dst, Image_4589c0* bmp, int x, int y);
+void __stdcall SurfaceFromFrame(Surface_4589c0* dst, GafFrame* src);
+void __stdcall DrawFrame(Surface* dst, GafFrame* bmp, int x, int y);
 
 template <class T> inline void Swap(T& a, T& b)
 {
@@ -186,21 +177,21 @@ extern const float DAT_004fd4c0;
 
 struct CMemoryCache {
     char unknown_0[0x10];
-    Image_4589c0* bitmap;           // +0x10
+    GafFrame* bitmap;               // +0x10
 
-    void BuildShadow(Model_459200*, Image_4589c0*);
+    void BuildShadow(Model_459200*, GafFrame*);
     void DrawPiece(Model_459200*, int, Vec3_459200*, int, int, unsigned char, int);
     void DrawObjectPicture(int param_2, Model_459200* model, Vec3_459200 v, int useColor);
-    void MergeIntoComposite(Image_4589c0* src, Model_459200* model);
+    void MergeIntoComposite(GafFrame* src, Model_459200* model);
 };
-struct Class_0045a470 { void MakeSilhouette(Image_4589c0*); };
-struct UnitTable { void BuildObjectPicture(Model_459200*,int,int); void DrawPieces(Image_4589c0*,Model_459200*,int,int); };
+struct Class_0045a470 { void MakeSilhouette(GafFrame*); };
+struct UnitTable { void BuildObjectPicture(Model_459200*,int,int); void DrawPieces(GafFrame*,Model_459200*,int,int); };
 
 int __stdcall GetGroundHeight(Pos_459200* p);
-void __stdcall DrawFrameBlended(int param_1, Image_4589c0* param_2, int x, int y);
-void __stdcall DrawFrameDepth(Image_4589c0* bmp, Image_4589c0* param_2, int x, int y, int z);
-void __stdcall TintFrameBelow(Image_4589c0* param_1, int value);
-void __stdcall CutFrameBelow(Image_4589c0* param_1, int value);
+void __stdcall DrawFrameBlended(int param_1, GafFrame* param_2, int x, int y);
+void __stdcall DrawFrameDepth(GafFrame* bmp, GafFrame* param_2, int x, int y, int z);
+void __stdcall TintFrameBelow(GafFrame* param_1, int value);
+void __stdcall CutFrameBelow(GafFrame* param_1, int value);
 
 // team_bias (if/return) is used only in the b30 arm; other sites keep shade_bias.
 static inline int team_bias(Model_459200* model)
@@ -231,7 +222,7 @@ static inline int shade_bias(Model_459200* model)
 // FUNCTION: 0x459200
 void CMemoryCache::DrawObjectPicture(int param_2, Model_459200* model, Vec3_459200 v, int useColor)
 {
-    Image_4589c0* bmp = model->bitmap;
+    GafFrame* bmp = model->bitmap;
     TeamFlags_459200 f;
     if (bmp == 0)
         return;

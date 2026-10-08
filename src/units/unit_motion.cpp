@@ -67,16 +67,16 @@ struct Chunk_00437a30 {
 };
 
 // A 0x18-byte frame header, followed in the arena by its planes.
-struct Bitmap_00437b50 {
+struct GafFrame {
     unsigned short width;              // +0x0
     unsigned short height;             // +0x2
-    short field_4;                     // +0x4
-    short field_6;                     // +0x6
-    unsigned char field_8;             // +0x8, the key colour
-    char field_9;                      // +0x9
-    char field_a;                      // +0xa
-    char field_b;                      // +0xb
-    int field_c;                       // +0xc
+    short xOffset;                     // +0x4
+    short yOffset;                     // +0x6
+    unsigned char transparency;        // +0x8, the key colour
+    char compressed;                   // +0x9
+    char layers;                       // +0xa
+    char blend;                        // +0xb
+    int reserved;                      // +0xc
     unsigned char* pixels;             // +0x10
     unsigned char* plane2;             // +0x14, the second plane, mask or compressed copy
 };
@@ -116,7 +116,7 @@ struct List_458810 {
     int frame;                    // +0x04
     char unknown_8[4];
     Owner_458810* owner;          // +0x0c
-    Bitmap_00437b50* bitmap;        // +0x10
+    GafFrame* bitmap;               // +0x10
     int field_14;                 // +0x14
     char unknown_18[0x22 - 0x18];
     Piece_458810 pieces[1];       // +0x22
@@ -134,12 +134,12 @@ struct Vec3_458810 { int x; int y; int z; };
 
 struct State_0045a790 {
     char unknown_0[0x14];
-    Bitmap_00437b50* sprite;           // +0x14 the picture built here
+    GafFrame* sprite;                  // +0x14 the picture built here
     char unknown_18[0x22 - 0x18];
 };
 
-void __stdcall CutOutFrame(Bitmap_00437b50* dst, Bitmap_00437b50* src, int x, int y);
-int __stdcall CompressFrame(unsigned char* dest, Bitmap_00437b50* img);
+void __stdcall CutOutFrame(GafFrame* dst, GafFrame* src, int x, int y);
+int __stdcall CompressFrame(unsigned char* dest, GafFrame* img);
 
 class CMemoryCache {
 public:
@@ -147,26 +147,26 @@ public:
     int base;                          // +0x4, the arena
     int cur;                           // +0x8, the next chunk to hand out
     void* handle;                      // +0xc
-    Bitmap_00437b50* image;            // +0x10, the scratch image
+    GafFrame* image;                   // +0x10, the scratch image
 
     CMemoryCache* ClearPointers();
     int InitCache(unsigned int size);
     void FreeCache();
     void FreeBuffer();
     int AllocHandle(void** p, int need);
-    int AllocBitmap(Bitmap_00437b50** handle, int w, int h);
-    int AllocTwoPlaneBitmap(Bitmap_00437b50** handle, int w, int h);
+    int AllocBitmap(GafFrame** handle, int w, int h);
+    int AllocTwoPlaneBitmap(GafFrame** handle, int w, int h);
     void FlushCache();
     void ReleaseHandle(int id);
     void DrawObjectState(List_458810* list, Vec3_458810* result);
-    void CopyPicture(Bitmap_00437b50* source);
-    void BuildShadow(State_0045a790* obj, Bitmap_00437b50* dest);
+    void CopyPicture(GafFrame* source);
+    void BuildShadow(State_0045a790* obj, GafFrame* dest);
     void DrawPiece(List_458810* list, Vec3_458810* param_2, void* param_3,
         PieceInfo_458810* info, Vertex_458810* vertices, unsigned char kind, int visible);
     void DrawObjectPicture(void* param_1, List_458810* list, Vec3_458810 coords, int visible);
     void DrawObjectPieces(Vec3_458810* result, List_458810* list, Vec3_458810 v, int visible);
     void MeasureShadow(int* w, int* h, int* x, int* y, void* obj);
-    void DrawShadowShape(Bitmap_00437b50* img, void* obj);
+    void DrawShadowShape(GafFrame* img, void* obj);
 };
 
 void CMemoryCache::DrawObjectPieces(Vec3_458810* result, List_458810* list, Vec3_458810 v, int visible)
@@ -339,25 +339,25 @@ int CMemoryCache::AllocHandle(void** p, int need)
 // The original calls this from BuildShadow (0x45a790) rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x437b50
-int CMemoryCache::AllocBitmap(Bitmap_00437b50** handle, int w, int h)
+int CMemoryCache::AllocBitmap(GafFrame** handle, int w, int h)
 {
     int n = w * h;
     if (!AllocHandle((void**)handle, n + 0x18))
         return 0;
-    Bitmap_00437b50* b = *handle;
+    GafFrame* b = *handle;
     if (!b)
         return 0;
     b->plane2 = 0;
-    b->field_4 = 0;
-    b->field_6 = 0;
-    b->field_a = 0;
-    b->field_b = 0;
-    b->field_c = 0;
-    b->field_9 = 0;
+    b->xOffset = 0;
+    b->yOffset = 0;
+    b->layers = 0;
+    b->blend = 0;
+    b->reserved = 0;
+    b->compressed = 0;
     b->width = w;
     b->height = h;
     b->pixels = (unsigned char*)(b + 1);
-    b->field_8 = 1;
+    b->transparency = 1;
     memset(b->pixels, 1, n);
     return 1;
 }
@@ -366,28 +366,28 @@ int CMemoryCache::AllocBitmap(Bitmap_00437b50** handle, int w, int h)
 // Allocates a two-plane w*h bitmap from the arena (0x437a30): a 0x18-byte
 // header, then a plane filled with 1 and a plane cleared to 0.
 // FUNCTION: 0x437be0
-int CMemoryCache::AllocTwoPlaneBitmap(Bitmap_00437b50** handle, int w, int h)
+int CMemoryCache::AllocTwoPlaneBitmap(GafFrame** handle, int w, int h)
 {
     int n = w * h;
     if (!AllocHandle((void**)handle, n * 2 + 0x18))
         return 0;
-    Bitmap_00437b50* b = *handle;
+    GafFrame* b = *handle;
     if (!b)
         return 0;
     // Plane pointer taken before the header stores: it keeps the zero out of eax.
     unsigned char* p = (unsigned char*)(b + 1);
-    b->field_4 = 0;
-    b->field_6 = 0;
-    b->field_a = 0;
-    b->field_b = 0;
-    b->field_c = 0;
-    b->field_9 = 0;
+    b->xOffset = 0;
+    b->yOffset = 0;
+    b->layers = 0;
+    b->blend = 0;
+    b->reserved = 0;
+    b->compressed = 0;
     b->width = w;
     b->height = h;
     b->pixels = p;
     b->plane2 = p + n;
     memset(b->plane2, 0, n);
-    b->field_8 = 1;
+    b->transparency = 1;
     memset(b->pixels, 1, n);
     return 1;
 }
@@ -445,7 +445,7 @@ void CMemoryCache::DrawObjectState(List_458810* list, Vec3_458810* result)
         rebuild = 1;
     if (list->bitmap == 0)
         list->field_14 = 0;
-    Bitmap_00437b50* bitmap = list->bitmap;
+    GafFrame* bitmap = list->bitmap;
     if ((owner->flags & 0x20000000) != 0) {
         // The bitmap-null case is its own `rebuild = 1` statement.
         if (list->bitmap == 0)
@@ -475,13 +475,13 @@ void CMemoryCache::DrawObjectState(List_458810* list, Vec3_458810* result)
 // Copies an image (size, three header fields, pixels and optional mask) into
 // the object's own image, whose buffers are already allocated.
 // FUNCTION: 0x459170
-void CMemoryCache::CopyPicture(Bitmap_00437b50* source)
+void CMemoryCache::CopyPicture(GafFrame* source)
 {
     image->width = source->width;
     image->height = source->height;
-    image->field_4 = source->field_4;
-    image->field_6 = source->field_6;
-    image->field_8 = source->field_8;
+    image->xOffset = source->xOffset;
+    image->yOffset = source->yOffset;
+    image->transparency = source->transparency;
     memcpy(image->pixels, source->pixels, source->width * source->height);
     if (source->plane2)
         memcpy(image->plane2, source->plane2, source->width * source->height);
@@ -493,25 +493,25 @@ void CMemoryCache::CopyPicture(Bitmap_00437b50* source)
 // is blitted over it, and the run length compressed result becomes the state's
 // sprite (CompressFrame, then a one plane bitmap from the arena).
 // FUNCTION: 0x45a790
-void CMemoryCache::BuildShadow(State_0045a790* obj, Bitmap_00437b50* dest)
+void CMemoryCache::BuildShadow(State_0045a790* obj, GafFrame* dest)
 {
     int w, h, x, y;
     MeasureShadow(&w, &h, &x, &y, obj);
     image->width = (unsigned short)w;
     image->height = (unsigned short)h;
-    image->field_4 = (unsigned short)x;
-    image->field_6 = (unsigned short)y;
-    memset(image->pixels, image->field_8, h * w);
+    image->xOffset = (unsigned short)x;
+    image->yOffset = (unsigned short)y;
+    memset(image->pixels, image->transparency, h * w);
     memset(image->plane2, 0, h * w);
     DrawShadowShape(image, obj);
     CutOutFrame(dest, image, 5, 0);
     int size = CompressFrame(image->plane2, image);
     AllocBitmap(&obj->sprite, size, 1);
-    Bitmap_00437b50* bmp = obj->sprite;
+    GafFrame* bmp = obj->sprite;
     memcpy(bmp->pixels, image->plane2, size);
     bmp->width = image->width;
     bmp->height = image->height;
-    bmp->field_4 = image->field_4;
-    bmp->field_6 = image->field_6;
-    bmp->field_9 = 1;
+    bmp->xOffset = image->xOffset;
+    bmp->yOffset = image->yOffset;
+    bmp->compressed = 1;
 }

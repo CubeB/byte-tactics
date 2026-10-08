@@ -821,11 +821,10 @@ struct Entry_45ffb0 {
     unsigned short h;                  // +2
 };
 
-struct Sound_45ffb0 {
-    char unknown_0[4];
-    short start;                       // +4
-    short end;                         // +6
-};
+// Unused here: real functions declared to keep the file's symbol count.
+void __stdcall AccumulateScreenShake(int dx, int dy, int value);
+void __stdcall ActivatePlayerGadgets(char* prefix);
+void AddDownloadBuildOptions();
 
 struct Gadget_0045f190 {
     char unknown_0[0x60];
@@ -913,8 +912,12 @@ struct Surface {
     char* pixels;                   // +0xc
 };
 
-struct Dst_004b8ae0 {
-    char unknown_0[0x14];
+struct GafFrame {
+    unsigned short width;              // +0x0
+    unsigned short height;             // +0x2
+    short xOffset;                     // +0x4
+    short yOffset;                     // +0x6
+    char unknown_8[0xc];
 };
 
 typedef int (__stdcall* Handler_0045e100)(Gui_0045e100*);
@@ -1268,7 +1271,7 @@ int __stdcall PopUntilNamedLayout(int force);
 void BlankScreen();
 void __stdcall SetGameMode(int a);
 void __stdcall SelectGadgetByName(Sub_00460680* sub, const char* name);
-void __stdcall FrameFromSurface(Dst_004b8ae0* dst, Surface* src);
+void __stdcall FrameFromSurface(GafFrame* dst, Surface* src);
 Surface* __stdcall AllocSurface(char* name, int width, int height);
 void __stdcall DrawSurface(int a, void* surface, int b, int c);
 void __stdcall DrawSurface(Surface* surface, int a, int b, int c);
@@ -2958,8 +2961,8 @@ void __stdcall DrawOptionsScrollBar(void* surf)
             }
             if (g_optionsLightbarX > g_optionsLightbarMaxX && old < g_optionsLightbarMaxX) {
                 void* snd = FindGafEntry(g_game->gui.logos32, "LIGHTBAR");
-                Sound_45ffb0* s = (Sound_45ffb0*)GetGafFrame(snd, 2);
-                DrawFrame((int)g_optionsFlipSurface, s, s->start, s->end);
+                GafFrame* s = (GafFrame*)GetGafFrame(snd, 2);
+                DrawFrame((int)g_optionsFlipSurface, s, s->xOffset, s->yOffset);
             }
         }
         // Test with `<` so the increase is the fallthrough, and use the global
@@ -3018,7 +3021,7 @@ void OpenOptionsPanel()
     g_optionsFlipSurface = AllocSurface("FLIPSURFACE", holder->field_4->field_17, holder->field_4->field_19);
     memcpy(g_optionsFlipSurface->pixels, holder->field_4->field_bc->pixels,
            holder->field_4->field_17 * holder->field_4->field_19);
-    FrameFromSurface((Dst_004b8ae0*)&g_optionsFlipFrame, g_optionsFlipSurface);
+    FrameFromSurface((GafFrame*)&g_optionsFlipFrame, g_optionsFlipSurface);
     g_optionsLightbarX = 0;
     g_optionsLightbarMaxX = holder->field_4->field_17 - 1;
     g_optionsLightbarY = holder->field_4->field_15;

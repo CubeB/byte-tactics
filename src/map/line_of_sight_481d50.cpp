@@ -94,7 +94,7 @@ struct Game {
     void* losTable;                    // +0x1485b
 };
 
-struct Frame_00481d50 {
+struct GafFrame {
     unsigned short width;              // +0x0
     unsigned short height;             // +0x2
     char unknown_4[4];
@@ -107,7 +107,7 @@ struct Frame_00481d50 {
 
 extern Game* g_game;
 
-Frame_00481d50* __stdcall GetGafFrame(unsigned short* table, int index);
+GafFrame* __stdcall GetGafFrame(unsigned short* table, int index);
 
 
 
@@ -175,7 +175,7 @@ void __stdcall RemoveLineOfSight(Params_00481d50* params)
         }
     } else {
         int ref = *params->field_c;
-        Frame_00481d50* frame =
+        GafFrame* frame =
             GetGafFrame((unsigned short*)g_game->losTable, ref);
         int limitX;
         if (x + frame->width >= halfW)

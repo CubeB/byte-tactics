@@ -49,7 +49,7 @@ struct Anim_00478b40 {
 };
 
 // One animation frame: size, then the blit offsets.
-struct Frame {
+struct GafFrame {
     unsigned short width;              // +0x0
     unsigned short height;             // +0x2
     unsigned short xoffset;            // +0x4
@@ -1241,7 +1241,7 @@ void __stdcall UpdateSolarSystem(Menu* arg1, Entry* arg2)
     if (arg2->field_be != 0) {
         int total = 0;
         for (int j = 0; j < *(unsigned short*)arg2->field_be; j++)
-            total += ((Frame*)GetGafFrame((unsigned short*)arg2->field_be, j))->width;
+            total += ((GafFrame*)GetGafFrame((unsigned short*)arg2->field_be, j))->width;
 
         if (g_briefingPanoramaNextTick < (int)GetTicks()) {
             g_briefingPanoramaScrollX++;
@@ -1263,7 +1263,7 @@ void __stdcall UpdateSolarSystem(Menu* arg1, Entry* arg2)
         int now = (int)GetTicks();
         int idx = now / 3 % *(unsigned short*)gaf;
         arg2->frame = (short)idx;
-        Frame* f = (Frame*)GetGafFrame((unsigned short*)gaf, arg2->frame);
+        GafFrame* f = (GafFrame*)GetGafFrame((unsigned short*)gaf, arg2->frame);
         if (f == 0)
             return;
 
@@ -1277,8 +1277,8 @@ void __stdcall UpdateSolarSystem(Menu* arg1, Entry* arg2)
         int n = *(unsigned short*)arg2->field_be;
         // Original quirk, kept: `<=` runs one frame past the count.
         for (int k = 0; k <= n; k++) {
-            Frame* fr =
-                (Frame*)GetGafFrame((unsigned short*)arg2->field_be, k % n);
+            GafFrame* fr =
+                (GafFrame*)GetGafFrame((unsigned short*)arg2->field_be, k % n);
             fr->xoffset = 0;
             fr->yoffset = 0;
             DrawFrame(surface, fr, x, y);
@@ -1290,7 +1290,7 @@ void __stdcall UpdateSolarSystem(Menu* arg1, Entry* arg2)
         void* pan = FindGafEntry(panGaf, "Panmask");
         Unit* unit =
             g_game->players[g_game->localPlayer].unit;
-        Frame* pf = (Frame*)GetGafFrame((unsigned short*)pan, unit->side);
+        GafFrame* pf = (GafFrame*)GetGafFrame((unsigned short*)pan, unit->side);
         pf->yoffset = 0;
         pf->xoffset = 0;
         DrawFrame(surface, pf, 0, 0);
@@ -1328,7 +1328,7 @@ void __stdcall UpdatePlanet(Menu* arg1, Entry* arg2)
                 StepGafSequence(&g_briefingPlanetFrameCursor);
                 arg2->frame = g_briefingPlanetFrameCursor.index;
             }
-            Frame* frame = (Frame*)GetGafFrame(arg2->field_be, arg2->frame);
+            GafFrame* frame = (GafFrame*)GetGafFrame(arg2->field_be, arg2->frame);
             if (frame == 0) {
                 return;
             }

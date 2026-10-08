@@ -5,11 +5,11 @@
 #include <windows.h>
 #include <math.h>
 
-struct Bitmap_004b90a0 {
+struct GafFrame {
     unsigned short width;      // +0x0
     unsigned short height;     // +0x2
-    short field_4;             // +0x4
-    short field_6;             // +0x6
+    short xOffset;             // +0x4
+    short yOffset;             // +0x6
     unsigned char colorKey;    // +0x8
     char unknown_9[7];         // +0x9
     unsigned char* plane0;     // +0x10
@@ -17,13 +17,13 @@ struct Bitmap_004b90a0 {
 };
 
 // FUNCTION: 0x4b90a0
-void __stdcall DrawFrameDepth(Bitmap_004b90a0* src, Bitmap_004b90a0* dst,
+void __stdcall DrawFrameDepth(GafFrame* src, GafFrame* dst,
                             int x, int y, int level)
 {
     int yoff;
     int xoff;
-    xoff = dst->field_4 - src->field_4 + x;
-    yoff = dst->field_6 - src->field_6 + y;
+    xoff = dst->xOffset - src->xOffset + x;
+    yoff = dst->yOffset - src->yOffset + y;
     if (xoff < 0 || yoff < 0) {
         return;
     }

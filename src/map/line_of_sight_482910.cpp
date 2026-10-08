@@ -16,16 +16,18 @@ struct Pos_482910 {
     short y;
 };
 
-struct Entry_482910 {                  // one cell table element, 8 bytes
+// The first 8 bytes of the frame GetGafFrame returns: width and height as one
+// dword, then the offsets.
+struct GafFrame {
     int field_0;
-    short field_4;
-    short field_6;
+    short xOffset;
+    short yOffset;
 };
 
 struct Table_482910 {
     unsigned short count;              // +0
     char unknown_2[0x28 - 0x2];
-    Entry_482910* entries;             // +0x28
+    void* entries;                     // +0x28
 };
 
 #pragma pack(push, 1)
@@ -62,7 +64,7 @@ extern Game* g_game;
 void __stdcall UpdateLineOfSight(Eye_482910* e);
 void __stdcall AddLineOfSight(Eye_482910* e);
 void __stdcall RevealAroundUnit(Eye_482910* e);
-Entry_482910* __stdcall GetGafFrame(unsigned short* table, int index);
+GafFrame* __stdcall GetGafFrame(unsigned short* table, int index);
 
 // FUNCTION: 0x482910
 // Plain int parameters: a char or unsigned char one changes the stack frame.
@@ -95,9 +97,9 @@ void __stdcall AddEyeball(Vec3_482910* src, int a, int b, int c)
                 }
                 int cell_x = e->pos.x / 0x200000;
                 int cell_y = e->pos.z / 0x200000 - ((short*)&e->pos.y)[1] / 64;
-                Entry_482910* ce = GetGafFrame((unsigned short*)g_game->field_1485b, lod);
-                cell_x -= ce->field_4;
-                cell_y -= ce->field_6;
+                GafFrame* ce = GetGafFrame((unsigned short*)g_game->field_1485b, lod);
+                cell_x -= ce->xOffset;
+                cell_y -= ce->yOffset;
                 e->screen->x = (short)cell_x;
                 e->screen->y = (short)cell_y;
                 *e->flagPtr = (char)lod;

@@ -45,7 +45,7 @@ struct Surface {
 
 // The software renderer's target: the row width at +0, the pixel buffer at
 // +0x10 and the depth buffer at +0x14.
-struct Surface_004c06e0 {
+struct GafFrame {
     unsigned short pitch;              // +0x0
     unsigned short height;             // +0x2
     char unknown_4[0x10 - 0x4];
@@ -145,9 +145,9 @@ int __cdecl FUN_004b70ef(int angle, int distance);
 int __cdecl FUN_004b7123(int angle, int distance);
 int __stdcall ScanFillPolygon(Surface* surface, Point* points, int n,
                               unsigned char color);
-void __stdcall PlotSpanEnds(int row, Span* span, Surface_004c06e0* surf,
+void __stdcall PlotSpanEnds(int row, Span* span, GafFrame* surf,
                             unsigned char color);
-void __stdcall FillFlatSpan(int row, Span* span, Surface_004c06e0* surf,
+void __stdcall FillFlatSpan(int row, Span* span, GafFrame* surf,
                             unsigned char color);
 
 
@@ -1173,7 +1173,7 @@ int __stdcall DrawPolygon(Surface* surface, Vec3* pts, int count, int color)
 
 
 // FUNCTION: 0x4c0820
-int __stdcall DrawPolygonEdges(Surface_004c06e0* surf, Vec3* pts, int count,
+int __stdcall DrawPolygonEdges(GafFrame* surf, Vec3* pts, int count,
                            int color) {
     // color stays int, not unsigned char: the final call's register pairing.
     Span spans[2048];
@@ -1344,7 +1344,7 @@ int __stdcall DrawPolygonEdges(Surface_004c06e0* surf, Vec3* pts, int count,
 // into edx. An `int off` local changes the frame (4 locals) and drops to 80.8
 // percent.
 // FUNCTION: 0x4c0b10
-void __stdcall FillShadedSpan(int row, Span* span, Surface_004c06e0* surf, unsigned char color)
+void __stdcall FillShadedSpan(int row, Span* span, GafFrame* surf, unsigned char color)
 {
     unsigned char* p = surf->bits;
     unsigned char* d = surf->depth;
@@ -1392,7 +1392,7 @@ void __stdcall FillShadedSpan(int row, Span* span, Surface_004c06e0* surf, unsig
 
 
 // FUNCTION: 0x4c0c70
-int __stdcall FillShadedPolygon(Surface_004c06e0* surf, Point_004c0c70* pts, int n,
+int __stdcall FillShadedPolygon(GafFrame* surf, Point_004c0c70* pts, int n,
                            unsigned char color) {
     // Shared by both edge walks; z and shade values stay block-local.
     int y0, y1, x, dx, dz;
@@ -1405,7 +1405,7 @@ int __stdcall FillShadedPolygon(Surface_004c06e0* surf, Point_004c0c70* pts, int
     int minYi;
     int maxYi;
     int i;
-    Surface_004c06e0* sf = surf;
+    GafFrame* sf = surf;
     // Scan index initialised before the n > 0 guard, incremented before p.
     int scanIndex = 0;
     if (n > 0) {
@@ -1553,7 +1553,7 @@ int __stdcall FillShadedPolygon(Surface_004c06e0* surf, Point_004c0c70* pts, int
 // forwards for the right end, and hands every row to FillFlatSpan. The 2048
 // entry span array is what puts the frame at 0x14028.
 // FUNCTION: 0x4c1000
-int __stdcall FillFlatPolygon(Surface_004c06e0* surf, Vec3* pts, int n, int color)
+int __stdcall FillFlatPolygon(GafFrame* surf, Vec3* pts, int n, int color)
 {
     int y0, y1, x, dx, dz;
     Span spans[2048];
@@ -1566,7 +1566,7 @@ int __stdcall FillFlatPolygon(Surface_004c06e0* surf, Vec3* pts, int n, int colo
     int i;
     // One function-scope j shared by both walks; each walk has its own block-scoped i.
     int j;
-    Surface_004c06e0* sf = surf;
+    GafFrame* sf = surf;
     int scanIndex = 0;
     if (n > 0) {
         Vec3* p = pts;

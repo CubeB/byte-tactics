@@ -87,7 +87,7 @@ struct Pos_4589c0 {
 
 // A 0x18-byte frame header followed by its pixel planes: the picture the
 // object-picture builder allocates, its shadow and the scratch frames.
-struct Image_4589c0 {
+struct GafFrame {
     unsigned short width;              // +0x00
     unsigned short height;             // +0x02
     short dx;                          // +0x04
@@ -99,16 +99,6 @@ struct Image_4589c0 {
     char unknown_c[4];
     unsigned char* pixels;             // +0x10
     unsigned char* shade;              // +0x14
-};
-
-// The display surface MergeIntoComposite draws through.
-struct Src_4589c0 {
-    unsigned short width;              // +0x00
-    unsigned short height;             // +0x02
-    unsigned short x;                  // +0x04
-    unsigned short y;                  // +0x06
-    char unknown_8[8];
-    int bits;                          // +0x10
 };
 
 struct Surface_4589c0 {
@@ -263,18 +253,18 @@ struct Game {
 class CMemoryCache {
 public:
     char unknown_0[0x10];
-    Image_4589c0* bitmap;              // +0x10
+    GafFrame* bitmap;                  // +0x10
 
     void ClearPointers(void);
     int InitCache(unsigned int size);
     void FreeBuffer();
     void FreeCache();
     int AllocHandle(void** handle, int size);
-    int AllocBitmap(Image_4589c0** handle, int w, int h);
-    int AllocTwoPlaneBitmap(Image_4589c0** handle, int w, int h);
+    int AllocBitmap(GafFrame** handle, int w, int h);
+    int AllocTwoPlaneBitmap(GafFrame** handle, int w, int h);
     void FlushCache();
     void ReleaseHandle(int handle);
-    void BuildShadow(Model_459200*, Image_4589c0*);
+    void BuildShadow(Model_459200*, GafFrame*);
     void DrawObjectState(Model_459200*, void* context);
     void DrawObjectPieces(int param_1, Model_459200* list, Vec3 v, int param_6);
     // Defined in model_render_4584d0.cpp: only matches at that file's symbol count.
@@ -282,9 +272,9 @@ public:
         Object3do* info, Vec3* vertices, unsigned char palette, int useColor);
     // Defined in model_render_4589c0.cpp: only matches at that file's symbol count.
     void DrawObjectPicture(int param_2, Model_459200* model, Vec3 v, int useColor);
-    void MergeIntoComposite(Image_4589c0* src, Model_459200* model);
+    void MergeIntoComposite(GafFrame* src, Model_459200* model);
     void MeasureShadow(int* width, int* height, int* originX, int* originY, Model_459200* model);
-    void DrawShadowShape(Image_4589c0* view, Model_459200* model);
+    void DrawShadowShape(GafFrame* view, Model_459200* model);
 };
 
 // A unit or feature instance: the object the piece tree and the pictures
@@ -326,8 +316,8 @@ struct Model_459200 {
     int field_4;                       // +0x04
     int field_8;                       // +0x08
     Unit_459200* owner;                // +0x0c
-    Image_4589c0* bitmap;              // +0x10
-    Image_4589c0* shadow;              // +0x14
+    GafFrame* bitmap;                  // +0x10
+    GafFrame* shadow;                  // +0x14
     Vector3s pos;                      // +0x18
     Piece_459c70* root;                // +0x1e
     Piece_459c70 pieces[1];            // +0x22
@@ -341,7 +331,7 @@ public:
         int field_10;                  // +0x10
         void* buffer;                  // +0x10
         void* ptr;                     // +0x10
-        Image_4589c0* shadow;          // +0x10
+        GafFrame* shadow;              // +0x10
     };
 
     UnitTable* Construct(void);
@@ -349,9 +339,9 @@ public:
     void Destroy();
     void MeasureModel(int* width, int* height, int* originX, int* originY, Model_459200* model, Vec3* offset);
     int BuildObjectPicture(Model_459200* list, int param_2, int param_3);
-    void DrawPieces(Image_4589c0* bitmap, Model_459200* list, int kind, int useColor);
+    void DrawPieces(GafFrame* bitmap, Model_459200* list, int kind, int useColor);
     // Defined in model_render_4581e0.cpp: only matches at that file's symbol count.
-    void DrawLitPieces(Image_4589c0* bitmap, Model_459200* list, int kind, int useColor);
+    void DrawLitPieces(GafFrame* bitmap, Model_459200* list, int kind, int useColor);
 };
 
 // Unused here: the symbol ids these declarations take keep MeasureModel's
@@ -370,21 +360,21 @@ public:
 class Class_00458d30 {
 public:
     // level stays unsigned char: only the low byte of the quotient is needed.
-    void RecolorByShade(Image_4589c0* img, unsigned char level, int above, int below, int between);
-    int ShadeByIntensity(Image_4589c0* image, Model_459200* model);
+    void RecolorByShade(GafFrame* img, unsigned char level, int above, int below, int between);
+    int ShadeByIntensity(GafFrame* image, Model_459200* model);
 };
 
 class Class_00458fa0 {
 public:
     // Defined in model_render_458fa0.cpp: only matches at that file's symbol count.
-    void DrawPieceEdges(Image_4589c0* view, Model_459200* model, int color);
+    void DrawPieceEdges(GafFrame* view, Model_459200* model, int color);
 };
 
 class Class_0045a470 {
 public:
     char unknown_0[0x10];
-    Image_4589c0* image;               // +0x10
-    Image_4589c0* MakeSilhouette(Image_4589c0* src);
+    GafFrame* image;                   // +0x10
+    GafFrame* MakeSilhouette(GafFrame* src);
 };
 
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
@@ -399,22 +389,22 @@ Vec3f __stdcall CrossProduct(Vec3f a, Vec3f b);
 Vec3f __stdcall NormalizeVector(Vec3f v);
 void* __stdcall GetGafSequenceFrame(void** pic);
 void* __stdcall GetGafFrame(unsigned short* table, int index);
-void __stdcall DownsampleFrame(Image_4589c0* dst, Image_4589c0* src);
-void __stdcall FillFlatPolygon(Image_4589c0* surface, void* poly, int count, int flag);
-void __stdcall DrawTexturedPolygon(Image_4589c0* surface, void* pic, void* poly, int flag);
-void __stdcall FillShadedPolygon(Image_4589c0* surface, void* poly, int count, int flag);
-void __stdcall DrawLitTexturedPolygon(Image_4589c0* surface, void* pic, void* poly, int flag);
+void __stdcall DownsampleFrame(GafFrame* dst, GafFrame* src);
+void __stdcall FillFlatPolygon(GafFrame* surface, void* poly, int count, int flag);
+void __stdcall DrawTexturedPolygon(GafFrame* surface, void* pic, void* poly, int flag);
+void __stdcall FillShadedPolygon(GafFrame* surface, void* poly, int count, int flag);
+void __stdcall DrawLitTexturedPolygon(GafFrame* surface, void* pic, void* poly, int flag);
 void __stdcall FillPolygon(void* surface, Point_4584d0* points, int count, int flags);
 void __stdcall DrawFrameQuad(void* surface, void* pic, Point_4584d0* points, void* src);
-void __stdcall DrawPolygonEdges(Image_4589c0* view, Vec3* points, int count, int color);
-void __stdcall SurfaceFromFrame(Surface_4589c0* dst, Src_4589c0* src);
-void __stdcall DrawFrame(Surface* dst, Image_4589c0* bmp, int x, int y);
+void __stdcall DrawPolygonEdges(GafFrame* view, Vec3* points, int count, int color);
+void __stdcall SurfaceFromFrame(Surface_4589c0* dst, GafFrame* src);
+void __stdcall DrawFrame(Surface* dst, GafFrame* bmp, int x, int y);
 int __stdcall GetGroundHeight(Pos_459200* p);
-void __stdcall DrawFrameBlended(int param_1, Image_4589c0* param_2, int x, int y);
-void __stdcall DrawFrameDepth(Image_4589c0* bmp, Image_4589c0* param_2, int x, int y, int z);
-void __stdcall TintFrameBelow(Image_4589c0* param_1, int value);
-void __stdcall CutFrameBelow(Image_4589c0* param_1, int value);
-void __stdcall ZeroFramePixels(Image_4589c0* image);
+void __stdcall DrawFrameBlended(int param_1, GafFrame* param_2, int x, int y);
+void __stdcall DrawFrameDepth(GafFrame* bmp, GafFrame* param_2, int x, int y, int z);
+void __stdcall TintFrameBelow(GafFrame* param_1, int value);
+void __stdcall CutFrameBelow(GafFrame* param_1, int value);
+void __stdcall ZeroFramePixels(GafFrame* image);
 void __stdcall RotateByAngles(Vec3* in, Vec3* out, short* angles);
 int __stdcall CountObjects(Object3do* obj);
 Piece_459c70* __stdcall AddStateEntries(Model_459200* state, Object3do* obj, Piece_459c70* parent);
@@ -520,7 +510,7 @@ int UnitTable::BuildObjectPicture(Model_459200* list, int param_2, int param_3)
     } else {
         ((CMemoryCache*)this)->AllocTwoPlaneBitmap(&list->bitmap, w, h);
     }
-    Image_4589c0* bitmap = list->bitmap;
+    GafFrame* bitmap = list->bitmap;
     if (bitmap != 0) {
         bitmap->dx = (short)oy;
         bitmap->dy = (short)ox;
@@ -540,17 +530,17 @@ int UnitTable::BuildObjectPicture(Model_459200* list, int param_2, int param_3)
 // unit flagged, it draws into the doubled shadow bitmap instead and then
 // downsamples that back into the caller's bitmap.
 // FUNCTION: 0x459830
-void UnitTable::DrawPieces(Image_4589c0* bitmap, Model_459200* list,
+void UnitTable::DrawPieces(GafFrame* bitmap, Model_459200* list,
     int kind, int useColor)
 {
     Vec3 vertex[2000];
     Vec3 poly[25];
 
     int mode;
-    Image_4589c0* src;
+    GafFrame* src;
     if (g_game->field_37f06.bits.antiAlias) {
         if ((list->owner->flags & 0x20000000) != 0 && useColor != 0) {
-            Image_4589c0* shadow = this->shadow;
+            GafFrame* shadow = this->shadow;
             mode = 1;
             shadow->width = (unsigned short)(bitmap->width << 1);
             shadow->height = (unsigned short)(bitmap->height << 1);
@@ -713,7 +703,7 @@ void CMemoryCache::DrawObjectPieces(int param_1, Model_459200* list, Vec3 v, int
 }
 
 // FUNCTION: 0x4587b0
-void __stdcall HalveFrame(Image_4589c0* src, Image_4589c0* dst)
+void __stdcall HalveFrame(GafFrame* src, GafFrame* dst)
 {
     unsigned char* d = dst->shade;
     if (d == 0)
@@ -741,7 +731,7 @@ template <class T> inline void Swap(T& a, T& b)
 // re-blits `bmp` (pixels, then the shade plane through a pixels/shade swap) into
 // it.
 // FUNCTION: 0x4589c0
-void CMemoryCache::MergeIntoComposite(Image_4589c0* bmp, Model_459200* model)
+void CMemoryCache::MergeIntoComposite(GafFrame* bmp, Model_459200* model)
 {
     // One named origin is passed to both AddModelBounds calls.
     Pos_4589c0 origin(0, 0, 0);
@@ -814,7 +804,7 @@ void CMemoryCache::MergeIntoComposite(Image_4589c0* bmp, Model_459200* model)
         Swap(bmp->dx, sdx);
         Swap(bmp->dy, sdy);
         Surface_4589c0 surface;
-        SurfaceFromFrame(&surface, (Src_4589c0*)this->bitmap);
+        SurfaceFromFrame(&surface, this->bitmap);
         memset(this->bitmap->pixels, this->bitmap->colour,
                this->bitmap->height * this->bitmap->width);
         memset(this->bitmap->shade, 0, this->bitmap->height * this->bitmap->width);
@@ -849,7 +839,7 @@ static inline unsigned char Scale(int v, int num, int div) { return (unsigned ch
 // Recolours every opaque pixel by its shade: below level - 4, at or above
 // level, or in between. -1 leaves the pixel, -2 makes it transparent.
 // FUNCTION: 0x458d30
-void Class_00458d30::RecolorByShade(Image_4589c0* img, unsigned char level, int above, int below, int between)
+void Class_00458d30::RecolorByShade(GafFrame* img, unsigned char level, int above, int below, int between)
 {
     unsigned char low;
     if (level < 4)
@@ -880,7 +870,7 @@ void Class_00458d30::RecolorByShade(Image_4589c0* img, unsigned char level, int 
 }
 
 // FUNCTION: 0x458dd0
-int Class_00458d30::ShadeByIntensity(Image_4589c0* image, Model_459200* model)
+int Class_00458d30::ShadeByIntensity(GafFrame* image, Model_459200* model)
 {
     if (image->shade == 0)
         return 0;
@@ -936,7 +926,7 @@ void __stdcall SetLightVector(int param_1, int param_2, int param_3)
 // Copies an 8-bit image (header, pixels and the optional second plane) into
 // the image at +0x10, clears its non-key pixels (ZeroFramePixels) and returns it.
 // FUNCTION: 0x45a470
-Image_4589c0* Class_0045a470::MakeSilhouette(Image_4589c0* src)
+GafFrame* Class_0045a470::MakeSilhouette(GafFrame* src)
 {
     image->width = src->width;
     image->height = src->height;
@@ -989,7 +979,7 @@ void CMemoryCache::MeasureShadow(int* width, int* height, int* originX, int* ori
 }
 
 // FUNCTION: 0x45a610
-void CMemoryCache::DrawShadowShape(Image_4589c0* view, Model_459200* model)
+void CMemoryCache::DrawShadowShape(GafFrame* view, Model_459200* model)
 {
     Vec3 verts[2000];
     Vec3 tmp[25];

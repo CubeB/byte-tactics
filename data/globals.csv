@@ -201,7 +201,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x5069c8,g_volTextGadgetName,.data,8,gap,string,char[],1,0,1,one type,1,,s_VOLTEXT_005069c8,,,564f4c5445585400
 0x5069d0,g_modeGadgetName,.data,8,gap,string,char[],1,0,1,one type,1,,DAT_005069d0,,,4d4f444500000000
 0x5069d8,g_explodeSoundFile,.data,20,gap,string,char[],1,0,1,one type,1,,s_sounds_explode_wav_005069d8,,,736f756e64735c6578706c6f64652e7761760000
-0x506dbc,g_usePacketManager,.data,4,type,data,int,20,0,1,one type,20,,DAT_00506dbc,,,01000000
+0x506dbc,g_usePacketManager,.data,4,type,data,int,19,0,1,one type,19,,INT_00506dbc,,,01000000
 0x507318,DAT_00507318,.data,32,gap,string,char[],1,0,1,one type,1,,s_You_re_out__Continue_Watching__00507318,,,596f75277265206f7574212020436f6e74696e7565205761746368696e673f00
 0x5074e8,g_radarPicTempName,.data,16,gap,string,char[],1,0,1,one type,1,,s_RADARPIC_TEMP_005074e8,,,52414441525049432054454d50000000
 0x5074f8,g_radarPictureName,.data,16,gap,string,char[],1,0,1,one type,1,,s_RADAR_PICTURE_005074f8,,,52414441522050494354555245000000
@@ -353,7 +353,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x511ddc,g_byteRatesTick,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_00511ddc,,,
 0x511de0,DAT_00511de0,.bss,4,type,data,int,2,0,1,one type,2,,DAT_00511de0,,,
 0x511de4,g_cdPathMismatch,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511de4,,,
-0x511de8,g_game,.bss,4,type,data,Game*,333,47,15,conflicting: shape,380,,DAT_00511de8,,,
+0x511de8,g_game,.bss,4,type,data,Game*,331,45,15,conflicting: shape,376,,DAT_00511de8,,,
 0x511dec,g_endGameGlamourSoundStarted,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511dec,,,
 0x511df0,g_explodedPieces,.bss,400,type,data,ExplodedPiece*[100],1,0,1,one type,1,0x190,DAT_00511df0,,,
 0x511f80,DAT_00511f80,.bss,16,gap,data,CMemoryCache,2,0,1,one type,2,,DAT_00511f80,,,
@@ -436,8 +436,8 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x5129c4,DAT_005129c4,.bss,4,type,data,int*,2,0,1,one type,2,,DAT_005129c4,,,
 0x5129c8,DAT_005129c8,.bss,4,type,data,int,1,0,1,one type,1,,DAT_005129c8,,,
 0x5129cc,DAT_005129cc,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
-0x5129d0,g_sendCondenser,.bss,40,definition,data,NetCondenser,4,0,1,one type,4,0x21,DAT_005129d0,,src/network/net_condenser.cpp,
-0x5129f1,DAT_005129f1,.bss,4,type,data,int,2,0,1,one type,2,,_DAT_005129f1,,in g_sendCondenser+0x21,
+0x5129d0,g_sendCondenser,.bss,40,definition,data,NetCondenser,2,0,1,one type,2,0x21,DAT_005129d0,,src/network/net_condenser.cpp,
+0x5129f1,DAT_005129f1,.bss,4,type,data,int,1,0,1,one type,1,,INT_005129f1,,in g_sendCondenser+0x21,
 0x5129f8,g_receiveCondenser,.bss,37,definition,data,NetCondenser,2,0,1,one type,2,0x21,DAT_005129f8,,src/network/net_condenser.cpp,
 0x512a20,g_packetHandlers,.bss,8,gap,data,void (__stdcall*[])(void*),1,0,1,one type,1,,DAT_00512a20,,,
 0x512a28,DAT_00512a28,.bss,4,type,data,int (__stdcall*)(int),1,0,1,one type,1,,_DAT_00512a28,,,
@@ -635,14 +635,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x512ffc,DAT_00512ffc,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
 0x513000,g_packetManager,.bss,46396,definition,data,PacketManager,22,0,1,one type,22,0xb54c,DAT_00513000,,src/network/packets_460e20.cpp,
 0x513008,DAT_00513008,.bss,4,gap,data,PacketChannel,1,0,1,one type,1,,DAT_00513008,,in g_packetManager+0x8,
-0x51e2f4,DAT_0051e2f4,.bss,4,type,data,int*,1,0,1,one type,1,,DAT_0051e2f4,,in g_packetManager+0xb2f4,
-0x51e2f8,DAT_0051e2f8,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_0051e2f8,,in g_packetManager+0xb2f8,
 0x51e300,DAT_0051e300,.bss,4,gap,data,PacketReceiver,1,0,1,one type,1,,_DAT_0051e300,,in g_packetManager+0xb300,
-0x51e314,DAT_0051e314,.bss,4,type,data,Buffer_461020*,1,0,1,one type,1,,DAT_0051e314,,in g_packetManager+0xb314,
-0x51e318,DAT_0051e318,.bss,4,type,data,void*,1,0,1,one type,1,,DAT_0051e318,,in g_packetManager+0xb318,
-0x51e31c,DAT_0051e31c,.bss,4,type,data,void*,1,0,1,one type,1,,DAT_0051e31c,,in g_packetManager+0xb31c,
-0x51e528,DAT_0051e528,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_0051e528,,in g_packetManager+0xb528,
-0x51e52c,DAT_0051e52c,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_0051e52c,,in g_packetManager+0xb52c,
 0x51e53c,DAT_0051e53c,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051e53c,,,
 0x51e540,g_probePanelBottom,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051e540,,,
 0x51e544,g_statusPanelNextTick,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051e544,,,

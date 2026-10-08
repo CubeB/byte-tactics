@@ -140,7 +140,7 @@ extern char g_testGadgetName[8];                                                
 extern char g_volTextGadgetName[8];                                                               // 0x5069c8, 8 bytes; 1 of 1 files
 extern char g_modeGadgetName[8];                                                                  // 0x5069d0, 8 bytes; 1 of 1 files
 extern char g_explodeSoundFile[20];                                                               // 0x5069d8, 20 bytes; 1 of 1 files
-extern int g_usePacketManager;                                                                    // 0x506dbc, 4 bytes; 20 of 20 files
+extern int g_usePacketManager;                                                                    // 0x506dbc, 4 bytes; 19 of 19 files
 extern char DAT_00507318[32];                                                                     // 0x507318, 32 bytes; 1 of 1 files
 extern char g_radarPicTempName[16];                                                               // 0x5074e8, 16 bytes; 1 of 1 files
 extern char g_radarPictureName[16];                                                               // 0x5074f8, 16 bytes; 1 of 1 files
@@ -274,7 +274,7 @@ extern unsigned int g_netStatsTick;                                             
 extern unsigned int g_byteRatesTick;                                                              // 0x511ddc, 4 bytes; 1 of 1 files
 extern int DAT_00511de0;                                                                          // 0x511de0, 4 bytes; 2 of 2 files
 extern int g_cdPathMismatch;                                                                      // 0x511de4, 4 bytes; 1 of 1 files
-extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 333 of 380 files (conflicting: shape)
+extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 331 of 376 files (conflicting: shape)
 extern int g_endGameGlamourSoundStarted;                                                          // 0x511dec, 4 bytes; 1 of 1 files
 extern ExplodedPiece* g_explodedPieces[100];                                                      // 0x511df0, 400 bytes; 1 of 1 files
 extern unsigned char DAT_00511f80[16];                                                            // 0x511f80, 16 bytes; CMemoryCache by value in 2 of 2 files
@@ -707,7 +707,7 @@ extern int g_lzssLockOwner;                                                     
 extern void* DAT_0052a4f8;                                                                        // 0x52a4f8, 4 bytes; 2 of 2 files
 extern long DAT_0052a4fc;                                                                         // 0x52a4fc, 4 bytes; 1 of 2 files (conflicting: signedness or const)
 
-// Not declared: 225 globals defined in a data file or whose type is not settled (see data/globals.csv).
+// Not declared: 218 globals defined in a data file or whose type is not settled (see data/globals.csv).
 //   0x5119c0 g_playerAI: PlayerAI*[] (11), void*[] (5), Owner*[] (3), Player_40b0d0*[] (1), and 2 more
 //   0x513000 g_packetManager: defined in src/network/packets_460e20.cpp
 //   0x5292c4 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib_4e17c0.cpp
@@ -721,7 +721,6 @@ extern long DAT_0052a4fc;                                                       
 //   0x51e598 IUUnitSyncEntry::IU?$pair::?$_Tree::_Nil: defined in src/network/unit_sync.cpp
 //   0x529e9c DAT_00529e9c: char (3), bool (2)
 //   0x4fd6f0 DAT_004fd6f0: defined in src/data/vtables.cpp
-//   0x5129d0 g_sendCondenser: defined in src/network/net_condenser.cpp
 //   0x51e6a0 g_losTables: defined in src/map/line_of_sight.cpp
 //   0x528ab4 DAT_00528ab4: void* (2), void (__stdcall*)(void) (1), int (__stdcall*)(void*, unsigned long, unsigned long*, Line_004de550*) (1)
 //   0x528acc DAT_00528acc: void* (2), void (__stdcall*)(void) (1), int (__stdcall*)(void*, unsigned long, int*, void*) (1)
@@ -781,7 +780,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x512358 MovementClassTable::g_movementClasses: defined in src/units/movement_class.cpp
 //   0x512764 DAT_00512764: short (1), int (1)
 //   0x512770 DAT_00512770: char[] (1), Serial_00441c30 (1)
-//   0x5129f1 DAT_005129f1: part of another global: g_sendCondenser+0x21
+//   0x5129d0 g_sendCondenser: defined in src/network/net_condenser.cpp
 //   0x5129f8 g_receiveCondenser: defined in src/network/net_condenser.cpp
 //   0x512c84 DAT_00512c84: part of another global: DAT_00512c80+0x4
 //   0x512c98 DAT_00512c98: part of another global: DAT_00512c80+0x18
@@ -874,6 +873,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x512340 DAT_00512340$S35323: defined in src/map/meteors.cpp
 //   0x512370 DAT_00512370: part of another global: MovementClassTable::g_movementClasses+0x18
 //   0x512774 DAT_00512774: part of another global: DAT_00512770+0x4
+//   0x5129f1 DAT_005129f1: part of another global: g_sendCondenser+0x21
 //   0x512c8c DAT_00512c8c: part of another global: DAT_00512c80+0xc
 //   0x512c94 DAT_00512c94: part of another global: DAT_00512c80+0x14
 //   0x512ce8 DAT_00512ce8: part of another global: DAT_00512c80+0x68
@@ -901,14 +901,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x512f55 g_optionsBackupTextScroll: part of another global: g_optionsPrefsSnapshot+0x3d
 //   0x512f59 g_optionsBackupTextLines: part of another global: g_optionsPrefsSnapshot+0x41
 //   0x513008 DAT_00513008: part of another global: g_packetManager+0x8
-//   0x51e2f4 DAT_0051e2f4: part of another global: g_packetManager+0xb2f4
-//   0x51e2f8 DAT_0051e2f8: part of another global: g_packetManager+0xb2f8
 //   0x51e300 DAT_0051e300: part of another global: g_packetManager+0xb300
-//   0x51e314 DAT_0051e314: part of another global: g_packetManager+0xb314
-//   0x51e318 DAT_0051e318: part of another global: g_packetManager+0xb318
-//   0x51e31c DAT_0051e31c: part of another global: g_packetManager+0xb31c
-//   0x51e528 DAT_0051e528: part of another global: g_packetManager+0xb528
-//   0x51e52c DAT_0051e52c: part of another global: g_packetManager+0xb52c
 //   0x51e6cc DAT_0051e6cc: part of another global: g_loadingBarFlashAlpha+0x4
 //   0x51e821 DAT_0051e821: part of another global: g_loadingBarPrevPercent+0x1
 //   0x51e822 DAT_0051e822: part of another global: g_loadingBarPrevPercent+0x2

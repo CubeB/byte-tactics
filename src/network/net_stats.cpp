@@ -72,8 +72,6 @@ extern int g_packetBytesReceived;
 extern int g_compressedBytesSent;
 extern int g_messageCountByType[45][2];
 extern int g_messageBytesByType[45][2];
-extern Pair_00419560 DAT_00511a60[44];
-extern Pair_00419560 DAT_00511c60[44];
 extern unsigned int g_netStatsTick;
 extern int g_lastMessageBytesReceived;
 extern int g_lastMessageBytesSent;
@@ -220,11 +218,11 @@ void ResetNetStats()
     DAT_00511c20 = g_game->ticks;
     g_messageBytesReceived = 0;
     g_messageBytesSent = 0;
-    Pair_00419560* p = DAT_00511c60;
+    Pair_00419560* p = (Pair_00419560*)&g_messageBytesByType[1];
     for (int i = 0; i < 44; i++) {
-        DAT_00511a60[i].a = 0;
-        DAT_00511a60[i].b = 0;
-        DAT_00511c60[i].a = 0;
+        g_messageCountByType[i + 1][0] = 0;
+        g_messageCountByType[i + 1][1] = 0;
+        g_messageBytesByType[i + 1][0] = 0;
         p->b = 0;
         p++;
     }
@@ -236,7 +234,7 @@ void ResetNetStats()
 
 // Adds an amount to the player's total (g_messageBytesReceived) and, for kinds 2..44,
 // bumps the per-kind count and total (the tables ResetNetStats resets from
-// kind 1, at DAT_00511a60 and DAT_00511c60).
+// kind 1, g_messageCountByType and g_messageBytesByType).
 // FUNCTION: 0x415ef0
 void __stdcall CountMessage(unsigned char kind, int amount, int player)
 {
@@ -309,11 +307,11 @@ void __stdcall FormatNetStats(char* text)
 void FUN_004161f0()
 {
     int sum3 = 0, sum4 = 0, sum1 = 0, sum2 = 0;
-    Pair_00419560* p = DAT_00511c60;
+    Pair_00419560* p = (Pair_00419560*)&g_messageBytesByType[1];
     for (int i = 0; i < 44; i++) {
-        sum1 += DAT_00511a60[i].a;
-        sum2 += DAT_00511a60[i].b;
-        sum3 += DAT_00511c60[i].a;
+        sum1 += g_messageCountByType[i + 1][0];
+        sum2 += g_messageCountByType[i + 1][1];
+        sum3 += g_messageBytesByType[i + 1][0];
         sum4 += p->b;
         p++;
     }

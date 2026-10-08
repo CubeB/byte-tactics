@@ -452,8 +452,8 @@ extern int DAT_00511c20;
 extern int g_packetsSent;
 extern int g_packetsReceived;
 extern int g_packetBytesReceived;
-extern Pair_00419560 DAT_00511a60[44];
-extern Pair_00419560 DAT_00511c60[44];
+extern int g_messageCountByType[45][2];
+extern int g_messageBytesByType[45][2];
 extern Option_00419560 g_consoleCommands;
 extern Option_00419560 g_cheatCommands;
 extern Option_00419560 g_debugCommands;
@@ -552,11 +552,11 @@ void InitCommands()
     g_messageBytesSent = 0;
     // The second field of the second table is cleared through a walking
     // pointer: the original keeps a separate induction pointer for it.
-    Pair_00419560* p = DAT_00511c60;
+    Pair_00419560* p = (Pair_00419560*)&g_messageBytesByType[1];
     for (int i = 0; i < 44; i++) {
-        DAT_00511a60[i].a = 0;
-        DAT_00511a60[i].b = 0;
-        DAT_00511c60[i].a = 0;
+        g_messageCountByType[i + 1][0] = 0;
+        g_messageCountByType[i + 1][1] = 0;
+        g_messageBytesByType[i + 1][0] = 0;
         p->b = 0;
         p++;
     }

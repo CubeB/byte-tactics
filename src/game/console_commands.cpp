@@ -467,8 +467,8 @@ extern int g_packetBytesReceived;
 extern int g_contourSpacing;           // contour spacing
 extern int g_contourOffset;            // contour offset
 extern int DAT_0051e698;
-extern Pair_00419560 DAT_00511a60[44];
-extern Pair_00419560 DAT_00511c60[44];
+extern int g_messageCountByType[45][2];
+extern int g_messageBytesByType[45][2];
 extern unsigned char g_contourColors[];  // colour by height band
 extern unsigned char g_movementClassColors[];
 extern signed char g_dirDeltaX[], g_dirDeltaZ[];
@@ -1163,11 +1163,11 @@ void __stdcall CmdNetStats(int)
     DAT_00511c20 = g_game->ticks;
     g_messageBytesReceived = 0;
     g_messageBytesSent = 0;
-    Pair_00419560* p = DAT_00511c60;
+    Pair_00419560* p = (Pair_00419560*)&g_messageBytesByType[1];
     for (int i = 0; i < 44; i++) {
-        DAT_00511a60[i].a = 0;
-        DAT_00511a60[i].b = 0;
-        DAT_00511c60[i].a = 0;
+        g_messageCountByType[i + 1][0] = 0;
+        g_messageCountByType[i + 1][1] = 0;
+        g_messageBytesByType[i + 1][0] = 0;
         p->b = 0;
         p++;
     }

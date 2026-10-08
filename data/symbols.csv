@@ -4352,7 +4352,6 @@ address,name
 0x511a4c,g_lastPacketBytesSent
 0x511a50,g_bytesReceivedPerSecond
 0x511a58,g_messageCountByType
-0x511a60,DAT_00511a60
 0x511bc0,g_messageBytesReceived
 0x511bc4,g_messageBytesSent
 0x511bc8,g_packetBytesSent
@@ -4372,7 +4371,6 @@ address,name
 0x511c4c,g_packetBytesSentRate
 0x511c50,g_packetBytesReceived
 0x511c58,g_messageBytesByType
-0x511c60,DAT_00511c60
 0x511dc0,g_packetsReceivedRate
 0x511dc4,g_packetsSentRate
 0x511dc8,g_compressedBytesSent

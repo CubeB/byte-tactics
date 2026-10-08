@@ -333,7 +333,7 @@ unsigned int g_bytesSentPerSecond;  // 0x511a48 .bss
 int g_lastPacketBytesSent;  // 0x511a4c .bss
 unsigned int g_bytesReceivedPerSecond;  // 0x511a50 .bss
 unsigned char DAT_00511a54[4];  // 0x511a54 .bss
-int g_messageCountByType[45][2];  // 0x511a58 .bss (the type runs past the next known address, 0x511a58+0x4)
+int g_messageCountByType[45][2];  // 0x511a58 .bss (the type runs past the next known address, 0x511a58+0xc)
 int g_messageBytesReceived;  // 0x511bc0 .bss
 int g_messageBytesSent;  // 0x511bc4 .bss
 int g_packetBytesSent;  // 0x511bc8 .bss
@@ -353,7 +353,7 @@ int g_packetsReceived;  // 0x511c48 .bss
 unsigned int g_packetBytesSentRate;  // 0x511c4c .bss
 int g_packetBytesReceived;  // 0x511c50 .bss
 unsigned char DAT_00511c54[4];  // 0x511c54 .bss
-int g_messageBytesByType[45][2];  // 0x511c58 .bss (the type runs past the next known address, 0x511c58+0x8)
+int g_messageBytesByType[45][2];  // 0x511c58 .bss (the type runs past the next known address, 0x511c58+0xc)
 unsigned int g_packetsReceivedRate;  // 0x511dc0 .bss
 unsigned int g_packetsSentRate;  // 0x511dc4 .bss
 int g_compressedBytesSent;  // 0x511dc8 .bss

@@ -246,7 +246,7 @@ extern unsigned int g_bytesSentPerSecond;                                       
 extern int g_lastPacketBytesSent;                                                                 // 0x511a4c, 4 bytes; 1 of 1 files
 extern unsigned int g_bytesReceivedPerSecond;                                                     // 0x511a50, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00511a54[4];                                                             // 0x511a54, 4 bytes; nothing refers to it
-extern int g_messageCountByType[45][2];                                                           // 0x511a58, 360 bytes; 1 of 1 files
+extern int g_messageCountByType[45][2];                                                           // 0x511a58, 360 bytes; 3 of 3 files
 extern int g_messageBytesReceived;                                                                // 0x511bc0, 4 bytes; 3 of 3 files
 extern int g_messageBytesSent;                                                                    // 0x511bc4, 4 bytes; 3 of 3 files
 extern int g_packetBytesSent;                                                                     // 0x511bc8, 4 bytes; 4 of 4 files
@@ -266,7 +266,7 @@ extern int g_packetsReceived;                                                   
 extern unsigned int g_packetBytesSentRate;                                                        // 0x511c4c, 4 bytes; 1 of 1 files
 extern int g_packetBytesReceived;                                                                 // 0x511c50, 4 bytes; 4 of 4 files
 extern unsigned char DAT_00511c54[4];                                                             // 0x511c54, 4 bytes; nothing refers to it
-extern int g_messageBytesByType[45][2];                                                           // 0x511c58, 360 bytes; 1 of 1 files
+extern int g_messageBytesByType[45][2];                                                           // 0x511c58, 360 bytes; 3 of 3 files
 extern unsigned int g_packetsReceivedRate;                                                        // 0x511dc0, 4 bytes; 1 of 1 files
 extern unsigned int g_packetsSentRate;                                                            // 0x511dc4, 4 bytes; 1 of 1 files
 extern int g_compressedBytesSent;                                                                 // 0x511dc8, 4 bytes; 1 of 1 files
@@ -719,7 +719,7 @@ extern int g_lzssLockOwner;                                                     
 extern void* g_squashThreadLockEvent;                                                             // 0x52a4f8, 4 bytes; 2 of 2 files
 extern long g_squashThreadLockTicket;                                                             // 0x52a4fc, 4 bytes; 1 of 2 files (conflicting: signedness or const)
 
-// Not declared: 200 globals defined in a data file or whose type is not settled (see data/globals.csv).
+// Not declared: 198 globals defined in a data file or whose type is not settled (see data/globals.csv).
 //   0x513000 g_packetManager: defined in src/network/packets_460e20.cpp
 //   0x4fcdb8 DPSPGUID_SERIAL: defined in src/data/guids.cpp
 //   0x4fcdc8 DPSPGUID_MODEM: defined in src/data/guids.cpp
@@ -730,8 +730,6 @@ extern long g_squashThreadLockTicket;                                           
 //   0x5292c4 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib.cpp
 //   0x4fcfb8 DAT_004fcfb8: defined in src/data/guids.cpp
 //   0x4fd2f8 DAT_004fd2f8: defined in src/data/vtables.cpp
-//   0x511a60 DAT_00511a60: part of another global: g_messageCountByType+0x8
-//   0x511c60 DAT_00511c60: part of another global: g_messageBytesByType+0x8
 //   0x512344 g_missionOrderTableBegin: part of another global: g_missionOrderTableVec+0x4
 //   0x512ca8 g_cmdlineHostGameName: part of another global: DAT_00512c80+0x28
 //   0x512d48 DAT_00512d48: part of another global: DAT_00512c80+0xc8

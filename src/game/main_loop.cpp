@@ -293,12 +293,12 @@ extern int g_netHeartbeatNextTick;
 int GetMilliseconds();
 void UpdateFramePacing();
 void __stdcall RunGameSteps(int param_1);
-void FUN_00428c00();
-void FUN_00428c10();
-void FUN_00428c20();
-void FUN_00428c30();
-void FUN_00428c40();
-void FUN_00428c50();
+void MainLoopContinueStub();
+void MainLoopContinueStub_B();
+void MainLoopContinueStub_C();
+void EmptyMainLoopHook();
+void EmptyMainLoopHook_B();
+void EmptyMainLoopHook_C();
 int FUN_004568c0();
 void HandleNetPackets();
 unsigned int GetTicks();
@@ -363,17 +363,17 @@ void MainLoopTick()
         if (g_game->frames != 0) {
             RunGameSteps(1);
             CHARGE(8);
-            FUN_00428c00();
-            FUN_00428c10();
-            FUN_00428c20();
+            MainLoopContinueStub();
+            MainLoopContinueStub_B();
+            MainLoopContinueStub_C();
             if (g_game->flags_38d75.bit2) {
                 if (FUN_004568c0())
                     g_game->flags_38d75.word &= 0xfffb;
                 CHARGE(0);
             }
-            FUN_00428c30();
-            FUN_00428c40();
-            FUN_00428c50();
+            EmptyMainLoopHook();
+            EmptyMainLoopHook_B();
+            EmptyMainLoopHook_C();
         } else if (g_game->paused) {
             if (g_usePacketManager)
                 g_packetManager.SendAllQueued(0);
@@ -411,13 +411,13 @@ void MainLoopTick()
     }
     DrawBattleFrame(1, 1);
     CHARGE(8);
-    FUN_00428c40();
+    EmptyMainLoopHook_B();
     if (g_game->field_38c53 > 0 && g_game->field_38c5b <= g_game->leadTick) {
         SaveScreenshot(g_game->text_38b53, "FRAM");
         g_game->field_38c5b += 30 / g_game->field_38c57;
         g_game->lastTick = GetTicks();
     }
-    FUN_00428c50();
+    EmptyMainLoopHook_C();
 }
 
 // Sets the game selection to 0x13 (inlined body of SetCursorMode), resets the

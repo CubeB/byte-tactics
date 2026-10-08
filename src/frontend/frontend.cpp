@@ -145,7 +145,7 @@ struct Entry_428b60 {
     char unknown_b8[0x15b - 0xb8];
 };
 
-// One picture-cache record (0x28 bytes each) of DAT_005120b8.
+// One picture-cache record (0x28 bytes each) of g_pictureCache.
 struct Entry_00428730 {
     void* surface;                     // +0x00
     int* data;                         // +0x04
@@ -236,34 +236,34 @@ struct Game {
 extern Game* g_game;
 
 // GLOBAL: 0x511fb8
-extern char DAT_00511fb8[];
+extern char g_frontendErrorText[];
 
 // GLOBAL: 0x512c80
 extern int DAT_00512c80;
 
 // GLOBAL: 0x503004
-extern char DAT_00503004[];
+extern char g_frontendSourceFile[];
 
 // GLOBAL: 0x50329c
-extern char DAT_0050329c[];
+extern char g_zrbMovie1[];
 
 // GLOBAL: 0x503294
-extern char DAT_00503294[];
+extern char g_zrbMovie2[];
 
 // GLOBAL: 0x50328c
-extern char DAT_0050328c[];
+extern char g_zrbMovie5[];
 
 // GLOBAL: 0x503284
-extern char DAT_00503284[];
+extern char g_zrbMovie3[];
 
 // GLOBAL: 0x50327c
-extern char DAT_0050327c[];
+extern char g_zrbMovie4[];
 
 // GLOBAL: 0x50324c
-extern char DAT_0050324c[];
+extern char g_serviceErrorMessage[];
 
 // GLOBAL: 0x502f9c
-extern char DAT_00502f9c[];
+extern char g_frontendStateChangeFormat[];
 
 // GLOBAL: 0x4fcdc8
 extern char DAT_004fcdc8[];
@@ -277,14 +277,14 @@ extern char DAT_004fcda8[];
 // GLOBAL: 0x4fdaf0
 extern V4i DAT_004fdaf0;
 
-extern char DAT_004fd050[];
-extern Smoke_00425b80* DAT_00512298;
+extern char g_directXWarningText[];
+extern Smoke_00425b80* g_menuSparks;
 extern int DAT_00512288;
-extern int DAT_00512290;
-extern int DAT_00512294;
-extern int DAT_0051228c;
-extern int DAT_0051229c;
-extern Entry_00428730 DAT_005120b8[10];
+extern int g_gpfCheckDone;
+extern int g_noSoundDriverShown;
+extern int g_directXCheckDone;
+extern int g_cdPlayerDialogShown;
+extern Entry_00428730 g_pictureCache[10];
 
 int CodeChecksumFailed(void);
 void __stdcall OpenMessageBox(Sub_004263b0* sub, char* text, int param_3, int param_4, int param_5);
@@ -384,7 +384,7 @@ void __stdcall SetFrontendState(char state, int line, char* file);
 void __stdcall SetFrontendErrorText(char* text);
 void ShowFrontendErrorText();
 void BlankScreen();
-void FUN_00425b60();
+void PresentFrontendFrame();
 void __stdcall HandleMainMenuClick(Gadget_00425d80* gadget);
 void __stdcall HandleCloseCdPlayerChoice(Gadget_00426190* gadget);
 void __stdcall OpenCloseCdPlayerDialog();
@@ -410,15 +410,15 @@ void __stdcall CheckFrontendStateChange(int line, char* file)
 // FUNCTION: 0x425730
 void __stdcall SetFrontendErrorText(char* param_1)
 {
-    strncpy(DAT_00511fb8, param_1, 0xf9);
+    strncpy(g_frontendErrorText, param_1, 0xf9);
 }
 
 // FUNCTION: 0x425750
 void ShowFrontendErrorText()
 {
-    if (strlen(DAT_00511fb8) != 0) {
-        OpenMessageBox(&g_game->sub, DAT_00511fb8, GetTextPixelWidth(DAT_00511fb8) + 0x14, 1, 1);
-        DAT_00511fb8[0] = 0;
+    if (strlen(g_frontendErrorText) != 0) {
+        OpenMessageBox(&g_game->sub, g_frontendErrorText, GetTextPixelWidth(g_frontendErrorText) + 0x14, 1, 1);
+        g_frontendErrorText[0] = 0;
     }
 }
 
@@ -510,7 +510,7 @@ void ResetFrontendState()
     g_game->field_2bc0 = 0;
     g_game->field_2bf0 = 0;
     *(unsigned short*)&g_game->field_2aaf &= 0xfffe;
-    DAT_00511fb8[0] = 0;
+    g_frontendErrorText[0] = 0;
 }
 
 // Resets front-end state (state 2) and clears the pending state-change markers
@@ -537,7 +537,7 @@ void EnterMainMenuState()
 }
 
 // FUNCTION: 0x425b60
-void FUN_00425b60()
+void PresentFrontendFrame()
 {
     SetOffscreenSurface(g_game->field_37e1b);
     HideSoftwareCursor();
@@ -564,7 +564,7 @@ void UpdateMenuSparks()
     Dialog_004263b0* terrain = g_game->sub.current;
     if (terrain->field_24 != 0) {
         unsigned char* src = ((Map_00425b80*)terrain->field_24)->cells;
-        Smoke_00425b80* s = DAT_00512298;
+        Smoke_00425b80* s = g_menuSparks;
         unsigned char* dest = ((World_00425b80*)terrain->gadgets)->map->cells;
         int count = 100;
         do {
@@ -648,7 +648,7 @@ void __stdcall HandleMainMenuClick(Gadget_00425d80* gadget)
     char buf[256];
 
     if (gadget->field_60 == -1) {
-        FUN_004d85a0(DAT_00512298);
+        FUN_004d85a0(g_menuSparks);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "SINGLE")) {
@@ -792,8 +792,8 @@ static char* Lookup_004263b0(const char* name)
 {
     if (name != 0) {
         for (int i = 0; i < 10; i++) {
-            if (strcmp(DAT_005120b8[i].name, name) == 0)
-                return (char*)DAT_005120b8[i].data;
+            if (strcmp(g_pictureCache[i].name, name) == 0)
+                return (char*)g_pictureCache[i].data;
         }
     }
     return 0;
@@ -851,36 +851,36 @@ void __stdcall OpenMainMenu()
     ShowSoftwareCursor();
     ClearMouseEventQueue();
 
-    DAT_00512298 = (Smoke_00425b80*)FUN_004d83b0("SPARKS", 0x514);
-    memset(DAT_00512298, 0, 0x145 * 4);
+    g_menuSparks = (Smoke_00425b80*)FUN_004d83b0("SPARKS", 0x514);
+    memset(g_menuSparks, 0, 0x145 * 4);
 
-    if (DAT_0051229c == 0) {
+    if (g_cdPlayerDialogShown == 0) {
         if (g_game->sound->HasCdPlayerWindow()) {
             OpenCloseCdPlayerDialog();
-            DAT_0051229c = 1;
+            g_cdPlayerDialogShown = 1;
         }
     }
 
-    if (DAT_0051228c == 0) {
-        DAT_0051228c = 1;
+    if (g_directXCheckDone == 0) {
+        g_directXCheckDone = 1;
         if (CheckDirectXVersion(4, 5, 0, 0x9b, 3) == 0) {
-            if (_snprintf(text, 300, Translate(DAT_004fd050), "\n", "\n", "\n", "\n") < 0) {
+            if (_snprintf(text, 300, Translate(g_directXWarningText), "\n", "\n", "\n", "\n") < 0) {
                 text[299] = 0;
             }
             OpenMessageBox(&g_game->sub, text, 200, 1, 1);
         }
     }
 
-    if (DAT_00512294 == 0) {
+    if (g_noSoundDriverShown == 0) {
         if (g_game->sound->HasNoDriver()) {
             OpenMessageBox(&g_game->sub, Translate("No sound driver is available for use.\n"), 500, 1, 1);
-            DAT_00512294 = 1;
+            g_noSoundDriverShown = 1;
         }
     }
 
-    if (DAT_00512290 == 0) {
+    if (g_gpfCheckDone == 0) {
         CheckGpfVersion();
-        DAT_00512290 = 1;
+        g_gpfCheckDone = 1;
     }
 }
 
@@ -1012,7 +1012,7 @@ int ConnectToService(void)
         g_game->flags.b0 = 1;
         return 1;
     }
-    strncpy(DAT_00511fb8, "An error occurred trying to use this service", 0xf9);
+    strncpy(g_frontendErrorText, "An error occurred trying to use this service", 0xf9);
     if (CodeChecksumFailed()) {
         sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]",
                 956, "c:\\cavedog\\wargame\\frontend.cpp");
@@ -1042,7 +1042,7 @@ static void LogStateChange(int line, char* file)
 {
     char buf[256];
     if (CodeChecksumFailed()) {
-        sprintf(buf, DAT_00502f9c, line, file);
+        sprintf(buf, g_frontendStateChangeFormat, line, file);
         OpenMessageBox(&g_game->sub, buf, 500, 1, 1);
     }
 }
@@ -1067,7 +1067,7 @@ static void SetState(char state, int line, char* file)
 {
     CheckFrontendStateChange(line, file);
     g_game->field_2bbe = state;
-    SetSubState(0, 0x9b, DAT_00503004);
+    SetSubState(0, 0x9b, g_frontendSourceFile);
 }
 
 // SetFrontendState with the sub-state change left out of line.
@@ -1075,14 +1075,14 @@ static void SetStateSubCall(char state, int line, char* file)
 {
     CheckFrontendStateChange(line, file);
     g_game->field_2bbe = state;
-    SetFrontendSubState(0, 0x9b, DAT_00503004);
+    SetFrontendSubState(0, 0x9b, g_frontendSourceFile);
 }
 
 static void SetStateLogged(char state, int line, char* file)
 {
     LogStateChange(line, file);
     g_game->field_2bbe = state;
-    SetFrontendSubState(0, 0x9b, DAT_00503004);
+    SetFrontendSubState(0, 0x9b, g_frontendSourceFile);
 }
 
 // ApplyPendingSubState.
@@ -1090,7 +1090,7 @@ static void UpdateSubState()
 {
     char next = g_game->field_2bc0;
     if (next != g_game->field_2bbf)
-        SetSubState(next, 0xa3, DAT_00503004);
+        SetSubState(next, 0xa3, g_frontendSourceFile);
 }
 
 // ConnectToService, as inlined in case 15 and in case 20.
@@ -1100,9 +1100,9 @@ static int UseService(void)
         g_game->flags.b0 = 1;
         return 1;
     }
-    SetFrontendErrorText(DAT_0050324c);
-    SetStateSubCall(0xf, 0x3bc, DAT_00503004);
-    SetFrontendSubState(0, 0x3bd, DAT_00503004);
+    SetFrontendErrorText(g_serviceErrorMessage);
+    SetStateSubCall(0xf, 0x3bc, g_frontendSourceFile);
+    SetFrontendSubState(0, 0x3bd, g_frontendSourceFile);
     return 0;
 }
 
@@ -1112,9 +1112,9 @@ static int UseServiceCalls(void)
         g_game->flags.b0 = 1;
         return 1;
     }
-    SetFrontendErrorText(DAT_0050324c);
-    SetFrontendState(0xf, 0x3bc, DAT_00503004);
-    SetFrontendSubState(0, 0x3bd, DAT_00503004);
+    SetFrontendErrorText(g_serviceErrorMessage);
+    SetFrontendState(0xf, 0x3bc, g_frontendSourceFile);
+    SetFrontendSubState(0, 0x3bd, g_frontendSourceFile);
     return 0;
 }
 
@@ -1131,19 +1131,19 @@ void RunFrontendStateMachine(void)
         SetCursorOverlayEnabled(0);
         if (p->fullscreen) {
             if (g_game->field_3923d) {
-                PlayMovie(DAT_0050329c);
-                SetState(1, 0x3dc, DAT_00503004);
+                PlayMovie(g_zrbMovie1);
+                SetState(1, 0x3dc, g_frontendSourceFile);
                 g_game->field_3923d = 0;
                 SaveSettings();
                 return;
             }
             if (g_game->field_39245 == 0) {
-                PlayMovie(DAT_0050329c);
-                SetState(2, 0x3e6, DAT_00503004);
+                PlayMovie(g_zrbMovie1);
+                SetState(2, 0x3e6, g_frontendSourceFile);
             } else
-                SetState(2, 0x3e9, DAT_00503004);
+                SetState(2, 0x3e9, g_frontendSourceFile);
         } else
-            SetState(2, 0x3ed, DAT_00503004);
+            SetState(2, 0x3ed, g_frontendSourceFile);
         break;
     }
 
@@ -1154,8 +1154,8 @@ void RunFrontendStateMachine(void)
             if (InitLobbiedConnection()) {
                 g_game->flags.b0 = 1;
                 g_game->field_2bee.b4 = 1;
-                SetState(0x10, 0x403, DAT_00503004);
-                SetSubState(0x12, 0x404, DAT_00503004);
+                SetState(0x10, 0x403, g_frontendSourceFile);
+                SetSubState(0x12, 0x404, g_frontendSourceFile);
                 SetCursorOverlayEnabled(1);
                 return;
             }
@@ -1163,30 +1163,30 @@ void RunFrontendStateMachine(void)
             g_game->field_2bee.b4 = 0;
             OpenMainMenu();
             if (DAT_00512c80 == 0) {
-                SetSubState(1, 0x40d, DAT_00503004);
+                SetSubState(1, 0x40d, g_frontendSourceFile);
                 SetCursorOverlayEnabled(1);
                 return;
             }
-            SetSubState(6, 0x40f, DAT_00503004);
+            SetSubState(6, 0x40f, g_frontendSourceFile);
             SetCursorOverlayEnabled(1);
             return;
         case 1:
-            FUN_00425b60();
+            PresentFrontendFrame();
             return;
         case 6:
             SetMissionType(3);
             g_game->flags.b3 = 0;
-            SetState(0xf, 0x41c, DAT_00503004);
+            SetState(0xf, 0x41c, g_frontendSourceFile);
             return;
         case 5:
             g_game->flags.b3 = 1;
-            SetState(7, 0x421, DAT_00503004);
+            SetState(7, 0x421, g_frontendSourceFile);
             return;
         case 7:
-            SetState(0, 0x425, DAT_00503004);
+            SetState(0, 0x425, g_frontendSourceFile);
             return;
         case 9:
-            SetState(3, 0x429, DAT_00503004);
+            SetState(3, 0x429, g_frontendSourceFile);
             return;
         case 8:
             BlankScreen();
@@ -1196,25 +1196,25 @@ void RunFrontendStateMachine(void)
         break;
 
     case 1:
-        PlayMovie(DAT_00503294);
-        SetState(2, 0x437, DAT_00503004);
+        PlayMovie(g_zrbMovie2);
+        SetState(2, 0x437, g_frontendSourceFile);
         break;
 
     case 3:
-        PlayMovie(DAT_0050328c);
-        SetState(2, 0x43c, DAT_00503004);
+        PlayMovie(g_zrbMovie5);
+        SetState(2, 0x43c, g_frontendSourceFile);
         break;
 
     case 4:
         switch ((unsigned char)g_game->field_2bbf) {
         case 0:
-            SetSubState(1, 0x443, DAT_00503004);
+            SetSubState(1, 0x443, g_frontendSourceFile);
             return;
         case 1:
-            PlayMovie(DAT_00503284);
-            PlayMovie(DAT_0050328c);
+            PlayMovie(g_zrbMovie3);
+            PlayMovie(g_zrbMovie5);
             g_game->flags.b2 = 0;
-            SetState(2, 0x44a, DAT_00503004);
+            SetState(2, 0x44a, g_frontendSourceFile);
             SetGameMode(2);
             return;
         }
@@ -1223,13 +1223,13 @@ void RunFrontendStateMachine(void)
     case 5:
         switch ((unsigned char)g_game->field_2bbf) {
         case 0:
-            SetSubState(1, 0x454, DAT_00503004);
+            SetSubState(1, 0x454, g_frontendSourceFile);
             return;
         case 1:
-            PlayMovie(DAT_0050327c);
-            PlayMovie(DAT_0050328c);
+            PlayMovie(g_zrbMovie4);
+            PlayMovie(g_zrbMovie5);
             g_game->flags.b2 = 0;
-            SetState(2, 0x45b, DAT_00503004);
+            SetState(2, 0x45b, g_frontendSourceFile);
             SetGameMode(2);
             return;
         }
@@ -1241,33 +1241,33 @@ void RunFrontendStateMachine(void)
         case 0:
             OpenSingleMenu();
             ResetPlayerSlots();
-            SetSubState(1, 0x47c, DAT_00503004);
+            SetSubState(1, 0x47c, g_frontendSourceFile);
             return;
         case 1:
-            FUN_00425b60();
+            PresentFrontendFrame();
             return;
         case 10:
             OpenNewGameMenu(1);
-            SetState(8, 0x485, DAT_00503004);
-            SetSubState(1, 0x486, DAT_00503004);
+            SetState(8, 0x485, g_frontendSourceFile);
+            SetSubState(1, 0x486, g_frontendSourceFile);
             return;
         case 11:
             LoadSettings();
             SetMissionType(2);
-            SetState(9, 0x493, DAT_00503004);
+            SetState(9, 0x493, g_frontendSourceFile);
             return;
         case 13:
-            SetState(0xa, 0x497, DAT_00503004);
+            SetState(0xa, 0x497, g_frontendSourceFile);
             OpenOptionsPanel();
-            SetSubState(1, 0x499, DAT_00503004);
+            SetSubState(1, 0x499, g_frontendSourceFile);
             return;
         case 3:
-            SetState(2, 0x49d, DAT_00503004);
+            SetState(2, 0x49d, g_frontendSourceFile);
             return;
         case 14:
             OpenNewGameMenu(1);
-            SetState(8, 0x4a2, DAT_00503004);
-            SetSubState(1, 0x4a3, DAT_00503004);
+            SetState(8, 0x4a2, g_frontendSourceFile);
+            SetSubState(1, 0x4a3, g_frontendSourceFile);
             return;
         }
         break;
@@ -1275,10 +1275,10 @@ void RunFrontendStateMachine(void)
     case 10:
         switch ((unsigned char)g_game->field_2bbf) {
         case 1:
-            FUN_00425b60();
+            PresentFrontendFrame();
             return;
         case 3:
-            SetState(7, 0x4b1, DAT_00503004);
+            SetState(7, 0x4b1, g_frontendSourceFile);
             return;
         }
         break;
@@ -1287,18 +1287,18 @@ void RunFrontendStateMachine(void)
         PopKey();
         switch ((unsigned char)g_game->field_2bbf) {
         case 1:
-            FUN_00425b60();
+            PresentFrontendFrame();
             return;
         case 15:
             SetMissionType(1);
-            SetState(0xb, 0x4c2, DAT_00503004);
+            SetState(0xb, 0x4c2, g_frontendSourceFile);
             return;
         case 16:
             SetMissionType(1);
-            SetState(0xc, 0x4c7, DAT_00503004);
+            SetState(0xc, 0x4c7, g_frontendSourceFile);
             return;
         case 3:
-            SetState(7, 0x4cb, DAT_00503004);
+            SetState(7, 0x4cb, g_frontendSourceFile);
             return;
         }
         break;
@@ -1308,16 +1308,16 @@ void RunFrontendStateMachine(void)
         switch ((unsigned char)g_game->field_2bbf) {
         case 0:
             OpenSkirmishMenu();
-            SetSubState(1, 0x4d9, DAT_00503004);
+            SetSubState(1, 0x4d9, g_frontendSourceFile);
             return;
         case 1:
-            FUN_00425b60();
+            PresentFrontendFrame();
             return;
         case 2:
             g_game->flags.b2 = 1;
             return;
         case 3:
-            SetState(7, 0x4e5, DAT_00503004);
+            SetState(7, 0x4e5, g_frontendSourceFile);
             return;
         }
         break;
@@ -1330,10 +1330,10 @@ void RunFrontendStateMachine(void)
         switch ((unsigned char)g_game->field_2bbf) {
         case 0:
             OpenMissionBriefing();
-            SetSubState(1, 0x4f5, DAT_00503004);
+            SetSubState(1, 0x4f5, g_frontendSourceFile);
             return;
         case 1:
-            FUN_00425b60();
+            PresentFrontendFrame();
             return;
         case 2:
             g_game->flags.b2 = 1;
@@ -1342,13 +1342,13 @@ void RunFrontendStateMachine(void)
             switch ((unsigned char)g_game->field_2bbe) {
             case 0xb:
                 OpenNewGameMenu(0);
-                SetState(8, 0x505, DAT_00503004);
-                SetSubState(1, 0x506, DAT_00503004);
+                SetState(8, 0x505, g_frontendSourceFile);
+                SetSubState(1, 0x506, g_frontendSourceFile);
                 return;
             case 0xc:
                 OpenNewGameMenu(1);
-                SetState(8, 0x50a, DAT_00503004);
-                SetSubState(1, 0x50b, DAT_00503004);
+                SetState(8, 0x50a, g_frontendSourceFile);
+                SetSubState(1, 0x50b, g_frontendSourceFile);
                 return;
             case 0xd:
                 HideSoftwareCursor();
@@ -1359,7 +1359,7 @@ void RunFrontendStateMachine(void)
                 return;
             case 0xe:
                 SetGameMode(2);
-                SetState(7, 0x516, DAT_00503004);
+                SetState(7, 0x516, g_frontendSourceFile);
                 return;
             }
             break;
@@ -1374,51 +1374,51 @@ void RunFrontendStateMachine(void)
             g_game->field_2aaf.b0 = 0;
             if (InitLobbiedConnection()) {
                 g_game->flags.b0 = 1;
-                SetState(0x10, 0x52d, DAT_00503004);
-                SetSubState(0x12, 0x52e, DAT_00503004);
+                SetState(0x10, 0x52d, g_frontendSourceFile);
+                SetSubState(0x12, 0x52e, g_frontendSourceFile);
                 return;
             }
             FillProviderList();
             if (SelectConnection(-1))
-                SetSubState(2, 0x534, DAT_00503004);
+                SetSubState(2, 0x534, g_frontendSourceFile);
             else
-                SetSubState(1, 0x536, DAT_00503004);
+                SetSubState(1, 0x536, g_frontendSourceFile);
             return;
         case 13:
-            SetState(0xa, 0x53b, DAT_00503004);
+            SetState(0xa, 0x53b, g_frontendSourceFile);
             OpenOptionsPanel();
-            SetSubState(1, 0x53d, DAT_00503004);
+            SetSubState(1, 0x53d, g_frontendSourceFile);
             return;
         // Stays between cases 13 and 2: its position decides case 20 registers.
         case 1:
-            FUN_00425b60();
+            PresentFrontendFrame();
             return;
         case 2:
             if (memcmp((char*)g_game + 0x39201, DAT_004fcdc8, 0x10) == 0) {
-                SetState(0x14, 0x547, DAT_00503004);
-                SetSubState(1, 0x548, DAT_00503004);
+                SetState(0x14, 0x547, g_frontendSourceFile);
+                SetSubState(1, 0x548, g_frontendSourceFile);
                 OpenModemDialog();
                 return;
             }
             if (memcmp((char*)g_game + 0x39201, DAT_004fcdb8, 0x10) == 0) {
-                SetState(0x14, 0x54e, DAT_00503004);
-                SetSubState(1, 0x54f, DAT_00503004);
+                SetState(0x14, 0x54e, g_frontendSourceFile);
+                SetSubState(1, 0x54f, g_frontendSourceFile);
                 OpenSerialDialog();
                 return;
             }
             if (memcmp((char*)g_game + 0x39201, DAT_004fcda8, 0x10) == 0) {
-                SetState(0x14, 0x555, DAT_00503004);
-                SetSubState(1, 0x556, DAT_00503004);
+                SetState(0x14, 0x555, g_frontendSourceFile);
+                SetSubState(1, 0x556, g_frontendSourceFile);
                 OpenTcpDialog();
                 return;
             }
             if (UseService()) {
-                SetState(0x10, 0x55d, DAT_00503004);
-                SetSubState(0, 0x55e, DAT_00503004);
+                SetState(0x10, 0x55d, g_frontendSourceFile);
+                SetSubState(0, 0x55e, g_frontendSourceFile);
             }
             return;
         case 3:
-            SetState(2, 0x564, DAT_00503004);
+            SetState(2, 0x564, g_frontendSourceFile);
             // break, not return: lets case 7:11 cross-jump into case 16:17.
             break;
         }
@@ -1429,16 +1429,16 @@ void RunFrontendStateMachine(void)
         case 1:
             if (g_game->field_2aaf.b1) {
                 if (UseServiceCalls()) {
-                    SetStateSubCall(0x10, 0x571, DAT_00503004);
-                    SetSubState(0, 0x572, DAT_00503004);
+                    SetStateSubCall(0x10, 0x571, g_frontendSourceFile);
+                    SetSubState(0, 0x572, g_frontendSourceFile);
                 } else {
                     g_game->field_2aaf.b0 = 0;
                     g_game->field_2aaf.b1 = 0;
-                    SetStateSubCall(0xf, 0x577, DAT_00503004);
-                    SetSubState(0, 0x578, DAT_00503004);
+                    SetStateSubCall(0xf, 0x577, g_frontendSourceFile);
+                    SetSubState(0, 0x578, g_frontendSourceFile);
                 }
             }
-            FUN_00425b60();
+            PresentFrontendFrame();
             return;
         }
         break;
@@ -1448,12 +1448,12 @@ void RunFrontendStateMachine(void)
         switch ((unsigned char)g_game->field_2bbf) {
         case 0:
             HAPINET_guaranteepackets(1);
-            SetSubState(1, 0x587, DAT_00503004);
+            SetSubState(1, 0x587, g_frontendSourceFile);
             ResetPlayerSlots();
             if (memcmp((char*)g_game + 0x39201, DAT_004fcdc8, 0x10) == 0 ||
                 memcmp((char*)g_game + 0x39201, DAT_004fcdb8, 0x10) == 0) {
                 if (g_game->field_2aaf.b0) {
-                    SetSubState(0x11, 0x58f, DAT_00503004);
+                    SetSubState(0x11, 0x58f, g_frontendSourceFile);
                     return;
                 }
                 *(V4i*)((char*)g_game + 0x2ba2) = DAT_004fdaf0;
@@ -1462,20 +1462,20 @@ void RunFrontendStateMachine(void)
             ShowFrontendErrorText();
             return;
         case 1:
-            FUN_00425b60();
+            PresentFrontendFrame();
             ShowFrontendErrorText();
             return;
         case 17:
             CreateNetGame();
             if (CreateLocalPlayer(g_game->localPlayer, 1))
                 AddNetPlayer(g_game->players[(unsigned char)g_game->localPlayer].field_4);
-            SetState(0x11, 0x5ab, DAT_00503004);
+            SetState(0x11, 0x5ab, g_frontendSourceFile);
             return;
         case 19:
             g_game->players[(unsigned char)g_game->localPlayer].owner->b6 = 1;
         case 18:
             if (JoinNetGame(*(V4i*)((char*)g_game + 0x2ba2), (unsigned char)g_game->localPlayer) == 0) {
-                SetSubState(0, 0x5b3, DAT_00503004);
+                SetSubState(0, 0x5b3, g_frontendSourceFile);
                 return;
             }
             if (g_game->field_2bbf == 0x12) {
@@ -1483,14 +1483,14 @@ void RunFrontendStateMachine(void)
                 Force640x480Surfaces();
                 if (InitScoreReporting()) {
                     FUN_004ab0a0(&g_game->sub);
-                    SetSubState(0x14, 0x5c1, DAT_00503004);
+                    SetSubState(0x14, 0x5c1, g_frontendSourceFile);
                 } else
-                    SetSubState(0x15, 0x5c4, DAT_00503004);
+                    SetSubState(0x15, 0x5c4, g_frontendSourceFile);
             } else
-                SetSubState(0x15, 0x5c7, DAT_00503004);
+                SetSubState(0x15, 0x5c7, g_frontendSourceFile);
             return;
         case 20:
-            FUN_00425b60();
+            PresentFrontendFrame();
             return;
         case 21: {
             int unit = g_game->field_4e5;
@@ -1514,12 +1514,12 @@ void RunFrontendStateMachine(void)
                 g_game->flags.b2 = 1;
                 return;
             }
-            SetStateLogged(0x11, 0x5ea, DAT_00503004);
+            SetStateLogged(0x11, 0x5ea, g_frontendSourceFile);
             return;
         }
         case 3:
             CloseNetSession();
-            SetStateLogged(0xf, 0x5f0, DAT_00503004);
+            SetStateLogged(0xf, 0x5f0, g_frontendSourceFile);
             return;
         }
         break;
@@ -1531,21 +1531,21 @@ void RunFrontendStateMachine(void)
                 OpenBattleRoom();
                 ReportGameEvent(1);
                 ReportGameEvent(2);
-                SetSubState(1, 0x5ff, DAT_00503004);
+                SetSubState(1, 0x5ff, g_frontendSourceFile);
                 BroadcastPlayerInfo();
                 return;
             }
             FinishUnitSync();
-            SetSubState(0x11, 0x605, DAT_00503004);
+            SetSubState(0x11, 0x605, g_frontendSourceFile);
             BroadcastPlayerInfo();
             return;
         case 1:
             UpdateBattleRoom();
-            FUN_00425b60();
+            PresentFrontendFrame();
             if (g_game->flags.b2) {
                 FinishUnitSync();
                 CloseTopScreen(&g_game->sub);
-                SetSubStateLogged(0x11, 0x613, DAT_00503004);
+                SetSubStateLogged(0x11, 0x613, g_frontendSourceFile);
             }
             return;
         case 17: {
@@ -1573,10 +1573,10 @@ void RunFrontendStateMachine(void)
             switch (GetServiceProviderIndex()) {
             case 0:
             case 3:
-                SetStateLogged(0xf, 0x640, DAT_00503004);
+                SetStateLogged(0xf, 0x640, g_frontendSourceFile);
                 break;
             default:
-                SetStateLogged(0x10, 0x643, DAT_00503004);
+                SetStateLogged(0x10, 0x643, g_frontendSourceFile);
                 break;
             }
             return;
@@ -1589,18 +1589,18 @@ void RunFrontendStateMachine(void)
 void FreePictureCache()
 {
     for (int i = 0; i < 10; i++) {
-        if (DAT_005120b8[i].surface != 0) {
-            FreeSurface(DAT_005120b8[i].surface);
-            FUN_004d85a0(DAT_005120b8[i].data);
-            if (g_game->surface == DAT_005120b8[i].surface) {
+        if (g_pictureCache[i].surface != 0) {
+            FreeSurface(g_pictureCache[i].surface);
+            FUN_004d85a0(g_pictureCache[i].data);
+            if (g_game->surface == g_pictureCache[i].surface) {
                 g_game->surface = 0;
             }
-            if (g_game->sub.current != 0 && g_game->sub.current->field_24 == DAT_005120b8[i].surface) {
+            if (g_game->sub.current != 0 && g_game->sub.current->field_24 == g_pictureCache[i].surface) {
                 g_game->sub.current->field_24 = 0;
             }
-            DAT_005120b8[i].surface = 0;
-            DAT_005120b8[i].data = 0;
-            memset(DAT_005120b8[i].name, 0, sizeof(DAT_005120b8[i].name));
+            g_pictureCache[i].surface = 0;
+            g_pictureCache[i].data = 0;
+            memset(g_pictureCache[i].name, 0, sizeof(g_pictureCache[i].name));
         }
     }
 }
@@ -1608,7 +1608,7 @@ void FreePictureCache()
 // FUNCTION: 0x4287b0
 void ClearPictureCache()
 {
-    memset(DAT_005120b8, 0, 0x64 * 4);
+    memset(g_pictureCache, 0, 0x64 * 4);
 }
 
 // Looks an entry of the table cleared by FreePictureCache up by name.
@@ -1618,8 +1618,8 @@ int* __stdcall FindCachedPicturePalette(const char* name)
     if (name == 0)
         return 0;
     for (int i = 0; i < 10; i++) {
-        if (strcmp(DAT_005120b8[i].name, name) == 0)
-            return DAT_005120b8[i].data;
+        if (strcmp(g_pictureCache[i].name, name) == 0)
+            return g_pictureCache[i].data;
     }
     return 0;
 }
@@ -1630,8 +1630,8 @@ int __stdcall FindCachedPicture(char* name)
     if (name == 0)
         return 0;
     for (int i = 0; i < 10; i++) {
-        if (strcmp(DAT_005120b8[i].name, name) == 0)
-            return (int)DAT_005120b8[i].surface;
+        if (strcmp(g_pictureCache[i].name, name) == 0)
+            return (int)g_pictureCache[i].surface;
     }
     return 0;
 }
@@ -1655,13 +1655,13 @@ int __stdcall LoadPictureCached(const char* name, int param_2, int param_3, int 
 
     if (name != 0) {
         for (int i = 0; i < 10; i++) {
-            if (strcmp(DAT_005120b8[i].name, name) == 0) {
-                surface = DAT_005120b8[i].surface;
-                data = DAT_005120b8[i].data;
-                saved = DAT_005120b8[i];
+            if (strcmp(g_pictureCache[i].name, name) == 0) {
+                surface = g_pictureCache[i].surface;
+                data = g_pictureCache[i].data;
+                saved = g_pictureCache[i];
                 for (int j = i - 1; j >= 0; j--)
-                    DAT_005120b8[j + 1] = DAT_005120b8[j];
-                DAT_005120b8[0] = saved;
+                    g_pictureCache[j + 1] = g_pictureCache[j];
+                g_pictureCache[0] = saved;
                 break;
             }
         }
@@ -1670,15 +1670,15 @@ int __stdcall LoadPictureCached(const char* name, int param_2, int param_3, int 
             surface = LoadBitmapByName(name, (int)buf);
             data = (int*)buf;
             if (g_game->field_391f1 != 6) {
-                if (DAT_005120b8[9].surface != 0) {
-                    FreeSurface(DAT_005120b8[9].surface);
-                    FUN_004d85a0(DAT_005120b8[9].data);
+                if (g_pictureCache[9].surface != 0) {
+                    FreeSurface(g_pictureCache[9].surface);
+                    FUN_004d85a0(g_pictureCache[9].data);
                 }
                 for (int j = 9; j > 0; j--)
-                    DAT_005120b8[j] = DAT_005120b8[j - 1];
-                DAT_005120b8[0].surface = surface;
-                DAT_005120b8[0].data = data;
-                strcpy(DAT_005120b8[0].name, name);
+                    g_pictureCache[j] = g_pictureCache[j - 1];
+                g_pictureCache[0].surface = surface;
+                g_pictureCache[0].data = data;
+                strcpy(g_pictureCache[0].name, name);
             }
         }
     } else {
@@ -1712,7 +1712,7 @@ after:
 }
 
 // FUNCTION: 0x428b60
-void FUN_00428b60(void)
+void OrLabelAttribs(void)
 {
     Entry_428b60* entries = (Entry_428b60*)g_game->sub.current->gadgets;
     for (int i = 1; i <= entries->count; i++) {
@@ -1723,7 +1723,7 @@ void FUN_00428b60(void)
 }
 
 // FUNCTION: 0x428bb0
-void FUN_00428bb0(void)
+void EmptyPreFrontendInitHook(void)
 {
 }
 
@@ -1732,49 +1732,49 @@ void FUN_00428bb0(void)
 // checksum check and deletes the branch.
 
 // FUNCTION: 0x428bd0
-void FUN_00428bd0(void)
+void EmptyPostSimStepHook(void)
 {
 }
 
 // FUNCTION: 0x428be0
-void FUN_00428be0(void)
+void EmptyPostSimStepHook_B(void)
 {
 }
 
 // FUNCTION: 0x428bf0
-void FUN_00428bf0(void)
+void EmptyPostSimStepHook_C(void)
 {
 }
 
 // FUNCTION: 0x428c00
-int FUN_00428c00(void)
+int MainLoopContinueStub(void)
 {
     return 1;
 }
 
 // FUNCTION: 0x428c10
-int FUN_00428c10(void)
+int MainLoopContinueStub_B(void)
 {
     return 1;
 }
 
 // FUNCTION: 0x428c20
-int FUN_00428c20(void)
+int MainLoopContinueStub_C(void)
 {
     return 1;
 }
 
 // FUNCTION: 0x428c30
-void FUN_00428c30(void)
+void EmptyMainLoopHook(void)
 {
 }
 
 // FUNCTION: 0x428c40
-void FUN_00428c40(void)
+void EmptyMainLoopHook_B(void)
 {
 }
 
 // FUNCTION: 0x428c50
-void FUN_00428c50(void)
+void EmptyMainLoopHook_C(void)
 {
 }

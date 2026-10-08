@@ -11,7 +11,7 @@
 
 unsigned char g_turnCosts[8] = {0, 40, 60, 80, 100, 80, 60, 40};  // 0x4fca10 .rdata
 unsigned char DAT_004fcc68[8] = {4, 14, 10};  // 0x4fcc68 .rdata
-char DAT_004fd050[200] = "Warning! The currently installed version of Microsoft%sDirectX may not function properly with Total Annihilation.%sPlease install the version of DirectX included on the%sTotal Annihilation setup CD.";  // 0x4fd050 .rdata
+char g_directXWarningText[200] = "Warning! The currently installed version of Microsoft%sDirectX may not function properly with Total Annihilation.%sPlease install the version of DirectX included on the%sTotal Annihilation setup CD.";  // 0x4fd050 .rdata
 double TWO_PI = 6.28318530717958;  // 0x4fd2b0 .rdata
 double ONE_EIGHTH = 0.125;  // 0x4fd2b8 .rdata
 const float DAT_004fd4c0 = 0.0f;  // 0x4fd4c0 .rdata
@@ -49,8 +49,8 @@ unsigned short g_faceVertexIndices[6][4] = {
 };
 const char g_animsDirName[8] = "anims";  // 0x502e30 .data
 char g_descriptionKey[12] = "Description";  // 0x502e78 .data
-char DAT_00502f9c[104] = "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]";  // 0x502f9c .data
-char DAT_00503004[32] = "c:\\cavedog\\wargame\\frontend.cpp";  // 0x503004 .data
+char g_frontendStateChangeFormat[104] = "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]";  // 0x502f9c .data
+char g_frontendSourceFile[32] = "c:\\cavedog\\wargame\\frontend.cpp";  // 0x503004 .data
 char g_extTdf[4] = "tdf";  // 0x50310c .data
 char DAT_00503120[8] = "CHOICE2";  // 0x503120 .data
 char DAT_00503128[8] = "CHOICE1";  // 0x503128 .data
@@ -60,12 +60,12 @@ char DAT_00503160[4] = "No";  // 0x503160 .data
 char DAT_00503164[4] = "Yes";  // 0x503164 .data
 char DAT_00503168[12] = "YESORNO.GUI";  // 0x503168 .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
 char g_bgmSoundName[4] = "BGM";  // 0x5031d4 .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
-char DAT_0050324c[48] = "An error occurred trying to use this service";  // 0x50324c .data
-char DAT_0050327c[8] = "4.zrb";  // 0x50327c .data
-char DAT_00503284[8] = "3.zrb";  // 0x503284 .data
-char DAT_0050328c[8] = "5.zrb";  // 0x50328c .data
-char DAT_00503294[8] = "2.zrb";  // 0x503294 .data
-char DAT_0050329c[8] = "1.zrb";  // 0x50329c .data
+char g_serviceErrorMessage[48] = "An error occurred trying to use this service";  // 0x50324c .data
+char g_zrbMovie4[8] = "4.zrb";  // 0x50327c .data
+char g_zrbMovie3[8] = "3.zrb";  // 0x503284 .data
+char g_zrbMovie5[8] = "5.zrb";  // 0x50328c .data
+char g_zrbMovie2[8] = "2.zrb";  // 0x503294 .data
+char g_zrbMovie1[8] = "1.zrb";  // 0x50329c .data
 char* g_saveBankName = (char*)"Total Annihilation 3.0";  // 0x50331c .data
 char* g_summaryAccountName = (char*)"Summary";  // 0x503320 .data
 char DAT_00503374[4] = "\\";  // 0x503374 .data
@@ -378,14 +378,14 @@ int g_explosion2Duration;  // 0x511fa8 .bss
 int g_explosion2StartSize;  // 0x511fac .bss
 int g_explosion2EndSize;  // 0x511fb0 .bss
 List_00422ea0* DAT_00511fb4;  // 0x511fb4 .bss
-char DAT_00511fb8[256];  // 0x511fb8 .bss
-unsigned char DAT_005120b8[464];  // 0x5120b8 .bss
+char g_frontendErrorText[256];  // 0x511fb8 .bss
+unsigned char g_pictureCache[464];  // 0x5120b8 .bss
 int DAT_00512288;  // 0x512288 .bss
-int DAT_0051228c;  // 0x51228c .bss
-int DAT_00512290;  // 0x512290 .bss
-int DAT_00512294;  // 0x512294 .bss
-Smoke_00425b80* DAT_00512298;  // 0x512298 .bss
-int DAT_0051229c;  // 0x51229c .bss
+int g_directXCheckDone;  // 0x51228c .bss
+int g_gpfCheckDone;  // 0x512290 .bss
+int g_noSoundDriverShown;  // 0x512294 .bss
+Smoke_00425b80* g_menuSparks;  // 0x512298 .bss
+int g_cdPlayerDialogShown;  // 0x51229c .bss
 unsigned char DAT_005122a0[4];  // 0x5122a0 .bss
 char* g_otaEnumFileList;  // 0x5122d4 .bss
 int g_otaEnumCacheComplete;  // 0x5122d8 .bss

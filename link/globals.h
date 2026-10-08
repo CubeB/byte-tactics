@@ -27,7 +27,7 @@ struct Struct_00526ff0;
 
 extern unsigned char g_turnCosts[8];                                                              // 0x4fca10, 8 bytes; const Table_0040d880 by value in 1 of 1 files
 extern unsigned char DAT_004fcc68[8];                                                             // 0x4fcc68, 8 bytes; 1 of 1 files
-extern char DAT_004fd050[200];                                                                    // 0x4fd050, 200 bytes; 1 of 1 files
+extern char g_directXWarningText[200];                                                            // 0x4fd050, 200 bytes; 1 of 1 files
 extern double TWO_PI;                                                                             // 0x4fd2b0, 8 bytes; 1 of 1 files
 extern double ONE_EIGHTH;                                                                         // 0x4fd2b8, 8 bytes; 1 of 1 files
 extern const float DAT_004fd4c0;                                                                  // 0x4fd4c0, 4 bytes; 1 of 1 files
@@ -57,8 +57,8 @@ extern char g_optionsSoundName[8];                                              
 extern unsigned short g_faceVertexIndices[6][4];                                                  // 0x502bf8, 48 bytes; 1 of 1 files
 extern const char g_animsDirName[8];                                                              // 0x502e30, 8 bytes; 1 of 1 files
 extern char g_descriptionKey[12];                                                                 // 0x502e78, 12 bytes; 1 of 1 files
-extern char DAT_00502f9c[104];                                                                    // 0x502f9c, 104 bytes; 1 of 1 files
-extern char DAT_00503004[32];                                                                     // 0x503004, 32 bytes; 1 of 1 files
+extern char g_frontendStateChangeFormat[104];                                                     // 0x502f9c, 104 bytes; 1 of 1 files
+extern char g_frontendSourceFile[32];                                                             // 0x503004, 32 bytes; 1 of 1 files
 extern char g_extTdf[4];                                                                          // 0x50310c, 4 bytes; 1 of 1 files
 extern char DAT_00503120[8];                                                                      // 0x503120, 8 bytes; 1 of 1 files
 extern char DAT_00503128[8];                                                                      // 0x503128, 8 bytes; 1 of 1 files
@@ -68,12 +68,12 @@ extern char DAT_00503160[4];                                                    
 extern char DAT_00503164[4];                                                                      // 0x503164, 4 bytes; 1 of 1 files
 extern char DAT_00503168[12];                                                                     // 0x503168, 12 bytes; 1 of 1 files
 extern char g_bgmSoundName[4];                                                                    // 0x5031d4, 4 bytes; 1 of 1 files
-extern char DAT_0050324c[48];                                                                     // 0x50324c, 48 bytes; 1 of 1 files
-extern char DAT_0050327c[8];                                                                      // 0x50327c, 8 bytes; 1 of 1 files
-extern char DAT_00503284[8];                                                                      // 0x503284, 8 bytes; 1 of 1 files
-extern char DAT_0050328c[8];                                                                      // 0x50328c, 8 bytes; 1 of 1 files
-extern char DAT_00503294[8];                                                                      // 0x503294, 8 bytes; 1 of 1 files
-extern char DAT_0050329c[8];                                                                      // 0x50329c, 8 bytes; 1 of 1 files
+extern char g_serviceErrorMessage[48];                                                            // 0x50324c, 48 bytes; 1 of 1 files
+extern char g_zrbMovie4[8];                                                                       // 0x50327c, 8 bytes; 1 of 1 files
+extern char g_zrbMovie3[8];                                                                       // 0x503284, 8 bytes; 1 of 1 files
+extern char g_zrbMovie5[8];                                                                       // 0x50328c, 8 bytes; 1 of 1 files
+extern char g_zrbMovie2[8];                                                                       // 0x503294, 8 bytes; 1 of 1 files
+extern char g_zrbMovie1[8];                                                                       // 0x50329c, 8 bytes; 1 of 1 files
 extern char* g_saveBankName;                                                                      // 0x50331c, 4 bytes; 1 of 1 files
 extern char* g_summaryAccountName;                                                                // 0x503320, 4 bytes; 1 of 1 files
 extern char DAT_00503374[4];                                                                      // 0x503374, 4 bytes; 3 of 3 files
@@ -292,14 +292,14 @@ extern int g_explosion2Duration;                                                
 extern int g_explosion2StartSize;                                                                 // 0x511fac, 4 bytes; 1 of 1 files
 extern int g_explosion2EndSize;                                                                   // 0x511fb0, 4 bytes; 1 of 1 files
 extern List_00422ea0* DAT_00511fb4;                                                               // 0x511fb4, 4 bytes, DAT_00511fb4$S22242; 1 of 2 files (conflicting: struct names only)
-extern char DAT_00511fb8[256];                                                                    // 0x511fb8, 256 bytes; 1 of 1 files
-extern unsigned char DAT_005120b8[464];                                                           // 0x5120b8, 464 bytes; Entry_00428730[10] by value in 1 of 1 files
+extern char g_frontendErrorText[256];                                                             // 0x511fb8, 256 bytes; 1 of 1 files
+extern unsigned char g_pictureCache[464];                                                         // 0x5120b8, 464 bytes; Entry_00428730[10] by value in 1 of 1 files
 extern int DAT_00512288;                                                                          // 0x512288, 4 bytes; 1 of 1 files
-extern int DAT_0051228c;                                                                          // 0x51228c, 4 bytes; 1 of 1 files
-extern int DAT_00512290;                                                                          // 0x512290, 4 bytes; 1 of 1 files
-extern int DAT_00512294;                                                                          // 0x512294, 4 bytes; 1 of 1 files
-extern Smoke_00425b80* DAT_00512298;                                                              // 0x512298, 4 bytes; 1 of 1 files
-extern int DAT_0051229c;                                                                          // 0x51229c, 4 bytes; 1 of 1 files
+extern int g_directXCheckDone;                                                                    // 0x51228c, 4 bytes; 1 of 1 files
+extern int g_gpfCheckDone;                                                                        // 0x512290, 4 bytes; 1 of 1 files
+extern int g_noSoundDriverShown;                                                                  // 0x512294, 4 bytes; 1 of 1 files
+extern Smoke_00425b80* g_menuSparks;                                                              // 0x512298, 4 bytes; 1 of 1 files
+extern int g_cdPlayerDialogShown;                                                                 // 0x51229c, 4 bytes; 1 of 1 files
 extern unsigned char DAT_005122a0[4];                                                             // 0x5122a0, 4 bytes; nothing refers to it
 extern char* g_otaEnumFileList;                                                                   // 0x5122d4, 4 bytes; 1 of 1 files
 extern int g_otaEnumCacheComplete;                                                                // 0x5122d8, 4 bytes; 1 of 1 files

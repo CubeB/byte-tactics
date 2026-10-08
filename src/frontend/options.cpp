@@ -1297,7 +1297,7 @@ void __stdcall OpenSpeedOptions();
 void __stdcall OpenExitMenu();
 void __stdcall EnsureOptionsPanelGadget();
 void RestoreVisualOptions();
-void FUN_00428b60();
+void OrLabelAttribs();
 void SaveSettings();
 
 static inline int SliderValue(Entry_0045b800* e)
@@ -2097,7 +2097,7 @@ void OpenMusicOptions()
     }
     FUN_0049fa90(&g_game->gui);
     FUN_0049fb10(&g_game->gui, 1);
-    FUN_00428b60();
+    OrLabelAttribs();
     RenderLayer(&g_game->gui, 0x40);
 }
 
@@ -2232,7 +2232,7 @@ void OpenSoundOptions()
     FUN_004a1450(&g_game->gui, "SPEECH", (g_game->soundFlags.word & 7) == 0);
     FUN_0049fa90(&g_game->gui);
     FUN_0049fb10(&g_game->gui, 1);
-    FUN_00428b60();
+    OrLabelAttribs();
     RenderLayer(&g_game->gui, 0x40);
 }
 
@@ -2470,7 +2470,7 @@ void __stdcall OpenVisualOptions(int param_1)
     }
 
     FUN_0049fb10(&g_game->gui, 1);
-    FUN_00428b60();
+    OrLabelAttribs();
     RenderLayer(&g_game->gui, 0x40);
 }
 
@@ -2619,7 +2619,7 @@ void OpenSpeedOptions()
             obj->entries[i].fn(&g_game->gui, 0);
     }
     FUN_0049fb10(&g_game->gui, 1);
-    FUN_00428b60();
+    OrLabelAttribs();
     RenderLayer(&g_game->gui, 0x40);
 }
 

@@ -232,7 +232,7 @@ void AtexitNoOp();
 void __cdecl InitDebugSupport(int param_1);
 void CreateGameObject();
 void RegisterDataArchives();
-void FUN_00428bb0();
+void EmptyPreFrontendInitHook();
 void InitGame();
 void __stdcall InitDisplayDefaults(void* param_1);
 int __stdcall InitEnvironment(void* param_1);
@@ -314,7 +314,7 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     }
     LoadTranslations(g_translationFile, g_preferredLanguage);
     g_game->field_10 = new Sound;
-    FUN_00428bb0();
+    EmptyPreFrontendInitHook();
     InitGame();
 
     size20 = 0x32;

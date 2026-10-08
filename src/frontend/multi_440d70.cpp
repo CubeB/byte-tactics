@@ -372,7 +372,7 @@ void __stdcall HAPINET_getconnections(void* net, void* guids, void* conns,
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
 int IsOnlineConfigLoaded();
-void FUN_00428b60();
+void OrLabelAttribs();
 int __stdcall LoadReporterDll(unsigned int* a, unsigned int* b);
 void __stdcall RunWhileScreenNamed(void* p, char* name);
 char* GetPreferredLanguage();
@@ -518,7 +518,7 @@ void OpenNewMultiDialog()
     if (strlen(pw) == 0)
         pw = g_game->password;
     FUN_004a0bf0(&g_game->menu, "PASSWORD", pw, 0xa);
-    FUN_00428b60();
+    OrLabelAttribs();
     FUN_0049fb10(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
 }
@@ -1447,7 +1447,7 @@ void OpenSelectGameDialog()
         return;
     }
     SelectGadgetByIndex(&g_game->menu, FindGadgetIndex(gadget->entries, "GAMENAME", 2));
-    FUN_00428b60();
+    OrLabelAttribs();
     FUN_0049fb10(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
     Player_441080* conn = &g_game->players[g_game->localPlayer];

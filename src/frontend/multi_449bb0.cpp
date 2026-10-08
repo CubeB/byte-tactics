@@ -181,7 +181,7 @@ extern char* DAT_005054b0[];
 
 char __stdcall FindGameCdDrive(int side);
 int __stdcall LoadPictureCached(const char* name, int param_2, int param_3, int param_4);
-void FUN_00428b60();
+void OrLabelAttribs();
 void __stdcall UpdateMaxUnitsText(Gui_00449bb0* gui, int index);
 void __stdcall UpdateMetalText(Gui_00449bb0* gui, int index);
 void UpdateBattleRoomFlags();
@@ -409,7 +409,7 @@ void OpenBattleRoom()
     FUN_004455b0();
     RefreshTeamIcons();
     RefreshBattleRoomRows();
-    FUN_00428b60();
+    OrLabelAttribs();
 
     if (IsScreenNamed(&g_game->gui, "LOUNGE2.GUI")) {
         Gadget_00449bb0* start = FUN_004a0280(layer->entries, "battlestart");

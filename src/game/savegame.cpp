@@ -239,7 +239,7 @@ int __stdcall SaveGameFile(char* path, char* description, int param_3);
 int __stdcall CountDirectoryEntries(const char* path, int flag);
 void __stdcall ScanDirectory(char* path, char* list, char* sizes, int mode, int flag, int what);
 void __cdecl InitMissionStatus();
-void FUN_00428b60();
+void OrLabelAttribs();
 void __stdcall BlankScreen();
 void __stdcall RegisterDataArchives();
 void __stdcall SetFrontendState(int code, int line, char* file);
@@ -710,7 +710,7 @@ void ShowSaveGameScreen()
     ShowSavedGameInfo();
     FUN_004a7190(&g_game->menu_00493060, index);
     FUN_0049fb10(&g_game->menu_00493060, 1);
-    FUN_00428b60();
+    OrLabelAttribs();
     FUN_004a0570(&g_game->menu_00493060, "LoadGame", 0);
     FUN_0049fa50(&g_game->menu_00493060);
     RenderLayer(&g_game->menu_00493060, 0x40);
@@ -741,7 +741,7 @@ void ShowLoadGameScreen()
     }
     ShowSavedGameInfo();
     FUN_0049fb10((char*)g_game + 0x519, 1);
-    FUN_00428b60();
+    OrLabelAttribs();
     FUN_004a0570((char*)g_game + 0x519, "SaveGame", 0);
     FUN_0049fa50((char*)g_game + 0x519);
     RenderLayer((char*)g_game + 0x519, 0x40);

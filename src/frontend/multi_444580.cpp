@@ -86,7 +86,7 @@ int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
 unsigned int __stdcall OnlineGetLinkInfo(LinkInfo* links);
 void __stdcall FUN_004a09c0(void* menu, int index, int param_3, int param_4);
 void __stdcall FUN_004a32a0(void* menu, char* name, void* items, int count, int flag);
-void FUN_00428b60();
+void OrLabelAttribs();
 void __stdcall FUN_0049fb10(void* menu, int value);
 void __stdcall RenderLayer(void* menu, int value);
 
@@ -155,7 +155,7 @@ void FillProviderList()
     }
     strcpy(entries->field_cc, "SELECT");
     FUN_004a32a0(&g_game->menu, "DPLAY", g_game->descriptions, g_game->field_4f9, 0);
-    FUN_00428b60();
+    OrLabelAttribs();
     FUN_0049fb10(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
 }

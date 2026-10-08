@@ -393,9 +393,9 @@ void UpdateMeteors(void);
 void UpdateCameraFollow(void);
 void UpdateParticles(void);
 void UpdateBlink(void);
-void FUN_00428bd0(void);
-void FUN_00428be0(void);
-void FUN_00428bf0(void);
+void EmptyPostSimStepHook(void);
+void EmptyPostSimStepHook_B(void);
+void EmptyPostSimStepHook_C(void);
 void ExpireOldestMessage(void);
 void ExpireEyeballs(void);
 void __stdcall UpdateResourceSharing(Player* player);
@@ -1404,9 +1404,9 @@ void __stdcall RunGameSteps(int showStats)
         }
     }
 
-    FUN_00428bd0();
-    FUN_00428be0();
-    FUN_00428bf0();
+    EmptyPostSimStepHook();
+    EmptyPostSimStepHook_B();
+    EmptyPostSimStepHook_C();
     ExpireOldestMessage();
     ExpireEyeballs();
     g_game->prof.AccumulateProfileTime(8);

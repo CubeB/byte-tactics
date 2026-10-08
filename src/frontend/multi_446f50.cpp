@@ -633,7 +633,7 @@ void __stdcall FrameFromSurface(void* dst, void* src);
 void* __stdcall FindGafEntry(void* gaf, const char* name);
 void FatalError(char* message);
 char* __stdcall Translate(char* text);
-void FUN_00428b60();
+void OrLabelAttribs();
 
 // FUNCTION: 0x446f50
 void __stdcall CyclePlayerAlliance(int index)
@@ -2019,7 +2019,7 @@ void __stdcall OpenSaveGameDialog()
 
     FUN_004a7190(&g_game->gui, index);
     FUN_0049fb10(&g_game->gui, 1);
-    FUN_00428b60();
+    OrLabelAttribs();
     FUN_004a0570(&g_game->gui, "LoadGame", 0);
     FUN_0049fa50(&g_game->gui);
     RenderLayer(&g_game->gui, 0x40);
@@ -2069,7 +2069,7 @@ void OpenLoadListDialog()
         SetGadgetText(menu, index, DAT_005119b8);
     FUN_0049fa90(&g_game->gui);
     FUN_0049fb10(&g_game->gui, 1);
-    FUN_00428b60();
+    OrLabelAttribs();
     FUN_004a0570(&g_game->gui, "SaveGame", 0);
     FUN_0049fa50(&g_game->gui);
     RenderLayer(&g_game->gui, 0x40);

@@ -71,8 +71,8 @@ struct Gadget {                        // GUI entry, 0x15b bytes
     unsigned char group;               // +0x01
     char name[0x10];                   // +0x02
     char unknown_12[0x17 - 0x12];
-    short field_17;                    // +0x17
-    short field_19;                    // +0x19
+    short width;                       // +0x17
+    short height;                      // +0x19
     int attr;                          // +0x1b
     char unknown_1f[0xb6 - 0x1f];
     union {
@@ -88,16 +88,16 @@ struct Gadget {                        // GUI entry, 0x15b bytes
         };
     };
     char unknown_c0[0xd2 - 0xc0];
-    void* field_d2;                    // +0xd2
+    void* records;                     // +0xd2
     char unknown_d6[0x136 - 0xd6];
-    short field_136;                   // +0x136
+    short range;                       // +0x136
     char unknown_138[0x13c - 0x138];
-    int field_13c;                     // +0x13c
-    short field_140;                   // +0x140
-    short field_142;                   // +0x142
+    int max;                           // +0x13c
+    short knobPos;                     // +0x140
+    short knobSize;                    // +0x142
     void (__stdcall* handler)(Menu*, int); // +0x144
     char unknown_148[0x14a - 0x148];
-    void* field_14a;                   // +0x14a
+    void* sliderUser;                  // +0x14a
     char unknown_14e[0x15b - 0x14e];
 };
 
@@ -469,7 +469,7 @@ void __stdcall HandleShareDialogEvent(Menu* obj)
 
     if (obj->current == -1) {
         Gadget* e = FindGadgetChecked(data, "PLYRLIST");
-        FUN_004d85a0(e->field_d2);
+        FUN_004d85a0(e->records);
         g_game->flags_37ebe &= ~0x40;
         return;
     }
@@ -535,24 +535,24 @@ void OpenShareDialog()
     int idx = FindGadgetIndex(entries, "METAL", 0xe);
     if (idx != -1) {
         Gadget* e = &entries[idx];
-        e->field_142 = layer->entries[idx].field_19;
-        e->field_136 = layer->entries[idx].field_17 - e->field_142;
-        e->field_13c = (int)g_game->players[g_game->localPlayer].metal;
+        e->knobSize = layer->entries[idx].height;
+        e->range = layer->entries[idx].width - e->knobSize;
+        e->max = (int)g_game->players[g_game->localPlayer].metal;
         e->handler = UpdateMetalReadout;
-        e->field_140 = 0;
+        e->knobPos = 0;
         SetSliderFromValue(e, 0);
-        e->field_14a = g_game;
+        e->sliderUser = g_game;
     }
     idx = FindGadgetIndex(layer->entries, "ENERGY", 0xe);
     if (idx != -1) {
         Gadget* e = FUN_004a0200(layer->entries, "ENERGY");
-        e->field_142 = layer->entries[idx].field_19;
-        e->field_136 = layer->entries[idx].field_17 - e->field_142;
-        e->field_13c = (int)g_game->players[g_game->localPlayer].energy;
+        e->knobSize = layer->entries[idx].height;
+        e->range = layer->entries[idx].width - e->knobSize;
+        e->max = (int)g_game->players[g_game->localPlayer].energy;
         e->handler = UpdateEnergyReadout;
-        e->field_140 = 0;
+        e->knobPos = 0;
         SetSliderFromValue(e, 0);
-        e->field_14a = g_game;
+        e->sliderUser = g_game;
     }
 
     char* names = (char*)FUN_004d83b0("PLAYERS", g_game->numPlayers * 30);

@@ -91,7 +91,7 @@ struct Gadget_00449bb0 {                // 0x15b bytes
     char unknown_13a[0x13c - 0x13a];
     int max;                            // +0x13c
     short value;                        // +0x140
-    short unknown_142;
+    short knobSize;
     Callback_00449bb0 callback;         // +0x144
     char unknown_148[2];
     void* game;                         // +0x14a

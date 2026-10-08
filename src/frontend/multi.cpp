@@ -474,7 +474,7 @@ struct Gadget_00440d70 {
     };
     char unknown_1c[0x60 - 0x1c];      // +0x1c
     union {                            // +0x60
-        int field_60;
+        int selected;
         int current;
     };
 };
@@ -1118,7 +1118,7 @@ int __stdcall GetTextPixelWidth(char* text);
 void __stdcall HandleNewMultiClick(Gadget_00440d70* gadget)
 {
     Entry_00440d70* entries = gadget->layer->entries;
-    if (gadget->field_60 == -1)
+    if (gadget->selected == -1)
         return;
     // The three text fields share one tail: the first two hand the next field
     // the focus, the third one the OK button.
@@ -1142,7 +1142,7 @@ void __stdcall HandleNewMultiClick(Gadget_00440d70* gadget)
         ClearSelectedGadget(gadget);
         return;
     }
-    if (FindGadgetIndex(entries, "OK", 0xe) == gadget->field_60) {
+    if (FindGadgetIndex(entries, "OK", 0xe) == gadget->selected) {
         // 100 bytes each, and the pointer local in front of them, is what
         // puts them at +0x14 and +0x78 of the 0xcc-byte frame.
         char nickbuf[100];
@@ -1179,7 +1179,7 @@ void __stdcall HandleNewMultiClick(Gadget_00440d70* gadget)
         ClearSelectedGadget(gadget);
         return;
     }
-    if (FindGadgetIndex(entries, "CANCEL", 0xe) == gadget->field_60) {
+    if (FindGadgetIndex(entries, "CANCEL", 0xe) == gadget->selected) {
         PlaySoundByName("Previous", 0);
         CloseTopScreen(gadget);
         OpenSelectGameDialog();
@@ -1403,13 +1403,13 @@ void __stdcall HandleTcpDialogClick(Gadget_00440d70* gadget)
         if (DAT_00512c84 == 0)
             DAT_00512d90[0] = 0;
     }
-    else if (gadget->field_60 == -1) {
+    else if (gadget->selected == -1) {
         return;
     }
-    else if (FindGadgetIndex(entries, "OK", 0xe) == gadget->field_60) {
+    else if (FindGadgetIndex(entries, "OK", 0xe) == gadget->selected) {
         goto connect;
     }
-    else if (FindGadgetIndex(entries, "JOIN", 0xe) == gadget->field_60) {
+    else if (FindGadgetIndex(entries, "JOIN", 0xe) == gadget->selected) {
         g_game->bit1 = 1;
         g_game->bit0 = 0;
         TryConnect_00442050();
@@ -1507,9 +1507,9 @@ void __stdcall HandleSerialDialogClick(Gadget_00440d70* gadget)
     Entry_00440d70* entries = gadget->layer->entries;
     int a;
     int r;
-    if (gadget->field_60 == -1)
+    if (gadget->selected == -1)
         return;
-    if (FindGadgetIndex(entries, "HOST", 0xe) == gadget->field_60) {
+    if (FindGadgetIndex(entries, "HOST", 0xe) == gadget->selected) {
         g_game->bit0 = 1;
         g_game->bit1 = 1;
         a = 0;
@@ -1521,7 +1521,7 @@ void __stdcall HandleSerialDialogClick(Gadget_00440d70* gadget)
         }
         PlaySoundByName("SMLBUTTON", 0);
         BlankScreen();
-    } else if (FindGadgetIndex(entries, "JOIN", 0xe) == gadget->field_60) {
+    } else if (FindGadgetIndex(entries, "JOIN", 0xe) == gadget->selected) {
         g_game->bit1 = 1;
         g_game->bit0 = 0;
         int a = 0, b = 0;
@@ -1707,7 +1707,7 @@ static inline int TryConnect_00442a30()
 void __stdcall HandleModemDialogClick(Gadget_00440d70* gadget)
 {
     Entry_00440d70* entries = gadget->layer->entries;
-    if (gadget->field_60 == -1) {
+    if (gadget->selected == -1) {
         if (g_modemInfo != 0) {
             FUN_004d85a0(g_modemInfo);
             g_modemInfo = 0;
@@ -1738,7 +1738,7 @@ void __stdcall HandleModemDialogClick(Gadget_00440d70* gadget)
         ClearSelectedGadget(gadget);
         return;
     }
-    if (FindGadgetIndex(entries, "HOST", 0xe) == gadget->field_60) {
+    if (FindGadgetIndex(entries, "HOST", 0xe) == gadget->selected) {
         LoadAccount_00442a30();
         SaveModemNumbers_00442a30();
         g_game->bit0 = 1;
@@ -1748,7 +1748,7 @@ void __stdcall HandleModemDialogClick(Gadget_00440d70* gadget)
         BlankScreen();
         return;
     }
-    if (FindGadgetIndex(entries, "JOIN", 0xe) != gadget->field_60) {
+    if (FindGadgetIndex(entries, "JOIN", 0xe) != gadget->selected) {
         if (IsCurrentGadgetNamed(gadget, "ACCOUNTS") == 0) {
             if (IsCurrentGadgetNamed(gadget, "PREV")) {
                 SetFrontendState(0xf, 0x47f, "c:\\cavedog\\wargame\\multi.cpp");
@@ -1893,7 +1893,7 @@ void __stdcall HandleReportClick(Gadget_00440d70* obj)
     int acc;
 
     entries = obj->layer->entries;
-    if (obj->field_60 == -1)
+    if (obj->selected == -1)
         return;
     if (IsCurrentGadgetNamed(obj, "OK")) {
         acc = 0;
@@ -1996,7 +1996,7 @@ void __stdcall HandleSelectGameClick(Gadget_00440d70* param_1)
             goto startnew;
     }
 
-    if (param_1->field_60 == -1) {
+    if (param_1->selected == -1) {
         for (i = 0; i < 0xf; i++) {
             FUN_004d85a0(g_game->data[i]);
             g_game->data[i] = 0;
@@ -2008,7 +2008,7 @@ void __stdcall HandleSelectGameClick(Gadget_00440d70* param_1)
         return;
     }
 
-    if (FindGadgetIndex(entries, "UPDATE", 0xe) == param_1->field_60) {
+    if (FindGadgetIndex(entries, "UPDATE", 0xe) == param_1->selected) {
         char* pass = (char*)FUN_004a0010(entries, "PASSWORD");
         if (pass != 0) {
             cur = g_game->localPlayer;
@@ -2021,15 +2021,15 @@ void __stdcall HandleSelectGameClick(Gadget_00440d70* param_1)
         return;
     }
 
-    if (FindGadgetIndex(entries, "PREVMENU", 0xe) == param_1->field_60) {
+    if (FindGadgetIndex(entries, "PREVMENU", 0xe) == param_1->selected) {
         g_game->frontendSubstateRequest = 3;
         PlaySoundByName("Previous", 0);
         return;
     }
 
-    if (FindGadgetIndex(entries, "WATCH", 0xe) == param_1->field_60 ||
-        FindGadgetIndex(entries, "JOINGAME", 0xe) == param_1->field_60 ||
-        entries[param_1->field_60].type == 2) {
+    if (FindGadgetIndex(entries, "WATCH", 0xe) == param_1->selected ||
+        FindGadgetIndex(entries, "JOINGAME", 0xe) == param_1->selected ||
+        entries[param_1->selected].type == 2) {
         Entry_00440d70* e = FindGadgetChecked(entries, "GAMENAME");
         Msg_004437c0 msg;
         unsigned int flags;
@@ -2078,7 +2078,7 @@ void __stdcall HandleSelectGameClick(Gadget_00440d70* param_1)
             return;
         }
         SetFrontendErrorText("You do not have a compatible version for this game.");
-    } else if (FindGadgetIndex(entries, "STARTNEW", 0xe) == param_1->field_60) {
+    } else if (FindGadgetIndex(entries, "STARTNEW", 0xe) == param_1->selected) {
 startnew:
         cur = g_game->localPlayer;
         g_game->players[cur].info->flags &= 0xffbf;
@@ -2186,7 +2186,7 @@ int __stdcall CloneServiceSlot(Entry_00440d70* entries, int param_2, short param
 // FUNCTION: 0x444910
 void __stdcall CacheLogosGadgetIndex(Gadget_00440d70* param1, int param2)
 {
-    param1->field_60 = FindGadgetIndex(param1->layer->entries, "LOGOS", 2);
+    param1->selected = FindGadgetIndex(param1->layer->entries, "LOGOS", 2);
 }
 // Handler for the multiplayer side-selection dialog. When the dialog closes
 // (current gadget -1) it frees the layout data; when the player picks a side
@@ -2198,7 +2198,7 @@ void __stdcall HandleLogoSelectClick(Gadget_00444930* param_1)
     Entry_00444930* entries = param_1->holder->entries;
     Layout_00444930* layout = (Layout_00444930*)param_1->holder->layout;
 
-    if (param_1->field_60 == -1) {
+    if (param_1->selected == -1) {
         FUN_004d85a0(layout->field_1c);
         FUN_004d85a0(layout->field_18);
         FUN_004d85a0(layout);
@@ -2255,7 +2255,7 @@ void ShowSelectedMapInfo()
 // FUNCTION: 0x444ba0
 void __stdcall HandleViewMapClick(Gadget_00444930* param_1)
 {
-    if (param_1->field_60 != -1) {
+    if (param_1->selected != -1) {
         if (IsCurrentGadgetNamed(param_1, DAT_00502ae8)) {
             PlaySoundByName(g_multiSoundName, 0);
         } else {
@@ -2293,7 +2293,7 @@ void __stdcall HandleMapSelectClick(Gadget_00444930* param_1)
     void* entries = param_1->holder->entries;
     Layout_00444cb0* layout = (Layout_00444cb0*)param_1->holder->layout;
 
-    if (param_1->field_60 == -1) {
+    if (param_1->selected == -1) {
         Entry_00444930* entry = FUN_004a0280(g_game->menu.holder->entries, "MAPPIC");
         if (entry->text_c2 != 0) {
             FUN_004d85a0(entry->text_c2);
@@ -2827,11 +2827,11 @@ void UpdateBattleRoomFlags()
 void __stdcall HandleRejectChoice(Gadget_00444930* gadget)
 {
     int owner = (int)gadget->holder->entries;
-    if (gadget->field_60 == -1)
+    if (gadget->selected == -1)
         return;
-    if (IsGadgetNamed(owner, gadget->field_60, "CHOICE1")) {
+    if (IsGadgetNamed(owner, gadget->selected, "CHOICE1")) {
         RejectPlayer(GetSlotDpid((unsigned char)g_rejectPlayer), 1);
-    } else if (!IsGadgetNamed(owner, gadget->field_60, "CHOICE2")) {
+    } else if (!IsGadgetNamed(owner, gadget->selected, "CHOICE2")) {
         ClearSelectedGadget(gadget);
     }
 }
@@ -2876,7 +2876,7 @@ void __stdcall HandleDisplayModesClick(Gadget_00444930* gui)
     Holder_00444930* holder = gui->holder;
     Entry_00444930* gadgets = holder->entries;
     ModeList* obj = (ModeList*)holder->layout;
-    if (gui->field_60 == -1) {
+    if (gui->selected == -1) {
         FUN_004d85a0(obj->available);
         FUN_004d85a0(obj->modes);
         FUN_004d85a0(obj);
@@ -2972,7 +2972,7 @@ void UpdateWatchingGadgets()
 void __stdcall HandleControlDialogClick(Gadget_00444930* gui)
 {
     PlayerInfo_00444930* info = g_game->players[g_game->localPlayer].info;
-    if (gui->field_60 != -1) {
+    if (gui->selected != -1) {
         char buf[100];
         for (int i = 0; i < 10; i++) {
             sprintf(buf, "LIVEPLYR%d", i);

@@ -101,19 +101,19 @@ struct Display {
     HPALETTE hpalette;                 // +0x4c
     Surface cached;                    // +0x50
     Screen screen;                     // +0x80
-    Surface* field_98;                 // +0x98
-    int field_9c;                      // +0x9c
+    Surface* activeSurface;            // +0x98
+    int haveBackBuffer;                // +0x9c
     Rect vec;                          // +0xa0
     char unknown_b0[0xb4 - 0xb0];
-    IDirectDrawSurface* field_b4;      // +0xb4
+    IDirectDrawSurface* lastBackBuffer;  // +0xb4
     char unknown_b8[0xbc - 0xb8];
-    Surface* field_bc;                 // +0xbc
+    Surface* overrideSurface;          // +0xbc
     char unknown_c0[0xc4 - 0xc0];
     unsigned char* palette;            // +0xc4
     char unknown_c8[0xd4 - 0xc8];
-    int field_d4;                      // +0xd4
-    int field_d8;                      // +0xd8
-    int field_dc;                      // +0xdc
+    int width;                         // +0xd4
+    int height;                        // +0xd8
+    int useOverrideSurface;            // +0xdc
     char unknown_e0[0xe4 - 0xe0];
     int field_e4;                      // +0xe4
     char unknown_e8[0xf0 - 0xe8];
@@ -125,16 +125,16 @@ struct Display {
     Bitmap_004c67c0* bmp;              // +0x1b2
     int x;                             // +0x1b6
     int y;                             // +0x1ba
-    int* field_1be;                    // +0x1be
+    int* saveMouse1;                   // +0x1be
     char unknown_1c2[0x1ce - 0x1c2];
-    int field_1ce;                     // +0x1ce
-    int field_1d2;                     // +0x1d2
+    int cursorThreadEnabled;           // +0x1ce
+    int cursorOverlayEnabled;          // +0x1d2
 
     // Method of the display object: this is the call result.
     int LockScreen(Surface* out)
     {
-        if (field_dc != 0) {
-            *out = *field_bc;
+        if (useOverrideSurface != 0) {
+            *out = *overrideSurface;
             return 1;
         }
         if (offscreenDC != 0) {
@@ -147,8 +147,8 @@ struct Display {
         desc.dwSize = sizeof(desc);
         // One-case switch: tests the result with test eax, eax.
         switch (screen.LockSurface(&desc)) { case 0: break; default: return 0; }
-        out->width = field_d4;
-        out->height = field_d8;
+        out->width = width;
+        out->height = height;
         out->field_8 = desc.lPitch;
         out->pixels = (char*)desc.lpSurface;
         out->field_18 = 0;
@@ -177,8 +177,8 @@ struct Display {
         desc.dwSize = sizeof(desc);
         // One-case switch: tests the result with test eax, eax.
         switch (screen.LockPrimary(&desc)) { case 0: break; default: return 0; }
-        out->width = field_d4;
-        out->height = field_d8;
+        out->width = width;
+        out->height = height;
         out->field_8 = desc.lPitch;
         out->pixels = (char*)desc.lpSurface;
         out->field_18 = 0;
@@ -274,7 +274,7 @@ int GetScreenLockCount(void)
 static inline int UnlockScreenInline(Surface* s)
 {
     Display* d = GetDisplay();
-    if (d->offscreenDC == 0 && d->field_dc == 0) {
+    if (d->offscreenDC == 0 && d->useOverrideSurface == 0) {
         if (d->screen.surface == 0)
             return 0;
         d->screen.UnlockSurface();
@@ -325,7 +325,7 @@ int __stdcall LockScreen(Surface* out)
 int __stdcall UnlockScreen(Surface* s)
 {
     Display* d = GetDisplay();
-    if (d->offscreenDC == 0 && d->field_dc == 0) {
+    if (d->offscreenDC == 0 && d->useOverrideSurface == 0) {
         if (d->screen.surface == 0)
             return 0;
         d->screen.UnlockSurface();
@@ -385,7 +385,7 @@ int __stdcall SetPageFlipping(int enable)
 {
     Display* obj = GetDisplay();
     obj->flags.bits.flag0 = enable;
-    if (enable && obj->field_9c == 0) {
+    if (enable && obj->haveBackBuffer == 0) {
         return 0;
     }
     return 1;
@@ -395,7 +395,7 @@ int __stdcall SetPageFlipping(int enable)
 void __stdcall SetRestoreSurface(int param_1)
 {
     Display* obj = GetDisplay();
-    obj->field_98 = (Surface*)param_1;
+    obj->activeSurface = (Surface*)param_1;
 }
 
 // Locks the screen into a local surface, blits the bitmap at display+0x98
@@ -415,10 +415,10 @@ int __stdcall RestoreSurfaces(Arg_004c6210* arg)
         if (r == 0) {
             Surface screen;
             LockScreen(&screen);
-            BlitSurface(&screen, d->field_98, r, r);
+            BlitSurface(&screen, d->activeSurface, r, r);
 
             Display* d2 = GetDisplay();
-            if (d2->offscreenDC == 0 && d2->field_dc == 0 && d2->screen.surface != 0) {
+            if (d2->offscreenDC == 0 && d2->useOverrideSurface == 0 && d2->screen.surface != 0) {
                 d2->screen.UnlockRect((LPRECT)r);
                 if (g_screenLockCount > 0)
                     g_screenLockCount--;
@@ -432,7 +432,7 @@ int __stdcall RestoreSurfaces(Arg_004c6210* arg)
 static inline int UnlockScreenInline()
 {
     Display* d = GetDisplay();
-    if (d->offscreenDC == 0 && d->field_dc == 0) {
+    if (d->offscreenDC == 0 && d->useOverrideSurface == 0) {
         if (d->screen.surface == 0)
             return 0;
         d->screen.UnlockSurface();
@@ -460,15 +460,15 @@ void RestoreScreen(void)
                     if (d->screen.surface->Restore() == 0) {
                         Surface screen;
                         LockScreen(&screen);
-                        BlitSurface(&screen, d2->field_98, 0, 0);
+                        BlitSurface(&screen, d2->activeSurface, 0, 0);
                         UnlockScreenInline();
                     }
                 }
             }
         }
-        d->field_b4 = d->screen.surface;
+        d->lastBackBuffer = d->screen.surface;
     }
-    d->field_dc = 0;
+    d->useOverrideSurface = 0;
 }
 
 extern LONG DAT_0052a4e8;
@@ -511,7 +511,7 @@ static inline HRESULT RestoreSurfacesInline(Display* d)
         if (hr == 0) {
             Surface screen;
             LockScreen(&screen);
-            BlitSurface(&screen, dd->field_98, 0, 0);
+            BlitSurface(&screen, dd->activeSurface, 0, 0);
             UnlockScreenInline();
         }
     }
@@ -540,7 +540,7 @@ void FlipScreen(void)
     if ((flags & 2) == 0) {
         LONG held = Lock();
         Surface* p = &d->cached;
-        DrawSurface(p, d->field_bc, 0, 0);
+        DrawSurface(p, d->overrideSurface, 0, 0);
         DrawCursor(d, p);
         HDC hdc = GetDC(d->hwnd);
         SelectPalette(hdc, d->hpalette, 0);
@@ -551,10 +551,10 @@ void FlipScreen(void)
         return;
     }
 
-    if (d->field_dc != 0) {
+    if (d->useOverrideSurface != 0) {
         Desc desc;
         Surface out;
-        Surface* bmp = d->field_bc;
+        Surface* bmp = d->overrideSurface;
         if (bmp->width != GetScreenWidth())
             return;
         if (bmp->height != GetScreenHeight())
@@ -564,14 +564,14 @@ void FlipScreen(void)
         desc.dwSize = sizeof(desc);
         unsigned long lr = d->screen.primary->Lock(0, (DDSURFACEDESC*)&desc, 1, 0);
         if (lr == 0) {
-            out.width = d->field_d4;
-            out.height = d->field_d8;
+            out.width = d->width;
+            out.height = d->height;
             out.field_8 = desc.lPitch;
             out.pixels = (char*)desc.lpSurface;
             DrawCursor(d, bmp);
             BlitSurface(&out, bmp, 0, 0);
-            if (d->field_1ce != 0 && d->field_1d2 != 0)
-                DrawSurface(bmp, (Surface*)d->field_1be, d->x, d->y);
+            if (d->cursorThreadEnabled != 0 && d->cursorOverlayEnabled != 0)
+                DrawSurface(bmp, (Surface*)d->saveMouse1, d->x, d->y);
             d->screen.primary->Unlock(0);
         } else if (lr == 0x887601c2) {
             RestoreSurfacesInline(d);
@@ -580,7 +580,7 @@ void FlipScreen(void)
         return;
     }
 
-    if (d->field_9c != 0 && (flags & 1) != 0) {
+    if (d->haveBackBuffer != 0 && (flags & 1) != 0) {
         d->screen.primary->Flip(0, 1);
         return;
     }
@@ -618,13 +618,13 @@ void FlipScreen(void)
 // FUNCTION: 0x4c67c0
 void __stdcall DrawCursor(Display* obj, Surface* dst)
 {
-    if (obj->field_1ce != 0 && obj->field_1d2 != 0 && obj->bmp != 0) {
-        obj->field_1be[0] = obj->bmp->width;
-        obj->field_1be[1] = obj->bmp->height;
-        obj->field_1be[2] = obj->bmp->width;
+    if (obj->cursorThreadEnabled != 0 && obj->cursorOverlayEnabled != 0 && obj->bmp != 0) {
+        obj->saveMouse1[0] = obj->bmp->width;
+        obj->saveMouse1[1] = obj->bmp->height;
+        obj->saveMouse1[2] = obj->bmp->width;
         obj->x = obj->rect_x - obj->bmp->dx;
         obj->y = obj->rect_y - obj->bmp->dy;
-        DrawSurface((Surface*)obj->field_1be, dst, -obj->x, -obj->y);
+        DrawSurface((Surface*)obj->saveMouse1, dst, -obj->x, -obj->y);
         DrawFrame(dst, obj->bmp, obj->rect_x, obj->rect_y);
     }
 }
@@ -687,8 +687,8 @@ int __stdcall FillSurface(Surface* surface, int colour)
     Display* obj = GetDisplay();
     int ret = 1;
     if (surface == 0) {
-        if (obj->field_dc != 0) {
-            Surface* s = obj->field_bc;
+        if (obj->useOverrideSurface != 0) {
+            Surface* s = obj->overrideSurface;
             set_mem(s->pixels, s->height * s->field_8, colour);
         } else if (!(obj->flags.byte & 2)) {
             clear_screen(obj, colour);
@@ -718,8 +718,8 @@ int __stdcall FillSurface(Surface* surface, int colour)
 void __stdcall SetOffscreenSurface(int param_1)
 {
     Display* d = GetDisplay();
-    d->field_dc = 1;
-    d->field_bc = (Surface*)param_1;
+    d->useOverrideSurface = 1;
+    d->overrideSurface = (Surface*)param_1;
 }
 
 // FUNCTION: 0x4c69c0

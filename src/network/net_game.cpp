@@ -1367,7 +1367,7 @@ struct Gadget_004538f0 {
     char unknown_0[0x18];
     Layer_004538f0* layer;             // +0x18
     char unknown_1c[0x60 - 0x1c];
-    int field_60;                      // +0x60
+    int selected;                      // +0x60
 };
 
 // The 0x15b-byte entry table returned by FindGadgetChecked.
@@ -2622,7 +2622,7 @@ void __stdcall HandleTimeoutDialog(Gadget_004538f0* gadget)
 {
     Entry_004538f0* entries = gadget->layer->entries;
 
-    if (gadget->field_60 == -1) {
+    if (gadget->selected == -1) {
         PlaySoundByName("Previous", 0);
         if (g_loungeChatter)
             FUN_004d85a0(g_loungeChatter);

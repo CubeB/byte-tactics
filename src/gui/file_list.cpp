@@ -94,7 +94,7 @@ struct Gadget {
     char unknown_0[0x18];
     Layer* layer;                    // +0x18
     char unknown_1c[0x60 - 0x1c];
-    int field_60;                    // +0x60
+    int selected;                    // +0x60
 };
 
 struct Dialog {
@@ -322,7 +322,7 @@ void __stdcall RefreshFileList(FileRequester* obj)
 }
 
 // Click handler of the file requester (FILEREQ.GUI, opened by 0x4afa30).
-// On close (field_60 == -1) it restores the saved drive and directory and
+// On close (selected == -1) it restores the saved drive and directory and
 // frees the request data. Otherwise it acts on the entry the user clicked:
 // LOAD/SWIN enter a directory, CANC accepts, NAME takes the highlighted file,
 // PATH walks one level up and the *DRV entries pick a drive letter.
@@ -337,7 +337,7 @@ void __stdcall FileRequesterHandler(Gadget* gadget)
     // Declared after n: the operand order of the cwd[] accesses follows it.
     FileRequester* req;
     req = gadget->layer->req;
-    if (gadget->field_60 == -1) {
+    if (gadget->selected == -1) {
         ChangeDrive(req->save_drive);
         ChangeDirectory(req->save_cwd);
         FUN_004d85a0(req);
@@ -348,8 +348,8 @@ void __stdcall FileRequesterHandler(Gadget* gadget)
     drive[1] = 0;
     result = 0;
 
-    if (IsGadgetNamed(entries, gadget->field_60, "LOAD")
-        || IsGadgetNamed(entries, gadget->field_60, "SWIN")) {
+    if (IsGadgetNamed(entries, gadget->selected, "LOAD")
+        || IsGadgetNamed(entries, gadget->selected, "SWIN")) {
         char* name = SkipTextLines(req->names,
                                   FindGadgetChecked(entries, "SWIN")->field_ba);
         if (name[0] == '\\') {
@@ -373,9 +373,9 @@ void __stdcall FileRequesterHandler(Gadget* gadget)
             strcat(req->selected, "\\");
             strcat(req->selected, name);
         }
-    } else if (IsGadgetNamed(entries, gadget->field_60, "CANC")) {
+    } else if (IsGadgetNamed(entries, gadget->selected, "CANC")) {
         result = 1;
-    } else if (IsGadgetNamed(entries, gadget->field_60, "PATH")) {
+    } else if (IsGadgetNamed(entries, gadget->selected, "PATH")) {
         n = (int)strlen(req->cwd);
         if (n > 0) {
             while (n > 0) {
@@ -392,24 +392,24 @@ void __stdcall FileRequesterHandler(Gadget* gadget)
                 n--;
             }
         }
-    } else if (IsGadgetNamed(entries, gadget->field_60, "NAME")) {
-        gadget->field_60 = FindGadgetIndex(entries, "LOAD", 14);
+    } else if (IsGadgetNamed(entries, gadget->selected, "NAME")) {
+        gadget->selected = FindGadgetIndex(entries, "LOAD", 14);
         n = FindGadgetIndex(entries, "NAME", 3);
         result = 1;
         strcpy(req->selected, entries[n].value);
-    } else if (IsGadgetNamed(entries, gadget->field_60, "ADRV")) {
+    } else if (IsGadgetNamed(entries, gadget->selected, "ADRV")) {
         drive[0] = 'A';
         ChangeDrive(drive);
-    } else if (IsGadgetNamed(entries, gadget->field_60, "BDRV")) {
+    } else if (IsGadgetNamed(entries, gadget->selected, "BDRV")) {
         drive[0] = 'B';
         ChangeDrive(drive);
-    } else if (IsGadgetNamed(entries, gadget->field_60, "CDRV")) {
+    } else if (IsGadgetNamed(entries, gadget->selected, "CDRV")) {
         drive[0] = 'C';
         ChangeDrive(drive);
-    } else if (IsGadgetNamed(entries, gadget->field_60, "DDRV")) {
+    } else if (IsGadgetNamed(entries, gadget->selected, "DDRV")) {
         drive[0] = 'D';
         ChangeDrive(drive);
-    } else if (IsGadgetNamed(entries, gadget->field_60, "VDRV")) {
+    } else if (IsGadgetNamed(entries, gadget->selected, "VDRV")) {
         drive[0] = 'R';
         ChangeDrive(drive);
     }

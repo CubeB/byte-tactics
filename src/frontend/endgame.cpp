@@ -138,7 +138,7 @@ struct Display {
     unsigned short network : 1;
     unsigned short high : 14;
     char unknown_f2[0x614 - 0xf2];
-    float field_614;                   // +0x614
+    float paletteBrightness;           // +0x614
 };
 
 struct PlayerInfo {
@@ -472,8 +472,8 @@ void SetUpEndMissionScreen()
     g_game->target = (unsigned char*)FUN_004d83b0("desiredPalette", 0x400);
     g_game->current = (unsigned char*)FUN_004d83b0("currentPalette", 0x400);
     Display* display = GetDisplay();
-    g_game->field_3906f = display->field_614;
-    display->field_614 = 1.0f;
+    g_game->field_3906f = display->paletteBrightness;
+    display->paletteBrightness = 1.0f;
     unsigned char* palette = (unsigned char*)FUN_004d83b0("Palette", 0x400);
     char* name = g_game->campaign->GetNameSlot(5);
     if (name == 0)
@@ -780,7 +780,7 @@ void __stdcall HandleEndMissionClick(Menu* gadget)
             LeaveNetGame();
         g_game->sound->SetTrackCategory(4);
         Display* display = GetDisplay();
-        display->field_614 = g_game->field_3906f;
+        display->paletteBrightness = g_game->field_3906f;
         return;
     }
     // LoadGame and SaveGame reset the gadget (ClearSelectedGadget) twice in a row;

@@ -25,17 +25,17 @@ struct Backdrop {
 struct Gadget {                        // GUI entry, 0x15b bytes
     char unknown_0[0x33];
     char text[0xb6 - 0x33];            // +0x33
-    short field_b6;                    // +0xb6
+    short count;                       // +0xb6
     char unknown_b8[2];
     short selected;                    // +0xba
     char unknown_bc[2];
-    void* field_be;                    // +0xbe
+    void* frames;                      // +0xbe
     char* items;                       // +0xc2
-    unsigned short field_c6;           // +0xc6
+    unsigned short frame;              // +0xc6
     char unknown_c8[6];
     void (__stdcall* onSelect)(Menu*, int);   // +0xce
     char unknown_d2[0x137 - 0xd2];
-    unsigned char field_137;           // +0x137
+    unsigned char stageIndex;          // +0x137
     char unknown_138[0x15b - 0x138];
 };
 
@@ -154,13 +154,13 @@ void RefreshAllyIcons(void)
                 }
                 switch (count) {
                 case 0:
-                    gadget->field_c6 = 10;
+                    gadget->frame = 10;
                     break;
                 case 1:
-                    gadget->field_c6 = team * 2 + 1;
+                    gadget->frame = team * 2 + 1;
                     break;
                 default:
-                    gadget->field_c6 = team * 2;
+                    gadget->frame = team * 2;
                     break;
                 }
             }
@@ -250,8 +250,8 @@ static void NewColour(int playerIndex)
     if (index != -1) {
         Gadget* e = &entries[index];
         if (e != 0) {
-            e->field_be = g_game->colorCount;
-            e->field_c6 = (unsigned short)g_game->table->players[playerIndex].color;
+            e->frames = g_game->colorCount;
+            e->frame = (unsigned short)g_game->table->players[playerIndex].color;
         }
     }
 }
@@ -469,7 +469,7 @@ void RefreshSkirmishSetup()
     int index;
 
     Gadget* entries = g_game->menu.holder->entries;
-    g_game->table->field_220 = entries[0].field_b6;
+    g_game->table->field_220 = entries[0].count;
     BuildSkirmishPlayerRows();
 
     int empty = 1;
@@ -546,8 +546,8 @@ void RefreshSkirmishSetup()
             if (index != -1) {
                 Gadget* gadget = &entries[index];
                 if (gadget != 0) {
-                    gadget->field_be = g_game->colorCount;
-                    gadget->field_c6 = g_game->table->players[i].color;
+                    gadget->frames = g_game->colorCount;
+                    gadget->frame = g_game->table->players[i].color;
                 }
             }
 
@@ -556,8 +556,8 @@ void RefreshSkirmishSetup()
             if (index != -1) {
                 Gadget* gadget = &entries[index];
                 if (gadget != 0) {
-                    gadget->field_c6 = 10;
-                    gadget->field_be = teamIcons;
+                    gadget->frame = 10;
+                    gadget->frames = teamIcons;
                 }
             }
         }
@@ -569,10 +569,10 @@ void RefreshSkirmishSetup()
     {
         Gadget* g = &entries[index];
         if (g_game->table->field_118 != 0) {
-            g->field_137 = 0;
+            g->stageIndex = 0;
             strcpy(g->text, Translate("Commanders are placed at pre-determined locations."));
         } else {
-            g->field_137 = 1;
+            g->stageIndex = 1;
             strcpy(g->text, Translate("Commanders are randomly placed on the battle field."));
         }
     }
@@ -581,10 +581,10 @@ void RefreshSkirmishSetup()
     {
         Gadget* g = &entries[index];
         if (g_game->table->field_108 != 0) {
-            g->field_137 = 0;
+            g->stageIndex = 0;
             strcpy(g->text, Translate("Game ends when commander is destroyed."));
         } else {
-            g->field_137 = 1;
+            g->stageIndex = 1;
             strcpy(g->text, Translate("Game continues after Commander is destroyed."));
         }
     }
@@ -593,10 +593,10 @@ void RefreshSkirmishSetup()
     {
         Gadget* g = &entries[index];
         if (g_game->table->field_10c != 0) {
-            g->field_137 = 0;
+            g->stageIndex = 0;
             strcpy(g->text, Translate("Terrain is blacked out until explored."));
         } else {
-            g->field_137 = 1;
+            g->stageIndex = 1;
             strcpy(g->text, Translate("Terrain is visible."));
         }
     }
@@ -605,13 +605,13 @@ void RefreshSkirmishSetup()
     {
         Gadget* g = &entries[index];
         if (g_game->table->field_110 == 0) {
-            g->field_137 = 0;
+            g->stageIndex = 0;
             strcpy(g->text, Translate("All mapped terrain is visible."));
         } else if (g_game->table->field_114 == 1) {
-            g->field_137 = 1;
+            g->stageIndex = 1;
             strcpy(g->text, Translate("Terrain elevations affect a unit's view."));
         } else {
-            g->field_137 = 2;
+            g->stageIndex = 2;
             strcpy(g->text, Translate("Terrain elevations do not affect a unit's view."));
         }
     }
@@ -860,8 +860,8 @@ void __stdcall CyclePlayerColor(int param_1)
     if (index != -1) {
         Gadget* gadget = &entries[index];
         if (gadget != 0) {
-            gadget->field_be = g_game->colorCount;
-            gadget->field_c6 = (unsigned short)g_game->table->players[current].color;
+            gadget->frames = g_game->colorCount;
+            gadget->frame = (unsigned short)g_game->table->players[current].color;
         }
     }
     MarkChanged(&g_game->menu);
@@ -1230,7 +1230,7 @@ void __stdcall HandleSkirmishCheatText(Cheat* cheat)
         g_game->playerCount = code;
         SaveNumSkirmishPlayers();
         LoadSettings();
-        cheat->text->target->field_b6 = g_game->table->field_220;
+        cheat->text->target->count = g_game->table->field_220;
         RefreshSkirmishSetup();
         PlaySoundByName(g_skirmishCheatSoundName, 0);
         SelectAdjacentGadget(cheat, 1);
@@ -1264,15 +1264,15 @@ void OpenSkirmishMenu(void)
     g_game->difficulty = g_game->table->field_228;
     difficulty = FindGadgetOrNull(g_game->menu.holder->entries, DAT_00502a78);
     if (g_game->difficulty == 0) {
-        difficulty->field_137 = 0;
+        difficulty->stageIndex = 0;
         SetGadgetStatusByName(&g_game->menu, g_easyGadgetName, 1);
     }
     if (g_game->difficulty == 1) {
-        difficulty->field_137 = 1;
+        difficulty->stageIndex = 1;
         SetGadgetStatusByName(&g_game->menu, g_mediumGadgetName, 1);
     }
     if (g_game->difficulty == 2) {
-        difficulty->field_137 = 2;
+        difficulty->stageIndex = 2;
         SetGadgetStatusByName(&g_game->menu, g_hardGadgetName, 1);
     }
     MarkChanged(&g_game->menu);

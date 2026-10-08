@@ -740,7 +740,7 @@ struct Menu_00460160 {
 
 struct Gadget_004604a0 {
     char unknown_0[0x17];
-    short field_17;                    // +0x17
+    short width;                       // +0x17
     char unknown_19[0x15b - 0x19];
 };
 
@@ -829,32 +829,32 @@ struct Sound_45ffb0 {
 
 struct Gadget_0045f190 {
     char unknown_0[0x60];
-    int field_60;                      // +0x60
+    int selected;                      // +0x60
 };
 
 struct Gadget_0045f770 {
     char unknown_0[0x60];
-    int field_60;                      // +0x60
+    int selected;                      // +0x60
 };
 
 struct Gadget_0045fac0 {
     char unknown_0[0x60];
-    int field_60;                      // +0x60
+    int selected;                      // +0x60
 };
 
 struct Gadget_0045fc60 {
     char unknown_0[0x60];
-    int field_60;                      // +0x60
+    int selected;                      // +0x60
 };
 
 struct Gadget_00460340 {
     char unknown_0[0x60];
-    int field_60;                      // +0x60
+    int selected;                      // +0x60
 };
 
 struct Gadget_00460800 {
     char unknown_0[0x60];
-    int field_60;                      // +0x60
+    int selected;                      // +0x60
 };
 
 struct Link_0045ead0 {
@@ -867,7 +867,7 @@ struct Gadget_0045ead0 {
     char unknown_0[0x18];
     Link_0045ead0* link;                // +0x18
     char unknown_1c[0x60 - 0x1c];
-    int field_60;                      // +0x60
+    int selected;                      // +0x60
 };
 
 struct GadgetOwner_004605c0 {
@@ -879,12 +879,12 @@ struct Gadget_004605c0 {
     char unknown_0[0x18];
     GadgetOwner_004605c0* owner;       // +0x18
     char unknown_1c[0x60 - 0x1c];
-    int field_60;                      // +0x60
+    int selected;                      // +0x60
 };
 
 struct Gadget_004609b0 {
     char unknown_0[0x60];
-    int field_60;                      // +0x60
+    int selected;                      // +0x60
 };
 
 struct Gadget_00460680 {
@@ -939,7 +939,7 @@ struct Gui_0045e100 {
     char unknown_0[0x18];
     Screen_0045e100* top;              // +0x18
     char unknown_1c[0x60 - 0x1c];
-    int field_60;                      // +0x60
+    int hotGadgetIndex;                // +0x60
 };
 
 struct Info_0045f800 {
@@ -2229,12 +2229,12 @@ void OpenSoundOptions()
 // FUNCTION: 0x45e100
 void __stdcall HandleVisualOptionsClick(Gui_0045e100* gui)
 {
-    int save = gui->field_60;
+    int save = gui->hotGadgetIndex;
     Screen_0045e100* top = gui->top;
     Entry_0045e100* entries = top->entries;
     FreeObj_0045e100* obj = (FreeObj_0045e100*)top->field_c;
 
-    if (gui->field_60 == -1) {
+    if (gui->hotGadgetIndex == -1) {
         if (obj) {
             if (!g_game->flags_37ebe.bits.b0) {
                 FUN_004d85a0(obj->field_14);
@@ -2313,14 +2313,14 @@ void __stdcall HandleVisualOptionsClick(Gui_0045e100* gui)
         return;
     }
 
-    if (gui->field_60 != -1) {
-        if (entries[gui->field_60].state != 1) {
+    if (gui->hotGadgetIndex != -1) {
+        if (entries[gui->hotGadgetIndex].state != 1) {
             ClearSelectedGadget(gui);
             return;
         }
         Screen_0045e100* next = gui->top->next;
         CloseTopScreen(gui);
-        gui->field_60 = save;
+        gui->hotGadgetIndex = save;
         next->handler(gui);
     }
 }
@@ -2468,7 +2468,7 @@ void __stdcall OpenVisualOptions(int param_1)
 void __stdcall HandleSpeedOptionsClick(Gadget_0045ead0* gadget)
 {
     char* data = gadget->link->data;
-    if (gadget->field_60 == -1) {
+    if (gadget->selected == -1) {
         g_game->flags_37ebe.word &= 0xfffe;
         return;
     }
@@ -2512,9 +2512,9 @@ void __stdcall HandleSpeedOptionsClick(Gadget_0045ead0* gadget)
         OpenSpeedOptions();
         return;
     }
-    int i = gadget->field_60;
-    // Index with gadget->field_60 * 347, not the local i: selects the original lea.
-    if (data[gadget->field_60 * 347] != 1) {
+    int i = gadget->selected;
+    // Index with gadget->selected * 347, not the local i: selects the original lea.
+    if (data[gadget->selected * 347] != 1) {
         ClearSelectedGadget(gadget);
         return;
     }
@@ -2522,7 +2522,7 @@ void __stdcall HandleSpeedOptionsClick(Gadget_0045ead0* gadget)
         Link_0045ead0* link = gadget->link;
         void* obj = link->obj;
         CloseTopScreen(gadget);
-        gadget->field_60 = i;
+        gadget->selected = i;
         ((Link_0045ead0*)obj)->reselect(gadget);
     }
 }
@@ -2616,7 +2616,7 @@ void OpenSpeedOptions()
 // FUNCTION: 0x45f190
 void __stdcall HandleGameSettingsDialogClick(Gadget_0045f190* gadget)
 {
-    if (gadget->field_60 != -1) {
+    if (gadget->selected != -1) {
         if (IsCurrentGadgetNamed(gadget, "OK")) {
             PlaySoundByName("Options", 0);
             return;
@@ -2714,7 +2714,7 @@ void ShowGameSettingsDialog()
 // FUNCTION: 0x45f770
 void __stdcall HandleBriefingClick(Gadget_0045f770* gadget)
 {
-    if (gadget->field_60 == -1) {
+    if (gadget->selected == -1) {
         FreeBlinkWords((int)&g_game->gui);
         return;
     }
@@ -2728,7 +2728,7 @@ void __stdcall HandleBriefingClick(Gadget_0045f770* gadget)
         MarkChanged(gadget);
         ClearSelectedGadget(gadget);
     }
-    if (gadget->field_60 != -1)
+    if (gadget->selected != -1)
         ClearSelectedGadget(gadget);
 }
 
@@ -2814,7 +2814,7 @@ void __stdcall FillHelpPage(Sub_0045f8c0* sub, int page, int lineCount)
 // FUNCTION: 0x45fac0
 void __stdcall HandleHelpClick(Gadget_0045fac0* gadget)
 {
-    if (gadget->field_60 != -1) {
+    if (gadget->selected != -1) {
         if (IsCurrentGadgetNamed(gadget, "OK")) {
             PlaySoundByName("Options", 0);
             return;
@@ -2867,10 +2867,10 @@ void __stdcall HandleOptionsPanelClick(Gadget_0045fc60* gadget)
 {
     // goto, not a return: the label after the g_optionsShellClosing = 0 store keeps the
     // teardown tail shared.
-    if (gadget->field_60 == -1)
+    if (gadget->selected == -1)
         goto cleanup;
     {
-        SetGadgetStatus(gadget, gadget->field_60, 1);
+        SetGadgetStatus(gadget, gadget->selected, 1);
         // Empty then-arm: the positive test alone changes the codegen.
         if (g_game->bits_2a44.bits.bit2) {
         } else {
@@ -2925,7 +2925,7 @@ void __stdcall HandleOptionsPanelClick(Gadget_0045fc60* gadget)
             PlaySoundByName("Options", 0);
             OpenSoundOptions();
         } else {
-            if (gadget->field_60 != -1)
+            if (gadget->selected != -1)
                 ClearSelectedGadget(gadget);
             return;
         }
@@ -3050,7 +3050,7 @@ void OpenOptionsPanel()
 // FUNCTION: 0x460340
 void __stdcall HandleRestartDialogClick(Gadget_00460340* gadget)
 {
-    if (gadget->field_60 == -1)
+    if (gadget->selected == -1)
         return;
     PlaySoundByName("Options", 0);
     if (IsCurrentGadgetNamed(gadget, "RESTART")) {
@@ -3086,7 +3086,7 @@ void __stdcall HandleRestartDialogClick(Gadget_00460340* gadget)
     } else if (IsCurrentGadgetNamed(gadget, "Difficulty")) {
         PlaySoundByName("Options", 0);
         ClearSelectedGadget(gadget);
-    } else if (!IsCurrentGadgetNamed(gadget, "CANCEL") && gadget->field_60 != -1) {
+    } else if (!IsCurrentGadgetNamed(gadget, "CANCEL") && gadget->selected != -1) {
         ClearSelectedGadget(gadget);
     }
 }
@@ -3102,7 +3102,7 @@ void OpenRestartDialog()
     int index = FindGadgetIndex(gadgets, "MISSIONNAME", 5);
     menu->field_14 = menu->field_c;
     char* text = WordWrapText((Menu_004604a0*)&g_game->gui,
-                              g_game->mode->GetMissionName(gadgets[index].field_17),
+                              g_game->mode->GetMissionName(gadgets[index].width),
                               -1);
     menu->field_14 = menu->field_8;
     char* first = strtok(text, "\n");
@@ -3121,10 +3121,10 @@ void OpenRestartDialog()
 void __stdcall HandleSurrenderChoice(Gadget_004605c0* gadget)
 {
     int owner = gadget->owner->field_4;
-    if (gadget->field_60 == -1)
+    if (gadget->selected == -1)
         return;
     PlaySoundByName("Exit", 0);
-    if (IsGadgetNamed(owner, gadget->field_60, "CHOICE1")) {
+    if (IsGadgetNamed(owner, gadget->selected, "CHOICE1")) {
         g_game->sound->SetTrackCategory(4);
         switch (g_battleQuitIntent) {
         case 0:
@@ -3140,7 +3140,7 @@ void __stdcall HandleSurrenderChoice(Gadget_004605c0* gadget)
             ShutdownIngameAndQuit();
             return;
         }
-    } else if (!IsGadgetNamed(owner, gadget->field_60, "CHOICE2")) {
+    } else if (!IsGadgetNamed(owner, gadget->selected, "CHOICE2")) {
         ClearSelectedGadget(gadget);
     }
 }
@@ -3178,7 +3178,7 @@ void OpenSurrenderDialog()
 // FUNCTION: 0x460800
 void __stdcall HandleExitMenuClick(Gadget_00460800* gadget)
 {
-    if (gadget->field_60 != -1) {
+    if (gadget->selected != -1) {
         PlaySoundByName("Options", 0);
         if (IsCurrentGadgetNamed(gadget, "MAINMENU")) {
             g_battleQuitIntent = 0;
@@ -3198,7 +3198,7 @@ void __stdcall HandleExitMenuClick(Gadget_00460800* gadget)
                 OpenRestartDialog();
                 return;
             }
-            if (gadget->field_60 != -1)
+            if (gadget->selected != -1)
                 ClearSelectedGadget(gadget);
         }
     }
@@ -3240,7 +3240,7 @@ void __cdecl HandleBattleQuitPrompt(int)
 // FUNCTION: 0x4609b0
 void __stdcall HandleInGameOptionsClick(Gadget_004609b0* gadget)
 {
-    if (gadget->field_60 == -1) {
+    if (gadget->selected == -1) {
         DisableKeyCommands((Sub_004609b0*)&g_game->gui);
         g_optionsShellActive = 0;
         if (g_optionsFlipSurface) {
@@ -3316,7 +3316,7 @@ void __stdcall HandleInGameOptionsClick(Gadget_004609b0* gadget)
         PlaySoundByName("Options", 0);
         return;
     }
-    if (gadget->field_60 != -1)
+    if (gadget->selected != -1)
         ClearSelectedGadget(gadget);
 }
 

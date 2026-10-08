@@ -37,7 +37,7 @@ struct DisplayContext {
     unsigned short bit10_15 : 6;
     char unknown_f2[0x214 - 0xf2];
     unsigned int entries[256];         // +0x214
-    int field_614;                     // +0x614, read as a float by SetPaletteColors
+    int paletteBrightness;             // +0x614, read as a float by SetPaletteColors
 };
 #pragma pack(pop)
 
@@ -189,7 +189,7 @@ int __stdcall GetPaletteColors(unsigned char* dest, int first, int count)
 void __stdcall SetBrightness(int param_1)
 {
     DisplayContext* p = GetDisplay();
-    p->field_614 = param_1;
+    p->paletteBrightness = param_1;
     SetPaletteColors((unsigned char*)p->entries, 0, 0x100);
 }
 

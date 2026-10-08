@@ -4438,29 +4438,29 @@ struct Gui {
     char unknown_1c[0x3c - 0x1c];
     Point point;                        // +0x3c
     char unknown_54[0x60 - 0x54];
-    int field_60;                       // +0x60
+    int hotGadgetIndex;                 // +0x60
     int focus;                          // +0x64
-    int field_68;                       // +0x68
-    int field_6c;                       // +0x6c
-    int field_70;                       // +0x70
+    int hoverGadgetIndex;               // +0x68
+    int prevHoverGadget;                // +0x6c
+    int clearQuickKeys;                 // +0x70
     char unknown_74[0x78 - 0x74];
-    int field_78;                       // +0x78
+    int knobDragging;                   // +0x78
     char unknown_7c[0x96 - 0x7c];
     int time;                           // +0x96
-    int field_9a;                       // +0x9a
-    int field_9e;                       // +0x9e
-    int field_a2;                       // +0xa2 (nonzero = selection active)
+    int animTimer;                      // +0x9a
+    int inputEnabled;                   // +0x9e
+    int dirty;                          // +0xa2 (nonzero = selection active)
     char unknown_a6[0x8b2 - 0xa6];
     unsigned char colours[0x100];       // +0x8b2
     char unknown_9b2[0x9b6 - 0x9b2];
     char str_9b6[0x100];                // +0x9b6
     char str_ab6[0x100];                // +0xab6
     char str_bb6[0x110];                // +0xbb6
-    int field_cc6;                      // +0xcc6
+    int pathsReady;                     // +0xcc6
     int changed;                        // +0xcca
-    int field_cce;                      // +0xcce
-    int field_cd2;                      // +0xcd2
-    char field_cd6;                     // +0xcd6
+    int clickStatusCache;               // +0xcce
+    int fallback;                       // +0xcd2
+    char cachedBgName;                  // +0xcd6
 };
 
 #pragma pack(pop)
@@ -5105,17 +5105,17 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
 
     if (point.x >= r.left && point.x <= r.right
         && point.y >= r.top && point.y <= r.bottom) {
-        obj->field_68 = index;
+        obj->hoverGadgetIndex = index;
         if (IsMouseButtonMessage(obj, 1)) {
             obj->focus = -1;
             TrySetFocus(obj, index);
             SetClickMode(obj, 1);
-            obj->field_cce = entry->field_138;
+            obj->clickStatusCache = entry->field_138;
         } else if (IsMouseButtonMessage(obj, 2)) {
             obj->focus = -1;
             TrySetFocus(obj, index);
             SetClickMode(obj, 2);
-            obj->field_cce = entry->field_138;
+            obj->clickStatusCache = entry->field_138;
         }
     }
 
@@ -5126,7 +5126,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
             obj->focus = -1;
             if (point.x < r.left || point.x > r.right
                 || point.y < r.top || point.y > r.bottom) {
-                entry->field_138 = obj->field_cce;
+                entry->field_138 = obj->clickStatusCache;
                 DrawButton(obj, index);
                 return 0;
             }
@@ -5140,11 +5140,11 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
                 obj->focus = -1;
                 if (point.x < r.left || point.x > r.right
                     || point.y < r.top || point.y > r.bottom) {
-                    entry->field_138 = obj->field_cce;
+                    entry->field_138 = obj->clickStatusCache;
                     DrawButton(obj, index);
                     return 0;
                 }
-                entry->field_138 = (obj->field_cce == 0);
+                entry->field_138 = (obj->clickStatusCache == 0);
                 ClearPeerStatus(obj, index);
                 DrawButton(obj, index);
                 return 1;
@@ -5267,7 +5267,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
         return 0;
     } else {
         if (!(obj->focus != -1 && entries[obj->focus].type == 3) || IsKeyDown(0xfb)) {
-            if (obj->field_cc6 == 1) {
+            if (obj->pathsReady == 1) {
                 if (param_3 != 0) {
                     if ((char)tolower((char)entry->field_13a) == (char)param_3
                         || (char)toupper((char)entry->field_13a) == (char)param_3) {
@@ -5375,7 +5375,7 @@ int __stdcall HandleTextInput(Gui* obj, int index, int key)
     int rel_y = point.y - entries->y;
 
     if (IsPointInRect(&rect, rel_x, rel_y)) {
-        obj->field_68 = index;
+        obj->hoverGadgetIndex = index;
         if (IsMouseButtonMessage(obj, 1)) {
             Activate(obj, index);
             SetClickMode(obj, 1);
@@ -5814,7 +5814,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
     do {
         i = PopKey();
     } while (i != 0);
-    if (menu->field_70 != 0) {
+    if (menu->clearQuickKeys != 0) {
         for (i = 0; i <= entries[0].u.count; i++) {
             if (entries[i].type == 1)
                 entries[i].field_13a = 0;
@@ -6232,7 +6232,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                 break;
             }
     }
-        if (menu->layer->current != -1 && menu->field_a2 != 0) {
+        if (menu->layer->current != -1 && menu->dirty != 0) {
             savedType = entries[menu->layer->current].type;
             DrawGadgetSelectionBox(menu, menu->layer->current, 8);
             int j = FindEntry(entries, entries[0].u.text + 0x16);
@@ -6278,7 +6278,7 @@ void __stdcall CloseTopScreen(Gui* gui)
 {
     if (gui->layer) {
         unsigned int flags = gui->layer->flags;
-        gui->field_68 = gui->field_60 = gui->focus = -1;
+        gui->hoverGadgetIndex = gui->hotGadgetIndex = gui->focus = -1;
         if (gui->layer->handler)
             gui->layer->handler(gui);
         HideSoftwareCursor();
@@ -6532,7 +6532,7 @@ void __stdcall ListBoxSelectDown(Gui* param_1, int index)
 //   0xf5/0xf7  page the list up / down (type 2 gadgets)
 // A handled command is returned as 0, an unhandled one unchanged. The common
 // tail refreshes the holder when nothing consumed the command and records the
-// newly selected gadget in obj->field_60.
+// newly selected gadget in obj->hotGadgetIndex.
 // FUNCTION: 0x4a9b90
 int __stdcall HandleGuiCommand(Gui* obj, int cmd)
 {
@@ -6645,7 +6645,7 @@ int __stdcall HandleGuiCommand(Gui* obj, int cmd)
     if (cmd == 0 && obj->layer->field_18 == 0)
         PopKey();
     if (newsel != -1) {
-        obj->field_60 = newsel;
+        obj->hotGadgetIndex = newsel;
         obj->changed = 1;
     }
     return cmd;
@@ -6668,9 +6668,9 @@ static inline void SelectCurrentByName(Gui* menu, Entry* entries, int sel)
 static inline void UpdateHelpText(Gui* obj)
 {
     char* text = DAT_005119b8;
-    if (obj->field_68 != -1) {
-        obj->field_6c = obj->field_68;
-        text = obj->layer->entries[obj->field_68].helpKey;
+    if (obj->hoverGadgetIndex != -1) {
+        obj->prevHoverGadget = obj->hoverGadgetIndex;
+        text = obj->layer->entries[obj->hoverGadgetIndex].helpKey;
     }
     int found = FindEntry(obj->layer->entries, "HELPTEXT");
     if (found != -1) {
@@ -6713,7 +6713,7 @@ static inline void CloseTopScreen_inlined(Gui* gui)
 {
     if (gui->layer) {
         unsigned int flags = gui->layer->flags;
-        gui->field_68 = gui->field_60 = gui->focus = -1;
+        gui->hoverGadgetIndex = gui->hotGadgetIndex = gui->focus = -1;
         if (gui->layer->handler)
             gui->layer->handler(gui);
         HideSoftwareCursor();
@@ -6746,7 +6746,7 @@ int __stdcall UpdateMenu(Gui* menu)
         return 0;
 
     int now = GetTicks();
-    menu->field_9a = now - menu->time;
+    menu->animTimer = now - menu->time;
     menu->time = now;
     UpdateCursorAndMouse(menu);
 
@@ -6759,7 +6759,7 @@ int __stdcall UpdateMenu(Gui* menu)
         key = PopKey();
     }
 
-    if (menu->layer->field_18 != 0 && key != 0 && menu->field_a2 != 0) {
+    if (menu->layer->field_18 != 0 && key != 0 && menu->dirty != 0) {
         key = HandleGuiCommand(menu, key);
         if (key != 0) {
             for (int n = 0; n < 0xe; n++)
@@ -6767,11 +6767,11 @@ int __stdcall UpdateMenu(Gui* menu)
             menu->layer->field_36 = (char)toupper(key);
             if (menu->layer->cb3b != 0)
                 menu->layer->cb3b(menu);
-            menu->field_60 = -1;
+            menu->hotGadgetIndex = -1;
         }
     }
 
-    int sel = menu->field_60;
+    int sel = menu->hotGadgetIndex;
     if (menu->layer == 0)
         return 1;
     if (menu->changed == 1) {
@@ -6802,8 +6802,8 @@ int __stdcall UpdateMenu(Gui* menu)
                            ptY >= box.top && ptY <= box.bottom);
     }
 
-    int saved = menu->field_68;
-    menu->field_68 = -1;
+    int saved = menu->hoverGadgetIndex;
+    menu->hoverGadgetIndex = -1;
 
     Point point;
     memcpy(&point, &menu->point, 24);
@@ -6833,7 +6833,7 @@ int __stdcall UpdateMenu(Gui* menu)
             int right = e->w + x - 1;
             int bottom = e->h + y - 1;
             if (point.x >= x && point.x <= right && point.y >= y && point.y <= bottom)
-                menu->field_68 = i;
+                menu->hoverGadgetIndex = i;
 
             k = IsKeyDown(0xfb) == 0 ? key : 0;
             switch (e->type) {
@@ -6919,18 +6919,18 @@ int __stdcall UpdateMenu(Gui* menu)
             break;
     }
 
-    if (menu->field_68 != saved)
+    if (menu->hoverGadgetIndex != saved)
         UpdateHelpText(menu);
 
     if (menu->layer->cb1c != 0)
         menu->layer->cb1c();
 
     if (sel != -1) {
-        menu->field_60 = sel;
+        menu->hotGadgetIndex = sel;
         SelectGadgetByIndex_inlined(menu, sel);
         if (menu->layer->handler != 0)
             menu->layer->handler(menu);
-        if (menu->field_60 != -1)
+        if (menu->hotGadgetIndex != -1)
             CloseTopScreen_inlined(menu);
     }
     return 1;
@@ -6945,18 +6945,18 @@ void __stdcall SetCurrentGuiContext(Gui* ctx)
     ctx->str_9b6[0] = 0;
     ctx->str_ab6[0] = 0;
     ctx->str_bb6[0] = 0;
-    ctx->field_cc6 = 1;
+    ctx->pathsReady = 1;
     ctx->time = GetTicks();
-    ctx->field_9a = 0;
-    ctx->field_9e = 1;
+    ctx->animTimer = 0;
+    ctx->inputEnabled = 1;
     ctx->gaf = 0;
-    ctx->field_cd2 = 0;
-    ctx->field_cd6 = 0;
-    ctx->field_78 = 0;
-    ctx->field_68 = -1;
+    ctx->fallback = 0;
+    ctx->cachedBgName = 0;
+    ctx->knobDragging = 0;
+    ctx->hoverGadgetIndex = -1;
     memset(ctx->values, 0, 12);
     ctx->language = 0;
-    ctx->field_a2 = 1;
+    ctx->dirty = 1;
 }
 
 // FUNCTION: 0x4aa8d0

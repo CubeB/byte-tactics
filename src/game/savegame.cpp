@@ -44,7 +44,7 @@ struct Gadget_00492360 {
     char unknown_0[0x18];
     Layer_00492360* layer;               // +0x18
     char unknown_1c[0x60 - 0x1c];
-    int field_60;                        // +0x60
+    int selected;                        // +0x60
 };
 
 struct Obj_00492360 {
@@ -73,7 +73,7 @@ struct Gadget_00492df0 {
     char unknown_0[0x18];
     Layer_00492df0* layer;               // +0x18
     char unknown_1c[0x60 - 0x1c];
-    int field_60;                        // +0x60
+    int selected;                        // +0x60
 };
 
 struct Entry_00493060 {                // 0x15b bytes
@@ -403,7 +403,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
     Entry_00492360* entries = gadget->layer->entries;
     char buf[0x104];
 
-    if (gadget->field_60 == -1)
+    if (gadget->selected == -1)
         return;
 
     if (IsCurrentGadgetNamed(gadget, "CANCEL")) {
@@ -425,7 +425,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         return;
     }
     if (!IsCurrentGadgetNamed(gadget, "LOAD") && !IsCurrentGadgetNamed(gadget, "GAMES")) {
-        if (gadget->field_60 != -1)
+        if (gadget->selected != -1)
             ClearSelectedGadget(gadget);
         return;
     }
@@ -636,7 +636,7 @@ void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
 {
     Entry_00492df0* entries = gadget->layer->entries;
     Save_00492df0 save;
-    if (gadget->field_60 == -1) {
+    if (gadget->selected == -1) {
         SetDescListCleanupFlag(gadget, 1);
         if (DAT_0051f2e0)
             FUN_004d85a0(DAT_0051f2e0);
@@ -670,7 +670,7 @@ void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
     }
     if (!IsCurrentGadgetNamed(gadget, "GAMES") && !IsCurrentGadgetNamed(gadget, "LOAD") &&
         !IsCurrentGadgetNamed(gadget, "GAMENAME")) {
-        if (gadget->field_60 != -1)
+        if (gadget->selected != -1)
             ClearSelectedGadget(gadget);
         return;
     }

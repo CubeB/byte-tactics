@@ -151,7 +151,7 @@ struct Entry_00428730 {
 // The gadget record a click handler is called with.
 struct Gadget_00425d80 {
     char unknown_0[0x60];
-    int field_60;                      // +0x60
+    int selected;                      // +0x60
 };
 
 struct GadgetOwner_00426190 {
@@ -163,7 +163,7 @@ struct Gadget_00426190 {
     char unknown_0[0x18];
     GadgetOwner_00426190* owner;       // +0x18
     char unknown_1c[0x60 - 0x1c];
-    int field_60;                      // +0x60
+    int selected;                      // +0x60
 };
 
 // The display object GetDisplay returns: bit 1 at +0xf0 is fullscreen.
@@ -643,7 +643,7 @@ void __stdcall HandleMainMenuClick(Gadget_00425d80* gadget)
 {
     char buf[256];
 
-    if (gadget->field_60 == -1) {
+    if (gadget->selected == -1) {
         FUN_004d85a0(g_menuSparks);
         return;
     }
@@ -749,12 +749,12 @@ void __stdcall HandleMainMenuClick(Gadget_00425d80* gadget)
 void __stdcall HandleCloseCdPlayerChoice(Gadget_00426190* gadget)
 {
     int owner = gadget->owner->field_4;
-    if (gadget->field_60 == -1)
+    if (gadget->selected == -1)
         return;
     PlaySoundByName("SmallButton", 0);
-    if (IsGadgetNamed(owner, gadget->field_60, "CHOICE1")) {
+    if (IsGadgetNamed(owner, gadget->selected, "CHOICE1")) {
         g_game->sound->CloseCdPlayerWindow();
-    } else if (!IsGadgetNamed(owner, gadget->field_60, "CHOICE2")) {
+    } else if (!IsGadgetNamed(owner, gadget->selected, "CHOICE2")) {
         ClearSelectedGadget(gadget);
     }
 }

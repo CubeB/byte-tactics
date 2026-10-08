@@ -5760,11 +5760,11 @@ piece,0x502560,27,src/game/share_commands.cpp,8,0,game data
 piece,0x50257c,28,src/game/share_commands.cpp,11,0,game data
 piece,0x5025b0,26,src/game/share_commands.cpp,17,0,game data
 piece,0x502598,24,src/game/share_commands.cpp,14,0,game data
-piece,0x502534,2,src/game/console_commands_418310.cpp,3,0,game data
-piece,0x502520,20,src/game/console_commands_417a60.cpp,3,0,game data
-piece,0x502510,16,src/game/console_commands_417890.cpp,3,0,game data
-piece,0x50250c,4,src/game/console_commands_417600.cpp,5,0,game data
-piece,0x5024f4,8,src/game/console_commands_417600.cpp,3,0,game data
+piece,0x502534,2,src/game/console_commands_417430.cpp,57,0,game data
+piece,0x502520,20,src/game/console_commands_417430.cpp,36,0,game data
+piece,0x502510,16,src/game/console_commands_417430.cpp,31,0,game data
+piece,0x50250c,4,src/game/console_commands_417430.cpp,24,0,game data
+piece,0x5024f4,8,src/game/console_commands_417430.cpp,22,0,game data
 piece,0x5024e4,16,src/game/console_commands_417430.cpp,5,0,game data
 piece,0x5024d8,9,src/game/console_commands_417430.cpp,4,0,game data
 piece,0x5024bc,25,src/game/console_commands_417430.cpp,3,0,game data
@@ -12070,7 +12070,7 @@ same,0x4fcc50,4,src/orders/vtol_orders_411f50.cpp,5,8,
 same,0x4fcc40,4,src/orders/vtol_orders_413d80.cpp,4,0,
 same,0x4fcc40,4,src/orders/vtol_orders_414380.cpp,4,0,
 same,0x4fcc40,4,src/orders/vtol_orders_4152f0.cpp,6,8,
-same,0x5024fc,15,src/game/console_commands_417600.cpp,4,0,
+same,0x5024fc,15,src/game/console_commands_417430.cpp,23,0,
 same,0x502820,5,src/ingame/control_panel.cpp,82,0,
 same,0x5028f8,9,src/game/cd_check.cpp,14,0,
 same,0x502910,2,src/game/cd_check.cpp,18,0,

@@ -1142,3 +1142,8 @@ Things that look wrong in the original but have no effect, kept for the record.
   +0x10 (unit_orders.cpp), so the flags the constructor copies are shifted by
   8 bits (the ready order's 0xf reads as 0). Found by OpenCode /
   deepseek-v4.1-flash in #6125.
+- **0x4b5980** (possible, harmless): fetches the work area with
+  `SystemParametersInfoA(SPI_GETWORKAREA)` into the rectangle at +0xec, which
+  overlaps the flag word at +0xf0 (the rectangle's `top`); the flag word is
+  overwritten three instructions later, so the fetch has no lasting effect.
+  Found by OpenCode / deepseek-v4.1-flash in #6132.

@@ -313,8 +313,8 @@ public:
         return current->GetFieldString(dst, key, size, def);
     }
     int GetInt(char* key, int def) { return current->GetFieldInt(key, def); }
-    double GetDouble(char* key, double def) { return ((Class_004c4760*)current)->GetFieldDouble(key, def); }
-    char* GetValue(char* key) { return ((Class_004c4630*)current)->FindFieldValue(key); }
+    double GetDouble(char* key, double def) { return current->GetFieldDouble(key, def); }
+    char* GetValue(char* key) { return current->FindFieldValue(key); }
     int LoadFile(char* file);
     void LoadBuffer(char* data, int size, int flag, char* name);
     int SelectRecord(char* name);
@@ -815,7 +815,7 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
             MovementClass movement;
             MovementClass* move = (MovementClass*)unitdef->movementclass;
             if (move == 0) {
-                ((MovementClass*)&movement)->ReadMoveInfo(&parser);
+                (&movement)->ReadMoveInfo(&parser);
                 move = &movement;
             }
             unitdef->footprintx = move->field_4;

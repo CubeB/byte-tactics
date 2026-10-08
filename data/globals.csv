@@ -106,7 +106,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x502a78,DAT_00502a78,.data,12,gap,string,char[],2,0,1,one type,2,,s_Difficulty_00502a78,,,446966666963756c74790000
 0x502ae8,DAT_00502ae8,.data,4,gap,string,char[],2,1,2,conflicting: shape,3,,DAT_00502ae8,,,4f4b0000
 0x502b38,DAT_00502b38,.data,8,gap,string,char[],2,0,1,one type,2,,s_Options_00502b38,,,4f7074696f6e7300
-0x502bf8,DAT_00502bf8,.data,64,gap,data,Shape[6],1,0,1,one type,1,0x30,DAT_00502bf8,,,0000010002000300020001000600050000000300040007000100000007000600030002000500040004000500060007006578706c6f6465706965636500000000
+0x502bf8,DAT_00502bf8,.data,48,type,data,unsigned short[6][4],1,0,1,one type,1,0x30,DAT_00502bf8,,,000001000200030002000100060005000000030004000700010000000700060003000200050004000400050006000700
 0x502e30,DAT_00502e30,.data,8,gap,string,const char[],1,0,1,one type,1,,s_anims_00502e30,,,616e696d73000000
 0x502e78,g_descriptionKey,.data,12,gap,string,char[],1,0,1,one type,1,,s_Description_00502e78,,,4465736372697074696f6e00
 0x502f98,DAT_00502f98,.data,4,type,data,int,1,0,1,one type,1,,,,src/data/unused.cpp,10000000
@@ -355,8 +355,8 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x511de4,g_cdPathMismatch,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511de4,,,
 0x511de8,g_game,.bss,4,type,data,Game*,632,85,15,conflicting: shape,717,,DAT_00511de8,,,
 0x511dec,DAT_00511dec,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511dec,,,
-0x511df0,DAT_00511df0,.bss,400,type,data,int[100],2,5,6,conflicting: shape,7,0x190,DAT_00511df0,,,
-0x511f80,DAT_00511f80,.bss,16,gap,data,CMemoryCache,5,0,1,one type,5,,DAT_00511f80,,,
+0x511df0,DAT_00511df0,.bss,400,type,data,ExplodedPiece*[100],1,0,1,one type,1,0x190,DAT_00511df0,,,
+0x511f80,DAT_00511f80,.bss,16,gap,data,CMemoryCache,3,0,1,one type,3,,DAT_00511f80,,,
 0x511f90,DAT_00511f90,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_00511f90,,,
 0x511f94,DAT_00511f94,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_00511f94,,,
 0x511f98,DAT_00511f98,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_00511f98,,,

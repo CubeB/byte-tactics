@@ -449,7 +449,7 @@ void __cdecl FlipScreen();
 int __cdecl IsCdPlaying();
 void __cdecl FUN_004d85a0(void*);
 void __stdcall BuildDataPath(void*, char*, char*, char*);
-void __stdcall FUN_00453320(unsigned int, int);
+void __stdcall SendProbe(unsigned int, int);
 void __stdcall DrawSyncStatus(void*);
 void __stdcall FUN_0049fa70(void*);
 int __stdcall GetTextPixelWidth(char*);
@@ -477,7 +477,7 @@ int __cdecl GetScreenWidth();
 int __cdecl GetScreenHeight();
 int __cdecl GetTextKeyColor();
 int __cdecl GetFontHeight();
-int __cdecl FUN_004568c0();
+int __cdecl AssignStartPositions();
 unsigned int __cdecl GetTicks();
 char* __cdecl GetPreferredLanguage();
 
@@ -995,15 +995,15 @@ void LoadingScreenFrame(void)
     for (i = 0; i < 10; i++) {
         if (g_game->players[i].active != 0
             && (g_game->players[i].control == 1 || g_game->players[i].control == 2)) {
-            FUN_00453320(g_game->players[i].id, 0);
+            SendProbe(g_game->players[i].id, 0);
             if (g_usePacketManager != 0)
                 ((PacketManager*)&g_packetManager)->SendAllQueued(1);
         }
     }
     HandleNetPackets();
-    // Nested, not `b2 && FUN_004568c0()`: that folds to a test on the byte.
+    // Nested, not `b2 && AssignStartPositions()`: that folds to a test on the byte.
     if (g_game->flags38d75.bits.b2) {
-        if (FUN_004568c0() != 0) {
+        if (AssignStartPositions() != 0) {
             g_game->flags38d75.bits.b2 = 0;
             g_game->flags38d75.bits.b3 = 1;
             HAPINET_guaranteepackets(0);

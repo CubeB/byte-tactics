@@ -299,11 +299,11 @@ void MainLoopContinueStub_C();
 void EmptyMainLoopHook();
 void EmptyMainLoopHook_B();
 void EmptyMainLoopHook_C();
-int FUN_004568c0();
+int AssignStartPositions();
 void HandleNetPackets();
 unsigned int GetTicks();
 int GetLocalDpid();
-void __stdcall FUN_00453320(int a, int b);
+void __stdcall SendProbe(int a, int b);
 void HandleGameKey();
 void UpdateEdgeScroll();
 void CollectVisibleUnitIds();
@@ -367,7 +367,7 @@ void MainLoopTick()
             MainLoopContinueStub_B();
             MainLoopContinueStub_C();
             if (g_game->flags_38d75.bit2) {
-                if (FUN_004568c0())
+                if (AssignStartPositions())
                     g_game->flags_38d75.word &= 0xfffb;
                 CHARGE(0);
             }
@@ -380,7 +380,7 @@ void MainLoopTick()
             HandleNetPackets();
             if ((int)GetTicks() > g_netProbeNextTick) {
                 g_netProbeNextTick = GetTicks() + 60;
-                FUN_00453320(GetLocalDpid(), 0);
+                SendProbe(GetLocalDpid(), 0);
             }
             CHARGE(0);
         }

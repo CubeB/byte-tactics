@@ -525,7 +525,7 @@ void __stdcall HandleBuildPanelClick(Menu* menu);
 void __stdcall RefreshOrderButtons(Unit* unit);
 int __stdcall IsScreenNamed(Menu* menu, const char* name);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
-void __stdcall FUN_004560c0(Unit* obj, Unit* target);
+void __stdcall BroadcastBuilderLink(Unit* obj, Unit* target);
 void __stdcall DamageUnit(Unit* obj, Unit* unit, int n, int kind, int flag);
 void __stdcall FinishConstruction(Unit* builder, Unit* unit);
 int __stdcall AddBuildProgress(Unit* builder, Unit* unit, float amount);
@@ -1351,7 +1351,7 @@ void __stdcall FinishConstruction(Unit* unit, Unit* target)
         }
         if (target->player->active != 0
             && (target->player->type == 1 || target->player->type == 2))
-            FUN_004560c0(unit, target);
+            BroadcastBuilderLink(unit, target);
         if ((unit->flags.raw & 0x10) || (target->flags.raw & 0x10))
             g_game->orderState.raw |= 0x10;
     }

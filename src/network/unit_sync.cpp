@@ -139,7 +139,7 @@ struct Name_0046c620 {                  // 17 bytes, the player's name
     char flag;
 };
 
-struct Class_0046c620 {                 // the object at g_game+0x14
+struct Net_4c97b0 {                     // the object at g_game+0x14
     Name_0046c620 name;                 // +0x00
     char unknown_11[0x4c9 - 0x11];
     int field_4c9;                      // +0x4c9
@@ -181,8 +181,8 @@ struct UnitSync;
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x14];
-    Class_0046c620 net;                 // +0x14
-    char unknown_25[0x1b67 - 0x14 - sizeof(Class_0046c620)];
+    Net_4c97b0 net;                     // +0x14
+    char unknown_25[0x1b67 - 0x14 - sizeof(Net_4c97b0)];
     PlayerEntry_0046d6c0 players[10];   // +0x1b67
     char unknown_283d[0x2a30 - 0x1b67 - sizeof(PlayerEntry_0046d6c0) * 10];
     UnitSync* field_2a30;               // +0x2a30
@@ -215,8 +215,8 @@ extern int g_reportFlags;
 extern void (*DAT_0051e580)(void);
 extern int (__stdcall* DAT_0051e548)(int, int);
 
-Rect_0046c620* __stdcall GetSessionGuidInstance(Class_0046c620* p);
-int __stdcall GetCreatedLobbyInterface(Class_0046c620* p);
+Rect_0046c620* __stdcall GetSessionGuidInstance(Net_4c97b0* p);
+int __stdcall GetCreatedLobbyInterface(Net_4c97b0* p);
 int __stdcall QueryOnlineFlags(int mode);
 int __stdcall RIReport(int, Rect_0046c620*, void*, int, Name_0046c620*, int,
                            int, int, void*, void*);
@@ -403,7 +403,7 @@ struct Less_0046e330 {
 };
 
 // The map's out-of-line find() (0x46e9b0) walks the tree through
-// Class_0046fe60's FUN_0046fe60, the tree's lower_bound().
+// Class_0046fe60's LowerBound, the tree's lower_bound().
 struct Node_0046e9b0 {
     Node_0046e9b0* left;               // +0x0
     Node_0046e9b0* parent;             // +0x4
@@ -431,7 +431,7 @@ public:
     Node_0046e9b0* head;               // +0x4
 
     Iter_0046e9b0 End() { return Iter_0046e9b0(head); }
-    Iter_0046e9b0 FUN_0046e9b0(const unsigned int& key);
+    Iter_0046e9b0 FindExact(const unsigned int& key);
 };
 
 // Shaped like std::_Tree<...>::_Lbound(const _K&) from MSVC 5's <xtree> for a
@@ -457,7 +457,7 @@ public:
     char allocator;                 // +0x0
     Less_0046fe60 key_compare;      // +0x1
     Node_0046fe60* head;            // +0x4
-    Node_0046fe60* FUN_0046fe60(const unsigned int* key);
+    Node_0046fe60* LowerBound(const unsigned int* key);
 };
 
 #pragma pack(push, 1)
@@ -556,7 +556,7 @@ public:
     Class_0046f720(Cmp_0046d040 c, Alloc_0046d040 a)
         : field_0(c.x), field_1(a.x), multi(0)
     {
-        FUN_0046f720();
+        Init();
     }
 
     Node_0046f720* Buynode(Node_0046f720* parent, int color)
@@ -567,7 +567,7 @@ public:
         return s;
     }
 
-    void FUN_0046f720();
+    void Init();
 
     UnitSyncEntry& operator[](unsigned int key)
     {
@@ -628,7 +628,7 @@ public:
     Iter_0046e330 End() { return Iter_0046e330(head); }
     Iter_0046e330 Find(const unsigned int* key)
     {
-        Iter_0046e330 p = Iter_0046e330((Node_0046e330*)((Class_0046fe60*)this)->FUN_0046fe60(key));
+        Iter_0046e330 p = Iter_0046e330((Node_0046e330*)((Class_0046fe60*)this)->LowerBound(key));
         return (p == End() || compare(*key, p.ptr->key)) ? End() : p;
     }
     void ApplyToUnitTypes();
@@ -676,7 +676,7 @@ public:
     Iter_0046e330 End() { return Iter_0046e330((Node_0046e330*)((Class_0046e9b0*)this)->head); }
     Iter_0046e330 Find(const unsigned int* key)
     {
-        Iter_0046e330 p = Iter_0046e330((Node_0046e330*)((Class_0046fe60*)this)->FUN_0046fe60(key));
+        Iter_0046e330 p = Iter_0046e330((Node_0046e330*)((Class_0046fe60*)this)->LowerBound(key));
         return (p == End() || ((Class_0046e9b0*)this)->compare(*key, p.ptr->key)) ? End() : p;
     }
     void Send(Target_0046d530* target, void* packet)
@@ -1222,7 +1222,7 @@ void UnitSync::NotifyEntryChanged(unsigned int param_1)
         return;
     }
     if (direct != 0) {
-        Iter_0046e9b0 it = ((Class_0046e9b0*)this)->FUN_0046e9b0(param_1);
+        Iter_0046e9b0 it = ((Class_0046e9b0*)this)->FindExact(param_1);
         for (std::vector<Player_0046d860>::iterator i = ps.begin(); i != ps.end(); ++i) {
             // v is taken before the disabled check: MSVC then keeps it.ptr in eax
             // across the loop. The check stays a positive block, not a continue.
@@ -1259,7 +1259,7 @@ void UnitSync::CheckUnitAvailable(unsigned int key, int y)
     if (disabled != 0)
         return;
 
-    Iter_0046e9b0 it = ((Class_0046e9b0*)this)->FUN_0046e9b0(key);
+    Iter_0046e9b0 it = ((Class_0046e9b0*)this)->FindExact(key);
     if (it == ((Class_0046e9b0*)this)->End())
         return;
 
@@ -1468,7 +1468,7 @@ public:
     Iter_0046e280 End() { return Iter_0046e280(head); }
     Iter_0046e280 Find(const unsigned int* key)
     {
-        Iter_0046e280 p = Iter_0046e280((Node_0046e280*)((Class_0046fe60*)this)->FUN_0046fe60(key));
+        Iter_0046e280 p = Iter_0046e280((Node_0046e280*)((Class_0046fe60*)this)->LowerBound(key));
         return (p == End() || compare(*key, p.ptr->key)) ? End() : p;
     }
 };
@@ -1477,7 +1477,7 @@ public:
 // std::map<unsigned int, Event> (key at map node +0xc, Event at +0x10) for
 // lookup and a std::list<Event> at +0x20 (_Head +0x24, _Size +0x28) for the
 // order. The list front's first field is the map key. The inlined find() is
-// copied from 0x46e330 (FUN_0046fe60 is the tree's lower_bound(); a missing
+// copied from 0x46e330 (LowerBound is the tree's lower_bound(); a missing
 // key yields the head node, end()).
 // FUNCTION: 0x46e280
 int UnitSync::PopChangedEntry(Event_0046e280* out)
@@ -1550,11 +1550,11 @@ struct Class_0046e5c0 {
     int field_0x8;
     int field_0xc;
 
-    Class_0046e5c0* FUN_0046e5c0(char* param_1);
+    Class_0046e5c0* InitTaggedVector(char* param_1);
 };
 
 // FUNCTION: 0x46e5c0
-Class_0046e5c0* Class_0046e5c0::FUN_0046e5c0(char* param_1)
+Class_0046e5c0* Class_0046e5c0::InitTaggedVector(char* param_1)
 {
     field_0x0 = *param_1;
     field_0x4 = 0;
@@ -1614,11 +1614,11 @@ public:
     char unknown_0[4];
     int* field_4;
 
-    int* FUN_0046e880(int* param_1);
+    int* Begin(int* param_1);
 };
 
 // FUNCTION: 0x46e880
-int* Class_0046e880::FUN_0046e880(int* param_1)
+int* Class_0046e880::Begin(int* param_1)
 {
     *param_1 = *field_4;
     return param_1;
@@ -1639,14 +1639,14 @@ typedef Tree_0046e890::iterator (Tree_0046e890::*EraseFn_0046e890)(
 // FUNCTION: 0x46e890 ?erase@?$_Tree@IU?$pair@IUUnitSyncEntry@@@std@@U_Kfn@?$map@IUUnitSyncEntry@@U?$less@I@std@@V?$allocator@UUnitSyncEntry@@@3@@2@U?$less@I@2@V?$allocator@UUnitSyncEntry@@@2@@std@@QAE?AViterator@12@V312@0@Z
 EraseFn_0046e890 g_erase_0046e890 = &Tree_0046e890::erase;
 
-// An out-of-line std::map<unsigned int, ...>::find(): FUN_0046fe60 is the
+// An out-of-line std::map<unsigned int, ...>::find(): LowerBound is the
 // tree's lower_bound(), and a missing key yields the head node (end()).
 // The original calls this from 0x46d860 and 0x46d970 rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x46e9b0
-Iter_0046e9b0 Class_0046e9b0::FUN_0046e9b0(const unsigned int& key)
+Iter_0046e9b0 Class_0046e9b0::FindExact(const unsigned int& key)
 {
-    Iter_0046e9b0 p = Iter_0046e9b0((Node_0046e9b0*)((Class_0046fe60*)this)->FUN_0046fe60(&key));
+    Iter_0046e9b0 p = Iter_0046e9b0((Node_0046e9b0*)((Class_0046fe60*)this)->LowerBound(&key));
     return (p == End() || compare(key, p.ptr->key)) ? End() : p;
 }
 #pragma auto_inline(on)
@@ -1668,14 +1668,14 @@ template class std::_Tree<unsigned int, std::pair<const unsigned int, UnitSyncEn
 
 // --- vector<Class_0046eaa0>::_Destroy (0x46eaa0) -----------------------------
 
-void __stdcall FUN_00470030(int);
+void __stdcall NopChecksumEntryDtor(int);
 
 namespace std {
 template<> inline void allocator<Elem_0046faf0>::destroy(Elem_0046faf0* p)
 {
     // Direct call: an inline std::_Destroy overload would be one inline
     // level too deep.
-    FUN_00470030((int)p);
+    NopChecksumEntryDtor((int)p);
 }
 }
 
@@ -1722,7 +1722,7 @@ EraseFn_0046eb60 g_erase_0046eb60 = &List_0046eb60::erase;
 // The tree's _Init: DAT_0051e598 is the shared _Nil node and DAT_0051e59c its
 // reference count (_Nilrefs).
 // FUNCTION: 0x46f720
-void Class_0046f720::FUN_0046f720()
+void Class_0046f720::Init()
 {
     std::_Lockit lock;
     if (DAT_0051e598 == 0) {
@@ -1805,7 +1805,7 @@ UfillFn_0046faf0 Access_0046fb40::fn = &Access_0046fb40::_Ufill;
 // The original calls this from 0x46e9b0 rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x46fe60
-Node_0046fe60* Class_0046fe60::FUN_0046fe60(const unsigned int* key)
+Node_0046fe60* Class_0046fe60::LowerBound(const unsigned int* key)
 {
     std::_Lockit lock;
     Node_0046fe60* x = head->parent;
@@ -1852,7 +1852,7 @@ UcopyFn_004702a0 Access_004702a0::fn = &Access_004702a0::_Ucopy;
 // --- the empty function 0x470030 ---------------------------------------------
 
 // FUNCTION: 0x470030
-void __stdcall FUN_00470030(int)
+void __stdcall NopChecksumEntryDtor(int)
 {
 }
 
@@ -1865,11 +1865,11 @@ public:
     char unknown_8[4];
     int last;
 
-    int FUN_00470250();
+    int Capacity();
 };
 
 // FUNCTION: 0x470250
-int Class_00470250::FUN_00470250()
+int Class_00470250::Capacity()
 {
     if (!first) {
         return 0;
@@ -1883,11 +1883,11 @@ public:
     int field_4;
     int field_8;
 
-    int FUN_00470270();
+    int Size();
 };
 
 // FUNCTION: 0x470270
-int Class_00470270::FUN_00470270() {
+int Class_00470270::Size() {
     if (field_4 == 0) {
         return 0;
     }
@@ -1900,7 +1900,7 @@ int Class_00470270::FUN_00470270() {
 // convention (same shape as 0x44eef0). Its one caller copies one vector's
 // elements into another.
 // FUNCTION: 0x4702d0
-int* __stdcall FUN_004702d0(int* first, int* last, int* dest)
+int* __stdcall CopyDwordRangeOverwrite(int* first, int* last, int* dest)
 {
     for (; first != last; ++dest, ++first)
         *dest = *first;

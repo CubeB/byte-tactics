@@ -13,13 +13,13 @@ struct Elem_004702a0 {
     int unknown_0;
 };
 
-int* __stdcall FUN_004702d0(int* first, int* last, int* dest);
+int* __stdcall CopyDwordRangeOverwrite(int* first, int* last, int* dest);
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
 
 class Class_00470250 : public std::vector<Elem_004702a0> {
 public:
-    unsigned int FUN_00470250() const;
+    unsigned int Capacity() const;
 
     unsigned int __inline count() const
     {
@@ -31,7 +31,7 @@ public:
 
 class Class_00470270 : public Class_00470250 {
 public:
-    unsigned int FUN_00470270() const;
+    unsigned int Size() const;
 
     __inline Elem_004702a0* begin() { return _First; }
     __inline Elem_004702a0* end() { return _Last; }
@@ -60,21 +60,21 @@ public:
             int* q = (int*)d->_First;
             for (; p != e; ++p, ++q)
                 *q = *p;
-            d->_Last = d->_First + s->FUN_00470270();
+            d->_Last = d->_First + s->Size();
         } else {
-            unsigned int room = d->FUN_00470250();
-            if (s->FUN_00470270() <= room) {
+            unsigned int room = d->Capacity();
+            if (s->Size() <= room) {
                 Elem_004702a0* mid = s->_First;
-                mid += d->FUN_00470270();
-                FUN_004702d0((int*)s->begin(), (int*)mid, (int*)d->_First);
+                mid += d->Size();
+                CopyDwordRangeOverwrite((int*)s->begin(), (int*)mid, (int*)d->_First);
                 d->_Ucopy(mid, s->_Last, d->_Last);
 
-                d->_Last = d->_First + s->FUN_00470270();
+                d->_Last = d->_First + s->Size();
             } else {
                 d->_Destroy(d->_First, d->_Last);
                 // begin()/end() here, raw fields in assign_second: sets the register split.
                 operator delete(d->begin());
-                int n = (int)s->FUN_00470270();
+                int n = (int)s->Size();
                 if (n < 0)
                     n = 0;
                 Elem_004702a0* p = (Elem_004702a0*)operator new(n * 4);
@@ -91,24 +91,24 @@ public:
     {
         if (d == s)
             ;
-        else if (s->FUN_00470270() <= d->FUN_00470270()) {
-            Elem_004702a0* r = (Elem_004702a0*)FUN_004702d0(
+        else if (s->Size() <= d->Size()) {
+            Elem_004702a0* r = (Elem_004702a0*)CopyDwordRangeOverwrite(
                 (int*)s->_First, (int*)s->_Last, (int*)d->_First);
             d->_Destroy(r, d->_Last);
-            d->_Last = d->_First + s->FUN_00470270();
+            d->_Last = d->_First + s->Size();
         } else {
-            unsigned int room = d->FUN_00470250();
-            if (s->FUN_00470270() <= room) {
+            unsigned int room = d->Capacity();
+            if (s->Size() <= room) {
                 Elem_004702a0* mid = s->_First;
-                mid += d->FUN_00470270();
-                FUN_004702d0((int*)s->_First, (int*)mid, (int*)d->_First);
+                mid += d->Size();
+                CopyDwordRangeOverwrite((int*)s->_First, (int*)mid, (int*)d->_First);
                 d->_Ucopy(mid, s->_Last, d->_Last);
 
-                d->_Last = d->_First + s->FUN_00470270();
+                d->_Last = d->_First + s->Size();
             } else {
                 d->_Destroy(d->_First, d->_Last);
                 operator delete((void*)d->_First);
-                int n = (int)s->FUN_00470270();
+                int n = (int)s->Size();
                 if (n < 0)
                     n = 0;
                 Elem_004702a0* p = (Elem_004702a0*)operator new(n * 4);

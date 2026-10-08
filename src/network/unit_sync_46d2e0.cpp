@@ -61,7 +61,7 @@ class Class_0046e880 {                 // the map seen as the tree's root header
 public:
     char unknown_0[4];
     int* field_4;                      // +0x4
-    int* FUN_0046e880(int* param_1);   // _Tree::begin
+    int* Begin(int* param_1);          // _Tree::begin
 };
 
 struct Less_0046d2e0 {
@@ -117,7 +117,7 @@ public:
         iterator it(candidate);
         if (went_left) {
             int root;
-            iterator other((Node_0046d2e0*)*((Class_0046e880*)this)->FUN_0046e880(&root));
+            iterator other((Node_0046d2e0*)*((Class_0046e880*)this)->Begin(&root));
             bool same = (it == other);
 
             if (same) {

@@ -10394,7 +10394,7 @@ public:
     char unknown_1[3];
     LiveNode* head;  // +0x4
     Iter_0046e330 End(void);
-    Iter_0046e330 FUN_0046e9b0(unsigned int&);
+    Iter_0046e330 FindExact(unsigned int&);
 };
 
 struct Alloc_0046e5c0 {  // 0x1 bytes, 1 view
@@ -10407,7 +10407,7 @@ struct Class_0046e5c0 {  // 0x10 bytes, 2 views
     int field_0x4;  // +0x4
     int field_0x8;  // +0x8
     int field_0xc;  // +0xc
-    Class_0046e5c0* FUN_0046e5c0(char*);
+    Class_0046e5c0* InitTaggedVector(char*);
 };
 
 struct Data_0046dad0 {  // 0x95 bytes, 1 view
@@ -10664,7 +10664,7 @@ public:
     int first;  // +0x4
     char unknown_8[4];
     int last;  // +0xc
-    int FUN_00470250(void);
+    int Capacity(void);
     unsigned int count(void);
 };
 

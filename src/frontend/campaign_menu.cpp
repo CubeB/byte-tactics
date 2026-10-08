@@ -72,7 +72,7 @@ struct Layer;
 // dialog's gadget array. The views disagree about the bytes from +0xb6 on:
 // 476ef0's text buffer and count, 478e80's callback at +0xb6 and gaf at
 // +0xbe, 4779e0's selected line and text pointer, 478790's surface at +0xbc
-// and gaf at +0xc0, 478240's callback at +0xce and value byte at +0x137. The
+// and gaf at +0xc0, 478240's callback at +0xce and stage index at +0x137. The
 // anonymous union keeps every reading.
 struct Gadget {                        // 0x15b bytes
     char unknown_0[0x13];
@@ -80,7 +80,7 @@ struct Gadget {                        // 0x15b bytes
     short y;                           // +0x15
     short w;                           // +0x17
     short h;                           // +0x19
-    int flags;                         // +0x1b
+    int attribs;                       // +0x1b
     int colour_1f;                     // +0x1f
     void* colours;                     // +0x23
     char unknown_27[0x28 - 0x27];
@@ -114,9 +114,17 @@ struct Gadget {                        // 0x15b bytes
             short frame;               // +0xc6, 478790's and 478e80's
             char unknown_c8[0xce - 0xc8];
             void (__stdcall* callback)();  // +0xce, 478240's
-            char unknown_d2[0x137 - 0xd2];
-            unsigned char value;       // +0x137, 477410's and 478240's
-            char unknown_138[0x15b - 0x138];
+            char unknown_d2[0x136 - 0xd2];
+            union {                    // +0x136
+                short range;
+                struct {
+                    unsigned char stages;  // +0x136
+                    unsigned char stageIndex;  // +0x137, 477410's and 478240's
+                };
+            };
+            char unknown_138[0x144 - 0x138];
+            void (__stdcall* sliderCallback)(Menu*, int); // +0x144
+            char unknown_148[0x15b - 0x148];
         };
     };
 };
@@ -646,7 +654,7 @@ void DrawHelpPage()
         // The gadget index is count itself, incremented here.
         count++;
         char* dst = gadgets[count].text_b6;
-        gadgets[count].flags = 0x411;
+        gadgets[count].attribs = 0x411;
         gadgets[count].field_28 = gp->field_28;
         gadgets[count].colour_1f = g_briefingTextColors[g_game->flag_37ef2 * 4];
         memset(gadgets[count].text_b6, 0, 0x80);
@@ -723,15 +731,15 @@ void ApplyDifficultyButtons()
 {
     Gadget* gadget = FindGadgetOrNull(g_game->menu.layer->entries, "Difficulty");
     if (g_game->difficulty == 0) {
-        gadget->value = 0;
+        gadget->stageIndex = 0;
         SetGadgetStatusByName(&g_game->menu, "Easy", 1);
     }
     if (g_game->difficulty == 1) {
-        gadget->value = 1;
+        gadget->stageIndex = 1;
         SetGadgetStatusByName(&g_game->menu, "Medium", 1);
     }
     if (g_game->difficulty == 2) {
-        gadget->value = 2;
+        gadget->stageIndex = 2;
         SetGadgetStatusByName(&g_game->menu, "Hard", 1);
     }
     MarkChanged(&g_game->menu);
@@ -1124,15 +1132,15 @@ void __stdcall OpenNewGameMenu(int param_1)
     Gadget* diff =
         FindGadgetOrNull(g_game->menu.layer->entries, "Difficulty");
     if (g_game->difficulty == 0) {
-        diff->value = 0;
+        diff->stageIndex = 0;
         SetGadgetStatusByName(&g_game->menu, "Easy", 1);
     }
     if (g_game->difficulty == 1) {
-        diff->value = 1;
+        diff->stageIndex = 1;
         SetGadgetStatusByName(&g_game->menu, "Medium", 1);
     }
     if (g_game->difficulty == 2) {
-        diff->value = 2;
+        diff->stageIndex = 2;
         SetGadgetStatusByName(&g_game->menu, "Hard", 1);
     }
 
@@ -1432,9 +1440,9 @@ void OpenMissionBriefing(void)
     strcpy((char*)gadgets + 0xdc, "PrevMenu");
 
     i = FindGadgetIndex(gadgets, "MOREBAR", 0xe);
-    gadgets[i].flags &= ~0x10;
+    gadgets[i].attribs &= ~0x10;
     i = FindGadgetIndex(gadgets, "TextRegion", 0xe);
-    gadgets[i].flags &= ~0x10;
+    gadgets[i].attribs &= ~0x10;
 
     SetGadgetActiveByName(&g_game->menu, "SOLARSYSTEM", 0);
     SetButtonStageByName(&g_game->menu, "SHUTUP", 1);

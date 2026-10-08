@@ -25,10 +25,11 @@ struct Entry_004aa8f0 {
     short y;                       // +0x15
     short w;                       // +0x17
     short h;                       // +0x19
-    // AddTextGadget stores a dword here, HandleTextEditKey tests a byte.
+    // AddTextGadget stores a dword here, HandleTextEditKey tests a byte; the
+    // union stays because its symbol ids keep the later functions' registers.
     union {
-        int flags;                 // +0x1b
-        unsigned char flag_1b;     // +0x1b
+        int attribs;               // +0x1b
+        unsigned char attribsLow;  // +0x1b
     };
     int field_1f;                  // +0x1f
     int field_23;                  // +0x23
@@ -50,11 +51,14 @@ struct Entry_004aa8f0 {
         };
         struct {                   // the other entries: the NUL terminated text
             char text[0x80];       // +0xb6
-            char unknown_136[2];
+            unsigned char stages;  // +0x136
+            unsigned char stageIndex; // +0x137
             short capacity;        // +0x138
             char unknown_13a[6];
             unsigned short field_140; // +0x140
-            char unknown_142[0x19];
+            short knobSize;           // +0x142
+            void* sliderCallback;     // +0x144 (a typed function pointer here takes symbol ids)
+            char unknown_148[0x13];
         };
     };
 };
@@ -544,7 +548,7 @@ void __stdcall AddTextGadget(Layer_004aa8f0* obj, char* name, char* text,
         e->w = w;
     e->h = 0xf;
     e->field_1f = 0xf;
-    e->flags = flags;
+    e->attribs = flags;
     e->group = 0;
     e->field_23 = 0;
     e->field_27 = 0;
@@ -889,7 +893,7 @@ int __stdcall HandleTextEditKey(Menu_004aa8f0* control, int index, int key)
                     break;
                 if (key < 0x20 || key > 0x7f)
                     break;
-                if (entry->flag_1b & 2) {
+                if (entry->attribsLow & 2) {
                     if (!isalnum(key) && key != '_' && key != ' ' && key != '\'')
                         break;
                 }
@@ -1116,7 +1120,7 @@ int __stdcall OpenMessageBox(Menu_004aa8f0* gui, char* text, int wrapWidth, int 
         for (i = 0; i <= entries->count; i++) {
             if (entries[i].type == 5) {
                 entries[i].w = entries->w;
-                entries[i].flags = 2;
+                entries[i].attribs = 2;
             }
         }
         if (centre) {

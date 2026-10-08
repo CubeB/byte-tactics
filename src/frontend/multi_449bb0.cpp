@@ -65,7 +65,7 @@ typedef void (__stdcall* Callback_00449bb0)(Gui_00449bb0* gui, int index);
 
 struct Gadget_00449bb0 {                // 0x15b bytes
     char unknown_0[0x1b];
-    int field_1b;                       // +0x1b
+    int attribs;                        // +0x1b
     char unknown_1f[0x23 - 0x1f];
     int colour;                         // +0x23
     char unknown_27[0x29 - 0x27];
@@ -92,7 +92,7 @@ struct Gadget_00449bb0 {                // 0x15b bytes
     int max;                            // +0x13c
     short value;                        // +0x140
     short knobSize;
-    Callback_00449bb0 callback;         // +0x144
+    Callback_00449bb0 sliderCallback;   // +0x144
     char unknown_148[2];
     void* game;                         // +0x14a
     char unknown_14e[0x15b - 0x14e];
@@ -245,7 +245,7 @@ void __stdcall BindNamedSliderWithCallback(char* name, int max, int value, Callb
     if (index != -1) {
         Gadget_00449bb0* gadget = FindGadgetChecked_D(gadgets, name);
         gadget->max = max;
-        gadget->callback = callback;
+        gadget->sliderCallback = callback;
         gadget->value = value;
         SetSliderFromValue(gadget, gadget->value);
         gadget->game = g_game;
@@ -295,7 +295,7 @@ void OpenBattleRoom()
     if (!IsHostLocal()) {
         i = FindGadgetIndex(entries, "MAP", 1);
         if (i != -1) {
-            entries[i].field_1b = 2;
+            entries[i].attribs = 2;
             SetTranslatedTextByName(&g_game->gui, "MAP", "View Map", 0);
         }
     }
@@ -373,7 +373,7 @@ void OpenBattleRoom()
     ConfigureListBoxByName(&g_game->gui, "OUTPUT", g_game->chatter, 0, 0);
     {
         Gadget_00449bb0* output = FindGadgetChecked(entries, "OUTPUT");
-        output->field_1b |= 0x100;
+        output->attribs |= 0x100;
     }
     SetTranslatedTextByName(&g_game->gui, "METALTEXT", "0", 0);
     SetTranslatedTextByName(&g_game->gui, "ENERGYTEXT", "0", 0);

@@ -68,7 +68,7 @@ struct Gadget {                        // GUI entry, 0x15b bytes
     char unknown_12[0x17 - 0x12];
     short width;                       // +0x17
     short height;                      // +0x19
-    int attr;                          // +0x1b
+    int attribs;                       // +0x1b
     char unknown_1f[0xb6 - 0x1f];
     union {
         short count;                   // +0xb6 (entry 0 only)
@@ -85,12 +85,18 @@ struct Gadget {                        // GUI entry, 0x15b bytes
     char unknown_c0[0xd2 - 0xc0];
     void* records;                     // +0xd2
     char unknown_d6[0x136 - 0xd6];
-    short range;                       // +0x136
+    union {                            // +0x136
+        short range;
+        struct {
+            unsigned char stages;      // +0x136
+            unsigned char stageIndex;  // +0x137
+        };
+    };
     char unknown_138[0x13c - 0x138];
     int max;                           // +0x13c
     short knobPos;                     // +0x140
     short knobSize;                    // +0x142
-    void (__stdcall* handler)(Menu*, int); // +0x144
+    void (__stdcall* sliderCallback)(Menu*, int); // +0x144
     char unknown_148[0x14a - 0x148];
     void* sliderUser;                  // +0x14a
     char unknown_14e[0x15b - 0x14e];
@@ -533,7 +539,7 @@ void OpenShareDialog()
         e->knobSize = layer->entries[idx].height;
         e->range = layer->entries[idx].width - e->knobSize;
         e->max = (int)g_game->players[g_game->localPlayer].metal;
-        e->handler = UpdateMetalReadout;
+        e->sliderCallback = UpdateMetalReadout;
         e->knobPos = 0;
         SetSliderFromValue(e, 0);
         e->sliderUser = g_game;
@@ -544,7 +550,7 @@ void OpenShareDialog()
         e->knobSize = layer->entries[idx].height;
         e->range = layer->entries[idx].width - e->knobSize;
         e->max = (int)g_game->players[g_game->localPlayer].energy;
-        e->handler = UpdateEnergyReadout;
+        e->sliderCallback = UpdateEnergyReadout;
         e->knobPos = 0;
         SetSliderFromValue(e, 0);
         e->sliderUser = g_game;
@@ -873,28 +879,28 @@ void __stdcall OpenUnitInfoDialog(void)
 
     AddTextGadget(g_game->menu.layer, "TEXT", Translate("Cost"), 0x82, 0x20, -1, 2);
     n++;
-    entries[n].attr = 0x411;
+    entries[n].attribs = 0x411;
     AddTextGadget(g_game->menu.layer, "TEXT", Translate("Energy"), 0x8c, 0x2f, -1, 2);
     n++;
-    entries[n].attr = 0x411;
+    entries[n].attribs = 0x411;
     AddTextGadget(g_game->menu.layer, "TEXT", Translate("Metal"), 0x8c, 0x3e, -1, 2);
     n++;
-    entries[n].attr = 0x411;
+    entries[n].attribs = 0x411;
     AddTextGadget(g_game->menu.layer, "TEXT", Translate("Build Time"), 0x8c, 0x4d, -1, 2);
     n++;
-    entries[n].attr = 0x411;
+    entries[n].attribs = 0x411;
     AddTextGadget(g_game->menu.layer, "TEXT", Translate("Statistics"), 0x82, 0x5c, -1, 2);
     n++;
-    entries[n].attr = 0x411;
+    entries[n].attribs = 0x411;
     AddTextGadget(g_game->menu.layer, "TEXT", Translate("Max Velocity"), 0x8c, 0x6b, -1, 2);
     n++;
-    entries[n].attr = 0x411;
+    entries[n].attribs = 0x411;
     AddTextGadget(g_game->menu.layer, "TEXT", Translate("Acceleration"), 0x8c, 0x7a, -1, 2);
     n++;
-    entries[n].attr = 0x411;
+    entries[n].attribs = 0x411;
     AddTextGadget(g_game->menu.layer, "TEXT", Translate("Turn Rate"), 0x8c, 0x89, -1, 2);
     n++;
-    entries[n].attr = 0x411;
+    entries[n].attribs = 0x411;
 
     char* s = stats;
     if (*s != 0) {
@@ -902,7 +908,7 @@ void __stdcall OpenUnitInfoDialog(void)
         do {
             AddTextGadget(g_game->menu.layer, "TEXT", s, 0xf0, y, -1, 2);
             n++;
-            entries[n].attr = 0x411;
+            entries[n].attribs = 0x411;
             s += strlen(s) + 1;
             y += 0xf;
         } while (*s != 0);

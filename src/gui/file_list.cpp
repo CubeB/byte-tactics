@@ -44,15 +44,25 @@ struct BlinkWord {
 
 // A gadget entry, 0x15b bytes, shared by the requester's callers and its
 // click handler. The name is a plain string; value (0xb6) holds the
-// highlighted file name, field_ba the selection index.
+// highlighted file name, selected the selection index.
 struct Gadget {
     char unknown_0[0x13];
-    short field_13;                  // +0x13
-    short field_15;                  // +0x15
-    char unknown_17[0xb6 - 0x17];
+    short x;                         // +0x13
+    short y;                         // +0x15
+    short width;                     // +0x17
+    short height;                    // +0x19
+    int attribs;                     // +0x1b
+    char unknown_1f[0xb6 - 0x1f];
     char value[4];                   // +0xb6
-    short field_ba;                  // +0xba
-    char unknown_bc[0x15b - 0xbc];
+    short selected;                  // +0xba
+    char unknown_bc[0x136 - 0xbc];
+    unsigned char stages;            // +0x136
+    unsigned char stageIndex;        // +0x137
+    char unknown_138[0x140 - 0x138];
+    short knobPos;                   // +0x140
+    short knobSize;                  // +0x142
+    void* sliderCallback;            // +0x144 (a typed function pointer here takes symbol ids)
+    char unknown_148[0x15b - 0x148];
 };
 
 struct Obj18 {
@@ -351,7 +361,7 @@ void __stdcall FileRequesterHandler(Gui* gadget)
     if (IsGadgetNamed(entries, gadget->selected, "LOAD")
         || IsGadgetNamed(entries, gadget->selected, "SWIN")) {
         char* name = SkipTextLines(req->names,
-                                  FindGadgetChecked(entries, "SWIN")->field_ba);
+                                  FindGadgetChecked(entries, "SWIN")->selected);
         if (name[0] == '\\') {
             strcpy(req->selected, name);
             for (i = 0; i < 10; i++) {
@@ -457,10 +467,10 @@ FileRequester* Dialog::OpenFileRequester(Dialog* self, char* arg2, char* arg3, c
     obj->field_4 = (ReqSub*)FindGadgetChecked_D(entries, "SLID");
 
     short none = -1;
-    entries->field_13 = none;
-    entries->field_15 = none;
+    entries->x = none;
+    entries->y = none;
     strcpy(titl->value, arg4);
-    titl->field_13 = none;
+    titl->x = none;
 
     obj->names = (char*)GameAllocIgnoreTag("FILE NAMES", 0x17700);
     memset(obj->names, -1, 0x17700);

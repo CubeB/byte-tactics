@@ -78,7 +78,7 @@ struct Gadget_00492df0 {
 
 struct Entry_00493060 {                // 0x15b bytes
     char unknown_0[0x1b];
-    unsigned int flags;                // +0x1b
+    int attribs;                       // +0x1b
     char unknown_1f[0xce - 0x1f];
     void* handler;                     // +0xce
     char unknown_d2[0x15b - 0xd2];
@@ -707,7 +707,7 @@ void ShowSaveGameScreen()
         games->handler = SavedGameSelectHandler;
     }
     int index = FindGadgetIndex(layer->entries, "GAMENAME", 3);
-    layer->entries[index].flags |= 2;
+    layer->entries[index].attribs |= 2;
     g_savegameSideList = BuildSideList();
     ShowSavedGameInfo();
     BeginTextEdit(&g_game->menu_00493060, index);

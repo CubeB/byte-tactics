@@ -608,7 +608,7 @@ struct Obj_004ae170 {
     int thick;                         // +0x13c
     short knobpos;                     // +0x140
     short knobsize;                    // +0x142
-    int field_144;                     // +0x144
+    void* sliderCallback;              // +0x144 (a typed function pointer here takes symbol ids)
 };
 #pragma pack(pop)
 
@@ -661,7 +661,7 @@ void __stdcall ReadSliderFields(Obj_004ae170* obj, Source_004ae170* src)
     obj->thick = (short)src->tdf->GetFieldInt("thick", 0);
     obj->knobpos = src->tdf->GetFieldInt("knobpos", 0);
     obj->knobsize = src->tdf->GetFieldInt("knobsize", 0);
-    obj->field_144 = 0;
+    obj->sliderCallback = 0;
     src->tdf->GetFieldString(obj->text, "text", 0x80, DAT_005119b8);
     strcpy(obj->text, Translate(obj->text));
 }
@@ -1006,7 +1006,7 @@ struct Sub34_004aeac0 {
     int thick;                         // +0x13c
     short knobpos;                     // +0x140
     short knobsize;                    // +0x142
-    int field_144;                     // +0x144
+    void* sliderCallback;              // +0x144 (a typed function pointer here takes symbol ids)
     char pad1[0x15b - 0x148];
 };
 
@@ -1075,7 +1075,7 @@ int __stdcall ReadGuiFile(Elem_004aeac0* obj, char* name)
                 e->tail.s34.thick = (short)parser.current->GetFieldInt("thick", 0);
                 e->tail.s34.knobpos = (short)parser.current->GetFieldInt("knobpos", 0);
                 e->tail.s34.knobsize = (short)parser.current->GetFieldInt("knobsize", 0);
-                e->tail.s34.field_144 = 0;
+                e->tail.s34.sliderCallback = 0;
                 parser.current->GetFieldString(e->body.text, "text", 0x80, DAT_005119b8);
                 strcpy(e->body.text, Translate(e->body.text));
                 break;

@@ -17,7 +17,7 @@ struct Gadget_004a3ef0 {               // 0x15b bytes
     char unknown_02[0x17 - 0x02];
     short field_17;                    // +0x17
     short field_19;                    // +0x19
-    int field_1b;                      // +0x1b (read as a dword here)
+    int attribs;                       // +0x1b
     char unknown_1f[0x28 - 0x1f];
     char group;                        // +0x28
     char unknown_29[0xb6 - 0x29];
@@ -30,11 +30,12 @@ struct Gadget_004a3ef0 {               // 0x15b bytes
     int id;                            // +0xd6
     short field_da;                    // +0xda
     char unknown_dc[0x136 - 0xdc];
-    short field_136;                   // +0x136
+    short range;                       // +0x136
     char unknown_138[0x140 - 0x138];
     short field_140;                   // +0x140
-    short field_142;                   // +0x142
-    char unknown_144[0x15b - 0x144];
+    short knobSize;                    // +0x142
+    void* sliderCallback;              // +0x144 (a typed function pointer here takes symbol ids)
+    char unknown_148[0x15b - 0x148];
 };
 #pragma pack(pop)
 
@@ -109,7 +110,7 @@ void __stdcall DrawSlider(Dialog* param_1, int param_2)
     if (found != 0) {
         Gadget_004a3ef0* e = &entries[found];
         if (e->type == 2) {
-            if (e->field_1b & 0x10) {
+            if (e->attribs & 0x10) {
                 int i = 1;
                 int n = 0;
                 for (; i < entries->count + 1; i++) {
@@ -131,32 +132,32 @@ void __stdcall DrawSlider(Dialog* param_1, int param_2)
                 int step = numerator / denominator;
                 int last = e->field_c0;
                 int rows = (int)((float)step / last * (me->field_19 - 3));
-                me->field_142 = rows;
-                if (me->field_142 < 10) {
-                    me->field_142 = 10;
+                me->knobSize = rows;
+                if (me->knobSize < 10) {
+                    me->knobSize = 10;
                 }
                 if (last <= step) {
-                    me->field_136 = 0;
+                    me->range = 0;
                 } else {
-                    me->field_136 = me->field_19 - me->field_142 - 3;
+                    me->range = me->field_19 - me->knobSize - 3;
                 }
-            } else if (e->field_1b & 0x20) {
+            } else if (e->attribs & 0x20) {
                 lines.full = LineSize_004a3ef0(e);
                 int s = e->field_19 * me->field_19 / lines.full;
-                me->field_142 = s;
-                if (*(unsigned char*)((char*)me + 0x1b) & 1) {
-                    me->field_136 = me->field_17 - s;
+                me->knobSize = s;
+                if (me->attribs & 1) {
+                    me->range = me->field_17 - s;
                 } else {
-                    me->field_136 = me->field_19 - s;
+                    me->range = me->field_19 - s;
                 }
-            } else if (e->field_1b & 0x80) {
+            } else if (e->attribs & 0x80) {
                 if (e->field_da != 0 && e->field_c0 != 0) {
                     int s = e->field_19 / e->field_da * me->field_19 / e->field_c0;
-                    me->field_142 = s;
-                    if (*(unsigned char*)((char*)me + 0x1b) & 1) {
-                        me->field_136 = me->field_17 - s;
+                    me->knobSize = s;
+                    if (me->attribs & 1) {
+                        me->range = me->field_17 - s;
                     } else {
-                        me->field_136 = me->field_19 - s;
+                        me->range = me->field_19 - s;
                     }
                 }
             }

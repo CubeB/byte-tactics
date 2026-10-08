@@ -23,7 +23,9 @@ struct Backdrop {
 };
 
 struct Gadget {                        // GUI entry, 0x15b bytes
-    char unknown_0[0x33];
+    char unknown_0[0x1b];
+    int attribs;                       // +0x1b
+    char unknown_1f[0x33 - 0x1f];
     char text[0xb6 - 0x33];            // +0x33
     short count;                       // +0xb6
     char unknown_b8[2];
@@ -35,9 +37,17 @@ struct Gadget {                        // GUI entry, 0x15b bytes
     char unknown_c8[6];
     void (__stdcall* onSelect)(Menu*, int);   // +0xce
     void* records;                     // +0xd2
-    char unknown_d6[0x137 - 0xd6];
-    unsigned char stageIndex;          // +0x137
-    char unknown_138[0x15b - 0x138];
+    char unknown_d6[0x136 - 0xd6];
+    union {                            // +0x136
+        short range;
+        struct {
+            unsigned char stages;      // +0x136
+            unsigned char stageIndex;  // +0x137
+        };
+    };
+    char unknown_138[0x144 - 0x138];
+    void (__stdcall* sliderCallback)(Menu*, int); // +0x144
+    char unknown_148[0x15b - 0x148];
 };
 
 struct Menu {
@@ -327,7 +337,7 @@ struct Header {
     short y;                           // +0x15
     short w;                           // +0x17
     short h;                           // +0x19
-    int attr;                          // +0x1b
+    int attribs;                       // +0x1b
     int color;                         // +0x1f
     int color2;                        // +0x23
     char unknown_27[2];                // +0x27
@@ -339,8 +349,8 @@ struct Rec1 {                          // 0x13e bytes
     char unknown_2a[0x2f - 0x2a];
     GafEntry* entry;                   // +0x2f
     char text[0x103];                  // +0x33
-    unsigned char f136;                // +0x136
-    char pad_137;
+    unsigned char stages;              // +0x136
+    unsigned char stageIndex;          // +0x137
     short f138;                        // +0x138
     char pad_13a;
     unsigned char frame;               // +0x13b
@@ -404,7 +414,7 @@ void BuildSkirmishPlayerRows(void)
         rec1.h.x = 0x2d;
         rec1.h.w = 0x70;
         rec1.h.h = 0x14;
-        rec1.h.attr = 2;
+        rec1.h.attribs = 2;
         rec1.text[0] = 0;
         BindGadgetAnimSequence(&rec1, "skirmname");
         AddButtonGadget(&g_game->menu, &rec1);
@@ -414,7 +424,7 @@ void BuildSkirmishPlayerRows(void)
         rec1.h.w = 0x2d;
         BindGadgetAnimSequence(&rec1, "SIDEx");
         rec1.frame = 0;
-        rec1.f136 = 2;
+        rec1.stages = 2;
         AddButtonGadget(&g_game->menu, &rec1);
 
         wsprintfA(rec2.h.name, "Color%d", i);
@@ -435,8 +445,8 @@ void BuildSkirmishPlayerRows(void)
         rec1.h.x = 0x11e;
         rec1.h.w = 0x2d;
         rec1.h.h = 0x14;
-        rec1.h.attr |= 0x10000;
-        rec1.f136 = 0;
+        rec1.h.attribs |= 0x10000;
+        rec1.stages = 0;
         rec1.f138 = 0;
         // Explicit store, not redundant: the extra use of the zero keeps it in EBX.
         rec1.entry = 0;

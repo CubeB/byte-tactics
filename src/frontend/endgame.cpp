@@ -69,6 +69,8 @@ struct Data {
     char unknown_18[8];
 };
 
+struct Menu;
+
 // One 0x15b-byte GUI entry. The views disagree about the bytes at +0xba:
 // 41ea30's and 41f7f0's Amount against 41ec50's short field_ba and 41e420's
 // image pointer at +0xbe; the union keeps both readings.
@@ -80,7 +82,7 @@ struct Gadget {
     short y;                           // +0x15
     short width;                       // +0x17
     short height;                      // +0x19
-    int attr;                          // +0x1b
+    int attribs;                       // +0x1b
     int color;                         // +0x1f
     int color2;                        // +0x23
     char unknown_27[2];
@@ -99,10 +101,17 @@ struct Gadget {
         };
     };
     char unknown_c8[0x136 - 0xc8];
-    short field_136;                   // +0x136
+    union {                            // +0x136
+        short range;
+        struct {
+            unsigned char stages;      // +0x136
+            unsigned char stageIndex;  // +0x137
+        };
+    };
     char unknown_138[0x142 - 0x138];
-    short field_142;                   // +0x142
-    char unknown_144[0x15b - 0x144];
+    short knobSize;                    // +0x142
+    void (__stdcall* sliderCallback)(Menu*, int); // +0x144
+    char unknown_148[0x15b - 0x148];
 };
 
 struct Layer;
@@ -175,7 +184,7 @@ struct Header {
     short y;                           // +0x15
     short width;                       // +0x17
     short height;                      // +0x19
-    int attr;                          // +0x1b
+    int attribs;                       // +0x1b
     int color;                         // +0x1f
     int color2;                        // +0x23
     char unknown_27[2];
@@ -383,7 +392,7 @@ int __stdcall AddHotspotGadget(Menu* menu, Button* record);
 int __stdcall AddBarGadget(Menu* menu, Bar* record);
 int GetFontLineHeight();
 int __stdcall AddTextGadget(Layer* holder, char* type, char* text, int x, int y,
-                           int width, int attr);
+                           int width, int attribs);
 Layer* __stdcall LoadGuiLayer(Menu* menu, const char* name, int flags);
 void __stdcall SelectGadgetByName(Menu* menu, const char* name);
 char* __stdcall BuildScrollItems1(char* names, char* flags, int count);
@@ -621,7 +630,7 @@ void FillEndGameStatistics(void)
     bar.field_c2 = 1;
     memset(&button, 0, sizeof(button));
     button.h.flag = 1;
-    button.h.attr = 0x400;
+    button.h.attribs = 0x400;
     button.flags |= 1;
     g_game->bar = 0;
     for (int i = 0; i < 10; i++) {
@@ -645,7 +654,7 @@ void FillEndGameStatistics(void)
             int h = GetFontLineHeight();
             AddTextGadget(g_game->menu.layer, "TEXT", g_game->slots[i].name, 0x10,
                          (0x14 - h) / 2 + bar.h.y, -1, 2);
-            entries[entries->count].attr = 2;
+            entries[entries->count].attribs = 2;
             entries[entries->count].width = 0x5a;
             menu->font = menu->font_8;
             STAT_BAR(0, 0x70, "Kills%d")
@@ -916,7 +925,7 @@ void __stdcall OpenEndMissionScreen()
         }
         ConfigureListBoxByName(&g_game->menu, "Missions", data->items, count, 0);
         Gadget* knob = FindGadgetChecked_D(entries, "KNOB");
-        knob->field_136 = knob->height - knob->field_142 - 3;
+        knob->range = knob->height - knob->knobSize - 3;
         SetListBoxScrollByName(&g_game->menu, "Missions", g_game->mission);
         SetListBoxScrollByName(&g_game->menu, "Missions", g_game->mission + (g_game->won != 0));
         ApplyDifficultyButtons();

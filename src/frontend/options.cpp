@@ -38,6 +38,7 @@ struct Gui_0045e100;
 #pragma pack(push, 1)
 
 struct ModeList_0045b800;
+struct Menu_0045b800;
 
 // The 0x15b-byte menu control record: entry 0 holds the count at +0xb6 and
 // the gadget's own fields from +0xbc on, the other entries hold NUL
@@ -51,7 +52,8 @@ struct Entry_0045b800 {
     short y;                           // +0x15
     short width;                       // +0x17
     short height;                      // +0x19
-    char unknown_1b[0x29 - 0x1b];
+    int attribs;                       // +0x1b
+    char unknown_1f[0x29 - 0x1f];
     unsigned char field_29;            // +0x29
     char unknown_2a[0xb6 - 0x2a];
     union {
@@ -61,16 +63,18 @@ struct Entry_0045b800 {
             int field_c4;              // +0xc4
             char unknown_c8[0x136 - 0xc8];
             union {
-                short steps;           // +0x136
+                short range;           // +0x136
                 struct {
-                    unsigned char unknown_136;
-                    unsigned char value; // +0x137
+                    unsigned char stages;     // +0x136
+                    unsigned char stageIndex; // +0x137
                 };
             };
             char unknown_138[0x13c - 0x138];
             int max;                   // +0x13c
             short pos;                 // +0x140
-            char unknown_142[0x14a - 0x142];
+            short knobSize;            // +0x142
+            void (__stdcall* sliderCallback)(Menu_0045b800* obj, int value); // +0x144
+            char unknown_148[0x14a - 0x148];
             ModeList_0045b800* list;   // +0x14a
             char unknown_14e[0x15b - 0x14e];
         };
@@ -402,8 +406,16 @@ struct Settings_45cde0 {
 // One gadget inside a .GUI file, 0x15b bytes.
 struct Entry_0045d280 {
     char state;                        // +0x00
-    char unknown_1[0x137 - 1];
-    unsigned char value;               // +0x137
+    char unknown_1[0x1b - 1];
+    int attribs;                       // +0x1b
+    char unknown_1f[0x136 - 0x1f];
+    union {                            // +0x136
+        short range;
+        struct {
+            unsigned char stages;      // +0x136
+            unsigned char stageIndex;  // +0x137
+        };
+    };
     char unknown_138[0x15b - 0x138];
 };
 
@@ -427,17 +439,18 @@ struct Object_0045d280 {
 
 struct Entry_0045d7c0 {
     char unknown_0[0x136];
-    short steps;                       // +0x136
+    short range;                       // +0x136
     char unknown_138[0x13c - 0x138];
     int max;                           // +0x13c
     short pos;                         // +0x140
-    char unknown_142[2];
-    void (__stdcall* callback)(void* obj, int value); // +0x144
+    short knobSize;                    // +0x142
+    void (__stdcall* sliderCallback)(Menu_0045b800* obj, int value); // +0x144
 };
 
 struct Gadget_0045d7c0 {
-    char unknown_0[0x137];
-    unsigned char value;               // +0x137
+    char unknown_0[0x136];
+    unsigned char stages;              // +0x136
+    unsigned char stageIndex;          // +0x137
     char unknown_138[0x15b - 0x138];
 };
 
@@ -462,8 +475,15 @@ struct Entry_0045da90 {
     short y;                           // +0x15
     short width;                       // +0x17
     short height;                      // +0x19
-    char unknown_1b[0x137 - 0x1b];
-    unsigned char value;               // +0x137
+    int attribs;                       // +0x1b
+    char unknown_1f[0x136 - 0x1f];
+    union {                            // +0x136
+        short range;
+        struct {
+            unsigned char stages;      // +0x136
+            unsigned char stageIndex;  // +0x137
+        };
+    };
     char unknown_138[0x15b - 0x138];
 };
 
@@ -486,15 +506,17 @@ struct Object_0045da90 {
 
 struct Entry_0045de30 {                // 0x15b bytes
     unsigned char type;                // +0x00
-    char unknown_1[0xb6 - 1];
+    char unknown_1[0x1b - 1];
+    int attribs;                       // +0x1b
+    char unknown_1f[0xb6 - 0x1f];
     short count;                       // +0xb6 (entry 0 only)
     char unknown_b8[0x136 - 0xb8];
-    short steps;                       // +0x136
+    short range;                       // +0x136
     char unknown_138[0x13c - 0x138];
     int max;                           // +0x13c
     short pos;                         // +0x140
-    char unknown_142[2];
-    void (__stdcall *fn)(void* obj, int arg);   // +0x144
+    short knobSize;                    // +0x142
+    void (__stdcall* sliderCallback)(Menu_0045b800* obj, int arg); // +0x144
     char unknown_148[0x15b - 0x148];
 };
 
@@ -521,15 +543,17 @@ struct Entry_0045e5e0 {                // 0x15b bytes
     unsigned char type;                // +0x00
     char unknown_1;
     char name[0x10];                   // +0x02
-    char unknown_12[0xb6 - 0x12];
+    char unknown_12[0x1b - 0x12];
+    int attribs;                       // +0x1b
+    char unknown_1f[0xb6 - 0x1f];
     short count;                       // +0xb6 (entry 0 only)
     char unknown_b8[0x136 - 0xb8];
-    short steps;                       // +0x136
+    short range;                       // +0x136
     char unknown_138[0x13c - 0x138];
     int max;                           // +0x13c
     short pos;                         // +0x140
-    char unknown_142[2];
-    void (__stdcall* fn)(void* obj, int value);  // +0x144
+    short knobSize;                    // +0x142
+    void (__stdcall* sliderCallback)(Menu_0045b800* obj, int value); // +0x144
     char unknown_148[2];
     void* data;                        // +0x14a
     char padding_14e[0x15b - 0x14e];   // stride is 0x15b
@@ -562,15 +586,17 @@ struct Menu_0045e5e0 {
 
 struct Entry_0045ed50 {                // 0x15b bytes
     unsigned char type;                // +0x00
-    char unknown_1[0xb6 - 1];
+    char unknown_1[0x1b - 1];
+    int attribs;                       // +0x1b
+    char unknown_1f[0xb6 - 0x1f];
     short count;                       // +0xb6 (entry 0 only)
     char unknown_b8[0x136 - 0xb8];
-    short steps;                       // +0x136
+    short range;                       // +0x136
     char unknown_138[0x13c - 0x138];
     int max;                           // +0x13c
     short pos;                         // +0x140
-    char unknown_142[2];
-    void (__stdcall* fn)(void* obj, int arg);   // +0x144
+    short knobSize;                    // +0x142
+    void (__stdcall* sliderCallback)(Menu_0045b800* obj, int arg); // +0x144
     char unknown_148[0x15b - 0x148];
 };
 
@@ -582,7 +608,7 @@ struct Object_0045ed50 {
 
 struct Entry_0045f1d0 {                // 0x15b bytes
     char unknown_0[0x1b];
-    int flags;                         // +0x1b
+    int attribs;                       // +0x1b
     char unknown_1f[0xb6 - 0x1f];
     union {
         short count;                   // +0xb6 (entry 0 holds the entry count)
@@ -609,13 +635,13 @@ struct Sub_0045f800 {
 
 struct Entry_0045f800 {
     char unknown_0[0x1b];
-    int flags;                         // +0x1b
+    int attribs;                       // +0x1b
     char unknown_1f[0x15a - 0x1f];
 };
 
 struct Entry_0045f8c0 {                // 0x15b bytes
     char unknown_0[0x1b];
-    int field_1b;                      // +0x1b
+    int attribs;                       // +0x1b
     char unknown_1f[0x15b - 0x1f];
 };
 
@@ -650,7 +676,8 @@ struct Layer_00460160 {
     short field_15;                    // +0x15
     short field_17;                    // +0x17
     short field_19;                    // +0x19
-    char unknown_1b[0xbc - 0x1b];
+    int attribs;                       // +0x1b
+    char unknown_1f[0xbc - 0x1f];
     Surface* field_bc;                 // +0xbc
 };
 
@@ -667,7 +694,8 @@ struct Gadget_004604a0 {
     char unknown_0[0x17];
     short width;                       // +0x17
     short height;                      // +0x19
-    char unknown_1b[0xb6 - 0x1b];
+    int attribs;                       // +0x1b
+    char unknown_1f[0xb6 - 0x1f];
     short count;                       // +0xb6
     char unknown_b8[0xba - 0xb8];
     short selected;                    // +0xba
@@ -678,12 +706,19 @@ struct Gadget_004604a0 {
     char unknown_c8[0xd2 - 0xc8];
     void* records;                     // +0xd2
     char unknown_d6[0x136 - 0xd6];
-    short range;                       // +0x136
+    union {                            // +0x136
+        short range;
+        struct {
+            unsigned char stages;      // +0x136
+            unsigned char stageIndex;  // +0x137
+        };
+    };
     char unknown_138[0x13c - 0x138];
     int max;                           // +0x13c
     short knobPos;                     // +0x140
     short knobSize;                    // +0x142
-    char unknown_144[0x14a - 0x144];
+    void (__stdcall* sliderCallback)(Menu_0045b800* obj, int arg); // +0x144
+    char unknown_148[0x14a - 0x148];
     void* sliderUser;                  // +0x14a
     char unknown_14e[0x15b - 0x14e];
 };
@@ -704,7 +739,7 @@ struct Sub_004609b0 {
 // entry as gadgets + i + i * 0x15a, that is, one gadget stride too far.
 struct Entry_004609b0 {
     char unknown_0[0x1b];
-    int flags;                         // +0x1b
+    int attribs;                       // +0x1b
     char unknown_1f[0xb6 - 0x1f];
     short count;                       // +0xb6
     char unknown_b8[0x15a - 0xb8];
@@ -1175,17 +1210,17 @@ void __stdcall FillHelpPage(Sub_0045fb30* sub, int a, int b);
 void __stdcall FillHelpPage(Gadget_0045fac0* gadget, int a, int b);
 int __stdcall FillHelpPage(Sub_004609b0* sub, int a, int b);
 void __stdcall HandleVisualOptionsClick(void* layer);
-void __stdcall HandleVideoModeSlider(void* obj, int value);
-void __stdcall HandleGammaSlider(void* obj, int value);
+void __stdcall HandleVideoModeSlider(Menu_0045b800* obj, int unused);
+void __stdcall HandleGammaSlider(Menu_0045b800* obj, int unused);
 void __stdcall HandleMusicOptionsClick(int value);
-void __stdcall HandleMusicVolumeSlider(void* obj, int value);
-void __stdcall HandleEffectsVolumeSlider(void* obj, int arg);
+void __stdcall HandleMusicVolumeSlider(Menu_0045b800* obj, int unused);
+void __stdcall HandleEffectsVolumeSlider(Menu_0045b800* obj, int unused);
 void __stdcall HandleSoundOptionsClick(void* obj, int arg);
 void __stdcall HandleSpeedOptionsClick(void* obj, int arg);
-void __stdcall HandleGameSpeedSlider(void* obj, int arg);
-void __stdcall HandleScreenSlider(void* obj, int arg);
-void __stdcall HandleMaxLinesSlider(void* obj, int arg);
-void __stdcall HandleTextScrollSlider(void* obj, int arg);
+void __stdcall HandleGameSpeedSlider(Menu_0045b800* obj, int unused);
+void __stdcall HandleScreenSlider(Menu_0045b800* obj, int unused);
+void __stdcall HandleMaxLinesSlider(Menu_0045b800* obj, int unused);
+void __stdcall HandleTextScrollSlider(Menu_0045b800* obj, int unused);
 void __stdcall HandleGameSettingsDialogClick(void*);
 void __stdcall HandleRestartDialogClick(void* dialog);
 void __stdcall HandleSurrenderChoice(void* gadget);
@@ -1239,9 +1274,9 @@ void SaveSettings();
 
 static inline int SliderValue(Entry_0045b800* e)
 {
-    if (e->steps <= 1)
+    if (e->range <= 1)
         return 0;
-    return (int)((float)e->pos / (e->steps - 1) * e->max);
+    return (int)((float)e->pos / (e->range - 1) * e->max);
 }
 
 static inline void ApplySound()
@@ -1306,7 +1341,7 @@ void __stdcall SetSliderFromValue(Entry_0045b800* param_1, int value)
     int max = param_1->max;
     if (value > max)
         value = max;
-    float f = (float)value / (float)max * (param_1->steps - 1);
+    float f = (float)value / (float)max * (param_1->range - 1);
     if (f - (int)f != 0.0f)
         f += 1.0;
     param_1->pos = (short)f;
@@ -1315,9 +1350,9 @@ void __stdcall SetSliderFromValue(Entry_0045b800* param_1, int value)
 // FUNCTION: 0x45ba20
 int __stdcall ReadSliderValue(Entry_0045b800* param_1)
 {
-    if (param_1->steps <= 1)
+    if (param_1->range <= 1)
         return 0;
-    return (int)((float)param_1->pos / (param_1->steps - 1) * param_1->max);
+    return (int)((float)param_1->pos / (param_1->range - 1) * param_1->max);
 }
 
 // FUNCTION: 0x45ba60
@@ -1367,7 +1402,7 @@ void __stdcall UpdateVideoModeLabel(Menu_0045b800* param_1, Entry_0045b800* para
                 int n = i;
                 if (n > max)
                     n = max;
-                float f = (float)n / (float)max * (param_2->steps - 1);
+                float f = (float)n / (float)max * (param_2->range - 1);
                 if (f - (int)f != 0.0f)
                     f += 1.0;
                 param_2->pos = (short)f;
@@ -1596,7 +1631,7 @@ void ApplyTrackType()
     Entry_0045b800* gadgets = g_game->menu.holder->entries;
     if (g_game->cdMode == 4) {
         int index = FindGadgetIndex(gadgets, "TRACKTYPE", 1);
-        g_game->sound->SetCategoryOfTrack(g_musicUiSelectedTrack, gadgets[index].value);
+        g_game->sound->SetCategoryOfTrack(g_musicUiSelectedTrack, gadgets[index].stageIndex);
     }
 }
 
@@ -1927,7 +1962,7 @@ void __stdcall HandleMusicOptionsClick(Object_0045d280* obj)
         PlaySoundByName(g_optionsSoundName, 0);
         // Index with obj->field_60 itself, not the saved copy.
         int i = obj->field_60;
-        g_game->sound->SetCategoryOfTrack(g_musicUiSelectedTrack, entries[i].value);
+        g_game->sound->SetCategoryOfTrack(g_musicUiSelectedTrack, entries[i].stageIndex);
         UpdateTrackGadgets();
         ClearSelectedGadget(obj);
         return;
@@ -2010,13 +2045,13 @@ void OpenMusicOptions()
     if (FindGadgetIndex(obj->gadgets, "MUSICVOL", 0xe) != -1) {
         Entry_0045d7c0* e = FindGadgetChecked_D(obj->gadgets, "MUSICVOL");
         e->max = 0x40;
-        e->callback = HandleMusicVolumeSlider;
+        e->sliderCallback = HandleMusicVolumeSlider;
         e->pos = g_game->volume2Word;
         int value = e->pos;
         if (value > 0x40) {
             value = 0x40;
         }
-        float f = (float)value * (float)(e->steps - 1) * 0.015625f;
+        float f = (float)value * (float)(e->range - 1) * 0.015625f;
         if (f - (int)f != 0.0f) {
             f += 1.0;
         }
@@ -2030,7 +2065,7 @@ void OpenMusicOptions()
     Gadget_0045d7c0* gadgets = ((Holder_0045d7c0*)g_game->gui.holder)->gadgets;
     if (g_game->cdMode == 4) {
         int index = FindGadgetIndex(gadgets, "TRACKTYPE", 1);
-        g_game->sound->SetCategoryOfTrack(g_musicUiSelectedTrack, gadgets[index].value);
+        g_game->sound->SetCategoryOfTrack(g_musicUiSelectedTrack, gadgets[index].stageIndex);
     }
     MarkChanged(&g_game->gui);
     SetKeyboardInput(&g_game->gui, 1);
@@ -2060,8 +2095,8 @@ void __stdcall HandleSoundOptionsClick(Object_0045da90* obj)
     int mode = obj->field_60;
     if (IsCurrentGadgetNamed(obj, g_speechGadgetName)) {
         PlaySoundByName(g_optionsSoundName, 0);
-        g_game->soundFlags.bits.speech = entries[obj->field_60].value != 0;
-        g_game->unitChat = entries[obj->field_60].value * 5;
+        g_game->soundFlags.bits.speech = entries[obj->field_60].stageIndex != 0;
+        g_game->unitChat = entries[obj->field_60].stageIndex * 5;
         ClearSelectedGadget(obj);
     } else if (IsCurrentGadgetNamed(obj, g_modeGadgetName)) {
         int v = GetButtonStageByName(obj, g_modeGadgetName);
@@ -2145,13 +2180,13 @@ void OpenSoundOptions()
     if (found != -1) {
         Entry_0045de30* e = FindGadgetChecked_D(entries, "FXVOL");
         e->max = 0x40;
-        e->fn = HandleEffectsVolumeSlider;
+        e->sliderCallback = HandleEffectsVolumeSlider;
         e->pos = g_game->volume1Word;
         int value = e->pos;
         if (value > 0x40) {
             value = 0x40;
         }
-        float f = (float)value * (float)(e->steps - 1) * 0.015625f;
+        float f = (float)value * (float)(e->range - 1) * 0.015625f;
         if (f - (int)f != 0.0f) {
             f += 1.0;
         }
@@ -2159,7 +2194,7 @@ void OpenSoundOptions()
     }
     for (int i = 1; i <= obj->entries->count; i++) {
         if (obj->entries[i].type == 4)
-            obj->entries[i].fn(&g_game->gui, 0);
+            obj->entries[i].sliderCallback((Menu_0045b800*)&g_game->gui, 0);
     }
     SetButtonStageByName(&g_game->gui, "SPEECH", g_game->soundFlags.bits.speech ? g_game->unitChat / 5 : 0);
     SetButtonStageByName(&g_game->gui, "MODE", g_game->soundFlags.word & 7);
@@ -2335,7 +2370,7 @@ void __stdcall OpenVisualOptions(int param_1)
             if (FindGadgetIndex(layer->entries, "VIDSLDR", 0xe) != -1) {
                 Entry_0045e5e0* e = FindGadgetChecked_D(layer->entries, "VIDSLDR");
                 e->max = list->count - 1;
-                e->fn = HandleVideoModeSlider;
+                e->sliderCallback = HandleVideoModeSlider;
                 e->data = list;
                 menu = (Menu_0045e5e0*)&g_game->gui;
                 for (int j = 0; j < list->count; j++) {
@@ -2347,7 +2382,7 @@ void __stdcall OpenVisualOptions(int param_1)
                         int value = j;
                         if (value > max)
                             value = max;
-                        float f = (float)value / (float)max * (float)(e->steps - 1);
+                        float f = (float)value / (float)max * (float)(e->range - 1);
                         if (f - (int)f != 0.0f)
                             f += 1.0;
                         e->pos = (short)f;
@@ -2395,11 +2430,11 @@ void __stdcall OpenVisualOptions(int param_1)
         if (found != -1) {
             Entry_0045e5e0* e = FindGadgetChecked_D(layer->entries, "GAMMA");
             e->max = 0x14;
-            e->fn = HandleGammaSlider;
+            e->sliderCallback = HandleGammaSlider;
             int value = g_game->brightness;
             if (value > 0x14)
                 value = 0x14;
-            float f = (float)value * (float)(e->steps - 1) * 0.05f;
+            float f = (float)value * (float)(e->range - 1) * 0.05f;
             if (f - (int)f != 0.0f)
                 f += 1.0;
             e->pos = (short)f;
@@ -2493,12 +2528,12 @@ void OpenSpeedOptions()
     if (found != -1) {
         Entry_0045ed50* e = FindGadgetChecked_D(obj->entries, "GAME");
         e->max = 0x15;
-        e->fn = HandleGameSpeedSlider;
+        e->sliderCallback = HandleGameSpeedSlider;
         int value = g_game->gameSpeed;
         if (value > 0x15) {
             value = 0x15;
         }
-        float f = (float)value * (float)(e->steps - 1) * 0.0476190485060215f;
+        float f = (float)value * (float)(e->range - 1) * 0.0476190485060215f;
         if (f - (int)f != 0.0f) {
             f += 1.0;
         }
@@ -2511,12 +2546,12 @@ void OpenSpeedOptions()
         if (value > 0x41) {
             value = 0x41;
         }
-        float f = (float)value * (float)(e->steps - 1) * 0.015384615398943424f;
+        float f = (float)value * (float)(e->range - 1) * 0.015384615398943424f;
         if (f - (int)f != 0.0f) {
             f += 1.0;
         }
         e->pos = (short)f;
-        e->fn = HandleScreenSlider;
+        e->sliderCallback = HandleScreenSlider;
     }
     SetButtonStageByName(&g_game->gui, "UNITCHAT", g_game->unitChatText / 5);
     SetButtonStageByName(&g_game->gui, "LEFTCLICK", g_game->interfaceType);
@@ -2530,12 +2565,12 @@ void OpenSpeedOptions()
         if (value > 0x1e) {
             value = 0x1e;
         }
-        float f = (float)value * (float)(e->steps - 1) * 0.03333333507180214f;
+        float f = (float)value * (float)(e->range - 1) * 0.03333333507180214f;
         if (f - (int)f != 0.0f) {
             f += 1.0;
         }
         e->pos = (short)f;
-        e->fn = HandleMaxLinesSlider;
+        e->sliderCallback = HandleMaxLinesSlider;
     }
     if (FindGadgetIndex(obj->entries, "TXTSCROL", 0xe) != -1) {
         Entry_0045ed50* e = FindGadgetChecked_D(obj->entries, "TXTSCROL");
@@ -2544,16 +2579,16 @@ void OpenSpeedOptions()
         if (value > 0x14) {
             value = 0x14;
         }
-        float f = (float)value * (float)(e->steps - 1) * 0.05000000074505806f;
+        float f = (float)value * (float)(e->range - 1) * 0.05000000074505806f;
         if (f - (int)f != 0.0f) {
             f += 1.0;
         }
         e->pos = (short)f;
-        e->fn = HandleTextScrollSlider;
+        e->sliderCallback = HandleTextScrollSlider;
     }
     for (int i = 1; i <= obj->entries->count; i++) {
         if (obj->entries[i].type == 4)
-            obj->entries[i].fn(&g_game->gui, 0);
+            obj->entries[i].sliderCallback((Menu_0045b800*)&g_game->gui, 0);
     }
     SetKeyboardInput(&g_game->gui, 1);
     OrLabelAttribs();
@@ -2653,7 +2688,7 @@ void ShowGameSettingsDialog()
     AddTextGadget(layer, "TEXT", _itoa(g_game->maxUnits, num, 10), 0x8c, y, 0x78, 2);
     int i;
     for (i = count + 1; i <= layer->entries->u.count; i++)
-        entries[i].flags = 1;
+        entries[i].attribs = 1;
     SetKeyboardInput((Layer_0045f1d0*)&g_game->gui, 1);
     RenderLayer((Layer_0045f1d0*)&g_game->gui, 0x40);
 }
@@ -2689,9 +2724,9 @@ void OpenBriefingDialog()
     // Suspected original bug: the entry is reached as gadgets + i + i * 0x15a
     // instead of gadgets + i * 0x15a, so this clears the flag of a different
     // gadget (or walks off the array) than the one just looked up.
-    ((Entry_0045f800*)((char*)gadgets + i))[i].flags &= ~0x10;
+    ((Entry_0045f800*)((char*)gadgets + i))[i].attribs &= ~0x10;
     i = FindGadgetIndex(gadgets, "TextRegion", 0xe);
-    ((Entry_0045f800*)((char*)gadgets + i))[i].flags &= ~0x10;
+    ((Entry_0045f800*)((char*)gadgets + i))[i].attribs &= ~0x10;
     LoadPictureCached("igmbrief", 0, 0, 0);
     AllocBlinkWords((Sub_0045f800*)&g_game->gui, 0xf);
     InitBriefingText();
@@ -2712,9 +2747,9 @@ static inline void AddLine(Page_0045f8c0* page, Layer_0045f8c0* layer, char* val
         p[-1] = 0;
     }
     AddTextGadget(layer, "TEXT", Translate(SkipTextLines(value, 0)), 0x28, y, 0x4e, 2);
-    ((Entry_0045f8c0*)layer->entries)[((Table_0045f8c0*)layer->entries)->count].field_1b = 1;
+    ((Entry_0045f8c0*)layer->entries)[((Table_0045f8c0*)layer->entries)->count].attribs = 1;
     AddTextGadget(layer, "TEXT", Translate(SkipTextLines(value, 1)), 0x7d, y, 0x12c, 2);
-    ((Entry_0045f8c0*)layer->entries)[((Table_0045f8c0*)layer->entries)->count].field_1b = 1;
+    ((Entry_0045f8c0*)layer->entries)[((Table_0045f8c0*)layer->entries)->count].attribs = 1;
 }
 
 // FUNCTION: 0x45f8c0
@@ -3242,9 +3277,9 @@ void __stdcall HandleInGameOptionsClick(Gadget_004609b0* gadget)
             // The entry is reached as gadgets + i + i * 0x15a, not gadgets +
             // i * 0x15a, so this clears the flag of a gadget one stride past
             // the one just looked up.
-            ((Entry_004609b0*)((char*)gadgets + i))[i].flags &= ~0x10;
+            ((Entry_004609b0*)((char*)gadgets + i))[i].attribs &= ~0x10;
             i = FindGadgetIndex(gadgets, "TextRegion", 0xe);
-            ((Entry_004609b0*)((char*)gadgets + i))[i].flags &= ~0x10;
+            ((Entry_004609b0*)((char*)gadgets + i))[i].attribs &= ~0x10;
             LoadPictureCached("igmbrief", 0, 0, 0);
             AllocBlinkWords((Sub_004609b0*)&g_game->gui, 0xf);
             InitBriefingText();

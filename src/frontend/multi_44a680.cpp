@@ -43,7 +43,8 @@ struct Player_0044a680 {                // 0x14b bytes
 };
 
 struct Gadget_0044a680 {                // 0x15b bytes
-    char unknown_0[0x1f];
+    char unknown_0[0x1b];
+    int attribs;                        // +0x1b
     unsigned int colour;                // +0x1f
     char unknown_23[0xbe - 0x23];
     unsigned short* frames;             // +0xbe, the frame count first

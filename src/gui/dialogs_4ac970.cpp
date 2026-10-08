@@ -9,7 +9,8 @@ struct Gadget_004ac970 {               // 0x15b bytes
     short y;                           // +0x15
     short width;                       // +0x17
     short height;                      // +0x19
-    char unknown_1b[0xb6 - 0x1b];
+    int attribs;                       // +0x1b
+    char unknown_1f[0xb6 - 0x1f];
     short count;                       // +0xb6
     char unknown_b8[0xba - 0xb8];
     short selected;                    // +0xba

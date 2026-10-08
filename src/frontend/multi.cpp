@@ -56,7 +56,7 @@ struct Entry_00440d70 {                // 0x15b bytes
         short field_19;
         short height;
     };
-    int field_1b;                      // +0x1b
+    int attribs;                       // +0x1b
     int field_1f;                      // +0x1f
     int colour;                        // +0x23
     char unknown_27[0x29 - 0x27];      // +0x27
@@ -157,10 +157,7 @@ struct Entry_00440d70 {                // 0x15b bytes
         short value;
     };
     short unknown_142;                 // +0x142
-    union {                            // +0x144
-        void (__stdcall* callback)(Gadget_00440d70* menu, int index);
-        void (__stdcall* unitCount)(void* gadget, int param_2);
-    };
+    void (__stdcall* sliderCallback)(Gadget_00440d70* menu, int index); // +0x144
     char unknown_148[2];               // +0x148
     union {                            // +0x14a
         void* game;
@@ -713,7 +710,7 @@ struct Head_00444930 {
     short field_15;                        // +0x15
     char unknown_17[2];                    // +0x17
     short field_19;                        // +0x19
-    int flags;                             // +0x1b
+    int attribs;                           // +0x1b
     char unknown_1f[0x29 - 0x1f];          // +0x1f
     unsigned char field_29;                // +0x29
     char unknown_2a[0xb6 - 0x2a];          // +0x2a
@@ -2453,7 +2450,7 @@ void OpenLogoSelectDialog()
     }
     int index = FindGadgetIndex(gui->entries, "LOGOS", 2);
     if (index != -1) {
-        ((Entry_00444930*)((char*)gui->entries + index * 0x15b))->field_1b |= 0x40;
+        ((Entry_00444930*)((char*)gui->entries + index * 0x15b))->attribs |= 0x40;
     }
     SetGadgetItems(gui, "LOGOS", layout->ptrList, n);
     SetKeyboardInput(&g_game->menu, 1);
@@ -2470,7 +2467,7 @@ void __stdcall ExpandGadgetTextToType5(Entry_00444930* param_1)
         param_1->field_15 += 2;
         param_1->state = 5;
         strcpy(param_1->entry_text, tmp.text);
-        param_1->field_1b |= 0x10;
+        param_1->attribs |= 0x10;
     }
 }
 
@@ -2568,7 +2565,7 @@ static void CloneFix_004455b0(Entry_00444930* rec)
     rec->field_15 += 2;
     rec->state = 5;
     strcpy(rec->entry_text, tmp.text);
-    rec->field_1b |= 0x10;
+    rec->attribs |= 0x10;
 }
 
 // FUNCTION: 0x4455b0
@@ -2603,9 +2600,9 @@ void __cdecl BuildPlayerSlotGadgets(void)
                     if (p == g_game->localPlayer) {
                         if (dst->state == 1)
                             CloneFix_004455b0(dst);
-                        dst->field_1b = 1;
+                        dst->attribs = 1;
                     } else {
-                        dst->field_1b |= 0x8000;
+                        dst->attribs |= 0x8000;
                     }
                     break;
                 case 1:
@@ -2785,7 +2782,7 @@ void __stdcall BindNamedSliderWithCallback(char* name, int param_2, int param_3,
     if (index != -1) {
         Entry_00444930* gadget = FindGadgetChecked_D(gadgets, name);
         gadget->field_13c = param_2;
-        gadget->callback = callback;
+        gadget->sliderCallback = callback;
         gadget->unitsCreated = param_3;
         SetSliderFromValue(gadget, gadget->unitsCreated);
         gadget->game = g_game;
@@ -3454,7 +3451,7 @@ void __stdcall RefreshAlliesScreen(int param_1)
             int idx = FindGadgetIndex(entries, player, 0xe);
             if (entries[idx].field_0 == 1) {
                 Entry_00446f50* e = FindGadgetOrNull(entries, player);
-                if (e != 0 && (e->field_1b & 0x4000)) {
+                if (e != 0 && (e->attribs & 0x4000)) {
                     strcat(name, "|");
                     strcat(name, p->name);
                 }
@@ -4629,7 +4626,7 @@ void __stdcall OpenSaveGameDialog()
     if (games != 0)
         games->field_ce = ShowSelectedSaveGame;
     int index = FindGadgetIndex(layer->entries, "GAMENAME", 3);
-    layer->entries[index].field_1b |= 2;
+    layer->entries[index].attribs |= 2;
 
     Gui_00446f50* menu = &g_game->gui;
     Entry_00446f50* entries = g_game->gui.table->entries;
@@ -4755,7 +4752,7 @@ void __stdcall UpdateUnitSliders(Gui_00446f50* param_1, int unused)
                 value = slider->field_13c;
             SetSliderFromValue(slider, value);
             SetGadgetGrayedOutByName(param_1, name, en);
-            slider->unitCount(param_1, slider->field_14a);
+            slider->sliderCallback(param_1, slider->field_14a);
         }
     }
 }
@@ -4857,7 +4854,7 @@ void __stdcall BindNamedSliderWithCallback_0044c7e0(char* name, int max, int val
     if (index != -1) {
         Entry_00446f50* gadget = FindGadgetChecked_D(gadgets, name);
         gadget->max = max;
-        gadget->callback = callback;
+        gadget->sliderCallback = callback;
         gadget->value = value;
         SetSliderFromValue(gadget, gadget->value);
         gadget->game = g_game;
@@ -4894,11 +4891,11 @@ void OpenUnitRestrictions()
     desc->field_ce = ShowSelectedUnitCosts;
     desc->flags = flags;
     desc->field_da = 0x20;
-    desc->field_1b |= 0x100;
+    desc->attribs |= 0x100;
 
     pic = FindGadgetChecked(layer->entries, "PICLIST");
     pic->flags = flags;
-    pic->field_1b |= 0x180;
+    pic->attribs |= 0x180;
     pic->field_da = desc->field_da;
 
     pics = (int*)GameAllocIgnoreTag("UNITPICARRAY", g_game->count * 0x18);
@@ -4956,7 +4953,7 @@ void OpenUnitRestrictions()
         slider = FindGadgetChecked_D(entries, name);
         slider->game = slider;
         slider->max = 0x65;
-        slider->callback = (void (__stdcall*)(Gadget_00440d70*, int))HandleUnitCountSlider;
+        slider->sliderCallback = (void (__stdcall*)(Gadget_00440d70*, int))HandleUnitCountSlider;
     }
 
     BindNamedSliderWithCallback_0044c7e0("SCROLLSLIDER", 0xd2, 0, UpdateUnitSliders);

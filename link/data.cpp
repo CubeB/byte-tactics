@@ -41,7 +41,7 @@ char g_dotExtSep[4] = ".";  // 0x502910 .data
 char DAT_00502a20[4] = "&G";  // 0x502a20 .data
 char DAT_00502a78[12] = "Difficulty";  // 0x502a78 .data
 char DAT_00502ae8[4] = "OK";  // 0x502ae8 .data
-char DAT_00502b38[8] = "Options";  // 0x502b38 .data
+char g_optionsSoundName[8] = "Options";  // 0x502b38 .data
 // 0x502bf8 .data
 unsigned short g_faceVertexIndices[6][4] = {
     {0, 1, 2, 3}, {2, 1, 6, 5}, {0, 3, 4, 7}, {1, 0, 7, 6},
@@ -59,7 +59,7 @@ char DAT_0050313c[8] = "TITLE";  // 0x50313c .data
 char DAT_00503160[4] = "No";  // 0x503160 .data
 char DAT_00503164[4] = "Yes";  // 0x503164 .data
 char DAT_00503168[12] = "YESORNO.GUI";  // 0x503168 .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
-char DAT_005031d4[4] = "BGM";  // 0x5031d4 .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
+char g_bgmSoundName[4] = "BGM";  // 0x5031d4 .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
 char DAT_0050324c[48] = "An error occurred trying to use this service";  // 0x50324c .data
 char DAT_0050327c[8] = "4.zrb";  // 0x50327c .data
 char DAT_00503284[8] = "3.zrb";  // 0x503284 .data
@@ -123,22 +123,22 @@ char DAT_005065c4[28] = "Player %s has disconnected";  // 0x5065c4 .data
 float g_lightX = -0.800000011920929f;  // 0x5065f8 .data
 float g_lightY = 1.0f;  // 0x5065fc .data
 float g_lightZ = 0.25f;  // 0x506600 .data
-int DAT_00506788 = 1;  // 0x506788 .data
-char DAT_005067bc[8] = "NOTRAK";  // 0x5067bc .data
-char DAT_00506884[8] = "FXVOL";  // 0x506884 .data
-char DAT_0050692c[12] = "TRACKTYPE";  // 0x50692c .data
-char DAT_00506964[8] = "CDNEXT";  // 0x506964 .data
-char DAT_0050696c[8] = "CDPLAY";  // 0x50696c .data
-char DAT_00506974[8] = "CDSTOP";  // 0x506974 .data
-char DAT_0050697c[8] = "CDPREV";  // 0x50697c .data
-char DAT_00506984[12] = "TRACKMODE";  // 0x506984 .data
-char DAT_00506990[8] = "RESTORE";  // 0x506990 .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
-char DAT_00506998[8] = "UNDO";  // 0x506998 .data
-char DAT_005069b8[8] = "SPEECH";  // 0x5069b8 .data
-char DAT_005069c0[8] = "TEST";  // 0x5069c0 .data
-char DAT_005069c8[8] = "VOLTEXT";  // 0x5069c8 .data
-char DAT_005069d0[8] = "MODE";  // 0x5069d0 .data
-char DAT_005069d8[20] = "sounds\\explode.wav";  // 0x5069d8 .data
+int g_optionsShellClosing = 1;  // 0x506788 .data
+char g_notrakGadgetName[8] = "NOTRAK";  // 0x5067bc .data
+char g_fxVolGadgetName[8] = "FXVOL";  // 0x506884 .data
+char g_trackTypeGadgetName[12] = "TRACKTYPE";  // 0x50692c .data
+char g_cdNextGadgetName[8] = "CDNEXT";  // 0x506964 .data
+char g_cdPlayGadgetName[8] = "CDPLAY";  // 0x50696c .data
+char g_cdStopGadgetName[8] = "CDSTOP";  // 0x506974 .data
+char g_cdPrevGadgetName[8] = "CDPREV";  // 0x50697c .data
+char g_trackModeGadgetName[12] = "TRACKMODE";  // 0x506984 .data
+char g_restoreGadgetName[8] = "RESTORE";  // 0x506990 .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
+char g_undoGadgetName[8] = "UNDO";  // 0x506998 .data
+char g_speechGadgetName[8] = "SPEECH";  // 0x5069b8 .data
+char g_testGadgetName[8] = "TEST";  // 0x5069c0 .data
+char g_volTextGadgetName[8] = "VOLTEXT";  // 0x5069c8 .data
+char g_modeGadgetName[8] = "MODE";  // 0x5069d0 .data
+char g_explodeSoundFile[20] = "sounds\\explode.wav";  // 0x5069d8 .data
 int g_usePacketManager = 1;  // 0x506dbc .data
 char DAT_00507318[32] = "You're out!  Continue Watching?";  // 0x507318 .data
 char g_radarPicTempName[16] = "RADARPIC TEMP";  // 0x5074e8 .data
@@ -572,23 +572,23 @@ unsigned char DAT_00512c80[336];  // 0x512c80 .bss (the type runs past the next 
 unsigned char DAT_00512dd0[260];  // 0x512dd0 .bss
 int g_onlineConfigLoaded;  // 0x512ee8 .bss
 void* g_onlineDll;  // 0x512eec .bss
-int DAT_00512ef0;  // 0x512ef0 .bss
+int g_helpDialogBaseGadgetCount;  // 0x512ef0 .bss
 unsigned char DAT_00512ef4[4];  // 0x512ef4 .bss
-unsigned char DAT_00512ef8[24];  // 0x512ef8 .bss
-int DAT_00512f10;  // 0x512f10 .bss
-int DAT_00512f14;  // 0x512f14 .bss
-unsigned char DAT_00512f18[85];  // 0x512f18 .bss
-unsigned char DAT_00512f6d[4];  // 0x512f6d .bss
-unsigned char DAT_00512f71[4];  // 0x512f71 .bss
-char DAT_00512f75[100];  // 0x512f75 .bss
-int DAT_00512fd9;  // 0x512fd9 .bss
-int DAT_00512fe0;  // 0x512fe0 .bss
-int DAT_00512fe4;  // 0x512fe4 .bss
-Class_004c6a60* DAT_00512fe8;  // 0x512fe8 .bss
-int DAT_00512fec;  // 0x512fec .bss
-int DAT_00512ff0;  // 0x512ff0 .bss
-Class_004c6a60* DAT_00512ff4;  // 0x512ff4 .bss
-int DAT_00512ff8;  // 0x512ff8 .bss
+unsigned char g_optionsFlipFrame[24];  // 0x512ef8 .bss
+int g_optionsLightbarY;  // 0x512f10 .bss
+int g_optionsLightbarMaxX;  // 0x512f14 .bss
+unsigned char g_optionsPrefsSnapshot[85];  // 0x512f18 .bss
+unsigned char g_optionsBackupGameSpeed[4];  // 0x512f6d .bss
+unsigned char g_optionsBackupEdgeScroll[4];  // 0x512f71 .bss
+char g_optionsBackupTrackTypes[100];  // 0x512f75 .bss
+int g_optionsBackupLockedTrack;  // 0x512fd9 .bss
+int g_musicUiSelectedTrack;  // 0x512fe0 .bss
+int g_optionsShellActive;  // 0x512fe4 .bss
+Class_004c6a60* g_optionsFlipSurface;  // 0x512fe8 .bss
+int g_optionsLightbarX;  // 0x512fec .bss
+int g_optionsLightbarAnim;  // 0x512ff0 .bss
+Class_004c6a60* g_optionsBackupSurface;  // 0x512ff4 .bss
+int g_battleQuitIntent;  // 0x512ff8 .bss
 unsigned char DAT_00512ffc[4];  // 0x512ffc .bss
 int DAT_0051e53c;  // 0x51e53c .bss
 int DAT_0051e540;  // 0x51e540 .bss

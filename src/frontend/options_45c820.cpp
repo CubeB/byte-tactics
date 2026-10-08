@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // Applies saved option values to the game: the volume at +0x37f0c, the sound
-// flag word at +0x37f19 (bits 4, 5 and 6 copied from DAT_00512f4b, bits 0-2
+// flag word at +0x37f19 (bits 4, 5 and 6 copied from g_optionsBackupSoundFlags, bits 0-2
 // after the sound object is switched by the low three bits), the byte at
 // +0x37f17, then the brightness and both volume levels (same tail as
 // 0x45c630 and 0x45bcc0).
@@ -40,28 +40,28 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern int DAT_00512f3e;
-extern unsigned char DAT_00512f49;
+extern int g_optionsBackupFxVolume;
+extern unsigned char g_optionsBackupUnitChat;
 // A byte in the original: declared unsigned int to keep it in bl for the bitfield merge.
-extern unsigned int DAT_00512f4b;
+extern unsigned int g_optionsBackupSoundFlags;
 
 void __stdcall SetBrightness(float value);
 
 // Stays in its own file: in options.cpp's declaration context the global byte
-// at DAT_00512f4b lands in dl instead of bl.
+// at g_optionsBackupSoundFlags lands in dl instead of bl.
 // FUNCTION: 0x45c820
-void FUN_0045c820()
+void RestoreSoundOptions()
 {
-    g_game->volume1 = DAT_00512f3e;
-    g_game->field_37f19 = (g_game->field_37f19 & ~0x10) | (DAT_00512f4b & 0x10);
-    g_game->field_37f19 = (g_game->field_37f19 & ~0x20) | (DAT_00512f4b & 0x20);
-    g_game->field_37f19 = (g_game->field_37f19 & ~0x40) | ((DAT_00512f4b & 0x20) << 1);
-    if ((((unsigned char)DAT_00512f4b) & 7) == 2)
+    g_game->volume1 = g_optionsBackupFxVolume;
+    g_game->field_37f19 = (g_game->field_37f19 & ~0x10) | (g_optionsBackupSoundFlags & 0x10);
+    g_game->field_37f19 = (g_game->field_37f19 & ~0x20) | (g_optionsBackupSoundFlags & 0x20);
+    g_game->field_37f19 = (g_game->field_37f19 & ~0x40) | ((g_optionsBackupSoundFlags & 0x20) << 1);
+    if ((((unsigned char)g_optionsBackupSoundFlags) & 7) == 2)
         ((Sound*)g_game->sound)->Enable3D();
     else
         ((Sound*)g_game->sound)->Disable3D();
-    g_game->field_37f19 = (g_game->field_37f19 & ~7) | (DAT_00512f4b & 7);
-    g_game->field_37f17 = DAT_00512f49;
+    g_game->field_37f19 = (g_game->field_37f19 & ~7) | (g_optionsBackupSoundFlags & 7);
+    g_game->field_37f17 = g_optionsBackupUnitChat;
     SetBrightness(0.5 - g_game->brightness * -0.041666668f);
     ((Class_004d0070*)g_game->sound)->SetWaveVolume(g_game->volume1 << 10);
     ((Class_004d00d0*)g_game->sound)->SetAuxVolume(g_game->volume2 << 10, 0);

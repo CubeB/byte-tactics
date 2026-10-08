@@ -50,7 +50,7 @@ extern char g_dotExtSep[4];                                                     
 extern char DAT_00502a20[4];                                                                      // 0x502a20, 4 bytes; 3 of 3 files
 extern char DAT_00502a78[12];                                                                     // 0x502a78, 12 bytes; 2 of 2 files
 extern char DAT_00502ae8[4];                                                                      // 0x502ae8, 4 bytes; 2 of 2 files
-extern char DAT_00502b38[8];                                                                      // 0x502b38, 8 bytes; 1 of 1 files
+extern char g_optionsSoundName[8];                                                                // 0x502b38, 8 bytes; 1 of 1 files
 extern unsigned short g_faceVertexIndices[6][4];                                                  // 0x502bf8, 48 bytes; 1 of 1 files
 extern const char DAT_00502e30[8];                                                                // 0x502e30, 8 bytes; 1 of 1 files
 extern char g_descriptionKey[12];                                                                 // 0x502e78, 12 bytes; 1 of 1 files
@@ -64,7 +64,7 @@ extern char DAT_0050313c[8];                                                    
 extern char DAT_00503160[4];                                                                      // 0x503160, 4 bytes; 1 of 1 files
 extern char DAT_00503164[4];                                                                      // 0x503164, 4 bytes; 1 of 1 files
 extern char DAT_00503168[12];                                                                     // 0x503168, 12 bytes; 1 of 1 files
-extern char DAT_005031d4[4];                                                                      // 0x5031d4, 4 bytes; 1 of 1 files
+extern char g_bgmSoundName[4];                                                                    // 0x5031d4, 4 bytes; 1 of 1 files
 extern char DAT_0050324c[48];                                                                     // 0x50324c, 48 bytes; 1 of 1 files
 extern char DAT_0050327c[8];                                                                      // 0x50327c, 8 bytes; 1 of 1 files
 extern char DAT_00503284[8];                                                                      // 0x503284, 8 bytes; 1 of 1 files
@@ -123,22 +123,22 @@ extern char DAT_005065c4[28];                                                   
 extern float g_lightX;                                                                            // 0x5065f8, 4 bytes; 2 of 2 files
 extern float g_lightY;                                                                            // 0x5065fc, 4 bytes; 2 of 2 files
 extern float g_lightZ;                                                                            // 0x506600, 4 bytes; 2 of 2 files
-extern int DAT_00506788;                                                                          // 0x506788, 4 bytes; 1 of 1 files
-extern char DAT_005067bc[8];                                                                      // 0x5067bc, 8 bytes; 2 of 2 files
-extern char DAT_00506884[8];                                                                      // 0x506884, 8 bytes; 1 of 1 files
-extern char DAT_0050692c[12];                                                                     // 0x50692c, 12 bytes; 1 of 1 files
-extern char DAT_00506964[8];                                                                      // 0x506964, 8 bytes; 1 of 1 files
-extern char DAT_0050696c[8];                                                                      // 0x50696c, 8 bytes; 1 of 1 files
-extern char DAT_00506974[8];                                                                      // 0x506974, 8 bytes; 1 of 1 files
-extern char DAT_0050697c[8];                                                                      // 0x50697c, 8 bytes; 1 of 1 files
-extern char DAT_00506984[12];                                                                     // 0x506984, 12 bytes; 1 of 1 files
-extern char DAT_00506990[8];                                                                      // 0x506990, 8 bytes; 1 of 1 files
-extern char DAT_00506998[8];                                                                      // 0x506998, 8 bytes; 1 of 1 files
-extern char DAT_005069b8[8];                                                                      // 0x5069b8, 8 bytes; 1 of 1 files
-extern char DAT_005069c0[8];                                                                      // 0x5069c0, 8 bytes; 1 of 1 files
-extern char DAT_005069c8[8];                                                                      // 0x5069c8, 8 bytes; 1 of 1 files
-extern char DAT_005069d0[8];                                                                      // 0x5069d0, 8 bytes; 1 of 1 files
-extern char DAT_005069d8[20];                                                                     // 0x5069d8, 20 bytes; 1 of 1 files
+extern int g_optionsShellClosing;                                                                 // 0x506788, 4 bytes; 1 of 1 files
+extern char g_notrakGadgetName[8];                                                                // 0x5067bc, 8 bytes; 2 of 2 files
+extern char g_fxVolGadgetName[8];                                                                 // 0x506884, 8 bytes; 1 of 1 files
+extern char g_trackTypeGadgetName[12];                                                            // 0x50692c, 12 bytes; 1 of 1 files
+extern char g_cdNextGadgetName[8];                                                                // 0x506964, 8 bytes; 1 of 1 files
+extern char g_cdPlayGadgetName[8];                                                                // 0x50696c, 8 bytes; 1 of 1 files
+extern char g_cdStopGadgetName[8];                                                                // 0x506974, 8 bytes; 1 of 1 files
+extern char g_cdPrevGadgetName[8];                                                                // 0x50697c, 8 bytes; 1 of 1 files
+extern char g_trackModeGadgetName[12];                                                            // 0x506984, 12 bytes; 1 of 1 files
+extern char g_restoreGadgetName[8];                                                               // 0x506990, 8 bytes; 1 of 1 files
+extern char g_undoGadgetName[8];                                                                  // 0x506998, 8 bytes; 1 of 1 files
+extern char g_speechGadgetName[8];                                                                // 0x5069b8, 8 bytes; 1 of 1 files
+extern char g_testGadgetName[8];                                                                  // 0x5069c0, 8 bytes; 1 of 1 files
+extern char g_volTextGadgetName[8];                                                               // 0x5069c8, 8 bytes; 1 of 1 files
+extern char g_modeGadgetName[8];                                                                  // 0x5069d0, 8 bytes; 1 of 1 files
+extern char g_explodeSoundFile[20];                                                               // 0x5069d8, 20 bytes; 1 of 1 files
 extern int g_usePacketManager;                                                                    // 0x506dbc, 4 bytes; 20 of 20 files
 extern char DAT_00507318[32];                                                                     // 0x507318, 32 bytes; 1 of 1 files
 extern char g_radarPicTempName[16];                                                               // 0x5074e8, 16 bytes; 1 of 1 files
@@ -483,23 +483,23 @@ extern unsigned char DAT_00512c80[336];                                         
 extern unsigned char DAT_00512dd0[260];                                                           // 0x512dd0, 260 bytes; nothing refers to it
 extern int g_onlineConfigLoaded;                                                                  // 0x512ee8, 4 bytes; 2 of 2 files
 extern void* g_onlineDll;                                                                         // 0x512eec, 4 bytes; 4 of 4 files
-extern int DAT_00512ef0;                                                                          // 0x512ef0, 4 bytes; 1 of 1 files
+extern int g_helpDialogBaseGadgetCount;                                                           // 0x512ef0, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00512ef4[4];                                                             // 0x512ef4, 4 bytes; nothing refers to it
-extern unsigned char DAT_00512ef8[24];                                                            // 0x512ef8, 24 bytes; Entry_45ffb0 by value in 1 of 1 files
-extern int DAT_00512f10;                                                                          // 0x512f10, 4 bytes; 1 of 1 files
-extern int DAT_00512f14;                                                                          // 0x512f14, 4 bytes; 1 of 1 files
-extern unsigned char DAT_00512f18[85];                                                            // 0x512f18, 85 bytes; Settings_45cde0 by value in 1 of 1 files
-extern unsigned char DAT_00512f6d[4];                                                             // 0x512f6d, 4 bytes; __unnamed by value in 1 of 1 files
-extern unsigned char DAT_00512f71[4];                                                             // 0x512f71, 4 bytes; __unnamed by value in 1 of 1 files
-extern char DAT_00512f75[100];                                                                    // 0x512f75, 100 bytes; 1 of 1 files
-extern int DAT_00512fd9;                                                                          // 0x512fd9, 4 bytes; 1 of 1 files
-extern int DAT_00512fe0;                                                                          // 0x512fe0, 4 bytes; 1 of 1 files
-extern int DAT_00512fe4;                                                                          // 0x512fe4, 4 bytes; 1 of 1 files
-extern Class_004c6a60* DAT_00512fe8;                                                              // 0x512fe8, 4 bytes; 1 of 1 files
-extern int DAT_00512fec;                                                                          // 0x512fec, 4 bytes; 1 of 1 files
-extern int DAT_00512ff0;                                                                          // 0x512ff0, 4 bytes; 1 of 1 files
-extern Class_004c6a60* DAT_00512ff4;                                                              // 0x512ff4, 4 bytes; 1 of 1 files
-extern int DAT_00512ff8;                                                                          // 0x512ff8, 4 bytes; 1 of 1 files
+extern unsigned char g_optionsFlipFrame[24];                                                      // 0x512ef8, 24 bytes; Entry_45ffb0 by value in 1 of 1 files
+extern int g_optionsLightbarY;                                                                    // 0x512f10, 4 bytes; 1 of 1 files
+extern int g_optionsLightbarMaxX;                                                                 // 0x512f14, 4 bytes; 1 of 1 files
+extern unsigned char g_optionsPrefsSnapshot[85];                                                  // 0x512f18, 85 bytes; Settings_45cde0 by value in 1 of 1 files
+extern unsigned char g_optionsBackupGameSpeed[4];                                                 // 0x512f6d, 4 bytes; __unnamed by value in 1 of 1 files
+extern unsigned char g_optionsBackupEdgeScroll[4];                                                // 0x512f71, 4 bytes; __unnamed by value in 1 of 1 files
+extern char g_optionsBackupTrackTypes[100];                                                       // 0x512f75, 100 bytes; 1 of 1 files
+extern int g_optionsBackupLockedTrack;                                                            // 0x512fd9, 4 bytes; 1 of 1 files
+extern int g_musicUiSelectedTrack;                                                                // 0x512fe0, 4 bytes; 1 of 1 files
+extern int g_optionsShellActive;                                                                  // 0x512fe4, 4 bytes; 1 of 1 files
+extern Class_004c6a60* g_optionsFlipSurface;                                                      // 0x512fe8, 4 bytes; 1 of 1 files
+extern int g_optionsLightbarX;                                                                    // 0x512fec, 4 bytes; 1 of 1 files
+extern int g_optionsLightbarAnim;                                                                 // 0x512ff0, 4 bytes; 1 of 1 files
+extern Class_004c6a60* g_optionsBackupSurface;                                                    // 0x512ff4, 4 bytes; 1 of 1 files
+extern int g_battleQuitIntent;                                                                    // 0x512ff8, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00512ffc[4];                                                             // 0x512ffc, 4 bytes; nothing refers to it
 extern int DAT_0051e53c;                                                                          // 0x51e53c, 4 bytes; 1 of 1 files
 extern int DAT_0051e540;                                                                          // 0x51e540, 4 bytes; 1 of 1 files
@@ -786,7 +786,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x512c98 DAT_00512c98: part of another global: DAT_00512c80+0x18
 //   0x512d28 DAT_00512d28: part of another global: DAT_00512c80+0xa8
 //   0x512d90 DAT_00512d90: part of another global: DAT_00512c80+0x110
-//   0x512f49 DAT_00512f49: part of another global: DAT_00512f18+0x31
+//   0x512f49 g_optionsBackupUnitChat: part of another global: g_optionsPrefsSnapshot+0x31
 //   0x51e548 DAT_0051e548: int (__stdcall*)(int, char*) (1), int (__stdcall*)(int, int) (1)
 //   0x51e550 DAT_0051e550: char** (1), int (1)
 //   0x51e580 DAT_0051e580: int (__stdcall*)(void) (1), void (__stdcall*)(void) (1)
@@ -886,19 +886,19 @@ extern long DAT_0052a4fc;                                                       
 //   0x512d84 DAT_00512d84: part of another global: DAT_00512c80+0x104
 //   0x512d88 DAT_00512d88: part of another global: DAT_00512c80+0x108
 //   0x512d8c DAT_00512d8c: part of another global: DAT_00512c80+0x10c
-//   0x512f2c DAT_00512f2c: part of another global: DAT_00512f18+0x14
-//   0x512f38 DAT_00512f38: part of another global: DAT_00512f18+0x20
-//   0x512f3a DAT_00512f3a: part of another global: DAT_00512f18+0x22
-//   0x512f3e DAT_00512f3e: part of another global: DAT_00512f18+0x26
-//   0x512f42 DAT_00512f42: part of another global: DAT_00512f18+0x2a
-//   0x512f46 DAT_00512f46: part of another global: DAT_00512f18+0x2e
-//   0x512f48 DAT_00512f48: part of another global: DAT_00512f18+0x30
-//   0x512f4a DAT_00512f4a: part of another global: DAT_00512f18+0x32
-//   0x512f4b DAT_00512f4b: part of another global: DAT_00512f18+0x33
-//   0x512f4d DAT_00512f4d: part of another global: DAT_00512f18+0x35
-//   0x512f51 DAT_00512f51: part of another global: DAT_00512f18+0x39
-//   0x512f55 DAT_00512f55: part of another global: DAT_00512f18+0x3d
-//   0x512f59 DAT_00512f59: part of another global: DAT_00512f18+0x41
+//   0x512f2c g_optionsBackupInterfaceType: part of another global: g_optionsPrefsSnapshot+0x14
+//   0x512f38 g_optionsBackupVisualFlags: part of another global: g_optionsPrefsSnapshot+0x20
+//   0x512f3a g_optionsBackupGamma: part of another global: g_optionsPrefsSnapshot+0x22
+//   0x512f3e g_optionsBackupFxVolume: part of another global: g_optionsPrefsSnapshot+0x26
+//   0x512f42 g_optionsBackupMusicVolume: part of another global: g_optionsPrefsSnapshot+0x2a
+//   0x512f46 g_optionsBackupMusicMode: part of another global: g_optionsPrefsSnapshot+0x2e
+//   0x512f48 g_optionsBackupCdMode: part of another global: g_optionsPrefsSnapshot+0x30
+//   0x512f4a g_optionsBackupUnitChatText: part of another global: g_optionsPrefsSnapshot+0x32
+//   0x512f4b g_optionsBackupSoundFlags: part of another global: g_optionsPrefsSnapshot+0x33
+//   0x512f4d g_optionsBackupDisplayWidth: part of another global: g_optionsPrefsSnapshot+0x35
+//   0x512f51 g_optionsBackupDisplayHeight: part of another global: g_optionsPrefsSnapshot+0x39
+//   0x512f55 g_optionsBackupTextScroll: part of another global: g_optionsPrefsSnapshot+0x3d
+//   0x512f59 g_optionsBackupTextLines: part of another global: g_optionsPrefsSnapshot+0x41
 //   0x513008 DAT_00513008: part of another global: g_packetManager+0x8
 //   0x51e2f4 DAT_0051e2f4: part of another global: g_packetManager+0xb2f4
 //   0x51e2f8 DAT_0051e2f8: part of another global: g_packetManager+0xb2f8

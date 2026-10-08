@@ -235,7 +235,7 @@ void FUN_00490b00()
 // table. Mode 6 also gets a different quit callback from SetCloseHandler.
 void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
 void __cdecl LeaveNetGameCallback(int param);
-void __cdecl FUN_004609a0(int param);
+void __cdecl HandleBattleQuitPrompt(int param);
 void InitFrame();
 void ReturnToMainMenuFrame();
 void MenuFrame();
@@ -279,7 +279,7 @@ void __stdcall SetGameMode(int param)
         break;
     }
     if (param == 6) {
-        SetCloseHandler(FUN_004609a0, 0);
+        SetCloseHandler(HandleBattleQuitPrompt, 0);
     } else {
         SetCloseHandler(LeaveNetGameCallback, 0);
     }

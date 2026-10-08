@@ -433,7 +433,7 @@ char* __stdcall Translate(char* s);
 
 void LoadThreadMain();
 void BattleFrame();
-void __cdecl FUN_004609a0(int);
+void __cdecl HandleBattleQuitPrompt(int);
 void __cdecl BlankScreen();
 void __cdecl FreePictureCache();
 void __cdecl SaveSettings();
@@ -977,7 +977,7 @@ void LoadingScreenFrame(void)
         ShowSoftwareCursor();
         g_game->field_391f1 = 6;
         g_game->field_391f5 = BattleFrame;
-        SetCloseHandler(FUN_004609a0, 0);
+        SetCloseHandler(HandleBattleQuitPrompt, 0);
         g_game->field_589 = 0;
         memset((void*)g_game->progress, 0, 8);
         ((Sound*)g_game->field_10)->SetTrackCategory(0);

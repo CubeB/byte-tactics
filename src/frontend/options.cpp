@@ -997,73 +997,73 @@ struct Info_004609b0 {
 // GLOBAL: 0x511de8
 extern Game* g_game;
 
-extern int DAT_00506788;
-extern char DAT_00502b38[];            // "Options"
-extern char DAT_005031d4[];            // "BGM"
-extern char DAT_005067bc[];            // "NOTRAK"
-extern char DAT_00506884[];            // "FXVOL"
-extern char DAT_0050692c[];            // "TRACKTYPE"
-extern char DAT_00506964[];            // "CDNEXT"
-extern char DAT_0050696c[];            // "CDPLAY"
-extern char DAT_00506974[];            // "CDSTOP"
-extern char DAT_0050697c[];            // "CDPREV"
-extern char DAT_00506984[];            // "TRACKMODE"
-extern char DAT_00506990[];            // "RESTORE"
-extern char DAT_00506998[];            // "UNDO"
-extern char DAT_005069b8[];            // "SPEECH"
-extern char DAT_005069c0[];            // "TEST"
-extern char DAT_005069c8[];            // "VOLTEXT"
-extern char DAT_005069d0[];            // "MODE"
-extern char DAT_005069d8[];            // "sounds\\explode.wav"
+extern int g_optionsShellClosing;
+extern char g_optionsSoundName[];      // "Options"
+extern char g_bgmSoundName[];          // "BGM"
+extern char g_notrakGadgetName[];      // "NOTRAK"
+extern char g_fxVolGadgetName[];       // "FXVOL"
+extern char g_trackTypeGadgetName[];   // "TRACKTYPE"
+extern char g_cdNextGadgetName[];      // "CDNEXT"
+extern char g_cdPlayGadgetName[];      // "CDPLAY"
+extern char g_cdStopGadgetName[];      // "CDSTOP"
+extern char g_cdPrevGadgetName[];      // "CDPREV"
+extern char g_trackModeGadgetName[];   // "TRACKMODE"
+extern char g_restoreGadgetName[];     // "RESTORE"
+extern char g_undoGadgetName[];        // "UNDO"
+extern char g_speechGadgetName[];      // "SPEECH"
+extern char g_testGadgetName[];        // "TEST"
+extern char g_volTextGadgetName[];     // "VOLTEXT"
+extern char g_modeGadgetName[];        // "MODE"
+extern char g_explodeSoundFile[];      // "sounds\\explode.wav"
 extern char DAT_005119b8[];
 extern int DAT_00512c80;
 extern int DAT_00512c84;
 extern char DAT_00512ca8[];
 extern char DAT_00512d90[];
-extern int DAT_00512ef0;
-extern Entry_45ffb0 DAT_00512ef8;
-extern int DAT_00512f10;
-extern int DAT_00512f14;
-extern int DAT_00512f2c;
-extern int DAT_00512f38;
-extern int DAT_00512f3a;
-extern int DAT_00512f3e;
-extern int DAT_00512f42;
+extern int g_helpDialogBaseGadgetCount;
+extern Entry_45ffb0 g_optionsFlipFrame;
+extern int g_optionsLightbarY;
+extern int g_optionsLightbarMaxX;
+extern int g_optionsBackupInterfaceType;
+extern int g_optionsBackupVisualFlags;
+extern int g_optionsBackupGamma;
+extern int g_optionsBackupFxVolume;
+extern int g_optionsBackupMusicVolume;
 // The saved flags word: 45d280 reads it as an int, 45fc60 as a short.
 extern union {
     int i;
     unsigned short s;
-} DAT_00512f46;
-extern char DAT_00512f48;
-extern unsigned char DAT_00512f49;
-extern char DAT_00512f4a;
+} g_optionsBackupMusicMode;
+extern char g_optionsBackupCdMode;
+extern unsigned char g_optionsBackupUnitChat;
+extern char g_optionsBackupUnitChatText;
 // A byte in the original: declared unsigned int to keep it in bl for the bitfield merge.
-extern unsigned int DAT_00512f4b;
-extern int DAT_00512f4d;
-extern int DAT_00512f51;
-extern int DAT_00512f55;
-extern int DAT_00512f59;
+extern unsigned int g_optionsBackupSoundFlags;
+extern int g_optionsBackupDisplayWidth;
+extern int g_optionsBackupDisplayHeight;
+extern int g_optionsBackupTextScroll;
+extern int g_optionsBackupTextLines;
 // The saved game-speed word: 45ead0 reads it as a short, 45fc60 as an int.
 extern union {
     unsigned short s;
     int i;
-} DAT_00512f6d;
+} g_optionsBackupGameSpeed;
 // The saved option byte: 460160 stores it as an int.
 extern union {
     unsigned char b;
     int i;
-} DAT_00512f71;
-extern char DAT_00512f75[];
-extern int DAT_00512fd9;
-extern int DAT_00512fe0;
-extern int DAT_00512fe4;
-extern Class_004c6a60* DAT_00512fe8;
-extern int DAT_00512fec;
-extern int DAT_00512ff0;
-extern Class_004c6a60* DAT_00512ff4;
-extern int DAT_00512ff8;
+} g_optionsBackupEdgeScroll;
+extern char g_optionsBackupTrackTypes[];
+extern int g_optionsBackupLockedTrack;
+extern int g_musicUiSelectedTrack;
+extern int g_optionsShellActive;
+extern Class_004c6a60* g_optionsFlipSurface;
+extern int g_optionsLightbarX;
+extern int g_optionsLightbarAnim;
+extern Class_004c6a60* g_optionsBackupSurface;
+extern int g_battleQuitIntent;
 // Flags live in this struct, not a standalone global: keeps the load order.
-extern Settings_45cde0 DAT_00512f18;
+extern Settings_45cde0 g_optionsPrefsSnapshot;
 
 void __stdcall FUN_0049fa90(Menu_0045b800* menu);
 void __stdcall FUN_004a0570(Menu_0045b800* menu, char* name, int value);
@@ -1080,7 +1080,7 @@ int __stdcall FindGadgetIndex(Entry_0045b800* entries, char* name, int type);
 void __stdcall SetGadgetStatus(Menu_0045b800* menu, int index, short value);
 void __stdcall GetGadgetName(Entry_0045b800* entries, char* name, int index);
 Entry_0045b800* __stdcall FindGadgetOrNull(Entry_0045b800* entries, char* name);
-void FUN_0045c820();
+void RestoreSoundOptions();
 
 void __stdcall RenderLayer(Sub_0045cf60* sub, int value);
 void __stdcall RenderLayer(void* obj, int n);
@@ -1244,12 +1244,12 @@ void __stdcall HandleMusicOptionsClick(int value);
 void __stdcall HandleMusicVolumeSlider(void* obj, int value);
 void __stdcall HandleEffectsVolumeSlider(void* obj, int arg);
 void __stdcall HandleSoundOptionsClick(void* obj, int arg);
-void __stdcall FUN_0045ead0(void* obj, int arg);
+void __stdcall HandleSpeedOptionsClick(void* obj, int arg);
 void __stdcall HandleGameSpeedSlider(void* obj, int arg);
 void __stdcall HandleScreenSlider(void* obj, int arg);
 void __stdcall HandleMaxLinesSlider(void* obj, int arg);
 void __stdcall HandleTextScrollSlider(void* obj, int arg);
-void __stdcall FUN_0045f190(void*);
+void __stdcall HandleGameSettingsDialogClick(void*);
 void __stdcall HandleRestartDialogClick(void* dialog);
 void __stdcall HandleSurrenderChoice(void* gadget);
 void __stdcall HandleExitMenuClick(void* gadget);
@@ -1295,8 +1295,8 @@ void __stdcall OpenSoundOptions();
 void __stdcall OpenVisualOptions(int param_1);
 void __stdcall OpenSpeedOptions();
 void __stdcall OpenExitMenu();
-void __stdcall FUN_0045ce80();
-void FUN_0045cae0();
+void __stdcall EnsureOptionsPanelGadget();
+void RestoreVisualOptions();
 void FUN_00428b60();
 void SaveSettings();
 
@@ -1322,7 +1322,7 @@ void __stdcall SetDirectConnectAddress(char* param_1)
 }
 
 // FUNCTION: 0x45b820
-void __stdcall FUN_0045b820(int flag, char* text)
+void __stdcall SetHostGameName(int flag, char* text)
 {
     DAT_00512c84 = flag != 0;
     if (text) {
@@ -1332,7 +1332,7 @@ void __stdcall FUN_0045b820(int flag, char* text)
 }
 
 // FUNCTION: 0x45b860
-void __stdcall FUN_0045b860(int param_1)
+void __stdcall SetDirectPlayProvider(int param_1)
 {
     if (param_1 == 1 || param_1 == 2 || param_1 == 3 || param_1 == 4) {
         DAT_00512c80 = param_1;
@@ -1340,7 +1340,7 @@ void __stdcall FUN_0045b860(int param_1)
 }
 
 // FUNCTION: 0x45b880
-void __stdcall FUN_0045b880(char* name, int value)
+void __stdcall SetGadgetsDisabledByPrefix(char* name, int value)
 {
     for (int i = 0; i <= g_game->menu.holder->entries->count; i++) {
         if (strncmp(g_game->menu.holder->entries[i].name, name, strlen(name)) == 0 &&
@@ -1352,7 +1352,7 @@ void __stdcall FUN_0045b880(char* name, int value)
 }
 
 // FUNCTION: 0x45b920
-void __stdcall FUN_0045b920(char* prefix)
+void __stdcall DeactivateGadgetsByPrefix(char* prefix)
 {
     for (int i = 0; i <= g_game->menu.holder->entries[0].count; i++) {
         if (strncmp(g_game->menu.holder->entries[i].name, prefix, strlen(prefix)) == 0) {
@@ -1384,7 +1384,7 @@ int __stdcall ReadSliderValue(Entry_0045b800* param_1)
 }
 
 // FUNCTION: 0x45ba60
-void __stdcall FUN_0045ba60(int index, int state, char* offText, char* onText)
+void __stdcall SetGadgetStatusAndText(int index, int state, char* offText, char* onText)
 {
     char name[128];
     Entry_0045b800* entries = g_game->menu.holder->entries;
@@ -1401,7 +1401,7 @@ void __stdcall FUN_0045ba60(int index, int state, char* offText, char* onText)
 }
 
 // FUNCTION: 0x45baf0
-void __stdcall FUN_0045baf0(void* param_1, int param_2)
+void __stdcall ClearGadgetText(void* param_1, int param_2)
 {
     *(char*)((char*)param_1 + 0xb6) = 0;
 }
@@ -1412,7 +1412,7 @@ void __stdcall FUN_0045baf0(void* param_1, int param_2)
 // the index of that mode is turned into a step index in pos, the same
 // arithmetic as SetSliderFromValue.
 // FUNCTION: 0x45bb00
-void __stdcall FUN_0045bb00(Menu_0045b800* param_1, Entry_0045b800* param_2)
+void __stdcall UpdateVideoModeLabel(Menu_0045b800* param_1, Entry_0045b800* param_2)
 {
     int i = 0;
     int count = param_2->list->count;
@@ -1536,7 +1536,7 @@ void __stdcall SetGameSpeedLabel(char* name, char* label, int speed, int normal)
 }
 
 // FUNCTION: 0x45c010
-void __stdcall FUN_0045c010(Entry_0045c010* table, char* name, int value)
+void __stdcall SetGadgetTextFromValueTable(Entry_0045c010* table, char* name, int value)
 {
     char buf[100];
     if (table->format == 0)
@@ -1621,7 +1621,7 @@ void __stdcall HandleTextScrollSlider(Menu_0045b800* obj, int unused)
 }
 
 // FUNCTION: 0x45c3d0
-void __stdcall FUN_0045c3d0(int value)
+void __stdcall SetLockedCdTrack(int value)
 {
     ((Class_004ce580*)g_game->sound)->FUN_004ce580(value);
 }
@@ -1633,7 +1633,7 @@ void UpdateTrackGadgets()
     Menu_0045b800* menu = &g_game->menu;
 
     if (FindGadgetIndex(menu->holder->entries, "TRACKTYPE", 1) != -1) {
-        int disc = DAT_00512fe0;
+        int disc = g_musicUiSelectedTrack;
         FUN_004a1250(menu, "TRACKTYPE",
                      ((g_game->f_37f14 & 1) && g_game->field_37f16 == 4) ? 0 : 1);
         SetButtonStageByName(menu, "TRACKTYPE", ((Class_004ce7e0*)g_game->sound)->GetCategoryOfTrack(disc));
@@ -1646,7 +1646,7 @@ void UpdateTrackGadgets()
     FUN_004a1450(menu, "TRACKNUM", (char)(~g_game->f_37f14) & 1);
     if (g_game->field_37f16 == 3) {
         // the track number is re-read from the global here, not taken from disc
-        int track = DAT_00512fe0;
+        int track = g_musicUiSelectedTrack;
         ((Class_004ce580*)g_game->sound)->FUN_004ce580(track);
     }
 }
@@ -1659,7 +1659,7 @@ void ApplyTrackType()
     Entry_0045b800* gadgets = g_game->menu.holder->entries;
     if (g_game->field_37f16 == 4) {
         int index = FindGadgetIndex(gadgets, "TRACKTYPE", 1);
-        ((Class_004ce7c0*)g_game->sound)->SetCategoryOfTrack(DAT_00512fe0, gadgets[index].value);
+        ((Class_004ce7c0*)g_game->sound)->SetCategoryOfTrack(g_musicUiSelectedTrack, gadgets[index].value);
     }
 }
 
@@ -1667,7 +1667,7 @@ void ApplyTrackType()
 // sound object, more flag bits, then brightness and the two volume levels
 // scaled by 1024 (same tail as 0x45bcc0).
 // FUNCTION: 0x45c570
-void FUN_0045c570()
+void ApplyDefaultSoundOptions()
 {
     g_game->volume1 = 0x1b;
     g_game->soundFlags.bits.b4 = 1;
@@ -1685,7 +1685,7 @@ void FUN_0045c570()
 // g_game+0x10 once (bit 0 of +0x37f14), then applies the brightness value and
 // the two volume levels (scaled by 1024) to it.
 // FUNCTION: 0x45c630
-void FUN_0045c630()
+void ApplyDefaultMusicOptions()
 {
     g_game->volume2 = 0x20;
     g_game->field_37f16 = 4;
@@ -1697,7 +1697,7 @@ void FUN_0045c630()
 }
 
 // FUNCTION: 0x45c6d0
-void FUN_0045c6d0()
+void ApplyDefaultUiOptions()
 {
     g_game->field_37f23 = 10;
     g_game->field_37f27 = 10;
@@ -1714,7 +1714,7 @@ void FUN_0045c6d0()
 // width and height at +0x37f1b/+0x37f1f and clears bit 6 of the flags word.
 // Then applies the brightness and the two volume levels to the sound object.
 // FUNCTION: 0x45c740
-void FUN_0045c740()
+void ApplyDefaultVisualOptions()
 {
     g_game->bit1 = 1;
     g_game->bit2 = 1;
@@ -1737,32 +1737,32 @@ void FUN_0045c740()
 // FUNCTION: 0x45c950
 void LoadSavedAudioSettings()
 {
-    g_game->volume2 = DAT_00512f42;
-    ((Class_004ce3e0*)g_game->sound)->FUN_004ce3e0(&DAT_00512f75);
-    g_game->field_37f16 = DAT_00512f48;
+    g_game->volume2 = g_optionsBackupMusicVolume;
+    ((Class_004ce3e0*)g_game->sound)->FUN_004ce3e0(&g_optionsBackupTrackTypes);
+    g_game->field_37f16 = g_optionsBackupCdMode;
     ((Class_004ce7a0*)g_game->sound)->SetPlaybackOrder(g_game->field_37f16);
-    if (((unsigned char)g_game->flags14 ^ (unsigned char)DAT_00512f46.i) & 1) {
+    if (((unsigned char)g_game->flags14 ^ (unsigned char)g_optionsBackupMusicMode.i) & 1) {
         ((Class_004cdb40*)g_game->sound)->PlayNextTrack();
     }
     unsigned short f = g_game->flags14;
-    f = f ^ ((f ^ DAT_00512f46.i) & 1);
+    f = f ^ ((f ^ g_optionsBackupMusicMode.i) & 1);
     g_game->flags14 = f;
-    ((Class_004ce580*)g_game->sound)->FUN_004ce580(DAT_00512fd9);
+    ((Class_004ce580*)g_game->sound)->FUN_004ce580(g_optionsBackupLockedTrack);
     ApplyBrightnessAndVolume();
 }
 
 // Copies saved option values (globals around 0x512f2c) into the game.
 // FUNCTION: 0x45ca50
-void FUN_0045ca50()
+void RestoreUiOptions()
 {
-    g_game->field_37f23 = DAT_00512f55;
-    g_game->field_38a4b = DAT_00512f6d.i;
-    g_game->field_38a4d = DAT_00512f6d.i;
-    g_game->field_1434d = DAT_00512f71.i;
-    g_game->field_37efa = DAT_00512f2c;
-    g_game->field_37f17 = DAT_00512f49;
-    g_game->field_37f18 = DAT_00512f4a;
-    g_game->field_37f27 = DAT_00512f59;
+    g_game->field_37f23 = g_optionsBackupTextScroll;
+    g_game->field_38a4b = g_optionsBackupGameSpeed.i;
+    g_game->field_38a4d = g_optionsBackupGameSpeed.i;
+    g_game->field_1434d = g_optionsBackupEdgeScroll.i;
+    g_game->field_37efa = g_optionsBackupInterfaceType;
+    g_game->field_37f17 = g_optionsBackupUnitChat;
+    g_game->field_37f18 = g_optionsBackupUnitChatText;
+    g_game->field_37f27 = g_optionsBackupTextLines;
 }
 
 // Copies six flag bits out of the saved settings value into the flags word at
@@ -1770,25 +1770,25 @@ void FUN_0045ca50()
 // brightness and both volume levels to the object at g_game+0x10 (same tail as
 // 0x45bcc0).
 // FUNCTION: 0x45cae0
-void FUN_0045cae0()
+void RestoreVisualOptions()
 {
     unsigned short v = g_game->flags;
-    g_game->flags = v ^ ((v ^ DAT_00512f38) & 2);
+    g_game->flags = v ^ ((v ^ g_optionsBackupVisualFlags) & 2);
     v = g_game->flags;
-    g_game->flags = v ^ ((v ^ DAT_00512f38) & 4);
+    g_game->flags = v ^ ((v ^ g_optionsBackupVisualFlags) & 4);
     v = g_game->flags;
-    g_game->flags = v ^ ((v ^ DAT_00512f38) & 8);
+    g_game->flags = v ^ ((v ^ g_optionsBackupVisualFlags) & 8);
     v = g_game->flags;
-    g_game->flags = v ^ ((v ^ DAT_00512f38) & 0x10);
+    g_game->flags = v ^ ((v ^ g_optionsBackupVisualFlags) & 0x10);
     v = g_game->flags;
-    g_game->flags = v ^ ((v ^ DAT_00512f38) & 0x20);
+    g_game->flags = v ^ ((v ^ g_optionsBackupVisualFlags) & 0x20);
     v = g_game->flags;
-    g_game->flags = v ^ ((v ^ DAT_00512f38) & 0x40);
+    g_game->flags = v ^ ((v ^ g_optionsBackupVisualFlags) & 0x40);
 
-    g_game->brightness = DAT_00512f3a;
+    g_game->brightness = g_optionsBackupGamma;
     if (!(g_game->field_2a44 & 4)) {
-        g_game->width = DAT_00512f4d;
-        g_game->height = DAT_00512f51;
+        g_game->width = g_optionsBackupDisplayWidth;
+        g_game->height = g_optionsBackupDisplayHeight;
     }
 
     SetBrightness(0.5 - g_game->brightness * -0.041666668f);
@@ -1802,47 +1802,47 @@ void FUN_0045cae0()
 // FUNCTION: 0x45cc50
 void LoadSavedSettings()
 {
-    FUN_0045c820();
-    g_game->volume2 = DAT_00512f42;
-    ((Class_004ce3e0*)g_game->sound)->FUN_004ce3e0(&DAT_00512f75);
-    g_game->field_37f16 = DAT_00512f48;
+    RestoreSoundOptions();
+    g_game->volume2 = g_optionsBackupMusicVolume;
+    ((Class_004ce3e0*)g_game->sound)->FUN_004ce3e0(&g_optionsBackupTrackTypes);
+    g_game->field_37f16 = g_optionsBackupCdMode;
     ((Class_004ce7a0*)g_game->sound)->SetPlaybackOrder(g_game->field_37f16);
-    if (((unsigned char)g_game->flags14 ^ (unsigned char)DAT_00512f46.i) & 1) {
+    if (((unsigned char)g_game->flags14 ^ (unsigned char)g_optionsBackupMusicMode.i) & 1) {
         ((Class_004cdb40*)g_game->sound)->PlayNextTrack();
     }
     unsigned short f = g_game->flags14;
-    g_game->flags14 = f ^ ((f ^ DAT_00512f46.i) & 1);
-    ((Class_004ce580*)g_game->sound)->FUN_004ce580(DAT_00512fd9);
+    g_game->flags14 = f ^ ((f ^ g_optionsBackupMusicMode.i) & 1);
+    ((Class_004ce580*)g_game->sound)->FUN_004ce580(g_optionsBackupLockedTrack);
     SetBrightness(0.5 - g_game->brightness * -0.041666668f);
     ((Class_004d0070*)g_game->sound)->SetWaveVolume(g_game->volume1 << 10);
     ((Class_004d00d0*)g_game->sound)->SetAuxVolume(g_game->volume2 << 10, 0);
-    g_game->field_37f23 = DAT_00512f55;
-    g_game->field_38a4b = DAT_00512f6d.i;
-    g_game->field_38a4d = DAT_00512f6d.i;
-    g_game->field_1434d = DAT_00512f71.i;
-    g_game->field_37efa = DAT_00512f2c;
-    g_game->field_37f17 = DAT_00512f49;
-    g_game->field_37f18 = DAT_00512f4a;
-    g_game->field_37f27 = DAT_00512f59;
-    FUN_0045cae0();
+    g_game->field_37f23 = g_optionsBackupTextScroll;
+    g_game->field_38a4b = g_optionsBackupGameSpeed.i;
+    g_game->field_38a4d = g_optionsBackupGameSpeed.i;
+    g_game->field_1434d = g_optionsBackupEdgeScroll.i;
+    g_game->field_37efa = g_optionsBackupInterfaceType;
+    g_game->field_37f17 = g_optionsBackupUnitChat;
+    g_game->field_37f18 = g_optionsBackupUnitChatText;
+    g_game->field_37f27 = g_optionsBackupTextLines;
+    RestoreVisualOptions();
 }
 
 // Saves the current game settings: copies the 0x53-byte block at
-// g_game+0x37ee6 into the settings block at DAT_00512f18, saves two game
+// g_game+0x37ee6 into the settings block at g_optionsPrefsSnapshot, saves two game
 // flags into bits 0 and 1 of that block's trailing word, then saves the
 // track number, the option byte, the current track index and the 100
 // track-name characters read from the object at g_game+0x10.
 // FUNCTION: 0x45cde0
 void SaveGameSettings()
 {
-    memcpy(DAT_00512f18.block, (char*)g_game + 0x37ee6, 0x53);
-    DAT_00512f18.bit0 = g_game->flags14281.bit1;
-    DAT_00512f18.bit1 = g_game->flags14281.bit2;
-    DAT_00512f6d.i = g_game->field_38a4b;
-    DAT_00512f71.i = g_game->field_1434d;
-    DAT_00512fd9 = ((Class_004ce5a0*)g_game->sound)->FUN_004ce5a0();
+    memcpy(g_optionsPrefsSnapshot.block, (char*)g_game + 0x37ee6, 0x53);
+    g_optionsPrefsSnapshot.bit0 = g_game->flags14281.bit1;
+    g_optionsPrefsSnapshot.bit1 = g_game->flags14281.bit2;
+    g_optionsBackupGameSpeed.i = g_game->field_38a4b;
+    g_optionsBackupEdgeScroll.i = g_game->field_1434d;
+    g_optionsBackupLockedTrack = ((Class_004ce5a0*)g_game->sound)->FUN_004ce5a0();
     for (int i = 0; i < 100; i++) {
-        DAT_00512f75[i] = ((Class_004ce7e0*)g_game->sound)->GetCategoryOfTrack(i);
+        g_optionsBackupTrackTypes[i] = ((Class_004ce7e0*)g_game->sound)->GetCategoryOfTrack(i);
     }
 }
 
@@ -1852,7 +1852,7 @@ void SaveGameSettings()
 // appended: type 0xb, x = 0x80, its width shrunk by x, height copied from the
 // table, named "PANEL", and the table's +0xc4 field copied into it.
 // FUNCTION: 0x45ce80
-void FUN_0045ce80()
+void EnsureOptionsPanelGadget()
 {
     Entry_0045b800* entries = g_game->menu.holder->entries;
     int index = FindGadgetIndex(entries, "PANEL", 0xe);
@@ -1880,7 +1880,7 @@ void FUN_0045ce80()
 }
 
 // FUNCTION: 0x45cf60
-void FUN_0045cf60()
+void BlitOptionsPanel()
 {
     if (g_game->bits_2a44.bits.bit2) {
         return;
@@ -1916,13 +1916,13 @@ int __cdecl OpenOptionsLayout()
 #pragma auto_inline(on)
 
 // FUNCTION: 0x45d0c0
-void FUN_0045d0c0()
+void TickMusicOptions()
 {
     char value[20];
     GetGadgetText(&g_game->gui, "TRACKNUM", value);
     int track = atoi(value);
     if (track != ((Sound*)g_game->sound)->GetCurrentTrack()) {
-        DAT_00512fe0 = ((Sound*)g_game->sound)->GetCurrentTrack();
+        g_musicUiSelectedTrack = ((Sound*)g_game->sound)->GetCurrentTrack();
         UpdateTrackGadgets();
         FUN_0049fa90((Dialog*)&g_game->gui);
     }
@@ -1960,83 +1960,83 @@ void __stdcall HandleMusicOptionsClick(Object_0045d280* obj)
     }
     FUN_0049fa90(obj);
     // Result kept in a local: testing the call directly is longer.
-    int notrak = IsCurrentGadgetNamed(obj, DAT_005067bc);
+    int notrak = IsCurrentGadgetNamed(obj, g_notrakGadgetName);
     if (notrak != 0) {              // "NOTRAK"
-        PlaySoundByName(DAT_00502b38, 0);
-        int v = GetButtonStageByName(obj, DAT_005067bc);
+        PlaySoundByName(g_optionsSoundName, 0);
+        int v = GetButtonStageByName(obj, g_notrakGadgetName);
         unsigned short f = g_game->flags_37f14.word;
         g_game->flags_37f14.word = f ^ ((f ^ v) & 1);
         ((Class_004cedc0*)g_game->sound)->EnableCdAudio(g_game->flags_37f14.word & 1);
         FUN_004ab0a0(obj);
         UpdateMusicGadgets();
-    } else if (IsCurrentGadgetNamed(obj, DAT_00506984)) {  // "TRACKMODE"
-        PlaySoundByName(DAT_00502b38, 0);
-        g_game->field_37f16 = GetButtonStageByName(obj, DAT_00506984) + 1;
+    } else if (IsCurrentGadgetNamed(obj, g_trackModeGadgetName)) {  // "TRACKMODE"
+        PlaySoundByName(g_optionsSoundName, 0);
+        g_game->field_37f16 = GetButtonStageByName(obj, g_trackModeGadgetName) + 1;
         ((Class_004ce7a0*)g_game->sound)->SetPlaybackOrder(g_game->field_37f16);
         if (g_game->field_37f16 == 3) {
-            DAT_00512fe0 = ((Class_004ce5a0*)g_game->sound)->FUN_004ce5a0();
+            g_musicUiSelectedTrack = ((Class_004ce5a0*)g_game->sound)->FUN_004ce5a0();
             FUN_004ab0a0(obj);
             UpdateTrackGadgets();
             return;
         }
         if (g_game->field_37f16 == 4) {
-            SetButtonStageByName(obj, DAT_0050692c, (unsigned char)((Class_004ce7e0*)g_game->sound)->GetCategoryOfTrack(DAT_00512fe0));
+            SetButtonStageByName(obj, g_trackTypeGadgetName, (unsigned char)((Class_004ce7e0*)g_game->sound)->GetCategoryOfTrack(g_musicUiSelectedTrack));
             ApplyTrackType();
         }
         FUN_004ab0a0(obj);
         UpdateTrackGadgets();
         return;
-    } else if (IsCurrentGadgetNamed(obj, DAT_0050692c)) {  // "TRACKTYPE"
-        PlaySoundByName(DAT_00502b38, 0);
+    } else if (IsCurrentGadgetNamed(obj, g_trackTypeGadgetName)) {  // "TRACKTYPE"
+        PlaySoundByName(g_optionsSoundName, 0);
         // Index with obj->field_60 itself, not the saved copy.
         int i = obj->field_60;
-        ((Class_004ce7c0*)g_game->sound)->SetCategoryOfTrack(DAT_00512fe0, entries[i].value);
+        ((Class_004ce7c0*)g_game->sound)->SetCategoryOfTrack(g_musicUiSelectedTrack, entries[i].value);
         UpdateTrackGadgets();
         FUN_004ab0a0(obj);
         return;
     }
-    if (IsCurrentGadgetNamed(obj, DAT_0050696c)) {      // "CDPLAY"
-        PlaySoundByName(DAT_00502b38, 0);
-        ((Sound*)g_game->sound)->PlayCdTrack(DAT_00512fe0, 1);
+    if (IsCurrentGadgetNamed(obj, g_cdPlayGadgetName)) {  // "CDPLAY"
+        PlaySoundByName(g_optionsSoundName, 0);
+        ((Sound*)g_game->sound)->PlayCdTrack(g_musicUiSelectedTrack, 1);
         FUN_004ab0a0(obj);
         return;
-    } else if (IsCurrentGadgetNamed(obj, DAT_00506964)) {  // "CDNEXT"
-        PlaySoundByName(DAT_00502b38, 0);
-        DAT_00512fe0 = DAT_00512fe0 + 1;
+    } else if (IsCurrentGadgetNamed(obj, g_cdNextGadgetName)) {  // "CDNEXT"
+        PlaySoundByName(g_optionsSoundName, 0);
+        g_musicUiSelectedTrack = g_musicUiSelectedTrack + 1;
         int n = ((Class_004ce450*)g_game->sound)->GetTrackCount();
-        if (DAT_00512fe0 > n)
-            DAT_00512fe0 = 1;
-        DAT_00512fe0 = ((Class_004ce8c0*)g_game->sound)->SelectTrack(DAT_00512fe0);
+        if (g_musicUiSelectedTrack > n)
+            g_musicUiSelectedTrack = 1;
+        g_musicUiSelectedTrack = ((Class_004ce8c0*)g_game->sound)->SelectTrack(g_musicUiSelectedTrack);
         UpdateTrackGadgets();
         FUN_004ab0a0(obj);
         return;
-    } else if (IsCurrentGadgetNamed(obj, DAT_0050697c)) {  // "CDPREV"
-        PlaySoundByName(DAT_00502b38, 0);
-        DAT_00512fe0 = DAT_00512fe0 - 1;
-        if (DAT_00512fe0 < 1)
-            DAT_00512fe0 = ((Class_004ce450*)g_game->sound)->GetTrackCount();
-        DAT_00512fe0 = ((Class_004ce8c0*)g_game->sound)->SelectTrack(DAT_00512fe0);
+    } else if (IsCurrentGadgetNamed(obj, g_cdPrevGadgetName)) {  // "CDPREV"
+        PlaySoundByName(g_optionsSoundName, 0);
+        g_musicUiSelectedTrack = g_musicUiSelectedTrack - 1;
+        if (g_musicUiSelectedTrack < 1)
+            g_musicUiSelectedTrack = ((Class_004ce450*)g_game->sound)->GetTrackCount();
+        g_musicUiSelectedTrack = ((Class_004ce8c0*)g_game->sound)->SelectTrack(g_musicUiSelectedTrack);
         UpdateTrackGadgets();
         FUN_004ab0a0(obj);
         return;
-    } else if (IsCurrentGadgetNamed(obj, DAT_00506974)) {  // "CDSTOP"
-        PlaySoundByName(DAT_00502b38, 0);
+    } else if (IsCurrentGadgetNamed(obj, g_cdStopGadgetName)) {  // "CDSTOP"
+        PlaySoundByName(g_optionsSoundName, 0);
         ((Class_004ced40*)g_game->sound)->StopCdAudio();
-        DAT_00512fe0 = ((Class_004ce8c0*)g_game->sound)->SelectTrack(1);
+        g_musicUiSelectedTrack = ((Class_004ce8c0*)g_game->sound)->SelectTrack(1);
         UpdateTrackGadgets();
         FUN_004ab0a0(obj);
         return;
     }
-    if (IsCurrentGadgetNamed(obj, DAT_00506998)) {      // "UNDO"
-        PlaySoundByName(DAT_00502b38, 0);
+    if (IsCurrentGadgetNamed(obj, g_undoGadgetName)) {  // "UNDO"
+        PlaySoundByName(g_optionsSoundName, 0);
         LoadSavedAudioSettings();
         CloseTopScreen(obj);
         OpenMusicOptions();
         return;
     }
-    if (IsCurrentGadgetNamed(obj, DAT_00506990)) {      // "RESTORE"
-        PlaySoundByName(DAT_00502b38, 0);
-        FUN_0045c630();
+    if (IsCurrentGadgetNamed(obj, g_restoreGadgetName)) {  // "RESTORE"
+        PlaySoundByName(g_optionsSoundName, 0);
+        ApplyDefaultMusicOptions();
         CloseTopScreen(obj);
         OpenMusicOptions();
         return;
@@ -2059,7 +2059,7 @@ void OpenMusicOptions()
 {
     Object_0045d7c0* obj = (Object_0045d7c0*)OpenOptionsLayout();
     RenderLayer(&g_game->gui, 2);
-    FUN_0045ce80();
+    EnsureOptionsPanelGadget();
     if (g_game->flags_37ebe.byte & 1) {
         LoadGuiLayer(&g_game->gui, "MUSICRT.GUI", 0x280);
     } else {
@@ -2068,7 +2068,7 @@ void OpenMusicOptions()
     }
     obj->callback8 = HandleMusicOptionsClick;
     FUN_0049fa50(&g_game->gui);
-    obj->callback1c = FUN_0045d0c0;
+    obj->callback1c = TickMusicOptions;
     SetGadgetStatusByName(&g_game->gui, "MUSIC", 1);
     if (FindGadgetIndex(obj->gadgets, "MUSICVOL", 0xe) != -1) {
         Entry_0045d7c0* e = FUN_004a0200(obj->gadgets, "MUSICVOL");
@@ -2087,13 +2087,13 @@ void OpenMusicOptions()
     }
     UpdateMusicGadgets();
     if (g_game->field_37f16 == 3) {
-        DAT_00512fe0 = ((Class_004ce5a0*)g_game->sound)->FUN_004ce5a0();
+        g_musicUiSelectedTrack = ((Class_004ce5a0*)g_game->sound)->FUN_004ce5a0();
     }
     UpdateTrackGadgets();
     Gadget_0045d7c0* gadgets = ((Holder_0045d7c0*)g_game->gui.holder)->gadgets;
     if (g_game->field_37f16 == 4) {
         int index = FindGadgetIndex(gadgets, "TRACKTYPE", 1);
-        ((Class_004ce7c0*)g_game->sound)->SetCategoryOfTrack(DAT_00512fe0, gadgets[index].value);
+        ((Class_004ce7c0*)g_game->sound)->SetCategoryOfTrack(g_musicUiSelectedTrack, gadgets[index].value);
     }
     FUN_0049fa90(&g_game->gui);
     FUN_0049fb10(&g_game->gui, 1);
@@ -2104,11 +2104,11 @@ void OpenMusicOptions()
 // FUNCTION: 0x45d9d0
 void UpdateSoundGadgets()
 {
-    SetButtonStageByName((Class_004a1080*)&g_game->gui, DAT_005069d0, g_game->soundFlags.byte & 7);
-    FUN_004a0570((Object_004a0570*)&g_game->gui, DAT_005069c8, (g_game->soundFlags.byte & 7) != 0);
-    FUN_004a1450((Object_004a1450*)&g_game->gui, DAT_00506884, (g_game->soundFlags.byte & 7) == 0);
-    FUN_004a1450((Object_004a1450*)&g_game->gui, DAT_005069c0, (g_game->soundFlags.byte & 7) == 0);
-    FUN_004a1450((Object_004a1450*)&g_game->gui, DAT_005069b8, (g_game->soundFlags.byte & 7) == 0);
+    SetButtonStageByName((Class_004a1080*)&g_game->gui, g_modeGadgetName, g_game->soundFlags.byte & 7);
+    FUN_004a0570((Object_004a0570*)&g_game->gui, g_volTextGadgetName, (g_game->soundFlags.byte & 7) != 0);
+    FUN_004a1450((Object_004a1450*)&g_game->gui, g_fxVolGadgetName, (g_game->soundFlags.byte & 7) == 0);
+    FUN_004a1450((Object_004a1450*)&g_game->gui, g_testGadgetName, (g_game->soundFlags.byte & 7) == 0);
+    FUN_004a1450((Object_004a1450*)&g_game->gui, g_speechGadgetName, (g_game->soundFlags.byte & 7) == 0);
 }
 
 // FUNCTION: 0x45da90
@@ -2121,13 +2121,13 @@ void __stdcall HandleSoundOptionsClick(Object_0045da90* obj)
     }
     FUN_0049fa90(obj);
     int mode = obj->field_60;
-    if (IsCurrentGadgetNamed(obj, DAT_005069b8)) {
-        PlaySoundByName(DAT_00502b38, 0);
+    if (IsCurrentGadgetNamed(obj, g_speechGadgetName)) {
+        PlaySoundByName(g_optionsSoundName, 0);
         g_game->soundFlags.bits.speech = entries[obj->field_60].value != 0;
         g_game->field_37f17 = entries[obj->field_60].value * 5;
         FUN_004ab0a0(obj);
-    } else if (IsCurrentGadgetNamed(obj, DAT_005069d0)) {
-        int v = GetButtonStageByName(obj, DAT_005069d0);
+    } else if (IsCurrentGadgetNamed(obj, g_modeGadgetName)) {
+        int v = GetButtonStageByName(obj, g_modeGadgetName);
         unsigned short f = g_game->soundFlags.word;
         g_game->soundFlags.word = f ^ ((f ^ v) & 7);
         if ((g_game->soundFlags.word & 7) == 0)
@@ -2137,24 +2137,24 @@ void __stdcall HandleSoundOptionsClick(Object_0045da90* obj)
         else
             ((Sound*)g_game->sound)->Disable3D();
         if ((g_game->soundFlags.word & 7) == 1 && !g_game->bits_2a44.prefsWord.prefs)
-            PlayLoopingSoundByName(DAT_005031d4, 0);
-        SetButtonStageByName(&g_game->gui, DAT_005069d0, g_game->soundFlags.word & 7);
-        FUN_004a0570(&g_game->gui, DAT_005069c8, (g_game->soundFlags.word & 7) != 0);
-        FUN_004a1450(&g_game->gui, DAT_00506884, (g_game->soundFlags.word & 7) == 0);
-        FUN_004a1450(&g_game->gui, DAT_005069c0, (g_game->soundFlags.word & 7) == 0);
-        FUN_004a1450(&g_game->gui, DAT_005069b8, (g_game->soundFlags.word & 7) == 0);
+            PlayLoopingSoundByName(g_bgmSoundName, 0);
+        SetButtonStageByName(&g_game->gui, g_modeGadgetName, g_game->soundFlags.word & 7);
+        FUN_004a0570(&g_game->gui, g_volTextGadgetName, (g_game->soundFlags.word & 7) != 0);
+        FUN_004a1450(&g_game->gui, g_fxVolGadgetName, (g_game->soundFlags.word & 7) == 0);
+        FUN_004a1450(&g_game->gui, g_testGadgetName, (g_game->soundFlags.word & 7) == 0);
+        FUN_004a1450(&g_game->gui, g_speechGadgetName, (g_game->soundFlags.word & 7) == 0);
         FUN_004ab0a0(obj);
-        PlaySoundByName(DAT_00502b38, 0);
+        PlaySoundByName(g_optionsSoundName, 0);
         return;
     }
-    if (IsCurrentGadgetNamed(obj, DAT_00506998)) {
-        FUN_0045c820();
+    if (IsCurrentGadgetNamed(obj, g_undoGadgetName)) {
+        RestoreSoundOptions();
         CloseTopScreen(obj);
         OpenSoundOptions();
-        PlaySoundByName(DAT_00502b38, 0);
+        PlaySoundByName(g_optionsSoundName, 0);
         return;
     }
-    if (IsCurrentGadgetNamed(obj, DAT_00506990)) {
+    if (IsCurrentGadgetNamed(obj, g_restoreGadgetName)) {
         g_game->volume1 = 0x1b;
         g_game->soundFlags.bits.b4 = 1;
         g_game->soundFlags.bits.b5 = 1;
@@ -2167,11 +2167,11 @@ void __stdcall HandleSoundOptionsClick(Object_0045da90* obj)
         ((Class_004d00d0*)g_game->sound)->SetAuxVolume(g_game->volume2 << 10, 0);
         CloseTopScreen(obj);
         OpenSoundOptions();
-        PlaySoundByName(DAT_00502b38, 0);
+        PlaySoundByName(g_optionsSoundName, 0);
         return;
     }
-    if (IsCurrentGadgetNamed(obj, DAT_005069c0)) {
-        PlaySoundFile(DAT_005069d8);
+    if (IsCurrentGadgetNamed(obj, g_testGadgetName)) {
+        PlaySoundFile(g_explodeSoundFile);
         FUN_004ab0a0(obj);
         return;
     }
@@ -2192,7 +2192,7 @@ void OpenSoundOptions()
 {
     Object_0045de30* obj = (Object_0045de30*)OpenOptionsLayout();
     RenderLayer(&g_game->gui, 2);
-    FUN_0045ce80();
+    EnsureOptionsPanelGadget();
     if (g_game->flags_37ebe.byte & 1) {
         LoadGuiLayer(&g_game->gui, "SOUNDSRT.GUI", 0x200);
     } else {
@@ -2291,7 +2291,7 @@ void __stdcall HandleVisualOptionsClick(Gui_0045e100* gui)
 
     if (IsCurrentGadgetNamed(gui, "UNDO")) {
         PlaySoundByName("Options", 0);
-        FUN_0045cae0();
+        RestoreVisualOptions();
         CloseTopScreen(gui);
         OpenVisualOptions(0);
         return;
@@ -2376,7 +2376,7 @@ void __stdcall OpenVisualOptions(int param_1)
     } else {
         layer = (Layer_0045e5e0*)OpenOptionsLayout();
         RenderLayer(&g_game->gui, 2);
-        FUN_0045ce80();
+        EnsureOptionsPanelGadget();
         if (g_game->flags_37ebe.byte & 1) {
             LoadGuiLayer(&g_game->gui, "VISUALRT.GUI", 0x200);
         } else {
@@ -2475,7 +2475,7 @@ void __stdcall OpenVisualOptions(int param_1)
 }
 
 // FUNCTION: 0x45ead0
-void __stdcall FUN_0045ead0(Gadget_0045ead0* gadget)
+void __stdcall HandleSpeedOptionsClick(Gadget_0045ead0* gadget)
 {
     char* data = gadget->link->data;
     if (gadget->field_60 == -1) {
@@ -2496,14 +2496,14 @@ void __stdcall FUN_0045ead0(Gadget_0045ead0* gadget)
     }
     if (IsCurrentGadgetNamed(gadget, "UNDO")) {
         PlaySoundByName("Options", 0);
-        g_game->field_37f23 = DAT_00512f55;
-        g_game->field_38a4b = DAT_00512f6d.s;
-        g_game->field_38a4d = DAT_00512f6d.s;
-        g_game->field_1434d = DAT_00512f71.b;
-        g_game->field_37efa = DAT_00512f2c;
-        g_game->field_37f17 = DAT_00512f49;
-        g_game->field_37f18 = DAT_00512f4a;
-        g_game->field_37f27 = DAT_00512f59;
+        g_game->field_37f23 = g_optionsBackupTextScroll;
+        g_game->field_38a4b = g_optionsBackupGameSpeed.s;
+        g_game->field_38a4d = g_optionsBackupGameSpeed.s;
+        g_game->field_1434d = g_optionsBackupEdgeScroll.b;
+        g_game->field_37efa = g_optionsBackupInterfaceType;
+        g_game->field_37f17 = g_optionsBackupUnitChat;
+        g_game->field_37f18 = g_optionsBackupUnitChatText;
+        g_game->field_37f27 = g_optionsBackupTextLines;
         CloseTopScreen(gadget);
         OpenSpeedOptions();
         return;
@@ -2542,14 +2542,14 @@ void OpenSpeedOptions()
 {
     Object_0045ed50* obj = (Object_0045ed50*)OpenOptionsLayout();
     RenderLayer(&g_game->gui, 2);
-    FUN_0045ce80();
+    EnsureOptionsPanelGadget();
     if (g_game->flags_37ebe.byte & 1) {
         LoadGuiLayer(&g_game->gui, "SPEEDSRT.GUI", 0x200);
     } else {
         LoadGuiLayer(&g_game->gui, "SPEEDS.GUI", 0x200);
         LoadPictureCached("optinterface4x", 0, 0, 0);
     }
-    obj->fn = FUN_0045ead0;
+    obj->fn = HandleSpeedOptionsClick;
     FUN_0049fa50(&g_game->gui);
     int found = FindGadgetIndex(obj->entries, "GAME", 0xe);
     SetGadgetStatusByName(&g_game->gui, "SPEEDS", 1);
@@ -2624,7 +2624,7 @@ void OpenSpeedOptions()
 }
 
 // FUNCTION: 0x45f190
-void __stdcall FUN_0045f190(Gadget_0045f190* gadget)
+void __stdcall HandleGameSettingsDialogClick(Gadget_0045f190* gadget)
 {
     if (gadget->field_60 != -1) {
         if (IsCurrentGadgetNamed(gadget, "OK")) {
@@ -2636,13 +2636,13 @@ void __stdcall FUN_0045f190(Gadget_0045f190* gadget)
 }
 
 // FUNCTION: 0x45f1d0
-void FUN_0045f1d0()
+void ShowGameSettingsDialog()
 {
 
 
     Layer_0045f1d0* layer = LoadGuiLayer((Layer_0045f1d0*)&g_game->gui, "GAMEOPTIONS.GUI", 0x1881);
     Entry_0045f1d0* entries = layer->entries;
-    layer->handler = FUN_0045f190;
+    layer->handler = HandleGameSettingsDialogClick;
     LoadPictureCached("GameSettings", 0, 0, 0);
     int count = layer->entries->u.count;
     // Mask in its own statement, and compute opts before rule: keeps the
@@ -2784,7 +2784,7 @@ static inline void AddLine(Page_0045f8c0* page, Layer_0045f8c0* layer, char* val
 void __stdcall FillHelpPage(Sub_0045f8c0* sub, int page, int lineCount)
 {
     Layer_0045f8c0* layer = sub->layer;
-    ((Table_0045f8c0*)layer->entries)->count = DAT_00512ef0;
+    ((Table_0045f8c0*)layer->entries)->count = g_helpDialogBaseGadgetCount;
     TdfFile parser;
     char path[256];
     char key[12];
@@ -2843,14 +2843,14 @@ void OpenHelpDialog()
     Gadget_0045fb30* g = LoadGuiLayer((Sub_0045fb30*)&g_game->gui, "HELP.GUI", 0x1881);
     g->handler = HandleHelpClick;
     LoadPictureCached("dhelp", 0, 0, 0);
-    DAT_00512ef0 = g->info->field_b6;
+    g_helpDialogBaseGadgetCount = g->info->field_b6;
     FillHelpPage((Sub_0045fb30*)&g_game->gui, 0, 0x11);
     FUN_0049fb10((Sub_0045fb30*)&g_game->gui, 1);
     RenderLayer((Sub_0045fb30*)&g_game->gui, 0x40);
 }
 
 // FUNCTION: 0x45fbc0
-void FUN_0045fbc0()
+void ClearScreenWithHudPalette()
 {
     Surface_0045fbc0 screen;
     unsigned char palette[0x400];
@@ -2866,7 +2866,7 @@ void FUN_0045fbc0()
 }
 
 // FUNCTION: 0x45fc40
-void FUN_0045fc40()
+void CloseOptionsPanel()
 {
     g_game->flags_37ebe.word &= 0xfffe;
     g_game->field_2bc0 = 3;
@@ -2875,7 +2875,7 @@ void FUN_0045fc40()
 // FUNCTION: 0x45fc60
 void __stdcall HandleOptionsPanelClick(Gadget_0045fc60* gadget)
 {
-    // goto, not a return: the label after the DAT_00506788 = 0 store keeps the
+    // goto, not a return: the label after the g_optionsShellClosing = 0 store keeps the
     // teardown tail shared.
     if (gadget->field_60 == -1)
         goto cleanup;
@@ -2902,34 +2902,34 @@ void __stdcall HandleOptionsPanelClick(Gadget_0045fc60* gadget)
         } else if (IsCurrentGadgetNamed(gadget, "PREV")) {
             PlaySoundByName("Options", 0);
             SaveSettings();
-            DAT_00506788 = 1;
+            g_optionsShellClosing = 1;
             return;
         } else if (IsCurrentGadgetNamed(gadget, "CANCEL")) {
             PlaySoundByName("Previous", 0);
-            FUN_0045c820();
-            g_game->volume2 = DAT_00512f42;
-            ((Class_004ce3e0*)g_game->sound)->FUN_004ce3e0(&DAT_00512f75);
-            g_game->field_37f16 = DAT_00512f48;
+            RestoreSoundOptions();
+            g_game->volume2 = g_optionsBackupMusicVolume;
+            ((Class_004ce3e0*)g_game->sound)->FUN_004ce3e0(&g_optionsBackupTrackTypes);
+            g_game->field_37f16 = g_optionsBackupCdMode;
             ((Class_004ce7a0*)g_game->sound)->SetPlaybackOrder(g_game->field_37f16);
-            if (((unsigned char)g_game->flags_37f14.word ^ (unsigned char)DAT_00512f46.s) & 1) {
+            if (((unsigned char)g_game->flags_37f14.word ^ (unsigned char)g_optionsBackupMusicMode.s) & 1) {
                 ((Class_004cdb40*)g_game->sound)->PlayNextTrack();
             }
             unsigned short f = g_game->flags_37f14.word;
-            g_game->flags_37f14.word = f ^ ((f ^ DAT_00512f46.s) & 1);
-            ((Class_004ce580*)g_game->sound)->FUN_004ce580(DAT_00512fd9);
+            g_game->flags_37f14.word = f ^ ((f ^ g_optionsBackupMusicMode.s) & 1);
+            ((Class_004ce580*)g_game->sound)->FUN_004ce580(g_optionsBackupLockedTrack);
             SetBrightness(0.5 - g_game->brightness * -0.041666668f);
             ((Class_004d0070*)g_game->sound)->SetWaveVolume(g_game->volume1 << 10);
             ((Class_004d00d0*)g_game->sound)->SetAuxVolume(g_game->volume2 << 10, 0);
-            g_game->field_37f23 = DAT_00512f55;
-            g_game->field_38a4b = DAT_00512f6d.i;
-            g_game->field_38a4d = DAT_00512f6d.i;
-            g_game->field_1434d = DAT_00512f71.b;
-            g_game->field_37efa = DAT_00512f2c;
-            g_game->field_37f17 = DAT_00512f49;
-            g_game->field_37f18 = DAT_00512f4a;
-            g_game->field_37f27 = DAT_00512f59;
-            FUN_0045cae0();
-            DAT_00506788 = 1;
+            g_game->field_37f23 = g_optionsBackupTextScroll;
+            g_game->field_38a4b = g_optionsBackupGameSpeed.i;
+            g_game->field_38a4d = g_optionsBackupGameSpeed.i;
+            g_game->field_1434d = g_optionsBackupEdgeScroll.b;
+            g_game->field_37efa = g_optionsBackupInterfaceType;
+            g_game->field_37f17 = g_optionsBackupUnitChat;
+            g_game->field_37f18 = g_optionsBackupUnitChatText;
+            g_game->field_37f27 = g_optionsBackupTextLines;
+            RestoreVisualOptions();
+            g_optionsShellClosing = 1;
             return;
         } else if (IsCurrentGadgetNamed(gadget, "SOUND")) {
             PlaySoundByName("Options", 0);
@@ -2939,18 +2939,18 @@ void __stdcall HandleOptionsPanelClick(Gadget_0045fc60* gadget)
                 FUN_004ab0a0(gadget);
             return;
         }
-        DAT_00506788 = 0;
+        g_optionsShellClosing = 0;
 cleanup:
-        if (DAT_00512ff4) {
-            DrawSurface(0, DAT_00512ff4, 0, 0);
-            FreeSurface(DAT_00512ff4);
-            DAT_00512ff4 = 0;
+        if (g_optionsBackupSurface) {
+            DrawSurface(0, g_optionsBackupSurface, 0, 0);
+            FreeSurface(g_optionsBackupSurface);
+            g_optionsBackupSurface = 0;
         }
-        if (DAT_00512fe8) {
-            FreeSurface(DAT_00512fe8);
-            DAT_00512fe8 = 0;
+        if (g_optionsFlipSurface) {
+            FreeSurface(g_optionsFlipSurface);
+            g_optionsFlipSurface = 0;
         }
-        DAT_00512fe4 = 0;
+        g_optionsShellActive = 0;
         return;
     }
 }
@@ -2958,28 +2958,28 @@ cleanup:
 // FUNCTION: 0x45ffb0
 void __stdcall DrawOptionsScrollBar(void* surf)
 {
-    if (DAT_00512fe4) {
-        if (DAT_00512fec < 0x115) {
-            int old = DAT_00512fec;
-            DAT_00512fec += 0x15;
-            if (DAT_00512fec >= 0x115) {
+    if (g_optionsShellActive) {
+        if (g_optionsLightbarX < 0x115) {
+            int old = g_optionsLightbarX;
+            g_optionsLightbarX += 0x15;
+            if (g_optionsLightbarX >= 0x115) {
                 PlaySoundByName("Options", 0);
-                DAT_00512fec = 0x115;
+                g_optionsLightbarX = 0x115;
             }
-            if (DAT_00512fec > DAT_00512f14 && old < DAT_00512f14) {
+            if (g_optionsLightbarX > g_optionsLightbarMaxX && old < g_optionsLightbarMaxX) {
                 void* snd = FindGafEntry(g_game->gui.logos32, "LIGHTBAR");
                 Sound_45ffb0* s = (Sound_45ffb0*)GetGafFrame(snd, 2);
-                DrawFrame((int)DAT_00512fe8, s, s->start, s->end);
+                DrawFrame((int)g_optionsFlipSurface, s, s->start, s->end);
             }
         }
         // Test with `<` so the increase is the fallthrough, and use the global
         // directly, not a local: keeps the load before the branch.
-        if (DAT_00512fec < DAT_00512f14) {
-            DAT_00512ff0 += 6;
+        if (g_optionsLightbarX < g_optionsLightbarMaxX) {
+            g_optionsLightbarAnim += 6;
         } else {
-            DAT_00512ff0 -= 6;
-            if (DAT_00512ff0 < 0)
-                DAT_00512ff0 = 0;
+            g_optionsLightbarAnim -= 6;
+            if (g_optionsLightbarAnim < 0)
+                g_optionsLightbarAnim = 0;
         }
         Quad_45ffb0 src;
         src.p[0].x = 1;
@@ -2987,30 +2987,30 @@ void __stdcall DrawOptionsScrollBar(void* surf)
         src.p[3].x = 1;
         src.p[1].y = 1;
         Quad_45ffb0 dst;
-        if (DAT_00512fec > DAT_00512f14) {
-            if (DAT_00512fec < 0x115)
-                DAT_00512fec++;
-            dst.p[1].x = DAT_00512fec;
-            dst.p[2].x = DAT_00512fec;
-            dst.p[3].x = DAT_00512f14;
-            dst.p[0].x = DAT_00512f14;
-            dst.p[0].y = DAT_00512f10;
-            dst.p[1].y = DAT_00512f10 - DAT_00512ff0;
+        if (g_optionsLightbarX > g_optionsLightbarMaxX) {
+            if (g_optionsLightbarX < 0x115)
+                g_optionsLightbarX++;
+            dst.p[1].x = g_optionsLightbarX;
+            dst.p[2].x = g_optionsLightbarX;
+            dst.p[3].x = g_optionsLightbarMaxX;
+            dst.p[0].x = g_optionsLightbarMaxX;
+            dst.p[0].y = g_optionsLightbarY;
+            dst.p[1].y = g_optionsLightbarY - g_optionsLightbarAnim;
         } else {
-            dst.p[3].x = DAT_00512fec;
-            dst.p[0].x = DAT_00512fec;
+            dst.p[3].x = g_optionsLightbarX;
+            dst.p[0].x = g_optionsLightbarX;
             dst.p[1].x = 127;
             dst.p[2].x = 127;
-            dst.p[0].y = DAT_00512f10 - DAT_00512ff0;
-            dst.p[1].y = DAT_00512f10;
+            dst.p[0].y = g_optionsLightbarY - g_optionsLightbarAnim;
+            dst.p[1].y = g_optionsLightbarY;
         }
         dst.p[2].y = 479;
         dst.p[3].y = 479;
-        src.p[1].x = DAT_00512ef8.w - 1;
-        src.p[2].x = DAT_00512ef8.w - 1;
-        src.p[2].y = DAT_00512ef8.h - 1;
-        src.p[3].y = DAT_00512ef8.h - 1;
-        DrawFrameQuad(surf, &DAT_00512ef8, &dst, &src);
+        src.p[1].x = g_optionsFlipFrame.w - 1;
+        src.p[2].x = g_optionsFlipFrame.w - 1;
+        src.p[2].y = g_optionsFlipFrame.h - 1;
+        src.p[3].y = g_optionsFlipFrame.h - 1;
+        DrawFrameQuad(surf, &g_optionsFlipFrame, &dst, &src);
         FUN_0049fa90((char*)&g_game->gui);
         g_game->flags_142f1 |= 2;
         g_game->field_37e98 = 1;
@@ -3025,30 +3025,30 @@ void OpenOptionsPanel()
         BlankScreen();
     }
     // Re-read holder->field_4 at every use; do not cache it in a local.
-    DAT_00512fe8 = AllocSurface("FLIPSURFACE", holder->field_4->field_17, holder->field_4->field_19);
-    memcpy(DAT_00512fe8->pixels, holder->field_4->field_bc->pixels,
+    g_optionsFlipSurface = AllocSurface("FLIPSURFACE", holder->field_4->field_17, holder->field_4->field_19);
+    memcpy(g_optionsFlipSurface->pixels, holder->field_4->field_bc->pixels,
            holder->field_4->field_17 * holder->field_4->field_19);
-    FrameFromSurface((Dst_004b8ae0*)&DAT_00512ef8, DAT_00512fe8);
-    DAT_00512fec = 0;
-    DAT_00512f14 = holder->field_4->field_17 - 1;
-    DAT_00512f10 = holder->field_4->field_15;
-    DAT_00512fe4 = 1;
-    DAT_00512ff4 = AllocSurface("BKUPSURFACE", 300, 480);
-    DrawSurface(DAT_00512ff4, 0, 0, 0);
-    DAT_00512ff0 = 0;
+    FrameFromSurface((Dst_004b8ae0*)&g_optionsFlipFrame, g_optionsFlipSurface);
+    g_optionsLightbarX = 0;
+    g_optionsLightbarMaxX = holder->field_4->field_17 - 1;
+    g_optionsLightbarY = holder->field_4->field_15;
+    g_optionsShellActive = 1;
+    g_optionsBackupSurface = AllocSurface("BKUPSURFACE", 300, 480);
+    DrawSurface(g_optionsBackupSurface, 0, 0, 0);
+    g_optionsLightbarAnim = 0;
     Layer_00460160* panel = (Layer_00460160*)OpenOptionsLayout();
     if (!g_game->bits_2a44.bits.bit2) {
         LoadPictureCached("options4x", 0, 0, 0);
     }
     panel->handler = HandleOptionsPanelClick;
-    memcpy(DAT_00512f18.block, (char*)g_game + 0x37ee6, 0x53);
-    DAT_00512f18.bit0 = g_game->los.bits.bit1;
-    DAT_00512f18.bit1 = g_game->los.bits.bit2;
-    DAT_00512f6d.i = g_game->field_38a4b;
-    DAT_00512f71.i = g_game->field_1434d;
-    DAT_00512fd9 = ((Class_004ce5a0*)g_game->sound)->FUN_004ce5a0();
+    memcpy(g_optionsPrefsSnapshot.block, (char*)g_game + 0x37ee6, 0x53);
+    g_optionsPrefsSnapshot.bit0 = g_game->los.bits.bit1;
+    g_optionsPrefsSnapshot.bit1 = g_game->los.bits.bit2;
+    g_optionsBackupGameSpeed.i = g_game->field_38a4b;
+    g_optionsBackupEdgeScroll.i = g_game->field_1434d;
+    g_optionsBackupLockedTrack = ((Class_004ce5a0*)g_game->sound)->FUN_004ce5a0();
     for (int i = 0; i < 100; i++) {
-        DAT_00512f75[i] = ((Class_004ce7e0*)g_game->sound)->GetCategoryOfTrack(i);
+        g_optionsBackupTrackTypes[i] = ((Class_004ce7e0*)g_game->sound)->GetCategoryOfTrack(i);
     }
     FUN_0049fb10((Menu_00460160*)&g_game->gui, 1);
     RenderLayer((Menu_00460160*)&g_game->gui, 0xc0);
@@ -3136,7 +3136,7 @@ void __stdcall HandleSurrenderChoice(Gadget_004605c0* gadget)
     PlaySoundByName("Exit", 0);
     if (IsGadgetNamed(owner, gadget->field_60, "CHOICE1")) {
         ((Sound*)g_game->sound)->SetTrackCategory(4);
-        switch (DAT_00512ff8) {
+        switch (g_battleQuitIntent) {
         case 0:
         case 1:
             FUN_00491b60();
@@ -3173,9 +3173,9 @@ void OpenSurrenderDialog()
     strcpy(entries + 0xdc, "CHOICE2");
     FUN_004a0bf0((Sub_00460680*)&g_game->gui, "CHOICE1", "Yes", 0);
     FUN_004a0bf0((Sub_00460680*)&g_game->gui, "CHOICE2", "No", 0);
-    if (DAT_00512ff8 == 0) {
+    if (g_battleQuitIntent == 0) {
         FUN_004a0bf0((Sub_00460680*)&g_game->gui, "TITLE", "Surrender this battle and return to main menu?", 0);
-    } else if (DAT_00512ff8 == 2) {
+    } else if (g_battleQuitIntent == 2) {
         const char* title = g_game->flags_2bee.flag4 ? "Exit the Battle"
                                                 : "Surrender this battle and exit to Windows?";
         FUN_004a0bf0((Sub_00460680*)&g_game->gui, "TITLE", title, 0);
@@ -3191,13 +3191,13 @@ void __stdcall HandleExitMenuClick(Gadget_00460800* gadget)
     if (gadget->field_60 != -1) {
         PlaySoundByName("Options", 0);
         if (IsCurrentGadgetNamed(gadget, "MAINMENU")) {
-            DAT_00512ff8 = 0;
+            g_battleQuitIntent = 0;
             CloseTopScreen(gadget);
             OpenSurrenderDialog();
             return;
         }
         if (IsCurrentGadgetNamed(gadget, "EXITGAME")) {
-            DAT_00512ff8 = 2;
+            g_battleQuitIntent = 2;
             CloseTopScreen(gadget);
             OpenSurrenderDialog();
             return;
@@ -3241,9 +3241,9 @@ tail:
 }
 
 // FUNCTION: 0x4609a0
-void __cdecl FUN_004609a0(int)
+void __cdecl HandleBattleQuitPrompt(int)
 {
-    DAT_00512ff8 = 2;
+    g_battleQuitIntent = 2;
     OpenSurrenderDialog();
 }
 
@@ -3252,14 +3252,14 @@ void __stdcall HandleInGameOptionsClick(Gadget_004609b0* gadget)
 {
     if (gadget->field_60 == -1) {
         FUN_0049fa70((Sub_004609b0*)&g_game->gui);
-        DAT_00512fe4 = 0;
-        if (DAT_00512fe8) {
-            FreeSurface(DAT_00512fe8);
-            DAT_00512fe8 = 0;
+        g_optionsShellActive = 0;
+        if (g_optionsFlipSurface) {
+            FreeSurface(g_optionsFlipSurface);
+            g_optionsFlipSurface = 0;
         }
-        if (DAT_00512ff4) {
-            FreeSurface(DAT_00512ff4);
-            DAT_00512ff4 = 0;
+        if (g_optionsBackupSurface) {
+            FreeSurface(g_optionsBackupSurface);
+            g_optionsBackupSurface = 0;
         }
         if (g_game->bits_2a44.byte & 4) {
             if (g_game->mode->GetGameType() != 3)
@@ -3289,7 +3289,7 @@ void __stdcall HandleInGameOptionsClick(Gadget_004609b0* gadget)
         Info_004609b0* g = LoadGuiLayer((Sub_004609b0*)&g_game->gui, "HELP.GUI", 0x1881);
         g->handler = HandleHelpClick;
         LoadPictureCached("dhelp", 0, 0, 0);
-        DAT_00512ef0 = g->info->count;
+        g_helpDialogBaseGadgetCount = g->info->count;
         FillHelpPage((Sub_004609b0*)&g_game->gui, 0, 0x11);
         FUN_0049fb10((Sub_004609b0*)&g_game->gui, 1);
         RenderLayer((Sub_004609b0*)&g_game->gui, 0x40);
@@ -3314,7 +3314,7 @@ void __stdcall HandleInGameOptionsClick(Gadget_004609b0* gadget)
             RenderLayer((Sub_004609b0*)&g_game->gui, 0x40);
             return;
         }
-        FUN_0045f1d0();
+        ShowGameSettingsDialog();
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "EXIT")) {

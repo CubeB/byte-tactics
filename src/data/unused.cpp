@@ -76,11 +76,11 @@ OptionChoice DAT_00506738[7] = {
 };
 
 // The CD music modes, by their names in the game's settings; 0x45d130 and
-// 0x45d280 use the first one's string, DAT_005067bc, themselves.
-extern char DAT_005067bc[8];
+// 0x45d280 use the first one's string, g_notrakGadgetName, themselves.
+extern char g_notrakGadgetName[8];
 
 // GLOBAL: 0x506770
-const char* DAT_00506770[6] = {DAT_005067bc, "NORMTRAK", "RANDTRAK", "REPTTRAK", "SPECTRAK", 0};
+const char* DAT_00506770[6] = {g_notrakGadgetName, "NORMTRAK", "RANDTRAK", "REPTTRAK", "SPECTRAK", 0};
 
 // The wave formats a sound device may support: its WAVEOUTCAPS.dwFormats bit
 // (WAVE_FORMAT_1M08 and the rest), a description, and the format itself,

@@ -42,9 +42,9 @@ bool __cdecl FUN_004da0e0(const char* arg);
 void __stdcall FUN_0045b670(char* param_1);
 void __stdcall SetBypassDriveScan(int val);
 void __stdcall SetCommandLineUnusedFlagL(int val);
-void __stdcall FUN_0045b820(int flag, char* text);
+void __stdcall SetHostGameName(int flag, char* text);
 void __stdcall SetDirectConnectAddress(char* param_1);
-void __stdcall FUN_0045b860(int param_1);
+void __stdcall SetDirectPlayProvider(int param_1);
 void __stdcall SetPacketRate(int param_1);
 char* __stdcall Translate(char* text);
 void SetNoDirectSound();
@@ -154,11 +154,11 @@ int __stdcall ParseCommandLine(char* cmdLine, char* appName)
             case 'h':
                 p += 2;
                 if (*p) {
-                    FUN_0045b820(1, p);
+                    SetHostGameName(1, p);
                 } else {
                     char* q = strtok(NULL, " \t");
                     if (q && *q && *q != '-')
-                        FUN_0045b820(1, q);
+                        SetHostGameName(1, q);
                 }
                 break;
             case 'L':
@@ -175,7 +175,7 @@ int __stdcall ParseCommandLine(char* cmdLine, char* appName)
                     int n = atoi(p);
                     if (n == 1 && colon)
                         SetDirectConnectAddress(colon + 1);
-                    FUN_0045b860(n);
+                    SetDirectPlayProvider(n);
                 }
                 g_game->field_39245 = 1;
                 break;

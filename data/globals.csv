@@ -904,6 +904,6 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x52a4e8,DAT_0052a4e8,.bss,4,type,data,long,5,1,2,conflicting: signedness or const,6,,DAT_0052a4e8,,,
 0x52a4ec,DAT_0052a4ec,.bss,4,type,data,long,5,0,1,one type,5,,DAT_0052a4ec,,,
 0x52a4f0,DAT_0052a4f0,.bss,4,type,data,void*,6,0,1,one type,6,,DAT_0052a4f0,,,
-0x52a4f4,DAT_0052a4f4,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0052a4f4,,,
+0x52a4f4,g_lzssLockOwner,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0052a4f4,,,
 0x52a4f8,DAT_0052a4f8,.bss,4,type,data,void*,2,0,1,one type,2,,DAT_0052a4f8,,,
 0x52a4fc,DAT_0052a4fc,.bss,4,type,data,long,1,1,2,conflicting: signedness or const,2,,DAT_0052a4fc,,,

@@ -215,7 +215,7 @@ int __stdcall LzssAddString(int pos, int* out)
 
 extern HANDLE DAT_0052a4f8;
 extern long DAT_0052a4fc;
-extern int DAT_0052a4f4;
+extern int g_lzssLockOwner;
 extern int g_lzssPresetReady;
 extern int g_lzssUsePreset;
 extern char g_lzssPresetWindow[];
@@ -241,11 +241,11 @@ int __stdcall LzssCompress(unsigned char *dest, unsigned char *src, int len) {
     while (1) {
         int r = InterlockedExchange(&DAT_0052a4fc, tid);
         if (r == 0) {
-            DAT_0052a4f4 = tid;
+            g_lzssLockOwner = tid;
             state.own = 0;
             break;
         }
-        if (DAT_0052a4f4 == tid) {
+        if (g_lzssLockOwner == tid) {
             state.own = r;
             break;
         }
@@ -257,7 +257,7 @@ int __stdcall LzssCompress(unsigned char *dest, unsigned char *src, int len) {
     if (DAT_00526ff4 == 0) {
         printf("Could not alloc decompression window.\n");
         if (state.own == 0) {
-            DAT_0052a4f4 = 0;
+            g_lzssLockOwner = 0;
             InterlockedExchange(&DAT_0052a4fc, 0);
             SetEvent(DAT_0052a4f8);
         }
@@ -267,7 +267,7 @@ int __stdcall LzssCompress(unsigned char *dest, unsigned char *src, int len) {
     if (DAT_00526ff0 == 0) {
         printf("Could not alloc compression tree.\n");
         if (state.own == 0) {
-            DAT_0052a4f4 = 0;
+            g_lzssLockOwner = 0;
             InterlockedExchange(&DAT_0052a4fc, 0);
             SetEvent(DAT_0052a4f8);
         }
@@ -387,7 +387,7 @@ int __stdcall LzssCompress(unsigned char *dest, unsigned char *src, int len) {
     }
     int written = (int)(dest - base);
     if (state.own == 0) {
-        DAT_0052a4f4 = 0;
+        g_lzssLockOwner = 0;
         InterlockedExchange(&DAT_0052a4fc, 0);
         SetEvent(DAT_0052a4f8);
     }
@@ -395,7 +395,7 @@ int __stdcall LzssCompress(unsigned char *dest, unsigned char *src, int len) {
 }
 
 // LZ decompressor. It first takes the window lock: a spinlock on DAT_0052a4fc
-// holding the owning thread id, with DAT_0052a4f4 naming the owner and
+// holding the owning thread id, with g_lzssLockOwner naming the owner and
 // DAT_0052a4f8 the event that releases the waiters. Then it allocates the
 // 0x1011 byte sliding window, and reloads it from the template at g_lzssPresetWindow
 // when the template was set up (g_lzssPresetReady) and the caller switched it on
@@ -422,11 +422,11 @@ int __stdcall LzssExpand(unsigned char* dest, unsigned char* src)
     while (1) {
         int r = InterlockedExchange(&DAT_0052a4fc, tid);
         if (r == 0) {
-            DAT_0052a4f4 = tid;
+            g_lzssLockOwner = tid;
             own = 0;
             break;
         }
-        if (DAT_0052a4f4 == tid) {
+        if (g_lzssLockOwner == tid) {
             own = r;
             break;
         }
@@ -437,7 +437,7 @@ int __stdcall LzssExpand(unsigned char* dest, unsigned char* src)
     if (DAT_00526ff4 == 0) {
         printf("Could not alloc decompression window.\n");
         if (own == 0) {
-            DAT_0052a4f4 = 0;
+            g_lzssLockOwner = 0;
             InterlockedExchange(&DAT_0052a4fc, 0);
             SetEvent(DAT_0052a4f8);
         }
@@ -483,7 +483,7 @@ int __stdcall LzssExpand(unsigned char* dest, unsigned char* src)
     }
     int n = (int)(dest - base);
     if (own == 0) {
-        DAT_0052a4f4 = 0;
+        g_lzssLockOwner = 0;
         InterlockedExchange(&DAT_0052a4fc, 0);
         SetEvent(DAT_0052a4f8);
     }
@@ -572,7 +572,7 @@ struct Chunk_4d1820 {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_004d1c80(char* out, int* outSize, char* in, int size);
+void __stdcall _compress(char* out, int* outSize, char* in, int size);
 
 static inline unsigned int encryptByte(unsigned int i, char* out) { return (i ^ out[i]) + i; }
 
@@ -601,7 +601,7 @@ int __stdcall SquashPack(Chunk_4d1820* chunk, int* chunkSize, char* data, int si
         break;
     case 2:
         length = *chunkSize;
-        FUN_004d1c80(out, &length, data, size);
+        _compress(out, &length, data, size);
         break;
     }
     // total unsigned, test spelled (length + 0x13): sets the XOR operand order.

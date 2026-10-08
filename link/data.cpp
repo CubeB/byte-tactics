@@ -791,6 +791,6 @@ char DAT_0052a4e4;  // 0x52a4e4 .bss
 long DAT_0052a4e8;  // 0x52a4e8 .bss
 long DAT_0052a4ec;  // 0x52a4ec .bss
 void* DAT_0052a4f0;  // 0x52a4f0 .bss
-int DAT_0052a4f4;  // 0x52a4f4 .bss
+int g_lzssLockOwner;  // 0x52a4f4 .bss
 void* DAT_0052a4f8;  // 0x52a4f8 .bss
 long DAT_0052a4fc;  // 0x52a4fc .bss

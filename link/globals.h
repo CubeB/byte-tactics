@@ -703,7 +703,7 @@ extern char DAT_0052a4e4;                                                       
 extern long DAT_0052a4e8;                                                                         // 0x52a4e8, 4 bytes; 5 of 6 files (conflicting: signedness or const)
 extern long DAT_0052a4ec;                                                                         // 0x52a4ec, 4 bytes; 5 of 5 files
 extern void* DAT_0052a4f0;                                                                        // 0x52a4f0, 4 bytes; 6 of 6 files
-extern int DAT_0052a4f4;                                                                          // 0x52a4f4, 4 bytes; 1 of 1 files
+extern int g_lzssLockOwner;                                                                       // 0x52a4f4, 4 bytes; 1 of 1 files
 extern void* DAT_0052a4f8;                                                                        // 0x52a4f8, 4 bytes; 2 of 2 files
 extern long DAT_0052a4fc;                                                                         // 0x52a4fc, 4 bytes; 1 of 2 files (conflicting: signedness or const)
 

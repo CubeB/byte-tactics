@@ -3039,7 +3039,7 @@ address,name
 0x4d1bd0,SquashChecksum
 0x4d1c00,SquashDumpHeader
 0x4d1c60,SquashErrorString
-0x4d1c80,FUN_004d1c80
+0x4d1c80,_compress
 0x4d1d20,_uncompress
 0x4d80b0,SetMemFussyDefault
 0x4d80d0,IsMemFussy
@@ -4859,6 +4859,6 @@ address,name
 0x52a4e8,DAT_0052a4e8
 0x52a4ec,DAT_0052a4ec
 0x52a4f0,DAT_0052a4f0
-0x52a4f4,DAT_0052a4f4
+0x52a4f4,g_lzssLockOwner
 0x52a4f8,DAT_0052a4f8
 0x52a4fc,DAT_0052a4fc

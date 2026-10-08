@@ -1,5 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by Claude Opus 5.5, verified by GPT-6. Names are provisional.
 // FLAGS: /Gi
+// Stays in its own file: it needs /Gi, and /Gi moves 0x44e3c0's registers.
 // std::vector<Point_0044eec0>::insert(iterator, size_type, const _Ty&), stock
 // MSVC 5 <vector> on the 4-byte point (two shorts) that the only caller,
 // 0x44da00, builds and appends with insert(end(), 1, p).

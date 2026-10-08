@@ -4818,10 +4818,10 @@ piece,0x506178,64,src/network/net_condenser.cpp,22,0,game data
 piece,0x506138,64,src/network/net_condenser.cpp,21,0,game data
 piece,0x5060fc,58,src/network/net_condenser.cpp,20,0,game data
 piece,0x50609c,96,src/network/net_condenser.cpp,17,0,game data
-piece,0x4fd458,44,src/orders/order_targets_44f010.cpp,3,0,game data
-piece,0x4fd3e8,4,src/orders/order_targets_44e740.cpp,11,0,game data
-piece,0x4fd3f0,4,src/orders/order_targets_44e740.cpp,11,4,game data
-piece,0x4fd3ec,4,src/orders/order_targets_44e5b0.cpp,3,4,game data
+piece,0x4fd458,44,src/orders/order_targets_44de80.cpp,94,0,game data
+piece,0x4fd3e8,4,src/orders/order_targets_44de80.cpp,28,0,game data
+piece,0x4fd3f0,4,src/orders/order_targets_44de80.cpp,28,8,game data
+piece,0x4fd3ec,4,src/orders/order_targets_44de80.cpp,28,4,game data
 piece,0x50608c,14,src/frontend/multi_44c7e0.cpp,23,0,game data
 piece,0x50607c,15,src/frontend/multi_44c7e0.cpp,22,0,game data
 piece,0x506074,6,src/frontend/multi_44c7e0.cpp,21,0,game data
@@ -12188,7 +12188,6 @@ same,0x505f18,6,src/frontend/multi_44b990.cpp,6,0,
 same,0x505f18,6,src/frontend/multi_44bc10.cpp,6,0,
 same,0x502b38,8,src/frontend/multi_44c420.cpp,8,0,
 same,0x502ae8,3,src/frontend/multi_44c420.cpp,5,0,
-same,0x4fd3e8,4,src/orders/order_targets_44e5b0.cpp,3,0,
 same,0x506290,6,src/network/net_game_450380.cpp,3,0,
 same,0x506578,5,src/network/net_game_4538f0.cpp,4,0,
 same,0x506578,5,src/network/net_game_453a50.cpp,4,0,

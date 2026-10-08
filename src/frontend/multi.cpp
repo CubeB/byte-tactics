@@ -305,7 +305,7 @@ struct PlayerInfo_00444930 {
             char unknown_8f[0x94 - 0x8f];  // +0x8f
             char kind;                 // +0x94
             unsigned char side;        // +0x95
-            unsigned char field_96;    // +0x96
+            unsigned char color;       // +0x96
             union {                    // +0x97
                 unsigned char flags_97;
                 struct {
@@ -2208,9 +2208,9 @@ void __stdcall HandleLogoSelectClick(Gadget_00444930* param_1)
     if (IsCurrentGadgetNamed(param_1, "LOGOS") || IsCurrentGadgetNamed(param_1, "SELECT")) {
         Player_00444930* player = &g_game->players[g_game->localPlayer];
         Entry_00444930* entry = FindGadgetChecked(entries, "LOGOS");
-        player->info->field_96 = ((char*)layout)[entry->field_ba_byte];
+        player->info->color = ((char*)layout)[entry->field_ba_byte];
         g_game->flag0 = 1;
-        RequestPlayerColor(player->info->field_96);
+        RequestPlayerColor(player->info->color);
         return;
     }
     if (!IsCurrentGadgetNamed(param_1, "Cancel"))
@@ -2432,7 +2432,7 @@ void OpenLogoSelectDialog()
         int k;
         for (k = 0; k < 10; k++) {
             if (g_game->players[k].type != 0 && g_game->players[k].type != 4
-                && g_game->players[k].data->field_96 >= j)
+                && g_game->players[k].data->color >= j)
                 break;
         }
         layout->seqs[j] = *(AnimSeq_00445110*)g_game->logos32;
@@ -3142,7 +3142,7 @@ void RefreshTeamIcons()
         Player_00444930* p = &g_game->players[i];
         if (IsPlaying(p) && p->type != 4
             && (!(g_game->flags_2a44 & 4) || IsCounted(p))
-            && (!(g_game->flags_2a44 & 4) || p->info->field_96 != 0xff)) {
+            && (!(g_game->flags_2a44 & 4) || p->info->color != 0xff)) {
             if (g_game->bit2) {
                 wsprintfA(buffer, "TEAMICONS%d", teamIcon);
                 teamIcon++;
@@ -3310,7 +3310,7 @@ __inline int IsLive_00446fb0(Player_00446f50* p)
         return 0;
     if (p->unitCount == 0 && p->unitsCreated != 0)
         return 0;
-    if (p->info->field_96 == 0xff)
+    if (p->info->color == 0xff)
         return 0;
     return 1;
 }
@@ -3442,7 +3442,7 @@ void __stdcall RefreshAlliesScreen(int param_1)
         if (!IsWatching_00447380(p) && IsActive_00447380(p)
             && (i != g_game->localPlayer || param_1 == 0)
             && (!(g_game->flags_2a44 & 4) || IsCounted_00447380(p))
-            && p->info->field_96 != 0xff) {
+            && p->info->color != 0xff) {
             sprintf(player, "PLAYER%d", n);
             sprintf(logo, "LOGO%d", n);
             sprintf(ally, "ALLY%d", n);
@@ -3501,7 +3501,7 @@ void __stdcall RefreshAlliesScreen(int param_1)
             if (e2 != 0) {
                 e2->visible = 1;
                 e2->field_be = g_game->field_148db;
-                e2->frame = p->info->field_96;
+                e2->frame = p->info->color;
                 e2->field_c8 &= ~1;
             }
 
@@ -3630,7 +3630,7 @@ inline int FindUnusedLogo()
     for (int i = 0; i < 10; i++) {
         Player_00446f50* p = &g_game->players[i];
         if (p->active && (p->type == 1 || p->type == 2 || p->type == 3) && p->field_146 != 10)
-            used[p->info->field_96 < 9 ? p->info->field_96 : 9] = 1;
+            used[p->info->color < 9 ? p->info->color : 9] = 1;
     }
     int result = 0;
     for (int j = 0; j < 10; j++) {
@@ -3706,7 +3706,7 @@ void __stdcall HandleBattleRoomClick(Gui_00446f50* gadget)
         sprintf(text, "LOGO%d", i);
         if (IsCurrentGadgetNamed(gadget, text) && IsLocal_00447b10(p)) {
             PlaySoundByName("Multi", 0);
-            RequestPlayerColor(p->info->field_96 + 1);
+            RequestPlayerColor(p->info->color + 1);
             g_game->dirty = 1;
             BroadcastPlayerInfo();
         }
@@ -3741,7 +3741,7 @@ void __stdcall HandleBattleRoomClick(Gui_00446f50* gadget)
                 }
                 if (g_game->players[FindHostSlot()].info->b.commander != 2 && !CountLocalComputerPlayers()) {
                     CreateLocalPlayer(i, 2);
-                    p->info->field_96 = FindUnusedLogo();
+                    p->info->color = FindUnusedLogo();
                 }
             }
             g_game->dirty = 1;
@@ -4244,10 +4244,10 @@ void RefreshBattleRoomRows()
             sprintf(name, "LOGO%d", n);
             e = FUN_004a0280(entries, name);
             if (e) {
-                e->visible = (p->info->field_96 == 0xff && !ready) ? 0 : 1;
+                e->visible = (p->info->color == 0xff && !ready) ? 0 : 1;
                 e->c8_0 = !ready;
                 e->field_be = g_game->field_148db;
-                e->frame = p->info->field_96;
+                e->frame = p->info->color;
             }
             sprintf(name, "PLAYER%d", n);
             strncpy(text, p->name, 0x1e);

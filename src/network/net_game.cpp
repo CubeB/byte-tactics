@@ -129,17 +129,17 @@ union GameFlags_2a44 {
 struct PlayerInfo {
     char unknown_0[0x80];
     char name[0xb];                    // +0x80
-    unsigned short field_8b;           // +0x8b
-    unsigned short field_8d;           // +0x8d
+    unsigned short width;              // +0x8b
+    unsigned short height;             // +0x8d
     char unknown_8f;
     union {
         int field_90;                  // +0x90
         int id;
     };
-    unsigned char field_94;            // +0x94
+    unsigned char kind;                // +0x94
     char unknown_95;
     union {
-        unsigned char field_96;        // +0x96
+        unsigned char color;           // +0x96
         unsigned char group;
     };
     union {
@@ -168,7 +168,7 @@ struct PlayerInfo {
     };
     char unknown_99[0x9b - 0x99];
     union {
-        unsigned short field_9b;       // +0x9b
+        unsigned short gameFlags;      // +0x9b
         unsigned char flags_9b;
         struct {
             unsigned short : 4;
@@ -182,13 +182,13 @@ struct PlayerInfo {
     union {
         unsigned char flags_9d;        // +0x9d
         unsigned short word_9d;
-        unsigned short field_9d : 1;
+        unsigned short hasPassword : 1;
         unsigned short flag_9d_0 : 1;
     };
     char unknown_9f[0xa5 - 0x9f];
-    unsigned short field_a5;           // +0xa5
-    unsigned char field_a7;            // +0xa7
-    unsigned char field_a8;            // +0xa8
+    unsigned short maxUnits;           // +0xa5
+    unsigned char versionMajor;        // +0xa7
+    unsigned char versionMinor;        // +0xa8
     char unknown_a9[0xb9 - 0xa9];
 };
 
@@ -1238,17 +1238,17 @@ int __stdcall CreateLocalPlayer(unsigned char playerIndex, int flag)
     }
 
     player->info->flag_97_0 = same;
-    player->info->field_96 = 0xff;
+    player->info->color = 0xff;
     player->keepaliveFlags &= 0xfd;
     player->joinTime = GetTicks();
     PlayerInfo* info = player->info;
-    info->field_9b = (info->field_9b ^ ((g_game->numPlayersSigned ^ info->field_9b) & 0xf)) & 0x7fff;
+    info->gameFlags = (info->gameFlags ^ ((g_game->numPlayersSigned ^ info->gameFlags) & 0xf)) & 0x7fff;
     info->flag_9d_0 = (strlen(g_game->passWord) != 0);
-    info->field_a5 = 0x64;
-    info->field_8b = g_game->field_37f1b;
-    info->field_8d = g_game->field_37f1f;
-    info->field_a7 = g_game->version;
-    info->field_a8 = g_game->versionMinor;
+    info->maxUnits = 0x64;
+    info->width = g_game->field_37f1b;
+    info->height = g_game->field_37f1f;
+    info->versionMajor = g_game->version;
+    info->versionMinor = g_game->versionMinor;
 
     int r = HAPINET_addplayer(g_game->net, (unsigned long*)&player->field_4,
                          buf, buf, g_game->passWord, 0, 0x50);
@@ -1784,8 +1784,8 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
 
             if (v != 0 && DAT_00512d28 != 0) {
                 lstrcpynA(p->info->name, &DAT_00512d28, 0xb);
-                // field_9d must be a 16-bit 1-bit field, not a byte field.
-                p->info->field_9d = 1;
+                // hasPassword must be a 16-bit 1-bit field, not a byte field.
+                p->info->hasPassword = 1;
                 // Cast on a reloaded field_4e5, not a cached local.
                 if ((*(unsigned char*)((char*)g_game->field_4e5 + 4) & 2) != 0)
                     lstrcpynA(g_game->field_2be3, &DAT_00512d28, 0xb);
@@ -1808,10 +1808,10 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
             p->info->ready = 0;
         }
 
-        p->info->field_96 = 0xff;
-        p->info->field_9b &= 0xffdf;
-        p->info->field_8b = g_game->field_37f1b;
-        p->info->field_8d = g_game->field_37f1f;
+        p->info->color = 0xff;
+        p->info->gameFlags &= 0xffdf;
+        p->info->width = g_game->field_37f1b;
+        p->info->height = g_game->field_37f1f;
         g_game->numPlayers = 0;
 
         int result;
@@ -2245,8 +2245,8 @@ int __stdcall IsColorFree(int id, int slot)
     }
     for (int j = 0; j < 10; j++) {
         if (g_game->players[j].valid != 0 && g_game->players[j].id != id &&
-            g_game->players[j].info->field_96 != 0xff) {
-            local_c[g_game->players[j].info->field_96] = (unsigned char)j;
+            g_game->players[j].info->color != 0xff) {
+            local_c[g_game->players[j].info->color] = (unsigned char)j;
         }
     }
     return local_c[slot] == 0xff;
@@ -2273,7 +2273,7 @@ int __stdcall RequestPlayerColor(int param)
             AssignPlayerColor(p->field_4, p->field_4, param);
             return 1;
         }
-        p->info->field_96 = param;
+        p->info->color = param;
         return 1;
     }
 
@@ -2471,7 +2471,7 @@ int __stdcall RejectPlayer(int id, unsigned char value)
     } else if (p->active != 0 && p->state == 3 && p->field_22 == 0) {
         *(int*)(msg + 1) = id;
         result = BroadcastPacket(FindActiveId_00453010(), msg, 6);
-        if (p->active != 0 && p->state == 3 && p->field_27->field_94 == 1) {
+        if (p->active != 0 && p->state == 3 && p->field_27->kind == 1) {
             unsigned char c = p->field_c;
             for (int i = 0; i < 10; i++) {
                 if (g_game->players[i].field_c == c) {
@@ -3046,7 +3046,7 @@ void SendNetHeartbeat()
             buf[0] = 6;
             BroadcastPacket(id, buf, 1);
 
-            if (p->info->field_96 == 0xff)
+            if (p->info->color == 0xff)
                 RequestPlayerColor(0);
 
             if (p->info->bits_97.b0 & 1) {
@@ -3466,7 +3466,7 @@ void __stdcall SendShareMapInfo(unsigned char from, unsigned char to)
 
 // Scans the ten player slots twice. The outer pass picks every slot that looks
 // like a local player (active, type 1 or 2, unitsCreated set, field_22 clear); the
-// inner pass then looks for a network slot (active, type 3) whose data->field_94
+// inner pass then looks for a network slot (active, type 3) whose data->kind
 // is 1 and whose team (field_146) is still clear in the target's three per-team
 // byte tables, and hands the pair to SendPlayerEconomy, returning 0 in that case.
 // The three tables live at +0x11e, +0x129 and +0x134, eleven bytes each.
@@ -3491,7 +3491,7 @@ int FUN_004572a0()
                 // Two sibling ifs, each with its own call: the jump layout and
                 // registers follow the original.
                 if (pj->active != 0 && pj->type == 3) {
-                    if (pj->data->field_94 == 1
+                    if (pj->data->kind == 1
                         && (pi->t0[pj->field_146] == 0
                             || pi->t2[pj->field_146] == 0
                             || pi->t1[pj->field_146] == 0))
@@ -3518,7 +3518,7 @@ int FUN_004572a0()
 // (+0xfc, +0xfe, +0x104, +0x106), four dwords (+0x98, +0x8c, +0xa8, +0xa4) and
 // six doubles (+0xac, +0xbc, +0xcc, +0xb4, +0xc4, +0xd4) as floats, plus the
 // caller's flag byte. It goes to `target` when there is one, otherwise to
-// every occupied player slot of type 3 whose data->field_94 is 1.
+// every occupied player slot of type 3 whose data->kind is 1.
 // FUNCTION: 0x4573d0
 void __stdcall SendPlayerEconomy(Player* player, Player* target,
                             unsigned char flag)
@@ -3559,7 +3559,7 @@ void __stdcall SendPlayerEconomy(Player* player, Player* target,
             continue;
         if (g_game->players[i].type != 3)
             continue;
-        if (g_game->players[i].data->field_94 != 1)
+        if (g_game->players[i].data->kind != 1)
             continue;
         if (g_game->players[i].field_22 != 0)
             continue;
@@ -3783,7 +3783,7 @@ int CountHumanPlayers()
     for (int i = 0; i < 10; i++) {
         if ((g_game->players[i].active != 0 && g_game->players[i].type == 1)
             || (g_game->players[i].active != 0 && g_game->players[i].type == 3
-                && g_game->players[i].data->field_94 == 1))
+                && g_game->players[i].data->kind == 1))
             count++;
     }
     return count;
@@ -3796,7 +3796,7 @@ int CountComputerPlayers()
     for (int i = 0; i < 10; i++) {
         if ((g_game->players[i].active != 0 && g_game->players[i].type == 2)
             || (g_game->players[i].active != 0 && g_game->players[i].type == 3
-                && g_game->players[i].data->field_94 == 2))
+                && g_game->players[i].data->kind == 2))
             count++;
     }
     return count;
@@ -3871,7 +3871,7 @@ int CountCombatPlayers()
             && g_game->players[i].field_146 != 10
             && (g_game->players[i].unitCount != 0 || g_game->players[i].unitsCreated == 0)
             && (g_game->players[i].type == 1
-                || (g_game->players[i].type == 3 && g_game->players[i].data->field_94 == 1))
+                || (g_game->players[i].type == 3 && g_game->players[i].data->kind == 1))
             && !(g_game->players[i].data->flags_9b & 0x40))
             count++;
     }
@@ -3900,7 +3900,7 @@ void __stdcall UpdateResourceSharing(Player* player)
                     && (p->type == 1 || p->type == 2 || p->type == 3)
                     && (p->unitCount != 0 || p->unitsCreated == 0)
                     && p->type == 3
-                    && p->info->field_94 == 1
+                    && p->info->kind == 1
                     && player->allied[i] != 0
                     && p->energy < player->energy)
                     found = p;
@@ -3925,7 +3925,7 @@ void __stdcall UpdateResourceSharing(Player* player)
                     && (p->type == 1 || p->type == 2 || p->type == 3)
                     && (p->unitCount != 0 || p->unitsCreated == 0)
                     && p->type == 3
-                    && p->info->field_94 == 1
+                    && p->info->kind == 1
                     && player->allied[i] != 0
                     && p->metal < player->metal)
                     found = p;
@@ -3952,7 +3952,7 @@ void __stdcall UpdateResourceSharing(Player* player)
                 && (p->type == 1 || p->type == 2 || p->type == 3)
                 && (p->unitCount != 0 || p->unitsCreated == 0)
                 && p->type == 3
-                && p->info->field_94 == 1
+                && p->info->kind == 1
                 && player->allied[i] != 0) {
                 unsigned char a = player->field_146;
                 unsigned char b = p->field_146;

@@ -119,7 +119,7 @@ struct Menu {
 
 struct PlayerInfo {
     char unknown_0[0x96];
-    unsigned char field_96;            // +0x96
+    unsigned char color;               // +0x96
     char unknown_97[0x9b - 0x97];
     union {
         unsigned char flags;           // +0x9b
@@ -1087,7 +1087,7 @@ void __stdcall DrawScorePanel(void* surface)
                 FadeRectangle(surface, &hr, 0x14);
             }
             unsigned short* frame = (unsigned short*)GetGafFrame(
-                (void*)g_game->field_148db, p->info->field_96);
+                (void*)g_game->field_148db, p->info->color);
 
             src.p[1].x = frame[0] - 1;
             src.p[2].x = frame[0] - 1;

@@ -105,7 +105,7 @@ int TdfFile::LoadFile(char* path)
             char* text = (char*)FUN_004d83b0("TDF file", size + 1);
             memcpy(text, buf, size);
             text[size] = 0;
-            ((TdfFile*)this)->StripComments(text);
+            this->StripComments(text);
             TdfRecord* node = (TdfRecord*)operator new(0x29);
             root = node ? node->FUN_004c3e40("root", text, 0, path) : 0;
             FUN_004d85a0((int*)text);

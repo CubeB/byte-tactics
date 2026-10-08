@@ -1153,7 +1153,7 @@ Elem_00470a40* __stdcall CopyStructRange(Elem_00470a40* first, Elem_00470a40* la
 // FUNCTION: 0x470a90
 ObjectPool* ObjectPool::Construct(int param_1, int param_2)
 {
-    ((ObjectPool*)this)->ObjectPool::ObjectPool(param_1, param_2);
+    this->ObjectPool::ObjectPool(param_1, param_2);
     return (ObjectPool*)this;
 }
 #pragma auto_inline(on)
@@ -1176,7 +1176,7 @@ static ObjectPool s_obj(1000, 0x4c);
 // FUNCTION: 0x470b80
 void ObjectPool::Destroy()
 {
-    ((ObjectPool*)this)->ObjectPool::~ObjectPool();
+    this->ObjectPool::~ObjectPool();
 }
 #pragma auto_inline(on)
 

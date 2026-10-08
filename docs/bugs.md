@@ -1173,3 +1173,14 @@ Things that look wrong in the original but have no effect, kept for the record.
   to +0x23 for every non-meteor weapon, so those bytes would be stack garbage.
   The function has no callers in the exe. Found by OpenCode /
   deepseek-v4.1-flash in #6175.
+- **0x478240** (possible): the gadget `FindGadgetChecked` returns is
+  dereferenced on both branches even when it is null (the else branch assigns
+  through it too), so a missing Campaign gadget would crash. Found by OpenCode
+  / deepseek-v4.1-flash in #6182.
+- **0x478b40** (possible): `DAT_0051e67c` is read as the frame the sequencer
+  was last advanced on, but nothing in the exe writes it, so the animation
+  advances on every call instead of once per frame. Found by OpenCode /
+  deepseek-v4.1-flash in #6182.
+- **0x478790** (possible): the frame loop runs `k <= n`, one frame past the
+  count, and the palette index is the window pointer plus 0x8b2 rather than a
+  slot number. Found by OpenCode / deepseek-v4.1-flash in #6182.

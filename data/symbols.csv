@@ -4737,8 +4737,8 @@ address,name
 0x51fc90,g_defaultCommandHandler
 0x51fc94,g_defaultCommandMask
 0x51fc99,s_commandTable$S4554
-0x51fcb0,DAT_0051fcb0
-0x51fdb0,DAT_0051fdb0
+0x51fcb0,g_gafEncodeLiteralBuffer
+0x51fdb0,g_gafEncodeOutputSize
 0x51fdb8,g_translations
 0x51fdc0,g_language
 0x51fe00,g_screenLockCount

@@ -683,8 +683,8 @@ unsigned int g_randomSeed;  // 0x51fc88 .bss
 unsigned char DAT_0051fc8c[4];  // 0x51fc8c .bss
 int g_defaultCommandHandler;  // 0x51fc90 .bss
 int g_defaultCommandMask;  // 0x51fc94 .bss
-unsigned char DAT_0051fcb0[256];  // 0x51fcb0 .bss
-int DAT_0051fdb0;  // 0x51fdb0 .bss
+unsigned char g_gafEncodeLiteralBuffer[256];  // 0x51fcb0 .bss
+int g_gafEncodeOutputSize;  // 0x51fdb0 .bss
 unsigned char DAT_0051fdb4[4];  // 0x51fdb4 .bss
 TranslationTable* g_translations;  // 0x51fdb8 .bss
 unsigned char DAT_0051fdbc[4];  // 0x51fdbc .bss

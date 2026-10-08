@@ -1372,9 +1372,9 @@ int __stdcall CompressFrame(unsigned char* dest, Bitmap_004b7f90* img)
 }
 
 // GLOBAL: 0x51fcb0
-extern unsigned char DAT_0051fcb0[];
+extern unsigned char g_gafEncodeLiteralBuffer[];
 // GLOBAL: 0x51fdb0
-extern int DAT_0051fdb0;
+extern int g_gafEncodeOutputSize;
 // FUNCTION: 0x4b9ed0
 char* __stdcall EmitCopyRun(char* out, int count)
 {
@@ -1390,14 +1390,14 @@ char* __stdcall EmitCopyRun(char* out, int count)
         if (out != 0) {
             *out++ = header;
         }
-        DAT_0051fdb0++;
+        g_gafEncodeOutputSize++;
         for (int i = 0; i < n; i++) {
-            int value = DAT_0051fcb0[index++];
+            int value = g_gafEncodeLiteralBuffer[index++];
             for (unsigned int shift = 0; shift < 8; shift += 8) {
                 if (out != 0) {
                     *out++ = (char)(value >> shift);
                 }
-                DAT_0051fdb0++;
+                g_gafEncodeOutputSize++;
             }
         }
     } while (count > 0);
@@ -1419,7 +1419,7 @@ char* __stdcall EmitRepeatRun(char* out, int count, unsigned char a, unsigned ch
             if (out != 0) {
                 *out++ = header;
             }
-            DAT_0051fdb0++;
+            g_gafEncodeOutputSize++;
         } while (count > 0);
     } else {
         int value = a;
@@ -1435,12 +1435,12 @@ char* __stdcall EmitRepeatRun(char* out, int count, unsigned char a, unsigned ch
             if (out != 0) {
                 *out++ = header;
             }
-            DAT_0051fdb0++;
+            g_gafEncodeOutputSize++;
             for (unsigned int shift = 0; shift < 8; shift += 8) {
                 if (out != 0) {
                     *out++ = (char)(value >> shift);
                 }
-                DAT_0051fdb0++;
+                g_gafEncodeOutputSize++;
             }
         } while (count > 0);
     }
@@ -1450,9 +1450,9 @@ char* __stdcall EmitRepeatRun(char* out, int count, unsigned char a, unsigned ch
 // Compresses one row of an 8-bit sprite (called by CompressFrame). The first
 // loop only tests whether the whole row is the colour key; the body then
 // re-reads the row from its first pixel. Bytes go into the history array
-// DAT_0051fcb0[0..0x7f], and runs are emitted through EmitCopyRun (copy the
+// g_gafEncodeLiteralBuffer[0..0x7f], and runs are emitted through EmitCopyRun (copy the
 // buffered bytes) and EmitRepeatRun (a repeated value, or a count-only run of
-// the key). The return value is the global byte counter DAT_0051fdb0, so a
+// the key). The return value is the global byte counter g_gafEncodeOutputSize, so a
 // null `out` only measures the row, which is how CompressFrame asks for the
 // size before compressing.
 // FUNCTION: 0x4ba000
@@ -1469,7 +1469,7 @@ int __stdcall CompressRow(char* dest, char* src, int width, unsigned char key)
         return 0;
     }
 
-    DAT_0051fdb0 = runStart;
+    g_gafEncodeOutputSize = runStart;
     char* out = dest;
     char* p = src;
     unsigned char c = *p;
@@ -1477,13 +1477,13 @@ int __stdcall CompressRow(char* dest, char* src, int width, unsigned char key)
     width--;
     unsigned char value = c;
     unsigned char prev = c;
-    DAT_0051fcb0[0] = c;
+    g_gafEncodeLiteralBuffer[0] = c;
     int n = 1;
     int state = (c == key);
     while (width) {
         width--;
         // One statement: a separate increment moves the history store.
-        DAT_0051fcb0[n++] = c = *p++;
+        g_gafEncodeLiteralBuffer[n++] = c = *p++;
         value = c;
         switch (state) {
         case 0:
@@ -1491,7 +1491,7 @@ int __stdcall CompressRow(char* dest, char* src, int width, unsigned char key)
                 n--;
                 out = EmitCopyRun(out, n);
                 n = 1;
-                DAT_0051fcb0[0] = c;
+                g_gafEncodeLiteralBuffer[0] = c;
                 runStart = 0;
                 state = n;
                 break;
@@ -1499,7 +1499,7 @@ int __stdcall CompressRow(char* dest, char* src, int width, unsigned char key)
             if (n > 0x80) {
                 n--;
                 out = EmitCopyRun(out, n);
-                DAT_0051fcb0[0] = c;
+                g_gafEncodeLiteralBuffer[0] = c;
                 n = 1;
                 runStart = 0;
                 break;
@@ -1523,7 +1523,7 @@ int __stdcall CompressRow(char* dest, char* src, int width, unsigned char key)
             }
             out = EmitRepeatRun(out, n - runStart - 1, prev, key);
             runStart = 0;
-            DAT_0051fcb0[0] = c;
+            g_gafEncodeLiteralBuffer[0] = c;
             n = 1;
             state = (c == key);
             break;
@@ -1536,9 +1536,9 @@ int __stdcall CompressRow(char* dest, char* src, int width, unsigned char key)
         break;
     case 1:
         EmitRepeatRun(out, n - runStart, value, key);
-        return DAT_0051fdb0;
+        return g_gafEncodeOutputSize;
     }
-    return DAT_0051fdb0;
+    return g_gafEncodeOutputSize;
 }
 
 // Fills every pixel of an 8-bit image whose mask value is at most `level`

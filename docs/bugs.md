@@ -1147,3 +1147,8 @@ Things that look wrong in the original but have no effect, kept for the record.
   overlaps the flag word at +0xf0 (the rectangle's `top`); the flag word is
   overwritten three instructions later, so the fetch has no lasting effect.
   Found by OpenCode / deepseek-v4.1-flash in #6132.
+- **0x459200** (`DrawObjectPicture`, possible): the far-sprite test is
+  `field_a6 != 0 || dx >= field_1427f`, so the sprite is drawn when the unit
+  is off the ground or in view range, where the intent reads as both; both
+  halves of the function have it. Found by OpenCode / deepseek-v4.1-flash in
+  #6143.

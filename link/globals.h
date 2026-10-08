@@ -181,7 +181,7 @@ extern char DAT_005090fc[32];                                                   
 extern char* DAT_005091c8;                                                                        // 0x5091c8, 4 bytes; 5 of 5 files
 extern int DAT_005091cc;                                                                          // 0x5091cc, 4 bytes; 2 of 2 files
 extern int DAT_005091d0;                                                                          // 0x5091d0, 4 bytes; 1 of 1 files
-extern const char DAT_005091d4[12];                                                               // 0x5091d4, 12 bytes; 3 of 3 files
+extern const char DAT_005091d4[12];                                                               // 0x5091d4, 12 bytes; 1 of 1 files
 extern const char DAT_00509200[8];                                                                // 0x509200, 8 bytes; 1 of 1 files
 extern const char DAT_00509238[12];                                                               // 0x509238, 12 bytes; 1 of 1 files
 extern const char DAT_00509244[12];                                                               // 0x509244, 12 bytes; 1 of 1 files
@@ -273,7 +273,7 @@ extern unsigned int g_netStatsTick;                                             
 extern unsigned int g_byteRatesTick;                                                              // 0x511ddc, 4 bytes; 1 of 1 files
 extern int DAT_00511de0;                                                                          // 0x511de0, 4 bytes; 2 of 2 files
 extern int g_cdPathMismatch;                                                                      // 0x511de4, 4 bytes; 1 of 1 files
-extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 448 of 507 files (conflicting: shape)
+extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 431 of 489 files (conflicting: shape)
 extern int DAT_00511dec;                                                                          // 0x511dec, 4 bytes; 1 of 1 files
 extern ExplodedPiece* g_explodedPieces[100];                                                      // 0x511df0, 400 bytes; 1 of 1 files
 extern unsigned char DAT_00511f80[16];                                                            // 0x511f80, 16 bytes; CMemoryCache by value in 3 of 3 files
@@ -553,6 +553,7 @@ extern unsigned char DAT_0051e810[10];                                          
 extern unsigned char DAT_0051e81a[6];                                                             // 0x51e81a, 6 bytes; nothing refers to it
 extern "C" unsigned char g_loadingBarPrevPercent[5];                                              // 0x51e820, 1 bytes; extern "C" (no type) in declared extern "C" in 1 of 1 files, but used past its end
 extern "C" unsigned char DAT_0051e825[3];                                                         // 0x51e825, 1 bytes; extern "C" (no type) in declared extern "C" in 1 of 1 files, but used past its end
+extern unsigned char DAT_0051e828[2720];                                                          // 0x51e828, 2720 bytes; CdLists_490f80 by value in 1 of 1 files
 extern unsigned char DAT_0051f2c8[10];                                                            // 0x51f2c8, 10 bytes; 2 of 3 files (conflicting: signedness or const)
 extern unsigned char DAT_0051f2d2[6];                                                             // 0x51f2d2, 6 bytes; nothing refers to it
 extern unsigned int DAT_0051f2d8;                                                                 // 0x51f2d8, 4 bytes; 1 of 2 files (conflicting: signedness or const)
@@ -704,7 +705,7 @@ extern int DAT_0052a4f4;                                                        
 extern void* DAT_0052a4f8;                                                                        // 0x52a4f8, 4 bytes; 3 of 3 files
 extern long DAT_0052a4fc;                                                                         // 0x52a4fc, 4 bytes; 2 of 3 files (conflicting: signedness or const)
 
-// Not declared: 227 globals defined in a data file or whose type is not settled (see data/globals.csv).
+// Not declared: 226 globals defined in a data file or whose type is not settled (see data/globals.csv).
 //   0x5119c0 g_playerAI: PlayerAI*[] (11), void*[] (5), Owner*[] (3), Player_40b0d0*[] (1), and 2 more
 //   0x513000 g_packetManager: defined in src/network/packets_460e20.cpp
 //   0x51fbd0 g_display: void* (4), int (2), Display_004b4f50* (1), Display_004b5370* (1), and 14 more
@@ -719,7 +720,6 @@ extern long DAT_0052a4fc;                                                       
 //   0x4fcda8 DPSPGUID_TCPIP: defined in src/data/guids.cpp
 //   0x5120b8 DAT_005120b8: Entry_00428730[10] (1), char[] (1), Entry_004287d0[10] (1), Entry_00428850[10] (1), and 1 more
 //   0x51e598 IUUnitSyncEntry::IU?$pair::?$_Tree::_Nil: defined in src/network/unit_sync.cpp
-//   0x51e828 DAT_0051e828: unsigned int[680] (1), CdLists_490f80 (1), int[680] (1), int[] (1), and 1 more
 //   0x51fbe0 DAT_0051fbe0: part of another global: DAT_0051fbd8+0x8
 //   0x51fc80 g_timerCount: part of another global: DAT_0051fbd8+0xa8
 //   0x51ff14 g_cdPlayer: void* (2), CdAudio_004ce030* (1), Sound_004ce5e0* (1), Class_004d02a0* (1)
@@ -744,7 +744,6 @@ extern long DAT_0052a4fc;                                                       
 //   0x51e57c DAT_0051e57c: ScoreBoard_0046c2a0** (1), ScoreBoard_0046bce0** (1), void* (1)
 //   0x51e59c IUUnitSyncEntry::IU?$pair::?$_Tree::_Nilrefs: defined in src/network/unit_sync.cpp
 //   0x51e660 DAT_0051e660: int* (2), char* (1)
-//   0x51f2e8 DAT_0051f2e8: int (1), int* (1), char* (1)
 //   0x528a10 DAT_00528a10: void* (2), Node_004ddc00* (1)
 //   0x528ac0 DAT_00528ac0: void* (1), void (__stdcall*)(void) (1), int (__stdcall*)(unsigned long, void*, void*, void*, void*, void*, void*, void*, void*) (1)
 //   0x528ac4 DAT_00528ac4: void* (2), void (__stdcall*)(void) (1)
@@ -800,6 +799,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x51e640 DAT_0051e640: Anim_00478b40 (1), int (1)
 //   0x51f2e0 DAT_0051f2e0: int* (1), char* (1)
 //   0x51f2e4 DAT_0051f2e4: int* (1), char* (1)
+//   0x51f2e8 DAT_0051f2e8: int* (1), char* (1)
 //   0x51f2ec DAT_0051f2ec: int* (1), char* (1)
 //   0x51fc78 g_closeHandler: part of another global: DAT_0051fbd8+0xa0
 //   0x51fc7c g_closeHandlerArg: part of another global: DAT_0051fbd8+0xa4

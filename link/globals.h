@@ -182,7 +182,7 @@ extern char DAT_00508fb4[32];                                                   
 extern char DAT_00509018[16];                                                                     // 0x509018, 16 bytes; 1 of 1 files
 extern char DAT_00509028[32];                                                                     // 0x509028, 32 bytes; 1 of 1 files
 extern char DAT_005090fc[32];                                                                     // 0x5090fc, 32 bytes; 1 of 1 files
-extern char* DAT_005091c8;                                                                        // 0x5091c8, 4 bytes; 5 of 5 files
+extern char* DAT_005091c8;                                                                        // 0x5091c8, 4 bytes; 2 of 2 files
 extern int DAT_005091cc;                                                                          // 0x5091cc, 4 bytes; 2 of 2 files
 extern int DAT_005091d0;                                                                          // 0x5091d0, 4 bytes; 1 of 1 files
 extern const char g_offscreenSurfaceName[12];                                                     // 0x5091d4, 12 bytes; 1 of 1 files
@@ -235,7 +235,7 @@ extern char* DAT_0050d4d0;                                                      
 extern char* DAT_0050d660;                                                                        // 0x50d660, 4 bytes; 2 of 2 files
 extern char DAT_0050d6b4[36];                                                                     // 0x50d6b4, 36 bytes; 1 of 1 files
 extern char* DAT_0050d72c;                                                                        // 0x50d72c, 4 bytes; 3 of 3 files
-extern char DAT_005119b8[8];                                                                      // 0x5119b8, 8 bytes; 41 of 44 files (conflicting: shape)
+extern char DAT_005119b8[8];                                                                      // 0x5119b8, 8 bytes; 36 of 39 files (conflicting: shape)
 extern PlayerAI* g_playerAI[10];                                                                  // 0x5119c0, 40 bytes; 2 of 3 files (conflicting: struct names only)
 extern int g_playerBudgetCap[10];                                                                 // 0x5119e8, 40 bytes; 1 of 1 files
 extern int g_playerTickLoad[10];                                                                  // 0x511a10, 40 bytes; 1 of 1 files
@@ -278,7 +278,7 @@ extern unsigned int g_netStatsTick;                                             
 extern unsigned int g_byteRatesTick;                                                              // 0x511ddc, 4 bytes; 1 of 1 files
 extern int DAT_00511de0;                                                                          // 0x511de0, 4 bytes; 2 of 2 files
 extern int g_cdPathMismatch;                                                                      // 0x511de4, 4 bytes; 1 of 1 files
-extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 170 of 191 files (conflicting: shape)
+extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 149 of 168 files (conflicting: shape)
 extern int g_endGameGlamourSoundStarted;                                                          // 0x511dec, 4 bytes; 1 of 1 files
 extern ExplodedPiece* g_explodedPieces[100];                                                      // 0x511df0, 400 bytes; 1 of 1 files
 extern unsigned char DAT_00511f80[16];                                                            // 0x511f80, 16 bytes; CMemoryCache by value in 2 of 2 files
@@ -324,7 +324,7 @@ extern unsigned char DAT_0051233c[4];                                           
 extern unsigned char DAT_00512350[8];                                                             // 0x512350, 8 bytes; nothing refers to it
 extern unsigned char DAT_00512758[8];                                                             // 0x512758, 8 bytes; nothing refers to it
 extern int DAT_00512760;                                                                          // 0x512760, 4 bytes; 1 of 1 files
-extern int DAT_00512768;                                                                          // 0x512768, 4 bytes; 2 of 2 files
+extern int DAT_00512768;                                                                          // 0x512768, 4 bytes; 1 of 1 files
 extern int DAT_0051276c;                                                                          // 0x51276c, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00512780[8];                                                             // 0x512780, 8 bytes; nothing refers to it
 extern unsigned int DAT_00512788;                                                                 // 0x512788, 4 bytes; 1 of 1 files
@@ -341,8 +341,10 @@ extern int DAT_00512994;                                                        
 extern unsigned char DAT_00512998[12];                                                            // 0x512998, 12 bytes; nothing refers to it
 extern int DAT_005129a4;                                                                          // 0x5129a4, 4 bytes; 1 of 1 files
 extern unsigned int DAT_005129a8;                                                                 // 0x5129a8, 4 bytes; 1 of 1 files
-extern char* DAT_005129b0;                                                                        // 0x5129b0, 4 bytes; 6 of 8 files (conflicting: shape)
-extern Record_005129b4* DAT_005129b4;                                                             // 0x5129b4, 4 bytes; 2 of 8 files (conflicting: shape)
+extern char* DAT_005129ac;                                                                        // 0x5129ac, 4 bytes; 1 of 1 files
+extern char* DAT_005129b0;                                                                        // 0x5129b0, 4 bytes; 1 of 1 files
+extern Record_005129b4* DAT_005129b4;                                                             // 0x5129b4, 4 bytes; 1 of 2 files (conflicting: struct names only)
+extern int* DAT_005129b8;                                                                         // 0x5129b8, 4 bytes; 2 of 2 files
 extern unsigned char DAT_005129bc[4];                                                             // 0x5129bc, 4 bytes; nothing refers to it
 extern int DAT_005129c0;                                                                          // 0x5129c0, 4 bytes; 1 of 1 files
 extern int* DAT_005129c4;                                                                         // 0x5129c4, 4 bytes; 2 of 2 files
@@ -714,13 +716,12 @@ extern int g_lzssLockOwner;                                                     
 extern void* DAT_0052a4f8;                                                                        // 0x52a4f8, 4 bytes; 2 of 2 files
 extern long DAT_0052a4fc;                                                                         // 0x52a4fc, 4 bytes; 1 of 2 files (conflicting: signedness or const)
 
-// Not declared: 209 globals defined in a data file or whose type is not settled (see data/globals.csv).
+// Not declared: 207 globals defined in a data file or whose type is not settled (see data/globals.csv).
 //   0x5292c4 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib_4e17c0.cpp
 //   0x513000 g_packetManager: defined in src/network/packets_460e20.cpp
 //   0x528a54 std::IH::IU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib_4db610.cpp
 //   0x4fcdb8 DPSPGUID_SERIAL: defined in src/data/guids.cpp
 //   0x4fcdc8 DPSPGUID_MODEM: defined in src/data/guids.cpp
-//   0x5129ac DAT_005129ac: char* (4), int* (1), void* (1)
 //   0x4fcd98 DPSPGUID_IPX: defined in src/data/guids.cpp
 //   0x4fcda8 DPSPGUID_TCPIP: defined in src/data/guids.cpp
 //   0x51e598 IUUnitSyncEntry::IU?$pair::?$_Tree::_Nil: defined in src/network/unit_sync.cpp
@@ -735,7 +736,6 @@ extern long DAT_0052a4fc;                                                       
 //   0x511a60 DAT_00511a60: part of another global: g_messageCountByType+0x8
 //   0x511c60 DAT_00511c60: part of another global: g_messageBytesByType+0x8
 //   0x512344 DAT_00512344: part of another global: DAT_00512340$S35323+0x4
-//   0x5129b8 DAT_005129b8: int* (2), int (1)
 //   0x512ca8 DAT_00512ca8: part of another global: DAT_00512c80+0x28
 //   0x512d48 DAT_00512d48: part of another global: DAT_00512c80+0xc8
 //   0x51e574 DAT_0051e574: PlayerInfo_0046c2a0** (1), PlayerInfo_0046bce0** (1), int* (1)

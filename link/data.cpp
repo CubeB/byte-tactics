@@ -427,8 +427,10 @@ int DAT_00512994;  // 0x512994 .bss
 unsigned char DAT_00512998[12];  // 0x512998 .bss
 int DAT_005129a4;  // 0x5129a4 .bss
 unsigned int DAT_005129a8;  // 0x5129a8 .bss
+char* DAT_005129ac;  // 0x5129ac .bss
 char* DAT_005129b0;  // 0x5129b0 .bss
 Record_005129b4* DAT_005129b4;  // 0x5129b4 .bss
+int* DAT_005129b8;  // 0x5129b8 .bss
 unsigned char DAT_005129bc[4];  // 0x5129bc .bss
 int DAT_005129c0;  // 0x5129c0 .bss
 int* DAT_005129c4;  // 0x5129c4 .bss

@@ -1040,17 +1040,17 @@ int __stdcall ReadGuiFile(Elem_004aeac0* obj, char* name)
     int ret = 0;
     char path[256];
     ChangeExtension(name, path, "GUI");
-    if (((TdfFile*)&parser)->LoadFile(path) == 1) {
+    if ((&parser)->LoadFile(path) == 1) {
         ret = 1;
         i = 0;
         while (1) {
-            ((TdfFile*)&parser)->ResetCurrentRecord();
-            if (!((TdfFile*)&parser)->SelectRecordAt(i))
+            (&parser)->ResetCurrentRecord();
+            if (!(&parser)->SelectRecordAt(i))
                 break;
-            int cur = ((TdfFile*)&parser)->GetCurrentRecord();
+            int cur = (&parser)->GetCurrentRecord();
             Elem_004aeac0* e = obj + i;
             ReadCommonSection((Common_004ad350*)e, (Tree_004ad350*)&parser);
-            ((TdfFile*)&parser)->SetCurrentRecord(cur);
+            (&parser)->SetCurrentRecord(cur);
             switch (e->type) {
             case 0:
                 ReadPanelFields((Obj_004ad890*)e, (Source_004ad890*)&parser);
@@ -1067,7 +1067,7 @@ int __stdcall ReadGuiFile(Elem_004aeac0* obj, char* name)
                 e->tail.s34.maxchars = (short)parser.current->GetFieldInt("maxchars", 0);
                 if (e->tail.s34.maxchars > 0x80)
                     e->tail.s34.maxchars = 0x80;
-                ((TdfRecord*)parser.current)->GetFieldString(e->body.text, "text", 0x80, DAT_005119b8);
+                parser.current->GetFieldString(e->body.text, "text", 0x80, DAT_005119b8);
                 strcpy(e->body.text, Translate(e->body.text));
                 break;
             case 4:
@@ -1076,16 +1076,16 @@ int __stdcall ReadGuiFile(Elem_004aeac0* obj, char* name)
                 e->tail.s34.knobpos = (short)parser.current->GetFieldInt("knobpos", 0);
                 e->tail.s34.knobsize = (short)parser.current->GetFieldInt("knobsize", 0);
                 e->tail.s34.field_144 = 0;
-                ((TdfRecord*)parser.current)->GetFieldString(e->body.text, "text", 0x80, DAT_005119b8);
+                parser.current->GetFieldString(e->body.text, "text", 0x80, DAT_005119b8);
                 strcpy(e->body.text, Translate(e->body.text));
                 break;
             case 5:
                 e->tail.s5.link[0] = 0;
                 e->tail.s5.field_147 = 0;
                 memset(e->body.text, 0, sizeof(e->body.text));
-                ((TdfRecord*)parser.current)->GetFieldString(e->body.text, "text", 0x80, DAT_005119b8);
+                parser.current->GetFieldString(e->body.text, "text", 0x80, DAT_005119b8);
                 strncpy(e->body.text, Translate(e->body.text), 0x7f);
-                ((TdfRecord*)parser.current)->GetFieldString(e->tail.s5.link, "link", 0x10, DAT_005119b8);
+                parser.current->GetFieldString(e->tail.s5.link, "link", 0x10, DAT_005119b8);
                 break;
             case 6:
                 {
@@ -1095,10 +1095,10 @@ int __stdcall ReadGuiFile(Elem_004aeac0* obj, char* name)
                 }
                 break;
             case 7:
-                ((TdfRecord*)parser.current)->GetFieldString(e->body.text, "filename", 0x20, DAT_005119b8);
+                parser.current->GetFieldString(e->body.text, "filename", 0x20, DAT_005119b8);
                 break;
             case 8:
-                ((TdfRecord*)parser.current)->GetFieldString(e->body.text, "filename", 0x20, DAT_005119b8);
+                parser.current->GetFieldString(e->body.text, "filename", 0x20, DAT_005119b8);
                 break;
             case 10:
                 e->body.nuttin = parser.current->GetFieldInt("nuttin", 0);
@@ -1107,7 +1107,7 @@ int __stdcall ReadGuiFile(Elem_004aeac0* obj, char* name)
             i++;
         }
         obj->body.total = (short)(i - 1);
-        ((TdfFile*)&parser)->Unload();
+        (&parser)->Unload();
     }
     return ret;
 }

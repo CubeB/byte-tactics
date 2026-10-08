@@ -109,7 +109,7 @@ Counts in `src/` and `include/` at `origin/main`, against `e9367f13` (the roadma
 | Placeholder functions `FUN_<addr>` | 1,076 | 291 | 0, named | 73% | `[###############-----]` |
 | Placeholder globals `DAT_<addr>` | 737 | 247 | 0, named | 66% | `[#############-------]` |
 | Placeholder classes `Class_<addr>` | 769 | 698 | 0, named | 9% | `[##------------------]` |
-| Placeholder fields `field_<offset>` | 589 | 451 | 0, named | 23% | `[#####---------------]` |
+| Placeholder fields `field_<offset>` | 589 | 449 | 0, named | 24% | `[#####---------------]` |
 | Files that define `Unit` | 285 | 83 | 1, one shared definition | 71% | `[##############------]` |
 | Files opening with matching history | 301 | 1 | 0, none | 100% | `[####################]` |
 | Casts `((T*)x)->` | 1,698 | 1,013 | 0, casts the types allow | 40% | `[########------------]` |

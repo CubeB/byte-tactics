@@ -33,10 +33,7 @@ extern int pad47d820_22;
 extern int pad47d820_23;
 #pragma pack(push, 1)
 
-struct Point {
-    short x;
-    short y;
-};
+#include "../util/vec3.h"
 
 struct Cell {
     char unknown_0[0x5];
@@ -47,7 +44,7 @@ struct Cell {
 
 struct Unit_0047d820 {
     char unknown_0[0x14a];
-    Point origin;                       // +0x14a, footprint in map cells
+    Point16 origin;                     // +0x14a, footprint in map cells
     unsigned char* mask;                // +0x14e, one byte per footprint cell
     char unknown_152[0x22c - 0x152];
     unsigned char draft;                // +0x22c
@@ -69,11 +66,11 @@ extern Game* g_game;
 // Stays in a file of its own: in the merged file the symbol count changes the
 // operand order of the footprint mask load.
 // FUNCTION: 0x47d820
-int __stdcall GetFootprintHeight(Unit_0047d820* unit, Point cell)
+int __stdcall GetFootprintHeight(Unit_0047d820* unit, Point16 cell)
 {
     // Declared in this order: y before the footprint copy before x.
     short y = cell.y;
-    Point fp = unit->origin;
+    Point16 fp = unit->origin;
     short x = cell.x;
     if (x < 1 || y < 1 || x + fp.x >= g_game->width || y + fp.y >= g_game->height)
         return 0;

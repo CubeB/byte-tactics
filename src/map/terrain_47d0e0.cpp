@@ -6,10 +6,7 @@
 
 #pragma pack(push, 1)
 
-struct Point {
-    short x;
-    short y;
-};
+#include "../util/vec3.h"
 
 struct Cell_0047db20 {
     short unit;
@@ -34,9 +31,9 @@ union Flags_0047db20 {
 
 struct Obj_0047db20 {
     char unknown_0[0x76];
-    Point pos;
+    Point16 pos;
     char unknown_7a[4];
-    Point size;
+    Point16 size;
     int spatialBucket;
     char unknown_86[0x92 - 0x86];
     Unit_0047db20* unit;
@@ -64,13 +61,13 @@ public:
 extern Game* g_game;
 extern ClaimFootprintVisitor g_claimFootprintVtable[];
 
-void __stdcall UpdateCellHeightRange(Point pos, Point size);
-void __stdcall VisitObjectsInArea(Point pos, Point size, ClaimFootprintVisitor* visitor);
+void __stdcall UpdateCellHeightRange(Point16 pos, Point16 size);
+void __stdcall VisitObjectsInArea(Point16 pos, Point16 size, ClaimFootprintVisitor* visitor);
 void __stdcall RefreshPassMapsForUnit(Obj_0047db20* obj);
 
 // Reads the position through a const reference: written inline, the two
 // obj->pos.y reads become one common subexpression.
-static inline Cell_0047db20* CellAt(const Point& p)
+static inline Cell_0047db20* CellAt(const Point16& p)
 {
     return &g_game->cells[p.y * g_game->width + p.x];
 }
@@ -81,7 +78,7 @@ static inline Cell_0047db20* CellAt(const Point& p)
 void __stdcall RemoveUnitFromMap(Obj_0047db20* obj)
 {
     if (obj->spatialBucket != g_game->overflowBucket) {
-        Point size = obj->size;
+        Point16 size = obj->size;
         Cell_0047db20* cell = CellAt(obj->pos);
         int index = 0;
         if (obj->flags.all & 0x20000000) {
@@ -95,10 +92,10 @@ void __stdcall RemoveUnitFromMap(Obj_0047db20* obj)
                 }
                 cell += g_game->width - size.x;
             }
-            Point grown;
+            Point16 grown;
             grown.x = size.x + 2;
             grown.y = size.y + 2;
-            Point pad;
+            Point16 pad;
             pad.x = obj->pos.x - 1;
             pad.y = obj->pos.y - 1;
             UpdateCellHeightRange(pad, grown);

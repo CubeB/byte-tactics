@@ -1,19 +1,13 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 
-struct Point {
-    short x, y;
-};
-
-struct Vec3 {
-    int x, y, z;
-};
+#include "../util/vec3.h"
 
 struct UnitDef;
 
 #pragma pack(push, 1)
 struct Unit {
     char unknown_0[0x7e];
-    Point footprint;                   // +0x7e
+    Point16 footprint;                 // +0x7e
     char unknown_82[0x92 - 0x82];
     UnitDef* def;                      // +0x92
     char unknown_96[0xa8 - 0x96];
@@ -66,14 +60,14 @@ extern Game* g_game;
 // footprint centre must be visible to the unit's player (a hidden centre
 // returns true, so unexplored ground is buildable).
 // Suspected original bug: the visibility index's row term shifts footprint.x
-// by 2 where the footprint is a Point and the row extent is footprint.y (the
+// by 2 where the footprint is a Point16 and the row extent is footprint.y (the
 // loop below counts rows with footprint.y).
 // Stays in a file of its own: in the merged file the symbol ids move the def
 // load and the feature lookup's operand order.
 // FUNCTION: 0x47e2d0
 int __stdcall CanPlaceFootprintAt(Unit* unit, Vec3* pos)
 {
-    Point footprint = unit->footprint;
+    Point16 footprint = unit->footprint;
     Vec3 v = *pos;
     UnitDef* def = unit->def;
     short a = (v.x - (footprint.x << 19) + 0x80000) >> 20;

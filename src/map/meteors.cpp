@@ -24,10 +24,7 @@ struct Player_00437cd0 {
     unsigned char flags;            // +0x111
 };
 
-struct Point16 {
-    short x;
-    short y;
-};
+#include "../util/vec3.h"
 
 struct Vec3_00437de0 {
     int x;

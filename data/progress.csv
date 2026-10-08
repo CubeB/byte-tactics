@@ -1663,7 +1663,7 @@ address,size,file,symbol,status,similarity
 0x47cc30,1199,src/map/terrain_47cc30.cpp,?AddUnitToMap@@YGXPAUObj_0047cc30@@@Z,matched,100.0
 0x47d0e0,505,src/map/terrain_47d0e0.cpp,?RemoveUnitFromMap@@YGXPAUObj_0047db20@@@Z,matched,100.0
 0x47d2e0,1339,src/map/terrain.cpp,?CanBuildAt@@YGHPAUUnitDef@@UPoint@@FPAULos_0047d2e0@@@Z,matched,100.0
-0x47d820,333,src/map/terrain_47d820.cpp,?GetFootprintHeight@@YGHPAUUnit_0047d820@@UPoint@@@Z,matched,100.0
+0x47d820,333,src/map/terrain_47d820.cpp,?GetFootprintHeight@@YGHPAUUnit_0047d820@@UPoint16@@@Z,matched,100.0
 0x47d970,322,src/map/terrain.cpp,?IsFootprintClear@@YGHPAUUnit@@H@Z,matched,100.0
 0x47dac0,84,src/map/terrain.cpp,?SetYardOpen@@YGXPAUUnit@@H@Z,matched,100.0
 0x47db20,65,src/map/terrain.cpp,?ForceNeighborFootprintReclaim@@YGXPAUUnit@@@Z,matched,100.0

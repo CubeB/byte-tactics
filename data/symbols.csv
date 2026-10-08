@@ -1886,7 +1886,7 @@ address,name
 0x48dc30,SquadHasCtrlFMember
 0x48dd10,SquadHasReadyMember
 0x48df90,Class_0048df90::Class_0048df90
-0x48dfb0,Class_0048dfb0::FUN_0048dfb0
+0x48dfb0,Class_0048dfb0::FreeConditions
 0x48e010,MissionConditions::RegisterConditions
 0x48ea00,MissionCondition::IsSatisfied
 0x48ea10,MissionCondition::OnUnitDied
@@ -1960,13 +1960,13 @@ address,name
 0x48fe60,MissionConditions::LoadConditions
 0x48fed0,MissionConditions::AllVictoryConditionsMet
 0x48ff40,MissionConditions::AnyDefeatConditionMet
-0x48ffd0,FUN_0048ffd0
-0x490050,FUN_00490050
-0x490080,FUN_00490080
+0x48ffd0,AreEnemiesEliminated
+0x490050,IsLocalPlayerEliminated
+0x490080,CheckAlliedVictory
 0x490200,FUN_00490200
 0x490230,MissionConditions::CheckVictory
 0x490360,MissionConditions::CheckDefeat
-0x4904b0,MissionConditions::FUN_004904b0
+0x4904b0,MissionConditions::Deactivate
 0x4904c0,MissionConditions::NotifyUnitDied
 0x490520,MissionConditions::NotifyUnitCaptured
 0x490580,MissionConditions::NotifyUnitCreated

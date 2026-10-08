@@ -456,7 +456,7 @@ public:
     void* bufsB[16];             // +0x44
     int countB;                  // +0x84
 
-    void FUN_0048dfb0();
+    void FreeConditions();
 };
 
 class MissionConditions {
@@ -476,14 +476,14 @@ public:
     // where few enough symbols come before it to keep its SIB operand order.
     int CheckVictory();
     int CheckDefeat();
-    void FUN_004904b0();
+    void Deactivate();
     void NotifyUnitDied(Unit* unit);
     void NotifyUnitCaptured(Unit* unit);
     void NotifyUnitCreated(Unit* unit);
 };
 
 // FUNCTION: 0x48dfb0
-void Class_0048dfb0::FUN_0048dfb0()
+void Class_0048dfb0::FreeConditions()
 {
     int i;
     for (i = 0; i < countA; i++) {
@@ -1482,7 +1482,7 @@ int MissionConditions::AnyDefeatConditionMet()
 // Returns 1 when every other player is either allied with the local player
 // or has nothing left (the short at player +0x144 is zero).
 // FUNCTION: 0x48ffd0
-int FUN_0048ffd0()
+int AreEnemiesEliminated()
 {
     Player* p = &g_game->players[g_game->player];
     for (unsigned char i = 0; i < 10; i++) {
@@ -1495,13 +1495,13 @@ int FUN_0048ffd0()
 // Returns 1 when the local player has nothing left (the short at player
 // +0x144 is zero; compare 0x48ffd0).
 // FUNCTION: 0x490050
-int FUN_00490050()
+int IsLocalPlayerEliminated()
 {
     return g_game->players[g_game->player].count == 0 ? 1 : 0;
 }
 
 // FUNCTION: 0x490080
-int FUN_00490080()
+int CheckAlliedVictory()
 {
     // declared before the loop counters on purpose: that is what puts `other`
     // in the index slot of the inner load
@@ -1604,7 +1604,7 @@ int MissionConditions::CheckDefeat()
 }
 
 // FUNCTION: 0x4904b0
-void MissionConditions::FUN_004904b0()
+void MissionConditions::Deactivate()
 {
     active = 0;
 }

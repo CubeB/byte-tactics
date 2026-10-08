@@ -1895,7 +1895,7 @@ address,size,file,symbol,status,similarity
 0x48dd10,170,src/ingame/selection.cpp,?SquadHasReadyMember@@YGHH@Z,matched,100.0
 0x48ddc0,449,src/ingame/selection.cpp,?insert@?$vector@PAUUnit@@V?$allocator@PAUUnit@@@std@@@std@@QAEPAPAUUnit@@PAPAU3@ABQAU3@@Z,matched,100.0
 0x48df90,24,src/ingame/selection.cpp,??0Class_0048df90@@QAE@XZ,matched,100.0
-0x48dfb0,82,src/game/victory_48dfb0.cpp,?FUN_0048dfb0@Class_0048dfb0@@QAEXXZ,matched,100.0
+0x48dfb0,82,src/game/victory_48dfb0.cpp,?FreeConditions@Class_0048dfb0@@QAEXXZ,matched,100.0
 0x48e010,2542,src/game/victory_48dfb0.cpp,?RegisterConditions@MissionConditions@@QAEXPAUParam_0048e010@@@Z,matched,100.0
 0x48ea00,4,src/game/victory_48dfb0.cpp,?IsSatisfied@MissionCondition@@UAEHXZ,matched,100.0
 0x48ea10,3,src/game/victory_48dfb0.cpp,?OnUnitDied@MissionCondition@@UAEXPAUUnit@@@Z,matched,100.0
@@ -1969,13 +1969,13 @@ address,size,file,symbol,status,similarity
 0x48fe60,105,src/game/victory_48dfb0.cpp,?LoadConditions@MissionConditions@@QAEXPAVHapiBank@@@Z,matched,100.0
 0x48fed0,108,src/game/victory_48dfb0.cpp,?AllVictoryConditionsMet@MissionConditions@@QAEHXZ,matched,100.0
 0x48ff40,136,src/game/victory_48dfb0.cpp,?AnyDefeatConditionMet@MissionConditions@@QAEHXZ,matched,100.0
-0x48ffd0,126,src/game/victory_48dfb0.cpp,?FUN_0048ffd0@@YGHXZ,matched,100.0
-0x490050,42,src/game/victory_48dfb0.cpp,?FUN_00490050@@YGHXZ,matched,100.0
-0x490080,378,src/game/victory_48dfb0.cpp,?FUN_00490080@@YGHXZ,matched,100.0
+0x48ffd0,126,src/game/victory_48dfb0.cpp,?AreEnemiesEliminated@@YGHXZ,matched,100.0
+0x490050,42,src/game/victory_48dfb0.cpp,?IsLocalPlayerEliminated@@YGHXZ,matched,100.0
+0x490080,378,src/game/victory_48dfb0.cpp,?CheckAlliedVictory@@YGHXZ,matched,100.0
 0x490200,42,src/game/victory_48dfb0.cpp,?FUN_00490200@@YGHXZ,matched,100.0
 0x490230,301,src/game/victory_490230.cpp,?CheckVictory@MissionConditions@@QAEHXZ,matched,100.0
 0x490360,334,src/game/victory_48dfb0.cpp,?CheckDefeat@MissionConditions@@QAEHXZ,matched,100.0
-0x4904b0,11,src/game/victory_48dfb0.cpp,?FUN_004904b0@MissionConditions@@QAEXXZ,matched,100.0
+0x4904b0,11,src/game/victory_48dfb0.cpp,?Deactivate@MissionConditions@@QAEXXZ,matched,100.0
 0x4904c0,84,src/game/victory_48dfb0.cpp,?NotifyUnitDied@MissionConditions@@QAEXPAUUnit@@@Z,matched,100.0
 0x490520,84,src/game/victory_48dfb0.cpp,?NotifyUnitCaptured@MissionConditions@@QAEXPAUUnit@@@Z,matched,100.0
 0x490580,84,src/game/victory_48dfb0.cpp,?NotifyUnitCreated@MissionConditions@@QAEXPAUUnit@@@Z,matched,100.0

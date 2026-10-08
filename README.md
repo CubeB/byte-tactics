@@ -112,7 +112,7 @@ Counts in `src/` and `include/` at `origin/main`, against `e9367f13` (the roadma
 | Placeholder fields `field_<offset>` | 589 | 449 | 0, named | 24% | `[#####---------------]` |
 | Files that define `Unit` | 285 | 83 | 1, one shared definition | 71% | `[##############------]` |
 | Files opening with matching history | 301 | 1 | 0, none | 100% | `[####################]` |
-| Casts `((T*)x)->` | 1,698 | 1,013 | 0, casts the types allow | 40% | `[########------------]` |
+| Casts `((T*)x)->` | 1,698 | 1,017 | 0, casts the types allow | 40% | `[########------------]` |
 | Byte-offset access `*(T*)(p + off)` and `(char*)p + off` | 1,284 | 1,051 | cases with no struct | | |
 
 | Cleanup issues | | | |

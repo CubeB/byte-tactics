@@ -1820,7 +1820,7 @@ address,size,file,symbol,status,similarity
 0x488c50,217,src/units/unit_commands_487bf0.cpp,?GetCategoryMask@@YGPAVUnitTypeSet@@PAD@Z,matched,100.0
 0x488d30,309,src/units/unit_commands_487bf0.cpp,?AddTypeOrCategory@UnitTypeSet@@QAEXPADPAH@Z,matched,100.0
 0x488e70,188,src/units/unit_types.cpp,?AddToCategories@UnitDef@@QAEXPAD@Z,matched,100.0
-0x488f30,124,src/units/unit_commands_487bf0.cpp,?GetEnergyUse@@YGMPAUUnit@@@Z,matched,100.0
+0x488f30,124,src/units/unit_commands_487bf0.cpp,?GetEnergyUse@@YGMPAUUnitDef@@@Z,matched,100.0
 0x488fb0,649,src/units/unit_commands_487bf0.cpp,?insert@?$vector@VUnitCategory@@V?$allocator@VUnitCategory@@@std@@@std@@QAEXPAVUnitCategory@@IABV3@@Z,matched,100.0
 0x489240,27,src/units/unit_commands_487bf0.cpp,?AssignCategory@Class_00489240@@QAEPAV1@PAV1@@Z,matched,100.0
 0x489260,27,src/units/unit_commands_487bf0.cpp,??0UnitCategory@@QAE@ABV0@@Z,matched,100.0

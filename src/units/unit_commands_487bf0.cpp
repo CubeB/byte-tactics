@@ -66,11 +66,6 @@ struct Unit {
     unsigned char state;               // +0x10e
     char unknown_10f[0x110 - 0x10f];
     unsigned int flags;                // +0x110
-    char unknown_114[0x1c6 - 0x114];
-    float energyUse;                   // +0x1c6
-    char unknown_1ca[0x1d2 - 0x1ca];
-    float windGenerator;                   // +0x1d2
-    float tidalGenerator;                   // +0x1d6
     void SetStateBits(unsigned char mask, int set);
 };
 
@@ -835,17 +830,27 @@ void UnitTypeSet::AddTypeOrCategory(char* text, int* out)
     *out = 0;
 }
 
+#pragma pack(push, 1)
+struct UnitDef {
+    char unknown_0[0x1c6];
+    float energyUse;                   // +0x1c6
+    char unknown_1ca[0x1d2 - 0x1ca];
+    float windGenerator;               // +0x1d2
+    float tidalGenerator;              // +0x1d6
+};
+#pragma pack(pop)
+
 // FUNCTION: 0x488f30
-float __stdcall GetEnergyUse(Unit* unit)
+float __stdcall GetEnergyUse(UnitDef* def)
 {
-    if (unit->energyUse != 0.0) {
-        return unit->energyUse;
+    if (def->energyUse != 0.0) {
+        return def->energyUse;
     }
-    if (unit->windGenerator > 0.0f) {
-        return -(g_game->field_37ede * unit->windGenerator);
+    if (def->windGenerator > 0.0f) {
+        return -(g_game->field_37ede * def->windGenerator);
     }
-    if (unit->tidalGenerator > 0.0f) {
-        return -(g_game->field_14267 * unit->tidalGenerator);
+    if (def->tidalGenerator > 0.0f) {
+        return -(g_game->field_14267 * def->tidalGenerator);
     }
     return 0.0f;
 }

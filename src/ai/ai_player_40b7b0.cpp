@@ -12,7 +12,7 @@ struct Game { char pad[0x37f30]; unsigned char flags; };
 #pragma pack(pop)
 extern Game* g_game;
 class Class_004800c0 { public: void FUN_004800c0(Unit**); };
-int __stdcall FUN_0049adf0(Unit*,unsigned char);
+int __stdcall GetWeaponRange(Unit*,unsigned char);
 int __stdcall WeaponCanReachUnit(Unit*,Unit*,unsigned char);
 int __stdcall RandomInt(int);
 void __stdcall GetVisibleEnemiesInRadius(int,Vec*,int,int,std::vector<Unit*>*);
@@ -25,7 +25,7 @@ Unit* __stdcall FindWeaponTarget(Unit* unit,unsigned char weapon,int useRange)
     int bestDistance=0x7fffffff;
     Unit* best=0;
     std::vector<Unit*> candidates;
-    if(useRange) GetVisibleEnemiesInRadius(unit->player,&unit->pos,FUN_0049adf0(unit,weapon),0,&candidates);
+    if(useRange) GetVisibleEnemiesInRadius(unit->player,&unit->pos,GetWeaponRange(unit,weapon),0,&candidates);
     else GetVisibleEnemiesInRadius(unit->player,&unit->pos,unit->def->range,0,&candidates);
     for(int count=0;count<50;++count) {
         if(candidates.empty()) break;

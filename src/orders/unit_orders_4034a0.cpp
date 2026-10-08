@@ -529,8 +529,8 @@ int __stdcall BroadcastPacket(int player, void* data, int size);
 void __stdcall VisitObjectsInRange(Vec3* pos, int range, const Class_00405d90& visitor);
 int __stdcall PickRandomReclaimableResourcesInRadius(Vec3* pos, int range, Vec3** energy, float* energyAmount,
                            Vec3** metal, float* metalAmount);
-int __stdcall FUN_0049adf0(Unit* unit, int weapon);
-int __stdcall FUN_0049adf0(Unit* unit, unsigned char weapon);
+int __stdcall GetWeaponRange(Unit* unit, int weapon);
+int __stdcall GetWeaponRange(Unit* unit, unsigned char weapon);
 int __cdecl FUN_004b70ef(int angle, int distance);
 int __cdecl FUN_004b7123(int angle, int distance);
 void __stdcall EmitTeleportParticles(Vec3* from, Vec3* to, int count, int param);
@@ -576,7 +576,7 @@ int __stdcall AttackChaseOrder(Unit* unit, Order* order, unsigned int flags)
         order->flags = 0x13808;
         return 2;
     case 2:
-        weapon = FUN_0049adf0(unit, weapon);
+        weapon = GetWeaponRange(unit, weapon);
         switch (order->step) {
         case 0:
             return order->Advance(weapon);
@@ -639,7 +639,7 @@ int __stdcall SuppressOrder(Unit* unit,Order* order,unsigned flags)
     case 0:
         if(unit->def->flying) return 8;
         ((Class_00438880*)order)->AnnounceStatusIfFlagged(0);
-        order->radius=FUN_0049adf0(unit,(unsigned char)order->weapon); return 1;
+        order->radius=GetWeaponRange(unit,(unsigned char)order->weapon); return 1;
     case 1:
         if(order->weapon==2) {
             unit->ClaimWeapons(3);
@@ -658,7 +658,7 @@ int __stdcall SuppressOrder(Unit* unit,Order* order,unsigned flags)
             if(order->radius<=0) return 9;
             ((Class_00438930*)order)->AttachApproachRadiusGoal(&order->pos,order->radius);
             order->flags=0xe0;
-            order->radius-=RandomInt(FUN_0049adf0(unit,(unsigned char)order->weapon)/3);
+            order->radius-=RandomInt(GetWeaponRange(unit,(unsigned char)order->weapon)/3);
             order->state=1; return 4;
         }
         return 9;

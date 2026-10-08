@@ -90,7 +90,7 @@ extern Point16 g_meteorTarget;         // target
 Player_00437cd0* __stdcall FindWeaponByName(char* name);
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
-int __stdcall FUN_0049df10(void* player, Vec3_00437de0* pos, Vec3_00437de0* vel, int count);
+int __stdcall SpawnProjectile(void* player, Vec3_00437de0* pos, Vec3_00437de0* vel, int count);
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void __stdcall FatalError(char* text);
 
@@ -200,7 +200,7 @@ void UpdateMeteors()
             pos.x += g_meteorOrigin.x << 20;
             pos.y = -vel.y * 90;
             pos.z += g_meteorOrigin.y << 20;
-            FUN_0049df10(g_meteorWeapon, &pos, &vel, 1);
+            SpawnProjectile(g_meteorWeapon, &pos, &vel, 1);
         }
         if (g_meteorStrikeEndTime <= g_game->ticks)
             g_meteorActive = 0;

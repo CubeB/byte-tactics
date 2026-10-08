@@ -265,8 +265,8 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x509400,DAT_00509400,.data,12,gap,string,char[],1,0,1,one type,1,,s_SENDTYPE_00509400,,,53454e445459504500000000
 0x50940c,DAT_0050940c,.data,12,gap,string,char[],1,0,1,one type,1,,s_LIVEPLYR_0050940c,,,4c495645504c595200000000
 0x50966c,g_screenshotPrefix,.data,12,gap,string,char[],1,0,1,one type,1,,DAT_0050966c,,,53484f540000000000000000
-0x509678,DAT_00509678,.data,16,type,data,char*[4],1,0,1,one type,1,,PTR_s_FirePrimary_00509678,3,,dc965000cc965000bc96500000000000
-0x509688,DAT_00509688,.data,12,type,data,char*[3],1,0,1,one type,1,,PTR_s_AimPrimary_00509688,3,,b0965000a096500094965000
+0x509678,g_fireScriptNames,.data,16,type,data,char*[4],1,0,1,one type,1,,PTR_s_FirePrimary_00509678,3,,dc965000cc965000bc96500000000000
+0x509688,g_aimScriptNames,.data,12,type,data,char*[3],1,0,1,one type,1,,PTR_s_AimPrimary_00509688,3,,b0965000a096500094965000
 0x509718,g_windowClassName,.data,4,type,data,char*,1,0,1,one type,1,,PTR_s_Total_Annihilation_Class_00509718,1,,24975000
 0x50971c,g_appName,.data,4,type,string,char*,1,0,1,one type,1,,PTR_s_Total_Annihilation_0050971c,1,,587a5000
 0x509720,g_cdNeedsReopenAfterFocus,.data,4,type,data,int,1,0,1,one type,1,,DAT_00509720,,,01000000

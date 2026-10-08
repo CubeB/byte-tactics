@@ -595,7 +595,7 @@ struct Packet_00499ba0 {
 int __cdecl GetLocalDpid();
 
 // FUNCTION: 0x499ba0
-void __stdcall FUN_00499ba0(char param_1, Vec3_00499ba0* a, Vec3_00499ba0* b)
+void __stdcall BroadcastWeaponFire(char param_1, Vec3_00499ba0* a, Vec3_00499ba0* b)
 {
     Packet_00499ba0 packet;
     if (g_game->flags_2a44 & 1) {
@@ -626,7 +626,7 @@ int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
 
 // FUNCTION: 0x499c10
-void __stdcall FUN_00499c10(Object_00499c10* obj, Source_00499c10* src)
+void __stdcall RockUnit(Object_00499c10* obj, Source_00499c10* src)
 {
     short angle = src->heading - obj->heading;
     int a = -FUN_004b70ef(angle, 800);
@@ -805,7 +805,7 @@ struct Unit_499e50 {
 };
 
 // FUNCTION: 0x499e50
-void __stdcall FUN_00499e50(Unit_499e50* unit)
+void __stdcall UntrackProjectile(Unit_499e50* unit)
 {
     if (unit == g_game->selected) {
         g_game->trackedPos = ((Unit_499e50*)g_game->selected)->pos;
@@ -1428,7 +1428,7 @@ int __stdcall WeaponCanReachUnit(Unit* unit1, Unit* unit2, unsigned char weapon)
 }
 
 // FUNCTION: 0x49adf0
-int __stdcall FUN_0049adf0(int param1, unsigned int param2)
+int __stdcall GetWeaponRange(int param1, unsigned int param2)
 {
     unsigned char idx = (unsigned char)param2;
     int offset = idx * 7;
@@ -1766,7 +1766,7 @@ struct Object_0049b680 {
 #pragma pack(pop)
 
 // FUNCTION: 0x49b680
-void __stdcall FUN_0049b680(Object_0049b680* obj)
+void __stdcall ComputeVelocityFromAngles(Object_0049b680* obj)
 {
     obj->y = FUN_004b70ef(obj->angle2, obj->length);
     int r = FUN_004b7123(obj->angle2, obj->length);
@@ -1873,7 +1873,7 @@ struct Object_0049c920 {
 #pragma pack(pop)
 
 // FUNCTION: 0x49c920
-void __stdcall FUN_0049c920(Object_0049c920* obj)
+void __stdcall ComputeProjectileTime(Object_0049c920* obj)
 {
     Unit* unit = obj->unit;
     if (unit->f_68 != 0 && !(unit->flags_111 & 0x8000000)) {
@@ -1898,7 +1898,7 @@ struct Src_0049c980 {
 #pragma pack(pop)
 
 // FUNCTION: 0x49c980
-void __stdcall FUN_0049c980(Obj_0049c980* obj, Src_0049c980* src)
+void __stdcall CopyWeaponVelocityParam(Obj_0049c980* obj, Src_0049c980* src)
 {
     if (src->f_6c) {
         obj->value = src->f_6c;
@@ -1918,7 +1918,7 @@ int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
 void __stdcall EmitWeaponSmoke(Vec3* p, short index);
 
-extern char* DAT_00509678[4];
+extern char* g_fireScriptNames[4];
 
 #pragma pack(push, 1)
 struct Shot_0049c9c0 {
@@ -2019,7 +2019,7 @@ int __stdcall FireLineOfSightProjectile(Fire_0049c9c0* fire, Unit* unit,
     proj->f_4e = param_5;
 
     proj->f_60 = fire->shot->f_ea;
-    unit->anims->StartScript(DAT_00509678[(fire->f_1b >> 2) & 3], 0, 0);
+    unit->anims->StartScript(g_fireScriptNames[(fire->f_1b >> 2) & 3], 0, 0);
     short angle = unit->f_1a[((fire->f_1b >> 2) & 3) * 7].angle - unit->heading;
     int a = -FUN_004b70ef(angle, 800);
     int b = -FUN_004b7123(angle, 800);
@@ -2126,7 +2126,7 @@ int __stdcall FireVLaunchProjectile(Shot_0049cc20* shot, Unit* unit, Vec3* pos,
     proj->field_4e = param_5;
     proj->field_56 = param_6;
     proj->active = shot->def->f_ea;
-    ((CobScript*)unit->anims)->StartScript(DAT_00509678[(shot->field_1b >> 2) & 3], 0, 0);
+    ((CobScript*)unit->anims)->StartScript(g_fireScriptNames[(shot->field_1b >> 2) & 3], 0, 0);
     short angle = unit->aim_0049cc20[(shot->field_1b >> 2) & 3][0][0] - unit->heading;
     int a = -FUN_004b70ef(angle, 800);
     int b = -FUN_004b7123(angle, 800);
@@ -2220,7 +2220,7 @@ int __stdcall FireBallisticProjectile(Shot_0049cde0* shot, Unit* unit, Vec3* pos
         // active before field_4e: the reverse of the natural order is the original's.
         proj->active = shot->def->f_ea;
         proj->field_4e = param_5;
-        ((CobScript*)unit->anims)->StartScript(DAT_00509678[(shot->field_1b >> 2) & 3], 0, 0);
+        ((CobScript*)unit->anims)->StartScript(g_fireScriptNames[(shot->field_1b >> 2) & 3], 0, 0);
         short angle = unit->aim_0049cde0[(shot->field_1b >> 2) & 3][0] - unit->heading;
         int a = -FUN_004b70ef(angle, 800);
         int b = -FUN_004b7123(angle, 800);
@@ -2260,7 +2260,7 @@ struct Proj_0049d000 {
 void __stdcall InitProjectile(Proj_0049d000*, void*, void*, int, int, Unit*);
 
 // FUNCTION: 0x49d000
-int __stdcall FUN_0049d000(Shot_0049d000* shot, Unit* unit, Vec3* pos)
+int __stdcall SpawnProjectileFromUnitMotion(Shot_0049d000* shot, Unit* unit, Vec3* pos)
 {
     Proj_0049d000* proj = 0;
     if (g_game->projCount < 300) {
@@ -2302,7 +2302,7 @@ int __stdcall FireBallisticProjectile(Object_0049d0c0* obj, int a, int b, int c,
 
 // The last two arguments are passed to both callees in swapped order.
 // FUNCTION: 0x49d0c0
-int __stdcall FUN_0049d0c0(Object_0049d0c0* obj, int a, int b, int d, int c)
+int __stdcall FireWeaponByFlags(Object_0049d0c0* obj, int a, int b, int d, int c)
 {
     int result = 0;
     if (obj->info->flags.bit0 || obj->info->flags.bit20)
@@ -3036,7 +3036,7 @@ int __cdecl GetLocalDpid();
 void __stdcall InitProjectile(Proj_0049df10*, void*, void*, int, int, void*);
 
 // FUNCTION: 0x49df10
-int __stdcall FUN_0049df10(Unit_0049df10* unit, Vec3* a, Vec3* b, int flag)
+int __stdcall SpawnProjectile(Unit_0049df10* unit, Vec3* a, Vec3* b, int flag)
 {
     Proj_0049df10* proj = 0;
     if (g_game->projCount < 300) {
@@ -3147,11 +3147,11 @@ void __stdcall InitUnitWeaponSlots(Unit* unit)
 // The three aim script names. The original's array has three elements, with
 // the string "AimTertiary" right after it, so a weapon index of 3 would read
 // string bytes as a pointer.
-extern char* DAT_00509688[3];
+extern char* g_aimScriptNames[3];
 
 int __stdcall GetWeaponTargetPos(Unit* unit, Vec3* pos, int index);
 Unit* __stdcall GetWeaponTargetUnit(Unit* obj, int index);
-void __stdcall FUN_0049e570(Vec3* a, Vec3* b, int* dx, int* dy, int* dz);
+void __stdcall SubtractVec3(Vec3* a, Vec3* b, int* dx, int* dy, int* dz);
 int __stdcall CalcAimAngles(Unit* unit, Target_0049e1a0* target,
                            unsigned short* out_heading, unsigned short* out_pitch,
                            unsigned char weapon, Vec3* point);
@@ -3192,7 +3192,7 @@ void __stdcall UpdateUnitWeapons(Unit* unit) {
                 int ok;
                 if (t->f_111.b1) {
                     GetAimFromPosition(unit, &aim, (unsigned char)((e->flags >> 2) & 3));
-                    FUN_0049e570(&aim, &pos, &dx, &dy, &dz);
+                    SubtractVec3(&aim, &pos, &dx, &dy, &dz);
                     heading = (unsigned short)(FUN_004b715a(dx, dz) - unit->heading);
                     angle = SolveLaunchAngle(dx, dy, dz, t->f_68, t->f_c8);
                     ok = (angle != 0x8000);
@@ -3207,9 +3207,9 @@ void __stdcall UpdateUnitWeapons(Unit* unit) {
                     e->f_16 = heading;
                     e->f_8 = 0;
                     // Name read afresh for each call, no cached local: lets the two tails merge.
-                    unit->script->StartScriptWithArgs(DAT_00509688[(e->flags >> 2) & 3], &e->name, 0, 2,
+                    unit->script->StartScriptWithArgs(g_aimScriptNames[(e->flags >> 2) & 3], &e->name, 0, 2,
                                                heading, angle, 0, 0);
-                    SendScriptCallByName(unit, DAT_00509688[(e->flags >> 2) & 3], 2, heading, angle, 0, 0);
+                    SendScriptCallByName(unit, g_aimScriptNames[(e->flags >> 2) & 3], 2, heading, angle, 0, 0);
                     e->flags |= 1;
                 }
             }
@@ -3218,9 +3218,9 @@ void __stdcall UpdateUnitWeapons(Unit* unit) {
             bool armed = attached->f_111.b4;
             if (armed && (!attached->f_111.b28 || e->f_1a) && !(e->flags & 1)) {
                 e->f_8 = 0;
-                unit->script->StartScriptWithArgs(DAT_00509688[(e->flags >> 2) & 3], &e->name, 0, 2, 0, 0,
+                unit->script->StartScriptWithArgs(g_aimScriptNames[(e->flags >> 2) & 3], &e->name, 0, 2, 0, 0,
                                            0, 0);
-                SendScriptCallByName(unit, DAT_00509688[(e->flags >> 2) & 3], 2, 0, 0, 0, 0);
+                SendScriptCallByName(unit, g_aimScriptNames[(e->flags >> 2) & 3], 2, 0, 0, 0, 0);
                 e->flags |= 1;
             }
         }
@@ -3263,7 +3263,7 @@ void __stdcall UpdateUnitWeapons(Unit* unit) {
 }
 
 // FUNCTION: 0x49e570
-void __stdcall FUN_0049e570(int* a, int* b, int* dx, int* dy, int* dz)
+void __stdcall SubtractVec3(int* a, int* b, int* dx, int* dy, int* dz)
 {
     *dx = a[0] - b[0];
     *dy = a[1] - b[1];

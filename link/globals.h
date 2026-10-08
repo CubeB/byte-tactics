@@ -196,8 +196,8 @@ extern char DAT_005093f8[8];                                                    
 extern char DAT_00509400[12];                                                                     // 0x509400, 12 bytes; 1 of 1 files
 extern char DAT_0050940c[12];                                                                     // 0x50940c, 12 bytes; 1 of 1 files
 extern char g_screenshotPrefix[12];                                                               // 0x50966c, 12 bytes; 1 of 1 files
-extern char* DAT_00509678[4];                                                                     // 0x509678, 16 bytes; 1 of 1 files
-extern char* DAT_00509688[3];                                                                     // 0x509688, 12 bytes; 1 of 1 files
+extern char* g_fireScriptNames[4];                                                                // 0x509678, 16 bytes; 1 of 1 files
+extern char* g_aimScriptNames[3];                                                                 // 0x509688, 12 bytes; 1 of 1 files
 extern char* g_windowClassName;                                                                   // 0x509718, 4 bytes; 1 of 1 files
 extern char* g_appName;                                                                           // 0x50971c, 4 bytes; 1 of 1 files
 extern int g_cdNeedsReopenAfterFocus;                                                             // 0x509720, 4 bytes; 1 of 1 files

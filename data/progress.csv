@@ -2814,8 +2814,8 @@ address,size,file,symbol,status,similarity
 0x4c6ac0,26,src/graphics/surface.cpp,?FreeSurface@@YGXPAUSurface@@@Z,matched,100.0
 0x4c6ae0,36,src/graphics/surface.cpp,?GetClipRect@Surface@@QAEPAURect@@PAU2@@Z,matched,100.0
 0x4c6b10,33,src/graphics/surface.cpp,?SetClipRect@Surface@@QAEXURect@@@Z,matched,100.0
-0x4c6b40,18,src/graphics/surface.cpp,?FUN_004c6b40@@YGXH@Z,matched,100.0
-0x4c6b60,12,src/graphics/surface.cpp,?FUN_004c6b60@@YGHXZ,matched,100.0
+0x4c6b40,18,src/graphics/surface.cpp,?SetDisplayFieldE4@@YGXH@Z,matched,100.0
+0x4c6b60,12,src/graphics/surface.cpp,?GetDisplayFieldE4@@YGHXZ,matched,100.0
 0x4c6b70,224,src/graphics/surface.cpp,?DrawSurface@@YGXPAUSurface@@0HH@Z,matched,100.0
 0x4c6c50,194,src/graphics/surface.cpp,?DrawSurfaceKeyed@@YGXPAUSurface@@0HHH@Z,matched,100.0
 0x4c6d20,149,src/graphics/surface.cpp,?CopySurfaceRect@@YGXPAUSurface@@0PAURect@@PAUPoint@@@Z,matched,100.0
@@ -2823,9 +2823,9 @@ address,size,file,symbol,status,similarity
 0x4c6e70,149,src/graphics/surface.cpp,?DrawTile@@YGXPAUSurface@@0PAURect@@PAUPoint@@@Z,matched,100.0
 0x4c6f10,100,src/graphics/surface.cpp,?SaveSurface@@YGXPAUSurface@@PAVHapiBank@@@Z,matched,100.0
 0x4c6f80,251,src/graphics/surface.cpp,?LoadSurface@@YGPAUSurface@@PAX@Z,matched,100.0
-0x4c7080,72,src/graphics/surface.cpp,?FUN_004c7080@@YGXH@Z,matched,100.0
-0x4c70d0,280,src/graphics/surface.cpp,?FUN_004c70d0@@YGXHPAURange@@HH@Z,matched,100.0
-0x4c71f0,280,src/graphics/surface.cpp,?FUN_004c71f0@@YGXHPAURange@@HH@Z,matched,100.0
+0x4c7080,72,src/graphics/surface.cpp,?InitSurfaceIndexFreeList@@YGXH@Z,matched,100.0
+0x4c70d0,280,src/graphics/surface.cpp,?InterpEdgeUvFromScanline@@YGXHPAURange@@HH@Z,matched,100.0
+0x4c71f0,280,src/graphics/surface.cpp,?InterpEdgeUvFromScanline_B@@YGXHPAURange@@HH@Z,matched,100.0
 0x4c7310,617,src/graphics/surface.cpp,?DrawQuadRow@@YGXHPAHPAUSurface@@PAUInfo_4c7310@@@Z,matched,100.0
 0x4c7580,1183,src/graphics/surface.cpp,?DrawFrameQuad@@YGXPAXPAUFrame_004c7580@@PAUQuad_004c7580@@2@Z,matched,100.0
 0x4c7a20,1529,src/graphics/surface.cpp,?DrawTexturedSpan@@YGXHPAHPAUSurf_4c7a20@@PAUInfo_4c7a20@@@Z,matched,100.0

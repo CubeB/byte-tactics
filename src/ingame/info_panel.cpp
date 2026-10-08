@@ -606,7 +606,7 @@ int GetScreenWidth();
 void __stdcall SetOffscreenSurface(void* surf);
 void __stdcall FillSurface(void* surf, int mode);
 void FlipScreen();
-void FUN_004c6b60();
+void GetDisplayFieldE4();
 unsigned long GetMilliseconds();
 
 void __stdcall FadeRectangle(void* surface, Rect_004b0510* rect, int level);
@@ -870,7 +870,7 @@ int __stdcall DrawUnitStateProbe(void* surface)
     SetFont(*(int*)((char*)g_game + 0x391f9));
     lineH = GetFontHeight() + 3;
     y = lineH * 7;
-    FUN_004c6b60();
+    GetDisplayFieldE4();
     prev = g_probePanelBottom;
     r.x1 = 0x83;
     r.x2 = 0x191;
@@ -1052,7 +1052,7 @@ int __stdcall DrawUnitBuilderProbe(void* surface)
     SetFont(g_game->f_391f9);
     int lineHeight = GetFontHeight() + 3;
     int y = lineHeight * 3;
-    FUN_004c6b60();
+    GetDisplayFieldE4();
     Rect_004685a0 r;
     r.left = 0x83;
     r.right = 0x191;

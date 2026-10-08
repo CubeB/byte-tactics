@@ -682,11 +682,11 @@ unsigned char DAT_0051fdb4[4];  // 0x51fdb4 .bss
 TranslationTable* g_translations;  // 0x51fdb8 .bss
 unsigned char DAT_0051fdbc[4];  // 0x51fdbc .bss
 char g_language[304];  // 0x51fdc0 .bss
-int DAT_0051fef0;  // 0x51fef0 .bss
-int DAT_0051fef4;  // 0x51fef4 .bss
-Chunk* DAT_0051fef8;  // 0x51fef8 .bss
-int DAT_0051fefc;  // 0x51fefc .bss
-int DAT_0051ff00;  // 0x51ff00 .bss
+int g_edgeSpan;  // 0x51fef0 .bss
+int g_edgeHighIndexB;  // 0x51fef4 .bss
+Chunk* g_edgeTable;  // 0x51fef8 .bss
+int g_edgeHighIndex;  // 0x51fefc .bss
+int g_edgeLowIndex;  // 0x51ff00 .bss
 int g_reporterNotify;  // 0x51ff04 .bss
 int g_reporterReport;  // 0x51ff08 .bss
 int g_enumSessionsResult;  // 0x51ff0c .bss

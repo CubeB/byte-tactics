@@ -802,14 +802,14 @@ void Surface::SetClipRect(Rect r)
 }
 
 // FUNCTION: 0x4c6b40
-void __stdcall FUN_004c6b40(int param_1)
+void __stdcall SetDisplayFieldE4(int param_1)
 {
     Display* d = GetDisplay();
     d->field_e4 = param_1;
 }
 
 // FUNCTION: 0x4c6b60
-int FUN_004c6b60()
+int GetDisplayFieldE4()
 {
     return GetDisplay()->field_e4;
 }
@@ -994,29 +994,29 @@ Surface* __stdcall LoadSurface(void* file)
 }
 
 // GLOBAL: 0x51fe48
-extern int DAT_0051fe48[];
+extern int g_edgeListPrev[];
 // GLOBAL: 0x51fea0
-extern int DAT_0051fea0[];
+extern int g_edgeListNext[];
 
 // FUNCTION: 0x4c7080
-void __stdcall FUN_004c7080(int count)
+void __stdcall InitSurfaceIndexFreeList(int count)
 {
     for (int i = 0; i < count; i++) {
         if (i == 0) {
-            DAT_0051fe48[0] = count - 1;
+            g_edgeListPrev[0] = count - 1;
         } else {
-            DAT_0051fe48[i] = i - 1;
+            g_edgeListPrev[i] = i - 1;
         }
         if (i == count - 1) {
-            DAT_0051fea0[i] = 0;
+            g_edgeListNext[i] = 0;
         } else {
-            DAT_0051fea0[i] = i + 1;
+            g_edgeListNext[i] = i + 1;
         }
     }
 }
 
 // GLOBAL: 0x51fef0
-extern int DAT_0051fef0;
+extern int g_edgeSpan;
 
 struct Chunk {
     int field_0;
@@ -1029,32 +1029,32 @@ struct Range {
 };
 
 // GLOBAL: 0x51fef8
-extern Chunk* DAT_0051fef8;
+extern Chunk* g_edgeTable;
 // GLOBAL: 0x51fefc
-extern int DAT_0051fefc;
+extern int g_edgeHighIndex;
 // GLOBAL: 0x51ff00
-extern int DAT_0051ff00;
+extern int g_edgeLowIndex;
 
 int __cdecl FUN_004b7381(int a, int b, int c);
 
 // FUNCTION: 0x4c70d0
-void __stdcall FUN_004c70d0(int value, Range* out, int at_low, int at_high)
+void __stdcall InterpEdgeUvFromScanline(int value, Range* out, int at_low, int at_high)
 {
-    int i = DAT_0051ff00;
-    Chunk* table = DAT_0051fef8;
-    int j = DAT_0051fe48[i];
-    DAT_0051fefc = j;
+    int i = g_edgeLowIndex;
+    Chunk* table = g_edgeTable;
+    int j = g_edgeListPrev[i];
+    g_edgeHighIndex = j;
     while (value > table[j].field_4) {
-        j = DAT_0051fe48[j];
-        i = DAT_0051fe48[i];
-        DAT_0051fefc = j;
-        DAT_0051ff00 = i;
+        j = g_edgeListPrev[j];
+        i = g_edgeListPrev[i];
+        g_edgeHighIndex = j;
+        g_edgeLowIndex = i;
     }
     int hi = table[j].field_4;
     int lo = table[i].field_4;
     int size = hi - lo;
     int offset = hi - value;
-    DAT_0051fef0 = size;
+    g_edgeSpan = size;
     if (size == 0) {
         return;
     }
@@ -1066,7 +1066,7 @@ void __stdcall FUN_004c70d0(int value, Range* out, int at_low, int at_high)
         int span = size - offset;
         int* spanp = &span;
         out->low = 0;
-        out->high = FUN_004b7381(at_high, *spanp, DAT_0051fef0);
+        out->high = FUN_004b7381(at_high, *spanp, g_edgeSpan);
         return; }
     case 1:
         out->low = FUN_004b7381(at_low, offset, size);
@@ -1074,7 +1074,7 @@ void __stdcall FUN_004c70d0(int value, Range* out, int at_low, int at_high)
         return;
     case 2:
         out->low = at_low;
-        out->high = FUN_004b7381(at_high, offset, DAT_0051fef0);
+        out->high = FUN_004b7381(at_high, offset, g_edgeSpan);
         return;
     case 3:
         out->low = FUN_004b7381(at_low, size - offset, size);
@@ -1084,30 +1084,30 @@ void __stdcall FUN_004c70d0(int value, Range* out, int at_low, int at_high)
 }
 
 // GLOBAL: 0x51fe98
-extern int DAT_0051fe98;
+extern int g_edgeLowIndexB;
 // GLOBAL: 0x51fef4
-extern int DAT_0051fef4;
+extern int g_edgeHighIndexB;
 // GLOBAL: 0x51fe40
-extern int DAT_0051fe40;
+extern int g_edgeSpanB;
 
 // FUNCTION: 0x4c71f0
-void __stdcall FUN_004c71f0(int value, Range* out, int at_low, int at_high)
+void __stdcall InterpEdgeUvFromScanline_B(int value, Range* out, int at_low, int at_high)
 {
-    int i = DAT_0051fe98;
-    Chunk* table = DAT_0051fef8;
-    int j = DAT_0051fea0[i];
-    DAT_0051fef4 = j;
+    int i = g_edgeLowIndexB;
+    Chunk* table = g_edgeTable;
+    int j = g_edgeListNext[i];
+    g_edgeHighIndexB = j;
     while (value > table[j].field_4) {
-        j = DAT_0051fea0[j];
-        i = DAT_0051fea0[i];
-        DAT_0051fef4 = j;
-        DAT_0051fe98 = i;
+        j = g_edgeListNext[j];
+        i = g_edgeListNext[i];
+        g_edgeHighIndexB = j;
+        g_edgeLowIndexB = i;
     }
     int hi = table[j].field_4;
     int lo = table[i].field_4;
     int size = hi - lo;
     int offset = hi - value;
-    DAT_0051fe40 = size;
+    g_edgeSpanB = size;
     if (size == 0) {
         return;
     }
@@ -1124,7 +1124,7 @@ void __stdcall FUN_004c71f0(int value, Range* out, int at_low, int at_high)
             // global reload in the 5-byte accumulator form.
             int span = size - offset;
             int* spanp = &span;
-            out->high = FUN_004b7381(at_high, *spanp, DAT_0051fe40);
+            out->high = FUN_004b7381(at_high, *spanp, g_edgeSpanB);
         }
         return;
     case 2:
@@ -1133,7 +1133,7 @@ void __stdcall FUN_004c71f0(int value, Range* out, int at_low, int at_high)
         return;
     case 3:
         out->low = 0;
-        out->high = FUN_004b7381(at_high, offset, DAT_0051fe40);
+        out->high = FUN_004b7381(at_high, offset, g_edgeSpanB);
         return;
     }
 }

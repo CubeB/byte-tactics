@@ -594,11 +594,11 @@ extern unsigned char DAT_0051fdb4[4];                                           
 extern TranslationTable* g_translations;                                                          // 0x51fdb8, 4 bytes; 3 of 3 files
 extern unsigned char DAT_0051fdbc[4];                                                             // 0x51fdbc, 4 bytes; nothing refers to it
 extern char g_language[304];                                                                      // 0x51fdc0, 304 bytes (declared char[256]); 2 of 2 files
-extern int DAT_0051fef0;                                                                          // 0x51fef0, 4 bytes; 1 of 1 files
-extern int DAT_0051fef4;                                                                          // 0x51fef4, 4 bytes; 1 of 1 files
-extern Chunk* DAT_0051fef8;                                                                       // 0x51fef8, 4 bytes; 1 of 1 files
-extern int DAT_0051fefc;                                                                          // 0x51fefc, 4 bytes; 1 of 1 files
-extern int DAT_0051ff00;                                                                          // 0x51ff00, 4 bytes; 1 of 1 files
+extern int g_edgeSpan;                                                                            // 0x51fef0, 4 bytes; 1 of 1 files
+extern int g_edgeHighIndexB;                                                                      // 0x51fef4, 4 bytes; 1 of 1 files
+extern Chunk* g_edgeTable;                                                                        // 0x51fef8, 4 bytes; 1 of 1 files
+extern int g_edgeHighIndex;                                                                       // 0x51fefc, 4 bytes; 1 of 1 files
+extern int g_edgeLowIndex;                                                                        // 0x51ff00, 4 bytes; 1 of 1 files
 extern int g_reporterNotify;                                                                      // 0x51ff04, 4 bytes; 1 of 1 files
 extern int g_reporterReport;                                                                      // 0x51ff08, 4 bytes; 1 of 1 files
 extern int g_enumSessionsResult;                                                                  // 0x51ff0c, 4 bytes; 1 of 1 files
@@ -928,10 +928,10 @@ extern long DAT_0052a4fc;                                                       
 //   0x51fc80 g_timerCount: part of another global: g_timerSlots+0xa8
 //   0x51fe00 g_screenLockCount: part of another global: g_language+0x40
 //   0x51fe08 g_screenLocks: part of another global: g_language+0x48
-//   0x51fe40 DAT_0051fe40: part of another global: g_language+0x80
-//   0x51fe48 DAT_0051fe48: part of another global: g_language+0x88
-//   0x51fe98 DAT_0051fe98: part of another global: g_language+0xd8
-//   0x51fea0 DAT_0051fea0: part of another global: g_language+0xe0
+//   0x51fe40 g_edgeSpanB: part of another global: g_language+0x80
+//   0x51fe48 g_edgeListPrev: part of another global: g_language+0x88
+//   0x51fe98 g_edgeLowIndexB: part of another global: g_language+0xd8
+//   0x51fea0 g_edgeListNext: part of another global: g_language+0xe0
 //   0x528a58 std::IH::IU?$pair::?$_Tree::_Nilrefs: defined in src/debug/debug_lib_4db610.cpp
 
 #endif

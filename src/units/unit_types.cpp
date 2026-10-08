@@ -202,7 +202,7 @@ struct BuildList_0042dcf0 {
 
 struct Game {
     char unknown_0[0xc];               // +0x0
-    void* field_c;                     // +0xc
+    void* displayContext;              // +0xc
     char unknown_10[0x14377 - 0x10];
     void** field_14377;                // +0x14377
     void* field_1437b;                 // +0x1437b
@@ -1018,7 +1018,7 @@ void LoadUnitTypes() {
     int t = g_game->field_37e23 * g_game->field_37e1f * 2;
     int v = (int)(t * 1.3);
 
-    int n = *(int*)((char*)g_game->field_c + 0x620) / 0x100000 + 1;
+    int n = *(int*)((char*)g_game->displayContext + 0x620) / 0x100000 + 1;
     float scale = 1.0f;
     if (n > 0x10) {
         double d = (double)n * 0.0625;

@@ -243,7 +243,7 @@ struct Game {
     const char* build_date;            // +0x4
     const char* build_time;            // +0x8
     char unknown_c[0x10 - 0xc];
-    Sound* field_10;                   // +0x10
+    Sound* sound;                      // +0x10
     char unknown_14[0x519 - 0x14];
     Menu menu;                         // +0x519
     char unknown_57d[0xdcb - 0x57d];
@@ -267,7 +267,7 @@ struct Game {
     unsigned short bit3_2a44 : 1;
     unsigned short bits4_2a44 : 12;
     char unknown_2a46[0x2bc0 - 0x2a46];
-    unsigned char field_2bc0;          // +0x2bc0
+    unsigned char frontendSubstateRequest;  // +0x2bc0
     char unknown_2bc1[0x2bee - 0x2bc1];
     unsigned short bits0 : 4;          // +0x2bee
     unsigned short flag4 : 1;          // +0x2bee, bit 4
@@ -778,7 +778,7 @@ void __stdcall HandleEndMissionClick(Menu* gadget)
         FUN_004d85a0(data);
         if (g_game->flag4)
             LeaveNetGame();
-        g_game->field_10->SetTrackCategory(4);
+        g_game->sound->SetTrackCategory(4);
         Display* display = GetDisplay();
         display->field_614 = g_game->field_3906f;
         return;
@@ -808,7 +808,7 @@ void __stdcall HandleEndMissionClick(Menu* gadget)
         }
         RegisterDataArchives();
         PlaySoundByName("BigButton", 0);
-        g_game->field_2bc0 = 10;
+        g_game->frontendSubstateRequest = 10;
         SetCursorOverlayEnabled(1);
         SetCursorMode(0x14);
         if (g_game->campaign->SelectMission(FindGadgetChecked(entries, "Missions")->field_ba)) {
@@ -1165,7 +1165,7 @@ void __stdcall RunEndGameState()
             if(g_game->deadline<GetTicks()) {
                 GetCurrentMouseEvent(event);
                 if(PopKey() || g_game->advance) {
-                    g_game->field_10->StopStream();
+                    g_game->sound->StopStream();
                     OpenEndMissionScreen(); EnableEndMissionButtons(); FillEndGameStatistics();
                     FUN_0049fad0(&g_game->menu); MarkChanged(&g_game->menu);
                     g_game->state=7;

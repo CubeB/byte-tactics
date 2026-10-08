@@ -144,7 +144,7 @@ public:
 
 struct Game {
     char unknown_0[0x2a30];
-    UnitSync* field_2a30;
+    UnitSync* sync;
 };
 
 extern Game* g_game;
@@ -153,7 +153,7 @@ extern Game* g_game;
 // __fastcall: keeps the erase loop comparing the iterator slot directly.
 void __fastcall FinishUnitSync()
 {
-    ((Class_0046e160*)g_game->field_2a30)->ApplyToUnitTypes();
-    delete g_game->field_2a30;
-    g_game->field_2a30 = 0;
+    ((Class_0046e160*)g_game->sync)->ApplyToUnitTypes();
+    delete g_game->sync;
+    g_game->sync = 0;
 }

@@ -427,7 +427,7 @@ struct Projectile_0049c880 {
 struct Game {
     char unknown_0[0x2a42];
     char localPlayer;                  // +0x2a42
-    char unknown_2a43;
+    char playerIndex;
     union {
         unsigned char flags;           // +0x2a44
         unsigned short flags_2a44;

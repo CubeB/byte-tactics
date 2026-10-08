@@ -101,7 +101,7 @@ struct Settings {
 
 struct Game {
     char unknown_0[0x14];
-    char field_14[0x471 - 0x14];       // +0x14
+    char session[0x471 - 0x14];        // +0x14
     Settings settings;                 // +0x471
     char unknown_4c1[0x4c9 - 0x4c1];
     int from_id;                       // +0x4c9
@@ -109,15 +109,15 @@ struct Game {
     char unknown_4d1[0x1b63 - 0x4d1];
     Player players[10];                // +0x1b63
     char unknown_2851[0x29a4 - 0x2851];
-    int field_29a4[11];                // +0x29a4
-    int field_29d0[11];                // +0x29d0
+    int shareVisionReady[11];          // +0x29a4
+    int startPosAssignAck[11];         // +0x29d0
     char unknown_29fc[0x2a30 - 0x29fc];
-    Class_0046d500* field_2a30;        // +0x2a30
+    Class_0046d500* sync;              // +0x2a30
     char unknown_2a34[4];
     unsigned char* packet;             // +0x2a38
     char unknown_2a3c[6];
     unsigned char local;               // +0x2a42
-    char unknown_2a43;
+    char playerIndex;
     unsigned char flags_2a44;          // +0x2a44
     char unknown_2a45[0x2be3 - 0x2a45];
     char password[0x2bee - 0x2be3];    // +0x2be3
@@ -471,7 +471,7 @@ int HandleNetPackets()
                     BuildGameInfo(name, &d, &c, &b, &a);
                     if (LocalPlayer()->info->b9b.bit4)
                         g_game->settings.flags_475 |= 0x20;
-                    HAPINET_updategameinfo(g_game->field_14, name, DAT_005119b8, d, c, b, a);
+                    HAPINET_updategameinfo(g_game->session, name, DAT_005119b8, d, c, b, a);
                 }
                 break;
             }
@@ -668,7 +668,7 @@ int HandleNetPackets()
         case 31: {
             int target = FindPlayerIndex(*(int*)(packet + 1));
             if (target != 10)
-                g_game->field_29d0[target] = 1;
+                g_game->startPosAssignAck[target] = 1;
             break;
         }
         case 5:
@@ -782,7 +782,7 @@ int HandleNetPackets()
         }
         case 21:
             if (g_game->net_bits.net_bit2)
-                g_game->field_29a4[from] = 1;
+                g_game->shareVisionReady[from] = 1;
             break;
         case 22: {
             unsigned char a = FindPlayerIndex(*(int*)(packet + 5));
@@ -819,8 +819,8 @@ int HandleNetPackets()
                 g_game->bit_38a51 = packet[2];
             break;
         case 26:
-            if (g_game->field_2a30 && recipient->active && recipient->state == 1)
-                g_game->field_2a30->ReceiveSyncPacket(packet, from);
+            if (g_game->sync && recipient->active && recipient->state == 1)
+                g_game->sync->ReceiveSyncPacket(packet, from);
             break;
         case 29:
             if (g_usePacketManager)

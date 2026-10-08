@@ -253,8 +253,8 @@ struct Game {
     char unknown_18[0x1b63 - 0x18];
     GameEntry players[10];             // +0x1b63
     char unknown_2851[0x2a3e - 0x2851];
-    unsigned short field_2a3e;         // +0x2a3e
-    unsigned short field_2a40;         // +0x2a40
+    unsigned short tail;               // +0x2a3e
+    unsigned short head;               // +0x2a40
     char unknown_2a42[0x38a47 - 0x2a42];
     int tick;                          // +0x38a47
 };
@@ -2151,6 +2151,6 @@ void Player::SetType(int param_1)
 // FUNCTION: 0x463c80
 void ResetChatHudIndices()
 {
-    g_game->field_2a3e = 0;
-    g_game->field_2a40 = 0;
+    g_game->tail = 0;
+    g_game->head = 0;
 }

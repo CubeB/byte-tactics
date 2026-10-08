@@ -106,12 +106,12 @@ struct Game {
     char unknown_2851[0x29a0 - 0x2851];
     Table* table;                      // +0x29a0
     char unknown_29a4[0x2a3c - 0x29a4];
-    unsigned short field_2a3c;         // +0x2a3c
+    unsigned short numPlayers;         // +0x2a3c
     char unknown_2a3e[0x2a42 - 0x2a3e];
     unsigned char localPlayer;         // +0x2a42
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x2bc0 - 0x2a44];
-    char field_2bc0;                   // +0x2bc0
+    char frontendSubstateRequest;      // +0x2bc0
     char unknown_2bc1[0x148db - 0x2bc1];
     unsigned short* colorCount;        // +0x148db
     char unknown_148df[0x37eee - 0x148df];
@@ -933,7 +933,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
                 p++;
             } while (--count);
         }
-        g_game->field_2a3c = n + 1;
+        g_game->numPlayers = n + 1;
 
         if (g_game->mission->LoadMissionByName(g_game->table->mapName) == 0) {
             OpenMessageBox(&g_game->menu,
@@ -965,7 +965,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
             }
             if (c1 >= 1) {
                 int maxPlayers = g_game->mission->CountStartPositions();
-                if ((int)g_game->field_2a3c > maxPlayers) {
+                if ((int)g_game->numPlayers > maxPlayers) {
                     OpenMessageBox(&g_game->menu,
                                  Translate("There are too many players enabled for this map"),
                                  0x1e0, 1, 1);
@@ -1000,12 +1000,12 @@ void __stdcall HandleSkirmishClick(Menu* menu)
                         p++;
                     }
                 }
-                g_game->field_2a3c = c1 + c2;
+                g_game->numPlayers = c1 + c2;
 
                 ApplySlotsToGamePlayers();
                 InitMissionStatus();
                 SaveSettings();
-                g_game->field_2bc0 = 2;
+                g_game->frontendSubstateRequest = 2;
                 SetCursorMode(0x14);
                 return;
             }
@@ -1020,7 +1020,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
     if (IsCurrentGadgetNamed(menu, "PrevMenu")) {
         PlaySoundByName("Previous", 0);
         SetCursorMode(0x14);
-        g_game->field_2bc0 = 3;
+        g_game->frontendSubstateRequest = 3;
         return;
     }
 

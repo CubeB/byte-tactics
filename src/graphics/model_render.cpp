@@ -245,7 +245,7 @@ class CMemoryCache;
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x2a43];
-    unsigned char field_2a43;          // +0x2a43
+    unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x1427f - 0x2a44];
     unsigned char field_1427f;         // +0x1427f
     unsigned char field_14280;         // +0x14280

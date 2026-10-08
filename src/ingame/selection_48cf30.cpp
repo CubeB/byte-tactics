@@ -62,7 +62,7 @@ struct Game {
     char unknown_0[0x1b63];
     Player_0048cf30 players[10];        // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
-    unsigned char field_2a42;           // +0x2a42
+    unsigned char localPlayer;          // +0x2a42
     char unknown_2a43[0x2caa - 0x2a43];
     void* field_2caa;                   // +0x2caa
     char unknown_2cae[0x2cba - 0x2cae];
@@ -99,7 +99,7 @@ void __stdcall IssueOrderToSelection(UnitType_0048cf30* entry, unsigned char mod
         else
             except = (Unit*)((char*)g_game->field_14357 + 280 * g_game->field_2cba);
     }
-    Player_0048cf30* p = &g_game->players[g_game->field_2a42];
+    Player_0048cf30* p = &g_game->players[g_game->localPlayer];
     int count = 0;
     int sum_x = 0;
     int sum_z = 0;

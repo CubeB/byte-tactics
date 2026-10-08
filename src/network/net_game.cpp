@@ -322,12 +322,12 @@ struct Unit {
 // and the game flags at +0x3923b.
 struct Game {
     char unknown_0[1];
-    unsigned char field_1;             // +0x01
-    unsigned char field_2;             // +0x02
+    unsigned char version;             // +0x01
+    unsigned char versionMinor;        // +0x02
     char unknown_3[0x14 - 3];
     union {
         char net[0x4c9];               // +0x14
-        char field_14[0x471 - 0x14];
+        char session[0x471 - 0x14];
         struct {
             char unknown_14[0x471 - 0x14];
             Settings settings;         // +0x471
@@ -358,31 +358,31 @@ struct Game {
             };
             char unknown_535[0x12ef - 0x535];
             Ring_00453640 ring[30];    // +0x12ef
-            int field_1b5f;            // +0x1b5f
+            int lobbySyncTick;         // +0x1b5f
         };
     };
     Player players[10];                // +0x1b63
     char unknown_2851[0x299c - 0x2851];
     union {
         int duplicateIds;              // +0x299c
-        int field_299c;
+        int duplicatePlayerTypeFlag;
     };
     char unknown_29a0[0x29a4 - 0x29a0];
-    int field_29a4[11];                // +0x29a4
-    int field_29d0[11];                // +0x29d0
-    int field_29fc[10];                // +0x29fc
+    int shareVisionReady[11];          // +0x29a4
+    int startPosAssignAck[11];         // +0x29d0
+    int startPosShuffle[10];           // +0x29fc
     char unknown_2a24[0x2a28 - 0x2a24];
-    int field_2a28;                    // +0x2a28
+    int startPosShuffleReady;          // +0x2a28
     char unknown_2a2c[0x2a30 - 0x2a2c];
-    Class_0046d500* field_2a30;        // +0x2a30
-    int field_2a34;                    // +0x2a34
+    Class_0046d500* sync;              // +0x2a30
+    int recvPacketSize;                // +0x2a34
     union {
         unsigned char* buffer;         // +0x2a38
         unsigned char* packet;
     };
     union {
-        unsigned short field_2a3c;     // +0x2a3c
-        short field_2a3c_signed;
+        unsigned short numPlayers;     // +0x2a3c
+        short numPlayersSigned;
     };
     unsigned short tail;               // +0x2a3e
     unsigned short head;               // +0x2a40
@@ -391,7 +391,7 @@ struct Game {
         unsigned char field_2a42;
         unsigned char local;
     };
-    char unknown_2a43;
+    char playerIndex;
     union {
         unsigned char flags_2a44;      // +0x2a44
         unsigned short flags_2a44_w;
@@ -991,7 +991,7 @@ int __stdcall AddNetPlayer(int param_1)
     p->field_22 = 0;
     p->id = param_1;
     p->field_1c = GetTicks();
-    g_game->field_2a3c++;
+    g_game->numPlayers++;
     if (g_game->flags_2a44_w & 1) {
         for (int i = 0; i < 10; i++) {
             Player* q = &g_game->players[i];
@@ -1015,7 +1015,7 @@ int __stdcall AddNetPlayer(int param_1)
         SendLobbySyncRequests();
         g_packetManager.SendAllQueued(1);
     }
-    if (g_game->campaign->GetGameType() == 3 && g_game->field_2a3c > 1) {
+    if (g_game->campaign->GetGameType() == 3 && g_game->numPlayers > 1) {
         ReportGameEvent(2);
     }
     return 1;
@@ -1158,12 +1158,12 @@ void __stdcall BuildGameInfo(char* name, int* d, int* c, int* b, int* a)
 {
     PlayerInfo* info = g_game->players[g_game->localPlayer].info;
     char* p = (char*)info;
-    p[0xa7] = g_game->field_1;
+    p[0xa7] = g_game->version;
     p += 0x99;
-    p[0xf] = g_game->field_2;
+    p[0xf] = g_game->versionMinor;
     unsigned short w = *(unsigned short*)(p + 2);
     p += 4;
-    *(unsigned short*)(p - 2) = w ^ ((g_game->field_2a3c ^ w) & 0xf);
+    *(unsigned short*)(p - 2) = w ^ ((g_game->numPlayers ^ w) & 0xf);
     p += 4;
     *d = *(int*)(p - 8);
     *c = *(int*)(p - 4);
@@ -1242,13 +1242,13 @@ int __stdcall CreateLocalPlayer(unsigned char playerIndex, int flag)
     player->field_21 &= 0xfd;
     player->field_8 = GetTicks();
     PlayerInfo* info = player->info;
-    info->field_9b = (info->field_9b ^ ((g_game->field_2a3c_signed ^ info->field_9b) & 0xf)) & 0x7fff;
+    info->field_9b = (info->field_9b ^ ((g_game->numPlayersSigned ^ info->field_9b) & 0xf)) & 0x7fff;
     info->flag_9d_0 = (strlen(g_game->passWord) != 0);
     info->field_a5 = 0x64;
     info->field_8b = g_game->field_37f1b;
     info->field_8d = g_game->field_37f1f;
-    info->field_a7 = g_game->field_1;
-    info->field_a8 = g_game->field_2;
+    info->field_a7 = g_game->version;
+    info->field_a8 = g_game->versionMinor;
 
     int r = HAPINET_addplayer(g_game->net, (unsigned long*)&player->field_4,
                          buf, buf, g_game->passWord, 0, 0x50);
@@ -1682,8 +1682,8 @@ void CreateNetGame(void)
 
     g_game->players[g_game->localPlayer].info->flag_97_0 = 1;
     BuildGameInfo(name, &d, &c, &b, &a);
-    g_game->field_2a3c = 0;
-    HAPINET_createnewgame(g_game->field_14, name, DAT_005119b8, d, c, b, a);
+    g_game->numPlayers = 0;
+    HAPINET_createnewgame(g_game->session, name, DAT_005119b8, d, c, b, a);
 }
 
 static inline int PlayerId_004515d0(unsigned char i)
@@ -1828,7 +1828,7 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
         p->info->field_9b &= 0xffdf;
         p->info->field_8b = g_game->field_37f1b;
         p->info->field_8d = g_game->field_37f1f;
-        g_game->field_2a3c = 0;
+        g_game->numPlayers = 0;
 
         int result;
         if (g_game->field_4e5 != 0) {
@@ -1992,7 +1992,7 @@ int __stdcall BroadcastPacket(int id, unsigned char* packet, int size)
     if (p->field_22 != 0)
         return 0;
     if ((g_game->flags_2a44 & 1) != 0) {
-        if (g_game->field_299c == 0) {
+        if (g_game->duplicatePlayerTypeFlag == 0) {
             if (g_usePacketManager != 0)
                 return g_packetManager.QueueOnChannel(id, &DAT_00513008, (int)packet, size);
             if (HAPINET_sendpacket((char*)g_game + 0x14, id, 0, packet, size) != 0)
@@ -2164,7 +2164,7 @@ void __stdcall ReleasePacketData(Class_00451fd0* obj)
             g_packetManager.SendAllQueued(1);
         }
         if (!IsReporterDllLoaded()) {
-            HAPINET_uninitmultiplay(g_game->field_14);
+            HAPINET_uninitmultiplay(g_game->session);
         }
         g_game->flags_2a44_w &= 0xfffe;
     }
@@ -2525,7 +2525,7 @@ int __stdcall ReceiveNetPacket(void)
     if (!(g_game->flags_2a44 & 1))
         return 0;
 
-    size = g_game->field_2a34;
+    size = g_game->recvPacketSize;
     if (g_usePacketManager != 0) {
         while (1) {
             int result = DAT_0051e300.ReceiveFrame((char*)g_game + 0x14, g_game->buffer, &size);
@@ -2537,7 +2537,7 @@ int __stdcall ReceiveNetPacket(void)
                 return 0;
             if (result != 0x8877001e)
                 return 0;
-            g_game->field_2a34 = size;
+            g_game->recvPacketSize = size;
             g_game->buffer = (unsigned char*)FUN_004d84a0(g_game->buffer, "PACKET DATA AGAIN", size);
         }
     } else {
@@ -2552,7 +2552,7 @@ int __stdcall ReceiveNetPacket(void)
                 return 0;
             if (result != 0x8877001e)
                 return 0;
-            g_game->field_2a34 = size;
+            g_game->recvPacketSize = size;
             g_game->buffer = (unsigned char*)FUN_004d84a0(g_game->buffer, "PACKET DATA AGAIN", size);
         }
     }
@@ -3034,9 +3034,9 @@ int __stdcall SendScriptCall(Unit* obj, short index, char field_5,
 void SendNetHeartbeat()
 {
     unsigned int now = GetTicks();
-    if ((int)(now - g_game->field_1b5f) <= 0x3c)
+    if ((int)(now - g_game->lobbySyncTick) <= 0x3c)
         return;
-    g_game->field_1b5f += 0x3c;
+    g_game->lobbySyncTick += 0x3c;
 
     for (int i = 0; i < 10; i++) {
         Player* p = &g_game->players[i];
@@ -3175,7 +3175,7 @@ void __stdcall HandlePing(Message_004565a0* p)
 // Returns 0 when no player is in state 3. Otherwise every active player of
 // type 1 or 2, or in state 3, must have bit 0x20 set in its data flags
 // (+0x9b), else it returns 0. Returns 1 when some slot is inactive or lacks
-// bit 0x40, unless field_2a3c is 1 (then 0).
+// bit 0x40, unless numPlayers is 1 (then 0).
 static inline int IsPlaying(unsigned char i)
 {
     return g_game->players[i].active != 0 && g_game->players[i].type == 3;
@@ -3206,7 +3206,7 @@ int AreAllPlayersReady()
         if (g_game->players[j].active == 0 || !(g_game->players[j].data->flags_9b & 0x40))
             all = 0;
     }
-    if (g_game->field_2a3c == 1)
+    if (g_game->numPlayers == 1)
         return 0;
     return all == 0;
 }
@@ -3261,8 +3261,8 @@ static inline int PlayerId_004568c0(unsigned char pi) {
 int AssignStartPositions() {
     unsigned char idx = FindOccupied_004568c0();
     int res = ((Class_00456030*)&g_game->players[idx])->IsPlayableSlot();
-    if (res != 0 && g_game->field_2a28 == 0) {
-        int* out = g_game->field_29fc;
+    if (res != 0 && g_game->startPosShuffleReady == 0) {
+        int* out = g_game->startPosShuffle;
         if (g_game->players[g_game->localPlayer].info->bits_9b.flag14) {
             int n = 0;
             for (int k0 = 0; k0 < 10; k0++) {
@@ -3303,20 +3303,20 @@ int AssignStartPositions() {
                 }
             }
         }
-        g_game->field_2a28 = 1;
+        g_game->startPosShuffleReady = 1;
     }
     int ok = 1;
     for (int k3 = 0; k3 < 10; k3++) {
         Player* q = &g_game->players[k3];
         if (q->active != 0 && q->type == 3) {
             if (res != 0) {
-                if (g_game->field_29a4[k3] == 0 || g_game->field_29d0[k3] == 0) {
+                if (g_game->shareVisionReady[k3] == 0 || g_game->startPosAssignAck[k3] == 0) {
                     ok = 0;
                     break;
                 }
             }
             if (res == 0) {
-                if (g_game->field_29a4[k3] == 0) {
+                if (g_game->shareVisionReady[k3] == 0) {
                     ok = 0;
                     break;
                 }
@@ -3326,17 +3326,17 @@ int AssignStartPositions() {
     if (res != 0) {
         for (int k4 = 0; k4 < 10; k4++) {
             // Skip with continue; the send stays a plain call.
-            if (g_game->field_29d0[k4] != 0)
+            if (g_game->startPosAssignAck[k4] != 0)
                 continue;
             unsigned char packet[2];
             packet[0] = 0x1e;
-            packet[1] = (unsigned char)g_game->field_29fc[k4];
+            packet[1] = (unsigned char)g_game->startPosShuffle[k4];
             if (g_game->players[k4].active != 0) {
                 if (g_game->players[k4].type == 3) {
                     SendPacketToPlayer(FirstJoinedId_004568c0(), PlayerId_004568c0(k4), packet, 2);
                 } else if (IsConnected_004568c0(&g_game->players[k4])) {
                     g_game->players[k4].field_147 = packet[1];
-                    g_game->field_29d0[k4] = 1;
+                    g_game->startPosAssignAck[k4] = 1;
                 }
             }
         }

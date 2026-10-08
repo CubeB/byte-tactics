@@ -99,7 +99,7 @@ public:
 
 struct Game {
     char unknown_0[0x2a30];
-    UnitSync* field_2a30;                          // +0x2a30
+    UnitSync* sync;                                // +0x2a30
 };
 
 extern Game* g_game;
@@ -107,10 +107,10 @@ extern Game* g_game;
 // FUNCTION: 0x470300 ??_GUnitSyncPlayer@@QAEPAXI@Z
 void FinishUnitSync()
 {
-    ((Class_0046e160*)g_game->field_2a30)->ApplyToUnitTypes();
-    if (g_game->field_2a30)
-        delete g_game->field_2a30;
-    g_game->field_2a30 = 0;
+    ((Class_0046e160*)g_game->sync)->ApplyToUnitTypes();
+    if (g_game->sync)
+        delete g_game->sync;
+    g_game->sync = 0;
 }
 
 // The copy constructor. Its one caller copies a 0x5c-byte array of these.

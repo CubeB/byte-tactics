@@ -104,7 +104,7 @@ struct Game {
     char unknown_0[0x1b63];
     PlayerInfo_00467440 players[10];   // +0x1b63, stride 0x14b
     char unknown_2851[0x2a3c - 0x2851];
-    unsigned short field_2a3c;         // +0x2a3c
+    unsigned short numPlayers;         // +0x2a3c
     char unknown_2a3e[0x2a43 - 0x2a3e];
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x14273 - 0x2a44];
@@ -166,7 +166,7 @@ static inline int IsSeen_00467440(PlayerInfo_00467440* p, UnitPos_00467440* pos)
 // FUNCTION: 0x467440
 void UpdateSensorRadarAndCloak(void)
 {
-    if (g_game->field_2a3c < 2) {
+    if (g_game->numPlayers < 2) {
         return;
     }
     unsigned char player = g_game->playerIndex;

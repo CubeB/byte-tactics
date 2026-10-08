@@ -262,7 +262,7 @@ struct Game {
     char unknown_0[0x1b63];
     Player players[10];                // +0x1b63
     char unknown_2851[0x2a3c - 0x2851];
-    unsigned short field_2a3c;         // +0x2a3c, the number of players
+    unsigned short numPlayers;         // +0x2a3c, the number of players
     char unknown_2a3e[0x14233 - 0x2a3e];
     int width;                         // +0x14233
     int height;                        // +0x14237
@@ -1130,7 +1130,7 @@ Pathfinder::~Pathfinder()
 // FUNCTION: 0x40eb70
 void Pathfinder::RunSearches()
 {
-    unsigned short players = g_game->field_2a3c;
+    unsigned short players = g_game->numPlayers;
     if (players == 0)
         return;
     int share = stepsPerTick / players;

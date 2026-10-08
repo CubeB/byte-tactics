@@ -45,7 +45,7 @@ struct Record_00441460 {
 
 struct Game {
     char unknown_0;
-    signed char field_1;
+    signed char version;
     char unknown_2[0x14 - 2];
     char unknown_14[0x4cd];
     char unknown_4e1[0x4fd - 0x4e1];
@@ -184,7 +184,7 @@ shown:
             strcpy(p[3], temp);
             p[3] += strlen(p[3]) + 1;
 
-            if ((sb.s.version & 0xff) >= (int)g_game->field_1) {
+            if ((sb.s.version & 0xff) >= (int)g_game->version) {
                 if (sb.s.lock)
                     msg = "Lock";
                 else if (sb.s.playing)

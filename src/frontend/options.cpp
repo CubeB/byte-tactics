@@ -353,7 +353,7 @@ struct Game {
     };
     char unknown_2a43[0x2a44 - 0x2a43];
     union {
-        unsigned char field_2a44;      // +0x2a44
+        unsigned char flags_2a44;      // +0x2a44
         Bits_0045cf60 bits_2a44;
         struct {
             unsigned short pad_2a44 : 2;
@@ -362,7 +362,7 @@ struct Game {
         };
     };
     char unknown_2a46[0x2bc0 - 0x2a46];
-    unsigned char field_2bc0;          // +0x2bc0
+    unsigned char frontendSubstateRequest;  // +0x2bc0
     char unknown_2bc1[0x2bee - 0x2bc1];
     Flags_00460680 flags_2bee;         // +0x2bee
     char unknown_2bf0[0x14281 - 0x2bf0];
@@ -1776,7 +1776,7 @@ void RestoreVisualOptions()
     g_game->flags = v ^ ((v ^ g_optionsBackupVisualFlags) & 0x40);
 
     g_game->brightness = g_optionsBackupGamma;
-    if (!(g_game->field_2a44 & 4)) {
+    if (!(g_game->flags_2a44 & 4)) {
         g_game->width = g_optionsBackupDisplayWidth;
         g_game->height = g_optionsBackupDisplayHeight;
     }
@@ -2859,7 +2859,7 @@ void ClearScreenWithHudPalette()
 void CloseOptionsPanel()
 {
     g_game->flags_37ebe.word &= 0xfffe;
-    g_game->field_2bc0 = 3;
+    g_game->frontendSubstateRequest = 3;
 }
 
 // FUNCTION: 0x45fc60

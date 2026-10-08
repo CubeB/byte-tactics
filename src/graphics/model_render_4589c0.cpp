@@ -126,7 +126,7 @@ union GameFlags_459200 {
 
 struct Game {
     char unknown_0[0x2a43];
-    unsigned char field_2a43;
+    unsigned char playerIndex;
     char unknown_2a44[0x1427f-0x2a44];
     unsigned char field_1427f;
     unsigned char field_14280;
@@ -365,7 +365,7 @@ void Class_00459200::DrawObjectPicture(int param_2, Model_459200* model, Vec3_45
         int diff = g_game->field_1427f - dx;
         if (diff > 0) {
             diff += shade_bias(model);
-            if ((model->owner->flags & 0x200) == 0 && model->owner->kind != g_game->field_2a43) {
+            if ((model->owner->flags & 0x200) == 0 && model->owner->kind != g_game->playerIndex) {
                 CutFrameBelow(this->bitmap, diff);
             } else {
                 TintFrameBelow(this->bitmap, diff);

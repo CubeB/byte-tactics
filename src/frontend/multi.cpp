@@ -489,7 +489,7 @@ struct Game {
     char unknown_0;                    // +0x00
     signed char version;               // +0x01
     char unknown_2[0x10 - 2];          // +0x02
-    void* field_10;                    // +0x10
+    void* sound;                       // +0x10
     union {                            // +0x14
         Net_00443100 net;              // the HAPINET_ wrappers' view
         struct {
@@ -511,11 +511,11 @@ struct Game {
     char unknown_29a4[0x2a30 - 0x29a4]; // +0x29a4
     UnitSync* sync;                    // +0x2a30
     char unknown_2a34[0x2a3c - 0x2a34]; // +0x2a34
-    unsigned short field_2a3c;         // +0x2a3c
+    unsigned short numPlayers;         // +0x2a3c
     unsigned short scrollEnd;          // +0x2a3e
     unsigned short scrollStart;        // +0x2a40
     unsigned char localPlayer;         // +0x2a42
-    char unknown_2a43;                 // +0x2a43
+    char playerIndex;                  // +0x2a43
     union {                            // +0x2a44
         unsigned char field_2a44;
         unsigned char flags_2a44_byte;
@@ -526,7 +526,7 @@ struct Game {
             unsigned short rest_2a44 : 13;
         };
     };
-    char unknown_2a46;                 // +0x2a46
+    char netOrCdSentinel;              // +0x2a46
     union {                            // +0x2a47
         struct {
             char unknown_2a47[4];      // +0x2a47
@@ -541,7 +541,7 @@ struct Game {
     Desc_004437c0* desc;               // +0x2aa7
     char* shared;                      // +0x2aab
     union {                            // +0x2aaf
-        unsigned short field_2aaf;
+        unsigned short dplayAddressDialogFlags;
         struct {
             unsigned short bit0 : 1;
             unsigned short bit1 : 1;
@@ -551,9 +551,9 @@ struct Game {
     char buffer[0xb9];                 // +0x2ab1
     char game_info[0x54];              // +0x2b6a
     char unknown_2bbe[0x2bbf - 0x2bbe]; // +0x2bbe
-    unsigned char field_2bbf;          // +0x2bbf
+    unsigned char frontendSubstate;    // +0x2bbf
     union {                            // +0x2bc0
-        unsigned char field_2bc0;
+        unsigned char frontendSubstateRequest;
         char state;
     };
     char gameName[0x11];               // +0x2bc1
@@ -1173,7 +1173,7 @@ void __stdcall HandleNewMultiClick(Gadget_00440d70* gadget)
         strcpy(g_game->gameName, namebuf);
         strcpy(g_game->nickname, nickbuf);
         if (!InitScoreReporting()) {
-            g_game->field_2bc0 = 0x11;
+            g_game->frontendSubstateRequest = 0x11;
             return;
         }
         ClearSelectedGadget(gadget);
@@ -1465,7 +1465,7 @@ void OpenTcpDialog()
     SetTranslatedTextByName(&g_game->menu, "ADDRESS", address, 0);
     if (direct) {
         HandleTcpDialogClick(&g_game->menu);
-        g_game->field_2aaf = g_game->field_2aaf ^ ((DAT_00512c84 != 0) ^ g_game->field_2aaf) & 1;
+        g_game->dplayAddressDialogFlags = g_game->dplayAddressDialogFlags ^ ((DAT_00512c84 != 0) ^ g_game->dplayAddressDialogFlags) & 1;
     } else {
         SelectGadgetByIndex(&g_game->menu, FindGadgetIndex(dialog->entries, "ADDRESS", 3));
         TrySetFocus(&g_game->menu, FindGadgetIndex(dialog->entries, "ADDRESS", 3));
@@ -1908,10 +1908,10 @@ void __stdcall HandleReportClick(Gadget_00440d70* obj)
 
         SetCursorMode(0x14);
         EnableReporter(acc);
-        if ((g_game->field_2bee & 0x10) || g_game->field_2bbf == 0x14) {
-            g_game->field_2bc0 = 0x15;
+        if ((g_game->field_2bee & 0x10) || g_game->frontendSubstate == 0x14) {
+            g_game->frontendSubstateRequest = 0x15;
         } else {
-            g_game->field_2bc0 = 0x11;
+            g_game->frontendSubstateRequest = 0x11;
         }
     } else {
         ClearSelectedGadget(obj);
@@ -2022,7 +2022,7 @@ void __stdcall HandleSelectGameClick(Gadget_00440d70* param_1)
     }
 
     if (FindGadgetIndex(entries, "PREVMENU", 0xe) == param_1->field_60) {
-        g_game->field_2bc0 = 3;
+        g_game->frontendSubstateRequest = 3;
         PlaySoundByName("Previous", 0);
         return;
     }
@@ -2068,13 +2068,13 @@ void __stdcall HandleSelectGameClick(Gadget_00440d70* param_1)
                 cur = g_game->localPlayer;
                 g_game->players[cur].info->flags |= 0x40;
                 PlaySoundByName("Multi", 0);
-                g_game->field_2bc0 = 0x13;
+                g_game->frontendSubstateRequest = 0x13;
                 return;
             }
             cur = g_game->localPlayer;
             g_game->players[cur].info->flags &= 0xffbf;
             PlaySoundByName("BigButton", 0);
-            g_game->field_2bc0 = 0x12;
+            g_game->frontendSubstateRequest = 0x12;
             return;
         }
         SetFrontendErrorText("You do not have a compatible version for this game.");
@@ -2100,7 +2100,7 @@ startnew:
 // block pointing into the shared block. Every GUI entry from 1 up whose type
 // byte is 2 gets UpdateGameSelection as its handler and the descriptions block as its
 // data. ConnectToGame then connects; on failure an "Invalid TCP/IP Address"
-// message box is shown, g_game->field_2bc0 is set to 3 and the function
+// message box is shown, g_game->frontendSubstateRequest is set to 3 and the function
 // returns. On success the game name is put on the menu, and a connection that
 // came back with an error status (neither 0 nor 2) is reported and cleared.
 // FUNCTION: 0x443cb0
@@ -2142,7 +2142,7 @@ void OpenSelectGameDialog()
     if (!ConnectToGame(gadget)) {
         CloseTopScreen(&g_game->menu);
         OpenMessageBox(&g_game->menu, Translate("Invalid TCP/IP Address"), 0xc8, 1, 1);
-        g_game->field_2bc0 = 3;
+        g_game->frontendSubstateRequest = 3;
         return;
     }
     SelectGadgetByIndex(&g_game->menu, FindGadgetIndex(gadget->entries, "GAMENAME", 2));
@@ -3842,7 +3842,7 @@ void __stdcall HandleBattleRoomClick(Gui_00446f50* gadget)
         if (i >= 10)
             break;
     }
-    if (i != g_game->field_2a3c)
+    if (i != g_game->numPlayers)
         g_game->dirty = 1;
 
     if (IsCurrentGadgetNamed(gadget, "PREVMENU")) {

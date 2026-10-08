@@ -45,7 +45,7 @@ struct Game {
     char unknown_14[0x1b63 - 0x14];
     Player_00452cc0 players[10];       // +0x1b63
     char unknown_2851[0x2a3c - 0x2851];
-    unsigned short field_2a3c;         // +0x2a3c
+    unsigned short numPlayers;         // +0x2a3c
     char unknown_2a3e[0x2a44 - 0x2a3e];
     union {
         unsigned short value;          // +0x2a44
@@ -174,7 +174,7 @@ void __stdcall RemovePlayer(int id)
             HAPINET_removeplayer((char*)g_game + 0x14, p->id);
         Remove(p);
     }
-    g_game->field_2a3c--;
+    g_game->numPlayers--;
     p->data->word_9d &= 0xfffb;
     memset(&p->allies, 0, 11);
 

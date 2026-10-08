@@ -318,7 +318,7 @@ struct Game {
     Player players[10];                // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char localPlayer;         // +0x2a42
-    unsigned char field_2a43;          // +0x2a43
+    unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x14223 - 0x2a44];
     int baseX;                         // +0x14223
     int baseY;                         // +0x14227
@@ -709,7 +709,7 @@ void __stdcall InitUnitFromType(Unit* unit, Pos_00485a40 pos, int param_5)
     unit->losCacheCellZ = 0;
     unit->recentlyDamagedTimer = 0;
     unit->postTransferHoldoff = 0;
-    unit->flags.bits.b9 = (unit->player->index == g_game->field_2a43);
+    unit->flags.bits.b9 = (unit->player->index == g_game->playerIndex);
     unit->flags.bits.b8 = 0;
 
     for (int i = 0; i < 3; i++) {
@@ -1241,7 +1241,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
     if ((unit->flags.all & 0x10000000) == 0)
         return;
 
-    if (unit->player->index == g_game->field_2a43)
+    if (unit->player->index == g_game->playerIndex)
         AddEyeball(&unit->pos, unit->type->x202, unit->type->x170, 60);
     Unit* parent;
     if (cmd->parentId == 0)

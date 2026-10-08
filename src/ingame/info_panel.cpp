@@ -332,7 +332,7 @@ struct Game {
         };
     };
     char unknown_29c7[0x2a3c - 0x29c7];
-    unsigned short field_2a3c;         // +0x2a3c
+    unsigned short numPlayers;         // +0x2a3c
     char unknown_2a3e[0x2a42 - 0x2a3e];
     unsigned char team_number;         // +0x2a42
     unsigned char playerIndex;         // +0x2a43

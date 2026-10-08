@@ -47,7 +47,7 @@ class Sound;
 
 struct Game {
     char unknown_0[0xc];
-    Display_00491a70* field_c;   // +0xc
+    Display_00491a70* displayContext;  // +0xc
     Sound* cd;  // +0x10
     char unknown_14[0x519 - 0x14];
     Gui_00491d70 gui;   // +0x519
@@ -58,13 +58,13 @@ struct Game {
     char unknown_12f3[0x1b63 - 0x12f3];
     Player_004917d0 players[10];   // +0x1b63
     char unknown_2851[0x29a0 - 0x2851];
-    void* field_29a0;   // +0x29a0
+    void* options;      // +0x29a0
     char unknown_29a4[0x2a44 - 0x29a4];
     union {
         unsigned char flags_2a44;
         unsigned short flags_2a44w;
     };
-    unsigned char field_2a46;   // +0x2a46
+    unsigned char netOrCdSentinel;  // +0x2a46
     char unknown_2a47[0x2bee - 0x2a47];
     union {
         unsigned char field_2bee;
@@ -641,7 +641,7 @@ void InitGame()
     LoadLightTable(g_game->field_143a7);
     MakeGrayTable(g_game->field_143a7);
     MakeBlueTable(g_game->field_143a7);
-    g_game->field_29a0 = FUN_004d83b0(g_skirmishInfoTag, 0x22c);
+    g_game->options = FUN_004d83b0(g_skirmishInfoTag, 0x22c);
     LoadSettings();
     size = 0xaa0;
     int ok = ReadGameRegistryValue(g_cdListsKey, &g_cdListsDiscEntries, &size);
@@ -736,8 +736,8 @@ void ShutdownGame(void)
     SetRestoreSurface(0);
     RestoreScreen();
     ClearOrderTypeTable();
-    FUN_004d85a0((int*)g_game->field_29a0);
-    g_game->field_29a0 = 0;
+    FUN_004d85a0((int*)g_game->options);
+    g_game->options = 0;
     FreeUnitInfo();
     ReleasePacketData((Class_00452370*)g_game->field_12ef);
     FreeOtaEnumCacheAndMission();
@@ -836,7 +836,7 @@ void LoadBattleAssets()
     g_game->bit5_3923b = 0;
     g_game->bit6_3923b = 0;
     g_game->flags_2bee = 0;
-    g_game->field_2a46 = 0xff;
+    g_game->netOrCdSentinel = 0xff;
     DAT_0051f2dc = 0;
     memset(DAT_0051e710, 0, sizeof(DAT_0051e710));
     DAT_0051f2d8 = 0;
@@ -860,7 +860,7 @@ void Force640x480Surfaces()
         g_game->field_37e1b = 0;
         SetRestoreSurface(0);
         RestoreScreen();
-        SetWindowPos(g_game->field_c->hwnd, 0, 0, 0, 0x280, 0x1e0, 4);
+        SetWindowPos(g_game->displayContext->hwnd, 0, 0, 0, 0x280, 0x1e0, 4);
         SetResolution(0x280, 0x1e0);
         g_game->field_37e1b = AllocSurface(g_offscreenSurfaceName, g_game->field_37e1f, g_game->field_37e23);
         SetRestoreSurface(g_game->field_37e1b);

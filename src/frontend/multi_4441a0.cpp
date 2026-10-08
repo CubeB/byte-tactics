@@ -36,7 +36,7 @@ struct Game_004441a0 {
     void* guids;                        // +0x2a9f
     Conn_004441a0* conns;               // +0x2aa3
     char unknown_2aa7[0x2bc0 - 0x2aa7];
-    char field_2bc0;                    // +0x2bc0
+    char frontendSubstateRequest;       // +0x2bc0
 };
 #pragma pack(pop)
 
@@ -89,7 +89,7 @@ void __stdcall FUN_004441a0(Menu_004441a0* menu)
     }
     if (IsCurrentGadgetNamed(menu, "DPLAY") || IsCurrentGadgetNamed(menu, "SELECT")) {
         SelectConnection(FindGadgetChecked(entries, "DPLAY")->field_ba);
-        g_game->field_2bc0 = 2;
+        g_game->frontendSubstateRequest = 2;
         PlaySoundByName("BigButton", 0);
         return;
     }
@@ -120,7 +120,7 @@ void __stdcall FUN_004441a0(Menu_004441a0* menu)
         return;
     }
     if (FindGadgetIndex(entries, "PREVMENU", 0xe) == menu->selected) {
-        g_game->field_2bc0 = 3;
+        g_game->frontendSubstateRequest = 3;
         PlaySoundByName("Previous", 0);
         return;
     }

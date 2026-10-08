@@ -223,14 +223,14 @@ class Sound;
 
 struct Game {
     char unknown_0[0xc];
-    int field_c;                        // +0xc
-    Sound* field_10;                    // +0x10
+    int displayContext;                 // +0xc
+    Sound* sound;                       // +0x10
     char unknown_10[0x519 - 0x14];
     union {                             // +0x519
         Menu_00497ce0 menu;
         struct {
             int field_519;
-            int field_51d;
+            int gaf;
             char unknown_521[0x531 - 0x521];
             int field_531;
         };
@@ -249,7 +249,7 @@ struct Game {
         };
     };
     char unknown_ddb[0x11eb - 0xddb];
-    int field_11eb;                     // +0x11eb
+    int surface;                        // +0x11eb
     char unknown_11ef[0x1b63 - 0x11ef];
     PlayerRec_00497f40 players[10];     // +0x1b63
     char unknown_2851[0x29a4 - 0x2851];
@@ -914,7 +914,7 @@ void LoadingScreenFrame(void)
             g_game->field_37e1b = 0;
             SetRestoreSurface(0);
             RestoreScreen();
-            SetWindowPos(*(HWND*)(g_game->field_c + 0x40), 0, 0, 0, 0x280, 0x1e0, 4);
+            SetWindowPos(*(HWND*)(g_game->displayContext + 0x40), 0, 0, 0, 0x280, 0x1e0, 4);
             SetResolution(0x280, 0x1e0);
             g_game->field_37e1b = (int)AllocSurface("OFFSCREEN", g_game->field_37e1f, g_game->field_37e23);
             SetRestoreSurface(g_game->field_37e1b);
@@ -968,7 +968,7 @@ void LoadingScreenFrame(void)
             g_game->field_37e1b = 0;
             SetRestoreSurface(0);
             RestoreScreen();
-            SetWindowPos(*(HWND*)(g_game->field_c + 0x40), 0, 0, 0, g_game->field_37f1b,
+            SetWindowPos(*(HWND*)(g_game->displayContext + 0x40), 0, 0, 0, g_game->field_37f1b,
                          g_game->field_37f1f, 4);
             SetResolution(g_game->field_37f1b, g_game->field_37f1f);
             g_game->field_37e1b = (int)AllocSurface("OFFSCREEN", g_game->field_37e1f, g_game->field_37e23);
@@ -982,9 +982,9 @@ void LoadingScreenFrame(void)
         SetCloseHandler(HandleBattleQuitPrompt, 0);
         g_game->field_589 = 0;
         memset((void*)g_game->progress, 0, 8);
-        g_game->field_10->SetTrackCategory(0);
-        if (!g_game->field_10->IsCdPlaying()) {
-            ((Class_004cdb40*)g_game->field_10)->PlayNextTrack();
+        g_game->sound->SetTrackCategory(0);
+        if (!g_game->sound->IsCdPlaying()) {
+            ((Class_004cdb40*)g_game->sound)->PlayNextTrack();
         }
         // Index players[i], not explicit offsets: keeps the SIB base and index order.
         for (i = 0; i < 10; i++) {
@@ -1029,7 +1029,7 @@ void LoadingScreenFrame(void)
             }
         }
         SetFont(g_game->field_391f9);
-        DrawSurface(&gadget, (void*)g_game->field_11eb, 0, 0);
+        DrawSurface(&gadget, (void*)g_game->surface, 0, 0);
         if (((Mission*)g_game->field_391e9)->GetGameType() != 1) {
             SetTextColors(color, 0xfe);
             // Local for the strncpy source: the call comes before the length push.
@@ -1048,7 +1048,7 @@ void LoadingScreenFrame(void)
             }
         }
         {
-            void* light = FindGafEntry(g_game->field_51d, "LIGHTBAR");
+            void* light = FindGafEntry(g_game->gaf, "LIGHTBAR");
             void* lightbar = GetGafFrame(light, 0);
             *((short*)lightbar + 3) = 0;
             *((short*)lightbar + 2) = 0;

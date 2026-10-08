@@ -185,7 +185,7 @@ struct Game {
     char unknown_25[0x1b67 - 0x14 - sizeof(Net_4c97b0)];
     PlayerEntry_0046d6c0 players[10];   // +0x1b67
     char unknown_283d[0x2a30 - 0x1b67 - sizeof(PlayerEntry_0046d6c0) * 10];
-    UnitSync* field_2a30;               // +0x2a30
+    UnitSync* sync;                     // +0x2a30
     char unknown_2a34[0x2a42 - 0x2a30 - sizeof(UnitSync*)];
     unsigned char player;               // +0x2a42
     char unknown_2a43[0x1438f - 0x2a42 - sizeof(unsigned char)];
@@ -752,9 +752,9 @@ void __stdcall CreateUnitSync(int param_1)
 // __fastcall: keeps the erase loop comparing the iterator slot directly.
 void __fastcall DeleteUnitSync()
 {
-    if (g_game->field_2a30)
-        delete (UnitSyncDel_0046c920*)g_game->field_2a30;
-    g_game->field_2a30 = 0;
+    if (g_game->sync)
+        delete (UnitSyncDel_0046c920*)g_game->sync;
+    g_game->sync = 0;
 }
 
 // --- PacketSequencer ---------------------------------------------------------

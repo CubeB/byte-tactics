@@ -157,15 +157,15 @@ struct Game {
     unsigned char field_dcc;          // +0xdcc
     char unknown_dcd[0xdce - 0xdcd];
     unsigned char field_dce;          // +0xdce
-    unsigned char field_dcf;          // +0xdcf
+    unsigned char color1;             // +0xdcf
     char unknown_dd0[0xdd4 - 0xdd0];
     unsigned char field_dd4;          // +0xdd4
-    unsigned char field_dd5;          // +0xdd5
+    unsigned char color2;             // +0xdd5
     char unknown_dd6[0xdd7 - 0xdd6];
     unsigned char field_dd7;          // +0xdd7
     char unknown_dd8[0xdd9 - 0xdd8];
     unsigned char field_dd9;          // +0xdd9
-    unsigned char field_dda;          // +0xdda
+    unsigned char shadowColor;        // +0xdda
     char unknown_ddb[0x1439b - 0xddb];
     UnitType* types;                  // +0x1439b
     char unknown_1439f[0x1487f - 0x1439f];
@@ -265,7 +265,7 @@ void __stdcall DrawBuildFootprint(void* surface, View* view, Order* order,
     unsigned char inner;
     if (order->unit->flag4) {
         outer = g_game->field_dce;
-        inner = g_game->field_dd5;
+        inner = g_game->color2;
     } else {
         outer = g_game->field_dcc;
         inner = g_game->field_dd4;
@@ -367,7 +367,7 @@ void __stdcall DrawUnitRangeRings(void* surface, View* view, Order* order,
     if (g_game->field_391bf == 0) {
         short mincloak = def->minCloakDistance;
         if (mincloak != 0 && (unit->activateFlags & 4)) {
-            DrawRangeCircle(surface, view, &order->unit->pos, mincloak, g_game->field_dda, 0, 0);
+            DrawRangeCircle(surface, view, &order->unit->pos, mincloak, g_game->shadowColor, 0, 0);
         }
         if ((def->flags & 0x10000000) && def->weapon_220 != 0) {
             int r = def->weapon_220->field_d6;
@@ -427,7 +427,7 @@ void __stdcall DrawUnitRangeRings(void* surface, View* view, Order* order,
         }
         int color;
         if (g_game->frame & 1)
-            color = g_game->field_dcf;
+            color = g_game->color1;
         else
             color = g_game->field_dd7;
         if ((unit->slots[0].flags & 2) && unit->slots[0].weapon->range != 0) {
@@ -567,7 +567,7 @@ void __stdcall DrawWeaponCoverage(void* surface, View* view, Order* order,
         (DAT_00512344[order->kind].field_10 == 1 || DAT_00512344[order->kind].field_10 == 2)) {
         int color;
         if (g_game->frame & 1)
-            color = g_game->field_dcf;
+            color = g_game->color1;
         else
             color = g_game->field_dd7;
         for (int i = 0; i < 3; i++) {

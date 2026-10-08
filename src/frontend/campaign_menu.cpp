@@ -182,7 +182,7 @@ struct Game {
     char unknown_29a4[0x2a42 - 0x29a4];
     unsigned char localPlayer;         // +0x2a42
     char unknown_2a43[0x2bc0 - 0x2a43];
-    unsigned char field_2bc0;          // +0x2bc0
+    unsigned char frontendSubstateRequest;  // +0x2bc0
     char unknown_2bc1[0x37e1b - 0x2bc1];
     int field_37e1b;                   // +0x37e1b
     char unknown_37e1f[0x37eee - 0x37e1f];
@@ -771,7 +771,7 @@ void __stdcall HandleSingleMenuClick(Menu* gadget)
         if (FindGameCdDrive(0)) {
             RegisterDataArchives();
             PlaySoundByName("BigButton", 0);
-            g_game->field_2bc0 = 10;
+            g_game->frontendSubstateRequest = 10;
             SetCursorMode(0x14);
         } else {
             OpenMessageBox((char*)&g_game->menu, Translate("Please insert the Campaign CD (Disc 2) and try again"), 200, 1, 1);
@@ -783,7 +783,7 @@ void __stdcall HandleSingleMenuClick(Menu* gadget)
         if (FindGameCdDrive(1)) {
             RegisterDataArchives();
             PlaySoundByName("skirmish", 0);
-            g_game->field_2bc0 = 11;
+            g_game->frontendSubstateRequest = 11;
             SetCursorMode(0x14);
         } else {
             OpenMessageBox((char*)&g_game->menu, Translate("Please insert the Multiplayer CD (Disc 1) and try again"), 200, 1, 1);
@@ -808,14 +808,14 @@ void __stdcall HandleSingleMenuClick(Menu* gadget)
     if (IsCurrentGadgetNamed(gadget, "PrevMenu")) {
         PlaySoundByName("Previous", 0);
         SetCursorMode(0x14);
-        g_game->field_2bc0 = 3;
+        g_game->frontendSubstateRequest = 3;
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "AnyMsn")) {
         if (FindGameCdDrive(0)) {
             RegisterDataArchives();
             PlaySoundByName("bigButton", 0);
-            g_game->field_2bc0 = 14;
+            g_game->frontendSubstateRequest = 14;
             SetCursorMode(0x14);
         } else {
             OpenMessageBox((char*)&g_game->menu, Translate("Please insert the Campaign CD (Disc 2) and try again"), 200, 1, 1);
@@ -1362,7 +1362,7 @@ void __stdcall HandleMissionBriefingClick(Menu* menu)
             SetCursorMode(0x14);
             g_game->input->StopStream();
             BlankScreen();
-            g_game->field_2bc0 = 2;
+            g_game->frontendSubstateRequest = 2;
             return;
         }
         OpenMessageBox((char*)&g_game->menu,
@@ -1389,7 +1389,7 @@ void __stdcall HandleMissionBriefingClick(Menu* menu)
         g_game->input->StopStream();
         PlaySoundByName("Previous", 0);
         BlankScreen();
-        g_game->field_2bc0 = 3;
+        g_game->frontendSubstateRequest = 3;
         SetCursorMode(0x14);
         return;
     }

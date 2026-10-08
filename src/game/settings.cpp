@@ -78,7 +78,7 @@ class Sound;
 
 struct Game {
     char unknown_0[0xc];
-    char* field_c;                       // +0x0c
+    char* displayContext;                // +0x0c
     Sound* sound;                        // +0x10
     char unknown_14[0x29a0 - 0x14];
     Options* options;                    // +0x29a0
@@ -458,7 +458,7 @@ void LoadSettings()
         if (GetWindowsUserName(buf) == 0) {
             strcpy(buf, "user_images");
         }
-        sprintf(g_game->imageOutputDirectory, "%s\\%s", g_game->field_c + 0x628, buf);
+        sprintf(g_game->imageOutputDirectory, "%s\\%s", g_game->displayContext + 0x628, buf);
     }
     if (ReadRegistryDword("Total Annihilation", "Movie Output Rate", &value) != 0) {
         g_game->movieOutputRate = value;

@@ -48,7 +48,7 @@ struct Game_00466050 {
     Player_00466050 players[10];       // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char localPlayer;         // +0x2a42
-    unsigned char field_2a43;          // +0x2a43
+    unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x38a37 - 0x2a44];
     char gameTime[0x1c];               // +0x38a37
 };
@@ -67,7 +67,7 @@ void __stdcall LoadPlayers(HapiBank* file)
     char name[16];
     file->OpenAccount("Players");
     g_game->localPlayer = file->GetIntegerItem("Human Player", 10);
-    g_game->field_2a43 = g_game->localPlayer;
+    g_game->playerIndex = g_game->localPlayer;
     file->OpenNamedBox("GameTime");
     if (file->ReadBox(g_game->gameTime, 0x1c) != 0x1c)
         return;

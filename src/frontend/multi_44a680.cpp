@@ -72,11 +72,11 @@ struct Game {
     char unknown_2851[0x2a30 - 0x2851];
     void* net;                          // +0x2a30
     char unknown_2a34[0x2a3c - 0x2a34];
-    unsigned short field_2a3c;          // +0x2a3c
+    unsigned short numPlayers;          // +0x2a3c
     char unknown_2a3e[0x2a42 - 0x2a3e];
     unsigned char localPlayer;          // +0x2a42
     char unknown_2a43[0x2bc0 - 0x2a43];
-    unsigned char field_2bc0;           // +0x2bc0
+    unsigned char frontendSubstateRequest;  // +0x2bc0
     char unknown_2bc1[0x2bee - 0x2bc1];
     unsigned short dirty : 1;           // +0x2bee
     unsigned short dirty_rest : 15;
@@ -258,7 +258,7 @@ void UpdateBattleRoom()
 
     pl = &g_game->players[g_game->localPlayer];
     if (pl->field_22 != 0) {
-        g_game->field_2bc0 = 3;
+        g_game->frontendSubstateRequest = 3;
         CloseTopScreen(&g_game->gui);
         return;
     }
@@ -276,8 +276,8 @@ void UpdateBattleRoom()
             CompactActivePlayerSlots();
         }
 
-        if ((unsigned int)g_game->field_2a3c != g_lastPlayerCount) {
-            g_lastPlayerCount = g_game->field_2a3c;
+        if ((unsigned int)g_game->numPlayers != g_lastPlayerCount) {
+            g_lastPlayerCount = g_game->numPlayers;
             UpdateNetGameInfo();
         }
 

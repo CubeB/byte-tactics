@@ -365,7 +365,7 @@ struct Game {
     Player players[10];                // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char localPlayer;         // +0x2a42
-    unsigned char field_2a43;          // +0x2a43
+    unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x2c76 - 0x2a44];
     union {
         char orders[0x2c92 - 0x2c76];  // +0x2c76
@@ -714,7 +714,7 @@ void __stdcall UpdateOnOffButton(Unit* unit)
 // FUNCTION: 0x419b00
 void __stdcall QueueBuildOrder(char* name, Unit* unit, int count)
 {
-    if (unit->playerIndex == g_game->field_2a43) {
+    if (unit->playerIndex == g_game->playerIndex) {
         if (count > 0)
             PlaySoundByName("addbuild", 0);
         else

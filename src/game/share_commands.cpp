@@ -36,12 +36,12 @@ struct Player {
 
 struct Game {
     char unknown_0[0x4ed];
-    int field_4ed;                     // +0x4ed
+    int compressionOff;                // +0x4ed
     char unknown_4f1[0x1b63 - 0x4f1];
     Player players[10];                // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char localPlayer;         // +0x2a42
-    unsigned char field_2a43;          // +0x2a43
+    unsigned char playerIndex;         // +0x2a43
     unsigned char flags;               // +0x2a44
 };
 #pragma pack(pop)
@@ -261,9 +261,9 @@ void __stdcall CmdCompression(int unused)
 {
     char buf[256];
     if (g_game->flags & 1) {
-        g_game->field_4ed = (g_game->field_4ed == 0);
+        g_game->compressionOff = (g_game->compressionOff == 0);
         sprintf(buf, "Ok.  Outgoing packet compression turned %s",
-                g_game->field_4ed ? "OFF" : "ON");
+                g_game->compressionOff ? "OFF" : "ON");
         AddMessage(buf, 2, 0, 10);
     }
 }

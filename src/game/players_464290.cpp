@@ -239,10 +239,10 @@ struct Game {
     char unknown_299c[0x29a0 - 0x299c];
     Slot* slots;                       // +0x29a0
     char unknown_29a4[0x2a3e - 0x29a4];
-    unsigned short field_2a3e;         // +0x2a3e
-    unsigned short field_2a40;         // +0x2a40
+    unsigned short tail;               // +0x2a3e
+    unsigned short head;               // +0x2a40
     unsigned char localPlayer;         // +0x2a42
-    unsigned char field_2a43;          // +0x2a43
+    unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x2c28 - 0x2a44];
     int table_2c28[11];                // +0x2c28
     char unknown_2c54[0x14207 - 0x2c54];
@@ -375,7 +375,7 @@ void ResetPlayerSlots()
     }
 
     g_game->localPlayer = 0;
-    g_game->field_2a43 = 0;
+    g_game->playerIndex = 0;
     memset(g_game->table_2c28, 0, 0x2c);
 
     p = &g_game->players[0];
@@ -413,8 +413,8 @@ void ResetPlayerSlots()
         p->info->b.bit5 = 0;
     }
 
-    g_game->field_2a3e = 0;
-    g_game->field_2a40 = 0;
+    g_game->tail = 0;
+    g_game->head = 0;
 }
 
 void* __cdecl operator new(unsigned int size);
@@ -919,7 +919,7 @@ void __stdcall UpdatePlayers()
             }
         }
 
-        if (bl == g_game->field_2a43)
+        if (bl == g_game->playerIndex)
             DrawRadarUnits();
 
         if ((unsigned int)pi->field_f0 > g_game->tick)
@@ -1089,7 +1089,7 @@ void __stdcall UpdatePlayers()
             }
         }
 
-        if (bl == g_game->field_2a43) {
+        if (bl == g_game->playerIndex) {
             UpdateSensorRadarAndCloak();
             UpdateRadarMapped();
             if (g_game->mission->GetGameType() == 3) {

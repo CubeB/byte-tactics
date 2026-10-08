@@ -109,7 +109,7 @@ struct Player_0047f300 {
 
 struct Game {
     char unknown_0[0xc];
-    SoundParams_0047ed40* field_0c;    // +0xc
+    SoundParams_0047ed40* displayContext;  // +0xc
     Sound* sound;                      // +0x10
     char unknown_14[0x1b63 - 0x14];
     Player_0047f300 players[10];       // +0x1b63
@@ -255,7 +255,7 @@ void InitSound(void)
         g_noDirectSound = 1;
     }
     if (!g_noDirectSound) {
-        int hr = g_game->sound->InitDirectSound(0x2b11, 0x10, 2, g_game->field_0c->field_40);
+        int hr = g_game->sound->InitDirectSound(0x2b11, 0x10, 2, g_game->displayContext->field_40);
         if (hr == 0) {
             if (g_game->sound->HasNoDriver())
                 g_noDirectSound = 1;

@@ -135,7 +135,7 @@ struct Game {
     char unknown_1cd9[0x29a0 - 0x1cd9];
     Obj_00492360* p29a0;                 // +0x29a0
     char unknown_29a4[0x2a3c - 0x29a4];
-    short field_2a3c;                    // +0x2a3c
+    short numPlayers;                    // +0x2a3c
     char unknown_2a3e[0x2a44 - 0x2a3e];
     // Bitfield union: reads give shr/test instead of a folded byte test.
     union Flags_2a44 {
@@ -506,7 +506,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
             InitMissionStatus();
         if (g_game->mapInfo->GetGameType() == 2) {
             ((HapiBank*)g_game->p38d6b)->OpenAccount("summary");
-            g_game->field_2a3c =
+            g_game->numPlayers =
                 (short)((HapiBank*)g_game->p38d6b)->GetIntegerItem("Players", 0);
             g_game->p29a0->field_108 =
                 ((HapiBank*)g_game->p38d6b)->GetIntegerItem("CommanderDeath", 1);

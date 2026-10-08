@@ -197,7 +197,7 @@ struct Flags16 {
 
 struct Game {
     char unknown_0[0x10];
-    Class_004ce680* field_10;          // +0x10
+    Class_004ce680* sound;             // +0x10
     char unknown_14[0x511 - 0x14];
     Player* slowest;                   // +0x511
     int lag;                           // +0x515
@@ -1166,7 +1166,7 @@ void UpdateCdCategoryByActivity()
     if ((g_game->flags_2a44 & 4)
         && (!(g_game->netFlags & 1) || (g_game->netFlags & 2))
         && GetTicks() > g_cdActivityLastSampleTick + 0x1e) {
-        int state = g_game->field_10->GetTrackCategory();
+        int state = g_game->sound->GetTrackCategory();
         if (++g_cdActivityStableTicks > 10) {
             int recent = 0;
             int n = 5;
@@ -1196,7 +1196,7 @@ void UpdateCdCategoryByActivity()
             else if (state == 1 && total < 10 && recent == 0 && g_cdActivityStableTicks > 0x3c)
                 newstate = 0;
             if (newstate != g_lastCdActivityMode) {
-                ((Sound*)g_game->field_10)->SetTrackCategory(newstate);
+                ((Sound*)g_game->sound)->SetTrackCategory(newstate);
                 g_cdActivityStableTicks = 0;
                 g_lastCdActivityMode = newstate;
             }

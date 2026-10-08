@@ -16,7 +16,7 @@ struct Guid_0046bf30 {
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x14];
-    char field_14[1];                  // +0x14
+    char session[1];                   // +0x14
     char unknown_15[0x4e5 - 0x15];
     char* net;                         // +0x4e5
     char unknown_4e9[0x39201 - 0x4e9];
@@ -272,7 +272,7 @@ void ShutdownScoreTables()
     DAT_0051e590 = 0;
     RISetCallbacks(0, 0);
     if (DAT_0051e58c != 0) {
-        HAPINET_uninitmultiplay(g_game->field_14);
+        HAPINET_uninitmultiplay(g_game->session);
         if (g_riTerminate != 0)
             g_riTerminate();
         FreeLibrary(DAT_0051e58c);

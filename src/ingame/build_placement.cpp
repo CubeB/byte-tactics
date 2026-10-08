@@ -61,16 +61,16 @@ public:
 
 struct Game {
     char unknown_0[0x10];
-    Sound* field_10;                   // +0x10
+    Sound* sound;                      // +0x10
     char unknown_14[0x519 - 0x14];
-    char field_519[0x18];              // +0x519
+    char menu[0x18];                   // +0x519
     Struct_00499200_531* field_531;    // +0x531
     char unknown_535[0x29a0 - 0x535];
-    char* field_29a0;                  // +0x29a0
+    char* options;                     // +0x29a0
     char unknown_29a4[0x2a3c - 0x29a4];
-    unsigned short field_2a3c;         // +0x2a3c
+    unsigned short numPlayers;         // +0x2a3c
     char unknown_2a3e[0x2a44 - 0x2a3e];
-    Flags16_00499200 field_2a44;       // +0x2a44
+    Flags16_00499200 flags_2a44;       // +0x2a44
     char unknown_2a46[0x2c76 - 0x2a46];
     View view;                         // +0x2c76
     char unknown_2c8e[0x2c92 - 0x2c8e];
@@ -182,7 +182,7 @@ void __stdcall HandleLeftClick(View* param_1)
             g_game->flags_2cc6 &= 0xdf;
             index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
             if (index != -1) {
-                ClearGroupStatus(g_game->field_519, index);
+                ClearGroupStatus(g_game->menu, index);
             }
         } else {
             PlaySoundByName("notoktobuild", 0);
@@ -213,7 +213,7 @@ void __stdcall HandleLeftClick(View* param_1)
     g_game->flags_2cc6 &= 0xdf;
     index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
     if (index != -1) {
-        ClearGroupStatus(g_game->field_519, index);
+        ClearGroupStatus(g_game->menu, index);
     }
 }
 
@@ -230,7 +230,7 @@ void __stdcall HandleRightClick(View* param_1)
         g_game->flags_2cc6 &= 0xdf;
         int index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
         if (index != -1) {
-            ClearGroupStatus(g_game->field_519, index);
+            ClearGroupStatus(g_game->menu, index);
         }
         return;
     }
@@ -248,7 +248,7 @@ void __stdcall HandleRightClick(View* param_1)
             g_game->flags_2cc6 = g_game->flags_2cc6 | 0x10;
             if (g_game->selected != 0x13) {
                 g_game->selected = 0x13;
-                SetCursorAnimation((void*)g_game->field_519, g_game->table[0x13]);
+                SetCursorAnimation((void*)g_game->menu, g_game->table[0x13]);
                 return;
             }
         }
@@ -263,7 +263,7 @@ static inline void SetCursor(int n)
 {
     if (g_game->selected != n) {
         g_game->selected = n;
-        SetCursorAnimation(g_game->field_519, g_game->table[n]);
+        SetCursorAnimation(g_game->menu, g_game->table[n]);
     }
 }
 
@@ -295,7 +295,7 @@ void BattleFrame(void)
             g_game->flags_2cc6 &= 0xdf;
             int index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
             if (index != -1) {
-                ClearGroupStatus(g_game->field_519, index);
+                ClearGroupStatus(g_game->menu, index);
             }
         }
     }
@@ -377,14 +377,14 @@ void BattleFrame(void)
              FUN_004572a0() != 0)) {
             SetCursor(0x13);
             PopUntilNamedLayout(1);
-            CloseTopScreen(g_game->field_519);
+            CloseTopScreen(g_game->menu);
             if (g_game->net->GetGameType() == 3) {
                 ResetChatHudIndices();
                 MainLoopTick();
             }
             ShutdownIngameSystems();
             ClearKeyQueue();
-            g_game->field_10->SetTrackCategory(4);
+            g_game->sound->SetTrackCategory(4);
             g_game->field_391f1 = 7;
             g_game->field_391f5 = EndGameFrame;
             SetCloseHandler(LeaveNetGameCallback, 0);
@@ -397,34 +397,34 @@ void BattleFrame(void)
         if (g_game->net->GetGameType() == 1) {
             ShutdownIngameSystems();
             PopUntilNamedLayout(1);
-            CloseTopScreen(g_game->field_519);
+            CloseTopScreen(g_game->menu);
             BlankScreen();
             int a = g_game->net->GetMissionIndex();
             char* b = g_game->net->GetCampaignName();
             g_game->net->LoadCampaign(b);
             if (g_game->net->SelectMission(a) != 0) {
-                g_game->field_2a44.bits.b3 = 1;
-                g_game->field_2a44.value |= 4;
+                g_game->flags_2a44.bits.b3 = 1;
+                g_game->flags_2a44.value |= 4;
             }
             g_game->field_391f1 = 2;
             g_game->field_391f5 = MenuFrame;
             SetCloseHandler(LeaveNetGameCallback, 0);
         } else {
-            unsigned int saved = g_game->field_2a3c;
+            unsigned int saved = g_game->numPlayers;
             ShutdownIngameSystems();
             PopUntilNamedLayout(1);
-            CloseTopScreen(g_game->field_519);
+            CloseTopScreen(g_game->menu);
             BlankScreen();
             SetCursor(0x14);
-            g_game->field_2a3c = saved;
-            g_game->net->LoadMissionByName(g_game->field_29a0 + 0x11c);
+            g_game->numPlayers = saved;
+            g_game->net->LoadMissionByName(g_game->options + 0x11c);
             ApplySlotsToGamePlayers();
-            g_game->field_2a44.value |= 4;
+            g_game->flags_2a44.value |= 4;
             g_game->field_391f1 = 2;
             g_game->field_391f5 = MenuFrame;
             SetCloseHandler(LeaveNetGameCallback, 0);
         }
-        g_game->field_10->SetTrackCategory(4);
+        g_game->sound->SetTrackCategory(4);
     }
 }
 

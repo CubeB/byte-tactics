@@ -16,7 +16,7 @@ struct Ctx_00499890 {
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0xc];
-    Ctx_00499890* unknown_c;
+    Ctx_00499890* displayContext;
     char unknown_10[0x519 - 0x10];
     char menu[0x10];
     char unknown_529[0x2c76 - 0x529];
@@ -98,6 +98,6 @@ void MainFrameTick()
     else
         g_game->selected = second;
     UpdateTimers();
-    if (!(g_game->unknown_c->flags & 8))
+    if (!(g_game->displayContext->flags & 8))
         g_game->callback();
 }

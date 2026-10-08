@@ -4078,7 +4078,7 @@ address,name
 0x4fd670,DAT_004fd670
 0x4fd678,DAT_004fd678
 0x4fd698,??_7UnitScript@@6B@
-0x4fd6f0,DAT_004fd6f0
+0x4fd6f0,g_weaponAimCobVtable
 0x4fd750,g_buildPercentScale
 0x4fd754,??_7Class_004895c0@@6B@
 0x4fd768,??_7DefeatAnyUnitPassesZ@@6BListener_0048ff40@@@
@@ -4256,8 +4256,8 @@ address,name
 0x508a78,DAT_00508a78
 0x508aa4,DAT_00508aa4
 0x508ab4,DAT_00508ab4
-0x508be8,DAT_00508be8
-0x508bf0,DAT_00508bf0
+0x508be8,g_killedScriptName
+0x508bf0,g_takenLeadFormat
 0x508d68,s_TakeDamage_00508d68
 0x508d74,s_HitByWeapon_00508d74
 0x508d80,s_paralyze_00508d80

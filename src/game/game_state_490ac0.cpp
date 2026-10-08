@@ -702,8 +702,8 @@ struct Obj_004aef80;
 struct Class_00452370;
 
 void FreePictureCache();
-void __stdcall FUN_004aeda0(Obj_004aeda0* obj, int i);
-void __stdcall FUN_004aef80(Obj_004aef80* obj);
+void __stdcall FreeGafSlot(Obj_004aeda0* obj, int i);
+void __stdcall FreeCommonGuiGaf(Obj_004aef80* obj);
 void FreeLogos();
 void FreeSideFonts();
 void FreeSounds();
@@ -723,9 +723,9 @@ void ShutdownGame(void)
     }
     WriteGameRegistryValue("CDLISTS", &g_cdListsDiscEntries, 0xaa0);
     FreePictureCache();
-    FUN_004aeda0((Obj_004aeda0*)&g_game->gui, 1);
-    FUN_004aeda0((Obj_004aeda0*)&g_game->gui, 0);
-    FUN_004aef80((Obj_004aef80*)&g_game->gui);
+    FreeGafSlot((Obj_004aeda0*)&g_game->gui, 1);
+    FreeGafSlot((Obj_004aeda0*)&g_game->gui, 0);
+    FreeCommonGuiGaf((Obj_004aef80*)&g_game->gui);
     FreeLogos();
     FreeSideFonts();
     FreeSounds();

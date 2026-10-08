@@ -763,7 +763,7 @@ struct Obj_004ae440 {
 // line, indented by the given number of tabs; the reading counterpart is
 // 0x4ae4b0. Sibling of 0x4ae380.
 // FUNCTION: 0x4ae440
-void __stdcall FUN_004ae440(Obj_004ae440* obj, FileHandle* out, int indent)
+void __stdcall WriteFontFilenameField(Obj_004ae440* obj, FileHandle* out, int indent)
 {
     char tab;
     char line[100];
@@ -788,7 +788,7 @@ struct Obj_004ae4b0 {
 
 // Reads the "filename" key of a TDF entry (sibling of 0x4ae300).
 // FUNCTION: 0x4ae4b0
-void __stdcall FUN_004ae4b0(Obj_004ae4b0* obj, Source_004ae4b0* src)
+void __stdcall ReadFontFilenameField(Obj_004ae4b0* obj, Source_004ae4b0* src)
 {
     src->tdf->GetFieldString(obj->text, "filename", 0x20, DAT_005119b8);
 }
@@ -802,7 +802,7 @@ struct Obj_004ae4e0 {
 // line, indented by the given number of tabs; the reading counterpart is
 // 0x4ae4b0.
 // FUNCTION: 0x4ae4e0
-void __stdcall FUN_004ae4e0(Obj_004ae4e0* obj, FileHandle* out, int indent)
+void __stdcall WriteSurfFilenameField(Obj_004ae4e0* obj, FileHandle* out, int indent)
 {
     char tab;
     char line[100];
@@ -827,7 +827,7 @@ struct Obj_004ae550 {
 
 // Reads the "filename" key of a TDF entry (byte-identical to 0x4ae4b0).
 // FUNCTION: 0x4ae550
-void __stdcall FUN_004ae550(Obj_004ae550* obj, Source_004ae550* src)
+void __stdcall ReadSurfFilenameField(Obj_004ae550* obj, Source_004ae550* src)
 {
     src->tdf->GetFieldString(obj->text, "filename", 0x20, DAT_005119b8);
 }
@@ -1120,7 +1120,7 @@ struct Obj_004aeda0 {
 
 // Frees one of the three buffers at +0x8 and clears it and field_14.
 // FUNCTION: 0x4aeda0
-void __stdcall FUN_004aeda0(Obj_004aeda0* obj, int i)
+void __stdcall FreeGafSlot(Obj_004aeda0* obj, int i)
 {
     if (obj->buffers[i] != 0) {
         FUN_004d85a0(obj->buffers[i]);
@@ -1206,7 +1206,7 @@ struct Obj_004aef80 {
 };
 
 // FUNCTION: 0x4aef80
-void __stdcall FUN_004aef80(Obj_004aef80* obj)
+void __stdcall FreeCommonGuiGaf(Obj_004aef80* obj)
 {
     if (obj->field_4) {
         FUN_004d85a0(obj->field_4);

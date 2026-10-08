@@ -1361,10 +1361,10 @@ void __stdcall TruncateTextWithEllipsis(Menu_004aa8f0* obj, unsigned char* text,
         strcpy((char*)end, "...");
 }
 
-// Unused declarations: the count in front of each palette helper (here and
-// before 0x4ac7d0, 0x4ac8c0 and 0x4acbe0) sets its register allocation
-// (docs/c2-regalloc.md).
-extern int pad4aa8f0_a0, pad4aa8f0_a1, pad4aa8f0_a2;
+// Unused here: forward declarations of later functions of this file. Their
+// symbol ids in front of each palette helper (here and before 0x4ac7d0,
+// 0x4ac8c0 and 0x4acbe0) set its register allocation (docs/c2-regalloc.md).
+void __stdcall FUN_004ac8a0(char* obj, void* dest);
 
 // Builds a 256-entry remap table: for each colour of the source palette,
 // the index of the closest colour (sum of absolute RGB differences) in the
@@ -1392,7 +1392,7 @@ void __stdcall BuildColorRemapTable(PalEntry_004aa8f0* src, PalEntry_004aa8f0* d
     }
 }
 
-extern int pad4aa8f0_b0, pad4aa8f0_b1, pad4aa8f0_b2;
+void __stdcall ApplySlidersToPaletteEntry(PaletteDialog_004aa8f0* obj, PalEntry_004aa8f0* palette);
 
 // Copies a 256-entry palette into the object and then builds a 256-byte remap
 // table: for each colour of the copied palette, the index of the closest
@@ -1427,7 +1427,9 @@ void __stdcall FUN_004ac8a0(char* obj, void* dest)
     memcpy(dest, obj + 0xb2, 0x100 * sizeof(int));
 }
 
-extern int pad4aa8f0_c0, pad4aa8f0_c1;
+void __stdcall ShowPaletteEntryRgb(Menu_004aa8f0* obj, unsigned char* colors, int index);
+void __stdcall FUN_004acae0(unsigned char* data, int a, int b);
+void __stdcall WriteTabs(FileHandle* file, int depth);
 
 // Draws the 16 x 16 palette grid: one 8 x 8 cell per colour, at the "COLS"
 // gadget's position.
@@ -1507,8 +1509,9 @@ void __stdcall FUN_004acae0(unsigned char* data, int a, int b)
     memcpy(data, buf, 0x400);
 }
 
-extern int pad4aa8f0_d0, pad4aa8f0_d1, pad4aa8f0_d2, pad4aa8f0_d3, pad4aa8f0_d4,
-    pad4aa8f0_d5, pad4aa8f0_d6;
+
+// Unused here: the type of the neighbour 0x4ac970, which has a file of its own.
+struct Object_004ac970;
 
 // Converts a screen position to the index of a cell in the 16x16 "COLS"
 // colour grid gadget (row * 16 + column, each cell 8 pixels).

@@ -17,7 +17,7 @@ union Fixed_0049a120 {
     } part;
 };
 
-struct FixedVec3_0049a120 {
+struct FixedVec3 {
     Fixed_0049a120 x;
     Fixed_0049a120 y;
     Fixed_0049a120 z;
@@ -229,10 +229,10 @@ void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
     memset(&hits, 0, 8);
     int radius = weapon->def->radius >> 1;
     int r = radius / 16 + 1;
-    int cx = ((FixedVec3_0049a120*)pos)->x.part.whole;
+    int cx = ((FixedVec3*)pos)->x.part.whole;
     int x0 = cx / 16 - r;
     int x1 = cx / 16 + r;
-    int cz = ((FixedVec3_0049a120*)pos)->z.part.whole;
+    int cz = ((FixedVec3*)pos)->z.part.whole;
     int z0 = cz / 16 - r;
     int z1 = cz / 16 + r;
     if (x0 < 0)

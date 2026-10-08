@@ -127,6 +127,11 @@ struct Proj_0049b090 {
     Flags_0049b090 flags;              // +0x69
 };
 
+struct Net {
+    char unknown_0[0xd48];
+    int field_d48;
+};
+
 struct Game {
     char unknown_0[0x14233];
     int width;                         // +0x14233
@@ -144,12 +149,7 @@ struct Game {
     char unknown_1434d[0x14357 - 0x1434d];
     Unit* units;                       // +0x14357
     char unknown_1435b[0x391e9 - 0x1435b];
-    void* net;                         // +0x391e9
-};
-
-struct Net_0049b090 {
-    char unknown_0[0xd48];
-    int field_d48;
+    Net* net;                          // +0x391e9
 };
 #pragma pack(pop)
 
@@ -257,7 +257,7 @@ void __stdcall CheckProjectileCollision(ProjType_0049b090* type, Proj_0049b090* 
         return;
     } else if (proj->py.s.hi >= g_game->limit) {
         return;
-    } else if (((Net_0049b090*)g_game->net)->field_d48) {
+    } else if (g_game->net->field_d48) {
         return;
     }
     DetonateProjectile(proj, 0);

@@ -187,23 +187,23 @@ struct Flags241_00409730 {
 };
 
 struct Def_00409730 {
-    int HasField1ce() { return field_1ce != 0.0f; }
+    int HasField1ce() { return extractsMetal != 0.0f; }
     char unknown_0[0x186];
-    float field_186;                   // +0x186
-    float field_18a;                   // +0x18a
+    float energyCost;                  // +0x186
+    float metalCost;                   // +0x18a
     char unknown_18e[0x1c0 - 0x18e];
-    short field_1c0;                   // +0x1c0
+    short minwaterdepth;               // +0x1c0
     float field_1c2;                   // +0x1c2
     char unknown_1c6[0x1ce - 0x1c6];
-    float field_1ce;                   // +0x1ce
+    float extractsMetal;               // +0x1ce
     float field_1d2;                   // +0x1d2
     char unknown_1d6[0x1ee - 0x1d6];
     Weapon_00409730* weapons[3];       // +0x1ee
     char unknown_1fa[0x204 - 0x1fa];
-    short field_204;                   // +0x204
-    short field_206;                   // +0x206
+    short radardistance;               // +0x204
+    short sonardistance;               // +0x206
     char unknown_208[0x22d - 0x208];
-    char field_22d;                    // +0x22d
+    char makesMetal;                   // +0x22d
     char unknown_22e[0x241 - 0x22e];
     Flags241_00409730 flags_241;       // +0x241
     unsigned int bits_245_0 : 4;
@@ -287,13 +287,13 @@ int __stdcall RateWeapons(Def_00409730* p)
 int __stdcall RateUnitType(Def_00409730* p)
 {
     int result = 1;
-    if (p->field_1ce != 0.0f)
+    if (p->extractsMetal != 0.0f)
         result = 0xb;
-    if (p->field_22d != 0)
+    if (p->makesMetal != 0)
         result += 10;
     if (GetEnergyUse(p) < 0.0f)
         result += 10;
-    result = (int)((int)(result - p->field_18a * -0.01f) - p->field_186 * -0.002f);
+    result = (int)((int)(result - p->metalCost * -0.01f) - p->energyCost * -0.002f);
     result += (signed char)RateWeapons(p);
     if (MIN(result, 100) < -100)
         return -100;
@@ -327,21 +327,21 @@ void PlayerAI::ComputeBaseWeights()
         // Stays a method: the first resize's erase needs its inline budget.
         if (def->HasField1ce())
             a += 50;
-        if (def->field_22d)
+        if (def->makesMetal)
             a += 25;
         Flags241_00409730 flags = def->flags_241;
         if (flags.flag_11)
             a += 40;
-        if (def->field_206)
+        if (def->sonardistance)
             a += 15;
-        if (def->field_204)
+        if (def->radardistance)
             a += 5;
         int x = (int)(a + min(max(def->field_1c2, 0.0f), 30.0f));
         if (n == 0)
             x *= 4;
         if (n == 1)
             x *= 2;
-        if (def->field_1c0 >= 0)
+        if (def->minwaterdepth >= 0)
             x *= 3;
         if (player->field_144 > (unsigned short)(g_game->field_1434f / 2)) {
             x += (char)vec_8d[i] / 2;
@@ -354,9 +354,9 @@ void PlayerAI::ComputeBaseWeights()
             x = 0;
         x = min(x, 100);
         e->a = x;
-        e->c = (char)max(0.0f, min(100.0f, def->field_186 * -0.0025f - GetEnergyUse(def) * 5.0f));
+        e->c = (char)max(0.0f, min(100.0f, def->energyCost * -0.0025f - GetEnergyUse(def) * 5.0f));
         // The e->b bonus is a plain conditional: RateWeapons only inlines then.
-        e->b = (char)max(0.0f, min(100.0f, (float)(def->field_18a * -0.02f) + (def->field_22d ? 25 : 0) + (def->field_1ce != 0.0f ? 100 : 0)));
+        e->b = (char)max(0.0f, min(100.0f, (float)(def->metalCost * -0.02f) + (def->makesMetal ? 25 : 0) + (def->extractsMetal != 0.0f ? 100 : 0)));
     }
 }
 

@@ -1657,7 +1657,7 @@ static inline Vec3 operator-(const Vec3& p, const Vec3& q)
 #pragma pack(push, 1)
 struct UnitDef {
     char pad0[0x21c];
-    short field_21c;                   // +0x21c
+    short altitude;                    // +0x21c
     char pad21e[0x241 - 0x21e];
     unsigned int unknown_241_0 : 22;
     unsigned int seaUnit : 1;          // +0x241 bit 22
@@ -1811,7 +1811,7 @@ void Class_00490630::FUN_0044f000(Vec3* outPos, Vec3* outVel,
 // slot 8) and the difference goes into vel. When the object has drifted further
 // than 0xa00000 from its owner, its height is snapped to the ground under it,
 // the sea level for a unit whose def has the flag at +0x241 bit 22 set, the
-// owner's field_82 byte 1 otherwise, plus the def's field_21c, and past
+// owner's field_82 byte 1 otherwise, plus the def's altitude, and past
 // 0x1400000 (or 0x100000 with slot 9 refusing) it turns to face the owner. Then
 // the object at +0x4 gets the last word: slot 4 saying it is done, plus slot
 // 11, means slot 1 with 0.
@@ -1826,11 +1826,11 @@ void Class_00490630::FUN_0044efb0()
     int dist = (int)_hypot(owner->pos.x - pos.x, owner->pos.z - pos.z);
     if (dist > 0xa00000) {
         if (owner->def->seaUnit)
-            pos.y = (g_game->seaLevel + owner->def->field_21c) << 16;
+            pos.y = (g_game->seaLevel + owner->def->altitude) << 16;
         else
-            // field_21c via owner->def-> and first in the add: keeps the two
+            // altitude via owner->def-> and first in the add: keeps the two
             // branches from being tail-merged.
-            pos.y = (owner->def->field_21c + owner->field_82[1]) << 16;
+            pos.y = (owner->def->altitude + owner->field_82[1]) << 16;
     }
     if (dist > 0x1400000 || (!field_4->FUN_0044efd0(&field_24) && dist > 0x100000))
         field_24 = (short)GetHeadingBetween(&owner->pos, &pos);

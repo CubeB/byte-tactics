@@ -138,7 +138,7 @@ struct UnitDef {
     char unknown_0[0x170];
     unsigned char field_170;           // +0x170
     char unknown_171[0x202 - 0x171];
-    short field_202;                   // +0x202
+    short range;                       // +0x202
 };
 
 struct Unit {
@@ -562,7 +562,7 @@ void __stdcall RemoveUnitLineOfSight(Unit* unit)
     Params p;
     p.field_0 = unit->owner;
     p.field_4 = unit->cell;
-    p.field_8 = unit->type->field_202;
+    p.field_8 = unit->type->range;
     p.field_c = unit->field_f8;
     p.pos = unit->pos;
     p.field_a = unit->type->field_170;
@@ -677,7 +677,7 @@ void __stdcall UpdateUnitLineOfSight(Unit* unit)
     Params p;
     p.field_0 = unit->owner;
     p.field_4 = unit->cell;
-    p.field_8 = unit->type->field_202;
+    p.field_8 = unit->type->range;
     p.field_c = unit->field_f8;
     p.pos = unit->pos;
     p.field_a = unit->type->field_170;

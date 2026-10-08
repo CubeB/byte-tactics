@@ -52,22 +52,22 @@ struct Point16 {
 
 struct UnitDef {
     char unknown_0[0x16e];
-    int field_16e;                     // +0x16e
+    int modelMaxY;                     // +0x16e
     char unknown_172[0x1fa - 0x172];
     unsigned int maxHealth;            // +0x1fa
     char unknown_1fe[0x204 - 0x1fe];
-    short field_204;                   // +0x204
-    short field_206;                   // +0x206
-    short field_208;                   // +0x208
-    short field_20a;                   // +0x20a
-    short field_20c;                   // +0x20c
+    short radardistance;               // +0x204
+    short sonardistance;               // +0x206
+    short mincloakdistance;            // +0x208
+    short radardistancejam;            // +0x20a
+    short sonardistancejam;            // +0x20c
     char unknown_20e[0x241 - 0x20e];
     struct {
         unsigned int bit0_7 : 8;       // +0x241
         unsigned int bit8 : 1;         // tested by the detection visitor
         unsigned int bit9_31 : 23;
-    } field_241;
-    unsigned int field_245;            // +0x245
+    } flags;
+    unsigned int flags2;               // +0x245
 };
 
 struct UnitType_004685a0 {
@@ -644,7 +644,7 @@ void DetectionVisitor::MarkUnitsInRadarOrSonarRadius(Unit* unit)
     }
 
     UnitDef* def = unit->def;
-    if (def->field_241.bit8) {
+    if (def->flags.bit8) {
         return;
     }
 
@@ -656,7 +656,7 @@ void DetectionVisitor::MarkUnitsInRadarOrSonarRadius(Unit* unit)
         unit->flags |= 0x200;
     }
 
-    if (def->field_16e + unit->y >= ((int)g_game->seaLevel << 16) && dist < this->field_4) {
+    if (def->modelMaxY + unit->y >= ((int)g_game->seaLevel << 16) && dist < this->field_4) {
         unit->flags |= 0x100;
     }
 }

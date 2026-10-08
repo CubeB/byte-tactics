@@ -18,7 +18,7 @@ struct Vec3 {
 #pragma pack(push, 1)
 struct UnitDef {
     char unknown_0[0x16e];
-    int field_16e;                      // +0x16e
+    int modelMaxY;                      // +0x16e
     char unknown_172[0x1fa - 0x172];
     unsigned int maxHealth;             // +0x1fa
 };
@@ -259,7 +259,7 @@ int UnitScript::GetUnitValue(int which, int a, int b, int c, int d)
     case 11: {
         Unit* u = GetUnit((unsigned short)a);
         if (u != 0 && (u->flags & 0x10000000))
-            return u->def->field_16e;
+            return u->def->modelMaxY;
         break;
     }
     case 12: {

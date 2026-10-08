@@ -25,7 +25,7 @@ inline Vec3 Vec3::operator-(Vec3& o) { Vec3 r; r.x = x - o.x; r.y = y - o.y; r.z
 #pragma pack(push, 1)
 struct UnitDef_00408100 {
     char unknown_0[0x152];
-    int field_152;                     // +0x152
+    int count;                         // +0x152
     char unknown_156[0x245 - 0x156];
     unsigned int unknown_bits0 : 12;   // +0x245
     unsigned int flag12 : 1;
@@ -130,7 +130,7 @@ void Class_004085d0::OnTimer()
     std::vector<Unit_00408100*>::iterator it;
     for (it = ((Group_00408100*)field_8)->units.begin(); it != ((Group_00408100*)field_8)->units.end(); ++it) {
         Unit_00408100* u = *it;
-        if (u->def->field_152
+        if (u->def->count
             && (!(unsigned char)u->def->flag12
                 || (GetBuilderCount(field_10) < 5 && g_game->ticks >= (unsigned int)owner->field_d))
             && (!u->order || !(u->order->flags & 8))) {

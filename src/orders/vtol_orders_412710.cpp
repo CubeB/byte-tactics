@@ -39,8 +39,8 @@ class Class_0044e730 { public: void SetApproachRadius(short); };
 
 #pragma pack(push, 1)
 struct UnitDef {
-    char pad0[0x1fa]; unsigned int field_1fa;
-    char pad1fe[0x21c - 0x1fe]; short field_21c;
+    char pad0[0x1fa]; unsigned int maxHealth;
+    char pad1fe[0x21c - 0x1fe]; short altitude;
     char pad21e[0x241 - 0x21e]; unsigned int flags;
 };
 struct Mover {
@@ -128,7 +128,7 @@ static inline Vec3 Offset(short angle, int distance)
 
 // Empty inline call sites: see the header.
 static inline void Dummy(void) {}
-static inline int IsDamaged(Unit* u) { return (unsigned int)u->field_108 < (u->def->field_1fa >> 2) * 3; }
+static inline int IsDamaged(Unit* u) { return (unsigned int)u->field_108 < (u->def->maxHealth >> 2) * 3; }
 static inline int GetSpeed(Unit* unit)
 {
     return unit->mover->speed;
@@ -143,7 +143,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
-        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c / 2);
+        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }

@@ -28,9 +28,9 @@ struct UnitType {                      // 0x249 bytes
     char unknown_0[0x20];
     char name[0x20];                   // +0x20
     char unknown_40[0x18a - 0x40];
-    float field_18a;                   // +0x18a
+    float metalCost;                   // +0x18a
     char unknown_18e[0x1fa - 0x18e];
-    unsigned int field_1fa;            // +0x1fa
+    unsigned int maxHealth;            // +0x1fa
     unsigned short field_1fe;          // +0x1fe
     char unknown_200[0x241 - 0x200];
     union {
@@ -362,7 +362,7 @@ void __stdcall StopBuildingScript(Unit* obj, Class_0043a1f0* target)
 int __stdcall ComputeReclaimDamagePulse(Unit* a, Unit* b, int n)
 {
     UnitType* bt = b->type;
-    float v = bt->field_18a > 10.0f ? bt->field_18a : 10.0f;
+    float v = bt->metalCost > 10.0f ? bt->metalCost : 10.0f;
     // The 64-bit numerator is built by hand (signed 32-bit chain in lo, zero hi):
     // keeps the multiply order and the unsigned fild qword.
     union {
@@ -372,7 +372,7 @@ int __stdcall ComputeReclaimDamagePulse(Unit* a, Unit* b, int n)
             int hi;
         } w;
     } p;
-    p.w.lo = a->type->field_1fe * ((a->field_b8 + 5) / 5) * (int)bt->field_1fa * n;
+    p.w.lo = a->type->field_1fe * ((a->field_b8 + 5) / 5) * (int)bt->maxHealth * n;
     p.w.hi = 0;
     int r = (int)((double)p.q / (v * 300.0f));
     if (r <= 1) {

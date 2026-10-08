@@ -12,14 +12,14 @@ struct Sub_004095d0 {
 #pragma pack(push, 1)
 struct UnitDef {
     char unknown_0[0x186];
-    float field_186;               // +0x186
-    float field_18a;               // +0x18a
+    float energyCost;              // +0x186
+    float metalCost;               // +0x18a
     char unknown_18e[0x1ce - 0x18e];
-    float field_1ce;               // +0x1ce
+    float extractsMetal;           // +0x1ce
     char unknown_1d2[0x1ee - 0x1d2];
     Sub_004095d0* arr[3];          // +0x1ee
     char unknown_1fa[0x22d - 0x1fa];
-    char field_22d;                // +0x22d
+    char makesMetal;               // +0x22d
     char unknown_22e[0x245 - 0x22e];
     unsigned int bit0_3 : 4;       // +0x245
     unsigned int flag : 1;         // +0x245, bit 4
@@ -35,13 +35,13 @@ extern float __stdcall GetEnergyUse(UnitDef* p);
 int __stdcall RateUnitType(UnitDef* p)
 {
     int result = 1;
-    if (p->field_1ce != 0.0f)
+    if (p->extractsMetal != 0.0f)
         result = 0xb;
-    if (p->field_22d != 0)
+    if (p->makesMetal != 0)
         result += 10;
     if (GetEnergyUse(p) < 0.0f)
         result += 10;
-    result = (int)((int)(result - p->field_18a * -0.01f) - p->field_186 * -0.002f);
+    result = (int)((int)(result - p->metalCost * -0.01f) - p->energyCost * -0.002f);
     int extra = 1;
     if (p->flag)
         extra = 0xb;

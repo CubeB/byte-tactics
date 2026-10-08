@@ -163,7 +163,7 @@ struct UnitDef {
         struct {
             char unknown_16a[4];
             union {
-                int field_16e;         // +0x16e, max.y
+                int modelMaxY;         // +0x16e, max.y
                 struct {
                     short unknown_16e;
                     short field_170;   // +0x170, the top half of max.y
@@ -174,7 +174,7 @@ struct UnitDef {
         };
     };
     char unknown_176[0x192 - 0x176];
-    int field_192;                     // +0x192
+    int maxvelocity;                   // +0x192
     char unknown_196[0x1fa - 0x196];
     unsigned int maxHealth;            // +0x1fa
     union {
@@ -186,9 +186,9 @@ struct UnitDef {
     char unknown_204[0x212 - 0x204];
     unsigned short buildRange;         // +0x212
     char unknown_214[0x216 - 0x214];
-    unsigned short field_216;          // +0x216
+    unsigned short attackrunlength;    // +0x216
     char unknown_218[0x21c - 0x218];
-    short field_21c;                   // +0x21c
+    short altitude;                    // +0x21c
     char unknown_21e[0x22a - 0x21e];
     unsigned char capacity;            // +0x22a
     char unknown_22b[0x231 - 0x22b];
@@ -618,7 +618,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
-        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c / 2);
+        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
@@ -757,7 +757,7 @@ int __stdcall VtolStandbyOrder(Unit* unit, Order* order, int flags)
                 int distance = (RandomInt(0x20) + 8) << 16;
                 p += Offset(angle, distance);
                 Class_0044e2d0* obj = new Class_0044e2d0(order, p);
-                ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c);
+                ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
                 ((Class_004388d0*)order)->SetAttachedFx((int)obj);
                 ((Class_00439e80*)order)->SetDeadlineTicks(RandomInt(0xf) + 0x1e);
                 order->state = 1;
@@ -912,7 +912,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
 static inline int BelowSeaLevel(Order* order)
 {
     Unit* target = order->target.owner;
-    return target->def->field_16e + target->pos.y <= g_game->seaLevel << 16;
+    return target->def->modelMaxY + target->pos.y <= g_game->seaLevel << 16;
 }
 
 // Order handler that unloads the unit a transport carries ("Unloading").
@@ -932,7 +932,7 @@ int __stdcall VtolUnloadOrder(Unit* unit, Order* order, int flags)
             ((Class_00438880*)order)->AnnounceStatusIfFlagged("Unloading");
             ((Class_004895c0*)&order->target)->SetUnit(unit->cargo);
             Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
-            ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c);
+            ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
             ((Class_0044e730*)obj)->SetApproachRadius(0x140);
             ((Class_004388d0*)order)->SetAttachedFx((int)obj);
             order->flags = 0xe8;
@@ -964,7 +964,7 @@ int __stdcall VtolUnloadOrder(Unit* unit, Order* order, int flags)
         unit->script->StartScript("EndTransport", 0, 0);
         AttachUnitToPiece(unit->cargo, 0, -1, 1);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
-        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c);
+        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags = 0xe0;
         return 1;
@@ -1100,7 +1100,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
             if ((unit->type->field_2e&3)==1) {
                 unit->type->SetFlightMode(unit,2);
                 Class_0044e2d0* move=new Class_0044e2d0(order,unit->pos);
-                ((Class_0044e6c0*)move)->SetAltitude(unit->def->field_21c/2);
+                ((Class_0044e6c0*)move)->SetAltitude(unit->def->altitude/2);
                 ((Class_004388d0*)order)->SetAttachedFx((int)move);
                 order->flags|=0xe0;
             }
@@ -1227,7 +1227,7 @@ int __stdcall VtolRepairUnitOrder(Unit* unit, Order* order, int flags)
         break;
     case 1: {
         Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
-        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c);
+        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags = 0xe8;
         return 1;

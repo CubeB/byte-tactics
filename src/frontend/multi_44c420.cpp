@@ -39,7 +39,7 @@ union Flags_0044c420 {                 // the dword at +0x245
 struct Item_0044c420 {                 // 0x249-byte unit type instance
     char unknown_0[0x20];
     char name[0x225];                  // +0x20
-    Flags_0044c420 field_245;          // +0x245
+    Flags_0044c420 flags2;             // +0x245
 };
 
 struct Inner_0044c420 {
@@ -126,7 +126,7 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
                 type = g_unitRestrictEntries[i].field_52;
                 if (type != 0) {
                     item = &g_game->items[type];
-                    if (item->field_245.bits.flag) {
+                    if (item->flags2.bits.flag) {
                     } else {
                         if (g_unitRestrictEntries[i].field_5a == 0)
                             ((UnitSync*)g_game->queue)->DisallowUnit(item);
@@ -163,7 +163,7 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
         for (i = 0; i < g_game->count; i++) {
             type = g_unitRestrictEntries[i].field_52;
             if (type != 0) {
-                if ((g_game->items[type].field_245.raw & 0x10000) == 0)
+                if ((g_game->items[type].flags2.raw & 0x10000) == 0)
                     g_unitRestrictEntries[i].field_5a = 100;
                 else
                     g_unitRestrictEntries[i].field_5a = 0;
@@ -189,7 +189,7 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
         for (i = 1; i < g_game->count; i++) {
             // The original also tests the address of items[i].name (an array at
             // +0x20, so its address can never be null); kept for byte fidelity.
-            if (g_game->items[i].field_245.bits.flag) {
+            if (g_game->items[i].flags2.bits.flag) {
             } else if (g_game->items[i].name != 0) {
                 ((UnitSync*)g_game->queue)->SetUnitLimit(
                     &g_game->items[i], g_unitRestrictOldCounts[n]);

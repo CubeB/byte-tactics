@@ -47,7 +47,7 @@ class CobScript { public: void StartScript(const char*, int, int); int QueryScri
 struct UnitDef {
     char pad0[0x170]; short field_170;
     char pad172[0x1fa - 0x172]; unsigned int maxHealth;
-    char pad1fe[0x21c - 0x1fe]; short field_21c;
+    char pad1fe[0x21c - 0x1fe]; short altitude;
     char pad21e[0x241 - 0x21e]; unsigned int flags;
 };
 struct Class_Unit10 {
@@ -128,7 +128,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
-        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c / 2);
+        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }

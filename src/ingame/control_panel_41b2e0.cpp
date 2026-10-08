@@ -14,7 +14,7 @@
 #pragma pack(push, 1)
 struct UnitType_0041b2e0 {
     char unknown_0[0x22e];
-    unsigned char field_22e;           // +0x22e
+    unsigned char buildMenuPageCount;  // +0x22e
     char unknown_22f[0x241 - 0x22f];
     unsigned int flags_241;            // +0x241
     unsigned int canMoveOrder : 1;     // +0x245 bit 0
@@ -243,7 +243,7 @@ void RefreshSelectionOrders()
     if (count == 0) {
         PopUntilNamedLayout(0);
         g_game->orders.refresh = 0;
-    } else if (count == 1 && first->type->field_22e) {
+    } else if (count == 1 && first->type->buildMenuPageCount) {
         int page = first->flags.buildPage ? first->flags.page : 0;
         if (page > 0 || (first->type->flags_241 & 0x80000000)) {
             char name[256];

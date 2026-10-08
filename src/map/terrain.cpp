@@ -82,15 +82,15 @@ struct UnitDef {
     Point origin;                       // +0x14a, footprint in map cells
     unsigned char* mask;                // +0x14e, one byte per footprint cell
     char unknown_152[0x1be - 0x152];
-    short field_1be;                    // +0x1be
-    short field_1c0;                    // +0x1c0
+    short maxwaterdepth;                // +0x1be
+    short minwaterdepth;                // +0x1c0
     char unknown_1c2[0x228 - 0x1c2];
-    unsigned char field_228;            // +0x228
-    unsigned char field_229;            // +0x229
+    unsigned char maxslope;             // +0x228
+    unsigned char maxwaterslope;        // +0x229
     char unknown_22a[0x22c - 0x22a];
-    unsigned char field_22c;            // +0x22c
+    unsigned char draft;                // +0x22c
     char unknown_22d[0x22f - 0x22d];
-    unsigned char field_22f;            // +0x22f
+    unsigned char mobile;               // +0x22f
     char unknown_230[0x241 - 0x230];
     unsigned int flags;                 // +0x241
 };
@@ -662,17 +662,17 @@ int __stdcall CanBuildAt(UnitDef* unit, Point cell, short type, Los_0047d2e0* lo
         return 0;
     unsigned char r;
     if (max5 < min6) {
-        r = g_game->seaLevel - unit->field_22c;
+        r = g_game->seaLevel - unit->draft;
     } else {
-        if (max5 - min6 > unit->field_228)
+        if (max5 - min6 > unit->maxslope)
             return 0;
         r = min6;
     }
     if (max5b > r)
         return 0;
-    if (min6 < g_game->seaLevel - unit->field_1be)
+    if (min6 < g_game->seaLevel - unit->maxwaterdepth)
         return 0;
-    if ((max5 > max5b ? max5 : max5b) > g_game->seaLevel - unit->field_1c0)
+    if ((max5 > max5b ? max5 : max5b) > g_game->seaLevel - unit->minwaterdepth)
         return 0;
     DAT_0051e684 = r;
     return 1;
@@ -783,15 +783,15 @@ int __stdcall CanPlaceUnitFootprint(UnitDef* unit, UnitDef* other, Point cell, i
         return flags == 2;
     if (fp.y + cell.y >= g_game->height)
         return flags == 2;
-    if (!unit->field_22f)
+    if (!unit->mobile)
         return CanBuildAt(unit, cell, 0, 0);
     Cell* c = &g_game->cells[cell.y * g_game->width + cell.x];
     // Declared ahead of the assignments: places the tolerance load.
     int minHeight, maxHeight, stride;
     stride = g_game->width - fx;
-    unsigned char tolerance = unit->field_228;
-    minHeight = g_game->seaLevel - unit->field_1be;
-    maxHeight = g_game->seaLevel - unit->field_1c0;
+    unsigned char tolerance = unit->maxslope;
+    minHeight = g_game->seaLevel - unit->maxwaterdepth;
+    maxHeight = g_game->seaLevel - unit->minwaterdepth;
     if (flags != 1)
         return 1;
     // `c += stride` stays in the increment expression: places `row++`.
@@ -808,7 +808,7 @@ int __stdcall CanPlaceUnitFootprint(UnitDef* unit, UnitDef* other, Point cell, i
             if (c->field_5 - c->field_6 > tolerance) {
                 if (c->field_6 >= g_game->seaLevel)
                     return 0;
-                if (c->field_5 - c->field_6 > unit->field_229)
+                if (c->field_5 - c->field_6 > unit->maxwaterslope)
                     return 0;
             }
         }
@@ -841,7 +841,7 @@ static inline void CellToWorld(Point origin, Point c, Vec3* v)
 // FUNCTION: 0x47ddc0
 void __stdcall SnapWorldPosToFootprint(UnitDef* unit, Vec3* pos)
 {
-    if (unit->field_22f)
+    if (unit->mobile)
         return;
     Point cell = WorldToCell(*pos, unit->origin);
     CellToWorld(unit->origin, cell, pos);

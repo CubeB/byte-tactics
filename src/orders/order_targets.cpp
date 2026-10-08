@@ -355,7 +355,7 @@ struct Sub_0044e190 {
 #pragma pack(push, 1)
 struct UnitDef {
     char unknown_0[0x21c];
-    short field_21c;                   // +0x21c
+    short altitude;                    // +0x21c
     char unknown_21e[0x241 - 0x21e];
     union {
         unsigned int flags;            // +0x241
@@ -2172,9 +2172,9 @@ int Class_0044e3c0::FUN_0044e3c0(Vec3_0044e3c0* out)
         if ((f & 8) == 0) {
             UnitDef* def = unit->def;
             if (def->flag22)
-                pos.y = (def->field_21c + g_game->seaLevel) << 16;
+                pos.y = (def->altitude + g_game->seaLevel) << 16;
             else
-                pos.y = (def->field_21c + *(unsigned char*)(unit->field_82 + 1)) << 16;
+                pos.y = (def->altitude + *(unsigned char*)(unit->field_82 + 1)) << 16;
         }
     }
     if (pos.y > 0x1ff0000)

@@ -53,8 +53,8 @@ struct UnitType {
     int count;                         // +0x152, entries of ids
     short* ids;                        // +0x156, the unit ids it can build
     char unknown_15a[0x186 - 0x15a];
-    float field_186;                   // +0x186
-    float field_18a;                   // +0x18a
+    float energyCost;                  // +0x186
+    float metalCost;                   // +0x18a
     char unknown_18e[0x192 - 0x18e];
     int sight;                         // +0x192
     char unknown_196[0x19e - 0x196];
@@ -68,7 +68,7 @@ struct UnitType {
     char unknown_1ee[0x1fa - 0x1ee];
     unsigned int maxhp;                // +0x1fa
     char unknown_1fe[0x22f - 0x1fe];
-    unsigned char field_22f;           // +0x22f, zero means it has no speeds
+    unsigned char mobile;              // +0x22f, zero means it has no speeds
     char unknown_230[0x241 - 0x230];
     unsigned int f241;                 // +0x241, bits 12 and 26
 };
@@ -196,10 +196,10 @@ char* __stdcall MakePropList(UnitType* obj)
     wsprintfA(p, "\n");
     p += strlen(p) + 1;
 
-    wsprintfA(p, "%d", (int)obj->field_186);
+    wsprintfA(p, "%d", (int)obj->energyCost);
     p += strlen(p) + 1;
 
-    wsprintfA(p, "%d", (int)obj->field_18a);
+    wsprintfA(p, "%d", (int)obj->metalCost);
     p += strlen(p) + 1;
 
     wsprintfA(p, "%d", obj->field_1ea);
@@ -208,7 +208,7 @@ char* __stdcall MakePropList(UnitType* obj)
     wsprintfA(p, "\n");
     p += strlen(p) + 1;
 
-    if (obj->field_22f) {
+    if (obj->mobile) {
         sprintf(p, "%.1f %s ", (double)GetTickRate() * spd(obj->sight) * 0.4,
                 Translate("m/s"));
         p += strlen(p) + 1;

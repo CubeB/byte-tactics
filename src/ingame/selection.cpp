@@ -48,7 +48,7 @@ struct UnitType {
     char unknown_0[0x20];
     char name[0x20];                   // +0x20
     char unknown_40[0x156 - 0x40];
-    int field_156;                     // +0x156
+    int ids;                           // +0x156
     char unknown_15a[0x160 - 0x15a];
     short f160;                        // +0x160
     char unknown_162[2];
@@ -716,9 +716,9 @@ void __stdcall DrawSelectedUnitOrderOverlays(void* obj, Unit** sel)
     Unit* sel1unit = !g_game->field_37e9c ? 0 : &g_game->units[g_game->field_37e9c];
     Unit* sel2unit = !g_game->field_2cba ? 0 : &g_game->units[g_game->field_2cba];
     Unit* selunit = *sel;
-    bool flag = (selunit && selunit->def->field_156)
-        || (sel1unit && sel1unit->def->field_156)
-        || (sel2unit && sel2unit->def->field_156);
+    bool flag = (selunit && selunit->def->ids)
+        || (sel1unit && sel1unit->def->ids)
+        || (sel2unit && sel2unit->def->ids);
     for (Unit* u = team->unitsBegin; u <= team->unitsEnd; u++) {
         if ((u->flags.raw & 0x10000000) && !(u->flags.raw & 0x4000)) {
             if (u == *sel || u->id == g_game->field_37e9c || u->id == g_game->field_2cba)

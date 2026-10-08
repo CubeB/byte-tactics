@@ -31,7 +31,7 @@ class Class_0044e6c0 { public: void SetAltitude(int); };
 struct UnitDef {
     char pad0[0x1fa]; unsigned int maxHealth;
     char pad1fe[0x202 - 0x1fe]; short range;
-    char pad204[0x21c - 0x204]; short field_21c;
+    char pad204[0x21c - 0x204]; short altitude;
     char pad21e[0x241 - 0x21e]; unsigned int flags;
     unsigned int flags2;
 };
@@ -104,7 +104,7 @@ inline void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0((Order*)order, unit->pos);
-        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c / 2);
+        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
@@ -161,7 +161,7 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
             if (flags & 0xe0)
                 return 6;
             Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
-            ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c);
+            ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
             ((Class_004388d0*)order)->SetAttachedFx((int)obj);
             ((Class_00439e80*)order)->SetDeadlineTicks(0x2d);
             order->flags |= 0xe0;

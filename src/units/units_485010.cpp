@@ -129,7 +129,7 @@ struct UnitType {                      // 0x249 bytes
     int limit;                         // +0x15a
     char unknown_15e[0x16e - 0x15e];
     union {
-        int field_16e;                 // +0x16e
+        int modelMaxY;                 // +0x16e
         struct {
             short unknown_16e;
             short x170;                // +0x170
@@ -142,7 +142,7 @@ struct UnitType {                      // 0x249 bytes
     unsigned short field_1bc;          // +0x1bc
     char unknown_1be[0x1fa - 0x1be];
     union {
-        unsigned int field_1fa;        // +0x1fa
+        unsigned int maxHealth;        // +0x1fa
         short hp;
     };
     char unknown_1fe[0x202 - 0x1fe];
@@ -150,8 +150,8 @@ struct UnitType {                      // 0x249 bytes
     char unknown_204[0x210 - 0x204];
     unsigned short field_210;          // +0x210
     char unknown_212[0x22e - 0x212];
-    unsigned char field_22e;           // +0x22e
-    unsigned char field_22f;           // +0x22f
+    unsigned char buildMenuPageCount;  // +0x22e
+    unsigned char mobile;              // +0x22f
     char unknown_230[0x241 - 0x230];
     TypeFlags flags;                   // +0x241
     char unknown_245[0x249 - 0x245];
@@ -662,7 +662,7 @@ void __stdcall InitUnitFromType(Unit* unit, Pos_00485a40 pos, int param_5)
 {
     unit->type = &g_game->unitTypes[(unsigned short)unit->typeId];
     unit->flags.bits.b28 = 1;
-    unit->flags.bits.b29 = (unit->type->field_22f == 0);
+    unit->flags.bits.b29 = (unit->type->mobile == 0);
     unit->flags.bits.b14 = 0;
     unit->offset = unit->type->offset;
     unit->flags.bits.b31 = unit->type->flags.bits.hi;
@@ -725,7 +725,7 @@ void __stdcall InitUnitFromType(Unit* unit, Pos_00485a40 pos, int param_5)
     unit->flags.bits.fireOrder = unit->type->flags.bits.fireOrder;
     unit->flags.bits.b11 = unit->type->flags.bits.canAttack;
     unit->flags.bits.f26_27 = 0;
-    if (unit->type->field_22e > 1) {
+    if (unit->type->buildMenuPageCount > 1) {
         unit->flags.bits.f22_23 = 3;
         unit->flags.bits.f24_25 = 0;
     } else {
@@ -925,7 +925,7 @@ void __stdcall InitUnit(int unitType, Pos_00485a40 pos, int param_5, Unit* unit)
     InitUnitScript(unit);
     InitUnitWeaponSlots(unit);
     UpdateMetalExtraction(unit);
-    if (type->field_22f == 1) {
+    if (type->mobile == 1) {
         unit->obj = new UnitMotion(unit);
         unit->field_66 = unit->type->field_210;
     }
@@ -964,7 +964,7 @@ static inline void __stdcall InitUnit_00485e90(unsigned short unitType, Pos_0048
     InitUnitScript(unit);
     InitUnitWeaponSlots(unit);
     UpdateMetalExtraction(unit);
-    if (type->field_22f == 1) {
+    if (type->mobile == 1) {
         unit->obj = new UnitMotion(unit);
         unit->field_66 = unit->type->field_210;
     }
@@ -1010,7 +1010,7 @@ found:
     AddUnitToMap(unit);
     SendNewUnit(unit);
     if (param_5) {
-        if (type->field_22f == 0)
+        if (type->mobile == 0)
             BroadcastBuilderLink(unit, unit);
         if (unit->type->flags.bit18)
             ((Unit*)unit)->SetStateBits(1, 1);
@@ -1130,7 +1130,7 @@ int __stdcall IsUnitCommander(Unit* unit)
 // 0xb byte command record at +0xa it builds here to its own player. param_2 is
 // the command kind: 7 means a spy / non-kill path, 4/5/9 or a positive
 // field_108 skip the recount, otherwise the kills are a percentage of the
-// type's field_1fa.
+// type's maxHealth.
 
 #pragma pack(push, 1)
 struct Cmd_004864b0 {
@@ -1169,7 +1169,7 @@ void __stdcall KillUnit(Unit* unit, int param_2)
             amount = 0;
             flag = 0;
         } else {
-            amount = ((int)(unit->field_108 * -100 / unit->type->field_1fa) + unit->field_f7) / 2;
+            amount = ((int)(unit->field_108 * -100 / unit->type->maxHealth) + unit->field_f7) / 2;
             if (amount < 1)
                 amount = 1;
             if (amount > 100)

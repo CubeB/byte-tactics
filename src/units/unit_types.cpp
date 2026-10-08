@@ -53,8 +53,8 @@ public:
         int f14e;                       // +0x14e
         char* yardmap;                  // +0x14e
     };
-    int field_152;                      // +0x152
-    void* field_156;                    // +0x156
+    int count;                          // +0x152
+    void* ids;                          // +0x156
     int f15a;                           // +0x15a
     Vec3 extentmin;                     // +0x15e
     Vec3 extentmax;                     // +0x16a
@@ -62,7 +62,7 @@ public:
     int radius;                         // +0x182
     float buildcostenergy;              // +0x186
     float buildcostmetal;               // +0x18a
-    void* field_18e;                    // +0x18e
+    void* data;                         // +0x18e
     int maxvelocity;                    // +0x192
     int maxslopevelocity;               // +0x196
     int brakerate;                      // +0x19a
@@ -115,7 +115,7 @@ public:
     char transportcapacity;             // +0x22b
     char waterline;                     // +0x22c
     char makesmetal;                    // +0x22d
-    unsigned char field_22e;            // +0x22e
+    unsigned char buildMenuPageCount;   // +0x22e
     char bmcode;                        // +0x22f
     char defaultmissiontype;            // +0x230
     void* weaponCategories[3];          // +0x231
@@ -421,11 +421,11 @@ UnitDef& UnitDef::operator=(const UnitDef& src)
     for (i = 0; i < 0x40; i++) f0fe[i] = src.f0fe[i];
 
     f13e = src.f13e; f142 = src.f142; f146 = src.f146; f14a = src.f14a;
-    f14e = src.f14e; field_152 = src.field_152; field_156 = src.field_156;
+    f14e = src.f14e; count = src.count; ids = src.ids;
     f15a = src.f15a;
     extentmin = src.extentmin; extentmax = src.extentmax; extentsize = src.extentsize;
     radius = src.radius; buildcostenergy = src.buildcostenergy;
-    buildcostmetal = src.buildcostmetal; field_18e = src.field_18e;
+    buildcostmetal = src.buildcostmetal; data = src.data;
     maxvelocity = src.maxvelocity; maxslopevelocity = src.maxslopevelocity;
     brakerate = src.brakerate; acceleration = src.acceleration;
     bankscale = src.bankscale; pitchscale = src.pitchscale;
@@ -454,7 +454,7 @@ UnitDef& UnitDef::operator=(const UnitDef& src)
     maxslope = src.maxslope; maxwaterslope = src.maxwaterslope;
     transportsize = src.transportsize; transportcapacity = src.transportcapacity;
     waterline = src.waterline; makesmetal = src.makesmetal;
-    field_22e = src.field_22e; bmcode = src.bmcode;
+    buildMenuPageCount = src.buildMenuPageCount; bmcode = src.bmcode;
     defaultmissiontype = src.defaultmissiontype;
     for (i = 0; i < 3; i++) weaponCategories[i] = src.weaponCategories[i];
     nochasecategory = src.nochasecategory;
@@ -545,14 +545,14 @@ void AddDownloadBuildOptions()
     ProtectBlockReadWrite(g_game->field_1439b);
     UnitDef* e = g_game->field_1439b;
     for (int a = 0; a < g_game->field_1438f; a++, e++) {
-        if (e->field_156 != 0) {
+        if (e->ids != 0) {
             for (int b = 0; b < g_game->field_391c7; b++) {
                 for (int c = 0; c < g_game->field_391cb[b].count; c++) {
-                    if (a == g_game->field_391cb[b].entries[c].typeId && e->field_152 <= 0x1e) {
+                    if (a == g_game->field_391cb[b].entries[c].typeId && e->count <= 0x1e) {
                         unsigned short id = FindUnitTypeId(g_game->field_391cb[b].entries[c].name);
                         if (id != 0) {
-                            ((unsigned short*)e->field_156)[e->field_152] = id;
-                            e->field_152++;
+                            ((unsigned short*)e->ids)[e->count] = id;
+                            e->count++;
                         }
                     }
                 }
@@ -968,10 +968,10 @@ void __stdcall ReloadUnitType(unsigned short index)
     BuildDataPath(path, "units", type->unitname, "FBI");
     if (HAPI_FileLengthByName(path)) {
         LoadUnitFbi(path, type);
-        FreeCobScript(type->field_18e);
+        FreeCobScript(type->data);
         BuildDataPath(path, "scripts", type->unitname, "COB");
         void* cob = LoadCobScript(path);
-        type->field_18e = cob;
+        type->data = cob;
         ProtectBlockReadOnly(g_game->field_1439b);
     } else {
         ProtectBlockReadOnly(g_game->field_1439b);
@@ -1145,14 +1145,14 @@ void LoadUnitTypes() {
                 break;
         } while (more);
         if (found)
-            type->field_22e = suffix;
+            type->buildMenuPageCount = suffix;
         else if (type->gui)
-            type->field_22e = 1;
+            type->buildMenuPageCount = 1;
         else
-            type->field_22e = 0;
+            type->buildMenuPageCount = 0;
 
         BuildDataPath(path, "scripts", type->unitname, "COB");
-        type->field_18e = LoadCobScript(path);
+        type->data = LoadCobScript(path);
     }
 
     ProtectBlockReadOnly(g_game->field_14377);
@@ -1165,8 +1165,8 @@ void LoadUnitTypes() {
         short* list = (short*)FUN_004d83b0("TEMP UTYPE LIST", 0x3c);
         for (unsigned short s = 1; s < g_game->field_1438f; s++) {
             UnitDef* type = &g_game->field_1439b[s];
-            type->field_152 = 0;
-            type->field_156 = 0;
+            type->count = 0;
+            type->ids = 0;
             if (type->canbuild) {
                 parser2.ResetCurrentRecord();
                 if (parser2.SelectRecord("CANBUILD") &&
@@ -1184,11 +1184,11 @@ void LoadUnitTypes() {
                         k++;
                         sprintf(objpath, "canbuild%d", k);
                     }
-                    type->field_152 = count;
+                    type->count = count;
                 }
                 sprintf(objpath, "CANBUILD %s", type->unitname);
-                type->field_156 = FUN_004d83b0(objpath, 0x3c);
-                memcpy(type->field_156, list, 0x3c);
+                type->ids = FUN_004d83b0(objpath, 0x3c);
+                memcpy(type->ids, list, 0x3c);
             }
         }
         FUN_004d85a0(list);
@@ -1227,14 +1227,14 @@ void FreeUnitTypes()
             FUN_004d85a0(type->yardmap);
             type->yardmap = 0;
         }
-        if (type->field_18e != 0) {
-            FreeCobScript(type->field_18e);
-            type->field_18e = 0;
+        if (type->data != 0) {
+            FreeCobScript(type->data);
+            type->data = 0;
         }
-        if (type->field_156 != 0) {
-            FUN_004d85a0(type->field_156);
-            type->field_152 = 0;
-            type->field_156 = 0;
+        if (type->ids != 0) {
+            FUN_004d85a0(type->ids);
+            type->count = 0;
+            type->ids = 0;
         }
     }
 
@@ -1322,8 +1322,8 @@ void LoadDownloadMenus()
         for (c = 0; c < n; c++) {
             for (int d = 0; d < g_game->field_391cb[c].count; d++) {
                 if (g_game->field_391cb[c].entries[d].typeId == u) {
-                    if (g_game->field_1439b[u].field_22e < g_game->field_391cb[c].entries[d].page)
-                        g_game->field_1439b[u].field_22e = g_game->field_391cb[c].entries[d].page;
+                    if (g_game->field_1439b[u].buildMenuPageCount < g_game->field_391cb[c].entries[d].page)
+                        g_game->field_1439b[u].buildMenuPageCount = g_game->field_391cb[c].entries[d].page;
                 }
             }
         }

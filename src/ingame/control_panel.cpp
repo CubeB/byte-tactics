@@ -115,7 +115,7 @@ struct UnitType {
     char unknown_115[0x14a - 0x115];
     Point origin;                      // +0x14a
     char unknown_14e[0x156 - 0x14e];
-    int field_156;                     // +0x156
+    int ids;                           // +0x156
     char unknown_15a[0x186 - 0x15a];
     float energyCost;                  // +0x186 (TDF buildcostenergy)
     float metalCost;                   // +0x18a (TDF buildcostmetal)
@@ -126,8 +126,8 @@ struct UnitType {
     char unknown_1fe[0x21e - 0x1fe];
     short id;                          // +0x21e
     char unknown_220[0x22e - 0x220];
-    unsigned char field_22e;           // +0x22e
-    unsigned char field_22f;           // +0x22f
+    unsigned char buildMenuPageCount;  // +0x22e
+    unsigned char mobile;              // +0x22f
     char unknown_230[0x241 - 0x230];
     UnitTypeFlags flags;               // +0x241
     UnitTypeFlags2 flags2;             // +0x245
@@ -881,7 +881,7 @@ void __stdcall RefreshOrderButtons(Unit* unit)
 
     index = FindGadgetIndexBySubstring(layer, "BUILD");
     if (index != -1) {
-        if (unit && unit->type->field_22e) {
+        if (unit && unit->type->buildMenuPageCount) {
             SetGadgetStatus(menu, index, unit->flags.bits.buildPage);
         } else {
             FUN_004a1200(menu, index, 1);
@@ -889,7 +889,7 @@ void __stdcall RefreshOrderButtons(Unit* unit)
     }
     index = FindGadgetIndexBySubstring(layer, "ORDERS");
     if (index != -1) {
-        if (unit && unit->type->field_22e) {
+        if (unit && unit->type->buildMenuPageCount) {
             SetGadgetStatus(menu, index, !unit->flags.bits.buildPage);
         } else {
             FUN_004a1200(menu, index, 1);
@@ -1093,7 +1093,7 @@ int __stdcall HandleOrdersPanelClick(Menu* menu, MenuEntry* entries)
 void __stdcall SetPrevNextGadgetNames(Unit* unit)
 {
     char buf[256];
-    if (unit->type->field_22e < 2) {
+    if (unit->type->buildMenuPageCount < 2) {
         sprintf(buf, "%sPREV", g_game->sideNames[unit->player->owner->playerIndex].name);
         FUN_004a0570(&g_game->menu, buf, 0);
         sprintf(buf, "%sNEXT", g_game->sideNames[unit->player->owner->playerIndex].name);
@@ -1103,7 +1103,7 @@ void __stdcall SetPrevNextGadgetNames(Unit* unit)
 
 // Click handler of the unit build/orders panel (installed by 0x41ace0 and
 // 0x41b0f0): PREV/NEXT/ORDERS/BUILD buttons set request flags, a unit-type
-// entry whose type has field_22f == 0 switches to mode 0xe with that type,
+// entry whose type has mobile == 0 switches to mode 0xe with that type,
 // the orders buttons go to HandleOrdersPanelClick, and any other entry adds or removes
 // build queue entries (5 at a time when IsKeyDown(0xf9) is set).
 // FUNCTION: 0x41aa00
@@ -1129,7 +1129,7 @@ void __stdcall HandleBuildPanelClick(Menu* menu)
         } else if (strstr(name, "BUILD")) {
             g_game->orderState.bits.build = 1;
             PlaySoundByName("buildbutton", 0);
-        } else if (id != 0 && g_game->buildTypes[id].field_22f == 0) {
+        } else if (id != 0 && g_game->buildTypes[id].mobile == 0) {
             g_game->field_2cc3 = 0xe;
             g_game->field_2cc4 = id;
             PlaySoundByName("addbuild", 0);
@@ -1181,7 +1181,7 @@ void __stdcall DisableUnavailableBuildMenuEntries(Menu* obj)
 static inline void SetPrevNext(Unit* unit)
 {
     char buf[256];
-    if (unit->type->field_22e < 2) {
+    if (unit->type->buildMenuPageCount < 2) {
         sprintf(buf, "%sPREV", g_game->sideNames[unit->player->owner->playerIndex].name);
         FUN_004a0570(&g_game->menu, buf, 0);
         sprintf(buf, "%sNEXT", g_game->sideNames[unit->player->owner->playerIndex].name);
@@ -1325,7 +1325,7 @@ Unit* GetBuildMenuFocusUnit()
 // FUNCTION: 0x41b8d0
 void __stdcall FinishConstruction(Unit* unit, Unit* target)
 {
-    if (unit && (unit->flags.raw & 0x10000000) && unit->type->field_156 != 0
+    if (unit && (unit->flags.raw & 0x10000000) && unit->type->ids != 0
         && target && (target->flags.raw & 0x10000000)) {
         target->field_9e->field_10 = 0;
         target->field_104 = 0;
@@ -1448,11 +1448,11 @@ int __stdcall AddRepairProgress(Unit* builder, Unit* unit, float f)
     return result;
 }
 
-// The 3-bit page field (bits 23-25) is set from the type's field_22e, or
+// The 3-bit page field (bits 23-25) is set from the type's buildMenuPageCount, or
 // stepped down with wraparound when it is already past the first page.
 static inline unsigned int SetPage(Unit* u, unsigned int f)
 {
-    return (((u->type->field_22e + 0x1ff) << 23) ^ f) & 0x3800000 ^ f;
+    return (((u->type->buildMenuPageCount + 0x1ff) << 23) ^ f) & 0x3800000 ^ f;
 }
 
 static inline unsigned int StepPage(unsigned int f)
@@ -1514,7 +1514,7 @@ void __stdcall OpenBuildMenuPage(int param_1)
         if (unit->field_a6 == 0)
             unit = 0;
         if (unit != 0) {
-            if (param_1 < unit->type->field_22e) {
+            if (param_1 < unit->type->buildMenuPageCount) {
                 unit->flags.bits.buildPage = param_1 > 0;
                 if (param_1 != 0)
                     unit->flags.bits.page = param_1;

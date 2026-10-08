@@ -34,7 +34,7 @@ struct UnitDef {
     char unknown_176[0x212 - 0x176];
     unsigned short buildRange;         // +0x212
     char unknown_214[0x21c - 0x214];
-    short field_21c;                   // +0x21c
+    short altitude;                    // +0x21c
     char unknown_21e[0x241 - 0x21e];
     unsigned int flags;                // +0x241
     unsigned int flags2;               // +0x245
@@ -108,7 +108,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
-        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c / 2);
+        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }

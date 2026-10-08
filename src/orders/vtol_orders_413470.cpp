@@ -42,8 +42,8 @@ class Class_0044e730 { public: void SetApproachRadius(short); };
 
 #pragma pack(push, 1)
 struct UnitDef {
-    char pad0[0x1fa]; unsigned int field_1fa;
-    char pad1fe[0x21c - 0x1fe]; short field_21c;
+    char pad0[0x1fa]; unsigned int maxHealth;
+    char pad1fe[0x21c - 0x1fe]; short altitude;
     char pad21e[0x241 - 0x21e]; unsigned int flags;
 };
 struct Mover {
@@ -148,7 +148,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
-        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c / 2);
+        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
@@ -245,10 +245,10 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         Vec3 p = order->target->pos - off;
         Class_0044e330* obj = new Class_0044e330(order, order->target, p);
         ((Class_0044e730*)obj)->SetApproachRadius(0x10);
-        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c);
+        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags = 0x100e8;
-        if ((unsigned int)unit->field_108 < (unit->def->field_1fa >> 2) * 3) {
+        if ((unsigned int)unit->field_108 < (unit->def->maxHealth >> 2) * 3) {
             std::vector<Unit*> v;
             GetFactoriesInRadius(unit->player->index, &unit->pos, 0xf00, &v);
             if (!v.empty()) {

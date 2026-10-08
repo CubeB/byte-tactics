@@ -156,7 +156,7 @@ struct UnitType_0043cd20 {           // 0x249 bytes
     char unknown_0[0x20];
     char name[0x20];                 // +0x20
     char unknown_40[0x192 - 0x40];
-    int field_192;                     // +0x192, the range
+    int maxvelocity;                   // +0x192, the range
     char unknown_196[0x19a - 0x196];
     int field_19a;                     // +0x19a, the rate (top speed)
     int field_19e;                     // +0x19e, the long-step distance (acceleration)
@@ -168,7 +168,7 @@ struct UnitType_0043cd20 {           // 0x249 bytes
     int field_1b6;                     // +0x1b6
     unsigned short max_turn;           // +0x1ba
     char unknown_1bc[0x202 - 0x1bc];
-    short field_202;                   // +0x202
+    short range;                       // +0x202
     char unknown_204[0x214 - 0x204];
     unsigned short field_214;          // +0x214
     char unknown_216[0x22c - 0x216];
@@ -177,7 +177,7 @@ struct UnitType_0043cd20 {           // 0x249 bytes
     unsigned char field_230;           // +0x230
     char unknown_231[0x241 - 0x231];
     union {
-        int field_241;                 // +0x241
+        int flags1;                    // +0x241
         unsigned char flags;           // +0x241
         struct {
             unsigned int mode_bits : 11;
@@ -1205,7 +1205,7 @@ int __stdcall IssueRepairOrder(Unit* unit, Unit* target, int param_3)
         Class_00438760 kind2 = GetOrderType(2, unit, 0, &unit->pos);
         Class_0043a1f0* cmd = new Class_0043a1f0(kind2, 0, &unit->pos, 0, 0, 0);
         Insert(unit, cmd, (cmd->flags & 0x40000) ? unit->list2 : unit->list);
-        Class_0043a1f0* cmd2 = new Class_0043a1f0(kind, target, 0, 0, 0, unit->type->field_202);
+        Class_0043a1f0* cmd2 = new Class_0043a1f0(kind, target, 0, 0, 0, unit->type->range);
         cmd2->field_2e.x = PosXWhole(unit);
         cmd2->field_2e.y = PosZWhole(unit);
         Insert(unit, cmd2, (cmd2->flags & 0x40000) ? unit->list2 : unit->list);
@@ -1698,9 +1698,9 @@ void UnitMotion::UpdateVelocityFromHeading(Unit* unit, int amount)
         idx = 5;
 
     // 16.16 range from the table entry, halved below sea level.
-    int range = (int)(((__int64)(g_slopeSpeedFactor[idx] << 16) * unit->type->field_192) >> 16);
+    int range = (int)(((__int64)(g_slopeSpeedFactor[idx] << 16) * unit->type->maxvelocity) >> 16);
     range = (int)(((__int64)range << 16) / 0x640000);
-    if (unit->pos.yWhole < g_game->seaLevel && !(unit->type->field_241 & 0x81000))
+    if (unit->pos.yWhole < g_game->seaLevel && !(unit->type->flags1 & 0x81000))
         range = (int)(((__int64)range * 0x8000) >> 16);
     if (field_20 > range)
         field_20 = range;
@@ -1864,7 +1864,7 @@ void UnitMotion::SteerAircraft(Unit* unit) {
     const float eps = 1.52587890625e-05f;
 
     float f18 = (float)type->field_19e * eps;
-    int q = (int)(((__int64)type->field_19e << 16) / type->field_192);
+    int q = (int)(((__int64)type->field_19e << 16) / type->maxvelocity);
     int scale = 0x10000 - q;
     velocity.Scale(scale);
 
@@ -1998,8 +1998,8 @@ void UnitMotion::UpdatePosition(Unit* u)
         // ClampToCell stays an inline helper taking both Points by value.
         ClampToCell(pos, u->cell, u->draft);
 
-        if (field_20 > (u->type->field_192 / 2)) {
-            int half = u->type->field_192 / 2;
+        if (field_20 > (u->type->maxvelocity / 2)) {
+            int half = u->type->maxvelocity / 2;
             field_20 = half;
             unsigned short angle = u->f64.y;
             Vec3 vec;

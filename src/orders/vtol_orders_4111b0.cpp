@@ -29,8 +29,8 @@ class CobScript { public: int StartScriptWithArgs(char*, void*, int, int, int, i
 
 #pragma pack(push, 1)
 struct UnitDef {
-    char pad0[0x16e]; int field_16e;
-    char pad172[0x21c - 0x172]; short field_21c;
+    char pad0[0x16e]; int modelMaxY;
+    char pad172[0x21c - 0x172]; short altitude;
     char pad21e[0x22a - 0x21e]; unsigned char capacity;
     char pad22b[0x241 - 0x22b]; unsigned int flags;
 };
@@ -88,7 +88,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
-        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c / 2);
+        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
@@ -100,7 +100,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 static inline int BelowSeaLevel(Order* order)
 {
     Unit* target = order->target;
-    return target->def->field_16e + target->pos.y <= g_game->seaLevel << 16;
+    return target->def->modelMaxY + target->pos.y <= g_game->seaLevel << 16;
 }
 
 // Stays in a file of its own: it matches only in this file's symbol context.
@@ -129,7 +129,7 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
             break;
         case 1: {
             Class_0044e190* obj = new Class_0044e190(order, order->target);
-            ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c);
+            ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
             ((Class_0044e730*)obj)->SetApproachRadius(0x30);
             ((Class_004388d0*)order)->SetAttachedFx((int)obj);
             order->flags = 0x100e8;
@@ -142,7 +142,7 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
             order->flags = 0x100e8;
             return 1;
         case 3: {
-            int height = target->def->field_16e;
+            int height = target->def->modelMaxY;
             unit->script->StartScriptWithArgs("BeginTransport", 0, 1, 1, height, 0, 0, 0);
             SendScriptCallByName(unit, "BeginTransport", 1, height, 0, 0, 0);
             Vec3 offset = GetPieceOffset(unit, order->piece);
@@ -162,7 +162,7 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
             AttachUnitToPiece(target, unit, order->piece, 0);
             QueueUnitSpeech(unit, 12, 0);
             Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
-            ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c);
+            ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
             order->flags |= 0xe0;
             return 1;
         }

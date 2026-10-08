@@ -148,14 +148,14 @@ struct Shot_00466dc0 {
 
 struct UnitType_00466dc0 {
     char unknown_0[0x204];
-    short field_204;                     // +0x204
-    short field_206;                     // +0x206
+    short radardistance;                 // +0x204
+    short sonardistance;                 // +0x206
     char unknown_208[0x20a - 0x208];
-    short field_20a;                     // +0x20a
-    short field_20c;                     // +0x20c
+    short radardistancejam;              // +0x20a
+    short sonardistancejam;              // +0x20c
     char unknown_20e[0x241 - 0x20e];
     Flags241_00466dc0 flags_241;         // +0x241
-    unsigned char field_245;             // +0x245
+    unsigned char flags2;                // +0x245
 };
 
 struct Unit {
@@ -649,22 +649,22 @@ void DrawRadarUnits(void)
                     }
                     if (u->flags_110.bits.bit4) {
                         if ((u->field_10e & 1) != 0 ||
-                            (type->field_245 & 4) == 0) {
-                            if (type->field_204 != 0)
+                            (type->flags2 & 4) == 0) {
+                            if (type->radardistance != 0)
                                 DrawCircle(surface, x, y,
-                                    (int)g_game->width * type->field_204 /
+                                    (int)g_game->width * type->radardistance /
                                     g_game->mapWidth, base[0xa]);
-                            if (type->field_206 != 0)
+                            if (type->sonardistance != 0)
                                 DrawCircle(surface, x, y,
-                                    (int)g_game->width * type->field_206 /
+                                    (int)g_game->width * type->sonardistance /
                                     g_game->mapWidth, base[0xa]);
-                            if (type->field_20a != 0)
+                            if (type->radardistancejam != 0)
                                 DrawCircle(surface, x, y,
-                                    (int)g_game->width * type->field_20a /
+                                    (int)g_game->width * type->radardistancejam /
                                     g_game->mapWidth, base[0xc]);
-                            if (type->field_20c != 0)
+                            if (type->sonardistancejam != 0)
                                 DrawCircle(surface, x, y,
-                                    (int)g_game->width * type->field_20c /
+                                    (int)g_game->width * type->sonardistancejam /
                                     g_game->mapWidth, base[0xc]);
                         }
                         if (type->flags_241.bit29) {

@@ -26,13 +26,13 @@ union UnitPos_00467440 {
 
 struct UnitDef_00467440 {
     char unknown_0[0x204];
-    short field_204;                   // +0x204
-    short field_206;                   // +0x206
-    short field_208;                   // +0x208
-    short field_20a;                   // +0x20a
-    short field_20c;                   // +0x20c
+    short radardistance;               // +0x204
+    short sonardistance;               // +0x206
+    short mincloakdistance;            // +0x208
+    short radardistancejam;            // +0x20a
+    short sonardistancejam;            // +0x20c
     char unknown_20e[0x245 - 0x20e];
-    unsigned int field_245;            // +0x245
+    unsigned int flags2;               // +0x245
 };
 
 struct PlayerData_00467440 {
@@ -193,11 +193,11 @@ void UpdateSensorRadarAndCloak(void)
 
     for (u = pl->field_67; u <= pl->field_6b; u++) {
         if ((u->flags & 0x10000000) && !(u->flags & 0x4000) && (u->field_10e & 1)) {
-            if (u->def->field_204 != 0 || u->def->field_206 != 0) {
+            if (u->def->radardistance != 0 || u->def->sonardistance != 0) {
                 // t is computed before b is loaded, then squared.
-                short a = u->def->field_204;
+                short a = u->def->radardistance;
                 int t = a + u->pos.half.f70 * 2;
-                short b = u->def->field_206;
+                short b = u->def->sonardistance;
                 t = t * t;
                 int s = (int)b * (int)b;
                 if (a <= b) {
@@ -217,14 +217,14 @@ void UpdateSensorRadarAndCloak(void)
         // The ff local and the `, 1` term keep the field_ff load a separate term.
         unsigned char ff;
         if ((u->flags & 0x10000000) && (ff = u->field_ff, 1) && ff != pl->field_146 && (u->field_10e & 1)) {
-            if (u->def->field_20a != 0) {
-                int r = (int)u->def->field_20a << 16;
+            if (u->def->radardistancejam != 0) {
+                int r = (int)u->def->radardistancejam << 16;
                 Vec3_00467440* pp = &u->pos.vec;
                 RadarJamVisitor v;
                 VisitObjectsInRange(pp, r, &v);
             }
-            if (u->def->field_20c != 0) {
-                int r2 = (int)u->def->field_20c << 16;
+            if (u->def->sonardistancejam != 0) {
+                int r2 = (int)u->def->sonardistancejam << 16;
                 Vec3_00467440* pp2 = &u->pos.vec;
                 SonarJamVisitor v;
                 VisitObjectsInRange(pp2, r2, &v);
@@ -236,8 +236,8 @@ void UpdateSensorRadarAndCloak(void)
         if ((u->flags & 0x10000000) && u->field_96->field_0 != 0) {
             char c = u->field_96->field_73;
             if (c == 1 || c == 2) {
-                if (u->def->field_245 & 0x2000) {
-                    if (HasReadyUnitInRange(u->field_ff, &u->pos.vec, u->def->field_208)) {
+                if (u->def->flags2 & 0x2000) {
+                    if (HasReadyUnitInRange(u->field_ff, &u->pos.vec, u->def->mincloakdistance)) {
                         // Written through an int& so the flags load stays after the store.
                         int& b0 = u->field_b0;
                         b0 = g_game->field_38a47 + 0x5a;

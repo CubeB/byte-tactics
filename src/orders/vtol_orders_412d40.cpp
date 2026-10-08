@@ -44,8 +44,8 @@ class Class_0044e730 { public: void SetApproachRadius(short); };
 
 #pragma pack(push, 1)
 struct UnitDef {
-    char pad0[0x192]; int field_192;
-    char pad196[0x21c - 0x196]; short field_21c;
+    char pad0[0x192]; int maxvelocity;
+    char pad196[0x21c - 0x196]; short altitude;
     char pad21e[0x241 - 0x21e]; unsigned int flags;
 };
 struct Unit {
@@ -142,7 +142,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
-        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c / 2);
+        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
@@ -202,10 +202,10 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
         SetWeaponTargetUnit(unit, order->target, 0);
         if (flags & 0xe0) {
             if (IsAhead(unit, order)) {
-                Vec3 from = Add(unit->pos, Offset(unit->heading, unit->def->field_192 * 30));
-                Vec3 to = Offset(unit->heading, unit->def->field_192);
+                Vec3 from = Add(unit->pos, Offset(unit->heading, unit->def->maxvelocity * 30));
+                Vec3 to = Offset(unit->heading, unit->def->maxvelocity);
                 Class_0044e740* obj = new Class_0044e740(order, from, to);
-                obj->FUN_0044ec10(unit->def->field_21c);
+                obj->FUN_0044ec10(unit->def->altitude);
                 ((Class_004388d0*)order)->SetAttachedFx((int)obj);
                 ((Class_00439e80*)order)->SetDeadlineTicks(RandomInt(0x1e) + 0x3c);
                 order->field_36 = 0;
@@ -224,7 +224,7 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
                 p.x += order->target->type->v.x * 45;
                 p.z += order->target->type->v.z * 45;
                 ((Class_004388d0*)order)->SetAttachedFx((int)new Class_0044e740(order, p,
-                    order->target->type->v + Offset(order->target->heading, order->target->def->field_192 / 2)));
+                    order->target->type->v + Offset(order->target->heading, order->target->def->maxvelocity / 2)));
             }
             ((Class_00439e80*)order)->SetDeadlineTicks(0x2d);
             order->flags |= 0x100e8;

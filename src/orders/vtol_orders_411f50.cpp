@@ -58,8 +58,8 @@ class Class_0044e730 { public: void SetApproachRadius(short); };
 #pragma pack(push, 1)
 struct UnitDef {
     char pad0[0x1fa]; unsigned int maxHealth;
-    char pad1fe[0x216 - 0x1fe]; unsigned short field_216;
-    char pad218[0x21c - 0x218]; short field_21c;
+    char pad1fe[0x216 - 0x1fe]; unsigned short attackrunlength;
+    char pad218[0x21c - 0x218]; short altitude;
     char pad21e[0x241 - 0x21e]; unsigned int flags;
 };
 struct Struct_Unit96 {
@@ -149,7 +149,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
-        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c / 2);
+        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
@@ -226,15 +226,15 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
             return 1;
         UnitDef* def = unit->def;
         // size and rate are loaded before the !rate test.
-        int size = def->field_21c;
+        int size = def->altitude;
         int rate = g_game->field_391e9->field_d3c;
         if (!rate)
             break;
         // Float local x: keeps the constant multiply from moving outermost.
         float x = (float)sqrt(size * 2.0 / rate) * 30.0f;
-        // field_216 is added in a second statement: one sum changes the x87 order.
+        // attackrunlength is added in a second statement: one sum changes the x87 order.
         int time = (int)(x * unit->type->field_22) + 1;
-        time += def->field_216;
+        time += def->attackrunlength;
         Class_0044e2d0* obj;
         if (order->target.owner)
             obj = (Class_0044e2d0*)new Class_0044e190(order, order->target.owner);
@@ -250,7 +250,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
         unit->ClaimWeapons(0);
         SetWeaponTargetPos(unit, &order->pos, 0);
         int angle = GetHeadingBetween(&unit->pos, &order->pos);
-        Vec3 dest = unit->pos + Offset(angle, (unit->def->field_216 + 0x3c0) << 16);
+        Vec3 dest = unit->pos + Offset(angle, (unit->def->attackrunlength + 0x3c0) << 16);
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->SetApproachRadius(0x3c0);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);

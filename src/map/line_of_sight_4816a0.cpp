@@ -9,7 +9,7 @@ struct UnitDef_004816a0 {
     char unknown_0[0x170];
     unsigned char field_170;           // +0x170
     char unknown_171[0x202 - 0x171];
-    unsigned short field_202;          // +0x202
+    unsigned short range;              // +0x202
 };
 
 struct Player_004816a0 {
@@ -129,7 +129,7 @@ void __stdcall RecalculateLineOfSight(int arg)
         Params_004816a0 params;
         params.field_0 = u->owner;
         params.field_4 = &u->field_7a;
-        params.field_8 = u->def->field_202;
+        params.field_8 = u->def->range;
         params.field_c = &u->field_f8;
         params.pos = u->position;
         params.field_a = u->def->field_170;

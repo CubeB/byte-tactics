@@ -777,7 +777,7 @@ struct UnitType_00446f50 {
             unsigned int f245_15 : 1;
             unsigned int f245_high : 16;
         };
-    } field_245;
+    } flags2;
 };
 
 struct Event_44c220 {
@@ -4789,7 +4789,7 @@ void LoadUnitPortrait()
     if (i < g_game->count) {
         int type = g_unitRestrictEntries[i].field_52;
         UnitType_00446f50* defs = g_game->unitTypes;
-        if (defs[type].name && ((unsigned char)(defs[type].field_245.raw >> 15) & 1) == 0) {
+        if (defs[type].name && ((unsigned char)(defs[type].flags2.raw >> 15) & 1) == 0) {
             // Indexed by the reloaded entry field, not defs[type].name.
             BuildDataPath(path, "unitpics", defs[g_unitRestrictEntries[i].field_52].name, "PCX");
             void* img = LoadPcx(path, 0);
@@ -4934,7 +4934,7 @@ void OpenUnitRestrictions()
     n = 0;
     for (i = 1; i < g_game->count; i++) {
         // continue on the bit, an int bitfield tested positively.
-        if (g_game->unitTypes[i].field_245.bits.flag)
+        if (g_game->unitTypes[i].flags2.bits.flag)
             continue;
         if (!g_game->unitTypes[i].name)
             continue;

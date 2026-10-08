@@ -16,7 +16,7 @@ struct Cell_004851c0 {
 
 struct Type_004851c0 {
     char unknown_0[0x16e];
-    int field_16e;                     // +0x16e
+    int modelMaxY;                     // +0x16e
 };
 
 struct Unit {
@@ -81,7 +81,7 @@ int __stdcall FindHighestPointOnLine(Vec3_004851c0 a, Vec3_004851c0 b)
             short v = g_game->mapping[c->field_8 * 256 + 0xfa] + c->height;
             if (best < v) best = v;
             if (c->unit) {
-                short w = (g_game->units[c->unit].type->field_16e + g_game->units[c->unit].field_6e) >> 16;
+                short w = (g_game->units[c->unit].type->modelMaxY + g_game->units[c->unit].field_6e) >> 16;
                 if (best < w) best = w;
             }
         }

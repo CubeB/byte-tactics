@@ -190,7 +190,7 @@ struct UnitDef {                       // 0x249 bytes
         char description[0x249 - 0x20];   // +0x20
         struct {
             char unknown_20[0xa0 - 0x20];
-            char field_a0[0xbe - 0xa0];   // +0xa0
+            char side[0xbe - 0xa0];       // +0xa0
             char command[0x14a - 0xbe];   // +0xbe, run as a console command
             Point16 origin;               // +0x14a
             char unknown_14e[0x152 - 0x14e];
@@ -2064,7 +2064,7 @@ unsigned short __stdcall ChooseBuildOption(unsigned int player, Unit* unit)
         }
     }
     if (chosen != 0) {
-        if (strcmp(unit->def->field_a0, g_game->defs[chosen].field_a0) != 0)
+        if (strcmp(unit->def->side, g_game->defs[chosen].side) != 0)
             chosen = 0;
     }
     return chosen;

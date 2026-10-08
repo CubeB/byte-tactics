@@ -61,7 +61,7 @@ struct UnitDef {
     char unknown_0[0x14a];
     Point16 origin;                    // +0x14a
     char unknown_14e[0x1c0 - 0x14e];
-    short field_1c0;                   // +0x1c0
+    short minwaterdepth;               // +0x1c0
 };
 
 struct Mission {

@@ -24,10 +24,10 @@ struct Unit {
 
 struct UnitDef {
     char unknown_0[0x1be];
-    short field_1be;                   // +0x1be
-    short field_1c0;                   // +0x1c0
+    short maxwaterdepth;               // +0x1be
+    short minwaterdepth;               // +0x1c0
     char unknown_1c2[0x228 - 0x1c2];
-    unsigned char field_228;           // +0x228
+    unsigned char maxslope;            // +0x228
     char unknown_229[0x241 - 0x229];
     unsigned int flags;                // +0x241
 };
@@ -99,11 +99,11 @@ int __stdcall CanPlaceFootprintAt(Unit* unit, Vec3* pos)
             + (a >> 1) + (footprint.x >> 2);
     if (!(g->visibilityMask[idx] & (1 << unit->player)))
         return 1;
-    unsigned char field228 = def->field_228;
-    short bd0 = def->field_1be;
+    unsigned char field228 = def->maxslope;
+    short bd0 = def->maxwaterdepth;
     int sl = g->seaLevel;
     int lowBound = sl - bd0;
-    int upperBound = sl - def->field_1c0;
+    int upperBound = sl - def->minwaterdepth;
     if (lowBound < sl && (def->flags & 0x800) && !(def->flags & 0x200000))
         lowBound = sl;
     Cell* cell = &g->cells[c * w + a];

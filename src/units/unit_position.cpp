@@ -328,7 +328,7 @@ int __cdecl GetLocalDpid();
 int __stdcall BroadcastPacket(int player, void* data, int size);
 void __stdcall ApplyAttachUnit(Order* order);
 void __stdcall AddBeCarriedOrder(Beacon* beacon);
-void __stdcall FUN_0048c9b0(Unit* u);
+void __stdcall DeselectIfIneligible(Unit* u);
 void __stdcall UpdateWindGenerator(Unit* u);
 void __stdcall UpdateUnitWeapons(Unit* u);
 void __stdcall RunOrders(Unit* u);
@@ -338,7 +338,7 @@ void __stdcall KillUnit(Unit* u, int n);
 void __stdcall DamageUnit(int a, Unit* u, int damage, int kind, int flag);
 int __stdcall AddRepairProgress(Unit* u, Unit* u2, float f);
 void __stdcall SendUnitStates(Player* p);
-void __stdcall FUN_0048d790(void);
+void __stdcall CycleSelection(void);
 int __stdcall IsKeyDown(int n);
 void __stdcall CycleCameraFollow(int n);
 Unit* __stdcall CreateUnitFromPacket(unsigned char player, Spawn* spawn);
@@ -493,7 +493,7 @@ void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4)
 // low bits of the type's byte at +0x2e, and a "BECARRIED" child is created when the
 // owner is a human or computer player, its unit list is not empty, a second
 // unit was given, and that unit's type does not have bit 9 of the word at
-// +0x241 set. FUN_0048c9b0 then refreshes the order, and it is only reached on
+// +0x241 set. DeselectIfIneligible then refreshes the order, and it is only reached on
 // the paths that got that far: every test that fails jumps past it.
 // FUNCTION: 0x48ab70
 void __stdcall ApplyAttachUnit(Order* order)
@@ -542,7 +542,7 @@ void __stdcall ApplyAttachUnit(Order* order)
                                     AddBeCarriedOrder((Beacon*)u);
                             }
                         }
-                        FUN_0048c9b0(u);
+                        DeselectIfIneligible(u);
                     }
                 }
             }
@@ -660,7 +660,7 @@ void __stdcall UpdateAllUnits(void)
             g_game->f14371--;
             if (g_game->f14371 <= 0) {
                 g_game->f14371 = 0x5a;
-                FUN_0048d790();
+                CycleSelection();
                 CycleCameraFollow(0);
             }
         }

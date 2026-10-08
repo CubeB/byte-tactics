@@ -193,7 +193,7 @@ Unit* __stdcall CreateUnit(unsigned char player, unsigned short typeId,
                                      Pos_00464f80 pos, int a, int b, int c);
 void __stdcall SetStartingStorageBonus(Struct_00496e90* obj, int height, int width);
 void __stdcall RecalculateLineOfSight(int on);
-void __stdcall FUN_0048d630(int on);
+void __stdcall FocusCommander(int on);
 void __stdcall UpdatePlayerEconomy(PlayerInfo_00464f80* player);
 void __stdcall SendPlayerEconomy(PlayerInfo_00464f80* player, int a, int b);
 int __stdcall FUN_00457cb0();
@@ -430,7 +430,7 @@ void __stdcall FUN_00464f80()
                                     *slot = f;
                                 }
                                 RecalculateLineOfSight(1);
-                                FUN_0048d630(1);
+                                FocusCommander(1);
                             }
                         } else {
                             goto watch_check;

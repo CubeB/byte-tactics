@@ -256,7 +256,7 @@ void __stdcall SurfaceFromFrame(Surface_00495a30* dst, void* src);
 void* __stdcall GetDisplay();
 void __stdcall FrameFromSurface(Dst_004b8ae0* dst, Src_004b8ae0* src);
 void __stdcall SetCameraPosition(int x, int y, int z);
-void __stdcall FUN_0048bae0();
+void __stdcall CollectVisibleUnitIds();
 void __stdcall DrawBattleFrame(int param_1, int param_2);
 void __stdcall DrawFrame(Surface_00495a30* surf, Dst_004b8ae0* pal, int x, int y);
 void __stdcall ClearFrame(void* b, int color);
@@ -264,7 +264,7 @@ void __stdcall RecalculateLineOfSight(int param);
 void __cdecl FUN_004d85a0(void* b);
 int PopKey(void);
 int __stdcall IsKeyDown(int key);
-void FUN_0048bd00(void);
+void ClearSelection(void);
 void __stdcall FUN_00491d70(int param);
 void __stdcall CloseTopScreen(Sub_495e90* gui);
 int __stdcall IsScreenNamed(Sub_495e90* gui, char* name);
@@ -279,12 +279,12 @@ void __stdcall CycleCameraFollow(int param);
 void __stdcall FUN_00417b50(int param_1, int param_2);
 void OpenUnitInfoDialog(void);
 void OpenShareDialog(void);
-void FUN_0048d4d0(void);
-void FUN_0048bd50(void);
+void FocusNextLocalUnit(void);
+void SelectAllIdleUnits(void);
 void SelectUnitsOfSameTypes(void);
 void __stdcall SelectUnitsByCategory(const char* name, int key);
 void FindLocalCommander(void);
-void FUN_0048c030(void);
+void SelectAllVisibleUnits(void);
 void __stdcall CollectSelectedUnits(void* param);
 void __stdcall CreateSquad(int param);
 void __stdcall SaveCameraPosition(int param);
@@ -436,7 +436,7 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
                         Rect_00495a30 box;
                         box.left = col;
                         SetCameraPosition(x + col, y + row, 0);
-                        FUN_0048bae0();
+                        CollectVisibleUnitIds();
                         DrawBattleFrame(1, 0);
                         right = (col + bw) - 1;
                         if (right >= surf.width) right = surf.width - 1;
@@ -481,7 +481,7 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
             g_game->viewFlags = (unsigned short)(g_game->viewFlags ^ ((savedbit0 ^ g_game->viewFlags) & 1));
             g_game->viewFlags = (unsigned short)((unsigned short)((g_game->viewFlags & ~2) | ((savedbit1 & 1) << 1)));
             RecalculateLineOfSight(1);
-            FUN_0048bae0();
+            CollectVisibleUnitIds();
             DrawBattleFrame(1, 1);
         }
     }
@@ -518,7 +518,7 @@ void HandleGameKey(void)
                 if (handle != -1)
                     FUN_004a6a40(&g_game->gui, handle);
             } else {
-                FUN_0048bd00();
+                ClearSelection();
                 FUN_00491d70(1);
             }
         }
@@ -705,7 +705,7 @@ void HandleGameKey(void)
         break;
 
     case 0xaa:
-        FUN_0048bd50();
+        SelectAllIdleUnits();
         break;
 
     case 0xab:
@@ -768,11 +768,11 @@ void HandleGameKey(void)
         break;
 
     case 0x6e:
-        FUN_0048d4d0();
+        FocusNextLocalUnit();
         break;
 
     case 0xbc:
-        FUN_0048c030();
+        SelectAllVisibleUnits();
         break;
 
     case 0x74:

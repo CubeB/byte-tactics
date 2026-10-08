@@ -306,7 +306,7 @@ int GetLocalDpid();
 void __stdcall FUN_00453320(int a, int b);
 void HandleGameKey();
 void UpdateEdgeScroll();
-void FUN_0048bae0();
+void CollectVisibleUnitIds();
 void RefreshSelectionOrders();
 void __stdcall DrawBattleFrame(int a, int b);
 void __stdcall SaveScreenshot(char* buf, char* name);
@@ -397,7 +397,7 @@ void MainLoopTick()
         HandleGameKey();
         UpdateEdgeScroll();
     }
-    FUN_0048bae0();
+    CollectVisibleUnitIds();
     unsigned short flags = g_game->word_37ebe;
     // The bit 4 tests read the bitfield from memory, not a shift of the flags copy.
     if ((flags & 0x800) || (flags & 0x65) || g_game->flags_2bee) {

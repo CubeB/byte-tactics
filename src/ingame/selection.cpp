@@ -238,7 +238,7 @@ Cell_0048bae0* __stdcall GetMapCellAtPosition(Vec3* pos);
 int __stdcall FUN_00465ac0(Player* player, Unit* unit);
 
 // FUNCTION: 0x48bae0
-void FUN_0048bae0(void)
+void CollectVisibleUnitIds(void)
 {
     int count = 0;
     unsigned short* out = g_game->list;
@@ -285,7 +285,7 @@ void FUN_0048bae0(void)
 // Returns 1 when the unit's type id (+0xa8) is in the game's list of ids at
 // +0x1435f (count at +0x14367).
 // FUNCTION: 0x48bcb0
-int __stdcall FUN_0048bcb0(char* unit)
+int __stdcall IsUnitVisible(char* unit)
 {
     short* ids = (short*)g_game->list;
     int n = g_game->count;
@@ -297,7 +297,7 @@ int __stdcall FUN_0048bcb0(char* unit)
 }
 
 // FUNCTION: 0x48bd00
-void FUN_0048bd00(void)
+void ClearSelection(void)
 {
     for (Unit* u = g_game->units; u <= g_game->unitsEnd; u++)
         u->flags.raw &= 0xffffff2f;
@@ -309,7 +309,7 @@ void FUN_0048bd00(void)
 // tests, marks each such unit with flag 0x10 and drops the current selection
 // (+0x37e9c) to none, then issues the STOP order and sets order flag 0x10.
 // FUNCTION: 0x48bd50
-void FUN_0048bd50(void)
+void SelectAllIdleUnits(void)
 {
     Player* pl = &g_game->players[g_game->player];
     Unit* u = pl->unitsBegin;
@@ -417,7 +417,7 @@ void __stdcall SelectUnitsByCategory(char* name, int param_2)
 // unit qualified, the single selected unit at +0x37e9c is cleared and bit
 // 0x10 is set in the order byte at +0x37ebe to refresh the orders menu.
 // FUNCTION: 0x48c030
-void FUN_0048c030(void)
+void SelectAllVisibleUnits(void)
 {
     int found = 0;
     for (Unit* u = g_game->units; u <= g_game->unitsEnd; u++)
@@ -442,7 +442,7 @@ void FUN_0048c030(void)
 }
 
 // FUNCTION: 0x48c150
-void FUN_0048c150(void)
+void ClearUnitSelectFlags(void)
 {
     for (Unit* u = g_game->units; u <= g_game->unitsEnd; u++)
         u->flags.raw &= 0xffffff3f;
@@ -497,7 +497,7 @@ Unit* __stdcall FindNextSelectedUnit(Unit* unit, int dir)
 }
 
 // FUNCTION: 0x48c320
-void FUN_0048c320(void)
+void MarkLocalVisibleUnits(void)
 {
     unsigned short* list = g_game->list;
     for (int i = 0; i < g_game->count; i++) {
@@ -586,7 +586,7 @@ void __stdcall GetObjectBounds(void* obj, Vec3* lo, Vec3* hi, int arg);
 int __stdcall PointInPolygon(Point* pts, int n, int px, int py);
 
 // FUNCTION: 0x48c6a0
-int __stdcall FUN_0048c6a0(Unit* obj, Point* p)
+int __stdcall HitTestUnitScreenHull(Unit* obj, Point* p)
 {
     void** models = g_game->models;
     Vec3 corners[4];
@@ -633,7 +633,7 @@ struct Param_0048c7f0 {
 };
 
 // FUNCTION: 0x48c7f0
-void __stdcall FUN_0048c7f0(Param_0048c7f0* param)
+void __stdcall ClickSelectHoverUnit(Param_0048c7f0* param)
 {
     Unit* unit = !g_game->field_2cba ? 0 : &g_game->units[g_game->field_2cba];
     if (unit == 0)
@@ -673,7 +673,7 @@ void __stdcall FUN_0048c7f0(Param_0048c7f0* param)
 }
 
 // FUNCTION: 0x48c9b0
-void __stdcall FUN_0048c9b0(Unit* unit)
+void __stdcall DeselectIfIneligible(Unit* unit)
 {
     unsigned int flags = unit->flags.raw;
     if (flags & 0x10) {
@@ -710,7 +710,7 @@ void __stdcall FUN_00439b30(Unit* unit, int mask, void* obj,
                            Unit** sel, int flag);
 
 // FUNCTION: 0x48cc30
-void __stdcall FUN_0048cc30(void* obj, Unit** sel)
+void __stdcall DrawSelectedUnitOrderOverlays(void* obj, Unit** sel)
 {
     Player* team = &g_game->players[g_game->player];
     Unit* sel1unit = !g_game->field_37e9c ? 0 : &g_game->units[g_game->field_37e9c];
@@ -742,7 +742,7 @@ static inline int FixMul(int a, int b)
 }
 
 // FUNCTION: 0x48cd80
-unsigned short __stdcall FUN_0048cd80(void)
+unsigned short __stdcall PickUnitUnderCursor(void)
 {
     Point* p = &g_game->view;
     unsigned short result = 0;
@@ -755,7 +755,7 @@ unsigned short __stdcall FUN_0048cd80(void)
         for (int i = 0; i < g_game->count; i++, ids++) {
             Unit* u = &g_game->units[*ids];
             if (u->field_a6 != 0) {
-                if (FUN_0048c6a0(u, p)) {
+                if (HitTestUnitScreenHull(u, p)) {
                     UnitType* def = u->def;
                     int v = FixMul(def->field_17a, 0x8000) + def->field_17e;
                     v = FixMul(v, def->field_176);
@@ -802,7 +802,7 @@ public:
 };
 
 // FUNCTION: 0x48d220
-int __stdcall FUN_0048d220(char arg)
+int __stdcall ResolveCursorModeForSelection(char arg)
 {
     Unit* target;
     if (g_game->field_2cba != 0)
@@ -859,7 +859,7 @@ int __stdcall FUN_0048d220(char arg)
 }
 
 // FUNCTION: 0x48d420
-Unit* FUN_0048d420(void)
+Unit* FindNextUnmarkedLocalUnit(void)
 {
     Player* player = &g_game->players[g_game->player];
     Unit* u;
@@ -912,14 +912,14 @@ static inline Unit* PickUnit(Player* player)
 }
 
 // FUNCTION: 0x48d4d0
-void FUN_0048d4d0(void)
+void FocusNextLocalUnit(void)
 {
     Unit* u = PickUnit(&g_game->players[g_game->player]);
     if (u == 0)
         return;
     g_game->field_1436f = u->id;
     CenterCameraOnMapPosition((Vec3*)&u->pos_x, 1);
-    FUN_0048bae0();
+    CollectVisibleUnitIds();
     unsigned short* list = g_game->list;
     for (int i = 0; i < g_game->count; i++) {
         Unit* unit = &g_game->units[list[i]];
@@ -944,7 +944,7 @@ void FUN_0048d4d0(void)
 void __cdecl ClearCameraFollowState(void);
 
 // FUNCTION: 0x48d630
-void __stdcall FUN_0048d630(int param_1)
+void __stdcall FocusCommander(int param_1)
 {
     Player* team = &g_game->players[g_game->playerIndex];
     char* playerName = g_game->playerNames[team->player->index].name;
@@ -977,7 +977,7 @@ void __stdcall FUN_0048d630(int param_1)
 // g_game after each store through a pointer), which is the original's layout.
 
 // FUNCTION: 0x48d790
-void __stdcall FUN_0048d790(void)
+void __stdcall CycleSelection(void)
 {
     Unit* found = 0;
     Player* t = &g_game->players[g_game->playerIndex];
@@ -1123,7 +1123,7 @@ select_units:
 // loop (u > end) and the test at the bottom are both present in the original.
 
 // FUNCTION: 0x48dc30
-int __stdcall FUN_0048dc30(int id)
+int __stdcall SquadHasCtrlFMember(int id)
 {
     UnitTypeSet* set = GetCategoryMask("CTRL_F");
     Player* p = &g_game->players[g_game->player];
@@ -1145,11 +1145,11 @@ int __stdcall FUN_0048dc30(int id)
 // 0x80000000, whose +0x104 float is 0.0f, whose +0xfb is clear, whose +0x86
 // owner (when there is one) has flag 0x40000000 and whose +0xac equals the
 // argument. Returns 1 for the first such unit, else 0. The predicate is the
-// negation of the one in the matched FUN_0048c9b0, which clears the unit's
+// negation of the one in the matched DeselectIfIneligible, which clears the unit's
 // 0x10 flag when exactly this state no longer holds.
 
 // FUNCTION: 0x48dd10
-int __stdcall FUN_0048dd10(int param_1)
+int __stdcall SquadHasReadyMember(int param_1)
 {
     Player* player = &g_game->players[g_game->player];
     for (Unit* u = player->unitsBegin; u <= player->unitsEnd; u++) {

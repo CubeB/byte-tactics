@@ -45,7 +45,7 @@ int __stdcall DrawParticleList(int,int);
 int __stdcall DrawMapTiles(int);
 int __stdcall DrawFogOfWar(int);
 int __stdcall FindNextSelectedUnit(int,int);
-int __stdcall FUN_0048cc30(int,int);
+int __stdcall DrawSelectedUnitOrderOverlays(int,int);
 int __stdcall FUN_004948e0(int);
 int __stdcall DrawProjectiles(int);
 int __stdcall FUN_004ab170(int,int,int);
@@ -428,7 +428,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   }
   DrawParticleList((int)&ctx, 8);
   if (IsKeyDown(0xf9))
-    FUN_0048cc30((int)&ctx, (int)(g_game + 0x142f3));
+    DrawSelectedUnitOrderOverlays((int)&ctx, (int)(g_game + 0x142f3));
 
   // unit group numbers. Suspected original bug: the outer test lets a unit
   // with a group number (+0xac) through when the 0x37f06 bit is clear, but the

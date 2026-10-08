@@ -29,7 +29,7 @@ extern SpeechQueue* DAT_0051e68c;
 extern Message_0047f7e0 DAT_005086e8[];
 
 char* __stdcall Translate(char* text);
-int __stdcall FUN_0048bcb0(Unit* unit);
+int __stdcall IsUnitVisible(Unit* unit);
 
 // Inlined copy of QueueUnitSpeech: the text argument is loaded early because it
 // crosses the inline boundary.
@@ -46,7 +46,7 @@ static inline void Report_0047f780(Unit* unit, int kind, char* text)
 // FUNCTION: 0x47f7e0
 void __stdcall FUN_0047f7e0(Unit* unit, int kind, char* text)
 {
-    if (FUN_0048bcb0(unit) != 0) {
+    if (IsUnitVisible(unit) != 0) {
         Report_0047f780(unit, kind, text);
     }
 }

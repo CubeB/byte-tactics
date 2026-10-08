@@ -143,17 +143,17 @@ void BlankScreen();
 int FUN_004572a0();
 void FUN_00463c80();
 void ApplySlotsToGamePlayers();
-void FUN_0048bd00();
+void ClearSelection();
 int __stdcall SelectUnitsInBox(void* p);
-unsigned short __stdcall FUN_0048cd80();
-int __stdcall FUN_0048d220(char mode);
+unsigned short __stdcall PickUnitUnderCursor();
+int __stdcall ResolveCursorModeForSelection(char mode);
 void FUN_00491b60();
 void __stdcall FUN_00491d70(int a);
 void MainLoopTick();
 void __stdcall UpdateCursorWorldPos(View* p);
 void __stdcall IssueMobileBuildOrders(View* arg);
 void __stdcall PlaySoundByName(char* name, int param_2);
-void __stdcall FUN_0048c7f0(View* arg);
+void __stdcall ClickSelectHoverUnit(View* arg);
 void __stdcall IssueOrderToSelection(void* a, unsigned char b, Class_00438760 kind, Vec3* d, int e, int f);
 int __stdcall FindGadgetIndexBySubstring(int value, char* name);
 void __stdcall FUN_004a6a40(void* obj, int index);
@@ -193,12 +193,12 @@ void __stdcall HandleLeftClick(View* param_1)
         return;
     }
     if (g_game->selected == 0xf) {
-        FUN_0048c7f0(param_1);
+        ClickSelectHoverUnit(param_1);
         return;
     }
     if (g_game->selected >= 0x11) {
         if (g_game->field_37efa == 1 && g_game->orderMode == 1) {
-            FUN_0048bd00();
+            ClearSelection();
             FUN_00491d70(1);
         }
         return;
@@ -243,7 +243,7 @@ void __stdcall HandleRightClick(View* param_1)
                 BeginMouseScroll();
                 return;
             }
-            FUN_0048bd00();
+            ClearSelection();
             FUN_00491d70(1);
             return;
         }
@@ -287,8 +287,8 @@ void BattleFrame(void)
     } else if ((flags & 2) == 0 && (flags & 1) == 0) {
         SetCursor(0x13);
     } else {
-        g_game->field_2cba = FUN_0048cd80();
-        SetCursor(FUN_0048d220(g_game->orderMode));
+        g_game->field_2cba = PickUnitUnderCursor();
+        SetCursor(ResolveCursorModeForSelection(g_game->orderMode));
     }
 
     DispatchOrdersPanelPageFlags();
@@ -337,7 +337,7 @@ void BattleFrame(void)
             if (g_game->field_2cb6 + 0x19 > now && dx < 0x20 && dz < 0x20) {
                 HandleLeftClick(&view);
             } else if (SelectUnitsInBox(&view) == 0) {
-                FUN_0048bd00();
+                ClearSelection();
                 FUN_00491d70(1);
             }
         } else {

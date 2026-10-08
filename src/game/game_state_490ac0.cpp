@@ -951,8 +951,8 @@ void __stdcall FUN_00491c80(int n)
 // Picks the order/state table entry at +0x1487f and hands it to
 // FUN_004ab400 for the object at +0x519, mirroring 0x491c80.
 int __cdecl UpdatePlacementGhostValidity(void);
-unsigned short __cdecl FUN_0048cd80(void);
-int __stdcall FUN_0048d220(unsigned char mode);
+unsigned short __cdecl PickUnitUnderCursor(void);
+int __stdcall ResolveCursorModeForSelection(unsigned char mode);
 
 // FUNCTION: 0x491cc0
 void __stdcall FUN_00491cc0(int unused)
@@ -970,8 +970,8 @@ void __stdcall FUN_00491cc0(int unused)
         }
         return;
     }
-    g_game->field_2cba = FUN_0048cd80();
-    int n = FUN_0048d220(g_game->mode_2cc3);
+    g_game->field_2cba = PickUnitUnderCursor();
+    int n = ResolveCursorModeForSelection(g_game->mode_2cc3);
     if (g_game->selected != n) {
         g_game->selected = n;
         FUN_004ab400((Obj_004ab400*)&g_game->gui, g_game->table[n]);

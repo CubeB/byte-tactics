@@ -35,7 +35,7 @@ public:
     virtual void VisitUnit(Unit* unit) = 0;
 };
 
-void __stdcall FUN_00484b50(int x, int z, Vec3_0048f200* out);
+void __stdcall ClampWorldPosToTerrain(int x, int z, Vec3_0048f200* out);
 void __stdcall VisitObjectsInRange(Vec3_0048f200* pos, int radius, UnitVisitor_0048f250* visitor);
 void __stdcall PlaySoundByName(char* str, int flag);
 
@@ -71,7 +71,7 @@ public:
 int VictoryMoveUnitToRadius::IsSatisfied()
 {
     if (pos.y == 0x12345678) {
-        FUN_00484b50(pos.x, pos.z, &pos);
+        ClampWorldPosToTerrain(pos.x, pos.z, &pos);
     }
     VisitObjectsInRange(&pos, radius, this);
     return satisfied;

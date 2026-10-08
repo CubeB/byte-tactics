@@ -4,7 +4,7 @@
 // unit slot for the record's id out of the unit array, refuses to go on when
 // that player has no unit list, clears the slot when it is still in use,
 // initialises the unit (the matched InitUnit, inlined), then registers it
-// with UpdateUnitHeight, AddUnitToMap, FUN_00482ac0 and the list manager and bumps
+// with UpdateUnitHeight, AddUnitToMap, RevealNewUnit and the list manager and bumps
 // the player's counters at +0x144 and +0x140.
 
 struct Unit;
@@ -91,7 +91,7 @@ void __stdcall InitUnitWeaponSlots(Unit* unit);
 void __stdcall UpdateMetalExtraction(Unit* unit);
 void __stdcall UpdateUnitHeight(Unit* unit);
 void __stdcall AddUnitToMap(Unit* unit);
-void __stdcall FUN_00482ac0(Unit* unit);
+void __stdcall RevealNewUnit(Unit* unit);
 void* __cdecl operator new(unsigned int size);
 
 // Inlined copy of InitUnit. As there, the three vtable stores are guarded
@@ -138,7 +138,7 @@ Unit* __stdcall CreateUnitFromPacket(unsigned char player, Spawn_004861d0* spawn
     InitUnit_00485e90(spawn->type, spawn->pos, 0, unit);
     UpdateUnitHeight(unit);
     AddUnitToMap(unit);
-    FUN_00482ac0(unit);
+    RevealNewUnit(unit);
     // Indexed again from g_game, not through pl: keeps the player index live early.
     g_game->players[player].field_144++;
     g_game->players[player].field_140++;

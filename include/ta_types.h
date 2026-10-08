@@ -499,7 +499,7 @@ class Class_004813b0;
 class Class_00481430;
 class Class_00481470;
 struct Class_00481490;
-struct Class_00482110;
+struct Eye;
 class UnitScript;
 class Class_00488c50;
 class UnitTypeSet;
@@ -12377,7 +12377,7 @@ struct Frame_00481d50 {  // 0x14 bytes, 1 view
     unsigned char* data;  // +0x10
 };
 
-struct Class_00482110 {  // 0x20 bytes, 1 view
+struct Eye {             // 0x20 bytes, 1 view
     char unknown_0[28];
     unsigned int field_1c;  // +0x1c
 };

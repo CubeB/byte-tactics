@@ -106,7 +106,7 @@ void __stdcall UpdateUnitHeight(Unit* unit);
 void __stdcall AddUnitToMap(Unit* unit);
 void __stdcall SendNewUnit(Unit* unit);
 void __stdcall FUN_004560c0(Unit* a, Unit* b);
-void __stdcall FUN_00482ac0(Unit* unit);
+void __stdcall RevealNewUnit(Unit* unit);
 void* __cdecl operator new(unsigned int size);
 
 static inline void __stdcall InitUnit_00485e90(unsigned short unitType, Pos_00485f50 pos,
@@ -180,7 +180,7 @@ found:
             unit->bit14 = 1;
         }
     }
-    FUN_00482ac0(unit);
+    RevealNewUnit(unit);
     // Array subscript, not a byte-offset cast: it fixes the SIB operand order.
     g_game->players[player].field_144++;
     g_game->players[player].field_140++;

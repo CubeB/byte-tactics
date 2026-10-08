@@ -68,11 +68,11 @@ extern Game* g_game;
 
 void __stdcall UpdateLineOfSight(Params_482ac0* params);
 void __stdcall AddLineOfSight(Params_482ac0* params);
-void __stdcall FUN_00481930(Params_482ac0* params);
+void __stdcall RevealAroundUnit(Params_482ac0* params);
 int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 
 // FUNCTION: 0x482ac0
-void __stdcall FUN_00482ac0(Unit* unit)
+void __stdcall RevealNewUnit(Unit* unit)
 {
     Params_482ac0 p;
     p.field_0 = unit->field_96;
@@ -105,7 +105,7 @@ void __stdcall FUN_00482ac0(Unit* unit)
             p.field_4[1] = (short)cell_y;
             *p.field_c = i;
             AddLineOfSight(&p);
-            FUN_00481930(&p);
+            RevealAroundUnit(&p);
         }
     }
 }

@@ -103,7 +103,7 @@ extern Game* g_game;
 
 void __stdcall UpdateLineOfSight(Params_004816a0* params);
 void __stdcall AddLineOfSight(Params_004816a0* params);
-void __stdcall FUN_00481930(Params_004816a0* params);
+void __stdcall RevealAroundUnit(Params_004816a0* params);
 Entry_004816a0* __stdcall GetGafFrame(Cell_004816a0* table, int index);
 void UpdateRadarMapped();
 void DrawRadarUnits();
@@ -159,7 +159,7 @@ void __stdcall RecalculateLineOfSight(int arg)
                 params.field_4[1] = (short)vz;
                 *params.field_c = (unsigned char)i;
                 AddLineOfSight(&params);
-                FUN_00481930(&params);
+                RevealAroundUnit(&params);
             }
         }
     }

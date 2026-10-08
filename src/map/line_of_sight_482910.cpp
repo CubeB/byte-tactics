@@ -61,7 +61,7 @@ extern Game* g_game;
 
 void __stdcall UpdateLineOfSight(Eye_482910* e);
 void __stdcall AddLineOfSight(Eye_482910* e);
-void __stdcall FUN_00481930(Eye_482910* e);
+void __stdcall RevealAroundUnit(Eye_482910* e);
 Entry_482910* __stdcall GetGafFrame(unsigned short* table, int index);
 
 // FUNCTION: 0x482910
@@ -102,7 +102,7 @@ void __stdcall AddEyeball(Vec3_482910* src, int a, int b, int c)
                 e->screen->y = (short)cell_y;
                 *e->flagPtr = (char)lod;
                 AddLineOfSight(e);
-                FUN_00481930(e);
+                RevealAroundUnit(e);
             }
         }
         g_game->count++;

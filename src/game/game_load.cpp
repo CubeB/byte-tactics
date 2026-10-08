@@ -481,8 +481,8 @@ int __cdecl FUN_004568c0();
 unsigned int __cdecl GetTicks();
 char* __cdecl GetPreferredLanguage();
 
-int __stdcall FUN_00484b50(int x, int y, int param_3);
-void __stdcall FUN_00484b50(int x, int y, Pos_00498da0* out);
+int __stdcall ClampWorldPosToTerrain(int x, int y, int param_3);
+void __stdcall ClampWorldPosToTerrain(int x, int y, Pos_00498da0* out);
 int __stdcall GetGroundHeight(Pos_00498d00* pos);
 int __stdcall PointInRect(Rect_00498da0* r, int x, int y);
 Cell_00498da0* __stdcall GetMapCell(int x, int y);
@@ -1148,11 +1148,11 @@ void LoadingScreenFrame(void)
     SleepMilliseconds(200);
 }
 // Converts a point by the view origin at +0x2c/+0x30 (less a 0x80 by 0x20
-// border) and passes it on to FUN_00484b50.
+// border) and passes it on to ClampWorldPosToTerrain.
 // FUNCTION: 0x498cd0
 void __stdcall OffsetWorldPosFromView(Point_00498cd0* p, View_00498cd0* view, int param_3)
 {
-    FUN_00484b50((view->x - 0x80) + p->x, (view->y - 0x20) + p->y, param_3);
+    ClampWorldPosToTerrain((view->x - 0x80) + p->x, (view->y - 0x20) + p->y, param_3);
 }
 // Converts the screen position stored at +0x2c76 into a 16.16 world position
 // (scaled from the view origin), with the height taken from the ground there.
@@ -1223,7 +1223,7 @@ void __stdcall UpdateCursorWorldPos(View_00498da0* r)
         g_game->flags.bits.b1 = PointInRect(lim, r->x, r->y);
     }
     g_game->flags.bits.b2 = g_game->flags.bits.b0 || g_game->flags.bits.b1;
-    FUN_00484b50(mx, my, &g_game->pos);
+    ClampWorldPosToTerrain(mx, my, &g_game->pos);
     {
         Pos_00498da0* p = &g_game->pos;
         Point_00498da0 pt;

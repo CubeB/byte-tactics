@@ -118,7 +118,7 @@ inline int Lod_00481930(Params_00481930* params)
 }
 
 // FUNCTION: 0x481930
-void __stdcall FUN_00481930(Params_00481930* params)
+void __stdcall RevealAroundUnit(Params_00481930* params)
 {
     // Both branches' locals, x and y included, are declared here and assigned
     // later; frame stays declared after bit.

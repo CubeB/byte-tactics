@@ -422,7 +422,7 @@ Bitmap* __stdcall GetGafFrame(void* table, int index);
 void __stdcall UpdateLineOfSight(Params* params);
 void __stdcall AddLineOfSight(Params* params);
 void __stdcall RemoveLineOfSight(Params* params);
-void __stdcall FUN_00481930(Params* params);
+void __stdcall RevealAroundUnit(Params* params);
 void __stdcall UpdateCellHeightRange(Point pos, Point size);
 void UpdateRadarMapped();
 void DrawRadarUnits();
@@ -499,7 +499,7 @@ inline int Lod_00481930(Params* params)
 LosTables g_losTables;
 
 // FUNCTION: 0x4814f0
-void FUN_004814f0()
+void FreeLosTables()
 {
     g_losTables.FreeTables();
 }
@@ -635,7 +635,7 @@ void __stdcall UpdateLineOfSight(Params* params)
                 AddLineOfSight(params);
             }
             if (g_game->flags.raw & 1) {
-                FUN_00481930(params);
+                RevealAroundUnit(params);
             }
         }
     }
@@ -665,7 +665,7 @@ void __stdcall UpdateLineOfSight(Params* params)
                 *params->field_c = (unsigned char)i;
             }
             if (g_game->flags.raw & 1) {
-                FUN_00481930(params);
+                RevealAroundUnit(params);
             }
         }
     }
@@ -689,7 +689,7 @@ void __stdcall UpdateUnitLineOfSight(Unit* unit)
 }
 
 // FUNCTION: 0x482830
-void __stdcall FUN_00482830(Params* params)
+void __stdcall InitUnitSightCircleReveal(Params* params)
 {
     if ((g_game->flags.rawByte & 2) != 2) {
         return;
@@ -717,11 +717,11 @@ void __stdcall FUN_00482830(Params* params)
     params->field_4[1] = (short)y;
     *params->field_c = (char)lod;
     AddLineOfSight(params);
-    FUN_00481930(params);
+    RevealAroundUnit(params);
 }
 
 // FUNCTION: 0x482c20
-void FUN_00482c20(void)
+void BuildDerivedLayers(void)
 {
     Rec* rec = new Rec;
     g_game->field_142b7 = rec;
@@ -1241,7 +1241,7 @@ void LoadTntMap()
     // REGION r4 end
 
     // REGION r5 begin
-    FUN_00482c20();
+    BuildDerivedLayers();
     ClearBorderFeatures();
     unsigned int total2 = (unsigned int)(mapSettings[14] * mapSettings[15]) * 2;
     unsigned int half = total2 / 4;
@@ -1473,7 +1473,7 @@ void __stdcall DrawFogOfWar(void* surface)
 }
 
 // FUNCTION: 0x484b50
-void __stdcall FUN_00484b50(int x, int y, Vec3* out)
+void __stdcall ClampWorldPosToTerrain(int x, int y, Vec3* out)
 {
     if (x < 0)
         x = 0;

@@ -869,7 +869,7 @@ void FUN_00491a70()
     }
 }
 
-void __cdecl FUN_0041dc20();
+void __cdecl CollectEndGameStats();
 void EmptyShutdownPreCleanup();
 void FreeUnitMemory();
 void DestroyParticleLists();
@@ -893,7 +893,7 @@ void FUN_00491b60()
     g_game->flags_2a44w &= 0xfffb;
     ((Class_004ced40*)g_game->cd)->StopCdAudio();
     ((Sound*)g_game->cd)->SetTrackCategory(4);
-    FUN_0041dc20();
+    CollectEndGameStats();
     EmptyShutdownPreCleanup();
     FreeUnitMemory();
     DestroyParticleLists();

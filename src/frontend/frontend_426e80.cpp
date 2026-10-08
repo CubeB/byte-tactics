@@ -87,7 +87,7 @@ void __stdcall SetMissionType(int param);
 void __stdcall PlayMovie(char* param);
 void __stdcall OpenNewGameMenu(int param);
 void __stdcall SetGameMode(int param);
-void __stdcall FUN_0041d9f0(int param);
+void __stdcall SetEndGameState(int param);
 int __stdcall SelectConnection(int param);
 int __stdcall CreateLocalPlayer(unsigned char playerIndex, int param2);
 int __stdcall JoinNetGame(V4i v, int idx);
@@ -488,7 +488,7 @@ void RunFrontendStateMachine(void)
                 HideSoftwareCursor();
                 ShowEndMissionScreen();
                 SetGameMode(7);
-                FUN_0041d9f0(7);
+                SetEndGameState(7);
                 ShowSoftwareCursor();
                 return;
             case 0xe:

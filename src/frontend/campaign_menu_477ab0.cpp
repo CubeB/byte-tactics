@@ -38,7 +38,7 @@ extern int DAT_00507b6c;               // 0x507b6c
 int __stdcall IsCurrentGadgetNamed(Menu_00477ab0* menu, char* name);
 char __stdcall FindGameCdDrive(int param_1);
 void RegisterDataArchives();
-void FUN_0041da30();
+void InitMissionStatus();
 void SaveSettings();
 void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall FUN_00491c80(int value);
@@ -118,7 +118,7 @@ void __stdcall HandleNewGameClick(Menu_00477ab0* menu)
             return;
         }
         RegisterDataArchives();
-        FUN_0041da30();
+        InitMissionStatus();
         {
             char* name;
             if (DAT_00507b6c == 0) {

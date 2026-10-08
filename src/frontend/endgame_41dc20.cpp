@@ -95,7 +95,7 @@ extern Game_0041dc20* g_game;
 // mission's result letter), then fills the per-player statistics table
 // and the column maxima the results screen scales its bars by.
 // FUNCTION: 0x41dc20
-void FUN_0041dc20()
+void CollectEndGameStats()
 {
     Stat_0041dc20* stats = g_game->stats;
     g_game->won = g_game->bit4_3923b;

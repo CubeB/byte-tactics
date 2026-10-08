@@ -363,7 +363,7 @@ unsigned int g_byteRatesTick;  // 0x511ddc .bss
 int DAT_00511de0;  // 0x511de0 .bss
 int g_cdPathMismatch;  // 0x511de4 .bss
 Game* g_game;  // 0x511de8 .bss
-int DAT_00511dec;  // 0x511dec .bss
+int g_endGameGlamourSoundStarted;  // 0x511dec .bss
 ExplodedPiece* g_explodedPieces[100];  // 0x511df0 .bss
 unsigned char DAT_00511f80[16];  // 0x511f80 .bss
 int g_explosion0Duration;  // 0x511f90 .bss
@@ -703,6 +703,7 @@ char DAT_0051ff60[112];  // 0x51ff60 .bss
 char g_lzssPresetWindow[176];  // 0x51ffd0 .bss
 unsigned char DAT_00520080[3944];  // 0x520080 .bss
 char g_lzssPresetTree[24584];  // 0x520fe8 .bss
+Struct_00526ff0* DAT_00526ff0;  // 0x526ff0 .bss
 int g_lzssPresetReady;  // 0x526ff8 .bss
 int g_lzssUsePreset;  // 0x526ffc .bss (the type runs past the next known address, 0x526ffc+0x3)
 char DAT_005289b4;  // 0x5289b4 .bss

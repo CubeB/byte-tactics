@@ -238,7 +238,7 @@ char* __stdcall BuildSideList();
 int __stdcall SaveGameFile(char* path, char* description, int param_3);
 int __stdcall CountDirectoryEntries(const char* path, int flag);
 void __stdcall ScanDirectory(char* path, char* list, char* sizes, int mode, int flag, int what);
-void __cdecl FUN_0041da30();
+void __cdecl InitMissionStatus();
 void FUN_00428b60();
 void __stdcall BlankScreen();
 void __stdcall RegisterDataArchives();
@@ -501,7 +501,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         char* thumbs = ((HapiBank*)g_game->p38d6b)->GetStringItem("Thumbs", 0);
         strncpy(g_game->buf391cf, thumbs, 0x19);
         if (strlen(g_game->buf391cf) != 0x19)
-            FUN_0041da30();
+            InitMissionStatus();
         if (((Mission*)g_game->p391e9)->GetGameType() == 2) {
             ((HapiBank*)g_game->p38d6b)->OpenAccount("summary");
             g_game->field_2a3c =

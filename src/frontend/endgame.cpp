@@ -346,9 +346,9 @@ struct Game {
 
 // GLOBAL: 0x511de8
 extern Game* g_game;
-extern int DAT_00511dec;
+extern int g_endGameGlamourSoundStarted;
 extern CMemoryCache DAT_00511f80;
-extern void __cdecl FUN_00420610();
+extern void __cdecl FreeMemoryCache();
 
 void __cdecl FUN_004d83a0(int);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
@@ -439,14 +439,14 @@ void CreateGameObject()
 }
 
 // FUNCTION: 0x41d9f0
-void __stdcall FUN_0041d9f0(unsigned int param_1)
+void __stdcall SetEndGameState(unsigned int param_1)
 {
     unsigned int v = param_1 & 0xff;
     g_game->state = v;
 }
 
 // FUNCTION: 0x41da10
-void __stdcall FUN_0041da10(int param1, int param2, int param3)
+void __stdcall SetMissionStatus(int param1, int param2, int param3)
 {
     char mask;
     if (param3)
@@ -457,7 +457,7 @@ void __stdcall FUN_0041da10(int param1, int param2, int param3)
 }
 
 // FUNCTION: 0x41da30
-void FUN_0041da30(void)
+void InitMissionStatus(void)
 {
     memset(&g_game->missionFlags[0], 0x55, 25);
     g_game->missionFlags[25] = 0;
@@ -553,7 +553,7 @@ void __stdcall StartPaletteFade(unsigned char* target, unsigned char* current, i
 }
 
 // FUNCTION: 0x41e240
-void FUN_0041e240(void)
+void ScheduleFadeTick(void)
 {
     g_game->nextTime = GetTicks() + 1;
 }
@@ -668,7 +668,7 @@ void FillEndGameStatistics(void)
 }
 
 // FUNCTION: 0x41ea30
-int FUN_0041ea30(void)
+int AreStatBarsComplete(void)
 {
     Entry* entries = g_game->menu.layer->entries;
     int count = entries->count;
@@ -859,7 +859,7 @@ void __stdcall HandleEndMissionClick(Menu* gadget)
 }
 
 // FUNCTION: 0x41f040
-int FUN_0041f040()
+int ShouldShowNextMission()
 {
     if (((Mission*)g_game->campaign)->GetGameType() == 1 &&
         ((g_game->field_391af == 0 &&
@@ -870,7 +870,7 @@ int FUN_0041f040()
     return 0;
 }
 
-// Inlined copy of FUN_0041f040.
+// Inlined copy of ShouldShowNextMission.
 static inline int HasNextMission()
 {
     if (g_game->campaign->GetGameType() == 1 &&
@@ -884,7 +884,7 @@ static inline int HasNextMission()
 
 // Opens the end-of-mission screen (ENDMSN.GUI) with HandleEndMissionClick as its
 // handler. When the campaign goes on to another mission (the inlined
-// FUN_0041f040) it plays "outcome1", makes Start the default button and
+// ShouldShowNextMission) it plays "outcome1", makes Start the default button and
 // fills the Missions list; otherwise it plays "outcome0" and focuses
 // MainMenu. Then it draws the outcome image and shows the menu.
 // __stdcall although it takes no arguments: as __cdecl the load of `entries` moves up.
@@ -943,7 +943,7 @@ void __stdcall OpenEndMissionScreen()
 }
 
 // Enables the end-of-mission buttons: all of them when the campaign goes on
-// to another mission (the inlined FUN_0041f040), otherwise only MainMenu,
+// to another mission (the inlined ShouldShowNextMission), otherwise only MainMenu,
 // whose entry field +0x15 is set to 0x1a0. Then focuses Missions or
 // MainMenu and refreshes the menu.
 // FUNCTION: 0x41f400
@@ -973,7 +973,7 @@ void EnableEndMissionButtons()
 // For each of the 10 slots at +0x38dd9 that is in use, sets the menu entry
 // named "<prefix><slot>" to 1.
 // FUNCTION: 0x41f5c0
-void __stdcall FUN_0041f5c0(char* prefix)
+void __stdcall ActivatePlayerGadgets(char* prefix)
 {
     char name[64];
     for (int i = 0; i < 10; i++) {
@@ -1029,7 +1029,7 @@ void OpenCdCheckDialog()
 // +0x39057 is 1, draws the image at +0x39077 onto the surface at +0x37e1b at
 // the display's position, then refreshes the GUI at +0x519.
 // FUNCTION: 0x41f760
-int FUN_0041f760()
+int DrawEndGameFrame()
 {
     if (g_game->state == 1) {
         Display* d = GetDisplay();
@@ -1163,9 +1163,9 @@ void __stdcall RunEndGameState()
             unsigned now=GetTicks();
             now+=GetTickRate();
             g_game->deadline=now;
-            DAT_00511dec=0;
+            g_endGameGlamourSoundStarted=0;
         } else {
-            if(!DAT_00511dec) { FUN_00476ca0(); DAT_00511dec=1; }
+            if(!g_endGameGlamourSoundStarted) { FUN_00476ca0(); g_endGameGlamourSoundStarted=1; }
             if(g_game->deadline<GetTicks()) {
                 GetCurrentMouseEvent(event);
                 if(PopKey() || g_game->advance) {
@@ -1228,14 +1228,14 @@ void __stdcall RunEndGameState()
 }
 
 // FUNCTION: 0x4205f0
-void FUN_004205f0(void)
+void InitMemoryCache(void)
 {
     DAT_00511f80.ClearPointers();
-    atexit(FUN_00420610);
+    atexit(FreeMemoryCache);
 }
 
 // FUNCTION: 0x420610
-void __cdecl FUN_00420610()
+void __cdecl FreeMemoryCache()
 {
     DAT_00511f80.FreeBuffer();
 }

@@ -138,7 +138,7 @@ void UpdatePlacementGhostValidity();
 void DispatchOrdersPanelPageFlags();
 void UpdateMouseScroll();
 void CenterCameraOnRadarClick();
-void __stdcall FUN_0041d9f0(int a);
+void __stdcall SetEndGameState(int a);
 void BlankScreen();
 int FUN_004572a0();
 void FUN_00463c80();
@@ -391,7 +391,7 @@ void BattleFrame(void)
             g_game->field_391f1 = 7;
             g_game->field_391f5 = EndGameFrame;
             SetCloseHandler(LeaveNetGameCallback, 0);
-            FUN_0041d9f0(0);
+            SetEndGameState(0);
         }
     }
 

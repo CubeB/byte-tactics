@@ -897,7 +897,7 @@ struct Frame {
 void __stdcall GetGadgetName(Gadget* entries, char* text, int id);
 char __stdcall FindGameCdDrive(int param_1);
 void RegisterDataArchives();
-void FUN_0041da30();
+void InitMissionStatus();
 void SaveSettings();
 void __stdcall UpdateHelpText(Menu* param_1);
 void __stdcall GetCurrentMouseEvent(int* out);
@@ -1009,7 +1009,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
                 g_game->field_2a3c = c1 + c2;
 
                 FUN_0047a760();
-                FUN_0041da30();
+                InitMissionStatus();
                 SaveSettings();
                 g_game->field_2bc0 = 2;
                 FUN_00491c80(0x14);

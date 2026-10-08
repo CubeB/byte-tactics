@@ -12,6 +12,8 @@
 
 #pragma pack(push, 1)
 
+struct WeaponDef;
+
 class UnitDef {
 public:
     char name[0x20];                   // +0x000
@@ -86,10 +88,9 @@ public:
     float energystorage;               // +0x1e2
     float metalstorage;                // +0x1e6
     int buildtime;                     // +0x1ea
-    // The three weapon type pointers (WeaponDef, 0x115 bytes each); the loader
-    // stores what FindWeaponByName returns, so each file that reads the fields
-    // casts.
-    char* weapons[3];                  // +0x1ee
+    // The three weapon type pointers (0x115 bytes each); the loader stores what
+    // FindWeaponByName returns.
+    WeaponDef* weapons[3];             // +0x1ee
     unsigned int maxHealth;            // +0x1fa
     unsigned short buildRate;          // +0x1fe
     short healtime;                    // +0x200

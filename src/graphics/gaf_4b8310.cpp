@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free. Names are provisional.
+// Stays in its own file: the merged gaf.cpp cannot place it at the symbol
+// count its registers need.
 // Draws one bitmap (`param_2`, a BITMAPINFO: width/height shorts, x/y origin
 // shorts, two flag bytes, a texture count and a texture array) at x, y, either
 // into `param_1` or, when that is null, into the locked screen. When the

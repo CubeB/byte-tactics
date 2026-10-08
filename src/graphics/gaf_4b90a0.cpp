@@ -1,4 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free, finished by space-bunny-free, finished by GPT-6, finished by Claude Opus 5.5. Names are provisional.
+// Stays in its own file: the merged gaf.cpp cannot place it at the symbol
+// count its registers need.
 // Both headers are needed: their declaration count sets the row head registers.
 #include <windows.h>
 #include <math.h>

@@ -3919,7 +3919,7 @@ piece,0x50a448,12,src/graphics/palette.cpp,19,0,game data
 piece,0x4fdbc0,8,src/graphics/palette.cpp,4,0,game data
 piece,0x4fdbc8,8,src/graphics/palette.cpp,4,8,game data
 piece,0x502978,8,src/graphics/palette.cpp,3,0,game data
-piece,0x50a424,10,src/graphics/gaf_4b91b0.cpp,5,0,game data
+piece,0x50a424,10,src/graphics/gaf.cpp,49,0,game data
 piece,0x51fc99,16,src/util/commands.cpp,5,0,game data
 piece,0x509ed0,9,src/util/registry.cpp,14,0,game data
 piece,0x509eb8,22,src/util/registry.cpp,13,0,game data

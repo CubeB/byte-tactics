@@ -1,4 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Stays in its own file: the merged gaf.cpp cannot give it the header state
+// its pixel read order needs.
 // Blends two 2-byte source pixels per destination pixel: each source pixel is
 // a pair of palette indices looked up in the app's 256x256 colour-blend table
 // at +0xc0, and the two results are blended again. The source rows for output

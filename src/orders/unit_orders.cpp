@@ -1217,7 +1217,7 @@ public:
     int GetGameType();
 };
 
-struct Packet {
+struct FeatureDamagePacket {
     unsigned char type;
     unsigned char sub;
     short x;

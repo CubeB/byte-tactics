@@ -761,7 +761,7 @@ void* __stdcall HAPI_LoadFile(char* name, int flags);
 
 // A block of the root object: a count, a sub-count, then a run of 8-byte
 // entries whose first int is an offset that is rebased in place.
-struct Entry {
+struct Entry_004b8c60 {
     int off;
     int pad;
 };
@@ -770,7 +770,7 @@ struct Blk {
     unsigned char pad1[8];
     unsigned char subcount;
     unsigned char pad2[29];
-    Entry e[2];
+    Entry_004b8c60 e[2];
 };
 // FUNCTION: 0x4b8c60
 void* __stdcall LoadGaf(char* name)

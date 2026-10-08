@@ -74,7 +74,7 @@ struct Layer;
 // +0xbe, 4779e0's selected line and text pointer, 478790's surface at +0xbc
 // and gaf at +0xc0, 478240's callback at +0xce and value byte at +0x137. The
 // anonymous union keeps every reading.
-struct Entry {                         // 0x15b bytes
+struct Gadget {                        // 0x15b bytes
     char unknown_0[0x13];
     short x;                           // +0x13
     short y;                           // +0x15
@@ -124,7 +124,7 @@ struct Entry {                         // 0x15b bytes
 // A dialog record: the root of a dialog's gadget array and what it carries.
 struct Layer {
     int unknown_0;                     // +0x0
-    Entry* entries;                    // +0x4
+    Gadget* entries;                   // +0x4
     void (__stdcall* handler)(Menu*);  // +0x8
     void* data;                        // +0xc
     char unknown_10[0x3b - 0x10];
@@ -236,18 +236,18 @@ int __stdcall ScanDirectory(char* path, void* buffer, char* p3, int p4, int p5, 
 char* __stdcall SkipTextLines(char* text, int n);
 void __stdcall StreamSoundDelayed(char* text, int a, int b);
 int __stdcall SetGadgetStatusByName(Menu* menu, const char* name, int value);
-int __stdcall FindGadgetIndex(Entry* entries, const char* name, int type);
-Entry* __stdcall FindGadgetChecked(Entry* entries, const char* name);
-Entry* __stdcall FindGadgetOrNull(Entry* entries, const char* name);
-Entry* __stdcall FUN_004a0280(Entry* entries, const char* name);
-void __stdcall SelectFontForEntry(Entry* entries, int index);
+int __stdcall FindGadgetIndex(Gadget* entries, const char* name, int type);
+Gadget* __stdcall FindGadgetChecked(Gadget* entries, const char* name);
+Gadget* __stdcall FindGadgetOrNull(Gadget* entries, const char* name);
+Gadget* __stdcall FUN_004a0280(Gadget* entries, const char* name);
+void __stdcall SelectFontForEntry(Gadget* entries, int index);
 char* __stdcall WordWrapText(Menu* menu, char* text, int value, int index);
 void DrawHelpPage();
 char* __stdcall AllocColorMarkupText(char* text);
 void InitBriefingText();
 void __cdecl ApplyCampaignSideSelection();
-void __stdcall UpdateSolarSystem(Menu* window, Entry* item);
-void __stdcall UpdatePlanet(Menu* window, Entry* item);
+void __stdcall UpdateSolarSystem(Menu* window, Gadget* item);
+void __stdcall UpdatePlanet(Menu* window, Gadget* item);
 void __stdcall HandleMissionBriefingClick(Menu* menu);
 void __stdcall HandleNewGameClick(Menu* menu);
 void __stdcall FillMissionList();
@@ -515,7 +515,7 @@ void InitBriefingText()
 {
     char* text = g_game->net->GetBriefing();
     if (text) {
-        Entry* gadgets = g_game->menu.layer->entries;
+        Gadget* gadgets = g_game->menu.layer->entries;
         int i = FindGadgetIndex(gadgets, "SOLARSYSTEM", 0xe);
         if (i != -1) {
             gadgets[i].field_28 = g_game->field_37ef2 + 1;
@@ -590,7 +590,7 @@ static inline char* FindPageStart(char* start, int lines, int page)
 void DrawHelpPage()
 {
     Layer* dialog = g_game->menu.layer;
-    Entry* gadgets = dialog->entries;
+    Gadget* gadgets = dialog->entries;
     int count;
     int colourState = 1;
     if (g_briefingWrappedText == 0)
@@ -608,7 +608,7 @@ void DrawHelpPage()
     SetBlinkGadget(&g_game->menu,
                  FindGadgetIndex(gadgets, "TextRegion", 5));
     int idx = FindGadgetIndex(gadgets, "TextRegion", 0xe);
-    Entry* gp = &gadgets[idx];
+    Gadget* gp = &gadgets[idx];
     gp->field_28 = g_game->flag_37ef2 + 1;
     SelectFontForEntry(gadgets, idx);
 
@@ -721,7 +721,7 @@ void __cdecl ApplyCampaignSideSelection()
 // FUNCTION: 0x477410
 void ApplyDifficultyButtons()
 {
-    Entry* gadget = FindGadgetOrNull(g_game->menu.layer->entries, "Difficulty");
+    Gadget* gadget = FindGadgetOrNull(g_game->menu.layer->entries, "Difficulty");
     if (g_game->difficulty == 0) {
         gadget->value = 0;
         SetGadgetStatusByName(&g_game->menu, "Easy", 1);
@@ -885,7 +885,7 @@ void __stdcall FillMissionList(Menu* menu, int unused)
         GameFreeThunk((int*)g_missionNameList);
         g_missionNameList = 0;
     }
-    Entry* layout =
+    Gadget* layout =
         FindGadgetChecked(g_game->menu.layer->entries, "Campaign");
     g_game->net->LoadCampaign(SkipTextLines(layout->text, layout->selected));
     int count = g_game->net->BuildMissionList((int*)&g_missionNameList);
@@ -913,14 +913,14 @@ static inline void FillCampaignListInline(int side)
     MarkChanged(&g_game->menu);
 }
 
-static inline void FillMissionListInline(Menu* menu, Entry* unused)
+static inline void FillMissionListInline(Menu* menu, Gadget* unused)
 {
     Layer* layer = menu->layer;
     if (g_missionNameList != 0) {
         GameFreeThunk(g_missionNameList);
         g_missionNameList = 0;
     }
-    Entry* layout =
+    Gadget* layout =
         FindGadgetChecked(g_game->menu.layer->entries, "Campaign");
     g_game->net->LoadCampaign(
         SkipTextLines(layout->text, layout->selected));
@@ -934,7 +934,7 @@ static inline void FillMissionListInline(Menu* menu, Entry* unused)
 // FUNCTION: 0x477ab0
 void __stdcall HandleNewGameClick(Menu* menu)
 {
-    Entry* entries = menu->layer->entries;
+    Gadget* entries = menu->layer->entries;
     char* playerInfo = (char*)g_game + 0x14b * g_game->localPlayer;
     int index;
 
@@ -962,7 +962,7 @@ void __stdcall HandleNewGameClick(Menu* menu)
         {
             char* name;
             if (g_campaignSimplifiedLayout == 0) {
-                Entry* e = FindGadgetChecked(entries, "Campaign");
+                Gadget* e = FindGadgetChecked(entries, "Campaign");
                 name = SkipTextLines(e->text, e->selected);
                 g_game->net->LoadCampaign(name);
             } else if (*(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95) == 0) {
@@ -972,7 +972,7 @@ void __stdcall HandleNewGameClick(Menu* menu)
             }
         }
         if (g_anyMissionMode != 0) {
-            Entry* e = FindGadgetChecked(entries, "Missions");
+            Gadget* e = FindGadgetChecked(entries, "Missions");
             index = e->selected;
         }
         if (g_game->net->SelectMission(index) != 0) {
@@ -1061,7 +1061,7 @@ void __stdcall OpenNewGameMenu(int param_1)
     g_anyMissionMode = param_1;
     Layer* layer =
         LoadGuiLayer(&g_game->menu, "NEWGAME.GUI", 0x400);
-    Entry* entries = layer->entries;
+    Gadget* entries = layer->entries;
     layer->handler = HandleNewGameClick;
     layer->data = g_game;
 
@@ -1082,19 +1082,19 @@ void __stdcall OpenNewGameMenu(int param_1)
     if (param_1 != 0) {
         int i = FindGadgetIndex(entries, "Campaign", 2);
         if (i != -1) {
-            Entry* e = (Entry*)((char*)entries + i * 0x15b);
+            Gadget* e = (Gadget*)((char*)entries + i * 0x15b);
             e->y = 0x134;
             e->h = 0x30;
         }
         i = FindGadgetIndex(entries, "CampaignKnob", 4);
         if (i != -1) {
-            Entry* e = (Entry*)((char*)entries + i * 0x15b);
+            Gadget* e = (Gadget*)((char*)entries + i * 0x15b);
             e->y = 0x134;
             e->h = 0x30;
         }
         i = FindGadgetIndex(entries, "Missions", 2);
         if (i != -1)
-            ((Entry*)((char*)entries + i * 0x15b))->h = 0x3e;
+            ((Gadget*)((char*)entries + i * 0x15b))->h = 0x3e;
     }
 
     HideSoftwareCursor();
@@ -1121,7 +1121,7 @@ void __stdcall OpenNewGameMenu(int param_1)
 
     ApplyCampaignSideSelection();
 
-    Entry* diff =
+    Gadget* diff =
         FindGadgetOrNull(g_game->menu.layer->entries, "Difficulty");
     if (g_game->difficulty == 0) {
         diff->value = 0;
@@ -1141,7 +1141,7 @@ void __stdcall OpenNewGameMenu(int param_1)
     if (g_campaignSimplifiedLayout == 0 || param_1 != 0) {
         SetGadgetActiveByName(&g_game->menu, "Campaign", 1);
         SetGadgetActiveByName(&g_game->menu, "CampaignKnob", 1);
-        Entry* c = FindGadgetChecked(entries, "Campaign");
+        Gadget* c = FindGadgetChecked(entries, "Campaign");
         // Original bug, kept: c is dereferenced on both branches even if null.
         if (c != 0 && g_anyMissionMode != 0)
             c->callback = FillMissionList;
@@ -1172,7 +1172,7 @@ void __stdcall OpenNewGameMenu(int param_1)
                 GameFreeThunk(g_missionNameList);
                 g_missionNameList = 0;
             }
-            Entry* m = FindGadgetChecked(g_game->menu.layer->entries,
+            Gadget* m = FindGadgetChecked(g_game->menu.layer->entries,
                                              "Campaign");
             char* text = SkipTextLines(m->text, m->selected);
             g_game->net->LoadCampaign(text);
@@ -1198,7 +1198,7 @@ void __stdcall OpenNewGameMenu(int param_1)
 }
 
 // FUNCTION: 0x478790
-void __stdcall UpdateSolarSystem(Menu* arg1, Entry* arg2)
+void __stdcall UpdateSolarSystem(Menu* arg1, Gadget* arg2)
 {
     int windMin = g_game->net->minWindSpeed;
     int windMax = g_game->net->maxWindSpeed;
@@ -1214,7 +1214,7 @@ void __stdcall UpdateSolarSystem(Menu* arg1, Entry* arg2)
     }
 
     int i = FindGadgetIndex(arg1->layer->entries, "SOLARSYSTEM", 0xe);
-    Entry* g = FUN_004a0280(arg1->layer->entries, "SOLARSYSTEM");
+    Gadget* g = FUN_004a0280(arg1->layer->entries, "SOLARSYSTEM");
 
     Rect rect;
     rect.x1 = g->x;
@@ -1300,7 +1300,7 @@ void __stdcall UpdateSolarSystem(Menu* arg1, Entry* arg2)
 }
 
 // FUNCTION: 0x478b40
-void __stdcall UpdatePlanet(Menu* arg1, Entry* arg2)
+void __stdcall UpdatePlanet(Menu* arg1, Gadget* arg2)
 {
     void* surface = arg1->layer->entries->surface;
     if (g_briefingPlanetNextTick <= GetTickCount()) {
@@ -1413,7 +1413,7 @@ void OpenMissionBriefing(void)
     char buf[20];
     char* name;
     Layer* dialog;
-    Entry* gadgets;
+    Gadget* gadgets;
     int i;
     unsigned char side;
 
@@ -1524,7 +1524,7 @@ void OpenMissionBriefing(void)
     if (LoadScreenGaf(&g_game->menu, briefs[i])) {
         int idx = FindGadgetIndex(gadgets, "PANORAMA", 6);
         if (idx != -1) {
-            Entry* g = &gadgets[idx];
+            Gadget* g = &gadgets[idx];
             g->frame = 0;
             void* gaf = FindGafEntry(gadgets->gaf, pans[i]);
             if (gaf != 0) {
@@ -1537,7 +1537,7 @@ void OpenMissionBriefing(void)
             void* gaf = FindGafEntry(gadgets->gaf, rotates[i]);
             if (gaf != 0) {
                 InitGafSequence(&g_briefingPlanetFrameCursor, gaf, 0);
-                Entry* g = &gadgets[idx];
+                Gadget* g = &gadgets[idx];
                 g->frame = 0;
                 g->field_be = gaf;
                 g->field_b6 = (void*)UpdatePlanet;

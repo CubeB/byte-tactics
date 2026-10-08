@@ -75,7 +75,7 @@ struct Data {
 // One 0x15b-byte GUI entry. The views disagree about the bytes at +0xba:
 // 41ea30's and 41f7f0's Amount against 41ec50's short field_ba and 41e420's
 // image pointer at +0xbe; the union keeps both readings.
-struct Entry {
+struct Gadget {
     unsigned char type;                // +0x0
     char unknown_1;
     char name[0x11];                   // +0x2
@@ -122,7 +122,7 @@ struct Menu {
 
 struct Layer {
     int unknown_0;
-    Entry* entries;                    // +0x4
+    Gadget* entries;                   // +0x4
     void (__stdcall* handler)(Menu*);  // +0x8
     Data* data;                        // +0xc
     char unknown_10[0x24 - 0x10];
@@ -154,7 +154,7 @@ struct PlayerInfo {
 // The per-player statistics row: 41e420 indexes the seven ints at +0x1e;
 // 41dc20's names for them stay as their own view, unused here, since the
 // union's symbols keep the allocation (docs/c2-regalloc.md).
-struct Slot {                          // 0x3a bytes
+struct EndGamePlayerStat {             // 0x3a bytes
     char name[0x1e];                   // +0x0
     union {
         int stats[7];                  // +0x1e
@@ -293,7 +293,7 @@ struct Game {
     char unknown_37ef2[0x38a47 - 0x37ef2];
     unsigned int ticks;                // +0x38a47
     char unknown_38a4b[0x38dd9 - 0x38a4b];
-    Slot slots[10];                    // +0x38dd9
+    EndGamePlayerStat slots[10];       // +0x38dd9
     char unknown_3901d[0x39057 - 0x3901d];
     int state;                         // +0x39057
     unsigned int deadline;             // +0x3905b
@@ -379,8 +379,8 @@ const char* __stdcall Translate(const char* text);
 void __stdcall OpenMessageBox(Menu* menu, const char* text, int param_3, int param_4, int param_5);
 void __stdcall PlaySoundByName(const char* name, int param_2);
 int __stdcall IsCurrentGadgetNamed(Menu* gadget, char* name);
-int __stdcall FindGadgetIndex(Entry* entries, char* name, int type);
-Entry* __stdcall FindGadgetChecked(Entry* entries, char* name);
+int __stdcall FindGadgetIndex(Gadget* entries, char* name, int type);
+Gadget* __stdcall FindGadgetChecked(Gadget* entries, char* name);
 void __stdcall ClearSelectedGadget(Menu* menu);
 int __stdcall AddHotspotGadget(Menu* menu, Button* record);
 int __stdcall AddBarGadget(Menu* menu, Bar* record);
@@ -391,7 +391,7 @@ Layer* __stdcall LoadGuiLayer(Menu* menu, const char* name, int flags);
 void __stdcall SelectGadgetByName(Menu* menu, const char* name);
 char* __stdcall BuildScrollItems1(char* names, char* flags, int count);
 void __stdcall ConfigureListBoxByName(Menu* menu, char* name, void* items, int count, int flag);
-Entry* __stdcall FUN_004a0200(char* entries, char* name);
+Gadget* __stdcall FUN_004a0200(char* entries, char* name);
 void __stdcall SetListBoxScrollByName(Menu* menu, char* name, int index);
 void __stdcall SetGadgetActiveByName(Menu* menu, const char* name, int value);
 void __stdcall SetTranslatedTextByName(Menu* menu, char* name, char* text, int param_4);
@@ -609,7 +609,7 @@ void FillEndGameStatistics(void)
     Button button;
     char name[64];
     Menu* menu = &g_game->menu;
-    Entry* entries = menu->layer->entries;
+    Gadget* entries = menu->layer->entries;
     // Keep the setup statements in this order: it fixes the register choice.
     memset(&bar, 0, sizeof(bar));
     bar.h.flag = 0;
@@ -638,7 +638,7 @@ void FillEndGameStatistics(void)
             AddHotspotGadget(&g_game->menu, &button);
             int idx = FindGadgetIndex(entries, name, 6);
             if (idx != -1) {
-                Entry* e = &entries[idx];
+                Gadget* e = &entries[idx];
                 if (e) {
                     e->image = g_game->logos32;
                     e->field_c6 = g_game->players[i].info->color;
@@ -666,7 +666,7 @@ void FillEndGameStatistics(void)
 // FUNCTION: 0x41ea30
 int AreStatBarsComplete(void)
 {
-    Entry* entries = g_game->menu.layer->entries;
+    Gadget* entries = g_game->menu.layer->entries;
     int count = entries->count;
     for (int i = 0; i < count; i++) {
         if (entries[i].type == 0xd) {
@@ -752,7 +752,7 @@ char* __stdcall BuildScrollItems2(char* names, int a, int b)
 // FUNCTION: 0x41ec50
 void __stdcall HandleEndMissionClick(Menu* gadget)
 {
-    Entry* entries = gadget->layer->entries;
+    Gadget* entries = gadget->layer->entries;
     Data* data = gadget->layer->data;
     if (gadget->field_60 == -1) {
         BlankScreen();
@@ -918,7 +918,7 @@ void __stdcall OpenEndMissionScreen()
                 break;
         }
         ConfigureListBoxByName(&g_game->menu, "Missions", data->items, count, 0);
-        Entry* knob = FUN_004a0200(entries, "KNOB");
+        Gadget* knob = FUN_004a0200(entries, "KNOB");
         knob->field_136 = knob->height - knob->field_142 - 3;
         SetListBoxScrollByName(&g_game->menu, "Missions", g_game->mission);
         SetListBoxScrollByName(&g_game->menu, "Missions", g_game->mission + (g_game->field_391af != 0));
@@ -958,7 +958,7 @@ void EnableEndMissionButtons()
         SelectGadgetByName(&g_game->menu, "Missions");
     } else {
         SetGadgetActiveByName(&g_game->menu, "MainMenu", 1);
-        Entry* entries = g_game->menu.layer->entries;
+        Gadget* entries = g_game->menu.layer->entries;
         entries[FindGadgetIndex(entries, "MainMenu", 1)].y = 0x1a0;
         SelectGadgetByName(&g_game->menu, "MainMenu");
     }
@@ -1050,7 +1050,7 @@ int DrawEndGameFrame()
 
 static inline int StatsComplete()
 {
-    Entry* entries=g_game->menu.layer->entries;
+    Gadget* entries=g_game->menu.layer->entries;
     int count=entries->count;
     for(int i=0;i<count;++i) {
         if(entries[i].type==13) {

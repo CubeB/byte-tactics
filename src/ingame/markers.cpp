@@ -69,7 +69,7 @@ struct Weapon {
     int field_e0;                     // +0xe0
 };
 
-struct Slot {
+struct UnitWeaponSlot {
     Weapon* weapon;                   // +0x0
     char unknown_4[0xf - 4];
     unsigned char flags;              // +0xf
@@ -112,7 +112,7 @@ struct Player;
 struct Unit {
     int motion;                      // +0x0
     char unknown_4[0x10 - 4];
-    Slot slots[3];                    // +0x10
+    UnitWeaponSlot slots[3];          // +0x10
     char unknown_64[0x6a - 0x64];
     Pos pos;                          // +0x6a
     char unknown_76[0x92 - 0x76];
@@ -146,7 +146,7 @@ struct Order {
     unsigned int timestamp;           // +0x46
 };
 
-struct Entry {                        // 0x19-byte entries, table at g_missionOrderTableBegin
+struct MissionOrderTableEntry {       // 0x19-byte entries, table at g_missionOrderTableBegin
     char unknown_0[0x10];
     unsigned char field_10;           // +0x10
     char unknown_11[0x19 - 0x11];
@@ -183,7 +183,7 @@ struct Rect {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern Entry* g_missionOrderTableBegin;
+extern MissionOrderTableEntry* g_missionOrderTableBegin;
 extern double TWO_PI;                    // 6.28318530717958
 extern double ONE_EIGHTH;                // 0.125
 

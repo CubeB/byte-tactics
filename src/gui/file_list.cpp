@@ -45,7 +45,7 @@ struct BlinkWord {
 // A gadget entry, 0x15b bytes, shared by the requester's callers and its
 // click handler. The name is a plain string; value (0xb6) holds the
 // highlighted file name, field_ba the selection index.
-struct Entry {
+struct Gadget {
     char unknown_0[0x13];
     short field_13;                  // +0x13
     short field_15;                  // +0x15
@@ -85,12 +85,12 @@ struct FileRequester {
 
 struct Layer {
     char unknown_0[4];
-    Entry* entries;                  // +0x04
+    Gadget* entries;                 // +0x04
     char unknown_8[4];
     FileRequester* req;              // +0x0c
 };
 
-struct Gadget {
+struct Gui {
     char unknown_0[0x18];
     Layer* layer;                    // +0x18
     char unknown_1c[0x60 - 0x1c];
@@ -117,13 +117,13 @@ struct Dialog {
 
 struct Entry_004a1810;
 
-Entry* __stdcall FUN_004a0010(Entry* entries, char* name);
-Entry* __stdcall FUN_004a0180(Entry* entries, char* name);
-Entry* __stdcall FUN_004a0200(Entry* entries, char* name);
-Entry* __stdcall FindGadgetOrNull(Entry* entries, char* name);
-int __stdcall IsGadgetNamed(Entry* entries, int i, char* name);
-int __stdcall FindGadgetIndex(Entry* entries, char* name, int type);
-Entry* __stdcall FindGadgetChecked(Entry* entries, char* name);
+Gadget* __stdcall FUN_004a0010(Gadget* entries, char* name);
+Gadget* __stdcall FUN_004a0180(Gadget* entries, char* name);
+Gadget* __stdcall FUN_004a0200(Gadget* entries, char* name);
+Gadget* __stdcall FindGadgetOrNull(Gadget* entries, char* name);
+int __stdcall IsGadgetNamed(Gadget* entries, int i, char* name);
+int __stdcall FindGadgetIndex(Gadget* entries, char* name, int type);
+Gadget* __stdcall FindGadgetChecked(Gadget* entries, char* name);
 void __stdcall MarkChanged(void* obj);
 void __stdcall ClearSelectedGadget(void* obj);
 void __stdcall RefreshFileList(FileRequester* obj);
@@ -327,9 +327,9 @@ void __stdcall RefreshFileList(FileRequester* obj)
 // LOAD/SWIN enter a directory, CANC accepts, NAME takes the highlighted file,
 // PATH walks one level up and the *DRV entries pick a drive letter.
 // FUNCTION: 0x4af670
-void __stdcall FileRequesterHandler(Gadget* gadget)
+void __stdcall FileRequesterHandler(Gui* gadget)
 {
-    Entry* entries;
+    Gadget* entries;
     char drive[2];
     int result;
     int i;
@@ -449,11 +449,11 @@ FileRequester* Dialog::OpenFileRequester(Dialog* self, char* arg2, char* arg3, c
     ((void**)gui)[3] = obj;
     obj->callback = 0;
 
-    Entry* entries = (Entry*)self->field_18->field_4;
+    Gadget* entries = (Gadget*)self->field_18->field_4;
     obj->field_8 = (char*)FUN_004a0010(entries, "NAME");
     obj->field_c = (char*)FUN_004a0010(entries, "MASK");
     obj->field_10 = (char*)FindGadgetOrNull(entries, "PATH");
-    Entry* titl = FUN_004a0180(entries, "TITL");
+    Gadget* titl = FUN_004a0180(entries, "TITL");
     obj->field_4 = (ReqSub*)FUN_004a0200(entries, "SLID");
 
     short none = -1;

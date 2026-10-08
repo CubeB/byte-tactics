@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-struct Entry {
+struct ChatHudEntry {
     char unknown_0[0x1e];
     unsigned char flags;   // +0x1e
     char unknown_1f[0x29];
@@ -7,7 +7,7 @@ struct Entry {
 
 struct Game {
     char unknown_0[0x1318];
-    Entry entries[30];
+    ChatHudEntry entries[30];
 };
 
 extern Game* g_game;

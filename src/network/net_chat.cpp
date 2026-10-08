@@ -13,10 +13,10 @@
 // record's time, which its view puts at +0 (so its array begins at +0x132f,
 // the first record's time), and CycleMessageUnits sees only the flags, at
 // +0x1e of an array beginning at +0x1318. All three resolve to the same
-// records, so one Entry carries every name at its true offset. The two unit
+// records, so one ChatHudEntry carries every name at its true offset. The two unit
 // indices overlap a byte apart and cannot share the name `unit`, so the 8-bit
 // DrawMessages one is `unit_46`; DrawMessages reads it there instead.
-struct Entry {                         // 0x48 bytes
+struct ChatHudEntry {                  // 0x48 bytes
     char text[0x40];                   // +0x00
     union { unsigned int time; };      // +0x40
     union {
@@ -58,7 +58,7 @@ struct Game {
     char unknown_0[0xdcb];
     unsigned char colors[16];          // +0xdcb
     char unknown_ddb[0x12ef - 0xddb];
-    Entry entries[30];                 // +0x12ef
+    ChatHudEntry entries[30];          // +0x12ef
     char unknown_1b5f[0x1b63 - 0x1b5f];
     Player_00464060 players[11];       // +0x1b63
     char unknown_299c[0x2a3e - 0x299c];
@@ -190,7 +190,7 @@ int ScrollToNextMessageUnit(void)
     int i = g->head;
     int end = g->tail;
     while (end != i) {
-        Entry* e = &g->entries[i];
+        ChatHudEntry* e = &g->entries[i];
         unsigned short id = e->unit;
         if (id != 0 && (e->flags & 0x10) == 0) {
             Unit* u = &g->units[id];

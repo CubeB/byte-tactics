@@ -11,7 +11,7 @@
 // where the 0x80 arm tests both of its divisors first.
 
 #pragma pack(push, 1)
-struct Entry_004a3ef0 {                // 0x15b bytes
+struct Gadget_004a3ef0 {               // 0x15b bytes
     unsigned char type;                // +0x00
     unsigned char kind;                // +0x01
     char unknown_02[0x17 - 0x02];
@@ -52,7 +52,7 @@ struct List_004a3ef0 {
 
 struct Holder_004a3ef0 {
     int current;                       // +0x00
-    Entry_004a3ef0* entries;           // +0x04
+    Gadget_004a3ef0* entries;          // +0x04
     char unknown_08[0x14 - 0x08];
     List_004a3ef0* list;               // +0x14
 };
@@ -75,7 +75,7 @@ static inline Glyph_004a3ef0* GetGlyph_004a3ef0(unsigned char c)
     return (Glyph_004a3ef0*)GetGafFrame(g_guiContext->list->field_0c, c);
 }
 
-static inline int Find_004a3ef0(Entry_004a3ef0* entries, unsigned char kind)
+static inline int Find_004a3ef0(Gadget_004a3ef0* entries, unsigned char kind)
 {
     for (int i = 1; i < entries->count + 1; i++) {
         if (entries[i].type == 2 && entries[i].kind == kind)
@@ -85,7 +85,7 @@ static inline int Find_004a3ef0(Entry_004a3ef0* entries, unsigned char kind)
 }
 
 // Reads the count and the font pointer before the count > 0 test.
-static inline int LineSize_004a3ef0(Entry_004a3ef0* e)
+static inline int LineSize_004a3ef0(Gadget_004a3ef0* e)
 {
     int count = e->field_c0;
     Font_004a3ef0** font = e->font;
@@ -98,8 +98,8 @@ static inline int LineSize_004a3ef0(Entry_004a3ef0* e)
 // FUNCTION: 0x4a3ef0
 void __stdcall DrawSlider(Dialog* param_1, int param_2)
 {
-    Entry_004a3ef0* entries = param_1->holder->entries;
-    Entry_004a3ef0* me = &entries[param_2];
+    Gadget_004a3ef0* entries = param_1->holder->entries;
+    Gadget_004a3ef0* me = &entries[param_2];
     unsigned char kind = me->kind;
     int found = Find_004a3ef0(entries, kind);
     // Must stay a union with both zero stores: a plain int changes the register choices.
@@ -107,7 +107,7 @@ void __stdcall DrawSlider(Dialog* param_1, int param_2)
     lines.full = 0;
     lines.word = 0;
     if (found != 0) {
-        Entry_004a3ef0* e = &entries[found];
+        Gadget_004a3ef0* e = &entries[found];
         if (e->type == 2) {
             if (e->field_1b & 0x10) {
                 int i = 1;

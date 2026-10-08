@@ -141,7 +141,7 @@ struct Game {
     Mission* net;                      // +0x391e9
 };
 
-struct Packet {
+struct FeatureDamagePacket {
     unsigned char type;
     unsigned char sub;
     short x;
@@ -262,7 +262,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
             order->target.owner->rot = spot->rot;
         RemoveFeature(GetMapCellAtPosition(&order->pos), 0);
         if (g_game->net->GetGameType() == 3) {
-            Packet packet;
+            FeatureDamagePacket packet;
             int n = c - g_game->cells;
             int w = g_game->width;
             packet.type = 0x0f;

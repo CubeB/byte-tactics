@@ -1421,7 +1421,7 @@ struct Packet_004560c0 {
 };
 
 // The incoming packet's header, cast onto g_game->buffer.
-struct Packet {
+struct Packet_00453d40 {
     unsigned int type;                 // +0x00
     int field_4;                       // +0x04
     int id;                            // +0x08

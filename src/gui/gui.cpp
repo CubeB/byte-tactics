@@ -2102,7 +2102,7 @@ void __stdcall DrawSliderBar(Object_004a2580* obj, int index)
     }
 }
 #pragma pack(push, 1)
-struct Entry_004a2be0 {                // 0x15b bytes
+struct Gadget_004a2be0 {               // 0x15b bytes
     unsigned char type;                // +0x00
     char unknown_01[0x19 - 0x01];      // +0x01
     short field_19;                    // +0x19
@@ -2129,7 +2129,7 @@ struct Entry_004a2be0 {                // 0x15b bytes
 
 struct Holder_004a2be0 {
     int current;                       // +0x00
-    Entry_004a2be0* entries;           // +0x04
+    Gadget_004a2be0* entries;          // +0x04
     char unknown_08[0x14 - 0x08];
     void* list;                        // +0x14
 };
@@ -2147,7 +2147,7 @@ char* __stdcall SkipTextLines(char* text, int line);
 // FUNCTION: 0x4a2be0
 void __stdcall SyncAssocGadgets(Dialog_4a2be0* param_1, int param_2)
 {
-    Entry_004a2be0* entries = param_1->holder->entries;
+    Gadget_004a2be0* entries = param_1->holder->entries;
     int i = 1;
     char* me = (char*)entries + param_2 * 0x15b;
     int type = *(unsigned char*)me;
@@ -2750,7 +2750,7 @@ void __stdcall SetGadgetItems(Table_004a36a0* table, char* name, int* items, int
     }
 }
 #pragma pack(push, 1)
-struct Entry_004a3780 {                // 0x15b bytes
+struct Gadget_004a3780 {               // 0x15b bytes
     unsigned char type;                // +0x00
     unsigned char kind;                // +0x01
     char unknown_02[0x13 - 0x02];
@@ -2787,7 +2787,7 @@ struct List_004a3780 {
 
 struct Holder_004a3780 {
     int current;                       // +0x00
-    Entry_004a3780* entries;           // +0x04
+    Gadget_004a3780* entries;          // +0x04
     char unknown_08[0x14 - 0x08];
     List_004a3780* list;               // +0x14
     char unknown_18[0x20 - 0x18];
@@ -2858,8 +2858,8 @@ int __stdcall HandleListBoxInput(Object_004a3780* obj, int index, int param_3)
 {
     if (obj->field_60 != -1)
         return 0;
-    Entry_004a3780* entries = obj->holder->entries;
-    Entry_004a3780* me = &entries[index];
+    Gadget_004a3780* entries = obj->holder->entries;
+    Gadget_004a3780* me = &entries[index];
     int orig_sel = me->field_ba;
     if (me->field_c0 == 0)
         return 0;
@@ -4283,7 +4283,7 @@ struct GafEntry {                       // 4 bytes: frame table header
 
 struct Gui;
 
-struct Entry {                          // 0x15b bytes, one GUI list entry
+struct Gadget {                         // 0x15b bytes, one GUI list entry
     unsigned char type;                 // +0x00
     unsigned char team;                 // +0x01
     char name[0x11];                    // +0x02 (strncpy 0x10)
@@ -4327,7 +4327,7 @@ struct Entry {                          // 0x15b bytes, one GUI list entry
             char* field_c2;             // +0xc2
             char unknown_c6[4];
             GafEntry* gaf;              // +0xca
-            void (__stdcall* callback)(Gui*, Entry*);   // +0xce
+            void (__stdcall* callback)(Gui*, Gadget*);  // +0xce
             char unknown_d2[4];
             union {
                 int language;           // +0xd6
@@ -4403,7 +4403,7 @@ struct Entry {                          // 0x15b bytes, one GUI list entry
 
 struct Layer {                          // a screen on the stack
     Layer* next;                        // +0x00
-    Entry* entries;                     // +0x04
+    Gadget* entries;                    // +0x04
     void (__stdcall* handler)(Gui*);    // +0x08
     char unknown_0c[4];
     unsigned int flags;                 // +0x10
@@ -4540,7 +4540,7 @@ int __stdcall HandleListBoxInput(Gui* obj, int index, int key);
 void __stdcall HandleSliderInput(Gui* obj, int index);
 int __stdcall HandleTextEditKey(Gui* obj, int index, int key);
 void __cdecl GameFreeThunk(void* p);
-int __stdcall SelectFontForEntry(Entry* entries, int index);
+int __stdcall SelectFontForEntry(Gadget* entries, int index);
 
 // The real GetTextPixelWidth (0x4a5030), which /Ob2 inlines into its callers here.
 static inline int GetTextPixelWidth(char* text)
@@ -4577,7 +4577,7 @@ static inline int LineHeightDirect()
     return (int)GetGafFrame(g_guiContext->language->glyphs, 0x49)->height + 2;
 }
 
-static inline int FindEntry(Entry* entries, char* name)
+static inline int FindEntry(Gadget* entries, char* name)
 {
     for (int i = 1; i < entries->u.count + 1; i++) {
         if (strncmp(entries[i].name, name, 0x10) == 0)
@@ -4595,8 +4595,8 @@ static inline int FindEntry(Entry* entries, char* name)
 // FUNCTION: 0x4a53c0
 void __stdcall LayoutLabelText(Gui* obj, int index)
 {
-    Entry* entries = obj->layer->entries;
-    Entry* entry = &entries[index];
+    Gadget* entries = obj->layer->entries;
+    Gadget* entry = &entries[index];
     int i;
     int t = 0;
     for (i = 1; i < entries[0].u.count + 1; i++) {
@@ -4638,7 +4638,7 @@ void __stdcall LayoutLabelText(Gui* obj, int index)
 void __stdcall DrawLabel(Gui* obj, int index)
 {
     obj->language = obj->values[1];
-    Entry* entries = obj->layer->entries;
+    Gadget* entries = obj->layer->entries;
 
     int i = 1;
     int t = 0;
@@ -4674,7 +4674,7 @@ void __stdcall DrawLabel(Gui* obj, int index)
     if (entries[index].image != 0)
         FillRectangle(entries->u.assets.surface, &rect, obj->colours[entries[index].image]);
     int nx = rect.left;
-    Entry* entry = &entries[index];
+    Gadget* entry = &entries[index];
 
     if (entry->flags & 4) {
         nx = entry->w + rect.left;
@@ -4706,7 +4706,7 @@ void __stdcall DrawLabel(Gui* obj, int index)
     }
 
     if (entries[index].field_148 & 1) {
-        Entry* entries2 = obj->layer->entries;
+        Gadget* entries2 = obj->layer->entries;
         Rect rect2;
         if (entries2[index].type == 0) {
             rect2.left = 0;
@@ -4757,7 +4757,7 @@ void __stdcall SetCurrentFont(Gui* p, int index)
 // FUNCTION: 0x4a5d50
 int __stdcall TruncateGadgetText(Gui* menu, int index)
 {
-    Entry* entries = menu->layer->entries;
+    Gadget* entries = menu->layer->entries;
     char* text = GetGadgetText(menu, entries[index].name, 0);
     if (text == 0)
         return 0;
@@ -4789,8 +4789,8 @@ void __stdcall DrawGadgetGlyph(Gui* obj, int index)
 {
     if (obj->layer != 0)
         obj->layer->dirty = 1;
-    Entry* entries = obj->layer->entries;
-    Entry* e = &entries[index];
+    Gadget* entries = obj->layer->entries;
+    Gadget* e = &entries[index];
     Glyph* glyph = e->u.frame.glyph;
     if (glyph == 0)
         return;
@@ -4828,7 +4828,7 @@ void __stdcall DrawButton(Gui* menu, int index)
     char* p;
     char key2[2];
     void* surface;
-    Entry* me;
+    Gadget* me;
     // Declaration order matters: rect before flagy and t, textw last.
     Rect rect;
     int x;
@@ -4846,7 +4846,7 @@ void __stdcall DrawButton(Gui* menu, int index)
     border = 0;
     if (menu->layer != 0)
         menu->layer->dirty = 1;
-    Entry* entries = menu->layer->entries;
+    Gadget* entries = menu->layer->entries;
     me = &entries[index];
     if (me->type == 0) {
         rect.left = 0;
@@ -5043,8 +5043,8 @@ void __stdcall DrawButton(Gui* menu, int index)
 // FUNCTION: 0x4a69d0
 void __stdcall ClearAllStatus(Gui* param_1)
 {
-    Entry* entries = param_1->layer->entries;
-    Entry* e = &entries[1];
+    Gadget* entries = param_1->layer->entries;
+    Gadget* e = &entries[1];
     for (int i = 1; i < entries->u.count + 1; i++, e++) {
         if (e->type == 1 && e->field_138 != 0) {
             e->field_138 = 0;
@@ -5058,8 +5058,8 @@ void __stdcall ClearAllStatus(Gui* param_1)
 // FUNCTION: 0x4a6a40
 void __stdcall ClearGroupStatus(Gui* param_1, int index)
 {
-    Entry* entries = param_1->layer->entries;
-    Entry* e = &entries[1];
+    Gadget* entries = param_1->layer->entries;
+    Gadget* e = &entries[1];
     unsigned char team = entries[index].team;
     for (int i = 1; i < entries->u.count + 1; i++, e++) {
         if (e->type == 1 && e->team == team && e->field_138 != 0) {
@@ -5070,7 +5070,7 @@ void __stdcall ClearGroupStatus(Gui* param_1, int index)
     }
 }
 
-static inline int FindKind(Entry* entries, unsigned char kind)
+static inline int FindKind(Gadget* entries, unsigned char kind)
 {
     for (int i = 1; i < entries->u.count + 1; i++) {
         if (entries[i].type == 4 && entries[i].team == kind)
@@ -5083,8 +5083,8 @@ static inline int FindKind(Entry* entries, unsigned char kind)
 // FUNCTION: 0x4a6ae0
 int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
 {
-    Entry* entries = obj->layer->entries;
-    Entry* entry = &entries[index];
+    Gadget* entries = obj->layer->entries;
+    Gadget* entry = &entries[index];
     if (entry->field_13c & 1)
         goto fail;
 
@@ -5249,7 +5249,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
         // never be true and a miss falls through to entry 0 (docs/bugs.md).
         if (found == -1)
             goto fail;
-        Entry* f = &entries[found];
+        Gadget* f = &entries[found];
         short off = f->field_140;
         if (flags & 0x1000) {
             if (off > 0)
@@ -5295,8 +5295,8 @@ fail:
 // FUNCTION: 0x4a7190
 void __stdcall BeginTextEdit(Gui* obj, int index)
 {
-    Entry* entries = obj->layer->entries;
-    Entry* target = &entries[index];
+    Gadget* entries = obj->layer->entries;
+    Gadget* target = &entries[index];
 
     SetTextColors(obj->colours[target->colours], GetTextKeyColor());
 
@@ -5322,7 +5322,7 @@ void __stdcall BeginTextEdit(Gui* obj, int index)
 }
 
 // A copy of the function at 0x4a1810 (another unit), inlined in HandleTextInput.
-static inline int SelectFontForEntry_inlined(Entry* entries, int index)
+static inline int SelectFontForEntry_inlined(Gadget* entries, int index)
 {
     int n = 0;
     int i = 1;
@@ -5348,7 +5348,7 @@ static inline int SelectFontForEntry_inlined(Entry* entries, int index)
 static inline void Activate(Gui* obj, int index)
 {
     Rect rect;
-    Entry* ep = obj->layer->entries;
+    Gadget* ep = obj->layer->entries;
     GetGadgetRectByIndex((char*)ep, index, &rect);
     SetTextColors(obj->colours[ep[index].colours], GetTextKeyColor());
     SelectFontForEntry(ep, index);
@@ -5365,7 +5365,7 @@ static inline void Activate(Gui* obj, int index)
 // FUNCTION: 0x4a7290
 int __stdcall HandleTextInput(Gui* obj, int index, int key)
 {
-    Entry* entries = obj->layer->entries;
+    Gadget* entries = obj->layer->entries;
     Rect rect;
     GetGadgetRectByIndex((char*)entries, index, &rect);
     SelectFontForEntry_inlined(entries, index);
@@ -5409,7 +5409,7 @@ int __stdcall HandleTextInput(Gui* obj, int index, int key)
 // The parameter itself is the loop counter (the original loads it first and
 // keeps a copy of its old value for the wrapped search).
 // FUNCTION: 0x4a7560
-int __stdcall FindNextTextInput(Entry* list, int index)
+int __stdcall FindNextTextInput(Gadget* list, int index)
 {
     int old = index;
     for (index++; index < list[0].u.count + 1; index++) {
@@ -5442,9 +5442,9 @@ int __stdcall LoadScreenGaf(Gui* obj, char* name)
     return 0;
 }
 
-static inline void DoSelect(Gui* menu, Entry* entries, int sel)
+static inline void DoSelect(Gui* menu, Gadget* entries, int sel)
 {
-    Entry* entry = &entries[sel];
+    Gadget* entry = &entries[sel];
     SetTextColors(menu->colours[entry->colours], GetTextKeyColor());
     int n = 0;
     int i = 1;
@@ -5472,7 +5472,7 @@ static inline void DoSelect(Gui* menu, Entry* entries, int sel)
 // FUNCTION: 0x4a76b0
 void __stdcall SelectGadgetByName(Gui* menu, char* name)
 {
-    Entry* entries = menu->layer->entries;
+    Gadget* entries = menu->layer->entries;
     int index = FindEntry(entries, name);
     if (index != -1) {
         menu->focus = -1;
@@ -5491,13 +5491,13 @@ void __stdcall SelectGadgetByName(Gui* menu, char* name)
 void __stdcall SelectGadgetByIndex(Gui* menu, int index)
 {
     // The array is loaded twice: this copy for the type test, again inside the branch.
-    Entry* first = menu->layer->entries;
+    Gadget* first = menu->layer->entries;
     menu->focus = -1;
     menu->layer->current = index;
     if (first[menu->layer->current].type == 3) {
         int i = menu->layer->current;
-        Entry* entries = menu->layer->entries;
-        Entry* entry = &entries[i];
+        Gadget* entries = menu->layer->entries;
+        Gadget* entry = &entries[i];
         int font = GetTextKeyColor();
         SetTextColors(menu->colours[entry->colours], font);
 
@@ -5526,8 +5526,8 @@ void __stdcall SelectGadgetByIndex(Gui* menu, int index)
 // The real BeginTextEdit, inlined here by /Ob2 (the out-of-line function alone is not inlined).
 static inline void FUN_004a7190_inlined(Gui* obj, int index)
 {
-    Entry* entries = obj->layer->entries;
-    Entry* target = &entries[index];
+    Gadget* entries = obj->layer->entries;
+    Gadget* target = &entries[index];
 
     SetTextColors(obj->colours[target->colours], GetTextKeyColor());
 
@@ -5559,7 +5559,7 @@ void __stdcall SelectAdjacentGadget(Gui* menu, int dir)
 
     Layer* layer = menu->layer;
     int index = layer->current;
-    Entry* entries = layer->entries;
+    Gadget* entries = layer->entries;
     if (index == -1)
         return;
 
@@ -5668,9 +5668,9 @@ void __stdcall SelectAdjacentGadget(Gui* menu, int dir)
 }
 
 // FUNCTION: 0x4a7ee0
-void __stdcall MoveEntryToFront(Entry* entries, int index)
+void __stdcall MoveEntryToFront(Gadget* entries, int index)
 {
-    Entry temp;
+    Gadget temp;
     if (index != -1) {
         temp = entries[index];
         for (int i = index; i > 1; i--) {
@@ -5685,13 +5685,13 @@ void __stdcall MoveEntryToFront(Entry* entries, int index)
 // object's own GAF, and only when both fail does it fall back to "CHECKBOX",
 // "stagebuttn%d" or "BUTTONS0".
 // FUNCTION: 0x4a7f70
-void __stdcall FindButtonGaf(Gui* button, Entry* obj)
+void __stdcall FindButtonGaf(Gui* button, Gadget* obj)
 {
     char name[0x10];
     char str[0x20];
     int best;
     GafEntry* entry = 0;
-    Entry* holder = button->layer->entries;
+    Gadget* holder = button->layer->entries;
     strncpy(name, obj->name, 0x10);
     name[0xf] = 0;
     obj->field_13b = 0;
@@ -5755,10 +5755,10 @@ void __stdcall FindButtonGaf(Gui* button, Entry* obj)
 // FUNCTION: 0x4a8150
 int __stdcall AddGadgetEntry(Gui* obj, unsigned char type)
 {
-    Entry* entries = obj->layer->entries;
+    Gadget* entries = obj->layer->entries;
     entries->u.count++;
-    Entry* e = &entries[entries->u.count];
-    memset(&entries[entries->u.count], 0, sizeof(Entry));
+    Gadget* e = &entries[entries->u.count];
+    memset(&entries[entries->u.count], 0, sizeof(Gadget));
     e->type = type;
     e->field_29 = 1;
     return entries->u.count;
@@ -5777,7 +5777,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
 {
     int savedType;
     int orientation;
-    Entry* entries;
+    Gadget* entries;
     char* name;
     int* pf;
     int i, force;
@@ -5909,7 +5909,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
             }
             entries[i].sliderGaf = g;
             if (g != 0) {
-                Entry* firstEnd = &entries[AddGadgetEntry(menu, 1)];
+                Gadget* firstEnd = &entries[AddGadgetEntry(menu, 1)];
                 firstEnd->x = entries[i].x;
                 firstEnd->y = entries[i].y;
                 firstEnd->gaf = g;
@@ -5920,7 +5920,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                 firstEnd->h = frame->height;
                 firstEnd->flags = 0x3400;
                 firstEnd->field_29 = entries[i].field_29;
-                Entry* secondEnd = &entries[AddGadgetEntry(menu, 1)];
+                Gadget* secondEnd = &entries[AddGadgetEntry(menu, 1)];
                 secondEnd->field_29 = entries[i].field_29;
                 frame = GetGafFrame(g, entries[i].sliderStyle + 8);
                 secondEnd->y = entries[i].y;
@@ -5978,7 +5978,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
             entries[i].u.list.gaf = list;
             int j = 1;
             for (; j <= entries[0].u.count; ) {
-                Entry* other = &entries[j];
+                Gadget* other = &entries[j];
                 if (j != i && other->type == 2) {
                     if (other->team == entries[i].team) {
                         short scroll = other->u.list.scroll > entries[i].u.list.scroll
@@ -6007,7 +6007,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
 
         case 1: {
             // pf is built from cur, not &entries[i].flags; the 0x80 test reads entries[i].flags.
-            Entry* cur = &entries[i];
+            Gadget* cur = &entries[i];
             cur->colours = 0;
             pf = &cur->flags;
             if ((cur->flags & 0x1800) || (cur->resourceFlags & 1))
@@ -6102,7 +6102,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
             break;
 
         case 13: {
-            Entry* en = menu->layer->entries;
+            Gadget* en = menu->layer->entries;
             en[i].u.anim.field_c6 = GetTicks() + en[i].u.anim.field_c2;
             break;
         }
@@ -6159,7 +6159,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
             case 2: {
                 if (force) {
                     int fh;
-                    Entry* base = menu->layer->entries;
+                    Gadget* base = menu->layer->entries;
                     int t = 0;
                     int j;
                     base[i].u.list.field_bc = 0;
@@ -6193,7 +6193,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                 break;
             case 4:
                 if (force) {
-                    Entry* base = menu->layer->entries;
+                    Gadget* base = menu->layer->entries;
                     base[i].field_140 = 0;
                     base[i].callback = 0;
                     base[i].callbackArg = 0;
@@ -6207,7 +6207,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                 break;
             case 6:
                 if (force) {
-                    Entry* base = menu->layer->entries;
+                    Gadget* base = menu->layer->entries;
                     base[i].u.t6.f_b6 = 0;
                     base[i].u.t6.f_be = 0;
                     base[i].u.t6.f_c2 = 0;
@@ -6218,7 +6218,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                 break;
             case 13:
                 if (force) {
-                    Entry* base = menu->layer->entries;
+                    Gadget* base = menu->layer->entries;
                     base[i].u.anim.field_c6 = GetTicks() + base[i].u.anim.field_c2;
                 }
                 if (force || (flags & 0x40))
@@ -6305,7 +6305,7 @@ extern int Pad_a96d0_e2;
 // FUNCTION: 0x4a96d0
 void __stdcall DecrementKnobPos(Gui* obj, int index)
 {
-    Entry* e = &obj->layer->entries[index];
+    Gadget* e = &obj->layer->entries[index];
     short raw = e->field_140;
     // Keep the int copy of the old value: it fixes the register order of the entry address.
     int old = raw;
@@ -6331,7 +6331,7 @@ void __stdcall ListBoxSelectUp(Gui* param_1, int index);
 void __stdcall ListBoxSelectDown(Gui* param_1, int index);
 
 // Must stay a static inline helper: written inline it changes the load order.
-static inline Entry* entry_at(Gui* obj, int index)
+static inline Gadget* entry_at(Gui* obj, int index)
 {
     return &obj->layer->entries[index];
 }
@@ -6344,7 +6344,7 @@ static inline Entry* entry_at(Gui* obj, int index)
 // FUNCTION: 0x4a9780
 void __stdcall IncrementKnobPos(Gui* obj, int index)
 {
-    Entry* e = entry_at(obj, index);
+    Gadget* e = entry_at(obj, index);
     short raw = e->field_140;
     // Keep the int copy of the old value: it fixes the register used for it.
     int old = raw;
@@ -6390,8 +6390,8 @@ extern int Pad_a9830_e5;
 // FUNCTION: 0x4a9830
 void __stdcall ListBoxSelectUp(Gui* param_1, int index)
 {
-    Entry* entries = param_1->layer->entries;
-    Entry* me = &entries[index];
+    Gadget* entries = param_1->layer->entries;
+    Gadget* me = &entries[index];
     int n = 0;
     int i = 1;
     // The `count + 1` condition keeps n in the dead argument slot.
@@ -6467,8 +6467,8 @@ void __stdcall FUN_004aa8e0(int* param_1, int param_2);
 // FUNCTION: 0x4a99c0
 void __stdcall ListBoxSelectDown(Gui* param_1, int index)
 {
-    Entry* entries = param_1->layer->entries;
-    Entry* me = &entries[index];
+    Gadget* entries = param_1->layer->entries;
+    Gadget* me = &entries[index];
     int n = 0;
     int i = 1;
     for (; i < entries->u.count + 1; i++) {
@@ -6538,8 +6538,8 @@ int __stdcall HandleGuiCommand(Gui* obj, int cmd)
 {
     int newsel = -1;
     int index = obj->layer->current;
-    Entry* entries = obj->layer->entries;
-    Entry* e = &entries[index];
+    Gadget* entries = obj->layer->entries;
+    Gadget* e = &entries[index];
     int type = e->type;
 
     // Case order follows the original emit order, not ascending.
@@ -6653,9 +6653,9 @@ int __stdcall HandleGuiCommand(Gui* obj, int cmd)
 
 // BeginTextEdit's body with its group scan left as a call to SelectFontForEntry, as
 // on the case 5 path here (and twice in HandleTextInput).
-static inline void SelectCurrentByName(Gui* menu, Entry* entries, int sel)
+static inline void SelectCurrentByName(Gui* menu, Gadget* entries, int sel)
 {
-    Entry* entry = &entries[sel];
+    Gadget* entry = &entries[sel];
     SetTextColors(menu->colours[entry->colours], GetTextKeyColor());
     SelectFontForEntry(entries, sel);
     TrySetFocus(menu, sel);
@@ -6683,8 +6683,8 @@ static inline void UpdateHelpText(Gui* obj)
 static inline void TickProgressBar(Gui* menu, int i)
 {
     // Entries in their own local first: the one-expression form shifts registers.
-    Entry* entries = menu->layer->entries;
-    Entry* e = &entries[i];
+    Gadget* entries = menu->layer->entries;
+    Gadget* e = &entries[i];
     if (e->u.anim.field_ce && e->u.anim.field_ba < e->u.anim.field_be) {
         if ((int)GetTicks() > e->u.anim.field_c6) {
             e->u.anim.field_ba += (int)e->u.anim.field_ca;
@@ -6701,7 +6701,7 @@ static inline void TickProgressBar(Gui* menu, int i)
 // The real SelectGadgetByIndex, inlined here by /Ob2.
 static inline void SelectGadgetByIndex_inlined(Gui* menu, int index)
 {
-    Entry* first = menu->layer->entries;
+    Gadget* first = menu->layer->entries;
     menu->focus = -1;
     menu->layer->current = index;
     if (first[menu->layer->current].type == 3)
@@ -6737,9 +6737,9 @@ int __stdcall UpdateMenu(Gui* menu)
 {
     // Declared at the top of the function.
     int k;
-    Entry* e;
+    Gadget* e;
     int i;
-    Entry* entries = 0;
+    Gadget* entries = 0;
 
     // Real early returns: the original has several, so no shrink-wrapping.
     if (menu->layer == 0)
@@ -6865,7 +6865,7 @@ int __stdcall UpdateMenu(Gui* menu)
                     int found = FindEntry(entries, (char*)&e->field_136);
                     // Keep this if/else nesting, with sel = i in the else.
                     if (found != sel) {
-                        Entry* me;
+                        Gadget* me;
                         sel = found;
                         me = &entries[found];
                         if (me->type == 1) {
@@ -6883,7 +6883,7 @@ int __stdcall UpdateMenu(Gui* menu)
                                     sel = -1;
                                 } else {
                                     // Helper call, not the inline chain: keeps the group scan an explicit call.
-                                    Entry* entriesNow = menu->layer->entries;
+                                    Gadget* entriesNow = menu->layer->entries;
                                     menu->focus = -1;
                                     menu->layer->current = found;
                                     if (entriesNow[menu->layer->current].type == 3)

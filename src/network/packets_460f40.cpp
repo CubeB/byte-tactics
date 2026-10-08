@@ -28,15 +28,15 @@ class PacketBuffer;
 class PacketChannel;
 
 // A packet record: where its data sits in which buffer, and its queue state.
-struct Packet {
+struct NetPacketPendingEntry {
     int frame;                         // +0x00
     int offset;                        // +0x04, into the buffer's data
     int size;                          // +0x08
     PacketBuffer* owner;               // +0x0c
     int queued;                        // +0x10, >= 0 while in the queue
     int sentTime;                      // +0x14, when it left the queue
-    Packet* prev;                      // +0x18
-    Packet* next;                      // +0x1c
+    NetPacketPendingEntry* prev;       // +0x18
+    NetPacketPendingEntry* next;       // +0x1c
 };
 
 class PacketBuffer {
@@ -45,10 +45,10 @@ public:
     int start;                         // +0x04, the index of its first packet
     int count;                         // +0x08
     int length;                        // +0x0c
-    Packet* first;                     // +0x10
+    NetPacketPendingEntry* first;      // +0x10
     unsigned char data[0x42a];         // +0x14
 
-    int AppendPacket(Packet* packet, int index, const void* src, unsigned int size, Packet* prev);
+    int AppendPacket(NetPacketPendingEntry* packet, int index, const void* src, unsigned int size, NetPacketPendingEntry* prev);
     void FreePackets();
     void FindOwnerChainTail();
     int IsReusable(int minRetain);
@@ -60,21 +60,21 @@ public:
     int count;                         // +0x0
     int readIdx;                       // +0x4
     int writeIdx;                      // +0x8
-    Packet* buf[0x400];                // +0xc
+    NetPacketPendingEntry* buf[0x400];  // +0xc
 
     PacketRing();
-    int PushPacket(Packet* value);
-    Packet* Peek()
+    int PushPacket(NetPacketPendingEntry* value);
+    NetPacketPendingEntry* Peek()
     {
         if (count > 0)
             return buf[readIdx];
         return 0;
     }
-    Packet* Pop()
+    NetPacketPendingEntry* Pop()
     {
         if (count > 0) {
             count--;
-            Packet* value = buf[readIdx];
+            NetPacketPendingEntry* value = buf[readIdx];
             readIdx++;
             if (readIdx >= 0x400)
                 readIdx = 0;
@@ -82,7 +82,7 @@ public:
         }
         return 0;
     }
-    int Push(Packet* value)
+    int Push(NetPacketPendingEntry* value)
     {
         if (count < 0x400) {
             writeIdx = writeIdx + 1;
@@ -103,9 +103,9 @@ public:
     int count;                         // +0x00
     int index;                         // +0x04
     int unused;                        // +0x08
-    Packet* buffer[0x400];             // +0x0c
+    NetPacketPendingEntry* buffer[0x400];  // +0x0c
 
-    Packet* PopPacket();
+    NetPacketPendingEntry* PopPacket();
 };
 
 // Sets the minimum retain time of a channel (0x462860).
@@ -124,9 +124,9 @@ class Class_00462ae0 {
 public:
     PacketChannel* manager;            // +0x0
     char unknown_4[0xc];
-    Packet* first;                     // +0x10
+    NetPacketPendingEntry* first;      // +0x10
 
-    void RemovePacket(Packet* packet);
+    void RemovePacket(NetPacketPendingEntry* packet);
 };
 
 // One queued frame of a player's ring: the tick it is due, the data and size.
@@ -293,22 +293,22 @@ public:
     int packetIndex;                   // +0x1c, the packet last handed out
     unsigned int queuedBytes;          // +0x20, queued bytes
     unsigned int nextSendTick;         // +0x24, the next send time
-    Packet* packets;                   // +0x28
+    NetPacketPendingEntry* packets;    // +0x28
     unsigned int count;                // +0x2c, the packet count
-    Packet* firstPacket;               // +0x30, the first packet in use
-    Packet* lastPacket;                // +0x34, the last packet in use
+    NetPacketPendingEntry* firstPacket;  // +0x30, the first packet in use
+    NetPacketPendingEntry* lastPacket;  // +0x34, the last packet in use
     PacketRing queue;                  // +0x38
 
     PacketChannel();
     ~PacketChannel();
     PacketBuffer* AllocBuffer();
-    Packet* AllocPacket(int param_1);
+    NetPacketPendingEntry* AllocPacket(int param_1);
     int GetMinRetainMs();
     int GetPacketEntry(int param_1);
     int InitPools(int a1, unsigned int a2, int a3, int a4);
-    void EnqueuePacket(Packet* item);
+    void EnqueuePacket(NetPacketPendingEntry* item);
     int GrowPools(int growbufs, int growpackets);
-    void DequeuePacket(Packet* item);
+    void DequeuePacket(NetPacketPendingEntry* item);
     void ResetChannel();
     int SendQueued(int force);
     int AddPacket(int param_1, void* param_2, unsigned int param_3);
@@ -701,7 +701,7 @@ static inline int IsReusable(PacketBuffer* buf, int minRetain)
 {
     if (buf->count == 0)
         return 1;
-    Packet* p = buf->first;
+    NetPacketPendingEntry* p = buf->first;
     unsigned int now = GetTicks();
     int mustBeSentBefore = now - minRetain;
     PacketTrace("cur game time: %ld, min retain=%ld, mustBeSentBefore=%ld\n",
@@ -771,10 +771,10 @@ PacketBuffer* PacketChannel::AllocBuffer()
 }
 
 // FUNCTION: 0x461c20
-Packet* PacketChannel::AllocPacket(int param_1)
+NetPacketPendingEntry* PacketChannel::AllocPacket(int param_1)
 {
     unsigned int idx;
-    Packet* packet;
+    NetPacketPendingEntry* packet;
     for (;;) {
         PacketTrace("current packet pool index: %ld\n", packetIndex);
         idx = packetIndex + 1;
@@ -849,12 +849,12 @@ int PacketChannel::InitPools(int a1, unsigned int a2, int a3, int a4)
     if (packets == 0) {
         if (a4 == 0)
             a4 = 100;
-        Packet* p = (Packet*)operator new(a4 * 32);
+        NetPacketPendingEntry* p = (NetPacketPendingEntry*)operator new(a4 * 32);
         if (p) {
             // A countdown over a separate walking pointer: this spelling is
             // what gives `lea edx,[esi-1] / cmp / jl` and `inc edx` at 0x461e06.
             k = a4 - 1;
-            Packet* q = p;
+            NetPacketPendingEntry* q = p;
             while (k >= 0) {
                 q->offset = 0;
                 q->size = 0;
@@ -902,7 +902,7 @@ int PacketChannel::InitPools(int a1, unsigned int a2, int a3, int a4)
         q->count = 0;
         buffers[i]->FreePackets();
     }
-    Packet t;
+    NetPacketPendingEntry t;
     t.offset = 0;
     t.size = 0;
     t.owner = 0;
@@ -940,7 +940,7 @@ fail:
 // Queues an item in the ring buffer at +0x38 (the inlined push of
 // 0x462370), marks it queued and adds its size to the total.
 // FUNCTION: 0x461f90
-void PacketChannel::EnqueuePacket(Packet* item)
+void PacketChannel::EnqueuePacket(NetPacketPendingEntry* item)
 {
     queue.Push(item);
     item->queued = 0;
@@ -949,13 +949,13 @@ void PacketChannel::EnqueuePacket(Packet* item)
 
 // DequeuePacket as GrowPools and RemovePacket expand it: the ring's pop and push
 // stay calls (0x4623b0 and 0x462370), where 0x4623e0 inlines them.
-static inline void DequeueByCalls(PacketChannel* channel, Packet* item)
+static inline void DequeueByCalls(PacketChannel* channel, NetPacketPendingEntry* item)
 {
     item->queued = -1;
     item->sentTime = GetTicks();
     int n = channel->queue.count;
     while (n-- > 0) {
-        Packet* value = ((Class_004623b0*)&channel->queue)->PopPacket();
+        NetPacketPendingEntry* value = ((Class_004623b0*)&channel->queue)->PopPacket();
         if (value == item)
             break;
         channel->queue.PushPacket(value);
@@ -1026,10 +1026,10 @@ int PacketChannel::GrowPools(int growbufs, int growpackets)
         buffers = np;
         if (ok) {
         int totalentries = growpackets + count;
-        Packet* ne = (Packet*)operator new(totalentries * 32);
-        Packet* base;
+        NetPacketPendingEntry* ne = (NetPacketPendingEntry*)operator new(totalentries * 32);
+        NetPacketPendingEntry* base;
         if (ne) {
-            Packet* q = ne;
+            NetPacketPendingEntry* q = ne;
             for (int i = 0; i <= totalentries - 1; i++) {
                 q->offset = 0;
                 q->size = 0;
@@ -1053,7 +1053,7 @@ int PacketChannel::GrowPools(int growbufs, int growpackets)
             for (int i = 0; i < bufferCount; i++) {
                 PacketBuffer* p = buffers[i];
                 if (p->count > 0) {
-                    Packet* c = p->first;
+                    NetPacketPendingEntry* c = p->first;
                     if (c != 0) {
                         p->start = n;
                         j = 0;
@@ -1062,7 +1062,7 @@ int PacketChannel::GrowPools(int growbufs, int growpackets)
                             if (c->owner != p) {
                                 break;
                             }
-                            Packet* e = &base[n];
+                            NetPacketPendingEntry* e = &base[n];
                             n++;
                             *e = *c;
                             if (c->queued >= 0) {
@@ -1111,7 +1111,7 @@ int PacketChannel::GrowPools(int growbufs, int growpackets)
 // and DequeuePacket's inlined copies call them out of line).
 #pragma auto_inline(off)
 // FUNCTION: 0x462370
-int PacketRing::PushPacket(Packet* value)
+int PacketRing::PushPacket(NetPacketPendingEntry* value)
 {
     if (count < 0x400) {
         writeIdx = writeIdx + 1;
@@ -1126,11 +1126,11 @@ int PacketRing::PushPacket(Packet* value)
 }
 
 // FUNCTION: 0x4623b0
-Packet* Class_004623b0::PopPacket()
+NetPacketPendingEntry* Class_004623b0::PopPacket()
 {
     if (count > 0) {
         count--;
-        Packet* value = buffer[index];
+        NetPacketPendingEntry* value = buffer[index];
         index++;
         if (index < 0x400) {
             return value;
@@ -1143,13 +1143,13 @@ Packet* Class_004623b0::PopPacket()
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4623e0
-void PacketChannel::DequeuePacket(Packet* item)
+void PacketChannel::DequeuePacket(NetPacketPendingEntry* item)
 {
     item->queued = -1;
     item->sentTime = GetTicks();
     int n = queue.count;
     while (n-- > 0) {
-        Packet* value = queue.Pop();
+        NetPacketPendingEntry* value = queue.Pop();
         if (value == item)
             break;
         queue.Push(value);
@@ -1188,7 +1188,7 @@ int PacketChannel::SendQueued(int force)
             int sent = 0;
             PacketTrace("assigning packets to frame number: %ld\n", frameNumber);
             for (int i = 0; i < n; i++) {
-                Packet* entry = queue.Peek();
+                NetPacketPendingEntry* entry = queue.Peek();
                 queue.Pop();
                 if (entry->frame == headFrame) {
                     // Keep owner->data[offset] written out as an expression each time.
@@ -1254,7 +1254,7 @@ int PacketChannel::AddPacket(int param_1, void* param_2, unsigned int param_3)
         if (block == 0)
             return 0;
     }
-    Packet* pkt = AllocPacket(param_1);
+    NetPacketPendingEntry* pkt = AllocPacket(param_1);
     if (pkt == 0)
         return 0;
     int r = ((PacketBuffer*)block)->AppendPacket(pkt, packetIndex, param_2, param_3, lastPacket);
@@ -1309,7 +1309,7 @@ void Class_004628a0::SetSendPacingMs(int param_1)
 // `prev` is the previously queued packet (0x462710 passes its tail), stored
 // in the packet's prev field at +0x18.
 // FUNCTION: 0x4628d0
-int PacketBuffer::AppendPacket(Packet* p, int index, const void* src, unsigned int size, Packet* prev)
+int PacketBuffer::AppendPacket(NetPacketPendingEntry* p, int index, const void* src, unsigned int size, NetPacketPendingEntry* prev)
 {
     PacketTrace("adding packet %ld (data=\"%s\")\n", index,
                  (const char*)src + 1);
@@ -1348,10 +1348,10 @@ void PacketBuffer::FreePackets()
         unsigned int size = pool->count;
         PacketTrace("freeing packets assigned. range: %ld for %ld\n", start, n);
         unsigned int i = start;
-        Packet* packets = pool->packets;
+        NetPacketPendingEntry* packets = pool->packets;
         while (n--) {
             PacketTrace("initialize freeing packet %ld\n", i);
-            Packet* p = &packets[i];
+            NetPacketPendingEntry* p = &packets[i];
             i++;
             ((Class_00462ae0*)p->owner)->RemovePacket(p);
             p->owner = 0;
@@ -1369,7 +1369,7 @@ void PacketBuffer::FreePackets()
 void PacketBuffer::FindOwnerChainTail()
 {
     if (count != 0) {
-        Packet* p = first;
+        NetPacketPendingEntry* p = first;
         while (p != 0 && p->owner == this) {
             p = p->next;
         }
@@ -1382,7 +1382,7 @@ void PacketBuffer::FindOwnerChainTail()
 int PacketBuffer::IsReusable(int minRetain)
 {
     if (count) {
-        Packet* p = first;
+        NetPacketPendingEntry* p = first;
         unsigned int now = GetTicks();
         int mustBeSentBefore = now - minRetain;
         PacketTrace("cur game time: %ld, min retain=%ld, mustBeSentBefore=%ld\n",
@@ -1400,7 +1400,7 @@ int PacketBuffer::IsReusable(int minRetain)
 }
 
 // FUNCTION: 0x462ae0
-void Class_00462ae0::RemovePacket(Packet* packet)
+void Class_00462ae0::RemovePacket(NetPacketPendingEntry* packet)
 {
     PacketTrace("removing packet (len=%ld, type=%d, data=\"%s\")\n",
                  packet->size,
@@ -1414,7 +1414,7 @@ void Class_00462ae0::RemovePacket(Packet* packet)
         packet->sentTime = GetTicks();
         int n = mgr->queue.count;
         while (n-- > 0) {
-            Packet* value = ((Class_004623b0*)&mgr->queue)->PopPacket();
+            NetPacketPendingEntry* value = ((Class_004623b0*)&mgr->queue)->PopPacket();
             if (value == packet)
                 break;
             mgr->queue.PushPacket(value);
@@ -1423,7 +1423,7 @@ void Class_00462ae0::RemovePacket(Packet* packet)
     }
 
     if (first == packet) {
-        Packet* nxt = packet->next;
+        NetPacketPendingEntry* nxt = packet->next;
         if (nxt != 0 && nxt->owner == (PacketBuffer*)this)
             first = nxt;
         else
@@ -1457,7 +1457,7 @@ public:
 // FUNCTION: 0x462bd0
 void Class_00462bd0::RemoveFromBuffer()
 {
-    ((Class_00462ae0*)field_c)->RemovePacket((Packet*)this);
+    ((Class_00462ae0*)field_c)->RemovePacket((NetPacketPendingEntry*)this);
     field_c = 0;
 }
 

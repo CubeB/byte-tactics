@@ -790,6 +790,7 @@ char g_reportIndentText[56];  // 0x529e20 .bss
 void* g_nameMapFreeList;  // 0x529e58 .bss
 unsigned char DAT_00529e5c[8];  // 0x529e5c .bss
 unsigned char g_perfDisplayInWindow;  // 0x529e64 .bss
+unsigned char g_gdperfInitAttempted;  // 0x529e6c .bss
 unsigned char g_gdperfAvailable;  // 0x529e70 .bss
 NameTable* g_nameTable;  // 0x529e7c .bss
 char* g_defaultSection;  // 0x529e80 .bss

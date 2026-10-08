@@ -153,7 +153,7 @@ struct Game {
     unsigned short : 11;
 };
 
-struct Packet {
+struct Packet_00453d40 {
     unsigned int type;                 // +0x00
     int field_4;                       // +0x04
     int id;                            // +0x08
@@ -437,7 +437,7 @@ int HandleNetPackets()
                 continue;
             if (recipient->state != 1)
                 continue;
-            Packet* msg = (Packet*)packet;
+            Packet_00453d40* msg = (Packet_00453d40*)packet;
             switch (msg->type) {
             case 5: {
                 if (msg->field_4 != 1)

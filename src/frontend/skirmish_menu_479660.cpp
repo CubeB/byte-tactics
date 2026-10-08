@@ -61,7 +61,7 @@ struct Layer {
     void (__stdcall* textHandler)(Cheat*);   // +0x3b
 };
 
-struct Player {                        // 0x18 bytes
+struct SkirmishPlayerSlot {            // 0x18 bytes
     int active;                        // +0x00
     int shade;                         // +0x04
     int team;                          // +0x08
@@ -71,7 +71,7 @@ struct Player {                        // 0x18 bytes
 };
 
 struct Table {
-    Player players[11];                // +0x00 .. +0x108
+    SkirmishPlayerSlot players[11];    // +0x00 .. +0x108
     int field_108;                     // +0x108
     int field_10c;                     // +0x10c
     int field_110;                     // +0x110
@@ -89,7 +89,7 @@ struct Unit {
     unsigned char slot;                // +0x96
 };
 
-struct Slot {                          // 0x14b bytes
+struct Player {                        // 0x14b bytes
     char unknown_0[0x27];
     Unit* unit;                        // +0x27
     char unknown_2b[0x108 - 0x2b];
@@ -102,7 +102,7 @@ struct Game {
     char unknown_0[0x519];
     Menu menu;                         // +0x519
     char unknown_57d[0x1b63 - 0x57d];
-    Slot slots[10];                    // +0x1b63
+    Player slots[10];                  // +0x1b63
     char unknown_2851[0x29a0 - 0x2851];
     Table* table;                      // +0x29a0
     char unknown_29a4[0x2a3c - 0x29a4];
@@ -474,7 +474,7 @@ void RefreshSkirmishSetup()
 
     int empty = 1;
     if (g_game->playerCount > 0) {
-        Player* p = g_game->table->players;
+        SkirmishPlayerSlot* p = g_game->table->players;
         int n = g_game->playerCount;
         do {
             if (p->active != 0)
@@ -626,7 +626,7 @@ void RefreshSkirmishSetup()
 // FUNCTION: 0x47a700
 int __stdcall FindNextAllySlot(int self, int start)
 {
-    Player* players = g_game->table->players;
+    SkirmishPlayerSlot* players = g_game->table->players;
     int n = g_game->playerCount;
     if (start != n) {
         for (int i = start; i < n; i++) {
@@ -663,7 +663,7 @@ void ApplySlotsToGamePlayers()
         if (g_game->table->players[i].active == 1 || g_game->table->players[i].active == 2) {
             int j = 0;
             for (;;) {
-                Player* players = g_game->table->players;
+                SkirmishPlayerSlot* players = g_game->table->players;
                 int n = g_game->playerCount;
                 int k;
                 int ii;
@@ -926,7 +926,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
         int n = 0;
         int count = g_game->playerCount;
         if (count > 0) {
-            Player* p = g_game->table->players;
+            SkirmishPlayerSlot* p = g_game->table->players;
             do {
                 if (p->active == 2)
                     n++;
@@ -946,7 +946,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
         int n2 = g_game->playerCount;
         int c2 = 0;
         if (n2 > 0) {
-            Player* p = g_game->table->players;
+            SkirmishPlayerSlot* p = g_game->table->players;
             for (int i = n2; i > 0; i--) {
                 if (p->active == 2)
                     c2++;
@@ -956,7 +956,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
         if (c2 >= 1) {
             int c1 = 0;
             if (n2 > 0) {
-                Player* p = g_game->table->players;
+                SkirmishPlayerSlot* p = g_game->table->players;
                 for (; n2 > 0; n2--) {
                     if (p->active == 1)
                         c1++;
@@ -984,7 +984,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
                 int n3 = g_game->playerCount;
                 c2 = 0;
                 if (n3 > 0) {
-                    Player* p = g_game->table->players;
+                    SkirmishPlayerSlot* p = g_game->table->players;
                     for (int i = n3; i > 0; i--) {
                         if (p->active == 2)
                             c2++;
@@ -993,7 +993,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
                 }
                 c1 = 0;
                 if (n3 > 0) {
-                    Player* p = g_game->table->players;
+                    SkirmishPlayerSlot* p = g_game->table->players;
                     for (; n3 > 0; n3--) {
                         if (p->active == 1)
                             c1++;
@@ -1296,7 +1296,7 @@ void __stdcall AddMessage(char* text, int param_2, int param_3, unsigned char pa
 // Announces that a player's forces were destroyed: "<Core|Arm> <random
 // message>", using one of three (translated) messages.
 // FUNCTION: 0x47bd70
-void __stdcall AnnounceForcesDestroyed(Slot* player)
+void __stdcall AnnounceForcesDestroyed(Player* player)
 {
     char buf[200];
     const char* side = "Core";

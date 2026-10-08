@@ -284,7 +284,7 @@ struct Struct_0047e570 {
     Node_0047e570* list;     // +0x8a
 };
 
-struct Entry {
+struct Entry_0047ea40 {
     Vec3 pos;                          // +0x0
     float val;                         // +0xc
 };
@@ -1184,8 +1184,8 @@ int __stdcall PickRandomReclaimableResourcesInRadius(Vec3* center, Fixed radius,
     int countB = 0;
     int countA = 0;
     int max = radius.p.hi * radius.p.hi / 256;
-    Entry* a = (Entry*)operator new(max * sizeof(Entry));
-    Entry* b = (Entry*)operator new(max * sizeof(Entry));
+    Entry_0047ea40* a = (Entry_0047ea40*)operator new(max * sizeof(Entry_0047ea40));
+    Entry_0047ea40* b = (Entry_0047ea40*)operator new(max * sizeof(Entry_0047ea40));
     int half = radius.value / 2;
     Vec3 pos;
     for (pos.z = center->z - half; pos.z <= center->z + half; pos.z += 0x300000) {

@@ -89,7 +89,7 @@ struct Frame {
     unsigned short originY;
 };
 
-struct Packet {
+struct FeatureDamagePacket {
     unsigned char type;
     unsigned char sub;
     short x;
@@ -815,7 +815,7 @@ void __stdcall StartFeatureBurning(int x, int z, int flag)
     pos.z = z << 20;
     PlaySoundAtByName("treeburn", &pos, 0);
     if (flag == 0) {
-        Packet packet;
+        FeatureDamagePacket packet;
         packet.type = 0xf;
         packet.sub = 0xfe;
         packet.x = x;
@@ -965,7 +965,7 @@ int __stdcall ReclaimFeature(Unit* unit, Vec3* pos)
     }
     KillFeature(x, z, 1);
     if (g_game->net->GetGameType() == 3) {
-        Packet packet;
+        FeatureDamagePacket packet;
         packet.type = 0xf;
         packet.sub = 0xff;
         packet.x = x;
@@ -1279,7 +1279,7 @@ void __stdcall DamageFeature(Cell* cell, int x, int z, Weapon* weapon)
     Feature* f = &g_game->features[cell->feature];
     if (f->indestructible)
         return;
-    Packet packet;
+    FeatureDamagePacket packet;
     int send;
     if (g_game->net->GetGameType() == 3) {
         if (!(g_game->players[g_game->playerIndex].data->flags & 1)) {

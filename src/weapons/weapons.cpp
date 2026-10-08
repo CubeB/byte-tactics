@@ -56,7 +56,7 @@ struct Unit;
 
 // One of a unit's three weapon slots: 49c740's shot pointer at +0x0 is
 // 49e070's attached unit; the rest is 49e070's view.
-struct Slot {
+struct UnitWeaponSlot {
     union {
         Shot_0049c740* shot;           // +0x0
         Unit* attached;                // +0x0
@@ -253,7 +253,7 @@ struct Unit {
         };
         struct {                       // 49c740's and 49e070's weapon slots
             char unknown_4b[0xc];
-            Slot slots[3];             // +0x10, stride 0x1c
+            UnitWeaponSlot slots[3];   // +0x10, stride 0x1c
         };
         struct {                       // 49c9c0's gun array
             char unknown_4c[0x16];
@@ -3126,7 +3126,7 @@ void __stdcall InitUnitWeaponSlots(Unit* unit)
 {
     Frame_0049e070 frame = {0, 0};
     for (frame.i = 0; frame.i < 3; frame.i++) {
-        Slot* s = &unit->slots[frame.i];
+        UnitWeaponSlot* s = &unit->slots[frame.i];
         s->field_8 = 0;
         s->flags = (s->flags & 0xf2) | ((frame.i & 3) << 2);
         s->attached = unit->utype->attached[frame.i];

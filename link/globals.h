@@ -703,6 +703,7 @@ extern char g_reportIndentText[56];                                             
 extern void* g_nameMapFreeList;                                                                   // 0x529e58, 4 bytes; 2 of 2 files
 extern unsigned char DAT_00529e5c[8];                                                             // 0x529e5c, 8 bytes; nothing refers to it
 extern unsigned char g_perfDisplayInWindow;                                                       // 0x529e64, 1 bytes; 2 of 2 files
+extern unsigned char g_gdperfInitAttempted;                                                       // 0x529e6c, 1 bytes; 1 of 1 files
 extern unsigned char g_gdperfAvailable;                                                           // 0x529e70, 1 bytes; 1 of 1 files
 extern NameTable* g_nameTable;                                                                    // 0x529e7c, 4 bytes; 1 of 1 files
 extern char* g_defaultSection;                                                                    // 0x529e80, 4 bytes; 1 of 1 files
@@ -718,7 +719,7 @@ extern int g_lzssLockOwner;                                                     
 extern void* DAT_0052a4f8;                                                                        // 0x52a4f8, 4 bytes; 2 of 2 files
 extern long DAT_0052a4fc;                                                                         // 0x52a4fc, 4 bytes; 1 of 2 files (conflicting: signedness or const)
 
-// Not declared: 201 globals defined in a data file or whose type is not settled (see data/globals.csv).
+// Not declared: 200 globals defined in a data file or whose type is not settled (see data/globals.csv).
 //   0x513000 g_packetManager: defined in src/network/packets_460e20.cpp
 //   0x4fcdb8 DPSPGUID_SERIAL: defined in src/data/guids.cpp
 //   0x4fcdc8 DPSPGUID_MODEM: defined in src/data/guids.cpp
@@ -919,6 +920,5 @@ extern long DAT_0052a4fc;                                                       
 //   0x51fe98 g_edgeLowIndexB: part of another global: g_language+0xd8
 //   0x51fea0 g_edgeListNext: part of another global: g_language+0xe0
 //   0x528a58 std::IH::IU?$pair::?$_Tree::_Nilrefs: defined in src/debug/debug_lib_4db610.cpp
-//   0x529e6c g_gdperfInitAttempted: part of another global: src/debug/debug_lib.cpp:0x529e68+0x4
 
 #endif

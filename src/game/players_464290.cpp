@@ -193,7 +193,7 @@ struct Player {
     void Clear() { active = 0; type = 0; }
 };
 
-struct Slot {                          // 0x18 bytes
+struct SkirmishPlayerSlot {            // 0x18 bytes
     int controller;                    // +0x0
     char unknown_4[0xc - 0x4];
     int field_c;                       // +0xc
@@ -237,7 +237,7 @@ struct Game {
     char unknown_1a6b[0x1b63 - 0x1a6b];
     Player players[11];                // +0x1b63
     char unknown_299c[0x29a0 - 0x299c];
-    Slot* slots;                       // +0x29a0
+    SkirmishPlayerSlot* slots;         // +0x29a0
     char unknown_29a4[0x2a3e - 0x29a4];
     unsigned short tail;               // +0x2a3e
     unsigned short head;               // +0x2a40

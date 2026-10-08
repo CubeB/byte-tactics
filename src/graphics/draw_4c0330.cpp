@@ -40,6 +40,7 @@ struct Span_004c0330 {
 int __stdcall LockScreen(Surface* out);
 int __stdcall UnlockScreen(Surface* s);
 
+// Not gathered into draw.cpp: its register allocation follows symbol ids.
 // FUNCTION: 0x4c0330
 int __stdcall ScanFillPolygon(Surface* surface, Point_004c0330* points, int n, unsigned char color)
 {

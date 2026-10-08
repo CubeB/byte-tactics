@@ -16,6 +16,7 @@ struct Surface_004c06e0 {
     unsigned short Pitch() { return pitch; }
 };
 
+// Not gathered into draw.cpp: its register allocation follows symbol ids.
 // FUNCTION: 0x4c06e0
 void __stdcall FillFlatSpan(int row, Span_004c06e0* span, Surface_004c06e0* surf, unsigned char color)
 {

@@ -22,6 +22,7 @@ struct Surface_004c0a90 {
     unsigned char* depth;              // +0x14
 };
 
+// Not gathered into draw.cpp: its register allocation follows symbol ids.
 // FUNCTION: 0x4c0a90
 void __stdcall PlotSpanEnds(int row, Span_004c0a90* span, Surface_004c0a90* surf, unsigned char color)
 {

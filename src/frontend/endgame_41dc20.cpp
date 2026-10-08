@@ -100,7 +100,7 @@ void CollectEndGameStats()
     Stat_0041dc20* stats = g_game->stats;
     g_game->won = g_game->bit4_3923b;
     if (g_game->campaign->GetGameType() == 1) {
-        g_game->mission = ((Mission*)g_game->campaign)->GetMissionIndex();
+        g_game->mission = g_game->campaign->GetMissionIndex();
         g_game->results[g_game->mission] = g_game->won ? 'W' : 'L';
     }
     g_game->maxKills = 10;

@@ -2693,7 +2693,7 @@ void ShowGameSettingsDialog()
     }
     AddTextGadget(layer, "TEXT", Translate("Map:"), 0x12, y, 0x6e, 2);
     AddTextGadget(layer, "TEXT",
-                 Translate(((Mission*)g_game->mode)->GetMissionName()), 0x8c, y,
+                 Translate(g_game->mode->GetMissionName()), 0x8c, y,
                  0x78, 2);
     y += 0x12;
     AddTextGadget(layer, "TEXT", Translate("Starting Metal:"), 0x12, y, 0x6e, 2);
@@ -2790,9 +2790,9 @@ void __stdcall FillHelpPage(Sub_0045f8c0* sub, int page, int lineCount)
     char key[12];
     char value[0x80];
     BuildDataPath(path, "gamedata", "help", "TDF");
-    if (((TdfFile*)&parser)->LoadFile(path)) {
+    if ((&parser)->LoadFile(path)) {
         int y = 0x32;
-        if (((TdfFile*)&parser)->SelectRecord("Help")) {
+        if ((&parser)->SelectRecord("Help")) {
             Page_0045f8c0 lines;
             Page_0045f8c0* pp = &lines;
             // Operands read through non-bare-load locals, declared in the opposite

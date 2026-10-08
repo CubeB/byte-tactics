@@ -663,7 +663,7 @@ void __stdcall HandleMainMenuClick(Gadget_00425d80* gadget)
         RegisterDataArchives();
         BuildDataPath(buf, "maps", "multiplay", "tdf");
         TdfFile obj;
-        if (((TdfFile*)&obj)->LoadFile(buf) != 0) {
+        if ((&obj)->LoadFile(buf) != 0) {
             g_game->field_2bc0 = 6;
             SetOffscreenSurface(g_game->field_37e1b);
             FillSurface(0, 0);
@@ -929,7 +929,7 @@ void __stdcall LoadWarpLevel(int param_1)
     int n = GetPrivateProfileIntA("WARPLEVELS", key, 0, path);
     SetMissionType(1);
     g_game->level->LoadCampaign(value);
-    if (((Mission*)g_game->level)->SelectMission(n)) {
+    if (g_game->level->SelectMission(n)) {
         g_game->flags.b3 = 1;
         g_game->flags.b2 = 1;
     }
@@ -975,7 +975,7 @@ void HandleFrontendDebugKey(void)
             int n = GetPrivateProfileIntA("WARPLEVELS", key, 0, path);
             SetMissionType(1);
             g_game->level->LoadCampaign(buf);
-            if (((Mission*)g_game->level)->SelectMission(n)) {
+            if (g_game->level->SelectMission(n)) {
                 g_game->flags.b3 = 1;
                 g_game->flags.b2 = 1;
             }

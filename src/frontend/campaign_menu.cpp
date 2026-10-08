@@ -438,8 +438,8 @@ int __stdcall BuildCampaignNameList(char** out, int side)
     char* p = *out;
     for (int i = 0; i < n; i++) {
         BuildDataPath(path, "camps", q, "tdf");
-        if (((TdfFile*)&parser)->LoadFile(path)) {
-            if (((TdfFile*)&parser)->SelectRecord("HEADER")) {
+        if ((&parser)->LoadFile(path)) {
+            if ((&parser)->SelectRecord("HEADER")) {
                 parser.current->GetFieldString(name, "campaignside", 0x40, DAT_005119b8);
                 if (strcmp(g_game->names[side], name) == 0 || strcmp("ALL", name) == 0) {
                     found++;
@@ -888,7 +888,7 @@ void __stdcall FillMissionList(Menu* menu, int unused)
     Entry* layout =
         FindGadgetChecked(g_game->menu.layer->entries, "Campaign");
     g_game->net->LoadCampaign(SkipTextLines(layout->text, layout->selected));
-    int count = ((Mission*)g_game->net)->BuildMissionList((int*)&g_missionNameList);
+    int count = g_game->net->BuildMissionList((int*)&g_missionNameList);
     FUN_004a32a0(menu, "Missions", g_missionNameList, count, 0);
     FUN_004a2be0(&g_game->menu,
                  FindGadgetIndex(layer->entries, "Missions", 2));
@@ -1175,8 +1175,8 @@ void __stdcall OpenNewGameMenu(int param_1)
             Entry* m = FindGadgetChecked(g_game->menu.layer->entries,
                                              "Campaign");
             char* text = SkipTextLines(m->text, m->selected);
-            ((Mission*)g_game->net)->LoadCampaign(text);
-            int mc = ((Mission*)g_game->net)->BuildMissionList(
+            g_game->net->LoadCampaign(text);
+            int mc = g_game->net->BuildMissionList(
                 (int*)&g_missionNameList);
             FUN_004a32a0(menu, "Missions", g_missionNameList, mc, 0);
             int mi = FindGadgetIndex(mlayer->entries, "Missions", 2);

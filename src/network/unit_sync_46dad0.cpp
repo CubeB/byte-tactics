@@ -216,7 +216,7 @@ void UnitSync::ProcessSync() {
                         packet.arg = 0;
                         packet.field_6 = 0;
                         packet.field_a = 0;
-                        ((UnitSync*)this)->SendSyncPacket(e, &packet, 1);
+                        this->SendSyncPacket(e, &packet, 1);
                         e->field_28++;
                     }
                     changed = 1;

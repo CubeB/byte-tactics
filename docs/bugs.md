@@ -1137,3 +1137,8 @@ Things that look wrong in the original but have no effect, kept for the record.
   `holder->entries[index]`, so the text can be stored into a different array
   from the one searched; the function walks both chains. Found by OpenCode /
   deepseek-v4.1-flash in #6113.
+- **0x43a0c0** (possible): loads the order record's default flags from +0x11
+  (`mov eax, [eax + edx + 0x11]`), but the order table keeps that dword at
+  +0x10 (unit_orders.cpp), so the flags the constructor copies are shifted by
+  8 bits (the ready order's 0xf reads as 0). Found by OpenCode /
+  deepseek-v4.1-flash in #6125.

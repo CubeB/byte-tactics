@@ -9597,27 +9597,27 @@ struct Game {  // 0x3924d bytes, 904 views
     char password[11];  // +0x2be3
     unsigned short flags;  // +0x2bee
     unsigned char mode_2bf0;  // +0x2bf0
-    unsigned char field_2bf1[11];  // +0x2bf1
+    unsigned char chatRecipients[11];  // +0x2bf1
     char unknown_2bfc[44];
     int table_2c28[10];  // +0x2c28
     char unknown_2c50[38];
     Arg_00419670 view;  // +0x2c76
     short x;  // +0x2c8e
     short y;  // +0x2c90
-    int field_2c92;  // +0x2c92
-    int field_2c96;  // +0x2c96
-    int field_2c9a;  // +0x2c9a
-    int field_2c9e;  // +0x2c9e
-    int field_2ca2;  // +0x2ca2
-    int field_2ca6;  // +0x2ca6
+    int boxStartX;  // +0x2c92
+    int boxStartHeight;  // +0x2c96
+    int boxStartZ;  // +0x2c9a
+    int boxEndX;  // +0x2c9e
+    int boxEndHeight;  // +0x2ca2
+    int boxEndZ;  // +0x2ca6
     Vec3 pos;  // +0x2caa
-    int field_2cb6;  // +0x2cb6
-    unsigned short field_2cba;  // +0x2cba
-    unsigned short field_2cbc;  // +0x2cbc
+    int boxStartTick;  // +0x2cb6
+    unsigned short hoverUnitId;  // +0x2cba
+    unsigned short cellFeature;  // +0x2cbc
     char selected_2cbe;  // +0x2cbe
     char unknown_2cbf[4];
-    unsigned char field_2cc3;  // +0x2cc3
-    unsigned short field_2cc4;  // +0x2cc4
+    unsigned char orderMode;  // +0x2cc3
+    unsigned short buildTypeIndex;  // +0x2cc4
     unsigned char pad_2cc6 : 5;  // +0x2cc6
     unsigned char bit5_2cc6 : 1;
     unsigned char bit6_2cc6 : 1;
@@ -9629,7 +9629,7 @@ struct Game {  // 0x3924d bytes, 904 views
     void* field_141fb;  // +0x141fb
     void* field_141ff;  // +0x141ff
     void* field_14203;  // +0x14203
-    PathMap* field_14207;  // +0x14207
+    PathMap* pathfinder;  // +0x14207
     FeatureSpot* spots;  // +0x1420b
     Unit* unit;  // +0x1420f
     char unknown_14213[8];
@@ -9646,8 +9646,8 @@ struct Game {  // 0x3924d bytes, 904 views
     char unknown_14243[16];
     int featureCount;  // +0x14253
     int scanIndex;  // +0x14257
-    int field_1425b;  // +0x1425b
-    int field_1425f;  // +0x1425f
+    int windSpeedMin;  // +0x1425b
+    int windSpeedMax;  // +0x1425f
     int gravity;  // +0x14263
     float tidal;  // +0x14267
     void* radarFrame;  // +0x1426b
@@ -9656,7 +9656,7 @@ struct Game {  // 0x3924d bytes, 904 views
     int count_14277;  // +0x14277
     Eye_00482130* eyes;  // +0x1427b
     unsigned char seaLevel;  // +0x1427f
-    unsigned char field_14280;  // +0x14280
+    unsigned char debugMode;  // +0x14280
     unsigned short flags_14281;  // +0x14281
     IconSet_00466780* iconSet;  // +0x14283
     Cell* cells;  // +0x14287
@@ -9695,9 +9695,9 @@ struct Game {  // 0x3924d bytes, 904 views
     int sum_y;  // +0x1433b
     Vec3 trackedPos;  // +0x1433f
     short value_1434b;  // +0x1434b
-    unsigned char field_1434d;  // +0x1434d
+    unsigned char scrollSpeed;  // +0x1434d
     unsigned char flags_1434e;  // +0x1434e
-    unsigned short field_1434f;  // +0x1434f
+    unsigned short slotsPerPlayer;  // +0x1434f
     unsigned short poolCount;  // +0x14351
     int f14353;  // +0x14353
     Unit* units;  // +0x14357
@@ -9705,9 +9705,9 @@ struct Game {  // 0x3924d bytes, 904 views
     unsigned short* list_1435f;  // +0x1435f
     void* hotRadar;  // +0x14363
     int count_14367;  // +0x14367
-    int field_1436b;  // +0x1436b
-    unsigned short field_1436f;  // +0x1436f
-    unsigned short field_14371;  // +0x14371
+    int hotRadarCount;  // +0x1436b
+    unsigned short focusUnitId;  // +0x1436f
+    unsigned short autoFollowTicks;  // +0x14371
     unsigned int bit0_14373 : 1;  // +0x14373
     unsigned int paused : 1;
     unsigned int rest : 30;

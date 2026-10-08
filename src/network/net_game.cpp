@@ -418,7 +418,7 @@ struct Game {
                 unsigned short bit0_2bee : 1;
             };
             unsigned char chatMode;    // +0x2bf0
-            unsigned char field_2bf1[10];  // +0x2bf1
+            unsigned char chatRecipients[10];  // +0x2bf1
         };
     };
     char unknown_2bfb[0x2c28 - 0x2bfb];

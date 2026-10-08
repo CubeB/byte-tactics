@@ -327,7 +327,7 @@ struct Game {
     int count;                         // +0x14277
     Eye* eyes;                         // +0x1427b
     unsigned char seaLevel;            // +0x1427f
-    unsigned char unknown_14280;
+    unsigned char debugMode;
     Flags_14281 flags;                 // +0x14281
     IconSet* iconSet;                  // +0x14283
     Cell* cells;                       // +0x14287
@@ -336,7 +336,7 @@ struct Game {
     Grid2 grid2;                       // +0x1429f
     Rec* field_142b7;                  // +0x142b7
     char unknown_142bb[0x142f1 - 0x142bb];
-    Flags_142f1 field_142f1;           // +0x142f1
+    Flags_142f1 viewDirtyFlags;        // +0x142f1
     char unknown_142f3[0x1431f - 0x142f3];
     int scrollX;                       // +0x1431f
     int scrollY;                       // +0x14323

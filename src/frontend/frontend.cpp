@@ -204,9 +204,9 @@ struct Game {
     char frontendSubstateRequest;      // +0x2bc0
     char unknown_2bc1[0x2bee - 0x2bc1];
     Bits_00426e80 field_2bee;          // +0x2bee
-    unsigned char field_2bf0;          // +0x2bf0
+    unsigned char chatMode;            // +0x2bf0
     char unknown_2bf1[0x2c7e - 0x2bf1];
-    int field_2c7e;                    // +0x2c7e
+    int cursorKeyFlags;                // +0x2c7e
     char unknown_2c82[0x37e1b - 0x2c82];
     int field_37e1b;                   // +0x37e1b
     char unknown_37e1f[0x37eee - 0x37e1f];
@@ -504,7 +504,7 @@ void ResetFrontendState()
     }
     g_game->frontendSubstate = 0;
     g_game->frontendSubstateRequest = 0;
-    g_game->field_2bf0 = 0;
+    g_game->chatMode = 0;
     *(unsigned short*)&g_game->dplayAddressDialogFlags &= 0xfffe;
     g_frontendErrorText[0] = 0;
 }
@@ -978,7 +978,7 @@ void HandleFrontendDebugKey(void)
         }
         return;
     default:
-        if (event == 0 && g_game->field_2c7e == 0
+        if (event == 0 && g_game->cursorKeyFlags == 0
             && DAT_00512288 >= (int)GetTicks())
             return;
         PlaySoundByName("MAINMENU", 0);

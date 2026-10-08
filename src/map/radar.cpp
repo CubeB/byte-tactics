@@ -257,7 +257,7 @@ struct Game {
     char unknown_1cae[0x2a43 - 0x1cae];
     unsigned char currentPlayer;         // +0x2a43
     char unknown_2a44[0x2cba - 0x2a44];
-    short field_2cba;                    // +0x2cba
+    short hoverUnitId;                   // +0x2cba
     char unknown_2cbc[0x141f3 - 0x2cbc];
     int projectileCount;                 // +0x141f3
     Projectile_00466dc0* projectiles;    // +0x141f7
@@ -309,9 +309,9 @@ struct Game {
     Unit* units;                         // +0x14357
     Unit* unitsEnd;                      // +0x1435b
     char unknown_1435f[0x14363 - 0x1435f];
-    unsigned short* field_14363;         // +0x14363
+    unsigned short* hotRadar;            // +0x14363
     char unknown_14367[0x1436b - 0x14367];
-    int field_1436b;                     // +0x1436b
+    int hotRadarCount;                   // +0x1436b
     char unknown_1436f[0x147df - 0x1436f];
     void* field_147df;                   // +0x147df
     void* field_147e3;                   // +0x147e3
@@ -611,9 +611,9 @@ static inline int ScaleY_00466dc0(Unit* u)
 void DrawRadarUnits(void)
 {
     unsigned char* base = (unsigned char*)g_game + 0xdcb;
-    unsigned short* out = g_game->field_14363;
+    unsigned short* out = g_game->hotRadar;
 
-    g_game->field_1436b = 0;
+    g_game->hotRadarCount = 0;
     void* surface = g_game->finalSurface;
     DrawSurface(surface, g_game->mappedSurface, 0, 0);
 
@@ -643,7 +643,7 @@ void DrawRadarUnits(void)
                                 PlayerInfo_00466dc0_Get(u->playerIndex)->data->field_96),
                             x, y);
                     }
-                    if (u->id == g_game->field_2cba) {
+                    if (u->id == g_game->hoverUnitId) {
                         DrawFrame(surface,
                             GetGafFrame(g_game->field_147e3, 0), x, y);
                     }
@@ -691,7 +691,7 @@ void DrawRadarUnits(void)
                     *(int*)(out + 1) = g_game->posX + x;
                     *(int*)(out + 3) = g_game->posY + y;
                     out += 5;
-                    g_game->field_1436b++;
+                    g_game->hotRadarCount++;
                 }
             }
             u = (Unit*)((char*)u + 0x118);

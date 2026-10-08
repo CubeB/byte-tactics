@@ -170,16 +170,16 @@ struct Game {
     unsigned char localPlayer;          // +0x2a42
     char unknown_2a43[0x2c76 - 0x2a43];
     char orders_2c76[0x2cba - 0x2c76];  // +0x2c76
-    unsigned short field_2cba;          // +0x2cba
+    unsigned short hoverUnitId;         // +0x2cba
     char unknown_2cbc[0x2cc3 - 0x2cbc];
-    unsigned char field_2cc3;           // +0x2cc3
+    unsigned char orderMode;            // +0x2cc3
     char unknown_2cc4[0x2cc6 - 0x2cc4];
-    unsigned char field_2cc6;           // +0x2cc6
+    unsigned char inputFlags;           // +0x2cc6
     char unknown_2cc7[0x1423b - 0x2cc7];
     int screenTilesX;                   // +0x1423b
     int screenTilesY;                   // +0x1423f
     char unknown_14243[0x14280 - 0x14243];
-    unsigned char field_14280;          // +0x14280
+    unsigned char debugMode;            // +0x14280
     unsigned short viewFlags;           // +0x14281
     char unknown_14283[0x1431f - 0x14283];
     int scrollX;                        // +0x1431f
@@ -310,8 +310,8 @@ void SelectStopOrder(void)
 {
     int index;
 
-    g_game->field_2cc3 = 1;
-    g_game->field_2cc6 &= 0xdf;
+    g_game->orderMode = 1;
+    g_game->inputFlags &= 0xdf;
     index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
     if (index != -1) {
         ClearGroupStatus(&g_game->gui, index);
@@ -325,11 +325,11 @@ void __stdcall SetOrSelectStopOrder(int set)
     int index;
 
     if (set) {
-        g_game->field_2cc6 |= 0x20;
+        g_game->inputFlags |= 0x20;
         return;
     }
-    g_game->field_2cc3 = 1;
-    g_game->field_2cc6 &= 0xdf;
+    g_game->orderMode = 1;
+    g_game->inputFlags &= 0xdf;
     index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
     if (index != -1) {
         ClearGroupStatus(&g_game->gui, index);
@@ -511,9 +511,9 @@ void HandleGameKey(void)
                 CloseTopScreen(&g_game->gui);
             }
         } else {
-            if (g_game->field_2cc3 != 1) {
-                g_game->field_2cc3 = 1;
-                g_game->field_2cc6 = g_game->field_2cc6 & 0xdf;
+            if (g_game->orderMode != 1) {
+                g_game->orderMode = 1;
+                g_game->inputFlags = g_game->inputFlags & 0xdf;
                 int handle = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
                 if (handle != -1)
                     ClearGroupStatus(&g_game->gui, handle);
@@ -608,9 +608,9 @@ void HandleGameKey(void)
 
     case 0xe2:
         if (key != 0) {
-            if (g_game->field_2cba != 0) {
+            if (g_game->hoverUnitId != 0) {
                 g_game->field_391b3 = 1;
-                g_game->field_391b7 = g_game->field_2cba;
+                g_game->field_391b7 = g_game->hoverUnitId;
             } else {
                 g_game->field_391b3 = 0;
             }
@@ -628,9 +628,9 @@ void HandleGameKey(void)
         // fall through
     case 0xe3:
         if (key != 0) {
-            if (g_game->field_2cba != 0) {
+            if (g_game->hoverUnitId != 0) {
                 g_game->field_391b9 = 1;
-                g_game->field_391bd = g_game->field_2cba;
+                g_game->field_391bd = g_game->hoverUnitId;
             } else {
                 g_game->field_391b9 = 0;
             }
@@ -685,7 +685,7 @@ void HandleGameKey(void)
                 SetDescListCleanupFlag(&g_game->gui, 0);
             } else {
                 g_game->flags_3923b.b0 = 0;
-                g_game->field_14280 = 0;
+                g_game->debugMode = 0;
                 SetDescListCleanupFlag(&g_game->gui, 1);
             }
         }

@@ -30,7 +30,7 @@ struct Game {
     unsigned short* visibilityMask;      // +0x14273
     char unknown_14277[0x1427f - 0x14277];
     unsigned char limitY;                // +0x1427f
-    char unknown_14280;
+    char debugMode;
     unsigned char flags;                 // +0x14281
 };
 struct UnitDef_00465ac0 {

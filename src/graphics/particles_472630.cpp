@@ -369,7 +369,7 @@ struct Game {
     unsigned short* visibilityMask;    // +0x14273
     char unknown_14277[0x1427f - 0x14277];
     unsigned char seaLevel;            // +0x1427f
-    char unknown_14280;
+    char debugMode;
     unsigned char flags;               // +0x14281, bit 1 (mask 2)
     char unknown_14282[0x1431f - 0x14282];
     short scrollX;                     // +0x1431f

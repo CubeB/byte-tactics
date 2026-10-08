@@ -8,7 +8,7 @@
 #pragma pack(push, 1)
 struct Game_0049ee30 {
     char unknown_0[0x2c74];
-    unsigned short field_2c74;               // +0x2c74
+    unsigned short lockFlags;                // +0x2c74
     char unknown_2c76[0x37f31 - 0x2c76];
     int field_37f31;                         // +0x37f31
     int field_37f35;                         // +0x37f35
@@ -86,7 +86,7 @@ int __stdcall ParseCommandLine(char* cmdLine, char* appName)
                     p = strtok(NULL, " \t");
                 if (p && *p) {
                     if (!_strcmpi(p, "lock"))
-                        g_game->field_2c74 |= 1;
+                        g_game->lockFlags |= 1;
                     else if (!_strcmpi(p, "deathends"))
                         ;
                     else if (!_strcmpi(p, "deathplays"))

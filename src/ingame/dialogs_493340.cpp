@@ -218,11 +218,11 @@ struct Game {
         Flags16 bits_2bee;
     };
     unsigned char mode_2bf0;           // +0x2bf0
-    unsigned char field_2bf1[11];      // +0x2bf1
+    unsigned char chatRecipients[11];  // +0x2bf1
     char unknown_2bfc[0x2c74 - 0x2bfc];
-    unsigned char field_2c74;          // +0x2c74
+    unsigned char lockFlags;           // +0x2c74
     char unknown_2c75[0x2cba - 0x2c75];
-    unsigned short field_2cba;         // +0x2cba
+    unsigned short hoverUnitId;        // +0x2cba
     char unknown_2cbc[0x14280 - 0x2cbc];
     unsigned char counter_14280;       // +0x14280
     char unknown_14281[0x14357 - 0x14281];
@@ -619,7 +619,7 @@ void ResetPlayerGadgets(void)
         if (state != 0 && state != 4 && i != g_game->localPlayer) {
             sprintf(buf, "LIVEPLYR%d", i);
             int value = 0;
-            unsigned char* flags = g_game->field_2bf1;
+            unsigned char* flags = g_game->chatRecipients;
             switch (g_game->mode_2bf0) {
             case 1:
                 value = *p;
@@ -665,11 +665,11 @@ void __stdcall HandleTalkDialogEvent(Menu* gadget)
         n = atoi(&entries[gadget->current].name[8]);
         // Kept as the original has it: n is never range checked before it
         // indexes the 11-byte selection mask, so a "LIVEPLYR42" style name
-        // writes outside field_2bf1. The neighbouring mode_2bf0 is clamped
+        // writes outside chatRecipients. The neighbouring mode_2bf0 is clamped
         // (`if (g_game->mode_2bf0 >= 4) g_game->mode_2bf0 = 0;`), so the
         // omission looks like an oversight rather than a deliberate choice.
         unsigned char v = (unsigned char)GetButtonStage(gadget, gadget->current);
-        g_game->field_2bf1[n] = v;
+        g_game->chatRecipients[n] = v;
         MarkChanged(gadget);
         ClearSelectedGadget(gadget);
         goto tail;
@@ -718,7 +718,7 @@ void __stdcall HandleTalkDialogEvent(Menu* gadget)
             oldmode = g_game->mode_2bf0;
             char* to = 0;
             Player* base = &g_game->players[g_game->localPlayer];
-            Saved saved = *(Saved*)g_game->field_2bf1;
+            Saved saved = *(Saved*)g_game->chatRecipients;
             // Early out rather than a positive `if`, and the empty statement
             // at skip0 below is load bearing: either change costs 9 points.
             if (!(' ' < p[1] && strchr(g_chatTargetSeparators, p[1]) != 0)) goto skip0;
@@ -730,8 +730,8 @@ void __stdcall HandleTalkDialogEvent(Menu* gadget)
                 mode = 3;
                 // to is computed before the memset.
                 to = g_game->players[d].name;
-                memset(g_game->field_2bf1, 0, 11);
-                g_game->field_2bf1[d] = 1;
+                memset(g_game->chatRecipients, 0, 11);
+                g_game->chatRecipients[d] = 1;
             } else {
                 int c = tolower(p[0]);
                 if (c != 'a') {
@@ -752,7 +752,7 @@ after:
             g_game->mode_2bf0 = mode;
             memset(buf2, 0, sizeof(buf2));
             SendChatMessage(base, p, 4, to);
-            *(Saved*)g_game->field_2bf1 = saved;
+            *(Saved*)g_game->chatRecipients = saved;
             g_game->mode_2bf0 = oldmode;
         }
 clear:
@@ -850,7 +850,7 @@ void __stdcall OpenUnitInfoDialog(void)
         name[0x10] = 0;
         type = FindUnitTypeId(name);
     } else {
-        unsigned short t = g_game->field_2cba;
+        unsigned short t = g_game->hoverUnitId;
         if (t != 0) {
             Unit* unit = &g_game->units[t];
             Player* owner = &g_game->players[g_game->player];
@@ -1258,7 +1258,7 @@ void ToggleTabMenu()
         int v = count > 0;
         SetGadgetActiveByName(&g_game->menu, "ALLIES", v);
         SetGadgetActiveByName(&g_game->menu, "SHARE", v);
-        int ctl = !(g_game->field_2c74 & 1) && IsHostLocal();
+        int ctl = !(g_game->lockFlags & 1) && IsHostLocal();
         SetGadgetActiveByName(&g_game->menu, "CONTROL", ctl);
     } else {
         SetGadgetActiveByName(&g_game->menu, "ALLIES", 0);
@@ -1430,7 +1430,7 @@ void __stdcall HandleDebugHotkey(int eventType)
         SetPageFlipping(0);
         break;
     case 0x5d: {
-        Unit* u = &g_game->units[g_game->field_2cba];
+        Unit* u = &g_game->units[g_game->hoverUnitId];
         if (u->type != 0) {
             u->lastAttackerSlot = 10;
             u->flag_110 = 1;

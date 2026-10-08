@@ -179,11 +179,11 @@ struct Game {
     int rect_y2;                       // +0x2c9e
     int rect_x3;                       // +0x2ca2
     int rect_y3;                       // +0x2ca6
-    int field_2caa;                    // +0x2caa
+    int pos;                           // +0x2caa
     char unknown_2cae[0x2cba - 0x2cae];
-    unsigned short field_2cba;         // +0x2cba
+    unsigned short hoverUnitId;        // +0x2cba
     char unknown_2cbc[0x2cc3 - 0x2cbc];
-    unsigned char field_2cc3;          // +0x2cc3
+    unsigned char orderMode;           // +0x2cc3
     char unknown_2cc4[0x142bb - 0x2cc4];
     Rect rect_142bb;                   // +0x142bb
     char unknown_142cb[0x1431f - 0x142cb];
@@ -196,7 +196,7 @@ struct Game {
     Slot_0048cd80* list2;              // +0x14363
     int count;                         // +0x14367
     int count2;                        // +0x1436b
-    unsigned short field_1436f;        // +0x1436f
+    unsigned short focusUnitId;        // +0x1436f
     char unknown_14371[0x14377 - 0x14371];
     void** models;                     // +0x14377
     char unknown_1437b[0x37e27 - 0x1437b];
@@ -635,7 +635,7 @@ struct Param_0048c7f0 {
 // FUNCTION: 0x48c7f0
 void __stdcall ClickSelectHoverUnit(Param_0048c7f0* param)
 {
-    Unit* unit = !g_game->field_2cba ? 0 : &g_game->units[g_game->field_2cba];
+    Unit* unit = !g_game->hoverUnitId ? 0 : &g_game->units[g_game->hoverUnitId];
     if (unit == 0)
         return;
     if (unit->player != g_game->player)
@@ -714,14 +714,14 @@ void __stdcall DrawSelectedUnitOrderOverlays(void* obj, Unit** sel)
 {
     Player* team = &g_game->players[g_game->player];
     Unit* sel1unit = !g_game->field_37e9c ? 0 : &g_game->units[g_game->field_37e9c];
-    Unit* sel2unit = !g_game->field_2cba ? 0 : &g_game->units[g_game->field_2cba];
+    Unit* sel2unit = !g_game->hoverUnitId ? 0 : &g_game->units[g_game->hoverUnitId];
     Unit* selunit = *sel;
     bool flag = (selunit && selunit->def->ids)
         || (sel1unit && sel1unit->def->ids)
         || (sel2unit && sel2unit->def->ids);
     for (Unit* u = team->unitsBegin; u <= team->unitsEnd; u++) {
         if ((u->flags.raw & 0x10000000) && !(u->flags.raw & 0x4000)) {
-            if (u == *sel || u->id == g_game->field_37e9c || u->id == g_game->field_2cba)
+            if (u == *sel || u->id == g_game->field_37e9c || u->id == g_game->hoverUnitId)
                 DrawOrderOverlays(u, 0x1f, obj, sel, 1);
             else if (u->flags.selected)
                 DrawOrderOverlays(u, 0x1f, obj, sel, 0);
@@ -788,7 +788,7 @@ unsigned short __stdcall PickUnitUnderCursor(void)
 // matches at its old file's symbol count.
 
 // Builds the local player's selected-unit list, drops the unit at
-// g_game->units[g_game->field_2cba] from it, and returns an order code.
+// g_game->units[g_game->hoverUnitId] from it, and returns an order code.
 // With no other selected unit it returns 0xf when arg is 1 and that unit is
 // finished and valid, else 0x13; otherwise it folds 0x13 with GetOrderCursor
 // over the remaining units and returns the minimum.
@@ -805,8 +805,8 @@ public:
 int __stdcall ResolveCursorModeForSelection(char arg)
 {
     Unit* target;
-    if (g_game->field_2cba != 0)
-        target = &g_game->units[g_game->field_2cba];
+    if (g_game->hoverUnitId != 0)
+        target = &g_game->units[g_game->hoverUnitId];
     else
         target = 0;
 
@@ -836,7 +836,7 @@ int __stdcall ResolveCursorModeForSelection(char arg)
 
     int result = 0x13;
     for (std::vector<Unit*>::iterator it = vec.begin(); it != vec.end(); ++it) {
-        int r = GetOrderCursor(g_game->field_2cc3, *it, target, &g_game->field_2caa);
+        int r = GetOrderCursor(g_game->orderMode, *it, target, &g_game->pos);
         if (r < result)
             result = r;
     }
@@ -917,7 +917,7 @@ void FocusNextLocalUnit(void)
     Unit* u = PickUnit(&g_game->players[g_game->player]);
     if (u == 0)
         return;
-    g_game->field_1436f = u->id;
+    g_game->focusUnitId = u->id;
     CenterCameraOnMapPosition((Vec3*)&u->pos_x, 1);
     CollectVisibleUnitIds();
     unsigned short* list = g_game->list;

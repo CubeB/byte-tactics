@@ -317,7 +317,7 @@ struct Game {
     char unknown_0[0x1b63];
     Player_00488310 players[10];      // +0x1b63
     char unknown_2851[0x14267 - 0x2851];
-    float field_14267;                // +0x14267
+    float tidal;                      // +0x14267
     char unknown_1426b[0x1438f - 0x1426b];
     int count;                        // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
@@ -850,7 +850,7 @@ float __stdcall GetEnergyUse(UnitDef* def)
         return -(g_game->field_37ede * def->windGenerator);
     }
     if (def->tidalGenerator > 0.0f) {
-        return -(g_game->field_14267 * def->tidalGenerator);
+        return -(g_game->tidal * def->tidalGenerator);
     }
     return 0.0f;
 }

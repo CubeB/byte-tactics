@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by space-bunny-free, finished by mimo-v2.6-pro. Names are provisional.
 // The function: for every unit of the local player with flag 0x10 that is not
-// g_game->units[g_game->field_2cba], if its order kind is not Standing_FireOrder
+// g_game->units[g_game->hoverUnitId], if its order kind is not Standing_FireOrder
 // (or the unit type allows fire) and not Standing_MoveOrder (or allows move),
 // issue IssueOrCancelOrder at pos offset by the unit's delta from the player's
 // average unit position, when the unit is within count*3000 of that average,
@@ -64,11 +64,11 @@ struct Game {
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char localPlayer;          // +0x2a42
     char unknown_2a43[0x2caa - 0x2a43];
-    void* field_2caa;                   // +0x2caa
+    void* pos;                          // +0x2caa
     char unknown_2cae[0x2cba - 0x2cae];
-    unsigned short field_2cba;          // +0x2cba
+    unsigned short hoverUnitId;         // +0x2cba
     char unknown_2cbc[0x14357 - 0x2cbc];
-    Unit* field_14357;                  // +0x14357
+    Unit* units;                        // +0x14357
 };
 
 extern Game* g_game;
@@ -94,10 +94,10 @@ void __stdcall IssueOrderToSelection(UnitType_0048cf30* entry, unsigned char mod
     else
         flag_b = (kind.GetTableEntry()->flags >> 9) & 1;
     if (flag_b) {
-        if (!g_game->field_2cba)
+        if (!g_game->hoverUnitId)
             except = 0;
         else
-            except = (Unit*)((char*)g_game->field_14357 + 280 * g_game->field_2cba);
+            except = (Unit*)((char*)g_game->units + 280 * g_game->hoverUnitId);
     }
     Player_0048cf30* p = &g_game->players[g_game->localPlayer];
     int count = 0;
@@ -122,7 +122,7 @@ void __stdcall IssueOrderToSelection(UnitType_0048cf30* entry, unsigned char mod
         if (!(u->flags & 0x10) || u == except)
             continue;
         if (mode)
-            kind.index = GetOrderType(mode, u, except, &g_game->field_2caa).index;
+            kind.index = GetOrderType(mode, u, except, &g_game->pos).index;
         if (!kind.index)
             continue;
         // fire and move are named locals from the Order() wrapper, not constructed

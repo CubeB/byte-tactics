@@ -87,10 +87,10 @@ struct Game {
     unsigned short* visibilityMask;    // +0x14273
     char unknown_14277[0x1427f - 0x14277];
     unsigned char seaLevel;            // +0x1427f
-    unsigned char unknown_14280;
+    unsigned char debugMode;
     unsigned short flags;              // +0x14281
     char unknown_14283[0x142f1 - 0x14283];
-    Flags_142f1_004816a0 field_142f1;  // +0x142f1
+    Flags_142f1_004816a0 viewDirtyFlags;  // +0x142f1
     char unknown_142f2[0x14356 - 0x142f2];
     Unit* units;                       // +0x14357
     Unit* units_end;                   // +0x1435b
@@ -163,7 +163,7 @@ void __stdcall RecalculateLineOfSight(int arg)
             }
         }
     }
-    g_game->field_142f1.mapChanged = 1;
+    g_game->viewDirtyFlags.mapChanged = 1;
     g_game->flags &= 0xfff7;
     UpdateRadarMapped();
     DrawRadarUnits();

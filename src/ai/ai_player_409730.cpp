@@ -215,9 +215,9 @@ struct Def_00409730 {
 
 struct Game {
     char unknown_0[0x1425f];
-    int field_1425f;                   // +0x1425f
+    int windSpeedMax;                  // +0x1425f
     char unknown_14263[0x1434f - 0x14263];
-    unsigned short field_1434f;        // +0x1434f
+    unsigned short slotsPerPlayer;     // +0x1434f
     char unknown_14351[0x1438f - 0x14351];
     int count;                         // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
@@ -343,14 +343,14 @@ void PlayerAI::ComputeBaseWeights()
             x *= 2;
         if (def->minwaterdepth >= 0)
             x *= 3;
-        if (player->unitCount > (unsigned short)(g_game->field_1434f / 2)) {
+        if (player->unitCount > (unsigned short)(g_game->slotsPerPlayer / 2)) {
             x += (char)vec_8d[i] / 2;
         }
         if (def->flag_245_8)
             x = 0;
         if (flags.flag_24)
             x = 0;
-        if (def->field_1d2 != 0.0f && g_game->field_1425f < g_game->field_37ec8 / 2)
+        if (def->field_1d2 != 0.0f && g_game->windSpeedMax < g_game->field_37ec8 / 2)
             x = 0;
         x = min(x, 100);
         e->a = x;

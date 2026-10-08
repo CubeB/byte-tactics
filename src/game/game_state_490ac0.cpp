@@ -77,12 +77,12 @@ struct Game {
     char unknown_2bf0[0x2bf1 - 0x2bf0];
     Zero11_004917d0 zero_2bf1;   // +0x2bf1
     char unknown_2bfc[0x2cba - 0x2bfc];
-    unsigned short field_2cba;   // +0x2cba
+    unsigned short hoverUnitId;  // +0x2cba
     char unknown_2cbc[0x2cbe - 0x2cbc];
     signed char selected;   // +0x2cbe
     char unknown_2cbf[0x2cc3 - 0x2cbf];
     unsigned char mode_2cc3;   // +0x2cc3
-    unsigned short field_2cc4;   // +0x2cc4
+    unsigned short buildTypeIndex;  // +0x2cc4
     union {
         unsigned char flags_2cc6;
         struct {
@@ -93,10 +93,10 @@ struct Game {
         };
     };
     char unknown_2cc7[0x1425b - 0x2cc7];
-    int field_1425b;   // +0x1425b
-    int field_1425f;   // +0x1425f
+    int windSpeedMin;  // +0x1425b
+    int windSpeedMax;  // +0x1425f
     char unknown_14263[0x14280 - 0x14263];
-    unsigned char field_14280;   // +0x14280
+    unsigned char debugMode;     // +0x14280
     char unknown_14281[0x14383 - 0x14281];
     void* xform;   // +0x14383
     void* projected;   // +0x14387
@@ -305,9 +305,9 @@ void __cdecl UpdateWind()
         g_game->windCounter += ((int)((__int64)rand() * 10 / 0x8000) + 5) * 30;
 
         // Separate statements: one expression changes how the low bound is added.
-        int range = g_game->field_1425f - g_game->field_1425b;
+        int range = g_game->windSpeedMax - g_game->windSpeedMin;
         int n = RandomInt(range);
-        g_game->windSpeed = g_game->field_1425b + n;
+        g_game->windSpeed = g_game->windSpeedMin + n;
         if (g_game->windSpeed != 0)
             g_game->windDirection = RandomInt(0x10000);
 
@@ -668,7 +668,7 @@ void InitGame()
     g_game->gui.field_14 = g_game->gui.field_8;
     SetTextKeyColor(0xfe);
     SetFont(g_game->field_391f9);
-    g_game->field_14280 = 0;
+    g_game->debugMode = 0;
     g_game->field_38c53 = 0;
     g_game->field_38c5f = 0;
     g_game->field_38c63 = 0;
@@ -783,10 +783,10 @@ void LoadBattleAssets()
     ResetChatHudIndices();
     memset(&g_game->zero_2bf1, 0, 11);
     g_game->mode_2cc3 = 1;
-    g_game->field_2cc4 = 0;
+    g_game->buildTypeIndex = 0;
     g_game->bit5_2cc6 = 0;
     g_game->bit6_2cc6 = 0;
-    g_game->field_2cba = 0;
+    g_game->hoverUnitId = 0;
     g_game->bit0_37ebe = 0;
     g_game->bit11_37ebe = 0;
     g_game->field_39249 = 0;
@@ -969,7 +969,7 @@ void __stdcall UpdateBattleHoverMode(int unused)
         }
         return;
     }
-    g_game->field_2cba = PickUnitUnderCursor();
+    g_game->hoverUnitId = PickUnitUnderCursor();
     int n = ResolveCursorModeForSelection(g_game->mode_2cc3);
     if (g_game->selected != n) {
         g_game->selected = n;

@@ -44,8 +44,8 @@ struct Cell_482ac0 {
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x1427f];
-    unsigned char field_1427f;          // +0x1427f
-    char unknown_14280;
+    unsigned char seaLevel;             // +0x1427f
+    char debugMode;
     unsigned char field_14281;          // +0x14281
     char unknown_14282[0x1485b - 0x14282];
     Cell_482ac0* field_1485b;           // +0x1485b
@@ -81,7 +81,7 @@ void __stdcall RevealNewUnit(Unit* unit)
     p.field_c = unit->cell_id;
     p.pos = unit->pos;
     p.field_a = unit->type->field_170;
-    int min_y = (g_game->field_1427f + 1) << 16;
+    int min_y = (g_game->seaLevel + 1) << 16;
     if (p.pos.y < min_y) {
         p.pos.y = min_y;
     }

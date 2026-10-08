@@ -2462,7 +2462,7 @@ address,name
 0x4b6220,GetDisplay
 0x4b6230,QuitApp
 0x4b6290,FatalError
-0x4b62c0,FUN_004b62c0
+0x4b62c0,EmptyPostArchiveMountHook
 0x4b62d0,InitTimers
 0x4b6330,GetTickRate
 0x4b6340,GetTicks
@@ -4736,12 +4736,12 @@ address,name
 0x51fbbc,std::HH::HU?$pair::?$_Tree::_Nil
 0x51fbc0,DAT_0051fbc0$S3314
 0x51fbd0,g_display
-0x51fbd8,DAT_0051fbd8
-0x51fbe0,DAT_0051fbe0
+0x51fbd8,g_timerSlots
+0x51fbe0,g_timerSlot0Interval
 0x51fc78,g_closeHandler
 0x51fc7c,g_closeHandlerArg
 0x51fc80,g_timerCount
-0x51fc84,DAT_0051fc84
+0x51fc84,g_lastTimerTick
 0x51fc88,g_randomSeed
 0x51fc90,g_defaultCommandHandler
 0x51fc94,g_defaultCommandMask

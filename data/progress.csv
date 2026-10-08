@@ -2470,7 +2470,7 @@ address,size,file,symbol,status,similarity
 0x4b6220,6,src/graphics/display.cpp,?GetDisplay@@YGHXZ,matched,100.0
 0x4b6230,91,src/graphics/display.cpp,?QuitApp@@YGXPAD@Z,matched,100.0
 0x4b6290,46,src/graphics/display.cpp,?FatalError@@YGXPAD@Z,matched,100.0
-0x4b62c0,5,src/graphics/display.cpp,?FUN_004b62c0@@YGHH@Z,matched,100.0
+0x4b62c0,5,src/graphics/display.cpp,?EmptyPostArchiveMountHook@@YGHH@Z,matched,100.0
 0x4b62d0,86,src/graphics/display.cpp,?InitTimers@@YGXH@Z,matched,100.0
 0x4b6330,12,src/graphics/display.cpp,?GetTickRate@@YGHXZ,matched,100.0
 0x4b6340,34,src/graphics/display.cpp,?GetTicks@@YGIXZ,matched,100.0

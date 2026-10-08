@@ -237,7 +237,7 @@ void InitGame();
 void __stdcall InitDisplayDefaults(void* param_1);
 int __stdcall InitEnvironment(void* param_1);
 void __stdcall InitTimers(int param_1);
-void __stdcall FUN_004b62c0(const char* param_1);
+void __stdcall EmptyPostArchiveMountHook(const char* param_1);
 void __stdcall ShutdownEnvironment(void* param_1);
 void SaveCdLists();
 void FUN_00490fe0();
@@ -301,7 +301,7 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         return 0;
     InitTimers(0x1e);
     RegisterDataArchives();
-    FUN_004b62c0(DAT_005097f4);
+    EmptyPostArchiveMountHook(DAT_005097f4);
     g_game->field_c = &g_displayContext;
     g_game->field_1 = 3;
     g_game->field_2 = 1;

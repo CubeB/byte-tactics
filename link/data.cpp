@@ -669,8 +669,8 @@ int DAT_0051fbac;  // 0x51fbac .bss
 int DAT_0051fbb0;  // 0x51fbb0 .bss
 int DAT_0051fbb4;  // 0x51fbb4 .bss
 unsigned char DAT_0051fbd4[4];  // 0x51fbd4 .bss
-unsigned char DAT_0051fbd8[172];  // 0x51fbd8 .bss
-unsigned int DAT_0051fc84;  // 0x51fc84 .bss
+unsigned char g_timerSlots[172];  // 0x51fbd8 .bss
+unsigned int g_lastTimerTick;  // 0x51fc84 .bss
 unsigned int g_randomSeed;  // 0x51fc88 .bss
 unsigned char DAT_0051fc8c[4];  // 0x51fc8c .bss
 int g_defaultCommandHandler;  // 0x51fc90 .bss
@@ -690,6 +690,7 @@ int DAT_0051ff04;  // 0x51ff04 .bss
 int DAT_0051ff08;  // 0x51ff08 .bss
 int g_enumSessionsResult;  // 0x51ff0c .bss
 int g_cdFadeVolume;  // 0x51ff10 .bss
+Class_004d02a0* g_cdPlayer;  // 0x51ff14 .bss
 void* g_cdPlayerWindow;  // 0x51ff18 .bss
 unsigned char DAT_0051ff1c[4];  // 0x51ff1c .bss
 int DAT_0051ff20[10];  // 0x51ff20 .bss

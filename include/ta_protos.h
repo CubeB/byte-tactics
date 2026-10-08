@@ -2642,7 +2642,7 @@ void ShutdownEnvironment(Display_004b6110*);
 int GetDisplay(void);
 void QuitApp(char*);
 void FatalError(char*);
-int FUN_004b62c0(int);
+int EmptyPostArchiveMountHook(int);
 void InitTimers(int);
 int GetTickRate(void);
 unsigned int GetTicks(void);

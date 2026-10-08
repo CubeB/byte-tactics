@@ -183,7 +183,7 @@ struct Event_4b5cc0 {
     int flag;       // +0x14
 };
 
-// One entry of the timer table at DAT_0051fbd8: ten slots, then g_timerCount
+// One entry of the timer table at g_timerSlots: ten slots, then g_timerCount
 // counts them.
 struct Timer_4b63f0 {
     void* callback;                    // +0
@@ -197,10 +197,10 @@ typedef void (__stdcall *TimerCb_4b63f0)(int);
 extern App_4b5980* g_display;
 extern void (__cdecl *g_closeHandler)(int);
 extern int g_closeHandlerArg;
-extern Timer_4b63f0 DAT_0051fbd8[10];
-extern int DAT_0051fbe0;               // the interval field of the first slot
+extern Timer_4b63f0 g_timerSlots[10];
+extern int g_timerSlot0Interval;       // the interval field of the first slot
 extern int g_timerCount;
-extern unsigned int DAT_0051fc84;      // last tick count, in game ticks
+extern unsigned int g_lastTimerTick;   // last tick count, in game ticks
 extern LONG DAT_0052a4e8;
 extern LONG DAT_0052a4ec;
 extern HANDLE DAT_0052a4f0;
@@ -952,7 +952,7 @@ void __stdcall FatalError(char* message)
 }
 
 // FUNCTION: 0x4b62c0
-int __stdcall FUN_004b62c0(int)
+int __stdcall EmptyPostArchiveMountHook(int)
 {
     return 0;
 }
@@ -963,9 +963,9 @@ void __stdcall InitTimers(int param_1)
     g_display->tickScale = param_1;
     g_timerCount = 0;
     for (int i = 0; i < 10; i++) {
-        DAT_0051fbd8[i].interval = -1;
+        g_timerSlots[i].interval = -1;
     }
-    DAT_0051fc84 = (GetTickCount() * g_display->tickScale) / 1000;
+    g_lastTimerTick = (GetTickCount() * g_display->tickScale) / 1000;
 }
 
 // FUNCTION: 0x4b6330
@@ -986,10 +986,10 @@ unsigned int GetTicks()
 void UpdateTimers()
 {
     unsigned int q1 = (GetTickCount() * g_display->tickScale) / 1000;
-    int diff = (int)q1 - DAT_0051fc84;
-    DAT_0051fc84 = (GetTickCount() * g_display->tickScale) / 1000;
+    int diff = (int)q1 - g_lastTimerTick;
+    g_lastTimerTick = (GetTickCount() * g_display->tickScale) / 1000;
 
-    int* p = &DAT_0051fbe0;
+    int* p = &g_timerSlot0Interval;
     do {
         if (p[0] >= 0) {
             if ((p[1] -= diff) <= 0) {
@@ -1007,10 +1007,10 @@ void UpdateTimers()
 int __stdcall AddTimer(int interval, int id, TimerCb_4b63f0 callback)
 {
     unsigned int now = (GetTickCount() * g_display->tickScale) / 1000;
-    int diff = (int)now - DAT_0051fc84;
-    DAT_0051fc84 = (GetTickCount() * g_display->tickScale) / 1000;
+    int diff = (int)now - g_lastTimerTick;
+    g_lastTimerTick = (GetTickCount() * g_display->tickScale) / 1000;
 
-    int* p = &DAT_0051fbe0;
+    int* p = &g_timerSlot0Interval;
     do {
         if (*p >= 0) {
             if ((p[1] -= diff) <= 0) {
@@ -1023,15 +1023,15 @@ int __stdcall AddTimer(int interval, int id, TimerCb_4b63f0 callback)
     } while ((int)p < (int)&g_timerCount);
 
     int i = 0;
-    int* q = &DAT_0051fbe0;
+    int* q = &g_timerSlot0Interval;
     // The bound is the end of the ten slots. Written relative to the first one
     // so the entry test folds away, the way the original's code has none.
-    for (; (int)q < (int)&DAT_0051fbe0 + 160; q += 4, i++) {
+    for (; (int)q < (int)&g_timerSlot0Interval + 160; q += 4, i++) {
         if (*q < 0) {
-            DAT_0051fbd8[i].callback = callback;
-            DAT_0051fbd8[i].id = id;
-            DAT_0051fbd8[i].interval = interval;
-            DAT_0051fbd8[i].countdown = interval;
+            g_timerSlots[i].callback = callback;
+            g_timerSlots[i].id = id;
+            g_timerSlots[i].interval = interval;
+            g_timerSlots[i].countdown = interval;
             g_timerCount++;
             return i;
         }
@@ -1048,7 +1048,7 @@ int __stdcall RemoveTimer(int i)
         return 0;
     if (i < 0)
         return 0;
-    DAT_0051fbd8[i].interval = -1;
+    g_timerSlots[i].interval = -1;
     return 1;
 }
 
@@ -1059,9 +1059,9 @@ void ResetTimers()
 {
     g_timerCount = 0;
     for (int i = 0; i < 10; i++) {
-        DAT_0051fbd8[i].interval = -1;
+        g_timerSlots[i].interval = -1;
     }
-    DAT_0051fc84 = GetTickCount() * g_display->tickScale / 1000;
+    g_lastTimerTick = GetTickCount() * g_display->tickScale / 1000;
 }
 
 // FUNCTION: 0x4b6560

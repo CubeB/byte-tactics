@@ -24,7 +24,7 @@ struct Game {
     unsigned char localPlayer;         // +0x2a42
     char unknown_2a43[0x2bf0 - 0x2a43];
     unsigned char mode;                // +0x2bf0
-    unsigned char field_2bf1[10];      // +0x2bf1
+    unsigned char chatRecipients[10];  // +0x2bf1
 };
 #pragma pack(pop)
 
@@ -62,7 +62,7 @@ int __stdcall SendChatPacket(char* text)
         result = BroadcastPacket(target, g_game->buffer, 0x41);
     } else if (g_game->mode == 3) {
         for (i = 0; i < 10; i++) {
-            if (g_game->field_2bf1[i] != 0) {
+            if (g_game->chatRecipients[i] != 0) {
                 int id = g_game->players[i].id;
                 if (id != 0)
                     result = SendPacketToPlayer(target, id, g_game->buffer, 0x41);

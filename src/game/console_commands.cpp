@@ -168,7 +168,7 @@ struct Game {
     char unknown_2c92[0x2caa - 0x2c92];
     Vec3 pos;                          // +0x2caa
     char unknown_2cb6[0x2cbc - 0x2cb6];
-    unsigned short field_2cbc;         // +0x2cbc
+    unsigned short cellFeature;        // +0x2cbc
     char unknown_2cbe[0x14207 - 0x2cbe];
     PathMap* paths;                    // +0x14207
     char unknown_1420b[0x14223 - 0x1420b];
@@ -190,12 +190,12 @@ struct Game {
     int scrollX;                       // +0x1431f
     int scrollY;                       // +0x14323
     char unknown_14327[0x1434d - 0x14327];
-    unsigned char field_1434d;         // +0x1434d
+    unsigned char scrollSpeed;         // +0x1434d
     char unknown_1434e[0x14357 - 0x1434e];
     Unit* units;                       // +0x14357
     Unit* units_end;                   // +0x1435b
     char unknown_1435f[0x14371 - 0x1435f];
-    unsigned short field_14371;        // +0x14371
+    unsigned short autoFollowTicks;    // +0x14371
     unsigned int bit0 : 1;             // +0x14373
     unsigned int paused : 1;
     unsigned int rest_14373 : 30;
@@ -597,7 +597,7 @@ void __stdcall CmdBurnAll(int arg1)
 // FUNCTION: 0x4163a0
 void __stdcall CmdBurnOne(void* args)
 {
-    if (g_game->field_2cbc < 0xfffb) {
+    if (g_game->cellFeature < 0xfffb) {
         void* target = GetMapCell(g_game->point.x, g_game->point.y);
         RemoveFeature(target, 1);
     }
@@ -891,7 +891,7 @@ void __stdcall CmdGive(CommandArgs* args)
 void __stdcall CmdScrollSpeed(void* param_1)
 {
     unsigned char result = ((CommandArgs*)param_1)->GetIntArg(1, 0);
-    g_game->field_1434d = result;
+    g_game->scrollSpeed = result;
     SaveSettings();
 }
 
@@ -1130,7 +1130,7 @@ void __stdcall CmdBigBrother(int unused)
         ClearCameraFollowState();
     } else {
         g_game->paused = 1;
-        g_game->field_14371 = 1;
+        g_game->autoFollowTicks = 1;
     }
 }
 

@@ -576,14 +576,14 @@ struct Game {
         };
     };
     char unknown_2bf0[0x2c28 - 0x2bf0]; // +0x2bf0
-    int field_2c28[11];                // +0x2c28
+    int playerIds[11];                 // +0x2c28
     char unknown_2c54[0x2c74 - 0x2c54]; // +0x2c54
     struct {                           // +0x2c74
         unsigned short locked : 1;
         unsigned short locked_rest : 15;
     };
     char unknown_2c76[0x2cbe - 0x2c76]; // +0x2c76
-    signed char field_2cbe;            // +0x2cbe
+    signed char cursorMode;            // +0x2cbe
     char unknown_2cbf[0x1438f - 0x2cbf]; // +0x2cbf
     int count;                         // +0x1438f
     char unknown_14393[0x1439b - 0x14393]; // +0x14393
@@ -1954,7 +1954,7 @@ int InitScoreReporting(void)
 {
     if (g_game->map->GetGameType() != 3)
         return 0;
-    int saved = g_game->field_2cbe;
+    int saved = g_game->cursorMode;
     SetCursorMode(0x14);
     int r = LoadReporterDll(&g_reporterCount, &g_reporterNames);
     if (r == 0) {

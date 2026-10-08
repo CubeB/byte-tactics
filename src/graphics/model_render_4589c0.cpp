@@ -128,8 +128,8 @@ struct Game {
     char unknown_0[0x2a43];
     unsigned char playerIndex;
     char unknown_2a44[0x1427f-0x2a44];
-    unsigned char field_1427f;
-    unsigned char field_14280;
+    unsigned char seaLevel;
+    unsigned char debugMode;
     char unknown_14281[0x37f06-0x14281];
     GameFlags_459200 field_37f06;
 };
@@ -224,7 +224,7 @@ public:
 // registers need.
 //
 // BUG/ODDITY (kept as found): the far-sprite test is `field_a6 != 0 || dx >=
-//   field_1427f`, so the sprite is drawn when the unit is off the ground OR
+//   seaLevel`, so the sprite is drawn when the unit is off the ground OR
 //   in view range, which reads as if it should be AND. Both halves have it.
 //   Also `v.v[1] = pos_y` is a plain copy where x and z are deltas.
 //
@@ -258,7 +258,7 @@ void Class_00459200::DrawObjectPicture(int param_2, Model_459200* model, Vec3_45
             if ((f.word & 0x2000000) == 0) {
                 if ((model->owner->flags & 0x20000000)
                     && (f.word & 0x40000000) == 0) {
-                    if (model->owner->field_a6 != 0 || dx >= g_game->field_1427f) {
+                    if (model->owner->field_a6 != 0 || dx >= g_game->seaLevel) {
                         if (model->field_14 == 0)
                             ((CMemoryCache*)this)->BuildShadow(model,bmp);
                         DrawFrameBlended(param_2, model->field_14, v.p.x.whole + 0x85, y);
@@ -277,7 +277,7 @@ void Class_00459200::DrawObjectPicture(int param_2, Model_459200* model, Vec3_45
             ((Class_004581e0*)this)->BuildObjectPicture(model, 0, 1);
             bmp = model->bitmap;
         }
-        if (!(model->owner->field_10e & 4) && g_game->field_14280 == 0)
+        if (!(model->owner->field_10e & 4) && g_game->debugMode == 0)
             DrawFrame((Surface*)param_2, bmp, v.p.x.whole + 0x80, z);
         else
             DrawFrameBlended(param_2, bmp, v.p.x.whole + 0x80, z);
@@ -314,7 +314,7 @@ void Class_00459200::DrawObjectPicture(int param_2, Model_459200* model, Vec3_45
                     DrawFrameBlended(param_2, this->bitmap, v.p.x.whole + 0x85, y);
                 } else {
                     if (model->owner->flags & 0x20000000) {
-                        if (model->owner->field_a6 != 0 || dx >= g_game->field_1427f) {
+                        if (model->owner->field_a6 != 0 || dx >= g_game->seaLevel) {
                             if (model->field_14 == 0)
                                 ((CMemoryCache*)this)->BuildShadow(model,bmp);
                             DrawFrameBlended(param_2, model->field_14, v.p.x.whole + 0x85, y);
@@ -323,7 +323,7 @@ void Class_00459200::DrawObjectPicture(int param_2, Model_459200* model, Vec3_45
                         if (gameFlags.bits.b3) {
                             if ((f.word & 0x81000) == 0) {
                                 ((Class_0045a470*)this)->MakeSilhouette(bmp);
-                                int diff = g_game->field_1427f - dx;
+                                int diff = g_game->seaLevel - dx;
                                 if (diff > 0) {
                                     diff += shade_bias(model);
                                     // The empty do-while ends the block: keeps the sum in diff's register.
@@ -362,7 +362,7 @@ void Class_00459200::DrawObjectPicture(int param_2, Model_459200* model, Vec3_45
             }
             unit = unit->list_next;
         }
-        int diff = g_game->field_1427f - dx;
+        int diff = g_game->seaLevel - dx;
         if (diff > 0) {
             diff += shade_bias(model);
             if ((model->owner->flags & 0x200) == 0 && model->owner->kind != g_game->playerIndex) {
@@ -373,7 +373,7 @@ void Class_00459200::DrawObjectPicture(int param_2, Model_459200* model, Vec3_45
         }
         if (model->owner->field_92->flags.bits.b30)
             CutFrameBelow(this->bitmap, 0x7d);
-        if (!(model->owner->field_10e & 4) && g_game->field_14280 == 0)
+        if (!(model->owner->field_10e & 4) && g_game->debugMode == 0)
             DrawFrame((Surface*)param_2, this->bitmap, v.p.x.whole + 0x80, z);
         else
             DrawFrameBlended(param_2, this->bitmap, v.p.x.whole + 0x80, z);

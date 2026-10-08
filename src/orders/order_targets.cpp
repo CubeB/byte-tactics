@@ -669,7 +669,7 @@ class Pathfinder;
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x14207];
-    Pathfinder* field_14207;           // +0x14207
+    Pathfinder* pathfinder;            // +0x14207
     char unknown_1420b[0x1427f - 0x1420b];
     unsigned char seaLevel;            // +0x1427f
     char unknown_14280[0x142b7 - 0x14280];
@@ -2716,7 +2716,7 @@ int Class_0044f010::FUN_0044ef80()
 // FUNCTION: 0x44f2a0
 void Class_0044f010::SetPathOrder(void* param)
 {
-    g_game->field_14207->AbortIfGoalMatch(this);
+    g_game->pathfinder->AbortIfGoalMatch(this);
     if (field_4)
         ((Class_0044ced0*)field_4)->AddFlags(0x80);
     active = 0;
@@ -2769,7 +2769,7 @@ void Class_0044f010::SetPathOrder(void* param)
 // FUNCTION: 0x44f450
 Class_0044f010::~Class_0044f010()
 {
-    g_game->field_14207->AbortIfGoalMatch(this);
+    g_game->pathfinder->AbortIfGoalMatch(this);
 }
 
 // Slot 7: true when there is something to send: flag 3 of +0x64 (the path changed) is
@@ -2861,13 +2861,13 @@ void Class_0044f650::FUN_0044f650(Vec3_0044f650* out, int unused, int n)
 // FUNCTION: 0x44f6a0
 void CreatePathfinder()
 {
-    g_game->field_14207 = new Pathfinder;
+    g_game->pathfinder = new Pathfinder;
 }
 
 // Deletes the object at g_game+0x14207 and clears the pointer.
 // FUNCTION: 0x44f6e0
 void DestroyPathfinder()
 {
-    delete g_game->field_14207;
-    g_game->field_14207 = 0;
+    delete g_game->pathfinder;
+    g_game->pathfinder = 0;
 }

@@ -330,12 +330,12 @@ struct Game {
     unsigned short* visibilityMask;    // +0x14273
     char unknown_14277[0x1427f - 0x14277];
     unsigned char limit;               // +0x1427f
-    char unknown_14280;
+    char debugMode;
     unsigned char field_14281;         // +0x14281
     char unknown_14282[0x14287 - 0x14282];
     Cell_00485010* cells;              // +0x14287
     char unknown_1428b[0x1434f - 0x1428b];
-    unsigned short field_1434f;        // +0x1434f
+    unsigned short slotsPerPlayer;     // +0x1434f
     unsigned short poolCount;          // +0x14351
     char unknown_14353[0x14357 - 0x14353];
     union {
@@ -344,12 +344,12 @@ struct Game {
     };
     union {
         Unit* units_end;               // +0x1435b
-        unsigned char* field_1435b;
+        unsigned char* unitsEnd;
     };
     void* hotUnits;                    // +0x1435f
     void* hotRadar;                    // +0x14363
     char unknown_14367[0x1436f - 0x14367];
-    unsigned short field_1436f;        // +0x1436f
+    unsigned short focusUnitId;        // +0x1436f
     char unknown_14371[0x14373 - 0x14371];
     unsigned int field_14373;          // +0x14373
     Object3do** definitions;           // +0x14377
@@ -567,9 +567,9 @@ int __stdcall ComparePlayers(Player* a, Player* b);
 // FUNCTION: 0x4854a0
 void __stdcall AllocateUnitMemory(void)
 {
-    g_game->field_1436f = 0;
+    g_game->focusUnitId = 0;
     g_game->field_14373 &= 0xfffffffd;
-    g_game->field_1434f = g_game->unitsPerPlayer;
+    g_game->slotsPerPlayer = g_game->unitsPerPlayer;
     g_game->poolCount = (unsigned short)(g_game->unitsPerPlayer * 10 + 1);
 
     unsigned char* pool = g_game->pool = (unsigned char*)FUN_004d83b0("UNIT MEMORY", g_game->poolCount * 0x118);
@@ -578,7 +578,7 @@ void __stdcall AllocateUnitMemory(void)
     unsigned int ten = g_game->unitsPerPlayer * 10;
     g_game->hotUnits = FUN_004d83b0("HOT UNITS", ten * 2);
     g_game->hotRadar = FUN_004d83b0("HOT RADAR UNITS", ten * 10);
-    g_game->field_1435b = g_game->pool + g_game->poolCount * 0x118 - 0x118;
+    g_game->unitsEnd = g_game->pool + g_game->poolCount * 0x118 - 0x118;
 
     unsigned short n;
     for (n = 0; n < g_game->poolCount; n++) {

@@ -154,7 +154,7 @@ struct Game {
         };
     } flags_2a44;                        // +0x2a44
     char unknown_2a46[0x2cbe - 0x2a46];
-    unsigned char field_2cbe;            // +0x2cbe
+    unsigned char cursorMode;            // +0x2cbe
     char unknown_2cbf[0x148cf - 0x2cbf];
     void* p148cf;                        // +0x148cf
     char unknown_148d3[0x37eee - 0x148d3];
@@ -459,8 +459,8 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         }
         RegisterDataArchives();
         BlankScreen();
-        if (g_game->field_2cbe != 20) {
-            g_game->field_2cbe = 20;
+        if (g_game->cursorMode != 20) {
+            g_game->cursorMode = 20;
             SetCursorAnimation(g_game->message, g_game->p148cf);
         }
         if (g_game->flags_2a44.b2)

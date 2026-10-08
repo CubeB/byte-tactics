@@ -371,16 +371,16 @@ struct Game {
         char orders[0x2c92 - 0x2c76];  // +0x2c76
         Rect view;                     // +0x2c76, copied by UpdateMouseScroll
     };
-    int field_2c92;                    // +0x2c92
-    int field_2c96;                    // +0x2c96
-    int field_2c9a;                    // +0x2c9a
-    int field_2c9e;                    // +0x2c9e
-    int field_2ca2;                    // +0x2ca2
-    int field_2ca6;                    // +0x2ca6
+    int boxStartX;                     // +0x2c92
+    int boxStartHeight;                // +0x2c96
+    int boxStartZ;                     // +0x2c9a
+    int boxEndX;                       // +0x2c9e
+    int boxEndHeight;                  // +0x2ca2
+    int boxEndZ;                       // +0x2ca6
     Vec3 pos;                          // +0x2caa
     char unknown_2cb6[0x2cc3 - 0x2cb6];
-    unsigned char field_2cc3;          // +0x2cc3
-    unsigned short field_2cc4;         // +0x2cc4
+    unsigned char orderMode;           // +0x2cc3
+    unsigned short buildTypeIndex;     // +0x2cc4
     Flags_004197d0 flags;              // +0x2cc6
     CursorState cursor;                // +0x2cc7
     char unknown_2cf3[0x1422b - 0x2cf3];
@@ -598,14 +598,14 @@ int __stdcall MenuEntryNameContains(MenuEntry* entries, char* text, int index)
 void __stdcall IssueMobileBuildOrders(Arg_00419670* arg)
 {
     unsigned int remove = (arg->field_8 >> 2) & 1;
-    unsigned short index = g_game->field_2cc4;
+    unsigned short index = g_game->buildTypeIndex;
     UnitType* def = &g_game->buildTypes[index];
     Vec3 pos = g_game->pos;
     // origin read once into a local: passing def->origin to each helper changes the frame.
     Point origin = def->origin;
     Point cell = WorldToCell(pos, origin);
     CellToWorld(origin, cell, &pos);
-    pos.y = g_game->field_2c96 << 16;
+    pos.y = g_game->boxStartHeight << 16;
 
     unsigned char team = g_game->localPlayer;
     Player* p = &g_game->players[team];
@@ -626,21 +626,21 @@ void __stdcall IssueMobileBuildOrders(Arg_00419670* arg)
 // FUNCTION: 0x4197d0
 int UpdatePlacementGhostValidity(void)
 {
-    UnitType* item = &g_game->buildTypes[g_game->field_2cc4];
+    UnitType* item = &g_game->buildTypes[g_game->buildTypeIndex];
     Point cell = WorldToCell(g_game->pos, item->origin);
-    g_game->field_2c92 = cell.x << 4;
-    g_game->field_2c9a = cell.y << 4;
+    g_game->boxStartX = cell.x << 4;
+    g_game->boxStartZ = cell.y << 4;
     Point origin = item->origin;
-    g_game->field_2c9e = (origin.x << 4) + g_game->field_2c92;
-    g_game->field_2ca6 = (origin.y << 4) + g_game->field_2c9a;
+    g_game->boxEndX = (origin.x << 4) + g_game->boxStartX;
+    g_game->boxEndZ = (origin.y << 4) + g_game->boxStartZ;
     g_game->flags.bits.b6 = CanBuildAt(item, cell, 0, &g_game->players[g_game->localPlayer]);
     unsigned char r;
     if (g_game->flags.value & 0x40)
         r = GetBuildSiteHeight();
     else
         r = GetFootprintHeight(item, cell);
-    g_game->field_2c96 = r;
-    g_game->field_2ca2 = r;
+    g_game->boxStartHeight = r;
+    g_game->boxEndHeight = r;
     return (g_game->flags.value >> 6) & 1;
 }
 
@@ -735,7 +735,7 @@ void __stdcall QueueBuildOrder(char* name, Unit* unit, int count)
 // FUNCTION: 0x419bc0
 void __stdcall SetOrderIntent(unsigned char param_1)
 {
-    g_game->field_2cc3 = param_1;
+    g_game->orderMode = param_1;
     g_game->flags.value = g_game->flags.value & 0xf7;
 }
 
@@ -745,7 +745,7 @@ void __stdcall SetOrderIntent(unsigned char param_1)
 // name is no order. STOP issues the stop order at once.
 static inline void SetOrderMode(unsigned char mode)
 {
-    g_game->field_2cc3 = mode;
+    g_game->orderMode = mode;
     g_game->flags.value = g_game->flags.value & 0xf7;
 }
 
@@ -1130,8 +1130,8 @@ void __stdcall HandleBuildPanelClick(Menu* menu)
             g_game->orderState.bits.build = 1;
             PlaySoundByName("buildbutton", 0);
         } else if (id != 0 && g_game->buildTypes[id].mobile == 0) {
-            g_game->field_2cc3 = 0xe;
-            g_game->field_2cc4 = id;
+            g_game->orderMode = 0xe;
+            g_game->buildTypeIndex = id;
             PlaySoundByName("addbuild", 0);
         } else if (!HandleOrdersPanelClick(menu, entries) && !HandleOrderButtonClick(menu, entries)) {
             // Own nested if: inside the && chain the bit test is compiled differently.

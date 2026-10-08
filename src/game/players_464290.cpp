@@ -254,7 +254,7 @@ struct Game {
     int width;                         // +0x14233
     int height;                        // +0x14237
     char unknown_1423b[0x1427f - 0x1423b];
-    unsigned char field_1427f;         // +0x1427f
+    unsigned char seaLevel;            // +0x1427f
     char unknown_14280[0x14281 - 0x14280];
     unsigned short flags;              // +0x14281
     char unknown_14283[0x142ef - 0x14283];
@@ -1013,7 +1013,7 @@ void __stdcall UpdatePlayers()
                                     if (g_game->mission->field_d44 == 0)
                                         break;
                                     if (GetCellMeanHeight(&pos) >
-                                        (int)g_game->field_1427f)
+                                        (int)g_game->seaLevel)
                                         break;
                                 }
                             } while (--bound > 0);

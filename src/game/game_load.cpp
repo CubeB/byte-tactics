@@ -264,7 +264,7 @@ struct Game {
     Pos_00498da0 pos;                   // +0x2caa
     char unknown_2cb6[0x2cbc - 0x2cb6];
     unsigned short cellFeature;         // +0x2cbc
-    unsigned char field_2cbe;           // +0x2cbe
+    unsigned char cursorMode;           // +0x2cbe
     char unknown_2cbf[0x2cc6 - 0x2cbf];
     Flags_00498da0 flags;               // +0x2cc6
     char unknown_2cc7[0x1422b - 0x2cc7];
@@ -916,8 +916,8 @@ void LoadingScreenFrame(void)
             CloseTopScreen(&g_game->field_519);
         }
         DisableKeyCommands(&g_game->field_519);
-        if (g_game->field_2cbe != 0x14) {
-            g_game->field_2cbe = 0x14;
+        if (g_game->cursorMode != 0x14) {
+            g_game->cursorMode = 0x14;
             SetCursorAnimation(&g_game->field_519, (void*)g_game->field_148cf);
         }
         SetFont(g_game->field_391f9);

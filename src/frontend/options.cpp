@@ -378,7 +378,7 @@ struct Game {
     char unknown_14283[0x142f1 - 0x14283];
     unsigned short flags_142f1;        // +0x142f1
     char unknown_142f3[0x1434d - 0x142f3];
-    unsigned char field_1434d;         // +0x1434d
+    unsigned char scrollSpeed;         // +0x1434d
     char unknown_1434e[0x1437b - 0x1434e];
     CMemoryCache* ptr_1437b;           // +0x1437b
     char unknown_1437f[0x37e1b - 0x1437f];
@@ -1562,14 +1562,14 @@ void __stdcall HandleGameSpeedSlider(Menu_0045b800* obj, int unused)
 }
 
 // Reads the "SCREEN" slider of the menu object and stores its value in
-// g_game->field_1434d, writing 1 instead of any value of 1 or less, then
+// g_game->scrollSpeed, writing 1 instead of any value of 1 or less, then
 // marks the object changed (MarkChanged sets obj->field_cca = 1).
 // FUNCTION: 0x45c170
 void __stdcall HandleScreenSlider(Menu_0045b800* obj, int unused)
 {
     Entry_0045b800* e = FUN_004a0200(obj->holder->entries, "SCREEN");
     if (e != 0) {
-        g_game->field_1434d = SliderValue(e) > 1 ? SliderValue(e) : 1;
+        g_game->scrollSpeed = SliderValue(e) > 1 ? SliderValue(e) : 1;
         MarkChanged(obj);
     }
 }
@@ -1693,7 +1693,7 @@ void ApplyDefaultUiOptions()
     g_game->field_37f27 = 10;
     g_game->field_38a4b = 10;
     g_game->field_38a4d = 10;
-    g_game->field_1434d = 0x20;
+    g_game->scrollSpeed = 0x20;
     g_game->field_37efa = 0;
     g_game->field_37f17 = 10;
     g_game->field_37f18 = 5;
@@ -1748,7 +1748,7 @@ void RestoreUiOptions()
     g_game->field_37f23 = g_optionsBackupTextScroll;
     g_game->field_38a4b = g_optionsBackupGameSpeed.i;
     g_game->field_38a4d = g_optionsBackupGameSpeed.i;
-    g_game->field_1434d = g_optionsBackupEdgeScroll.i;
+    g_game->scrollSpeed = g_optionsBackupEdgeScroll.i;
     g_game->field_37efa = g_optionsBackupInterfaceType;
     g_game->field_37f17 = g_optionsBackupUnitChat;
     g_game->field_37f18 = g_optionsBackupUnitChatText;
@@ -1809,7 +1809,7 @@ void LoadSavedSettings()
     g_game->field_37f23 = g_optionsBackupTextScroll;
     g_game->field_38a4b = g_optionsBackupGameSpeed.i;
     g_game->field_38a4d = g_optionsBackupGameSpeed.i;
-    g_game->field_1434d = g_optionsBackupEdgeScroll.i;
+    g_game->scrollSpeed = g_optionsBackupEdgeScroll.i;
     g_game->field_37efa = g_optionsBackupInterfaceType;
     g_game->field_37f17 = g_optionsBackupUnitChat;
     g_game->field_37f18 = g_optionsBackupUnitChatText;
@@ -1829,7 +1829,7 @@ void SaveGameSettings()
     g_optionsPrefsSnapshot.bit0 = g_game->flags14281.bit1;
     g_optionsPrefsSnapshot.bit1 = g_game->flags14281.bit2;
     g_optionsBackupGameSpeed.i = g_game->field_38a4b;
-    g_optionsBackupEdgeScroll.i = g_game->field_1434d;
+    g_optionsBackupEdgeScroll.i = g_game->scrollSpeed;
     g_optionsBackupLockedTrack = ((Class_004ce5a0*)g_game->sound)->GetLockedTrack();
     for (int i = 0; i < 100; i++) {
         g_optionsBackupTrackTypes[i] = ((Class_004ce7e0*)g_game->sound)->GetCategoryOfTrack(i);
@@ -2489,7 +2489,7 @@ void __stdcall HandleSpeedOptionsClick(Gadget_0045ead0* gadget)
         g_game->field_37f23 = g_optionsBackupTextScroll;
         g_game->field_38a4b = g_optionsBackupGameSpeed.s;
         g_game->field_38a4d = g_optionsBackupGameSpeed.s;
-        g_game->field_1434d = g_optionsBackupEdgeScroll.b;
+        g_game->scrollSpeed = g_optionsBackupEdgeScroll.b;
         g_game->field_37efa = g_optionsBackupInterfaceType;
         g_game->field_37f17 = g_optionsBackupUnitChat;
         g_game->field_37f18 = g_optionsBackupUnitChatText;
@@ -2504,7 +2504,7 @@ void __stdcall HandleSpeedOptionsClick(Gadget_0045ead0* gadget)
         g_game->field_37f27 = 10;
         g_game->field_38a4b = 10;
         g_game->field_38a4d = 10;
-        g_game->field_1434d = 0x20;
+        g_game->scrollSpeed = 0x20;
         g_game->field_37efa = 0;
         g_game->field_37f17 = 10;
         g_game->field_37f18 = 5;
@@ -2560,7 +2560,7 @@ void OpenSpeedOptions()
     if (FindGadgetIndex(obj->entries, "SCREEN", 0xe) != -1) {
         Entry_0045ed50* e = FUN_004a0200(obj->entries, "SCREEN");
         e->max = 0x41;
-        int value = g_game->field_1434d;
+        int value = g_game->scrollSpeed;
         if (value > 0x41) {
             value = 0x41;
         }
@@ -2913,7 +2913,7 @@ void __stdcall HandleOptionsPanelClick(Gadget_0045fc60* gadget)
             g_game->field_37f23 = g_optionsBackupTextScroll;
             g_game->field_38a4b = g_optionsBackupGameSpeed.i;
             g_game->field_38a4d = g_optionsBackupGameSpeed.i;
-            g_game->field_1434d = g_optionsBackupEdgeScroll.b;
+            g_game->scrollSpeed = g_optionsBackupEdgeScroll.b;
             g_game->field_37efa = g_optionsBackupInterfaceType;
             g_game->field_37f17 = g_optionsBackupUnitChat;
             g_game->field_37f18 = g_optionsBackupUnitChatText;
@@ -3035,7 +3035,7 @@ void OpenOptionsPanel()
     g_optionsPrefsSnapshot.bit0 = g_game->los.bits.bit1;
     g_optionsPrefsSnapshot.bit1 = g_game->los.bits.bit2;
     g_optionsBackupGameSpeed.i = g_game->field_38a4b;
-    g_optionsBackupEdgeScroll.i = g_game->field_1434d;
+    g_optionsBackupEdgeScroll.i = g_game->scrollSpeed;
     g_optionsBackupLockedTrack = ((Class_004ce5a0*)g_game->sound)->GetLockedTrack();
     for (int i = 0; i < 100; i++) {
         g_optionsBackupTrackTypes[i] = ((Class_004ce7e0*)g_game->sound)->GetCategoryOfTrack(i);

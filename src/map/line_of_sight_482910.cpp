@@ -47,8 +47,8 @@ struct Game {
     char unknown_2a44[0x14277 - 0x2a44];
     int count;                         // +0x14277
     Eye_482910* eyes;                  // +0x1427b
-    unsigned char field_1427f;         // +0x1427f
-    char unknown_14280;
+    unsigned char seaLevel;            // +0x1427f
+    char debugMode;
     unsigned char flags;               // +0x14281
     char unknown_14282[0x1485b - 0x14282];
     Table_482910* field_1485b;         // +0x1485b
@@ -77,7 +77,7 @@ void __stdcall AddEyeball(Vec3_482910* src, int a, int b, int c)
         e->flagPtr = &e->flagB;
         e->pos = *src;
         e->flagA = b;
-        int minY = (g_game->field_1427f + 1) << 16;
+        int minY = (g_game->seaLevel + 1) << 16;
         if (e->pos.y < minY) {
             e->pos.y = minY;
         }

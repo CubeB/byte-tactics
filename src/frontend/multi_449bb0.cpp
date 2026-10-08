@@ -132,7 +132,7 @@ struct Game_00449bb0 {
     unsigned short dirty : 1;           // +0x2bee
     unsigned short dirty_rest : 15;
     char unknown_2bf0[0x2c28 - 0x2bf0];
-    int field_2c28[11];                 // +0x2c28
+    int playerIds[11];                  // +0x2c28
     char unknown_2c54[0x2c74 - 0x2c54];
     unsigned short locked : 1;          // +0x2c74
     unsigned short locked_rest : 15;
@@ -270,7 +270,7 @@ void OpenBattleRoom()
     g_battleRoomSlotsBuilt = 0;
     g_lastPlayerCount = -1;
     g_game->dirty = 1;
-    memset(g_game->field_2c28, 0, sizeof(g_game->field_2c28));
+    memset(g_game->playerIds, 0, sizeof(g_game->playerIds));
     // info before player: stores the player pointer without its 0x1b63 bias.
     info = g_game->players[g_game->localPlayer].info;
     player = &g_game->players[g_game->localPlayer];

@@ -74,12 +74,12 @@ struct Game {
     char unknown_2a46[0x2c76 - 0x2a46];
     View view;                         // +0x2c76
     char unknown_2c8e[0x2c92 - 0x2c8e];
-    int field_2c92;                    // +0x2c92
-    int field_2c96;                    // +0x2c96
-    int field_2c9a;                    // +0x2c9a
-    int field_2c9e;                    // +0x2c9e
-    int field_2ca2;                    // +0x2ca2
-    int field_2ca6;                    // +0x2ca6
+    int boxStartX;                     // +0x2c92
+    int boxStartHeight;                // +0x2c96
+    int boxStartZ;                     // +0x2c9a
+    int boxEndX;                       // +0x2c9e
+    int boxEndHeight;                  // +0x2ca2
+    int boxEndZ;                       // +0x2ca6
     union {
         Vec3 pos;                      // +0x2caa
         struct {
@@ -91,8 +91,8 @@ struct Game {
             short field_2cb4;          // +0x2cb4
         };
     };
-    int field_2cb6;                    // +0x2cb6
-    unsigned short field_2cba;         // +0x2cba
+    int boxStartTick;                  // +0x2cb6
+    unsigned short hoverUnitId;        // +0x2cba
     char unknown_2cbc[0x2cbe - 0x2cbc];
     signed char selected;              // +0x2cbe
     char unknown_2cbf[0x2cc3 - 0x2cbf];
@@ -100,7 +100,7 @@ struct Game {
     char unknown_2cc4[0x2cc6 - 0x2cc4];
     unsigned char flags_2cc6;          // +0x2cc6
     char unknown_2cc7[0x2cdf - 0x2cc7];
-    int field_2cdf;                    // +0x2cdf
+    int middleScrollActive;            // +0x2cdf
     char unknown_2ce3[0x14357 - 0x2ce3];
     char* units;                       // +0x14357
     char unknown_1435b[0x1487f - 0x1435b];
@@ -284,7 +284,7 @@ void BattleFrame(void)
     } else if ((flags & 2) == 0 && (flags & 1) == 0) {
         SetCursor(0x13);
     } else {
-        g_game->field_2cba = PickUnitUnderCursor();
+        g_game->hoverUnitId = PickUnitUnderCursor();
         SetCursor(ResolveCursorModeForSelection(g_game->orderMode));
     }
 
@@ -315,7 +315,7 @@ void BattleFrame(void)
                 CenterCameraOnRadarClick();
             }
         }
-    } else if (g_game->field_2cdf != 0) {
+    } else if (g_game->middleScrollActive != 0) {
         UpdateMouseScroll();
     } else if (view.msg == 0x204) {
         HandleRightClick(&view);
@@ -326,32 +326,32 @@ void BattleFrame(void)
     } else if ((flags & 8) != 0) {
         if (view.msg == 0x202) {
             g_game->flags_2cc6 = flags & 0xf7;
-            int dx = g_game->field_2c92 - g_game->field_2c9e;
-            int dz = g_game->field_2c9a - g_game->field_2ca6;
+            int dx = g_game->boxStartX - g_game->boxEndX;
+            int dz = g_game->boxStartZ - g_game->boxEndZ;
             dx = abs(dx);
             dz = abs(dz);
             int now = GetTicks();
-            if (g_game->field_2cb6 + 0x19 > now && dx < 0x20 && dz < 0x20) {
+            if (g_game->boxStartTick + 0x19 > now && dx < 0x20 && dz < 0x20) {
                 HandleLeftClick(&view);
             } else if (SelectUnitsInBox(&view) == 0) {
                 ClearSelection();
                 PopUntilNamedLayout(1);
             }
         } else {
-            g_game->field_2c9e = g_game->field_2cac;
-            g_game->field_2ca2 = g_game->field_2cb0;
-            g_game->field_2ca6 = g_game->field_2cb4;
+            g_game->boxEndX = g_game->field_2cac;
+            g_game->boxEndHeight = g_game->field_2cb0;
+            g_game->boxEndZ = g_game->field_2cb4;
         }
     } else if (view.msg == 0x201) {
         if ((flags & 2) != 0) {
             g_game->flags_2cc6 = flags | 8;
-            g_game->field_2cb6 = GetTicks();
-            g_game->field_2c92 = g_game->field_2cac;
-            g_game->field_2c96 = g_game->field_2cb0;
-            g_game->field_2c9a = g_game->field_2cb4;
-            g_game->field_2c9e = g_game->field_2cac;
-            g_game->field_2ca2 = g_game->field_2cb0;
-            g_game->field_2ca6 = g_game->field_2cb4;
+            g_game->boxStartTick = GetTicks();
+            g_game->boxStartX = g_game->field_2cac;
+            g_game->boxStartHeight = g_game->field_2cb0;
+            g_game->boxStartZ = g_game->field_2cb4;
+            g_game->boxEndX = g_game->field_2cac;
+            g_game->boxEndHeight = g_game->field_2cb0;
+            g_game->boxEndZ = g_game->field_2cb4;
             SetCursor(0x13);
         } else if (g_game->field_37efa == 1) {
             if ((flags & 1) != 0) {

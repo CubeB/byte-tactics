@@ -447,7 +447,7 @@ struct Game {
     int gravity;                       // +0x14263
     char unknown_14267[0x1427f - 0x14267];
     unsigned char seaLevel;            // +0x1427f
-    char unknown_14280;
+    char debugMode;
     unsigned char viewFlags;           // +0x14281
     char unknown_14282[0x142f3 - 0x14282];
     Unit* trackedUnit;                 // +0x142f3

@@ -11,11 +11,12 @@ class TdfRecord {
 public:
     TdfRecord* FindSubRecord(const char* name);
     int GetFieldCount();
-    char* GetFieldName(int index);
     int GetFieldInt(const char* name, int def);
     double GetFieldDouble(const char* name, double def);
-    int* GetFieldFixed(int* dst, char* key, int def);
     int GetFieldString(char* dst, char* key, unsigned int size, char* def);
+    void CopyRecordName(char* dest, unsigned int count);
+    int GetSubRecordCount();
+    TdfRecord* GetSubRecord(int index);
 };
 
 class TdfFile {

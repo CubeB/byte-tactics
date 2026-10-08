@@ -7,22 +7,9 @@
 #include <ctype.h>
 #include <vector>
 
-class TdfRecord;
-class Mission;
-class StringRef;
+#include "mission.h"
 
-class TdfFile {
-public:
-    TdfRecord* root;               // +0x0
-    TdfRecord* current;            // +0x4
-    int field_8;                   // +0x8
-    TdfFile();
-    ~TdfFile();
-    int LoadFile(char* file);
-    int SelectRecord(char* name);
-    void ResetCurrentRecord();
-    void Unload();
-};
+class StringRef;
 
 extern char DAT_005119b8[];
 
@@ -88,16 +75,6 @@ int __stdcall GetLocalizedString(TdfFile* obj, char* buf, const char* key, int s
 char* __stdcall Translate(char* text);
 
 int __stdcall LoadMapList(char** out, int param_2, int param_3);
-
-class TdfRecord {
-public:
-    int GetFieldString(char* dst, char* key, size_t size, char* def);
-    int GetFieldInt(const char* name, int def);
-    double GetFieldDouble(const char* name, double def);
-    TdfRecord* FindSubRecord(const char* name);
-    TdfRecord* GetSubRecord(int index);
-    int GetSubRecordCount();
-};
 
 class MissionConditions {
 public:
@@ -234,84 +211,6 @@ struct Header_004373a0 {
 int __stdcall HAPI_readfromfile(void* file, void* buf, int size);
 int __stdcall HAPI_SeekFile(void* file, int pos);
 int __stdcall ComputeChecksum(unsigned char* data, int len);
-
-class Mission {
-public:
-    int type;                          // +0x000
-    char campaign[0x100];              // +0x004
-    char names[9][0x100];              // +0x104
-    int exists;                        // +0xa04
-    TdfFile list;                      // +0xa08, the campaign file
-    char missionName[0x100];           // +0xa14
-    char text_b14[0x100];              // +0xb14
-    char* briefing;                    // +0xc14
-    int missionIndex;                  // +0xc18
-    int tntChecksum;                   // +0xc1c
-    int headerChecksum;                // +0xc20
-    char description[0x80];            // +0xc24
-    char planet[0x80];                 // +0xca4
-    char* mapList;                     // +0xd24
-    int mapCount;                      // +0xd28
-    int multi;                         // +0xd2c
-    int surfaceMetal;                  // +0xd30
-    int minWindSpeed;                  // +0xd34
-    int maxWindSpeed;                  // +0xd38
-    int gravity;                       // +0xd3c
-    float tidalStrength;               // +0xd40
-    int lavaWorld;                     // +0xd44
-    int noSeaLevelTrigger;             // +0xd48
-    int waterDoesDamage;               // +0xd4c
-    int waterDamage;                   // +0xd50
-    float killMul;                     // +0xd54
-    float timeMul;                     // +0xd58
-    float humanMetal;                  // +0xd5c
-    float computerMetal;               // +0xd60
-    char unknown_d64[0xd84 - 0xd64];
-    float humanEnergy;                 // +0xd84
-    float computerEnergy;              // +0xd88
-    char unknown_d8c[0xdac - 0xd8c];
-    MissionUnit* units;                // +0xdac
-    int unitCount;                     // +0xdb0
-    MissionRule* rules;                // +0xdb4
-    int ruleCount;                     // +0xdb8
-    MissionFeature* features;          // +0xdbc
-    int featureCount;                  // +0xdc0
-    char memory[0x80];                 // +0xdc4
-    char numPlayers[0x80];             // +0xe44
-
-    Mission(int owner_);
-    ~Mission();
-    int GetGameType();
-    void LoadCampaign(char* file);
-    char* GetCampaignName();
-    void LoadBriefing();
-    char* GetBriefing();
-    void SetNameSlot(int index, char* text);
-    void BuildCampaignFilePath(int index, char* dir, char* name, char* ext);
-    char* GetNameSlot(int index);
-    int CountMissions();
-    int BuildMissionList(char** out);
-    int GetTerrainLength();
-    int GetDescription();
-    int GetPlanet();
-    int GetTerrainSizeTier();
-    int MissionExists(int index);
-    int LoadMissionByName(char* map);
-    int SelectMission(int param_1);
-    int GetTranslatedName();
-    int GetMissionName();
-    bool HasMissionName();
-    int GetMissionIndex();
-    int AdvanceMission();
-    void RefreshMapList(int param_1);
-    int LoadMission(char* map);
-    int SelectSchema(int type, TdfFile* parser, char* schema);
-    void LoadMissionData(char* name, TdfFile* parser);
-    void FreeMissionData();
-    int CountStartPositions();
-    int GetStartPosition(Vec3_00437320* out, int id);
-    int ComputeMapChecksum();
-};
 
 class MapCacheEntry {
 public:
@@ -729,15 +628,15 @@ int Mission::GetTerrainLength()
 }
 
 // FUNCTION: 0x435900
-int Mission::GetDescription()
+char* Mission::GetDescription()
 {
-    return (int)((char*)this + 0xc24);
+    return (char*)this + 0xc24;
 }
 
 // FUNCTION: 0x435910
-int Mission::GetPlanet()
+char* Mission::GetPlanet()
 {
-    return (int)((char*)this + 0xca4);
+    return (char*)this + 0xca4;
 }
 
 // FUNCTION: 0x435920
@@ -840,15 +739,15 @@ int Mission::SelectMission(int param_1)
 }
 
 // FUNCTION: 0x435c20
-int Mission::GetTranslatedName()
+char* Mission::GetTranslatedName()
 {
-    return (int)((char*)this + 0xb14);
+    return (char*)this + 0xb14;
 }
 
 // FUNCTION: 0x435c30
-int Mission::GetMissionName()
+char* Mission::GetMissionName()
 {
-    return (int)((char*)this + 0xa14);
+    return (char*)this + 0xa14;
 }
 
 // FUNCTION: 0x435c40
@@ -1070,10 +969,10 @@ int Mission::LoadMission(char* map)
         ShowErrorBox("No suitable schema type in mission file!", "Map error");
         return 0;
     }
-    humanMetal = (float)parser.current->GetFieldInt("HumanMetal", 0);
-    humanEnergy = (float)parser.current->GetFieldInt("HumanEnergy", 0);
-    computerMetal = (float)parser.current->GetFieldInt("ComputerMetal", 0);
-    computerEnergy = (float)parser.current->GetFieldInt("ComputerEnergy", 0);
+    startMetal[0] = (float)parser.current->GetFieldInt("HumanMetal", 0);
+    startEnergy[0] = (float)parser.current->GetFieldInt("HumanEnergy", 0);
+    startMetal[1] = (float)parser.current->GetFieldInt("ComputerMetal", 0);
+    startEnergy[1] = (float)parser.current->GetFieldInt("ComputerEnergy", 0);
     surfaceMetal = parser.current->GetFieldInt("SurfaceMetal", 0);
     parser.current->GetFieldString(value, "aiprofile", 0x100, DAT_005119b8);
     BuildCampaignFilePath(7, "ai", value, "txt");

@@ -25,7 +25,7 @@ public:
 
 class Class_00439e80 {
 public:
-    void FUN_00439e80(int ticks);
+    void SetDeadlineTicks(int ticks);
 };
 
 #pragma pack(push, 1)
@@ -129,7 +129,7 @@ int __stdcall ReclaimOrder(Unit* unit, Order* order, int flags)
     case 3:
         QueueUnitSpeech(unit, 11, 0);
     case 4:
-        ((Class_00439e80*)order)->FUN_00439e80(2);
+        ((Class_00439e80*)order)->SetDeadlineTicks(2);
         order->time -= 2;
         if (order->time <= 0)
             return 1;

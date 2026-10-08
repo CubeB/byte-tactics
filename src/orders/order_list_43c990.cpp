@@ -22,7 +22,7 @@ static inline void Insert_0043c990(Elem_0043c990* last, Elem_0043c990 value,
 }
 
 // FUNCTION: 0x43c990
-void __stdcall FUN_0043c990(Elem_0043c990* first, Elem_0043c990* last,
+void __stdcall InsertionSortOrderTypes(Elem_0043c990* first, Elem_0043c990* last,
                             Pred_0043c990 pred, int*)
 {
     if (first == last)

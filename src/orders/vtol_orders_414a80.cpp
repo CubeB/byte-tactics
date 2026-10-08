@@ -25,7 +25,7 @@ public:
 class Class_004388d0 { public: void SetAttachedFx(int); };
 class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
 class Class_0044e6c0 { public: void SetAltitude(int); };
-class Class_00439e80 { public: void FUN_00439e80(int); };
+class Class_00439e80 { public: void SetDeadlineTicks(int); };
 #pragma pack(push, 1)
 struct UnitDef {
     char unknown_0[0x15e];
@@ -177,11 +177,11 @@ int __stdcall VtolReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
             bounds[1].z += order->target.Get()->def->max.z;
             bounds[1].y += order->target.Get()->def->max.y;
             EmitReverseNanoParticles(bounds, &start, 6);
-            ((Class_00439e80*)order)->FUN_00439e80(2);
+            ((Class_00439e80*)order)->SetDeadlineTicks(2);
             order->duration += 2;
             return 2;
         }
-        ((Class_00439e80*)order)->FUN_00439e80(30);
+        ((Class_00439e80*)order)->SetDeadlineTicks(30);
         return 0;
     }
     }

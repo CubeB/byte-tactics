@@ -341,7 +341,7 @@ static inline short PosZWhole(Unit* unit) { return *(short*)((char*)&unit->pos +
 class Class_00439e80
 {
 public:
-    void FUN_00439e80(int param);
+    void SetDeadlineTicks(int param);
 };
 
 // One 25-byte record of the global order-type table at 0x512344 (a
@@ -388,7 +388,7 @@ void __stdcall DrawOrderRangeRing(void* a, void* b, Class_0043a1f0* e, Vec3* p, 
 // first object of the list (`done`). Every helper is __stdcall with five dword
 // arguments and takes the position as a pointer to a 12-byte object.
 // FUNCTION: 0x439b30
-void __stdcall FUN_00439b30(Unit* unit, unsigned int mask, void* obj,
+void __stdcall DrawOrderOverlays(Unit* unit, unsigned int mask, void* obj,
                             void* sel, int flag)
 {
     // Two copies, base first: each call but bit 4's is preceded by pos = base,
@@ -424,7 +424,7 @@ void __stdcall FUN_00439b30(Unit* unit, unsigned int mask, void* obj,
 }
 
 // FUNCTION: 0x439cf0
-int __stdcall FUN_00439cf0(void* param_1)
+int __stdcall GetOrderTargetIfFlagged(void* param_1)
 {
     int eax;
     if (param_1 == 0) {
@@ -442,7 +442,7 @@ int __stdcall FUN_00439cf0(void* param_1)
 }
 
 // FUNCTION: 0x439d20
-int __stdcall FUN_00439d20(Unit* owner)
+int __stdcall GetBuildWeaponPercent(Unit* owner)
 {
     Class_0043a1f0* p;
     for (p = owner->list2; p; p = p->next) {
@@ -455,7 +455,7 @@ int __stdcall FUN_00439d20(Unit* owner)
 // Sums the amounts of the nodes flagged 0x100 with the given index over both
 // of the owner's node lists (+0x5c and +0x60).
 // FUNCTION: 0x439d80
-int __stdcall FUN_00439d80(Unit* owner, int index)
+int __stdcall SumQueuedBuildCount(Unit* owner, int index)
 {
     int total = 0;
     Class_0043a1f0* p;
@@ -471,7 +471,7 @@ int __stdcall FUN_00439d80(Unit* owner, int index)
 }
 
 // FUNCTION: 0x439dd0
-int __stdcall FUN_00439dd0(int param_1)
+int __stdcall GetOrderTarget(int param_1)
 {
     int eax = param_1;
     if (eax != 0) {
@@ -485,7 +485,7 @@ int __stdcall FUN_00439dd0(int param_1)
 }
 
 // FUNCTION: 0x439df0
-int __stdcall FUN_00439df0(Unit* obj)
+int __stdcall GetOrderName(Unit* obj)
 {
     if (obj && obj->list) {
         return DAT_00512344[obj->list->kind].value;
@@ -496,7 +496,7 @@ int __stdcall FUN_00439df0(Unit* obj)
 // Finds the object's list node of the given kind; the kind table's flag
 // 0x40000 selects which of the object's two lists (+0x60 or +0x5c) to search.
 // FUNCTION: 0x439e30
-Class_0043a1f0* __stdcall FUN_00439e30(Unit* obj, unsigned char kind)
+Class_0043a1f0* __stdcall FindOrderByType(Unit* obj, unsigned char kind)
 {
     Class_0043a1f0* n;
     if (DAT_00512344[kind].flags & 0x40000)
@@ -512,7 +512,7 @@ Class_0043a1f0* __stdcall FUN_00439e30(Unit* obj, unsigned char kind)
 }
 
 // FUNCTION: 0x439e80
-void Class_00439e80::FUN_00439e80(int param)
+void Class_00439e80::SetDeadlineTicks(int param)
 {
     *(unsigned int*)((char*)this + 0x6) |= 1;
     int val = *(int*)((char*)g_game + 0x38a47);
@@ -574,8 +574,8 @@ void __stdcall DeleteOrder(Unit* owner, Class_0043a1f0* node)
     }
 }
 
-// FUNCTION: 0x439fe0 ?FUN_00439fe0@@YGXPAD0@Z
-void __stdcall FUN_00439fe0(char* param_1, char* param_2)
+// FUNCTION: 0x439fe0 ?MoveOrderToTail@@YGXPAD0@Z
+void __stdcall MoveOrderToTail(char* param_1, char* param_2)
 {
     char** pp = (char**)(param_1 + 0x5c);
     char* node = *pp;
@@ -591,7 +591,7 @@ void __stdcall FUN_00439fe0(char* param_1, char* param_2)
     *(char**)(param_2 + 0x4a) = 0;
 }
 
-// Links `child` into the parent's list in front of `before` (see FUN_0043b730).
+// Links `child` into the parent's list in front of `before` (see EnqueueOrderType).
 static inline void InsertBefore(Unit* p, Class_0043a1f0* child, Class_0043a1f0* before)
 {
     Class_0043a1f0** link = (child->flags & 0x40000) ? &p->list2 : &p->list;
@@ -607,7 +607,7 @@ static inline void InsertBefore(Unit* p, Class_0043a1f0* child, Class_0043a1f0* 
 }
 
 // FUNCTION: 0x43a020
-void __stdcall FUN_0043a020(Unit* p, Class_0043a1f0* item)
+void __stdcall EnsurePatrolReturnOrder(Unit* p, Class_0043a1f0* item)
 {
     int add = 1;
     for (Class_0043a1f0* c = p->list; c != 0; c = c->next) {
@@ -714,7 +714,7 @@ int __stdcall OrderTypeNameLess(int param_1, char* param_2)
 }
 
 // FUNCTION: 0x43ac60
-void __stdcall FUN_0043ac60(Unit* owner, Class_0043a1f0* node,
+void __stdcall InsertOrderBefore(Unit* owner, Class_0043a1f0* node,
                             Class_0043a1f0* before)
 {
     Class_0043a1f0** link = (node->flags & 0x40000) ? &owner->list2
@@ -748,7 +748,7 @@ void __stdcall AppendOrder(Unit* owner, Class_0043a1f0* node)
 // Appends a node to the end of the owner's list that its flag 0x40000
 // selects (+0x60 when set, +0x5c otherwise); compare 0x43acb0.
 // FUNCTION: 0x43ad10
-void __stdcall FUN_0043ad10(Unit* owner, Class_0043a1f0* node)
+void __stdcall AppendOrderToTail(Unit* owner, Class_0043a1f0* node)
 {
     Class_0043a1f0** link = (node->flags & 0x40000) ? &owner->list2 : &owner->list;
     for (Class_0043a1f0* n = *link; n != 0; n = n->next)
@@ -762,7 +762,7 @@ void __stdcall FUN_0043ad10(Unit* owner, Class_0043a1f0* node)
 // just after the node currently carrying that mark (moving the mark to the
 // new node), or at the end of the list when no node has it; compare 0x43ad10.
 // FUNCTION: 0x43ad50
-void __stdcall FUN_0043ad50(Unit* owner, Class_0043a1f0* node)
+void __stdcall InsertOrderAfterMarked(Unit* owner, Class_0043a1f0* node)
 {
     Class_0043a1f0** link = &owner->list;
     node->unit = owner;
@@ -913,7 +913,7 @@ public:
     int field_4;
     int field_8;
 
-    int FUN_0043c360(void);
+    int GetCount(void);
 };
 
 class Class_0043cbb0 {
@@ -921,7 +921,7 @@ public:
     char unknown_0[0x24];
     short turn;                        // +0x24
 
-    void FUN_0043cbb0(Unit* unit, short amount);
+    void ApplyClampedTurnDelta(Unit* unit, short amount);
 };
 
 typedef std::vector<Elem_0043c390> Vec_0043c390;
@@ -974,7 +974,7 @@ public:
         };
     };
 
-    void FUN_0043cc20(Unit* unit, int amount);
+    void UpdateVelocityFromHeading(Unit* unit, int amount);
     void SteerGroundUnit(Unit* unit);
     void ApplyBankAndPitch(Unit* owner, Vec3* v);
     void SetFlightMode(Unit* owner, int state);
@@ -992,8 +992,8 @@ public:
 extern Game* g_game;
 extern Elem_0043c390* DAT_00512344;
 extern int DAT_00512348;
-extern Elem_0043c390 DAT_004fd288[];
-extern signed char DAT_00505205[];
+extern Elem_0043c390 g_readyOrder[];
+extern signed char g_slopeSpeedFactor[];
 
 void* __cdecl operator new(unsigned int size);
 
@@ -1021,8 +1021,8 @@ void RegisterAICommands();
 void RegisterUnitOrders();
 void __stdcall DeleteOrder(Unit* owner, Class_0043a1f0* node);
 void __stdcall DeleteOrders(Unit* owner, int all);
-void __stdcall FUN_00439fe0(Unit* owner, Class_0043a1f0* node);
-void __stdcall FUN_0043ac60(Unit* owner, Class_0043a1f0* node, Class_0043a1f0* before);
+void __stdcall MoveOrderToTail(Unit* owner, Class_0043a1f0* node);
+void __stdcall InsertOrderBefore(Unit* owner, Class_0043a1f0* node, Class_0043a1f0* before);
 
 // |d| <= 0x100000
 static inline int InRange(int d)
@@ -1063,7 +1063,7 @@ static inline void RemoveNode(Unit* owner, Class_0043a1f0* node, Class_0043a1f0*
 // given) and deletes it; otherwise, or when nothing matches, hands all the
 // arguments on to AddOrder.
 // FUNCTION: 0x43afc0
-void __stdcall FUN_0043afc0(unsigned char kind, int remove, Unit* owner, int id, int* pos, int param_6, int param_7)
+void __stdcall IssueOrCancelOrder(unsigned char kind, int remove, Unit* owner, int id, int* pos, int param_6, int param_7)
 {
     if (remove) {
         Class_0043a1f0* first = owner->list;
@@ -1083,7 +1083,7 @@ void __stdcall FUN_0043afc0(unsigned char kind, int remove, Unit* owner, int id,
 // nodes (and asking again) until the amount is used up. The kind table's flag
 // 0x40000 selects which of the object's two lists (+0x60 or +0x5c) is used.
 // FUNCTION: 0x43b0b0
-void __stdcall FUN_0043b0b0(int kind, Unit* owner, int id, int amount)
+void __stdcall AdjustBuildCount(int kind, Unit* owner, int id, int amount)
 {
     Class_0043a1f0* node;
     if (amount > 0) {
@@ -1160,7 +1160,7 @@ static inline void Insert(Unit* unit, Class_0043a1f0* cmd, Class_0043a1f0* befor
 // non-zero, and when bit 18 alone is set a second, positional command is made
 // at the unit's own position before the one aimed at the target.
 // FUNCTION: 0x43b1f0
-int __stdcall FUN_0043b1f0(Unit* unit, Unit* target, int param_3)
+int __stdcall IssueAttackOrder(Unit* unit, Unit* target, int param_3)
 {
     if (unit == target)
         return 0;
@@ -1195,7 +1195,7 @@ int __stdcall FUN_0043b1f0(Unit* unit, Unit* target, int param_3)
 // first reads a signed short at def+0x202, the second an unsigned short at
 // def+0x214.
 // FUNCTION: 0x43b400
-int __stdcall FUN_0043b400(Unit* unit, Unit* target, int param_3)
+int __stdcall IssueRepairOrder(Unit* unit, Unit* target, int param_3)
 {
     Class_00438760 kind = GetOrderType(8, unit, target, 0);
     if (!kind.index)
@@ -1230,7 +1230,7 @@ int __stdcall FUN_0043b400(Unit* unit, Unit* target, int param_3)
 }
 
 // FUNCTION: 0x43b700
-int __stdcall FUN_0043b700(Unit* unit)
+int __stdcall FindBestTargetIfFireAtWill(Unit* unit)
 {
     if (unit->mode20 == 2)
         return FindWeaponTarget(unit, 0, 0);
@@ -1238,7 +1238,7 @@ int __stdcall FUN_0043b700(Unit* unit)
 }
 
 // FUNCTION: 0x43b730
-void __stdcall FUN_0043b730(Unit* p, unsigned char type)
+void __stdcall EnqueueOrderType(Unit* p, unsigned char type)
 {
     Class_0043a1f0* child = new Class_0043a1f0(type, 0, 0, 0, 0, 0);
     child->flags |= 0x4000;
@@ -1246,7 +1246,7 @@ void __stdcall FUN_0043b730(Unit* p, unsigned char type)
 }
 
 // 0x439fe0: moves `node` to the end of the +0x5c list.
-void __stdcall FUN_00439fe0(Unit* owner, Class_0043a1f0* node)
+void __stdcall MoveOrderToTail(Unit* owner, Class_0043a1f0* node)
 {
     Class_0043a1f0** pp = &owner->list;
     Class_0043a1f0* n = *pp;
@@ -1268,7 +1268,7 @@ static void InsertCommand(Unit* p, unsigned char type)
 {
     Class_0043a1f0* child = new Class_0043a1f0(type, 0, 0, 0, 0, 0);
     child->flags |= 0x4000;
-    FUN_0043ac60(p, child, (child->flags & 0x40000) ? p->list2 : p->list);
+    InsertOrderBefore(p, child, (child->flags & 0x40000) ? p->list2 : p->list);
 }
 
 // Puts the node to sleep: it is due again a random delay (RandomInt(n))
@@ -1341,7 +1341,7 @@ void __stdcall RunOrders(Unit* unit)
             }
             break;
         case 6:
-            FUN_00439fe0(unit, node);
+            MoveOrderToTail(unit, node);
             break;
         case 7:
             DeleteOrders(unit, 1);
@@ -1389,7 +1389,7 @@ static void RemoveAndDelete(Unit* p, Class_0043a1f0* child)
 // restarted from the head after every node, so nodes added by the callback
 // are seen in the same pass.
 // FUNCTION: 0x43bad0
-void __stdcall FUN_0043bad0(Unit* p)
+void __stdcall RunSecondaryOrders(Unit* p)
 {
     Class_0043a1f0* child = p->list2;
     while (child != 0) {
@@ -1439,7 +1439,7 @@ void __stdcall FUN_0043bad0(Unit* p)
 static Vec_0043c390 DAT_00512340;
 
 // std::_Unguarded_insert
-inline void __stdcall FUN_0043c940(Elem_0043c390* _L, Elem_0043c390 _V, Pred_0043c390 _P)
+inline void __stdcall InsertShiftOrderTypes(Elem_0043c390* _L, Elem_0043c390 _V, Pred_0043c390 _P)
 {
     for (Elem_0043c390* _M = _L; _P(_V, *--_M); _L = _M)
         *_L = *_M;
@@ -1447,14 +1447,14 @@ inline void __stdcall FUN_0043c940(Elem_0043c390* _L, Elem_0043c390 _V, Pred_004
 }
 
 // std::_Insertion_sort_1
-inline void __stdcall FUN_0043c990(Elem_0043c390* _F, Elem_0043c390* _L, Pred_0043c390 _P,
+inline void __stdcall InsertionSortOrderTypes(Elem_0043c390* _F, Elem_0043c390* _L, Pred_0043c390 _P,
                                    Elem_0043c390*)
 {
     if (_F != _L)
         for (Elem_0043c390* _M = _F; ++_M != _L; ) {
             Elem_0043c390 _V = *_M;
             if (!_P(_V, *_F))
-                FUN_0043c940(_M, _V, _P);
+                InsertShiftOrderTypes(_M, _V, _P);
             else {
                 std::copy_backward(_F, _M, _M + 1);
                 *_F = _V;
@@ -1465,11 +1465,11 @@ inline void __stdcall FUN_0043c990(Elem_0043c390* _F, Elem_0043c390* _L, Pred_00
 // std::_Insertion_sort
 inline void _Insertion_sort_0043bc90(Elem_0043c390* _F, Elem_0043c390* _L, Pred_0043c390 _P)
 {
-    FUN_0043c990(_F, _L, _P, std::_Val_type(_F));
+    InsertionSortOrderTypes(_F, _L, _P, std::_Val_type(_F));
 }
 
 // std::_Median
-inline Elem_0043c390 __stdcall FUN_0043ca70(Elem_0043c390 _X, Elem_0043c390 _Y, Elem_0043c390 _Z,
+inline Elem_0043c390 __stdcall MedianOrderTypes(Elem_0043c390 _X, Elem_0043c390 _Y, Elem_0043c390 _Z,
                                             Pred_0043c390 _P)
 {
     if (_P(_X, _Y))
@@ -1479,7 +1479,7 @@ inline Elem_0043c390 __stdcall FUN_0043ca70(Elem_0043c390 _X, Elem_0043c390 _Y, 
 }
 
 // std::_Unguarded_partition
-inline Elem_0043c390* __stdcall FUN_0043cb20(Elem_0043c390* _F, Elem_0043c390* _L,
+inline Elem_0043c390* __stdcall PartitionOrderTypes(Elem_0043c390* _F, Elem_0043c390* _L,
                                              Elem_0043c390 _Piv, Pred_0043c390 _P)
 {
     for (; ; ++_F) {
@@ -1494,16 +1494,16 @@ inline Elem_0043c390* __stdcall FUN_0043cb20(Elem_0043c390* _F, Elem_0043c390* _
 }
 
 // std::_Sort
-inline void __stdcall FUN_0043c720(Elem_0043c390* _F, Elem_0043c390* _L, Pred_0043c390 _P,
+inline void __stdcall SortOrderTypes(Elem_0043c390* _F, Elem_0043c390* _L, Pred_0043c390 _P,
                                    Elem_0043c390*)
 {
     for (; std::_SORT_MAX < _L - _F; ) {
-        Elem_0043c390* _M = FUN_0043cb20(_F, _L, FUN_0043ca70(Elem_0043c390(*_F),
+        Elem_0043c390* _M = PartitionOrderTypes(_F, _L, MedianOrderTypes(Elem_0043c390(*_F),
             Elem_0043c390(*(_F + (_L - _F) / 2)), Elem_0043c390(*(_L - 1)), _P), _P);
         if (_L - _M <= _M - _F)
-            FUN_0043c720(_M, _L, _P, std::_Val_type(_F)), _L = _M;
+            SortOrderTypes(_M, _L, _P, std::_Val_type(_F)), _L = _M;
         else
-            FUN_0043c720(_F, _M, _P, std::_Val_type(_F)), _F = _M;
+            SortOrderTypes(_F, _M, _P, std::_Val_type(_F)), _F = _M;
     }
 }
 
@@ -1514,10 +1514,10 @@ inline void _Sort_0_0043bc90(Elem_0043c390* _F, Elem_0043c390* _L, Pred_0043c390
     if (_L - _F <= std::_SORT_MAX)
         _Insertion_sort_0043bc90(_F, _L, _P);
     else {
-        FUN_0043c720(_F, _L, _P, (Elem_0043c390*)0);
+        SortOrderTypes(_F, _L, _P, (Elem_0043c390*)0);
         _Insertion_sort_0043bc90(_F, _F + std::_SORT_MAX, _P);
         for (_F += std::_SORT_MAX; _F != _L; ++_F)
-            FUN_0043c940(_F, Elem_0043c390(*_F), _P);
+            InsertShiftOrderTypes(_F, Elem_0043c390(*_F), _P);
     }
 }
 
@@ -1558,7 +1558,7 @@ int __stdcall CompareOrderTypeNames(const Elem_0043c390& a, const Elem_0043c390&
 // FUNCTION: 0x43c050
 void RegisterAllOrderTypes()
 {
-    RegisterOrderTypes(DAT_004fd288, 1);
+    RegisterOrderTypes(g_readyOrder, 1);
     RegisterGroundOrders();
     RegisterVtolOrders();
     RegisterAICommands();
@@ -1566,13 +1566,13 @@ void RegisterAllOrderTypes()
 }
 
 // FUNCTION: 0x43c350
-void FUN_0043c350()
+void ClearOrderTypeTable()
 {
     DAT_00512348 = (int)DAT_00512344;
 }
 
 // FUNCTION: 0x43c360
-int Class_0043c360::FUN_0043c360(void)
+int Class_0043c360::GetCount(void)
 {
     return field_4 == 0 ? 0 : (field_8 - field_4) / 0x19;
 }
@@ -1609,7 +1609,7 @@ template class std::vector<Elem_0043c390>;
 typedef int (__stdcall* Pred_0043c6b0)(const Elem_0043c390& entry, char* name);
 
 // FUNCTION: 0x43c6b0
-Elem_0043c390* __stdcall FUN_0043c6b0(Elem_0043c390* first, Elem_0043c390* last,
+Elem_0043c390* __stdcall LowerBoundOrderTypes(Elem_0043c390* first, Elem_0043c390* last,
                                       char* const& value, Pred_0043c6b0 pred, int*)
 {
     int n = 0;
@@ -1629,7 +1629,7 @@ Elem_0043c390* __stdcall FUN_0043c6b0(Elem_0043c390* first, Elem_0043c390* last,
 // Clamps a turn amount to +-the unit type's limit, applies it to the unit's
 // heading and flags the unit as moved.
 // FUNCTION: 0x43cbb0
-void Class_0043cbb0::FUN_0043cbb0(Unit* unit, short amount)
+void Class_0043cbb0::ApplyClampedTurnDelta(Unit* unit, short amount)
 {
     if (amount != 0) {
         unsigned short max = unit->type->max_turn;
@@ -1682,10 +1682,10 @@ static inline void ClampToCell(Vec3& pos, Point cell, Point draft)
 }
 
 // Adds `amount` to the object's distance accumulator (clamped at zero), limits
-// it to a range taken from the table at DAT_00505205, then writes the offset
+// it to a range taken from the table at g_slopeSpeedFactor, then writes the offset
 // for the unit's heading at that distance into the velocity.
 // FUNCTION: 0x43cc20
-void UnitMotion::FUN_0043cc20(Unit* unit, int amount)
+void UnitMotion::UpdateVelocityFromHeading(Unit* unit, int amount)
 {
     field_20 = field_20 + amount;
     ClampToZero(field_20);
@@ -1698,7 +1698,7 @@ void UnitMotion::FUN_0043cc20(Unit* unit, int amount)
         idx = 5;
 
     // 16.16 range from the table entry, halved below sea level.
-    int range = (int)(((__int64)(DAT_00505205[idx] << 16) * unit->type->field_192) >> 16);
+    int range = (int)(((__int64)(g_slopeSpeedFactor[idx] << 16) * unit->type->field_192) >> 16);
     range = (int)(((__int64)range << 16) / 0x640000);
     if (unit->pos.yWhole < g_game->seaLevel && !(unit->type->field_241 & 0x81000))
         range = (int)(((__int64)range * 0x8000) >> 16);
@@ -1721,7 +1721,7 @@ void UnitMotion::SteerGroundUnit(Unit* unit)
         field_24 = 0;
         // Bound temporary: loads unit before the turn store and keeps the rate in eax.
         const int& amount = -unit->type->field_19a;
-        FUN_0043cc20(unit, amount);
+        UpdateVelocityFromHeading(unit, amount);
         return;
     }
 
@@ -1786,11 +1786,11 @@ void UnitMotion::SteerGroundUnit(Unit* unit)
     int r = (int)(((__int64)q * q) >> 32);
     int lim = (int)(((__int64)turned * turned) >> 32) * 4;
 
-    // FUN_0043cc20 stays defined above this function so the two calls cross-jump.
+    // UpdateVelocityFromHeading stays defined above this function so the two calls cross-jump.
     if (d1 > lim && d2 > r)
-        FUN_0043cc20(unit, unit->type->field_19e);
+        UpdateVelocityFromHeading(unit, unit->type->field_19e);
     else
-        FUN_0043cc20(unit, -rate);
+        UpdateVelocityFromHeading(unit, -rate);
 }
 
 // Scales the object's second vector (+0x14) by 0.95 (16.16 fixed point), adds the

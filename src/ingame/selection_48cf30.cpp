@@ -2,7 +2,7 @@
 // The function: for every unit of the local player with flag 0x10 that is not
 // g_game->units[g_game->field_2cba], if its order kind is not Standing_FireOrder
 // (or the unit type allows fire) and not Standing_MoveOrder (or allows move),
-// issue FUN_0043afc0 at pos offset by the unit's delta from the player's
+// issue IssueOrCancelOrder at pos offset by the unit's delta from the player's
 // average unit position, when the unit is within count*3000 of that average,
 // else at pos unchanged.
 // <stdio.h> and <stdlib.h> must both stay included: they set the compiler state.
@@ -76,7 +76,7 @@ extern Game* g_game;
 int __stdcall OrderModeTakesTarget(unsigned char type);
 Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit* unit,
                                        Unit* target, void* param_5);
-void __stdcall FUN_0043afc0(OrderType kind, int flag, Unit* unit,
+void __stdcall IssueOrCancelOrder(OrderType kind, int flag, Unit* unit,
                             Unit* target, int* pos, int param_5, int param_6);
 
 static inline Class_00438760 Order(const char* name) { return Class_00438760(name); }
@@ -143,11 +143,11 @@ void __stdcall IssueOrderToSelection(UnitType_0048cf30* entry, unsigned char mod
                         here[0] = pos[0] + u->x - avg[0];
                         here[1] = pos[1];
                         here[2] = pos[2] + u->z - avg[2];
-                        FUN_0043afc0(kind, flag_a, u, except, here, param_5, param_6);
+                        IssueOrCancelOrder(kind, flag_a, u, except, here, param_5, param_6);
                         continue;
                     }
                 }
-                FUN_0043afc0(kind, flag_a, u, except, pos, param_5, param_6);
+                IssueOrCancelOrder(kind, flag_a, u, except, pos, param_5, param_6);
             }
         }
     }

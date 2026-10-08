@@ -599,7 +599,7 @@ void __stdcall NotifyUnitRefs(Unit*, int);
 int __stdcall RandomInt(int);
 void __stdcall DeleteOrders(Unit*, int);
 int __stdcall WeaponCanReachUnit(Unit*, Unit*, unsigned char);
-int __stdcall FUN_0043b1f0(Unit*, Unit*, int);
+int __stdcall IssueAttackOrder(Unit*, Unit*, int);
 Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
 void __stdcall SetWeaponTargetUnit(Unit*, int, unsigned int);
@@ -777,7 +777,7 @@ void __stdcall ReactToAttack(Unit* attacker, Unit* unit, int unused)
         if ((!unit->orders || (unit->orders->flags&0x20000)) &&
             !Contains(unit->def->categories,attacker->category) &&
             !Contains(unit->def->weaponCategories[0],attacker->category) && WeaponCanReachUnit(unit,attacker,0))
-            ordered=FUN_0043b1f0(unit,attacker,0);
+            ordered=IssueAttackOrder(unit,attacker,0);
         if (!ordered && (unit->flags&0x300000)) {
             for (unsigned char i=0;i<3;++i) {
                 Weapon* weapon=&unit->weapons[i];

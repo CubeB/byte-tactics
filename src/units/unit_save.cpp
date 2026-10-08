@@ -218,7 +218,7 @@ class Class_0043a1f0 {
 public:
     char gap_0[0x4a];
     Class_0043a1f0* next;               // +0x4a
-    void FUN_0043a970(Unit* unit, void* file, char* name);
+    void SerializeToSave(Unit* unit, void* file, char* name);
 };
 #pragma pack(pop)
 
@@ -430,14 +430,14 @@ void __stdcall SaveUnits(HapiBank* file)
             Class_0043a1f0* c = (Class_0043a1f0*)unit->listHead;
             while (c != 0) {
                 sprintf(bufHead, "u%04xm%04x", unit->id, n);
-                c->FUN_0043a970(unit, file, bufHead);
+                c->SerializeToSave(unit, file, bufHead);
                 c = c->next;
                 n++;
             }
             c = (Class_0043a1f0*)unit->listTail;
             while (c != 0) {
                 sprintf(bufTail, "u%04xm%04x", unit->id, n);
-                c->FUN_0043a970(unit, file, bufTail);
+                c->SerializeToSave(unit, file, bufTail);
                 c = c->next;
                 n++;
             }

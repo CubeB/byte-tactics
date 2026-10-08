@@ -15,7 +15,7 @@ struct Vec3 {
 struct Unit;
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
 class Class_00438ad0 { public: void AttachBuildFootprintMarker(Point, Point); };
-class Class_00439e80 { public: void FUN_00439e80(int); };
+class Class_00439e80 { public: void SetDeadlineTicks(int); };
 class Class_004895c0 { public: void SetUnit(Unit*); };
 #pragma pack(push, 1)
 struct UnitDef {
@@ -123,7 +123,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
                 return 8;
             }
             order->retries++;
-            ((Class_00439e80*)order)->FUN_00439e80(30);
+            ((Class_00439e80*)order)->SetDeadlineTicks(30);
             return 2;
         }
         ((Unit*)unit)->ClaimWeapons(3);
@@ -132,7 +132,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
             CreateUnit(unit->player, (short)order->type, order->pos, 0, 1, 0));
         if (!order->target) {
             QueueUnitSpeech(unit, 7, "Unable to create any more units");
-            ((Class_00439e80*)order)->FUN_00439e80(300);
+            ((Class_00439e80*)order)->SetDeadlineTicks(300);
             return 2;
         }
         QueueUnitSpeech(unit, 9, "Starting construction");
@@ -156,7 +156,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
         }
         unit->timeout = g_game->tick + 300;
         if (order->target->progress != 0.0f) {
-            ((Class_00439e80*)order)->FUN_00439e80(1);
+            ((Class_00439e80*)order)->SetDeadlineTicks(1);
             order->flags |= 0xa;
             return 2;
         }

@@ -390,7 +390,7 @@ public:
 class Class_004388d0 { public: void SetAttachedFx(int); };
 class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
 class Class_00438930 { public: void AttachApproachRadiusGoal(Vec3*, int); };
-class Class_00439e80 { public: void FUN_00439e80(int); };
+class Class_00439e80 { public: void SetDeadlineTicks(int); };
 class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_0044e730 { public: void SetApproachRadius(int); };
 class Class_0044e720 { public: void SetHeading(int); };
@@ -446,12 +446,12 @@ int __stdcall CanPlaceFootprintAt(Unit*, Vec3*);
 void __stdcall AttachUnitToPiece(Unit*, Unit*, int, int);
 void __stdcall QueueUnitSpeech(Unit*, int, const char*);
 void __stdcall GetFactoriesInRadius(int, Vec3*, int, std::vector<Unit*>*);
-Unit* __stdcall FUN_0043b700(Unit*);
-int __stdcall FUN_0043b1f0(Unit*, Unit*, int);
-int __stdcall FUN_0043b400(Unit*, Unit*, int);
+Unit* __stdcall FindBestTargetIfFireAtWill(Unit*);
+int __stdcall IssueAttackOrder(Unit*, Unit*, int);
+int __stdcall IssueRepairOrder(Unit*, Unit*, int);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
-void __stdcall FUN_0043ad10(Unit*, Class_0043a1f0*);
-void __stdcall FUN_0043a020(Unit*, Order*);
+void __stdcall AppendOrderToTail(Unit*, Class_0043a1f0*);
+void __stdcall EnsurePatrolReturnOrder(Unit*, Order*);
 Class_00438760 __stdcall GetOrderType(unsigned char, Unit*, Unit*, int);
 Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
 int __stdcall WeaponCanReachUnit(Unit*, Unit*, unsigned char);
@@ -718,7 +718,7 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
 
 // Order handler for an aircraft waiting in place: state 0 stops the unit and
 // records the order unit's position in whole map units, state 1 ends the wait
-// when FUN_0043b700 finds a unit that FUN_0043b1f0 accepts, and state 2 either
+// when FindBestTargetIfFireAtWill finds a unit that IssueAttackOrder accepts, and state 2 either
 // queues VTOL_LANDIFCAN or moves to a random point near the recorded spot
 // before waiting again.
 // FUNCTION: 0x40f7d0
@@ -731,15 +731,15 @@ int __stdcall VtolStandbyOrder(Unit* unit, Order* order, int flags)
         if (unit->type && (unit->def->flags & 0x800)) {
             unit->ClaimWeapons(3);
             order->flags |= 0x10000;
-            ((Class_00439e80*)order)->FUN_00439e80(1);
+            ((Class_00439e80*)order)->SetDeadlineTicks(1);
             order->x = order->source->pos.xw;
             order->z = order->source->pos.zw;
             return 1;
         }
         break;
     case 1: {
-        Unit* other = FUN_0043b700(unit);
-        if (other && FUN_0043b1f0(unit, other, 0)) {
+        Unit* other = FindBestTargetIfFireAtWill(unit);
+        if (other && IssueAttackOrder(unit, other, 0)) {
             order->flags = 0;
             order->state = 0;
             return 3;
@@ -759,7 +759,7 @@ int __stdcall VtolStandbyOrder(Unit* unit, Order* order, int flags)
                 Class_0044e2d0* obj = new Class_0044e2d0(order, p);
                 ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c);
                 ((Class_004388d0*)order)->SetAttachedFx((int)obj);
-                ((Class_00439e80*)order)->FUN_00439e80(RandomInt(0xf) + 0x1e);
+                ((Class_00439e80*)order)->SetDeadlineTicks(RandomInt(0xf) + 0x1e);
                 order->state = 1;
                 return 2;
             }
@@ -767,7 +767,7 @@ int __stdcall VtolStandbyOrder(Unit* unit, Order* order, int flags)
             return 5;
         }
         order->flags |= 0x10000;
-        ((Class_00439e80*)order)->FUN_00439e80(RandomInt(0x1e) + 0x1e);
+        ((Class_00439e80*)order)->SetDeadlineTicks(RandomInt(0x1e) + 0x1e);
         order->state = 1;
         return 2;
     }
@@ -885,7 +885,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
     Class_0044e2d0* move=new Class_0044e2d0(order,pos);
     ((Class_0044e730*)move)->SetApproachRadius(128);
     ((Class_004388d0*)order)->SetAttachedFx((int)move);
-    ((Class_00439e80*)order)->FUN_00439e80(30);
+    ((Class_00439e80*)order)->SetDeadlineTicks(30);
     order->flags|=0xf8;
     return 2;
 }
@@ -1126,7 +1126,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
             if (!order->retries) QueueUnitSpeech(unit,7,"Waiting for target area to clear");
             else if (order->retries>10) { QueueUnitSpeech(unit,7,"Target area was blocked"); return 8; }
             ++order->retries;
-            ((Class_00439e80*)order)->FUN_00439e80(30);
+            ((Class_00439e80*)order)->SetDeadlineTicks(30);
             return 2;
         }
         SnapWorldPosToFootprint(def,&order->pos);
@@ -1160,7 +1160,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
             EmitNanoParticles(&start,(Box*)bounds,6);
         }
         if (order->targetUnit->progress!=0.0f) {
-            ((Class_00439e80*)order)->FUN_00439e80(1);
+            ((Class_00439e80*)order)->SetDeadlineTicks(1);
             order->flags|=0xa;
             return 2;
         }
@@ -1238,7 +1238,7 @@ int __stdcall VtolRepairUnitOrder(Unit* unit, Order* order, int flags)
         if (order->targetUnit->bits.mode != 1)
             return 8;
         if (order->targetUnit->flags & 0xc) {
-            ((Class_00439e80*)order)->FUN_00439e80(15);
+            ((Class_00439e80*)order)->SetDeadlineTicks(15);
             return 0;
         }
         if ((unsigned int)order->targetUnit->health >= order->targetUnit->def->maxHealth)
@@ -1257,7 +1257,7 @@ int __stdcall VtolRepairUnitOrder(Unit* unit, Order* order, int flags)
             box.hi.y += order->targetUnit->def->max.y;
             EmitNanoParticles(&nano, &box, 6);
         }
-        ((Class_00439e80*)order)->FUN_00439e80(1);
+        ((Class_00439e80*)order)->SetDeadlineTicks(1);
         order->flags |= 8;
         return 2;
     case 3:
@@ -1280,7 +1280,7 @@ int __stdcall VtolGetRepairedOrder(Unit* unit, Order* order, int unused)
     case 0:
         if (unit->health >= unit->def->maxHealth)
             return 1;
-        ((Class_00439e80*)order)->FUN_00439e80(0x1e);
+        ((Class_00439e80*)order)->SetDeadlineTicks(0x1e);
         order->started = 1;
         return 2;
     case 1:

@@ -332,7 +332,7 @@ void __stdcall DeselectIfIneligible(Unit* u);
 void __stdcall UpdateWindGenerator(Unit* u);
 void __stdcall UpdateUnitWeapons(Unit* u);
 void __stdcall RunOrders(Unit* u);
-void __stdcall FUN_0043bad0(Unit* u);
+void __stdcall RunSecondaryOrders(Unit* u);
 void __stdcall UpdateUnitHeight(Unit* u);
 void __stdcall KillUnit(Unit* u, int n);
 void __stdcall DamageUnit(int a, Unit* u, int damage, int kind, int flag);
@@ -632,7 +632,7 @@ void __stdcall UpdateAllUnits(void)
                                     AddRepairProgress(u, u, (float)(n / 30));
                                 }
                                 RunOrders(u);
-                                FUN_0043bad0(u);
+                                RunSecondaryOrders(u);
                                 if (u->motion != 0) {
                                     u->motion->UpdateMotion(u);
                                     UpdateUnitHeight(u);

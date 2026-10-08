@@ -27,7 +27,7 @@ class Class_00438760 { public: unsigned char index; Class_00438760() {} Class_00
 class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
 class Class_004388d0 { public: void SetAttachedFx(int); };
 class Class_00438930 { public: void AttachApproachRadiusGoal(Vec3*, int); };
-class Class_00439e80 { public: void FUN_00439e80(int); };
+class Class_00439e80 { public: void SetDeadlineTicks(int); };
 #pragma pack(push, 1)
 struct WeaponDef { char pad0[0xdc]; int range; char pade0[0x111-0xe0]; unsigned int flags; };
 struct Weapon { char pad0[8]; WeaponDef* def; char padc[11]; unsigned char flags; char pad18[4]; };
@@ -119,7 +119,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
     Class_0044e2d0* move=new Class_0044e2d0(order,pos);
     ((Class_0044e730*)move)->SetApproachRadius(128);
     ((Class_004388d0*)order)->SetAttachedFx((int)move);
-    ((Class_00439e80*)order)->FUN_00439e80(30);
+    ((Class_00439e80*)order)->SetDeadlineTicks(30);
     order->flags|=0xf8;
     return 2;
 }

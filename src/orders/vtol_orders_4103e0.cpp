@@ -23,7 +23,7 @@ class Class_00438760 { public: unsigned char index; Class_00438760() {} Class_00
 class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
 class Class_004388d0 { public: void SetAttachedFx(int); };
 class Class_00438930 { public: void AttachApproachRadiusGoal(Vec3*, int); };
-class Class_00439e80 { public: void FUN_00439e80(int); };
+class Class_00439e80 { public: void SetDeadlineTicks(int); };
 #pragma pack(push, 1)
 struct WeaponDef { char pad0[0xdc]; int range; char pade0[0x111-0xe0]; unsigned int flags; };
 struct Weapon { char pad0[8]; WeaponDef* def; char padc[11]; unsigned char flags; char pad18[4]; };
@@ -55,9 +55,9 @@ union Fixed { int value; struct { unsigned short frac; short whole; } parts; };
 Vec3 __stdcall FUN_004103a0(short, Fixed);
 static inline Vec3 Direction(short angle, int range) { Fixed distance; distance.value=range; return FUN_004103a0(angle,distance); }
 Vec3 __stdcall FUN_0040f790(const Vec3&, const Vec3&);
-void __stdcall FUN_0043ad10(Unit*, Class_0043a1f0*);
+void __stdcall AppendOrderToTail(Unit*, Class_0043a1f0*);
 
-int __stdcall FUN_0043b1f0(Unit*, Unit*, int);
+int __stdcall IssueAttackOrder(Unit*, Unit*, int);
 Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
 int __stdcall WeaponCanReachUnit(Unit*, Unit*, unsigned char);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
@@ -71,7 +71,7 @@ static inline Vec3 Offset(short angle, int distance) { Vec3 v; v.x=-FUN_004b70ef
 
 class Class_00410830 : public std::vector<Unit*> { public: Class_00410830(); };
 void __stdcall GetFactoriesInRadius(int, Vec3*, int, std::vector<Unit*>*);
-Unit* __stdcall FUN_0043b700(Unit*);
+Unit* __stdcall FindBestTargetIfFireAtWill(Unit*);
 // Stays in a file of its own: it matches only in this file's symbol context.
 // FUNCTION: 0x4103e0
 int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
@@ -94,7 +94,7 @@ int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
     case 0:
         if (unit->motion && (unit->def->flags&0x800)) {
             if (order->target) {
-                if (FUN_0043b1f0(unit,order->target,0)) { order->flags=0; return 0; }
+                if (IssueAttackOrder(unit,order->target,0)) { order->flags=0; return 0; }
             } else {
                 if (!order->pos.x && !order->pos.z && !order->pos.y) order->pos=unit->pos;
                 order->angle=RandomInt(0x10000);
@@ -126,14 +126,14 @@ int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
                 return 0;
             }
         }
-        Unit* target=FUN_0043b700(unit);
-        if (target && FUN_0043b1f0(unit,target,0)) return 5;
+        Unit* target=FindBestTargetIfFireAtWill(unit);
+        if (target && IssueAttackOrder(unit,target,0)) return 5;
         if (flags&0xe0) order->angle+=-RandomInt(0x2000)-0x5555;
         Vec3 pos=FUN_0040f790(order->pos,Offset((short)order->angle,(unit->weapons[0].def->range+160)<<16));
         Class_0044e2d0* move=new Class_0044e2d0(order,pos);
         ((Class_0044e730*)move)->SetApproachRadius(128);
         ((Class_004388d0*)order)->SetAttachedFx((int)move);
-        ((Class_00439e80*)order)->FUN_00439e80(RandomInt(30)+30);
+        ((Class_00439e80*)order)->SetDeadlineTicks(RandomInt(30)+30);
         order->flags|=0xe0;
         return 2;
     }

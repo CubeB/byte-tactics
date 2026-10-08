@@ -706,7 +706,7 @@ void __stdcall CollectSelectedUnits(std::vector<Unit*>* list)
 // union keeps both spellings available.
 // The team array is indexed by an unsigned char, so its stride shows up as
 // g_game + player*0x14b + 0x1b63 (0x14b = 330 + 1).
-void __stdcall FUN_00439b30(Unit* unit, int mask, void* obj,
+void __stdcall DrawOrderOverlays(Unit* unit, int mask, void* obj,
                            Unit** sel, int flag);
 
 // FUNCTION: 0x48cc30
@@ -722,11 +722,11 @@ void __stdcall DrawSelectedUnitOrderOverlays(void* obj, Unit** sel)
     for (Unit* u = team->unitsBegin; u <= team->unitsEnd; u++) {
         if ((u->flags.raw & 0x10000000) && !(u->flags.raw & 0x4000)) {
             if (u == *sel || u->id == g_game->field_37e9c || u->id == g_game->field_2cba)
-                FUN_00439b30(u, 0x1f, obj, sel, 1);
+                DrawOrderOverlays(u, 0x1f, obj, sel, 1);
             else if (u->flags.selected)
-                FUN_00439b30(u, 0x1f, obj, sel, 0);
+                DrawOrderOverlays(u, 0x1f, obj, sel, 0);
             else if (flag)
-                FUN_00439b30(u, 1, obj, sel, 1);
+                DrawOrderOverlays(u, 1, obj, sel, 1);
         }
     }
 }

@@ -28,7 +28,7 @@ public:
 class Class_004388d0 { public: void SetAttachedFx(int); };
 class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
 class Class_0044e6c0 { public: void SetAltitude(int); };
-class Class_00439e80 { public: void FUN_00439e80(int ticks); };
+class Class_00439e80 { public: void SetDeadlineTicks(int ticks); };
 
 #pragma pack(push, 1)
 struct Feature {
@@ -160,7 +160,7 @@ int __stdcall VtolReclaimOrder(Unit* unit, Order* order, int flags)
         QueueUnitSpeech(unit, 11, 0);
         return 1;
     case 3:
-        ((Class_00439e80*)order)->FUN_00439e80(2);
+        ((Class_00439e80*)order)->SetDeadlineTicks(2);
         order->time -= 2;
         if (order->time <= 0)
             return 1;

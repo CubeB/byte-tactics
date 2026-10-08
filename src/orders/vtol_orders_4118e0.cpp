@@ -39,7 +39,7 @@ public:
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
 class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
 class Class_004388d0 { public: void SetAttachedFx(int); };
-class Class_00439e80 { public: void FUN_00439e80(int); };
+class Class_00439e80 { public: void SetDeadlineTicks(int); };
 class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_0044e730 { public: void SetApproachRadius(short); };
 class CobScript { public: void StartScript(const char*, int, int); int QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5); };
@@ -227,7 +227,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
             ((Class_0044e6c0*)obj)->SetAltitude(0);
         unit->script->StartScript("EndTransport", 0, 1);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
-        ((Class_00439e80*)order)->FUN_00439e80(0xf);
+        ((Class_00439e80*)order)->SetDeadlineTicks(0xf);
         order->state = 5;
         order->flags |= 0xe8;
         return 2;

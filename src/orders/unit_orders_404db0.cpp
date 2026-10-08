@@ -52,7 +52,7 @@ public:
 
 class Class_00439e80 {
 public:
-    void FUN_00439e80(int ticks);
+    void SetDeadlineTicks(int ticks);
 };
 
 class Mission {
@@ -246,7 +246,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
             box.hi.y += f->height << 16;
             EmitNanoParticles(&nano, &box, 6);
             unit->workTime = g_game->ticks + 300;
-            ((Class_00439e80*)order)->FUN_00439e80(1);
+            ((Class_00439e80*)order)->SetDeadlineTicks(1);
             return 2;
         }
         break;
@@ -254,7 +254,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
         order->target.SetUnit(CreateUnit(unit->playerIndex, order->unitType, order->pos, 0, 1, 0));
         if (!order->target.owner) {
             QueueUnitSpeech(unit, 7, "Unable to create any more units");
-            ((Class_00439e80*)order)->FUN_00439e80(300);
+            ((Class_00439e80*)order)->SetDeadlineTicks(300);
             return 2;
         }
         Cell* c = GetOriginCellAtPosition(&order->pos);

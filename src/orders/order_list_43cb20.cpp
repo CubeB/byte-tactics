@@ -12,7 +12,7 @@ struct Elem_0043cb20 {
 typedef int (__stdcall* Pred_0043cb20)(const Elem_0043cb20&, const Elem_0043cb20&);
 
 // FUNCTION: 0x43cb20
-Elem_0043cb20* __stdcall FUN_0043cb20(Elem_0043cb20* first, Elem_0043cb20* last,
+Elem_0043cb20* __stdcall PartitionOrderTypes(Elem_0043cb20* first, Elem_0043cb20* last,
                                        Elem_0043cb20 pivot, Pred_0043cb20 pred)
 {
     for (;; ++first) {

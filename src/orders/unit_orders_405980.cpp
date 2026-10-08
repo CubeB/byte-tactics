@@ -5,7 +5,7 @@ struct Unit;
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
 class Class_004388d0 { public: void SetAttachedFx(int); };
 class Class_00438930 { public: void AttachApproachRadiusGoal(Vec3*, int); };
-class Class_00439e80 { public: void FUN_00439e80(int); };
+class Class_00439e80 { public: void SetDeadlineTicks(int); };
 #pragma pack(push, 1)
 struct UnitDef { char pad0[0x202]; short range; };
 struct Owner {
@@ -32,11 +32,11 @@ public:
     Class_00405d90(Owner* o, std::vector<Unit*>* v, Unit* s) : owner(o), units(v), self(s) {}
     virtual void FUN_00405d90(Unit*);
 };
-void __stdcall FUN_0043a020(Unit*, Order*);
+void __stdcall EnsurePatrolReturnOrder(Unit*, Order*);
 void __stdcall VisitObjectsInRange(Vec3*, int, const Class_00405d90&);
 int __stdcall RandomInt(int);
 Class_00438760 __stdcall GetOrderType(unsigned char, Unit*, Unit*, int);
-int __stdcall FUN_0043b400(Unit*, Unit*, int);
+int __stdcall IssueRepairOrder(Unit*, Unit*, int);
 int __stdcall PickRandomReclaimableResourcesInRadius(Vec3*, int, Vec3**, float*, Vec3**, float*);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
 
@@ -48,12 +48,12 @@ int __stdcall RepairPatrolOrder(Unit* unit, Order* order, int flags)
         switch (order->state) {
         case 0:
             if (order->target) order->pos = order->target->pos;
-            FUN_0043a020(unit, order);
+            EnsurePatrolReturnOrder(unit, order);
             return 1;
         case 1: {
             if (flags & 0xe0) return 6;
             ((Class_00438930*)order)->AttachApproachRadiusGoal(&order->pos, 16);
-            ((Class_00439e80*)order)->FUN_00439e80(60);
+            ((Class_00439e80*)order)->SetDeadlineTicks(60);
             order->flags |= 0xe0;
             if (unit->owner->energy >= unit->owner->energyCapacity * 0.2) {
                 std::vector<Unit*> units;
@@ -64,7 +64,7 @@ int __stdcall RepairPatrolOrder(Unit* unit, Order* order, int flags)
                     if (unit->owner->allied[target->owner->index]) {
                         Class_00438760 kind = GetOrderType(8, unit, target, 0);
                         if (kind.index) {
-                            if (FUN_0043b400(unit, target, 0)) return 6;
+                            if (IssueRepairOrder(unit, target, 0)) return 6;
                             return 3;
                         }
                     }

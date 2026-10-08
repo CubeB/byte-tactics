@@ -139,7 +139,7 @@ public:
 };
 
 int __stdcall OrderTypeNameLess(int param_1, char* param_2);
-Entry_0043a1f0* __stdcall FUN_0043c6b0(Entry_0043a1f0* first, Entry_0043a1f0* last,
+Entry_0043a1f0* __stdcall LowerBoundOrderTypes(Entry_0043a1f0* first, Entry_0043a1f0* last,
                                        char* const& value, int(__stdcall* pred)(int, char*),
                                        int* unused);
 Unit* __stdcall LoadUnit(unsigned short id, void* file);
@@ -291,7 +291,7 @@ public:
     Class_0043a1f0(Class_00438760, int, void*, int, int, int);
     ~Class_0043a1f0();
     Class_0043a1f0(Unit* punit, HapiBank* file, char* name);
-    int FUN_0043a970(Unit* punit, File_0043a970* file, char* name);
+    int SerializeToSave(Unit* punit, File_0043a970* file, char* name);
 };
 #pragma pack(pop)
 
@@ -755,7 +755,7 @@ short __stdcall ResolveUnitTypeKey(HapiBank* file, unsigned short id)
 
 static unsigned char KindByName_0043a420(char* s)
 {
-    Entry_0043a1f0* e = FUN_0043c6b0(DAT_00512344, DAT_00512348, s, OrderTypeNameLess, 0);
+    Entry_0043a1f0* e = LowerBoundOrderTypes(DAT_00512344, DAT_00512348, s, OrderTypeNameLess, 0);
     if (e == DAT_00512348 || _strcmpi(e->name, s) != 0)
         return 0;
     return (unsigned char)(e - DAT_00512344);
@@ -889,7 +889,7 @@ Class_0043a1f0::Class_0043a1f0(Unit* punit, HapiBank* file, char* name)
 // pointing at the kind's name, a "UTYPENAME<id>" value when the object is a
 // build kind, and finally "<name>g" handed to the attached object.
 // FUNCTION: 0x43a970
-int Class_0043a1f0::FUN_0043a970(Unit* punit, File_0043a970* file, char* name)
+int Class_0043a1f0::SerializeToSave(Unit* punit, File_0043a970* file, char* name)
 {
     if (unit->typeId != punit->typeId || !file || !name)
         return 0;

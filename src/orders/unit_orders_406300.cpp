@@ -11,7 +11,7 @@ class Class_00438760 { public: unsigned char index; Class_00438760() {} Class_00
 class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
 class Class_004388d0 { public: void SetAttachedFx(int); };
 class Class_00438930 { public: void AttachApproachRadiusGoal(Vec3*, int); };
-class Class_00439e80 { public: void FUN_00439e80(int); };
+class Class_00439e80 { public: void SetDeadlineTicks(int); };
 #pragma pack(push, 1)
 struct WeaponDef { char pad0[0x111]; unsigned int flags; };
 struct Weapon { char pad0[8]; WeaponDef* def; char padc[11]; unsigned char flags; char pad18[4]; };
@@ -30,7 +30,7 @@ struct Unit {
 struct Order { Unit* Target() { return target; } Vec3* Position() { return &pos; } char pad0[4]; Class_00438760 kind; unsigned char state; unsigned int flags; char pada[12]; Unit* target; char pad1a[8]; Vec3 pos; char pad2e[8]; int radius; char pad3a[8]; unsigned int capabilities; };
 class Class_0043a1f0 { public: char data[0x56]; Class_0043a1f0(Class_00438760, Unit*, Vec3*, int, int, int); };
 #pragma pack(pop)
-int __stdcall FUN_0043b1f0(Unit*, Unit*, int);
+int __stdcall IssueAttackOrder(Unit*, Unit*, int);
 Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
 int __stdcall WeaponCanReachUnit(Unit*, Unit*, unsigned char);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
@@ -62,7 +62,7 @@ int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
         Unit* attacker=order->target->attacker;
         if (attacker && !attacker->owner->allied[unit->owner->index] && (flags & 0x10) &&
             !Contains(unit->def->categories,attacker->category)) {
-            if (FUN_0043b1f0(unit,attacker,1)) { order->flags=0; return 3; }
+            if (IssueAttackOrder(unit,attacker,1)) { order->flags=0; return 3; }
             if (unit->flags & 0x300000) {
                 for (unsigned char i=0;i<3;++i) {
                     Weapon* weapon=&unit->weapons[i];
@@ -107,7 +107,7 @@ int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
 follow:
         Vec3 pos=order->target->pos+order->pos;
         ((Class_00438930*)order)->AttachApproachRadiusGoal(&pos,order->radius/2);
-        ((Class_00439e80*)order)->FUN_00439e80(30);
+        ((Class_00439e80*)order)->SetDeadlineTicks(30);
         order->flags|=0x18;
         return 2;
     }

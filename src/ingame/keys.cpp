@@ -301,7 +301,7 @@ void __stdcall OpenInGameOptions(void);
 void __stdcall MakeDirectoryPath(char* path);
 void __stdcall SaveScreenshot(char* param_1, const char* param_2);
 void __stdcall IssueOrderToSelection(void* a, int b, Class_00438760 kind, int d, int e, int f);
-int __stdcall FUN_00439e30(int unit, Class_00438760 kind);
+int __stdcall FindOrderByType(int unit, Class_00438760 kind);
 void __stdcall DeleteOrder(int unit, int arg);
 void __cdecl operator delete(void* p);
 
@@ -751,7 +751,7 @@ void HandleGameKey(void)
         int found = 0;
         Class_00438760 order("SELFDESTRUCT");
         for (std::vector<int>::iterator it = sel.begin(); it != sel.end(); ++it) {
-            int r = FUN_00439e30(*it, order);
+            int r = FindOrderByType(*it, order);
             if (r != 0) {
                 found = 1;
                 DeleteOrder(*it, r);

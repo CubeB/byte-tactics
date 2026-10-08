@@ -491,20 +491,20 @@ void __stdcall SetDefaultCommandHandler(void (__stdcall* callback)(int), int par
 void __stdcall FUN_00417890(int param_1);
 
 void __stdcall GetGadgetName(MenuEntry* entries, char* name, int index);
-void __stdcall FUN_0043afc0(Class_00438760 kind, int remove, Unit* owner,
+void __stdcall IssueOrCancelOrder(Class_00438760 kind, int remove, Unit* owner,
                             int id, Vec3* pos, int param_6, int param_7);
 int __stdcall CanBuildAt(UnitType* type, Point cell, int a, Player* player);
 int GetBuildSiteHeight(void);
 int __stdcall GetFootprintHeight(UnitType* unit, Point cell);
 MenuEntry* __stdcall FindGadgetOrNull(MenuEntry* entries, char* name);
 unsigned short __stdcall FindUnitTypeId(char* name);
-int __stdcall FUN_00439d80(void* owner, int index);
+int __stdcall SumQueuedBuildCount(void* owner, int index);
 void __stdcall FUN_0049fa90(void* obj);
 int __stdcall FindGadgetIndexBySubstring(int value, char* name);
 int __stdcall FindGadgetIndexBySubstring(MenuEntry* entries, char* name);
 void __stdcall SetGadgetStatus(Menu* menu, int index, int value);
 void __stdcall PlaySoundByName(char* name, int param_2);
-void __stdcall FUN_0043b0b0(Class_00438760 kind, Unit* unit, int id, int count);
+void __stdcall AdjustBuildCount(Class_00438760 kind, Unit* unit, int id, int count);
 void __stdcall IssueOrderToSelection(void* a, int b, Class_00438760 kind,
                                      int d, int e, int f);
 void __stdcall FUN_004a1200(Menu* menu, int index, int value);
@@ -590,7 +590,7 @@ int __stdcall MenuEntryNameContains(MenuEntry* entries, char* text, int index)
 }
 
 // Snaps the position at +0x2caa to the centre of its cell for the unit
-// type selected at +0x2cc4, then passes it to FUN_0043afc0 as a
+// type selected at +0x2cc4, then passes it to IssueOrCancelOrder as a
 // "MOBILEBUILD" (def flag bit 11 clear) or "VTOL_MOBILEBUILD" (bit 11 set)
 // order for each of the local player's units with flag 0x10 whose def has
 // flag 0x40. Bit 2 of the argument's field_8 is passed through.
@@ -612,11 +612,11 @@ void __stdcall IssueMobileBuildOrders(Arg_00419670* arg)
     for (Unit* u = p->units; u <= p->unitsEnd; u++) {
         if ((u->flags.raw & 0x10) && (u->type->flags.raw & 0x40)) {
             if (!(u->type->flags.raw & 0x800)) {
-                FUN_0043afc0("MOBILEBUILD", remove, u, 0, &pos, index, 0);
+                IssueOrCancelOrder("MOBILEBUILD", remove, u, 0, &pos, index, 0);
             } else {
                 UnitTypeFlagsBits flags = u->type->flags.bits;
                 if (flags.flag_11) {
-                    FUN_0043afc0("VTOL_MOBILEBUILD", remove, u, 0, &pos, index, 0);
+                    IssueOrCancelOrder("VTOL_MOBILEBUILD", remove, u, 0, &pos, index, 0);
                 }
             }
         }
@@ -678,7 +678,7 @@ void __stdcall RefreshBuildCountTexts(Menu* menu, Unit* unit)
             if (e->field_2a & 4) {
                 unsigned short v = FindUnitTypeId(e->name);
                 if (v != 0) {
-                    int r = FUN_00439d80(unit, v);
+                    int r = SumQueuedBuildCount(unit, v);
                     if (r != 0)
                         sprintf(text, "+%d", r);
                     else
@@ -686,7 +686,7 @@ void __stdcall RefreshBuildCountTexts(Menu* menu, Unit* unit)
                 }
             } else if (e->field_2a & 8) {
                 int n = unit->field_1e;
-                int r = FUN_00439d80(unit, 0);
+                int r = SumQueuedBuildCount(unit, 0);
                 text[0] = 0;
                 if (n != 0)
                     sprintf(text, "%d", n);
@@ -721,7 +721,7 @@ void __stdcall QueueBuildOrder(char* name, Unit* unit, int count)
             PlaySoundByName("subbuild", 0);
     }
     if (strstr(name, "MAKENUKE") != 0 || strstr(name, "MAKEANTI") != 0) {
-        FUN_0043b0b0(Class_00438760("BUILDWEAPON"), unit, 0, count);
+        AdjustBuildCount(Class_00438760("BUILDWEAPON"), unit, 0, count);
         return;
     }
     unsigned short id = FindUnitTypeId(name);
@@ -729,7 +729,7 @@ void __stdcall QueueBuildOrder(char* name, Unit* unit, int count)
         return;
     int mobile = unit->field_0;
     const char* kind = mobile ? "MOBILEBUILD" : "BUILDINGBUILD";
-    FUN_0043b0b0(Class_00438760(kind), unit, id, count);
+    AdjustBuildCount(Class_00438760(kind), unit, id, count);
 }
 
 // FUNCTION: 0x419bc0

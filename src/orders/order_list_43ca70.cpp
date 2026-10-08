@@ -24,7 +24,7 @@ struct Elem_0043ca70 {
 typedef int (__stdcall* Pred_0043ca70)(const Elem_0043ca70&, const Elem_0043ca70&);
 
 // FUNCTION: 0x43ca70
-Elem_0043ca70* __stdcall FUN_0043ca70(Elem_0043ca70* dest, Elem_0043ca70 a,
+Elem_0043ca70* __stdcall MedianOrderTypes(Elem_0043ca70* dest, Elem_0043ca70 a,
                                       Elem_0043ca70 b, Elem_0043ca70 c,
                                       Pred_0043ca70 pred)
 {

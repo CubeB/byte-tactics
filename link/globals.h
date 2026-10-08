@@ -857,7 +857,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x501fcc DAT_00501fcc: defined in src/game/console_commands.cpp
 //   0x502f98 DAT_00502f98: defined in src/data/unused.cpp
 //   0x505200 g_rangeByPitch: defined in src/weapons/ballistics.cpp
-//   0x505205 DAT_00505205: defined in src/weapons/ballistics.cpp
+//   0x505205 g_slopeSpeedFactor: defined in src/weapons/ballistics.cpp
 //   0x5066f8 DAT_005066f8: defined in src/data/unused.cpp
 //   0x506718 DAT_00506718: defined in src/data/unused.cpp
 //   0x506738 DAT_00506738: defined in src/data/unused.cpp

@@ -38,7 +38,7 @@ public:
 };
 class Class_004388d0 { public: void SetAttachedFx(int); };
 class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
-class Class_00439e80 { public: void FUN_00439e80(int); };
+class Class_00439e80 { public: void SetDeadlineTicks(int); };
 class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_0044e730 { public: void SetApproachRadius(short); };
 
@@ -107,7 +107,7 @@ int __cdecl FUN_004b7123(short, int);
 int __stdcall GetHeadingBetween(Vec3*, Vec3*);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
-void __stdcall FUN_0043ad10(Unit*, Class_0043a1f0*);
+void __stdcall AppendOrderToTail(Unit*, Class_0043a1f0*);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
 
 // scale is a by-value 4-byte union: callers load the constant into a register first.
@@ -164,12 +164,12 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
 {
     if (flags & 0x10008) {
         if (order->field_4a == 0 && (unit->flags & 0x300000))
-            FUN_0043ad10(unit, new Class_0043a1f0("VTOL_SEEKATTACK", (int)order->target, &order->pos, 0, 0, 0));
+            AppendOrderToTail(unit, new Class_0043a1f0("VTOL_SEEKATTACK", (int)order->target, &order->pos, 0, 0, 0));
         return 5;
     }
     if (order->target == 0 && (order->field_42 & 0x200)) {
         if (order->field_4a == 0)
-            FUN_0043ad10(unit, new Class_0043a1f0("VTOL_SEEKATTACK", 0, &unit->pos, 0, 0, 0));
+            AppendOrderToTail(unit, new Class_0043a1f0("VTOL_SEEKATTACK", 0, &unit->pos, 0, 0, 0));
         return 5;
     }
     if (unit->field_82 == g_game->field_142b7) {
@@ -191,7 +191,7 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
         if (unit->type && (unit->def->flags & 0x800)) {
             ((Class_00438880*)order)->AnnounceStatusIfFlagged("Attacking");
             FUN_0040f200(unit, order, 0);
-            ((Class_00439e80*)order)->FUN_00439e80(1);
+            ((Class_00439e80*)order)->SetDeadlineTicks(1);
             order->field_36 = 0;
             return 1;
         }
@@ -207,7 +207,7 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
                 Class_0044e740* obj = new Class_0044e740(order, from, to);
                 obj->FUN_0044ec10(unit->def->field_21c);
                 ((Class_004388d0*)order)->SetAttachedFx((int)obj);
-                ((Class_00439e80*)order)->FUN_00439e80(RandomInt(0x1e) + 0x3c);
+                ((Class_00439e80*)order)->SetDeadlineTicks(RandomInt(0x1e) + 0x3c);
                 order->field_36 = 0;
                 return 2;
             }
@@ -226,7 +226,7 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
                 ((Class_004388d0*)order)->SetAttachedFx((int)new Class_0044e740(order, p,
                     order->target->type->v + Offset(order->target->heading, order->target->def->field_192 / 2)));
             }
-            ((Class_00439e80*)order)->FUN_00439e80(0x2d);
+            ((Class_00439e80*)order)->SetDeadlineTicks(0x2d);
             order->flags |= 0x100e8;
             return 2;
         }

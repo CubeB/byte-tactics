@@ -14,7 +14,7 @@ class Class_00438760 { public: unsigned char index; Class_00438760() {} Class_00
 class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
 class Class_004388d0 { public: void SetAttachedFx(int); };
 class Class_00438930 { public: void AttachApproachRadiusGoal(Vec3*, int); };
-class Class_00439e80 { public: void FUN_00439e80(int); };
+class Class_00439e80 { public: void SetDeadlineTicks(int); };
 #pragma pack(push, 1)
 struct WeaponDef { char pad0[0xdc]; int range; char pade0[0x111-0xe0]; unsigned int flags; };
 struct Weapon { char pad0[8]; WeaponDef* def; char padc[11]; unsigned char flags; char pad18[4]; };
@@ -46,9 +46,9 @@ union Fixed { int value; struct { unsigned short frac; short whole; } parts; };
 Vec3 __stdcall FUN_004103a0(short, Fixed);
 static inline Vec3 Direction(short angle, int range) { Fixed distance; distance.value=range; return FUN_004103a0(angle,distance); }
 Vec3 __stdcall FUN_0040f790(const Vec3&, const Vec3&);
-void __stdcall FUN_0043ad10(Unit*, Class_0043a1f0*);
+void __stdcall AppendOrderToTail(Unit*, Class_0043a1f0*);
 
-int __stdcall FUN_0043b1f0(Unit*, Unit*, int);
+int __stdcall IssueAttackOrder(Unit*, Unit*, int);
 Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
 int __stdcall WeaponCanReachUnit(Unit*, Unit*, unsigned char);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
@@ -110,7 +110,7 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
             if (attacker && !attacker->owner->allied[unit->owner->index]) {
                 if (flags & 0x10) {
                     if (!Contains(unit->def->categories,attacker->category)) {
-                        if (FUN_0043b1f0(unit,attacker,1)) { order->flags=0; return 3; }
+                        if (IssueAttackOrder(unit,attacker,1)) { order->flags=0; return 3; }
                         if (unit->flags & 0x300000) {
                             unsigned char i=0;
                             Weapon* weapon=unit->weapons;
@@ -176,13 +176,13 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
             Class_0044e2d0* move=new Class_0044e2d0(order,pos);
             ((Class_0044e730*)move)->SetApproachRadius(128);
             ((Class_004388d0*)order)->SetAttachedFx((int)move);
-            ((Class_00439e80*)order)->FUN_00439e80(30);
+            ((Class_00439e80*)order)->SetDeadlineTicks(30);
             order->flags|=0xf8;
             return 2;
         }
         }
         return 7;
     }
-    if (!order->next) FUN_0043ad10(unit,new Class_0043a1f0("VTOL_SEEKGUARD",order->target,&order->pos,0,0,0));
+    if (!order->next) AppendOrderToTail(unit,new Class_0043a1f0("VTOL_SEEKGUARD",order->target,&order->pos,0,0,0));
     return 5;
 }

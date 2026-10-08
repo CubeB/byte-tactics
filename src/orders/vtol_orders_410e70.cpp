@@ -27,7 +27,7 @@ public:
 };
 class Class_004388d0 { public: void SetAttachedFx(int); };
 class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
-class Class_00439e80 { public: void FUN_00439e80(int); };
+class Class_00439e80 { public: void SetDeadlineTicks(int); };
 class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_0044e730 { public: void SetApproachRadius(short); };
 
@@ -77,9 +77,9 @@ int __cdecl FUN_004b7123(short, int);
 int __stdcall GetHeadingBetween(Vec3*, Vec3*);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
-void __stdcall FUN_0043a020(Unit*, Order*);
-Unit* __stdcall FUN_0043b700(Unit*);
-int __stdcall FUN_0043b1f0(Unit*, Unit*, int);
+void __stdcall EnsurePatrolReturnOrder(Unit*, Order*);
+Unit* __stdcall FindBestTargetIfFireAtWill(Unit*);
+int __stdcall IssueAttackOrder(Unit*, Unit*, int);
 void __stdcall GetFactoriesInRadius(int player, Vec3* pos, int range, std::vector<Unit*>* out);
 
 static inline Vec3 Offset(short angle, int distance)
@@ -165,12 +165,12 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
         Dummy();
         Dummy();
         Dummy();
-        Unit* next = FUN_0043b700(unit);
-        if (next && FUN_0043b1f0(unit, next, 0)) {
+        Unit* next = FindBestTargetIfFireAtWill(unit);
+        if (next && IssueAttackOrder(unit, next, 0)) {
             order->flags = 0;
             return 3;
         }
-        ((Class_00439e80*)order)->FUN_00439e80(0x1e);
+        ((Class_00439e80*)order)->SetDeadlineTicks(0x1e);
         return 2;
     }
     case 1:
@@ -178,7 +178,7 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
         return 1;
     case 0:
         if (unit->type && (unit->def->flags & 0x800)) {
-            FUN_0043a020(unit, order);
+            EnsurePatrolReturnOrder(unit, order);
             ((Class_00438880*)order)->AnnounceStatusIfFlagged("Patrolling");
             FUN_0040f200(unit, order, 0);
             unit->ReleaseWeapons(3);

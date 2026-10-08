@@ -18,9 +18,9 @@ int GetFontHeight();
 int __stdcall GetTextWidth(void* font, unsigned char* text);
 void __stdcall DrawString(void* dst, unsigned char* text, int x, int y, int maxWidth);
 char* __stdcall Translate(char* key);
-int __stdcall FUN_00439d20(void* owner);
-int __stdcall FUN_00439dd0(void* unit);
-int __stdcall FUN_00439df0(void* obj);
+int __stdcall GetBuildWeaponPercent(void* owner);
+int __stdcall GetOrderTarget(void* unit);
+int __stdcall GetOrderName(void* obj);
 int __stdcall FUN_00465ac0(void* map, void* u);
 void __stdcall BlitSideLogoToRect(void* surf, void* player, void* rect, int dy);
 unsigned short __stdcall FindUnitTypeId(const char* name);
@@ -150,7 +150,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
         char* unit = *(char**)(g_game + 0x14357) + snapshot.selected * 0x118;
         snapshot.health = *(unsigned short*)(unit + 0x108);
         snapshot.build = *(unsigned short*)(unit + 0xb8);
-        snapshot.orderName = FUN_00439df0(unit);
+        snapshot.orderName = GetOrderName(unit);
         // Copied through float temporaries; direct assignment gives integer moves.
         float f0 = *(float*)(unit + 0xd0);
         float f1 = *(float*)(unit + 0xcc);
@@ -176,7 +176,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
 
         snapshot.targetType = 0;
         if (*(unsigned char*)(unit + 0xff) == *(unsigned char*)(g_game + 0x2a43)) {
-            int result = FUN_00439dd0(unit);
+            int result = GetOrderTarget(unit);
             if (result != 0) {
                 snapshot.targetType = *(unsigned short*)(result + 0xa8);
                 snapshot.targetHealth = *(unsigned short*)(result + 0x108);
@@ -291,7 +291,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
                         DrawString(surface, (unsigned char*)amount, orderX, *(int*)(panel + 0x1a6) + yOffset, -1);
                     }
                 }
-                int progress = FUN_00439d20(unit);
+                int progress = GetBuildWeaponPercent(unit);
                 if (progress) {
                     if (*(unsigned char*)(*(char**)(unit + 0x96) + 0x146) != *(unsigned char*)(g_game + 0x2a43))
                         return;

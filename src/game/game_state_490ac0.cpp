@@ -710,7 +710,7 @@ void FreeSounds();
 void FUN_0042a3b0();
 void ShutdownSound();
 void FreeAnimFiles();
-void FUN_0043c350();
+void ClearOrderTypeTable();
 void FreeUnitInfo();
 void __stdcall ReleasePacketData(Class_00452370* obj);
 void FreeOtaEnumCacheAndMission();
@@ -736,7 +736,7 @@ void ShutdownGame(void)
     g_game->field_37e1b = 0;
     SetRestoreSurface(0);
     RestoreScreen();
-    FUN_0043c350();
+    ClearOrderTypeTable();
     FUN_004d85a0((int*)g_game->field_29a0);
     g_game->field_29a0 = 0;
     FreeUnitInfo();

@@ -12,7 +12,7 @@ struct Elem_0043c940 {
 typedef int (__stdcall* Pred_0043c940)(const Elem_0043c940&, const Elem_0043c940&);
 
 // FUNCTION: 0x43c940
-void __stdcall FUN_0043c940(Elem_0043c940* last, Elem_0043c940 value, Pred_0043c940 pred)
+void __stdcall InsertShiftOrderTypes(Elem_0043c940* last, Elem_0043c940 value, Pred_0043c940 pred)
 {
     for (Elem_0043c940* m = last; pred(value, *--m); last = m)
         *last = *m;

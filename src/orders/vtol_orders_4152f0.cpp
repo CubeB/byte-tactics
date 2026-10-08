@@ -25,7 +25,7 @@ public:
 };
 class Class_004388d0 { public: void SetAttachedFx(int); };
 class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
-class Class_00439e80 { public: void FUN_00439e80(int); };
+class Class_00439e80 { public: void SetDeadlineTicks(int); };
 class Class_0044e6c0 { public: void SetAltitude(int); };
 #pragma pack(push, 1)
 struct UnitDef {
@@ -85,12 +85,12 @@ public:
 };
 
 int __stdcall RandomInt(int);
-void __stdcall FUN_0043a020(Unit*, Order*);
+void __stdcall EnsurePatrolReturnOrder(Unit*, Order*);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
 void __stdcall GetFactoriesInRadius(int player, Vec3* pos, int range, std::vector<Unit*>* out);
 void __stdcall VisitObjectsInRange(Vec3*, int, const Class_004158d0&);
-int __stdcall FUN_0043b400(Unit*, Unit*, int);
+int __stdcall IssueRepairOrder(Unit*, Unit*, int);
 union Fixed { int v; struct { unsigned short frac; short whole; } p; };
 int __stdcall PickRandomReclaimableResourcesInRadius(Vec3*, Fixed, Vec3**, float*, Vec3**, float*);
 
@@ -141,7 +141,7 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
 {
     // flags is unsigned int: the repeated 0xe0 then keeps order in esi.
     if ((flags & 0x48) != 0) {
-        ((Class_00439e80*)order)->FUN_00439e80(0x1e);
+        ((Class_00439e80*)order)->SetDeadlineTicks(0x1e);
         return 0;
     }
     // The loop lets the four reclaim arms share the last arm's constructor tail.
@@ -151,7 +151,7 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
             if (unit->type && (unit->def->flags & 0x800) && (unit->def->flags2 & 0x200)) {
                 if (order->target != 0)
                     order->pos = order->target->pos;
-                FUN_0043a020(unit, order);
+                EnsurePatrolReturnOrder(unit, order);
                 ((Class_00438880*)order)->AnnounceStatusIfFlagged("Patrolling");
                 FUN_0040f200(unit, order, 0);
                 return 1;
@@ -163,7 +163,7 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
             Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
             ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c);
             ((Class_004388d0*)order)->SetAttachedFx((int)obj);
-            ((Class_00439e80*)order)->FUN_00439e80(0x2d);
+            ((Class_00439e80*)order)->SetDeadlineTicks(0x2d);
             order->flags |= 0xe0;
             if (Land(unit, order))
                 return 0;
@@ -174,7 +174,7 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
                 if (!units.empty()) {
                     Unit* target = units[RandomInt(units.size())];
                     if (unit->CanRepair(target) && target->progress == 0.0f) {
-                        if (FUN_0043b400(unit, target, 0))
+                        if (IssueRepairOrder(unit, target, 0))
                             return 6;
                         return 3;
                     }

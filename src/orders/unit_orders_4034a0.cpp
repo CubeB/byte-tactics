@@ -198,7 +198,7 @@ public:
 
 class Class_00439e80 {
 public:
-    void FUN_00439e80(int ticks);
+    void SetDeadlineTicks(int ticks);
 };
 
 class Class_00438ad0 {
@@ -493,11 +493,11 @@ void __stdcall StopBuildingScript(Unit* unit, Order* order);
 int __stdcall WaitIfNotInBuildStance(Unit* unit, Order* order, int flags);
 int __stdcall WaitIfCobBusy(Unit* unit, Order* order, int flags);
 int __stdcall ComputeReclaimDamagePulse(Unit* unit, Unit* target, int flags);
-void __stdcall FUN_0043a020(Unit* unit, Order* order);
-int __stdcall FUN_0043b1f0(Unit* unit, Unit* target, int param);
-int __stdcall FUN_0043b1f0(Unit* unit, Order* order, int param);
-Unit* __stdcall FUN_0043b700(Unit* unit);
-int __stdcall FUN_0043b400(Unit* unit, Unit* target, int param);
+void __stdcall EnsurePatrolReturnOrder(Unit* unit, Order* order);
+int __stdcall IssueAttackOrder(Unit* unit, Unit* target, int param);
+int __stdcall IssueAttackOrder(Unit* unit, Order* order, int param);
+Unit* __stdcall FindBestTargetIfFireAtWill(Unit* unit);
+int __stdcall IssueRepairOrder(Unit* unit, Unit* target, int param);
 void __stdcall MarkSelectionOrdersDirty(Unit* unit);
 int __stdcall AddRepairProgress(Unit* builder, Unit* unit, float amount);
 int __stdcall AddBuildProgress(Unit* unit, Unit* target, float amount);
@@ -619,12 +619,12 @@ int __stdcall AttackChaseOrder(Unit* unit, Order* order, unsigned int flags)
             unit->ClaimWeapons(2);
             SetWeaponTargetUnit(unit, order->target.owner, weapon);
             order->flags = 0x148e8;
-            ((Class_00439e80*)order)->FUN_00439e80(30);
+            ((Class_00439e80*)order)->SetDeadlineTicks(30);
             return 2;
         }
         unit->ReleaseWeapons(3);
         order->flags = 0x100e8;
-        ((Class_00439e80*)order)->FUN_00439e80(30);
+        ((Class_00439e80*)order)->SetDeadlineTicks(30);
         return 2;
     }
     return 7;
@@ -755,7 +755,7 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
     case 4: {
         if (target->active && (target->flags & 0xc)) {
             StopBuildingScript(unit, order);
-            ((Class_00439e80*)order)->FUN_00439e80(30);
+            ((Class_00439e80*)order)->SetDeadlineTicks(30);
             return 0;
         }
         if (order->elapsed >= order->duration) return 1;
@@ -772,7 +772,7 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
         EmitReverseNanoParticles(bounds, &start, 6);
         unit->workTime = g_game->ticks + 900;
         order->elapsed += 2;
-        ((Class_00439e80*)order)->FUN_00439e80(2);
+        ((Class_00439e80*)order)->SetDeadlineTicks(2);
         return 2;
     }
     case 5:
@@ -822,7 +822,7 @@ int __stdcall ReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
         if (flags & 0x20) return 1;
         ((Class_00438ad0*)order)->AttachBuildFootprintMarker(target->cell, target->footprint);
         order->flags |= 0x100e8;
-        ((Class_00439e80*)order)->FUN_00439e80(15);
+        ((Class_00439e80*)order)->SetDeadlineTicks(15);
         order->elapsed = ComputeReclaimDamagePulse(unit, order->target.Get(), 15);
         order->duration = 0;
         return 2;
@@ -858,11 +858,11 @@ int __stdcall ReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
             bounds[1].z += order->target.Get()->def->bounds.hi.z;
             bounds[1].y += order->target.Get()->def->bounds.hi.y;
             EmitReverseNanoParticles(bounds, &start, 6);
-            ((Class_00439e80*)order)->FUN_00439e80(2);
+            ((Class_00439e80*)order)->SetDeadlineTicks(2);
             order->duration += 2;
             return 2;
         }
-        ((Class_00439e80*)order)->FUN_00439e80(15);
+        ((Class_00439e80*)order)->SetDeadlineTicks(15);
         StopBuildingScript(unit, order);
         return 0;
     }
@@ -905,7 +905,7 @@ int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
         range = unit->def->buildRange;
         if (gap > (int)range) {
             ((Class_00438ad0*)order)->AttachBuildFootprintMarker(order->target.owner->cell, order->target.owner->footprint);
-            ((Class_00439e80*)order)->FUN_00439e80(RandomInt(30) + 30);
+            ((Class_00439e80*)order)->SetDeadlineTicks(RandomInt(30) + 30);
             order->flags |= 0xe8;
             return 2;
         }
@@ -920,7 +920,7 @@ int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
             return 1;
         if (order->target.owner->flags & 0xc) {
             StopBuildingScript(unit, order);
-            ((Class_00439e80*)order)->FUN_00439e80(15);
+            ((Class_00439e80*)order)->SetDeadlineTicks(15);
             return 0;
         }
         unit->workTime = g_game->ticks + 150;
@@ -937,7 +937,7 @@ int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
             box.hi.y += order->target.owner->def->bounds.hi.y;
             EmitNanoParticles(&nano, &box, 6);
         }
-        ((Class_00439e80*)order)->FUN_00439e80(1);
+        ((Class_00439e80*)order)->SetDeadlineTicks(1);
         order->flags |= 8;
         return 2;
     case 4:
@@ -984,7 +984,7 @@ int __stdcall RepairUnitNoMoveOrder(Unit* unit, Order* order, int unused)
             bounds[1].y += order->target.Get()->def->bounds.hi.y;
             EmitNanoParticles(&start, bounds, 6);
         }
-        ((Class_00439e80*)order)->FUN_00439e80(1);
+        ((Class_00439e80*)order)->SetDeadlineTicks(1);
         order->flags |= 8;
         return 2;
     }
@@ -1019,14 +1019,14 @@ int __stdcall StandbyOrder(Unit* unit,Order* order,int flags)
         if(!unit->active) return 7;
         unit->ReleaseWeapons(3);
         order->flags|=0x10000;
-        ((Class_00439e80*)order)->FUN_00439e80(1); return 1;
+        ((Class_00439e80*)order)->SetDeadlineTicks(1); return 1;
     case 1:
         {
-            Unit* next=FUN_0043b700(unit);
-            if(next && FUN_0043b1f0(unit,(Order*)next,0)) return 5;
+            Unit* next=FindBestTargetIfFireAtWill(unit);
+            if(next && IssueAttackOrder(unit,(Order*)next,0)) return 5;
         }
         order->flags|=0x10000;
-        ((Class_00439e80*)order)->FUN_00439e80(RandomInt(30)+30); return 2;
+        ((Class_00439e80*)order)->SetDeadlineTicks(RandomInt(30)+30); return 2;
     default: return 7;
     }
 }
@@ -1039,17 +1039,17 @@ int __stdcall StandbyMineOrder(Unit* unit, Order* order, int unused)
         if (!(unit->flags & 0x20000000)) return 7;
         unit->ReleaseWeapons(3);
         order->flags |= 0x10000;
-        ((Class_00439e80*)order)->FUN_00439e80(1);
+        ((Class_00439e80*)order)->SetDeadlineTicks(1);
         return 1;
     case 1:
         {
-            Unit* other = FUN_0043b700(unit);
+            Unit* other = FindBestTargetIfFireAtWill(unit);
             if (other && other->bits.mode == 1 && (unit->flags & 0x300000)) {
                 AppendOrder(unit, new Class_0043a1f0("SELFDESTRUCT", 0, 0, 1, 0, 0));
                 return 5;
             }
             order->flags |= 0x10000;
-            ((Class_00439e80*)order)->FUN_00439e80(RandomInt(30) + 30);
+            ((Class_00439e80*)order)->SetDeadlineTicks(RandomInt(30) + 30);
             return 2;
         }
     default: return 7;
@@ -1083,7 +1083,7 @@ int __stdcall ParkOrder(Unit* unit,Order* order,int flags)
     case 1:
         if(flags&0x20) return 5;
         if(order->next) return 5;
-        ((Class_00439e80*)order)->FUN_00439e80(30); return 0;
+        ((Class_00439e80*)order)->SetDeadlineTicks(30); return 0;
     default: return 7;
     }
 }
@@ -1116,7 +1116,7 @@ int __stdcall GroundPickupOrder(Unit* unit, Order* order, unsigned char flags)
             unit->script->StartScriptWithArgs("TransportPickup", 0, 1, 1, id, 0, 0, 0);
             QueueUnitSpeech(unit, 12, 0);
             ++order->attempts;
-            ((Class_00439e80*)order)->FUN_00439e80(15); return 1;
+            ((Class_00439e80*)order)->SetDeadlineTicks(15); return 1;
             }
         case 3: return WaitIfCobBusy(unit, order, 8);
         case 4:
@@ -1149,7 +1149,7 @@ int __stdcall GroundUnloadOrder(Unit* unit, Order* order, int flags)
         unit->script->StartScriptWithArgs("TransportDrop",0,1,1,order->target.owner->id,
             (order->pos.x&0xffff0000)+(order->pos.z>>16),0,0);
         ++order->attempts;
-        ((Class_00439e80*)order)->FUN_00439e80(15);
+        ((Class_00439e80*)order)->SetDeadlineTicks(15);
         return 1;
     case 1: return WaitIfCobBusy(unit,order,8);
     case 2:

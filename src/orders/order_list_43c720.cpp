@@ -15,15 +15,15 @@ struct Elem_0043c720 {
 typedef int (__stdcall* Pred_0043c720)(const Elem_0043c720&, const Elem_0043c720&);
 
 // FUNCTION: 0x43c720
-void __stdcall FUN_0043c720(Elem_0043c720* _F, Elem_0043c720* _L,
+void __stdcall SortOrderTypes(Elem_0043c720* _F, Elem_0043c720* _L,
                             Pred_0043c720 _P, Elem_0043c720*)
 {
     for (; std::_SORT_MAX < _L - _F; ) {
         Elem_0043c720* _M = std::_Unguarded_partition(_F, _L,
             std::_Median(*_F, *(_F + (_L - _F) / 2), *(_L - 1), _P), _P);
         if (_L - _M <= _M - _F)
-            FUN_0043c720(_M, _L, _P, (Elem_0043c720*)0), _L = _M;
+            SortOrderTypes(_M, _L, _P, (Elem_0043c720*)0), _L = _M;
         else
-            FUN_0043c720(_F, _M, _P, (Elem_0043c720*)0), _F = _M;
+            SortOrderTypes(_F, _M, _P, (Elem_0043c720*)0), _F = _M;
     }
 }

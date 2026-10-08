@@ -233,7 +233,7 @@ revisit them once the surrounding code is known.
   constructor stores 0x4fd2f8.
 
 - 0x43c360 is `vector::size()` of the global vector of 25-byte records at
-  0x512340 but is named `Class_0043c360::FUN_0043c360`; it will clash when
+  0x512340 but is named `Class_0043c360::GetCount`; it will clash when
   0x43bc90 or 0x43c050 is decompiled with a real `std::vector`.
 - 0x44ec00 is a vtable slot of `Class_0044e740` recorded as a free function;
   tools/methods.py can't see it because it is only called through the vtable.

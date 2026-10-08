@@ -2270,7 +2270,7 @@ struct Unit_00401cc0 {  // 0x114 bytes, 1 view
 class Class_00439e80 {  // 0x1 bytes, 45 views
 public:
     char unknown_0[1];
-    void FUN_00439e80(int);
+    void SetDeadlineTicks(int);
 };
 
 struct Order_2 {  // 0x3e bytes, 1 view
@@ -2584,7 +2584,7 @@ struct Order {  // 0x56 bytes, 87 views
     Order(Unit*, HapiBank*, char*);
     void OrStatusFlags(unsigned int);
     Unit* Target(void);
-    int FUN_0043a970(Unit*, File_0043a970*, char*);
+    int SerializeToSave(Unit*, File_0043a970*, char*);
     Vec3* Position(void);
     void Wait(void);
 };
@@ -6565,7 +6565,7 @@ public:
     char unknown_0[4];
     int field_4;  // +0x4
     int field_8;  // +0x8
-    int FUN_0043c360(void);
+    int GetCount(void);
 };
 
 struct Elem_0043ca70 {  // 0x19 bytes, 1 view
@@ -6577,7 +6577,7 @@ class Class_0043cbb0 {  // 0x26 bytes, 1 view
 public:
     char unknown_0[36];
     short turn;  // +0x24
-    void FUN_0043cbb0(Unit*, short);
+    void ApplyClampedTurnDelta(Unit*, short);
 };
 
 class Class_0043cc20 {  // 0x24 bytes, 2 views
@@ -6586,7 +6586,7 @@ public:
     Vec3 pos;  // +0x8
     char unknown_14[12];
     int field_20;  // +0x20
-    void FUN_0043cc20(Unit*, int);
+    void UpdateVelocityFromHeading(Unit*, int);
 };
 
 class Class_0043cd20 {  // 0x28 bytes, 2 views

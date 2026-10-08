@@ -52,7 +52,7 @@ public:
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
 class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
 class Class_004388d0 { public: void SetAttachedFx(int); };
-class Class_00439e80 { public: void FUN_00439e80(int); };
+class Class_00439e80 { public: void SetDeadlineTicks(int); };
 class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_0044e730 { public: void SetApproachRadius(short); };
 #pragma pack(push, 1)
@@ -127,7 +127,7 @@ void __stdcall SetWeaponTargetPos(Unit*, Vec3*, int);
 void __stdcall ClearWeaponTarget(Unit*, int);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
-void __stdcall FUN_0043ad10(Unit*, Class_0043a1f0*);
+void __stdcall AppendOrderToTail(Unit*, Class_0043a1f0*);
 void __stdcall GetFactoriesInRadius(int player, Vec3* pos, int range, std::vector<Unit*>* out);
 
 static inline Vec3 Offset(short angle, int distance)
@@ -161,13 +161,13 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
 {
     if (flags & 0x1000a) {
         if (!order->field_4a && (unit->flags & 0x300000))
-            FUN_0043ad10(unit, new Class_0043a1f0("VTOL_SEEKATTACK", order->target.owner, &order->pos, 0, 0, 0));
+            AppendOrderToTail(unit, new Class_0043a1f0("VTOL_SEEKATTACK", order->target.owner, &order->pos, 0, 0, 0));
         return 5;
     }
     Unit* target = order->target.owner;
     if (!target && (order->field_42 & 0x200)) {
         if (!order->field_4a)
-            FUN_0043ad10(unit, new Class_0043a1f0("VTOL_SEEKATTACK", 0, &unit->pos, 0, 0, 0));
+            AppendOrderToTail(unit, new Class_0043a1f0("VTOL_SEEKATTACK", 0, &unit->pos, 0, 0, 0));
         return 5;
     }
     if (target)
@@ -242,7 +242,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
             obj = new Class_0044e2d0(order, order->pos);
         ((Class_0044e730*)obj)->SetApproachRadius(time);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
-        ((Class_00439e80*)order)->FUN_00439e80(1);
+        ((Class_00439e80*)order)->SetDeadlineTicks(1);
         order->flags |= 0x100e8;
         return 2;
     }

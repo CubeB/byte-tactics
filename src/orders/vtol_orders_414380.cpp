@@ -26,7 +26,7 @@ class Class_0044e720 { public: void SetHeading(int); };
 class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
 class Class_00438ad0 { public: void AttachBuildFootprintMarker(Point, Point); };
-class Class_00439e80 { public: void FUN_00439e80(int); };
+class Class_00439e80 { public: void SetDeadlineTicks(int); };
 class Class_004895c0 { public: void SetUnit(Unit*); };
 #pragma pack(push, 1)
 struct UnitDef {
@@ -172,7 +172,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
             EmitNanoParticles(&start,bounds,6);
         }
         if (order->target.Get()->progress!=0.0f) {
-            ((Class_00439e80*)order)->FUN_00439e80(1);
+            ((Class_00439e80*)order)->SetDeadlineTicks(1);
             order->flags|=0xa;
             return 2;
         }

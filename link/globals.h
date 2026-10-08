@@ -18,6 +18,7 @@ struct Dialog;
 struct Entry_004426e0;
 struct ExplodedPiece;
 struct Game;
+struct List_00422ea0;
 struct Node_004dde70;
 struct Player_00437cd0;
 struct Record_005129b4;
@@ -275,7 +276,7 @@ extern unsigned int g_netStatsTick;                                             
 extern unsigned int g_byteRatesTick;                                                              // 0x511ddc, 4 bytes; 1 of 1 files
 extern int DAT_00511de0;                                                                          // 0x511de0, 4 bytes; 2 of 2 files
 extern int g_cdPathMismatch;                                                                      // 0x511de4, 4 bytes; 1 of 1 files
-extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 268 of 306 files (conflicting: shape)
+extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 249 of 287 files (conflicting: shape)
 extern int g_endGameGlamourSoundStarted;                                                          // 0x511dec, 4 bytes; 1 of 1 files
 extern ExplodedPiece* g_explodedPieces[100];                                                      // 0x511df0, 400 bytes; 1 of 1 files
 extern unsigned char DAT_00511f80[16];                                                            // 0x511f80, 16 bytes; CMemoryCache by value in 2 of 2 files
@@ -288,7 +289,7 @@ extern int g_explosion1EndSize;                                                 
 extern int g_explosion2Duration;                                                                  // 0x511fa8, 4 bytes; 1 of 1 files
 extern int g_explosion2StartSize;                                                                 // 0x511fac, 4 bytes; 1 of 1 files
 extern int g_explosion2EndSize;                                                                   // 0x511fb0, 4 bytes; 1 of 1 files
-extern unsigned char DAT_00511fb4[4];                                                             // 0x511fb4, 4 bytes, DAT_00511fb4$S4411; std::vector<TdfFile*, std::allocator<TdfFile*> >* by value in 1 of 4 files (conflicting: struct names only)
+extern List_00422ea0* DAT_00511fb4;                                                               // 0x511fb4, 4 bytes, DAT_00511fb4$S24082; 1 of 2 files (conflicting: struct names only)
 extern char DAT_00511fb8[256];                                                                    // 0x511fb8, 256 bytes; 5 of 5 files
 extern int DAT_00512288;                                                                          // 0x512288, 4 bytes; 1 of 1 files
 extern int DAT_0051228c;                                                                          // 0x51228c, 4 bytes; 1 of 1 files

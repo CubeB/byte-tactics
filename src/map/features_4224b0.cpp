@@ -1,4 +1,7 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
+// Stays in its own file: in features.cpp the merged file's symbol ids schedule
+// the `name` load after the strncpy setup instead of before it
+// (docs/c2-regalloc.md, "Symbol ids").
 // Loads the feature type `name` from the feature files: appends a 0x100-byte
 // record to the feature table in g_game, fills it from the record's TDF
 // fields (3D object, or GAF file and sequences, flags, resources, burn

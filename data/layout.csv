@@ -5603,9 +5603,9 @@ piece,0x502f04,29,src/map/features_424c00.cpp,6,0,game data
 piece,0x502f58,19,src/map/features_424c00.cpp,5,0,game data
 piece,0x502f24,22,src/map/features_424c00.cpp,4,0,game data
 piece,0x502f6c,12,src/map/features_424c00.cpp,3,0,game data
-piece,0x4fd040,8,src/map/features_4237d0.cpp,3,0,game data
-piece,0x4fd048,8,src/map/features_4237d0.cpp,3,8,game data
-piece,0x502ee8,9,src/map/features_4233a0.cpp,3,0,game data
+piece,0x4fd040,8,src/map/features.cpp,53,0,game data
+piece,0x4fd048,8,src/map/features.cpp,53,8,game data
+piece,0x502ee8,9,src/map/features.cpp,46,0,game data
 piece,0x502edc,12,src/map/features_422ea0.cpp,5,0,game data
 piece,0x502ec8,17,src/map/features_422ea0.cpp,4,0,game data
 piece,0x502eb8,13,src/map/features_422ea0.cpp,3,0,game data
@@ -5647,8 +5647,8 @@ piece,0x502ca8,19,src/map/features_4224b0.cpp,6,0,game data
 piece,0x502c9c,10,src/map/features_4224b0.cpp,5,0,game data
 piece,0x4fd038,8,src/map/features_4224b0.cpp,4,0,game data
 piece,0x502c90,11,src/map/features_4224b0.cpp,3,0,game data
-piece,0x502c88,6,src/map/features_4222e0.cpp,4,0,game data
-piece,0x4fd030,4,src/map/features_422040.cpp,3,0,game data
+piece,0x502c88,6,src/map/features.cpp,28,0,game data
+piece,0x4fd030,4,src/map/features.cpp,20,0,game data
 piece,0x502c68,18,src/map/features_421f20.cpp,4,0,game data
 piece,0x502c58,13,src/map/features_421f20.cpp,3,0,game data
 piece,0x4fd020,4,src/weapons/explosions_420620.cpp,35,0,game data
@@ -12089,7 +12089,7 @@ same,0x502a20,3,src/frontend/endgame.cpp,55,0,
 same,0x502a78,11,src/frontend/endgame.cpp,61,0,
 same,0x502ae8,3,src/frontend/endgame.cpp,73,0,
 same,0x502b38,8,src/frontend/endgame.cpp,89,0,
-same,0x511fb4,4,src/map/features_4223e0.cpp,3,0,
+same,0x511fb4,4,src/map/features.cpp,29,0,
 same,0x502e78,12,src/map/features_4224b0.cpp,43,0,
 same,0x502e30,6,src/map/features_4224b0.cpp,35,0,
 same,0x511fb4,4,src/map/features_424c00.cpp,9,0,

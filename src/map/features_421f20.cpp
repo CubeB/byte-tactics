@@ -1,4 +1,7 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
+// Stays in its own file: in features.cpp the loop address's base and index
+// swap (lea [edx+ebx+4] against the original's [ebx+edx+4]; docs/c2-regalloc.md,
+// "Symbol ids").
 #include <string.h>
 
 // 0x30-byte element of the feature animation table: a doubly linked list of

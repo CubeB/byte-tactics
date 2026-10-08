@@ -376,7 +376,7 @@ int g_explosion1EndSize;  // 0x511fa4 .bss
 int g_explosion2Duration;  // 0x511fa8 .bss
 int g_explosion2StartSize;  // 0x511fac .bss
 int g_explosion2EndSize;  // 0x511fb0 .bss
-unsigned char DAT_00511fb4[4];  // 0x511fb4 .bss
+List_00422ea0* DAT_00511fb4;  // 0x511fb4 .bss
 char DAT_00511fb8[256];  // 0x511fb8 .bss
 int DAT_00512288;  // 0x512288 .bss
 int DAT_0051228c;  // 0x51228c .bss

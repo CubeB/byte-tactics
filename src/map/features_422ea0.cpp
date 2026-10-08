@@ -1,4 +1,7 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
+// Stays in its own file: in features.cpp the merged file's symbol ids change
+// the base and index of the feature-table address and of the dead, burnt and
+// reclamate stores (docs/c2-regalloc.md, "Symbol ids").
 // Resolves every feature type's "featuredead", "featurereclamate" and
 // "featureburnt" names to feature type numbers (loading them when needed),
 // updating the load progress byte as it goes.

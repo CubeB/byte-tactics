@@ -4380,7 +4380,7 @@ address,name
 0x511fa8,g_explosion2Duration
 0x511fac,g_explosion2StartSize
 0x511fb0,g_explosion2EndSize
-0x511fb4,DAT_00511fb4$S4411
+0x511fb4,DAT_00511fb4$S24082
 0x511fb8,DAT_00511fb8
 0x5120b8,DAT_005120b8
 0x5120bc,DAT_005120bc

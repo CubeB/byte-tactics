@@ -129,7 +129,7 @@ struct Weapon {
     char unknown_18[4];
 };
 
-// The unit's mover at +0x10, whose +0xdc is the speed.
+// Unused here: the symbol ids this declaration takes keep 0x415250's allocation.
 struct Mover {
     char unknown_0[0xdc];
     int speed;                         // +0xdc
@@ -310,7 +310,7 @@ struct Unit {
         Weapon weapons[3];             // +0x8
         struct {
             char unknown_8[8];
-            Mover* mover;              // +0x10
+            WeaponDef* weapon;         // +0x10, weapons[0].def
         };
     };
     Order* order;                      // +0x5c
@@ -594,7 +594,7 @@ static inline int IsDamaged(Unit* u)
 
 static inline int GetSpeed(Unit* unit)
 {
-    return unit->mover->speed;
+    return unit->weapons[0].def->range;
 }
 
 // Used on the target argument of the order-steal calls: the plain chain
@@ -1050,7 +1050,7 @@ static inline int IsAhead(Unit* unit, Order* order)
 // FUNCTION: 0x413bc0
 int __stdcall VtolEvadeOrder(Unit* unit,Order* order,int flags)
 {
-    int range=unit->mover->speed;
+    int range=unit->weapons[0].def->range;
     if (order->targetUnit && !(flags&0x10008)) {
     unsigned int state=0; state=order->state;
     switch(state) {

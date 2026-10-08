@@ -314,7 +314,9 @@ struct Order {
 };
 
 struct Unit {
-    int active;                        // +0x0
+    // +0x0 holds the unit's UnitMotion pointer; only its non-nullness is read
+    // here, and an int spelling keeps the file's symbol count (docs/c2-regalloc.md).
+    int motion;                        // +0x0
     char unknown_4[0x10 - 0x4];
     // Two views of +0x10: the three weapons, or the order list at +0x5c.
     union {
@@ -878,7 +880,7 @@ int __stdcall GetBuiltOrder(Unit* unit, Order* order, unsigned int flags)
 {
     if (unit->progress == 0.0f) {
         MarkSelectionOrdersDirty(unit);
-        if (unit->active) {
+        if (unit->motion) {
             int queued = 0;
             if (order->target.owner) {
                 Class_00438760 move("QMove");
@@ -1097,7 +1099,7 @@ int __stdcall PatrolOrder(Unit* unit, Order* order, int flags)
     unsigned state=0; state=order->state;
     switch(state) {
     case 0:
-        if(!unit->active) return 7;
+        if(!unit->motion) return 7;
         ((Class_00438880*)order)->AnnounceStatusIfFlagged(0);
         EnsurePatrolReturnOrder(unit,order);
         ((Class_00439e80*)order)->SetDeadlineTicks(1); return 1;
@@ -1295,7 +1297,7 @@ int __stdcall AttackChaseOrder(Unit* unit, Order* order, unsigned int flags)
     state = order->state;
     switch (state) {
     case 0:
-        if (!unit->active || unit->def->flying || !(unit->flags & 0x80000000)) break;
+        if (!unit->motion || unit->def->flying || !(unit->flags & 0x80000000)) break;
         ((Class_00438880*)order)->AnnounceStatusIfFlagged(0);
         order->pos = unit->pos;
         order->step = 0;
@@ -1389,7 +1391,7 @@ int __stdcall SuppressOrder(Unit* unit,Order* order,unsigned flags)
     case 2:
         unit->ReleaseWeapons(3);
         if(flags&0x400) { order->state=1; return 6; }
-        if(unit->active) {
+        if(unit->motion) {
             if(order->radius<=0) return 9;
             ((Class_00438930*)order)->AttachApproachRadiusGoal(&order->pos,order->radius);
             order->flags=0xe0;
@@ -1447,7 +1449,7 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
     state = order->state;
     switch (state) {
     case 0: {
-        if (!unit->active) return 7;
+        if (!unit->motion) return 7;
         if (!(unit->def->flags245u & 0x1000)) return 7;
         if (target->def->capture) {
             QueueUnitSpeech(unit, 7, "That unit cannot be captured");
@@ -1488,7 +1490,7 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
         QueueUnitSpeech(unit, 11, 0);
         return 1;
     case 4: {
-        if (target->active && (target->flags & 0xc)) {
+        if (target->motion && (target->flags & 0xc)) {
             StopBuildingScript(unit, order);
             ((Class_00439e80*)order)->SetDeadlineTicks(30);
             return 0;
@@ -1541,7 +1543,7 @@ int __stdcall ReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
     state = order->state;
     switch (state) {
     case 0:
-        if (unit->active && (unit->def->flags245u & 0x400)) {
+        if (unit->motion && (unit->def->flags245u & 0x400)) {
             if (!unit->CanReclaim(target)) {
                 QueueUnitSpeech(unit, 7, "That unit cannot be reclaimed");
                 QueueUnitSpeech(unit, 7, "Reclamation failed");
@@ -1624,7 +1626,7 @@ int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
     }
     switch (order->state) {
     case 0:
-        if (unit->active && (unit->def->flags241 & 0x40) && order->target.owner->progress == Zero_004fc920) {
+        if (unit->motion && (unit->def->flags241 & 0x40) && order->target.owner->progress == Zero_004fc920) {
             ((Class_00438880*)order)->AnnounceStatusIfFlagged("Repairing");
             return 1;
         }
@@ -1751,7 +1753,7 @@ int __stdcall StandbyOrder(Unit* unit,Order* order,int flags)
     unsigned state=0; state=order->state;
     switch(state) {
     case 0:
-        if(!unit->active) return 7;
+        if(!unit->motion) return 7;
         unit->ReleaseWeapons(3);
         order->flags|=0x10000;
         ((Class_00439e80*)order)->SetDeadlineTicks(1); return 1;
@@ -1800,7 +1802,7 @@ int __stdcall ParkOrder(Unit* unit,Order* order,int flags)
 {
     switch(order->state) {
     case 0:
-        if(!unit->active) return 7;
+        if(!unit->motion) return 7;
         if(unit->def->flying) {
             order->pos=unit->pos;
             ((Class_00438b90*)order)->MergeFlagsFromTable("VTOL_MOVE");
@@ -1838,7 +1840,7 @@ int __stdcall GroundPickupOrder(Unit* unit, Order* order, unsigned char flags)
     if (target && !(flags & 8)) {
         switch(order->state) {
         case 0:
-            if (!unit->active) break;
+            if (!unit->motion) break;
             if (!(unit->def->flags245u & 0x100)) break;
             if (target->footprint.x > (short)unit->def->capacity) {
                 QueueUnitSpeech(unit, 7, "Unit is too large to transport"); return 8;
@@ -1876,7 +1878,7 @@ int __stdcall GroundUnloadOrder(Unit* unit, Order* order, int flags)
     }
     switch(order->state) {
     case 0:
-        if (!unit->active) break;
+        if (!unit->motion) break;
         if (!(unit->def->flags245u&0x100)) break;
         order->target.SetUnit(unit->cargo);
         if (!order->target.owner) return 5;

@@ -43,12 +43,12 @@ struct Rect {
     int bottom;                        // +0xc
 };
 
-// The unit type table entry, the object at a unit's +0x92.
-struct UnitType {
+// The unit type table entry, the UnitDef at a unit's +0x92.
+struct UnitDef {
     char unknown_0[0x20];
-    char name[0x20];                   // +0x20
+    char unitname[0x20];               // +0x20
     char unknown_40[0x156 - 0x40];
-    int ids;                           // +0x156
+    unsigned short* ids;               // +0x156
     char unknown_15a[0x160 - 0x15a];
     short f160;                        // +0x160
     char unknown_162[2];
@@ -108,7 +108,7 @@ struct Unit {                          // 0x118 bytes
     char unknown_76[0x86 - 0x76];
     Unit* owner;                       // +0x86
     char unknown_8a[0x92 - 0x8a];
-    UnitType* def;                     // +0x92
+    UnitDef* def;                      // +0x92
     char unknown_96[0xa6 - 0x96];
     short unitDefIndex;                    // +0xa6, the type index
     unsigned short id;                 // +0xa8
@@ -240,7 +240,7 @@ void CollectVisibleUnitIds(void)
     Player* player = &g_game->players[g_game->playerIndex];
     for (Unit* u = g_game->units; u <= g_game->unitsEnd; u++) {
         if (u->unitDefIndex != 0) {
-            UnitType* def = u->def;
+            UnitDef* def = u->def;
             int ux = u->pos_x.parts.whole;
             int uy = u->pos_y.parts.whole;
             int camy = g_game->scrollY;
@@ -750,7 +750,7 @@ unsigned short __stdcall PickUnitUnderCursor(void)
             Unit* u = &g_game->units[*ids];
             if (u->unitDefIndex != 0) {
                 if (HitTestUnitScreenHull(u, p)) {
-                    UnitType* def = u->def;
+                    UnitDef* def = u->def;
                     int v = FixMul(def->field_17a, 0x8000) + def->field_17e;
                     v = FixMul(v, def->field_176);
                     if (v < best) {
@@ -932,7 +932,7 @@ void FocusNextLocalUnit(void)
 //   (its +0x95 is the index), +0x67 / +0x6b the unit list bounds, +0x6a a
 //   Pos for CenterCameraOnMapPosition, +0xa8 a word copied to g_game+0x1436f.
 // - a unit is 0x118 bytes: +0x6a Pos, +0x86 a pointer to a struct with a
-//   flags dword at +0x110, +0x92 the type (name at +0x20), +0xa6 a type
+//   flags dword at +0x110, +0x92 the type (unitname at +0x20), +0xa6 a type
 //   index, +0xfb an int, +0x104 the build fraction, +0x110 the flags dword.
 // - the unit array at g_game+0x14357 is indexed by the same 0x118 stride.
 void __cdecl ClearCameraFollowState(void);
@@ -946,7 +946,7 @@ void __stdcall FocusCommander(int param_1)
     for (Unit* u = team->unitsBegin; u <= last; u++) {
         if (u->flags.done && u->buildLeft == 0.0f && u->postTransferHoldoff == 0
             && (u->owner == 0 || u->owner->flags.bit30)) {
-            if (strcmp(u->def->name, playerName) == 0) {
+            if (strcmp(u->def->unitname, playerName) == 0) {
                 ClearCameraFollowState();
                 CenterCameraOnMapPosition((Vec3*)&u->pos_x, 1);
                 if (param_1 == 0)

@@ -69,9 +69,17 @@ struct Packet_0047f300 {
     Pos_0047f300 pos;                  // +0x6
 };
 
+// The unit type at a unit's +0x92 (see units/unit_def.h): its name array at
+// +0x0 and the sound category at +0x20e.
+struct UnitDef {
+    char name[0x20];                   // +0x0
+    char unknown_20[0x20e - 0x20];
+    short soundcategory;               // +0x20e
+};
+
 struct Unit {
     char unknown_0[0x92];
-    char* name;                        // +0x92
+    UnitDef* def;                      // +0x92
     char unknown_96[0xa8 - 0x96];
     unsigned short id;           // +0xa8
     char unknown_aa[0xff - 0xaa];
@@ -736,7 +744,7 @@ void SpeechQueue::PlaySpeech(int index, int param_2, int param_3)
     // The first two accesses use entries[index], not e: the entry address then forms as one lea.
     int slot = entries[index].kind;
     unsigned int catIndex = 0;
-    catIndex = *(unsigned short*)(entries[index].unit->name + 0x20e);
+    catIndex = (unsigned short)entries[index].unit->def->soundcategory;
     SoundCat_0047fd70* cat = &g_game->categories[catIndex];
     int count = cat->slots[slot].count;
     int idx = (int)((__int64)rand() * count / 0x8000);
@@ -773,7 +781,7 @@ void SpeechQueue::PlaySpeech(int index, int param_2, int param_3)
             return;
         if (e->unit->flags & 0x10000000) {
             char msg[100];
-            sprintf(msg, "%s: %s", e->unit->name, text);
+            sprintf(msg, "%s: %s", e->unit->def->name, text);
             AddMessage(msg, 1, e->unit->id, '\n');
         }
     }

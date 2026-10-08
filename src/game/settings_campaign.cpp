@@ -16,13 +16,15 @@ public:
 class Mission;
 
 #pragma pack(push, 1)
-struct Unit {
+// The player's info object, the pointer at the player record's +0x27; not a
+// game unit. Same view as players_464290.cpp's PlayerInfo.
+struct PlayerInfo {
     char unknown_0[0x95];
     unsigned char side;                // +0x95
 };
 
 struct PlayerEntry_004326b0 {
-    Unit* unit;                        // +0x00
+    PlayerInfo* info;                  // +0x00
     char unknown_4[0x14b - 4];
 };
 
@@ -225,7 +227,7 @@ int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
     (&file)->SetStringItem(g_missionKey, g_game->campaign->GetMissionName());
     (&file)->SetStringItem(g_mapKey, g_game->campaign->GetMissionName());
     (&file)->SetIntegerItem(g_difficultyKey, g_game->difficulty);
-    (&file)->SetIntegerItem(g_sideKey, g_game->players[g_game->localPlayer].unit->side);
+    (&file)->SetIntegerItem(g_sideKey, g_game->players[g_game->localPlayer].info->side);
     (&file)->SetIntegerItem(g_playersKey, g_game->numPlayers);
     (&file)->SetIntegerItem(g_gameTypeKey, g_game->campaign->GetGameType());
     (&file)->SetStringItem(g_thumbsKey, g_game->thumbs);

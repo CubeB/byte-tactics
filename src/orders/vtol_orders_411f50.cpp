@@ -67,7 +67,7 @@ struct Struct_Unit96 {
 };
 struct Unit {
     UnitMotion* type;
-    char pad4[0x66 - 4]; short angle;
+    char pad4[0x66 - 4]; short heading;
     char pad68[2];
     union {
         Vec3 pos;                      // +0x6a
@@ -259,7 +259,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
     }
     case 6: {
         ClearWeaponTarget(unit, 0);
-        Vec3 dest = unit->pos + Offset(unit->angle, 0x5a00000);
+        Vec3 dest = unit->pos + Offset(unit->heading, 0x5a00000);
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->SetApproachRadius(0x80);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);

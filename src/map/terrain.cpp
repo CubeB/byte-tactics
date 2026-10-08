@@ -63,6 +63,8 @@ struct Cell {                           // 13 bytes per cell
     unsigned char flags;                // +0xc
 };
 
+// Unused here: the symbol ids this union takes keep CanBuildAt's allocation
+// (docs/c2-regalloc.md).
 union Flags {
     struct {
         unsigned int unknown_0 : 26;
@@ -146,7 +148,7 @@ struct Unit {                           // 0x118 bytes
     unsigned char bit0 : 1;             // +0x10f
     unsigned char bit1 : 1;
     unsigned char bit2 : 1;
-    Flags flags;                        // +0x110
+    unsigned int flags;                 // +0x110
     char unknown_114[0x118 - 0x114];
 };
 
@@ -301,12 +303,12 @@ Cell* __stdcall GetMapCell(int x, int y);
 // FUNCTION: 0x47c790
 void __stdcall ClaimFootprintCells(Unit* obj)
 {
-    unsigned int f = obj->flags.all;
+    unsigned int f = obj->flags;
     unsigned char b = (unsigned char)((f & 0x8000000) >> 27);
     if (!(b & 1))
         return;
     f &= ~0x8000000;
-    obj->flags.all = f;
+    obj->flags = f;
     Point size = obj->size;
     if (f & 0x20000000) {
         Cell* cell = GetMapCell(obj->pos.x, obj->pos.y);
@@ -323,14 +325,14 @@ void __stdcall ClaimFootprintCells(Unit* obj)
                         goto a_b;
                     if (rec->player->type != 3)
                         goto a_b;
-                    rec->flags.all |= 0x8000000;
-                    obj->flags.all |= 0x4000000;
+                    rec->flags |= 0x8000000;
+                    obj->flags |= 0x4000000;
                 a_write:
                     cell->unit = obj->id;
                     goto a_next;
                 a_b:
-                    rec->flags.all |= 0x4000000;
-                    obj->flags.all |= 0x8000000;
+                    rec->flags |= 0x4000000;
+                    obj->flags |= 0x8000000;
                 a_next: ;
                 } else if (cell->unit == obj->id) {
                     cell->unit = 0;
@@ -340,7 +342,7 @@ void __stdcall ClaimFootprintCells(Unit* obj)
             }
             cell += g_game->width - size.x;
         }
-    } else if ((obj->flags.all & 3) == 1) {
+    } else if ((obj->flags & 3) == 1) {
         Cell* cell = GetMapCell(obj->pos.x, obj->pos.y);
         for (int j = size.y; j > 0; j--) {
             for (int i = size.x; i > 0; i--) {
@@ -353,14 +355,14 @@ void __stdcall ClaimFootprintCells(Unit* obj)
                     goto b_b;
                 if (rec->player->type != 3)
                     goto b_b;
-                rec->flags.all |= 0x8000000;
-                obj->flags.all |= 0x4000000;
+                rec->flags |= 0x8000000;
+                obj->flags |= 0x4000000;
             b_write:
                 cell->unit = obj->id;
                 goto b_next;
             b_b:
-                rec->flags.all |= 0x4000000;
-                obj->flags.all |= 0x8000000;
+                rec->flags |= 0x4000000;
+                obj->flags |= 0x8000000;
             b_next: ;
                 cell++;
             }
@@ -379,14 +381,14 @@ void __stdcall ClaimFootprintCells(Unit* obj)
                     goto c_b;
                 if (rec->player->type != 3)
                     goto c_b;
-                rec->flags.all |= 0x8000000;
-                obj->flags.all |= 0x4000000;
+                rec->flags |= 0x8000000;
+                obj->flags |= 0x4000000;
             c_write:
                 cell->unit2 = obj->id;
                 goto c_next;
             c_b:
-                rec->flags.all |= 0x4000000;
-                obj->flags.all |= 0x8000000;
+                rec->flags |= 0x4000000;
+                obj->flags |= 0x8000000;
             c_next: ;
                 cell++;
             }
@@ -723,7 +725,7 @@ void __stdcall SetYardOpen(Unit* obj, int flag)
 {
     if (IsFootprintClear(obj, flag)) {
         obj->bit2 = flag;
-        obj->flags.all |= 0x8000000;
+        obj->flags |= 0x8000000;
         ClaimFootprintCells(obj);
         RefreshAllPassMaps(obj->pos, obj->size);
     }
@@ -738,7 +740,7 @@ void __stdcall RefreshAllPassMaps(Point pos, Point size);
 // FUNCTION: 0x47db20
 void __stdcall ForceNeighborFootprintReclaim(Unit* obj)
 {
-    obj->flags.all |= 0x8000000;
+    obj->flags |= 0x8000000;
     ClaimFootprintVisitor visitor;
     Point size = obj->size;
     Point pos = obj->pos;

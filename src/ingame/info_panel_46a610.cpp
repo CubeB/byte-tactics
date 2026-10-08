@@ -41,10 +41,13 @@ struct Feature {
     unsigned short unknown_bits : 4;
 };
 
-// A live spot: the unit whose state it belongs to, which owns it in turn.
-struct SpotState {
+// The unit's model instance state, the pointer at a unit's +0x9e; same view
+// as unit_script.cpp's ObjectState. A live spot carries one at +0x4.
+struct Unit;
+
+struct ObjectState {
     char unknown_0[0xc];
-    void* owner;                       // +0xc
+    Unit* unit;                        // +0xc
 };
 
 // A cell of the map grid, 13 bytes: which feature stands on it, which spot
@@ -70,7 +73,7 @@ struct FeatureSpot {
             Handle shadow;             // +0x10
         };
         struct {
-            SpotState* state;          // +0x4
+            ObjectState* state;        // +0x4
             Vec3 pos;                  // +0x8
             Vec3 vel;                  // +0x14
         };
@@ -85,7 +88,7 @@ struct Unit {
     Rot16 rot;                         // +0x64
     Vec3 pos;                          // +0x6a
     char unknown_76[0x9e - 0x76];
-    SpotState* state;                  // +0x9e
+    ObjectState* state;                // +0x9e
 };
 
 struct Game {
@@ -155,9 +158,9 @@ void __stdcall BlitFeatureGaf(void* dest, Cell* cell, int ix, int iy)
             }
         } else {
             Unit* unit = g_game->unit;
-            SpotState* st = spot->state;
+            ObjectState* st = spot->state;
             unit->state = st;
-            st->owner = unit;
+            st->unit = unit;
             unit->rot = spot->rot;
             unit->pos = spot->pos;
             DrawUnit(dest, unit);

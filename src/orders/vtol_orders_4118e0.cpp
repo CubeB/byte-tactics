@@ -45,12 +45,12 @@ class Class_0044e730 { public: void SetApproachRadius(short); };
 class CobScript { public: void StartScript(const char*, int, int); int QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5); };
 #pragma pack(push, 1)
 #include "../units/unit_def.h"
-struct Class_Unit10 {
-    char pad0[0xdc]; int field_dc;
+struct WeaponDef {
+    char pad0[0xdc]; int range;
 };
 struct Unit {
     UnitMotion* type;
-    char pad4[0x10 - 4]; Class_Unit10* field_10;
+    char pad4[0x10 - 4]; WeaponDef* weapon;   // +0x10, weapons[0].def
     char pad14[0x6a - 0x14]; Vec3 pos;
     char pad76[8]; Point footprint;
     int spatialBucket; int carrier;
@@ -153,7 +153,7 @@ int __stdcall FindLandingPad(Unit* unit, int pad)
 // FUNCTION: 0x4118e0
 int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
 {
-    int radius = unit->field_10->field_dc;
+    int radius = unit->weapon->range;
     Unit* host = order->target.owner;
     if (!host) {
         QueueUnitSpeech(unit, 7, "Landing aborted");

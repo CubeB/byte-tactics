@@ -45,9 +45,11 @@ struct Feature {
 #include "../units/unit_def.h"
 
 struct Unit {
-    int active;                        // +0x0
+    // +0x0 holds the unit's UnitMotion pointer; only its non-nullness is read
+    // here, and an int spelling keeps the file's symbol count (docs/c2-regalloc.md).
+    int motion;                        // +0x0
     char unknown_4[0x66 - 0x4];
-    unsigned short angle;              // +0x66
+    unsigned short heading;            // +0x66
     char unknown_68[0x6a - 0x68];
     Vec3 pos;                          // +0x6a
     char unknown_76[0x92 - 0x76];
@@ -104,7 +106,7 @@ int __stdcall ReclaimOrder(Unit* unit, Order* order, int flags)
         return 8;
     switch (order->state) {
     case 0:
-        if (unit->active && (unit->type->flags2 & 0x400)) {
+        if (unit->motion && (unit->type->flags2 & 0x400)) {
             ((Class_00438ad0*)order)->AttachBuildFootprintMarker(cell, size);
             order->flags = 0xe0;
             return 1;
@@ -118,7 +120,7 @@ int __stdcall ReclaimOrder(Unit* unit, Order* order, int flags)
         pos.x = (size.x + cell.x * 2) << 19;
         pos.z = (size.z + cell.z * 2) << 19;
         pos.y = (RandomInt(f->height) + GetGroundHeight(&pos)) << 16;
-        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &pos) - unit->angle);
+        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &pos) - unit->heading);
         return 1;
     }
     case 2:

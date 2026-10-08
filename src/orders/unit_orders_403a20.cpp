@@ -26,7 +26,7 @@ struct UnitDef {
     char pad214[0x249-0x214];
 };
 struct Unit {
-    char pad0[0x66]; short angle;
+    char pad0[0x66]; short heading;
     char pad68[2]; Vec3 pos;
     char pad76[8]; Point footprint;
     char pad82[0x92-0x82]; UnitDef* def;
@@ -138,7 +138,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
         QueueUnitSpeech(unit, 9, "Starting construction");
         MarkSelectionOrdersDirty(unit);
         AddOrder("getbuilt", 1, order->target, unit, 0, 0, 0);
-        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &order->target->pos) - unit->angle);
+        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &order->target->pos) - unit->heading);
         return 1;
     }
     case 2:

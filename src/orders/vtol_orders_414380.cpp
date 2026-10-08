@@ -37,7 +37,7 @@ struct UnitDef {
     char pad214[8]; short altitude; char pad21e[0x241-0x21e]; unsigned int flags,flags2;
 };
 struct Unit {
-    UnitMotion* motion; char pad4[0x66-4]; short angle;
+    UnitMotion* motion; char pad4[0x66-4]; short heading;
     char pad68[2]; Vec3 pos;
     char pad76[8]; Point footprint;
     char pad82[4]; int busy; char pad8a[8]; UnitDef* def;

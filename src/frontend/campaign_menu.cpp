@@ -151,13 +151,15 @@ struct Menu {
     int field_cca;                     // +0xcca
 };
 
-struct Unit {
+// The player's info object, the pointer at the player record's +0x27; not a
+// game unit. Same view as players_464290.cpp's PlayerInfo.
+struct PlayerInfo {
     char unknown_0[0x95];
     unsigned char side;                // +0x95
 };
 
 struct PlayerEntry_004777a0 {          // 0x14b bytes
-    Unit* unit;                        // +0x0
+    PlayerInfo* info;                  // +0x0
     char unknown_4[0x14b - 4];
 };
 
@@ -712,13 +714,13 @@ void DrawHelpPage()
 void __cdecl ApplyCampaignSideSelection()
 {
     if (g_game->flag_37ef2 == 0) {
-        g_game->players[0].unit->side = 0;
-        g_game->players[1].unit->side = 1;
+        g_game->players[0].info->side = 0;
+        g_game->players[1].info->side = 1;
         SetGadgetStatusByName(&g_game->menu, "Arm", 1);
         SetGadgetStatusByName(&g_game->menu, "Side0", 1);
     } else {
-        g_game->players[0].unit->side = 1;
-        g_game->players[1].unit->side = 0;
+        g_game->players[0].info->side = 1;
+        g_game->players[1].info->side = 0;
         SetGadgetStatusByName(&g_game->menu, "Core", 1);
         SetGadgetStatusByName(&g_game->menu, "Side1", 1);
     }
@@ -844,12 +846,12 @@ void OpenSingleMenu()
     LoadPictureCached("singlebg", 0, 0, 0);
     switch (g_game->flag_37ef2) {
     case 0:
-        g_game->players[g_game->localPlayer].unit->side = 0;
-        g_game->players[g_game->localPlayer + 1].unit->side = 1;
+        g_game->players[g_game->localPlayer].info->side = 0;
+        g_game->players[g_game->localPlayer + 1].info->side = 1;
         break;
     case 1:
-        g_game->players[g_game->localPlayer].unit->side = 1;
-        g_game->players[g_game->localPlayer + 1].unit->side = 0;
+        g_game->players[g_game->localPlayer].info->side = 1;
+        g_game->players[g_game->localPlayer + 1].info->side = 0;
         break;
     }
     SetMissionType(1);
@@ -1156,7 +1158,7 @@ void __stdcall OpenNewGameMenu(int param_1)
         else
             c->callback = 0;
 
-        int side = g_game->players[g_game->localPlayer].unit->side;
+        int side = g_game->players[g_game->localPlayer].info->side;
         Layer* cur = g_game->menu.layer;
         if (g_campaignNameList != 0) {
             GameFreeThunk(g_campaignNameList);
@@ -1296,9 +1298,9 @@ void __stdcall UpdateSolarSystem(Menu* arg1, Gadget* arg2)
 
         void* panGaf = arg1->layer->entries->gaf;
         void* pan = FindGafEntry(panGaf, "Panmask");
-        Unit* unit =
-            g_game->players[g_game->localPlayer].unit;
-        GafFrame* pf = (GafFrame*)GetGafFrame((unsigned short*)pan, unit->side);
+        PlayerInfo* info =
+            g_game->players[g_game->localPlayer].info;
+        GafFrame* pf = (GafFrame*)GetGafFrame((unsigned short*)pan, info->side);
         pf->yoffset = 0;
         pf->xoffset = 0;
         DrawFrame(surface, pf, 0, 0);
@@ -1425,7 +1427,7 @@ void OpenMissionBriefing(void)
     int i;
     unsigned char side;
 
-    side = g_game->players[g_game->localPlayer].unit->side;
+    side = g_game->players[g_game->localPlayer].info->side;
     sprintf(buf, "mbrief%s", (char*)g_game + 0x37f5b + side * 0x232);
 
     dialog = LoadGuiLayer(&g_game->menu, "MSNBRIEF.GUI", 0x80);

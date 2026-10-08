@@ -43,8 +43,8 @@ struct UnitDef {
     char pad1fe[0x21c - 0x1fe]; short altitude;
     char pad21e[0x241 - 0x21e]; unsigned int flags;
 };
-struct Mover {
-    char pad0[0xdc]; int speed;
+struct WeaponDef {
+    char pad0[0xdc]; int range;
 };
 // Unused here: these forward declarations take the symbol ids that keep 0x412710 matching (docs/c2-regalloc.md).
 struct Sound;
@@ -59,7 +59,7 @@ struct Feature;
 #include "../network/player.h"
 struct Unit {
     UnitMotion* type;
-    char pad4[0x10 - 4]; Mover* mover;
+    char pad4[0x10 - 4]; WeaponDef* weapon;   // +0x10, weapons[0].def
     char pad14[0x66 - 0x14]; short heading;
     char pad68[2];
     union {
@@ -139,7 +139,7 @@ static inline void Dummy(void) {}
 static inline int IsDamaged(Unit* u) { return (unsigned int)u->health < (u->def->maxHealth >> 2) * 3; }
 static inline int GetSpeed(Unit* unit)
 {
-    return unit->mover->speed;
+    return unit->weapon->range;
 }
 
 void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)

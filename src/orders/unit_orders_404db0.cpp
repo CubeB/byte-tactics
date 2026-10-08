@@ -96,7 +96,9 @@ struct PlayerInfo {
 };
 
 struct Unit {
-    int active;                        // +0x0
+    // +0x0 holds the unit's UnitMotion pointer; only its non-nullness is read
+    // here, and an int spelling keeps the file's symbol count (docs/c2-regalloc.md).
+    int motion;                        // +0x0
     char unknown_4[0x64 - 0x4];
     Rot16 rot;                         // +0x64
     Vec3 pos;                          // +0x6a
@@ -193,7 +195,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
     }
     switch (order->state) {
     case 0:
-        if (unit->active && (unit->type->flags & 0x800)) {
+        if (unit->motion && (unit->type->flags & 0x800)) {
             ((Class_00438ad0*)order)->AttachBuildFootprintMarker(cell, size);
             order->flags = 0xe0;
             return 1;

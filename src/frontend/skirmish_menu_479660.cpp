@@ -94,15 +94,17 @@ struct Table {
     int field_228;                     // +0x228
 };
 
-struct Unit {
+// The player's info object, the pointer at the player record's +0x27; not a
+// game unit. Same view as players_464290.cpp's PlayerInfo.
+struct PlayerInfo {
     char unknown_0[0x95];
-    unsigned char isCore;              // +0x95
-    unsigned char slot;                // +0x96
+    unsigned char side;                // +0x95, 1 for Core
+    unsigned char color;               // +0x96
 };
 
 struct Player {                        // 0x14b bytes
     char unknown_0[0x27];
-    Unit* unit;                        // +0x27
+    PlayerInfo* info;                  // +0x27
     char unknown_2b[0x108 - 0x2b];
     unsigned char marks[0x146 - 0x108];   // +0x108
     unsigned char color;               // +0x146
@@ -659,14 +661,14 @@ void ApplySlotsToGamePlayers()
 {
     for (int i = 0; i < g_game->playerCount; i++) {
         if (g_game->table->players[i].active == 1) {
-            g_game->slots[i].unit->slot = g_game->table->players[i].color;
-            g_game->slots[i].unit->isCore = g_game->table->players[i].shade;
+            g_game->slots[i].info->color = g_game->table->players[i].color;
+            g_game->slots[i].info->side = g_game->table->players[i].shade;
             SetupPlayerSlot(i, 1);
             g_game->playerIndex = i;
             g_game->localPlayer = i;
         } else if (g_game->table->players[i].active == 2) {
-            g_game->slots[i].unit->slot = g_game->table->players[i].color;
-            g_game->slots[i].unit->isCore = g_game->table->players[i].shade;
+            g_game->slots[i].info->color = g_game->table->players[i].color;
+            g_game->slots[i].info->side = g_game->table->players[i].shade;
             SetupPlayerSlot(i, 2);
         } else {
             SetupPlayerSlot(i, 0);
@@ -1311,7 +1313,7 @@ void __stdcall AnnounceForcesDestroyed(Player* player)
 {
     char buf[200];
     const char* side = "Core";
-    if (!player->unit->isCore)
+    if (!player->info->side)
         side = "Arm";
     sprintf(buf, "%s %s", side, Translate(g_forcesDestroyedTexts[(unsigned int)rand() % 3]));
     AddMessage(buf, 4, 0, player->color);

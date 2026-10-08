@@ -28,7 +28,9 @@ struct UnitDef {
     char pad242[0x249-0x242];
 };
 struct Unit {
-    int active; char pad4[0x66-4]; short angle;
+    // +0x0 holds the unit's UnitMotion pointer; only its non-nullness is read
+    // here, and an int spelling keeps the file's symbol count (docs/c2-regalloc.md).
+    int motion; char pad4[0x66-4]; short heading;
     char pad68[2]; Vec3 pos;
     char pad76[8]; Point footprint;
     char pad82[0x92-0x82]; UnitDef* def;
@@ -83,7 +85,7 @@ int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
     state = order->state;
     switch (state) {
     case 0: {
-        if (!unit->active || !(unit->def->flags & 0x40)) break;
+        if (!unit->motion || !(unit->def->flags & 0x40)) break;
         double x = target->def->origin.x;
         double y = target->def->origin.y;
         int radius = (int)(sqrt(x * x + y + y) * 16.0) / 2;
@@ -100,7 +102,7 @@ int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
         }
         if (target->progress == 0.0f) return 5;
         ((Unit*)unit)->ClaimWeapons(3);
-        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &order->target->pos) - unit->angle);
+        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &order->target->pos) - unit->heading);
         MarkSelectionOrdersDirty(unit);
         return 1;
     case 2:

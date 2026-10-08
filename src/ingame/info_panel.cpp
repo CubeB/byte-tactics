@@ -64,7 +64,9 @@ struct UnitType_004685a0 {
 };
 
 struct PlayerInfo {
-    char unknown_0[0x97];
+    char unknown_0[0x95];
+    unsigned char side;                // +0x95
+    unsigned char color;               // +0x96
     unsigned char flags;               // +0x97
     char unknown_98[0x9b - 0x98];
     unsigned char gameFlags;           // +0x9b
@@ -130,10 +132,6 @@ struct Unit {
         UnitDef* def;                  // +0x92
         UnitType_004685a0* type;
         char* f_92;
-        struct {
-            char unknown_92[3];
-            unsigned char side;        // +0x95
-        };
     };
     union {
         Owner_00467440* field_96;      // +0x96
@@ -209,7 +207,7 @@ struct Player_004689c0 {               // 331 bytes
 };
 
 struct Player_467d70 {
-    Unit* unit;                        // +0x00
+    PlayerInfo* info;                  // +0x00
     char unknown_4[0x14b - 4];
 };
 
@@ -819,7 +817,7 @@ void DrawLightBars()
     SetOffscreenSurface(surf);
     FillSurface(surf, 0);
 
-    int side = g_game->players_00467d70[g_game->playerIndex].unit->side;
+    int side = g_game->players_00467d70[g_game->playerIndex].info->side;
 
     short* bar = (short*)GetGafFrame(g_game->sidePanelTopSeq[side], 0);
     DrawFrame(surf, bar, bar[2] + 0x81, bar[3]);

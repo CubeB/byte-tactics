@@ -42,13 +42,13 @@ class Class_0044e730 { public: void SetApproachRadius(short); };
 
 #pragma pack(push, 1)
 #include "../units/unit_def.h"
-struct Mover {
-    char pad0[0xdc]; int speed;
+struct WeaponDef {
+    char pad0[0xdc]; int range;
 };
 #include "../network/player.h"
 struct Unit {
     UnitMotion* type;
-    char pad4[0x10 - 4]; Mover* mover;
+    char pad4[0x10 - 4]; WeaponDef* weapon;   // +0x10, weapons[0].def
     char pad14[0x6a - 0x14];
     Vec3 pos;
     char pad76[0x82 - 0x76];
@@ -179,7 +179,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
     short& oz = order->z;
     if (order->range && (int)_hypot(unit->pos.xw - ox, unit->pos.zw - oz) >= order->range)
         return 5;
-    int speed = unit->mover->speed;
+    int range = unit->weapon->range;
     unsigned int state = 0;
     state = order->state;
     switch (state) {
@@ -206,7 +206,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         unit->ClaimWeapons(0);
         SetWeaponTargetUnit(unit, order->target, 0);
         Class_0044e2d0* obj = new Class_0044e2d0(order, order->target->pos);
-        ((Class_0044e730*)obj)->SetApproachRadius(speed);
+        ((Class_0044e730*)obj)->SetApproachRadius(range);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags = 0x100e8;
         order->side = 0;
@@ -218,7 +218,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
             order->misses++;
         if (order->misses >= 2) {
             order->misses = 0;
-            Vec3 off = Offset(RandomInt(0x10000), speed << 16);
+            Vec3 off = Offset(RandomInt(0x10000), range << 16);
             Vec3 p = Add(order->target->pos, off);
             // The new waypoint is never given to the order (see the header).
             Class_0044e2d0* obj = new Class_0044e2d0(order, p);
@@ -235,7 +235,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
             angle = a - 0x2000;
             order->side = 1;
         }
-        Vec3 off = Offset(angle, speed * 2 / 3 << 16);
+        Vec3 off = Offset(angle, range * 2 / 3 << 16);
         Vec3 p = order->target->pos - off;
         Class_0044e330* obj = new Class_0044e330(order, order->target, p);
         ((Class_0044e730*)obj)->SetApproachRadius(0x10);

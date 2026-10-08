@@ -131,12 +131,12 @@ public:
 
 class RadarJamVisitor {
 public:
-    virtual void FUN_00467960(Unit* unit);
+    virtual void ApplyRadarJamFlag(Unit* unit);
 };
 
 class SonarJamVisitor {
 public:
-    virtual void FUN_00467980(Unit* unit);
+    virtual void ApplySonarJamFlag(Unit* unit);
 };
 
 extern Game* g_game;

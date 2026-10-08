@@ -1349,8 +1349,8 @@ address,name
 0x467440,UpdateSensorRadarAndCloak
 0x467840,DetectionVisitor::MarkUnitsInRadarOrSonarRadius
 0x467950,MarkRecentlyDamaged
-0x467960,FUN_00467960
-0x467980,FUN_00467980
+0x467960,RadarJamVisitor::ApplyRadarJamFlag
+0x467980,SonarJamVisitor::ApplySonarJamFlag
 0x4679a0,LoadLightBar
 0x467a20,BlitGafFrameAtOffset
 0x467a50,DrawRotatedQuadOutline

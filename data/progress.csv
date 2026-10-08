@@ -1354,8 +1354,8 @@ address,size,file,symbol,status,similarity
 0x467440,1015,src/ingame/info_panel_467440.cpp,?UpdateSensorRadarAndCloak@@YGXXZ,matched,100.0
 0x467840,272,src/ingame/info_panel.cpp,?MarkUnitsInRadarOrSonarRadius@DetectionVisitor@@UAEXPAUUnit@@@Z,matched,100.0
 0x467950,14,src/ingame/info_panel.cpp,?MarkRecentlyDamaged@@YGXPAX@Z,matched,100.0
-0x467960,25,src/ingame/info_panel.cpp,?FUN_00467960@@YGXPAUUnit_00467960@@@Z,matched,100.0
-0x467980,25,src/ingame/info_panel.cpp,?FUN_00467980@@YGXPAUUnit@@@Z,matched,100.0
+0x467960,25,src/ingame/info_panel.cpp,?ApplyRadarJamFlag@RadarJamVisitor@@UAEXPAUUnit@@@Z,matched,100.0
+0x467980,25,src/ingame/info_panel.cpp,?ApplySonarJamFlag@SonarJamVisitor@@UAEXPAUUnit@@@Z,matched,100.0
 0x4679a0,126,src/ingame/info_panel.cpp,?LoadLightBar@@YGXXZ,matched,100.0
 0x467a20,40,src/ingame/info_panel.cpp,?BlitGafFrameAtOffset@@YGXPAXPAFHH@Z,matched,100.0
 0x467a50,259,src/ingame/info_panel.cpp,?DrawRotatedQuadOutline@@YGXPAXPAUVec3@@1PAF@Z,matched,100.0

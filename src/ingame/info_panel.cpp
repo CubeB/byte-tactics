@@ -111,6 +111,7 @@ struct SpotState {
     void* owner;                       // +0xc
 };
 
+// Unused here: its symbol ids keep DrawRotatedQuadOutline (0x467a50) matching.
 struct Unit_00467960 {
     char unknown_0[0x110];
     unsigned int flags;                // +0x110
@@ -422,6 +423,16 @@ public:
     Vec3 pos;                          // +0xc
 };
 
+class RadarJamVisitor {
+public:
+    virtual void ApplyRadarJamFlag(Unit* unit);
+};
+
+class SonarJamVisitor {
+public:
+    virtual void ApplySonarJamFlag(Unit* unit);
+};
+
 struct Rect_004b0510 {
     int x1;                            // +0x0
     int y1;                            // +0x4
@@ -667,16 +678,16 @@ void __stdcall MarkRecentlyDamaged(void* param_1)
     *(char*)((char*)param_1 + 0xfa) = 0xf0;
 }
 
-// Same as FUN_00467980 but clears flag 0x100 instead of 0x200.
+// Same as ApplySonarJamFlag but clears flag 0x100 instead of 0x200.
 
 // FUNCTION: 0x467960
-void __stdcall FUN_00467960(Unit_00467960* unit)
+void RadarJamVisitor::ApplyRadarJamFlag(Unit* unit)
 {
     unit->flags = (unit->flags & ~0x100) | 0x400;
 }
 
 // FUNCTION: 0x467980
-void __stdcall FUN_00467980(Unit* unit)
+void SonarJamVisitor::ApplySonarJamFlag(Unit* unit)
 {
     unit->flags = (unit->flags & ~0x200) | 0x400;
 }

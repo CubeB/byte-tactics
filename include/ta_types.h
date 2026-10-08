@@ -9413,12 +9413,12 @@ public:
 
 class RadarJamVisitor {  // 0x4 bytes, 1 view
 public:
-    virtual void FUN_00467960(Unit*);
+    virtual void ApplyRadarJamFlag(Unit*);
 };
 
 class SonarJamVisitor {  // 0x4 bytes, 1 view
 public:
-    virtual void FUN_00467980(Unit*);
+    virtual void ApplySonarJamFlag(Unit*);
 };
 
 struct Unit_00467960 {  // 0x114 bytes, 1 view

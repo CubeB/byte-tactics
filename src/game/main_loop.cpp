@@ -108,11 +108,7 @@ struct Vec3_00437320 {
     int z;
 };
 
-class Mission {
-public:
-    int GetGameType();
-    int GetStartPosition(Vec3_00437320* out, int id);
-};
+#include "../map/mission.h"
 
 union Fixed_00496ee0 {
     int i;                              // 16.16

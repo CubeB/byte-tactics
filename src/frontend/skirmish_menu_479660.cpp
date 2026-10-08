@@ -699,13 +699,7 @@ void __cdecl CycleCurrentPlayerSide()
     *p = (*p + 1) % g_game->sideCount;
 }
 
-class Mission {
-public:
-    int LoadMissionByName(char* name);
-    int CountStartPositions();
-    void RefreshMapList(int);
-    char* GetMissionName();
-};
+#include "../map/mission.h"
 
 void __cdecl FUN_004d85a0(void* ptr);
 void __stdcall PlaySoundByName(const char* name, int param_2);

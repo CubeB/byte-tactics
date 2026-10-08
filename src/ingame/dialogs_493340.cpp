@@ -11,10 +11,7 @@
 #include <math.h>
 #include <vector>
 
-class Mission {
-public:
-    int GetGameType();
-};
+#include "../map/mission.h"
 
 class Class_004ce680 {
 public:

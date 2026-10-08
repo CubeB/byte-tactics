@@ -28,6 +28,8 @@ public:
     int SaveConditions(void* file);
 };
 
+class Mission;
+
 #pragma pack(push, 1)
 struct Unit {
     char unknown_0[0x95];
@@ -79,20 +81,13 @@ struct Game {
     char unknown_391af[0x391cf - 0x391af];
     char thumbs[0x19];                 // +0x391cf
     char unknown_391e8[0x391e9 - 0x391e8];
-    void* campaign;                    // +0x391e9
+    Mission* campaign;                 // +0x391e9
     MissionConditions* field_391ed;    // +0x391ed
     int state;                         // +0x391f1
 };
 #pragma pack(pop)
 
-class Mission {
-public:
-    int GetGameType();
-    char* GetCampaignName();
-    char* GetMissionName();
-    void AdvanceMission();
-    int SelectMission(int param_1);
-};
+#include "../map/mission.h"
 
 extern Game* g_game;
 extern char* g_saveBankName;          // "Total Annihilation 3.0"
@@ -238,18 +233,18 @@ int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
     sprintf(buf, g_buildTimeFormat, g_game->buildTime);
     (&file)->SetIntegerItem(buf, 0);
     (&file)->SetIntegerItem(g_maxUnitsKey, g_game->maxUnits);
-    (&file)->SetStringItem(g_campaignKey, ((Mission*)g_game->campaign)->GetCampaignName());
+    (&file)->SetStringItem(g_campaignKey, g_game->campaign->GetCampaignName());
     if (g_game->state != 6) {
-        ((Mission*)g_game->campaign)->AdvanceMission();
+        g_game->campaign->AdvanceMission();
     }
-    (&file)->SetStringItem(g_missionKey, ((Mission*)g_game->campaign)->GetMissionName());
-    (&file)->SetStringItem(g_mapKey, ((Mission*)g_game->campaign)->GetMissionName());
+    (&file)->SetStringItem(g_missionKey, g_game->campaign->GetMissionName());
+    (&file)->SetStringItem(g_mapKey, g_game->campaign->GetMissionName());
     (&file)->SetIntegerItem(DAT_00502a78, g_game->difficulty);
     (&file)->SetIntegerItem(g_sideKey, g_game->players[g_game->localPlayer].unit->side);
     (&file)->SetIntegerItem(g_playersKey, g_game->numPlayers);
-    (&file)->SetIntegerItem(g_gameTypeKey, ((Mission*)g_game->campaign)->GetGameType());
+    (&file)->SetIntegerItem(g_gameTypeKey, g_game->campaign->GetGameType());
     (&file)->SetStringItem(g_thumbsKey, g_game->thumbs);
-    if (((Mission*)g_game->campaign)->GetGameType() == 2) {
+    if (g_game->campaign->GetGameType() == 2) {
         (&file)->SetIntegerItem(g_commanderDeathKey, g_game->options->commanderDeath);
         (&file)->SetIntegerItem(g_locationKey, g_game->options->location);
         (&file)->SetIntegerItem(g_mappingKey, g_game->options->mapping);
@@ -258,7 +253,7 @@ int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
     }
     if (g_game->state != 6) {
         (&file)->SetIntegerItem(g_betweenMissionsKey, 1);
-        ((Mission*)g_game->campaign)->SelectMission(g_game->mission);
+        g_game->campaign->SelectMission(g_game->mission);
     }
     if (param_2 != 0) {
         (&file)->SetStringItem(g_descriptionKey, param_2);

@@ -8,14 +8,7 @@
 // unsigned-to-float conversion needs an 8-byte stack temporary.
 
 // The campaign object at g_game+0x391e9 (Mission in 0x435da0.cpp).
-class Mission {
-public:
-    int GetGameType();
-    char unknown_0[0xd54];
-    float killMul;                     // +0xd54
-    float timeMul;                     // +0xd58
-    int GetMissionIndex();
-};
+#include "../map/mission.h"
 
 #pragma pack(push, 1)
 struct PlayerInfo_0041dc20 {

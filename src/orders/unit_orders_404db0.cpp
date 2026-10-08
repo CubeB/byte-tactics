@@ -55,10 +55,7 @@ public:
     void SetDeadlineTicks(int ticks);
 };
 
-class Mission {
-public:
-    int GetGameType();
-};
+#include "../map/mission.h"
 
 #pragma pack(push, 1)
 struct Feature {

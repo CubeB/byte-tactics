@@ -8,10 +8,7 @@
 #include <string.h>
 #include <windows.h>
 
-class Mission {
-public:
-    int GetGameType();
-};
+#include "../map/mission.h"
 
 struct Display_00491a70;
 struct Src_004ab400;

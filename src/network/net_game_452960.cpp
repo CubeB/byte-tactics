@@ -39,10 +39,7 @@ struct Packet_00452960 {
     int extra;                         // +0xa
 };
 
-class Mission {
-public:
-    int GetGameType();
-};
+#include "../map/mission.h"
 
 struct Game {
     char unknown_0[0x1b63];

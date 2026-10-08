@@ -6,6 +6,8 @@
 #include <string.h>
 #include <time.h>
 
+class Mission;
+
 // Pack 1: the 4-byte pad after the pointer at +0x391e9 would shift later fields.
 #pragma pack(push, 1)
 struct Entry_00491ec0 {
@@ -166,7 +168,7 @@ struct Game {
     void* p38d6b;                        // +0x38d6b
     char unknown_38d6f[0x391cf - 0x38d6f];
     char buf391cf[0x391e9 - 0x391cf];    // +0x391cf
-    void* p391e9;                        // +0x391e9
+    Mission* mapInfo;                    // +0x391e9
     char unknown_391ed[0x391f1 - 0x391ed];
     int field_391f1;                     // +0x391f1
     void (*field_391f5)();               // +0x391f5
@@ -184,7 +186,7 @@ struct Game {
 };
 #pragma pack(pop)
 
-struct Mission { int GetGameType(); void LoadCampaign(char* name); void* LoadMissionByName(char* name); };
+#include "../map/mission.h"
 
 #include "../util/hapi_bank.h"
 
@@ -478,10 +480,10 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         SetMissionType(((HapiBank*)g_game->p38d6b)->GetIntegerItem("Gametype", 0));
         char* campaign = ((HapiBank*)g_game->p38d6b)->GetStringItem("Campaign", 0);
         if (campaign != 0)
-            ((Mission*)g_game->p391e9)->LoadCampaign(campaign);
+            g_game->mapInfo->LoadCampaign(campaign);
         g_game->field_37ef2 = ((HapiBank*)g_game->p38d6b)->GetIntegerItem("Side", 0);
         g_game->field_37eee = ((HapiBank*)g_game->p38d6b)->GetIntegerItem("Difficulty", 0);
-        if (((Mission*)g_game->p391e9)->GetGameType() == 1) {
+        if (g_game->mapInfo->GetGameType() == 1) {
             if (g_game->field_37ef2 == 0) {
                 *(unsigned char*)((char*)g_game->p1b8a + 0x95) = 0;
                 *(unsigned char*)((char*)g_game->p1cd5 + 0x95) = 1;
@@ -495,14 +497,14 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
             goto invalid;
         if (strlen(mission) == 0)
             goto invalid;
-        if (((Mission*)g_game->p391e9)->LoadMissionByName(mission) == 0)
+        if (g_game->mapInfo->LoadMissionByName(mission) == 0)
             goto invalid;
         strcpy((char*)g_game->p29a0 + 0x11c, mission);
         char* thumbs = ((HapiBank*)g_game->p38d6b)->GetStringItem("Thumbs", 0);
         strncpy(g_game->buf391cf, thumbs, 0x19);
         if (strlen(g_game->buf391cf) != 0x19)
             InitMissionStatus();
-        if (((Mission*)g_game->p391e9)->GetGameType() == 2) {
+        if (g_game->mapInfo->GetGameType() == 2) {
             ((HapiBank*)g_game->p38d6b)->OpenAccount("summary");
             g_game->field_2a3c =
                 (short)((HapiBank*)g_game->p38d6b)->GetIntegerItem("Players", 0);
@@ -534,7 +536,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
             FUN_004d85a0(DAT_0051f2ec);
         DAT_0051f2ec = 0;
         PopUntilNamedLayout(1);
-        if (((Mission*)g_game->p391e9)->GetGameType() == 1 &&
+        if (g_game->mapInfo->GetGameType() == 1 &&
             ((HapiBank*)g_game->p38d6b)->HasItem("BetweenMissions")) {
             g_game->flags_2a44.b3 = 1;
             if (g_game->p38d6b) {

@@ -5,10 +5,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-class Mission {
-public:
-    int GetNameSlot(int param_1);
-};
+#include "../map/mission.h"
 
 #pragma pack(push, 1)
 struct Game {

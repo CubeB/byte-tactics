@@ -2,10 +2,7 @@
 // g_game+0xc is a pointer, the final test reads a byte at +0xf1 through it.
 #include <stdio.h>
 
-class Mission {
-public:
-    int GetGameType();
-};
+#include "../map/mission.h"
 
 struct Input_00499890 {
     int fields[6];

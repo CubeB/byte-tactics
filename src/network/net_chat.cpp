@@ -6,10 +6,7 @@
 
 #pragma pack(push, 1)
 
-class Mission {
-public:
-    int GetGameType();
-};
+#include "../map/mission.h"
 
 // One 0x48-byte message ring record. AddMessage, ScrollToNextMessageUnit and
 // DrawMessages see the array at +0x12ef; ExpireOldestMessage sees only the

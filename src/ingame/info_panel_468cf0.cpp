@@ -22,7 +22,8 @@ int __stdcall FormatNetStats(int);
 int __stdcall DrawSelectedGoal(int,int);
 int __stdcall DrawMapDebugOverlay(int);
 int __stdcall DrawExplosions(int);
-struct Mission { int GetGameType(); };
+#include "../map/mission.h"
+
 int __stdcall DrawUnit(int,int);
 int __stdcall DrawOptionsScrollBar(int);
 int __stdcall DrawMessages(int);

@@ -26,10 +26,7 @@ void __stdcall BlitSideLogoToRect(void* surf, void* player, void* rect, int dy);
 unsigned short __stdcall FindUnitTypeId(const char* name);
 int __stdcall FillRectangle(void* surface, void* rect, int color);
 
-class Mission {
-  public:
-    int GetGameType();
-};
+#include "../map/mission.h"
 
 #pragma pack(push, 1)
 struct Snapshot_0046a860 {

@@ -14,10 +14,7 @@ public:
     void SetType(int param_1);
 };
 
-class Mission {
-public:
-    int GetGameType();
-};
+#include "../map/mission.h"
 
 struct PlayerData_00452cc0 {
     char unknown_0[0x97];

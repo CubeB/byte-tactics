@@ -439,21 +439,7 @@ public:
 
 // The mission object g_game+0x391e9 points at (defined in the game's own
 // files).
-class Mission {
-public:
-    int GetGameType();
-    int GetNameSlot(int param_1);
-    char* GetTranslatedName();
-    int GetDescription();
-    int LoadMissionByName(char* name);
-    void LoadMissionByName(PlayerInfo_00444930* info);
-    char* GetMissionName();
-    unsigned int ComputeMapChecksum();
-    bool HasMissionName();
-    void RefreshMapList(int param_1);
-    int GetTerrainLength();
-    int GetTerrainSizeTier();
-};
+#include "../map/mission.h"
 
 // The layer LoadGuiLayer returns: the entry table at +4, the click handler at
 // +8 and the dialog's block or owner at +0xc.
@@ -640,10 +626,7 @@ struct Game {
     char unknown_38a53[0x38c6b - 0x38a53]; // +0x38a53
     char save_38c6b[0x100];            // +0x38c6b
     char unknown_38d6b[0x391e9 - 0x38d6b]; // +0x38d6b
-    union {                            // +0x391e9
-        Mission* field_391e9;
-        Mission* map;
-    };
+    Mission* map;                      // +0x391e9
     char unknown_391ed[0x39201 - 0x391ed]; // +0x391ed
     ConnInfo_443ff0 info;              // +0x39201
     char unknown_39219[0x39229 - 0x39219]; // +0x39219
@@ -1969,7 +1952,7 @@ void __stdcall OpenReportDialog(unsigned int* count, char** names)
 // FUNCTION: 0x4436e0
 int InitScoreReporting(void)
 {
-    if (g_game->field_391e9->GetGameType() != 3)
+    if (g_game->map->GetGameType() != 3)
         return 0;
     int saved = g_game->field_2cbe;
     SetCursorMode(0x14);
@@ -2243,13 +2226,13 @@ void ShowSelectedMapInfo()
 
     if (FindGadgetIndex(g_game->menu.holder->entries, "MAPNAME", 5) != -1) {
         SetTranslatedTextByName(&g_game->menu, "MAPNAME",
-                     (char*)((Mission*)g_game->field_391e9)->GetTranslatedName(), 0);
+                     (char*)g_game->map->GetTranslatedName(), 0);
     }
 
     sprintf(buffer, "%s  %s: %s",
-            (char*)g_game->field_391e9 + 0xdc4,
+            (char*)g_game->map + 0xdc4,
             Translate("Players"),
-            (char*)g_game->field_391e9 + 0xe44);
+            (char*)g_game->map + 0xe44);
     SetTranslatedTextByName(&g_game->menu, "SIZE", (char*)buffer, 0);
 
     Entry_00444930* entry = FUN_004a0280(g_game->menu.holder->entries, "MAPPIC");
@@ -2258,14 +2241,14 @@ void ShowSelectedMapInfo()
         entry->field_c2 = 0;
     }
     void* bmp = LoadRadarPic(
-        (char*)((Mission*)g_game->field_391e9)->GetNameSlot(1), &outX, &outY);
+        (char*)g_game->map->GetNameSlot(1), &outX, &outY);
     entry->field_c2 = bmp;
     if (bmp != 0) {
         ResizeRadarPicture(bmp, entry->field_17, entry->field_19, outX << 4, outY << 4);
     }
 
     SetTranslatedTextByName(&g_game->menu, "DESCRIPTION",
-                 (char*)((Mission*)g_game->field_391e9)->GetDescription(), 0);
+                 (char*)g_game->map->GetDescription(), 0);
     MarkChanged(&g_game->menu);
 }
 
@@ -2296,7 +2279,7 @@ void OpenViewMapDialog()
 void __stdcall UpdateMapSelection(Gadget_00444930* menu, int unused)
 {
     Entry_00444930* g = FindGadgetChecked(menu->holder->entries, "MAPNAMES");
-    if (g_game->field_391e9->LoadMissionByName(SkipTextLines(g->text_c2, g->selected)) == 0) {
+    if (g_game->map->LoadMissionByName(SkipTextLines(g->text_c2, g->selected)) == 0) {
         SetGadgetActiveByName(menu, "MAPPIC", 0);
     } else {
         SetGadgetActiveByName(menu, "MAPPIC", 1);
@@ -2326,14 +2309,14 @@ void __stdcall HandleMapSelectClick(Gadget_00444930* param_1)
     if (IsCurrentGadgetNamed(param_1, "MAPNAMES") || IsCurrentGadgetNamed(param_1, "LOAD")) {
         PlaySoundByName("Multi", 0);
         Entry_00444930* g = FindGadgetChecked(entries, "MAPNAMES");
-        ((Mission*)g_game->field_391e9)->LoadMissionByName(
+        g_game->map->LoadMissionByName(
             SkipTextLines(g->text_c2, g->selected));
 
         Player_00444930* player = &g_game->players[g_game->localPlayer];
         strcpy(player->data->map,
-               ((Mission*)g_game->field_391e9)->GetMissionName());
+               g_game->map->GetMissionName());
         player->data->field_a9 =
-            ((Mission*)g_game->field_391e9)->ComputeMapChecksum();
+            g_game->map->ComputeMapChecksum();
 
         BroadcastPlayerInfo();
         ReportGameEvent(5);
@@ -2350,7 +2333,7 @@ void __stdcall HandleMapSelectClick(Gadget_00444930* param_1)
 
     if (IsCurrentGadgetNamed(param_1, "PREVMENU")) {
         PlaySoundByName("Previous", 0);
-        ((Mission*)g_game->field_391e9)->LoadMissionByName(g_oldMapName);
+        g_game->map->LoadMissionByName(g_oldMapName);
         BroadcastPlayerInfo();
         return;
     }
@@ -2376,7 +2359,7 @@ void OpenMultiMapSelector()
 {
     g_oldMapName = (char*)FUN_004d83b0("OLDMAPNAME", 0xc8);
 
-    if (!((Mission*)g_game->field_391e9)->HasMissionName()) {
+    if (!g_game->map->HasMissionName()) {
         OpenMessageBox(&g_game->menu,
                      Translate("There are no multiplayer maps to choose from"),
                      0x140, 1, 1);
@@ -2384,8 +2367,8 @@ void OpenMultiMapSelector()
     }
 
     strcpy(g_oldMapName,
-           ((Mission*)g_game->field_391e9)->GetMissionName());
-    ((Mission*)g_game->field_391e9)->RefreshMapList(0);
+           g_game->map->GetMissionName());
+    g_game->map->RefreshMapList(0);
 
     int n = LoadMapList(0, 0, 0);
     if (n == 0) {
@@ -2414,7 +2397,7 @@ void OpenMultiMapSelector()
 
     Gadget_00444930* menu = &g_game->menu;
     Entry_00444930* g = FindGadgetChecked(menu->holder->entries, "MAPNAMES");
-    if (((Mission*)g_game->field_391e9)->LoadMissionByName(
+    if (g_game->map->LoadMissionByName(
             SkipTextLines(g->text_c2, g->selected)) == 0) {
         SetGadgetActiveByName(menu, "MAPPIC", 0);
     } else {

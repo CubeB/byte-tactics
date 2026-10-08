@@ -1167,7 +1167,7 @@ void UpdateCdCategoryByActivity()
             else if (state == 1 && total < 10 && recent == 0 && g_cdActivityStableTicks > 0x3c)
                 newstate = 0;
             if (newstate != g_lastCdActivityMode) {
-                ((Sound*)g_game->sound)->SetTrackCategory(newstate);
+                g_game->sound->SetTrackCategory(newstate);
                 g_cdActivityStableTicks = 0;
                 g_lastCdActivityMode = newstate;
             }

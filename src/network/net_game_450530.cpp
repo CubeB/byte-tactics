@@ -1,7 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, retries by GPT-6.1-sol and space-bunny-free, finished by deepseek-v4.1-flash, improved by claude-sonnet-5-5, matched by Space Bunny Free. Names are provisional.
 //
 // Sends a 10-byte 0x21 message via SendPacketToPlayer for each player slot in state
-// 1, 2 or 3 with f_146 != 10 and lobbyDataSynced == 0 (to = first slot whose data->flags
+// 1, 2 or 3 with f_146 != 10 and field_c == 0 (to = first slot whose data->flags
 // has bit 0, from = first slot in state 1 or 2). State 1 sets the flag byte and
 // arg = -1, state 2 sets the flag byte and arg = the local player's id, state 3
 // clears the flag and arg = -1.
@@ -15,7 +15,7 @@ struct Player_00450530 {
     int active;                        // +0x00
     int id;                            // +0x04
     char unknown_8[0xc - 0x8];
-    int lobbyDataSynced;               // +0x0c
+    int field_c;                       // +0x0c
     char unknown_10[0x27 - 0x10];
     PlayerData_00450530* data;         // +0x27
     char unknown_2b[0x73 - 0x2b];
@@ -112,11 +112,11 @@ void SendLobbySyncRequests()
         if (p->active != 0
             && (p->state == 1 || p->state == 2 || p->state == 3)
             && p->f_146 != 10
-            && p->lobbyDataSynced == 0) {
+            && p->field_c == 0) {
             if (IsPlaying_00450530(p) && p->state == 1) {
                 Player_00450530* q = &g_game->players[FindHostSlot()];
                 if (IsPlaying_00450530(q)) {
-                    p->lobbyDataSynced = 1;
+                    p->field_c = 1;
                     continue;
                 }
                 msg.type = 0x21;
@@ -131,7 +131,7 @@ void SendLobbySyncRequests()
             else if (IsPlaying_00450530(p) && p->state == 2) {
                 Player_00450530* q = &g_game->players[FindHostSlot()];
                 if (IsPlaying_00450530(q)) {
-                    p->lobbyDataSynced = 1;
+                    p->field_c = 1;
                     continue;
                 }
                 msg.type = 0x21;
@@ -154,7 +154,7 @@ void SendLobbySyncRequests()
                 // self-assignment is the only body it then deletes. See the
                 // header note; removing these two lines costs the match.
                 if (i == 9)
-                    p->lobbyDataSynced = p->lobbyDataSynced;
+                    p->field_c = p->field_c;
                 SendPacketToPlayer(FindFrom_00450530(), FindTo_00450530(), &msg, 10);
             }
         }

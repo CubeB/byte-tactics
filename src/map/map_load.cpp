@@ -8,32 +8,28 @@
 #include <memory>
 #include <xutility>
 
-// The reference-counted string handle: a pointer to the characters with the
-// reference count in the int just before them. The views in this file are the
-// copy constructor 0x4c91a0, the assignment 0x4c93b0 and ReleaseRef 0x4c9390.
-class StringRef {
+class Class_004c9390 {
 public:
-    char* ptr;                         // +0x0, count in the dword before
-
-    StringRef(const StringRef& other);
-    StringRef(const char* text);
-    StringRef(const char* text, int len);
-    ~StringRef() { ReleaseRef(); }
+    char* data;
     void ReleaseRef();
-    void Assign(const StringRef& param);
-    StringRef* Append(const StringRef& other);
-    StringRef* MakeLower();
-    StringRef* MakeUpper();
-    StringRef* AssignText(const char* text);
-    char* GetUnique();
-    int IsEmpty() const;
-    StringRef SubString(int start, int end) const;
+};
+
+class Class_004c91a0 {
+public:
+    char* ptr;
+    Class_004c91a0(const Class_004c91a0& other);
+    ~Class_004c91a0() { ((Class_004c9390*)this)->ReleaseRef(); }
+};
+
+class Class_004c93b0 {
+public:
+    void Assign(const Class_004c91a0& param);
 };
 
 // Declares its own copy constructor and operator=: implicit ones get inlined into insert.
 class MapCacheEntry {
 public:
-    StringRef handle;           // +0x0
+    Class_004c91a0 handle;             // +0x0
     int field_4;                       // +0x4
 
     MapCacheEntry(const MapCacheEntry& other);
@@ -114,7 +110,7 @@ InsertFn_00437580 g_insert_00437580 = &Vec_00437580::insert;
 // FUNCTION: 0x437800
 MapCacheEntry& MapCacheEntry::operator=(const MapCacheEntry& other)
 {
-    ((StringRef*)this)->Assign(other.handle);
+    ((Class_004c93b0*)this)->Assign(other.handle);
     field_4 = other.field_4;
     return *this;
 }

@@ -755,19 +755,18 @@ void FreeTextureGafs()
 
 #include <vector>
 
-// The reference-counted string handle: a pointer to the characters with the
-// reference count in the int just before them.
-class StringRef {
+class Class_004c9390 {
 public:
-    char* p;                           // refcount lives in the dword before p
+    char* data;
 
-    StringRef(const StringRef& other);
-    StringRef(const char* text);
-    ~StringRef() { ReleaseRef(); }
     void ReleaseRef();
-    StringRef* Assign(const StringRef* other);
-    StringRef* AssignText(const char* text);
-    StringRef* MakeLower();
+};
+
+class Class_004c91a0 {
+public:
+    char* p;
+
+    ~Class_004c91a0() { ((Class_004c9390*)this)->ReleaseRef(); }
 };
 
 #pragma pack(push, 1)
@@ -780,7 +779,7 @@ struct Def_0042a610 {
 #pragma pack(pop)
 
 int __stdcall ComputeChecksum(unsigned char* data, int len);
-void __stdcall ListDirectory(const char* pattern, int flags, std::vector<StringRef>* out);
+void __stdcall ListDirectory(const char* pattern, int flags, std::vector<Class_004c91a0>* out);
 void* __stdcall HAPI_LoadOpenFile(char* name, void* f, unsigned int* outSize);
 void __cdecl ProtectBlockReadWrite(void* p);
 void __cdecl ProtectBlockReadOnly(void* p);
@@ -806,7 +805,7 @@ void __stdcall ComputeUnitScriptChecksum(Def_0042a610* def)
         GameFreeThunk(data);
     }
 
-    std::vector<StringRef> files;
+    std::vector<Class_004c91a0> files;
     char name[64];
     strcpy(name, def->name);
     strcat(name, "*");

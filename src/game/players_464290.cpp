@@ -115,7 +115,7 @@ struct Player {
     int active;                        // +0x00
     int index;                         // +0x04
     char unknown_8[0xc - 8];
-    int lobbyDataSynced;               // +0x0c
+    int field_c;                       // +0x0c
     char unknown_10[0x18 - 0x10];
     int syncTick;                      // +0x18
     char unknown_1c[0x21 - 0x1c];
@@ -144,18 +144,18 @@ struct Player {
     int metalUsage;
     int energyCapacity;
     int metalCapacity;
-    int totalEnergyProduced;           // +0xac
-    int totalEnergyProducedHi;         // +0xb0, high half of the double
-    int totalMetalProduced;            // +0xb4
-    int totalMetalProducedHi;          // +0xb8, high half of the double
-    int totalEnergyConsumed;           // +0xbc
-    int totalEnergyConsumedHi;         // +0xc0, high half of the double
-    int totalMetalConsumed;            // +0xc4
-    int totalMetalConsumedHi;          // +0xc8, high half of the double
-    int energyWasted;                  // +0xcc
-    int energyWastedHi;                // +0xd0, high half of the double
-    int metalWasted;                   // +0xd4
-    int metalWastedHi;                 // +0xd8, high half of the double
+    int totalEnergyProduced;
+    int field_b0;
+    int totalMetalProduced;
+    int field_b8;
+    int totalEnergyConsumed;
+    int field_c0;
+    int totalMetalConsumed;
+    int field_c8;
+    int energyWasted;
+    int field_d0;
+    int metalWasted;
+    int field_d8;
     char unknown_dc[0xe4 - 0xdc];
     int shareMetal;                    // +0xe4
     int shareEnergy;                   // +0xe8
@@ -316,7 +316,7 @@ void __stdcall SetupPlayerSlot(int player, char type)
     p->alliance = 5;
     p->info->b.bit5 = 0;
     p->index = player & 0xff;
-    p->lobbyDataSynced = 0;
+    p->field_c = 0;
     p->rejectReason = 0;
 
     if (p->active != 0 && (p->type == 1 || p->type == 2)) {
@@ -388,7 +388,7 @@ void ResetPlayerSlots()
         p->info->side = 0;
         strcpy(p->info->name, DAT_005119b8);
         p->unit = 0;
-        p->lobbyDataSynced = 0;
+        p->field_c = 0;
         p->syncTick = 0;
         p->units = 0;
         p->units_end = 0;
@@ -435,14 +435,14 @@ back:
     p->metalUsage = 0;
     p->energyCapacity = 0;
     p->metalCapacity = 0;
-    p->totalEnergyProducedHi = 0;
-    p->totalMetalProducedHi = 0;
-    p->totalEnergyConsumedHi = 0;
-    p->totalMetalConsumedHi = 0;
+    p->field_b0 = 0;
+    p->field_b8 = 0;
+    p->field_c0 = 0;
+    p->field_c8 = 0;
     p->shareEnergy = 0;
     p->shareMetal = 0;
-    p->energyWastedHi = 0;
-    p->metalWastedHi = 0;
+    p->field_d0 = 0;
+    p->field_d8 = 0;
     goto guard;
 stamp:
     p->displayTimer = g_game->tick;

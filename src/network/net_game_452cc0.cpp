@@ -27,7 +27,7 @@ struct Player_00452cc0 {
     int active;                        // +0x00
     unsigned int id;                   // +0x04
     char unknown_8[0xc - 8];
-    int lobbyDataSynced;               // +0x0c
+    int field_c;                       // +0x0c
     char unknown_10[0x27 - 0x10];
     PlayerData_00452cc0* data;         // +0x27
     char unknown_2b[0x73 - 0x2b];
@@ -129,7 +129,7 @@ static inline void Remove(Player_00452cc0* p)
     ((Player*)p)->SetType(0);
     p->active = 0;
     p->id = -1;
-    p->lobbyDataSynced = 0;
+    p->field_c = 0;
 }
 
 // Stays in its own file: the gathered file's earlier callers (0x451bc0 and up)

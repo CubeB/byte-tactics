@@ -473,7 +473,7 @@ struct Game {
 };
 #pragma pack(pop)
 
-class StringRef {
+class Class_004c9390 {
 public:
     char* data;                        // +0x0
 
@@ -481,7 +481,7 @@ public:
 };
 
 struct Elem {
-    StringRef name;                 // +0x0
+    Class_004c9390 name;               // +0x0
 
     ~Elem() { name.ReleaseRef(); }
 };

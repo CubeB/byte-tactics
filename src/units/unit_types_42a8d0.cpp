@@ -28,7 +28,7 @@ namespace ta {
 #include <ta_types.h>
 }
 
-class StringRef {
+class Class_004c9390 {
 public:
     char* data;
     void ReleaseRef();
@@ -38,7 +38,7 @@ public:
 struct Elem_00432be0 {
     char* data;                        // +0x0
 
-    ~Elem_00432be0() { ((StringRef*)this)->ReleaseRef(); }
+    ~Elem_00432be0() { ((Class_004c9390*)this)->ReleaseRef(); }
     // Used instead of `.data`: keeps the path temporary's order.
     operator char*() const { return data; }
 };

@@ -38,7 +38,7 @@ public:
     int active;                        // +0x00
     int id;                            // +0x04
     int joinTime;                      // +0x08
-    int lobbyDataSynced;               // +0x0c
+    int team;                          // +0x0c
     int messages;                      // +0x10
     char unknown_14[8];
     int last_time;                     // +0x1c
@@ -376,7 +376,7 @@ static inline unsigned char FreeTeam()
         int used = 0;
         for (int i = 0; i < 10; i++) {
             Player* p = &g_game->players[i];
-            if (IsValid(p) && p->index != 10 && p->lobbyDataSynced == team)
+            if (IsValid(p) && p->index != 10 && p->team == team)
                 used = 1;
         }
         if (!used)
@@ -832,7 +832,7 @@ int HandleNetPackets()
             reply[5] = 0;
             if (!packet[1]) {
                 *(int*)(reply + 1) = a->id;
-                reply[5] = a->lobbyDataSynced;
+                reply[5] = a->team;
                 if (!reply[5])
                     break;
                 BroadcastPacket(GetHostDpid(), reply, 6);
@@ -840,15 +840,15 @@ int HandleNetPackets()
                 if (b) {
                     *(int*)(reply + 1) = a->id;
                     if (InGame(b))
-                        reply[5] = b->lobbyDataSynced;
+                        reply[5] = b->team;
                 } else {
                     *(int*)(reply + 1) = a->id;
-                    if (!a->lobbyDataSynced)
+                    if (!a->team)
                         reply[5] = FreeTeam();
                 }
                 if (!reply[5])
                     break;
-                a->lobbyDataSynced = reply[5];
+                a->team = reply[5];
                 BroadcastPacket(GetHostDpid(), reply, 6);
             }
             break;
@@ -856,7 +856,7 @@ int HandleNetPackets()
         case 34: {
             Player* p = PlayerByIndex(*(int*)(packet + 1));
             if (p)
-                p->lobbyDataSynced = packet[5];
+                p->team = packet[5];
             break;
         }
         case 42:

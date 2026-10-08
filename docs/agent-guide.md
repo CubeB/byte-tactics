@@ -2171,7 +2171,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   an embedded struct (`d->screen.UnlockSurface()`). The screen lock/unlock pair
   is LockScreen/UnlockScreen (`IDirectDrawSurface::Lock` +0x64 and `Unlock`
   +0x80 on the surface at display+0x8c), used by many functions around
-  0x4c6b70-0x4c6dc0; see `src/graphics/surface_4c6d20.cpp`.
+  0x4c6b70-0x4c6dc0; see `src/graphics/surface.cpp`.
 - **STL templates ending in `ret N`**: that original file was compiled with
   `__stdcall` as the default. Write the template body as an explicit
   `__stdcall` free function (the real `std::` template gives a plain `ret`).

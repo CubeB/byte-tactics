@@ -55,6 +55,8 @@ entry points.
 | `FUN_004c3e40` | `src/util/tdf_4c2ea0.cpp` | `Tdf_Parse` | already named: the definition is `TdfRecord::TdfRecord`, the section constructor that parses `[name] { ... }`; the spellings that stay are caller views constructing on `operator new` storage (`node->FUN_004c3e40(...)`), which a constructor call cannot spell (#6313) |
 | `FUN_004e16b0` | `src/debug/debug_lib_4e16b0.cpp` | `cpuid_Version_info` | no evidence: sets a flag from CPUID EDX bit 23 (SEP) after `IsPentiumOrBetter`; nothing reads the flag, so what it would name is unknown (#6313) |
 | `FUN_004e6110` | `src/orders/order_targets.cpp` | `CRT_PurecallAbort` | already named: the address is the CRT `_purecall` in `data/symbols.csv`; the spelling that stays is the base class's pure slot 8 declaration, and `rename.py` refuses `FillWorldPos` there because the file already uses that name for five class views (#6313) |
+| `Class_0044cf00::ContainsUnit` | `src/orders/order_targets.cpp` | `OrderFx::OrderFx_Shared_ContainsUnitViaCell` | a view of `OrderFx` (the base default of slot 4, also `PointMarker`'s) that declares six virtual slots so its body can call slot 5, `ContainsCell`; `OrderFx` stores its vtable by hand in a plain `vtable` member and cannot declare virtual functions without a second vptr, so the view cannot join it (#6374) |
+| `Class_0044e5b0::IsComplete` | `src/orders/order_targets.cpp` | `PathOrder::PathOrder_IsComplete` | a view of `PathOrder` that declares nine virtual slots so its body can call slot 8, `FillWorldPos`, on itself; `PathOrder` derives from the hand-vtable `OrderFx`, so it cannot declare them and the view stays (#6374) |
 
 ## Classes
 

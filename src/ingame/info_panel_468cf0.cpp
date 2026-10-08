@@ -16,7 +16,8 @@
 typedef unsigned char byte;
 typedef unsigned short ushort;
 typedef unsigned int uint;
-extern char* g_game;
+struct Game;
+extern Game* g_game;
 unsigned long GetMilliseconds();
 int __stdcall FormatNetStats(int);
 int __stdcall DrawSelectedGoal(int,int);
@@ -111,6 +112,121 @@ struct MapGrid { int *buf; int **cursor; ushort *count; char pad1[0x2c]; int wid
 struct Bits8 { ushort b0:1; ushort b1:1; ushort b2:1; ushort b3:1; ushort b4:1; ushort b5:1; ushort b6:1; ushort b7:1; };
 struct UnitFlags { uint kind:2; uint b2:1; uint b3:1; uint b4:1; uint b5:1; uint b6:1; uint b7:1; };
 
+// The game state this file reads, with the member names the other Game views
+// use. The bit words share a union with each view's bitfield type.
+#pragma pack(push, 1)
+struct Game {
+  char unknown_0[0xdcb];
+  unsigned char colors[16];             // +0xdcb
+  char unknown_ddb[0x2a42 - 0xddb];
+  unsigned char localPlayer;            // +0x2a42
+  unsigned char playerIndex;            // +0x2a43
+  unsigned char flags_2a44;             // +0x2a44
+  char unknown_2a45[0x2c76 - 0x2a45];
+  int cursorScreenX;                    // +0x2c76
+  int cursorScreenY;                    // +0x2c7a
+  char unknown_2c7e[0x2c92 - 0x2c7e];
+  int boxStartX;                        // +0x2c92
+  int boxStartHeight;                   // +0x2c96
+  int boxStartZ;                        // +0x2c9a
+  int boxEndX;                          // +0x2c9e
+  int boxEndHeight;                     // +0x2ca2
+  int boxEndZ;                          // +0x2ca6
+  char unknown_2caa[2];
+  short field_2cac;                     // +0x2cac
+  char unknown_2cae[2];
+  short field_2cb0;                     // +0x2cb0
+  char unknown_2cb2[2];
+  short field_2cb4;                     // +0x2cb4
+  char unknown_2cb6[0x2cc3 - 0x2cb6];
+  char orderMode;                       // +0x2cc3
+  char unknown_2cc4[0x2cc6 - 0x2cc4];
+  unsigned char inputFlags;             // +0x2cc6
+  char unknown_2cc7[0x141fb - 0x2cc7];
+  union {                               // +0x141fb
+    MapGrid sortUnits;                  // the map/sort grid view of this block
+    struct {
+      char unknown_141fb[0x1426f - 0x141fb];
+      int features;                     // +0x1426f
+      char unknown_14273[0x14280 - 0x14273];
+      char debugMode;                   // +0x14280
+      char unknown_14281[0x1428b - 0x14281];
+    };
+  };
+  char unknown_1428b[0x142f3 - 0x1428b];
+  void* followUnit;                     // +0x142f3
+  char unknown_142f7[0x1431f - 0x142f7];
+  int scroll_x;                         // +0x1431f
+  int scroll_y;                         // +0x14323
+  char unknown_14327[0x14357 - 0x14327];
+  int units;                            // +0x14357
+  char unknown_1435b[0x1435f - 0x1435b];
+  unsigned short* visibleUnitIds;       // +0x1435f
+  char unknown_14363[0x14367 - 0x14363];
+  int count;                            // +0x14367
+  char unknown_1436b[0x14813 - 0x1436b];
+  int igvictory;                        // +0x14813
+  int igdefeat;                         // +0x14817
+  int igpaused;                         // +0x1481b
+  union {                               // +0x1481f
+    int panelSide[5];
+    unsigned short* sidePanelTopSeq[5];
+  };
+  char unknown_14833[0x148cf - 0x14833];
+  int cursorHourglass;                  // +0x148cf
+  char unknown_148d3[0x37e1b - 0x148d3];
+  int screen;                           // +0x37e1b
+  int width;                            // +0x37e1f
+  int height;                           // +0x37e23
+  union {                               // +0x37e27
+    OverlayRect lim;
+    struct {
+      int viewCullMinX;
+      int viewCullMinY;
+      int viewCullMaxX;
+      int viewCullMaxY;
+    };
+  };
+  char unknown_37e37[0x37e3f - 0x37e37];
+  Resources resources;                  // +0x37e3f
+  char unknown_37e60[0x37f06 - 0x37e60];
+  union {                               // +0x37f06
+    unsigned short visualFlags;
+    unsigned char visualFlagsByte;
+  };
+  char unknown_37f08[0x37f2f - 0x37f08];
+  union {                               // +0x37f2f
+    unsigned short uiOptionFlags;
+    Bits8 bits_37f2f;
+  };
+  char unknown_37f31[0x38a47 - 0x37f31];
+  unsigned int ticks;                   // +0x38a47
+  char unknown_38a4b[0x38a51 - 0x38a4b];
+  union {                               // +0x38a51
+    unsigned char pauseFlags;
+    Bits8 pauseBits;
+  };
+  char unknown_38a53[0x38d85 - 0x38a53];
+  FrameTimers prof;                     // +0x38d85
+  int profileBarsEnabled;               // +0x38dd5
+  char unknown_38dd9[0x391c3 - 0x38dd9];
+  int showBps;                          // +0x391c3
+  char unknown_391c7[0x391e9 - 0x391c7];
+  Mission* mapInfo;                     // +0x391e9
+  char unknown_391ed[0x391f9 - 0x391ed];
+  int fontComix;                        // +0x391f9
+  char unknown_391fd[0x3923b - 0x391fd];
+  union {                               // +0x3923b
+    unsigned short flags_3923b;
+    unsigned char flagsByte_3923b;
+    Bits8 bits_3923b;
+  };
+};
+#pragma pack(pop)
+
+extern Game* g_game;
+
+
 // Takes and returns floats.
 static inline float Approach(float fcur, float ftarget)
 {
@@ -140,15 +256,15 @@ static void DrawResourcePanel(Surface *ctx, int pl, Resources *res)
   int sd = (int)g_game + 0x37f3d + side * 0x232;
   SetFont(*(int *)(sd + 0x22e));
   GetFontHeight();
-  byte *pal = (byte *)(g_game + 0xdcb);
+  byte *pal = &g_game->colors[0];
   SetTextColors(pal[0xf], GetTextKeyColor());
   int bx = 0x81;
   // do/while, not a for loop.
   do {
-    ushort *gaf = (ushort *)GetGafFrame(*(int *)(g_game + 0x1481f + (side + (bx > 0x81) * 5) * 4), 0);
+    ushort *gaf = (ushort *)GetGafFrame(*(int *)((char*)g_game + 0x1481f + (side + (bx > 0x81) * 5) * 4), 0);
     BlitGafFrameAtOffset((int)ctx, (int)gaf, bx, 0);
     bx += *gaf;
-  } while (bx < *(int *)(g_game + 0x37e1f));
+  } while (bx < g_game->width);
   BlitSideLogoToRect((int)ctx, pl, sd + 0x42, 0);
   OverlayRect *r = (OverlayRect *)(sd + 0x52);
   bar = *r;
@@ -211,10 +327,10 @@ static inline int ShowSelectBox(int drawObjects)
 {
   if (drawObjects == 0)
     return 0;
-  if (*(byte *)(g_game + 0x2cc6) & 8)
+  if (g_game->inputFlags & 8)
     return 1;
-  if (*(char *)(g_game + 0x2cc3) == '\x0e')
-    return PointInRect((int)(g_game + 0x37e27), *(int *)(g_game + 0x2c76), *(int *)(g_game + 0x2c7a)) != 0;
+  if (g_game->orderMode == '\x0e')
+    return PointInRect((int)((char*)g_game + 0x37e27), g_game->cursorScreenX, g_game->cursorScreenY) != 0;
   return 0;
 }
 
@@ -237,23 +353,23 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   int x, player;
   int i, k;
 
-  cx = (*(int *)(g_game + 0x37e1f) + 0x80) / 2;
-  cy = *(int *)(g_game + 0x37e23) / 2;
-  SetOffscreenSurface(*(int *)(g_game + 0x37e1b));
-  ctx = **(Surface **)(g_game + 0x37e1b);
-  colors = (byte *)(g_game + 0xdcb);
+  cx = (g_game->width + 0x80) / 2;
+  cy = g_game->height / 2;
+  SetOffscreenSurface(g_game->screen);
+  ctx = **(Surface **)((char*)g_game + 0x37e1b);
+  colors = &g_game->colors[0];
   HideSoftwareCursor();
-  ctx.SetClipRect(*(OverlayRect *)(g_game + 0x37e27));
-  ProfileMark((FrameTimers *)(g_game + 0x38d85), 8);
+  ctx.SetClipRect(g_game->lim);
+  ProfileMark(&g_game->prof, 8);
   DrawMapTiles((int)&ctx);
   DrawMapDebugOverlay((int)&ctx);
-  x = *(short *)(g_game + 0x2cac) - *(int *)(g_game + 0x1431f) + 0x80;
-  // Compiler state, not meaning: reading viewY through this alias of g_game
-  // is what makes MSVC subtract (h >> 1) first, as the original does.
-  char *&game = g_game;
+  x = g_game->field_2cac - g_game->scroll_x + 0x80;
+  // Compiler state, not meaning: reading viewY through this char* alias of
+  // g_game is what makes MSVC subtract (h >> 1) first, as the original does.
+  char *&game = *(char**)&g_game;
   int *viewY = (int *)(game + 0x14323);
-  y = *(short *)(g_game + 0x2cb4) - (*(short *)(g_game + 0x2cb0) >> 1) - *viewY + 0x20;
-  if (*(char *)(g_game + 0x14280) == '\x02') {
+  y = g_game->field_2cb4 - (g_game->field_2cb0 >> 1) - *viewY + 0x20;
+  if (g_game->debugMode == '\x02') {
     DrawLine((int)&ctx, x - 2, y, x + 2, y, colors[0xf]);
     DrawLine((int)&ctx, x, y - 2, x, y + 2, colors[0xf]);
   }
@@ -261,8 +377,8 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
 
   // resource bars
   {
-    int pl = (int)g_game + *(byte *)(g_game + 0x2a43) * 0x14b + 0x1b63;
-    res = *(Resources *)(g_game + 0x37e3f);
+    int pl = (int)g_game + g_game->playerIndex * 0x14b + 0x1b63;
+    res = g_game->resources;
     // owner is read through pl: gives the folded addresses.
     res.owner = *(char *)(pl + 0x146);
     res.metal = Approach(res.metal, *(float *)(pl + 0x8c));
@@ -273,31 +389,31 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
       res.metal = res.maxMetal;
     if (res.energy > res.maxEnergy)
       res.energy = res.maxEnergy;
-    if (*(uint *)(pl + 0xf8) < *(uint *)(g_game + 0x38a47)) {
+    if (*(uint *)(pl + 0xf8) < g_game->ticks) {
       *(uint *)(pl + 0xf8) += 0x1e;
       res.metalIncome = GetEnergyIncome(pl);
       res.metalUse = GetEnergyUsage(pl);
       res.energyIncome = GetMetalIncome(pl);
       res.energyUse = GetMetalUsage(pl);
     }
-    if (memcmp(g_game + 0x37e3f, &res, sizeof(res)) != 0) {
-      *(Resources *)(g_game + 0x37e3f) = res;
+    if (memcmp((char*)&g_game->resources, &res, sizeof(res)) != 0) {
+      g_game->resources = res;
       DrawResourcePanel(&ctx, pl, &res);
     }
   }
   DrawUnitInfoPanel((int)&ctx);
   DrawRadar((int)&ctx);
-  ctx.SetClipRect(*(OverlayRect *)(g_game + 0x37e27));
-  ProfileMark((FrameTimers *)(g_game + 0x38d85), 3);
+  ctx.SetClipRect(g_game->lim);
+  ProfileMark(&g_game->prof, 3);
 
   // features and units on the visible part of the map
-  idx = *(byte *)(g_game + 0x2a43);
-  mv = (MapGrid *)(g_game + 0x141fb);
+  idx = g_game->playerIndex;
+  mv = &g_game->sortUnits;
   player = (int)g_game + idx * 0x14b + 0x1b63;
-  SetFont(*(int *)(g_game + 0x3816b + *(byte *)(*(int *)(player + 0x27) + 0x95) * 0x232));
-  SetTextColors(*(byte *)(g_game + 0xdda), GetTextKeyColor());
+  SetFont(*(int *)((char*)g_game + 0x3816b + *(byte *)(*(int *)(player + 0x27) + 0x95) * 0x232));
+  SetTextColors(g_game->colors[15], GetTextKeyColor());
   {
-    int vx = *(int *)(g_game + 0x1431f) / 16, vy = *(int *)(g_game + 0x14323) / 16, h, w, x0, y0, skip;
+    int vx = g_game->scroll_x / 16, vy = g_game->scroll_y / 16, h, w, x0, y0, skip;
     i = 0;
     while (i < mv->rows) {
       mv->cursor[i] = mv->buf + i * mv->stride;
@@ -324,11 +440,11 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
     }
     if (w + x0 > mv->width - 1)
       w = mv->width - x0 - 1;
-    ushort *pIdx = *(ushort **)(g_game + 0x1435f);
+    ushort *pIdx = g_game->visibleUnitIds;
     k = 0;
-    while (k < *(int *)(g_game + 0x14367)) {
-      int unit = *(int *)(g_game + 0x14357) + *pIdx * 0x118;
-      int row = ((int)*(short *)(unit + 0x74) - *(int *)(g_game + 0x14323)) / 16 + 0x10;
+    while (k < g_game->count) {
+      int unit = g_game->units + *pIdx * 0x118;
+      int row = ((int)*(short *)(unit + 0x74) - g_game->scroll_y) / 16 + 0x10;
       if (row >= 0 && row < mv->rows) {
         int **pCur = &mv->cursor[row];
         mv->count[row]++;
@@ -353,7 +469,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
       while (c < w) {
         *(byte *)(tile + 0xc) &= 0xfb;
         if (*(ushort *)(tile + 8) < 0xfffb) {
-          int feat = *(int *)(g_game + 0x1426f) + *(ushort *)(tile + 8) * 0x100;
+          int feat = g_game->features + *(ushort *)(tile + 8) * 0x100;
           if (*(byte *)(feat + 0xfa) < 10) {
             if ((*(byte *)(feat + 0xff) & 8) && ((*(byte *)(tile + 0xc) >> 3 & 0xf) != idx)) {
               if (IsFootprintVisible(player, x, y, *(short *)(feat + 0x94), *(short *)(feat + 0x96), *(byte *)(tile + 4)))
@@ -394,7 +510,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
         x = x0 + c;
 
         if (*(byte *)(tile + 0xc) & 4) {
-          int feat = *(int *)(g_game + 0x1426f) + *(ushort *)(tile + 8) * 0x100;
+          int feat = g_game->features + *(ushort *)(tile + 8) * 0x100;
           if ((*(byte *)(feat + 0xff) & 8) && ((*(byte *)(tile + 0xc) >> 3 & 0xf) != idx)) {
             if (IsFootprintVisible(player, x, y, (int)*(short *)(feat + 0x94), *(short *)(feat + 0x96), *(byte *)(tile + 4)))
               BlitFeatureGaf((int)&ctx, tile, x, y);
@@ -429,22 +545,22 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   }
   DrawParticleList((int)&ctx, 8);
   if (IsKeyDown(0xf9))
-    DrawSelectedUnitOrderOverlays((int)&ctx, (int)(g_game + 0x142f3));
+    DrawSelectedUnitOrderOverlays((int)&ctx, (int)((char*)g_game + 0x142f3));
 
   // unit group numbers. Suspected original bug: the outer test lets a unit
   // with a group number (+0xac) through when the 0x37f06 bit is clear, but the
   // inner test requires that bit for the number as well, so the position is
   // computed and nothing is drawn (0x469c4a to 0x469c9a).
   if (param_1 != 0) {
-    ushort *pIdx = *(ushort **)(g_game + 0x1435f);
-    for (k = 0; k < *(int *)(g_game + 0x14367); k++, pIdx++) {
-      int unit = *(int *)(g_game + 0x14357) + *pIdx * 0x118;
-      if ((*(byte *)(g_game + 0x37f06) & 1) || *(int *)(unit + 0xac) != 0) {
+    ushort *pIdx = g_game->visibleUnitIds;
+    for (k = 0; k < g_game->count; k++, pIdx++) {
+      int unit = g_game->units + *pIdx * 0x118;
+      if ((g_game->visualFlagsByte & 1) || *(int *)(unit + 0xac) != 0) {
         char str[2];
         str[1] = 0;
-        x = *(short *)(unit + 0x6c) - *(int *)(g_game + 0x1431f) + 0x80;
-        y = *(short *)(unit + 0x74) - *(int *)(g_game + 0x14323) - (*(short *)(unit + 0x70) >> 1) + 0x20;
-        if (*(byte *)(g_game + 0x37f06) & 1) {
+        x = *(short *)(unit + 0x6c) - g_game->scroll_x + 0x80;
+        y = *(short *)(unit + 0x74) - g_game->scroll_y - (*(short *)(unit + 0x70) >> 1) + 0x20;
+        if (g_game->visualFlagsByte & 1) {
           if (*(char *)(*(int *)(unit + 0x96) + 0x146) == (char)idx)
             DrawHitPointBar((int)&ctx, unit, x, y + 10);
           if (*(char *)(*(int *)(unit + 0x96) + 0x146) == (char)idx && *(int *)(unit + 0xac) != 0) {
@@ -456,23 +572,23 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
     }
     DrawParticleList((int)&ctx, 9);
   }
-  ProfileMark((FrameTimers *)(g_game + 0x38d85), 4);
-  if ((*(ushort *)(g_game + 0x3923b) & 1) && (*(ushort *)(g_game + 0x3923b) & 2) && param_1 != 0)
+  ProfileMark(&g_game->prof, 4);
+  if ((g_game->flags_3923b & 1) && (g_game->flags_3923b & 2) && param_1 != 0)
     DrawSelectedGoal((int)&ctx, FindNextSelectedUnit(0, 0));
   if (param_1 != 0)
     DrawFogOfWar((int)&ctx);
-  ProfileMark((FrameTimers *)(g_game + 0x38d85), 5);
+  ProfileMark(&g_game->prof, 5);
 
   // selection box
   if (ShowSelectBox(param_1)) {
     OverlayRect box;
-    int x1 = *(int *)(g_game + 0x2c92) - *(int *)(g_game + 0x1431f) + 0x80;
-    int y1 = *(int *)(g_game + 0x2c9a) - (*(int *)(g_game + 0x2c96) >> 1) - *(int *)(g_game + 0x14323) + 0x20;
-    int x2 = *(int *)(g_game + 0x2c9e) - *(int *)(g_game + 0x1431f) + 0x80;
-    int y2 = *(int *)(g_game + 0x2ca6) - (*(int *)(g_game + 0x2ca2) >> 1) - *(int *)(g_game + 0x14323) + 0x20;
+    int x1 = g_game->boxStartX - g_game->scroll_x + 0x80;
+    int y1 = g_game->boxStartZ - (g_game->boxStartHeight >> 1) - g_game->scroll_y + 0x20;
+    int x2 = g_game->boxEndX - g_game->scroll_x + 0x80;
+    int y2 = g_game->boxEndZ - (g_game->boxEndHeight >> 1) - g_game->scroll_y + 0x20;
     int ci;
-    if (*(char *)(g_game + 0x2cc3) == '\x0e')
-      ci = ((*(byte *)(g_game + 0x2cc6) & 0x40) ? 6 : 0) + 4;
+    if (g_game->orderMode == '\x0e')
+      ci = ((g_game->inputFlags & 0x40) ? 6 : 0) + 4;
     else
       ci = 0xf;
     int c = colors[ci];
@@ -496,48 +612,48 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
     box.top++;
     box.right--;
     box.bottom--;
-    if (*(char *)(g_game + 0x2cc3) == '\x0e')
+    if (g_game->orderMode == '\x0e')
       DrawRectangle((int)&ctx, (int)&box, c);
     else
       DrawRectangle((int)&ctx, (int)&box, *colors);
   }
-  if ((*(Mission **)(g_game + 0x391e9))->GetGameType() == 3 ||
-      (*(Mission **)(g_game + 0x391e9))->GetGameType() == 2) {
+  if (g_game->mapInfo->GetGameType() == 3 ||
+      g_game->mapInfo->GetGameType() == 2) {
     ResetClipRect((int)&ctx);
     DrawScorePanel((int)&ctx);
-    ctx.SetClipRect(*(OverlayRect *)(g_game + 0x37e27));
+    ctx.SetClipRect(g_game->lim);
   }
   DrawStatusPanel((int)&ctx);
-  if (*(int *)(g_game + 0x391c3) != 0)
+  if (g_game->showBps != 0)
     DrawNetworkStats((int)&ctx);
   if (param_1 != 0)
     DrawMessages((int)&ctx);
-  if ((*(byte *)(g_game + 0x3923b) & 2) && param_1 != 0) {
+  if ((g_game->flagsByte_3923b & 2) && param_1 != 0) {
     SetTextColors(colors[0xf], GetTextKeyColor());
-    SetFont(*(int *)(g_game + 0x391f9));
+    SetFont(g_game->fontComix);
     int ty = GetFontHeight() * 3 - 10;
     sprintf(debugText, "FRATE: %d\n", GetFrameRate());
     DrawString((int)&ctx, (int)debugText, 0x83, ty, -1);
     DrawString((int)&ctx, (int)"[Release]", 0xbc, ty, -1);
-    sprintf(debugText, "MODE %s INFO %s", ((Bits8 *)(g_game + 0x3923b))->b1 ? "DEBUG" : "NORMAL",
-            ((Bits8 *)(g_game + 0x3923b))->b0 ? "ON" : "OFF");
+    sprintf(debugText, "MODE %s INFO %s", g_game->bits_3923b.b1 ? "DEBUG" : "NORMAL",
+            g_game->bits_3923b.b0 ? "ON" : "OFF");
     DrawString((int)&ctx, (int)debugText, 0x1ee, ty, -1);
     ty += GetFontHeight();
-    if (*(byte *)(g_game + 0x2a44) & 1) {
+    if (g_game->flags_2a44 & 1) {
       FormatNetStats((int)debugText);
       DrawString((int)&ctx, (int)debugText, 0xbc, ty, -1);
     }
   }
-  if (*(byte *)(g_game + 0x38a51) & 1)
-    DrawFrame((int)&ctx, GetGafFrame(*(int *)(g_game + 0x1481b), 0), cx, cy);
-  if ((*(byte *)(*(int *)(g_game + *(byte *)(g_game + 0x2a42) * 0x14b + 0x1b8a) + 0x9b) & 0x40) == 0) {
-    if (((Bits8 *)(g_game + 0x3923b))->b5)
-      DrawFrame((int)&ctx, GetGafFrame(*(int *)(g_game + 0x14813), 0), cx, cy);
-    if (((Bits8 *)(g_game + 0x3923b))->b6)
-      DrawFrame((int)&ctx, GetGafFrame(*(int *)(g_game + 0x14817), 0), cx, cy);
+  if (g_game->pauseFlags & 1)
+    DrawFrame((int)&ctx, GetGafFrame(g_game->igpaused, 0), cx, cy);
+  if ((*(byte *)(*(int *)((char*)g_game + *(byte *)((char*)g_game + 0x2a42) * 0x14b + 0x1b8a) + 0x9b) & 0x40) == 0) {
+    if (g_game->bits_3923b.b5)
+      DrawFrame((int)&ctx, GetGafFrame(g_game->igvictory, 0), cx, cy);
+    if (g_game->bits_3923b.b6)
+      DrawFrame((int)&ctx, GetGafFrame(g_game->igdefeat, 0), cx, cy);
   }
-  if (((Bits8 *)(g_game + 0x37f2f))->b6) {
-    uint ticks = *(uint *)(g_game + 0x38a47);
+  if (g_game->bits_37f2f.b6) {
+    uint ticks = g_game->ticks;
     uint hours = ticks / 108000;
     int rest = ticks - hours * 108000;
     int minutes = rest / 1800;
@@ -546,11 +662,11 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
     SetTextColors(colors[0xf], GetTextKeyColor());
     DrawString((int)&ctx, (int)gameTime, 0x82, -0x22 - GetFontHeight() + GetScreenHeight(), -1);
   }
-  if (((Bits8 *)(g_game + 0x38a51))->b1)
-    DrawFrame((int)&ctx, GetGafFrame(*(int *)(g_game + 0x148cf), 0), *(int *)(g_game + 0x37e1f) - 0x10, *(int *)(g_game + 0x37e23) - 0x50);
+  if (g_game->pauseBits.b1)
+    DrawFrame((int)&ctx, GetGafFrame(g_game->cursorHourglass, 0), g_game->width - 0x10, g_game->height - 0x50);
   ResetClipRect((int)&ctx);
-  BlitMenuLayers((int)(g_game + 0x519), (int)&ctx, (int)(g_game + 0x37e27));
-  if (*(int *)(g_game + 0x38dd5) != 0 && param_1 != 0) {
+  BlitMenuLayers((int)((char*)g_game + 0x519), (int)&ctx, (int)((char*)g_game + 0x37e27));
+  if (g_game->profileBarsEnabled != 0 && param_1 != 0) {
     DrawProfileBarLine((int)&ctx, (int)"Network", 0);
     DrawProfileBarLine((int)&ctx, (int)"Units", 1);
     DrawProfileBarLine((int)&ctx, (int)"Logic", 2);
@@ -565,5 +681,5 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   ShowSoftwareCursor();
   if (param_1 != 0 && param_2 != 0)
     FlipScreen();
-  ((FrameTimers *)(g_game + 0x38d85))->AccumulateProfileTime(3);
+  g_game->prof.AccumulateProfileTime(3);
 }

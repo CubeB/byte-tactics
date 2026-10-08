@@ -84,6 +84,7 @@ struct TdfField {
     Class_004c91a0 key;                  // +0x0
     Class_004c91a0 value;                // +0x4
 
+    TdfField(const Class_004c91a0& a, const Class_004c91a0& b);
     ~TdfField();
 };
 
@@ -96,16 +97,11 @@ inline void _Destroy(TdfField* p)
 }
 }
 
-class Class_004c54d0 : public TdfField {
-public:
-    Class_004c54d0(const Class_004c91a0& a, const Class_004c91a0& b);
-};
-
 // Builds the new entry as a by-value result (the exe passes the address of a
 // hidden result slot, not the constructor's return value).
-static inline Class_004c54d0 MakeElem(const Class_004c91a0& a, const Class_004c91a0& b)
+static inline TdfField MakeElem(const Class_004c91a0& a, const Class_004c91a0& b)
 {
-    return Class_004c54d0(a, b);
+    return TdfField(a, b);
 }
 
 // The vector of entries.
@@ -137,13 +133,6 @@ public:
     std::vector<TdfField> v;             // +0x1
 
     TranslationTable(const std::allocator<TdfField>& a) : v(a) {}
-};
-
-class Class_004c5c60 {
-public:
-    char unknown_0;                      // +0x0
-    std::vector<TdfField> v;             // +0x1
-
     TdfField* FindLowerBound(const char* key);
 };
 #pragma pack(pop)
@@ -216,7 +205,7 @@ void __stdcall LoadTranslations(char* filename, char* section)
                     Class_004c91b0 key(name);
                     TdfField* e;
                     s = g_translations;
-                    e = ((Class_004c5c60*)g_translations)->FindLowerBound(key.ptr);
+                    e = g_translations->FindLowerBound(key.ptr);
                     Class_004c93f0* r;
                     // Nested inline == and Ne helpers give the exe's bool sequence.
                     if (e == s->v.end() || Ne(e->key, key)) {
@@ -335,7 +324,7 @@ UfillFn_004c5b70 Access_004c5b70::ufill = &Access_004c5b70::_Ufill;
 // repeats this loop followed by a final key check).
 #pragma auto_inline(off)
 // FUNCTION: 0x4c5c60
-TdfField* Class_004c5c60::FindLowerBound(const char* key)
+TdfField* TranslationTable::FindLowerBound(const char* key)
 {
     TdfField* first = v.begin();
     TdfField* last = v.end();

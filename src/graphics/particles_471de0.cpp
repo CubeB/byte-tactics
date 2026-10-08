@@ -11,10 +11,9 @@
 // virtual call is a `delete` of a listener: vtable slot 0 is its scalar
 // deleting destructor, called with flag 1 and only for a non-null pointer.
 //
-// The list object is the header's Class_00472200 (ten vectors at +0x0), whose
-// destructor the header declares. The listener class is only declared in the
-// header (its views disagree), so this file gives its view: one virtual
-// destructor.
+// The list object is the header's ParticleLists (ten vectors at +0x0), whose
+// destructor the header declares; the listener type is the header's
+// Listener_00470fb0, whose virtual destructor the delete calls.
 #include <windows.h>
 // This header set fixes the file's symbol total, which decides one store's
 // operand order.
@@ -22,15 +21,10 @@
 #include <imagehlp.h>
 #include "ta_types.h"
 
-class ParticleSystem {
-public:
-    virtual ~ParticleSystem();
-};
-
-inline Class_00472200::~Class_00472200()
+inline ParticleLists::~ParticleLists()
 {
     for (int i = 0; i < 10; i++) {
-        std::vector<ParticleSystem*>::iterator it = lists[i].begin();
+        std::vector<Listener_00470fb0*>::iterator it = lists[i].begin();
         while (it != lists[i].end()) {
             delete *it;
             lists[i].erase(it);
@@ -44,7 +38,9 @@ extern Game* g_game;
 void DestroyParticleLists()
 {
     if (g_game->lists_38d77) {
-        delete g_game->lists_38d77;
+        // The header's ParticleLists view of the same ten vectors; a header
+        // regeneration makes lists_38d77 a ParticleLists*.
+        delete (ParticleLists*)g_game->lists_38d77;
         g_game->lists_38d77 = 0;
     }
 }

@@ -91,15 +91,6 @@ struct Class_004c93b0 {
     void Assign(int);
 };
 
-class Class_004b7e00 {
-public:
-    Class_004c93b0 obj0;        // +0x0
-    int field1;                 // +0x4
-    int field2;                 // +0x8
-
-    void* AssignEntry(int* param_1);
-};
-
 class CommandEntry {
 public:
     Class_004c91a0 handle;             // +0x0
@@ -110,10 +101,11 @@ public:
     CommandEntry(const CommandEntry& other);
     CommandEntry& operator=(const CommandEntry& other)
     {
-        ((Class_004b7e00*)this)->AssignEntry((int*)&other);
+        AssignEntry((int*)&other);
         return *this;
     }
     ~CommandEntry() { handle.ReleaseRef(); }
+    void* AssignEntry(int* param_1);
 };
 
 CommandEntry::CommandEntry(const Class_004c91a0& h, Pair_004b7620 pp) : handle(h)
@@ -467,11 +459,11 @@ typedef void (Vec_004b7b00::*InsertFn_004b7b00)(
 InsertFn_004b7b00 g_insert_004b7b00 = &Vec_004b7b00::insert;
 
 // FUNCTION: 0x4b7e00
-void* Class_004b7e00::AssignEntry(int* param_1)
+void* CommandEntry::AssignEntry(int* param_1)
 {
-    obj0.Assign((int)param_1);
-    field1 = param_1[1];
-    field2 = param_1[2];
+    ((Class_004c93b0*)&handle)->Assign((int)param_1);
+    value1 = param_1[1];
+    value2 = param_1[2];
     return this;
 }
 

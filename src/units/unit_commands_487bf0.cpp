@@ -637,15 +637,6 @@ struct Class_004c93b0 {
     Class_004c93b0* Assign(Class_004c93b0* param_1);
 };
 
-// Assignment of a {string handle, int} record.
-class Class_00489240 {
-public:
-    Class_004c93b0 name;               // +0x0
-    int value;                         // +0x4
-
-    Class_00489240* AssignCategory(Class_00489240* other);
-};
-
 class UnitCategory {
 public:
     Class_004c91a0 name;               // +0x0
@@ -655,11 +646,17 @@ public:
     UnitCategory(const UnitCategory& other);
     UnitCategory& operator=(const UnitCategory& other)
     {
-        ((Class_00489240*)this)->AssignCategory((Class_00489240*)&other);
+        AssignCategory((int*)&other);
         return *this;
     }
     ~UnitCategory() { name.ReleaseRef(); }
+    void* AssignCategory(int* other);
 };
+
+// Unused here: the symbol ids these declarations take keep the static's $S
+// suffix, standing in for the UnitCategory view merged above (docs/c2-regalloc.md).
+void CountPacket(int, int, int);
+void SetMissionStatus(int, int, int);
 
 // FUNCTION: 0x4889d0 _$E5
 // FUNCTION: 0x488a00 _$E3
@@ -864,12 +861,12 @@ InsertFn_00488fb0 g_insert_00488fb0 = &Vec_00488fb0::insert;
 // Out of line: the instantiation of insert above comes after this definition and would inline it.
 #pragma auto_inline(off)
 // Assignment of a record holding a reference-counted string handle (assigned
-// by 0x4c93b0) and an int.
+// by 0x4c93b0) and a value.
 // FUNCTION: 0x489240
-Class_00489240* Class_00489240::AssignCategory(Class_00489240* other)
+void* UnitCategory::AssignCategory(int* other)
 {
-    name.Assign(&other->name);
-    value = other->value;
+    ((Class_004c93b0*)&name)->Assign((Class_004c93b0*)other);
+    value = (void*)other[1];
     return this;
 }
 

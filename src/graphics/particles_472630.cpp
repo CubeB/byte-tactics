@@ -12,20 +12,16 @@
 #include <vector>
 #include <ctype.h>     // only for its symbol ids, with the block above
 
-class Class_00470eb0 {                 // the pool's allocation method
+// The object pool at g_particlePool (see particles.cpp): AllocSlot takes an
+// object from the free list and FreeSlot returns one to it; the inlined
+// operator new and delete need them.
+class ObjectPool {
 public:
     void* AllocSlot(unsigned int size);
-};
-
-// The object pool (see particles.cpp); its method returns the object to the
-// free list. Needed by the inlined operator new.
-class Class_00470ed0 {
-public:
-    char unknown_0[4];
     void FreeSlot(void* p);
 };
 
-extern Class_00470ed0 g_particlePool;
+extern ObjectPool g_particlePool;
 extern char g_fxEventPoolBlocked;
 
 // Vtable 0x4fd5a8, constructor 0x471cc0, destructor 0x471d00, ??_G 0x471cd0.
@@ -48,7 +44,7 @@ public:
     {
         if (g_fxEventPoolBlocked)
             return 0;
-        void* p = ((Class_00470eb0*)&g_particlePool)->AllocSlot(size);
+        void* p = g_particlePool.AllocSlot(size);
         if (p)
         {
             int* q = (int*)p;

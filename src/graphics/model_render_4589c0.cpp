@@ -149,17 +149,6 @@ union Vec3_459200 {
 };
 #pragma pack(pop)
 
-class Class_00458310 {
-public:
-    void AddModelBounds(int* minX, int* maxX, int* minY, int* maxY, Model_459200* model,
-                      Pos_4589c0 pos);
-};
-
-class Class_00458d30 {
-public:
-    int ShadeByIntensity(GafFrame* image, Model_459200* model);
-};
-
 class Surface;
 
 void __stdcall SurfaceFromFrame(Surface_4589c0* dst, GafFrame* src);
@@ -183,8 +172,9 @@ struct CMemoryCache {
     void DrawPiece(Model_459200*, int, Vec3_459200*, int, int, unsigned char, int);
     void DrawObjectPicture(int param_2, Model_459200* model, Vec3_459200 v, int useColor);
     void MergeIntoComposite(GafFrame* src, Model_459200* model);
+    int ShadeByIntensity(GafFrame* image, Model_459200* model);
+    GafFrame* MakeSilhouette(GafFrame* src);
 };
-struct Class_0045a470 { void MakeSilhouette(GafFrame*); };
 struct UnitTable { void BuildObjectPicture(Model_459200*,int,int); void DrawPieces(GafFrame*,Model_459200*,int,int); };
 
 int __stdcall GetGroundHeight(Pos_459200* p);
@@ -255,7 +245,7 @@ void CMemoryCache::DrawObjectPicture(int param_2, Model_459200* model, Vec3_4592
                 } else {
                     if (gameFlags.bits.b3) {
                         if ((f.word & 0x81000) == 0) {
-                            ((Class_0045a470*)this)->MakeSilhouette(bmp);
+                            MakeSilhouette(bmp);
                             DrawFrameBlended(param_2, this->bitmap, v.p.x.whole + 0x85, y);
                         }
                     }
@@ -298,7 +288,7 @@ void CMemoryCache::DrawObjectPicture(int param_2, Model_459200* model, Vec3_4592
             f = model->owner->field_92->flags;
             if ((f.word & 0x2000000) == 0) {
                 if (f.bits.b30) {
-                    ((Class_0045a470*)this)->MakeSilhouette(bmp);
+                    MakeSilhouette(bmp);
                     CutFrameBelow(this->bitmap, team_bias(model));
                     DrawFrameBlended(param_2, this->bitmap, v.p.x.whole + 0x85, y);
                 } else {
@@ -311,7 +301,7 @@ void CMemoryCache::DrawObjectPicture(int param_2, Model_459200* model, Vec3_4592
                     } else {
                         if (gameFlags.bits.b3) {
                             if ((f.word & 0x81000) == 0) {
-                                ((Class_0045a470*)this)->MakeSilhouette(bmp);
+                                MakeSilhouette(bmp);
                                 int diff = g_game->seaLevel - dx;
                                 if (diff > 0) {
                                     diff += shade_bias(model);
@@ -338,7 +328,7 @@ void CMemoryCache::DrawObjectPicture(int param_2, Model_459200* model, Vec3_4592
             if (!(unit->flags & 0x20000)) {
                 ((UnitTable*)this)->BuildObjectPicture(unit->sprites,1,-1);
                 if (unit->sprites->bitmap) {
-                    ((Class_00458d30*)this)->ShadeByIntensity(unit->sprites->bitmap,unit->sprites);
+                    ShadeByIntensity(unit->sprites->bitmap,unit->sprites);
                     // Owner position read through int* op.
                     int* op = &model->owner->pos_x;
                     d.v[0] = unit->pos_x - op[0];

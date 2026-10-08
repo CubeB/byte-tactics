@@ -13,7 +13,9 @@ struct Smk_0047c3a0 {
     char unknown_10[0x68 - 0x10];
     unsigned int field_68;              // +0x68, the palette changed
     unsigned char rgb[256][3];          // +0x6c
-    char unknown_36c[0x374 - 0x36c];
+    char unknown_36c[0x370 - 0x36c];
+    unsigned short field_370;           // +0x370
+    char unknown_372[0x374 - 0x372];
     int frameNum;                       // +0x374
     char unknown_378[0x380 - 0x378];
     int lastLeft;                       // +0x380
@@ -116,17 +118,6 @@ void __stdcall FatalError(char* message);
 void __stdcall SetOffscreenSurface(Display_0047c3a0* display);
 void FlipScreen();
 
-// The DirectDraw wrapper the player holds: the interface, the primary surface
-// and the palette built from it, plus the mode it was set to.
-class DDraw_0047bf70 {
-public:
-    IDirectDraw *lpDD;                 // +0x00
-    IDirectDrawSurface *lpSurface;     // +0x04
-    int width;                         // +0x08
-    int height;                        // +0x0c
-    IDirectDrawPalette *lpPalette;     // +0x10
-};
-
 // The game's DDSURFACEDESC is 0x6c bytes, so it is not the DirectDraw 1 layout
 // in <ddraw.h> here; only the fields this function writes are named.
 struct SurfaceDesc_0047bf70 {
@@ -137,18 +128,6 @@ struct SurfaceDesc_0047bf70 {
     DWORD dwPitch;                     // +0x10
     char unknown_14[0x68 - 0x14];
     DWORD dwCaps;                      // +0x68, DDSCAPS_PRIMARYSURFACE
-};
-
-// The open Smacker movie (smackw32.dll's SMK struct).
-struct Smk_0047bf70 {
-    DWORD unknown_0;                   // +0x00
-    DWORD width;                       // +0x04
-    DWORD height;                      // +0x08
-    char unknown_c[0x68 - 0xc];
-    DWORD newPalette;                  // +0x68
-    unsigned char rgb[256][3];         // +0x6c
-    DWORD unknown_36c;                 // +0x36c
-    unsigned short field_370;          // +0x370
 };
 
 // The object smackw32.dll ordinal 2 hands back; its fields are not named
@@ -169,7 +148,14 @@ extern int __stdcall DirectDrawCreateThunk(int guid, void *display, int zero);
 // palette, and ordinal 25 is given the movie and three fields of that state.
 extern "C" __declspec(dllimport) Smk_0047bf70_b *__stdcall SmackBufferOpen(HWND hwnd, HDC hdc, int width, int height, int flags, int background);
 extern "C" __declspec(dllimport) void __stdcall SmackBufferNewPalette(Smk_0047bf70_b *smk, unsigned char *rgb, unsigned short flag);
-extern "C" __declspec(dllimport) void __stdcall SmackColorRemap(Smk_0047bf70 *smk, DWORD *field_3c, DWORD field_2c, DWORD field_43c);
+extern "C" __declspec(dllimport) void __stdcall SmackColorRemap(Smk_0047c3a0 *smk, DWORD *field_3c, DWORD field_2c, DWORD field_43c);
+
+typedef void (__stdcall *GetPixelFormatFn)(void* self, DDPIXELFORMAT* format);
+
+// The object's DirectDraw surface as the pixel format query sees it.
+struct SmackerSurface {
+    GetPixelFormatFn* methods;      // +0x00, slot 21 is the pixel format query
+};
 
 class MoviePlayer {
 public:
@@ -178,12 +164,13 @@ public:
     int field_8;                       // +0x8, the movie is done or stopped
     HWND hwnd;                         // +0xc
     PALETTEENTRY entries[256];         // +0x10
-    char unknown_410[4];
+    int paletteResult;                 // +0x410
     int hasSurfaces;                   // +0x414
     char unknown_418[0x528 - 0x418];
     Surfaces_0047bdf0 surfaces;        // +0x528
     char unknown_53c[0x544 - 0x53c];
     Surfaces_0047bdf0* wrapper;        // +0x544
+    SurfaceDesc_0047bf70 surfaceDesc;  // +0x548
 
     MoviePlayer(char* path, int a, int b, int c, int d, int e);
     void ReadSystemPalette(int unused);
@@ -194,41 +181,7 @@ public:
     void WriteSmackStats();
     void Play();
     void Close();
-};
-
-class Class_0047bf70 {
-public:
-    Smk_0047bf70 *video;               // +0x000
-    int counter;                       // +0x004
-    int stopped;                       // +0x008
-    HWND hwnd;                         // +0x00c
-    PALETTEENTRY entries[256];         // +0x010
-    int paletteResult;                 // +0x410
-    char unknown_414[0x544 - 0x414];
-    DDraw_0047bf70 *ddraw;             // +0x544
-    SurfaceDesc_0047bf70 surfaceDesc;  // +0x548
-
     int SetupDirectDraw();
-};
-
-typedef void (__stdcall *GetPixelFormatFn)(void* self, DDPIXELFORMAT* format);
-
-struct SmackerSurface {
-    GetPixelFormatFn* methods;      // +0x00, slot 21 is the pixel format query
-};
-
-struct SmackerSurfaces {
-    char unknown_0[4];
-    SmackerSurface* surface;        // +0x04
-};
-
-// The same object seen as the class the pixel format query belongs to
-// (0x47c150): it is a member of Class_0047bf70 in the original.
-class Class_0047c150 {
-public:
-    char unknown_0[0x544];
-    SmackerSurfaces* surfaces;      // +0x544
-
     int GetBlitMode(SmackerSurface* unused);
 };
 
@@ -266,7 +219,7 @@ MoviePlayer::MoviePlayer(char* path, int a, int b, int c, int d, int e)
         wrapper->back = 0;
         wrapper->palette = 0;
         wrapper->field_c = 0;
-        if (!((Class_0047bf70*)this)->SetupDirectDraw())
+        if (!SetupDirectDraw())
             FatalError("Could not setup Direct Draw to play movie.");
         hasSurfaces = 1;
     }
@@ -296,7 +249,7 @@ void MoviePlayer::Close()
 // palette, sizes the window to the movie, and when the movie has a new palette
 // hands it to the Smacker decoder. Returns 1 unless DirectDraw refuses.
 // FUNCTION: 0x47bf70
-int Class_0047bf70::SetupDirectDraw()
+int MoviePlayer::SetupDirectDraw()
 {
     POINT point;
     int i;
@@ -305,18 +258,18 @@ int Class_0047bf70::SetupDirectDraw()
     point.x = 0;
     point.y = 0;
     ClientToScreen(hwnd, &point);
-    if (DirectDrawCreateThunk(0, ddraw, 0) != 0)
+    if (DirectDrawCreateThunk(0, wrapper, 0) != 0)
         goto fail;
-    if (ddraw->lpDD->SetCooperativeLevel(hwnd, 8) != 0) {
-        ddraw->lpDD->Release();
+    if (wrapper->ddraw->SetCooperativeLevel(hwnd, 8) != 0) {
+        wrapper->ddraw->Release();
         goto fail;
     }
     memset(&surfaceDesc, 0, sizeof(surfaceDesc));
     surfaceDesc.dwSize = sizeof(surfaceDesc);
     surfaceDesc.dwFlags = 1;
     surfaceDesc.dwCaps = 0x200;
-    if (ddraw->lpDD->CreateSurface((LPDDSURFACEDESC)&surfaceDesc, &ddraw->lpSurface, 0) == 0) {
-        paletteResult = ((Class_0047c150 *)this)->GetBlitMode((SmackerSurface *)ddraw->lpSurface);
+    if (wrapper->ddraw->CreateSurface((LPDDSURFACEDESC)&surfaceDesc, &wrapper->primary, 0) == 0) {
+        paletteResult = GetBlitMode((SmackerSurface *)wrapper->primary);
         if (paletteResult == 0) {
             hdc = GetDC(hwnd);
             GetSystemPaletteEntries(hdc, 0, 0x100, entries);
@@ -324,15 +277,15 @@ int Class_0047bf70::SetupDirectDraw()
             for (i = 10; i < 246; ++i) entries[i].peFlags = 4;
             for (i = 246; i < 256; ++i) entries[i].peFlags = 0;
             ReleaseDC(hwnd, hdc);
-            if (ddraw->lpDD->CreatePalette(4, entries, &ddraw->lpPalette, 0) == 0)
-                ddraw->lpSurface->SetPalette(ddraw->lpPalette);
+            if (wrapper->ddraw->CreatePalette(4, entries, &wrapper->palette, 0) == 0)
+                wrapper->primary->SetPalette(wrapper->palette);
         }
-        SetWindowPos(hwnd, 0, 0, 0, video->width, video->height, 2);
+        SetWindowPos(hwnd, 0, 0, 0, smack->width, smack->height, 2);
     }
-    if (video->newPalette) {
+    if (smack->field_68) {
         Smk_0047bf70_b *smk = SmackBufferOpen(hwnd, 0, 0x280, 0x1e0, 0, 0);
-        SmackBufferNewPalette(smk, &video->rgb[0][0], video->field_370);
-        SmackColorRemap(video, &smk->field_3c, smk->field_2c, smk->field_43c);
+        SmackBufferNewPalette(smk, &smack->rgb[0][0], smack->field_370);
+        SmackColorRemap(smack, &smk->field_3c, smk->field_2c, smk->field_43c);
     }
     return 1;
 fail:
@@ -343,12 +296,12 @@ fail:
 // mode matching it, or 0 when the format is not one of the four 16-bit RGB
 // layouts Smacker can blit to.
 // FUNCTION: 0x47c150
-int Class_0047c150::GetBlitMode(SmackerSurface* unused)
+int MoviePlayer::GetBlitMode(SmackerSurface* unused)
 {
     DDPIXELFORMAT format;
     format.dwSize = sizeof(format);
     format.dwFlags = DDPF_RGB;
-    SmackerSurface* surface = surfaces->surface;
+    SmackerSurface* surface = (SmackerSurface*)wrapper->primary;
     surface->methods[21](surface, &format);
     if (format.dwRGBBitCount == 8)
         return 0;

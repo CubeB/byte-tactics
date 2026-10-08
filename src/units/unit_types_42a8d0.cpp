@@ -47,23 +47,21 @@ typedef std::vector<Elem_00432be0> FileList;
 
 void __stdcall ListDirectory(const char* pattern, int dirs, FileList* out);
 
-class Class_004c4630 {
-public:
-    char* FindFieldValue(char* key);
-};
-
-class Class_004c46c0 {
-public:
-    int GetFieldInt(char* key, int def);
-};
-
-class Class_004c4760 {
-public:
-    double GetFieldDouble(char* key, double def);
-};
+// Unused here: the symbol ids these declarations take keep the allocation,
+// standing in for the three TdfRecord views merged into the class below
+// (docs/c2-regalloc.md).
+void ProbeUnitDefEnergyRate(int, int, int);
+void CountMessage(unsigned char, int, int);
+void SetCameraPosition(int, int, int);
+void StartScreenShake(int, int, int);
+void AccumulateScreenShake(int, int, int);
+int RegisterUnitOrders();
 
 class TdfRecord {
 public:
+    char* FindFieldValue(char* key);
+    int GetFieldInt(char* key, int def);
+    double GetFieldDouble(char* key, double def);
     int GetFieldString(char* dst, char* key, int size, char* def);
 };
 
@@ -80,9 +78,9 @@ public:
     {
         return ((TdfRecord*)current)->GetFieldString(dst, key, size, def);
     }
-    int GetInt(char* key, int def) { return ((Class_004c46c0*)current)->GetFieldInt(key, def); }
-    double GetDouble(char* key, double def) { return ((Class_004c4760*)current)->GetFieldDouble(key, def); }
-    char* GetValue(char* key) { return ((Class_004c4630*)current)->FindFieldValue(key); }
+    int GetInt(char* key, int def) { return ((TdfRecord*)current)->GetFieldInt(key, def); }
+    double GetDouble(char* key, double def) { return ((TdfRecord*)current)->GetFieldDouble(key, def); }
+    char* GetValue(char* key) { return ((TdfRecord*)current)->FindFieldValue(key); }
     int LoadFile(char* path);
     void LoadBuffer(char* data, int size, int flag, char* name);
     int SelectRecord(char* name);
@@ -96,24 +94,11 @@ public:
 };
 
 // The override file (units\NAME.OVR).
-class Class_004b3620 {
-public:
-    int field_0;
-    Class_004b3620* InitBank();
-};
-
-class Class_004b3630 {
-public:
-    void CloseBank();
-};
-
-class Class_004b3770 {
-public:
-    int OpenBank(char* path, char* type, int flag);
-};
-
 class HapiBank {
 public:
+    HapiBank* InitBank();
+    void CloseBank();
+    int OpenBank(char* path, char* type, int flag);
     int OpenAccount(char* name);
 };
 
@@ -126,9 +111,19 @@ public:
 class OvrFile {
 public:
     void* table;
-    OvrFile() { ((Class_004b3620*)this)->InitBank(); }
-    ~OvrFile() { ((Class_004b3630*)this)->CloseBank(); }
+    OvrFile() { ((HapiBank*)this)->InitBank(); }
+    ~OvrFile() { ((HapiBank*)this)->CloseBank(); }
 };
+
+// Unused here: the symbol ids these declarations take keep the allocation,
+// standing in for the three HapiBank views merged into the class above
+// (docs/c2-regalloc.md).
+void SetMissionStatus(int, int, int);
+void StartFeatureBurning(int, int, int);
+void KillFeature(int, int, int);
+void ReplaceFeatureWithDead(int, int, int);
+void FUN_0044ef40(int, int, int);
+void ResetAIPlayers(void);
 
 #pragma pack(push, 1)
 // One unit type, 0x249 bytes.
@@ -279,7 +274,7 @@ int LoadUnitInfo()
             OvrFile ovr;
             char ovrpath[256];
             BuildDataPath(ovrpath, "units", files[i - 1], "OVR");
-            if (((Class_004b3770*)&ovr)->OpenBank(ovrpath, "TA Unit Override", 0)) {
+            if (((HapiBank*)&ovr)->OpenBank(ovrpath, "TA Unit Override", 0)) {
                 if (((HapiBank*)&ovr)->OpenAccount("Compatability")) {
                     char num[16];
                     sprintf(num, "%u", u->checksum);

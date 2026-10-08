@@ -67,34 +67,21 @@ struct TdfField {
     Class_004c91a0 key;                  // +0x0
     Class_004c91a0 value;                // +0x4
 
-    TdfField(const Class_004c91a0& k, const Class_004c91a0& v) : key(k), value(v) {}
-};
-
-// The assignment of an entry (0x4c5470).
-class Class_004c5470 {
-public:
-    char unknown_0[8];
-
-    void* AssignPair(int* param_1);
-};
-
-// An entry of a section's vector (copy constructor 0x4c54a0, assignment 0x4c5470).
-class Class_004c54a0 : public TdfField {
-public:
-    Class_004c54a0(const Class_004c91a0& k, const Class_004c91a0& v) : TdfField(k, v) {}
-    Class_004c54a0(const Class_004c54a0& other);
-    Class_004c54a0& operator=(const Class_004c54a0& other)
+    TdfField(const Class_004c91a0& a, const Class_004c91a0& b);
+    TdfField(const TdfField& other);
+    TdfField& operator=(const TdfField& other)
     {
-        ((Class_004c5470*)this)->AssignPair((int*)&other);
+        AssignPair((int*)&other);
         return *this;
     }
+    void* AssignPair(int* param_1);
 };
 
 // The vector's destroy loop calls the pair's destructor directly.
 namespace std {
-inline void _Destroy(Class_004c54a0* p)
+inline void _Destroy(TdfField* p)
 {
-    ((TdfField*)p)->~TdfField();
+    p->~TdfField();
 }
 }
 
@@ -119,15 +106,9 @@ static inline bool Less(const char* a, const char* b)
     return _strcmpi(a, b) < 0;
 }
 
-// The pair built by make_pair (0x4c54d0).
-class Class_004c54d0 : public Class_004c54a0 {
-public:
-    Class_004c54d0(const Class_004c91a0& a, const Class_004c91a0& b);
-};
-
-static inline Class_004c54d0 MakePair(const Class_004c91a0& a, const Class_004c91a0& b)
+static inline TdfField MakePair(const Class_004c91a0& a, const Class_004c91a0& b)
 {
-    return Class_004c54d0(a, b);
+    return TdfField(a, b);
 }
 
 #pragma pack(push, 1)
@@ -135,14 +116,14 @@ static inline Class_004c54d0 MakePair(const Class_004c91a0& a, const Class_004c9
 class Map_004c3e40 {
 public:
     char less;                             // +0x0
-    std::vector<Class_004c54a0> v;         // +0x1
+    std::vector<TdfField> v;         // +0x1
 
-    Class_004c54a0* LowerBound(const char* key)
+    TdfField* LowerBound(const char* key)
     {
-        Class_004c54a0* first = v.begin();
-        Class_004c54a0* last = v.end();
+        TdfField* first = v.begin();
+        TdfField* last = v.end();
         while (first != last) {
-            Class_004c54a0* mid = first + (last - first) / 2;
+            TdfField* mid = first + (last - first) / 2;
             if (Less(mid->key.ptr, key))
                 first = mid + 1;
             else
@@ -151,7 +132,7 @@ public:
         return first;
     }
 
-    Class_004c91a0* InsertNew(Class_004c54a0* e, const Class_004c91a0& key)
+    Class_004c91a0* InsertNew(TdfField* e, const Class_004c91a0& key)
     {
         return &v.insert(e, MakePair(key, Class_004c9180()))->value;
     }
@@ -169,6 +150,8 @@ public:
     TdfRecord(char* name, char* text, char** nextblock, char* filename);
 
     ~TdfRecord();
+
+    Class_004c91a0 MakeTrimmedString(char* start, char* end);
 
     // TdfRecord::FindSubRecord (0x4c4470), inlined.
     TdfRecord* FindChild(char* key)
@@ -204,6 +187,22 @@ public:
 
 // Defined ahead of its place in the address order so that the deleting
 // destructor in Unload can inline it.
+// Unused here: the symbol ids these declarations take keep the allocation,
+// standing in for the TdfRecord view merged into TdfRecord above
+// (docs/c2-regalloc.md).
+void EnableAICommands(void);
+
+// Unused here: the symbol ids these declarations take keep the allocation
+// after the TdfField join (docs/c2-regalloc.md).
+void CountMessage(unsigned char, int, int);
+void CountPacket(int, int, int);
+void SetCameraPosition(int, int, int);
+void StartScreenShake(int, int, int);
+void AccumulateScreenShake(int, int, int);
+void CenterCameraOnPoint(int, int, int);
+void SetMissionStatus(int, int, int);
+void StartFeatureBurning(int, int, int);
+void SetGameSpeed(int, int);
 // FUNCTION: 0x4c42a0
 TdfRecord::~TdfRecord()
 {
@@ -365,11 +364,6 @@ void TdfFile::SetCurrentRecord(int val)
     current = (TdfRecord*)val;
 }
 
-class Class_004c4340 {
-public:
-    Class_004c91a0 MakeTrimmedString(char* start, char* end);
-};
-
 static inline char* SkipSpace(char* p)
 {
     while (*p && (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n'))
@@ -417,7 +411,7 @@ TdfRecord::TdfRecord(char* name, char* text, char** nextblock, char* filename)
                 strcat(error, "Sub-record - closing ']' not found");
                 goto fail;
             }
-            Class_004c91a0 subname = ((Class_004c4340*)this)->MakeTrimmedString(current + 1, close);
+            Class_004c91a0 subname = MakeTrimmedString(current + 1, close);
             current = SkipSpace(close + 1);
             if (*current != '{') {
                 strcat(error, "Sub-record - opening '{' not found");
@@ -454,16 +448,16 @@ TdfRecord::TdfRecord(char* name, char* text, char** nextblock, char* filename)
                 strcat(error, "Data field - '=' not found");
                 goto fail;
             }
-            Class_004c91a0 key = ((Class_004c4340*)this)->MakeTrimmedString(current, eq);
+            Class_004c91a0 key = MakeTrimmedString(current, eq);
             current = eq + 1;
             char* semi = strchr(eq + 1, ';');
             if (!semi) {
                 strcat(error, "Data field - ';' not found");
                 goto fail;
             }
-            Class_004c91a0 value = ((Class_004c4340*)this)->MakeTrimmedString(current, semi);
+            Class_004c91a0 value = MakeTrimmedString(current, semi);
             current = semi + 1;
-            Class_004c54a0* e = entries.LowerBound(key.ptr);
+            TdfField* e = entries.LowerBound(key.ptr);
             Class_004c91a0* r;
             if (e == entries.v.end() || Ne(e->key, key))
                 r = entries.InsertNew(e, key);
@@ -486,7 +480,7 @@ fail:
 // whitespace trimmed.
 
 // FUNCTION: 0x4c4340
-Class_004c91a0 Class_004c4340::MakeTrimmedString(char* start, char* end)
+Class_004c91a0 TdfRecord::MakeTrimmedString(char* start, char* end)
 {
     char* p = start;
     while (*p && (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n'))
@@ -580,7 +574,7 @@ char* TdfRecord::GetFieldName(int index)
     if (index < 0 || (unsigned int)index >= entries.v.size())
         return 0;
     unsigned int i = 0;
-    for (std::vector<Class_004c54a0>::iterator p = entries.v.begin(); p < entries.v.end(); p++, i++) {
+    for (std::vector<TdfField>::iterator p = entries.v.begin(); p < entries.v.end(); p++, i++) {
         if (i == (unsigned int)index)
             return p->key.ptr;
     }
@@ -594,11 +588,11 @@ struct NameLess {
     }
 };
 
-static inline Class_004c54a0* LowerBound(Class_004c54a0* first, Class_004c54a0* last, const char* name)
+static inline TdfField* LowerBound(TdfField* first, TdfField* last, const char* name)
 {
     NameLess less;
     while (first != last) {
-        Class_004c54a0* mid = first + (last - first) / 2;
+        TdfField* mid = first + (last - first) / 2;
         if (less(mid->key.ptr, name))
             first = mid + 1;
         else
@@ -610,7 +604,7 @@ static inline Class_004c54a0* LowerBound(Class_004c54a0* first, Class_004c54a0* 
 static inline char** Find(TdfRecord* table, const char* name)
 {
     NameLess less;
-    Class_004c54a0* it = LowerBound(table->entries.v.begin(), table->entries.v.end(), name);
+    TdfField* it = LowerBound(table->entries.v.begin(), table->entries.v.end(), name);
     if (it == table->entries.v.end() || less(name, it->key.ptr))
         return 0;
     return &it->value.ptr;
@@ -656,10 +650,10 @@ double TdfRecord::GetFieldDouble(const char* name, double def)
 // FUNCTION: 0x4c4800
 int* TdfRecord::GetFieldFixed(int* dst, char* key, int def)
 {
-    Class_004c54a0* lo = entries.v.begin();
-    Class_004c54a0* hi = entries.v.end();
+    TdfField* lo = entries.v.begin();
+    TdfField* hi = entries.v.end();
     while (lo != hi) {
-        Class_004c54a0* mid = lo + (hi - lo) / 2;
+        TdfField* mid = lo + (hi - lo) / 2;
         if (Less(mid->key.ptr, key)) {
             lo = mid + 1;
         } else {
@@ -684,10 +678,10 @@ int* TdfRecord::GetFieldFixed(int* dst, char* key, int def)
 // FUNCTION: 0x4c48c0
 int TdfRecord::GetFieldString(char* dst, char* key, size_t size, char* def)
 {
-    Class_004c54a0* lo = entries.v.begin();
-    Class_004c54a0* hi = entries.v.end();
+    TdfField* lo = entries.v.begin();
+    TdfField* hi = entries.v.end();
     while (lo != hi) {
-        Class_004c54a0* mid = lo + (hi - lo) / 2;
+        TdfField* mid = lo + (hi - lo) / 2;
         if (Less(mid->key.ptr, key)) {
             lo = mid + 1;
         } else {
@@ -724,7 +718,7 @@ template class std::basic_string<char, std::char_traits<char>, std::allocator<ch
 // section parser's push_back (children, 0x4c4d70) and entry insert (entries,
 // 0x4c51e0) call.
 // FUNCTION: 0x4c4d70 ?insert@?$vector@PAVTdfRecord@@V?$allocator@PAVTdfRecord@@@std@@@std@@QAEXPAPAVTdfRecord@@IABQAV3@@Z
-// FUNCTION: 0x4c51e0 ?insert@?$vector@VClass_004c54a0@@V?$allocator@VClass_004c54a0@@@std@@@std@@QAEXPAVClass_004c54a0@@IABV3@@Z
+// FUNCTION: 0x4c51e0 ?insert@?$vector@UTdfField@@V?$allocator@UTdfField@@@std@@@std@@QAEXPAUTdfField@@IABU3@@Z
 
 // Releases the key and the value of an entry.
 // FUNCTION: 0x4c5170
@@ -735,7 +729,7 @@ void __stdcall ReleasePair(char* param_1)
 }
 
 // FUNCTION: 0x4c5470
-void* Class_004c5470::AssignPair(int* param_1)
+void* TdfField::AssignPair(int* param_1)
 {
     ((Class_004c93b0*)this)->Assign((Class_004c91a0*)param_1);
     ((Class_004c93b0*)((char*)this + 4))->Assign((Class_004c91a0*)(param_1 + 1));
@@ -743,14 +737,14 @@ void* Class_004c5470::AssignPair(int* param_1)
 }
 
 // Copy constructor of a pair of reference-counted string handles.
-// FUNCTION: 0x4c54a0
-Class_004c54a0::Class_004c54a0(const Class_004c54a0& other)
-    : TdfField(other)
+// FUNCTION: 0x4c54a0 ??0TdfField@@QAE@ABU0@@Z
+TdfField::TdfField(const TdfField& other)
+    : key(other.key), value(other.value)
 {
 }
 
-// FUNCTION: 0x4c54d0
-Class_004c54d0::Class_004c54d0(const Class_004c91a0& a, const Class_004c91a0& b)
-    : Class_004c54a0(a, b)
+// FUNCTION: 0x4c54d0 ??0TdfField@@QAE@ABVClass_004c91a0@@0@Z
+TdfField::TdfField(const Class_004c91a0& a, const Class_004c91a0& b)
+    : key(a), value(b)
 {
 }

@@ -51,39 +51,13 @@ struct Elem_00470f00 {
 
 // The pool object at g_particlePool (vtable 0x4fd580). 0x470c10, its Grow,
 // stays in particles_470c10.cpp.
-class Class_00470c10 {
-public:
-    int Grow(int param_1, int param_2);
-};
-
-class Class_00470eb0 {                 // the pool's allocation method
-public:
-    char unknown_0[0x14];
-    void* field_14;                    // +0x14, the slot table
-    char unknown_18[4];
-    int field_1c;                      // +0x1c, the slot count
-    int field_20;                      // +0x20, slots handed out
-
-    int AllocSlot(int unused);
-};
-
-class Class_00470ed0 {                 // the object pool
-public:
-    char unknown_0[0x14];
-    int* field_14;                     // +0x14, the slot table
-    char unknown_18[8];
-    int field_20;                      // +0x20, slots handed out
-
-    void FreeSlot(int param_1);
-};
-
 class ObjectPool {
 public:
     std::vector<Item_00470ae0*> items;  // +0x4
-    void* field_14;                     // +0x14
+    void* field_14;                     // +0x14, the slot table
     int field_18;                       // +0x18
-    int field_1c;                       // +0x1c
-    int field_20;                       // +0x20
+    int field_1c;                       // +0x1c, the slot count
+    int field_20;                       // +0x20, slots handed out
 
     ObjectPool(int param_1, int param_2)
     {
@@ -92,7 +66,7 @@ public:
         field_1c = 0;
         field_20 = 0;
         if (param_1 != 0 && param_2 != 0)
-            ((Class_00470c10*)this)->Grow(param_1, param_2);
+            Grow(param_1, param_2);
     }
     virtual ~ObjectPool()
     {
@@ -105,15 +79,10 @@ public:
         }
     }
     void FreeBlocks();
-};
-
-class Class_00470a90 {
-public:
+    int Grow(int param_1, int param_2);
+    int AllocSlot(int unused);
+    void FreeSlot(int param_1);
     ObjectPool* Construct(int param_1, int param_2);
-};
-
-class Class_00470b80 {
-public:
     void Destroy();
 };
 
@@ -660,20 +629,6 @@ struct Pos_00472200 {
     Vec3 b;
 };
 
-struct Class_00472200 {                // the ten lists (see 0x471d90)
-    std::vector<ParticleSystem*> lists[10];             // 0xa0 bytes
-
-    // Inlined member helper: leaves std::vector::insert out of line.
-    void Add(short index, ParticleSystem* p)
-    {
-        if (lists[index].size() > 400) {
-            delete lists[index][0];
-            lists[index].erase(lists[index].begin());
-        }
-        lists[index].push_back(p);
-    }
-};
-
 class Lists_00472330 {
 public:
     std::vector<ParticleSystem*> lists[10];             // 0x10 bytes each
@@ -1005,7 +960,7 @@ struct Game {
     char unknown_38a4b[0x38d77 - 0x38a4b];
     union {
         ParticleLists* lists;          // +0x38d77, the ten per-index lists
-        Class_00472200* lists_00472200;
+        ParticleLists* lists_00472200;
         Lists_00471d90* lists_00471d90;
         Lists_00471eb0* lists_00471eb0;
         Lists_471f40* lists_471f40;
@@ -1020,7 +975,7 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern Class_00470ed0 g_particlePool;
+extern ObjectPool g_particlePool;
 extern char g_fxEventPoolBlocked;
 extern unsigned char g_particlePoolDestroyed;
 extern void __stdcall ExitParticlePool();
@@ -1207,7 +1162,7 @@ Elem_00470a40* __stdcall CopyStructRange(Elem_00470a40* first, Elem_00470a40* la
 
 #pragma auto_inline(off)
 // FUNCTION: 0x470a90
-ObjectPool* Class_00470a90::Construct(int param_1, int param_2)
+ObjectPool* ObjectPool::Construct(int param_1, int param_2)
 {
     ((ObjectPool*)this)->ObjectPool::ObjectPool(param_1, param_2);
     return (ObjectPool*)this;
@@ -1230,7 +1185,7 @@ static ObjectPool s_obj(1000, 0x4c);
 
 #pragma auto_inline(off)
 // FUNCTION: 0x470b80
-void Class_00470b80::Destroy()
+void ObjectPool::Destroy()
 {
     ((ObjectPool*)this)->ObjectPool::~ObjectPool();
 }
@@ -1254,7 +1209,7 @@ void ObjectPool::FreeBlocks()
 
 #pragma auto_inline(off)
 // FUNCTION: 0x470eb0
-int Class_00470eb0::AllocSlot(int unused)
+int ObjectPool::AllocSlot(int unused)
 {
     int edx = field_20;
     int esi = field_1c;
@@ -1271,11 +1226,11 @@ int Class_00470eb0::AllocSlot(int unused)
 }
 
 // FUNCTION: 0x470ed0
-void Class_00470ed0::FreeSlot(int param_1)
+void ObjectPool::FreeSlot(int param_1)
 {
     int eax = field_20 - 1;
     field_20 = eax;
-    field_14[eax] = param_1;
+    ((int*)field_14)[eax] = param_1;
 }
 #pragma auto_inline(on)
 
@@ -1474,7 +1429,7 @@ static WakeParticles* s_wake = new WakeParticles;
 // FUNCTION: 0x471c80
 void InitParticlePool()
 {
-    ((Class_00470a90*)&g_particlePool)->Construct(0x3e8, 0x4c);
+    g_particlePool.Construct(0x3e8, 0x4c);
     atexit((void (__cdecl*)(void))ExitParticlePool);
 }
 
@@ -1483,7 +1438,7 @@ void ExitParticlePool()
 {
     if ((g_particlePoolDestroyed & 1) == 0) {
         g_particlePoolDestroyed |= 1;
-        ((Class_00470b80*)&g_particlePool)->Destroy();
+        g_particlePool.Destroy();
     }
 }
 
@@ -1528,7 +1483,7 @@ void* __stdcall ParticleSystem::operator new(size_t size)
 {
     if (g_fxEventPoolBlocked)
         return 0;
-    void* p = (void*)((Class_00470eb0*)&g_particlePool)->AllocSlot(size);
+    void* p = (void*)g_particlePool.AllocSlot(size);
     if (p)
         memset(p, 0, size);
     return p;
@@ -1679,7 +1634,7 @@ void __stdcall EmitReverseNanoParticles(Pos_00472200* param_1, Vec3* param_2, sh
     Pos_00472200 pos;
     pos.a = *param_2;
     pos.b = *param_2;
-    Class_00472200* lists = g_game->lists_00472200;
+    ParticleLists* lists = g_game->lists_00472200;
     NanoParticles* p = new NanoParticles;
     if (p) {
         p->Init((Seg_00473b50*)param_1, (Seg_00473b50*)&pos, 1);

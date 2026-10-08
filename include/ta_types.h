@@ -656,7 +656,7 @@ class Class_004b73e0;
 class Class_004b7410;
 class Class_004b7440;
 class Class_004b7540;
-class Class_004b7e00;
+class CommandEntry;
 class Class_004b7e30;
 struct Class_004bb650;
 class Class_004bb670;
@@ -16160,7 +16160,7 @@ struct Elem_004b75d0_4 {  // 0xc bytes, 1 view
     ~Elem_004b75d0_4(void);
 };
 
-class Class_004b7e00 {  // 0xc bytes, 2 views
+class CommandEntry {    // 0xc bytes, 2 views
 public:
     char unknown_0[4];
     int field1;  // +0x4

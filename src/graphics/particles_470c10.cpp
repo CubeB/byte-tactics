@@ -101,7 +101,7 @@ namespace std {
     };
 }
 
-class Class_00470c10 {
+class ObjectPool {
 public:
     int unknown_0;                             // +0x0, the vtable pointer
     std::vector<Elem_00470f00> items;          // +0x4, the blocks in use
@@ -114,7 +114,7 @@ public:
 };
 
 // FUNCTION: 0x470c10
-int Class_00470c10::Grow(int param_1, int param_2)
+int ObjectPool::Grow(int param_1, int param_2)
 {
     int result = 0;
     if (param_1 > field_1c) {

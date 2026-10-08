@@ -275,6 +275,14 @@ public:
     void MergeIntoComposite(GafFrame* src, Model_459200* model);
     void MeasureShadow(int* width, int* height, int* originX, int* originY, Model_459200* model);
     void DrawShadowShape(GafFrame* view, Model_459200* model);
+    void AddModelBounds(int* minX, int* maxX, int* minY, int* maxY, Model_459200* model,
+                        Pos_4589c0 pos);
+    // level stays unsigned char: only the low byte of the quotient is needed.
+    void RecolorByShade(GafFrame* img, unsigned char level, int above, int below, int between);
+    int ShadeByIntensity(GafFrame* image, Model_459200* model);
+    // Defined in model_render_458fa0.cpp: only matches at that file's symbol count.
+    void DrawPieceEdges(GafFrame* view, Model_459200* model, int color);
+    GafFrame* MakeSilhouette(GafFrame* src);
 };
 
 // A unit or feature instance: the object the piece tree and the pictures
@@ -351,31 +359,16 @@ void WriteScreenshot(char*, char*, int, int, int, int);
 int ScanDirectory(char*, char*, char*, int, int, int);
 int AccessRegistryValue(char*, char*, unsigned char*, unsigned long*, unsigned long, unsigned long);
 
-class Class_00458310 {
-public:
-    void AddModelBounds(int* minX, int* maxX, int* minY, int* maxY, Model_459200* model,
-                        Pos_4589c0 pos);
-};
-
-class Class_00458d30 {
-public:
-    // level stays unsigned char: only the low byte of the quotient is needed.
-    void RecolorByShade(GafFrame* img, unsigned char level, int above, int below, int between);
-    int ShadeByIntensity(GafFrame* image, Model_459200* model);
-};
-
-class Class_00458fa0 {
-public:
-    // Defined in model_render_458fa0.cpp: only matches at that file's symbol count.
-    void DrawPieceEdges(GafFrame* view, Model_459200* model, int color);
-};
-
-class Class_0045a470 {
-public:
-    char unknown_0[0x10];
-    GafFrame* image;                   // +0x10
-    GafFrame* MakeSilhouette(GafFrame* src);
-};
+// Unused here: the symbol ids these declarations take keep the allocation,
+// standing in for the four view classes merged into CMemoryCache above
+// (docs/c2-regalloc.md).
+void CountMessage(unsigned char, int, int);
+void CountPacket(int, int, int);
+void SetCameraPosition(int, int, int);
+void StartScreenShake(int, int, int);
+void AccumulateScreenShake(int, int, int);
+void CenterCameraOnPoint(int, int, int);
+void SetMissionStatus(int, int, int);
 
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
 int RIReport(int, int, int, int, int, int, int, int, int, int);
@@ -653,7 +646,7 @@ void UnitTable::DrawPieces(GafFrame* bitmap, Model_459200* list,
 }
 
 // FUNCTION: 0x458310
-void Class_00458310::AddModelBounds(int* minX, int* maxX, int* minY, int* maxY,
+void CMemoryCache::AddModelBounds(int* minX, int* maxX, int* minY, int* maxY,
                                     Model_459200* model, Pos_4589c0 pos)
 {
     int hiY = 0;
@@ -741,7 +734,7 @@ void CMemoryCache::MergeIntoComposite(GafFrame* bmp, Model_459200* model)
     int minY = 0;
     int maxY = 0;
 
-    ((Class_00458310*)this)->AddModelBounds(&minX, &maxX, &minY, &maxY, model, origin);
+    AddModelBounds(&minX, &maxX, &minY, &maxY, model, origin);
     Unit_459200* child = model->owner->list_head;
     while (child != 0) {
         if ((child->flags & 0x20000) == 0) {
@@ -749,8 +742,7 @@ void CMemoryCache::MergeIntoComposite(GafFrame* bmp, Model_459200* model)
             int cminY = 0;
             int cmaxX = 0;
             int cmaxY = 0;
-            ((Class_00458310*)this)->AddModelBounds(&cminX, &cmaxX, &cminY, &cmaxY,
-                                                  child->sprites, origin);
+            AddModelBounds(&cminX, &cmaxX, &cminY, &cmaxY, child->sprites, origin);
             // The y projection goes through a Fixed temporary.
             struct Vec { Fixed x, y, z; };
             int* op = &model->owner->pos_x;
@@ -819,7 +811,7 @@ void CMemoryCache::MergeIntoComposite(GafFrame* bmp, Model_459200* model)
         Swap(bmp->dx, sdx);
         Swap(bmp->dy, sdy);
     }
-    ((Class_00458d30*)this)->ShadeByIntensity(this->bitmap, model);
+    ShadeByIntensity(this->bitmap, model);
 }
 
 struct Count_00458d20 {
@@ -839,7 +831,7 @@ static inline unsigned char Scale(int v, int num, int div) { return (unsigned ch
 // Recolours every opaque pixel by its shade: below level - 4, at or above
 // level, or in between. -1 leaves the pixel, -2 makes it transparent.
 // FUNCTION: 0x458d30
-void Class_00458d30::RecolorByShade(GafFrame* img, unsigned char level, int above, int below, int between)
+void CMemoryCache::RecolorByShade(GafFrame* img, unsigned char level, int above, int below, int between)
 {
     unsigned char low;
     if (level < 4)
@@ -870,7 +862,7 @@ void Class_00458d30::RecolorByShade(GafFrame* img, unsigned char level, int abov
 }
 
 // FUNCTION: 0x458dd0
-int Class_00458d30::ShadeByIntensity(GafFrame* image, Model_459200* model)
+int CMemoryCache::ShadeByIntensity(GafFrame* image, Model_459200* model)
 {
     if (image->shade == 0)
         return 0;
@@ -911,7 +903,7 @@ int Class_00458d30::ShadeByIntensity(GafFrame* image, Model_459200* model)
         RecolorByShade(image, Scale(alpha, 255, 30), -1, -1, palette1);
     }
 
-    ((Class_00458fa0*)this)->DrawPieceEdges(image, model, palette2);
+    DrawPieceEdges(image, model, palette2);
     return 1;
 }
 
@@ -926,18 +918,18 @@ void __stdcall SetLightVector(int param_1, int param_2, int param_3)
 // Copies an 8-bit image (header, pixels and the optional second plane) into
 // the image at +0x10, clears its non-key pixels (ZeroFramePixels) and returns it.
 // FUNCTION: 0x45a470
-GafFrame* Class_0045a470::MakeSilhouette(GafFrame* src)
+GafFrame* CMemoryCache::MakeSilhouette(GafFrame* src)
 {
-    image->width = src->width;
-    image->height = src->height;
-    image->dx = src->dx;
-    image->dy = src->dy;
-    image->colour = src->colour;
-    memcpy(image->pixels, src->pixels, src->width * src->height);
+    bitmap->width = src->width;
+    bitmap->height = src->height;
+    bitmap->dx = src->dx;
+    bitmap->dy = src->dy;
+    bitmap->colour = src->colour;
+    memcpy(bitmap->pixels, src->pixels, src->width * src->height);
     if (src->shade)
-        memcpy(image->shade, src->shade, src->width * src->height);
-    ZeroFramePixels(image);
-    return image;
+        memcpy(bitmap->shade, src->shade, src->width * src->height);
+    ZeroFramePixels(bitmap);
+    return bitmap;
 }
 
 // FUNCTION: 0x45a510

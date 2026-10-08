@@ -273,23 +273,20 @@ public:
 int RIReport(int, int, int, int, int, int, int, int, int, int);
 void CopyDwordIfNonNull(int*, int*);
 
+// Unused here: the symbol ids these declarations take keep the allocation,
+// standing in for the three TdfRecord views merged into the class below
+// (docs/c2-regalloc.md).
+int IsCountBelowAiLimit(unsigned char, unsigned short, int);
+int IsUnderLimit(int, unsigned short, int);
+void ProbeUnitDefEnergyRate(int, int, int);
+void CountMessage(unsigned char, int, int);
+void CountPacket(int, int, int);
+void SetCameraPosition(int, int, int);
+void StartScreenShake(int, int, int);
+int RegisterUnitOrders();
+
 // A parsed TDF file; the getters read the current section.
 class TdfRecord;
-
-class Class_004c4630 {
-public:
-    char* FindFieldValue(char* key);
-};
-
-class Class_004c46c0 {
-public:
-    int GetFieldInt(char* key, int def);
-};
-
-class Class_004c4760 {
-public:
-    double GetFieldDouble(char* key, double def);
-};
 
 class TdfRecord {
 public:

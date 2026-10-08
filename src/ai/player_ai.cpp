@@ -55,7 +55,7 @@ struct Elem_0040d550 {
 #pragma pack(push,1)
 struct Player { char pad[0x108]; unsigned char allied[0x3e]; unsigned char index; int IsAllied(unsigned char p) const { return allied[p]; } };
 struct Def { char pad[0x156]; int builder; char pad15a[0x22f-0x15a]; char mobile; char pad230[0x241-0x230]; unsigned flags; char pad245[0x249-0x245]; };
-struct Unit { char pad[0x6a]; int x,y,z; char pad76[0x92-0x76]; Def* def; Player* owner; char pad9a[12]; unsigned short id; char pada8[0x104-0xa8]; float progress; char pad108[6]; unsigned char active; char pad10f; unsigned flags; int pad114; unsigned char PlayerIndex() const { return owner->index; } int Ready() const { return (flags&0x10000000) && !(flags&0x4000); } };
+struct Unit { char pad[0x6a]; Vec3 pos; char pad76[0x92-0x76]; Def* def; Player* player; char pad9a[12]; unsigned short unitDefIndex; char pada8[0x104-0xa8]; float buildLeft; char pad108[6]; unsigned char activateFlags; char pad10f; unsigned flags; int pad114; unsigned char PlayerIndex() const { return player->index; } int Ready() const { return (flags&0x10000000) && !(flags&0x4000); } };
 
 #include "../units/unit_def.h"
 
@@ -203,16 +203,16 @@ void PlayerAI::RefreshUnitLists()
             if(!owner->IsAllied(u->PlayerIndex())) {
                 if(IsUnitVisibleToPlayer(owner,u) && !(u->flags&0x8000)) visible.push_back(u);
                 if((unsigned char)(u->flags>>8)&1) known.push_back(u);
-            } else if(u->PlayerIndex()==owner->index && u->progress==0.0) {
-                ++counts[u->id];
+            } else if(u->PlayerIndex()==owner->index && u->buildLeft==0.0) {
+                ++counts[u->unitDefIndex];
                 if(u->def->builder) ++builders;
-                if((u->def->flags&0x40) && (u->def->flags&0x200) && (u->active&1)) factories.push_back(u);
-                if((u->def->flags&0x400) && (u->active&1)) hasSpecial=1;
-                float weight=weights[u->id];
+                if((u->def->flags&0x40) && (u->def->flags&0x200) && (u->activateFlags&1)) factories.push_back(u);
+                if((u->def->flags&0x400) && (u->activateFlags&1)) hasSpecial=1;
+                float weight=weights[u->unitDefIndex];
                 sum.total+=weight;
-                sum.x-=(float)u->x*weight*-0.0000152587890625f;
-                sum.y-=(float)u->y*weight*-0.0000152587890625f;
-                sum.z-=(float)u->z*weight*-0.0000152587890625f;
+                sum.x-=(float)u->pos.x*weight*-0.0000152587890625f;
+                sum.y-=(float)u->pos.y*weight*-0.0000152587890625f;
+                sum.z-=(float)u->pos.z*weight*-0.0000152587890625f;
             }
         }
     }

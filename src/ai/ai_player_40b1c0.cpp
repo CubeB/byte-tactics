@@ -12,11 +12,9 @@ struct Vec_0040b1c0 {
 
 struct Unit {
     char unknown_0[0x6a];
-    int x;                             // +0x6a
-    char unknown_6e[0x72 - 0x6e];
-    int z;                             // +0x72
+    Vec_0040b1c0 pos;                  // +0x6a
     char unknown_76[0xa6 - 0x76];
-    unsigned short id;                 // +0xa6
+    unsigned short unitDefIndex;       // +0xa6
 };
 
 class PlayerAI {
@@ -39,11 +37,11 @@ int __stdcall SumUnitRatingsInRange(int player, Vec_0040b1c0* pos, int range)
     std::vector<Unit*>& units = p->units;
     for (std::vector<Unit*>::iterator it = units.begin(); it != units.end(); it++) {
         Unit* u = *it;
-        int dz = pos->z - u->z;
-        int dx = pos->x - u->x;
+        int dz = pos->z - u->pos.z;
+        int dx = pos->x - u->pos.x;
         int d = (int)(((__int64)dx * dx) >> 32) + (int)(((__int64)dz * dz) >> 32);
         if (d <= r2)
-            total += p->table[u->id];
+            total += p->table[u->unitDefIndex];
     }
     return total;
 }

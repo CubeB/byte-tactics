@@ -105,19 +105,19 @@ Counts in `src/` and `include/` at `origin/main`, against `e9367f13` (the roadma
 
 | | Start | Now | Target | Done | |
 | --- | ---: | ---: | --- | ---: | --- |
-| Source files | 2,727 | 317 | 112, one per module (`data/modules.csv`) | 92% | `[##################--]` |
-| Placeholder functions `FUN_<addr>` | 1,076 | 511 | 0, named | 53% | `[###########---------]` |
+| Source files | 2,727 | 314 | 112, one per module (`data/modules.csv`) | 92% | `[##################--]` |
+| Placeholder functions `FUN_<addr>` | 1,076 | 505 | 0, named | 53% | `[###########---------]` |
 | Placeholder globals `DAT_<addr>` | 737 | 427 | 0, named | 42% | `[########------------]` |
 | Placeholder classes `Class_<addr>` | 769 | 728 | 0, named | 5% | `[#-------------------]` |
 | Placeholder fields `field_<offset>` | 589 | 567 | 0, named | 4% | `[#-------------------]` |
 | Files that define `Unit` | 285 | 84 | 1, one shared definition | 71% | `[##############------]` |
-| Files opening with a matching note | 566 | 62 | 0, none | 89% | `[##################--]` |
+| Files opening with a matching note | 566 | 63 | 0, none | 89% | `[##################--]` |
 
 | Cleanup issues | | | |
 | --- | --- | --- | ---: |
 | Gather issues | 125 of 125 closed | `[####################]` | 100% |
-| Join issues | 16 of 19 closed | `[#################---]` | 84% |
-| Name issues | 88 of 104 closed | `[#################---]` | 84% |
+| Join issues | 17 of 19 closed | `[##################--]` | 89% |
+| Name issues | 89 of 114 closed | `[################----]` | 78% |
 <!-- cleanup:end -->
 
 ## Next steps

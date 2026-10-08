@@ -1111,3 +1111,12 @@ Things that look wrong in the original but have no effect, kept for the record.
   NEWMULTI or SELGAME dialog without a PASSWORD entry would read through
   address 0xb6. Harmless while the shipped GUI files have the entry. Found by
   OpenCode / deepseek-v4.1-flash in #6093.
+- **0x4abd90** (possible): the max-line-width loop measures entries
+  `count+1` to `count+lines` (0x4abeb8 walks forward from `count+1`, one
+  0x15b step per line), but the text entries it has just added are
+  `count-lines+1` to `count`, so it measures one entry past the last line it
+  added. Found by OpenCode / deepseek-v4.1-flash in #6104.
+- **0x4acae0** (likely): the first `memcpy` copies 0x400 bytes into a
+  768-byte stack buffer (the frame reserves 0x320 bytes), overrunning it by
+  0x100 bytes into the rest of the frame. Found by OpenCode /
+  deepseek-v4.1-flash in #6104.

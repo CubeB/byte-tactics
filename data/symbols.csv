@@ -4734,7 +4734,7 @@ address,name
 0x51fbb4,DAT_0051fbb4
 0x51fbb8,std::HH::HU?$pair::?$_Tree::_Nilrefs
 0x51fbbc,std::HH::HU?$pair::?$_Tree::_Nil
-0x51fbc0,DAT_0051fbc0$S3314
+0x51fbc0,s_cobScriptCache$S3314
 0x51fbd0,g_display
 0x51fbd8,g_timerSlots
 0x51fbe0,g_timerSlot0Interval

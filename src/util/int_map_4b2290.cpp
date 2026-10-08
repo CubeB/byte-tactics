@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, GPT-5.6-Terra, LongCat 2.5 Preview Free, Sonnet, space-bunny-free, GPT-6, Opus and Haiku. Names are provisional.
 //
-// The COB script cache: a file-local std::map<int, int> (DAT_0051fbc0) from a
+// The COB script cache: a file-local std::map<int, int> (s_cobScriptCache) from a
 // loaded script's address to its checksum, and the three functions that use
 // it. LoadCobScript loads a script through HAPI, records its checksum and turns
 // the script's offsets into pointers; FreeCobScript erases the entry and
@@ -10,7 +10,7 @@
 // the map's tree (std::_Tree<int, pair<const int, int>, ...>) that those three
 // functions use, and has no source of its own. The map's dynamic initialiser
 // (0x4b2290) and its atexit destructor (0x4b2340) are generated from the
-// definition of DAT_0051fbc0.
+// definition of s_cobScriptCache.
 #include <map>
 
 struct Data_004b2450 {
@@ -39,7 +39,7 @@ extern void __cdecl FUN_004d85a0(void* x);
 
 // FUNCTION: 0x4b2290 _$E6
 // FUNCTION: 0x4b2340 _$E4
-static std::map<int, int> DAT_0051fbc0;
+static std::map<int, int> s_cobScriptCache;
 
 // The size of this helper decides whether the compiler expands map::insert
 // into LoadCobScript; the original left that call out of line.
@@ -65,7 +65,7 @@ Data_004b2450* __stdcall LoadCobScript(char* name)
     if (data == 0)
         return 0;
     int sum = ComputeChecksum((unsigned char*)data, HAPI_FileLengthByName(name));
-    DAT_0051fbc0[(int)data] = sum;
+    s_cobScriptCache[(int)data] = sum;
     Relocate(data);
     return data;
 }
@@ -75,7 +75,7 @@ void __stdcall FreeCobScript(int key)
 {
     if (key != 0) {
         int local_key = key;
-        DAT_0051fbc0.erase(local_key);
+        s_cobScriptCache.erase(local_key);
         FUN_004d85a0((void*)key);
     }
 }
@@ -83,7 +83,7 @@ void __stdcall FreeCobScript(int key)
 // FUNCTION: 0x4b26f0
 int __stdcall GetCobChecksum(int key)
 {
-    return DAT_0051fbc0[key];
+    return s_cobScriptCache[key];
 }
 
 // The map tree's members the compiler emitted out of line for the functions above:

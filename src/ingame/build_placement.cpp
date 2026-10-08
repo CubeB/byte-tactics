@@ -376,7 +376,7 @@ void BattleFrame(void)
 
     if (g_game->field_3923b.bits.b2 || g_game->field_3923b.bits.b4) {
         if (g_game->net->GetGameType() != 3 ||
-            (((Mission*)g_game->net)->GetGameType() == 3 &&
+            (g_game->net->GetGameType() == 3 &&
              FUN_004572a0() != 0)) {
             SetCursor(0x13);
             PopUntilNamedLayout(1);
@@ -402,10 +402,10 @@ void BattleFrame(void)
             PopUntilNamedLayout(1);
             CloseTopScreen(g_game->field_519);
             BlankScreen();
-            int a = ((Mission*)g_game->net)->GetMissionIndex();
-            char* b = ((Mission*)g_game->net)->GetCampaignName();
-            ((Mission*)g_game->net)->LoadCampaign(b);
-            if (((Mission*)g_game->net)->SelectMission(a) != 0) {
+            int a = g_game->net->GetMissionIndex();
+            char* b = g_game->net->GetCampaignName();
+            g_game->net->LoadCampaign(b);
+            if (g_game->net->SelectMission(a) != 0) {
                 g_game->field_2a44.bits.b3 = 1;
                 g_game->field_2a44.value |= 4;
             }
@@ -420,7 +420,7 @@ void BattleFrame(void)
             BlankScreen();
             SetCursor(0x14);
             g_game->field_2a3c = saved;
-            ((Mission*)g_game->net)->LoadMissionByName(g_game->field_29a0 + 0x11c);
+            g_game->net->LoadMissionByName(g_game->field_29a0 + 0x11c);
             ApplySlotsToGamePlayers();
             g_game->field_2a44.value |= 4;
             g_game->field_391f1 = 2;

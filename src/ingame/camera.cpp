@@ -120,8 +120,8 @@ void CenterCameraOnStartPosition()
 void __stdcall ReadCameraPosition(HapiBank* file)
 {
     file->OpenAccount(g_cameraAccount);
-    int z = ((HapiBank*)file)->GetIntegerItem(g_cameraZPosition, g_game->y);
-    int x = ((HapiBank*)file)->GetIntegerItem(g_cameraXPosition, g_game->x);
+    int z = file->GetIntegerItem(g_cameraZPosition, g_game->y);
+    int x = file->GetIntegerItem(g_cameraXPosition, g_game->x);
     g_game->x = x;
     g_game->y = z;
     g_game->flags_142f1 |= 2;
@@ -136,8 +136,8 @@ void __stdcall ReadCameraPosition(HapiBank* file)
 void __stdcall WriteCameraPosition(HapiBank* file)
 {
     file->OpenAccount(g_cameraAccount);
-    ((HapiBank*)file)->SetIntegerItem(g_cameraXPosition, *(int*)((char*)g_game + 0x1431f));
-    ((HapiBank*)file)->SetIntegerItem(g_cameraZPosition, *(int*)((char*)g_game + 0x14323));
+    file->SetIntegerItem(g_cameraXPosition, *(int*)((char*)g_game + 0x1431f));
+    file->SetIntegerItem(g_cameraZPosition, *(int*)((char*)g_game + 0x14323));
 }
 
 // FUNCTION: 0x41d3b0

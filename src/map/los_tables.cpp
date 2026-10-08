@@ -371,7 +371,7 @@ void LosTables::LoadLosTable(TdfFile* file, short table)
 {
     char name[32];
     sprintf(name, "TABLE%d", table + 1);
-    ((TdfFile*)file)->ResetCurrentRecord();
+    file->ResetCurrentRecord();
     if (file->SelectRecord(name)) {
         LosTable* t = GetTable(table + 1);
         short numlines = (short)file->current->GetFieldInt("numlines", 0);

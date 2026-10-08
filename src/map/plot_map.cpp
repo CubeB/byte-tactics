@@ -62,8 +62,8 @@ void __stdcall SaveMetalPlotmap(HapiBank* file)
     for (int i = 0; i < size; i++) {
         buf[i] = cells[i].metal;
     }
-    ((HapiBank*)file)->OpenNamedBox("Plotmap");
-    ((HapiBank*)file)->WriteBox(buf, size);
+    file->OpenNamedBox("Plotmap");
+    file->WriteBox(buf, size);
     delete[] buf;
 }
 
@@ -81,8 +81,8 @@ void __stdcall SavePlayerFeaturesPlotmap(HapiBank* file)
         for (int i = 0; i < size; i++) {
             buf[i] = (cells[i * 2].feature << 4) | (cells[i * 2 + 1].feature & 0xf);
         }
-        ((HapiBank*)file)->OpenNamedBox("Plotmap");
-        ((HapiBank*)file)->WriteBox(buf, size);
+        file->OpenNamedBox("Plotmap");
+        file->WriteBox(buf, size);
         delete buf;
     }
 }
@@ -93,12 +93,12 @@ void __stdcall SavePlayerFeaturesPlotmap(HapiBank* file)
 // FUNCTION: 0x484d60
 void __stdcall LoadMetalPlotmap(HapiBank* file)
 {
-    if (file->OpenAccount("Metal") && ((HapiBank*)file)->OpenNamedBox("Plotmap")) {
+    if (file->OpenAccount("Metal") && file->OpenNamedBox("Plotmap")) {
         int size = g_game->width * g_game->height;
-        if (((HapiBank*)file)->GetBoxSize() == size) {
+        if (file->GetBoxSize() == size) {
             unsigned char* buf = new unsigned char[size];
             Cell* cells = g_game->cells;
-            if (((HapiBank*)file)->ReadBox(buf, size) >= size) {
+            if (file->ReadBox(buf, size) >= size) {
                 for (int i = 0; i < size; i++) {
                     cells[i].metal = buf[i];
                 }
@@ -113,13 +113,13 @@ void __stdcall LoadMetalPlotmap(HapiBank* file)
 // FUNCTION: 0x484e80
 void __stdcall LoadPlayerFeaturesPlotmap(HapiBank* file)
 {
-    if (file->OpenAccount("PlayerFeatures") && ((HapiBank*)file)->OpenNamedBox("Plotmap")) {
+    if (file->OpenAccount("PlayerFeatures") && file->OpenNamedBox("Plotmap")) {
         int size = g_game->width * g_game->height / 2;
-        if (((HapiBank*)file)->GetBoxSize() == size) {
+        if (file->GetBoxSize() == size) {
             unsigned char* buf = new unsigned char[size];
             if (buf) {
                 Cell* cells = g_game->cells;
-                if (((HapiBank*)file)->ReadBox(buf, size) >= size) {
+                if (file->ReadBox(buf, size) >= size) {
                     Cell* c = cells;
                     for (int i = 0; i < size; i++, c += 2) {
                         c->feature4 = buf[i] >> 4;
@@ -139,17 +139,17 @@ void __stdcall SaveMappingData(HapiBank* file)
 {
     file->OpenAccount("Mapping");
     unsigned int size = g_game->width * g_game->height * sizeof(short) / 4;
-    ((HapiBank*)file)->OpenNamedBox("Data");
-    ((HapiBank*)file)->WriteBox(g_game->mapping, size);
+    file->OpenNamedBox("Data");
+    file->WriteBox(g_game->mapping, size);
 }
 
 // Reads the "Mapping" "Data" chunk into the map's mapping buffer.
 // FUNCTION: 0x484fa0
 void __stdcall LoadMappingData(HapiBank* file)
 {
-    if (file->OpenAccount("Mapping") && ((HapiBank*)file)->OpenNamedBox("Data")) {
+    if (file->OpenAccount("Mapping") && file->OpenNamedBox("Data")) {
         unsigned int size = g_game->width * g_game->height * sizeof(short) / 4;
-        if (((HapiBank*)file)->GetBoxSize() == size)
-            ((HapiBank*)file)->ReadBox(g_game->mapping, size);
+        if (file->GetBoxSize() == size)
+            file->ReadBox(g_game->mapping, size);
     }
 }

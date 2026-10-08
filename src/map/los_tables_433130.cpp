@@ -93,8 +93,8 @@ void Class_00433130::LoadLosTables()
     TdfFile tdf;
     char path[256];
     BuildDataPath(path, "gamedata", "los", "TDF");
-    if (((TdfFile*)&tdf)->LoadFile(path) != 0) {
-        if (((TdfFile*)&tdf)->SelectRecord("TABLEINFO") != 0) {
+    if ((&tdf)->LoadFile(path) != 0) {
+        if ((&tdf)->SelectRecord("TABLEINFO") != 0) {
             short numtables = (short)((TdfRecord*)tdf.field_4)->GetFieldInt("numtables", 0);
             {
                 W1_00433130 temp;
@@ -107,6 +107,6 @@ void Class_00433130::LoadLosTables()
             for (short i = 0; i < numtables; i++)
                 ((LosTables*)this)->LoadLosTable(&tdf, i);
         }
-        ((TdfFile*)&tdf)->Unload();
+        (&tdf)->Unload();
     }
 }

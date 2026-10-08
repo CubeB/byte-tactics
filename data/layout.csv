@@ -5495,84 +5495,84 @@ piece,0x5039a0,7,src/units/unit_types.cpp,22,0,game data
 piece,0x503990,14,src/units/unit_types.cpp,21,0,game data
 piece,0x503988,8,src/units/unit_types.cpp,15,0,game data
 piece,0x503978,14,src/units/unit_types.cpp,14,0,game data
-piece,0x503748,4,src/game/data_files_42a610.cpp,9,0,game data
-piece,0x50373c,4,src/game/data_files_42a610.cpp,7,0,game data
-piece,0x503710,13,src/game/data_files_42a440.cpp,4,0,game data
-piece,0x503704,10,src/game/data_files_42a440.cpp,3,0,game data
-piece,0x5036fc,6,src/game/data_files_42a320.cpp,5,0,game data
-piece,0x5036f4,8,src/game/data_files_42a320.cpp,3,0,game data
-piece,0x5036d0,18,src/game/data_files_42a140.cpp,3,0,game data
-piece,0x5036cc,3,src/game/data_files_429870.cpp,71,0,game data
-piece,0x5036c4,8,src/game/data_files_429870.cpp,70,0,game data
-piece,0x5036bc,8,src/game/data_files_429870.cpp,69,0,game data
-piece,0x5036b4,6,src/game/data_files_429870.cpp,68,0,game data
-piece,0x5036a8,9,src/game/data_files_429870.cpp,67,0,game data
-piece,0x5036a0,8,src/game/data_files_429870.cpp,66,0,game data
-piece,0x503694,12,src/game/data_files_429870.cpp,65,0,game data
-piece,0x50368c,8,src/game/data_files_429870.cpp,64,0,game data
-piece,0x503680,9,src/game/data_files_429870.cpp,63,0,game data
-piece,0x503674,11,src/game/data_files_429870.cpp,62,0,game data
-piece,0x503668,12,src/game/data_files_429870.cpp,61,0,game data
-piece,0x50365c,9,src/game/data_files_429870.cpp,60,0,game data
-piece,0x503650,9,src/game/data_files_429870.cpp,59,0,game data
-piece,0x503644,11,src/game/data_files_429870.cpp,58,0,game data
-piece,0x503638,12,src/game/data_files_429870.cpp,57,0,game data
-piece,0x50362c,10,src/game/data_files_429870.cpp,56,0,game data
-piece,0x503620,9,src/game/data_files_429870.cpp,55,0,game data
-piece,0x503614,9,src/game/data_files_429870.cpp,54,0,game data
-piece,0x503608,9,src/game/data_files_429870.cpp,53,0,game data
-piece,0x5035fc,9,src/game/data_files_429870.cpp,52,0,game data
-piece,0x5035f4,6,src/game/data_files_429870.cpp,51,0,game data
-piece,0x5035ec,7,src/game/data_files_429870.cpp,50,0,game data
-piece,0x5035e0,9,src/game/data_files_429870.cpp,49,0,game data
-piece,0x5035d4,10,src/game/data_files_429870.cpp,48,0,game data
-piece,0x5035c8,9,src/game/data_files_429870.cpp,47,0,game data
-piece,0x5035bc,9,src/game/data_files_429870.cpp,46,0,game data
-piece,0x5035b0,9,src/game/data_files_429870.cpp,45,0,game data
-piece,0x5035a8,8,src/game/data_files_429870.cpp,44,0,game data
-piece,0x5035a4,4,src/game/data_files_429870.cpp,43,0,game data
-piece,0x50359c,7,src/game/data_files_429870.cpp,42,0,game data
-piece,0x503594,7,src/game/data_files_429870.cpp,41,0,game data
-piece,0x50358c,7,src/game/data_files_429870.cpp,40,0,game data
-piece,0x503584,7,src/game/data_files_429870.cpp,39,0,game data
-piece,0x50357c,6,src/game/data_files_429870.cpp,38,0,game data
-piece,0x503574,6,src/game/data_files_429870.cpp,37,0,game data
-piece,0x50356c,6,src/game/data_files_429870.cpp,36,0,game data
-piece,0x503564,6,src/game/data_files_429870.cpp,35,0,game data
-piece,0x50355c,8,src/game/data_files_429870.cpp,34,0,game data
-piece,0x50354c,13,src/game/data_files_429870.cpp,33,0,game data
-piece,0x50353c,16,src/game/data_files_429870.cpp,32,0,game data
-piece,0x50352c,13,src/game/data_files_429870.cpp,31,0,game data
-piece,0x50351c,14,src/game/data_files_429870.cpp,30,0,game data
-piece,0x50350c,13,src/game/data_files_429870.cpp,29,0,game data
-piece,0x5034fc,13,src/game/data_files_429870.cpp,28,0,game data
-piece,0x5034ec,13,src/game/data_files_429870.cpp,27,0,game data
-piece,0x5034dc,13,src/game/data_files_429870.cpp,26,0,game data
-piece,0x5034cc,15,src/game/data_files_429870.cpp,25,0,game data
-piece,0x5034bc,16,src/game/data_files_429870.cpp,24,0,game data
-piece,0x5034b0,11,src/game/data_files_429870.cpp,23,0,game data
-piece,0x5034a0,13,src/game/data_files_429870.cpp,22,0,game data
-piece,0x503494,11,src/game/data_files_429870.cpp,21,0,game data
-piece,0x503484,13,src/game/data_files_429870.cpp,20,0,game data
-piece,0x503474,15,src/game/data_files_429870.cpp,19,0,game data
-piece,0x503468,10,src/game/data_files_429870.cpp,18,0,game data
-piece,0x50345c,10,src/game/data_files_429870.cpp,17,0,game data
-piece,0x50344c,13,src/game/data_files_429870.cpp,16,0,game data
-piece,0x50343c,16,src/game/data_files_429870.cpp,15,0,game data
-piece,0x503430,9,src/game/data_files_429870.cpp,14,0,game data
-piece,0x503420,13,src/game/data_files_429870.cpp,13,0,game data
-piece,0x503408,8,src/game/data_files_429870.cpp,9,0,game data
-piece,0x5033fc,11,src/game/data_files_429870.cpp,8,0,game data
-piece,0x5033ec,7,src/game/data_files_429870.cpp,6,0,game data
-piece,0x5033e0,9,src/game/data_files_429870.cpp,5,0,game data
-piece,0x5033d4,10,src/game/data_files_429870.cpp,4,0,game data
-piece,0x5033c8,9,src/game/data_files_429870.cpp,3,0,game data
-piece,0x5033b8,16,src/game/data_files_429700.cpp,3,0,game data
-piece,0x5033ac,9,src/game/data_files_4295b0.cpp,3,0,game data
-piece,0x50336c,8,src/game/data_files_429000.cpp,8,0,game data
-piece,0x50334c,11,src/game/data_files_429000.cpp,5,0,game data
-piece,0x503344,5,src/game/data_files_429000.cpp,4,0,game data
-piece,0x4fd118,235,src/game/data_files_429000.cpp,3,0,game data
+piece,0x503748,4,src/game/data_files_429000.cpp,149,0,game data
+piece,0x50373c,4,src/game/data_files_429000.cpp,147,0,game data
+piece,0x503710,13,src/game/data_files_429000.cpp,138,0,game data
+piece,0x503704,10,src/game/data_files_429000.cpp,137,0,game data
+piece,0x5036fc,6,src/game/data_files_429000.cpp,130,0,game data
+piece,0x5036f4,8,src/game/data_files_429000.cpp,129,0,game data
+piece,0x5036d0,18,src/game/data_files_429000.cpp,120,0,game data
+piece,0x5036cc,3,src/game/data_files_429000.cpp,115,0,game data
+piece,0x5036c4,8,src/game/data_files_429000.cpp,114,0,game data
+piece,0x5036bc,8,src/game/data_files_429000.cpp,113,0,game data
+piece,0x5036b4,6,src/game/data_files_429000.cpp,112,0,game data
+piece,0x5036a8,9,src/game/data_files_429000.cpp,111,0,game data
+piece,0x5036a0,8,src/game/data_files_429000.cpp,110,0,game data
+piece,0x503694,12,src/game/data_files_429000.cpp,109,0,game data
+piece,0x50368c,8,src/game/data_files_429000.cpp,108,0,game data
+piece,0x503680,9,src/game/data_files_429000.cpp,107,0,game data
+piece,0x503674,11,src/game/data_files_429000.cpp,106,0,game data
+piece,0x503668,12,src/game/data_files_429000.cpp,105,0,game data
+piece,0x50365c,9,src/game/data_files_429000.cpp,104,0,game data
+piece,0x503650,9,src/game/data_files_429000.cpp,103,0,game data
+piece,0x503644,11,src/game/data_files_429000.cpp,102,0,game data
+piece,0x503638,12,src/game/data_files_429000.cpp,101,0,game data
+piece,0x50362c,10,src/game/data_files_429000.cpp,100,0,game data
+piece,0x503620,9,src/game/data_files_429000.cpp,99,0,game data
+piece,0x503614,9,src/game/data_files_429000.cpp,98,0,game data
+piece,0x503608,9,src/game/data_files_429000.cpp,97,0,game data
+piece,0x5035fc,9,src/game/data_files_429000.cpp,96,0,game data
+piece,0x5035f4,6,src/game/data_files_429000.cpp,95,0,game data
+piece,0x5035ec,7,src/game/data_files_429000.cpp,94,0,game data
+piece,0x5035e0,9,src/game/data_files_429000.cpp,93,0,game data
+piece,0x5035d4,10,src/game/data_files_429000.cpp,92,0,game data
+piece,0x5035c8,9,src/game/data_files_429000.cpp,91,0,game data
+piece,0x5035bc,9,src/game/data_files_429000.cpp,90,0,game data
+piece,0x5035b0,9,src/game/data_files_429000.cpp,89,0,game data
+piece,0x5035a8,8,src/game/data_files_429000.cpp,88,0,game data
+piece,0x5035a4,4,src/game/data_files_429000.cpp,87,0,game data
+piece,0x50359c,7,src/game/data_files_429000.cpp,86,0,game data
+piece,0x503594,7,src/game/data_files_429000.cpp,85,0,game data
+piece,0x50358c,7,src/game/data_files_429000.cpp,84,0,game data
+piece,0x503584,7,src/game/data_files_429000.cpp,83,0,game data
+piece,0x50357c,6,src/game/data_files_429000.cpp,82,0,game data
+piece,0x503574,6,src/game/data_files_429000.cpp,81,0,game data
+piece,0x50356c,6,src/game/data_files_429000.cpp,80,0,game data
+piece,0x503564,6,src/game/data_files_429000.cpp,79,0,game data
+piece,0x50355c,8,src/game/data_files_429000.cpp,78,0,game data
+piece,0x50354c,13,src/game/data_files_429000.cpp,77,0,game data
+piece,0x50353c,16,src/game/data_files_429000.cpp,76,0,game data
+piece,0x50352c,13,src/game/data_files_429000.cpp,75,0,game data
+piece,0x50351c,14,src/game/data_files_429000.cpp,74,0,game data
+piece,0x50350c,13,src/game/data_files_429000.cpp,73,0,game data
+piece,0x5034fc,13,src/game/data_files_429000.cpp,72,0,game data
+piece,0x5034ec,13,src/game/data_files_429000.cpp,71,0,game data
+piece,0x5034dc,13,src/game/data_files_429000.cpp,70,0,game data
+piece,0x5034cc,15,src/game/data_files_429000.cpp,69,0,game data
+piece,0x5034bc,16,src/game/data_files_429000.cpp,68,0,game data
+piece,0x5034b0,11,src/game/data_files_429000.cpp,67,0,game data
+piece,0x5034a0,13,src/game/data_files_429000.cpp,66,0,game data
+piece,0x503494,11,src/game/data_files_429000.cpp,65,0,game data
+piece,0x503484,13,src/game/data_files_429000.cpp,64,0,game data
+piece,0x503474,15,src/game/data_files_429000.cpp,63,0,game data
+piece,0x503468,10,src/game/data_files_429000.cpp,62,0,game data
+piece,0x50345c,10,src/game/data_files_429000.cpp,61,0,game data
+piece,0x50344c,13,src/game/data_files_429000.cpp,60,0,game data
+piece,0x50343c,16,src/game/data_files_429000.cpp,59,0,game data
+piece,0x503430,9,src/game/data_files_429000.cpp,58,0,game data
+piece,0x503420,13,src/game/data_files_429000.cpp,57,0,game data
+piece,0x503408,8,src/game/data_files_429000.cpp,54,0,game data
+piece,0x5033fc,11,src/game/data_files_429000.cpp,53,0,game data
+piece,0x5033ec,7,src/game/data_files_429000.cpp,51,0,game data
+piece,0x5033e0,9,src/game/data_files_429000.cpp,50,0,game data
+piece,0x5033d4,10,src/game/data_files_429000.cpp,49,0,game data
+piece,0x5033c8,9,src/game/data_files_429000.cpp,48,0,game data
+piece,0x5033b8,16,src/game/data_files_429000.cpp,41,0,game data
+piece,0x5033ac,9,src/game/data_files_429000.cpp,36,0,game data
+piece,0x50336c,8,src/game/data_files_429000.cpp,9,0,game data
+piece,0x50334c,11,src/game/data_files_429000.cpp,6,0,game data
+piece,0x503344,5,src/game/data_files_429000.cpp,5,0,game data
+piece,0x4fd118,235,src/game/data_files_429000.cpp,4,0,game data
 piece,0x5032a4,51,src/ai/ai_profile.cpp,11,0,game data
 piece,0x5032d8,14,src/ai/ai_profile.cpp,12,0,game data
 piece,0x503234,10,src/frontend/frontend_4269d0.cpp,10,0,game data
@@ -12108,17 +12108,14 @@ same,0x502f9c,104,src/frontend/frontend_4269d0.cpp,3,0,
 same,0x50324c,45,src/frontend/frontend_426d20.cpp,5,0,
 same,0x503004,32,src/frontend/frontend_426d20.cpp,4,0,
 same,0x502f9c,104,src/frontend/frontend_426d20.cpp,3,0,
-same,0x50310c,4,src/game/data_files_429000.cpp,9,0,
-same,0x502910,2,src/game/data_files_4290f0.cpp,4,0,
-same,0x503374,2,src/game/data_files_4290f0.cpp,3,0,
-same,0x50338c,6,src/game/data_files_4292e0.cpp,3,0,
-same,0x502e30,6,src/game/data_files_429700.cpp,4,0,
-same,0x50341c,4,src/game/data_files_429870.cpp,12,0,
-same,0x50338c,6,src/game/data_files_42a320.cpp,4,0,
-same,0x50372c,2,src/game/data_files_42a440.cpp,6,0,
-same,0x50372c,2,src/game/data_files_42a610.cpp,6,0,
-same,0x502820,5,src/game/data_files_42a610.cpp,5,0,
-same,0x50310c,4,src/game/data_files_42a610.cpp,4,0,
+same,0x50310c,4,src/game/data_files_429000.cpp,10,0,
+same,0x502910,2,src/game/data_files_429000.cpp,14,0,
+same,0x503374,2,src/game/data_files_429000.cpp,13,0,
+same,0x50338c,6,src/game/data_files_429000.cpp,22,0,
+same,0x502e30,6,src/game/data_files_429000.cpp,42,0,
+same,0x50341c,4,src/game/data_files_429000.cpp,56,0,
+same,0x50372c,2,src/game/data_files_429000.cpp,140,0,
+same,0x502820,5,src/game/data_files_429000.cpp,146,0,
 same,0x50341c,4,src/units/unit_types.cpp,148,0,
 same,0x502820,5,src/units/unit_types.cpp,138,0,
 same,0x50372c,2,src/units/unit_types.cpp,161,0,

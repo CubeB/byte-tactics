@@ -308,7 +308,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x50d72c,DAT_0050d72c,.data,4,type,data,char*,3,0,1,one type,3,,PTR_s_Memory_Status_0050d72c,1,,30d75000
 0x50d980,g_pentiumEvents,.data,128,gap,data,EventEntry[],1,1,2,conflicting: array or pointer,2,,DAT_0050d980,8,src/debug/perf_counters.cpp,000300500cdd5000030000000000000000030150f8dc5000030000000000000000030b50d4dc5000030000000003285000032250b8dc50000300000000000000
 0x50da00,g_pentiumProEvents,.data,272,gap,data,EventEntry[],1,1,2,conflicting: array or pointer,2,,DAT_0050da00,17,src/debug/perf_counters.cpp,00030560d4dc500003000000000343600001106048dc500001000000000000000002116030dc500002000000000000000002126024dc50000200000000000000
-0x5119b8,DAT_005119b8,.bss,8,gap,data,char[],55,5,3,conflicting: shape,60,,DAT_005119b8,,,
+0x5119b8,DAT_005119b8,.bss,8,gap,data,char[],53,5,3,conflicting: shape,58,,DAT_005119b8,,,
 0x5119c0,g_playerAI,.bss,40,gap,data,PlayerAI*[],11,11,6,conflicting: shape,22,0x28,DAT_005119c0,,,
 0x5119e8,g_playerBudgetCap,.bss,40,type,data,int[10],1,0,1,one type,1,0x28,DAT_005119e8,,,
 0x511a10,g_playerTickLoad,.bss,40,type,data,int[10],1,0,1,one type,1,,DAT_00511a10,,,
@@ -353,7 +353,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x511ddc,g_byteRatesTick,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_00511ddc,,,
 0x511de0,DAT_00511de0,.bss,4,type,data,int,2,0,1,one type,2,,DAT_00511de0,,,
 0x511de4,g_cdPathMismatch,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511de4,,,
-0x511de8,g_game,.bss,4,type,data,Game*,347,49,15,conflicting: shape,396,,DAT_00511de8,,,
+0x511de8,g_game,.bss,4,type,data,Game*,336,47,15,conflicting: shape,383,,DAT_00511de8,,,
 0x511dec,DAT_00511dec,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511dec,,,
 0x511df0,g_explodedPieces,.bss,400,type,data,ExplodedPiece*[100],1,0,1,one type,1,0x190,DAT_00511df0,,,
 0x511f80,DAT_00511f80,.bss,16,gap,data,CMemoryCache,2,0,1,one type,2,,DAT_00511f80,,,

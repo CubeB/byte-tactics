@@ -231,7 +231,7 @@ extern char* DAT_0050d4d0;                                                      
 extern char* DAT_0050d660;                                                                        // 0x50d660, 4 bytes; 2 of 2 files
 extern char DAT_0050d6b4[36];                                                                     // 0x50d6b4, 36 bytes; 1 of 1 files
 extern char* DAT_0050d72c;                                                                        // 0x50d72c, 4 bytes; 3 of 3 files
-extern char DAT_005119b8[8];                                                                      // 0x5119b8, 8 bytes; 55 of 60 files (conflicting: shape)
+extern char DAT_005119b8[8];                                                                      // 0x5119b8, 8 bytes; 53 of 58 files (conflicting: shape)
 extern int g_playerBudgetCap[10];                                                                 // 0x5119e8, 40 bytes; 1 of 1 files
 extern int g_playerTickLoad[10];                                                                  // 0x511a10, 40 bytes; 1 of 1 files
 extern int g_budgetRefreshCounter;                                                                // 0x511a38, 4 bytes; 1 of 1 files
@@ -273,7 +273,7 @@ extern unsigned int g_netStatsTick;                                             
 extern unsigned int g_byteRatesTick;                                                              // 0x511ddc, 4 bytes; 1 of 1 files
 extern int DAT_00511de0;                                                                          // 0x511de0, 4 bytes; 2 of 2 files
 extern int g_cdPathMismatch;                                                                      // 0x511de4, 4 bytes; 1 of 1 files
-extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 347 of 396 files (conflicting: shape)
+extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 336 of 383 files (conflicting: shape)
 extern int DAT_00511dec;                                                                          // 0x511dec, 4 bytes; 1 of 1 files
 extern ExplodedPiece* g_explodedPieces[100];                                                      // 0x511df0, 400 bytes; 1 of 1 files
 extern unsigned char DAT_00511f80[16];                                                            // 0x511f80, 16 bytes; CMemoryCache by value in 2 of 2 files

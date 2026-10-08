@@ -914,7 +914,7 @@ void __stdcall ShutdownEnvironment(App_4b5980* d)
     d->dc = 0;
     d->hpalette = 0;
     d->dib = 0;
-    SystemParametersInfoA(0x5d, (unsigned int)*(int*)((char*)g_display + 0xec), 0, 1);
+    SystemParametersInfoA(0x5d, (unsigned int)g_display->wa_left, 0, 1);
 }
 
 // FUNCTION: 0x4b6220

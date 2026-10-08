@@ -9,9 +9,7 @@
 
 class TdfRecord;
 class Mission;
-class Class_004c9390;
-class Class_004c91a0;
-class Class_004c91b0;
+class StringRef;
 
 class TdfFile {
 public:
@@ -135,7 +133,7 @@ void DisableMeteors();
 void __stdcall SetMeteorParams(MeteorParams* p);
 void* __cdecl GameReallocTagged(void* p, const char* name, unsigned int size);
 void __stdcall SetCursorMode(int n);
-void __stdcall ListDirectory(const char* pattern, int flags, std::vector<Class_004c91a0>* out);
+void __stdcall ListDirectory(const char* pattern, int flags, std::vector<StringRef>* out);
 void HandleNetPackets();
 
 // Every float field is read through this: the double result goes into a float
@@ -193,26 +191,31 @@ struct Vec3_00437320 {
     int z;                             // +0x8
 };
 
-class Class_004c9390 {
-public:
-    char* data;                        // +0x0
-    void ReleaseRef();
-};
-
 // The reference-counted string handle: 0x4c91a0 is its copy constructor and
-// 0x4c9390 its release.
-class Class_004c91a0 : public Class_004c9390 {
+// 0x4c9390 its release, and 0x4c91b0 builds one from a C string. In the game
+// the constructors share one class and one name, which data/symbols.csv
+// cannot hold twice, so this file spells them all StringRef.
+class StringRef {
 public:
-    Class_004c91a0(const Class_004c91a0& other);
-    ~Class_004c91a0() { ReleaseRef(); }
-};
+    char* data;                        // +0x0, count in the dword before
 
-// 0x4c91b0 builds one of those handles from a C string. In the game this is a
-// second constructor of the same class, which data/symbols.csv cannot hold
-// twice, so it is a derived class here.
-class Class_004c91b0 : public Class_004c91a0 {
-public:
-    Class_004c91b0(const char* text);
+    StringRef();
+    StringRef(const StringRef& other);
+    StringRef(const char* text);
+    StringRef(const char* text, int len);
+    ~StringRef() { ReleaseRef(); }
+    StringRef& operator=(const StringRef& other)
+    {
+        Assign(&other);
+        return *this;
+    }
+    void ReleaseRef();
+    StringRef* Assign(const StringRef* other);
+    StringRef* Append(const StringRef& other);
+    StringRef* MakeLower();
+    StringRef* MakeUpper();
+    StringRef* AssignText(const char* text);
+    StringRef SubString(int start, int end) const;
 };
 
 struct Header_004373a0 {
@@ -312,10 +315,10 @@ public:
 
 class MapCacheEntry {
 public:
-    Class_004c91a0 handle;             // +0x0
+    StringRef handle;               // +0x0
     int field_4;                       // +0x4
 
-    MapCacheEntry(const Class_004c91a0& other) : handle(other) {}
+    MapCacheEntry(const StringRef& other) : handle(other) {}
 
     MapCacheEntry& SetChecksum(Mission* self)
     {
@@ -412,7 +415,7 @@ int __stdcall LoadMapList(void** param_1, int param_2, int param_3)
     g_otaEnumFileList = (char*)GameAllocIgnoreTag("MULTI MAPS", 1);
     *(char*)g_otaEnumFileList = 0;
 
-    std::vector<Class_004c91a0> files;
+    std::vector<StringRef> files;
     ListDirectory("Maps\\*.ota", 0, &files);
     g_otaEnumFileCount = 0;
 
@@ -1454,6 +1457,6 @@ int Mission::ComputeMapChecksum()
     HAPI_CloseFile(file);
     // The checksum is stored after the copy constructor, not inside it:
     // a two-argument constructor hoists the +0xc1c load above the call.
-    s_mapCache.InsertMapCacheEntry(g_mapCacheEnd, 1, MapCacheEntry(Class_004c91b0(name)).SetChecksum(this));
+    s_mapCache.InsertMapCacheEntry(g_mapCacheEnd, 1, MapCacheEntry(StringRef(name)).SetChecksum(this));
     return headerChecksum ^ tntChecksum;
 }

@@ -15,59 +15,53 @@
 // Included only for its symbol count: the std::string members below match at one window of it.
 #include <float.h>
 
-// The string handle: a reference-counted char* (0x4c9180 builds the empty
-// one, 0x4c91a0 copies, 0x4c91b0 builds from text, 0x4c9390 releases,
-// 0x4c93b0 assigns).
-class Class_004c91a0;
-
-class Class_004c9390 {
+// The reference-counted string handle: a pointer to the characters with the
+// reference count in the int just before them. 0x4c9180 builds the empty one,
+// 0x4c91a0 copies, 0x4c91b0 builds from text, 0x4c9390 releases and 0x4c93b0
+// assigns.
+class StringRef {
 public:
-    char* data;
+    char* ptr;                         // count in the dword before ptr
 
-    void ReleaseRef();
-};
-
-class Class_004c93b0 {
-public:
-    char* ptr;
-
-    Class_004c93b0* Assign(const Class_004c91a0* other);
-};
-
-class Class_004c91a0 {
-public:
-    char* ptr;
-
-    Class_004c91a0() {}
-    Class_004c91a0(const Class_004c91a0& other);
-    ~Class_004c91a0() { ((Class_004c9390*)this)->ReleaseRef(); }
-    Class_004c91a0& operator=(const Class_004c91a0& other)
+    StringRef();
+    StringRef(const StringRef& other);
+    StringRef(const char* text);
+    StringRef(const char* text, int len);
+    ~StringRef() { ReleaseRef(); }
+    StringRef& operator=(const StringRef& other)
     {
-        ((Class_004c93b0*)this)->Assign(&other);
+        Assign(&other);
         return *this;
     }
+    void ReleaseRef();
+    StringRef* Assign(const StringRef* other);
+    StringRef* Append(const StringRef& other);
+    StringRef* MakeLower();
+    StringRef* MakeUpper();
+    StringRef* AssignText(const char* text);
+    char* GetUnique();
+    StringRef SubString(int start, int end) const;
 };
 
-// The empty handle.
-class Class_004c9180 : public Class_004c91a0 {
-public:
-    Class_004c9180();
-};
-
-// A handle built from text.
-class Class_004c91b0 : public Class_004c91a0 {
-public:
-    Class_004c91b0(const char* text);
-};
+// Unused here: the symbol ids these declarations take keep the allocation of
+// the functions below (docs/c2-regalloc.md).
+int RIReport(int, int, int, int, int, int, int, int, int, int);
+int RIReportGameChat(int, int, int, int, int, int, int, int, int, int);
+void CopyDwordIfNonNull(int*, int*);
+int GetBuildRating(int, unsigned short);
+void RegisterUnitOrders();
+void EnableMeteors();
+void DisableMeteors();
+void HandleNetPackets();
 
 // One entry of a section or of the translations: a key and a value. The
 // compiler's destructor of the pair (0x4c5190) releases both handles.
 // FUNCTION: 0x4c5190 ??1TdfField@@QAE@XZ
 struct TdfField {
-    Class_004c91a0 key;                  // +0x0
-    Class_004c91a0 value;                // +0x4
+    StringRef key;                  // +0x0
+    StringRef value;                // +0x4
 
-    TdfField(const Class_004c91a0& k, const Class_004c91a0& v) : key(k), value(v) {}
+    TdfField(const StringRef& k, const StringRef& v) : key(k), value(v) {}
 };
 
 // The assignment of an entry (0x4c5470).
@@ -81,7 +75,7 @@ public:
 // An entry of a section's vector (copy constructor 0x4c54a0, assignment 0x4c5470).
 class Class_004c54a0 : public TdfField {
 public:
-    Class_004c54a0(const Class_004c91a0& k, const Class_004c91a0& v) : TdfField(k, v) {}
+    Class_004c54a0(const StringRef& k, const StringRef& v) : TdfField(k, v) {}
     Class_004c54a0(const Class_004c54a0& other);
     Class_004c54a0& operator=(const Class_004c54a0& other)
     {
@@ -104,12 +98,12 @@ char* __cdecl GameStrdup(char* text);
 char* ComputeChecksum(char* text, int len);
 void FatalError(char* text);
 
-static inline bool operator==(const Class_004c91a0& a, const Class_004c91a0& b)
+static inline bool operator==(const StringRef& a, const StringRef& b)
 {
     return strcmp(a.ptr, b.ptr) == 0;
 }
 
-static inline bool Ne(const Class_004c91a0& a, const Class_004c91a0& b)
+static inline bool Ne(const StringRef& a, const StringRef& b)
 {
     return !(a == b);
 }
@@ -122,10 +116,10 @@ static inline bool Less(const char* a, const char* b)
 // The pair built by make_pair (0x4c54d0).
 class Class_004c54d0 : public Class_004c54a0 {
 public:
-    Class_004c54d0(const Class_004c91a0& a, const Class_004c91a0& b);
+    Class_004c54d0(const StringRef& a, const StringRef& b);
 };
 
-static inline Class_004c54d0 MakePair(const Class_004c91a0& a, const Class_004c91a0& b)
+static inline Class_004c54d0 MakePair(const StringRef& a, const StringRef& b)
 {
     return Class_004c54d0(a, b);
 }
@@ -151,9 +145,9 @@ public:
         return first;
     }
 
-    Class_004c91a0* InsertNew(Class_004c54a0* e, const Class_004c91a0& key)
+    StringRef* InsertNew(Class_004c54a0* e, const StringRef& key)
     {
-        return &v.insert(e, MakePair(key, Class_004c9180()))->value;
+        return &v.insert(e, MakePair(key, StringRef()))->value;
     }
 };
 
@@ -367,7 +361,7 @@ void TdfFile::SetCurrentRecord(int val)
 
 class Class_004c4340 {
 public:
-    Class_004c91a0 MakeTrimmedString(char* start, char* end);
+    StringRef MakeTrimmedString(char* start, char* end);
 };
 
 static inline char* SkipSpace(char* p)
@@ -417,7 +411,7 @@ TdfRecord::TdfRecord(char* name, char* text, char** nextblock, char* filename)
                 strcat(error, "Sub-record - closing ']' not found");
                 goto fail;
             }
-            Class_004c91a0 subname = ((Class_004c4340*)this)->MakeTrimmedString(current + 1, close);
+            StringRef subname = ((Class_004c4340*)this)->MakeTrimmedString(current + 1, close);
             current = SkipSpace(close + 1);
             if (*current != '{') {
                 strcat(error, "Sub-record - opening '{' not found");
@@ -454,17 +448,17 @@ TdfRecord::TdfRecord(char* name, char* text, char** nextblock, char* filename)
                 strcat(error, "Data field - '=' not found");
                 goto fail;
             }
-            Class_004c91a0 key = ((Class_004c4340*)this)->MakeTrimmedString(current, eq);
+            StringRef key = ((Class_004c4340*)this)->MakeTrimmedString(current, eq);
             current = eq + 1;
             char* semi = strchr(eq + 1, ';');
             if (!semi) {
                 strcat(error, "Data field - ';' not found");
                 goto fail;
             }
-            Class_004c91a0 value = ((Class_004c4340*)this)->MakeTrimmedString(current, semi);
+            StringRef value = ((Class_004c4340*)this)->MakeTrimmedString(current, semi);
             current = semi + 1;
             Class_004c54a0* e = entries.LowerBound(key.ptr);
-            Class_004c91a0* r;
+            StringRef* r;
             if (e == entries.v.end() || Ne(e->key, key))
                 r = entries.InsertNew(e, key);
             else
@@ -486,14 +480,14 @@ fail:
 // whitespace trimmed.
 
 // FUNCTION: 0x4c4340
-Class_004c91a0 Class_004c4340::MakeTrimmedString(char* start, char* end)
+StringRef Class_004c4340::MakeTrimmedString(char* start, char* end)
 {
     char* p = start;
     while (*p && (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n'))
         p++;
     start = p;
     if (start >= end) {
-        Class_004c91b0 empty(DAT_005119b8);
+        StringRef empty(DAT_005119b8);
         return empty;
     }
     char* last = end - 1;
@@ -501,7 +495,7 @@ Class_004c91a0 Class_004c4340::MakeTrimmedString(char* start, char* end)
         last--;
     char saved = last[1];
     last[1] = 0;
-    Class_004c91b0 tmp(start);
+    StringRef tmp(start);
     last[1] = saved;
     return tmp;
 }
@@ -730,15 +724,15 @@ template class std::basic_string<char, std::char_traits<char>, std::allocator<ch
 // FUNCTION: 0x4c5170
 void __stdcall ReleasePair(char* param_1)
 {
-    ((Class_004c9390*)(param_1 + 4))->ReleaseRef();
-    ((Class_004c9390*)(param_1))->ReleaseRef();
+    ((StringRef*)(param_1 + 4))->ReleaseRef();
+    ((StringRef*)(param_1))->ReleaseRef();
 }
 
 // FUNCTION: 0x4c5470
 void* Class_004c5470::AssignPair(int* param_1)
 {
-    ((Class_004c93b0*)this)->Assign((Class_004c91a0*)param_1);
-    ((Class_004c93b0*)((char*)this + 4))->Assign((Class_004c91a0*)(param_1 + 1));
+    ((StringRef*)this)->Assign((StringRef*)param_1);
+    ((StringRef*)((char*)this + 4))->Assign((StringRef*)(param_1 + 1));
     return this;
 }
 
@@ -750,7 +744,7 @@ Class_004c54a0::Class_004c54a0(const Class_004c54a0& other)
 }
 
 // FUNCTION: 0x4c54d0
-Class_004c54d0::Class_004c54d0(const Class_004c91a0& a, const Class_004c91a0& b)
+Class_004c54d0::Class_004c54d0(const StringRef& a, const StringRef& b)
     : Class_004c54a0(a, b)
 {
 }

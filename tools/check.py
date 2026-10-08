@@ -538,6 +538,17 @@ def check_vtable(orig, obj, sec, start, target, symbols) -> str:
 
 
 PLACEHOLDER = re.compile(r"(?:DAT|FUN|PTR|LAB)_([0-9a-f]{8})$")
+STATIC_SUFFIX = re.compile(r"\$S\d+$")
+
+
+def static_stem(name: str) -> str:
+    """A file-scope static's name without the compiler's `$S<id>` suffix.
+
+    Under /Gi the front end numbers such statics from a counter that moves
+    with the compile's source and .pdb paths, so the suffix differs from
+    machine to machine while the address stays the same. The name without it
+    is what the static means (issue #6393)."""
+    return STATIC_SUFFIX.sub("", name)
 
 
 def lookup(off, sym_name, target, symbols, by_addr) -> Ref:
@@ -557,6 +568,16 @@ def lookup(off, sym_name, target, symbols, by_addr) -> Ref:
     if name.startswith("$"):  # compiler-generated, file-local (_$E1...): not in the global map
         return Ref(off, sym_name, target, "new", "file-local")
     known = symbols.get(name)
+    if known is None:
+        # The `$S` suffix of a file-scope static is the compiler's incremental
+        # id, which the compile's paths move (issue #6393): the same static
+        # under another suffix is the one of whose address data/symbols.csv
+        # knows only one.
+        stem = static_stem(name)
+        if stem != name:
+            at = {a for n, a in symbols.items() if static_stem(n) == stem}
+            if len(at) == 1:
+                known = at.pop()
     if known is not None:
         ok = known == target
         return Ref(off, sym_name, target, "ok" if ok else "mismatch",

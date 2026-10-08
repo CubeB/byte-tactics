@@ -347,6 +347,38 @@ the function (655 symbols in 0x424c00, well under a second), and the rest of
 the output is unchanged: the default output, `--trace`, `--blocks` and
 `--inline` stayed the same, line for line, on 0x4cf570 and 0x47d2e0.
 
+### The compile's paths move the ids
+
+The front end's counter is moved not only by declarations: the paths the
+compiler is given move it as well, so they decide where a function sits in
+the id windows above. Measured on 2026-10-08 by compiling byte-identical
+copies of `src/map/features.cpp` (`// FLAGS: /Gi`) at different paths:
+
+- the source path as the compiler resolves it moves the counter by 4 ids per
+  character;
+- a relative source path is resolved against the working directory first, so
+  the working directory's length moves the counter as well (the same relative
+  path from two working directories gave different bytes);
+- the `/Fd` path (the `.pdb`/`.idb`) moves it by 1 id per character;
+- path characters that do not change the resolved file (a `.\` segment) move
+  it by 1 id each.
+
+So the same tree can build to different bytes under different checkout paths:
+three functions of `features.cpp` (0x424050, 0x424840, 0x424890) sit on a tie
+that flips with the path length, and CI and a worktree ended up on different
+sides of it (#6393). The same counter names a
+file-scope static, so its `$S` suffix moves with the path too; that is the
+churn `data/symbols.csv`'s `s_featureTdfParsers$S<id>` saw. `tools/check.py`
+now compares those statics by the name without the suffix when the address
+agrees (`static_stem`), so the generated id no longer fails the checker.
+
+Making the build independent of the checkout path means giving the compiler
+the same path strings everywhere: source, `/Fd`, `/Fo`, `/I` and `INCLUDE`
+through a wine drive mapped to the checkout (`Y:\src\...`, `Y:\<out>`,
+`INCLUDE=Y:\toolchain\...`). Compiling every `/Gi` file that way matched the
+originals here; a fixed staged path does the same job. Regenerate
+`data/symbols.csv` after the change, or keep the suffix-tolerant checker.
+
 ### Symbols each header adds
 
 Measured with `--symbols g_game` on a probe file: the headers, then

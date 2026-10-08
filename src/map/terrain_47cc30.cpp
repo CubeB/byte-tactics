@@ -122,6 +122,8 @@ static void SetOwner_0047cc30(Obj_0047cc30* obj, Owner_0047cc30* nw)
     }
 }
 
+// Stays in a file of its own: in the merged file the symbol count moves the
+// owner index multiply onto the other operand.
 // FUNCTION: 0x47cc30
 void __stdcall AddUnitToMap(Obj_0047cc30* obj)
 {

@@ -4338,8 +4338,8 @@ piece,0x508ae0,5,src/sound/speech_queue.cpp,17,0,game data
 piece,0x504cd4,4,src/sound/speech_queue.cpp,16,0,game data
 piece,0x508ac4,7,src/sound/speech_queue.cpp,15,0,game data
 piece,0x508acc,12,src/sound/speech_queue.cpp,9,0,game data
-piece,0x4fd664,4,src/map/terrain_47ea40.cpp,3,0,game data
-piece,0x4fd660,4,src/map/terrain_47db20.cpp,3,0,game data
+piece,0x4fd664,4,src/map/terrain.cpp,44,0,game data
+piece,0x4fd660,4,src/map/terrain.cpp,5,0,game data
 piece,0x508550,10,src/graphics/movies.cpp,41,0,game data
 piece,0x5086bc,19,src/graphics/movies.cpp,40,0,game data
 piece,0x5086a4,24,src/graphics/movies.cpp,39,0,game data

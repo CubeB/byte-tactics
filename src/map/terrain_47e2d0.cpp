@@ -76,6 +76,8 @@ extern Game* g_game;
 // Suspected original bug: the visibility index's row term shifts footprint.x
 // by 2 where the footprint is a Point and the row extent is footprint.y (the
 // loop below counts rows with footprint.y).
+// Stays in a file of its own: in the merged file the symbol ids move the def
+// load and the feature lookup's operand order.
 // FUNCTION: 0x47e2d0
 int __stdcall FUN_0047e2d0(Unit* unit, Vec3* pos)
 {

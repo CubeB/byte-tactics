@@ -66,6 +66,8 @@ struct Game {
 
 extern Game* g_game;
 
+// Stays in a file of its own: in the merged file the symbol count changes the
+// operand order of the footprint mask load.
 // FUNCTION: 0x47d820
 int __stdcall GetFootprintHeight(Unit_0047d820* unit, Point cell)
 {

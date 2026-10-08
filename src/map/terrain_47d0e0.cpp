@@ -75,6 +75,8 @@ static inline Cell_0047db20* CellAt(const Point& p)
     return &g_game->cells[p.y * g_game->width + p.x];
 }
 
+// Stays in a file of its own: in the merged file the symbol count clears bit 14
+// of g_game's id, which decides how the cell index multiply folds.
 // FUNCTION: 0x47d0e0
 void __stdcall RemoveUnitFromMap(Obj_0047db20* obj)
 {

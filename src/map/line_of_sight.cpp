@@ -123,16 +123,9 @@ struct PlayerGrid {
     unsigned char& at(int x, int y) { return cells[y * width + x]; }
 };
 
-struct Player {
-    int active;                        // +0x00
-    char unknown_4[0x73 - 0x4];
-    unsigned char type;                // +0x73
-    char unknown_74[0x7c - 0x74];
-    PlayerGrid grid;                   // +0x7c
-    char unknown_8c[0x146 - 0x8c];
-    unsigned char index;               // +0x146
-    char unknown_147[0x14b - 0x147];   // stride 0x14b
-};
+// Unused here: these forward declarations take the symbol ids that keep 0x483210 matching (docs/c2-regalloc.md).
+struct Sound;
+#include "../network/player.h"
 
 struct UnitDef {
     char unknown_0[0x170];

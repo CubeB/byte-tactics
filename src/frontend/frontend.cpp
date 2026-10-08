@@ -27,10 +27,7 @@ public:
     void LoadMissionByName(int param);
 };
 
-// A player block's method view (the players array of the game object).
-struct Player {
-    void SetType(int param);
-};
+#include "../network/player.h"
 
 class MoviePlayer {
 public:

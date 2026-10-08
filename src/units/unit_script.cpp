@@ -84,9 +84,7 @@ struct ObjectState {
     PieceState pieces[1];               // +0x22
 };
 
-struct Player {
-    char unknown_0[0x14b];
-};
+#include "../network/player.h"
 
 struct Game {
     char unknown_0[0x1b63];

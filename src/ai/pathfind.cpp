@@ -246,17 +246,14 @@ struct Unit {                          // 0x118 bytes
     char unknown_a8[0x118 - 0xa8];
 };
 
-struct Player {                        // 0x14b bytes
-    int active;                        // +0x0
-    char unknown_4[0x67 - 0x4];
-    Unit* unitsBegin;                  // +0x67
-    Unit* unitsEnd;                    // +0x6b
-    char unknown_6f[0x73 - 0x6f];
-    unsigned char type;                // +0x73
-    char unknown_74[0x146 - 0x74];
-    unsigned char index;               // +0x146
-    char unknown_147[0x14b - 0x147];
-};
+// Unused here: these forward declarations take the symbol ids that keep 0x40da70 and 0x40e160 matching (docs/c2-regalloc.md).
+struct Sound;
+struct HapiBank;
+struct TdfFile;
+struct TdfRecord;
+struct Mission;
+struct Gadget;
+#include "../network/player.h"
 
 struct Game {
     char unknown_0[0x1b63];

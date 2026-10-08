@@ -33,9 +33,17 @@ class Class_0044e730 { public: void SetApproachRadius(short); };
 
 #pragma pack(push, 1)
 #include "../units/unit_def.h"
-struct Player {
-    char pad0[0x146]; unsigned char index;
-};
+// Unused here: these forward declarations take the symbol ids that keep 0x410e70 matching (docs/c2-regalloc.md).
+struct Sound;
+struct HapiBank;
+struct TdfFile;
+struct TdfRecord;
+struct Mission;
+struct Gadget;
+struct Layer;
+struct Weapon;
+struct Feature;
+#include "../network/player.h"
 struct Unit {
     UnitMotion* type;
     char pad4[0x6a - 4]; Vec3 pos;

@@ -431,11 +431,7 @@ struct Player_00444930 {
 typedef Player_00444930 Player_441080;
 typedef Player_00444930 Player_00446f50;
 
-// The player record seen as an object by the two slot shufflers.
-class Player {
-public:
-    void SetType(int param_1);
-};
+#include "../network/player.h"
 
 // The mission object g_game+0x391e9 points at (defined in the game's own
 // files).

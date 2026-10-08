@@ -61,23 +61,7 @@ public:
     int waterDamage;                   // +0xd50
 };
 
-// The player behind a unit (the unit's +0x96 and g_game's player array): the
-// unit list at +0x67, the player kind byte at +0x73.
-struct Player {
-    int f0;                            // +0x00
-    int id;                            // +0x04
-    char unknown_8[0x18 - 8];
-    int ticks;                         // +0x18
-    char unknown_1c[0x67 - 0x1c];
-    Unit* f67;                         // +0x67
-    Unit* f6b;                         // +0x6b
-    unsigned short firstIndex;         // +0x6f
-    char unknown_71[0x73 - 0x71];
-    unsigned char f73;                 // +0x73
-    char unknown_74[0x146 - 0x74];
-    unsigned char f146;                // +0x146
-    char unknown_147[0x14b - 0x147];
-};
+#include "../network/player.h"
 
 // The unit's type; +0x241 is the flag word the position code tests: bit 12
 // floats, bit 19 floats on water, bit 20 can leave the water.
@@ -529,8 +513,8 @@ void __stdcall ApplyAttachUnit(Order* order)
                             u->list->PrependUnit((int)u);
                         }
                         u->motion->bits_2e = order->param2;
-                        if (u->player->f0) {
-                            unsigned char k = u->player->f73;
+                        if (u->player->active) {
+                            unsigned char k = u->player->type;
                             if (k == 1 || k == 2) {
                                 if (t && !(t->type->f241.bits.low & 0x200))
                                     AddBeCarriedOrder((Beacon*)u);
@@ -566,19 +550,19 @@ void __stdcall UpdateAllUnits(void)
     for (; i < 10; i++, off += 0x14b) {
         if (!PlayerMore(i)) continue;
         Player* p = (Player*)((char*)&g_game->players[0] + off);
-        if (p->f0 == 0) continue;
-        unsigned char k = p->f73;
+        if (p->active == 0) continue;
+        unsigned char k = p->type;
         if (k != 1 && k != 2 && k != 3) continue;
-        if (p->f146 == 0xa) continue;
+        if (p->index == 0xa) continue;
         {
-            Unit* last = p->f6b;
-            Unit* u = p->f67;
+            Unit* last = p->unitsEnd;
+            Unit* u = p->unitsBegin;
             while (u <= last) {
                     if (u->unitDefIndex != 0) {
                         (*cnt)++;
                         UpdateWindGenerator(u);
-                        if (p->f0 != 0) {
-                            unsigned char k2 = p->f73;
+                        if (p->active != 0) {
+                            unsigned char k2 = p->type;
                             if (k2 == 1 || k2 == 2) {
                                 UpdateUnitWeapons(u);
                             }
@@ -611,8 +595,8 @@ void __stdcall UpdateAllUnits(void)
                             u->ff6 = v;
                         }
                         Player* pl = u->player;
-                        if (pl->f0 != 0) {
-                            unsigned char k3 = pl->f73;
+                        if (pl->active != 0) {
+                            unsigned char k3 = pl->type;
                             if (k3 == 1 || k3 == 2) {
                                 if (g_game->mode->waterDoesDamage != 0
                                     && g_game->mode->waterDamage != 0
@@ -640,8 +624,8 @@ void __stdcall UpdateAllUnits(void)
                     u = (Unit*)((char*)u + 0x118);
                 }
                 if (g_game->f2a44 & 1) {
-                    if (p->f0 != 0) {
-                        unsigned char k4 = p->f73;
+                    if (p->active != 0) {
+                        unsigned char k4 = p->type;
                         if (k4 == 1 || k4 == 2) {
                             SendUnitStates(p);
                         }
@@ -834,8 +818,8 @@ void __stdcall SendUnitStates(Player* p)
     stream.WriteBits(0x2c, 8);
     stream.WriteBits(0, 0x10);
     stream.WriteBits(g_game->ticks, 0x20);
-    p->ticks = g_game->ticks;
-    for (Unit* u = p->f67; u <= p->f6b; u++) {
+    p->syncTick = g_game->ticks;
+    for (Unit* u = p->unitsBegin; u <= p->unitsEnd; u++) {
         if (!(u->flags & 0x10000000))
             continue;
         if (!u->motion)
@@ -861,7 +845,7 @@ void __stdcall SendUnitStates(Player* p)
             stream.GrowBuffer();
         stream.data[stream.bit] = 0;
     }
-    WriteUnitState(&stream, &p->f67[i]);
+    WriteUnitState(&stream, &p->unitsBegin[i]);
     // The packet's length, little-endian at bytes 1 and 2, is only known here.
     // The `char` cast is what makes MSVC 5 narrow the first sum to a byte and
     // push the register unmasked; the second is pushed as a dword.
@@ -896,13 +880,13 @@ void __stdcall ReceiveUnitStates(Player* p, unsigned int* data)
     reader.ReadBits(8);
     reader.ReadBits(0x10);
     int tick = reader.ReadBits(0x20);
-    p->ticks = tick;
-    if (p->f67 == 0)
+    p->syncTick = tick;
+    if (p->unitsBegin == 0)
         return;
 
     short index = (short)reader.ReadBits(0x10);
     while (index != -1) {
-        Unit* unit = &p->f67[index];
+        Unit* unit = &p->unitsBegin[index];
         unsigned short type = (unsigned short)reader.ReadBits(g_game->field_14393);
         if (unit->unitDefIndex != type) {
             // Declared inside the `if`: at function scope the two struct copies are not interleaved.
@@ -918,7 +902,7 @@ void __stdcall ReceiveUnitStates(Player* p, unsigned int* data)
         index = (short)reader.ReadBits(0x10);
     }
 
-    for (Unit* u = p->f67; u <= p->f6b;
+    for (Unit* u = p->unitsBegin; u <= p->unitsEnd;
          u = (Unit*)((char*)u + 0x118)) {
         if ((u->flags & 0x10000000) && u->motion) {
             u->motion->UpdateMotion(u);
@@ -927,5 +911,5 @@ void __stdcall ReceiveUnitStates(Player* p, unsigned int* data)
     }
 
     if (reader.ReadBit())
-        ReadUnitState(&reader, &p->f67[tick % g_game->field_37ee6]);
+        ReadUnitState(&reader, &p->unitsBegin[tick % g_game->field_37ee6]);
 }

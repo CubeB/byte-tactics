@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 #pragma pack(push, 1)
-struct PlayerData {
+struct PlayerInfo {
     char unknown_0[0x97];
     union {
         unsigned short flags;              // +0x97
@@ -19,20 +19,7 @@ struct PlayerData {
     };
 };
 
-struct Player {
-    char unknown_0[0x27];
-    union {
-        PlayerData* data;              // +0x27
-        PlayerData* info;
-    };
-    char unknown_2b[0xa4 - 0x2b];
-    float energyCapacity;              // +0xa4
-    float metalCapacity;               // +0xa8
-    char unknown_ac[0xe4 - 0xac];
-    float share_metal;                 // +0xe4
-    float share_energy;                // +0xe8
-    char unknown_ec[0x14b - 0xec];
-};
+#include "../network/player.h"
 
 struct Game {
     char unknown_0[0x4ed];
@@ -66,10 +53,10 @@ void __stdcall CmdShareMetal(int unused)
 {
     char buf[256];
     if (g_game->flags & 1) {
-        g_game->players[g_game->localPlayer].data->shareMetal =
-            !g_game->players[g_game->localPlayer].data->shareMetal;
+        g_game->players[g_game->localPlayer].info->shareMetal =
+            !g_game->players[g_game->localPlayer].info->shareMetal;
         sprintf(buf, "Toggled ShareMetal to: %s",
-                (g_game->players[g_game->localPlayer].data->shareMetal != 0)
+                (g_game->players[g_game->localPlayer].info->shareMetal != 0)
                     ? "ON" : "OFF");
         AddMessage(buf, 2, 0, 10);
         BroadcastPlayerInfo();
@@ -83,10 +70,10 @@ void __stdcall CmdShareEnergy(int unused)
 {
     char buf[256];
     if (g_game->flags & 1) {
-        PlayerData* data = g_game->players[g_game->localPlayer].data;
+        PlayerInfo* data = g_game->players[g_game->localPlayer].info;
         data->flags = (data->flags & ~4) | (~data->flags & 4);
         sprintf(buf, "Toggled ShareEnergy to: %s",
-                (g_game->players[g_game->localPlayer].data->flags & 4)
+                (g_game->players[g_game->localPlayer].info->flags & 4)
                     ? "ON" : "OFF");
         AddMessage(buf, 2, 0, 10);
         BroadcastPlayerInfo();
@@ -100,10 +87,10 @@ void __stdcall CmdShareMapping(int unused)
 {
     char buf[256];
     if (g_game->flags & 1) {
-        PlayerData* data = g_game->players[g_game->localPlayer].data;
+        PlayerInfo* data = g_game->players[g_game->localPlayer].info;
         data->flags = (data->flags & ~0x20) | (~data->flags & 0x20);
         sprintf(buf, "Toggled ShareMapping to: %s",
-                (g_game->players[g_game->localPlayer].data->flags & 0x20)
+                (g_game->players[g_game->localPlayer].info->flags & 0x20)
                     ? "ON" : "OFF");
         AddMessage(buf, 2, 0, 10);
         BroadcastPlayerInfo();
@@ -116,10 +103,10 @@ void __stdcall ToggleShareLos(int unused)
 {
     char buf[256];
     if (g_game->flags & 1) {
-        g_game->players[g_game->localPlayer].data->shareLOS =
-            !g_game->players[g_game->localPlayer].data->shareLOS;
+        g_game->players[g_game->localPlayer].info->shareLOS =
+            !g_game->players[g_game->localPlayer].info->shareLOS;
         sprintf(buf, "Toggled ShareLOS to: %s",
-                (g_game->players[g_game->localPlayer].data->shareLOS != 0)
+                (g_game->players[g_game->localPlayer].info->shareLOS != 0)
                     ? "ON" : "OFF");
         AddMessage(buf, 2, 0, 10);
         BroadcastPlayerInfo();
@@ -152,10 +139,10 @@ static inline void ShareMetal(int unused)
 {
     char buf[256];
     if (g_game->flags & 1) {
-        PlayerData* data = g_game->players[g_game->localPlayer].data;
+        PlayerInfo* data = g_game->players[g_game->localPlayer].info;
         data->flags = (data->flags & ~2) | (~data->flags & 2);
         sprintf(buf, "Toggled ShareMetal to: %s",
-                (g_game->players[g_game->localPlayer].data->flags & 2)
+                (g_game->players[g_game->localPlayer].info->flags & 2)
                     ? "ON" : "OFF");
         AddMessage(buf, 2, 0, 10);
         BroadcastPlayerInfo();
@@ -166,10 +153,10 @@ static inline void ShareEnergy(int unused)
 {
     char buf[256];
     if (g_game->flags & 1) {
-        PlayerData* data = g_game->players[g_game->localPlayer].data;
+        PlayerInfo* data = g_game->players[g_game->localPlayer].info;
         data->flags = (data->flags & ~4) | (~data->flags & 4);
         sprintf(buf, "Toggled ShareEnergy to: %s",
-                (g_game->players[g_game->localPlayer].data->flags & 4)
+                (g_game->players[g_game->localPlayer].info->flags & 4)
                     ? "ON" : "OFF");
         AddMessage(buf, 2, 0, 10);
         BroadcastPlayerInfo();
@@ -180,10 +167,10 @@ static inline void ShareMapping(int unused)
 {
     char buf[256];
     if (g_game->flags & 1) {
-        PlayerData* data = g_game->players[g_game->localPlayer].data;
+        PlayerInfo* data = g_game->players[g_game->localPlayer].info;
         data->flags = (data->flags & ~0x20) | (~data->flags & 0x20);
         sprintf(buf, "Toggled ShareMapping to: %s",
-                (g_game->players[g_game->localPlayer].data->flags & 0x20)
+                (g_game->players[g_game->localPlayer].info->flags & 0x20)
                     ? "ON" : "OFF");
         AddMessage(buf, 2, 0, 10);
         BroadcastPlayerInfo();
@@ -194,10 +181,10 @@ static inline void ShareRadar(int unused)
 {
     char buf[256];
     if (g_game->flags & 1) {
-        PlayerData* data = g_game->players[g_game->localPlayer].data;
+        PlayerInfo* data = g_game->players[g_game->localPlayer].info;
         data->flags = (data->flags & ~0x40) | (~data->flags & 0x40);
         sprintf(buf, "Toggled ShareRadar to: %s",
-                (g_game->players[g_game->localPlayer].data->flags & 0x40)
+                (g_game->players[g_game->localPlayer].info->flags & 0x40)
                     ? "ON" : "OFF");
         AddMessage(buf, 2, 0, 10);
         BroadcastPlayerInfo();
@@ -225,7 +212,7 @@ void __stdcall CmdSetShareMetal(CommandArgs* args)
         Player* p = &g_game->players[g_game->localPlayer];
         // __min macro with an explicit (float) cast: the cast places the store
         // after the next call's pushes.
-        p->share_metal = __min(p->metalCapacity, (float)args->GetIntArg(1, 0));
+        p->shareMetal = __min(p->metalCapacity, (float)args->GetIntArg(1, 0));
         sprintf(buf, "OK.  Will share metal if above %d", args->GetIntArg(1, 0));
         AddMessage(buf, 2, 0, 10);
     }
@@ -242,7 +229,7 @@ void __stdcall CmdSetShareEnergy(CommandArgs* args)
         Player* p = &g_game->players[g_game->localPlayer];
         // __min macro with an explicit (float) cast: the cast places the store
         // after the next call's pushes.
-        p->share_energy = __min(p->energyCapacity, (float)args->GetIntArg(1, 0));
+        p->shareEnergy = __min(p->energyCapacity, (float)args->GetIntArg(1, 0));
         sprintf(buf, "OK.  Will share energy if above %d", args->GetIntArg(1, 0));
         AddMessage(buf, 2, 0, 10);
     }

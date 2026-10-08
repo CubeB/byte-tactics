@@ -9,41 +9,21 @@
 
 #pragma pack(push, 1)
 
-class Player {
-public:
-    void SetType(int param_1);
-};
+#include "../network/player.h"
 
 #include "../map/mission.h"
 
-struct PlayerData_00452cc0 {
+struct PlayerInfo {
     char unknown_0[0x97];
     unsigned char flags;               // +0x97, bit 0: host
     char unknown_98[0x9d - 0x98];
     unsigned short word_9d;            // +0x9d
 };
 
-struct Player_00452cc0 {
-    int active;                        // +0x00
-    unsigned int id;                   // +0x04
-    char unknown_8[0xc - 8];
-    int field_c;                       // +0x0c
-    char unknown_10[0x27 - 0x10];
-    PlayerData_00452cc0* data;         // +0x27
-    char unknown_2b[0x73 - 0x2b];
-    unsigned char type;                // +0x73
-    char unknown_74[0x108 - 0x74];
-    unsigned char allies[0xb];         // +0x108
-    unsigned char alliedBy[0xb];       // +0x113
-    char unknown_11e[0x146 - 0x11e];
-    unsigned char index;               // +0x146
-    char unknown_147[0x14b - 0x147];
-};
-
 struct Game {
     char unknown_0[0x14];
     char unknown_14[0x1b63 - 0x14];
-    Player_00452cc0 players[10];       // +0x1b63
+    Player players[10];                // +0x1b63
     char unknown_2851[0x2a3c - 0x2851];
     unsigned short numPlayers;         // +0x2a3c
     char unknown_2a3e[0x2a44 - 0x2a3e];
@@ -90,14 +70,14 @@ unsigned char __stdcall FindSlotByDpid(int id)
 }
 
 // 0x44fed0 (matched in its own file).
-Player_00452cc0* __stdcall FindPlayerByDpid(int id)
+Player* __stdcall FindPlayerByDpid(int id)
 {
     if (FindSlotByDpid(id) == 10)
         return 0;
     return &g_game->players[FindSlotByDpid(id)];
 }
 
-static inline int IsPlaying(Player_00452cc0* p)
+static inline int IsPlaying(Player* p)
 {
     if (p->active == 0)
         return 0;
@@ -106,7 +86,7 @@ static inline int IsPlaying(Player_00452cc0* p)
     return 0;
 }
 
-static inline int IsType1(Player_00452cc0* p)
+static inline int IsType1(Player* p)
 {
     if (p->active == 0)
         return 0;
@@ -115,7 +95,7 @@ static inline int IsType1(Player_00452cc0* p)
     return 0;
 }
 
-static inline int IsType3(Player_00452cc0* p)
+static inline int IsType3(Player* p)
 {
     if (p->active == 0)
         return 0;
@@ -124,9 +104,9 @@ static inline int IsType3(Player_00452cc0* p)
     return 0;
 }
 
-static inline void Remove(Player_00452cc0* p)
+static inline void Remove(Player* p)
 {
-    ((Player*)p)->SetType(0);
+    p->SetType(0);
     p->active = 0;
     p->id = -1;
     p->field_c = 0;
@@ -139,7 +119,7 @@ static inline void Remove(Player_00452cc0* p)
 // FUNCTION: 0x452cc0
 void __stdcall RemovePlayer(int id)
 {
-    Player_00452cc0* p = FindPlayerByDpid(id);
+    Player* p = FindPlayerByDpid(id);
     if (p == 0)
         return;
     if (p->active == 0)
@@ -150,16 +130,16 @@ void __stdcall RemovePlayer(int id)
         return;
 
     unsigned char slot = p->index;
-    int f = p->data->flags;
+    int f = p->info->flags;
     // The no-op |= 0 must stay: without it the zero-extension folds into the mask.
-    p->data->flags |= 0;               // emits no code; needed for the match
+    p->info->flags |= 0;               // emits no code; needed for the match
     int host = f & 1;
 
     for (int i = 0; i < 10; i++) {
-        Player_00452cc0* q = &g_game->players[i];
+        Player* q = &g_game->players[i];
         if (IsPlaying(q)) {
             q->alliedBy[slot] = 0;
-            q->allies[slot] = 0;
+            q->allied[slot] = 0;
         }
     }
 
@@ -175,8 +155,8 @@ void __stdcall RemovePlayer(int id)
         Remove(p);
     }
     g_game->numPlayers--;
-    p->data->word_9d &= 0xfffb;
-    memset(&p->allies, 0, 11);
+    p->info->word_9d &= 0xfffb;
+    memset(&p->allied, 0, 11);
 
     if (g_game->net->GetGameType() == 3)
         ReportGameEvent(3);
@@ -190,8 +170,8 @@ void __stdcall RemovePlayer(int id)
                     best = g_game->players[j].id;
             }
         }
-        Player_00452cc0* r = FindPlayerByDpid(best);
+        Player* r = FindPlayerByDpid(best);
         if (r != 0)
-            r->data->flags |= 1;
+            r->info->flags |= 1;
     }
 }

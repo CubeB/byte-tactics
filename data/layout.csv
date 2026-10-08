@@ -4062,8 +4062,8 @@ piece,0x5098ec,9,src/gui/gui_4a81e0.cpp,6,0,game data
 piece,0x50992c,5,src/gui/gui_4a81e0.cpp,5,0,game data
 piece,0x509920,12,src/gui/gui_4a81e0.cpp,4,0,game data
 piece,0x509914,11,src/gui/gui_4a81e0.cpp,3,0,game data
-piece,0x5098b0,20,src/gui/gui_4a36a0.cpp,3,0,game data
-piece,0x5098e0,12,src/gui/gui_4a31c0.cpp,3,0,game data
+piece,0x5098b0,20,src/gui/gui_4a1990.cpp,40,0,game data
+piece,0x5098e0,12,src/gui/gui_4a1990.cpp,37,0,game data
 piece,0x5098d0,15,src/gui/gui_4a04f0.cpp,19,0,game data
 piece,0x5098a0,14,src/game/main.cpp,24,0,game data
 piece,0x509894,12,src/game/main.cpp,23,0,game data

@@ -5,16 +5,16 @@
 // no /Op: the doubles they pass and receive are enough for MSVC to align.
 
 #pragma pack(push, 1)
-struct PlayerData_00466050 {
+struct PlayerInfo {
     char unknown_0[0x95];
     unsigned char side;                // +0x95
-    unsigned char logo;                // +0x96
+    unsigned char color;               // +0x96
 };
 
 struct Player_00466050 {               // 0x14b bytes
     int active;                        // +0x00
     char unknown_4[0x27 - 0x4];
-    PlayerData_00466050* data;         // +0x27
+    PlayerInfo* data;                  // +0x27
     char unknown_2b[0x73 - 0x2b];
     unsigned char controller;          // +0x73
     char unknown_74[0x8c - 0x74];
@@ -91,7 +91,7 @@ void __stdcall LoadPlayers(HapiBank* file)
             p->updateTime = file->GetIntegerItem("UpdateTime", 0);
             p->winLoseTime = file->GetIntegerItem("WinLoseTime", 0);
             p->displayTimer = file->GetIntegerItem("DisplayTimer", 0);
-            p->data->logo = file->GetIntegerItem("Logo", 0);
+            p->data->color = file->GetIntegerItem("Logo", 0);
             p->data->side = file->GetIntegerItem("Side", 0);
             file->OpenNamedBox("Alliances");
             if (file->GetBoxSize() == 11)
@@ -134,7 +134,7 @@ void __stdcall SavePlayers(HapiBank* file)
             file->SetIntegerItem("WinLoseTime", p->winLoseTime);
             file->SetIntegerItem("DisplayTimer", p->displayTimer);
             file->SetIntegerItem("Controller", p->controller);
-            file->SetIntegerItem("Logo", p->data->logo);
+            file->SetIntegerItem("Logo", p->data->color);
             file->SetIntegerItem("Side", p->data->side);
             file->OpenNamedBox("Alliances");
             file->WriteBox(p->allied, 11);

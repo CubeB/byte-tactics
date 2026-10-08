@@ -282,8 +282,8 @@ extern int g_playerBudgetCap[10];
 class MovementClass {
 public:
     char unknown_0[4];
-    short originX;                     // +0x4
-    short originY;                     // +0x6
+    short footprintX;                  // +0x4
+    short footprintZ;                  // +0x6
     char unknown_8[0x10 - 0x8];
     unsigned int width;                // +0x10
     unsigned int height;               // +0x14
@@ -680,8 +680,8 @@ int Pathfinder::GetCellState(int x, int y)
 {
     if (!owner->InBounds(x, y))
         return 0;
-    int cx = (x >> 1) + (owner->originX >> 2);
-    int cy = (y >> 1) + (owner->originY >> 2);
+    int cx = (x >> 1) + (owner->footprintX >> 2);
+    int cy = (y >> 1) + (owner->footprintZ >> 2);
     // `g_game->width >> 1` stays written twice, not held in a local.
     if (cx >= (g_game->width >> 1) || cy >= (g_game->height >> 1))
         return 0;
@@ -875,8 +875,8 @@ void Pathfinder::TracePath()
         count = 0x40;
     for (int i = 0; i < count; i++) {
         Point16 pt = pts[(n - 1 - i) & 0x3f];
-        out[i].x = (pt.x * 2 + owner->originX) * 8;
-        out[i].y = (pt.y * 2 + owner->originY) * 8;
+        out[i].x = (pt.x * 2 + owner->footprintX) * 8;
+        out[i].y = (pt.y * 2 + owner->footprintZ) * 8;
     }
     path->SetWaypoints(out, count);
 }

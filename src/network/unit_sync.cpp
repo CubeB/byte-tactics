@@ -335,10 +335,10 @@ struct Unit_0046e330 {
 
 struct Data_0046e0b0 {
     char unknown_0[0x94];
-    unsigned char field_94;              // +0x94
+    unsigned char kind;                  // +0x94
     char unknown_95[0xa7 - 0x95];
-    unsigned char count_0;               // +0xa7
-    unsigned char count_1;               // +0xa8
+    unsigned char versionMajor;          // +0xa7
+    unsigned char versionMinor;          // +0xa8
 };
 
 struct Player_0046e0b0 {                // 0x14b bytes
@@ -1285,7 +1285,7 @@ void UnitSync::CheckUnitAvailable(unsigned int key, int y)
                 Player_0046e0b0* pl = FindPlayerByDpid(e->id);
                 if (pl == 0)
                     break;
-                flag = pl->data->count_0 >= 2 ? 1 : (pl->data->count_0 == 1 && pl->data->count_1 >= 2 ? 1 : 0);
+                flag = pl->data->versionMajor >= 2 ? 1 : (pl->data->versionMajor == 1 && pl->data->versionMinor >= 2 ? 1 : 0);
             } else {
                 flag = 0;
             }
@@ -1342,7 +1342,7 @@ char* UnitSync::GetSyncStatusText()
 
 // Checks every 0x5c-byte entry of the player vector at +0x10. An entry passes when its
 // owner is still a live player of a type that needs no bookkeeping (type 2, or
-// type 3 whose team data->field_94 is 2) and, otherwise, when its cached count
+// type 3 whose team data->kind is 2) and, otherwise, when its cached count
 // is not zero, matches the size of its id vector, and its two counters agree.
 // Returns 1 when nothing needs checking (disabled set, direct clear, no
 // entries) or when every entry passes, 0 on the first entry that does not.
@@ -1364,7 +1364,7 @@ int UnitSync::AllPlayersSynced()
         if (pl != 0) {
             // pl->field_0 is tested again in the second test: the original
             // reloads it rather than reusing the first test's result.
-            if (pl->field_0 != 0 && pl->type == 3 && pl->data->field_94 == 2)
+            if (pl->field_0 != 0 && pl->type == 3 && pl->data->kind == 2)
                 continue;
             if (pl->field_0 != 0 && pl->type == 2)
                 continue;
@@ -1394,7 +1394,7 @@ int UnitSync::IsPlayerSynced(int id)
     Player_0046e0b0* player;
     if (disabled != 0
         || (player = FindPlayerByDpid(id)) == 0
-        || (player->field_0 != 0 && player->type == 3 && player->data->field_94 == 2)
+        || (player->field_0 != 0 && player->type == 3 && player->data->kind == 2)
         || (player->field_0 != 0 && player->type == 2))
         return 1;
     for (std::vector<PlayerSync_0046e0b0>::iterator it = players.begin(); it != players.end(); ++it) {

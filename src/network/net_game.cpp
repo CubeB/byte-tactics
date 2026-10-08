@@ -137,7 +137,7 @@ struct PlayerInfo {
         int id;
     };
     unsigned char kind;                // +0x94
-    char unknown_95;
+    char side;
     union {
         unsigned char color;           // +0x96
         unsigned char group;

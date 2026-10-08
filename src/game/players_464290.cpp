@@ -91,7 +91,7 @@ struct PlayerInfo {
     char name[0x94];                   // +0x00
     unsigned char kind;                // +0x94
     unsigned char side;                // +0x95
-    unsigned char logo;                // +0x96
+    unsigned char color;               // +0x96
     unsigned short bit_97 : 1;         // +0x97
     unsigned short rest_97 : 15;
     unsigned short memory;             // +0x99
@@ -393,7 +393,7 @@ void ResetPlayerSlots()
         p->info->memory = 0;
         p->info->b.bit4 = 0;
         p->info->bit_97 = 0;
-        p->info->logo = (char)i;
+        p->info->color = (char)i;
         p->info->side = 0;
         strcpy(p->info->name, DAT_005119b8);
         p->unit = 0;

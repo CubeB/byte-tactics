@@ -40,8 +40,8 @@ public:
 
 struct PlayerData {
     char unknown_0[0x95];
-    unsigned char field_95;            // +0x95
-    unsigned char field_96;            // +0x96
+    unsigned char side;                // +0x95
+    unsigned char color;               // +0x96
 };
 
 struct Player {
@@ -797,7 +797,7 @@ void __stdcall CmdLogo(CommandArgs* args)
                     && p->index != 10) {
                     int v = args->GetIntArg(1, 0);
                     int j = args->GetIntArg(2, 0);
-                    g_game->players[j].data->field_96 = v;
+                    g_game->players[j].data->color = v;
                     g_game->obj->FlushCache();
                     return;
                 }
@@ -813,7 +813,7 @@ void __stdcall CmdLogo(CommandArgs* args)
 // FUNCTION: 0x4169d0
 void __stdcall CmdIWin(CommandArgs* args)
 {
-    if (g_game->players[g_game->localPlayer].data->field_95 == 1)
+    if (g_game->players[g_game->localPlayer].data->side == 1)
         KillPlayerUnits(0);
     else
         KillPlayerUnits(1);
@@ -828,7 +828,7 @@ void __stdcall CmdIWin(CommandArgs* args)
 // FUNCTION: 0x416a30
 void __stdcall CmdILose(CommandArgs* args)
 {
-    KillPlayerUnits(g_game->players[g_game->localPlayer].data->field_95);
+    KillPlayerUnits(g_game->players[g_game->localPlayer].data->side);
     g_game->flag4 = 0;
     g_game->flag6 = 1;
     g_game->flag2 = 1;

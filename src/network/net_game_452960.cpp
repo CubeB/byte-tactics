@@ -12,15 +12,15 @@
 
 #pragma pack(push, 1)
 
-struct PlayerData_00452960 {
+struct PlayerInfo {
     char unknown_0[0x94];
-    unsigned char field_94;            // +0x94
+    unsigned char kind;                // +0x94
 };
 
 struct Player_00452960 {
     int active;                        // +0x00
     char unknown_4[0x27 - 0x4];
-    PlayerData_00452960* data;         // +0x27
+    PlayerInfo* data;                  // +0x27
     char unknown_2b[0x73 - 0x2b];
     unsigned char type;                // +0x73
     char unknown_74[0x108 - 0x74];
@@ -149,7 +149,7 @@ int __stdcall SetAlliance(int from, int to, unsigned char value, int extra)
         idx = p2->index;
         p1->allies[idx] = value;
         if (IsState2_00452960(p2)
-            || (IsState3_00452960(p2) && p2->data->field_94 == 2)
+            || (IsState3_00452960(p2) && p2->data->kind == 2)
             || extra != 0) {
             idx = p2->index;
             p1->alliedBy[idx] = value;

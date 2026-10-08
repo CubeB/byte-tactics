@@ -101,7 +101,7 @@ union Flags14281_00466dc0 {
 
 struct Player_00466dc0 {
     char unknown_0[0x96];
-    unsigned char field_96;              // +0x96
+    unsigned char color;                 // +0x96
 };
 
 struct MapSize_00466dc0 {
@@ -638,7 +638,7 @@ void DrawRadarUnits(void)
                         (g_game->timer.byte.field_142f0.b.hi & 1) != 0) {
                         DrawFrame(surface,
                             GetGafFrame(g_game->radlogo,
-                                PlayerInfo_00466dc0_Get(u->playerIndex)->data->field_96),
+                                PlayerInfo_00466dc0_Get(u->playerIndex)->data->color),
                             x, y);
                     }
                     if (u->id == g_game->hoverUnitId) {
@@ -720,7 +720,7 @@ void DrawRadarUnits(void)
                     DrawFrame(surface,
                         GetGafFrame(g_game->nuclogo,
                             PlayerInfo_00466dc0_Get(
-                                ((Tail_00466dc0*)q)->player)->data->field_96),
+                                ((Tail_00466dc0*)q)->player)->data->color),
                         x, y);
                 }
             }

@@ -56,8 +56,8 @@ struct PlayerInfo_00496ce0 {
 
 struct Player_00496ee0 {
     char unknown_0[0x95];
-    unsigned char nameIndex;           // +0x95
-    unsigned char index2;              // +0x96
+    unsigned char side;                // +0x95
+    unsigned char color;               // +0x96
 };
 
 struct Flags_00496ce0 {
@@ -591,8 +591,8 @@ void __stdcall SetStartingStorageBonus(Struct_00496e90* obj, int height, int wid
 // FUNCTION: 0x496ee0
 void __stdcall SpawnCommanderAtStartPos(int team, int startpos)
 {
-    g_game->players[team].player->nameIndex = g_game->teams[team].nameIndex;
-    g_game->players[team].player->index2 = g_game->teams[team].index2;
+    g_game->players[team].player->side = g_game->teams[team].nameIndex;
+    g_game->players[team].player->color = g_game->teams[team].index2;
     Player_00496ce0* p = &g_game->players[team];
     int w = g_game->teams[team].size2;
     int v = g_game->teams[team].size1;
@@ -603,7 +603,7 @@ void __stdcall SpawnCommanderAtStartPos(int team, int startpos)
     FixedPos_00496ee0 pos;
     if (g_game->net->GetStartPosition((Vec3_00437320*)&pos, startpos)) {
         unsigned short id = FindUnitTypeId(
-            g_game->names[g_game->players[team].player->nameIndex].name);
+            g_game->names[g_game->players[team].player->side].name);
         CreateUnit(team, id, pos, 1, 1, 0);
     } else {
         char buf[128];

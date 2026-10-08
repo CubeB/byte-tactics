@@ -78,17 +78,17 @@ struct UnitType_004685a0 {
     unsigned char mobile;              // +0x22f
 };
 
-struct PlayerData_00467440 {
+struct PlayerInfo {
     char unknown_0[0x97];
-    unsigned char field_97;            // +0x97
+    unsigned char flags;               // +0x97
     char unknown_98[0x9b - 0x98];
-    unsigned char field_9b;            // +0x9b
+    unsigned char gameFlags;           // +0x9b
 };
 
 struct Owner_00467440 {
     void* field_0;                     // +0x0
     char unknown_4[0x27 - 0x4];
-    PlayerData_00467440* data;         // +0x27
+    PlayerInfo* data;                  // +0x27
     char unknown_2b[0x73 - 0x2b];
     char field_73;                     // +0x73
     char unknown_74[0x108 - 0x74];
@@ -200,7 +200,7 @@ struct ByteMap_00467440 {
 struct PlayerInfo_00467440 {
     void* field_0;                     // +0x0
     char unknown_4[0x27 - 0x4];
-    PlayerData_00467440* data;         // +0x27
+    PlayerInfo* data;                  // +0x27
     char unknown_2b[0x67 - 0x2b];
     Unit* field_67;                    // +0x67
     Unit* field_6b;                    // +0x6b
@@ -449,7 +449,7 @@ struct Colors_00467b60 {
 
 struct PlayerData_467c00 {
     char unknown_0[0x96];
-    unsigned char field_96;            // +0x96
+    unsigned char color;               // +0x96
 };
 
 struct Player_467c00 {
@@ -769,14 +769,14 @@ void __stdcall DrawProgressBar(void* surface, int value, int max, Rect_004b0510*
     }
 }
 
-// Blits a player's logo entry (indexed by data->field_96) from the logos32
+// Blits a player's logo entry (indexed by data->color) from the logos32
 // table onto a destination rectangle shifted down by dy. src is the full
 // texture rectangle, dst the screen rectangle.
 
 // FUNCTION: 0x467c00
 void __stdcall BlitSideLogoToRect(void* surf, Player_467c00* player, Rect_467c00* rect, int dy)
 {
-    unsigned char idx = player->data->field_96;
+    unsigned char idx = player->data->color;
     Entry_467c00* entry = (Entry_467c00*)*(void**)((char*)g_game->logos32 + idx * 8 + 0x28);
 
     Quad_467c00 src;

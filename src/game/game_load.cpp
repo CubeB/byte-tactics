@@ -92,9 +92,9 @@ struct Menu_00497ce0 {
     void* data;                         // +0x18 (g_game + 0x531)
 };
 
-struct PlayerData_00497f40 {
+struct PlayerInfo {
     char unknown_0[0x9b];
-    unsigned char flags;                // +0x9b
+    unsigned char gameFlags;            // +0x9b
 };
 
 union LoadFlags_00497f40 {
@@ -127,7 +127,7 @@ struct PlayerRec_00497f40 {             // 0x14b bytes, array at g_game+0x1b63
     char unknown_8[0x20 - 0x8];
     unsigned char percent;              // +0x20
     char unknown_21[0x27 - 0x21];
-    PlayerData_00497f40* data;          // +0x27
+    PlayerInfo* data;                   // +0x27
     char name[0x73 - 0x2b];             // +0x2b
     union {
         unsigned char team;             // +0x73
@@ -953,7 +953,7 @@ void LoadingScreenFrame(void)
             } else {
                 g_game->slots.inGame[i] = 1;
             }
-            g_game->slots.flag40[i] = (pi->active != 0 && (pi->data->flags & 0x40) != 0) ? 1 : 0;
+            g_game->slots.flag40[i] = (pi->active != 0 && (pi->data->gameFlags & 0x40) != 0) ? 1 : 0;
         }
         if (!StartThread(LoadThreadMain, 0, 0)) {
             FatalError("Unable to start the loading thread!");

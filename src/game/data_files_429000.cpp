@@ -17,7 +17,7 @@ struct Game {
     char unknown_0[0x519];
     char messageBox[1];                // +0x519
     char unknown_51a[0x1439b - 0x51a];
-    void* field_1439b;                 // +0x1439b
+    void* unitDefs;                    // +0x1439b
     char unknown_1439f[8];
     char palette[0x400];               // +0x143a7
     int baseHeight;                    // +0x147a7
@@ -89,7 +89,7 @@ struct Game {
     void** blocks;                     // +0x148e3
     int animplayCount;                 // +0x148e7
     void** animplayItems;              // +0x148eb
-    int field_148ef;                   // +0x148ef
+    int gafAnimClearedSlot;            // +0x148ef
     int fxGaf;                         // +0x148f3
     int igTitles;                      // +0x148f7
     int vismasks;                      // +0x148fb
@@ -553,7 +553,7 @@ void FreeAnimFiles()
     for (i = 0; i < g_game->count2; i++) {
         g_game->panelTop[i] = 0;
     }
-    g_game->field_148ef = g_game->fxGaf = g_game->igTitles =
+    g_game->gafAnimClearedSlot = g_game->fxGaf = g_game->igTitles =
         g_game->vismasks = g_game->fog = g_game->cursors = 0;
 }
 
@@ -794,7 +794,7 @@ void __stdcall ComputeUnitScriptChecksum(Def_0042a610* def)
     if (def->field_142)
         return;
 
-    ProtectBlockReadWrite(g_game->field_1439b);
+    ProtectBlockReadWrite(g_game->unitDefs);
 
     char path[256];
     int size;
@@ -837,7 +837,7 @@ void __stdcall ComputeUnitScriptChecksum(Def_0042a610* def)
     }
 
     def->field_142 ^= def->field_146;
-    ProtectBlockReadOnly(g_game->field_1439b);
+    ProtectBlockReadOnly(g_game->unitDefs);
 }
 
 // The compiler-generated vector deleting destructor of the 12-byte class whose

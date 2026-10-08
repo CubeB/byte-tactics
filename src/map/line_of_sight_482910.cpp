@@ -51,7 +51,7 @@ struct Game {
     char debugMode;
     unsigned char flags;               // +0x14281
     char unknown_14282[0x1485b - 0x14282];
-    Table_482910* field_1485b;         // +0x1485b
+    Table_482910* losTable;            // +0x1485b
     char unknown_1485f[0x38a47 - 0x1485f];
     unsigned int ticks;                // +0x38a47
 };
@@ -90,12 +90,12 @@ void __stdcall AddEyeball(Vec3_482910* src, int a, int b, int c)
                 int lod = e->x / 32 - 5;
                 if (lod < 0) {
                     lod = 0;
-                } else if (lod >= g_game->field_1485b->count) {
-                    lod = g_game->field_1485b->count - 1;
+                } else if (lod >= g_game->losTable->count) {
+                    lod = g_game->losTable->count - 1;
                 }
                 int cell_x = e->pos.x / 0x200000;
                 int cell_y = e->pos.z / 0x200000 - ((short*)&e->pos.y)[1] / 64;
-                Entry_482910* ce = GetGafFrame((unsigned short*)g_game->field_1485b, lod);
+                Entry_482910* ce = GetGafFrame((unsigned short*)g_game->losTable, lod);
                 cell_x -= ce->field_4;
                 cell_y -= ce->field_6;
                 e->screen->x = (short)cell_x;

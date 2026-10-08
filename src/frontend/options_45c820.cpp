@@ -33,7 +33,7 @@ struct Game {
     int volume1;                       // +0x37f0c
     int volume2;                       // +0x37f10
     char unknown_37f14[0x37f17 - 0x37f14];
-    unsigned char field_37f17;         // +0x37f17
+    unsigned char unitChat;            // +0x37f17
     char unknown_37f18[0x37f19 - 0x37f18];
     unsigned short field_37f19;        // +0x37f19
 };
@@ -61,7 +61,7 @@ void RestoreSoundOptions()
     else
         g_game->sound->Disable3D();
     g_game->field_37f19 = (g_game->field_37f19 & ~7) | (g_optionsBackupSoundFlags & 7);
-    g_game->field_37f17 = g_optionsBackupUnitChat;
+    g_game->unitChat = g_optionsBackupUnitChat;
     SetBrightness(0.5 - g_game->brightness * -0.041666668f);
     ((Class_004d0070*)g_game->sound)->SetWaveVolume(g_game->volume1 << 10);
     ((Class_004d00d0*)g_game->sound)->SetAuxVolume(g_game->volume2 << 10, 0);

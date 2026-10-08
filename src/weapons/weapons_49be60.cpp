@@ -137,7 +137,7 @@ struct Game {
     char unknown_147f7[0x1480f - 0x147f7];
     void* gaf_1480f;                   // +0x1480f
     char unknown_14813[0x1ab9b - 0x14813];
-    void* field_1ab9b;                 // +0x1ab9b
+    void* explosionLensFrame;          // +0x1ab9b
     char unknown_1ab9f[0x37e27 - 0x1ab9f];
     char field_37e27[0x38a47 - 0x37e27];
     int time;                          // +0x38a47
@@ -272,7 +272,7 @@ void __stdcall DrawProjectiles(void* surface)
                              - (short)g_game->scrollY + 0x20;
                     if (PointInRect(g_game->field_37e27, sx, sy) == 0)
                         return;
-                    DrawLens(surface, g_game->field_1ab9b, sx, sy);
+                    DrawLens(surface, g_game->explosionLensFrame, sx, sy);
                 } else if (type->field_10c == 3) {
                     sp.x = pos->x - (g_game->scrollX << 16);
                     sp.y = p->pos.y;

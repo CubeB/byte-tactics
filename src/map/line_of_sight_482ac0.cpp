@@ -48,7 +48,7 @@ struct Game {
     char debugMode;
     unsigned char field_14281;          // +0x14281
     char unknown_14282[0x1485b - 0x14282];
-    Cell_482ac0* field_1485b;           // +0x1485b
+    Cell_482ac0* losTable;              // +0x1485b
 };
 #pragma pack(pop)
 
@@ -93,12 +93,12 @@ void __stdcall RevealNewUnit(Unit* unit)
             int i = p.field_8 / 32 - 5;
             if (i < 0) {
                 i = 0;
-            } else if (i >= g_game->field_1485b->count) {
-                i = g_game->field_1485b->count - 1;
+            } else if (i >= g_game->losTable->count) {
+                i = g_game->losTable->count - 1;
             }
             int cell_x = p.pos.x / 0x200000;
             int cell_y = p.pos.z / 0x200000 - ((short*)&p.pos.y)[1] / 64;   // high half of y
-            Entry_482ac0* e = (Entry_482ac0*)GetGafFrame((unsigned short*)g_game->field_1485b, i);
+            Entry_482ac0* e = (Entry_482ac0*)GetGafFrame((unsigned short*)g_game->losTable, i);
             cell_x -= e->field_4;
             cell_y -= e->field_6;
             p.field_4[0] = (short)cell_x;

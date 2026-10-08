@@ -223,7 +223,7 @@ struct Game {
     char unknown_14393[0x1439b - 0x14393];
     Def_00409730* defs;                // +0x1439b
     char unknown_1439f[0x37ec8 - 0x1439f];
-    int field_37ec8;                   // +0x37ec8
+    int windSpeedDenominator;          // +0x37ec8
 };
 
 struct Player_00409730 {
@@ -350,7 +350,7 @@ void PlayerAI::ComputeBaseWeights()
             x = 0;
         if (flags.flag_24)
             x = 0;
-        if (def->field_1d2 != 0.0f && g_game->windSpeedMax < g_game->field_37ec8 / 2)
+        if (def->field_1d2 != 0.0f && g_game->windSpeedMax < g_game->windSpeedDenominator / 2)
             x = 0;
         x = min(x, 100);
         e->a = x;

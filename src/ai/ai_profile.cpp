@@ -10,7 +10,7 @@
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x1439b];
-    void* field_1439b;                 // +0x1439b
+    void* unitDefs;                    // +0x1439b
     char unknown_1439f[0x24e4a];
     Mission* field_391e9;              // +0x391e9
 };
@@ -171,11 +171,11 @@ void AIProfileParser::ReportParseError(char* text)
 // FUNCTION: 0x428fc0
 void ProtectUnitDefsReadOnly()
 {
-    ProtectBlockReadOnly(g_game->field_1439b);
+    ProtectBlockReadOnly(g_game->unitDefs);
 }
 
 // FUNCTION: 0x428fe0
 void ProtectUnitDefsReadWrite()
 {
-    ProtectBlockReadWrite(g_game->field_1439b);
+    ProtectBlockReadWrite(g_game->unitDefs);
 }

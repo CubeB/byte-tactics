@@ -382,12 +382,12 @@ struct Game {
     char unknown_1434e[0x1437b - 0x1434e];
     CMemoryCache* ptr_1437b;           // +0x1437b
     char unknown_1437f[0x37e1b - 0x1437f];
-    void* field_37e1b;                 // +0x37e1b
+    void* screen;                      // +0x37e1b
     char unknown_37e1f[0x37e98 - 0x37e1f];
     int field_37e98;                   // +0x37e98
     char unknown_37e9c[0x37ebe - 0x37e9c];
     union {
-        unsigned char field_37ebe;     // +0x37ebe
+        unsigned char ordersPanelFlags;  // +0x37ebe
         Flags37ebe_0045cf60 flags_37ebe;
     };
     char unknown_37ec0[0x37ee6 - 0x37ec0];
@@ -399,7 +399,7 @@ struct Game {
             int difficulty;            // +0x37eee
             char unknown_37ef2[0x37ef6 - 0x37ef2];
             int commanderDeath;        // +0x37ef6
-            int field_37efa;           // +0x37efa
+            int interfaceType;         // +0x37efa
             char unknown_37efe[0x37f06 - 0x37efe];
             union {
                 unsigned short flags;  // +0x37f06
@@ -432,9 +432,9 @@ struct Game {
                     char unknown_37f15;
                 };
             };
-            unsigned char field_37f16; // +0x37f16
-            unsigned char field_37f17; // +0x37f17
-            unsigned char field_37f18; // +0x37f18
+            unsigned char cdMode; // +0x37f16
+            unsigned char unitChat; // +0x37f17
+            unsigned char unitChatText; // +0x37f18
             SoundFlags_0045cf60 soundFlags; // +0x37f19
             int width;                 // +0x37f1b
             int height;                // +0x37f1f
@@ -1625,7 +1625,7 @@ void UpdateTrackGadgets()
     if (FindGadgetIndex(menu->holder->entries, "TRACKTYPE", 1) != -1) {
         int disc = g_musicUiSelectedTrack;
         SetGrayedOutByName(menu, "TRACKTYPE",
-                     ((g_game->f_37f14 & 1) && g_game->field_37f16 == 4) ? 0 : 1);
+                     ((g_game->f_37f14 & 1) && g_game->cdMode == 4) ? 0 : 1);
         SetButtonStageByName(menu, "TRACKTYPE", ((Class_004ce7e0*)g_game->sound)->GetCategoryOfTrack(disc));
         if (disc == 0)
             strcpy(buf, "NO DISC");
@@ -1634,7 +1634,7 @@ void UpdateTrackGadgets()
         SetTranslatedTextByName(menu, "TRACKNUM", buf, 0);
     }
     SetGadgetGrayedOutByName(menu, "TRACKNUM", (char)(~g_game->f_37f14) & 1);
-    if (g_game->field_37f16 == 3) {
+    if (g_game->cdMode == 3) {
         // the track number is re-read from the global here, not taken from disc
         int track = g_musicUiSelectedTrack;
         ((Class_004ce580*)g_game->sound)->SetLockedTrack(track);
@@ -1647,7 +1647,7 @@ void UpdateTrackGadgets()
 void ApplyTrackType()
 {
     Entry_0045b800* gadgets = g_game->menu.holder->entries;
-    if (g_game->field_37f16 == 4) {
+    if (g_game->cdMode == 4) {
         int index = FindGadgetIndex(gadgets, "TRACKTYPE", 1);
         ((Class_004ce7c0*)g_game->sound)->SetCategoryOfTrack(g_musicUiSelectedTrack, gadgets[index].value);
     }
@@ -1665,7 +1665,7 @@ void ApplyDefaultSoundOptions()
     g_game->soundFlags.bits.speech = 1;
     g_game->sound->Disable3D();
     g_game->soundFlags.word = (g_game->soundFlags.word & 0xfff9) | 1;
-    g_game->field_37f17 = 10;
+    g_game->unitChat = 10;
     SetBrightness(0.5 - g_game->brightness * -0.041666668f);
     ((Class_004d0070*)g_game->sound)->SetWaveVolume(g_game->volume1 << 10);
     ((Class_004d00d0*)g_game->sound)->SetAuxVolume(g_game->volume2 << 10, 0);
@@ -1678,7 +1678,7 @@ void ApplyDefaultSoundOptions()
 void ApplyDefaultMusicOptions()
 {
     g_game->volume2 = 0x20;
-    g_game->field_37f16 = 4;
+    g_game->cdMode = 4;
     if (!(g_game->flags14 & 1)) {
         g_game->flags14 |= 1;
         ((Class_004cdb40*)g_game->sound)->PlayNextTrack();
@@ -1694,9 +1694,9 @@ void ApplyDefaultUiOptions()
     g_game->field_38a4b = 10;
     g_game->field_38a4d = 10;
     g_game->scrollSpeed = 0x20;
-    g_game->field_37efa = 0;
-    g_game->field_37f17 = 10;
-    g_game->field_37f18 = 5;
+    g_game->interfaceType = 0;
+    g_game->unitChat = 10;
+    g_game->unitChatText = 5;
 }
 
 // Sets the five share flag bits in the flags word at +0x37f06, sets the
@@ -1729,8 +1729,8 @@ void LoadSavedAudioSettings()
 {
     g_game->volume2 = g_optionsBackupMusicVolume;
     ((Class_004ce3e0*)g_game->sound)->CopyTrackTypeTable(&g_optionsBackupTrackTypes);
-    g_game->field_37f16 = g_optionsBackupCdMode;
-    ((Class_004ce7a0*)g_game->sound)->SetPlaybackOrder(g_game->field_37f16);
+    g_game->cdMode = g_optionsBackupCdMode;
+    ((Class_004ce7a0*)g_game->sound)->SetPlaybackOrder(g_game->cdMode);
     if (((unsigned char)g_game->flags14 ^ (unsigned char)g_optionsBackupMusicMode.i) & 1) {
         ((Class_004cdb40*)g_game->sound)->PlayNextTrack();
     }
@@ -1749,9 +1749,9 @@ void RestoreUiOptions()
     g_game->field_38a4b = g_optionsBackupGameSpeed.i;
     g_game->field_38a4d = g_optionsBackupGameSpeed.i;
     g_game->scrollSpeed = g_optionsBackupEdgeScroll.i;
-    g_game->field_37efa = g_optionsBackupInterfaceType;
-    g_game->field_37f17 = g_optionsBackupUnitChat;
-    g_game->field_37f18 = g_optionsBackupUnitChatText;
+    g_game->interfaceType = g_optionsBackupInterfaceType;
+    g_game->unitChat = g_optionsBackupUnitChat;
+    g_game->unitChatText = g_optionsBackupUnitChatText;
     g_game->field_37f27 = g_optionsBackupTextLines;
 }
 
@@ -1795,8 +1795,8 @@ void LoadSavedSettings()
     RestoreSoundOptions();
     g_game->volume2 = g_optionsBackupMusicVolume;
     ((Class_004ce3e0*)g_game->sound)->CopyTrackTypeTable(&g_optionsBackupTrackTypes);
-    g_game->field_37f16 = g_optionsBackupCdMode;
-    ((Class_004ce7a0*)g_game->sound)->SetPlaybackOrder(g_game->field_37f16);
+    g_game->cdMode = g_optionsBackupCdMode;
+    ((Class_004ce7a0*)g_game->sound)->SetPlaybackOrder(g_game->cdMode);
     if (((unsigned char)g_game->flags14 ^ (unsigned char)g_optionsBackupMusicMode.i) & 1) {
         ((Class_004cdb40*)g_game->sound)->PlayNextTrack();
     }
@@ -1810,9 +1810,9 @@ void LoadSavedSettings()
     g_game->field_38a4b = g_optionsBackupGameSpeed.i;
     g_game->field_38a4d = g_optionsBackupGameSpeed.i;
     g_game->scrollSpeed = g_optionsBackupEdgeScroll.i;
-    g_game->field_37efa = g_optionsBackupInterfaceType;
-    g_game->field_37f17 = g_optionsBackupUnitChat;
-    g_game->field_37f18 = g_optionsBackupUnitChatText;
+    g_game->interfaceType = g_optionsBackupInterfaceType;
+    g_game->unitChat = g_optionsBackupUnitChat;
+    g_game->unitChatText = g_optionsBackupUnitChatText;
     g_game->field_37f27 = g_optionsBackupTextLines;
     RestoreVisualOptions();
 }
@@ -1846,7 +1846,7 @@ void EnsureOptionsPanelGadget()
 {
     Entry_0045b800* entries = g_game->menu.holder->entries;
     int index = FindGadgetIndex(entries, "PANEL", 0xe);
-    if (g_game->field_37ebe & 1) {
+    if (g_game->ordersPanelFlags & 1) {
         entries->width += 0x96;
         if (index == -1) {
             short c = entries->count;
@@ -1878,7 +1878,7 @@ void BlitOptionsPanel()
     RenderLayer((Sub_0045cf60*)&g_game->gui, 0x40);
     MarkChanged((Sub_0045cf60*)&g_game->gui);
     BlitMenuLayers((Sub_0045cf60*)&g_game->gui, 0, 0);
-    SetOffscreenSurface(g_game->field_37e1b);
+    SetOffscreenSurface(g_game->screen);
     FlipScreen();
 }
 
@@ -1922,7 +1922,7 @@ void TickMusicOptions()
 void UpdateMusicGadgets()
 {
     SetButtonStageByName((Class_004a1080*)&g_game->gui, "NOTRAK", g_game->flags_37f14.notrak & 1);
-    SetButtonStageByName((Class_004a1080*)&g_game->gui, "TRACKMODE", g_game->field_37f16 - 1);
+    SetButtonStageByName((Class_004a1080*)&g_game->gui, "TRACKMODE", g_game->cdMode - 1);
     SetGadgetGrayedOutByName((Object_004a1450*)&g_game->gui, "MUSICVOL", (char)(~g_game->flags_37f14.notrak & 1));
     SetGrayedOutByName((Dialog*)&g_game->gui, "CDPREV", (char)(~g_game->flags_37f14.notrak & 1));
     SetGrayedOutByName((Dialog*)&g_game->gui, "CDSTOP", (char)(~g_game->flags_37f14.notrak & 1));
@@ -1931,7 +1931,7 @@ void UpdateMusicGadgets()
     SetGrayedOutByName((Dialog*)&g_game->gui, "TRACKMODE", (char)(~g_game->flags_37f14.notrak & 1));
     // Spelled as one negated test, not an if/else with a call in each arm:
     // MSVC then materialises the value in a register instead of pushing 0/1.
-    SetGrayedOutByName((Dialog*)&g_game->gui, "TRACKTYPE", !((g_game->flags_37f14.notrak & 1) && g_game->field_37f16 == 4));
+    SetGrayedOutByName((Dialog*)&g_game->gui, "TRACKTYPE", !((g_game->flags_37f14.notrak & 1) && g_game->cdMode == 4));
 }
 
 // FUNCTION: 0x45d280
@@ -1961,15 +1961,15 @@ void __stdcall HandleMusicOptionsClick(Object_0045d280* obj)
         UpdateMusicGadgets();
     } else if (IsCurrentGadgetNamed(obj, g_trackModeGadgetName)) {  // "TRACKMODE"
         PlaySoundByName(g_optionsSoundName, 0);
-        g_game->field_37f16 = GetButtonStageByName(obj, g_trackModeGadgetName) + 1;
-        ((Class_004ce7a0*)g_game->sound)->SetPlaybackOrder(g_game->field_37f16);
-        if (g_game->field_37f16 == 3) {
+        g_game->cdMode = GetButtonStageByName(obj, g_trackModeGadgetName) + 1;
+        ((Class_004ce7a0*)g_game->sound)->SetPlaybackOrder(g_game->cdMode);
+        if (g_game->cdMode == 3) {
             g_musicUiSelectedTrack = ((Class_004ce5a0*)g_game->sound)->GetLockedTrack();
             ClearSelectedGadget(obj);
             UpdateTrackGadgets();
             return;
         }
-        if (g_game->field_37f16 == 4) {
+        if (g_game->cdMode == 4) {
             SetButtonStageByName(obj, g_trackTypeGadgetName, (unsigned char)((Class_004ce7e0*)g_game->sound)->GetCategoryOfTrack(g_musicUiSelectedTrack));
             ApplyTrackType();
         }
@@ -2076,12 +2076,12 @@ void OpenMusicOptions()
         e->pos = (short)f;
     }
     UpdateMusicGadgets();
-    if (g_game->field_37f16 == 3) {
+    if (g_game->cdMode == 3) {
         g_musicUiSelectedTrack = ((Class_004ce5a0*)g_game->sound)->GetLockedTrack();
     }
     UpdateTrackGadgets();
     Gadget_0045d7c0* gadgets = ((Holder_0045d7c0*)g_game->gui.holder)->gadgets;
-    if (g_game->field_37f16 == 4) {
+    if (g_game->cdMode == 4) {
         int index = FindGadgetIndex(gadgets, "TRACKTYPE", 1);
         ((Class_004ce7c0*)g_game->sound)->SetCategoryOfTrack(g_musicUiSelectedTrack, gadgets[index].value);
     }
@@ -2114,7 +2114,7 @@ void __stdcall HandleSoundOptionsClick(Object_0045da90* obj)
     if (IsCurrentGadgetNamed(obj, g_speechGadgetName)) {
         PlaySoundByName(g_optionsSoundName, 0);
         g_game->soundFlags.bits.speech = entries[obj->field_60].value != 0;
-        g_game->field_37f17 = entries[obj->field_60].value * 5;
+        g_game->unitChat = entries[obj->field_60].value * 5;
         ClearSelectedGadget(obj);
     } else if (IsCurrentGadgetNamed(obj, g_modeGadgetName)) {
         int v = GetButtonStageByName(obj, g_modeGadgetName);
@@ -2151,7 +2151,7 @@ void __stdcall HandleSoundOptionsClick(Object_0045da90* obj)
         g_game->soundFlags.bits.speech = 1;
         g_game->sound->Disable3D();
         g_game->soundFlags.word = (g_game->soundFlags.word & 0xfff9) | 1;
-        g_game->field_37f17 = 10;
+        g_game->unitChat = 10;
         SetBrightness(0.5 - g_game->brightness * -0.041666668f);
         ((Class_004d0070*)g_game->sound)->SetWaveVolume(g_game->volume1 << 10);
         ((Class_004d00d0*)g_game->sound)->SetAuxVolume(g_game->volume2 << 10, 0);
@@ -2214,7 +2214,7 @@ void OpenSoundOptions()
         if (obj->entries[i].type == 4)
             obj->entries[i].fn(&g_game->gui, 0);
     }
-    SetButtonStageByName(&g_game->gui, "SPEECH", g_game->soundFlags.bits.speech ? g_game->field_37f17 / 5 : 0);
+    SetButtonStageByName(&g_game->gui, "SPEECH", g_game->soundFlags.bits.speech ? g_game->unitChat / 5 : 0);
     SetButtonStageByName(&g_game->gui, "MODE", g_game->soundFlags.word & 7);
     SetGadgetActiveByName(&g_game->gui, "VOLTEXT", (g_game->soundFlags.word & 7) != 0);
     SetGadgetGrayedOutByName(&g_game->gui, "FXVOL", (g_game->soundFlags.word & 7) == 0);
@@ -2474,14 +2474,14 @@ void __stdcall HandleSpeedOptionsClick(Gadget_0045ead0* gadget)
     }
     if (IsCurrentGadgetNamed((Gadget_0045ead0*)&g_game->gui, "LEFTCLICK")) {
         PlaySoundByName("Options", 0);
-        g_game->field_37efa = GetButtonStageByName((Gadget_0045ead0*)&g_game->gui, "LEFTCLICK");
+        g_game->interfaceType = GetButtonStageByName((Gadget_0045ead0*)&g_game->gui, "LEFTCLICK");
         ClearSelectedGadget(gadget);
         return;
     }
     if (IsCurrentGadgetNamed((Gadget_0045ead0*)&g_game->gui, "UNITCHAT")) {
         PlaySoundByName("Options", 0);
         ClearSelectedGadget(gadget);
-        g_game->field_37f18 = (unsigned char)(GetButtonStageByName((Gadget_0045ead0*)&g_game->gui, "UNITCHAT") * 5);
+        g_game->unitChatText = (unsigned char)(GetButtonStageByName((Gadget_0045ead0*)&g_game->gui, "UNITCHAT") * 5);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "UNDO")) {
@@ -2490,9 +2490,9 @@ void __stdcall HandleSpeedOptionsClick(Gadget_0045ead0* gadget)
         g_game->field_38a4b = g_optionsBackupGameSpeed.s;
         g_game->field_38a4d = g_optionsBackupGameSpeed.s;
         g_game->scrollSpeed = g_optionsBackupEdgeScroll.b;
-        g_game->field_37efa = g_optionsBackupInterfaceType;
-        g_game->field_37f17 = g_optionsBackupUnitChat;
-        g_game->field_37f18 = g_optionsBackupUnitChatText;
+        g_game->interfaceType = g_optionsBackupInterfaceType;
+        g_game->unitChat = g_optionsBackupUnitChat;
+        g_game->unitChatText = g_optionsBackupUnitChatText;
         g_game->field_37f27 = g_optionsBackupTextLines;
         CloseTopScreen(gadget);
         OpenSpeedOptions();
@@ -2505,9 +2505,9 @@ void __stdcall HandleSpeedOptionsClick(Gadget_0045ead0* gadget)
         g_game->field_38a4b = 10;
         g_game->field_38a4d = 10;
         g_game->scrollSpeed = 0x20;
-        g_game->field_37efa = 0;
-        g_game->field_37f17 = 10;
-        g_game->field_37f18 = 5;
+        g_game->interfaceType = 0;
+        g_game->unitChat = 10;
+        g_game->unitChatText = 5;
         CloseTopScreen(gadget);
         OpenSpeedOptions();
         return;
@@ -2571,8 +2571,8 @@ void OpenSpeedOptions()
         e->pos = (short)f;
         e->fn = HandleScreenSlider;
     }
-    SetButtonStageByName(&g_game->gui, "UNITCHAT", g_game->field_37f18 / 5);
-    SetButtonStageByName(&g_game->gui, "LEFTCLICK", g_game->field_37efa);
+    SetButtonStageByName(&g_game->gui, "UNITCHAT", g_game->unitChatText / 5);
+    SetButtonStageByName(&g_game->gui, "LEFTCLICK", g_game->interfaceType);
     char text[20];
     sprintf(text, g_game->field_37f27 ? "%d" : "None", g_game->field_37f27);
     SetTranslatedTextByName(&g_game->gui, "MAXLINESTEXT", text, 0);
@@ -2847,7 +2847,7 @@ void ClearScreenWithHudPalette()
 
     memset(palette, 0, sizeof(palette));
     SetPaletteColors(palette, 0, 0x100);
-    SetOffscreenSurface((int)g_game->field_37e1b);
+    SetOffscreenSurface((int)g_game->screen);
     if (LockScreen(&screen)) {
         FillSurface(&screen, g_game->gui.field_dcb);
         UnlockScreen(&screen);
@@ -2877,7 +2877,7 @@ void __stdcall HandleOptionsPanelClick(Gadget_0045fc60* gadget)
             RenderLayer((char*)&g_game->gui, 0x40);
             MarkChanged((char*)&g_game->gui);
             BlitMenuLayers((char*)&g_game->gui, 0, 0);
-            SetOffscreenSurface((int)g_game->field_37e1b);
+            SetOffscreenSurface((int)g_game->screen);
             FlipScreen();
         }
         if (IsCurrentGadgetNamed(gadget, "SPEEDS")) {
@@ -2899,8 +2899,8 @@ void __stdcall HandleOptionsPanelClick(Gadget_0045fc60* gadget)
             RestoreSoundOptions();
             g_game->volume2 = g_optionsBackupMusicVolume;
             ((Class_004ce3e0*)g_game->sound)->CopyTrackTypeTable(&g_optionsBackupTrackTypes);
-            g_game->field_37f16 = g_optionsBackupCdMode;
-            ((Class_004ce7a0*)g_game->sound)->SetPlaybackOrder(g_game->field_37f16);
+            g_game->cdMode = g_optionsBackupCdMode;
+            ((Class_004ce7a0*)g_game->sound)->SetPlaybackOrder(g_game->cdMode);
             if (((unsigned char)g_game->flags_37f14.word ^ (unsigned char)g_optionsBackupMusicMode.s) & 1) {
                 ((Class_004cdb40*)g_game->sound)->PlayNextTrack();
             }
@@ -2914,9 +2914,9 @@ void __stdcall HandleOptionsPanelClick(Gadget_0045fc60* gadget)
             g_game->field_38a4b = g_optionsBackupGameSpeed.i;
             g_game->field_38a4d = g_optionsBackupGameSpeed.i;
             g_game->scrollSpeed = g_optionsBackupEdgeScroll.b;
-            g_game->field_37efa = g_optionsBackupInterfaceType;
-            g_game->field_37f17 = g_optionsBackupUnitChat;
-            g_game->field_37f18 = g_optionsBackupUnitChatText;
+            g_game->interfaceType = g_optionsBackupInterfaceType;
+            g_game->unitChat = g_optionsBackupUnitChat;
+            g_game->unitChatText = g_optionsBackupUnitChatText;
             g_game->field_37f27 = g_optionsBackupTextLines;
             RestoreVisualOptions();
             g_optionsShellClosing = 1;

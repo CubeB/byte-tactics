@@ -95,7 +95,7 @@ struct Game {
     Unit* units;                       // +0x14357
     Unit* units_end;                   // +0x1435b
     char unknown_1435f[0x1485b - 0x1435f];
-    Cell_004816a0* field_1485b;        // +0x1485b
+    Cell_004816a0* losTable;           // +0x1485b
 };
 #pragma pack(pop)
 
@@ -143,15 +143,15 @@ void __stdcall RecalculateLineOfSight(int arg)
                 int i = params.field_8 / 32 - 5;
                 if (i < 0)
                     i = 0;
-                else if (i >= g_game->field_1485b->count)
-                    i = g_game->field_1485b->count - 1;
+                else if (i >= g_game->losTable->count)
+                    i = g_game->losTable->count - 1;
                 // The original reads this as a 16 bit load of the high word of
                 // pos.y, so it is spelled as one here; a plain shift of pos.y
                 // would be a 32 bit load plus `sar`.
                 int y = ((short*)&params.pos.y)[1] / 64;
                 int cx = params.pos.x / 0x200000;
                 int cy = params.pos.z / 0x200000 - y;
-                Entry_004816a0* e = GetGafFrame(g_game->field_1485b, i);
+                Entry_004816a0* e = GetGafFrame(g_game->losTable, i);
                 // Full 32 bit subtractions, truncated only at the stores.
                 int vx = cx - e->field_4;
                 int vz = cy - e->field_6;

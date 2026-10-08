@@ -220,7 +220,7 @@ struct Game {
     int viewWidth;                             // +0x37e37
     int viewHeight;                            // +0x37e3b
     char unknown_37e3f[0x37e9c - 0x37e3f];
-    unsigned short field_37e9c;                // +0x37e9c
+    unsigned short unitIndex;                  // +0x37e9c
     char unknown_37e9e[0x37ebe - 0x37e9e];
     union {
         unsigned short word_37ebe;
@@ -398,7 +398,7 @@ void MainLoopTick()
     // The bit 4 tests read the bitfield from memory, not a shift of the flags copy.
     if ((flags & 0x800) || (flags & 0x65) || g_game->flags_2bee) {
         if (g_game->bit4_37ebe)
-            g_game->field_37e9c = 0;
+            g_game->unitIndex = 0;
     } else {
         if (g_game->bit4_37ebe) {
             g_game->bit4_37ebe = 0;

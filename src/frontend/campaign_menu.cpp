@@ -184,12 +184,12 @@ struct Game {
     char unknown_2a43[0x2bc0 - 0x2a43];
     unsigned char frontendSubstateRequest;  // +0x2bc0
     char unknown_2bc1[0x37e1b - 0x2bc1];
-    int field_37e1b;                   // +0x37e1b
+    int screen;                        // +0x37e1b
     char unknown_37e1f[0x37eee - 0x37e1f];
     int difficulty;                    // +0x37eee
     union {                            // +0x37ef2
         int flag_37ef2;
-        unsigned char field_37ef2;
+        unsigned char side;
     };
     char unknown_37ef6[0x37f39 - 0x37ef6];
     int count;                         // +0x37f39, the sides
@@ -329,7 +329,7 @@ void __stdcall DrawBitmapBackground(char* name, int lock)
     BuildDataPath(path, "bitmaps", name, "PCX");
     image = LoadBitmapByName(name, palette);
     SetPaletteColors(palette, 0, 0x100);
-    SetOffscreenSurface(g_game->field_37e1b);
+    SetOffscreenSurface(g_game->screen);
     DrawSurface(0, image, 0, 0);
     FreeSurface(image);
     if (lock) {
@@ -518,10 +518,10 @@ void InitBriefingText()
         Gadget* gadgets = g_game->menu.layer->entries;
         int i = FindGadgetIndex(gadgets, "SOLARSYSTEM", 0xe);
         if (i != -1) {
-            gadgets[i].field_28 = g_game->field_37ef2 + 1;
+            gadgets[i].field_28 = g_game->side + 1;
         }
         int j = FindGadgetIndex(gadgets, "TextRegion", 0xe);
-        gadgets[j].field_28 = g_game->field_37ef2 + 1;
+        gadgets[j].field_28 = g_game->side + 1;
         SelectFontForEntry(gadgets, j);
         g_briefingPaginateReset = 1;
         g_briefingWrappedText = WordWrapText(&g_game->menu, text, gadgets[j].w, j);

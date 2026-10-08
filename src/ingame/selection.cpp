@@ -202,7 +202,7 @@ struct Game {
     char unknown_1437b[0x37e27 - 0x1437b];
     Rect rect;                         // +0x37e27
     char unknown_37e37[0x37e9c - 0x37e37];
-    unsigned short field_37e9c;        // +0x37e9c
+    unsigned short unitIndex;          // +0x37e9c
     char unknown_37e9e[0x37ebe - 0x37e9e];
     Orders_37ebe orders;               // +0x37ebe
     char unknown_37ec0[0x37f5f - 0x37ec0];
@@ -318,7 +318,7 @@ void SelectAllIdleUnits(void)
             if ((u->flags.raw & 0x20) && u->buildLeft == 0.0f && u->postTransferHoldoff == 0
                 && (u->owner == 0 || (u->owner->flags.raw & 0x40000000))) {
                 u->flags.raw |= 0x10;
-                g_game->field_37e9c = 0;
+                g_game->unitIndex = 0;
             }
             u = (Unit*)((char*)u + 0x118);
         } while (u <= pl->unitsEnd);
@@ -374,7 +374,7 @@ void SelectUnitsOfSameTypes(void)
             }
         }
     }
-    g_game->field_37e9c = 0;
+    g_game->unitIndex = 0;
     SelectStopOrder();
     g_game->orders.bit4 = 1;
 }
@@ -405,7 +405,7 @@ void __stdcall SelectUnitsByCategory(char* name, int param_2)
             }
         }
     }
-    g_game->field_37e9c = 0;
+    g_game->unitIndex = 0;
     SelectStopOrder();
     g_game->orders.bit4 = 1;
 }
@@ -436,7 +436,7 @@ void SelectAllVisibleUnits(void)
     }
     if (found) {
         SelectStopOrder();
-        g_game->field_37e9c = 0;
+        g_game->unitIndex = 0;
         g_game->orders.byte |= 0x10;
     }
 }
@@ -557,7 +557,7 @@ int __stdcall SelectUnitsInBox(void* param_1)
             if (u->flags.selected) { last = u; count++; }
         }
     }
-    g_game->field_37e9c = 0;
+    g_game->unitIndex = 0;
     for (Unit* v = g_game->units; v <= g_game->unitsEnd; v++)
         v->flags.raw &= 0xffffff3f;
     unsigned short* list = g_game->list;
@@ -653,7 +653,7 @@ void __stdcall ClickSelectHoverUnit(Param_0048c7f0* param)
         unit->flags.selected = !unit->flags.selected;
         if (unit->flags.selected)
             QueueUnitSpeech(unit, 1, 0);
-        g_game->field_37e9c = 0;
+        g_game->unitIndex = 0;
         g_game->orders.flags |= 0x10;
         return;
     }
@@ -680,7 +680,7 @@ void __stdcall DeselectIfIneligible(Unit* unit)
         if (!(flags & 0x20) || unit->buildLeft != 0.0f || unit->postTransferHoldoff != 0
             || (unit->owner != 0 && !(unit->owner->flags.raw & 0x40000000))) {
             unit->flags.raw = flags & ~0x10;
-            g_game->field_37e9c = 0;
+            g_game->unitIndex = 0;
             g_game->orders.byte |= 0x10;
         }
     }
@@ -713,7 +713,7 @@ void __stdcall DrawOrderOverlays(Unit* unit, int mask, void* obj,
 void __stdcall DrawSelectedUnitOrderOverlays(void* obj, Unit** sel)
 {
     Player* team = &g_game->players[g_game->player];
-    Unit* sel1unit = !g_game->field_37e9c ? 0 : &g_game->units[g_game->field_37e9c];
+    Unit* sel1unit = !g_game->unitIndex ? 0 : &g_game->units[g_game->unitIndex];
     Unit* sel2unit = !g_game->hoverUnitId ? 0 : &g_game->units[g_game->hoverUnitId];
     Unit* selunit = *sel;
     bool flag = (selunit && selunit->def->ids)
@@ -721,7 +721,7 @@ void __stdcall DrawSelectedUnitOrderOverlays(void* obj, Unit** sel)
         || (sel2unit && sel2unit->def->ids);
     for (Unit* u = team->unitsBegin; u <= team->unitsEnd; u++) {
         if ((u->flags.raw & 0x10000000) && !(u->flags.raw & 0x4000)) {
-            if (u == *sel || u->id == g_game->field_37e9c || u->id == g_game->hoverUnitId)
+            if (u == *sel || u->id == g_game->unitIndex || u->id == g_game->hoverUnitId)
                 DrawOrderOverlays(u, 0x1f, obj, sel, 1);
             else if (u->flags.selected)
                 DrawOrderOverlays(u, 0x1f, obj, sel, 0);
@@ -1014,7 +1014,7 @@ void __stdcall CycleSelection(void)
                     Unit* owner = u->owner;
                     if (owner == 0 || (owner->flags.raw & 0x40000000)) {
                         u->flags.raw |= flag;
-                        g_game->field_37e9c = 0;
+                        g_game->unitIndex = 0;
                         goto done;
                     }
                 }
@@ -1110,7 +1110,7 @@ select_units:
         }
     }
     SelectStopOrder();
-    g_game->field_37e9c = 0;
+    g_game->unitIndex = 0;
     g_game->orders.bit4 = 1;
     return cnt > 0;
 }

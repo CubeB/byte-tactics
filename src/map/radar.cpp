@@ -313,9 +313,9 @@ struct Game {
     char unknown_14367[0x1436b - 0x14367];
     int hotRadarCount;                   // +0x1436b
     char unknown_1436f[0x147df - 0x1436f];
-    void* field_147df;                   // +0x147df
-    void* field_147e3;                   // +0x147e3
-    void* field_147e7;                   // +0x147e7
+    void* radlogo;                       // +0x147df
+    void* radlogohigh;                   // +0x147e3
+    void* nuclogo;                       // +0x147e7
     char unknown_147eb[0x37f2f - 0x147eb];
     Flags14281_00466dc0 field_37f2f;     // +0x37f2f
 };
@@ -639,13 +639,13 @@ void DrawRadarUnits(void)
                     if (u->recentlyDamagedTimer == 0 ||
                         (g_game->timer.byte.field_142f0.b.hi & 1) != 0) {
                         DrawFrame(surface,
-                            GetGafFrame(g_game->field_147df,
+                            GetGafFrame(g_game->radlogo,
                                 PlayerInfo_00466dc0_Get(u->playerIndex)->data->field_96),
                             x, y);
                     }
                     if (u->id == g_game->hoverUnitId) {
                         DrawFrame(surface,
-                            GetGafFrame(g_game->field_147e3, 0), x, y);
+                            GetGafFrame(g_game->radlogohigh, 0), x, y);
                     }
                     if (u->flags_110.bits.bit4) {
                         if ((u->activateFlags & 1) != 0 ||
@@ -720,7 +720,7 @@ void DrawRadarUnits(void)
                     ((Tail_00466dc0*)((char*)q))->owner->playerIndex ==
                         g_game->currentPlayer) {
                     DrawFrame(surface,
-                        GetGafFrame(g_game->field_147e7,
+                        GetGafFrame(g_game->nuclogo,
                             PlayerInfo_00466dc0_Get(
                                 ((Tail_00466dc0*)q)->player)->data->field_96),
                         x, y);

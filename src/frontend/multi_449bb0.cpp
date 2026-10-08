@@ -137,11 +137,11 @@ struct Game_00449bb0 {
     unsigned short locked : 1;          // +0x2c74
     unsigned short locked_rest : 15;
     char unknown_2c76[0x37ee8 - 0x2c76];
-    unsigned short field_37ee8;         // +0x37ee8
+    unsigned short lobbyInitScratch;    // +0x37ee8
     unsigned short maxUnits;            // +0x37eea
-    unsigned short field_37eec;         // +0x37eec
+    unsigned short unitLimit;           // +0x37eec
     char unknown_37eee[0x37ef6 - 0x37eee];
-    int field_37ef6;                    // +0x37ef6
+    int commanderDeath;                 // +0x37ef6
     char unknown_37efa[0x37f1b - 0x37efa];
     unsigned short width;               // +0x37f1b
     char unknown_37f1d[2];
@@ -275,9 +275,9 @@ void OpenBattleRoom()
     info = g_game->players[g_game->localPlayer].info;
     player = &g_game->players[g_game->localPlayer];
     host = info->f97_0;
-    g_game->field_37ee8 = 0;
+    g_game->lobbyInitScratch = 0;
     if (host)
-        g_game->maxUnits = g_game->field_37eec;
+        g_game->maxUnits = g_game->unitLimit;
     info->width = g_game->width;
     info->height = g_game->height;
     info->f9d_2 = FindGameCdDrive(1) != 0;
@@ -310,7 +310,7 @@ void OpenBattleRoom()
             int commander = g_lobbyCommander - 1;
             if (commander >= 0 && commander <= 2) {
                 g_game->commander = commander;
-                g_game->field_37ef6 = commander;
+                g_game->commanderDeath = commander;
                 // Block-local pointer: the original forms 0x1b63 first, then reads +0x27.
                 Player_00449bb0* p = &g_game->players[g_game->localPlayer];
                 p->info->b.commander = commander;

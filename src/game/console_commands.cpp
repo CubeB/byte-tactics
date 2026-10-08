@@ -210,9 +210,9 @@ struct Game {
     char unknown_148df[0x37e23 - 0x148df];
     int bottom;                        // +0x37e23
     char unknown_37e27[0x37efa - 0x37e27];
-    int field_37efa;                   // +0x37efa
+    int interfaceType;                 // +0x37efa
     char unknown_37efe[0x37f02 - 0x37efe];
-    int field_37f02;                   // +0x37f02
+    int screenChat;                    // +0x37f02
     GameFlags flags;                   // +0x37f06
     int brightness;                    // +0x37f08
     char unknown_37f0c[0x37f2f - 0x37f0c];
@@ -899,7 +899,7 @@ void __stdcall CmdScrollSpeed(void* param_1)
 void __stdcall CmdIFace(void* param_1)
 {
     int result = ((CommandArgs*)param_1)->GetIntArg(1, 0);
-    g_game->field_37efa = result;
+    g_game->interfaceType = result;
     SaveSettings();
 }
 
@@ -999,7 +999,7 @@ void __stdcall CmdATM(CommandArgs* args)
 // FUNCTION: 0x417130
 void __stdcall CmdScreenChat(int unused)
 {
-    g_game->field_37f02 ^= 1;
+    g_game->screenChat ^= 1;
     SaveSettings();
 }
 

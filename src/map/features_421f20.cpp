@@ -53,7 +53,7 @@ struct Game {
     char unknown_0[0x141fb];
     AnimManager_00421f20 anim;         // +0x141fb
     char unknown_14273[0x1439b - 0x14273];
-    int field_1439b;                   // +0x1439b
+    int unitDefs;                      // +0x1439b
 };
 #pragma pack(pop)
 
@@ -85,7 +85,7 @@ void __stdcall InitFeatureAnimPool(List_00421f20* list)
     m->featureUnit->flags_110 |= 0x20000000;
     m->featureUnit->field_a6 = 0;
     m->featureUnit->flags_114 |= 1;
-    m->featureUnit->field_92 = g_game->field_1439b;
+    m->featureUnit->field_92 = g_game->unitDefs;
     m->names = 0;
     m->nameCount = 0;
 

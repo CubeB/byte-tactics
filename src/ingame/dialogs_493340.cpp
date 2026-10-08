@@ -230,7 +230,7 @@ struct Game {
     char unknown_1435b[0x1439b - 0x1435b];
     char* unitDefs;                    // +0x1439b
     char unknown_1439f[0x148db - 0x1439f];
-    int field_148db;                   // +0x148db
+    int logos32;                   // +0x148db
     char unknown_148df[0x37ea0 - 0x148df];
     char guiName[0x1e];                // +0x37ea0
     union {
@@ -248,9 +248,9 @@ struct Game {
         };
     };
     char unknown_37ec0[0x37ef6 - 0x37ec0];
-    int field_37ef6;                   // +0x37ef6
+    int commanderDeath;                // +0x37ef6
     char unknown_37efa[0x37f06 - 0x37efa];
-    unsigned char field_37f06;         // +0x37f06
+    unsigned char visualFlags;         // +0x37f06
     char unknown_37f07[0x37f2f - 0x37f07];
     unsigned short field_37f2f;        // +0x37f2f, bit 1 is the "verbose" bit
     char unknown_37f31[0x38a37 - 0x37f31];
@@ -1002,7 +1002,7 @@ void __stdcall DrawScorePanel(void* surface)
         }
     }
 
-    if (!(g_game->field_37f06 & 0x80)
+    if (!(g_game->visualFlags & 0x80)
         && (IsKeyDown(0x20) == 0
             || (g_game->team_index != -1
                 && g_game->menu.layer->entries[g_game->team_index].type == 3))) {
@@ -1087,7 +1087,7 @@ void __stdcall DrawScorePanel(void* surface)
                 FadeRectangle(surface, &hr, 0x14);
             }
             unsigned short* frame = (unsigned short*)GetGafFrame(
-                (void*)g_game->field_148db, p->info->color);
+                (void*)g_game->logos32, p->info->color);
 
             src.p[1].x = frame[0] - 1;
             src.p[2].x = frame[0] - 1;
@@ -1096,11 +1096,11 @@ void __stdcall DrawScorePanel(void* surface)
             DrawFrameQuad(surface, frame, &dst, &src);
 
             DrawTextClipped(surface, p->name, dst.p[0].x + 2, dst.p[0].y + 5, maxw, 0);
-            int kills = g_game->field_37ef6 == 2 ? p->commanderKills : p->kills;
+            int kills = g_game->commanderDeath == 2 ? p->commanderKills : p->kills;
             sprintf(buf, "%d", kills);
             DrawTextClipped(surface, buf, dst.p[0].x + 2, dst.p[0].y + 0x14, maxw,
                          DAT_0051f2c8[n]);
-            int losses = g_game->field_37ef6 == 2 ? p->commanderLosses : p->losses;
+            int losses = g_game->commanderDeath == 2 ? p->commanderLosses : p->losses;
             sprintf(buf, "%d", losses);
             DrawTextClipped(surface, buf, dst.p[1].x - GetTextPixelWidth(buf) - 2,
                          dst.p[0].y + 0x14, maxw, DAT_0051e810[n]);

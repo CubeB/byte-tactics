@@ -133,10 +133,10 @@ struct Game {
     char soundNames[512][0x20];        // +0x33e13
     SoundCat_0047fd70* categories;     // +0x37e13
     char unknown_37e17[0x37f0c - 0x37e17];
-    int field_37f0c;                   // +0x37f0c
+    int volume1;                       // +0x37f0c
     char unknown_37f10[0x37f17 - 0x37f10];
-    unsigned char field_37f17;         // +0x37f17
-    unsigned char field_37f18;         // +0x37f18
+    unsigned char unitChat;            // +0x37f17
+    unsigned char unitChatText;        // +0x37f18
     unsigned char flags_37f19;         // +0x37f19
     char unknown_37f1a[0x38a47 - 0x37f1a];
     unsigned int frame;                // +0x38a47
@@ -397,7 +397,7 @@ int __stdcall PlaySoundByIndex(int index, int param_2)
                 return PlayLoopingWavMemory(sound);
             return PlayWavMemory(sound);
         }
-        if (g_game->field_37f0c != 0 && (g_game->flags_37f19 & 7) != 0
+        if (g_game->volume1 != 0 && (g_game->flags_37f19 & 7) != 0
             && g_noDirectSound == 0) {
             if (param_2) {
                 Packet_0047f0c0 packet;
@@ -448,7 +448,7 @@ int __stdcall PlaySoundFile(char* name)
 {
     if (g_useWindowsSound)
         return PlayWavFromDisk(name);
-    if (name && strlen(name) && g_game->field_37f0c && (g_game->flags_37f19 & 7) && !g_noDirectSound)
+    if (name && strlen(name) && g_game->volume1 && (g_game->flags_37f19 & 7) && !g_noDirectSound)
         return g_game->sound->PlaySample(name, -0x249, 0);
     return 0;
 }
@@ -470,7 +470,7 @@ int __stdcall PlaySoundAt(int index, Pos_0047f300* pos, int param_3)
         return PlaySoundByIndex(index, param_3);
     if (index == 0xffff)
         return 0;
-    if (g_game->field_37f0c == 0)
+    if (g_game->volume1 == 0)
         return 0;
     if ((g_game->flags_37f19 & 7) == 0)
         return 0;
@@ -749,7 +749,7 @@ void SpeechQueue::PlaySpeech(int index, int param_2, int param_3)
     int count = cat->slots[slot].count;
     int idx = (int)((__int64)rand() * count / 0x8000);
 
-    if ((int)e->priority > 10 - g_game->field_37f17 && count > 0 && param_2 != 0
+    if ((int)e->priority > 10 - g_game->unitChat && count > 0 && param_2 != 0
         && (g_game->flags_37f19 & 0x40)) {
         char* name;
         if (DAT_0051e698)
@@ -761,7 +761,7 @@ void SpeechQueue::PlaySpeech(int index, int param_2, int param_3)
         BuildDataPath(path, "sounds", name, "WAV");
         if (g_useWindowsSound) {
             PlayWavFromDisk(path);
-        } else if (path && strlen(path) && g_game->field_37f0c
+        } else if (path && strlen(path) && g_game->volume1
                    && (g_game->flags_37f19 & 7) && g_noDirectSound == 0) {
             g_game->sound->PlaySample(path, -0x249, 0);
         }
@@ -769,7 +769,7 @@ void SpeechQueue::PlaySpeech(int index, int param_2, int param_3)
             g_game->frame + g_speechTypes[slot].cooldown * 0x1e;
     }
 
-    if (param_3 != 0 && (int)e->priority > 10 - g_game->field_37f18) {
+    if (param_3 != 0 && (int)e->priority > 10 - g_game->unitChatText) {
         char* text = e->data;
         if (text == 0) {
             if (idx != -1)

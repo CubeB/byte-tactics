@@ -57,7 +57,7 @@ struct Game {
     char unknown_2a87[0x2aa7 - 0x2a87];
     void* desc;
     char unknown_2aab[0x37e1b - 0x2aab];
-    int field_37e1b;
+    int screen;
     char unknown_37e1f[0x39201 - 0x37e1f];
     char provider[0x10];
     char unknown_39211[1];
@@ -130,8 +130,8 @@ conn:
     msg = "Connecting  (ESC to abort)";
 shown:
     OpenMessageBox(&g_game->sub, Translate(msg), 0x96, 0, 1);
-    BlitMenuLayers(&g_game->sub, g_game->field_37e1b, 0);
-    SetOffscreenSurface(g_game->field_37e1b);
+    BlitMenuLayers(&g_game->sub, g_game->screen, 0);
+    SetOffscreenSurface(g_game->screen);
     FlipScreen();
     FlipScreen();
 

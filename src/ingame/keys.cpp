@@ -185,12 +185,12 @@ struct Game {
     int scrollX;                        // +0x1431f
     int scrollY;                        // +0x14323
     char unknown_14327[0x37e27 - 0x14327];
-    int field_37e27;                    // +0x37e27
-    int field_37e2b;                    // +0x37e2b
+    int viewCullMinX;                   // +0x37e27
+    int viewCullMinY;                   // +0x37e2b
     char unknown_37e2f[0x37e9c - 0x37e2f];
-    unsigned short field_37e9c;         // +0x37e9c
+    unsigned short unitIndex;           // +0x37e9c
     char unknown_37e9e[0x37ea0 - 0x37e9e];
-    char field_37ea0[0x37ebe - 0x37ea0];
+    char guiName[0x37ebe - 0x37ea0];
     Flags_00495e90_37ebe flags_37ebe;   // +0x37ebe
     char unknown_37ec0[0x37f06 - 0x37ec0];
     Flags_00495e90_37f06 flags_37f06;   // +0x37f06
@@ -379,10 +379,10 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
     bmp.Init();
     if (bmp.Open(filename, w, h)) {
         Class_004b8da0* bm;
-        off27 = g_game->field_37e27;
+        off27 = g_game->viewCullMinX;
         int bh, off2b;
         bw = g_game->screenTilesX * 16;
-        off2b = g_game->field_37e2b;
+        off2b = g_game->viewCullMinY;
         bh = (g_game->screenTilesY * 16) - 1;
 
         SetOutOfMemoryHandler(0);
@@ -505,9 +505,9 @@ void HandleGameKey(void)
     case 0x1b:
         if (g_game->flags_37ebe.b0) {
             g_game->flags_37ebe.b0 = 0;
-            int r = IsScreenNamed(&g_game->gui, g_game->field_37ea0);
+            int r = IsScreenNamed(&g_game->gui, g_game->guiName);
             if (r == 0) {
-                g_game->field_37e9c = 0;
+                g_game->unitIndex = 0;
                 CloseTopScreen(&g_game->gui);
             }
         } else {

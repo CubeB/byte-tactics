@@ -208,15 +208,15 @@ struct Game {
     void* memoryCache;                 // +0x1437b
     char unknown_1437f[0x1438f - 0x1437f];
     int unitTypeCount;                 // +0x1438f
-    int field_14393;                   // +0x14393
-    int field_14397;                   // +0x14397
-    UnitDef* field_1439b;              // +0x1439b
+    int unitDefCountBits;              // +0x14393
+    int unitDefEnumDirty;              // +0x14397
+    UnitDef* unitDefs;                 // +0x1439b
     char unknown_1439f[0x37e13 - 0x1439f];
-    char* field_37e13;                 // +0x37e13
-    int field_37e17;                   // +0x37e17
+    char* categories;                  // +0x37e13
+    int categoryCount;                 // +0x37e17
     char unknown_37e1b[0x37e1f - 0x37e1b];
-    int field_37e1f;                   // +0x37e1f
-    int field_37e23;                   // +0x37e23
+    int width;                         // +0x37e1f
+    int height;                        // +0x37e23
     char unknown_37e27[0x38d71 - 0x37e27];
     unsigned char field_38d71;         // +0x38d71
     char unknown_38d72[0x391c7 - 0x38d72];
@@ -490,10 +490,10 @@ UnitDef& UnitDef::operator=(const UnitDef& src)
 // FUNCTION: 0x42bcc0
 void FreeUnitInfo()
 {
-    if (g_game->field_1439b != 0) {
-        ProtectBlockReadWrite(g_game->field_1439b);
-        GameFreeThunk(g_game->field_1439b);
-        g_game->field_1439b = 0;
+    if (g_game->unitDefs != 0) {
+        ProtectBlockReadWrite(g_game->unitDefs);
+        GameFreeThunk(g_game->unitDefs);
+        g_game->unitDefs = 0;
         g_game->unitTypeCount = 0;
     }
 }
@@ -501,9 +501,9 @@ void FreeUnitInfo()
 // FUNCTION: 0x42bd10
 void RefreshUnitInfo()
 {
-    if (g_game->unitTypeCount == 0 || g_game->field_14397 != 0) {
+    if (g_game->unitTypeCount == 0 || g_game->unitDefEnumDirty != 0) {
         LoadUnitInfo();
-        g_game->field_14397 = 0;
+        g_game->unitDefEnumDirty = 0;
     }
 }
 
@@ -514,7 +514,7 @@ void RefreshUnitInfo()
 // FUNCTION: 0x42bd40
 void CheckDownloadableFlags()
 {
-    UnitDef* def = g_game->field_1439b;
+    UnitDef* def = g_game->unitDefs;
     // One for statement with `i++, def += 0x249`; no source guard on the first test.
     for (int i = 0; i < g_game->unitTypeCount;
          i++, def = (UnitDef*)((char*)def + 0x249)) {
@@ -525,9 +525,9 @@ void CheckDownloadableFlags()
                 sprintf(message,
                         "Hey!  Somebody forgot to set downloadable=1 for %s",
                         def->unitname);
-                ProtectBlockReadWrite(g_game->field_1439b);
+                ProtectBlockReadWrite(g_game->unitDefs);
                 def->downloadable = 1;
-                ProtectBlockReadOnly(g_game->field_1439b);
+                ProtectBlockReadOnly(g_game->unitDefs);
             }
         }
     }
@@ -539,8 +539,8 @@ void CheckDownloadableFlags()
 // FUNCTION: 0x42be30
 void AddDownloadBuildOptions()
 {
-    ProtectBlockReadWrite(g_game->field_1439b);
-    UnitDef* e = g_game->field_1439b;
+    ProtectBlockReadWrite(g_game->unitDefs);
+    UnitDef* e = g_game->unitDefs;
     for (int a = 0; a < g_game->unitTypeCount; a++, e++) {
         if (e->ids != 0) {
             for (int b = 0; b < g_game->field_391c7; b++) {
@@ -556,7 +556,7 @@ void AddDownloadBuildOptions()
             }
         }
     }
-    ProtectBlockReadOnly(g_game->field_1439b);
+    ProtectBlockReadOnly(g_game->unitDefs);
 }
 
 // Stores the low bits of value, masked, into the flag word at the given shift.
@@ -794,8 +794,8 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
             if (found) {
                 // Own loop counter, with the store and goto on a hit.
                 int sound;
-                for (sound = 0; sound < g_game->field_37e17; sound++) {
-                    if (_strcmpi(g_game->field_37e13 + sound * 0x160, buf) == 0) {
+                for (sound = 0; sound < g_game->categoryCount; sound++) {
+                    if (_strcmpi(g_game->categories + sound * 0x160, buf) == 0) {
                         unitdef->soundcategory = (short)sound;
                         goto SOUND_DONE;
                     }
@@ -935,10 +935,10 @@ void __stdcall ReloadUnitType(unsigned short index)
 {
     if (index == 0)
         return;
-    UnitDef* type = &g_game->field_1439b[index];
+    UnitDef* type = &g_game->unitDefs[index];
     if ((type->flags1 & 0x800000) == 0)
         return;
-    ProtectBlockReadWrite(g_game->field_1439b);
+    ProtectBlockReadWrite(g_game->unitDefs);
     char path[256];
     BuildDataPath(path, "units", type->unitname, "FBI");
     if (HAPI_FileLengthByName(path)) {
@@ -947,9 +947,9 @@ void __stdcall ReloadUnitType(unsigned short index)
         BuildDataPath(path, "scripts", type->unitname, "COB");
         void* cob = LoadCobScript(path);
         type->data = cob;
-        ProtectBlockReadOnly(g_game->field_1439b);
+        ProtectBlockReadOnly(g_game->unitDefs);
     } else {
-        ProtectBlockReadOnly(g_game->field_1439b);
+        ProtectBlockReadOnly(g_game->unitDefs);
     }
 }
 
@@ -990,7 +990,7 @@ void LoadUnitTypes() {
     obj = obj ? obj->Construct() : 0;
     g_game->memoryCache = obj;
 
-    int t = g_game->field_37e23 * g_game->field_37e1f * 2;
+    int t = g_game->height * g_game->width * 2;
     int v = (int)(t * 1.3);
 
     int n = *(int*)((char*)g_game->displayContext + 0x620) / 0x100000 + 1;
@@ -1005,10 +1005,10 @@ void LoadUnitTypes() {
     int size = (int)(v * scale);
     ((UnitTable*)g_game->memoryCache)->Initialize((size + 0xfff) & 0xfffff000);
 
-    ProtectBlockReadWrite(g_game->field_1439b);
+    ProtectBlockReadWrite(g_game->unitDefs);
 
-    UnitDef* end = g_game->field_1439b + g_game->unitTypeCount;
-    UnitDef* start = g_game->field_1439b + 1;
+    UnitDef* end = g_game->unitDefs + g_game->unitTypeCount;
+    UnitDef* start = g_game->unitDefs + 1;
 
     UnitDef* p = start;
     UnitDef* d;
@@ -1029,9 +1029,9 @@ void LoadUnitTypes() {
         }
         d = w;
     }
-    g_game->unitTypeCount = (int)(d - g_game->field_1439b);
+    g_game->unitTypeCount = (int)(d - g_game->unitDefs);
 
-    start = g_game->field_1439b + 1;
+    start = g_game->unitDefs + 1;
     UnitDef* last = d;
     if (last - start <= 0x10) {
         InsertionSortUnitTypes(start, last, (void*)CompareUnitTypeNames, 0);
@@ -1056,17 +1056,17 @@ void LoadUnitTypes() {
         unsigned short index = 0;
         if (g_game->unitTypeCount > 0) {
             do {
-                g_game->field_1439b[index].id = index;
+                g_game->unitDefs[index].id = index;
                 index++;
             } while ((int)index < g_game->unitTypeCount);
         }
     }
     int c = g_game->unitTypeCount;
-    g_game->field_14393 = 0;
+    g_game->unitDefCountBits = 0;
     if (c) {
         do {
             c >>= 1;
-            g_game->field_14393++;
+            g_game->unitDefCountBits++;
         } while (c);
     }
 
@@ -1074,7 +1074,7 @@ void LoadUnitTypes() {
 
     // `u` must be an unsigned short: an int counter breaks the loop.
     for (unsigned short u = 1; u < g_game->unitTypeCount; u++) {
-        UnitDef* type = &g_game->field_1439b[u];
+        UnitDef* type = &g_game->unitDefs[u];
         // Divisor read through this body-local pointer: g_game then takes ecx.
         Game* gp = g_game;
         g_game->field_38d71 = (unsigned char)((u * 100) / gp->unitTypeCount);
@@ -1139,7 +1139,7 @@ void LoadUnitTypes() {
     } else {
         short* list = (short*)GameAllocIgnoreTag("TEMP UTYPE LIST", 0x3c);
         for (unsigned short s = 1; s < g_game->unitTypeCount; s++) {
-            UnitDef* type = &g_game->field_1439b[s];
+            UnitDef* type = &g_game->unitDefs[s];
             type->count = 0;
             type->ids = 0;
             if (type->canbuild) {
@@ -1171,8 +1171,8 @@ void LoadUnitTypes() {
     }
 
     g_game->field_38d71 = 100;
-    g_game->field_14397 = 1;
-    ProtectBlockReadOnly(g_game->field_1439b);
+    g_game->unitDefEnumDirty = 1;
+    ProtectBlockReadOnly(g_game->unitDefs);
 }
 
 // FUNCTION: 0x42db60
@@ -1188,11 +1188,11 @@ int __stdcall CompareUnitTypeNames(const char* param_1, const char* param_2)
 // FUNCTION: 0x42db90
 void FreeUnitTypes()
 {
-    ProtectBlockReadWrite(g_game->field_1439b);
+    ProtectBlockReadWrite(g_game->unitDefs);
     ProtectBlockReadWrite(g_game->models);
 
     for (unsigned short i = 1; i < g_game->unitTypeCount; i++) {
-        UnitDef* type = &g_game->field_1439b[i];
+        UnitDef* type = &g_game->unitDefs[i];
         void* p = g_game->models[i];
         if (p != 0) {
             GameFreeThunk(p);
@@ -1221,10 +1221,10 @@ void FreeUnitTypes()
     g_game->memoryCache = 0;
 
     GameFreeThunk(g_game->models);
-    GameFreeThunk(g_game->field_1439b);
+    GameFreeThunk(g_game->unitDefs);
 
     g_game->models = 0;
-    g_game->field_1439b = 0;
+    g_game->unitDefs = 0;
 }
 
 // Edited by deepseek-v4.1: MATCH. Fixes this round:
@@ -1278,7 +1278,7 @@ void LoadDownloadMenus()
                 char* buf = unitbuf;
                 if (parser.current->GetFieldString(unitbuf, "UNITMENU", 0x20, DAT_005119b8)) {
                     for (unsigned short u = 0; u < g_game->unitTypeCount; u++) {
-                        if (_strcmpi(g_game->field_1439b[u].unitname, buf) == 0) {
+                        if (_strcmpi(g_game->unitDefs[u].unitname, buf) == 0) {
                             g_game->field_391cb[i].entries[j].typeId = u;
                             g_game->field_391cb[i].entries[j].page = (unsigned char)parser.current->GetFieldInt("MENU", 0);
                             g_game->field_391cb[i].entries[j].slot = (unsigned char)parser.current->GetFieldInt("BUTTON", 0);
@@ -1292,29 +1292,29 @@ void LoadDownloadMenus()
         }
     }
 
-    ProtectBlockReadWrite(g_game->field_1439b);
+    ProtectBlockReadWrite(g_game->unitDefs);
     for (unsigned short u = 0; u < g_game->unitTypeCount; u++) {
         for (c = 0; c < n; c++) {
             for (int d = 0; d < g_game->field_391cb[c].count; d++) {
                 if (g_game->field_391cb[c].entries[d].typeId == u) {
-                    if (g_game->field_1439b[u].buildMenuPageCount < g_game->field_391cb[c].entries[d].page)
-                        g_game->field_1439b[u].buildMenuPageCount = g_game->field_391cb[c].entries[d].page;
+                    if (g_game->unitDefs[u].buildMenuPageCount < g_game->field_391cb[c].entries[d].page)
+                        g_game->unitDefs[u].buildMenuPageCount = g_game->field_391cb[c].entries[d].page;
                 }
             }
         }
     }
-    ProtectBlockReadOnly(g_game->field_1439b);
+    ProtectBlockReadOnly(g_game->unitDefs);
 
-    UnitDef* defs = g_game->field_1439b;
+    UnitDef* defs = g_game->unitDefs;
     for (c = 0; c < g_game->unitTypeCount; c++) {
         for (int i = 0; i < g_game->field_391c7; i++) {
             if (_strcmpi(g_game->field_391cb[i].entries[0].name, defs[c].unitname) == 0
                 && !defs[c].downloadable) {
                 char buf[128];
                 sprintf(buf, "Hey!  Somebody forgot to set downloadable=1 for %s", defs[c].unitname);
-                ProtectBlockReadWrite(g_game->field_1439b);
+                ProtectBlockReadWrite(g_game->unitDefs);
                 defs[c].downloadable = 1;
-                ProtectBlockReadOnly(g_game->field_1439b);
+                ProtectBlockReadOnly(g_game->unitDefs);
             }
         }
     }

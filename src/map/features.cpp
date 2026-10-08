@@ -462,7 +462,7 @@ struct Game {
     char unknown_14280[0x14287 - 0x14280];
     Cell* cells;                       // +0x14287
     char unknown_1428b[0x1439b - 0x1428b];
-    int field_1439b;                   // +0x1439b
+    int unitDefs;                   // +0x1439b
     char unknown_1439f[0x37ecc - 0x1439f];
     int windX;                         // +0x37ecc
     int windY;                         // +0x37ed0

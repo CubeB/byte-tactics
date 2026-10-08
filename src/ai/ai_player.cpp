@@ -604,7 +604,7 @@ struct Game {
     char unknown_10[0x1439b - 0x14393];
     UnitDef* defs;                     // +0x1439b
     char unknown_11[0x37ee6 - 0x1439f];
-    unsigned short field_37ee6;        // +0x37ee6
+    unsigned short maxUnits;           // +0x37ee6
     char unknown_12[0x37eee - 0x37ee8];
     int difficulty;                    // +0x37eee
     char unknown_13[0x37f30 - 0x37ef2];
@@ -1460,7 +1460,7 @@ void __stdcall RetargetWeapon(Unit* unit, unsigned int weapon)
 // FUNCTION: 0x4089a0
 void SquadManager::RetargetWeapons(int force)
 {
-    for (int i = 0; i <= g_game->field_37ee6 / 30; i++) {
+    for (int i = 0; i <= g_game->maxUnits / 30; i++) {
         if (cursor && cursor != player->lastUnit)
             cursor++;
         else

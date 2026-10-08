@@ -232,9 +232,9 @@ struct Game {
     short f14371;                      // +0x14371
     F14373 f14373;                     // +0x14373
     char unknown_14377[0x14393 - 0x14377];
-    int field_14393;                   // +0x14393, bit count for the type index
+    int unitDefCountBits;              // +0x14393, bit count for the type index
     char unknown_14397[0x37ee6 - 0x14397];
-    unsigned short field_37ee6;        // +0x37ee6, the unit count
+    unsigned short maxUnits;           // +0x37ee6, the unit count
     char unknown_37ee8[0x38a47 - 0x37ee8];
     int ticks;                         // +0x38a47
     char unknown_38a4b[0x391e9 - 0x38a4b];
@@ -670,7 +670,7 @@ void __stdcall UpdateAllUnits(void)
 void __stdcall WriteUnitState(BitWriter* stream, Unit* u)
 {
     extern Game* g_game;
-    stream->WriteBits(u->unitDefIndex, g_game->field_14393);
+    stream->WriteBits(u->unitDefIndex, g_game->unitDefCountBits);
     if (u->unitDefIndex == 0)
         return;
     stream->WriteBits(u->health, 0x10);
@@ -739,7 +739,7 @@ void __stdcall WriteUnitState(BitWriter* stream, Unit* u)
 void __stdcall ReadUnitState(BitReader* reader, Unit* u)
 {
     extern Game* g_game;
-    unsigned short type = (unsigned short)reader->ReadBits(g_game->field_14393);
+    unsigned short type = (unsigned short)reader->ReadBits(g_game->unitDefCountBits);
     // A local declared after the first read: keeps the 0 in ebp, compared as 16 bit.
     int zero = 0;
     if (type == zero) {
@@ -843,7 +843,7 @@ void __stdcall SendUnitStates(Player* p)
         if (!u->motion->player->v7())
             continue;
         stream.WriteBits(u->id - u->player->firstIndex, 0x10);
-        stream.WriteBits(u->unitDefIndex, g_game->field_14393);
+        stream.WriteBits(u->unitDefIndex, g_game->unitDefCountBits);
         u->motion->player->WriteTo(&stream);
         // `>> 3`, not `/ 8`: that is the original's `add ecx, 7; sar ecx, 3`
         // with no sign fix-up.
@@ -851,7 +851,7 @@ void __stdcall SendUnitStates(Player* p)
             break;
     }
     stream.WriteBits(-1, 0x10);
-    int i = g_game->ticks % g_game->field_37ee6;
+    int i = g_game->ticks % g_game->maxUnits;
     stream.data[stream.bit] |= 1 << stream.index;
     stream.index++;
     if (stream.index == 0x20) {
@@ -903,7 +903,7 @@ void __stdcall ReceiveUnitStates(Player* p, unsigned int* data)
     short index = (short)reader.ReadBits(0x10);
     while (index != -1) {
         Unit* unit = &p->f67[index];
-        unsigned short type = (unsigned short)reader.ReadBits(g_game->field_14393);
+        unsigned short type = (unsigned short)reader.ReadBits(g_game->unitDefCountBits);
         if (unit->unitDefIndex != type) {
             // Declared inside the `if`: at function scope the two struct copies are not interleaved.
             Spawn spawn;
@@ -927,5 +927,5 @@ void __stdcall ReceiveUnitStates(Player* p, unsigned int* data)
     }
 
     if (reader.ReadBit())
-        ReadUnitState(&reader, &p->f67[tick % g_game->field_37ee6]);
+        ReadUnitState(&reader, &p->f67[tick % g_game->maxUnits]);
 }

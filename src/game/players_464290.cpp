@@ -266,7 +266,7 @@ struct Game {
     char unknown_1439f[0x37eee - 0x1439f];
     int difficulty;                    // +0x37eee
     char unknown_37ef2[0x37ef6 - 0x37ef2];
-    int field_37ef6;                   // +0x37ef6
+    int commanderDeath;                // +0x37ef6
     char unknown_37efa[0x37f5f - 0x37efa];
     char startPos[0x38a47 - 0x37f5f];  // +0x37f5f, 0x232-byte records
     unsigned int tick;                 // +0x38a47
@@ -968,7 +968,7 @@ void __stdcall UpdatePlayers()
                 } else {
                     g_game->field_39239--;
                     if (g_game->field_39239 < 0) {
-                        if (g_game->field_37ef6 == 2) {
+                        if (g_game->commanderDeath == 2) {
                             PlayerInfo* self =
                                 g_game->players[FindHostSlot()].info;
                             // `unsigned int` with the 0xffff mask: avoids a spilled raw result.
@@ -1170,7 +1170,7 @@ void __stdcall UpdatePlayers()
     }
 
     if (g_game->mission->GetGameType() == 3 &&
-        g_game->field_37ef6 != 2 &&
+        g_game->commanderDeath != 2 &&
         CountCombatPlayers() == 0) {
         if (g_game->field_39239 < 0) {
             g_game->field_39239 = 4;

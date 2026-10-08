@@ -131,7 +131,7 @@ struct Game {
     unsigned char seaLevel;
     unsigned char debugMode;
     char unknown_14281[0x37f06-0x14281];
-    GameFlags_459200 field_37f06;
+    GameFlags_459200 visualFlags;
 };
 
 struct Fixed_459200 {
@@ -250,7 +250,7 @@ void CMemoryCache::DrawObjectPicture(int param_2, Model_459200* model, Vec3_4592
     short dx = v.p.y.whole;
 
     if (bmp->shade == 0) {
-        GameFlags_459200 gameFlags = g_game->field_37f06;
+        GameFlags_459200 gameFlags = g_game->visualFlags;
         if (gameFlags.whole & 4) {
             f = model->owner->field_92->flags;
             if ((f.word & 0x2000000) == 0) {
@@ -302,7 +302,7 @@ void CMemoryCache::DrawObjectPicture(int param_2, Model_459200* model, Vec3_4592
     }
 
     {
-        GameFlags_459200 gameFlags = g_game->field_37f06;
+        GameFlags_459200 gameFlags = g_game->visualFlags;
         if (gameFlags.whole & 4) {
             f = model->owner->field_92->flags;
             if ((f.word & 0x2000000) == 0) {

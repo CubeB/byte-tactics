@@ -358,7 +358,7 @@ struct Game {
     char unknown_1439f[0x37ee6 - 0x1439f];
     unsigned short unitsPerPlayer;     // +0x37ee6
     char unknown_37ee8[0x37eee - 0x37ee8];
-    int field_37eee;                   // +0x37eee
+    int difficulty;                    // +0x37eee
     char unknown_37ef2[4];
     int mode;                          // +0x37ef6
     char unknown_37efa[0x37f06 - 0x37efa];
@@ -1365,7 +1365,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
         float f = health;
         f *= unit->type->x18a;
         if ((*par)->playerRef.player->active != 0 && (*par)->playerRef.player->state == 2) {
-            switch (g_game->field_37eee) {
+            switch (g_game->difficulty) {
             case 0:
                 (*par)->playerRef.field_18 = (*par)->playerRef.field_18 - f * -0.5;
                 break;

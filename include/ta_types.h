@@ -9718,8 +9718,8 @@ struct Game {  // 0x3924d bytes, 904 views
     void* projected;  // +0x14387
     void* field_1438b;  // +0x1438b
     int count_1438f;  // +0x1438f
-    int field_14393;  // +0x14393
-    int field_14397;  // +0x14397
+    int unitDefCountBits;  // +0x14393
+    int unitDefEnumDirty;  // +0x14397
     UnitDef* defs;  // +0x1439b
     char unknown_1439f[8];
     char field_143a7[4];  // +0x143a7
@@ -9737,9 +9737,9 @@ struct Game {  // 0x3924d bytes, 904 views
     void* unknown_147d3;  // +0x147d3
     int fire1;  // +0x147d7
     int alfboom1;  // +0x147db
-    void* field_147df;  // +0x147df
-    void* field_147e3;  // +0x147e3
-    void* field_147e7;  // +0x147e7
+    void* radlogo;  // +0x147df
+    void* radlogohigh;  // +0x147e3
+    void* nuclogo;  // +0x147e7
     void* src1;  // +0x147eb
     void* src2;  // +0x147ef
     void* unknown_147f3;  // +0x147f3
@@ -9753,10 +9753,10 @@ struct Game {  // 0x3924d bytes, 904 views
     unsigned short* image_14813;  // +0x14813
     unsigned short* image_14817;  // +0x14817
     int igpaused;  // +0x1481b
-    unsigned short* field_1481f[5];  // +0x1481f
-    unsigned short* field_14833[5];  // +0x14833
-    unsigned short* field_14847[5];  // +0x14847
-    Cell_004816a0* field_1485b;  // +0x1485b
+    unsigned short* sidePanelTopSeq[5];  // +0x1481f
+    unsigned short* sidePanelBotSeq[5];  // +0x14833
+    unsigned short* sidePanelSideSeq[5];  // +0x14847
+    Cell_004816a0* losTable;  // +0x1485b
     void* black[4];  // +0x1485f
     void* gray[4];  // +0x1486f
     Src_004ab400* table[1];  // +0x1487f
@@ -9778,8 +9778,8 @@ struct Game {  // 0x3924d bytes, 904 views
     int cursorFindSite;  // +0x148bf
     int cursorRed;  // +0x148c3
     int cursorGrn;  // +0x148c7
-    unsigned short* field_148cb;  // +0x148cb
-    int field_148cf;  // +0x148cf
+    unsigned short* cursorNormal;  // +0x148cb
+    int cursorHourglass;  // +0x148cf
     int pathIcon;  // +0x148d3
     void* logos;  // +0x148d7
     void* logos32;  // +0x148db
@@ -9787,7 +9787,7 @@ struct Game {  // 0x3924d bytes, 904 views
     void** blocks;  // +0x148e3
     int count_148e7;  // +0x148e7
     int* data_148eb;  // +0x148eb
-    int field_148ef;  // +0x148ef
+    int gafAnimClearedSlot;  // +0x148ef
     int fxGaf;  // +0x148f3
     int igTitles;  // +0x148f7
     int vismasks;  // +0x148fb
@@ -9798,7 +9798,7 @@ struct Game {  // 0x3924d bytes, 904 views
     int count_1491b;  // +0x1491b
     Debris_00420f30 debris[300];  // +0x1491f
     List_00420960* lists[3];  // +0x1ab8f
-    void* field_1ab9b;  // +0x1ab9b
+    void* explosionLensFrame;  // +0x1ab9b
     Object3do slots[300];  // +0x1ab9f
     char vertices[300][96];  // +0x1e88f
     PieceFrame frames[300][6];  // +0x2590f
@@ -9810,7 +9810,7 @@ struct Game {  // 0x3924d bytes, 904 views
     char soundFiles[256][32];  // +0x35e13
     Entry_0042f740* entries_37e13;  // +0x37e13
     int entry_count;  // +0x37e17
-    int field_37e1b;  // +0x37e1b
+    int screen;  // +0x37e1b
     int width_37e1f;  // +0x37e1f
     int field_37e23;  // +0x37e23
     Rect rect;  // +0x37e27
@@ -9820,7 +9820,7 @@ struct Game {  // 0x3924d bytes, 904 views
     Sub_004679a0_b b;  // +0x37e60
     int field_37e98;  // +0x37e98
     unsigned short unitIndex;  // +0x37e9c
-    unsigned short field_37e9e;  // +0x37e9e
+    unsigned short unitDefIndex;  // +0x37e9e
     char name[30];  // +0x37ea0
     unsigned short flags_37ebe;  // +0x37ebe
     unsigned short moveOrder : 3;  // +0x37ec0
@@ -9829,22 +9829,22 @@ struct Game {  // 0x3924d bytes, 904 views
     unsigned short flags_7 : 9;
     char unknown_37ec2[2];
     unsigned int windCounter;  // +0x37ec4
-    int field_37ec8;  // +0x37ec8
+    int windSpeedDenominator;  // +0x37ec8
     int windX;  // +0x37ecc
     int windY;  // +0x37ed0
     int windZ;  // +0x37ed4
     unsigned short windDirection;  // +0x37ed8
     int windSpeed;  // +0x37eda
-    float field_37ede;  // +0x37ede
+    float windStrength;  // +0x37ede
     int windEnabled;  // +0x37ee2
     unsigned short field_37ee6;  // +0x37ee6
-    unsigned short field_37ee8;  // +0x37ee8
+    unsigned short lobbyInitScratch;  // +0x37ee8
     unsigned short maxUnits;  // +0x37eea
     unsigned short maxUnits_37eec;  // +0x37eec
     int difficulty;  // +0x37eee
     int flag_37ef2;  // +0x37ef2
-    int field_37ef6;  // +0x37ef6
-    int field_37efa;  // +0x37efa
+    int commanderDeath;  // +0x37ef6
+    int interfaceType;  // +0x37efa
     int mode;  // +0x37efe
     int screenchat;  // +0x37f02
     Flags_00495e90_37f06 flags_37f06;  // +0x37f06
@@ -9852,9 +9852,9 @@ struct Game {  // 0x3924d bytes, 904 views
     int volume1;  // +0x37f0c
     int volume2;  // +0x37f10
     unsigned short flags_37f14;  // +0x37f14
-    unsigned char field_37f16;  // +0x37f16
-    unsigned char field_37f17;  // +0x37f17
-    unsigned char field_37f18;  // +0x37f18
+    unsigned char cdMode;  // +0x37f16
+    unsigned char unitChat;  // +0x37f17
+    unsigned char unitChatText;  // +0x37f18
     Flags_0045c570 soundFlags;  // +0x37f19
     int width_37f1b;  // +0x37f1b
     int height_37f1f;  // +0x37f1f

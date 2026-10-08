@@ -323,7 +323,7 @@ struct Game {
     char unknown_14393[0x1439b - 0x14393];
     UnitType_00488b10* types;         // +0x1439b
     char unknown_1439f[0x37ede - 0x1439f];
-    float field_37ede;                // +0x37ede
+    float windStrength;               // +0x37ede
     char unknown_37ee2[0x391e9 - 0x37ee2];
     Mission* net;                     // +0x391e9
     MissionConditions* mission;       // +0x391ed
@@ -847,7 +847,7 @@ float __stdcall GetEnergyUse(UnitDef* def)
         return def->energyUse;
     }
     if (def->windGenerator > 0.0f) {
-        return -(g_game->field_37ede * def->windGenerator);
+        return -(g_game->windStrength * def->windGenerator);
     }
     if (def->tidalGenerator > 0.0f) {
         return -(g_game->tidal * def->tidalGenerator);

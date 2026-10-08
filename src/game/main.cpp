@@ -147,9 +147,9 @@ struct Game {
     char unknown_14[0x2a44 - 0x14];
     unsigned short flags_2a44;               // +0x2a44
     char unknown_2a46[0x37f14 - 0x2a46];
-    unsigned char field_37f14;               // +0x37f14
+    unsigned char musicMode;                 // +0x37f14
     unsigned char field_37f15;               // +0x37f15
-    unsigned char field_37f16;               // +0x37f16
+    unsigned char cdMode;                    // +0x37f16
 };
 #pragma pack(pop)
 
@@ -347,8 +347,8 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                        && g_cdNeedsReopenAfterFocus != 0) {
                 ((Class_004ce260*)g_game->sound)->OpenCdAudio();
                 ((Class_004cd9d0*)g_game->sound)->SetCdCallback(ReopenCdAudio);
-                ((Class_004cedc0*)g_game->sound)->EnableCdAudio(g_game->field_37f14 & 1);
-                ((Class_004ce7a0*)g_game->sound)->SetPlaybackOrder(g_game->field_37f16);
+                ((Class_004cedc0*)g_game->sound)->EnableCdAudio(g_game->musicMode & 1);
+                ((Class_004ce7a0*)g_game->sound)->SetPlaybackOrder(g_game->cdMode);
                 g_game->sound->SetTrackCategory(g_cdTrackCategory);
                 ReopenCdAudio();
                 g_cdNeedsReopenAfterFocus = 0;

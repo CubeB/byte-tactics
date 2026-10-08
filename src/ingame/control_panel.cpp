@@ -418,7 +418,7 @@ struct Game {
     int viewHeight;                    // +0x37e3b
     char unknown_37e3f[0x37e9c - 0x37e3f];
     unsigned short unitIndex;          // +0x37e9c
-    unsigned short field_37e9e;        // +0x37e9e
+    unsigned short unitDefIndex;       // +0x37e9e
     char unknown_37ea0[0x37ebe - 0x37ea0];
     Orders orderState;                 // +0x37ebe
     char unknown_37ec4[0x37eee - 0x37ec4];
@@ -1256,7 +1256,7 @@ void __stdcall OpenBuildMenuGui(Unit* unit, char* guiName, int page)
                 UpdateCounts(&g_game->menu);
             RenderLayer(&g_game->menu, 0x40);
             g_game->unitIndex = unit->id;
-            g_game->field_37e9e = unit->unitDefIndex;
+            g_game->unitDefIndex = unit->unitDefIndex;
         }
     }
 }
@@ -1277,10 +1277,10 @@ void __stdcall OpenGeneratorDialog(Unit* unit)
         RenderLayer(&g_game->menu, 0x40);
         if (unit != 0) {
             g_game->unitIndex = unit->id;
-            g_game->field_37e9e = unit->unitDefIndex;
+            g_game->unitDefIndex = unit->unitDefIndex;
         } else {
             g_game->unitIndex = 0;
-            g_game->field_37e9e = 0;
+            g_game->unitDefIndex = 0;
         }
     }
 }

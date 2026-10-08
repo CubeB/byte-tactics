@@ -208,9 +208,9 @@ struct Game {
     char unknown_2bf1[0x2c7e - 0x2bf1];
     int cursorKeyFlags;                // +0x2c7e
     char unknown_2c82[0x37e1b - 0x2c82];
-    int field_37e1b;                   // +0x37e1b
+    int screen;                        // +0x37e1b
     char unknown_37e1f[0x37eee - 0x37e1f];
-    int field_37eee;                   // +0x37eee
+    int difficulty;                    // +0x37eee
     char unknown_37ef2[0x38d7b - 0x37ef2];
     void* field_38d7b;                 // +0x38d7b
     char unknown_38d7f[0x391e9 - 0x38d7f];
@@ -421,7 +421,7 @@ void ShowFrontendErrorText()
 // FUNCTION: 0x4257a0
 void BlankScreen()
 {
-    SetOffscreenSurface(g_game->field_37e1b);
+    SetOffscreenSurface(g_game->screen);
     FillSurface(0, 0);
     FlipScreen();
 }
@@ -535,7 +535,7 @@ void EnterMainMenuState()
 // FUNCTION: 0x425b60
 void PresentFrontendFrame()
 {
-    SetOffscreenSurface(g_game->field_37e1b);
+    SetOffscreenSurface(g_game->screen);
     HideSoftwareCursor();
     ShowSoftwareCursor();
     FlipScreen();
@@ -661,7 +661,7 @@ void __stdcall HandleMainMenuClick(Gadget_00425d80* gadget)
         TdfFile obj;
         if ((&obj)->LoadFile(buf) != 0) {
             g_game->frontendSubstateRequest = 6;
-            SetOffscreenSurface(g_game->field_37e1b);
+            SetOffscreenSurface(g_game->screen);
             FillSurface(0, 0);
             FlipScreen();
             return;
@@ -803,7 +803,7 @@ void __stdcall OpenMainMenu()
     }
 
     HideSoftwareCursor();
-    SetOffscreenSurface(g_game->field_37e1b);
+    SetOffscreenSurface(g_game->screen);
     FillSurface(0, 0);
     FlipScreen();
     Force640x480Surfaces();
@@ -888,7 +888,7 @@ void __stdcall PlayMovie(char* param_1)
     StopAllSounds();
     BuildCdFilePath(path, "Data", param_1, "zrb");
     if (HAPI_FileLengthByName(path) != 0) {
-        SetOffscreenSurface(g_game->field_37e1b);
+        SetOffscreenSurface(g_game->screen);
         FillSurface(0, 0);
         FlipScreen();
         SetCursorOverlayEnabled(0);
@@ -904,7 +904,7 @@ void __stdcall PlayMovie(char* param_1)
         g_game->field_38d7b = 0;
         while (PopKey() != 0) {
         }
-        SetOffscreenSurface(g_game->field_37e1b);
+        SetOffscreenSurface(g_game->screen);
         FillSurface(0, 0);
         FlipScreen();
     }
@@ -950,15 +950,15 @@ void HandleFrontendDebugKey(void)
         return;
     case 'E':
     case 'e':
-        g_game->field_37eee = 0;
+        g_game->difficulty = 0;
         return;
     case 'M':
     case 'm':
-        g_game->field_37eee = 1;
+        g_game->difficulty = 1;
         return;
     case 'H':
     case 'h':
-        g_game->field_37eee = 2;
+        g_game->difficulty = 2;
         return;
     case '0': case '1': case '2': case '3': case '4':
     case '5': case '6': case '7': case '8': case '9':
@@ -1644,7 +1644,7 @@ int __stdcall LoadPictureCached(const char* name, int param_2, int param_3, int 
     Entry_00428730 saved;
 
     if (param_2 != 0) {
-        SetOffscreenSurface(g_game->field_37e1b);
+        SetOffscreenSurface(g_game->screen);
         FillSurface(0, 0);
         FlipScreen();
     }

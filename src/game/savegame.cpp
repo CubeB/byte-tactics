@@ -158,8 +158,8 @@ struct Game {
     char unknown_2cbf[0x148cf - 0x2cbf];
     void* p148cf;                        // +0x148cf
     char unknown_148d3[0x37eee - 0x148d3];
-    int field_37eee;                     // +0x37eee
-    int field_37ef2;                     // +0x37ef2
+    int difficulty;                      // +0x37eee
+    int side;                            // +0x37ef2
     char unknown_37ef6[0x38a51 - 0x37ef6];
     unsigned short flag_38a51 : 1;       // +0x38a51, bit 0
     unsigned short bits_38a51 : 15;
@@ -481,10 +481,10 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         char* campaign = ((HapiBank*)g_game->p38d6b)->GetStringItem("Campaign", 0);
         if (campaign != 0)
             g_game->mapInfo->LoadCampaign(campaign);
-        g_game->field_37ef2 = ((HapiBank*)g_game->p38d6b)->GetIntegerItem("Side", 0);
-        g_game->field_37eee = ((HapiBank*)g_game->p38d6b)->GetIntegerItem("Difficulty", 0);
+        g_game->side = ((HapiBank*)g_game->p38d6b)->GetIntegerItem("Side", 0);
+        g_game->difficulty = ((HapiBank*)g_game->p38d6b)->GetIntegerItem("Difficulty", 0);
         if (g_game->mapInfo->GetGameType() == 1) {
-            if (g_game->field_37ef2 == 0) {
+            if (g_game->side == 0) {
                 *(unsigned char*)((char*)g_game->p1b8a + 0x95) = 0;
                 *(unsigned char*)((char*)g_game->p1cd5 + 0x95) = 1;
             } else {

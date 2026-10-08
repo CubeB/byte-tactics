@@ -367,9 +367,9 @@ struct Game {
     char unknown_1438f[0x1439b - 0x1438f];
     Def_004685a0* defs;                // +0x1439b
     char unknown_1439f[0x1481f - 0x1439f];
-    unsigned short* field_1481f[5];    // +0x1481f
-    unsigned short* field_14833[5];    // +0x14833
-    unsigned short* field_14847[5];    // +0x14847
+    unsigned short* sidePanelTopSeq[5];  // +0x1481f
+    unsigned short* sidePanelBotSeq[5];  // +0x14833
+    unsigned short* sidePanelSideSeq[5];  // +0x14847
     char unknown_1485b[0x148db - 0x1485b];
     void* logos32;                     // +0x148db
     char unknown_148df[0x37e1b - 0x148df];
@@ -836,14 +836,14 @@ void DrawLightBars()
 
     int side = g_game->players_00467d70[g_game->playerIndex].unit->side;
 
-    short* bar = (short*)GetGafFrame(g_game->field_1481f[side], 0);
+    short* bar = (short*)GetGafFrame(g_game->sidePanelTopSeq[side], 0);
     DrawFrame(surf, bar, bar[2] + 0x81, bar[3]);
 
     int dy = GetScreenHeight() - 0x20;
-    bar = (short*)GetGafFrame(g_game->field_14833[side], 0);
+    bar = (short*)GetGafFrame(g_game->sidePanelBotSeq[side], 0);
     DrawFrame(surf, bar, bar[2] + 0x81, bar[3] + dy);
 
-    bar = (short*)GetGafFrame(g_game->field_14847[side], 0);
+    bar = (short*)GetGafFrame(g_game->sidePanelSideSeq[side], 0);
     DrawFrame(surf, bar, bar[2], bar[3]);
 
     FlipScreen();

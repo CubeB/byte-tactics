@@ -252,7 +252,7 @@ struct Game {
     char unknown_14281[0x1437b - 0x14281];
     CMemoryCache* obj;                 // +0x1437b
     char unknown_1437f[0x37f06 - 0x1437f];
-    Flags_37f06 field_37f06;           // +0x37f06
+    Flags_37f06 visualFlags;           // +0x37f06
     char unknown_37f08[0x38a47 - 0x37f08];
     unsigned int field_38a47;          // +0x38a47
 };
@@ -526,7 +526,7 @@ int UnitTable::BuildObjectPicture(Model_459200* list, int param_2, int param_3)
         bitmap->dy = (short)ox;
         // kind is an int parameter so the byte at owner+0xff is pushed zero-extended.
         if ((owner->flags & 0x20000000) != 0
-            && (*(unsigned char*)&g_game->field_37f06 & 0x20) != 0) {
+            && (*(unsigned char*)&g_game->visualFlags & 0x20) != 0) {
             DrawLitPieces(bitmap, list, owner->kind, param_3);
         } else {
             DrawPieces(bitmap, list, owner->kind, param_3);
@@ -548,7 +548,7 @@ void UnitTable::DrawPieces(Image_4589c0* bitmap, Model_459200* list,
 
     int mode;
     Image_4589c0* src;
-    if (g_game->field_37f06.bits.antiAlias) {
+    if (g_game->visualFlags.bits.antiAlias) {
         if ((list->owner->flags & 0x20000000) != 0 && useColor != 0) {
             Image_4589c0* shadow = this->shadow;
             mode = 1;
@@ -642,7 +642,7 @@ void UnitTable::DrawPieces(Image_4589c0* bitmap, Model_459200* list,
         }
     }
 
-    if (g_game->field_37f06.bits.antiAlias) {
+    if (g_game->visualFlags.bits.antiAlias) {
         if (mode != 0) {
             DownsampleFrame(bitmap, src);
             unsigned char* s = (unsigned char*)src->shade;

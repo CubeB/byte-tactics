@@ -281,22 +281,22 @@ struct Game {
     int mapOriginX;                     // +0x1431f
     int mapOriginY;                     // +0x14323
     char unknown_14327[0x148cf - 0x14327];
-    int field_148cf;                    // +0x148cf
+    int cursorHourglass;                // +0x148cf
     char unknown_148d3[0x37e1b - 0x148d3];
-    int field_37e1b;                    // +0x37e1b
-    int field_37e1f;                    // +0x37e1f
-    int field_37e23;                    // +0x37e23
+    int screen;                         // +0x37e1b
+    int width;                          // +0x37e1f
+    int height;                         // +0x37e23
     union {                             // +0x37e27
         Rect_00498da0 lim;
         struct {
-            int field_37e27;
-            int field_37e2b;
-            int field_37e2f;
-            int field_37e33;
+            int viewCullMinX;
+            int viewCullMinY;
+            int viewCullMaxX;
+            int viewCullMaxY;
         };
     };
-    int field_37e37;                    // +0x37e37
-    int field_37e3b;                    // +0x37e3b
+    int viewWidth;                      // +0x37e37
+    int viewHeight;                     // +0x37e3b
     char unknown_37e3f[0x37f1b - 0x37e3f];
     int field_37f1b;                    // +0x37f1b
     int field_37f1f;                    // +0x37f1f
@@ -918,7 +918,7 @@ void LoadingScreenFrame(void)
         DisableKeyCommands(&g_game->field_519);
         if (g_game->cursorMode != 0x14) {
             g_game->cursorMode = 0x14;
-            SetCursorAnimation(&g_game->field_519, (void*)g_game->field_148cf);
+            SetCursorAnimation(&g_game->field_519, (void*)g_game->cursorHourglass);
         }
         SetFont(g_game->field_391f9);
         SetPaletteColors(SURFACE_143a7, 0, 0x100);
@@ -929,18 +929,18 @@ void LoadingScreenFrame(void)
             CloseTopScreen(&g_game->field_519);
         }
         BlankScreen();
-        g_game->field_37e1f = 0x280;
-        g_game->field_37e23 = 0x1e0;
+        g_game->width = 0x280;
+        g_game->height = 0x1e0;
         if (GetScreenWidth() != 0x280 || GetScreenHeight() != 0x1e0) {
-            GameFreeThunk((void*)g_game->field_37e1b);
-            g_game->field_37e1b = 0;
+            GameFreeThunk((void*)g_game->screen);
+            g_game->screen = 0;
             SetRestoreSurface(0);
             RestoreScreen();
             SetWindowPos(*(HWND*)(g_game->displayContext + 0x40), 0, 0, 0, 0x280, 0x1e0, 4);
             SetResolution(0x280, 0x1e0);
-            g_game->field_37e1b = (int)AllocSurface("OFFSCREEN", g_game->field_37e1f, g_game->field_37e23);
-            SetRestoreSurface(g_game->field_37e1b);
-            SetOffscreenSurface((void*)g_game->field_37e1b);
+            g_game->screen = (int)AllocSurface("OFFSCREEN", g_game->width, g_game->height);
+            SetRestoreSurface(g_game->screen);
+            SetOffscreenSurface((void*)g_game->screen);
         }
         BuildDataPath(aux, "palettes", "guipal", "PAL");
         surfaceHandle = HAPI_LoadFile((unsigned int*)aux, 0);
@@ -951,14 +951,14 @@ void LoadingScreenFrame(void)
         g_game->field_38a47 = 0;
         g_game->field_38a4f = 0;
         g_game->field_39239 = (short)0xffff;
-        g_game->field_37e1f = g_game->field_37f1b;
-        g_game->field_37e23 = g_game->field_37f1f;
-        g_game->field_37e27 = 0x80;
-        g_game->field_37e2b = 0x20;
-        g_game->field_37e2f = g_game->field_37e1f - 1;
-        g_game->field_37e33 = g_game->field_37e23 - 0x21;
-        g_game->field_37e37 = g_game->field_37e2f - g_game->field_37e27 + 1;
-        g_game->field_37e3b = g_game->field_37e33 - g_game->field_37e2b + 1;
+        g_game->width = g_game->field_37f1b;
+        g_game->height = g_game->field_37f1f;
+        g_game->viewCullMinX = 0x80;
+        g_game->viewCullMinY = 0x20;
+        g_game->viewCullMaxX = g_game->width - 1;
+        g_game->viewCullMaxY = g_game->height - 0x21;
+        g_game->viewWidth = g_game->viewCullMaxX - g_game->viewCullMinX + 1;
+        g_game->viewHeight = g_game->viewCullMaxY - g_game->viewCullMinY + 1;
         LoadPictureCached("loadgame2bg", 0, 0, 0);
         memset(&g_game->slots, 0, sizeof(g_game->slots));
         for (i = 0; i < 10; i++) {
@@ -986,15 +986,15 @@ void LoadingScreenFrame(void)
         BlankScreen();
         FreePictureCache();
         if (GetScreenWidth() != g_game->field_37f1b || GetScreenHeight() != g_game->field_37f1f) {
-            GameFreeThunk((void*)g_game->field_37e1b);
-            g_game->field_37e1b = 0;
+            GameFreeThunk((void*)g_game->screen);
+            g_game->screen = 0;
             SetRestoreSurface(0);
             RestoreScreen();
             SetWindowPos(*(HWND*)(g_game->displayContext + 0x40), 0, 0, 0, g_game->field_37f1b,
                          g_game->field_37f1f, 4);
             SetResolution(g_game->field_37f1b, g_game->field_37f1f);
-            g_game->field_37e1b = (int)AllocSurface("OFFSCREEN", g_game->field_37e1f, g_game->field_37e23);
-            SetRestoreSurface(g_game->field_37e1b);
+            g_game->screen = (int)AllocSurface("OFFSCREEN", g_game->width, g_game->height);
+            SetRestoreSurface(g_game->screen);
         }
         DrawLightBars();
         MainLoopTick();
@@ -1036,7 +1036,7 @@ void LoadingScreenFrame(void)
     if (g_usePacketManager != 0) {
         (&g_packetManager)->SendAllQueued(1);
     }
-    SetOffscreenSurface((void*)g_game->field_37e1b);
+    SetOffscreenSurface((void*)g_game->screen);
     // The result stays in a local: it gives the compare against a register.
     int ok = LockScreen(&gadget);
     if (ok != 0) {

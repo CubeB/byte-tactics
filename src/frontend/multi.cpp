@@ -595,16 +595,16 @@ struct Game {
         int field_148db;
     };
     char unknown_148df[0x37e1b - 0x148df]; // +0x148df
-    int field_37e1b;                   // +0x37e1b
+    int screen;                        // +0x37e1b
     char unknown_37e1f[0x37ebe - 0x37e1f]; // +0x37e1f
-    unsigned short field_37ebe;        // +0x37ebe
+    unsigned short ordersPanelFlags;   // +0x37ebe
     char unknown_37ec0[0x37ee8 - 0x37ec0]; // +0x37ec0
-    unsigned short field_37ee8;        // +0x37ee8
+    unsigned short lobbyInitScratch;   // +0x37ee8
     unsigned short maxUnits;           // +0x37eea
-    unsigned short field_37eec;        // +0x37eec
-    int field_37eee;                   // +0x37eee
+    unsigned short unitLimit;          // +0x37eec
+    int difficulty;                    // +0x37eee
     char unknown_37ef2[0x37ef6 - 0x37ef2]; // +0x37ef2
-    int field_37ef6;                   // +0x37ef6
+    int commanderDeath;                // +0x37ef6
     char unknown_37efa[0x37f1b - 0x37efa]; // +0x37efa
     union {                            // +0x37f1b
         int field_37f1b;
@@ -1965,7 +1965,7 @@ int InitScoreReporting(void)
             return 1;
         }
     } else if (r != 4) {
-        SetOffscreenSurface(g_game->field_37e1b);
+        SetOffscreenSurface(g_game->screen);
         OpenMessageBox(&g_game->menu, Translate("Unable to initialize scores reporting."), 0x190, 1, 0);
         LoadPictureCached("ReportError", 0, 1, 0);
         RunWhileScreenNamed(&g_game->menu, "MSGBOX.GUI");
@@ -3345,7 +3345,7 @@ void __stdcall HandleAlliesClick(Gui_00446f50* gadget)
     char buf[100];
 
     if (gadget->current == -1) {
-        g_game->field_37ebe &= 0xffdf;
+        g_game->ordersPanelFlags &= 0xffdf;
         return;
     }
 
@@ -3548,7 +3548,7 @@ void OpenAlliesDialog()
     Layer_00446f50* gadget = LoadGuiLayer(&g_game->gui, "ALLIES.GUI", 0x800);
     gadget->handler = HandleAlliesClick;
     gadget->field_c = (int)g_game;
-    g_game->field_37ebe |= 0x20;
+    g_game->ordersPanelFlags |= 0x20;
     char* entries = (char*)g_game->gui.table->entries;
     int i, j;
     for (i = 0; (j = FindGadgetIndex(entries, "ALLYx", 0xe)) != -1; i++)
@@ -3960,7 +3960,7 @@ void __stdcall HandleBattleRoomClick(Gui_00446f50* gadget)
         g_game->options->fixedloc = me->info->b.fixedloc;
         g_game->mapping = me->info->b.mapping;
         SaveSettings();
-        g_game->field_37eee = 2;
+        g_game->difficulty = 2;
         return;
     } else if (IsCurrentGadgetNamed(gadget, "GAMEOPEN")) {
         PlaySoundByName("Multi", 0);
@@ -4370,7 +4370,7 @@ void OpenEndMultiScreen()
     BlankScreen();
     image = LoadBitmapByName("Mission02WinBW", palette);
     SetPaletteColors(palette, 0, 0x100);
-    SetOffscreenSurface(g_game->field_37e1b);
+    SetOffscreenSurface(g_game->screen);
     DrawSurface(0, image, 0, 0);
     FreeSurface(image);
     FlipScreen();

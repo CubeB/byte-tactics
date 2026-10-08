@@ -106,9 +106,9 @@ struct Game {
     char unknown_1435b[0x1487f - 0x1435b];
     void* table[21];                   // +0x1487f
     char unknown_148d3[0x37e9c - 0x148d3];
-    unsigned short field_37e9c;        // +0x37e9c
+    unsigned short unitIndex;          // +0x37e9c
     char unknown_37e9e[0x37efa - 0x37e9e];
-    int field_37efa;                   // +0x37efa
+    int interfaceType;                 // +0x37efa
     char unknown_37efe[0x391e9 - 0x37efe];
     Mission* net;                      // +0x391e9
     char unknown_391ed[0x391f1 - 0x391ed];
@@ -194,7 +194,7 @@ void __stdcall HandleLeftClick(View* param_1)
         return;
     }
     if (g_game->selected >= 0x11) {
-        if (g_game->field_37efa == 1 && g_game->orderMode == 1) {
+        if (g_game->interfaceType == 1 && g_game->orderMode == 1) {
             ClearSelection();
             PopUntilNamedLayout(1);
         }
@@ -234,7 +234,7 @@ void __stdcall HandleRightClick(View* param_1)
         }
         return;
     }
-    if (g_game->field_37efa == 0) {
+    if (g_game->interfaceType == 0) {
         if (g_game->flags_2cc6 & 2) {
             if (param_1->field_8 & 8) {
                 BeginMouseScroll();
@@ -302,7 +302,7 @@ void BattleFrame(void)
 
     flags = g_game->flags_2cc6;
     if ((flags & 0x10) != 0) {
-        if (g_game->field_37efa == 0) {
+        if (g_game->interfaceType == 0) {
             if (view.msg == 0x205) {
                 g_game->flags_2cc6 = flags & 0xef;
             } else {
@@ -353,7 +353,7 @@ void BattleFrame(void)
             g_game->boxEndHeight = g_game->field_2cb0;
             g_game->boxEndZ = g_game->field_2cb4;
             SetCursor(0x13);
-        } else if (g_game->field_37efa == 1) {
+        } else if (g_game->interfaceType == 1) {
             if ((flags & 1) != 0) {
                 g_game->flags_2cc6 = flags | 0x10;
                 SetCursor(0x13);
@@ -365,7 +365,7 @@ void BattleFrame(void)
 
     MainLoopTick();
     {
-        unsigned short unit = g_game->field_37e9c;
+        unsigned short unit = g_game->unitIndex;
         if (unit != 0 && *(short*)(g_game->units + unit * 0x118 + 0xa6) == 0) {
             PopUntilNamedLayout(0);
         }

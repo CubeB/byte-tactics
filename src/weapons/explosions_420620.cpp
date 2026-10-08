@@ -278,9 +278,9 @@ struct Game {
 
 extern Game* g_game;
 extern CMemoryCache DAT_00511f80;
-extern ExplodedPiece* DAT_00511df0[100];
-extern int DAT_00511f90, DAT_00511f94, DAT_00511f98, DAT_00511f9c, DAT_00511fa0, DAT_00511fa4, DAT_00511fa8, DAT_00511fac, DAT_00511fb0;
-extern unsigned short DAT_00502bf8[6][4];
+extern ExplodedPiece* g_explodedPieces[100];
+extern int g_explosion0Duration, g_explosion0StartSize, g_explosion0EndSize, g_explosion1Duration, g_explosion1StartSize, g_explosion1EndSize, g_explosion2Duration, g_explosion2StartSize, g_explosion2EndSize;
+extern unsigned short g_faceVertexIndices[6][4];
 
 void* __cdecl FUN_004d83b0(const char* name, unsigned size);
 void __cdecl FUN_004d85a0(void* p);
@@ -334,14 +334,14 @@ void InitExplosions()
 {
     g_game->count = 0;
     g_game->image = BuildLensFrame(22, 22, 8);
-    DAT_00511f90 = 24; DAT_00511f94 = 64; DAT_00511f98 = 8;
-    DAT_00511f9c = 30; DAT_00511fa0 = 128; DAT_00511fa4 = 16;
-    DAT_00511fa8 = 30; DAT_00511fac = 200; DAT_00511fb0 = 32;
-    g_game->explosions[0] = MakeExplosion(DAT_00511f90 / 2, DAT_00511f94, DAT_00511f98);
+    g_explosion0Duration = 24; g_explosion0StartSize = 64; g_explosion0EndSize = 8;
+    g_explosion1Duration = 30; g_explosion1StartSize = 128; g_explosion1EndSize = 16;
+    g_explosion2Duration = 30; g_explosion2StartSize = 200; g_explosion2EndSize = 32;
+    g_game->explosions[0] = MakeExplosion(g_explosion0Duration / 2, g_explosion0StartSize, g_explosion0EndSize);
     g_game->shade = 20;
-    g_game->explosions[1] = MakeExplosion(DAT_00511f9c / 2, DAT_00511fa0, DAT_00511fa4);
+    g_game->explosions[1] = MakeExplosion(g_explosion1Duration / 2, g_explosion1StartSize, g_explosion1EndSize);
     g_game->shade = 50;
-    g_game->explosions[2] = MakeExplosion(DAT_00511fa8 / 2, DAT_00511fac, DAT_00511fb0);
+    g_game->explosions[2] = MakeExplosion(g_explosion2Duration / 2, g_explosion2StartSize, g_explosion2EndSize);
     g_game->shade = 100;
     for (int i = 0; i < 300; ++i) {
         g_game->pieces[i].state = -1;
@@ -358,10 +358,10 @@ void InitExplosions()
             g_game->frames[i][j].flags.raw |= 1;
             g_game->frames[i][j].color = 200;
             g_game->frames[i][j].nverts = 4;
-            g_game->frames[i][j].vindex = DAT_00502bf8[j];
+            g_game->frames[i][j].vindex = g_faceVertexIndices[j];
         }
     DAT_00511f80.InitCache(100000);
-    memset(DAT_00511df0, 0, sizeof(DAT_00511df0));
+    memset(g_explodedPieces, 0, sizeof(g_explodedPieces));
 }
 
 // Claims a free object (first byte -1), marks it used and returns it, or
@@ -426,7 +426,7 @@ void __stdcall DrawExplosions(void* surface)
 {
     int i;
     for (i = 0; i < 100; ++i)
-        if (DAT_00511df0[i] && !DrawExplodedPiece(surface, DAT_00511df0[i])) DAT_00511df0[i] = 0;
+        if (g_explodedPieces[i] && !DrawExplodedPiece(surface, g_explodedPieces[i])) g_explodedPieces[i] = 0;
     int* pCount = &g_game->count;
     Debris* d = (Debris*)(pCount + 1);
     Position pos;
@@ -501,8 +501,8 @@ void __stdcall ExplodeUnitPieces(Unit* unit)
 void UpdateExplosions()
 {
     for (int i = 0; i < 100; i++) {
-        if (DAT_00511df0[i] != 0 && UpdateExplodedPiece(DAT_00511df0[i]) == 0)
-            DAT_00511df0[i] = 0;
+        if (g_explodedPieces[i] != 0 && UpdateExplodedPiece(g_explodedPieces[i]) == 0)
+            g_explodedPieces[i] = 0;
     }
 
     int* pCount = &g_game->count;
@@ -575,7 +575,7 @@ void UpdateExplosions()
 int FindFreeExplodedPieceSlot()
 {
     for (int i = 0; i < 100; i++) {
-        if (DAT_00511df0[i] == 0) {
+        if (g_explodedPieces[i] == 0) {
             return i;
         }
     }
@@ -588,8 +588,8 @@ int FindFreeExplodedPieceSlot()
 void UpdateExplodedPieces()
 {
     for (int i = 0; i < 100; i++) {
-        if (DAT_00511df0[i] != 0 && UpdateExplodedPiece(DAT_00511df0[i]) == 0) {
-            DAT_00511df0[i] = 0;
+        if (g_explodedPieces[i] != 0 && UpdateExplodedPiece(g_explodedPieces[i]) == 0) {
+            g_explodedPieces[i] = 0;
         }
     }
 }
@@ -600,8 +600,8 @@ void UpdateExplodedPieces()
 void __stdcall DrawExplodedPieces(void* surface)
 {
     for (int i = 0; i < 100; i++) {
-        if (DAT_00511df0[i] != 0 && DrawExplodedPiece(surface, DAT_00511df0[i]) == 0) {
-            DAT_00511df0[i] = 0;
+        if (g_explodedPieces[i] != 0 && DrawExplodedPiece(surface, g_explodedPieces[i]) == 0) {
+            g_explodedPieces[i] = 0;
         }
     }
 }
@@ -679,7 +679,7 @@ void __stdcall DrawExplodedPieceFaces(void* surface, ExplodedPiece* obj, PieceRe
     }
 }
 
-// One tick of an exploded piece (a slot of DAT_00511df0, see 0x421170 and
+// One tick of an exploded piece (a slot of g_explodedPieces, see 0x421170 and
 // 0x420f30). obj is the 0x30-byte header 0x481140 builds; its rec holds the
 // position and the three rotation shorts. The timer counts down. Above sea
 // level the piece moves and GetCellMeanHeight (map height under the point)
@@ -778,7 +778,7 @@ int __stdcall DrawExplodedPiece(void* surface, ExplodedPiece* obj)
     return 1;
 }
 
-// Takes a free slot from the 100-entry pool at DAT_00511df0 and copies the
+// Takes a free slot from the 100-entry pool at g_explodedPieces and copies the
 // argument header plus the per-unit record into the freshly allocated block.
 // FUNCTION: 0x421620
 void __stdcall StartExplodePiece(ExplodedPiece* param_1)
@@ -795,10 +795,10 @@ void __stdcall StartExplodePiece(ExplodedPiece* param_1)
         return;
     }
     int num = rec->desc->vertexCount;
-    if (DAT_00511f80.AllocHandle((int*)&DAT_00511df0[index], num * 12 + 0x66) == 0) {
+    if (DAT_00511f80.AllocHandle((int*)&g_explodedPieces[index], num * 12 + 0x66) == 0) {
         return;
     }
-    ExplodedBlock* block = (ExplodedBlock*)DAT_00511df0[index];
+    ExplodedBlock* block = (ExplodedBlock*)g_explodedPieces[index];
     block->header = *param_1;
     PieceRec* dst = (PieceRec*)((char*)block + 0x30);
     block->header.rec = dst;

@@ -40,9 +40,10 @@ char g_campaignKey[12] = "Campaign";  // 0x5028f8 .data
 char DAT_00502910[4] = ".";  // 0x502910 .data
 char DAT_00502a20[4] = "&G";  // 0x502a20 .data
 char DAT_00502a78[12] = "Difficulty";  // 0x502a78 .data
+char DAT_00502ae8[4] = "OK";  // 0x502ae8 .data
 char DAT_00502b38[8] = "Options";  // 0x502b38 .data
 // 0x502bf8 .data
-unsigned short DAT_00502bf8[6][4] = {
+unsigned short g_faceVertexIndices[6][4] = {
     {0, 1, 2, 3}, {2, 1, 6, 5}, {0, 3, 4, 7}, {1, 0, 7, 6},
     {3, 2, 5, 4}, {4, 5, 6, 7}
 };
@@ -104,6 +105,7 @@ char* DAT_005054b0[23] = {
     (char*)"TECHLEVL", (char*)"SHARING", (char*)"CHEATING", (char*)"UNITS", (char*)"METAL", (char*)"ENERGY"
 };
 unsigned int DAT_0050550c = 4294967295u;  // 0x50550c .data
+int DAT_00505510 = -1;  // 0x505510 .data
 char* DAT_00505518[8] = {(char*)"COMMANDER", (char*)"MAPPING", (char*)"LOSTYPE", (char*)"WATCHING", (char*)"CHEATING", (char*)"FIXEDLOC", (char*)"GAMEOPEN"};  // 0x505518 .data
 char DAT_00505974[8] = "Multi";  // 0x505974 .data
 char DAT_00505dc4[8] = "Ally";  // 0x505dc4 .data
@@ -362,17 +364,17 @@ int DAT_00511de0;  // 0x511de0 .bss
 int g_cdPathMismatch;  // 0x511de4 .bss
 Game* g_game;  // 0x511de8 .bss
 int DAT_00511dec;  // 0x511dec .bss
-ExplodedPiece* DAT_00511df0[100];  // 0x511df0 .bss
+ExplodedPiece* g_explodedPieces[100];  // 0x511df0 .bss
 unsigned char DAT_00511f80[16];  // 0x511f80 .bss
-int DAT_00511f90;  // 0x511f90 .bss
-int DAT_00511f94;  // 0x511f94 .bss
-int DAT_00511f98;  // 0x511f98 .bss
-int DAT_00511f9c;  // 0x511f9c .bss
-int DAT_00511fa0;  // 0x511fa0 .bss
-int DAT_00511fa4;  // 0x511fa4 .bss
-int DAT_00511fa8;  // 0x511fa8 .bss
-int DAT_00511fac;  // 0x511fac .bss
-int DAT_00511fb0;  // 0x511fb0 .bss
+int g_explosion0Duration;  // 0x511f90 .bss
+int g_explosion0StartSize;  // 0x511f94 .bss
+int g_explosion0EndSize;  // 0x511f98 .bss
+int g_explosion1Duration;  // 0x511f9c .bss
+int g_explosion1StartSize;  // 0x511fa0 .bss
+int g_explosion1EndSize;  // 0x511fa4 .bss
+int g_explosion2Duration;  // 0x511fa8 .bss
+int g_explosion2StartSize;  // 0x511fac .bss
+int g_explosion2EndSize;  // 0x511fb0 .bss
 unsigned char DAT_00511fb4[4];  // 0x511fb4 .bss
 char DAT_00511fb8[256];  // 0x511fb8 .bss
 int DAT_00512288;  // 0x512288 .bss
@@ -576,13 +578,16 @@ unsigned char DAT_00512ef8[24];  // 0x512ef8 .bss
 int DAT_00512f10;  // 0x512f10 .bss
 int DAT_00512f14;  // 0x512f14 .bss
 unsigned char DAT_00512f18[85];  // 0x512f18 .bss
-int DAT_00512f6d;  // 0x512f6d .bss
+unsigned char DAT_00512f6d[4];  // 0x512f6d .bss
+unsigned char DAT_00512f71[4];  // 0x512f71 .bss
 char DAT_00512f75[100];  // 0x512f75 .bss
 int DAT_00512fd9;  // 0x512fd9 .bss
 int DAT_00512fe0;  // 0x512fe0 .bss
 int DAT_00512fe4;  // 0x512fe4 .bss
+Class_004c6a60* DAT_00512fe8;  // 0x512fe8 .bss
 int DAT_00512fec;  // 0x512fec .bss
 int DAT_00512ff0;  // 0x512ff0 .bss
+Class_004c6a60* DAT_00512ff4;  // 0x512ff4 .bss
 int DAT_00512ff8;  // 0x512ff8 .bss
 unsigned char DAT_00512ffc[4];  // 0x512ffc .bss
 int DAT_0051e53c;  // 0x51e53c .bss
@@ -626,7 +631,6 @@ int g_useWindowsSound;  // 0x51e694 .bss
 int DAT_0051e698;  // 0x51e698 .bss
 int g_playLooping;  // 0x51e69c .bss
 unsigned char DAT_0051e6b0[4];  // 0x51e6b0 .bss
-unsigned char DAT_0051e6bc[4];  // 0x51e6bc .bss
 int DAT_0051e6c0;  // 0x51e6c0 .bss
 unsigned int DAT_0051e6c4;  // 0x51e6c4 .bss
 unsigned char g_loadingBarFlashAlpha[8];  // 0x51e6c8 .bss

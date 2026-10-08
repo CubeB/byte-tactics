@@ -1057,8 +1057,8 @@ extern Settings_45cde0 g_optionsPrefsSnapshot;
 
 void __stdcall MarkChanged(Menu_0045b800* menu);
 void __stdcall SetGadgetActiveByName(Menu_0045b800* menu, char* name, int value);
-char* __stdcall FUN_004a0180(Entry_0045b800* entries, char* name);
-Entry_0045b800* __stdcall FUN_004a0200(Entry_0045b800* entries, char* name);
+char* __stdcall FindGadgetChecked_C(Entry_0045b800* entries, char* name);
+Entry_0045b800* __stdcall FindGadgetChecked_D(Entry_0045b800* entries, char* name);
 void __stdcall SetTranslatedTextByName(Menu_0045b800* obj, char* name, char* text, int param_4);
 void __stdcall SetGrayedOut(Menu_0045b800* menu, int index, int value);
 void __stdcall SetGrayedOutByName(Menu_0045b800* obj, char* name, int value);
@@ -1200,11 +1200,11 @@ int __stdcall FindGadgetIndex(void* entries, const char* name, int type);
 int __stdcall FindGadgetIndex(Entry_004609b0* info, const char* name, int type);
 int __stdcall FindGadgetIndex(Entry_00460cc0* entries, const char* name, int type);
 
-char* __stdcall FUN_004a0180(Entry_0045e5e0* entries, char* name);
-Entry_0045d7c0* __stdcall FUN_004a0200(Entry_0045d7c0* list, char* name);
-Entry_0045de30* __stdcall FUN_004a0200(Entry_0045de30* entries, char* name);
-Entry_0045e5e0* __stdcall FUN_004a0200(Entry_0045e5e0* entries, char* name);
-Entry_0045ed50* __stdcall FUN_004a0200(Entry_0045ed50* entries, char* name);
+char* __stdcall FindGadgetChecked_C(Entry_0045e5e0* entries, char* name);
+Entry_0045d7c0* __stdcall FindGadgetChecked_D(Entry_0045d7c0* list, char* name);
+Entry_0045de30* __stdcall FindGadgetChecked_D(Entry_0045de30* entries, char* name);
+Entry_0045e5e0* __stdcall FindGadgetChecked_D(Entry_0045e5e0* entries, char* name);
+Entry_0045ed50* __stdcall FindGadgetChecked_D(Entry_0045ed50* entries, char* name);
 
 void __stdcall LoadPictureCached(char* name, int a, int b, int c);
 void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
@@ -1425,7 +1425,7 @@ void __stdcall UpdateVideoModeLabel(Menu_0045b800* param_1, Entry_0045b800* para
                     f += 1.0;
                 param_2->pos = (short)f;
 
-                Entry_0045b800* e = (Entry_0045b800*)FUN_004a0180(param_1->holder->entries, "VIDVAL");
+                Entry_0045b800* e = (Entry_0045b800*)FindGadgetChecked_C(param_1->holder->entries, "VIDVAL");
                 if (e)
                     sprintf(e->text, "%d X %d", m->width, m->height);
                 break;
@@ -1443,13 +1443,13 @@ next:
 void __stdcall HandleVideoModeSlider(Menu_0045b800* obj, int unused)
 {
     // The original reads e->list before testing e for null, so this load must
-    // stay above the if. If FUN_004a0200 ever returned 0 the original would
+    // stay above the if. If FindGadgetChecked_D ever returned 0 the original would
     // have read through a null pointer; that is a real bug in the game code.
-    Entry_0045b800* e = FUN_004a0200(obj->holder->entries, "VIDSLDR");
+    Entry_0045b800* e = FindGadgetChecked_D(obj->holder->entries, "VIDSLDR");
     ModeList_0045b800* list = e->list;
     if (e != 0) {
         Mode_0045b800* r = &list->modes[SliderValue(e)];
-        sprintf(FUN_004a0180(obj->holder->entries, "VIDVAL") + 0xb6, "%d X %d", r->width, r->height);
+        sprintf(FindGadgetChecked_C(obj->holder->entries, "VIDVAL") + 0xb6, "%d X %d", r->width, r->height);
         g_game->width = r->width;
         g_game->height = r->height;
     }
@@ -1471,7 +1471,7 @@ void ApplyBrightnessAndVolume()
 // FUNCTION: 0x45bd20
 void __stdcall HandleGammaSlider(Menu_0045b800* obj, int unused)
 {
-    Entry_0045b800* e = FUN_004a0200(obj->holder->entries, "GAMMA");
+    Entry_0045b800* e = FindGadgetChecked_D(obj->holder->entries, "GAMMA");
     if (e != 0) {
         g_game->brightness = SliderValue(e);
         ApplySound();
@@ -1483,7 +1483,7 @@ void __stdcall HandleGammaSlider(Menu_0045b800* obj, int unused)
 // FUNCTION: 0x45bde0
 void __stdcall HandleEffectsVolumeSlider(Menu_0045b800* obj, int unused)
 {
-    Entry_0045b800* e = FUN_004a0200(obj->holder->entries, "FXVOL");
+    Entry_0045b800* e = FindGadgetChecked_D(obj->holder->entries, "FXVOL");
     if (e != 0) {
         g_game->volume1 = SliderValue(e);
         ApplySound();
@@ -1495,7 +1495,7 @@ void __stdcall HandleEffectsVolumeSlider(Menu_0045b800* obj, int unused)
 // FUNCTION: 0x45bea0
 void __stdcall HandleMusicVolumeSlider(Menu_0045b800* obj, int unused)
 {
-    Entry_0045b800* e = FUN_004a0200(obj->holder->entries, "MUSICVOL");
+    Entry_0045b800* e = FindGadgetChecked_D(obj->holder->entries, "MUSICVOL");
     if (e != 0) {
         g_game->volume2 = SliderValue(e);
         ApplySound();
@@ -1550,7 +1550,7 @@ void __stdcall HandleGameSpeedSlider(Menu_0045b800* obj, int unused)
 {
     Player_45c070* player = &g_game->players[g_game->localPlayer];
     if (player->active == 0 || !player->info->u.flag_9b_6) {
-        Entry_0045b800* e = FUN_004a0200(obj->holder->entries, "GAME");
+        Entry_0045b800* e = FindGadgetChecked_D(obj->holder->entries, "GAME");
         if (e != 0) {
             // Written twice, as in the original.
             int value = SliderValue(e);
@@ -1567,7 +1567,7 @@ void __stdcall HandleGameSpeedSlider(Menu_0045b800* obj, int unused)
 // FUNCTION: 0x45c170
 void __stdcall HandleScreenSlider(Menu_0045b800* obj, int unused)
 {
-    Entry_0045b800* e = FUN_004a0200(obj->holder->entries, "SCREEN");
+    Entry_0045b800* e = FindGadgetChecked_D(obj->holder->entries, "SCREEN");
     if (e != 0) {
         g_game->scrollSpeed = SliderValue(e) > 1 ? SliderValue(e) : 1;
         MarkChanged(obj);
@@ -1582,7 +1582,7 @@ void __stdcall HandleScreenSlider(Menu_0045b800* obj, int unused)
 void __stdcall HandleMaxLinesSlider(Menu_0045b800* obj, int unused)
 {
     char text[20];
-    Entry_0045b800* e = FUN_004a0200(obj->holder->entries, "MAXLINES");
+    Entry_0045b800* e = FindGadgetChecked_D(obj->holder->entries, "MAXLINES");
     if (e != 0) {
         int v = SliderValue(e);
         g_game->field_37f27 = v < 0 ? 0 : SliderValue(e);
@@ -1601,7 +1601,7 @@ void __stdcall HandleMaxLinesSlider(Menu_0045b800* obj, int unused)
 void __stdcall HandleTextScrollSlider(Menu_0045b800* obj, int unused)
 {
     char text[20];
-    Entry_0045b800* e = FUN_004a0200(obj->holder->entries, "TXTSCROL");
+    Entry_0045b800* e = FindGadgetChecked_D(obj->holder->entries, "TXTSCROL");
     if (e != 0) {
         g_game->field_37f23 = SliderValue(e);
         sprintf(text, "%d secs", g_game->field_37f23);
@@ -2061,7 +2061,7 @@ void OpenMusicOptions()
     obj->callback1c = TickMusicOptions;
     SetGadgetStatusByName(&g_game->gui, "MUSIC", 1);
     if (FindGadgetIndex(obj->gadgets, "MUSICVOL", 0xe) != -1) {
-        Entry_0045d7c0* e = FUN_004a0200(obj->gadgets, "MUSICVOL");
+        Entry_0045d7c0* e = FindGadgetChecked_D(obj->gadgets, "MUSICVOL");
         e->max = 0x40;
         e->callback = HandleMusicVolumeSlider;
         e->pos = g_game->volume2Word;
@@ -2196,7 +2196,7 @@ void OpenSoundOptions()
     // Result in a local; the call reads obj->entries while later calls use entries.
     int found = FindGadgetIndex(obj->entries, "FXVOL", 0xe);
     if (found != -1) {
-        Entry_0045de30* e = FUN_004a0200(entries, "FXVOL");
+        Entry_0045de30* e = FindGadgetChecked_D(entries, "FXVOL");
         e->max = 0x40;
         e->fn = HandleEffectsVolumeSlider;
         e->pos = g_game->volume1Word;
@@ -2386,7 +2386,7 @@ void __stdcall OpenVisualOptions(int param_1)
             list->buffer = (char*)GameAllocIgnoreTag("AVAILABLE MODES", list->count << 8);
             list->buffer[0] = 0;
             if (FindGadgetIndex(layer->entries, "VIDSLDR", 0xe) != -1) {
-                Entry_0045e5e0* e = FUN_004a0200(layer->entries, "VIDSLDR");
+                Entry_0045e5e0* e = FindGadgetChecked_D(layer->entries, "VIDSLDR");
                 e->max = list->count - 1;
                 e->fn = HandleVideoModeSlider;
                 e->data = list;
@@ -2404,7 +2404,7 @@ void __stdcall OpenVisualOptions(int param_1)
                         if (f - (int)f != 0.0f)
                             f += 1.0;
                         e->pos = (short)f;
-                        char* p = FUN_004a0180(menu->holder->entries, "VIDVAL");
+                        char* p = FindGadgetChecked_C(menu->holder->entries, "VIDVAL");
                         if (p != 0) {
                             sprintf(p + 0xb6, "%d X %d", mode->width, mode->height);
                         }
@@ -2446,7 +2446,7 @@ void __stdcall OpenVisualOptions(int param_1)
         }
         found = FindGadgetIndex(layer->entries, "GAMMA", 0xe);
         if (found != -1) {
-            Entry_0045e5e0* e = FUN_004a0200(layer->entries, "GAMMA");
+            Entry_0045e5e0* e = FindGadgetChecked_D(layer->entries, "GAMMA");
             e->max = 0x14;
             e->fn = HandleGammaSlider;
             int value = g_game->brightness;
@@ -2544,7 +2544,7 @@ void OpenSpeedOptions()
     int found = FindGadgetIndex(obj->entries, "GAME", 0xe);
     SetGadgetStatusByName(&g_game->gui, "SPEEDS", 1);
     if (found != -1) {
-        Entry_0045ed50* e = FUN_004a0200(obj->entries, "GAME");
+        Entry_0045ed50* e = FindGadgetChecked_D(obj->entries, "GAME");
         e->max = 0x15;
         e->fn = HandleGameSpeedSlider;
         int value = g_game->field_38a4b;
@@ -2558,7 +2558,7 @@ void OpenSpeedOptions()
         e->pos = (short)f;
     }
     if (FindGadgetIndex(obj->entries, "SCREEN", 0xe) != -1) {
-        Entry_0045ed50* e = FUN_004a0200(obj->entries, "SCREEN");
+        Entry_0045ed50* e = FindGadgetChecked_D(obj->entries, "SCREEN");
         e->max = 0x41;
         int value = g_game->scrollSpeed;
         if (value > 0x41) {
@@ -2577,7 +2577,7 @@ void OpenSpeedOptions()
     sprintf(text, g_game->field_37f27 ? "%d" : "None", g_game->field_37f27);
     SetTranslatedTextByName(&g_game->gui, "MAXLINESTEXT", text, 0);
     if (FindGadgetIndex(obj->entries, "MAXLINES", 4) != -1) {
-        Entry_0045ed50* e = FUN_004a0200(obj->entries, "MAXLINES");
+        Entry_0045ed50* e = FindGadgetChecked_D(obj->entries, "MAXLINES");
         e->max = 0x1e;
         int value = g_game->field_37f27;
         if (value > 0x1e) {
@@ -2591,7 +2591,7 @@ void OpenSpeedOptions()
         e->fn = HandleMaxLinesSlider;
     }
     if (FindGadgetIndex(obj->entries, "TXTSCROL", 0xe) != -1) {
-        Entry_0045ed50* e = FUN_004a0200(obj->entries, "TXTSCROL");
+        Entry_0045ed50* e = FindGadgetChecked_D(obj->entries, "TXTSCROL");
         e->max = 0x14;
         int value = g_game->field_37f23;
         if (value > 0x14) {

@@ -117,9 +117,9 @@ struct Dialog {
 
 struct Entry_004a1810;
 
-Gadget* __stdcall FUN_004a0010(Gadget* entries, char* name);
-Gadget* __stdcall FUN_004a0180(Gadget* entries, char* name);
-Gadget* __stdcall FUN_004a0200(Gadget* entries, char* name);
+Gadget* __stdcall FindGadgetChecked_B(Gadget* entries, char* name);
+Gadget* __stdcall FindGadgetChecked_C(Gadget* entries, char* name);
+Gadget* __stdcall FindGadgetChecked_D(Gadget* entries, char* name);
 Gadget* __stdcall FindGadgetOrNull(Gadget* entries, char* name);
 int __stdcall IsGadgetNamed(Gadget* entries, int i, char* name);
 int __stdcall FindGadgetIndex(Gadget* entries, char* name, int type);
@@ -450,11 +450,11 @@ FileRequester* Dialog::OpenFileRequester(Dialog* self, char* arg2, char* arg3, c
     obj->callback = 0;
 
     Gadget* entries = (Gadget*)self->field_18->field_4;
-    obj->field_8 = (char*)FUN_004a0010(entries, "NAME");
-    obj->field_c = (char*)FUN_004a0010(entries, "MASK");
+    obj->field_8 = (char*)FindGadgetChecked_B(entries, "NAME");
+    obj->field_c = (char*)FindGadgetChecked_B(entries, "MASK");
     obj->field_10 = (char*)FindGadgetOrNull(entries, "PATH");
-    Gadget* titl = FUN_004a0180(entries, "TITL");
-    obj->field_4 = (ReqSub*)FUN_004a0200(entries, "SLID");
+    Gadget* titl = FindGadgetChecked_C(entries, "TITL");
+    obj->field_4 = (ReqSub*)FindGadgetChecked_D(entries, "SLID");
 
     short none = -1;
     entries->field_13 = none;

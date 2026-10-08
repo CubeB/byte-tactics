@@ -210,7 +210,7 @@ int __stdcall FindGadgetIndex(Entry_00491ec0* entries, char* name, int type);
 int __stdcall FindGadgetIndex(Entry_00492df0* entries, char* name, int type);
 int __stdcall FindGadgetIndex(Entry_00493060* entries, char* name, int type);
 void __stdcall SetGadgetText(Menu_00491ec0* menu, int index, char* text);
-Entry_00491ec0* __stdcall FUN_004a0280(Entry_00491ec0* entries, char* name);
+Entry_00491ec0* __stdcall FindGadgetChecked_E(Entry_00491ec0* entries, char* name);
 void __stdcall SetGadgetActiveByName(void* menu, char* name, int value);
 void __stdcall SetTranslatedTextByName(void* menu, char* name, char* text, int param_4);
 char* __stdcall SkipTextLines(char* text, int n);
@@ -305,7 +305,7 @@ void __stdcall ShowSavedGameInfo()
         HapiBank* file = OpenSummaryBank(path);
         if (file != 0) {
             file->OpenNamedBox("Radar Image");
-            Entry_00491ec0* radar = FUN_004a0280(menu->layer->entries, "RADAR");
+            Entry_00491ec0* radar = FindGadgetChecked_E(menu->layer->entries, "RADAR");
             if (DAT_0051f2ec != 0)
                 FreeSurface(DAT_0051f2ec);
             DAT_0051f2ec = (char*)LoadSurface(file);

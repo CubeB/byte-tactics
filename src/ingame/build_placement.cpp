@@ -137,7 +137,7 @@ void UpdateMouseScroll();
 void CenterCameraOnRadarClick();
 void __stdcall SetEndGameState(int a);
 void BlankScreen();
-int FUN_004572a0();
+int BroadcastPendingViewState();
 void ResetChatHudIndices();
 void ApplySlotsToGamePlayers();
 void ClearSelection();
@@ -374,7 +374,7 @@ void BattleFrame(void)
     if (g_game->field_3923b.bits.b2 || g_game->field_3923b.bits.b4) {
         if (g_game->net->GetGameType() != 3 ||
             (g_game->net->GetGameType() == 3 &&
-             FUN_004572a0() != 0)) {
+             BroadcastPendingViewState() != 0)) {
             SetCursor(0x13);
             PopUntilNamedLayout(1);
             CloseTopScreen(g_game->menu);

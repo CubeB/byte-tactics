@@ -536,31 +536,31 @@ int __stdcall DefaultPacketHandler(int arg1)
 }
 
 // FUNCTION: 0x44fd50
-int __stdcall FUN_0044fd50(int arg1)
+int __stdcall RejectPacketType2(int arg1)
 {
     return 0xffffffff;
 }
 
 // FUNCTION: 0x44fd60
-int __stdcall FUN_0044fd60(int)
+int __stdcall RejectPacketType5(int)
 {
     return 0xffffffff;
 }
 
 // FUNCTION: 0x44fd70
-int __stdcall FUN_0044fd70(int arg1)
+int __stdcall RejectPacketType6(int arg1)
 {
     return 0xffffffff;
 }
 
 // FUNCTION: 0x44fd80
-int __stdcall FUN_0044fd80(int arg1)
+int __stdcall RejectPacketType7(int arg1)
 {
     return 0xffffffff;
 }
 
 // FUNCTION: 0x44fd90
-int __stdcall FUN_0044fd90(int arg1)
+int __stdcall RejectPacketType8(int arg1)
 {
     return 0xffffffff;
 }
@@ -621,7 +621,7 @@ unsigned char __stdcall FindSlotByDpid(int id)
 #pragma auto_inline(on)
 
 // FUNCTION: 0x44feb0
-unsigned char __stdcall FUN_0044feb0(Player* player)
+unsigned char __stdcall GetPlayerSlot(Player* player)
 {
     if (player == 0) {
         return 10;
@@ -1633,7 +1633,7 @@ void __stdcall HandlePlayerEconomy(void* packet, Player* player);
 void __stdcall SetGameSpeed(int speed, int param_2);
 void __stdcall PlaySoundByName(char* name, int param_2);
 int __stdcall IsCurrentGadgetNamed(Gadget_004538f0* gadget, char* name);
-Entry_004538f0* __stdcall FUN_004a0010(Entry_004538f0* entries, char* name);
+Entry_004538f0* __stdcall FindGadgetChecked_B(Entry_004538f0* entries, char* name);
 int __stdcall SendChatMessage(Player* from, char* text, int param_3, char* to);
 int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
 void __stdcall BeginTextEdit(void* menu, int index);
@@ -2022,19 +2022,19 @@ int __stdcall InitPacketTables(Class_00451fd0* param_1)
     DAT_00512c08 = 4;
     DAT_00512c10 = 4;
     DAT_00512ae0 = 13;
-    g_packetHandlerType2 = FUN_0044fd50;
+    g_packetHandlerType2 = RejectPacketType2;
     DAT_00512bc8 = 7;
     DAT_00512aec = 65;
-    DAT_00512a34 = FUN_0044fd60;
+    DAT_00512a34 = RejectPacketType5;
     DAT_00512bd4 = 7;
     DAT_00512af0 = 1;
-    DAT_00512a38 = FUN_0044fd70;
+    DAT_00512a38 = RejectPacketType6;
     DAT_00512bd8 = 7;
     DAT_00512af4 = 1;
-    DAT_00512a3c = FUN_0044fd80;
+    DAT_00512a3c = RejectPacketType7;
     DAT_00512bdc = 7;
     DAT_00512af8 = 1;
-    DAT_00512a40 = FUN_0044fd90;
+    DAT_00512a40 = RejectPacketType8;
     DAT_00512be0 = 7;
     DAT_00512afc = 23;
     DAT_00512a44 = DefaultPacketHandler;
@@ -2630,7 +2630,7 @@ void __stdcall HandleTimeoutDialog(Gadget_004538f0* gadget)
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "TALK")) {
-        Entry_004538f0* entry = FUN_004a0010(entries, "TALK");
+        Entry_004538f0* entry = FindGadgetChecked_B(entries, "TALK");
         if (strlen(entry->text)) {
             SendChatMessage(&g_game->players[g_game->localPlayer], entry->text, 4, 0);
             g_game->flag0 = 1;
@@ -3471,7 +3471,7 @@ void __stdcall SendShareMapInfo(unsigned char from, unsigned char to)
 // byte tables, and hands the pair to SendPlayerEconomy, returning 0 in that case.
 // The three tables live at +0x11e, +0x129 and +0x134, eleven bytes each.
 // FUNCTION: 0x4572a0
-int FUN_004572a0()
+int BroadcastPendingViewState()
 {
     int result = 1;
     for (int i = 0; i < 10; i++) {
@@ -3834,7 +3834,7 @@ int CountActiveAIPlayers()
 }
 
 // FUNCTION: 0x457c10
-int FUN_00457c10()
+int CountActiveHumanOrAiPlayers()
 {
     int count = 0;
     for (int i = 0; i < 10; i++) {

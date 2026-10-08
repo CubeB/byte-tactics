@@ -230,7 +230,7 @@ void __stdcall ClearChanged(void* param_1)
 }
 
 // FUNCTION: 0x49fad0
-void __stdcall FUN_0049fad0(Dialog* obj)
+void __stdcall MarkLayerChanged(Dialog* obj)
 {
     if (obj->holder != 0) {
         obj->holder->field_14 = 1;
@@ -238,7 +238,7 @@ void __stdcall FUN_0049fad0(Dialog* obj)
 }
 
 // FUNCTION: 0x49faf0
-void __stdcall FUN_0049faf0(Dialog* param)
+void __stdcall ClearLayerChanged(Dialog* param)
 {
     param->holder->field_14 = 0;
 }
@@ -387,7 +387,7 @@ Entry_0049f8c0* __stdcall FindGadgetChecked(Entry_0049f8c0* entries, char* name)
 }
 
 // FUNCTION: 0x4a0010
-Entry_0049f8c0* __stdcall FUN_004a0010(Entry_0049f8c0* entries, char* name)
+Entry_0049f8c0* __stdcall FindGadgetChecked_B(Entry_0049f8c0* entries, char* name)
 {
     int i = FindEntry(entries, name);
     if (i != -1) {
@@ -414,7 +414,7 @@ void __stdcall UpdateHelpText(Dialog* obj)
 }
 
 // FUNCTION: 0x4a0180
-Entry_0049f8c0* __stdcall FUN_004a0180(Entry_0049f8c0* entries, char* name)
+Entry_0049f8c0* __stdcall FindGadgetChecked_C(Entry_0049f8c0* entries, char* name)
 {
     int i = FindEntry(entries, name);
     if (i != -1) {
@@ -425,7 +425,7 @@ Entry_0049f8c0* __stdcall FUN_004a0180(Entry_0049f8c0* entries, char* name)
 }
 
 // FUNCTION: 0x4a0200
-Entry_0049f8c0* __stdcall FUN_004a0200(Entry_0049f8c0* entries, char* name)
+Entry_0049f8c0* __stdcall FindGadgetChecked_D(Entry_0049f8c0* entries, char* name)
 {
     int i = FindEntry(entries, name);
     if (i != -1) {
@@ -436,7 +436,7 @@ Entry_0049f8c0* __stdcall FUN_004a0200(Entry_0049f8c0* entries, char* name)
 }
 
 // FUNCTION: 0x4a0280
-Entry_0049f8c0* __stdcall FUN_004a0280(Entry_0049f8c0* entries, char* name)
+Entry_0049f8c0* __stdcall FindGadgetChecked_E(Entry_0049f8c0* entries, char* name)
 {
     int i = FindEntry(entries, name);
     if (i != -1) {
@@ -881,7 +881,7 @@ char* __stdcall GetGadgetText(Dialog_004a04f0* obj, char* name, char* buf)
 // walks both chains (the two-level one at the top, the three-level one inside
 // case 3), which is the evidence.
 // FUNCTION: 0x4a0e00
-void __stdcall FUN_004a0e00(Dialog_004a04f0* obj, char* name, char* text)
+void __stdcall SetControlTextByName(Dialog_004a04f0* obj, char* name, char* text)
 {
     // Loaded before the null test on purpose: the original loads the entries
     // pointer before the `je`.
@@ -1831,7 +1831,7 @@ extern int Pad_a2480_e3;
 extern int Pad_a2480_e4;
 
 // FUNCTION: 0x4a2480
-void __stdcall FUN_004a2480(Class_004a2480* param_1, int index)
+void __stdcall DrawGafBar(Class_004a2480* param_1, int index)
 {
     Entry_004a2480* base = param_1->holder->entries;
     void* surface = base->surface;
@@ -3384,7 +3384,7 @@ unsigned int __cdecl GetTicks();
 extern int Pad_a4620_e0;
 
 // FUNCTION: 0x4a4620
-void __stdcall FUN_004a4620(Dialog_4a4620* obj, int i)
+void __stdcall ScheduleGadgetEndTick(Dialog_4a4620* obj, int i)
 {
     Entry_004a4620* e = &obj->table->entries[i];
     e->end = GetTicks() + e->duration;
@@ -5765,7 +5765,7 @@ int __stdcall AddGadgetEntry(Gui* obj, unsigned char type)
 }
 
 // FUNCTION: 0x4a81b0
-void __stdcall FUN_004a81b0(Gui* obj, char* out)
+void __stdcall GetAnimsPath(Gui* obj, char* out)
 {
     *out = 0;
     if (obj->str_ab6[0] != 0)
@@ -5839,7 +5839,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
         if (entries[i].resourceFlags & 1) {
             entries[i].archive = 0;
             entries[i].gaf = 0;
-            FUN_004a81b0(menu, buf1);
+            GetAnimsPath(menu, buf1);
             strcat(buf1, entries[i].name);
             strcat(buf1, "_gadget");
             ChangeExtension(buf1, buf1, "GAF");
@@ -5854,7 +5854,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
         case 11: {
             if (0 > entries[0].y)
                 entries[0].y += (short)GetScreenHeight();
-            FUN_004a81b0(menu, buf1);
+            GetAnimsPath(menu, buf1);
             strncpy(textbuf, entries[0].name, 0x10);
             textbuf[0x10] = 0;
             strcat(buf1, textbuf);
@@ -6453,7 +6453,7 @@ int __stdcall HandleGuiCommand(Gui* obj, int cmd);
 int __stdcall UpdateMenu(Gui* menu);
 void __stdcall SetCurrentGuiContext(Gui* ctx);
 int GetGuiContext(void);
-void __stdcall FUN_004aa8e0(int* param_1, int param_2);
+void __stdcall SetDefaultFont(int* param_1, int param_2);
 
 // The list gadget's scroll-down step. First it does what 0x4a1810 does: picks
 // the entry of type 7 whose group number matches entry `index` and makes that
@@ -6966,7 +6966,7 @@ int GetGuiContext(void)
 }
 
 // FUNCTION: 0x4aa8e0
-void __stdcall FUN_004aa8e0(int* param_1, int param_2)
+void __stdcall SetDefaultFont(int* param_1, int param_2)
 {
     *param_1 = param_2;
 }

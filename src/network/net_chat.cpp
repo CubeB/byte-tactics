@@ -95,7 +95,7 @@ extern char DAT_005119b8[];
 void __stdcall PlaySoundByName(char* name, int param_2);
 int __stdcall IsScreenNamed(void* obj, const char* name);
 void __stdcall MarkChanged(void* obj);
-void __stdcall FUN_0049fad0(void* obj);
+void __stdcall MarkLayerChanged(void* obj);
 void __stdcall SendChatPacket(char* param_1);
 void __stdcall ReportGameChat(char* param_1);
 void __stdcall CenterCameraOnPoint(int a, int b, int c);
@@ -142,7 +142,7 @@ void __stdcall AddMessage(char* text, unsigned char key, unsigned short value, c
         PlaySoundByName("MessageArrived", 0);
     if (IsScreenNamed((char*)g_game + 0x519, "TIMEOUT.GUI")) {
         MarkChanged((char*)g_game + 0x519);
-        FUN_0049fad0((char*)g_game + 0x519);
+        MarkLayerChanged((char*)g_game + 0x519);
     }
 }
 

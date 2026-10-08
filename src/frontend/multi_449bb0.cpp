@@ -199,9 +199,9 @@ void __stdcall MarkChanged(Gui_00449bb0* gui);
 void __stdcall SetKeyboardInput(Gui_00449bb0* gui, int value);
 int __stdcall FindGadgetIndex(Gadget_00449bb0* entries, char* name, int type);
 Gadget_00449bb0* __stdcall FindGadgetChecked(Gadget_00449bb0* entries, char* name);
-Gadget_00449bb0* __stdcall FUN_004a0180(Gadget_00449bb0* entries, char* name);
-Gadget_00449bb0* __stdcall FUN_004a0200(Gadget_00449bb0* entries, char* name);
-Gadget_00449bb0* __stdcall FUN_004a0280(Gadget_00449bb0* entries, char* name);
+Gadget_00449bb0* __stdcall FindGadgetChecked_C(Gadget_00449bb0* entries, char* name);
+Gadget_00449bb0* __stdcall FindGadgetChecked_D(Gadget_00449bb0* entries, char* name);
+Gadget_00449bb0* __stdcall FindGadgetChecked_E(Gadget_00449bb0* entries, char* name);
 void __stdcall SetGadgetActiveByName(Gui_00449bb0* gui, char* name, int value);
 void __stdcall SetTranslatedTextByName(Gui_00449bb0* gui, char* name, char* text, int size);
 void __stdcall SetGrayedOutByName(Gui_00449bb0* gui, char* name, int value);
@@ -219,7 +219,7 @@ void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 void __stdcall UpdateEnergyText(Gui_00449bb0* gui, int unused)
 {
     char text[20];
-    Gadget_00449bb0* value = FUN_004a0200(gui->table->entries, "ENERGY");
+    Gadget_00449bb0* value = FindGadgetChecked_D(gui->table->entries, "ENERGY");
 
     if (value != 0) {
         int shown = ReadSliderValue(value) / 100 * 100;
@@ -243,7 +243,7 @@ void __stdcall BindNamedSliderWithCallback(char* name, int max, int value, Callb
     Gadget_00449bb0* gadgets = gui->table->entries;
     int index = FindGadgetIndex(gadgets, name, 0xe);
     if (index != -1) {
-        Gadget_00449bb0* gadget = FUN_004a0200(gadgets, name);
+        Gadget_00449bb0* gadget = FindGadgetChecked_D(gadgets, name);
         gadget->max = max;
         gadget->callback = callback;
         gadget->value = value;
@@ -360,7 +360,7 @@ void OpenBattleRoom()
     g_game->chatter = (char*)GameAllocIgnoreTag("LOUNGE CHATTER", 0xa00);
     *g_game->chatter = 0;
     {
-        Gadget_00449bb0* mem = FUN_004a0180(g_game->gui.table->entries, "MEMx");
+        Gadget_00449bb0* mem = FindGadgetChecked_C(g_game->gui.table->entries, "MEMx");
         mem->colour = player->info->memory < ((Class_00435920*)g_game->map)->GetTerrainSizeTier() ? 0xc : 0;
         sprintf(mem->text, "%d", g_game->players[g_game->localPlayer].info->memory);
     }
@@ -412,7 +412,7 @@ void OpenBattleRoom()
     OrLabelAttribs();
 
     if (IsScreenNamed(&g_game->gui, "LOUNGE2.GUI")) {
-        Gadget_00449bb0* start = FUN_004a0280(layer->entries, "battlestart");
+        Gadget_00449bb0* start = FindGadgetChecked_E(layer->entries, "battlestart");
         start->anim.frames = FindGafEntry(layer->entries->head.gaf, "battlestart");
         start->frame = 0;
         start->c8_0 = 1;

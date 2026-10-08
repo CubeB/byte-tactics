@@ -293,7 +293,7 @@ void __stdcall SetCursorOverlayEnabled(int param);
 void __stdcall SetMissionType(int param);
 void __stdcall PlayMovie(char* param);
 int __stdcall LoadPictureCached(const char* name, int param_2, int param_3, int param_4);
-void __stdcall FUN_0049fad0(void* menu);
+void __stdcall MarkLayerChanged(void* menu);
 void RegisterDataArchives();
 char __stdcall FindGameCdDrive(int param_1);
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
@@ -630,7 +630,7 @@ void UpdateMenuSparks()
             }
             s++;
         } while (--count);
-        FUN_0049fad0((char*)g_game + 0x519);
+        MarkLayerChanged((char*)g_game + 0x519);
     }
 }
 

@@ -78,7 +78,7 @@ void __stdcall CloseTopScreen(void* menu);
 void __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
 void __stdcall RemapPaletteToClosestIndices(void* menu, void* palette, void* param_3);
 Gadget_00444580* __stdcall LoadGuiLayer(void* menu, char* name, int size);
-void __stdcall FUN_004441a0(void* menu);
+void __stdcall HandleSelectProviderClick(void* menu);
 void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 void __stdcall HAPINET_uninitmultiplay(void* param_1);
@@ -118,7 +118,7 @@ void FillProviderList()
     SetPaletteColors(g_game->palette, 0, 0x100);
     RemapPaletteToClosestIndices(&g_game->menu, g_game->palette, g_game->field_5cb);
     Gadget_00444580* menu = LoadGuiLayer(&g_game->menu, "SELPROV.GUI", 0x80);
-    menu->handler = FUN_004441a0;
+    menu->handler = HandleSelectProviderClick;
     menu->field_c = (int)g_game;
     LoadPictureCached("selconnect2", 1, 0, 0);
     g_game->descriptions = GameAllocIgnoreTag("PROVIDER DESCRIPTIONS", 0x500);

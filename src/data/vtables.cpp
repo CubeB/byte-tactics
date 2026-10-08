@@ -12,7 +12,7 @@ extern "C" int __cdecl _purecall(void);
 // A method several classes share a name for is declared in a namespace named
 // after its class, so the slot still names one address in data/symbols.csv.
 void FUN_00407e70();
-void FUN_00407e90();
+namespace SpatialTimer { void OnTimer(); }
 void GetType();
 namespace OrderFx { void Destroy(); }
 void SerializeSave();
@@ -82,7 +82,7 @@ void AimCobStub();
 // SpatialTimer's, a class of the 0x4fc980 family: stored by its constructor 0x407d40.
 // GLOBAL: 0x4fc9a0
 extern VirtualFunction const g_spatialTimerVtable[2] = {
-    FUN_00407e90, FUN_00407e70,
+    SpatialTimer::OnTimer, FUN_00407e70,
 };
 
 // The base class of the 0x44ce20 family: stored by the constructors 0x44ce20 to 0x44e330 before their own, and by the destructors 0x44ce50 to 0x44e7b0 last.

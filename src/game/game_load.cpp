@@ -427,7 +427,7 @@ void __stdcall HandleMain2LayoutEvent(Gadget_497180* gadget);
 void __cdecl operator delete(void* p);
 
 void __stdcall RenderLayer(Menu_00497ce0* menu, int value);
-void __stdcall FUN_0049fad0(Menu_00497ce0* menu);
+void __stdcall MarkLayerChanged(Menu_00497ce0* menu);
 void __stdcall BlitMenuLayers(Menu_00497ce0* menu, int a, int b);
 void __stdcall FillRectangle(void* surface, void* rect, int color);
 void __stdcall DrawTextClipped(void* surface, const char* text, int x, int y, int len, int flag);
@@ -812,7 +812,7 @@ void __stdcall DrawSyncStatus(void* surface)
     extern Game* g_game;
 
     RenderLayer(&g_game->menu, 0x40);
-    FUN_0049fad0(&g_game->menu);
+    MarkLayerChanged(&g_game->menu);
     BlitMenuLayers(&g_game->menu, 0, 0);
 
     const char* text;

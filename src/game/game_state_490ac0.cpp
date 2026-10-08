@@ -585,7 +585,7 @@ void __stdcall SetCurrentGuiContext(void* param_1);
 void __stdcall SetGuiPath(void* param_1, const char* name);
 void __stdcall SetAnimsPath(void* param_1, const char* name);
 void __stdcall SetFontsPath(void* param_1, const char* name);
-void __stdcall FUN_004aa8e0(void* param_1, int param_2);
+void __stdcall SetDefaultFont(void* param_1, int param_2);
 void* __stdcall GetGafFrame(void* param_1, int param_2);
 void __stdcall InitCursorFrames(void* param_1, void* param_2);
 void __stdcall LoadGafFile(void* param_1, const char* name);
@@ -660,7 +660,7 @@ void InitGame()
     SetGuiPath(&g_game->gui, g_guisDirName);
     SetAnimsPath(&g_game->gui, g_animsDirName);
     SetFontsPath(&g_game->gui, g_fontsDirName);
-    FUN_004aa8e0(&g_game->gui, g_game->field_391f9);
+    SetDefaultFont(&g_game->gui, g_game->field_391f9);
     InitCursorFrames(&g_game->gui, GetGafFrame(g_game->field_148cb, 0));
     LoadGafFile(&g_game->gui, g_commonGuiName);
     LoadGafIntoSlot(&g_game->gui, g_hattFont12Name, 0);

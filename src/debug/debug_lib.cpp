@@ -1234,7 +1234,7 @@ void __stdcall UnhandledExceptionHandler(int param_1)
 }
 
 // The debug thread DebugThreadProc, RunDebugThread, HandleDialogMessage and
-// FUN_004da3e0 (0x4da2c0) stay in src/debug/debug_lib_4da2c0.cpp for the same
+// InitFullDebugSupport (0x4da2c0) stay in src/debug/debug_lib_4da2c0.cpp for the same
 // reason (gap region, /Od).
 
 // Normalizes the line endings in `text` in place: counts the '\n's, moves the

@@ -672,7 +672,7 @@ Things that look wrong in the original but have no effect, kept for the record.
   type; its sibling loader 0x44d930 does check. Found by DeepSeek V4.1 Flash
   in #33.
 - **0x45bbf0** (possible): reads `e->list` before the null check of
-  FUN_004a0200's result (0x45bc07, then `test eax, eax` at 0x45bc0d), so a
+  FindGadgetChecked_D's result (0x45bc07, then `test eax, eax` at 0x45bc0d), so a
   missing "VIDSLDR" entry would be dereferenced. Found by Space Bunny Free in
   #143.
 - **0x44b140** and **0x44b230** (possible): never check `fopen`'s result, so a
@@ -1039,11 +1039,11 @@ Things that look wrong in the original but have no effect, kept for the record.
   three-entry stack table of "Easy", "Medium" and "Hard" with no range check
   (`mov edx, [esp+eax*4+0x48]` at 0x49225e) and goes to `sprintf("%s")`, so a
   damaged save passes a neighbouring stack dword as a string. And the result of
-  `FUN_004a0280(..., "RADAR")`, which is 0 after it logs "Error in GUI layout",
+  `FindGadgetChecked_E(..., "RADAR")`, which is 0 after it logs "Error in GUI layout",
   is kept in `esi` and never tested, so `mov dword ptr [esi+0xc2], 0x51e6f8`
   at 0x491fd1 writes to address 0xc2 when the gadget is missing; the `je`
   before it tests the radar image, not the gadget. Six of the twelve callers of
-  FUN_004a0280 do test the result. Found by ozgb's Codex / GPT-6 in #1950 and
+  FindGadgetChecked_E do test the result. Found by ozgb's Codex / GPT-6 in #1950 and
   CubeB's OpenCode / deepseek-v4.1-flash in #2286.
 - **0x49b090** (possible): a cell's feature id is checked against the feature
   count on the direct path (`cmp edx, [g+0x14253]; jl` at 0x49b2d4), but for
@@ -1106,7 +1106,7 @@ Things that look wrong in the original but have no effect, kept for the record.
   skipping. An initial `found = -1` would match the evident intent. Found by
   OpenCode / deepseek-v4.1-flash in #6089.
 - **0x440d70, 0x4437c0** (possible): both look up the PASSWORD entry with
-  FUN_004a0010 and use `entry + 0xb6` without testing the result, though
+  FindGadgetChecked_B and use `entry + 0xb6` without testing the result, though
   0x4437c0's own UPDATE path (0x443895) does test it (`cmp eax, edi; je`). A
   NEWMULTI or SELGAME dialog without a PASSWORD entry would read through
   address 0xb6. Harmless while the shipped GUI files have the entry. Found by

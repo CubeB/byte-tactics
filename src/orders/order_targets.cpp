@@ -986,7 +986,7 @@ public:
     int SerializeToSave(int unused, HapiBank* file, char* name);
     void SerializeToBits(BitWriter* stream);
     int IsComplete(Object_0044e740* unit);
-    void FUN_0044ec10(int);
+    void SetAltitude(int);
 };
 #pragma pack(pop)
 
@@ -1088,7 +1088,7 @@ struct Class_0044ec20 {
     char unknown_a[0x24 - 0xa];
     short value;                       // +0x24
 
-    void FUN_0044ec20(short v);
+    void SetHeading(short v);
 };
 
 // The same vector as 0x44ee90 (_Ucopy) and 0x44eec0 (_Ufill): 0x44d0e0,
@@ -2463,14 +2463,14 @@ int FUN_0044ec00(void)
 // An empty method: its one caller (0x412d40) calls it on
 // the object it has just built with that class's constructor (0x44e740).
 // FUNCTION: 0x44ec10
-void Class_0044e740::FUN_0044ec10(int)
+void Class_0044e740::SetAltitude(int)
 {
 }
 
 // Sets a flag bit in the word at +0x8 (a 1-bit unsigned short bitfield, which
 // MSVC sets with `or byte ptr` straight to memory) and stores a short.
 // FUNCTION: 0x44ec20
-void Class_0044ec20::FUN_0044ec20(short v)
+void Class_0044ec20::SetHeading(short v)
 {
     flag = 1;
     value = v;

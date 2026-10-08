@@ -95,7 +95,7 @@ class Class_0044e740 {
 public:
     char unknown_0[0x2c];
     Class_0044e740(Order* order, const Vec3& a, const Vec3& b);
-    void FUN_0044ec10(int);
+    void SetAltitude(int);
 };
 #pragma pack(pop)
 
@@ -205,7 +205,7 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
                 Vec3 from = Add(unit->pos, Offset(unit->heading, unit->def->maxvelocity * 30));
                 Vec3 to = Offset(unit->heading, unit->def->maxvelocity);
                 Class_0044e740* obj = new Class_0044e740(order, from, to);
-                obj->FUN_0044ec10(unit->def->altitude);
+                obj->SetAltitude(unit->def->altitude);
                 ((Class_004388d0*)order)->SetAttachedFx((int)obj);
                 ((Class_00439e80*)order)->SetDeadlineTicks(RandomInt(0x1e) + 0x3c);
                 order->field_36 = 0;

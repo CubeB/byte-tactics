@@ -112,13 +112,13 @@ void __stdcall UpdateMaxUnitsText(Gui_0044a680* gui, int index);
 void __stdcall UpdateMetalText(Gui_0044a680* gui, int index);
 void __stdcall PlaySoundByName(char* name, int param);
 void __stdcall MarkChanged(Gui_0044a680* gui);
-void __stdcall FUN_0049fad0(Gui_0044a680* gui);
+void __stdcall MarkLayerChanged(Gui_0044a680* gui);
 int __stdcall FindGadgetIndex(Gadget_0044a680* entries, char* name, int type);
 void __stdcall SetGadgetActiveByName(Gui_0044a680* gui, char* name, int param);
 void __stdcall SetTranslatedTextByName(Gui_0044a680* gui, char* name, char* text, int param);
 void __stdcall SetGrayedOutByName(Gui_0044a680* gui, char* name, int param);
-Gadget_0044a680* __stdcall FUN_004a0200(Gadget_0044a680* entries, char* name);
-Gadget_0044a680* __stdcall FUN_004a0280(Gadget_0044a680* entries, char* name);
+Gadget_0044a680* __stdcall FindGadgetChecked_D(Gadget_0044a680* entries, char* name);
+Gadget_0044a680* __stdcall FindGadgetChecked_E(Gadget_0044a680* entries, char* name);
 void __stdcall GetGadgetRectByIndex(Gadget_0044a680* entries, int widget, RECT* rect);
 int __stdcall GetTextPixelWidth(char* text);
 int __stdcall GetFontLineHeight();
@@ -218,7 +218,7 @@ inline void CompactActivePlayerSlots()
 void __stdcall UpdateEnergyText(Gui_0044a680* gui, int unused)
 {
     char text[20];
-    Gadget_0044a680* value = FUN_004a0200(gui->table->entries, "ENERGY");
+    Gadget_0044a680* value = FindGadgetChecked_D(gui->table->entries, "ENERGY");
 
     if (value != 0) {
         int shown = ReadSliderValue(value) / 100 * 100;
@@ -238,8 +238,8 @@ void __stdcall UpdateEnergyText(Gui_0044a680* gui, int unused)
 // The slider setter at 0x445e20, which has no callers: /Ob2 inlined it.
 void __stdcall SetNamedSliderValue(Gui_0044a680* gui, char* name, int value)
 {
-    // Gadget kept in a local: holds the value in edi across FUN_004a0200.
-    Gadget_0044a680* gadget = FUN_004a0200(gui->table->entries, name);
+    // Gadget kept in a local: holds the value in edi across FindGadgetChecked_D.
+    Gadget_0044a680* gadget = FindGadgetChecked_D(gui->table->entries, name);
     SetSliderFromValue(gadget, value);
 }
 
@@ -298,7 +298,7 @@ void UpdateBattleRoom()
                     if (strcmp(g_game->map->GetMissionName(), info->map) != 0) {
                         g_game->map->LoadMissionByName(g_game->players[host].info);
                         ShowSelectedMapInfo();
-                        FUN_0049fad0(&g_game->gui);
+                        MarkLayerChanged(&g_game->gui);
                     }
                 }
             }
@@ -311,7 +311,7 @@ void UpdateBattleRoom()
                 Gadget_0044a680* start;
 
                 SetGrayedOutByName(&g_game->gui, "SYNCHING", 1);
-                start = FUN_004a0280(g_game->gui.table->entries, "battlestart");
+                start = FindGadgetChecked_E(g_game->gui.table->entries, "battlestart");
                 if (start->frame > 0 && g_startCountdownNextTick < GetTicks()) {
                     if (start->frame < 8) {
                         start->frame++;

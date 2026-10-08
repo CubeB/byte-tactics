@@ -705,8 +705,8 @@ void __cdecl GameFreeThunk(void* ptr);
 void __stdcall PlaySoundByName(const char* name, int param_2);
 int __stdcall IsCurrentGadgetNamed(Menu* menu, char* name);
 Gadget* __stdcall FindGadgetChecked(Gadget* entries, char* name);
-Gadget* __stdcall FUN_004a0280(Gadget* entries, char* name);
-void __stdcall FUN_004a0e00(Menu* menu, char* name, char* value);
+Gadget* __stdcall FindGadgetChecked_E(Gadget* entries, char* name);
+void __stdcall SetControlTextByName(Menu* menu, char* name, char* value);
 void __stdcall ClearSelectedGadget(Menu* menu);
 char* __stdcall SkipTextLines(char* text, int line);
 
@@ -723,7 +723,7 @@ void __stdcall HandleSkirmishMapClick(Menu* menu)
     Gadget* entries = holder->entries;
 
     if (menu->current == -1) {
-        Gadget* pic = FUN_004a0280(g_game->menu.holder->entries, "MAPPIC");
+        Gadget* pic = FindGadgetChecked_E(g_game->menu.holder->entries, "MAPPIC");
         if (pic->items != 0) {
             GameFreeThunk(pic->items);
             pic->items = 0;
@@ -747,7 +747,7 @@ void __stdcall HandleSkirmishMapClick(Menu* menu)
     strncpy(g_game->table->mapName, SkipTextLines(g->items, g->selected), 0x100);
     g_game->mission->LoadMissionByName(g_game->table->mapName);
     strncpy(buffer, g_game->table->mapName, 0x100);
-    FUN_004a0e00(menu, "MapName", buffer);
+    SetControlTextByName(menu, "MapName", buffer);
 }
 
 void ShowSelectedMapInfo();

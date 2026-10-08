@@ -391,7 +391,7 @@ Layer* __stdcall LoadGuiLayer(Menu* menu, const char* name, int flags);
 void __stdcall SelectGadgetByName(Menu* menu, const char* name);
 char* __stdcall BuildScrollItems1(char* names, char* flags, int count);
 void __stdcall ConfigureListBoxByName(Menu* menu, char* name, void* items, int count, int flag);
-Gadget* __stdcall FUN_004a0200(char* entries, char* name);
+Gadget* __stdcall FindGadgetChecked_D(char* entries, char* name);
 void __stdcall SetListBoxScrollByName(Menu* menu, char* name, int index);
 void __stdcall SetGadgetActiveByName(Menu* menu, const char* name, int value);
 void __stdcall SetTranslatedTextByName(Menu* menu, char* name, char* text, int param_4);
@@ -399,7 +399,7 @@ int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 void __stdcall DrawFrame(void* param_1, int param_2, int x, int y);
 void __stdcall SetKeyboardInput(Menu* menu, int value);
 void __stdcall RenderLayer(Menu* menu, int value);
-void __stdcall FUN_0049fad0(Menu* menu);
+void __stdcall MarkLayerChanged(Menu* menu);
 void __stdcall MarkChanged(Menu* menu);
 void __stdcall EnableKeyCommands(Menu* menu);
 void __stdcall UpdateMenu(Menu* menu);
@@ -918,7 +918,7 @@ void __stdcall OpenEndMissionScreen()
                 break;
         }
         ConfigureListBoxByName(&g_game->menu, "Missions", data->items, count, 0);
-        Gadget* knob = FUN_004a0200(entries, "KNOB");
+        Gadget* knob = FindGadgetChecked_D(entries, "KNOB");
         knob->field_136 = knob->height - knob->field_142 - 3;
         SetListBoxScrollByName(&g_game->menu, "Missions", g_game->mission);
         SetListBoxScrollByName(&g_game->menu, "Missions", g_game->mission + (g_game->field_391af != 0));
@@ -962,7 +962,7 @@ void EnableEndMissionButtons()
         entries[FindGadgetIndex(entries, "MainMenu", 1)].y = 0x1a0;
         SelectGadgetByName(&g_game->menu, "MainMenu");
     }
-    FUN_0049fad0(&g_game->menu);
+    MarkLayerChanged(&g_game->menu);
     MarkChanged(&g_game->menu);
 }
 
@@ -987,7 +987,7 @@ void ShowEndMissionScreen()
     OpenEndMissionScreen();
     FillEndGameStatistics();
     EnableEndMissionButtons();
-    FUN_0049fad0(&g_game->menu);
+    MarkLayerChanged(&g_game->menu);
     MarkChanged(&g_game->menu);
     SetGameMode(7);
     g_game->state = 7;
@@ -1081,7 +1081,7 @@ void __stdcall RunEndGameState()
                 const char* name=GetRejectReasonText(player->message);
                 OpenMessageBox(&g_game->menu,Translate(name),320,1,1);
                 MarkChanged(&g_game->menu);
-                FUN_0049fad0(&g_game->menu);
+                MarkLayerChanged(&g_game->menu);
                 player->message=0;
             }
         } else { g_game->lastFrame=0; g_game->state=2; }
@@ -1148,7 +1148,7 @@ void __stdcall RunEndGameState()
             DrawSurface(g_game->surface,g_game->image_3907b,0,0);
         } else {
             OpenEndMissionScreen(); FillEndGameStatistics(); EnableEndMissionButtons();
-            FUN_0049fad0(&g_game->menu); MarkChanged(&g_game->menu);
+            MarkLayerChanged(&g_game->menu); MarkChanged(&g_game->menu);
             g_game->state=7;
         }
         break;
@@ -1167,7 +1167,7 @@ void __stdcall RunEndGameState()
                 if(PopKey() || g_game->advance) {
                     g_game->sound->StopStream();
                     OpenEndMissionScreen(); EnableEndMissionButtons(); FillEndGameStatistics();
-                    FUN_0049fad0(&g_game->menu); MarkChanged(&g_game->menu);
+                    MarkLayerChanged(&g_game->menu); MarkChanged(&g_game->menu);
                     g_game->state=7;
                 }
                 unsigned deadline=GetTickRate()*5+g_game->deadline;

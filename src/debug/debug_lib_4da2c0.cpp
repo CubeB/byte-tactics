@@ -62,7 +62,7 @@ BOOL __cdecl HandleDialogMessage(MSG* msg)
 }
 
 // FUNCTION: 0x4da3e0
-void __cdecl FUN_004da3e0(void)
+void __cdecl InitFullDebugSupport(void)
 {
     InitDebugSupport(0);
 }

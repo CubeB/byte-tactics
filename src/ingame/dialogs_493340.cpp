@@ -302,7 +302,7 @@ extern int g_lastCdActivityMode;
 extern int g_usePacketManager;
 extern PacketManager g_packetManager;
 
-Gadget* __stdcall FUN_004a0200(Gadget* entries, char* name);
+Gadget* __stdcall FindGadgetChecked_D(Gadget* entries, char* name);
 int __stdcall ReadSliderValue(Gadget* entry);
 void __stdcall SetTranslatedTextByName(Menu* menu, char* name, char* text, int param_4);
 void __stdcall PlaySoundByName(char* name, int flag);
@@ -332,7 +332,7 @@ void __stdcall RenderLayer(Menu* menu, int value);
 void __stdcall SetGadgetActiveByName(Menu* menu, char* name, int value);
 void __stdcall SetButtonStageByName(Menu* menu, char* name, int value);
 int __stdcall GetButtonStage(Menu* menu, int index);
-Gadget* __stdcall FUN_004a0010(Gadget* entries, char* name);
+Gadget* __stdcall FindGadgetChecked_B(Gadget* entries, char* name);
 void __stdcall GetGadgetText(Menu* menu, char* name, char* text);
 void ResetPlayerGadgets();
 void OpenTalkDialog();
@@ -341,7 +341,7 @@ void __stdcall TrySetFocus(Menu* menu, int index);
 void __stdcall SendChatMessage(Player* from, char* text, int param_3, char* to);
 void __stdcall HandleTalkDialogEvent(Menu* gadget);
 void __stdcall RefreshAlliesScreen(int value);
-Gadget* __stdcall FUN_004a0280(Gadget* entries, char* name);
+Gadget* __stdcall FindGadgetChecked_E(Gadget* entries, char* name);
 void __stdcall FreeSurface(void* param_1);
 void __stdcall GetGadgetRect(Gadget* entry, Rect* rect);
 void __stdcall DrawSurface(void* dest, void* image, int x, int y);
@@ -399,7 +399,7 @@ int __stdcall SetPageFlipping(int enable);
 void __stdcall UpdateMetalReadout(Menu* obj, int unused)
 {
     char buf[52];
-    Gadget* value = FUN_004a0200(obj->layer->entries, "METAL");
+    Gadget* value = FindGadgetChecked_D(obj->layer->entries, "METAL");
     if (value != 0) {
         sprintf(buf, "%d", ReadSliderValue(value));
         SetTranslatedTextByName(obj, "METAL#", buf, 0);
@@ -410,7 +410,7 @@ void __stdcall UpdateMetalReadout(Menu* obj, int unused)
 void __stdcall UpdateEnergyReadout(Menu* obj, int unused)
 {
     char buf[52];
-    Gadget* value = FUN_004a0200(obj->layer->entries, "ENERGY");
+    Gadget* value = FindGadgetChecked_D(obj->layer->entries, "ENERGY");
     if (value != 0) {
         sprintf(buf, "%d", ReadSliderValue(value));
         SetTranslatedTextByName(obj, "ENERGY#", buf, 0);
@@ -495,9 +495,9 @@ void __stdcall HandleShareDialogEvent(Menu* obj)
         Player* p = &g_game->players[pi];
         if (IsPlaying_4934b0(p) && !(p->info->flags & 0x40) && IsCounted_4934b0(p)) {
             TransferEnergy(g_game->localPlayer, pi,
-                         (float)ReadSliderValue(FUN_004a0200(data, "METAL")), 1);
+                         (float)ReadSliderValue(FindGadgetChecked_D(data, "METAL")), 1);
             TransferMetal(g_game->localPlayer, pi,
-                         (float)ReadSliderValue(FUN_004a0200(data, "ENERGY")), 1);
+                         (float)ReadSliderValue(FindGadgetChecked_D(data, "ENERGY")), 1);
             if (GetButtonStageByName(obj, "SHARUNIT"))
                 GiveSelectedUnitsToPlayer(pi);
             if (GetButtonStageByName(obj, "MAPINFO")) {
@@ -545,7 +545,7 @@ void OpenShareDialog()
     }
     idx = FindGadgetIndex(layer->entries, "ENERGY", 0xe);
     if (idx != -1) {
-        Gadget* e = FUN_004a0200(layer->entries, "ENERGY");
+        Gadget* e = FindGadgetChecked_D(layer->entries, "ENERGY");
         e->knobSize = layer->entries[idx].height;
         e->range = layer->entries[idx].width - e->knobSize;
         e->max = (int)g_game->players[g_game->localPlayer].energy;
@@ -583,7 +583,7 @@ void OpenShareDialog()
     Menu* menu = &g_game->menu;
     Layer* lyr = menu->layer;
     Gadget* ents = lyr->entries;
-    Gadget* e = FUN_004a0200(ents, "METAL");
+    Gadget* e = FindGadgetChecked_D(ents, "METAL");
     if (e) {
         sprintf(text, "%d", ReadSliderValue(e));
         SetTranslatedTextByName(menu, "METAL#", text, 0);
@@ -591,7 +591,7 @@ void OpenShareDialog()
     menu = &g_game->menu;
     lyr = menu->layer;
     ents = lyr->entries;
-    e = FUN_004a0200(ents, "ENERGY");
+    e = FindGadgetChecked_D(ents, "ENERGY");
     if (e) {
         sprintf(text, "%d", ReadSliderValue(e));
         SetTranslatedTextByName(menu, "ENERGY#", text, 0);
@@ -694,7 +694,7 @@ void __stdcall HandleTalkDialogEvent(Menu* gadget)
         goto tail;
     }
     if (IsCurrentGadgetNamed(gadget, g_talkGadgetName)) {
-        Gadget* talk = FUN_004a0010(entries, g_talkGadgetName);
+        Gadget* talk = FindGadgetChecked_B(entries, g_talkGadgetName);
         mode = g_game->mode_2bf0;
         lstrcpynA(buf, (char*)talk + 0xb6, 0x100);
         char* p = buf;
@@ -808,7 +808,7 @@ void OpenTalkDialog()
 void __stdcall HandleUnitInfoDialogEvent(Menu* gadget)
 {
     if (gadget->current == -1) {
-        Gadget* e = FUN_004a0280(gadget->layer->entries, "HOTR");
+        Gadget* e = FindGadgetChecked_E(gadget->layer->entries, "HOTR");
         FreeSurface(e->image);
         g_game->flags_37ebe &= ~0x800;
         return;
@@ -868,7 +868,7 @@ void __stdcall OpenUnitInfoDialog(void)
     Gadget* entries = layer->entries;
     layer->handler = HandleUnitInfoDialogEvent;
     layer->owner = g_game;
-    Gadget* hotr = FUN_004a0280(entries, "HOTR");
+    Gadget* hotr = FindGadgetChecked_E(entries, "HOTR");
     hotr->u.callback = (void*)DrawUnitInfoImage;
     char* def = g_game->unitDefs + 0x249 * (unsigned)type;
     BuildDataPath(buf, "unitpics", def + 0x20, "PCX");

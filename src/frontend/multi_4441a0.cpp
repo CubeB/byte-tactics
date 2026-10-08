@@ -65,7 +65,7 @@ void OpenOptionsPanel();
 
 // The SELPROV.GUI menu's handler.
 // FUNCTION: 0x4441a0
-void __stdcall FUN_004441a0(Menu_004441a0* menu)
+void __stdcall HandleSelectProviderClick(Menu_004441a0* menu)
 {
     Entry_004441a0* entries = menu->holder->entries;
     int i;

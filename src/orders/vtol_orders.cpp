@@ -384,7 +384,7 @@ class Class_0044e740 {
 public:
     char unknown_0[0x2c];
     Class_0044e740(Order* order, const Vec3& a, const Vec3& b);
-    void FUN_0044ec10(int);
+    void SetAltitude(int);
 };
 
 class Class_004388d0 { public: void SetAttachedFx(int); };

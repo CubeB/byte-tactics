@@ -274,7 +274,7 @@ extern unsigned int g_netStatsTick;                                             
 extern unsigned int g_byteRatesTick;                                                              // 0x511ddc, 4 bytes; 1 of 1 files
 extern int DAT_00511de0;                                                                          // 0x511de0, 4 bytes; 2 of 2 files
 extern int g_cdPathMismatch;                                                                      // 0x511de4, 4 bytes; 1 of 1 files
-extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 336 of 383 files (conflicting: shape)
+extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 333 of 380 files (conflicting: shape)
 extern int g_endGameGlamourSoundStarted;                                                          // 0x511dec, 4 bytes; 1 of 1 files
 extern ExplodedPiece* g_explodedPieces[100];                                                      // 0x511df0, 400 bytes; 1 of 1 files
 extern unsigned char DAT_00511f80[16];                                                            // 0x511f80, 16 bytes; CMemoryCache by value in 2 of 2 files
@@ -606,7 +606,7 @@ extern int g_cdFadeVolume;                                                      
 extern Class_004d02a0* g_cdPlayer;                                                                // 0x51ff14, 4 bytes; 1 of 2 files (conflicting: struct names only)
 extern void* g_cdPlayerWindow;                                                                    // 0x51ff18, 4 bytes; 1 of 1 files
 extern unsigned char DAT_0051ff1c[4];                                                             // 0x51ff1c, 4 bytes; nothing refers to it
-extern int DAT_0051ff20[10];                                                                      // 0x51ff20, 40 bytes; 1 of 1 files
+extern int g_cdCategorySavedTrack[10];                                                            // 0x51ff20, 40 bytes; 1 of 1 files
 extern int g_playBufferLooping;                                                                   // 0x51ff48, 4 bytes; 1 of 1 files
 extern unsigned char DAT_0051ff4c[12];                                                            // 0x51ff4c, 12 bytes; nothing refers to it
 extern int DAT_0051ff58;                                                                          // 0x51ff58, 4 bytes; 1 of 1 files

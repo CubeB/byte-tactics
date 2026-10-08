@@ -2909,8 +2909,8 @@ address,size,file,symbol,status,similarity
 0x4cb9e0,205,src/graphics/pcx_4caa40.cpp,?SaveBmp@@YGHPADPAUBitmap_004caec0@@@Z,matched,100.0
 0x4cbab0,189,src/graphics/pcx_4caa40.cpp,?ExceptionFilter@@YGHHH@Z,matched,100.0
 0x4cbb70,105,src/debug/debug_helper_4cbb70.cpp,?PassThroughDebugHelper@@YGHH@Z,matched,100.0
-0x4cd9b0,3,src/sound/cd_audio.cpp,?FUN_004cd9b0@@YGXH@Z,matched,100.0
-0x4cd9c0,7,src/sound/cd_audio.cpp,?FUN_004cd9c0@Sound@@QAEHXZ,matched,100.0
+0x4cd9b0,3,src/sound/cd_audio.cpp,?NopRet4@@YGXH@Z,matched,100.0
+0x4cd9c0,7,src/sound/cd_audio.cpp,?GetDiscSerial@Sound@@QAEHXZ,matched,100.0
 0x4cd9d0,39,src/sound/cd_audio.cpp,?SetCdCallback@Class_004cd9d0@@QAEHP6GXXZ@Z,matched,100.0
 0x4cda00,307,src/sound/cd_audio.cpp,?QueryDisc@Sound@@QAEHXZ,matched,100.0
 0x4cdb40,1248,src/sound/cd_audio.cpp,?PlayNextTrack@Class_004cdb40@@QAEXXZ,matched,100.0
@@ -2920,13 +2920,13 @@ address,size,file,symbol,status,similarity
 0x4ce1d0,14,src/sound/cd_audio.cpp,?HasCdPlayerWindow@Sound@@QAE_NXZ,matched,100.0
 0x4ce1e0,114,src/sound/cd_audio.cpp,?FindCdPlayerWindow@@YGHPAXJ@Z,matched,100.0
 0x4ce260,378,src/sound/cd_audio.cpp,?OpenCdAudio@Class_004ce260@@QAEHXZ,matched,100.0
-0x4ce3e0,39,src/sound/cd_audio.cpp,?FUN_004ce3e0@Class_004ce3e0@@QAEXPBX@Z,matched,100.0
+0x4ce3e0,39,src/sound/cd_audio.cpp,?CopyTrackTypeTable@Class_004ce3e0@@QAEXPBX@Z,matched,100.0
 0x4ce410,50,src/sound/cd_audio.cpp,?CloseCdAudio@Class_004ce410@@QAEXXZ,matched,100.0
 0x4ce450,7,src/sound/cd_audio.cpp,?GetTrackCount@Class_004ce450@@QAEHXZ,matched,100.0
 0x4ce460,194,src/sound/cd_audio.cpp,?IsFirstTrackData@Class_004ce460@@QAEHXZ,matched,100.0
 0x4ce530,77,src/sound/cd_audio.cpp,?GetTrackLength@@YGHH@Z,matched,100.0
-0x4ce580,23,src/sound/cd_audio.cpp,?FUN_004ce580@Class_004ce580@@QAEXH@Z,matched,100.0
-0x4ce5a0,7,src/sound/cd_audio.cpp,?FUN_004ce5a0@Class_004ce5a0@@QAEHXZ,matched,100.0
+0x4ce580,23,src/sound/cd_audio.cpp,?SetLockedTrack@Class_004ce580@@QAEXH@Z,matched,100.0
+0x4ce5a0,7,src/sound/cd_audio.cpp,?GetLockedTrack@Class_004ce5a0@@QAEHXZ,matched,100.0
 0x4ce5b0,35,src/sound/cd_audio.cpp,?OnNextTrackTimer@@YGXPAX@Z,matched,100.0
 0x4ce5e0,150,src/sound/cd_audio.cpp,?OnCdFadeTimer@@YGXPAX@Z,matched,100.0
 0x4ce680,7,src/sound/cd_audio.cpp,?GetTrackCategory@Class_004ce680@@QAEHXZ,matched,100.0
@@ -2942,7 +2942,7 @@ address,size,file,symbol,status,similarity
 0x4ceb60,478,src/sound/cd_audio.cpp,?PlayCdTrack@Sound@@QAEHHH@Z,matched,100.0
 0x4ced40,121,src/sound/cd_audio.cpp,?StopCdAudio@Class_004ced40@@QAEHXZ,matched,100.0
 0x4cedc0,123,src/sound/cd_audio.cpp,?EnableCdAudio@Class_004cedc0@@QAEXH@Z,matched,100.0
-0x4cee40,3,src/sound/cd_audio.cpp,?FUN_004cee40@@YGXH@Z,matched,100.0
+0x4cee40,3,src/sound/cd_audio.cpp,?NopRet4_B@@YGXH@Z,matched,100.0
 0x4cee50,137,src/sound/samples.cpp,??0Sound@@QAE@XZ,matched,100.0
 0x4ceee0,170,src/sound/samples.cpp,?ReleaseDirectSound@Sound@@QAEXXZ,matched,100.0
 0x4cef90,274,src/sound/samples.cpp,?InitDirectSound@Sound@@QAEHHHHPAX@Z,matched,100.0

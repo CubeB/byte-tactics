@@ -4155,7 +4155,7 @@ public:
     unsigned char GetCategoryOfTrack(int);
     void PlayNextTrack(void);
     void CloseCdPlayerWindow(void);
-    void FUN_004ce580(int);
+    void SetLockedTrack(int);
     void SetTrackCategory(int);
     void SetCategoryOfTrack(int, unsigned char);
     void ReleaseSampleSet(IDirectSoundBuffer**);
@@ -8552,7 +8552,7 @@ public:
     unsigned int size;  // +0x200
     char unknown_204[17];
     char buf[1];  // +0x215
-    void FUN_004ce3e0(void*);
+    void CopyTrackTypeTable(void*);
 };
 
 class Class_004ce7a0 {  // 0x200 bytes, 8 views
@@ -8565,7 +8565,7 @@ public:
 class Class_004ce5a0 {  // 0x1 bytes, 5 views
 public:
     char unknown_0[1];
-    int FUN_004ce5a0(void);
+    int GetLockedTrack(void);
 };
 
 struct Settings_00460160 {  // 0x55 bytes, 2 views
@@ -13932,7 +13932,7 @@ struct CdLists_490f80 {  // 0xaa0 bytes, 2 views
 class Class_004cd9c0 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    int FUN_004cd9c0(void);
+    int GetDiscSerial(void);
 };
 
 class Class_004ce460 {  // 0x1 bytes, 2 views

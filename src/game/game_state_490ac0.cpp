@@ -439,7 +439,7 @@ void SaveCdLists()
 
 class Class_004ce3e0 {
 public:
-    void FUN_004ce3e0(const void* src);
+    void CopyTrackTypeTable(const void* src);
 };
 
 class Class_004ce460 {
@@ -455,7 +455,7 @@ public:
 class Sound {
 public:
     void SetTrackCategory(int param_1);
-    int FUN_004cd9c0();
+    int GetDiscSerial();
 };
 
 class Class_004ce7a0 {
@@ -499,7 +499,7 @@ void FUN_00490fe0()
     ((Class_004ce7a0*)g_game->cd)->SetPlaybackOrder(g_game->field_37f16);
     ((Sound*)g_game->cd)->SetTrackCategory(saved);
 
-    int id = ((Sound*)g_game->cd)->FUN_004cd9c0();
+    int id = ((Sound*)g_game->cd)->GetDiscSerial();
     int index = 0;
     int* slot = &DAT_0051e848;
     // Test *slot != id first, with the break as its own block: else the loop is rotated.
@@ -519,13 +519,13 @@ void FUN_00490fe0()
             memcpy((char*)&DAT_0051e828 + j * 0x88,
                    (char*)&DAT_0051e828 + (j - 1) * 0x88, 0x88);
         memcpy(&DAT_0051e828, buf, 0x88);
-        ((Class_004ce3e0*)g_game->cd)->FUN_004ce3e0(&DAT_0051e84c);
+        ((Class_004ce3e0*)g_game->cd)->CopyTrackTypeTable(&DAT_0051e84c);
     }
 newdisc:
     if (index == 0x14) {
         if (((Class_004ce450*)g_game->cd)->GetTrackCount() == 0x10) {
             if (((Class_004ce460*)g_game->cd)->IsFirstTrackData() != 0) {
-                ((Class_004ce3e0*)g_game->cd)->FUN_004ce3e0(tracks);
+                ((Class_004ce3e0*)g_game->cd)->CopyTrackTypeTable(tracks);
             }
         }
         // Downward pointer walk against the addresses, not an index loop.

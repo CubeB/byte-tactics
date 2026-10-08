@@ -2998,14 +2998,14 @@ void AddObjectBounds(Object_004cb650*, Vec3_004cb650*, Vec3_004cb650*, Vec3_004c
 int SaveBmp(char*, Image_004cb9e0*);
 int ExceptionFilter(int, int);
 int PassThroughDebugHelper(int);
-void FUN_004cd9b0(int);
+void NopRet4(int);
 void __cdecl HandleCdMessage(int, int, int);
 int FindCdPlayerWindow(void*, long);
 int GetTrackLength(int);
 void OnNextTrackTimer(void*);
 void OnCdFadeTimer(void*);
 int GetCdPosition(void);
-void FUN_004cee40(int);
+void NopRet4_B(int);
 int FUN_004cfed0(void);
 void FUN_004cfee0(void);
 int FUN_004cfef0(void);

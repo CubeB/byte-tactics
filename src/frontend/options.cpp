@@ -23,7 +23,7 @@ public:
 
 class Class_004ce3e0 {
 public:
-    void FUN_004ce3e0(const void* src);
+    void CopyTrackTypeTable(const void* src);
 };
 
 class Class_004ce450 {
@@ -33,12 +33,12 @@ public:
 
 class Class_004ce580 {
 public:
-    void FUN_004ce580(int value);
+    void SetLockedTrack(int value);
 };
 
 class Class_004ce5a0 {
 public:
-    int FUN_004ce5a0();
+    int GetLockedTrack();
 };
 
 class Class_004ce7a0 {
@@ -1623,7 +1623,7 @@ void __stdcall HandleTextScrollSlider(Menu_0045b800* obj, int unused)
 // FUNCTION: 0x45c3d0
 void __stdcall SetLockedCdTrack(int value)
 {
-    ((Class_004ce580*)g_game->sound)->FUN_004ce580(value);
+    ((Class_004ce580*)g_game->sound)->SetLockedTrack(value);
 }
 
 // FUNCTION: 0x45c3f0
@@ -1647,7 +1647,7 @@ void UpdateTrackGadgets()
     if (g_game->field_37f16 == 3) {
         // the track number is re-read from the global here, not taken from disc
         int track = g_musicUiSelectedTrack;
-        ((Class_004ce580*)g_game->sound)->FUN_004ce580(track);
+        ((Class_004ce580*)g_game->sound)->SetLockedTrack(track);
     }
 }
 
@@ -1738,7 +1738,7 @@ void ApplyDefaultVisualOptions()
 void LoadSavedAudioSettings()
 {
     g_game->volume2 = g_optionsBackupMusicVolume;
-    ((Class_004ce3e0*)g_game->sound)->FUN_004ce3e0(&g_optionsBackupTrackTypes);
+    ((Class_004ce3e0*)g_game->sound)->CopyTrackTypeTable(&g_optionsBackupTrackTypes);
     g_game->field_37f16 = g_optionsBackupCdMode;
     ((Class_004ce7a0*)g_game->sound)->SetPlaybackOrder(g_game->field_37f16);
     if (((unsigned char)g_game->flags14 ^ (unsigned char)g_optionsBackupMusicMode.i) & 1) {
@@ -1747,7 +1747,7 @@ void LoadSavedAudioSettings()
     unsigned short f = g_game->flags14;
     f = f ^ ((f ^ g_optionsBackupMusicMode.i) & 1);
     g_game->flags14 = f;
-    ((Class_004ce580*)g_game->sound)->FUN_004ce580(g_optionsBackupLockedTrack);
+    ((Class_004ce580*)g_game->sound)->SetLockedTrack(g_optionsBackupLockedTrack);
     ApplyBrightnessAndVolume();
 }
 
@@ -1804,7 +1804,7 @@ void LoadSavedSettings()
 {
     RestoreSoundOptions();
     g_game->volume2 = g_optionsBackupMusicVolume;
-    ((Class_004ce3e0*)g_game->sound)->FUN_004ce3e0(&g_optionsBackupTrackTypes);
+    ((Class_004ce3e0*)g_game->sound)->CopyTrackTypeTable(&g_optionsBackupTrackTypes);
     g_game->field_37f16 = g_optionsBackupCdMode;
     ((Class_004ce7a0*)g_game->sound)->SetPlaybackOrder(g_game->field_37f16);
     if (((unsigned char)g_game->flags14 ^ (unsigned char)g_optionsBackupMusicMode.i) & 1) {
@@ -1812,7 +1812,7 @@ void LoadSavedSettings()
     }
     unsigned short f = g_game->flags14;
     g_game->flags14 = f ^ ((f ^ g_optionsBackupMusicMode.i) & 1);
-    ((Class_004ce580*)g_game->sound)->FUN_004ce580(g_optionsBackupLockedTrack);
+    ((Class_004ce580*)g_game->sound)->SetLockedTrack(g_optionsBackupLockedTrack);
     SetBrightness(0.5 - g_game->brightness * -0.041666668f);
     ((Class_004d0070*)g_game->sound)->SetWaveVolume(g_game->volume1 << 10);
     ((Class_004d00d0*)g_game->sound)->SetAuxVolume(g_game->volume2 << 10, 0);
@@ -1840,7 +1840,7 @@ void SaveGameSettings()
     g_optionsPrefsSnapshot.bit1 = g_game->flags14281.bit2;
     g_optionsBackupGameSpeed.i = g_game->field_38a4b;
     g_optionsBackupEdgeScroll.i = g_game->field_1434d;
-    g_optionsBackupLockedTrack = ((Class_004ce5a0*)g_game->sound)->FUN_004ce5a0();
+    g_optionsBackupLockedTrack = ((Class_004ce5a0*)g_game->sound)->GetLockedTrack();
     for (int i = 0; i < 100; i++) {
         g_optionsBackupTrackTypes[i] = ((Class_004ce7e0*)g_game->sound)->GetCategoryOfTrack(i);
     }
@@ -1974,7 +1974,7 @@ void __stdcall HandleMusicOptionsClick(Object_0045d280* obj)
         g_game->field_37f16 = GetButtonStageByName(obj, g_trackModeGadgetName) + 1;
         ((Class_004ce7a0*)g_game->sound)->SetPlaybackOrder(g_game->field_37f16);
         if (g_game->field_37f16 == 3) {
-            g_musicUiSelectedTrack = ((Class_004ce5a0*)g_game->sound)->FUN_004ce5a0();
+            g_musicUiSelectedTrack = ((Class_004ce5a0*)g_game->sound)->GetLockedTrack();
             FUN_004ab0a0(obj);
             UpdateTrackGadgets();
             return;
@@ -2087,7 +2087,7 @@ void OpenMusicOptions()
     }
     UpdateMusicGadgets();
     if (g_game->field_37f16 == 3) {
-        g_musicUiSelectedTrack = ((Class_004ce5a0*)g_game->sound)->FUN_004ce5a0();
+        g_musicUiSelectedTrack = ((Class_004ce5a0*)g_game->sound)->GetLockedTrack();
     }
     UpdateTrackGadgets();
     Gadget_0045d7c0* gadgets = ((Holder_0045d7c0*)g_game->gui.holder)->gadgets;
@@ -2908,7 +2908,7 @@ void __stdcall HandleOptionsPanelClick(Gadget_0045fc60* gadget)
             PlaySoundByName("Previous", 0);
             RestoreSoundOptions();
             g_game->volume2 = g_optionsBackupMusicVolume;
-            ((Class_004ce3e0*)g_game->sound)->FUN_004ce3e0(&g_optionsBackupTrackTypes);
+            ((Class_004ce3e0*)g_game->sound)->CopyTrackTypeTable(&g_optionsBackupTrackTypes);
             g_game->field_37f16 = g_optionsBackupCdMode;
             ((Class_004ce7a0*)g_game->sound)->SetPlaybackOrder(g_game->field_37f16);
             if (((unsigned char)g_game->flags_37f14.word ^ (unsigned char)g_optionsBackupMusicMode.s) & 1) {
@@ -2916,7 +2916,7 @@ void __stdcall HandleOptionsPanelClick(Gadget_0045fc60* gadget)
             }
             unsigned short f = g_game->flags_37f14.word;
             g_game->flags_37f14.word = f ^ ((f ^ g_optionsBackupMusicMode.s) & 1);
-            ((Class_004ce580*)g_game->sound)->FUN_004ce580(g_optionsBackupLockedTrack);
+            ((Class_004ce580*)g_game->sound)->SetLockedTrack(g_optionsBackupLockedTrack);
             SetBrightness(0.5 - g_game->brightness * -0.041666668f);
             ((Class_004d0070*)g_game->sound)->SetWaveVolume(g_game->volume1 << 10);
             ((Class_004d00d0*)g_game->sound)->SetAuxVolume(g_game->volume2 << 10, 0);
@@ -3046,7 +3046,7 @@ void OpenOptionsPanel()
     g_optionsPrefsSnapshot.bit1 = g_game->los.bits.bit2;
     g_optionsBackupGameSpeed.i = g_game->field_38a4b;
     g_optionsBackupEdgeScroll.i = g_game->field_1434d;
-    g_optionsBackupLockedTrack = ((Class_004ce5a0*)g_game->sound)->FUN_004ce5a0();
+    g_optionsBackupLockedTrack = ((Class_004ce5a0*)g_game->sound)->GetLockedTrack();
     for (int i = 0; i < 100; i++) {
         g_optionsBackupTrackTypes[i] = ((Class_004ce7e0*)g_game->sound)->GetCategoryOfTrack(i);
     }

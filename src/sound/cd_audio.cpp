@@ -26,7 +26,7 @@ extern HWND g_cdPlayerWindow;
 void __stdcall SleepMilliseconds(unsigned int ms);
 
 extern int g_cdFadeVolume;
-extern int DAT_0051ff20[];
+extern int g_cdCategorySavedTrack[];
 extern int g_cdFadeTimer;
 extern int g_cdNextTrackTimer;
 
@@ -93,7 +93,7 @@ void __cdecl FUN_004d85a0(void* p);
 
 extern int g_playBufferLooping;
 
-extern const GUID DAT_004fcf68;
+extern const GUID IID_IDirectSound3DBuffer;
 
 struct Pos_004cf570 {
     int x, y, z;
@@ -184,7 +184,7 @@ public:
     int field_28c;                     // +0x28c
     int noDriver;                      // +0x290
 
-    int FUN_004cd9c0();
+    int GetDiscSerial();
     int QueryDisc();
     int GetPlayState();
     void CloseCdPlayerWindow();
@@ -273,7 +273,7 @@ public:
     char unknown_204[0x215 - 0x204];
     char buf[1];                       // +0x215
 
-    void FUN_004ce3e0(const void* src);
+    void CopyTrackTypeTable(const void* src);
 };
 #pragma pack(pop)
 
@@ -293,12 +293,12 @@ public:
     int limit;                         // +0x200
     int value;                         // +0x204
 
-    void FUN_004ce580(int v);
+    void SetLockedTrack(int v);
 };
 
 class Class_004ce5a0 {
 public:
-    int FUN_004ce5a0();
+    int GetLockedTrack();
 };
 
 class Class_004ce680 {
@@ -379,12 +379,12 @@ public:
 };
 
 // FUNCTION: 0x4cd9b0
-void __stdcall FUN_004cd9b0(int)
+void __stdcall NopRet4(int)
 {
 }
 
 // FUNCTION: 0x4cd9c0
-int Sound::FUN_004cd9c0()
+int Sound::GetDiscSerial()
 {
     return discSerial;
 }
@@ -716,7 +716,7 @@ int Class_004ce260::OpenCdAudio()
 }
 
 // FUNCTION: 0x4ce3e0
-void Class_004ce3e0::FUN_004ce3e0(const void* src)
+void Class_004ce3e0::CopyTrackTypeTable(const void* src)
 {
     memcpy(buf, src, size);
 }
@@ -773,7 +773,7 @@ int __stdcall GetTrackLength(int track)
 }
 
 // FUNCTION: 0x4ce580
-void Class_004ce580::FUN_004ce580(int v)
+void Class_004ce580::SetLockedTrack(int v)
 {
     if (v <= limit) {
         value = v;
@@ -781,7 +781,7 @@ void Class_004ce580::FUN_004ce580(int v)
 }
 
 // FUNCTION: 0x4ce5a0
-int Class_004ce5a0::FUN_004ce5a0()
+int Class_004ce5a0::GetLockedTrack()
 {
     return *(int*)((char*)this + 0x204);
 }
@@ -829,7 +829,7 @@ void Sound::SetTrackCategory(int mode)
     if (old == mode)
         return;
     if (old >= 0)
-        DAT_0051ff20[old] = currentTrack;
+        g_cdCategorySavedTrack[old] = currentTrack;
     trackCategory = mode;
     if (field_1fc == 4 || mode == 2 || mode == 3) {
         g_cdFadeVolume = cdVolume;
@@ -1050,6 +1050,6 @@ void Class_004cedc0::EnableCdAudio(int on)
 }
 
 // FUNCTION: 0x4cee40
-void __stdcall FUN_004cee40(int)
+void __stdcall NopRet4_B(int)
 {
 }

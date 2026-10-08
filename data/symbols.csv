@@ -2932,8 +2932,8 @@ address,name
 0x4cd8da,BlitSpan64
 0x4cd91e,BlitSpan32
 0x4cd962,BlitSpan16
-0x4cd9b0,FUN_004cd9b0
-0x4cd9c0,Sound::FUN_004cd9c0
+0x4cd9b0,NopRet4
+0x4cd9c0,Sound::GetDiscSerial
 0x4cd9d0,Class_004cd9d0::SetCdCallback
 0x4cda00,Sound::QueryDisc
 0x4cdb40,Class_004cdb40::PlayNextTrack
@@ -2943,13 +2943,13 @@ address,name
 0x4ce1d0,Sound::HasCdPlayerWindow
 0x4ce1e0,FindCdPlayerWindow
 0x4ce260,Class_004ce260::OpenCdAudio
-0x4ce3e0,Class_004ce3e0::FUN_004ce3e0
+0x4ce3e0,Class_004ce3e0::CopyTrackTypeTable
 0x4ce410,Class_004ce410::CloseCdAudio
 0x4ce450,Class_004ce450::GetTrackCount
 0x4ce460,Class_004ce460::IsFirstTrackData
 0x4ce530,GetTrackLength
-0x4ce580,Class_004ce580::FUN_004ce580
-0x4ce5a0,Class_004ce5a0::FUN_004ce5a0
+0x4ce580,Class_004ce580::SetLockedTrack
+0x4ce5a0,Class_004ce5a0::GetLockedTrack
 0x4ce5b0,OnNextTrackTimer
 0x4ce5e0,OnCdFadeTimer
 0x4ce680,Class_004ce680::GetTrackCategory
@@ -2965,7 +2965,7 @@ address,name
 0x4ceb60,Sound::PlayCdTrack
 0x4ced40,Class_004ced40::StopCdAudio
 0x4cedc0,Class_004cedc0::EnableCdAudio
-0x4cee40,FUN_004cee40
+0x4cee40,NopRet4_B
 0x4cee50,Sound::Sound
 0x4ceee0,Sound::ReleaseDirectSound
 0x4cef90,Sound::InitDirectSound
@@ -4042,7 +4042,7 @@ address,name
 0x4fcec8,DAT_004fcec8
 0x4fcee8,DAT_004fcee8
 0x4fcf08,DAT_004fcf08
-0x4fcf68,DAT_004fcf68
+0x4fcf68,IID_IDirectSound3DBuffer
 0x4fd050,DAT_004fd050
 0x4fd288,DAT_004fd288
 0x4fd2b0,TWO_PI
@@ -4767,7 +4767,7 @@ address,name
 0x51ff10,g_cdFadeVolume
 0x51ff14,g_cdPlayer
 0x51ff18,g_cdPlayerWindow
-0x51ff20,DAT_0051ff20
+0x51ff20,g_cdCategorySavedTrack
 0x51ff48,g_playBufferLooping
 0x51ff58,DAT_0051ff58
 0x51ff60,DAT_0051ff60

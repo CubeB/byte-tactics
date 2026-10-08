@@ -694,7 +694,7 @@ int g_cdFadeVolume;  // 0x51ff10 .bss
 Class_004d02a0* g_cdPlayer;  // 0x51ff14 .bss
 void* g_cdPlayerWindow;  // 0x51ff18 .bss
 unsigned char DAT_0051ff1c[4];  // 0x51ff1c .bss
-int DAT_0051ff20[10];  // 0x51ff20 .bss
+int g_cdCategorySavedTrack[10];  // 0x51ff20 .bss
 int g_playBufferLooping;  // 0x51ff48 .bss
 unsigned char DAT_0051ff4c[12];  // 0x51ff4c .bss
 int DAT_0051ff58;  // 0x51ff58 .bss

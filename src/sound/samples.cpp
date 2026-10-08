@@ -26,7 +26,7 @@ extern HWND g_cdPlayerWindow;
 void __stdcall SleepMilliseconds(unsigned int ms);
 
 extern int g_cdFadeVolume;
-extern int DAT_0051ff20[];
+extern int g_cdCategorySavedTrack[];
 extern int g_cdFadeTimer;
 extern int g_cdNextTrackTimer;
 
@@ -113,7 +113,7 @@ void __cdecl FUN_004d85a0(void* p);
 
 extern int g_playBufferLooping;
 
-extern const GUID DAT_004fcf68;
+extern const GUID IID_IDirectSound3DBuffer;
 
 struct Pos_004cf570 {
     int x, y, z;
@@ -207,7 +207,7 @@ public:
     int field_28c;                     // +0x28c
     int noDriver;                      // +0x290
 
-    int FUN_004cd9c0();
+    int GetDiscSerial();
     int QueryDisc();
     int GetPlayState();
     void CloseCdPlayerWindow();
@@ -683,7 +683,7 @@ void Sound::PlayLooping(IDirectSoundBuffer** set, LONG volume)
 // buffer is then given its 3D settings, volume and play flags and filed in the
 // channel table (count +0x30, sequence +0x34, buffers +0x38, priorities +0xb8,
 // looping flags +0x138, IDirectSound +0x24). IDirectSound3DBuffer is declared
-// by hand because the toolchain's <dsound.h> is DirectX 3; DAT_004fcf68 is its
+// by hand because the toolchain's <dsound.h> is DirectX 3; IID_IDirectSound3DBuffer is its
 // IID.
 // FUNCTION: 0x4cf570
 int Sound::PlaySampleSet(IDirectSoundBuffer** set, LONG volume, Pos_004cf570* pos)
@@ -733,7 +733,7 @@ int Sound::PlaySampleSet(IDirectSoundBuffer** set, LONG volume, Pos_004cf570* po
         }
     }
     IDirectSound3DBuffer* chan;
-    if (unit->QueryInterface(DAT_004fcf68, (void**)&chan) == 0) {
+    if (unit->QueryInterface(IID_IDirectSound3DBuffer, (void**)&chan) == 0) {
         if (use3D == 0 || pos == 0) {
             chan->SetMode(2, 0);
         } else {

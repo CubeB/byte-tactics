@@ -141,6 +141,6 @@ extern VirtualFunction const DAT_004fd488[12] = {
 
 // Stored by 0x485e90, 0x485f50 and 0x4861d0.
 // GLOBAL: 0x4fd6f0
-extern VirtualFunction const DAT_004fd6f0[2] = {
+extern VirtualFunction const g_weaponAimCobVtable[2] = {
     FUN_00481490, AimCobStub,
 };

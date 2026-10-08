@@ -895,7 +895,7 @@ void __stdcall CreateUnitMotion(Unit* unit)
     unit->field_66 = unit->type->field_210;
 }
 
-extern void* DAT_004fd6f0[];
+extern void* g_weaponAimCobVtable[];
 
 void __stdcall InitUnitWeaponSlots(Unit* unit);
 void __stdcall UpdateMetalExtraction(Unit* unit);
@@ -916,7 +916,7 @@ void __stdcall InitUnit(int unitType, Pos_00485a40 pos, int param_5, Unit* unit)
     if (unit) {
         Class_00481490* sub = (Class_00481490*)((char*)unit + 8);
         for (int i = 0; i < 3; i++) {
-            sub->vtable = DAT_004fd6f0;
+            sub->vtable = g_weaponAimCobVtable;
             sub = (Class_00481490*)((char*)sub + 0x1c);
         }
     }
@@ -955,7 +955,7 @@ static inline void __stdcall InitUnit_00485e90(unsigned short unitType, Pos_0048
     if (unit) {
         Class_00481490* sub = (Class_00481490*)((char*)unit + 8);
         for (int i = 0; i < 3; i++) {
-            sub->vtable = DAT_004fd6f0;
+            sub->vtable = g_weaponAimCobVtable;
             sub = (Class_00481490*)((char*)sub + 0x1c);
         }
     }
@@ -1207,8 +1207,8 @@ void __stdcall KillUnit(Unit* unit, int param_2)
 // Handles the "unit died" record that 0x4864b0 builds: credits the kill, updates the
 // kill leaderboard ("%s has taken the lead with %d kills"), then tears the unit down.
 
-extern char DAT_00508be8[];
-extern char DAT_00508bf0[];
+extern char g_killedScriptName[];
+extern char g_takenLeadFormat[];
 
 void __stdcall AddEyeball(void* pos, int a, int b, int c);
 unsigned char __stdcall FindSlotByDpid(int id);
@@ -1266,7 +1266,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
     if ((g_game->field_14281 & 2) == 2)
         RemoveUnitLineOfSight(unit);
     if (local == 0 && cmd->amount > 0)
-        unit->script->StartScriptWithArgs(DAT_00508be8, 0, 1, 1, cmd->amount, 0, 0, 0);
+        unit->script->StartScriptWithArgs(g_killedScriptName, 0, 1, 1, cmd->amount, 0, 0, 0);
 
     int credited = 0;
     switch (cmd->kind) {
@@ -1348,7 +1348,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
                 rec->rank = best;
                 if (best == 0) {
                     char text[100];
-                    sprintf(text, Translate(DAT_00508bf0), rec->name,
+                    sprintf(text, Translate(g_takenLeadFormat), rec->name,
                             g_game->mode == 2 ? rec->kills2 : rec->kills);
                     AddMessage(text, 2, 0, 10);
                 }

@@ -35,10 +35,7 @@ public:
     int StartScript(const char* name, void* param_2, int param_3);
 };
 
-struct Player {
-    char unknown_0[4];
-    int id;                            // +0x4
-};
+#include "../network/player.h"
 
 struct Gun_0049c9c0 {
     short angle;

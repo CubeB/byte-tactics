@@ -73,11 +73,7 @@ union Flags {
     int all;
 };
 
-struct Player {
-    int active;                         // +0x0
-    char unknown_4[0x73 - 0x4];
-    unsigned char type;                 // +0x73
-};
+#include "../network/player.h"
 
 struct Owner {                          // 10 bytes: a grid cell's list head
     char unknown_0[6];

@@ -331,34 +331,17 @@ struct Unit {                          // 0x118 bytes
     int Ready() const;
 };
 
-struct Player {
-    int active;                        // +0x0
-    char unknown_4[0x67 - 0x4];
-    Unit* firstUnit;                   // +0x67
-    Unit* lastUnit;                    // +0x6b
-    char unknown_6f[0x73 - 0x6f];
-    union {
-        unsigned char state;           // +0x73
-        unsigned char type;
-    };
-    union {
-        int field_74;                  // +0x74
-        AI* ai;
-    };
-    Group* groups;                     // +0x78
-    char unknown_7c[0x8c - 0x7c];
-    float energy;                      // +0x8c
-    char unknown_90[0x98 - 0x90];
-    float metal;                       // +0x98
-    char unknown_9c[0xa4 - 0x9c];
-    float energyCapacity;              // +0xa4
-    float metalCapacity;               // +0xa8
-    char unknown_ac[0x108 - 0xac];
-    unsigned char allied[0x3e];        // +0x108
-    unsigned char index;               // +0x146
-    char unknown_147[4];
-
-};
+// Unused here: these forward declarations take the symbol ids that keep 0x406f80, 0x408670, 0x4086d0 and 0x4089a0 matching (docs/c2-regalloc.md).
+struct Sound;
+struct HapiBank;
+struct TdfFile;
+struct TdfRecord;
+struct Gadget;
+struct Layer;
+struct UnitSync;
+struct Packet;
+struct Pathfinder;
+#include "../network/player.h"
 
 inline int Unit::Ready() const { return (flags & 0x10000000) && !(flags & 0x4000); }
 
@@ -916,7 +899,7 @@ void __stdcall CmdWeight(CommandArgs* args)
         // A narrow index, as in 0x406e40: MSVC then counts the loop down in a
         // separate register.
         for (char i = 0; i < 10; i++) {
-            if (g_game->players[i].field_74 != 0) {
+            if (g_game->players[i].ai != 0) {
                 ScaleUnitWeights(i, &set, value, count);
             }
         }
@@ -980,11 +963,11 @@ void __stdcall ReactToAttack(Unit* attacker, Unit* unit, int unused)
 {
     NotifyUnitRefs(unit,16);
     if (attacker && !attacker->category) attacker=0;
-    if ((unit->def->flags2&0x1000) && unit->owner->active && unit->owner->state==2) {
+    if ((unit->def->flags2&0x1000) && unit->owner->active && unit->owner->type==2) {
         unit->owner->ai->nextAction=RandomInt(300)+g_game->ticks+30;
         DeleteOrders(unit,0);
     }
-    if (attacker && unit->owner->active && (unit->owner->state==1 || unit->owner->state==2) &&
+    if (attacker && unit->owner->active && (unit->owner->type==1 || unit->owner->type==2) &&
         (unit->def->flags&0x10010000) && unit->progress==Zero_004fc968 && !unit->owner->allied[attacker->owner->index]) {
         int ordered=0;
         if ((!unit->orders || (unit->orders->flags&0x20000)) &&
@@ -1016,9 +999,9 @@ Unit* SquadManager::FindNearestEnemyUnit(int x,int y,int z)
         Player* p=&g_game->players[i];
         // The original retains the player-index range check inside the loop.
         if(i>=10) continue;
-        if(p->active && (p->state==1 || p->state==2 || p->state==3) && p->index!=10 && !player->allied[p->index]) {
-            Unit* u=p->firstUnit;
-            Unit* last=p->lastUnit;
+        if(p->active && (p->type==1 || p->type==2 || p->type==3) && p->index!=10 && !player->allied[p->index]) {
+            Unit* u=p->unitsBegin;
+            Unit* last=p->unitsEnd;
             for(;u<=last;++u) {
                 if((u->flags&0x10000000) && u->mode!=2 && !(u->flags&0x8000) && !(u->flags10e&4)) {
                     int dz=z-u->pos.z;
@@ -1102,8 +1085,8 @@ int SquadTimer::CountGroupUnitsInRadius(Vec3* pos, int radius)
 {
     int count = 0;
     int squared = radius * radius;
-    Unit* u = group->player->firstUnit;
-    Unit* last = group->player->lastUnit;
+    Unit* u = group->player->unitsBegin;
+    Unit* last = group->player->unitsEnd;
     for (; u <= last; ++u) {
         if (u->group == group->id) {
             int dz = pos->z - u->pos.zf.value;
@@ -1404,7 +1387,7 @@ BuildTimer::BuildTimer(SquadManager* p, Group* q)
 // FUNCTION: 0x408830
 void SquadManager::AssignSquads()
 {
-    for (Unit* u = player->firstUnit; u <= player->lastUnit; ++u) {
+    for (Unit* u = player->unitsBegin; u <= player->unitsEnd; ++u) {
         if(u->flags&0x20) {
             if(u->def->special) u->flags=(u->flags&~0x80000)|0x40000;
             else u->flags=(u->flags&~0x40000)|0x80000;
@@ -1447,10 +1430,10 @@ void __stdcall RetargetWeapon(Unit* unit, unsigned int weapon)
 void SquadManager::RetargetWeapons(int force)
 {
     for (int i = 0; i <= g_game->maxUnits / 30; i++) {
-        if (cursor && cursor != player->lastUnit)
+        if (cursor && cursor != player->unitsEnd)
             cursor++;
         else
-            cursor = player->firstUnit;
+            cursor = player->unitsBegin;
         if (cursor->category != 0 && cursor->progress == Zero_004fc968 && (cursor->flags & 0x80000000)
             && (cursor->flags & 0x300000) == 0x200000) {
             // The counter stays a byte, and the flag8 test keeps its (unsigned char) cast.
@@ -1488,7 +1471,7 @@ void SquadManager::TickTimers()
 // FUNCTION: 0x408c40
 void SquadManager::TickIfActive()
 {
-    if (player->active != 0 && player->state == 2) {
+    if (player->active != 0 && player->type == 2) {
         if (--countdown <= 0) {
             countdown = 30;
             AssignSquads();

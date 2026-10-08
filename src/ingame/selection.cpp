@@ -130,18 +130,12 @@ public:
     int bits[16];
 };
 
-struct Player {                        // 0x14b bytes
-    char unknown_0[0x27];
-    Player* player;                    // +0x27
-    char unknown_2b[0x67 - 0x2b];
-    Unit* unitsBegin;                  // +0x67
-    Unit* unitsEnd;                    // +0x6b
-    unsigned short firstIndex;         // +0x6f
-    unsigned short lastIndex;          // +0x71
-    char unknown_73[0x95 - 0x73];
+struct PlayerInfo {
+    char unknown_0[0x95];
     unsigned char index;               // +0x95
-    char unknown_96[0x14b - 0x96];
 };
+
+#include "../network/player.h"
 
 // The bit set here is bit 4 of the 12-bit group at 0x37ebe (see 0x41a120.cpp).
 union Orders_37ebe {
@@ -947,7 +941,7 @@ void __cdecl ClearCameraFollowState(void);
 void __stdcall FocusCommander(int param_1)
 {
     Player* team = &g_game->players[g_game->playerIndex];
-    char* playerName = g_game->playerNames[team->player->index].name;
+    char* playerName = g_game->playerNames[team->info->index].name;
     Unit* last = team->unitsEnd;
     for (Unit* u = team->unitsBegin; u <= last; u++) {
         if (u->flags.done && u->buildLeft == 0.0f && u->postTransferHoldoff == 0

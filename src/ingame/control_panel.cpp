@@ -47,7 +47,7 @@ struct Arg_00419670 {
 
 struct Unit;
 struct Player;
-struct Owner;
+struct PlayerInfo;
 struct Nano_0041b8d0;
 struct MenuEntry;
 struct Layer;
@@ -174,23 +174,13 @@ struct Menu {
     int field_cca;                     // +0xcca
 };
 
-struct Owner {
+struct PlayerInfo {
     Unit* unit;                        // +0x0
     char unknown_4[0x95 - 4];
     unsigned char playerIndex;         // +0x95
 };
 
-struct Player {
-    int active;                        // +0x0
-    char unknown_4[0x27 - 4];
-    Owner* owner;                      // +0x27
-    char unknown_2b[0x67 - 0x2b];
-    Unit* units;                       // +0x67
-    Unit* unitsEnd;                    // +0x6b
-    char unknown_6f[0x73 - 0x6f];
-    unsigned char type;                // +0x73
-    char unknown_74[0x14b - 0x74];
-};
+#include "../network/player.h"
 
 struct UnitFlagsBits {
     unsigned int unknown_0 : 4;        // +0x110 bits 0-3
@@ -609,7 +599,7 @@ void __stdcall IssueMobileBuildOrders(Arg_00419670* arg)
 
     unsigned char team = g_game->localPlayer;
     Player* p = &g_game->players[team];
-    for (Unit* u = p->units; u <= p->unitsEnd; u++) {
+    for (Unit* u = p->unitsBegin; u <= p->unitsEnd; u++) {
         if ((u->flags.raw & 0x10) && (u->type->flags.raw & 0x40)) {
             if (!(u->type->flags.raw & 0x800)) {
                 IssueOrCancelOrder("MOBILEBUILD", remove, u, 0, &pos, index, 0);
@@ -1094,9 +1084,9 @@ void __stdcall SetPrevNextGadgetNames(Unit* unit)
 {
     char buf[256];
     if (unit->type->buildMenuPageCount < 2) {
-        sprintf(buf, "%sPREV", g_game->sideNames[unit->player->owner->playerIndex].name);
+        sprintf(buf, "%sPREV", g_game->sideNames[unit->player->info->playerIndex].name);
         SetGadgetActiveByName(&g_game->menu, buf, 0);
-        sprintf(buf, "%sNEXT", g_game->sideNames[unit->player->owner->playerIndex].name);
+        sprintf(buf, "%sNEXT", g_game->sideNames[unit->player->info->playerIndex].name);
         SetGadgetActiveByName(&g_game->menu, buf, 0);
     }
 }
@@ -1182,9 +1172,9 @@ static inline void SetPrevNext(Unit* unit)
 {
     char buf[256];
     if (unit->type->buildMenuPageCount < 2) {
-        sprintf(buf, "%sPREV", g_game->sideNames[unit->player->owner->playerIndex].name);
+        sprintf(buf, "%sPREV", g_game->sideNames[unit->player->info->playerIndex].name);
         SetGadgetActiveByName(&g_game->menu, buf, 0);
-        sprintf(buf, "%sNEXT", g_game->sideNames[unit->player->owner->playerIndex].name);
+        sprintf(buf, "%sNEXT", g_game->sideNames[unit->player->info->playerIndex].name);
         SetGadgetActiveByName(&g_game->menu, buf, 0);
     }
 }
@@ -1216,7 +1206,7 @@ void __stdcall OpenBuildMenuGui(Unit* unit, char* guiName, int page)
         char name[256];
         BuildDataPath(path, "guis", guiName, "GUI");
         if (HAPI_FileLengthByName(path) == 0)
-            sprintf(name, "%sDL", g_game->sideNames[player->owner->playerIndex].name);
+            sprintf(name, "%sDL", g_game->sideNames[player->info->playerIndex].name);
         else
             strcpy(name, guiName);
         Layer* layer = LoadGuiLayer(&g_game->menu, name, 0);
@@ -1268,7 +1258,7 @@ void __stdcall OpenGeneratorDialog(Unit* unit)
 {
     char name[256];
     sprintf(name, "%sGEN.GUI",
-            g_game->sideNames[g_game->players[g_game->localPlayer].owner->playerIndex].name);
+            g_game->sideNames[g_game->players[g_game->localPlayer].info->playerIndex].name);
     Layer* gadget = LoadGuiLayer(&g_game->menu, name, 0);
     if (gadget != 0) {
         gadget->handler = HandleBuildPanelClick;
@@ -1623,7 +1613,7 @@ void FindLocalCommander()
 {
     Player* p = &g_game->players[g_game->localPlayer];
     unsigned int* set = GetCategoryMask("Commander");
-    for (Unit* u = p->units; u <= p->unitsEnd; u++) {
+    for (Unit* u = p->unitsBegin; u <= p->unitsEnd; u++) {
         if (TestBit(set, u->unitDefIndex)) {
             g_game->followUnit = u;
         }

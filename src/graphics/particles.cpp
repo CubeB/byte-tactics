@@ -2156,7 +2156,7 @@ int ThrustParticle::IsExpired(int value)
 // FUNCTION: 0x4742c0
 void ThrustParticles::Init(Vec3_004742c0* p, Vec3_004742c0* q, int a, int b)
 {
-    ((ParticleSystem*)this)->SetLifetime(b);
+    this->SetLifetime(b);
     field_1c = a;
     pos0 = *p;
     pos1 = *q;

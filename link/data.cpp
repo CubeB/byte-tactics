@@ -742,6 +742,7 @@ FreeBlockMap* DAT_00528a40;  // 0x528a40 .bss
 void* DAT_00528a44;  // 0x528a44 .bss
 unsigned char DAT_00528a48[4];  // 0x528a48 .bss
 int DAT_00528a4c;  // 0x528a4c .bss
+void* DAT_00528a50;  // 0x528a50 .bss
 unsigned char DAT_00528a5c[4];  // 0x528a5c .bss
 unsigned char DAT_00528a78[44];  // 0x528a78 .bss
 void* DAT_00528aa4;  // 0x528aa4 .bss
@@ -750,10 +751,6 @@ char DAT_00528aac;  // 0x528aac .bss
 void* DAT_00528ab0;  // 0x528ab0 .bss
 void (__stdcall* DAT_00528ab4)(void);  // 0x528ab4 .bss
 int (__stdcall* DAT_00528ab8)(void*, char*, unsigned long);  // 0x528ab8 .bss
-int (__stdcall* DAT_00528abc)(void*);  // 0x528abc .bss
-int (__stdcall* DAT_00528ac0)(unsigned long, void*, void*, void*, void*, void*, void*, void*, void*);  // 0x528ac0 .bss
-void* DAT_00528ac4;  // 0x528ac4 .bss
-void* DAT_00528ac8;  // 0x528ac8 .bss
 void (__stdcall* DAT_00528acc)(void);  // 0x528acc .bss
 unsigned long (__stdcall* DAT_00528ad0)(unsigned long);  // 0x528ad0 .bss
 void (__stdcall* DAT_00528ad4)(void);  // 0x528ad4 .bss
@@ -787,12 +784,12 @@ int DAT_00529dd0;  // 0x529dd0 .bss
 unsigned char DAT_00529dd4;  // 0x529dd4 .bss
 unsigned char DAT_00529dd8;  // 0x529dd8 .bss
 unsigned char DAT_00529ddc;  // 0x529ddc .bss
+EventEntry* DAT_00529df8;  // 0x529df8 .bss
 unsigned char DAT_00529dfc[4];  // 0x529dfc .bss
 char DAT_00529e20[56];  // 0x529e20 .bss
 void* DAT_00529e58;  // 0x529e58 .bss
 unsigned char DAT_00529e5c[8];  // 0x529e5c .bss
 unsigned char DAT_00529e64;  // 0x529e64 .bss
-unsigned char DAT_00529e6c;  // 0x529e6c .bss
 unsigned char DAT_00529e70;  // 0x529e70 .bss
 char DAT_00529e74;  // 0x529e74 .bss
 char DAT_00529e78;  // 0x529e78 .bss

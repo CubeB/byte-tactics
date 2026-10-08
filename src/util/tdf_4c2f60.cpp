@@ -80,6 +80,7 @@ int __stdcall HAPI_SeekFile(char* file, int pos);
 int __stdcall HAPI_readfromfile(char* file, void* buf, int size);
 int __stdcall HAPI_FileLength(char* file);
 
+// Own file: needs its own view of TdfRecord (see the note in TdfFile, tdf_4c2ea0.cpp).
 // FUNCTION: 0x4c2f60
 int TdfFile::LoadFile(char* path)
 {

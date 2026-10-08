@@ -385,7 +385,7 @@ What a merge can move, and what to do about it:
   `game/victory_490230.cpp`).
 - **Views that cannot agree.** TdfFile's methods that delete the root section
   each need a different view of the section's entries, so four of them stay
-  in their own files (the note is in `util/tdf_file.cpp`).
+  in their own files (the notes are at their declarations in `util/tdf_4c2ea0.cpp`).
 - **Compiler-generated functions.** A deleting destructor with a
   `// FUNCTION: <address> ??_G...` annotation is emitted by whatever deletes
   the class in the file; one emitted in another module stays there.

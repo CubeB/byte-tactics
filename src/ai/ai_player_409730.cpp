@@ -153,10 +153,7 @@ struct Elem_0040d550 {
     int unknown_0;
 };
 
-struct Point16 {
-    short x;
-    short y;
-};
+#include "../util/vec3.h"
 
 struct Elem_0040cc40 {
     Point16 pos;                       // +0x0

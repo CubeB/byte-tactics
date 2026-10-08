@@ -48,13 +48,7 @@ public:
     void TickIfActive();
 };
 
-struct Vec3 {
-    int x, y, z;
-};
-
-struct Point16 {
-    short x, y;
-};
+#include "../util/vec3.h"
 
 struct Map {
     char unknown_0[0x620];

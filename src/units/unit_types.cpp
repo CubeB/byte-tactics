@@ -14,9 +14,7 @@
 
 #pragma pack(push, 1)
 
-struct Vec3 {
-    int x, y, z;
-};
+#include "../util/vec3.h"
 
 // The game's 16.16 fixed-point value. GetFieldFixed returns it by value (through
 // a hidden pointer, since it has a constructor) and takes the default by value.

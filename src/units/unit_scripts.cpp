@@ -5,11 +5,7 @@
 // Must stay: GetPieceOffset's main path depends on the symbols it declares.
 #include <string.h>
 
-struct Vec3 {
-    int x;
-    int y;
-    int z;
-};
+#include "../util/vec3.h"
 
 static inline Vec3 operator+(const Vec3& a, const Vec3& b)
 {

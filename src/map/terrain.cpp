@@ -46,14 +46,14 @@ struct Vec3 {
 
 struct Cell {                           // 13 bytes per cell
     union {
-        unsigned short field_0;         // +0x0, id of the unit owning the cell
+        unsigned short unit;            // +0x0, id of the unit owning the cell
         short field_0s;                 // +0x0
     };
-    unsigned short field_2;             // +0x2
-    unsigned char field_4;              // +0x4
-    unsigned char field_5;              // +0x5, highest floor
-    unsigned char field_6;              // +0x6, lowest floor
-    unsigned char field_7;              // +0x7
+    unsigned short unit2;               // +0x2
+    unsigned char height;               // +0x4
+    unsigned char high;                 // +0x5, highest floor
+    unsigned char low;                  // +0x6, lowest floor
+    unsigned char metal;                // +0x7
     union {
         unsigned short feature;         // +0x8
         short field_8;                  // +0x8
@@ -319,7 +319,7 @@ void __stdcall ClaimFootprintCells(Unit* obj)
             for (int i = size.x; i > 0; i--) {
                 if (obj->def->mask[index] & (obj->bit2 ? 2 : 4)) {
                     Unit* rec;
-                    unsigned short id = cell->field_0;
+                    unsigned short id = cell->unit;
                     if (id == 0)
                         goto a_write;
                     rec = &g_game->units[id];
@@ -330,14 +330,14 @@ void __stdcall ClaimFootprintCells(Unit* obj)
                     rec->flags.all |= 0x8000000;
                     obj->flags.all |= 0x4000000;
                 a_write:
-                    cell->field_0 = obj->id;
+                    cell->unit = obj->id;
                     goto a_next;
                 a_b:
                     rec->flags.all |= 0x4000000;
                     obj->flags.all |= 0x8000000;
                 a_next: ;
-                } else if (cell->field_0 == obj->id) {
-                    cell->field_0 = 0;
+                } else if (cell->unit == obj->id) {
+                    cell->unit = 0;
                 }
                 index++;
                 cell++;
@@ -349,7 +349,7 @@ void __stdcall ClaimFootprintCells(Unit* obj)
         for (int j = size.y; j > 0; j--) {
             for (int i = size.x; i > 0; i--) {
                 Unit* rec;
-                unsigned short id = cell->field_0;
+                unsigned short id = cell->unit;
                 if (id == 0)
                     goto b_write;
                 rec = &g_game->units[id];
@@ -360,7 +360,7 @@ void __stdcall ClaimFootprintCells(Unit* obj)
                 rec->flags.all |= 0x8000000;
                 obj->flags.all |= 0x4000000;
             b_write:
-                cell->field_0 = obj->id;
+                cell->unit = obj->id;
                 goto b_next;
             b_b:
                 rec->flags.all |= 0x4000000;
@@ -375,7 +375,7 @@ void __stdcall ClaimFootprintCells(Unit* obj)
         for (int j = size.y; j > 0; j--) {
             for (int i = size.x; i > 0; i--) {
                 Unit* rec;
-                unsigned short id = cell->field_2;
+                unsigned short id = cell->unit2;
                 if (id == 0)
                     goto c_write;
                 rec = &g_game->units[id];
@@ -386,7 +386,7 @@ void __stdcall ClaimFootprintCells(Unit* obj)
                 rec->flags.all |= 0x8000000;
                 obj->flags.all |= 0x4000000;
             c_write:
-                cell->field_2 = obj->id;
+                cell->unit2 = obj->id;
                 goto c_next;
             c_b:
                 rec->flags.all |= 0x4000000;
@@ -628,16 +628,16 @@ int __stdcall CanBuildAt(UnitDef* unit, Point cell, short type, Los_0047d2e0* lo
         // Rotated do/while with a positive bottom test.
         do {
             for (col = 0; col < cols; col++) {
-                DAT_0051e688 += c->field_7;
+                DAT_0051e688 += c->metal;
                 int m = unit->mask[index++];
                 if (m & 8) {
-                    if (c->field_6 < min6)
-                        min6 = c->field_6;
-                    if (c->field_5 > max5)
-                        max5 = c->field_5;
+                    if (c->low < min6)
+                        min6 = c->low;
+                    if (c->high > max5)
+                        max5 = c->high;
                 }
-                if ((m & 0x10) && c->field_5 > max5b)
-                    max5b = c->field_5;
+                if ((m & 0x10) && c->high > max5b)
+                    max5b = c->high;
                 if ((m & 1) && (c->flags & 2) && ok)
                     return 0;
                 if ((m & 6) && c->field_0s != 0 && c->field_0s != type && ok)
@@ -711,7 +711,7 @@ int __stdcall IsFootprintClear(Unit* obj, int flag)
         Cell* c = g_game->cells + y * width;
         for (int x = p.x; x < xend; x++) {
             // The post-increment stays inside the mask read, not at the loop bottom.
-            if ((obj->def->mask[n++] & bit) && c[x].field_0 != 0 && c[x].field_0 != obj->id)
+            if ((obj->def->mask[n++] & bit) && c[x].unit != 0 && c[x].unit != obj->id)
                 return 0;
         }
     }
@@ -753,7 +753,7 @@ void __stdcall ForceNeighborFootprintReclaim(Unit* obj)
 // Suspected original bug, 0x47dd05: the cell's owner word is compared against
 // the raw low 16 bits of the second argument, and that argument is never
 // dereferenced anywhere in the function. So either the parameter really is an
-// owner id dressed up as a pointer, or the original meant other->field_0.
+// owner id dressed up as a pointer, or the original meant other->unit.
 int __stdcall CanBuildAt(UnitDef* unit, Point cell, short type, Los_0047d2e0* los);
 
 // Returns non-zero when the cell's ground does not take a unit: water, a cliff
@@ -804,16 +804,16 @@ int __stdcall CanPlaceUnitFootprint(UnitDef* unit, UnitDef* other, Point cell, i
         for (int col = 0; col < fx; col++, c++) {
             if (SteepCell(c))
                 return 0;
-            if (c->field_0 != 0 && c->field_0 != (unsigned short)other)
+            if (c->unit != 0 && c->unit != (unsigned short)other)
                 return 0;
-            if (c->field_6 < minHeight)
+            if (c->low < minHeight)
                 return 0;
-            if (c->field_5 > maxHeight)
+            if (c->high > maxHeight)
                 return 0;
-            if (c->field_5 - c->field_6 > tolerance) {
-                if (c->field_6 >= g_game->seaLevel)
+            if (c->high - c->low > tolerance) {
+                if (c->low >= g_game->seaLevel)
                     return 0;
-                if (c->field_5 - c->field_6 > unit->maxwaterslope)
+                if (c->high - c->low > unit->maxwaterslope)
                     return 0;
             }
         }
@@ -892,20 +892,20 @@ int __stdcall GetPassMapCellValue(MovementClass* obj, Cell* cell)
     }
     if (blocked)
         return 0;
-    if (cell->field_0 != 0) {
+    if (cell->unit != 0) {
         // A reference, not a pointer: gives the original's two-step unit load.
-        Unit*& unit = g_game->units[cell->field_0].unit;
+        Unit*& unit = g_game->units[cell->unit].unit;
         if (!unit || unit->lastTick < obj->lastTick)
             return 0;
     }
     int minHeight = g_game->seaLevel - obj->minHeight;
-    if ((int)cell->field_6 < minHeight)
+    if ((int)cell->low < minHeight)
         return 0;
     int maxHeight = g_game->seaLevel - obj->maxHeight;
-    if ((int)cell->field_5 > maxHeight)
+    if ((int)cell->high > maxHeight)
         return 0;
-    unsigned char diff = cell->field_5 - cell->field_6;
-    if (cell->field_6 < g_game->seaLevel) {
+    unsigned char diff = cell->high - cell->low;
+    if (cell->low < g_game->seaLevel) {
         if (diff > obj->drySlope2)
             return !(obj->drySlope < diff);
     } else {
@@ -959,19 +959,19 @@ int __stdcall GetPassMapFootprintValue(MovementClass* obj, int x, int y, int w, 
 
             if (blocked)
                 return 0;
-            if (cell->field_0 != 0) {
+            if (cell->unit != 0) {
                 // A reference, not a pointer: gives the original's two-step load.
-                Unit*& unit = g_game->units[cell->field_0].unit;
+                Unit*& unit = g_game->units[cell->unit].unit;
                 if (!unit || unit->lastTick < obj->lastTick)
                     return 0;
             }
             // Compared inline via the cast: a named local adds spill/reload pairs.
-            if ((int)cell->field_6 < minHeight)
+            if ((int)cell->low < minHeight)
                 return 0;
-            if ((int)cell->field_5 > maxHeight)
+            if ((int)cell->high > maxHeight)
                 return 0;
-            unsigned char diff = cell->field_5 - cell->field_6;
-            if (cell->field_6 < g_game->seaLevel) {
+            unsigned char diff = cell->high - cell->low;
+            if (cell->low < g_game->seaLevel) {
                 if (diff > obj->drySlope2) {
                     if (diff > obj->drySlope)
                         return 0;

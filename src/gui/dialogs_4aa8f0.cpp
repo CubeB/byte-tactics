@@ -65,15 +65,15 @@ struct Layer_004aa8f0 {
     Layer_004aa8f0* next;          // +0x00
     Entry_004aa8f0* entries;       // +0x04
     void (__stdcall* handler)(Menu_004aa8f0*); // +0x08
-    int field_0c;
+    int data;                      // +0x0c
     int flags;                     // +0x10
     int field_14;                  // +0x14
-    int field_18;                  // +0x18
+    int keyboardInput;             // +0x18
     int field_1c;                  // +0x1c
-    int field_20;                  // +0x20
-    int field_24;                  // +0x24
+    int current;                   // +0x20
+    int surface;                   // +0x24
     char unknown_28[0x13];
-    int field_3b;                  // +0x3b
+    int textHandler;               // +0x3b
 };
 
 struct Src_004ab400;
@@ -240,7 +240,7 @@ static inline int FindPanel_004aa8f0(Layer_004aa8f0* layer)
 // Suspected original bug: when HAPI_FileLengthByName(layerName) returns 0 (GUI file
 // missing) the code jumps to 0x4aac2d, which loads `layer` from [S+0x10]
 // before it was ever stored (the only store is the mask-path one at
-// 0x4aaa3b) and then writes layer->entries/field_1c/field_24/field_3b
+// 0x4aaa3b) and then writes layer->entries/field_1c/surface/textHandler
 // through it and returns the garbage pointer.
 // FUNCTION: 0x4aa8f0
 Layer_004aa8f0* __stdcall LoadGuiLayer(Menu_004aa8f0* menu, const char* name,
@@ -331,8 +331,8 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Menu_004aa8f0* menu, const char* name,
     }
     layer->entries = entry;
     layer->field_1c = 0;
-    layer->field_24 = 0;
-    layer->field_3b = 0;
+    layer->surface = 0;
+    layer->textHandler = 0;
     if ((flags & 0x200) == 0) {
         layer->next = menu->layer;
         menu->layer = layer;
@@ -344,7 +344,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Menu_004aa8f0* menu, const char* name,
     if (menu->layer != 0)
         menu->layer->field_14 = 1;
     if (menu->layer != 0)
-        menu->layer->field_18 = 0;
+        menu->layer->keyboardInput = 0;
     strncpy((char*)&entry->name[0], guiName, 0x10);
     menu->field_64 = -1;
     if ((flags & 0x400) == 0) {
@@ -391,9 +391,9 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Menu_004aa8f0* menu, const char* name,
             }
             i = -1;
         focusFound:
-            layer->field_20 = i;
+            layer->current = i;
         } else {
-            layer->field_20 = 0;
+            layer->current = 0;
             SelectAdjacentGadget(menu, 1);
         }
     }
@@ -425,7 +425,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Menu_004aa8f0* menu, const char* name,
         if (j == base->count + 1)
             SetFont(*g_guiContext);
         TrySetFocus(menu, 1);
-        menu->layer->field_20 = 1;
+        menu->layer->current = 1;
         CommitTextEdit(menu, 1, (char*)&sub->count,
                      *(short*)((char*)sub + 0x138), 0);
         ClearKeyQueue();
@@ -560,7 +560,7 @@ void __stdcall AddTextGadget(Layer_004aa8f0* obj, char* name, char* text,
 int __stdcall SetBackgroundSurface(Menu_004aa8f0* menu, int value)
 {
     if (menu->layer != 0)
-        menu->layer->field_24 = value;
+        menu->layer->surface = value;
     return 1;
 }
 
@@ -818,7 +818,7 @@ int __stdcall HandleTextEditKey(Menu_004aa8f0* control, int index, int key)
     int changed = 0;
     int last = 0;
 
-    if (holder->field_18 == 0)
+    if (holder->keyboardInput == 0)
         key = PopKey();
     if (key != 0) {
         changed = 1;

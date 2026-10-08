@@ -162,7 +162,7 @@ struct Layer {
     int unknown_0;                     // +0x0
     MenuEntry* entries;                // +0x4
     void (__stdcall* handler)(Menu*);  // +0x8
-    int field_c;                       // +0xc
+    int data;                          // +0xc
 };
 
 struct Menu {
@@ -1222,7 +1222,7 @@ void __stdcall OpenBuildMenuGui(Unit* unit, char* guiName, int page)
         Layer* layer = LoadGuiLayer(&g_game->menu, name, 0);
         if (layer != 0) {
             layer->handler = HandleBuildPanelClick;
-            layer->field_c = 0;
+            layer->data = 0;
             for (int i = 0; i < g_game->buildListCount; i++) {
                 for (int j = 0; j < g_game->buildLists[i].count; j++) {
                     BuildList_0041ace0* lists = g_game->buildLists;
@@ -1272,7 +1272,7 @@ void __stdcall OpenGeneratorDialog(Unit* unit)
     Layer* gadget = LoadGuiLayer(&g_game->menu, name, 0);
     if (gadget != 0) {
         gadget->handler = HandleBuildPanelClick;
-        gadget->field_c = 0;
+        gadget->data = 0;
         RefreshOrderButtons(unit);
         RenderLayer(&g_game->menu, 0x40);
         if (unit != 0) {

@@ -37,7 +37,7 @@ struct Cell_0049b090 {
     unsigned char height;             // +0x4
     unsigned char radius;             // +0x5
     unsigned char ground;             // +0x6
-    unsigned char unknown_7;          // +0x7
+    unsigned char metal;              // +0x7
     unsigned short feature;           // +0x8
     unsigned char offY;               // +0xa
     unsigned char offX;               // +0xb

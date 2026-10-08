@@ -25,12 +25,12 @@ int __stdcall UnlockScreen(Surface* s);
 struct Surface {
     int width;                         // +0x0
     int height;                        // +0x4
-    int field_8;                       // +0x8
+    int pitch;                         // +0x8
     char* pixels;                      // +0xc
     int field_10;                      // +0x10
     int field_14;                      // +0x14
-    short field_18;                    // +0x18
-    short field_1a;                    // +0x1a
+    short x;                           // +0x18
+    short y;                           // +0x1a
     Rect clip;                         // +0x1c
     unsigned int flag0 : 1;            // +0x2c bit 0
     unsigned int flag1 : 1;            // +0x2c bit 1
@@ -149,10 +149,10 @@ struct Display {
         switch (screen.LockSurface(&desc)) { case 0: break; default: return 0; }
         out->width = width;
         out->height = height;
-        out->field_8 = desc.lPitch;
+        out->pitch = desc.lPitch;
         out->pixels = (char*)desc.lpSurface;
-        out->field_18 = 0;
-        out->field_1a = 0;
+        out->x = 0;
+        out->y = 0;
         out->field_10 = 10000;
         out->field_14 = -1;
         out->flag0 = 0;
@@ -179,10 +179,10 @@ struct Display {
         switch (screen.LockPrimary(&desc)) { case 0: break; default: return 0; }
         out->width = width;
         out->height = height;
-        out->field_8 = desc.lPitch;
+        out->pitch = desc.lPitch;
         out->pixels = (char*)desc.lpSurface;
-        out->field_18 = 0;
-        out->field_1a = 0;
+        out->x = 0;
+        out->y = 0;
         out->field_10 = 10000;
         out->field_14 = -1;
         out->flag0 = 0;
@@ -566,7 +566,7 @@ void FlipScreen(void)
         if (lr == 0) {
             out.width = d->width;
             out.height = d->height;
-            out.field_8 = desc.lPitch;
+            out.pitch = desc.lPitch;
             out.pixels = (char*)desc.lpSurface;
             DrawCursor(d, bmp);
             BlitSurface(&out, bmp, 0, 0);
@@ -668,12 +668,12 @@ static void set_mem(char* p, int count, int colour)
 
 static void clear_surface(Surface* s, int colour)
 {
-    memset(s->pixels, colour, s->height * s->field_8);
+    memset(s->pixels, colour, s->height * s->pitch);
 }
 
 static void clear_screen(Display* o, int colour)
 {
-    memset(o->cached.pixels, colour, o->cached.height * o->cached.field_8);
+    memset(o->cached.pixels, colour, o->cached.height * o->cached.pitch);
 }
 
 // Fills a surface with one colour byte. With no surface it uses the one the
@@ -689,7 +689,7 @@ int __stdcall FillSurface(Surface* surface, int colour)
     if (surface == 0) {
         if (obj->useOverrideSurface != 0) {
             Surface* s = obj->overrideSurface;
-            set_mem(s->pixels, s->height * s->field_8, colour);
+            set_mem(s->pixels, s->height * s->pitch, colour);
         } else if (!(obj->flags.byte & 2)) {
             clear_screen(obj, colour);
         } else {
@@ -740,10 +740,10 @@ static inline void Init(Surface* s, int width, int height, int a, int b)
 {
     s->width = width;
     s->height = height;
-    s->field_8 = a;
+    s->pitch = a;
     s->pixels = (char*)b;
-    s->field_18 = 0;
-    s->field_1a = 0;
+    s->x = 0;
+    s->y = 0;
     s->field_10 = 10000;
     s->field_14 = -1;
     s->flag0 = 1;
@@ -764,10 +764,10 @@ void __stdcall InitSurface(Surface* s, int width, int height, int a, int b)
 {
     s->width = width;
     s->height = height;
-    s->field_8 = a;
+    s->pitch = a;
     s->pixels = (char*)b;
-    s->field_18 = 0;
-    s->field_1a = 0;
+    s->x = 0;
+    s->y = 0;
     s->field_10 = 10000;
     s->field_14 = -1;
     s->flag0 = 1;
@@ -829,7 +829,7 @@ void __stdcall DrawSurface(Surface* dst, Surface* bmp, int x, int y)
         Surface screen;
         if (LockScreen(&screen) == 0)
             return;
-        BlitSurface(&screen, bmp, x - bmp->field_18, y - bmp->field_1a);
+        BlitSurface(&screen, bmp, x - bmp->x, y - bmp->y);
         UnlockScreenInline(0);
         return;
     }
@@ -841,7 +841,7 @@ void __stdcall DrawSurface(Surface* dst, Surface* bmp, int x, int y)
         UnlockScreenInline(0);
         return;
     }
-    BlitSurface(dst, bmp, x - bmp->field_18, y - bmp->field_1a);
+    BlitSurface(dst, bmp, x - bmp->x, y - bmp->y);
 }
 
 // Copies `src` to `dst` at (x, y) with a transparent colour through the blitter
@@ -853,11 +853,11 @@ void __stdcall DrawSurfaceKeyed(Surface* dst, Surface* src, int x, int y, int co
     if (dst == 0) {
         Surface screen;
         if (LockScreen(&screen)) {
-            BlitSurfaceKeyed(&screen, src, x - src->field_18, y - src->field_1a, color);
+            BlitSurfaceKeyed(&screen, src, x - src->x, y - src->y, color);
             UnlockScreenInline(&screen);
         }
     } else {
-        BlitSurfaceKeyed(dst, src, x - src->field_18, y - src->field_1a, color);
+        BlitSurfaceKeyed(dst, src, x - src->x, y - src->y, color);
     }
 }
 
@@ -947,7 +947,7 @@ void __stdcall SaveSurface(Surface* surface, HapiBank* file)
     header[1] = surface->height;
     file->WriteBox(header, 8);
     for (int i = 0; i < header[1]; i++) {
-        file->WriteBox(surface->pixels + i * surface->field_8, header[0]);
+        file->WriteBox(surface->pixels + i * surface->pitch, header[0]);
     }
 }
 
@@ -959,13 +959,13 @@ static inline Surface* NewSurface(char* name, int w, int h)
 {
     Surface* s = (Surface*)GameAllocIgnoreTag(name, h * w + 0x30);
     s->width = w;
-    s->field_8 = w;
+    s->pitch = w;
     s->height = h;
-    s->field_18 = 0;
+    s->x = 0;
     s->pixels = (char*)(s + 1);
     s->flag0 = 1;
     s->flag1 = 0;
-    s->field_1a = 0;
+    s->y = 0;
     s->field_10 = 10000;
     s->field_14 = -1;
     s->clip = Rect(0, 0, w - 1, h - 1);
@@ -985,7 +985,7 @@ Surface* __stdcall LoadSurface(void* file)
     }
     Surface* s = NewSurface("Loaded Surface", header[0], header[1]);
     for (int i = 0; i < header[1]; i++) {
-        if (((HapiBank*)file)->ReadBox(s->pixels + i * s->field_8, header[0]) < header[0]) {
+        if (((HapiBank*)file)->ReadBox(s->pixels + i * s->pitch, header[0]) < header[0]) {
             GameFreeThunk(s);
             return 0;
         }
@@ -1180,7 +1180,7 @@ void __stdcall DrawQuadRow(int param_1, int* rect, Surface* surf, Info_4c7310* i
     if (width > 0) {
         y = rect[2];
         x = rect[3];
-        dest += surf->field_8 * param_1 + rect[0];
+        dest += surf->pitch * param_1 + rect[0];
         switch (info->bits) {
         case 0x80:
             BlitSpan128(dest, src, width, y, x, rowstep, colstep);

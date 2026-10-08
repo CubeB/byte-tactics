@@ -26,10 +26,10 @@ struct Cell_00485010 {
     unsigned short unit;               // +0x0
     char unknown_2[0x4 - 0x2];
     unsigned char height;              // +0x4
-    unsigned char field_5;             // +0x5
-    unsigned char field_6;             // +0x6
-    char unknown_7;
-    unsigned short field_8;            // +0x8
+    unsigned char high;                // +0x5
+    unsigned char low;                 // +0x6
+    char metal;
+    unsigned short feature;            // +0x8
     char unknown_a[0xd - 0xa];
 };
 
@@ -417,7 +417,7 @@ int __stdcall GetCellMeanHeight(Pos_00485070* p)
     int x = p->x.whole / 16, y = p->z.whole / 16;
     Cell_00485010* cell = GetCellCachedWidth(x, y);
     if (cell)
-        return (cell->field_6 + cell->field_5) >> 1;
+        return (cell->low + cell->high) >> 1;
     return -1;
 }
 

@@ -31,12 +31,12 @@ struct Feature {
 };
 
 struct Cell {
-    unsigned short field_0;            // +0
-    unsigned short field_2;            // +2
-    unsigned char field_4;             // +4
-    unsigned char field_5;             // +5
-    unsigned char field_6;             // +6
-    unsigned char field_7;             // +7
+    unsigned short unit;               // +0
+    unsigned short unit2;              // +2
+    unsigned char height;              // +4
+    unsigned char high;                // +5
+    unsigned char low;                 // +6
+    unsigned char metal;               // +7
     unsigned short feature;            // +8
     unsigned char spotY;               // +0xa
     unsigned char spotX;               // +0xb
@@ -126,14 +126,14 @@ int __stdcall CanPlaceFootprintAt(Unit* unit, Vec3* pos)
                 return 0;
             if (cell->flags & 2)
                 return 0;
-            if (cell->field_0 != 0 && cell->field_0 != unit->id)
+            if (cell->unit != 0 && cell->unit != unit->id)
                 return 0;
-            if (cell->field_2 != 0 && cell->field_2 != unit->id)
+            if (cell->unit2 != 0 && cell->unit2 != unit->id)
                 return 0;
-            int lo = cell->field_6;
+            int lo = cell->low;
             if (lo < lowBound)
                 return 0;
-            int hi = cell->field_5;
+            int hi = cell->high;
             if (hi > upperBound)
                 return 0;
             if (hi - lo > field228)

@@ -107,7 +107,7 @@ struct Layer {
     void (__stdcall* handler)(Menu*);  // +0x08
     Game* owner;                       // +0x0c
     char unknown_10[0x20 - 0x10];
-    int field_20;                      // +0x20
+    int current;                       // +0x20
 };
 
 struct Menu {
@@ -762,7 +762,7 @@ clear:
 tail:
     int index = FindGadgetIndex(entries, g_talkGadgetName, 3);
     TrySetFocus(&g_game->menu, index);
-    g_game->menu.layer->field_20 = FindGadgetIndex(entries, g_talkGadgetName, 3);
+    g_game->menu.layer->current = FindGadgetIndex(entries, g_talkGadgetName, 3);
 }
 
 // The functions before 0x493bf0 declare g_game inside their bodies: its symbol
@@ -799,7 +799,7 @@ void OpenTalkDialog()
         ResetPlayerGadgets();
     }
     TrySetFocus(&g_game->menu, FindGadgetIndex(entries, "TALK", 3));
-    d->field_20 = FindGadgetIndex(entries, "TALK", 3);
+    d->current = FindGadgetIndex(entries, "TALK", 3);
     d->owner = g_game;
     RenderLayer(&g_game->menu, 0x40 | (multi ? 0 : 0x80));
 }

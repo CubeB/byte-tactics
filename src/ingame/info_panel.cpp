@@ -513,7 +513,7 @@ struct Rect_004689c0 {
 class Surface {
 public:
     char unknown_0[0x1c];
-    Rect_004689c0 field_1c;            // +0x1c
+    Rect_004689c0 clip;                // +0x1c
     Rect_004689c0* GetClipRect(Rect_004689c0* out);
 };
 

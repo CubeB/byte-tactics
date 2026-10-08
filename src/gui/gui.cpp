@@ -4408,12 +4408,12 @@ struct Layer {                          // a screen on the stack
     char unknown_0c[4];
     unsigned int flags;                 // +0x10
     int dirty;                          // +0x14
-    int field_18;                       // +0x18
+    int keyboardInput;                  // +0x18
     void (__stdcall* cb1c)();           // +0x1c
     int current;                        // +0x20 (entry index, -1 for none)
-    void* field_24;                     // +0x24
+    void* surface;                      // +0x24
     char text[0xe];                     // +0x28
-    char field_36;                      // +0x36
+    char lastKey;                       // +0x36
     char unknown_37[0x3b - 0x37];
     void (__stdcall* cb3b)(Gui*);       // +0x3b
 };
@@ -6136,8 +6136,8 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
 
     if ((flags & 4) != 0 || force || (flags & 0x40)) {
         if (force || (flags & 0x40)) {
-            if (menu->layer->field_24)
-                DrawSurface(entries[0].u.assets.surface, menu->layer->field_24, 0, 0);
+            if (menu->layer->surface)
+                DrawSurface(entries[0].u.assets.surface, menu->layer->surface, 0, 0);
             else if ((flags & 0x80) == 0)
                 DrawListboxFrame(menu, 0, entries[0].u.assets.background);
         }
@@ -6642,7 +6642,7 @@ int __stdcall HandleGuiCommand(Gui* obj, int cmd)
         cmd = 0;
         break;
     }
-    if (cmd == 0 && obj->layer->field_18 == 0)
+    if (cmd == 0 && obj->layer->keyboardInput == 0)
         PopKey();
     if (newsel != -1) {
         obj->hotGadgetIndex = newsel;
@@ -6751,7 +6751,7 @@ int __stdcall UpdateMenu(Gui* menu)
     UpdateCursorAndMouse(menu);
 
     int key;
-    if (menu->layer->field_18 == 0) {
+    if (menu->layer->keyboardInput == 0) {
         key = PeekKey();
         if (key >= 0xe2 && key <= 0xeb)
             key = 0;
@@ -6759,12 +6759,12 @@ int __stdcall UpdateMenu(Gui* menu)
         key = PopKey();
     }
 
-    if (menu->layer->field_18 != 0 && key != 0 && menu->dirty != 0) {
+    if (menu->layer->keyboardInput != 0 && key != 0 && menu->dirty != 0) {
         key = HandleGuiCommand(menu, key);
         if (key != 0) {
             for (int n = 0; n < 0xe; n++)
                 menu->layer->text[n] = menu->layer->text[n + 1];
-            menu->layer->field_36 = (char)toupper(key);
+            menu->layer->lastKey = (char)toupper(key);
             if (menu->layer->cb3b != 0)
                 menu->layer->cb3b(menu);
             menu->hotGadgetIndex = -1;

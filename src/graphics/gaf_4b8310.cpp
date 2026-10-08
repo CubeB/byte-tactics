@@ -17,12 +17,12 @@ struct Rect_004b8310 {
 
 class Surface {
 public:
-    int field_0;
-    int field_4;
-    int field_8;
-    int field_c;
+    int width;
+    int height;
+    int pitch;
+    int pixels;
     char unknown_10[0x1c - 0x10];
-    Rect_004b8310 field_1c;               // +0x1c
+    Rect_004b8310 clip;                   // +0x1c
 
     Rect_004b8310* GetClipRect(Rect_004b8310* out);
 };
@@ -115,7 +115,7 @@ void __stdcall DrawFrameLit(Surface* param_1, Sprite_004b8310* param_2, int x, i
                         src.field_3 = param_2->items;
                         BlitRectBlended(param_1, &src, &sprite_rect, &screen_rect, param_5, d->field_c8);
                     } else {
-                        BlitCompressedLit(param_1->field_c, param_1->field_8, &screen_rect,
+                        BlitCompressedLit(param_1->pixels, param_1->pitch, &screen_rect,
                             param_2->items, &sprite_rect, d->field_c8 + (param_5 << 8));
                     }
                 }

@@ -455,9 +455,9 @@ struct Layer_00440d70 {
     };
     char unknown_10[0x1c - 0x10];      // +0x10
     void* field_1c;                    // +0x1c
-    int field_20;                      // +0x20
+    int current;                       // +0x20
     char unknown_24[0x37 - 0x24];      // +0x24
-    int field_37;                      // +0x37
+    int clickMode;                     // +0x37
 };
 
 typedef Layer_00440d70 Holder_00444930;
@@ -2927,7 +2927,7 @@ void CyclePlayerDisplayMode(void)
         for (int i = 0; i < count; i++) {
             if (obj->modes[i].width == player->data->field_8b
                 && obj->modes[i].height == player->data->field_8d) {
-                if (g_game->menu.holder->field_37 == 2) {
+                if (g_game->menu.holder->clickMode == 2) {
                     i--;
                     if (i < 0)
                         i = count - 1;
@@ -3825,7 +3825,7 @@ void __stdcall HandleBattleRoomClick(Gui_00446f50* gadget)
                 p->info->b.ready = GetGadgetStatus(&g_game->gui, FindGadgetIndex(entries, text, 1));
                 if (p->info->f97_0) {
                     strcpy(entries->label, "START");
-                    g_game->gui.table->field_20 = FindGadgetIndex(entries, "START", 1);
+                    g_game->gui.table->current = FindGadgetIndex(entries, "START", 1);
                 }
                 for (int j = 0; j < 10; j++) {
                     Player_00446f50* q = &g_game->players[j];

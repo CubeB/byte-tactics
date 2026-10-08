@@ -313,13 +313,13 @@ void HideSoftwareCursor();
 void Force640x480Surfaces();
 Dialog_004263b0* __stdcall LoadGuiLayer(Sub_004263b0* sub, const char* name, int flags);
 void __stdcall PlayLoopingSoundByName(const char* name, int param_2);
-void __stdcall FUN_0049fa50(Sub_004263b0* sub);
+void __stdcall EnableKeyCommands(Sub_004263b0* sub);
 void* __stdcall HAPI_LoadFile(char* name, int flag);
 void __stdcall RemapPaletteToClosestIndices(Sub_004263b0* sub, int value, void* palette);
 void __stdcall RenderLayer(Sub_004263b0* sub, int value);
-void __stdcall FUN_0049fb10(Sub_004263b0* sub, int value);
+void __stdcall SetKeyboardInput(Sub_004263b0* sub, int value);
 void __stdcall SetFont(void* param);
-void __stdcall FUN_004a0570(Sub_004263b0* sub, const char* name, int value);
+void __stdcall SetGadgetActiveByName(Sub_004263b0* sub, const char* name, int value);
 void __stdcall SetGadgetTextByName(Sub_004263b0* sub, const char* name, const char* text);
 int __stdcall FindGadgetIndex(char* gadgets, const char* name, int type);
 int GetTextKeyColor();
@@ -330,7 +330,7 @@ void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 int __stdcall CheckDirectXVersion(int a, int b, int c, int d, int e);
 void __stdcall CheckGpfVersion();
 int __stdcall IsGadgetNamed(int param1, int param2, char* name);
-void __stdcall FUN_004a0bf0(char* sub, const char* name, const char* text, int param_4);
+void __stdcall SetTranslatedTextByName(char* sub, const char* name, const char* text, int param_4);
 void __stdcall SelectGadgetByName(char* sub, const char* name);
 void StopAllSounds();
 void __stdcall BuildCdFilePath(char* dest, const char* a, const char* b, const char* c);
@@ -772,7 +772,7 @@ void __stdcall OpenCloseCdPlayerDialog()
 {
     Dialog_004263b0* gadget = LoadGuiLayer(&g_game->sub, "YESORNO.GUI", 0x100);
     if (gadget != 0) {
-        FUN_0049fb10(&g_game->sub, 1);
+        SetKeyboardInput(&g_game->sub, 1);
         char* entries = gadget->gadgets;
         char* choice1 = entries + 0x15b * FindGadgetIndex(entries, "CHOICE1", 1);
         char* choice2 = entries + 0x15b * FindGadgetIndex(entries, "CHOICE2", 1);
@@ -780,7 +780,7 @@ void __stdcall OpenCloseCdPlayerDialog()
         strcpy(entries + 0xdc, "CHOICE2");
         strcpy(choice1 + 0xb6, Translate("Yes"));
         strcpy(choice2 + 0xb6, Translate("No"));
-        FUN_004a0bf0((char*)&g_game->sub, "TITLE", Translate("Close Windows CD Player?"), 0);
+        SetTranslatedTextByName((char*)&g_game->sub, "TITLE", Translate("Close Windows CD Player?"), 0);
         SelectGadgetByName((char*)&g_game->sub, "CHOICE1");
         gadget->handler = (void (__stdcall*)(void*))HandleCloseCdPlayerChoice;
         RenderLayer(&g_game->sub, 0x40);
@@ -820,7 +820,7 @@ void __stdcall OpenMainMenu()
     LoadPictureCached("FrontendX", 1, 1, 0);
     PlayLoopingSoundByName("BGM", 0);
     g_game->sound->SetTrackCategory(4);
-    FUN_0049fa50(&g_game->sub);
+    EnableKeyCommands(&g_game->sub);
 
     char* name = "FrontendX";
     char* found = Lookup_004263b0(name);
@@ -834,12 +834,12 @@ void __stdcall OpenMainMenu()
     RemapPaletteToClosestIndices(&g_game->sub, (int)found, palette);
     FUN_004d85a0(palette);
     RenderLayer(&g_game->sub, 0xc0);
-    FUN_0049fb10(&g_game->sub, 1);
+    SetKeyboardInput(&g_game->sub, 1);
     SetFont(g_game->field_391f9);
 
     strcpy(version, "v3.1");
     strcpy(palpath, version);
-    FUN_004a0570(&g_game->sub, "DebugString", 1);
+    SetGadgetActiveByName(&g_game->sub, "DebugString", 1);
     SetGadgetTextByName(&g_game->sub, "DebugString", palpath);
 
     char* gadgets = g_game->sub.current->gadgets;

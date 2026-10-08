@@ -940,28 +940,28 @@ Entry_00440d70* __stdcall FUN_004a0180(void* entries, const char* name);
 Entry_00440d70* __stdcall FUN_004a0200(void* entries, char* name);
 Entry_00440d70* __stdcall FUN_004a0280(void* entries, char* name);
 void __stdcall SelectGadgetByIndex(void* menu, int index);
-void __stdcall FUN_004a7190(void* menu, int index);
-int __stdcall FUN_0049fc50(void* menu, int index);
-void __stdcall FUN_0049fa90(void* menu);
-void __stdcall FUN_0049fa50(void* gui);
-void __stdcall FUN_0049fb10(void* menu, int value);
+void __stdcall BeginTextEdit(void* menu, int index);
+int __stdcall TrySetFocus(void* menu, int index);
+void __stdcall MarkChanged(void* menu);
+void __stdcall EnableKeyCommands(void* gui);
+void __stdcall SetKeyboardInput(void* menu, int value);
 void __stdcall FUN_0049fad0(void* menu);
 void __stdcall ClearSelectedGadget(void* menu);
 void __stdcall BlitMenuLayers(void* menu, int a, int b);
 void __stdcall SetDescListCleanupFlag(void* gui, int flag);
-void __stdcall FUN_004a0570(void* menu, const char* name, int value);
-void __stdcall FUN_004a0bf0(void* menu, const char* name, char* text, int param_4);
-void __stdcall FUN_004a1250(void* menu, const char* name, int value);
-void __stdcall FUN_004a1250(void* gui, char* name, int value);
-void __stdcall FUN_004a2e40(void* menu, const char* name, int index);
-void __stdcall FUN_004a32a0(void* menu, const char* name, char* text, int count, int flag);
-void __stdcall FUN_004a09c0(void* menu, int index, int param_3, int param_4);
-void __stdcall FUN_004a1450(void* menu, char* name, int value);
-void __stdcall FUN_004a5d30(void* gui, int flag);
-int __stdcall FUN_004a5d50(void* menu, int index);
+void __stdcall SetGadgetActiveByName(void* menu, const char* name, int value);
+void __stdcall SetTranslatedTextByName(void* menu, const char* name, char* text, int param_4);
+void __stdcall SetGrayedOutByName(void* menu, const char* name, int value);
+void __stdcall SetGrayedOutByName(void* gui, char* name, int value);
+void __stdcall SetListBoxScrollByName(void* menu, const char* name, int index);
+void __stdcall ConfigureListBoxByName(void* menu, const char* name, char* text, int count, int flag);
+void __stdcall SetTranslatedText(void* menu, int index, int param_3, int param_4);
+void __stdcall SetGadgetGrayedOutByName(void* menu, char* name, int value);
+void __stdcall SetCurrentFont(void* gui, int flag);
+int __stdcall TruncateGadgetText(void* menu, int index);
 char* __stdcall GetGadgetText(void* menu, const char* key, char* out);
 int __stdcall GetGadgetStatus(void* menu, int handle);
-char __stdcall FUN_004a04f0(void* menu, char* name);
+char __stdcall GetGadgetActiveByName(void* menu, char* name);
 int __stdcall GetButtonStage(void* gadget, int index);
 int __stdcall GetButtonStageByName(void* gadget, char* name);
 void __stdcall SetButtonStageByName(void* gui, char* name, int value);
@@ -1107,8 +1107,8 @@ void OpenSaveGameDialog();
 void OpenUnitRestrictions();
 void UnitRestrictDialogFrame();
 int __stdcall IsScreenNamed(void* gui, const char* name);
-void __stdcall FUN_004a15c0(Entry_00446f50* entries, int widget, RECT* rect);
-void __stdcall FUN_004a50e0(int a, char* text, int x, int y, int w, int h);
+void __stdcall GetGadgetRectByIndex(Entry_00446f50* entries, int widget, RECT* rect);
+void __stdcall DrawTextClipped(int a, char* text, int x, int y, int w, int h);
 int AreAllPlayersReady();
 void __stdcall CreateUnitSync(int param_1);
 char __stdcall FindGameCdDrive(int side);
@@ -1141,21 +1141,21 @@ void __stdcall HandleNewMultiClick(Gadget_00440d70* gadget)
     // the focus, the third one the OK button.
     if (IsCurrentGadgetNamed(gadget, "GAMENAME")) {
         SelectGadgetByIndex(gadget, FindGadgetIndex(entries, "NICKNAME", 3));
-        FUN_0049fc50(gadget, FindGadgetIndex(entries, "NICKNAME", 3));
-        FUN_0049fa90(gadget);
+        TrySetFocus(gadget, FindGadgetIndex(entries, "NICKNAME", 3));
+        MarkChanged(gadget);
         ClearSelectedGadget(gadget);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "NICKNAME")) {
         SelectGadgetByIndex(gadget, FindGadgetIndex(entries, "PASSWORD", 3));
-        FUN_0049fc50(gadget, FindGadgetIndex(entries, "PASSWORD", 3));
-        FUN_0049fa90(gadget);
+        TrySetFocus(gadget, FindGadgetIndex(entries, "PASSWORD", 3));
+        MarkChanged(gadget);
         ClearSelectedGadget(gadget);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "PASSWORD")) {
         SelectGadgetByIndex(gadget, FindGadgetIndex(entries, "OK", 1));
-        FUN_0049fa90(gadget);
+        MarkChanged(gadget);
         ClearSelectedGadget(gadget);
         return;
     }
@@ -1174,7 +1174,7 @@ void __stdcall HandleNewMultiClick(Gadget_00440d70* gadget)
         dst = namebuf;                 // copied through a pointer, as in the original
         strcpy(dst, entries[gi].text);
         if (strlen(namebuf) == 0) {
-            FUN_004a7190(gadget, gi);
+            BeginTextEdit(gadget, gi);
             ClearSelectedGadget(gadget);
             OpenMessageBox((char*)gadget, Translate("You must enter a game name"), 0x140, 1, 1);
             return;
@@ -1182,7 +1182,7 @@ void __stdcall HandleNewMultiClick(Gadget_00440d70* gadget)
         ni = FindGadgetIndex(entries, "NICKNAME", 3);
         strcpy(nickbuf, entries[ni].text);
         if (strlen(nickbuf) == 0) {
-            FUN_004a7190(gadget, ni);
+            BeginTextEdit(gadget, ni);
             ClearSelectedGadget(gadget);
             OpenMessageBox((char*)gadget, Translate("You must enter your name"), 0x140, 1, 1);
             return;
@@ -1225,17 +1225,17 @@ void OpenNewMultiDialog()
         GetUserNameA(g_game->nickname, &size);
     }
     Entry_00440d70* gname = FUN_004a0010(entries, "GAMENAME");
-    FUN_004a0bf0(&g_game->menu, "GAMENAME", g_game->gameName, 0);
+    SetTranslatedTextByName(&g_game->menu, "GAMENAME", g_game->gameName, 0);
     gname->field_138 = 0x10;
     Entry_00440d70* nname = FUN_004a0010(entries, "NICKNAME");
-    FUN_004a0bf0(&g_game->menu, "NICKNAME", g_game->nickname, 0);
+    SetTranslatedTextByName(&g_game->menu, "NICKNAME", g_game->nickname, 0);
     nname->field_138 = 0x10;
     char* pw = g_game->players[g_game->localPlayer].info->name;
     if (strlen(pw) == 0)
         pw = g_game->password;
-    FUN_004a0bf0(&g_game->menu, "PASSWORD", pw, 0xa);
+    SetTranslatedTextByName(&g_game->menu, "PASSWORD", pw, 0xa);
     OrLabelAttribs();
-    FUN_0049fb10(&g_game->menu, 1);
+    SetKeyboardInput(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
 }
 
@@ -1479,14 +1479,14 @@ void OpenTcpDialog()
             address[0] = 0;
         }
     }
-    FUN_004a0bf0(&g_game->menu, "ADDRESS", address, 0);
+    SetTranslatedTextByName(&g_game->menu, "ADDRESS", address, 0);
     if (direct) {
         HandleTcpDialogClick(&g_game->menu);
         g_game->field_2aaf = g_game->field_2aaf ^ ((DAT_00512c84 != 0) ^ g_game->field_2aaf) & 1;
     } else {
         SelectGadgetByIndex(&g_game->menu, FindGadgetIndex(dialog->entries, "ADDRESS", 3));
-        FUN_0049fc50(&g_game->menu, FindGadgetIndex(dialog->entries, "ADDRESS", 3));
-        FUN_0049fb10(&g_game->menu, 1);
+        TrySetFocus(&g_game->menu, FindGadgetIndex(dialog->entries, "ADDRESS", 3));
+        SetKeyboardInput(&g_game->menu, 1);
         RenderLayer(&g_game->menu, 0x40);
     }
 }
@@ -1573,17 +1573,17 @@ void OpenSerialDialog()
     gadget->field_1c = 0;
     LoadPictureCached(0, 0, 0, 0);
     HAPINET_initlobbiedconnection((char*)g_game + 0x14);
-    FUN_004a32a0(&g_game->menu, "PORTS", "COM1\0COM2\0COM3\0COM4", 4, 0);
-    FUN_004a32a0(&g_game->menu, "SPEEDS", "115200\0" "57600\0" "38400\0" "19200\0" "14400\0" "9600", 6, 0);
+    ConfigureListBoxByName(&g_game->menu, "PORTS", "COM1\0COM2\0COM3\0COM4", 4, 0);
+    ConfigureListBoxByName(&g_game->menu, "SPEEDS", "115200\0" "57600\0" "38400\0" "19200\0" "14400\0" "9600", 6, 0);
 
     int value;
     unsigned int size = 4;
 
     if (ReadGameRegistryValue("SERBAUD", &value, &size)) {
-        FUN_004a2e40(&g_game->menu, "SPEEDS", value);
+        SetListBoxScrollByName(&g_game->menu, "SPEEDS", value);
     }
     if (ReadGameRegistryValue("SERPORT", &value, &size)) {
-        FUN_004a2e40(&g_game->menu, "PORTS", value);
+        SetListBoxScrollByName(&g_game->menu, "PORTS", value);
     }
     Entry_00440d70* entry = FindGadgetChecked(gadget->entries, "PORTS");
     entry->handler = SetSerialPortFromGadget;
@@ -1591,7 +1591,7 @@ void OpenSerialDialog()
     Entry_00440d70* speeds = FindGadgetChecked(gadget->entries, "SPEEDS");
     speeds->handler = SetSerialBaudFromGadget;
     SetSerialBaudFromGadget(&g_game->menu, speeds);
-    FUN_0049fb10(&g_game->menu, 1);
+    SetKeyboardInput(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
 }
 
@@ -1608,8 +1608,8 @@ void FillAccountList(void)
     }
     Entry_00440d70* entry = FindGadgetChecked(g_game->menu.layer->entries, "ACCOUNTS");
     int player = entry->index;
-    FUN_004a32a0((char*)g_game + 0x519, "ACCOUNTS", g_modemAccountNames, 20, 0);
-    FUN_004a2e40((char*)g_game + 0x519, "ACCOUNTS", player);
+    ConfigureListBoxByName((char*)g_game + 0x519, "ACCOUNTS", g_modemAccountNames, 20, 0);
+    SetListBoxScrollByName((char*)g_game + 0x519, "ACCOUNTS", player);
 }
 
 // Copies the selected account's name and number into the NAME and NUMBER
@@ -1630,8 +1630,8 @@ void RefreshAccountList(void)
             buffer += strlen(g_modemAccounts[i].name) + 1;
         }
         int player = FindGadgetChecked(g_game->menu.layer->entries, "ACCOUNTS")->index;
-        FUN_004a32a0((char*)g_game + 0x519, "ACCOUNTS", g_modemAccountNames, 20, 0);
-        FUN_004a2e40((char*)g_game + 0x519, "ACCOUNTS", player);
+        ConfigureListBoxByName((char*)g_game + 0x519, "ACCOUNTS", g_modemAccountNames, 20, 0);
+        SetListBoxScrollByName((char*)g_game + 0x519, "ACCOUNTS", player);
     }
 }
 
@@ -1644,12 +1644,12 @@ void __stdcall ShowSelectedAccount(Gadget_00440d70* menu, Entry_00440d70* player
 {
     int entry = player->index;
     if (entry >= 0) {
-        FUN_004a0bf0(menu, "NAME", g_modemAccounts[entry].name, 0);
-        FUN_004a0bf0(menu, "NUMBER", g_modemAccounts[entry].number, 0);
+        SetTranslatedTextByName(menu, "NAME", g_modemAccounts[entry].name, 0);
+        SetTranslatedTextByName(menu, "NUMBER", g_modemAccounts[entry].number, 0);
         int index = FindGadgetIndex(menu->layer->entries, "NAME", 3);
         SelectGadgetByIndex(menu, index);
-        FUN_0049fc50(menu, index);
-        FUN_0049fa90(menu);
+        TrySetFocus(menu, index);
+        MarkChanged(menu);
     }
 }
 #pragma auto_inline(on)
@@ -1741,17 +1741,17 @@ void __stdcall HandleModemDialogClick(Gadget_00440d70* gadget)
     }
     if (IsCurrentGadgetNamed(gadget, "NAME")) {
         LoadAccount_00442a30();
-        FUN_0049fc50(gadget, FindGadgetIndex(entries, "NUMBER", 3));
-        FUN_0049fa90(gadget);
+        TrySetFocus(gadget, FindGadgetIndex(entries, "NUMBER", 3));
+        MarkChanged(gadget);
         ClearSelectedGadget(gadget);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "NUMBER")) {
         LoadAccount_00442a30();
         SelectGadgetByIndex(gadget, FindGadgetIndex(entries, "JOIN", 1));
-        FUN_0049fc50(gadget, FindGadgetIndex(entries, "JOIN", 1));
+        TrySetFocus(gadget, FindGadgetIndex(entries, "JOIN", 1));
         strcpy((char*)entries + 0xcc, "JOIN");
-        FUN_0049fa90(gadget);
+        MarkChanged(gadget);
         ClearSelectedGadget(gadget);
         return;
     }
@@ -1862,7 +1862,7 @@ void __stdcall OpenModemDialog()
                     }
                     if (r >= 0) {
                         int i;
-                        FUN_004a32a0(&g_game->menu, "MODEMS", g_modemInfo, g_modemCount, 0);
+                        ConfigureListBoxByName(&g_game->menu, "MODEMS", g_modemInfo, g_modemCount, 0);
                         g_modemAccounts = (Entry_004426e0*)FUN_004d83b0("MODEMACCOUNTS", 0x1428);
                         len.v = 0x1428;
                         r = ReadGameRegistryValue("MODEMNUMBERS", g_modemAccounts, &len.v);
@@ -1883,8 +1883,8 @@ void __stdcall OpenModemDialog()
                         }
                         Entry_00440d70* entry = FindGadgetChecked(g_game->menu.layer->entries, "ACCOUNTS");
                         int player = entry->index;
-                        FUN_004a32a0(&g_game->menu, "ACCOUNTS", g_modemAccountNames, 20, 0);
-                        FUN_004a2e40(&g_game->menu, "ACCOUNTS", player);
+                        ConfigureListBoxByName(&g_game->menu, "ACCOUNTS", g_modemAccountNames, 20, 0);
+                        SetListBoxScrollByName(&g_game->menu, "ACCOUNTS", player);
                         entry = FindGadgetChecked(gadget->entries, "ACCOUNTS");
                         entry->handler = ShowSelectedAccount;
                         ShowSelectedAccount(&g_game->menu, entry);
@@ -1893,7 +1893,7 @@ void __stdcall OpenModemDialog()
             }
         }
     }
-    FUN_0049fb10(&g_game->menu, 1);
+    SetKeyboardInput(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
     HAPINET_releasedplayinterface((Net_00443100*)&net);
     FUN_004d85a0(addr);
@@ -1917,7 +1917,7 @@ void __stdcall HandleReportClick(Gadget_00440d70* obj)
         for (i = 0; i < 16u; i++) {
             wsprintfA(buf, "CHK%d", i);
             handle = FindGadgetIndex(entries, buf, 1);
-            if (!FUN_004a04f0(obj, buf))
+            if (!GetGadgetActiveByName(obj, buf))
                 break;
             value = GetGadgetStatus(obj, handle);
             acc = (int)(pow(2.0, i) * value + acc);
@@ -1954,15 +1954,15 @@ void __stdcall OpenReportDialog(unsigned int* count, char** names)
     LoadPictureCached("scorebg", 0, 1, 0);
     for (unsigned int i = 0; i < *count; i++) {
         wsprintfA(name, "CHK%d", i);
-        FUN_004a0570(&g_game->menu, name, 1);
+        SetGadgetActiveByName(&g_game->menu, name, 1);
         wsprintfA(name, "SERVICE%d", i);
-        FUN_004a0570(&g_game->menu, name, 1);
-        FUN_004a0bf0(&g_game->menu, name, names[i], 0x80);
+        SetGadgetActiveByName(&g_game->menu, name, 1);
+        SetTranslatedTextByName(&g_game->menu, name, names[i], 0x80);
     }
-    FUN_0049fb10(&g_game->menu, 1);
+    SetKeyboardInput(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x141);
     SetCursorMode(0x13);
-    FUN_0049fa90(&g_game->menu);
+    MarkChanged(&g_game->menu);
     FUN_0049fad0(&g_game->menu);
 }
 
@@ -2033,7 +2033,7 @@ void __stdcall HandleSelectGameClick(Gadget_00440d70* param_1)
         }
         PlaySoundByName("Multi", 0);
         ConnectToGame(param_1->layer);
-        FUN_0049fa90(param_1);
+        MarkChanged(param_1);
         ClearSelectedGadget(param_1);
         return;
     }
@@ -2068,7 +2068,7 @@ void __stdcall HandleSelectGameClick(Gadget_00440d70* param_1)
             }
             GetGadgetText(param_1, "NICKNAME", g_game->nickname);
             if (strlen(g_game->nickname) == 0) {
-                FUN_004a7190(param_1, FindGadgetIndex(entries, "NICKNAME", 3));
+                BeginTextEdit(param_1, FindGadgetIndex(entries, "NICKNAME", 3));
                 ClearSelectedGadget(param_1);
                 OpenMessageBox(param_1, Translate("You must enter your name"), 0xc8, 1, 1);
                 return;
@@ -2143,10 +2143,10 @@ void OpenSelectGameDialog()
         g_game->desc[j].size = 0xb9;
         g_game->desc[j].offset = (int)(g_game->shared + j * 0xb9);
     }
-    FUN_004a0bf0(&g_game->menu, "PASSWORD", g_game->password, 10);
-    FUN_004a0bf0(&g_game->menu, "NICKNAME", g_game->nickname, 10);
-    FUN_004a1250(&g_game->menu, "JOIN", 1);
-    FUN_004a1250(&g_game->menu, "WATCH", 1);
+    SetTranslatedTextByName(&g_game->menu, "PASSWORD", g_game->password, 10);
+    SetTranslatedTextByName(&g_game->menu, "NICKNAME", g_game->nickname, 10);
+    SetGrayedOutByName(&g_game->menu, "JOIN", 1);
+    SetGrayedOutByName(&g_game->menu, "WATCH", 1);
     for (i = 1; i < gadget->entries->count; i++) {
         if (gadget->entries[i].type == 2) {
             // Indexed inline and bound by reference: no named entries pointer local.
@@ -2164,14 +2164,14 @@ void OpenSelectGameDialog()
     }
     SelectGadgetByIndex(&g_game->menu, FindGadgetIndex(gadget->entries, "GAMENAME", 2));
     OrLabelAttribs();
-    FUN_0049fb10(&g_game->menu, 1);
+    SetKeyboardInput(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
     Player_441080* conn = &g_game->players[g_game->localPlayer];
     if (conn->status != 0 && conn->status != 2) {
         RenderLayer(&g_game->menu, 0x40);
         char* msg = GetRejectReasonText(conn->status);
         OpenMessageBox(&g_game->menu, Translate(msg), 0x140, 1, 1);
-        FUN_0049fa90(&g_game->menu);
+        MarkChanged(&g_game->menu);
         FUN_0049fad0(&g_game->menu);
         conn->status = 0;
     }
@@ -2182,7 +2182,7 @@ void OpenSelectGameDialog()
 }
 
 // Appends a copy of entry `param_2` to the table (count at +0xb6 of entry 0),
-// initialises it through the menu (FUN_004a09c0), then sets its name, value,
+// initialises it through the menu (SetTranslatedText), then sets its name, value,
 // state and flags. The body is inlined at 0x4447d4 by the caller that builds a
 // name with sprintf first.
 // FUNCTION: 0x4444d0
@@ -2192,7 +2192,7 @@ int __stdcall CloneServiceSlot(Entry_00440d70* entries, int param_2, short param
     Entry_00440d70* d = &entries[index];
     Entry_00440d70* s = &entries[param_2];
     *d = *s;
-    FUN_004a09c0((char*)g_game + 0x519, index, param_4, 0);
+    SetTranslatedText((char*)g_game + 0x519, index, param_4, 0);
     strcpy(d->name, param_5);
     d->field_15 = param_3;
     d->field_29 = 1;
@@ -2242,7 +2242,7 @@ void ShowSelectedMapInfo()
     char buffer[100];
 
     if (FindGadgetIndex(g_game->menu.holder->entries, "MAPNAME", 5) != -1) {
-        FUN_004a0bf0(&g_game->menu, "MAPNAME",
+        SetTranslatedTextByName(&g_game->menu, "MAPNAME",
                      (char*)((Mission*)g_game->field_391e9)->GetTranslatedName(), 0);
     }
 
@@ -2250,7 +2250,7 @@ void ShowSelectedMapInfo()
             (char*)g_game->field_391e9 + 0xdc4,
             Translate("Players"),
             (char*)g_game->field_391e9 + 0xe44);
-    FUN_004a0bf0(&g_game->menu, "SIZE", (char*)buffer, 0);
+    SetTranslatedTextByName(&g_game->menu, "SIZE", (char*)buffer, 0);
 
     Entry_00444930* entry = FUN_004a0280(g_game->menu.holder->entries, "MAPPIC");
     if (entry->field_c2 != 0) {
@@ -2264,9 +2264,9 @@ void ShowSelectedMapInfo()
         ResizeRadarPicture(bmp, entry->field_17, entry->field_19, outX << 4, outY << 4);
     }
 
-    FUN_004a0bf0(&g_game->menu, "DESCRIPTION",
+    SetTranslatedTextByName(&g_game->menu, "DESCRIPTION",
                  (char*)((Mission*)g_game->field_391e9)->GetDescription(), 0);
-    FUN_0049fa90(&g_game->menu);
+    MarkChanged(&g_game->menu);
 }
 
 // FUNCTION: 0x444ba0
@@ -2288,7 +2288,7 @@ void OpenViewMapDialog()
     LoadGuiLayer(&g_game->menu, "VIEWMAP.GUI", 0x900)->handler = HandleViewMapClick;
     LoadPictureCached("DVIEWMAP", 0, 0, 0);
     ShowSelectedMapInfo();
-    FUN_0049fb10(&g_game->menu, 1);
+    SetKeyboardInput(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
 }
 
@@ -2297,9 +2297,9 @@ void __stdcall UpdateMapSelection(Gadget_00444930* menu, int unused)
 {
     Entry_00444930* g = FindGadgetChecked(menu->holder->entries, "MAPNAMES");
     if (g_game->field_391e9->LoadMissionByName(SkipTextLines(g->text_c2, g->selected)) == 0) {
-        FUN_004a0570(menu, "MAPPIC", 0);
+        SetGadgetActiveByName(menu, "MAPPIC", 0);
     } else {
-        FUN_004a0570(menu, "MAPPIC", 1);
+        SetGadgetActiveByName(menu, "MAPPIC", 1);
         ShowSelectedMapInfo();
     }
 }
@@ -2402,12 +2402,12 @@ void OpenMultiMapSelector()
     LoadPictureCached("DSELECTMAP2", 0, 0, 0);
     LoadMapList(&data->items, 0, 0);
     SortFileList(data->items, 0, 0, n);
-    FUN_004a32a0(&g_game->menu, "MAPNAMES", data->items, n, 0);
+    ConfigureListBoxByName(&g_game->menu, "MAPNAMES", data->items, n, 0);
     FindGadgetChecked(layer->entries, "MAPNAMES")->onSelect = UpdateMapSelection;
 
     for (int i = 0; i < n; i++) {
         if (strcmp(g_oldMapName, SkipTextLines(data->items, i)) == 0) {
-            FUN_004a2e40(&g_game->menu, "MAPNAMES", i);
+            SetListBoxScrollByName(&g_game->menu, "MAPNAMES", i);
             break;
         }
     }
@@ -2416,12 +2416,12 @@ void OpenMultiMapSelector()
     Entry_00444930* g = FindGadgetChecked(menu->holder->entries, "MAPNAMES");
     if (((Mission*)g_game->field_391e9)->LoadMissionByName(
             SkipTextLines(g->text_c2, g->selected)) == 0) {
-        FUN_004a0570(menu, "MAPPIC", 0);
+        SetGadgetActiveByName(menu, "MAPPIC", 0);
     } else {
-        FUN_004a0570(menu, "MAPPIC", 1);
+        SetGadgetActiveByName(menu, "MAPPIC", 1);
         ShowSelectedMapInfo();
     }
-    FUN_0049fb10(&g_game->menu, 1);
+    SetKeyboardInput(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
 }
 
@@ -2471,7 +2471,7 @@ void OpenLogoSelectDialog()
         ((Entry_00444930*)((char*)gui->entries + index * 0x15b))->field_1b |= 0x40;
     }
     SetGadgetItems(gui, "LOGOS", layout->ptrList, n);
-    FUN_0049fb10(&g_game->menu, 1);
+    SetKeyboardInput(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
 }
 
@@ -2481,7 +2481,7 @@ void __stdcall ExpandGadgetTextToType5(Entry_00444930* param_1)
     if (param_1->state == 1) {
         Head_00444930 tmp = *(Head_00444930*)param_1;
         int index = FindGadgetIndex(g_game->menu.holder->entries, param_1->name, 0xe);
-        FUN_004a5d50(&g_game->menu, index);
+        TruncateGadgetText(&g_game->menu, index);
         param_1->field_15 += 2;
         param_1->state = 5;
         strcpy(param_1->entry_text, tmp.text);
@@ -2579,7 +2579,7 @@ static void CloneFix_004455b0(Entry_00444930* rec)
 {
     Head_00444930 tmp = *(Head_00444930*)rec;
     int index = FindGadgetIndex(g_game->menu.holder->entries, rec->name, 0xe);
-    FUN_004a5d50(&g_game->menu, index);
+    TruncateGadgetText(&g_game->menu, index);
     rec->field_15 += 2;
     rec->state = 5;
     strcpy(rec->entry_text, tmp.text);
@@ -2641,7 +2641,7 @@ void __cdecl BuildPlayerSlotGadgets(void)
                     {
                         Player_00444930* pl = &g_game->players[p];
                         int ok = pl->active != 0 && (pl->type == 1 || pl->type == 2);
-                        FUN_004a1450(&g_game->menu, dst->name, !ok);
+                        SetGadgetGrayedOutByName(&g_game->menu, dst->name, !ok);
                     }
                     dst->field_29 = 0;
                     break;
@@ -2710,7 +2710,7 @@ void __stdcall UpdateMaxUnitsText(Gadget_00444930* gui, int index)
             count = g_game->players[player].data->maxunits;
         }
         _itoa(count, text, 10);
-        FUN_004a0bf0(gui, "MAXUNITSTEXT", text, 0);
+        SetTranslatedTextByName(gui, "MAXUNITSTEXT", text, 0);
         g_game->players[g_game->localPlayer].data->maxunits = count;
         PlayerInfo_00444930* data = g_game->players[g_game->localPlayer].data;
         unsigned char f = data->flags_97;
@@ -2738,7 +2738,7 @@ void __stdcall UpdateMetalText(Gadget_00444930* sub, int unused)
         PlayerInfo_00444930* unit;
 
         _itoa(shown, text, 10);
-        FUN_004a0bf0(sub, "METALTEXT", text, 0);
+        SetTranslatedTextByName(sub, "METALTEXT", text, 0);
         hundreds = shown / 100;
         g_game->players[g_game->localPlayer].unit->field_a3 = (unsigned short)hundreds;
         // The original writes the same value to the same field a second time,
@@ -2768,7 +2768,7 @@ void __stdcall UpdateEnergyText(Gadget_00444930* sub, int unused)
         PlayerInfo_00444930* unit;
 
         _itoa(shown, text, 10);
-        FUN_004a0bf0(sub, "ENERGYTEXT", text, 0);
+        SetTranslatedTextByName(sub, "ENERGYTEXT", text, 0);
         unit = g_game->players[g_game->localPlayer].unit;
         unit->field_a1 = (unsigned short)(shown / 100);
         if (unit->flags_97 & 1) {
@@ -2806,7 +2806,7 @@ void __stdcall BindNamedSliderWithCallback(char* name, int param_2, int param_3,
         gadget->game = g_game;
     }
     callback(menu, index);
-    FUN_0049fa90(menu);
+    MarkChanged(menu);
 }
 
 // Pushes the local player's status flags (commander, mapping, los type,
@@ -2864,19 +2864,19 @@ void __stdcall OpenRejectDialog(int player)
     g_rejectPlayer = player;
     Holder_00444930* gadget = LoadGuiLayer(&g_game->menu, "YESORNO.GUI", 0x100);
     if (gadget != 0) {
-        FUN_0049fb10(&g_game->menu, 1);
+        SetKeyboardInput(&g_game->menu, 1);
         void* entries = gadget->entries;
         FindGadgetIndex(entries, "CHOICE1", 1);
         FindGadgetIndex(entries, "CHOICE2", 1);
         FindGadgetIndex(entries, "TITLE", 5);
-        FUN_004a0bf0(&g_game->menu, "CHOICE1", "Yes", 0);
-        FUN_004a0bf0(&g_game->menu, "CHOICE2", "No", 0);
+        SetTranslatedTextByName(&g_game->menu, "CHOICE1", "Yes", 0);
+        SetTranslatedTextByName(&g_game->menu, "CHOICE2", "No", 0);
         sprintf(buf, "%s %s?", Translate("Reject"),
                 g_game->players[g_rejectPlayer].name);
-        FUN_004a0bf0(&g_game->menu, "TITLE", buf, 0);
+        SetTranslatedTextByName(&g_game->menu, "TITLE", buf, 0);
         gadget->handler = HandleRejectChoice;
         gadget->owner = g_game;
-        FUN_0049fb10(&g_game->menu, 1);
+        SetKeyboardInput(&g_game->menu, 1);
         RenderLayer(&g_game->menu, 0x40);
     }
 }
@@ -2977,7 +2977,7 @@ void UpdateWatchingGadgets()
     PlayerInfo_00444930* info = g_game->players[g_game->localPlayer].info;
     SetButtonStageByName((Class_004a1080*)&g_game->menu, "WATCHING", info->watching);
     SetButtonStageByName((Class_004a1080*)&g_game->menu, "GAMEOPEN", !info->closed);
-    FUN_0049fa90((Dialog*)&g_game->menu);
+    MarkChanged((Dialog*)&g_game->menu);
 }
 
 // Handler for the CONTROL.GUI dialog: choosing a "LIVEPLYR%d" entry opens the
@@ -3004,7 +3004,7 @@ void __stdcall HandleControlDialogClick(Gadget_00444930* gui)
             info = g_game->players[g_game->localPlayer].info;
             SetButtonStageByName((Class_004a1080*)&g_game->menu, "WATCHING", info->watching);
             SetButtonStageByName((Class_004a1080*)&g_game->menu, "GAMEOPEN", !info->closed);
-            FUN_0049fa90((Class_004a1080*)&g_game->menu);
+            MarkChanged((Class_004a1080*)&g_game->menu);
             BroadcastPlayerInfo();
         } else if (IsCurrentGadgetNamed(gui, "OK")) {
             UpdateNetGameInfo();
@@ -3045,8 +3045,8 @@ void OpenControlDialog()
     info = g_game->players[g_game->localPlayer].info;
     SetButtonStageByName((Class_004a1080*)&g_game->menu, "WATCHING", info->watching);
     SetButtonStageByName((Class_004a1080*)&g_game->menu, "GAMEOPEN", !info->closed);
-    FUN_0049fa90((Dialog*)&g_game->menu);
-    FUN_0049fb10((Dialog*)&g_game->menu, 1);
+    MarkChanged((Dialog*)&g_game->menu);
+    SetKeyboardInput((Dialog*)&g_game->menu, 1);
     RenderLayer((Dialog*)&g_game->menu, 0x40);
 }
 
@@ -3351,7 +3351,7 @@ void RebuildAllyList()
                 SetButtonStageByName(&g_game->gui, text, (*b << 1) | *a);
             }
         }
-        FUN_0049fa90(&g_game->gui);
+        MarkChanged(&g_game->gui);
     }
 }
 
@@ -3449,10 +3449,10 @@ void __stdcall RefreshAlliesScreen(int param_1)
         sprintf(logo, "LOGO%d", i);
         sprintf(ally, "ALLY%d", i);
         sprintf(teamicons, "TEAMICONS%d", i);
-        FUN_004a0570((char*)g_game + 0x519, player, 0);
-        FUN_004a0570((char*)g_game + 0x519, logo, 0);
-        FUN_004a0570((char*)g_game + 0x519, ally, 0);
-        FUN_004a0570((char*)g_game + 0x519, teamicons, 0);
+        SetGadgetActiveByName((char*)g_game + 0x519, player, 0);
+        SetGadgetActiveByName((char*)g_game + 0x519, logo, 0);
+        SetGadgetActiveByName((char*)g_game + 0x519, ally, 0);
+        SetGadgetActiveByName((char*)g_game + 0x519, teamicons, 0);
 
         Player_00446f50* p = &g_game->players[i];
         // Two helpers, not one: gives the register rotation of the second sprintf group.
@@ -3475,8 +3475,8 @@ void __stdcall RefreshAlliesScreen(int param_1)
                 }
             }
 
-            FUN_004a0bf0((char*)g_game + 0x519, player, name, 0x80);
-            FUN_004a0570((char*)g_game + 0x519, player, 1);
+            SetTranslatedTextByName((char*)g_game + 0x519, player, name, 0x80);
+            SetGadgetActiveByName((char*)g_game + 0x519, player, 1);
             sprintf(live, "LIVEPLYR%d", i);
             SetGadgetName((char*)g_game + 0x519, player, live);
 
@@ -3492,7 +3492,7 @@ void __stdcall RefreshAlliesScreen(int param_1)
                     && IsType_00447380(q)
                     && q->field_146 != 10
                     && (q->field_144 != 0 || q->field_140 == 0)) {
-                    FUN_004a0570((char*)g_game + 0x519, ally, 1);
+                    SetGadgetActiveByName((char*)g_game + 0x519, ally, 1);
                 }
             }
 
@@ -3500,10 +3500,10 @@ void __stdcall RefreshAlliesScreen(int param_1)
             SetGadgetName((char*)g_game + 0x519, ally, live);
 
             if (p->colour == local->colour && p->colour != 5) {
-                FUN_004a1450((char*)g_game + 0x519, live, 1);
+                SetGadgetGrayedOutByName((char*)g_game + 0x519, live, 1);
             }
 
-            FUN_004a0570((char*)g_game + 0x519, teamicons, 1);
+            SetGadgetActiveByName((char*)g_game + 0x519, teamicons, 1);
 
             int value;
             if (p->active != 0 && (p->type == 1 || p->type == 2)
@@ -3512,7 +3512,7 @@ void __stdcall RefreshAlliesScreen(int param_1)
             } else {
                 value = 1;
             }
-            FUN_004a1450((char*)g_game + 0x519, teamicons, value);
+            SetGadgetGrayedOutByName((char*)g_game + 0x519, teamicons, value);
 
             Entry_00446f50* e2 = FUN_004a0280(entries, logo);
             if (e2 != 0) {
@@ -3585,9 +3585,9 @@ void OpenAlliesDialog()
         count = 0;
     else
         count = CountAlliance_004478b0(alliance);
-    FUN_004a1450((Class_004a1450*)&g_game->gui, "VICTORY",
+    SetGadgetGrayedOutByName((Class_004a1450*)&g_game->gui, "VICTORY",
                  (count > 1 || win) ? 1 : 0);
-    FUN_0049fb10((Class_0049fb10*)&g_game->gui, 1);
+    SetKeyboardInput((Class_0049fb10*)&g_game->gui, 1);
     RenderLayer((Dialog*)&g_game->gui, 0x40);
 }
 
@@ -3888,7 +3888,7 @@ void __stdcall HandleBattleRoomClick(Gui_00446f50* gadget)
             g_game->dirty = 1;
             strcpy(msg, "");
         }
-        FUN_004a7190(&g_game->gui, FindGadgetIndex(g_game->gui.table->entries, "MESSAGE", 3));
+        BeginTextEdit(&g_game->gui, FindGadgetIndex(g_game->gui.table->entries, "MESSAGE", 3));
     } else if (IsCurrentGadgetNamed(gadget, "COMMANDER")) {
         PlaySoundByName("Multi", 0);
         me->info->b.commander++;
@@ -3992,7 +3992,7 @@ void __stdcall HandleBattleRoomClick(Gui_00446f50* gadget)
     } else {
         // MAP and MAPNAME through a local, not `MAP || MAPNAME` in the
         // else-if: with the `||` the MAP body joins the region where C2 keeps
-        // the constant 1 in ebp, and FUN_0049fb10 gets `push ebp` (99.2%).
+        // the constant 1 in ebp, and SetKeyboardInput gets `push ebp` (99.2%).
         int hit = IsCurrentGadgetNamed(gadget, "MAP");
         if (!hit)
             hit = IsCurrentGadgetNamed(gadget, "MAPNAME");
@@ -4005,7 +4005,7 @@ void __stdcall HandleBattleRoomClick(Gui_00446f50* gadget)
                 view->handler = HandleViewMapClick;
                 LoadPictureCached("DVIEWMAP", 0, 0, 0);
                 ShowSelectedMapInfo();
-                FUN_0049fb10(&g_game->gui, 1);
+                SetKeyboardInput(&g_game->gui, 1);
                 RenderLayer(&g_game->gui, 0x40);
             }
         }
@@ -4136,7 +4136,7 @@ void RefreshBattleRoomRows()
     char* map = g_game->map->GetMissionName();
     if (!g_game->map->HasMissionName()) {
         mapname->colour = 0xc;
-        FUN_004a0bf0(&g_game->gui, "MAPNAME", "NOT SELECTED", 0);
+        SetTranslatedTextByName(&g_game->gui, "MAPNAME", "NOT SELECTED", 0);
     } else {
         char* cur = g_game->map->GetTranslatedName();
         str = mapname->text;
@@ -4157,10 +4157,10 @@ void RefreshBattleRoomRows()
                 BroadcastPlayerInfo();
             }
             if (!g_game->players[g_game->localPlayer].info->f97_0)
-                FUN_004a1450(&g_game->gui, "MAP", 1);
+                SetGadgetGrayedOutByName(&g_game->gui, "MAP", 1);
         } else {
             mapname->colour = 0;
-            FUN_004a1450(&g_game->gui, "MAP", 0);
+            SetGadgetGrayedOutByName(&g_game->gui, "MAP", 0);
         }
         strcpy(str, g_game->map->GetTranslatedName());
     }
@@ -4203,8 +4203,8 @@ void RefreshBattleRoomRows()
         Entry_00446f50* e;
         if (!IsPlaying_00448c70(p) && !IsWatching_00448c70(p)) {
             sprintf(name, "CD%d", n);
-            FUN_004a0570(&g_game->gui, name, 0);
-            FUN_004a1450(&g_game->gui, name, 0);
+            SetGadgetActiveByName(&g_game->gui, name, 0);
+            SetGadgetGrayedOutByName(&g_game->gui, name, 0);
             sprintf(name, "PLAYER%d", n);
             char* s = "UNUSED";
             if (p->type == 4) {
@@ -4212,9 +4212,9 @@ void RefreshBattleRoomRows()
                 s = blocked;
             }
             strncpy(text, s, 0x1e);
-            FUN_004a0bf0(&g_game->gui, name, text, 0);
-            FUN_004a5d50(&g_game->gui, FindGadgetIndex(entries, name, 0xe));
-            FUN_004a1450(&g_game->gui, name, ready);
+            SetTranslatedTextByName(&g_game->gui, name, text, 0);
+            TruncateGadgetText(&g_game->gui, FindGadgetIndex(entries, name, 0xe));
+            SetGadgetGrayedOutByName(&g_game->gui, name, ready);
             sprintf(name, "LOGO%d", n);
             e = FUN_004a0280(entries, name);
             if (e)
@@ -4254,10 +4254,10 @@ void RefreshBattleRoomRows()
             }
         } else {
             sprintf(name, "CD%d", n);
-            FUN_004a0570(&g_game->gui, name,
+            SetGadgetActiveByName(&g_game->gui, name,
                          ((IsLocalHuman_00448c70(p) || IsRemoteHuman_00448c70(p))
                           && p->info->f9d_2_byte) ? 1 : 0);
-            FUN_004a1450(&g_game->gui, name, 0);
+            SetGadgetGrayedOutByName(&g_game->gui, name, 0);
             sprintf(name, "LOGO%d", n);
             e = FUN_004a0280(entries, name);
             if (e) {
@@ -4268,15 +4268,15 @@ void RefreshBattleRoomRows()
             }
             sprintf(name, "PLAYER%d", n);
             strncpy(text, p->name, 0x1e);
-            FUN_004a0bf0(&g_game->gui, name, text, 0);
-            FUN_004a5d50(&g_game->gui, FindGadgetIndex(entries, name, 0xe));
-            FUN_004a1450(&g_game->gui, name, ready);
+            SetTranslatedTextByName(&g_game->gui, name, text, 0);
+            TruncateGadgetText(&g_game->gui, FindGadgetIndex(entries, name, 0xe));
+            SetGadgetGrayedOutByName(&g_game->gui, name, ready);
             sprintf(name, "SIDE%d", n);
             e = FindGadgetOrNull(entries, name);
             if (e) {
                 UpdateSideGadget_00448c70(n);
                 e->visible = 1;
-                FUN_004a1450(&g_game->gui, name, (IsLocal_00448c70(p) && !ready) ? 0 : 1);
+                SetGadgetGrayedOutByName(&g_game->gui, name, (IsLocal_00448c70(p) && !ready) ? 0 : 1);
             }
             sprintf(name, "ALLY%d", n);
             e = FindGadgetOrNull(entries, name);
@@ -4286,23 +4286,23 @@ void RefreshBattleRoomRows()
                 e->visible = (IsLocalHuman_00448c70(p) || IsWatching_00448c70(p)
                               || IsLocalAI_00448c70(p) || IsRemoteAI_00448c70(p)
                               || IsWatching_00448c70(local)) ? 0 : 1;
-                FUN_004a1450(&g_game->gui, name, ready);
+                SetGadgetGrayedOutByName(&g_game->gui, name, ready);
             }
             sprintf(name, "TEAMICONS%d", n);
             e = FindGadgetOrNull(entries, name);
             if (e) {
                 // `|| 0` emits no code but gives the 1-before-0 layout.
                 e->visible = (IsWatching_00448c70(p) || 0) ? 0 : 1;  // see the top
-                FUN_004a1450(&g_game->gui, name, (IsLocal_00448c70(p) && !ready) ? 0 : 1);
+                SetGadgetGrayedOutByName(&g_game->gui, name, (IsLocal_00448c70(p) && !ready) ? 0 : 1);
             }
             sprintf(name, "RES%d", n);
             if (!IsLocalHuman_00448c70(p) && !IsRemoteHuman_00448c70(p))
                 sprintf(res, "%s", "n/a");
             else
                 sprintf(res, "%dx%d", p->info->width, p->info->height);
-            FUN_004a0bf0(&g_game->gui, name, res, 0);
+            SetTranslatedTextByName(&g_game->gui, name, res, 0);
             if (IsLocalHuman_00448c70(p)) {
-                FUN_004a1450(&g_game->gui, name, ready);
+                SetGadgetGrayedOutByName(&g_game->gui, name, ready);
             } else {
                 e = FUN_004a0180(entries, name);
                 if (e)
@@ -4321,7 +4321,7 @@ void RefreshBattleRoomRows()
                     e->visible = 1;
                 }
             } else {
-                FUN_004a0bf0(&g_game->gui, name, "n/a", 0);
+                SetTranslatedTextByName(&g_game->gui, name, "n/a", 0);
                 if (e)
                     e->visible = 1;
             }
@@ -4346,7 +4346,7 @@ void RefreshBattleRoomRows()
             }
         }
     }
-    FUN_0049fa90(&g_game->gui);
+    MarkChanged(&g_game->gui);
     PlayerInfo_00446f50* info = me->info;
     if (info->f97_0 && minPing < info->pingLimit) {
         info->pingLimit = minPing;
@@ -4392,7 +4392,7 @@ void OpenEndMultiScreen()
     FreeSurface(image);
     FlipScreen();
     LoadGuiLayer(&g_game->gui, "ENDMULTI.GUI", 0x80)->handler = HandleEndMultiClick;
-    FUN_004a0bf0(&g_game->gui, "RESULT",
+    SetTranslatedTextByName(&g_game->gui, "RESULT",
                  Translate(g_game->flag4_3923b ? "Victory" : "Failure"), 0);
     RenderLayer(&g_game->gui, 0xc0);
     ShowSoftwareCursor();
@@ -4477,7 +4477,7 @@ void CopySelectedGameName()
         SetGadgetText(menu, index, name);
     else
         SetGadgetText(menu, index, DAT_005119b8);
-    FUN_0049fa90(&g_game->gui);
+    MarkChanged(&g_game->gui);
 }
 
 // FUNCTION: 0x44b3c0
@@ -4519,7 +4519,7 @@ void* __stdcall ListSaveGameFiles(int* out)
     int count = CountDirectoryEntries(path, 0);
     *out = count;
     if (count == 0) {
-        FUN_004a32a0((char*)g_game + 0x519, g_gamesGadgetName, DAT_005119b8, 0, 0);
+        ConfigureListBoxByName((char*)g_game + 0x519, g_gamesGadgetName, DAT_005119b8, 0, 0);
         return 0;
     }
     g_saveListFileNames = (char*)FUN_004d83b0(g_savegameNamesName, count << 8);
@@ -4527,7 +4527,7 @@ void* __stdcall ListSaveGameFiles(int* out)
     memset(g_saveListDisplayNames, 0, *out << 8);
     memset(g_saveListFileNames, 0, *out << 8);
     ScanDirectory(path, g_saveListFileNames, 0, 0, 0, 1);
-    FUN_004a32a0((char*)g_game + 0x519, g_gamesGadgetName, g_saveListFileNames, *out, 0);
+    ConfigureListBoxByName((char*)g_game + 0x519, g_gamesGadgetName, g_saveListFileNames, *out, 0);
     return *out ? g_saveListFileNames : 0;
 }
 
@@ -4543,7 +4543,7 @@ void __stdcall ShowSelectedSaveGame(int unused1, int unused2)
         SetGadgetText(menu, index, name);
     else
         SetGadgetText(menu, index, DAT_005119b8);
-    FUN_0049fa90(&g_game->gui);
+    MarkChanged(&g_game->gui);
 }
 
 // FUNCTION: 0x44b690
@@ -4581,7 +4581,7 @@ void __stdcall HandleSaveGameClick(Gui_00446f50* menu)
                 p--;
             *p++ = 0;
         }
-        FUN_004a32a0(&g_game->gui, "GAMES", g_saveListDisplayNames, count, 0);
+        ConfigureListBoxByName(&g_game->gui, "GAMES", g_saveListDisplayNames, count, 0);
         ClearSelectedGadget(menu);
         Gui_00446f50* menu2 = &g_game->gui;
         Entry_00446f50* gadgets = g_game->gui.table->entries;
@@ -4594,7 +4594,7 @@ void __stdcall HandleSaveGameClick(Gui_00446f50* menu)
             SetGadgetText(menu2, index, name);
         else
             SetGadgetText(menu2, index, DAT_005119b8);
-        FUN_0049fa90(&g_game->gui);
+        MarkChanged(&g_game->gui);
         return;
     }
     if (IsCurrentGadgetNamed(menu, "GAMES") || IsCurrentGadgetNamed(menu, "LOAD") ||
@@ -4626,7 +4626,7 @@ void __stdcall OpenSaveGameDialog()
     LoadPictureCached("DSaveList", 0, 0, 0);
     MakeDirectoryPath(DAT_005091c8);
     ListSaveGameFiles(&count);
-    FUN_004a0bf0(&g_game->gui, "TITLE", "Save Game", 0);
+    SetTranslatedTextByName(&g_game->gui, "TITLE", "Save Game", 0);
     char* ptr = GetSaveDescriptions();
     int i = 0;
     for (; i < count; i++) {
@@ -4637,9 +4637,9 @@ void __stdcall OpenSaveGameDialog()
         *ptr = 0;
         ptr++;
     }
-    FUN_004a32a0(&g_game->gui, "GAMES", g_saveListDisplayNames, count, 0);
+    ConfigureListBoxByName(&g_game->gui, "GAMES", g_saveListDisplayNames, count, 0);
     if (count == 0)
-        FUN_004a0570(&g_game->gui, "DELETE", 0);
+        SetGadgetActiveByName(&g_game->gui, "DELETE", 0);
     Entry_00446f50* games = FindGadgetChecked(layer->entries, "GAMES");
     if (games != 0)
         games->field_ce = ShowSelectedSaveGame;
@@ -4655,13 +4655,13 @@ void __stdcall OpenSaveGameDialog()
         SetGadgetText(menu, index2, name);
     else
         SetGadgetText(menu, index2, DAT_005119b8);
-    FUN_0049fa90(&g_game->gui);
+    MarkChanged(&g_game->gui);
 
-    FUN_004a7190(&g_game->gui, index);
-    FUN_0049fb10(&g_game->gui, 1);
+    BeginTextEdit(&g_game->gui, index);
+    SetKeyboardInput(&g_game->gui, 1);
     OrLabelAttribs();
-    FUN_004a0570(&g_game->gui, "LoadGame", 0);
-    FUN_0049fa50(&g_game->gui);
+    SetGadgetActiveByName(&g_game->gui, "LoadGame", 0);
+    EnableKeyCommands(&g_game->gui);
     RenderLayer(&g_game->gui, 0x40);
 }
 
@@ -4691,9 +4691,9 @@ void OpenLoadListDialog()
         *p = 0;
         p++;
     }
-    FUN_004a32a0(&g_game->gui, "GAMES", g_saveListDisplayNames, count, 0);
-    FUN_004a0570(&g_game->gui, "DELETE", 0);
-    FUN_004a0570(&g_game->gui, "GAMENAME", 0);
+    ConfigureListBoxByName(&g_game->gui, "GAMES", g_saveListDisplayNames, count, 0);
+    SetGadgetActiveByName(&g_game->gui, "DELETE", 0);
+    SetGadgetActiveByName(&g_game->gui, "GAMENAME", 0);
     Entry_00446f50* entry = FindGadgetChecked(gadget->entries, "GAMES");
     if (entry != 0) {
         entry->field_ce = (void*)ShowSelectedSaveGame;
@@ -4707,11 +4707,11 @@ void OpenLoadListDialog()
         SetGadgetText(menu, index, name);
     else
         SetGadgetText(menu, index, DAT_005119b8);
-    FUN_0049fa90(&g_game->gui);
-    FUN_0049fb10(&g_game->gui, 1);
+    MarkChanged(&g_game->gui);
+    SetKeyboardInput(&g_game->gui, 1);
     OrLabelAttribs();
-    FUN_004a0570(&g_game->gui, "SaveGame", 0);
-    FUN_0049fa50(&g_game->gui);
+    SetGadgetActiveByName(&g_game->gui, "SaveGame", 0);
+    EnableKeyCommands(&g_game->gui);
     RenderLayer(&g_game->gui, 0x40);
     g_game->flag_38a51 |= 1;
 }
@@ -4736,7 +4736,7 @@ void __stdcall HandleUnitCountSlider(void* obj, char* gadget)
         &g_game->unitTypes[g_unitRestrictEntries[n + desc->field_bc].field_52], value);
     desc->flags[n + desc->field_bc] = g_unitRestrictEntries[n + desc->field_bc].field_5e == 0;
     desc->flags[n + desc->field_bc] |= g_unitRestrictEntries[n + desc->field_bc].field_5a == 0 ? 2 : 0;
-    FUN_004a0bf0(obj, count, (char*)buf, 0);
+    SetTranslatedTextByName(obj, count, (char*)buf, 0);
 }
 
 // FUNCTION: 0x44bfd0
@@ -4769,7 +4769,7 @@ void __stdcall UpdateUnitSliders(Gui_00446f50* param_1, int unused)
             if (value == -1)
                 value = slider->field_13c;
             SetSliderFromValue(slider, value);
-            FUN_004a1450(param_1, name, en);
+            SetGadgetGrayedOutByName(param_1, name, en);
             slider->field_144(param_1, slider->field_14a);
         }
     }
@@ -4806,7 +4806,7 @@ void LoadUnitPortrait()
             }
             *(Record_0044c0d0*)g_unitRestrictRecordCursor = rec;
             g_unitRestrictRecordCursor += 0x18;
-            FUN_0049fa90(&g_game->gui);
+            MarkChanged(&g_game->gui);
         }
     }
 }
@@ -4837,7 +4837,7 @@ void UnitRestrictDialogFrame()
 
     if (n != 0) {
         UpdateUnitSliders(&g_game->gui, 0);
-        FUN_0049fa90(&g_game->gui);
+        MarkChanged(&g_game->gui);
     }
 }
 
@@ -4847,9 +4847,9 @@ void __stdcall ShowSelectedUnitCosts(void* panel, Entry_00446f50* unit)
     char buf[20];
     UnitType_00446f50* def = &g_game->unitTypes[unit->records[unit->field_ba].field_52];
     sprintf(buf, "%d", (int)def->energyCost);
-    FUN_004a0bf0(panel, "ENERGYTEXT", (char*)buf, 0);
+    SetTranslatedTextByName(panel, "ENERGYTEXT", (char*)buf, 0);
     sprintf(buf, "%d", (int)def->metalCost);
-    FUN_004a0bf0(panel, "METALTEXT", (char*)buf, 0);
+    SetTranslatedTextByName(panel, "METALTEXT", (char*)buf, 0);
 }
 
 // 0x44c420 HandleRestrictionsClick stays in src/frontend/multi_44c420.cpp:
@@ -4878,7 +4878,7 @@ void __stdcall BindNamedSliderWithCallback_0044c7e0(char* name, int max, int val
         gadget->game = g_game;
     }
     callback(gui, index);
-    FUN_0049fa90(gui);
+    MarkChanged(gui);
 }
 
 // FUNCTION: 0x44c7e0
@@ -4976,7 +4976,7 @@ void OpenUnitRestrictions()
 
     BindNamedSliderWithCallback_0044c7e0("SCROLLSLIDER", 0xd2, 0, UpdateUnitSliders);
 
-    FUN_004a32a0(&g_game->gui, "DESCLIST", text, n, 0);
+    ConfigureListBoxByName(&g_game->gui, "DESCLIST", text, n, 0);
     SetGadgetRows(g_game->gui.table, "PICLIST", pics, n);
     UpdateUnitSliders(&g_game->gui, 0);
 
@@ -4985,19 +4985,19 @@ void OpenUnitRestrictions()
         UnitType_00446f50* type = &g_game->unitTypes[desc->records[desc->field_ba].field_52];
         char buf[0x14];
         sprintf(buf, "%d", (int)type->energyCost);
-        FUN_004a0bf0(gui, "ENERGYTEXT", buf, 0);
+        SetTranslatedTextByName(gui, "ENERGYTEXT", buf, 0);
         sprintf(buf, "%d", (int)type->metalCost);
-        FUN_004a0bf0(gui, "METALTEXT", buf, 0);
+        SetTranslatedTextByName(gui, "METALTEXT", buf, 0);
     }
 
     {
         int enabled = host == 0;
-        FUN_004a1250(&g_game->gui, "Load", enabled);
-        FUN_004a1250(&g_game->gui, "Save", enabled);
-        FUN_004a1250(&g_game->gui, "Reset", enabled);
+        SetGrayedOutByName(&g_game->gui, "Load", enabled);
+        SetGrayedOutByName(&g_game->gui, "Save", enabled);
+        SetGrayedOutByName(&g_game->gui, "Reset", enabled);
     }
     RenderLayer(&g_game->gui, 0x40);
-    FUN_0049fb10(&g_game->gui, 1);
+    SetKeyboardInput(&g_game->gui, 1);
     DAT_005129c0 = 0;
 }
 

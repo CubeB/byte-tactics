@@ -198,7 +198,7 @@ extern char* DAT_0051f2e4;
 extern char* DAT_0051f2e8;
 extern char* DAT_0051f2ec;
 
-void __stdcall FUN_0049fa90(Menu_00491ec0* menu);
+void __stdcall MarkChanged(Menu_00491ec0* menu);
 Entry_00491ec0* __stdcall FindGadgetChecked(Entry_00491ec0* entries, char* name);
 Entry_00492360* __stdcall FindGadgetChecked(Entry_00492360* entries, char* name);
 Entry_00492df0* __stdcall FindGadgetChecked(Entry_00492df0* entries, char* name);
@@ -209,8 +209,8 @@ int __stdcall FindGadgetIndex(Entry_00492df0* entries, char* name, int type);
 int __stdcall FindGadgetIndex(Entry_00493060* entries, char* name, int type);
 void __stdcall SetGadgetText(Menu_00491ec0* menu, int index, char* text);
 Entry_00491ec0* __stdcall FUN_004a0280(Entry_00491ec0* entries, char* name);
-void __stdcall FUN_004a0570(void* menu, char* name, int value);
-void __stdcall FUN_004a0bf0(void* menu, char* name, char* text, int param_4);
+void __stdcall SetGadgetActiveByName(void* menu, char* name, int value);
+void __stdcall SetTranslatedTextByName(void* menu, char* name, char* text, int param_4);
 char* __stdcall SkipTextLines(char* text, int n);
 void __stdcall FrameFromSurface(void* dst, void* src);
 void __stdcall FreeSurface(void* image);
@@ -223,11 +223,11 @@ void __stdcall PlaySoundByName(char* name, int param);
 void __stdcall ShutdownIngameSystems();
 void __stdcall PopUntilNamedLayout(int flag);
 void MenuFrame();
-void __stdcall FUN_0049fa70(void* menu);
-void __stdcall FUN_0049fa50(void* menu);
-void __stdcall FUN_0049fb10(void* menu, int value);
-void __stdcall FUN_004a32a0(void* menu, char* name, void* text, int value, int flag);
-void __stdcall FUN_004a7190(void* menu, int index);
+void __stdcall DisableKeyCommands(void* menu);
+void __stdcall EnableKeyCommands(void* menu);
+void __stdcall SetKeyboardInput(void* menu, int value);
+void __stdcall ConfigureListBoxByName(void* menu, char* name, void* text, int value, int flag);
+void __stdcall BeginTextEdit(void* menu, int index);
 void __stdcall RenderLayer(void* menu, int value);
 void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void __stdcall MakeDirectoryPath(char* path);
@@ -311,7 +311,7 @@ void __stdcall ShowSavedGameInfo()
                 FrameFromSurface(g_savegameRadarFrame, DAT_0051f2ec);
                 radar->field_c2 = g_savegameRadarFrame;
             }
-            FUN_004a0570(menu, "RADAR", DAT_0051f2ec != 0);
+            SetGadgetActiveByName(menu, "RADAR", DAT_0051f2ec != 0);
 
             int players = file->GetIntegerItem("Players", 0);
             gametype = file->GetIntegerItem("Gametype", 0);
@@ -323,35 +323,35 @@ void __stdcall ShowSavedGameInfo()
             } else {
                 strcpy(name, "???");
             }
-            FUN_004a0bf0(menu, "GAMETYPE", name, 0);
+            SetTranslatedTextByName(menu, "GAMETYPE", name, 0);
 
             if (gametype == 1) {
                 char* campaign = file->GetStringItem("Campaign", 0);
                 if (campaign != 0) {
                     strcpy(name, campaign);
-                    FUN_004a0bf0(menu, "CAMPAIGN", name, 0);
-                    FUN_004a0570(menu, "CAMPTEXT", 1);
-                    FUN_004a0570(menu, "CAMPAIGN", 1);
+                    SetTranslatedTextByName(menu, "CAMPAIGN", name, 0);
+                    SetGadgetActiveByName(menu, "CAMPTEXT", 1);
+                    SetGadgetActiveByName(menu, "CAMPAIGN", 1);
                 }
                 char* mission = file->GetStringItem("Mission", 0);
                 if (mission != 0) {
                     strcpy(name, mission);
-                    FUN_004a0bf0(menu, "MISSION", name, 0);
+                    SetTranslatedTextByName(menu, "MISSION", name, 0);
                 }
             } else {
-                FUN_004a0570(menu, "CAMPTEXT", 0);
-                FUN_004a0570(menu, "CAMPAIGN", 0);
+                SetGadgetActiveByName(menu, "CAMPTEXT", 0);
+                SetGadgetActiveByName(menu, "CAMPAIGN", 0);
                 char* mission = file->GetStringItem("Map", 0);
                 if (mission != 0) {
                     strcpy(name, mission);
-                    FUN_004a0bf0(menu, "MISSION", name, 0);
+                    SetTranslatedTextByName(menu, "MISSION", name, 0);
                 }
             }
 
             int time = file->GetIntegerItem("Game Time", 0);
             sprintf(name, "%02d:%02d:%02d", time / 108000, time / 1800 % 60,
                     time / 30 % 60);
-            FUN_004a0bf0(menu, "TIME", name, 0);
+            SetTranslatedTextByName(menu, "TIME", name, 0);
 
             if (DAT_0051f2e8 != 0) {
                 int side = file->GetIntegerItem("Side", 0);
@@ -359,29 +359,29 @@ void __stdcall ShowSavedGameInfo()
             } else {
                 strcpy(name, "???");
             }
-            FUN_004a0bf0(menu, "SIDE", name, 0);
+            SetTranslatedTextByName(menu, "SIDE", name, 0);
 
             diffs[0] = "Easy";
             diffs[1] = "Medium";
             diffs[2] = "Hard";
             sprintf(name, "%s",
                     diffs[file->GetIntegerItem("Difficulty", 0)]);
-            FUN_004a0bf0(menu, "DIFF", name, 0);
+            SetTranslatedTextByName(menu, "DIFF", name, 0);
             FreeSummaryBank(file);
             goto done;
         }
     }
     {
         SetGadgetText(menu, index, DAT_005119b8);
-        FUN_004a0bf0(menu, "SIDE", DAT_005119b8, 0);
-        FUN_004a0bf0(menu, "DIFF", DAT_005119b8, 0);
-        FUN_004a0bf0(menu, "MISSION", DAT_005119b8, 0);
-        FUN_004a0bf0(menu, "CAMPAIGN", DAT_005119b8, 0);
-        FUN_004a0bf0(menu, "GAMETYPE", DAT_005119b8, 0);
-        FUN_004a0bf0(menu, "TIME", DAT_005119b8, 0);
+        SetTranslatedTextByName(menu, "SIDE", DAT_005119b8, 0);
+        SetTranslatedTextByName(menu, "DIFF", DAT_005119b8, 0);
+        SetTranslatedTextByName(menu, "MISSION", DAT_005119b8, 0);
+        SetTranslatedTextByName(menu, "CAMPAIGN", DAT_005119b8, 0);
+        SetTranslatedTextByName(menu, "GAMETYPE", DAT_005119b8, 0);
+        SetTranslatedTextByName(menu, "TIME", DAT_005119b8, 0);
     }
 done:
-    FUN_0049fa90(&g_game->menu_00491ec0);
+    MarkChanged(&g_game->menu_00491ec0);
 #undef gametype
 #undef name
 #undef diffs
@@ -406,7 +406,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
 
     if (IsCurrentGadgetNamed(gadget, "CANCEL")) {
         if (g_game->flags_2a44.b2)
-            FUN_0049fa70(g_game->message);
+            DisableKeyCommands(g_game->message);
         if (DAT_0051f2e0)
             FUN_004d85a0(DAT_0051f2e0);
         if (DAT_0051f2e4)
@@ -462,7 +462,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
             SetCursorAnimation(g_game->message, g_game->p148cf);
         }
         if (g_game->flags_2a44.b2)
-            FUN_0049fa70(g_game->message);
+            DisableKeyCommands(g_game->message);
         PlaySoundByName("SMLBUTTON", 0);
         e = FindGadgetChecked(entries, "GAMES");
         sprintf(g_game->saveName, "%s\\%s", DAT_005091c8,
@@ -578,7 +578,7 @@ char* __stdcall ListSavedGames(int* count)
     BuildDataPath(buf, DAT_005091c8, "*", "SAV");
     *count = CountDirectoryEntries(buf, 0);
     if (*count == 0) {
-        FUN_004a32a0(g_game->menu, "GAMES", DAT_005119b8, 0, 0);
+        ConfigureListBoxByName(g_game->menu, "GAMES", DAT_005119b8, 0, 0);
         return 0;
     }
     DAT_0051f2e0 = (char*)FUN_004d83b0("SAVEGAME NAMES", *count << 8);
@@ -613,7 +613,7 @@ char* __stdcall ListSavedGames(int* count)
         }
     }
     FUN_004d85a0(copy);
-    FUN_004a32a0(g_game->menu, "GAMES", DAT_0051f2e4, found, 0);
+    ConfigureListBoxByName(g_game->menu, "GAMES", DAT_0051f2e4, found, 0);
     *count = found;
     return found ? DAT_0051f2e0 : 0;
 }
@@ -652,7 +652,7 @@ void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
     }
     if (IsCurrentGadgetNamed(gadget, "CANCEL")) {
         if (g_game->flags_2a44.bit2_2a44)
-            FUN_0049fa70(g_game->message);
+            DisableKeyCommands(g_game->message);
         PlaySoundByName("Previous", 0);
         return;
     }
@@ -673,7 +673,7 @@ void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
         return;
     }
     if (g_game->flags_2a44.bit2_2a44)
-        FUN_0049fa70(g_game->message);
+        DisableKeyCommands(g_game->message);
     PlaySoundByName("smlbutton", 0);
     int index = FindGadgetIndex(entries, "GAMENAME", 3);
     char* text = entries[index].text;
@@ -696,9 +696,9 @@ void ShowSaveGameScreen()
     LoadPictureCached("DSAVEGAME2", 0, 0, 0);
     MakeDirectoryPath(DAT_005091c8);
     ListSavedGames(&local);
-    FUN_004a0bf0(&g_game->menu_00493060, "TITLE", "Save Game", 0);
+    SetTranslatedTextByName(&g_game->menu_00493060, "TITLE", "Save Game", 0);
     if (local == 0) {
-        FUN_004a0570(&g_game->menu_00493060, "DELETE", 0);
+        SetGadgetActiveByName(&g_game->menu_00493060, "DELETE", 0);
     }
     Entry_00493060* games = FindGadgetChecked(layer->entries, "GAMES");
     if (games != 0) {
@@ -708,11 +708,11 @@ void ShowSaveGameScreen()
     layer->entries[index].flags |= 2;
     DAT_0051f2e8 = BuildSideList();
     ShowSavedGameInfo();
-    FUN_004a7190(&g_game->menu_00493060, index);
-    FUN_0049fb10(&g_game->menu_00493060, 1);
+    BeginTextEdit(&g_game->menu_00493060, index);
+    SetKeyboardInput(&g_game->menu_00493060, 1);
     OrLabelAttribs();
-    FUN_004a0570(&g_game->menu_00493060, "LoadGame", 0);
-    FUN_0049fa50(&g_game->menu_00493060);
+    SetGadgetActiveByName(&g_game->menu_00493060, "LoadGame", 0);
+    EnableKeyCommands(&g_game->menu_00493060);
     RenderLayer(&g_game->menu_00493060, 0x40);
 }
 
@@ -732,18 +732,18 @@ void ShowLoadGameScreen()
         return;
     }
     DAT_0051f2e8 = BuildSideList();
-    FUN_004a32a0((char*)g_game + 0x519, "GAMES", DAT_0051f2e4, count, 0);
-    FUN_004a0570((char*)g_game + 0x519, "DELETE", 0);
-    FUN_004a0570((char*)g_game + 0x519, "GAMENAME", 0);
+    ConfigureListBoxByName((char*)g_game + 0x519, "GAMES", DAT_0051f2e4, count, 0);
+    SetGadgetActiveByName((char*)g_game + 0x519, "DELETE", 0);
+    SetGadgetActiveByName((char*)g_game + 0x519, "GAMENAME", 0);
     Entry_004931d0* entry = FindGadgetChecked(gadget->info, "GAMES");
     if (entry != 0) {
         entry->field_ce = (void*)SavedGameSelectHandler;
     }
     ShowSavedGameInfo();
-    FUN_0049fb10((char*)g_game + 0x519, 1);
+    SetKeyboardInput((char*)g_game + 0x519, 1);
     OrLabelAttribs();
-    FUN_004a0570((char*)g_game + 0x519, "SaveGame", 0);
-    FUN_0049fa50((char*)g_game + 0x519);
+    SetGadgetActiveByName((char*)g_game + 0x519, "SaveGame", 0);
+    EnableKeyCommands((char*)g_game + 0x519);
     RenderLayer((char*)g_game + 0x519, 0x40);
     ((char*)g_game)[0x38a51] |= 1;
 }

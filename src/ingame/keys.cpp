@@ -244,7 +244,7 @@ extern char DAT_00503374[];
 extern char DAT_005119b8[];
 
 int __stdcall FindGadgetIndexBySubstring(int value, const char* name);
-void __stdcall FUN_004a6a40(Sub_495e90* gui, int handle);
+void __stdcall ClearGroupStatus(Sub_495e90* gui, int handle);
 int __stdcall HAPI_FindFirst(const char* path, void* findData, int a, int b);
 int __stdcall HAPI_FindNext(int handle, void* findData);
 void __stdcall HAPI_FindClose(int handle);
@@ -314,7 +314,7 @@ void SelectStopOrder(void)
     g_game->field_2cc6 &= 0xdf;
     index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
     if (index != -1) {
-        FUN_004a6a40(&g_game->gui, index);
+        ClearGroupStatus(&g_game->gui, index);
     }
 }
 
@@ -332,7 +332,7 @@ void __stdcall SetOrSelectStopOrder(int set)
     g_game->field_2cc6 &= 0xdf;
     index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
     if (index != -1) {
-        FUN_004a6a40(&g_game->gui, index);
+        ClearGroupStatus(&g_game->gui, index);
     }
 }
 
@@ -516,7 +516,7 @@ void HandleGameKey(void)
                 g_game->field_2cc6 = g_game->field_2cc6 & 0xdf;
                 int handle = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
                 if (handle != -1)
-                    FUN_004a6a40(&g_game->gui, handle);
+                    ClearGroupStatus(&g_game->gui, handle);
             } else {
                 ClearSelection();
                 PopUntilNamedLayout(1);

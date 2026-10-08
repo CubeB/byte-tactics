@@ -795,8 +795,8 @@ extern char DAT_00503168[];
 extern char DAT_00507318[];
 
 Screen* __stdcall LoadGuiLayer(Menu* menu, char* name, int value);
-void __stdcall FUN_0049fb10(Menu* menu, int flag);
-void __stdcall FUN_004a0bf0(Menu* menu, char* name, char* text, int value);
+void __stdcall SetKeyboardInput(Menu* menu, int flag);
+void __stdcall SetTranslatedTextByName(Menu* menu, char* name, char* text, int value);
 void __stdcall RenderLayer(Menu* menu, int value);
 
 // FUNCTION: 0x464e70
@@ -805,11 +805,11 @@ void ShowContinueWatchingDialog()
     Screen* screen = LoadGuiLayer(&g_game->menu, DAT_00503168, 0x900);
     if (screen) {
         Form* form;
-        FUN_0049fb10(&g_game->menu, 1);
+        SetKeyboardInput(&g_game->menu, 1);
         form = screen->form;
-        FUN_004a0bf0(&g_game->menu, DAT_00503128, DAT_00503164, 0);
-        FUN_004a0bf0(&g_game->menu, DAT_00503120, DAT_00503160, 0);
-        FUN_004a0bf0(&g_game->menu, DAT_0050313c, DAT_00507318, 0);
+        SetTranslatedTextByName(&g_game->menu, DAT_00503128, DAT_00503164, 0);
+        SetTranslatedTextByName(&g_game->menu, DAT_00503120, DAT_00503160, 0);
+        SetTranslatedTextByName(&g_game->menu, DAT_0050313c, DAT_00507318, 0);
         strcpy(form->choice1, DAT_00503128);
         strcpy(form->choice2, DAT_00503120);
         screen->callback = ContinueWatchingCallback;
@@ -1114,11 +1114,11 @@ void __stdcall UpdatePlayers()
                     if (CountActiveAIPlayers() == 0) {
                         Screen* dlg = LoadGuiLayer(&g_game->menu, "YESORNO.GUI", 0x900);
                         if (dlg != 0) {
-                            FUN_0049fb10(&g_game->menu, 1);
+                            SetKeyboardInput(&g_game->menu, 1);
                             Form* w = dlg->form;
-                            FUN_004a0bf0(&g_game->menu, "CHOICE1", "Yes", 0);
-                            FUN_004a0bf0(&g_game->menu, "CHOICE2", "No", 0);
-                            FUN_004a0bf0(&g_game->menu, "TITLE",
+                            SetTranslatedTextByName(&g_game->menu, "CHOICE1", "Yes", 0);
+                            SetTranslatedTextByName(&g_game->menu, "CHOICE2", "No", 0);
+                            SetTranslatedTextByName(&g_game->menu, "TITLE",
                                          "You're out!  Continue Watching?", 0);
                             strcpy(w->choice1, "CHOICE1");
                             strcpy(w->choice2, "CHOICE2");

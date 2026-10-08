@@ -192,8 +192,8 @@ extern void __cdecl FUN_004d85a0(void* p);
 extern int __stdcall RenderLayer(Menu_004aa8f0* menu, unsigned int flags);
 extern void __cdecl HideSoftwareCursor(void);
 extern void __cdecl ShowSoftwareCursor(void);
-extern void __stdcall FUN_004a7960(Menu_004aa8f0* menu, int value);
-extern void __stdcall FUN_0049fc50(Menu_004aa8f0* menu, int value);
+extern void __stdcall SelectAdjacentGadget(Menu_004aa8f0* menu, int value);
+extern void __stdcall TrySetFocus(Menu_004aa8f0* menu, int value);
 extern int __cdecl GetTextKeyColor(void);
 extern void __stdcall SetTextColors(int a, int b);
 extern void __stdcall SetFont(int a);
@@ -214,8 +214,8 @@ extern void __stdcall AdvanceGafSequence(Ref_004ab400* ref, int step);
 extern int __stdcall PeekMouseEvent(Event_004ab5d0* out);
 extern void __stdcall GetCurrentMouseEvent(Event_004ab5d0* out);
 extern void __stdcall PopMouseEvent(Event_004ab5d0* out);
-extern void __stdcall FUN_004a1680(Entry_004aa8f0* table, int index, Rect_004b6720* out);
-extern int __stdcall FUN_004a1920(Rect_004b6720* r, int px, int py);
+extern void __stdcall GetGadgetScreenRect(Entry_004aa8f0* table, int index, Rect_004b6720* out);
+extern int __stdcall IsPointInRect(Rect_004b6720* r, int px, int py);
 
 extern void __stdcall DrawTextInput(Menu_004aa8f0* control, int index);
 extern int __stdcall GetTextPixelWidth(unsigned char* text);
@@ -394,7 +394,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Menu_004aa8f0* menu, const char* name,
             layer->field_20 = i;
         } else {
             layer->field_20 = 0;
-            FUN_004a7960(menu, 1);
+            SelectAdjacentGadget(menu, 1);
         }
     }
     menu->field_60 = -1;
@@ -424,7 +424,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Menu_004aa8f0* menu, const char* name,
         }
         if (j == base->count + 1)
             SetFont(*g_guiContext);
-        FUN_0049fc50(menu, 1);
+        TrySetFocus(menu, 1);
         menu->layer->field_20 = 1;
         CommitTextEdit(menu, 1, (char*)sub + 0xb6,
                      *(short*)((char*)sub + 0x138), 0);
@@ -756,8 +756,8 @@ void __stdcall UpdateCursorAndMouse(Menu_004aa8f0* p)
     if (PeekMouseEvent(&e) != 0) {
         if (p->layer != 0) {
             Rect_004b6720 r;
-            FUN_004a1680(p->layer->entries, 0, &r);
-            if (FUN_004a1920(&r, e.data[0], e.data[1]) != 0 || e.data[2] == 0) {
+            GetGadgetScreenRect(p->layer->entries, 0, &r);
+            if (IsPointInRect(&r, e.data[0], e.data[1]) != 0 || e.data[2] == 0) {
                 PopMouseEvent(&e);
                 p->field_54 = e.data[2];
                 p->event = e;
@@ -971,9 +971,9 @@ char* __stdcall WordWrapText(Menu_004aa8f0* menu, char* text, int width, int ind
 int __stdcall GetFontHeight();
 int GetScreenWidth();
 int GetScreenHeight();
-void __stdcall FUN_004a0570(Menu_004aa8f0* menu, const char* name, int flag);
-void __stdcall FUN_0049fb10(Menu_004aa8f0* menu, int flag);
-void __stdcall FUN_0049fa90(Menu_004aa8f0* menu);
+void __stdcall SetGadgetActiveByName(Menu_004aa8f0* menu, const char* name, int flag);
+void __stdcall SetKeyboardInput(Menu_004aa8f0* menu, int flag);
+void __stdcall MarkChanged(Menu_004aa8f0* menu);
 void __stdcall UpdateMenu(Menu_004aa8f0* menu);
 int __stdcall SelectFontForEntry(Entry_004aa8f0* entries, int index);
 int GetFont();
@@ -1128,12 +1128,12 @@ int __stdcall OpenMessageBox(Menu_004aa8f0* gui, char* text, int wrapWidth, int 
                 strcpy(entries->prevName, "OK");
             }
         } else {
-            FUN_004a0570(gui, "OK", 0);
+            SetGadgetActiveByName(gui, "OK", 0);
         }
-        FUN_0049fb10(gui, 1);
+        SetKeyboardInput(gui, 1);
         RenderLayer(gui, 1);
         layer->handler = MessageBoxHandler;
-        FUN_0049fa90(gui);
+        MarkChanged(gui);
         UpdateMenu(gui);
         FUN_004d85a0(wrapped);
         return 1;

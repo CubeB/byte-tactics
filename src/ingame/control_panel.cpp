@@ -499,7 +499,7 @@ int __stdcall GetFootprintHeight(UnitType* unit, Point cell);
 MenuEntry* __stdcall FindGadgetOrNull(MenuEntry* entries, char* name);
 unsigned short __stdcall FindUnitTypeId(char* name);
 int __stdcall SumQueuedBuildCount(void* owner, int index);
-void __stdcall FUN_0049fa90(void* obj);
+void __stdcall MarkChanged(void* obj);
 int __stdcall FindGadgetIndexBySubstring(int value, char* name);
 int __stdcall FindGadgetIndexBySubstring(MenuEntry* entries, char* name);
 void __stdcall SetGadgetStatus(Menu* menu, int index, int value);
@@ -507,10 +507,10 @@ void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall AdjustBuildCount(Class_00438760 kind, Unit* unit, int id, int count);
 void __stdcall IssueOrderToSelection(void* a, int b, Class_00438760 kind,
                                      int d, int e, int f);
-void __stdcall FUN_004a1200(Menu* menu, int index, int value);
-void __stdcall FUN_004a03f0(Menu* menu, int index, char value);
+void __stdcall SetGrayedOut(Menu* menu, int index, int value);
+void __stdcall SetGadgetActive(Menu* menu, int index, char value);
 void __stdcall RenderLayer(Menu* menu, int value);
-void __stdcall FUN_004a0570(Menu* menu, char* name, int param_3);
+void __stdcall SetGadgetActiveByName(Menu* menu, char* name, int param_3);
 void __stdcall ClearSelectedGadget(Menu* menu);
 int __stdcall HandleOrdersPanelClick(Menu* menu, MenuEntry* entries);
 int __stdcall HandleOrderButtonClick(Menu* menu, MenuEntry* entries);
@@ -697,7 +697,7 @@ void __stdcall RefreshBuildCountTexts(Menu* menu, Unit* unit)
         // Incremented after the reads, not before.
         e++;
     }
-    FUN_0049fa90(&g_game->menu);
+    MarkChanged(&g_game->menu);
 }
 
 // Sets the "ONOFF" menu entry from bit 0 of the unit's flags at +0x10e
@@ -884,7 +884,7 @@ void __stdcall RefreshOrderButtons(Unit* unit)
         if (unit && unit->type->buildMenuPageCount) {
             SetGadgetStatus(menu, index, unit->flags.bits.buildPage);
         } else {
-            FUN_004a1200(menu, index, 1);
+            SetGrayedOut(menu, index, 1);
         }
     }
     index = FindGadgetIndexBySubstring(layer, "ORDERS");
@@ -892,13 +892,13 @@ void __stdcall RefreshOrderButtons(Unit* unit)
         if (unit && unit->type->buildMenuPageCount) {
             SetGadgetStatus(menu, index, !unit->flags.bits.buildPage);
         } else {
-            FUN_004a1200(menu, index, 1);
+            SetGrayedOut(menu, index, 1);
         }
     }
     index = FindGadgetIndexBySubstring(layer, "CLOAK");
     if (index != -1) {
         if (g_game->orderState.bits.cloak == 3) {
-            FUN_004a1200(menu, index, 1);
+            SetGrayedOut(menu, index, 1);
         } else {
             SetGadgetStatus(menu, index, g_game->orderState.bits.cloak);
         }
@@ -906,7 +906,7 @@ void __stdcall RefreshOrderButtons(Unit* unit)
     index = FindGadgetIndexBySubstring(layer, "ONOFF");
     if (index != -1) {
         if (g_game->orderState.bits.onOff == 3) {
-            FUN_004a1200(menu, index, 1);
+            SetGrayedOut(menu, index, 1);
         } else {
             SetGadgetStatus(menu, index, g_game->orderState.bits.onOff);
         }
@@ -914,7 +914,7 @@ void __stdcall RefreshOrderButtons(Unit* unit)
     index = FindGadgetIndexBySubstring(layer, "MOVEORD");
     if (index != -1) {
         if (g_game->orderState.bits.moveOrder == 4) {
-            FUN_004a1200(menu, index, 1);
+            SetGrayedOut(menu, index, 1);
         } else {
             SetGadgetStatus(menu, index, g_game->orderState.bits.moveOrder);
         }
@@ -922,7 +922,7 @@ void __stdcall RefreshOrderButtons(Unit* unit)
     index = FindGadgetIndexBySubstring(layer, "FIREORD");
     if (index != -1) {
         if (g_game->orderState.bits.fireOrder == 4) {
-            FUN_004a1200(menu, index, 1);
+            SetGrayedOut(menu, index, 1);
         } else {
             SetGadgetStatus(menu, index, g_game->orderState.bits.fireOrder);
         }
@@ -930,70 +930,70 @@ void __stdcall RefreshOrderButtons(Unit* unit)
     if (!g_game->orderState.bits.canMove) {
         index = FindGadgetIndexBySubstring(layer, "MOVE");
         if (index != -1) {
-            FUN_004a1200(menu, index, 1);
+            SetGrayedOut(menu, index, 1);
         }
     }
     if (!g_game->orderState.bits.canStop) {
         index = FindGadgetIndexBySubstring(layer, "STOP");
         if (index != -1) {
-            FUN_004a1200(menu, index, 1);
+            SetGrayedOut(menu, index, 1);
         }
     }
     if (!g_game->orderState.bits.canAttack) {
         index = FindGadgetIndexBySubstring(layer, "ATTACK");
         if (index != -1) {
-            FUN_004a1200(menu, index, 1);
+            SetGrayedOut(menu, index, 1);
         }
     }
     if (!g_game->orderState.bits.canDefend) {
         index = FindGadgetIndexBySubstring(layer, "DEFEND");
         if (index != -1) {
-            FUN_004a1200(menu, index, 1);
+            SetGrayedOut(menu, index, 1);
         }
     }
     if (!g_game->orderState.bits.canPatrol) {
         index = FindGadgetIndexBySubstring(layer, "PATROL");
         if (index != -1) {
-            FUN_004a1200(menu, index, 1);
+            SetGrayedOut(menu, index, 1);
         }
     }
     if (!g_game->orderState.bits.canReclaim) {
         index = FindGadgetIndexBySubstring(layer, "RECLAIM");
         if (index != -1) {
-            FUN_004a1200(menu, index, 1);
+            SetGrayedOut(menu, index, 1);
         }
     }
     if (!g_game->orderState.bits.canRepair) {
         index = FindGadgetIndexBySubstring(layer, "REPAIR");
         if (index != -1) {
-            FUN_004a1200(menu, index, 1);
+            SetGrayedOut(menu, index, 1);
         }
     }
     if (!g_game->orderState.bits.canCapture) {
         index = FindGadgetIndexBySubstring(layer, "CAPTURE");
         if (index != -1) {
-            FUN_004a1200(menu, index, 1);
+            SetGrayedOut(menu, index, 1);
         }
     }
     if (!g_game->orderState.bits.canLoad) {
         index = FindGadgetIndexBySubstring(layer, "LOAD");
         if (index != -1) {
-            FUN_004a03f0(menu, index, 0);
+            SetGadgetActive(menu, index, 0);
         }
         index = FindGadgetIndexBySubstring(layer, "UNLOAD");
         if (index != -1) {
-            FUN_004a1200(menu, index, 1);
+            SetGrayedOut(menu, index, 1);
         }
         if (!g_game->orderState.bits.canBlast) {
             index = FindGadgetIndexBySubstring(layer, "BLAST");
             if (index != -1) {
-                FUN_004a1200(menu, index, 1);
+                SetGrayedOut(menu, index, 1);
             }
         }
     } else {
         index = FindGadgetIndexBySubstring(layer, "BLAST");
         if (index != -1) {
-            FUN_004a03f0(menu, index, 0);
+            SetGadgetActive(menu, index, 0);
         }
     }
 }
@@ -1095,9 +1095,9 @@ void __stdcall SetPrevNextGadgetNames(Unit* unit)
     char buf[256];
     if (unit->type->buildMenuPageCount < 2) {
         sprintf(buf, "%sPREV", g_game->sideNames[unit->player->owner->playerIndex].name);
-        FUN_004a0570(&g_game->menu, buf, 0);
+        SetGadgetActiveByName(&g_game->menu, buf, 0);
         sprintf(buf, "%sNEXT", g_game->sideNames[unit->player->owner->playerIndex].name);
-        FUN_004a0570(&g_game->menu, buf, 0);
+        SetGadgetActiveByName(&g_game->menu, buf, 0);
     }
 }
 
@@ -1152,7 +1152,7 @@ void __stdcall HandleBuildPanelClick(Menu* menu)
                 if (unit->flags.bits.flag_29
                     || (((UnitType*)unit->field_10)->field_111 & 0x10000000))
                     RefreshBuildCountTexts(menu, unit);
-                FUN_0049fa90(&g_game->menu);
+                MarkChanged(&g_game->menu);
             }
         }
         // One call after the chain, not one per branch.
@@ -1172,7 +1172,7 @@ void __stdcall DisableUnavailableBuildMenuEntries(Menu* obj)
     int n = t->u.count;
     for (int i = 0; i < n; i++) {
         if (Entries(t)[i].flags & 4) {
-            FUN_004a1200(obj, i, FindUnitTypeId((char*)&Entries(t)[i]) == 0);
+            SetGrayedOut(obj, i, FindUnitTypeId((char*)&Entries(t)[i]) == 0);
         }
     }
 }
@@ -1183,9 +1183,9 @@ static inline void SetPrevNext(Unit* unit)
     char buf[256];
     if (unit->type->buildMenuPageCount < 2) {
         sprintf(buf, "%sPREV", g_game->sideNames[unit->player->owner->playerIndex].name);
-        FUN_004a0570(&g_game->menu, buf, 0);
+        SetGadgetActiveByName(&g_game->menu, buf, 0);
         sprintf(buf, "%sNEXT", g_game->sideNames[unit->player->owner->playerIndex].name);
-        FUN_004a0570(&g_game->menu, buf, 0);
+        SetGadgetActiveByName(&g_game->menu, buf, 0);
     }
 }
 
@@ -1200,7 +1200,7 @@ static inline void UpdateCounts(Menu* menu)
     entry = (MenuEntry*)((char*)entry + 2);
     do {
         if (entry[i].flags & 4)
-            FUN_004a1200(menu, i, FindUnitTypeId((char*)&entry[i]) == 0);
+            SetGrayedOut(menu, i, FindUnitTypeId((char*)&entry[i]) == 0);
     } while (++i < n);
 }
 
@@ -1335,7 +1335,7 @@ void __stdcall FinishConstruction(Unit* unit, Unit* target)
             && (target->player->type == 1 || target->player->type == 2)) {
             if (target->flags.raw & 0x20000000) {
                 if (IsScreenNamed(&g_game->menu, "BUILDER.GUI"))
-                    FUN_0049fa90(&g_game->menu);
+                    MarkChanged(&g_game->menu);
             } else {
                 if (target->carrier != 0)
                     AttachUnitToPiece(target, 0, -1, 1);

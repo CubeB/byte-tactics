@@ -84,7 +84,7 @@ Entry_0044c420* __stdcall FindGadgetChecked(void* gadgets, char* name);
 int __stdcall IsCurrentGadgetNamed(Menu_0044c420* gui, char* name);
 void __stdcall ClearSelectedGadget(Menu_0044c420* obj);
 void __stdcall SetDescListCleanupFlag(int param_1, int param_2);
-void __stdcall FUN_0049fa90(Menu_0044c420* obj);
+void __stdcall MarkChanged(Menu_0044c420* obj);
 void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall UpdateUnitSliders(Menu_0044c420* menu, int value);
 void OpenLoadListDialog();
@@ -175,7 +175,7 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
             }
         }
         UpdateUnitSliders(menu, 0);
-        FUN_0049fa90(menu);
+        MarkChanged(menu);
         ClearSelectedGadget(menu);
         return;
     }

@@ -97,7 +97,7 @@ extern char DAT_005119b8[];
 
 void __stdcall PlaySoundByName(char* name, int param_2);
 int __stdcall IsScreenNamed(void* obj, const char* name);
-void __stdcall FUN_0049fa90(void* obj);
+void __stdcall MarkChanged(void* obj);
 void __stdcall FUN_0049fad0(void* obj);
 void __stdcall SendChatPacket(char* param_1);
 void __stdcall ReportGameChat(char* param_1);
@@ -106,7 +106,7 @@ void __stdcall SetFont(int);
 void __stdcall SetTextColors(int, int);
 int GetFontHeight();
 void __stdcall BlitSideLogoToRect(void*, void*, Rect_00464060*, int);
-void __stdcall FUN_004a50e0(void*, void*, int, int, int, int);
+void __stdcall DrawTextClipped(void*, void*, int, int, int, int);
 // SendChatMessage's original translation unit declared AddMessage with int
 // arguments while the function itself takes narrower widths. Keeping the int
 // overload declared (it is not defined here) makes the call at 0x463e50 push
@@ -144,7 +144,7 @@ void __stdcall AddMessage(char* text, unsigned char key, unsigned short value, c
     if (last != '\n')
         PlaySoundByName("MessageArrived", 0);
     if (IsScreenNamed((char*)g_game + 0x519, "TIMEOUT.GUI")) {
-        FUN_0049fa90((char*)g_game + 0x519);
+        MarkChanged((char*)g_game + 0x519);
         FUN_0049fad0((char*)g_game + 0x519);
     }
 }
@@ -286,7 +286,7 @@ void __stdcall DrawMessages(void* surf)
                 height = (int)(138.0 - t * -1.5);
                 BlitSideLogoToRect(surf, &g_game->players[id], &r, 0);
             }
-            FUN_004a50e0(surf, &g_game->entries[i], height, y, -1, 0);
+            DrawTextClipped(surf, &g_game->entries[i], height, y, -1, 0);
             y += start;
         }
         i++;

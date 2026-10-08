@@ -68,8 +68,8 @@ struct Object_004b0230 {
 
 int __stdcall DrawLine(void* surface, int x0, int y0, int x1, int y1, unsigned char color);
 void __stdcall FillRectangle(void* surface, void* rect, int color);
-void __stdcall FUN_004a15c0(char* entries, int index, Rect_004b0230* out);
-int __stdcall FUN_004a18c0(char* entries, int index);
+void __stdcall GetGadgetRectByIndex(char* entries, int index, Rect_004b0230* out);
+int __stdcall FindBackgroundCell(char* entries, int index);
 Bits_004b0230* __stdcall FindGafEntry(Gaf_004b0230* gaf, const char* name);
 void __stdcall DrawSurface(Surface_004b0230* dst, Cell_004b0230* cell, int x, int y);
 Pic_004b0230* __stdcall GetGafFrame(Bits_004b0230* bits, int index);
@@ -107,10 +107,10 @@ void __stdcall DrawBevelBorderDarkFirst(void* surface, Rect_004b0160* rect, int 
     DrawLine(surface, rect->x1 + 2, rect->y2 - 1, rect->x2, rect->y2 - 1, dark);
 }
 
-// Draws a list box's frame. FUN_004a15c0 gives the entry's rectangle; when no
+// Draws a list box's frame. GetGadgetRectByIndex gives the entry's rectangle; when no
 // bitmap arrives, the "Listbox" piece is looked up in the object's GAF and, if
 // found, the rectangle is grown by 3 on every side. The destination is the
-// surface at entries+0xbc. When FUN_004a18c0 finds a background cell for the
+// surface at entries+0xbc. When FindBackgroundCell finds a background cell for the
 // entry, the area is tiled with it through DrawSurface and only the bevel
 // (DrawBevelBorderDarkFirst) is drawn; with no cell and no bitmap the rectangle is filled
 // (FillRectangle) and bevelled; with a bitmap set of more than one child the
@@ -142,7 +142,7 @@ void __stdcall DrawListboxFrame(Object_004b0230* obj, int index, Bits_004b0230* 
     int h;
     Pic_004b0230* sub;
     entries = obj->holder->entries;
-    FUN_004a15c0(entries, index, &rect);
+    GetGadgetRectByIndex(entries, index, &rect);
 
     if (bmp == 0) {
         if (obj->gaf == 0)
@@ -157,7 +157,7 @@ void __stdcall DrawListboxFrame(Object_004b0230* obj, int index, Bits_004b0230* 
     }
 
     surface = *(Surface_004b0230**)(obj->holder->entries + 0xbc);
-    cell = (Cell_004b0230*)FUN_004a18c0(entries, index);
+    cell = (Cell_004b0230*)FindBackgroundCell(entries, index);
 
     if (cell != 0) {
         for (x = 0; x < surface->tiles_x; x += cell->step_x) {

@@ -263,7 +263,7 @@ public:
 
 class Class_00405d90 {
 public:
-    virtual void FUN_00405d90(Unit* unit);
+    virtual void CollectDamagedAlly(Unit* unit);
 };
 
 struct Node_0047e570 {
@@ -1159,7 +1159,7 @@ void __stdcall VisitObjectsInRange(Vec3* pos, int range, Class_00405d90& visitor
         for (int x = cx1; x <= cx2; x++) {
             for (Unit* o = g_game->grid.cells[g_game->grid.width * y + x].first; o != 0; o = o->next) {
                 if (Dist2_0047e890(pos, &o->position) <= range2) {
-                    visitor.FUN_00405d90(o);
+                    visitor.CollectDamagedAlly(o);
                 }
             }
         }

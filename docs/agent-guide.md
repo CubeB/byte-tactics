@@ -1476,7 +1476,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A vector insertion that reuses a pointer parameter's stack slot**: pass a
   reference to that parameter as the element; copying the pointer into a
   separate element local adds a store (0x405d90, with the out-of-line
-  `_Construct` FUN_00406c70).
+  `_Construct` CopyDwordIfNonNull).
 - **A loop over the three weapons with a byte counter**: callee parameter types
   decide whether the counter stays a byte; an `unsigned char` argument keeps it,
   `int` arguments add a separate integer induction variable (0x406300,

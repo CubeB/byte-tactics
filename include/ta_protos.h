@@ -1083,7 +1083,7 @@ int GroundPickupOrder(Unit*, Order*, unsigned char);
 int GroundUnloadOrder(Unit*, Order*, int);
 int TeleportOrder(Unit*, Order*, int);
 void RegisterGroundOrders(void);
-void FUN_00406c70(int*, int*);
+void CopyDwordIfNonNull(int*, int*);
 void CmdPlan(CommandArgs*);
 void EnableAICommands(void);
 void CmdWeight(Class_004b7410*);

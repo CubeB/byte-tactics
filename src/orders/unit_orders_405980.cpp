@@ -30,7 +30,7 @@ public:
     std::vector<Unit*>* units;
     Unit* self;
     Class_00405d90(Owner* o, std::vector<Unit*>* v, Unit* s) : owner(o), units(v), self(s) {}
-    virtual void FUN_00405d90(Unit*);
+    virtual void CollectDamagedAlly(Unit*);
 };
 void __stdcall EnsurePatrolReturnOrder(Unit*, Order*);
 void __stdcall VisitObjectsInRange(Vec3*, int, const Class_00405d90&);

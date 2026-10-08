@@ -19,11 +19,11 @@
 
 struct Unit;
 
-void __stdcall FUN_00406c70(Unit** dest, Unit* const* src);
+void __stdcall CopyDwordIfNonNull(Unit** dest, Unit* const* src);
 // The repair patrol's push_back inlines vector::insert, whose _Construct this
 // overload replaces; it must be declared before <vector>.
 namespace std {
-inline void _Construct(Unit** dest, Unit* const& src) { FUN_00406c70(dest, &src); }
+inline void _Construct(Unit** dest, Unit* const& src) { CopyDwordIfNonNull(dest, &src); }
 }
 
 #include <vector>
@@ -1234,7 +1234,7 @@ public:
     std::vector<Unit*>* units;
     Unit* self;
     Class_00405d90(Player* o, std::vector<Unit*>* v, Unit* s) : owner(o), units(v), self(s) {}
-    virtual void FUN_00405d90(Unit*);
+    virtual void CollectDamagedAlly(Unit*);
 };
 
 // The original keeps part 2's 0.0f at 0x4fc920, after part 1's at 0x4fc6d0;
@@ -1736,7 +1736,7 @@ int __stdcall RepairUnitNoMoveOrder(Unit* unit, Order* order, int unused)
 
 
 // FUNCTION: 0x405d90
-void Class_00405d90::FUN_00405d90(Unit* unit)
+void Class_00405d90::CollectDamagedAlly(Unit* unit)
 {
     if (unit == self) return;
     unsigned int index = 0;

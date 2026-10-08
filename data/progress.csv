@@ -48,7 +48,7 @@ address,size,file,symbol,status,similarity
 0x405300,1080,src/orders/unit_orders.cpp,?RepairUnitOrder@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
 0x405740,574,src/orders/unit_orders.cpp,?RepairUnitNoMoveOrder@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
 0x405980,1040,src/orders/unit_orders_405980.cpp,?RepairPatrolOrder@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
-0x405d90,578,src/orders/unit_orders.cpp,?FUN_00405d90@Class_00405d90@@UAEXPAUUnit@@@Z,matched,100.0
+0x405d90,578,src/orders/unit_orders.cpp,?CollectDamagedAlly@Class_00405d90@@UAEXPAUUnit@@@Z,matched,100.0
 0x405fe0,162,src/orders/unit_orders.cpp,?StandbyOrder@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
 0x406090,257,src/orders/unit_orders.cpp,?StandbyMineOrder@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
 0x4061a0,346,src/orders/unit_orders.cpp,?ParkOrder@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
@@ -60,7 +60,7 @@ address,size,file,symbol,status,similarity
 0x406c00,3,src/orders/unit_orders.cpp,?_Destroy@?$vector@PAUUnit@@V?$allocator@PAUUnit@@@std@@@std@@IAEXPAPAUUnit@@0@Z,matched,100.0
 0x406c10,46,src/orders/unit_orders_406c10.cpp,?_Ucopy@?$vector@PAUUnit@@V?$allocator@PAUUnit@@@std@@@std@@IAEPAPAUUnit@@PBQAU3@0PAPAU3@@Z,matched,100.0
 0x406c40,35,src/orders/unit_orders_406c40.cpp,?_Ufill@?$vector@PAUUnit@@V?$allocator@PAUUnit@@@std@@@std@@IAEXPAPAUUnit@@IABQAU3@@Z,matched,100.0
-0x406c70,19,src/orders/unit_orders_406c70.cpp,?FUN_00406c70@@YGXPAH0@Z,matched,100.0
+0x406c70,19,src/orders/unit_orders_406c70.cpp,?CopyDwordIfNonNull@@YGXPAH0@Z,matched,100.0
 0x406c90,257,src/ai/ai_player_406c90.cpp,?CmdPlan@@YGXPAVCommandArgs@@@Z,matched,100.0
 0x406da0,11,src/ai/ai_player_406c90.cpp,?EnableAICommands@@YGXXZ,matched,100.0
 0x406db0,144,src/ai/ai_player_406c90.cpp,?CmdWeight@@YGXPAVCommandArgs@@@Z,matched,100.0

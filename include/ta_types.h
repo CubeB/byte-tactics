@@ -2879,7 +2879,7 @@ public:
     Unit* self;  // +0xc
     Class_00405d90(Class_00405d90&);
     Class_00405d90(Player*, std::vector<Unit*>*, Unit*);
-    virtual void FUN_00405d90(Unit*);
+    virtual void CollectDamagedAlly(Unit*);
     virtual void CollectGroundAlly(Unit*);
     virtual void CollectRepairableUnit(Unit*);
 };

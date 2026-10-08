@@ -17,9 +17,9 @@
 #include <dplay.h>
 #include <stdio.h>
 struct Unit;
-void __stdcall FUN_00406c70(Unit**, Unit* const*);
+void __stdcall CopyDwordIfNonNull(Unit**, Unit* const*);
 namespace std {
-inline void _Construct(Unit** dest, Unit* const& src) { FUN_00406c70(dest, &src); }
+inline void _Construct(Unit** dest, Unit* const& src) { CopyDwordIfNonNull(dest, &src); }
 }
 #include <vector>
 #include <list>
@@ -41,9 +41,9 @@ struct Order;
 // The push_back of the two visitor vectors copies through this helper
 // instead of the generic std::_Construct: it must be declared before
 // <vector> so its inlining is the original's.
-void __stdcall FUN_00406c70(Unit**, Unit* const*);
+void __stdcall CopyDwordIfNonNull(Unit**, Unit* const*);
 namespace std {
-inline void _Construct(Unit** dest, Unit* const& src) { FUN_00406c70(dest, &src); }
+inline void _Construct(Unit** dest, Unit* const& src) { CopyDwordIfNonNull(dest, &src); }
 }
 #include <vector>
 namespace ta {
@@ -1324,7 +1324,7 @@ static inline float Total(float base, float amount)
 // Visitor used by VtolRepairPatrolOrder (vtable 0x4fcc64): collects allied units
 // whose flags & 3 == 1 that are damaged or still being built and are not
 // already running this player's order kind 5. A near copy of
-// Class_00405d90::FUN_00405d90.
+// Class_00405d90::CollectDamagedAlly.
 // Some header must be included here: without one the def and health loads swap.
 // FUNCTION: 0x4158d0
 void RepairableUnitVisitor::CollectRepairableUnit(Unit* unit)

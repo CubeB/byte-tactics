@@ -1,8 +1,8 @@
 // Decompiled by GPT-6. Names are provisional.
 struct Unit;
-void __stdcall FUN_00406c70(Unit**, Unit* const*);
+void __stdcall CopyDwordIfNonNull(Unit**, Unit* const*);
 namespace std {
-inline void _Construct(Unit** dest, Unit* const& src) { FUN_00406c70(dest, &src); }
+inline void _Construct(Unit** dest, Unit* const& src) { CopyDwordIfNonNull(dest, &src); }
 }
 #include <vector>
 struct Vec { int x,y,z; };

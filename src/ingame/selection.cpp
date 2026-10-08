@@ -7,10 +7,10 @@
 #include <string.h>
 
 struct Unit;
-void __stdcall FUN_00406c70(Unit**, Unit* const*);
+void __stdcall CopyDwordIfNonNull(Unit**, Unit* const*);
 namespace std {
 // Non-template overload forwarding to the __stdcall 0x406c70: it pops its own arguments.
-inline void _Construct(Unit** dest, Unit* const& src) { FUN_00406c70(dest, &src); }
+inline void _Construct(Unit** dest, Unit* const& src) { CopyDwordIfNonNull(dest, &src); }
 }
 #include <vector>
 

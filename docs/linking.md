@@ -158,7 +158,7 @@ What stands out:
 - **53 folds are silent hazards.** Inline functions and vtables that differ
   between objects link without complaint and the linker keeps any one. Most
   come from files standing in for a helper differently: `vector<Unit*>::_Ucopy`
-  exists in two versions, one calling the `/Gz` stand-in `FUN_00406c70`
+  exists in two versions, one calling the `/Gz` stand-in `CopyDwordIfNonNull`
   (0x405d90 and four others) and one inlining it (0x406c10 and five others);
   `vector<Elem_00434360>::operator=` has four. The `std` exception classes
   differ in 0x4c3cc0 only, and the vtables of `NanoParticles`,

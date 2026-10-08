@@ -50,7 +50,7 @@ address,name
 0x405300,RepairUnitOrder
 0x405740,RepairUnitNoMoveOrder
 0x405980,RepairPatrolOrder
-0x405d90,Class_00405d90::FUN_00405d90
+0x405d90,Class_00405d90::CollectDamagedAlly
 0x405fe0,StandbyOrder
 0x406090,StandbyMineOrder
 0x4061a0,ParkOrder
@@ -62,7 +62,7 @@ address,name
 0x406c00,PAUUnit::?$vector::_Destroy
 0x406c10,PAUUnit::?$vector::_Ucopy
 0x406c40,PAUUnit::?$vector::_Ufill
-0x406c70,FUN_00406c70
+0x406c70,CopyDwordIfNonNull
 0x406c90,CmdPlan
 0x406da0,EnableAICommands
 0x406db0,CmdWeight

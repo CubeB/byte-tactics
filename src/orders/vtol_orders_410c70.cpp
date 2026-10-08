@@ -4,9 +4,9 @@
 // whose def lacks flag 0x800, and that is not the visitor's own unit. The
 // same shape as Class_00405d90 (0x405d90), with the vector::push_back inlined.
 struct Unit;
-void __stdcall FUN_00406c70(Unit**, Unit* const*);
+void __stdcall CopyDwordIfNonNull(Unit**, Unit* const*);
 namespace std {
-inline void _Construct(Unit** dest, Unit* const& src) { FUN_00406c70(dest, &src); }
+inline void _Construct(Unit** dest, Unit* const& src) { CopyDwordIfNonNull(dest, &src); }
 }
 #include <vector>
 #pragma pack(push, 1)

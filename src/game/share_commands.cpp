@@ -57,7 +57,7 @@ public:
 void __stdcall AddMessage(char* param_1, int param_2, int param_3, int param_4);
 void BroadcastPlayerInfo();
 
-extern char DAT_0051e608;
+extern char g_fxEventPoolBlocked;
 
 // Chat command: toggles the local player's ShareMetal bit and prints the new
 // state ("ON"/"OFF"); compare the sibling toggles 0x4194d0 and 0x419400.
@@ -277,5 +277,5 @@ void __stdcall CmdBPS(int unused)
 // FUNCTION: 0x419550
 void __stdcall CmdSFX(int arg1)
 {
-    DAT_0051e608 ^= 1;
+    g_fxEventPoolBlocked ^= 1;
 }

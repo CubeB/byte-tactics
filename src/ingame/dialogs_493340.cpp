@@ -285,14 +285,14 @@ extern char g_chatTargetSeparators[];  // ",:;"
 extern char g_enemiesChatTarget[];     // "Enemies"
 extern char g_alliesChatTarget[];      // "Allies"
 extern int g_chatDraftInitialized;
-extern unsigned char DAT_0051f2c8[10];
-extern unsigned char DAT_0051e810[10];
-extern int DAT_0051f2d8;
+extern unsigned char g_scorePanelKillFlash[10];
+extern unsigned char g_scorePanelLossFlash[10];
+extern int g_scorePanelSlidePos;
 extern int g_scorePanelFlashDecayTick;
 extern unsigned int g_cdActivityLastSampleTick;
 extern int g_cdActivityStableTicks;
-extern int DAT_0051f2dc;
-extern int DAT_0051e710[];
+extern int g_cdActivityRingWriteIdx;
+extern int g_cdActivitySampleRing[];
 extern int g_lastCdActivityMode;
 extern int g_usePacketManager;
 extern PacketManager g_packetManager;
@@ -977,10 +977,10 @@ void __stdcall HandleMain2LayoutEvent(Menu* gadget)
 void __stdcall FlashScorePanelKillLoss(int param_1, int param_2)
 {
     if (param_1 >= 0) {
-        DAT_0051f2c8[param_1] = 0x1e;
+        g_scorePanelKillFlash[param_1] = 0x1e;
     }
     if (param_2 >= 0) {
-        DAT_0051e810[param_2] = 0x1e;
+        g_scorePanelLossFlash[param_2] = 0x1e;
     }
 }
 
@@ -990,10 +990,10 @@ void __stdcall DrawScorePanel(void* surface)
     if (g_scorePanelFlashDecayTick < (int)GetTicks()) {
         g_scorePanelFlashDecayTick = GetTicks() + 1;
         for (int i = 0; i < 10; i++) {
-            if (DAT_0051f2c8[i] > 0)
-                DAT_0051f2c8[i] -= 2;
-            if (DAT_0051e810[i] > 0)
-                DAT_0051e810[i] -= 2;
+            if (g_scorePanelKillFlash[i] > 0)
+                g_scorePanelKillFlash[i] -= 2;
+            if (g_scorePanelLossFlash[i] > 0)
+                g_scorePanelLossFlash[i] -= 2;
         }
     }
 
@@ -1001,33 +1001,33 @@ void __stdcall DrawScorePanel(void* surface)
         && (IsKeyDown(0x20) == 0
             || (g_game->team_index != -1
                 && g_game->menu.layer->entries[g_game->team_index].type == 3))) {
-        if (DAT_0051f2d8 <= 0)
+        if (g_scorePanelSlidePos <= 0)
             return;
-        if (DAT_0051f2d8 == 0x7d)
+        if (g_scorePanelSlidePos == 0x7d)
             PlaySoundByName("Panel", 0);
-        int q = DAT_0051f2d8 / 4;
+        int q = g_scorePanelSlidePos / 4;
         if (q <= 1)
             q = 1;
-        DAT_0051f2d8 -= q;
-        if (DAT_0051f2d8 <= 0) {
-            DAT_0051f2d8 = 0;
+        g_scorePanelSlidePos -= q;
+        if (g_scorePanelSlidePos <= 0) {
+            g_scorePanelSlidePos = 0;
             PlaySoundByName("Options", 0);
         }
-    } else if (DAT_0051f2d8 < 0x7d) {
-        if (DAT_0051f2d8 == 0)
-            PlaySoundByName("Panel", DAT_0051f2d8);
-        int q = (0x7d - DAT_0051f2d8) / 4;
+    } else if (g_scorePanelSlidePos < 0x7d) {
+        if (g_scorePanelSlidePos == 0)
+            PlaySoundByName("Panel", g_scorePanelSlidePos);
+        int q = (0x7d - g_scorePanelSlidePos) / 4;
         if (q <= 1)
             q = 1;
-        DAT_0051f2d8 += q;
-        if (DAT_0051f2d8 >= 0x7d) {
-            DAT_0051f2d8 = 0x7d;
+        g_scorePanelSlidePos += q;
+        if (g_scorePanelSlidePos >= 0x7d) {
+            g_scorePanelSlidePos = 0x7d;
             PlaySoundByName("Options", 0);
         }
     }
 
     Rect panel;
-    panel.left = GetScreenWidth() - DAT_0051f2d8;
+    panel.left = GetScreenWidth() - g_scorePanelSlidePos;
     panel.top = 0x20;
     panel.right = panel.left + 0x7d;
     panel.bottom = g_game->numPlayers * 0x28 + 0x2e;
@@ -1094,11 +1094,11 @@ void __stdcall DrawScorePanel(void* surface)
             int kills = g_game->commanderDeath == 2 ? p->commanderKills : p->kills;
             sprintf(buf, "%d", kills);
             DrawTextClipped(surface, buf, dst.p[0].x + 2, dst.p[0].y + 0x14, maxw,
-                         DAT_0051f2c8[n]);
+                         g_scorePanelKillFlash[n]);
             int losses = g_game->commanderDeath == 2 ? p->commanderLosses : p->losses;
             sprintf(buf, "%d", losses);
             DrawTextClipped(surface, buf, dst.p[1].x - GetTextPixelWidth(buf) - 2,
-                         dst.p[0].y + 0x14, maxw, DAT_0051e810[n]);
+                         dst.p[0].y + 0x14, maxw, g_scorePanelLossFlash[n]);
             y += 0x28;
             break;
         }
@@ -1125,7 +1125,7 @@ void __stdcall DrawScorePanel(void* surface)
 }
 
 // Frame-time / desync watchdog: keeps a 30-entry ring of per-frame counters at
-// DAT_0051e710, and when the ring total (or the last five entries) grows too
+// g_cdActivitySampleRing, and when the ring total (or the last five entries) grows too
 // large it flips the network state g_lastCdActivityMode between 0 and 1 and resets the
 // counter g_cdActivityStableTicks.
 //
@@ -1165,9 +1165,9 @@ void UpdateCdCategoryByActivity()
         if (++g_cdActivityStableTicks > 10) {
             int recent = 0;
             int n = 5;
-            int i = DAT_0051f2dc - 1;
+            int i = g_cdActivityRingWriteIdx - 1;
             int total = 0;
-            int* p = &DAT_0051e710[i];
+            int* p = &g_cdActivitySampleRing[i];
             for (;;) {
                 if (i < 0) {
                     i += 30;
@@ -1179,7 +1179,7 @@ void UpdateCdCategoryByActivity()
                     n--;
                     recent += v;
                 }
-                if (i == DAT_0051f2dc)
+                if (i == g_cdActivityRingWriteIdx)
                     break;
                 i--;
                 p--;
@@ -1196,9 +1196,9 @@ void UpdateCdCategoryByActivity()
                 g_lastCdActivityMode = newstate;
             }
         }
-        if (++DAT_0051f2dc >= 30)
-            DAT_0051f2dc = 0;
-        DAT_0051e710[DAT_0051f2dc] = 0;
+        if (++g_cdActivityRingWriteIdx >= 30)
+            g_cdActivityRingWriteIdx = 0;
+        g_cdActivitySampleRing[g_cdActivityRingWriteIdx] = 0;
         ReportIntervalTimer();
         g_cdActivityLastSampleTick = GetTicks();
     }
@@ -1207,7 +1207,7 @@ void UpdateCdCategoryByActivity()
 // FUNCTION: 0x494ff0
 void __stdcall AddCdActivitySample(int param_1)
 {
-    DAT_0051e710[DAT_0051f2dc] += param_1;
+    g_cdActivitySampleRing[g_cdActivityRingWriteIdx] += param_1;
 }
 
 // What the code does: it opens (or closes) the TABMENU.GUI tab menu page. If any

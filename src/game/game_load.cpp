@@ -335,8 +335,8 @@ extern Game* g_game;
 // Embedded surface at game offset 0x143a7.
 #define SURFACE_143a7 ((void*)((char*)g_game + 0x143a7))
 
-extern unsigned char DAT_0051f2c8[10];
-extern unsigned char DAT_0051e810[10];
+extern unsigned char g_scorePanelKillFlash[10];
+extern unsigned char g_scorePanelLossFlash[10];
 extern "C" int g_loadingBarFlashAlpha;
 extern "C" int DAT_0051e6cc;
 extern "C" int g_loadingBarFlashDecayTick;
@@ -956,8 +956,8 @@ void LoadingScreenFrame(void)
             FatalError("Unable to start the loading thread!");
         }
         // Four memsets (10, 10, 6, 6 bytes); the stage bytes get one 8-byte memset.
-        memset(DAT_0051f2c8, 0, 10);
-        memset(DAT_0051e810, 0, 10);
+        memset(g_scorePanelKillFlash, 0, 10);
+        memset(g_scorePanelLossFlash, 0, 10);
         memset(&g_loadingBarFlashAlpha, 0, 6);
         memset(&g_loadingBarPrevPercent, 0, 6);
         g_game->flags38d75.bits.started = 1;

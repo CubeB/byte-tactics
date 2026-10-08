@@ -24,8 +24,8 @@ struct DisplayContext
 
 Queue_004c1ab0* GetDisplay(void);
 
-extern int DAT_0052a4e8;
-extern HANDLE DAT_0052a4f0;
+extern int g_gfxBlitLockHeld;
+extern HANDLE g_gfxBlitLockEvent;
 
 // Empties the ring buffer (sibling of 0x4c1a60, which also resets head/tail).
 // FUNCTION: 0x4c1a40
@@ -219,12 +219,12 @@ void __stdcall HandleVirtualKey(int key, int flag)
 // FUNCTION: 0x4c22a0
 void InitBlitLock()
 {
-    DAT_0052a4e8 = 0;
-    if (DAT_0052a4f0) {
-        ResetEvent(DAT_0052a4f0);
+    g_gfxBlitLockHeld = 0;
+    if (g_gfxBlitLockEvent) {
+        ResetEvent(g_gfxBlitLockEvent);
         return;
     }
-    DAT_0052a4f0 = CreateEventA(NULL, FALSE, FALSE, NULL);
+    g_gfxBlitLockEvent = CreateEventA(NULL, FALSE, FALSE, NULL);
 }
 
 // FUNCTION: 0x4c22d0

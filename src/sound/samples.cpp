@@ -144,8 +144,8 @@ static inline unsigned int FindChunk(FileHandle* file, const char* tag) {
 
 extern Sound* g_cdPlayer;
 
-extern HANDLE DAT_0052a4f8;
-extern int DAT_0052a4fc;
+extern HANDLE g_squashThreadLockEvent;
+extern int g_squashThreadLockTicket;
 
 struct Entry_004d0a10 {
     short a;                 // +0x0
@@ -160,9 +160,9 @@ struct Struct_00526ff0 {
     short field_6004;        // +0x6004
 };
 
-extern Struct_00526ff0* DAT_00526ff0;
+extern Struct_00526ff0* g_squashDictTree;
 
-extern void* DAT_00526ff4;
+extern void* g_squashWindow;
 
 // The constructor of the 0x294-byte sound/volume object (allocated by
 // 0x49ea3d); 0x4cff30 opens the devices and 0x4d0040 reads the aux volume.
@@ -1288,30 +1288,30 @@ int Sound::FindDataChunkSize(void* file)
 // FUNCTION: 0x4d09e0
 void InitLzssLock()
 {
-    DAT_0052a4fc = 0;
-    if (DAT_0052a4f8 != 0) {
-        ResetEvent(DAT_0052a4f8);
+    g_squashThreadLockTicket = 0;
+    if (g_squashThreadLockEvent != 0) {
+        ResetEvent(g_squashThreadLockEvent);
         return;
     }
-    DAT_0052a4f8 = CreateEventA(0, 0, 0, 0);
+    g_squashThreadLockEvent = CreateEventA(0, 0, 0, 0);
 }
 
 // FUNCTION: 0x4d0a10
 void __stdcall LzssInitTree(int index)
 {
-    DAT_00526ff0->field_6000 = 0;
-    DAT_00526ff0->field_6004 = (short)index;
-    DAT_00526ff0->field_6002 = 0;
-    DAT_00526ff0->entries[index].a = 0x1000;
-    DAT_00526ff0->entries[index].c = 0;
-    DAT_00526ff0->entries[index].b = 0;
+    g_squashDictTree->field_6000 = 0;
+    g_squashDictTree->field_6004 = (short)index;
+    g_squashDictTree->field_6002 = 0;
+    g_squashDictTree->entries[index].a = 0x1000;
+    g_squashDictTree->entries[index].c = 0;
+    g_squashDictTree->entries[index].b = 0;
 }
 
 // FUNCTION: 0x4d0a70
 int __cdecl LzssAllocWindow(void)
 {
     void* eax = calloc(1, 0x1011);
-    DAT_00526ff4 = eax;
+    g_squashWindow = eax;
     if (eax != 0) return 0;
     return -1;
 }
@@ -1320,6 +1320,6 @@ int __cdecl LzssAllocWindow(void)
 int LzssAllocTree()
 {
     void* p = calloc(0x1001, 6);
-    DAT_00526ff0 = (Struct_00526ff0*)p;
+    g_squashDictTree = (Struct_00526ff0*)p;
     return p ? 0 : -1;
 }

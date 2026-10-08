@@ -293,8 +293,8 @@ struct Entry_0047ea40 {
 
 extern Game* g_game;
 extern ClaimFootprintVisitor g_claimFootprintVtable[];
-extern int DAT_0051e684;
-extern int DAT_0051e688;
+extern int g_lastPlaceHeight;
+extern int g_lastPlaceMetalSum;
 void __stdcall UpdateCellHeightRange(Point pos, Point size);
 void __stdcall RefreshAllPassMaps(Point pos, Point size);
 // Stays in a file of its own: see the note at its definition.
@@ -482,10 +482,10 @@ void __stdcall ClearFootprintAndUnlink(Unit* unit)
 // bounds, then the line-of-sight tests (the player's bit in the shared
 // visibility mask, then either the explored byte map or the mask again,
 // depending on flag 2 of g_game+0x14281), then a walk of the footprint cells
-// that accumulates the build cost into DAT_0051e688 and the height envelope
-// into the returned DAT_0051e684.
-extern int DAT_0051e684;
-extern int DAT_0051e688;
+// that accumulates the build cost into g_lastPlaceMetalSum and the height envelope
+// into the returned g_lastPlaceHeight.
+extern int g_lastPlaceHeight;
+extern int g_lastPlaceMetalSum;
 
 int __stdcall GetCellHeight(Point* p);
 
@@ -582,8 +582,8 @@ Cell* c)
 int __stdcall CanBuildAt(UnitDef* unit, Point cell, short type, Los_0047d2e0* los)
 {
     int ok;
-    DAT_0051e684 = 0;
-    DAT_0051e688 = 0;
+    g_lastPlaceHeight = 0;
+    g_lastPlaceMetalSum = 0;
     Point origin = unit->origin;
     // The guard reads cell.x and cell.y directly.
     if (cell.x < 1 || cell.y < 1 || cell.x + origin.x >= g_game->width ||
@@ -628,7 +628,7 @@ int __stdcall CanBuildAt(UnitDef* unit, Point cell, short type, Los_0047d2e0* lo
         // Rotated do/while with a positive bottom test.
         do {
             for (col = 0; col < cols; col++) {
-                DAT_0051e688 += c->metal;
+                g_lastPlaceMetalSum += c->metal;
                 int m = unit->mask[index++];
                 if (m & 8) {
                     if (c->low < min6)
@@ -679,7 +679,7 @@ int __stdcall CanBuildAt(UnitDef* unit, Point cell, short type, Los_0047d2e0* lo
         return 0;
     if ((max5 > max5b ? max5 : max5b) > g_game->seaLevel - unit->minwaterdepth)
         return 0;
-    DAT_0051e684 = r;
+    g_lastPlaceHeight = r;
     return 1;
 }
 

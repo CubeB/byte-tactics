@@ -1021,7 +1021,7 @@ struct Game {
 
 extern Game* g_game;
 extern Class_00470ed0 g_particlePool;
-extern char DAT_0051e608;
+extern char g_fxEventPoolBlocked;
 extern unsigned char g_particlePoolDestroyed;
 extern void __stdcall ExitParticlePool();
 
@@ -1522,11 +1522,11 @@ ParticleSystem::~ParticleSystem()
 
 // The class-specific operator new of ParticleSystem (the family is listed
 // at the constructor): takes a zeroed object from the pool g_particlePool, or
-// returns null while DAT_0051e608 is set. Its operator delete is 0x471d50.
+// returns null while g_fxEventPoolBlocked is set. Its operator delete is 0x471d50.
 // FUNCTION: 0x471d10
 void* __stdcall ParticleSystem::operator new(size_t size)
 {
-    if (DAT_0051e608)
+    if (g_fxEventPoolBlocked)
         return 0;
     void* p = (void*)((Class_00470eb0*)&g_particlePool)->AllocSlot(size);
     if (p)

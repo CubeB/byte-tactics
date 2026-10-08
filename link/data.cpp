@@ -608,10 +608,10 @@ unsigned char DAT_0051e55c[4];  // 0x51e55c .bss
 unsigned char g_reportPlayerName[20];  // 0x51e560 .bss
 void (__stdcall* g_riSetCallbacks)(void (__stdcall*)(int), int (__stdcall*)(char*, int));  // 0x51e578 .bss
 int (__stdcall* g_riEnable)(int);  // 0x51e588 .bss
-int DAT_0051e590;  // 0x51e590 .bss
+int g_hapinetOnlineReport;  // 0x51e590 .bss
 int g_reportFlags;  // 0x51e594 .bss
 char g_unitSyncStatusText[104];  // 0x51e5a0 .bss
-char DAT_0051e608;  // 0x51e608 .bss
+char g_fxEventPoolBlocked;  // 0x51e608 .bss
 unsigned char DAT_0051e609[7];  // 0x51e609 .bss
 unsigned char g_particlePool[36];  // 0x51e610 .bss
 unsigned char g_particlePoolDestroyed;  // 0x51e634 .bss
@@ -632,8 +632,8 @@ short g_briefingPanoramaScrollX;  // 0x51e674 .bss
 int g_briefingPanoramaNextTick;  // 0x51e678 .bss
 unsigned int g_briefingPlanetLastTick;  // 0x51e67c .bss
 unsigned int g_briefingPlanetNextTick;  // 0x51e680 .bss
-int DAT_0051e684;  // 0x51e684 .bss
-int DAT_0051e688;  // 0x51e688 .bss
+int g_lastPlaceHeight;  // 0x51e684 .bss
+int g_lastPlaceMetalSum;  // 0x51e688 .bss
 SpeechQueue* g_speechQueue;  // 0x51e68c .bss
 int g_noDirectSound;  // 0x51e690 .bss
 int g_useWindowsSound;  // 0x51e694 .bss
@@ -645,17 +645,17 @@ unsigned int g_cdMismatchDefeatTick;  // 0x51e6c4 .bss
 unsigned char g_loadingBarFlashAlpha[8];  // 0x51e6c8 .bss
 int g_shareDialogPlayerNetIds[10];  // 0x51e6d0 .bss
 char g_savegameRadarFrame[24];  // 0x51e6f8 .bss
-int DAT_0051e710[30];  // 0x51e710 .bss
+int g_cdActivitySampleRing[30];  // 0x51e710 .bss
 char g_chatDraftText[136];  // 0x51e788 .bss
-unsigned char DAT_0051e810[10];  // 0x51e810 .bss (the type runs past the next known address, 0x51e810+0x8)
+unsigned char g_scorePanelLossFlash[10];  // 0x51e810 .bss (the type runs past the next known address, 0x51e810+0x8)
 unsigned char DAT_0051e81a[6];  // 0x51e81a .bss
 unsigned char g_loadingBarPrevPercent[5];  // 0x51e820 .bss
 unsigned char DAT_0051e825[3];  // 0x51e825 .bss
 unsigned char g_cdListsDiscEntries[2720];  // 0x51e828 .bss
-unsigned char DAT_0051f2c8[10];  // 0x51f2c8 .bss (the type runs past the next known address, 0x51f2c8+0x8)
+unsigned char g_scorePanelKillFlash[10];  // 0x51f2c8 .bss (the type runs past the next known address, 0x51f2c8+0x8)
 unsigned char DAT_0051f2d2[6];  // 0x51f2d2 .bss
-unsigned int DAT_0051f2d8;  // 0x51f2d8 .bss
-unsigned int DAT_0051f2dc;  // 0x51f2dc .bss
+unsigned int g_scorePanelSlidePos;  // 0x51f2d8 .bss
+unsigned int g_cdActivityRingWriteIdx;  // 0x51f2dc .bss
 int g_chatDraftInitialized;  // 0x51f2f0 .bss
 int g_scorePanelFlashDecayTick;  // 0x51f2f4 .bss
 unsigned int g_cdActivityLastSampleTick;  // 0x51f2f8 .bss
@@ -711,7 +711,7 @@ char DAT_0051ff60[112];  // 0x51ff60 .bss
 char g_lzssPresetWindow[176];  // 0x51ffd0 .bss
 unsigned char DAT_00520080[3944];  // 0x520080 .bss
 char g_lzssPresetTree[24584];  // 0x520fe8 .bss
-Struct_00526ff0* DAT_00526ff0;  // 0x526ff0 .bss
+Struct_00526ff0* g_squashDictTree;  // 0x526ff0 .bss
 int g_lzssPresetReady;  // 0x526ff8 .bss
 int g_lzssUsePreset;  // 0x526ffc .bss (the type runs past the next known address, 0x526ffc+0x3)
 char g_memFussyQueried;  // 0x5289b4 .bss
@@ -799,9 +799,9 @@ void* g_gdperfDevice;  // 0x529e98 .bss
 int g_cpuFamily;  // 0x529ea0 .bss
 unsigned char DAT_00529ea4[4];  // 0x529ea4 .bss
 char g_emptyAtexitRegistered;  // 0x52a4e4 .bss
-long DAT_0052a4e8;  // 0x52a4e8 .bss
-long DAT_0052a4ec;  // 0x52a4ec .bss
-void* DAT_0052a4f0;  // 0x52a4f0 .bss
+long g_gfxBlitLockHeld;  // 0x52a4e8 .bss
+long g_gfxBlitLockOwner;  // 0x52a4ec .bss
+void* g_gfxBlitLockEvent;  // 0x52a4f0 .bss
 int g_lzssLockOwner;  // 0x52a4f4 .bss
-void* DAT_0052a4f8;  // 0x52a4f8 .bss
-long DAT_0052a4fc;  // 0x52a4fc .bss
+void* g_squashThreadLockEvent;  // 0x52a4f8 .bss
+long g_squashThreadLockTicket;  // 0x52a4fc .bss

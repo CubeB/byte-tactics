@@ -599,7 +599,7 @@ Things that look wrong in the original but have no effect, kept for the record.
   five callers ignore the result. Found by CubeB's Codex / GPT-6.1-sol in
   #1899, #2296 and #2549.
 
-- **0x4d1670**: tests `DAT_00526ff4 == 0` and prints "Hey! The window buffer
+- **0x4d1670**: tests `g_squashWindow == 0` and prints "Hey! The window buffer
   ptr is not pointing to anything!" (0x4d1798), although the pointer was
   allocated and null-checked at the top and nothing in between clears it;
   0x4d0f60 has the same dead check. Found by ozgb's Cline / deepseek-v4.1 in

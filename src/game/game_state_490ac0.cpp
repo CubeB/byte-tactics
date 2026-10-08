@@ -448,7 +448,7 @@ extern int g_cachedCdTrackTypes;
 extern int DAT_0051e850;
 extern int DAT_0051e854;
 extern int DAT_0051e858;
-extern int* DAT_0051f2e8;
+extern int* g_savegameSideList;
 
 // FUNCTION: 0x490fe0
 void ReopenCdAudio()
@@ -472,7 +472,7 @@ void ReopenCdAudio()
         if (*slot != id) {
             slot = (int*)((char*)slot + 0x88);
             index++;
-            if ((int)slot < (int)&DAT_0051f2e8)
+            if ((int)slot < (int)&g_savegameSideList)
                 continue;
             goto newdisc;
         }
@@ -708,9 +708,9 @@ void ShutdownGame(void)
 // in g_game, runs the per-subsystem reset functions, allocates the three
 // transform point buffers, and zeroes the per-player counters and the input
 // history.
-extern unsigned int DAT_0051f2d8;
-extern unsigned int DAT_0051f2dc;
-extern int DAT_0051e710[30];
+extern unsigned int g_scorePanelSlidePos;
+extern unsigned int g_cdActivityRingWriteIdx;
+extern int g_cdActivitySampleRing[30];
 
 void ResetChatHudIndices();
 void LoadLightBar();
@@ -798,9 +798,9 @@ void LoadBattleAssets()
     g_game->bit6_3923b = 0;
     g_game->flags_2bee = 0;
     g_game->netOrCdSentinel = 0xff;
-    DAT_0051f2dc = 0;
-    memset(DAT_0051e710, 0, sizeof(DAT_0051e710));
-    DAT_0051f2d8 = 0;
+    g_cdActivityRingWriteIdx = 0;
+    memset(g_cdActivitySampleRing, 0, sizeof(g_cdActivitySampleRing));
+    g_scorePanelSlidePos = 0;
 }
 
 struct Display_00491a70 {
@@ -968,27 +968,27 @@ void CloseTopScreenIfNotNamed()
     }
 }
 
-extern int* DAT_0051f2e0;
-extern int* DAT_0051f2e4;
-extern int* DAT_0051f2ec;
+extern int* g_savegameFileNames;
+extern int* g_savegameDescs;
+extern int* g_savegameRadarPreview;
 
 // FUNCTION: 0x491e50
 void FreePreviewCaches()
 {
-    if (DAT_0051f2e0 != 0) {
-        GameFreeThunk(DAT_0051f2e0);
+    if (g_savegameFileNames != 0) {
+        GameFreeThunk(g_savegameFileNames);
     }
-    if (DAT_0051f2e4 != 0) {
-        GameFreeThunk(DAT_0051f2e4);
+    if (g_savegameDescs != 0) {
+        GameFreeThunk(g_savegameDescs);
     }
-    if (DAT_0051f2e8 != 0) {
-        GameFreeThunk(DAT_0051f2e8);
+    if (g_savegameSideList != 0) {
+        GameFreeThunk(g_savegameSideList);
     }
-    DAT_0051f2e8 = 0;
-    DAT_0051f2e4 = 0;
-    DAT_0051f2e0 = 0;
-    if (DAT_0051f2ec != 0) {
-        GameFreeThunk(DAT_0051f2ec);
+    g_savegameSideList = 0;
+    g_savegameDescs = 0;
+    g_savegameFileNames = 0;
+    if (g_savegameRadarPreview != 0) {
+        GameFreeThunk(g_savegameRadarPreview);
     }
-    DAT_0051f2ec = 0;
+    g_savegameRadarPreview = 0;
 }

@@ -90,7 +90,7 @@ struct ScoreBoard_0046c2a0 {           // 0xc bytes
 
 extern Game_0046c2a0* g_game;
 extern PlayerInfo_0046c2a0** g_onlineReportPlayers;
-extern ScoreBoard_0046c2a0** DAT_0051e57c;
+extern ScoreBoard_0046c2a0** g_onlineReportScoreBoards;
 extern char* g_sideNames[2];           // "Arm", "Core"
 extern char* g_scoreNames[9];          // "Kills", "Losses", ..., "I am Winner"
 
@@ -133,34 +133,34 @@ int FillScoreTables()
             Mission* c = g_game->campaign;
             int score = (int)(g_game->ticks / 60 * c->timeMul);
             score += (int)(p->kills * c->killMul);
-            DAT_0051e57c[i]->score = score;
-            DAT_0051e57c[i]->count = 9;
+            g_onlineReportScoreBoards[i]->score = score;
+            g_onlineReportScoreBoards[i]->count = 9;
             Score_0046c2a0* s;
-            s = DAT_0051e57c[i]->scores[0];
+            s = g_onlineReportScoreBoards[i]->scores[0];
             s->name = g_scoreNames[0];
             s->value = p->kills;
-            s = DAT_0051e57c[i]->scores[1];
+            s = g_onlineReportScoreBoards[i]->scores[1];
             s->name = g_scoreNames[1];
             s->value = p->losses;
-            s = DAT_0051e57c[i]->scores[2];
+            s = g_onlineReportScoreBoards[i]->scores[2];
             s->name = g_scoreNames[2];
             s->value = (int)p->totalEnergyProduced;
-            s = DAT_0051e57c[i]->scores[3];
+            s = g_onlineReportScoreBoards[i]->scores[3];
             s->name = g_scoreNames[3];
             s->value = (int)p->totalMetalProduced;
-            s = DAT_0051e57c[i]->scores[4];
+            s = g_onlineReportScoreBoards[i]->scores[4];
             s->name = g_scoreNames[4];
             s->value = (int)p->energyWasted;
-            s = DAT_0051e57c[i]->scores[5];
+            s = g_onlineReportScoreBoards[i]->scores[5];
             s->name = g_scoreNames[5];
             s->value = (int)p->metalWasted;
-            s = DAT_0051e57c[i]->scores[6];
+            s = g_onlineReportScoreBoards[i]->scores[6];
             s->name = g_scoreNames[6];
             s->value = p->commandersKilled;
-            s = DAT_0051e57c[i]->scores[7];
+            s = g_onlineReportScoreBoards[i]->scores[7];
             s->name = g_scoreNames[7];
             s->value = p->commandersLost;
-            s = DAT_0051e57c[i]->scores[8];
+            s = g_onlineReportScoreBoards[i]->scores[8];
             s->name = g_scoreNames[8];
             s->value = (i == g_game->localPlayer || (p->active && p->type == 2)) ? g_game->bit4_3923b : 0;
         }

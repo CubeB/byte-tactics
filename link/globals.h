@@ -521,10 +521,10 @@ extern unsigned char DAT_0051e55c[4];                                           
 extern unsigned char g_reportPlayerName[20];                                                      // 0x51e560, 20 bytes; Name_0046c620 by value in 1 of 1 files
 extern void (__stdcall* g_riSetCallbacks)(void (__stdcall*)(int), int (__stdcall*)(char*, int));  // 0x51e578, 4 bytes; 1 of 1 files
 extern int (__stdcall* g_riEnable)(int);                                                          // 0x51e588, 4 bytes; 1 of 1 files
-extern int DAT_0051e590;                                                                          // 0x51e590, 4 bytes; 2 of 2 files
+extern int g_hapinetOnlineReport;                                                                 // 0x51e590, 4 bytes; 2 of 2 files
 extern int g_reportFlags;                                                                         // 0x51e594, 4 bytes; 1 of 1 files
 extern char g_unitSyncStatusText[104];                                                            // 0x51e5a0, 104 bytes; 1 of 1 files
-extern char DAT_0051e608;                                                                         // 0x51e608, 1 bytes; 5 of 5 files
+extern char g_fxEventPoolBlocked;                                                                 // 0x51e608, 1 bytes; 5 of 5 files
 extern unsigned char DAT_0051e609[7];                                                             // 0x51e609, 7 bytes; nothing refers to it
 extern unsigned char g_particlePool[36];                                                          // 0x51e610, 36 bytes; Class_00470ed0 by value in 4 of 4 files
 extern unsigned char g_particlePoolDestroyed;                                                     // 0x51e634, 1 bytes; 1 of 1 files
@@ -545,8 +545,8 @@ extern short g_briefingPanoramaScrollX;                                         
 extern int g_briefingPanoramaNextTick;                                                            // 0x51e678, 4 bytes; 1 of 1 files
 extern unsigned int g_briefingPlanetLastTick;                                                     // 0x51e67c, 4 bytes; 1 of 1 files
 extern unsigned int g_briefingPlanetNextTick;                                                     // 0x51e680, 4 bytes; 1 of 1 files
-extern int DAT_0051e684;                                                                          // 0x51e684, 4 bytes; 2 of 2 files
-extern int DAT_0051e688;                                                                          // 0x51e688, 4 bytes; 2 of 2 files
+extern int g_lastPlaceHeight;                                                                     // 0x51e684, 4 bytes; 2 of 2 files
+extern int g_lastPlaceMetalSum;                                                                   // 0x51e688, 4 bytes; 2 of 2 files
 extern SpeechQueue* g_speechQueue;                                                                // 0x51e68c, 4 bytes; 1 of 1 files
 extern int g_noDirectSound;                                                                       // 0x51e690, 4 bytes; 1 of 1 files
 extern int g_useWindowsSound;                                                                     // 0x51e694, 4 bytes; 1 of 1 files
@@ -558,17 +558,17 @@ extern unsigned int g_cdMismatchDefeatTick;                                     
 extern "C" unsigned char g_loadingBarFlashAlpha[8];                                               // 0x51e6c8, 4 bytes; extern "C" (no type) with the globals inside it
 extern int g_shareDialogPlayerNetIds[10];                                                         // 0x51e6d0, 40 bytes; 1 of 1 files
 extern char g_savegameRadarFrame[24];                                                             // 0x51e6f8, 24 bytes; 1 of 1 files
-extern int DAT_0051e710[30];                                                                      // 0x51e710, 120 bytes; 2 of 2 files
+extern int g_cdActivitySampleRing[30];                                                            // 0x51e710, 120 bytes; 2 of 2 files
 extern char g_chatDraftText[136];                                                                 // 0x51e788, 136 bytes; 1 of 1 files
-extern unsigned char DAT_0051e810[10];                                                            // 0x51e810, 10 bytes; 2 of 2 files
+extern unsigned char g_scorePanelLossFlash[10];                                                   // 0x51e810, 10 bytes; 2 of 2 files
 extern unsigned char DAT_0051e81a[6];                                                             // 0x51e81a, 6 bytes; nothing refers to it
 extern "C" unsigned char g_loadingBarPrevPercent[5];                                              // 0x51e820, 1 bytes; extern "C" (no type) in declared extern "C" in 1 of 1 files, but used past its end
 extern "C" unsigned char DAT_0051e825[3];                                                         // 0x51e825, 1 bytes; extern "C" (no type) in declared extern "C" in 1 of 1 files, but used past its end
 extern unsigned char g_cdListsDiscEntries[2720];                                                  // 0x51e828, 2720 bytes; CdLists_490f80 by value in 1 of 1 files
-extern unsigned char DAT_0051f2c8[10];                                                            // 0x51f2c8, 10 bytes; 2 of 2 files
+extern unsigned char g_scorePanelKillFlash[10];                                                   // 0x51f2c8, 10 bytes; 2 of 2 files
 extern unsigned char DAT_0051f2d2[6];                                                             // 0x51f2d2, 6 bytes; nothing refers to it
-extern unsigned int DAT_0051f2d8;                                                                 // 0x51f2d8, 4 bytes; 1 of 2 files (conflicting: signedness or const)
-extern unsigned int DAT_0051f2dc;                                                                 // 0x51f2dc, 4 bytes; 1 of 2 files (conflicting: signedness or const)
+extern unsigned int g_scorePanelSlidePos;                                                         // 0x51f2d8, 4 bytes; 1 of 2 files (conflicting: signedness or const)
+extern unsigned int g_cdActivityRingWriteIdx;                                                     // 0x51f2dc, 4 bytes; 1 of 2 files (conflicting: signedness or const)
 extern int g_chatDraftInitialized;                                                                // 0x51f2f0, 4 bytes; 1 of 1 files
 extern int g_scorePanelFlashDecayTick;                                                            // 0x51f2f4, 4 bytes; 1 of 1 files
 extern unsigned int g_cdActivityLastSampleTick;                                                   // 0x51f2f8, 4 bytes; 1 of 1 files
@@ -624,7 +624,7 @@ extern char DAT_0051ff60[112];                                                  
 extern char g_lzssPresetWindow[176];                                                              // 0x51ffd0, 176 bytes; 1 of 1 files
 extern unsigned char DAT_00520080[3944];                                                          // 0x520080, 3944 bytes; nothing refers to it
 extern char g_lzssPresetTree[24584];                                                              // 0x520fe8, 24584 bytes; 1 of 1 files
-extern Struct_00526ff0* DAT_00526ff0;                                                             // 0x526ff0, 4 bytes; 1 of 2 files (conflicting: struct names only)
+extern Struct_00526ff0* g_squashDictTree;                                                         // 0x526ff0, 4 bytes; 1 of 2 files (conflicting: struct names only)
 extern int g_lzssPresetReady;                                                                     // 0x526ff8, 4 bytes; 1 of 1 files
 extern int g_lzssUsePreset;                                                                       // 0x526ffc, 4 bytes; 1 of 1 files
 extern char g_memFussyQueried;                                                                    // 0x5289b4, 1 bytes; 1 of 1 files
@@ -712,12 +712,12 @@ extern void* g_gdperfDevice;                                                    
 extern int g_cpuFamily;                                                                           // 0x529ea0, 4 bytes; 3 of 3 files
 extern unsigned char DAT_00529ea4[4];                                                             // 0x529ea4, 4 bytes; nothing refers to it
 extern char g_emptyAtexitRegistered;                                                              // 0x52a4e4, 1 bytes; 1 of 1 files
-extern long DAT_0052a4e8;                                                                         // 0x52a4e8, 4 bytes; 5 of 6 files (conflicting: signedness or const)
-extern long DAT_0052a4ec;                                                                         // 0x52a4ec, 4 bytes; 5 of 5 files
-extern void* DAT_0052a4f0;                                                                        // 0x52a4f0, 4 bytes; 6 of 6 files
+extern long g_gfxBlitLockHeld;                                                                    // 0x52a4e8, 4 bytes; 5 of 6 files (conflicting: signedness or const)
+extern long g_gfxBlitLockOwner;                                                                   // 0x52a4ec, 4 bytes; 5 of 5 files
+extern void* g_gfxBlitLockEvent;                                                                  // 0x52a4f0, 4 bytes; 6 of 6 files
 extern int g_lzssLockOwner;                                                                       // 0x52a4f4, 4 bytes; 1 of 1 files
-extern void* DAT_0052a4f8;                                                                        // 0x52a4f8, 4 bytes; 2 of 2 files
-extern long DAT_0052a4fc;                                                                         // 0x52a4fc, 4 bytes; 1 of 2 files (conflicting: signedness or const)
+extern void* g_squashThreadLockEvent;                                                             // 0x52a4f8, 4 bytes; 2 of 2 files
+extern long g_squashThreadLockTicket;                                                             // 0x52a4fc, 4 bytes; 1 of 2 files (conflicting: signedness or const)
 
 // Not declared: 200 globals defined in a data file or whose type is not settled (see data/globals.csv).
 //   0x513000 g_packetManager: defined in src/network/packets_460e20.cpp
@@ -736,7 +736,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x512ca8 g_cmdlineHostGameName: part of another global: DAT_00512c80+0x28
 //   0x512d48 DAT_00512d48: part of another global: DAT_00512c80+0xc8
 //   0x51e574 g_onlineReportPlayers: PlayerInfo_0046c2a0** (1), PlayerInfo_0046bce0** (1), int* (1)
-//   0x51e57c DAT_0051e57c: ScoreBoard_0046c2a0** (1), ScoreBoard_0046bce0** (1), void* (1)
+//   0x51e57c g_onlineReportScoreBoards: ScoreBoard_0046c2a0** (1), ScoreBoard_0046bce0** (1), void* (1)
 //   0x51e59c IUUnitSyncEntry::IU?$pair::?$_Tree::_Nilrefs: defined in src/network/unit_sync.cpp
 //   0x51fba4 g_guiContext: Root_004a32a0* (1), Holder_004a3ef0* (1), int* (1)
 //   0x528a54 std::IH::IU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib_4db610.cpp
@@ -783,15 +783,15 @@ extern long DAT_0052a4fc;                                                       
 //   0x512f49 g_optionsBackupUnitChat: part of another global: g_optionsPrefsSnapshot+0x31
 //   0x51e548 g_riReportGameChat: int (__stdcall*)(int, char*) (1), int (__stdcall*)(int, int) (1)
 //   0x51e550 g_onlineReportScores: char** (1), int (1)
-//   0x51e580 DAT_0051e580: int (__stdcall*)(void) (1), void (__stdcall*)(void) (1)
-//   0x51e584 DAT_0051e584: int (__stdcall*)(int, int, int, int, int, int, int, int, int, int) (1), int (__stdcall*)(int, Rect_0046c620*, void*, int, Name_0046c620*, int, int, int, void*, void*) (1)
-//   0x51e58c DAT_0051e58c: void* (1), int (1)
-//   0x51f2e0 DAT_0051f2e0: int* (1), char* (1)
-//   0x51f2e4 DAT_0051f2e4: int* (1), char* (1)
-//   0x51f2e8 DAT_0051f2e8: int* (1), char* (1)
-//   0x51f2ec DAT_0051f2ec: int* (1), char* (1)
+//   0x51e580 g_riIntervalTimer: int (__stdcall*)(void) (1), void (__stdcall*)(void) (1)
+//   0x51e584 g_riReport: int (__stdcall*)(int, int, int, int, int, int, int, int, int, int) (1), int (__stdcall*)(int, Rect_0046c620*, void*, int, Name_0046c620*, int, int, int, void*, void*) (1)
+//   0x51e58c g_reporterDll: void* (1), int (1)
+//   0x51f2e0 g_savegameFileNames: int* (1), char* (1)
+//   0x51f2e4 g_savegameDescs: int* (1), char* (1)
+//   0x51f2e8 g_savegameSideList: int* (1), char* (1)
+//   0x51f2ec g_savegameRadarPreview: int* (1), char* (1)
 //   0x51fbd0 g_display: App_4b5980* (1), void* (1)
-//   0x526ff4 DAT_00526ff4: void* (1), char* (1)
+//   0x526ff4 g_squashWindow: void* (1), char* (1)
 //   0x528abc g_pfnSymCleanup: int (__stdcall*)(void*) (1), void (__stdcall*)(void) (1)
 //   0x528ac0 g_pfnStackWalk: int (__stdcall*)(unsigned long, void*, void*, void*, void*, void*, void*, void*, void*) (1), void (__stdcall*)(void) (1)
 //   0x528ac4 g_pfnSymFunctionTableAccess: void* (1), void (__stdcall*)(void) (1)
@@ -906,7 +906,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x51e850 DAT_0051e850: part of another global: g_cdListsDiscEntries+0x28
 //   0x51e854 DAT_0051e854: part of another global: g_cdListsDiscEntries+0x2c
 //   0x51e858 DAT_0051e858: part of another global: g_cdListsDiscEntries+0x30
-//   0x51f310 DAT_0051f310: defined in src/weapons/weapons.cpp
+//   0x51f310 g_tdfGlobalParser: defined in src/weapons/weapons.cpp
 //   0x51fbb8 std::HH::HU?$pair::?$_Tree::_Nilrefs: defined in src/util/int_map_4b2290.cpp
 //   0x51fbbc std::HH::HU?$pair::?$_Tree::_Nil: defined in src/util/int_map_4b2290.cpp
 //   0x51fbe0 g_timerSlot0Interval: part of another global: g_timerSlots+0x8

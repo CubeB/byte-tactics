@@ -40,10 +40,10 @@ extern Guid_0046bf30 DAT_004fcd98;
 extern Guid_0046bf30 DAT_004fcdb8;
 extern Guid_0046bf30 DAT_004fcdc8;
 extern PlayerInfo_0046bce0** g_onlineReportPlayers;
-extern ScoreBoard_0046bce0** DAT_0051e57c;
+extern ScoreBoard_0046bce0** g_onlineReportScoreBoards;
 extern char** g_onlineReportScores;
-extern int DAT_0051e590;
-extern HMODULE DAT_0051e58c;
+extern int g_hapinetOnlineReport;
+extern HMODULE g_reporterDll;
 
 typedef int (__stdcall *EnableFn_0046bf30)(int);
 typedef int (__stdcall *VersionFn_0046bf30)(char*);
@@ -59,8 +59,8 @@ extern InitFn_0046bf30 g_riInitializeEx;       // _RIInitializeEx@8
 extern VersionFn_0046bf30 g_riGetVersion;      // _RIGetVersion@4
 extern TermFn_0046bf30 g_riTerminate;          // _RITerminate@0
 extern SetCbFn_0046bf30 g_riSetCallbacks;     // _RISetCallbacks@8
-extern TimerFn_0046bf30 DAT_0051e580;         // _RIIntervalTimer@0
-extern ReportFn_0046bf30 DAT_0051e584;         // _RIReport@40
+extern TimerFn_0046bf30 g_riIntervalTimer;    // _RIIntervalTimer@0
+extern ReportFn_0046bf30 g_riReport;           // _RIReport@40
 extern ChatFn_0046bf30 g_riReportGameChat;    // _RIReportGameChat@8
 
 void ShutdownScoreTables();
@@ -90,16 +90,16 @@ int AllocScoreTables()
     int i;
 
     g_onlineReportPlayers = (PlayerInfo_0046bce0**)GameAllocIgnoreTag("PlayersArray", 0x28);
-    DAT_0051e57c = (ScoreBoard_0046bce0**)GameAllocIgnoreTag("ScoreBoardsArray", 0x28);
+    g_onlineReportScoreBoards = (ScoreBoard_0046bce0**)GameAllocIgnoreTag("ScoreBoardsArray", 0x28);
     g_onlineReportScores = (char**)GameAllocIgnoreTag("ScoresArray", 0x28);
     if (g_onlineReportPlayers == 0)
         goto failed;
-    if (DAT_0051e57c == 0)
+    if (g_onlineReportScoreBoards == 0)
         goto failed;
     if (g_onlineReportScores == 0)
         goto failed;
     memset(g_onlineReportPlayers, 0, 0x28);
-    memset(DAT_0051e57c, 0, 0x28);
+    memset(g_onlineReportScoreBoards, 0, 0x28);
     memset(g_onlineReportScores, 0, 0x28);
     failed = 0;
     i = 0;
@@ -121,18 +121,18 @@ int AllocScoreTables()
             break;
         }
         wsprintfA(name, "ScoreBoard%d", i);
-        DAT_0051e57c[i] = (ScoreBoard_0046bce0*)GameAllocIgnoreTag(name, 0xc);
-        if (DAT_0051e57c[i] == 0) {
+        g_onlineReportScoreBoards[i] = (ScoreBoard_0046bce0*)GameAllocIgnoreTag(name, 0xc);
+        if (g_onlineReportScoreBoards[i] == 0) {
             failed = 1;
             break;
         }
         wsprintfA(name, "ppScores%d", i);
-        DAT_0051e57c[i]->ppScores = GameAllocIgnoreTag(name, 0x24);
-        if (DAT_0051e57c[i]->ppScores == 0) {
+        g_onlineReportScoreBoards[i]->ppScores = GameAllocIgnoreTag(name, 0x24);
+        if (g_onlineReportScoreBoards[i]->ppScores == 0) {
             failed = 1;
             break;
         }
-        memset(DAT_0051e57c[i]->ppScores, 0, 0x24);
+        memset(g_onlineReportScoreBoards[i]->ppScores, 0, 0x24);
         wsprintfA(name, "Scores%d", i);
         g_onlineReportScores[i] = (char*)GameAllocIgnoreTag(name, 0x48);
         if (g_onlineReportScores[i] == 0) {
@@ -140,7 +140,7 @@ int AllocScoreTables()
             break;
         }
         memset(g_onlineReportScores[i], 0, 0x48);
-        int** slot = (int**)DAT_0051e57c[i]->ppScores;
+        int** slot = (int**)g_onlineReportScoreBoards[i]->ppScores;
         int j = 0;
         while (1) {
             if (j >= 0x48)
@@ -172,7 +172,7 @@ int __stdcall EnableReporter(int param_1)
 // FUNCTION: 0x46bf20
 bool IsReporterDllLoaded()
 {
-    return DAT_0051e58c != 0;
+    return g_reporterDll != 0;
 }
 
 // Brings up the network session and the remote console. Copies the service
@@ -207,38 +207,38 @@ int __stdcall LoadReporterDll(int* param_1, int param_2)
         return 2;
     }
 
-    DAT_0051e590 = 1;
+    g_hapinetOnlineReport = 1;
     RISetCallbacks((int)ReportGameEventCallback, (int)ShowGameMessage);
 
-    if (DAT_0051e58c == 0) {
-        DAT_0051e58c = LoadLibraryA("reporter.dll");
-        if (DAT_0051e58c != 0) {
+    if (g_reporterDll == 0) {
+        g_reporterDll = LoadLibraryA("reporter.dll");
+        if (g_reporterDll != 0) {
             // Nested, so the cleanup is the fall-through out of all eight: a goto
             // target would be laid out before the block below.
-            g_riEnable = (EnableFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RIEnable@4");
+            g_riEnable = (EnableFn_0046bf30)GetProcAddress(g_reporterDll, "_RIEnable@4");
             if (g_riEnable != 0) {
-                g_riGetVersion = (VersionFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RIGetVersion@4");
+                g_riGetVersion = (VersionFn_0046bf30)GetProcAddress(g_reporterDll, "_RIGetVersion@4");
                 if (g_riGetVersion != 0) {
-                    g_riInitializeEx = (InitFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RIInitializeEx@8");
+                    g_riInitializeEx = (InitFn_0046bf30)GetProcAddress(g_reporterDll, "_RIInitializeEx@8");
                     if (g_riInitializeEx != 0) {
-                        DAT_0051e584 = (ReportFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RIReport@40");
-                        if (DAT_0051e584 != 0) {
-                            g_riReportGameChat = (ChatFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RIReportGameChat@8");
+                        g_riReport = (ReportFn_0046bf30)GetProcAddress(g_reporterDll, "_RIReport@40");
+                        if (g_riReport != 0) {
+                            g_riReportGameChat = (ChatFn_0046bf30)GetProcAddress(g_reporterDll, "_RIReportGameChat@8");
                             if (g_riReportGameChat != 0) {
-                                g_riSetCallbacks = (SetCbFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RISetCallbacks@8");
+                                g_riSetCallbacks = (SetCbFn_0046bf30)GetProcAddress(g_reporterDll, "_RISetCallbacks@8");
                                 if (g_riSetCallbacks != 0) {
-                                    DAT_0051e580 = (TimerFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RIIntervalTimer@0");
-                                    if (DAT_0051e580 != 0) {
-                                        g_riTerminate = (TermFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RITerminate@0");
+                                    g_riIntervalTimer = (TimerFn_0046bf30)GetProcAddress(g_reporterDll, "_RIIntervalTimer@0");
+                                    if (g_riIntervalTimer != 0) {
+                                        g_riTerminate = (TermFn_0046bf30)GetProcAddress(g_reporterDll, "_RITerminate@0");
                                         if (g_riTerminate != 0) {
                                             if (g_riGetVersion("Total Annihilation") != 0) {
                                                 g_riTerminate();
-                                                FreeLibrary(DAT_0051e58c);
-                                                DAT_0051e58c = 0;
+                                                FreeLibrary(g_reporterDll);
+                                                g_reporterDll = 0;
                                             } else if (g_riInitializeEx(param_1, param_2) == 4) {
                                                 g_riTerminate();
-                                                FreeLibrary(DAT_0051e58c);
-                                                DAT_0051e58c = 0;
+                                                FreeLibrary(g_reporterDll);
+                                                g_reporterDll = 0;
                                             } else {
                                                 g_riSetCallbacks(ReportGameEventCallback, ShowGameMessage);
                                             }
@@ -251,15 +251,15 @@ int __stdcall LoadReporterDll(int* param_1, int param_2)
                     }
                 }
             }
-            FreeLibrary(DAT_0051e58c);
-            DAT_0051e58c = 0;
+            FreeLibrary(g_reporterDll);
+            g_reporterDll = 0;
             return 2;
         } else {
             *param_1 = 0;
         }
     }
 tail:
-    if (DAT_0051e58c != 0 || DAT_0051e590 != 0) {
+    if (g_reporterDll != 0 || g_hapinetOnlineReport != 0) {
         return 0;
     }
 four:
@@ -269,23 +269,23 @@ four:
 // FUNCTION: 0x46c190
 void ShutdownScoreTables()
 {
-    DAT_0051e590 = 0;
+    g_hapinetOnlineReport = 0;
     RISetCallbacks(0, 0);
-    if (DAT_0051e58c != 0) {
+    if (g_reporterDll != 0) {
         HAPINET_uninitmultiplay(g_game->session);
         if (g_riTerminate != 0)
             g_riTerminate();
-        FreeLibrary(DAT_0051e58c);
-        DAT_0051e58c = 0;
+        FreeLibrary(g_reporterDll);
+        g_reporterDll = 0;
     }
     for (int i = 0; i < 10; i++) {
         if (g_onlineReportPlayers != 0) {
             GameFreeThunk(g_onlineReportPlayers[i]->allies);
             GameFreeThunk(g_onlineReportPlayers[i]);
         }
-        if (DAT_0051e57c != 0) {
-            GameFreeThunk(DAT_0051e57c[i]->ppScores);
-            GameFreeThunk(DAT_0051e57c[i]);
+        if (g_onlineReportScoreBoards != 0) {
+            GameFreeThunk(g_onlineReportScoreBoards[i]->ppScores);
+            GameFreeThunk(g_onlineReportScoreBoards[i]);
         }
         if (g_onlineReportScores != 0) {
             GameFreeThunk(g_onlineReportScores[i]);
@@ -295,9 +295,9 @@ void ShutdownScoreTables()
         GameFreeThunk(g_onlineReportPlayers);
         g_onlineReportPlayers = 0;
     }
-    if (DAT_0051e57c != 0) {
-        GameFreeThunk(DAT_0051e57c);
-        DAT_0051e57c = 0;
+    if (g_onlineReportScoreBoards != 0) {
+        GameFreeThunk(g_onlineReportScoreBoards);
+        g_onlineReportScoreBoards = 0;
     }
     if (g_onlineReportScores != 0) {
         GameFreeThunk(g_onlineReportScores);

@@ -195,10 +195,10 @@ extern char* DAT_005091c8;
 extern char DAT_005119b8[];
 extern const char g_invalidSavegameText[]; // "Invalid savegame file"
 extern char g_savegameRadarFrame[];
-extern char* DAT_0051f2e0;
-extern char* DAT_0051f2e4;
-extern char* DAT_0051f2e8;
-extern char* DAT_0051f2ec;
+extern char* g_savegameFileNames;
+extern char* g_savegameDescs;
+extern char* g_savegameSideList;
+extern char* g_savegameRadarPreview;
 
 void __stdcall MarkChanged(Menu_00491ec0* menu);
 Entry_00491ec0* __stdcall FindGadgetChecked(Entry_00491ec0* entries, char* name);
@@ -297,23 +297,23 @@ void __stdcall ShowSavedGameInfo()
 
     char* desc;
     if (games->field_ba > -1
-        && (desc = SkipTextLines(DAT_0051f2e4, games->field_ba)) != 0
+        && (desc = SkipTextLines(g_savegameDescs, games->field_ba)) != 0
         && strlen(desc) != 0) {
         SetGadgetText(menu, index, desc);
-        char* fname = SkipTextLines(DAT_0051f2e0, games->field_ba);
+        char* fname = SkipTextLines(g_savegameFileNames, games->field_ba);
         sprintf(path, "%s\\%s", DAT_005091c8, fname);
         HapiBank* file = OpenSummaryBank(path);
         if (file != 0) {
             file->OpenNamedBox("Radar Image");
             Entry_00491ec0* radar = FindGadgetChecked_E(menu->layer->entries, "RADAR");
-            if (DAT_0051f2ec != 0)
-                FreeSurface(DAT_0051f2ec);
-            DAT_0051f2ec = (char*)LoadSurface(file);
-            if (DAT_0051f2ec != 0) {
-                FrameFromSurface(g_savegameRadarFrame, DAT_0051f2ec);
+            if (g_savegameRadarPreview != 0)
+                FreeSurface(g_savegameRadarPreview);
+            g_savegameRadarPreview = (char*)LoadSurface(file);
+            if (g_savegameRadarPreview != 0) {
+                FrameFromSurface(g_savegameRadarFrame, g_savegameRadarPreview);
                 radar->field_c2 = g_savegameRadarFrame;
             }
-            SetGadgetActiveByName(menu, "RADAR", DAT_0051f2ec != 0);
+            SetGadgetActiveByName(menu, "RADAR", g_savegameRadarPreview != 0);
 
             int players = file->GetIntegerItem("Players", 0);
             gametype = file->GetIntegerItem("Gametype", 0);
@@ -355,9 +355,9 @@ void __stdcall ShowSavedGameInfo()
                     time / 30 % 60);
             SetTranslatedTextByName(menu, "TIME", name, 0);
 
-            if (DAT_0051f2e8 != 0) {
+            if (g_savegameSideList != 0) {
                 int side = file->GetIntegerItem("Side", 0);
-                strcpy(name, SkipTextLines(DAT_0051f2e8, side));
+                strcpy(name, SkipTextLines(g_savegameSideList, side));
             } else {
                 strcpy(name, "???");
             }
@@ -409,18 +409,18 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
     if (IsCurrentGadgetNamed(gadget, "CANCEL")) {
         if (g_game->flags_2a44.b2)
             DisableKeyCommands(g_game->message);
-        if (DAT_0051f2e0)
-            GameFreeThunk(DAT_0051f2e0);
-        if (DAT_0051f2e4)
-            GameFreeThunk(DAT_0051f2e4);
-        if (DAT_0051f2e8)
-            GameFreeThunk(DAT_0051f2e8);
-        DAT_0051f2e8 = 0;
-        DAT_0051f2e4 = 0;
-        DAT_0051f2e0 = 0;
-        if (DAT_0051f2ec)
-            GameFreeThunk(DAT_0051f2ec);
-        DAT_0051f2ec = 0;
+        if (g_savegameFileNames)
+            GameFreeThunk(g_savegameFileNames);
+        if (g_savegameDescs)
+            GameFreeThunk(g_savegameDescs);
+        if (g_savegameSideList)
+            GameFreeThunk(g_savegameSideList);
+        g_savegameSideList = 0;
+        g_savegameDescs = 0;
+        g_savegameFileNames = 0;
+        if (g_savegameRadarPreview)
+            GameFreeThunk(g_savegameRadarPreview);
+        g_savegameRadarPreview = 0;
         PlaySoundByName("Previous", 0);
         return;
     }
@@ -430,7 +430,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         return;
     }
     Entry_00492360* e = FindGadgetChecked(entries, "GAMES");
-    sprintf(buf, "%s\\%s", DAT_005091c8, SkipTextLines(DAT_0051f2e0, e->field_ba));
+    sprintf(buf, "%s\\%s", DAT_005091c8, SkipTextLines(g_savegameFileNames, e->field_ba));
     void* save = OpenSummaryBank(buf);
     if (save != 0) {
         int type = ((HapiBank*)save)->GetIntegerItem("Gametype", 0);
@@ -468,7 +468,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         PlaySoundByName("SMLBUTTON", 0);
         e = FindGadgetChecked(entries, "GAMES");
         sprintf(g_game->saveName, "%s\\%s", DAT_005091c8,
-                SkipTextLines(DAT_0051f2e0, e->field_ba));
+                SkipTextLines(g_savegameFileNames, e->field_ba));
         if (g_game->flags_2a44.b2)
             ShutdownIngameSystems();
         g_game->flags_3923b.b3 = 1;
@@ -523,18 +523,18 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         g_game->mode = 2;
         g_game->handler = MenuFrame;
         SetCloseHandler(LeaveNetGameCallback, 0);
-        if (DAT_0051f2e0)
-            GameFreeThunk(DAT_0051f2e0);
-        if (DAT_0051f2e4)
-            GameFreeThunk(DAT_0051f2e4);
-        if (DAT_0051f2e8)
-            GameFreeThunk(DAT_0051f2e8);
-        DAT_0051f2e8 = 0;
-        DAT_0051f2e4 = 0;
-        DAT_0051f2e0 = 0;
-        if (DAT_0051f2ec)
-            GameFreeThunk(DAT_0051f2ec);
-        DAT_0051f2ec = 0;
+        if (g_savegameFileNames)
+            GameFreeThunk(g_savegameFileNames);
+        if (g_savegameDescs)
+            GameFreeThunk(g_savegameDescs);
+        if (g_savegameSideList)
+            GameFreeThunk(g_savegameSideList);
+        g_savegameSideList = 0;
+        g_savegameDescs = 0;
+        g_savegameFileNames = 0;
+        if (g_savegameRadarPreview)
+            GameFreeThunk(g_savegameRadarPreview);
+        g_savegameRadarPreview = 0;
         PopUntilNamedLayout(1);
         if (g_game->mapInfo->GetGameType() == 1 &&
             ((HapiBank*)g_game->p38d6b)->HasItem("BetweenMissions")) {
@@ -583,15 +583,15 @@ char* __stdcall ListSavedGames(int* count)
         ConfigureListBoxByName(g_game->menu, "GAMES", DAT_005119b8, 0, 0);
         return 0;
     }
-    DAT_0051f2e0 = (char*)GameAllocIgnoreTag("SAVEGAME NAMES", *count << 8);
-    DAT_0051f2e4 = (char*)GameAllocIgnoreTag("SAVEGAME DESCS", *count << 6);
-    memset(DAT_0051f2e4, 0, *count << 6);
-    memset(DAT_0051f2e0, 0, *count << 8);
-    ScanDirectory(buf, DAT_0051f2e0, 0, 0, 0, 1);
-    dp = DAT_0051f2e4;
+    g_savegameFileNames = (char*)GameAllocIgnoreTag("SAVEGAME NAMES", *count << 8);
+    g_savegameDescs = (char*)GameAllocIgnoreTag("SAVEGAME DESCS", *count << 6);
+    memset(g_savegameDescs, 0, *count << 6);
+    memset(g_savegameFileNames, 0, *count << 8);
+    ScanDirectory(buf, g_savegameFileNames, 0, 0, 0, 1);
+    dp = g_savegameDescs;
     found = 0;
     copy = (char*)GameAllocIgnoreTag("SAVEGAME2", *count << 8);
-    memcpy(copy, DAT_0051f2e0, *count << 8);
+    memcpy(copy, g_savegameFileNames, *count << 8);
     for (i = 0; i < *count; i++) {
         sprintf(buf, "%s\\%s", DAT_005091c8, SkipTextLines(copy, i));
         HapiBank* file = OpenSummaryBank(buf);
@@ -606,7 +606,7 @@ char* __stdcall ListSavedGames(int* count)
             file->CloseBank();
             delete file;
         } else {
-            char* d = SkipTextLines(DAT_0051f2e0, found);
+            char* d = SkipTextLines(g_savegameFileNames, found);
             for (int j = i + 1; j < *count; j++) {
                 char* next = SkipTextLines(copy, j);
                 strcpy(d, next);
@@ -615,9 +615,9 @@ char* __stdcall ListSavedGames(int* count)
         }
     }
     GameFreeThunk(copy);
-    ConfigureListBoxByName(g_game->menu, "GAMES", DAT_0051f2e4, found, 0);
+    ConfigureListBoxByName(g_game->menu, "GAMES", g_savegameDescs, found, 0);
     *count = found;
-    return found ? DAT_0051f2e0 : 0;
+    return found ? g_savegameFileNames : 0;
 }
 
 // FUNCTION: 0x492de0
@@ -638,18 +638,18 @@ void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
     Save_00492df0 save;
     if (gadget->selected == -1) {
         SetDescListCleanupFlag(gadget, 1);
-        if (DAT_0051f2e0)
-            GameFreeThunk(DAT_0051f2e0);
-        if (DAT_0051f2e4)
-            GameFreeThunk(DAT_0051f2e4);
-        if (DAT_0051f2e8)
-            GameFreeThunk(DAT_0051f2e8);
-        DAT_0051f2e8 = 0;
-        DAT_0051f2e4 = 0;
-        DAT_0051f2e0 = 0;
-        if (DAT_0051f2ec)
-            GameFreeThunk(DAT_0051f2ec);
-        DAT_0051f2ec = 0;
+        if (g_savegameFileNames)
+            GameFreeThunk(g_savegameFileNames);
+        if (g_savegameDescs)
+            GameFreeThunk(g_savegameDescs);
+        if (g_savegameSideList)
+            GameFreeThunk(g_savegameSideList);
+        g_savegameSideList = 0;
+        g_savegameDescs = 0;
+        g_savegameFileNames = 0;
+        if (g_savegameRadarPreview)
+            GameFreeThunk(g_savegameRadarPreview);
+        g_savegameRadarPreview = 0;
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "CANCEL")) {
@@ -661,7 +661,7 @@ void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
     if (IsCurrentGadgetNamed(gadget, "DELETE")) {
         PlaySoundByName("SmallButton", 0);
         Entry_00492df0* e = FindGadgetChecked(entries, "GAMES");
-        sprintf(save.path, "%s\\%s", DAT_005091c8, SkipTextLines(DAT_0051f2e0, e->field_ba));
+        sprintf(save.path, "%s\\%s", DAT_005091c8, SkipTextLines(g_savegameFileNames, e->field_ba));
         RemoveFile(save.path);
         ListSavedGames(&save.count);
         ClearSelectedGadget(gadget);
@@ -708,7 +708,7 @@ void ShowSaveGameScreen()
     }
     int index = FindGadgetIndex(layer->entries, "GAMENAME", 3);
     layer->entries[index].flags |= 2;
-    DAT_0051f2e8 = BuildSideList();
+    g_savegameSideList = BuildSideList();
     ShowSavedGameInfo();
     BeginTextEdit(&g_game->menu_00493060, index);
     SetKeyboardInput(&g_game->menu_00493060, 1);
@@ -733,8 +733,8 @@ void ShowLoadGameScreen()
                      0x140, 1, 1);
         return;
     }
-    DAT_0051f2e8 = BuildSideList();
-    ConfigureListBoxByName((char*)g_game + 0x519, "GAMES", DAT_0051f2e4, count, 0);
+    g_savegameSideList = BuildSideList();
+    ConfigureListBoxByName((char*)g_game + 0x519, "GAMES", g_savegameDescs, count, 0);
     SetGadgetActiveByName((char*)g_game + 0x519, "DELETE", 0);
     SetGadgetActiveByName((char*)g_game + 0x519, "GAMENAME", 0);
     Entry_004931d0* entry = FindGadgetChecked(gadget->info, "GAMES");

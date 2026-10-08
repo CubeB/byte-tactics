@@ -479,30 +479,30 @@ void RestoreScreen(void)
     d->useOverrideSurface = 0;
 }
 
-extern LONG DAT_0052a4e8;
-extern LONG DAT_0052a4ec;
-extern HANDLE DAT_0052a4f0;
+extern LONG g_gfxBlitLockHeld;
+extern LONG g_gfxBlitLockOwner;
+extern HANDLE g_gfxBlitLockEvent;
 
 static inline LONG Lock()
 {
     while (1) {
-        LONG r = InterlockedExchange(&DAT_0052a4e8, 0x4d41494e);
+        LONG r = InterlockedExchange(&g_gfxBlitLockHeld, 0x4d41494e);
         if (r == 0) {
-            DAT_0052a4ec = 0x4d41494e;
+            g_gfxBlitLockOwner = 0x4d41494e;
             return 0;
         }
-        if (DAT_0052a4ec == 0x4d41494e)
+        if (g_gfxBlitLockOwner == 0x4d41494e)
             return r;
-        WaitForSingleObject(DAT_0052a4f0, INFINITE);
+        WaitForSingleObject(g_gfxBlitLockEvent, INFINITE);
     }
 }
 
 static inline void Unlock(LONG held)
 {
     if (held == 0) {
-        DAT_0052a4ec = 0;
-        InterlockedExchange(&DAT_0052a4e8, 0);
-        SetEvent(DAT_0052a4f0);
+        g_gfxBlitLockOwner = 0;
+        InterlockedExchange(&g_gfxBlitLockHeld, 0);
+        SetEvent(g_gfxBlitLockEvent);
     }
 }
 

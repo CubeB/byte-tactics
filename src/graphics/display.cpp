@@ -199,9 +199,9 @@ extern Timer_4b63f0 g_timerSlots[10];
 extern int g_timerSlot0Interval;       // the interval field of the first slot
 extern int g_timerCount;
 extern unsigned int g_lastTimerTick;   // last tick count, in game ticks
-extern LONG DAT_0052a4e8;
-extern LONG DAT_0052a4ec;
-extern HANDLE DAT_0052a4f0;
+extern LONG g_gfxBlitLockHeld;
+extern LONG g_gfxBlitLockOwner;
+extern HANDLE g_gfxBlitLockEvent;
 
 void SaveStartDirectory(void);
 void __stdcall SetCurrentMouseEvent(int* p);
@@ -475,7 +475,7 @@ int __stdcall GetDisplayModes(ModeList_004b5330* list)
 // Switches the display between DirectDraw full screen (mode != 0: cooperative
 // level, display mode, flipping primary with one back buffer, clipper, palette,
 // then redraws the saved picture) and a windowed GDI DIB section (mode == 0),
-// under the display lock at DAT_0052a4e8, and finally reloads the palette.
+// under the display lock at g_gfxBlitLockHeld, and finally reloads the palette.
 //
 // Takes the DC by reference: the original reloads it at the block head.
 static inline void FreeGdi_004b5510(App_4b5980 *d, HDC &dc)
@@ -502,17 +502,17 @@ int __stdcall SetFullScreen(int mode) {
     HRESULT hr;
 
     while (1) {
-        int result = InterlockedExchange(&DAT_0052a4e8, 0x4d41494e);
+        int result = InterlockedExchange(&g_gfxBlitLockHeld, 0x4d41494e);
         if (result == 0) {
-            DAT_0052a4ec = 0x4d41494e;
+            g_gfxBlitLockOwner = 0x4d41494e;
             lockResult = 0;
             break;
         }
-        if (DAT_0052a4ec == 0x4d41494e) {
+        if (g_gfxBlitLockOwner == 0x4d41494e) {
             lockResult = result;
             break;
         }
-        WaitForSingleObject(DAT_0052a4f0, INFINITE);
+        WaitForSingleObject(g_gfxBlitLockEvent, INFINITE);
     }
     d = g_display;
     DirectDrawState *dd = &d->draw;
@@ -612,17 +612,17 @@ int __stdcall SetFullScreen(int mode) {
 
     SetPaletteColors(g_display->entries, 0, 0x100);
     if (lockResult == 0) {
-        DAT_0052a4ec = 0;
-        InterlockedExchange(&DAT_0052a4e8, 0);
-        SetEvent(DAT_0052a4f0);
+        g_gfxBlitLockOwner = 0;
+        InterlockedExchange(&g_gfxBlitLockHeld, 0);
+        SetEvent(g_gfxBlitLockEvent);
     }
     return 1;
 
 fail:
     if (lockResult == 0) {
-        DAT_0052a4ec = 0;
-        InterlockedExchange(&DAT_0052a4e8, 0);
-        SetEvent(DAT_0052a4f0);
+        g_gfxBlitLockOwner = 0;
+        InterlockedExchange(&g_gfxBlitLockHeld, 0);
+        SetEvent(g_gfxBlitLockEvent);
     }
     return 0;
 }

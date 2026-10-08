@@ -842,7 +842,7 @@ void __stdcall ComputeUnitScriptChecksum(Def_0042a610* def)
 
 // The compiler-generated vector deleting destructor of the 12-byte class whose
 // constructor is 0x4c2ea0 and destructor 0x4c2eb0 (a global of this class,
-// DAT_0051f310, is built by 0x49e610 and destroyed by its atexit handler
+// g_tdfGlobalParser, is built by 0x49e610 and destroyed by its atexit handler
 // 0x49e630).
 //
 // The global below exists only to make the compiler emit the COMDAT here.

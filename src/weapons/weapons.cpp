@@ -3292,4 +3292,4 @@ char* __stdcall FindWeaponByName(char* name)
 // destructor it registers with atexit (0x49e630).
 // FUNCTION: 0x49e610 _$E5
 // FUNCTION: 0x49e630 _$E3
-TdfFile DAT_0051f310;
+TdfFile g_tdfGlobalParser;

@@ -204,12 +204,12 @@ typedef int (__stdcall *SendFn_0046c620)(int, Rect_0046c620*, void*, int, Name_0
 extern int g_onlineReportScores;
 extern Name_0046c620 g_reportPlayerName;
 extern int* g_onlineReportPlayers;
-extern void* DAT_0051e57c;
-extern SendFn_0046c620 DAT_0051e584;
-extern int DAT_0051e58c;
-extern int DAT_0051e590;
+extern void* g_onlineReportScoreBoards;
+extern SendFn_0046c620 g_riReport;
+extern int g_reporterDll;
+extern int g_hapinetOnlineReport;
 extern int g_reportFlags;
-extern void (*DAT_0051e580)(void);
+extern void (*g_riIntervalTimer)(void);
 extern int (__stdcall* g_riReportGameChat)(int, int);
 
 Rect_0046c620* __stdcall GetSessionGuidInstance(Net_4c97b0* p);
@@ -223,9 +223,9 @@ int __stdcall RIReportGameChat(int arg1, int arg2);
 // FUNCTION: 0x46c620
 int __stdcall ReportGameEvent(int msg)
 {
-    if (!DAT_0051e590 && !DAT_0051e58c)
+    if (!g_hapinetOnlineReport && !g_reporterDll)
         return 4;
-    if (!g_onlineReportPlayers || !DAT_0051e57c || !g_onlineReportScores)
+    if (!g_onlineReportPlayers || !g_onlineReportScoreBoards || !g_onlineReportScores)
         return 1;
 
     Rect_0046c620 rect = *GetSessionGuidInstance(&g_game->net);
@@ -240,7 +240,7 @@ int __stdcall ReportGameEvent(int msg)
 
     int id = FillScoreTables();
 
-    if (DAT_0051e590) {
+    if (g_hapinetOnlineReport) {
         if (msg == 1 || msg == 6 || msg == 7)
             g_reportFlags = QueryOnlineFlags(msg == 1 ? 1 : 2 + (msg != 6));
         if (g_reportFlags & 3) {
@@ -249,16 +249,16 @@ int __stdcall ReportGameEvent(int msg)
             int team = (int)g_game->mapInfo->GetMissionName();
             if (RIReport(msg, &rect, (char*)&g_game->field_39201, thing, &g_reportPlayerName,
                              team, g_game->player,
-                             id, g_onlineReportPlayers, DAT_0051e57c))
-                DAT_0051e590 = 0;
+                             id, g_onlineReportPlayers, g_onlineReportScoreBoards))
+                g_hapinetOnlineReport = 0;
         }
     }
 
-    if (DAT_0051e58c) {
+    if (g_reporterDll) {
         int team = (int)g_game->mapInfo->GetMissionName();
-        DAT_0051e584(msg, &rect, (char*)&g_game->field_39201, thing, &g_reportPlayerName,
+        g_riReport(msg, &rect, (char*)&g_game->field_39201, thing, &g_reportPlayerName,
                      team, g_game->player,
-                     id, g_onlineReportPlayers, DAT_0051e57c);
+                     id, g_onlineReportPlayers, g_onlineReportScoreBoards);
     }
 
     return 0;
@@ -267,13 +267,13 @@ int __stdcall ReportGameEvent(int msg)
 // FUNCTION: 0x46c810
 int __stdcall ReportGameChat(int msg)
 {
-    if ((DAT_0051e590 != 0 && (g_reportFlags & 8)) || DAT_0051e58c != 0) {
+    if ((g_hapinetOnlineReport != 0 && (g_reportFlags & 8)) || g_reporterDll != 0) {
         FillScoreTables();
-        if (DAT_0051e590 != 0 && (g_reportFlags & 8)) {
+        if (g_hapinetOnlineReport != 0 && (g_reportFlags & 8)) {
             if (RIReportGameChat(g_onlineReportPlayers[g_game->player], msg))
-                DAT_0051e590 = 0;
+                g_hapinetOnlineReport = 0;
         }
-        if (DAT_0051e58c != 0)
+        if (g_reporterDll != 0)
             return g_riReportGameChat(g_onlineReportPlayers[g_game->player], msg);
         return 0;
     }
@@ -283,8 +283,8 @@ int __stdcall ReportGameChat(int msg)
 // FUNCTION: 0x46c8b0
 void ReportIntervalTimer(void)
 {
-    if (DAT_0051e58c) {
-        DAT_0051e580();
+    if (g_reporterDll) {
+        g_riIntervalTimer();
     }
 }
 

@@ -13,19 +13,19 @@
 #include <math.h>
 
 struct Node_004d0b10;
-extern Node_004d0b10* DAT_00526ff0;
-extern char* DAT_00526ff4;
+extern Node_004d0b10* g_squashDictTree;
+extern char* g_squashWindow;
 
 // Frees the window buffer allocated by 0x4d0a70.
 // FUNCTION: 0x4d0ab0
 int __cdecl LzssFreeWindow(void)
 {
-    if (DAT_00526ff4 == 0) {
+    if (g_squashWindow == 0) {
         printf("Hey!  The window buffer ptr is not pointing to anything!\n");
         return -1;
     }
-    free(DAT_00526ff4);
-    DAT_00526ff4 = 0;
+    free(g_squashWindow);
+    g_squashWindow = 0;
     return 0;
 }
 
@@ -33,12 +33,12 @@ int __cdecl LzssFreeWindow(void)
 // FUNCTION: 0x4d0ae0
 int LzssFreeTree()
 {
-    if (DAT_00526ff0 == 0) {
+    if (g_squashDictTree == 0) {
         printf("Hey!  The tree ptr is not pointing to anything!\n");
         return -1;
     }
-    free(DAT_00526ff0);
-    DAT_00526ff0 = 0;
+    free(g_squashDictTree);
+    g_squashDictTree = 0;
     return 0;
 }
 
@@ -54,12 +54,12 @@ struct Node_004d0b10 {
 // FUNCTION: 0x4d0b10
 void __stdcall LzssContractNode(int oldNode, int newNode)
 {
-    DAT_00526ff0[newNode].parent = DAT_00526ff0[oldNode].parent;
-    if (DAT_00526ff0[DAT_00526ff0[oldNode].parent].larger == (unsigned short)oldNode)
-        DAT_00526ff0[DAT_00526ff0[oldNode].parent].larger = newNode;
+    g_squashDictTree[newNode].parent = g_squashDictTree[oldNode].parent;
+    if (g_squashDictTree[g_squashDictTree[oldNode].parent].larger == (unsigned short)oldNode)
+        g_squashDictTree[g_squashDictTree[oldNode].parent].larger = newNode;
     else
-        DAT_00526ff0[DAT_00526ff0[oldNode].parent].smaller = newNode;
-    DAT_00526ff0[oldNode].parent = 0;
+        g_squashDictTree[g_squashDictTree[oldNode].parent].smaller = newNode;
+    g_squashDictTree[oldNode].parent = 0;
 }
 
 // The original calls these four out of line from LzssCompress; in one file
@@ -73,15 +73,15 @@ void __stdcall LzssContractNode(int oldNode, int newNode)
 // FUNCTION: 0x4d0b80
 void __stdcall LzssReplaceNode(int oldNode, int newNode)
 {
-    int parent = DAT_00526ff0[oldNode].parent;
-    if (DAT_00526ff0[parent].smaller == (unsigned short)oldNode)
-        DAT_00526ff0[parent].smaller = newNode;
+    int parent = g_squashDictTree[oldNode].parent;
+    if (g_squashDictTree[parent].smaller == (unsigned short)oldNode)
+        g_squashDictTree[parent].smaller = newNode;
     else
-        DAT_00526ff0[parent].larger = newNode;
-    DAT_00526ff0[newNode] = DAT_00526ff0[oldNode];
-    DAT_00526ff0[DAT_00526ff0[newNode].smaller].parent = newNode;
-    DAT_00526ff0[DAT_00526ff0[newNode].larger].parent = newNode;
-    DAT_00526ff0[oldNode].parent = 0;
+        g_squashDictTree[parent].larger = newNode;
+    g_squashDictTree[newNode] = g_squashDictTree[oldNode];
+    g_squashDictTree[g_squashDictTree[newNode].smaller].parent = newNode;
+    g_squashDictTree[g_squashDictTree[newNode].larger].parent = newNode;
+    g_squashDictTree[oldNode].parent = 0;
 }
 
 // Follows the chain from entry index's smaller child to the last record.
@@ -92,7 +92,7 @@ int __stdcall LzssFindNextNode(int index)
 {
     unsigned int cur;
     unsigned short nxt;
-    for (cur = DAT_00526ff0[index].smaller; (nxt = DAT_00526ff0[cur].larger) != 0; cur = nxt) {
+    for (cur = g_squashDictTree[index].smaller; (nxt = g_squashDictTree[cur].larger) != 0; cur = nxt) {
     }
     return cur;
 }
@@ -109,52 +109,52 @@ void __stdcall LzssDeleteString(int t);
 // FUNCTION: 0x4d0c50
 void __stdcall LzssDeleteString(int t)
 {
-    if (DAT_00526ff0[t].parent == 0) {
+    if (g_squashDictTree[t].parent == 0) {
         return;
     }
-    if (DAT_00526ff0[t].larger == 0) {
-        int q = DAT_00526ff0[t].smaller;
-        DAT_00526ff0[q].parent = DAT_00526ff0[t].parent;
-        if (DAT_00526ff0[DAT_00526ff0[t].parent].larger == (unsigned short)t) {
-            DAT_00526ff0[DAT_00526ff0[t].parent].larger = q;
+    if (g_squashDictTree[t].larger == 0) {
+        int q = g_squashDictTree[t].smaller;
+        g_squashDictTree[q].parent = g_squashDictTree[t].parent;
+        if (g_squashDictTree[g_squashDictTree[t].parent].larger == (unsigned short)t) {
+            g_squashDictTree[g_squashDictTree[t].parent].larger = q;
         } else {
-            DAT_00526ff0[DAT_00526ff0[t].parent].smaller = q;
+            g_squashDictTree[g_squashDictTree[t].parent].smaller = q;
         }
-        DAT_00526ff0[t].parent = 0;
+        g_squashDictTree[t].parent = 0;
         return;
     }
-    if (DAT_00526ff0[t].smaller == 0) {
-        int q = DAT_00526ff0[t].larger;
-        DAT_00526ff0[q].parent = DAT_00526ff0[t].parent;
-        if (DAT_00526ff0[DAT_00526ff0[t].parent].larger == (unsigned short)t) {
-            DAT_00526ff0[DAT_00526ff0[t].parent].larger = q;
+    if (g_squashDictTree[t].smaller == 0) {
+        int q = g_squashDictTree[t].larger;
+        g_squashDictTree[q].parent = g_squashDictTree[t].parent;
+        if (g_squashDictTree[g_squashDictTree[t].parent].larger == (unsigned short)t) {
+            g_squashDictTree[g_squashDictTree[t].parent].larger = q;
         } else {
-            DAT_00526ff0[DAT_00526ff0[t].parent].smaller = q;
+            g_squashDictTree[g_squashDictTree[t].parent].smaller = q;
         }
-        DAT_00526ff0[t].parent = 0;
+        g_squashDictTree[t].parent = 0;
         return;
     }
-    int q = DAT_00526ff0[t].smaller;
-    while (DAT_00526ff0[q].larger != 0) {
-        q = DAT_00526ff0[q].larger;
+    int q = g_squashDictTree[t].smaller;
+    while (g_squashDictTree[q].larger != 0) {
+        q = g_squashDictTree[q].larger;
     }
     LzssDeleteString(q);
-    if (DAT_00526ff0[DAT_00526ff0[t].parent].smaller == (unsigned short)t) {
-        DAT_00526ff0[DAT_00526ff0[t].parent].smaller = q;
+    if (g_squashDictTree[g_squashDictTree[t].parent].smaller == (unsigned short)t) {
+        g_squashDictTree[g_squashDictTree[t].parent].smaller = q;
     } else {
-        DAT_00526ff0[DAT_00526ff0[t].parent].larger = q;
+        g_squashDictTree[g_squashDictTree[t].parent].larger = q;
     }
-    DAT_00526ff0[q] = DAT_00526ff0[t];
-    DAT_00526ff0[DAT_00526ff0[q].smaller].parent = q;
-    DAT_00526ff0[DAT_00526ff0[q].larger].parent = q;
-    DAT_00526ff0[t].parent = 0;
+    g_squashDictTree[q] = g_squashDictTree[t];
+    g_squashDictTree[g_squashDictTree[q].smaller].parent = q;
+    g_squashDictTree[g_squashDictTree[q].larger].parent = q;
+    g_squashDictTree[t].parent = 0;
 }
 
 // LZSS tree walk (the same node layout as 0x4d0b80 and 0x4d0c50): walks the
-// 6 byte node array of DAT_00526ff0 (parent, smaller, larger) from the root
+// 6 byte node array of g_squashDictTree (parent, smaller, larger) from the root
 // node at 0x1000, comparing 17 window bytes at cur + n against pos + n and
 // keeping the longest run, then inserts or replaces a node. The window is the
-// 0x1011 byte buffer DAT_00526ff4 and every index is masked with 0xfff.
+// 0x1011 byte buffer g_squashWindow and every index is masked with 0xfff.
 // Keep <stdio.h> (or <windows.h>): it decides the tree addressing modes.
 // FUNCTION: 0x4d0de0
 int __stdcall LzssAddString(int pos, int* out)
@@ -162,12 +162,12 @@ int __stdcall LzssAddString(int pos, int* out)
     if (pos == 0)
         return 0;
     int best = 0;
-    int cur = DAT_00526ff0[0x1000].larger;
+    int cur = g_squashDictTree[0x1000].larger;
     for (;;) {
         int n, j, diff;
         for (n = 0, j = pos; n < 0x11; n++, j++) {
             // Index is (cur + n), not (cur - pos) + j: it fixes the registers.
-            diff = DAT_00526ff4[j & 0xfff] - DAT_00526ff4[(cur + n) & 0xfff];
+            diff = g_squashWindow[j & 0xfff] - g_squashWindow[(cur + n) & 0xfff];
             if (diff != 0)
                 break;
         }
@@ -175,28 +175,28 @@ int __stdcall LzssAddString(int pos, int* out)
             best = n;
             *out = cur;
             if (n >= 0x11) {
-                Node_004d0b10* par = &DAT_00526ff0[DAT_00526ff0[cur].parent];
+                Node_004d0b10* par = &g_squashDictTree[g_squashDictTree[cur].parent];
                 if (par->smaller == (unsigned short)cur)
                     par->smaller = pos;
                 else
                     par->larger = pos;
-                DAT_00526ff0[pos] = DAT_00526ff0[cur];
-                DAT_00526ff0[DAT_00526ff0[pos].smaller].parent = pos;
-                DAT_00526ff0[DAT_00526ff0[pos].larger].parent = pos;
-                DAT_00526ff0[cur].parent = 0;
+                g_squashDictTree[pos] = g_squashDictTree[cur];
+                g_squashDictTree[g_squashDictTree[pos].smaller].parent = pos;
+                g_squashDictTree[g_squashDictTree[pos].larger].parent = pos;
+                g_squashDictTree[cur].parent = 0;
                 return best;
             }
         }
         unsigned short* p;
         if (diff >= 0)
-            p = &DAT_00526ff0[cur].larger;
+            p = &g_squashDictTree[cur].larger;
         else
-            p = &DAT_00526ff0[cur].smaller;
+            p = &g_squashDictTree[cur].smaller;
         if (*p == 0) {
             *p = pos;
-            DAT_00526ff0[pos].parent = cur;
-            DAT_00526ff0[pos].larger = 0;
-            DAT_00526ff0[pos].smaller = 0;
+            g_squashDictTree[pos].parent = cur;
+            g_squashDictTree[pos].larger = 0;
+            g_squashDictTree[pos].smaller = 0;
             return best;
         }
         cur = *p;
@@ -213,8 +213,8 @@ int __stdcall LzssAddString(int pos, int* out)
 #include <io.h>
 #include <malloc.h>
 
-extern HANDLE DAT_0052a4f8;
-extern long DAT_0052a4fc;
+extern HANDLE g_squashThreadLockEvent;
+extern long g_squashThreadLockTicket;
 extern int g_lzssLockOwner;
 extern int g_lzssPresetReady;
 extern int g_lzssUsePreset;
@@ -239,7 +239,7 @@ int __stdcall LzssCompress(unsigned char *dest, unsigned char *src, int len) {
     int tid = (int)GetCurrentThreadId();
 
     while (1) {
-        int r = InterlockedExchange(&DAT_0052a4fc, tid);
+        int r = InterlockedExchange(&g_squashThreadLockTicket, tid);
         if (r == 0) {
             g_lzssLockOwner = tid;
             state.own = 0;
@@ -249,41 +249,41 @@ int __stdcall LzssCompress(unsigned char *dest, unsigned char *src, int len) {
             state.own = r;
             break;
         }
-        WaitForSingleObject(DAT_0052a4f8, -1);
+        WaitForSingleObject(g_squashThreadLockEvent, -1);
     }
     base = dest;
     end = src + len;
-    DAT_00526ff4 = (char *)calloc(1, 0x1011);
-    if (DAT_00526ff4 == 0) {
+    g_squashWindow = (char *)calloc(1, 0x1011);
+    if (g_squashWindow == 0) {
         printf("Could not alloc decompression window.\n");
         if (state.own == 0) {
             g_lzssLockOwner = 0;
-            InterlockedExchange(&DAT_0052a4fc, 0);
-            SetEvent(DAT_0052a4f8);
+            InterlockedExchange(&g_squashThreadLockTicket, 0);
+            SetEvent(g_squashThreadLockEvent);
         }
         return -1;
     }
-    DAT_00526ff0 = (Node_004d0b10 *)calloc(0x1001, 6);
-    if (DAT_00526ff0 == 0) {
+    g_squashDictTree = (Node_004d0b10 *)calloc(0x1001, 6);
+    if (g_squashDictTree == 0) {
         printf("Could not alloc compression tree.\n");
         if (state.own == 0) {
             g_lzssLockOwner = 0;
-            InterlockedExchange(&DAT_0052a4fc, 0);
-            SetEvent(DAT_0052a4f8);
+            InterlockedExchange(&g_squashThreadLockTicket, 0);
+            SetEvent(g_squashThreadLockEvent);
         }
         return -1;
     }
     state.pos = 1;
     if (g_lzssPresetReady != 0 && g_lzssUsePreset != 0) {
-        memcpy(DAT_00526ff4, g_lzssPresetWindow, 0x1011);
-        memcpy(DAT_00526ff0, g_lzssPresetTree, 0x6006);
+        memcpy(g_squashWindow, g_lzssPresetWindow, 0x1011);
+        memcpy(g_squashDictTree, g_lzssPresetTree, 0x6006);
     } else {
-        DAT_00526ff0[0x1000].parent = 0;
-        DAT_00526ff0[0x1000].larger = 1;
-        DAT_00526ff0[0x1000].smaller = 0;
-        DAT_00526ff0[1].parent = 0x1000;
-        DAT_00526ff0[1].larger = 0;
-        DAT_00526ff0[1].smaller = 0;
+        g_squashDictTree[0x1000].parent = 0;
+        g_squashDictTree[0x1000].larger = 1;
+        g_squashDictTree[0x1000].smaller = 0;
+        g_squashDictTree[1].parent = 0x1000;
+        g_squashDictTree[1].larger = 0;
+        g_squashDictTree[1].smaller = 0;
     }
     {
         int n0 = 0;
@@ -291,7 +291,7 @@ int __stdcall LzssCompress(unsigned char *dest, unsigned char *src, int len) {
         while (n0 < 0x11) {
             if (src >= end)
                 break;
-            { int k = n0 + 1; DAT_00526ff4[k] = *src++; }
+            { int k = n0 + 1; g_squashWindow[k] = *src++; }
             n0++;
         }
         state.count = n0;
@@ -308,7 +308,7 @@ int __stdcall LzssCompress(unsigned char *dest, unsigned char *src, int len) {
             state.cur = state.count;
         if (state.cur <= 1) {
             n = 1;
-            lit[mask] = DAT_00526ff4[state.pos];
+            lit[mask] = g_squashWindow[state.pos];
         } else {
             lenstack[mask] = (unsigned short)(((state.cur - 2) & 0xf) | (accum << 4));
             flags |= (unsigned char)mask;
@@ -331,11 +331,11 @@ int __stdcall LzssCompress(unsigned char *dest, unsigned char *src, int len) {
         }
         while (n > 0) {
                 int p17 = (state.pos + 0x11) & 0xfff;
-                if (DAT_00526ff0[p17].parent != 0) {
-                    if (DAT_00526ff0[p17].larger == 0) {
-                        LzssContractNode(p17, DAT_00526ff0[p17].smaller);
-                    } else if (DAT_00526ff0[p17].smaller == 0) {
-                        LzssContractNode(p17, DAT_00526ff0[p17].larger);
+                if (g_squashDictTree[p17].parent != 0) {
+                    if (g_squashDictTree[p17].larger == 0) {
+                        LzssContractNode(p17, g_squashDictTree[p17].smaller);
+                    } else if (g_squashDictTree[p17].smaller == 0) {
+                        LzssContractNode(p17, g_squashDictTree[p17].larger);
                     } else {
                         int q = LzssFindNextNode(p17);
                         LzssDeleteString(q);
@@ -345,7 +345,7 @@ int __stdcall LzssCompress(unsigned char *dest, unsigned char *src, int len) {
                 if (src >= end)
                     state.count--;
                 else
-                    DAT_00526ff4[(state.pos + 0x11) & 0xfff] = *src++;
+                    g_squashWindow[(state.pos + 0x11) & 0xfff] = *src++;
                 state.pos = (state.pos + 1) & 0xfff;
                 if (state.count != 0)
                     state.cur = LzssAddString(state.pos, &accum);
@@ -373,30 +373,30 @@ int __stdcall LzssCompress(unsigned char *dest, unsigned char *src, int len) {
             }
         }
     }
-    if (DAT_00526ff0 == 0) {
+    if (g_squashDictTree == 0) {
         printf("Hey!  The tree ptr is not pointing to anything!\n");
     } else {
-        free(DAT_00526ff0);
-        DAT_00526ff0 = 0;
+        free(g_squashDictTree);
+        g_squashDictTree = 0;
     }
-    if (DAT_00526ff4 == 0) {
+    if (g_squashWindow == 0) {
         printf("Hey!  The window buffer ptr is not pointing to anything!\n");
     } else {
-        free(DAT_00526ff4);
-        DAT_00526ff4 = 0;
+        free(g_squashWindow);
+        g_squashWindow = 0;
     }
     int written = (int)(dest - base);
     if (state.own == 0) {
         g_lzssLockOwner = 0;
-        InterlockedExchange(&DAT_0052a4fc, 0);
-        SetEvent(DAT_0052a4f8);
+        InterlockedExchange(&g_squashThreadLockTicket, 0);
+        SetEvent(g_squashThreadLockEvent);
     }
     return written;
 }
 
-// LZ decompressor. It first takes the window lock: a spinlock on DAT_0052a4fc
+// LZ decompressor. It first takes the window lock: a spinlock on g_squashThreadLockTicket
 // holding the owning thread id, with g_lzssLockOwner naming the owner and
-// DAT_0052a4f8 the event that releases the waiters. Then it allocates the
+// g_squashThreadLockEvent the event that releases the waiters. Then it allocates the
 // 0x1011 byte sliding window, and reloads it from the template at g_lzssPresetWindow
 // when the template was set up (g_lzssPresetReady) and the caller switched it on
 // (g_lzssUsePreset, set around each call by the net condenser through
@@ -420,7 +420,7 @@ int __stdcall LzssExpand(unsigned char* dest, unsigned char* src)
     unsigned mask;
     unsigned char flags;
     while (1) {
-        int r = InterlockedExchange(&DAT_0052a4fc, tid);
+        int r = InterlockedExchange(&g_squashThreadLockTicket, tid);
         if (r == 0) {
             g_lzssLockOwner = tid;
             own = 0;
@@ -430,21 +430,21 @@ int __stdcall LzssExpand(unsigned char* dest, unsigned char* src)
             own = r;
             break;
         }
-        WaitForSingleObject(DAT_0052a4f8, -1);
+        WaitForSingleObject(g_squashThreadLockEvent, -1);
     }
     base = dest;
-    DAT_00526ff4 = (char*)calloc(1, 0x1011);
-    if (DAT_00526ff4 == 0) {
+    g_squashWindow = (char*)calloc(1, 0x1011);
+    if (g_squashWindow == 0) {
         printf("Could not alloc decompression window.\n");
         if (own == 0) {
             g_lzssLockOwner = 0;
-            InterlockedExchange(&DAT_0052a4fc, 0);
-            SetEvent(DAT_0052a4f8);
+            InterlockedExchange(&g_squashThreadLockTicket, 0);
+            SetEvent(g_squashThreadLockEvent);
         }
         return -1;
     }
     if (g_lzssPresetReady && g_lzssUsePreset)
-        memcpy(DAT_00526ff4, g_lzssPresetWindow, 0x1011);
+        memcpy(g_squashWindow, g_lzssPresetWindow, 0x1011);
     pos = 1;
     flags = *src++;
     mask = 1;
@@ -453,7 +453,7 @@ int __stdcall LzssExpand(unsigned char* dest, unsigned char* src)
             unsigned char c = *src;
             *dest++ = c;
             src++;
-            DAT_00526ff4[pos] = c;
+            g_squashWindow[pos] = c;
             pos = (pos + 1) & 0xfff;
         } else {
             int w = *(unsigned short*)src;
@@ -463,9 +463,9 @@ int __stdcall LzssExpand(unsigned char* dest, unsigned char* src)
             if (dist == 0)
                 break;
             for (i = 0; i < len; i++) {
-                unsigned char c = DAT_00526ff4[(dist + i) & 0xfff];
+                unsigned char c = g_squashWindow[(dist + i) & 0xfff];
                 *dest++ = c;
-                DAT_00526ff4[pos] = c;
+                g_squashWindow[pos] = c;
                 pos = (pos + 1) & 0xfff;
             }
         }
@@ -475,17 +475,17 @@ int __stdcall LzssExpand(unsigned char* dest, unsigned char* src)
             flags = *src++;
         }
     }
-    if (DAT_00526ff4 == 0) {
+    if (g_squashWindow == 0) {
         printf("Hey!  The window buffer ptr is not pointing to anything!\n");
     } else {
-        free(DAT_00526ff4);
-        DAT_00526ff4 = 0;
+        free(g_squashWindow);
+        g_squashWindow = 0;
     }
     int n = (int)(dest - base);
     if (own == 0) {
         g_lzssLockOwner = 0;
-        InterlockedExchange(&DAT_0052a4fc, 0);
-        SetEvent(DAT_0052a4f8);
+        InterlockedExchange(&g_squashThreadLockTicket, 0);
+        SetEvent(g_squashThreadLockEvent);
     }
     return n;
 }
@@ -501,43 +501,43 @@ int __stdcall LzssSetPreset(unsigned char* src, int len)
     int n;
     int i;
 
-    DAT_00526ff4 = (char*)calloc(1, 0x1011);
-    if (DAT_00526ff4 == 0) {
+    g_squashWindow = (char*)calloc(1, 0x1011);
+    if (g_squashWindow == 0) {
         printf("Could not alloc decompression window.\n");
         return -1;
     }
-    DAT_00526ff0 = (Node_004d0b10*)calloc(0x1001, 6);
-    if (DAT_00526ff0 == 0) {
+    g_squashDictTree = (Node_004d0b10*)calloc(0x1001, 6);
+    if (g_squashDictTree == 0) {
         printf("Could not alloc compression tree.\n");
         return -1;
     }
     n = len;
     if (n > 4000)
         n = 4000;
-    DAT_00526ff0[0x1000].parent = 0;
-    DAT_00526ff0[0x1000].larger = 0x12;
-    DAT_00526ff0[0x1000].smaller = 0;
-    DAT_00526ff0[0x12].parent = 0x1000;
-    DAT_00526ff0[0x12].larger = 0;
-    DAT_00526ff0[0x12].smaller = 0;
-    memcpy(DAT_00526ff4 + 0x13, src, n);
-    memcpy(g_lzssPresetWindow, DAT_00526ff4, 0x1011);
+    g_squashDictTree[0x1000].parent = 0;
+    g_squashDictTree[0x1000].larger = 0x12;
+    g_squashDictTree[0x1000].smaller = 0;
+    g_squashDictTree[0x12].parent = 0x1000;
+    g_squashDictTree[0x12].larger = 0;
+    g_squashDictTree[0x12].smaller = 0;
+    memcpy(g_squashWindow + 0x13, src, n);
+    memcpy(g_lzssPresetWindow, g_squashWindow, 0x1011);
     for (i = 0; i < n; i++)
         LzssAddString(i + 0x13, &out);
-    memcpy(g_lzssPresetTree, DAT_00526ff0, 0x6006);
+    memcpy(g_lzssPresetTree, g_squashDictTree, 0x6006);
     g_lzssPresetReady = 1;
-    if (DAT_00526ff4 == 0) {
+    if (g_squashWindow == 0) {
         printf("Hey!  The window buffer ptr is not pointing to anything!\n");
     } else {
-        free(DAT_00526ff4);
-        DAT_00526ff4 = 0;
+        free(g_squashWindow);
+        g_squashWindow = 0;
     }
-    if (DAT_00526ff0 == 0) {
+    if (g_squashDictTree == 0) {
         printf("Hey!  The tree ptr is not pointing to anything!\n");
         return 0;
     }
-    free(DAT_00526ff0);
-    DAT_00526ff0 = 0;
+    free(g_squashDictTree);
+    g_squashDictTree = 0;
     return 0;
 }
 

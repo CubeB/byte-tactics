@@ -232,9 +232,9 @@ public:
     int GetBlitMode(SmackerSurface* unused);
 };
 
-extern int DAT_0051e688;
+extern int g_lastPlaceMetalSum;
 
-extern int DAT_0051e684;
+extern int g_lastPlaceHeight;
 
 // The constructor: opens the .smk file, hands the Smack library the game's
 // DirectSound object, then paints a black frame into the surface the player
@@ -516,11 +516,11 @@ void MoviePlayer::Play()
 // FUNCTION: 0x47c770
 int GetBuildSiteMetal(void)
 {
-    return DAT_0051e688;
+    return g_lastPlaceMetalSum;
 }
 
 // FUNCTION: 0x47c780
 int GetBuildSiteHeight(void)
 {
-    return DAT_0051e684;
+    return g_lastPlaceHeight;
 }

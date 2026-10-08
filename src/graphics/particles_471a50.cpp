@@ -24,7 +24,7 @@ public:
 };
 
 extern Class_00470ed0 g_particlePool;
-extern char DAT_0051e608;
+extern char g_fxEventPoolBlocked;
 
 // Vtable 0x4fd5a8, constructor 0x471cc0, destructor 0x471d00, ??_G 0x471cd0.
 class ParticleSystem {
@@ -39,7 +39,7 @@ public:
 
     static void* __stdcall operator new(size_t size)
     {
-        if (DAT_0051e608)
+        if (g_fxEventPoolBlocked)
             return 0;
         void* p = ((Class_00470eb0*)&g_particlePool)->AllocSlot(size);
         if (p)

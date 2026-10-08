@@ -1,13 +1,15 @@
 // Decompiled by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, ninth pass by space-bunny-free, finished by opus. Names are provisional.
 //
 // What the function does: a visibility test for one unit. It returns 1 at once
-// if the unit's map pointer (f96) is the map asked about, or 0 if flag 4 of the
-// unit's f10e is set. Otherwise it builds a 16.16 position from the unit's
-// position plus the def's offsets, bails out when the position is below the
-// game-wide limit, and then asks "is this point visible" four times: at p, at
-// p + (def->f176,0,0), at p + (f176,-f17a,f17e), and finally at p again. The
-// first three go through IsPointVisible unless the player's map flags say to use the
-// explored byte map instead; the fourth inlines the shared visibility bit mask.
+// What the function does: a visibility test for one unit. It returns 1 at once
+// if the unit's player pointer (player) is the map asked about, or 0 if flag 4
+// of the unit's activateFlags is set. Otherwise it builds a 16.16 position from
+// the unit's position plus the def's offsets, bails out when the position is
+// below the game-wide limit, and then asks "is this point visible" four times:
+// at p, at p + (def->f176,0,0), at p + (f176,-f17a,f17e), and finally at p
+// again. The first three go through IsPointVisible unless the player's map
+// flags say to use the explored byte map instead; the fourth inlines the shared
+// visibility bit mask.
 #pragma pack(push, 1)
 struct MapSize_00465ac0 {
     unsigned int width;
@@ -53,11 +55,11 @@ struct Unit {
     Vec3_00465ac0 pos;                   // +0x6a
     char unknown_76[0x92 - 0x76];
     UnitDef_00465ac0* def;               // +0x92
-    Map_00465ac0* f96;                   // +0x96
+    Map_00465ac0* player;                // +0x96
     char unknown_9a[0x10e - 0x9a];
-    unsigned char f10e;                  // +0x10e
+    unsigned char activateFlags;         // +0x10e
     char unknown_10f[0x110 - 0x10f];
-    unsigned int f110;                   // +0x110
+    unsigned int flags;                  // +0x110
 };
 struct Position_00465ac0 {              // 16.16 fixed point; only high words read
     short xFrac;
@@ -142,15 +144,15 @@ static inline int IsVisible3(Map_00465ac0* map, Position_00465ac0* pos)
 // FUNCTION: 0x465ac0
 int __stdcall IsUnitVisibleToPlayer(Map_00465ac0* map, Unit* u)
 {
-    if (u->f96 == map)
+    if (u->player == map)
         return 1;
-    if (u->f10e & 4)
+    if (u->activateFlags & 4)
         return 0;
     Pos_00465ac0 p;
     p.x = u->def->f15e + u->pos.x;
     p.y = u->def->f16e + u->pos.y;
     p.z = u->def->f166 + u->pos.z;
-    if (!(u->f110 & 0x200)) {
+    if (!(u->flags & 0x200)) {
         if (p.y < (g_game->limitY << 16))
             return 0;
     }

@@ -82,13 +82,13 @@ struct Unit {
     char unknown_5c[0x92 - 0x5c];
     UnitDef_00401360* def;             // +0x92
     char unknown_96[0xb0 - 0x96];
-    unsigned int nextTick;             // +0xb0
+    unsigned int workTime;             // +0xb0
     char unknown_b4[0xbc - 0xb4];
-    Econ_00401360 econ;                // +0xbc (owner at +0xec)
+    Econ_00401360 resourceSlot;        // +0xbc (owner at +0xec)
     char unknown_f0[0x104 - 0xf0];
     float buildLeft;                   // +0x104
     char unknown_108[0x10e - 0x108];
-    unsigned char flags10e;            // +0x10e
+    unsigned char activateFlags;       // +0x10e
     char unknown_10f;
     union {
         unsigned int flags;            // +0x110
@@ -191,7 +191,7 @@ void __stdcall SettleResourceAccount(Res_00401360* r, float ratioBacklog, float 
 
 static inline void AddIncome(Unit* u, float* dst, float v)
 {
-    Player_00401360* o = u->econ.owner;
+    Player_00401360* o = u->resourceSlot.owner;
     if (o->active && o->type == 2) {
         switch (g_game->difficulty) {
         case 0:
@@ -210,7 +210,7 @@ static inline void AddIncome(Unit* u, float* dst, float v)
 
 static inline void AddIncomeD(Unit* u, float* dst, double v)
 {
-    Player_00401360* o = u->econ.owner;
+    Player_00401360* o = u->resourceSlot.owner;
     if (o->active && o->type == 2) {
         switch (g_game->difficulty) {
         case 0:
@@ -231,7 +231,7 @@ static inline void AddIncomeD(Unit* u, float* dst, double v)
 // else branch (see the top).
 static inline void AddIncomeDB(Unit* u, float* dst, double v)
 {
-    Player_00401360* o = u->econ.owner;
+    Player_00401360* o = u->resourceSlot.owner;
     if (o->active && o->type == 2) {
         switch (g_game->difficulty) {
         case 0:
@@ -251,7 +251,7 @@ static inline void AddIncomeDB(Unit* u, float* dst, double v)
 // Takes a double but adds (float)v: its case blocks merge into the else branch's.
 static inline void AddIncomeW(Unit* u, float* dst, double v)
 {
-    Player_00401360* o = u->econ.owner;
+    Player_00401360* o = u->resourceSlot.owner;
     if (o->active && o->type == 2) {
         switch (g_game->difficulty) {
         case 0:
@@ -271,11 +271,11 @@ static inline void AddIncomeW(Unit* u, float* dst, double v)
 static int Use_00401180(Unit* u, float amount)
 {
     // The used store goes through a float*: else the backlog compare is scheduled above it.
-    float* used = &u->econ.res[0].used;
+    float* used = &u->resourceSlot.res[0].used;
     *used += amount;
-    if (u->econ.res[0].backlog > 0.0f)
+    if (u->resourceSlot.res[0].backlog > 0.0f)
         return 0;
-    u->econ.res[0].demand += amount;
+    u->resourceSlot.res[0].demand += amount;
     return 1;
 }
 
@@ -283,7 +283,7 @@ static int UseEnergy(Unit* u, float v)
 {
     if (v >= 0)
         return Use_00401180(u, v);
-    AddIncome(u, &u->econ.res[0].produced, -v);
+    AddIncome(u, &u->resourceSlot.res[0].produced, -v);
     return 0;
 }
 
@@ -293,14 +293,14 @@ static int UseEnergyD(Unit* u, float v)
 {
     if (v >= 0) {
         double a = v;
-        float* used = &u->econ.res[0].used;
+        float* used = &u->resourceSlot.res[0].used;
         *used += v;
-        if (u->econ.res[0].backlog > 0.0f)
+        if (u->resourceSlot.res[0].backlog > 0.0f)
             return 0;
-        u->econ.res[0].demand += (float)a;
+        u->resourceSlot.res[0].demand += (float)a;
         return 1;
     }
-    AddIncomeDB(u, &u->econ.res[0].produced, -v);
+    AddIncomeDB(u, &u->resourceSlot.res[0].produced, -v);
     return 0;
 }
 
@@ -332,47 +332,47 @@ void __stdcall UpdatePlayerEconomy(Player_00401360* p)
         if (!(u->flags & 0x10000000))
             continue;
         if (u->flags & 0x20000000) {
-            if (u->flags10e & 1) {
+            if (u->activateFlags & 1) {
                 int ok = UseEnergy(u, u->def->energyUse);
                 if (u->def->extractsMetal > 0) {
                     if (ok)
-                        AddIncome(u, &u->econ.res[1].produced, u->extraction);
+                        AddIncome(u, &u->resourceSlot.res[1].produced, u->extraction);
                 } else if (u->def->makesMetal) {
                     if (ok)
-                        AddIncome(u, &u->econ.res[1].produced, u->def->makesMetal);
+                        AddIncome(u, &u->resourceSlot.res[1].produced, u->def->makesMetal);
                 } else if (u->def->windGenerator > 0) {
-                    AddIncomeW(u, &u->econ.res[0].produced, g_game->wind * u->def->windGenerator);
+                    AddIncomeW(u, &u->resourceSlot.res[0].produced, g_game->wind * u->def->windGenerator);
                 } else if (u->def->tidalGenerator > 0) {
-                    AddIncomeDB(u, &u->econ.res[0].produced, g_game->tidal * u->def->tidalGenerator);
+                    AddIncomeDB(u, &u->resourceSlot.res[0].produced, g_game->tidal * u->def->tidalGenerator);
                 }
             }
-        } else if ((u->flags10e & 1) || (u->flags & 0xc) > 0) {
+        } else if ((u->activateFlags & 1) || (u->flags & 0xc) > 0) {
             UseEnergyD(u, u->def->energyUse);
         }
         if (u->buildLeft == 0) {
-            AddIncomeD(u, &u->econ.res[0].produced, u->def->energyMake);
-            AddIncome(u, &u->econ.res[1].produced, u->def->metalMake);
+            AddIncomeD(u, &u->resourceSlot.res[0].produced, u->def->energyMake);
+            AddIncome(u, &u->resourceSlot.res[1].produced, u->def->metalMake);
             p->storage[1] += u->def->metalStorage;
             p->storage[0] += u->def->energyStorage;
         }
         if (!(p->active && p->type == 3)) {
             if (u->bit11) {
-                if (!(u->flags & 0x1000) && u->nextTick <= g_game->ticks) {
+                if (!(u->flags & 0x1000) && u->workTime <= g_game->ticks) {
                     int cost = (int)((u->flags & 0xc) > 0 ? u->def->costActive : u->def->cost);
-                    ((Unit*)u)->SetStateBits(4, u->econ.SpendEnergy(cost));
+                    ((Unit*)u)->SetStateBits(4, u->resourceSlot.SpendEnergy(cost));
                 } else
                     ((Unit*)u)->SetStateBits(4, 0);
             } else
                 ((Unit*)u)->SetStateBits(4, 0);
         }
-        producedA[0] += u->econ.res[0].produced;
-        usedA[0] += u->econ.res[0].used;
-        demandA[0] += u->econ.res[0].demand;
-        backlogA[0] += u->econ.res[0].backlog;
-        producedA[1] += u->econ.res[1].produced;
-        usedA[1] += u->econ.res[1].used;
-        demandA[1] += u->econ.res[1].demand;
-        backlogA[1] += u->econ.res[1].backlog;
+        producedA[0] += u->resourceSlot.res[0].produced;
+        usedA[0] += u->resourceSlot.res[0].used;
+        demandA[0] += u->resourceSlot.res[0].demand;
+        backlogA[0] += u->resourceSlot.res[0].backlog;
+        producedA[1] += u->resourceSlot.res[1].produced;
+        usedA[1] += u->resourceSlot.res[1].used;
+        demandA[1] += u->resourceSlot.res[1].demand;
+        backlogA[1] += u->resourceSlot.res[1].backlog;
     }
     Econ_00401360* e = p->econ;
     producedA[0] += e->res[0].produced;
@@ -430,8 +430,8 @@ void __stdcall UpdatePlayerEconomy(Player_00401360* p)
     }
     for (u = p->units; u <= p->units_end; u++) {
         if (u->flags & 0x10000000) {
-            SettleResourceAccount(&u->econ.res[0], ratioA[0], demandRatio[0]);
-            SettleResourceAccount(&u->econ.res[1], ratioA[1], demandRatio[1]);
+            SettleResourceAccount(&u->resourceSlot.res[0], ratioA[0], demandRatio[0]);
+            SettleResourceAccount(&u->resourceSlot.res[1], ratioA[1], demandRatio[1]);
         }
     }
     SettleResourceAccount(&p->econ->res[0], ratioA[0], demandRatio[0]);

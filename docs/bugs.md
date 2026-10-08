@@ -1167,3 +1167,9 @@ Things that look wrong in the original but have no effect, kept for the record.
   from +0x214 (`GetCategoryOfTrack(i)` for i = 0 to 99, 0x4ce7e0), so every
   restored track takes the previous track's type and the last one is dropped.
   Found by OpenCode / deepseek-v4.1-flash in #6156.
+- **0x499ba0** (`BroadcastWeaponFire`, possible, unreachable): its 0x24-byte
+  weapon fire packet initialises only +0x00 to +0x19, but the receiver
+  0x49d270 reads the heading, pitch, target, owner and weapon slot from +0x1b
+  to +0x23 for every non-meteor weapon, so those bytes would be stack garbage.
+  The function has no callers in the exe. Found by OpenCode /
+  deepseek-v4.1-flash in #6175.

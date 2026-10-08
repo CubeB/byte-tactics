@@ -15,8 +15,6 @@ typedef struct _iobuf FILE;
 class HapiBank {
 public:
     AccountList* bank;               // +0x00
-    char unknown_4[4];
-    int field_8;
 
     HapiBank* InitBank();
     void CloseBank();

@@ -5,22 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
-class HapiBank {
-public:
-    int field_0;                       // +0x0
-
-    HapiBank* InitBank();
-    void CloseBank();
-    int OpenBank(char* name, char* a, char* b);
-    void OpenAccount(char* section);
-    int HasItem(char* name);
-    int GetIntegerItem(char* name, int def);
-    void NewBank();
-    int SaveBank(char* name, char* ext, int a, int b);
-    void SetIntegerItem(const char* name, int value);
-    void SetStringItem(const char* name, char* value);
-    int OpenNamedBox(const char* name);
-};
+#include "../util/hapi_bank.h"
 
 class MissionConditions {
 public:

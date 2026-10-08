@@ -368,17 +368,7 @@ public:
     void SendAllQueued(int a);
 };
 
-class HapiBank {
-public:
-    void OpenAccount(const char* name);
-    int HasItem(const char* name);
-    void CloseBank();
-    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
-    char* GetStringItem(char*, char*);
-    double GetDoubleItem(char*, double);
-    int OpenBank(char*, char*, void*);
-    int SaveBank(char*, char*, int, int);
-};
+#include "../util/hapi_bank.h"
 
 class Class_004cdb40 {
 public:
@@ -387,15 +377,7 @@ public:
 
 extern PacketManager g_packetManager;
 
-class Sound {
-public:
-    void SetTrackCategory(int);
-    int IsCdPlaying();
-    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
-    int QueryDisc();
-    void PlayLooping(int sample, int volume);
-    void Set3DDistances(int minimum, int maximum);
-};
+#include "../sound/sound.h"
 
 void __stdcall SeedRandom(int x);
 void __stdcall SleepMilliseconds(int x);
@@ -895,6 +877,9 @@ static inline void DrawLoadingBar(void* gadget, void* lightbar, int index, unsig
 // (LoadThreadMain), once the loader sets the "loaded" bit it restores the game
 // screen and installs the game frame handler (BattleFrame), and otherwise it
 // draws the six progress bars.
+// Unused here: the symbol ids these declarations take keep the allocation
+// (docs/c2-regalloc.md).
+extern int Pad_497f40_e0;
 // FUNCTION: 0x497f40
 void LoadingScreenFrame(void)
 {

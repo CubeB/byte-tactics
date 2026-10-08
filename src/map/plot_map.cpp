@@ -41,14 +41,7 @@ struct Game {
 extern Game* g_game;
 
 // Chunked file reader/writer.
-class HapiBank {
-public:
-    int OpenAccount(char* name);
-    int OpenNamedBox(char* name);
-    int WriteBox(void* src, int len);
-    int GetBoxSize();
-    unsigned int ReadBox(void* buf, int size);
-};
+#include "../util/hapi_bank.h"
 
 // Writes the "Metal" "Plotmap" chunk: the metal byte of every map cell
 // (the save counterpart of 0x484d60).
@@ -98,7 +91,9 @@ void __stdcall LoadMetalPlotmap(HapiBank* file)
         if (file->GetBoxSize() == size) {
             unsigned char* buf = new unsigned char[size];
             Cell* cells = g_game->cells;
-            if (file->ReadBox(buf, size) >= size) {
+            // The (unsigned int) cast keeps the count comparison unsigned, as
+            // in the original.
+            if ((unsigned int)file->ReadBox(buf, size) >= size) {
                 for (int i = 0; i < size; i++) {
                     cells[i].metal = buf[i];
                 }
@@ -119,7 +114,9 @@ void __stdcall LoadPlayerFeaturesPlotmap(HapiBank* file)
             unsigned char* buf = new unsigned char[size];
             if (buf) {
                 Cell* cells = g_game->cells;
-                if (file->ReadBox(buf, size) >= size) {
+                // The (unsigned int) cast keeps the count comparison unsigned,
+                // as in the original.
+                if ((unsigned int)file->ReadBox(buf, size) >= size) {
                     Cell* c = cells;
                     for (int i = 0; i < size; i++, c += 2) {
                         c->feature4 = buf[i] >> 4;

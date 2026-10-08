@@ -9,8 +9,9 @@
 Each row counts something in `src/` and `include/` at a git ref and compares it
 with the same count at the roadmap's starting commit (--base, default e9367f13,
 "Add the source cleanup roadmap") and a target. A bar is the share of the
-distance from start to target that is covered. Nothing here compiles anything;
-the counts come from reading the sources out of git.
+distance from start to target that is covered; a row whose target is not a
+count (the byte offsets) has no bar. Nothing here compiles anything; the counts
+come from reading the sources out of git.
 """
 
 import argparse
@@ -22,6 +23,8 @@ import subprocess
 import tarfile
 from pathlib import Path
 
+from trycasts import arrow_groups, code_mask  # phase 2's definition of a cast
+
 ROOT = Path(__file__).resolve().parent.parent
 BASE = "e9367f13"
 
@@ -32,7 +35,32 @@ PLACEHOLDERS = {
     "FIELD": re.compile(r"\bfield_[0-9a-f]+\b"),
 }
 UNIT_DEF = re.compile(r"^(?:struct|class) Unit\s*\{", re.M)
-NOTE_LINES = 8  # a file that opens with more comment lines than this carries a matching note
+# The markers a matching note used (docs/cleanup-roadmap.md, phase 1): a match
+# percentage, an attempt, a score, or a model name. `score` is a word
+# descriptions can use ("the score reporting setup"), so it counts only next
+# to its number or a comparison.
+HISTORY = re.compile(
+    r"\d+(?:\.\d+)?\s*(?:%|percent\b)"
+    r"|\battempt"
+    r"|\btried\b|\btries\b|\btrying\b"
+    r"|\bscor(?:e|es|ed|ing)\b(?:\s+\S+){0,4}?\s+(?:\d|percent\b)"
+    r"|\bscor(?:e|es|ed|ing)\b(?:\s+\S+){0,2}?\s+(?:worse|better|lower|higher|same|flat)\b",
+    re.I,
+)
+MODELS = re.compile(
+    r"\b(?:Opus|Sonnet|Haiku|DeepSeek|Claude|GPT|LongCat|mimo|muse|"
+    r"space[- ]?bunny|Fledge|Codex)\b",
+    re.I,
+)
+CREDIT_START = re.compile(r"\bDecompiled by\b")
+CREDIT_END = re.compile(r"\bprovisional\b", re.I)
+# Phase 4's input: a constant byte offset through a pointer, `*(T*)(p + 0x..)`
+# and `(char*)p + off`.
+OFFSET_CAST = re.compile(
+    r"\*\(\s*(?:const\s+)?(?:unsigned\s+|signed\s+)?[A-Za-z_]\w*(?:\s*::\s*\w+)*\s*\*+\s*\)"
+    r"\s*\([^()\n]*\+\s*(?:0x[0-9a-fA-F]+|\d+)\s*\)"
+)
+OFFSET_CHAR = re.compile(r"\(\s*char\s*\*+\s*\)\s*[^;()\n]*\+\s*(?:0x[0-9a-fA-F]+|\d+)")
 
 
 def git(*args: str, text: bool = True):
@@ -50,26 +78,54 @@ def sources(ref: str) -> dict[str, str]:
     return out
 
 
-def long_note(text: str) -> bool:
-    n = 0
+def history_note(text: str) -> bool:
+    """True when the file still opens with matching history: a match
+    percentage, an attempt, a score or a model name in the leading comments.
+    The credit line (with its `finished by` continuations) does not count."""
+    in_credit = False
     for line in text.split("\n"):
-        if line.startswith("//"):
-            n += 1
-        else:
+        if line.strip() == "":
+            continue
+        if not line.startswith("//"):
             break
-    return n > NOTE_LINES
+        if in_credit:
+            if CREDIT_END.search(line):
+                in_credit = False
+            continue
+        if CREDIT_START.search(line):
+            in_credit = not CREDIT_END.search(line)
+            continue
+        if HISTORY.search(line) or MODELS.search(line):
+            return True
+    return False
+
+
+def casts(text: str, mask: bytearray) -> int:
+    """`((T*)x)->` occurrences in code: the casts tools/trycasts.py removes."""
+    return sum(arrow_groups(text, mask).values())
+
+
+def matches(text: str, rx: re.Pattern, mask: bytearray) -> int:
+    """Occurrences of `rx` in code, not in comments or strings."""
+    return sum(1 for m in rx.finditer(text) if mask[m.start()])
 
 
 def measure(ref: str) -> dict[str, int]:
     files = sources(ref)
     cpp = {k: v for k, v in files.items() if k.startswith("src/") and k.endswith(".cpp")}
     seen = {k: set() for k in PLACEHOLDERS}
+    cast_count = offset_count = 0
     for text in files.values():
         for k, rx in PLACEHOLDERS.items():
             seen[k].update(rx.findall(text))
+        mask = code_mask(text)
+        cast_count += casts(text, mask)
+        offset_count += matches(text, OFFSET_CAST, mask) + matches(text, OFFSET_CHAR, mask)
     m = {
         "files": len(cpp),
-        "notes": sum(long_note(t) for t in cpp.values()),
+        "notes": sum(history_note(t) for t in files.values()),
+        "casts": cast_count,
+        "offsets": offset_count,
         "unit_defs": sum(bool(UNIT_DEF.search(t)) for t in cpp.values()),
     }
     m.update({k.lower(): len(v) for k, v in seen.items()})
@@ -124,13 +180,15 @@ def main() -> None:
     now, then = measure(args.ref), measure(args.base)
     target_files = modules(args.ref)
     rows = [
-        ("Source files", "files", target_files, "one per module (`data/modules.csv`)"),
+        ("Source files (`.cpp`)", "files", target_files, "one per module (`data/modules.csv`)"),
         ("Placeholder functions `FUN_<addr>`", "fun", 0, "named"),
         ("Placeholder globals `DAT_<addr>`", "dat", 0, "named"),
         ("Placeholder classes `Class_<addr>`", "class", 0, "named"),
         ("Placeholder fields `field_<offset>`", "field", 0, "named"),
         ("Files that define `Unit`", "unit_defs", 1, "one shared definition"),
-        ("Files opening with a matching note", "notes", 0, "none"),
+        ("Files opening with matching history", "notes", 0, "none"),
+        ("Casts `((T*)x)->`", "casts", 0, "casts the types allow"),
+        ("Byte-offset access `*(T*)(p + off)` and `(char*)p + off`", "offsets", None, "cases with no struct"),
     ]
     lines = [
         f"Counts in `src/` and `include/` at `{args.ref}`, against `{args.base}` (the roadmap's starting point).",
@@ -141,13 +199,16 @@ def main() -> None:
     total = []
     for label, key, target, tgt_text in rows:
         a, b = then[key], now[key]
+        if target is None:
+            lines.append(f"| {label} | {a:,} | {b:,} | {tgt_text} | | |")
+            continue
         span = a - target
         done = 1.0 if span <= 0 else max(0.0, min(1.0, (a - b) / span))
         total.append(done)
-        shown = f"{target:,}" if key == "files" else "0" if target == 0 else str(target)
+        shown = "0" if target == 0 else f"{target:,}"
         lines.append(f"| {label} | {a:,} | {b:,} | {shown}, {tgt_text} | {100 * done:.0f}% | `{bar(done)}` |")
     overall = sum(total) / len(total)
-    head = [f"**Readability cleanup: about {100 * overall:.0f}% of the way** (mean of the rows below)", "",
+    head = [f"**Readability cleanup: about {100 * overall:.0f}% of the way** (mean of the rows with a target)", "",
             f"`{bar(overall, 40)}`", ""]
     out = head + lines
     if args.issues:

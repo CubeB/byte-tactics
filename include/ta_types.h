@@ -159,7 +159,7 @@ class Class_0040ef20;
 class OpenHeap;
 class Class_0040f110;
 class Class_0040f1e0;
-class Class_00410830;
+class LandingPadList;
 class Class_00415b60;
 struct Class_00415b90;
 class BitWriter;
@@ -2880,8 +2880,8 @@ public:
     Class_00405d90(Class_00405d90&);
     Class_00405d90(Player*, std::vector<Unit*>*, Unit*);
     virtual void FUN_00405d90(Unit*);
-    virtual void FUN_00410c70(Unit*);
-    virtual void FUN_004158d0(Unit*);
+    virtual void CollectGroundAlly(Unit*);
+    virtual void CollectRepairableUnit(Unit*);
 };
 
 struct Order_11 {  // 0xa bytes, 1 view
@@ -3829,15 +3829,15 @@ union Fixed_2 {  // 0x4 bytes, 1 view
     union { int value; struct { unsigned short frac; short whole; } parts; };  // +0x0
 };
 
-class Class_00410830 {  // 0x10 bytes, 5 views
+class LandingPadList {  // 0x10 bytes, 5 views
 public:
     unsigned char field_0;  // +0x0
     char unknown_1[3];
     int field_4;  // +0x4
     int field_8;  // +0x8
     int field_c;  // +0xc
-    Class_00410830(Class_00410830&);
-    Class_00410830(void);
+    LandingPadList(LandingPadList&);
+    LandingPadList(void);
 };
 
 union Fixed_3 {  // 0x4 bytes, 1 view

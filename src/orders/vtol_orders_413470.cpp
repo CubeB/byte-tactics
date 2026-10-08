@@ -2,7 +2,7 @@
 // VTOL attack order handler for a unit target. With flags 0x10008, or with
 // no target and order flag 0x200, it queues VTOL_SEEKATTACK; on the map-edge
 // player it heads for the map centre. State 0 prepares the order
-// ("Attacking"; FUN_0040f200), state 1 flies to a random point halfway to
+// ("Attacking"; PrepVtolClimb), state 1 flies to a random point halfway to
 // the target, state 2 attacks, state 3 circles the target, alternating
 // sides, and lands on a free pad when damaged (VTOL_LANDING).
 //
@@ -113,7 +113,7 @@ int __stdcall WeaponCanReachUnit(Unit*, Unit*, int);
 void __stdcall AppendOrderToTail(Unit*, Class_0043a1f0*);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
 void __stdcall GetFactoriesInRadius(int player, Vec3* pos, int range, std::vector<Unit*>* out);
-Vec3 __stdcall FUN_0040f790(const Vec3& a, const Vec3& b);
+Vec3 __stdcall AddVec3(const Vec3& a, const Vec3& b);
 
 static inline Vec3 Offset(short angle, int distance)
 {
@@ -139,7 +139,7 @@ static inline Vec3 Add(const Vec3& a, const Vec3& b)
     return r;
 }
 
-void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
+void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
     unit->ClaimWeapons(3);
     if (unit->field_86)
@@ -173,7 +173,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         centre.x = g_game->width / 2 << 16;
         centre.z = g_game->height / 2 << 16;
         short angle = GetHeadingBetween(&unit->pos, &centre);
-        Vec3 dest = FUN_0040f790(unit->pos, Offset(angle, 0x3200000));
+        Vec3 dest = AddVec3(unit->pos, Offset(angle, 0x3200000));
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->SetApproachRadius(0x80);
         order->flags |= 0xe0;
@@ -192,7 +192,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
     case 0:
         if (unit->type && (unit->def->flags & 0x800)) {
             ((Class_00438880*)order)->AnnounceStatusIfFlagged("Attacking");
-            FUN_0040f200(unit, order, 0);
+            PrepVtolClimb(unit, order, 0);
             return 1;
         }
         break;

@@ -55,12 +55,12 @@ void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
 int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
-Vec3 __stdcall FUN_0040f790(const Vec3& a, const Vec3& b);
+Vec3 __stdcall AddVec3(const Vec3& a, const Vec3& b);
 union Fixed { int value; struct { unsigned short frac; short whole; } parts; };
-Vec3 __stdcall FUN_004103a0(short angle, Fixed scale);
+Vec3 __stdcall DirectionFromAngle(short angle, Fixed scale);
 // A free function, not a member: its smaller IL size keeps it inlined.
 static inline Vec3 operator+(const Vec3& a, const Vec3& b) { Vec3 r; r.x=a.x+b.x; r.y=a.y+b.y; r.z=a.z+b.z; return r; }
-static inline Vec3 Direction(short angle, int range) { Fixed distance; distance.value=range; return FUN_004103a0(angle,distance); }
+static inline Vec3 Direction(short angle, int range) { Fixed distance; distance.value=range; return DirectionFromAngle(angle,distance); }
 static inline Vec3 Offset(short angle, int distance)
 {
     Vec3 v;
@@ -73,18 +73,18 @@ static inline Vec3 Offset(short angle, int distance)
 }
 
 // Keeps a declared constructor (never inlined); UnitList below is a separate class.
-class Class_00410830 : public std::vector<Unit*> { public: Class_00410830(); };
+class LandingPadList : public std::vector<Unit*> { public: LandingPadList(); };
 void __stdcall GetFactoriesInRadius(int, Vec3*, int, std::vector<Unit*>*);
 class UnitList : public std::vector<Unit*> {};
 
-class Class_00410c70 {
+class GroundAllyVisitor {
 public:
-    virtual void FUN_00410c70(Unit*);
+    virtual void CollectGroundAlly(Unit*);
     // Three-argument constructor: puts the vtable store after the member stores.
-    Class_00410c70(Owner* o, std::vector<Unit*>* u, Unit* s) : owner(o), units(u), self(s) {}
+    GroundAllyVisitor(Owner* o, std::vector<Unit*>* u, Unit* s) : owner(o), units(u), self(s) {}
     Owner* owner; std::vector<Unit*>* units; Unit* self;
 };
-void __stdcall VisitObjectsInRange(Vec3*, int, const Class_00410c70&);
+void __stdcall VisitObjectsInRange(Vec3*, int, const GroundAllyVisitor&);
 // IsDamaged, FindPads and SearchRange stay small helpers: the vector calls
 // inline or not according to the original.
 static inline int IsDamaged(Unit* u) { return (unsigned int)u->health < (u->def->maxHealth>>2)*3; }
@@ -93,7 +93,7 @@ static inline int SearchRange(Unit* u) { return u->def->searchRange<<16; }
 static inline int Patrol(Unit* unit, Order* order, int flags)
 {
     if (IsDamaged(unit)) {
-        Class_00410830 pads;
+        LandingPadList pads;
         FindPads(unit,&pads);
         if (!pads.empty()) {
             ((Class_004388d0*)order)->SetAttachedFx(0);
@@ -105,7 +105,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
     }
     UnitList units;
     int range=SearchRange(unit);
-    Class_00410c70 visitor(unit->owner,&units,unit);
+    GroundAllyVisitor visitor(unit->owner,&units,unit);
     VisitObjectsInRange(&unit->pos,range,visitor);
     if (!units.empty()) {
         ((Class_004388d0*)order)->SetAttachedFx(0);
@@ -133,7 +133,7 @@ int __stdcall VtolSeekGuardOrder(Unit* unit, Order* order, int flags)
         center.x=(g_game->width/2)<<16;
         center.z=(g_game->height/2)<<16;
         short angle=GetHeadingBetween(&unit->pos,&center);
-        Vec3 pos=FUN_0040f790(unit->pos,Direction(angle,0x3200000));
+        Vec3 pos=AddVec3(unit->pos,Direction(angle,0x3200000));
         Class_0044e2d0* move=new Class_0044e2d0(order,pos);
         ((Class_0044e730*)move)->SetApproachRadius(128);
         order->flags|=0xe0;

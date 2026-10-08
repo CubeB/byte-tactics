@@ -634,7 +634,7 @@ static inline int Contains(unsigned int* bits, unsigned short index)
     return bits[index >> 5] & (1 << (index & 31));
 }
 
-// Inlined copy of FUN_004103a0.
+// Inlined copy of DirectionFromAngle.
 static inline Vec3 Direction(short angle, int scale)
 {
     Vec3 v;

@@ -1,6 +1,6 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6, verified by GPT-6.1-Sol, finished by space-bunny-free, edited by deepseek-v4.1-flash, edited by Claude Opus 5.5, matched by Claude Opus 5.5. Names are provisional.
 // VTOL patrol order handler for construction aircraft. State 0 starts
-// patrolling ("Patrolling"; FUN_0040f200). State 1 sets the next waypoint,
+// patrolling ("Patrolling"; PrepVtolClimb). State 1 sets the next waypoint,
 // then lands on a free pad when damaged (VTOL_LANDING), helps build or guards
 // a unit it can see (VTOL_HELPBUILD), or reclaims metal or energy
 // (VTOL_RECLAIM).
@@ -15,7 +15,7 @@ public:
 };
 
 struct Unit;
-class Class_00410830 : public std::vector<Unit*> {};
+class LandingPadList : public std::vector<Unit*> {};
 
 class UnitMotion {
 public:
@@ -75,13 +75,13 @@ public:
 };
 #pragma pack(pop)
 
-class Class_004158d0 {
+class RepairableUnitVisitor {
 public:
     Owner* owner;
     std::vector<Unit*>* units;
     Unit* self;
-    Class_004158d0(Owner* o, std::vector<Unit*>* v, Unit* s) : owner(o), units(v), self(s) {}
-    virtual void FUN_004158d0(Unit*);
+    RepairableUnitVisitor(Owner* o, std::vector<Unit*>* v, Unit* s) : owner(o), units(v), self(s) {}
+    virtual void CollectRepairableUnit(Unit*);
 };
 
 int __stdcall RandomInt(int);
@@ -89,13 +89,13 @@ void __stdcall EnsurePatrolReturnOrder(Unit*, Order*);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
 void __stdcall GetFactoriesInRadius(int player, Vec3* pos, int range, std::vector<Unit*>* out);
-void __stdcall VisitObjectsInRange(Vec3*, int, const Class_004158d0&);
+void __stdcall VisitObjectsInRange(Vec3*, int, const RepairableUnitVisitor&);
 int __stdcall IssueRepairOrder(Unit*, Unit*, int);
 union Fixed { int v; struct { unsigned short frac; short whole; } p; };
 int __stdcall PickRandomReclaimableResourcesInRadius(Vec3*, Fixed, Vec3**, float*, Vec3**, float*);
 
 // inline: no function may be compiled before VtolRepairPatrolOrder, or the landed test returns.
-inline void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
+inline void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
     unit->ClaimWeapons(3);
     if (unit->field_86)
@@ -113,7 +113,7 @@ inline void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 static inline int Land(Unit* unit, Order* order)
 {
     if ((unsigned int)unit->health < (unit->def->maxHealth >> 2) * 3) {
-        Class_00410830 pads;
+        LandingPadList pads;
         GetFactoriesInRadius(unit->owner->index, &unit->pos, 0xf00, &pads);
         if (!pads.empty()) {
             ((Class_004388d0*)order)->SetAttachedFx(0);
@@ -153,7 +153,7 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
                     order->pos = order->target->pos;
                 EnsurePatrolReturnOrder(unit, order);
                 ((Class_00438880*)order)->AnnounceStatusIfFlagged("Patrolling");
-                FUN_0040f200(unit, order, 0);
+                PrepVtolClimb(unit, order, 0);
                 return 1;
             }
             break;
@@ -170,7 +170,7 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
             if (unit->owner->energy >= unit->owner->energyCapacity * 0.2) {
                 std::vector<Unit*> units;
                 int range = unit->def->range << 16;
-                VisitObjectsInRange(&unit->pos, range, Class_004158d0(unit->owner, &units, unit));
+                VisitObjectsInRange(&unit->pos, range, RepairableUnitVisitor(unit->owner, &units, unit));
                 if (!units.empty()) {
                     Unit* target = units[RandomInt(units.size())];
                     if (unit->CanRepair(target) && target->progress == 0.0f) {

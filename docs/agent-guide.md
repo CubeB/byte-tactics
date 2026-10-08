@@ -1789,7 +1789,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A constant loaded into a register and pushed**: if every caller does
   `mov eax, K; push eax` instead of `push K`, that parameter is a 4-byte
   struct (or union) passed by value; declaring it `int` always gives
-  `push K`. Found by Claude Opus 5.5 in #98 (FUN_004103a0's scale).
+  `push K`. Found by Claude Opus 5.5 in #98 (DirectionFromAngle's scale).
 - **A frame one struct bigger than the original's**: the earlier locals were
   probably inside an inline helper. MSVC 5 reuses an inline helper's stack
   slots for later locals, but not a plain `{ }` block's. See 0x412d40.

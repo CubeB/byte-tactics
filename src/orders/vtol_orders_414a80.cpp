@@ -88,7 +88,7 @@ void __stdcall EmitReverseNanoParticles(Vec3* box, Vec3* from, int count);
 int __stdcall ComputeReclaimDamagePulse(Unit* unit, Unit* target, int n);
 void __stdcall DamageUnit(Unit* unit, Unit* target, int a, int b, int c);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
-void __stdcall FUN_00414350(Point cell, Vec3* out, Point origin);
+void __stdcall CellToWorldPos(Point cell, Vec3* out, Point origin);
 
 static inline Point WorldToCell(Vec3 v, Point origin)
 {
@@ -99,7 +99,7 @@ static inline Point WorldToCell(Vec3 v, Point origin)
 }
 
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
-void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
+void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
     unit->ClaimWeapons(3);
     if (unit->field_86)
@@ -137,7 +137,7 @@ int __stdcall VtolReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
                 return 8;
             }
             ((Class_00438880*)order)->AnnounceStatusIfFlagged("Reclaiming");
-            FUN_0040f200(unit, order, 0);
+            PrepVtolClimb(unit, order, 0);
             return 1;
         }
         return 7;
@@ -146,7 +146,7 @@ int __stdcall VtolReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
         order->duration = 0;
         Point origin = unit->footprint;
         Point cell = WorldToCell(order->pos, origin);
-        FUN_00414350(cell, &order->pos, origin);
+        CellToWorldPos(cell, &order->pos, origin);
         Class_0044e2d0* obj = new Class_0044e2d0(order, order->target.Get()->pos);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= 0x100e8;

@@ -102,7 +102,7 @@ static inline void CellToWorld(Point origin, Point c, Vec3* v)
     v->z = (origin.y + c.y * 2) << 19;
 }
 void __stdcall AttachUnitToPiece(Unit*,Unit*,char,char);
-void __stdcall FUN_00414350(Point,Vec3*,Point);
+void __stdcall CellToWorldPos(Point,Vec3*,Point);
 int __cdecl FUN_004b70ef(short,int);
 int __cdecl FUN_004b7123(short,int);
 short __cdecl FUN_004b715a(int,int);

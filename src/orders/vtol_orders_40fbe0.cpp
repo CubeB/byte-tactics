@@ -43,9 +43,9 @@ class Class_0044e6c0 { public: void SetAltitude(int); };
 void __stdcall AttachUnitToPiece(Unit*, Unit*, char, char);
 short __stdcall GetHeadingBetween(Vec3*, Vec3*);
 union Fixed { int value; struct { unsigned short frac; short whole; } parts; };
-Vec3 __stdcall FUN_004103a0(short, Fixed);
-static inline Vec3 Direction(short angle, int range) { Fixed distance; distance.value=range; return FUN_004103a0(angle,distance); }
-Vec3 __stdcall FUN_0040f790(const Vec3&, const Vec3&);
+Vec3 __stdcall DirectionFromAngle(short, Fixed);
+static inline Vec3 Direction(short angle, int range) { Fixed distance; distance.value=range; return DirectionFromAngle(angle,distance); }
+Vec3 __stdcall AddVec3(const Vec3&, const Vec3&);
 void __stdcall AppendOrderToTail(Unit*, Class_0043a1f0*);
 
 int __stdcall IssueAttackOrder(Unit*, Unit*, int);
@@ -73,7 +73,7 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
             center.x=(g_game->width/2)<<16;
             center.z=(g_game->height/2)<<16;
             short angle=GetHeadingBetween(&unit->pos,&center);
-            Vec3 pos=FUN_0040f790(unit->pos,Direction(angle,0x3200000));
+            Vec3 pos=AddVec3(unit->pos,Direction(angle,0x3200000));
             Class_0044e2d0* move=new Class_0044e2d0(order,pos);
             ((Class_0044e730*)move)->SetApproachRadius(128);
             order->flags|=0xe0;

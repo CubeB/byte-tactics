@@ -149,7 +149,7 @@ What stands out:
   `DAT_00511de8`) are 800 of the 1,894 undefined global names.
 - **The duplicates are few and known.** The 29 functions defined in several
   files are copies kept in callers' files so that they inline
-  (`FUN_0040f200` is defined in 13 files; see "Context-dependent functions" in
+  (`PrepVtolClimb` is defined in 13 files; see "Context-dependent functions" in
   `docs/consolidation.md`) and constructors, destructors and class
   `operator delete`s repeated in each file of a class family
   (`SquadTimer`'s constructor in 8 files, `ParticleSystem`'s destructor and

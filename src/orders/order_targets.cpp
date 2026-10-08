@@ -1652,7 +1652,7 @@ static inline void ToWorld(Vec3_0044d720* out, Point_0044d720 a, Point_0044d720 
     out->z = (a.y * 2 + b.y) << 19;
 }
 
-// Inlined copy of FUN_004103a0.
+// Inlined copy of DirectionFromAngle.
 static inline Vec3_0044d720 Direction(short angle, int scale)
 {
     Vec3_0044d720 v;

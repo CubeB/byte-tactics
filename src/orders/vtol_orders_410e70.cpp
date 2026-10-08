@@ -1,6 +1,6 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // VTOL patrol order handler ("Patrolling"). State 0 prepares the order
-// (FUN_0040f200), state 1 clears the order's 0xe0 bits, state 2 flies to a
+// (PrepVtolClimb), state 1 clears the order's 0xe0 bits, state 2 flies to a
 // point 0x140 units away along the heading to the order's position, lands on a
 // free pad when damaged (VTOL_LANDING, as in 0x412710), or takes the next
 // queued order.
@@ -92,7 +92,7 @@ static inline Vec3 Offset(short angle, int distance)
 }
 
 // 0x40f790, matched in 0x40f790.cpp; /Ob2 inlines it into state 2.
-Vec3 __stdcall FUN_0040f790(const Vec3& a, const Vec3& b)
+Vec3 __stdcall AddVec3(const Vec3& a, const Vec3& b)
 {
     Vec3 r;
     r.x = a.x + b.x;
@@ -102,7 +102,7 @@ Vec3 __stdcall FUN_0040f790(const Vec3& a, const Vec3& b)
 }
 
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
-void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
+void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
     unit->ClaimWeapons(3);
     if (unit->field_86)
@@ -129,7 +129,7 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
         if (flags & 0xe0)
             return 6;
         short angle = GetHeadingBetween(&unit->pos, &order->pos);
-        Vec3 dest = FUN_0040f790(order->pos, Offset(angle, 0x1400000));
+        Vec3 dest = AddVec3(order->pos, Offset(angle, 0x1400000));
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->SetApproachRadius(0x150);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
@@ -180,7 +180,7 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
         if (unit->type && (unit->def->flags & 0x800)) {
             EnsurePatrolReturnOrder(unit, order);
             ((Class_00438880*)order)->AnnounceStatusIfFlagged("Patrolling");
-            FUN_0040f200(unit, order, 0);
+            PrepVtolClimb(unit, order, 0);
             unit->ReleaseWeapons(3);
             return 1;
         }

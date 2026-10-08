@@ -131,7 +131,7 @@ the tool.
   `string.h`, `math.h`) at the top; 0x4d1820 and 0x438650 still differ in one
   operand order. Their original translation units probably decide this.
 - 0x40f200, 0x40f2a0, 0x40f7d0 and 0x40fa20 (unit order handlers) share one
-  original file: 0x40f2a0 and 0x40fa20 inline FUN_0040f200, so each of their
+  original file: 0x40f2a0 and 0x40fa20 inline PrepVtolClimb, so each of their
   files carries an unannotated copy of it next to the matched 0x40f200.cpp.
   When they are merged into one translation unit, keep one definition. The
   copies call the unit's type pointer at +0x92 `def` where 0x40f200.cpp says
@@ -278,7 +278,7 @@ can disagree on types (a real link would fail). Known cases:
   decompiled. (0x4181d0.cpp also holds 0x417f60, defined above it as the
   original file did; see #111.)
 
-- FUN_004103a0's second parameter is `int scale` in 0x4103a0.cpp, but all
+- DirectionFromAngle's second parameter is `int scale` in 0x4103a0.cpp, but all
   four callers (0x40fc53, 0x4108bf, 0x413018, 0x4131a7) load the constant into
   a register and push it, which only a 4-byte struct passed by value does;
   0x412d40.cpp declares it as a union. Settle on the struct.
@@ -480,7 +480,7 @@ can disagree on types (a real link would fail). Known cases:
   needed an alias row for `Class_0044e740`'s second constructor at 0x44e7d0.
 - **0x410850 includes `ta_types.h` inside `namespace ta { }` without
   using its types** (#5664): its own views clash with the header by name, and
-  the header flattens Class_00410830's `std::vector<Unit*>` base into plain
+  the header flattens LandingPadList's `std::vector<Unit*>` base into plain
   fields. The include only sets symbol ids (unit at 65854, window 65808 to
   65919). Clean-up: have `tools/gametypes.py` keep base classes, include the
   header normally, and retune the files that depend on its size (see

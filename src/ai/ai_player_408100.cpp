@@ -96,7 +96,7 @@ static inline int Length(const Vec3& v)
     return len;
 }
 
-// Inlined copy of FUN_004103a0.
+// Inlined copy of DirectionFromAngle.
 static inline Vec3 Direction(short angle, int scale)
 {
     Vec3 v;

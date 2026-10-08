@@ -14,9 +14,9 @@ struct UnitDef { char pad0[0x241]; unsigned int flags; };
 struct Owner { char pad0[0x108]; unsigned char allied[0x3e]; unsigned char index; };
 struct Unit { char pad0[0x92]; UnitDef* def; Owner* owner; };
 #pragma pack(pop)
-class Class_00410c70 {
+class GroundAllyVisitor {
 public:
-    virtual void FUN_00410c70(Unit*);
+    virtual void CollectGroundAlly(Unit*);
     Owner* owner;
     std::vector<Unit*>* units;
     Unit* self;
@@ -24,7 +24,7 @@ public:
 
 // Stays in a file of its own: it matches only in this file's symbol context.
 // FUNCTION: 0x410c70
-void Class_00410c70::FUN_00410c70(Unit* unit)
+void GroundAllyVisitor::CollectGroundAlly(Unit* unit)
 {
     if (unit->owner->allied[owner->index] && !(unit->def->flags & 0x800) && unit != self)
         units->push_back(unit);

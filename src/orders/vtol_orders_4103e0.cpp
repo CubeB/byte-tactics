@@ -52,9 +52,9 @@ class Class_0044e6c0 { public: void SetAltitude(int); };
 void __stdcall AttachUnitToPiece(Unit*, Unit*, char, char);
 short __stdcall GetHeadingBetween(Vec3*, Vec3*);
 union Fixed { int value; struct { unsigned short frac; short whole; } parts; };
-Vec3 __stdcall FUN_004103a0(short, Fixed);
-static inline Vec3 Direction(short angle, int range) { Fixed distance; distance.value=range; return FUN_004103a0(angle,distance); }
-Vec3 __stdcall FUN_0040f790(const Vec3&, const Vec3&);
+Vec3 __stdcall DirectionFromAngle(short, Fixed);
+static inline Vec3 Direction(short angle, int range) { Fixed distance; distance.value=range; return DirectionFromAngle(angle,distance); }
+Vec3 __stdcall AddVec3(const Vec3&, const Vec3&);
 void __stdcall AppendOrderToTail(Unit*, Class_0043a1f0*);
 
 int __stdcall IssueAttackOrder(Unit*, Unit*, int);
@@ -69,7 +69,7 @@ int __cdecl FUN_004b7123(short, int);
 static inline int Contains(unsigned int* bits, unsigned short index) { return bits[index >> 5] & (1 << (index & 31)); }
 static inline Vec3 Offset(short angle, int distance) { Vec3 v; v.x=-FUN_004b70ef(angle,distance); v.y=0; v.z=-FUN_004b7123(angle,distance); return v; }
 
-class Class_00410830 : public std::vector<Unit*> { public: Class_00410830(); };
+class LandingPadList : public std::vector<Unit*> { public: LandingPadList(); };
 void __stdcall GetFactoriesInRadius(int, Vec3*, int, std::vector<Unit*>*);
 Unit* __stdcall FindBestTargetIfFireAtWill(Unit*);
 // Stays in a file of its own: it matches only in this file's symbol context.
@@ -82,7 +82,7 @@ int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
         center.x=(g_game->width/2)<<16;
         center.z=(g_game->height/2)<<16;
         short angle=GetHeadingBetween(&unit->pos,&center);
-        Vec3 pos=FUN_0040f790(unit->pos,Offset(angle,0x3200000));
+        Vec3 pos=AddVec3(unit->pos,Offset(angle,0x3200000));
         Class_0044e2d0* move=new Class_0044e2d0(order,pos);
         ((Class_0044e730*)move)->SetApproachRadius(128);
         order->flags|=0xe0;
@@ -116,7 +116,7 @@ int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
     case 1: {
         unit->ReleaseWeapons(3);
         if ((unsigned int)unit->health < (unit->def->maxHealth>>2)*3) {
-            Class_00410830 pads;
+            LandingPadList pads;
             GetFactoriesInRadius(unit->owner->index,&unit->pos,0xf00,&pads);
             if (!pads.empty()) {
                 ((Class_004388d0*)order)->SetAttachedFx(0);
@@ -129,7 +129,7 @@ int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
         Unit* target=FindBestTargetIfFireAtWill(unit);
         if (target && IssueAttackOrder(unit,target,0)) return 5;
         if (flags&0xe0) order->angle+=-RandomInt(0x2000)-0x5555;
-        Vec3 pos=FUN_0040f790(order->pos,Offset((short)order->angle,(unit->weapons[0].def->range+160)<<16));
+        Vec3 pos=AddVec3(order->pos,Offset((short)order->angle,(unit->weapons[0].def->range+160)<<16));
         Class_0044e2d0* move=new Class_0044e2d0(order,pos);
         ((Class_0044e730*)move)->SetApproachRadius(128);
         ((Class_004388d0*)order)->SetAttachedFx((int)move);

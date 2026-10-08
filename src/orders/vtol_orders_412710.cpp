@@ -1,7 +1,7 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, matched by Claude Opus 5.5. Names are provisional.
 // VTOL attack order handler ("Attacking"). With flags 0x1000a, or with no
 // target and order flag 0x200, it queues VTOL_SEEKATTACK instead; when out of
-// the order's range it gives up. State 0 prepares the order (FUN_0040f200),
+// the order's range it gives up. State 0 prepares the order (PrepVtolClimb),
 // state 1 flies to a random point halfway to the target, state 2 attacks,
 // state 3 pulls away from the target, state 4 lands on a free pad when damaged
 // (VTOL_LANDING) or circles.
@@ -115,7 +115,7 @@ void __stdcall GetFactoriesInRadius(int player, Vec3* pos, int range, std::vecto
 
 // The landing pad list. 0x410830 is its constructor; its implicit destructor
 // is an inline candidate under 41 IL, so ~vector sits one level down.
-class Class_00410830 : public std::vector<Unit*> {};
+class LandingPadList : public std::vector<Unit*> {};
 
 static inline Vec3 Offset(short angle, int distance)
 {
@@ -134,7 +134,7 @@ static inline int GetSpeed(Unit* unit)
     return unit->mover->speed;
 }
 
-void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
+void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
     ((Unit*)unit)->ClaimWeapons(3);
     if (unit->field_86)
@@ -178,7 +178,7 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
     case 0:
         if (unit->type && (unit->def->flags & 0x800)) {
             ((Class_00438880*)order)->AnnounceStatusIfFlagged("Attacking");
-            FUN_0040f200(unit, order, 0);
+            PrepVtolClimb(unit, order, 0);
             return 1;
         }
         break;
@@ -218,7 +218,7 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
     }
     case 4: {
         if (IsDamaged(unit)) {
-            Class_00410830 v;
+            LandingPadList v;
             GetFactoriesInRadius(unit->player->index, &unit->pos, 0xf00, &v);
             if (!v.empty()) {
                 ((Class_004388d0*)order)->SetAttachedFx(0);

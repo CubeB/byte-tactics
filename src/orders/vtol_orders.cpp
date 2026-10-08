@@ -3,8 +3,8 @@
 // order: landing (0x40f2a0), standby (0x40f7d0), move (0x40fa20), unload
 // (0x411560), landing on a pad (0x411840), evade (0x413bc0), mobile build
 // (0x413d80), repair (0x414e70, 0x415250) and the visitor 0x4158d0, with the
-// helpers they share: FUN_0040f200, FUN_004103a0, FUN_00414350, the
-// Class_00410830 constructor and the externs below.
+// helpers they share: PrepVtolClimb, DirectionFromAngle, CellToWorldPos, the
+// LandingPadList constructor and the externs below.
 // The module's other handlers (0x40f790, 0x40fbe0, 0x4103e0, 0x410850,
 // 0x410c70, 0x410e70, 0x4111b0, 0x4118e0, 0x411f50, 0x412710, 0x412d40,
 // 0x413470, 0x414380, 0x414770, 0x414a80 and 0x4152f0) each match only in
@@ -406,10 +406,10 @@ public:
 
 // The visitor passed to VisitObjectsInRange by VtolSeekGuardOrder (vtable
 // 0x4fcc60); its constructor is the inline one 0x410850 builds.
-class Class_00410c70 {
+class GroundAllyVisitor {
 public:
-    virtual void FUN_00410c70(Unit*);
-    Class_00410c70(Owner* o, std::vector<Unit*>* u, Unit* s) : owner(o), units(u), self(s) {}
+    virtual void CollectGroundAlly(Unit*);
+    GroundAllyVisitor(Owner* o, std::vector<Unit*>* u, Unit* s) : owner(o), units(u), self(s) {}
     Owner* owner;
     std::vector<Unit*>* units;
     Unit* self;
@@ -417,10 +417,10 @@ public:
 
 // The visitor passed to VisitObjectsInRange by VtolRepairPatrolOrder (vtable
 // 0x4fcc64).
-class Class_004158d0 {
+class RepairableUnitVisitor {
 public:
-    virtual void FUN_004158d0(Unit*);
-    Class_004158d0(Owner* o, std::vector<Unit*>* v, Unit* s) : owner(o), units(v), self(s) {}
+    virtual void CollectRepairableUnit(Unit*);
+    RepairableUnitVisitor(Owner* o, std::vector<Unit*>* v, Unit* s) : owner(o), units(v), self(s) {}
     Owner* owner;
     std::vector<Unit*>* units;
     Unit* self;
@@ -428,9 +428,9 @@ public:
 
 // The landing-pad list: a vector<Unit*> whose constructor is 0x410830. It
 // stays out of line (the original calls it) even though it is defined here.
-class Class_00410830 : public std::vector<Unit*> {
+class LandingPadList : public std::vector<Unit*> {
 public:
-    Class_00410830();
+    LandingPadList();
 };
 
 extern Game* g_game;
@@ -476,8 +476,8 @@ void __stdcall DamageUnit(Unit*, Unit*, int, int, int);
 void __stdcall MarkSelectionOrdersDirty(Unit*);
 int __stdcall AddRepairProgress(Unit*, Unit*, float);
 int __stdcall PickRandomReclaimableResourcesInRadius(Vec3*, Fixed, Vec3**, float*, Vec3**, float*);
-void __stdcall VisitObjectsInRange(Vec3*, int, const Class_00410c70&);
-void __stdcall VisitObjectsInRange(Vec3*, int, const Class_004158d0&);
+void __stdcall VisitObjectsInRange(Vec3*, int, const GroundAllyVisitor&);
+void __stdcall VisitObjectsInRange(Vec3*, int, const RepairableUnitVisitor&);
 int __stdcall SendScriptCallByName(Unit*, char*, char, int, int, int, int);
 Vec3 __stdcall GetPieceOffset(Unit*, int);
 // Unused here: the symbol ids these declarations take keep the allocation
@@ -491,17 +491,17 @@ void __stdcall KillUnit(Unit*, int);
 
 // The functions of this file that the handlers below call before their
 // definitions.
-Vec3 __stdcall FUN_0040f790(const Vec3& a, const Vec3& b);
-Vec3 __stdcall FUN_004103a0(short angle, Fixed scale);
+Vec3 __stdcall AddVec3(const Vec3& a, const Vec3& b);
+Vec3 __stdcall DirectionFromAngle(short angle, Fixed scale);
 int __stdcall FindLandingPad(Unit* unit, int pad);
-void __stdcall FUN_00414350(Point a, Vec3* out, Point b);
+void __stdcall CellToWorldPos(Point a, Vec3* out, Point b);
 
 // The fixed-point direction of a heading and a distance.
 static inline Vec3 Direction(short angle, int range)
 {
     Fixed distance;
     distance.value = range;
-    return FUN_004103a0(angle, distance);
+    return DirectionFromAngle(angle, distance);
 }
 
 static inline Vec3 Offset(short angle, int distance)
@@ -513,7 +513,7 @@ static inline Vec3 Offset(short angle, int distance)
     return v;
 }
 
-// The body 0x410e70 inlines where the original did (FUN_0040f790 is out of
+// The body 0x410e70 inlines where the original did (AddVec3 is out of
 // line everywhere else).
 static inline Vec3 AddVectors(const Vec3& a, const Vec3& b)
 {
@@ -609,7 +609,7 @@ static inline Unit* OrderTarget(Order* order)
 // +0x2e, also attaches a new Class_0044e2d0 at the unit's position to the
 // order and sets flags on it.
 // FUNCTION: 0x40f200
-void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
+void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
     unit->ClaimWeapons(3);
     if (unit->field_86)
@@ -641,7 +641,7 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
         centre.x = g_game->width / 2 << 16;
         centre.z = g_game->height / 2 << 16;
         short angle = GetHeadingBetween(&unit->pos, &centre);
-        Vec3 dest = FUN_0040f790(unit->pos, Offset(angle, 0x3200000));
+        Vec3 dest = AddVec3(unit->pos, Offset(angle, 0x3200000));
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->SetApproachRadius(0x80);
         order->flags |= 0xe0;
@@ -658,7 +658,7 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
             int a = RandomInt(0x10000);
             order->angle = a;
             order->parity = a & 1;
-            FUN_0040f200(unit, order, 0);
+            PrepVtolClimb(unit, order, 0);
             return 1;
         }
         break;
@@ -774,7 +774,7 @@ int __stdcall VtolStandbyOrder(Unit* unit, Order* order, int flags)
     return 7;
 }
 
-// Order handler: state 0 prepares the order (FUN_0040f200), state 1 snaps
+// Order handler: state 0 prepares the order (PrepVtolClimb), state 1 snaps
 // the order's position to the map grid for the unit's footprint and heads
 // there, state 2 finishes.
 // FUNCTION: 0x40fa20
@@ -785,7 +785,7 @@ int __stdcall VtolMoveOrder(Unit* unit, Order* order, int flags)
     switch (state) {
     case 0:
         if (unit->type && (unit->def->flags & 0x800)) {
-            FUN_0040f200(unit, order, 0);
+            PrepVtolClimb(unit, order, 0);
             return 1;
         }
         break;
@@ -812,7 +812,7 @@ int __stdcall VtolMoveOrder(Unit* unit, Order* order, int flags)
 // from the fixed-point trig helpers. It stays out of line: every site calls it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4103a0
-Vec3 __stdcall FUN_004103a0(short angle, Fixed scale)
+Vec3 __stdcall DirectionFromAngle(short angle, Fixed scale)
 {
     Vec3 v;
     v.x = -FUN_004b70ef(angle, scale.value);
@@ -829,7 +829,7 @@ Vec3 __stdcall FUN_004103a0(short angle, Fixed scale)
 // 0x410850.
 #pragma auto_inline(off)
 // FUNCTION: 0x410830
-Class_00410830::Class_00410830()
+LandingPadList::LandingPadList()
 {
     unsigned char local;
     ((unsigned char*)this)[0] = local;
@@ -859,7 +859,7 @@ static inline int SearchRange(Unit* u)
 static inline int Patrol(Unit* unit, Order* order, int flags)
 {
     if (IsDamaged(unit)) {
-        Class_00410830 pads;
+        LandingPadList pads;
         FindPads(unit,&pads);
         if (!pads.empty()) {
             ((Class_004388d0*)order)->SetAttachedFx(0);
@@ -871,7 +871,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
     }
     UnitList units;
     int range=SearchRange(unit);
-    Class_00410c70 visitor(unit->owner,&units,unit);
+    GroundAllyVisitor visitor(unit->owner,&units,unit);
     VisitObjectsInRange(&unit->pos,range,visitor);
     if (!units.empty()) {
         ((Class_004388d0*)order)->SetAttachedFx(0);
@@ -895,14 +895,14 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
 // whose def lacks flag 0x800, and that is not the visitor's own unit. The
 // same shape as Class_00405d90 (0x405d90), with the vector::push_back inlined.
 // VTOL patrol order handler ("Patrolling"). State 0 prepares the order
-// (FUN_0040f200), state 1 clears the order's 0xe0 bits, state 2 flies to a
+// (PrepVtolClimb), state 1 clears the order's 0xe0 bits, state 2 flies to a
 // point 0x140 units away along the heading to the order's position, lands on a
 // free pad when damaged (VTOL_LANDING, as in 0x412710), or takes the next
 // queued order.
 // Kept: the flags/health block's register allocation depends on this include.
 // VTOL transport (air lift) order handler. Fails when there is no target,
 // with flags 0x10048, or when the target sits below sea level. State 0
-// prepares the order ("Loading"; FUN_0040f200), state 1 flies to the target,
+// prepares the order ("Loading"; PrepVtolClimb), state 1 flies to the target,
 // state 2 asks the script for the attach piece (QueryTransport), state 3
 // starts BeginTransport and hovers down to the piece's height, state 4 ends
 // the pickup (EndTransport when cancelled) and state 5 finishes.
@@ -999,7 +999,7 @@ int __stdcall FindLandingPad(Unit* unit, int pad)
 }
 
 // "Landing" order handler of air units landing on a pad unit (the order's
-// target). State 0 prepares the order (FUN_0040f200) and picks a random
+// target). State 0 prepares the order (PrepVtolClimb) and picks a random
 // angle, state 1 looks for a free pad (FindLandingPad) and circles the pad
 // unit until one is free, states 2 to 5 approach the pad and land, and state
 // 6 hands the unit (or its cargo) to the pad and starts a "SELFREPAIR" order
@@ -1007,14 +1007,14 @@ int __stdcall FindLandingPad(Unit* unit, int pad)
 // Kept: some header set is needed here or the state 6 health compare changes.
 // "Attacking" order handler of aircraft (VTOL). Interrupts hand over to a
 // "VTOL_SEEKATTACK" order; the order follows its target unit and gives up
-// outside its range. State 0 prepares the order (FUN_0040f200), states 1 and
+// outside its range. State 0 prepares the order (PrepVtolClimb), states 1 and
 // 2 make attack runs past the target, state 4 turns around after a pause,
 // state 5 aims at the target again and state 6 flies on and, when the unit is
 // below three quarters of its health, sends it to a random repair pad
 // ("VTOL_LANDING").
 // VTOL attack order handler ("Attacking"). With flags 0x1000a, or with no
 // target and order flag 0x200, it queues VTOL_SEEKATTACK instead; when out of
-// the order's range it gives up. State 0 prepares the order (FUN_0040f200),
+// the order's range it gives up. State 0 prepares the order (PrepVtolClimb),
 // state 1 flies to a random point halfway to the target, state 2 attacks,
 // state 3 pulls away from the target, state 4 lands on a free pad when damaged
 // (VTOL_LANDING) or circles.
@@ -1026,21 +1026,21 @@ static inline int IsAhead(Unit* unit, Order* order)
     Vec3 toward = Offset(GetHeadingBetween(&unit->pos, &order->target.owner->pos), 0x140000);
     Fixed dist;
     dist.value = 0x140000;
-    Vec3 facing = FUN_004103a0(unit->heading, dist);
+    Vec3 facing = DirectionFromAngle(unit->heading, dist);
     return (short)(toward.xw * facing.xw + toward.zw * facing.zw) > 0;
 }
 
 // VTOL strafing attack order handler. With flags 0x10008, or with no target
 // and order flag 0x200, it queues VTOL_SEEKATTACK; on the map-edge player it
 // heads for the map centre. State 0 prepares the order ("Attacking";
-// FUN_0040f200). State 1 attacks:
+// PrepVtolClimb). State 1 attacks:
 // when the target lies ahead (IsAhead) it makes a strafing run, otherwise it
 // circles, leading the target by its velocity, and after 90 ticks of that
 // it queues VTOL_EVADE.
 // VTOL attack order handler for a unit target. With flags 0x10008, or with
 // no target and order flag 0x200, it queues VTOL_SEEKATTACK; on the map-edge
 // player it heads for the map centre. State 0 prepares the order
-// ("Attacking"; FUN_0040f200), state 1 flies to a random point halfway to
+// ("Attacking"; PrepVtolClimb), state 1 flies to a random point halfway to
 // the target, state 2 attacks, state 3 circles the target, alternating
 // sides, and lands on a free pad when damaged (VTOL_LANDING).
 //
@@ -1112,7 +1112,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
         order->retries=0;
         Point origin=def->origin;
         Point cell=WorldToCell(order->pos,origin);
-        FUN_00414350(cell,&order->pos,origin);
+        CellToWorldPos(cell,&order->pos,origin);
         Class_0044e2d0* move=new Class_0044e2d0(order,order->pos);
         ((Class_0044e730*)move)->SetApproachRadius(unit->def->buildRange);
         ((Class_004388d0*)order)->SetAttachedFx((int)move);
@@ -1177,7 +1177,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
 // of line: every site calls it.
 #pragma auto_inline(off)
 // FUNCTION: 0x414350
-void __stdcall FUN_00414350(Point a, Vec3* out, Point b)
+void __stdcall CellToWorldPos(Point a, Vec3* out, Point b)
 {
     out->x = (b.x + a.x * 2) << 19;
     out->z = (b.y + a.y * 2) << 19;
@@ -1221,7 +1221,7 @@ int __stdcall VtolRepairUnitOrder(Unit* unit, Order* order, int flags)
                 return 8;
             }
             ((Class_00438880*)order)->AnnounceStatusIfFlagged("Repairing");
-            FUN_0040f200(unit, order, 0);
+            PrepVtolClimb(unit, order, 0);
             return 1;
         }
         break;
@@ -1317,7 +1317,7 @@ static inline float Total(float base, float amount)
 }
 
 // VTOL patrol order handler for construction aircraft. State 0 starts
-// patrolling ("Patrolling"; FUN_0040f200). State 1 sets the next waypoint,
+// patrolling ("Patrolling"; PrepVtolClimb). State 1 sets the next waypoint,
 // then lands on a free pad when damaged (VTOL_LANDING), helps build or guards
 // a unit it can see (VTOL_HELPBUILD), or reclaims metal or energy
 // (VTOL_RECLAIM).
@@ -1327,7 +1327,7 @@ static inline float Total(float base, float amount)
 // Class_00405d90::FUN_00405d90.
 // Some header must be included here: without one the def and health loads swap.
 // FUNCTION: 0x4158d0
-void Class_004158d0::FUN_004158d0(Unit* unit)
+void RepairableUnitVisitor::CollectRepairableUnit(Unit* unit)
 {
     if (unit == self) return;
     unsigned int index = 0;

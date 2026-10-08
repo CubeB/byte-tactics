@@ -108,7 +108,7 @@ void __stdcall ReclaimFeature(Unit* unit, Vec3* pos);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
-void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
+void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
     unit->ClaimWeapons(3);
     if (unit->field_86)
@@ -143,7 +143,7 @@ int __stdcall VtolReclaimOrder(Unit* unit, Order* order, int flags)
     case 0:
         if (unit->type && (unit->def->flags & 0x800) && (unit->def->flags2 & 0x400)) {
             ((Class_00438880*)order)->AnnounceStatusIfFlagged("Reclaiming");
-            FUN_0040f200(unit, order, 0);
+            PrepVtolClimb(unit, order, 0);
             return 1;
         }
         break;

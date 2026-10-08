@@ -1,7 +1,7 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, edited by Claude Opus 5.5, finished by Claude Opus 5.5. re-verified by GPT-6. Names are provisional.
 // "Attacking" order handler of aircraft (VTOL). Interrupts hand over to a
 // "VTOL_SEEKATTACK" order; the order follows its target unit and gives up
-// outside its range. State 0 prepares the order (FUN_0040f200), states 1 and
+// outside its range. State 0 prepares the order (PrepVtolClimb), states 1 and
 // 2 make attack runs past the target, state 4 turns around after a pause,
 // state 5 aims at the target again and state 6 flies on and, when the unit is
 // below three quarters of its health, sends it to a random repair pad
@@ -140,7 +140,7 @@ static inline Vec3 Offset(short angle, int distance)
 }
 
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
-void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
+void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
     unit->ClaimWeapons(3);
     if (unit->field_86)
@@ -180,7 +180,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
     case 0:
         if (unit->type && (unit->def->flags & 0x800)) {
             ((Class_00438880*)order)->AnnounceStatusIfFlagged("Attacking");
-            FUN_0040f200(unit, order, 0);
+            PrepVtolClimb(unit, order, 0);
             return 1;
         }
         break;

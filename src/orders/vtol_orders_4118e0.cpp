@@ -1,6 +1,6 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 // "Landing" order handler of air units landing on a pad unit (the order's
-// target). State 0 prepares the order (FUN_0040f200) and picks a random
+// target). State 0 prepares the order (PrepVtolClimb) and picks a random
 // angle, state 1 looks for a free pad (FindLandingPad) and circles the pad
 // unit until one is free, states 2 to 5 approach the pad and land, and state
 // 6 hands the unit (or its cargo) to the pad and starts a "SELFREPAIR" order
@@ -119,7 +119,7 @@ static inline Vec3 Offset(short angle, int distance)
 }
 
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
-void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
+void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
     ((Unit*)unit)->ClaimWeapons(3);
     if (unit->field_86)
@@ -170,7 +170,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
     case 0:
         if (unit->type && (unit->def->flags & 0x800)) {
             ((Class_00438880*)order)->AnnounceStatusIfFlagged("Landing");
-            FUN_0040f200(unit, order, 0);
+            PrepVtolClimb(unit, order, 0);
             order->angle = RandomInt(0x10000);
             return 1;
         }

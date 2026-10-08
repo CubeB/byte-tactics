@@ -1,7 +1,7 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 // VTOL transport (air lift) order handler. Fails when there is no target,
 // with flags 0x10048, or when the target sits below sea level. State 0
-// prepares the order ("Loading"; FUN_0040f200), state 1 flies to the target,
+// prepares the order ("Loading"; PrepVtolClimb), state 1 flies to the target,
 // state 2 asks the script for the attach piece (QueryTransport), state 3
 // starts BeginTransport and hovers down to the piece's height, state 4 ends
 // the pickup (EndTransport when cancelled) and state 5 finishes.
@@ -79,7 +79,7 @@ int __stdcall SendScriptCallByName(Unit* unit, char* name, char p3, int p4, int 
 Vec3 __stdcall GetPieceOffset(Unit* unit, int piece);
 
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
-void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
+void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
     unit->ClaimWeapons(3);
     if (unit->field_86)
@@ -123,7 +123,7 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
                     return 8;
                 }
                 ((Class_00438880*)order)->AnnounceStatusIfFlagged("Loading");
-                FUN_0040f200(unit, order, 0);
+                PrepVtolClimb(unit, order, 0);
                 return 1;
             }
             break;

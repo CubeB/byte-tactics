@@ -102,7 +102,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x50289c,DAT_0050289c,.data,4,type,data,int,1,0,1,one type,1,,DAT_0050289c,,,01000000
 0x5028f8,g_campaignKey,.data,12,gap,string,char[],1,0,1,one type,1,,s_Campaign_005028f8,,,43616d706169676e00000000
 0x502910,g_dotExtSep,.data,4,gap,data,char[],1,0,1,one type,1,,DAT_00502910,,,2e000000
-0x502a20,DAT_00502a20,.data,4,gap,string,char[],3,0,1,one type,3,,DAT_00502a20,,,26470000
+0x502a20,DAT_00502a20,.data,4,gap,string,char[],2,0,1,one type,2,,s__G_00502a20,,,26470000
 0x502a78,DAT_00502a78,.data,12,gap,string,char[],2,0,1,one type,2,,s_Difficulty_00502a78,,,446966666963756c74790000
 0x502ae8,DAT_00502ae8,.data,4,gap,string,char[],2,0,1,one type,2,,DAT_00502ae8,,,4f4b0000
 0x502b38,g_optionsSoundName,.data,8,gap,string,char[],1,0,1,one type,1,,s_Options_00502b38,,,4f7074696f6e7300
@@ -744,7 +744,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51fb98,DAT_0051fb98,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
 0x51fb9c,g_loopingWav,.bss,4,type,data,char*,1,0,1,one type,1,,DAT_0051fb9c,,,
 0x51fba0,g_diskWav,.bss,4,type,data,int*,1,0,1,one type,1,,DAT_0051fba0,,,
-0x51fba4,g_guiContext,.bss,4,type,data,Dialog*,15,16,17,conflicting: shape,31,,DAT_0051fba4,,,
+0x51fba4,g_guiContext,.bss,4,type,data,Dialog*,8,9,10,conflicting: shape,17,,DAT_0051fba4,,,
 0x51fba8,DAT_0051fba8,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051fba8,,,
 0x51fbac,DAT_0051fbac,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051fbac,,,
 0x51fbb0,DAT_0051fbb0,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051fbb0,,,

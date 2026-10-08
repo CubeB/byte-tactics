@@ -48,7 +48,7 @@ extern int g_commandLineUnusedFlagL;                                            
 extern int DAT_0050289c;                                                                          // 0x50289c, 4 bytes; 1 of 1 files
 extern char g_campaignKey[12];                                                                    // 0x5028f8, 12 bytes; 1 of 1 files
 extern char g_dotExtSep[4];                                                                       // 0x502910, 4 bytes; 1 of 1 files
-extern char DAT_00502a20[4];                                                                      // 0x502a20, 4 bytes; 3 of 3 files
+extern char DAT_00502a20[4];                                                                      // 0x502a20, 4 bytes; 2 of 2 files
 extern char DAT_00502a78[12];                                                                     // 0x502a78, 12 bytes; 2 of 2 files
 extern char DAT_00502ae8[4];                                                                      // 0x502ae8, 4 bytes; 2 of 2 files
 extern char g_optionsSoundName[8];                                                                // 0x502b38, 8 bytes; 1 of 1 files
@@ -576,7 +576,7 @@ extern unsigned long g_lastSoundReapTick;                                       
 extern unsigned char DAT_0051fb98[4];                                                             // 0x51fb98, 4 bytes; nothing refers to it
 extern char* g_loopingWav;                                                                        // 0x51fb9c, 4 bytes; 1 of 1 files
 extern int* g_diskWav;                                                                            // 0x51fba0, 4 bytes; 1 of 1 files
-extern Dialog* g_guiContext;                                                                      // 0x51fba4, 4 bytes; 15 of 31 files (conflicting: shape)
+extern Dialog* g_guiContext;                                                                      // 0x51fba4, 4 bytes; 8 of 17 files (conflicting: shape)
 extern int DAT_0051fba8;                                                                          // 0x51fba8, 4 bytes; 1 of 1 files
 extern int DAT_0051fbac;                                                                          // 0x51fbac, 4 bytes; 1 of 1 files
 extern int DAT_0051fbb0;                                                                          // 0x51fbb0, 4 bytes; 1 of 1 files

@@ -137,6 +137,32 @@ static inline Seq_004224b0* SeqByName(Gaf_004224b0* gaf, int unused, char* name)
     return FindGafEntry(gaf, name);
 }
 
+// Reads one seqname-style field into *out: the sequence named by key from the
+// feature's GAF, or 0. The tested lookup goes through an int local: it changes
+// the zero compare.
+static inline void LoadFeatureSeq(TdfRecord* rec, char* key, char* seqname, Gaf_004224b0* anims, Seq_004224b0** out)
+{
+    int ok = rec->GetFieldString(seqname, key, 0x100, DAT_005119b8);
+    if (ok)
+        *out = SeqByName(anims, 0, seqname);
+    else
+        *out = 0;
+}
+
+// The same read for the burn, die and reclaim sequences, which play once: the
+// sequence's loop flag is cleared.
+static inline void LoadFeatureSeqOnce(TdfRecord* rec, char* key, char* seqname, Gaf_004224b0* anims, Seq_004224b0** out)
+{
+    int ok = rec->GetFieldString(seqname, key, 0x100, DAT_005119b8);
+    if (ok) {
+        *out = SeqByName(anims, 0, seqname);
+        if (*out)
+            (*out)->kind = 0;
+    } else {
+        *out = 0;
+    }
+}
+
 // The return value is the full old count (0x422e40.cpp declares it unsigned
 // short).
 // The sequence references must be cleared field by field, not by a Reset()
@@ -186,64 +212,14 @@ int __stdcall LoadFeatureType(char* name)
             strncpy(def->filename, file, 0x10);
             anims = def->anims;
         }
-        ok = ((TdfRecord*)entry->parser)->GetFieldString(seqname, "seqname", 0x100, DAT_005119b8);
-        if (ok)
-            def->seq = SeqByName(anims, 0, seqname);
-        else
-            def->seq = 0;
-        ok = ((TdfRecord*)entry->parser)->GetFieldString(seqname, "seqnameshad", 0x100, DAT_005119b8);
-        if (ok)
-            def->seqshad = SeqByName(anims, 0, seqname);
-        else
-            def->seqshad = 0;
-        ok = ((TdfRecord*)entry->parser)->GetFieldString(seqname, "seqnameburn", 0x100, DAT_005119b8);
-        if (ok) {
-            def->seqburn = SeqByName(anims, 0, seqname);
-            if (def->seqburn)
-                def->seqburn->kind = 0;
-        } else {
-            def->seqburn = 0;
-        }
-        ok = ((TdfRecord*)entry->parser)->GetFieldString(seqname, "seqnameburnshad", 0x100, DAT_005119b8);
-        if (ok) {
-            def->seqburnshad = SeqByName(anims, 0, seqname);
-            if (def->seqburnshad)
-                def->seqburnshad->kind = 0;
-        } else {
-            def->seqburnshad = 0;
-        }
-        ok = ((TdfRecord*)entry->parser)->GetFieldString(seqname, "seqnamedie", 0x100, DAT_005119b8);
-        if (ok) {
-            def->seqdie = SeqByName(anims, 0, seqname);
-            if (def->seqdie)
-                def->seqdie->kind = 0;
-        } else {
-            def->seqdie = 0;
-        }
-        ok = ((TdfRecord*)entry->parser)->GetFieldString(seqname, "seqnamedieshad", 0x100, DAT_005119b8);
-        if (ok) {
-            def->seqdieshad = SeqByName(anims, 0, seqname);
-            if (def->seqdieshad)
-                def->seqdieshad->kind = 0;
-        } else {
-            def->seqdieshad = 0;
-        }
-        ok = ((TdfRecord*)entry->parser)->GetFieldString(seqname, "seqnamereclamate", 0x100, DAT_005119b8);
-        if (ok) {
-            def->seqreclamate = SeqByName(anims, 0, seqname);
-            if (def->seqreclamate)
-                def->seqreclamate->kind = 0;
-        } else {
-            def->seqreclamate = 0;
-        }
-        ok = ((TdfRecord*)entry->parser)->GetFieldString(seqname, "seqnamereclamateshad", 0x100, DAT_005119b8);
-        if (ok) {
-            def->seqreclamateshad = SeqByName(anims, 0, seqname);
-            if (def->seqreclamateshad)
-                def->seqreclamateshad->kind = 0;
-        } else {
-            def->seqreclamateshad = 0;
-        }
+        LoadFeatureSeq((TdfRecord*)entry->parser, "seqname", seqname, anims, &def->seq);
+        LoadFeatureSeq((TdfRecord*)entry->parser, "seqnameshad", seqname, anims, &def->seqshad);
+        LoadFeatureSeqOnce((TdfRecord*)entry->parser, "seqnameburn", seqname, anims, &def->seqburn);
+        LoadFeatureSeqOnce((TdfRecord*)entry->parser, "seqnameburnshad", seqname, anims, &def->seqburnshad);
+        LoadFeatureSeqOnce((TdfRecord*)entry->parser, "seqnamedie", seqname, anims, &def->seqdie);
+        LoadFeatureSeqOnce((TdfRecord*)entry->parser, "seqnamedieshad", seqname, anims, &def->seqdieshad);
+        LoadFeatureSeqOnce((TdfRecord*)entry->parser, "seqnamereclamate", seqname, anims, &def->seqreclamate);
+        LoadFeatureSeqOnce((TdfRecord*)entry->parser, "seqnamereclamateshad", seqname, anims, &def->seqreclamateshad);
     }
     def->spreadchance = ((TdfRecord*)entry->parser)->GetFieldInt("spreadchance", 0);
     def->reproduce = ((TdfRecord*)entry->parser)->GetFieldInt("reproduce", 0);

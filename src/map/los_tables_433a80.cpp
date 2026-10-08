@@ -1,7 +1,7 @@
 // Decompiled by Opus, Space Bunny Free. Names are provisional.
 // The three instantiations of the los_tables module whose destroys call the
-// out-of-line helpers FUN_00434430 (0x434430) and, for the copy constructor,
-// FUN_004345c0 (0x4345c0): the destructor of vector<Elem_00434360>
+// out-of-line helpers DestroyPoint (0x434430) and, for the copy constructor,
+// StoreDwordIfDst (0x4345c0): the destructor of vector<Elem_00434360>
 // (0x433a80), the erase of the same vector (0x434020) and the copy
 // constructor of the same vector (0x4344e0). They need std::_Destroy and
 // std::_Construct overloads that disagree with the plain template the rest
@@ -13,18 +13,18 @@ struct Elem_00434020 {
     unsigned short b;                  // +0x2
 };
 
-void __stdcall FUN_00434430(int);
-void __stdcall FUN_004345c0(int* p, const int* q);
+void __stdcall DestroyPoint(int);
+void __stdcall StoreDwordIfDst(int* p, const int* q);
 
 namespace std {
 inline void _Destroy(Elem_00434020* p)
 {
-    FUN_00434430((int)p);
+    DestroyPoint((int)p);
 }
 
 inline void _Construct(Elem_00434020* p, const Elem_00434020& v)
 {
-    FUN_004345c0((int*)p, (const int*)&v);
+    StoreDwordIfDst((int*)p, (const int*)&v);
 }
 }
 
@@ -46,7 +46,7 @@ inline void _Destroy(Elem_00434360* p)
 // std::vector<Elem_00434360>::~vector() (the same class as the erase at
 // 0x434020), where Elem_00434360 is a struct holding one
 // std::vector<Elem_00434020>: each element's held vector has its elements go
-// through the empty FUN_00434430 (std::_Destroy overload above), then its
+// through the empty DestroyPoint (std::_Destroy overload above), then its
 // _First is freed and its three pointers zeroed; finally the outer _First is
 // freed and zeroed. Its callers (0x433270, 0x4340f0) are the destroy loops of
 // a vector of these vectors.
@@ -63,7 +63,7 @@ AssignFn_00433a80 g_assign_00433a80 = &Outer_00433a80::operator=;
 // 5's <vector>, where Elem_00434360 is a struct holding one
 // std::vector<Elem_00434020>: copy the tail down with the held vector's
 // operator= (0x4345e0), then destroy the leftover elements. Destroying an
-// inner element calls the empty out-of-line FUN_00434430.
+// inner element calls the empty out-of-line DestroyPoint.
 typedef std::vector<Elem_00434360> Outer_00434020;
 typedef Outer_00434020::iterator (Outer_00434020::*EraseFn_00434020)(
     Outer_00434020::iterator, Outer_00434020::iterator);

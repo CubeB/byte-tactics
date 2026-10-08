@@ -376,8 +376,8 @@ unsigned short __stdcall FindUnitTypeId(char* name);
 void __stdcall LoadUnitFbi(char* path, UnitDef* type);
 void AddDownloadBuildOptions();
 void __stdcall ListDirectory(const char* pattern, int flags, std::vector<Class_004c91a0>* out);
-void __stdcall FUN_00432fb0(void* start, void* end, void* cmp, int param);
-void __stdcall FUN_00432d40(void* start, void* end, void* cmp, int param);
+void __stdcall InsertionSortUnitTypes(void* start, void* end, void* cmp, int param);
+void __stdcall SortUnitTypes(void* start, void* end, void* cmp, int param);
 int __stdcall CompareUnitTypeNames(const char* a, const char* b);
 int __cdecl GameStrdup(char* name);
 void __stdcall FatalError(const char* msg);
@@ -1059,11 +1059,11 @@ void LoadUnitTypes() {
     start = g_game->field_1439b + 1;
     UnitDef* last = d;
     if (last - start <= 0x10) {
-        FUN_00432fb0(start, last, (void*)CompareUnitTypeNames, 0);
+        InsertionSortUnitTypes(start, last, (void*)CompareUnitTypeNames, 0);
     } else {
-        FUN_00432d40(start, last, (void*)CompareUnitTypeNames, 0);
+        SortUnitTypes(start, last, (void*)CompareUnitTypeNames, 0);
         UnitDef* q = start + 0x10;
-        FUN_00432fb0(start, q, (void*)CompareUnitTypeNames, 0);
+        InsertionSortUnitTypes(start, q, (void*)CompareUnitTypeNames, 0);
         for (; q != last; q++) {
             UnitDef tmp = *q;
             UnitDef* r = q - 1;

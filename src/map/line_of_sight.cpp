@@ -368,9 +368,9 @@ class LosTables {
 public:
     explicit LosTables(const std::allocator<int>& al = std::allocator<int>())
         : allocator(al), first(0), last(0), end(0) {}
-    ~LosTables() { FUN_004330b0(); }
+    ~LosTables() { FreeTables(); }
 
-    void FUN_004330b0();
+    void FreeTables();
     void* GetLosTable(int n);
 
     std::allocator<int> allocator;     // +0x0
@@ -501,7 +501,7 @@ LosTables g_losTables;
 // FUNCTION: 0x4814f0
 void FUN_004814f0()
 {
-    g_losTables.FUN_004330b0();
+    g_losTables.FreeTables();
 }
 
 // FUNCTION: 0x481500

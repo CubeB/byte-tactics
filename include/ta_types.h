@@ -5834,7 +5834,7 @@ public:
     int* end;  // +0xc
     Class_004330b0(std::allocator<int>&);
     ~Class_004330b0(void);
-    void FUN_004330b0(void);
+    void FreeTables(void);
 };
 
 struct Elem_00434020 {  // 0x4 bytes, 29 views
@@ -5860,7 +5860,7 @@ public:
 class Class_00433270 {  // 0x10 bytes, 1 view
 public:
     char unknown_0[16];
-    void FUN_00433270(short);
+    void ResizeTables(short);
 };
 
 struct Wrap_00433270 {  // 0x10 bytes, 1 view
@@ -5871,7 +5871,7 @@ class Class_004335f0 {  // 0x10 bytes, 2 views
 public:
     char unknown_0[16];
     Elem_00434360* GetLine(short);
-    void FUN_004335f0(short);
+    void ResizeLines(short);
     void SetNumLines(short);
 };
 
@@ -5905,7 +5905,7 @@ public:
 class Class_00433540 {  // 0x1 bytes, 1 view
 public:
     char unknown_0[1];
-    void FUN_00433540(void);
+    void FreeLines(void);
 };
 
 class Class_004335c0 {  // 0xc bytes, 4 views

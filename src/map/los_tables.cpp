@@ -16,9 +16,9 @@
 // needs its Wrap_00433270 element view so that the innermost
 // _Destroy/deallocate calls stay out of line; 0x433a80, 0x434020 and 0x4344e0
 // (los_tables_433a80.cpp) need std::_Destroy and std::_Construct overloads
-// that call the out-of-line FUN_00434430 and FUN_004345c0; and 0x434360
+// that call the out-of-line DestroyPoint and StoreDwordIfDst; and 0x434360
 // (los_tables_434360.cpp) needs the same _Destroy name for the element type to
-// call FUN_00434440. Those overloads disagree with the plain template this
+// call DestroyLine. Those overloads disagree with the plain template this
 // file's functions need.
 #include <windows.h>
 #include <algorithm>
@@ -58,7 +58,7 @@ public:
     char* ptr;                         // +0x0
     int field_4;                       // +0x4
 
-    void* FUN_00432d20(Class_004c93b0* param);
+    void* AssignPair(Class_004c93b0* param);
     Class_004c93b0* Assign(Class_004c93b0* param_1);
 };
 
@@ -132,11 +132,11 @@ class LosTable : public std::vector<Elem_00434360> {
 public:
     // Inline copy of GetLosLine.
     Elem_00434360* GetLine(short i) { return &(*this)[i]; }
-    // Inline copy of FUN_004335f0.
+    // Inline copy of ResizeLines.
     void SetNumLines(short n) { resize(n * 4); }
 
     int GetLosLineCount();
-    void FUN_004335f0(short n);
+    void ResizeLines(short n);
 };
 
 typedef std::vector<Elem_00434020> Inner_00433500;
@@ -145,7 +145,7 @@ class LosTables {
 public:
     std::vector<Column_00433270> tables; // +0x0
 
-    void FUN_004330b0();
+    void FreeTables();
     // Inline copy of GetLosTable: table number n, counted from 1.
     LosTable* GetTable(short n)
     {
@@ -170,7 +170,7 @@ public:
 
 class Class_00433540 {
 public:
-    void FUN_00433540();
+    void FreeLines();
 };
 
 struct Class_4335e0 {
@@ -258,7 +258,7 @@ UcopyFn_00432c40 Access_00432c40::fn = &Access_00432c40::_Ucopy;
 // operator 0x4c93b0 and copies its field_4. The function was compiled with
 // __stdcall as the default, hence `ret 0xc`.
 // FUNCTION: 0x432c80
-void __stdcall FUN_00432c80(Elem_432cb0* first, Elem_432cb0* last, Elem_432cb0* value)
+void __stdcall AssignRange(Elem_432cb0* first, Elem_432cb0* last, Elem_432cb0* value)
 {
     for (; first != last; ++first) {
         first->handle.Assign(&value->handle);
@@ -267,7 +267,7 @@ void __stdcall FUN_00432c80(Elem_432cb0* first, Elem_432cb0* last, Elem_432cb0* 
 }
 
 // FUNCTION: 0x432cb0
-Elem_432cb0* __stdcall FUN_00432cb0(Elem_432cb0* param_1, Elem_432cb0* param_2, Elem_432cb0* param_3)
+Elem_432cb0* __stdcall AssignRangeBack(Elem_432cb0* param_1, Elem_432cb0* param_2, Elem_432cb0* param_3)
 {
     while (param_1 != param_2) {
         --param_2;
@@ -290,7 +290,7 @@ ConstructFn_00432cf0 g_construct_00432cf0 = &Alloc_00432cf0::construct;
 // A reference-counted string handle, with the count in the dword before the
 // characters, and an int after it.
 // FUNCTION: 0x432d20
-void* Class_004c93b0::FUN_00432d20(Class_004c93b0* param)
+void* Class_004c93b0::AssignPair(Class_004c93b0* param)
 {
     Assign(param);
     field_4 = param->field_4;
@@ -328,7 +328,7 @@ static void __inline Unguarded_insert(UnitDef* L, UnitDef V, Compare P)
 }
 
 // FUNCTION: 0x432fb0
-void __stdcall FUN_00432fb0(UnitDef* first, UnitDef* last, Compare comp, void* tag)
+void __stdcall InsertionSortUnitTypes(UnitDef* first, UnitDef* last, Compare comp, void* tag)
 {
     if (first != last)
         for (UnitDef* M = first; ++M != last; ) {
@@ -349,7 +349,7 @@ void __stdcall FUN_00432fb0(UnitDef* first, UnitDef* last, Compare comp, void* t
 typedef std::vector<Column_00433270> Outer_004330b0;
 
 // FUNCTION: 0x4330b0
-void LosTables::FUN_004330b0()
+void LosTables::FreeTables()
 {
     ((Outer_004330b0*)this)->~vector();
 }
@@ -409,7 +409,7 @@ typedef void (std::allocator<Elem_00434020>::*DestroyFn_00434020)(Elem_00434020*
 DestroyFn_00434020 g_destroy_00434020 = &std::allocator<Elem_00434020>::destroy;
 
 // FUNCTION: 0x433540
-void Class_00433540::FUN_00433540()
+void Class_00433540::FreeLines()
 {
     // Explicit destructor call from a method, as in 0x4330b0 above.
     ((Outer_00434020*)this)->~vector();
@@ -429,7 +429,7 @@ int LosTable::GetLosLineCount()
 // The sibling 0x433270 is the same wrapper for the next element level up
 // (`vector<vector<Elem_00434360>>`), where `resize(n, x)` has no `* 4`.
 // FUNCTION: 0x4335f0
-void LosTable::FUN_004335f0(short n)
+void LosTable::ResizeLines(short n)
 {
     Elem_00434360 x;
     resize(n * 4, x);
@@ -694,7 +694,7 @@ typedef void (Alloc_00434400::*DestroyFn_00434400)(Elem_00434360*);
 DestroyFn_00434400 g_destroy_00434400 = &Alloc_00434400::destroy;
 
 // FUNCTION: 0x434430
-void __stdcall FUN_00434430(int)
+void __stdcall DestroyPoint(int)
 {
 }
 
@@ -704,7 +704,7 @@ void __stdcall FUN_00434430(int)
 // 0x434360.
 // Explicit __stdcall: the original takes no ecx and ends in `ret 4`.
 // FUNCTION: 0x434440
-void __stdcall FUN_00434440(Elem_00434360* p)
+void __stdcall DestroyLine(Elem_00434360* p)
 {
     std::_Destroy(p);
 }
@@ -737,7 +737,7 @@ InsertFn_00434470 g_insert_00434470 = &Vec_00434470::insert;
 AssignFn_004349f0 g_assign_004349f0 = &Vec_004349f0::operator=;
 
 // FUNCTION: 0x4345c0
-void __stdcall FUN_004345c0(int* param_1, int* param_2)
+void __stdcall StoreDwordIfDst(int* param_1, int* param_2)
 {
     if (param_1 != 0) {
         *param_1 = *param_2;

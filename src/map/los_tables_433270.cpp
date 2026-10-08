@@ -6,7 +6,7 @@
 // its insert is 0x4340f0, the column's operator= 0x434770 and destructor
 // 0x433a80, and the held vector's _Destroy 0x433d90 and deallocate 0x433da0.
 //
-// LosTables::FUN_00433270(short): resizes the vector at +0 (its _First at
+// LosTables::ResizeTables(short): resizes the vector at +0 (its _First at
 // +4, 16-byte elements) to n columns, filled with a default-constructed Column.
 #include <vector>
 
@@ -31,11 +31,11 @@ typedef std::vector<Elem_00434360> Column_00433270;
 // Elem_00434360 view (which 0x433380 needs) inlines them.
 class LosTables : public std::vector<Column_00433270> {
 public:
-    void FUN_00433270(short n);
+    void ResizeTables(short n);
 };
 
 // FUNCTION: 0x433270
-void LosTables::FUN_00433270(short n)
+void LosTables::ResizeTables(short n)
 {
     Column_00433270 x;
     resize(n, x);

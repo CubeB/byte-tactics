@@ -18,7 +18,7 @@ public:
 typedef int (__stdcall* Compare)(const UnitDef&, const UnitDef&);
 
 // FUNCTION: 0x432d40
-void __stdcall FUN_00432d40(UnitDef* first, UnitDef* last,
+void __stdcall SortUnitTypes(UnitDef* first, UnitDef* last,
                             Compare comp, int unused)
 {
     for (; std::_SORT_MAX < last - first; ) {
@@ -27,8 +27,8 @@ void __stdcall FUN_00432d40(UnitDef* first, UnitDef* last,
                 UnitDef(*(first + (last - first) / 2)),
                 UnitDef(*(last - 1)), comp), comp);
         if (last - _M <= _M - first)
-            FUN_00432d40(_M, last, comp, 0), last = _M;
+            SortUnitTypes(_M, last, comp, 0), last = _M;
         else
-            FUN_00432d40(first, _M, comp, 0), first = _M;
+            SortUnitTypes(first, _M, comp, 0), first = _M;
     }
 }

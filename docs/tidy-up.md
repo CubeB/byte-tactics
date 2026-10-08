@@ -379,7 +379,7 @@ What a merge can move, and what to do about it:
 - **Symbol ids.** A function that matches only at its old file's symbol count
   may need its declarations reordered (PerformanceDialog), a standard header
   included only for its symbols, with a comment saying so (`<stdlib.h>` in
-  `util/hapi_bank.cpp`, `<io.h>` in `sound/sound.cpp`; `tools/check.py` on
+  `util/hapi_bank.cpp`, `<io.h>` in `sound/samples.cpp`; `tools/check.py` on
   each function after adding one), or a file of its own with a note at its
   declaration in the class (MissionConditions::CheckVictory,
   `game/victory_490230.cpp`).

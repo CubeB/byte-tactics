@@ -5023,16 +5023,16 @@ piece,0x505294,16,src/units/unit_scripts.cpp,21,0,game data
 piece,0x505284,13,src/units/unit_scripts.cpp,16,0,game data
 piece,0x505274,15,src/units/unit_scripts.cpp,15,0,game data
 piece,0x505264,14,src/units/unit_scripts.cpp,14,0,game data
-piece,0x505258,9,src/orders/order_list_43afc0.cpp,84,0,game data
+piece,0x505258,9,src/orders/order_list.cpp,129,0,game data
 piece,0x505248,13,src/units/unit_scripts.cpp,3,0,game data
-piece,0x50523c,11,src/orders/order_list_43afc0.cpp,75,0,game data
-piece,0x505230,12,src/orders/order_list_43afc0.cpp,74,0,game data
-piece,0x505224,10,src/orders/order_list_43afc0.cpp,73,0,game data
-piece,0x505218,10,src/orders/order_list_43afc0.cpp,72,0,game data
-piece,0x50520c,10,src/orders/order_list_43afc0.cpp,71,0,game data
-piece,0x4fd2d0,8,src/orders/order_list_43afc0.cpp,66,0,game data
-piece,0x4fd2d8,8,src/orders/order_list_43afc0.cpp,66,8,game data
-piece,0x4fd2e0,4,src/orders/order_list_43afc0.cpp,66,16,game data
+piece,0x50523c,11,src/orders/order_list.cpp,120,0,game data
+piece,0x505230,12,src/orders/order_list.cpp,119,0,game data
+piece,0x505224,10,src/orders/order_list.cpp,118,0,game data
+piece,0x505218,10,src/orders/order_list.cpp,117,0,game data
+piece,0x50520c,10,src/orders/order_list.cpp,116,0,game data
+piece,0x4fd2d0,8,src/orders/order_list.cpp,111,0,game data
+piece,0x4fd2d8,8,src/orders/order_list.cpp,111,8,game data
+piece,0x4fd2e0,4,src/orders/order_list.cpp,111,16,game data
 piece,0x5051f4,6,src/orders/order_queue_4384a0.cpp,54,0,game data
 piece,0x5051e0,13,src/orders/order_queue_4384a0.cpp,46,0,game data
 piece,0x5051f0,2,src/orders/order_queue_4384a0.cpp,49,0,game data
@@ -12144,7 +12144,7 @@ same,0x5048f8,9,src/map/map_list.cpp,132,0,
 same,0x504ea8,5,src/map/map_list.cpp,151,0,
 same,0x504ea0,7,src/map/map_list.cpp,150,0,
 same,0x504e98,5,src/map/map_list.cpp,149,0,
-same,0x512340,16,src/orders/order_list_43afc0.cpp,27,0,
+same,0x512340,16,src/orders/order_list.cpp,72,0,
 same,0x4fd2e8,4,src/units/unit_scripts.cpp,34,0,
 same,0x4fd2e8,4,src/orders/order_dispatch_43f0e0.cpp,3,0,
 same,0x512758,1,src/units/movement_class.cpp,3,1024,

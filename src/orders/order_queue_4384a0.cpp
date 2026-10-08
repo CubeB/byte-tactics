@@ -285,7 +285,7 @@ public:
     int field_4e;                      // +0x4e
     Attached_0043a1f0* attached;       // +0x52
 
-    // The real constructor is 0x43a0c0, in order_list_439b30.cpp: it needs
+    // The real constructor is 0x43a0c0, in order_list.cpp: it needs
     // `kind(k)` as a plain member initialiser, which this class's second base
     // rules out (98.9%).
     Class_0043a1f0(Class_00438760, int, void*, int, int, int);

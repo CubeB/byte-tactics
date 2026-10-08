@@ -4412,7 +4412,7 @@ address,name
 0x512330,g_meteorNextHitTime
 0x512334,g_meteorTarget
 0x512338,g_meteorScheduleGap
-0x512340,DAT_00512340$S34851
+0x512340,DAT_00512340$S35323
 0x512344,DAT_00512344
 0x512348,DAT_00512348
 0x512358,MovementClassTable::g_movementClasses

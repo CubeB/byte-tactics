@@ -143,7 +143,7 @@ public:
     int y1;                 // +0x10
     int y2;                 // +0x14
 
-    void FUN_0044da00(Vec_0044da00* list);
+    void AppendGoalCell(Vec_0044da00* list);
 };
 
 static Point_0044eec0 MakePoint_0044da00(int x, int y)
@@ -155,7 +155,7 @@ static Point_0044eec0 MakePoint_0044da00(int x, int y)
 }
 
 // FUNCTION: 0x44da00
-void Class_0044da00::FUN_0044da00(Vec_0044da00* list)
+void Class_0044da00::AppendGoalCell(Vec_0044da00* list)
 {
     list->clear();
     for (int i = x1; i <= x2; i++) {

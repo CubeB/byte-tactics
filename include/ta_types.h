@@ -3566,25 +3566,25 @@ public:
     virtual ~Base_00490a10(void);
     virtual void Unknown_0(void);
     virtual void SerializeSave(void);
-    virtual void FUN_0044ef90(void*);
+    virtual void SetPathOrder(void*);
     virtual void FUN_0044ce40(void);
-    virtual void FUN_0044efb0(void);
+    virtual void TickTowardGoal(void);
     virtual int FUN_0044ef40(int, int, int);
     virtual void IsFxStyle(void);
     virtual int FUN_0044cf00(Unit*);
-    virtual int FUN_0044f000(Unit*);
+    virtual int ExportGoalPose(Unit*);
     virtual int FUN_0044ef80(void);
     virtual void ContainsCell(void);
-    virtual int FUN_0044eff0(void);
-    virtual void FUN_0044ce90(void);
-    virtual int FUN_0044efe0(void);
+    virtual int TryClaimRepath(void);
+    virtual void FillGoalCells(void);
+    virtual int HasNetUnitState(void);
     virtual void ApproxDist(void);
-    virtual void FUN_0044efc0(Vec3*);
+    virtual void SerializeNetUnitState(Vec3*);
     virtual void FUN_004e6110(void);
     virtual int FUN_0044efd0(short*);
     virtual void TryGetDesiredHeading(void);
     virtual void FUN_0044cf50(void);
-    virtual void FUN_0044ef50(int);
+    virtual void DrawOnSurface(int);
     virtual int KeepAfterComplete(void);
     virtual int FUN_0044ef50_11(void);
     void AddFlags(int);
@@ -7199,7 +7199,7 @@ public:
 class Class_0044ce90 {  // 0x1 bytes, 1 view
 public:
     char unknown_0[1];
-    void FUN_0044ce90(std::vector<Elem_0044ce90*>*);
+    void FillGoalCells(std::vector<Elem_0044ce90*>*);
 };
 
 struct Elem_0044ce90 {  // 0x4 bytes, 1 view
@@ -7737,18 +7737,18 @@ public:
     Unit* owner;  // +0x8
     virtual ~Class_0044ef20(void);
     Class_0044ef20(Unit*);
-    virtual void FUN_0044ef90(void*);
-    virtual void FUN_0044efb0(void);
+    virtual void SetPathOrder(void*);
+    virtual void TickTowardGoal(void);
     virtual void FUN_0044ef40(int, int, int);
-    virtual void FUN_0044f000(int, int, int);
+    virtual void ExportGoalPose(int, int, int);
     virtual int FUN_0044ef80(void);
-    virtual int FUN_0044eff0(void);
-    virtual int FUN_0044efe0(void);
-    virtual void FUN_0044efc0(int);
+    virtual int TryClaimRepath(void);
+    virtual int HasNetUnitState(void);
+    virtual void SerializeNetUnitState(int);
     virtual void FUN_0044efd0(int);
     virtual void FUN_0044efd0(void);
-    virtual void FUN_0044ef50(int);
-    virtual void FUN_0044ef50(void);
+    virtual void DrawOnSurface(int);
+    virtual void DrawOnSurface(void);
 };
 
 class Class_0044f010 : public Class_0044ef20 {  // 0x68 bytes, 10 views
@@ -7764,14 +7764,14 @@ public:
     char unknown_65[3];
     virtual ~Class_0044f010(void);
     Class_0044f010(int);
-    virtual void FUN_0044ef90(void*);
-    virtual void FUN_0044efb0(void);
+    virtual void SetPathOrder(void*);
+    virtual void TickTowardGoal(void);
     virtual void FUN_0044ef40(int, int, int);
     virtual int FUN_0044ef80(void);
-    virtual int FUN_0044eff0(void);
-    virtual int FUN_0044efe0(void);
-    virtual void FUN_0044efc0(int);
-    virtual void FUN_0044ef50(int);
+    virtual int TryClaimRepath(void);
+    virtual int HasNetUnitState(void);
+    virtual void SerializeNetUnitState(int);
+    virtual void DrawOnSurface(int);
     void SetWaypoints(Point16*, int);
     void TruncateWaypointsFrom(int);
 };
@@ -7797,7 +7797,7 @@ class Class_44ef90 {  // 0x8 bytes, 2 views
 public:
     char unknown_0[4];
     void* ptr_at_0x4;  // +0x4
-    void FUN_0044ef90(void*);
+    void SetPathOrder(void*);
 };
 
 class Class_0044f150 {  // 0x60 bytes, 1 view
@@ -7831,7 +7831,7 @@ public:
     virtual void IsFxStyle(void);
     virtual int FUN_0044cf00(Struct_004907e0*);
     virtual int ContainsCell(int, int);
-    virtual void FUN_0044ce90(void);
+    virtual void FillGoalCells(void);
     virtual void ApproxDist(void);
     virtual int FUN_004e6110(Vec3*);
     virtual int TryGetDesiredHeading(void);
@@ -13828,17 +13828,17 @@ public:
     unsigned char mode : 2;
     unsigned char : 5;
     Class_00490630(Unit*);
-    virtual void FUN_0044efb0(void);
-    virtual void FUN_0044f000(int, int, int);
+    virtual void TickTowardGoal(void);
+    virtual void ExportGoalPose(int, int, int);
 };
 
 class Class_004907e0 : public Class_00490630 {  // 0x28 bytes, 4 views
 public:
     Class_004907e0(Unit*);
-    virtual void FUN_0044ef90(void*);
-    virtual void FUN_0044efb0(void);
-    virtual int FUN_0044efe0(void);
-    virtual void FUN_0044efc0(int);
+    virtual void SetPathOrder(void*);
+    virtual void TickTowardGoal(void);
+    virtual int HasNetUnitState(void);
+    virtual void SerializeNetUnitState(int);
 };
 
 class Class_00490880 : public Class_00490630 {  // 0x28 bytes, 6 views

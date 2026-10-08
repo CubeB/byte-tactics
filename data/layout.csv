@@ -3912,14 +3912,14 @@ piece,0x502538,4,src/util/hpi.cpp,26,0,game data
 piece,0x50a484,12,src/util/hpi.cpp,15,0,game data
 piece,0x50a474,4,src/util/hpi.cpp,10,0,game data
 piece,0x50a46c,5,src/util/hpi.cpp,3,0,game data
-piece,0x4fdbd0,8,src/graphics/palette_4babd0.cpp,3,0,game data
-piece,0x4fdbd8,8,src/graphics/palette_4babd0.cpp,3,8,game data
-piece,0x50a460,11,src/graphics/palette_4ba700.cpp,3,0,game data
-piece,0x50a454,11,src/graphics/palette_4ba6b0.cpp,3,0,game data
-piece,0x50a448,12,src/graphics/palette_4ba660.cpp,3,0,game data
-piece,0x4fdbc0,8,src/graphics/palette_4ba200.cpp,4,0,game data
-piece,0x4fdbc8,4,src/graphics/palette_4ba200.cpp,4,8,game data
-piece,0x502978,8,src/graphics/palette_4ba200.cpp,3,0,game data
+piece,0x4fdbd0,8,src/graphics/palette.cpp,4,16,game data
+piece,0x4fdbd8,8,src/graphics/palette.cpp,4,24,game data
+piece,0x50a460,11,src/graphics/palette.cpp,29,0,game data
+piece,0x50a454,11,src/graphics/palette.cpp,24,0,game data
+piece,0x50a448,12,src/graphics/palette.cpp,19,0,game data
+piece,0x4fdbc0,8,src/graphics/palette.cpp,4,0,game data
+piece,0x4fdbc8,8,src/graphics/palette.cpp,4,8,game data
+piece,0x502978,8,src/graphics/palette.cpp,3,0,game data
 piece,0x50a424,10,src/graphics/gaf_4b91b0.cpp,5,0,game data
 piece,0x51fc99,16,src/util/commands.cpp,5,0,game data
 piece,0x509ed0,9,src/util/registry.cpp,14,0,game data
@@ -9667,7 +9667,6 @@ fill,0x4fdb91,3,,,00,padding
 fill,0x4fdb96,2,,,00,padding
 fill,0x4fdba3,5,,,00,padding
 fill,0x4fdbbf,1,,,00,padding
-fill,0x4fdbcc,4,,,00,padding
 fill,0x4fdc19,3,,,00,padding
 fill,0x4fdc34,4,,,00,padding
 fill,0x4fdc99,7,,,00,padding
@@ -12359,7 +12358,7 @@ same,0x502ae8,3,src/gui/dialogs_4aa8f0.cpp,6,0,
 same,0x503168,12,src/gui/dialogs_4abb20.cpp,11,0,
 same,0x502ae8,3,src/gui/dialogs_4abb20.cpp,19,0,
 same,0x503374,2,src/gui/file_list.cpp,10,0,
-same,0x502910,2,src/graphics/palette_4baff0.cpp,3,0,
+same,0x502910,2,src/graphics/palette.cpp,62,0,
 same,0x50372c,2,src/util/hpi.cpp,73,0,
 same,0x502910,2,src/util/hpi.cpp,83,0,
 same,0x50a548,3,src/util/hpi.cpp,82,0,

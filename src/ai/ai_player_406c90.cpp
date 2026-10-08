@@ -615,7 +615,7 @@ unsigned short __stdcall ChooseBuildOption(unsigned int player, Unit* unit);
 int __stdcall GetBuilderCount(unsigned int player);
 Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit* unit, Unit* target, Vec3* pos);
 void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* unit, Unit* target, Vec3* pos, int param_6, int param_7);
-float __stdcall FUN_00464ad0(Economy* economy);
+float __stdcall GetNetEnergy(Economy* economy);
 void __stdcall QueueBuildOrder(char* name, Unit* unit, int count);
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
@@ -623,7 +623,7 @@ void __stdcall MakeHeap(Elem_0040cc40* first, Elem_0040cc40* last, int*, Elem_00
 void __stdcall PopHeapFirst(Elem_0040cc40* first, Elem_0040cc40* last, Elem_0040cc40* dest,
                             Elem_0040cc40 val, int*);
 Cell* __stdcall GetMapCell(int x, int y);
-int __stdcall FUN_00465ac0(Player*, Unit*);
+int __stdcall IsUnitVisibleToPlayer(Player*, Unit*);
 int __stdcall CanPlaceUnitFootprint(UnitDef* type, short a, Point16 cell, int b);
 int __stdcall CanBuildAt(UnitDef* type, Point16 cell, int a, int b);
 int GetBuildSiteMetal(void);
@@ -1146,7 +1146,7 @@ void __stdcall UpdateConverter(Unit* unit)
 {
     Economy* economy = unit->economy;
     if (economy->cost + economy->cost < economy->energy) {
-        if (FUN_00464ad0(economy) > 0.0f && RandomInt(5) != 0) {
+        if (GetNetEnergy(economy) > 0.0f && RandomInt(5) != 0) {
             unit->SetStateBits(1, 1);
         }
     } else {
@@ -1166,7 +1166,7 @@ void Class_00408810::OnTimer()
         if ((u->flags & 0x20000000) && (u->flags & 0x10000000) && !(u->flags & 0x4000)) {
             if (u->def->field_22d) {
                 if (u->economy->cost + u->economy->cost < u->economy->energy) {
-                    if (FUN_00464ad0(u->economy) > 0.0f && RandomInt(5))
+                    if (GetNetEnergy(u->economy) > 0.0f && RandomInt(5))
                         u->SetStateBits(1, 1);
                 } else
                     u->SetStateBits(1, 0);

@@ -235,7 +235,7 @@ struct Cell_0048bae0 {
 };
 
 Cell_0048bae0* __stdcall GetMapCellAtPosition(Vec3* pos);
-int __stdcall FUN_00465ac0(Player* player, Unit* unit);
+int __stdcall IsUnitVisibleToPlayer(Player* player, Unit* unit);
 
 // FUNCTION: 0x48bae0
 void CollectVisibleUnitIds(void)
@@ -272,7 +272,7 @@ void CollectVisibleUnitIds(void)
             if (left <= rect->right && right >= rect->left
                 && top <= rect->bottom && bottom >= rect->top) {
                 if (u->player == g_game->playerIndex
-                    || FUN_00465ac0(player, u)) {
+                    || IsUnitVisibleToPlayer(player, u)) {
                     *out++ = u->id;
                     count++;
                 }

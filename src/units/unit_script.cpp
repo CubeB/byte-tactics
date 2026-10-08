@@ -124,7 +124,7 @@ Vec3 __stdcall GetPiecePosition(Unit* obj, int param);
 int __stdcall GetGroundHeight(Vec3* pos);
 int __cdecl FUN_004b715a(int a, int b);
 void __stdcall SetYardOpen(Unit* unit, int flag);
-int __stdcall FUN_00465ac0(Player* player, Unit* unit);
+int __stdcall IsUnitVisibleToPlayer(Player* player, Unit* unit);
 void __stdcall UpdateObjectState(Unit* unit);
 void __stdcall EmitThrustParticles(int, int, int, int, short);
 void __stdcall EmitWakeParticles(int, int, int, short);
@@ -460,7 +460,7 @@ void UnitScript::PlaySoundNoop(int)
 // FUNCTION: 0x480eb0
 void UnitScript::EmitSfx(int a, int b)
 {
-    if (!FUN_00465ac0(&g_game->players[g_game->playerIndex], state->unit))
+    if (!IsUnitVisibleToPlayer(&g_game->players[g_game->playerIndex], state->unit))
         return;
     UpdateObjectState(state->unit);
 

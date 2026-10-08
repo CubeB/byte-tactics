@@ -21,7 +21,7 @@ char* __stdcall Translate(char* key);
 int __stdcall GetBuildWeaponPercent(void* owner);
 int __stdcall GetOrderTarget(void* unit);
 int __stdcall GetOrderName(void* obj);
-int __stdcall FUN_00465ac0(void* map, void* u);
+int __stdcall IsUnitVisibleToPlayer(void* map, void* u);
 void __stdcall BlitSideLogoToRect(void* surf, void* player, void* rect, int dy);
 unsigned short __stdcall FindUnitTypeId(const char* name);
 int __stdcall FillRectangle(void* surface, void* rect, int color);
@@ -230,7 +230,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
         char* unit = *(char**)(g_game + 0x14357) + snapshot.selected * 0x118;
         if (*(unsigned short*)(unit + 0xa6) != 0) {
             char* playerMap = g_game + *(unsigned char*)(g_game + 0x2a43) * 331 + 0x1b63;
-            if (FUN_00465ac0(playerMap, unit)) {
+            if (IsUnitVisibleToPlayer(playerMap, unit)) {
                 char* definition = *(char**)(unit + 0x92);
                 unsigned int unitFlags = *(unsigned int*)(definition + 0x245);
                 int flagsOk = ((unitFlags & 0x20000) | ((unitFlags >> 1) & 0x20000)) >> 0x11;
@@ -306,7 +306,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
                 }
                 if (snapshot.targetType) {
                     char* target = *(char**)(g_game + 0x14357) + snapshot.targetType * 0x118;
-                    if (!*(unsigned short*)(target + 0xa6) || !FUN_00465ac0(playerMap, target))
+                    if (!*(unsigned short*)(target + 0xa6) || !IsUnitVisibleToPlayer(playerMap, target))
                         return;
                     int targetX = *(int*)(panel + 0x1b2) -
                                   GetTextWidth((void*)*(int*)(panel + 0x22e), (unsigned char*)*(char**)(target + 0x92)) / 2;

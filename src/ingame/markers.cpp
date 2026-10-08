@@ -194,7 +194,7 @@ int __cdecl FUN_004b70ef(int angle, int radius);
 int __cdecl FUN_004b7123(int angle, int radius);
 void __stdcall DrawFrame(void* surface, void* bmp, int x, int y);
 void __stdcall DrawFrameBlended(void* dest, void* bmp, int x, int y);
-int __stdcall FUN_00465ac0(Player* owner, Unit* unit);
+int __stdcall IsUnitVisibleToPlayer(Player* owner, Unit* unit);
 void __stdcall DrawRangeCircle(void* surface, View* view, Pos* pos,
                             int radius, int color, const char* text, int index);
 void __stdcall DrawWeaponCoverage(void* surface, View* view, Order* order,
@@ -546,7 +546,7 @@ void __stdcall DrawWeaponCoverage(void* surface, View* view, Order* order,
     Pos pos;
     Unit* u = order->unit;
     if (order->target != 0) {
-        if (FUN_00465ac0(u->owner, order->target) == 0 && (order->flags & 0x200000) != 0) {
+        if (IsUnitVisibleToPlayer(u->owner, order->target) == 0 && (order->flags & 0x200000) != 0) {
             pos.x.value = order->cached.x << 16;
             pos.y.value = order->target->pos.y.value;
             pos.z.value = order->cached.y << 16;

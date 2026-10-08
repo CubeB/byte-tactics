@@ -404,7 +404,7 @@ void HandleNetPackets();
 void __stdcall LoadPlayerControllers(void* mission);
 void ApplySlotsToGamePlayers();
 void LoadBattleAssets();
-void FUN_00465e30();
+void InitPlayerResources();
 void __stdcall RecalculateLineOfSight(int x);
 void __stdcall LoadSavedGameState(void* mission);
 void CreateMissionUnits();
@@ -412,9 +412,9 @@ void CenterCameraOnStartPosition();
 void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void BroadcastPlayerInfo();
 void UpdateNetGameInfo();
-void FUN_00464f80();
+void UpdatePlayers();
 void __stdcall ReportGameEvent(int x);
-void FUN_004649d0();
+void RebuildAIFeatureCells();
 void __stdcall SetCameraPosition(int x, int y, int z);
 unsigned short __stdcall FindUnitTypeId(const char* name);
 void __stdcall SpawnCommanderAtStartPos(int team, int startpos);
@@ -733,7 +733,7 @@ void __cdecl LoadMatch(void*)
                     }
                 }
             }
-            FUN_00465e30();
+            InitPlayerResources();
         }
     }
 
@@ -770,8 +770,8 @@ tail:
     *(unsigned char*)(*(char**)(currec + 0x27) + 0x9b) |= 0x10;
     BroadcastPlayerInfo();
     UpdateNetGameInfo();
-    FUN_00464f80();
-    FUN_00465e30();
+    UpdatePlayers();
+    InitPlayerResources();
 
     void* mission = *(void**)((char*)g_game + 0x38d6b);
     if (mission != 0) {
@@ -779,7 +779,7 @@ tail:
         operator delete(mission);
         *(void**)((char*)g_game + 0x38d6b) = 0;
     }
-    FUN_004649d0();
+    RebuildAIFeatureCells();
 
     *(volatile unsigned short*)((char*)g_game + 0x38d75) |= 2;
 }

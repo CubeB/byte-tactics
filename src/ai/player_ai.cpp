@@ -159,7 +159,7 @@ void __stdcall MakeHeap(Elem_0040cc40* first, Elem_0040cc40* last, int*, Elem_00
 void __stdcall PopHeapFirst(Elem_0040cc40* first, Elem_0040cc40* last, Elem_0040cc40* dest,
                             Elem_0040cc40 val, int*);
 Cell* __stdcall GetMapCell(int x, int y);
-int __stdcall FUN_00465ac0(Player*,Unit*);
+int __stdcall IsUnitVisibleToPlayer(Player*,Unit*);
 
 static inline Point16 WorldToCell(Vec3 v, Point16 origin)
 {
@@ -206,7 +206,7 @@ void PlayerAI::RefreshUnitLists()
     for(Unit* u=g_game->units+1;u<=g_game->end;++u) {
         if(u->Ready()) {
             if(!owner->IsAllied(u->PlayerIndex())) {
-                if(FUN_00465ac0(owner,u) && !(u->flags&0x8000)) visible.push_back(u);
+                if(IsUnitVisibleToPlayer(owner,u) && !(u->flags&0x8000)) visible.push_back(u);
                 if((unsigned char)(u->flags>>8)&1) known.push_back(u);
             } else if(u->PlayerIndex()==owner->index && u->progress==0.0) {
                 ++counts[u->id];

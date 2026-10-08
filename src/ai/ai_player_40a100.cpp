@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // For each active player of type 2, calls InitUnitTables on its entry in
-// g_playerAI, then calls FUN_004648e0.
+// g_playerAI, then calls LoadDefaultAIScript.
 
 #pragma pack(push, 1)
 struct Player_0040a100 {
@@ -25,7 +25,7 @@ public:
 
 extern PlayerAI* g_playerAI[];
 
-void FUN_004648e0();
+void LoadDefaultAIScript();
 
 // FUNCTION: 0x40a100
 void ResetAIPlayers()
@@ -35,5 +35,5 @@ void ResetAIPlayers()
             g_playerAI[i]->InitUnitTables();
         }
     }
-    FUN_004648e0();
+    LoadDefaultAIScript();
 }

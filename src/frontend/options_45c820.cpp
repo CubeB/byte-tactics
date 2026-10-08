@@ -47,8 +47,8 @@ extern unsigned int DAT_00512f4b;
 
 void __stdcall SetBrightness(float value);
 
-// Stays in its own file: in options_45b800.cpp's declaration context the
-// global byte at DAT_00512f4b lands in dl instead of bl.
+// Stays in its own file: in options.cpp's declaration context the global byte
+// at DAT_00512f4b lands in dl instead of bl.
 // FUNCTION: 0x45c820
 void FUN_0045c820()
 {

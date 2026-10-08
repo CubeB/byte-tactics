@@ -25,7 +25,7 @@ struct TdfField {
     Class_004c91a0 b;                  // +0x4 value
 };
 
-void __cdecl FUN_004d85a0(int* param_1);
+void __cdecl GameFreeThunk(int* param_1);
 
 #pragma pack(push, 1)
 // Two wrapper levels around the vector: with one, ~TdfField is called out of line.
@@ -47,7 +47,7 @@ public:
     ~TdfRecord()
     {
         if (name)
-            FUN_004d85a0(name);
+            GameFreeThunk(name);
         for (TdfRecord** p = children.begin(); p < children.end(); p++)
             delete *p;
     }

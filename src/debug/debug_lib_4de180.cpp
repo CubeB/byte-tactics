@@ -6,39 +6,39 @@
 #include <string.h>
 #include <stdlib.h>
 
-class Class_004d9fe0 {
+class CommandLineSwitch {
 public:
     char on;                           // +0x0
-    Class_004d9fe0(char* name, int a, char def, char* onSwitch,
+    CommandLineSwitch(char* name, int a, char def, char* onSwitch,
                    char* offSwitch, char* onSwitch2, char* offSwitch2);
-    ~Class_004d9fe0() {}
+    ~CommandLineSwitch() {}
 };
 
 void UnloadImageHelp(void);
-void __stdcall FUN_004de0a0(int unused, unsigned int address);
-void __stdcall FUN_004de100(int arg1, int arg2);
+void __stdcall FunctionTableAccess(int unused, unsigned int address);
+void __stdcall GetModuleBase(int arg1, int arg2);
 
 typedef DWORD (__stdcall *SymSetOptions_004de180)(DWORD);
 typedef BOOL (__stdcall *SymInitialize_004de180)(HANDLE, char*, DWORD);
 typedef void (__stdcall *SymProc_004de180)(void);
 
-extern char DAT_00528ad8;
-extern char DAT_00528adc;
-extern HMODULE DAT_00528ae0;
-extern SymSetOptions_004de180 DAT_00528ad0;
-extern SymInitialize_004de180 DAT_00528ab8;
-extern SymProc_004de180 DAT_00528abc;
-extern SymProc_004de180 DAT_00528ac0;
-extern SymProc_004de180 DAT_00528ac4;
-extern SymProc_004de180 DAT_00528ac8;
-extern SymProc_004de180 DAT_00528acc;
-extern SymProc_004de180 DAT_00528ab4;
-extern SymProc_004de180 DAT_00528ad4;
+extern char g_imageHelpLoaded;
+extern char g_imageHelpInited;
+extern HMODULE g_imageHelpModule;
+extern SymSetOptions_004de180 g_pfnSymSetOptions;
+extern SymInitialize_004de180 g_pfnSymInitialize;
+extern SymProc_004de180 g_pfnSymCleanup;
+extern SymProc_004de180 g_pfnStackWalk;
+extern SymProc_004de180 g_pfnSymFunctionTableAccess;
+extern SymProc_004de180 g_pfnSymGetModuleBase;
+extern SymProc_004de180 g_pfnSymGetSymFromAddr;
+extern SymProc_004de180 g_pfnSymGetLineFromAddr;
+extern SymProc_004de180 g_pfnUnDecorateSymbolName;
 
 // FUNCTION: 0x4de180
 char __cdecl LoadImageHelp(char param)
 {
-    static Class_004d9fe0 imagehlp("imagehlp", 0, 1, "-enableimagehlp",
+    static CommandLineSwitch imagehlp("imagehlp", 0, 1, "-enableimagehlp",
                                    "-disableimagehlp", 0, 0);
     char path[0x100];
     char symPath[0x3e8];
@@ -52,30 +52,30 @@ char __cdecl LoadImageHelp(char param)
 
     if (!param && !imagehlp.on)
         return 0;
-    if (DAT_00528ad8)
-        return DAT_00528adc;
-    DAT_00528ad8 = 1;
-    if (!(DAT_00528ae0 = LoadLibraryA("IMAGEHLP.DLL")))
+    if (g_imageHelpLoaded)
+        return g_imageHelpInited;
+    g_imageHelpLoaded = 1;
+    if (!(g_imageHelpModule = LoadLibraryA("IMAGEHLP.DLL")))
         return 0;
-    if (!(DAT_00528ad0 = (SymSetOptions_004de180)getProcAddress(DAT_00528ae0, "SymSetOptions")))
+    if (!(g_pfnSymSetOptions = (SymSetOptions_004de180)getProcAddress(g_imageHelpModule, "SymSetOptions")))
         return 0;
-    if (!(DAT_00528ab8 = (SymInitialize_004de180)getProcAddress(DAT_00528ae0, "SymInitialize")))
+    if (!(g_pfnSymInitialize = (SymInitialize_004de180)getProcAddress(g_imageHelpModule, "SymInitialize")))
         return 0;
-    if (!(DAT_00528abc = (SymProc_004de180)getProcAddress(DAT_00528ae0, "SymCleanup")))
+    if (!(g_pfnSymCleanup = (SymProc_004de180)getProcAddress(g_imageHelpModule, "SymCleanup")))
         return 0;
-    if (!(DAT_00528ac0 = (SymProc_004de180)getProcAddress(DAT_00528ae0, "StackWalk")))
+    if (!(g_pfnStackWalk = (SymProc_004de180)getProcAddress(g_imageHelpModule, "StackWalk")))
         return 0;
-    if (!(DAT_00528ac4 = (SymProc_004de180)getProcAddress(DAT_00528ae0, "SymFunctionTableAccess")))
+    if (!(g_pfnSymFunctionTableAccess = (SymProc_004de180)getProcAddress(g_imageHelpModule, "SymFunctionTableAccess")))
         return 0;
-    if (!(DAT_00528ac8 = (SymProc_004de180)getProcAddress(DAT_00528ae0, "SymGetModuleBase")))
+    if (!(g_pfnSymGetModuleBase = (SymProc_004de180)getProcAddress(g_imageHelpModule, "SymGetModuleBase")))
         return 0;
-    DAT_00528acc = (SymProc_004de180)getProcAddress(DAT_00528ae0, "SymGetSymFromAddr");
-    DAT_00528ab4 = (SymProc_004de180)getProcAddress(DAT_00528ae0, "SymGetLineFromAddr");
-    DAT_00528ad4 = (SymProc_004de180)getProcAddress(DAT_00528ae0, "UnDecorateSymbolName");
+    g_pfnSymGetSymFromAddr = (SymProc_004de180)getProcAddress(g_imageHelpModule, "SymGetSymFromAddr");
+    g_pfnSymGetLineFromAddr = (SymProc_004de180)getProcAddress(g_imageHelpModule, "SymGetLineFromAddr");
+    g_pfnUnDecorateSymbolName = (SymProc_004de180)getProcAddress(g_imageHelpModule, "UnDecorateSymbolName");
     DWORD symOpts = 4;
-    if (DAT_00528ab4)
+    if (g_pfnSymGetLineFromAddr)
         symOpts = 0x14;
-    DAT_00528ad0(symOpts);
+    g_pfnSymSetOptions(symOpts);
     searchPath = 0;
     if (GetModuleFileNameA((HMODULE)searchPath, path, sizeof(path))) {
         windir = getenv("windir");
@@ -93,19 +93,19 @@ char __cdecl LoadImageHelp(char param)
         }
     }
     // The second SymInitialize passes this result as its last argument, not a literal.
-    BOOL inited = DAT_00528ab8(getCurrentProcess(), searchPath, 1);
+    BOOL inited = g_pfnSymInitialize(getCurrentProcess(), searchPath, 1);
     if (!inited) {
-        DAT_00528ac4 = (SymProc_004de180)FUN_004de0a0;
-        DAT_00528ac8 = (SymProc_004de180)FUN_004de100;
-        DAT_00528acc = 0;
-        DAT_00528ab4 = 0;
-        if (!DAT_00528ab8(getCurrentProcess(), searchPath, inited)) {
+        g_pfnSymFunctionTableAccess = (SymProc_004de180)FunctionTableAccess;
+        g_pfnSymGetModuleBase = (SymProc_004de180)GetModuleBase;
+        g_pfnSymGetSymFromAddr = 0;
+        g_pfnSymGetLineFromAddr = 0;
+        if (!g_pfnSymInitialize(getCurrentProcess(), searchPath, inited)) {
             GetLastError();
             UnloadImageHelp();
-            DAT_00528ad8 = 1;
+            g_imageHelpLoaded = 1;
             return 0;
         }
     }
-    DAT_00528adc = 1;
+    g_imageHelpInited = 1;
     return 1;
 }

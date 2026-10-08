@@ -67,10 +67,10 @@ long __stdcall HAPI_TellFile(HapiFile* file);
 void __stdcall HAPI_readfromfile(HapiFile* file, void* buf, int size);
 long __stdcall HAPI_FileLength(HapiFile* file);
 
-void* __cdecl FUN_004d8450(unsigned int size);
+void* __cdecl GameAllocShared(unsigned int size);
 void* __cdecl GameCalloc(unsigned int count, unsigned int size);
-void* __cdecl FUN_004d8580(void* ptr, unsigned int size);
-void __cdecl FUN_004d85a0(void* p);
+void* __cdecl GameReallocIgnoreTag(void* ptr, unsigned int size);
+void __cdecl GameFreeThunk(void* p);
 char* __cdecl GameStrdup(char* s);
 int __cdecl SetOutOfMemoryHandler(int handle);
 
@@ -157,32 +157,32 @@ void HapiBank::CloseBank()
     if (bank != 0) {
         for (int i = 0; i < bank->count; i++) {
             BankAccount* account = &bank->accounts[i];
-            FUN_004d85a0(account->name);
+            GameFreeThunk(account->name);
             if (account->items != 0) {
                 for (int j = 0; j < account->itemCount; j++) {
-                    FUN_004d85a0(account->items[j].name);
+                    GameFreeThunk(account->items[j].name);
                     if (account->items[j].type == 3) {
-                        FUN_004d85a0(account->items[j].string);
+                        GameFreeThunk(account->items[j].string);
                     }
                 }
-                FUN_004d85a0(account->items);
+                GameFreeThunk(account->items);
             }
             if (account->boxes != 0) {
                 for (int k = 0; k < account->boxCount; k++) {
                     if (account->boxes[k].named != 0) {
-                        FUN_004d85a0(account->boxes[k].name);
+                        GameFreeThunk(account->boxes[k].name);
                     }
                     if (account->boxes[k].data != 0) {
-                        FUN_004d85a0(account->boxes[k].data);
+                        GameFreeThunk(account->boxes[k].data);
                     }
                 }
-                FUN_004d85a0(account->boxes);
+                GameFreeThunk(account->boxes);
             }
         }
         if (bank->accounts != 0) {
-            FUN_004d85a0(bank->accounts);
+            GameFreeThunk(bank->accounts);
         }
-        FUN_004d85a0(bank);
+        GameFreeThunk(bank);
     }
 }
 
@@ -229,30 +229,30 @@ int HapiBank::OpenBank(char* filename, char* name, char* account)
     HAPI_SeekFile(file, h.poolOffset);
 
     if (h.compressed != 0) {
-        void* src = FUN_004d8450(remaining);
+        void* src = GameAllocShared(remaining);
         int dsize;
         int err;
 
         HAPI_readfromfile(file, src, remaining);
         dsize = SquashUnpackedSize((unsigned char*)src);
-        raw = FUN_004d8450(dsize);
+        raw = GameAllocShared(dsize);
         err = SquashUnpack(raw, src);
         if (err != 0) {
             sprintf(errmsg, "[HapiBank::OpenBank] Decompression Error: %s",
                     SquashErrorString(err));
             FatalError(errmsg);
         }
-        img.buf = FUN_004d8580(img.buf, dsize);
+        img.buf = GameReallocIgnoreTag(img.buf, dsize);
         // Stored before the memcpy: afterwards the frame grows by 4 bytes.
         img.size = dsize;
         memcpy(img.buf, raw, dsize);
-        FUN_004d85a0(raw);
-        FUN_004d85a0(src);
+        GameFreeThunk(raw);
+        GameFreeThunk(src);
     } else {
         if (img.buf != 0) {
-            FUN_004d85a0(img.buf);
+            GameFreeThunk(img.buf);
         }
-        img.buf = FUN_004d8450(remaining);
+        img.buf = GameAllocShared(remaining);
         img.size = remaining;
         HAPI_readfromfile(file, img.buf, remaining);
     }
@@ -261,7 +261,7 @@ int HapiBank::OpenBank(char* filename, char* name, char* account)
         if (_strcmpi(name, (char*)img.buf + h.nameOffset) != 0) {
             HAPI_CloseFile(file);
             if (img.buf != 0) {
-                FUN_004d85a0(img.buf);
+                GameFreeThunk(img.buf);
             }
             return 0;
         }
@@ -282,7 +282,7 @@ int HapiBank::OpenBank(char* filename, char* name, char* account)
 
     HAPI_CloseFile(file);
     if (img.buf != 0) {
-        FUN_004d85a0(img.buf);
+        GameFreeThunk(img.buf);
     }
     return 1;
 }
@@ -314,7 +314,7 @@ int HapiBank::SaveBank(char* filename, char* name, int compress, int audit)
     header.version = 1;
     int oldlen = pool.len;
     pool.len = oldlen + strlen(name) + 1;
-    pool.data = (char*)FUN_004d8580(pool.data, pool.len);
+    pool.data = (char*)GameReallocIgnoreTag(pool.data, pool.len);
     strcpy(pool.data + oldlen, name);
     header.nameOffset = oldlen;
     header.headerSize = sizeof(header);
@@ -325,7 +325,7 @@ int HapiBank::SaveBank(char* filename, char* name, int compress, int audit)
     int dsize = pool.len;
     pool.csize = SquashMaxPackedSize(dsize, 2);
     int handle = SetOutOfMemoryHandler(0);
-    char* cbuf = (char*)FUN_004d8450(pool.csize);
+    char* cbuf = (char*)GameAllocShared(pool.csize);
     SetOutOfMemoryHandler(handle);
     if (cbuf != 0) { err = SquashPack(cbuf, &pool.csize, pool.data, dsize, 1, 0); }
     else { err = noff; }   // noff is never assigned
@@ -338,8 +338,8 @@ int HapiBank::SaveBank(char* filename, char* name, int compress, int audit)
     fseek(file, 0, 0);
     fwrite(&header, sizeof(header), 1, file);
     fclose(file);
-    if (cbuf != 0) { FUN_004d85a0(cbuf); }
-    if (pool.data != 0) { FUN_004d85a0(pool.data); }
+    if (cbuf != 0) { GameFreeThunk(cbuf); }
+    if (pool.data != 0) { GameFreeThunk(pool.data); }
     return 1;
 }
 
@@ -360,7 +360,7 @@ void HapiBank::SaveAccount(int index, FILE* file, StringPool* buf, int compress)
         char* name = slot->name;
         int oldlen = buf->len;
         buf->len += strlen(name) + 1;
-        buf->data = (char*)FUN_004d8580(buf->data, buf->len);
+        buf->data = (char*)GameReallocIgnoreTag(buf->data, buf->len);
         strcpy(buf->data + oldlen, name);
         h.strOffset = (char*)oldlen;
     }
@@ -371,7 +371,7 @@ void HapiBank::SaveAccount(int index, FILE* file, StringPool* buf, int compress)
             char* name = slot->items[i].name;
             int oldlen = buf->len;
             buf->len += strlen(name) + 1;
-            buf->data = (char*)FUN_004d8580(buf->data, buf->len);
+            buf->data = (char*)GameReallocIgnoreTag(buf->data, buf->len);
             strcpy(buf->data + oldlen, name);
             int rec[2];
             rec[0] = oldlen;
@@ -386,7 +386,7 @@ void HapiBank::SaveAccount(int index, FILE* file, StringPool* buf, int compress)
             char* name = slot->items[i].name;
             int oldlen = buf->len;
             buf->len += strlen(name) + 1;
-            buf->data = (char*)FUN_004d8580(buf->data, buf->len);
+            buf->data = (char*)GameReallocIgnoreTag(buf->data, buf->len);
             strcpy(buf->data + oldlen, name);
             int rec[3];
             rec[0] = oldlen;
@@ -401,7 +401,7 @@ void HapiBank::SaveAccount(int index, FILE* file, StringPool* buf, int compress)
             char* name = slot->items[i].name;
             int oldlen = buf->len;
             buf->len += strlen(name) + 1;
-            buf->data = (char*)FUN_004d8580(buf->data, buf->len);
+            buf->data = (char*)GameReallocIgnoreTag(buf->data, buf->len);
             strcpy(buf->data + oldlen, name);
             int rec[2];
             rec[0] = oldlen;
@@ -409,7 +409,7 @@ void HapiBank::SaveAccount(int index, FILE* file, StringPool* buf, int compress)
             char* second = slot->items[i].string;
             int oldlen2 = buf->len;
             buf->len += strlen(second) + 1;
-            buf->data = (char*)FUN_004d8580(buf->data, buf->len);
+            buf->data = (char*)GameReallocIgnoreTag(buf->data, buf->len);
             strcpy(buf->data + oldlen2, second);
             rec[1] = oldlen2;
             fwrite(rec, 8, 1, file);
@@ -431,7 +431,7 @@ void HapiBank::SaveAccount(int index, FILE* file, StringPool* buf, int compress)
                 char* nm = slot->boxes[i].name;
                 int oldlen = buf->len;
                 buf->len += strlen(nm) + 1;
-                buf->data = (char*)FUN_004d8580(buf->data, buf->len);
+                buf->data = (char*)GameReallocIgnoreTag(buf->data, buf->len);
                 strcpy(buf->data + oldlen, nm);
                 rec[0] = oldlen;
             } else {
@@ -462,12 +462,12 @@ void HapiBank::SaveAccount(int index, FILE* file, StringPool* buf, int compress)
         // more and compiles to nothing (both arms store the same value), which
         // flips the off/raw register tie to the original's. See the note at the top.
         if (off < 0) len = h.size - 0x20;
-        char* raw = (char*)FUN_004d8450(len);
+        char* raw = (char*)GameAllocShared(len);
         if (raw != 0) {
             fseek(file, off + 0x20, 0);
             fread(raw, len, 1, file);
             int csize = SquashMaxPackedSize(len, 1);
-            char* cbuf = (char*)FUN_004d8450(csize);
+            char* cbuf = (char*)GameAllocShared(csize);
             if (cbuf != 0) {
                 int err = SquashPack(cbuf, &csize, raw, len, 1, 0);
                 if (err == 0 && csize < len) {
@@ -477,9 +477,9 @@ void HapiBank::SaveAccount(int index, FILE* file, StringPool* buf, int compress)
                     h.compressed = 1;
                     _chsize(file->_file, ftell(file));
                 }
-                FUN_004d85a0(cbuf);
+                GameFreeThunk(cbuf);
             }
-            FUN_004d85a0(raw);
+            GameFreeThunk(raw);
         }
         SetOutOfMemoryHandler(handle);
     }
@@ -515,18 +515,18 @@ void HapiBank::LoadAccount(HapiFile* fh, int* image, char* name)
     len = h.size - 0x20;
     if (len > 0) {
         if (h.compressed == 1) {
-            char* tmp = (char*)FUN_004d8450(len);
+            char* tmp = (char*)GameAllocShared(len);
             HAPI_readfromfile(fh, tmp, len);
-            buf = (int)FUN_004d8450(SquashUnpackedSize((unsigned char*)tmp));
+            buf = (int)GameAllocShared(SquashUnpackedSize((unsigned char*)tmp));
             int err = SquashUnpack((void*)buf, tmp);
             if (err != 0) {
                 sprintf(message, "[HapiBank::LoadAccount] Decompression Error: %s\nFile: %s",
                         SquashErrorString(err), fh->name);
                 FatalError(message);
             }
-            FUN_004d85a0(tmp);
+            GameFreeThunk(tmp);
         } else {
-            buf = (int)FUN_004d8450(len);
+            buf = (int)GameAllocShared(len);
             HAPI_readfromfile(fh, (void*)buf, len);
         }
         OpenAccount(h.strOffset + *image);
@@ -568,7 +568,7 @@ void HapiBank::LoadAccount(HapiFile* fh, int* image, char* name)
             }
         }
         HAPI_SeekFile(fh, end);
-        FUN_004d85a0((void*)buf);
+        GameFreeThunk((void*)buf);
     }
 }
 
@@ -587,7 +587,7 @@ int HapiBank::OpenAccount(char* name)
     }
     bank->current = bank->count;
     bank->count++;
-    bank->accounts = (BankAccount*)FUN_004d8580(
+    bank->accounts = (BankAccount*)GameReallocIgnoreTag(
         bank->accounts, bank->count * sizeof(BankAccount));
     memset(&bank->accounts[bank->current], 0, sizeof(BankAccount));
     bank->accounts[bank->current].name = GameStrdup(name);
@@ -604,7 +604,7 @@ int HapiBank::SetIntegerItem(const char* name, int value)
     if (bank && bank->current >= 0) {
         int i = FindItem(name, 1);
         if (bank->accounts[bank->current].items[i].type == 3)
-            FUN_004d85a0(bank->accounts[bank->current].items[i].string);
+            GameFreeThunk(bank->accounts[bank->current].items[i].string);
         bank->accounts[bank->current].items[i].value = value;
         bank->accounts[bank->current].items[i].type = 1;
         return 1;
@@ -619,7 +619,7 @@ int HapiBank::SetDoubleItem(const char* name, double value)
     if (bank && bank->current >= 0) {
         int i = FindItem(name, 1);
         if (bank->accounts[bank->current].items[i].type == 3)
-            FUN_004d85a0(bank->accounts[bank->current].items[i].string);
+            GameFreeThunk(bank->accounts[bank->current].items[i].string);
         bank->accounts[bank->current].items[i].real = value;
         bank->accounts[bank->current].items[i].type = 2;
         return 1;
@@ -635,7 +635,7 @@ int HapiBank::SetStringItem(const char* name, char* value)
     if (bank && bank->current >= 0 && value) {
         int i = FindItem(name, 1);
         if (bank->accounts[bank->current].items[i].type == 3)
-            FUN_004d85a0(bank->accounts[bank->current].items[i].string);
+            GameFreeThunk(bank->accounts[bank->current].items[i].string);
         bank->accounts[bank->current].items[i].string = GameStrdup(value);
         bank->accounts[bank->current].items[i].type = 3;
         return 1;
@@ -702,7 +702,7 @@ int HapiBank::FindItem(const char* name, int create)
         return -1;
     int n = s->itemCount;
     s->itemCount = n + 1;
-    s->items = (BankItem*)FUN_004d8580(s->items, (n + 1) * sizeof(BankItem));
+    s->items = (BankItem*)GameReallocIgnoreTag(s->items, (n + 1) * sizeof(BankItem));
     memset(&s->items[n], 0, sizeof(BankItem));
     s->items[n].name = GameStrdup((char*)name);
     return n;
@@ -723,7 +723,7 @@ int HapiBank::FindNumberedBox(int number, int create)
         return -1;
     int n = s->boxCount;
     s->boxCount = n + 1;
-    s->boxes = (SafeDepositBox*)FUN_004d8580(s->boxes, (n + 1) * sizeof(SafeDepositBox));
+    s->boxes = (SafeDepositBox*)GameReallocIgnoreTag(s->boxes, (n + 1) * sizeof(SafeDepositBox));
     memset(&s->boxes[n], 0, sizeof(SafeDepositBox));
     s->boxes[n].number = number;
     s->boxes[n].named = 0;
@@ -745,7 +745,7 @@ int HapiBank::FindNamedBox(char* name, int create)
         return -1;
     int n = s->boxCount;
     s->boxCount = n + 1;
-    s->boxes = (SafeDepositBox*)FUN_004d8580(s->boxes, (n + 1) * sizeof(SafeDepositBox));
+    s->boxes = (SafeDepositBox*)GameReallocIgnoreTag(s->boxes, (n + 1) * sizeof(SafeDepositBox));
     memset(&s->boxes[n], 0, sizeof(SafeDepositBox));
     s->boxes[n].name = GameStrdup(name);
     s->boxes[n].named = 1;
@@ -831,7 +831,7 @@ int HapiBank::WriteBox(void* src, int len)
     SafeDepositBox* c = &bank->accounts[bank->current].boxes[bank->accounts[bank->current].currentBox];
     int need = len + c->pos;
     if (need > c->size) {
-        c->data = (char*)FUN_004d8580(c->data, need);
+        c->data = (char*)GameReallocIgnoreTag(c->data, need);
         c->size = need;
     }
     memcpy(c->data + c->pos, src, len);

@@ -230,7 +230,7 @@ void __stdcall FreeLightTable(App_4b5980* obj);
 void __stdcall FreeGrayTable(App_4b5980* obj);
 void __stdcall FreeBlueTable(App_4b5980* obj);
 void __stdcall HAPI_CloseArchive(void* item);
-void __cdecl FUN_004d85a0(void* p);
+void __cdecl GameFreeThunk(void* p);
 
 // Re-applies the display palette: in GDI mode selects and realizes the
 // HPALETTE on the window's DC, otherwise attaches the DirectDraw palette to
@@ -893,7 +893,7 @@ void __stdcall ShutdownEnvironment(App_4b5980* d)
     for (int i = 0; i < d->itemCount; i++)
         HAPI_CloseArchive(d->items[i]);
     if (d->items)
-        FUN_004d85a0(d->items);
+        GameFreeThunk(d->items);
     if (d->flags.bits.has_c4)
         FreeShadeTable(d);
     if (d->flags.bits.has_c0)

@@ -332,7 +332,7 @@ void __stdcall SurfaceFromFrame(Surface_4665d0* surface, void* pic);
 void __stdcall DrawFrame(void* surface, void* frame, int x, int y);
 void __stdcall FillSurface(Surface_4665d0* surface, int mode);
 void __stdcall DrawFrameQuad(Surface_4665d0* surface, void* pic, Quad_4665d0* dst, Quad_4665d0* src);
-void __cdecl FUN_004d85a0(void* pic);
+void __cdecl GameFreeThunk(void* pic);
 
 void __stdcall FrameFromSurface(Frame_004b8ae0* dst, void* src);
 void __stdcall DownsampleFrame(Frame_004b8ae0* dst, Frame_004b8ae0* src);
@@ -413,7 +413,7 @@ void __stdcall ResizeRadarPicture(Pic_4665d0* pic, int x, int y, int w, int h)
     dst.p[3].y = oy + dhy;
 
     DrawFrameQuad(&surface, temp, &dst, &src);
-    FUN_004d85a0(temp);
+    GameFreeThunk(temp);
 }
 
 // Rebuilds the radar picture: fits the map onto 126 pixels along its long side,

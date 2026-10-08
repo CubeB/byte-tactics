@@ -110,7 +110,7 @@ extern char DAT_005119b8[];
 
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void __stdcall FatalError(char* path);
-void* __cdecl FUN_004d84a0(void* p, const char* name, unsigned int size);
+void* __cdecl GameReallocTagged(void* p, const char* name, unsigned int size);
 void* __stdcall LoadObject3d(const char* name);
 Gaf_004224b0* __stdcall LoadGaf(char* path);
 Seq_004224b0* __stdcall FindGafEntry(Gaf_004224b0* gaf, const char* name);
@@ -157,7 +157,7 @@ int __stdcall LoadFeatureType(char* name)
         sprintf(path, "Record \"%s\" missing from feature files", name);
         FatalError(path);
     }
-    g_game->features = (FeatureDef_004224b0*)FUN_004d84a0(g_game->features, "FEATURES",
+    g_game->features = (FeatureDef_004224b0*)GameReallocTagged(g_game->features, "FEATURES",
                                                           (g_game->featureCount + 1) * 0x100);
     FeatureDef_004224b0* def = &g_game->features[g_game->featureCount];
     strncpy(def->name, name, 0x80);

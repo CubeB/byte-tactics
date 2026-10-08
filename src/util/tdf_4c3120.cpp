@@ -27,10 +27,10 @@ struct TdfField {
     Class_004c91a0 b;                  // +0x4 value
 };
 
-void __cdecl FUN_004d85a0(int* param_1);
+void __cdecl GameFreeThunk(int* param_1);
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
-void* __cdecl FUN_004d83b0(char* name, int size);
+void* __cdecl GameAllocIgnoreTag(char* name, int size);
 
 #pragma pack(push, 1)
 struct Inner_004c51b0 {
@@ -53,7 +53,7 @@ public:
     ~TdfRecord()
     {
         if (name)
-            FUN_004d85a0(name);
+            GameFreeThunk(name);
         for (TdfRecord** p = children.begin(); p < children.end(); p++)
             delete *p;
     }
@@ -77,11 +77,11 @@ void TdfFile::LoadBuffer(char* data, int size, int flag, char* path)
     root = 0;
     field_4 = 0;
     field_8 = flag;
-    char* text = (char*)FUN_004d83b0("TDF file", size + 1);
+    char* text = (char*)GameAllocIgnoreTag("TDF file", size + 1);
     memcpy(text, data, size);
     text[size] = 0;
     this->StripComments(text);
     TdfRecord* node = (TdfRecord*)operator new(0x29);
     root = node ? node->FUN_004c3e40("root", text, 0, path) : 0;
-    FUN_004d85a0((int*)text);
+    GameFreeThunk((int*)text);
 }

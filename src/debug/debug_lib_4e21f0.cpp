@@ -22,11 +22,11 @@ public:
     DWORD oldPriorityClass;            // +0x4c
     int oldThreadPriority;             // +0x50
 
-    double FUN_004e21f0();
+    double ComputeSampleRate();
 };
 
 // FUNCTION: 0x4e21f0
-double Timer::FUN_004e21f0()
+double Timer::ComputeSampleRate()
 {
     double now = GetTimeSeconds();
     double rate;

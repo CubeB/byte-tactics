@@ -242,8 +242,8 @@ void __stdcall DrawFrame(Surface* dst, Bitmap_004c67c0* bmp, int x, int y);
 void __stdcall DrawCursor(Display* obj, Surface* dst);
 int GetScreenWidth(void);
 int GetScreenHeight(void);
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-void __cdecl FUN_004d85a0(void* p);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
+void __cdecl GameFreeThunk(void* p);
 
 // Records a surface and flag in the top slot of the screen lock stack
 // (count g_screenLockCount, at most 10 entries at g_screenLocks).
@@ -754,7 +754,7 @@ static inline void Init(Surface* s, int width, int height, int a, int b)
 // FUNCTION: 0x4c69f0
 Surface* __stdcall AllocSurface(char* name, int width, int height)
 {
-    Surface* s = (Surface*)FUN_004d83b0(name, height * width + 0x30);
+    Surface* s = (Surface*)GameAllocIgnoreTag(name, height * width + 0x30);
     Init(s, width, height, width, (int)(s + 1));
     return s;
 }
@@ -780,7 +780,7 @@ void __stdcall InitSurface(Surface* s, int width, int height, int a, int b)
 void __stdcall FreeSurface(Surface* obj)
 {
     if (obj != 0 && obj->flag0) {
-        FUN_004d85a0(obj);
+        GameFreeThunk(obj);
     }
 }
 
@@ -951,13 +951,13 @@ void __stdcall SaveSurface(Surface* surface, HapiBank* file)
     }
 }
 
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-void __cdecl FUN_004d85a0(void* ptr);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
+void __cdecl GameFreeThunk(void* ptr);
 
 // Allocation and header set-up (the body of 0x4c6a60), kept inline.
 static inline Surface* NewSurface(char* name, int w, int h)
 {
-    Surface* s = (Surface*)FUN_004d83b0(name, h * w + 0x30);
+    Surface* s = (Surface*)GameAllocIgnoreTag(name, h * w + 0x30);
     s->width = w;
     s->field_8 = w;
     s->height = h;
@@ -986,7 +986,7 @@ Surface* __stdcall LoadSurface(void* file)
     Surface* s = NewSurface("Loaded Surface", header[0], header[1]);
     for (int i = 0; i < header[1]; i++) {
         if (((HapiBank*)file)->ReadBox(s->pixels + i * s->field_8, header[0]) < header[0]) {
-            FUN_004d85a0(s);
+            GameFreeThunk(s);
             return 0;
         }
     }

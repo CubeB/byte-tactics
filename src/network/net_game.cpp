@@ -1573,7 +1573,7 @@ extern int DAT_00512c64;
 extern int DAT_00512c68;
 extern int DAT_00512c70;
 
-void* __cdecl FUN_004d83b0(char* tag, int size);
+void* __cdecl GameAllocIgnoreTag(char* tag, int size);
 int __stdcall InitPacketTables(Class_00451fd0* param_1);
 void __stdcall EnumPlayersCallback(int id, int unused1, int unused2, int unused3, int unused4);
 int __stdcall JoinLobbyGame(Player* p);
@@ -1595,8 +1595,8 @@ void RebuildAllyList(void);
 int __stdcall HAPINET_passwordrequired(void* net);
 int IsOnlineConfigLoaded(void);
 void __stdcall SetCursorMode(int n);
-void __cdecl FUN_004d85a0(void* p);
-void* __cdecl FUN_004d84a0(void* param_1, const char* name, unsigned int param_3);
+void __cdecl GameFreeThunk(void* p);
+void* __cdecl GameReallocTagged(void* param_1, const char* name, unsigned int param_3);
 int __stdcall HAPINET_createorjoinlobbygame(void* obj, char* name, int a, int b, int c, int d, int e);
 void __stdcall HAPINET_createnewgame(void* obj, char* name, char* data, int d, int c, int b, int a);
 void ResetPlayerSlots(void);
@@ -1705,7 +1705,7 @@ int __stdcall JoinLobbyGame(Player* p)
         *(int*)((char*)g_game + 0x4f1) = count;
     }
 
-    Args_00451640* args = (Args_00451640*)FUN_004d83b0("LOBBY JOIN INFO", 0x1c);
+    Args_00451640* args = (Args_00451640*)GameAllocIgnoreTag("LOBBY JOIN INFO", 0x1c);
     if (args != 0) {
         memset(args, 0, 0x1c);
         args->arg_4 = count;
@@ -1733,7 +1733,7 @@ int __stdcall JoinLobbyGame(Player* p)
         }
 
         SetCursorMode(0x13);
-        FUN_004d85a0(args);
+        GameFreeThunk(args);
     }
 
     return result;
@@ -2132,7 +2132,7 @@ int __stdcall InitPacketTables(Class_00451fd0* param_1)
     DAT_00512c68 = 7;
     param_1->field_870 = GetTicks();
     param_1->field_1745 = 0x2000;
-    param_1->field_1749 = (int*)FUN_004d83b0(s_PACKET_DATA_00506524, 0x2000);
+    param_1->field_1749 = (int*)GameAllocIgnoreTag(s_PACKET_DATA_00506524, 0x2000);
     return 0 != param_1->field_1749;
 }
 
@@ -2140,7 +2140,7 @@ int __stdcall InitPacketTables(Class_00451fd0* param_1)
 void __stdcall ReleasePacketData(Class_00451fd0* obj)
 {
     if (obj->buffer) {
-        FUN_004d85a0(obj->buffer);
+        GameFreeThunk(obj->buffer);
         obj->buffer = 0;
     }
     if (g_game->flags_2a44 & 1) {
@@ -2522,7 +2522,7 @@ int __stdcall ReceiveNetPacket(void)
             if (result != 0x8877001e)
                 return 0;
             g_game->recvPacketSize = size;
-            g_game->buffer = (unsigned char*)FUN_004d84a0(g_game->buffer, "PACKET DATA AGAIN", size);
+            g_game->buffer = (unsigned char*)GameReallocTagged(g_game->buffer, "PACKET DATA AGAIN", size);
         }
     } else {
         while (1) {
@@ -2537,7 +2537,7 @@ int __stdcall ReceiveNetPacket(void)
             if (result != 0x8877001e)
                 return 0;
             g_game->recvPacketSize = size;
-            g_game->buffer = (unsigned char*)FUN_004d84a0(g_game->buffer, "PACKET DATA AGAIN", size);
+            g_game->buffer = (unsigned char*)GameReallocTagged(g_game->buffer, "PACKET DATA AGAIN", size);
         }
     }
 }
@@ -2625,7 +2625,7 @@ void __stdcall HandleTimeoutDialog(Gadget_004538f0* gadget)
     if (gadget->selected == -1) {
         PlaySoundByName("Previous", 0);
         if (g_loungeChatter)
-            FUN_004d85a0(g_loungeChatter);
+            GameFreeThunk(g_loungeChatter);
         g_loungeChatter = 0;
         return;
     }
@@ -2689,7 +2689,7 @@ void __stdcall OpenTimeoutDialog(int id)
     gui->callback = &HandleTimeoutDialog;
     g_timeoutPlayerDpid = id;
 
-    char* p = (char*)FUN_004d83b0("LOUNGE CHATTER", 0xa00);
+    char* p = (char*)GameAllocIgnoreTag("LOUNGE CHATTER", 0xa00);
     g_loungeChatter = p;
     memset(p, 0, 0x780);
 

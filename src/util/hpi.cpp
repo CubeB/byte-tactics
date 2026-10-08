@@ -150,8 +150,8 @@ void __stdcall HAPI_OpenFileAppend(void* param1)
 }
 
 DisplayContext* GetDisplay(void);
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-void __cdecl FUN_004d85a0(void* p);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
+void __cdecl GameFreeThunk(void* p);
 // HAPI_FindEntry (0x4bb4e0) is gap code and stays in src/util/hpi_4bb4e0.cpp:
 // tools/gapcheck.py sizes a region's functions by the next annotation in the
 // file, so a file that also holds functions outside the region cannot be its
@@ -180,7 +180,7 @@ FileHandle* __stdcall HAPI_OpenFile(char* filename, const char* mode)
     int k;
     unsigned char* p;
     DisplayContext* state = GetDisplay();
-    FileHandle* h = (FileHandle*)FUN_004d83b0("File Handle", 0x118);
+    FileHandle* h = (FileHandle*)GameAllocIgnoreTag("File Handle", 0x118);
     memset(h, 0, 0x118);
     strncpy(h->name, filename, 0x100);
     h->name[0xff] = 0;
@@ -196,7 +196,7 @@ FileHandle* __stdcall HAPI_OpenFile(char* filename, const char* mode)
         if (state->files[i]->fp == 0) {
             state->files[i]->fp = fopen(state->files[i]->name, "rb");
             if (state->files[i]->fp == 0) {
-                FUN_004d85a0(h);
+                GameFreeThunk(h);
                 return 0;
             }
             state->files[i]->pos = 0;
@@ -207,7 +207,7 @@ FileHandle* __stdcall HAPI_OpenFile(char* filename, const char* mode)
         h->pos = 0;
         if (h->info->compressed) {
             size = nblocks(h->info->size) * 4;
-            h->buffer = (int*)FUN_004d83b0("Block Sizes", size);
+            h->buffer = (int*)GameAllocIgnoreTag("Block Sizes", size);
             off = h->info->offset;
             fseek(h->shared->fp, off, 0);
             fread(h->buffer, 1, size, h->shared->fp);
@@ -221,7 +221,7 @@ FileHandle* __stdcall HAPI_OpenFile(char* filename, const char* mode)
         }
         return h;
     }
-    FUN_004d85a0(h);
+    GameFreeThunk(h);
     return 0;
 }
 
@@ -246,12 +246,12 @@ int __stdcall HAPI_CloseFile(FileHandle* file)
         result = fclose(file->fp);
     }
     if (file->buffer != 0) {
-        FUN_004d85a0(file->buffer);
+        GameFreeThunk(file->buffer);
     }
     if (file->buffer2 != 0) {
-        FUN_004d85a0(file->buffer2);
+        GameFreeThunk(file->buffer2);
     }
-    FUN_004d85a0((int*)file);
+    GameFreeThunk((int*)file);
     return result;
 }
 
@@ -275,7 +275,7 @@ FileHandle* __stdcall HAPI_CreateFile(char* path)
 {
     FILE* fp = fopen(path, "w+b");
     if (fp) {
-        FileHandle* file = (FileHandle*)FUN_004d83b0("File Handle", sizeof(FileHandle));
+        FileHandle* file = (FileHandle*)GameAllocIgnoreTag("File Handle", sizeof(FileHandle));
         memset(file, 0, sizeof(FileHandle));
         strncpy(file->name, path, sizeof(file->name));
         file->name[sizeof(file->name) - 1] = 0;
@@ -297,7 +297,7 @@ long __stdcall HAPI_SeekFile(FileHandle* file, long pos)
             file->pos = pos;
         }
         if (((old ^ file->pos) & 0xffff0000) != 0 && file->buffer2 != 0) {
-            FUN_004d85a0(file->buffer2);
+            GameFreeThunk(file->buffer2);
             file->buffer2 = 0;
         }
         return 0;
@@ -367,13 +367,13 @@ int __stdcall HAPI_readfromfile(FileHandle* file, unsigned char* buf, int size)
                     off += file->info->offset;
                     fseek(file->shared->fp, off, 0);
                     file->shared->pos = off;
-                    file->buffer2 = (unsigned char*)FUN_004d83b0("Uncompressed Block", 0x10000);
-                    comp = (unsigned char*)FUN_004d83b0("Compressed Buffer", file->buffer[k]);
+                    file->buffer2 = (unsigned char*)GameAllocIgnoreTag("Uncompressed Block", 0x10000);
+                    comp = (unsigned char*)GameAllocIgnoreTag("Compressed Buffer", file->buffer[k]);
                     int got = fread(comp, 1, file->buffer[k], file->shared->fp);
                     if (got != file->buffer[k]) {
-                        FUN_004d85a0(file->buffer2);
+                        GameFreeThunk(file->buffer2);
                         file->buffer2 = 0;
-                        FUN_004d85a0(comp);
+                        GameFreeThunk(comp);
                         return -1;
                     }
                     file->shared->pos += got;
@@ -392,7 +392,7 @@ int __stdcall HAPI_readfromfile(FileHandle* file, unsigned char* buf, int size)
                         sprintf(msg + strlen(msg), "name = '%s'\n", file->name);
                         FatalError(msg);
                     }
-                    FUN_004d85a0(comp);
+                    GameFreeThunk(comp);
                 }
                 int chunk = ((b + 1) << 16) - file->pos;
                 if (chunk > remaining)
@@ -484,10 +484,10 @@ long __stdcall HAPI_FileLengthByName(char* param_1)
     }
 
     if (h->buffer != 0)
-        FUN_004d85a0((void*)h->buffer);
+        GameFreeThunk((void*)h->buffer);
     if (h->buffer2 != 0)
-        FUN_004d85a0((void*)h->buffer2);
-    FUN_004d85a0(h);
+        GameFreeThunk((void*)h->buffer2);
+    GameFreeThunk(h);
 
     return len;
 }
@@ -529,12 +529,12 @@ void* __stdcall HAPI_ReadFileAt(char* name, void* buffer, long pos, unsigned int
         fclose(file->fp);
     }
     if (file->buffer != 0) {
-        FUN_004d85a0(file->buffer);
+        GameFreeThunk(file->buffer);
     }
     if (file->buffer2 != 0) {
-        FUN_004d85a0(file->buffer2);
+        GameFreeThunk(file->buffer2);
     }
-    FUN_004d85a0((int*)file);
+    GameFreeThunk((int*)file);
     return buffer;
 
 fail:
@@ -548,12 +548,12 @@ fail:
         fclose(file->fp);
     }
     if (file->buffer != 0) {
-        FUN_004d85a0(file->buffer);
+        GameFreeThunk(file->buffer);
     }
     if (file->buffer2 != 0) {
-        FUN_004d85a0(file->buffer2);
+        GameFreeThunk(file->buffer2);
     }
-    FUN_004d85a0((int*)file);
+    GameFreeThunk((int*)file);
     return 0;
 }
 
@@ -613,9 +613,9 @@ char* __stdcall HAPI_LoadFile(char* name, int* size)
                 k++;
             } while (buf[j++] != 0);
         }
-        data = (char*)FUN_004d83b0(buf, len);
+        data = (char*)GameAllocIgnoreTag(buf, len);
         if (HAPI_readfromfile(f, (unsigned char*)data, len) <= 0) {
-            FUN_004d85a0(data);
+            GameFreeThunk(data);
             data = 0;
             goto close;
         }
@@ -634,12 +634,12 @@ close:
         fclose(f->fp);
     }
     if (f->buffer != 0) {
-        FUN_004d85a0(f->buffer);
+        GameFreeThunk(f->buffer);
     }
     if (f->buffer2 != 0) {
-        FUN_004d85a0(f->buffer2);
+        GameFreeThunk(f->buffer2);
     }
-    FUN_004d85a0(f);
+    GameFreeThunk(f);
     return data;
 }
 
@@ -690,9 +690,9 @@ void* __stdcall HAPI_LoadOpenFile(char* name, FileHandle* file, unsigned int* ou
         buf[k] = buf[j];
         k++;
     } while (buf[j++] != 0);
-    data = FUN_004d83b0(buf, len);
+    data = GameAllocIgnoreTag(buf, len);
     if (HAPI_readfromfile(file, (unsigned char*)data, len) <= 0) {
-        FUN_004d85a0(data);
+        GameFreeThunk(data);
         return 0;
     }
     if (outSize != 0) {
@@ -735,12 +735,12 @@ int* __stdcall HAPI_LoadFileInto(char* param_1, int* param_2)
         fclose(file->fp);
     }
     if (file->buffer != 0)
-        FUN_004d85a0(file->buffer);
+        GameFreeThunk(file->buffer);
     if (file->buffer2 != 0)
-        FUN_004d85a0(file->buffer2);
-    FUN_004d85a0(file);
+        GameFreeThunk(file->buffer2);
+    GameFreeThunk(file);
     if (size <= 0) {
-        FUN_004d85a0(param_2);
+        GameFreeThunk(param_2);
         return 0;
     }
     return param_2;
@@ -756,10 +756,10 @@ fail:
             fclose(file->fp);
         }
         if (file->buffer != 0)
-            FUN_004d85a0(file->buffer);
+            GameFreeThunk(file->buffer);
         if (file->buffer2 != 0)
-            FUN_004d85a0(file->buffer2);
-        FUN_004d85a0(file);
+            GameFreeThunk(file->buffer2);
+        GameFreeThunk(file);
     }
     return 0;
 }
@@ -874,8 +874,8 @@ struct FindFiles {
 };
 #pragma pack(pop)
 
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-void __cdecl FUN_004d85a0(void* p);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
+void __cdecl GameFreeThunk(void* p);
 int __stdcall HAPI_FindNext(FindFiles* f, struct _finddata_t* fd);
 
 // Strips the directory from a path in place ("a\\b\\c.txt" -> "c.txt").
@@ -897,7 +897,7 @@ static char* StripDir(char* path)
 // FUNCTION: 0x4bc4b0
 int __stdcall HAPI_FindFirst(const char* path, void* fd, int state, char recursive)
 {
-    FindFiles* f = (FindFiles*)FUN_004d83b0("Find Files structure", 0x20d);
+    FindFiles* f = (FindFiles*)GameAllocIgnoreTag("Find Files structure", 0x20d);
     strcpy(f->dir, path);
     for (int i = strlen(f->dir); i >= 0; i--) {
         if (f->dir[i] == '\\') {
@@ -923,7 +923,7 @@ int __stdcall HAPI_FindFirst(const char* path, void* fd, int state, char recursi
     if (HAPI_FindNext(f, (struct _finddata_t*)fd) != -1)
         return (int)f;
 fail:
-    FUN_004d85a0(f);
+    GameFreeThunk(f);
     return -1;
 }
 
@@ -995,7 +995,7 @@ int __stdcall HAPI_FindClose(FindFiles* f)
         result = _findclose(f->handle);
     else
         result = 0;
-    FUN_004d85a0(f);
+    GameFreeThunk(f);
     return result;
 }
 
@@ -1017,7 +1017,7 @@ int __stdcall CountDirectoryEntries(const char* path, int flag)
             FindFiles* h = (FindFiles*)handle;
             if (h->state < 0)
                 _findclose(h->handle);
-            FUN_004d85a0(h);
+            GameFreeThunk(h);
         }
     }
     return count;
@@ -1073,7 +1073,7 @@ void __stdcall ListDirectory(const char* path, int param_2, FileList* param_3)
             FindFiles* f = (FindFiles*)h;
             if (f->state < 0)
                 _findclose(f->handle);
-            FUN_004d85a0(f);
+            GameFreeThunk(f);
         }
     }
 }
@@ -1113,7 +1113,7 @@ void __stdcall FindFilesRecursive(char* path, const char* pat, FileList* tree, i
         if (f != (FindFiles*)-1 && f != 0) {
             if (f->state < 0)
                 _findclose(f->handle);
-            FUN_004d85a0(f);
+            GameFreeThunk(f);
         }
     }
 }
@@ -1139,7 +1139,7 @@ void __stdcall GetDirectoryEntry(struct _finddata_t* fd, int index, const char* 
         if (handle != 0) {
             if (handle->state < 0)
                 _findclose(handle->handle);
-            FUN_004d85a0(handle);
+            GameFreeThunk(handle);
         }
     }
 }
@@ -1226,10 +1226,10 @@ static void Close_004bcf80(FileHandle* f)
         fclose(f->fp);
     }
     if (f->buffer)
-        FUN_004d85a0(f->buffer);
+        GameFreeThunk(f->buffer);
     if (f->buffer2)
-        FUN_004d85a0(f->buffer2);
-    FUN_004d85a0(f);
+        GameFreeThunk(f->buffer2);
+    GameFreeThunk(f);
 }
 
 // Copies a file into an already open destination handle, 0x19000 bytes at a
@@ -1260,7 +1260,7 @@ int __stdcall HAPI_CopyIntoFile(FileHandle* dst, char* name)
         goto fail;
     if (HAPI_SeekFile(f, 0) == -1)
         goto fail;
-    buf = FUN_004d83b0("COPY BUFFER", 0x19000);
+    buf = GameAllocIgnoreTag("COPY BUFFER", 0x19000);
     left = len;
     while (left != 0) {
         got = HAPI_readfromfile(f, (unsigned char*)buf, 0x19000);
@@ -1279,7 +1279,7 @@ int __stdcall HAPI_CopyIntoFile(FileHandle* dst, char* name)
     return len;
 fail:
     if (buf)
-        FUN_004d85a0(buf);
+        GameFreeThunk(buf);
     Close_004bcf80(f);
     return 0;
 }
@@ -1311,7 +1311,7 @@ struct Hapi_004bd160 {
     int extra;
 };
 
-void* __cdecl FUN_004d84a0(void* p, const char* name, unsigned int size);
+void* __cdecl GameReallocTagged(void* p, const char* name, unsigned int size);
 void __stdcall HAPI_WriteArchiveData(char* path, char* base, int off, FILE* f,
                            void (__cdecl* cb)(unsigned), unsigned extra,
                            int key, int flags);
@@ -1321,7 +1321,7 @@ static inline unsigned int Grow(HapiBuf* b, unsigned int n)
 {
     unsigned int old = b->size;
     b->size += n;
-    b->buf = (char*)FUN_004d84a0(b->buf, "Package Data", b->size);
+    b->buf = (char*)GameReallocTagged(b->buf, "Package Data", b->size);
     return old;
 }
 
@@ -1377,7 +1377,7 @@ int __stdcall HAPI_PackDirectory(char* srcname, char* dstname, void (__cdecl* cb
     f = fopen(dstname, "wb");
     if (!f) {
         if (sb.buf)
-            FUN_004d85a0(sb.buf);
+            GameFreeThunk(sb.buf);
         return 0;
     }
     fwrite(sb.buf, sb.size, 1, f);
@@ -1406,7 +1406,7 @@ int __stdcall HAPI_PackDirectory(char* srcname, char* dstname, void (__cdecl* cb
     fprintf(f, copyright);
     fclose(f);
     if (sb.buf)
-        FUN_004d85a0(sb.buf);
+        GameFreeThunk(sb.buf);
     }
     return 1;
 }
@@ -1449,7 +1449,7 @@ unsigned int __stdcall HAPI_BuildArchiveDirectory(char* path, HapiBuf* out, int*
     root = nsize;
     nsize += 8;
     out->size = nsize;
-    base = (char*)FUN_004d84a0(out->buf, g_packageDataName, nsize);
+    base = (char*)GameReallocTagged(out->buf, g_packageDataName, nsize);
     out->buf = base;
     *(unsigned int*)(base + root) = 0;
 
@@ -1471,7 +1471,7 @@ unsigned int __stdcall HAPI_BuildArchiveDirectory(char* path, HapiBuf* out, int*
         if (h != 0) {
             if (((FindFiles*)h)->state < 0)
                 _findclose(((FindFiles*)h)->handle);
-            FUN_004d85a0((FindFiles*)h);
+            GameFreeThunk((FindFiles*)h);
         }
     }
 
@@ -1519,7 +1519,7 @@ unsigned int __stdcall HAPI_BuildArchiveDirectory(char* path, HapiBuf* out, int*
         if (h != 0) {
             if (((FindFiles*)h)->state < 0)
                 _findclose(((FindFiles*)h)->handle);
-            FUN_004d85a0((FindFiles*)h);
+            GameFreeThunk((FindFiles*)h);
         }
     }
     return root;
@@ -1571,7 +1571,7 @@ OPENHAPIFILE* __stdcall HAPI_OpenArchive(const char* name, int mode)
     FILE* f = fopen(name, "rb");
     if (f == 0)
         return 0;
-    OPENHAPIFILE* h = (OPENHAPIFILE*)FUN_004d83b0("OPENHAPIFILE structure", 0x118);
+    OPENHAPIFILE* h = (OPENHAPIFILE*)GameAllocIgnoreTag("OPENHAPIFILE structure", 0x118);
     char* filePart;
     h->fp = f;
     h->pos = -1;
@@ -1583,10 +1583,10 @@ OPENHAPIFILE* __stdcall HAPI_OpenArchive(const char* name, int mode)
     char copyright[0x40];
     if (Bad_004bdd70(f, &hdr, copyright)) {
         fclose(f);
-        FUN_004d85a0(h);
+        GameFreeThunk(h);
         return 0;
     }
-    h->node = (Header*)FUN_004d83b0("HAPIFILE header", hdr.size);
+    h->node = (Header*)GameAllocIgnoreTag("HAPIFILE header", hdr.size);
     rewind(f);
     fread(h->node, hdr.size, 1, f);
     {
@@ -1654,8 +1654,8 @@ void __stdcall HAPI_CloseArchive(OPENHAPIFILE* f)
     if (f != 0) {
         if (f->fp != 0)
             fclose(f->fp);
-        FUN_004d85a0(f->node);
-        FUN_004d85a0(f);
+        GameFreeThunk(f->node);
+        GameFreeThunk(f);
     }
 }
 
@@ -1678,7 +1678,7 @@ void* __stdcall HAPI_AddArchive(LPCSTR param_1, int param_2)
     if (!file)
         return 0;
 
-    display->files = (OPENHAPIFILE**)FUN_004d84a0(display->files, g_hapiFileArrayName, display->count * 4 + 4);
+    display->files = (OPENHAPIFILE**)GameReallocTagged(display->files, g_hapiFileArrayName, display->count * 4 + 4);
     display->files[display->count] = (OPENHAPIFILE*)file;
     display->count++;
     return file;
@@ -1689,8 +1689,8 @@ static void FreeRecord_004be180(OPENHAPIFILE* p)
     if (p != 0) {
         if (p->fp != 0)
             fclose(p->fp);
-        FUN_004d85a0(p->node);
-        FUN_004d85a0(p);
+        GameFreeThunk(p->node);
+        GameFreeThunk(p);
     }
 }
 
@@ -1737,8 +1737,8 @@ void __stdcall HAPI_RemoveArchive(OPENHAPIFILE* pRecord)
             if (p != 0) {
                 if (p->fp != 0)
                     fclose(p->fp);
-                FUN_004d85a0(p->node);
-                FUN_004d85a0(p);
+                GameFreeThunk(p->node);
+                GameFreeThunk(p);
             }
             state->files[i] = 0;
             for (int j = i; j < state->count - 1; j++) {
@@ -1810,7 +1810,7 @@ void __stdcall HAPI_MarkShadowedFiles(char* path, int state, int recursive)
     if (f) {
         if (f->state < 0)
             _findclose(f->handle);
-        FUN_004d85a0(f);
+        GameFreeThunk(f);
     }
 }
 

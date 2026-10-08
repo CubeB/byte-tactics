@@ -112,10 +112,10 @@ struct SavedPiece {
 #include "../util/hapi_bank.h"
 
 extern int GetTickRate();
-void __cdecl FUN_004d85a0(void* p);
+void __cdecl GameFreeThunk(void* p);
 int __stdcall GetCobChecksum(void* param);
-void* __cdecl FUN_004d84a0(void* param_1, const char* name, unsigned int param_3);
-char* __cdecl FUN_004d83b0(const char* text, int value);
+void* __cdecl GameReallocTagged(void* param_1, const char* name, unsigned int param_3);
+char* __cdecl GameAllocIgnoreTag(const char* text, int value);
 int __stdcall RandomInt(int);
 
 class CobScript
@@ -237,10 +237,10 @@ int CobScript::GetTransporterId()
 CobScript::~CobScript()
 {
     if (pieces) {
-        FUN_004d85a0((int*)pieces);
+        GameFreeThunk((int*)pieces);
     }
     if (statics) {
-        FUN_004d85a0((int*)statics);
+        GameFreeThunk((int*)statics);
     }
 }
 
@@ -254,8 +254,8 @@ void CobScript::SetCob(ScriptTable* data)
     table = data;
     if (data != 0) {
         unknown_c = GetCobChecksum(data);
-        pieces = (Piece*)FUN_004d84a0(pieces, "Object States", data->pieceCount * 0x4c);
-        statics = (int*)FUN_004d84a0(statics, "Static Varibles", data->staticCount * 4);
+        pieces = (Piece*)GameReallocTagged(pieces, "Object States", data->pieceCount * 0x4c);
+        statics = (int*)GameReallocTagged(statics, "Static Varibles", data->staticCount * 4);
         memset(pieces, 0, data->pieceCount * 0x4c);
     }
 }
@@ -1164,7 +1164,7 @@ int CobScript::LoadScriptState(HapiBank* file)
     if (file->ReadBox(statics, size) != size) {
         return 0;
     }
-    SavedPiece* buffer = (SavedPiece*)FUN_004d83b0("Piece States", bytes);
+    SavedPiece* buffer = (SavedPiece*)GameAllocIgnoreTag("Piece States", bytes);
     if (file->ReadBox(buffer, bytes) != bytes) {
         return 0;
     }
@@ -1186,6 +1186,6 @@ int CobScript::LoadScriptState(HapiBank* file)
         }
     }
     changed = 1;
-    FUN_004d85a0(buffer);
+    GameFreeThunk(buffer);
     return 1;
 }

@@ -7,12 +7,12 @@ struct EventEntry {
     int unkc;                          // +0xc
 };
 
-extern EventEntry* DAT_00529df8;
-extern int DAT_00529dcc;
-extern EventEntry DAT_0050da00[];
-extern EventEntry DAT_0050d980[];
-extern EventEntry DAT_00529e00;        // "Event0"
-extern EventEntry DAT_00529e10;        // "Event1"
+extern EventEntry* g_pmcEventCatalog;
+extern int g_pmcEventCount;
+extern EventEntry g_pentiumProEvents[];
+extern EventEntry g_pentiumEvents[];
+extern EventEntry g_pmcEvent0;         // "Event0"
+extern EventEntry g_pmcEvent1;         // "Event1"
 
 void __cdecl SyncPerformanceSettings(int arg);
 unsigned char HasPerfCounters(void);
@@ -21,31 +21,31 @@ int GetCpuFamily(void);
 // FUNCTION: 0x4e1be0
 void InitPerformanceEvents(void)
 {
-    if (DAT_00529df8 == 0) {
-        DAT_00529df8 = DAT_0050da00;
-        DAT_00529dcc = 0x11;
+    if (g_pmcEventCatalog == 0) {
+        g_pmcEventCatalog = g_pentiumProEvents;
+        g_pmcEventCount = 0x11;
         SyncPerformanceSettings(1);
         if (HasPerfCounters() != 0) {
             if (GetCpuFamily() < 6) {
-                DAT_00529df8 = DAT_0050d980;
-                DAT_00529dcc = 8;
+                g_pmcEventCatalog = g_pentiumEvents;
+                g_pmcEventCount = 8;
             }
-            EventEntry* table = DAT_00529df8;
-            int count = DAT_00529dcc;
+            EventEntry* table = g_pmcEventCatalog;
+            int count = g_pmcEventCount;
             // The pointer locals (declared in this order) make MSVC hoist the
             // two Event ids into the loop preheader in the original order.
-            EventEntry* e1 = &DAT_00529e10;
-            EventEntry* e0 = &DAT_00529e00;
+            EventEntry* e1 = &g_pmcEvent1;
+            EventEntry* e0 = &g_pmcEvent0;
             for (int i = 0; i < count; i++) {
                 if (e0->id == table[i].id)
                     *e0 = table[i];
                 if (e1->id == table[i].id)
                     *e1 = table[i];
             }
-            if (DAT_00529e00.unk4 == 0)
-                DAT_00529e00 = table[0];
-            if (DAT_00529e10.unk4 == 0)
-                DAT_00529e10 = table[0];
+            if (g_pmcEvent0.unk4 == 0)
+                g_pmcEvent0 = table[0];
+            if (g_pmcEvent1.unk4 == 0)
+                g_pmcEvent1 = table[0];
         }
     }
 }

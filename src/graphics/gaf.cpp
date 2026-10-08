@@ -831,11 +831,11 @@ GafEntry_004b8d40* __stdcall FindGafEntry(Gaf_004b8d40* gaf, const char* name)
     return 0;
 }
 
-void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
+void* __cdecl GameAllocIgnoreTag(const char* name, unsigned int size);
 // FUNCTION: 0x4b8da0
 Bitmap_004b7f90* __stdcall AllocFrame(const char* name, int width, int height)
 {
-    Bitmap_004b7f90* p = (Bitmap_004b7f90*)FUN_004d83b0(name, height * width + 0x18);
+    Bitmap_004b7f90* p = (Bitmap_004b7f90*)GameAllocIgnoreTag(name, height * width + 0x18);
     if (p == 0) {
         return 0;
     }
@@ -854,7 +854,7 @@ Bitmap_004b7f90* __stdcall AllocFrame(const char* name, int width, int height)
 Bitmap_004b7f90* __stdcall AllocDepthFrame(unsigned int heap, int width, int height)
 {
     int size = height * width;
-    Bitmap_004b7f90* b = (Bitmap_004b7f90*)FUN_004d83b0((const char*)heap, size * 2 + sizeof(Bitmap_004b7f90));
+    Bitmap_004b7f90* b = (Bitmap_004b7f90*)GameAllocIgnoreTag((const char*)heap, size * 2 + sizeof(Bitmap_004b7f90));
     unsigned char* p = (unsigned char*)(b + 1);
     b->plane0 = p;
     b->height = height;
@@ -956,7 +956,7 @@ void __stdcall DrawFrameShadow(Surface* dst, Bitmap_004b7f90* bmp, int x, int y)
 Bitmap_004b7f90* __stdcall AllocDepthFrame(const char* name, int width, int height)
 {
     int size = height * width;
-    Bitmap_004b7f90* b = (Bitmap_004b7f90*)FUN_004d83b0(name, size * 2 + sizeof(Bitmap_004b7f90));
+    Bitmap_004b7f90* b = (Bitmap_004b7f90*)GameAllocIgnoreTag(name, size * 2 + sizeof(Bitmap_004b7f90));
     unsigned char* p = (unsigned char*)(b + 1);
     b->width = width;
     b->plane0 = p;

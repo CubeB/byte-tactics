@@ -346,9 +346,9 @@ extern int g_endGameGlamourSoundStarted;
 extern CMemoryCache g_debrisMemCache;
 extern void __cdecl FreeMemoryCache();
 
-void __cdecl FUN_004d83a0(int);
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-void __cdecl FUN_004d85a0(void* p);
+void __cdecl AllocNotifyNop(int);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
+void __cdecl GameFreeThunk(void* p);
 unsigned int __cdecl GetTicks();
 void __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
 void __stdcall FadeRectangle(Surface_0041df20* dst, void* rect, int level);
@@ -430,7 +430,7 @@ void CreateGameObject()
     unsigned int size = offset + sizeof(Game);
     char* mem = (char*)operator new(size);
     memset(mem, 0, size);
-    FUN_004d83a0((int)mem);
+    AllocNotifyNop((int)mem);
     g_game = new (mem + offset) Game;
 }
 
@@ -468,13 +468,13 @@ void InitMissionStatus(void)
 void SetUpEndMissionScreen()
 {
     char path[256];
-    g_game->delta = (char*)FUN_004d83b0("FadeTable", 0x400);
-    g_game->target = (unsigned char*)FUN_004d83b0("desiredPalette", 0x400);
-    g_game->current = (unsigned char*)FUN_004d83b0("currentPalette", 0x400);
+    g_game->delta = (char*)GameAllocIgnoreTag("FadeTable", 0x400);
+    g_game->target = (unsigned char*)GameAllocIgnoreTag("desiredPalette", 0x400);
+    g_game->current = (unsigned char*)GameAllocIgnoreTag("currentPalette", 0x400);
     Display* display = GetDisplay();
     g_game->field_3906f = display->paletteBrightness;
     display->paletteBrightness = 1.0f;
-    unsigned char* palette = (unsigned char*)FUN_004d83b0("Palette", 0x400);
+    unsigned char* palette = (unsigned char*)GameAllocIgnoreTag("Palette", 0x400);
     char* name = g_game->campaign->GetNameSlot(5);
     if (name == 0)
         g_game->image_3907b = 0;
@@ -686,7 +686,7 @@ int AreStatBarsComplete(void)
 // FUNCTION: 0x41eaa0
 char* __stdcall BuildScrollItems1(char* names, char* flags, int count)
 {
-    char* items = (char*)FUN_004d83b0("ScrollItems1", count << 7);
+    char* items = (char*)GameAllocIgnoreTag("ScrollItems1", count << 7);
     memset(items, 0, count << 7);
     char* src = names;
     char* out = items;
@@ -707,7 +707,7 @@ char* __stdcall BuildScrollItems1(char* names, char* flags, int count)
         src += len;
         out += len;
     }
-    FUN_004d85a0(names);
+    GameFreeThunk(names);
     return items;
 }
 
@@ -719,7 +719,7 @@ char* __stdcall BuildScrollItems1(char* names, char* flags, int count)
 // FUNCTION: 0x41eb60
 char* __stdcall BuildScrollItems2(char* names, int a, int b)
 {
-    char* items = (char*)FUN_004d83b0("ScrollItems2", b * 0x102);
+    char* items = (char*)GameAllocIgnoreTag("ScrollItems2", b * 0x102);
     if (a > b) {
         a = b;
     }
@@ -740,7 +740,7 @@ char* __stdcall BuildScrollItems2(char* names, int a, int b)
         src += len;
         out += len;
     }
-    FUN_004d85a0(names);
+    GameFreeThunk(names);
     return items;
 }
 
@@ -761,21 +761,21 @@ void __stdcall HandleEndMissionClick(Menu* gadget)
         if (g_game->image_3907b != 0)
             FreeSurface(g_game->image_3907b);
         if (g_game->palette_3907f != 0)
-            FUN_004d85a0(g_game->palette_3907f);
+            GameFreeThunk(g_game->palette_3907f);
         if (g_game->current != 0)
-            FUN_004d85a0(g_game->current);
+            GameFreeThunk(g_game->current);
         if (g_game->target != 0)
-            FUN_004d85a0(g_game->target);
+            GameFreeThunk(g_game->target);
         if (g_game->delta != 0)
-            FUN_004d85a0(g_game->delta);
+            GameFreeThunk(g_game->delta);
         g_game->lastFrame = 0;
         g_game->image_3907b = 0;
         g_game->palette_3907f = 0;
         g_game->current = 0;
         g_game->target = 0;
         g_game->delta = 0;
-        FUN_004d85a0(data->items);
-        FUN_004d85a0(data);
+        GameFreeThunk(data->items);
+        GameFreeThunk(data);
         if (g_game->flag4)
             LeaveNetGame();
         g_game->sound->SetTrackCategory(4);
@@ -892,7 +892,7 @@ void __stdcall OpenEndMissionScreen()
     FlipScreen();
     Layer* layer = LoadGuiLayer(&g_game->menu, "ENDMSN.GUI", 0x80);
     layer->handler = HandleEndMissionClick;
-    Data* data = (Data*)FUN_004d83b0("EndMsnGUI", 0x20);
+    Data* data = (Data*)GameAllocIgnoreTag("EndMsnGUI", 0x20);
     data->items = 0;
     layer->data = data;
     char* entries = (char*)layer->entries;

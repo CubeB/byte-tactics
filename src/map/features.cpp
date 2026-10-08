@@ -502,7 +502,7 @@ typedef std::vector<TdfFile*> FeatureList;
 // walk the vector through begin() and end().
 static FeatureList* s_featureTdfParsers;
 
-void __cdecl FUN_004d85a0(void* p);
+void __cdecl GameFreeThunk(void* p);
 void __stdcall FreeObjectState(void* obj);
 AnimSrc* __stdcall FindGafEntry(void* list, const char* name);
 void __stdcall InitGafSequence(Anim* ref, AnimSrc* src, int index);
@@ -594,8 +594,8 @@ void FreeFeaturePool()
         }
     }
 
-    FUN_004d85a0(g_game->pool.field_4);
-    FUN_004d85a0(g_game->pool.entries);
+    GameFreeThunk(g_game->pool.field_4);
+    GameFreeThunk(g_game->pool.entries);
     g_game->pool.field_4 = 0;
     g_game->pool.entries = 0;
 
@@ -603,18 +603,18 @@ void FreeFeaturePool()
     for (i = 0; i < g_game->featureCount; i++, t++) {
         if (t->flags & 1) {
             if (t->anims) {
-                FUN_004d85a0(t->anims);
+                GameFreeThunk(t->anims);
                 t->anims = 0;
             }
         } else {
             if (t->object) {
-                FUN_004d85a0(t->object);
+                GameFreeThunk(t->object);
                 t->object = 0;
             }
         }
     }
 
-    FUN_004d85a0(g_game->features);
+    GameFreeThunk(g_game->features);
     g_game->features = 0;
     g_game->featureCount = 0;
 }

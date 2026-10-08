@@ -1,8 +1,8 @@
 // Decompiled by Opus. Names are provisional.
-// Under the global critical section (FUN_004e1ac0), re-inserts a name key
+// Under the global critical section (GetNameTableLock), re-inserts a name key
 // into the std::set-like tree at +0x0: an existing entry is erased first,
-// otherwise the "changed" flag at +0x10 is set. FUN_004dfea0 is
-// erase(iterator) and FUN_004e2250 is insert(key), both returning through a
+// otherwise the "changed" flag at +0x10 is set. Erase is
+// erase(iterator) and InsertOrFind is insert(key), both returning through a
 // hidden pointer.
 #include <windows.h>
 
@@ -11,13 +11,13 @@ public:
     CRITICAL_SECTION cs;
 };
 
-CritSec_004e1ac0* FUN_004e1ac0();
+CritSec_004e1ac0* GetNameTableLock();
 
 // The key: a C string ordered by strcmp.
 class NameKey {
 public:
     char* name;                        // +0x0
-    bool FUN_004e1a30(const NameKey& other) const;
+    bool LessThan(const NameKey& other) const;
 };
 
 struct Node_004e1990 {
@@ -47,23 +47,23 @@ struct InsertResult_004e1990 {
 struct Less_004e1990 {
     bool operator()(const NameKey& a, const NameKey& b) const
     {
-        return a.FUN_004e1a30(b);
+        return a.LessThan(b);
     }
 };
 
 class Class_004e2580 {
 public:
-    Iter_004e1990 FUN_004e2580(const NameKey& key);
+    Iter_004e1990 LowerBound(const NameKey& key);
 };
 
 class Class_004dfea0 {
 public:
-    Iter_004e1990 FUN_004dfea0(Iter_004e1990 it);
+    Iter_004e1990 Erase(Iter_004e1990 it);
 };
 
 class Class_004e2250 {
 public:
-    InsertResult_004e1990 FUN_004e2250(const NameKey& key);
+    InsertResult_004e1990 InsertOrFind(const NameKey& key);
 };
 
 class Class_004e1990 {
@@ -77,22 +77,22 @@ public:
     Iter_004e1990 End() { return Iter_004e1990(head); }
     Iter_004e1990 Find(const NameKey& key)
     {
-        Iter_004e1990 p = ((Class_004e2580*)this)->FUN_004e2580(key);
+        Iter_004e1990 p = ((Class_004e2580*)this)->LowerBound(key);
         return (p == End() || compare(key, p.ptr->key)) ? End() : p;
     }
-    void FUN_004e1990(const NameKey& key);
+    void Upsert(const NameKey& key);
 };
 
 // FUNCTION: 0x4e1990
-void Class_004e1990::FUN_004e1990(const NameKey& key)
+void Class_004e1990::Upsert(const NameKey& key)
 {
-    CritSec_004e1ac0* lock = FUN_004e1ac0();
+    CritSec_004e1ac0* lock = GetNameTableLock();
     EnterCriticalSection(&lock->cs);
     Iter_004e1990 it = Find(key);
     if (it != End())
-        ((Class_004dfea0*)this)->FUN_004dfea0(it);
+        ((Class_004dfea0*)this)->Erase(it);
     else
         changed = 1;
-    ((Class_004e2250*)this)->FUN_004e2250(key);
+    ((Class_004e2250*)this)->InsertOrFind(key);
     LeaveCriticalSection(&lock->cs);
 }

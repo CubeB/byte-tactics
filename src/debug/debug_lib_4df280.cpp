@@ -7,9 +7,9 @@
 // Near-copy of 0x4e05f0, which does the same for another dialog.
 #include <windows.h>
 
-extern char* DAT_0050d660;
+extern char* g_performanceWindowName;
 
-void __cdecl FUN_004e33d0(HWND hwnd, char* name, double a, double b);
+void __cdecl RestoreWindow(HWND hwnd, char* name, double a, double b);
 void __cdecl SaveWindowPosition(HWND hwnd, char* name);
 
 class Class_004df280 {
@@ -29,14 +29,14 @@ void Class_004df280::SetPerformanceWindowVisible(char show)
             EnableWindow(hwnd, 1);
             SetFocus(hwnd);
             SetForegroundWindow(hwnd);
-            FUN_004e33d0(hwnd, DAT_0050d660, 1.0, 1.0);
+            RestoreWindow(hwnd, g_performanceWindowName, 1.0, 1.0);
             SetTimer(hwnd, 1, 200, 0);
         } else {
             flag_20 = 1;
         }
     } else if (IsWindowVisible(hwnd)) {
         KillTimer(hwnd, 1);
-        SaveWindowPosition(hwnd, DAT_0050d660);
+        SaveWindowPosition(hwnd, g_performanceWindowName);
         ShowWindow(hwnd, 0);
     }
 }

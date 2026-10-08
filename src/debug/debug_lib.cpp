@@ -28,8 +28,8 @@
 // The debug library's allocator and page protection: the memfussy, gonzo and
 // setmemory command-line switches, the debug fill pattern, and the game's
 // malloc wrappers around them.
-// Renames the allocator's _Charalloc so the call carries the symbol name FUN_004e2b60.
-#define _Charalloc FUN_004e2b60
+// Renames the allocator's _Charalloc so the call carries the symbol name Allocate.
+#define _Charalloc Allocate
 #include <windows.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,25 +37,25 @@
 #include <stddef.h>
 #include <stdio.h>
 
-extern char DAT_005289b4;
-extern char DAT_005289b8;
+extern char g_memFussyQueried;
+extern char g_memFussyDefault;
 
 // FUNCTION: 0x4d80b0
 void SetMemFussyDefault(void)
 {
-    if (DAT_005289b4 == '\0') {
-        DAT_005289b8 = 1;
+    if (g_memFussyQueried == '\0') {
+        g_memFussyDefault = 1;
     }
 }
 
 // A command-line switch: `on` is set from the default, then forced on or off
 // by the switch strings (see 0x4df160 for the "fpufussy" twin).
-class Class_004d9fe0 {
+class CommandLineSwitch {
 public:
     char on;                           // +0x0
-    Class_004d9fe0(char* name, int a, char def, char* onSwitch,
+    CommandLineSwitch(char* name, int a, char def, char* onSwitch,
                    char* offSwitch, char* onSwitch2, char* offSwitch2);
-    ~Class_004d9fe0() {}
+    ~CommandLineSwitch() {}
 };
 
 // The original calls this out of line from GetBlockSize, the allocator and
@@ -64,14 +64,14 @@ public:
 // FUNCTION: 0x4d80d0
 char IsMemFussy()
 {
-    DAT_005289b4 = 1;
-    static Class_004d9fe0 memFussy("memfussy", 1, DAT_005289b8, "-memfussy", "-memnofussy", "-memfrontalign", 0);
+    g_memFussyQueried = 1;
+    static CommandLineSwitch memFussy("memfussy", 1, g_memFussyDefault, "-memfussy", "-memnofussy", "-memfrontalign", 0);
     return memFussy.on;
 }
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4d8130
-void FUN_004d8130(void)
+void MemFussyAtexitHandler(void)
 {
 }
 
@@ -82,17 +82,17 @@ void FUN_004d8130(void)
 // FUNCTION: 0x4d8140
 char IsGonzo()
 {
-    static Class_004d9fe0 gonzo("gonzo", 1, 1, 0, "-gonzo", 0, 0);
+    static CommandLineSwitch gonzo("gonzo", 1, 1, 0, "-gonzo", 0, 0);
     return gonzo.on;
 }
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4d8190
-void FUN_004d8190(void)
+void GonzoAtexitHandler(void)
 {
 }
 
-char FUN_004d8200();
+char IsMemSet();
 int GetMemSetValue();
 
 // Checks whether a value lies within `range` of the debug fill pattern, read
@@ -100,7 +100,7 @@ int GetMemSetValue();
 // FUNCTION: 0x4d81a0
 bool __cdecl IsNearFillPattern(int value, int range)
 {
-    if (FUN_004d8200() && GetMemSetValue()) {
+    if (IsMemSet() && GetMemSetValue()) {
         int pattern[2];
         pattern[0] = pattern[1] = GetMemSetValue();
         for (unsigned int i = 0; i < 4; i++) {
@@ -118,25 +118,25 @@ bool __cdecl IsNearFillPattern(int value, int range)
 // The original calls this out of line from IsNearFillPattern and GameAlloc.
 #pragma auto_inline(off)
 // FUNCTION: 0x4d8200
-char FUN_004d8200()
+char IsMemSet()
 {
-    static Class_004d9fe0 memSet("setmemory", 1, 0, "-memset", "-memnoset", 0, 0);
+    static CommandLineSwitch memSet("setmemory", 1, 0, "-memset", "-memnoset", 0, 0);
     return memSet.on;
 }
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4d8250
-void FUN_004d8250(void)
+void MemSetAtexitHandler(void)
 {
 }
 
 // The "-memset" fill value, a hex or decimal command-line setting that
 // defaults to 0xdeadbeef (see 0x4d8200 for the "setmemory" switch).
-class Class_004da040 {
+class CommandLineNumber {
 public:
     int value;                         // +0x0
-    Class_004da040(char* name, int a, int def, char* sw);
-    ~Class_004da040() {}
+    CommandLineNumber(char* name, int a, int def, char* sw);
+    ~CommandLineNumber() {}
 };
 
 // The original calls this out of line from IsNearFillPattern and GameAlloc.
@@ -144,13 +144,13 @@ public:
 // FUNCTION: 0x4d8260
 int GetMemSetValue()
 {
-    static Class_004da040 setValue("setvalue", 0xdeadbeef, 0xdeadbeef, "-memset");
+    static CommandLineNumber setValue("setvalue", 0xdeadbeef, 0xdeadbeef, "-memset");
     return setValue.value;
 }
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4d82b0
-void FUN_004d82b0(void)
+void SetValueAtexitHandler(void)
 {
 }
 
@@ -197,37 +197,37 @@ size_t __cdecl GetBlockSize(void* p)
 // The original calls this out of line from AbortProgram.
 #pragma auto_inline(off)
 // FUNCTION: 0x4d8390
-void FUN_004d8390(void)
+void NopAbortHook(void)
 {
 }
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4d83a0
-void __cdecl FUN_004d83a0(int)
+void __cdecl AllocNotifyNop(int)
 {
 }
 
 void* __cdecl GameAlloc(unsigned int size);
 
 // FUNCTION: 0x4d83b0
-void __cdecl FUN_004d83b0(unsigned int param_1, unsigned int param_2)
+void __cdecl GameAllocIgnoreTag(unsigned int param_1, unsigned int param_2)
 {
     GameAlloc(param_2);
 }
 
 class CritSec_004da780;
-CritSec_004da780* FUN_004da780();
+CritSec_004da780* GetAllocLock();
 void* __cdecl AllocDebugBlock(unsigned int size, int flags);
 void __cdecl CountAlloc(unsigned int size);
-extern void (*DAT_005289bc)();
+extern void (*g_outOfMemoryHandler)();
 
-// The original calls this out of line from FUN_004d83b0, FUN_004d8450,
-// GameCalloc, GameStrdup and FUN_004d8660.
+// The original calls this out of line from GameAllocIgnoreTag, GameAllocShared,
+// GameCalloc, GameStrdup and GameAllocThunk.
 #pragma auto_inline(off)
 // FUNCTION: 0x4d83c0
 void* __cdecl GameAlloc(unsigned int size)
 {
-    CRITICAL_SECTION* cs = (CRITICAL_SECTION*)FUN_004da780();
+    CRITICAL_SECTION* cs = (CRITICAL_SECTION*)GetAllocLock();
     EnterCriticalSection(cs);
     void* p;
     do {
@@ -238,11 +238,11 @@ void* __cdecl GameAlloc(unsigned int size)
             if (p != 0)
                 CountAlloc(size);
         }
-        if (p == 0 && DAT_005289bc != 0)
-            DAT_005289bc();
-    } while (p == 0 && DAT_005289bc != 0);
+        if (p == 0 && g_outOfMemoryHandler != 0)
+            g_outOfMemoryHandler();
+    } while (p == 0 && g_outOfMemoryHandler != 0);
     if (p != 0) {
-        if (FUN_004d8200())
+        if (IsMemSet())
             FillPattern(p, GetMemSetValue(), size);
     }
     LeaveCriticalSection(cs);
@@ -251,7 +251,7 @@ void* __cdecl GameAlloc(unsigned int size)
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4d8450
-void __cdecl FUN_004d8450(unsigned int param_1)
+void __cdecl GameAllocShared(unsigned int param_1)
 {
     GameAlloc(param_1);
 }
@@ -270,10 +270,10 @@ void* __cdecl GameCalloc(unsigned int count, unsigned int size)
 
 void* __cdecl GameRealloc(void* param_1, unsigned int param_3);
 
-// The original calls this out of line from FUN_004d8580.
+// The original calls this out of line from GameReallocIgnoreTag.
 #pragma auto_inline(off)
 // FUNCTION: 0x4d84a0
-void __cdecl FUN_004d84a0(void* param_1, int unused_param_2, unsigned int param_3)
+void __cdecl GameReallocTagged(void* param_1, int unused_param_2, unsigned int param_3)
 {
     GameRealloc(param_1, param_3);
 }
@@ -282,12 +282,12 @@ void __cdecl FUN_004d84a0(void* param_1, int unused_param_2, unsigned int param_
 void* __cdecl ReallocDebugBlock(void* p, unsigned int size, int flags);
 void __cdecl CountFree(int param_1);
 
-// The original calls this out of line from FUN_004d84a0.
+// The original calls this out of line from GameReallocTagged.
 #pragma auto_inline(off)
 // FUNCTION: 0x4d84c0
 void* __cdecl GameRealloc(void* param_1, unsigned int param_2)
 {
-    CRITICAL_SECTION* cs = (CRITICAL_SECTION*)FUN_004da780();
+    CRITICAL_SECTION* cs = (CRITICAL_SECTION*)GetAllocLock();
     EnterCriticalSection(cs);
     void* p;
     do {
@@ -306,26 +306,26 @@ void* __cdecl GameRealloc(void* param_1, unsigned int param_2)
                     CountAlloc(param_2);
             }
         }
-        if (p == 0 && param_2 != 0 && DAT_005289bc != 0)
-            DAT_005289bc();
-    } while (p == 0 && param_2 != 0 && DAT_005289bc != 0);
+        if (p == 0 && param_2 != 0 && g_outOfMemoryHandler != 0)
+            g_outOfMemoryHandler();
+    } while (p == 0 && param_2 != 0 && g_outOfMemoryHandler != 0);
     LeaveCriticalSection(cs);
     return p;
 }
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4d8580
-void __cdecl FUN_004d8580(int* param_1, int param_2)
+void __cdecl GameReallocIgnoreTag(int* param_1, int param_2)
 {
-    FUN_004d84a0(param_1, 0, param_2);
+    GameReallocTagged(param_1, 0, param_2);
 }
 
 void __cdecl GameFree(void* p);
 
-// The original calls this out of line from FUN_004d8670.
+// The original calls this out of line from GameFreeIndirectThunk.
 #pragma auto_inline(off)
 // FUNCTION: 0x4d85a0
-void __cdecl FUN_004d85a0(int* param_1)
+void __cdecl GameFreeThunk(int* param_1)
 {
     GameFree(param_1);
 }
@@ -335,13 +335,13 @@ void __cdecl FreeDebugBlock(void* p, int flags);
 
 // The game's free(): under the allocator lock, either hands the block to the
 // "memfussy" debug heap or updates the allocation counters and frees it.
-// The original calls this out of line from FUN_004d85a0.
+// The original calls this out of line from GameFreeThunk.
 #pragma auto_inline(off)
 // FUNCTION: 0x4d85b0
 void __cdecl GameFree(void* p)
 {
     if (p) {
-        CRITICAL_SECTION* cs = (CRITICAL_SECTION*)FUN_004da780();
+        CRITICAL_SECTION* cs = (CRITICAL_SECTION*)GetAllocLock();
         EnterCriticalSection(cs);
         if (IsMemFussy()) {
             FreeDebugBlock(p, 0);
@@ -367,21 +367,21 @@ char* __cdecl GameStrdup(char* s)
 }
 
 // FUNCTION: 0x4d8660
-void __cdecl FUN_004d8660(unsigned int param_1)
+void __cdecl GameAllocThunk(unsigned int param_1)
 {
     GameAlloc(param_1);
 }
 
 // FUNCTION: 0x4d8670
-void __cdecl FUN_004d8670(int* param_1)
+void __cdecl GameFreeIndirectThunk(int* param_1)
 {
-    FUN_004d85a0(param_1);
+    GameFreeThunk(param_1);
 }
 
 // The original calls this through a cast function pointer from ReportException.
 #pragma auto_inline(off)
 // FUNCTION: 0x4d8680
-char __cdecl FUN_004d8680(unsigned long)
+char __cdecl AvWriteDetectStub(unsigned long)
 {
     return 0;
 }
@@ -481,7 +481,7 @@ struct Class_004d8850 {
     char unknown_0[0xc];
     char field_c[0x20];
 
-    void FUN_004d8850(char* param_1);
+    void SetName(char* param_1);
 };
 
 // The original calls this out of line from the block histories and the block descriptions.
@@ -492,7 +492,7 @@ BlockInfo::BlockInfo(void)
     address = 0;
     size = 0;
     allocNumber = -1;
-    ((Class_004d8850*)this)->FUN_004d8850(0);
+    ((Class_004d8850*)this)->SetName(0);
 }
 #pragma auto_inline(on)
 
@@ -514,7 +514,7 @@ Class_004d8820::Class_004d8820(int p1, int p2, int p3, int p4, const char* p5)
     base = p1;
     size = p2;
     count = p3;
-    ((Class_004d8850*)this)->FUN_004d8850((char*)p5);
+    ((Class_004d8850*)this)->SetName((char*)p5);
     tag = p4;
 }
 #pragma auto_inline(on)
@@ -523,7 +523,7 @@ Class_004d8820::Class_004d8820(int p1, int p2, int p3, int p4, const char* p5)
 // constructors.
 #pragma auto_inline(off)
 // FUNCTION: 0x4d8850
-void Class_004d8850::FUN_004d8850(char* param_1)
+void Class_004d8850::SetName(char* param_1)
 {
     if (param_1 != 0) {
         lstrcpynA(field_c, param_1, 0x20);
@@ -612,21 +612,21 @@ public:
     unsigned __int64 total;            // +0xb8
 
     RunningStats(const Base_004d8ae0& src, const char* name);
-    void FUN_004d8b30(const char* param_1);
-    void FUN_004d8b60(unsigned int value);
+    void SetName(const char* param_1);
+    void AddSample(unsigned int value);
 };
 
 // FUNCTION: 0x4d8ae0
 RunningStats::RunningStats(const Base_004d8ae0& src, const char* name)
     : Base_004d8ae0(src), count(0), min(0), max(0), total(0)
 {
-    FUN_004d8b30(name);
+    SetName(name);
 }
 
 // The original calls this from the constructor rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4d8b30
-void RunningStats::FUN_004d8b30(const char* param_1)
+void RunningStats::SetName(const char* param_1)
 {
     if (param_1 != 0) {
         lstrcpynA(name, param_1, 0x20);
@@ -639,7 +639,7 @@ void RunningStats::FUN_004d8b30(const char* param_1)
 // Adds a sample to running statistics: count, minimum, maximum and a 64-bit
 // total.
 // FUNCTION: 0x4d8b60
-void RunningStats::FUN_004d8b60(unsigned int value)
+void RunningStats::AddSample(unsigned int value)
 {
     if (count == 0) {
         min = max = value;
@@ -772,13 +772,13 @@ void* GetStackHigh()
 #pragma auto_inline(on)
 
 // The out-of-memory handler, seen as a function pointer here and at 0x4da8d0.
-extern void (*DAT_005289bc)();
+extern void (*g_outOfMemoryHandler)();
 
 // FUNCTION: 0x4d8e50
 int __cdecl SetOutOfMemoryHandler(int param_1)
 {
-    int temp = (int)DAT_005289bc;
-    DAT_005289bc = (void (*)())param_1;
+    int temp = (int)g_outOfMemoryHandler;
+    g_outOfMemoryHandler = (void (*)())param_1;
     return temp;
 }
 
@@ -815,9 +815,9 @@ public:
     void FormatStackReport();
 };
 
-extern int DAT_005289c0;
+extern int g_errorLogWritten;
 
-char __cdecl FUN_004d8680();
+char __cdecl AvWriteDetectStub();
 char* __cdecl GetExceptionName(unsigned long code);
 void __cdecl NormalizeLineEndings(char* buf, int size);
 void __cdecl FormatSystemInfo(char* dst, int size);
@@ -834,9 +834,9 @@ int __cdecl ReportException(EXCEPTION_POINTERS* ep, char* handlerName)
     DWORD written;
     char* reason;
 
-    if (DAT_005289c0)
+    if (g_errorLogWritten)
         return 0;
-    DAT_005289c0 = 1;
+    g_errorLogWritten = 1;
     CONTEXT* ctx = ep->ContextRecord;
     EXCEPTION_RECORD* rec = ep->ExceptionRecord;
     obj.CaptureStack((int*)ctx->Ebp, (int*)ctx->Esp, ctx->Eip, 0);
@@ -878,7 +878,7 @@ int __cdecl ReportException(EXCEPTION_POINTERS* ep, char* handlerName)
     sprintf(log + strlen(log), " - %s\n", reason);
     if (0xc0000005 == rec->ExceptionCode) {
         if (rec->NumberParameters >= 2) {
-            if (0 != ((char(__cdecl*)(unsigned long))FUN_004d8680)(rec->ExceptionInformation[1])) {
+            if (0 != ((char(__cdecl*)(unsigned long))AvWriteDetectStub)(rec->ExceptionInformation[1])) {
                 char* d = log + strlen(log);
                 sprintf(d, "Error: Write to read only memory attempted\n");
             }
@@ -1090,22 +1090,22 @@ void Class_004d9ca0::FormatStackReport()
 // handle (read back by 0x4d9f50). `sub eax, 0; je; dec eax; jne` is a switch
 // with cases 0 and 1.
 
-extern int DAT_005289c4;
+extern int g_debugLibInstance;
 
 // FUNCTION: 0x4d9f30
-BOOL __stdcall FUN_004d9f30(HINSTANCE instance, DWORD reason, LPVOID reserved)
+BOOL __stdcall SetDebugLibInstance(HINSTANCE instance, DWORD reason, LPVOID reserved)
 {
     switch (reason) {
     case DLL_PROCESS_DETACH:
         break;
     case DLL_PROCESS_ATTACH:
-        DAT_005289c4 = (int)instance;
+        g_debugLibInstance = (int)instance;
         break;
     }
     return TRUE;
 }
 
-extern int DAT_005289c4;
+extern int g_debugLibInstance;
 
 // The original calls this out of line from ShowDialogBox and
 // CreateDialogFromTemplate.
@@ -1113,15 +1113,15 @@ extern int DAT_005289c4;
 // FUNCTION: 0x4d9f50
 int GetDebugLibInstance(void)
 {
-    return DAT_005289c4;
+    return g_debugLibInstance;
 }
 #pragma auto_inline(on)
 
 // Finds a switch on the command line (case-insensitively) that ends at the
 // end of the line, a space or '=', and returns the text just after it, or 0.
 
-// The original calls this out of line from the Class_004d9fe0 and
-// Class_004da040 constructors.
+// The original calls this out of line from the CommandLineSwitch and
+// CommandLineNumber constructors.
 #pragma auto_inline(off)
 // FUNCTION: 0x4d9f60
 char* __cdecl FindCommandLineSwitch(char* name)
@@ -1151,7 +1151,7 @@ char* __cdecl FindCommandLineSwitch(char* name);
 // The original calls this out of line from IsMemFussy, IsGonzo and 0x4df160.
 #pragma auto_inline(off)
 // FUNCTION: 0x4d9fe0
-Class_004d9fe0::Class_004d9fe0(char* name, int a, char def, char* onSwitch,
+CommandLineSwitch::CommandLineSwitch(char* name, int a, char def, char* onSwitch,
                                char* offSwitch, char* onSwitch2, char* offSwitch2)
 {
     on = def;
@@ -1171,7 +1171,7 @@ char* __cdecl FindCommandLineSwitch(char* name);
 // The original calls this out of line from the setmemory switch and the fpufussy twin.
 #pragma auto_inline(off)
 // FUNCTION: 0x4da040
-Class_004da040::Class_004da040(char* name, int a, int def, char* sw)
+CommandLineNumber::CommandLineNumber(char* name, int a, int def, char* sw)
 {
     value = def;
     char* p = FindCommandLineSwitch(sw);
@@ -1188,19 +1188,19 @@ Class_004da040::Class_004da040(char* name, int a, int def, char* sw)
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4da0b0
-int FUN_004da0b0(void)
+int GetDebugLibVersion(void)
 {
     return 0x3e4;
 }
 
 // Same shape as the C runtime's abort(): report, raise SIGABRT, exit code 3.
 
-void FUN_004d8390(void);
+void NopAbortHook(void);
 
 // FUNCTION: 0x4da0c0
 void AbortProgram(void)
 {
-    FUN_004d8390();
+    NopAbortHook();
     raise(SIGABRT);
     _exit(3);
 }
@@ -1208,12 +1208,12 @@ void AbortProgram(void)
 // Returns whether arg starts (case-insensitively) with one of the 19 option
 // names in the table at 0x50c908 ("memfussy" ... "saveresources").
 
-extern char* DAT_0050c908[19];
+extern char* g_debugKeywords[19];
 
 // FUNCTION: 0x4da0e0
-bool __cdecl FUN_004da0e0(const char* arg)
+bool __cdecl IsDebugKeyword(const char* arg)
 {
-    for (char** p = DAT_0050c908; p < DAT_0050c908 + 19; p++) {
+    for (char** p = g_debugKeywords; p < g_debugKeywords + 19; p++) {
         if (_strnicmp(*p, arg, strlen(*p)) == 0)
             return true;
     }
@@ -1225,12 +1225,12 @@ bool __cdecl FUN_004da0e0(const char* arg)
 // gap region and are compiled with /Od (see the file's `// FLAGS:` line).
 
 int __cdecl ReportException(EXCEPTION_POINTERS*, char*);
-extern const char DAT_0050d2d0[];
+extern const char g_exceptionHandlerName[];
 
 // FUNCTION: 0x4da2a0
 void __stdcall UnhandledExceptionHandler(int param_1)
 {
-    ReportException((EXCEPTION_POINTERS*)param_1, (char*)DAT_0050d2d0);
+    ReportException((EXCEPTION_POINTERS*)param_1, (char*)g_exceptionHandlerName);
 }
 
 // The debug thread DebugThreadProc, RunDebugThread, HandleDialogMessage and
@@ -1246,9 +1246,9 @@ void __stdcall UnhandledExceptionHandler(int param_1)
 // this file its register allocation lands differently
 // (docs/c2-regalloc.md).
 
-extern char DAT_0050cd38;
-extern char DAT_0050ced8;
-extern char DAT_0050c958;
+extern char g_memoryDialog;
+extern char g_profilerDialog;
+extern char g_assertDialog;
 
 // The original calls this out of line from ShowDialogBox and
 // CreateDialogFromTemplate.
@@ -1260,15 +1260,15 @@ HGLOBAL __cdecl GetDialogTemplate(int id)
     int size = 0;
     switch (id) {
     case 0x66:
-        src = &DAT_0050cd38;
+        src = &g_memoryDialog;
         size = 0x1a0;
         break;
     case 0x67:
-        src = &DAT_0050ced8;
+        src = &g_profilerDialog;
         size = 0x2c0;
         break;
     case 0x81:
-        src = &DAT_0050c958;
+        src = &g_assertDialog;
         size = 0x3e0;
         break;
     }
@@ -1397,7 +1397,7 @@ failed:
 
 // Returns a function-local static critical section, initialised on first
 // use. The empty inline destructor makes MSVC register the empty atexit
-// thunk FUN_004da7c0.
+// thunk AllocLockAtexitHandler.
 
 class CritSec_004da780 {
 public:
@@ -1410,7 +1410,7 @@ public:
 // The original calls this out of line from the allocator, the block map and the trees.
 #pragma auto_inline(off)
 // FUNCTION: 0x4da780
-CritSec_004da780* FUN_004da780()
+CritSec_004da780* GetAllocLock()
 {
     static CritSec_004da780 lock;
     return &lock;
@@ -1418,38 +1418,38 @@ CritSec_004da780* FUN_004da780()
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4da7c0
-void FUN_004da7c0(void)
+void AllocLockAtexitHandler(void)
 {
 }
 
-extern unsigned int DAT_00528a04;
-extern unsigned int DAT_00528a08;
-extern unsigned int DAT_00528a1c;
-extern unsigned int DAT_005289dc;
-extern unsigned int DAT_005289fc;
-extern unsigned int DAT_005289f8;
-extern unsigned int DAT_005289d8;
-extern unsigned int DAT_005289d0;
-extern unsigned int DAT_005289f0;
-extern unsigned int DAT_00528a00;
+extern unsigned int g_allocSerial;
+extern unsigned int g_liveAllocCount;
+extern unsigned int g_liveAllocPeak;
+extern unsigned int g_bytesRequestedLo;
+extern unsigned int g_bytesRequestedHi;
+extern unsigned int g_currentBytes;
+extern unsigned int g_currentBytesPeak;
+extern unsigned int g_committedBytesPeak;
+extern unsigned int g_committedBytes;
+extern unsigned int g_freeBlockWraps;
 
 // The original calls this out of line from the allocator and the page protection.
 #pragma auto_inline(off)
 // FUNCTION: 0x4da7d0
 void __cdecl CountAlloc(unsigned int size)
 {
-    DAT_00528a04++;
-    DAT_00528a08++;
-    if (DAT_00528a08 > DAT_00528a1c)
-        DAT_00528a1c = DAT_00528a08;
-    DAT_005289dc += size;
-    if (DAT_005289dc >= 1000000000) {
-        DAT_005289dc -= 1000000000;
-        DAT_005289fc++;
+    g_allocSerial++;
+    g_liveAllocCount++;
+    if (g_liveAllocCount > g_liveAllocPeak)
+        g_liveAllocPeak = g_liveAllocCount;
+    g_bytesRequestedLo += size;
+    if (g_bytesRequestedLo >= 1000000000) {
+        g_bytesRequestedLo -= 1000000000;
+        g_bytesRequestedHi++;
     }
-    DAT_005289f8 += size;
-    if (DAT_005289f8 > DAT_005289d8)
-        DAT_005289d8 = DAT_005289f8;
+    g_currentBytes += size;
+    if (g_currentBytes > g_currentBytesPeak)
+        g_currentBytesPeak = g_currentBytes;
 }
 #pragma auto_inline(on)
 
@@ -1457,28 +1457,28 @@ void __cdecl CountAlloc(unsigned int size)
 #pragma auto_inline(off)
 // FUNCTION: 0x4da840
 void __cdecl CountFree(int param_1) {
-    DAT_00528a08--;
-    DAT_005289f8 -= param_1;
+    g_liveAllocCount--;
+    g_currentBytes -= param_1;
 }
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4da860
 void ResetAllocStats(void)
 {
-    DAT_00528a1c = 0;
-    DAT_00528a08 = 0;
-    DAT_00528a04 = 0;
-    DAT_005289d8 = 0;
-    DAT_005289f8 = 0;
-    DAT_005289dc = 0;
-    DAT_005289d0 = 0;
-    DAT_005289f0 = 0;
-    DAT_005289fc = 0;
-    DAT_00528a00 = 0;
+    g_liveAllocPeak = 0;
+    g_liveAllocCount = 0;
+    g_allocSerial = 0;
+    g_currentBytesPeak = 0;
+    g_currentBytes = 0;
+    g_bytesRequestedLo = 0;
+    g_committedBytesPeak = 0;
+    g_committedBytes = 0;
+    g_bytesRequestedHi = 0;
+    g_freeBlockWraps = 0;
 }
 
 // FUNCTION: 0x4da8a0
-int __cdecl FUN_004da8a0(int param_1)
+int __cdecl RoundUpToDoublePage(int param_1)
 {
     return (param_1 + 0xfff & ~0xfff) * 2;
 }
@@ -1491,14 +1491,14 @@ unsigned int __cdecl RoundUpToPage(int param_1)
 
 // Lazily built singleton for the game's file-record map (the std::_Tree whose
 // insert is 0x4dc680 and whose erase is 0x4dc910): allocate the 0x10-byte tree
-// object, make the _Nil node DAT_00528a50 (black, self-null children) and the
+// object, make the _Nil node g_blockMapNil (black, self-null children) and the
 // head node (red, parent _Nil, both children itself), both carved from the
-// pooled free list at DAT_005289e0.
+// pooled free list at g_blockMapFreeList.
 
-extern void* DAT_005289e0;             // free list of 0x40-byte nodes
-extern void (*DAT_005289bc)();         // out-of-memory handler
-extern int DAT_00528a4c;               // bumped on every node carved here
-extern void* DAT_00528a44;             // the tree singleton
+extern void* g_blockMapFreeList;       // free list of 0x40-byte nodes
+extern void (*g_outOfMemoryHandler)();  // out-of-memory handler
+extern int g_blockMapLiveCount;        // bumped on every node carved here
+extern void* g_blockMap;               // the tree singleton
 
 struct Node_004da8d0 {
     Node_004da8d0* left;               // +0x0
@@ -1508,12 +1508,12 @@ struct Node_004da8d0 {
     int color;                         // +0x3c (0 = red)
 };
 
-extern void* DAT_00528a50;             // the tree's _Nil node
+extern void* g_blockMapNil;            // the tree's _Nil node
 
 // The pool allocator that sits at +0 of the tree; its method ignores `this`.
 class Class_004dddf0 {
 public:
-    void* FUN_004dddf0(unsigned int n);
+    void* Allocate(unsigned int n);
 };
 
 class Tree_004da8d0 {
@@ -1530,44 +1530,44 @@ public:
 
 static inline Node_004da8d0* AllocNode()
 {
-    if (DAT_005289e0 == 0) {
+    if (g_blockMapFreeList == 0) {
         Node_004da8d0* block;
         do {
             block = (Node_004da8d0*)GlobalAlloc(0, 0x2000);
-            if (block == 0 && DAT_005289bc != 0) {
-                DAT_005289bc();
+            if (block == 0 && g_outOfMemoryHandler != 0) {
+                g_outOfMemoryHandler();
             }
-        } while (block == 0 && DAT_005289bc != 0);
+        } while (block == 0 && g_outOfMemoryHandler != 0);
         if (block == 0) {
             return 0;
         }
-        Node_004da8d0* head = (Node_004da8d0*)DAT_005289e0;
+        Node_004da8d0* head = (Node_004da8d0*)g_blockMapFreeList;
         for (int i = 0; i < 0x80; i++) {
             block->left = head;
             head = block;
             block++;
         }
-        DAT_005289e0 = head;
+        g_blockMapFreeList = head;
     }
-    Node_004da8d0* node = (Node_004da8d0*)DAT_005289e0;
-    DAT_005289e0 = node->left;
+    Node_004da8d0* node = (Node_004da8d0*)g_blockMapFreeList;
+    g_blockMapFreeList = node->left;
     return node;
 }
 
 void Tree_004da8d0::Init()
 {
     std::_Lockit lock;
-    if (DAT_00528a50 == 0) {
+    if (g_blockMapNil == 0) {
         Node_004da8d0* nil =
-            (Node_004da8d0*)((Class_004dddf0*)this)->FUN_004dddf0(0x40);
+            (Node_004da8d0*)((Class_004dddf0*)this)->Allocate(0x40);
         nil->parent = 0;
         nil->color = 1;
-        DAT_00528a50 = nil;
+        g_blockMapNil = nil;
         nil->left = 0;
-        ((Node_004da8d0*)DAT_00528a50)->right = 0;
+        ((Node_004da8d0*)g_blockMapNil)->right = 0;
     }
-    Node_004da8d0* nil = (Node_004da8d0*)DAT_00528a50;
-    DAT_00528a4c++;
+    Node_004da8d0* nil = (Node_004da8d0*)g_blockMapNil;
+    g_blockMapLiveCount++;
     Node_004da8d0* node = AllocNode();
     node->color = 0;
     node->parent = nil;
@@ -1590,11 +1590,11 @@ inline Tree_004da8d0::Tree_004da8d0(const char& a, const char& b)
 // FUNCTION: 0x4da8d0
 void* GetBlockMap()
 {
-    if (DAT_00528a44 == 0) {
+    if (g_blockMap == 0) {
         char s0, s1;
-        DAT_00528a44 = new Tree_004da8d0(s0, s1);
+        g_blockMap = new Tree_004da8d0(s0, s1);
     }
-    return DAT_00528a44;
+    return g_blockMap;
 }
 #pragma auto_inline(on)
 
@@ -1616,17 +1616,17 @@ public:
     int field_10;      // +0x10
 };
 
-extern Container_004da9f0<int>* DAT_00528a48;
+extern Container_004da9f0<int>* g_freedBlockRing;
 
 // The original calls this out of line from DescribeAddress and the allocator walk.
 #pragma auto_inline(off)
 // FUNCTION: 0x4da9f0
 Container_004da9f0<int>* GetFreedBlockRing()
 {
-    if (DAT_00528a48 == 0) {
-        DAT_00528a48 = new Container_004da9f0<int>;
+    if (g_freedBlockRing == 0) {
+        g_freedBlockRing = new Container_004da9f0<int>;
     }
-    return DAT_00528a48;
+    return g_freedBlockRing;
 }
 #pragma auto_inline(on)
 // The debug library's allocators: the free-block set (std::map<unsigned int,
@@ -1670,16 +1670,16 @@ struct Node_004dd710;
 struct Node_004dd770;
 
 extern void* DAT_00528a54;             // the free-block tree's _Nil node
-extern void* DAT_00528a50;             // the file-record tree's _Nil node
-extern void* DAT_00528a10;             // the free-block tree's node free list
-extern void* DAT_005289e0;             // the file-record tree's node free list
-extern void (*DAT_005289bc)();         // out-of-memory handler
-extern unsigned int DAT_005289d4;      // offset the last block was handed out at
-extern unsigned int DAT_00528a00;      // how often the search wrapped around
-extern unsigned int DAT_005289f0;      // bytes committed
-extern unsigned int DAT_005289d0;      // high-water mark of DAT_005289f0
-extern unsigned int DAT_00528a04;
-extern FreeBlockMap* DAT_00528a40;     // the free-block set singleton
+extern void* g_blockMapNil;            // the file-record tree's _Nil node
+extern void* g_freeBlockFreeList;      // the free-block tree's node free list
+extern void* g_blockMapFreeList;       // the file-record tree's node free list
+extern void (*g_outOfMemoryHandler)();  // out-of-memory handler
+extern unsigned int g_lastAllocOffset;  // offset the last block was handed out at
+extern unsigned int g_freeBlockWraps;  // how often the search wrapped around
+extern unsigned int g_committedBytes;  // bytes committed
+extern unsigned int g_committedBytesPeak;      // high-water mark of g_committedBytes
+extern unsigned int g_allocSerial;
+extern FreeBlockMap* g_freeBlockSet;   // the free-block set singleton
 
 // The file-record tree's node, the fullest of its views.
 struct Node_004daa30 {
@@ -1693,7 +1693,7 @@ struct Node_004daa30 {
 // size; each carves nodes from its own free list.
 class Class_004ddd70 {
 public:
-    void* FUN_004ddd70(unsigned int n);
+    void* Allocate(unsigned int n);
 };
 
 // The node a pool carves, named by the files that only return it.
@@ -1703,7 +1703,7 @@ struct Node_004ddc00;
 // std::_Tree<...>::_Buynode(parent, colour) with a pooled allocator.
 class Class_004ddc00 {
 public:
-    Node_004ddc00* FUN_004ddc00(int param_1, int param_2);
+    Node_004ddc00* CreateNode(int param_1, int param_2);
 };
 struct Node_004ddc90;
 struct Less_004ddc90 {
@@ -1718,12 +1718,12 @@ public:
     Less_004ddc90 compare;             // +0x0
     Node_004ddc90* head;               // +0x4
 
-    Node_004ddc90* FUN_004ddc90(const unsigned int& key);
+    Node_004ddc90* LowerBound(const unsigned int& key);
 };
 struct Node_004ddce0;
 class Class_004ddce0 {
 public:
-    Node_004ddce0* FUN_004ddce0(int param_1, int param_2);
+    Node_004ddce0* CreateNode(int param_1, int param_2);
 };
 struct Pair_004db000 {
     unsigned int offset;               // +0x0
@@ -1745,7 +1745,7 @@ struct Node_004dd1b0 {
     Node_004dd1b0* left;               // +0x0
 };
 
-Node_004dd1b0* __cdecl FUN_004dd1b0(Node_004dd1b0* p);
+Node_004dd1b0* __cdecl FindLeftmost(Node_004dd1b0* p);
 
 // The other out-of-line moves, on the shared node type.
 static inline Node_004db000* Max_004dd2a0(Node_004db000* p)
@@ -1765,7 +1765,7 @@ static inline Node_004db000* Min(Node_004db000* p)
     return p;
 }
 
-// The free-block tree's iterator: one pointer. FUN_004dd2a0 is its _Dec().
+// The free-block tree's iterator: one pointer. PrevNode is its _Dec().
 class Class_004dd2a0 {
 public:
     Node_004db000* ptr;
@@ -1778,15 +1778,15 @@ public:
     Pair_004db000* operator->() const { return &ptr->value; }
     Class_004dd2a0& operator++() { Inc(); return *this; }
     Class_004dd2a0 operator++(int) { Class_004dd2a0 tmp = *this; ++*this; return tmp; }
-    Class_004dd2a0& operator--() { FUN_004dd2a0(); return *this; }
+    Class_004dd2a0& operator--() { PrevNode(); return *this; }
     Class_004dd2a0 operator--(int) { Class_004dd2a0 tmp = *this; --*this; return tmp; }
     Node_004db000* Mynode() const { return ptr; }
-    void FUN_004dd2a0();
+    void PrevNode();
     void Inc()
     {
         std::_Lockit lock;
         if (ptr->right != DAT_00528a54)
-            ptr = (Node_004db000*)FUN_004dd1b0((Node_004dd1b0*)ptr->right);
+            ptr = (Node_004db000*)FindLeftmost((Node_004dd1b0*)ptr->right);
         else {
             Node_004db000* p;
             while (ptr == (p = ptr->parent)->right)
@@ -1804,7 +1804,7 @@ public:
     Class_004dd820() {}
     Class_004dd820(Node_004daa30* q) : ptr(q) {}
     bool operator==(const Class_004dd820& o) const { return ptr == o.ptr; }
-    void FUN_004dd820();
+    void PrevNode();
 };
 
 // The (iterator, inserted) pair the trees' insert functions return: an
@@ -1824,9 +1824,9 @@ public:
         field_4 = o.field_4;
         field_0 = o.field_0;
     }
-    Class_004ddbe0* FUN_004ddbe0(int* param_1, unsigned char* param_2);
-    Class_004ddbe0* FUN_004ddbe0(const Class_004dd2a0& first, unsigned char& second);
-    Class_004ddbe0* FUN_004ddbe0(const Class_004dd2a0& first, const bool& second);
+    Class_004ddbe0* Assign(int* param_1, unsigned char* param_2);
+    Class_004ddbe0* Assign(const Class_004dd2a0& first, unsigned char& second);
+    Class_004ddbe0* Assign(const Class_004dd2a0& first, const bool& second);
 };
 
 // The free-block tree's iterator _Inc, out of line at 0x4dd340.
@@ -1834,11 +1834,11 @@ class Class_004dd340 {
 public:
     Node_004db000* ptr;                // +0x0
 
-    void FUN_004dd340();               // _Inc, out of line at 0x4dd340
+    void NextNode();                   // _Inc, out of line at 0x4dd340
 
     Class_004dd340& operator++()
     {
-        FUN_004dd340();
+        NextNode();
         return *this;
     }
 
@@ -1873,7 +1873,7 @@ static inline Node_004db000* Max_004dbd80(Node_004db000* p)
 static inline Node_004daa30* Max_004dd820(Node_004daa30* p)
 {
     std::_Lockit lock;
-    while (p->right != DAT_00528a50) {
+    while (p->right != g_blockMapNil) {
         p = p->right;
     }
     return p;
@@ -1904,7 +1904,7 @@ public:
     Less_004dbd20 key_compare;
     Node_004dbd20* head;               // +0x4
 
-    Iter_004dbd20 FUN_004dbd20(const unsigned int& kv);
+    Iter_004dbd20 UpperBound(const unsigned int& kv);
 };
 
 // Inlined std::_Tree<...>::_Ubound(const _K&): its own lock scope.
@@ -1934,8 +1934,8 @@ public:
     bool operator!=(const Class_004dbe10& o) const { return !(*this == o); }
     Pair_004db000& operator*() const { return ptr->value; }
     Pair_004db000* operator->() const { return &ptr->value; }
-    Class_004dbe10 FUN_004dbe10(int); // operator--(int)
-    Class_004dbe10 FUN_004dbd80(int); // operator++(int)
+    Class_004dbe10 Previous(int); // operator--(int)
+    Class_004dbe10 Next(int); // operator++(int)
 
     void Inc()
     {
@@ -1975,8 +1975,8 @@ public:
     char unknown_0[4];
     int* field_4;
 
-    Class_004dbe10 FUN_004dbeb0();
-    int* FUN_004dbeb0(int* param_1);
+    Class_004dbe10 Begin();
+    int* Begin(int* param_1);
 };
 
 class Iter_004dbd00 {
@@ -2074,23 +2074,23 @@ public:
     static void Freenode(Node_004db000* p)
     {
         if (p != 0) {
-            *(void**)p = DAT_00528a10;
-            DAT_00528a10 = p;
+            *(void**)p = g_freeBlockFreeList;
+            g_freeBlockFreeList = p;
         }
     }
 
-    Class_004dd340 FUN_004dc130(Class_004dd340 _P);
-    Class_004dd2a0 FUN_004dc130(Class_004dd2a0 it);
-    void FUN_004dc130(Class_004dd2a0* out, Class_004dd2a0 it);
-    Iter_004dbd00 FUN_004dc130(Iter_004dbd00 it);
+    Class_004dd340 Erase(Class_004dd340 _P);
+    Class_004dd2a0 Erase(Class_004dd2a0 it);
+    void Erase(Class_004dd2a0* out, Class_004dd2a0 it);
+    Iter_004dbd00 Erase(Iter_004dbd00 it);
 };
 
 class Class_004dbd00 {
 public:
     Class_004dc130 tree;               // +0x0
 
-    Class_004dbe10 FUN_004dbd00(Class_004dbe10 it);
-    ConstIter_004dbd00 FUN_004dbd00(ConstIter_004dbd00 it);
+    Class_004dbe10 Erase(Class_004dbe10 it);
+    ConstIter_004dbd00 Erase(ConstIter_004dbd00 it);
 };
 
 struct Less_004dd250 {
@@ -2109,8 +2109,8 @@ public:
     Less_004dd250 key_compare;
     Node_004dd250* head;               // +0x4
 
-    Node_004db000* FUN_004dd250(const Pair_004db000& k);
-    Node_004dd250* FUN_004dd250(const unsigned int& kv);
+    Node_004db000* LowerBound(const Pair_004db000& k);
+    Node_004dd250* LowerBound(const unsigned int& kv);
 };
 
 struct Node_004dd7d0 {
@@ -2132,7 +2132,7 @@ public:
 
     Class_004dd820 End() { return Class_004dd820((Node_004daa30*)head); }
     Class_004dd820 Begin() { return Class_004dd820((Node_004daa30*)head->left); }
-    Node_004dd7d0* FUN_004dd7d0(const unsigned int& kv);
+    Node_004dd7d0* LowerBound(const unsigned int& kv);
 };
 
 struct Less_004dd3d0 {
@@ -2154,10 +2154,10 @@ public:
     Node_004daa30* head;               // +0x4
 
     Iter_004dd3d0 End() { return Iter_004dd3d0(head); }
-    Iter_004dd3d0 FUN_004dd3d0(const unsigned int& key);
+    Iter_004dd3d0 LowerBound(const unsigned int& key);
     Iter_004dd3d0 find(const unsigned int& key)
     {
-        Iter_004dd3d0 it = FUN_004dd3d0(key);
+        Iter_004dd3d0 it = LowerBound(key);
         return (it == End() || compare(key, it.ptr->value.base)) ? End() : it;
     }
 
@@ -2166,7 +2166,7 @@ public:
         std::_Lockit lock;
         Node_004daa30* x = head->parent;
         Node_004daa30* y = head;
-        while (x != DAT_00528a50) {
+        while (x != g_blockMapNil) {
             if (compare(x->value.base, key))
                 x = x->right;
             else
@@ -2192,17 +2192,17 @@ public:
     Less_004dc620 key_compare;
     Node_004db000* head;               // +0x4
 
-    Class_004dbe10 FUN_004dc620(const Pair_004db000& k);
-    void FUN_004dc620(Class_004dd2a0* out, const unsigned int& kv);
-    Iter_004dc620 FUN_004dc620(const unsigned int& kv);
+    Class_004dbe10 LowerBound(const Pair_004db000& k);
+    void LowerBound(Class_004dd2a0* out, const unsigned int& kv);
+    Iter_004dc620 LowerBound(const unsigned int& kv);
 };
 
 class Class_004dd150 {
 public:
     int unknown_0;
     Node_004dd150* head;            // +0x4
-    void FUN_004dd150(Node_004dd150* x);
-    void FUN_004dd150(Node_004db000* x);
+    void RotateLeft(Node_004dd150* x);
+    void RotateLeft(Node_004db000* x);
 };
 
 struct Node_004dd150 {
@@ -2215,8 +2215,8 @@ class Class_004dd1f0 {
 public:
     int unknown_0;
     Node_004dd1f0* head;            // +0x4
-    void FUN_004dd1f0(Node_004dd1f0* x);
-    void FUN_004dd1f0(Node_004db000* x);
+    void RotateRight(Node_004dd1f0* x);
+    void RotateRight(Node_004db000* x);
 };
 
 struct Node_004dd1f0 {
@@ -2235,8 +2235,8 @@ class Class_004dd710 {
 public:
     int unknown_0;
     Node_004dd710* head;               // +0x4
-    void FUN_004dd710(Node_004dd710* x);
-    void FUN_004dd710(Node_004daa30* x);
+    void RotateLeft(Node_004dd710* x);
+    void RotateLeft(Node_004daa30* x);
 };
 
 struct Node_004dd770 {
@@ -2249,8 +2249,8 @@ class Class_004dd770 {
 public:
     int unknown_0;
     Node_004dd770* head;               // +0x4
-    void FUN_004dd770(Node_004dd770* x);
-    void FUN_004dd770(Node_004daa30* x);
+    void RotateRight(Node_004dd770* x);
+    void RotateRight(Node_004daa30* x);
 };
 
 struct Less_004dd430 {
@@ -2282,7 +2282,7 @@ public:
         std::_Lockit lock;
         Node_004dd430* y = x->right;
         x->right = y->left;
-        if (y->left != DAT_00528a50)
+        if (y->left != g_blockMapNil)
             y->left->parent = x;
         y->parent = x->parent;
         if (x == head->parent)
@@ -2300,7 +2300,7 @@ public:
         std::_Lockit lock;
         Node_004dd430* y = x->left;
         x->left = y->right;
-        if (y->right != DAT_00528a50)
+        if (y->right != g_blockMapNil)
             y->right->parent = x;
         y->parent = x->parent;
         if (x == head->parent)
@@ -2313,9 +2313,9 @@ public:
         x->parent = y;
     }
 
-    Class_004dd2a0 FUN_004dd430(Node_004dd430* x, Node_004dd430* y,
+    Class_004dd2a0 Insert(Node_004dd430* x, Node_004dd430* y,
                                 const Pair_004dd430& v);
-    Class_004dd820* FUN_004dd430(Class_004dd820* out, Node_004daa30* x,
+    Class_004dd820* Insert(Class_004dd820* out, Node_004daa30* x,
                                  Node_004daa30* y, const Pair_004dc680* v);
 };
 
@@ -2337,8 +2337,8 @@ public:
 
     Class_004dd820 Begin() { return Class_004dd820(head->left); }
 
-    Class_004ddbe0 FUN_004dc680(Pair_004dc680* p);
-    Class_004ddbe0 FUN_004dc680(const Class_004d8820& v);
+    Class_004ddbe0 Insert(Pair_004dc680* p);
+    Class_004ddbe0 Insert(const Class_004d8820& v);
 };
 
 struct Value_004dc910 { char unknown_0[0x30]; };
@@ -2355,17 +2355,17 @@ struct Node_004dde70;
 class Class_004dde70 {
 public:
     Node_004dde70* ptr;                // +0x0
-    void FUN_004dde70();
+    void NextNode();
 };
 class Iter_004dc910 {
 public:
     Node_004dc910* _Ptr;
     Iter_004dc910() {}
     Iter_004dc910(Node_004dc910* _P) : _Ptr(_P) {}
-    // Calls Class_004dde70::FUN_004dde70 (the _Inc at 0x4dde70) by that exact name.
+    // Calls Class_004dde70::NextNode (the _Inc at 0x4dde70) by that exact name.
     Iter_004dc910 operator++(int)
         { Iter_004dc910 _Tmp = *this;
-          ((Class_004dde70*)this)->FUN_004dde70();
+          ((Class_004dde70*)this)->NextNode();
           return (_Tmp); }
     Node_004dc910* _Mynode() const { return _Ptr; }
 };
@@ -2383,13 +2383,13 @@ public:
 
     static Node_004dc910* _Min(Node_004dc910* _P)
         { std::_Lockit _Lk;
-          while (_P->_Left != DAT_00528a50)
+          while (_P->_Left != g_blockMapNil)
               _P = _P->_Left;
           return _P; }
 
     static Node_004dc910* _Max(Node_004dc910* _P)
         { std::_Lockit _Lk;
-          while (_P->_Right != DAT_00528a50)
+          while (_P->_Right != g_blockMapNil)
               _P = _P->_Right;
           return _P; }
 
@@ -2397,7 +2397,7 @@ public:
         { std::_Lockit _Lk;
           Node_004dc910* _Y = _X->_Right;
           _X->_Right = _Y->_Left;
-          if (_Y->_Left != DAT_00528a50)
+          if (_Y->_Left != g_blockMapNil)
               _Y->_Left->_Parent = _X;
           _Y->_Parent = _X->_Parent;
           if (_X == _Root())
@@ -2413,7 +2413,7 @@ public:
         { std::_Lockit _Lk;
           Node_004dc910* _Y = _X->_Left;
           _X->_Left = _Y->_Right;
-          if (_Y->_Right != DAT_00528a50)
+          if (_Y->_Right != g_blockMapNil)
               _Y->_Right->_Parent = _X;
           _Y->_Parent = _X->_Parent;
           if (_X == _Root())
@@ -2450,7 +2450,7 @@ public:
 
     Iter_004dce00 end() { return Iter_004dce00(head); }
     Iter_004dce00 End() { return Iter_004dce00(head); }
-    Iter_004dce00 FUN_004dce00(const unsigned int& key);
+    Iter_004dce00 Find(const unsigned int& key);
 };
 
 struct Less_004db000 {
@@ -2475,9 +2475,9 @@ public:
 
     Class_004dd2a0 Begin() { return Class_004dd2a0(head->left); }
 
-    Class_004ddbe0 FUN_004dbec0(const Pair_004db000& v);
-    void FUN_004dbec0(InsertResult_004db450* it, Pair_004db450* p);
-    Class_004ddbe0 FUN_004dbec0(Pair_004dbec0* p);
+    Class_004ddbe0 Insert(const Pair_004db000& v);
+    void Insert(InsertResult_004db450* it, Pair_004db450* p);
+    Class_004ddbe0 Insert(Pair_004dbec0* p);
 };
 
 struct Pair_004db450 {
@@ -2508,27 +2508,27 @@ public:
     Frame_004db450 f;
     f.p.offset = base;
     f.p.length = len;
-    ((Class_004dc620*)this)->FUN_004dc620(&n, f.p.offset);
+    ((Class_004dc620*)this)->LowerBound(&n, f.p.offset);
     it = n;
-    ((Class_004dbeb0*)this)->FUN_004dbeb0((int*)&f.r);
+    ((Class_004dbeb0*)this)->Begin((int*)&f.r);
     if (it == f.r.first)
         it.ptr = head;
     else
-        it.FUN_004dd2a0();
+        it.PrevNode();
     if (Neq(n, Class_004dd2a0(head))) {
         if (n.ptr->value.offset == f.p.offset + f.p.length) {
             f.p.length = f.p.length + n.ptr->value.length;
-            ((Class_004dc130*)this)->FUN_004dc130(&f.r.first, n);
+            ((Class_004dc130*)this)->Erase(&f.r.first, n);
         }
     }
     if (Neq(it, Class_004dd2a0(head))) {
         if (it.ptr->value.offset + it.ptr->value.length == f.p.offset) {
             f.p.length = f.p.length + it.ptr->value.length;
             f.p.offset = it.ptr->value.offset;
-            ((Class_004dc130*)this)->FUN_004dc130(&f.r.first, it);
+            ((Class_004dc130*)this)->Erase(&f.r.first, it);
         }
     }
-    ((Class_004dbec0*)this)->FUN_004dbec0(&f.r, &f.p);
+    ((Class_004dbec0*)this)->Insert(&f.r, &f.p);
     }
     bool GrowReservation(unsigned int size);
 };
@@ -2610,16 +2610,16 @@ public:
         x->parent = y;
     }
 
-    Class_004dd2a0 FUN_004dce60(Node_004dbbc0* x, Node_004dbbc0* y,
+    Class_004dd2a0 Insert(Node_004dbbc0* x, Node_004dbbc0* y,
                                 const Pair_004dbbc0* v);
-    Class_004dd2a0 FUN_004dce60(Node_004db000* x, Node_004db000* y,
+    Class_004dd2a0 Insert(Node_004db000* x, Node_004db000* y,
                                 Pair_004db000* v);
-    Class_004dd2a0 FUN_004dce60(Node_004db000* x, Node_004db000* y,
+    Class_004dd2a0 Insert(Node_004db000* x, Node_004db000* y,
                                 const Pair_004dbec0* v);
 
     Class_004ddbe0 TreeInsert(const Pair_004dbbc0& V);
-    Class_004ddbe0 FUN_004dbbc0(const Pair_004dbbc0& V);
-    Class_004ddbe0 FUN_004dbbc0(const Pair_004db000& v);
+    Class_004ddbe0 InsertOrFind(const Pair_004dbbc0& V);
+    Class_004ddbe0 InsertOrFind(const Pair_004db000& v);
 };
 
 class FreeBlockMap {
@@ -2641,7 +2641,7 @@ public:
     bool Neq(Class_004dd2a0 a, Class_004dd2a0 b) { return !(a == b); }
     Class_004dd2a0 upper_bound(const Pair_004db000& k)
     {
-        return Class_004dd2a0(((Class_004dd250*)this)->FUN_004dd250(k));
+        return Class_004dd2a0(((Class_004dd250*)this)->LowerBound(k));
     }
 
     void AddFreeBlock(Pair_004db000 p);
@@ -2700,9 +2700,9 @@ public:
         pointer _P;
         do {
             _P = (pointer)GlobalAlloc(0, _N * sizeof(value_type));
-            if (_P == 0 && DAT_005289bc != 0)
-                DAT_005289bc();
-        } while (_P == 0 && DAT_005289bc != 0);
+            if (_P == 0 && g_outOfMemoryHandler != 0)
+                g_outOfMemoryHandler();
+        } while (_P == 0 && g_outOfMemoryHandler != 0);
         return _P;
     }
     void deallocate(pointer _P, size_type)
@@ -2732,12 +2732,12 @@ typedef void (Vec_004dd8c0::*InsertFn_004dd8c0)(
 // of each class.
 char IsMemFussy();
 char IsBackAlign();
-int FUN_004db7c0();
-CritSec_004da780* FUN_004da780();
+int GetDebugFillPattern();
+CritSec_004da780* GetAllocLock();
 void* GetBlockMap();
 Container_004da9f0<int>* GetFreedBlockRing();
 unsigned int __cdecl RoundUpToPage(unsigned int size);
-unsigned int __cdecl FUN_004da8a0(unsigned int size);
+unsigned int __cdecl RoundUpToDoublePage(unsigned int size);
 void __cdecl CountAlloc(unsigned int size);
 void __cdecl CountFree(int size);
 void __cdecl FillPattern(void* at, int value, unsigned int count);
@@ -2756,14 +2756,14 @@ size_t __cdecl GetBlockSize(void* p);
 // FUNCTION: 0x4daa30
 void __cdecl FindBlocksAroundAddress(unsigned int key, Class_004d8820* prev, Class_004d8820* next)
 {
-    LPCRITICAL_SECTION cs = (LPCRITICAL_SECTION)FUN_004da780();
+    LPCRITICAL_SECTION cs = (LPCRITICAL_SECTION)GetAllocLock();
     EnterCriticalSection(cs);
     Class_004d8820 rec(key, 0, 0, 0, 0);
     // Named local: chaining the call changes the register allocation.
     Class_004dd7d0* tree = (Class_004dd7d0*)GetBlockMap();
     // Must be Class_004dd820 (the map's _Dec), not an ad hoc type.
     Class_004dd820 it;
-    it.ptr = (Node_004daa30*)tree->FUN_004dd7d0(rec.base);
+    it.ptr = (Node_004daa30*)tree->LowerBound(rec.base);
     if (it == ((Class_004dd7d0*)GetBlockMap())->End()) {
         next->base = 0;
         next->size = 0;
@@ -2774,7 +2774,7 @@ void __cdecl FindBlocksAroundAddress(unsigned int key, Class_004d8820* prev, Cla
         prev->base = 0;
         prev->size = 0;
     } else {
-        it.FUN_004dd820();
+        it.PrevNode();
         *prev = it.ptr->value;
     }
     LeaveCriticalSection(cs);
@@ -2802,9 +2802,9 @@ void __cdecl DescribeAddress(unsigned int address, char* buf, int unused)
 // ---- from src/debug/debug_lib_4dabb0.cpp --------------------
 
 // FUNCTION: 0x4dabb0
-char __cdecl FUN_004dabb0(unsigned int address, char* buf, unsigned int n)
+char __cdecl DescribeFreedBlocks(unsigned int address, char* buf, unsigned int n)
 {
-    CRITICAL_SECTION* cs = (CRITICAL_SECTION*)FUN_004da780();
+    CRITICAL_SECTION* cs = (CRITICAL_SECTION*)GetAllocLock();
     EnterCriticalSection(cs);
     *buf = 0;
     if (IsMemFussy()) {
@@ -2844,17 +2844,17 @@ void FreeBlockMap::AddFreeBlock(Pair_004db000 p)
     Class_004ddbe0 result;
     unsigned char inserted;
 
-    Class_004dd2a0 n(((Class_004dd250*)this)->FUN_004dd250(p));
+    Class_004dd2a0 n(((Class_004dd250*)this)->LowerBound(p));
     it = n;
     if (n == begin()) {
         it = end();
     } else {
-        it.FUN_004dd2a0();
+        it.PrevNode();
     }
     if (Neq(n, end())) {
         if (n->offset == p.length + p.offset) {
             p.length = p.length + n->length;
-            ((Class_004dc130*)this)->FUN_004dc130(n);
+            ((Class_004dc130*)this)->Erase(n);
         }
     }
     if (Neq(it, end())) {
@@ -2862,7 +2862,7 @@ void FreeBlockMap::AddFreeBlock(Pair_004db000 p)
         if (m->value.length + m->value.offset == p.offset) {
             p.length = p.length + m->value.length;
             p.offset = m->value.offset;
-            ((Class_004dc130*)this)->FUN_004dc130(it);
+            ((Class_004dc130*)this)->Erase(it);
         }
     }
 
@@ -2879,7 +2879,7 @@ void FreeBlockMap::AddFreeBlock(Pair_004db000 p)
     }
 
     if (rebuild) {
-        Class_004dd2a0 t(((Class_004dce60*)this)->FUN_004dce60(x, y, &p));
+        Class_004dd2a0 t(((Class_004dce60*)this)->Insert(x, y, &p));
         return;
     }
     it2.ptr = y;
@@ -2887,26 +2887,26 @@ void FreeBlockMap::AddFreeBlock(Pair_004db000 p)
         if (Class_004dd2a0(y) == begin()) {
             inserted = 1;
             // Insert call passed straight in, not via a local: fixes the argument push order.
-            result.FUN_004ddbe0(((Class_004dce60*)this)->FUN_004dce60(x, y, &p), inserted);
+            result.Assign(((Class_004dce60*)this)->Insert(x, y, &p), inserted);
             goto done;
         }
-        it2.FUN_004dd2a0();
+        it2.PrevNode();
     }
     if (key_compare(it2->offset, p.offset)) {
         inserted = 1;
-        result.FUN_004ddbe0(((Class_004dce60*)this)->FUN_004dce60(x, y, &p), inserted);
+        result.Assign(((Class_004dce60*)this)->Insert(x, y, &p), inserted);
     } else {
         inserted = 0;
-        result.FUN_004ddbe0(it2, inserted);
+        result.Assign(it2, inserted);
     }
 done: ;
 }
 
 // The allocator's alloc(): look for a free block of `bytes` in the free-block
-// set, preferring the block the last allocation came from (DAT_005289d4),
+// set, preferring the block the last allocation came from (g_lastAllocOffset),
 // take it out, hand back the leftovers on either side as new free blocks, and
 // if two passes over the set find nothing, reserve more address space (Grow,
-// the out-of-line copy of which is 0x4db450) and try again. DAT_00528a00
+// the out-of-line copy of which is 0x4db450) and try again. g_freeBlockWraps
 // counts the wraps around the set and DAT_00528a54 is the tree's _Nil node.
 // 0x4db1c0 FreeBlockMap::TakeFreeBlock stays in src/debug/free_block_map.cpp: joined into
 // this file its register allocation lands differently
@@ -2948,21 +2948,21 @@ bool Class_004db450::GrowReservation(unsigned int size)
 // FUNCTION: 0x4db760
 char IsBackAlign(void)
 {
-    static Class_004d9fe0 DAT_00528a20("backalign", 1, 1, 0, "-memfrontalign", 0, 0);
-    return DAT_00528a20.on;
+    static CommandLineSwitch g_backAlign("backalign", 1, 1, 0, "-memfrontalign", 0, 0);
+    return g_backAlign.on;
 }
 
 // ---- from src/debug/debug_lib_4db7b0.cpp --------------------
 
 // FUNCTION: 0x4db7b0
-void FUN_004db7b0(void)
+void BackAlignAtexitHandler(void)
 {
 }
 
 // ---- from src/debug/debug_lib_4db7c0.cpp --------------------
 
 // FUNCTION: 0x4db7c0
-int FUN_004db7c0(void)
+int GetDebugFillPattern(void)
 {
     return 0xcccccccc;
 }
@@ -2974,7 +2974,7 @@ int FUN_004db7c0(void)
 // FUNCTION: 0x4dba40
 void* __cdecl ReallocDebugBlock(void* p, unsigned int size, int flags)
 {
-    CRITICAL_SECTION* cs = (CRITICAL_SECTION*)FUN_004da780();
+    CRITICAL_SECTION* cs = (CRITICAL_SECTION*)GetAllocLock();
     EnterCriticalSection(cs);
     void* q = 0;
     size_t old = 0;
@@ -3004,7 +3004,7 @@ void* __cdecl ReallocDebugBlock(void* p, unsigned int size, int flags)
 // FUNCTION: 0x4dbae0
 unsigned int __cdecl LookupBlockSize(unsigned int key)
 {
-    LPCRITICAL_SECTION cs = (LPCRITICAL_SECTION)FUN_004da780();
+    LPCRITICAL_SECTION cs = (LPCRITICAL_SECTION)GetAllocLock();
     EnterCriticalSection(cs);
     // Named local fetched before rec is built: GetBlockMap must be called first.
     Class_004dd3d0* tree = (Class_004dd3d0*)GetBlockMap();
@@ -3048,23 +3048,23 @@ inline Class_004ddbe0 Class_004dce60::TreeInsert(const Pair_004dbbc0& V)
         }
     }
     if (multi)
-        return Class_004ddbe0(FUN_004dce60(X, Y, &V), true);
+        return Class_004ddbe0(Insert(X, Y, &V), true);
     Class_004dd2a0 P = Class_004dd2a0((Node_004db000*)Y);
     if (!Ans)
         ;
     else if (P == begin())
-        return Class_004ddbe0(FUN_004dce60(X, Y, &V), true);
+        return Class_004ddbe0(Insert(X, Y, &V), true);
     else
-        P.FUN_004dd2a0();
+        P.PrevNode();
     if (key_compare(Key((Node_004dbbc0*)P.Mynode()), Kfn_004dbbc0()(V)))
-        return Class_004ddbe0(FUN_004dce60(X, Y, &V), true);
+        return Class_004ddbe0(Insert(X, Y, &V), true);
     Class_004ddbe0 res;
-    res.FUN_004ddbe0(P, false);
+    res.Assign(P, false);
     return res;
 }
 
 // FUNCTION: 0x4dbbc0
-Class_004ddbe0 Class_004dce60::FUN_004dbbc0(const Pair_004dbbc0& V)
+Class_004ddbe0 Class_004dce60::InsertOrFind(const Pair_004dbbc0& V)
 {
     Class_004ddbe0 ans = TreeInsert(V);
     return Class_004ddbe0(ans.field_0, ans.field_4);
@@ -3079,11 +3079,11 @@ Class_004ddbe0 Class_004dce60::FUN_004dbbc0(const Pair_004dbbc0& V)
 // with a cursor z, colouring and rotating until z's parent is black or the root
 // is reached, and finally blackens the root.
 // FUNCTION: 0x4dce60
-Class_004dd2a0 Class_004dce60::FUN_004dce60(Node_004dbbc0* x, Node_004dbbc0* y,
+Class_004dd2a0 Class_004dce60::Insert(Node_004dbbc0* x, Node_004dbbc0* y,
                                             const Pair_004dbbc0* v)
 {
     std::_Lockit lock;
-    Node_004dbbc0* p = (Node_004dbbc0*)((Class_004ddd70*)this)->FUN_004ddd70(0x18);
+    Node_004dbbc0* p = (Node_004dbbc0*)((Class_004ddd70*)this)->Allocate(0x18);
     p->parent = y;
     p->color = 0;                      // red
     p->left = (Node_004dbbc0*)DAT_00528a54;
@@ -3155,15 +3155,15 @@ Class_004dd2a0 Class_004dce60::FUN_004dce60(Node_004dbbc0* x, Node_004dbbc0* y,
 // ---- from src/debug/debug_lib_4dbd00.cpp --------------------
 
 // FUNCTION: 0x4dbd00
-ConstIter_004dbd00 Class_004dbd00::FUN_004dbd00(ConstIter_004dbd00 it)
+ConstIter_004dbd00 Class_004dbd00::Erase(ConstIter_004dbd00 it)
 {
-    return tree.FUN_004dc130((Iter_004dbd00&)it);
+    return tree.Erase((Iter_004dbd00&)it);
 }
 
 // ---- from src/debug/debug_lib_4dbd20.cpp --------------------
 
 // FUNCTION: 0x4dbd20
-Iter_004dbd20 Class_004dbd20::FUN_004dbd20(const unsigned int& kv)
+Iter_004dbd20 Class_004dbd20::UpperBound(const unsigned int& kv)
 {
     return Iter_004dbd20(Ubound_004dbd20(this, kv));
 }
@@ -3171,7 +3171,7 @@ Iter_004dbd20 Class_004dbd20::FUN_004dbd20(const unsigned int& kv)
 // ---- from src/debug/debug_lib_4dbd80.cpp --------------------
 
 // FUNCTION: 0x4dbd80
-Class_004dbe10 Class_004dbe10::FUN_004dbd80(int)
+Class_004dbe10 Class_004dbe10::Next(int)
 {
     Class_004dbe10 tmp = *this;
     Inc();
@@ -3181,7 +3181,7 @@ Class_004dbe10 Class_004dbe10::FUN_004dbd80(int)
 // Tree iterator operator--(int): copy the iterator, step it to the in-order
 // predecessor and return the copy. DAT_00528a54 is the tree's _Nil node.
 // FUNCTION: 0x4dbe10
-Class_004dbe10 Class_004dbe10::FUN_004dbe10(int)
+Class_004dbe10 Class_004dbe10::Previous(int)
 {
     Class_004dbe10 tmp = *this;
     Dec();
@@ -3193,7 +3193,7 @@ Class_004dbe10 Class_004dbe10::FUN_004dbe10(int)
 // 0x4db450's inlined Tail calls this out of line in the original.
 #pragma auto_inline(off)
 // FUNCTION: 0x4dbeb0
-int* Class_004dbeb0::FUN_004dbeb0(int* param_1)
+int* Class_004dbeb0::Begin(int* param_1)
 {
     *param_1 = *field_4;
     return param_1;
@@ -3203,7 +3203,7 @@ int* Class_004dbeb0::FUN_004dbeb0(int* param_1)
 // ---- from src/debug/debug_lib_4dbec0.cpp --------------------
 
 // FUNCTION: 0x4dbec0
-Class_004ddbe0 Class_004dbec0::FUN_004dbec0(Pair_004dbec0* p)
+Class_004ddbe0 Class_004dbec0::Insert(Pair_004dbec0* p)
 {
     // The pair is returned by value (no out parameter) and _Insert returns its
     // iterator by value too; a &p result slot would make p address-taken.
@@ -3223,7 +3223,7 @@ Class_004ddbe0 Class_004dbec0::FUN_004dbec0(Pair_004dbec0* p)
     if (rebuild) {
         {
             std::_Lockit lock;
-            it = Class_004dd2a0((Node_004db000*)((Class_004ddc00*)this)->FUN_004ddc00((int)y, 0));
+            it = Class_004dd2a0((Node_004db000*)((Class_004ddc00*)this)->CreateNode((int)y, 0));
             Node_004db000* z = it.ptr;
             z->left = (Node_004db000*)DAT_00528a54;
             z->right = (Node_004db000*)DAT_00528a54;
@@ -3254,11 +3254,11 @@ Class_004ddbe0 Class_004dbec0::FUN_004dbec0(Pair_004dbec0* p)
                     } else {
                         if (q == q->parent->right) {
                             q = q->parent;
-                            ((Class_004dd150*)this)->FUN_004dd150(q);
+                            ((Class_004dd150*)this)->RotateLeft(q);
                         }
                         q->parent->color = 1;
                         q->parent->parent->color = 0;
-                        ((Class_004dd1f0*)this)->FUN_004dd1f0(q->parent->parent);
+                        ((Class_004dd1f0*)this)->RotateRight(q->parent->parent);
                     }
                 } else {
                     Node_004db000* w = q->parent->parent->left;
@@ -3270,11 +3270,11 @@ Class_004ddbe0 Class_004dbec0::FUN_004dbec0(Pair_004dbec0* p)
                     } else {
                         if (q == q->parent->left) {
                             q = q->parent;
-                            ((Class_004dd1f0*)this)->FUN_004dd1f0(q);
+                            ((Class_004dd1f0*)this)->RotateRight(q);
                         }
                         q->parent->color = 1;
                         q->parent->parent->color = 0;
-                        ((Class_004dd150*)this)->FUN_004dd150(q->parent->parent);
+                        ((Class_004dd150*)this)->RotateLeft(q->parent->parent);
                     }
                 }
             }
@@ -3285,18 +3285,18 @@ Class_004ddbe0 Class_004dbec0::FUN_004dbec0(Pair_004dbec0* p)
     it2 = Class_004dd2a0(y);
     if (less) {
         if (Class_004dd2a0(y) == Begin())
-            return Class_004ddbe0(((Class_004dce60*)this)->FUN_004dce60(x, y, p), 1);
-        it2.FUN_004dd2a0();
+            return Class_004ddbe0(((Class_004dce60*)this)->Insert(x, y, p), 1);
+        it2.PrevNode();
     }
     if (key_compare(it2.ptr->value.offset, p->offset))
-        return Class_004ddbe0(((Class_004dce60*)this)->FUN_004dce60(x, y, p), 1);
+        return Class_004ddbe0(((Class_004dce60*)this)->Insert(x, y, p), 1);
     return Class_004ddbe0(it2, 0);
 }
 
 // ---- from src/debug/debug_lib_4dc130.cpp --------------------
 
-// FUNCTION: 0x4dc130 ?FUN_004dc130@Class_004dc130@@QAE?AVClass_004dd340@@V2@@Z
-Class_004dd340 Class_004dc130::FUN_004dc130(Class_004dd340 _P)
+// FUNCTION: 0x4dc130 ?Erase@Class_004dc130@@QAE?AVClass_004dd340@@V2@@Z
+Class_004dd340 Class_004dc130::Erase(Class_004dd340 _P)
 {
     Node_004db000* _X;
     Node_004db000* _Y = (_P++)._Mynode();
@@ -3411,7 +3411,7 @@ Class_004dd340 Class_004dc130::FUN_004dc130(Class_004dd340 _P)
 // ---- from src/debug/debug_lib_4dc620.cpp --------------------
 
 // FUNCTION: 0x4dc620
-Iter_004dc620 Class_004dc620::FUN_004dc620(const unsigned int& kv)
+Iter_004dc620 Class_004dc620::LowerBound(const unsigned int& kv)
 {
     Iter_004dc620 y;
     {
@@ -3430,7 +3430,7 @@ Iter_004dc620 Class_004dc620::FUN_004dc620(const unsigned int& kv)
 // ---- from src/debug/debug_lib_4dc680.cpp --------------------
 
 // FUNCTION: 0x4dc680
-Class_004ddbe0 Class_004dc680::FUN_004dc680(Pair_004dc680* p)
+Class_004ddbe0 Class_004dc680::Insert(Pair_004dc680* p)
 {
     Node_004daa30* y = head;
     bool less = true;
@@ -3440,7 +3440,7 @@ Class_004ddbe0 Class_004dc680::FUN_004dc680(Pair_004dc680* p)
     Class_004dd820 it;
     {
         std::_Lockit lock;
-        while (x != DAT_00528a50) {
+        while (x != g_blockMapNil) {
             y = x;
             less = p->key < x->value.base;
             x = less ? x->left : x->right;
@@ -3449,13 +3449,13 @@ Class_004ddbe0 Class_004dc680::FUN_004dc680(Pair_004dc680* p)
     if (rebuild) {
         {
             std::_Lockit lock;
-            it = Class_004dd820((Node_004daa30*)((Class_004ddce0*)this)->FUN_004ddce0((int)y, 0));
+            it = Class_004dd820((Node_004daa30*)((Class_004ddce0*)this)->CreateNode((int)y, 0));
             Node_004daa30* z = it.ptr;
-            z->left = (Node_004daa30*)DAT_00528a50;
-            z->right = (Node_004daa30*)DAT_00528a50;
+            z->left = (Node_004daa30*)g_blockMapNil;
+            z->right = (Node_004daa30*)g_blockMapNil;
             new ((void*)&z->value) Pair_004dc680(*p);
             size++;
-            if (y == head || x != DAT_00528a50 || key_compare(p->key, y->value.base)) {
+            if (y == head || x != g_blockMapNil || key_compare(p->key, y->value.base)) {
                 y->left = z;
                 if (y == head) {
                     head->parent = z;
@@ -3480,11 +3480,11 @@ Class_004ddbe0 Class_004dc680::FUN_004dc680(Pair_004dc680* p)
                     } else {
                         if (q == q->parent->right) {
                             q = q->parent;
-                            ((Class_004dd710*)this)->FUN_004dd710(q);
+                            ((Class_004dd710*)this)->RotateLeft(q);
                         }
                         q->parent->color = 1;
                         q->parent->parent->color = 0;
-                        ((Class_004dd770*)this)->FUN_004dd770(q->parent->parent);
+                        ((Class_004dd770*)this)->RotateRight(q->parent->parent);
                     }
                 } else {
                     Node_004daa30* w = q->parent->parent->left;
@@ -3496,11 +3496,11 @@ Class_004ddbe0 Class_004dc680::FUN_004dc680(Pair_004dc680* p)
                     } else {
                         if (q == q->parent->left) {
                             q = q->parent;
-                            ((Class_004dd770*)this)->FUN_004dd770(q);
+                            ((Class_004dd770*)this)->RotateRight(q);
                         }
                         q->parent->color = 1;
                         q->parent->parent->color = 0;
-                        ((Class_004dd710*)this)->FUN_004dd710(q->parent->parent);
+                        ((Class_004dd710*)this)->RotateLeft(q->parent->parent);
                     }
                 }
             }
@@ -3512,11 +3512,11 @@ Class_004ddbe0 Class_004dc680::FUN_004dc680(Pair_004dc680* p)
     it2 = Class_004dd820(y);
     if (less) {
         if (Class_004dd820(y) == Begin())
-            return Class_004ddbe0(*((Class_004dd430*)this)->FUN_004dd430((Class_004dd820*)&p, x, y, p), 1);
-        it2.FUN_004dd820();
+            return Class_004ddbe0(*((Class_004dd430*)this)->Insert((Class_004dd820*)&p, x, y, p), 1);
+        it2.PrevNode();
     }
     if (key_compare(it2.ptr->value.base, p->key))
-        return Class_004ddbe0(*((Class_004dd430*)this)->FUN_004dd430((Class_004dd820*)&p, x, y, p), 1);
+        return Class_004ddbe0(*((Class_004dd430*)this)->Insert((Class_004dd820*)&p, x, y, p), 1);
     return Class_004ddbe0(it2, 0);
 }
 
@@ -3529,9 +3529,9 @@ Iter_004dc910 Class_004dc910::erase(Iter_004dc910 _P)
     Node_004dc910* _Y = (_P++)._Mynode();
     Node_004dc910* _Z = _Y;
     std::_Lockit _Lk;
-    if (_Y->_Left == DAT_00528a50)
+    if (_Y->_Left == g_blockMapNil)
         _X = _Y->_Right;
-    else if (_Y->_Right == DAT_00528a50)
+    else if (_Y->_Right == g_blockMapNil)
         _X = _Y->_Left;
     else
         _Y = _Min(_Y->_Right), _X = _Y->_Right;
@@ -3569,13 +3569,13 @@ Iter_004dc910 Class_004dc910::erase(Iter_004dc910 _P)
             _Z->_Parent->_Right = _X;
         if (_Lmost() != _Z)
             ;
-        else if (_Z->_Right == DAT_00528a50)
+        else if (_Z->_Right == g_blockMapNil)
             _Lmost() = _Z->_Parent;
         else
             _Lmost() = _Min(_X);
         if (_Rmost() != _Z)
             ;
-        else if (_Z->_Left == DAT_00528a50)
+        else if (_Z->_Left == g_blockMapNil)
             _Rmost() = _Z->_Parent;
         else
             _Rmost() = _Max(_X);
@@ -3649,8 +3649,8 @@ Iter_004dc910 Class_004dc910::erase(Iter_004dc910 _P)
         }
     if (_Y != 0)
         {
-        *(void**)_Y = DAT_005289e0;
-        DAT_005289e0 = _Y;
+        *(void**)_Y = g_blockMapFreeList;
+        g_blockMapFreeList = _Y;
         }
     --_Size;
     return (_P);
@@ -3659,16 +3659,16 @@ Iter_004dc910 Class_004dc910::erase(Iter_004dc910 _P)
 // ---- from src/debug/debug_lib_4dce00.cpp --------------------
 
 // FUNCTION: 0x4dce00
-Iter_004dce00 Class_004dce00::FUN_004dce00(const unsigned int& key)
+Iter_004dce00 Class_004dce00::Find(const unsigned int& key)
 {
-    Iter_004dce00 p = Iter_004dce00((Node_004daa30*)((Class_004ddc90*)this)->FUN_004ddc90(key));
+    Iter_004dce00 p = Iter_004dce00((Node_004daa30*)((Class_004ddc90*)this)->LowerBound(key));
     return (p == End() || compare(key, p.ptr->value.base)) ? End() : p;
 }
 
 // ---- from src/debug/debug_lib_4dd150.cpp --------------------
 
 // FUNCTION: 0x4dd150
-void Class_004dd150::FUN_004dd150(Node_004dd150* x)
+void Class_004dd150::RotateLeft(Node_004dd150* x)
 {
     std::_Lockit lock;
     Node_004dd150* y = x->right;
@@ -3692,7 +3692,7 @@ void Class_004dd150::FUN_004dd150(Node_004dd150* x)
 // inline only where the original did).
 #pragma auto_inline(off)
 // FUNCTION: 0x4dd1b0
-Node_004dd1b0* __cdecl FUN_004dd1b0(Node_004dd1b0* p)
+Node_004dd1b0* __cdecl FindLeftmost(Node_004dd1b0* p)
 {
     std::_Lockit lock;
     while (p->left != DAT_00528a54)
@@ -3704,7 +3704,7 @@ Node_004dd1b0* __cdecl FUN_004dd1b0(Node_004dd1b0* p)
 // ---- from src/debug/debug_lib_4dd1f0.cpp --------------------
 
 // FUNCTION: 0x4dd1f0
-void Class_004dd1f0::FUN_004dd1f0(Node_004dd1f0* x)
+void Class_004dd1f0::RotateRight(Node_004dd1f0* x)
 {
     std::_Lockit lock;
     Node_004dd1f0* y = x->left;
@@ -3725,7 +3725,7 @@ void Class_004dd1f0::FUN_004dd1f0(Node_004dd1f0* x)
 // ---- from src/debug/debug_lib_4dd250.cpp --------------------
 
 // FUNCTION: 0x4dd250
-Node_004dd250* Class_004dd250::FUN_004dd250(const unsigned int& kv)
+Node_004dd250* Class_004dd250::LowerBound(const unsigned int& kv)
 {
     std::_Lockit lock;
     Node_004dd250* x = head->parent;
@@ -3744,7 +3744,7 @@ Node_004dd250* Class_004dd250::FUN_004dd250(const unsigned int& kv)
 // their files had no definition to inline.
 #pragma auto_inline(off)
 // FUNCTION: 0x4dd2a0
-void Class_004dd2a0::FUN_004dd2a0()
+void Class_004dd2a0::PrevNode()
 {
     std::_Lockit lock;
     if (ptr->color == 0 && ptr->parent->parent == ptr) {
@@ -3764,7 +3764,7 @@ void Class_004dd2a0::FUN_004dd2a0()
 // ---- from src/debug/debug_lib_4dd340.cpp --------------------
 
 // FUNCTION: 0x4dd340
-void Class_004dd340::FUN_004dd340()
+void Class_004dd340::NextNode()
 {
     std::_Lockit lock;
     if (ptr->right != DAT_00528a54)
@@ -3784,7 +3784,7 @@ void Class_004dd340::FUN_004dd340()
 // file had no definition to inline.
 #pragma auto_inline(off)
 // FUNCTION: 0x4dd3d0
-Iter_004dd3d0 Class_004dd3d0::FUN_004dd3d0(const unsigned int& key)
+Iter_004dd3d0 Class_004dd3d0::LowerBound(const unsigned int& key)
 {
     return Iter_004dd3d0(Lbound(key));
 }
@@ -3793,19 +3793,19 @@ Iter_004dd3d0 Class_004dd3d0::FUN_004dd3d0(const unsigned int& key)
 // ---- from src/debug/debug_lib_4dd430.cpp --------------------
 
 // FUNCTION: 0x4dd430
-Class_004dd2a0 Class_004dd430::FUN_004dd430(Node_004dd430* x, Node_004dd430* y,
+Class_004dd2a0 Class_004dd430::Insert(Node_004dd430* x, Node_004dd430* y,
                                             const Pair_004dd430& v)
 {
     std::_Lockit lock;
     Node_004dd430* z = (Node_004dd430*)
-                       ((Class_004dddf0*)this)->FUN_004dddf0(0x40);
+                       ((Class_004dddf0*)this)->Allocate(0x40);
     z->parent = y;
     z->color = 0;
-    z->left = (Node_004dd430*)DAT_00528a50;
-    z->right = (Node_004dd430*)DAT_00528a50;
+    z->left = (Node_004dd430*)g_blockMapNil;
+    z->right = (Node_004dd430*)g_blockMapNil;
     new ((void*)&z->value) Pair_004dd430(v);
     size++;
-    if (y == head || x != DAT_00528a50 || key_compare(v.key, y->value.key)) {
+    if (y == head || x != g_blockMapNil || key_compare(v.key, y->value.key)) {
         y->left = z;
         if (y == head) {
             head->parent = z;
@@ -3861,12 +3861,12 @@ Class_004dd2a0 Class_004dd430::FUN_004dd430(Node_004dd430* x, Node_004dd430* y,
 // ---- from src/debug/debug_lib_4dd710.cpp --------------------
 
 // FUNCTION: 0x4dd710
-void Class_004dd710::FUN_004dd710(Node_004dd710* x)
+void Class_004dd710::RotateLeft(Node_004dd710* x)
 {
     std::_Lockit lock;
     Node_004dd710* y = x->right;
     x->right = y->left;
-    if (y->left != DAT_00528a50)
+    if (y->left != g_blockMapNil)
         y->left->parent = x;
     y->parent = x->parent;
     if (x == head->parent)
@@ -3882,12 +3882,12 @@ void Class_004dd710::FUN_004dd710(Node_004dd710* x)
 // ---- from src/debug/debug_lib_4dd770.cpp --------------------
 
 // FUNCTION: 0x4dd770
-void Class_004dd770::FUN_004dd770(Node_004dd770* x)
+void Class_004dd770::RotateRight(Node_004dd770* x)
 {
     std::_Lockit lock;
     Node_004dd770* y = x->left;
     x->left = y->right;
-    if (y->right != DAT_00528a50)
+    if (y->right != g_blockMapNil)
         y->right->parent = x;
     y->parent = x->parent;
     if (x == head->parent)
@@ -3906,12 +3906,12 @@ void Class_004dd770::FUN_004dd770(Node_004dd770* x)
 // definition to inline.
 #pragma auto_inline(off)
 // FUNCTION: 0x4dd7d0
-Node_004dd7d0* Class_004dd7d0::FUN_004dd7d0(const unsigned int& kv)
+Node_004dd7d0* Class_004dd7d0::LowerBound(const unsigned int& kv)
 {
     std::_Lockit lock;
     Node_004dd7d0* x = head->parent;
     Node_004dd7d0* y = head;
-    while (x != DAT_00528a50)
+    while (x != g_blockMapNil)
         if (key_compare(kv, x->key))
             y = x, x = x->left;
         else
@@ -3923,12 +3923,12 @@ Node_004dd7d0* Class_004dd7d0::FUN_004dd7d0(const unsigned int& kv)
 // ---- from src/debug/debug_lib_4dd820.cpp --------------------
 
 // FUNCTION: 0x4dd820
-void Class_004dd820::FUN_004dd820()
+void Class_004dd820::PrevNode()
 {
     std::_Lockit lock;
     if (ptr->color == 0 && ptr->parent->parent == ptr) {
         ptr = ptr->right;
-    } else if (ptr->left != DAT_00528a50) {
+    } else if (ptr->left != g_blockMapNil) {
         ptr = Max_004dd820(ptr->left);
     } else {
         Node_004daa30* p;
@@ -3947,7 +3947,7 @@ InsertFn_004dd8c0 g_insert_004dd8c0 = &Vec_004dd8c0::insert;
 // ---- from src/debug/debug_lib_4ddbe0.cpp --------------------
 
 // FUNCTION: 0x4ddbe0
-Class_004ddbe0* Class_004ddbe0::FUN_004ddbe0(int* param_1, unsigned char* param_2)
+Class_004ddbe0* Class_004ddbe0::Assign(int* param_1, unsigned char* param_2)
 {
     Class_004ddbe0* eax = this;
     int* ecx = param_1;
@@ -3985,32 +3985,32 @@ struct Node_004ddc00 {
     int field_14;                      // +0x14
 };
 
-extern void* DAT_00528a10;             // free list
-extern void (*DAT_005289bc)();         // out-of-memory handler
+extern void* g_freeBlockFreeList;      // free list
+extern void (*g_outOfMemoryHandler)();  // out-of-memory handler
 
 static inline Node_004ddc00* AllocNode_004ddc00()
 {
-    if (DAT_00528a10 == 0) {
+    if (g_freeBlockFreeList == 0) {
         Node_004ddc00* block;
         do {
             block = (Node_004ddc00*)GlobalAlloc(0, 0x2000);
-            if (block == 0 && DAT_005289bc != 0) {
-                DAT_005289bc();
+            if (block == 0 && g_outOfMemoryHandler != 0) {
+                g_outOfMemoryHandler();
             }
-        } while (block == 0 && DAT_005289bc != 0);
+        } while (block == 0 && g_outOfMemoryHandler != 0);
         if (block == 0) {
             return 0;
         }
-        Node_004ddc00* head = (Node_004ddc00*)DAT_00528a10;
+        Node_004ddc00* head = (Node_004ddc00*)g_freeBlockFreeList;
         for (int i = 0; i < 0x155; i++) {
             block->next = head;
             head = block;
             block++;
         }
-        DAT_00528a10 = head;
+        g_freeBlockFreeList = head;
     }
-    Node_004ddc00* node = (Node_004ddc00*)DAT_00528a10;
-    DAT_00528a10 = node->next;
+    Node_004ddc00* node = (Node_004ddc00*)g_freeBlockFreeList;
+    g_freeBlockFreeList = node->next;
     return node;
 }
 
@@ -4021,7 +4021,7 @@ static inline Node_004ddc00* AllocNode_004ddc00()
 // The original calls this out of line from the file-record tree insert.
 #pragma auto_inline(off)
 // FUNCTION: 0x4ddc00
-Node_004ddc00* Class_004ddc00::FUN_004ddc00(int param_1, int param_2)
+Node_004ddc00* Class_004ddc00::CreateNode(int param_1, int param_2)
 {
     Node_004ddc00* node = AllocNode_004ddc00();
     node->field_4 = param_1;
@@ -4031,7 +4031,7 @@ Node_004ddc00* Class_004ddc00::FUN_004ddc00(int param_1, int param_2)
 #pragma auto_inline(on)
 
 // std::_Tree<unsigned int, ...>::_Lbound(const key&) from MSVC 5's <xtree>,
-// written out by hand: DAT_00528a50 is the tree's _Nil node, keys are
+// written out by hand: g_blockMapNil is the tree's _Nil node, keys are
 // unsigned ints compared with less<>.
 
 struct Node_004ddc90 {
@@ -4041,17 +4041,17 @@ struct Node_004ddc90 {
     unsigned int key;                  // +0xc
 };
 
-extern void* DAT_00528a50;             // the tree's _Nil node
+extern void* g_blockMapNil;            // the tree's _Nil node
 
-// The original calls this out of line from Class_004dce00::FUN_004dce00.
+// The original calls this out of line from Class_004dce00::Find.
 #pragma auto_inline(off)
 // FUNCTION: 0x4ddc90
-Node_004ddc90* Class_004ddc90::FUN_004ddc90(const unsigned int& key)
+Node_004ddc90* Class_004ddc90::LowerBound(const unsigned int& key)
 {
     std::_Lockit lock;
     Node_004ddc90* x = head->parent;
     Node_004ddc90* y = head;
-    while (x != DAT_00528a50) {
+    while (x != g_blockMapNil) {
         if (compare(x->key, key))
             x = x->right;
         else
@@ -4069,31 +4069,31 @@ struct Node_004ddce0 {
     int field_3c;                      // +0x3c
 };
 
-extern void* DAT_005289e0;             // free list
+extern void* g_blockMapFreeList;       // free list
 
 static inline Node_004ddce0* AllocNode_004ddce0()
 {
-    if (DAT_005289e0 == 0) {
+    if (g_blockMapFreeList == 0) {
         Node_004ddce0* block;
         do {
             block = (Node_004ddce0*)GlobalAlloc(0, 0x2000);
-            if (block == 0 && DAT_005289bc != 0) {
-                DAT_005289bc();
+            if (block == 0 && g_outOfMemoryHandler != 0) {
+                g_outOfMemoryHandler();
             }
-        } while (block == 0 && DAT_005289bc != 0);
+        } while (block == 0 && g_outOfMemoryHandler != 0);
         if (block == 0) {
             return 0;
         }
-        Node_004ddce0* head = (Node_004ddce0*)DAT_005289e0;
+        Node_004ddce0* head = (Node_004ddce0*)g_blockMapFreeList;
         for (int i = 0; i < 0x80; i++) {
             block->next = head;
             head = block;
             block++;
         }
-        DAT_005289e0 = head;
+        g_blockMapFreeList = head;
     }
-    Node_004ddce0* node = (Node_004ddce0*)DAT_005289e0;
-    DAT_005289e0 = node->next;
+    Node_004ddce0* node = (Node_004ddce0*)g_blockMapFreeList;
+    g_blockMapFreeList = node->next;
     return node;
 }
 
@@ -4104,7 +4104,7 @@ static inline Node_004ddce0* AllocNode_004ddce0()
 // The original calls this out of line from the file-record tree insert.
 #pragma auto_inline(off)
 // FUNCTION: 0x4ddce0
-Node_004ddce0* Class_004ddce0::FUN_004ddce0(int param_1, int param_2)
+Node_004ddce0* Class_004ddce0::CreateNode(int param_1, int param_2)
 {
     Node_004ddce0* node = AllocNode_004ddce0();
     node->field_4 = param_1;
@@ -4113,7 +4113,7 @@ Node_004ddce0* Class_004ddce0::FUN_004ddce0(int param_1, int param_2)
 }
 #pragma auto_inline(on)
 
-// Pool allocator for the DAT_00528a10 free list: refills it 0x2000 bytes at a
+// Pool allocator for the g_freeBlockFreeList free list: refills it 0x2000 bytes at a
 // time (GlobalAlloc, retrying through the out-of-memory handler) by carving
 // n-byte pieces, then pops one piece. Identical to 0x4dddf0 apart from the
 // free list.
@@ -4124,33 +4124,33 @@ Node_004ddce0* Class_004ddce0::FUN_004ddce0(int param_1, int param_2)
 // The original calls this out of line from the free-block tree.
 #pragma auto_inline(off)
 // FUNCTION: 0x4ddd70
-void* Class_004ddd70::FUN_004ddd70(unsigned int n)
+void* Class_004ddd70::Allocate(unsigned int n)
 {
-    if (DAT_00528a10 == 0) {
+    if (g_freeBlockFreeList == 0) {
         unsigned int rem = 0x2000;
         char* block;
         do {
             block = (char*)GlobalAlloc(0, 0x2000);
-            if (block == 0 && DAT_005289bc != 0) {
-                DAT_005289bc();
+            if (block == 0 && g_outOfMemoryHandler != 0) {
+                g_outOfMemoryHandler();
             }
-        } while (block == 0 && DAT_005289bc != 0);
+        } while (block == 0 && g_outOfMemoryHandler != 0);
         if (block == 0) {
             return 0;
         }
         for (; rem >= n; rem -= n) {
-            *(void**)block = DAT_00528a10;
-            DAT_00528a10 = block;
+            *(void**)block = g_freeBlockFreeList;
+            g_freeBlockFreeList = block;
             block += n;
         }
     }
-    void* p = DAT_00528a10;
-    DAT_00528a10 = *(void**)DAT_00528a10;
+    void* p = g_freeBlockFreeList;
+    g_freeBlockFreeList = *(void**)g_freeBlockFreeList;
     return p;
 }
 #pragma auto_inline(on)
 
-// Pool allocator for the DAT_005289e0 free list: refills it 0x2000 bytes at a
+// Pool allocator for the g_blockMapFreeList free list: refills it 0x2000 bytes at a
 // time (GlobalAlloc, retrying through the out-of-memory handler) by carving
 // n-byte pieces, then pops one piece. Same shape as 0x4e2b60; 0x4ddce0 has
 // an inlined copy for 0x40-byte nodes.
@@ -4161,35 +4161,35 @@ void* Class_004ddd70::FUN_004ddd70(unsigned int n)
 // The original calls this out of line from the file-record tree.
 #pragma auto_inline(off)
 // FUNCTION: 0x4dddf0
-void* Class_004dddf0::FUN_004dddf0(unsigned int n)
+void* Class_004dddf0::Allocate(unsigned int n)
 {
-    if (DAT_005289e0 == 0) {
+    if (g_blockMapFreeList == 0) {
         unsigned int rem = 0x2000;
         char* block;
         do {
             block = (char*)GlobalAlloc(0, 0x2000);
-            if (block == 0 && DAT_005289bc != 0) {
-                DAT_005289bc();
+            if (block == 0 && g_outOfMemoryHandler != 0) {
+                g_outOfMemoryHandler();
             }
-        } while (block == 0 && DAT_005289bc != 0);
+        } while (block == 0 && g_outOfMemoryHandler != 0);
         if (block == 0) {
             return 0;
         }
         for (; rem >= n; rem -= n) {
-            *(void**)block = DAT_005289e0;
-            DAT_005289e0 = block;
+            *(void**)block = g_blockMapFreeList;
+            g_blockMapFreeList = block;
             block += n;
         }
     }
-    void* p = DAT_005289e0;
-    DAT_005289e0 = *(void**)DAT_005289e0;
+    void* p = g_blockMapFreeList;
+    g_blockMapFreeList = *(void**)g_blockMapFreeList;
     return p;
 }
 #pragma auto_inline(on)
 
 // Shaped like std::_Tree<...>::const_iterator::_Inc() from MSVC 5's <xtree>
 // (step an iterator to the in-order successor) under a lock object;
-// DAT_00528a50 is the tree's _Nil node. Compare 0x4dd710 and 0x4ddc90.
+// g_blockMapNil is the tree's _Nil node. Compare 0x4dd710 and 0x4ddc90.
 
 struct Node_004dde70 {
     Node_004dde70* left;               // +0x0
@@ -4200,7 +4200,7 @@ struct Node_004dde70 {
 static inline Node_004dde70* Min_004dde70(Node_004dde70* p)
 {
     std::_Lockit lock;
-    while (p->left != DAT_00528a50)
+    while (p->left != g_blockMapNil)
         p = p->left;
     return p;
 }
@@ -4208,10 +4208,10 @@ static inline Node_004dde70* Min_004dde70(Node_004dde70* p)
 // The original calls this out of line from the const_iterator increment.
 #pragma auto_inline(off)
 // FUNCTION: 0x4dde70
-void Class_004dde70::FUN_004dde70()
+void Class_004dde70::NextNode()
 {
     std::_Lockit lock;
-    if (ptr->right != DAT_00528a50)
+    if (ptr->right != g_blockMapNil)
         ptr = Min_004dde70(ptr->right);
     else {
         Node_004dde70* p;
@@ -4271,7 +4271,7 @@ public:
 
 // The loaded-image reader of the debug library; 0x4de0a0's function-local
 // static builds the one at 0x528a78 lazily.
-extern LoadedImage DAT_00528a78;
+extern LoadedImage g_loadedImage;
 
 struct DebugDir_004ddfa0 {
     unsigned int characteristics;      // +0x00
@@ -4385,22 +4385,22 @@ Fpo_004de020* Class_004de020::FindFpoRecord(unsigned int address)
 }
 
 // FUNCTION: 0x4de0a0
-void __stdcall FUN_004de0a0(int unused, unsigned int address)
+void __stdcall FunctionTableAccess(int unused, unsigned int address)
 {
     static LoadedImage table(GetModuleHandleA(0));
     ((Class_004de020*)&table)->FindFpoRecord(address);
 }
 
 // FUNCTION: 0x4de0f0
-void FUN_004de0f0()
+void CloseLoadedImage()
 {
-    DAT_00528a78.CloseMappedFile();
+    g_loadedImage.CloseMappedFile();
 }
 
 extern int GetDebugLibInstance();
 
 // FUNCTION: 0x4de100
-void __stdcall FUN_004de100(int arg1, int arg2)
+void __stdcall GetModuleBase(int arg1, int arg2)
 {
     GetDebugLibInstance();
 }
@@ -4413,39 +4413,39 @@ typedef BOOL (__stdcall *SymInitialize_004de180)(HANDLE, char*, DWORD);
 typedef void (__stdcall *SymProc_004de180)(void);
 typedef BOOL (__stdcall *StackWalk_004de700)(DWORD, HANDLE, HANDLE, void*, void*, void*, void*, void*, void*);
 
-extern char DAT_00528ad8;
-extern char DAT_00528adc;
-extern HMODULE DAT_00528ae0;
-extern SymSetOptions_004de180 DAT_00528ad0;
-extern SymInitialize_004de180 DAT_00528ab8;
-extern BOOL (__stdcall* DAT_00528abc)(HANDLE);
-extern StackWalk_004de700 DAT_00528ac0;
-extern void* DAT_00528ac4;
-extern void* DAT_00528ac8;
-extern SymProc_004de180 DAT_00528acc;
-extern SymProc_004de180 DAT_00528ab4;
-extern SymProc_004de180 DAT_00528ad4;
+extern char g_imageHelpLoaded;
+extern char g_imageHelpInited;
+extern HMODULE g_imageHelpModule;
+extern SymSetOptions_004de180 g_pfnSymSetOptions;
+extern SymInitialize_004de180 g_pfnSymInitialize;
+extern BOOL (__stdcall* g_pfnSymCleanup)(HANDLE);
+extern StackWalk_004de700 g_pfnStackWalk;
+extern void* g_pfnSymFunctionTableAccess;
+extern void* g_pfnSymGetModuleBase;
+extern SymProc_004de180 g_pfnSymGetSymFromAddr;
+extern SymProc_004de180 g_pfnSymGetLineFromAddr;
+extern SymProc_004de180 g_pfnUnDecorateSymbolName;
 
 // The original calls this out of line from 0x4de180.
 #pragma auto_inline(off)
 // FUNCTION: 0x4de110
 void UnloadImageHelp()
 {
-    DAT_00528ad8 = 0;
-    if (DAT_00528ae0) {
-        DAT_00528abc(GetCurrentProcess());
-        FreeLibrary(DAT_00528ae0);
+    g_imageHelpLoaded = 0;
+    if (g_imageHelpModule) {
+        g_pfnSymCleanup(GetCurrentProcess());
+        FreeLibrary(g_imageHelpModule);
     }
-    DAT_00528ae0 = 0;
-    DAT_00528ad0 = 0;
-    DAT_00528ab8 = 0;
-    DAT_00528abc = 0;
-    DAT_00528ac0 = 0;
-    DAT_00528ac4 = 0;
-    DAT_00528ac8 = 0;
-    DAT_00528acc = 0;
-    DAT_00528ab4 = 0;
-    DAT_00528ad4 = 0;
+    g_imageHelpModule = 0;
+    g_pfnSymSetOptions = 0;
+    g_pfnSymInitialize = 0;
+    g_pfnSymCleanup = 0;
+    g_pfnStackWalk = 0;
+    g_pfnSymFunctionTableAccess = 0;
+    g_pfnSymGetModuleBase = 0;
+    g_pfnSymGetSymFromAddr = 0;
+    g_pfnSymGetLineFromAddr = 0;
+    g_pfnUnDecorateSymbolName = 0;
 }
 #pragma auto_inline(on)
 
@@ -4455,25 +4455,25 @@ void UnloadImageHelp()
 char __cdecl LoadImageHelp(char param);
 
 // FUNCTION: 0x4de4c0
-void FUN_004de4c0(void)
+void ImageHlpAtexitHandler(void)
 {
 }
 
 // The original calls this out of line from 0x4dea00.
 #pragma auto_inline(off)
 // FUNCTION: 0x4de4d0
-char FUN_004de4d0()
+char TryEnableImageHlpLines()
 {
-    static Class_004d9fe0 lines("imagehlplines", 1, 1, "-enableimagehlplines",
+    static CommandLineSwitch lines("imagehlplines", 1, 1, "-enableimagehlplines",
                                 "-disableimagehlplines", 0, 0);
-    if (lines.on && LoadImageHelp(1) && (DAT_00528ab4 || DAT_00528acc))
+    if (lines.on && LoadImageHelp(1) && (g_pfnSymGetLineFromAddr || g_pfnSymGetSymFromAddr))
         return 1;
     return 0;
 }
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4de540
-void FUN_004de540(void)
+void ImageHlpLinesAtexitHandler(void)
 {
 }
 
@@ -4488,18 +4488,18 @@ struct Line_004de550 {
 
 typedef BOOL (__stdcall *SymGetLineFromAddr_004de550)(HANDLE, DWORD, DWORD*, Line_004de550*);
 
-extern char DAT_00528aac;
-extern HANDLE DAT_00528aa4;
+extern char g_lineProcessHandleRead;
+extern HANDLE g_lineProcessHandle;
 
 // The original calls this out of line from 0x4dea00.
 #pragma auto_inline(off)
 // FUNCTION: 0x4de550
 char __cdecl GetLineFromAddress(DWORD addr, Line_004de550* out, DWORD* err)
 {
-    if (DAT_00528ab4) {
-        if (!(DAT_00528aac & 1)) {
-            DAT_00528aac |= 1;
-            DAT_00528aa4 = GetCurrentProcess();
+    if (g_pfnSymGetLineFromAddr) {
+        if (!(g_lineProcessHandleRead & 1)) {
+            g_lineProcessHandleRead |= 1;
+            g_lineProcessHandle = GetCurrentProcess();
         }
         // Aggregate-initialised inside this block, not hoisted: keeps the zero stores here.
         Line_004de550 line = { 0x14 };
@@ -4507,7 +4507,7 @@ char __cdecl GetLineFromAddress(DWORD addr, Line_004de550* out, DWORD* err)
         DWORD disp;
         line.Address = addr;
         disp = 0;
-        if (((SymGetLineFromAddr_004de550)DAT_00528ab4)(DAT_00528aa4, addr, &disp, &line)) {
+        if (((SymGetLineFromAddr_004de550)g_pfnSymGetLineFromAddr)(g_lineProcessHandle, addr, &disp, &line)) {
             *out = line;
             return 1;
         }
@@ -4585,8 +4585,8 @@ struct Frame_004de700 {
     char unknown_30[0x40];
 };
 
-extern char DAT_00528aa8;                     // "process handle read" flag
-extern HANDLE DAT_00528ab0;                   // cached process handle
+extern char g_stackProcessHandleRead;         // "process handle read" flag
+extern HANDLE g_stackProcessHandle;           // cached process handle
 
 // FUNCTION: 0x4de700
 void __cdecl WalkStack(int param1, int param2, int param3, int param4, int* param5, int param6, int* param7)
@@ -4599,13 +4599,13 @@ void __cdecl WalkStack(int param1, int param2, int param3, int param4, int* para
     frame.flags1 = 3;
     frame.handler = param2;
     frame.addrStack = param1;
-    if (!(DAT_00528aa8 & 1)) {
-        DAT_00528aa8 |= 1;
-        DAT_00528ab0 = GetCurrentProcess();
+    if (!(g_stackProcessHandleRead & 1)) {
+        g_stackProcessHandleRead |= 1;
+        g_stackProcessHandle = GetCurrentProcess();
     }
     HANDLE thread = GetCurrentThread();
     while (*param7 < param6) {
-        if (!DAT_00528ac0(0x14c, DAT_00528ab0, thread, &frame, 0, 0, DAT_00528ac4, DAT_00528ac8, 0)) {
+        if (!g_pfnStackWalk(0x14c, g_stackProcessHandle, thread, &frame, 0, 0, g_pfnSymFunctionTableAccess, g_pfnSymGetModuleBase, 0)) {
             if (*param7 == 0) {
                 *param7 = 1;
                 param5[0] = param3;
@@ -4643,12 +4643,12 @@ bool __cdecl FileExists(char* dir, char* name)
 // found once from the MSDevDir environment variable, cut down to its drive
 // (everything from the first backslash on, and any ';' comment, is dropped),
 // and the two usual source roots are tried in turn, MFC first, then the CRT.
-// DAT_00528ae4 is the "MSDevDir already read" flag, DAT_00528ae8 the CRT root,
-// DAT_00528ed0 the MFC root, DAT_005119b8 the empty default prefix.
+// g_msdevDirRead is the "MSDevDir already read" flag, g_crtSourceRoot the CRT root,
+// g_mfcSourceRoot the MFC root, DAT_005119b8 the empty default prefix.
 extern char DAT_005119b8[];
-extern char DAT_00528ae4;
-extern char DAT_00528ae8[0x1e8];
-extern char DAT_00528ed0[0x1e8];
+extern char g_msdevDirRead;
+extern char g_crtSourceRoot[0x1e8];
+extern char g_mfcSourceRoot[0x1e8];
 
 // The original calls this out of line from 0x4dea00.
 #pragma auto_inline(off)
@@ -4657,26 +4657,26 @@ void __cdecl GetSourceFilePath(char* out, char* name)
 {
     char* dir = DAT_005119b8;
     if (strchr(name, '\\') == 0) {
-        if (!DAT_00528ae4) {
-            DAT_00528ae4 = 1;
+        if (!g_msdevDirRead) {
+            g_msdevDirRead = 1;
             char* msdev = getenv("MSDevDir");
             if (msdev) {
-                strcpy(DAT_00528ae8, msdev);
-                char* p = strchr(DAT_00528ae8, ';');
+                strcpy(g_crtSourceRoot, msdev);
+                char* p = strchr(g_crtSourceRoot, ';');
                 if (p)
                     *p = 0;
-                p = strrchr(DAT_00528ae8, '\\');
+                p = strrchr(g_crtSourceRoot, '\\');
                 if (p)
                     *p = 0;
-                strcpy(DAT_00528ed0, DAT_00528ae8);
-                strcat(DAT_00528ae8, "\\vc\\crt\\src\\");
-                strcat(DAT_00528ed0, "\\vc\\mfc\\src\\");
+                strcpy(g_mfcSourceRoot, g_crtSourceRoot);
+                strcat(g_crtSourceRoot, "\\vc\\crt\\src\\");
+                strcat(g_mfcSourceRoot, "\\vc\\mfc\\src\\");
             }
         }
-        if (FileExists(DAT_00528ed0, name)) {
-            dir = DAT_00528ed0;
-        } else if (FileExists(DAT_00528ae8, name)) {
-            dir = DAT_00528ae8;
+        if (FileExists(g_mfcSourceRoot, name)) {
+            dir = g_mfcSourceRoot;
+        } else if (FileExists(g_crtSourceRoot, name)) {
+            dir = g_crtSourceRoot;
         }
     }
     sprintf(out, "%s%s", dir, name);
@@ -4701,7 +4701,7 @@ void __cdecl FormatCallStack(char* dest, int space, int per, int n, unsigned lon
 {
     int i = 0;
     space--;
-    char lines = FUN_004de4d0();
+    char lines = TryEnableImageHlpLines();
     int width;
     int disp;
     DWORD err;
@@ -4732,9 +4732,9 @@ void __cdecl FormatCallStack(char* dest, int space, int per, int n, unsigned lon
             sym.SizeOfStruct = 0x218;
             sym.MaxNameLength = 0x200;
             disp = 0;
-            if (((SymFn_004dea00)DAT_00528acc)(GetCurrentProcess(), addrs[i], &disp, &sym)) {
+            if (((SymFn_004dea00)g_pfnSymGetSymFromAddr)(GetCurrentProcess(), addrs[i], &disp, &sym)) {
                 char* str;
-                if (DAT_00528ad4 && ((UnDecFn_004dea00)DAT_00528ad4)(sym.Name, undec, 0x7d0, 0) > 0) {
+                if (g_pfnUnDecorateSymbolName && ((UnDecFn_004dea00)g_pfnUnDecorateSymbolName)(sym.Name, undec, 0x7d0, 0) > 0) {
                     str = undec;
                 } else {
                     if (strcmp(sym.Name, "??2@YAPAXI@Z") == 0 ||
@@ -4765,7 +4765,7 @@ void __cdecl FormatCallStack(char* dest, int space, int per, int n, unsigned lon
     }
 }
 
-extern char* DAT_0050d4d0;
+extern char* g_libraryDateStamp;
 int __cdecl GetStackLow(void);
 void* GetStackHigh(void);
 
@@ -4837,7 +4837,7 @@ void __cdecl FormatSystemInfo(char* dest, int destLen)
 
     p = buf + strlen(buf);
     sprintf(p, "Library version %d. Library date %s\n",
-            996, DAT_0050d4d0 + strlen("Library date stamp: "));
+            996, g_libraryDateStamp + strlen("Library date stamp: "));
 
     GetSystemInfo(&sysInfo);
     if (sysInfo.dwNumberOfProcessors > 1) {
@@ -4863,9 +4863,9 @@ void __cdecl FormatSystemInfo(char* dest, int destLen)
 }
 
 // FUNCTION: 0x4df160
-void FUN_004df160()
+void SetFpuFussy()
 {
-    static Class_004d9fe0 fussy("fpufussy", 1, 0, "-fpufussy", "-fpunofussy", 0, 0);
+    static CommandLineSwitch fussy("fpufussy", 1, 0, "-fpufussy", "-fpunofussy", 0, 0);
     if (fussy.on)
         _controlfp(0, _EM_ZERODIVIDE | _EM_INVALID);
     else
@@ -4873,7 +4873,7 @@ void FUN_004df160()
 }
 
 // FUNCTION: 0x4df1d0
-void FUN_004df1d0(void)
+void FpuFussyAtexitHandler(void)
 {
 }
 
@@ -4884,9 +4884,9 @@ void FUN_004df1d0(void)
 // their own files: the singleton's atexit term function is that file's first
 // static, and 0x4dfd50 is the name (_$E2) the placement build knows.
 
-extern int DAT_00529dcc;
+extern int g_pmcEventCount;
 struct Entry_004df590;
-extern Entry_004df590* DAT_00529df8;
+extern Entry_004df590* g_pmcEventCatalog;
 
 extern double __cdecl GetTimeSeconds();
 void InitPerformanceEvents();
@@ -4915,7 +4915,7 @@ struct Node_004dfea0 {
 };
 
 extern void* DAT_005292c4;             // tree _Nil
-extern void* DAT_00529e58;             // node free list
+extern void* g_nameMapFreeList;        // node free list
 extern unsigned int DAT_00529500;      // tree _Nilrefs
 
 // The tree's in-order successor, as 0x4df590 walks the name map.
@@ -4933,8 +4933,8 @@ class Class_004e0450 {
 public:
     Node_004e0450* ptr;                // +0x0
 
-    void FUN_004e0450();               // _Inc
-    Class_004e0450& operator++() { FUN_004e0450(); return *this; }
+    void NextNode();                   // _Inc
+    Class_004e0450& operator++() { NextNode(); return *this; }
     Class_004e0450 operator++(int)
     {
         Class_004e0450 t = *this;
@@ -4951,8 +4951,8 @@ struct Node_004e03f0;
 struct Node_004e18c0;
 class Class_004e03f0 {
 public:
-    void FUN_004e03f0(Node_004e03f0* x);
-    void FUN_004e03f0(Node_004e18c0* x);   // 4e04e0's view
+    void EraseSubtree(Node_004e03f0* x);
+    void EraseSubtree(Node_004e18c0* x);   // 4e04e0's view
 };
 
 // std::_Tree<...>::erase(iterator): erases one node, returns the next.
@@ -5024,13 +5024,13 @@ public:
     static void _Freenode(Node_004dfea0* _P)
     {
         if (_P != 0) {
-            *(void**)_P = DAT_00529e58;
-            DAT_00529e58 = _P;
+            *(void**)_P = g_nameMapFreeList;
+            g_nameMapFreeList = _P;
         }
     }
 
-    Class_004e0450 FUN_004dfea0(Class_004e0450 _P);
-    Iter_004e18c0 FUN_004dfea0(Iter_004e18c0 it);   // 4e04e0's view
+    Class_004e0450 Erase(Class_004e0450 _P);
+    Iter_004e18c0 Erase(Iter_004e18c0 it);          // 4e04e0's view
 };
 
 // The name map: comparator and allocator bytes, _Head, _Multi, _Size and the
@@ -5057,11 +5057,11 @@ struct Map_004df590 {
     {
         if (Size() == 0 || _F != begin() || _L != end()) {
             while (_F != _L)
-                ((Class_004dfea0*)this)->FUN_004dfea0(_F++);
+                ((Class_004dfea0*)this)->Erase(_F++);
             return _F;
         } else {
             std::_Lockit Lk;
-            ((Class_004e03f0*)this)->FUN_004e03f0((Node_004e03f0*)_Root());
+            ((Class_004e03f0*)this)->EraseSubtree((Node_004e03f0*)_Root());
             _Root() = (Node_004df590*)DAT_005292c4;
             size = 0;
             _Lmost() = head;
@@ -5076,8 +5076,8 @@ struct Map_004df590 {
         // Loaded nodes kept in locals (h, n) for the free-list push: re-reading shifts registers.
         Node_004df590* h = head;
         if (h != 0) {
-            *(void**)h = DAT_00529e58;
-            DAT_00529e58 = h;
+            *(void**)h = g_nameMapFreeList;
+            g_nameMapFreeList = h;
         }
         head = 0, size = 0;
         {
@@ -5085,8 +5085,8 @@ struct Map_004df590 {
             if (--DAT_00529500 == 0) {
                 Node_004df590* n = (Node_004df590*)DAT_005292c4;
                 if (n != 0) {
-                    *(void**)n = DAT_00529e58;
-                    DAT_00529e58 = n;
+                    *(void**)n = g_nameMapFreeList;
+                    g_nameMapFreeList = n;
                 }
                 DAT_005292c4 = 0;
             }
@@ -5095,9 +5095,9 @@ struct Map_004df590 {
 };
 
 // The global name table (0x4e17c0 builds it, 0x4e1a90 hands it out).
-extern void* DAT_00529e58;             // node free list
+extern void* g_nameMapFreeList;        // node free list
 extern unsigned int DAT_00529500;      // tree _Nilrefs
-extern void (*DAT_005289bc)();         // out-of-memory handler
+extern void (*g_outOfMemoryHandler)();  // out-of-memory handler
 
 struct Less_004e17c0 {
     bool operator()(const char* a, const char* b) const
@@ -5128,18 +5128,18 @@ public:
 
     pointer allocate(size_type n, const void* = 0)
     {
-        return (pointer)FUN_004e2b60(n * sizeof(value_type));
+        return (pointer)Allocate(n * sizeof(value_type));
     }
     void deallocate(void* p, size_type)
     {
         if (p != 0) {
-            *(void**)p = DAT_00529e58;
-            DAT_00529e58 = p;
+            *(void**)p = g_nameMapFreeList;
+            g_nameMapFreeList = p;
         }
     }
     size_type max_size() const { return (size_type)(-1) / sizeof(value_type); }
 
-    void* FUN_004e2b60(size_type n);   // out of line at 0x4e2b60
+    void* Allocate(size_type n);       // out of line at 0x4e2b60
 };
 
 typedef std::map<const char*, Value_004e17c0, Less_004e17c0, Class_004e2b60>
@@ -5161,7 +5161,7 @@ public:
 };
 
 class CritSec_004e1ac0;
-CritSec_004e1ac0* FUN_004e1ac0();
+CritSec_004e1ac0* GetNameTableLock();
 
 struct Node_004e18c0 {
     Node_004e18c0* left;               // +0x0
@@ -5179,13 +5179,13 @@ public:
     bool operator!=(const Iter_004e18c0& x) const { return !(*this == x); }
     Iter_004e18c0& operator++()
     {
-        ((Class_004e0450*)&ptr)->FUN_004e0450();
+        ((Class_004e0450*)&ptr)->NextNode();
         return *this;
     }
     Iter_004e18c0 operator++(int)
     {
         Iter_004e18c0 tmp = *this;
-        ((Class_004e0450*)&ptr)->FUN_004e0450();
+        ((Class_004e0450*)&ptr)->NextNode();
         return tmp;
     }
 };
@@ -5195,7 +5195,7 @@ public:
     char unknown_0[4];                 // +0x0
     Node_004e18c0* head;               // +0x4
 
-    Iter_004e18c0 FUN_004e2240();
+    Iter_004e18c0 Begin();
 };
 
 class Class_004e18c0 {
@@ -5213,25 +5213,25 @@ public:
     {
         if (size == 0 || _F != begin() || _L != end()) {
             while (_F != _L)
-                ((Class_004dfea0*)this)->FUN_004dfea0(_F++);
+                ((Class_004dfea0*)this)->Erase(_F++);
             return _F;
         }
         // Early return above, not an else: keeps the return slot apart from the lock.
         std::_Lockit Lk;
-        ((Class_004e03f0*)this)->FUN_004e03f0(head->parent);
+        ((Class_004e03f0*)this)->EraseSubtree(head->parent);
         head->parent = (Node_004e18c0*)DAT_005292c4;
         size = 0;
         head->left = head;
         head->right = head;
-        return ((Class_004e2240*)this)->FUN_004e2240();
+        return ((Class_004e2240*)this)->Begin();
     }
 
-    void FUN_004e18c0();
+    void Clear();
 };
 
 class Class_004e1990 {
 public:
-    void FUN_004e1990(void* key);
+    void Upsert(void* key);
 };
 
 struct Entry_004df590 {
@@ -5241,18 +5241,18 @@ struct Entry_004df590 {
     char* name;                        // +0xc
 };
 
-extern Entry_004df590 DAT_00529e00[];
-extern char* DAT_0050d660;
-extern unsigned char DAT_00529dd8;
-extern unsigned char DAT_00529dd4;
-extern unsigned char DAT_00529ddc;
-extern unsigned char DAT_00529e64;
-extern unsigned char DAT_00529dc8;
+extern Entry_004df590 g_pmcEvent0[];
+extern char* g_performanceWindowName;
+extern unsigned char g_perfEnabled;
+extern unsigned char g_perfRaisePriority;
+extern unsigned char g_perfDisplayInDebugger;
+extern unsigned char g_perfDisplayInWindow;
+extern unsigned char g_perfAutoPairing;
 
 void __cdecl SyncPerformanceSettings(int flag);
 void __cdecl SaveWindowPosition(HWND hwnd, char* name);
 void __cdecl OpenUrl(HWND hwnd, const char* url, const char* ext);
-void __cdecl FUN_004e33d0(HWND hwnd, char* name, double a, double b);
+void __cdecl RestoreWindow(HWND hwnd, char* name, double a, double b);
 
 class Class_004df280 {
 public:
@@ -5275,13 +5275,13 @@ public:
     {
         return key == name || strcmp(key, name) == 0;
     }
-    void FUN_004df380();
+    void SyncSelectedText();
 };
 
 class Class_004df4e0 {
 public:
     HWND hwnd;                          // +0x00
-    void FUN_004df4e0();
+    void EnableControls();
 };
 
 class Id_004df1e0 {
@@ -5355,8 +5355,8 @@ Class_004df1e0::Class_004df1e0()
     unknown_8 = -1;
     flag_20 = 0;
     InitPerformanceEvents();
-    count = DAT_00529dcc;
-    table = DAT_00529df8;
+    count = g_pmcEventCount;
+    table = g_pmcEventCatalog;
     time = GetTimeSeconds();
     ((PerformanceDialog*)this)->CreatePerformanceDialog();
 }
@@ -5406,7 +5406,7 @@ struct Node_004df380 {
     int color;                         // +0x204
 };
 
-Node_004df380* __cdecl FUN_004e04e0(Node_004df380* p);
+Node_004df380* __cdecl FindLeftmostNode(Node_004df380* p);
 
 class Iter_004df380 {
 public:
@@ -5424,7 +5424,7 @@ public:
     {
         std::_Lockit lk;
         if (ptr->right != (Node_004df380*)DAT_005292c4)
-            ptr = FUN_004e04e0(ptr->right);
+            ptr = FindLeftmostNode(ptr->right);
         else {
             Node_004df380* p;
             while (ptr == (p = ptr->parent)->right)
@@ -5449,9 +5449,9 @@ public:
 };
 
 // FUNCTION: 0x4df380
-void Class_004df380::FUN_004df380()
+void Class_004df380::SyncSelectedText()
 {
-    CriticalSection* lock = (CriticalSection*)FUN_004e1ac0();
+    CriticalSection* lock = (CriticalSection*)GetNameTableLock();
     EnterCriticalSection(&lock->cs);
     Map_004df380* map = (Map_004df380*)&GetNameTable()->names;
     for (Iter_004df380 it = map->begin(); it != map->end(); ++it) {
@@ -5469,9 +5469,9 @@ void Class_004df380::FUN_004df380()
 unsigned char __cdecl HasPerfCounters(void);
 
 // FUNCTION: 0x4df4e0
-void Class_004df4e0::FUN_004df4e0()
+void Class_004df4e0::EnableControls()
 {
-    unsigned char b = HasPerfCounters() && DAT_00529dd8;
+    unsigned char b = HasPerfCounters() && g_perfEnabled;
     EnableWindow(GetDlgItem(hwnd, 0x3f5), b);
     EnableWindow(GetDlgItem(hwnd, 0x3ed), b);
     EnableWindow(GetDlgItem(hwnd, 0x3f3), b);
@@ -5508,14 +5508,14 @@ BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM
                 for (int j = 0; j < count; j++) {
                     if (entries[j].flags_8 & mask) {
                         if (i == sel) {
-                            DAT_00529e00[b] = entries[j];
-                            if (DAT_00529dc8 && entries[j].name != 0) {
+                            g_pmcEvent0[b] = entries[j];
+                            if (g_perfAutoPairing && entries[j].name != 0) {
                                 int nmask = ~mask;
                                 int n = 0;
                                 for (int k = 0; k < count; k++) {
                                     if (entries[k].flags_8 & nmask) {
                                         if (entries[k].field_0 == (int)entries[j].name) {
-                                            DAT_00529e00[1 - b] = entries[k];
+                                            g_pmcEvent0[1 - b] = entries[k];
                                             SendDlgItemMessageA(hwnd,
                                                 (LOWORD(wParam) == 0x3ed) ? 0x3ee : 0x3ed,
                                                 0x14e, n, 0);
@@ -5540,28 +5540,28 @@ BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM
                 return 0;
 
             case 0x3ef:
-                DAT_00529dd8 = (DAT_00529dd8 == 0);
+                g_perfEnabled = (g_perfEnabled == 0);
                 SyncPerformanceSettings(0);
-                ((Class_004df4e0*)this)->FUN_004df4e0();
+                ((Class_004df4e0*)this)->EnableControls();
                 return 0;
 
             case 0x3f1:
-                DAT_00529dd4 = (DAT_00529dd4 == 0);
+                g_perfRaisePriority = (g_perfRaisePriority == 0);
                 SyncPerformanceSettings(0);
                 return 0;
 
             case 0x3f6:
-                DAT_00529ddc = (DAT_00529ddc == 0);
+                g_perfDisplayInDebugger = (g_perfDisplayInDebugger == 0);
                 SyncPerformanceSettings(0);
                 return 0;
 
             case 0x3f7:
-                DAT_00529e64 = (DAT_00529e64 == 0);
+                g_perfDisplayInWindow = (g_perfDisplayInWindow == 0);
                 SyncPerformanceSettings(0);
                 return 0;
 
             case 0x3f8:
-                DAT_00529dc8 = (DAT_00529dc8 == 0);
+                g_perfAutoPairing = (g_perfAutoPairing == 0);
                 SyncPerformanceSettings(0);
                 return 0;
 
@@ -5590,7 +5590,7 @@ BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM
                         }
                     }
                 }
-                ((Class_004df380*)this)->FUN_004df380();
+                ((Class_004df380*)this)->SyncSelectedText();
                 return 0;
             }
         }
@@ -5605,9 +5605,9 @@ BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM
         if (rect.left != left || rect.top != top) {
             left = rect.left;
             top = rect.top;
-            SaveWindowPosition(hwnd, DAT_0050d660);
+            SaveWindowPosition(hwnd, g_performanceWindowName);
         }
-        CriticalSection* cs = (CriticalSection*)FUN_004e1ac0();
+        CriticalSection* cs = (CriticalSection*)GetNameTableLock();
         EnterCriticalSection(&cs->cs);
         NameTable* info = GetNameTable();
         if (info->changed) {
@@ -5615,23 +5615,23 @@ BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM
             int n = 0;
             Node_004df590* node = ((Map_004df590*)&info->names)->head->left;
             SendDlgItemMessageA(hwnd, 0x3f4, 0x184, 0, 0);
-            ((Class_004e18c0*)&set)->FUN_004e18c0();
+            ((Class_004e18c0*)&set)->Clear();
             // Guarded do-while: a while or for loop moves the loop registers.
             if (Iterator_004df590(node) != Iterator_004df590(((Map_004df590*)&info->names)->head)) {
                 do {
-                    ((Class_004e1990*)&set)->FUN_004e1990(&node->value);
+                    ((Class_004e1990*)&set)->Upsert(&node->value);
                     SendDlgItemMessageA(hwnd, 0x3f4, 0x180, 0, (LPARAM)node->value.name);
                     if (NamesEqual_004df590(node->value.name, selected.name))
                         sel = n;
                     n++;
-                    ((Class_004e0450*)&node)->FUN_004e0450();
+                    ((Class_004e0450*)&node)->NextNode();
                 } while (Iterator_004df590(node) != Iterator_004df590(((Map_004df590*)&info->names)->head));
             }
             if (sel >= 0)
                 SendDlgItemMessageA(hwnd, 0x3f4, 0x186, sel, 0);
             info->changed = 0;
         }
-        ((Class_004df380*)this)->FUN_004df380();
+        ((Class_004df380*)this)->SyncSelectedText();
         LeaveCriticalSection(&cs->cs);
         return 0;
     }
@@ -5644,7 +5644,7 @@ BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM
         for (int i = 0; i < 2; i++) {
             int mask = 1 << i;
             int id = 0x3ed;
-            // Branch, not arithmetic: stops strength reduction of DAT_00529e00[i].
+            // Branch, not arithmetic: stops strength reduction of g_pmcEvent0[i].
             if (i == 1)
                 id = 0x3ee;
             int sel = 0;
@@ -5652,7 +5652,7 @@ BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM
             for (int j = 0; j < count; j++) {
                 Entry_004df590* e = &entries[j];
                 if (entries[j].flags_8 & mask) {
-                    if (e->field_0 == DAT_00529e00[i].field_0)
+                    if (e->field_0 == g_pmcEvent0[i].field_0)
                         sel = n;
                     n++;
                     SendDlgItemMessageA(hwnd, id, 0x143, 0, e->text);
@@ -5661,12 +5661,12 @@ BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM
             SendDlgItemMessageA(hwnd, id, 0x14e, sel, 0);
         }
         RegisterHotKey(hwnd, 10, 1, 0x24);
-        CheckDlgButton(hwnd, 0x3ef, DAT_00529dd8);
-        CheckDlgButton(hwnd, 0x3f1, DAT_00529dd4);
-        CheckDlgButton(hwnd, 0x3f6, DAT_00529ddc);
-        CheckDlgButton(hwnd, 0x3f7, DAT_00529e64);
-        CheckDlgButton(hwnd, 0x3f8, DAT_00529dc8);
-        ((Class_004df4e0*)this)->FUN_004df4e0();
+        CheckDlgButton(hwnd, 0x3ef, g_perfEnabled);
+        CheckDlgButton(hwnd, 0x3f1, g_perfRaisePriority);
+        CheckDlgButton(hwnd, 0x3f6, g_perfDisplayInDebugger);
+        CheckDlgButton(hwnd, 0x3f7, g_perfDisplayInWindow);
+        CheckDlgButton(hwnd, 0x3f8, g_perfAutoPairing);
+        ((Class_004df4e0*)this)->EnableControls();
         if (flag_20)
             ((Class_004df280*)this)->SetPerformanceWindowVisible(1);
         return 1;
@@ -5705,7 +5705,7 @@ void StartPerformanceStatus() {
 }
 
 // FUNCTION: 0x4dfea0
-Class_004e0450 Class_004dfea0::FUN_004dfea0(Class_004e0450 _P)
+Class_004e0450 Class_004dfea0::Erase(Class_004e0450 _P)
 {
     Node_004dfea0* _X;
     Node_004dfea0* _Y = (_P++)._Mynode();
@@ -5820,7 +5820,7 @@ Class_004e0450 Class_004dfea0::FUN_004dfea0(Class_004e0450 _P)
 
 // Shaped like std::_Tree<...>::_Erase(_Nodeptr) from MSVC 5's <xtree>
 // (recursively frees a subtree) under a lock object; DAT_005292c4 is the
-// tree's _Nil node. Nodes are returned to a free list (DAT_00529e58) linked
+// tree's _Nil node. Nodes are returned to a free list (g_nameMapFreeList) linked
 // through their first dword instead of being deleted.
 struct Node_004e03f0 {
     Node_004e03f0* left;               // +0x0
@@ -5831,17 +5831,17 @@ struct Node_004e03f0 {
 static inline void FreeNode(Node_004e03f0* p)
 {
     if (p != 0) {
-        p->left = (Node_004e03f0*)DAT_00529e58;
-        DAT_00529e58 = p;
+        p->left = (Node_004e03f0*)g_nameMapFreeList;
+        g_nameMapFreeList = p;
     }
 }
 
 // FUNCTION: 0x4e03f0
-void Class_004e03f0::FUN_004e03f0(Node_004e03f0* x)
+void Class_004e03f0::EraseSubtree(Node_004e03f0* x)
 {
     std::_Lockit lock;
     for (Node_004e03f0* y = x; y != (Node_004e03f0*)DAT_005292c4; x = y) {
-        FUN_004e03f0(y->right);
+        EraseSubtree(y->right);
         y = y->left;
         FreeNode(x);
     }
@@ -5868,7 +5868,7 @@ static inline Node_004e0450* Min_004e0450(Node_004e0450* p)
 // The original calls this out of line from 0x4df590.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e0450
-void Class_004e0450::FUN_004e0450()
+void Class_004e0450::NextNode()
 {
     std::_Lockit lock;
     if (ptr->right != (Node_004e0450*)DAT_005292c4)
@@ -5891,7 +5891,7 @@ void Class_004e0450::FUN_004e0450()
 // (src/debug/debug_lib_4e1e50.cpp) stay in their own files: each is the source
 // of a `gap` region of data/functions.csv and uses inline assembly.
 // 0x4e1990 (src/debug/debug_lib_4e1990.cpp) stays in its own file: /Ob2
-// inlines NameKey::FUN_004e1a30 at its call site here, where the original
+// inlines NameKey::LessThan at its call site here, where the original
 // calls it, while 0x4e2250 needs the same definition inlinable.
 // 0x4e21f0 (src/debug/debug_lib_4e21f0.cpp) stays in its own file: its 0.0
 // and 5.0 constants sit in a different constant pool from the memory status
@@ -5920,7 +5920,7 @@ struct Node_004e04e0 {
 // left links under a lock until the tree's _Nil node (DAT_005292c4). Its
 // caller (0x4df380) uses it for an inlined iterator increment.
 // FUNCTION: 0x4e04e0
-Node_004e04e0* __cdecl FUN_004e04e0(Node_004e04e0* p)
+Node_004e04e0* __cdecl FindLeftmostNode(Node_004e04e0* p)
 {
     std::_Lockit lock;
     while (p->left != DAT_005292c4)
@@ -5940,12 +5940,12 @@ public:
     CavedogRegistryKey(char readOnly, char* app, char* section);
     ~CavedogRegistryKey();
     DWORD ReadDword(LPCSTR name, DWORD minValue, DWORD maxValue, DWORD defaultValue);
-    void FUN_004e2e60(char* name, int* value, int minValue, int maxValue, int defaultValue);
-    void FUN_004e2ea0(char* name, int* value, int minValue, int maxValue, int defaultValue);
-    void FUN_004e2ee0(char* name, short* value, short minValue, short maxValue, short defaultValue);
-    void FUN_004e2f30(char* name, unsigned short* value, unsigned short minValue, unsigned short maxValue, unsigned short defaultValue);
-    void FUN_004e2f90(char* name, char* value, char minValue, char maxValue, char defaultValue);
-    void FUN_004e3030(char* name, unsigned char* value, unsigned char minValue, unsigned char maxValue, unsigned char defaultValue);
+    void ApplyInt(char* name, int* value, int minValue, int maxValue, int defaultValue);
+    void ApplyInt2(char* name, int* value, int minValue, int maxValue, int defaultValue);
+    void ApplyShort(char* name, short* value, short minValue, short maxValue, short defaultValue);
+    void ApplyWord(char* name, unsigned short* value, unsigned short minValue, unsigned short maxValue, unsigned short defaultValue);
+    void ApplyChar(char* name, char* value, char minValue, char maxValue, char defaultValue);
+    void ApplyByte(char* name, unsigned char* value, unsigned char minValue, unsigned char maxValue, unsigned char defaultValue);
 };
 
 
@@ -5953,25 +5953,25 @@ class Class_004e2fe0 {
 public:
     HKEY key;                        // +0x0
     char reading;                    // +0x4
-    void FUN_004e2fe0(char* name, bool* value, bool defaultValue);
+    void ApplyBool(char* name, bool* value, bool defaultValue);
 };
-extern char* DAT_0050d72c;
+extern char* g_memoryStatusWindowName;
 
 class Class_004e0520 {
 public:
     char unknown_0[0x79];
     unsigned char workingSet;          // +0x79
-    void FUN_004e0520(int readOnly);
+    void LoadWorkingSetPref(int readOnly);
 };
 
 // The original calls this from 0x4e0570 and HandleMemoryStatusMessage rather
 // than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e0520
-void Class_004e0520::FUN_004e0520(int readOnly)
+void Class_004e0520::LoadWorkingSetPref(int readOnly)
 {
-    CavedogRegistryKey key(readOnly, DAT_0050d72c, "CavedogLibrary");
-    ((Class_004e2fe0*)&key)->FUN_004e2fe0("WorkingSet", (bool*)&workingSet, 0);
+    CavedogRegistryKey key(readOnly, g_memoryStatusWindowName, "CavedogLibrary");
+    ((Class_004e2fe0*)&key)->ApplyBool("WorkingSet", (bool*)&workingSet, 0);
 }
 #pragma auto_inline(on)
 
@@ -6002,7 +6002,7 @@ public:
     unsigned char flag_78;             // +0x78
     Class_004e0570();
     // The empty inline destructor makes MSVC register the empty atexit thunk
-    // FUN_004e1450.
+    // MemoryStatusAtexitHandler.
     ~Class_004e0570() {}
 };
 
@@ -6033,7 +6033,7 @@ public:
     void CreateMemoryStatusDialog();
 };
 
-// The original calls the constructor from FUN_004e1410 rather than inlining it.
+// The original calls the constructor from GetMemoryStatusDialog rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e0570
 Class_004e0570::Class_004e0570()
@@ -6044,7 +6044,7 @@ Class_004e0570::Class_004e0570()
     field_c = -1;
     flag_78 = 0;
     time = GetTimeSeconds();
-    ((Class_004e0520*)this)->FUN_004e0520(1);
+    ((Class_004e0520*)this)->LoadWorkingSetPref(1);
     ((MemoryStatusDialog*)this)->CreateMemoryStatusDialog();
 }
 #pragma auto_inline(on)
@@ -6052,8 +6052,8 @@ Class_004e0570::Class_004e0570()
 HWND __cdecl CreateDialogFromTemplate(int id, HWND parent, DLGPROC proc, LPARAM param);
 BOOL CALLBACK MemoryStatusDlgProc(HWND, UINT, WPARAM, LPARAM);
 
-extern char DAT_0050d6b4[]; // "Performance dialog failed to open"
-extern char DAT_0050c8ac[]; // "Cavedog"
+extern char g_performanceDialogError[]; // "Performance dialog failed to open"
+extern char g_cavedogTitle[]; // "Cavedog"
 
 // The original calls this from the timer constructor rather than inlining it.
 #pragma auto_inline(off)
@@ -6062,13 +6062,13 @@ void MemoryStatusDialog::CreateMemoryStatusDialog()
 {
     HWND result = CreateDialogFromTemplate(0x66, GetDesktopWindow(), (DLGPROC)MemoryStatusDlgProc, (LPARAM)this);
     if (result == 0)
-        MessageBoxA(0, DAT_0050d6b4, DAT_0050c8ac, 0);
+        MessageBoxA(0, g_performanceDialogError, g_cavedogTitle, 0);
 }
 #pragma auto_inline(on)
 
-void __cdecl FUN_004e33d0(HWND hwnd, char* name, double a, double b);
+void __cdecl RestoreWindow(HWND hwnd, char* name, double a, double b);
 void __cdecl SaveWindowPosition(HWND hwnd, char* name);
-void FUN_004e0790(void);
+void UnloadPsapi(void);
 
 // The original calls this from HandleMemoryStatusMessage and ShowMemoryStatus
 // rather than inlining it.
@@ -6106,7 +6106,7 @@ public:
 // rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e06f0
-LPCRITICAL_SECTION FUN_004e06f0(void)
+LPCRITICAL_SECTION GetMemStatusLock(void)
 {
     static CritSec_004e06f0 lock;
     return &lock.cs;
@@ -6114,52 +6114,52 @@ LPCRITICAL_SECTION FUN_004e06f0(void)
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4e0730
-void FUN_004e0730(void)
+void MemStatusLockAtexitHandler(void)
 {
 }
 
-extern HMODULE DAT_005295bc;
-extern int DAT_00529508;
-extern char DAT_005295cc;
+extern HMODULE g_psapiModule;
+extern int g_pfnQueryWorkingSet;
+extern char g_psapiInited;
 
 // FUNCTION: 0x4e0740
-void FUN_004e0740(void)
+void UnloadPsapiImpl(void)
 {
-    LPCRITICAL_SECTION cs = FUN_004e06f0();
+    LPCRITICAL_SECTION cs = GetMemStatusLock();
     EnterCriticalSection(cs);
-    if (DAT_005295bc != 0) {
-        FreeLibrary(DAT_005295bc);
-        DAT_005295bc = 0;
-        DAT_00529508 = 0;
+    if (g_psapiModule != 0) {
+        FreeLibrary(g_psapiModule);
+        g_psapiModule = 0;
+        g_pfnQueryWorkingSet = 0;
     }
-    DAT_005295cc = 1;
+    g_psapiInited = 1;
     LeaveCriticalSection(cs);
 }
 
 // The original calls this from 0x4e05f0 rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e0790
-void FUN_004e0790(void)
+void UnloadPsapi(void)
 {
-    LPCRITICAL_SECTION cs = FUN_004e06f0();
+    LPCRITICAL_SECTION cs = GetMemStatusLock();
     EnterCriticalSection(cs);
-    if (DAT_005295bc != 0) {
-        FreeLibrary(DAT_005295bc);
-        DAT_005295bc = 0;
-        DAT_00529508 = 0;
+    if (g_psapiModule != 0) {
+        FreeLibrary(g_psapiModule);
+        g_psapiModule = 0;
+        g_pfnQueryWorkingSet = 0;
     }
-    DAT_005295cc = 0;
+    g_psapiInited = 0;
     LeaveCriticalSection(cs);
 }
 #pragma auto_inline(on)
 
-extern HANDLE DAT_00529530;
-extern int DAT_00529528;
-extern int DAT_005295b8;
-extern int DAT_005295c0;
-extern int DAT_005295c8;
-extern int DAT_005295d0;
-extern int DAT_005295d4;
+extern HANDLE g_memStatusProcess;
+extern int g_workingSetPrivate;
+extern int g_workingSetShared;
+extern int g_workingSetPageTables;
+extern int g_workingSetPages;
+extern int g_workingSetRefreshCountdown;
+extern int g_workingSetPagesPeak;
 
 typedef struct {
     DWORD NumberOfPages;
@@ -6206,7 +6206,7 @@ static void __inline fmt_004e07e0(char *buf, unsigned int n)
 // FUNCTION: 0x4e07e0
 char __cdecl FormatWorkingSet(char *dest)
 {
-    LPCRITICAL_SECTION cs = FUN_004e06f0();
+    LPCRITICAL_SECTION cs = GetMemStatusLock();
     WSInfo_004e07e0 ws;
     char priv[20];
     char max[20];
@@ -6220,30 +6220,30 @@ char __cdecl FormatWorkingSet(char *dest)
     DWORD n;
 
     EnterCriticalSection(cs);
-    if (DAT_005295d0 < 0 || !(--DAT_005295d0 > 0)) {
-        if (DAT_005295cc == 0) {
-            DAT_005295bc = LoadLibraryA("psapi.dll");
-            if (DAT_005295bc != 0) {
-                DAT_00529508 = (int)GetProcAddress(DAT_005295bc, "QueryWorkingSet");
+    if (g_workingSetRefreshCountdown < 0 || !(--g_workingSetRefreshCountdown > 0)) {
+        if (g_psapiInited == 0) {
+            g_psapiModule = LoadLibraryA("psapi.dll");
+            if (g_psapiModule != 0) {
+                g_pfnQueryWorkingSet = (int)GetProcAddress(g_psapiModule, "QueryWorkingSet");
             }
-            DAT_00529530 = GetCurrentProcess();
-            DAT_005295cc = 1;
+            g_memStatusProcess = GetCurrentProcess();
+            g_psapiInited = 1;
         }
-        if (DAT_00529508 == 0) {
+        if (g_pfnQueryWorkingSet == 0) {
             LeaveCriticalSection(cs);
             return 0;
         }
-        if (!((QueryWorkingSet_004e07e0)DAT_00529508)(DAT_00529530, &ws, 0x61a80)) {
+        if (!((QueryWorkingSet_004e07e0)g_pfnQueryWorkingSet)(g_memStatusProcess, &ws, 0x61a80)) {
             LeaveCriticalSection(cs);
             return 0;
         }
         n = ws.NumberOfPages;
-        DAT_005295c8 = n;
-        if (n > DAT_005295d4) {
-            DAT_005295d4 = n;
+        g_workingSetPages = n;
+        if (n > g_workingSetPagesPeak) {
+            g_workingSetPagesPeak = n;
         }
         // Chained, not separate statements: decouples register order from store order.
-        DAT_00529528 = DAT_005295b8 = DAT_005295c0 = 0;
+        g_workingSetPrivate = g_workingSetShared = g_workingSetPageTables = 0;
         // Counters stay globals, incremented in the loop: the formatters reload them.
         if (n > 0) {
             p = (DWORD *)&ws.WorkingSetInfo[0];
@@ -6254,40 +6254,40 @@ char __cdecl FormatWorkingSet(char *dest)
                 lo = w & 0xfff;
                 hi = w & 0xfffff000;
                 if (hi >= 0xc0000000 && hi <= 0xe0000000) {
-                    DAT_005295c0++;
+                    g_workingSetPageTables++;
                 } else if (lo & 0x100) {
-                    DAT_005295b8++;
+                    g_workingSetShared++;
                 } else {
-                    DAT_00529528++;
+                    g_workingSetPrivate++;
                 }
                 p++;
             } while (--cnt);
         }
-        DAT_005295d0 = 10;
+        g_workingSetRefreshCountdown = 10;
     }
-    fmt_004e07e0(pt, DAT_005295c0 << 12);
-    fmt_004e07e0(shared, DAT_005295b8 << 12);
-    fmt_004e07e0(priv, DAT_00529528 << 12);
-    fmt_004e07e0(max, DAT_005295d4 << 12);
-    fmt_004e07e0(total, DAT_005295c8 << 12);
+    fmt_004e07e0(pt, g_workingSetPageTables << 12);
+    fmt_004e07e0(shared, g_workingSetShared << 12);
+    fmt_004e07e0(priv, g_workingSetPrivate << 12);
+    fmt_004e07e0(max, g_workingSetPagesPeak << 12);
+    fmt_004e07e0(total, g_workingSetPages << 12);
     sprintf(dest, "\r\nTotal Working set:   %13s\r\nMaximum Working set: %13s\r\nPrivate:             %13s\r\nShared:              %13s\r\nPage Tables:         %13s\r\n", total, max, priv, shared, pt);
     LeaveCriticalSection(cs);
     return 1;
 }
 
-extern unsigned int DAT_005289d0;
-extern unsigned int DAT_005289d4;
-extern unsigned int DAT_005289d8;
-extern unsigned int DAT_005289dc;
-extern unsigned int DAT_005289f0;
-extern unsigned int DAT_005289f8;
-extern unsigned int DAT_005289fc;
-extern unsigned int DAT_00528a00;
-extern unsigned int DAT_00528a04;
-extern unsigned int DAT_00528a08;
-extern unsigned int DAT_00528a1c;
+extern unsigned int g_committedBytesPeak;
+extern unsigned int g_lastAllocOffset;
+extern unsigned int g_currentBytesPeak;
+extern unsigned int g_bytesRequestedLo;
+extern unsigned int g_committedBytes;
+extern unsigned int g_currentBytes;
+extern unsigned int g_bytesRequestedHi;
+extern unsigned int g_freeBlockWraps;
+extern unsigned int g_allocSerial;
+extern unsigned int g_liveAllocCount;
+extern unsigned int g_liveAllocPeak;
 extern char DAT_005119b8[];
-extern char DAT_005295d8[];
+extern char g_memStatusLastText[];
 
 void __cdecl OpenUrl(HWND hwnd, char* url, char* ext);
 void ResetAllocStats(void);
@@ -6343,23 +6343,23 @@ static void __inline fmt_004e0b90(char* buf, unsigned int n)
 // this file its register allocation lands differently
 // (docs/c2-regalloc.md).
 
-Class_004e0570* FUN_004e1410();
+Class_004e0570* GetMemoryStatusDialog();
 
 // The original calls this from StartMemoryStatus rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e1400
 void ShowMemoryStatus()
 {
-    ((Class_004e05f0*)FUN_004e1410())->SetMemoryStatusWindowVisible(1);
+    ((Class_004e05f0*)GetMemoryStatusDialog())->SetMemoryStatusWindowVisible(1);
 }
 #pragma auto_inline(on)
 
 // Returns a function-local static Class_004e0570; the empty inline destructor
-// makes MSVC register the empty atexit thunk FUN_004e1450.
+// makes MSVC register the empty atexit thunk MemoryStatusAtexitHandler.
 // The original calls this from 0x4e1400 and 0x4e1460 rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e1410
-Class_004e0570* FUN_004e1410()
+Class_004e0570* GetMemoryStatusDialog()
 {
     static Class_004e0570 timer;
     return &timer;
@@ -6367,20 +6367,20 @@ Class_004e0570* FUN_004e1410()
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4e1450
-void FUN_004e1450(void)
+void MemoryStatusAtexitHandler(void)
 {
 }
 
 extern char* __cdecl FindCommandLineSwitch(char*);
 void ShowMemoryStatus();
 
-extern char DAT_0050d220[];
+extern char g_memoryStatusSwitch[];
 
 // FUNCTION: 0x4e1460
 void __cdecl StartMemoryStatus()
 {
-    FUN_004e1410();
-    char* result = FindCommandLineSwitch(DAT_0050d220);
+    GetMemoryStatusDialog();
+    char* result = FindCommandLineSwitch(g_memoryStatusSwitch);
     if (result != 0) {
         ShowMemoryStatus();
     }
@@ -6438,7 +6438,7 @@ void Class_004e1590::OpenMappedFile(const char* fileName)
 
 // Closes a memory-mapped file (the wrapper built by 0x4e1560): unmaps the
 // view, then closes the mapping and file handles.
-// The original calls this out of line from FUN_004de0f0.
+// The original calls this out of line from CloseLoadedImage.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e1650
 void MappedFile::CloseMappedFile()
@@ -6457,22 +6457,22 @@ void MappedFile::CloseMappedFile()
 
 unsigned char __cdecl OpenGdperf(void);
 
-extern unsigned char DAT_00529e6c;
-extern unsigned char DAT_00529e70;
+extern unsigned char g_gdperfInitAttempted;
+extern unsigned char g_gdperfAvailable;
 
 // The original calls this from InitPerformanceEvents rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e1680
 unsigned char __cdecl HasPerfCounters(void)
 {
-    if (DAT_00529e6c == 0) {
-        DAT_00529e6c = 1;
+    if (g_gdperfInitAttempted == 0) {
+        g_gdperfInitAttempted = 1;
         unsigned char result = OpenGdperf();
         if (result != 0) {
-            DAT_00529e70 = 1;
+            g_gdperfAvailable = 1;
         }
     }
-    return DAT_00529e70;
+    return g_gdperfAvailable;
 }
 #pragma auto_inline(on)
 
@@ -6513,7 +6513,7 @@ double __cdecl GetTimeSeconds()
 
 // Constructor of the global name-table singleton (allocated by GetNameTable).
 // The tree's static _Nil / _Nilrefs are DAT_005292c4 / DAT_00529500 and the
-// pooled node free list is DAT_00529e58, exactly as in <xtree>'s _Init with a
+// pooled node free list is g_nameMapFreeList, exactly as in <xtree>'s _Init with a
 // pooled allocator. The map member sits at +0, the "changed" flag at +0x10.
 //
 // The map's allocator pools 0x208-byte nodes.
@@ -6533,7 +6533,7 @@ NameTable::NameTable() : changed(0)
 // The original calls this out of line from the performance dialog.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e18c0
-void Class_004e18c0::FUN_004e18c0()
+void Class_004e18c0::Clear()
 {
     erase(begin(), end());
     changed = 1;
@@ -6544,7 +6544,7 @@ void Class_004e18c0::FUN_004e18c0()
 class NameKey {
 public:
     char* name;                        // +0x0
-    bool FUN_004e1a30(const NameKey& other) const;
+    bool LessThan(const NameKey& other) const;
 };
 
 struct Value_004e2250 {
@@ -6559,7 +6559,7 @@ typedef std::pair<const NameKey, Value_004e2250> Pair_004e2250;
 struct Less_004e2250 : public std::binary_function<NameKey, NameKey, bool> {
     bool operator()(const NameKey& _X, const NameKey& _Y) const
     {
-        return (_X.FUN_004e1a30(_Y));
+        return (_X.LessThan(_Y));
     }
 };
 
@@ -6573,7 +6573,7 @@ struct Kfn_004e2250 : public std::unary_function<Pair_004e2250, NameKey> {
 
 class Alloc_004e2b60 {
 public:
-    char* FUN_004e2b60(unsigned int n);
+    char* Allocate(unsigned int n);
 };
 
 enum _Redbl_004e2250 { _Red, _Black };
@@ -6632,11 +6632,11 @@ public:
     Class_004e2ab0(_Nodeptr _P)
         : _Ptr(_P) {}
     Class_004e2ab0& operator--()
-        {FUN_004e2ab0();
+        {PrevNode();
         return (*this); }
     bool operator==(const Class_004e2ab0& _X) const
         {return (_Ptr == _X._Ptr); }
-    void FUN_004e2ab0();
+    void PrevNode();
     _Nodeptr _Mynode() const
         {return (_Ptr); }
 protected:
@@ -6648,7 +6648,7 @@ class Class_004e2a10 {
 public:
     Class_004e2a10(const Class_004e2ab0& _V1, const bool& _V2)
         : first(_V1), second(_V2) {}
-    Class_004e2a10* FUN_004e2a10(const Data1* param_1, const Data2* param_2);
+    Class_004e2a10* Assign(const Data1* param_1, const Data2* param_2);
     Class_004e2ab0 first;
     bool second;
 };
@@ -6656,28 +6656,28 @@ public:
 // _Rrotate (0x4e29b0).
 class Class_004e29b0 : public Tree_004e2250 {
 public:
-    void FUN_004e29b0(_Nodeptr _X);
+    void RotateRight(_Nodeptr _X);
 };
 // _Lrotate (0x4e2950).
 // _Lrotate (0x4e2950).
 class Class_004e2950 : public Class_004e29b0 {
 public:
-    void FUN_004e2950(_Nodeptr _X);
+    void RotateLeft(_Nodeptr _X);
 };
 // _Buynode (0x4e2a30).
 // _Buynode (0x4e2a30).
 class Class_004e2a30 : public Class_004e2950 {
 public:
-    _Nodeptr FUN_004e2a30(_Nodeptr _Parg, _Redbl_004e2250 _Carg);
+    _Nodeptr CreateNode(_Nodeptr _Parg, _Redbl_004e2250 _Carg);
     void _Consval(Pair_004e2250* _P, const Pair_004e2250& _V)
         {std::_Construct(&*_P, _V); }
 };
 // _Insert (0x4e2620).
 class Class_004e2620 : public Class_004e2a30 {
 public:
-    Class_004e2ab0 FUN_004e2620(_Nodeptr _X, _Nodeptr _Y, const Pair_004e2250& _V)
+    Class_004e2ab0 Insert(_Nodeptr _X, _Nodeptr _Y, const Pair_004e2250& _V)
         {std::_Lockit _Lk;
-        _Nodeptr _Z = FUN_004e2a30(_Y, _Red);
+        _Nodeptr _Z = CreateNode(_Y, _Red);
         _Left(_Z) = (_Nodeptr)DAT_005292c4, _Right(_Z) = (_Nodeptr)DAT_005292c4;
         _Consval(&_Value(_Z), _V);
         ++_Size;
@@ -6705,10 +6705,10 @@ public:
                 else
                     {if (_X == _Right(_Parent(_X)))
                         {_X = _Parent(_X);
-                        FUN_004e2950(_X); }
+                        RotateLeft(_X); }
                     _Color(_Parent(_X)) = _Black;
                     _Color(_Parent(_Parent(_X))) = _Red;
-                    FUN_004e29b0(_Parent(_Parent(_X))); }}
+                    RotateRight(_Parent(_Parent(_X))); }}
             else
                 {_Y = _Left(_Parent(_Parent(_X)));
                 if (_Color(_Y) == _Red)
@@ -6719,10 +6719,10 @@ public:
                 else
                     {if (_X == _Left(_Parent(_X)))
                         {_X = _Parent(_X);
-                        FUN_004e29b0(_X); }
+                        RotateRight(_X); }
                     _Color(_Parent(_X)) = _Black;
                     _Color(_Parent(_Parent(_X))) = _Red;
-                    FUN_004e2950(_Parent(_Parent(_X))); }}
+                    RotateLeft(_Parent(_Parent(_X))); }}
         _Color(_Root()) = _Black;
         return (Class_004e2ab0(_Z)); }
 };
@@ -6732,7 +6732,7 @@ class Class_004e2250 : public Class_004e2620 {
 public:
     Class_004e2ab0 begin()
         {return (Class_004e2ab0(_Lmost())); }
-    Class_004e2a10 FUN_004e2250(const Pair_004e2250& _V);
+    Class_004e2a10 InsertOrFind(const Pair_004e2250& _V);
 };
 
 class CritSec_004e1ac0 {
@@ -6743,15 +6743,15 @@ public:
     ~CritSec_004e1ac0() {}
 };
 
-CritSec_004e1ac0* FUN_004e1ac0();
+CritSec_004e1ac0* GetNameTableLock();
 
 // 0x4e1990 (src/debug/debug_lib_4e1990.cpp) stays in its own file: this merge
-// would make NameKey::FUN_004e1a30 (0x4e1a30, below) inlinable at its call
+// would make NameKey::LessThan (0x4e1a30, below) inlinable at its call
 // site, and /Ob2 inlines it there, where the original calls it; 0x4e2250
 // needs the same definition inlinable, so the two cannot share one file.
 
 // FUNCTION: 0x4e1a30
-bool NameKey::FUN_004e1a30(const NameKey& other) const
+bool NameKey::LessThan(const NameKey& other) const
 {
     return name != other.name && strcmp(name, other.name) < 0;
 }
@@ -6759,35 +6759,35 @@ bool NameKey::FUN_004e1a30(const NameKey& other) const
 // The original calls this from GetNameTable rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e1a80
-void* __cdecl FUN_004e1a80(unsigned int size)
+void* __cdecl GlobalAllocFixed(unsigned int size)
 {
     return GlobalAlloc(0, size);
 }
 #pragma auto_inline(on)
 
 // Lazily creates the global NameTable object, allocated with
-// FUN_004e1a80 (a GlobalAlloc wrapper), and returns it. It is a placement
+// GlobalAllocFixed (a GlobalAlloc wrapper), and returns it. It is a placement
 // new into that block: the constructor is 0x4e17c0.
-extern NameTable* DAT_00529e7c;
+extern NameTable* g_nameTable;
 
 // The original calls this out of line from the name-table users.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e1a90
 NameTable* GetNameTable()
 {
-    if (DAT_00529e7c == 0)
-        DAT_00529e7c = new (FUN_004e1a80(sizeof(NameTable))) NameTable;
-    return DAT_00529e7c;
+    if (g_nameTable == 0)
+        g_nameTable = new (GlobalAllocFixed(sizeof(NameTable))) NameTable;
+    return g_nameTable;
 }
 #pragma auto_inline(on)
 
 // Returns a function-local static critical section, initialised on first
 // use (same shape as 0x4da780). The empty inline destructor makes MSVC
-// register the empty atexit thunk FUN_004e1b00.
+// register the empty atexit thunk NameTableLockAtexitHandler.
 // The original calls this from 0x4e1990 rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e1ac0
-CritSec_004e1ac0* FUN_004e1ac0()
+CritSec_004e1ac0* GetNameTableLock()
 {
     static CritSec_004e1ac0 lock;
     return &lock;
@@ -6795,29 +6795,29 @@ CritSec_004e1ac0* FUN_004e1ac0()
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4e1b00
-void FUN_004e1b00(void)
+void NameTableLockAtexitHandler(void)
 {
 }
 
 typedef Entry_004df590 EventEntry;
 
-extern EventEntry* DAT_00529df8;
-extern int DAT_00529dcc;
-extern EventEntry DAT_0050da00[];
-extern EventEntry DAT_0050d980[];
-extern EventEntry DAT_00529e10;        // "Event1"
+extern EventEntry* g_pmcEventCatalog;
+extern int g_pmcEventCount;
+extern EventEntry g_pentiumProEvents[];
+extern EventEntry g_pentiumEvents[];
+extern EventEntry g_pmcEvent1;         // "Event1"
 
 class Class_004e2e20 {
 public:
     HKEY key;                        // +0x0
     char reading;                    // +0x4
-    void FUN_004e2e20(LPCSTR name, DWORD* value, DWORD minValue, DWORD maxValue, DWORD defaultValue);
+    void ApplyDword(LPCSTR name, DWORD* value, DWORD minValue, DWORD maxValue, DWORD defaultValue);
 };
-extern unsigned char DAT_00529dd8;
-extern unsigned char DAT_00529dd4;
-extern unsigned char DAT_00529ddc;
-extern unsigned char DAT_00529e64;
-extern unsigned char DAT_00529dc8;
+extern unsigned char g_perfEnabled;
+extern unsigned char g_perfRaisePriority;
+extern unsigned char g_perfDisplayInDebugger;
+extern unsigned char g_perfDisplayInWindow;
+extern unsigned char g_perfAutoPairing;
 
 // Loads (or saves) the PerformanceSettings block of the Cavedog registry key.
 // The original calls this from InitPerformanceEvents rather than inlining it.
@@ -6826,13 +6826,13 @@ extern unsigned char DAT_00529dc8;
 void __cdecl SyncPerformanceSettings(int readOnly)
 {
     CavedogRegistryKey key(readOnly, "PerformanceSettings", "CavedogLibrary");
-    ((Class_004e2fe0*)&key)->FUN_004e2fe0("EnabledInRelease", (bool*)&DAT_00529dd8, 0);
-    ((Class_004e2fe0*)&key)->FUN_004e2fe0("RaisePriority", (bool*)&DAT_00529dd4, 1);
-    ((Class_004e2fe0*)&key)->FUN_004e2fe0("DisplayInDebugger", (bool*)&DAT_00529ddc, 0);
-    ((Class_004e2fe0*)&key)->FUN_004e2fe0("DisplayInWindow", (bool*)&DAT_00529e64, 1);
-    ((Class_004e2fe0*)&key)->FUN_004e2fe0("AutoPairing", (bool*)&DAT_00529dc8, 1);
-    ((Class_004e2e20*)&key)->FUN_004e2e20("Event0", (DWORD*)&DAT_00529e00, 0, -1, 0);
-    ((Class_004e2e20*)&key)->FUN_004e2e20("Event1", (DWORD*)&DAT_00529e10, 0, -1, 0);
+    ((Class_004e2fe0*)&key)->ApplyBool("EnabledInRelease", (bool*)&g_perfEnabled, 0);
+    ((Class_004e2fe0*)&key)->ApplyBool("RaisePriority", (bool*)&g_perfRaisePriority, 1);
+    ((Class_004e2fe0*)&key)->ApplyBool("DisplayInDebugger", (bool*)&g_perfDisplayInDebugger, 0);
+    ((Class_004e2fe0*)&key)->ApplyBool("DisplayInWindow", (bool*)&g_perfDisplayInWindow, 1);
+    ((Class_004e2fe0*)&key)->ApplyBool("AutoPairing", (bool*)&g_perfAutoPairing, 1);
+    ((Class_004e2e20*)&key)->ApplyDword("Event0", (DWORD*)&g_pmcEvent0, 0, -1, 0);
+    ((Class_004e2e20*)&key)->ApplyDword("Event1", (DWORD*)&g_pmcEvent1, 0, -1, 0);
 }
 #pragma auto_inline(on)
 
@@ -6854,7 +6854,7 @@ public:
     DWORD oldPriorityClass;            // +0x4c
     int oldThreadPriority;             // +0x50
 
-    void FUN_004e1d60(int a, int b);
+    void StartTimer(int a, int b);
 };
 
 class Class_004e20a0 {
@@ -6867,8 +6867,8 @@ public:
     void ReportElapsedTime(char* text);
 };
 
-extern int DAT_00529dd0;
-extern char DAT_00529e20[];
+extern int g_reportIndent;
+extern char g_reportIndentText[];
 
 // While stopped, `time` holds the elapsed time; while running, it holds the
 // start time.
@@ -6891,9 +6891,9 @@ public:
     double GetElapsedSeconds();
     void ResumeTimer();
     void ResetTimer();
-    void FUN_004e21a0(double delta);
-    void FUN_004e21c0(double elapsed);
-    double FUN_004e21f0();
+    void AddElapsed(double delta);
+    void SetElapsed(double elapsed);
+    double ComputeSampleRate();
 };
 
 // A timer object: starts timing (0x4e1d60, which saves and raises the thread
@@ -6901,7 +6901,7 @@ public:
 // FUNCTION: 0x4e1d20 ??0Timer@@QAE@H@Z
 Timer::Timer(int param_1)
 {
-    ((Class_004e1d60*)this)->FUN_004e1d60(0, param_1);
+    ((Class_004e1d60*)this)->StartTimer(0, param_1);
     ((Class_004e20a0*)this)->RestartTimer();
 }
 
@@ -6910,19 +6910,19 @@ Timer::Timer(int param_1)
 // FUNCTION: 0x4e1d40 ??0Timer@@QAE@HH@Z
 Timer::Timer(int a, int b)
 {
-    ((Class_004e1d60*)this)->FUN_004e1d60(a, b);
+    ((Class_004e1d60*)this)->StartTimer(a, b);
 }
 
 // The original calls this from the two Timer constructors rather than
 // inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e1d60
-void Class_004e1d60::FUN_004e1d60(int a, int b)
+void Class_004e1d60::StartTimer(int a, int b)
 {
     field_40 = b;
     field_44 = a;
-    DAT_00529e20[DAT_00529dd0++] = 9;
-    boosted = DAT_00529dd4;
+    g_reportIndentText[g_reportIndent++] = 9;
+    boosted = g_perfRaisePriority;
     if (boosted) {
         HANDLE thread = GetCurrentThread();
         oldThreadPriority = GetThreadPriority(thread);
@@ -6942,7 +6942,7 @@ void Class_004e1d60::FUN_004e1d60(int a, int b)
 // FUNCTION: 0x4e1de0
 Timer::~Timer()
 {
-    DAT_00529e20[--DAT_00529dd0] = 0;
+    g_reportIndentText[--g_reportIndent] = 0;
     if (name) {
         ((Class_004e1e50*)this)->ReportElapsedTime(0);
     }
@@ -7008,7 +7008,7 @@ void Timer::ResetTimer()
 }
 
 // FUNCTION: 0x4e21a0
-void Timer::FUN_004e21a0(double delta)
+void Timer::AddElapsed(double delta)
 {
     if (stopped) {
         time -= delta;
@@ -7021,7 +7021,7 @@ void Timer::FUN_004e21a0(double delta)
 }
 
 // FUNCTION: 0x4e21c0
-void Timer::FUN_004e21c0(double elapsed)
+void Timer::SetElapsed(double elapsed)
 {
     if (stopped) {
         time = elapsed;
@@ -7038,14 +7038,14 @@ void Timer::FUN_004e21c0(double elapsed)
 // The original calls this from 0x4e18c0 rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e2240
-Iter_004e18c0 Class_004e2240::FUN_004e2240()
+Iter_004e18c0 Class_004e2240::Begin()
 {
     return head->left;
 }
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4e2250
-Class_004e2a10 Class_004e2250::FUN_004e2250(const Pair_004e2250& _V)
+Class_004e2a10 Class_004e2250::InsertOrFind(const Pair_004e2250& _V)
 {
     _Nodeptr _X = _Root();
     _Nodeptr _Y = _Head;
@@ -7059,16 +7059,16 @@ Class_004e2a10 Class_004e2250::FUN_004e2250(const Pair_004e2250& _V)
         }
     }
     if (_Multi)
-        return (Class_004e2a10(FUN_004e2620(_X, _Y, _V), true));
+        return (Class_004e2a10(Insert(_X, _Y, _V), true));
     Class_004e2ab0 _P = Class_004e2ab0(_Y);
     if (!_Ans)
         ;
     else if (_P == begin())
-        return (Class_004e2a10(FUN_004e2620(_X, _Y, _V), true));
+        return (Class_004e2a10(Insert(_X, _Y, _V), true));
     else
         --_P;
     if (key_compare(_Key(_P._Mynode()), Kfn_004e2250()(_V)))
-        return (Class_004e2a10(FUN_004e2620(_X, _Y, _V), true));
+        return (Class_004e2a10(Insert(_X, _Y, _V), true));
     return (Class_004e2a10(_P, false));
 }
 
@@ -7090,15 +7090,15 @@ typedef _Redbl_004e2250 Redbl;
 
 // The tree's _Nil node.
 extern void* DAT_005292c4;
-extern void* DAT_00529e58;             // free list
-extern void (*DAT_005289bc)();         // out-of-memory handler
-extern char* DAT_00529e80;
-extern HANDLE DAT_00529e98;            // the GDPERF driver
-extern bool DAT_00529e9c;              // the driver is open
-extern int DAT_00529ea0;               // the CPU family
+extern void* g_nameMapFreeList;        // free list
+extern void (*g_outOfMemoryHandler)();  // out-of-memory handler
+extern char* g_defaultSection;
+extern HANDLE g_gdperfDevice;          // the GDPERF driver
+extern bool g_gdperfDriverReady;       // the driver is open
+extern int g_cpuFamily;                // the CPU family
 
 // FUNCTION: 0x4e2950
-void Class_004e2950::FUN_004e2950(_Nodeptr _X)
+void Class_004e2950::RotateLeft(_Nodeptr _X)
 {
     std::_Lockit _Lk;
     _Nodeptr _Y = _Right(_X);
@@ -7117,7 +7117,7 @@ void Class_004e2950::FUN_004e2950(_Nodeptr _X)
 }
 
 // FUNCTION: 0x4e29b0
-void Class_004e29b0::FUN_004e29b0(_Nodeptr _X)
+void Class_004e29b0::RotateRight(_Nodeptr _X)
 {
     std::_Lockit _Lk;
     _Nodeptr _Y = _Left(_X);
@@ -7144,7 +7144,7 @@ struct Data2 {
 };
 
 // FUNCTION: 0x4e2a10
-Class_004e2a10* Class_004e2a10::FUN_004e2a10(const Data1* param_1, const Data2* param_2)
+Class_004e2a10* Class_004e2a10::Assign(const Data1* param_1, const Data2* param_2)
 {
     *(int*)&first = param_1->field_0;
     *(char*)&second = param_2->field_0;
@@ -7156,30 +7156,30 @@ Class_004e2a10* Class_004e2a10::FUN_004e2a10(const Data1* param_1, const Data2* 
 // out-of-line copy is 0x4e2b60).
 static inline void* PoolAlloc(unsigned int n)
 {
-    if (DAT_00529e58 == 0) {
+    if (g_nameMapFreeList == 0) {
         char* block;
         do {
             block = (char*)GlobalAlloc(0, 0x2000);
-            if (block == 0 && DAT_005289bc != 0) {
-                DAT_005289bc();
+            if (block == 0 && g_outOfMemoryHandler != 0) {
+                g_outOfMemoryHandler();
             }
-        } while (block == 0 && DAT_005289bc != 0);
+        } while (block == 0 && g_outOfMemoryHandler != 0);
         if (block == 0) {
             return 0;
         }
         for (unsigned int rem = 0x2000; rem >= n; rem -= n) {
-            *(void**)block = DAT_00529e58;
-            DAT_00529e58 = block;
+            *(void**)block = g_nameMapFreeList;
+            g_nameMapFreeList = block;
             block += n;
         }
     }
-    void* p = DAT_00529e58;
-    DAT_00529e58 = *(void**)p;
+    void* p = g_nameMapFreeList;
+    g_nameMapFreeList = *(void**)p;
     return p;
 }
 
 // FUNCTION: 0x4e2a30
-_Nodeptr Class_004e2a30::FUN_004e2a30(_Nodeptr _Parg, _Redbl_004e2250 _Carg)
+_Nodeptr Class_004e2a30::CreateNode(_Nodeptr _Parg, _Redbl_004e2250 _Carg)
 {
     // The original inlines the pool allocator into this definition (0x4e2b60
     // is its out-of-line copy).
@@ -7190,7 +7190,7 @@ _Nodeptr Class_004e2a30::FUN_004e2a30(_Nodeptr _Parg, _Redbl_004e2250 _Carg)
 }
 
 // FUNCTION: 0x4e2ab0
-void Class_004e2ab0::FUN_004e2ab0()
+void Class_004e2ab0::PrevNode()
 {
     std::_Lockit _Lk;
     if (Tree_004e2250::_Color(_Ptr) == _Red
@@ -7206,28 +7206,28 @@ void Class_004e2ab0::FUN_004e2ab0()
 }
 
 // FUNCTION: 0x4e2b60
-void* Class_004e2b60::FUN_004e2b60(unsigned int n)
+void* Class_004e2b60::Allocate(unsigned int n)
 {
-    if (DAT_00529e58 == 0) {
+    if (g_nameMapFreeList == 0) {
         unsigned int rem = 0x2000;
         char* block;
         do {
             block = (char*)GlobalAlloc(0, 0x2000);
-            if (block == 0 && DAT_005289bc != 0) {
-                DAT_005289bc();
+            if (block == 0 && g_outOfMemoryHandler != 0) {
+                g_outOfMemoryHandler();
             }
-        } while (block == 0 && DAT_005289bc != 0);
+        } while (block == 0 && g_outOfMemoryHandler != 0);
         if (block == 0) {
             return 0;
         }
         for (; rem >= n; rem -= n) {
-            *(void**)block = DAT_00529e58;
-            DAT_00529e58 = block;
+            *(void**)block = g_nameMapFreeList;
+            g_nameMapFreeList = block;
             block += n;
         }
     }
-    void* p = DAT_00529e58;
-    DAT_00529e58 = *(void**)DAT_00529e58;
+    void* p = g_nameMapFreeList;
+    g_nameMapFreeList = *(void**)g_nameMapFreeList;
     return p;
 }
 
@@ -7248,12 +7248,12 @@ public:
 
 class Class_004e2cc0 {
 public:
-    bool FUN_004e2cc0(const char* param1, unsigned int param2);
+    bool ReadBool(const char* param1, unsigned int param2);
 };
 
 class Class_004e2ce0 {
 public:
-    void FUN_004e2ce0(LPCSTR param1, DWORD param2);
+    void WriteBool(LPCSTR param1, DWORD param2);
 };
 
 class Class_004e2e00 {
@@ -7266,7 +7266,7 @@ public:
 // Registry key helper: the constructor opens (or creates) a key under
 // HKCU\Software\Cavedog Entertainment, the destructor is empty.
 // `readOnly` selects the family: nonzero only opens, zero creates as well.
-// A null `section` falls back to the DAT_00529e80 default section name.
+// A null `section` falls back to the g_defaultSection default section name.
 // The original calls this out of line from the registry users.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e2be0
@@ -7274,7 +7274,7 @@ CavedogRegistryKey::CavedogRegistryKey(char readOnly, char* app, char* section)
 {
     HKEY k;
     if (section == 0) {
-        section = DAT_00529e80;
+        section = g_defaultSection;
     }
     key = 0;
     if (readOnly) {
@@ -7307,7 +7307,7 @@ CavedogRegistryKey::~CavedogRegistryKey()
 // The original calls this out of line from RestoreWindowPosition.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e2cc0
-bool Class_004e2cc0::FUN_004e2cc0(const char* param1, unsigned int param2)
+bool Class_004e2cc0::ReadBool(const char* param1, unsigned int param2)
 {
     int r = ((Class_004e2d00*)this)->ReadInt(param1, 0, 1, param2 & 0xff);
     return r != 0 ? true : false;
@@ -7317,7 +7317,7 @@ bool Class_004e2cc0::FUN_004e2cc0(const char* param1, unsigned int param2)
 // The original calls this out of line from SaveWindowPosition.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e2ce0
-void Class_004e2ce0::FUN_004e2ce0(LPCSTR param1, DWORD param2)
+void Class_004e2ce0::WriteBool(LPCSTR param1, DWORD param2)
 {
     ((Class_004e2d70*)this)->WriteDword(param1, param2 & 0xff);
 }
@@ -7391,7 +7391,7 @@ void Class_004e2e00::WriteInt(LPCSTR name, int value)
 // The original calls this out of line from the performance settings.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e2e20
-void Class_004e2e20::FUN_004e2e20(LPCSTR name, DWORD* value, DWORD minValue, DWORD maxValue, DWORD defaultValue)
+void Class_004e2e20::ApplyDword(LPCSTR name, DWORD* value, DWORD minValue, DWORD maxValue, DWORD defaultValue)
 {
     if (reading) {
         *value = ((CavedogRegistryKey*)this)->ReadDword(name, minValue, maxValue, defaultValue);
@@ -7404,7 +7404,7 @@ void Class_004e2e20::FUN_004e2e20(LPCSTR name, DWORD* value, DWORD minValue, DWO
 // Reads or writes an int registry value depending on the mode flag
 // (compare 0x4e2e20 and 0x4e2ee0).
 // FUNCTION: 0x4e2e60
-void CavedogRegistryKey::FUN_004e2e60(char* name, int* value, int minValue, int maxValue, int defaultValue)
+void CavedogRegistryKey::ApplyInt(char* name, int* value, int minValue, int maxValue, int defaultValue)
 {
     if (readOnly) {
         *value = ((Class_004e2d00*)this)->ReadInt(name, minValue, maxValue, defaultValue);
@@ -7416,7 +7416,7 @@ void CavedogRegistryKey::FUN_004e2e60(char* name, int* value, int minValue, int 
 // The int version of 0x4e2ee0: reads a registry value into *value (clamped
 // by ReadInt) when reading (readOnly), otherwise writes *value.
 // FUNCTION: 0x4e2ea0
-void CavedogRegistryKey::FUN_004e2ea0(char* name, int* value, int minValue, int maxValue, int defaultValue)
+void CavedogRegistryKey::ApplyInt2(char* name, int* value, int minValue, int maxValue, int defaultValue)
 {
     if (readOnly) {
         *value = ((Class_004e2d00*)this)->ReadInt(name, minValue, maxValue, defaultValue);
@@ -7426,7 +7426,7 @@ void CavedogRegistryKey::FUN_004e2ea0(char* name, int* value, int minValue, int 
 }
 
 // FUNCTION: 0x4e2ee0
-void CavedogRegistryKey::FUN_004e2ee0(char* name, short* value, short minValue, short maxValue, short defaultValue)
+void CavedogRegistryKey::ApplyShort(char* name, short* value, short minValue, short maxValue, short defaultValue)
 {
     if (readOnly) {
         *value = ((Class_004e2d00*)this)->ReadInt(name, minValue, maxValue, defaultValue);
@@ -7436,7 +7436,7 @@ void CavedogRegistryKey::FUN_004e2ee0(char* name, short* value, short minValue, 
 }
 
 // FUNCTION: 0x4e2f30
-void CavedogRegistryKey::FUN_004e2f30(char* name, unsigned short* value, unsigned short minValue, unsigned short maxValue, unsigned short defaultValue)
+void CavedogRegistryKey::ApplyWord(char* name, unsigned short* value, unsigned short minValue, unsigned short maxValue, unsigned short defaultValue)
 {
     if (readOnly) {
         *value = ((Class_004e2d00*)this)->ReadInt(name, minValue, maxValue, defaultValue);
@@ -7446,7 +7446,7 @@ void CavedogRegistryKey::FUN_004e2f30(char* name, unsigned short* value, unsigne
 }
 
 // FUNCTION: 0x4e2f90
-void CavedogRegistryKey::FUN_004e2f90(char* name, char* value, char minValue, char maxValue, char defaultValue)
+void CavedogRegistryKey::ApplyChar(char* name, char* value, char minValue, char maxValue, char defaultValue)
 {
     if (readOnly) {
         *value = ((Class_004e2d00*)this)->ReadInt(name, minValue, maxValue, defaultValue);
@@ -7461,7 +7461,7 @@ void CavedogRegistryKey::FUN_004e2f90(char* name, char* value, char minValue, ch
 // The original calls this out of line from the memory status dialog.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e2fe0
-void Class_004e2fe0::FUN_004e2fe0(char* name, bool* value, bool defaultValue)
+void Class_004e2fe0::ApplyBool(char* name, bool* value, bool defaultValue)
 {
     if (reading) {
         *value = ((Class_004e2d00*)this)->ReadInt(name, 0, 1, defaultValue) ? true : false;
@@ -7472,7 +7472,7 @@ void Class_004e2fe0::FUN_004e2fe0(char* name, bool* value, bool defaultValue)
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4e3030
-void CavedogRegistryKey::FUN_004e3030(char* name, unsigned char* value, unsigned char minValue, unsigned char maxValue, unsigned char defaultValue)
+void CavedogRegistryKey::ApplyByte(char* name, unsigned char* value, unsigned char minValue, unsigned char maxValue, unsigned char defaultValue)
 {
     if (readOnly) {
         *value = ((Class_004e2d00*)this)->ReadInt(name, minValue, maxValue, defaultValue);
@@ -7526,7 +7526,7 @@ unsigned char __cdecl RestoreWindowPosition(HWND hwnd, char* name, double zoomX,
         resizable = true;
         w = ((Class_004e2d00*)&key)->ReadInt("Width", 0, work.right - work.left, 0);
         h = ((Class_004e2d00*)&key)->ReadInt("Height", 0, work.bottom - work.top, 0);
-        zoomed = ((Class_004e2cc0*)&key)->FUN_004e2cc0("Zoomed", 0);
+        zoomed = ((Class_004e2cc0*)&key)->ReadBool("Zoomed", 0);
         if (w < 100) {
             w = 100;
         }
@@ -7579,7 +7579,7 @@ unsigned char __cdecl RestoreWindowPosition(HWND hwnd, char* name, double zoomX,
 }
 
 // FUNCTION: 0x4e33d0
-void __cdecl FUN_004e33d0(HWND hwnd, char* name, double a, double b)
+void __cdecl RestoreWindow(HWND hwnd, char* name, double a, double b)
 {
     RestoreWindowPosition(hwnd, name, a, b, 1);
 }
@@ -7620,7 +7620,7 @@ void __cdecl SaveWindowPosition(HWND hwnd, char* name)
         if ((GetWindowLongA(hwnd, GWL_STYLE) & WS_THICKFRAME) == WS_THICKFRAME) {
             ((Class_004e2d70*)&key)->WriteDword("Width", r.right);
             ((Class_004e2d70*)&key)->WriteDword("Height", r.bottom);
-            ((Class_004e2ce0*)&key)->FUN_004e2ce0("Zoomed", IsZoomed(hwnd) != 0);
+            ((Class_004e2ce0*)&key)->WriteBool("Zoomed", IsZoomed(hwnd) != 0);
         }
     }
 }
@@ -7628,11 +7628,11 @@ void __cdecl SaveWindowPosition(HWND hwnd, char* name)
 // FUNCTION: 0x4e3710
 bool CloseGdperf()
 {
-    if (DAT_00529e9c) {
-        DAT_00529e9c = 0;
-        if (DAT_00529e98) {
-            BOOL ok = CloseHandle(DAT_00529e98);
-            DAT_00529e98 = 0;
+    if (g_gdperfDriverReady) {
+        g_gdperfDriverReady = 0;
+        if (g_gdperfDevice) {
+            BOOL ok = CloseHandle(g_gdperfDevice);
+            g_gdperfDevice = 0;
             if (ok)
                 return true;
         }
@@ -7650,13 +7650,13 @@ extern bool __cdecl WriteGdperf(DWORD a, __int64 b);
 
 // Sends one effect-descriptor dword to the "Microsoft Game Device" driver that
 // 0x4e38e0 opened (\\.\GDPERF, see the caller at 0x4e36c0). Two device families
-// are handled, selected by DAT_00529ea0, which holds the CPU family nibble:
+// are handled, selected by g_cpuFamily, which holds the CPU family nibble:
 // 5 gets a two-call sequence, 6 a single call.
 // 0x4e3750 ProgramPerfEvent stays in src/debug/debug_lib_4e3750.cpp: joined into
 // this file its register allocation lands differently
 // (docs/c2-regalloc.md).
 
-// Sends one dword to the driver opened in DAT_00529e98 and reads back
+// Sends one dword to the driver opened in g_gdperfDevice and reads back
 // 8 bytes; succeeds only when exactly 8 bytes were returned.
 // The original calls this out of line from ProgramPerfEvent.
 #pragma auto_inline(off)
@@ -7664,11 +7664,11 @@ extern bool __cdecl WriteGdperf(DWORD a, __int64 b);
 bool __cdecl ReadGdperf(DWORD a, void* out)
 {
     DWORD in = a;
-    if (!DAT_00529e9c) {
+    if (!g_gdperfDriverReady) {
         return false;
     }
     DWORD returned;
-    BOOL ok = DeviceIoControl(DAT_00529e98, 0x9c406404, &in, sizeof(in), out, 8, &returned, 0);
+    BOOL ok = DeviceIoControl(g_gdperfDevice, 0x9c406404, &in, sizeof(in), out, 8, &returned, 0);
     if (returned != 8) {
         ok = 0;
     }
@@ -7681,7 +7681,7 @@ bool __cdecl ReadGdperf(DWORD a, void* out)
 // FUNCTION: 0x4e3930
 bool __cdecl WriteGdperf(DWORD a, DWORD b, DWORD c)
 {
-    if (!DAT_00529e9c) {
+    if (!g_gdperfDriverReady) {
         return false;
     }
     DWORD in[3];
@@ -7689,7 +7689,7 @@ bool __cdecl WriteGdperf(DWORD a, DWORD b, DWORD c)
     in[1] = b;
     in[2] = c;
     DWORD returned;
-    BOOL ok = DeviceIoControl(DAT_00529e98, 0x9c406400, in, sizeof(in), 0, 0, &returned, 0);
+    BOOL ok = DeviceIoControl(g_gdperfDevice, 0x9c406400, in, sizeof(in), 0, 0, &returned, 0);
     if (returned != 0) {
         ok = 0;
     }
@@ -7700,91 +7700,91 @@ bool __cdecl WriteGdperf(DWORD a, DWORD b, DWORD c)
 // FUNCTION: 0x4e39a0
 int GetCpuFamily(void)
 {
-    return DAT_00529ea0;
+    return g_cpuFamily;
 }
 
 // FUNCTION: 0x4e3e10
-int FUN_004e3e10(void)
+int StringMaxSize(void)
 {
     return 0xfffffffd;
 }
 
 extern void __cdecl EmptyAtexitHandler();
-void __cdecl FUN_004e4250(void);
-void __cdecl FUN_004e4260(void);
-void __cdecl FUN_004e4270(void);
-void __cdecl FUN_004e4280(void);
-void __cdecl FUN_004e4290(void);
-void __cdecl FUN_004e42a0(void);
+void __cdecl EmptyAtexitHandlerG(void);
+void __cdecl EmptyAtexitHandlerF(void);
+void __cdecl EmptyAtexitHandlerE(void);
+void __cdecl EmptyAtexitHandlerD(void);
+void __cdecl EmptyAtexitHandlerB(void);
+void __cdecl EmptyAtexitHandlerA(void);
 
 // FUNCTION: 0x4e41e0
-void FUN_004e41e0(void)
+void RegisterEmptyAtexitA(void)
 {
-    atexit(FUN_004e42a0);
+    atexit(EmptyAtexitHandlerA);
 }
 
 // FUNCTION: 0x4e41f0
-void FUN_004e41f0()
+void RegisterEmptyAtexitB()
 {
-    atexit(FUN_004e4290);
+    atexit(EmptyAtexitHandlerB);
 }
 
 // FUNCTION: 0x4e4200
-void FUN_004e4200()
+void RegisterEmptyAtexitC()
 {
     atexit(EmptyAtexitHandler);
 }
 
 // FUNCTION: 0x4e4210
-void FUN_004e4210()
+void RegisterEmptyAtexitD()
 {
-    atexit(FUN_004e4280);
+    atexit(EmptyAtexitHandlerD);
 }
 
 // FUNCTION: 0x4e4220
-void FUN_004e4220()
+void RegisterEmptyAtexitE()
 {
-    atexit(FUN_004e4270);
+    atexit(EmptyAtexitHandlerE);
 }
 
 // FUNCTION: 0x4e4230
-void FUN_004e4230()
+void RegisterEmptyAtexitF()
 {
-    atexit(FUN_004e4260);
+    atexit(EmptyAtexitHandlerF);
 }
 
 // FUNCTION: 0x4e4240
-void FUN_004e4240()
+void RegisterEmptyAtexitG()
 {
-    atexit(FUN_004e4250);
+    atexit(EmptyAtexitHandlerG);
 }
 
 // FUNCTION: 0x4e4250
-void __cdecl FUN_004e4250(void)
+void __cdecl EmptyAtexitHandlerG(void)
 {
 }
 
 // FUNCTION: 0x4e4260
-void __cdecl FUN_004e4260(void)
+void __cdecl EmptyAtexitHandlerF(void)
 {
 }
 
 // FUNCTION: 0x4e4270
-void __cdecl FUN_004e4270(void)
+void __cdecl EmptyAtexitHandlerE(void)
 {
 }
 
 // FUNCTION: 0x4e4280
-void __cdecl FUN_004e4280(void)
+void __cdecl EmptyAtexitHandlerD(void)
 {
 }
 
 // FUNCTION: 0x4e4290
-void __cdecl FUN_004e4290(void)
+void __cdecl EmptyAtexitHandlerB(void)
 {
 }
 
 // FUNCTION: 0x4e42a0
-void __cdecl FUN_004e42a0(void)
+void __cdecl EmptyAtexitHandlerA(void)
 {
 }

@@ -5,8 +5,8 @@
 #include <windows.h>
 #include <string.h>
 
-void __cdecl FUN_004d85a0(int* param_1);
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void __cdecl GameFreeThunk(int* param_1);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 
 class CobScript {
 public:
@@ -244,10 +244,10 @@ CMemoryCache* CMemoryCache::ClearPointers()
 int CMemoryCache::InitCache(unsigned int newSize)
 {
     if (base != 0) {
-        FUN_004d85a0((int*)base);
+        GameFreeThunk((int*)base);
         base = 0;
     }
-    Chunk_00437a30* chunk = (Chunk_00437a30*)FUN_004d83b0("CMemoryCache CCH", newSize);
+    Chunk_00437a30* chunk = (Chunk_00437a30*)GameAllocIgnoreTag("CMemoryCache CCH", newSize);
     base = (int)chunk;
     cap = newSize;
     cur = (int)chunk;
@@ -260,7 +260,7 @@ int CMemoryCache::InitCache(unsigned int newSize)
 void CMemoryCache::FreeCache()
 {
     if (base != 0) {
-        FUN_004d85a0((int*)base);
+        GameFreeThunk((int*)base);
         base = 0;
     }
 }
@@ -268,7 +268,7 @@ void CMemoryCache::FreeCache()
 // FUNCTION: 0x437a20
 void CMemoryCache::FreeBuffer()
 {
-    FUN_004d85a0((int*)base);
+    GameFreeThunk((int*)base);
 }
 
 // Memory cache allocation: grows or reuses the handle in *p, splitting the

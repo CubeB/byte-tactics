@@ -51,8 +51,8 @@ struct RGBA {
 };
 
 DisplayContext* GetDisplay(void);
-void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
-void __cdecl FUN_004d85a0(void* p);
+void* __cdecl GameAllocIgnoreTag(const char* name, unsigned int size);
+void __cdecl GameFreeThunk(void* p);
 void __stdcall SortByBrightness(unsigned char* data, int* sums, unsigned char* idx);
 unsigned char __stdcall NearestColorInBand(PALETTEENTRY* palette, int* band, unsigned char* order, PALETTEENTRY color);
 
@@ -130,7 +130,7 @@ int __stdcall SetPaletteColors(unsigned char* src, int start, int count)
     if (d->field_44 != 0) {
         if (d->hpalette)
             DeleteObject(d->hpalette);
-        LOGPALETTE* lp = (LOGPALETTE*)FUN_004d83b0("Palette", 0x408);
+        LOGPALETTE* lp = (LOGPALETTE*)GameAllocIgnoreTag("Palette", 0x408);
         for (i = 0; i < 256; i++) {
             ((unsigned int*)lp->palPalEntry)[i] = ((unsigned int*)local)[i];
             quad[i * 4 + 2] = local[i * 4];
@@ -142,7 +142,7 @@ int __stdcall SetPaletteColors(unsigned char* src, int start, int count)
         lp->palNumEntries = 0x100;
         d->hpalette = CreatePalette(lp);
         SetDIBColorTable(d->dc, 0, 0x100, (RGBQUAD*)quad);
-        FUN_004d85a0(lp);
+        GameFreeThunk(lp);
     } else if (d->gdi) {
         // Named HRESULT: gives the compare against the hoisted zero.
         HRESULT hr = d->ddPalette->SetEntries(0, start, count, (LPPALETTEENTRY)(local + start * 4));
@@ -196,7 +196,7 @@ void __stdcall SetBrightness(int param_1)
 // FUNCTION: 0x4ba5c0
 int __stdcall AllocAlphaTable(int param_1)
 {
-    void* result = FUN_004d83b0(g_alphaTableName, 0x10000);
+    void* result = GameAllocIgnoreTag(g_alphaTableName, 0x10000);
     *(void**)((int)param_1 + 0xc0) = result;
     return 1;
 }
@@ -204,12 +204,12 @@ int __stdcall AllocAlphaTable(int param_1)
 // FUNCTION: 0x4ba5f0
 void __stdcall FreeAlphaTable(DisplayContext* param)
 {
-    FUN_004d85a0(param->alphaTable);
+    GameFreeThunk(param->alphaTable);
 }
 
 // FUNCTION: 0x4ba610
 int __stdcall AllocShadeTable(DisplayContext* param_1) {
-    void* result = FUN_004d83b0(g_shadeTableName, 0x2000);
+    void* result = GameAllocIgnoreTag(g_shadeTableName, 0x2000);
     param_1->shadeTable = result;
     return 1;
 }
@@ -217,46 +217,46 @@ int __stdcall AllocShadeTable(DisplayContext* param_1) {
 // FUNCTION: 0x4ba640
 void __stdcall FreeShadeTable(DisplayContext* obj)
 {
-    FUN_004d85a0(obj->shadeTable);
+    GameFreeThunk(obj->shadeTable);
 }
 
 // FUNCTION: 0x4ba660
 int __stdcall AllocLightTable(DisplayContext* obj)
 {
-    obj->lightTable = FUN_004d83b0("LIGHT TABLE", 0x2000);
+    obj->lightTable = GameAllocIgnoreTag("LIGHT TABLE", 0x2000);
     return 1;
 }
 
 // FUNCTION: 0x4ba690
 void __stdcall FreeLightTable(int param_1)
 {
-    FUN_004d85a0(*(void**)(param_1 + 0xc8));
+    GameFreeThunk(*(void**)(param_1 + 0xc8));
 }
 
 // FUNCTION: 0x4ba6b0
 int __stdcall AllocGrayTable(DisplayContext* obj)
 {
-    obj->grayTable = FUN_004d83b0("GRAY TABLE", 0x100);
+    obj->grayTable = GameAllocIgnoreTag("GRAY TABLE", 0x100);
     return 1;
 }
 
 // FUNCTION: 0x4ba6e0
 void __stdcall FreeGrayTable(DisplayContext* obj)
 {
-    FUN_004d85a0(obj->grayTable);
+    GameFreeThunk(obj->grayTable);
 }
 
 // FUNCTION: 0x4ba700
 int __stdcall AllocBlueTable(DisplayContext* obj)
 {
-    obj->blueTable = FUN_004d83b0("BLUE TABLE", 0x100);
+    obj->blueTable = GameAllocIgnoreTag("BLUE TABLE", 0x100);
     return 1;
 }
 
 // FUNCTION: 0x4ba730
 void __stdcall FreeBlueTable(DisplayContext* obj)
 {
-    FUN_004d85a0(obj->blueTable);
+    GameFreeThunk(obj->blueTable);
 }
 
 // Builds the 256x256 colour-blend table at obj->alphaTable when has_c0 is

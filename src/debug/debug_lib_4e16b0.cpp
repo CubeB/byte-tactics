@@ -2,15 +2,15 @@
 
 char IsPentiumOrBetter(void);
 
-extern char DAT_00529e74;
-extern char DAT_00529e78;
+extern char g_cpuFeaturesRead;
+extern char g_cpuHasTsc;
 
 // FUNCTION: 0x4e16b0
 char FUN_004e16b0(void)
 {
     unsigned int features;
-    if (!DAT_00529e74) {
-        DAT_00529e74 = 1;
+    if (!g_cpuFeaturesRead) {
+        g_cpuFeaturesRead = 1;
         if (IsPentiumOrBetter()) {
             __asm {
                 push eax
@@ -27,8 +27,8 @@ char FUN_004e16b0(void)
                 pop eax
             }
             if (features & 0x800000)
-                DAT_00529e78 = 1;
+                g_cpuHasTsc = 1;
         }
     }
-    return DAT_00529e78;
+    return g_cpuHasTsc;
 }

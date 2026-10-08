@@ -8,8 +8,8 @@
 #include <windows.h>
 #include <vector>
 
-extern unsigned int DAT_005289f0; // bytes committed
-extern void (*DAT_005289bc)();
+extern unsigned int g_committedBytes; // bytes committed
+extern void (*g_outOfMemoryHandler)();
 
 // ---- the live-block map ----------------------------------------------------
 
@@ -54,7 +54,7 @@ public:
     LiveNode* head;        // +0x4
 
     Iter_004dce00 end() { return Iter_004dce00(head); }
-    Iter_004dce00 FUN_004dce00(const unsigned int& key); // find
+    Iter_004dce00 Find(const unsigned int& key); // find
     Iter_004dce00 erase(Iter_004dce00 it) { return ((Class_004dc910*)this)->erase(it); }
 };
 
@@ -79,9 +79,9 @@ public:
         pointer _P;
         do {
             _P = (pointer)GlobalAlloc(0, _N * sizeof(value_type));
-            if (_P == 0 && DAT_005289bc != 0)
-                DAT_005289bc();
-        } while (_P == 0 && DAT_005289bc != 0);
+            if (_P == 0 && g_outOfMemoryHandler != 0)
+                g_outOfMemoryHandler();
+        } while (_P == 0 && g_outOfMemoryHandler != 0);
         return _P;
     }
     void deallocate(pointer _P, size_type)
@@ -129,7 +129,7 @@ public:
     bool operator!=(const Class_004dbe10& o) const { return !(*this == o); }
     Pair_004db000& operator*() const { return ptr->value; }
     Pair_004db000* operator->() const { return &ptr->value; }
-    Class_004dbe10 FUN_004dbe10(int); // operator--(int)
+    Class_004dbe10 Previous(int); // operator--(int)
 };
 
 class Class_004ddbe0 {
@@ -139,10 +139,10 @@ public:
     Class_004ddbe0() {}
 };
 
-class Class_004dbd20 { public: Class_004dbe10 FUN_004dbd20(const unsigned int& k); };
-class Class_004dbeb0 { public: Class_004dbe10 FUN_004dbeb0(); };
-class Class_004dbd00 { public: Class_004dbe10 FUN_004dbd00(Class_004dbe10 it); };
-class Class_004dce60 { public: Class_004ddbe0 FUN_004dbbc0(const Pair_004db000& v); };
+class Class_004dbd20 { public: Class_004dbe10 UpperBound(const unsigned int& k); };
+class Class_004dbeb0 { public: Class_004dbe10 Begin(); };
+class Class_004dbd00 { public: Class_004dbe10 Erase(Class_004dbe10 it); };
+class Class_004dce60 { public: Class_004ddbe0 InsertOrFind(const Pair_004db000& v); };
 
 class FreeBlockMap {
 public:
@@ -152,14 +152,14 @@ public:
     unsigned int count;    // +0xc
     unsigned int total;    // +0x10
 
-    Class_004dbe10 begin() { return ((Class_004dbeb0*)this)->FUN_004dbeb0(); }
+    Class_004dbe10 begin() { return ((Class_004dbeb0*)this)->Begin(); }
     Class_004dbe10 end() { return Class_004dbe10(head); }
     Class_004dbe10 upper_bound(const unsigned int& k)
     {
-        return ((Class_004dbd20*)this)->FUN_004dbd20(k);
+        return ((Class_004dbd20*)this)->UpperBound(k);
     }
-    Class_004dbe10 erase(Class_004dbe10 it) { return ((Class_004dbd00*)this)->FUN_004dbd00(it); }
-    Class_004ddbe0 insert(const Pair_004db000& v) { return ((Class_004dce60*)this)->FUN_004dbbc0(v); }
+    Class_004dbe10 erase(Class_004dbe10 it) { return ((Class_004dbd00*)this)->Erase(it); }
+    Class_004ddbe0 insert(const Pair_004db000& v) { return ((Class_004dce60*)this)->InsertOrFind(v); }
 
     // 0x4db000: add a free block, merged with the free blocks on either side.
     void AddFreeBlock(Pair_004db000 p)
@@ -170,7 +170,7 @@ public:
         if (it == begin())
             it = end();
         else
-            it.FUN_004dbe10(0);
+            it.Previous(0);
         if (n != end()) {
             if (n->offset == p.offset + p.length) {
                 p.length = p.length + n->length;
@@ -188,27 +188,27 @@ public:
     }
 };
 
-CRITICAL_SECTION* FUN_004da780();
+CRITICAL_SECTION* GetAllocLock();
 Class_004dce00* GetBlockMap();
 Arena_004da9f0* GetFreedBlockRing();
 FreeBlockMap* GetFreeBlockSet();
 char IsBackAlign();
-int FUN_004db7c0();
+int GetDebugFillPattern();
 void __cdecl CheckFillPattern(void* at, int value, unsigned int count);
 void __cdecl CountFree(unsigned int size);
 unsigned int __cdecl RoundUpToPage(unsigned int size);
-unsigned int __cdecl FUN_004da8a0(unsigned int size);
+unsigned int __cdecl RoundUpToDoublePage(unsigned int size);
 
 // FUNCTION: 0x4db7d0
 void __cdecl FreeDebugBlock(void* p, int flags)
 {
     if (p == 0)
         return;
-    CRITICAL_SECTION* lock = FUN_004da780();
+    CRITICAL_SECTION* lock = GetAllocLock();
     EnterCriticalSection(lock);
     Class_004dce00* live = GetBlockMap();
     Class_004d8820 rec((unsigned int)p, 0, 0, 0, 0);
-    Iter_004dce00 it = live->FUN_004dce00(rec.base);
+    Iter_004dce00 it = live->Find(rec.base);
     if (it == GetBlockMap()->end()) {
         LeaveCriticalSection(lock);
         return;
@@ -216,9 +216,9 @@ void __cdecl FreeDebugBlock(void* p, int flags)
     unsigned int size = it->size;
     unsigned int pad = (0 - (size & 0xfff)) & 0xfff;
     if (IsBackAlign())
-        CheckFillPattern((char*)p - pad, FUN_004db7c0(), pad);
+        CheckFillPattern((char*)p - pad, GetDebugFillPattern(), pad);
     else
-        CheckFillPattern((char*)p + size, FUN_004db7c0(), pad);
+        CheckFillPattern((char*)p + size, GetDebugFillPattern(), pad);
     Elem_004dd8c0* old = (Elem_004dd8c0*)&*it;
     Arena_004da9f0* arena = GetFreedBlockRing();
     if (arena->count < 0x2000)
@@ -228,13 +228,13 @@ void __cdecl FreeDebugBlock(void* p, int flags)
     arena->count++;
     GetBlockMap()->erase(it);
     CountFree(size);
-    DAT_005289f0 -= (size + 0xfff) & 0xfffff000;
+    g_committedBytes -= (size + 0xfff) & 0xfffff000;
     p = (void*)((unsigned int)p & 0xfffff000);
     if (size == 0)
         size = 1;
     unsigned int commit = RoundUpToPage(size);
     VirtualFree(p, commit, MEM_DECOMMIT);
-    unsigned int reserve = FUN_004da8a0(size);
+    unsigned int reserve = RoundUpToDoublePage(size);
     FreeBlockMap* blocks = GetFreeBlockSet();
     blocks->AddFreeBlock(Pair_004db000((unsigned int)p, reserve));
     LeaveCriticalSection(lock);

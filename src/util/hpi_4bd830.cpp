@@ -54,8 +54,8 @@ int __stdcall HAPI_readfromfile(FileHandle* file, unsigned char* buf, int size);
 int __stdcall SquashPack(void* chunk, int* chunkSize, char* data,
                            int size, int method, int encrypt);
 unsigned int __stdcall SquashMaxPackedSize(unsigned int value, int mode);
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-void __cdecl FUN_004d85a0(void* p);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
+void __cdecl GameFreeThunk(void* p);
 // This forward declaration, Node_004bd830 and the casts in nblocks all stay.
 void __stdcall HAPI_WriteArchiveData(char* path, char* base, int off, FILE* f,
                             void (__cdecl* cb)(unsigned), unsigned extra,
@@ -119,11 +119,11 @@ void __stdcall HAPI_WriteArchiveData(char* path, char* base, int off, FILE* f,
             info->compressed = (char)flags;
             if ((char)flags) {
                 int blocks = nblocks(info->size);
-                table = (int*)FUN_004d83b0("Block Sizes", blocks * 4);
+                table = (int*)GameAllocIgnoreTag("Block Sizes", blocks * 4);
                 fwrite(table, blocks, 4, f);
                 packlen = SquashMaxPackedSize(0x10000, flags & 0xff);
-                pack = (unsigned char*)FUN_004d83b0("Pack Buffer", packlen);
-                data = (unsigned char*)FUN_004d83b0("Data Buffer", 0x10000);
+                pack = (unsigned char*)GameAllocIgnoreTag("Pack Buffer", packlen);
+                data = (unsigned char*)GameAllocIgnoreTag("Data Buffer", 0x10000);
                 remaining = info->size;
                 // remaining is decremented in the for-increment, not as the last body statement.
                 for (n = 0; n < blocks; n++, remaining -= 0x10000) {
@@ -150,9 +150,9 @@ void __stdcall HAPI_WriteArchiveData(char* path, char* base, int off, FILE* f,
                 }
                 fwrite(table, blocks, 4, f);
                 fseek(f, 0, SEEK_END);
-                FUN_004d85a0(table);
-                FUN_004d85a0(pack);
-                FUN_004d85a0(data);
+                GameFreeThunk(table);
+                GameFreeThunk(pack);
+                GameFreeThunk(data);
             } else {
                 size = info->size;
                 while (size > 0) {
@@ -178,10 +178,10 @@ void __stdcall HAPI_WriteArchiveData(char* path, char* base, int off, FILE* f,
                 fclose(file->fp);
             }
             if (file->buffer != 0)
-                FUN_004d85a0(file->buffer);
+                GameFreeThunk(file->buffer);
             if (file->buffer2 != 0)
-                FUN_004d85a0(file->buffer2);
-            FUN_004d85a0(file);
+                GameFreeThunk(file->buffer2);
+            GameFreeThunk(file);
             if (cb != 0)
                 cb(5 + (unsigned)(90 * info->offset - *(int*)(8 + base) * 90) / extra);
         }

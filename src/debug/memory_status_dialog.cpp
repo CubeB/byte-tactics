@@ -7,25 +7,25 @@
 HWND __cdecl CreateDialogFromTemplate(int id, HWND parent, DLGPROC proc, LPARAM param);
 BOOL CALLBACK MemoryStatusDlgProc(HWND, UINT, WPARAM, LPARAM);
 
-extern char DAT_0050d6b4[]; // "Performance dialog failed to open"
-extern char DAT_0050c8ac[]; // "Cavedog"
+extern char g_performanceDialogError[]; // "Performance dialog failed to open"
+extern char g_cavedogTitle[]; // "Cavedog"
 
-extern unsigned int DAT_005289d0;
-extern unsigned int DAT_005289d4;
-extern unsigned int DAT_005289d8;
-extern unsigned int DAT_005289dc;
-extern unsigned int DAT_005289f0;
-extern unsigned int DAT_005289f8;
-extern unsigned int DAT_005289fc;
-extern unsigned int DAT_00528a00;
-extern unsigned int DAT_00528a04;
-extern unsigned int DAT_00528a08;
-extern unsigned int DAT_00528a1c;
+extern unsigned int g_committedBytesPeak;
+extern unsigned int g_lastAllocOffset;
+extern unsigned int g_currentBytesPeak;
+extern unsigned int g_bytesRequestedLo;
+extern unsigned int g_committedBytes;
+extern unsigned int g_currentBytes;
+extern unsigned int g_bytesRequestedHi;
+extern unsigned int g_freeBlockWraps;
+extern unsigned int g_allocSerial;
+extern unsigned int g_liveAllocCount;
+extern unsigned int g_liveAllocPeak;
 extern char DAT_005119b8;
-extern char DAT_005295d8[];
-extern char* DAT_0050d72c;
+extern char g_memStatusLastText[];
+extern char* g_memoryStatusWindowName;
 
-void __cdecl FUN_004e33d0(HWND hwnd, char* name, double a, double b);
+void __cdecl RestoreWindow(HWND hwnd, char* name, double a, double b);
 void __cdecl SaveWindowPosition(HWND hwnd, char* name);
 void __cdecl OpenUrl(HWND hwnd, char* url, char* ext);
 void ResetAllocStats(void);
@@ -36,7 +36,7 @@ class Class_004e0520 {
 public:
     char unknown_0[0x79];
     unsigned char workingSet;          // +0x79
-    void FUN_004e0520(int readOnly);
+    void LoadWorkingSetPref(int readOnly);
 };
 
 class Class_004e05f0 {
@@ -142,7 +142,7 @@ int MemoryStatusDialog::HandleMemoryStatusMessage(unsigned int msg, int wParam, 
         switch (wParam & 0xffff) {
         case 0x3f9:
             workingSet = (workingSet == 0);
-            ((Class_004e0520*)this)->FUN_004e0520(0);
+            ((Class_004e0520*)this)->LoadWorkingSetPref(0);
             return 0;
         case 0x3fa:
             OpenUrl(hwnd, "http://10.0.150.18/programming/library/extras/memorystatusdialog.html", ".htm");
@@ -181,42 +181,42 @@ int MemoryStatusDialog::HandleMemoryStatusMessage(unsigned int msg, int wParam, 
         if (rect.left != left || rect.top != top) {
             left = rect.left;
             top = rect.top;
-            SaveWindowPosition(hwnd, DAT_0050d72c);
+            SaveWindowPosition(hwnd, g_memoryStatusWindowName);
         }
 
-        int delta = DAT_00528a04 - field_4;
+        int delta = g_allocSerial - field_4;
         double now = GetTimeSeconds();
         double speed = now - time;
         time = now;
         rate_add(&rates, delta, speed);
-        field_4 = DAT_00528a04;
+        field_4 = g_allocSerial;
 
         buf[0] = DAT_005119b8;
         memset(buf + 1, 0, sizeof(buf) - 1);
 
-        if (DAT_005289fc != 0) {
-            fmt_004e0b90(t, DAT_005289dc + 1000000000);
+        if (g_bytesRequestedHi != 0) {
+            fmt_004e0b90(t, g_bytesRequestedLo + 1000000000);
             strcpy(copy, t);
-            fmt_004e0b90(b, DAT_005289fc);
+            fmt_004e0b90(b, g_bytesRequestedHi);
             sprintf(req, "%s,%s", b, copy + 2);
         } else {
-            fmt_004e0b90(t2, DAT_005289dc);
+            fmt_004e0b90(t2, g_bytesRequestedLo);
             sprintf(req, "%s", t2);
         }
 
         double rate = rates.total * 0.1;
         double rateText = (rate > 0.0) ? rate : 0.0;
 
-        fmt_004e0b90(s0, DAT_005289d0);
-        fmt_004e0b90(s1, DAT_005289f0);
-        fmt_004e0b90(s2, DAT_005289d8);
-        fmt_004e0b90(s3, DAT_005289f8);
+        fmt_004e0b90(s0, g_committedBytesPeak);
+        fmt_004e0b90(s1, g_committedBytes);
+        fmt_004e0b90(s2, g_currentBytesPeak);
+        fmt_004e0b90(s3, g_currentBytes);
         fmt_004e0b90(s4, (unsigned int)field_4);
-        fmt_004e0b90(s5, DAT_00528a1c);
+        fmt_004e0b90(s5, g_liveAllocPeak);
         // Written out by hand: a tenth helper call would exceed the inline budget.
         {
             char* buf = s6;
-            unsigned int n = DAT_00528a08;
+            unsigned int n = g_liveAllocCount;
             char* f;
             char* w;
             int digits;
@@ -260,17 +260,17 @@ int MemoryStatusDialog::HandleMemoryStatusMessage(unsigned int msg, int wParam, 
                 "Next Alloc Location:    %2X:%08lX\r\n"
                 "Current with padding: %13s\r\n"
                 "Max with padding:     %13s\r\n",
-                s6, s5, s4, rateText, s3, s2, req, DAT_00528a00, DAT_005289d4, s1, s0);
+                s6, s5, s4, rateText, s3, s2, req, g_freeBlockWraps, g_lastAllocOffset, s1, s0);
 
         if (workingSet != 0)
             FormatWorkingSet(&buf[strlen(buf)]);
 
-        if (strcmp(DAT_005295d8, buf) == 0)
+        if (strcmp(g_memStatusLastText, buf) == 0)
             return 0;
 
         SetDlgItemTextA(hwnd, 1000, buf);
         UpdateWindow(hwnd);
-        strcpy(DAT_005295d8, buf);
+        strcpy(g_memStatusLastText, buf);
         return 0;
     }
 

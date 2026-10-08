@@ -77,7 +77,7 @@ int __stdcall HAPI_FileLengthByName(char* path);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 
 void __stdcall HAPI_ReadFileAt(char* filename, void* buffer, int offset, int size);
-void __cdecl FUN_004d85a0(void* p);
+void __cdecl GameFreeThunk(void* p);
 
 int GetPreferredLanguage(void);
 char* __stdcall StripExtension(char* name);
@@ -133,7 +133,7 @@ int __stdcall GetLocalizedString(TdfFile* obj, char* buf, const char* key, int s
 void EnableMeteors();
 void DisableMeteors();
 void __stdcall SetMeteorParams(MeteorParams* p);
-void* __cdecl FUN_004d84a0(void* p, const char* name, unsigned int size);
+void* __cdecl GameReallocTagged(void* p, const char* name, unsigned int size);
 void __stdcall SetCursorMode(int n);
 void __stdcall ListDirectory(const char* pattern, int flags, std::vector<Class_004c91a0>* out);
 void HandleNetPackets();
@@ -185,7 +185,7 @@ struct MissionFeature {
     int z;                             // +0x84
 };
 
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 
 struct Vec3_00437320 {
     int x;                             // +0x0
@@ -369,7 +369,7 @@ void __stdcall SetMissionType(int owner)
 void FreeOtaEnumCacheAndMission()
 {
     if (g_otaEnumFileList) {
-        FUN_004d85a0(g_otaEnumFileList);
+        GameFreeThunk(g_otaEnumFileList);
         g_otaEnumFileList = 0;
     }
     g_otaEnumCacheComplete = 0;
@@ -388,7 +388,7 @@ int __stdcall LoadMapList(void** param_1, int param_2, int param_3)
                 *param_1 = g_otaEnumFileList;
                 g_otaEnumFileList = 0;
             } else {
-                char* p = (char*)FUN_004d83b0("MULTI MAPS", g_otaEnumFileListBytes);
+                char* p = (char*)GameAllocIgnoreTag("MULTI MAPS", g_otaEnumFileListBytes);
                 *param_1 = p;
                 memcpy(p, g_otaEnumFileList, g_otaEnumFileListBytes);
             }
@@ -409,7 +409,7 @@ int __stdcall LoadMapList(void** param_1, int param_2, int param_3)
     }
     int offset = 0;
     g_otaEnumFileListBytes = 1;
-    g_otaEnumFileList = (char*)FUN_004d83b0("MULTI MAPS", 1);
+    g_otaEnumFileList = (char*)GameAllocIgnoreTag("MULTI MAPS", 1);
     *(char*)g_otaEnumFileList = 0;
 
     std::vector<Class_004c91a0> files;
@@ -432,7 +432,7 @@ int __stdcall LoadMapList(void** param_1, int param_2, int param_3)
             if (_strcmpi(src, a.lower) == 0)
                 src = a.name;
             int len = strlen(src) + 1;
-            g_otaEnumFileList = (char*)FUN_004d84a0(g_otaEnumFileList, "MULTI MAPS",
+            g_otaEnumFileList = (char*)GameReallocTagged(g_otaEnumFileList, "MULTI MAPS",
                                                len + g_otaEnumFileListBytes);
             strcpy(g_otaEnumFileList + offset, src);
             g_otaEnumFileList[offset + len] = 0;
@@ -493,29 +493,29 @@ Mission::~Mission()
         g_game->field_391ed = 0;
     }
     if (units)
-        FUN_004d85a0(units);
+        GameFreeThunk(units);
     units = 0;
     unitCount = 0;
     if (rules)
-        FUN_004d85a0(rules);
+        GameFreeThunk(rules);
     rules = 0;
     ruleCount = 0;
     if (features)
-        FUN_004d85a0(features);
+        GameFreeThunk(features);
     features = 0;
     featureCount = 0;
     if (briefing) {
-        FUN_004d85a0(briefing);
+        GameFreeThunk(briefing);
         briefing = 0;
     }
     if (mapList)
-        FUN_004d85a0(mapList);
+        GameFreeThunk(mapList);
     if (features)
-        FUN_004d85a0(features);
+        GameFreeThunk(features);
     if (rules)
-        FUN_004d85a0(rules);
+        GameFreeThunk(rules);
     if (units)
-        FUN_004d85a0(units);
+        GameFreeThunk(units);
 
 }
 
@@ -582,7 +582,7 @@ char* Mission::GetCampaignName()
 void Mission::LoadBriefing()
 {
     if (briefing)
-        FUN_004d85a0(briefing);
+        GameFreeThunk(briefing);
     char* name = strlen(names[2]) > 0 ? names[2] : 0;
     if (name == 0) {
         briefing = 0;
@@ -590,7 +590,7 @@ void Mission::LoadBriefing()
     }
     int size = HAPI_FileLengthByName(name);
     if (size != 0) {
-        briefing = (char*)FUN_004d83b0("Briefing", size + 1);
+        briefing = (char*)GameAllocIgnoreTag("Briefing", size + 1);
         HAPI_ReadFileAt(name, briefing, 0, size);
         briefing[size] = 0;
     }
@@ -702,7 +702,7 @@ int Mission::BuildMissionList(char** out)
         n = m;
     }
     if (n != 0) {
-        char* p = (char*)FUN_004d83b0("MissionList", n << 8);
+        char* p = (char*)GameAllocIgnoreTag("MissionList", n << 8);
         *out = p;
         *p = 0;
         for (int i = 0; i < n; i++) {
@@ -815,14 +815,14 @@ int Mission::LoadMissionByName(char* map)
             char* p = (char*)res;
             for (int i = 0; i < count; i++) {
                 if (_strcmpi(p, map) == 0) {
-                    FUN_004d85a0((void*)res);
+                    GameFreeThunk((void*)res);
                     tntChecksum = 0;
                     missionIndex = i;
                     return LoadMission(0);
                 }
                 p += strlen(p) + 1;
             }
-            FUN_004d85a0((void*)res);
+            GameFreeThunk((void*)res);
         }
     }
     return 0;
@@ -898,7 +898,7 @@ int Mission::AdvanceMission()
 void Mission::RefreshMapList(int param_1)
 {
     if (multi != 0 && param_1 == 0 && mapList != 0) {
-        FUN_004d85a0((int*)mapList);
+        GameFreeThunk((int*)mapList);
         mapList = 0;
     }
     if (mapList == 0) {
@@ -940,19 +940,19 @@ int Mission::LoadMission(char* map)
     description[0] = 0;
     // 0x437280 (the buffer reset) is written out here, not called: it is not auto-inlined.
     if (units)
-        FUN_004d85a0(units);
+        GameFreeThunk(units);
     units = 0;
     unitCount = 0;
     if (rules)
-        FUN_004d85a0(rules);
+        GameFreeThunk(rules);
     rules = 0;
     ruleCount = 0;
     if (features)
-        FUN_004d85a0(features);
+        GameFreeThunk(features);
     features = 0;
     featureCount = 0;
     if (briefing) {
-        FUN_004d85a0(briefing);
+        GameFreeThunk(briefing);
         briefing = 0;
     }
 
@@ -1253,7 +1253,7 @@ void Mission::LoadMissionData(char* name, TdfFile* parser)
     // Own local, computed before unitCount is stored: keeps the count in ecx.
     int unitBytes = count * sizeof(MissionUnit);
     unitCount = count;
-    units = (MissionUnit*)FUN_004d83b0("MISSIONUNIT DATA",
+    units = (MissionUnit*)GameAllocIgnoreTag("MISSIONUNIT DATA",
         (total / 0x400 + 2) * 0x400 + unitBytes);
     char* strings = (char*)units + unitBytes;
     for (i = 0; i < count; i++) {
@@ -1300,7 +1300,7 @@ void Mission::LoadMissionData(char* name, TdfFile* parser)
     else
         count = 0;
     ruleCount = count;
-    rules = (MissionRule*)FUN_004d83b0("MISSIONRULE DATA", count * sizeof(MissionRule));
+    rules = (MissionRule*)GameAllocIgnoreTag("MISSIONRULE DATA", count * sizeof(MissionRule));
     int startPos = 0;
     for (i = 0; i < count; i++) {
         MissionRule* r = &rules[i];
@@ -1331,8 +1331,8 @@ void Mission::LoadMissionData(char* name, TdfFile* parser)
         count = 0;
     featureCount = count;
     if (features)
-        FUN_004d85a0(features);
-    features = (MissionFeature*)FUN_004d83b0("MISSIONFEATURE DATA", count * sizeof(MissionFeature));
+        GameFreeThunk(features);
+    features = (MissionFeature*)GameAllocIgnoreTag("MISSIONFEATURE DATA", count * sizeof(MissionFeature));
     for (i = 0; i < count; i++) {
         MissionFeature* f = &features[i];
         TdfRecord* s = list->GetSubRecord(i);
@@ -1352,19 +1352,19 @@ void Mission::FreeMissionData()
 {
     // Written out in full, no Free() helper: the two clearing stores stay together.
     if (units)
-        FUN_004d85a0(units);
+        GameFreeThunk(units);
     units = 0;
     unitCount = 0;
     if (rules)
-        FUN_004d85a0(rules);
+        GameFreeThunk(rules);
     rules = 0;
     ruleCount = 0;
     if (features)
-        FUN_004d85a0(features);
+        GameFreeThunk(features);
     features = 0;
     featureCount = 0;
     if (briefing) {
-        FUN_004d85a0(briefing);
+        GameFreeThunk(briefing);
         briefing = 0;
     }
 }
@@ -1438,18 +1438,18 @@ int Mission::ComputeMapChecksum()
     }
     tntChecksum = tntChecksum ^ ComputeChecksum((unsigned char*)&header, 0x40);
     int size = header.width * header.height * 4;
-    void* data = FUN_004d83b0("Raw Plot Data", size);
+    void* data = GameAllocIgnoreTag("Raw Plot Data", size);
     HAPI_SeekFile(file, header.plotOffset);
     HAPI_readfromfile(file, data, size);
     tntChecksum = tntChecksum ^ ComputeChecksum((unsigned char*)data, size);
-    FUN_004d85a0(data);
+    GameFreeThunk(data);
     size = header.features * 0x84;
     if (size > 0) {
-        data = FUN_004d83b0("Raw Feature Data", size);
+        data = GameAllocIgnoreTag("Raw Feature Data", size);
         HAPI_SeekFile(file, header.featureOffset);
         HAPI_readfromfile(file, data, size);
         tntChecksum = tntChecksum ^ ComputeChecksum((unsigned char*)data, size);
-        FUN_004d85a0(data);
+        GameFreeThunk(data);
     }
     HAPI_CloseFile(file);
     // The checksum is stored after the copy constructor, not inside it:

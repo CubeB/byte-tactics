@@ -449,7 +449,7 @@ void __stdcall UnlockScreen(void*);
 void __cdecl RestoreScreen();
 void __cdecl FlipScreen();
 int __cdecl IsCdPlaying();
-void __cdecl FUN_004d85a0(void*);
+void __cdecl GameFreeThunk(void*);
 void __stdcall BuildDataPath(void*, char*, char*, char*);
 void __stdcall SendProbe(unsigned int, int);
 void __stdcall DrawSyncStatus(void*);
@@ -932,7 +932,7 @@ void LoadingScreenFrame(void)
         g_game->field_37e1f = 0x280;
         g_game->field_37e23 = 0x1e0;
         if (GetScreenWidth() != 0x280 || GetScreenHeight() != 0x1e0) {
-            FUN_004d85a0((void*)g_game->field_37e1b);
+            GameFreeThunk((void*)g_game->field_37e1b);
             g_game->field_37e1b = 0;
             SetRestoreSurface(0);
             RestoreScreen();
@@ -945,7 +945,7 @@ void LoadingScreenFrame(void)
         BuildDataPath(aux, "palettes", "guipal", "PAL");
         surfaceHandle = HAPI_LoadFile((unsigned int*)aux, 0);
         RemapPaletteToClosestIndices(&g_game->field_519, SURFACE_143a7, surfaceHandle);
-        FUN_004d85a0(surfaceHandle);
+        GameFreeThunk(surfaceHandle);
         g_game->field_38a37 = GetTicks();
         g_game->field_38a3b = 0;
         g_game->field_38a47 = 0;
@@ -986,7 +986,7 @@ void LoadingScreenFrame(void)
         BlankScreen();
         FreePictureCache();
         if (GetScreenWidth() != g_game->field_37f1b || GetScreenHeight() != g_game->field_37f1f) {
-            FUN_004d85a0((void*)g_game->field_37e1b);
+            GameFreeThunk((void*)g_game->field_37e1b);
             g_game->field_37e1b = 0;
             SetRestoreSurface(0);
             RestoreScreen();

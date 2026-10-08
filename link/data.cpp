@@ -308,19 +308,19 @@ int g_guaranteePackets = 1;  // 0x50a780 .data
 int g_cdNextTrackTimer = -1;  // 0x50b540 .data
 int g_cdFadeTimer = -1;  // 0x50b544 .data
 void* g_squashErrorNames[7] = {(void*)"SQUASHERR_OK", (void*)"SQUASHERR_BADHEADER", (void*)"SQUASHERR_BADCHECKSUM", (void*)"SQUASHERR_BADUNPACKSIZE", (void*)"SQUASHERR_BADUNPACKTYPE", (void*)"SQUASHERR_BADPACKTYPESQUASHERR_BADPARAMS"};  // 0x50b9e0 .data
-char DAT_0050c8ac[8] = "Cavedog";  // 0x50c8ac .data
+char g_cavedogTitle[8] = "Cavedog";  // 0x50c8ac .data
 // 0x50c908 .data
-char* DAT_0050c908[19] = {
+char* g_debugKeywords[19] = {
     (char*)"-memfussy", (char*)"-memnofussy", (char*)"-memfrontalign", (char*)"-gonzo", (char*)"-memset", (char*)"-memnoset", (char*)"-fpufussy", (char*)"-fpunofussy",
-    (char*)"-dprinton", (char*)"-dprintoff", (char*)"-dprintfile", (char*)DAT_0050d220, (char*)"-performancestatus", (char*)"-disableimagehlp", (char*)"-enableimagehlp", (char*)"-disableimagehlplines",
+    (char*)"-dprinton", (char*)"-dprintoff", (char*)"-dprintfile", (char*)g_memoryStatusSwitch, (char*)"-performancestatus", (char*)"-disableimagehlp", (char*)"-enableimagehlp", (char*)"-disableimagehlplines",
     (char*)"-enableimagehlplines", (char*)"-debughelper", (char*)"-saveresources"
 };
-char DAT_0050d220[16] = "-memorystatus";  // 0x50d220 .data
-const char DAT_0050d2d0[28] = "Global Exception Handler";  // 0x50d2d0 .data
-char* DAT_0050d4d0 = (char*)"Library date stamp: Jun 30 1998 16:08:53";  // 0x50d4d0 .data
-char* DAT_0050d660 = (char*)"Performance status";  // 0x50d660 .data
-char DAT_0050d6b4[36] = "Performance dialog failed to open";  // 0x50d6b4 .data
-char* DAT_0050d72c = (char*)"Memory Status";  // 0x50d72c .data
+char g_memoryStatusSwitch[16] = "-memorystatus";  // 0x50d220 .data
+const char g_exceptionHandlerName[28] = "Global Exception Handler";  // 0x50d2d0 .data
+char* g_libraryDateStamp = (char*)"Library date stamp: Jun 30 1998 16:08:53";  // 0x50d4d0 .data
+char* g_performanceWindowName = (char*)"Performance status";  // 0x50d660 .data
+char g_performanceDialogError[36] = "Performance dialog failed to open";  // 0x50d6b4 .data
+char* g_memoryStatusWindowName = (char*)"Memory Status";  // 0x50d72c .data
 char DAT_005119b8[8];  // 0x5119b8 .bss
 PlayerAI* g_playerAI[10];  // 0x5119c0 .bss
 int g_playerBudgetCap[10];  // 0x5119e8 .bss
@@ -714,92 +714,88 @@ char g_lzssPresetTree[24584];  // 0x520fe8 .bss
 Struct_00526ff0* DAT_00526ff0;  // 0x526ff0 .bss
 int g_lzssPresetReady;  // 0x526ff8 .bss
 int g_lzssUsePreset;  // 0x526ffc .bss (the type runs past the next known address, 0x526ffc+0x3)
-char DAT_005289b4;  // 0x5289b4 .bss
-char DAT_005289b8;  // 0x5289b8 .bss
-void (__stdcall* DAT_005289bc)(void);  // 0x5289bc .bss
-int DAT_005289c0;  // 0x5289c0 .bss
-int DAT_005289c4;  // 0x5289c4 .bss
-unsigned char DAT_005289c8;  // 0x5289c8 .bss
-unsigned char DAT_005289cc;  // 0x5289cc .bss
-unsigned int DAT_005289d0;  // 0x5289d0 .bss
-unsigned int DAT_005289d4;  // 0x5289d4 .bss
-unsigned int DAT_005289d8;  // 0x5289d8 .bss
-unsigned int DAT_005289dc;  // 0x5289dc .bss
-void* DAT_005289e0;  // 0x5289e0 .bss
+char g_memFussyQueried;  // 0x5289b4 .bss
+char g_memFussyDefault;  // 0x5289b8 .bss
+void (__stdcall* g_outOfMemoryHandler)(void);  // 0x5289bc .bss
+int g_errorLogWritten;  // 0x5289c0 .bss
+int g_debugLibInstance;  // 0x5289c4 .bss
+unsigned char DAT_005289c8[4];  // 0x5289c8 .bss
+unsigned int g_committedBytesPeak;  // 0x5289d0 .bss
+unsigned int g_lastAllocOffset;  // 0x5289d4 .bss
+unsigned int g_currentBytesPeak;  // 0x5289d8 .bss
+unsigned int g_bytesRequestedLo;  // 0x5289dc .bss
+void* g_blockMapFreeList;  // 0x5289e0 .bss
 unsigned char DAT_005289e4[8];  // 0x5289e4 .bss
-unsigned int DAT_005289f0;  // 0x5289f0 .bss
+unsigned int g_committedBytes;  // 0x5289f0 .bss
 unsigned char DAT_005289f4[4];  // 0x5289f4 .bss
-unsigned int DAT_005289f8;  // 0x5289f8 .bss
-unsigned int DAT_005289fc;  // 0x5289fc .bss
-unsigned int DAT_00528a00;  // 0x528a00 .bss
-unsigned int DAT_00528a04;  // 0x528a04 .bss
-unsigned int DAT_00528a08;  // 0x528a08 .bss
+unsigned int g_currentBytes;  // 0x5289f8 .bss
+unsigned int g_bytesRequestedHi;  // 0x5289fc .bss
+unsigned int g_freeBlockWraps;  // 0x528a00 .bss
+unsigned int g_allocSerial;  // 0x528a04 .bss
+unsigned int g_liveAllocCount;  // 0x528a08 .bss
 unsigned char DAT_00528a0c[4];  // 0x528a0c .bss
-void* DAT_00528a10;  // 0x528a10 .bss
+void* g_freeBlockFreeList;  // 0x528a10 .bss
 unsigned char DAT_00528a14[8];  // 0x528a14 .bss
-unsigned int DAT_00528a1c;  // 0x528a1c .bss
+unsigned int g_liveAllocPeak;  // 0x528a1c .bss
 unsigned char DAT_00528a20[8];  // 0x528a20 .bss
-FreeBlockMap* DAT_00528a40;  // 0x528a40 .bss
-void* DAT_00528a44;  // 0x528a44 .bss
-unsigned char DAT_00528a48[4];  // 0x528a48 .bss
-int DAT_00528a4c;  // 0x528a4c .bss
-void* DAT_00528a50;  // 0x528a50 .bss
+FreeBlockMap* g_freeBlockSet;  // 0x528a40 .bss
+void* g_blockMap;  // 0x528a44 .bss
+unsigned char g_freedBlockRing[4];  // 0x528a48 .bss
+int g_blockMapLiveCount;  // 0x528a4c .bss
+void* g_blockMapNil;  // 0x528a50 .bss
 unsigned char DAT_00528a5c[4];  // 0x528a5c .bss
-unsigned char DAT_00528a78[44];  // 0x528a78 .bss
-void* DAT_00528aa4;  // 0x528aa4 .bss
-char DAT_00528aa8;  // 0x528aa8 .bss
-char DAT_00528aac;  // 0x528aac .bss
-void* DAT_00528ab0;  // 0x528ab0 .bss
-void (__stdcall* DAT_00528ab4)(void);  // 0x528ab4 .bss
-int (__stdcall* DAT_00528ab8)(void*, char*, unsigned long);  // 0x528ab8 .bss
-void (__stdcall* DAT_00528acc)(void);  // 0x528acc .bss
-unsigned long (__stdcall* DAT_00528ad0)(unsigned long);  // 0x528ad0 .bss
-void (__stdcall* DAT_00528ad4)(void);  // 0x528ad4 .bss
-char DAT_00528ad8;  // 0x528ad8 .bss
-char DAT_00528adc;  // 0x528adc .bss
-void* DAT_00528ae0;  // 0x528ae0 .bss
-char DAT_00528ae4;  // 0x528ae4 .bss
-char DAT_00528ae8[1000];  // 0x528ae8 .bss
-char DAT_00528ed0[1000];  // 0x528ed0 .bss
+unsigned char g_loadedImage[44];  // 0x528a78 .bss
+void* g_lineProcessHandle;  // 0x528aa4 .bss
+char g_stackProcessHandleRead;  // 0x528aa8 .bss
+char g_lineProcessHandleRead;  // 0x528aac .bss
+void* g_stackProcessHandle;  // 0x528ab0 .bss
+void (__stdcall* g_pfnSymGetLineFromAddr)(void);  // 0x528ab4 .bss
+int (__stdcall* g_pfnSymInitialize)(void*, char*, unsigned long);  // 0x528ab8 .bss
+void (__stdcall* g_pfnSymGetSymFromAddr)(void);  // 0x528acc .bss
+unsigned long (__stdcall* g_pfnSymSetOptions)(unsigned long);  // 0x528ad0 .bss
+void (__stdcall* g_pfnUnDecorateSymbolName)(void);  // 0x528ad4 .bss
+char g_imageHelpLoaded;  // 0x528ad8 .bss
+char g_imageHelpInited;  // 0x528adc .bss
+void* g_imageHelpModule;  // 0x528ae0 .bss
+char g_msdevDirRead;  // 0x528ae4 .bss
+char g_crtSourceRoot[1000];  // 0x528ae8 .bss
+char g_mfcSourceRoot[1000];  // 0x528ed0 .bss
 unsigned char DAT_005292b8[4];  // 0x5292b8 .bss
 unsigned char DAT_005292c8[8];  // 0x5292c8 .bss
 unsigned char DAT_00529504[4];  // 0x529504 .bss
-int DAT_00529508;  // 0x529508 .bss
+int g_pfnQueryWorkingSet;  // 0x529508 .bss
 unsigned char DAT_0052950c[4];  // 0x52950c .bss
-int DAT_00529528;  // 0x529528 .bss
+int g_workingSetPrivate;  // 0x529528 .bss
 unsigned char DAT_0052952c[4];  // 0x52952c .bss
-void* DAT_00529530;  // 0x529530 .bss
+void* g_memStatusProcess;  // 0x529530 .bss
 unsigned char DAT_00529534[4];  // 0x529534 .bss
-int DAT_005295b8;  // 0x5295b8 .bss
-void* DAT_005295bc;  // 0x5295bc .bss
-int DAT_005295c0;  // 0x5295c0 .bss
+int g_workingSetShared;  // 0x5295b8 .bss
+void* g_psapiModule;  // 0x5295bc .bss
+int g_workingSetPageTables;  // 0x5295c0 .bss
 unsigned char DAT_005295c4[4];  // 0x5295c4 .bss
-int DAT_005295c8;  // 0x5295c8 .bss
-char DAT_005295cc;  // 0x5295cc .bss
-int DAT_005295d0;  // 0x5295d0 .bss
-int DAT_005295d4;  // 0x5295d4 .bss
-char DAT_005295d8[2000];  // 0x5295d8 .bss
-unsigned char DAT_00529dc8;  // 0x529dc8 .bss
-int DAT_00529dcc;  // 0x529dcc .bss
-int DAT_00529dd0;  // 0x529dd0 .bss
-unsigned char DAT_00529dd4;  // 0x529dd4 .bss
-unsigned char DAT_00529dd8;  // 0x529dd8 .bss
-unsigned char DAT_00529ddc;  // 0x529ddc .bss
-EventEntry* DAT_00529df8;  // 0x529df8 .bss
+int g_workingSetPages;  // 0x5295c8 .bss
+char g_psapiInited;  // 0x5295cc .bss
+int g_workingSetRefreshCountdown;  // 0x5295d0 .bss
+int g_workingSetPagesPeak;  // 0x5295d4 .bss
+char g_memStatusLastText[2000];  // 0x5295d8 .bss
+unsigned char g_perfAutoPairing;  // 0x529dc8 .bss
+int g_pmcEventCount;  // 0x529dcc .bss
+int g_reportIndent;  // 0x529dd0 .bss
+unsigned char g_perfRaisePriority;  // 0x529dd4 .bss
+unsigned char g_perfEnabled;  // 0x529dd8 .bss
+unsigned char g_perfDisplayInDebugger;  // 0x529ddc .bss
+EventEntry* g_pmcEventCatalog;  // 0x529df8 .bss
 unsigned char DAT_00529dfc[4];  // 0x529dfc .bss
-char DAT_00529e20[56];  // 0x529e20 .bss
-void* DAT_00529e58;  // 0x529e58 .bss
+char g_reportIndentText[56];  // 0x529e20 .bss
+void* g_nameMapFreeList;  // 0x529e58 .bss
 unsigned char DAT_00529e5c[8];  // 0x529e5c .bss
-unsigned char DAT_00529e64;  // 0x529e64 .bss
-unsigned char DAT_00529e70;  // 0x529e70 .bss
-char DAT_00529e74;  // 0x529e74 .bss
-char DAT_00529e78;  // 0x529e78 .bss
-NameTable* DAT_00529e7c;  // 0x529e7c .bss
-char* DAT_00529e80;  // 0x529e80 .bss
+unsigned char g_perfDisplayInWindow;  // 0x529e64 .bss
+unsigned char g_gdperfAvailable;  // 0x529e70 .bss
+NameTable* g_nameTable;  // 0x529e7c .bss
+char* g_defaultSection;  // 0x529e80 .bss
 unsigned char DAT_00529e84[4];  // 0x529e84 .bss
-char DAT_00529e88[13];  // 0x529e88 .bss
-void* DAT_00529e98;  // 0x529e98 .bss
-int DAT_00529ea0;  // 0x529ea0 .bss
+void* g_gdperfDevice;  // 0x529e98 .bss
+int g_cpuFamily;  // 0x529ea0 .bss
 unsigned char DAT_00529ea4[4];  // 0x529ea4 .bss
 char g_emptyAtexitRegistered;  // 0x52a4e4 .bss
 long DAT_0052a4e8;  // 0x52a4e8 .bss

@@ -261,7 +261,7 @@ can disagree on types (a real link would fail). Known cases:
 - `Class_00438b90::MergeFlagsFromTable` takes the 1-byte class `Class_00438760` by value
   (see 0x403190); its own file declares `int k`. GetOrderType returns the same
   class through a hidden buffer.
-- `FUN_004d83b0` returns a pointer (0x481500) but its file says `void`.
+- `GameAllocIgnoreTag` returns a pointer (0x481500) but its file says `void`.
 - `Class_0043a1f0`'s constructor 0x43a0c0: its own file takes `int`, 0x43a020
   and 0x43b730 declare its first parameter `unsigned char`, but 0x401c20
   shows it is a 1-byte class passed by value, built by

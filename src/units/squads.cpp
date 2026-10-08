@@ -47,8 +47,8 @@ public:
     }
 };
 
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-void __cdecl FUN_004d85a0(int* param_1);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
+void __cdecl GameFreeThunk(int* param_1);
 Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit* unit,
                                        Unit* target, int flags);
 void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* owner, Unit* id, int flags, int param_6, int param_7);
@@ -58,7 +58,7 @@ void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* owner, Unit* id, 
 // FUNCTION: 0x480190
 void __stdcall CreateSquads(Owner* owner)
 {
-    owner->squads = (Squad*)FUN_004d83b0("SQUADS", 10 * sizeof(Squad));
+    owner->squads = (Squad*)GameAllocIgnoreTag("SQUADS", 10 * sizeof(Squad));
     for (int i = 0; i < 10; i++)
         new (&owner->squads[i]) Squad((int)owner, i);
 }
@@ -70,7 +70,7 @@ void __stdcall FreeSquads(Owner* owner)
     if (owner->squads) {
         for (int i = 0; i < 10; i++)
             owner->squads[i].items.~vector();
-        FUN_004d85a0((int*)owner->squads);
+        GameFreeThunk((int*)owner->squads);
         owner->squads = 0;
     }
 }

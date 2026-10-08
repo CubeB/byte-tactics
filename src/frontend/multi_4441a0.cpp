@@ -49,7 +49,7 @@ extern Game_004441a0* g_game;
 // GLOBAL: 0x5127c8
 extern LinkInfo g_linkInfo[];
 
-void __cdecl FUN_004d85a0(void* p);
+void __cdecl GameFreeThunk(void* p);
 int __stdcall IsCurrentGadgetNamed(void* menu, char* name);
 Entry_004441a0* __stdcall FindGadgetChecked(void* entries, char* name);
 int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
@@ -74,15 +74,15 @@ void __stdcall FUN_004441a0(Menu_004441a0* menu)
     int cur;
     if (menu->selected == -1) {
         if (g_game->guids != 0) {
-            FUN_004d85a0(g_game->guids);
+            GameFreeThunk(g_game->guids);
             for (i = 0; i < 10; i++) {
                 if (g_game->conns[i].data != 0) {
-                    FUN_004d85a0(g_game->conns[i].data);
+                    GameFreeThunk(g_game->conns[i].data);
                     g_game->conns[i].data = 0;
                 }
             }
-            FUN_004d85a0(g_game->conns);
-            FUN_004d85a0(g_game->descriptions);
+            GameFreeThunk(g_game->conns);
+            GameFreeThunk(g_game->descriptions);
             g_game->guids = 0;
             g_game->descriptions = 0;
         }

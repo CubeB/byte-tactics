@@ -177,7 +177,7 @@ struct Game {
 
 extern Game* g_game;
 
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 char* __stdcall Translate(const char* text);
 int GetTickRate();
 
@@ -190,7 +190,7 @@ static inline float spd(int v)
 // FUNCTION: 0x489280
 char* __stdcall MakePropList(UnitType* obj)
 {
-    char* buf = (char*)FUN_004d83b0("PropList", 0xc0);
+    char* buf = (char*)GameAllocIgnoreTag("PropList", 0xc0);
     memset(buf, 0, 0xc0);
     char* p = buf;
 

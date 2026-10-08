@@ -3,8 +3,8 @@
 #include <string.h>
 #include <io.h>
 
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-void __cdecl FUN_004d85a0(void* p);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
+void __cdecl GameFreeThunk(void* p);
 char* __stdcall SkipTextLines(char* list, int index);
 int __cdecl _strcmpi(const char* a, const char* b);
 int __stdcall HAPI_FindFirst(const char* path, struct _finddata_t* fd, int state, char recursive);
@@ -152,10 +152,10 @@ void __stdcall SortFileList(char* list1, char* list2, int* keys, int count)
     int start;
     int i;
 
-    buf1 = (char*)FUN_004d83b0("SORTED LIST1", 0x17700);
-    buf2 = (char*)FUN_004d83b0("SORTED LIST2", 0x17700);
-    ptr1 = (char**)FUN_004d83b0("PTR LIST1", 0x2ee0);
-    ptr2 = (char**)FUN_004d83b0("PTR LIST2", 0x2ee0);
+    buf1 = (char*)GameAllocIgnoreTag("SORTED LIST1", 0x17700);
+    buf2 = (char*)GameAllocIgnoreTag("SORTED LIST2", 0x17700);
+    ptr1 = (char**)GameAllocIgnoreTag("PTR LIST1", 0x2ee0);
+    ptr2 = (char**)GameAllocIgnoreTag("PTR LIST2", 0x2ee0);
     n = -1;
     for (i = 0; i < count; i++) {
         ptr1[i] = SkipTextLines(list1, i);
@@ -235,10 +235,10 @@ void __stdcall SortFileList(char* list1, char* list2, int* keys, int count)
         if (list2)
             memcpy(list2, buf2, q - buf2);
     }
-    FUN_004d85a0(ptr2);
-    FUN_004d85a0(ptr1);
-    FUN_004d85a0(buf2);
-    FUN_004d85a0(buf1);
+    GameFreeThunk(ptr2);
+    GameFreeThunk(ptr1);
+    GameFreeThunk(buf2);
+    GameFreeThunk(buf1);
 }
 
 // The file walk runs in every case and continues the sizes list of the
@@ -248,7 +248,7 @@ int __stdcall ScanDirectory(char* path, char* list, char* sizes, int mode, int f
 {
     char* first = list;
     int num = 0;
-    char* times = (char*)FUN_004d83b0("FILETIMES", 0x2ee0);
+    char* times = (char*)GameAllocIgnoreTag("FILETIMES", 0x2ee0);
     long* tp = (long*)times;
     struct _finddata_t fd;
     char text[256];
@@ -303,7 +303,7 @@ int __stdcall ScanDirectory(char* path, char* list, char* sizes, int mode, int f
             SortFileList(first, 0, (int*)times, num);
         }
     }
-    FUN_004d85a0(times);
+    GameFreeThunk(times);
     *list = 0;
     return num;
 }
@@ -340,7 +340,7 @@ void __stdcall FileRequesterHandler(Gadget* gadget)
     if (gadget->selected == -1) {
         ChangeDrive(req->save_drive);
         ChangeDirectory(req->save_cwd);
-        FUN_004d85a0(req);
+        GameFreeThunk(req);
         return;
     }
 
@@ -435,7 +435,7 @@ FileRequester* Dialog::OpenFileRequester(Dialog* self, char* arg2, char* arg3, c
         return NULL;
     }
 
-    FileRequester* obj = (FileRequester*)FUN_004d83b0("FILE REQUESTER DATA", 0x24c);
+    FileRequester* obj = (FileRequester*)GameAllocIgnoreTag("FILE REQUESTER DATA", 0x24c);
     obj->gui = self;
     strcpy(obj->cwd, arg2);
     StripFileName(obj->cwd);
@@ -462,10 +462,10 @@ FileRequester* Dialog::OpenFileRequester(Dialog* self, char* arg2, char* arg3, c
     strcpy(titl->value, arg4);
     titl->field_13 = none;
 
-    obj->names = (char*)FUN_004d83b0("FILE NAMES", 0x17700);
+    obj->names = (char*)GameAllocIgnoreTag("FILE NAMES", 0x17700);
     memset(obj->names, -1, 0x17700);
 
-    obj->sizes = (char*)FUN_004d83b0("FILE SIZES", 0xea60);
+    obj->sizes = (char*)GameAllocIgnoreTag("FILE SIZES", 0xea60);
     memset(obj->sizes, -1, 0xea60);
 
     obj->field_240 = (int)arg3;
@@ -489,10 +489,10 @@ FileRequester* Dialog::OpenFileRequester(Dialog* self, char* arg2, char* arg3, c
 void __stdcall AllocBlinkWords(Dialog* obj, int count)
 {
     if (obj->words) {
-        FUN_004d85a0(obj->words);
+        GameFreeThunk(obj->words);
         obj->words = 0;
     }
-    obj->words = (BlinkWord*)FUN_004d83b0("BlinkWords", count * sizeof(BlinkWord));
+    obj->words = (BlinkWord*)GameAllocIgnoreTag("BlinkWords", count * sizeof(BlinkWord));
     for (int i = 0; i < count; i++)
         obj->words[i].text[0] = 0;
     obj->count = count;
@@ -504,7 +504,7 @@ void __stdcall AllocBlinkWords(Dialog* obj, int count)
 void __stdcall FreeBlinkWords(int param_1)
 {
     int ptr = *(int*)(param_1 + 0xa6);
-    FUN_004d85a0((void*)ptr);
+    GameFreeThunk((void*)ptr);
     *(int*)(param_1 + 0xa6) = 0;
     *(int*)(param_1 + 0xae) = 0;
 }

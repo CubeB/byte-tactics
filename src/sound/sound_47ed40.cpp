@@ -154,7 +154,7 @@ struct SpeechEntry {
     unsigned char priority;            // +0x10
 };
 
-void __cdecl FUN_004d85a0(void* data);
+void __cdecl GameFreeThunk(void* data);
 
 class SpeechQueue {
 public:
@@ -167,7 +167,7 @@ public:
     void Remove(int i)
     {
         if (entries[i].data) {
-            FUN_004d85a0(entries[i].data);
+            GameFreeThunk(entries[i].data);
             entries[i].data = 0;
         }
         for (int j = i; j < count; j++)
@@ -213,7 +213,7 @@ int IsWindowsSoundAvailable(void);
 void __stdcall FatalError(char* text);
 void* __cdecl operator new(size_t size);
 void __cdecl operator delete(void* p);
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 char* __stdcall BuildDataPath(char* buf, const char* dir, const char* name, const char* ext);
 void* __stdcall HAPI_LoadFile(char* path, int flags);
 void __stdcall AddMessage(char* text, unsigned char key, unsigned short value, char last);
@@ -278,7 +278,7 @@ void ResetSpeech()
             // Entries reached through list->entries, no separate entries local.
             SpeechEntry* last = &list->entries[i];
             if (last->data) {
-                FUN_004d85a0(last->data);
+                GameFreeThunk(last->data);
                 last->data = 0;
             }
             for (int j = i; j < *count; j++) {
@@ -309,7 +309,7 @@ void ShutdownSound()
                 int i = *count - 1;
                 SpeechEntry* last = &list->entries[i];
                 if (last->data) {
-                    FUN_004d85a0(last->data);
+                    GameFreeThunk(last->data);
                     last->data = 0;
                 }
                 for (int j = i; j < *count; j++) {
@@ -370,7 +370,7 @@ void* __stdcall LoadSoundFile(const char* name)
 void __stdcall FreeSoundSet(IDirectSoundBuffer** set)
 {
     if (g_useWindowsSound != 0) {
-        FUN_004d85a0(set);
+        GameFreeThunk(set);
         return;
     }
     g_game->sound->ReleaseSampleSet(set);
@@ -565,7 +565,7 @@ void PlayNextSpeech()
             g_speechQueue->PlaySpeech(0, 0, 1);
         }
         if (driver->entries[0].data) {
-            FUN_004d85a0(driver->entries[0].data);
+            GameFreeThunk(driver->entries[0].data);
             driver->entries[0].data = 0;
         }
         for (int i = 0; i < count; i++)
@@ -629,7 +629,7 @@ void __stdcall RemoveSpeechOfUnit(int id)
     while (i < *count) {
         if (entries[i].unit == (Unit*)id) {
             if (entries[i].data) {
-                FUN_004d85a0(entries[i].data);
+                GameFreeThunk(entries[i].data);
                 entries[i].data = 0;
             }
             for (int j = i; j < *count; j++)
@@ -673,7 +673,7 @@ void SpeechQueue::EnqueueSpeech(Unit* unit, int kind, char* text)
     if (count == 8) {
         PlaySpeech(7, 0, 1);
         if (entries[7].data) {
-            FUN_004d85a0(entries[7].data);
+            GameFreeThunk(entries[7].data);
             entries[7].data = 0;
         }
         for (int i = 7; i < count; i++)
@@ -698,7 +698,7 @@ void SpeechQueue::EnqueueSpeech(Unit* unit, int kind, char* text)
     entries[j].unit = unit;
     entries[j].priority = g_speechTypes[kind].priority;
     if (text) {
-        entries[j].data = (char*)FUN_004d83b0("Speech Text", strlen(text) + 1);
+        entries[j].data = (char*)GameAllocIgnoreTag("Speech Text", strlen(text) + 1);
         strcpy(entries[j].data, text);
     } else {
         entries[j].data = 0;
@@ -721,7 +721,7 @@ void SpeechQueue::PlayNextSpeechEntry()
         this->PlaySpeech(0, 0, 1);
     }
     if (entries[0].data) {
-        FUN_004d85a0(entries[0].data);
+        GameFreeThunk(entries[0].data);
         entries[0].data = 0;
     }
     for (int i = 0; i < count; i++) {
@@ -792,7 +792,7 @@ void SpeechQueue::RemoveSpeechAt(int index)
 {
     SpeechEntry* e = &entries[index];
     if (e->data != 0) {
-        FUN_004d85a0(e->data);
+        GameFreeThunk(e->data);
         e->data = 0;
     }
     for (int i = index; i < count; i++) {
@@ -808,7 +808,7 @@ void SpeechQueue::RemoveSpeechOfId(Unit* unit)
     while (i < count) {
         if (entries[i].unit == unit) {
             if (entries[i].data) {
-                FUN_004d85a0(entries[i].data);
+                GameFreeThunk(entries[i].data);
                 entries[i].data = 0;
             }
             for (int j = i; j < count; j++)

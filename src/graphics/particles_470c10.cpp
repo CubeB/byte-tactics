@@ -3,13 +3,13 @@
 // pool, which cannot share a file with the real <vector> (particles.cpp).
 // Grows the arena ObjectPool (vtable 0x4fd580, see 0x470a90.cpp and
 // 0x470ae0.cpp) to param_1 slots of param_2 bytes. The table of slot
-// pointers is reallocated with FUN_004d8580, the raw memory for the new
-// slots comes from FUN_004d8450, and the base of that block is pushed on
+// pointers is reallocated with GameReallocIgnoreTag, the raw memory for the new
+// slots comes from GameAllocShared, and the base of that block is pushed on
 // the vector of blocks that the destructor frees one by one (0x470e50).
 #include <stddef.h>
 
-void* __cdecl FUN_004d8450(int size);
-void* __cdecl FUN_004d8580(void* table, int size);
+void* __cdecl GameAllocShared(int size);
+void* __cdecl GameReallocIgnoreTag(void* table, int size);
 void __stdcall CopyPointer(void* dest, void* src);
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
@@ -118,10 +118,10 @@ int Class_00470c10::Grow(int param_1, int param_2)
 {
     int result = 0;
     if (param_1 > field_1c) {
-        Elem_00470f00** table = (Elem_00470f00**)FUN_004d8580(field_14, param_1 * 4);
+        Elem_00470f00** table = (Elem_00470f00**)GameReallocIgnoreTag(field_14, param_1 * 4);
         if (table != 0) {
             Elem_00470f00 block;
-            block.p = FUN_004d8450((param_1 - field_1c) * param_2);
+            block.p = GameAllocShared((param_1 - field_1c) * param_2);
             field_14 = table;
             if (block.p != 0) {
                 int i = field_1c;

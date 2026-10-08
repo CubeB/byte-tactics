@@ -29,7 +29,7 @@ char __stdcall FindNextCdDrive(char drive);
 char __stdcall FindGameCdDrive(int side);
 char* __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 char* __stdcall StripExtension(char* name);
-void __cdecl FUN_004d83a0(int);
+void __cdecl AllocNotifyNop(int);
 
 // Registers the game's data archives, only when DAT_0050289c is set (the
 // flag that makes FindGameCdDrive use the current directory instead of a CD):
@@ -179,6 +179,6 @@ void* __stdcall AllocZeroedWithTickOffset(unsigned int size)
     unsigned int total = pad + size;
     char* p = (char*)operator new(total);
     memset(p, 0, total);
-    FUN_004d83a0((int)p);
+    AllocNotifyNop((int)p);
     return p + pad;
 }

@@ -79,8 +79,8 @@ void* __stdcall AllocSurface(char* name, int width, int height);
 void __stdcall FreeSurface(void* obj);
 int __stdcall StartThread(void* param_1, unsigned int param_2, void* param_3);
 void __stdcall SleepMilliseconds(unsigned int param_1);
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-void __cdecl FUN_004d85a0(void* p);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
+void __cdecl GameFreeThunk(void* p);
 
 void __stdcall RedrawMouseCursor(Obj_004c2380* app);
 void __cdecl MouseThreadProc(int param);
@@ -387,7 +387,7 @@ void __stdcall InitMouse(int count, int start)
 {
     Obj_004c2380* p = (Obj_004c2380*)GetDisplay();
     p->capacity = count;
-    p->entries = (Event_4c2d60*)FUN_004d83b0("MOUSE EVENTS", count * 0x18);
+    p->entries = (Event_4c2d60*)GameAllocIgnoreTag("MOUSE EVENTS", count * 0x18);
     Obj_004c2380* q = (Obj_004c2380*)GetDisplay();
     q->head = 0;
     q->tail = 0;
@@ -438,7 +438,7 @@ void ShutdownMouse()
         FreeSurface(o->work);
         FreeSurface(o->under);
         FreeSurface(o->saved);
-        FUN_004d85a0(o->entries);
+        GameFreeThunk(o->entries);
         o->entries = 0;
     }
 }

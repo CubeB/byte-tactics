@@ -38,7 +38,7 @@ typedef int (__stdcall* DirectXRegisterApplicationProc)(HWND, DirectXRegisterApp
 int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                            LPSTR lpCmdLine, int nCmdShow);
 int __stdcall ExceptionFilter(EXCEPTION_POINTERS* exception, const char* thread);
-bool __cdecl FUN_004da0e0(const char* arg);
+bool __cdecl IsDebugKeyword(const char* arg);
 void __stdcall Onl_LoadConfigFile(char* param_1);
 void __stdcall SetBypassDriveScan(int val);
 void __stdcall SetCommandLineUnusedFlagL(int val);
@@ -78,7 +78,7 @@ int __stdcall ParseCommandLine(char* cmdLine, char* appName)
     while (p) {
         if (*p != '-' && *p != '/') {
             strcpy(g_preferredLanguage, p);
-        } else if (!FUN_004da0e0(p)) {
+        } else if (!IsDebugKeyword(p)) {
             switch (p[1]) {
             case 'B':
             case 'b':

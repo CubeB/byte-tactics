@@ -31,7 +31,7 @@ extern Guid_443ff0 DAT_004fcda8;
 extern Guid_443ff0 DAT_004fcd98;
 extern Guid_443ff0 DAT_004fcdc8;
 extern Guid_443ff0 DAT_004fcdb8;
-void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
+void* __cdecl GameAllocIgnoreTag(const char* name, unsigned int size);
 int IsOnlineConfigLoaded();
 // FUNCTION: 0x443ff0
 int __stdcall SelectConnection(int index)
@@ -60,7 +60,7 @@ int __stdcall SelectConnection(int index)
         g_game->info.guid = g_game->sessions[index];
         g_game->info.conn = g_game->conns[index];
         int size = g_game->conns[index].size;
-        g_game->info.conn.data = FUN_004d83b0("DPLAY CONNECTION INFO", size);
+        g_game->info.conn.data = GameAllocIgnoreTag("DPLAY CONNECTION INFO", size);
         if (g_game->info.conn.data != 0) {
             memcpy(g_game->info.conn.data, g_game->conns[index].data, size);
         } else {

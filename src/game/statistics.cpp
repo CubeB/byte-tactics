@@ -64,17 +64,17 @@ extern ReportFn_0046bf30 DAT_0051e584;         // _RIReport@40
 extern ChatFn_0046bf30 g_riReportGameChat;    // _RIReportGameChat@8
 
 void ShutdownScoreTables();
-void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
+void* __cdecl GameAllocIgnoreTag(const char* name, unsigned int size);
 int AllocScoreTables();
 void __stdcall ReportGameEventCallback(int param_1);
 int __stdcall ShowGameMessage(char* text, int mode);
 void __stdcall RISetCallbacks(int param_1, int param_2);
 void __stdcall HAPINET_uninitmultiplay(void* p);
-void __cdecl FUN_004d85a0(void* p);
+void __cdecl GameFreeThunk(void* p);
 
 // Builds the player tables: three arrays of ten, then for each slot its player
 // block, that player's allies block, a scoreboard, the scoreboard's ppScores
-// block and a zeroed scores block, every block allocated through FUN_004d83b0
+// block and a zeroed scores block, every block allocated through GameAllocIgnoreTag
 // with a name wsprintfA formats from the slot number. Any allocation that
 // comes back null tears the lot down again through ShutdownScoreTables and reports 1,
 // so the slot loop only records the failure in a flag and breaks; the
@@ -89,9 +89,9 @@ int AllocScoreTables()
     int failed;
     int i;
 
-    g_onlineReportPlayers = (PlayerInfo_0046bce0**)FUN_004d83b0("PlayersArray", 0x28);
-    DAT_0051e57c = (ScoreBoard_0046bce0**)FUN_004d83b0("ScoreBoardsArray", 0x28);
-    g_onlineReportScores = (char**)FUN_004d83b0("ScoresArray", 0x28);
+    g_onlineReportPlayers = (PlayerInfo_0046bce0**)GameAllocIgnoreTag("PlayersArray", 0x28);
+    DAT_0051e57c = (ScoreBoard_0046bce0**)GameAllocIgnoreTag("ScoreBoardsArray", 0x28);
+    g_onlineReportScores = (char**)GameAllocIgnoreTag("ScoresArray", 0x28);
     if (g_onlineReportPlayers == 0)
         goto failed;
     if (DAT_0051e57c == 0)
@@ -109,32 +109,32 @@ int AllocScoreTables()
         if (i >= 10)
             break;
         wsprintfA(name, "PlayerInfo%d", i);
-        g_onlineReportPlayers[i] = (PlayerInfo_0046bce0*)FUN_004d83b0(name, 0x18);
+        g_onlineReportPlayers[i] = (PlayerInfo_0046bce0*)GameAllocIgnoreTag(name, 0x18);
         if (g_onlineReportPlayers[i] == 0) {
             failed = 1;
             break;
         }
         wsprintfA(name, "Allies%d", i);
-        g_onlineReportPlayers[i]->allies = FUN_004d83b0(name, 0x28);
+        g_onlineReportPlayers[i]->allies = GameAllocIgnoreTag(name, 0x28);
         if (g_onlineReportPlayers[i]->allies == 0) {
             failed = 1;
             break;
         }
         wsprintfA(name, "ScoreBoard%d", i);
-        DAT_0051e57c[i] = (ScoreBoard_0046bce0*)FUN_004d83b0(name, 0xc);
+        DAT_0051e57c[i] = (ScoreBoard_0046bce0*)GameAllocIgnoreTag(name, 0xc);
         if (DAT_0051e57c[i] == 0) {
             failed = 1;
             break;
         }
         wsprintfA(name, "ppScores%d", i);
-        DAT_0051e57c[i]->ppScores = FUN_004d83b0(name, 0x24);
+        DAT_0051e57c[i]->ppScores = GameAllocIgnoreTag(name, 0x24);
         if (DAT_0051e57c[i]->ppScores == 0) {
             failed = 1;
             break;
         }
         memset(DAT_0051e57c[i]->ppScores, 0, 0x24);
         wsprintfA(name, "Scores%d", i);
-        g_onlineReportScores[i] = (char*)FUN_004d83b0(name, 0x48);
+        g_onlineReportScores[i] = (char*)GameAllocIgnoreTag(name, 0x48);
         if (g_onlineReportScores[i] == 0) {
             failed = 1;
             break;
@@ -280,27 +280,27 @@ void ShutdownScoreTables()
     }
     for (int i = 0; i < 10; i++) {
         if (g_onlineReportPlayers != 0) {
-            FUN_004d85a0(g_onlineReportPlayers[i]->allies);
-            FUN_004d85a0(g_onlineReportPlayers[i]);
+            GameFreeThunk(g_onlineReportPlayers[i]->allies);
+            GameFreeThunk(g_onlineReportPlayers[i]);
         }
         if (DAT_0051e57c != 0) {
-            FUN_004d85a0(DAT_0051e57c[i]->ppScores);
-            FUN_004d85a0(DAT_0051e57c[i]);
+            GameFreeThunk(DAT_0051e57c[i]->ppScores);
+            GameFreeThunk(DAT_0051e57c[i]);
         }
         if (g_onlineReportScores != 0) {
-            FUN_004d85a0(g_onlineReportScores[i]);
+            GameFreeThunk(g_onlineReportScores[i]);
         }
     }
     if (g_onlineReportPlayers != 0) {
-        FUN_004d85a0(g_onlineReportPlayers);
+        GameFreeThunk(g_onlineReportPlayers);
         g_onlineReportPlayers = 0;
     }
     if (DAT_0051e57c != 0) {
-        FUN_004d85a0(DAT_0051e57c);
+        GameFreeThunk(DAT_0051e57c);
         DAT_0051e57c = 0;
     }
     if (g_onlineReportScores != 0) {
-        FUN_004d85a0(g_onlineReportScores);
+        GameFreeThunk(g_onlineReportScores);
         g_onlineReportScores = 0;
     }
 }

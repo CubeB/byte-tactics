@@ -188,8 +188,8 @@ extern char DAT_005119b8[];
 int FUN_0041d8a0();
 int GetCdPathMismatch();
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
-void* __cdecl FUN_004d83b0(char* name, int size);
-void __cdecl FUN_004d85a0(void* p);
+void* __cdecl GameAllocIgnoreTag(char* name, int size);
+void __cdecl GameFreeThunk(void* p);
 void __cdecl ProtectBlockReadOnly(void* p);
 void __cdecl ProtectBlockReadWrite(void* p);
 void* __stdcall HAPI_OpenFileRead(char* path);
@@ -250,7 +250,7 @@ int LoadUnitInfo()
 
     if (g_game->unitinfo) {
         ProtectBlockReadWrite(g_game->unitinfo);
-        FUN_004d85a0(g_game->unitinfo);
+        GameFreeThunk(g_game->unitinfo);
         g_game->unitinfo = 0;
     }
 
@@ -260,7 +260,7 @@ int LoadUnitInfo()
     int count = files.size() + 1;
     g_game->unit_count = count;
     int size = count * sizeof(UnitDef);
-    g_game->unitinfo = (UnitDef*)FUN_004d83b0("UNITINFO", size);
+    g_game->unitinfo = (UnitDef*)GameAllocIgnoreTag("UNITINFO", size);
     memset(g_game->unitinfo, 0, size);
     strcpy(g_game->unitinfo->unitname, "None");
     g_game->unitinfo->flags1 |= 0x800000;
@@ -273,7 +273,7 @@ int LoadUnitInfo()
         void* f = HAPI_OpenFileRead(path);
         if (f) {
             int len = HAPI_FileLength(f);
-            char* buf = (char*)FUN_004d83b0(path, len);
+            char* buf = (char*)GameAllocIgnoreTag(path, len);
             HAPI_readfromfile(f, buf, len);
             u->checksum = ComputeChecksum(buf, len);
             OvrFile ovr;
@@ -292,7 +292,7 @@ int LoadUnitInfo()
                 // Original bug: this exit leaves the FBI file open (no
                 // HAPI_CloseFile), the weapon TDF table allocated and the unit
                 // table locked (no ProtectBlockReadOnly).
-                FUN_004d85a0(buf);
+                GameFreeThunk(buf);
                 return 0;
             }
             GetLocalizedString(&parser, u->name, "name", 0x20, 0);
@@ -334,7 +334,7 @@ int LoadUnitInfo()
             }
             u->field_15a = -1;
             HAPI_CloseFile(f);
-            FUN_004d85a0(buf);
+            GameFreeThunk(buf);
         }
     }
 

@@ -365,10 +365,10 @@ void* __stdcall GetCategoryMask(char* name);
 void __stdcall GetLocalizedString(void* parser, char* dst, char* key, int size, char* def);
 void __cdecl ProtectBlockReadWrite(void* param_1);
 void __cdecl ProtectBlockReadOnly(void* param_1);
-void __cdecl FUN_004d85a0(void* param_1);
+void __cdecl GameFreeThunk(void* param_1);
 void __stdcall FreeCobScript(void* param_1);
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
-void* __cdecl FUN_004d83b0(const char* name, int size);
+void* __cdecl GameAllocIgnoreTag(const char* name, int size);
 unsigned short __stdcall FindUnitTypeId(char* name);
 void __stdcall LoadUnitFbi(char* path, UnitDef* type);
 void AddDownloadBuildOptions();
@@ -492,7 +492,7 @@ void FreeUnitInfo()
 {
     if (g_game->field_1439b != 0) {
         ProtectBlockReadWrite(g_game->field_1439b);
-        FUN_004d85a0(g_game->field_1439b);
+        GameFreeThunk(g_game->field_1439b);
         g_game->field_1439b = 0;
         g_game->unitTypeCount = 0;
     }
@@ -854,7 +854,7 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
             if (unitdef->bmcode == 0) {
                 ((TdfRecord*)parser.current)
                     ->GetFieldString(yard, "YardMap", 1024, DAT_005119b8);
-                unitdef->yardmap = (char*)FUN_004d83b0(
+                unitdef->yardmap = (char*)GameAllocIgnoreTag(
                     "BUILDING YARD", unitdef->footprintx * unitdef->footprintz);
                 int cell = 0;
                 char* cursor = yard;
@@ -1070,7 +1070,7 @@ void LoadUnitTypes() {
         } while (c);
     }
 
-    g_game->models = (void**)FUN_004d83b0("MODEL PTRS", g_game->unitTypeCount * 4);
+    g_game->models = (void**)GameAllocIgnoreTag("MODEL PTRS", g_game->unitTypeCount * 4);
 
     // `u` must be an unsigned short: an int counter breaks the loop.
     for (unsigned short u = 1; u < g_game->unitTypeCount; u++) {
@@ -1137,7 +1137,7 @@ void LoadUnitTypes() {
     if (!parser2.LoadFile(path)) {
         FatalError("Can't load GAMEDATA.TDF");
     } else {
-        short* list = (short*)FUN_004d83b0("TEMP UTYPE LIST", 0x3c);
+        short* list = (short*)GameAllocIgnoreTag("TEMP UTYPE LIST", 0x3c);
         for (unsigned short s = 1; s < g_game->unitTypeCount; s++) {
             UnitDef* type = &g_game->field_1439b[s];
             type->count = 0;
@@ -1162,11 +1162,11 @@ void LoadUnitTypes() {
                     type->count = count;
                 }
                 sprintf(objpath, "CANBUILD %s", type->unitname);
-                type->ids = FUN_004d83b0(objpath, 0x3c);
+                type->ids = GameAllocIgnoreTag(objpath, 0x3c);
                 memcpy(type->ids, list, 0x3c);
             }
         }
-        FUN_004d85a0(list);
+        GameFreeThunk(list);
         parser2.Unload();
     }
 
@@ -1195,11 +1195,11 @@ void FreeUnitTypes()
         UnitDef* type = &g_game->field_1439b[i];
         void* p = g_game->models[i];
         if (p != 0) {
-            FUN_004d85a0(p);
+            GameFreeThunk(p);
             g_game->models[i] = 0;
         }
         if (type->yardmap != 0) {
-            FUN_004d85a0(type->yardmap);
+            GameFreeThunk(type->yardmap);
             type->yardmap = 0;
         }
         if (type->data != 0) {
@@ -1207,7 +1207,7 @@ void FreeUnitTypes()
             type->data = 0;
         }
         if (type->ids != 0) {
-            FUN_004d85a0(type->ids);
+            GameFreeThunk(type->ids);
             type->count = 0;
             type->ids = 0;
         }
@@ -1220,8 +1220,8 @@ void FreeUnitTypes()
     }
     g_game->memoryCache = 0;
 
-    FUN_004d85a0(g_game->models);
-    FUN_004d85a0(g_game->field_1439b);
+    GameFreeThunk(g_game->models);
+    GameFreeThunk(g_game->field_1439b);
 
     g_game->models = 0;
     g_game->field_1439b = 0;
@@ -1263,7 +1263,7 @@ void LoadDownloadMenus()
 
     int n = files.size();
     g_game->field_391c7 = n;
-    g_game->field_391cb = (BuildList_0042dcf0*)FUN_004d83b0("DOWNLOADMENU", n * 0xbd);
+    g_game->field_391cb = (BuildList_0042dcf0*)GameAllocIgnoreTag("DOWNLOADMENU", n * 0xbd);
 
     for (i = 0; i < n; i++) {
         TdfFile parser;
@@ -1325,7 +1325,7 @@ void LoadDownloadMenus()
 // FUNCTION: 0x42e120
 void FreeDownloadMenus()
 {
-    FUN_004d85a0(g_game->field_391cb);
+    GameFreeThunk(g_game->field_391cb);
 }
 
 // Walks the whitespace separated names in the argument string. Each name is

@@ -196,7 +196,7 @@ void __stdcall ListDirectory(const char* pattern, int flags, std::vector<Class_0
 void __stdcall LoadWeaponType(int section);
 int FUN_0041d8a0(void);
 extern void __cdecl operator delete(void*);
-void __cdecl FUN_004d85a0(void* p);
+void __cdecl GameFreeThunk(void* p);
 
 // Loads every "Weapons\\*.tdf" file, parses each with the TDF parser, and
 // calls LoadWeaponType once per top level section found in it.
@@ -419,7 +419,7 @@ void FreeWeaponTypes()
     while (i < 256) {
         Weapon_0042e440* o = &g_game->weapons[i];
         if (strlen(o->model) != 0) {
-            FUN_004d85a0(o->text);
+            GameFreeThunk(o->text);
             o->text = 0;
             o->model[0] = 0;
         }

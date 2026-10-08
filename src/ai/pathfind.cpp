@@ -12,8 +12,8 @@
 
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-void __cdecl FUN_004d85a0(void* param_1);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
+void __cdecl GameFreeThunk(void* param_1);
 
 // A min-heap record for MakeHeap and friends (the STL heap the search uses).
 struct Entry_40d670 {
@@ -1090,7 +1090,7 @@ Pathfinder::Pathfinder()
 
     unsigned int m = (grid.count + 0xff) >> 8;
     unsigned int n = m * 4;
-    grid.dirty = (unsigned int*)FUN_004d83b0("AISearch touched mapentries", n);
+    grid.dirty = (unsigned int*)GameAllocIgnoreTag("AISearch touched mapentries", n);
     // Only n - 1 bytes are filled; the last dword is zeroed separately.
     memset(grid.dirty, 0xff, n - 1);
     *(int*)((char*)grid.dirty + n - 4) = 0;
@@ -1117,7 +1117,7 @@ Pathfinder::Pathfinder()
 // FUNCTION: 0x40eb30
 Pathfinder::~Pathfinder()
 {
-    FUN_004d85a0(grid.dirty);
+    GameFreeThunk(grid.dirty);
     operator delete(grid.cells);
     operator delete(pool);
     operator delete(items);

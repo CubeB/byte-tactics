@@ -4,7 +4,7 @@
 // the guard function 0x4dfd10).
 //
 // `_Freenode` is the pooled allocator's deallocate: it pushes the node onto
-// DAT_00529e58.
+// g_nameMapFreeList.
 #include <yvals.h>
 
 struct Node_004dfd50 {
@@ -21,8 +21,8 @@ class Class_004e0450 {
 public:
     Node_004dfd50* ptr;                // +0x0
 
-    void FUN_004e0450();               // _Inc
-    Class_004e0450& operator++() { FUN_004e0450(); return *this; }
+    void NextNode();                   // _Inc
+    Class_004e0450& operator++() { NextNode(); return *this; }
     Class_004e0450 operator++(int)
     {
         Class_004e0450 t = *this;
@@ -36,18 +36,18 @@ public:
 // std::_Tree<...>::_Erase(_Nodeptr): frees a whole subtree.
 class Class_004e03f0 {
 public:
-    void FUN_004e03f0(Node_004dfd50* x);
+    void EraseSubtree(Node_004dfd50* x);
 };
 
 // std::_Tree<...>::erase(iterator): erases one node, returns the next.
 class Class_004dfea0 {
 public:
-    Class_004e0450 FUN_004dfea0(Class_004e0450 it);
+    Class_004e0450 Erase(Class_004e0450 it);
 };
 
 // _Nil and _Nilrefs are shared with the instantiation in 0x4e17c0.
 extern Node_004dfd50* DAT_005292c4;    // tree _Nil
-extern void* DAT_00529e58;             // node free list
+extern void* g_nameMapFreeList;        // node free list
 extern unsigned int DAT_00529500;      // tree _Nilrefs
 
 // The map's _Tree. Only the fields the destructor touches are modelled:
@@ -73,11 +73,11 @@ public:
     {
         if (size() == 0 || _F != begin() || _L != end()) {
             while (_F != _L)
-                ((Class_004dfea0*)this)->FUN_004dfea0(_F++);
+                ((Class_004dfea0*)this)->Erase(_F++);
             return _F;
         } else {
             std::_Lockit Lk;
-            ((Class_004e03f0*)this)->FUN_004e03f0(_Root());
+            ((Class_004e03f0*)this)->EraseSubtree(_Root());
             _Root() = DAT_005292c4;
             _Size = 0;
             _Lmost() = _Head;
@@ -92,8 +92,8 @@ public:
         // Loaded nodes kept in locals (h, n) for the free-list push: re-reading shifts registers.
         Node_004dfd50* h = _Head;
         if (h != 0) {
-            *(void**)h = DAT_00529e58;
-            DAT_00529e58 = h;
+            *(void**)h = g_nameMapFreeList;
+            g_nameMapFreeList = h;
         }
         _Head = 0, _Size = 0;
         {
@@ -101,8 +101,8 @@ public:
             if (--DAT_00529500 == 0) {
                 Node_004dfd50* n = DAT_005292c4;
                 if (n != 0) {
-                    *(void**)n = DAT_00529e58;
-                    DAT_00529e58 = n;
+                    *(void**)n = g_nameMapFreeList;
+                    g_nameMapFreeList = n;
                 }
                 DAT_005292c4 = 0;
             }

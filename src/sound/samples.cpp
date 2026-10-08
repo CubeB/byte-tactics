@@ -107,9 +107,9 @@ public:
     void CloseCdAudio();
 };
 
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 
-void __cdecl FUN_004d85a0(void* p);
+void __cdecl GameFreeThunk(void* p);
 
 extern int g_playBufferLooping;
 
@@ -485,7 +485,7 @@ IDirectSoundBuffer** Sound::CreateSampleFromMemory(void* src, DWORD bytes,
     }
 
     {
-        IDirectSoundBuffer** set = (IDirectSoundBuffer**)FUN_004d83b0("Digital Audio Sample", 0x10);
+        IDirectSoundBuffer** set = (IDirectSoundBuffer**)GameAllocIgnoreTag("Digital Audio Sample", 0x10);
         for (int i = 0; i < 4; i++)
             set[i] = 0;
         set[0] = buf;
@@ -546,7 +546,7 @@ IDirectSoundBuffer** Sound::CreateSampleFromFile(FileHandle* file, DWORD bytes,
     }
 
     {
-        IDirectSoundBuffer** set = (IDirectSoundBuffer**)FUN_004d83b0("Digital Audio Sample", 0x10);
+        IDirectSoundBuffer** set = (IDirectSoundBuffer**)GameAllocIgnoreTag("Digital Audio Sample", 0x10);
         for (int i = 0; i < 4; i++)
             set[i] = 0;
         set[0] = buf;
@@ -578,7 +578,7 @@ void Sound::ReleaseSampleSet(IDirectSoundBuffer** set)
             }
         }
     }
-    FUN_004d85a0(set);
+    GameFreeThunk(set);
 }
 
 // Calls PlaySampleSet on the same object with the global flag at 0x51ff48 set

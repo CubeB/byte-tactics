@@ -20,8 +20,8 @@
 // the register windows they match in.
 #include <direct.h>
 
-extern "C" void __cdecl FUN_004d85a0(void* p);
-void* __cdecl FUN_004d83b0(char* name, int size);
+extern "C" void __cdecl GameFreeThunk(void* p);
+void* __cdecl GameAllocIgnoreTag(char* name, int size);
 
 // g_lightY is declared before g_lightX: the order decides which product of
 // DrawLitPieces' lighting sum MSVC loads first.
@@ -445,7 +445,7 @@ int UnitTable::Initialize(unsigned int size)
 void UnitTable::Destroy()
 {
     if (ptr) {
-        FUN_004d85a0(ptr);
+        GameFreeThunk(ptr);
     }
     ((CMemoryCache*)this)->FreeBuffer();
 }
@@ -1048,7 +1048,7 @@ Model_459200* __stdcall CreateObjectState(Object3do* obj)
         count += CountObjects(obj->sibling);
     }
     int size = count * 0x36 + 0x22;
-    Model_459200* state = (Model_459200*)FUN_004d83b0("Object State", size);
+    Model_459200* state = (Model_459200*)GameAllocIgnoreTag("Object State", size);
     memset(state, 0, size);
     state->root = AddStateEntries(state, obj, 0);
     state->field_8 = 1;
@@ -1074,7 +1074,7 @@ Model_459200* __stdcall CreatePlayerObjectState(Object3do* obj, BuildList_0045a9
         count += CountObjects(obj->sibling);
     }
     int size = count * 0x36 + 0x22;
-    Model_459200* state = (Model_459200*)FUN_004d83b0("Object State", size);
+    Model_459200* state = (Model_459200*)GameAllocIgnoreTag("Object State", size);
     memset(state, 0, size);
     state->root = AddStateEntries(state, obj, 0);
     state->field_8 = 1;
@@ -1099,13 +1099,13 @@ Model_459200* __stdcall CreatePlayerObjectState(Object3do* obj, BuildList_0045a9
 void __stdcall FreeObjectState(Model_459200* state)
 {
     for (int i = 0; i < state->count; i++) {
-        FUN_004d85a0(state->pieces[i].points);
+        GameFreeThunk(state->pieces[i].points);
     }
     if (g_game->obj != 0) {
         g_game->obj->ReleaseHandle((int)&state->bitmap);
         g_game->obj->ReleaseHandle((int)&state->shadow);
     }
-    FUN_004d85a0(state);
+    GameFreeThunk(state);
 }
 
 // Restores the vertices of every modified piece in the tree (or of every
@@ -1238,7 +1238,7 @@ Piece_459c70* __stdcall AddStateEntries(Model_459200* state, Object3do* obj,
     e->flags.word |= 2;
     e->object = obj;
     e->modified = 0;
-    e->points = (Vec3*)FUN_004d83b0("Point List", obj->vertexCount * 12);
+    e->points = (Vec3*)GameAllocIgnoreTag("Point List", obj->vertexCount * 12);
     memcpy(e->points, obj->points, obj->vertexCount * 12);
     if (obj->vertexCount >= 3) {
         e->flags.word |= 1;

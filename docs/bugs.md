@@ -779,8 +779,8 @@ Things that look wrong in the original but have no effect, kept for the record.
   width (`mov dx, word ptr [ecx]` with ecx 0, at 0x4a24f8). Found by DeepSeek
   V4.1 Flash in #363.
 - **0x4a31c0** (possible): allocates the SCROLLITEMS scratch block with
-  FUN_004d83b0 and never frees it, where the siblings 0x41eaa0 and 0x41eb60
-  free the same kind of block with FUN_004d85a0. Found by DeepSeek V4.1 Flash
+  GameAllocIgnoreTag and never frees it, where the siblings 0x41eaa0 and 0x41eb60
+  free the same kind of block with GameFreeThunk. Found by DeepSeek V4.1 Flash
   in #363.
 - **0x4a36a0** and **0x4a35a0** (not a bug): when the layout entry is not
   found they call FatalError (0x4b6290) with "Error in GUI layout" and then

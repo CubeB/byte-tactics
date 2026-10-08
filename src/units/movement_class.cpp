@@ -12,7 +12,7 @@
 // Unused by the code, but it puts the pointer first in v[n] in BuildPassMap.
 #include <stdio.h>
 
-void __cdecl FUN_004d85a0(void* p);
+void __cdecl GameFreeThunk(void* p);
 
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
@@ -133,7 +133,7 @@ int __stdcall GetPassMapCellValue(Class_00440500* obj, Cell_00440500* cell);
 // data member with a "$S" flag, which is the byte right after the table.
 // The destructor is implicit (there is no user-written body to write): its body
 // is the compiler's own destruction of the 32 entries, each inlining
-// ~MovementClass (FUN_004d85a0 on field_0, then operator delete on cells),
+// ~MovementClass (GameFreeThunk on field_0, then operator delete on cells),
 // which is the loop 0x440290 registers with atexit. A user-written loop would
 // otherwise run on top of that destruction.
 struct MovementClassTable {
@@ -269,7 +269,7 @@ MovementClass::MovementClass()
 // FUNCTION: 0x440320
 MovementClass::~MovementClass()
 {
-    FUN_004d85a0(field_0);
+    GameFreeThunk(field_0);
     operator delete(cells);
 }
 
@@ -505,7 +505,7 @@ void BuildAllPassMaps(void)
 
 static inline void FreeA(int p)
 {
-    FUN_004d85a0(*(void**)(p - 0x18));
+    GameFreeThunk(*(void**)(p - 0x18));
     *(void**)(p - 0x18) = 0;
 }
 

@@ -3,7 +3,7 @@
 #include <string.h>
 
 void __cdecl ReportException(EXCEPTION_POINTERS* exception, const char* message);
-void FUN_004d8390(void);
+void NopAbortHook(void);
 void AbortProgram(void);
 
 // The fatal error handler: appends `message` to ErrorLog.txt beside the exe,
@@ -38,6 +38,6 @@ void __cdecl FatalError(const char* message)
     }
     if (message)
         MessageBoxA(0, message, "Cavedog", MB_OK | MB_ICONSTOP | MB_SYSTEMMODAL | MB_TOPMOST);
-    FUN_004d8390();
+    NopAbortHook();
     AbortProgram();
 }

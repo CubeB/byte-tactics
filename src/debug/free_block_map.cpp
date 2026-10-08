@@ -36,13 +36,13 @@ struct Node_004dd1b0 {
     Node_004dd1b0* left;               // +0x0
 };
 
-Node_004dd1b0* __cdecl FUN_004dd1b0(Node_004dd1b0* p);
+Node_004dd1b0* __cdecl FindLeftmost(Node_004dd1b0* p);
 
 extern Node_004db000* DAT_00528a54;    // the tree's _Nil node
-extern unsigned int DAT_005289d4;      // the last offset handed out
-extern unsigned int DAT_00528a00;      // how often the search wrapped
+extern unsigned int g_lastAllocOffset;  // the last offset handed out
+extern unsigned int g_freeBlockWraps;  // how often the search wrapped
 
-// The tree's iterator: one pointer. FUN_004dd2a0 is its _Dec().
+// The tree's iterator: one pointer. PrevNode is its _Dec().
 class Class_004dd2a0 {
 public:
     Node_004db000* ptr;
@@ -55,14 +55,14 @@ public:
     Pair_004db000* operator->() const { return &ptr->value; }
     Class_004dd2a0& operator++() { Inc(); return *this; }
     Class_004dd2a0 operator++(int) { Class_004dd2a0 tmp = *this; ++*this; return tmp; }
-    Class_004dd2a0& operator--() { FUN_004dd2a0(); return *this; }
+    Class_004dd2a0& operator--() { PrevNode(); return *this; }
     Class_004dd2a0 operator--(int) { Class_004dd2a0 tmp = *this; --*this; return tmp; }
-    void FUN_004dd2a0();
+    void PrevNode();
     void Inc()
     {
         std::_Lockit lock;
         if (ptr->right != DAT_00528a54)
-            ptr = (Node_004db000*)FUN_004dd1b0((Node_004dd1b0*)ptr->right);
+            ptr = (Node_004db000*)FindLeftmost((Node_004dd1b0*)ptr->right);
         else {
             Node_004db000* p;
             while (ptr == (p = ptr->parent)->right)
@@ -81,19 +81,19 @@ public:
     unsigned char second;
     Class_004ddbe0() {}
     // const reference: the hidden return pointer of insert is what gets pushed.
-    Class_004ddbe0* FUN_004ddbe0(const Class_004dd2a0& first, unsigned char& second);
+    Class_004ddbe0* Assign(const Class_004dd2a0& first, unsigned char& second);
 };
 
-class Class_004dd250 { public: Node_004db000* FUN_004dd250(const Pair_004db000& k); };
-class Class_004dc130 { public: Class_004dd2a0 FUN_004dc130(Class_004dd2a0 it); };
-class Class_004dbec0 { public: Class_004ddbe0 FUN_004dbec0(const Pair_004db000& v); };
+class Class_004dd250 { public: Node_004db000* LowerBound(const Pair_004db000& k); };
+class Class_004dc130 { public: Class_004dd2a0 Erase(Class_004dd2a0 it); };
+class Class_004dbec0 { public: Class_004ddbe0 Insert(const Pair_004db000& v); };
 
-// FUN_004dce60 is an insert() that returns through a hidden pointer (its
+// Insert is an insert() that returns through a hidden pointer (its
 // return type has a constructor), so its result arrives in eax as the address
 // of the caller's temporary.
 class Class_004dce60 {
 public:
-    Class_004dd2a0 FUN_004dce60(Node_004db000* x, Node_004db000* y,
+    Class_004dd2a0 Insert(Node_004db000* x, Node_004db000* y,
                                  Pair_004db000* v);
 };
 
@@ -117,7 +117,7 @@ public:
     bool Neq(Class_004dd2a0 a, Class_004dd2a0 b) { return !(a == b); }
     Class_004dd2a0 upper_bound(const Pair_004db000& k)
     {
-        return Class_004dd2a0(((Class_004dd250*)this)->FUN_004dd250(k));
+        return Class_004dd2a0(((Class_004dd250*)this)->LowerBound(k));
     }
 
     void AddFreeBlock(Pair_004db000 p);
@@ -157,10 +157,10 @@ public:
 // keeps only TakeFreeBlock, which matches in its own symbol context.
 
 // The allocator's alloc(): look for a free block of `bytes` in the free-block
-// set, preferring the block the last allocation came from (DAT_005289d4),
+// set, preferring the block the last allocation came from (g_lastAllocOffset),
 // take it out, hand back the leftovers on either side as new free blocks, and
 // if two passes over the set find nothing, reserve more address space (Grow,
-// the out-of-line copy of which is 0x4db450) and try again. DAT_00528a00
+// the out-of-line copy of which is 0x4db450) and try again. g_freeBlockWraps
 // counts the wraps around the set and DAT_00528a54 is the tree's _Nil node.
 // FUNCTION: 0x4db1c0
 unsigned int FreeBlockMap::TakeFreeBlock(unsigned int bytes)
@@ -168,14 +168,14 @@ unsigned int FreeBlockMap::TakeFreeBlock(unsigned int bytes)
     // Function scope, not inside the if: otherwise the recursive return becomes a jump.
     Pair_004db000 k;
     if (size() > 0) {
-        k.offset = DAT_005289d4;
+        k.offset = g_lastAllocOffset;
         k.length = 0;
         // STL-style iterator operators (--, ++, ->) throughout: their inlining shapes the code.
         Class_004dd2a0 lb = upper_bound(k);
         if (lb != begin()) {
             Class_004dd2a0 it = lb;
             it--;
-            if (DAT_005289d4 >= it->offset && DAT_005289d4 + bytes <= it->offset + it->length)
+            if (g_lastAllocOffset >= it->offset && g_lastAllocOffset + bytes <= it->offset + it->length)
                 lb = it;
         }
         Class_004dd2a0 cur = lb;
@@ -183,8 +183,8 @@ unsigned int FreeBlockMap::TakeFreeBlock(unsigned int bytes)
         do {
             if (cur == end()) {
                 cur = begin();
-                DAT_005289d4 = 0;
-                DAT_00528a00++;
+                g_lastAllocOffset = 0;
+                g_freeBlockWraps++;
                 tries++;
             }
             if (cur->length >= bytes) {
@@ -192,20 +192,20 @@ unsigned int FreeBlockMap::TakeFreeBlock(unsigned int bytes)
                 unsigned int len, base;
                 base = cur->offset;
                 len = cur->length;
-                ((Class_004dc130*)this)->FUN_004dc130(cur);
-                if (DAT_005289d4 == 0)
-                    DAT_005289d4 = base;
+                ((Class_004dc130*)this)->Erase(cur);
+                if (g_lastAllocOffset == 0)
+                    g_lastAllocOffset = base;
                 unsigned int mark;
-                if (DAT_005289d4 >= base && DAT_005289d4 + bytes <= base + len)
-                    mark = DAT_005289d4;
+                if (g_lastAllocOffset >= base && g_lastAllocOffset + bytes <= base + len)
+                    mark = g_lastAllocOffset;
                 else
                     mark = base;
                 if (mark > base)
-                    ((Class_004dbec0*)this)->FUN_004dbec0(Pair_004db000(base, mark - base));
+                    ((Class_004dbec0*)this)->Insert(Pair_004db000(base, mark - base));
                 unsigned int end = mark + bytes;
                 if (end < base + len)
-                    ((Class_004dbec0*)this)->FUN_004dbec0(Pair_004db000(end, base - mark + len - bytes));
-                DAT_005289d4 = end;
+                    ((Class_004dbec0*)this)->Insert(Pair_004db000(end, base - mark + len - bytes));
+                g_lastAllocOffset = end;
                 return mark;
             }
             cur++;

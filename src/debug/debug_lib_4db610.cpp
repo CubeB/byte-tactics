@@ -13,7 +13,7 @@
 
 class Class_004ddd70 {
 public:
-    void* FUN_004ddd70(unsigned int n);
+    void* Allocate(unsigned int n);
 };
 
 // The map's allocator: std::allocator whose node allocation (_Charalloc, the
@@ -22,7 +22,7 @@ class PoolAlloc_004db610 : public std::allocator<int> {
 public:
     char* _Charalloc(size_t n)
     {
-        return (char*)((Class_004ddd70*)this)->FUN_004ddd70(n);
+        return (char*)((Class_004ddd70*)this)->Allocate(n);
     }
 };
 
@@ -70,12 +70,12 @@ public:
     }
 };
 
-extern FreeBlockMap* DAT_00528a40;
+extern FreeBlockMap* g_freeBlockSet;
 
 // FUNCTION: 0x4db610
 FreeBlockMap* GetFreeBlockSet()
 {
-    if (DAT_00528a40 == 0)
-        DAT_00528a40 = new FreeBlockMap;
-    return DAT_00528a40;
+    if (g_freeBlockSet == 0)
+        g_freeBlockSet = new FreeBlockMap;
+    return g_freeBlockSet;
 }

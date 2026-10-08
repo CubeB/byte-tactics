@@ -80,7 +80,7 @@ void __stdcall RemapPaletteToClosestIndices(void* menu, void* palette, void* par
 Gadget_00444580* __stdcall LoadGuiLayer(void* menu, char* name, int size);
 void __stdcall FUN_004441a0(void* menu);
 void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 void __stdcall HAPINET_uninitmultiplay(void* param_1);
 void __stdcall HAPINET_getconnections(void* param_1, void* guids, void* conns, void* descriptions, void* param_5);
 int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
@@ -121,9 +121,9 @@ void FillProviderList()
     menu->handler = FUN_004441a0;
     menu->field_c = (int)g_game;
     LoadPictureCached("selconnect2", 1, 0, 0);
-    g_game->descriptions = FUN_004d83b0("PROVIDER DESCRIPTIONS", 0x500);
-    g_game->guids = FUN_004d83b0("PROVIDER GUIDS", 0xa0);
-    g_game->conns = (Conn_00444580*)FUN_004d83b0("DPLAY CONNECTIONS", 0x50);
+    g_game->descriptions = GameAllocIgnoreTag("PROVIDER DESCRIPTIONS", 0x500);
+    g_game->guids = GameAllocIgnoreTag("PROVIDER GUIDS", 0xa0);
+    g_game->conns = (Conn_00444580*)GameAllocIgnoreTag("DPLAY CONNECTIONS", 0x50);
     if (g_game->conns != 0)
         memset(g_game->conns, 0, 0x50);
     g_game->field_391e9->RefreshMapList(1);

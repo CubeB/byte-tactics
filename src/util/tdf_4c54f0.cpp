@@ -17,7 +17,7 @@
 extern char g_language[256];
 extern char DAT_005119b8[];
 
-void __cdecl FUN_004d83a0(int);
+void __cdecl AllocNotifyNop(int);
 
 // The string handle (see tdf_4c2ea0.cpp): 0x4c9180 builds the empty one,
 // 0x4c91a0 copies, 0x4c91b0 builds from text, 0x4c9390 releases, 0x4c93b0 and
@@ -200,7 +200,7 @@ void __stdcall LoadTranslations(char* filename, char* section)
         ::operator delete(old);
     }
     g_translations = new TranslationTable(alloc);
-    FUN_004d83a0((int)g_translations);
+    AllocNotifyNop((int)g_translations);
     strcpy(g_language, section);
     {
         TdfFile f;

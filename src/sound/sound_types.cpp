@@ -64,9 +64,9 @@ extern char DAT_005119b8[];
 extern char g_sayChoiceArrayName[];
 extern SoundInfo_005086fc g_speechCategories[];
 
-int __cdecl FUN_004d84a0(int param_1, char* param_2, int param_3);
-void __cdecl FUN_004d85a0(int* param_1);
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+int __cdecl GameReallocTagged(int param_1, char* param_2, int param_3);
+void __cdecl GameFreeThunk(int* param_1);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 int __stdcall ReadSoundEntry(Source_0042f450* source, char* key, int* out);
 void __stdcall LoadSoundByName(char* name, char* value);
@@ -85,8 +85,8 @@ int __stdcall ReadSoundEntry(Source_0042f450* param_1, char* param_2, int* param
         sprintf(local_100, "%s%s", param_2, "text");
         if (param_1->tdf->GetFieldString(local_180, local_100, 0x40, DAT_005119b8) == 0)
             local_180[0] = 0;
-        param_3[1] = FUN_004d84a0(param_3[1], g_sayChoiceArrayName, (param_3[0] + 1) * 0x40);
-        param_3[2] = FUN_004d84a0(param_3[2], g_sayChoiceArrayName, (param_3[0] + 1) * 0x40);
+        param_3[1] = GameReallocTagged(param_3[1], g_sayChoiceArrayName, (param_3[0] + 1) * 0x40);
+        param_3[2] = GameReallocTagged(param_3[2], g_sayChoiceArrayName, (param_3[0] + 1) * 0x40);
         strcpy((char*)(param_3[1] + param_3[0] * 0x40), local_140);
         strcpy((char*)(param_3[2] + param_3[0] * 0x40), local_180);
         param_3[0]++;
@@ -116,7 +116,7 @@ void LoadSoundCategories()
     if (obj.LoadFile(path)) {
         g_game->entry_count = ((TdfRecord*)obj.field_0)->GetSubRecordCount();
         int size = g_game->entry_count * 0x160;
-        g_game->entries = (Entry_0042f740*)FUN_004d83b0("Sound Categories", size);
+        g_game->entries = (Entry_0042f740*)GameAllocIgnoreTag("Sound Categories", size);
         memset(g_game->entries, 0, size);
         for (int i = 0; i < g_game->entry_count; i++) {
             char* rec = (char*)g_game->entries + i * 0x160;
@@ -150,12 +150,12 @@ void FreeSoundCategories()
             Entry_0042f740* e = &g_game->entries[i];
             for (int j = 0; j < 0x18; j++) {
                 if (e->slots[j].count > 0) {
-                    FUN_004d85a0(e->slots[j].a);
-                    FUN_004d85a0(e->slots[j].b);
+                    GameFreeThunk(e->slots[j].a);
+                    GameFreeThunk(e->slots[j].b);
                 }
             }
         }
-        FUN_004d85a0((int*)g_game->entries);
+        GameFreeThunk((int*)g_game->entries);
     }
     g_game->entry_count = 0;
     g_game->entries = 0;

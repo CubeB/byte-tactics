@@ -47,11 +47,11 @@ public:
         }
         return y;
     }
-    Iter_004e2580 FUN_004e2580(const char* const& key);
+    Iter_004e2580 LowerBound(const char* const& key);
 };
 
 // FUNCTION: 0x4e2580
-Iter_004e2580 Class_004e2580::FUN_004e2580(const char* const& key)
+Iter_004e2580 Class_004e2580::LowerBound(const char* const& key)
 {
     return Iter_004e2580(Lbound(key));
 }

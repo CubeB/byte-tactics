@@ -509,7 +509,7 @@ public:
 
 char* __stdcall HAPI_LoadFile(const char* name, int* size);
 int __stdcall ExecuteCommandText(char* text, int len, Class_004b74f0* vars, int param_4);
-void __cdecl FUN_004d85a0(char* text);
+void __cdecl GameFreeThunk(char* text);
 void __stdcall ParseDownloadableAiWeightScripts(int player);
 void __stdcall ReparseAiWeightScriptsIfLimitNotSticky(int player);
 
@@ -526,7 +526,7 @@ void LoadDefaultAIScript()
         Class_004b74f0 vars;
         ((CommandArgs*)&vars)->InitArgs();
         ExecuteCommandText(text, size, &vars, -1);
-        FUN_004d85a0(text);
+        GameFreeThunk(text);
     }
     for (int i = 0; i < 10; i++) {
         Player* p = &g_game->players[i];

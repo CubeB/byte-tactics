@@ -59,7 +59,7 @@ struct Game {
 
 extern Game* g_game;
 
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 unsigned short __stdcall LoadFeatureType(char* name);
 
 // FUNCTION: 0x421f20
@@ -67,7 +67,7 @@ void __stdcall InitFeatureAnimPool(List_00421f20* list)
 {
     AnimManager_00421f20* m = &g_game->anim;
 
-    m->anim = (AnimEntry_00421f20*)FUN_004d83b0("FEATURE ANIM DATA", 0x18000);
+    m->anim = (AnimEntry_00421f20*)GameAllocIgnoreTag("FEATURE ANIM DATA", 0x18000);
     memset(m->anim, 0, 0x18000);
     m->field_18 = -1;
     m->field_1c = -1;
@@ -79,7 +79,7 @@ void __stdcall InitFeatureAnimPool(List_00421f20* list)
     m->anim[0].prev = -1;
     m->anim[0x7ff].next = -1;
 
-    m->featureUnit = (FeatureUnit_00421f20*)FUN_004d83b0("Feature Unit", 0x118);
+    m->featureUnit = (FeatureUnit_00421f20*)GameAllocIgnoreTag("Feature Unit", 0x118);
     memset(m->featureUnit, 0, 0x118);
     m->featureUnit->flags_110 |= 0x200;
     m->featureUnit->flags_110 |= 0x20000000;

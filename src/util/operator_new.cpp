@@ -2,31 +2,31 @@
 
 #include <stddef.h>
 
-void* __cdecl FUN_004d8660(size_t size);
-void __cdecl FUN_004d8670(void* p);
+void* __cdecl GameAllocThunk(size_t size);
+void __cdecl GameFreeIndirectThunk(void* p);
 
 // Cavedog replaced the global operator new and delete, scalar and array,
 // with wrappers around the game's own allocator.
 // FUNCTION: 0x4b4f10
 void* __cdecl operator new(size_t size)
 {
-    return FUN_004d8660(size);
+    return GameAllocThunk(size);
 }
 
 // FUNCTION: 0x4b4f20
 void __cdecl operator delete(void* p)
 {
-    FUN_004d8670(p);
+    GameFreeIndirectThunk(p);
 }
 
 // FUNCTION: 0x4b4f30 ??_U@YAPAXI@Z
 void* __cdecl operator new[](size_t size)
 {
-    return FUN_004d8660(size);
+    return GameAllocThunk(size);
 }
 
 // FUNCTION: 0x4b4f40 ??_V@YAXPAX@Z
 void __cdecl operator delete[](void* p)
 {
-    FUN_004d8670(p);
+    GameFreeIndirectThunk(p);
 }

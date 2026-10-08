@@ -16,12 +16,12 @@ struct Counter_004e1e50 {
     unsigned int base;                  // +0xc, the event it is shown as a share of
 };
 
-extern Counter_004e1e50 DAT_00529e00;
-extern Counter_004e1e50 DAT_00529e10;
-extern unsigned char DAT_00529dd8;      // profiling is on
-extern unsigned char DAT_00529ddc;      // reports go to the debugger too
-extern unsigned char DAT_00529e64;      // reports go to the log
-extern char DAT_00529e20[];             // the indent of the current report
+extern Counter_004e1e50 g_pmcEvent0;
+extern Counter_004e1e50 g_pmcEvent1;
+extern unsigned char g_perfEnabled;     // profiling is on
+extern unsigned char g_perfDisplayInDebugger;  // reports go to the debugger too
+extern unsigned char g_perfDisplayInWindow;  // reports go to the log
+extern char g_reportIndentText[];       // the indent of the current report
 extern char DAT_005119b8[];             // ""
 
 // A report for the log: its name and its text.
@@ -44,7 +44,7 @@ NameTable* GetNameTable();
 
 class Class_004e1990 {
 public:
-    void FUN_004e1990(const NameKey& key);
+    void Upsert(const NameKey& key);
 };
 
 // A named timer that also reads the two performance counters.
@@ -71,7 +71,7 @@ void Timer::ReportElapsedTime(const char* label)
     __int64 count1;
     __int64 count0;
     char text[500];
-    if (!DAT_00529dd8 || !HasPerfCounters())
+    if (!g_perfEnabled || !HasPerfCounters())
         return;
     if (HasPerfCounters()) {
         __asm {
@@ -93,24 +93,24 @@ void Timer::ReportElapsedTime(const char* label)
         label = name;
     char* p;
     if (label)
-        p = text + sprintf(text, "%sElapsed time for '%s' is %g sec", DAT_00529e20, label, GetElapsedSeconds());
+        p = text + sprintf(text, "%sElapsed time for '%s' is %g sec", g_reportIndentText, label, GetElapsedSeconds());
     else
-        p = text + sprintf(text, "%sElapsed time is %g sec", DAT_00529e20, GetElapsedSeconds());
+        p = text + sprintf(text, "%sElapsed time is %g sec", g_reportIndentText, GetElapsedSeconds());
     if (HasPerfCounters()) {
-        p += sprintf(p, "\r\n\t%s%s: %u", DAT_00529e20, DAT_00529e00.name, (unsigned int)count0);
-        if (DAT_00529e00.base == DAT_00529e10.event)
+        p += sprintf(p, "\r\n\t%s%s: %u", g_reportIndentText, g_pmcEvent0.name, (unsigned int)count0);
+        if (g_pmcEvent0.base == g_pmcEvent1.event)
             p += sprintf(p, " (%1.2f%%)", (double)count0 * 100.0 / (double)count1);
-        p += sprintf(p, "\r\n\t%s%s: %u", DAT_00529e20, DAT_00529e10.name, (unsigned int)count1);
-        if (DAT_00529e10.base == DAT_00529e00.event)
+        p += sprintf(p, "\r\n\t%s%s: %u", g_reportIndentText, g_pmcEvent1.name, (unsigned int)count1);
+        if (g_pmcEvent1.base == g_pmcEvent0.event)
             p += sprintf(p, " (%1.2f%%)", (double)count1 * 100.0 / (double)count0);
     }
     strcat(text, "\r\n");
-    if (DAT_00529ddc && (flags & 2))
+    if (g_perfDisplayInDebugger && (flags & 2))
         OutputDebugStringA(text);
-    if (DAT_00529e64) {
+    if (g_perfDisplayInWindow) {
         NameKey report(label);
         strcpy(report.text, text);
-        ((Class_004e1990*)GetNameTable())->FUN_004e1990(report);
+        ((Class_004e1990*)GetNameTable())->Upsert(report);
     }
 }
 
@@ -123,8 +123,8 @@ double Timer::RestartTimer()
     __int64 count1;
     if (HasPerfCounters()) {
         InitPerformanceEvents();
-        ProgramPerfEvent(DAT_00529e00.event, 0, 1, 0);
-        ProgramPerfEvent(DAT_00529e10.event, 1, 1, 0);
+        ProgramPerfEvent(g_pmcEvent0.event, 0, 1, 0);
+        ProgramPerfEvent(g_pmcEvent1.event, 1, 1, 0);
     }
     double now = GetTimeSeconds();
     if (stopped)

@@ -87,9 +87,9 @@ public:
     void CloseCdAudio();
 };
 
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 
-void __cdecl FUN_004d85a0(void* p);
+void __cdecl GameFreeThunk(void* p);
 
 extern int g_playBufferLooping;
 

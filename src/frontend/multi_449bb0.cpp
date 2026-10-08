@@ -213,7 +213,7 @@ Layer_00449bb0* __stdcall LoadGuiLayer(Gui_00449bb0* gui, const char* name, int 
 int __stdcall IsScreenNamed(Gui_00449bb0* gui, char* name);
 void __stdcall FatalError(char* message);
 void* __stdcall FindGafEntry(void* gaf, const char* name);
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 
 // The ENERGY slider handler at 0x445d60, which has no callers: /Ob2 inlined it.
 void __stdcall UpdateEnergyText(Gui_00449bb0* gui, int unused)
@@ -357,7 +357,7 @@ void OpenBattleRoom()
     }
 
     UpdateBattleRoomFlags();
-    g_game->chatter = (char*)FUN_004d83b0("LOUNGE CHATTER", 0xa00);
+    g_game->chatter = (char*)GameAllocIgnoreTag("LOUNGE CHATTER", 0xa00);
     *g_game->chatter = 0;
     {
         Gadget_00449bb0* mem = FUN_004a0180(g_game->gui.table->entries, "MEMx");

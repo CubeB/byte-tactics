@@ -93,7 +93,7 @@ void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const
 void* __stdcall LoadGaf(char* path);
 void* __stdcall FindGafEntry(void* gaf, const char* name);
 void __stdcall FatalError(char* message);
-void __cdecl FUN_004d85a0(int* param_1);
+void __cdecl GameFreeThunk(int* param_1);
 void __stdcall ReadSideRect(Obj_00431950* obj, int* out, char* name, char* side);
 void* __stdcall HAPI_LoadFile(char* path, int flags);
 
@@ -110,7 +110,7 @@ void LoadLogos()
 void FreeLogos(void)
 {
     int val = g_game->field_148d7;
-    FUN_004d85a0((int*)val);
+    GameFreeThunk((int*)val);
     g_game->field_148d7 = 0;
 }
 
@@ -142,7 +142,7 @@ void FreeSideFonts()
     for (int i = 0; i < 5; i++) {
         int*& buffer = g_game->entries[i].buffer;
         if (buffer) {
-            FUN_004d85a0(buffer);
+            GameFreeThunk(buffer);
             buffer = 0;
         }
     }

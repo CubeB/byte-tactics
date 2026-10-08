@@ -308,7 +308,7 @@ void __stdcall SetTranslatedTextByName(Menu* menu, char* name, char* text, int p
 void __stdcall PlaySoundByName(char* name, int flag);
 Gadget* __stdcall FindGadgetChecked(Gadget* entries, char* name);
 int __stdcall IsCurrentGadgetNamed(Menu* menu, char* name);
-void __cdecl FUN_004d85a0(void* p);
+void __cdecl GameFreeThunk(void* p);
 void __stdcall MarkChanged(Menu* menu);
 void __stdcall ClearSelectedGadget(Menu* menu);
 void __stdcall TransferEnergy(unsigned char from, unsigned char to, float amount, int flag);
@@ -324,7 +324,7 @@ Layer* __stdcall LoadGuiLayer(Menu* menu, const char* name, int flags);
 void __stdcall HandleShareDialogEvent(Menu* gadget);
 int __stdcall FindGadgetIndex(Gadget* entries, char* name, int type);
 void __stdcall SetSliderFromValue(Gadget* entry, int param_2);
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 void __stdcall CloseTopScreen(Menu* menu);
 void __stdcall ConfigureListBoxByName(Menu* menu, char* name, char* text, int count, int flag);
 void __stdcall SetKeyboardInput(Menu* menu, int value);
@@ -469,7 +469,7 @@ void __stdcall HandleShareDialogEvent(Menu* obj)
 
     if (obj->current == -1) {
         Gadget* e = FindGadgetChecked(data, "PLYRLIST");
-        FUN_004d85a0(e->records);
+        GameFreeThunk(e->records);
         g_game->flags_37ebe &= ~0x40;
         return;
     }
@@ -555,7 +555,7 @@ void OpenShareDialog()
         e->sliderUser = g_game;
     }
 
-    char* names = (char*)FUN_004d83b0("PLAYERS", g_game->numPlayers * 30);
+    char* names = (char*)GameAllocIgnoreTag("PLAYERS", g_game->numPlayers * 30);
     char* np = names;
     *np = 0;
     memset(g_shareDialogPlayerNetIds, -1, sizeof(g_shareDialogPlayerNetIds));
@@ -913,7 +913,7 @@ void __stdcall OpenUnitInfoDialog(void)
         } while (*s != 0);
     }
 
-    FUN_004d85a0(stats);
+    GameFreeThunk(stats);
     SetTranslatedTextByName(&g_game->menu, "NAME", def, 0x80);
     MarkChanged(&g_game->menu);
 }

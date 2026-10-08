@@ -561,7 +561,7 @@ template<class _RI, class _Ty, class _Pr> void __stdcall QuickSort(_RI _F, _RI _
 
 #include <algorithm>
 
-void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
+void* __cdecl GameAllocIgnoreTag(const char* name, unsigned int size);
 int __stdcall ComparePlayers(Player* a, Player* b);
 
 // FUNCTION: 0x4854a0
@@ -572,12 +572,12 @@ void __stdcall AllocateUnitMemory(void)
     g_game->slotsPerPlayer = g_game->unitsPerPlayer;
     g_game->poolCount = (unsigned short)(g_game->unitsPerPlayer * 10 + 1);
 
-    unsigned char* pool = g_game->pool = (unsigned char*)FUN_004d83b0("UNIT MEMORY", g_game->poolCount * 0x118);
+    unsigned char* pool = g_game->pool = (unsigned char*)GameAllocIgnoreTag("UNIT MEMORY", g_game->poolCount * 0x118);
     memset(pool, 0, g_game->poolCount * 0x118);
 
     unsigned int ten = g_game->unitsPerPlayer * 10;
-    g_game->hotUnits = FUN_004d83b0("HOT UNITS", ten * 2);
-    g_game->hotRadar = FUN_004d83b0("HOT RADAR UNITS", ten * 10);
+    g_game->hotUnits = GameAllocIgnoreTag("HOT UNITS", ten * 2);
+    g_game->hotRadar = GameAllocIgnoreTag("HOT RADAR UNITS", ten * 10);
     g_game->unitsEnd = g_game->pool + g_game->poolCount * 0x118 - 0x118;
 
     unsigned short n;
@@ -627,7 +627,7 @@ int __stdcall ComparePlayers(Player* a, Player* b)
 }
 
 void __stdcall KillUnit(Unit* unit, int param_2);
-void __cdecl FUN_004d85a0(void* p);
+void __cdecl GameFreeThunk(void* p);
 
 // FUNCTION: 0x485980
 void FreeUnitMemory(void)
@@ -641,13 +641,13 @@ void FreeUnitMemory(void)
         }
     }
     if (g_game->hotRadar != 0)
-        FUN_004d85a0(g_game->hotRadar);
+        GameFreeThunk(g_game->hotRadar);
     g_game->hotRadar = 0;
     if (g_game->hotUnits != 0)
-        FUN_004d85a0(g_game->hotUnits);
+        GameFreeThunk(g_game->hotUnits);
     g_game->hotUnits = 0;
     if (g_game->units != 0)
-        FUN_004d85a0(g_game->units);
+        GameFreeThunk(g_game->units);
     g_game->units = 0;
 }
 

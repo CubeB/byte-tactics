@@ -491,23 +491,23 @@ struct Cell_0049a120;
 
 extern Game* g_game;
 
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 
 // Allocates and clears the 0x7d64-byte weapon array, then resets its count.
 // FUNCTION: 0x499a30
 void AllocWeaponArray(void)
 {
-    g_game->projectiles = FUN_004d83b0("WEAPON ARRAY", 0x7d64);
+    g_game->projectiles = GameAllocIgnoreTag("WEAPON ARRAY", 0x7d64);
     memset(g_game->projectiles, 0, 0x7d64);
     g_game->projectileCount = 0;
 }
 
-void __cdecl FUN_004d85a0(void* p);
+void __cdecl GameFreeThunk(void* p);
 
 // FUNCTION: 0x499a80
 void FreeWeaponArray(void)
 {
-    FUN_004d85a0(g_game->projectiles);
+    GameFreeThunk(g_game->projectiles);
     g_game->projectiles = 0;
 }
 

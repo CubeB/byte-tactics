@@ -30,7 +30,7 @@
 #include <cstdlib>
 #include <ctype.h>     // only for its symbol ids, with the block above
 
-void __cdecl FUN_004d85a0(void* p);
+void __cdecl GameFreeThunk(void* p);
 
 #pragma pack(push, 2)
 struct Elem_00470a40 {
@@ -97,10 +97,10 @@ public:
     virtual ~ObjectPool()
     {
         if (field_14 != 0)
-            FUN_004d85a0(field_14);
+            GameFreeThunk(field_14);
         std::vector<Item_00470ae0*>::iterator it = items.begin();
         while (it != items.end()) {
-            FUN_004d85a0(*it);
+            GameFreeThunk(*it);
             items.erase(it);
         }
     }
@@ -1240,11 +1240,11 @@ void Class_00470b80::Destroy()
 void ObjectPool::FreeBlocks()
 {
     if (field_14 != 0) {
-        FUN_004d85a0(field_14);
+        GameFreeThunk(field_14);
     }
     std::vector<Item_00470ae0*>::iterator it = items.begin();
     while (it != items.end()) {
-        FUN_004d85a0(*it);
+        GameFreeThunk(*it);
         items.erase(it);
     }
 }

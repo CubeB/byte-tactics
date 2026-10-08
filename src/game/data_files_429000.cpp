@@ -115,9 +115,9 @@ struct Game {
 extern Game* g_game;
 extern char DAT_005119b8[];
 
-void* __cdecl FUN_004d83b0(const char* name, int size);
-void* __cdecl FUN_004d84a0(void* param_1, const char* name, unsigned int param_3);
-void __cdecl FUN_004d85a0(void* param_1);
+void* __cdecl GameAllocIgnoreTag(const char* name, int size);
+void* __cdecl GameReallocTagged(void* param_1, const char* name, unsigned int param_3);
+void __cdecl GameFreeThunk(void* param_1);
 char* __stdcall StripExtension(char* name);
 int GetPreferredLanguage(void);
 void* __stdcall HAPI_OpenFileRead(char* path);
@@ -240,7 +240,7 @@ void* __stdcall LoadPaletteByName(char* name)
         }
     }
     else {
-        result = FUN_004d83b0("PALETTE", 0x400);
+        result = GameAllocIgnoreTag("PALETTE", 0x400);
         BuildDataPath(path, "palettes", name, "PCX");
         if (LoadPcxPalette(path, result) == 0) {
             FatalError(path);
@@ -359,7 +359,7 @@ char* __stdcall LoadFileWithProgress(char* path)
     }
     int size = HAPI_FileLength(file);
     int chunk = size / 10;
-    char* buf = (char*)FUN_004d83b0(path, size);
+    char* buf = (char*)GameAllocIgnoreTag(path, size);
     int done = 0;
     for (int progress = 9; progress <= 90; progress += 9) {
         done += HAPI_readfromfile(file, buf + done, chunk);
@@ -389,7 +389,7 @@ void* __stdcall LoadAnimGaf(char* name)
     if (gaf == 0) {
         FatalError(path);
     }
-    g_game->anims = (AnimEntry*)FUN_004d84a0(g_game->anims, "Animation Files",
+    g_game->anims = (AnimEntry*)GameReallocTagged(g_game->anims, "Animation Files",
                                              (g_game->animCount + 1) * 0x44);
     strcpy(g_game->anims[g_game->animCount].name, name);
     g_game->anims[g_game->animCount].gaf = gaf;
@@ -545,9 +545,9 @@ void FreeAnimFiles()
 {
     int i;
     for (i = 0; i < g_game->animCount; i++) {
-        FUN_004d85a0(g_game->anims[i].gaf);
+        GameFreeThunk(g_game->anims[i].gaf);
     }
-    FUN_004d85a0(g_game->anims);
+    GameFreeThunk(g_game->anims);
     g_game->animCount = 0;
     g_game->anims = 0;
     for (i = 0; i < g_game->count2; i++) {
@@ -562,7 +562,7 @@ void FreeAnimFiles()
 // FUNCTION: 0x42a0e0
 void __stdcall AddAnimplayPointer(void* item)
 {
-    g_game->animplayItems = (void**)FUN_004d84a0(g_game->animplayItems, "Animplay Pointers", (g_game->animplayCount + 1) * 4);
+    g_game->animplayItems = (void**)GameReallocTagged(g_game->animplayItems, "Animplay Pointers", (g_game->animplayCount + 1) * 4);
     g_game->animplayItems[g_game->animplayCount] = item;
     g_game->animplayCount++;
 }
@@ -631,7 +631,7 @@ void __stdcall BindModelTextures(Model_0042a140* model, const char* name)
                 InitGafSequence((Ref_0042a140*)&elem->name, entry, 0);
                 elem->flags |= 2;
                 if (!(elem->flags & 4)) {
-                    g_game->animplayItems = (void**)FUN_004d84a0(g_game->animplayItems, "Animplay Pointers", (g_game->animplayCount + 1) * 4);
+                    g_game->animplayItems = (void**)GameReallocTagged(g_game->animplayItems, "Animplay Pointers", (g_game->animplayCount + 1) * 4);
                     g_game->animplayItems[g_game->animplayCount] = &elem->name;
                     g_game->animplayCount++;
                 }
@@ -675,9 +675,9 @@ void LoadGameFonts()
 // FUNCTION: 0x42a3b0
 void FreeGameFonts()
 {
-    FUN_004d85a0(g_game->field_391fd);
+    GameFreeThunk(g_game->field_391fd);
     g_game->field_391fd = 0;
-    FUN_004d85a0(g_game->field_391f9);
+    GameFreeThunk(g_game->field_391f9);
     g_game->field_391f9 = 0;
 }
 
@@ -686,7 +686,7 @@ int LoadDefaultPalette()
 {
     void* palette = LoadPaletteByName("PALETTE");
     memcpy(g_game->palette, palette, 0x400);
-    FUN_004d85a0(palette);
+    GameFreeThunk(palette);
     return 1;
 }
 
@@ -709,7 +709,7 @@ void LoadTextureGafs()
     BuildDataPath(path, "textures", "*", "GAF");
     int count = CountDirectoryEntries(path, 0);
     g_game->blockCount = count - 1;
-    void** texturePtrs = (void**)FUN_004d83b0("TEXTURE PTRS", count * 4);
+    void** texturePtrs = (void**)GameAllocIgnoreTag("TEXTURE PTRS", count * 4);
     g_game->blocks = texturePtrs;
     int handle = HAPI_FindFirst(path, &fd, -1, 1);
     if (handle != -1) {
@@ -741,13 +741,13 @@ void LoadTextureGafs()
 void FreeTextureGafs()
 {
     for (int i = 0; i < g_game->blockCount; i++) {
-        FUN_004d85a0(g_game->blocks[i]);
+        GameFreeThunk(g_game->blocks[i]);
         g_game->blocks[i] = 0;
     }
-    FUN_004d85a0(g_game->blocks);
+    GameFreeThunk(g_game->blocks);
     g_game->blocks = 0;
     if (g_game->animplayItems) {
-        FUN_004d85a0(g_game->animplayItems);
+        GameFreeThunk(g_game->animplayItems);
         g_game->animplayItems = 0;
         g_game->animplayCount = 0;
     }
@@ -802,7 +802,7 @@ void __stdcall ComputeUnitScriptChecksum(Def_0042a610* def)
     void* data = HAPI_LoadFile(path, &size);
     if (data) {
         def->field_142 ^= ComputeChecksum((unsigned char*)data, size);
-        FUN_004d85a0(data);
+        GameFreeThunk(data);
     }
 
     std::vector<Class_004c91a0> files;
@@ -818,7 +818,7 @@ void __stdcall ComputeUnitScriptChecksum(Def_0042a610* def)
         void* data2 = HAPI_LoadFile(path, &size);
         if (data2) {
             def->field_142 ^= ComputeChecksum((unsigned char*)data2, size);
-            FUN_004d85a0(data2);
+            GameFreeThunk(data2);
         }
     }
 
@@ -830,7 +830,7 @@ void __stdcall ComputeUnitScriptChecksum(Def_0042a610* def)
             void* data3 = HAPI_LoadOpenFile(path, f, 0);
             if (data3) {
                 def->field_142 ^= ComputeChecksum((unsigned char*)data3, size);
-                FUN_004d85a0(data3);
+                GameFreeThunk(data3);
             }
         }
         HAPI_CloseFile(f);

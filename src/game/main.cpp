@@ -39,7 +39,7 @@ void InstallOutOfMemoryHandler()
 // Out of memory handler: appends a note to ErrorLog.txt beside the
 // executable, then reports and aborts.
 void __stdcall ReportViaException(char* text);
-void FUN_004d8390(void);
+void NopAbortHook(void);
 
 // FUNCTION: 0x49e700
 void OutOfMemoryHandler()
@@ -65,7 +65,7 @@ void OutOfMemoryHandler()
     }
     ReportViaException("Out of memory handler");
     MessageBoxA(NULL, "Out of memory!\r\nYour hard disk may be full\r\n", "Total Annihilation", 0x41010);
-    FUN_004d8390();
+    NopAbortHook();
     raise(SIGABRT);
     _exit(3);
 }

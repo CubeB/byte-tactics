@@ -15,7 +15,7 @@ struct PCX_004caa40 {
 int __stdcall HAPI_readfromfile(void* file, void* buf, int size);
 void __stdcall HAPI_SeekFile(void* file, int pos);
 int __stdcall HAPI_FileLength(void* file);
-void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
+void* __cdecl GameAllocIgnoreTag(const char* name, unsigned int size);
 
 // Static inline: the only shape that puts x, b, run, then p in the first four
 // stack slots.
@@ -61,8 +61,8 @@ int __stdcall DecodePcx(void* file, PCX_004caa40* pcx)
     if (HAPI_readfromfile(file, header, 0x80) == 0x80 && header[0] == 0x0a && header[1] == 5) {
         pcx->width = *(unsigned short*)(header + 8) - *(unsigned short*)(header + 4) + 1;
         pcx->height = *(unsigned short*)(header + 10) - *(unsigned short*)(header + 6) + 1;
-        pcx->data = (unsigned char*)FUN_004d83b0("PCX BODY", pcx->width * pcx->height);
-        pcx->palette = (unsigned char*)FUN_004d83b0("COLOR MAP", 0x300);
+        pcx->data = (unsigned char*)GameAllocIgnoreTag("PCX BODY", pcx->width * pcx->height);
+        pcx->palette = (unsigned char*)GameAllocIgnoreTag("COLOR MAP", 0x300);
         HAPI_SeekFile(file, HAPI_FileLength(file) - 0x300);
         HAPI_readfromfile(file, pcx->palette, 0x300);
         HAPI_SeekFile(file, 0x80);
@@ -281,7 +281,7 @@ void __stdcall SaveSurfacePcx(char* name, Bitmap_004caec0* bitmap)
 void* __stdcall HAPI_OpenFileRead(char* path);
 Bitmap_004caec0* __stdcall AllocSurface(char* name, int width, int height);
 void __stdcall FreeSurface(void* p);
-void __cdecl FUN_004d85a0(void* p);
+void __cdecl GameFreeThunk(void* p);
 
 // Loads a PCX file whose header starts with 0x0a 0x05, allocates an image of
 // the header's width x height, decodes the body through DecodePcx and copies
@@ -326,8 +326,8 @@ Bitmap_004caec0* __stdcall LoadPcx(char* path, unsigned char* outPalette)
             s += 3;
         }
     }
-    FUN_004d85a0(pcx.palette);
-    FUN_004d85a0(pcx.data);
+    GameFreeThunk(pcx.palette);
+    GameFreeThunk(pcx.data);
     if (!ok) {
         FreeSurface(image);
     }
@@ -368,8 +368,8 @@ int __stdcall LoadPcxPalette(char* path, unsigned int* out)
         s += 3;
     }
     memcpy(out, pal, 0x400);
-    FUN_004d85a0(pcx.palette);
-    FUN_004d85a0(pcx.data);
+    GameFreeThunk(pcx.palette);
+    GameFreeThunk(pcx.data);
     return 1;
 }
 

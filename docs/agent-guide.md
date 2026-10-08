@@ -394,15 +394,15 @@ effect, the missing piece is usually a helper that was inlined:
   bigger function; try the plainest form (`if (i >= N) i = 0; return v;`).
 - **Addresses are always symbols**: never write an address as a number (a
   vtable, string, global or function). Declare it (`extern void* DAT_004fd458[];`,
-  a string literal, `extern Class_x DAT_00528a78;`) and use the name. The
+  a string literal, `extern Class_x g_loadedImage;`) and use the name. The
   checker rejects hard-coded addresses.
 - **`g_game` (0x511de8) is a pointer**: `mov eax, [0x511de8]` loads it, then
   fields are read at `[eax+N]`. Declare `extern char* g_game;` (or a struct
   pointer) and write `*(int*)(g_game + N)`. Never `&DAT_00511de8 + N`: that is a
   constant address with no load, and can never match.
 - **`mov ecx, <global>; jmp <method>`**: a tail call of a method on a global
-  object. Declare the object (`extern Class_x DAT_00528a78;`) and write
-  `DAT_00528a78.CloseMappedFile();`. See `src/debug/debug_lib.cpp`.
+  object. Declare the object (`extern Class_x g_loadedImage;`) and write
+  `g_loadedImage.CloseMappedFile();`. See `src/debug/debug_lib.cpp`.
 - **Locals in parameter slots**: MSVC 5 reuses the stack slot of a parameter
   that is no longer needed for a local. When the code writes into a
   parameter's slot (a buffer, an output value), declare an ordinary local and
@@ -2663,9 +2663,9 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   ents = lyr->entries;` in both blocks gave the original's register rotation
   per block (MATCH, #1865).
 - **Split a chained call on a singleton.** At 0x4daa30,
-  `GetBlockMap()->FUN_004dd7d0(key)` evaluates the `lea ecx, [esp+0x10]`
+  `GetBlockMap()->LowerBound(key)` evaluates the `lea ecx, [esp+0x10]`
   argument before the getter; `Class_004dd7d0* tree = GetBlockMap();
-  tree->FUN_004dd7d0(key);` calls the getter first and keeps its result in
+  tree->LowerBound(key);` calls the getter first and keeps its result in
   `eax`, which put every later register in place (82.9% to MATCH, #2526). The
   opposite form, an inline method called on the call's result, was the right
   one at 0x4c5e70, so try both.
@@ -2801,6 +2801,6 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   the `short` angle first, `(short angle, int distance)`; the wrong order shows
   as a swapped `push` pair in every caller (0x49d270, #2181; see 0x406300.cpp).
 - **The map behind 0x4daa30** is the `std::map` tree whose `_Ubound` is
-  0x4dd7d0 and `_Dec` is 0x4dd820 (`_Nil` is DAT_00528a50; GetBlockMap creates
+  0x4dd7d0 and `_Dec` is 0x4dd820 (`_Nil` is g_blockMapNil; GetBlockMap creates
   it on first use). Its value_type is the 0x30-byte Class_004d8820, keyed by
   its first dword; name the iterator Class_004dd820 (#2243, #2526).

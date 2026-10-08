@@ -2423,7 +2423,7 @@ void __stdcall ResetListBox(Class_004a30c0* obj, int index)
     e->height = h - h % (step + 2);
     *(int*)&e->count = GetTicks();
 }
-void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
+void* __cdecl GameAllocIgnoreTag(const char* name, unsigned int size);
 char* __stdcall SkipTextLines(char* text, int n);
 void __stdcall TruncateTextWithEllipsis(int a1, char* text, int a3, int a4, int a5);
 
@@ -2433,7 +2433,7 @@ void __stdcall TruncateTextWithEllipsis(int a1, char* text, int a3, int a4, int 
 // FUNCTION: 0x4a31c0
 void __stdcall TruncateListItems(int a1, int a2, char* a3, int a4)
 {
-    char* items = (char*)FUN_004d83b0("SCROLLITEMS", *(int*)(a3 - 0x44));
+    char* items = (char*)GameAllocIgnoreTag("SCROLLITEMS", *(int*)(a3 - 0x44));
     char* out = items;
     for (int i = 0; i < a4; i++) {
         char buf[100];
@@ -4539,7 +4539,7 @@ void __stdcall SetCursorHover(Gui* obj, int inside);
 int __stdcall HandleListBoxInput(Gui* obj, int index, int key);
 void __stdcall HandleSliderInput(Gui* obj, int index);
 int __stdcall HandleTextEditKey(Gui* obj, int index, int key);
-void __cdecl FUN_004d85a0(void* p);
+void __cdecl GameFreeThunk(void* p);
 int __stdcall SelectFontForEntry(Entry* entries, int index);
 
 // The real GetTextPixelWidth (0x4a5030), which /Ob2 inlines into its callers here.
@@ -6251,16 +6251,16 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
         entries[0].u.assets.surface = 0;
         for (int j = 0; j < 1 + entries[0].u.count; j = j + 1) {
             if ((entries[j].resourceFlags & 1) && entries[j].archive)
-                FUN_004d85a0(entries[j].archive);
+                GameFreeThunk(entries[j].archive);
             switch (entries[j].type) {
             case 0:
-                FUN_004d85a0(entries[j].u.assets.archive);
+                GameFreeThunk(entries[j].u.assets.archive);
                 break;
             case 7:
-                FUN_004d85a0(entries[j].u.list.filebuf);
+                GameFreeThunk(entries[j].u.list.filebuf);
                 break;
             case 8:
-                FUN_004d85a0(entries[j].u.list.filebuf);
+                GameFreeThunk(entries[j].u.list.filebuf);
                 break;
             default:
                 break;
@@ -6288,7 +6288,7 @@ void __stdcall CloseTopScreen(Gui* gui)
         gui->layer = old->next;
         if (gui->layer)
             gui->layer->dirty = 1;
-        FUN_004d85a0(old);
+        GameFreeThunk(old);
         if (flags & 0x800)
             RenderLayer(gui, 0x40);
     }
@@ -6723,7 +6723,7 @@ static inline void CloseTopScreen_inlined(Gui* gui)
         gui->layer = old->next;
         if (gui->layer)
             gui->layer->dirty = 1;
-        FUN_004d85a0(old);
+        GameFreeThunk(old);
         if (flags & 0x800)
             RenderLayer(gui, 0x40);
     }

@@ -90,7 +90,7 @@ void __stdcall UpdateUnitSliders(Menu_0044c420* menu, int value);
 void OpenLoadListDialog();
 void OpenSaveGameDialog();
 void __stdcall FreeSurface(Struct_004c6ac0* obj);
-void __cdecl FUN_004d85a0(void* p);
+void __cdecl GameFreeThunk(void* p);
 int IsHostLocal();
 
 // FUNCTION: 0x44c420
@@ -116,10 +116,10 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
                 i++;
             } while (i < desc->count);
         }
-        FUN_004d85a0(desc->field_c6);
-        FUN_004d85a0(g_unitRestrictPics);
+        GameFreeThunk(desc->field_c6);
+        GameFreeThunk(g_unitRestrictPics);
         g_unitRestrictPics = 0;
-        FUN_004d85a0(desc->field_c2);
+        GameFreeThunk(desc->field_c2);
         SetDescListCleanupFlag((int)menu, 1);
         if (IsHostLocal() != 0) {
             for (i = 0; i < g_game->count; i++) {
@@ -136,12 +136,12 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
                 }
             }
         }
-        FUN_004d85a0(g_unitRestrictEntries);
-        FUN_004d85a0(g_unitRestrictOldCounts);
-        FUN_004d85a0(desc->field_d6);
+        GameFreeThunk(g_unitRestrictEntries);
+        GameFreeThunk(g_unitRestrictOldCounts);
+        GameFreeThunk(desc->field_d6);
         pic = FindGadgetChecked(menu->inner->gadgets, "PICLIST");
         if (pic != 0 && pic->field_c6 != 0)
-            FUN_004d85a0(pic->field_c6);
+            GameFreeThunk(pic->field_c6);
         g_unitRestrictEntries = 0;
         return;
     }

@@ -248,8 +248,8 @@ void __stdcall SetFrontendState(int code, int line, char* file);
 char __stdcall FindGameCdDrive(int flag);
 void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
 void __cdecl LeaveNetGameCallback(int param);
-void __cdecl FUN_004d85a0(void* p);
-void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
+void __cdecl GameFreeThunk(void* p);
+void* __cdecl GameAllocIgnoreTag(const char* name, unsigned int size);
 void __cdecl operator delete(void* p);
 void* __cdecl operator new(unsigned int size);
 Layer_00493060* __stdcall LoadGuiLayer(Menu_00493060* menu, const char* name, int flags);
@@ -410,16 +410,16 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         if (g_game->flags_2a44.b2)
             DisableKeyCommands(g_game->message);
         if (DAT_0051f2e0)
-            FUN_004d85a0(DAT_0051f2e0);
+            GameFreeThunk(DAT_0051f2e0);
         if (DAT_0051f2e4)
-            FUN_004d85a0(DAT_0051f2e4);
+            GameFreeThunk(DAT_0051f2e4);
         if (DAT_0051f2e8)
-            FUN_004d85a0(DAT_0051f2e8);
+            GameFreeThunk(DAT_0051f2e8);
         DAT_0051f2e8 = 0;
         DAT_0051f2e4 = 0;
         DAT_0051f2e0 = 0;
         if (DAT_0051f2ec)
-            FUN_004d85a0(DAT_0051f2ec);
+            GameFreeThunk(DAT_0051f2ec);
         DAT_0051f2ec = 0;
         PlaySoundByName("Previous", 0);
         return;
@@ -524,16 +524,16 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         g_game->field_391f5 = MenuFrame;
         SetCloseHandler(LeaveNetGameCallback, 0);
         if (DAT_0051f2e0)
-            FUN_004d85a0(DAT_0051f2e0);
+            GameFreeThunk(DAT_0051f2e0);
         if (DAT_0051f2e4)
-            FUN_004d85a0(DAT_0051f2e4);
+            GameFreeThunk(DAT_0051f2e4);
         if (DAT_0051f2e8)
-            FUN_004d85a0(DAT_0051f2e8);
+            GameFreeThunk(DAT_0051f2e8);
         DAT_0051f2e8 = 0;
         DAT_0051f2e4 = 0;
         DAT_0051f2e0 = 0;
         if (DAT_0051f2ec)
-            FUN_004d85a0(DAT_0051f2ec);
+            GameFreeThunk(DAT_0051f2ec);
         DAT_0051f2ec = 0;
         PopUntilNamedLayout(1);
         if (g_game->mapInfo->GetGameType() == 1 &&
@@ -583,14 +583,14 @@ char* __stdcall ListSavedGames(int* count)
         ConfigureListBoxByName(g_game->menu, "GAMES", DAT_005119b8, 0, 0);
         return 0;
     }
-    DAT_0051f2e0 = (char*)FUN_004d83b0("SAVEGAME NAMES", *count << 8);
-    DAT_0051f2e4 = (char*)FUN_004d83b0("SAVEGAME DESCS", *count << 6);
+    DAT_0051f2e0 = (char*)GameAllocIgnoreTag("SAVEGAME NAMES", *count << 8);
+    DAT_0051f2e4 = (char*)GameAllocIgnoreTag("SAVEGAME DESCS", *count << 6);
     memset(DAT_0051f2e4, 0, *count << 6);
     memset(DAT_0051f2e0, 0, *count << 8);
     ScanDirectory(buf, DAT_0051f2e0, 0, 0, 0, 1);
     dp = DAT_0051f2e4;
     found = 0;
-    copy = (char*)FUN_004d83b0("SAVEGAME2", *count << 8);
+    copy = (char*)GameAllocIgnoreTag("SAVEGAME2", *count << 8);
     memcpy(copy, DAT_0051f2e0, *count << 8);
     for (i = 0; i < *count; i++) {
         sprintf(buf, "%s\\%s", DAT_005091c8, SkipTextLines(copy, i));
@@ -614,7 +614,7 @@ char* __stdcall ListSavedGames(int* count)
             }
         }
     }
-    FUN_004d85a0(copy);
+    GameFreeThunk(copy);
     ConfigureListBoxByName(g_game->menu, "GAMES", DAT_0051f2e4, found, 0);
     *count = found;
     return found ? DAT_0051f2e0 : 0;
@@ -639,16 +639,16 @@ void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
     if (gadget->selected == -1) {
         SetDescListCleanupFlag(gadget, 1);
         if (DAT_0051f2e0)
-            FUN_004d85a0(DAT_0051f2e0);
+            GameFreeThunk(DAT_0051f2e0);
         if (DAT_0051f2e4)
-            FUN_004d85a0(DAT_0051f2e4);
+            GameFreeThunk(DAT_0051f2e4);
         if (DAT_0051f2e8)
-            FUN_004d85a0(DAT_0051f2e8);
+            GameFreeThunk(DAT_0051f2e8);
         DAT_0051f2e8 = 0;
         DAT_0051f2e4 = 0;
         DAT_0051f2e0 = 0;
         if (DAT_0051f2ec)
-            FUN_004d85a0(DAT_0051f2ec);
+            GameFreeThunk(DAT_0051f2ec);
         DAT_0051f2ec = 0;
         return;
     }

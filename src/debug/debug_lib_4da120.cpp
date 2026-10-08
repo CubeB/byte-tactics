@@ -10,11 +10,11 @@
 char* __cdecl FindCommandLineSwitch(const char* option);
 void AbortProgram(void);
 void __stdcall UnhandledExceptionHandler(EXCEPTION_POINTERS* exception);
-void FUN_004df160(void);
+void SetFpuFussy(void);
 DWORD __stdcall DebugThreadProc(void* param);
 
-extern unsigned char DAT_005289c8;      // the debug thread is running
-extern unsigned char DAT_005289cc;      // InitDebugSupport has run
+extern unsigned char g_debugThreadRunning;  // the debug thread is running
+extern unsigned char g_debugSupportInited;  // InitDebugSupport has run
 
 // FUNCTION: 0x4da120
 void __cdecl ShowDebugMessage(const char* message)
@@ -43,13 +43,13 @@ int __cdecl CallDebugHelperDll(int value)
 
 // Sets up the debug support once: DebugHelper.dll when the command line asks
 // for it (-debughelper=<n>), and, unless `flags` says otherwise, the
-// unhandled exception filter (2), FUN_004df160 (4) and the debug thread (8).
+// unhandled exception filter (2), SetFpuFussy (4) and the debug thread (8).
 // FUNCTION: 0x4da1d0
 void __cdecl InitDebugSupport(unsigned int flags)
 {
-    if (DAT_005289cc)
+    if (g_debugSupportInited)
         return;
-    DAT_005289cc = 1;
+    g_debugSupportInited = 1;
     char* option = FindCommandLineSwitch("-debughelper");
     if (option) {
         int value = 0;
@@ -60,12 +60,12 @@ void __cdecl InitDebugSupport(unsigned int flags)
     if (!(flags & 2))
         SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)UnhandledExceptionHandler);
     if (!(flags & 4))
-        FUN_004df160();
+        SetFpuFussy();
     if (!(flags & 8)) {
         DWORD id;
         HANDLE thread = CreateThread(0, 0x1f40, DebugThreadProc, 0, 0, &id);
         if (thread)
-            while (!DAT_005289c8)
+            while (!g_debugThreadRunning)
                 ;
     }
 }

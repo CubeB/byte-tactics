@@ -407,8 +407,8 @@ public:
     int* GetNameSlot(int index);
 };
 
-void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
-void __cdecl FUN_004d85a0(void* p);
+void* __cdecl GameAllocIgnoreTag(const char* name, unsigned int size);
+void __cdecl GameFreeThunk(void* p);
 void __stdcall FatalError(char* message);
 int* __stdcall LoadFileWithProgress(int* file);
 Bitmap* __stdcall GetGafFrame(void* table, int index);
@@ -501,14 +501,14 @@ void FreeLosTables()
 void InitEyeballs()
 {
     g_game->count = 0;
-    g_game->eyes = (Eye*)FUN_004d83b0("EYEBALL MEMORY", 0x2d0);
+    g_game->eyes = (Eye*)GameAllocIgnoreTag("EYEBALL MEMORY", 0x2d0);
 }
 
 // FUNCTION: 0x481530
 void FreeEyeballs()
 {
     int temp = (int)g_game->eyes;
-    FUN_004d85a0((void*)temp);
+    GameFreeThunk((void*)temp);
 }
 
 // FUNCTION: 0x481550
@@ -1103,11 +1103,11 @@ void LoadTntMap()
 
     // REGION r3 begin
     a.n = (mapSettings[10] / 32) * (mapSettings[11] / 32);
-    int* dst = (int*)FUN_004d83b0("TILE MAP", a.n * 2);
+    int* dst = (int*)GameAllocIgnoreTag("TILE MAP", a.n * 2);
     mapSettings[36] = (int)dst;
     memcpy(dst, info.tile_map_src, a.n * 2);
     a.n = mapSettings[14] * mapSettings[15];
-    unsigned char* plot = (unsigned char*)FUN_004d83b0("PLOT MEMORY", a.n * 0xd);
+    unsigned char* plot = (unsigned char*)GameAllocIgnoreTag("PLOT MEMORY", a.n * 0xd);
     mapSettings[35] = (int)plot;
     int fill = *(int*)(*(int*)((char*)g_game + 0x391e9) + 0xd30);
     if (fill < 0 || info.version < 0x2000)
@@ -1182,12 +1182,12 @@ void LoadTntMap()
     // REGION r3 end
 
     // REGION r4 begin
-    unsigned int* set = (unsigned int*)FUN_004d83b0("TILE SET", info.tile_set_count * 0x400 + 8);
+    unsigned int* set = (unsigned int*)GameAllocIgnoreTag("TILE SET", info.tile_set_count * 0x400 + 8);
     *(unsigned int**)((char*)mapSettings + 0x88) = set;
     *set = info.tile_set_count;
     *(int*)(*(int*)((char*)mapSettings + 0x88) + 4) = *(int*)((char*)mapSettings + 0x88) + 8;
     memcpy(*(void**)(*(int*)((char*)mapSettings + 0x88) + 4), info.tile_set_src, info.tile_set_count * 0x400);
-    FUN_004d85a0(tnt);
+    GameFreeThunk(tnt);
     g_losTables.LoadLosTables();
     int mw = *(int*)((char*)g_game + 0x37e37);
     int mh = *(int*)((char*)g_game + 0x37e3b);
@@ -1238,19 +1238,19 @@ void LoadTntMap()
     ClearBorderFeatures();
     unsigned int total2 = (unsigned int)(mapSettings[14] * mapSettings[15]) * 2;
     unsigned int half = total2 / 4;
-    int* mapped = (int*)FUN_004d83b0("MAPPED MEMORY", half);
+    int* mapped = (int*)GameAllocIgnoreTag("MAPPED MEMORY", half);
     mapSettings[30] = (int)mapped;
     memset(mapped, 0, half);
     int sx = mapSettings[16] + 0xc;
     int sy = mapSettings[17] + 0x20;
     mapSettings[21] = sy;
     mapSettings[20] = sx;
-    *mapSettings = (int)FUN_004d83b0("SORT UNIT LIST", sy * sx * 4);
-    mapSettings[1] = (int)FUN_004d83b0("SORT INDICES", mapSettings[21] << 2);
-    mapSettings[2] = (int)FUN_004d83b0("SORT LINE COUNT", mapSettings[21] << 1);
+    *mapSettings = (int)GameAllocIgnoreTag("SORT UNIT LIST", sy * sx * 4);
+    mapSettings[1] = (int)GameAllocIgnoreTag("SORT INDICES", mapSettings[21] << 2);
+    mapSettings[2] = (int)GameAllocIgnoreTag("SORT LINE COUNT", mapSettings[21] << 1);
     StampFeatureMetal();
     *(int*)((char*)g_game + 0x14277) = 0;
-    *(int*)((char*)g_game + 0x1427b) = (int)FUN_004d83b0("EYEBALL MEMORY", 0x2d0);
+    *(int*)((char*)g_game + 0x1427b) = (int)GameAllocIgnoreTag("EYEBALL MEMORY", 0x2d0);
     mapSettings[23] = 0;
     *(unsigned char*)((char*)g_game + 0x38d70) = 100;
     // REGION r5 end
@@ -1259,19 +1259,19 @@ void LoadTntMap()
 // FUNCTION: 0x483dd0
 void FreeMapResources()
 {
-    FUN_004d85a0(g_game->eyes);
+    GameFreeThunk(g_game->eyes);
     FreeFeaturePool();
     if (g_game->radarFrame) {
-        FUN_004d85a0(g_game->radarFrame);
+        GameFreeThunk(g_game->radarFrame);
         g_game->radarFrame = 0;
     }
-    FUN_004d85a0(g_game->sortLineCount);
-    FUN_004d85a0(g_game->sortIndices);
-    FUN_004d85a0(g_game->sortUnits);
-    FUN_004d85a0(g_game->iconSet);
-    FUN_004d85a0(g_game->visibilityMask);
-    FUN_004d85a0(g_game->cells);
-    FUN_004d85a0(g_game->mapValues);
+    GameFreeThunk(g_game->sortLineCount);
+    GameFreeThunk(g_game->sortIndices);
+    GameFreeThunk(g_game->sortUnits);
+    GameFreeThunk(g_game->iconSet);
+    GameFreeThunk(g_game->visibilityMask);
+    GameFreeThunk(g_game->cells);
+    GameFreeThunk(g_game->mapValues);
     g_game->sortLineCount = 0;
     g_game->sortIndices = 0;
     g_game->sortUnits = 0;

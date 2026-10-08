@@ -2070,7 +2070,7 @@ void EmptyAtexitHandler(void)
 {
 }
 
-void __cdecl FUN_004d83a0(int);
+void __cdecl AllocNotifyNop(int);
 
 // Constructor of the per-player record (0x14b bytes, 11 of them inside the
 // game object built by 0x41d920).
@@ -2109,7 +2109,7 @@ Player::Player() : active(0), type(0)
 {
     index = 10;
     data = (char*)operator new(0xb9);
-    FUN_004d83a0((int)data);
+    AllocNotifyNop((int)data);
     memset(data, 0, 0xb9);
 }
 

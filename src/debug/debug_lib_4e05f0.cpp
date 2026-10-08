@@ -1,11 +1,11 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 #include <windows.h>
 
-extern char* DAT_0050d72c;
+extern char* g_memoryStatusWindowName;
 
-void __cdecl FUN_004e33d0(HWND hwnd, char* name, double a, double b);
+void __cdecl RestoreWindow(HWND hwnd, char* name, double a, double b);
 void __cdecl SaveWindowPosition(HWND hwnd, char* name);
-void __cdecl FUN_004e0790(void);
+void __cdecl UnloadPsapi(void);
 
 class Class_004e05f0 {
 public:
@@ -23,7 +23,7 @@ void Class_004e05f0::SetMemoryStatusWindowVisible(char on)
             EnableWindow(hwnd, TRUE);
             SetFocus(hwnd);
             SetForegroundWindow(hwnd);
-            FUN_004e33d0(hwnd, DAT_0050d72c, 1.0, 1.0);
+            RestoreWindow(hwnd, g_memoryStatusWindowName, 1.0, 1.0);
             SetTimer(hwnd, 1, 200, NULL);
             return;
         }
@@ -32,8 +32,8 @@ void Class_004e05f0::SetMemoryStatusWindowVisible(char on)
     }
     if (IsWindowVisible(hwnd)) {
         KillTimer(hwnd, 1);
-        SaveWindowPosition(hwnd, DAT_0050d72c);
+        SaveWindowPosition(hwnd, g_memoryStatusWindowName);
         ShowWindow(hwnd, SW_HIDE);
-        FUN_004e0790();
+        UnloadPsapi();
     }
 }

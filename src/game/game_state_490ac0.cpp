@@ -217,13 +217,13 @@ void CreateOffscreenSurface()
 }
 
 // Releases the offscreen object created by 0x490ac0.
-void __cdecl FUN_004d85a0(int* param_1);
+void __cdecl GameFreeThunk(int* param_1);
 void RestoreScreen();
 
 // FUNCTION: 0x490b00
 void FreeOffscreenSurface()
 {
-    FUN_004d85a0((int*)g_game->field_37e1b);
+    GameFreeThunk((int*)g_game->field_37e1b);
     g_game->field_37e1b = 0;
     SetRestoreSurface(0);
     RestoreScreen();
@@ -575,7 +575,7 @@ void __stdcall LoadShadeTable(void* param_1);
 void __stdcall LoadLightTable(void* param_1);
 void __stdcall MakeGrayTable(void* param_1);
 void __stdcall MakeBlueTable(void* param_1);
-void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
+void* __cdecl GameAllocIgnoreTag(const char* name, unsigned int size);
 void LoadSettings();
 void ApplyBrightnessAndVolume();
 void LoadSideData();
@@ -641,7 +641,7 @@ void InitGame()
     LoadLightTable(g_game->field_143a7);
     MakeGrayTable(g_game->field_143a7);
     MakeBlueTable(g_game->field_143a7);
-    g_game->options = FUN_004d83b0(g_skirmishInfoTag, 0x22c);
+    g_game->options = GameAllocIgnoreTag(g_skirmishInfoTag, 0x22c);
     LoadSettings();
     size = 0xaa0;
     int ok = ReadGameRegistryValue(g_cdListsKey, &g_cdListsDiscEntries, &size);
@@ -731,12 +731,12 @@ void ShutdownGame(void)
     FreeGameFonts();
     ShutdownSound();
     FreeAnimFiles();
-    FUN_004d85a0((int*)g_game->field_37e1b);
+    GameFreeThunk((int*)g_game->field_37e1b);
     g_game->field_37e1b = 0;
     SetRestoreSurface(0);
     RestoreScreen();
     ClearOrderTypeTable();
-    FUN_004d85a0((int*)g_game->options);
+    GameFreeThunk((int*)g_game->options);
     g_game->options = 0;
     FreeUnitInfo();
     ReleasePacketData((Class_00452370*)g_game->field_12ef);
@@ -813,9 +813,9 @@ void LoadBattleAssets()
     g_game->field_37ec8 = 5000;
     g_game->windCounter = 0;
     UpdateWind();
-    g_game->xform = FUN_004d83b0("TEMP XFORM PTS", 0x960);
-    g_game->projected = FUN_004d83b0("TEMP PROJECTED PTS", 0x640);
-    g_game->assem = FUN_004d83b0("ASSEM PTS", 0xa0);
+    g_game->xform = GameAllocIgnoreTag("TEMP XFORM PTS", 0x960);
+    g_game->projected = GameAllocIgnoreTag("TEMP PROJECTED PTS", 0x640);
+    g_game->assem = GameAllocIgnoreTag("ASSEM PTS", 0xa0);
     g_game->field_38a37 = GetTicks();
     g_game->field_38a47 = 0;
     if (g_game->field_391e9->GetGameType() == 3) {
@@ -856,7 +856,7 @@ void Force640x480Surfaces()
     g_game->field_37e1f = 0x280;
     g_game->field_37e23 = 0x1e0;
     if (GetScreenWidth() != 0x280 || GetScreenHeight() != 0x1e0) {
-        FUN_004d85a0((int*)g_game->field_37e1b);
+        GameFreeThunk((int*)g_game->field_37e1b);
         g_game->field_37e1b = 0;
         SetRestoreSurface(0);
         RestoreScreen();
@@ -901,9 +901,9 @@ void ShutdownIngameSystems()
     FreePlayers();
     FreeRadar();
     FreeMapResources();
-    FUN_004d85a0((int*)g_game->assem);
-    FUN_004d85a0((int*)g_game->projected);
-    FUN_004d85a0((int*)g_game->xform);
+    GameFreeThunk((int*)g_game->assem);
+    GameFreeThunk((int*)g_game->projected);
+    GameFreeThunk((int*)g_game->xform);
     g_game->assem = 0;
     g_game->projected = 0;
     g_game->xform = 0;
@@ -1015,19 +1015,19 @@ extern int* DAT_0051f2ec;
 void FreePreviewCaches()
 {
     if (DAT_0051f2e0 != 0) {
-        FUN_004d85a0(DAT_0051f2e0);
+        GameFreeThunk(DAT_0051f2e0);
     }
     if (DAT_0051f2e4 != 0) {
-        FUN_004d85a0(DAT_0051f2e4);
+        GameFreeThunk(DAT_0051f2e4);
     }
     if (DAT_0051f2e8 != 0) {
-        FUN_004d85a0(DAT_0051f2e8);
+        GameFreeThunk(DAT_0051f2e8);
     }
     DAT_0051f2e8 = 0;
     DAT_0051f2e4 = 0;
     DAT_0051f2e0 = 0;
     if (DAT_0051f2ec != 0) {
-        FUN_004d85a0(DAT_0051f2ec);
+        GameFreeThunk(DAT_0051f2ec);
     }
     DAT_0051f2ec = 0;
 }

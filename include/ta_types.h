@@ -777,8 +777,8 @@ class Class_004d8c00;
 class Class_004d8d40;
 class StackTrace;
 class Class_004d9ca0;
-class Class_004d9fe0;
-class Class_004da040;
+class CommandLineSwitch;
+class CommandLineNumber;
 class FreeBlockMap;
 class Class_004db450;
 class Class_004dbd00;
@@ -18761,18 +18761,18 @@ struct PackHeader_004d1c00 {  // 0xf bytes, 1 view
     long unpackedSize;  // +0xb
 };
 
-class Class_004d9fe0 {  // 0x1 bytes, 8 views
+class CommandLineSwitch {  // 0x1 bytes, 8 views
 public:
     char on;  // +0x0
-    Class_004d9fe0(char*, int, char, char*, char*, char*, char*);
-    ~Class_004d9fe0(void);
+    CommandLineSwitch(char*, int, char, char*, char*, char*, char*);
+    ~CommandLineSwitch(void);
 };
 
-class Class_004da040 {  // 0x4 bytes, 2 views
+class CommandLineNumber {  // 0x4 bytes, 2 views
 public:
     int value;  // +0x0
-    Class_004da040(char*, int, int, char*);
-    ~Class_004da040(void);
+    CommandLineNumber(char*, int, int, char*);
+    ~CommandLineNumber(void);
 };
 
 class Class_004d8820 {  // 0x30 bytes, 12 views
@@ -18836,7 +18836,7 @@ public:
     unsigned int max;  // +0x94
     char unknown_98[32];
     unsigned __int64 total;  // +0xb8
-    void FUN_004d8b60(unsigned int);
+    void AddSample(unsigned int);
 };
 
 class TraceRecord {     // 0x8c bytes, 2 views
@@ -18968,7 +18968,7 @@ public:
     unsigned char operator==(Class_004dd2a0&);
     void Dec(void);
     void Inc(void);
-    Class_004dd2a0 FUN_004dbd80(int);
+    Class_004dd2a0 Next(int);
     LiveNode* Mynode(void);
     LiveNode* _Mynode(void);
     unsigned char operator!=(Class_004dd2a0&);
@@ -18976,7 +18976,7 @@ public:
     void FUN_004dd820(void);
     Pair_00419560& operator*(void);
     Pair_00419560* operator->(void);
-    Class_004dd2a0 FUN_004dbe10(int);
+    Class_004dd2a0 Previous(int);
     Class_004dd2a0 operator--(int);
     Class_004dd2a0& operator--(void);
 };
@@ -19163,7 +19163,7 @@ public:
     Less_004dbd20 key_compare;  // +0x0
     char unknown_1[3];
     LiveNode* head;  // +0x4
-    Class_004dd2a0 FUN_004dbd20(unsigned int&);
+    Class_004dd2a0 UpperBound(unsigned int&);
 };
 
 class Class_004dd150 {  // 0x8 bytes, 2 views
@@ -19514,7 +19514,7 @@ public:
     char unknown_4[32];
     char* name;  // +0x24
     unsigned char Same(char*);
-    void FUN_004df380(void);
+    void SyncSelectedText(void);
 };
 
 class Map_004df380 {  // 0x14 bytes, 1 view
@@ -19539,7 +19539,7 @@ struct Value_004df380 {  // 0x1f4 bytes, 1 view
 class Class_004df4e0 {  // 0x4 bytes, 2 views
 public:
     void* hwnd;  // +0x0
-    void FUN_004df4e0(void);
+    void EnableControls(void);
 };
 
 class Class_004e0450 {  // 0x4 bytes, 11 views
@@ -19661,14 +19661,14 @@ public:
 class Class_004e03f0 {  // 0x1 bytes, 3 views
 public:
     char unknown_0[1];
-    void FUN_004e03f0(LiveNode*);
+    void EraseSubtree(LiveNode*);
 };
 
 class Class_004e0520 {  // 0x7a bytes, 3 views
 public:
     char unknown_0[121];
     unsigned char workingSet;  // +0x79
-    void FUN_004e0520(int);
+    void LoadWorkingSetPref(int);
 };
 
 class CavedogRegistryKey {  // 0x34 bytes, 6 views
@@ -19685,7 +19685,7 @@ class Class_004e2fe0 {  // 0x5 bytes, 3 views
 public:
     void* key;  // +0x0
     char reading;  // +0x4
-    void FUN_004e2fe0(char*, bool*, bool);
+    void ApplyBool(char*, bool*, bool);
 };
 
 class Class_004e05c0 {  // 0x1 bytes, 2 views
@@ -19790,7 +19790,7 @@ public:
 class NameKey {         // 0x4 bytes, 4 views
 public:
     char* name;  // +0x0
-    int FUN_004e1a30(NameKey&);
+    int LessThan(NameKey&);
 };
 
 class Class_004e2250 {  // 0x10 bytes, 2 views
@@ -19826,7 +19826,7 @@ public:
     unsigned char changed;  // +0x10
     char unknown_11[3];
     Class_004e0450 End(void);
-    void FUN_004e1990(NameKey&);
+    void Upsert(NameKey&);
     Class_004e0450 Find(NameKey&);
 };
 
@@ -19835,7 +19835,7 @@ public:
     void* key;  // +0x0
     char reading;  // +0x4
     char unknown_5[3];
-    void FUN_004e2e20(char*, unsigned long*, unsigned long, unsigned long, unsigned long);
+    void ApplyDword(char*, unsigned long*, unsigned long, unsigned long, unsigned long);
 };
 
 struct EventEntry {  // 0x10 bytes, 1 view
@@ -19869,7 +19869,7 @@ public:
     char unknown_4a[2];
     unsigned long oldPriorityClass;  // +0x4c
     int oldThreadPriority;  // +0x50
-    void FUN_004e1d60(int, int);
+    void StartTimer(int, int);
 };
 
 class Class_004e20a0 {  // 0x1 bytes, 2 views
@@ -19924,7 +19924,7 @@ struct Class_004e21a0 {  // 0x50 bytes, 1 view
     char unknown_8[64];
     char stopped;  // +0x48
     char unknown_49[7];
-    void FUN_004e21a0(double);
+    void AddElapsed(double);
 };
 
 struct Class_004e21c0 {  // 0x50 bytes, 1 view
@@ -19932,7 +19932,7 @@ struct Class_004e21c0 {  // 0x50 bytes, 1 view
     char unknown_8[64];
     char stopped;  // +0x48
     char unknown_49[7];
-    void FUN_004e21c0(double);
+    void SetElapsed(double);
 };
 
 class Class_004e21f0 {  // 0x50 bytes, 1 view
@@ -19943,7 +19943,7 @@ public:
     char unknown_40[8];
     char stopped;  // +0x48
     char unknown_49[7];
-    double FUN_004e21f0(void);
+    double ComputeSampleRate(void);
 };
 
 class Alloc_004e2b60 {  // 0x1 bytes, 1 view
@@ -20034,7 +20034,7 @@ struct Data2 {  // 0x1 bytes, 1 view
 class Class_004e2cc0 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    bool FUN_004e2cc0(char*, unsigned int);
+    bool ReadBool(char*, unsigned int);
 };
 
 class Class_004e2d00 {  // 0x4 bytes, 10 views
@@ -20046,7 +20046,7 @@ public:
 class Class_004e2ce0 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    void FUN_004e2ce0(void*, unsigned int);
+    void WriteBool(void*, unsigned int);
 };
 
 class Class_004e2d70 {  // 0x4 bytes, 10 views
@@ -20072,7 +20072,7 @@ public:
     void* key;  // +0x0
     char reading;  // +0x4
     char unknown_5[3];
-    void FUN_004e2e60(char*, int*, int, int, int);
+    void ApplyInt(char*, int*, int, int, int);
 };
 
 class Class_004e2ea0 {  // 0x8 bytes, 1 view
@@ -20080,7 +20080,7 @@ public:
     void* key;  // +0x0
     char reading;  // +0x4
     char unknown_5[3];
-    void FUN_004e2ea0(char*, int*, int, int, int);
+    void ApplyInt2(char*, int*, int, int, int);
 };
 
 class Class_004e2ee0 {  // 0x8 bytes, 1 view
@@ -20088,7 +20088,7 @@ public:
     void* key;  // +0x0
     char reading;  // +0x4
     char unknown_5[3];
-    void FUN_004e2ee0(char*, short*, short, short, short);
+    void ApplyShort(char*, short*, short, short, short);
 };
 
 class Class_004e2f30 {  // 0x8 bytes, 1 view
@@ -20096,7 +20096,7 @@ public:
     void* key;  // +0x0
     char reading;  // +0x4
     char unknown_5[3];
-    void FUN_004e2f30(char*, unsigned short*, unsigned short, unsigned short, unsigned short);
+    void ApplyWord(char*, unsigned short*, unsigned short, unsigned short, unsigned short);
 };
 
 class Class_004e2f90 {  // 0x8 bytes, 1 view
@@ -20104,7 +20104,7 @@ public:
     void* key;  // +0x0
     char reading;  // +0x4
     char unknown_5[3];
-    void FUN_004e2f90(char*, char*, char, char, char);
+    void ApplyChar(char*, char*, char, char, char);
 };
 
 class Class_004e3030 {  // 0x8 bytes, 1 view
@@ -20112,7 +20112,7 @@ public:
     void* key;  // +0x0
     char reading;  // +0x4
     char unknown_5[3];
-    void FUN_004e3030(char*, unsigned char*, unsigned char, unsigned char, unsigned char);
+    void ApplyByte(char*, unsigned char*, unsigned char, unsigned char, unsigned char);
 };
 
 class Base {  // 0x14 bytes, 26 views

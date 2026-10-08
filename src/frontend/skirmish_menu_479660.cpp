@@ -701,7 +701,7 @@ void __cdecl CycleCurrentPlayerSide()
 
 #include "../map/mission.h"
 
-void __cdecl FUN_004d85a0(void* ptr);
+void __cdecl GameFreeThunk(void* ptr);
 void __stdcall PlaySoundByName(const char* name, int param_2);
 int __stdcall IsCurrentGadgetNamed(Menu* menu, char* name);
 Gadget* __stdcall FindGadgetChecked(Gadget* entries, char* name);
@@ -725,11 +725,11 @@ void __stdcall HandleSkirmishMapClick(Menu* menu)
     if (menu->current == -1) {
         Gadget* pic = FUN_004a0280(g_game->menu.holder->entries, "MAPPIC");
         if (pic->items != 0) {
-            FUN_004d85a0(pic->items);
+            GameFreeThunk(pic->items);
             pic->items = 0;
         }
-        FUN_004d85a0(list->items);
-        FUN_004d85a0(list);
+        GameFreeThunk(list->items);
+        GameFreeThunk(list);
         return;
     }
     if (!IsCurrentGadgetNamed(menu, "MAPNAMES") && !IsCurrentGadgetNamed(menu, "LOAD")) {
@@ -765,7 +765,7 @@ void __stdcall UpdateSkirmishMapSelection(Menu* menu, int unused)
 int __stdcall LoadMapList(char** out, int param_2, int param_3);
 void __stdcall OpenMessageBox(Menu* menu, char* text, int width, int a, int b);
 Layer* __stdcall LoadGuiLayer(Menu* menu, const char* name, int flags);
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void __stdcall SortFileList(char* items, int b, int c, int count);
 void __stdcall ConfigureListBoxByName(Menu* menu, char* name, char* items, int count, int flag);
@@ -789,7 +789,7 @@ void OpenSkirmishMapSelector()
     }
     Layer* layer = LoadGuiLayer(&g_game->menu, "SELMAP.GUI", 0x880);
     layer->handler = HandleSkirmishMapClick;
-    Data* data = (Data*)FUN_004d83b0("SELECT MAP DATA", 0x20);
+    Data* data = (Data*)GameAllocIgnoreTag("SELECT MAP DATA", 0x20);
     layer->data = data;
     LoadPictureCached("DSELECTMAP2", 0, 0, 0);
     LoadMapList(&data->items, 0, 0);

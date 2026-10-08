@@ -230,8 +230,8 @@ extern int DAT_00511de8;               // the same pointer as g_game
 
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 int __stdcall CountDirectoryEntries(const char* path, int flag);
-void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
-void __cdecl FUN_004d85a0(void* p);
+void* __cdecl GameAllocIgnoreTag(const char* name, unsigned int size);
+void __cdecl GameFreeThunk(void* p);
 int __stdcall ScanDirectory(char* path, void* buffer, char* p3, int p4, int p5, int p6);
 char* __stdcall SkipTextLines(char* text, int n);
 void __stdcall StreamSoundDelayed(char* text, int a, int b);
@@ -355,7 +355,7 @@ void CountCampaignFiles()
 // FUNCTION: 0x476830
 char* BuildSideList()
 {
-    char* buf = (char*)FUN_004d83b0("SideList", g_game->count * 30);
+    char* buf = (char*)GameAllocIgnoreTag("SideList", g_game->count * 30);
     char* p = buf;
     int i;
     int j;
@@ -387,7 +387,7 @@ int __stdcall CampaignExists(const char* name)
     char path[256];
     BuildDataPath(path, "camps", "*", "TDF");
     int count = CountDirectoryEntries(path, 0);
-    char* names = (char*)FUN_004d83b0("CAMPAIGN NAMES", count << 8);
+    char* names = (char*)GameAllocIgnoreTag("CAMPAIGN NAMES", count << 8);
     ScanDirectory(path, names, 0, 0, 1, 2);
     found = 0;
     for (int i = 0; i < count; i++) {
@@ -395,7 +395,7 @@ int __stdcall CampaignExists(const char* name)
             found = 1;
         }
     }
-    FUN_004d85a0(names);
+    GameFreeThunk(names);
     return found;
 }
 
@@ -407,7 +407,7 @@ int __stdcall ListCampaignFiles(void** names)
     char path[0x100];
     BuildDataPath(path, "camps", "*", "TDF");
     int count = CountDirectoryEntries(path, 0);
-    void* buffer = FUN_004d83b0("CAMPAIGN NAMES", count << 8);
+    void* buffer = GameAllocIgnoreTag("CAMPAIGN NAMES", count << 8);
     *names = buffer;
     ScanDirectory(path, buffer, 0, 0, 1, 2);
     return count;
@@ -430,8 +430,8 @@ int __stdcall BuildCampaignNameList(char** out, int side)
     name[0] = '0';
     BuildDataPath(path, "camps", "*", "TDF");
     int n = CountDirectoryEntries(path, 0);
-    char* names = (char*)FUN_004d83b0("CAMPAIGN NAMES1", n << 8);
-    *out = (char*)FUN_004d83b0("CAMPAIGN NAMES2", n << 8);
+    char* names = (char*)GameAllocIgnoreTag("CAMPAIGN NAMES1", n << 8);
+    *out = (char*)GameAllocIgnoreTag("CAMPAIGN NAMES2", n << 8);
     ScanDirectory(path, names, 0, 0, 1, 2);
     // q declared before p, and the append goes through the inline helper.
     char* q = names;
@@ -449,7 +449,7 @@ int __stdcall BuildCampaignNameList(char** out, int side)
             q += strlen(q) + 1;
         }
     }
-    FUN_004d85a0(names);
+    GameFreeThunk(names);
     return found;
 }
 
@@ -478,7 +478,7 @@ void StartGlamourSound()
 // FUNCTION: 0x476cd0
 char* __stdcall AllocColorMarkupText(char* s)
 {
-    char* buf = (char*)FUN_004d83b0("TempStorage", strlen(s) + 0x32);
+    char* buf = (char*)GameAllocIgnoreTag("TempStorage", strlen(s) + 0x32);
     int inquote = 0;
     memset(buf, 0, strlen(s) + 0x32);
     unsigned char* p = (unsigned char*)s;
@@ -506,7 +506,7 @@ char* __stdcall AllocColorMarkupText(char* s)
                 break;
         }
     }
-    FUN_004d85a0(s);
+    GameFreeThunk(s);
     return buf;
 }
 
@@ -864,7 +864,7 @@ void __stdcall FillCampaignList(char* param_1)
 {
     Layer* layer = g_game->menu.layer;
     if (g_campaignNameList != 0) {
-        FUN_004d85a0(g_campaignNameList);
+        GameFreeThunk(g_campaignNameList);
         g_campaignNameList = 0;
     }
     PlaySoundByName("smlbutton", 0);
@@ -882,7 +882,7 @@ void __stdcall FillMissionList(Menu* menu, int unused)
 {
     Layer* layer = menu->layer;
     if (g_missionNameList != 0) {
-        FUN_004d85a0((int*)g_missionNameList);
+        GameFreeThunk((int*)g_missionNameList);
         g_missionNameList = 0;
     }
     Entry* layout =
@@ -902,7 +902,7 @@ static inline void FillCampaignListInline(int side)
 {
     Layer* layer = g_game->menu.layer;
     if (g_campaignNameList != 0) {
-        FUN_004d85a0(g_campaignNameList);
+        GameFreeThunk(g_campaignNameList);
         g_campaignNameList = 0;
     }
     PlaySoundByName("smlbutton", 0);
@@ -917,7 +917,7 @@ static inline void FillMissionListInline(Menu* menu, Entry* unused)
 {
     Layer* layer = menu->layer;
     if (g_missionNameList != 0) {
-        FUN_004d85a0(g_missionNameList);
+        GameFreeThunk(g_missionNameList);
         g_missionNameList = 0;
     }
     Entry* layout =
@@ -939,8 +939,8 @@ void __stdcall HandleNewGameClick(Menu* menu)
     int index;
 
     if (menu->field_60 == -1) {
-        FUN_004d85a0(g_campaignNameList);
-        FUN_004d85a0(g_missionNameList);
+        GameFreeThunk(g_campaignNameList);
+        GameFreeThunk(g_missionNameList);
         g_campaignNameList = 0;
         g_missionNameList = 0;
         return;
@@ -1151,7 +1151,7 @@ void __stdcall OpenNewGameMenu(int param_1)
         int side = g_game->players[g_game->localPlayer].unit->side;
         Layer* cur = g_game->menu.layer;
         if (g_campaignNameList != 0) {
-            FUN_004d85a0(g_campaignNameList);
+            GameFreeThunk(g_campaignNameList);
             g_campaignNameList = 0;
         }
         PlaySoundByName("smlbutton", 0);
@@ -1169,7 +1169,7 @@ void __stdcall OpenNewGameMenu(int param_1)
             Menu* menu = &g_game->menu;
             Layer* mlayer = menu->layer;
             if (g_missionNameList != 0) {
-                FUN_004d85a0(g_missionNameList);
+                GameFreeThunk(g_missionNameList);
                 g_missionNameList = 0;
             }
             Entry* m = FindGadgetChecked(g_game->menu.layer->entries,
@@ -1351,7 +1351,7 @@ void __stdcall HandleMissionBriefingClick(Menu* menu)
 {
     if (menu->field_60 == -1) {
         FreeBlinkWords(&g_game->menu);
-        FUN_004d85a0(g_briefingWrappedText);
+        GameFreeThunk(g_briefingWrappedText);
         g_briefingWrappedText = 0;
         return;
     }

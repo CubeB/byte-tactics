@@ -99,7 +99,7 @@ inline void _Destroy(Class_004c54a0* p)
 }
 
 extern char DAT_005119b8[];
-void __cdecl FUN_004d85a0(void* p);
+void __cdecl GameFreeThunk(void* p);
 char* __cdecl GameStrdup(char* text);
 char* ComputeChecksum(char* text, int len);
 void FatalError(char* text);
@@ -208,7 +208,7 @@ public:
 TdfRecord::~TdfRecord()
 {
     if (name)
-        FUN_004d85a0(name);
+        GameFreeThunk(name);
     for (std::vector<TdfRecord*>::iterator p = children.begin(); p < children.end(); p++)
         delete *p;
 }

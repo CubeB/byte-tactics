@@ -282,8 +282,8 @@ extern ExplodedPiece* g_explodedPieces[100];
 extern int g_explosion0Duration, g_explosion0StartSize, g_explosion0EndSize, g_explosion1Duration, g_explosion1StartSize, g_explosion1EndSize, g_explosion2Duration, g_explosion2StartSize, g_explosion2EndSize;
 extern unsigned short g_faceVertexIndices[6][4];
 
-void* __cdecl FUN_004d83b0(const char* name, unsigned size);
-void __cdecl FUN_004d85a0(void* p);
+void* __cdecl GameAllocIgnoreTag(const char* name, unsigned size);
+void __cdecl GameFreeThunk(void* p);
 void* __stdcall BuildLensFrame(int, int, int);
 void __stdcall InitGafSequence(GafRef* ref, GafSequence* src, int index);
 void __stdcall EmitSmoke(int* pos, int a, int b, int c);
@@ -316,7 +316,7 @@ void __stdcall BreakPieceIntoDebris(ExplodedPiece* param);
 // BuildCalcedExplosion (0x420cb0) again: InitExplosions inlines this copy.
 inline Explosion* MakeExplosion(int count, int start, int end)
 {
-    Explosion* result = (Explosion*)FUN_004d83b0("CalcedExplosion", 0x28 + count * 8);
+    Explosion* result = (Explosion*)GameAllocIgnoreTag("CalcedExplosion", 0x28 + count * 8);
     int radius = start;
     int step = (end - start) / count;
     result->count = count;
@@ -386,14 +386,14 @@ void FreeExplosions(void)
         for (int i = 0; i < 3; i++) {
             if (g_game->explosions[i] != 0) {
                 for (int j = 0; j < g_game->explosions[i]->count; j++) {
-                    FUN_004d85a0(g_game->explosions[i]->frames[j].image);
+                    GameFreeThunk(g_game->explosions[i]->frames[j].image);
                     g_game->explosions[i]->frames[j].image = 0;
                 }
-                FUN_004d85a0(g_game->explosions[i]);
+                GameFreeThunk(g_game->explosions[i]);
                 g_game->explosions[i] = 0;
             }
         }
-        FUN_004d85a0(g_game->image);
+        GameFreeThunk(g_game->image);
         g_game->image = 0;
     }
 }
@@ -459,7 +459,7 @@ void __stdcall DrawExplosions(void* surface)
 // FUNCTION: 0x420cb0
 Explosion* __stdcall BuildCalcedExplosion(int n, int from, int to)
 {
-    Explosion* e = (Explosion*)FUN_004d83b0("CalcedExplosion", 0x28 + n * 8);
+    Explosion* e = (Explosion*)GameAllocIgnoreTag("CalcedExplosion", 0x28 + n * 8);
     int radius = from;
     int step = (to - from) / n;
     e->count = n;

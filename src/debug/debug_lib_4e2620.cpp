@@ -8,7 +8,7 @@
 class NameKey {
 public:
     char* name;                        // +0x0
-    bool FUN_004e1a30(const NameKey& other) const;
+    bool LessThan(const NameKey& other) const;
 };
 
 struct Value_004e2620 {
@@ -35,13 +35,13 @@ extern Node_004e2620* DAT_005292c4;    // the tree's _Nil
 
 class Class_004e2b60 {
 public:
-    void* FUN_004e2b60(unsigned int n);
+    void* Allocate(unsigned int n);
 };
 
 struct Less_004e2620 {
     bool operator()(const NameKey& a, const NameKey& b) const
     {
-        return a.FUN_004e1a30(b);
+        return a.LessThan(b);
     }
 };
 
@@ -104,14 +104,14 @@ public:
         _Parent(_X) = _Y;
     }
 
-    Iter_004e2620 FUN_004e2620(Node_004e2620* _X, Node_004e2620* _Y, const Value_004e2620& _V);
+    Iter_004e2620 Insert(Node_004e2620* _X, Node_004e2620* _Y, const Value_004e2620& _V);
 };
 
 // FUNCTION: 0x4e2620
-Iter_004e2620 Class_004e2620::FUN_004e2620(Node_004e2620* _X, Node_004e2620* _Y, const Value_004e2620& _V)
+Iter_004e2620 Class_004e2620::Insert(Node_004e2620* _X, Node_004e2620* _Y, const Value_004e2620& _V)
 {
     std::_Lockit _Lk;
-    Node_004e2620* _Z = (Node_004e2620*)((Class_004e2b60*)this)->FUN_004e2b60(0x208);
+    Node_004e2620* _Z = (Node_004e2620*)((Class_004e2b60*)this)->Allocate(0x208);
     _Parent(_Z) = _Y;
     _Color(_Z) = 0;
     _Left(_Z) = DAT_005292c4;

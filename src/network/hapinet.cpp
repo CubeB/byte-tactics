@@ -202,8 +202,8 @@ extern int g_reporterNotify;
 
 void __cdecl HapinetTrace(const char*);
 void __cdecl HapinetTrace(int);
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-void __cdecl FUN_004d85a0(void* p);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
+void __cdecl GameFreeThunk(void* p);
 char* __stdcall Translate(char* text);
 int __cdecl PeekKey();
 int __cdecl PopKey();
@@ -402,11 +402,11 @@ int __stdcall HAPINET_createnewgame(Net_4c97b0* net, char* name, int a3, int a4,
         unsigned long size = 0x50;
         int hr = net->dp->GetSessionDesc(0, &size);
         if (hr == (int)0x8877001e) {
-            void* buf = FUN_004d83b0("DP SESSION DATA2", size);
+            void* buf = GameAllocIgnoreTag("DP SESSION DATA2", size);
             if (buf != 0) {
                 if (net->dp->GetSessionDesc(buf, &size) == 0)
                     net->desc.guidInstance = *(GUID_004c9920*)((char*)buf + 8);
-                FUN_004d85a0(buf);
+                GameFreeThunk(buf);
             }
         }
         if (r == 0)
@@ -467,7 +467,7 @@ void __stdcall HAPINET_uninitmultiplay(Net_4c97b0* net)
         net->created = 0;
     }
     if (net->connection != 0) {
-        FUN_004d85a0(net->connection);
+        GameFreeThunk(net->connection);
         net->connection = 0;
         net->connection_size = 0;
     }
@@ -548,11 +548,11 @@ int __stdcall HAPINET_getcurrentplayers(Net_4c97b0* net)
         unsigned long size = 0;
         hr = net->dp->GetSessionDesc(0, &size);
         if (hr == (int)0x8877001e) {
-            SessionDesc_4c9890* desc = (SessionDesc_4c9890*)FUN_004d83b0("DP SESSION DATA", size);
+            SessionDesc_4c9890* desc = (SessionDesc_4c9890*)GameAllocIgnoreTag("DP SESSION DATA", size);
             hr = net->dp->GetSessionDesc(desc, &size);
             if (hr == 0)
                 players = desc->dwCurrentPlayers;
-            FUN_004d85a0(desc);
+            GameFreeThunk(desc);
         }
     }
     return players;
@@ -624,14 +624,14 @@ int __stdcall HAPINET_joingame(Net_4c97b0* net, GUID_004c9920 guid)
         if (net->dp->Slot24(&net->desc, 1) == 0) {
             unsigned long size = 0x50;
             if (net->dp->GetSessionDesc(0, &size) == (int)0x8877001e) {
-                SessionDesc_4c9890* p = (SessionDesc_4c9890*)FUN_004d83b0("DP SESSION DATA2", size);
+                SessionDesc_4c9890* p = (SessionDesc_4c9890*)GameAllocIgnoreTag("DP SESSION DATA2", size);
                 if (p != 0) {
                     if (net->dp->GetSessionDesc(p, &size) == 0) {
                         net->desc.guidInstance = p->guidInstance;
                         if (p->lpszSessionName != 0)
                             lstrcpynA(net->name, p->lpszSessionName, 0x11);
                     }
-                    FUN_004d85a0(p);
+                    GameFreeThunk(p);
                 }
             }
             return 1;
@@ -654,7 +654,7 @@ int __stdcall HAPINET_enumconnections(GUID_004c9920* guid, void* connection, uns
             return 1;
     }
     net->guids[net->field_4e5] = *guid;
-    net->conns[net->field_4e5].data = FUN_004d83b0("DPLAY CONNECTION", size);
+    net->conns[net->field_4e5].data = GameAllocIgnoreTag("DPLAY CONNECTION", size);
     if (net->conns[net->field_4e5].data == 0)
         return 0;
     memcpy(net->conns[net->field_4e5].data, connection, size);
@@ -745,7 +745,7 @@ int __stdcall HAPINET_initlobbiedconnection(Net_4c97b0* net)
             unsigned long size = 0;
             hr = net->lobby->GetConnectionSettings(0, 0, &size);
             if (hr == (int)0x8877001e) {
-                net->connection = (Connection_4c9a70*)FUN_004d83b0("DPLAY LOBBY CONNECTION", size);
+                net->connection = (Connection_4c9a70*)GameAllocIgnoreTag("DPLAY LOBBY CONNECTION", size);
                 if (net->connection != 0) {
                     hr = net->lobby->GetConnectionSettings(0, net->connection, &size);
                     if (hr >= 0)

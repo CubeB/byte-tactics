@@ -297,7 +297,7 @@ void __stdcall FUN_0049fad0(void* menu);
 void RegisterDataArchives();
 char __stdcall FindGameCdDrive(int param_1);
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
-void __cdecl FUN_004d85a0(void* p);
+void __cdecl GameFreeThunk(void* p);
 void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall SetCursorMode(int param_1);
 int __stdcall IsCurrentGadgetNamed(Gadget_00425d80* gadget, char* name);
@@ -322,7 +322,7 @@ int GetTextKeyColor();
 void __stdcall SetTextColors(unsigned int a, int b);
 void ShowSoftwareCursor();
 void ClearMouseEventQueue();
-void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
+void* __cdecl GameAllocIgnoreTag(const char* name, unsigned int size);
 int __stdcall CheckDirectXVersion(int a, int b, int c, int d, int e);
 void __stdcall CheckGpfVersion();
 int __stdcall IsGadgetNamed(int param1, int param2, char* name);
@@ -644,7 +644,7 @@ void __stdcall HandleMainMenuClick(Gadget_00425d80* gadget)
     char buf[256];
 
     if (gadget->selected == -1) {
-        FUN_004d85a0(g_menuSparks);
+        GameFreeThunk(g_menuSparks);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "SINGLE")) {
@@ -828,7 +828,7 @@ void __stdcall OpenMainMenu()
     BuildDataPath(palpath, "palettes", "guipal", "PAL");
     void* palette = HAPI_LoadFile(palpath, 0);
     RemapPaletteToClosestIndices(&g_game->sub, (int)found, palette);
-    FUN_004d85a0(palette);
+    GameFreeThunk(palette);
     RenderLayer(&g_game->sub, 0xc0);
     SetKeyboardInput(&g_game->sub, 1);
     SetFont(g_game->field_391f9);
@@ -847,7 +847,7 @@ void __stdcall OpenMainMenu()
     ShowSoftwareCursor();
     ClearMouseEventQueue();
 
-    g_menuSparks = (Smoke_00425b80*)FUN_004d83b0("SPARKS", 0x514);
+    g_menuSparks = (Smoke_00425b80*)GameAllocIgnoreTag("SPARKS", 0x514);
     memset(g_menuSparks, 0, 0x145 * 4);
 
     if (g_cdPlayerDialogShown == 0) {
@@ -1587,7 +1587,7 @@ void FreePictureCache()
     for (int i = 0; i < 10; i++) {
         if (g_pictureCache[i].surface != 0) {
             FreeSurface(g_pictureCache[i].surface);
-            FUN_004d85a0(g_pictureCache[i].data);
+            GameFreeThunk(g_pictureCache[i].data);
             if (g_game->surface == g_pictureCache[i].surface) {
                 g_game->surface = 0;
             }
@@ -1662,13 +1662,13 @@ int __stdcall LoadPictureCached(const char* name, int param_2, int param_3, int 
             }
         }
         if (surface == 0) {
-            void* buf = FUN_004d83b0("Palette", 0x400);
+            void* buf = GameAllocIgnoreTag("Palette", 0x400);
             surface = LoadBitmapByName(name, (int)buf);
             data = (int*)buf;
             if (g_game->field_391f1 != 6) {
                 if (g_pictureCache[9].surface != 0) {
                     FreeSurface(g_pictureCache[9].surface);
-                    FUN_004d85a0(g_pictureCache[9].data);
+                    GameFreeThunk(g_pictureCache[9].data);
                 }
                 for (int j = 9; j > 0; j--)
                     g_pictureCache[j] = g_pictureCache[j - 1];

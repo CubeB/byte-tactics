@@ -505,14 +505,14 @@ void StartMeteorShower();
 void* __stdcall HAPI_OpenFileRead(char* path);
 void* __stdcall HAPI_LoadOpenFile(char* path, void* file, int* out);
 unsigned int __stdcall ExecuteCommandText(char* text, int size, CommandArgs* vars, unsigned int param_4);
-void __cdecl FUN_004d85a0(void* data);
+void __cdecl GameFreeThunk(void* data);
 int __stdcall HAPI_CloseFile(void* file);
 int __stdcall MatchWildcard(const char* name, const char* pattern);
 void __stdcall SnapWorldPosToFootprint(UnitDef* def, Vec3* pos);
 void* __stdcall CreateUnit(unsigned char owner, short id, Vec3 pos, int param_4, int param_5, int param_6);
 extern Display_00417a60* GetDisplay();
 void ToggleFullScreen();
-void __cdecl FUN_004d83b0(char* name, unsigned int size);
+void __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 void __stdcall ExecuteCommand(void* param_1, int param_2);
 int __stdcall GetGroundHeight(Pos_00417bb0* pos);
 // The real callee takes unsigned char; int here reproduces the original's
@@ -1258,7 +1258,7 @@ void __stdcall CmdInclude(CommandArgs* args)
         void* data = HAPI_LoadOpenFile(path, file, &info);
         if (data != 0) {
             ExecuteCommandText((char*)data, info, args, 0xffffffff);
-            FUN_004d85a0(data);
+            GameFreeThunk(data);
         }
         HAPI_CloseFile(file);
         g_game->pos = pos;
@@ -1293,7 +1293,7 @@ void __stdcall DefaultCommandHandler(CommandArgs* args)
             void* data=HAPI_LoadOpenFile(path,file,&size);
             if (data) {
                 ExecuteCommandText((char*)data,size,args,0xffffffff);
-                FUN_004d85a0(data);
+                GameFreeThunk(data);
             }
             HAPI_CloseFile(file);
             g_game->pos=saved;
@@ -1302,7 +1302,7 @@ void __stdcall DefaultCommandHandler(CommandArgs* args)
 }
 
 // Debug "crash" chat command (cheats enabled only): argument 1 exhausts
-// memory with operator new, 2 through FUN_004d83b0, 3 exits with a division
+// memory with operator new, 2 through GameAllocIgnoreTag, 3 exits with a division
 // by zero; no argument or 0 breaks into the debugger.
 // FUNCTION: 0x417a60
 void __stdcall CmdDebugBreak(CommandArgs* args)
@@ -1315,7 +1315,7 @@ void __stdcall CmdDebugBreak(CommandArgs* args)
             }
             if (args->GetIntArg(1, 0) == 2) {
                 for (;;)
-                    FUN_004d83b0("FORCE OUT-OF-MEMORY", 0x2000000);
+                    GameAllocIgnoreTag("FORCE OUT-OF-MEMORY", 0x2000000);
             }
             if (args->GetIntArg(1, 0) == 3) {
                 volatile int one = 1;   // keeps the division by zero out of the constant folder

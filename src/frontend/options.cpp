@@ -1248,8 +1248,8 @@ void __stdcall HandleInGameOptionsClick(void* gadget);
 void ShowLoadGameScreen();
 void ShowSaveGameScreen();
 
-void __cdecl FUN_004d85a0(void* p);
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void __cdecl GameFreeThunk(void* p);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 int __stdcall IsScreenNamed(Gui_0045e100* gui, const char* name);
 void __stdcall SortDisplayModes(List_0045e5e0* list);
 int __stdcall GetDisplayModes(List_0045e5e0* list);
@@ -2237,10 +2237,10 @@ void __stdcall HandleVisualOptionsClick(Gui_0045e100* gui)
     if (gui->hotGadgetIndex == -1) {
         if (obj) {
             if (!g_game->flags_37ebe.bits.b0) {
-                FUN_004d85a0(obj->field_14);
-                FUN_004d85a0(obj->field_4);
+                GameFreeThunk(obj->field_14);
+                GameFreeThunk(obj->field_4);
             }
-            FUN_004d85a0(obj);
+            GameFreeThunk(obj);
             gui->top->field_c = 0;
         }
         g_game->flags_37ebe.bits.b0 = 0;
@@ -2378,12 +2378,12 @@ void __stdcall OpenVisualOptions(int param_1)
     layer->handler = HandleVisualOptionsClick;
 
     if (!(g_game->flags_37ebe.byte & 1)) {
-        List_0045e5e0* list = (List_0045e5e0*)FUN_004d83b0("SELECT VIDEO MODE", 0x20);
+        List_0045e5e0* list = (List_0045e5e0*)GameAllocIgnoreTag("SELECT VIDEO MODE", 0x20);
         layer->data = list;
-        list->modes = (Mode_0045e4c0*)FUN_004d83b0("DISPLAY MODES", 0x4b0);
+        list->modes = (Mode_0045e4c0*)GameAllocIgnoreTag("DISPLAY MODES", 0x4b0);
         if (GetDisplayModes(list) != 0) {
             SortDisplayModes(list);
-            list->buffer = (char*)FUN_004d83b0("AVAILABLE MODES", list->count << 8);
+            list->buffer = (char*)GameAllocIgnoreTag("AVAILABLE MODES", list->count << 8);
             list->buffer[0] = 0;
             if (FindGadgetIndex(layer->entries, "VIDSLDR", 0xe) != -1) {
                 Entry_0045e5e0* e = FUN_004a0200(layer->entries, "VIDSLDR");

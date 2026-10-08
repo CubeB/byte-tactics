@@ -261,7 +261,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2);
 void __stdcall DrawFrame(Surface_00495a30* surf, Dst_004b8ae0* pal, int x, int y);
 void __stdcall ClearFrame(void* b, int color);
 void __stdcall RecalculateLineOfSight(int param);
-void __cdecl FUN_004d85a0(void* b);
+void __cdecl GameFreeThunk(void* b);
 int PopKey(void);
 int __stdcall IsKeyDown(int key);
 void ClearSelection(void);
@@ -472,7 +472,7 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
                     if (row >= h) break;
                 }
             }
-            FUN_004d85a0(bm);
+            GameFreeThunk(bm);
             g_game->field_38a51 = (unsigned short)(g_game->field_38a51 ^ ((savedA ^ g_game->field_38a51) & 1));
             bit6 = (savedB & 1) << 6;
             g_game->field_37f2f = (unsigned short)((((unsigned short)g_game->field_37f2f) & ~0x40) | bit6);

@@ -29,7 +29,7 @@ void __stdcall HAPI_CloseFile(FileHandle* file);
 char* __stdcall Translate(char* text);
 void* __stdcall LoadGaf(char* path);
 void* __stdcall GetGafFrame(void* table, int index);
-void __cdecl FUN_004d85a0(int* param_1);
+void __cdecl GameFreeThunk(int* param_1);
 
 // The tab writer at 0x4accd0 (dialogs_4abb20.cpp), inlined where the original
 // inlined it. The out-of-line WriteTabs above is the same function called by
@@ -1123,7 +1123,7 @@ struct Obj_004aeda0 {
 void __stdcall FreeGafSlot(Obj_004aeda0* obj, int i)
 {
     if (obj->buffers[i] != 0) {
-        FUN_004d85a0(obj->buffers[i]);
+        GameFreeThunk(obj->buffers[i]);
         obj->buffers[i] = 0;
         obj->field_14 = 0;
     }
@@ -1209,7 +1209,7 @@ struct Obj_004aef80 {
 void __stdcall FreeCommonGuiGaf(Obj_004aef80* obj)
 {
     if (obj->field_4) {
-        FUN_004d85a0(obj->field_4);
+        GameFreeThunk(obj->field_4);
         obj->field_4 = 0;
     }
 }

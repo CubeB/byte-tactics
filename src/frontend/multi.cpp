@@ -988,9 +988,9 @@ int __stdcall HAPINET_releasedplayinterface(void* net);
 void __stdcall HAPINET_uninitmultiplay(void* net);
 void __stdcall HAPINET_getconnections(void* net, void* guids, void* conns,
                            void* descriptions, void* param_5);
-void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
-void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-void __cdecl FUN_004d85a0(void* p);
+void* __cdecl GameAllocIgnoreTag(const char* name, unsigned int size);
+void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
+void __cdecl GameFreeThunk(void* p);
 int IsOnlineConfigLoaded();
 void OrLabelAttribs();
 int __stdcall LoadReporterDll(unsigned int* a, unsigned int* b);
@@ -1338,7 +1338,7 @@ int __stdcall BuildCompoundAddress(int* addressOut, int* sizeOut)
 
     result = HAPINET_createcompoundaddress(&g_game->net, elements, count, 0, &size);
     if (result != 0x8877001e) goto cleanup;
-    block = (HGLOBAL)FUN_004d83b0("COMPOUND ADDR", size);
+    block = (HGLOBAL)GameAllocIgnoreTag("COMPOUND ADDR", size);
     if (block == 0) {
         result = 0x8007000e;
         goto cleanup;
@@ -1709,15 +1709,15 @@ void __stdcall HandleModemDialogClick(Gadget_00440d70* gadget)
     Entry_00440d70* entries = gadget->layer->entries;
     if (gadget->selected == -1) {
         if (g_modemInfo != 0) {
-            FUN_004d85a0(g_modemInfo);
+            GameFreeThunk(g_modemInfo);
             g_modemInfo = 0;
         }
         if (g_modemAccountNames != 0) {
-            FUN_004d85a0(g_modemAccountNames);
+            GameFreeThunk(g_modemAccountNames);
             g_modemAccountNames = 0;
         }
         if (g_modemAccounts != 0) {
-            FUN_004d85a0(g_modemAccounts);
+            GameFreeThunk(g_modemAccounts);
             g_modemAccounts = 0;
         }
         return;
@@ -1825,11 +1825,11 @@ void __stdcall OpenModemDialog()
     if (r >= 0) {
         r = HAPINET_getplayeraddress((Net_00443100*)&net, 0, 0, &size);
         if (r == DPERR_BUFFERTOOSMALL_00443100) {
-            addr = (char*)FUN_004d83b0("MODEMADDR", size);
+            addr = (char*)GameAllocIgnoreTag("MODEMADDR", size);
             if (addr != 0) {
                 r = HAPINET_getplayeraddress((Net_00443100*)&net, 0, addr, &size);
                 if (r >= 0) {
-                    g_modemInfo = (char*)FUN_004d83b0("MODEMINFO", 0xc8);
+                    g_modemInfo = (char*)GameAllocIgnoreTag("MODEMINFO", 0xc8);
                     memset(g_modemInfo, 0, 0xc8);
                     g_modemCount = 0;
                     r = HAPINET_enumaddress(&g_game->net, (void*)EnumModemAddressCallback, addr, size, 0);
@@ -1838,15 +1838,15 @@ void __stdcall OpenModemDialog()
                         SetFrontendErrorText("Unable to find any modems");
                         SetFrontendState(0xf, 0x4e4, "c:\\cavedog\\wargame\\multi.cpp");
                         SetFrontendSubState(0, 0x4e5, "c:\\cavedog\\wargame\\multi.cpp");
-                        FUN_004d85a0(g_modemInfo);
-                        FUN_004d85a0(addr);
+                        GameFreeThunk(g_modemInfo);
+                        GameFreeThunk(addr);
                         HAPINET_releasedplayinterface((Net_00443100*)&net);
                         return;
                     }
                     if (r >= 0) {
                         int i;
                         ConfigureListBoxByName(&g_game->menu, "MODEMS", g_modemInfo, g_modemCount, 0);
-                        g_modemAccounts = (Entry_004426e0*)FUN_004d83b0("MODEMACCOUNTS", 0x1428);
+                        g_modemAccounts = (Entry_004426e0*)GameAllocIgnoreTag("MODEMACCOUNTS", 0x1428);
                         len.v = 0x1428;
                         r = ReadGameRegistryValue("MODEMNUMBERS", g_modemAccounts, &len.v);
                         if (r == 0) {
@@ -1855,7 +1855,7 @@ void __stdcall OpenModemDialog()
                                 g_modemAccounts[i].number[0] = 0;
                             }
                         }
-                        char* buffer = (char*)FUN_004d83b0("ACCOUNTNAMES", 0xa00);
+                        char* buffer = (char*)GameAllocIgnoreTag("ACCOUNTNAMES", 0xa00);
                         g_modemAccountNames = buffer;
                         *buffer = 0;
                         // Separate p runs the copy loop: keeps eax free until loop entry.
@@ -1879,7 +1879,7 @@ void __stdcall OpenModemDialog()
     SetKeyboardInput(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
     HAPINET_releasedplayinterface((Net_00443100*)&net);
-    FUN_004d85a0(addr);
+    GameFreeThunk(addr);
 }
 
 // FUNCTION: 0x443480
@@ -1998,11 +1998,11 @@ void __stdcall HandleSelectGameClick(Gadget_00440d70* param_1)
 
     if (param_1->selected == -1) {
         for (i = 0; i < 0xf; i++) {
-            FUN_004d85a0(g_game->data[i]);
+            GameFreeThunk(g_game->data[i]);
             g_game->data[i] = 0;
         }
-        FUN_004d85a0(g_game->shared);
-        FUN_004d85a0(g_game->desc);
+        GameFreeThunk(g_game->shared);
+        GameFreeThunk(g_game->desc);
         g_game->shared = 0;
         g_game->desc = 0;
         return;
@@ -2115,11 +2115,11 @@ void OpenSelectGameDialog()
     gadget->handler = HandleSelectGameClick;
     gadget->owner = g_game;
     LoadPictureCached("selectgame2x", 0, 0, 0);
-    g_game->desc = (Desc_004437c0*)FUN_004d83b0("GAME DESCRIPTIONS", 0x690);
-    g_game->shared = (char*)FUN_004d83b0("PLAYER SHARED", 0xe74);
+    g_game->desc = (Desc_004437c0*)GameAllocIgnoreTag("GAME DESCRIPTIONS", 0x690);
+    g_game->shared = (char*)GameAllocIgnoreTag("PLAYER SHARED", 0xe74);
     for (i = 0; i < 0xf; i++) {
         sprintf(name, "DATA%d", i);
-        g_game->data[i] = FUN_004d83b0(name, 0xa00);
+        g_game->data[i] = GameAllocIgnoreTag(name, 0xa00);
     }
     // Offset is j * 0xb9, no separate off counter.
     for (j = 0; j < 20; j++) {
@@ -2199,9 +2199,9 @@ void __stdcall HandleLogoSelectClick(Gadget_00444930* param_1)
     Layout_00444930* layout = (Layout_00444930*)param_1->holder->layout;
 
     if (param_1->selected == -1) {
-        FUN_004d85a0(layout->field_1c);
-        FUN_004d85a0(layout->field_18);
-        FUN_004d85a0(layout);
+        GameFreeThunk(layout->field_1c);
+        GameFreeThunk(layout->field_18);
+        GameFreeThunk(layout);
         PlaySoundByName("Multi", 0);
         return;
     }
@@ -2237,7 +2237,7 @@ void ShowSelectedMapInfo()
 
     Entry_00444930* entry = FUN_004a0280(g_game->menu.holder->entries, "MAPPIC");
     if (entry->field_c2 != 0) {
-        FUN_004d85a0(entry->field_c2);
+        GameFreeThunk(entry->field_c2);
         entry->field_c2 = 0;
     }
     void* bmp = LoadRadarPic(
@@ -2296,12 +2296,12 @@ void __stdcall HandleMapSelectClick(Gadget_00444930* param_1)
     if (param_1->selected == -1) {
         Entry_00444930* entry = FUN_004a0280(g_game->menu.holder->entries, "MAPPIC");
         if (entry->text_c2 != 0) {
-            FUN_004d85a0(entry->text_c2);
+            GameFreeThunk(entry->text_c2);
             entry->text_c2 = 0;
         }
-        FUN_004d85a0(layout->field_14);
-        FUN_004d85a0(layout);
-        FUN_004d85a0(g_oldMapName);
+        GameFreeThunk(layout->field_14);
+        GameFreeThunk(layout);
+        GameFreeThunk(g_oldMapName);
         g_oldMapName = 0;
         return;
     }
@@ -2357,7 +2357,7 @@ void __stdcall HandleMapSelectClick(Gadget_00444930* param_1)
 // FUNCTION: 0x444ea0
 void OpenMultiMapSelector()
 {
-    g_oldMapName = (char*)FUN_004d83b0("OLDMAPNAME", 0xc8);
+    g_oldMapName = (char*)GameAllocIgnoreTag("OLDMAPNAME", 0xc8);
 
     if (!g_game->map->HasMissionName()) {
         OpenMessageBox(&g_game->menu,
@@ -2380,7 +2380,7 @@ void OpenMultiMapSelector()
 
     Holder_00444930* layer = LoadGuiLayer(&g_game->menu, "SELMAP.GUI", 0x980);
     layer->handler = HandleMapSelectClick;
-    Data_00444ea0* data = (Data_00444ea0*)FUN_004d83b0("SELECT MAP DATA", 0x20);
+    Data_00444ea0* data = (Data_00444ea0*)GameAllocIgnoreTag("SELECT MAP DATA", 0x20);
     layer->data = data;
     LoadPictureCached("DSELECTMAP2", 0, 0, 0);
     LoadMapList(&data->items, 0, 0);
@@ -2420,11 +2420,11 @@ void OpenLogoSelectDialog()
 {
     Holder_00444930* gui = LoadGuiLayer(&g_game->menu, "LOGOSEL.GUI", 0x800);
     gui->handler = HandleLogoSelectClick;
-    Layout_00445110* layout = (Layout_00445110*)FUN_004d83b0("SELECT TEAM LOGO", 0x20);
+    Layout_00445110* layout = (Layout_00445110*)GameAllocIgnoreTag("SELECT TEAM LOGO", 0x20);
     gui->layout = layout;
     int count = g_game->logos32->count;
-    layout->ptrList = (void**)FUN_004d83b0("ANIMSEQ PTR LIST", count * 4);
-    layout->seqs = (AnimSeq_00445110*)FUN_004d83b0("ACTUAL ANIMSEQS", count * 0x30);
+    layout->ptrList = (void**)GameAllocIgnoreTag("ANIMSEQ PTR LIST", count * 4);
+    layout->seqs = (AnimSeq_00445110*)GameAllocIgnoreTag("ACTUAL ANIMSEQS", count * 0x30);
     void** cursor = layout->ptrList;
     int n = 0;
     for (int j = 0; j < count; j++) {
@@ -2877,9 +2877,9 @@ void __stdcall HandleDisplayModesClick(Gadget_00444930* gui)
     Entry_00444930* gadgets = holder->entries;
     ModeList* obj = (ModeList*)holder->layout;
     if (gui->selected == -1) {
-        FUN_004d85a0(obj->available);
-        FUN_004d85a0(obj->modes);
-        FUN_004d85a0(obj);
+        GameFreeThunk(obj->available);
+        GameFreeThunk(obj->modes);
+        GameFreeThunk(obj);
         return;
     }
     if (IsCurrentGadgetNamed(gui, "MODES") || IsCurrentGadgetNamed(gui, "SELECT")) {
@@ -2913,13 +2913,13 @@ void __stdcall HandleDisplayModesClick(Gadget_00444930* gui)
 // FUNCTION: 0x446310
 void CyclePlayerDisplayMode(void)
 {
-    ModeList* obj = (ModeList*)FUN_004d83b0("SELECT VIDEO MODE", 0x20);
+    ModeList* obj = (ModeList*)GameAllocIgnoreTag("SELECT VIDEO MODE", 0x20);
     obj->available = 0;
-    obj->modes = (Mode_00446310*)FUN_004d83b0("DISPLAY MODES", 0x4b0);
+    obj->modes = (Mode_00446310*)GameAllocIgnoreTag("DISPLAY MODES", 0x4b0);
 
     if (GetDisplayModes(obj) != 0) {
         SortDisplayModes(obj);
-        obj->available = (char*)FUN_004d83b0("AVAILABLE MODES", obj->count << 8);
+        obj->available = (char*)GameAllocIgnoreTag("AVAILABLE MODES", obj->count << 8);
         obj->available[0] = 0;
 
         Player_00444930* player = &g_game->players[g_game->localPlayer];
@@ -2946,8 +2946,8 @@ void CyclePlayerDisplayMode(void)
             }
         }
     }
-    FUN_004d85a0(obj->modes);
-    FUN_004d85a0(obj);
+    GameFreeThunk(obj->modes);
+    GameFreeThunk(obj);
 }
 
 // Sets the GUI's "WATCHING" and "GAMEOPEN" controls from the local player's
@@ -3688,7 +3688,7 @@ void __stdcall HandleBattleRoomClick(Gui_00446f50* gadget)
     Entry_00446f50* entries = gadget->table->entries;
 
     if (gadget->current == -1) {
-        FUN_004d85a0(g_game->chatter);
+        GameFreeThunk(g_game->chatter);
         g_game->chatter = 0;
         g_battleRoomSlotsBuilt = 0;
         SyncMutualAlliances();
@@ -4385,10 +4385,10 @@ void OpenEndMultiScreen()
 void FreeSaveListBuffers()
 {
     if (g_saveListFileNames) {
-        FUN_004d85a0(g_saveListFileNames);
+        GameFreeThunk(g_saveListFileNames);
     }
     if (g_saveListDisplayNames) {
-        FUN_004d85a0(g_saveListDisplayNames);
+        GameFreeThunk(g_saveListDisplayNames);
     }
     g_saveListFileNames = g_saveListDisplayNames = 0;
 }
@@ -4484,9 +4484,9 @@ void __stdcall HandleLoadListClick(Gui_00446f50* menu)
         UpdateUnitSliders(menu, 0);
         menu->table = inner;
         if (g_saveListFileNames)
-            FUN_004d85a0(g_saveListFileNames);
+            GameFreeThunk(g_saveListFileNames);
         if (g_saveListDisplayNames)
-            FUN_004d85a0(g_saveListDisplayNames);
+            GameFreeThunk(g_saveListDisplayNames);
         g_saveListDisplayNames = 0;
         g_saveListFileNames = 0;
     } else if (menu->current != -1) {
@@ -4505,8 +4505,8 @@ void* __stdcall ListSaveGameFiles(int* out)
         ConfigureListBoxByName((char*)g_game + 0x519, g_gamesGadgetName, DAT_005119b8, 0, 0);
         return 0;
     }
-    g_saveListFileNames = (char*)FUN_004d83b0(g_savegameNamesName, count << 8);
-    g_saveListDisplayNames = (char*)FUN_004d83b0(g_savegameDescsName, *out << 8);
+    g_saveListFileNames = (char*)GameAllocIgnoreTag(g_savegameNamesName, count << 8);
+    g_saveListDisplayNames = (char*)GameAllocIgnoreTag(g_savegameDescsName, *out << 8);
     memset(g_saveListDisplayNames, 0, *out << 8);
     memset(g_saveListFileNames, 0, *out << 8);
     ScanDirectory(path, g_saveListFileNames, 0, 0, 0, 1);
@@ -4536,9 +4536,9 @@ void __stdcall HandleSaveGameClick(Gui_00446f50* menu)
     if (menu->current == -1) {
         SetDescListCleanupFlag(menu, 1);
         if (g_saveListFileNames)
-            FUN_004d85a0(g_saveListFileNames);
+            GameFreeThunk(g_saveListFileNames);
         if (g_saveListDisplayNames)
-            FUN_004d85a0(g_saveListDisplayNames);
+            GameFreeThunk(g_saveListDisplayNames);
         g_saveListFileNames = g_saveListDisplayNames = 0;
         g_game->flag_38a51 = 0;
         return;
@@ -4887,7 +4887,7 @@ void OpenUnitRestrictions()
     LoadPictureCached("UnitRestrict5x", 0, 0, 0);
 
     entries = layer->entries;
-    flags = (char*)FUN_004d83b0("FLAGS", g_game->count);
+    flags = (char*)GameAllocIgnoreTag("FLAGS", g_game->count);
     desc = FindGadgetChecked(entries, "DESCLIST");
     desc->field_ce = ShowSelectedUnitCosts;
     desc->flags = flags;
@@ -4899,20 +4899,20 @@ void OpenUnitRestrictions()
     pic->field_1b |= 0x180;
     pic->field_da = desc->field_da;
 
-    pics = (int*)FUN_004d83b0("UNITPICARRAY", g_game->count * 0x18);
+    pics = (int*)GameAllocIgnoreTag("UNITPICARRAY", g_game->count * 0x18);
     memset(pics, 0, g_game->count * 0x18);
-    text = (char*)FUN_004d83b0("UNITTEXTARRAY", g_game->count << 5);
+    text = (char*)GameAllocIgnoreTag("UNITTEXTARRAY", g_game->count << 5);
     *(int*)text = 0;
 
-    g_unitRestrictEntries = (Record_00446f50*)FUN_004d83b0("UNITSRESTRICTINFO", g_game->count * 0x62);
+    g_unitRestrictEntries = (Record_00446f50*)GameAllocIgnoreTag("UNITSRESTRICTINFO", g_game->count * 0x62);
     desc->records = g_unitRestrictEntries;
     for (i = 0; i < g_game->count; i++)
         g_unitRestrictEntries[i].field_52 = 0;
 
-    g_unitRestrictPics = (int*)FUN_004d83b0("UNITSPICS", g_game->count << 2);
+    g_unitRestrictPics = (int*)GameAllocIgnoreTag("UNITSPICS", g_game->count << 2);
     memset(g_unitRestrictPics, 0, g_game->count << 2);
     memset(g_unitRestrictEntries, 0, g_game->count * 0x62);
-    g_unitRestrictOldCounts = (int*)FUN_004d83b0("OLDCOUNTS", g_game->count << 2);
+    g_unitRestrictOldCounts = (int*)GameAllocIgnoreTag("OLDCOUNTS", g_game->count << 2);
 
     n = 0;
     for (i = 1; i < g_game->count; i++) {

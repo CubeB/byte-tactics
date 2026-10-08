@@ -35,7 +35,7 @@ struct Pair8_004b2450 {
 extern Data_004b2450* __stdcall HAPI_LoadFile(char* name, int reserved);
 extern int __stdcall HAPI_FileLengthByName(char* name);
 extern int __stdcall ComputeChecksum(unsigned char* data, int len);
-extern void __cdecl FUN_004d85a0(void* x);
+extern void __cdecl GameFreeThunk(void* x);
 
 // FUNCTION: 0x4b2290 _$E6
 // FUNCTION: 0x4b2340 _$E4
@@ -76,7 +76,7 @@ void __stdcall FreeCobScript(int key)
     if (key != 0) {
         int local_key = key;
         s_cobScriptCache.erase(local_key);
-        FUN_004d85a0((void*)key);
+        GameFreeThunk((void*)key);
     }
 }
 

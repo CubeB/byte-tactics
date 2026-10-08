@@ -186,9 +186,9 @@ extern void __stdcall FadeRectangle(void* surface, int* rect, int mode);
 extern char* __stdcall StripPath(char* path);
 extern char* __stdcall ChangeExtension(char* out, char* in, char* ext);
 extern int __stdcall HAPI_FileLengthByName(char* path);
-extern void* __cdecl FUN_004d83b0(const char* path, unsigned int size);
+extern void* __cdecl GameAllocIgnoreTag(const char* path, unsigned int size);
 extern int __stdcall ReadGuiFile(void* entry, char* path);
-extern void __cdecl FUN_004d85a0(void* p);
+extern void __cdecl GameFreeThunk(void* p);
 extern int __stdcall RenderLayer(Menu_004aa8f0* menu, unsigned int flags);
 extern void __cdecl HideSoftwareCursor(void);
 extern void __cdecl ShowSoftwareCursor(void);
@@ -286,7 +286,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Menu_004aa8f0* menu, const char* name,
             layer = menu->layer;
             entry = &layer->entries[layer->entries->count + 1];
         } else {
-            layer = (Layer_004aa8f0*)FUN_004d83b0(guiName, 0x10f57);
+            layer = (Layer_004aa8f0*)GameAllocIgnoreTag(guiName, 0x10f57);
             memset(layer, 0, 0x10f57);
             entry = (Entry_004aa8f0*)((char*)layer + 0x3f);
         }
@@ -326,7 +326,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Menu_004aa8f0* menu, const char* name,
             entry = layer->entries;
           }
         } else {
-            FUN_004d85a0(layer);
+            GameFreeThunk(layer);
         }
     }
     layer->entries = entry;
@@ -432,7 +432,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Menu_004aa8f0* menu, const char* name,
         }
         return layer;
     }
-    FUN_004d85a0(layer);
+    GameFreeThunk(layer);
     return 0;
 }
 
@@ -1135,7 +1135,7 @@ int __stdcall OpenMessageBox(Menu_004aa8f0* gui, char* text, int wrapWidth, int 
         layer->handler = MessageBoxHandler;
         MarkChanged(gui);
         UpdateMenu(gui);
-        FUN_004d85a0(wrapped);
+        GameFreeThunk(wrapped);
         return 1;
     }
     return 0;
@@ -1259,7 +1259,7 @@ char* __stdcall WordWrapText(Menu_004aa8f0* menu, char* text, int width, int ind
     else
         w = GetTextWidth(GetFont(), (unsigned char*)"d");
     int size = len + 3 * (len / (width / w)) + 2;
-    char* buf = (char*)FUN_004d83b0("WordWrap", size);
+    char* buf = (char*)GameAllocIgnoreTag("WordWrap", size);
     memset(buf, 0, size);
     int i = 0;
     char c = *text;

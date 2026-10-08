@@ -7,7 +7,7 @@ void __stdcall FatalError(char* path);
 void __stdcall SetAlphaTable(unsigned int* param_1);
 void __stdcall SetShadeTable(unsigned int* param_1);
 void __stdcall SetLightTable(unsigned int* param_1);
-void __cdecl FUN_004d85a0(void* p);
+void __cdecl GameFreeThunk(void* p);
 unsigned int* __stdcall BuildAlphaTable(void* palette);
 unsigned int* __stdcall BuildShadeTable(void* palette);
 unsigned int* __stdcall BuildLightTable(void* palette);
@@ -29,7 +29,7 @@ unsigned int* __stdcall LoadAlphaTable(void* palette)
             FatalError(path);
         }
         SetAlphaTable(table);
-        FUN_004d85a0(table);
+        GameFreeThunk(table);
         return table;
     }
     unsigned int* table = BuildAlphaTable(palette);
@@ -51,7 +51,7 @@ unsigned int* __stdcall LoadShadeTable(void* palette)
             FatalError(path);
         }
         SetShadeTable(table);
-        FUN_004d85a0(table);
+        GameFreeThunk(table);
         return table;
     }
     unsigned int* table = BuildShadeTable(palette);
@@ -73,7 +73,7 @@ unsigned int* __stdcall LoadLightTable(void* palette)
             FatalError(path);
         }
         SetLightTable(table);
-        FUN_004d85a0(table);
+        GameFreeThunk(table);
         return table;
     }
     unsigned int* table = BuildLightTable(palette);

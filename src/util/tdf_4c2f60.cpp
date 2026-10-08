@@ -38,10 +38,10 @@ inline void _Destroy(Elem_004c2f60* p)
 }
 }
 
-void __cdecl FUN_004d85a0(int* param_1);
+void __cdecl GameFreeThunk(int* param_1);
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
-void* __cdecl FUN_004d83b0(char* name, int size);
+void* __cdecl GameAllocIgnoreTag(char* name, int size);
 
 #pragma pack(push, 1)
 class TdfRecord {
@@ -56,7 +56,7 @@ public:
     ~TdfRecord()
     {
         if (name)
-            FUN_004d85a0(name);
+            GameFreeThunk(name);
         for (TdfRecord** p = children.begin(); p < children.end(); p++)
             delete *p;
     }
@@ -90,7 +90,7 @@ int TdfFile::LoadFile(char* path)
     int size = HAPI_FileLength(file);
     int result = 0;
     if (size > 0) {
-        char* buf = (char*)FUN_004d83b0(path, size);
+        char* buf = (char*)GameAllocIgnoreTag(path, size);
         HAPI_SeekFile(file, 0);
         // got and flag stay locals: result must spill to its frame slot.
         int got = HAPI_readfromfile(file, buf, size);
@@ -102,16 +102,16 @@ int TdfFile::LoadFile(char* path)
             root = 0;
             field_4 = 0;
             field_8 = result;
-            char* text = (char*)FUN_004d83b0("TDF file", size + 1);
+            char* text = (char*)GameAllocIgnoreTag("TDF file", size + 1);
             memcpy(text, buf, size);
             text[size] = 0;
             this->StripComments(text);
             TdfRecord* node = (TdfRecord*)operator new(0x29);
             root = node ? node->FUN_004c3e40("root", text, 0, path) : 0;
-            FUN_004d85a0((int*)text);
+            GameFreeThunk((int*)text);
             result = 1;
         }
-        FUN_004d85a0((int*)buf);
+        GameFreeThunk((int*)buf);
     }
     HAPI_CloseFile(file);
     return result;

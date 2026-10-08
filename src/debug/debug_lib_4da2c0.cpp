@@ -8,7 +8,7 @@ void StartMemoryStatus(void);
 void StartPerformanceStatus(void);
 void __cdecl InitDebugSupport(unsigned int flags);
 
-extern unsigned char DAT_005289c8;      // the debug thread is running
+extern unsigned char g_debugThreadRunning;  // the debug thread is running
 
 void __cdecl RunDebugThread(void* param);
 BOOL __cdecl HandleDialogMessage(MSG* msg);
@@ -34,7 +34,7 @@ void __cdecl RunDebugThread(void* param)
     StartMemoryStatus();
     StartPerformanceStatus();
     SetThreadPriority(hThread, priority);
-    DAT_005289c8 = 1;
+    g_debugThreadRunning = 1;
     while ((ret = GetMessageA(&message, 0, 0, 0)) != 0) {
         if (ret == -1) {
         } else if (!HandleDialogMessage(&message)) {

@@ -1199,3 +1199,8 @@ Things that look wrong in the original but have no effect, kept for the record.
 - **0x4a9780** (possible): the scroll-step function's upper clamp uses
   `field_136 - 1`, copied from the decrement version, although this side
   scrolls the other way. Found by OpenCode / deepseek-v4.1-flash in #6201.
+- **0x463ba0** (possible, harmless): tests and sets the guard bit 0x52a4e4,
+  but the `atexit(0x463bd0)` call sits outside the guard (`jne 0x463bb4` skips
+  only the flag store), so a second call would register the empty handler
+  again; 0x49e830 guards both the store and the call. Found by OpenCode /
+  deepseek-v4.1-flash in #6214.

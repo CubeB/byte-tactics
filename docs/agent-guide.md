@@ -383,7 +383,7 @@ effect, the missing piece is usually a helper that was inlined:
   (members `_First` +4, `_Last` +8, `_End` +0xc). To make the compiler emit the
   template out of line, take its address in a global
   (`EraseFn g = &std::vector<T>::erase;`) and put the mangled symbol after the
-  address in the `// FUNCTION:` line. See `src/ai/ai_player_40cfb0.cpp`.
+  address in the `// FUNCTION:` line. See `src/ai/ai_player_40c530.cpp`.
 - **A `std::vector` member starts 4 bytes before its `_First`**: the empty
   allocator byte sits at +0, padded to 4, even inside a `pack(1)` class (the
   header's own packing applies). When the original re-reads `_First` after an
@@ -402,7 +402,7 @@ effect, the missing piece is usually a helper that was inlined:
   constant address with no load, and can never match.
 - **`mov ecx, <global>; jmp <method>`**: a tail call of a method on a global
   object. Declare the object (`extern Class_x DAT_00528a78;`) and write
-  `DAT_00528a78.CloseMappedFile();`. See `src/debug/debug_lib_4de0f0.cpp`.
+  `DAT_00528a78.CloseMappedFile();`. See `src/debug/debug_lib_4ddc00.cpp`.
 - **Locals in parameter slots**: MSVC 5 reuses the stack slot of a parameter
   that is no longer needed for a local. When the code writes into a
   parameter's slot (a buffer, an output value), declare an ordinary local and
@@ -830,7 +830,7 @@ single call:
   `_First` is null, else `(_Last - _First) / sizeof(T)`.
 - **`vector::erase(first, last)` out of line**: `eax` = the first argument, and a
   dead `mov [esp+8], <old _Last>` just before `ret 8` (left by the inlined
-  `_Destroy`). See `src/ai/ai_player_40cfb0.cpp` and `0x40c9f0.cpp`. For vectors of
+  `_Destroy`). See `src/ai/ai_player_40c530.cpp` and `0x40c9f0.cpp`. For vectors of
   pointers, define the pointed-to struct (MSVC 5's `<xmemory>` needs it).
 - **`while (n--)`**: `mov esi, ecx; dec ecx; test esi, esi; je`, then
   `lea esi, [ecx+1]` inside the guarded block.

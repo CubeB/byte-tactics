@@ -1804,7 +1804,7 @@ int CountRemotePlayers(void);
 int FUN_00457cb0(void);
 void UpdateResourceSharing(Player_00457d30*);
 void HalveFrame(Bitmap_004587b0*, Bitmap_004587b0*);
-void FUN_00458d20(int, Count_00458d20*, int);
+void DecrementCountArgument(int, Count_00458d20*, int);
 void SetLightVector(int, int, int);
 ObjectState_0045a8d0* CreateObjectState(Object3do*);
 ObjectState_0045a950* CreatePlayerObjectState(Object3do*, BuildList_0045a950*, int);

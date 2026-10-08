@@ -1143,7 +1143,7 @@ address,name
 0x4587b0,HalveFrame
 0x458810,CMemoryCache::DrawObjectState
 0x4589c0,Class_00459200::MergeIntoComposite
-0x458d20,FUN_00458d20
+0x458d20,DecrementCountArgument
 0x458d30,Class_00458d30::RecolorByShade
 0x458dd0,Class_00458d30::ShadeByIntensity
 0x458fa0,Class_00458fa0::DrawPieceEdges

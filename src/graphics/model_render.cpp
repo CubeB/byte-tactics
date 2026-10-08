@@ -862,7 +862,7 @@ struct Count_00458d20 {
 };
 
 // FUNCTION: 0x458d20
-void __stdcall FUN_00458d20(int param_1, Count_00458d20* list, int param_3)
+void __stdcall DecrementCountArgument(int param_1, Count_00458d20* list, int param_3)
 {
     for (int i = list->count - 1; i >= 0; i--) {
     }

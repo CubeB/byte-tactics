@@ -6,13 +6,9 @@
 // 3.14159265358979 / 180 is exactly the exe's 0.017453292519943278.
 #define PI 3.14159265358979
 
-class Class_004c4440 {
-  public:
-    char* GetRecordName();
-};
-
 class TdfRecord {
   public:
+    char* GetRecordName();
     int GetFieldString(char* dst, const char* key, int size, char* def);
     int GetFieldInt(const char* key, int def);
     double GetFieldDouble(const char* key, double def);
@@ -239,87 +235,87 @@ void LoadWeaponTypes()
 // explosion animations, the sounds and the DAMAGE sub-section, which goes into
 // a table sorted by unit name (w->sub).
 // FUNCTION: 0x42e440
-void __stdcall LoadWeaponType(Class_004c4440* parser) {
+void __stdcall LoadWeaponType(TdfRecord* parser) {
     char* id = parser->GetRecordName();
-    Weapon_0042e440* w = &g_game->weapons[((TdfRecord*)parser)->GetFieldInt("ID", -1)];
+    Weapon_0042e440* w = &g_game->weapons[parser->GetFieldInt("ID", -1)];
     strcpy(w->name, id);
-    ((TdfRecord*)parser)->GetFieldString(w->name2, "name", 0x40, DAT_005119b8);
+    parser->GetFieldString(w->name2, "name", 0x40, DAT_005119b8);
 
     w->weaponvelocity =
-        (int)(((TdfRecord*)parser)->GetFieldDouble("weaponvelocity", 0.0) * 2184.5333333333333);
+        (int)(parser->GetFieldDouble("weaponvelocity", 0.0) * 2184.5333333333333);
     w->startvelocity =
-        (int)(((TdfRecord*)parser)->GetFieldDouble("startvelocity", 0.0) * 2184.5333333333333);
+        (int)(parser->GetFieldDouble("startvelocity", 0.0) * 2184.5333333333333);
     w->weaponacceleration =
-        (int)(((TdfRecord*)parser)->GetFieldDouble("weaponacceleration", 0.0) *
+        (int)(parser->GetFieldDouble("weaponacceleration", 0.0) *
               72.81777777777778);
-    w->range = ((TdfRecord*)parser)->GetFieldInt("range", 0x7fff);
-    w->coverage = ((TdfRecord*)parser)->GetFieldInt("coverage", 0);
-    w->reloadtime = (short)(((TdfRecord*)parser)->GetFieldDouble("reloadtime", 0.0) * 30.0);
-    w->energypershot = (float)((TdfRecord*)parser)->GetFieldDouble("energypershot", 0.0);
-    w->metalpershot = (float)((TdfRecord*)parser)->GetFieldDouble("metalpershot", 0.0);
-    w->areaofeffect = (short)((TdfRecord*)parser)->GetFieldInt("areaofeffect", 0);
-    w->edgeeffectiveness = (float)((TdfRecord*)parser)->GetFieldDouble("edgeeffectiveness", 0.0);
-    w->weapontimer = (short)(((TdfRecord*)parser)->GetFieldDouble("weapontimer", 0.0) * 30.0);
-    w->noautorange = ((TdfRecord*)parser)->GetFieldInt("noautorange", 0);
+    w->range = parser->GetFieldInt("range", 0x7fff);
+    w->coverage = parser->GetFieldInt("coverage", 0);
+    w->reloadtime = (short)(parser->GetFieldDouble("reloadtime", 0.0) * 30.0);
+    w->energypershot = (float)parser->GetFieldDouble("energypershot", 0.0);
+    w->metalpershot = (float)parser->GetFieldDouble("metalpershot", 0.0);
+    w->areaofeffect = (short)parser->GetFieldInt("areaofeffect", 0);
+    w->edgeeffectiveness = (float)parser->GetFieldDouble("edgeeffectiveness", 0.0);
+    w->weapontimer = (short)(parser->GetFieldDouble("weapontimer", 0.0) * 30.0);
+    w->noautorange = parser->GetFieldInt("noautorange", 0);
     w->turnrate =
-        (short)(((TdfRecord*)parser)->GetFieldDouble("turnrate", 0.0) * 0.03333333333333333);
-    w->burst = (short)((TdfRecord*)parser)->GetFieldInt("burst", 0);
-    w->burstrate = (short)(((TdfRecord*)parser)->GetFieldDouble("burstrate", 0.0) * 30.0);
-    w->sprayangle = (short)((TdfRecord*)parser)->GetFieldInt("sprayangle", 0);
-    w->duration = (short)(((TdfRecord*)parser)->GetFieldDouble("duration", 0.0) * 30.0);
-    w->randomdecay = (short)(((TdfRecord*)parser)->GetFieldDouble("randomdecay", 0.0) * 30.0);
-    w->smokedelay = (short)(((TdfRecord*)parser)->GetFieldDouble("smokedelay", 0.0) * 30.0);
-    w->flighttime = (short)(((TdfRecord*)parser)->GetFieldDouble("flighttime", 0.0) * 30.0);
-    w->holdtime = (short)(((TdfRecord*)parser)->GetFieldDouble("holdtime", 0.0) * 30.0);
+        (short)(parser->GetFieldDouble("turnrate", 0.0) * 0.03333333333333333);
+    w->burst = (short)parser->GetFieldInt("burst", 0);
+    w->burstrate = (short)(parser->GetFieldDouble("burstrate", 0.0) * 30.0);
+    w->sprayangle = (short)parser->GetFieldInt("sprayangle", 0);
+    w->duration = (short)(parser->GetFieldDouble("duration", 0.0) * 30.0);
+    w->randomdecay = (short)(parser->GetFieldDouble("randomdecay", 0.0) * 30.0);
+    w->smokedelay = (short)(parser->GetFieldDouble("smokedelay", 0.0) * 30.0);
+    w->flighttime = (short)(parser->GetFieldDouble("flighttime", 0.0) * 30.0);
+    w->holdtime = (short)(parser->GetFieldDouble("holdtime", 0.0) * 30.0);
     // No (float) cast: it costs the scheduler one unit and shifts later bitfield stores.
     w->minbarrelangle =
-        ((TdfRecord*)parser)->GetFieldDouble("minbarrelangle", -11.25) * (PI / 180);
-    w->firestarter = (unsigned char)((TdfRecord*)parser)->GetFieldInt("firestarter", 0);
-    w->rendertype = (unsigned char)((TdfRecord*)parser)->GetFieldInt("rendertype", 0);
-    w->color = (unsigned char)((TdfRecord*)parser)->GetFieldInt("color", 0);
-    w->color2 = (unsigned char)((TdfRecord*)parser)->GetFieldInt("color2", 0);
-    w->soundtrigger = ((TdfRecord*)parser)->GetFieldInt("soundtrigger", 0);
-    w->guidance = ((TdfRecord*)parser)->GetFieldInt("guidance", 0);
-    w->tracks = ((TdfRecord*)parser)->GetFieldInt("tracks", 0);
-    w->lineofsight = ((TdfRecord*)parser)->GetFieldInt("lineofsight", 0);
+        parser->GetFieldDouble("minbarrelangle", -11.25) * (PI / 180);
+    w->firestarter = (unsigned char)parser->GetFieldInt("firestarter", 0);
+    w->rendertype = (unsigned char)parser->GetFieldInt("rendertype", 0);
+    w->color = (unsigned char)parser->GetFieldInt("color", 0);
+    w->color2 = (unsigned char)parser->GetFieldInt("color2", 0);
+    w->soundtrigger = parser->GetFieldInt("soundtrigger", 0);
+    w->guidance = parser->GetFieldInt("guidance", 0);
+    w->tracks = parser->GetFieldInt("tracks", 0);
+    w->lineofsight = parser->GetFieldInt("lineofsight", 0);
     // Named local: makes the bitfield `or` take the shifted value as destination.
-    int ballistic = ((TdfRecord*)parser)->GetFieldInt("ballistic", 0);
+    int ballistic = parser->GetFieldInt("ballistic", 0);
     w->ballistic = ballistic;
-    w->unitsonly = ((TdfRecord*)parser)->GetFieldInt("unitsonly", 0);
-    w->groundbounce = ((TdfRecord*)parser)->GetFieldInt("groundbounce", 0);
-    w->waterweapon = ((TdfRecord*)parser)->GetFieldInt("waterweapon", 0);
-    w->toairweapon = ((TdfRecord*)parser)->GetFieldInt("toairweapon", 0);
-    w->smoketrail = ((TdfRecord*)parser)->GetFieldInt("smoketrail", 0);
-    w->turret = ((TdfRecord*)parser)->GetFieldInt("turret", 0);
-    w->selfprop = ((TdfRecord*)parser)->GetFieldInt("selfprop", 0);
-    w->propeller = ((TdfRecord*)parser)->GetFieldInt("propeller", 0);
-    w->noexplode = ((TdfRecord*)parser)->GetFieldInt("noexplode", 0);
-    w->burnblow = ((TdfRecord*)parser)->GetFieldInt("burnblow", 0);
-    w->twophase = ((TdfRecord*)parser)->GetFieldInt("twophase", 0);
-    w->cruise = ((TdfRecord*)parser)->GetFieldInt("cruise", 0);
-    w->commandfire = ((TdfRecord*)parser)->GetFieldInt("commandfire", 0);
-    w->stockpile = ((TdfRecord*)parser)->GetFieldInt("stockpile", 0);
-    w->targetable = ((TdfRecord*)parser)->GetFieldInt("targetable", 0);
-    w->interceptor = ((TdfRecord*)parser)->GetFieldInt("interceptor", 0);
-    w->beamweapon = ((TdfRecord*)parser)->GetFieldInt("beamweapon", 0);
-    w->shellweapon = ((TdfRecord*)parser)->GetFieldInt("shellweapon", 0);
+    w->unitsonly = parser->GetFieldInt("unitsonly", 0);
+    w->groundbounce = parser->GetFieldInt("groundbounce", 0);
+    w->waterweapon = parser->GetFieldInt("waterweapon", 0);
+    w->toairweapon = parser->GetFieldInt("toairweapon", 0);
+    w->smoketrail = parser->GetFieldInt("smoketrail", 0);
+    w->turret = parser->GetFieldInt("turret", 0);
+    w->selfprop = parser->GetFieldInt("selfprop", 0);
+    w->propeller = parser->GetFieldInt("propeller", 0);
+    w->noexplode = parser->GetFieldInt("noexplode", 0);
+    w->burnblow = parser->GetFieldInt("burnblow", 0);
+    w->twophase = parser->GetFieldInt("twophase", 0);
+    w->cruise = parser->GetFieldInt("cruise", 0);
+    w->commandfire = parser->GetFieldInt("commandfire", 0);
+    w->stockpile = parser->GetFieldInt("stockpile", 0);
+    w->targetable = parser->GetFieldInt("targetable", 0);
+    w->interceptor = parser->GetFieldInt("interceptor", 0);
+    w->beamweapon = parser->GetFieldInt("beamweapon", 0);
+    w->shellweapon = parser->GetFieldInt("shellweapon", 0);
     // Named local, as for ballistic.
-    int dropped = ((TdfRecord*)parser)->GetFieldInt("dropped", 0);
+    int dropped = parser->GetFieldInt("dropped", 0);
     w->dropped = dropped;
-    w->vlaunch = ((TdfRecord*)parser)->GetFieldInt("vlaunch", 0);
-    w->meteor = ((TdfRecord*)parser)->GetFieldInt("meteor", 0);
-    w->noradar = ((TdfRecord*)parser)->GetFieldInt("noradar", 0);
-    w->paralyzer = ((TdfRecord*)parser)->GetFieldInt("paralyzer", 0);
-    w->startsmoke = ((TdfRecord*)parser)->GetFieldInt("startsmoke", 0);
-    w->endsmoke = ((TdfRecord*)parser)->GetFieldInt("endsmoke", 0);
-    w->accuracy = (short)((TdfRecord*)parser)->GetFieldInt("accuracy", 0);
-    w->tolerance = (short)((TdfRecord*)parser)->GetFieldInt("tolerance", 0);
-    w->pitchtolerance = (short)((TdfRecord*)parser)->GetFieldInt("pitchtolerance", 0);
-    w->shakemagnitude = ((TdfRecord*)parser)->GetFieldInt("shakemagnitude", 0);
-    w->shakeduration = (int)(((TdfRecord*)parser)->GetFieldDouble("shakeduration", 0.0) * 30.0);
+    w->vlaunch = parser->GetFieldInt("vlaunch", 0);
+    w->meteor = parser->GetFieldInt("meteor", 0);
+    w->noradar = parser->GetFieldInt("noradar", 0);
+    w->paralyzer = parser->GetFieldInt("paralyzer", 0);
+    w->startsmoke = parser->GetFieldInt("startsmoke", 0);
+    w->endsmoke = parser->GetFieldInt("endsmoke", 0);
+    w->accuracy = (short)parser->GetFieldInt("accuracy", 0);
+    w->tolerance = (short)parser->GetFieldInt("tolerance", 0);
+    w->pitchtolerance = (short)parser->GetFieldInt("pitchtolerance", 0);
+    w->shakemagnitude = parser->GetFieldInt("shakemagnitude", 0);
+    w->shakeduration = (int)(parser->GetFieldDouble("shakeduration", 0.0) * 30.0);
 
     char model[0x100];
-    if (((TdfRecord*)parser)->GetFieldString(model, "model", 0x100, DAT_005119b8) != 0) {
+    if (parser->GetFieldString(model, "model", 0x100, DAT_005119b8) != 0) {
         unsigned char i;
         unsigned char count = w->id;
         for (i = 0; i < count; i++) {
@@ -344,8 +340,8 @@ void __stdcall LoadWeaponType(Class_004c4440* parser) {
 model_done:
     w->anim1 = 0;
     char gaf[0x100];
-    if (((TdfRecord*)parser)->GetFieldString(gaf, "explosiongaf", 0x100, DAT_005119b8) != 0 &&
-        ((TdfRecord*)parser)->GetFieldString(model, "explosionart", 0x100, DAT_005119b8) != 0) {
+    if (parser->GetFieldString(gaf, "explosiongaf", 0x100, DAT_005119b8) != 0 &&
+        parser->GetFieldString(model, "explosionart", 0x100, DAT_005119b8) != 0) {
         void* a = LoadAnimGaf(gaf);
         void* r = FindGafEntry(a, model);
         *(unsigned char*)((char*)r + 2) = 0;
@@ -353,42 +349,38 @@ model_done:
     }
     w->anim2 = 0;
     if (*(int*)(*(char**)((char*)g_game + 0x391e9) + 0xd44) != 0) {
-        if (((TdfRecord*)parser)->GetFieldString(gaf, "lavaexplosiongaf", 0x100, DAT_005119b8) !=
-                0 &&
-            ((TdfRecord*)parser)
-                    ->GetFieldString(model, "lavaexplosionart", 0x100, DAT_005119b8) != 0) {
+        if (parser->GetFieldString(gaf, "lavaexplosiongaf", 0x100, DAT_005119b8) != 0 &&
+            parser->GetFieldString(model, "lavaexplosionart", 0x100, DAT_005119b8) != 0) {
             void* a = LoadAnimGaf(gaf);
             void* r = FindGafEntry(a, model);
             *(unsigned char*)((char*)r + 2) = 0;
             w->anim2 = r;
         }
     } else {
-        if (((TdfRecord*)parser)
-                    ->GetFieldString(gaf, "waterexplosiongaf", 0x100, DAT_005119b8) != 0 &&
-            ((TdfRecord*)parser)
-                    ->GetFieldString(model, "waterexplosionart", 0x100, DAT_005119b8) != 0) {
+        if (parser->GetFieldString(gaf, "waterexplosiongaf", 0x100, DAT_005119b8) != 0 &&
+            parser->GetFieldString(model, "waterexplosionart", 0x100, DAT_005119b8) != 0) {
             void* a = LoadAnimGaf(gaf);
             void* r = FindGafEntry(a, model);
             *(unsigned char*)((char*)r + 2) = 0;
             w->anim2 = r;
         }
     }
-    if (((TdfRecord*)parser)->GetFieldString(model, "soundstart", 0x100, DAT_005119b8) != 0) {
+    if (parser->GetFieldString(model, "soundstart", 0x100, DAT_005119b8) != 0) {
         w->soundstart = (unsigned short)LoadSoundByName(0, model);
     } else {
         w->soundstart = 0xffff;
     }
-    if (((TdfRecord*)parser)->GetFieldString(model, "soundhit", 0x100, DAT_005119b8) != 0) {
+    if (parser->GetFieldString(model, "soundhit", 0x100, DAT_005119b8) != 0) {
         w->soundhit = (unsigned short)LoadSoundByName(0, model);
     } else {
         w->soundhit = 0xffff;
     }
-    if (((TdfRecord*)parser)->GetFieldString(model, "soundwater", 0x100, DAT_005119b8) != 0) {
+    if (parser->GetFieldString(model, "soundwater", 0x100, DAT_005119b8) != 0) {
         w->soundwater = (unsigned short)LoadSoundByName(0, model);
     } else {
         w->soundwater = 0xffff;
     }
-    void* damage = ((TdfRecord*)parser)->FindSubRecord("DAMAGE");
+    void* damage = parser->FindSubRecord("DAMAGE");
     if (damage != 0) {
         w->damage = (short)((TdfRecord*)damage)->GetFieldInt("default", 0);
         int index = 0;

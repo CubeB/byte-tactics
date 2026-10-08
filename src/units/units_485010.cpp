@@ -188,7 +188,7 @@ struct Vec3_004853b0 {
     Fixed_004853b0 z;
 };
 
-struct Class_00481490 {                // 0x1c bytes, vtable 0x4fd6f0
+struct WeaponAimCobCb {                // 0x1c bytes, vtable 0x4fd6f0
     void* vtable;                      // +0x0
     char unknown_4[0x1c - 0x4];
 };
@@ -258,9 +258,9 @@ public:
 struct Unit {                          // 0x118 bytes
     UnitMotion* obj;                   // +0x0
     char unknown_4[0x8 - 0x4];
-    Class_00481490 sub_8;              // +0x8
-    Class_00481490 sub_24;             // +0x24
-    Class_00481490 sub_40;             // +0x40
+    WeaponAimCobCb sub_8;              // +0x8
+    WeaponAimCobCb sub_24;             // +0x24
+    WeaponAimCobCb sub_40;             // +0x40
     char unknown_5c[0x64 - 0x5c];
     short bank;                    // +0x64
     unsigned short heading;           // +0x66
@@ -914,10 +914,10 @@ void __stdcall InitUnit(int unitType, Pos_00485a40 pos, int param_5, Unit* unit)
 {
     UnitType* type = &g_game->unitTypes[(unsigned short)unitType];
     if (unit) {
-        Class_00481490* sub = (Class_00481490*)((char*)unit + 8);
+        WeaponAimCobCb* sub = (WeaponAimCobCb*)((char*)unit + 8);
         for (int i = 0; i < 3; i++) {
             sub->vtable = g_weaponAimCobVtable;
-            sub = (Class_00481490*)((char*)sub + 0x1c);
+            sub = (WeaponAimCobCb*)((char*)sub + 0x1c);
         }
     }
     unit->typeId = (short)unitType;
@@ -953,10 +953,10 @@ static inline void __stdcall InitUnit_00485e90(unsigned short unitType, Pos_0048
 {
     UnitType* type = &g_game->unitTypes[unitType];
     if (unit) {
-        Class_00481490* sub = (Class_00481490*)((char*)unit + 8);
+        WeaponAimCobCb* sub = (WeaponAimCobCb*)((char*)unit + 8);
         for (int i = 0; i < 3; i++) {
             sub->vtable = g_weaponAimCobVtable;
-            sub = (Class_00481490*)((char*)sub + 0x1c);
+            sub = (WeaponAimCobCb*)((char*)sub + 0x1c);
         }
     }
     unit->typeId = unitType;

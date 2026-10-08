@@ -158,7 +158,7 @@ void __stdcall ClampPointToSegment(Point_004805b0* p, Point_004805b0 b, Point_00
     }
 }
 
-class Class_00481490 {
+class WeaponAimCobCb {
 public:
     char unknown_0[4];
     int field_4;                       // +0x4
@@ -167,7 +167,7 @@ public:
 };
 
 // FUNCTION: 0x481490
-void Class_00481490::OnAimCobReturn(int enable)
+void WeaponAimCobCb::OnAimCobReturn(int enable)
 {
     if (enable) {
         field_4 = 1;

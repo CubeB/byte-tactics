@@ -3793,9 +3793,9 @@ piece,0x50b5d0,18,src/sound/cd_audio.cpp,29,0,game data
 piece,0x50b594,32,src/sound/cd_audio.cpp,13,0,game data
 piece,0x50b508,25,src/debug/debug_helper_4cbb70.cpp,4,0,game data
 piece,0x50b4f0,24,src/debug/debug_helper_4cbb70.cpp,3,0,game data
-piece,0x50a528,3,src/graphics/pcx_4cb7f0.cpp,3,0,game data
-piece,0x50b4e4,12,src/graphics/pcx_4cb170.cpp,4,0,game data
-piece,0x50b4d4,15,src/graphics/pcx_4cb170.cpp,3,0,game data
+piece,0x50a528,3,src/graphics/pcx_4caa40.cpp,41,0,game data
+piece,0x50b4e4,12,src/graphics/pcx_4caa40.cpp,16,0,game data
+piece,0x50b4d4,15,src/graphics/pcx_4caa40.cpp,15,0,game data
 piece,0x50b4c8,9,src/graphics/pcx_4caa40.cpp,4,0,game data
 piece,0x50b4bc,10,src/graphics/pcx_4caa40.cpp,3,0,game data
 piece,0x50b4a0,26,src/network/hapinet.cpp,149,0,game data

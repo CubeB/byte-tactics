@@ -364,7 +364,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x511fa8,g_explosion2Duration,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511fa8,,,
 0x511fac,g_explosion2StartSize,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511fac,,,
 0x511fb0,g_explosion2EndSize,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511fb0,,,
-0x511fb4,DAT_00511fb4$S22242,.bss,4,type,data,List_00422ea0*,1,1,2,conflicting: struct names only,2,,DAT_00511fb4,,,
+0x511fb4,DAT_00511fb4$S23898,.bss,4,type,data,List_00422ea0*,1,1,2,conflicting: struct names only,2,,DAT_00511fb4,,,
 0x511fb8,g_frontendErrorText,.bss,256,gap,data,char[],1,0,1,one type,1,,DAT_00511fb8,,,
 0x5120b8,g_pictureCache,.bss,464,gap,data,Entry_00428730[10],1,0,1,one type,1,0x198,DAT_005120b8,,,
 0x512288,DAT_00512288,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00512288,,,

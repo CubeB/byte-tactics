@@ -63,18 +63,18 @@ namespace std {
 // copy at 0x4c5ba0 for the last use below.
 class Class_004c5ba0 : public std::vector<TdfField> {
 public:
-    int FUN_004c5ba0(void);
+    int GetPairCount(void);
 
-    iterator FUN_004c59d0(iterator p, const TdfField& x);
+    iterator Insert(iterator p, const TdfField& x);
 };
 
-void __stdcall FUN_004c5d60(TdfField* p, const TdfField& value);
-void __stdcall FUN_004c5cd0(TdfField* first, TdfField* last, const TdfField& x);
-TdfField* __stdcall FUN_004c5d10(TdfField* first, TdfField* last, TdfField* dest);
+void __stdcall ConstructPair(TdfField* p, const TdfField& value);
+void __stdcall AssignPairRange(TdfField* first, TdfField* last, const TdfField& x);
+TdfField* __stdcall AssignPairRangeBack(TdfField* first, TdfField* last, TdfField* dest);
 
 // Own file: with the real <vector> (tdf_4c54f0.cpp) the helpers below are inlined into this insert.
 // FUNCTION: 0x4c59d0
-TdfField* Class_004c5ba0::FUN_004c59d0(iterator p, const TdfField& x)
+TdfField* Class_004c5ba0::Insert(iterator p, const TdfField& x)
 {
     size_type off = (size_type)(p - begin());
 
@@ -82,14 +82,14 @@ TdfField* Class_004c5ba0::FUN_004c59d0(iterator p, const TdfField& x)
         size_type n = size() + ((size_type)1 < size() ? size() : 1);
         iterator s = alloc.allocate(n, (void*)0);
         iterator q = s;
-        // Loops over FUN_004c5d60 (inlined in the original), not calls.
+        // Loops over ConstructPair (inlined in the original), not calls.
         for (iterator i = _First; i != p; ++i, ++q)
-            FUN_004c5d60(q, *i);
+            ConstructPair(q, *i);
         {
             iterator r = q;
             size_type count = 1;
             do {
-                FUN_004c5d60(r, x);
+                ConstructPair(r, x);
                 r += 1;
             } while (--count != 0);
         }
@@ -99,17 +99,17 @@ TdfField* Class_004c5ba0::FUN_004c59d0(iterator p, const TdfField& x)
         // The allocator call with its unused count argument keeps the register order.
         alloc.deallocate(_First, _End - _First);
         _End = s + n;
-        _Last = s + FUN_004c5ba0() + 1;
+        _Last = s + GetPairCount() + 1;
         _First = s;
     } else if ((size_type)(_Last - p) < 1u) {
         _Ucopy(p, _Last, p + 1);
         _Ufill(_Last, 1 - (_Last - p), x);
-        FUN_004c5cd0(p, _Last, x);
+        AssignPairRange(p, _Last, x);
         _Last += 1;
     } else {
         _Ucopy(_Last - 1, _Last, _Last);
-        FUN_004c5d10(p, _Last - 1, _Last);
-        FUN_004c5cd0(p, p + 1, x);
+        AssignPairRangeBack(p, _Last - 1, _Last);
+        AssignPairRange(p, p + 1, x);
         _Last += 1;
     }
     // One shared return after the chain; arms 2 and 3 do their own _Last += 1.
@@ -118,7 +118,7 @@ TdfField* Class_004c5ba0::FUN_004c59d0(iterator p, const TdfField& x)
 // The original calls this from 0x4c59d0 rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4c5ba0
-int Class_004c5ba0::FUN_004c5ba0(void)
+int Class_004c5ba0::GetPairCount(void)
 {
     if (_First == 0) {
         return 0;

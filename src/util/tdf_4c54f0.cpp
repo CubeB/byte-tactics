@@ -111,7 +111,7 @@ static inline Class_004c54d0 MakeElem(const Class_004c91a0& a, const Class_004c9
 // The vector of entries.
 class Class_004c5ba0 : public std::vector<TdfField> {
 public:
-    iterator FUN_004c59d0(iterator p, const TdfField& x);
+    iterator Insert(iterator p, const TdfField& x);
 
     // Destroys the entries and frees the storage.
     void DestroyAll()
@@ -155,7 +155,7 @@ extern TranslationTable* g_translations;
 // the end of the return statement.
 static inline Class_004c93f0* InsertNew(TranslationTable* s, TdfField* e, const Class_004c91a0& key)
 {
-    return (Class_004c93f0*)&((Class_004c5ba0*)&s->v)->FUN_004c59d0(e, MakeElem(key, Class_004c9180()))->value;
+    return (Class_004c93f0*)&((Class_004c5ba0*)&s->v)->Insert(e, MakeElem(key, Class_004c9180()))->value;
 }
 
 // A TDF section: its name and the entries under it.
@@ -356,7 +356,7 @@ TdfField* Class_004c5c60::FindLowerBound(const char* key)
 // std::vector<TdfField>::insert; like its neighbour copy_backward
 // (0x4c5d10) it ends in `ret N`, so it is written as a __stdcall function.
 // FUNCTION: 0x4c5cd0
-void __stdcall FUN_004c5cd0(TdfField* first, TdfField* last, const TdfField& x)
+void __stdcall AssignPairRange(TdfField* first, TdfField* last, const TdfField& x)
 {
     for (; first != last; ++first)
         *first = x;
@@ -367,7 +367,7 @@ void __stdcall FUN_004c5cd0(TdfField* first, TdfField* last, const TdfField& x)
 // into the range ending at dest and returns the start of the copies.
 // __stdcall: the original file's default convention (neighbours end in ret N).
 // FUNCTION: 0x4c5d10
-TdfField* __stdcall FUN_004c5d10(TdfField* first, TdfField* last, TdfField* dest)
+TdfField* __stdcall AssignPairRangeBack(TdfField* first, TdfField* last, TdfField* dest)
 {
     while (first != last)
         *--dest = *--last;
@@ -378,7 +378,7 @@ TdfField* __stdcall FUN_004c5d10(TdfField* first, TdfField* last, TdfField* dest
 // of string handles, called without ecx from the copy loops of vector insert
 // (0x4c59d0).
 // FUNCTION: 0x4c5d60
-void __stdcall FUN_004c5d60(TdfField* p, const TdfField& value)
+void __stdcall ConstructPair(TdfField* p, const TdfField& value)
 {
     new ((void*)p) TdfField(value);
 }

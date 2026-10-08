@@ -27,14 +27,14 @@ struct Elem_004c2f60 {
     Class_004c91a0 b;                  // +0x4 value
 };
 
-void __stdcall FUN_004c5170(char* p);
+void __stdcall ReleasePair(char* p);
 
 namespace std {
 // The entries are released by a plain function rather than by an element
 // destructor, so the vector's destroy loop calls this once per element.
 inline void _Destroy(Elem_004c2f60* p)
 {
-    FUN_004c5170((char*)p);
+    ReleasePair((char*)p);
 }
 }
 

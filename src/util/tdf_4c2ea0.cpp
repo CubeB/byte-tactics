@@ -75,7 +75,7 @@ class Class_004c5470 {
 public:
     char unknown_0[8];
 
-    void* FUN_004c5470(int* param_1);
+    void* AssignPair(int* param_1);
 };
 
 // An entry of a section's vector (copy constructor 0x4c54a0, assignment 0x4c5470).
@@ -85,7 +85,7 @@ public:
     Class_004c54a0(const Class_004c54a0& other);
     Class_004c54a0& operator=(const Class_004c54a0& other)
     {
-        ((Class_004c5470*)this)->FUN_004c5470((int*)&other);
+        ((Class_004c5470*)this)->AssignPair((int*)&other);
         return *this;
     }
 };
@@ -250,7 +250,7 @@ public:
     int field_8;                       // +0x8
 
     // The functions that delete the root section each destroy its entries a
-    // different way (inline, through FUN_004c5170, ~TdfField or
+    // different way (inline, through ReleasePair, ~TdfField or
     // ??_GTdfField, as the inline budget runs out), and no one view of the
     // section gives all of them: those stay in files of their own with the
     // view each needs. They are the destructor (0x4c2eb0, with ??_GTdfField
@@ -735,14 +735,14 @@ template class std::basic_string<char, std::char_traits<char>, std::allocator<ch
 
 // Releases the key and the value of an entry.
 // FUNCTION: 0x4c5170
-void __stdcall FUN_004c5170(char* param_1)
+void __stdcall ReleasePair(char* param_1)
 {
     ((Class_004c9390*)(param_1 + 4))->ReleaseRef();
     ((Class_004c9390*)(param_1))->ReleaseRef();
 }
 
 // FUNCTION: 0x4c5470
-void* Class_004c5470::FUN_004c5470(int* param_1)
+void* Class_004c5470::AssignPair(int* param_1)
 {
     ((Class_004c93b0*)this)->Assign((Class_004c91a0*)param_1);
     ((Class_004c93b0*)((char*)this + 4))->Assign((Class_004c91a0*)(param_1 + 1));

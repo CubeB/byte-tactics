@@ -17060,7 +17060,7 @@ struct NameLess_004c4760 {  // 0x1 bytes, 1 view
 class Class_004c5470 {  // 0x8 bytes, 2 views
 public:
     char unknown_0[8];
-    void* FUN_004c5470(int*);
+    void* AssignPair(int*);
 };
 
 class TranslationTable {  // 0x11 bytes, 3 views
@@ -17077,8 +17077,8 @@ public:
     int field_4;  // +0x4
     int field_8;  // +0x8
     TdfField* end;       // +0xc
-    TdfField* FUN_004c59d0(TdfField*, TdfField&);
-    int FUN_004c5ba0(void);
+    TdfField* Insert(TdfField*, TdfField&);
+    int GetPairCount(void);
 };
 
 struct Class_004c5c60 {  // 0xd bytes, 2 views

@@ -291,7 +291,7 @@ extern int g_explosion1EndSize;                                                 
 extern int g_explosion2Duration;                                                                  // 0x511fa8, 4 bytes; 1 of 1 files
 extern int g_explosion2StartSize;                                                                 // 0x511fac, 4 bytes; 1 of 1 files
 extern int g_explosion2EndSize;                                                                   // 0x511fb0, 4 bytes; 1 of 1 files
-extern List_00422ea0* DAT_00511fb4;                                                               // 0x511fb4, 4 bytes, DAT_00511fb4$S22242; 1 of 2 files (conflicting: struct names only)
+extern List_00422ea0* DAT_00511fb4;                                                               // 0x511fb4, 4 bytes, DAT_00511fb4$S23898; 1 of 2 files (conflicting: struct names only)
 extern char g_frontendErrorText[256];                                                             // 0x511fb8, 256 bytes; 1 of 1 files
 extern unsigned char g_pictureCache[464];                                                         // 0x5120b8, 464 bytes; Entry_00428730[10] by value in 1 of 1 files
 extern int DAT_00512288;                                                                          // 0x512288, 4 bytes; 1 of 1 files

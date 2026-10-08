@@ -77,6 +77,11 @@ void __stdcall EnsurePatrolReturnOrder(Unit*, Order*);
 Unit* __stdcall FindBestTargetIfFireAtWill(Unit*);
 int __stdcall IssueAttackOrder(Unit*, Unit*, int);
 void __stdcall GetFactoriesInRadius(int player, Vec3* pos, int range, std::vector<Unit*>* out);
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+int __stdcall VtolMoveOrder(Unit*, Order*, int);
+int __stdcall VtolFollowOrder(Unit*, Order*, int);
+int __stdcall VtolStandbyOrder(Unit*, Order*, int);
+int __stdcall VtolLandIfCanOrder(Unit*, Order*, int);
 
 static inline Vec3 Offset(short angle, int distance)
 {

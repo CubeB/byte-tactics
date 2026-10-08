@@ -1911,10 +1911,12 @@ public:
     Class_0044e080(Struct_004907e0* owner, BitReader* reader);
 };
 
-class Class_0044e9c0 : public Class_0044ced0 {
+struct Owner_0044e9c0;
+
+class AirManeuverOrder : public Class_0044ced0 {
 public:
     char unknown_4[0x2c - 0x4];
-    Class_0044e9c0(Struct_004907e0* owner, BitReader* reader);
+    AirManeuverOrder(Owner_0044e9c0* owner, BitReader* reader);
 };
 #pragma pack(pop)
 
@@ -1964,7 +1966,7 @@ void PackedPosGoal::FUN_0044efd0(BitReader* reader)
     if (kind == 1)
         field_4 = new Class_0044e080(owner, reader);
     else if (kind == 2)
-        field_4 = new Class_0044e9c0(owner, reader);
+        field_4 = new AirManeuverOrder((Owner_0044e9c0*)owner, reader);
     int state = reader->ReadBits(2);
     owner->obj->SetFlightMode(owner, state);
 }

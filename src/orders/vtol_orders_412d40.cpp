@@ -91,10 +91,10 @@ public:
     char unknown_0[0x56];
     Class_0043a1f0(Class_00438760 type, int a, Vec3* b, int c, int d, int e);
 };
-class Class_0044e740 {
+class AirManeuverOrder {
 public:
     char unknown_0[0x2c];
-    Class_0044e740(Order* order, const Vec3& a, const Vec3& b);
+    AirManeuverOrder(Order* order, const Vec3& a, const Vec3& b);
     void SetAltitude(int);
 };
 #pragma pack(pop)
@@ -204,7 +204,7 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
             if (IsAhead(unit, order)) {
                 Vec3 from = Add(unit->pos, Offset(unit->heading, unit->def->maxvelocity * 30));
                 Vec3 to = Offset(unit->heading, unit->def->maxvelocity);
-                Class_0044e740* obj = new Class_0044e740(order, from, to);
+                AirManeuverOrder* obj = new AirManeuverOrder(order, from, to);
                 obj->SetAltitude(unit->def->altitude);
                 ((Class_004388d0*)order)->SetAttachedFx((int)obj);
                 ((Class_00439e80*)order)->SetDeadlineTicks(RandomInt(0x1e) + 0x3c);
@@ -223,7 +223,7 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
                 Vec3 p = order->target->pos;
                 p.x += order->target->type->v.x * 45;
                 p.z += order->target->type->v.z * 45;
-                ((Class_004388d0*)order)->SetAttachedFx((int)new Class_0044e740(order, p,
+                ((Class_004388d0*)order)->SetAttachedFx((int)new AirManeuverOrder(order, p,
                     order->target->type->v + Offset(order->target->heading, order->target->def->maxvelocity / 2)));
             }
             ((Class_00439e80*)order)->SetDeadlineTicks(0x2d);

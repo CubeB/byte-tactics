@@ -811,13 +811,13 @@ struct Record_0044c0d0 {
     int unknown_14;                    // +0x14
 };
 
-class Class_0044ce20
+class OrderFx
 {
 public:
     void* vtable;
     int field_4;
 
-    Class_0044ce20(int param_1);
+    OrderFx(int param_1);
 };
 
 class PacketManager {
@@ -4985,7 +4985,7 @@ void OpenUnitRestrictions()
 }
 
 // FUNCTION: 0x44ce20
-Class_0044ce20::Class_0044ce20(int param_1)
+OrderFx::OrderFx(int param_1)
 {
     vtable = &DAT_004fd2f8;
     field_4 = param_1;

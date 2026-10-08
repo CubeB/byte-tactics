@@ -185,65 +185,60 @@ public:
     Class_0044de80(int owner, HapiBank* file, char* name);
 };
 
-class Class_0044e740 : public Attached_0043a1f0 {
+class AirManeuverOrder : public Attached_0043a1f0 {
 public:
     char pad[0x28];
-    Class_0044e740(int owner, HapiBank* file, char* name);
-};
-
-class Class_0044d010 : public Attached_0043a1f0 {
-public:
-    char pad[0x10];
-    Class_0044d010(int owner, HapiBank* file, char* name);
-};
-
-class Class_0044d470 : public Attached_0043a1f0 {
-public:
-    char pad[0x18];
-    Class_0044d470(int owner, HapiBank* file, char* name);
-};
-
-class Class_0044d930 : public Attached_0043a1f0 {
-public:
-    char pad[0x14];
-    Class_0044d930(int owner, HapiBank* file, char* name);
+    AirManeuverOrder(int owner, HapiBank* file, char* name);
+    // Unused here: the type's members the other views declare keep the symbol
+    // ids of the functions after the merged classes (docs/c2-regalloc.md).
+    void* Destroy(int param_1);
+    int GetDesiredHeading(unsigned short* out);
+    int SerializeToSave(int unused, HapiBank* file, char* name);
 };
 
 // The attachments the order functions make from a position.
 struct Source_0044cf60;
-
-class Class_0044cf60 : public Attached_0043a1f0 {
-public:
-    char unknown_4[0x10];
-    Class_0044cf60(Source_0044cf60* source, int x, int y, int r);
-};
-
-class Class_0044d3b0 : public Attached_0043a1f0 {
-public:
-    void* field_4;                     // +4
-    int field_8;                       // +8
-    int field_c;                       // +0xc
-    int field_10;                      // +0x10
-    int field_14;                      // +0x14
-    int field_18;                      // +0x18
-
-    Class_0044d3b0(void* source, int x, int y, int r1, int r2);
-};
-
 struct Point_00438ad0 {
     short x;
     short y;
 };
 
-class Class_0044d8a0 : public Attached_0043a1f0 {
+class ApproachRadius : public Attached_0043a1f0 {
 public:
-    void* field_4;                     // +0x4
-    int a;                             // +0x8
-    int b;                             // +0xc
-    int c;                             // +0x10
-    int d;                             // +0x14
+    char pad[0x10];
+    ApproachRadius(int owner, HapiBank* file, char* name);
+    ApproachRadius(Source_0044cf60* source, int x, int y, int r);
+    // Unused here: the type's members the other views declare keep the symbol
+    // ids of the functions after the merged classes (docs/c2-regalloc.md).
+    void* Destroy(unsigned char flag);
+    int FUN_0044d290(int px, int py);
+    int FillWorldPos(int* out);
+    int ApproxDistExcess(int px, int py);
+    int Serialize(int unused, HapiBank* file, char* name);
+};
 
-    Class_0044d8a0(void* owner, Point_00438ad0 pos, Point_00438ad0 size);
+class RingApproach : public Attached_0043a1f0 {
+public:
+    char pad[0x18];
+    RingApproach(int owner, HapiBank* file, char* name);
+    RingApproach(void* source, int x, int y, int r1, int r2);
+    // Unused here: the type's members the other views declare keep the symbol
+    // ids of the functions after the merged classes (docs/c2-regalloc.md).
+    void* Destroy(unsigned char flag);
+    int FUN_0044d7c0(int param_1, int param_2);
+    int ContainsUnit(Unit* unit);
+};
+
+class PointMarker : public Attached_0043a1f0 {
+public:
+    char pad[0x14];
+    PointMarker(int owner, HapiBank* file, char* name);
+    PointMarker(void* owner, Point_00438ad0 pos, Point_00438ad0 size);
+    // Unused here: the type's members the other views declare keep the symbol
+    // ids of the functions after the merged classes (docs/c2-regalloc.md).
+    void* Destroy(unsigned char should_delete);
+    int FUN_0044dcb0(int x, int y);
+    int FUN_0044dd00(int x, int y);
 };
 #pragma pack(pop)
 
@@ -537,7 +532,7 @@ void Class_004388d0::SetAttachedFx(Attached_0043a1f0* obj)
     }
 }
 
-// Creates a Class_0044cf60 from an order position when the unit's definition
+// Creates an ApproachRadius from an order position when the unit's definition
 // does not have flag 0x800 set, detaches the current attachment and attaches
 // the new one. Same class as 0x4388d0; the flag test comes first here.
 #pragma pack(push, 1)
@@ -557,7 +552,7 @@ public:
 void Class_00438930::AttachApproachRadiusGoal(int* p, int n)
 {
     if ((unit->type->flags32 & 0x800) == 0) {
-        Class_0044cf60* obj = new Class_0044cf60((Source_0044cf60*)this, p[0], p[2], n);
+        ApproachRadius* obj = new ApproachRadius((Source_0044cf60*)this, p[0], p[2], n);
         if (unit->owner) {
             if (attached) {
                 unit->owner->slot->Attach(0);
@@ -596,7 +591,7 @@ public:
 void Class_00438a00::AttachRingApproachGoal(Vec3_0043a1f0* pos, int radius1, int radius2)
 {
     if (!(unit->type->flags32 & 0x800)) {
-        Class_0044d3b0* obj = new Class_0044d3b0(this, pos->x, pos->z, radius1, radius2);
+        RingApproach* obj = new RingApproach(this, pos->x, pos->z, radius1, radius2);
         if (unit->owner) {
             if (attached) {
                 unit->owner->slot->Attach(0);
@@ -637,7 +632,7 @@ public:
 void Class_00438ad0::AttachBuildFootprintMarker(Point_00438ad0 cell, Point_00438ad0 size)
 {
     if (!(unit->type->flags32 & 0x800)) {
-        Class_0044d8a0* obj = new Class_0044d8a0(this, cell, size);
+        PointMarker* obj = new PointMarker(this, cell, size);
         if (unit->owner) {
             if (attached) {
                 unit->owner->slot->Attach(0);
@@ -787,7 +782,7 @@ static unsigned char KindByIndex_0043a420(unsigned char want)
 // (lower_bound), or, for files without a "<name>_name" key, by counting the
 // entries without flag bit 0. The real resolver
 // ResolveUnitTypeKey is defined above.
-// The case-3 attachment constructor is Class_0044e740's second constructor,
+// The case-3 attachment constructor is AirManeuverOrder's second constructor,
 // 0x44e7d0, which shares its name with 0x44e740; data/aliases.csv has a row
 // for it.
 // FUNCTION: 0x43a420
@@ -861,16 +856,16 @@ Class_0043a1f0::Class_0043a1f0(Unit* punit, HapiBank* file, char* name)
         attached = new Class_0044de80((int)this, file, buf3);
         return;
     case 3:
-        attached = new Class_0044e740((int)this, file, buf3);
+        attached = new AirManeuverOrder((int)this, file, buf3);
         return;
     case 4:
-        attached = new Class_0044d010((int)this, file, buf3);
+        attached = new ApproachRadius((int)this, file, buf3);
         return;
     case 5:
-        attached = new Class_0044d470((int)this, file, buf3);
+        attached = new RingApproach((int)this, file, buf3);
         return;
     case 6:
-        attached = new Class_0044d930((int)this, file, buf3);
+        attached = new PointMarker((int)this, file, buf3);
         return;
     case 0:
         attached = 0;

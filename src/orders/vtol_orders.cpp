@@ -380,10 +380,10 @@ public:
     Class_0044e330(Order* order, Unit* unit, const Vec3& p);
 };
 
-class Class_0044e740 {
+class AirManeuverOrder {
 public:
     char unknown_0[0x2c];
-    Class_0044e740(Order* order, const Vec3& a, const Vec3& b);
+    AirManeuverOrder(Order* order, const Vec3& a, const Vec3& b);
     void SetAltitude(int);
 };
 

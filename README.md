@@ -119,7 +119,7 @@ Counts in `src/` and `include/` at `origin/main`, against `e9367f13` (the roadma
 | --- | --- | --- | ---: |
 | Gather issues | 125 of 125 closed | `[####################]` | 100% |
 | Join issues | 19 of 20 closed | `[###################-]` | 95% |
-| Name issues | 110 of 123 closed | `[##################--]` | 89% |
+| Name issues | 111 of 123 closed | `[##################--]` | 90% |
 <!-- cleanup:end -->
 
 ## Next steps

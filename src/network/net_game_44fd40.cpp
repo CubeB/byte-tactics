@@ -202,7 +202,7 @@ char* __stdcall Translate(char* text);
 void __stdcall AddMessage(char* text, int param_2, int param_3, char param_4);
 void FUN_00450530();
 int __stdcall BroadcastPacket(int player, void* data, int size);
-void __stdcall FUN_00464290(unsigned char player, char type);
+void __stdcall SetupPlayerSlot(unsigned char player, char type);
 int GetTicks();
 void __stdcall ReportGameEvent(int param_1);
 void __stdcall OpenMessageBox(void* menu, const char* text, int a, int b, int c);
@@ -657,7 +657,7 @@ int __stdcall AddNetPlayer(int param_1)
     if (result) {
         return 1;
     }
-    FUN_00464290(slot, g_game->players[slot].type);
+    SetupPlayerSlot(slot, g_game->players[slot].type);
     p->field_22 = 0;
     p->id = param_1;
     p->field_1c = GetTicks();

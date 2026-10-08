@@ -299,7 +299,7 @@ extern Game* g_game;
 const char* __stdcall Translate(const char* text);
 
 // FUNCTION: 0x464290
-void __stdcall FUN_00464290(int player, char type)
+void __stdcall SetupPlayerSlot(int player, char type)
 {
     Player* p = &g_game->players[player & 0xff];
     // Declared after p: puts the pointer in the addressing-mode index slot.
@@ -514,7 +514,7 @@ void __stdcall FUN_00409f80(int player);
 void __stdcall FUN_0040a040(int player);
 
 // FUNCTION: 0x4648e0
-void FUN_004648e0()
+void LoadDefaultAIScript()
 {
     int size;
     char* name = g_game->mission->GetNameSlot(7);
@@ -548,13 +548,13 @@ void InitPlayers()
             InitPlayerSlot(p);
         }
     }
-    FUN_004648e0();
+    LoadDefaultAIScript();
 }
 
 void __stdcall RebuildFeatureCells(int param_1);
 
 // FUNCTION: 0x4649d0
-void FUN_004649d0()
+void RebuildAIFeatureCells()
 {
     for (char i = 0; i < 10; i++) {
         if (g_game->players[i].unit) {
@@ -599,7 +599,7 @@ void FreePlayers()
 }
 
 // FUNCTION: 0x464ab0
-float __stdcall FUN_00464ab0(void* param_1)
+float __stdcall GetEnergyIncome(void* param_1)
 {
     return *(float*)((char*)param_1 + 0x90);
 }
@@ -610,25 +610,25 @@ struct Class_00464ac0 {
 };
 
 // FUNCTION: 0x464ac0
-float __stdcall FUN_00464ac0(Class_00464ac0* param_1)
+float __stdcall GetEnergyUsage(Class_00464ac0* param_1)
 {
     return param_1->field_0x94;
 }
 
 // FUNCTION: 0x464ad0
-float __stdcall FUN_00464ad0(void* param_1)
+float __stdcall GetNetEnergy(void* param_1)
 {
     return *(float*)((char*)param_1 + 0x90) - *(float*)((char*)param_1 + 0x94);
 }
 
 // FUNCTION: 0x464af0
-float __stdcall FUN_00464af0(void* param_1)
+float __stdcall GetMetalIncome(void* param_1)
 {
     return *(float*)((char*)param_1 + 0x9c);
 }
 
 // FUNCTION: 0x464b00
-float __stdcall FUN_00464b00(void* param_1)
+float __stdcall GetMetalUsage(void* param_1)
 {
     return *(float*)((char*)param_1 + 0xa0);
 }
@@ -640,7 +640,7 @@ struct Class_464b10 {
 };
 
 // FUNCTION: 0x464b10
-float __stdcall FUN_00464b10(Class_464b10* param_1)
+float __stdcall GetNetMetal(Class_464b10* param_1)
 {
     return param_1->field_9c - param_1->field_a0;
 }
@@ -750,7 +750,7 @@ void __stdcall UpdateUnitLineOfSight(Unit* unit);
 
 // Calls UpdateUnitLineOfSight for every unit in the range whose flag 0x10000000 is set.
 // FUNCTION: 0x464da0
-void __stdcall FUN_00464da0(Player* range)
+void __stdcall RefreshOwnedUnitsLineOfSight(Player* range)
 {
     for (Unit* u = range->units; u <= range->units_end; u++) {
         if (u->flags & 0x10000000) {
@@ -766,7 +766,7 @@ int __stdcall IsGadgetNamed(int param1, int param2, char* name);
 void __stdcall FUN_004ab0a0(void* param_1);
 
 // FUNCTION: 0x464de0
-void __stdcall FUN_00464de0(Gadget* gadget)
+void __stdcall ContinueWatchingCallback(Gadget* gadget)
 {
     int screen = (int)gadget->screen->form;
     if (gadget->selected == -1)
@@ -800,7 +800,7 @@ void __stdcall FUN_004a0bf0(Menu* menu, char* name, char* text, int value);
 void __stdcall RenderLayer(Menu* menu, int value);
 
 // FUNCTION: 0x464e70
-void FUN_00464e70()
+void ShowContinueWatchingDialog()
 {
     Screen* screen = LoadGuiLayer(&g_game->menu, DAT_00503168, 0x900);
     if (screen) {
@@ -812,7 +812,7 @@ void FUN_00464e70()
         FUN_004a0bf0(&g_game->menu, DAT_0050313c, DAT_00507318, 0);
         strcpy(form->choice1, DAT_00503128);
         strcpy(form->choice2, DAT_00503120);
-        screen->callback = FUN_00464de0;
+        screen->callback = ContinueWatchingCallback;
         RenderLayer(&g_game->menu, 0x40);
     }
 }
@@ -868,7 +868,7 @@ static const double kNegHalf = -0.5;
 static const float kHundred = 100.0f;
 
 // FUNCTION: 0x464f80
-void __stdcall FUN_00464f80()
+void __stdcall UpdatePlayers()
 {
     g_game->pathfinder->RunSearches();
     // bl is declared before the guard and pi before the first goto, or the jump
@@ -1122,7 +1122,7 @@ void __stdcall FUN_00464f80()
                                          "You're out!  Continue Watching?", 0);
                             strcpy(w->choice1, "CHOICE1");
                             strcpy(w->choice2, "CHOICE2");
-                            dlg->callback = FUN_00464de0;
+                            dlg->callback = ContinueWatchingCallback;
                             RenderLayer(&g_game->menu, 0x40);
                         }
                         goto skip508;
@@ -1196,7 +1196,7 @@ void __stdcall FUN_00464f80()
 // original does, so a player with a colour index other than its own slot
 // gets the other player's view position).
 // FUNCTION: 0x465e30
-void FUN_00465e30()
+void InitPlayerResources()
 {
     for (int i = 0; i < 10; i++) {
         Player* player = &g_game->players[i];
@@ -1248,7 +1248,7 @@ void __stdcall LoadPlayerControllers(HapiBank* file)
 }
 
 // FUNCTION: 0x466580
-void FUN_00466580()
+void UpdateBlink()
 {
     if (g_game->blinkTimer > 0) {
         g_game->blinkTimer--;

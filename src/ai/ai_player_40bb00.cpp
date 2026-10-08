@@ -13,10 +13,10 @@ struct Owner { char pad[0x69]; Rating* ratings; char pad6d[0x81-0x6d]; short* co
 #pragma pack(pop)
 extern Game* g_game;
 extern Owner* g_playerAI[];
-float __stdcall FUN_00464ad0(Player*);
-float __stdcall FUN_00464b10(Player*);
-float __stdcall FUN_00464ab0(Player*);
-float __stdcall FUN_00464af0(Player*);
+float __stdcall GetNetEnergy(Player*);
+float __stdcall GetNetMetal(Player*);
+float __stdcall GetEnergyIncome(Player*);
+float __stdcall GetMetalIncome(Player*);
 int __stdcall FUN_00406ee0(int,unsigned short,int);
 static inline float Max(float a,float b) { return a>b?a:b; }
 // FUNCTION: 0x40bb00
@@ -31,12 +31,12 @@ int __stdcall GetBuildRating(int player,unsigned short type)
     int metalCap=min(500,(int)p->metalCapacity);
     int energy=(int)Max(0.0f,(energyCap-p->energy)*0.125f);
     int metal=(int)Max(0.0f,(metalCap-p->metal)*0.25f);
-    if(FUN_00464ad0(p)<1.0f) energy+=20;
-    if(FUN_00464b10(p)<1.0f) metal+=20;
-    if(FUN_00464ab0(p)<50.0f) energy+=100;
-    else if(FUN_00464ab0(p)<200.0f) energy+=10;
-    if(FUN_00464af0(p)<3.0f) metal+=100;
-    else if(FUN_00464af0(p)<5.0f) metal+=20;
+    if(GetNetEnergy(p)<1.0f) energy+=20;
+    if(GetNetMetal(p)<1.0f) metal+=20;
+    if(GetEnergyIncome(p)<50.0f) energy+=100;
+    else if(GetEnergyIncome(p)<200.0f) energy+=10;
+    if(GetMetalIncome(p)<3.0f) metal+=100;
+    else if(GetMetalIncome(p)<5.0f) metal+=20;
     int metal2=min(max(metal,0),100);
     int energy2=min(max(energy-metal2,0),100);
     int normal=max(100-metal2-energy2,0);

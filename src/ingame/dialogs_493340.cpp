@@ -358,7 +358,7 @@ void* __stdcall LoadPcx(char* path, int param);
 char* __stdcall MakePropList(void* obj);
 char* __stdcall Translate(char* text);
 void __stdcall AddTextGadget(Layer* obj, char* name, char* text, int x, short y, int w, int flags);
-int __stdcall FUN_00465ac0(Player* player, Unit* unit);
+int __stdcall IsUnitVisibleToPlayer(Player* player, Unit* unit);
 unsigned short __stdcall FindUnitTypeId(char* name);
 void __stdcall FUN_0049fa70(Menu* menu);
 void OpenInGameOptions();
@@ -385,14 +385,14 @@ void HandleNetPackets(void);
 void UpdateAllUnits(void);
 void UpdateProjectiles(void);
 void UpdateExplosions(void);
-void FUN_00464f80(void);
+void UpdatePlayers(void);
 void UpdateFeatures(void);
 void StepAllGafSequences(void);
 void UpdateWind(void);
 void UpdateMeteors(void);
 void UpdateCameraFollow(void);
 void UpdateParticles(void);
-void FUN_00466580(void);
+void UpdateBlink(void);
 void FUN_00428bd0(void);
 void FUN_00428be0(void);
 void FUN_00428bf0(void);
@@ -860,7 +860,7 @@ void __stdcall OpenUnitInfoDialog(void)
         if (t != 0) {
             Unit* unit = &g_game->units[t];
             Player* owner = &g_game->players[g_game->player];
-            if (FUN_00465ac0(owner, unit) == 0)
+            if (IsUnitVisibleToPlayer(owner, unit) == 0)
                 type = 0;
             else
                 type = unit->type;
@@ -1382,7 +1382,7 @@ void __stdcall RunGameSteps(int showStats)
         g_game->prof.AccumulateProfileTime(7);
         UpdateExplosions();
         g_game->prof.AccumulateProfileTime(8);
-        FUN_00464f80();
+        UpdatePlayers();
         g_game->prof.AccumulateProfileTime(2);
 
         UpdateFeatures();
@@ -1394,7 +1394,7 @@ void __stdcall RunGameSteps(int showStats)
 
         UpdateParticles();
         g_game->prof.AccumulateProfileTime(6);
-        FUN_00466580();
+        UpdateBlink();
         g_game->prof.AccumulateProfileTime(8);
 
         if (showStats && g_usePacketManager != 0) {

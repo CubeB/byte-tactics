@@ -26,11 +26,11 @@ struct Mission { int GetGameType(); };
 int __stdcall DrawUnit(int,int);
 int __stdcall DrawOptionsScrollBar(int);
 int __stdcall DrawMessages(int);
-float __stdcall FUN_00464ab0(int);
-float __stdcall FUN_00464ac0(int);
-float __stdcall FUN_00464af0(int);
-float __stdcall FUN_00464b00(int);
-int __stdcall FUN_004658e0(int,int,int,int,int,int);
+float __stdcall GetEnergyIncome(int);
+float __stdcall GetEnergyUsage(int);
+float __stdcall GetMetalIncome(int);
+float __stdcall GetMetalUsage(int);
+int __stdcall IsFootprintVisible(int,int,int,int,int,int);
 int __stdcall DrawRadar(int);
 int __stdcall BlitGafFrameAtOffset(int,int,int,int);
 int __stdcall BlitSideLogoToRect(int,int,int,int);
@@ -274,10 +274,10 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
       res.energy = res.maxEnergy;
     if (*(uint *)(pl + 0xf8) < *(uint *)(g_game + 0x38a47)) {
       *(uint *)(pl + 0xf8) += 0x1e;
-      res.metalIncome = FUN_00464ab0(pl);
-      res.metalUse = FUN_00464ac0(pl);
-      res.energyIncome = FUN_00464af0(pl);
-      res.energyUse = FUN_00464b00(pl);
+      res.metalIncome = GetEnergyIncome(pl);
+      res.metalUse = GetEnergyUsage(pl);
+      res.energyIncome = GetMetalIncome(pl);
+      res.energyUse = GetMetalUsage(pl);
     }
     if (memcmp(g_game + 0x37e3f, &res, sizeof(res)) != 0) {
       *(Resources *)(g_game + 0x37e3f) = res;
@@ -355,7 +355,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
           int feat = *(int *)(g_game + 0x1426f) + *(ushort *)(tile + 8) * 0x100;
           if (*(byte *)(feat + 0xfa) < 10) {
             if ((*(byte *)(feat + 0xff) & 8) && ((*(byte *)(tile + 0xc) >> 3 & 0xf) != idx)) {
-              if (FUN_004658e0(player, x, y, *(short *)(feat + 0x94), *(short *)(feat + 0x96), *(byte *)(tile + 4)))
+              if (IsFootprintVisible(player, x, y, *(short *)(feat + 0x94), *(short *)(feat + 0x96), *(byte *)(tile + 4)))
                 BlitFeatureGaf((int)&ctx, tile, x, y);
             }
             else
@@ -395,7 +395,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
         if (*(byte *)(tile + 0xc) & 4) {
           int feat = *(int *)(g_game + 0x1426f) + *(ushort *)(tile + 8) * 0x100;
           if ((*(byte *)(feat + 0xff) & 8) && ((*(byte *)(tile + 0xc) >> 3 & 0xf) != idx)) {
-            if (FUN_004658e0(player, x, y, (int)*(short *)(feat + 0x94), *(short *)(feat + 0x96), *(byte *)(tile + 4)))
+            if (IsFootprintVisible(player, x, y, (int)*(short *)(feat + 0x94), *(short *)(feat + 0x96), *(byte *)(tile + 4)))
               BlitFeatureGaf((int)&ctx, tile, x, y);
           }
           else

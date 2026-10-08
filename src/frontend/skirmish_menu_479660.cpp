@@ -639,7 +639,7 @@ int __stdcall FindNextAllySlot(int self, int start)
     return -1;
 }
 
-void __stdcall FUN_00464290(unsigned char player, unsigned char kind);
+void __stdcall SetupPlayerSlot(unsigned char player, unsigned char kind);
 
 // Marks, for each active player (active 1 or 2), every player slot that shares
 // its team type (or is the player itself), in the entry's `marks` array.
@@ -650,15 +650,15 @@ void ApplySlotsToGamePlayers()
         if (g_game->table->players[i].active == 1) {
             g_game->slots[i].unit->slot = g_game->table->players[i].color;
             g_game->slots[i].unit->isCore = g_game->table->players[i].shade;
-            FUN_00464290(i, 1);
+            SetupPlayerSlot(i, 1);
             g_game->playerIndex = i;
             g_game->localPlayer = i;
         } else if (g_game->table->players[i].active == 2) {
             g_game->slots[i].unit->slot = g_game->table->players[i].color;
             g_game->slots[i].unit->isCore = g_game->table->players[i].shade;
-            FUN_00464290(i, 2);
+            SetupPlayerSlot(i, 2);
         } else {
-            FUN_00464290(i, 0);
+            SetupPlayerSlot(i, 0);
         }
         if (g_game->table->players[i].active == 1 || g_game->table->players[i].active == 2) {
             int j = 0;

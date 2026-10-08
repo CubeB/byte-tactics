@@ -328,7 +328,7 @@ void LoadingScreenFrame();
 void __stdcall FUN_004ab170(Sub_00496b10* sub, unsigned int* param_2, int* param_3);
 int __stdcall BroadcastPacket(int player, void* data, int size);
 void SendNetHeartbeat();
-void __stdcall FUN_00464290(unsigned char player, unsigned char kind);
+void __stdcall SetupPlayerSlot(unsigned char player, unsigned char kind);
 unsigned short __stdcall FindUnitTypeId(const char* name);
 void __stdcall FatalError(char* message);
 void __stdcall SetCameraPosition(int x, int y, int instant);
@@ -537,8 +537,8 @@ void PreBattleFrame()
 void CampaignSetupFrame()
 {
     g_game->state_2a3c = 2;
-    FUN_00464290(0, 1);
-    FUN_00464290(1, 2);
+    SetupPlayerSlot(0, 1);
+    SetupPlayerSlot(1, 2);
     g_game->sub_1cd5->flag_96 = 1;
     g_game->mode = 5;
     g_game->handler = LoadingScreenFrame;

@@ -57,7 +57,7 @@ static inline int IsSeen(Map_004658e0* map, Pos_004658e0* pos)
             (1 << g_game->playerIndex)) != 0;
 }
 // FUNCTION: 0x4658e0
-int __stdcall FUN_004658e0(Map_004658e0* map, int x, int y, int dx, int dy, short size)
+int __stdcall IsFootprintVisible(Map_004658e0* map, int x, int y, int dx, int dy, short size)
 {
     // Local copy of map: keeps the pointer in eax across both evaluations.
     Map_004658e0* m = map;

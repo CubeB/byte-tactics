@@ -140,7 +140,7 @@ static inline int IsVisible3(Map_00465ac0* map, Position_00465ac0* pos)
     return IsSeen(map, pos);
 }
 // FUNCTION: 0x465ac0
-int __stdcall FUN_00465ac0(Map_00465ac0* map, Unit* u)
+int __stdcall IsUnitVisibleToPlayer(Map_00465ac0* map, Unit* u)
 {
     if (u->f96 == map)
         return 1;

@@ -1132,3 +1132,8 @@ Things that look wrong in the original but have no effect, kept for the record.
   stack 4 bytes short. The only caller (0x4488ea) reaches it only when
   `HasMissionName()` is false, which does not happen in practice. Found by
   OpenCode / deepseek-v4.1-flash in #6111.
+- **0x4a0e00** (possible): the entry lookup searches
+  `holder->unknown_0->entries`, but the type 3 write goes through
+  `holder->entries[index]`, so the text can be stored into a different array
+  from the one searched; the function walks both chains. Found by OpenCode /
+  deepseek-v4.1-flash in #6113.

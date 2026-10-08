@@ -7,7 +7,12 @@ struct Gadget_004ac970 {               // 0x15b bytes
     char unknown_0[0x13];
     short x;                           // +0x13
     short y;                           // +0x15
-    char unknown_17[0xbc - 0x17];
+    short width;                       // +0x17
+    short height;                      // +0x19
+    char unknown_1b[0xb6 - 0x1b];
+    short count;                       // +0xb6
+    char unknown_b8[0xba - 0xb8];
+    short selected;                    // +0xba
     void* surface;                     // +0xbc
     char unknown_c0[0x15b - 0xc0];
 };

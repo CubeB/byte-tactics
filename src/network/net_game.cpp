@@ -404,7 +404,7 @@ struct Game {
     union {
         char passWord[0x11];           // +0x2be3
         struct {
-            char field_2be3[0x2bee - 0x2be3];
+            char password[0x2bee - 0x2be3];
             union {
                 unsigned short flag0 : 1;      // +0x2bee
                 unsigned short dirty : 1;
@@ -416,10 +416,10 @@ struct Game {
     };
     char unknown_2bfb[0x2c28 - 0x2bfb];
     union {
-        char field_2c28[40];           // +0x2c28
+        int playerIds[11];             // +0x2c28
         int table_2c28[10];
     };
-    char unknown_2c50[0x2cf3 - 0x2c50];
+    char unknown_2c54[0x2cf3 - 0x2c54];
     Feature features[256];             // +0x2cf3
     char unknown_after_features[0x14357 - (0x2cf3 + 0x115 * 256)];
     Unit* units;                       // +0x14357
@@ -1781,7 +1781,7 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
                 p->info->hasPassword = 1;
                 // Cast on a reloaded field_4e5, not a cached local.
                 if ((*(unsigned char*)((char*)g_game->field_4e5 + 4) & 2) != 0)
-                    lstrcpynA(g_game->field_2be3, &DAT_00512d28, 0xb);
+                    lstrcpynA(g_game->password, &DAT_00512d28, 0xb);
             }
 
             ResetPlayerSlots();

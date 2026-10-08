@@ -126,8 +126,8 @@ struct Game {
     unsigned short dirty : 1;          // +0x2bee
     unsigned short : 15;
     char unknown_2bf0[0x2c28 - 0x2bf0];
-    char field_2c28[40];               // +0x2c28
-    char unknown_2c50[0x2cf3 - 0x2c50];
+    int playerIds[11];                 // +0x2c28
+    char unknown_2c54[0x2cf3 - 0x2c54];
     Feature features[256];             // +0x2cf3
     char unknown_after_features[0x14357 - (0x2cf3 + 0x115 * 256)];
     Unit* units;                       // +0x14357
@@ -600,7 +600,7 @@ int HandleNetPackets()
             HandlePing(packet);
             break;
         case 38:
-            memcpy(g_game->field_2c28, packet + 1, 40);
+            memcpy(g_game->playerIds, packet + 1, 40);
             g_game->dirty = 1;
             break;
         case 35: {

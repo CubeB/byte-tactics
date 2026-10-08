@@ -34,7 +34,8 @@ struct Gadget {                        // GUI entry, 0x15b bytes
     unsigned short frame;              // +0xc6
     char unknown_c8[6];
     void (__stdcall* onSelect)(Menu*, int);   // +0xce
-    char unknown_d2[0x137 - 0xd2];
+    void* records;                     // +0xd2
+    char unknown_d6[0x137 - 0xd6];
     unsigned char stageIndex;          // +0x137
     char unknown_138[0x15b - 0x138];
 };

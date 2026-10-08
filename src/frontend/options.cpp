@@ -666,7 +666,26 @@ struct Menu_00460160 {
 struct Gadget_004604a0 {
     char unknown_0[0x17];
     short width;                       // +0x17
-    char unknown_19[0x15b - 0x19];
+    short height;                      // +0x19
+    char unknown_1b[0xb6 - 0x1b];
+    short count;                       // +0xb6
+    char unknown_b8[0xba - 0xb8];
+    short selected;                    // +0xba
+    char unknown_bc[0xbe - 0xbc];
+    void* frames;                      // +0xbe
+    char unknown_c2[0xc6 - 0xc2];
+    unsigned short frame;              // +0xc6
+    char unknown_c8[0xd2 - 0xc8];
+    void* records;                     // +0xd2
+    char unknown_d6[0x136 - 0xd6];
+    short range;                       // +0x136
+    char unknown_138[0x13c - 0x138];
+    int max;                           // +0x13c
+    short knobPos;                     // +0x140
+    short knobSize;                    // +0x142
+    char unknown_144[0x14a - 0x144];
+    void* sliderUser;                  // +0x14a
+    char unknown_14e[0x15b - 0x14e];
 };
 
 struct Sub_00460680 {

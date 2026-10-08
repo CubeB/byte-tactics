@@ -108,6 +108,7 @@ int __cdecl FUN_004b7123(short,int);
 short __cdecl FUN_004b715a(int,int);
 static inline Vec3 Offset(short angle,int distance) { Vec3 v; v.x=-FUN_004b70ef(angle,distance); v.y=0; v.z=-FUN_004b7123(angle,distance); return v; }
 static inline short Angle(Vec3* a,Vec3* b) { return FUN_004b715a(a->x-b->x,a->z-b->z); }
+// Stays in a file of its own: it matches only in this file's symbol context.
 // FUNCTION: 0x414380
 int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
 {

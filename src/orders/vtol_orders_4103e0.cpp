@@ -72,6 +72,7 @@ static inline Vec3 Offset(short angle, int distance) { Vec3 v; v.x=-FUN_004b70ef
 class Class_00410830 : public std::vector<Unit*> { public: Class_00410830(); };
 void __stdcall GetFactoriesInRadius(int, Vec3*, int, std::vector<Unit*>*);
 Unit* __stdcall FUN_0043b700(Unit*);
+// Stays in a file of its own: it matches only in this file's symbol context.
 // FUNCTION: 0x4103e0
 int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
 {

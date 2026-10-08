@@ -5776,26 +5776,26 @@ piece,0x502484,5,src/game/console_commands_416240.cpp,59,0,game data
 piece,0x4fcc70,8,src/game/console_commands_416240.cpp,50,0,game data
 piece,0x502478,12,src/game/console_commands_416240.cpp,3,0,game data
 piece,0x50244c,44,src/network/net_stats.cpp,27,0,game data
-piece,0x4fcc40,4,src/orders/vtol_orders_4158d0.cpp,3,0,game data
+piece,0x4fcc40,4,src/orders/vtol_orders.cpp,27,0,game data
 piece,0x4fcc58,8,src/orders/vtol_orders_4152f0.cpp,6,0,game data
 piece,0x4fcc64,4,src/orders/vtol_orders_4152f0.cpp,7,0,game data
-piece,0x5012dc,16,src/orders/vtol_orders_415250.cpp,4,0,game data
-piece,0x5012cc,14,src/orders/vtol_orders_415250.cpp,3,0,game data
-piece,0x5016ac,22,src/orders/vtol_orders_414e70.cpp,8,0,game data
-piece,0x501cfc,22,src/orders/vtol_orders_414e70.cpp,7,0,game data
+piece,0x5012dc,16,src/orders/vtol_orders.cpp,45,0,game data
+piece,0x5012cc,14,src/orders/vtol_orders.cpp,39,0,game data
+piece,0x5016ac,22,src/orders/vtol_orders.cpp,42,0,game data
+piece,0x501cfc,22,src/orders/vtol_orders.cpp,41,0,game data
 piece,0x501638,19,src/orders/vtol_orders_414a80.cpp,7,0,game data
 piece,0x50164c,30,src/orders/vtol_orders_414a80.cpp,6,0,game data
 piece,0x4fcc54,4,src/orders/vtol_orders_414770.cpp,5,0,game data
 piece,0x4fcc50,4,src/orders/vtol_orders_414770.cpp,5,4,game data
 piece,0x501cc4,9,src/orders/vtol_orders_414380.cpp,5,0,game data
 piece,0x501cd0,42,src/orders/vtol_orders_414380.cpp,3,0,game data
-piece,0x5015a4,24,src/orders/vtol_orders_413d80.cpp,11,0,game data
-piece,0x50155c,33,src/orders/vtol_orders_413d80.cpp,9,0,game data
-piece,0x501544,24,src/orders/vtol_orders_413d80.cpp,8,0,game data
-piece,0x501310,32,src/orders/vtol_orders_413d80.cpp,7,0,game data
-piece,0x5012f8,22,src/orders/vtol_orders_413d80.cpp,6,0,game data
-piece,0x501cb8,9,src/orders/vtol_orders_413d80.cpp,5,0,game data
-piece,0x501530,18,src/orders/vtol_orders_413d80.cpp,3,0,game data
+piece,0x5015a4,24,src/orders/vtol_orders.cpp,34,0,game data
+piece,0x50155c,33,src/orders/vtol_orders.cpp,32,0,game data
+piece,0x501544,24,src/orders/vtol_orders.cpp,31,0,game data
+piece,0x501310,32,src/orders/vtol_orders.cpp,30,0,game data
+piece,0x5012f8,22,src/orders/vtol_orders.cpp,29,0,game data
+piece,0x501cb8,9,src/orders/vtol_orders.cpp,28,0,game data
+piece,0x501530,18,src/orders/vtol_orders.cpp,26,0,game data
 piece,0x501c9c,16,src/orders/vtol_orders_413470.cpp,7,0,game data
 piece,0x501cac,11,src/orders/vtol_orders_412d40.cpp,6,0,game data
 piece,0x501c8c,16,src/orders/vtol_orders_4118e0.cpp,15,0,game data
@@ -5805,7 +5805,7 @@ piece,0x501c54,39,src/orders/vtol_orders_4118e0.cpp,12,0,game data
 piece,0x501b0c,13,src/orders/vtol_orders_4118e0.cpp,11,0,game data
 piece,0x501c30,35,src/orders/vtol_orders_4118e0.cpp,10,0,game data
 piece,0x501c24,11,src/orders/vtol_orders_4118e0.cpp,8,0,game data
-piece,0x501bfc,22,src/orders/vtol_orders_411560.cpp,4,0,game data
+piece,0x501bfc,22,src/orders/vtol_orders.cpp,17,0,game data
 piece,0x5016d8,25,src/orders/vtol_orders_4111b0.cpp,11,0,game data
 piece,0x501bdc,31,src/orders/vtol_orders_4111b0.cpp,10,0,game data
 piece,0x501bc4,24,src/orders/vtol_orders_4111b0.cpp,8,0,game data
@@ -5813,7 +5813,7 @@ piece,0x501bb4,15,src/orders/vtol_orders_4111b0.cpp,7,0,game data
 piece,0x501ba4,15,src/orders/vtol_orders_4111b0.cpp,6,0,game data
 piece,0x4fcc60,4,src/orders/vtol_orders_410850.cpp,3,0,game data
 piece,0x501b1c,15,src/orders/vtol_orders_40fbe0.cpp,3,0,game data
-piece,0x5012bc,15,src/orders/vtol_orders_40f7d0.cpp,3,0,game data
+piece,0x5012bc,15,src/orders/vtol_orders.cpp,8,0,game data
 piece,0x50192c,28,src/ai/pathfind.cpp,45,0,game data
 piece,0x501908,17,src/ai/ai_player_40c250.cpp,19,0,game data
 piece,0x5018ec,25,src/ai/ai_player_40c250.cpp,18,0,game data
@@ -12066,7 +12066,6 @@ same,0x4fc9b8,8,src/ai/player_ai.cpp,3,0,
 same,0x4fc9b8,4,src/ai/ai_player_40bb00.cpp,3,12,
 same,0x4fcc40,4,src/orders/vtol_orders_4118e0.cpp,9,0,
 same,0x4fcc50,4,src/orders/vtol_orders_411f50.cpp,5,8,
-same,0x4fcc40,4,src/orders/vtol_orders_413d80.cpp,4,0,
 same,0x4fcc40,4,src/orders/vtol_orders_414380.cpp,4,0,
 same,0x4fcc40,4,src/orders/vtol_orders_4152f0.cpp,6,8,
 same,0x5024fc,15,src/game/console_commands_417430.cpp,23,0,

@@ -7,6 +7,7 @@ struct Vec3_0040f790 {
     int z;
 };
 
+// Stays in a file of its own: it matches only in this file's symbol context.
 // FUNCTION: 0x40f790
 Vec3_0040f790 __stdcall FUN_0040f790(const Vec3_0040f790& a, const Vec3_0040f790& b)
 {

@@ -135,6 +135,7 @@ static inline float Total(float base, float amount)
     return value;
 }
 
+// Stays in a file of its own: it matches only in this file's symbol context.
 // FUNCTION: 0x4152f0
 int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags)
 {

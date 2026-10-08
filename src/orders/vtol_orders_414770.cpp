@@ -125,6 +125,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 
 // Order handler "Reclaiming" (second variant, driven by a Class_0044e2d0
 // move object rather than the turn/approach states of 0x404ad0).
+// Stays in a file of its own: it matches only in this file's symbol context.
 // FUNCTION: 0x414770
 int __stdcall VtolReclaimOrder(Unit* unit, Order* order, int flags)
 {

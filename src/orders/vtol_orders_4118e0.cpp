@@ -154,6 +154,7 @@ int __stdcall FindLandingPad(Unit* unit, int pad)
     return -1;
 }
 
+// Stays in a file of its own: it matches only in this file's symbol context.
 // FUNCTION: 0x4118e0
 int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
 {

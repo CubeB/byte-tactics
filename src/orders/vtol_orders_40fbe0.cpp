@@ -63,6 +63,7 @@ static inline Vec3 Offset(short angle, int distance) { Vec3 v; v.x=-FUN_004b70ef
 // Used on the target argument of the order-steal calls: the plain chain changes codegen.
 static inline Unit* OrderTarget(Order*order) { return order->target; }
 
+// Stays in a file of its own: it matches only in this file's symbol context.
 // FUNCTION: 0x40fbe0
 int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
 {

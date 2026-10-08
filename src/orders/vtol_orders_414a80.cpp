@@ -118,6 +118,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 // 0x404730): state 0 checks the builder can reclaim, state 1 snaps the order
 // position to the target's cell and moves over it, state 2 drains the target
 // while it stays in build range.
+// Stays in a file of its own: it matches only in this file's symbol context.
 // FUNCTION: 0x414a80
 int __stdcall VtolReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
 {

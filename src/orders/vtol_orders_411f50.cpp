@@ -155,6 +155,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
     }
 }
 
+// Stays in a file of its own: it matches only in this file's symbol context.
 // FUNCTION: 0x411f50
 int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
 {

@@ -22,6 +22,7 @@ public:
     Unit* self;
 };
 
+// Stays in a file of its own: it matches only in this file's symbol context.
 // FUNCTION: 0x410c70
 void Class_00410c70::FUN_00410c70(Unit* unit)
 {

@@ -123,6 +123,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
     order->flags|=0xf8;
     return 2;
 }
+// Stays in a file of its own: it matches only in this file's symbol context.
 // FUNCTION: 0x410850
 int __stdcall VtolSeekGuardOrder(Unit* unit, Order* order, int flags)
 {

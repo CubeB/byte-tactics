@@ -103,6 +103,7 @@ static inline int BelowSeaLevel(Order* order)
     return target->def->field_16e + target->pos.y <= g_game->seaLevel << 16;
 }
 
+// Stays in a file of its own: it matches only in this file's symbol context.
 // FUNCTION: 0x4111b0
 int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
 {

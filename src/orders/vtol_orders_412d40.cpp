@@ -158,6 +158,7 @@ static inline int IsAhead(Unit* unit, Order* order)
     return (short)(toward.xw * facing.xw + toward.zw * facing.zw) > 0;
 }
 
+// Stays in a file of its own: it matches only in this file's symbol context.
 // FUNCTION: 0x412d40
 int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
 {

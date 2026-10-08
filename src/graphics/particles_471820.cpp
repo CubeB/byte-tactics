@@ -29,9 +29,9 @@ extern char DAT_0051e608;
 // Vtable 0x4fd5a8, constructor 0x471cc0, destructor 0x471d00, ??_G 0x471cd0.
 class ParticleSystem {
 public:
-    int field_4;                                        // +0x4
+    int deadline;                                       // +0x4
 
-    ParticleSystem() { field_4 = 0; }
+    ParticleSystem() { deadline = 0; }
     virtual ~ParticleSystem();                          // slot 0
     virtual void Update() = 0;                          // slot 1
     virtual void Render(int) = 0;                       // slot 2

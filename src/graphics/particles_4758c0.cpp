@@ -7,7 +7,7 @@
 #include <vector>
 
 struct TeleportParticle {
-    void* field_0;
+    void* data;
     int f04, f08, f0c, f10, f14, f18, f1c, f20, f24, f28, f2c, f30;
 };
 

@@ -31,7 +31,7 @@ extern char DAT_0051e608;
 // Vtable 0x4fd5a8, constructor 0x471cc0, destructor 0x471d00, ??_G 0x471cd0.
 class ParticleSystem {
 public:
-    int field_4;                                        // +0x4
+    int deadline;                                       // +0x4
 
     ParticleSystem();
     virtual ~ParticleSystem();                          // slot 0
@@ -532,10 +532,10 @@ class SmokeParticles : public ParticleSystem {
 public:
     int time;                                           // +0x8, the next emit tick
     std::vector<SmokeParticle> records;                // +0xc (_First +0x10)
-    int unknown_1c;                                     // +0x1c, the emit period
-    int unknown_20;                                     // +0x20
-    int unknown_24;                                     // +0x24, the frame count - 1
-    int unknown_28;                                     // +0x28, the other animation
+    int emitPeriod;                                     // +0x1c, the emit period
+    int holdPeriod;                                     // +0x20
+    int maxFrame;                                       // +0x24, the frame count - 1
+    int altAnimation;                                   // +0x28, the other animation
     Vec3_00474d50 pos;                                  // +0x2c
 
     SmokeParticles();
@@ -553,9 +553,9 @@ class TimedSubParticles : public ParticleSystem {
 public:
     int time;                                           // +0x8, the next emit tick
     std::vector<TimedSubParticle> records;              // +0xc (_First +0x10)
-    int unknown_1c;                                     // +0x1c, the emit period
-    int unknown_20;                                     // +0x20
-    int unknown_24;                                     // +0x24, the frame count - 1
+    int emitPeriod;                                     // +0x1c, the emit period
+    int holdPeriod;                                     // +0x20
+    int maxFrame;                                       // +0x24, the frame count - 1
     Vec3_00475150 pos;                                  // +0x28
 
     TimedSubParticles();
@@ -586,8 +586,8 @@ public:
         };
     };
     int count;                     // +0x28, the frame count
-    int field_2c;                  // +0x2c, the frame
-    int field_30;                  // +0x30, the tick it expires
+    int frame;                     // +0x2c, the frame
+    int endTime;                   // +0x30, the tick it expires
 
     void Step();
     void DrawParticle(void* dest, short px, short py);
@@ -607,7 +607,7 @@ public:
     Vec3_004739b0 vel;                 // +0x18
     char unknown_24[4];
     int flags;                         // +0x28, low 4 bits: frame; the colour
-    int field_2c;                      // +0x2c, the tick it expires
+    int endTime;                       // +0x2c, the tick it expires
 
     void Step();
     void DrawParticle(int param_1, short x, short y);
@@ -632,10 +632,10 @@ public:
         };
     };
     int mod2_28;                   // +0x28, the frame count
-    int field_2c;                  // +0x2c, the frame
+    int frame;                     // +0x2c, the frame
     int val_30;                    // +0x30
     int mod_34;                    // +0x34
-    int field_38;                  // +0x38, the tick it expires
+    int endTime;                   // +0x38, the tick it expires
 
     void Step();
     void DrawParticle(void* dest, short px, short py);
@@ -647,7 +647,7 @@ public:
 #pragma pack(push, 1)
 class WakeParticle {
 public:
-    int unknown_0;                     // +0x00
+    int data;                          // +0x00
     union {
         struct {
             Vec3_00474580 pos;         // +0x04
@@ -665,7 +665,7 @@ public:
     int step;                          // +0x34
     int tick;                          // +0x38
     int period;                        // +0x3c
-    int field_40;                      // +0x40, the tick it expires
+    int endTime;                       // +0x40, the tick it expires
 
     void Step();
     void DrawParticle(void* surface, short px, short py);
@@ -678,12 +678,12 @@ struct Shape_00472ab0;
 // Vtable 0x4fd5d8, ??_G 0x4716a0; 0x44 bytes.
 class ThrustParticles : public ParticleSystem {
 public:
-    int field_8;                                        // +0x8
+    int time;                                           // +0x8
     std::vector<ThrustParticle> items;                  // +0xc (_First +0x10)
-    int unknown_1c;                                     // +0x1c
-    Vec3_004742c0 unknown_20;                           // +0x20
-    Vec3_004742c0 unknown_2c;                           // +0x2c
-    Vec3_004742c0 unknown_38;                           // +0x38
+    int period;                                         // +0x1c
+    Vec3_004742c0 pos0;                                 // +0x20
+    Vec3_004742c0 pos1;                                 // +0x2c
+    Vec3_004742c0 pos2;                                 // +0x38
 
     ThrustParticles() {}
     virtual void Update();                              // slot 1, 0x473010

@@ -1576,7 +1576,7 @@ address,name
 0x475870,UNanoParticle::?$vector::_Destroy
 0x475880,UNanoParticle::?$vector::_Ucopy
 0x4758c0,UTeleportParticle::?$vector::insert
-0x475bd0,URecord_00475bd0::?$vector::insert
+0x475bd0,UThrustParticle::?$vector::insert
 0x475ef0,UElement_00475ef0::?$vector::insert
 0x476210,UElem_00476210::?$vector::insert
 0x476490,UElem_00476490::?$vector::insert

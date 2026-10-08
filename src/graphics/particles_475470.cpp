@@ -150,7 +150,7 @@ public:
 
 class ParticleSystem {
 public:
-    int field_4;                                        // +0x4
+    int deadline;                                       // +0x4
 
     ParticleSystem();
     virtual ~ParticleSystem();                          // slot 0
@@ -166,10 +166,10 @@ class SmokeParticles : public ParticleSystem {
 public:
     int time;                                           // +0x8, the next emit tick
     Vec_00474cd0 records;                               // +0xc (_First +0x10)
-    int unknown_1c;                                     // +0x1c, the emit period
-    int unknown_20;                                     // +0x20
-    int unknown_24;                                     // +0x24, the frame count - 1
-    int unknown_28;                                     // +0x28, the other animation
+    int emitPeriod;                                     // +0x1c, the emit period
+    int holdPeriod;                                     // +0x20
+    int maxFrame;                                       // +0x24, the frame count - 1
+    int altAnimation;                                   // +0x28, the other animation
     Vec3_00474d50 pos;                                  // +0x2c
 
     SmokeParticles();

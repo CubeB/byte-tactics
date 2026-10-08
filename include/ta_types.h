@@ -10771,10 +10771,10 @@ public:
     char unknown_4[4];
     int time;  // +0x8
     std::vector<Record_00474cd0> records;  // +0xc
-    int unknown_1c;  // +0x1c
-    int unknown_20;  // +0x20
-    int unknown_24;  // +0x24
-    void* unknown_28;  // +0x28
+    int emitPeriod;  // +0x1c
+    int holdPeriod;  // +0x20
+    int maxFrame;  // +0x24
+    void* altAnimation;  // +0x28
     Vec3 pos;  // +0x2c
     virtual ~SmokeParticles(void);
     SmokeParticles(SmokeParticles&);
@@ -10814,23 +10814,23 @@ public:
 
 class Class_00473590 {  // 0x34 bytes, 9 views
 public:
-    void* field_0;  // +0x0
+    void* data;  // +0x0
     Vec3 pos1;  // +0x4
     Vec3 pos2;  // +0x10
     Vec3 vel;  // +0x1c
-    int field_28;  // +0x28
-    int field_2c;  // +0x2c
-    int field_30;  // +0x30
+    int frameCount;  // +0x28
+    int frame;  // +0x2c
+    int endTime;  // +0x30
     void FUN_00473560(void);
     void FUN_00473590(void*, short, short);
 };
 
 class TeleportParticles {  // 0x44 bytes, 5 views
 public:
-    int field_4;  // +0x4
-    int field_8;  // +0x8
+    int deadline;  // +0x4
+    int time;  // +0x8
     std::vector<Class_00473590> items;  // +0xc
-    int field_1c;  // +0x1c
+    int sparkLifetime;  // +0x1c
     Vec3 pos1;  // +0x20
     Vec3 pos2;  // +0x2c
     Vec3 dir;  // +0x38
@@ -10862,8 +10862,8 @@ public:
 class NanoParticles {   // 0x4c bytes, 6 views
 public:
     char unknown_0[4];
-    int field_4;  // +0x4
-    int field_8;  // +0x8
+    int deadline;  // +0x4
+    int time;  // +0x8
     std::vector<Elem_00475880> items;  // +0xc
     Vec3 center;  // +0x1c
     Vec3 radius;  // +0x28
@@ -10899,26 +10899,26 @@ public:
     Vec3 pos;  // +0x4
     Vec3 pos2;  // +0x10
     Vec3 vel;  // +0x1c
-    int field_28;  // +0x28
-    int field_2c;  // +0x2c
-    int field_30;  // +0x30
-    int field_34;  // +0x34
-    int field_38;  // +0x38
-    int field_3c;  // +0x3c
-    int field_40;  // +0x40
+    int min;  // +0x28
+    int max;  // +0x2c
+    int value;  // +0x30
+    int step;  // +0x34
+    int tick;  // +0x38
+    int period;  // +0x3c
+    int endTime;  // +0x40
     void FUN_004745e0(void*, short, short);
 };
 
 class WakeParticles {   // 0x48 bytes, 5 views
 public:
     char unknown_0[8];
-    int field_8;  // +0x8
+    int time;  // +0x8
     std::vector<Class_004745e0> items;  // +0xc
-    int field_1c;  // +0x1c
+    int period;  // +0x1c
     Vec3 pos_a;  // +0x20
     Vec3 pos_b;  // +0x2c
     Vec3 dir;  // +0x38
-    int field_44;  // +0x44
+    int ascending;  // +0x44
     WakeParticles(WakeParticles&);
     WakeParticles(void);
     void FUN_00472d50(void);
@@ -10948,9 +10948,9 @@ public:
     char unknown_0[8];
     int time;  // +0x8
     std::vector<Record_00474cd0> records;  // +0xc
-    int unknown_1c;  // +0x1c
-    int unknown_20;  // +0x20
-    int unknown_24;  // +0x24
+    int emitPeriod;  // +0x1c
+    int holdPeriod;  // +0x20
+    int maxFrame;  // +0x24
     Vec3 pos;  // +0x28
     TimedSubParticles(TimedSubParticles&);
     TimedSubParticles(void);
@@ -10965,7 +10965,7 @@ public:
 class Class_00471d70 {  // 0x8 bytes, 7 views
 public:
     char unknown_0[4];
-    int field_4;  // +0x4
+    int deadline;  // +0x4
     void SetLifetime(int);
 };
 
@@ -10992,15 +10992,15 @@ struct Shape_00472ab0 {  // 0xc bytes, 1 view
 class Class_004736c0 {  // 0x34 bytes, 2 views
 public:
     char unknown_0[48];
-    int field_30;  // +0x30
+    int endTime;  // +0x30
     int FUN_004736c0(int);
 };
 
 class Class_00472e00 {  // 0xc bytes, 1 view
 public:
     char unknown_0[4];
-    int field_4;  // +0x4
-    int field_8;  // +0x8
+    int deadline;  // +0x4
+    int time;  // +0x8
     int FUN_00472e00(void);
 };
 
@@ -11023,15 +11023,15 @@ struct Class_00472e70 {  // 0x1c bytes, 1 view
 class Class_00473b30 {  // 0x30 bytes, 2 views
 public:
     char unknown_0[44];
-    int field_2c;  // +0x2c
+    int endTime;  // +0x2c
     int FUN_00473b30(int);
 };
 
 class Class_00472f60 {  // 0xc bytes, 1 view
 public:
     char unknown_0[4];
-    int field_4;  // +0x4
-    int field_8;  // +0x8
+    int deadline;  // +0x4
+    int time;  // +0x8
     int FUN_00472f60(void);
 };
 
@@ -11059,15 +11059,15 @@ struct Class_00472fd0 {  // 0x1c bytes, 2 views
 class Class_004742a0 {  // 0x3c bytes, 2 views
 public:
     char unknown_0[56];
-    int field_38;  // +0x38
+    int endTime;  // +0x38
     int FUN_004742a0(int);
 };
 
 class Class_004730c0 {  // 0xc bytes, 1 view
 public:
     char unknown_0[4];
-    int field_4;  // +0x4
-    int field_8;  // +0x8
+    int deadline;  // +0x4
+    int time;  // +0x8
     int FUN_004730c0(void);
 };
 
@@ -11083,7 +11083,7 @@ struct Class_00473130 {  // 0x1c bytes, 1 view
 
 class WakeParticle {    // 0x44 bytes, 2 views
 public:
-    int unknown_0;  // +0x0
+    int data;  // +0x0
     Vec3 pos;  // +0x4
     char unknown_10[12];
     Vec3 vel;  // +0x1c
@@ -11114,15 +11114,15 @@ class Class_00474720 {  // 0x44 bytes, 2 views
 public:
     char unknown_0[4];
     char sub_4[60];  // +0x4
-    int field_40;  // +0x40
+    int endTime;  // +0x40
     int FUN_00474720(int);
 };
 
 class Class_00473220 {  // 0xc bytes, 1 view
 public:
     char unknown_0[4];
-    int field_4;  // +0x4
-    int field_8;  // +0x8
+    int deadline;  // +0x4
+    int time;  // +0x8
     int FUN_00473220(void);
 };
 
@@ -11155,7 +11155,7 @@ struct Pos_00473590 {  // 0x26 bytes, 1 view
 class Class_004736e0 {  // 0x44 bytes, 1 view
 public:
     char unknown_4[24];
-    int unknown_1c;  // +0x1c
+    int sparkLifetime;  // +0x1c
     Vec3 pos1;  // +0x20
     Vec3 pos2;  // +0x2c
     Vec3 dir;  // +0x38
@@ -11220,7 +11220,7 @@ public:
     void* data;  // +0x0
     char unknown_4[2];
     Pos_00473590_2 pos;  // +0x6
-    int field_2c;  // +0x2c
+    int frame;  // +0x2c
     char unknown_30[12];
     void FUN_00474170(void*, short, short);
 };
@@ -11228,7 +11228,7 @@ public:
 class ThrustParticles {  // 0x44 bytes, 5 views
 public:
     char unknown_0[8];
-    int field_8;  // +0x8
+    int time;  // +0x8
     std::vector<Class_00474170> items;  // +0xc
     char unknown_1c[40];
     ThrustParticles(ThrustParticles&);
@@ -11252,10 +11252,10 @@ public:
 class Class_004742c0 {  // 0x44 bytes, 1 view
 public:
     char unknown_4[24];
-    int unknown_1c;  // +0x1c
-    Vec3 unknown_20;  // +0x20
-    Vec3 unknown_2c;  // +0x2c
-    Vec3 unknown_38;  // +0x38
+    int period;  // +0x1c
+    Vec3 pos0;  // +0x20
+    Vec3 pos1;  // +0x2c
+    Vec3 pos2;  // +0x38
     virtual void v0(void);
     virtual void v1(void);
     virtual void v2(void);
@@ -11266,10 +11266,10 @@ public:
 
 class Class_004743a0 {  // 0x44 bytes, 1 view
 public:
-    int field_4;  // +0x4
+    int deadline;  // +0x4
     int time;  // +0x8
     std::vector<Record_00474cd0> records;  // +0xc
-    int unknown_1c;  // +0x1c
+    int period;  // +0x1c
     Vec3 pos0;  // +0x20
     Vec3 pos1;  // +0x2c
     Vec3 pos2;  // +0x38
@@ -11293,13 +11293,13 @@ struct Pos_004745e0 {  // 0xa bytes, 1 view
 
 class Class_00474760 {  // 0x48 bytes, 1 view
 public:
-    int field_4;  // +0x4
+    int deadline;  // +0x4
     char unknown_8[20];
-    int field_1c;  // +0x1c
+    int period;  // +0x1c
     Vec3 pos_a;  // +0x20
     Vec3 pos_b;  // +0x2c
     Vec3 dir;  // +0x38
-    int field_44;  // +0x44
+    int ascending;  // +0x44
     virtual void unused0(void);
     virtual void unused1(void);
     virtual void unused2(int);
@@ -11309,7 +11309,7 @@ public:
 };
 
 struct SmokeParticle {   // 0x20 bytes, 1 view
-    int field_0;  // +0x0
+    int data;  // +0x0
     Pair_00419560* cursor1;  // +0x4
     int* cursor2;  // +0x8
     Pair_00419560* cursor3;  // +0xc
@@ -11339,10 +11339,10 @@ public:
 class Class_00474d50 {  // 0x38 bytes, 1 view
 public:
     char unknown_4[24];
-    int unknown_1c;  // +0x1c
-    int unknown_20;  // +0x20
-    int unknown_24;  // +0x24
-    int unknown_28;  // +0x28
+    int emitPeriod;  // +0x1c
+    int holdPeriod;  // +0x20
+    int maxFrame;  // +0x24
+    int altAnimation;  // +0x28
     Vec3 pos;  // +0x2c
     virtual void v0(void);
     virtual void v1(void);
@@ -11360,7 +11360,7 @@ public:
 
 struct Class_00474f80 {  // 0x18 bytes, 1 view
     char unknown_0[4];
-    int field_4;  // +0x4
+    int deadline;  // +0x4
     char unknown_8[8];
     int field_10;  // +0x10
     int field_14;  // +0x14
@@ -11369,7 +11369,7 @@ struct Class_00474f80 {  // 0x18 bytes, 1 view
 
 class TimedSubParticle {  // 0x20 bytes, 1 view
 public:
-    int field_0;  // +0x0
+    int data;  // +0x0
     int x;  // +0x4
     int y;  // +0x8
     int z;  // +0xc
@@ -11390,15 +11390,15 @@ public:
     char unknown_c[2];
     short y;  // +0xe
     char unknown_10[4];
-    int field_14;  // +0x14
+    int count;  // +0x14
     void FUN_00475040(void*, short, short);
 };
 
 class Class_00475090 {  // 0x18 bytes, 1 view
 public:
     char unknown_0[16];
-    int field_10;  // +0x10
-    int field_14;  // +0x14
+    int limit;  // +0x10
+    int count;  // +0x14
     int FUN_00475090(int);
 };
 
@@ -11411,9 +11411,9 @@ public:
 class Class_00475150 {  // 0x34 bytes, 1 view
 public:
     char unknown_4[24];
-    int unknown_1c;  // +0x1c
-    int unknown_20;  // +0x20
-    int unknown_24;  // +0x24
+    int emitPeriod;  // +0x1c
+    int holdPeriod;  // +0x20
+    int maxFrame;  // +0x24
     Vec3 pos;  // +0x28
     virtual void v0(void);
     virtual void v1(void);
@@ -11432,8 +11432,8 @@ public:
 class Class_00475440 {  // 0xc bytes, 1 view
 public:
     char unknown_0[4];
-    int field_4;  // +0x4
-    int field_8;  // +0x8
+    int deadline;  // +0x4
+    int time;  // +0x8
     int FUN_00475440(void);
 };
 

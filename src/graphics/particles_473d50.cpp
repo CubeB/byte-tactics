@@ -168,7 +168,7 @@ protected:
 class NanoParticles {
 public:
     char unknown_0[4];                          // +0x00
-    int field_4;                                // +0x04
+    int deadline;                               // +0x04
     int time;                                   // +0x08
     std::vector<NanoParticle> records;           // +0x0c
     Vec3_00473d50 center;                       // +0x1c
@@ -182,7 +182,7 @@ public:
 // FUNCTION: 0x473d50
 void NanoParticles::Emit()
 {
-    int grow = field_4 - *(int*)(g_game + 0x38a47) + 1;
+    int grow = deadline - *(int*)(g_game + 0x38a47) + 1;
     if (grow > 0)
         records.reserve(records.raw_size() + grow * 5);
 

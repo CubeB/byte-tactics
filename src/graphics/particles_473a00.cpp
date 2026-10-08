@@ -94,7 +94,7 @@ public:
     Vec3_004739b0 vel;                 // +0x18
     char unknown_24[4];
     int flags;                         // +0x28, low 4 bits: frame; the colour
-    int field_2c;                      // +0x2c, the tick it expires
+    int endTime;                       // +0x2c, the tick it expires
 
     void Step();
     void DrawParticle(int param_1, short x, short y);

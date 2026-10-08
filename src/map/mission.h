@@ -24,8 +24,8 @@ public:
     char text_b14[0x100];              // +0xb14
     char* briefing;                    // +0xc14
     int missionIndex;                  // +0xc18
-    int field_c1c;                     // +0xc1c
-    int field_c20;                     // +0xc20
+    int tntChecksum;                   // +0xc1c
+    int headerChecksum;                // +0xc20
     char description[0x80];            // +0xc24
     char planet[0x80];                 // +0xca4
     char* mapList;                     // +0xd24

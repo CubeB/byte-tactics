@@ -21,9 +21,9 @@ public:
 class Mission {
 public:
     char unknown_0[0xd34];
-    int field_d34;                     // +0xd34
-    int field_d38;                     // +0xd38
-    int field_d3c;                     // +0xd3c
+    int minWindSpeed;                  // +0xd34
+    int maxWindSpeed;                  // +0xd38
+    int gravity;                       // +0xd3c
     int GetNameSlot(int param_1);
     char* GetBriefing();
     char* GetPlanet();
@@ -1200,8 +1200,8 @@ void __stdcall OpenNewGameMenu(int param_1)
 // FUNCTION: 0x478790
 void __stdcall UpdateSolarSystem(Menu* arg1, Entry* arg2)
 {
-    int windMin = g_game->net->field_d34;
-    int windMax = g_game->net->field_d38;
+    int windMin = g_game->net->minWindSpeed;
+    int windMax = g_game->net->maxWindSpeed;
     void* surface = arg1->layer->entries->surface;
 
     if (--g_briefingWindTickCountdown <= 0) {
@@ -1232,7 +1232,7 @@ void __stdcall UpdateSolarSystem(Menu* arg1, Entry* arg2)
                  rect.x2 - rect.x1 - 0x50);
 
     sprintf(text, "%s : %.1f", Translate("Gravity"),
-            (double)g_game->net->field_d3c * 0.008928571428571428);
+            (double)g_game->net->gravity * 0.008928571428571428);
     DrawString(surface, text, rect.x1 + 0x50, rect.y1 + 0x28,
                  rect.x2 - rect.x1 - 0x50);
 
@@ -1439,8 +1439,8 @@ void OpenMissionBriefing(void)
     SetGadgetActiveByName(&g_game->menu, "SOLARSYSTEM", 0);
     SetButtonStageByName(&g_game->menu, "SHUTUP", 1);
 
-    g_briefingWindSpeed = g_game->net->field_d34 +
-                   rand() % (g_game->net->field_d38 - g_game->net->field_d34 + 1);
+    g_briefingWindSpeed = g_game->net->minWindSpeed +
+                   rand() % (g_game->net->maxWindSpeed - g_game->net->minWindSpeed + 1);
     g_briefingWindTickCountdown = rand() % 64;
 
     name = g_game->net->GetPlanet();

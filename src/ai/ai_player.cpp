@@ -557,7 +557,7 @@ class Mission {
 public:
     char unknown_0[0xd30];
     union {
-        int field_d30;                 // +0xd30
+        int surfaceMetal;              // +0xd30
         int threshold;
     };
     const char* GetNameSlot(int);
@@ -1793,7 +1793,7 @@ bool PlayerAI::FindCellNearFeatures(UnitDef* type, Vec3* pos, std::vector<Elem_0
 // by a margin; the second grid is used for types whose field_1c0 is
 // non-negative). A cell is accepted when CanPlaceUnitFootprint allows the type there
 // and the score GetBuildSiteMetal is at most the type's footprint area times
-// twice net->field_d30.
+// twice net->surfaceMetal.
 // FUNCTION: 0x40a5b0
 Elem_0040cc40::Elem_0040cc40(const Elem_0040cc40& o) : pos(o.pos), key(o.key)
 {
@@ -1804,7 +1804,7 @@ bool PlayerAI::FindRandomPlacementCell(UnitDef* type, Vec3* pos, int range, Poin
 {
     int areaY = type->origin.y;
     int areaX = type->origin.x;
-    int threshold = g_game->net->field_d30 * areaY * areaX * 2;
+    int threshold = g_game->net->surfaceMetal * areaY * areaX * 2;
     Point16 spacing = type->field_1c0 < 0 ? spacing0 : spacing1;
     Point16 offset = type->field_1c0 < 0 ? offset0 : offset1;
     int margin = type->field_1c0 < 0 ? margin0 : margin1;

@@ -20,7 +20,7 @@ class LandingPadList : public std::vector<Unit*> {};
 class UnitMotion {
 public:
     char unknown_0[0x2e];
-    unsigned char field_2e;            // +0x2e
+    unsigned char flags;               // +0x2e
     void SetFlightMode(Unit* unit, int state);
 };
 class Class_004388d0 { public: void SetAttachedFx(int); };
@@ -101,7 +101,7 @@ inline void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags
     if (unit->carrier)
         AttachUnitToPiece(unit, 0, -1, 2);
     unit->SetStateBits(1, 1);
-    if ((unit->type->field_2e & 3) == 1) {
+    if ((unit->type->flags & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0((Order*)order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);

@@ -8,7 +8,7 @@
 class Mission {
 public:
     char unknown_0[0xd44];
-    int field_d44;                     // +0xd44
+    int lavaWorld;                     // +0xd44
     char unknown_d48[0xd5c - 0xd48];
     float pos_x[10];                   // +0xd5c
     float pos_y[10];                   // +0xd84
@@ -1010,7 +1010,7 @@ void __stdcall UpdatePlayers()
                                     zacc += hh;
                                 } while (--outer != 0);
                                 if (hits >= 9 && FindFeatureAtPos(&pos, 0, 0) == -1) {
-                                    if (g_game->mission->field_d44 == 0)
+                                    if (g_game->mission->lavaWorld == 0)
                                         break;
                                     if (GetCellMeanHeight(&pos) >
                                         (int)g_game->field_1427f)

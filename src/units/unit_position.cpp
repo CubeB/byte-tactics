@@ -131,7 +131,7 @@ class UnitMotion {
 public:
     PlayerData* player;                // +0x00
     char unknown_4[0x20 - 4];
-    int field_20;                      // +0x20
+    int speed;                         // +0x20
     char unknown_24[0x2e - 0x24];
     unsigned char bits_2e : 2;         // +0x2e
     char unknown_2f[0x8a - 0x2f];
@@ -716,7 +716,7 @@ void __stdcall WriteUnitState(BitWriter* stream, Unit* u)
         stream->WriteBits(u->tail16.c, 0x10);
         stream->WriteBits(u->tail16.a, 0x10);
         if (u->motion)
-            stream->WriteBits(u->motion->field_20, 0x20);
+            stream->WriteBits(u->motion->speed, 0x20);
     }
 }
 
@@ -822,7 +822,7 @@ void __stdcall ReadUnitState(BitReader* reader, Unit* u)
     u->f110.bits.b16 = 1;
     u->tail16 = tail;
     if (u->motion)
-        u->motion->field_20 = reader->ReadBits(0x20);
+        u->motion->speed = reader->ReadBits(0x20);
 }
 
 // Builds one player's whole unit list as a single packet and sends it: a

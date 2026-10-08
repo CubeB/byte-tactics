@@ -29,8 +29,8 @@ struct PlayerFrameInfo {
     int pendingBytes;
     int pendingCap;
     Buffers_00462d30 buffers;          // +0x14
-    int field_2c;
-    int field_30;
+    int queuedFromId;
+    int queuedToId;
 };
 
 class PacketReceiver {

@@ -249,8 +249,8 @@ public:
     char text_b14[0x100];              // +0xb14
     char* briefing;                    // +0xc14
     int missionIndex;                  // +0xc18
-    int field_c1c;                     // +0xc1c
-    int field_c20;                     // +0xc20
+    int tntChecksum;                   // +0xc1c
+    int headerChecksum;                // +0xc20
     char description[0x80];            // +0xc24
     char planet[0x80];                 // +0xca4
     char* mapList;                     // +0xd24
@@ -325,7 +325,7 @@ public:
 
     MapCacheEntry& SetChecksum(Mission* self)
     {
-        field_4 = self->field_c1c;
+        field_4 = self->tntChecksum;
         return *this;
     }
 };
@@ -565,7 +565,7 @@ void Mission::LoadCampaign(char* file)
                 return;
             }
         }
-        field_c1c = 0;
+        tntChecksum = 0;
         missionIndex = 0;
         LoadMission(0);
     }
@@ -790,7 +790,7 @@ int Mission::MissionExists(int index)
 // keeping the original spelling when the lookup changed nothing. Every other
 // type returns 0.
 //
-// The `field_c1c = 0` store in the mission-loop branch repeats the one at the
+// The `tntChecksum = 0` store in the mission-loop branch repeats the one at the
 // top of the function, kept as the original has it.
 // FUNCTION: 0x435a20
 int Mission::LoadMissionByName(char* map)
@@ -798,7 +798,7 @@ int Mission::LoadMissionByName(char* map)
     // One local for the load result and the mission list out-parameter.
     int res;
 
-    field_c1c = 0;
+    tntChecksum = 0;
     if (type != 1) {
         if (type > 1 && type <= 3) {
             res = LoadMission(map);
@@ -822,7 +822,7 @@ int Mission::LoadMissionByName(char* map)
             for (int i = 0; i < count; i++) {
                 if (_strcmpi(p, map) == 0) {
                     FUN_004d85a0((void*)res);
-                    field_c1c = 0;
+                    tntChecksum = 0;
                     missionIndex = i;
                     return LoadMission(0);
                 }
@@ -837,7 +837,7 @@ int Mission::LoadMissionByName(char* map)
 // FUNCTION: 0x435c00
 void Mission::SelectMission(int param_1)
 {
-    field_c1c = 0;
+    tntChecksum = 0;
     missionIndex = param_1;
     LoadMission(0);
 }
@@ -890,7 +890,7 @@ int Mission::AdvanceMission()
         }
     }
     if (n > index) {
-        field_c1c = 0;
+        tntChecksum = 0;
         missionIndex++;
         LoadMission(0);
         return 1;
@@ -1030,7 +1030,7 @@ int Mission::LoadMission(char* map)
         OpenMessageBox(g_game->messages, "No GlobalHeader block in mission file!", 0x1e0, 1, 1);
         return 0;
     }
-    field_c20 = *(int*)((char*)parser.current + 0x25);
+    headerChecksum = *(int*)((char*)parser.current + 0x25);
     GetLocalizedString(&parser, value, "brief", 0x100, DAT_005119b8);
     BuildCampaignFilePath(2, "camps\\briefs", value, "TXT");
     LoadBriefing();
@@ -1420,8 +1420,8 @@ int Mission::GetStartPosition(Vec3_00437320* out, int id)
 // FUNCTION: 0x4373a0
 int Mission::ComputeMapChecksum()
 {
-    if (field_c1c != 0) {
-        return field_c20 ^ field_c1c;
+    if (tntChecksum != 0) {
+        return headerChecksum ^ tntChecksum;
     }
     char* name = GetNameSlot(1);
     MapCacheEntry* it;
@@ -1429,8 +1429,8 @@ int Mission::ComputeMapChecksum()
     // reference s_mapCache with a displacement, the wrong address.
     for (it = g_mapCacheBegin; it != g_mapCacheEnd; it++) {
         if (_strcmpi(it->handle.data, name) == 0) {
-            field_c1c = it->field_4;
-            return field_c20 ^ field_c1c;
+            tntChecksum = it->field_4;
+            return headerChecksum ^ tntChecksum;
         }
     }
     void* file = HAPI_OpenFileRead(name);
@@ -1442,24 +1442,24 @@ int Mission::ComputeMapChecksum()
     if (header.magic != 0x2000) {
         return 0;
     }
-    field_c1c = field_c1c ^ ComputeChecksum((unsigned char*)&header, 0x40);
+    tntChecksum = tntChecksum ^ ComputeChecksum((unsigned char*)&header, 0x40);
     int size = header.width * header.height * 4;
     void* data = FUN_004d83b0("Raw Plot Data", size);
     HAPI_SeekFile(file, header.plotOffset);
     HAPI_readfromfile(file, data, size);
-    field_c1c = field_c1c ^ ComputeChecksum((unsigned char*)data, size);
+    tntChecksum = tntChecksum ^ ComputeChecksum((unsigned char*)data, size);
     FUN_004d85a0(data);
     size = header.features * 0x84;
     if (size > 0) {
         data = FUN_004d83b0("Raw Feature Data", size);
         HAPI_SeekFile(file, header.featureOffset);
         HAPI_readfromfile(file, data, size);
-        field_c1c = field_c1c ^ ComputeChecksum((unsigned char*)data, size);
+        tntChecksum = tntChecksum ^ ComputeChecksum((unsigned char*)data, size);
         FUN_004d85a0(data);
     }
     HAPI_CloseFile(file);
     // The checksum is stored after the copy constructor, not inside it:
     // a two-argument constructor hoists the +0xc1c load above the call.
     s_mapCache.InsertMapCacheEntry(g_mapCacheEnd, 1, MapCacheEntry(Class_004c91b0(name)).SetChecksum(this));
-    return field_c20 ^ field_c1c;
+    return headerChecksum ^ tntChecksum;
 }

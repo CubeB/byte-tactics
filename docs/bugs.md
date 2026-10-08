@@ -1196,3 +1196,6 @@ Things that look wrong in the original but have no effect, kept for the record.
   path shifts and inserts a second entry with the same name at index 0,
   leaving a duplicate at index 1. Found by OpenCode / deepseek-v4.1-flash in
   #6187.
+- **0x4a9780** (possible): the scroll-step function's upper clamp uses
+  `field_136 - 1`, copied from the decrement version, although this side
+  scrolls the other way. Found by OpenCode / deepseek-v4.1-flash in #6201.

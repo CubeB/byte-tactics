@@ -725,9 +725,7 @@ extern long DAT_0052a4fc;                                                       
 
 // Not declared: 198 globals defined in a data file or whose type is not settled (see data/globals.csv).
 //   0x513000 g_packetManager: defined in src/network/packets_460e20.cpp
-//   0x528a54 std::IH::IU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib_4db610.cpp
 //   0x5292c4 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib_4e17c0.cpp
-//   0x528a50 DAT_00528a50: Node_004da8d0* (1), Node_004dc680* (1), Node_004dc910* (1), Node_004dd3d0* (1), and 6 more
 //   0x4fcdb8 DPSPGUID_SERIAL: defined in src/data/guids.cpp
 //   0x4fcdc8 DPSPGUID_MODEM: defined in src/data/guids.cpp
 //   0x4fcd98 DPSPGUID_IPX: defined in src/data/guids.cpp
@@ -747,6 +745,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x51e574 DAT_0051e574: PlayerInfo_0046c2a0** (1), PlayerInfo_0046bce0** (1), int* (1)
 //   0x51e57c DAT_0051e57c: ScoreBoard_0046c2a0** (1), ScoreBoard_0046bce0** (1), void* (1)
 //   0x51e59c IUUnitSyncEntry::IU?$pair::?$_Tree::_Nilrefs: defined in src/network/unit_sync.cpp
+//   0x528a50 DAT_00528a50: void* (2), Node_004da8d0* (1)
 //   0x529e10 DAT_00529e10: part of another global: DAT_00529e00+0x10
 //   0x4fc9a0 DAT_004fc9a0: defined in src/data/vtables.cpp
 //   0x4fca18 g_vtolOrders: defined in src/orders/unit_orders.cpp
@@ -797,6 +796,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x51f2ec DAT_0051f2ec: int* (1), char* (1)
 //   0x51fbd0 g_display: App_4b5980* (1), void* (1)
 //   0x526ff4 DAT_00526ff4: void* (1), char* (1)
+//   0x528a54 std::IH::IU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib_4db610.cpp
 //   0x529500 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nilrefs: defined in src/debug/debug_lib_4e17c0.cpp
 //   0x529df8 DAT_00529df8: void* (1), EventEntry* (1)
 //   0x529f48 _tls_index: library

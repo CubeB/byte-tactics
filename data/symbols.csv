@@ -4381,7 +4381,7 @@ address,name
 0x511fa8,g_explosion2Duration
 0x511fac,g_explosion2StartSize
 0x511fb0,g_explosion2EndSize
-0x511fb4,s_featureTdfParsers$S41521
+0x511fb4,s_featureTdfParsers$S32680
 0x511fb8,g_frontendErrorText
 0x5120b8,g_pictureCache
 0x512288,DAT_00512288

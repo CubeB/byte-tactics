@@ -130,7 +130,7 @@ struct Sub_004263b0 {
 struct Entry_428b60 {
     unsigned char type;                // +0x00
     char unknown_1[0x1b - 1];
-    unsigned int flags;                // +0x1b
+    int attribs;                       // +0x1b
     char unknown_1f[0xb6 - 0x1f];
     short count;                       // +0xb6
     char unknown_b8[0x15b - 0xb8];
@@ -1708,7 +1708,7 @@ void OrLabelAttribs(void)
     Entry_428b60* entries = (Entry_428b60*)g_game->sub.current->gadgets;
     for (int i = 1; i <= entries->count; i++) {
         if (entries[i].type == 5) {
-            entries[i].flags |= 8;
+            entries[i].attribs |= 8;
         }
     }
 }

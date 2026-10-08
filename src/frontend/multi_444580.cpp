@@ -9,7 +9,7 @@ struct Entry_00444580 {                 // a gadget of the menu, 0x15b bytes
     short field_15;                     // +0x15
     char unknown_17[0x19 - 0x17];
     short field_19;                     // +0x19
-    char unknown_1b[0x1f - 0x1b];
+    int attribs;                        // +0x1b
     int field_1f;                       // +0x1f
     char unknown_23[0x29 - 0x23];
     char field_29;                      // +0x29

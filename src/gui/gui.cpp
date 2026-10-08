@@ -535,7 +535,7 @@ struct Entry_004a04f0 {
     short y;                           // +0x15
     short width;                       // +0x17
     short height;                      // +0x19
-    int flags;                         // +0x1b
+    int attribs;                       // +0x1b
     int state;                         // +0x1f
     char unknown_23[0x27 - 0x23];
     char field_27;                     // +0x27
@@ -554,7 +554,7 @@ struct Entry_004a04f0 {
             int id;                        // +0xd6
             char unknown_da[0x136 - 0xda];
             unsigned char count_136;       // +0x136, the text line count
-            unsigned char field_137;       // +0x137, the button stage
+            unsigned char stageIndex;      // +0x137, the button stage
             short field_138;               // +0x138
             char field_13a;                // +0x13a
             char unknown_13b[0x13c - 0x13b];
@@ -673,7 +673,7 @@ void __stdcall AssignQuickKey(Dialog_004a04f0* obj, int index)
     entries = obj->holder->entries;
     entry = entries + index;
     if (entry->type == 1) {
-        if ((entry->flags & 0x10000) != 0)
+        if ((entry->attribs & 0x10000) != 0)
             return;
     }
     if (entry->type == 5 && strlen(&entry->text[0x136 - 0xb6]) == 0)
@@ -923,7 +923,7 @@ int __stdcall GetButtonStageByName(Dialog_004a04f0* obj, char* name)
     Entry_004a04f0* entries = obj->holder->entries;
     int i = FindEntry(entries, name);
     if (i != -1 && entries[i].type == 1) {
-        return entries[i].field_137;
+        return entries[i].stageIndex;
     }
     return -1;
 }
@@ -936,7 +936,7 @@ int __stdcall GetButtonStage(Dialog_004a04f0* obj, int index)
 {
     Entry_004a04f0* entries = obj->holder->entries;
     if (entries[index].type == 1) {
-        return entries[index].field_137;
+        return entries[index].stageIndex;
     }
     return -1;
 }
@@ -946,7 +946,7 @@ int __stdcall SetButtonStage(Dialog_004a04f0* obj, int index, char value)
 {
     Entry_004a04f0* entries = obj->holder->entries;
     if (entries[index].type == 1) {
-        entries[index].field_137 = value;
+        entries[index].stageIndex = value;
         return 1;
     }
     return 0;
@@ -958,7 +958,7 @@ int __stdcall SetButtonStageByName(Dialog_004a04f0* obj, char* name, char value)
     Entry_004a04f0* entries = obj->holder->entries;
     int i = FindEntry(entries, name);
     if (i != -1) {
-        entries[i].field_137 = value;
+        entries[i].stageIndex = value;
         return 1;
     }
     return 0;
@@ -1026,7 +1026,7 @@ void __stdcall SetGadgetGrayedOut(Dialog_004a04f0* obj, int index, int value)
         e->field_157 = value;
         unsigned char group = e->group;
         for (int i = 1; i < entries->count + 1; i++) {
-            if (entries[i].type == 1 && entries[i].group == group && (entries[i].flags & 0x1800)) {
+            if (entries[i].type == 1 && entries[i].group == group && (entries[i].attribs & 0x1800)) {
                 entries[i].flag = (entries[i].flag & 0xfffe) | (value & 1);
             }
         }
@@ -1037,9 +1037,9 @@ void __stdcall SetGadgetGrayedOut(Dialog_004a04f0* obj, int index, int value)
         break;
     case 2:
         if (value) {
-            e->flags |= 0x100;
+            e->attribs |= 0x100;
         } else {
-            e->flags &= 0xfffffeff;
+            e->attribs &= 0xfffffeff;
         }
         break;
     case 5:
@@ -1326,7 +1326,8 @@ struct Entry_004a1ab0 {                // 0x15b bytes
     short y;                           // +0x15
     short width;                       // +0x17
     short height;                      // +0x19
-    char unknown_1b[0xbc - 0x1b];
+    int attribs;                       // +0x1b
+    char unknown_1f[0xbc - 0x1f];
     Surface_004a1ab0* surface;         // +0xbc (only meaningful in entry 0)
     char unknown_c0[0x15b - 0xc0];
 };
@@ -1387,7 +1388,7 @@ struct Entry_004a1b40 {                 // 0x15b bytes
     short y;                            // +0x15
     short w;                            // +0x17
     short h;                            // +0x19
-    int flags;                          // +0x1b
+    int attribs;                        // +0x1b
     int colours;                        // +0x1f
     char unknown_23[0x28 - 0x23];
     char tab;                           // +0x28
@@ -1583,7 +1584,7 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
     else
         step = me->field_da;
     unsigned int flags;
-    flags = me->flags;
+    flags = me->attribs;
     if ((flags & 0x10) && me->text && 0 != me->field_c0) {
         // Separate from cellRect: one shared rect changes the spill homes.
         Rect_004a1b40 rowRect;
@@ -1623,7 +1624,7 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
                 flag = 1;
             }
             int ty = rowRect.top;
-            int f = me->flags;
+            int f = me->attribs;
             if ((f & 1) != 0) {
                 xx = rowRect.left;
                 xw = rowRect.right - rowRect.left + 1;
@@ -1647,7 +1648,7 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
                 FadeRectangle(entries->surface, &rowRect, -0x14);
                 FadeRectangle(entries->surface, &rowRect, -0x15);
                 FadeRectangle(entries->surface, &rowRect, -0x16);
-            } else if (!(me->flags & 0x100) && me->field_ba == line + me->field_bc && me->field_c0) {
+            } else if (!(me->attribs & 0x100) && me->field_ba == line + me->field_bc && me->field_c0) {
                 if (obj->holder->field_20 == index)
                     FadeRectangle(entries->surface, &rowRect, 0x1e);
                 else
@@ -1732,7 +1733,7 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
             }
             // A selected row reads cell->width/height even when cell is null
             // (docs/bugs.md).
-            if (!(me->flags & 0x100) && me->field_ba == k) {
+            if (!(me->attribs & 0x100) && me->field_ba == k) {
                 Rect_004a1b40 hl;
                 hl.left = bounds.left;
                 hl.top = yy;
@@ -1759,11 +1760,12 @@ struct Entry_004a23b0 {
     short y;                    // +0x15
     short w;                    // +0x17
     short h;                    // +0x19
-    unsigned char flags;        // +0x1b
-    char unknown_1c[0x140 - 0x1c];
+    int attribs;                // +0x1b
+    char unknown_1f[0x140 - 0x1f];
     short off;                  // +0x140
     short size;                 // +0x142
-    char unknown_144[0x15b - 0x144];
+    void* sliderCallback;       // +0x144 (a typed function pointer here takes symbol ids)
+    char unknown_148[0x15b - 0x148];
 };
 #pragma pack(pop)
 
@@ -1775,7 +1777,7 @@ void __stdcall GetSliderRects(Entry_004a23b0* base, int index, int* r1, int* r2)
     r1[1] = e->y;
     r1[2] = r1[0] + e->w;
     r1[3] = r1[1] + e->h;
-    if (e->flags & 1) {
+    if (e->attribs & 1) {
         int left = r1[0] + e->off + 1;
         r2[0] = left;
         r2[1] = r1[1] + 1;
@@ -1805,7 +1807,8 @@ struct Entry_004a2480 {
     short y;                           // +0x15
     short w;                           // +0x17
     short h;                           // +0x19
-    char unknown_1b[0xbc - 0x1b];
+    int attribs;                       // +0x1b
+    char unknown_1f[0xbc - 0x1f];
     void* surface;                     // +0xbc
     char unknown_c0[0x13a - 0xc0];
     unsigned short* glyphs;            // +0x13a
@@ -1877,8 +1880,8 @@ struct Entry_004a2580 {                // 0x15b bytes
     short y;                           // +0x15
     short w;                           // +0x17
     short h;                           // +0x19
-    unsigned char flags;               // +0x1b
-    char unknown_1c[0x28 - 0x1c];
+    int attribs;                       // +0x1b
+    char unknown_1f[0x28 - 0x1f];
     char group;                        // +0x28
     char unknown_29[0xb6 - 0x29];
     union {
@@ -1893,7 +1896,8 @@ struct Entry_004a2580 {                // 0x15b bytes
     int field_13c;                     // +0x13c
     short off;                         // +0x140
     short size;                        // +0x142
-    char unknown_144[0x14a - 0x144];
+    void* sliderCallback;              // +0x144 (a typed function pointer here takes symbol ids)
+    char unknown_148[0x14a - 0x148];
     int field_14a;                     // +0x14a
     unsigned short* glyphs;            // +0x14e
     unsigned char field_152;           // +0x152
@@ -2051,7 +2055,7 @@ void __stdcall DrawSliderBar(Object_004a2580* obj, int index)
         }
     }
 
-    if (e->flags & 4) {
+    if (e->attribs & 4) {
         int cur = GetTextKeyColor();
         SetTextColors(obj->field_8c1, cur);
         char buf[0x10];
@@ -2065,7 +2069,7 @@ void __stdcall DrawSliderBar(Object_004a2580* obj, int index)
         } else if (e->field_13c != 0) {
             int num = (int)((float)e->off * e->field_13c / (e->w - e->size));
             _itoa(num, buf, 10);
-        } else if (e->flags & 8) {
+        } else if (e->attribs & 8) {
             _itoa(e->off + 1, buf, 10);
         } else {
             _itoa(e->off, buf, 10);
@@ -2092,7 +2096,7 @@ void __stdcall DrawSliderBar(Object_004a2580* obj, int index)
         DrawString(surface, buf, e->x + e->w + 2, e->y + 4, -1);
     }
 
-    if ((e->flags & 0x10) || e->field_157 != 0) {
+    if ((e->attribs & 0x10) || e->field_157 != 0) {
         int rect[4];
         if (e->type == 0) {
             rect[0] = 0;
@@ -2112,7 +2116,7 @@ struct Gadget_004a2be0 {               // 0x15b bytes
     unsigned char type;                // +0x00
     char unknown_01[0x19 - 0x01];      // +0x01
     short field_19;                    // +0x19
-    int field_1b;                      // +0x1b (dword)
+    int attribs;                       // +0x1b
     char unknown_1f[0xb6 - 0x1f];      // +0x1f
     short count;                       // +0xb6 (only meaningful in entry 0)
     char unknown_b8[0xba - 0xb8];      // +0xb8
@@ -2126,10 +2130,12 @@ struct Gadget_004a2be0 {               // 0x15b bytes
     char unknown_d8[0xda - 0xd8];      // +0xd8
     short field_da;                    // +0xda
     char unknown_dc[0x136 - 0xdc];     // +0xdc
-    short field_136;                   // +0x136
+    short range;                       // +0x136
     char unknown_138[0x140 - 0x138];   // +0x138
     short field_140;                   // +0x140
-    char unknown_142[0x15b - 0x142];   // +0x142
+    char unknown_142[0x144 - 0x142];   // +0x142
+    void* sliderCallback;              // +0x144 (a typed function pointer here takes symbol ids)
+    char unknown_148[0x15b - 0x148];   // +0x148
 };
 #pragma pack(pop)
 
@@ -2157,7 +2163,7 @@ void __stdcall SyncAssocGadgets(Dialog_4a2be0* param_1, int param_2)
     int i = 1;
     char* me = (char*)entries + param_2 * 0x15b;
     int type = *(unsigned char*)me;
-    int field_1b = *(int*)(me + 0x1b);
+    int attribs = *(int*)(me + 0x1b);
     for (; i < (short)entries->count + 1; i++) {
         // Built fresh inside the loop body: strength reduction then rotates the preheader.
         char* entry = (char*)entries + i * 0x15b + 0x140;
@@ -2189,7 +2195,7 @@ void __stdcall SyncAssocGadgets(Dialog_4a2be0* param_1, int param_2)
                     }
                     break;
                 case 3:
-                    if (type == 2 && field_1b & 8) {
+                    if (type == 2 && attribs & 8) {
                         char* line = SkipTextLines(*(char**)(me + 0xc2), *(short*)(me + 0xba));
                         strcpy(entry - 0x8a, line);
                         DrawTextInput(param_1, i);
@@ -2231,7 +2237,8 @@ struct Entry_004a2e40 { // 0x15b bytes
     char name[0x10];    // +0x02
     char unknown_12[0x19 - 0x12];
     short field_19; // +0x19
-    char unknown_1b[0x28 - 0x1b];
+    int attribs;    // +0x1b
+    char unknown_1f[0x28 - 0x1f];
     char group; // +0x28
     char unknown_29[0xb6 - 0x29];
     short count; // +0xb6 (only meaningful in entry 0)
@@ -2242,7 +2249,7 @@ struct Entry_004a2e40 { // 0x15b bytes
     char unknown_c0[0xd6 - 0xc0];
     int id; // +0xd6
     char unknown_da[0x136 - 0xda];
-    short field_136; // +0x136
+    short range; // +0x136
     char unknown_138[0x140 - 0x138];
     short field_140; // +0x140
     char unknown_142[0x15b - 0x142];
@@ -2343,7 +2350,7 @@ void __stdcall SetListBoxScrollByName(Dialog_4a2e40* param_1, char* param_2, int
         unsigned char pkind = peer->kind;
         Entry_004a2e40* e3 = &entries[FindKind(entries, pkind)];
         // Keep the float conversions: the original uses integer-memory FPU multiply/divide.
-        float q = (float)e3->field_136 * me->field_bc / me->field_be;
+        float q = (float)e3->range * me->field_bc / me->field_be;
         if ((float)e3->field_140 != q)
             e3->field_140 = (short)q;
     }
@@ -2360,7 +2367,8 @@ struct Entry_004a30c0 {                // 0x15b bytes
     unsigned char type;               // +0x00
     char unknown_01[0x19 - 0x01];
     short height;                     // +0x19
-    char unknown_1b[0x28 - 0x1b];
+    int attribs;                      // +0x1b
+    char unknown_1f[0x28 - 0x1f];
     char group;                       // +0x28
     char unknown_29[0xb6 - 0x29];
     short count;                      // +0xb6 (only meaningful in entry 0)
@@ -2462,7 +2470,7 @@ struct Entry_004a32a0 { // 0x15b bytes
     char name[0x10];    // +0x02
     char unknown_12[0x19 - 0x12];
     short height; // +0x19, the rows are fitted into this
-    int flags;    // +0x1b
+    int attribs;  // +0x1b
     char unknown_1f[0x29 - 0x1f];
     unsigned char f_29; // +0x29, gates the whole second half
     char unknown_2a[0xb6 - 0x2a];
@@ -2539,12 +2547,12 @@ void __stdcall ConfigureListBoxByName(Dialog_4a32a0* param_1, char* name, int bi
     }
     me->num = (short)count;
     me->bitmap = bitmap;
-    me->flags |= 0x10;
+    me->attribs |= 0x10;
     me->f_da =
         (short)((me->f_da > FontHeight_004a32a0() + 1) ? (int)me->f_da : FontHeight_004a32a0() + 1);
     if (flag != 0) {
         me->id = flag;
-        me->flags |= 0x800;
+        me->attribs |= 0x800;
     }
     me->f_bc = 0;
     me->f_ba = 0;
@@ -2601,7 +2609,7 @@ struct Entry_004a35a0 {                // 0x15b-byte GUI entry
     char name[0x10];                   // +0x02
     char unknown_12[0x19 - 0x12];
     short height;                      // +0x19
-    int flags;                         // +0x1b
+    int attribs;                       // +0x1b
     char unknown_1f[0xb6 - 0x1f];
     short count;                       // +0xb6 (entry 0 holds the entry count)
     char unknown_b8[0xba - 0xb8];
@@ -2656,7 +2664,7 @@ void __stdcall SetGadgetRows(Table_004a35a0* table, char* name,
     // Computed right after the f_c6 store and before the num store.
     Row_004a35a0* row = rows + count - 1;
     e->num = (short)count;
-    e->flags |= 0x80;
+    e->attribs |= 0x80;
     e->f_bc = 0;
     e->f_ba = 0;
     e->first = (short)(count - 1);
@@ -2685,7 +2693,7 @@ struct Entry_004a36a0 {                // 0x15b bytes
     char name[0x10];                   // +0x02
     char unknown_12[0x19 - 0x12];
     short field_19;                    // +0x19
-    int flags_1b;                      // +0x1b
+    int attribs;                       // +0x1b
     char unknown_1f[0xb6 - 0x1f];
     short count;                       // +0xb6 (entry 0)
     char unknown_b8[0xba - 0xb8];
@@ -2739,7 +2747,7 @@ void __stdcall SetGadgetItems(Table_004a36a0* table, char* name, int* items, int
     int v = e->field_19;
     e->field_bc = 0;
     e->field_ba = 0;
-    e->flags_1b |= 0x20;
+    e->attribs |= 0x20;
     int* p = &items[count - 1];
     e->field_be = (short)(count - 1);
     // Decrements stay in the body with no for-increment, and the test is j > -1.
@@ -2764,7 +2772,7 @@ struct Gadget_004a3780 {               // 0x15b bytes
     short field_15;                    // +0x15
     short field_17;                    // +0x17
     short field_19;                    // +0x19
-    int flags;                         // +0x1b
+    int attribs;                       // +0x1b
     char unknown_1f[0x28 - 0x1f];
     char group;                        // +0x28
     char unknown_29[0xb6 - 0x29];
@@ -2902,7 +2910,7 @@ int __stdcall HandleListBoxInput(Object_004a3780* obj, int index, int param_3)
         if (point.x >= r.x0 && point.x <= r.x1 && point.y >= r.y0 && point.y <= r.y1) {
             // skip0 sits at the end of the in-rect block: reloads point.x on this edge only.
             if (me->field_c0 == 0) goto skip0;
-            if (!(me->flags & 0x200))
+            if (!(me->attribs & 0x200))
                 goto ret1;
             me->field_ba = (point.y - r.y0) / span + me->field_bc;
             if (me->field_ba < 0)
@@ -2936,7 +2944,7 @@ skip0:;
         obj->focus = -1;
     if (point.x >= r.x0 && point.x <= r.x1 && point.y >= r.y0 && point.y <= r.y1) {
         obj->holder->field_20 = index;
-        flags = me->flags;
+        flags = me->attribs;
         if (flags & 0x10) {
             // Stores straight into me->field_ba and tests the field; clamps written plainly.
             me->field_ba = (point.y - r.y0) / span + me->field_bc;
@@ -3000,7 +3008,7 @@ skip0:;
             if (me->field_ce)
                 me->field_ce(obj, me);
         }
-        if (me->flags & 0x40) {
+        if (me->attribs & 0x40) {
             // Two labels in this order: the return block's live-range split depends on it.
 above:
 ret1:
@@ -3054,7 +3062,7 @@ struct Entry_004a3eb0 {
     char unknown_0[0x140];
     short field_140;                   // +0x140
     char unknown_142[2];
-    int field_144;                     // +0x144
+    void* sliderCallback;              // +0x144 (a typed function pointer here takes symbol ids)
     char unknown_148[2];
     int field_14a;                     // +0x14a
     char unknown_14e[0x15b - 0x14e];
@@ -3074,7 +3082,7 @@ struct Dialog_4a3eb0 {
 static inline void ClearEntry(Entry_004a3eb0* e)
 {
     e->field_140 = 0;
-    e->field_144 = 0;
+    e->sliderCallback = 0;
     e->field_14a = 0;
 }
 
@@ -3106,13 +3114,13 @@ struct Entry_004a4170 {                // 0x15b bytes, the table of 0x4a23b0
     short x1;                          // +0x13
     short y1;                          // +0x15
     char unknown_17[0x1b - 0x17];
-    unsigned char flags;               // +0x1b, bit 1 = vertical, 0x10 = dead
-    char unknown_1c[0x136 - 0x1c];
-    short field_136;                   // +0x136, largest usable offset
+    int attribs;                       // +0x1b, bit 1 = vertical, 0x10 = dead
+    char unknown_1f[0x136 - 0x1f];
+    short range;                       // +0x136, largest usable offset
     char unknown_138[0x140 - 0x138];
     short off;                         // +0x140, the scroll offset
     char unknown_142[0x144 - 0x142];
-    int (__stdcall *cb)(void*, int);   // +0x144, called when off changed
+    void (__stdcall* sliderCallback)(void*, int); // +0x144, called when off changed
     char unknown_148[0x14a - 0x148];
     int field_14a;                     // +0x14a, cb's second argument
     char unknown_14e[0x157 - 0x14e];
@@ -3156,8 +3164,8 @@ void __stdcall SetClickMode(Object_004a4170* obj, int param_2);
 
 static inline void OffsetChanged_004a4170(Object_004a4170* obj, int index, Entry_004a4170* e, int old)
 {
-    if (e->off > e->field_136 - 1)
-        e->off = e->field_136 - 1;
+    if (e->off > e->range - 1)
+        e->off = e->range - 1;
     if (e->off < 0)
         e->off = 0;
     if (e->off == old)
@@ -3166,8 +3174,8 @@ static inline void OffsetChanged_004a4170(Object_004a4170* obj, int index, Entry
         obj->holder->field_14 = 1;
     DrawSliderBar(obj, index);
     SyncAssocGadgets(obj, index);
-    if (e->cb)
-        e->cb(obj, e->field_14a);
+    if (e->sliderCallback)
+        e->sliderCallback(obj, e->field_14a);
 }
 
 // FUNCTION: 0x4a4170
@@ -3175,7 +3183,7 @@ void __stdcall HandleSliderInput(Object_004a4170* obj, int index)
 {
     Entry_004a4170* entries = obj->holder->entries;
     Entry_004a4170* e = &entries[index];
-    if (e->flags & 0x10)
+    if (e->attribs & 0x10)
         return;
     if (e->field_157)
         return;
@@ -3195,7 +3203,7 @@ void __stdcall HandleSliderInput(Object_004a4170* obj, int index)
         // Inline OffsetChanged ends both arms: the duplicated zero uses keep 0 in EDX.
         if (obj->field_78) {
             int old = e->off;
-            if (e->flags & 1)
+            if (e->attribs & 1)
                 e->off = obj->field_94 - obj->saved.x + p.x;
             else
                 e->off = obj->field_94 - obj->saved.y + p.y;
@@ -3203,7 +3211,7 @@ void __stdcall HandleSliderInput(Object_004a4170* obj, int index)
         } else {
             // Per-path stores to e->off (not one after the if/else): keeps the 16-bit loads.
             int old = e->off;
-            if (e->flags & 1) {
+            if (e->attribs & 1) {
                 if (p.x < r2[0])
                     e->off--;
                 else if (p.x > r2[2])
@@ -3258,8 +3266,8 @@ struct Entry_0049fc50 {                // 0x15b bytes
     short y1;                          // +0x15
     short x2;                          // +0x17
     short y2;                          // +0x19
-    unsigned char flags;               // +0x1b
-    char unknown_2[0xb6 - 0x1c];
+    int attribs;                       // +0x1b
+    char unknown_1f[0xb6 - 0x1f];
     char text[0x15b - 0xb6];           // +0xb6
 };
 #pragma pack(pop)
@@ -3304,7 +3312,7 @@ int __stdcall HandleLabelInput(Object_0049fc50* obj, int index, char key)
     Point_0049fc50 point;
     int rel_x, rel_y;
 
-    if (entry->text[0x147 - 0xb6] == 0 && (entry->flags & 0x10))
+    if (entry->text[0x147 - 0xb6] == 0 && (entry->attribs & 0x10))
         return 0;
 
     if (entry->type == 0) {
@@ -3402,7 +3410,7 @@ struct Entry_004a4660 {
     short y;
     short w;
     short h;
-    char unknown_1b[0x1f - 0x1b];
+    int attribs;                   // +0x1b
     int color1;
     int color2;
     char unknown_27[0xba - 0x27];
@@ -3601,7 +3609,8 @@ struct Entry_004a4980 {
     short y;                          // +0x15
     short w;                          // +0x17
     short h;                          // +0x19
-    char unknown_1b[0xbc - 0x1b];
+    int attribs;                      // +0x1b
+    char unknown_1f[0xbc - 0x1f];
     union {
         void* surface;                // +0xbc (entry 0 only)
         char unknown_bc[0xc2 - 0xbc]; // +0xbc to +0xc1
@@ -3730,7 +3739,8 @@ struct Entry_004a4b50 {                       // 0x15b bytes
     short y;                                  // +0x15
     short width;                              // +0x17
     short height;                             // +0x19
-    char unknown_1b[0xb6 - 0x1b];
+    int attribs;                              // +0x1b
+    char unknown_1f[0xb6 - 0x1f];
     void (__stdcall* callback)(Dialog_4a4b50*, Entry_004a4b50*);          // +0xb6
     char unknown_ba[0xc8 - 0xba];
     unsigned char flags;                      // +0xc8
@@ -3814,7 +3824,7 @@ struct Entry_004a4c90 {                // 0x15b bytes
     short y;                           // +0x15
     short w;                           // +0x17
     short h;                           // +0x19
-    int flags;                         // +0x1b
+    int attribs;                       // +0x1b
     unsigned char* colours;            // +0x1f
     char unknown_23[0xbc - 0x23];
     void* surface;                     // +0xbc
@@ -3861,13 +3871,13 @@ void __stdcall DrawLineGadget(Dialog_4a4c90* obj, int index, unsigned char param
     Rect_004a4c90 rect;
     FillRect_004a4c90(e, &rect);
     if (param_3 & 1) {
-        if (e->flags & 1)
+        if (e->attribs & 1)
             DrawLine(entries->surface, rect.x1, rect.y1, rect.x2, rect.y1,
                          e->colours[(int)obj + 0x8b2]);
-        else if (e->flags & 2)
+        else if (e->attribs & 2)
             DrawLine(entries->surface, rect.x1, rect.y1, rect.x1, rect.y2,
                          e->colours[(int)obj + 0x8b2]);
-        else if (e->flags & 4)
+        else if (e->attribs & 4)
             DrawLine(entries->surface, rect.x1, rect.y1, rect.x2, rect.y2,
                          e->colours[(int)obj + 0x8b2]);
     }
@@ -3890,8 +3900,7 @@ struct Entry_004a4d70 {                // 0x15b bytes
     short y;                           // +0x15
     short w;                           // +0x17
     short h;                           // +0x19
-    unsigned char align;               // +0x1b
-    char unknown_1c[0x1f - 0x1c];
+    int attribs;                       // +0x1b
     int colours;                       // +0x1f, index into Class::colours
     char unknown_23[0x28 - 0x23];
     char tab;                          // +0x28
@@ -4015,7 +4024,7 @@ void __stdcall DrawTextInput(Dialog_4a4d70* obj, int index)
     rect.right = me->w + rect.left - 1;
     rect.bottom = me->h + rect.top - 1;
 
-    if (me->align & 1) {
+    if (me->attribs & 1) {
         FillRectangle(entries->surface, &rect, obj->colours[0]);
     } else {
         void* surface = obj->holder->surface;
@@ -4298,7 +4307,7 @@ struct Gadget {                         // 0x15b bytes, one GUI list entry
     short y;                            // +0x15
     short w;                            // +0x17
     short h;                            // +0x19
-    int flags;                          // +0x1b
+    int attribs;                        // +0x1b
     int colours;                        // +0x1f
     int image;                          // +0x23
     char unknown_27;
@@ -4366,9 +4375,9 @@ struct Gadget {                         // 0x15b bytes, one GUI list entry
         } anim;
     } u;
     union {                             // +0x136
-        short field_136;
+        short range;
         struct {
-            unsigned char stage;        // +0x136
+            unsigned char stages;       // +0x136
             unsigned char stageIndex;   // +0x137
         };
     };
@@ -4394,7 +4403,7 @@ struct Gadget {                         // 0x15b bytes, one GUI list entry
             char unknown_13e_b[2];
             short field_140;            // +0x140
             char unknown_142_b[2];
-            void (__stdcall* callback)(Gui*, int);      // +0x144
+            void (__stdcall* sliderCallback)(Gui*, int);      // +0x144
             short unknown_148;
             int callbackArg;            // +0x14a
         };
@@ -4625,16 +4634,16 @@ void __stdcall LayoutLabelText(Gui* obj, int index)
         lh = GetFontHeight();
     else
         lh = GetGafFrame(g_guiContext->language->glyphs, 0x49)->height + 2;
-    if (entry->flags & 4) {
+    if (entry->attribs & 4) {
         nx = entry->w + x;
         nx -= GetTextPixelWidth(entry->u.text);
-    } else if (entry->flags & 2) {
+    } else if (entry->attribs & 2) {
         nx = entry->w / 2 + x;
         int half = GetTextPixelWidth(entry->u.text) / 2;
         nx -= half;
         // No named local for the width: it changes how lh is loaded.
         entry->w = (short)(half * 2);
-    } else if (entry->flags & 1)
+    } else if (entry->attribs & 1)
         entry->w = (short)GetTextPixelWidth(entry->u.text);
     // Stored via entries[index], not entry: pins the store order of x, w and h.
     entries[index].x = (short)nx;
@@ -4683,16 +4692,16 @@ void __stdcall DrawLabel(Gui* obj, int index)
     int nx = rect.left;
     Gadget* entry = &entries[index];
 
-    if (entry->flags & 4) {
+    if (entry->attribs & 4) {
         nx = entry->w + rect.left;
         nx -= GetTextPixelWidth(entry->u.text);
-    } else if (entry->flags & 2) {
+    } else if (entry->attribs & 2) {
         nx = entry->w / 2 + rect.left;
         int half = GetTextPixelWidth(entry->u.text) / 2;
         nx -= half;
     }
 
-    if (i != -1 && (entries[index].flags & 8)) {
+    if (i != -1 && (entries[index].attribs & 8)) {
         SetTextColors(obj->colours[0], GetTextKeyColor());
         DrawString(entries->u.assets.surface, entries[index].u.text, nx + 1, rect.top + 3, -1);
     }
@@ -4769,7 +4778,7 @@ int __stdcall TruncateGadgetText(Gui* menu, int index)
     if (text == 0)
         return 0;
     if (entries[index].type == 5 ||
-        (entries[index].type == 1 && (entries[index].flags & 0x8000) != 0))
+        (entries[index].type == 1 && (entries[index].attribs & 0x8000) != 0))
         menu->language = menu->values[1];
     while (1) {
         int w = GetTextPixelWidth(text);
@@ -4864,7 +4873,7 @@ void __stdcall DrawButton(Gui* menu, int index)
     }
     rect.right = me->w + rect.left - 1;
     rect.bottom = rect.top + me->h - 1;
-    if (me->flags & 0x8000)
+    if (me->attribs & 0x8000)
         menu->language = menu->values[1];
 
     // Own counter, not t: it shares the slot of t.
@@ -4886,12 +4895,12 @@ void __stdcall DrawButton(Gui* menu, int index)
     if (me->gaf != 0) {
         GafFrame* glyph;
         if (me->field_13c & 1) {
-            if (me->flags & 0x100) {
+            if (me->attribs & 0x100) {
                 glyph = GetGafFrame(me->gaf, me->gaf->count - 1);
-            } else if (me->stage != 0) {
+            } else if (me->stages != 0) {
                 glyph = GetGafFrame(me->gaf, me->stageIndex);
                 border = 1;
-            } else if (me->flags & 0x1800) {
+            } else if (me->attribs & 0x1800) {
                 glyph = GetGafFrame(me->gaf, me->field_13b);
                 border = 1;
             } else {
@@ -4899,16 +4908,16 @@ void __stdcall DrawButton(Gui* menu, int index)
                 if (me->field_138 + 2 < val)
                     val = me->field_138 + 2;
                 glyph = GetGafFrame(me->gaf, val + me->field_13b);
-                if (!(me->flags & 0x80))
+                if (!(me->attribs & 0x80))
                     border = 1;
             }
         } else {
-            if (me->field_138 != 0 && (unsigned short)me->gaf->count > (unsigned short)me->stage) {
-                if (me->stage != 0)
+            if (me->field_138 != 0 && (unsigned short)me->gaf->count > (unsigned short)me->stages) {
+                if (me->stages != 0)
                     glyph = GetGafFrame(me->gaf, me->gaf->count - 2);
                 else
                     glyph = GetGafFrame(me->gaf, me->field_13b + me->field_138);
-            } else if (me->stage != 0)
+            } else if (me->stages != 0)
                 glyph = GetGafFrame(me->gaf, me->stageIndex);
             else
                 glyph = GetGafFrame(me->gaf, me->field_13b);
@@ -4944,7 +4953,7 @@ void __stdcall DrawButton(Gui* menu, int index)
             SetTextColors(menu->colours[me->colours], GetTextKeyColor());
 
         p = text;
-        if (me->stage != 0) {
+        if (me->stages != 0) {
             for (unsigned int k = me->stageIndex; k != 0; k--) {
                 while (*p != 0)
                     p++;
@@ -4953,18 +4962,18 @@ void __stdcall DrawButton(Gui* menu, int index)
         }
 
         y = (rect.bottom - LineHeight() - rect.top) / 2 + flagy + rect.top;
-        if (me->flags & 0x8000)
+        if (me->attribs & 0x8000)
             menu->language = menu->values[1];
 
-        if (me->flags & 1) {
+        if (me->attribs & 1) {
             DrawTextClipped(surface, p, t + rect.left + 3, y,
                          rect.right - rect.left + 1, 0);
-        } else if (me->flags & 4) {
+        } else if (me->attribs & 4) {
             x = rect.right - textw - 3;
             if (x < rect.left)
                 x = rect.left;
             DrawTextClipped(surface, p, x, y, rect.right - rect.left + 1, 0);
-        } else if (me->flags & 2) {
+        } else if (me->attribs & 2) {
             x = (rect.right - textw - rect.left) / 2 + t;
             x += rect.left + 1;
             if (me->field_13a == 0 || (me->field_13c & 1)) {
@@ -5010,7 +5019,7 @@ void __stdcall DrawButton(Gui* menu, int index)
                     DrawTextClipped(surface, p, x, y, width, 0);
                 }
             }
-        } else if (me->flags & 0x20) {
+        } else if (me->attribs & 0x20) {
             int xb;
             char* found;
             xb = (rect.right - textw - rect.left) / 2 + t;
@@ -5127,7 +5136,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
     }
 
     if (obj->focus == index) {
-        if (entry->flags & 0x10) {
+        if (entry->attribs & 0x10) {
             if (!HasMouseKeyFlags(obj, 3))
                 goto fail;
             obj->focus = -1;
@@ -5142,7 +5151,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
             DrawButton(obj, index);
             return 1;
         }
-        if (entry->flags & 0x40) {
+        if (entry->attribs & 0x40) {
             if (!HasMouseKeyFlags(obj, 3)) {
                 obj->focus = -1;
                 if (point.x < r.left || point.x > r.right
@@ -5170,7 +5179,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
             DrawButton(obj, index);
             return 0;
         }
-        if (entry->flags & 8) {
+        if (entry->attribs & 8) {
             if (HasMouseKeyFlags(obj, 3))
                 goto fail;
             if (point.x < r.left || point.x > r.right
@@ -5185,7 +5194,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
             obj->focus = -1;
             return 1;
         }
-        if (entry->flags & 0x100) {
+        if (entry->attribs & 0x100) {
             if (!IsMouseButtonMessage(obj, 1))
                 goto fail;
             if (point.x < r.left || point.x > r.right
@@ -5209,10 +5218,10 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
             ClearPeerStatus(obj, index);
             if (point.x >= r.left && point.x <= r.right
                 && point.y >= r.top && point.y <= r.bottom
-                && !(entry->flags & 0x1800)) {
-                if (entry->stage != 0) {
+                && !(entry->attribs & 0x1800)) {
+                if (entry->stages != 0) {
                     entry->stageIndex += 1;
-                    if (entry->stageIndex >= entry->stage)
+                    if (entry->stageIndex >= entry->stages)
                         entry->stageIndex = 0;
                 }
                 DrawButton(obj, index);
@@ -5222,7 +5231,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
             return 0;
         }
         // Keep this if / else-if / else chain: it gives the original block layout.
-        if (entry->field_138 != 0 && (entry->flags & 0x2000)) {
+        if (entry->field_138 != 0 && (entry->attribs & 0x2000)) {
             if (DAT_0051fbb0 == GetTicks())
                 goto fail;
             DAT_0051fbb0 = GetTicks();
@@ -5246,7 +5255,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
             return 0;
         }
         DrawButton(obj, index);
-        int flags = entry->flags;
+        int flags = entry->attribs;
         if (!(flags & 0x1800))
             goto fail;
         // Inline FindKind fed a byte local: fixes the obj/entry register choice.
@@ -5262,15 +5271,15 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
             if (off > 0)
                 f->field_140 = off - 1;
         } else {
-            if (off < f->field_136 - 1)
+            if (off < f->range - 1)
                 f->field_140 = off + 1;
         }
         if (obj->layer)
             obj->layer->dirty = 1;
         DrawSliderBar(obj, found);
         SyncAssocGadgets(obj, found);
-        if (f->callback)
-            f->callback(obj, f->callbackArg);
+        if (f->sliderCallback)
+            f->sliderCallback(obj, f->callbackArg);
         return 0;
     } else {
         if (!(obj->focus != -1 && entries[obj->focus].type == 3) || IsKeyDown(0xfb)) {
@@ -5278,10 +5287,10 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
                 if (param_3 != 0) {
                     if ((char)tolower((char)entry->field_13a) == (char)param_3
                         || (char)toupper((char)entry->field_13a) == (char)param_3) {
-                        if (entry->flags & 0x40) {
+                        if (entry->attribs & 0x40) {
                             entry->field_138 = (entry->field_138 == 0);
                             DrawButton(obj, index);
-                        } else if (entry->flags & 0x10) {
+                        } else if (entry->attribs & 0x10) {
                             if (entry->field_138 == 0) {
                                 entry->field_138 = 1;
                                 DrawButton(obj, index);
@@ -5709,15 +5718,15 @@ void __stdcall FindButtonGaf(Gui* button, Gadget* obj)
         if (button->gaf != 0) {
             entry = FindGafEntry(button->gaf, name);
             if (entry == 0) {
-                if (obj->flags & 0x80) {
+                if (obj->attribs & 0x80) {
                     entry = FindGafEntry(button->gaf, "CHECKBOX");
-                } else if (obj->stage != 0) {
-                    int n = obj->stage < 4 ? obj->stage : 4;
+                } else if (obj->stages != 0) {
+                    int n = obj->stages < 4 ? obj->stages : 4;
                     sprintf(str, "stagebuttn%d", n);
                     entry = FindGafEntry(button->gaf, str);
-                    if (obj->stage == 1) {
-                        obj->stage = 2;
-                        obj->flags |= 0x4000;
+                    if (obj->stages == 1) {
+                        obj->stages = 2;
+                        obj->attribs |= 0x4000;
                     }
                 } else {
                     strcpy(str, "BUTTONS0");
@@ -5925,7 +5934,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                 GafFrame* frame = GetGafFrame(g, entries[i].sliderStyle + 6);
                 firstEnd->w = frame->width;
                 firstEnd->h = frame->height;
-                firstEnd->flags = 0x3400;
+                firstEnd->attribs = 0x3400;
                 firstEnd->field_29 = entries[i].field_29;
                 Gadget* secondEnd = &entries[AddGadgetEntry(menu, 1)];
                 secondEnd->field_29 = entries[i].field_29;
@@ -5934,7 +5943,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                 secondEnd->gaf = g;
                 secondEnd->field_13b = entries[i].sliderStyle + 8;
                 secondEnd->team = entries[i].team;
-                secondEnd->flags = 0x2c00;
+                secondEnd->attribs = 0x2c00;
                 secondEnd->w = frame->width;
                 secondEnd->h = frame->height;
                 frame = GetGafFrame(g, entries[i].sliderStyle + 6);
@@ -5945,7 +5954,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                     entries[i].x += frame->width;
                     frame = GetGafFrame(g, entries[i].sliderStyle + 5);
                     entries[i].sliderThumb = frame->width;
-                    entries[i].field_136 = entries[i].w - entries[i].sliderThumb - 4;
+                    entries[i].range = entries[i].w - entries[i].sliderThumb - 4;
                 } else {
                     secondEnd->y = entries[i].y - (frame->height - entries[i].h);
                     secondEnd->x = entries[i].x;
@@ -5953,7 +5962,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                     entries[i].y += frame->height;
                 }
             } else {
-                entries[i].field_136 = (entries[i].w > entries[i].h ? entries[i].w : entries[i].h) - 6;
+                entries[i].range = (entries[i].w > entries[i].h ? entries[i].w : entries[i].h) - 6;
             }
             break;
         }
@@ -6016,8 +6025,8 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
             // pf is built from cur, not &entries[i].flags; the 0x80 test reads entries[i].flags.
             Gadget* cur = &entries[i];
             cur->colours = 0;
-            pf = &cur->flags;
-            if ((cur->flags & 0x1800) || (cur->resourceFlags & 1))
+            pf = &cur->attribs;
+            if ((cur->attribs & 0x1800) || (cur->resourceFlags & 1))
                 break;
             AssignQuickKey(menu, i);
             strncpy(textbuf, entries[i].name, 0x10);
@@ -6029,14 +6038,14 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                 if (menu->gaf != 0) {
                     g = FindGafEntry(menu->gaf, textbuf);
                     if (0 == g) {
-                        if (0x80 & entries[i].flags) {
+                        if (0x80 & entries[i].attribs) {
                             g = FindGafEntry(menu->gaf, "CHECKBOX");
-                        } else if (entries[i].stage != 0) {
-                            if (strcmp(entries[i].u.text, "Off|On") != 0 && entries[i].stage != 1 && 0 == (*pf & 0x4000)) {
-                                int n = entries[i].stage < 4 ? entries[i].stage : 4;
+                        } else if (entries[i].stages != 0) {
+                            if (strcmp(entries[i].u.text, "Off|On") != 0 && entries[i].stages != 1 && 0 == (*pf & 0x4000)) {
+                                int n = entries[i].stages < 4 ? entries[i].stages : 4;
                                 sprintf(stagebuf, "stagebuttn%d", n);
                             } else {
-                                entries[i].stage = 2;
+                                entries[i].stages = 2;
                                 strcpy(stagebuf, "stagebuttn1");
                                 *pf |= 0x4000;
                             }
@@ -6074,7 +6083,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                     entries[i].h = frame->height;
                 }
             }
-            if (0 != entries[i].stage) {
+            if (0 != entries[i].stages) {
                 char* p = entries[i].u.text;
                 while (*p) {
                     if (*p == '|')
@@ -6085,7 +6094,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                 char* dst = buf3;
                 char* src = cur->u.text;
                 int k = 0;
-                for (; k < cur->stage; k++) {
+                for (; k < cur->stages; k++) {
                     strcpy(dst, Translate(src));
                     dst += strlen(dst) + 1;
                     src += strlen(src) + 1;
@@ -6115,8 +6124,8 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
         }
 
         case 5:
-            if (strlen((char*)&entries[i].field_136) == 0)
-                entries[i].flags |= 0x10;
+            if (strlen((char*)&entries[i].range) == 0)
+                entries[i].attribs |= 0x10;
             else
                 AssignQuickKey(menu, i);
             entries[i].colours = 0;
@@ -6202,7 +6211,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                 if (force) {
                     Gadget* base = menu->layer->entries;
                     base[i].field_140 = 0;
-                    base[i].callback = 0;
+                    base[i].sliderCallback = 0;
                     base[i].callbackArg = 0;
                 }
                 if (force || (0x40 & flags))
@@ -6317,8 +6326,8 @@ void __stdcall DecrementKnobPos(Gui* obj, int index)
     // Keep the int copy of the old value: it fixes the register order of the entry address.
     int old = raw;
     e->field_140 = raw - 1;
-    if (e->field_140 > e->field_136 - 1) {
-        e->field_140 = e->field_136 - 1;
+    if (e->field_140 > e->range - 1) {
+        e->field_140 = e->range - 1;
     }
     if (e->field_140 < 0) {
         e->field_140 = 0;
@@ -6328,8 +6337,8 @@ void __stdcall DecrementKnobPos(Gui* obj, int index)
         DrawSliderBar(obj, index);
         SyncAssocGadgets(obj, index);
     }
-    if (e->callback) {
-        e->callback(obj, e->callbackArg);
+    if (e->sliderCallback) {
+        e->sliderCallback(obj, e->callbackArg);
     }
 }
 
@@ -6356,8 +6365,8 @@ void __stdcall IncrementKnobPos(Gui* obj, int index)
     // Keep the int copy of the old value: it fixes the register used for it.
     int old = raw;
     e->field_140 = raw + 1;
-    if (e->field_140 > e->field_136 - 1) {
-        e->field_140 = e->field_136 - 1;
+    if (e->field_140 > e->range - 1) {
+        e->field_140 = e->range - 1;
     }
     if (e->field_140 < 0) {
         e->field_140 = 0;
@@ -6367,8 +6376,8 @@ void __stdcall IncrementKnobPos(Gui* obj, int index)
         DrawSliderBar(obj, index);
         SyncAssocGadgets(obj, index);
     }
-    if (e->callback) {
-        e->callback(obj, e->callbackArg);
+    if (e->sliderCallback) {
+        e->sliderCallback(obj, e->callbackArg);
     }
 }
 
@@ -6592,16 +6601,16 @@ int __stdcall HandleGuiCommand(Gui* obj, int cmd)
             break;
         newsel = index;
         if (type == 1) {
-            if (e->flags & 0x10) {
+            if (e->attribs & 0x10) {
                 e->field_138 = 1;
                 ClearPeerStatus(obj, index);
                 DrawButton(obj, index);
             }
         }
-        if (type == 1 && e->stage != 0) {
+        if (type == 1 && e->stages != 0) {
             // Wrap through a pointer: a local copy makes the stage reload differ.
             unsigned char* p = &e->stageIndex;
-            if (++*p >= e->stage)
+            if (++*p >= e->stages)
                 *p = 0;
         }
         cmd = 0;
@@ -6869,7 +6878,7 @@ int __stdcall UpdateMenu(Gui* menu)
             case 5:
                 if (HandleLabelInput(menu, i, key) != 0) {
                     sel = -1;
-                    int found = FindEntry(entries, (char*)&e->field_136);
+                    int found = FindEntry(entries, (char*)&e->range);
                     // Keep this if/else nesting, with sel = i in the else.
                     if (found != sel) {
                         Gadget* me;
@@ -6880,7 +6889,7 @@ int __stdcall UpdateMenu(Gui* menu)
                                 sel = -1;
                             } else {
                                 me->stageIndex++;
-                                if (me->stageIndex >= me->stage)
+                                if (me->stageIndex >= me->stages)
                                     me->stageIndex = 0;
                                 DrawButton(menu, found);
                             }

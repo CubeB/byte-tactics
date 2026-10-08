@@ -4363,50 +4363,50 @@ piece,0x508540,14,src/graphics/movies.cpp,12,0,game data
 piece,0x508524,26,src/graphics/movies.cpp,11,0,game data
 piece,0x5084e8,57,src/graphics/movies.cpp,4,0,game data
 piece,0x5084bc,43,src/graphics/movies.cpp,3,0,game data
-piece,0x5072d8,5,src/frontend/skirmish_menu_47bd70.cpp,5,0,game data
-piece,0x5072e0,4,src/frontend/skirmish_menu_47bd70.cpp,4,0,game data
-piece,0x502abc,6,src/frontend/skirmish_menu_47ae60.cpp,36,0,game data
-piece,0x50842c,49,src/frontend/skirmish_menu_47ae60.cpp,33,0,game data
-piece,0x5083fc,48,src/frontend/skirmish_menu_47ae60.cpp,32,0,game data
-piece,0x5083c8,49,src/frontend/skirmish_menu_47ae60.cpp,31,0,game data
-piece,0x50838c,60,src/frontend/skirmish_menu_47ae60.cpp,30,0,game data
-piece,0x507cac,9,src/frontend/skirmish_menu_47ae60.cpp,29,0,game data
-piece,0x504f6c,7,src/frontend/skirmish_menu_47ae60.cpp,27,0,game data
-piece,0x507ccc,9,src/frontend/skirmish_menu_47ae60.cpp,26,0,game data
-piece,0x50837c,6,src/frontend/skirmish_menu_47ae60.cpp,23,0,game data
-piece,0x5080c0,9,src/frontend/skirmish_menu_47ae60.cpp,21,0,game data
-piece,0x5080cc,8,src/frontend/skirmish_menu_47ae60.cpp,19,0,game data
-piece,0x5082a4,39,src/frontend/skirmish_menu_47ae60.cpp,17,0,game data
-piece,0x508274,45,src/frontend/skirmish_menu_47ae60.cpp,16,0,game data
-piece,0x508334,14,src/frontend/skirmish_menu_47ae60.cpp,15,0,game data
-piece,0x508300,51,src/frontend/skirmish_menu_47ae60.cpp,14,0,game data
-piece,0x5082cc,52,src/frontend/skirmish_menu_47ae60.cpp,13,0,game data
-piece,0x50824c,39,src/frontend/skirmish_menu_47ae60.cpp,11,0,game data
-piece,0x508238,20,src/frontend/skirmish_menu_47ae60.cpp,10,0,game data
-piece,0x5081ec,41,src/frontend/skirmish_menu_47ae60.cpp,8,0,game data
-piece,0x5081bc,48,src/frontend/skirmish_menu_47ae60.cpp,7,0,game data
-piece,0x508218,31,src/frontend/skirmish_menu_47ae60.cpp,6,0,game data
-piece,0x508370,10,src/frontend/skirmish_menu_47ae60.cpp,5,0,game data
-piece,0x502a6c,9,src/frontend/skirmish_menu_47ae60.cpp,3,0,game data
-piece,0x5080b8,8,src/frontend/skirmish_menu_47acd0.cpp,3,0,game data
-piece,0x505ae0,6,src/frontend/skirmish_menu_47acb0.cpp,3,0,game data
-piece,0x508344,42,src/frontend/skirmish_menu_47aaf0.cpp,7,0,game data
-piece,0x505b4c,11,src/frontend/skirmish_menu_47aaf0.cpp,6,0,game data
-piece,0x505b3c,16,src/frontend/skirmish_menu_47aaf0.cpp,5,0,game data
-piece,0x505b30,12,src/frontend/skirmish_menu_47aaf0.cpp,4,0,game data
-piece,0x505b24,9,src/frontend/skirmish_menu_47aaf0.cpp,3,0,game data
-piece,0x505af0,7,src/frontend/skirmish_menu_47a910.cpp,9,0,game data
-piece,0x5081b4,8,src/frontend/skirmish_menu_47a910.cpp,3,0,game data
-piece,0x5080e8,9,src/frontend/skirmish_menu_47a0e0.cpp,25,0,game data
-piece,0x5080dc,9,src/frontend/skirmish_menu_47a0e0.cpp,24,0,game data
-piece,0x5056f8,5,src/frontend/skirmish_menu_47a0e0.cpp,22,0,game data
-piece,0x5080d4,7,src/frontend/skirmish_menu_47a0e0.cpp,21,0,game data
-piece,0x507a0c,9,src/frontend/skirmish_menu_47a0e0.cpp,20,0,game data
-piece,0x5081a8,10,src/frontend/skirmish_menu_479c50.cpp,13,0,game data
-piece,0x508180,38,src/frontend/skirmish_menu_479c50.cpp,8,0,game data
-piece,0x508174,9,src/frontend/skirmish_menu_479c50.cpp,6,0,game data
-piece,0x508134,61,src/frontend/skirmish_menu_479c50.cpp,5,0,game data
-piece,0x5080f4,63,src/frontend/skirmish_menu_479c50.cpp,3,0,game data
+piece,0x5072d8,5,src/frontend/skirmish_menu_479660.cpp,105,0,game data
+piece,0x5072e0,4,src/frontend/skirmish_menu_479660.cpp,104,0,game data
+piece,0x502abc,6,src/frontend/skirmish_menu_479660.cpp,96,0,game data
+piece,0x50842c,49,src/frontend/skirmish_menu_479660.cpp,93,0,game data
+piece,0x5083fc,48,src/frontend/skirmish_menu_479660.cpp,92,0,game data
+piece,0x5083c8,49,src/frontend/skirmish_menu_479660.cpp,91,0,game data
+piece,0x50838c,60,src/frontend/skirmish_menu_479660.cpp,90,0,game data
+piece,0x507cac,9,src/frontend/skirmish_menu_479660.cpp,89,0,game data
+piece,0x504f6c,7,src/frontend/skirmish_menu_479660.cpp,20,0,game data
+piece,0x507ccc,9,src/frontend/skirmish_menu_479660.cpp,88,0,game data
+piece,0x50837c,6,src/frontend/skirmish_menu_479660.cpp,85,0,game data
+piece,0x5080c0,9,src/frontend/skirmish_menu_479660.cpp,15,0,game data
+piece,0x5080cc,8,src/frontend/skirmish_menu_479660.cpp,16,0,game data
+piece,0x5082a4,39,src/frontend/skirmish_menu_479660.cpp,43,0,game data
+piece,0x508274,45,src/frontend/skirmish_menu_479660.cpp,42,0,game data
+piece,0x508334,14,src/frontend/skirmish_menu_479660.cpp,47,0,game data
+piece,0x508300,51,src/frontend/skirmish_menu_479660.cpp,46,0,game data
+piece,0x5082cc,52,src/frontend/skirmish_menu_479660.cpp,45,0,game data
+piece,0x50824c,39,src/frontend/skirmish_menu_479660.cpp,40,0,game data
+piece,0x508238,20,src/frontend/skirmish_menu_479660.cpp,39,0,game data
+piece,0x5081ec,41,src/frontend/skirmish_menu_479660.cpp,36,0,game data
+piece,0x5081bc,48,src/frontend/skirmish_menu_479660.cpp,35,0,game data
+piece,0x508218,31,src/frontend/skirmish_menu_479660.cpp,37,0,game data
+piece,0x508370,10,src/frontend/skirmish_menu_479660.cpp,82,0,game data
+piece,0x502a6c,9,src/frontend/skirmish_menu_479660.cpp,80,0,game data
+piece,0x5080b8,8,src/frontend/skirmish_menu_479660.cpp,14,0,game data
+piece,0x505ae0,6,src/frontend/skirmish_menu_479660.cpp,73,0,game data
+piece,0x508344,42,src/frontend/skirmish_menu_479660.cpp,70,0,game data
+piece,0x505b4c,11,src/frontend/skirmish_menu_479660.cpp,69,0,game data
+piece,0x505b3c,16,src/frontend/skirmish_menu_479660.cpp,68,0,game data
+piece,0x505b30,12,src/frontend/skirmish_menu_479660.cpp,67,0,game data
+piece,0x505b24,9,src/frontend/skirmish_menu_479660.cpp,61,0,game data
+piece,0x505af0,7,src/frontend/skirmish_menu_479660.cpp,62,0,game data
+piece,0x5081b4,8,src/frontend/skirmish_menu_479660.cpp,34,0,game data
+piece,0x5080e8,9,src/frontend/skirmish_menu_479660.cpp,21,0,game data
+piece,0x5080dc,9,src/frontend/skirmish_menu_479660.cpp,18,0,game data
+piece,0x5056f8,5,src/frontend/skirmish_menu_479660.cpp,19,0,game data
+piece,0x5080d4,7,src/frontend/skirmish_menu_479660.cpp,17,0,game data
+piece,0x507a0c,9,src/frontend/skirmish_menu_479660.cpp,3,0,game data
+piece,0x5081a8,10,src/frontend/skirmish_menu_479660.cpp,31,0,game data
+piece,0x508180,38,src/frontend/skirmish_menu_479660.cpp,29,0,game data
+piece,0x508174,9,src/frontend/skirmish_menu_479660.cpp,28,0,game data
+piece,0x508134,61,src/frontend/skirmish_menu_479660.cpp,27,0,game data
+piece,0x5080f4,63,src/frontend/skirmish_menu_479660.cpp,26,0,game data
 piece,0x5080ac,9,src/frontend/campaign_menu_478e80.cpp,73,0,game data
 piece,0x50809c,13,src/frontend/campaign_menu_478e80.cpp,72,0,game data
 piece,0x506c14,8,src/frontend/campaign_menu_478e80.cpp,69,0,game data
@@ -12272,17 +12272,14 @@ same,0x504ea0,7,src/frontend/campaign_menu_478240.cpp,6,0,
 same,0x504e98,5,src/frontend/campaign_menu_478240.cpp,5,0,
 same,0x502b38,8,src/frontend/campaign_menu_478cb0.cpp,9,0,
 same,0x503130,12,src/frontend/campaign_menu_478cb0.cpp,8,0,
-same,0x50495c,15,src/frontend/skirmish_menu_47a0e0.cpp,13,0,
-same,0x502288,8,src/frontend/skirmish_menu_47a0e0.cpp,10,0,
-same,0x504944,12,src/frontend/skirmish_menu_47a0e0.cpp,7,0,
-same,0x503130,12,src/frontend/skirmish_menu_47a910.cpp,4,0,
-same,0x504988,5,src/frontend/skirmish_menu_47ae60.cpp,25,0,
-same,0x508384,7,src/frontend/skirmish_menu_47ae60.cpp,24,0,
-same,0x50495c,15,src/frontend/skirmish_menu_47ae60.cpp,18,0,
-same,0x502288,8,src/frontend/skirmish_menu_47ae60.cpp,12,0,
-same,0x504944,12,src/frontend/skirmish_menu_47ae60.cpp,9,0,
-same,0x502a78,11,src/frontend/skirmish_menu_47ae60.cpp,4,0,
-same,0x506290,6,src/frontend/skirmish_menu_47bd70.cpp,3,0,
+same,0x50495c,15,src/frontend/skirmish_menu_479660.cpp,44,0,
+same,0x502288,8,src/frontend/skirmish_menu_479660.cpp,41,0,
+same,0x504944,12,src/frontend/skirmish_menu_479660.cpp,38,0,
+same,0x503130,12,src/frontend/skirmish_menu_479660.cpp,57,0,
+same,0x504988,5,src/frontend/skirmish_menu_479660.cpp,87,0,
+same,0x508384,7,src/frontend/skirmish_menu_479660.cpp,86,0,
+same,0x502a78,11,src/frontend/skirmish_menu_479660.cpp,81,0,
+same,0x506290,6,src/frontend/skirmish_menu_479660.cpp,103,0,
 same,0x4814f0,16,src/map/line_of_sight_4814c0.cpp,6,0,
 same,0x502288,8,src/map/plot_map.cpp,15,0,
 same,0x508be8,7,src/units/units_4864b0.cpp,4,0,

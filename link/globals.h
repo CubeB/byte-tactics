@@ -78,7 +78,7 @@ extern char* g_saveBankName;                                                    
 extern char* g_summaryAccountName;                                                                // 0x503320, 4 bytes; 1 of 1 files
 extern char DAT_00503374[4];                                                                      // 0x503374, 4 bytes; 3 of 3 files
 extern const char g_fontsDirName[8];                                                              // 0x50338c, 8 bytes; 1 of 1 files
-extern char DAT_0050341c[4];                                                                      // 0x50341c, 4 bytes; 1 of 1 files
+extern char g_tdfExtension[4];                                                                    // 0x50341c, 4 bytes; 1 of 1 files
 extern char DAT_0050372c[4];                                                                      // 0x50372c, 4 bytes; 3 of 3 files
 extern char g_noneString[8];                                                                      // 0x503ea0, 8 bytes; 1 of 1 files
 extern char g_sayChoiceArrayName[20];                                                             // 0x504314, 20 bytes; 1 of 1 files
@@ -99,7 +99,7 @@ extern char g_mapKey[4];                                                        
 extern char g_missionKey[8];                                                                      // 0x504994, 8 bytes; 1 of 1 files
 extern char g_buildTimeFormat[16];                                                                // 0x50499c, 16 bytes; 1 of 1 files
 extern char g_buildDateFormat[16];                                                                // 0x5049ac, 16 bytes; 1 of 1 files
-extern char DAT_00504a64[8];                                                                      // 0x504a64, 8 bytes; 1 of 1 files
+extern char g_campsDirName[8];                                                                    // 0x504a64, 8 bytes; 1 of 1 files
 extern const char g_defaultLanguage[8];                                                           // 0x504ab8, 8 bytes; 1 of 1 files
 extern char g_hardGadgetName[8];                                                                  // 0x504e98, 8 bytes; 1 of 1 files
 extern char g_mediumGadgetName[8];                                                                // 0x504ea0, 8 bytes; 1 of 1 files
@@ -148,8 +148,8 @@ extern char g_radarPicTempName[16];                                             
 extern char g_radarPictureName[16];                                                               // 0x5074f8, 16 bytes; 1 of 1 files
 extern char g_radarMappedName[16];                                                                // 0x507508, 16 bytes; 1 of 1 files
 extern char g_radarFinalName[12];                                                                 // 0x507518, 12 bytes; 1 of 1 files
-extern int DAT_00507b6c;                                                                          // 0x507b6c, 4 bytes; 1 of 1 files
-extern unsigned char DAT_00507b70[1];                                                             // 0x507b70, 1 bytes; 1 of 1 files
+extern int g_campaignSimplifiedLayout;                                                            // 0x507b6c, 4 bytes; 1 of 1 files
+extern unsigned char g_briefingTextColors[1];                                                     // 0x507b70, 1 bytes; 1 of 1 files
 extern char* g_forcesDestroyedTexts[3];                                                           // 0x507b88, 12 bytes; 1 of 1 files
 extern char DAT_00508384[8];                                                                      // 0x508384, 8 bytes; 1 of 1 files
 extern const char g_skirmishCheatSoundName[16];                                                   // 0x508460, 16 bytes; 1 of 1 files
@@ -290,7 +290,7 @@ extern int g_explosion1EndSize;                                                 
 extern int g_explosion2Duration;                                                                  // 0x511fa8, 4 bytes; 1 of 1 files
 extern int g_explosion2StartSize;                                                                 // 0x511fac, 4 bytes; 1 of 1 files
 extern int g_explosion2EndSize;                                                                   // 0x511fb0, 4 bytes; 1 of 1 files
-extern List_00422ea0* DAT_00511fb4;                                                               // 0x511fb4, 4 bytes, DAT_00511fb4$S22242; 1 of 2 files (conflicting: struct names only)
+extern List_00422ea0* DAT_00511fb4;                                                               // 0x511fb4, 4 bytes, DAT_00511fb4$S23898; 1 of 2 files (conflicting: struct names only)
 extern char DAT_00511fb8[256];                                                                    // 0x511fb8, 256 bytes; 1 of 1 files
 extern unsigned char DAT_005120b8[464];                                                           // 0x5120b8, 464 bytes; Entry_00428730[10] by value in 1 of 1 files
 extern int DAT_00512288;                                                                          // 0x512288, 4 bytes; 1 of 1 files
@@ -525,22 +525,22 @@ extern unsigned char DAT_0051e609[7];                                           
 extern unsigned char g_particlePool[36];                                                          // 0x51e610, 36 bytes; Class_00470ed0 by value in 5 of 5 files
 extern unsigned char g_particlePoolDestroyed;                                                     // 0x51e634, 1 bytes; 1 of 1 files
 extern unsigned char DAT_0051e635[7];                                                             // 0x51e635, 7 bytes; nothing refers to it
-extern char* DAT_0051e63c;                                                                        // 0x51e63c, 4 bytes; 1 of 1 files
-extern unsigned char DAT_0051e640[12];                                                            // 0x51e640, 12 bytes; Anim_00478b40 by value in 1 of 1 files
-extern int DAT_0051e64c;                                                                          // 0x51e64c, 4 bytes; 1 of 1 files
-extern int DAT_0051e650;                                                                          // 0x51e650, 4 bytes; 1 of 1 files
-extern int DAT_0051e654;                                                                          // 0x51e654, 4 bytes; 1 of 1 files
+extern char* g_briefingWrappedText;                                                               // 0x51e63c, 4 bytes; 1 of 1 files
+extern unsigned char g_briefingPlanetFrameCursor[12];                                             // 0x51e640, 12 bytes; Anim_00478b40 by value in 1 of 1 files
+extern int g_briefingPageIndex;                                                                   // 0x51e64c, 4 bytes; 1 of 1 files
+extern int g_briefingPaginateReset;                                                               // 0x51e650, 4 bytes; 1 of 1 files
+extern int g_briefingWindSpeed;                                                                   // 0x51e654, 4 bytes; 1 of 1 files
 extern unsigned char DAT_0051e658[4];                                                             // 0x51e658, 4 bytes; nothing refers to it
-extern char* DAT_0051e65c;                                                                        // 0x51e65c, 4 bytes; 1 of 1 files
-extern char* DAT_0051e660;                                                                        // 0x51e660, 4 bytes; 1 of 1 files
+extern char* g_campaignNameList;                                                                  // 0x51e65c, 4 bytes; 1 of 1 files
+extern char* g_missionNameList;                                                                   // 0x51e660, 4 bytes; 1 of 1 files
 extern unsigned char DAT_0051e664[4];                                                             // 0x51e664, 4 bytes; nothing refers to it
-extern int DAT_0051e668;                                                                          // 0x51e668, 4 bytes; 1 of 1 files
-extern int DAT_0051e66c;                                                                          // 0x51e66c, 4 bytes; 1 of 1 files
-extern int DAT_0051e670;                                                                          // 0x51e670, 4 bytes; 1 of 1 files
-extern short DAT_0051e674;                                                                        // 0x51e674, 2 bytes; 1 of 1 files
-extern int DAT_0051e678;                                                                          // 0x51e678, 4 bytes; 1 of 1 files
-extern unsigned int DAT_0051e67c;                                                                 // 0x51e67c, 4 bytes; 1 of 1 files
-extern unsigned int DAT_0051e680;                                                                 // 0x51e680, 4 bytes; 1 of 1 files
+extern int g_anyMissionMode;                                                                      // 0x51e668, 4 bytes; 1 of 1 files
+extern int g_briefingBaseGadgetCount;                                                             // 0x51e66c, 4 bytes; 1 of 1 files
+extern int g_briefingWindTickCountdown;                                                           // 0x51e670, 4 bytes; 1 of 1 files
+extern short g_briefingPanoramaScrollX;                                                           // 0x51e674, 2 bytes; 1 of 1 files
+extern int g_briefingPanoramaNextTick;                                                            // 0x51e678, 4 bytes; 1 of 1 files
+extern unsigned int g_briefingPlanetLastTick;                                                     // 0x51e67c, 4 bytes; 1 of 1 files
+extern unsigned int g_briefingPlanetNextTick;                                                     // 0x51e680, 4 bytes; 1 of 1 files
 extern int DAT_0051e684;                                                                          // 0x51e684, 4 bytes; 2 of 2 files
 extern int DAT_0051e688;                                                                          // 0x51e688, 4 bytes; 2 of 2 files
 extern SpeechQueue* DAT_0051e68c;                                                                 // 0x51e68c, 4 bytes; 1 of 1 files

@@ -1226,7 +1226,7 @@ void __stdcall AddTextGadget(Layer_0045f1d0* layer, char* type, char* text, int 
 char* __stdcall SkipTextLines(char* text, int n);
 char* __stdcall Translate(char* text);
 const char* __stdcall Translate(const char* text);
-void __stdcall FUN_00476d80();
+void __stdcall InitBriefingText();
 void __stdcall FreeBlinkWords(int param_1);
 void __stdcall AllocBlinkWords(Sub_0045f800* sub, int value);
 void __stdcall AllocBlinkWords(Sub_004609b0* sub, int value);
@@ -1267,7 +1267,7 @@ int FindHostSlot();
 char* __cdecl _itoa(int value, char* buf, int radix);
 char* __stdcall WordWrapText(Menu_004604a0* menu, char* text, int player);
 int __stdcall SetCursorMode(int value);
-void FUN_00477410();
+void ApplyDifficultyButtons();
 char __stdcall FindGameCdDrive(int disc);
 void __stdcall RegisterDataArchives();
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
@@ -2757,7 +2757,7 @@ void OpenBriefingDialog()
     ((Entry_0045f800*)((char*)gadgets + i))[i].flags &= ~0x10;
     LoadPictureCached("igmbrief", 0, 0, 0);
     AllocBlinkWords((Sub_0045f800*)&g_game->gui, 0xf);
-    FUN_00476d80();
+    InitBriefingText();
     RenderLayer((Sub_0045f800*)&g_game->gui, 0x40);
 }
 
@@ -3121,7 +3121,7 @@ void OpenRestartDialog()
     if (second) {
         FUN_004a0bf0((Menu_004604a0*)&g_game->gui, "MISSIONNAME1", (int)second, 0x80);
     }
-    FUN_00477410();
+    ApplyDifficultyButtons();
     FUN_0049fb10((Menu_004604a0*)&g_game->gui, 1);
     RenderLayer((Menu_004604a0*)&g_game->gui, 0x40);
     SetCursorMode(0x13);
@@ -3310,7 +3310,7 @@ void __stdcall HandleInGameOptionsClick(Gadget_004609b0* gadget)
             ((Entry_004609b0*)((char*)gadgets + i))[i].flags &= ~0x10;
             LoadPictureCached("igmbrief", 0, 0, 0);
             AllocBlinkWords((Sub_004609b0*)&g_game->gui, 0xf);
-            FUN_00476d80();
+            InitBriefingText();
             RenderLayer((Sub_004609b0*)&g_game->gui, 0x40);
             return;
         }

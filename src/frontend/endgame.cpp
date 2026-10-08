@@ -376,8 +376,8 @@ void __stdcall SetFrontendState(int state, int line, const char* file);
 void __stdcall SetMissionType(int param);
 void __stdcall SetCursorMode(int n);
 void Force640x480Surfaces();
-void FUN_00477410();
-void FUN_00476ca0();
+void ApplyDifficultyButtons();
+void StartGlamourSound();
 char __stdcall FindGameCdDrive(int param_1);
 const char* __stdcall Translate(const char* text);
 void __stdcall OpenMessageBox(Menu* menu, const char* text, int param_3, int param_4, int param_5);
@@ -926,7 +926,7 @@ void __stdcall OpenEndMissionScreen()
         knob->field_136 = knob->height - knob->field_142 - 3;
         FUN_004a2e40(&g_game->menu, "Missions", g_game->mission);
         FUN_004a2e40(&g_game->menu, "Missions", g_game->mission + (g_game->field_391af != 0));
-        FUN_00477410();
+        ApplyDifficultyButtons();
     }
     Class_00463be0* player = &g_game->players[g_game->localPlayer];
     int x = g_game->width / 2;
@@ -1165,7 +1165,7 @@ void __stdcall RunEndGameState()
             g_game->deadline=now;
             g_endGameGlamourSoundStarted=0;
         } else {
-            if(!g_endGameGlamourSoundStarted) { FUN_00476ca0(); g_endGameGlamourSoundStarted=1; }
+            if(!g_endGameGlamourSoundStarted) { StartGlamourSound(); g_endGameGlamourSoundStarted=1; }
             if(g_game->deadline<GetTicks()) {
                 GetCurrentMouseEvent(event);
                 if(PopKey() || g_game->advance) {

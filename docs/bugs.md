@@ -1177,7 +1177,7 @@ Things that look wrong in the original but have no effect, kept for the record.
   dereferenced on both branches even when it is null (the else branch assigns
   through it too), so a missing Campaign gadget would crash. Found by OpenCode
   / deepseek-v4.1-flash in #6182.
-- **0x478b40** (possible): `DAT_0051e67c` is read as the frame the sequencer
+- **0x478b40** (possible): `g_briefingPlanetLastTick` is read as the frame the sequencer
   was last advanced on, but nothing in the exe writes it, so the animation
   advances on every call instead of once per frame. Found by OpenCode /
   deepseek-v4.1-flash in #6182.

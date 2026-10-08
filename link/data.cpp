@@ -70,7 +70,7 @@ char* g_saveBankName = (char*)"Total Annihilation 3.0";  // 0x50331c .data
 char* g_summaryAccountName = (char*)"Summary";  // 0x503320 .data
 char DAT_00503374[4] = "\\";  // 0x503374 .data
 const char g_fontsDirName[8] = "fonts";  // 0x50338c .data
-char DAT_0050341c[4] = "TDF";  // 0x50341c .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
+char g_tdfExtension[4] = "TDF";  // 0x50341c .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
 char DAT_0050372c[4] = "*";  // 0x50372c .data
 char g_noneString[8] = "none";  // 0x503ea0 .data
 char g_sayChoiceArrayName[20] = "Say Choice Array";  // 0x504314 .data
@@ -91,7 +91,7 @@ char g_mapKey[4] = "Map";  // 0x504990 .data
 char g_missionKey[8] = "Mission";  // 0x504994 .data
 char g_buildTimeFormat[16] = "BUILD TIME: %s";  // 0x50499c .data
 char g_buildDateFormat[16] = "BUILD DATE: %s";  // 0x5049ac .data
-char DAT_00504a64[8] = "camps";  // 0x504a64 .data
+char g_campsDirName[8] = "camps";  // 0x504a64 .data
 const char g_defaultLanguage[8] = "english";  // 0x504ab8 .data
 char g_hardGadgetName[8] = "Hard";  // 0x504e98 .data
 char g_mediumGadgetName[8] = "Medium";  // 0x504ea0 .data
@@ -145,8 +145,8 @@ char g_radarPicTempName[16] = "RADARPIC TEMP";  // 0x5074e8 .data
 char g_radarPictureName[16] = "RADAR PICTURE";  // 0x5074f8 .data
 char g_radarMappedName[16] = "RADAR MAPPED";  // 0x507508 .data
 char g_radarFinalName[12] = "RADAR FINAL";  // 0x507518 .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
-int DAT_00507b6c = 1;  // 0x507b6c .data
-unsigned char DAT_00507b70[1] = {53};  // 0x507b70 .data
+int g_campaignSimplifiedLayout = 1;  // 0x507b6c .data
+unsigned char g_briefingTextColors[1] = {53};  // 0x507b70 .data
 char* g_forcesDestroyedTexts[3] = {(char*)"forces have been obliterated", (char*)"vermin have been exterminated", (char*)"forces have gone to a better place"};  // 0x507b88 .data
 char DAT_00508384[8] = "Allies";  // 0x508384 .data
 const char g_skirmishCheatSoundName[16] = "SkirmishCheat";  // 0x508460 .data
@@ -611,22 +611,22 @@ unsigned char DAT_0051e609[7];  // 0x51e609 .bss
 unsigned char g_particlePool[36];  // 0x51e610 .bss
 unsigned char g_particlePoolDestroyed;  // 0x51e634 .bss
 unsigned char DAT_0051e635[7];  // 0x51e635 .bss
-char* DAT_0051e63c;  // 0x51e63c .bss
-unsigned char DAT_0051e640[12];  // 0x51e640 .bss
-int DAT_0051e64c;  // 0x51e64c .bss
-int DAT_0051e650;  // 0x51e650 .bss
-int DAT_0051e654;  // 0x51e654 .bss
+char* g_briefingWrappedText;  // 0x51e63c .bss
+unsigned char g_briefingPlanetFrameCursor[12];  // 0x51e640 .bss
+int g_briefingPageIndex;  // 0x51e64c .bss
+int g_briefingPaginateReset;  // 0x51e650 .bss
+int g_briefingWindSpeed;  // 0x51e654 .bss
 unsigned char DAT_0051e658[4];  // 0x51e658 .bss
-char* DAT_0051e65c;  // 0x51e65c .bss
-char* DAT_0051e660;  // 0x51e660 .bss
+char* g_campaignNameList;  // 0x51e65c .bss
+char* g_missionNameList;  // 0x51e660 .bss
 unsigned char DAT_0051e664[4];  // 0x51e664 .bss
-int DAT_0051e668;  // 0x51e668 .bss
-int DAT_0051e66c;  // 0x51e66c .bss
-int DAT_0051e670;  // 0x51e670 .bss
-short DAT_0051e674;  // 0x51e674 .bss
-int DAT_0051e678;  // 0x51e678 .bss
-unsigned int DAT_0051e67c;  // 0x51e67c .bss
-unsigned int DAT_0051e680;  // 0x51e680 .bss
+int g_anyMissionMode;  // 0x51e668 .bss
+int g_briefingBaseGadgetCount;  // 0x51e66c .bss
+int g_briefingWindTickCountdown;  // 0x51e670 .bss
+short g_briefingPanoramaScrollX;  // 0x51e674 .bss
+int g_briefingPanoramaNextTick;  // 0x51e678 .bss
+unsigned int g_briefingPlanetLastTick;  // 0x51e67c .bss
+unsigned int g_briefingPlanetNextTick;  // 0x51e680 .bss
 int DAT_0051e684;  // 0x51e684 .bss
 int DAT_0051e688;  // 0x51e688 .bss
 SpeechQueue* DAT_0051e68c;  // 0x51e68c .bss

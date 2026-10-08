@@ -1655,7 +1655,7 @@ piece,0x513000,46396,src/network/packets_460e20.cpp,3,0,game data
 piece,0x51e598,4,src/network/unit_sync_46c620.cpp,16,0,game data
 piece,0x51e59c,4,src/network/unit_sync_46c620.cpp,17,0,game data
 piece,0x51e6a0,16,src/map/line_of_sight_4814c0.cpp,3,0,game data
-piece,0x51f310,12,src/weapons/weapons_49e610.cpp,3,0,game data
+piece,0x51f310,12,src/weapons/weapons_49c740.cpp,3,0,game data
 piece,0x51fbbc,4,src/util/int_map_4b26f0.cpp,3,0,game data
 piece,0x51fbc0,16,src/util/int_map_4b2290.cpp,3,0,game data
 piece,0x528a54,4,src/debug/debug_lib_4db610.cpp,4,0,game data
@@ -4073,9 +4073,9 @@ piece,0x509894,12,src/game/main.cpp,23,0,game data
 piece,0x509764,45,src/game/main.cpp,10,0,game data
 piece,0x50974c,22,src/game/main.cpp,9,0,game data
 piece,0x509740,10,src/game/main.cpp,3,0,game data
-piece,0x4fda98,8,src/weapons/weapons_49e070.cpp,4,0,game data
-piece,0x509704,17,src/weapons/weapons_49e070.cpp,3,0,game data
-piece,0x5096f8,9,src/weapons/weapons_49cde0.cpp,3,0,game data
+piece,0x4fda98,8,src/weapons/weapons_49c740.cpp,49,0,game data
+piece,0x509704,17,src/weapons/weapons_49c740.cpp,48,0,game data
+piece,0x5096f8,9,src/weapons/weapons_49c740.cpp,13,0,game data
 piece,0x4fda60,8,src/weapons/weapons_499a30.cpp,27,0,game data
 piece,0x4fda68,8,src/weapons/weapons_499a30.cpp,27,8,game data
 piece,0x4fda78,8,src/weapons/weapons_499a30.cpp,27,24,game data
@@ -5928,7 +5928,7 @@ piece,0x501010,4,src/units/movement_class.cpp,2,0,game data
 piece,0x50101c,4,src/network/packets_460e20.cpp,2,0,game data
 piece,0x501028,4,src/map/line_of_sight_4814c0.cpp,2,0,game data
 piece,0x50102c,4,src/units/unit_commands_4889d0.cpp,2,0,game data
-piece,0x501030,4,src/weapons/weapons_49e610.cpp,2,0,game data
+piece,0x501030,4,src/weapons/weapons_49c740.cpp,2,0,game data
 piece,0x501034,4,src/util/int_map_4b2290.cpp,2,0,game data
 piece,0x50103c,4,src/util/commands.cpp,3,0,game data
 piece,0x50107c,4,LIBCMT.LIB#68,1,0,library data

@@ -115,6 +115,9 @@ static inline int IsState3_00452960(Player_00452960* p)
     return 0;
 }
 
+// Stays in its own file: the alliance table stores' SIB base/index order
+// follows the original translation unit's symbol ids, which the gathered
+// file changes.
 // FUNCTION: 0x452960
 int __stdcall SetAlliance(int from, int to, unsigned char value, int extra)
 {

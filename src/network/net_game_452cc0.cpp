@@ -135,6 +135,10 @@ static inline void Remove(Player_00452cc0* p)
     p->field_c = 0;
 }
 
+// Stays in its own file: the gathered file's earlier callers (0x451bc0 and up)
+// must keep their calls to GetSlotDpid, FindSlotByDpid and FindPlayerByDpid,
+// while RemovePlayer inlines them the way its original translation unit (with
+// the definitions beside it) did. One file cannot do both.
 // FUNCTION: 0x452cc0
 void __stdcall RemovePlayer(int id)
 {

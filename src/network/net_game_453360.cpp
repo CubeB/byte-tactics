@@ -41,6 +41,9 @@ static inline int FindTarget(Game* game)
     return -1;
 }
 
+// Stays in its own file: the 0x2bf1 read's SIB base/index order needs the
+// block-scope g_game declaration below to be the first one; the gathered file
+// declares g_game at file scope.
 // FUNCTION: 0x453360
 int __stdcall SendChatPacket(char* text)
 {

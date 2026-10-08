@@ -418,6 +418,8 @@ static inline int CommandAllowed(unsigned char* bytes)
     return 0;
 }
 
+// Stays in its own file: the dispatch loop's register allocation follows the
+// original translation unit's symbol ids, which the gathered file changes.
 // FUNCTION: 0x453d40
 int HandleNetPackets()
 {

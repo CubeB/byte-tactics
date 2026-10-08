@@ -658,5 +658,5 @@ int CheckMapCrc()
     if (!check) {
         return 1;
     }
-    return ((Mission*)g_game->field_391e9)->ComputeMapChecksum() == data->field_a9;
+    return g_game->field_391e9->ComputeMapChecksum() == data->field_a9;
 }

@@ -287,8 +287,8 @@ int LoadUnitInfo()
                 }
             }
             TdfFile parser;
-            ((TdfFile*)&parser)->LoadBuffer(buf, len, 0, "<NO FILE>");
-            if (!((TdfFile*)&parser)->SelectRecord("UNITINFO")) {
+            (&parser)->LoadBuffer(buf, len, 0, "<NO FILE>");
+            if (!(&parser)->SelectRecord("UNITINFO")) {
                 // Original bug: this exit leaves the FBI file open (no
                 // HAPI_CloseFile), the weapon TDF table allocated and the unit
                 // table locked (no ProtectBlockReadOnly).

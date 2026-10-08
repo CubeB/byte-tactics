@@ -762,7 +762,7 @@ void __stdcall ReadUnitState(BitReader* reader, Unit* u)
         spawn.tail.words = u->tail16;
         CreateUnitFromPacket((u->tail16.a & ~0xff) | u->playerIndex, &spawn);
     }
-    ((Block*)u->block)->field_10 = zero;
+    u->block->field_10 = zero;
     u->field_108 = reader->ReadBits(0x10);
     // Unsigned into an __int64: gives `fild qword` with no `cdq`.
     __int64 alpha = (unsigned int)reader->ReadBits(8);

@@ -682,7 +682,7 @@ void __stdcall ClearWeaponTarget(Unit* unit, int index)
         p->a = 0;
         p->b = (short)0x8000;
         unit->script->FindScript("StartBuilding");
-        ((CobScript*)unit->script)->StartScriptWithArgs("TargetCleared", 0, 0, 1, index, 0, 0, 0);
+        unit->script->StartScriptWithArgs("TargetCleared", 0, 0, 1, index, 0, 0, 0);
     }
 }
 
@@ -748,7 +748,7 @@ int __stdcall GetWeaponTargetPos(Unit* unit, Vec3_0048a1e0* pos, int index)
             e->point.a = 0;
             e->point.b = (short)0x8000;
             unit->script->FindScript("StartBuilding");
-            ((CobScript*)unit->script)->StartScriptWithArgs("TargetCleared", 0, 0, 1, index, 0, 0, 0);
+            unit->script->StartScriptWithArgs("TargetCleared", 0, 0, 1, index, 0, 0, 0);
         }
         return 0;
     }

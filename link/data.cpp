@@ -96,23 +96,23 @@ const char g_defaultLanguage[8] = "english";  // 0x504ab8 .data
 char g_hardGadgetName[8] = "Hard";  // 0x504e98 .data
 char g_mediumGadgetName[8] = "Medium";  // 0x504ea0 .data
 char g_easyGadgetName[8] = "Easy";  // 0x504ea8 .data
-int DAT_00505490[6] = {115200, 57600, 38400, 19200, 14400, 9600};  // 0x505490 .data
-unsigned int DAT_005054a8 = 16;  // 0x5054a8 .data
+int g_serialBaudRateTable[6] = {115200, 57600, 38400, 19200, 14400, 9600};  // 0x505490 .data
+unsigned int g_reporterCount = 16;  // 0x5054a8 .data
 // 0x5054b0 .data
-char* DAT_005054b0[23] = {
+char* g_battleRoomGadgetNames[23] = {
     (char*)"PLAYERx", (char*)"READYx", (char*)"LOGOx", (char*)"SIDEx", (char*)"PINGx", (char*)"MEMx", (char*)"RESx", (char*)"ALLYx",
     (char*)"CDx", (char*)"TEAMICONSx", 0, 0, (char*)"COMMNDER", (char*)"WATCHING", (char*)"FIXEDLOC", (char*)"MAPPING",
     (char*)"TECHLEVL", (char*)"SHARING", (char*)"CHEATING", (char*)"UNITS", (char*)"METAL", (char*)"ENERGY"
 };
-unsigned int DAT_0050550c = 4294967295u;  // 0x50550c .data
-int DAT_00505510 = -1;  // 0x505510 .data
-char* DAT_00505518[8] = {(char*)"COMMANDER", (char*)"MAPPING", (char*)"LOSTYPE", (char*)"WATCHING", (char*)"CHEATING", (char*)"FIXEDLOC", (char*)"GAMEOPEN"};  // 0x505518 .data
-char DAT_00505974[8] = "Multi";  // 0x505974 .data
+unsigned int g_lastPlayerCount = 4294967295u;  // 0x50550c .data
+int g_rejectPlayer = -1;  // 0x505510 .data
+char* g_hostOnlyGadgets[8] = {(char*)"COMMANDER", (char*)"MAPPING", (char*)"LOSTYPE", (char*)"WATCHING", (char*)"CHEATING", (char*)"FIXEDLOC", (char*)"GAMEOPEN"};  // 0x505518 .data
+char g_multiSoundName[8] = "Multi";  // 0x505974 .data
 char DAT_00505dc4[8] = "Ally";  // 0x505dc4 .data
-char DAT_00505f18[8] = "GAMES";  // 0x505f18 .data
-char DAT_00505f20[16] = "SAVEGAME DESCS";  // 0x505f20 .data
-char DAT_00505f30[16] = "SAVEGAME NAMES";  // 0x505f30 .data
-char DAT_00505f40[4] = "LST";  // 0x505f40 .data
+char g_gamesGadgetName[8] = "GAMES";  // 0x505f18 .data
+char g_savegameDescsName[16] = "SAVEGAME DESCS";  // 0x505f20 .data
+char g_savegameNamesName[16] = "SAVEGAME NAMES";  // 0x505f30 .data
+char g_lstExtension[4] = "LST";  // 0x505f40 .data
 char* g_leftGameTexts[8] = {(char*)"has left the scene", (char*)"has been shown the door", (char*)"has gone to a better place", (char*)"has bowed out", (char*)"has terminated", (char*)"has been eradicated", (char*)"has been liquidated", (char*)"has been obliterated"};  // 0x5061b8 .data
 int g_timeoutPlayerDpid = -1;  // 0x5061d8 .data
 char DAT_00506290[8] = "%s %s";  // 0x506290 .data
@@ -410,31 +410,31 @@ unsigned char DAT_0051233c[4];  // 0x51233c .bss
 unsigned char DAT_00512350[8];  // 0x512350 .bss
 unsigned char DAT_00512758[8];  // 0x512758 .bss
 int DAT_00512760;  // 0x512760 .bss
-int DAT_00512768;  // 0x512768 .bss
+int g_unitRestrictPicLoadIndex;  // 0x512768 .bss
 int DAT_0051276c;  // 0x51276c .bss
 unsigned char DAT_00512780[8];  // 0x512780 .bss
-unsigned int DAT_00512788;  // 0x512788 .bss
+unsigned int g_reporterNames;  // 0x512788 .bss
 unsigned char DAT_0051278c[60];  // 0x51278c .bss
 unsigned char DAT_005127c8[432];  // 0x5127c8 .bss
-int DAT_00512978;  // 0x512978 .bss
-int DAT_0051297c;  // 0x51297c .bss
-char* DAT_00512980;  // 0x512980 .bss
-int DAT_00512984;  // 0x512984 .bss
-Entry_004426e0* DAT_00512988;  // 0x512988 .bss
-char* DAT_0051298c;  // 0x51298c .bss
-char* DAT_00512990;  // 0x512990 .bss
-int DAT_00512994;  // 0x512994 .bss
+int g_unitRestrictPicCursor;  // 0x512978 .bss
+int g_unitRestrictRecordCursor;  // 0x51297c .bss
+char* g_modemInfo;  // 0x512980 .bss
+int g_modemCount;  // 0x512984 .bss
+Entry_004426e0* g_modemAccounts;  // 0x512988 .bss
+char* g_modemAccountNames;  // 0x51298c .bss
+char* g_oldMapName;  // 0x512990 .bss
+int g_battleRoomSlotsBuilt;  // 0x512994 .bss
 unsigned char DAT_00512998[12];  // 0x512998 .bss
-int DAT_005129a4;  // 0x5129a4 .bss
-unsigned int DAT_005129a8;  // 0x5129a8 .bss
-char* DAT_005129ac;  // 0x5129ac .bss
-char* DAT_005129b0;  // 0x5129b0 .bss
-Record_005129b4* DAT_005129b4;  // 0x5129b4 .bss
-int* DAT_005129b8;  // 0x5129b8 .bss
+int g_startCountdownNextTick;  // 0x5129a4 .bss
+unsigned int g_heartbeatNextTick;  // 0x5129a8 .bss
+char* g_saveListFileNames;  // 0x5129ac .bss
+char* g_saveListDisplayNames;  // 0x5129b0 .bss
+Record_005129b4* g_unitRestrictEntries;  // 0x5129b4 .bss
+int* g_unitRestrictPics;  // 0x5129b8 .bss
 unsigned char DAT_005129bc[4];  // 0x5129bc .bss
 int DAT_005129c0;  // 0x5129c0 .bss
-int* DAT_005129c4;  // 0x5129c4 .bss
-int DAT_005129c8;  // 0x5129c8 .bss
+int* g_unitRestrictOldCounts;  // 0x5129c4 .bss
+int g_unitRestrictNextPicTick;  // 0x5129c8 .bss
 unsigned char DAT_005129cc[4];  // 0x5129cc .bss
 void (__stdcall* g_packetHandlers[2])(void*);  // 0x512a20 .bss
 int (__stdcall* DAT_00512a28)(int);  // 0x512a28 .bss

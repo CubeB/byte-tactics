@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by claude-opus-5-5, finished by GPT-6, finished by Claude Opus 5.5. Names are provisional.
 // Opens the multiplayer battle room (LOUNGE2.GUI): resets the room state,
-// copies the lobby's command-line options (DAT_00512d68..DAT_00512d8c) or the
+// copies the lobby's command-line options (g_lobbyLock..g_lobbyWatching) or the
 // host's game options into the local player's flags, sets up the chat list,
 // MEM, START, the METAL/MAXUNITS/ENERGY sliders and the map, then refreshes
 // the whole room.
@@ -160,22 +160,22 @@ class Class_00435a20 { public: int LoadMissionByName(char* map); };
 class Class_00435c30 { public: char* GetMissionName(); };
 
 extern Game_00449bb0* g_game;
-extern int DAT_00512994;
-extern unsigned int DAT_0050550c;
-extern int DAT_00512764;
-extern int DAT_00512d68;
-extern int DAT_00512d6c;
-extern int DAT_00512d70;
-extern int DAT_00512d74;
-extern int DAT_00512d78;
-extern int DAT_00512d7c;
-extern int DAT_00512d80;
-extern int DAT_00512d84;
-extern int DAT_00512d88;
-extern int DAT_00512d8c;
-extern char DAT_00512ce8[];
-extern char* DAT_00505518[];
-extern char* DAT_005054b0[];
+extern int g_battleRoomSlotsBuilt;
+extern unsigned int g_lastPlayerCount;
+extern int g_battleRoomBaseGadgetCount;
+extern int g_lobbyLock;
+extern int g_lobbyMaxUnits;
+extern int g_lobbyEnergy;
+extern int g_lobbyMetal;
+extern int g_lobbyCommander;
+extern int g_lobbyLineOfSight;
+extern int g_lobbyCheating;
+extern int g_lobbyFixedLoc;
+extern int g_lobbyMapping;
+extern int g_lobbyWatching;
+extern char g_lobbyMapName[];
+extern char* g_hostOnlyGadgets[];
+extern char* g_battleRoomGadgetNames[];
 // After the externs: keeps the locals' symbol ids past 65536 (g_game stays below).
 #include "ta_protos.h"
 
@@ -237,7 +237,7 @@ void __stdcall UpdateEnergyText(Gui_00449bb0* gui, int unused)
 }
 
 // The slider set-up at 0x445e50, which has no callers: /Ob2 inlined it.
-void __stdcall FUN_00445e50(char* name, int max, int value, Callback_00449bb0 callback)
+void __stdcall BindNamedSliderWithCallback(char* name, int max, int value, Callback_00449bb0 callback)
 {
     Gui_00449bb0* gui = &g_game->gui;
     Gadget_00449bb0* gadgets = gui->table->entries;
@@ -267,8 +267,8 @@ void OpenBattleRoom()
     short isHost;
     int i;
 
-    DAT_00512994 = 0;
-    DAT_0050550c = -1;
+    g_battleRoomSlotsBuilt = 0;
+    g_lastPlayerCount = -1;
     g_game->dirty = 1;
     memset(g_game->field_2c28, 0, sizeof(g_game->field_2c28));
     // info before player: stores the player pointer without its 0x1b63 bias.
@@ -287,7 +287,7 @@ void OpenBattleRoom()
     layer->game = g_game;
     LoadPictureCached("battleroom", 0, 1, 0);
     entries = g_game->gui.table->entries;
-    DAT_00512764 = layer->entries->head.count;
+    g_battleRoomBaseGadgetCount = layer->entries->head.count;
 
     i = FindGadgetIndex(entries, "MESSAGE", 3);
     if (i != -1)
@@ -301,13 +301,13 @@ void OpenBattleRoom()
     }
 
     if (IsOnlineConfigLoaded()) {
-        if (DAT_00512d6c) {
-            info->maxUnits = DAT_00512d6c;
-            g_game->maxUnits = DAT_00512d6c;
+        if (g_lobbyMaxUnits) {
+            info->maxUnits = g_lobbyMaxUnits;
+            g_game->maxUnits = g_lobbyMaxUnits;
         }
-        g_game->locked = DAT_00512d68 != 0;
-        if (DAT_00512d78) {
-            int commander = DAT_00512d78 - 1;
+        g_game->locked = g_lobbyLock != 0;
+        if (g_lobbyCommander) {
+            int commander = g_lobbyCommander - 1;
             if (commander >= 0 && commander <= 2) {
                 g_game->commander = commander;
                 g_game->field_37ef6 = commander;
@@ -316,12 +316,12 @@ void OpenBattleRoom()
                 p->info->b.commander = commander;
             }
         }
-        if (DAT_00512d70)
-            energy = DAT_00512d70;
-        if (DAT_00512d74)
-            metal = DAT_00512d74;
-        if (DAT_00512d7c) {
-            switch (DAT_00512d7c) {
+        if (g_lobbyEnergy)
+            energy = g_lobbyEnergy;
+        if (g_lobbyMetal)
+            metal = g_lobbyMetal;
+        if (g_lobbyLineOfSight) {
+            switch (g_lobbyLineOfSight) {
             case 1:
                 info->b.los = 1;
                 info->b.losType = 1;
@@ -335,14 +335,14 @@ void OpenBattleRoom()
                 break;
             }
         }
-        if (DAT_00512d80)
-            info->b.cheating = DAT_00512d80 == 2;
-        if (DAT_00512d84)
-            info->b.fixedloc = DAT_00512d84 == 1;
-        if (DAT_00512d88)
-            info->b.mapping = DAT_00512d88 == 1;
-        if (DAT_00512d8c)
-            info->b.watching = DAT_00512d8c == 2;
+        if (g_lobbyCheating)
+            info->b.cheating = g_lobbyCheating == 2;
+        if (g_lobbyFixedLoc)
+            info->b.fixedloc = g_lobbyFixedLoc == 1;
+        if (g_lobbyMapping)
+            info->b.mapping = g_lobbyMapping == 1;
+        if (g_lobbyWatching)
+            info->b.watching = g_lobbyWatching == 2;
     } else if (host) {
         info->b.mapping = g_game->mapping;
         info->b.los = g_game->los;
@@ -352,7 +352,7 @@ void OpenBattleRoom()
     }
 
     if (!host || g_game->locked) {
-        for (char** p = DAT_00505518; *p; p++)
+        for (char** p = g_hostOnlyGadgets; *p; p++)
             FUN_004a1250(&g_game->gui, *p, 1);
     }
 
@@ -378,21 +378,21 @@ void OpenBattleRoom()
     FUN_004a0bf0(&g_game->gui, "METALTEXT", "0", 0);
     FUN_004a0bf0(&g_game->gui, "ENERGYTEXT", "0", 0);
 
-    FUN_00445e50("METAL", 0x2711, metal, UpdateMetalText);
+    BindNamedSliderWithCallback("METAL", 0x2711, metal, UpdateMetalText);
     {
         // maxUnits - 20 twice, not a named local: one CSE in the slot `player` used.
-        FUN_00445e50("MAXUNITS", g_game->maxUnits - 20, g_game->maxUnits - 20, UpdateMaxUnitsText);
+        BindNamedSliderWithCallback("MAXUNITS", g_game->maxUnits - 20, g_game->maxUnits - 20, UpdateMaxUnitsText);
     }
     if (!isHost || g_game->locked) {
         FUN_004a1450(&g_game->gui, "MAXUNITS", 1);
         FUN_004a1450(&g_game->gui, "ENERGY", 1);
         FUN_004a1450(&g_game->gui, "METAL", 1);
     }
-    FUN_00445e50("ENERGY", 0x2711, energy, UpdateEnergyText);
+    BindNamedSliderWithCallback("ENERGY", 0x2711, energy, UpdateEnergyText);
 
     ((Class_00435d30*)g_game->map)->RefreshMapList(1);
-    if (isHost && IsOnlineConfigLoaded() && DAT_00512ce8[0])
-        ((Class_00435a20*)g_game->map)->LoadMissionByName(DAT_00512ce8);
+    if (isHost && IsOnlineConfigLoaded() && g_lobbyMapName[0])
+        ((Class_00435a20*)g_game->map)->LoadMissionByName(g_lobbyMapName);
     if (!((Class_00435c40*)g_game->map)->HasMissionName())
         FatalError("Could not find the multiplayer map!!");
     strcpy(info->map, ((Class_00435c30*)g_game->map)->GetMissionName());
@@ -400,13 +400,13 @@ void OpenBattleRoom()
     BroadcastPlayerInfo();
     FUN_004a7190(&g_game->gui, FindGadgetIndex(g_game->gui.table->entries, "MESSAGE", 0xe));
 
-    for (char** p = DAT_005054b0; *p; p++) {
+    for (char** p = g_battleRoomGadgetNames; *p; p++) {
         int k = FindGadgetIndex(layer->entries, *p, 0xe);
         if (k != -1)
             layer->entries[k].visible = 0;
     }
 
-    FUN_004455b0();
+    BuildPlayerSlotGadgets();
     RefreshTeamIcons();
     RefreshBattleRoomRows();
     OrLabelAttribs();

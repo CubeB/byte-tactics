@@ -583,7 +583,7 @@ declares `unsigned short LoadFeatureType(char*)` where 0x4224b0.cpp has `int`
 int)` where 0x481550.cpp returns `Cell_00481550*` (overloads that differ only
 in their return type, error C2556). 0x41b2e0's `OpenGeneratorDialog(0)` becomes an
 ambiguous call between its own `Unit_0041b2e0*` declaration and the header's
-`Unit_0041b0f0*` one. 0x449bb0 declares `FUN_004455b0` with the default
+`Unit_0041b0f0*` one. 0x449bb0 declares `BuildPlayerSlotGadgets` with the default
 convention where 0x4455b0.cpp has `__cdecl` (C2373; the call is the same for a
 function without parameters), and `layer->handler = HandleBattleRoomClick` cannot pick
 between two overloads. 0x471de0 compiles with it unchanged.

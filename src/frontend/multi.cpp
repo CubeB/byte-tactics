@@ -714,7 +714,7 @@ struct Mode_00446310 {
     int field_8;                           // +0x08
 };
 
-struct Class_00446310 {
+struct ModeList {
     int count;                             // +0x00
     Mode_00446310* modes;                  // +0x04
     char unknown_8[0x14 - 0x8];            // +0x08
@@ -859,75 +859,75 @@ extern Game* g_game;
 extern int DAT_00512c84;
 // GLOBAL: 0x512d90
 extern char DAT_00512d90[];
-extern int DAT_00512768;
-extern int DAT_00512978;
-extern int DAT_0051297c;
-extern int DAT_005129a4;
-extern unsigned int DAT_005129a8;
-extern char* DAT_005129ac;
-extern char* DAT_005129b0;
-extern int* DAT_005129b8;
+extern int g_unitRestrictPicLoadIndex;
+extern int g_unitRestrictPicCursor;
+extern int g_unitRestrictRecordCursor;
+extern int g_startCountdownNextTick;
+extern unsigned int g_heartbeatNextTick;
+extern char* g_saveListFileNames;
+extern char* g_saveListDisplayNames;
+extern int* g_unitRestrictPics;
 extern int DAT_005129c0;
-extern int* DAT_005129c4;
+extern int* g_unitRestrictOldCounts;
 // GLOBAL: 0x5129c8
-extern int DAT_005129c8;
-extern unsigned int DAT_0050550c;
+extern int g_unitRestrictNextPicTick;
+extern unsigned int g_lastPlayerCount;
 extern char* DAT_005091c8;             // savegame directory
 extern char DAT_005119b8[];
 extern char DAT_0050372c[];            // "*"
-extern char DAT_00505f40[];            // "LST"
-extern char DAT_00505f18[];            // "GAMES"
-extern char DAT_00505f30[];            // "SAVEGAME NAMES"
-extern char DAT_00505f20[];            // "SAVEGAME DESCS"
-extern char* DAT_00505518[];
-extern char* DAT_005054b0[];
-extern char DAT_00512ce8[];
-extern int DAT_00512d68;
-extern int DAT_00512d6c;
-extern int DAT_00512d70;
-extern int DAT_00512d74;
-extern int DAT_00512d78;
-extern int DAT_00512d7c;
-extern int DAT_00512d80;
-extern int DAT_00512d84;
-extern int DAT_00512d88;
-extern int DAT_00512d8c;
+extern char g_lstExtension[];          // "LST"
+extern char g_gamesGadgetName[];       // "GAMES"
+extern char g_savegameNamesName[];     // "SAVEGAME NAMES"
+extern char g_savegameDescsName[];     // "SAVEGAME DESCS"
+extern char* g_hostOnlyGadgets[];
+extern char* g_battleRoomGadgetNames[];
+extern char g_lobbyMapName[];
+extern int g_lobbyLock;
+extern int g_lobbyMaxUnits;
+extern int g_lobbyEnergy;
+extern int g_lobbyMetal;
+extern int g_lobbyCommander;
+extern int g_lobbyLineOfSight;
+extern int g_lobbyCheating;
+extern int g_lobbyFixedLoc;
+extern int g_lobbyMapping;
+extern int g_lobbyWatching;
 extern void* DAT_004fd2f8;
 extern int g_usePacketManager;
 extern PacketManager g_packetManager;
 // GLOBAL: 0x5129b4
-extern Record_00446f50* DAT_005129b4;
+extern Record_00446f50* g_unitRestrictEntries;
 extern char DAT_00512d28;
 extern char DAT_00512d48;
 extern int DAT_00512c80;
-extern char* DAT_00512980;
-extern int DAT_00512984;
-extern Entry_004426e0* DAT_00512988;
-extern char* DAT_0051298c;
+extern char* g_modemInfo;
+extern int g_modemCount;
+extern Entry_004426e0* g_modemAccounts;
+extern char* g_modemAccountNames;
 extern GUID DAT_004fcdc8;
 extern GUID DAT_004fcda8;
 extern GUID DAT_004fcd98;
 extern GUID DAT_004fcdb8;
-extern GUID DAT_004fcec8;
-extern GUID DAT_004fce88;
-extern GUID DAT_004fcea8;
-extern GUID DAT_004fcee8;
-extern GUID DAT_004fcf08;
+extern GUID DPAID_Modem;
+extern GUID DPAID_ServiceProvider;
+extern GUID DPAID_Phone;
+extern GUID DPAID_INet;
+extern GUID DPAID_ComPort;
 extern char DAT_004fcfb8[];
 extern Serial_00441c30 DAT_00512770;
-extern int DAT_00512774;
-extern int DAT_00505490[];
-extern unsigned int DAT_005054a8;
-extern unsigned int DAT_00512788;
+extern int g_serialBaudRate;
+extern int g_serialBaudRateTable[];
+extern unsigned int g_reporterCount;
+extern unsigned int g_reporterNames;
 extern LinkInfo DAT_005127c8[];
 extern char DAT_00502ae8[];                // "OK"
-extern char DAT_00505974[];                // "Multi"
-extern char* DAT_00512990;
+extern char g_multiSoundName[];            // "Multi"
+extern char* g_oldMapName;
 extern int DAT_00512760;
-extern short DAT_00512764;
+extern short g_battleRoomBaseGadgetCount;
 extern int DAT_0051276c;
-extern int DAT_00512994;
-extern int DAT_00505510;
+extern int g_battleRoomSlotsBuilt;
+extern int g_rejectPlayer;
 
 int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
 Entry_00440d70* __stdcall FindGadgetChecked(void* entries, const char* name);
@@ -1029,9 +1029,9 @@ int InitScoreReporting();
 void __stdcall HandleSerialDialogClick(Gadget_00440d70* gadget);
 // Defined in multi_441220.cpp, which keeps its own views of the menu and the
 // entry record.
-void __stdcall FUN_00441220(Gadget_00440d70* menu, Entry_00440d70* entry);
-void __stdcall FUN_00442380(Gadget_00440d70* menu, Entry_00440d70* entry);
-void __stdcall FUN_004423a0(Gadget_00440d70* menu, Entry_00440d70* entry);
+void __stdcall UpdateGameSelection(Gadget_00440d70* menu, Entry_00440d70* entry);
+void __stdcall SetSerialBaudFromGadget(Gadget_00440d70* menu, Entry_00440d70* entry);
+void __stdcall SetSerialPortFromGadget(Gadget_00440d70* menu, Entry_00440d70* entry);
 void __stdcall HandleNewMultiClick(Gadget_00440d70* gadget);
 void __stdcall HandleTcpDialogClick(Gadget_00440d70* gadget);
 void __stdcall HandleModemDialogClick(Gadget_00440d70* gadget);
@@ -1042,9 +1042,9 @@ int __stdcall ConnectToGame(Layer_00440d70* gadget);
 void __stdcall ShowSelectedAccount(Gadget_00440d70* menu, Entry_00440d70* entry);
 void __stdcall OpenReportDialog(unsigned int* count, char** names);
 void FillAccountList(void);
-int __stdcall FUN_004444d0(Entry_00440d70* entries, int param_2, short param_3,
+int __stdcall CloneServiceSlot(Entry_00440d70* entries, int param_2, short param_3,
                            int param_4, char* param_5);
-void FUN_00443590(void);
+void ReportDialogFrame(void);
 
 void __stdcall RequestPlayerColor(int value);
 void* __stdcall LoadRadarPic(char* path, int* outX, int* outY);
@@ -1062,8 +1062,8 @@ int __stdcall IsGadgetNamed(int param1, int param2, char* name);
 int __stdcall GetSlotDpid(unsigned char player);
 void __stdcall RejectPlayer(int param_1, int param_2);
 void SaveSettings(void);
-int __stdcall GetDisplayModes(Class_00446310* obj);
-void __stdcall SortDisplayModes(Class_00446310* obj);
+int __stdcall GetDisplayModes(ModeList* obj);
+void __stdcall SortDisplayModes(ModeList* obj);
 void __stdcall RefreshAlliesScreen(int value);
 void __stdcall OpenRejectDialog(int player);
 void __stdcall BroadcastAllyTeam(Player_00444930* player);
@@ -1105,7 +1105,7 @@ void RebuildAllyList();
 void OpenLoadListDialog();
 void OpenSaveGameDialog();
 void OpenUnitRestrictions();
-void FUN_0044c220();
+void UnitRestrictDialogFrame();
 int __stdcall IsScreenNamed(void* gui, const char* name);
 void __stdcall FUN_004a15c0(Entry_00446f50* entries, int widget, RECT* rect);
 void __stdcall FUN_004a50e0(int a, char* text, int x, int y, int w, int h);
@@ -1243,7 +1243,7 @@ void OpenNewMultiDialog()
 // player record and +0x1b8a (0x1b63 + 0x27) its info block; the name is at
 // +0x80 of that block.
 // FUNCTION: 0x441430
-int __cdecl FUN_00441430()
+int __cdecl GetLocalPlayerPassword()
 {
     int ecx = (int)g_game;
     unsigned int edx = *(unsigned char*)(ecx + 0x2a42);
@@ -1299,26 +1299,26 @@ int __stdcall BuildCompoundAddress(int* addressOut, int* sizeOut)
     guid = g_game->info.guid;
 
     if (memcmp(&guid, &DAT_004fcdc8, sizeof(GUID)) == 0) {
-        elements[0].guid = DAT_004fce88;
+        elements[0].guid = DPAID_ServiceProvider;
         elements[0].size = 0x10;
         elements[0].data = &DAT_004fcdc8;
         // memset, not = "": plain rep stosd.
         memset(buf1, 0, sizeof(buf1));
-        char* s = DAT_00512980;
+        char* s = g_modemInfo;
         if (s == 0) {
             s = DAT_005119b8;
         }
         lstrcpyA(buf1, s);
-        elements[1].guid = DAT_004fcec8;
+        elements[1].guid = DPAID_Modem;
         elements[1].size = lstrlenA(buf1) + 1;
         elements[1].data = buf1;
         lstrcpyA(buf2, GetGadgetText(&g_game->menu, "NUMBER", 0));
-        elements[2].guid = DAT_004fcea8;
+        elements[2].guid = DPAID_Phone;
         elements[2].size = lstrlenA(buf2) + 1;
         elements[2].data = buf2;
         count = 3;
     } else if (memcmp(&guid, &DAT_004fcda8, sizeof(GUID)) == 0) {
-        elements[0].guid = DAT_004fce88;
+        elements[0].guid = DPAID_ServiceProvider;
         elements[0].size = 0x10;
         elements[0].data = &DAT_004fcda8;
         char* t = GetGadgetText(&g_game->menu, "ADDRESS", 0);
@@ -1326,28 +1326,28 @@ int __stdcall BuildCompoundAddress(int* addressOut, int* sizeOut)
             t = DAT_005119b8;
         }
         lstrcpyA(buf3, t);
-        elements[1].guid = DAT_004fcee8;
+        elements[1].guid = DPAID_INet;
         elements[1].size = lstrlenA(buf3) + 1;
         elements[1].data = buf3;
         count = 2;
     } else if (memcmp(&guid, &DAT_004fcd98, sizeof(GUID)) == 0) {
-        elements[0].guid = DAT_004fce88;
+        elements[0].guid = DPAID_ServiceProvider;
         elements[0].size = 0x10;
         elements[0].data = &DAT_004fcd98;
         count = 1;
     } else if (memcmp(&guid, &DAT_004fcdb8, sizeof(GUID)) == 0) {
-        elements[0].guid = DAT_004fce88;
+        elements[0].guid = DPAID_ServiceProvider;
         elements[0].size = 0x10;
         elements[0].data = &DAT_004fcdb8;
         DAT_00512770.unknown_8 = 0;
         DAT_00512770.unknown_c = 0;
         DAT_00512770.unknown_10 = 3;
-        elements[1].guid = DAT_004fcf08;
+        elements[1].guid = DPAID_ComPort;
         elements[1].size = 0x14;
         elements[1].data = &DAT_00512770;
         count = 2;
     } else {
-        elements[0].guid = DAT_004fce88;
+        elements[0].guid = DPAID_ServiceProvider;
         elements[0].size = 0x10;
         elements[0].data = &guid;
         count = 1;
@@ -1376,7 +1376,7 @@ cleanup:
 }
 
 // FUNCTION: 0x442000
-int __stdcall FUN_00442000(int unused)
+int __stdcall TryConnect(int unused)
 {
     int a = 0;
     int b = 0;
@@ -1495,16 +1495,16 @@ void OpenTcpDialog()
 // /Ob2 would inline their bodies there.
 #pragma auto_inline(off)
 // FUNCTION: 0x442380
-void __stdcall FUN_00442380(Gadget_00440d70* menu, Entry_00440d70* entry)
+void __stdcall SetSerialBaudFromGadget(Gadget_00440d70* menu, Entry_00440d70* entry)
 {
     int value = entry->index;
     if (value >= 0) {
-        DAT_00512774 = DAT_00505490[value];
+        g_serialBaudRate = g_serialBaudRateTable[value];
     }
 }
 
 // FUNCTION: 0x4423a0
-void __stdcall FUN_004423a0(Gadget_00440d70* menu, Entry_00440d70* entry)
+void __stdcall SetSerialPortFromGadget(Gadget_00440d70* menu, Entry_00440d70* entry)
 {
     int val = entry->index;
     if (val >= 0) {
@@ -1586,11 +1586,11 @@ void OpenSerialDialog()
         FUN_004a2e40(&g_game->menu, "PORTS", value);
     }
     Entry_00440d70* entry = FindGadgetChecked(gadget->entries, "PORTS");
-    entry->handler = FUN_004423a0;
-    FUN_004423a0(&g_game->menu, entry);
+    entry->handler = SetSerialPortFromGadget;
+    SetSerialPortFromGadget(&g_game->menu, entry);
     Entry_00440d70* speeds = FindGadgetChecked(gadget->entries, "SPEEDS");
-    speeds->handler = FUN_00442380;
-    FUN_00442380(&g_game->menu, speeds);
+    speeds->handler = SetSerialBaudFromGadget;
+    SetSerialBaudFromGadget(&g_game->menu, speeds);
     FUN_0049fb10(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
 }
@@ -1600,15 +1600,15 @@ void OpenSerialDialog()
 // FUNCTION: 0x4426e0
 void FillAccountList(void)
 {
-    char* buffer = DAT_0051298c;
+    char* buffer = g_modemAccountNames;
     *buffer = 0;
     for (int i = 0; i < 20; i++) {
-        strcpy(buffer, DAT_00512988[i].name);
-        buffer += strlen(DAT_00512988[i].name) + 1;
+        strcpy(buffer, g_modemAccounts[i].name);
+        buffer += strlen(g_modemAccounts[i].name) + 1;
     }
     Entry_00440d70* entry = FindGadgetChecked(g_game->menu.layer->entries, "ACCOUNTS");
     int player = entry->index;
-    FUN_004a32a0((char*)g_game + 0x519, "ACCOUNTS", DAT_0051298c, 20, 0);
+    FUN_004a32a0((char*)g_game + 0x519, "ACCOUNTS", g_modemAccountNames, 20, 0);
     FUN_004a2e40((char*)g_game + 0x519, "ACCOUNTS", player);
 }
 
@@ -1618,19 +1618,19 @@ void FillAccountList(void)
 void RefreshAccountList(void)
 {
     Entry_00440d70* entry = FindGadgetChecked(g_game->menu.layer->entries, "ACCOUNTS");
-    if (entry != 0 && DAT_00512988 != 0) {
+    if (entry != 0 && g_modemAccounts != 0) {
         GetGadgetText((char*)g_game + 0x519, "NAME",
-                     DAT_00512988[entry->index].name);
+                     g_modemAccounts[entry->index].name);
         GetGadgetText((char*)g_game + 0x519, "NUMBER",
-                     DAT_00512988[entry->index].number);
-        char* buffer = DAT_0051298c;
+                     g_modemAccounts[entry->index].number);
+        char* buffer = g_modemAccountNames;
         *buffer = 0;
         for (int i = 0; i < 20; i++) {
-            strcpy(buffer, DAT_00512988[i].name);
-            buffer += strlen(DAT_00512988[i].name) + 1;
+            strcpy(buffer, g_modemAccounts[i].name);
+            buffer += strlen(g_modemAccounts[i].name) + 1;
         }
         int player = FindGadgetChecked(g_game->menu.layer->entries, "ACCOUNTS")->index;
-        FUN_004a32a0((char*)g_game + 0x519, "ACCOUNTS", DAT_0051298c, 20, 0);
+        FUN_004a32a0((char*)g_game + 0x519, "ACCOUNTS", g_modemAccountNames, 20, 0);
         FUN_004a2e40((char*)g_game + 0x519, "ACCOUNTS", player);
     }
 }
@@ -1644,8 +1644,8 @@ void __stdcall ShowSelectedAccount(Gadget_00440d70* menu, Entry_00440d70* player
 {
     int entry = player->index;
     if (entry >= 0) {
-        FUN_004a0bf0(menu, "NAME", DAT_00512988[entry].name, 0);
-        FUN_004a0bf0(menu, "NUMBER", DAT_00512988[entry].number, 0);
+        FUN_004a0bf0(menu, "NAME", g_modemAccounts[entry].name, 0);
+        FUN_004a0bf0(menu, "NUMBER", g_modemAccounts[entry].number, 0);
         int index = FindGadgetIndex(menu->layer->entries, "NAME", 3);
         SelectGadgetByIndex(menu, index);
         FUN_0049fc50(menu, index);
@@ -1659,16 +1659,16 @@ void __stdcall ShowSelectedAccount(Gadget_00440d70* menu, Entry_00440d70* player
 // FUNCTION: 0x442970
 void SaveModemNumbers(void)
 {
-    if (DAT_00512988 != 0) {
+    if (g_modemAccounts != 0) {
         short count = FindGadgetChecked(g_game->menu.layer->entries, "ACCOUNTS")->index;
         if (count > 0) {
             Entry_004426e0 temp;
-            memcpy(&temp, &DAT_00512988[count], 0x102);
+            memcpy(&temp, &g_modemAccounts[count], 0x102);
             for (int i = count; i > 0; i--)
-                memcpy(&DAT_00512988[i], &DAT_00512988[i - 1], 0x102);
-            memcpy(&DAT_00512988[0], &temp, 0x102);
+                memcpy(&g_modemAccounts[i], &g_modemAccounts[i - 1], 0x102);
+            memcpy(&g_modemAccounts[0], &temp, 0x102);
         }
-        WriteGameRegistryValue("MODEMNUMBERS", DAT_00512988, 0x1428);
+        WriteGameRegistryValue("MODEMNUMBERS", g_modemAccounts, 0x1428);
     }
 }
 
@@ -1682,11 +1682,11 @@ void SaveModemNumbers(void)
 static inline void LoadAccount_00442a30()
 {
     Entry_00440d70* entry = FindGadgetChecked(g_game->menu.layer->entries, "ACCOUNTS");
-    if (entry != 0 && DAT_00512988 != 0) {
+    if (entry != 0 && g_modemAccounts != 0) {
         GetGadgetText((char*)g_game + 0x519, "NAME",
-                     DAT_00512988[entry->index].name);
+                     g_modemAccounts[entry->index].name);
         GetGadgetText((char*)g_game + 0x519, "NUMBER",
-                     DAT_00512988[entry->index].number);
+                     g_modemAccounts[entry->index].number);
         FillAccountList();
     }
 }
@@ -1695,16 +1695,16 @@ static inline void LoadAccount_00442a30()
 // then written to the registry under MODEMNUMBERS.
 static inline void SaveModemNumbers_00442a30()
 {
-    if (DAT_00512988 != 0) {
+    if (g_modemAccounts != 0) {
         short count = FindGadgetChecked(g_game->menu.layer->entries, "ACCOUNTS")->index;
         if (count > 0) {
             Entry_004426e0 temp;
-            memcpy(&temp, &DAT_00512988[count], 0x102);
+            memcpy(&temp, &g_modemAccounts[count], 0x102);
             for (int i = count; i > 0; i--)
-                memcpy(&DAT_00512988[i], &DAT_00512988[i - 1], 0x102);
-            memcpy(&DAT_00512988[0], &temp, 0x102);
+                memcpy(&g_modemAccounts[i], &g_modemAccounts[i - 1], 0x102);
+            memcpy(&g_modemAccounts[0], &temp, 0x102);
         }
-        WriteGameRegistryValue("MODEMNUMBERS", DAT_00512988, 0x1428);
+        WriteGameRegistryValue("MODEMNUMBERS", g_modemAccounts, 0x1428);
     }
 }
 
@@ -1725,17 +1725,17 @@ void __stdcall HandleModemDialogClick(Gadget_00440d70* gadget)
 {
     Entry_00440d70* entries = gadget->layer->entries;
     if (gadget->field_60 == -1) {
-        if (DAT_00512980 != 0) {
-            FUN_004d85a0(DAT_00512980);
-            DAT_00512980 = 0;
+        if (g_modemInfo != 0) {
+            FUN_004d85a0(g_modemInfo);
+            g_modemInfo = 0;
         }
-        if (DAT_0051298c != 0) {
-            FUN_004d85a0(DAT_0051298c);
-            DAT_0051298c = 0;
+        if (g_modemAccountNames != 0) {
+            FUN_004d85a0(g_modemAccountNames);
+            g_modemAccountNames = 0;
         }
-        if (DAT_00512988 != 0) {
-            FUN_004d85a0(DAT_00512988);
-            DAT_00512988 = 0;
+        if (g_modemAccounts != 0) {
+            FUN_004d85a0(g_modemAccounts);
+            g_modemAccounts = 0;
         }
         return;
     }
@@ -1787,9 +1787,9 @@ void __stdcall HandleModemDialogClick(Gadget_00440d70* gadget)
 }
 
 // An IDirectPlayLobby::EnumAddress callback (LPDPENUMADDRESSCALLBACK). When
-// the chunk is DPAID_Modem (DAT_004fcec8, {f6dcc200-a2fe-11d0-9c4f-00a0c905425e}),
+// the chunk is DPAID_Modem (DPAID_Modem, {f6dcc200-a2fe-11d0-9c4f-00a0c905425e}),
 // the data is a double-null-terminated list of modem names; each one is
-// copied into the buffer at DAT_00512980 and counted in DAT_00512984.
+// copied into the buffer at g_modemInfo and counted in g_modemCount.
 // Where the next name goes: after the first string if the buffer is not empty.
 static inline char* NameSlot(char* buffer)
 {
@@ -1802,10 +1802,10 @@ static inline char* NameSlot(char* buffer)
 BOOL __stdcall EnumModemAddressCallback(REFGUID guidDataType, DWORD dataSize, LPCVOID data, LPVOID context)
 {
     char* name = (char*)data;
-    if (IsEqualGUID(guidDataType, DAT_004fcec8)) {
+    if (IsEqualGUID(guidDataType, DPAID_Modem)) {
         while (lstrlenA(name) != 0) {
-            strcpy(NameSlot(DAT_00512980), name);
-            DAT_00512984++;
+            strcpy(NameSlot(g_modemInfo), name);
+            g_modemCount++;
             name += lstrlenA(name) + 1;
         }
     }
@@ -1846,44 +1846,44 @@ void __stdcall OpenModemDialog()
             if (addr != 0) {
                 r = HAPINET_getplayeraddress((Net_00443100*)&net, 0, addr, &size);
                 if (r >= 0) {
-                    DAT_00512980 = (char*)FUN_004d83b0("MODEMINFO", 0xc8);
-                    memset(DAT_00512980, 0, 0xc8);
-                    DAT_00512984 = 0;
+                    g_modemInfo = (char*)FUN_004d83b0("MODEMINFO", 0xc8);
+                    memset(g_modemInfo, 0, 0xc8);
+                    g_modemCount = 0;
                     r = HAPINET_enumaddress(&g_game->net, (void*)EnumModemAddressCallback, addr, size, 0);
-                    if (DAT_00512984 == 0) {
+                    if (g_modemCount == 0) {
                         CloseTopScreen(&g_game->menu);
                         SetFrontendErrorText("Unable to find any modems");
                         SetFrontendState(0xf, 0x4e4, "c:\\cavedog\\wargame\\multi.cpp");
                         SetFrontendSubState(0, 0x4e5, "c:\\cavedog\\wargame\\multi.cpp");
-                        FUN_004d85a0(DAT_00512980);
+                        FUN_004d85a0(g_modemInfo);
                         FUN_004d85a0(addr);
                         HAPINET_releasedplayinterface((Net_00443100*)&net);
                         return;
                     }
                     if (r >= 0) {
                         int i;
-                        FUN_004a32a0(&g_game->menu, "MODEMS", DAT_00512980, DAT_00512984, 0);
-                        DAT_00512988 = (Entry_004426e0*)FUN_004d83b0("MODEMACCOUNTS", 0x1428);
+                        FUN_004a32a0(&g_game->menu, "MODEMS", g_modemInfo, g_modemCount, 0);
+                        g_modemAccounts = (Entry_004426e0*)FUN_004d83b0("MODEMACCOUNTS", 0x1428);
                         len.v = 0x1428;
-                        r = ReadGameRegistryValue("MODEMNUMBERS", DAT_00512988, &len.v);
+                        r = ReadGameRegistryValue("MODEMNUMBERS", g_modemAccounts, &len.v);
                         if (r == 0) {
                             for (i = 0; i < 20; i++) {
-                                strcpy(DAT_00512988[i].name, "UNUSED");
-                                DAT_00512988[i].number[0] = 0;
+                                strcpy(g_modemAccounts[i].name, "UNUSED");
+                                g_modemAccounts[i].number[0] = 0;
                             }
                         }
                         char* buffer = (char*)FUN_004d83b0("ACCOUNTNAMES", 0xa00);
-                        DAT_0051298c = buffer;
+                        g_modemAccountNames = buffer;
                         *buffer = 0;
                         // Separate p runs the copy loop: keeps eax free until loop entry.
                         char* p = buffer;
                         for (i = 0; i < 20; i++) {
-                            strcpy(p, DAT_00512988[i].name);
-                            p += strlen(DAT_00512988[i].name) + 1;
+                            strcpy(p, g_modemAccounts[i].name);
+                            p += strlen(g_modemAccounts[i].name) + 1;
                         }
                         Entry_00440d70* entry = FindGadgetChecked(g_game->menu.layer->entries, "ACCOUNTS");
                         int player = entry->index;
-                        FUN_004a32a0(&g_game->menu, "ACCOUNTS", DAT_0051298c, 20, 0);
+                        FUN_004a32a0(&g_game->menu, "ACCOUNTS", g_modemAccountNames, 20, 0);
                         FUN_004a2e40(&g_game->menu, "ACCOUNTS", player);
                         entry = FindGadgetChecked(gadget->entries, "ACCOUNTS");
                         entry->handler = ShowSelectedAccount;
@@ -1936,7 +1936,7 @@ void __stdcall HandleReportClick(Gadget_00440d70* obj)
 }
 
 // FUNCTION: 0x443590
-void FUN_00443590(void)
+void ReportDialogFrame(void)
 {
     SendNetHeartbeat();
 }
@@ -1950,7 +1950,7 @@ void __stdcall OpenReportDialog(unsigned int* count, char** names)
     Layer_00440d70* gadget = LoadGuiLayer(&g_game->menu, "REPORT.GUI", 0x800);
     gadget->handler = HandleReportClick;
     gadget->owner = g_game;
-    gadget->field_1c = FUN_00443590;
+    gadget->field_1c = ReportDialogFrame;
     LoadPictureCached("scorebg", 0, 1, 0);
     for (unsigned int i = 0; i < *count; i++) {
         wsprintfA(name, "CHK%d", i);
@@ -1973,11 +1973,11 @@ int InitScoreReporting(void)
         return 0;
     int saved = g_game->field_2cbe;
     SetCursorMode(0x14);
-    int r = LoadReporterDll(&DAT_005054a8, &DAT_00512788);
+    int r = LoadReporterDll(&g_reporterCount, &g_reporterNames);
     if (r == 0) {
-        if (DAT_005054a8 > 0) {
+        if (g_reporterCount > 0) {
             SetCursorMode(0x13);
-            OpenReportDialog(&DAT_005054a8, (char**)&DAT_00512788);
+            OpenReportDialog(&g_reporterCount, (char**)&g_reporterNames);
             SetCursorMode(saved);
             return 1;
         }
@@ -2115,7 +2115,7 @@ startnew:
 // "PLAYER SHARED" block and 15 blocks of 0xa00 bytes named "DATA0" .. "DATA14",
 // then a table of (size, offset) pairs (0xb9 bytes each) in the descriptions
 // block pointing into the shared block. Every GUI entry from 1 up whose type
-// byte is 2 gets FUN_00441220 as its handler and the descriptions block as its
+// byte is 2 gets UpdateGameSelection as its handler and the descriptions block as its
 // data. ConnectToGame then connects; on failure an "Invalid TCP/IP Address"
 // message box is shown, g_game->field_2bc0 is set to 3 and the function
 // returns. On success the game name is put on the menu, and a connection that
@@ -2151,7 +2151,7 @@ void OpenSelectGameDialog()
         if (gadget->entries[i].type == 2) {
             // Indexed inline and bound by reference: no named entries pointer local.
             Entry_00440d70& e = gadget->entries[i];
-            e.handler = FUN_00441220;
+            e.handler = UpdateGameSelection;
             e.data = (int)g_game->desc;
         }
     }
@@ -2186,7 +2186,7 @@ void OpenSelectGameDialog()
 // state and flags. The body is inlined at 0x4447d4 by the caller that builds a
 // name with sprintf first.
 // FUNCTION: 0x4444d0
-int __stdcall FUN_004444d0(Entry_00440d70* entries, int param_2, short param_3, int param_4, char* param_5)
+int __stdcall CloneServiceSlot(Entry_00440d70* entries, int param_2, short param_3, int param_4, char* param_5)
 {
     int index = ++entries[0].count;
     Entry_00440d70* d = &entries[index];
@@ -2201,7 +2201,7 @@ int __stdcall FUN_004444d0(Entry_00440d70* entries, int param_2, short param_3, 
 }
 
 // FUNCTION: 0x444910
-void __stdcall FUN_00444910(Gadget_00440d70* param1, int param2)
+void __stdcall CacheLogosGadgetIndex(Gadget_00440d70* param1, int param2)
 {
     param1->field_60 = FindGadgetIndex(param1->layer->entries, "LOGOS", 2);
 }
@@ -2274,7 +2274,7 @@ void __stdcall HandleViewMapClick(Gadget_00444930* param_1)
 {
     if (param_1->field_60 != -1) {
         if (IsCurrentGadgetNamed(param_1, DAT_00502ae8)) {
-            PlaySoundByName(DAT_00505974, 0);
+            PlaySoundByName(g_multiSoundName, 0);
         } else {
             ClearSelectedGadget(param_1);
         }
@@ -2318,8 +2318,8 @@ void __stdcall HandleMapSelectClick(Gadget_00444930* param_1)
         }
         FUN_004d85a0(layout->field_14);
         FUN_004d85a0(layout);
-        FUN_004d85a0(DAT_00512990);
-        DAT_00512990 = 0;
+        FUN_004d85a0(g_oldMapName);
+        g_oldMapName = 0;
         return;
     }
 
@@ -2350,7 +2350,7 @@ void __stdcall HandleMapSelectClick(Gadget_00444930* param_1)
 
     if (IsCurrentGadgetNamed(param_1, "PREVMENU")) {
         PlaySoundByName("Previous", 0);
-        ((Mission*)g_game->field_391e9)->LoadMissionByName(DAT_00512990);
+        ((Mission*)g_game->field_391e9)->LoadMissionByName(g_oldMapName);
         BroadcastPlayerInfo();
         return;
     }
@@ -2374,7 +2374,7 @@ void __stdcall HandleMapSelectClick(Gadget_00444930* param_1)
 // FUNCTION: 0x444ea0
 void OpenMultiMapSelector()
 {
-    DAT_00512990 = (char*)FUN_004d83b0("OLDMAPNAME", 0xc8);
+    g_oldMapName = (char*)FUN_004d83b0("OLDMAPNAME", 0xc8);
 
     if (!((Mission*)g_game->field_391e9)->HasMissionName()) {
         OpenMessageBox(&g_game->menu,
@@ -2383,7 +2383,7 @@ void OpenMultiMapSelector()
         return;
     }
 
-    strcpy(DAT_00512990,
+    strcpy(g_oldMapName,
            ((Mission*)g_game->field_391e9)->GetMissionName());
     ((Mission*)g_game->field_391e9)->RefreshMapList(0);
 
@@ -2406,7 +2406,7 @@ void OpenMultiMapSelector()
     FindGadgetChecked(layer->entries, "MAPNAMES")->onSelect = UpdateMapSelection;
 
     for (int i = 0; i < n; i++) {
-        if (strcmp(DAT_00512990, SkipTextLines(data->items, i)) == 0) {
+        if (strcmp(g_oldMapName, SkipTextLines(data->items, i)) == 0) {
             FUN_004a2e40(&g_game->menu, "MAPNAMES", i);
             break;
         }
@@ -2464,7 +2464,7 @@ void OpenLogoSelectDialog()
     }
     Entry_00444930* logo = FindGadgetChecked(gui->entries, "LOGOS");
     if (logo != 0) {
-        logo->field_ce = FUN_00444910;
+        logo->field_ce = CacheLogosGadgetIndex;
     }
     int index = FindGadgetIndex(gui->entries, "LOGOS", 2);
     if (index != -1) {
@@ -2476,7 +2476,7 @@ void OpenLogoSelectDialog()
 }
 
 // FUNCTION: 0x445300
-void __stdcall FUN_00445300(Entry_00444930* param_1)
+void __stdcall ExpandGadgetTextToType5(Entry_00444930* param_1)
 {
     if (param_1->state == 1) {
         Head_00444930 tmp = *(Head_00444930*)param_1;
@@ -2524,7 +2524,7 @@ void __stdcall SwapPlayerSlots(Player_00444930* param_1, Player_00444930* param_
 // call dead, moves the next live slot into it, clears the slot it left, then
 // renumbers every slot's field_146.
 // FUNCTION: 0x445450
-void FUN_00445450()
+void CompactActivePlayerSlots()
 {
     Player_00444930* p = g_game->players;
     Player_00444930* q = g_game->players + 1;
@@ -2587,16 +2587,16 @@ static void CloneFix_004455b0(Entry_00444930* rec)
 }
 
 // FUNCTION: 0x4455b0
-void __cdecl FUN_004455b0(void)
+void __cdecl BuildPlayerSlotGadgets(void)
 {
     char* base = (char*)g_game->menu.holder->entries;
     int p = 0;
     int t;
     char** slot;
 
-    *(short*)(base + 0xb6) = DAT_00512764;
+    *(short*)(base + 0xb6) = g_battleRoomBaseGadgetCount;
     do {
-        for (t = 0, slot = DAT_005054b0; *slot != 0; slot++, t++) {
+        for (t = 0, slot = g_battleRoomGadgetNames; *slot != 0; slot++, t++) {
             int index = FindGadgetIndex(base, *slot, 0xe);
             Entry_00444930* rec = (Entry_00444930*)(base + 0x15b * index);
             Entry_00444930* dst;
@@ -2688,7 +2688,7 @@ void __cdecl FUN_004455b0(void)
             strcpy(base + 0xcc, name);
         }
     }
-    DAT_00512994 = 1;
+    g_battleRoomSlotsBuilt = 1;
 }
 
 // GUI callback (see the entry a slider widget stores at +0x144): shows the
@@ -2781,7 +2781,7 @@ void __stdcall UpdateEnergyText(Gadget_00444930* sub, int unused)
 // Sets the value of the named gadget of a menu (see 0x445e50).
 
 // FUNCTION: 0x445e20
-void __stdcall FUN_00445e20(Gadget_00444930* menu, char* name, int value)
+void __stdcall SetNamedSliderValue(Gadget_00444930* menu, char* name, int value)
 {
     Entry_00444930* gadget = FUN_004a0200(menu->holder->entries, name);
     SetSliderFromValue(gadget, value);
@@ -2792,7 +2792,7 @@ void __stdcall FUN_00445e20(Gadget_00444930* menu, char* name, int value)
 typedef void (__stdcall* Callback_00445e50)(Gadget_00444930* menu, int index);
 
 // FUNCTION: 0x445e50
-void __stdcall FUN_00445e50(char* name, int param_2, int param_3, Callback_00445e50 callback)
+void __stdcall BindNamedSliderWithCallback(char* name, int param_2, int param_3, Callback_00445e50 callback)
 {
     Gadget_00444930* menu = &g_game->menu;
     void* gadgets = menu->holder->entries;
@@ -2847,13 +2847,13 @@ void __stdcall HandleRejectChoice(Gadget_00444930* gadget)
     if (gadget->field_60 == -1)
         return;
     if (IsGadgetNamed(owner, gadget->field_60, "CHOICE1")) {
-        RejectPlayer(GetSlotDpid((unsigned char)DAT_00505510), 1);
+        RejectPlayer(GetSlotDpid((unsigned char)g_rejectPlayer), 1);
     } else if (!IsGadgetNamed(owner, gadget->field_60, "CHOICE2")) {
         ClearSelectedGadget(gadget);
     }
 }
 
-// Opens the YESORNO.GUI dialog for player DAT_00505510, fills its CHOICE1 /
+// Opens the YESORNO.GUI dialog for player g_rejectPlayer, fills its CHOICE1 /
 // CHOICE2 / TITLE fields and installs HandleRejectChoice as the handler. The title
 // is "Reject <player name>?".
 
@@ -2861,7 +2861,7 @@ void __stdcall HandleRejectChoice(Gadget_00444930* gadget)
 void __stdcall OpenRejectDialog(int player)
 {
     char buf[100];
-    DAT_00505510 = player;
+    g_rejectPlayer = player;
     Holder_00444930* gadget = LoadGuiLayer(&g_game->menu, "YESORNO.GUI", 0x100);
     if (gadget != 0) {
         FUN_0049fb10(&g_game->menu, 1);
@@ -2872,7 +2872,7 @@ void __stdcall OpenRejectDialog(int player)
         FUN_004a0bf0(&g_game->menu, "CHOICE1", "Yes", 0);
         FUN_004a0bf0(&g_game->menu, "CHOICE2", "No", 0);
         sprintf(buf, "%s %s?", Translate("Reject"),
-                g_game->players[DAT_00505510].name);
+                g_game->players[g_rejectPlayer].name);
         FUN_004a0bf0(&g_game->menu, "TITLE", buf, 0);
         gadget->handler = HandleRejectChoice;
         gadget->owner = g_game;
@@ -2892,7 +2892,7 @@ void __stdcall HandleDisplayModesClick(Gadget_00444930* gui)
 {
     Holder_00444930* holder = gui->holder;
     Entry_00444930* gadgets = holder->entries;
-    Class_00446310* obj = (Class_00446310*)holder->layout;
+    ModeList* obj = (ModeList*)holder->layout;
     if (gui->field_60 == -1) {
         FUN_004d85a0(obj->available);
         FUN_004d85a0(obj->modes);
@@ -2928,9 +2928,9 @@ void __stdcall HandleDisplayModesClick(Gadget_00444930* gui)
 // local player's mode to the next (or previous) entry.
 
 // FUNCTION: 0x446310
-void FUN_00446310(void)
+void CyclePlayerDisplayMode(void)
 {
-    Class_00446310* obj = (Class_00446310*)FUN_004d83b0("SELECT VIDEO MODE", 0x20);
+    ModeList* obj = (ModeList*)FUN_004d83b0("SELECT VIDEO MODE", 0x20);
     obj->available = 0;
     obj->modes = (Mode_00446310*)FUN_004d83b0("DISPLAY MODES", 0x4b0);
 
@@ -3094,7 +3094,7 @@ static inline int CountAlliance(int alliance)
 // when the extra "counted" test applies. Same helper that 0x4468c0 inlines.
 
 // FUNCTION: 0x4467f0
-int __stdcall FUN_004467f0(int alliance)
+int __stdcall CountPlayersInAlliance(int alliance)
 {
     if (alliance == 5)
         return 0;
@@ -3120,7 +3120,7 @@ int CountHumanPlayers();
 int CountComputerPlayers();
 
 // FUNCTION: 0x4468c0
-char FUN_004468c0()
+char AreAllPlayersInOneAlliance()
 {
     int total = CountComputerPlayers() + CountHumanPlayers();
     for (int alliance = 0; alliance < 5; alliance++) {
@@ -3211,7 +3211,7 @@ static inline int FindNextAlly_00446c70(int player, int start)
 // 0x448c70; in this file /Ob2 would inline it.
 #pragma auto_inline(off)
 // FUNCTION: 0x446c70
-void FUN_00446c70()
+void SyncMutualAlliances()
 {
     for (int i = 0; i < 10; i++) {
         // j and k before p: puts p in the base slot of the field stores.
@@ -3258,7 +3258,7 @@ static inline int IsSelectable(Player_00444930* p)
 // in this file /Ob2 would inline it.
 #pragma auto_inline(off)
 // FUNCTION: 0x446e90
-void __stdcall FUN_00446e90(Player_00444930* player)
+void __stdcall ClearAlliances(Player_00444930* player)
 {
     if (player->alliance != 5) {
         for (int i = 0; i < 10; i++) {
@@ -3280,10 +3280,10 @@ void __stdcall CyclePlayerAlliance(int index)
 {
     int colour = g_game->players[index].colour;
     Player_00446f50* player = &g_game->players[index];
-    FUN_00446e90(player);
+    ClearAlliances(player);
     player->colour = (colour + 1) % 6;
     BroadcastAllyTeam(player);
-    FUN_00446c70();
+    SyncMutualAlliances();
     RefreshTeamIcons();
 }
 
@@ -3690,10 +3690,10 @@ void __stdcall CyclePlayerAlliance_00447b10(int index)
     // Declared before colour.
     Player_00446f50* player = &g_game->players[index];
     int colour = g_game->players[index].colour;
-    FUN_00446e90(player);
+    ClearAlliances(player);
     player->colour = (colour + 1) % 6;
     BroadcastAllyTeam(player);
-    FUN_00446c70();
+    SyncMutualAlliances();
     RefreshTeamIcons();
 }
 
@@ -3707,8 +3707,8 @@ void __stdcall HandleBattleRoomClick(Gui_00446f50* gadget)
     if (gadget->current == -1) {
         FUN_004d85a0(g_game->chatter);
         g_game->chatter = 0;
-        DAT_00512994 = 0;
-        FUN_00446c70();
+        g_battleRoomSlotsBuilt = 0;
+        SyncMutualAlliances();
         return;
     }
 
@@ -3800,7 +3800,7 @@ void __stdcall HandleBattleRoomClick(Gui_00446f50* gadget)
             else
                 same = me->colour == p->colour;
             if (same) {
-                FUN_00446e90(me);
+                ClearAlliances(me);
                 me->colour = 5;
                 BroadcastAllyTeam(me);
             }
@@ -3829,7 +3829,7 @@ void __stdcall HandleBattleRoomClick(Gui_00446f50* gadget)
         sprintf(text, "RES%d", i);
         if (IsCurrentGadgetNamed(gadget, text) && IsLocalHuman_00447b10(p)) {
             PlaySoundByName("Multi", 0);
-            FUN_00446310();
+            CyclePlayerDisplayMode();
             ClearSelectedGadget(gadget);
             g_game->dirty = 1;
             return;
@@ -4189,7 +4189,7 @@ void RefreshBattleRoomRows()
             }
         }
     }
-    FUN_00446c70();
+    SyncMutualAlliances();
     RefreshTeamIcons();
 
     char* entries = (char*)g_game->gui.table->entries;
@@ -4399,24 +4399,24 @@ void OpenEndMultiScreen()
 }
 
 // FUNCTION: 0x44b100
-void FUN_0044b100()
+void FreeSaveListBuffers()
 {
-    if (DAT_005129ac) {
-        FUN_004d85a0(DAT_005129ac);
+    if (g_saveListFileNames) {
+        FUN_004d85a0(g_saveListFileNames);
     }
-    if (DAT_005129b0) {
-        FUN_004d85a0(DAT_005129b0);
+    if (g_saveListDisplayNames) {
+        FUN_004d85a0(g_saveListDisplayNames);
     }
-    DAT_005129ac = DAT_005129b0 = 0;
+    g_saveListFileNames = g_saveListDisplayNames = 0;
 }
 
 // Reads pairs of ints from a binary file given by `name`. For each pair the
 // first int is matched against the field at +0x13e of the 0x249-byte entries
 // at g_game+0x1439b (entries are 1-based here); the second int is then stored
-// in the field at +0x5a of the 0x62-byte entry of the table at DAT_005129b4
+// in the field at +0x5a of the 0x62-byte entry of the table at g_unitRestrictEntries
 // whose +0x52 field equals the matched index.
 // FUNCTION: 0x44b140
-void __stdcall FUN_0044b140(char* name)
+void __stdcall LoadUnitRestrictListFile(char* name)
 {
     FILE* f = fopen(name, "rb");
     int count;
@@ -4429,8 +4429,8 @@ void __stdcall FUN_0044b140(char* name)
         for (int idx = 1; idx < n; idx++) {
             if (g_game->unitTypes[idx].field_13e == a) {
                 for (int j = 0; j < n; j++) {
-                    if (DAT_005129b4[j].field_52 == idx) {
-                        DAT_005129b4[j].field_5a = b;
+                    if (g_unitRestrictEntries[j].field_52 == idx) {
+                        g_unitRestrictEntries[j].field_5a = b;
                         break;
                     }
                 }
@@ -4442,7 +4442,7 @@ void __stdcall FUN_0044b140(char* name)
 }
 
 // FUNCTION: 0x44b230
-void __stdcall FUN_0044b230(char* filename)
+void __stdcall SaveUnitRestrictListFile(char* filename)
 {
     FILE* f = fopen(filename, "wb+");
 
@@ -4452,10 +4452,10 @@ void __stdcall FUN_0044b230(char* filename)
 
     for (int i = 1; i < count; i++) {
         for (int j = 0; j < g_game->count; j++) {
-            if (*(int*)((char*)DAT_005129b4 + 0x52 + j * 0x62) == i) {
+            if (*(int*)((char*)g_unitRestrictEntries + 0x52 + j * 0x62) == i) {
                 int v = g_game->unitTypes[i].field_13e;
                 fwrite(&v, 4, 1, f);
-                v = *(int*)((char*)DAT_005129b4 + 0x5a + j * 0x62);
+                v = *(int*)((char*)g_unitRestrictEntries + 0x5a + j * 0x62);
                 fwrite(&v, 4, 1, f);
                 break;
             }
@@ -4473,7 +4473,7 @@ void CopySelectedGameName()
     Entry_00446f50* games = FindGadgetChecked(gadgets, "GAMES");
     int index = FindGadgetIndex(gadgets, "GAMENAME", 3);
     char* name;
-    if (games->selected > -1 && (name = SkipTextLines(DAT_005129b0, games->selected)) != 0 && strlen(name) != 0)
+    if (games->selected > -1 && (name = SkipTextLines(g_saveListDisplayNames, games->selected)) != 0 && strlen(name) != 0)
         SetGadgetText(menu, index, name);
     else
         SetGadgetText(menu, index, DAT_005119b8);
@@ -4494,18 +4494,18 @@ void __stdcall HandleLoadListClick(Gui_00446f50* menu)
         PlaySoundByName("Options", 0);
         Entry_00446f50* games = FindGadgetChecked(gadgets, "GAMES");
         sprintf(g_game->save_38c6b, "%s\\%s", DAT_005091c8,
-                SkipTextLines(DAT_005129ac, games->selected));
-        FUN_0044b140(g_game->save_38c6b);
+                SkipTextLines(g_saveListFileNames, games->selected));
+        LoadUnitRestrictListFile(g_game->save_38c6b);
         Layer_00446f50* inner = menu->table;
         menu->table = inner->unknown_0;
         UpdateUnitSliders(menu, 0);
         menu->table = inner;
-        if (DAT_005129ac)
-            FUN_004d85a0(DAT_005129ac);
-        if (DAT_005129b0)
-            FUN_004d85a0(DAT_005129b0);
-        DAT_005129b0 = 0;
-        DAT_005129ac = 0;
+        if (g_saveListFileNames)
+            FUN_004d85a0(g_saveListFileNames);
+        if (g_saveListDisplayNames)
+            FUN_004d85a0(g_saveListDisplayNames);
+        g_saveListDisplayNames = 0;
+        g_saveListFileNames = 0;
     } else if (menu->current != -1) {
         ClearSelectedGadget(menu);
     }
@@ -4515,31 +4515,31 @@ void __stdcall HandleLoadListClick(Gui_00446f50* menu)
 void* __stdcall ListSaveGameFiles(int* out)
 {
     char path[0x100];
-    BuildDataPath(path, DAT_005091c8, DAT_0050372c, DAT_00505f40);
+    BuildDataPath(path, DAT_005091c8, DAT_0050372c, g_lstExtension);
     int count = CountDirectoryEntries(path, 0);
     *out = count;
     if (count == 0) {
-        FUN_004a32a0((char*)g_game + 0x519, DAT_00505f18, DAT_005119b8, 0, 0);
+        FUN_004a32a0((char*)g_game + 0x519, g_gamesGadgetName, DAT_005119b8, 0, 0);
         return 0;
     }
-    DAT_005129ac = (char*)FUN_004d83b0(DAT_00505f30, count << 8);
-    DAT_005129b0 = (char*)FUN_004d83b0(DAT_00505f20, *out << 8);
-    memset(DAT_005129b0, 0, *out << 8);
-    memset(DAT_005129ac, 0, *out << 8);
-    ScanDirectory(path, DAT_005129ac, 0, 0, 0, 1);
-    FUN_004a32a0((char*)g_game + 0x519, DAT_00505f18, DAT_005129ac, *out, 0);
-    return *out ? DAT_005129ac : 0;
+    g_saveListFileNames = (char*)FUN_004d83b0(g_savegameNamesName, count << 8);
+    g_saveListDisplayNames = (char*)FUN_004d83b0(g_savegameDescsName, *out << 8);
+    memset(g_saveListDisplayNames, 0, *out << 8);
+    memset(g_saveListFileNames, 0, *out << 8);
+    ScanDirectory(path, g_saveListFileNames, 0, 0, 0, 1);
+    FUN_004a32a0((char*)g_game + 0x519, g_gamesGadgetName, g_saveListFileNames, *out, 0);
+    return *out ? g_saveListFileNames : 0;
 }
 
 // FUNCTION: 0x44b600
-void __stdcall FUN_0044b600(int unused1, int unused2)
+void __stdcall ShowSelectedSaveGame(int unused1, int unused2)
 {
     Gui_00446f50* menu = &g_game->gui;
     void* gadgets = g_game->gui.table->entries;
     Entry_00446f50* games = FindGadgetChecked(gadgets, "GAMES");
     int index = FindGadgetIndex(gadgets, "GAMENAME", 3);
     char* name;
-    if (games->selected > -1 && (name = SkipTextLines(DAT_005129b0, games->selected)) != 0 && strlen(name) != 0)
+    if (games->selected > -1 && (name = SkipTextLines(g_saveListDisplayNames, games->selected)) != 0 && strlen(name) != 0)
         SetGadgetText(menu, index, name);
     else
         SetGadgetText(menu, index, DAT_005119b8);
@@ -4552,11 +4552,11 @@ void __stdcall HandleSaveGameClick(Gui_00446f50* menu)
     Entry_00446f50* entries = menu->table->entries;
     if (menu->current == -1) {
         SetDescListCleanupFlag(menu, 1);
-        if (DAT_005129ac)
-            FUN_004d85a0(DAT_005129ac);
-        if (DAT_005129b0)
-            FUN_004d85a0(DAT_005129b0);
-        DAT_005129ac = DAT_005129b0 = 0;
+        if (g_saveListFileNames)
+            FUN_004d85a0(g_saveListFileNames);
+        if (g_saveListDisplayNames)
+            FUN_004d85a0(g_saveListDisplayNames);
+        g_saveListFileNames = g_saveListDisplayNames = 0;
         g_game->flag_38a51 = 0;
         return;
     }
@@ -4569,19 +4569,19 @@ void __stdcall HandleSaveGameClick(Gui_00446f50* menu)
         Entry_00446f50* games = FindGadgetChecked(entries, "GAMES");
         char buf[0x100];
         sprintf(buf, "%s\\%s", DAT_005091c8,
-                SkipTextLines(DAT_005129ac, games->selected));
+                SkipTextLines(g_saveListFileNames, games->selected));
         RemoveFile(buf);
         int count;
         ListSaveGameFiles(&count);
-        char* p = DAT_005129b0;
+        char* p = g_saveListDisplayNames;
         for (int i = 0; i < count; i++) {
-            strcpy(p, SkipTextLines(DAT_005129ac, i));
-            p += strlen(SkipTextLines(DAT_005129ac, i));
+            strcpy(p, SkipTextLines(g_saveListFileNames, i));
+            p += strlen(SkipTextLines(g_saveListFileNames, i));
             while (*p != '.')
                 p--;
             *p++ = 0;
         }
-        FUN_004a32a0(&g_game->gui, "GAMES", DAT_005129b0, count, 0);
+        FUN_004a32a0(&g_game->gui, "GAMES", g_saveListDisplayNames, count, 0);
         ClearSelectedGadget(menu);
         Gui_00446f50* menu2 = &g_game->gui;
         Entry_00446f50* gadgets = g_game->gui.table->entries;
@@ -4589,7 +4589,7 @@ void __stdcall HandleSaveGameClick(Gui_00446f50* menu)
         int index = FindGadgetIndex(gadgets, "GAMENAME", 3);
         char* name;
         if (games2->selected > -1 &&
-            (name = SkipTextLines(DAT_005129b0, games2->selected)) != 0 &&
+            (name = SkipTextLines(g_saveListDisplayNames, games2->selected)) != 0 &&
             strlen(name) != 0)
             SetGadgetText(menu2, index, name);
         else
@@ -4604,7 +4604,7 @@ void __stdcall HandleSaveGameClick(Gui_00446f50* menu)
         char* name = entries[idx].text;
         if (strlen(name) != 0) {
             BuildDataPath(g_game->save_38c6b, DAT_005091c8, name, "LST");
-            FUN_0044b230(g_game->save_38c6b);
+            SaveUnitRestrictListFile(g_game->save_38c6b);
         }
     } else if (menu->current != -1) {
         ClearSelectedGadget(menu);
@@ -4613,7 +4613,7 @@ void __stdcall HandleSaveGameClick(Gui_00446f50* menu)
 
 static char* GetSaveDescriptions()
 {
-    return DAT_005129b0;
+    return g_saveListDisplayNames;
 }
 
 // FUNCTION: 0x44b990
@@ -4630,19 +4630,19 @@ void __stdcall OpenSaveGameDialog()
     char* ptr = GetSaveDescriptions();
     int i = 0;
     for (; i < count; i++) {
-        strcpy(ptr, SkipTextLines(DAT_005129ac, i));
-        ptr += strlen(SkipTextLines(DAT_005129ac, i));
+        strcpy(ptr, SkipTextLines(g_saveListFileNames, i));
+        ptr += strlen(SkipTextLines(g_saveListFileNames, i));
         while (*ptr != '.')
             ptr--;
         *ptr = 0;
         ptr++;
     }
-    FUN_004a32a0(&g_game->gui, "GAMES", DAT_005129b0, count, 0);
+    FUN_004a32a0(&g_game->gui, "GAMES", g_saveListDisplayNames, count, 0);
     if (count == 0)
         FUN_004a0570(&g_game->gui, "DELETE", 0);
     Entry_00446f50* games = FindGadgetChecked(layer->entries, "GAMES");
     if (games != 0)
-        games->field_ce = FUN_0044b600;
+        games->field_ce = ShowSelectedSaveGame;
     int index = FindGadgetIndex(layer->entries, "GAMENAME", 3);
     layer->entries[index].field_1b |= 2;
 
@@ -4651,7 +4651,7 @@ void __stdcall OpenSaveGameDialog()
     Entry_00446f50* games2 = FindGadgetChecked(entries, "GAMES");
     int index2 = FindGadgetIndex(entries, "GAMENAME", 3);
     char* name;
-    if (games2->selected > -1 && (name = SkipTextLines(DAT_005129b0, games2->selected)) != 0 && strlen(name) != 0)
+    if (games2->selected > -1 && (name = SkipTextLines(g_saveListDisplayNames, games2->selected)) != 0 && strlen(name) != 0)
         SetGadgetText(menu, index2, name);
     else
         SetGadgetText(menu, index2, DAT_005119b8);
@@ -4680,10 +4680,10 @@ void OpenLoadListDialog()
                      0x140, 1, 1);
         return;
     }
-    char* p = DAT_005129b0;
+    char* p = g_saveListDisplayNames;
     for (int i = 0; i < count; i++) {
-        strcpy(p, SkipTextLines(DAT_005129ac, i));
-        p += strlen(SkipTextLines(DAT_005129ac, i));
+        strcpy(p, SkipTextLines(g_saveListFileNames, i));
+        p += strlen(SkipTextLines(g_saveListFileNames, i));
         char c = *p;
         while (c != '.') {
             c = *--p;
@@ -4691,19 +4691,19 @@ void OpenLoadListDialog()
         *p = 0;
         p++;
     }
-    FUN_004a32a0(&g_game->gui, "GAMES", DAT_005129b0, count, 0);
+    FUN_004a32a0(&g_game->gui, "GAMES", g_saveListDisplayNames, count, 0);
     FUN_004a0570(&g_game->gui, "DELETE", 0);
     FUN_004a0570(&g_game->gui, "GAMENAME", 0);
     Entry_00446f50* entry = FindGadgetChecked(gadget->entries, "GAMES");
     if (entry != 0) {
-        entry->field_ce = (void*)FUN_0044b600;
+        entry->field_ce = (void*)ShowSelectedSaveGame;
     }
     Gui_00446f50* menu = &g_game->gui;
     void* gadgets = g_game->gui.table->entries;
     Entry_00446f50* games = FindGadgetChecked(gadgets, "GAMES");
     int index = FindGadgetIndex(gadgets, "GAMENAME", 3);
     char* name;
-    if (games->selected > -1 && (name = SkipTextLines(DAT_005129b0, games->selected)) != 0 && strlen(name) != 0)
+    if (games->selected > -1 && (name = SkipTextLines(g_saveListDisplayNames, games->selected)) != 0 && strlen(name) != 0)
         SetGadgetText(menu, index, name);
     else
         SetGadgetText(menu, index, DAT_005119b8);
@@ -4731,11 +4731,11 @@ void __stdcall HandleUnitCountSlider(void* obj, char* gadget)
     } else {
         _itoa(value, buf, 10);
     }
-    DAT_005129b4[n + desc->field_bc].field_5a = value;
+    g_unitRestrictEntries[n + desc->field_bc].field_5a = value;
     g_game->sync->SetUnitLimit(
-        &g_game->unitTypes[DAT_005129b4[n + desc->field_bc].field_52], value);
-    desc->flags[n + desc->field_bc] = DAT_005129b4[n + desc->field_bc].field_5e == 0;
-    desc->flags[n + desc->field_bc] |= DAT_005129b4[n + desc->field_bc].field_5a == 0 ? 2 : 0;
+        &g_game->unitTypes[g_unitRestrictEntries[n + desc->field_bc].field_52], value);
+    desc->flags[n + desc->field_bc] = g_unitRestrictEntries[n + desc->field_bc].field_5e == 0;
+    desc->flags[n + desc->field_bc] |= g_unitRestrictEntries[n + desc->field_bc].field_5a == 0 ? 2 : 0;
     FUN_004a0bf0(obj, count, (char*)buf, 0);
 }
 
@@ -4760,12 +4760,12 @@ void __stdcall UpdateUnitSliders(Gui_00446f50* param_1, int unused)
         sprintf(name, "SLIDER%d", i);
         slider = FUN_004a0200(param_1->table->entries, name);
         if (slider != 0) {
-            if (human == 0 || DAT_005129b4[base + i].field_5e == 0)
+            if (human == 0 || g_unitRestrictEntries[base + i].field_5e == 0)
                 en = 1;
             else
                 en = 0;
             desc->flags[base + i] = en != 0;
-            value = DAT_005129b4[base + i].field_5a;
+            value = g_unitRestrictEntries[base + i].field_5a;
             if (value == -1)
                 value = slider->field_13c;
             SetSliderFromValue(slider, value);
@@ -4781,20 +4781,20 @@ void LoadUnitPortrait()
     Record_0044c0d0 rec;
     char path[256];
     Entry_00446f50* pic = FindGadgetChecked(g_game->gui.table->entries, "PICLIST");
-    if (DAT_00512768 == 0) {
-        DAT_0051297c = (int)pic->field_c6;
-        DAT_00512978 = (int)DAT_005129b8;
+    if (g_unitRestrictPicLoadIndex == 0) {
+        g_unitRestrictRecordCursor = (int)pic->field_c6;
+        g_unitRestrictPicCursor = (int)g_unitRestrictPics;
     }
-    int i = DAT_00512768++;
+    int i = g_unitRestrictPicLoadIndex++;
     if (i < g_game->count) {
-        int type = DAT_005129b4[i].field_52;
+        int type = g_unitRestrictEntries[i].field_52;
         UnitType_00446f50* defs = g_game->unitTypes;
         if (defs[type].name && ((unsigned char)(defs[type].field_245.raw >> 15) & 1) == 0) {
             // Indexed by the reloaded entry field, not defs[type].name.
-            BuildDataPath(path, "unitpics", defs[DAT_005129b4[i].field_52].name, "PCX");
+            BuildDataPath(path, "unitpics", defs[g_unitRestrictEntries[i].field_52].name, "PCX");
             void* img = LoadPcx(path, 0);
-            *(void**)DAT_00512978 = img;
-            DAT_00512978 += 4;
+            *(void**)g_unitRestrictPicCursor = img;
+            g_unitRestrictPicCursor += 4;
             if (img != 0) {
                 FrameFromSurface(&rec, img);
                 rec.flag8 = 9;
@@ -4804,32 +4804,32 @@ void LoadUnitPortrait()
                 rec.b = 0x20;
                 rec.d = 0;
             }
-            *(Record_0044c0d0*)DAT_0051297c = rec;
-            DAT_0051297c += 0x18;
+            *(Record_0044c0d0*)g_unitRestrictRecordCursor = rec;
+            g_unitRestrictRecordCursor += 0x18;
             FUN_0049fa90(&g_game->gui);
         }
     }
 }
 
 // FUNCTION: 0x44c220
-void FUN_0044c220()
+void UnitRestrictDialogFrame()
 {
     Event_44c220 event;
     int n = 0;
     Entry_00446f50* entry = (Entry_00446f50*)FindGadgetChecked(g_game->gui.table->entries, "PICLIST");
 
-    if (DAT_005129c8 < (int)GetTicks()) {
-        DAT_005129c8 = GetTicks() + 2;
+    if (g_unitRestrictNextPicTick < (int)GetTicks()) {
+        g_unitRestrictNextPicTick = GetTicks() + 2;
         LoadUnitPortrait();
     }
 
     while (g_game->sync->PopChangedEntry(&event) != 0) {
         n++;
         for (int i = 0; i < entry->list.count; i++) {
-            if (event.field_0 == g_game->unitTypes[DAT_005129b4[i].field_52].field_13e) {
+            if (event.field_0 == g_game->unitTypes[g_unitRestrictEntries[i].field_52].field_13e) {
                 entry->flags[i] = (event.field_a == 0);
-                DAT_005129b4[i].field_5e = event.field_a;
-                DAT_005129b4[i].field_5a = event.field_c;
+                g_unitRestrictEntries[i].field_5e = event.field_a;
+                g_unitRestrictEntries[i].field_5a = event.field_c;
                 entry->flags[i] |= (event.field_c != 0) ? 0 : 2;
             }
         }
@@ -4842,7 +4842,7 @@ void FUN_0044c220()
 }
 
 // FUNCTION: 0x44c370
-void __stdcall FUN_0044c370(void* panel, Entry_00446f50* unit)
+void __stdcall ShowSelectedUnitCosts(void* panel, Entry_00446f50* unit)
 {
     char buf[20];
     UnitType_00446f50* def = &g_game->unitTypes[unit->records[unit->field_ba].field_52];
@@ -4858,13 +4858,13 @@ void __stdcall FUN_0044c370(void* panel, Entry_00446f50* unit)
 // this file needs.
 
 // FUNCTION: 0x44c7a0
-int __cdecl FUN_0044c7a0(const char* a, const char* b)
+int __cdecl CompareUnitRestrictEntries(const char* a, const char* b)
 {
     return strcmp(a, b);
 }
 
 // The slider set-up at 0x445e50, which has no callers: /Ob2 inlined it.
-void __stdcall FUN_00445e50_0044c7e0(char* name, int max, int value, Callback_0044c7e0 callback)
+void __stdcall BindNamedSliderWithCallback_0044c7e0(char* name, int max, int value, Callback_0044c7e0 callback)
 {
     Gui_00446f50* gui = &g_game->gui;
     Entry_00446f50* gadgets = gui->table->entries;
@@ -4899,14 +4899,14 @@ void OpenUnitRestrictions()
     layer = LoadGuiLayer(&g_game->gui, "RESTRICT2.GUI", 0x880);
     layer->handler = HandleRestrictionsClick;
     layer->field_c = 0;
-    layer->field_1c = FUN_0044c220;
-    DAT_00512768 = 0;
+    layer->field_1c = UnitRestrictDialogFrame;
+    g_unitRestrictPicLoadIndex = 0;
     LoadPictureCached("UnitRestrict5x", 0, 0, 0);
 
     entries = layer->entries;
     flags = (char*)FUN_004d83b0("FLAGS", g_game->count);
     desc = FindGadgetChecked(entries, "DESCLIST");
-    desc->field_ce = FUN_0044c370;
+    desc->field_ce = ShowSelectedUnitCosts;
     desc->flags = flags;
     desc->field_da = 0x20;
     desc->field_1b |= 0x100;
@@ -4921,15 +4921,15 @@ void OpenUnitRestrictions()
     text = (char*)FUN_004d83b0("UNITTEXTARRAY", g_game->count << 5);
     *(int*)text = 0;
 
-    DAT_005129b4 = (Record_00446f50*)FUN_004d83b0("UNITSRESTRICTINFO", g_game->count * 0x62);
-    desc->records = DAT_005129b4;
+    g_unitRestrictEntries = (Record_00446f50*)FUN_004d83b0("UNITSRESTRICTINFO", g_game->count * 0x62);
+    desc->records = g_unitRestrictEntries;
     for (i = 0; i < g_game->count; i++)
-        DAT_005129b4[i].field_52 = 0;
+        g_unitRestrictEntries[i].field_52 = 0;
 
-    DAT_005129b8 = (int*)FUN_004d83b0("UNITSPICS", g_game->count << 2);
-    memset(DAT_005129b8, 0, g_game->count << 2);
-    memset(DAT_005129b4, 0, g_game->count * 0x62);
-    DAT_005129c4 = (int*)FUN_004d83b0("OLDCOUNTS", g_game->count << 2);
+    g_unitRestrictPics = (int*)FUN_004d83b0("UNITSPICS", g_game->count << 2);
+    memset(g_unitRestrictPics, 0, g_game->count << 2);
+    memset(g_unitRestrictEntries, 0, g_game->count * 0x62);
+    g_unitRestrictOldCounts = (int*)FUN_004d83b0("OLDCOUNTS", g_game->count << 2);
 
     n = 0;
     for (i = 1; i < g_game->count; i++) {
@@ -4942,26 +4942,26 @@ void OpenUnitRestrictions()
             UnitType_00446f50* type = &g_game->unitTypes[i];
             Info_0044c7e0 info;
             int count;
-            sprintf(DAT_005129b4[n].name, "%s\r%s %dM  %dE",
+            sprintf(g_unitRestrictEntries[n].name, "%s\r%s %dM  %dE",
                     g_game->unitTypes[i].unitName, Translate(type->description),
                     (int)type->metalCost, (int)type->energyCost);
-            DAT_005129b4[n].field_52 = i;
+            g_unitRestrictEntries[n].field_52 = i;
             g_game->sync->GetUnitEntry(&g_game->unitTypes[i], &info);
             // One ternary: the if-statement form swaps the ebx/ebp registers.
             count = info.field_c == -1 ? 0x65 : info.field_c;
-            DAT_005129b4[n].field_5a = count;
-            DAT_005129c4[n] = count;
-            DAT_005129b4[n].field_5e = info.field_a;
+            g_unitRestrictEntries[n].field_5a = count;
+            g_unitRestrictOldCounts[n] = count;
+            g_unitRestrictEntries[n].field_5e = info.field_a;
             n++;
         }
     }
 
-    qsort(DAT_005129b4, n, 0x62, (int (__cdecl*)(const void*, const void*))FUN_0044c7a0);
+    qsort(g_unitRestrictEntries, n, 0x62, (int (__cdecl*)(const void*, const void*))CompareUnitRestrictEntries);
 
     dst = text;
     for (i = 0; i < g_game->count; i++) {
-        strcpy(dst, DAT_005129b4[i].name);
-        dst += strlen(DAT_005129b4[i].name) + 1;
+        strcpy(dst, g_unitRestrictEntries[i].name);
+        dst += strlen(g_unitRestrictEntries[i].name) + 1;
     }
 
     for (i = 0; i < 0xc; i++) {
@@ -4974,7 +4974,7 @@ void OpenUnitRestrictions()
         slider->callback = (void (__stdcall*)(Gadget_00440d70*, int))HandleUnitCountSlider;
     }
 
-    FUN_00445e50_0044c7e0("SCROLLSLIDER", 0xd2, 0, UpdateUnitSliders);
+    BindNamedSliderWithCallback_0044c7e0("SCROLLSLIDER", 0xd2, 0, UpdateUnitSliders);
 
     FUN_004a32a0(&g_game->gui, "DESCLIST", text, n, 0);
     SetGadgetRows(g_game->gui.table, "PICLIST", pics, n);

@@ -96,14 +96,14 @@ struct UnitSync {
 struct Player { void SetType(int param); };
 
 extern Game* g_game;
-extern int DAT_00512994;
-extern int DAT_005129a4;
-extern unsigned int DAT_005129a8;
-extern unsigned int DAT_0050550c;
+extern int g_battleRoomSlotsBuilt;
+extern int g_startCountdownNextTick;
+extern unsigned int g_heartbeatNextTick;
+extern unsigned int g_lastPlayerCount;
 
 int __stdcall HandleNetPackets();
 unsigned char __stdcall FindHostSlot();
-void __stdcall FUN_004455b0();
+void __stdcall BuildPlayerSlotGadgets();
 void __stdcall RefreshBattleRoomRows();
 void ShowSelectedMapInfo();
 void __stdcall UpdateMaxUnitsText(Gui_0044a680* gui, int index);
@@ -180,7 +180,7 @@ inline void __stdcall SwapPlayerSlots(Player_0044a680* param_1, Player_0044a680*
 
 // The slot compaction at 0x445450, which has no callers. Declared inline for
 // its loops, like 0x4453a0.
-inline void FUN_00445450()
+inline void CompactActivePlayerSlots()
 {
     Player_0044a680* p = g_game->players;
     Player_0044a680* q = g_game->players + 1;
@@ -234,7 +234,7 @@ void __stdcall UpdateEnergyText(Gui_0044a680* gui, int unused)
 }
 
 // The slider setter at 0x445e20, which has no callers: /Ob2 inlined it.
-void __stdcall FUN_00445e20(Gui_0044a680* gui, char* name, int value)
+void __stdcall SetNamedSliderValue(Gui_0044a680* gui, char* name, int value)
 {
     // Gadget kept in a local: holds the value in edi across FUN_004a0200.
     Gadget_0044a680* gadget = FUN_004a0200(gui->table->entries, name);
@@ -268,14 +268,14 @@ void UpdateBattleRoom()
     }
 
     if (g_game->dirty) {
-        if (DAT_00512994 == 0) {
-            FUN_004455b0();
+        if (g_battleRoomSlotsBuilt == 0) {
+            BuildPlayerSlotGadgets();
         } else {
-            FUN_00445450();
+            CompactActivePlayerSlots();
         }
 
-        if ((unsigned int)g_game->field_2a3c != DAT_0050550c) {
-            DAT_0050550c = g_game->field_2a3c;
+        if ((unsigned int)g_game->field_2a3c != g_lastPlayerCount) {
+            g_lastPlayerCount = g_game->field_2a3c;
             UpdateNetGameInfo();
         }
 
@@ -285,9 +285,9 @@ void UpdateBattleRoom()
                 if (IsScreenNamed(&g_game->gui, "LOUNGE2.GUI") != 0) {
                     PlayerInfo_0044a680* info = g_game->players[host].info;
                     ((Mission*)g_game->map)->LoadMissionByName(info);
-                    FUN_00445e20(&g_game->gui, "MAXUNITS", g_game->players[host].info->maxUnits - 0x14);
-                    FUN_00445e20(&g_game->gui, "METAL", g_game->players[host].info->metal * 100);
-                    FUN_00445e20(&g_game->gui, "ENERGY", g_game->players[host].info->energy * 100);
+                    SetNamedSliderValue(&g_game->gui, "MAXUNITS", g_game->players[host].info->maxUnits - 0x14);
+                    SetNamedSliderValue(&g_game->gui, "METAL", g_game->players[host].info->metal * 100);
+                    SetNamedSliderValue(&g_game->gui, "ENERGY", g_game->players[host].info->energy * 100);
                     UpdateMaxUnitsText(&g_game->gui, 0);
                     UpdateEnergyText(&g_game->gui, 0);
                     UpdateMetalText(&g_game->gui, 0);
@@ -310,13 +310,13 @@ void UpdateBattleRoom()
 
                 FUN_004a1250(&g_game->gui, "SYNCHING", 1);
                 start = FUN_004a0280(g_game->gui.table->entries, "battlestart");
-                if (start->frame > 0 && DAT_005129a4 < GetTicks()) {
+                if (start->frame > 0 && g_startCountdownNextTick < GetTicks()) {
                     if (start->frame < 8) {
                         start->frame++;
                         FUN_0049fa90(&g_game->gui);
                         g_game->dirty = 1;
                     }
-                    DAT_005129a4 += 4;
+                    g_startCountdownNextTick += 4;
                     if (start->frame == 4)
                         PlaySoundByName("Panel", 0);
                 }
@@ -326,7 +326,7 @@ void UpdateBattleRoom()
                     g_game->dirty = 1;
                     if (start->frame == 0) {
                         start->frame = 1;
-                        DAT_005129a4 = GetTicks();
+                        g_startCountdownNextTick = GetTicks();
                         PlaySoundByName("Options", 0);
                     }
                     start->c8_0 = 0;
@@ -379,10 +379,10 @@ void UpdateBattleRoom()
     }
 
     ((UnitSync*)g_game->net)->ProcessSync();
-    if (DAT_005129a8 < (unsigned int)GetTicks()) {
+    if (g_heartbeatNextTick < (unsigned int)GetTicks()) {
         unsigned char r;
         PlayerInfo_0044a680* info;
-        DAT_005129a8 = GetTicks() + 0x3c;
+        g_heartbeatNextTick = GetTicks() + 0x3c;
         r = FindGameCdDrive(1);
         info = pl->info;
         info->f9d_2 = (r != 0);

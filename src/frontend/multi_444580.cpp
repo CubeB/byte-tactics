@@ -95,7 +95,7 @@ void __stdcall RenderLayer(void* menu, int value);
 // this spelling (one local, `index`) also matches 0x4444d0 itself, and it is
 // the one that gives this function's frame (two more locals add two slots).
 // It is static here so that the object does not define 0x4444d0 a second time.
-static int __stdcall FUN_004444d0(Entry_00444580* entries, int from, short y, int param_4, char* name)
+static int __stdcall CloneServiceSlot(Entry_00444580* entries, int from, short y, int param_4, char* name)
 {
     int index = ++entries[0].count;
     entries[index] = entries[from];
@@ -148,7 +148,7 @@ void FillProviderList()
                 n++;
                 char name[0x1c];
                 sprintf(name, "SERVICE%d", k);
-                FUN_004444d0(entries, tmpl, y, (int)DAT_005127c8[k].name, name);
+                CloneServiceSlot(entries, tmpl, y, (int)DAT_005127c8[k].name, name);
                 y += entries[tmpl].field_19 + 1;
             }
         }

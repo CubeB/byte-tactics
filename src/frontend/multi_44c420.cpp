@@ -76,9 +76,9 @@ struct Struct_004c6ac0 {
 };
 
 extern Game* g_game;
-extern int* DAT_005129b8;
-extern Record_005129b4* DAT_005129b4;
-extern int* DAT_005129c4;
+extern int* g_unitRestrictPics;
+extern Record_005129b4* g_unitRestrictEntries;
+extern int* g_unitRestrictOldCounts;
 
 Entry_0044c420* __stdcall FindGadgetChecked(void* gadgets, char* name);
 int __stdcall IsCurrentGadgetNamed(Menu_0044c420* gui, char* name);
@@ -107,7 +107,7 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
     desc = FindGadgetChecked(menu->inner->gadgets, "DESCLIST");
     if (menu->field_60 == -1) {
         i = 0;
-        p = DAT_005129b8;
+        p = g_unitRestrictPics;
         if (desc->count > 0) {
             do {
                 if (*p != 0)
@@ -117,18 +117,18 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
             } while (i < desc->count);
         }
         FUN_004d85a0(desc->field_c6);
-        FUN_004d85a0(DAT_005129b8);
-        DAT_005129b8 = 0;
+        FUN_004d85a0(g_unitRestrictPics);
+        g_unitRestrictPics = 0;
         FUN_004d85a0(desc->field_c2);
         SetDescListCleanupFlag((int)menu, 1);
         if (IsHostLocal() != 0) {
             for (i = 0; i < g_game->count; i++) {
-                type = DAT_005129b4[i].field_52;
+                type = g_unitRestrictEntries[i].field_52;
                 if (type != 0) {
                     item = &g_game->items[type];
                     if (item->field_245.bits.flag) {
                     } else {
-                        if (DAT_005129b4[i].field_5a == 0)
+                        if (g_unitRestrictEntries[i].field_5a == 0)
                             ((UnitSync*)g_game->queue)->DisallowUnit(item);
                         else
                             ((UnitSync*)g_game->queue)->AllowUnit(item);
@@ -136,13 +136,13 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
                 }
             }
         }
-        FUN_004d85a0(DAT_005129b4);
-        FUN_004d85a0(DAT_005129c4);
+        FUN_004d85a0(g_unitRestrictEntries);
+        FUN_004d85a0(g_unitRestrictOldCounts);
         FUN_004d85a0(desc->field_d6);
         pic = FindGadgetChecked(menu->inner->gadgets, "PICLIST");
         if (pic != 0 && pic->field_c6 != 0)
             FUN_004d85a0(pic->field_c6);
-        DAT_005129b4 = 0;
+        g_unitRestrictEntries = 0;
         return;
     }
 
@@ -161,16 +161,16 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
     if (IsCurrentGadgetNamed(menu, "Reset") != 0) {
         PlaySoundByName("Options", 0);
         for (i = 0; i < g_game->count; i++) {
-            type = DAT_005129b4[i].field_52;
+            type = g_unitRestrictEntries[i].field_52;
             if (type != 0) {
                 if ((g_game->items[type].field_245.raw & 0x10000) == 0)
-                    DAT_005129b4[i].field_5a = 100;
+                    g_unitRestrictEntries[i].field_5a = 100;
                 else
-                    DAT_005129b4[i].field_5a = 0;
-                if (DAT_005129b4[i].field_5a != DAT_005129b4[i].field_56) {
+                    g_unitRestrictEntries[i].field_5a = 0;
+                if (g_unitRestrictEntries[i].field_5a != g_unitRestrictEntries[i].field_56) {
                     ((UnitSync*)g_game->queue)->SetUnitLimit(
-                        &g_game->items[DAT_005129b4[i].field_52],
-                        DAT_005129b4[i].field_5a);
+                        &g_game->items[g_unitRestrictEntries[i].field_52],
+                        g_unitRestrictEntries[i].field_5a);
                 }
             }
         }
@@ -192,7 +192,7 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
             if (g_game->items[i].field_245.bits.flag) {
             } else if (g_game->items[i].name != 0) {
                 ((UnitSync*)g_game->queue)->SetUnitLimit(
-                    &g_game->items[i], DAT_005129c4[n]);
+                    &g_game->items[i], g_unitRestrictOldCounts[n]);
                 n++;
             }
         }

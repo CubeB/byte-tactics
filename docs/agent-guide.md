@@ -2533,7 +2533,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **To break a common subexpression, re-express one of its uses.** When two
   uses of the same address are shared and no renaming or extra local helps,
   write one of them through a different path (for example
-  `defs[DAT_005129b4[i].unitType].name`, reloading the field, instead of
+  `defs[g_unitRestrictEntries[i].unitType].name`, reloading the field, instead of
   `defs[type].name`). They are then no longer the same value, and MSVC
   recomputes the address instead of sharing it (0x44c0d0, 77.0% to MATCH).
 - **A store that MSVC deletes can still move registers.** At 0x461b10,
@@ -2561,7 +2561,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   reused (`mov eax, ecx`) in the arm MSVC lays out as the fall-through and
   reloaded in the other. Flipping 0x43b7c0's case 9 so that the arm using the
   stored `flags | 0x800000` falls through was worth 3.1 points (#2049), and
-  inverting 0x44a680's DAT_00512994 guard so the full path falls through fixed
+  inverting 0x44a680's g_battleRoomSlotsBuilt guard so the full path falls through fixed
   13 points and the size in one edit (#2457). When a branch's shape is right
   but its edges are not, `if (cond) goto after;` jumps can set the polarity
   where if/else nesting cannot (0x452cc0, exact 848 bytes, #2237).

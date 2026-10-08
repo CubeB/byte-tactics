@@ -85,7 +85,7 @@ void __stdcall CloseTopScreen(Sub_00441460* sub);
 void __stdcall FUN_004a32a0(Sub_00441460* sub, const char* name, char* text, int count, int flag);
 char* GetPreferredLanguage();
 int __stdcall FindGadgetIndex(void* entries, const char* name, int type);
-void __stdcall FUN_00441220(Sub_00441460* sub, char* entry);
+void __stdcall UpdateGameSelection(Sub_00441460* sub, char* entry);
 
 // FUNCTION: 0x441460
 int __stdcall ConnectToGame(Gadget_00441460* gadget) {
@@ -238,6 +238,6 @@ shown:
 
     i = FindGadgetIndex(gadget->entries, "GAMENAME", 2);
     if (i != -1)
-        FUN_00441220(&g_game->sub, gadget->entries + i * 0x15b);
+        UpdateGameSelection(&g_game->sub, gadget->entries + i * 0x15b);
     return 1;
 }

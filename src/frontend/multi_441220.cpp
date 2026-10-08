@@ -56,7 +56,7 @@ static inline void Apply_00441220(unsigned short* p, unsigned short r, int ge, E
 }
 
 // FUNCTION: 0x441220
-void __stdcall FUN_00441220(Menu_00441220* menu, Entry_00441220* entry)
+void __stdcall UpdateGameSelection(Menu_00441220* menu, Entry_00441220* entry)
 {
     void* gadgets = menu->holder->gadgets;
     // Reference to gv: makes ge a real 32-bit read, so ge == 0 tests edi.

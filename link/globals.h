@@ -620,7 +620,7 @@ extern int g_lzssPresetReady;                                                   
 extern int g_lzssUsePreset;                                                                       // 0x526ffc, 4 bytes; 1 of 1 files
 extern char DAT_005289b4;                                                                         // 0x5289b4, 1 bytes; 1 of 1 files
 extern char DAT_005289b8;                                                                         // 0x5289b8, 1 bytes; 1 of 1 files
-extern void (__stdcall* DAT_005289bc)(void);                                                      // 0x5289bc, 4 bytes; 11 of 11 files
+extern void (__stdcall* DAT_005289bc)(void);                                                      // 0x5289bc, 4 bytes; 10 of 10 files
 extern int DAT_005289c0;                                                                          // 0x5289c0, 4 bytes; 1 of 1 files
 extern int DAT_005289c4;                                                                          // 0x5289c4, 4 bytes; 1 of 1 files
 extern unsigned char DAT_005289c8;                                                                // 0x5289c8, 1 bytes; 2 of 2 files
@@ -685,7 +685,7 @@ extern unsigned char DAT_00529dd8;                                              
 extern unsigned char DAT_00529ddc;                                                                // 0x529ddc, 1 bytes; 3 of 3 files
 extern unsigned char DAT_00529dfc[4];                                                             // 0x529dfc, 4 bytes; nothing refers to it
 extern char DAT_00529e20[56];                                                                     // 0x529e20, 56 bytes; 3 of 3 files
-extern void* DAT_00529e58;                                                                        // 0x529e58, 4 bytes; 5 of 6 files (conflicting: shape)
+extern void* DAT_00529e58;                                                                        // 0x529e58, 4 bytes; 4 of 5 files (conflicting: shape)
 extern unsigned char DAT_00529e5c[8];                                                             // 0x529e5c, 8 bytes; nothing refers to it
 extern unsigned char DAT_00529e64;                                                                // 0x529e64, 1 bytes; 3 of 3 files
 extern unsigned char DAT_00529e6c;                                                                // 0x529e6c, 1 bytes; 1 of 1 files
@@ -696,8 +696,8 @@ extern NameTable* DAT_00529e7c;                                                 
 extern char* DAT_00529e80;                                                                        // 0x529e80, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00529e84[4];                                                             // 0x529e84, 4 bytes; nothing refers to it
 extern char DAT_00529e88[13];                                                                     // 0x529e88, 13 bytes; 1 of 1 files
-extern void* DAT_00529e98;                                                                        // 0x529e98, 4 bytes; 4 of 4 files
-extern int DAT_00529ea0;                                                                          // 0x529ea0, 4 bytes; 3 of 3 files
+extern void* DAT_00529e98;                                                                        // 0x529e98, 4 bytes; 2 of 2 files
+extern int DAT_00529ea0;                                                                          // 0x529ea0, 4 bytes; 2 of 2 files
 extern unsigned char DAT_00529ea4[4];                                                             // 0x529ea4, 4 bytes; nothing refers to it
 extern char DAT_0052a4e4;                                                                         // 0x52a4e4, 1 bytes; 1 of 1 files
 extern long DAT_0052a4e8;                                                                         // 0x52a4e8, 4 bytes; 5 of 6 files (conflicting: signedness or const)
@@ -710,8 +710,8 @@ extern long DAT_0052a4fc;                                                       
 // Not declared: 225 globals defined in a data file or whose type is not settled (see data/globals.csv).
 //   0x5119c0 g_playerAI: PlayerAI*[] (11), void*[] (5), Owner*[] (3), Player_40b0d0*[] (1), and 2 more
 //   0x513000 g_packetManager: defined in src/network/packets_460e20.cpp
-//   0x5292c4 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib_4e17c0.cpp
 //   0x528a54 std::IH::IU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib_4db610.cpp
+//   0x5292c4 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib_4e17c0.cpp
 //   0x4fcdb8 DPSPGUID_SERIAL: defined in src/data/guids.cpp
 //   0x4fcdc8 DPSPGUID_MODEM: defined in src/data/guids.cpp
 //   0x5129ac DAT_005129ac: char* (4), int* (1), void* (1)
@@ -719,7 +719,6 @@ extern long DAT_0052a4fc;                                                       
 //   0x4fcda8 DPSPGUID_TCPIP: defined in src/data/guids.cpp
 //   0x5120b8 DAT_005120b8: Entry_00428730[10] (1), char[] (1), Entry_004287d0[10] (1), Entry_00428850[10] (1), and 1 more
 //   0x51e598 IUUnitSyncEntry::IU?$pair::?$_Tree::_Nil: defined in src/network/unit_sync.cpp
-//   0x529e9c DAT_00529e9c: char (3), bool (2)
 //   0x4fd6f0 DAT_004fd6f0: defined in src/data/vtables.cpp
 //   0x5129d0 g_sendCondenser: defined in src/network/net_condenser.cpp
 //   0x51e6a0 g_losTables: defined in src/map/line_of_sight.cpp
@@ -805,6 +804,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x528ad0 DAT_00528ad0: int (1), unsigned long (__stdcall*)(unsigned long) (1)
 //   0x529500 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nilrefs: defined in src/debug/debug_lib_4e17c0.cpp
 //   0x529df8 DAT_00529df8: void* (1), EventEntry* (1)
+//   0x529e9c DAT_00529e9c: char (1), bool (1)
 //   0x529f48 _tls_index: library
 //   0x4fc474 DAT_004fc474: defined in src/data/unused.cpp
 //   0x4fc978 DAT_004fc978: defined in src/data/unused.cpp

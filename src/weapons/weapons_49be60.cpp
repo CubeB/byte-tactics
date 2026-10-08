@@ -15,13 +15,13 @@
 //  - Kind 1's rect is copied from +0x34 as one dword, then rect[1] += 0x8000.
 //  - The LOS test goes through small inline members (ByteMap::Get,
 //    MapSize::Contains) with an explicit visible = 1 / else 0.
-//  - Kind 4's frame divisor is `(time - p->field_42) % *(unsigned short*)gaf`
+//  - Kind 4's frame divisor is `(time - p->spawnTick) % *(unsigned short*)gaf`
 //    (signed); its switch is a real jump table, cases 0..4.
 // Layout facts:
 //   Projectile stride 0x6b. type at +0x0; pos Vec3 (16.16) at +0x4; start
-//   Vec3 at +0x10; shorts +0x34/+0x36/+0x38 (angles); int field_42 (spawn
-//   time) +0x42; int field_46 +0x46; short field_5e +0x5e (sprite half
-//   height); short counter +0x60; short field_64 +0x64; ushort flags +0x69.
+//   Vec3 at +0x10; shorts +0x34/+0x36/+0x38 (angles); int spawnTick (spawn
+//   time) +0x42; int time +0x46; short groundHeightAvg +0x5e; short counter
+//   +0x60; short propellerSpin +0x64; ushort flags +0x69.
 //   Type: ptr field_74 +0x74 (sprite object, its +0x30 is a second frame);
 //   ushort field_e6 +0xe6 (kind 5 animation divisor); byte field_10c +0x10c
 //   shot kind; byte field_10d +0x10d palette index; byte field_10e +0x10e
@@ -80,13 +80,13 @@ struct Proj_0049be60 {
     char unknown_1c[0x34 - 0x1c];
     Angles_0049be60 angles;            // +0x34
     char unknown_3a[0x42 - 0x3a];
-    int field_42;                      // +0x42
-    int field_46;                      // +0x46
+    int spawnTick;                     // +0x42
+    int time;                          // +0x46
     char unknown_4a[0x5e - 0x4a];
-    short field_5e;                    // +0x5e
+    short groundHeightAvg;             // +0x5e
     short counter;                     // +0x60
     char unknown_62[0x64 - 0x62];
-    short field_64;                    // +0x64
+    short propellerSpin;               // +0x64
     char unknown_66[0x69 - 0x66];
     unsigned short flags;              // +0x69
 };
@@ -250,16 +250,16 @@ void __stdcall DrawProjectiles(void* surface)
                     sp.y = p->pos.y;
                     sp.z = p->pos.z - (g_game->scrollY << 16);
                     int sx = 0x80 + (int)*(short*)((char*)&sp + 2);
-                    int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->field_5e >> 1) + 0x20;
+                    int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->groundHeightAvg >> 1) + 0x20;
                     DrawFrameBlended(surface, frame0, sx, sy);
                     Angles_0049be60 rot = p->angles;
                     rot.y += 0x8000;
                     rot.z += 0x8000;
                     DrawModel3doProjected(surface, &sp, type->field_74, &rot);
                     Sprite_0049be60* s = (Sprite_0049be60*)type->field_74;
-                    if (0 != s->field_30 && p->field_46 > time) {
+                    if (0 != s->field_30 && p->time > time) {
                         if (type->flag_21) {
-                            rot.x = p->field_64;
+                            rot.x = p->propellerSpin;
                             DrawModel3doProjected(surface, &sp, s->field_30, &rot);
                         } else {
                             DrawModel3doProjected(surface, &sp, s->field_30, &rot);
@@ -278,7 +278,7 @@ void __stdcall DrawProjectiles(void* surface)
                     sp.y = p->pos.y;
                     sp.z = p->pos.z - (g_game->scrollY << 16);
                     int sx = (int)*(short*)((char*)&sp + 2) + 0x80;
-                    int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->field_5e >> 1) + 0x20;
+                    int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->groundHeightAvg >> 1) + 0x20;
                     DrawFrameBlended(surface, frame0, sx, sy);
                     Angles_0049be60 rot3;
                     DrawModel3doProjected(surface, &sp, type->field_74, &rot3);
@@ -290,7 +290,7 @@ void __stdcall DrawProjectiles(void* surface)
                         sp.z = p->pos.z - (g_game->scrollY << 16);
                         DrawFrameBlended(surface, frame0,
                                      (int)*(short*)((char*)&sp + 2) + 0x80,
-                                     (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->field_5e >> 1) + 0x20);
+                                     (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->groundHeightAvg >> 1) + 0x20);
                         int sy = ((int)*(short*)((char*)&sp + 10)
                                   - ((int)*(short*)((char*)&sp + 6) >> 1)) + 0x20;
                         int sx = (int)*(short*)((char*)&sp + 2) + 0x80;
@@ -303,7 +303,7 @@ void __stdcall DrawProjectiles(void* surface)
                         }
                         if (gaf) {
                             int n = *(unsigned short*)gaf;
-                            DrawFrame(surface, GetGafFrame(gaf, (time - p->field_42) % n), sx, sy);
+                            DrawFrame(surface, GetGafFrame(gaf, (time - p->spawnTick) % n), sx, sy);
                         }
                     }
                 } else if (type->field_10c == 5) {
@@ -313,7 +313,7 @@ void __stdcall DrawProjectiles(void* surface)
                              - (short)g_game->scrollY + 0x20;
                     void* gaf = g_game->gaf_147f3;
                     int n = GetGafFrameCount(gaf);
-                    fr = n - ((p->field_46 - time) * n) / (int)type->field_e6;
+                    fr = n - ((p->time - time) * n) / (int)type->field_e6;
                     if (fr >= 0 && fr < n) {
                         DrawFrameBlended(surface, GetGafFrame(gaf, fr), sx, sy);
                     }
@@ -321,7 +321,7 @@ void __stdcall DrawProjectiles(void* surface)
                     sp.x = pos->x - (g_game->scrollX << 16);
                     sp.y = p->pos.y;
                     sp.z = p->pos.z - (g_game->scrollY << 16);
-                    int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->field_5e >> 1) + 0x20;
+                    int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->groundHeightAvg >> 1) + 0x20;
                     int sx = (int)*(short*)((char*)&sp + 2) + 0x80;
                     DrawFrameBlended(surface, frame0, sx, sy);
                     DrawModel3doProjected(surface, &sp, type->field_74, &p->angles);

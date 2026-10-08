@@ -69,7 +69,7 @@ struct Weapon_0049a120 {
     WeaponDef_0049a120* def;           // +0x0
     Vec3_0049a120 pos;                 // +0x4
     char unknown_10[0x28 - 0x10];
-    Vec3_0049a120 field_28;            // +0x28
+    Vec3_0049a120 aim;                 // +0x28
     char unknown_34[0x52 - 0x34];
     Unit_0049a120* attacker;           // +0x52
     char unknown_56[0x66 - 0x56];
@@ -377,11 +377,11 @@ void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
                 DetonateProjectile(other, 0);
                 Packet_0049a120 packet;
                 packet.type = 0xe;
-                packet.pos = other->field_28;
+                packet.pos = other->aim;
                 packet.kind = other->def->kind;
                 BroadcastPacket(weapon->attacker->holder->playerId, &packet, sizeof(packet));
                 packet.type = 0xe;
-                packet.pos = weapon->field_28;
+                packet.pos = weapon->aim;
                 packet.kind = weapon->def->kind;
                 BroadcastPacket(weapon->attacker->holder->playerId, &packet, sizeof(packet));
             }

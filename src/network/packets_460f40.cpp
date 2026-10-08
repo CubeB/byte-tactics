@@ -366,6 +366,7 @@ public:
     void QueueOnChannel(int param_1, PacketChannel* param_2, int param_3, int param_4);
     void* QueuePacket(int param_1, int param_2, void* param_3, unsigned int param_4);
     void SetDefaultSendPacing(int rate);
+    void HandleIntegrityNop(int, int, int);
 };
 
 // Defined in packets_460e20.cpp, whose dynamic initialiser (_$E4) and static
@@ -513,15 +514,13 @@ void PacketManager::NopRet_D()
 {
 }
 
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+void WriteScreenshot(char*, char*, int, int, int, int);
+
 // An empty method, called once (from 0x453d40) on the global g_packetManager,
 // like its neighbour 0x461610.
-class Class_00461620 {
-public:
-    void HandleIntegrityNop(int, int, int);
-};
-
 // FUNCTION: 0x461620
-void Class_00461620::HandleIntegrityNop(int, int, int)
+void PacketManager::HandleIntegrityNop(int, int, int)
 {
 }
 
@@ -2084,11 +2083,13 @@ struct Grid_00463be0 {
     Grid_00463be0() { width = 0; height = 0; field_c = 0; cells = 0; }
 };
 
-class Class_00463be0 {
-public:
+struct Player {
     int field_0;                       // +0x0
     char unknown_4[0x27 - 0x4];
-    char* data;                        // +0x27 (0xb9 bytes)
+    union {
+        char* data;                    // +0x27 (0xb9 bytes)
+        void* field_27;
+    };
     char unknown_2b[0x73 - 0x2b];
     char field_73;                     // +0x73
     char unknown_74[0x7c - 0x74];
@@ -2097,12 +2098,14 @@ public:
     char field_146;                    // +0x146
     char unknown_147[0x14b - 0x147];
 
-    Class_00463be0();
+    Player();
+    void FreeSideDataAndFogSightCounts();
+    void SetType(int param_1);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x463be0
-Class_00463be0::Class_00463be0() : field_0(0), field_73(0)
+Player::Player() : field_0(0), field_73(0)
 {
     field_146 = 10;
     data = (char*)operator new(0xb9);
@@ -2110,41 +2113,19 @@ Class_00463be0::Class_00463be0() : field_0(0), field_73(0)
     memset(data, 0, 0xb9);
 }
 
-#pragma pack(push, 1)
-class Class_00463c40 {
-public:
-    char unknown_0[0x27];
-    void* field_27;
-    char unknown_2b[0x51];
-    void* field_7c;
-
-    void FreeSideDataAndFogSightCounts();
-};
-#pragma pack(pop)
-
 // FUNCTION: 0x463c40
-void Class_00463c40::FreeSideDataAndFogSightCounts()
+void Player::FreeSideDataAndFogSightCounts()
 {
     delete field_27;
-    delete field_7c;
+    delete grid.cells;
 }
-
-#pragma pack(push, 1)
-struct Player {
-    char unknown_0[0x27];
-    int field_27;
-    char unknown_2b[0x73 - 0x2b];
-    char field_73;
-    void SetType(int param_1);
-};
-#pragma pack(pop)
 
 // FUNCTION: 0x463c60
 void Player::SetType(int param_1)
 {
     field_73 = (char)param_1;
     if (param_1 != 3) {
-        *(char*)((char*)field_27 + 0x94) = (char)param_1;
+        *((char*)field_27 + 0x94) = (char)param_1;
     }
 }
 

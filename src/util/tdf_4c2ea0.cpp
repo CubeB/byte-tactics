@@ -190,6 +190,8 @@ public:
     void CopyRecordName(char* dest, size_t count);
     int GetRecordName();
     TdfRecord* FindSubRecord(const char* name);
+    int GetSubRecordCount();
+    TdfRecord* GetSubRecord(int index);
     int GetFieldCount();
     char* GetFieldName(int index);
     int FindFieldValue(char* name);
@@ -537,20 +539,12 @@ class Class_004c93f0;
 class Class_004c9490;
 class TranslationTable;
 
-// size() of the std::vector of pointers held at +4 (_First at +8), the same
-// layout as TdfRecord's children.
-class Class_004c4450 {
-public:
-    int unknown_0;
-    std::vector<TdfRecord*> entries;   // +0x4 (_First at +0x8)
-
-    int GetSubRecordCount();
-};
-
+// size() of the std::vector of pointers held at +4 (_First at +8), TdfRecord's
+// children.
 // FUNCTION: 0x4c4450
-int Class_004c4450::GetSubRecordCount()
+int TdfRecord::GetSubRecordCount()
 {
-    return entries.size();
+    return children.size();
 }
 
 // FUNCTION: 0x4c4470
@@ -566,20 +560,12 @@ TdfRecord* TdfRecord::FindSubRecord(const char* name)
 // Bounds-checked accessor into the vector of pointers held at +4 (_First at
 // +8). The index is checked against size() and 0 is returned when it is out
 // of range; otherwise std::vector::at returns the element.
-class Class_004c44c0 {
-public:
-    int unknown_0;
-    std::vector<TdfRecord*> entries;   // +0x4 (_First at +0x8)
-
-    TdfRecord* GetSubRecord(int index);
-};
-
 // FUNCTION: 0x4c44c0
-TdfRecord* Class_004c44c0::GetSubRecord(int index)
+TdfRecord* TdfRecord::GetSubRecord(int index)
 {
-    if ((unsigned int)index >= entries.size())
+    if ((unsigned int)index >= children.size())
         return 0;
-    return entries.at(index);
+    return children.at(index);
 }
 
 // FUNCTION: 0x4c45c0

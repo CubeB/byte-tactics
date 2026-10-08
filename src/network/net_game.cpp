@@ -109,7 +109,7 @@ struct Feature {
 struct Holder_00453640;
 struct Layer_004538f0;
 struct Net_4517b0;
-class Class_0046d500;
+class UnitSync;
 
 // The 0x2a44 flag word 0x452cc0 reads as 16 bits.
 union GameFlags_2a44 {
@@ -374,7 +374,7 @@ struct Game {
     char unknown_2a24[0x2a28 - 0x2a24];
     int startPosShuffleReady;          // +0x2a28
     char unknown_2a2c[0x2a30 - 0x2a2c];
-    Class_0046d500* sync;              // +0x2a30
+    UnitSync* sync;                    // +0x2a30
     int recvPacketSize;                // +0x2a34
     union {
         unsigned char* buffer;         // +0x2a38
@@ -1291,25 +1291,9 @@ public:
     int ReceiveFrame(void* net, unsigned char* data, int* size);
 };
 
-class Class_0046d500 {
+class UnitSync {
 public:
     void ReceiveSyncPacket(void*, unsigned char);
-};
-
-class Class_00463be0 {
-public:
-    char data[0x14b];
-    Class_00463be0();
-};
-
-class Class_00463c40 {
-public:
-    void FreeSideDataAndFogSightCounts();
-};
-
-class Class_00461620 {
-public:
-    void HandleIntegrityNop(int, int, int);
 };
 
 struct Guid_4517b0 {

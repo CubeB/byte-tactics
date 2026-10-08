@@ -1182,18 +1182,18 @@ typedef Vec_0048ddc0::iterator (Vec_0048ddc0::*InsertFn_0048ddc0)(
 // FUNCTION: 0x48ddc0 ?insert@?$vector@PAUUnit@@V?$allocator@PAUUnit@@@std@@@std@@QAEPAPAUUnit@@PAPAU3@ABQAU3@@Z
 InsertFn_0048ddc0 g_insert_0048ddc0 = &Vec_0048ddc0::insert;
 
-struct Class_0048df90 {
+struct MissionConditions {
     char unknown_0[0x40];
     int field_40;
     char unknown_44[0x40];
     int field_84;
     int field_88;
 
-    Class_0048df90();
+    MissionConditions();
 };
 
 // FUNCTION: 0x48df90
-Class_0048df90::Class_0048df90()
+MissionConditions::MissionConditions()
 {
     field_88 = 1;
     field_40 = 0;

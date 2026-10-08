@@ -54,27 +54,15 @@ struct UnitInfo {
     unsigned short id;                 // +0xa8
 };
 
-// The same resource object as UnitResources, under the names units/unit_save.cpp
-// calls: its save and load each write the two 0x18-byte account blocks.
-class Class_004010b0 {
-public:
-    char acc0[0x18];                   // +0x00
-    char acc1[0x18];                   // +0x18
-    void SaveUnitAccounts(UnitInfo* info, HapiBank* file);
-};
-
-class Class_00401110 {
-public:
-    char acc0[0x18];                   // +0x00
-    char acc1[0x18];                   // +0x18
-    void LoadUnitAccounts(UnitInfo* info, HapiBank* file);
-};
-
+// A unit's resource accounts: units/unit_save.cpp saves and loads the two
+// 0x18-byte account blocks through SaveUnitAccounts and LoadUnitAccounts.
 class UnitResources {
 public:
     Res_00401360 res[2];               // +0x0
     Player* player;                    // +0x30
 
+    void SaveUnitAccounts(UnitInfo* info, HapiBank* file);
+    void LoadUnitAccounts(UnitInfo* info, HapiBank* file);
     void Reset(unsigned char playerIndex);
     int RequestEnergy(UnitResources* r, float amount);
     int RequestEnergyAndMetal(float dx, float dy);
@@ -204,27 +192,27 @@ void UnitResources::Reset(unsigned char playerIndex)
 }
 
 // FUNCTION: 0x4010b0
-void Class_004010b0::SaveUnitAccounts(UnitInfo* info, HapiBank* file)
+void UnitResources::SaveUnitAccounts(UnitInfo* info, HapiBank* file)
 {
     char name[32];
     sprintf(name, "u%04xacc", info->id);
     file->OpenNamedBox(name);
     file->SeekBox(0);
-    file->WriteBox(acc0, 0x18);
-    file->WriteBox(acc1, 0x18);
+    file->WriteBox(&res[0], 0x18);
+    file->WriteBox(&res[1], 0x18);
 }
 
 // Load counterpart of 0x4010b0: reads the two 0x18-byte blocks back from the
 // unit's "u%04xacc" entry, if it exists.
 // FUNCTION: 0x401110
-void Class_00401110::LoadUnitAccounts(UnitInfo* info, HapiBank* file)
+void UnitResources::LoadUnitAccounts(UnitInfo* info, HapiBank* file)
 {
     char name[32];
     sprintf(name, "u%04xacc", info->id);
     if (file->OpenNamedBox(name)) {
         file->SeekBox(0);
-        file->ReadBox(acc0, 0x18);
-        file->ReadBox(acc1, 0x18);
+        file->ReadBox(&res[0], 0x18);
+        file->ReadBox(&res[1], 0x18);
     }
 }
 

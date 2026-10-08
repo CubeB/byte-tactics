@@ -193,23 +193,6 @@ public:
     void PlayFrame(HWND hwnd);
     void WriteSmackStats();
     void Play();
-};
-
-struct Surfaces_0047bf20 {
-    IUnknown* surface_0;             // +0x0
-    IUnknown* surface_4;             // +0x4
-    char unknown_8[8];
-    IUnknown* surface_10;            // +0x10
-};
-
-class Class_0047bf20 {
-public:
-    void* smack;                     // +0x0
-    char unknown_4[0x414 - 4];
-    int hasSurfaces;                 // +0x414
-    char unknown_418[0x544 - 0x418];
-    Surfaces_0047bf20* surfaces;     // +0x544
-
     void Close();
 };
 
@@ -295,16 +278,16 @@ MoviePlayer::MoviePlayer(char* path, int a, int b, int c, int d, int e)
 }
 
 // FUNCTION: 0x47bf20
-void Class_0047bf20::Close()
+void MoviePlayer::Close()
 {
     SmackClose(smack);
     if (hasSurfaces) {
-        if (surfaces->surface_10)
-            surfaces->surface_10->Release();
-        if (surfaces->surface_4)
-            surfaces->surface_4->Release();
-        if (surfaces->surface_0)
-            surfaces->surface_0->Release();
+        if (wrapper->palette)
+            wrapper->palette->Release();
+        if (wrapper->primary)
+            wrapper->primary->Release();
+        if (wrapper->ddraw)
+            wrapper->ddraw->Release();
     }
 }
 

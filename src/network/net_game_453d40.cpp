@@ -60,6 +60,8 @@ public:
     unsigned char field_147;           // +0x147
     char unknown_148[3];
     void SetType(int);
+    Player();
+    void FreeSideDataAndFogSightCounts();
 };
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
 int __stdcall GetPlayerDpid(Player*);
@@ -88,7 +90,7 @@ public:
     void SetStateBits(unsigned char, int);
 };
 
-class Class_0046d500 {
+class UnitSync {
 public:
     void ReceiveSyncPacket(void*, unsigned char);
 };
@@ -112,7 +114,7 @@ struct Game {
     int shareVisionReady[11];          // +0x29a4
     int startPosAssignAck[11];         // +0x29d0
     char unknown_29fc[0x2a30 - 0x29fc];
-    Class_0046d500* sync;              // +0x2a30
+    UnitSync* sync;                    // +0x2a30
     char unknown_2a34[4];
     unsigned char* packet;             // +0x2a38
     char unknown_2a3c[6];
@@ -166,23 +168,13 @@ struct Packet {
 class PacketManager {
 public:
     void SendAllQueued(int);
-};
-
-class Class_00461620 {
-public:
     void HandleIntegrityNop(int, int, int);
 };
 
-class Class_00463be0 {
-public:
-    char data[0x14b];
-    Class_00463be0();
-};
-
-class Class_00463c40 {
-public:
-    void FreeSideDataAndFogSightCounts();
-};
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+int RIReport(int, int, int, int, int, int, int, int, int, int);
+int DrawWrappedText(char*, char*, int, int, int, int, int);
+void ParseDownloadableAiWeightScripts(int);
 
 class Class_00456030 {
 public:
@@ -508,12 +500,12 @@ int HandleNetPackets()
             case 0x102: {
                 if (msg->field_4 != 1)
                     break;
-                Class_00463be0 temp;
+                Player temp;
                 Player* p = PlayerById(msg->id);
                 if (p) {
                     int target = FindPlayerIndex(msg->id);
                     if (target == 10) {
-                        ((Class_00463c40*)&temp)->FreeSideDataAndFogSightCounts();
+                        temp.FreeSideDataAndFogSightCounts();
                         continue;
                     }
                     char* payload = msg->field_c;
@@ -522,7 +514,7 @@ int HandleNetPackets()
                         && (payload[0x9b] & 0x40))
                         RejectPlayer(p->id, 9);
                 }
-                ((Class_00463c40*)&temp)->FreeSideDataAndFogSightCounts();
+                temp.FreeSideDataAndFogSightCounts();
                 break;
             }
             case 0x104:
@@ -824,8 +816,8 @@ int HandleNetPackets()
             break;
         case 29:
             if (g_usePacketManager)
-                ((Class_00461620*)&g_packetManager)
-                    ->HandleIntegrityNop(g_game->from_id, *(int*)(packet + 1), *(int*)(packet + 5));
+                g_packetManager.HandleIntegrityNop(g_game->from_id, *(int*)(packet + 1),
+                                                   *(int*)(packet + 5));
             break;
         case 33: {
             Player* a = PlayerByIndex(*(int*)(packet + 2));

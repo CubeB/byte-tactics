@@ -24,16 +24,16 @@ public:
     Class_0043a1f0(Class_00438760, int, Vec3*, int, int, int);
 };
 #pragma pack(pop)
-class Class_00405d90 {
+class DamagedAllyCollector {
 public:
     Owner* owner;
     std::vector<Unit*>* units;
     Unit* self;
-    Class_00405d90(Owner* o, std::vector<Unit*>* v, Unit* s) : owner(o), units(v), self(s) {}
+    DamagedAllyCollector(Owner* o, std::vector<Unit*>* v, Unit* s) : owner(o), units(v), self(s) {}
     virtual void CollectDamagedAlly(Unit*);
 };
 void __stdcall EnsurePatrolReturnOrder(Unit*, Order*);
-void __stdcall VisitObjectsInRange(Vec3*, int, const Class_00405d90&);
+void __stdcall VisitObjectsInRange(Vec3*, int, const DamagedAllyCollector&);
 int __stdcall RandomInt(int);
 Class_00438760 __stdcall GetOrderType(unsigned char, Unit*, Unit*, int);
 int __stdcall IssueRepairOrder(Unit*, Unit*, int);
@@ -58,7 +58,7 @@ int __stdcall RepairPatrolOrder(Unit* unit, Order* order, int flags)
             if (unit->owner->energy >= unit->owner->energyCapacity * 0.2) {
                 std::vector<Unit*> units;
                 int range = unit->def->range << 16;
-                VisitObjectsInRange(&unit->pos, range, Class_00405d90(unit->owner, &units, unit));
+                VisitObjectsInRange(&unit->pos, range, DamagedAllyCollector(unit->owner, &units, unit));
                 if (!units.empty()) {
                     Unit* target = units[RandomInt(units.size())];
                     if (unit->owner->allied[target->owner->index]) {

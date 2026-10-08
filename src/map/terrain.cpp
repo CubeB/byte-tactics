@@ -268,7 +268,7 @@ public:
     virtual void Visit(Unit* obj) = 0;
 };
 
-class Class_00405d90 {
+class DamagedAllyCollector {
 public:
     virtual void CollectDamagedAlly(Unit* unit);
 };
@@ -1155,7 +1155,7 @@ static inline int Dist2_0047e890(Vec3* b, Vec3* a)
 }
 
 // FUNCTION: 0x47e890
-void __stdcall VisitObjectsInRange(Vec3* pos, int range, Class_00405d90& visitor)
+void __stdcall VisitObjectsInRange(Vec3* pos, int range, DamagedAllyCollector& visitor)
 {
     int cx1 = ClampX_0047e890(pos, range, g_game->grid.width);
     int cy1 = ClampZ_0047e890(pos, range, g_game->grid.height);

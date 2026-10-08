@@ -124,6 +124,7 @@ typedef std::vector<Elem_00434020> Vec_004336f0;
 class LosLine : public Vec_004336f0 {
 public:
     int GetLosLineStepCount();
+    void GetLosLineStep(short index, unsigned short* out1, unsigned short* out2);
     void LoadLosLine(TdfFile* obj, short line, short mode);
 };
 
@@ -155,18 +156,8 @@ public:
     }
     void LoadLosTable(TdfFile* file, short table);
     Inner_00433500* GetLosTable(int n);
-};
-
-#pragma pack(push, 1)
-class Class_00433520 {
-public:
-    char unknown_0[4];
-    int field_4;
-    int field_8;
-
     int GetLosTableCount();
 };
-#pragma pack(pop)
 
 class Class_00433540 {
 public:
@@ -185,10 +176,9 @@ struct Elem_004336c0 {
     int value;                         // +0x0
 };
 
-class Class_004339e0 {
-public:
-    void GetLosLineStep(short index, unsigned short* out1, unsigned short* out2);
-};
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+int RIReport(int, int, int, int, int, int, int, int, int, int);
+void CopyDwordIfNonNull(int*, int*);
 
 extern void __cdecl operator delete(void*);
 
@@ -389,12 +379,9 @@ void LosTables::LoadLosTable(TdfFile* file, short table)
 }
 
 // FUNCTION: 0x433520
-int Class_00433520::GetLosTableCount()
+int LosTables::GetLosTableCount()
 {
-    if (field_4 == 0) {
-        return 0;
-    }
-    return (field_8 - field_4) >> 4;
+    return tables.size();
 }
 
 // std::vector<std::vector<Elem_00434020> >::~vector(): each inner vector's
@@ -514,7 +501,7 @@ int LosLine::GetLosLineStepCount()
 }
 
 // FUNCTION: 0x4339e0
-void Class_004339e0::GetLosLineStep(short index, unsigned short* out1, unsigned short* out2)
+void LosLine::GetLosLineStep(short index, unsigned short* out1, unsigned short* out2)
 {
     int idx = index;
     unsigned char* base = (unsigned char*)*(void**)((char*)this + 4);

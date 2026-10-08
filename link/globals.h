@@ -14,7 +14,6 @@ class PlayerAI;
 class SpeechQueue;
 class TranslationTable;
 struct Chunk;
-struct Class_004c6a60;
 struct Entry_004426e0;
 struct EventEntry;
 struct ExplodedPiece;
@@ -23,6 +22,7 @@ struct Player_00437cd0;
 struct Record_005129b4;
 struct Smoke_00425b80;
 struct Struct_00526ff0;
+struct Surface;
 
 extern unsigned char g_turnCosts[8];                                                              // 0x4fca10, 8 bytes; const Table_0040d880 by value in 1 of 1 files
 extern unsigned char g_movementClassColors[8];                                                    // 0x4fcc68, 8 bytes; 1 of 1 files
@@ -504,10 +504,10 @@ extern char g_optionsBackupTrackTypes[100];                                     
 extern int g_optionsBackupLockedTrack;                                                            // 0x512fd9, 4 bytes; 1 of 1 files
 extern int g_musicUiSelectedTrack;                                                                // 0x512fe0, 4 bytes; 1 of 1 files
 extern int g_optionsShellActive;                                                                  // 0x512fe4, 4 bytes; 1 of 1 files
-extern Class_004c6a60* g_optionsFlipSurface;                                                      // 0x512fe8, 4 bytes; 1 of 1 files
+extern Surface* g_optionsFlipSurface;                                                             // 0x512fe8, 4 bytes; 1 of 1 files
 extern int g_optionsLightbarX;                                                                    // 0x512fec, 4 bytes; 1 of 1 files
 extern int g_optionsLightbarAnim;                                                                 // 0x512ff0, 4 bytes; 1 of 1 files
-extern Class_004c6a60* g_optionsBackupSurface;                                                    // 0x512ff4, 4 bytes; 1 of 1 files
+extern Surface* g_optionsBackupSurface;                                                           // 0x512ff4, 4 bytes; 1 of 1 files
 extern int g_battleQuitIntent;                                                                    // 0x512ff8, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00512ffc[4];                                                             // 0x512ffc, 4 bytes; nothing refers to it
 extern int DAT_0051e53c;                                                                          // 0x51e53c, 4 bytes; 1 of 1 files

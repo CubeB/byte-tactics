@@ -184,10 +184,17 @@ template <class T> inline void Swap(T& a, T& b)
 extern Game* g_game;
 extern const float DAT_004fd4c0;
 
-struct CMemoryCache { void BuildShadow(Model_459200*, Image_4589c0*); };
+struct CMemoryCache {
+    char unknown_0[0x10];
+    Image_4589c0* bitmap;           // +0x10
+
+    void BuildShadow(Model_459200*, Image_4589c0*);
+    void DrawPiece(Model_459200*, int, Vec3_459200*, int, int, unsigned char, int);
+    void DrawObjectPicture(int param_2, Model_459200* model, Vec3_459200 v, int useColor);
+    void MergeIntoComposite(Image_4589c0* src, Model_459200* model);
+};
 struct Class_0045a470 { void MakeSilhouette(Image_4589c0*); };
 struct Class_004581e0 { void BuildObjectPicture(Model_459200*,int,int); void DrawPieces(Image_4589c0*,Model_459200*,int,int); };
-struct Class_004584d0 { void DrawPiece(Model_459200*,int,Vec3_459200*,int,int,unsigned char,int); };
 
 int __stdcall GetGroundHeight(Pos_459200* p);
 void __stdcall DrawFrameBlended(int param_1, Image_4589c0* param_2, int x, int y);
@@ -209,15 +216,6 @@ static inline int shade_bias(Model_459200* model)
     return c ? 125 : 50;
 }
 
-class Class_00459200 {
-public:
-    char unknown_0[0x10];
-    Image_4589c0* bitmap;           // +0x10
-
-    void DrawObjectPicture(int param_2, Model_459200* model, Vec3_459200 v, int useColor);
-    void MergeIntoComposite(Image_4589c0* src, Model_459200* model);
-};
-
 // Draws a model relative to the camera position `v` (the 16.16 vector the
 // callers pass by value), then its attached units. It stays in its own file:
 // the merged model_render.cpp cannot place it at the symbol count its
@@ -231,7 +229,7 @@ public:
 // Must stay before MergeIntoComposite (0x4589c0): compiled after it, the sum in
 // the b3 arm goes into the wrong register.
 // FUNCTION: 0x459200
-void Class_00459200::DrawObjectPicture(int param_2, Model_459200* model, Vec3_459200 v, int useColor)
+void CMemoryCache::DrawObjectPicture(int param_2, Model_459200* model, Vec3_459200 v, int useColor)
 {
     Image_4589c0* bmp = model->bitmap;
     TeamFlags_459200 f;
@@ -260,7 +258,7 @@ void Class_00459200::DrawObjectPicture(int param_2, Model_459200* model, Vec3_45
                     && (f.word & 0x40000000) == 0) {
                     if (model->owner->field_a6 != 0 || dx >= g_game->field_1427f) {
                         if (model->field_14 == 0)
-                            ((CMemoryCache*)this)->BuildShadow(model,bmp);
+                            BuildShadow(model,bmp);
                         DrawFrameBlended(param_2, model->field_14, v.p.x.whole + 0x85, y);
                     }
                 } else {
@@ -283,7 +281,7 @@ void Class_00459200::DrawObjectPicture(int param_2, Model_459200* model, Vec3_45
             DrawFrameBlended(param_2, bmp, v.p.x.whole + 0x80, z);
         for (int i = model->count - 1; i >= 0; i--) {
             if ((1 & model->pieces[i].flags) && !(model->pieces[i].flags & 2)) {
-                    ((Class_004584d0*)this)->DrawPiece(model, param_2, &cv, model->pieces[i].field_0,
+                    DrawPiece(model, param_2, &cv, model->pieces[i].field_0,
                                  model->pieces[i].field_22, model->owner->kind, useColor);
                 }
         }
@@ -293,7 +291,7 @@ void Class_00459200::DrawObjectPicture(int param_2, Model_459200* model, Vec3_45
                 for (int i = unit->sprites->count - 1; i >= 0; i--) {
                     Piece_459200* piece = &unit->sprites->pieces[i];
                     if (piece->flags & 1) {
-                        ((Class_004584d0*)this)->DrawPiece(unit->sprites, param_2, &cv, piece->field_0, piece->field_22,
+                        DrawPiece(unit->sprites, param_2, &cv, piece->field_0, piece->field_22,
                                      unit->sprites->owner->kind, useColor);
                     }
                 }
@@ -316,7 +314,7 @@ void Class_00459200::DrawObjectPicture(int param_2, Model_459200* model, Vec3_45
                     if (model->owner->flags & 0x20000000) {
                         if (model->owner->field_a6 != 0 || dx >= g_game->field_1427f) {
                             if (model->field_14 == 0)
-                                ((CMemoryCache*)this)->BuildShadow(model,bmp);
+                                BuildShadow(model,bmp);
                             DrawFrameBlended(param_2, model->field_14, v.p.x.whole + 0x85, y);
                         }
                     } else {

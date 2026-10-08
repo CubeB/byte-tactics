@@ -125,17 +125,6 @@ struct List_458810 {
 
 struct Vec3_458810;
 
-class Class_004584d0 {
-public:
-    void DrawPiece(List_458810* list, Vec3_458810* param_2, void* param_3,
-        PieceInfo_458810* info, Vertex_458810* vertices, unsigned char kind, int visible);
-};
-
-class Class_00459200 {
-public:
-    void DrawObjectPicture(void* param_1, List_458810* list, Vec3_458810 coords, int visible);
-};
-
 class Class_004581e0 {
 public:
     int BuildObjectPicture(List_458810* list, int param_2, int param_3);
@@ -143,39 +132,10 @@ public:
 
 struct Vec3_458810 { int x; int y; int z; };
 
-class Class_00458430 {
-public:
-    void DrawObjectPieces(Vec3_458810* result, List_458810* list, Vec3_458810 v, int visible);
-};
-
-void Class_00458430::DrawObjectPieces(Vec3_458810* result, List_458810* list, Vec3_458810 v, int visible)
-{
-    if (list->bitmap != 0) {
-        ((Class_00459200*)this)->DrawObjectPicture(result, list, v, visible);
-        return;
-    }
-    for (int i = list->pieceCount - 1; i >= 0; i--) {
-        if (list->pieces[i].flags & 1) {
-            ((Class_004584d0*)this)->DrawPiece(list, result, &v, list->pieces[i].info,
-                list->pieces[i].vertices, list->owner->kind, visible);
-        }
-    }
-}
-
 struct State_0045a790 {
     char unknown_0[0x14];
     Bitmap_00437b50* sprite;           // +0x14 the picture built here
     char unknown_18[0x22 - 0x18];
-};
-
-class Class_0045a510 {
-public:
-    void MeasureShadow(int* w, int* h, int* x, int* y, void* obj);
-};
-
-class Class_0045a610 {
-public:
-    void DrawShadowShape(Bitmap_00437b50* img, void* obj);
 };
 
 void __stdcall CutOutFrame(Bitmap_00437b50* dst, Bitmap_00437b50* src, int x, int y);
@@ -201,7 +161,27 @@ public:
     void DrawObjectState(List_458810* list, Vec3_458810* result);
     void CopyPicture(Bitmap_00437b50* source);
     void BuildShadow(State_0045a790* obj, Bitmap_00437b50* dest);
+    void DrawPiece(List_458810* list, Vec3_458810* param_2, void* param_3,
+        PieceInfo_458810* info, Vertex_458810* vertices, unsigned char kind, int visible);
+    void DrawObjectPicture(void* param_1, List_458810* list, Vec3_458810 coords, int visible);
+    void DrawObjectPieces(Vec3_458810* result, List_458810* list, Vec3_458810 v, int visible);
+    void MeasureShadow(int* w, int* h, int* x, int* y, void* obj);
+    void DrawShadowShape(Bitmap_00437b50* img, void* obj);
 };
+
+void CMemoryCache::DrawObjectPieces(Vec3_458810* result, List_458810* list, Vec3_458810 v, int visible)
+{
+    if (list->bitmap != 0) {
+        DrawObjectPicture(result, list, v, visible);
+        return;
+    }
+    for (int i = list->pieceCount - 1; i >= 0; i--) {
+        if (list->pieces[i].flags & 1) {
+            DrawPiece(list, result, &v, list->pieces[i].info,
+                list->pieces[i].vertices, list->owner->kind, visible);
+        }
+    }
+}
 
 extern Game* g_game;
 
@@ -488,7 +468,7 @@ void CMemoryCache::DrawObjectState(List_458810* list, Vec3_458810* result)
     Vec3_458810 coords;
     coords.x = x;
     coords.z = z;
-    ((Class_00458430*)this)->DrawObjectPieces(result, list, coords, visible);
+    DrawObjectPieces(result, list, coords, visible);
     list->frame++;
 }
 
@@ -516,14 +496,14 @@ void CMemoryCache::CopyPicture(Bitmap_00437b50* source)
 void CMemoryCache::BuildShadow(State_0045a790* obj, Bitmap_00437b50* dest)
 {
     int w, h, x, y;
-    ((Class_0045a510*)this)->MeasureShadow(&w, &h, &x, &y, obj);
+    MeasureShadow(&w, &h, &x, &y, obj);
     image->width = (unsigned short)w;
     image->height = (unsigned short)h;
     image->field_4 = (unsigned short)x;
     image->field_6 = (unsigned short)y;
     memset(image->pixels, image->field_8, h * w);
     memset(image->plane2, 0, h * w);
-    ((Class_0045a610*)this)->DrawShadowShape(image, obj);
+    DrawShadowShape(image, obj);
     CutOutFrame(dest, image, 5, 0);
     int size = CompressFrame(image->plane2, image);
     AllocBitmap(&obj->sprite, size, 1);

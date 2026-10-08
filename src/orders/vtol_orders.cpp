@@ -893,7 +893,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
 // Unit visitor (vtable 0x4fcc60, built on the stack by 0x410850 and passed to
 // VisitObjectsInRange): collects every unit whose owner is allied with this owner,
 // whose def lacks flag 0x800, and that is not the visitor's own unit. The
-// same shape as Class_00405d90 (0x405d90), with the vector::push_back inlined.
+// same shape as DamagedAllyCollector (0x405d90), with the vector::push_back inlined.
 // VTOL patrol order handler ("Patrolling"). State 0 prepares the order
 // (PrepVtolClimb), state 1 clears the order's 0xe0 bits, state 2 flies to a
 // point 0x140 units away along the heading to the order's position, lands on a
@@ -1324,7 +1324,7 @@ static inline float Total(float base, float amount)
 // Visitor used by VtolRepairPatrolOrder (vtable 0x4fcc64): collects allied units
 // whose flags & 3 == 1 that are damaged or still being built and are not
 // already running this player's order kind 5. A near copy of
-// Class_00405d90::CollectDamagedAlly.
+// DamagedAllyCollector::CollectDamagedAlly.
 // Some header must be included here: without one the def and health loads swap.
 // FUNCTION: 0x4158d0
 void RepairableUnitVisitor::CollectRepairableUnit(Unit* unit)

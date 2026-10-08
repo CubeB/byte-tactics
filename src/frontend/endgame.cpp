@@ -209,9 +209,9 @@ struct Options {
     int difficulty;                    // +0x228
 };
 
-class Class_00463be0 {                 // 0x14b bytes
+class Player {                         // 0x14b bytes
 public:
-    Class_00463be0();
+    Player();
     // Unused here: the symbol id this declaration takes keeps 0x41f0a0's and
     // 0x41f7f0's register allocation (docs/c2-regalloc.md).
     void SetType(int param_1);
@@ -255,7 +255,7 @@ struct Game {
     char unknown_dd4[0xdda - 0xdd4];
     unsigned char shadowColor;         // +0xdda
     char unknown_ddb[0x1b63 - 0xddb];
-    Class_00463be0 players[11];        // +0x1b63
+    Player players[11];                // +0x1b63
     char unknown_299c[0x29a0 - 0x299c];
     Options* options;                  // +0x29a0
     char unknown_29a4[0x2a42 - 0x29a4];
@@ -418,7 +418,7 @@ void __stdcall DrawOutlinedString(void* surface, const char* text, int color, in
 void ShowSoftwareCursor();
 void HideSoftwareCursor();
 void __stdcall StartPaletteFade(unsigned char* target, unsigned char* current, int steps);
-void __stdcall SendPlayerEconomy(Class_00463be0* player, int a, int b);
+void __stdcall SendPlayerEconomy(Player* player, int a, int b);
 int __stdcall IsScreenNamed(Menu* menu, const char* name);
 
 // Creates the global game object at a random offset (0..6993 bytes) inside a
@@ -924,7 +924,7 @@ void __stdcall OpenEndMissionScreen()
         SetListBoxScrollByName(&g_game->menu, "Missions", g_game->mission + (g_game->field_391af != 0));
         ApplyDifficultyButtons();
     }
-    Class_00463be0* player = &g_game->players[g_game->localPlayer];
+    Player* player = &g_game->players[g_game->localPlayer];
     int x = g_game->width / 2;
     if (g_game->field_391af != 0 && (player->active == 0 || !player->info->flag_9b_6)) {
         DrawFrame(layer->surface, GetGafFrame(g_game->image_14813, 0), x, 0x1c);
@@ -1076,7 +1076,7 @@ void __stdcall RunEndGameState()
             DrawSurface(g_game->lastFrame,g_game->surface,e->width,e->height);
             ReportGameEvent(7);
             g_game->state=1;
-            Class_00463be0* player=&g_game->players[g_game->localPlayer];
+            Player* player=&g_game->players[g_game->localPlayer];
             if(player->message && player->message!=2) {
                 const char* name=GetRejectReasonText(player->message);
                 OpenMessageBox(&g_game->menu,Translate(name),320,1,1);
@@ -1207,7 +1207,7 @@ void __stdcall RunEndGameState()
             case 6: { ENABLE_BARS("Score") } PlaySoundByName("EndGameScore",0); break;
             }
             if(g_game->campaign->GetGameType()==3) {
-                Class_00463be0* player=&g_game->players[g_game->localPlayer];
+                Player* player=&g_game->players[g_game->localPlayer];
                 for(int j=0;j<2;++j) SendPlayerEconomy(player,0,0);
             }
             g_game->deadline=GetTicks()+10;

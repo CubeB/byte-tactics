@@ -223,9 +223,9 @@ public:
 #pragma pack(pop)
 
 class Class_004388b0 { public: void ReattachFxToUnit(); };
-class Class_00401110 { public: void LoadUnitAccounts(Unit*, HapiBank*); };
-class Class_004010b0 {
+class UnitResources {
 public:
+    void LoadUnitAccounts(Unit*, HapiBank*);
     void SaveUnitAccounts(Unit* unit, void* file);
 };
 
@@ -354,7 +354,7 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
     unit->flags = (unit->flags & ~0x400000) | ((rec.flags.e << 14) & 0x400000);
     unit->flags = (unit->flags & ~0x3800000) | ((rec.flags.e << 14) & 0x3800000);
 
-    ((Class_00401110*)&unit->info)->LoadUnitAccounts(unit, file);
+    ((UnitResources*)&unit->info)->LoadUnitAccounts(unit, file);
     if (rec.f27 != 0)
         ((UnitMotion*)unit->vtable)->LoadMotion(unit, file);
 
@@ -444,7 +444,7 @@ void __stdcall SaveUnits(HapiBank* file)
 
             if (unit->vtable != 0)
                 ((UnitMotion*)unit->vtable)->SaveMotion(unit, file);
-            ((Class_004010b0*)((char*)unit + 0xbc))->SaveUnitAccounts(unit, file);
+            ((UnitResources*)((char*)unit + 0xbc))->SaveUnitAccounts(unit, file);
 
             strcpy(rec.name, (char*)(*(char**)((char*)unit + 0x92) + 0x20));
             rec.player = unit->b_ff;

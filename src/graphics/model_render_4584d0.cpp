@@ -72,7 +72,7 @@ void* __stdcall GetGafFrame(unsigned short* table, int index);
 void __stdcall FillPolygon(void* surface, Point_4584d0* points, int count, int flags);
 void __stdcall DrawFrameQuad(void* surface, void* pic, Point_4584d0* points, void* src);
 
-class Class_004584d0 {
+class CMemoryCache {
 public:
     void DrawPiece(Model_4584d0* model, void* surface, Vec3_4584d0* camera,
         PieceInfo_4584d0* info, Vertex_4584d0* vertices, unsigned int palette,
@@ -83,7 +83,7 @@ public:
 static inline int FaceCount(Face_4584d0* face) { return face->count; }
 
 // FUNCTION: 0x4584d0
-void Class_004584d0::DrawPiece(Model_4584d0* model, void* surface,
+void CMemoryCache::DrawPiece(Model_4584d0* model, void* surface,
     Vec3_4584d0* camera, PieceInfo_4584d0* info, Vertex_4584d0* vertices,
     unsigned int palette, int useColor)
 {

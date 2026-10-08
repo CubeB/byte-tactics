@@ -591,10 +591,10 @@ char g_optionsBackupTrackTypes[100];  // 0x512f75 .bss
 int g_optionsBackupLockedTrack;  // 0x512fd9 .bss
 int g_musicUiSelectedTrack;  // 0x512fe0 .bss
 int g_optionsShellActive;  // 0x512fe4 .bss
-Class_004c6a60* g_optionsFlipSurface;  // 0x512fe8 .bss
+Surface* g_optionsFlipSurface;  // 0x512fe8 .bss
 int g_optionsLightbarX;  // 0x512fec .bss
 int g_optionsLightbarAnim;  // 0x512ff0 .bss
-Class_004c6a60* g_optionsBackupSurface;  // 0x512ff4 .bss
+Surface* g_optionsBackupSurface;  // 0x512ff4 .bss
 int g_battleQuitIntent;  // 0x512ff8 .bss
 unsigned char DAT_00512ffc[4];  // 0x512ffc .bss
 int DAT_0051e53c;  // 0x51e53c .bss

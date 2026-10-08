@@ -12,10 +12,6 @@
 class LosTables {
 public:
     void* GetLosTable(int n);
-};
-
-class Class_00433520 {
-public:
     short GetLosTableCount();
 };
 
@@ -32,12 +28,12 @@ public:
 class LosLine {
 public:
     short GetLosLineStepCount();
-};
-
-class Class_004339e0 {
-public:
     void GetLosLineStep(short i, unsigned short* a, unsigned short* b);
 };
+
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+int RIReport(int, int, int, int, int, int, int, int, int, int);
+void CopyDwordIfNonNull(int*, int*);
 
 extern char g_losTables[];
 
@@ -139,9 +135,9 @@ void __stdcall RevealAroundUnit(Params_00481930* params)
                 ((LosTables*)g_losTables)
                     ->GetLosTable(
                         (params->field_8 / 32 < 0 ? 0 : params->field_8 / 32) <
-                                ((Class_00433520*)g_losTables)->GetLosTableCount() - 1
+                                ((LosTables*)g_losTables)->GetLosTableCount() - 1
                             ? (params->field_8 / 32 < 0 ? 0 : params->field_8 / 32)
-                            : ((Class_00433520*)g_losTables)->GetLosTableCount() - 1);
+                            : ((LosTables*)g_losTables)->GetLosTableCount() - 1);
             short count = ((LosTable*)table)->GetLosLineCount();
             unsigned short* cell = &g_game->visibilityMask[halfW * y + x];
             if ((unsigned short)(bit & *cell) == 0) {
@@ -161,7 +157,7 @@ void __stdcall RevealAroundUnit(Params_00481930* params)
                     j1 = 1;
                     do {
                         int y2, x2;
-                        ((Class_004339e0*)line)->GetLosLineStep((short)j, (unsigned short*)&x2, (unsigned short*)&y2);
+                        ((LosLine*)line)->GetLosLineStep((short)j, (unsigned short*)&x2, (unsigned short*)&y2);
                         x2 += x;
                         y2 += y;
                         if ((unsigned)(short)x2 < grid->width &&

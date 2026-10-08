@@ -11,10 +11,6 @@
 class LosTables {
 public:
     void* GetLosTable(int n);
-};
-
-class Class_00433520 {
-public:
     short GetLosTableCount();
 };
 
@@ -31,12 +27,12 @@ public:
 class LosLine {
 public:
     short GetLosLineStepCount();
-};
-
-class Class_004339e0 {
-public:
     void GetLosLineStep(short i, int* a, int* b);
 };
+
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+int RIReport(int, int, int, int, int, int, int, int, int, int);
+void CopyDwordIfNonNull(int*, int*);
 
 extern char g_losTables[];
 
@@ -135,9 +131,9 @@ void __stdcall RemoveLineOfSight(Params_00481d50* params)
         void* table = ((LosTables*)g_losTables)
                           ->GetLosTable(
                               (params->field_8 / 32 < 0 ? 0 : params->field_8 / 32) <
-                                      ((Class_00433520*)g_losTables)->GetLosTableCount() - 1
+                                      ((LosTables*)g_losTables)->GetLosTableCount() - 1
                                   ? (params->field_8 / 32 < 0 ? 0 : params->field_8 / 32)
-                                  : ((Class_00433520*)g_losTables)->GetLosTableCount() - 1);
+                                  : ((LosTables*)g_losTables)->GetLosTableCount() - 1);
         short count = ((LosTable*)table)->GetLosLineCount();
         short i = 0;
         ((Map_00481d50*)params->field_0)->explored.at(x, y)--;
@@ -155,7 +151,7 @@ void __stdcall RemoveLineOfSight(Params_00481d50* params)
                 do {
                     int dx;
                     int dy;
-                    ((Class_004339e0*)line)->GetLosLineStep(j, &dx, &dy);
+                    ((LosLine*)line)->GetLosLineStep(j, &dx, &dy);
                     dx += x;
                     dy += y;
                     if ((unsigned)(short)dx >= grid->width)

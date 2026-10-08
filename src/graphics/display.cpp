@@ -162,8 +162,6 @@ struct View_4b5980 {
     int unknown_14;
 };
 
-struct Class_004c6a60;
-
 struct Surface {
     int data[12];
 };
@@ -219,7 +217,7 @@ void __stdcall PushKeyCode(int v);
 void __stdcall HandleVirtualKey(int v, int flag);
 void __stdcall PushMouseEvent(Event_4b5cc0* ev);
 int __stdcall DirectDrawCreateThunk(int guid, void *display, int zero);
-void __stdcall InitSurface(Class_004c6a60 *s, int width, int height, int a, int b);
+void __stdcall InitSurface(Surface *s, int width, int height, int a, int b);
 int __stdcall LockScreen(Surface *s);
 void __cdecl BlitSurface(Surface *dst, void *src, int x, int y);
 int __stdcall UnlockScreen(Surface *s);
@@ -606,7 +604,7 @@ int __stdcall SetFullScreen(int mode) {
         ZeroMemory(bmi.bmiColors, sizeof(bmi.bmiColors));
         d->dib = CreateDIBSection(d->dc, (BITMAPINFO *)&bmi, DIB_RGB_COLORS, &bits,
                                   NULL, 0);
-        InitSurface((Class_004c6a60 *)&d->unknown_50[0], g_display->width, g_display->height,
+        InitSurface((Surface *)&d->unknown_50[0], g_display->width, g_display->height,
                      (g_display->width + 3) & ~3, (int)bits);
         SelectObject(d->dc, d->dib);
         SetWindowPos(d->hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);

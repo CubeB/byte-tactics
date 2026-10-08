@@ -449,24 +449,15 @@ extern int GetCdPathMismatch();
 
 extern unsigned int DAT_0051e6c4;
 
-class Class_0048dfb0 {
-public:
-    void* bufsA[16];             // +0
-    int countA;                  // +0x40
-    void* bufsB[16];             // +0x44
-    int countB;                  // +0x84
-
-    void FreeConditions();
-};
-
 class MissionConditions {
 public:
     MissionCondition* victory[16];       // +0x00
     int victoryCount;                    // +0x40
     MissionCondition* defeat[16];        // +0x44
     int defeatCount;                     // +0x84
-    int active;                          // +0x88, set to 1 by Class_0048df90
+    int active;                          // +0x88, set to 1 by the constructor (0x48df90)
 
+    void FreeConditions();
     void RegisterConditions(Param_0048e010* p);
     void SaveConditions(HapiBank* file);
     void LoadConditions(HapiBank* file);
@@ -483,14 +474,14 @@ public:
 };
 
 // FUNCTION: 0x48dfb0
-void Class_0048dfb0::FreeConditions()
+void MissionConditions::FreeConditions()
 {
     int i;
-    for (i = 0; i < countA; i++) {
-        operator delete(bufsA[i]);
+    for (i = 0; i < victoryCount; i++) {
+        operator delete(victory[i]);
     }
-    for (i = 0; i < countB; i++) {
-        operator delete(bufsB[i]);
+    for (i = 0; i < defeatCount; i++) {
+        operator delete(defeat[i]);
     }
 }
 

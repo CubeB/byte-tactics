@@ -23,11 +23,11 @@ struct Buffers_00462d30 {
 };
 
 struct PlayerFrameInfo {
-    int field_0;
-    int field_4;
-    int field_8;
-    int field_c;
-    int field_10;
+    int playerNetId;
+    int pendingDpToId;
+    int frameSeq;
+    int pendingBytes;
+    int pendingCap;
     Buffers_00462d30 buffers;          // +0x14
     int field_2c;
     int field_30;

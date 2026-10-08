@@ -341,6 +341,12 @@ defines:
    main and run `tools/rename.py` again with the same pairs rather than merging
    by hand.
 
+Members are renamed the same way, one type at a time, with `uv run
+tools/rename_fields.py <Type> --from pairs.csv` (rows `offset,new,evidence`):
+it rewrites the views named after the type, and the uses of their members, and
+refuses a file where a use cannot be traced to one of those views (phase 4 of
+`docs/cleanup-roadmap.md`).
+
 ## Phase 3: shared types, then one file per module
 
 This is #2662's phases 2 to 4, now in the tidied tree:

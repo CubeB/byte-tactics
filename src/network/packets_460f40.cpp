@@ -227,11 +227,11 @@ public:
 
 class PlayerFrameInfo {
 public:
-    int field_0;                       // +0x00 the id
-    int field_4;                       // +0x04
-    int field_8;                       // +0x08 last sequence number, -1 for none
-    int field_c;                       // +0x0c saved frame length
-    int field_10;                      // +0x10 saved frame capacity
+    int playerNetId;                   // +0x00 the id
+    int pendingDpToId;                 // +0x04
+    int frameSeq;                      // +0x08 last sequence number, -1 for none
+    int pendingBytes;                  // +0x0c saved frame length
+    int pendingCap;                    // +0x10 saved frame capacity
     char* frame;                       // +0x14 the saved out-of-order frame
     FrameQueue tail;                   // +0x18
 
@@ -402,7 +402,7 @@ int __stdcall InitPacketManager(int param_1, int param_2)
             }
             g_packetManager.member.length = 0;
             if (g_packetManager.member.field_14 != 0) {
-                g_packetManager.member.field_14->field_c = 0;
+                g_packetManager.member.field_14->pendingBytes = 0;
                 g_packetManager.member.field_14 = 0;
             }
             g_packetManager.channels[0].InitPools(0, g_packetManager.m_defaultSendPacingMs, param_1, param_2);
@@ -587,7 +587,7 @@ int PacketManager::InitChannels(int arg1, int arg2)
         }
         member.length = 0;
         if (member.field_14 != 0) {
-            member.field_14->field_c = 0;
+            member.field_14->pendingBytes = 0;
             member.field_14 = 0;
         }
         channels[0].InitPools(0, m_defaultSendPacingMs, arg1, arg2);
@@ -1536,9 +1536,9 @@ PlayerFrameInfo* PacketReceiver::FindPlayerFrameInfo(long id)
 
     for (i = 0; i < 10; i++) {
         e = &entries[i];
-        if (e->field_0 == id)
+        if (e->playerNetId == id)
             return e;
-        if (e->field_0 == -1)
+        if (e->playerNetId == -1)
             break;
     }
     if (i < 10) {
@@ -1546,7 +1546,7 @@ PlayerFrameInfo* PacketReceiver::FindPlayerFrameInfo(long id)
             // Separate from e: else the test is strength-reduced and the second
             // call site loses its recomputed address.
             PlayerFrameInfo* p = &entries[i];
-            if (p->field_0 == -1) {
+            if (p->playerNetId == -1) {
                 entries[i].Initialize(id);
                 e = &entries[i];
                 return e;
@@ -1556,7 +1556,7 @@ PlayerFrameInfo* PacketReceiver::FindPlayerFrameInfo(long id)
     for (i = 0; i < 10; i++) {
         int used = 0;
         for (j = 0; j < 10; j++) {
-            if (g_game->players[j].id == entries[i].field_0) {
+            if (g_game->players[j].id == entries[i].playerNetId) {
                 used = 1;
                 break;
             }
@@ -1590,7 +1590,7 @@ int PacketReceiver::ResetReceiveBuffer()
     }
     length = 0;
     if (field_14 != 0) {
-        field_14->field_c = 0;
+        field_14->pendingBytes = 0;
         field_14 = 0;
     }
     return 1;
@@ -1617,7 +1617,7 @@ int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
     for (i = 0; i < 10; i++) {
         // Loop pointer, not entries[i]: keeps the found path from recomputing the address.
         PlayerFrameInfo* e = &entries[i];
-        if (e->field_0 == -1)
+        if (e->playerNetId == -1)
             break;
         src = e->tail.GetFrame(tick, len);
         if (src != 0) {
@@ -1642,25 +1642,25 @@ int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
                     field_10 = field_238;
                     n = length - 4;
                     if (n > 0)
-                        field_14->field_8 = *(int*)buffer;
+                        field_14->frameSeq = *(int*)buffer;
                 } else {
                     length = 0;
                 }
                 spare = 0;
-                field_14->field_c = 0;
+                field_14->pendingBytes = 0;
                 field_14 = 0;
-            } else if (field_14->field_c > 0) {
+            } else if (field_14->pendingBytes > 0) {
                 spare = buffer;
                 field_234 = field_c;
                 field_230 = 0;
                 field_238 = field_10;
                 buffer = field_14->frame;
-                field_14->field_8 = *(int*)buffer;
-                length = field_14->field_c;
-                field_c = field_14->field_0;
-                field_10 = field_14->field_4;
+                field_14->frameSeq = *(int*)buffer;
+                length = field_14->pendingBytes;
+                field_c = field_14->playerNetId;
+                field_10 = field_14->pendingDpToId;
                 n = length - 4;
-                field_14->field_c = 0;
+                field_14->pendingBytes = 0;
             } else {
                 field_14 = 0;
             }
@@ -1702,8 +1702,8 @@ int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
                         if (*(int*)buffer != -1) {
                             entry = ((PacketReceiver*)this)->FindPlayerFrameInfo(field_c);
                             if (entry != 0) {
-                                if (entry->field_8 != -1) {
-                                    int prev = entry->field_8 - 1;
+                                if (entry->frameSeq != -1) {
+                                    int prev = entry->frameSeq - 1;
                                     int cur;
                                     int d;
                                     // cur and d are set in both arms: the copies merge after the join.
@@ -1715,28 +1715,28 @@ int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
                                         cur = *(int*)buffer;
                                         d = prev - cur;
                                     }
-                                    int flag = entry->field_c > 0;
+                                    int flag = entry->pendingBytes > 0;
                                     if (d > 0) {
-                                        if (entry->field_c <= 0) {
+                                        if (entry->pendingBytes <= 0) {
                                             // Out of order: save it in the entry.
-                                            if (length > entry->field_10) {
+                                            if (length > entry->pendingCap) {
                                                 delete entry->frame;
                                                 entry->frame = new char[length];
                                                 if (entry->frame == 0) {
                                                     PacketTrace("no memory for allocating saved receive frame\n");
-                                                    entry->field_10 = -1;
+                                                    entry->pendingCap = -1;
                                                     return (int)0x8007000e;
                                                 }
-                                                entry->field_10 = length;
+                                                entry->pendingCap = length;
                                             }
                                             memcpy(entry->frame, buffer, length);
-                                            entry->field_4 = field_10;
-                                            entry->field_0 = field_c;
-                                            entry->field_c = length;
+                                            entry->pendingDpToId = field_10;
+                                            entry->playerNetId = field_c;
+                                            entry->pendingBytes = length;
                                             length = 0;
                                             return (int)0x887700be;
                                         }
-                                        prev = Prev_00462f30(entry->field_8);
+                                        prev = Prev_00462f30(entry->frameSeq);
                                         if (*(int*)entry->frame <= cur) {
                                             if (prev != cur)
                                                 ReportPacketGap(field_c, prev, Next_00462f30(cur));
@@ -1753,21 +1753,21 @@ int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
                                                 ReportPacketGap(field_c, p2, Next_00462f30(*(int*)buffer));
                                         }
                                     }
-                                    if (flag && entry->field_c > 0) {
+                                    if (flag && entry->pendingBytes > 0) {
                                         // Swap the saved frame in, keep this one as the spare.
                                         spare = buffer;
                                         field_230 = length;
                                         field_234 = field_c;
                                         field_238 = field_10;
                                         buffer = entry->frame;
-                                        length = entry->field_c;
-                                        field_c = entry->field_0;
-                                        field_10 = entry->field_4;
+                                        length = entry->pendingBytes;
+                                        field_c = entry->playerNetId;
+                                        field_10 = entry->pendingDpToId;
                                         field_14 = entry;
-                                        entry->field_c = 0;
+                                        entry->pendingBytes = 0;
                                     }
                                 }
-                                entry->field_8 = *(int*)buffer;
+                                entry->frameSeq = *(int*)buffer;
                             } else {
                                 return (int)0x80004005;
                             }
@@ -1838,7 +1838,7 @@ ok:
 
 // FUNCTION: 0x4635b0
 PlayerFrameInfo::PlayerFrameInfo()
-    : field_0(-1), field_4(-1), field_8(-1), field_c(0), field_10(-1), frame(0)
+    : playerNetId(-1), pendingDpToId(-1), frameSeq(-1), pendingBytes(0), pendingCap(-1), frame(0)
 {
 }
 
@@ -1848,10 +1848,10 @@ PlayerFrameInfo::PlayerFrameInfo()
 void PlayerFrameInfo::Initialize(long id)
 {
     PacketTrace("PlayerFrameInfo::Initialize: %ld", id);
-    field_0 = id;
-    field_4 = -1;
-    field_8 = -1;
-    field_c = 0;
+    playerNetId = id;
+    pendingDpToId = -1;
+    frameSeq = -1;
+    pendingBytes = 0;
     tail.ResetFrames();
 }
 

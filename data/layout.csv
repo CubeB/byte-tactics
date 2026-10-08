@@ -4119,40 +4119,40 @@ piece,0x5094e4,4,src/ingame/keys.cpp,13,0,game data
 piece,0x5094d8,11,src/ingame/keys.cpp,12,0,game data
 piece,0x5094cc,11,src/ingame/keys.cpp,9,0,game data
 piece,0x5094bc,14,src/ingame/keys.cpp,8,0,game data
-piece,0x4fda28,8,src/ingame/dialogs_495230.cpp,3,0,game data
-piece,0x4fda30,8,src/ingame/dialogs_495230.cpp,3,8,game data
-piece,0x4fda38,8,src/ingame/dialogs_495230.cpp,3,16,game data
-piece,0x5094b0,12,src/ingame/dialogs_495010.cpp,6,0,game data
-piece,0x509490,7,src/ingame/dialogs_495010.cpp,5,0,game data
-piece,0x5094a0,6,src/ingame/dialogs_495010.cpp,4,0,game data
-piece,0x509498,8,src/ingame/dialogs_495010.cpp,3,0,game data
-piece,0x505ebc,6,src/ingame/dialogs_4948e0.cpp,7,0,game data
-piece,0x505618,7,src/ingame/dialogs_494840.cpp,3,0,game data
-piece,0x5094a8,8,src/ingame/dialogs_494740.cpp,8,0,game data
-piece,0x509480,14,src/ingame/dialogs_4942e0.cpp,16,0,game data
-piece,0x50942c,5,src/ingame/dialogs_4942e0.cpp,15,0,game data
-piece,0x502974,4,src/ingame/dialogs_4942e0.cpp,14,0,game data
-piece,0x505fe4,9,src/ingame/dialogs_4942e0.cpp,13,0,game data
-piece,0x509478,5,src/ingame/dialogs_4942e0.cpp,12,0,game data
-piece,0x50946c,11,src/ingame/dialogs_4942e0.cpp,8,0,game data
-piece,0x509460,11,src/ingame/dialogs_4942e0.cpp,7,0,game data
-piece,0x509450,13,src/ingame/dialogs_4942e0.cpp,6,0,game data
-piece,0x509440,13,src/ingame/dialogs_4942e0.cpp,5,0,game data
-piece,0x509434,10,src/ingame/dialogs_4942e0.cpp,4,0,game data
-piece,0x509424,5,src/ingame/dialogs_494220.cpp,4,0,game data
-piece,0x507d00,10,src/ingame/dialogs_494220.cpp,3,0,game data
-piece,0x509418,10,src/ingame/dialogs_494050.cpp,7,0,game data
-piece,0x50286c,9,src/ingame/dialogs_494050.cpp,6,0,game data
-piece,0x505be0,9,src/ingame/dialogs_493ae0.cpp,4,0,game data
-piece,0x505c74,11,src/ingame/dialogs_493ae0.cpp,3,0,game data
-piece,0x5093e0,10,src/ingame/dialogs_4936f0.cpp,10,0,game data
-piece,0x5056d4,8,src/ingame/dialogs_4936f0.cpp,7,0,game data
-piece,0x5093d4,9,src/ingame/dialogs_4936f0.cpp,6,0,game data
-piece,0x5093b0,7,src/ingame/dialogs_4936f0.cpp,4,0,game data
-piece,0x5093b8,8,src/ingame/dialogs_4936f0.cpp,3,0,game data
-piece,0x5093cc,8,src/ingame/dialogs_4934b0.cpp,10,0,game data
-piece,0x5093c0,9,src/ingame/dialogs_4934b0.cpp,9,0,game data
-piece,0x502860,10,src/ingame/dialogs_4933e0.cpp,3,0,game data
+piece,0x4fda28,8,src/ingame/dialogs_493340.cpp,91,0,game data
+piece,0x4fda30,8,src/ingame/dialogs_493340.cpp,91,8,game data
+piece,0x4fda38,8,src/ingame/dialogs_493340.cpp,91,16,game data
+piece,0x5094b0,12,src/ingame/dialogs_493340.cpp,85,0,game data
+piece,0x509490,7,src/ingame/dialogs_493340.cpp,63,0,game data
+piece,0x5094a0,6,src/ingame/dialogs_493340.cpp,65,0,game data
+piece,0x509498,8,src/ingame/dialogs_493340.cpp,64,0,game data
+piece,0x505ebc,6,src/ingame/dialogs_493340.cpp,78,0,game data
+piece,0x505618,7,src/ingame/dialogs_493340.cpp,16,0,game data
+piece,0x5094a8,8,src/ingame/dialogs_493340.cpp,67,0,game data
+piece,0x509480,14,src/ingame/dialogs_493340.cpp,60,0,game data
+piece,0x50942c,5,src/ingame/dialogs_493340.cpp,43,0,game data
+piece,0x502974,4,src/ingame/dialogs_493340.cpp,59,0,game data
+piece,0x505fe4,9,src/ingame/dialogs_493340.cpp,58,0,game data
+piece,0x509478,5,src/ingame/dialogs_493340.cpp,57,0,game data
+piece,0x50946c,11,src/ingame/dialogs_493340.cpp,53,0,game data
+piece,0x509460,11,src/ingame/dialogs_493340.cpp,52,0,game data
+piece,0x509450,13,src/ingame/dialogs_493340.cpp,51,0,game data
+piece,0x509440,13,src/ingame/dialogs_493340.cpp,50,0,game data
+piece,0x509434,10,src/ingame/dialogs_493340.cpp,49,0,game data
+piece,0x509424,5,src/ingame/dialogs_493340.cpp,42,0,game data
+piece,0x507d00,10,src/ingame/dialogs_493340.cpp,41,0,game data
+piece,0x509418,10,src/ingame/dialogs_493340.cpp,38,0,game data
+piece,0x50286c,9,src/ingame/dialogs_493340.cpp,37,0,game data
+piece,0x505be0,9,src/ingame/dialogs_493340.cpp,29,0,game data
+piece,0x505c74,11,src/ingame/dialogs_493340.cpp,28,0,game data
+piece,0x5093e0,10,src/ingame/dialogs_493340.cpp,25,0,game data
+piece,0x5056d4,8,src/ingame/dialogs_493340.cpp,24,0,game data
+piece,0x5093d4,9,src/ingame/dialogs_493340.cpp,21,0,game data
+piece,0x5093b0,7,src/ingame/dialogs_493340.cpp,3,0,game data
+piece,0x5093b8,8,src/ingame/dialogs_493340.cpp,8,0,game data
+piece,0x5093cc,8,src/ingame/dialogs_493340.cpp,20,0,game data
+piece,0x5093c0,9,src/ingame/dialogs_493340.cpp,19,0,game data
+piece,0x502860,10,src/ingame/dialogs_493340.cpp,12,0,game data
 piece,0x50936c,13,src/game/savegame.cpp,72,0,game data
 piece,0x5093a4,11,src/game/savegame.cpp,77,0,game data
 piece,0x50937c,40,src/game/savegame.cpp,76,0,game data
@@ -12353,13 +12353,12 @@ same,0x505f20,15,src/game/savegame.cpp,55,0,
 same,0x502e78,12,src/game/savegame.cpp,53,0,
 same,0x503130,12,src/game/savegame.cpp,64,0,
 same,0x50313c,6,src/game/savegame.cpp,69,0,
-same,0x502b38,8,src/ingame/dialogs_4934b0.cpp,8,0,
-same,0x502ae8,3,src/ingame/dialogs_4934b0.cpp,7,0,
-same,0x506578,5,src/ingame/dialogs_494050.cpp,5,0,
-same,0x5093f8,7,src/ingame/dialogs_494050.cpp,4,0,
-same,0x509400,9,src/ingame/dialogs_494050.cpp,3,0,
-same,0x502b38,8,src/ingame/dialogs_4948e0.cpp,6,0,
-same,0x503130,12,src/ingame/dialogs_495010.cpp,7,0,
+same,0x502b38,8,src/ingame/dialogs_493340.cpp,18,0,
+same,0x502ae8,3,src/ingame/dialogs_493340.cpp,17,0,
+same,0x506578,5,src/ingame/dialogs_493340.cpp,36,0,
+same,0x5093f8,7,src/ingame/dialogs_493340.cpp,35,0,
+same,0x509400,9,src/ingame/dialogs_493340.cpp,34,0,
+same,0x503130,12,src/ingame/dialogs_493340.cpp,86,0,
 same,0x503130,12,src/ingame/keys.cpp,16,0,
 same,0x504924,16,src/game/game_load.cpp,4,0,
 same,0x5091d4,10,src/game/game_load.cpp,31,0,

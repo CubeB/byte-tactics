@@ -4031,21 +4031,21 @@ piece,0x509a2c,7,src/gui/gui_file_4ad350.cpp,6,0,game data
 piece,0x509a1c,14,src/gui/gui_file_4ad350.cpp,5,0,game data
 piece,0x506c54,5,src/gui/gui_file_4ad350.cpp,4,0,game data
 piece,0x509a14,8,src/gui/gui_file_4ad350.cpp,3,0,game data
-piece,0x5099e8,5,src/gui/dialogs_4acbe0.cpp,3,0,game data
-piece,0x509a00,4,src/gui/dialogs_4aca20.cpp,5,0,game data
-piece,0x5099f8,5,src/gui/dialogs_4aca20.cpp,4,0,game data
-piece,0x5099f0,5,src/gui/dialogs_4aca20.cpp,3,0,game data
-piece,0x5099e0,2,src/gui/dialogs_4ac4c0.cpp,4,0,game data
-piece,0x5099d4,9,src/gui/dialogs_4ac4c0.cpp,3,0,game data
-piece,0x5099c8,10,src/gui/dialogs_4ac340.cpp,7,0,game data
-piece,0x5099c0,5,src/gui/dialogs_4ac340.cpp,6,0,game data
-piece,0x509994,5,src/gui/dialogs_4ac340.cpp,4,0,game data
-piece,0x50998c,5,src/gui/dialogs_4ac340.cpp,3,0,game data
-piece,0x5099b4,12,src/gui/dialogs_4ac170.cpp,7,0,game data
-piece,0x5099ac,5,src/gui/dialogs_4ac170.cpp,4,0,game data
-piece,0x50999c,13,src/gui/dialogs_4ac0a0.cpp,4,0,game data
-piece,0x502bd4,11,src/gui/dialogs_4abd90.cpp,6,0,game data
-piece,0x5029f8,5,src/gui/dialogs_4abd90.cpp,4,0,game data
+piece,0x5099e8,5,src/gui/dialogs_4abb20.cpp,55,0,game data
+piece,0x509a00,4,src/gui/dialogs_4abb20.cpp,60,0,game data
+piece,0x5099f8,5,src/gui/dialogs_4abb20.cpp,59,0,game data
+piece,0x5099f0,5,src/gui/dialogs_4abb20.cpp,58,0,game data
+piece,0x5099e0,2,src/gui/dialogs_4abb20.cpp,43,0,game data
+piece,0x5099d4,9,src/gui/dialogs_4abb20.cpp,42,0,game data
+piece,0x5099c8,10,src/gui/dialogs_4abb20.cpp,39,0,game data
+piece,0x5099c0,5,src/gui/dialogs_4abb20.cpp,36,0,game data
+piece,0x509994,5,src/gui/dialogs_4abb20.cpp,8,0,game data
+piece,0x50998c,5,src/gui/dialogs_4abb20.cpp,7,0,game data
+piece,0x5099b4,12,src/gui/dialogs_4abb20.cpp,33,0,game data
+piece,0x5099ac,5,src/gui/dialogs_4abb20.cpp,30,0,game data
+piece,0x50999c,13,src/gui/dialogs_4abb20.cpp,27,0,game data
+piece,0x502bd4,11,src/gui/dialogs_4abb20.cpp,16,0,game data
+piece,0x5029f8,5,src/gui/dialogs_4abb20.cpp,20,0,game data
 piece,0x509980,12,src/gui/dialogs_4abb20.cpp,4,0,game data
 piece,0x506938,6,src/gui/dialogs_4aa8f0.cpp,7,0,game data
 piece,0x502808,5,src/gui/dialogs_4aa8f0.cpp,5,0,game data
@@ -12432,8 +12432,8 @@ same,0x504ab8,8,src/game/game_load.cpp,25,0,
 same,0x504990,4,src/game/game_load.cpp,24,0,
 same,0x503374,2,src/gui/gui_49f8c0.cpp,25,0,
 same,0x502ae8,3,src/gui/dialogs_4aa8f0.cpp,6,0,
-same,0x503168,12,src/gui/dialogs_4abbd0.cpp,6,0,
-same,0x502ae8,3,src/gui/dialogs_4abd90.cpp,3,0,
+same,0x503168,12,src/gui/dialogs_4abb20.cpp,11,0,
+same,0x502ae8,3,src/gui/dialogs_4abb20.cpp,19,0,
 same,0x503374,2,src/gui/file_list.cpp,10,0,
 same,0x4b2340,16,src/util/int_map_4b2290.cpp,6,0,
 same,0x51fbc0,16,src/util/int_map_4b2340.cpp,6,0,

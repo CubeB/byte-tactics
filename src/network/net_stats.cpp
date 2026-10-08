@@ -51,7 +51,7 @@ public:
 
 class PacketManager {
 public:
-    void FUN_00461610();
+    void NopRet_D();
 };
 
 void __stdcall RegisterOrderTypes(void* table, int id);
@@ -317,5 +317,5 @@ void FUN_004161f0()
         sum4 += p->b;
         p++;
     }
-    g_packetManager.FUN_00461610();
+    g_packetManager.NopRet_D();
 }

@@ -290,7 +290,7 @@ void __stdcall CreateSquad(int param);
 void __stdcall SaveCameraPosition(int param);
 void __stdcall RestoreCameraPosition(int param);
 void CycleMessageUnits(void);
-void FUN_00463c80(void);
+void ResetChatHudIndices(void);
 void __stdcall SetGameSpeed(int param_1, int param_2);
 void __stdcall FUN_004ab190(Sub_495e90* gui, int param);
 int GetLocalDpid(void);
@@ -701,7 +701,7 @@ void HandleGameKey(void)
         break;
 
     case 0xed:
-        FUN_00463c80();
+        ResetChatHudIndices();
         break;
 
     case 0xaa:

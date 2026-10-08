@@ -481,7 +481,7 @@ int (__stdcall* DAT_00512ac8)(int);  // 0x512ac8 .bss
 unsigned char DAT_00512acc[4];  // 0x512acc .bss
 int (__stdcall* DAT_00512ad0)(int);  // 0x512ad0 .bss
 unsigned char DAT_00512ad4[4];  // 0x512ad4 .bss
-unsigned short DAT_00512ad8[2][2];  // 0x512ad8 .bss
+unsigned short g_packetSizes[2][2];  // 0x512ad8 .bss
 int DAT_00512adc;  // 0x512adc .bss
 int DAT_00512ae0;  // 0x512ae0 .bss
 int DAT_00512ae4;  // 0x512ae4 .bss
@@ -794,7 +794,7 @@ char DAT_00529e88[13];  // 0x529e88 .bss
 void* DAT_00529e98;  // 0x529e98 .bss
 int DAT_00529ea0;  // 0x529ea0 .bss
 unsigned char DAT_00529ea4[4];  // 0x529ea4 .bss
-char DAT_0052a4e4;  // 0x52a4e4 .bss
+char g_emptyAtexitRegistered;  // 0x52a4e4 .bss
 long DAT_0052a4e8;  // 0x52a4e8 .bss
 long DAT_0052a4ec;  // 0x52a4ec .bss
 void* DAT_0052a4f0;  // 0x52a4f0 .bss

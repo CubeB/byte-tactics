@@ -52,12 +52,12 @@ public:
 
 class Class_00463c40 {
 public:
-    void FUN_00463c40();
+    void FreeSideDataAndFogSightCounts();
 };
 
 class Class_00461620 {
 public:
-    void FUN_00461620(int, int, int);
+    void HandleIntegrityNop(int, int, int);
 };
 
 struct Class_00456030 {

@@ -50,7 +50,7 @@ public:
 
     int AppendPacket(Packet* packet, int index, const void* src, unsigned int size, Packet* prev);
     void FreePackets();
-    void FUN_00462a40();
+    void FindOwnerChainTail();
     int IsReusable(int minRetain);
 };
 
@@ -181,7 +181,7 @@ public:
 };
 
 // Length of each packet command, one word per 4-byte entry.
-extern unsigned short DAT_00512ad8[][2];
+extern unsigned short g_packetSizes[][2];
 
 class FrameQueue {
 public:
@@ -276,7 +276,7 @@ extern NetCondenser g_sendCondenser;
 extern NetCondenser g_receiveCondenser;
 extern int DAT_005129f1;
 extern int g_usePacketManager;
-extern int DAT_00512c94;
+extern int g_netFrameRateConfig;
 
 // One player's packet channel: a pool of 0x43e-byte buffers, a pool of
 // 0x20-byte packet records that point into them, and a ring of queued
@@ -356,13 +356,13 @@ public:
     PacketManager();
     int AppendToSendBuffer(unsigned char* data, unsigned int len);
     void ClearSendBuffer();
-    void FUN_00461610();
+    void NopRet_D();
     PacketChannel* FindChannel(int param_1, int param_2);
     int InitChannels(int arg1, int arg2);
     void ReleaseChannel(int id);
     void ReleaseAllChannels();
     int SendAllQueued(int param_1);
-    int FUN_00461900(int from, Msg_00461900* msg);
+    int SendFrameState(int from, Msg_00461900* msg);
     void QueueOnChannel(int param_1, PacketChannel* param_2, int param_3, int param_4);
     void* QueuePacket(int param_1, int param_2, void* param_3, unsigned int param_4);
     void SetDefaultSendPacing(int rate);
@@ -383,8 +383,8 @@ PacketRing::PacketRing()
 // FUNCTION: 0x461020
 int __stdcall InitPacketManager(int param_1, int param_2)
 {
-    if (DAT_00512c94 != 0) {
-        g_packetManager.SetDefaultSendPacing(DAT_00512c94);
+    if (g_netFrameRateConfig != 0) {
+        g_packetManager.SetDefaultSendPacing(g_netFrameRateConfig);
     }
     if (g_usePacketManager != 0) {
         do {
@@ -509,7 +509,7 @@ void PacketManager::ClearSendBuffer()
 
 // An empty method, called once (from 0x4161f0) on the global g_packetManager.
 // FUNCTION: 0x461610
-void PacketManager::FUN_00461610()
+void PacketManager::NopRet_D()
 {
 }
 
@@ -517,11 +517,11 @@ void PacketManager::FUN_00461610()
 // like its neighbour 0x461610.
 class Class_00461620 {
 public:
-    void FUN_00461620(int, int, int);
+    void HandleIntegrityNop(int, int, int);
 };
 
 // FUNCTION: 0x461620
-void Class_00461620::FUN_00461620(int, int, int)
+void Class_00461620::HandleIntegrityNop(int, int, int)
 {
 }
 
@@ -643,7 +643,7 @@ int PacketManager::SendAllQueued(int param_1)
 // Puts one dword (the message's field_10, or -1 when field_14 is set) in the
 // send buffer and sends it; the send is the body of SendToDPID, inlined.
 // FUNCTION: 0x461900
-int PacketManager::FUN_00461900(int from, Msg_00461900* msg)
+int PacketManager::SendFrameState(int from, Msg_00461900* msg)
 {
     *(int*)buffer = msg->field_14 ? -1 : msg->field_10;
     SendTo(from, msg->field_14, buffer, size);
@@ -803,7 +803,7 @@ Packet* PacketChannel::AllocPacket(int param_1)
 }
 
 // FUNCTION: 0x461d60
-void __stdcall FUN_00461d60(int, int, int)
+void __stdcall NopRetC_B(int, int, int)
 {
 }
 
@@ -1367,7 +1367,7 @@ void PacketBuffer::FreePackets()
 }
 
 // FUNCTION: 0x462a40
-void PacketBuffer::FUN_00462a40()
+void PacketBuffer::FindOwnerChainTail()
 {
     if (count != 0) {
         Packet* p = first;
@@ -1956,7 +1956,7 @@ int FrameQueue::QueueFrames(char* src, unsigned int size, int tick, int a4, int 
             reader.ReadBits(8);
             w = (unsigned short)reader.ReadBits(0x10);
         } else {
-            w = DAT_00512ad8[c][0];
+            w = g_packetSizes[c][0];
         }
         remaining -= w;
         if (remaining < 0)
@@ -2000,7 +2000,7 @@ int FrameQueue::QueueFrames(char* src, unsigned int size, int tick, int a4, int 
                         continue;
                     }
                 } else {
-                    w = DAT_00512ad8[c][0];
+                    w = g_packetSizes[c][0];
                 }
                 if (!buffer->Push(x, q, w))
                     return 1;
@@ -2038,7 +2038,7 @@ int FrameQueue::QueueFrames(char* src, unsigned int size, int tick, int a4, int 
                     goto next2;
                 }
             } else {
-                w = DAT_00512ad8[c][0];
+                w = g_packetSizes[c][0];
             }
             rem -= w;
             if (rem < 0)
@@ -2053,21 +2053,21 @@ int FrameQueue::QueueFrames(char* src, unsigned int size, int tick, int a4, int 
     return 1;
 }
 
-extern char DAT_0052a4e4;
+extern char g_emptyAtexitRegistered;
 extern void __cdecl atexit(void*);
-void FUN_00463bd0(void);
+void EmptyAtexitHandler(void);
 
 // FUNCTION: 0x463ba0
-void FUN_00463ba0()
+void RegisterEmptyAtexit()
 {
-    if ((DAT_0052a4e4 & 1) == 0) {
-        DAT_0052a4e4 = DAT_0052a4e4 | 1;
+    if ((g_emptyAtexitRegistered & 1) == 0) {
+        g_emptyAtexitRegistered = g_emptyAtexitRegistered | 1;
     }
-    atexit(FUN_00463bd0);
+    atexit(EmptyAtexitHandler);
 }
 
 // FUNCTION: 0x463bd0
-void FUN_00463bd0(void)
+void EmptyAtexitHandler(void)
 {
 }
 
@@ -2118,12 +2118,12 @@ public:
     char unknown_2b[0x51];
     void* field_7c;
 
-    void FUN_00463c40();
+    void FreeSideDataAndFogSightCounts();
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x463c40
-void Class_00463c40::FUN_00463c40()
+void Class_00463c40::FreeSideDataAndFogSightCounts()
 {
     delete field_27;
     delete field_7c;
@@ -2149,7 +2149,7 @@ void Player::SetType(int param_1)
 }
 
 // FUNCTION: 0x463c80
-void FUN_00463c80()
+void ResetChatHudIndices()
 {
     g_game->field_2a3e = 0;
     g_game->field_2a40 = 0;

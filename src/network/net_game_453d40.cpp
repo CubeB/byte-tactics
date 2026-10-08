@@ -170,7 +170,7 @@ public:
 
 class Class_00461620 {
 public:
-    void FUN_00461620(int, int, int);
+    void HandleIntegrityNop(int, int, int);
 };
 
 class Class_00463be0 {
@@ -181,7 +181,7 @@ public:
 
 class Class_00463c40 {
 public:
-    void FUN_00463c40();
+    void FreeSideDataAndFogSightCounts();
 };
 
 class Class_00456030 {
@@ -513,7 +513,7 @@ int HandleNetPackets()
                 if (p) {
                     int target = FindPlayerIndex(msg->id);
                     if (target == 10) {
-                        ((Class_00463c40*)&temp)->FUN_00463c40();
+                        ((Class_00463c40*)&temp)->FreeSideDataAndFogSightCounts();
                         continue;
                     }
                     char* payload = msg->field_c;
@@ -522,7 +522,7 @@ int HandleNetPackets()
                         && (payload[0x9b] & 0x40))
                         RejectPlayer(p->id, 9);
                 }
-                ((Class_00463c40*)&temp)->FUN_00463c40();
+                ((Class_00463c40*)&temp)->FreeSideDataAndFogSightCounts();
                 break;
             }
             case 0x104:
@@ -825,7 +825,7 @@ int HandleNetPackets()
         case 29:
             if (g_usePacketManager)
                 ((Class_00461620*)&g_packetManager)
-                    ->FUN_00461620(g_game->from_id, *(int*)(packet + 1), *(int*)(packet + 5));
+                    ->HandleIntegrityNop(g_game->from_id, *(int*)(packet + 1), *(int*)(packet + 5));
             break;
         case 33: {
             Player* a = PlayerByIndex(*(int*)(packet + 2));

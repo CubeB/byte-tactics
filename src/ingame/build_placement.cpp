@@ -141,7 +141,7 @@ void CenterCameraOnRadarClick();
 void __stdcall SetEndGameState(int a);
 void BlankScreen();
 int FUN_004572a0();
-void FUN_00463c80();
+void ResetChatHudIndices();
 void ApplySlotsToGamePlayers();
 void ClearSelection();
 int __stdcall SelectUnitsInBox(void* p);
@@ -382,7 +382,7 @@ void BattleFrame(void)
             PopUntilNamedLayout(1);
             CloseTopScreen(g_game->field_519);
             if (g_game->net->GetGameType() == 3) {
-                FUN_00463c80();
+                ResetChatHudIndices();
                 MainLoopTick();
             }
             ShutdownIngameSystems();

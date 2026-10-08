@@ -395,7 +395,7 @@ extern int (__stdcall* DAT_00512ac8)(int);                                      
 extern unsigned char DAT_00512acc[4];                                                             // 0x512acc, 4 bytes; nothing refers to it
 extern int (__stdcall* DAT_00512ad0)(int);                                                        // 0x512ad0, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00512ad4[4];                                                             // 0x512ad4, 4 bytes; nothing refers to it
-extern unsigned short DAT_00512ad8[2][2];                                                         // 0x512ad8, 4 bytes; 1 of 1 files
+extern unsigned short g_packetSizes[2][2];                                                        // 0x512ad8, 4 bytes; 1 of 1 files
 extern int DAT_00512adc;                                                                          // 0x512adc, 4 bytes; 1 of 1 files
 extern int DAT_00512ae0;                                                                          // 0x512ae0, 4 bytes; 1 of 1 files
 extern int DAT_00512ae4;                                                                          // 0x512ae4, 4 bytes; 1 of 1 files
@@ -708,7 +708,7 @@ extern char DAT_00529e88[13];                                                   
 extern void* DAT_00529e98;                                                                        // 0x529e98, 4 bytes; 4 of 4 files
 extern int DAT_00529ea0;                                                                          // 0x529ea0, 4 bytes; 3 of 3 files
 extern unsigned char DAT_00529ea4[4];                                                             // 0x529ea4, 4 bytes; nothing refers to it
-extern char DAT_0052a4e4;                                                                         // 0x52a4e4, 1 bytes; 1 of 1 files
+extern char g_emptyAtexitRegistered;                                                              // 0x52a4e4, 1 bytes; 1 of 1 files
 extern long DAT_0052a4e8;                                                                         // 0x52a4e8, 4 bytes; 5 of 6 files (conflicting: signedness or const)
 extern long DAT_0052a4ec;                                                                         // 0x52a4ec, 4 bytes; 5 of 5 files
 extern void* DAT_0052a4f0;                                                                        // 0x52a4f0, 4 bytes; 6 of 6 files
@@ -873,7 +873,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x512774 DAT_00512774: part of another global: DAT_00512770+0x4
 //   0x5129f1 DAT_005129f1: part of another global: g_sendCondenser+0x21
 //   0x512c8c DAT_00512c8c: part of another global: DAT_00512c80+0xc
-//   0x512c94 DAT_00512c94: part of another global: DAT_00512c80+0x14
+//   0x512c94 g_netFrameRateConfig: part of another global: DAT_00512c80+0x14
 //   0x512ce8 DAT_00512ce8: part of another global: DAT_00512c80+0x68
 //   0x512d68 DAT_00512d68: part of another global: DAT_00512c80+0xe8
 //   0x512d6c DAT_00512d6c: part of another global: DAT_00512c80+0xec

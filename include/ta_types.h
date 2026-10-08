@@ -3944,7 +3944,7 @@ public:
     char unknown_0[1];
     int AppendToSendBuffer(unsigned char*, unsigned int);
     int SendAllQueued(int);
-    void FUN_00461610(void);
+    void NopRet_D(void);
     void QueueOnChannel(int, Class_00462710*, int, int);
     void SetDefaultSendPacing(int);
     void* QueuePacket(int, int, void*, unsigned int);
@@ -8099,7 +8099,7 @@ public:
 class Class_00461620 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    void FUN_00461620(int, int, int);
+    void HandleIntegrityNop(int, int, int);
 };
 
 class Class_00463c40 {  // 0x80 bytes, 2 views
@@ -8108,7 +8108,7 @@ public:
     void* field_27;  // +0x27
     char unknown_2b[81];
     void* field_7c;  // +0x7c
-    void FUN_00463c40(void);
+    void FreeSideDataAndFogSightCounts(void);
 };
 
 struct Packet {  // 0x20 bytes, 16 views
@@ -8908,7 +8908,7 @@ public:
     char unknown_0[45812];
     int* buffer;  // +0xb2f4
     int size;  // +0xb2f8
-    int FUN_00461900(int, Msg_00461900*);
+    int SendFrameState(int, Msg_00461900*);
 };
 
 struct Msg_00461900 {  // 0x18 bytes, 1 view
@@ -9144,7 +9144,7 @@ struct Class_00462a40 {  // 0x14 bytes, 1 view
     Entry_2* field_8;  // +0x8
     char unknown_c[4];
     Entry_2* field_10;  // +0x10
-    void FUN_00462a40(void);
+    void FindOwnerChainTail(void);
 };
 
 struct Entry_2 {  // 0x20 bytes, 1 view

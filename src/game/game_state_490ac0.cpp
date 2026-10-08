@@ -752,7 +752,7 @@ extern unsigned int DAT_0051f2d8;
 extern unsigned int DAT_0051f2dc;
 extern int DAT_0051e710[30];
 
-void FUN_00463c80();
+void ResetChatHudIndices();
 void LoadLightBar();
 void ResetSpeech();
 void LoadTextureGafs();
@@ -781,7 +781,7 @@ unsigned int GetTicks();
 // FUNCTION: 0x4917d0
 void LoadBattleAssets()
 {
-    FUN_00463c80();
+    ResetChatHudIndices();
     memset(&g_game->zero_2bf1, 0, 11);
     g_game->mode_2cc3 = 1;
     g_game->field_2cc4 = 0;

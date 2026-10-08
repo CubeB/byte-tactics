@@ -1772,7 +1772,7 @@ void LoadSavedSettings()
 // FUNCTION: 0x45cde0
 void SaveGameSettings()
 {
-    memcpy(g_optionsPrefsSnapshot.block, (char*)g_game + 0x37ee6, 0x53);
+    memcpy(g_optionsPrefsSnapshot.block, (char*)&g_game->block[0], 0x53);
     g_optionsPrefsSnapshot.bit0 = g_game->flags14281.bit1;
     g_optionsPrefsSnapshot.bit1 = g_game->flags14281.bit2;
     g_optionsBackupGameSpeed.i = g_game->gameSpeed;
@@ -2978,7 +2978,7 @@ void OpenOptionsPanel()
         LoadPictureCached("options4x", 0, 0, 0);
     }
     panel->handler = HandleOptionsPanelClick;
-    memcpy(g_optionsPrefsSnapshot.block, (char*)g_game + 0x37ee6, 0x53);
+    memcpy(g_optionsPrefsSnapshot.block, (char*)&g_game->block[0], 0x53);
     g_optionsPrefsSnapshot.bit0 = g_game->los.bits.bit1;
     g_optionsPrefsSnapshot.bit1 = g_game->los.bits.bit2;
     g_optionsBackupGameSpeed.i = g_game->gameSpeed;

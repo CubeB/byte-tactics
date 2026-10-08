@@ -1279,7 +1279,7 @@ address,size,file,symbol,status,similarity
 0x461f90,62,src/network/packets_460f40.cpp,?EnqueuePacket@PacketChannel@@QAEXPAUNetPacketPendingEntry@@@Z,matched,100.0
 0x461fd0,919,src/network/packets_460f40.cpp,?GrowPools@PacketChannel@@QAEHHH@Z,matched,100.0
 0x462370,60,src/network/packets_460f40.cpp,?PushPacket@PacketRing@@QAEHPAUNetPacketPendingEntry@@@Z,matched,100.0
-0x4623b0,39,src/network/packets_460f40.cpp,?PopPacket@Class_004623b0@@QAEPAUNetPacketPendingEntry@@XZ,matched,100.0
+0x4623b0,39,src/network/packets_460f40.cpp,?PopPacket@PacketRing@@QAEPAUNetPacketPendingEntry@@XZ,matched,100.0
 0x4623e0,137,src/network/packets_460f40.cpp,?DequeuePacket@PacketChannel@@QAEXPAUNetPacketPendingEntry@@@Z,matched,100.0
 0x462470,41,src/network/packets_460f40.cpp,?ResetChannel@PacketChannel@@QAEXXZ,matched,100.0
 0x4624a0,570,src/network/packets_460f40.cpp,?SendQueued@PacketChannel@@QAEHH@Z,matched,100.0
@@ -1291,9 +1291,9 @@ address,size,file,symbol,status,similarity
 0x4629b0,144,src/network/packets_460f40.cpp,?FreePackets@PacketBuffer@@QAEXXZ,matched,100.0
 0x462a40,27,src/network/packets_460f40.cpp,?FindOwnerChainTail@PacketBuffer@@QAEXXZ,matched,100.0
 0x462a60,120,src/network/packets_460f40.cpp,?IsReusable@PacketBuffer@@QAEHH@Z,matched,100.0
-0x462ae0,233,src/network/packets_460f40.cpp,?RemovePacket@Class_00462ae0@@QAEXPAUNetPacketPendingEntry@@@Z,matched,100.0
-0x462bd0,21,src/network/packets_460f40.cpp,?RemoveFromBuffer@Class_00462bd0@@QAEXXZ,matched,100.0
-0x462bf0,11,src/network/packets_460f40.cpp,?GetData@Class_00462bf0@@QAEHXZ,matched,100.0
+0x462ae0,233,src/network/packets_460f40.cpp,?RemovePacket@PacketBuffer@@QAEXPAUNetPacketPendingEntry@@@Z,matched,100.0
+0x462bd0,21,src/network/packets_460f40.cpp,?RemoveFromBuffer@NetPacketPendingEntry@@QAEXXZ,matched,100.0
+0x462bf0,11,src/network/packets_460f40.cpp,?GetData@NetPacketPendingEntry@@QAEHXZ,matched,100.0
 0x462c00,188,src/network/packets_460f40.cpp,??0PacketReceiver@@QAE@PAX@Z,matched,100.0
 0x462cc0,106,src/network/packets_460f40.cpp,??_GPacketReceiver@@UAEPAXI@Z,matched,100.0
 0x462d30,84,src/network/packets_460f40.cpp,??1PacketReceiver@@UAE@XZ,matched,100.0

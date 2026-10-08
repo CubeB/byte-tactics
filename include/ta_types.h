@@ -346,7 +346,7 @@ struct Class_00461da0;
 class Class_00461f90;
 class Class_00461fd0;
 class Class_00462370;
-class Class_004623b0;
+class PacketRing;
 class Class_004623e0;
 class Class_00462470;
 class Class_004624a0;
@@ -9070,7 +9070,7 @@ public:
     int PushPacket(int);
 };
 
-class Class_004623b0 {  // 0x100c bytes, 3 views
+class PacketRing {      // 0x100c bytes, 3 views
 public:
     int count;  // +0x0
     int index;  // +0x4
@@ -9095,7 +9095,7 @@ public:
     unsigned int size;  // +0x2c
     int field_30;  // +0x30
     int field_34;  // +0x34
-    Class_004623b0 queue;  // +0x38
+    PacketRing queue;      // +0x38
     int InitPools(int, unsigned int, int, int);
     void ResetChannel(void);
 };

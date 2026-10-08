@@ -37,6 +37,9 @@ struct NetPacketPendingEntry {
     int sentTime;                      // +0x14, when it left the queue
     NetPacketPendingEntry* prev;       // +0x18
     NetPacketPendingEntry* next;       // +0x1c
+
+    void RemoveFromBuffer();
+    int GetData();
 };
 
 class PacketBuffer {
@@ -52,6 +55,7 @@ public:
     void FreePackets();
     void FindOwnerChainTail();
     int IsReusable(int minRetain);
+    void RemovePacket(NetPacketPendingEntry* packet);
 };
 
 // The ring of queued packets (0x462370 is its push, 0x4623b0 its pop).
@@ -64,6 +68,8 @@ public:
 
     PacketRing();
     int PushPacket(NetPacketPendingEntry* value);
+    // Read side of the ring, out of line (0x4623b0).
+    NetPacketPendingEntry* PopPacket();
     NetPacketPendingEntry* Peek()
     {
         if (count > 0)
@@ -97,17 +103,6 @@ public:
     }
 };
 
-// Read side of the ring, out of line (0x4623b0).
-class Class_004623b0 {
-public:
-    int count;                         // +0x00
-    int index;                         // +0x04
-    int unused;                        // +0x08
-    NetPacketPendingEntry* buffer[0x400];  // +0x0c
-
-    NetPacketPendingEntry* PopPacket();
-};
-
 // Sets the minimum retain time of a channel (0x462860).
 class Class_00462860 {
 public:
@@ -118,15 +113,6 @@ public:
 class Class_004628a0 {
 public:
     void SetSendPacingMs(int ms);
-};
-
-class Class_00462ae0 {
-public:
-    PacketChannel* manager;            // +0x0
-    char unknown_4[0xc];
-    NetPacketPendingEntry* first;      // +0x10
-
-    void RemovePacket(NetPacketPendingEntry* packet);
 };
 
 // One queued frame of a player's ring: the tick it is due, the data and size.
@@ -372,6 +358,14 @@ public:
 // Defined in packets_460e20.cpp, whose dynamic initialiser (_$E4) and static
 // destructor (packets_460f60.cpp, _$E2) need views of their own.
 extern PacketManager g_packetManager;
+
+// Unused here: the symbol ids these declarations take keep the allocation,
+// standing in for the view classes joined into PacketRing, PacketBuffer and
+// NetPacketPendingEntry (docs/c2-regalloc.md).
+int __stdcall DefaultPacketHandler(int arg1);
+int __stdcall RejectPacketType2(int arg1);
+void __stdcall AnnouncePlayerLeft(int id);
+int __stdcall GetPlayerName(int dpid, char* shortName, char* longName);
 
 // FUNCTION: 0x460f40
 PacketRing::PacketRing()
@@ -955,7 +949,7 @@ static inline void DequeueByCalls(PacketChannel* channel, NetPacketPendingEntry*
     item->sentTime = GetTicks();
     int n = channel->queue.count;
     while (n-- > 0) {
-        NetPacketPendingEntry* value = ((Class_004623b0*)&channel->queue)->PopPacket();
+        NetPacketPendingEntry* value = channel->queue.PopPacket();
         if (value == item)
             break;
         channel->queue.PushPacket(value);
@@ -1126,16 +1120,16 @@ int PacketRing::PushPacket(NetPacketPendingEntry* value)
 }
 
 // FUNCTION: 0x4623b0
-NetPacketPendingEntry* Class_004623b0::PopPacket()
+NetPacketPendingEntry* PacketRing::PopPacket()
 {
     if (count > 0) {
         count--;
-        NetPacketPendingEntry* value = buffer[index];
-        index++;
-        if (index < 0x400) {
+        NetPacketPendingEntry* value = buf[readIdx];
+        readIdx++;
+        if (readIdx < 0x400) {
             return value;
         }
-        index = 0;
+        readIdx = 0;
         return value;
     }
     return 0;
@@ -1245,26 +1239,26 @@ int PacketChannel::AddPacket(int param_1, void* param_2, unsigned int param_3)
         if (queue.count != 0)
             return 0;
     }
-    Class_00462ae0* block = 0;
+    PacketBuffer* block = 0;
     int idx = bufferIndex;
     if (idx >= 0)
-        block = (Class_00462ae0*)buffers[idx];
+        block = buffers[idx];
     if (block == 0) {
-        block = (Class_00462ae0*)AllocBuffer();
+        block = AllocBuffer();
         if (block == 0)
             return 0;
     }
     NetPacketPendingEntry* pkt = AllocPacket(param_1);
     if (pkt == 0)
         return 0;
-    int r = ((PacketBuffer*)block)->AppendPacket(pkt, packetIndex, param_2, param_3, lastPacket);
+    int r = block->AppendPacket(pkt, packetIndex, param_2, param_3, lastPacket);
     if (r == 0) {
         packetIndex = packetIndex - 1;
-        block = (Class_00462ae0*)AllocBuffer();
+        block = AllocBuffer();
         if (block != 0) {
             pkt = AllocPacket(param_1);
             if (pkt != 0)
-                r = ((PacketBuffer*)block)->AppendPacket(pkt, packetIndex, param_2, param_3, lastPacket);
+                r = block->AppendPacket(pkt, packetIndex, param_2, param_3, lastPacket);
             else
                 r = 0;
         }
@@ -1280,7 +1274,7 @@ int PacketChannel::AddPacket(int param_1, void* param_2, unsigned int param_3)
         queuedBytes += pkt->size;
         return 1;
     }
-    if (block != 0 && pkt->owner == (PacketBuffer*)block)
+    if (block != 0 && pkt->owner == block)
         block->RemovePacket(pkt);
     return 0;
 }
@@ -1353,7 +1347,7 @@ void PacketBuffer::FreePackets()
             PacketTrace("initialize freeing packet %ld\n", i);
             NetPacketPendingEntry* p = &packets[i];
             i++;
-            ((Class_00462ae0*)p->owner)->RemovePacket(p);
+            p->owner->RemovePacket(p);
             p->owner = 0;
             if (i >= size)
                 i = 0;
@@ -1400,7 +1394,7 @@ int PacketBuffer::IsReusable(int minRetain)
 }
 
 // FUNCTION: 0x462ae0
-void Class_00462ae0::RemovePacket(NetPacketPendingEntry* packet)
+void PacketBuffer::RemovePacket(NetPacketPendingEntry* packet)
 {
     PacketTrace("removing packet (len=%ld, type=%d, data=\"%s\")\n",
                  packet->size,
@@ -1409,12 +1403,12 @@ void Class_00462ae0::RemovePacket(NetPacketPendingEntry* packet)
 
     if (packet->queued >= 0) {
         PacketTrace("Warning! RemovePacket called for packet in pending queue!\n");
-        PacketChannel* mgr = manager;
+        PacketChannel* mgr = pool;
         packet->queued = -1;
         packet->sentTime = GetTicks();
         int n = mgr->queue.count;
         while (n-- > 0) {
-            NetPacketPendingEntry* value = ((Class_004623b0*)&mgr->queue)->PopPacket();
+            NetPacketPendingEntry* value = mgr->queue.PopPacket();
             if (value == packet)
                 break;
             mgr->queue.PushPacket(value);
@@ -1424,13 +1418,13 @@ void Class_00462ae0::RemovePacket(NetPacketPendingEntry* packet)
 
     if (first == packet) {
         NetPacketPendingEntry* nxt = packet->next;
-        if (nxt != 0 && nxt->owner == (PacketBuffer*)this)
+        if (nxt != 0 && nxt->owner == this)
             first = nxt;
         else
             first = 0;
     }
 
-    PacketChannel* m = manager;
+    PacketChannel* m = pool;
     if (m->lastPacket == packet)
         m->lastPacket = packet->prev;
     if (m->firstPacket == packet)
@@ -1444,37 +1438,18 @@ void Class_00462ae0::RemovePacket(NetPacketPendingEntry* packet)
     packet->prev = 0;
 }
 
-#pragma pack(push, 1)
-class Class_00462bd0 {
-public:
-    char unknown_0[0xc];
-    void* field_c;
-
-    void RemoveFromBuffer();
-};
-#pragma pack(pop)
-
 // FUNCTION: 0x462bd0
-void Class_00462bd0::RemoveFromBuffer()
+void NetPacketPendingEntry::RemoveFromBuffer()
 {
-    ((Class_00462ae0*)field_c)->RemovePacket((NetPacketPendingEntry*)this);
-    field_c = 0;
+    owner->RemovePacket(this);
+    owner = 0;
 }
 
-struct Class_00462bf0 {
-    char unknown_0[4];
-    int field_0x4;
-    char unknown_8[4];
-    int field_0xc;
-
-    int GetData();
-};
-
 // FUNCTION: 0x462bf0
-int Class_00462bf0::GetData()
+int NetPacketPendingEntry::GetData()
 {
-    int eax = this->field_0x4;
-    int ecx = this->field_0xc;
+    int eax = this->offset;
+    int ecx = (int)this->owner;
     return eax + ecx + 0x14;
 }
 

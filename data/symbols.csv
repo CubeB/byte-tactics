@@ -1272,7 +1272,7 @@ address,name
 0x461f90,PacketChannel::EnqueuePacket
 0x461fd0,PacketChannel::GrowPools
 0x462370,PacketRing::PushPacket
-0x4623b0,Class_004623b0::PopPacket
+0x4623b0,PacketRing::PopPacket
 0x4623e0,PacketChannel::DequeuePacket
 0x462470,PacketChannel::ResetChannel
 0x4624a0,PacketChannel::SendQueued
@@ -1284,9 +1284,9 @@ address,name
 0x4629b0,PacketBuffer::FreePackets
 0x462a40,PacketBuffer::FindOwnerChainTail
 0x462a60,PacketBuffer::IsReusable
-0x462ae0,Class_00462ae0::RemovePacket
-0x462bd0,Class_00462bd0::RemoveFromBuffer
-0x462bf0,Class_00462bf0::GetData
+0x462ae0,PacketBuffer::RemovePacket
+0x462bd0,NetPacketPendingEntry::RemoveFromBuffer
+0x462bf0,NetPacketPendingEntry::GetData
 0x462c00,PacketReceiver::PacketReceiver
 0x462cc0,??_GPacketReceiver@@UAEPAXI@Z
 0x462d30,PacketReceiver::~PacketReceiver

@@ -101,7 +101,7 @@ static inline int FindToB_00450530()
 }
 
 // FUNCTION: 0x450530
-void FUN_00450530()
+void SendLobbySyncRequests()
 {
     // Function scope, before the mode == 6 guard: orders the stores in the three branches.
     Msg_00450530 msg;

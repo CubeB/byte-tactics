@@ -68,7 +68,7 @@ struct Class_00456030 {
     int field_0;                       // +0x0
     char unknown_4[0x73 - 0x4];
     char field_73;                     // +0x73
-    int FUN_00456030();
+    int IsPlayableSlot();
 };
 
 #pragma pack(push, 1)
@@ -522,7 +522,7 @@ void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
 void __stdcall QuitApp(char* message);
 char* __stdcall Translate(char* text);
 void __stdcall AddMessage(char* text, int param_2, int param_3, char param_4);
-void FUN_00450530();
+void SendLobbySyncRequests();
 int __stdcall BroadcastPacket(int player, void* data, int size);
 void __stdcall SetupPlayerSlot(unsigned char player, char type);
 int GetTicks();
@@ -849,7 +849,7 @@ int FindFreeSlot()
     return i;
 }
 
-// FUN_00450530 (0x450530) stays in net_game_450530.cpp. Its original
+// SendLobbySyncRequests (0x450530) stays in net_game_450530.cpp. Its original
 // translation unit saw only a prototype of GetSlotDpid (0x44ffd0), so the
 // compiler could not inline it; here the definition is in the same file and
 // /Ob2 expands it into the FindTo helper, which then misses the inline budget
@@ -859,7 +859,7 @@ int FindFreeSlot()
 // only in a class's file, so 0x450530 keeps a file of its own.
 
 // FUNCTION: 0x450910
-char FUN_00450910(void)
+char FindFreePlayerId(void)
 {
     Game* game = g_game;
     for (int id = 1; id <= 10; id++) {
@@ -886,7 +886,7 @@ char FUN_00450910(void)
 // Indexing g_game->players[i] in every test (rather than a player pointer
 // local) is what makes MSVC walk the array from the type field.
 // FUNCTION: 0x450980
-void FUN_00450980(void)
+void CheckDuplicatePlayerIds(void)
 {
     int counts[11];
     memset(counts, 0, sizeof(counts));
@@ -1012,7 +1012,7 @@ int __stdcall AddNetPlayer(int param_1)
                 }
             }
         }
-        FUN_00450530();
+        SendLobbySyncRequests();
         g_packetManager.SendAllQueued(1);
     }
     if (g_game->campaign->GetGameType() == 3 && g_game->field_2a3c > 1) {
@@ -1120,7 +1120,7 @@ static inline int IsPlaying_00450f90(Player* player)
 
 // When the game is networked (flag 1 at +0x2a44), sends every playing
 // player's 0xb9-byte data block (type 0x20) and then its 6-byte message
-// (type 0x24, the same code as FUN_00452bd0).
+// (type 0x24, the same code as BroadcastAllyTeam).
 // The packet is declared at function scope: its address escapes to
 // BroadcastPacket in one iteration, so MSVC re-reads player->id around the
 // stores into it in the next, as the original does.
@@ -1148,7 +1148,7 @@ void BroadcastPlayerInfo()
                 }
             }
         }
-        FUN_00450530();
+        SendLobbySyncRequests();
         g_packetManager.SendAllQueued(1);
     }
 }
@@ -1600,7 +1600,7 @@ int __stdcall AssignPlayerColor(int from, int to, int group);
 int __stdcall IsColorFree(int id, int slot);
 int __stdcall RequestPlayerColor(int param);
 int __stdcall SetAlliance(int from, int to, unsigned char value, int extra);
-int __stdcall FUN_00452bd0(Player* player);
+int __stdcall BroadcastAllyTeam(Player* player);
 int __stdcall RejectPlayer(int id, unsigned char value);
 int __stdcall ReceiveNetPacket(void);
 void __stdcall OpenTimeoutDialog(int id);
@@ -1867,7 +1867,7 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
                     }
                 }
             }
-            FUN_00450530();
+            SendLobbySyncRequests();
             g_packetManager.SendAllQueued(1);
         }
 
@@ -2328,7 +2328,7 @@ static unsigned char LookupPlayer(int id)
 }
 
 // FUNCTION: 0x452800
-int __stdcall FUN_00452800(int id)
+int __stdcall BroadcastPlayerLeft(int id)
 {
     if (LookupPlayer(id) == 10)
         return 0;
@@ -2375,7 +2375,7 @@ static inline int IsPlaying_00452bd0(Player* player)
 // The original calls this out of line from 0x453d40.
 #pragma auto_inline(off)
 // FUNCTION: 0x452bd0
-int __stdcall FUN_00452bd0(Player* player)
+int __stdcall BroadcastAllyTeam(Player* player)
 {
     if (!IsPlaying_00452bd0(player)) {
         return 0;
@@ -2505,7 +2505,7 @@ int __stdcall RejectPlayer(int id, unsigned char value)
 }
 
 // FUNCTION: 0x453320
-void __stdcall FUN_00453320(int from, int to)
+void __stdcall SendProbe(int from, int to)
 {
     unsigned char* buf = g_game->buffer;
     *buf = 6;
@@ -2770,7 +2770,7 @@ void CheckPlayerTimeouts()
 // The original calls this out of line from 0x453d40.
 #pragma auto_inline(off)
 // FUNCTION: 0x456030
-int Class_00456030::FUN_00456030()
+int Class_00456030::IsPlayableSlot()
 {
     if (field_0 != 0 && (field_73 == 1 || field_73 == 2)) {
         return 1;
@@ -2793,7 +2793,7 @@ void __stdcall SendNewUnit(Unit* obj)
 }
 
 // FUNCTION: 0x4560c0
-void __stdcall FUN_004560c0(Unit* obj, Unit* target)
+void __stdcall BroadcastBuilderLink(Unit* obj, Unit* target)
 {
     Packet_004560c0 packet;
     packet.type = 0x12;
@@ -3105,7 +3105,7 @@ void SendNetHeartbeat()
                 }
             }
         }
-        FUN_00450530();
+        SendLobbySyncRequests();
         g_packetManager.SendAllQueued(1);
     }
 
@@ -3185,7 +3185,7 @@ static inline int IsPlaying(unsigned char i)
 // it keeps the later reads of active and data from reusing the first loads,
 // which frees dl for j and bl for the 0x40 mask as in the original.
 // FUNCTION: 0x456760
-int FUN_00456760()
+int AreAllPlayersReady()
 {
     int count = 0;
     for (int i = 0; i < 10; i++) {
@@ -3258,9 +3258,9 @@ static inline int PlayerId_004568c0(unsigned char pi) {
 }
 
 // FUNCTION: 0x4568c0
-int FUN_004568c0() {
+int AssignStartPositions() {
     unsigned char idx = FindOccupied_004568c0();
-    int res = ((Class_00456030*)&g_game->players[idx])->FUN_00456030();
+    int res = ((Class_00456030*)&g_game->players[idx])->IsPlayableSlot();
     if (res != 0 && g_game->field_2a28 == 0) {
         int* out = g_game->field_29fc;
         if (g_game->players[g_game->localPlayer].info->bits_9b.flag14) {
@@ -3836,7 +3836,7 @@ int CountLocalComputerPlayers()
 // Counts active players of type 2 whose field_146 is not 10 (compare
 // 0x457c10).
 // FUNCTION: 0x457bc0
-int FUN_00457bc0()
+int CountActiveAIPlayers()
 {
     int count = 0;
     for (int i = 0; i < 10; i++) {
@@ -3878,7 +3878,7 @@ int CountRemotePlayers()
 }
 
 // FUNCTION: 0x457cb0
-int FUN_00457cb0()
+int CountCombatPlayers()
 {
     int count = 0;
     for (int i = 0; i < 10; i++) {

@@ -189,7 +189,7 @@ void RefreshTeamIcons();
 void RefreshBattleRoomRows();
 void BroadcastPlayerInfo();
 void UpdateNetGameInfo();
-int FUN_00456760();
+int AreAllPlayersReady();
 int IsHostLocal();
 int IsOnlineConfigLoaded();
 void __stdcall SetSliderFromValue(Gadget_00449bb0* gadget, int value);
@@ -368,7 +368,7 @@ void OpenBattleRoom()
     CreateUnitSync(isHost);
     FUN_004a0570(&g_game->gui, "START", ((UnitSync*)g_game->net)->AllPlayersSynced());
     FUN_004a1250(&g_game->gui, "START",
-                 host && FUN_00456760() && ((UnitSync*)g_game->net)->AllPlayersSynced() ? 0 : 1);
+                 host && AreAllPlayersReady() && ((UnitSync*)g_game->net)->AllPlayersSynced() ? 0 : 1);
     FUN_004a1250(&g_game->gui, "RESTRICTIONS", 0);
     FUN_004a32a0(&g_game->gui, "OUTPUT", g_game->chatter, 0, 0);
     {

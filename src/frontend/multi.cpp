@@ -1066,7 +1066,7 @@ int __stdcall GetDisplayModes(Class_00446310* obj);
 void __stdcall SortDisplayModes(Class_00446310* obj);
 void __stdcall RefreshAlliesScreen(int value);
 void __stdcall OpenRejectDialog(int player);
-void __stdcall FUN_00452bd0(Player_00444930* player);
+void __stdcall BroadcastAllyTeam(Player_00444930* player);
 int IsHostLocal();
 void __stdcall HandleControlDialogClick(Gadget_00440d70* gadget);
 void __stdcall SetAlliance(int, int, int, int);
@@ -1109,7 +1109,7 @@ void FUN_0044c220();
 int __stdcall IsScreenNamed(void* gui, const char* name);
 void __stdcall FUN_004a15c0(Entry_00446f50* entries, int widget, RECT* rect);
 void __stdcall FUN_004a50e0(int a, char* text, int x, int y, int w, int h);
-int FUN_00456760();
+int AreAllPlayersReady();
 void __stdcall CreateUnitSync(int param_1);
 char __stdcall FindGameCdDrive(int side);
 int __stdcall HandleNetPackets();
@@ -3282,7 +3282,7 @@ void __stdcall CyclePlayerAlliance(int index)
     Player_00446f50* player = &g_game->players[index];
     FUN_00446e90(player);
     player->colour = (colour + 1) % 6;
-    FUN_00452bd0(player);
+    BroadcastAllyTeam(player);
     FUN_00446c70();
     RefreshTeamIcons();
 }
@@ -3692,7 +3692,7 @@ void __stdcall CyclePlayerAlliance_00447b10(int index)
     int colour = g_game->players[index].colour;
     FUN_00446e90(player);
     player->colour = (colour + 1) % 6;
-    FUN_00452bd0(player);
+    BroadcastAllyTeam(player);
     FUN_00446c70();
     RefreshTeamIcons();
 }
@@ -3802,7 +3802,7 @@ void __stdcall HandleBattleRoomClick(Gui_00446f50* gadget)
             if (same) {
                 FUN_00446e90(me);
                 me->colour = 5;
-                FUN_00452bd0(me);
+                BroadcastAllyTeam(me);
             }
             // Original bug (docs/bugs.md): `<<` binds tighter than `==` and
             // `==` tighter than `|`, so this is ((ally2 << 1) == 3) | ally,
@@ -3823,7 +3823,7 @@ void __stdcall HandleBattleRoomClick(Gui_00446f50* gadget)
         if (IsCurrentGadgetNamed(gadget, text)) {
             PlaySoundByName("Ally", 0);
             CyclePlayerAlliance_00447b10(i);
-            FUN_00452bd0(p);
+            BroadcastAllyTeam(p);
         }
 
         sprintf(text, "RES%d", i);

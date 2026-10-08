@@ -8093,7 +8093,7 @@ public:
     int field_0;  // +0x0
     char unknown_4[111];
     char field_73;  // +0x73
-    int FUN_00456030(void);
+    int IsPlayableSlot(void);
 };
 
 class Class_00461620 {  // 0x1 bytes, 2 views

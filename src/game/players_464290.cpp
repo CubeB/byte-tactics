@@ -836,8 +836,8 @@ void __stdcall RecalculateLineOfSight(int on);
 void __stdcall FocusCommander(int on);
 void __stdcall UpdatePlayerEconomy(Player* player);
 void __stdcall SendPlayerEconomy(Player* player, int a, int b);
-int __stdcall FUN_00457cb0();
-int __stdcall FUN_00457bc0();
+int __stdcall CountCombatPlayers();
+int __stdcall CountActiveAIPlayers();
 void __stdcall OpenMessageBox(Menu* menu, const char* text, int a, int b, int c);
 
 static int loopCond_00464f80(unsigned char i)
@@ -1104,14 +1104,14 @@ void __stdcall UpdatePlayers()
         if (g_game->mission->GetGameType() == 3 &&
             pi->field_22 == 0) {
             if ((g_game->players[FindHostSlot()].info->flags_9b & 0x80) != 0 ||
-                FUN_00457bc0() > 0) {
+                CountActiveAIPlayers() > 0) {
                 pi->info->b.bit6 = 1;
                 if (bl == g_game->localPlayer) {
                     g_game->flags &= 0xfffe;
                     g_game->flags &= 0xfffd;
                     RecalculateLineOfSight(1);
                     BroadcastPlayerInfo();
-                    if (FUN_00457bc0() == 0) {
+                    if (CountActiveAIPlayers() == 0) {
                         Screen* dlg = LoadGuiLayer(&g_game->menu, "YESORNO.GUI", 0x900);
                         if (dlg != 0) {
                             FUN_0049fb10(&g_game->menu, 1);
@@ -1127,7 +1127,7 @@ void __stdcall UpdatePlayers()
                         }
                         goto skip508;
                     }
-                    if (FUN_00457cb0() <= 0)
+                    if (CountCombatPlayers() <= 0)
                         goto skip508;
                     OpenMessageBox(&g_game->menu,
                                  Translate("You are placed in watch mode because you are hosting AI players which are still alive.  If you exit, they will be terminated."),
@@ -1171,7 +1171,7 @@ void __stdcall UpdatePlayers()
 
     if (g_game->mission->GetGameType() == 3 &&
         g_game->field_37ef6 != 2 &&
-        FUN_00457cb0() == 0) {
+        CountCombatPlayers() == 0) {
         if (g_game->field_39239 < 0) {
             g_game->field_39239 = 4;
             return;

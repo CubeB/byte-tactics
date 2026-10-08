@@ -186,7 +186,7 @@ public:
 
 class Class_00456030 {
 public:
-    int FUN_00456030();
+    int IsPlayableSlot();
 };
 
 extern Game* g_game;
@@ -200,10 +200,10 @@ extern char DAT_0050658c[];
 extern char DAT_00506290[];
 
 int ReceiveNetPacket();
-void FUN_00450980();
+void CheckDuplicatePlayerIds();
 void CheckPlayerTimeouts();
 int GetTicks();
-void FUN_00450530();
+void SendLobbySyncRequests();
 void RebuildAllyList();
 int __stdcall GetSlotDpid(unsigned char);
 unsigned char __stdcall FindSlotByDpid(int);
@@ -216,7 +216,7 @@ void __stdcall HandlePing(void*);
 void __stdcall AddMessage(void*, int, int, unsigned char);
 int __stdcall SendPacketToPlayer(int, int, void*, int);
 int __stdcall BroadcastPacket(int, void*, int);
-void __stdcall FUN_00452bd0(Player*);
+void __stdcall BroadcastAllyTeam(Player*);
 void __stdcall RemovePlayer(int);
 int __stdcall IsColorFree(int, int);
 void __stdcall AssignPlayerColor(int, int, int);
@@ -481,7 +481,7 @@ int HandleNetPackets()
                 PlayerById(msg->id);
                 // int, not unsigned char.
                 int target = FindPlayerIndex(msg->id);
-                if (!((Class_00456030*)&g_game->players[FindHost()])->FUN_00456030())
+                if (!((Class_00456030*)&g_game->players[FindHost()])->IsPlayableSlot())
                     break;
                 // info is read before payload: on equal priority the register goes to the first written.
                 PlayerInfo* info = LocalPlayer()->info;
@@ -569,7 +569,7 @@ int HandleNetPackets()
                 break;
             if (g_game->players[target].active && g_game->players[target].state == 3) {
                 memcpy(g_game->players[target].info, packet + 1, 0xb9);
-                FUN_00450980();
+                CheckDuplicatePlayerIds();
             }
             break;
         }
@@ -596,10 +596,10 @@ int HandleNetPackets()
                     unsigned char reply[0xba];
                     if (IsConnected(p)) {
                         BroadcastPacket(p->id, InfoPacket(reply, p), 0xba);
-                        FUN_00452bd0(p);
+                        BroadcastAllyTeam(p);
                     }
                 }
-                FUN_00450530();
+                SendLobbySyncRequests();
                 g_packetManager.SendAllQueued(1);
             }
             g_game->dirty = 1;
@@ -872,7 +872,7 @@ int HandleNetPackets()
             break;
         }
     }
-    FUN_00450980();
+    CheckDuplicatePlayerIds();
     CheckPlayerTimeouts();
     return messages;
 }

@@ -945,7 +945,7 @@ public:
 void __stdcall UpdateUnitHeight(Unit* unit);
 void __stdcall AddUnitToMap(Unit* unit);
 void __stdcall SendNewUnit(Unit* unit);
-void __stdcall FUN_004560c0(Unit* a, Unit* b);
+void __stdcall BroadcastBuilderLink(Unit* a, Unit* b);
 void __stdcall RevealNewUnit(Unit* unit);
 
 static inline void __stdcall InitUnit_00485e90(unsigned short unitType, Pos_00485a40 pos,
@@ -1011,7 +1011,7 @@ found:
     SendNewUnit(unit);
     if (param_5) {
         if (type->field_22f == 0)
-            FUN_004560c0(unit, unit);
+            BroadcastBuilderLink(unit, unit);
         if (unit->type->flags.bit18)
             ((Unit*)unit)->SetStateBits(1, 1);
         if (unit->type->flags.bit24) {

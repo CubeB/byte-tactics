@@ -131,7 +131,7 @@ unsigned char __stdcall FindGameCdDrive(int param);
 void __stdcall SendNetHeartbeat();
 void __stdcall BroadcastPlayerInfo();
 void __stdcall UpdateNetGameInfo();
-int __stdcall FUN_00456760();
+int __stdcall AreAllPlayersReady();
 
 // The map check at 0x440cd0, which has no callers: /Ob2 inlined it.
 int CheckMapCrc()
@@ -305,7 +305,7 @@ void UpdateBattleRoom()
         if (IsScreenNamed(&g_game->gui, "LOUNGE2.GUI") != 0) {
             if (pl->info->flags & 1) {
                 int synched = ((UnitSync*)g_game->net)->AllPlayersSynced();
-                int ready = FUN_00456760();
+                int ready = AreAllPlayersReady();
                 Gadget_0044a680* start;
 
                 FUN_004a1250(&g_game->gui, "SYNCHING", 1);

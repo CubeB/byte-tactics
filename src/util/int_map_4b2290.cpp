@@ -1,65 +1,103 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, GPT-5.6-Terra, LongCat 2.5 Preview Free, Sonnet, space-bunny-free, GPT-6, Opus and Haiku. Names are provisional.
 //
-// Compiler-generated dynamic initialiser for the global red-black tree (map)
-// at DAT_0051fbc0, the tree whose methods are 0x4b26f0, 0x4b3020, 0x4b3430 and
-// friends. DAT_0051fbbc is its shared _Nil node and DAT_0051fbb8 its reference
-// count.
+// The COB script cache: a file-local std::map<int, int> (DAT_0051fbc0) from a
+// loaded script's address to its checksum, and the three functions that use
+// it. LoadCobScript loads a script through HAPI, records its checksum and turns
+// the script's offsets into pointers; FreeCobScript erases the entry and
+// releases the script; GetCobChecksum looks a script's checksum up.
 //
-// The object layout (from 0x4b3020 and 0x4b3490): an empty allocator byte at
-// +0, an empty comparator byte at +1, the head node pointer at +4, a byte flag
-// at +8 and the element count at +0xc. The inlined node allocation matches
-// 0x4b3410 (_Buynode).
-#include <yvals.h>
+// Everything from 0x4b2840 on is the compiler's out-of-line copy of a member of
+// the map's tree (std::_Tree<int, pair<const int, int>, ...>) that those three
+// functions use, and has no source of its own. The map's dynamic initialiser
+// (0x4b2290) and its atexit destructor (0x4b2340) are generated from the
+// definition of DAT_0051fbc0.
+#include <map>
 
-struct Node_004b2290 {
-    Node_004b2290* left;            // +0x0
-    Node_004b2290* parent;          // +0x4
-    Node_004b2290* right;           // +0x8
-    int key;                        // +0xc
-    int value;                      // +0x10
-    int color;                      // +0x14
+struct Data_004b2450 {
+    int unknown_0;    // +0x00
+    int count_1;      // +0x04
+    int count_2;      // +0x08
+    int unknown_c;    // +0x0c
+    int checksum;     // +0x10
+    int count_3;      // +0x14
+    int offset_18;    // +0x18
+    int offset_1c;    // +0x1c
+    int offset_20;    // +0x20
+    int offset_24;    // +0x24
+    int offset_28;    // +0x28
 };
 
-struct Alloc_004b2290 {};
-struct Comp_004b2290 {};
+struct Pair8_004b2450 {
+    int unknown_0;    // +0x00
+    int offset;       // +0x04
+};
 
-extern Node_004b2290* DAT_0051fbbc;
-extern int DAT_0051fbb8;
+extern Data_004b2450* __stdcall HAPI_LoadFile(char* name, int reserved);
+extern int __stdcall HAPI_FileLengthByName(char* name);
+extern int __stdcall ComputeChecksum(unsigned char* data, int len);
+extern void __cdecl FUN_004d85a0(void* x);
 
-static Node_004b2290* Buynode(Node_004b2290* parent, int color)
+// FUNCTION: 0x4b2290 _$E6
+// FUNCTION: 0x4b2340 _$E4
+static std::map<int, int> DAT_0051fbc0;
+
+// The size of this helper decides whether the compiler expands map::insert
+// into LoadCobScript; the original left that call out of line.
+static void Relocate(Data_004b2450* data)
 {
-    Node_004b2290* node = (Node_004b2290*)operator new(0x18);
-    node->parent = parent;
-    node->color = color;
-    return node;
+    data->offset_18 += (int)data;
+    data->offset_1c += (int)data;
+    for (int i = 0; i < data->count_1; i++)
+        ((int*)data->offset_1c)[i] += (int)data;
+    data->offset_20 += (int)data;
+    for (int j = 0; j < data->count_2; j++)
+        ((int*)data->offset_20)[j] += (int)data;
+    data->offset_24 += (int)data;
+    data->offset_28 += (int)data;
+    for (int k = 0; k < data->count_3; k++)
+        ((Pair8_004b2450*)data->offset_28)[k].offset += (int)data;
 }
 
-class Class_004b2290 {
-public:
-    Comp_004b2290 comp;             // +0x0
-    Alloc_004b2290 alloc;           // +0x1
-    Node_004b2290* head;            // +0x4
-    char flag;                      // +0x8
-    int size;                       // +0xc
+// FUNCTION: 0x4b2450
+Data_004b2450* __stdcall LoadCobScript(char* name)
+{
+    Data_004b2450* data = HAPI_LoadFile(name, 0);
+    if (data == 0)
+        return 0;
+    int sum = ComputeChecksum((unsigned char*)data, HAPI_FileLengthByName(name));
+    DAT_0051fbc0[(int)data] = sum;
+    Relocate(data);
+    return data;
+}
 
-    Class_004b2290(const Comp_004b2290& c = Comp_004b2290(),
-                   const Alloc_004b2290& a = Alloc_004b2290())
-        : comp(c), alloc(a), flag(0)
-    {
-        std::_Lockit lock;
-        if (DAT_0051fbbc == 0) {
-            DAT_0051fbbc = Buynode(0, 1);
-            DAT_0051fbbc->left = 0;
-            DAT_0051fbbc->right = 0;
-        }
-        ++DAT_0051fbb8;
-        head = Buynode(DAT_0051fbbc, 0);
-        size = 0;
-        head->left = head;
-        head->right = head;
+// FUNCTION: 0x4b2540
+void __stdcall FreeCobScript(int key)
+{
+    if (key != 0) {
+        int local_key = key;
+        DAT_0051fbc0.erase(local_key);
+        FUN_004d85a0((void*)key);
     }
-    ~Class_004b2290();
-};
+}
 
-// FUNCTION: 0x4b2290 _$E4
-Class_004b2290 DAT_0051fbc0;
+// FUNCTION: 0x4b26f0
+int __stdcall GetCobChecksum(int key)
+{
+    return DAT_0051fbc0[key];
+}
+
+// The map tree's members the compiler emitted out of line for the functions above:
+// FUNCTION: 0x4b2840 ?begin@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@std@@QAE?AViterator@12@XZ
+// FUNCTION: 0x4b2850 ?insert@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@std@@QAE?AU?$pair@Viterator@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@std@@_N@2@ABU?$pair@HH@2@@Z
+// FUNCTION: 0x4b2ac0 ?erase@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@std@@QAE?AViterator@12@V312@@Z
+// FUNCTION: 0x4b2fb0 ?_Erase@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@std@@IAEXPAU_Node@12@@Z
+// FUNCTION: 0x4b3000 ??0?$pair@Viterator@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@std@@_N@std@@QAE@ABViterator@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@1@AB_N@Z
+// FUNCTION: 0x4b3020 ?_Insert@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@std@@IAE?AViterator@12@PAU_Node@12@0ABU?$pair@HH@2@@Z
+// FUNCTION: 0x4b3310 ?_Lrotate@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@std@@IAEXPAU_Node@12@@Z
+// FUNCTION: 0x4b3370 ?_Min@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@std@@KGPAU_Node@12@PAU312@@Z
+// FUNCTION: 0x4b33b0 ?_Rrotate@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@std@@IAEXPAU_Node@12@@Z
+// FUNCTION: 0x4b3410 ?_Buynode@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@std@@IAEPAU_Node@12@PAU312@W4_Redbl@12@@Z
+// FUNCTION: 0x4b3430 ?_Lbound@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@std@@IBEPAU_Node@12@ABH@Z
+// FUNCTION: 0x4b3490 ?_Ubound@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@std@@IBEPAU_Node@12@ABH@Z
+// FUNCTION: 0x4b34f0 ?_Dec@iterator@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@std@@QAEXXZ
+// FUNCTION: 0x4b3590 ?_Inc@iterator@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@std@@QAEXXZ

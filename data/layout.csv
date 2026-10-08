@@ -1656,8 +1656,8 @@ piece,0x51e598,4,src/network/unit_sync_46c620.cpp,16,0,game data
 piece,0x51e59c,4,src/network/unit_sync_46c620.cpp,17,0,game data
 piece,0x51e6a0,16,src/map/line_of_sight_4814c0.cpp,3,0,game data
 piece,0x51f310,12,src/weapons/weapons_49c740.cpp,3,0,game data
-piece,0x51fbbc,4,src/util/int_map_4b26f0.cpp,3,0,game data
-piece,0x51fbc0,16,src/util/int_map_4b2290.cpp,3,0,game data
+piece,0x51fbb8,4,src/util/int_map_4b2290.cpp,4,0,game data
+piece,0x51fbbc,4,src/util/int_map_4b2290.cpp,5,0,game data
 piece,0x528a54,4,src/debug/debug_lib_4db610.cpp,4,0,game data
 piece,0x528a58,4,src/debug/debug_lib_4db610.cpp,3,0,game data
 piece,0x5292c4,4,src/debug/debug_lib_4e17c0.cpp,4,0,game data
@@ -3951,6 +3951,7 @@ piece,0x509ce8,57,src/util/hapi_bank.cpp,19,0,game data
 piece,0x509ce0,5,src/util/hapi_bank.cpp,14,0,game data
 piece,0x509cd4,9,src/util/hapi_bank.cpp,10,0,game data
 piece,0x509ca4,45,src/util/hapi_bank.cpp,9,0,game data
+piece,0x51fbc0,16,src/util/int_map_4b2290.cpp,6,0,game data
 piece,0x509c94,13,src/units/cob.cpp,72,0,game data
 piece,0x509c84,14,src/units/cob.cpp,23,0,game data
 piece,0x509c74,16,src/units/cob.cpp,22,0,game data
@@ -12398,9 +12399,6 @@ same,0x502ae8,3,src/gui/dialogs_4aa8f0.cpp,6,0,
 same,0x503168,12,src/gui/dialogs_4abb20.cpp,11,0,
 same,0x502ae8,3,src/gui/dialogs_4abb20.cpp,19,0,
 same,0x503374,2,src/gui/file_list.cpp,10,0,
-same,0x4b2340,16,src/util/int_map_4b2290.cpp,6,0,
-same,0x51fbc0,16,src/util/int_map_4b2340.cpp,6,0,
-same,0x51fbc0,16,src/util/int_map_4b2540.cpp,3,288,
 same,0x502910,2,src/graphics/palette_4baff0.cpp,3,0,
 same,0x50372c,2,src/util/hpi.cpp,73,0,
 same,0x502910,2,src/util/hpi.cpp,83,0,

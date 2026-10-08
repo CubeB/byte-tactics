@@ -1692,7 +1692,7 @@ int KeepAfterComplete(void);
 int ContainsCell(int, int);
 int IsFxStyle(void);
 int TryGetDesiredHeading(int);
-void FUN_0044cf50(int);
+void WriteBits(int);
 int FUN_0044cfe0(void);
 int FUN_0044d440(void);
 int FUN_0044d900(void);

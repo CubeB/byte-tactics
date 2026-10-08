@@ -46,6 +46,12 @@ public:
     }
 
     void* Destroy(unsigned char flag);
+    int GetType();
+    int IsFxStyle();
+    int ContainsCell(int, int);
+    int ApproxDist(int, int);
+    void WriteBits(int);
+    int KeepAfterComplete();
 };
 
 class Class_0044ce70 {
@@ -140,12 +146,7 @@ public:
     int Serialize(int unused, HapiBank* file, char* name);
     ApproachRadius(Source_0044cf60* source, int x, int y, int r);
     ApproachRadius(int owner, HapiBank* file, char* name);
-    // Unused here: the slot methods the other views declare keep the symbol
-    // ids of the functions after the merged class (docs/c2-regalloc.md).
-    void* Destroy(unsigned char flag);
-    int FUN_0044d290(int px, int py);
-    int FillWorldPos(int* out);
-    int ApproxDistExcess(int px, int py);
+    int GetType();
 };
 
 class Class_0044d290 {
@@ -156,7 +157,7 @@ public:
     char unknown_c[0x10 - 0xc];
     int radiusSq;                      // +0x10
 
-    int FUN_0044d290(int px, int py);
+    int ContainsCell(int px, int py);
 };
 
 struct Point_0044d2c0 {
@@ -316,7 +317,7 @@ public:
     int field_14;       // +0x14 (min distance squared)
     int field_18;       // +0x18 (max distance squared)
 
-    bool FUN_0044d7c0(int param_1, int param_2);
+    bool ContainsCell(int param_1, int param_2);
 };
 
 struct Vec3_0044e3c0 {
@@ -407,9 +408,7 @@ public:
     int Serialize(int unused, HapiBank* file, char* name);
     RingApproach(Source_0044d3b0* source, int x, int y, int r1, int r2);
     RingApproach(int owner, HapiBank* file, char* name);
-    // Unused here: the slot method the other view declares keeps the symbol
-    // ids of the functions after the merged class (docs/c2-regalloc.md).
-    void AppendGoalCell(Vec_0044d560* list);
+    int GetType();
 };
 
 struct View_0044d8a0 {
@@ -497,9 +496,7 @@ public:
     int Serialize(int unused, HapiBank* file, char* name);
     PointMarker(Owner_0044d8a0* owner, Point_0044d8a0 pos, Point_0044d8a0 size);
     PointMarker(int owner, HapiBank* file, char* name);
-    // Unused here: the slot method the other view declares keeps the symbol
-    // ids of the functions after the merged class (docs/c2-regalloc.md).
-    void* Destroy(unsigned char should_delete);
+    int GetType();
 };
 
 class Class_0044dcb0 {
@@ -510,7 +507,7 @@ public:
     int y1;                  // +0x10
     int y2;                  // +0x14
 
-    int FUN_0044dcb0(int x, int y);
+    int ContainsCell(int x, int y);
 };
 
 class Class_0044dd00 {
@@ -521,7 +518,7 @@ public:
     int y1;                            // +0x10
     int y2;                            // +0x14
 
-    int FUN_0044dd00(int x, int y);
+    int ApproxDist(int x, int y);
 };
 
 #pragma pack(push, 2)
@@ -558,6 +555,8 @@ public:
     int field_2e;                   // +0x2e
 
     void SerializeToBits(BitWriter* stream);
+    int GetType();
+    int IsFxStyle();
 };
 
 #pragma pack(pop)
@@ -808,7 +807,7 @@ public:
     char unknown_9[17];
     int field_1a;
 
-    int FUN_0044e3a0();
+    int KeepAfterComplete();
 };
 
 class Class_0044e3c0 {
@@ -1050,6 +1049,9 @@ public:
     void SerializeToBits(BitWriter* stream);
     int IsComplete(Object_0044e740* unit);
     void SetAltitude(int);
+    int GetType();
+    int IsFxStyle();
+    int KeepAfterComplete();
 };
 #pragma pack(pop)
 
@@ -1167,7 +1169,7 @@ public:
     virtual void ApproxDist();                          // slot 7
     virtual int FUN_004e6110(Vec3_004907e0* out);       // slot 8
     virtual int TryGetDesiredHeading();                 // slot 9
-    virtual void FUN_0044cf50();                        // slot 10
+    virtual void WriteBits();                           // slot 10
     virtual int KeepAfterComplete();                    // slot 11
 };
 
@@ -1309,7 +1311,7 @@ int __stdcall GetGroundHeight(Pos_0044e6c0* pos);
 void __cdecl FUN_004b7173(short angle, int* xy);
 
 // FUNCTION: 0x44ce40
-int GetType(void)
+int OrderFx::GetType()
 {
     return 1;
 }
@@ -1345,7 +1347,7 @@ void Class_0044ce90::FillGoalCells(std::vector<Elem_0044ce90*>* list)
 }
 
 // FUNCTION: 0x44cec0
-int __stdcall ApproxDist(int, int)
+int OrderFx::ApproxDist(int, int)
 {
     return 0;
 }
@@ -1365,7 +1367,7 @@ void Class_0044ced0::AddFlags(int param_1)
 #pragma auto_inline(on)
 
 // FUNCTION: 0x44cef0
-int KeepAfterComplete(void)
+int OrderFx::KeepAfterComplete()
 {
     return 0;
 }
@@ -1380,13 +1382,13 @@ void Class_0044cf00::ContainsUnit(int param_1)
 }
 
 // FUNCTION: 0x44cf20
-int __stdcall ContainsCell(int, int)
+int OrderFx::ContainsCell(int, int)
 {
     return 0;
 }
 
 // FUNCTION: 0x44cf30
-int IsFxStyle(void)
+int OrderFx::IsFxStyle()
 {
     return 1;
 }
@@ -1398,7 +1400,7 @@ int __stdcall TryGetDesiredHeading(int)
 }
 
 // FUNCTION: 0x44cf50
-void __stdcall FUN_0044cf50(int)
+void OrderFx::WriteBits(int)
 {
 }
 
@@ -1421,7 +1423,7 @@ ApproachRadius::ApproachRadius(Source_0044cf60* source, int x, int y, int r)
 }
 
 // FUNCTION: 0x44cfe0
-int FUN_0044cfe0(void)
+int ApproachRadius::GetType()
 {
     return 4;
 }
@@ -1493,7 +1495,7 @@ void ApproachRadius::AppendGoalCell(Vec_0044d0e0* list)
 // Point version of 0x44d310: whether (px, py) lies within the circle around
 // (x, y).
 // FUNCTION: 0x44d290
-int Class_0044d290::FUN_0044d290(int px, int py)
+int Class_0044d290::ContainsCell(int px, int py)
 {
     int dy = py - y;
     int dx = px - x;
@@ -1565,7 +1567,7 @@ RingApproach::RingApproach(Source_0044d3b0* source, int x, int y, int r1, int r2
 }
 
 // FUNCTION: 0x44d440
-int FUN_0044d440(void)
+int RingApproach::GetType()
 {
     return 5;
 }
@@ -1680,7 +1682,7 @@ int Class_0044d720::FillWorldPos(Vec3_0044d720* out)
 }
 
 // FUNCTION: 0x44d7c0
-bool Class_0044d7c0::FUN_0044d7c0(int param_1, int param_2)
+bool Class_0044d7c0::ContainsCell(int param_1, int param_2)
 {
     int dy = param_2 - field_a;
     int dx = param_1 - field_8;
@@ -1734,7 +1736,7 @@ PointMarker::PointMarker(Owner_0044d8a0* owner, Point_0044d8a0 pos, Point_0044d8
 }
 
 // FUNCTION: 0x44d900
-int FUN_0044d900(void)
+int PointMarker::GetType()
 {
     return 6;
 }
@@ -1806,7 +1808,7 @@ int PointMarker::FillWorldPos(int* out)
 // Same rectangle layout as 0x44dc60 (x1/x2 at +8/+0xc, y1/y2 at +0x10/+0x14):
 // is the point (x, y) on the rectangle's border?
 // FUNCTION: 0x44dcb0
-int Class_0044dcb0::FUN_0044dcb0(int x, int y)
+int Class_0044dcb0::ContainsCell(int x, int y)
 {
     if ((x == x1 || x == x2) && y >= y1 && y <= y2) {
         return 1;
@@ -1827,7 +1829,7 @@ int Class_0044dcb0::FUN_0044dcb0(int x, int y)
 #define Min_0044dd00(a, b) ((a) < (b) ? (a) : (b))
 
 // FUNCTION: 0x44dd00
-int Class_0044dd00::FUN_0044dd00(int x, int y)
+int Class_0044dd00::ApproxDist(int x, int y)
 {
     int dx;
     if (x < x1) {
@@ -1913,7 +1915,7 @@ Class_0044de80::Class_0044de80(int owner, HapiBank* file, char* name)
 }
 
 // FUNCTION: 0x44df70
-int FUN_0044df70(void)
+int PathOrder::GetType()
 {
     return 2;
 }
@@ -2123,7 +2125,7 @@ Class_0044e330::Class_0044e330(Source_0044e330* source, int unit, const Vec3_004
 }
 
 // FUNCTION: 0x44e3a0
-int Class_0044e3a0::FUN_0044e3a0() {
+int Class_0044e3a0::KeepAfterComplete() {
     if ((field_8 & 1) == 0 || field_1a == 0) {
         return 0;
     }
@@ -2231,7 +2233,7 @@ int Class_0044e5b0::IsComplete(Object_0044e5b0* arg)
 }
 
 // FUNCTION: 0x44e6b0
-int FUN_0044e6b0(void)
+int PathOrder::IsFxStyle()
 {
     return 0;
 }
@@ -2282,7 +2284,7 @@ AirManeuverOrder::AirManeuverOrder(Source_0044e740* source, const Vec3_0044e740&
 }
 
 // FUNCTION: 0x44e7a0
-int FUN_0044e7a0(void)
+int AirManeuverOrder::GetType()
 {
     return 3;
 }
@@ -2382,7 +2384,7 @@ AirManeuverOrder::AirManeuverOrder(Owner_0044e9c0* owner, BitReader* reader)
 }
 
 // FUNCTION: 0x44ea50
-int FUN_0044ea50(void)
+int AirManeuverOrder::KeepAfterComplete()
 {
     return 0;
 }
@@ -2448,7 +2450,7 @@ int AirManeuverOrder::IsComplete(Object_0044e740* unit)
 }
 
 // FUNCTION: 0x44ec00
-int FUN_0044ec00(void)
+int AirManeuverOrder::IsFxStyle()
 {
     return 0;
 }

@@ -211,7 +211,7 @@ public:
     // Unused here: the type's members the other views declare keep the symbol
     // ids of the functions after the merged classes (docs/c2-regalloc.md).
     void* Destroy(unsigned char flag);
-    int FUN_0044d290(int px, int py);
+    int ContainsCell(int px, int py);
     int FillWorldPos(int* out);
     int ApproxDistExcess(int px, int py);
     int Serialize(int unused, HapiBank* file, char* name);
@@ -225,7 +225,7 @@ public:
     // Unused here: the type's members the other views declare keep the symbol
     // ids of the functions after the merged classes (docs/c2-regalloc.md).
     void* Destroy(unsigned char flag);
-    int FUN_0044d7c0(int param_1, int param_2);
+    int ContainsCell(int param_1, int param_2);
     int ContainsUnit(Unit* unit);
 };
 
@@ -237,8 +237,8 @@ public:
     // Unused here: the type's members the other views declare keep the symbol
     // ids of the functions after the merged classes (docs/c2-regalloc.md).
     void* Destroy(unsigned char should_delete);
-    int FUN_0044dcb0(int x, int y);
-    int FUN_0044dd00(int x, int y);
+    int ContainsCell(int x, int y);
+    int ApproxDist(int x, int y);
 };
 #pragma pack(pop)
 

@@ -13,58 +13,58 @@ extern "C" int __cdecl _purecall(void);
 // after its class, so the slot still names one address in data/symbols.csv.
 void FUN_00407e70();
 namespace SpatialTimer { void OnTimer(); }
-void GetType();
+namespace OrderFx { void GetType(); }
 namespace OrderFx { void Destroy(); }
 void SerializeSave();
 namespace Class_0044ce90 { void FillGoalCells(); }
-void ApproxDist();
-void KeepAfterComplete();
+namespace OrderFx { void ApproxDist(); }
+namespace OrderFx { void KeepAfterComplete(); }
 namespace Class_0044cf00 { void ContainsUnit(); }
-void ContainsCell();
-void IsFxStyle();
+namespace OrderFx { void ContainsCell(); }
+namespace OrderFx { void IsFxStyle(); }
 void TryGetDesiredHeading();
-void FUN_0044cf50();
-void FUN_0044cfe0();
+namespace OrderFx { void WriteBits(); }
+namespace ApproachRadius { void GetType(); }
 namespace Class_0044cff0 { void Destroy(); }
 namespace ApproachRadius { void Serialize(); }
 namespace ApproachRadius { void AppendGoalCell(); }
-void FUN_0044d290();
+namespace Class_0044d290 { void ContainsCell(); }
 namespace Class_0044d2c0 { void FillWorldPos(); }
 namespace Class_0044d310 { void ContainsUnit(); }
 namespace Class_0044d350 { void ApproxDistExcess(); }
-void FUN_0044d440();
+namespace RingApproach { void GetType(); }
 namespace Class_0044d450 { void Destroy(); }
 namespace RingApproach { void Serialize(); }
 namespace Class_0044d560 { void AppendGoalCell(); }
 namespace Class_0044d720 { void FillWorldPos(); }
-void FUN_0044d7c0();
+namespace Class_0044d7c0 { void ContainsCell(); }
 namespace Class_0044d800 { void ContainsUnit(); }
 namespace RingApproach { void ApproxDistExcess(); }
-void FUN_0044d900();
+namespace PointMarker { void GetType(); }
 namespace Class_0044d910 { void Destroy(); }
 namespace PointMarker { void Serialize(); }
 namespace Class_0044da00 { void AppendGoalCell(); }
 namespace PointMarker { void FillWorldPos(); }
-void FUN_0044dcb0();
-void FUN_0044dd00();
+namespace Class_0044dcb0 { void ContainsCell(); }
+namespace Class_0044dd00 { void ApproxDist(); }
 namespace PathOrder { void SerializeToBits(); }
-void FUN_0044df70();
+namespace PathOrder { void GetType(); }
 namespace Class_0044df80 { void Destroy(); }
 namespace Class_0044dfb0 { void SerializeToSave(); }
-void FUN_0044e3a0();
+namespace Class_0044e3a0 { void KeepAfterComplete(); }
 namespace Class_0044e3c0 { void FillWorldPos(); }
 namespace Class_0044e530 { void GetDesiredHeading(); }
 namespace Class_0044e5b0 { void IsComplete(); }
-void FUN_0044e6b0();
-void FUN_0044e7a0();
+namespace PathOrder { void IsFxStyle(); }
+namespace AirManeuverOrder { void GetType(); }
 namespace Class_0044e7b0 { void Destroy(); }
 namespace AirManeuverOrder { void SerializeToSave(); }
 namespace AirManeuverOrder { void SerializeToBits(); }
-void FUN_0044ea50();
+namespace AirManeuverOrder { void KeepAfterComplete(); }
 namespace AirManeuverOrder { void FillWorldPos(); }
 namespace Class_0044eb40 { void GetDesiredHeading(); }
 namespace AirManeuverOrder { void IsComplete(); }
-void FUN_0044ec00();
+namespace AirManeuverOrder { void IsFxStyle(); }
 namespace PathGoal { void DrawOnSurface(); }
 namespace PathGoal { void SetPathOrder(); }
 namespace PathGoal { void TickTowardGoal(); }
@@ -88,49 +88,49 @@ extern VirtualFunction const g_spatialTimerVtable[2] = {
 // The base class of the 0x44ce20 family: stored by the constructors 0x44ce20 to 0x44e330 before their own, and by the destructors 0x44ce50 to 0x44e7b0 last.
 // GLOBAL: 0x4fd2f8
 extern VirtualFunction const DAT_004fd2f8[12] = {
-    OrderFx::Destroy, SerializeSave, GetType, IsFxStyle,
-    Class_0044cf00::ContainsUnit, ContainsCell, Class_0044ce90::FillGoalCells, ApproxDist,
-    (VirtualFunction)_purecall, TryGetDesiredHeading, FUN_0044cf50, KeepAfterComplete,
+    OrderFx::Destroy, SerializeSave, OrderFx::GetType, OrderFx::IsFxStyle,
+    Class_0044cf00::ContainsUnit, OrderFx::ContainsCell, Class_0044ce90::FillGoalCells, OrderFx::ApproxDist,
+    (VirtualFunction)_purecall, TryGetDesiredHeading, OrderFx::WriteBits, OrderFx::KeepAfterComplete,
 };
 
 // Stored by 0x44cf60 and 0x44d010.
 // GLOBAL: 0x4fd328
 extern VirtualFunction const g_approachRadiusVtable[12] = {
-    Class_0044cff0::Destroy, ApproachRadius::Serialize, FUN_0044cfe0, IsFxStyle,
-    Class_0044d310::ContainsUnit, FUN_0044d290, ApproachRadius::AppendGoalCell, Class_0044d350::ApproxDistExcess,
-    Class_0044d2c0::FillWorldPos, TryGetDesiredHeading, FUN_0044cf50, KeepAfterComplete,
+    Class_0044cff0::Destroy, ApproachRadius::Serialize, ApproachRadius::GetType, OrderFx::IsFxStyle,
+    Class_0044d310::ContainsUnit, Class_0044d290::ContainsCell, ApproachRadius::AppendGoalCell, Class_0044d350::ApproxDistExcess,
+    Class_0044d2c0::FillWorldPos, TryGetDesiredHeading, OrderFx::WriteBits, OrderFx::KeepAfterComplete,
 };
 
 // Stored by 0x44d3b0 and 0x44d470.
 // GLOBAL: 0x4fd358
 extern VirtualFunction const g_ringApproachVtable[12] = {
-    Class_0044d450::Destroy, RingApproach::Serialize, FUN_0044d440, IsFxStyle,
-    Class_0044d800::ContainsUnit, FUN_0044d7c0, Class_0044d560::AppendGoalCell, RingApproach::ApproxDistExcess,
-    Class_0044d720::FillWorldPos, TryGetDesiredHeading, FUN_0044cf50, KeepAfterComplete,
+    Class_0044d450::Destroy, RingApproach::Serialize, RingApproach::GetType, OrderFx::IsFxStyle,
+    Class_0044d800::ContainsUnit, Class_0044d7c0::ContainsCell, Class_0044d560::AppendGoalCell, RingApproach::ApproxDistExcess,
+    Class_0044d720::FillWorldPos, TryGetDesiredHeading, OrderFx::WriteBits, OrderFx::KeepAfterComplete,
 };
 
 // Stored by 0x44d8a0 and 0x44d930.
 // GLOBAL: 0x4fd388
 extern VirtualFunction const g_pointMarkerVtable[12] = {
-    Class_0044d910::Destroy, PointMarker::Serialize, FUN_0044d900, IsFxStyle,
-    Class_0044cf00::ContainsUnit, FUN_0044dcb0, Class_0044da00::AppendGoalCell, FUN_0044dd00,
-    PointMarker::FillWorldPos, TryGetDesiredHeading, FUN_0044cf50, KeepAfterComplete,
+    Class_0044d910::Destroy, PointMarker::Serialize, PointMarker::GetType, OrderFx::IsFxStyle,
+    Class_0044cf00::ContainsUnit, Class_0044dcb0::ContainsCell, Class_0044da00::AppendGoalCell, Class_0044dd00::ApproxDist,
+    PointMarker::FillWorldPos, TryGetDesiredHeading, OrderFx::WriteBits, OrderFx::KeepAfterComplete,
 };
 
 // Stored by 0x44de80, 0x44e080, 0x44e190, 0x44e250, 0x44e2d0 and 0x44e330.
 // GLOBAL: 0x4fd3b8
 extern VirtualFunction const g_pathOrderVtable[12] = {
-    Class_0044df80::Destroy, Class_0044dfb0::SerializeToSave, FUN_0044df70, FUN_0044e6b0,
-    Class_0044e5b0::IsComplete, ContainsCell, Class_0044ce90::FillGoalCells, ApproxDist,
-    Class_0044e3c0::FillWorldPos, Class_0044e530::GetDesiredHeading, PathOrder::SerializeToBits, FUN_0044e3a0,
+    Class_0044df80::Destroy, Class_0044dfb0::SerializeToSave, PathOrder::GetType, PathOrder::IsFxStyle,
+    Class_0044e5b0::IsComplete, OrderFx::ContainsCell, Class_0044ce90::FillGoalCells, OrderFx::ApproxDist,
+    Class_0044e3c0::FillWorldPos, Class_0044e530::GetDesiredHeading, PathOrder::SerializeToBits, Class_0044e3a0::KeepAfterComplete,
 };
 
 // Stored by 0x44e740, 0x44e7d0 and 0x44e9c0.
 // GLOBAL: 0x4fd3f8
 extern VirtualFunction const g_airManeuverOrderVtable[12] = {
-    Class_0044e7b0::Destroy, AirManeuverOrder::SerializeToSave, FUN_0044e7a0, FUN_0044ec00,
-    AirManeuverOrder::IsComplete, ContainsCell, Class_0044ce90::FillGoalCells, ApproxDist,
-    AirManeuverOrder::FillWorldPos, Class_0044eb40::GetDesiredHeading, AirManeuverOrder::SerializeToBits, FUN_0044ea50,
+    Class_0044e7b0::Destroy, AirManeuverOrder::SerializeToSave, AirManeuverOrder::GetType, AirManeuverOrder::IsFxStyle,
+    AirManeuverOrder::IsComplete, OrderFx::ContainsCell, Class_0044ce90::FillGoalCells, OrderFx::ApproxDist,
+    AirManeuverOrder::FillWorldPos, Class_0044eb40::GetDesiredHeading, AirManeuverOrder::SerializeToBits, AirManeuverOrder::KeepAfterComplete,
 };
 
 // PatrolGoal's: stored by 0x44f570.

@@ -1161,3 +1161,9 @@ Things that look wrong in the original but have no effect, kept for the record.
   just stored in `bmp.height`, so the difference is always 0 and the seek
   always lands on `dataOffset`. Found by OpenCode / deepseek-v4.1-flash in
   #6147.
+- **0x45c950** (`LoadSavedAudioSettings`, likely): restores the per-track
+  type table by copying `g_optionsBackupTrackTypes` to +0x215
+  (`CopyTrackTypeTable`, 0x4ce3e0), but `SaveGameSettings` (0x45cde0) saved it
+  from +0x214 (`GetCategoryOfTrack(i)` for i = 0 to 99, 0x4ce7e0), so every
+  restored track takes the previous track's type and the last one is dropped.
+  Found by Claude Code / Claude Sonnet 5.5 in #6156.

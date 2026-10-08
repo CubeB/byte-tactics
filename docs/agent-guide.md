@@ -2135,7 +2135,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   Send +0x68.
 - **DirectPlayCreate** is DPLAYX ordinal 1 (thunk at 0x4faffc); call it from
   the toolchain's `<dplay.h>`. The GUID at 0x4fcd78 is IID_IDirectPlay3A, which
-  the DirectX 3 header lacks: declare `extern GUID DAT_004fcd78;` (0x4ca900).
+  the DirectX 3 header lacks: declare `extern GUID IID_IDirectPlay3A;` (0x4ca900).
 - **COM calls by slot**: work out the DirectX interface from the vtable slot
   and call the real method (IDirectSoundBuffer: +0x24 GetStatus, +0x48 Stop).
 - **Header sets are not monotonic**: one header can flip an operand order that

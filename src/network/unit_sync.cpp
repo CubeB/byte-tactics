@@ -215,9 +215,9 @@ extern int g_reportFlags;
 extern void (*DAT_0051e580)(void);
 extern int (__stdcall* DAT_0051e548)(int, int);
 
-Rect_0046c620* __stdcall FUN_004ca9e0(Class_0046c620* p);
-int __stdcall FUN_004ca9d0(Class_0046c620* p);
-int __stdcall FUN_004ca9f0(int mode);
+Rect_0046c620* __stdcall GetSessionGuidInstance(Class_0046c620* p);
+int __stdcall GetCreatedLobbyInterface(Class_0046c620* p);
+int __stdcall QueryOnlineFlags(int mode);
 int __stdcall RIReport(int, Rect_0046c620*, void*, int, Name_0046c620*, int,
                            int, int, void*, void*);
 int FillScoreTables();
@@ -231,8 +231,8 @@ int __stdcall ReportGameEvent(int msg)
     if (!DAT_0051e574 || !DAT_0051e57c || !DAT_0051e550)
         return 1;
 
-    Rect_0046c620 rect = *FUN_004ca9e0(&g_game->net);
-    int thing = FUN_004ca9d0(&g_game->net);
+    Rect_0046c620 rect = *GetSessionGuidInstance(&g_game->net);
+    int thing = GetCreatedLobbyInterface(&g_game->net);
 
     if (msg == 1) {
         g_reportPlayerName = g_game->net.name;
@@ -245,7 +245,7 @@ int __stdcall ReportGameEvent(int msg)
 
     if (DAT_0051e590) {
         if (msg == 1 || msg == 6 || msg == 7)
-            g_reportFlags = FUN_004ca9f0(msg == 1 ? 1 : 2 + (msg != 6));
+            g_reportFlags = QueryOnlineFlags(msg == 1 ? 1 : 2 + (msg != 6));
         if (g_reportFlags & 3) {
             // its own statement, not an argument: the call has to be emitted
             // ahead of the other nine arguments being set up

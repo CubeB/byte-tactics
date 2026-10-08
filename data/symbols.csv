@@ -2882,9 +2882,9 @@ address,name
 0x4ca900,HAPINET_createdplayinterface
 0x4ca940,HAPINET_releasedplayinterface
 0x4ca990,HAPINET_getplayeraddress
-0x4ca9d0,FUN_004ca9d0
-0x4ca9e0,FUN_004ca9e0
-0x4ca9f0,FUN_004ca9f0
+0x4ca9d0,GetCreatedLobbyInterface
+0x4ca9e0,GetSessionGuidInstance
+0x4ca9f0,QueryOnlineFlags
 0x4caa00,RIReportGameChat
 0x4caa10,RIReport
 0x4caa20,RISetCallbacks
@@ -4031,12 +4031,12 @@ address,name
 0x4fcc64,??_7Class_004158d0@@6B@
 0x4fcc68,DAT_004fcc68
 0x4fccd8,IID_IDirectDraw2
-0x4fcd78,DAT_004fcd78
+0x4fcd78,IID_IDirectPlay3A
 0x4fcd98,DAT_004fcd98
 0x4fcda8,DAT_004fcda8
 0x4fcdb8,DAT_004fcdb8
 0x4fcdc8,DAT_004fcdc8
-0x4fce18,DAT_004fce18
+0x4fce18,IID_IDirectPlayLobby2A
 0x4fce88,DAT_004fce88
 0x4fcea8,DAT_004fcea8
 0x4fcec8,DAT_004fcec8
@@ -4310,7 +4310,7 @@ address,name
 0x50a778,g_emptyStringRefs
 0x50a77c,g_emptyString
 0x50a780,g_guaranteePackets
-0x50a788,DAT_0050a788
+0x50a788,g_skippedProviders
 0x50b540,g_cdNextTrackTimer
 0x50b544,g_cdFadeTimer
 0x50b9e0,g_squashErrorNames
@@ -4761,8 +4761,8 @@ address,name
 0x51fef8,DAT_0051fef8
 0x51fefc,DAT_0051fefc
 0x51ff00,DAT_0051ff00
-0x51ff04,DAT_0051ff04
-0x51ff08,DAT_0051ff08
+0x51ff04,g_reporterNotify
+0x51ff08,g_reporterReport
 0x51ff0c,g_enumSessionsResult
 0x51ff10,g_cdFadeVolume
 0x51ff14,g_cdPlayer

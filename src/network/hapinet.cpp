@@ -193,12 +193,12 @@ typedef BOOL (__stdcall* EnumSpCallback_4ca400)(GUID_004c9920* sp, char* name, D
 
 extern int g_enumSessionsResult;
 extern int g_guaranteePackets;
-extern GUID_004c9920* DAT_0050a788[4];
+extern GUID_004c9920* g_skippedProviders[4];
 extern GUID_004c9920 DAT_004fdaf0;
-extern GUID DAT_004fce18;              // IID_IDirectPlayLobby2A
-extern GUID DAT_004fcd78;              // IID_IDirectPlay3A
-extern int DAT_0051ff08;
-extern int DAT_0051ff04;
+extern GUID IID_IDirectPlayLobby2A;    // IID_IDirectPlayLobby2A
+extern GUID IID_IDirectPlay3A;         // IID_IDirectPlay3A
+extern int g_reporterReport;
+extern int g_reporterNotify;
 
 void __cdecl HapinetTrace(const char*);
 void __cdecl HapinetTrace(int);
@@ -650,7 +650,7 @@ int __stdcall HAPINET_enumconnections(GUID_004c9920* guid, void* connection, uns
     char local[200];
     HapinetTrace((int)"HAPINET_enumconnections\n");
     for (unsigned int i = 0; i < 4; i++) {
-        if (memcmp(guid, DAT_0050a788[i], sizeof(GUID_004c9920)) == 0)
+        if (memcmp(guid, g_skippedProviders[i], sizeof(GUID_004c9920)) == 0)
             return 1;
     }
     net->guids[net->field_4e5] = *guid;
@@ -740,7 +740,7 @@ int __stdcall HAPINET_initlobbiedconnection(Net_4c97b0* net)
     net->connection_size = 0;
     int hr = DirectPlayLobbyCreateA(0, &net->created, 0, 0, 0);
     if (hr >= 0) {
-        hr = net->created->QueryInterface(&DAT_004fce18, (void**)&net->lobby);
+        hr = net->created->QueryInterface(&IID_IDirectPlayLobby2A, (void**)&net->lobby);
         if (hr >= 0) {
             unsigned long size = 0;
             hr = net->lobby->GetConnectionSettings(0, 0, &size);
@@ -793,7 +793,7 @@ int __stdcall HAPINET_initmultiplay(Net_4c97b0* net, GUID_004c9920* sp, GUID_004
     int hr = DirectPlayCreate((GUID*)&net->sp, &net->dp1, 0);
     if (hr != 0)
         return 0;
-    hr = net->dp1->QueryInterface(&DAT_004fcd78, (void**)&net->dp);
+    hr = net->dp1->QueryInterface(&IID_IDirectPlay3A, (void**)&net->dp);
     return hr == 0 ? 1 : 0;
 }
 #pragma auto_inline(on)
@@ -905,7 +905,7 @@ HRESULT __stdcall HAPINET_createdplayinterface(GUID* sp, Net_004ca900* net)
     memset(net, 0, sizeof(Net_004ca900));
     HRESULT hr = DirectPlayCreate(sp, &net->dp, 0);
     if (hr >= 0) {
-        hr = net->dp->QueryInterface(&DAT_004fcd78, (void**)&net->dp3);
+        hr = net->dp->QueryInterface(&IID_IDirectPlay3A, (void**)&net->dp3);
     }
     return hr;
 }
@@ -944,19 +944,19 @@ int __stdcall HAPINET_getplayeraddress(Net_004ca900* net, unsigned long player, 
 
 // Returns the lobby object at +0x4c9.
 // FUNCTION: 0x4ca9d0
-int __stdcall FUN_004ca9d0(Net_4c97b0* param_1)
+int __stdcall GetCreatedLobbyInterface(Net_4c97b0* param_1)
 {
     return (int)param_1->created;
 }
 
 // FUNCTION: 0x4ca9e0
-int __stdcall FUN_004ca9e0(int param_1)
+int __stdcall GetSessionGuidInstance(int param_1)
 {
     return param_1 + 0x465;
 }
 
 // FUNCTION: 0x4ca9f0
-int __stdcall FUN_004ca9f0(int)
+int __stdcall QueryOnlineFlags(int)
 {
     return 0;
 }
@@ -976,6 +976,6 @@ int __stdcall RIReport(int arg1, int arg2, int arg3, int arg4, int arg5, int arg
 // FUNCTION: 0x4caa20
 void __stdcall RISetCallbacks(int param_1, int param_2)
 {
-    DAT_0051ff08 = param_1;
-    DAT_0051ff04 = param_2;
+    g_reporterReport = param_1;
+    g_reporterNotify = param_2;
 }

@@ -125,4 +125,4 @@ extern const GUID DAT_004fcff8 = {0x4595fd80, 0x1d4d, 0x11d1, {0x99, 0xfc, 0x00,
 
 // The providers 0x4ca100 skips, compared with memcmp.
 // GLOBAL: 0x50a788
-const GUID* DAT_0050a788[4] = {&DAT_004fcfc8, &DAT_004fcfd8, &DAT_004fcfe8, &DAT_004fcff8};
+const GUID* g_skippedProviders[4] = {&DAT_004fcfc8, &DAT_004fcfd8, &DAT_004fcfe8, &DAT_004fcff8};

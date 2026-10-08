@@ -290,7 +290,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x50a778,g_emptyStringRefs,.data,4,type,data,int,1,0,1,one type,1,,DAT_0050a778,,,01000000
 0x50a77c,g_emptyString,.data,4,type,data,void*,1,0,1,one type,1,,DAT_0050a77c,,,00000000
 0x50a780,g_guaranteePackets,.data,4,type,data,int,1,0,1,one type,1,,DAT_0050a780,,,01000000
-0x50a788,DAT_0050a788,.data,16,type,data,const _GUID**,1,1,2,conflicting: array or pointer,2,0x10,PTR_DAT_0050a788,4,src/data/guids.cpp,c8cf4f00d8cf4f00e8cf4f00f8cf4f00
+0x50a788,g_skippedProviders,.data,16,type,data,const _GUID**,1,1,2,conflicting: array or pointer,2,0x10,PTR_DAT_0050a788,4,src/data/guids.cpp,c8cf4f00d8cf4f00e8cf4f00f8cf4f00
 0x50b540,g_cdNextTrackTimer,.data,4,type,data,int,1,0,1,one type,1,,DAT_0050b540,,,ffffffff
 0x50b544,g_cdFadeTimer,.data,4,type,data,int,1,0,1,one type,1,,DAT_0050b544,,,ffffffff
 0x50b6e0,DAT_0050b6e0,.data,4,type,data,WaveFormatName*,1,0,1,one type,1,,,,src/data/unused.cpp,01000000
@@ -780,8 +780,8 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51fef8,DAT_0051fef8,.bss,4,type,data,Chunk*,1,0,1,one type,1,,DAT_0051fef8,,,
 0x51fefc,DAT_0051fefc,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_0051fefc,,,
 0x51ff00,DAT_0051ff00,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051ff00,,,
-0x51ff04,DAT_0051ff04,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_0051ff04,,,
-0x51ff08,DAT_0051ff08,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_0051ff08,,,
+0x51ff04,g_reporterNotify,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_0051ff04,,,
+0x51ff08,g_reporterReport,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_0051ff08,,,
 0x51ff0c,g_enumSessionsResult,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051ff0c,,,
 0x51ff10,g_cdFadeVolume,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051ff10,,,
 0x51ff14,g_cdPlayer,.bss,4,type,data,Class_004d02a0*,1,1,2,conflicting: struct names only,2,,DAT_0051ff14,,,

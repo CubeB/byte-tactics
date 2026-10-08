@@ -686,8 +686,8 @@ int DAT_0051fef4;  // 0x51fef4 .bss
 Chunk* DAT_0051fef8;  // 0x51fef8 .bss
 int DAT_0051fefc;  // 0x51fefc .bss
 int DAT_0051ff00;  // 0x51ff00 .bss
-int DAT_0051ff04;  // 0x51ff04 .bss
-int DAT_0051ff08;  // 0x51ff08 .bss
+int g_reporterNotify;  // 0x51ff04 .bss
+int g_reporterReport;  // 0x51ff08 .bss
 int g_enumSessionsResult;  // 0x51ff0c .bss
 int g_cdFadeVolume;  // 0x51ff10 .bss
 Class_004d02a0* g_cdPlayer;  // 0x51ff14 .bss

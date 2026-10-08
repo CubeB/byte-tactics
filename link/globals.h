@@ -597,8 +597,8 @@ extern int DAT_0051fef4;                                                        
 extern Chunk* DAT_0051fef8;                                                                       // 0x51fef8, 4 bytes; 1 of 1 files
 extern int DAT_0051fefc;                                                                          // 0x51fefc, 4 bytes; 1 of 1 files
 extern int DAT_0051ff00;                                                                          // 0x51ff00, 4 bytes; 1 of 1 files
-extern int DAT_0051ff04;                                                                          // 0x51ff04, 4 bytes; 1 of 1 files
-extern int DAT_0051ff08;                                                                          // 0x51ff08, 4 bytes; 1 of 1 files
+extern int g_reporterNotify;                                                                      // 0x51ff04, 4 bytes; 1 of 1 files
+extern int g_reporterReport;                                                                      // 0x51ff08, 4 bytes; 1 of 1 files
 extern int g_enumSessionsResult;                                                                  // 0x51ff0c, 4 bytes; 1 of 1 files
 extern int g_cdFadeVolume;                                                                        // 0x51ff10, 4 bytes; 1 of 1 files
 extern Class_004d02a0* g_cdPlayer;                                                                // 0x51ff14, 4 bytes; 1 of 2 files (conflicting: struct names only)
@@ -771,7 +771,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x501fd0 g_debugCommands: defined in src/game/console_commands.cpp
 //   0x507b70 DAT_00507b70: unsigned char[] (1), ColourEntry_00478790[] (1)
 //   0x5086e0 DAT_005086e0: defined in src/units/unit_messages.cpp
-//   0x50a788 DAT_0050a788: defined in src/data/guids.cpp
+//   0x50a788 g_skippedProviders: defined in src/data/guids.cpp
 //   0x50c958 g_assertDialog: defined in src/debug/debug_dialogs.cpp
 //   0x50cd38 g_memoryDialog: defined in src/debug/debug_dialogs.cpp
 //   0x50ced8 g_profilerDialog: defined in src/debug/debug_dialogs.cpp

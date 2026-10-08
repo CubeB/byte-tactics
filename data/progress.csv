@@ -2881,9 +2881,9 @@ address,size,file,symbol,status,similarity
 0x4ca900,63,src/network/hapinet.cpp,?HAPINET_createdplayinterface@@YGJPAU_GUID@@PAUNet_004ca900@@@Z,matched,100.0
 0x4ca940,68,src/network/hapinet.cpp,?HAPINET_releasedplayinterface@@YGHPAUNet_004ca900@@@Z,matched,100.0
 0x4ca990,56,src/network/hapinet.cpp,?HAPINET_getplayeraddress@@YGHPAUNet_004ca900@@KPAXPAK@Z,matched,100.0
-0x4ca9d0,13,src/network/hapinet.cpp,?FUN_004ca9d0@@YGHPAUNet_4c97b0@@@Z,matched,100.0
-0x4ca9e0,12,src/network/hapinet.cpp,?FUN_004ca9e0@@YGHH@Z,matched,100.0
-0x4ca9f0,5,src/network/hapinet.cpp,?FUN_004ca9f0@@YGHH@Z,matched,100.0
+0x4ca9d0,13,src/network/hapinet.cpp,?GetCreatedLobbyInterface@@YGHPAUNet_4c97b0@@@Z,matched,100.0
+0x4ca9e0,12,src/network/hapinet.cpp,?GetSessionGuidInstance@@YGHH@Z,matched,100.0
+0x4ca9f0,5,src/network/hapinet.cpp,?QueryOnlineFlags@@YGHH@Z,matched,100.0
 0x4caa00,8,src/network/hapinet.cpp,?RIReportGameChat@@YGHHH@Z,matched,100.0
 0x4caa10,8,src/network/hapinet.cpp,?RIReport@@YGHHHHHHHHHHH@Z,matched,100.0
 0x4caa20,22,src/network/hapinet.cpp,?RISetCallbacks@@YGXHH@Z,matched,100.0

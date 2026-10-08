@@ -1654,7 +1654,7 @@ piece,0x5129f8,37,src/network/net_condenser.cpp,3,40,game data
 piece,0x513000,46396,src/network/packets_460e20.cpp,3,0,game data
 piece,0x51e598,4,src/network/unit_sync.cpp,3,0,game data
 piece,0x51e59c,4,src/network/unit_sync.cpp,2,0,game data
-piece,0x51e6a0,16,src/map/line_of_sight_4814c0.cpp,3,0,game data
+piece,0x51e6a0,16,src/map/line_of_sight.cpp,3,0,game data
 piece,0x51f310,12,src/weapons/weapons.cpp,3,0,game data
 piece,0x51fbb8,4,src/util/int_map_4b2290.cpp,4,0,game data
 piece,0x51fbbc,4,src/util/int_map_4b2290.cpp,5,0,game data
@@ -4317,19 +4317,19 @@ piece,0x508bb8,16,src/units/units_4854a0.cpp,5,0,game data
 piece,0x5031f4,5,src/map/plot_map.cpp,14,0,game data
 piece,0x508ba8,15,src/map/plot_map.cpp,7,0,game data
 piece,0x508ba0,8,src/map/plot_map.cpp,3,0,game data
-piece,0x508b80,29,src/map/line_of_sight_483610.cpp,13,0,game data
-piece,0x4fd680,8,src/map/line_of_sight_483610.cpp,12,0,game data
-piece,0x4fd688,8,src/map/line_of_sight_483610.cpp,12,8,game data
-piece,0x4fd690,4,src/map/line_of_sight_483610.cpp,12,16,game data
-piece,0x508b6c,18,src/map/line_of_sight_483610.cpp,11,0,game data
-piece,0x508b60,9,src/map/line_of_sight_483610.cpp,10,0,game data
-piece,0x508b54,12,src/map/line_of_sight_483610.cpp,9,0,game data
-piece,0x508b48,9,src/map/line_of_sight_483610.cpp,8,0,game data
-piece,0x508b38,14,src/map/line_of_sight_483610.cpp,7,0,game data
-piece,0x508b28,15,src/map/line_of_sight_483610.cpp,6,0,game data
-piece,0x508b18,13,src/map/line_of_sight_483610.cpp,5,0,game data
-piece,0x508b08,16,src/map/line_of_sight_483610.cpp,4,0,game data
-piece,0x508af8,15,src/map/line_of_sight_483610.cpp,3,0,game data
+piece,0x508b80,29,src/map/line_of_sight.cpp,53,0,game data
+piece,0x4fd680,8,src/map/line_of_sight.cpp,52,0,game data
+piece,0x4fd688,8,src/map/line_of_sight.cpp,52,8,game data
+piece,0x4fd690,4,src/map/line_of_sight.cpp,52,16,game data
+piece,0x508b6c,18,src/map/line_of_sight.cpp,51,0,game data
+piece,0x508b60,9,src/map/line_of_sight.cpp,50,0,game data
+piece,0x508b54,12,src/map/line_of_sight.cpp,49,0,game data
+piece,0x508b48,9,src/map/line_of_sight.cpp,48,0,game data
+piece,0x508b38,14,src/map/line_of_sight.cpp,47,0,game data
+piece,0x508b28,15,src/map/line_of_sight.cpp,46,0,game data
+piece,0x508b18,13,src/map/line_of_sight.cpp,45,0,game data
+piece,0x508b08,16,src/map/line_of_sight.cpp,44,0,game data
+piece,0x508af8,15,src/map/line_of_sight.cpp,11,0,game data
 piece,0x4fd668,4,src/units/unit_script.cpp,4,0,game data
 piece,0x4fd66c,4,src/units/unit_script.cpp,4,4,game data
 piece,0x508af0,7,src/units/squads.cpp,3,0,game data
@@ -5926,7 +5926,7 @@ piece,0x501008,4,src/map/map_list.cpp,2,0,game data
 piece,0x50100c,4,src/map/meteors.cpp,2,0,game data
 piece,0x501010,4,src/units/movement_class.cpp,2,0,game data
 piece,0x50101c,4,src/network/packets_460e20.cpp,2,0,game data
-piece,0x501028,4,src/map/line_of_sight_4814c0.cpp,2,0,game data
+piece,0x501028,4,src/map/line_of_sight.cpp,2,0,game data
 piece,0x50102c,4,src/units/unit_commands_487bf0.cpp,3,0,game data
 piece,0x501030,4,src/weapons/weapons.cpp,2,0,game data
 piece,0x501034,4,src/util/int_map_4b2290.cpp,2,0,game data
@@ -12276,7 +12276,7 @@ same,0x504988,5,src/frontend/skirmish_menu_479660.cpp,87,0,
 same,0x508384,7,src/frontend/skirmish_menu_479660.cpp,86,0,
 same,0x502a78,11,src/frontend/skirmish_menu_479660.cpp,81,0,
 same,0x506290,6,src/frontend/skirmish_menu_479660.cpp,103,0,
-same,0x4814f0,16,src/map/line_of_sight_4814c0.cpp,6,0,
+same,0x4814f0,16,src/map/line_of_sight.cpp,6,0,
 same,0x502288,8,src/map/plot_map.cpp,15,0,
 same,0x508be8,7,src/units/units_4864b0.cpp,4,0,
 same,0x4fd6f8,4,src/units/units_4864b0.cpp,3,0,

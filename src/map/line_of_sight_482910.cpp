@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Kept out of line_of_sight.cpp: the merged file's symbol ids move its registers.
 // Appends a new "eyeball" record to the array at g_game + 0x1427b (the same
 // record type as 0x482130), then runs the same inlined processing tail as
 // 0x482ac0 / 0x482830. The tail is the body of 0x482830 inlined on the new

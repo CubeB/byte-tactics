@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash and space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Kept out of line_of_sight.cpp: the merged file's symbol ids move its registers.
 #include <string.h>
 // Needed: it changes the schedule of the pos.y and pos.z divisions.
 #include <math.h>

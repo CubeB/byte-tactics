@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1, re-tried by
+// Kept out of line_of_sight.cpp: the merged file's symbol ids move its registers.
 // space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash.
 // Names are provisional.
 // Required include.

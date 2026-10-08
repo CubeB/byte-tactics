@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-tried by
+// Kept out of line_of_sight.cpp: the merged file's symbol ids move its registers.
 // deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited
 // by deepseek-v4.1, edited by space-bunny-free, finished by
 // deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by

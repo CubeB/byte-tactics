@@ -1,4 +1,5 @@
 // Decompiled by Space Bunny Free. Names are provisional.
+// Kept out of line_of_sight.cpp: the merged file's symbol ids move its registers.
 
 struct UnitType_482ac0 {
     char unknown_0[0x170];

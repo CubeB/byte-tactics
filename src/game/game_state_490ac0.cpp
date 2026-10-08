@@ -205,15 +205,15 @@ struct Game {
 // GLOBAL: 0x511de8
 extern Game* g_game;
 
-extern const char DAT_005091d4[];          // "OFFSCREEN"
+extern const char g_offscreenSurfaceName[];  // "OFFSCREEN"
 
 int __stdcall AllocSurface(const char* name, int width, int height);
 void __stdcall SetRestoreSurface(int param_1);
 
 // FUNCTION: 0x490ac0
-void FUN_00490ac0()
+void CreateOffscreenSurface()
 {
-    g_game->field_37e1b = AllocSurface(DAT_005091d4, g_game->field_37e1f, g_game->field_37e23);
+    g_game->field_37e1b = AllocSurface(g_offscreenSurfaceName, g_game->field_37e1f, g_game->field_37e23);
     SetRestoreSurface(g_game->field_37e1b);
 }
 
@@ -222,7 +222,7 @@ void __cdecl FUN_004d85a0(int* param_1);
 void RestoreScreen();
 
 // FUNCTION: 0x490b00
-void FUN_00490b00()
+void FreeOffscreenSurface()
 {
     FUN_004d85a0((int*)g_game->field_37e1b);
     g_game->field_37e1b = 0;
@@ -326,7 +326,7 @@ void __cdecl UpdateWind()
 }
 
 // FUNCTION: 0x490da0
-void FUN_00490da0()
+void ResetGameSpeed()
 {
     if (g_game->field_391e9->GetGameType() == 3) {
         g_game->field_38a4b = 10;
@@ -381,7 +381,7 @@ void IncreaseGameSpeed()
 
 // The counterpart of 0x490ee0: steps a 16-bit game setting down by one.
 // FUNCTION: 0x490f10
-void FUN_00490f10()
+void DecreaseGameSpeed()
 {
     unsigned short value = g_game->speed_38a4b;
     if (value > 1) {
@@ -394,16 +394,16 @@ struct CdLists_490f80 {
     unsigned char tracks[0xaa0 - 0x24]; // +0x24
 };
 
-extern CdLists_490f80 DAT_0051e828;
+extern CdLists_490f80 g_cdListsDiscEntries;
 
 int __stdcall ReadGameRegistryValue(const char* key, void* buf, unsigned int* size);
 
 // FUNCTION: 0x490f40
-void FUN_00490f40(void)
+void LoadCdLists(void)
 {
     unsigned int size = 0xaa0;
-    if (ReadGameRegistryValue("CDLISTS", &DAT_0051e828, &size) == 0) {
-        memset(&DAT_0051e828, 0, sizeof(DAT_0051e828));
+    if (ReadGameRegistryValue("CDLISTS", &g_cdListsDiscEntries, &size) == 0) {
+        memset(&g_cdListsDiscEntries, 0, sizeof(g_cdListsDiscEntries));
     }
 }
 
@@ -425,12 +425,12 @@ void __stdcall WriteGameRegistryValue(void* key, void* buf, int value);
 void SaveCdLists()
 {
     for (int i = 0; i < ((Class_004ce450*)g_game->cd)->GetTrackCount(); i++) {
-        DAT_0051e828.tracks[i] = ((Class_004ce7e0*)g_game->cd)->GetCategoryOfTrack(i + 1);
+        g_cdListsDiscEntries.tracks[i] = ((Class_004ce7e0*)g_game->cd)->GetCategoryOfTrack(i + 1);
     }
-    WriteGameRegistryValue("CDLISTS", &DAT_0051e828, sizeof(DAT_0051e828));
+    WriteGameRegistryValue("CDLISTS", &g_cdListsDiscEntries, sizeof(g_cdListsDiscEntries));
 }
 
-// Refreshes the CD-list table at DAT_0051e828 from the CD object: it saves and
+// Refreshes the CD-list table at g_cdListsDiscEntries from the CD object: it saves and
 // restores the object's track table across an MCI close/open, looks the current
 // disc id up in the 20-entry table and, when found, moves that entry to the
 // front and re-reads its track bytes. A disc not in the table is inserted at the
@@ -479,14 +479,14 @@ public:
 };
 
 extern int DAT_0051e848;
-extern int DAT_0051e84c;
+extern int g_cachedCdTrackTypes;
 extern int DAT_0051e850;
 extern int DAT_0051e854;
 extern int DAT_0051e858;
 extern int* DAT_0051f2e8;
 
 // FUNCTION: 0x490fe0
-void FUN_00490fe0()
+void ReopenCdAudio()
 {
     char tracks[16] = {1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     char buf[0x88];
@@ -514,12 +514,12 @@ void FUN_00490fe0()
         break;
     }
     {
-        memcpy(buf, (char*)&DAT_0051e828 + index * 0x88, 0x88);
+        memcpy(buf, (char*)&g_cdListsDiscEntries + index * 0x88, 0x88);
         for (int j = index; j > 0; j--)
-            memcpy((char*)&DAT_0051e828 + j * 0x88,
-                   (char*)&DAT_0051e828 + (j - 1) * 0x88, 0x88);
-        memcpy(&DAT_0051e828, buf, 0x88);
-        ((Class_004ce3e0*)g_game->cd)->CopyTrackTypeTable(&DAT_0051e84c);
+            memcpy((char*)&g_cdListsDiscEntries + j * 0x88,
+                   (char*)&g_cdListsDiscEntries + (j - 1) * 0x88, 0x88);
+        memcpy(&g_cdListsDiscEntries, buf, 0x88);
+        ((Class_004ce3e0*)g_game->cd)->CopyTrackTypeTable(&g_cachedCdTrackTypes);
     }
 newdisc:
     if (index == 0x14) {
@@ -529,10 +529,10 @@ newdisc:
             }
         }
         // Downward pointer walk against the addresses, not an index loop.
-        int p = (int)&DAT_0051e828 + 0xa18;
-        for (; p > (int)&DAT_0051e828; p -= 0x88)
+        int p = (int)&g_cdListsDiscEntries + 0xa18;
+        for (; p > (int)&g_cdListsDiscEntries; p -= 0x88)
             memcpy((void*)p, (void*)(p - 0x88), 0x88);
-        DAT_0051e84c = *(int*)&tracks[0];
+        g_cachedCdTrackTypes = *(int*)&tracks[0];
         DAT_0051e850 = *(int*)&tracks[4];
         DAT_0051e854 = *(int*)&tracks[8];
         DAT_0051e858 = *(int*)&tracks[12];
@@ -549,15 +549,15 @@ public:
     int SetCdCallback(void (*param_1)());
 };
 
-extern const char DAT_00509268[];          // "SkirmishInfo"
-extern const char DAT_00509200[];          // "CDLISTS"
-extern const char DAT_00502820[];          // "guis"
-extern const char DAT_00502e30[];          // "anims"
-extern const char DAT_0050338c[];          // "fonts"
-extern const char DAT_0050925c[];          // "commongui"
-extern const char DAT_00509250[];          // "hattfont12"
-extern const char DAT_00509244[];          // "hattfont11"
-extern const char DAT_00509238[];          // "UnitLimit"
+extern const char g_skirmishInfoTag[];     // "SkirmishInfo"
+extern const char g_cdListsKey[];          // "CDLISTS"
+extern const char g_guisDirName[];         // "guis"
+extern const char g_animsDirName[];        // "anims"
+extern const char g_fontsDirName[];        // "fonts"
+extern const char g_commonGuiName[];       // "commongui"
+extern const char g_hattFont12Name[];      // "hattfont12"
+extern const char g_hattFont11Name[];      // "hattfont11"
+extern const char g_unitLimitKey[];        // "UnitLimit"
 
 int GetScreenWidth();
 int GetScreenHeight();
@@ -610,7 +610,7 @@ void InitGame()
     }
     g_game->field_37e1f = GetScreenWidth();
     g_game->field_37e23 = GetScreenHeight();
-    g_game->field_37e1b = AllocSurface(DAT_005091d4, g_game->field_37e1f,
+    g_game->field_37e1b = AllocSurface(g_offscreenSurfaceName, g_game->field_37e1f,
                                       g_game->field_37e23);
     SetRestoreSurface(g_game->field_37e1b);
     g_game->field_3923b &= 0xfffe;
@@ -642,30 +642,30 @@ void InitGame()
     LoadLightTable(g_game->field_143a7);
     MakeGrayTable(g_game->field_143a7);
     MakeBlueTable(g_game->field_143a7);
-    g_game->field_29a0 = FUN_004d83b0(DAT_00509268, 0x22c);
+    g_game->field_29a0 = FUN_004d83b0(g_skirmishInfoTag, 0x22c);
     LoadSettings();
     size = 0xaa0;
-    int ok = ReadGameRegistryValue(DAT_00509200, &DAT_0051e828, &size);
+    int ok = ReadGameRegistryValue(g_cdListsKey, &g_cdListsDiscEntries, &size);
     if (ok == 0)
-        memset(&DAT_0051e828, 0, 0xaa0);
+        memset(&g_cdListsDiscEntries, 0, 0xaa0);
     ((Class_004cedc0*)g_game->cd)->EnableCdAudio(g_game->field_37f14 & 1);
     ((Class_004ce7a0*)g_game->cd)->SetPlaybackOrder(g_game->field_37f16);
-    ((Class_004cd9d0*)g_game->cd)->SetCdCallback(FUN_00490fe0);
-    FUN_00490fe0();
+    ((Class_004cd9d0*)g_game->cd)->SetCdCallback(ReopenCdAudio);
+    ReopenCdAudio();
     ((Sound*)g_game->cd)->SetTrackCategory(0);
     ApplyBrightnessAndVolume();
     LoadSideData();
     LoadLogos();
     SetBrightness(0.5 - g_game->field_37f08 * -0.041666668f);
     SetCurrentGuiContext(&g_game->gui);
-    FUN_0049fba0(&g_game->gui, DAT_00502820);
-    FUN_0049fbf0(&g_game->gui, DAT_00502e30);
-    FUN_0049fb50(&g_game->gui, DAT_0050338c);
+    FUN_0049fba0(&g_game->gui, g_guisDirName);
+    FUN_0049fbf0(&g_game->gui, g_animsDirName);
+    FUN_0049fb50(&g_game->gui, g_fontsDirName);
     FUN_004aa8e0(&g_game->gui, g_game->field_391f9);
     FUN_004ab4e0(&g_game->gui, GetGafFrame(g_game->field_148cb, 0));
-    LoadGafFile(&g_game->gui, DAT_0050925c);
-    LoadGafIntoSlot(&g_game->gui, DAT_00509250, 0);
-    LoadGafIntoSlot(&g_game->gui, DAT_00509244, 1);
+    LoadGafFile(&g_game->gui, g_commonGuiName);
+    LoadGafIntoSlot(&g_game->gui, g_hattFont12Name, 0);
+    LoadGafIntoSlot(&g_game->gui, g_hattFont11Name, 1);
     g_game->gui.field_14 = g_game->gui.field_8;
     SetTextKeyColor(0xfe);
     SetFont(g_game->field_391f9);
@@ -686,7 +686,7 @@ void InitGame()
     }
     ClearPictureCache();
     g_game->field_589 = 1;
-    int limit = GetPreferenceInt(DAT_00509238, 0xfa);
+    int limit = GetPreferenceInt(g_unitLimitKey, 0xfa);
     if (limit > 500)
         limit = 500;
     else if (limit < 20)
@@ -719,9 +719,9 @@ void FreeOtaEnumCacheAndMission();
 void ShutdownGame(void)
 {
     for (int i = 0; i < ((Class_004ce450*)g_game->cd)->GetTrackCount(); i++) {
-        DAT_0051e828.tracks[i] = ((Class_004ce7e0*)g_game->cd)->GetCategoryOfTrack(i + 1);
+        g_cdListsDiscEntries.tracks[i] = ((Class_004ce7e0*)g_game->cd)->GetCategoryOfTrack(i + 1);
     }
-    WriteGameRegistryValue("CDLISTS", &DAT_0051e828, 0xaa0);
+    WriteGameRegistryValue("CDLISTS", &g_cdListsDiscEntries, 0xaa0);
     FreePictureCache();
     FUN_004aeda0((Obj_004aeda0*)&g_game->gui, 1);
     FUN_004aeda0((Obj_004aeda0*)&g_game->gui, 0);
@@ -779,7 +779,7 @@ void InitCommands();
 unsigned int GetTicks();
 
 // FUNCTION: 0x4917d0
-void FUN_004917d0()
+void LoadBattleAssets()
 {
     FUN_00463c80();
     memset(&g_game->zero_2bf1, 0, 11);
@@ -852,7 +852,7 @@ void __stdcall SetResolution(int x, int y);
 void __stdcall SetOffscreenSurface(int param_1);
 
 // FUNCTION: 0x491a70
-void FUN_00491a70()
+void Force640x480Surfaces()
 {
     g_game->field_37e1f = 0x280;
     g_game->field_37e23 = 0x1e0;
@@ -863,7 +863,7 @@ void FUN_00491a70()
         RestoreScreen();
         SetWindowPos(g_game->field_c->hwnd, 0, 0, 0, 0x280, 0x1e0, 4);
         SetResolution(0x280, 0x1e0);
-        g_game->field_37e1b = AllocSurface(DAT_005091d4, g_game->field_37e1f, g_game->field_37e23);
+        g_game->field_37e1b = AllocSurface(g_offscreenSurfaceName, g_game->field_37e1f, g_game->field_37e23);
         SetRestoreSurface(g_game->field_37e1b);
         SetOffscreenSurface(g_game->field_37e1b);
     }
@@ -888,7 +888,7 @@ void FreeUnitCategories();
 void CloseNetSession();
 
 // FUNCTION: 0x491b60
-void FUN_00491b60()
+void ShutdownIngameSystems()
 {
     g_game->flags_2a44w &= 0xfffb;
     ((Class_004ced40*)g_game->cd)->StopCdAudio();
@@ -925,11 +925,11 @@ void RemoveLocalPlayers();
 void __stdcall QuitApp(const char*);
 
 // FUNCTION: 0x491c60
-void FUN_00491c60()
+void ShutdownIngameAndQuit()
 {
     BlankScreen();
     RemoveLocalPlayers();
-    FUN_00491b60();
+    ShutdownIngameSystems();
     QuitApp(0);
 }
 
@@ -940,7 +940,7 @@ struct Obj_004ab400;
 void __stdcall FUN_004ab400(Obj_004ab400* p, Src_004ab400* src);
 
 // FUNCTION: 0x491c80
-void __stdcall FUN_00491c80(int n)
+void __stdcall SetCursorMode(int n)
 {
     if (g_game->selected != n) {
         g_game->selected = n;
@@ -955,7 +955,7 @@ unsigned short __cdecl PickUnitUnderCursor(void);
 int __stdcall ResolveCursorModeForSelection(unsigned char mode);
 
 // FUNCTION: 0x491cc0
-void __stdcall FUN_00491cc0(int unused)
+void __stdcall UpdateBattleHoverMode(int unused)
 {
     unsigned char flags = g_game->flags_2cc6;
 
@@ -982,7 +982,7 @@ int __stdcall IsScreenNamed(Gui_00491d70* queue, char* name);
 void __stdcall CloseTopScreen(Gui_00491d70* queue);
 
 // FUNCTION: 0x491d70
-int __stdcall FUN_00491d70(int force)
+int __stdcall PopUntilNamedLayout(int force)
 {
     unsigned short flags = g_game->flags_37ebe;
     if (((flags & 0x800) || (flags & 0x65) || (g_game->field_2bee & 0xe0)) && force == 0) {
@@ -1000,7 +1000,7 @@ int __stdcall FUN_00491d70(int force)
 
 // Compare 0x491d70.
 // FUNCTION: 0x491e10
-void FUN_00491e10()
+void CloseTopScreenIfNotNamed()
 {
     if (!IsScreenNamed(&g_game->gui, g_game->name)) {
         g_game->field_37e9c = 0;
@@ -1013,7 +1013,7 @@ extern int* DAT_0051f2e4;
 extern int* DAT_0051f2ec;
 
 // FUNCTION: 0x491e50
-void FUN_00491e50()
+void FreePreviewCaches()
 {
     if (DAT_0051f2e0 != 0) {
         FUN_004d85a0(DAT_0051f2e0);

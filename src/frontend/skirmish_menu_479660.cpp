@@ -778,7 +778,7 @@ void __stdcall FUN_004a32a0(Menu* menu, char* name, char* items, int count, int 
 void __stdcall FUN_004a2e40(Menu* menu, char* name, int index);
 void __stdcall FUN_0049fb10(Menu* menu, int value);
 void __stdcall RenderLayer(Menu* menu, int value);
-void __stdcall FUN_00491c80(int value);
+void __stdcall SetCursorMode(int value);
 
 // Opens the skirmish map selector (SELMAP.GUI): counts the skirmish maps,
 // fills the MAPNAMES list with them, selects the one the current player
@@ -816,7 +816,7 @@ void OpenSkirmishMapSelector()
     }
     FUN_0049fb10(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
-    FUN_00491c80(0x13);
+    SetCursorMode(0x13);
 }
 
 // FUNCTION: 0x47acb0
@@ -1012,7 +1012,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
                 InitMissionStatus();
                 SaveSettings();
                 g_game->field_2bc0 = 2;
-                FUN_00491c80(0x14);
+                SetCursorMode(0x14);
                 return;
             }
         }
@@ -1025,7 +1025,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
 
     if (IsCurrentGadgetNamed(menu, "PrevMenu")) {
         PlaySoundByName("Previous", 0);
-        FUN_00491c80(0x14);
+        SetCursorMode(0x14);
         g_game->field_2bc0 = 3;
         return;
     }
@@ -1158,7 +1158,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
         UpdateHelpText(&g_game->menu);
     } else if (IsCurrentGadgetNamed(menu, "SelectMap")) {
         PlaySoundByName("Skirmish", 0);
-        FUN_00491c80(0x14);
+        SetCursorMode(0x14);
         OpenSkirmishMapSelector();
     } else if (IsCurrentGadgetNamed(menu, "Difficulty")) {
         // The original's typo, "SKirmish", not "Skirmish".
@@ -1292,7 +1292,7 @@ void OpenSkirmishMenu(void)
     g_game->menu.holder->textHandler = HandleSkirmishCheatText;
     FUN_0049fb10(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
-    FUN_00491c80(0x13);
+    SetCursorMode(0x13);
 }
 
 extern char* g_forcesDestroyedTexts[];

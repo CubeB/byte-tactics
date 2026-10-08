@@ -30,7 +30,7 @@ unsigned char DAT_00501d18[32] = {
 };
 char g_mappingKey[8] = "Mapping";  // 0x502288 .data
 char g_screenshotDirFormat[16] = "%s\\screenshots";  // 0x5024fc .data
-const char DAT_00502820[8] = "guis";  // 0x502820 .data
+const char g_guisDirName[8] = "guis";  // 0x502820 .data
 char g_cameraXPosition[12] = "X Position";  // 0x502878 .data
 char g_cameraZPosition[12] = "Z Position";  // 0x502884 .data
 char g_cameraAccount[8] = "Camera";  // 0x502890 .data
@@ -47,7 +47,7 @@ unsigned short g_faceVertexIndices[6][4] = {
     {0, 1, 2, 3}, {2, 1, 6, 5}, {0, 3, 4, 7}, {1, 0, 7, 6},
     {3, 2, 5, 4}, {4, 5, 6, 7}
 };
-const char DAT_00502e30[8] = "anims";  // 0x502e30 .data
+const char g_animsDirName[8] = "anims";  // 0x502e30 .data
 char g_descriptionKey[12] = "Description";  // 0x502e78 .data
 char DAT_00502f9c[104] = "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]";  // 0x502f9c .data
 char DAT_00503004[32] = "c:\\cavedog\\wargame\\frontend.cpp";  // 0x503004 .data
@@ -69,7 +69,7 @@ char DAT_0050329c[8] = "1.zrb";  // 0x50329c .data
 char* g_saveBankName = (char*)"Total Annihilation 3.0";  // 0x50331c .data
 char* g_summaryAccountName = (char*)"Summary";  // 0x503320 .data
 char DAT_00503374[4] = "\\";  // 0x503374 .data
-const char DAT_0050338c[8] = "fonts";  // 0x50338c .data
+const char g_fontsDirName[8] = "fonts";  // 0x50338c .data
 char DAT_0050341c[4] = "TDF";  // 0x50341c .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
 char DAT_0050372c[4] = "*";  // 0x50372c .data
 char g_noneString[8] = "none";  // 0x503ea0 .data
@@ -181,13 +181,13 @@ char DAT_005090fc[32] = "DefeatCondition_AllUnitsKilled";  // 0x5090fc .data
 char* DAT_005091c8 = (char*)"SAVEGAME";  // 0x5091c8 .data
 int DAT_005091cc = 1;  // 0x5091cc .data
 int DAT_005091d0 = -1;  // 0x5091d0 .data
-const char DAT_005091d4[12] = "OFFSCREEN";  // 0x5091d4 .data
-const char DAT_00509200[8] = "CDLISTS";  // 0x509200 .data
-const char DAT_00509238[12] = "UnitLimit";  // 0x509238 .data
-const char DAT_00509244[12] = "hattfont11";  // 0x509244 .data
-const char DAT_00509250[12] = "hattfont12";  // 0x509250 .data
-const char DAT_0050925c[12] = "commongui";  // 0x50925c .data
-const char DAT_00509268[16] = "SkirmishInfo";  // 0x509268 .data
+const char g_offscreenSurfaceName[12] = "OFFSCREEN";  // 0x5091d4 .data
+const char g_cdListsKey[8] = "CDLISTS";  // 0x509200 .data
+const char g_unitLimitKey[12] = "UnitLimit";  // 0x509238 .data
+const char g_hattFont11Name[12] = "hattfont11";  // 0x509244 .data
+const char g_hattFont12Name[12] = "hattfont12";  // 0x509250 .data
+const char g_commonGuiName[12] = "commongui";  // 0x50925c .data
+const char g_skirmishInfoTag[16] = "SkirmishInfo";  // 0x509268 .data
 const char g_invalidSavegameText[24] = "Invalid savegame file";  // 0x509310 .data
 char DAT_005093ec[8] = "Enemies";  // 0x5093ec .data
 char DAT_005093f4[4] = ",:;";  // 0x5093f4 .data
@@ -642,7 +642,7 @@ unsigned char DAT_0051e810[10];  // 0x51e810 .bss (the type runs past the next k
 unsigned char DAT_0051e81a[6];  // 0x51e81a .bss
 unsigned char g_loadingBarPrevPercent[5];  // 0x51e820 .bss
 unsigned char DAT_0051e825[3];  // 0x51e825 .bss
-unsigned char DAT_0051e828[2720];  // 0x51e828 .bss
+unsigned char g_cdListsDiscEntries[2720];  // 0x51e828 .bss
 unsigned char DAT_0051f2c8[10];  // 0x51f2c8 .bss (the type runs past the next known address, 0x51f2c8+0x8)
 unsigned char DAT_0051f2d2[6];  // 0x51f2d2 .bss
 unsigned int DAT_0051f2d8;  // 0x51f2d8 .bss

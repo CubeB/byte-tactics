@@ -40,7 +40,7 @@ extern int g_aiCommandsEnabled;                                                 
 extern unsigned char DAT_00501d18[32];                                                            // 0x501d18, 32 bytes; 1 of 1 files
 extern char g_mappingKey[8];                                                                      // 0x502288, 8 bytes; 1 of 1 files
 extern char g_screenshotDirFormat[16];                                                            // 0x5024fc, 16 bytes; 1 of 1 files
-extern const char DAT_00502820[8];                                                                // 0x502820, 8 bytes; 1 of 1 files
+extern const char g_guisDirName[8];                                                               // 0x502820, 8 bytes; 1 of 1 files
 extern char g_cameraXPosition[12];                                                                // 0x502878, 12 bytes; 1 of 1 files
 extern char g_cameraZPosition[12];                                                                // 0x502884, 12 bytes; 1 of 1 files
 extern char g_cameraAccount[8];                                                                   // 0x502890, 8 bytes; 1 of 1 files
@@ -53,7 +53,7 @@ extern char DAT_00502a78[12];                                                   
 extern char DAT_00502ae8[4];                                                                      // 0x502ae8, 4 bytes; 2 of 2 files
 extern char g_optionsSoundName[8];                                                                // 0x502b38, 8 bytes; 1 of 1 files
 extern unsigned short g_faceVertexIndices[6][4];                                                  // 0x502bf8, 48 bytes; 1 of 1 files
-extern const char DAT_00502e30[8];                                                                // 0x502e30, 8 bytes; 1 of 1 files
+extern const char g_animsDirName[8];                                                              // 0x502e30, 8 bytes; 1 of 1 files
 extern char g_descriptionKey[12];                                                                 // 0x502e78, 12 bytes; 1 of 1 files
 extern char DAT_00502f9c[104];                                                                    // 0x502f9c, 104 bytes; 1 of 1 files
 extern char DAT_00503004[32];                                                                     // 0x503004, 32 bytes; 1 of 1 files
@@ -75,7 +75,7 @@ extern char DAT_0050329c[8];                                                    
 extern char* g_saveBankName;                                                                      // 0x50331c, 4 bytes; 1 of 1 files
 extern char* g_summaryAccountName;                                                                // 0x503320, 4 bytes; 1 of 1 files
 extern char DAT_00503374[4];                                                                      // 0x503374, 4 bytes; 3 of 3 files
-extern const char DAT_0050338c[8];                                                                // 0x50338c, 8 bytes; 1 of 1 files
+extern const char g_fontsDirName[8];                                                              // 0x50338c, 8 bytes; 1 of 1 files
 extern char DAT_0050341c[4];                                                                      // 0x50341c, 4 bytes; 1 of 1 files
 extern char DAT_0050372c[4];                                                                      // 0x50372c, 4 bytes; 3 of 3 files
 extern char g_noneString[8];                                                                      // 0x503ea0, 8 bytes; 1 of 1 files
@@ -182,13 +182,13 @@ extern char DAT_005090fc[32];                                                   
 extern char* DAT_005091c8;                                                                        // 0x5091c8, 4 bytes; 5 of 5 files
 extern int DAT_005091cc;                                                                          // 0x5091cc, 4 bytes; 2 of 2 files
 extern int DAT_005091d0;                                                                          // 0x5091d0, 4 bytes; 1 of 1 files
-extern const char DAT_005091d4[12];                                                               // 0x5091d4, 12 bytes; 1 of 1 files
-extern const char DAT_00509200[8];                                                                // 0x509200, 8 bytes; 1 of 1 files
-extern const char DAT_00509238[12];                                                               // 0x509238, 12 bytes; 1 of 1 files
-extern const char DAT_00509244[12];                                                               // 0x509244, 12 bytes; 1 of 1 files
-extern const char DAT_00509250[12];                                                               // 0x509250, 12 bytes; 1 of 1 files
-extern const char DAT_0050925c[12];                                                               // 0x50925c, 12 bytes; 1 of 1 files
-extern const char DAT_00509268[16];                                                               // 0x509268, 16 bytes; 1 of 1 files
+extern const char g_offscreenSurfaceName[12];                                                     // 0x5091d4, 12 bytes; 1 of 1 files
+extern const char g_cdListsKey[8];                                                                // 0x509200, 8 bytes; 1 of 1 files
+extern const char g_unitLimitKey[12];                                                             // 0x509238, 12 bytes; 1 of 1 files
+extern const char g_hattFont11Name[12];                                                           // 0x509244, 12 bytes; 1 of 1 files
+extern const char g_hattFont12Name[12];                                                           // 0x509250, 12 bytes; 1 of 1 files
+extern const char g_commonGuiName[12];                                                            // 0x50925c, 12 bytes; 1 of 1 files
+extern const char g_skirmishInfoTag[16];                                                          // 0x509268, 16 bytes; 1 of 1 files
 extern const char g_invalidSavegameText[24];                                                      // 0x509310, 24 bytes; 1 of 1 files
 extern char DAT_005093ec[8];                                                                      // 0x5093ec, 8 bytes; 1 of 1 files
 extern char DAT_005093f4[4];                                                                      // 0x5093f4, 4 bytes; 1 of 1 files
@@ -554,7 +554,7 @@ extern unsigned char DAT_0051e810[10];                                          
 extern unsigned char DAT_0051e81a[6];                                                             // 0x51e81a, 6 bytes; nothing refers to it
 extern "C" unsigned char g_loadingBarPrevPercent[5];                                              // 0x51e820, 1 bytes; extern "C" (no type) in declared extern "C" in 1 of 1 files, but used past its end
 extern "C" unsigned char DAT_0051e825[3];                                                         // 0x51e825, 1 bytes; extern "C" (no type) in declared extern "C" in 1 of 1 files, but used past its end
-extern unsigned char DAT_0051e828[2720];                                                          // 0x51e828, 2720 bytes; CdLists_490f80 by value in 1 of 1 files
+extern unsigned char g_cdListsDiscEntries[2720];                                                  // 0x51e828, 2720 bytes; CdLists_490f80 by value in 1 of 1 files
 extern unsigned char DAT_0051f2c8[10];                                                            // 0x51f2c8, 10 bytes; 2 of 3 files (conflicting: signedness or const)
 extern unsigned char DAT_0051f2d2[6];                                                             // 0x51f2d2, 6 bytes; nothing refers to it
 extern unsigned int DAT_0051f2d8;                                                                 // 0x51f2d8, 4 bytes; 1 of 2 files (conflicting: signedness or const)
@@ -914,11 +914,11 @@ extern long DAT_0052a4fc;                                                       
 //   0x51e822 DAT_0051e822: part of another global: g_loadingBarPrevPercent+0x2
 //   0x51e823 DAT_0051e823: part of another global: g_loadingBarPrevPercent+0x3
 //   0x51e824 DAT_0051e824: part of another global: g_loadingBarPrevPercent+0x4
-//   0x51e848 DAT_0051e848: part of another global: DAT_0051e828+0x20
-//   0x51e84c DAT_0051e84c: part of another global: DAT_0051e828+0x24
-//   0x51e850 DAT_0051e850: part of another global: DAT_0051e828+0x28
-//   0x51e854 DAT_0051e854: part of another global: DAT_0051e828+0x2c
-//   0x51e858 DAT_0051e858: part of another global: DAT_0051e828+0x30
+//   0x51e848 DAT_0051e848: part of another global: g_cdListsDiscEntries+0x20
+//   0x51e84c g_cachedCdTrackTypes: part of another global: g_cdListsDiscEntries+0x24
+//   0x51e850 DAT_0051e850: part of another global: g_cdListsDiscEntries+0x28
+//   0x51e854 DAT_0051e854: part of another global: g_cdListsDiscEntries+0x2c
+//   0x51e858 DAT_0051e858: part of another global: g_cdListsDiscEntries+0x30
 //   0x51f310 DAT_0051f310: defined in src/weapons/weapons.cpp
 //   0x51fbb8 std::HH::HU?$pair::?$_Tree::_Nilrefs: defined in src/util/int_map_4b2290.cpp
 //   0x51fbbc std::HH::HU?$pair::?$_Tree::_Nil: defined in src/util/int_map_4b2290.cpp

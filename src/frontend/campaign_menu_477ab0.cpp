@@ -41,7 +41,7 @@ void RegisterDataArchives();
 void InitMissionStatus();
 void SaveSettings();
 void __stdcall PlaySoundByName(char* name, int param_2);
-void __stdcall FUN_00491c80(int value);
+void __stdcall SetCursorMode(int value);
 Entry_00477ab0* __stdcall FindGadgetChecked(Entry_00477ab0* entries, char* name);
 int __stdcall FindGadgetIndex(Entry_00477ab0* entries, char* name, int type);
 char* __stdcall SkipTextLines(char* text, int line);
@@ -136,7 +136,7 @@ void __stdcall HandleNewGameClick(Menu_00477ab0* menu)
             index = e->selected;
         }
         if (((Mission*)*(void**)(g_game + 0x391e9))->SelectMission(index) != 0) {
-            FUN_00491c80(0x14);
+            SetCursorMode(0x14);
             *(unsigned char*)(*(int*)(g_game + 0x1b8a) + 0x96) = 0;
             *(unsigned char*)(*(int*)(g_game + 0x1cd5) + 0x96) = 1;
             SaveSettings();
@@ -152,7 +152,7 @@ void __stdcall HandleNewGameClick(Menu_00477ab0* menu)
         if (IsCurrentGadgetNamed(menu, "PrevMenu")) {
             PlaySoundByName("Previous", 0);
             *(unsigned char*)(g_game + 0x2bc0) = 3;
-            FUN_00491c80(0x14);
+            SetCursorMode(0x14);
             return;
         }
         if (IsCurrentGadgetNamed(menu, "Difficulty")) {

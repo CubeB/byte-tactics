@@ -86,7 +86,7 @@ extern Game* g_game;
 int __stdcall GetSlotDpid(unsigned char index);
 int __stdcall BroadcastPacket(int id, unsigned char* packet, int size);
 void __stdcall ApplyUnitDeath(unsigned char* cmd, int param);
-void __stdcall FUN_00491d70(int param);
+void __stdcall PopUntilNamedLayout(int param);
 void __stdcall KillPlayerUnits(unsigned char player);
 
 // FUNCTION: 0x4864b0
@@ -136,7 +136,7 @@ void __stdcall KillUnit(Unit* unit, int param_2)
         ApplyUnitDeath((unsigned char*)&cmd, 1);
         if (same && g_game->field_37ef6 != 0 && unit->link->active != 0 &&
             (unit->link->state == 1 || unit->link->state == 2)) {
-            FUN_00491d70(1);
+            PopUntilNamedLayout(1);
             KillPlayerUnits(unit->field_ff);
         }
     }

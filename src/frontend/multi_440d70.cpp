@@ -351,7 +351,7 @@ void __stdcall SetFrontendErrorText(char* text);
 void __stdcall SetFrontendSubState(char state, int line, char* file);
 int __stdcall ReadGameRegistryValue(const char* key, void* buf, unsigned int* size);
 void __stdcall WriteGameRegistryValue(void* key, void* buf, int value);
-void __stdcall FUN_00491c80(int value);
+void __stdcall SetCursorMode(int value);
 void __stdcall EnableReporter(int value);
 void __stdcall SetOffscreenSurface(int a);
 void FlipScreen();
@@ -1207,7 +1207,7 @@ void __stdcall HandleReportClick(Gadget_00440d70* obj)
             acc = (int)(pow(2.0, i) * value + acc);
         }
 
-        FUN_00491c80(0x14);
+        SetCursorMode(0x14);
         EnableReporter(acc);
         if ((g_game->field_2bee & 0x10) || g_game->field_2bbf == 0x14) {
             g_game->field_2bc0 = 0x15;
@@ -1245,7 +1245,7 @@ void __stdcall OpenReportDialog(unsigned int* count, char** names)
     }
     FUN_0049fb10(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x141);
-    FUN_00491c80(0x13);
+    SetCursorMode(0x13);
     FUN_0049fa90(&g_game->menu);
     FUN_0049fad0(&g_game->menu);
 }
@@ -1256,13 +1256,13 @@ int InitScoreReporting(void)
     if (g_game->field_391e9->GetGameType() != 3)
         return 0;
     int saved = g_game->field_2cbe;
-    FUN_00491c80(0x14);
+    SetCursorMode(0x14);
     int r = LoadReporterDll(&DAT_005054a8, &DAT_00512788);
     if (r == 0) {
         if (DAT_005054a8 > 0) {
-            FUN_00491c80(0x13);
+            SetCursorMode(0x13);
             OpenReportDialog(&DAT_005054a8, (char**)&DAT_00512788);
-            FUN_00491c80(saved);
+            SetCursorMode(saved);
             return 1;
         }
     } else if (r != 4) {
@@ -1271,7 +1271,7 @@ int InitScoreReporting(void)
         LoadPictureCached("ReportError", 0, 1, 0);
         RunWhileScreenNamed(&g_game->menu, "MSGBOX.GUI");
     }
-    FUN_00491c80(saved);
+    SetCursorMode(saved);
     return 0;
 }
 

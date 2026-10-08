@@ -265,7 +265,7 @@ void __cdecl FUN_004d85a0(void* b);
 int PopKey(void);
 int __stdcall IsKeyDown(int key);
 void ClearSelection(void);
-void __stdcall FUN_00491d70(int param);
+void __stdcall PopUntilNamedLayout(int param);
 void __stdcall CloseTopScreen(Sub_495e90* gui);
 int __stdcall IsScreenNamed(Sub_495e90* gui, char* name);
 void SaveSettings(void);
@@ -519,7 +519,7 @@ void HandleGameKey(void)
                     FUN_004a6a40(&g_game->gui, handle);
             } else {
                 ClearSelection();
-                FUN_00491d70(1);
+                PopUntilNamedLayout(1);
             }
         }
         break;

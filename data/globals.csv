@@ -94,7 +94,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x501fd0,g_debugCommands,.data,432,gap,data,Option_00419560,1,1,2,conflicting: shape,2,,PTR_DAT_00501fd0,60,src/game/console_commands.cpp,e018500080624100040000004c225000b06a41000400000044225000b0644100040000003c225000d06941000400000034225000306a4100040000002c225000
 0x502288,g_mappingKey,.data,8,gap,string,char[],1,0,1,one type,1,,s_Mapping_00502288,,,4d617070696e6700
 0x5024fc,g_screenshotDirFormat,.data,16,gap,string,char[],1,0,1,one type,1,,s__s_screenshots_005024fc,,,25735c73637265656e73686f74730000
-0x502820,DAT_00502820,.data,8,gap,string,const char[],1,0,1,one type,1,,DAT_00502820,,,6775697300000000
+0x502820,g_guisDirName,.data,8,gap,string,const char[],1,0,1,one type,1,,DAT_00502820,,,6775697300000000
 0x502878,g_cameraXPosition,.data,12,gap,string,char[],1,0,1,one type,1,,s_X_Position_00502878,,,5820506f736974696f6e0000
 0x502884,g_cameraZPosition,.data,12,gap,string,char[],1,0,1,one type,1,,s_Z_Position_00502884,,,5a20506f736974696f6e0000
 0x502890,g_cameraAccount,.data,8,gap,string,char[],1,0,1,one type,1,,s_Camera_00502890,,,43616d6572610000
@@ -107,7 +107,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x502ae8,DAT_00502ae8,.data,4,gap,string,char[],2,0,1,one type,2,,DAT_00502ae8,,,4f4b0000
 0x502b38,g_optionsSoundName,.data,8,gap,string,char[],1,0,1,one type,1,,s_Options_00502b38,,,4f7074696f6e7300
 0x502bf8,g_faceVertexIndices,.data,48,type,data,unsigned short[6][4],1,0,1,one type,1,0x30,DAT_00502bf8,,,000001000200030002000100060005000000030004000700010000000700060003000200050004000400050006000700
-0x502e30,DAT_00502e30,.data,8,gap,string,const char[],1,0,1,one type,1,,s_anims_00502e30,,,616e696d73000000
+0x502e30,g_animsDirName,.data,8,gap,string,const char[],1,0,1,one type,1,,s_anims_00502e30,,,616e696d73000000
 0x502e78,g_descriptionKey,.data,12,gap,string,char[],1,0,1,one type,1,,s_Description_00502e78,,,4465736372697074696f6e00
 0x502f98,DAT_00502f98,.data,4,type,data,int,1,0,1,one type,1,,,,src/data/unused.cpp,10000000
 0x502f9c,DAT_00502f9c,.data,104,gap,data,char[],1,0,1,one type,1,,s_Code_segment_checksum_error_foun_00502f9c,,,436f6465207365676d656e7420636865636b73756d206572726f7220666f756e64207768656e20737769746368696e67204645207374617465732e0a53746174
@@ -130,7 +130,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x50331c,g_saveBankName,.data,4,type,string,char*,1,0,1,one type,1,,PTR_s_Total_Annihilation_3_0_0050331c,1,,2c335000
 0x503320,g_summaryAccountName,.data,4,type,string,char*,1,0,1,one type,1,,PTR_s_Summary_00503320,1,,24335000
 0x503374,DAT_00503374,.data,4,gap,data,char[],3,0,1,one type,3,,DAT_00503374,,,5c000000
-0x50338c,DAT_0050338c,.data,8,gap,string,const char[],1,0,1,one type,1,,s_fonts_0050338c,,,666f6e7473000000
+0x50338c,g_fontsDirName,.data,8,gap,string,const char[],1,0,1,one type,1,,s_fonts_0050338c,,,666f6e7473000000
 0x50341c,DAT_0050341c,.data,4,gap,string,char[],1,0,1,one type,1,,DAT_0050341c,1,,54444600
 0x50372c,DAT_0050372c,.data,4,gap,data,char[],3,0,1,one type,3,,DAT_0050372c,,,2a000000
 0x503ea0,g_noneString,.data,8,gap,string,char[],1,0,1,one type,1,,DAT_00503ea0,,,6e6f6e6500000000
@@ -251,13 +251,13 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x5091c8,DAT_005091c8,.data,4,type,data,char*,5,0,1,one type,5,,PTR_s_SAVEGAME_005091c8,1,,8c6d5000
 0x5091cc,DAT_005091cc,.data,4,type,data,int,2,0,1,one type,2,,DAT_005091cc,,,01000000
 0x5091d0,DAT_005091d0,.data,4,type,data,int,1,0,1,one type,1,,DAT_005091d0,,,ffffffff
-0x5091d4,DAT_005091d4,.data,12,gap,string,const char[],1,0,1,one type,1,,s_OFFSCREEN_005091d4,,,4f464653435245454e000000
-0x509200,DAT_00509200,.data,8,gap,string,const char[],1,0,1,one type,1,,s_CDLISTS_00509200,,,43444c4953545300
-0x509238,DAT_00509238,.data,12,gap,string,const char[],1,0,1,one type,1,,s_UnitLimit_00509238,,,556e69744c696d6974000000
-0x509244,DAT_00509244,.data,12,gap,string,const char[],1,0,1,one type,1,,s_hattfont11_00509244,,,68617474666f6e7431310000
-0x509250,DAT_00509250,.data,12,gap,string,const char[],1,0,1,one type,1,,s_hattfont12_00509250,,,68617474666f6e7431320000
-0x50925c,DAT_0050925c,.data,12,gap,string,const char[],1,0,1,one type,1,,s_commongui_0050925c,,,636f6d6d6f6e677569000000
-0x509268,DAT_00509268,.data,16,gap,string,const char[],1,0,1,one type,1,,s_SkirmishInfo_00509268,,,536b69726d697368496e666f00000000
+0x5091d4,g_offscreenSurfaceName,.data,12,gap,string,const char[],1,0,1,one type,1,,s_OFFSCREEN_005091d4,,,4f464653435245454e000000
+0x509200,g_cdListsKey,.data,8,gap,string,const char[],1,0,1,one type,1,,s_CDLISTS_00509200,,,43444c4953545300
+0x509238,g_unitLimitKey,.data,12,gap,string,const char[],1,0,1,one type,1,,s_UnitLimit_00509238,,,556e69744c696d6974000000
+0x509244,g_hattFont11Name,.data,12,gap,string,const char[],1,0,1,one type,1,,s_hattfont11_00509244,,,68617474666f6e7431310000
+0x509250,g_hattFont12Name,.data,12,gap,string,const char[],1,0,1,one type,1,,s_hattfont12_00509250,,,68617474666f6e7431320000
+0x50925c,g_commonGuiName,.data,12,gap,string,const char[],1,0,1,one type,1,,s_commongui_0050925c,,,636f6d6d6f6e677569000000
+0x509268,g_skirmishInfoTag,.data,16,gap,string,const char[],1,0,1,one type,1,,s_SkirmishInfo_00509268,,,536b69726d697368496e666f00000000
 0x509310,g_invalidSavegameText,.data,24,gap,string,const char[],1,0,1,one type,1,,s_Invalid_savegame_file_00509310,,,496e76616c6964207361766567616d652066696c65000000
 0x5093ec,DAT_005093ec,.data,8,gap,string,char[],1,0,1,one type,1,,,,,456e656d69657300
 0x5093f4,DAT_005093f4,.data,4,gap,string,char[],1,0,1,one type,1,,DAT_005093f4,,,2c3a3b00
@@ -712,12 +712,12 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51e823,DAT_0051e823,.bss,1,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,,DAT_0051e823,,in g_loadingBarPrevPercent+0x3,
 0x51e824,DAT_0051e824,.bss,1,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,,DAT_0051e824,,in g_loadingBarPrevPercent+0x4,
 0x51e825,DAT_0051e825,.bss,3,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,,DAT_0051e825,,,
-0x51e828,DAT_0051e828,.bss,2720,gap,data,CdLists_490f80,1,0,1,one type,1,0xa18,DAT_0051e828,,,
-0x51e848,DAT_0051e848,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051e848,,in DAT_0051e828+0x20,
-0x51e84c,DAT_0051e84c,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051e84c,,in DAT_0051e828+0x24,
-0x51e850,DAT_0051e850,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_0051e850,,in DAT_0051e828+0x28,
-0x51e854,DAT_0051e854,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_0051e854,,in DAT_0051e828+0x2c,
-0x51e858,DAT_0051e858,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_0051e858,,in DAT_0051e828+0x30,
+0x51e828,g_cdListsDiscEntries,.bss,2720,gap,data,CdLists_490f80,1,0,1,one type,1,0xa18,DAT_0051e828,,,
+0x51e848,DAT_0051e848,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051e848,,in g_cdListsDiscEntries+0x20,
+0x51e84c,g_cachedCdTrackTypes,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051e84c,,in g_cdListsDiscEntries+0x24,
+0x51e850,DAT_0051e850,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_0051e850,,in g_cdListsDiscEntries+0x28,
+0x51e854,DAT_0051e854,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_0051e854,,in g_cdListsDiscEntries+0x2c,
+0x51e858,DAT_0051e858,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_0051e858,,in g_cdListsDiscEntries+0x30,
 0x51f2c8,DAT_0051f2c8,.bss,10,type>gap,data,unsigned char[10],2,1,2,conflicting: signedness or const,3,0x8,DAT_0051f2c8,,,
 0x51f2d2,DAT_0051f2d2,.bss,6,gap,unreferenced,unsigned char[6],0,0,0,,0,,,,,
 0x51f2d8,DAT_0051f2d8,.bss,4,type,data,unsigned int,1,1,2,conflicting: signedness or const,2,,DAT_0051f2d8,,,

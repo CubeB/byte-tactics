@@ -240,7 +240,7 @@ void __stdcall InitTimers(int param_1);
 void __stdcall EmptyPostArchiveMountHook(const char* param_1);
 void __stdcall ShutdownEnvironment(void* param_1);
 void SaveCdLists();
-void FUN_00490fe0();
+void ReopenCdAudio();
 void MainFrameTick();
 void ShutdownMouse();
 void ShutdownGame();
@@ -346,11 +346,11 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
             } else if (g_displayContext.field_e0 != lzero && *(int*)g_game->field_10 == 0
                        && g_cdNeedsReopenAfterFocus != 0) {
                 ((Class_004ce260*)g_game->field_10)->OpenCdAudio();
-                ((Class_004cd9d0*)g_game->field_10)->SetCdCallback(FUN_00490fe0);
+                ((Class_004cd9d0*)g_game->field_10)->SetCdCallback(ReopenCdAudio);
                 ((Class_004cedc0*)g_game->field_10)->EnableCdAudio(g_game->field_37f14 & 1);
                 ((Class_004ce7a0*)g_game->field_10)->SetPlaybackOrder(g_game->field_37f16);
                 ((Sound*)g_game->field_10)->SetTrackCategory(g_cdTrackCategory);
-                FUN_00490fe0();
+                ReopenCdAudio();
                 g_cdNeedsReopenAfterFocus = 0;
             }
             if (PeekMessageA(&msg, NULL, 0, 0, 0) != 0)

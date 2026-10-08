@@ -213,7 +213,7 @@ struct Game {
 extern Game* g_game;
 
 void SelectStopOrder(void);
-int __stdcall FUN_00491d70(int force);
+int __stdcall PopUntilNamedLayout(int force);
 void __stdcall QueueUnitSpeech(Unit* unit, int kind, char* text);
 void __stdcall CenterCameraOnMapPosition(Vec3* p, int param_2);
 UnitTypeSet* __stdcall GetCategoryMask(char* name);
@@ -301,7 +301,7 @@ void ClearSelection(void)
 {
     for (Unit* u = g_game->units; u <= g_game->unitsEnd; u++)
         u->flags.raw &= 0xffffff2f;
-    FUN_00491d70(0);
+    PopUntilNamedLayout(0);
 }
 
 // Scans the local player's unit list for the same "build finished and the
@@ -422,7 +422,7 @@ void SelectAllVisibleUnits(void)
     int found = 0;
     for (Unit* u = g_game->units; u <= g_game->unitsEnd; u++)
         u->flags.raw &= 0xffffff2f;
-    FUN_00491d70(0);
+    PopUntilNamedLayout(0);
     unsigned short* list = g_game->list;
     for (int i = 0; i < g_game->count; i++) {
         Unit* u = &g_game->units[list[i]];
@@ -537,7 +537,7 @@ int __stdcall SelectUnitsInBox(void* param_1)
     if (!toggle) {
         for (Unit* v = g_game->units; v <= g_game->unitsEnd; v++)
             v->flags.raw &= 0xffffff2f;
-        FUN_00491d70(0);
+        PopUntilNamedLayout(0);
     }
     Player* p = &g_game->players[g_game->player];
     int count = 0;
@@ -660,7 +660,7 @@ void __stdcall ClickSelectHoverUnit(Param_0048c7f0* param)
 
     for (Unit* u = g_game->units; u <= g_game->unitsEnd; u++)
         u->flags.raw &= 0xffffff2f;
-    FUN_00491d70(0);
+    PopUntilNamedLayout(0);
     unsigned short* list = g_game->list;
     for (int i = 0; i < g_game->count; i++) {
         Unit* u = &g_game->units[list[i]];
@@ -963,7 +963,7 @@ void __stdcall FocusCommander(int param_1)
                     v->flags.bit6 = 0;
                     v->flags.bit7 = 0;
                 }
-                FUN_00491d70(0);
+                PopUntilNamedLayout(0);
                 u->flags.selected = 1;
                 g_game->orders.bit4 = 1;
                 return;
@@ -997,7 +997,7 @@ void __stdcall CycleSelection(void)
                              q <= g_game->unitsEnd; q++) {
                             q->flags.raw &= 0xffffff2f;
                         }
-                        FUN_00491d70(0);
+                        PopUntilNamedLayout(0);
                         break;
                     }
                 }

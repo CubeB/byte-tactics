@@ -39,7 +39,7 @@ int __stdcall IsCurrentGadgetNamed(Menu_00478cb0* menu, char* name);
 void __stdcall PlaySoundByName(char* str, int flag);
 char __stdcall FindGameCdDrive(int param_1);
 void RegisterDataArchives();
-void __stdcall FUN_00491c80(int param_1);
+void __stdcall SetCursorMode(int param_1);
 void BlankScreen();
 char* __stdcall Translate(char* text);
 void __stdcall OpenMessageBox(char* menu, char* text, int param_3, int param_4, int param_5);
@@ -64,7 +64,7 @@ void __stdcall HandleMissionBriefingClick(Menu_00478cb0* menu)
         PlaySoundByName("BigButton", 0);
         if (FindGameCdDrive(0)) {
             RegisterDataArchives();
-            FUN_00491c80(0x14);
+            SetCursorMode(0x14);
             g_game->input->StopStream();
             BlankScreen();
             g_game->field_2bc0 = 2;
@@ -95,7 +95,7 @@ void __stdcall HandleMissionBriefingClick(Menu_00478cb0* menu)
         PlaySoundByName("Previous", 0);
         BlankScreen();
         g_game->field_2bc0 = 3;
-        FUN_00491c80(0x14);
+        SetCursorMode(0x14);
         return;
     }
     if (IsCurrentGadgetNamed(menu, "TextRegion") || IsCurrentGadgetNamed(menu, "MOREBAR")) {

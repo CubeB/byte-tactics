@@ -36,7 +36,7 @@ extern int DAT_00512c8c;
 int __stdcall HAPINET_passwordrequired(void* net);
 int IsOnlineConfigLoaded(void);
 void* __cdecl FUN_004d83b0(char* tag, int size);
-void __stdcall FUN_00491c80(int n);
+void __stdcall SetCursorMode(int n);
 void __cdecl FUN_004d85a0(void* p);
 unsigned __stdcall JoinLobbyGameThread(void* args);
 Obj_00451640* GetDisplay();
@@ -72,11 +72,11 @@ int __stdcall JoinLobbyGame(Player_00451640* p)
         args->result = 0;
 
         unsigned int tid = 0;
-        FUN_00491c80(0x14);
+        SetCursorMode(0x14);
         unsigned long h = _beginthreadex(0, 0x8000, JoinLobbyGameThread, args, 0, &tid);
         if (h != 0) {
             if (WaitForSingleObject((HANDLE)h, 40000) == WAIT_TIMEOUT) {
-                FUN_00491c80(0x13);
+                SetCursorMode(0x13);
                 if (GetDisplay()->flag) {
                     ToggleFullScreen();
                     Sleep(500);
@@ -87,7 +87,7 @@ int __stdcall JoinLobbyGame(Player_00451640* p)
             }
         }
 
-        FUN_00491c80(0x13);
+        SetCursorMode(0x13);
         FUN_004d85a0(args);
     }
 

@@ -49,7 +49,7 @@ extern char g_screenshotPrefix[];
 int PeekKey();
 void PopKey();
 void ToggleFullScreen();
-void __stdcall FUN_00491d70(int);
+void __stdcall PopUntilNamedLayout(int);
 void __stdcall MakeDirectoryPath(char*);
 int __stdcall GetTicks();
 void __stdcall PeekMouseEvent(Input_00499890*);
@@ -76,7 +76,7 @@ void MainFrameTick()
     }
     if ((g_game->orderFlags & 1) && key == 0xe3) {
         PopKey();
-        FUN_00491d70(0);
+        PopUntilNamedLayout(0);
         g_game->orderFlags &= 0xfffe;
         if (g_game->manager->GetGameType() != 3)
             g_game->otherFlags &= 0xfffe;

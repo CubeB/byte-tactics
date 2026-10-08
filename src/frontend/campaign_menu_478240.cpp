@@ -109,7 +109,7 @@ void __stdcall FillMissionList();
 void __stdcall HandleNewGameClick();
 void __stdcall SelectGadgetByName(void* menu, const char* name);
 void __stdcall FUN_0049fb10(void* menu, int value);
-void __stdcall FUN_00491c80(int value);
+void __stdcall SetCursorMode(int value);
 
 // FUNCTION: 0x478240
 void __stdcall OpenNewGameMenu(int param_1)
@@ -253,5 +253,5 @@ void __stdcall OpenNewGameMenu(int param_1)
 
     FUN_0049fb10(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
-    FUN_00491c80(0x13);
+    SetCursorMode(0x13);
 }

@@ -374,8 +374,8 @@ void __stdcall SetGameMode(int a);
 void __stdcall SetCursorOverlayEnabled(int param);
 void __stdcall SetFrontendState(int state, int line, const char* file);
 void __stdcall SetMissionType(int param);
-void __stdcall FUN_00491c80(int n);
-void FUN_00491a70();
+void __stdcall SetCursorMode(int n);
+void Force640x480Surfaces();
 void FUN_00477410();
 void FUN_00476ca0();
 char __stdcall FindGameCdDrive(int param_1);
@@ -814,7 +814,7 @@ void __stdcall HandleEndMissionClick(Menu* gadget)
         PlaySoundByName("BigButton", 0);
         g_game->field_2bc0 = 10;
         SetCursorOverlayEnabled(1);
-        FUN_00491c80(0x14);
+        SetCursorMode(0x14);
         if (g_game->campaign->SelectMission(FindGadgetChecked(entries, "Missions")->field_ba)) {
             EnterMainMenuState();
             g_game->bit2_2a44 = 0;
@@ -832,7 +832,7 @@ void __stdcall HandleEndMissionClick(Menu* gadget)
         SetFrontendState(2, 770, "c:\\cavedog\\wargame\\endgame.cpp");
         SetGameMode(1);
         SetCursorOverlayEnabled(1);
-        FUN_00491c80(0x14);
+        SetCursorMode(0x14);
         return;
     } else if (IsCurrentGadgetNamed(gadget, "Difficulty")) {
         PlaySoundByName("SKirmish", 0);
@@ -939,7 +939,7 @@ void __stdcall OpenEndMissionScreen()
         FUN_004a0bf0(&g_game->menu, "MainMenu", "OK", 0);
     FUN_0049fb10(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
-    FUN_00491c80(0x13);
+    SetCursorMode(0x13);
 }
 
 // Enables the end-of-mission buttons: all of them when the campaign goes on
@@ -1121,7 +1121,7 @@ void __stdcall RunEndGameState()
                 if(!g_game->steps) g_game->done=1;
             }
         } else {
-            FUN_00491a70(); g_game->state=4;
+            Force640x480Surfaces(); g_game->state=4;
             SetOffscreenSurface(g_game->surface);
         }
         break;
@@ -1183,7 +1183,7 @@ void __stdcall RunEndGameState()
     case 7: {
         if(StatsComplete()) {
             FUN_0049fa50(&g_game->menu);
-            g_game->state=8; FUN_00491c80(19); SetCursorOverlayEnabled(1);
+            g_game->state=8; SetCursorMode(19); SetCursorOverlayEnabled(1);
             break;
         }
         UpdateMenu(&g_game->menu); FUN_004ab170(&g_game->menu,0,0);

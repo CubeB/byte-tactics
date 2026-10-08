@@ -420,7 +420,7 @@ void MainLoopTick()
     FUN_00428c50();
 }
 
-// Sets the game selection to 0x13 (inlined body of FUN_00491c80), resets the
+// Sets the game selection to 0x13 (inlined body of SetCursorMode), resets the
 // input/UI state and installs the game's own handler.
 // FUNCTION: 0x496a60
 void InitFrame()

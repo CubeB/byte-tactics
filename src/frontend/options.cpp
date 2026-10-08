@@ -1266,15 +1266,15 @@ int __stdcall GetDisplayModes(List_0045e5e0* list);
 int FindHostSlot();
 char* __cdecl _itoa(int value, char* buf, int radix);
 char* __stdcall WordWrapText(Menu_004604a0* menu, char* text, int player);
-int __stdcall FUN_00491c80(int value);
+int __stdcall SetCursorMode(int value);
 void FUN_00477410();
 char __stdcall FindGameCdDrive(int disc);
 void __stdcall RegisterDataArchives();
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 int __stdcall IsGadgetNamed(int param1, int param2, char* name);
-void FUN_00491b60();
-void FUN_00491c60();
-int __stdcall FUN_00491d70(int force);
+void ShutdownIngameSystems();
+void ShutdownIngameAndQuit();
+int __stdcall PopUntilNamedLayout(int force);
 void BlankScreen();
 void __stdcall SetGameMode(int a);
 void __stdcall SelectGadgetByName(Sub_00460680* sub, const char* name);
@@ -3124,7 +3124,7 @@ void OpenRestartDialog()
     FUN_00477410();
     FUN_0049fb10((Menu_004604a0*)&g_game->gui, 1);
     RenderLayer((Menu_004604a0*)&g_game->gui, 0x40);
-    FUN_00491c80(0x13);
+    SetCursorMode(0x13);
 }
 
 // FUNCTION: 0x4605c0
@@ -3139,15 +3139,15 @@ void __stdcall HandleSurrenderChoice(Gadget_004605c0* gadget)
         switch (g_battleQuitIntent) {
         case 0:
         case 1:
-            FUN_00491b60();
-            FUN_00491d70(1);
+            ShutdownIngameSystems();
+            PopUntilNamedLayout(1);
             CloseTopScreen(&g_game->gui);
             BlankScreen();
             SetGameMode(1);
             return;
         case 2:
             g_game->flags_3923b |= 4;
-            FUN_00491c60();
+            ShutdownIngameAndQuit();
             return;
         }
     } else if (!IsGadgetNamed(owner, gadget->field_60, "CHOICE2")) {

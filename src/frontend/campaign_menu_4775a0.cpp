@@ -23,7 +23,7 @@ int __stdcall IsCurrentGadgetNamed(Gadget_004775a0* gadget, char* name);
 char __stdcall FindGameCdDrive(int side);
 void RegisterDataArchives();
 void __stdcall PlaySoundByName(char* name, int param_2);
-void __stdcall FUN_00491c80(int n);
+void __stdcall SetCursorMode(int n);
 void ShowLoadGameScreen();
 void OpenOptionsPanel();
 void __stdcall FUN_004ab0a0(void* param_1);
@@ -40,7 +40,7 @@ void __stdcall HandleSingleMenuClick(Gadget_004775a0* gadget)
             RegisterDataArchives();
             PlaySoundByName("BigButton", 0);
             g_game->field_2bc0 = 10;
-            FUN_00491c80(0x14);
+            SetCursorMode(0x14);
         } else {
             OpenMessageBox(g_game->message, Translate("Please insert the Campaign CD (Disc 2) and try again"), 200, 1, 1);
             FUN_004ab0a0(g_game->message);
@@ -52,7 +52,7 @@ void __stdcall HandleSingleMenuClick(Gadget_004775a0* gadget)
             RegisterDataArchives();
             PlaySoundByName("skirmish", 0);
             g_game->field_2bc0 = 11;
-            FUN_00491c80(0x14);
+            SetCursorMode(0x14);
         } else {
             OpenMessageBox(g_game->message, Translate("Please insert the Multiplayer CD (Disc 1) and try again"), 200, 1, 1);
             FUN_004ab0a0(g_game->message);
@@ -61,7 +61,7 @@ void __stdcall HandleSingleMenuClick(Gadget_004775a0* gadget)
     }
     if (IsCurrentGadgetNamed(gadget, "LoadGame")) {
         PlaySoundByName("BigButton", 0);
-        FUN_00491c80(0x14);
+        SetCursorMode(0x14);
         ShowLoadGameScreen();
         FUN_004ab0a0(gadget);
         return;
@@ -69,13 +69,13 @@ void __stdcall HandleSingleMenuClick(Gadget_004775a0* gadget)
     if (IsCurrentGadgetNamed(gadget, "Options")) {
         PlaySoundByName("options", 0);
         FUN_004ab0a0(gadget);
-        FUN_00491c80(0x14);
+        SetCursorMode(0x14);
         OpenOptionsPanel();
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "PrevMenu")) {
         PlaySoundByName("Previous", 0);
-        FUN_00491c80(0x14);
+        SetCursorMode(0x14);
         g_game->field_2bc0 = 3;
         return;
     }
@@ -84,7 +84,7 @@ void __stdcall HandleSingleMenuClick(Gadget_004775a0* gadget)
             RegisterDataArchives();
             PlaySoundByName("bigButton", 0);
             g_game->field_2bc0 = 14;
-            FUN_00491c80(0x14);
+            SetCursorMode(0x14);
         } else {
             OpenMessageBox(g_game->message, Translate("Please insert the Campaign CD (Disc 2) and try again"), 200, 1, 1);
             FUN_004ab0a0(g_game->message);

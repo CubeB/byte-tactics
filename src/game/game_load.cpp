@@ -403,7 +403,7 @@ void ApplyUseOnlyUnits();
 void HandleNetPackets();
 void __stdcall LoadPlayerControllers(void* mission);
 void ApplySlotsToGamePlayers();
-void FUN_004917d0();
+void LoadBattleAssets();
 void FUN_00465e30();
 void __stdcall RecalculateLineOfSight(int x);
 void __stdcall LoadSavedGameState(void* mission);
@@ -627,7 +627,7 @@ void __cdecl LoadMatch(void*)
         }
     }
 
-    FUN_004917d0();
+    LoadBattleAssets();
 
     if (((Mission*)*(void**)((char*)g_game + 0x391e9))->GetGameType() != 1) {
         if (((Mission*)*(void**)((char*)g_game + 0x391e9))->GetGameType() == 3) {

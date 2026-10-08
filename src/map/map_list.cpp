@@ -134,7 +134,7 @@ void EnableMeteors();
 void DisableMeteors();
 void __stdcall SetMeteorParams(MeteorParams* p);
 void* __cdecl FUN_004d84a0(void* p, const char* name, unsigned int size);
-void __stdcall FUN_00491c80(int n);
+void __stdcall SetCursorMode(int n);
 void __stdcall ListDirectory(const char* pattern, int flags, std::vector<Class_004c91a0>* out);
 void HandleNetPackets();
 
@@ -402,7 +402,7 @@ int __stdcall LoadMapList(void** param_1, int param_2, int param_3)
         return g_otaEnumFileCount;
     }
 
-    FUN_00491c80(0x14);
+    SetCursorMode(0x14);
     // The scalar locals are members of one struct: frame offsets follow member order.
     struct S { int count; int bFlag; int i; } s;
     
@@ -454,7 +454,7 @@ int __stdcall LoadMapList(void** param_1, int param_2, int param_3)
                 g_packetManager.SendAllQueued(0);
         }
     }
-    FUN_00491c80(0x13);
+    SetCursorMode(0x13);
     if (g_otaEnumCacheComplete == 0)
         g_otaEnumCacheComplete = (param_2 == 0);
     int result = LoadMapList(param_1, param_2, param_3);

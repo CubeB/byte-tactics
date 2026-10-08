@@ -69,7 +69,7 @@ void HideSoftwareCursor();
 void __stdcall SetOffscreenSurface(int param);
 void __stdcall FillSurface(int a, int b);
 void FlipScreen();
-void FUN_00491a70();
+void Force640x480Surfaces();
 Dialog_004263b0* __stdcall LoadGuiLayer(Sub_004263b0* sub, const char* name, int flags);
 void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void __stdcall PlayLoopingSoundByName(const char* name, int a);
@@ -110,7 +110,7 @@ void __stdcall OpenMainMenu()
     SetOffscreenSurface(g_game->field_37e1b);
     FillSurface(0, 0);
     FlipScreen();
-    FUN_00491a70();
+    Force640x480Surfaces();
 
     Dialog_004263b0* dialog = LoadGuiLayer(&g_game->sub, "MAINMENU.GUI", 0x80);
     dialog->handler = HandleMainMenuClick;

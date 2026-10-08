@@ -147,8 +147,8 @@ void ClearSelection();
 int __stdcall SelectUnitsInBox(void* p);
 unsigned short __stdcall PickUnitUnderCursor();
 int __stdcall ResolveCursorModeForSelection(char mode);
-void FUN_00491b60();
-void __stdcall FUN_00491d70(int a);
+void ShutdownIngameSystems();
+void __stdcall PopUntilNamedLayout(int a);
 void MainLoopTick();
 void __stdcall UpdateCursorWorldPos(View* p);
 void __stdcall IssueMobileBuildOrders(View* arg);
@@ -199,7 +199,7 @@ void __stdcall HandleLeftClick(View* param_1)
     if (g_game->selected >= 0x11) {
         if (g_game->field_37efa == 1 && g_game->orderMode == 1) {
             ClearSelection();
-            FUN_00491d70(1);
+            PopUntilNamedLayout(1);
         }
         return;
     }
@@ -244,7 +244,7 @@ void __stdcall HandleRightClick(View* param_1)
                 return;
             }
             ClearSelection();
-            FUN_00491d70(1);
+            PopUntilNamedLayout(1);
             return;
         }
         if (g_game->flags_2cc6 & 1) {
@@ -338,7 +338,7 @@ void BattleFrame(void)
                 HandleLeftClick(&view);
             } else if (SelectUnitsInBox(&view) == 0) {
                 ClearSelection();
-                FUN_00491d70(1);
+                PopUntilNamedLayout(1);
             }
         } else {
             g_game->field_2c9e = g_game->field_2cac;
@@ -370,7 +370,7 @@ void BattleFrame(void)
     {
         unsigned short unit = g_game->field_37e9c;
         if (unit != 0 && *(short*)(g_game->units + unit * 0x118 + 0xa6) == 0) {
-            FUN_00491d70(0);
+            PopUntilNamedLayout(0);
         }
     }
 
@@ -379,13 +379,13 @@ void BattleFrame(void)
             (((Mission*)g_game->net)->GetGameType() == 3 &&
              FUN_004572a0() != 0)) {
             SetCursor(0x13);
-            FUN_00491d70(1);
+            PopUntilNamedLayout(1);
             CloseTopScreen(g_game->field_519);
             if (g_game->net->GetGameType() == 3) {
                 FUN_00463c80();
                 MainLoopTick();
             }
-            FUN_00491b60();
+            ShutdownIngameSystems();
             ClearKeyQueue();
             g_game->field_10->SetTrackCategory(4);
             g_game->field_391f1 = 7;
@@ -398,8 +398,8 @@ void BattleFrame(void)
     if (g_game->field_39249 != 0) {
         // Each arm keeps its own copy of the hook stores, and `|= 4` in both: the compiler merges them.
         if (g_game->net->GetGameType() == 1) {
-            FUN_00491b60();
-            FUN_00491d70(1);
+            ShutdownIngameSystems();
+            PopUntilNamedLayout(1);
             CloseTopScreen(g_game->field_519);
             BlankScreen();
             int a = ((Mission*)g_game->net)->GetMissionIndex();
@@ -414,8 +414,8 @@ void BattleFrame(void)
             SetCloseHandler(LeaveNetGameCallback, 0);
         } else {
             unsigned int saved = g_game->field_2a3c;
-            FUN_00491b60();
-            FUN_00491d70(1);
+            ShutdownIngameSystems();
+            PopUntilNamedLayout(1);
             CloseTopScreen(g_game->field_519);
             BlankScreen();
             SetCursor(0x14);

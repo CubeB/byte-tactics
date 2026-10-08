@@ -31,7 +31,7 @@ void FlipScreen();
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void __cdecl FUN_004d85a0(void* p);
 void __stdcall PlaySoundByName(char* name, int param_2);
-void __stdcall FUN_00491c80(int param_1);
+void __stdcall SetCursorMode(int param_1);
 int __stdcall IsCurrentGadgetNamed(Gadget_00425d80* gadget, char* name);
 void __stdcall FUN_004ab0a0(void* param_1);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
@@ -51,13 +51,13 @@ void __stdcall HandleMainMenuClick(Gadget_00425d80* gadget)
     }
     if (IsCurrentGadgetNamed(gadget, "SINGLE")) {
         PlaySoundByName("BigButton", 0);
-        FUN_00491c80(0x14);
+        SetCursorMode(0x14);
         g_game[0x2bc0] = 5;
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "MULTI")) {
         PlaySoundByName("BigButton", 0);
-        FUN_00491c80(0x14);
+        SetCursorMode(0x14);
         RegisterDataArchives();
         BuildDataPath(buf, "maps", "multiplay", "tdf");
         TdfFile obj;
@@ -91,7 +91,7 @@ void __stdcall HandleMainMenuClick(Gadget_00425d80* gadget)
             FUN_004ab0a0(g_game + 0x519);
             return;
         }
-        FUN_00491c80(0x14);
+        SetCursorMode(0x14);
         if (GetKeyState(0x10) < 0) {
             *(int*)(g_game + 0x39241) = 1;
         } else {
@@ -116,7 +116,7 @@ void __stdcall HandleMainMenuClick(Gadget_00425d80* gadget)
     }
     if (IsCurrentGadgetNamed(gadget, "EXIT")) {
         PlaySoundByName("exit", 0);
-        FUN_00491c80(0x14);
+        SetCursorMode(0x14);
         g_game[0x2bc0] = 8;
         return;
     }
@@ -137,7 +137,7 @@ void __stdcall HandleMainMenuClick(Gadget_00425d80* gadget)
             FUN_004ab0a0(g_game + 0x519);
             return;
         }
-        FUN_00491c80(0x14);
+        SetCursorMode(0x14);
         g_game[0x2bc0] = 9;
         return;
     }

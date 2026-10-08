@@ -81,7 +81,7 @@ void __stdcall InitGafSequence(void* state, void* gaf, int param_3);
 void __stdcall AllocBlinkWords(char* menu, int param_2);
 void __stdcall FUN_0049fb10(char* menu, int param_2);
 void __stdcall RenderLayer(char* menu, int param_2);
-void __stdcall FUN_00491c80(int param_1);
+void __stdcall SetCursorMode(int param_1);
 void FUN_00476d80();
 void HandleMissionBriefingClick();
 void UpdateSolarSystem();
@@ -235,5 +235,5 @@ void OpenMissionBriefing(void)
     FUN_00476d80();
     FUN_0049fb10(g_game + 0x519, 1);
     RenderLayer(g_game + 0x519, 0xc0);
-    FUN_00491c80(0x13);
+    SetCursorMode(0x13);
 }

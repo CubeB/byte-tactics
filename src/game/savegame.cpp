@@ -220,8 +220,8 @@ void __stdcall FreeSummaryBank(void* handle);
 void* __stdcall OpenHapiBank(char* path);
 void __stdcall SetMissionType(int value);
 void __stdcall PlaySoundByName(char* name, int param);
-void __stdcall FUN_00491b60();
-void __stdcall FUN_00491d70(int flag);
+void __stdcall ShutdownIngameSystems();
+void __stdcall PopUntilNamedLayout(int flag);
 void MenuFrame();
 void __stdcall FUN_0049fa70(void* menu);
 void __stdcall FUN_0049fa50(void* menu);
@@ -468,7 +468,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         sprintf(g_game->saveName, "%s\\%s", DAT_005091c8,
                 SkipTextLines(DAT_0051f2e0, e->field_ba));
         if (g_game->flags_2a44.b2)
-            FUN_00491b60();
+            ShutdownIngameSystems();
         g_game->flags_3923b.b3 = 1;
 
         g_game->p38d6b = OpenHapiBank(g_game->saveName);
@@ -533,7 +533,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         if (DAT_0051f2ec)
             FUN_004d85a0(DAT_0051f2ec);
         DAT_0051f2ec = 0;
-        FUN_00491d70(1);
+        PopUntilNamedLayout(1);
         if (((Mission*)g_game->p391e9)->GetGameType() == 1 &&
             ((HapiBank*)g_game->p38d6b)->HasItem("BetweenMissions")) {
             g_game->flags_2a44.b3 = 1;

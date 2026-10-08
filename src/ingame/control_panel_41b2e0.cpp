@@ -119,7 +119,7 @@ struct Game_0041b2e0 {
 
 extern Game_0041b2e0* g_game;
 
-int __stdcall FUN_00491d70(int force);
+int __stdcall PopUntilNamedLayout(int force);
 int __stdcall IsScreenNamed(Menu_0041b2e0* menu, const char* name);
 void __stdcall OpenBuildMenuGui(Unit_0041b2e0* unit, char* guiName, int page);
 void __stdcall OpenGeneratorDialog(Unit_0041b2e0* unit);
@@ -241,7 +241,7 @@ void RefreshSelectionOrders()
         g_game->orders.canBlast = canBlast;
     }
     if (count == 0) {
-        FUN_00491d70(0);
+        PopUntilNamedLayout(0);
         g_game->orders.refresh = 0;
     } else if (count == 1 && first->type->field_22e) {
         int page = first->flags.buildPage ? first->flags.page : 0;
@@ -252,13 +252,13 @@ void RefreshSelectionOrders()
             name[0x1f] = 0;
             sprintf(gui, "%s%d.GUI", name, page);
             if ((IsScreenNamed(&g_game->menu, gui) == 0 || g_game->unitIndex != first->id)
-                && FUN_00491d70(0))
+                && PopUntilNamedLayout(0))
                 OpenBuildMenuGui(first, gui, page);
             g_game->orders.refresh = 0;
         }
     }
     if (g_game->orders.refresh) {
-        if (FUN_00491d70(0)) {
+        if (PopUntilNamedLayout(0)) {
             if (count == 1) {
                 OpenGeneratorDialog(first);
                 return;

@@ -130,7 +130,7 @@ int __stdcall GetServiceProviderIndex(void);
 void __stdcall ReportGameEvent(int param);
 void __stdcall DeleteUnitSync(void);
 void __stdcall ShutdownScoreTables(void);
-void __stdcall FUN_00491a70(void);
+void __stdcall Force640x480Surfaces(void);
 int __stdcall InitScoreReporting(void);
 void __stdcall ShowEndMissionScreen(void);
 void __stdcall HideSoftwareCursor(void);
@@ -614,7 +614,7 @@ void RunFrontendStateMachine(void)
             }
             if (g_game[0x2bbf] == 0x12) {
                 BlankScreen();
-                FUN_00491a70();
+                Force640x480Surfaces();
                 if (InitScoreReporting()) {
                     FUN_004ab0a0((int)(g_game + 0x519));
                     SetSubState(0x14, 0x5c1, DAT_00503004);

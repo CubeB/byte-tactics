@@ -57,7 +57,7 @@ void __stdcall ToggleAnyMission(void* gadget);
 int GetPreferredLanguage();
 void __stdcall FUN_004a1530(Menu_004777a0* menu, const char* name, char value);
 void __stdcall FUN_0049fb10(Menu_004777a0* menu, int value);
-void __stdcall FUN_00491c80(int value);
+void __stdcall SetCursorMode(int value);
 void __stdcall RenderLayer(Menu_004777a0* menu, int value);
 
 // FUNCTION: 0x4777a0
@@ -89,6 +89,6 @@ void OpenSingleMenu()
         FUN_004a1530(&g_game->menu, "Skirmish", 0x73);
     }
     FUN_0049fb10(&g_game->menu, 1);
-    FUN_00491c80(0x13);
+    SetCursorMode(0x13);
     RenderLayer(&g_game->menu, 0x40);
 }

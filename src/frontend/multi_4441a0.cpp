@@ -54,7 +54,7 @@ Entry_004441a0* __stdcall FindGadgetChecked(void* entries, char* name);
 int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
 int __stdcall SelectConnection(int index);
 void __stdcall PlaySoundByName(char* name, int flag);
-void __stdcall FUN_00491c80(int value);
+void __stdcall SetCursorMode(int value);
 int __stdcall OnlineProcessButtonCommand(int button, char* message, unsigned int size);
 void OnlineUnload();
 char* __stdcall Translate(char* text);
@@ -100,11 +100,11 @@ void __stdcall FUN_004441a0(Menu_004441a0* menu)
         message[0] = 0;
         int result = 2;
         try {
-            FUN_00491c80(0x14);
+            SetCursorMode(0x14);
             result = OnlineProcessButtonCommand(DAT_005127c8[link].id, message, sizeof(message));
-            FUN_00491c80(0x13);
+            SetCursorMode(0x13);
         } catch (...) {
-            FUN_00491c80(0x13);
+            SetCursorMode(0x13);
         }
         if (result == 0) {
             OnlineUnload();

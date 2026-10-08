@@ -1822,7 +1822,7 @@ address,name
 0x489580,UnitRef::UnlinkFromUnit
 0x4895c0,Class_004895c0::Class_004895c0
 0x489600,??_GClass_004895c0@@UAEPAXI@Z
-0x489650,UnitRef::FUN_00489650
+0x489650,UnitRef::Unlink
 0x489690,Class_004895c0::SetUnit
 0x4896f0,UnitRef::ClearRef
 0x489740,ClearUnitRefs

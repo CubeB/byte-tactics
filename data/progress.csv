@@ -1830,7 +1830,7 @@ address,size,file,symbol,status,similarity
 0x489580,53,src/units/unit_targets_489280.cpp,?UnlinkFromUnit@UnitRef@@QAEXXZ,matched,100.0
 0x4895c0,64,src/units/unit_targets_489280.cpp,??0Class_004895c0@@QAE@PAVUnit@@H@Z,matched,100.0
 0x489600,77,src/units/unit_targets_489280.cpp,??_GClass_004895c0@@UAEPAXI@Z,matched,100.0
-0x489650,59,src/units/unit_targets_489280.cpp,?FUN_00489650@UnitRef@@QAEXXZ,matched,100.0
+0x489650,59,src/units/unit_targets_489280.cpp,?Unlink@UnitRef@@QAEXXZ,matched,100.0
 0x489690,96,src/units/unit_targets_489280.cpp,?SetUnit@Class_004895c0@@QAEXPAVUnit@@@Z,matched,100.0
 0x4896f0,79,src/units/unit_targets_489280.cpp,?ClearRef@UnitRef@@QAEXXZ,matched,100.0
 0x489740,101,src/units/unit_targets_489280.cpp,?ClearUnitRefs@@YGXPAVUnit@@@Z,matched,100.0

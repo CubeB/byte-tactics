@@ -253,7 +253,7 @@ public:
     void ClearRef(void);
     void LinkToUnit(Unit* o);
     void UnlinkFromUnit();
-    void FUN_00489650();
+    void Unlink();
 };
 
 // FUNCTION: 0x489540
@@ -330,10 +330,10 @@ Class_004895c0::Class_004895c0(Unit* o, int v)
 
 // The out-of-line destructor of Class_004895c0 (vtable 0x4fd754): unlinks
 // the object from its owner's list (head at +0xa2) and clears the link.
-// Callers already call it as UnitRef::FUN_00489650, so it is written as that
+// Callers already call it as UnitRef::Unlink, so it is written as that
 // method, which runs the real destructor non-virtually.
 // FUNCTION: 0x489650
-void UnitRef::FUN_00489650()
+void UnitRef::Unlink()
 {
     ((Class_004895c0*)this)->Class_004895c0::~Class_004895c0();
 }

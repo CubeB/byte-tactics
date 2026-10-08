@@ -114,7 +114,7 @@ public:
 
 class UnitRef {
 public:
-    void FUN_00489650();
+    void Unlink();
 };
 
 // The parsed text file the writer is handed (the same object as HapiBank).
@@ -730,7 +730,7 @@ Class_0043a1f0::~Class_0043a1f0()
     if (!(flags & 0x10000)) {
         unit->ReleaseWeapons(3);
     }
-    ((UnitRef*)&link)->FUN_00489650();
+    ((UnitRef*)&link)->Unlink();
 }
 
 // The real resolver at 0x43a360 (matched in its own file), defined here without

@@ -189,7 +189,7 @@ revisit them once the surrounding code is known.
   constructor first); the destructor stores only 0x4fd2c8, so the base
   declares no destructor. #291 read 0x4fd2c8 as a 2-slot vtable, which runs
   into 0x4fd2cc (#294). The link member at +0x12 is a `Class_004895c0`; its
-  destructor 0x489650, filed as `Class_00489650::FUN_00489650`, is called by
+  destructor 0x489650, filed as `Class_00489650::Unlink`, is called by
   hand at the end of 0x43a1f0. When 0x43a420 is decompiled it must also be
   `Class_0043a1f0::Class_0043a1f0` (a class named after its own address
   could not store `??_7Class_0043a1f0`), so its caller 0x487080 will need a

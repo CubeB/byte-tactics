@@ -6500,7 +6500,7 @@ public:
 class Class_00489650 {  // 0x1 bytes, 5 views
 public:
     char unknown_0[1];
-    void FUN_00489650(void);
+    void Unlink(void);
 };
 
 struct Head_0043a420 {  // 0xe bytes, 1 view

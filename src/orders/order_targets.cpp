@@ -594,7 +594,7 @@ public:
 
 class UnitRef {
 public:
-    void FUN_00489650();
+    void Unlink();
 };
 
 extern void* g_pathOrderVtable[];
@@ -1913,7 +1913,7 @@ Class_0044de80::Class_0044de80(int owner, HapiBank* file, char* name)
         pos = rec.pos;
         field_32 = rec.i4;
     }
-    ((UnitRef*)&rec.ref_vt)->FUN_00489650();
+    ((UnitRef*)&rec.ref_vt)->Unlink();
 }
 
 // FUNCTION: 0x44df70
@@ -1923,13 +1923,13 @@ int FUN_0044df70(void)
 }
 
 // Scalar-deleting-destructor shape: unlink the embedded list node at +0x16
-// (via UnitRef::FUN_00489650, the same unlink method used elsewhere),
+// (via UnitRef::Unlink, the same unlink method used elsewhere),
 // restore this object's own vtable, conditionally operator delete, and
 // return `this`.
 // FUNCTION: 0x44df80
 void* Class_0044df80::FUN_0044df80(unsigned char flag)
 {
-    ((UnitRef*)((char*)this + 0x16))->FUN_00489650();
+    ((UnitRef*)((char*)this + 0x16))->Unlink();
     vtable = DAT_004fd2f8;
     if (flag & 1) {
         operator delete(this);
@@ -2023,7 +2023,7 @@ int Class_0044dfb0::FUN_0044dfb0(int unused, HapiBank* file, char* name)
     file->OpenNamedBox(name);
     ((HapiBank*)file)->SeekBox(0);
     ((HapiBank*)file)->WriteBox(&rec, 0x36);
-    ((UnitRef*)&rec.ref_vt)->FUN_00489650();
+    ((UnitRef*)&rec.ref_vt)->Unlink();
     return 1;
 }
 

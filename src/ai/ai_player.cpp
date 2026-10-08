@@ -1822,10 +1822,10 @@ void PlayerAI::BuildFeatureCells()
 void PlayerAI::UpdateEveryThirtyTicks()
 {
     if (g_game->ticks >= lastTick + 0x1e) {
-        ((PlayerAI*)this)->RefreshUnitLists();
+        this->RefreshUnitLists();
         lastTick = g_game->ticks;
         if (RandomInt(0x1e) == 0) {
-            ((PlayerAI*)this)->ComputeBaseWeights();
+            this->ComputeBaseWeights();
         }
     }
 }

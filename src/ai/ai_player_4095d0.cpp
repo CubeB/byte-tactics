@@ -1,4 +1,8 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
+// The original declares the tag as a struct here, so forward-declare it
+// before the header: the key of the first declaration decorates the name.
+struct UnitDef;
+#include "../units/unit_def.h"
 
 struct Sub_004095d0 {
     char unknown_0[0xd4];
@@ -9,20 +13,13 @@ struct Sub_004095d0 {
     char field_10a;                // +0x10a
 };
 
+// The flags at +0x245 read as the original's bitfield; the header keeps the
+// plain word.
 #pragma pack(push, 1)
-struct UnitDef {
-    char unknown_0[0x186];
-    float energyCost;              // +0x186
-    float metalCost;               // +0x18a
-    char unknown_18e[0x1ce - 0x18e];
-    float extractsMetal;           // +0x1ce
-    char unknown_1d2[0x1ee - 0x1d2];
-    Sub_004095d0* arr[3];          // +0x1ee
-    char unknown_1fa[0x22d - 0x1fa];
-    char makesMetal;               // +0x22d
-    char unknown_22e[0x245 - 0x22e];
-    unsigned int bit0_3 : 4;       // +0x245
-    unsigned int flag : 1;         // +0x245, bit 4
+struct UnitDefFlags_004095d0 {
+    char unknown_0[0x245];
+    unsigned int bit0_3 : 4;
+    unsigned int flag : 1;         // bit 4
     unsigned int bit5_31 : 27;
 };
 #pragma pack(pop)
@@ -43,9 +40,9 @@ int __stdcall RateUnitType(UnitDef* p)
         result += 10;
     result = (int)((int)(result - p->metalCost * -0.01f) - p->energyCost * -0.002f);
     int extra = 1;
-    if (p->flag)
+    if (((UnitDefFlags_004095d0*)p)->flag)
         extra = 0xb;
-    Sub_004095d0** pp = p->arr;
+    Sub_004095d0** pp = (Sub_004095d0**)p->weapons;
     for (int i = 3; i != 0; i--) {
         Sub_004095d0* s = *pp;
         if (s->field_10a != 0)

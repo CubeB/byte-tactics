@@ -1,4 +1,8 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
+// The original declares the tag as a struct here, so forward-declare it
+// before the header: the key of the first declaration decorates the name.
+struct UnitDef;
+#include "../units/unit_def.h"
 
 struct Sub_00409520 {
     char unknown_0[0xd4];
@@ -9,13 +13,13 @@ struct Sub_00409520 {
     char field_10a;                // +0x10a
 };
 
+// The flags at +0x245 read as the original's bitfield; the header keeps the
+// plain word.
 #pragma pack(push, 1)
-struct UnitDef {
-    char unknown_0[0x1ee];
-    Sub_00409520* arr[3];          // +0x1ee
-    char unknown_1fa[0x4b];
-    unsigned int bit0_3 : 4;       // +0x245
-    unsigned int flag : 1;         // +0x245, bit 4
+struct UnitDefFlags_00409520 {
+    char unknown_0[0x245];
+    unsigned int bit0_3 : 4;
+    unsigned int flag : 1;         // bit 4
     unsigned int bit5_31 : 27;
 };
 #pragma pack(pop)
@@ -30,9 +34,9 @@ struct UnitDef {
 int __stdcall RateWeapons(UnitDef* p)
 {
     int result = 1;
-    if (p->flag)
+    if (((UnitDefFlags_00409520*)p)->flag)
         result = 0xb;
-    Sub_00409520** pp = p->arr;
+    Sub_00409520** pp = (Sub_00409520**)p->weapons;
     for (int i = 3; i != 0; i--) {
         Sub_00409520* s = *pp;
         if (s->field_10a != 0)

@@ -50,25 +50,18 @@ struct Point16 {
     short x, z;
 };
 
-struct UnitDef {
-    char unknown_0[0x16e];
-    int modelMaxY;                     // +0x16e
-    char unknown_172[0x1fa - 0x172];
-    unsigned int maxHealth;            // +0x1fa
-    char unknown_1fe[0x204 - 0x1fe];
-    short radardistance;               // +0x204
-    short sonardistance;               // +0x206
-    short mincloakdistance;            // +0x208
-    short radardistancejam;            // +0x20a
-    short sonardistancejam;            // +0x20c
-    char unknown_20e[0x241 - 0x20e];
-    struct {
-        unsigned int bit0_7 : 8;       // +0x241
-        unsigned int bit8 : 1;         // tested by the detection visitor
-        unsigned int bit9_31 : 23;
-    } flags;
-    unsigned int flags2;               // +0x245
+#include "../units/unit_def.h"
+
+// The flags at +0x241 read as the original's bitfield; the header keeps the
+// plain word.
+#pragma pack(push, 1)
+struct UnitDefFlags_00467440 {
+    char unknown_0[0x241];
+    unsigned int bit0_7 : 8;
+    unsigned int bit8 : 1;         // bit 8
+    unsigned int bit9_31 : 23;
 };
+#pragma pack(pop)
 
 struct UnitType_004685a0 {
     char name[0x152];                  // +0x0
@@ -655,7 +648,7 @@ void DetectionVisitor::MarkUnitsInRadarOrSonarRadius(Unit* unit)
     }
 
     UnitDef* def = unit->def;
-    if (def->flags.bit8) {
+    if (((UnitDefFlags_00467440*)def)->bit8) {
         return;
     }
 

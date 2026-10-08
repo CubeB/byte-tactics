@@ -4,8 +4,9 @@
 // declaration of the class for the files that call it; units/unit_types.cpp,
 // which defines the methods and loads the FBI files, keeps its own view,
 // since its loader spellings (workertime, maxdamage, cruisealt, waterline,
-// bmcode) and its by-value Vec3 extents do not fit this one. The types behind
-// the pointers stay private to their own files.
+// bmcode), its by-value Vec3 extents and its bit-by-bit operator= over the
+// flag words do not fit this one. The types behind the pointers stay private
+// to their own files.
 #ifndef UNIT_DEF_H
 #define UNIT_DEF_H
 
@@ -35,13 +36,16 @@ public:
         char* yardmap;                 // +0x14e
     };
     int count;                         // +0x152
-    void* ids;                         // +0x156
+    // The unit type ids it can build; vtol_orders_414380.cpp tests it as
+    // canBuild, but every indexing read is unsigned short.
+    unsigned short* ids;               // +0x156
     int f15a;                          // +0x15a
-    // The extents (extentmin/extentmax/extentsize in unit_types.cpp) are typed
-    // as a Vec3 in each file that names them, so the bytes stay unnamed here.
-    // modelMaxY is extentmax.y and field_170 its top half, as the VTOL views
-    // spell them.
-    char unknown_15e[0x16e - 0x15e];
+    // The model bounding box (nModelMinX..nModelSizeZ in Thaldren's UnitDef);
+    // each file that reads it as a Vec3 casts at the use.
+    int modelMinX;                     // +0x15e
+    int modelMinY;                     // +0x162
+    int modelMinZ;                     // +0x166
+    int modelMaxX;                     // +0x16a
     union {
         int modelMaxY;                 // +0x16e
         struct {
@@ -49,7 +53,10 @@ public:
             short field_170;           // +0x170
         };
     };
-    char unknown_172[0x182 - 0x172];
+    int modelMaxZ;                     // +0x172
+    int modelSizeX;                    // +0x176
+    int modelSizeY;                    // +0x17a
+    int modelSizeZ;                    // +0x17e
     int radius;                        // +0x182
     float energyCost;                  // +0x186
     float metalCost;                   // +0x18a
@@ -79,6 +86,9 @@ public:
     float energystorage;               // +0x1e2
     float metalstorage;                // +0x1e6
     int buildtime;                     // +0x1ea
+    // The three weapon type pointers (WeaponDef, 0x115 bytes each); the loader
+    // stores what FindWeaponByName returns, so each file that reads the fields
+    // casts.
     char* weapons[3];                  // +0x1ee
     unsigned int maxHealth;            // +0x1fa
     unsigned short buildRate;          // +0x1fe

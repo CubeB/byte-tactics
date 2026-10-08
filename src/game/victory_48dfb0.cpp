@@ -1636,13 +1636,15 @@ static inline Vec3 operator-(const Vec3& p, const Vec3& q)
     return r;
 }
 
+#include "../units/unit_def.h"
+
+// The flags at +0x241 read as the original's bitfield; the header keeps the
+// plain word.
 #pragma pack(push, 1)
-struct UnitDef {
-    char pad0[0x21c];
-    short altitude;                    // +0x21c
-    char pad21e[0x241 - 0x21e];
+struct UnitDefFlags_0048dfb0 {
+    char unknown_0[0x241];
     unsigned int unknown_241_0 : 22;
-    unsigned int seaUnit : 1;          // +0x241 bit 22
+    unsigned int seaUnit : 1;          // bit 22
     unsigned int unknown_241_1 : 9;
 };
 #pragma pack(pop)
@@ -1807,7 +1809,7 @@ void PackedGoal::TickTowardGoal()
     vel = pos - old;
     int dist = (int)_hypot(owner->pos.x - pos.x, owner->pos.z - pos.z);
     if (dist > 0xa00000) {
-        if (owner->def->seaUnit)
+        if (((UnitDefFlags_0048dfb0*)owner->def)->seaUnit)
             pos.y = (g_game->seaLevel + owner->def->altitude) << 16;
         else
             // altitude via owner->def-> and first in the add: keeps the two

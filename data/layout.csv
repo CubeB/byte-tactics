@@ -43,10 +43,10 @@ piece,0x4e35b0,349,src/debug/debug_lib_4e35b0.cpp,2,0,gap code
 piece,0x4c38a0,75,LIBCPMT.LIB#3,61,0,library code
 piece,0x4c3aa0,75,LIBCPMT.LIB#3@1,61,0,library code
 piece,0x4c4ac0,72,src/runtime/basic_string.cpp,7,0,library code
-piece,0x4c4b10,273,src/runtime/basic_string.cpp,9,0,library code
-piece,0x4c4c30,17,src/runtime/basic_string.cpp,11,0,library code
-piece,0x4c4c50,288,src/runtime/basic_string.cpp,13,0,library code
-piece,0x4c50a0,201,src/runtime/basic_string.cpp,20,0,library code
+piece,0x4c4b10,273,LIBCPMT.LIB#5,370,0,library code
+piece,0x4c4c30,17,src/runtime/basic_string.cpp,9,0,library code
+piece,0x4c4c50,288,src/runtime/basic_string.cpp,11,0,library code
+piece,0x4c50a0,201,src/runtime/basic_string.cpp,18,0,library code
 piece,0x4d1c80,158,zlib/compress.obj,2,0,library code
 piece,0x4d1d20,133,zlib/uncompr.obj,2,0,library code
 piece,0x4d1db0,36,zlib/deflate.obj,3,0,library code
@@ -3871,18 +3871,18 @@ piece,0x50a7fc,44,src/network/hapinet.cpp,5,0,game data
 piece,0x50a7c4,54,src/network/hapinet.cpp,4,0,game data
 piece,0x50a798,43,src/network/hapinet.cpp,3,0,game data
 piece,0x50a768,15,src/graphics/surface.cpp,63,0,game data
-piece,0x4fdc18,1,src/util/tdf_4c49a0.cpp,6,0,game data
-piece,0x4fdc20,8,src/util/tdf_record.cpp,30,0,game data
-piece,0x50a670,28,src/util/tdf_4c44c0.cpp,13,0,game data
-piece,0x50a74c,27,src/util/tdf_record.cpp,9,0,game data
-piece,0x50a730,27,src/util/tdf_record.cpp,8,0,game data
-piece,0x50a714,27,src/util/tdf_record.cpp,7,0,game data
-piece,0x50a6f0,35,src/util/tdf_record.cpp,6,0,game data
-piece,0x50a6cc,35,src/util/tdf_record.cpp,5,0,game data
-piece,0x50a6a8,33,src/util/tdf_record.cpp,4,0,game data
-piece,0x50a68c,28,src/util/tdf_record.cpp,3,0,game data
-piece,0x4fefd8,16,src/util/logic_error.cpp,18,0,game data
-piece,0x4fefc8,12,src/util/logic_error.cpp,17,0,game data
+piece,0x4fdc18,1,src/util/tdf_4c2ea0.cpp,32,0,game data
+piece,0x4fdc20,8,src/util/tdf_4c2ea0.cpp,97,0,game data
+piece,0x50a670,28,src/util/tdf_4c2ea0.cpp,29,0,game data
+piece,0x50a74c,27,src/util/tdf_4c2ea0.cpp,70,0,game data
+piece,0x50a730,27,src/util/tdf_4c2ea0.cpp,69,0,game data
+piece,0x50a714,27,src/util/tdf_4c2ea0.cpp,68,0,game data
+piece,0x50a6f0,35,src/util/tdf_4c2ea0.cpp,67,0,game data
+piece,0x50a6cc,35,src/util/tdf_4c2ea0.cpp,66,0,game data
+piece,0x50a6a8,33,src/util/tdf_4c2ea0.cpp,65,0,game data
+piece,0x50a68c,28,src/util/tdf_4c2ea0.cpp,64,0,game data
+piece,0x4fefd8,16,src/util/tdf_4c2ea0.cpp,41,0,game data
+piece,0x4fefc8,12,src/util/tdf_4c2ea0.cpp,40,0,game data
 piece,0x50a60c,9,src/util/tdf_4c3120.cpp,4,0,game data
 piece,0x50a604,5,src/util/tdf_4c3120.cpp,3,0,game data
 piece,0x50a5f4,13,src/gui/mouse.cpp,30,0,game data
@@ -12368,8 +12368,7 @@ same,0x50a56c,13,src/util/hpi.cpp,115,0,
 same,0x4fdbf0,37,src/util/hpi.cpp,112,0,
 same,0x503374,2,src/util/hpi_4bd830.cpp,9,0,
 same,0x503374,2,src/util/hpi.cpp,136,0,
-same,0x5119b8,1,src/util/tdf_4c35c0.cpp,6,0,
-same,0x5119b8,1,src/util/tdf_4c44c0.cpp,12,0,
+same,0x5119b8,1,src/util/tdf_4c2ea0.cpp,35,0,
 same,0x50b530,16,src/debug/debug_helper_4cbb70.cpp,6,0,
 same,0x50b524,11,src/debug/debug_helper_4cbb70.cpp,5,0,
 same,0x4d8130,16,src/debug/debug_lib_4d80b0.cpp,11,0,
@@ -12434,7 +12433,7 @@ same,0x4c3740,32,LIBCPMT.LIB#3@2,57,0,
 same,0x50a630,32,LIBCPMT.LIB#3@2,14,0,
 same,0x4febd0,24,LIBCPMT.LIB#3@2,7,0,
 same,0x5119b8,1,zlib/zutil.obj,9,0,
-same,0x4c38a0,80,src/util/logic_error.cpp,20,0,
+same,0x4c38a0,80,src/util/tdf_4c2ea0.cpp,43,0,
 reloc,0x40a84f,,0x4fc9b8,,,
 reloc,0x4588a6,,0x4fd4c0,,,
 reloc,0x45b28e,,0x512dd0,,,

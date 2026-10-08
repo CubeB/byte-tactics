@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1, deepseek-v4.1-flash, GPT-6.1-sol, GPT-6-Luna, mimo-v2.6-pro, longcat-2.5-preview-free, Space Bunny Free, Claude Opus 5.5, Opus, Claude Sonnet 5.5, Sonnet and Haiku. Names are provisional.
+// Decompiled by deepseek-v4.1, deepseek-v4.1-flash, GPT-6.1-sol, GPT-6-Luna, mimo-v2.6-pro, longcat-2.5-preview-free, Space Bunny Free, Claude Opus 5.5, Opus, Claude Sonnet 5.5, Sonnet and Haiku. DeepSeek V4.1 Flash, space-bunny-free and opus. Names are provisional.
 //
 // The skirmish setup screen: the per-player rows (name, side, allies, colour,
 // metal, energy), the game-option buttons, the SELMAP.GUI map selector, the

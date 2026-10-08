@@ -33,14 +33,14 @@ struct Vec3_004816a0 {
 
 struct Unit {
     char unknown_0[0x6a];
-    Vec3_004816a0 position;            // +0x6a
+    Vec3_004816a0 pos;                 // +0x6a
     char unknown_76[0x7a - 0x76];
     short losCacheCellX;                    // +0x7a
     char unknown_7c[0x92 - 0x7c];
     UnitDef_004816a0* def;             // +0x92
-    Player_004816a0* owner;            // +0x96
+    Player_004816a0* player;           // +0x96
     char unknown_9a[0xa6 - 0x9a];
-    unsigned short id;                 // +0xa6
+    unsigned short unitDefIndex;       // +0xa6
     char unknown_a8[0xf8 - 0xa8];
     unsigned char losSightFrameIdx;            // +0xf8
     char unknown_f9[0x118 - 0xf9];
@@ -124,14 +124,14 @@ void __stdcall RecalculateLineOfSight(int arg)
         memset(p->seenMap, (unsigned char)~((unsigned char)g_game->mapFlags >> 1) & 1, p->seenCount);
     }
     for (Unit* u = g_game->units + 1; u <= g_game->unitsEnd; u++) {
-        if (u->id == 0)
+        if (u->unitDefIndex == 0)
             continue;
         Params_004816a0 params;
-        params.field_0 = u->owner;
+        params.field_0 = u->player;
         params.field_4 = &u->losCacheCellX;
         params.field_8 = u->def->range;
         params.field_c = &u->losSightFrameIdx;
-        params.pos = u->position;
+        params.pos = u->pos;
         params.field_a = u->def->field_170;
         if (params.pos.y < (int)((g_game->seaLevel + 1) << 16))
             params.pos.y = (g_game->seaLevel + 1) << 16;

@@ -166,7 +166,7 @@ struct Unit {
     char unknown_72[2];
     short field_74;                      // +0x74
     char unknown_76[0x1c];
-    UnitType_00466dc0* type;             // +0x92
+    UnitType_00466dc0* def;              // +0x92
     char unknown_96[0x10];
     short unitDefIndex;                      // +0xa6
     short id;                      // +0xa8
@@ -177,7 +177,7 @@ struct Unit {
     char unknown_100[0xe];
     unsigned char activateFlags;             // +0x10e
     char unknown_10f[0x1];
-    Flags110_00466dc0 flags_110;         // +0x110
+    Flags110_00466dc0 flags;             // +0x110
     char unknown_114[0x4];
 };
 
@@ -627,9 +627,9 @@ void DrawRadarUnits(void)
     Unit* end = g_game->unitsEnd;
     if (u <= end) {
         do {
-            UnitType_00466dc0*& type = u->type;
+            UnitType_00466dc0*& type = u->def;
             if (u->unitDefIndex != 0) {
-                if (enabled != 0 || (u->flags_110.all & 0x300) != 0 ||
+                if (enabled != 0 || (u->flags.all & 0x300) != 0 ||
                     u->playerIndex == g_game->currentPlayer) {
                     int x = u->field_6c * g_game->width /
                             g_game->mapWidth;
@@ -645,7 +645,7 @@ void DrawRadarUnits(void)
                         DrawFrame(surface,
                             GetGafFrame(g_game->radlogohigh, 0), x, y);
                     }
-                    if (u->flags_110.bits.bit4) {
+                    if (u->flags.bits.bit4) {
                         if ((u->activateFlags & 1) != 0 ||
                             (type->flags2 & 4) == 0) {
                             if (type->radardistance != 0)

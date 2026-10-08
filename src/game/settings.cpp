@@ -242,6 +242,53 @@ int __stdcall ReadGameRegistryValue(const char* key, void* buf, unsigned int* si
     return ReadRegistryValue("Total Annihilation", key, buf, size);
 }
 
+// Reads a DWORD under the game key into g_game->*field; a missing value stores
+// the default and writes it back. value is the caller's scratch local (one of
+// the helper's own moves the frame), and the named ok keeps the compare against
+// the hoisted zero register.
+static inline void ReadSettingInt(const char* key, int Game::* field, int defaultValue, int& value)
+{
+    int ok = ReadRegistryDword("Total Annihilation", (void*)key, &value);
+    if (ok != 0) {
+        g_game->*field = value;
+    } else {
+        g_game->*field = defaultValue;
+        WriteRegistryDword("Total Annihilation", (void*)key, g_game->*field);
+    }
+}
+
+// Same, but a missing value is not written back.
+static inline void ReadSettingIntOr(const char* key, int Game::* field, int defaultValue, int& value)
+{
+    if (ReadRegistryDword("Total Annihilation", (void*)key, &value) != 0) {
+        g_game->*field = value;
+    } else {
+        g_game->*field = defaultValue;
+    }
+}
+
+// Same for g_game->options.
+static inline void ReadSettingInt(const char* key, int Options::* field, int defaultValue, int& value)
+{
+    int ok = ReadRegistryDword("Total Annihilation", (void*)key, &value);
+    if (ok != 0) {
+        g_game->options->*field = value;
+    } else {
+        g_game->options->*field = defaultValue;
+        WriteRegistryDword("Total Annihilation", (void*)key, g_game->options->*field);
+    }
+}
+
+// Reads one per-player skirmish value; a missing value is not written back.
+static inline void ReadPlayerSetting(const char* key, int SkirmishPlayer::* field, int defaultValue, int& value, int i)
+{
+    if (ReadRegistryDword("Total Annihilation\\Skirmish", (void*)key, &value) != 0) {
+        g_game->options->players[i].*field = value;
+    } else {
+        g_game->options->players[i].*field = defaultValue;
+    }
+}
+
 // Reads up to DitheredFog, PlayMovie and AllMissions go through a named local;
 // every other site compares the call directly.
 // FUNCTION: 0x42f9a0
@@ -260,27 +307,9 @@ void LoadSettings()
         g_game->interfaceType = 0;
         WriteRegistryDword("Total Annihilation", "Interface Type", g_game->interfaceType);
     }
-    int ok2 = ReadRegistryDword("Total Annihilation", "DisplaymodeWidth", &value);
-    if (ok2 != 0) {
-        g_game->displaymodeWidth = value;
-    } else {
-        g_game->displaymodeWidth = 0x280;
-        WriteRegistryDword("Total Annihilation", "DisplaymodeWidth", g_game->displaymodeWidth);
-    }
-    int ok3 = ReadRegistryDword("Total Annihilation", "DisplaymodeHeight", &value);
-    if (ok3 != 0) {
-        g_game->displaymodeHeight = value;
-    } else {
-        g_game->displaymodeHeight = 0x1e0;
-        WriteRegistryDword("Total Annihilation", "DisplaymodeHeight", g_game->displaymodeHeight);
-    }
-    int ok4 = ReadRegistryDword("Total Annihilation", "side", &value);
-    if (ok4 != 0) {
-        g_game->side = value;
-    } else {
-        g_game->side = 0;
-        WriteRegistryDword("Total Annihilation", "side", g_game->side);
-    }
+    ReadSettingInt("DisplaymodeWidth", &Game::displaymodeWidth, 0x280, value);
+    ReadSettingInt("DisplaymodeHeight", &Game::displaymodeHeight, 0x1e0, value);
+    ReadSettingInt("side", &Game::side, 0, value);
     int ok5 = ReadRegistryDword("Total Annihilation", "Difficulty", &value);
     if (ok5 != 0) {
         g_game->difficulty = value & 0xffff;
@@ -295,41 +324,11 @@ void LoadSettings()
         g_game->scrollspeed = 0x20;
         WriteRegistryDword("Total Annihilation", "scrollspeed", g_game->scrollspeed);
     }
-    int ok7 = ReadRegistryDword("Total Annihilation", "SingleCommanderDeath", &value);
-    if (ok7 != 0) {
-        g_game->singleCommanderDeath = value;
-    } else {
-        g_game->singleCommanderDeath = 1;
-        WriteRegistryDword("Total Annihilation", "SingleCommanderDeath", g_game->singleCommanderDeath);
-    }
-    int ok8 = ReadRegistryDword("Total Annihilation", "SingleMapping", &value);
-    if (ok8 != 0) {
-        g_game->singleMapping = value;
-    } else {
-        g_game->singleMapping = 1;
-        WriteRegistryDword("Total Annihilation", "SingleMapping", g_game->singleMapping);
-    }
-    int ok9 = ReadRegistryDword("Total Annihilation", "SingleLineOfSight", &value);
-    if (ok9 != 0) {
-        g_game->singleLineOfSight = value;
-    } else {
-        g_game->singleLineOfSight = 1;
-        WriteRegistryDword("Total Annihilation", "SingleLineOfSight", g_game->singleLineOfSight);
-    }
-    int ok10 = ReadRegistryDword("Total Annihilation", "SingleLOSType", &value);
-    if (ok10 != 0) {
-        g_game->singleLOSType = value;
-    } else {
-        g_game->singleLOSType = 1;
-        WriteRegistryDword("Total Annihilation", "SingleLOSType", g_game->singleLOSType);
-    }
-    int ok11 = ReadRegistryDword("Total Annihilation", "screenchat", &value);
-    if (ok11 != 0) {
-        g_game->screenchat = value;
-    } else {
-        g_game->screenchat = 1;
-        WriteRegistryDword("Total Annihilation", "screenchat", g_game->screenchat);
-    }
+    ReadSettingInt("SingleCommanderDeath", &Game::singleCommanderDeath, 1, value);
+    ReadSettingInt("SingleMapping", &Game::singleMapping, 1, value);
+    ReadSettingInt("SingleLineOfSight", &Game::singleLineOfSight, 1, value);
+    ReadSettingInt("SingleLOSType", &Game::singleLOSType, 1, value);
+    ReadSettingInt("screenchat", &Game::screenchat, 1, value);
     int ok12 = ReadRegistryDword("Total Annihilation", "damagebars", &value);
     if (ok12 != 0) {
         g_game->flags_37f06.damagebars = value;
@@ -460,26 +459,10 @@ void LoadSettings()
         }
         sprintf(g_game->imageOutputDirectory, "%s\\%s", g_game->displayContext + 0x628, buf);
     }
-    if (ReadRegistryDword("Total Annihilation", "Movie Output Rate", &value) != 0) {
-        g_game->movieOutputRate = value;
-    } else {
-        g_game->movieOutputRate = 10;
-    }
-    if (ReadRegistryDword("Total Annihilation", "textlines", &value) != 0) {
-        g_game->textlines = value;
-    } else {
-        g_game->textlines = 10;
-    }
-    if (ReadRegistryDword("Total Annihilation", "textscroll", &value) != 0) {
-        g_game->textscroll = value;
-    } else {
-        g_game->textscroll = 10;
-    }
-    if (ReadRegistryDword("Total Annihilation", "mousespeed", &value) != 0) {
-        g_game->mousespeed = value;
-    } else {
-        g_game->mousespeed = 10;
-    }
+    ReadSettingIntOr("Movie Output Rate", &Game::movieOutputRate, 10, value);
+    ReadSettingIntOr("textlines", &Game::textlines, 10, value);
+    ReadSettingIntOr("textscroll", &Game::textscroll, 10, value);
+    ReadSettingIntOr("mousespeed", &Game::mousespeed, 10, value);
     if (ReadRegistryDword("Total Annihilation", "gamespeed", &value) != 0) {
         g_game->gamespeed = (unsigned short)value;
     } else {
@@ -521,16 +504,8 @@ void LoadSettings()
     } else {
         g_game->soundFlags.speechfx = 1;
     }
-    if (ReadRegistryDword("Total Annihilation", "fxvol", &value) != 0) {
-        g_game->fxvol = value;
-    } else {
-        g_game->fxvol = 0x1b;
-    }
-    if (ReadRegistryDword("Total Annihilation", "musicvol", &value) != 0) {
-        g_game->musicvol = value;
-    } else {
-        g_game->musicvol = 0x20;
-    }
+    ReadSettingIntOr("fxvol", &Game::fxvol, 0x1b, value);
+    ReadSettingIntOr("musicvol", &Game::musicvol, 0x20, value);
     if (ReadRegistryDword("Total Annihilation", "clock", &value) != 0) {
         g_game->flags_37f2f.clock = value;
     } else {
@@ -545,57 +520,14 @@ void LoadSettings()
     } else {
         g_game->numSkirmishPlayers = 4;
     }
-    if (ReadRegistryDword("Total Annihilation", "MultiCommanderDeath", &value) != 0) {
-        g_game->multiCommanderDeath = value;
-    } else {
-        g_game->multiCommanderDeath = 1;
-        WriteRegistryDword("Total Annihilation", "MultiCommanderDeath", g_game->multiCommanderDeath);
-    }
-    if (ReadRegistryDword("Total Annihilation", "MultiMapping", &value) != 0) {
-        g_game->multiMapping = value;
-    } else {
-        g_game->multiMapping = 1;
-        WriteRegistryDword("Total Annihilation", "MultiMapping", g_game->multiMapping);
-    }
-    if (ReadRegistryDword("Total Annihilation", "MultiLineOfSight", &value) != 0) {
-        g_game->multiLineOfSight = value;
-    } else {
-        g_game->multiLineOfSight = 1;
-        WriteRegistryDword("Total Annihilation", "MultiLineOfSight", g_game->multiLineOfSight);
-    }
-    if (ReadRegistryDword("Total Annihilation", "MultiLOSType", &value) != 0) {
-        g_game->multiLOSType = value;
-    } else {
-        g_game->multiLOSType = 1;
-        WriteRegistryDword("Total Annihilation", "MultiLOSType", g_game->multiLOSType);
-    }
-    if (ReadRegistryDword("Total Annihilation", "SkirmishCommanderDeath", &value) != 0) {
-        g_game->options->skirmishCommanderDeath = value;
-    } else {
-        g_game->options->skirmishCommanderDeath = 1;
-        WriteRegistryDword("Total Annihilation", "SkirmishCommanderDeath",
-                     g_game->options->skirmishCommanderDeath);
-    }
-    if (ReadRegistryDword("Total Annihilation", "SkirmishMapping", &value) != 0) {
-        g_game->options->skirmishMapping = value;
-    } else {
-        g_game->options->skirmishMapping = 1;
-        WriteRegistryDword("Total Annihilation", "SkirmishMapping", g_game->options->skirmishMapping);
-    }
-    if (ReadRegistryDword("Total Annihilation", "SkirmishLineOfSight", &value) != 0) {
-        g_game->options->skirmishLineOfSight = value;
-    } else {
-        g_game->options->skirmishLineOfSight = 1;
-        WriteRegistryDword("Total Annihilation", "SkirmishLineOfSight",
-                     g_game->options->skirmishLineOfSight);
-    }
-    if (ReadRegistryDword("Total Annihilation", "SkirmishLOSType", &value) != 0) {
-        g_game->options->skirmishLOSType = value;
-    } else {
-        g_game->options->skirmishLOSType = 1;
-        WriteRegistryDword("Total Annihilation", "SkirmishLOSType",
-                     g_game->options->skirmishLOSType);
-    }
+    ReadSettingInt("MultiCommanderDeath", &Game::multiCommanderDeath, 1, value);
+    ReadSettingInt("MultiMapping", &Game::multiMapping, 1, value);
+    ReadSettingInt("MultiLineOfSight", &Game::multiLineOfSight, 1, value);
+    ReadSettingInt("MultiLOSType", &Game::multiLOSType, 1, value);
+    ReadSettingInt("SkirmishCommanderDeath", &Options::skirmishCommanderDeath, 1, value);
+    ReadSettingInt("SkirmishMapping", &Options::skirmishMapping, 1, value);
+    ReadSettingInt("SkirmishLineOfSight", &Options::skirmishLineOfSight, 1, value);
+    ReadSettingInt("SkirmishLOSType", &Options::skirmishLOSType, 1, value);
     if (ReadRegistryDword("Total Annihilation", "SkirmishDifficulty", &value) != 0) {
         g_game->options->skirmishDifficulty = value & 0xffff;
     } else {
@@ -603,13 +535,7 @@ void LoadSettings()
         WriteRegistryDword("Total Annihilation", "SkirmishDifficulty",
                      g_game->options->skirmishDifficulty);
     }
-    if (ReadRegistryDword("Total Annihilation", "SkirmishLocation", &value) != 0) {
-        g_game->options->fixedLocations = value;
-    } else {
-        g_game->options->fixedLocations = 1;
-        WriteRegistryDword("Total Annihilation", "SkirmishLocation",
-                     g_game->options->fixedLocations);
-    }
+    ReadSettingInt("SkirmishLocation", &Options::fixedLocations, 1, value);
     value = 0x100;
     if (ReadRegistryData("Total Annihilation", "SkirmishMap",
                      g_game->options->skirmishMap, &value) == 0) {
@@ -622,41 +548,17 @@ void LoadSettings()
     }
     for (i = 0; i < g_game->numSkirmishPlayers; i++) {
         wsprintfA(name, "Player%dController", i);
-        if (ReadRegistryDword("Total Annihilation\\Skirmish", name, &value) != 0) {
-            g_game->options->players[i].controller = value;
-        } else {
-            g_game->options->players[i].controller = 0;
-        }
+        ReadPlayerSetting(name, &SkirmishPlayer::controller, 0, value, i);
         wsprintfA(name, "Player%dSide", i);
-        if (ReadRegistryDword("Total Annihilation\\Skirmish", name, &value) != 0) {
-            g_game->options->players[i].side = value;
-        } else {
-            g_game->options->players[i].side = i % 2;
-        }
+        ReadPlayerSetting(name, &SkirmishPlayer::side, i % 2, value, i);
         wsprintfA(name, "Player%dColor", i);
-        if (ReadRegistryDword("Total Annihilation\\Skirmish", name, &value) != 0) {
-            g_game->options->players[i].color = value;
-        } else {
-            g_game->options->players[i].color = i;
-        }
+        ReadPlayerSetting(name, &SkirmishPlayer::color, i, value, i);
         wsprintfA(name, "Player%dAllyGroup", i);
-        if (ReadRegistryDword("Total Annihilation\\Skirmish", name, &value) != 0) {
-            g_game->options->players[i].allyGroup = value;
-        } else {
-            g_game->options->players[i].allyGroup = 5;
-        }
+        ReadPlayerSetting(name, &SkirmishPlayer::allyGroup, 5, value, i);
         wsprintfA(name, "Player%dMetal", i);
-        if (ReadRegistryDword("Total Annihilation\\Skirmish", name, &value) != 0) {
-            g_game->options->players[i].metal = value;
-        } else {
-            g_game->options->players[i].metal = 1000;
-        }
+        ReadPlayerSetting(name, &SkirmishPlayer::metal, 1000, value, i);
         wsprintfA(name, "Player%dEnergy", i);
-        if (ReadRegistryDword("Total Annihilation\\Skirmish", name, &value) != 0) {
-            g_game->options->players[i].energy = value;
-        } else {
-            g_game->options->players[i].energy = 1000;
-        }
+        ReadPlayerSetting(name, &SkirmishPlayer::energy, 1000, value, i);
     }
     int ok26 = ReadRegistryDword("Total Annihilation", "PlayMovie", &value);
     if (ok26 != 0) {

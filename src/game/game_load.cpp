@@ -868,6 +868,29 @@ void __stdcall DrawSyncStatus(void* surface)
 
     DrawTextClipped(surface, text, 10, 400, -1, 0);
 }
+// Draws one loading bar: its label, then the filled rect and the lightbar frame.
+// The flash alpha is passed as base plus slot: a pointer already offset by the
+// caller changes the register choice.
+static inline void DrawLoadingBar(void* gadget, void* lightbar, int index, unsigned char* prev, unsigned char* alphas, int slot, char* label, int y, int* rect)
+{
+    unsigned int color;
+    int flash;
+    color = g_game->palette[g_game->progress[index] < 100 ? 12 : 10];
+    SetTextColors(color, GetTextKeyColor());
+    if (g_game->progress[index] == 100 && *prev != 100) {
+        alphas[slot] = 0x1e;
+    }
+    flash = alphas[slot];
+    *prev = g_game->progress[index];
+    DrawTextClipped(gadget, (char*)Translate(label), 0x5a, y, -1, flash);
+    // Each bar's rect is written left, right, top, bottom.
+    rect[0] = 0xcd;
+    rect[2] = ((int)g_game->progress[index] * 7) / 2 + 0xcd;
+    rect[1] = y;
+    rect[3] = y + 0x14;
+    FillRectangle(gadget, rect, color);
+    DrawFrame(gadget, lightbar, rect[0], rect[1]);
+}
 // The loading-screen frame: on the first call it starts the loader thread
 // (LoadThreadMain), once the loader sets the "loaded" bit it restores the game
 // screen and installs the game frame handler (BattleFrame), and otherwise it
@@ -882,7 +905,6 @@ void LoadingScreenFrame(void)
     void* surfaceHandle;
     int i;
     unsigned int color;
-    int flash;
     int textWidth;
     unsigned int stamp;
     int rect[4];
@@ -1052,93 +1074,14 @@ void LoadingScreenFrame(void)
             void* lightbar = GetGafFrame(light, 0);
             *((short*)lightbar + 3) = 0;
             *((short*)lightbar + 2) = 0;
-            color = g_game->palette[g_game->progress[0] < 100 ? 12 : 10];
-            SetTextColors(color, GetTextKeyColor());
-            if(g_game->progress[0] == 100 && g_loadingBarPrevPercent != 100) {
-                ((unsigned char*)&g_loadingBarFlashAlpha)[0] = 0x1e;
-            }
-            flash = ((unsigned char*)&g_loadingBarFlashAlpha)[0];
-            g_loadingBarPrevPercent = g_game->progress[0];
-            DrawTextClipped(&gadget, (char*)Translate("Textures"), 0x5a, 0x87, -1, flash);
-            // Each bar's rect is written left, right, top, bottom.
-            rect[0] = 0xcd;
-            rect[2] = ((int)g_game->progress[0] * 7) / 2 + 0xcd;
-            rect[1] = 0x87;
-            rect[3] = 0x9b;
-            FillRectangle(&gadget, rect, color);
-            DrawFrame(&gadget, lightbar, rect[0], rect[1]);
-            color = g_game->palette[g_game->progress[1] < 100 ? 12 : 10];
-            SetTextColors(color, GetTextKeyColor());
-            if(g_game->progress[1] == 100 && DAT_0051e821 != 100) {
-                ((unsigned char*)&g_loadingBarFlashAlpha)[1] = 0x1e;
-            }
-            flash = ((unsigned char*)&g_loadingBarFlashAlpha)[1];
-            DAT_0051e821 = g_game->progress[1];
-            DrawTextClipped(&gadget, (char*)Translate("Terrain"), 0x5a, 0xb1, -1, flash);
-            rect[0] = 0xcd;
-            rect[2] = ((int)g_game->progress[1] * 7) / 2 + 0xcd;
-            rect[1] = 0xb1;
-            rect[3] = 0xc5;
-            FillRectangle(&gadget, rect, color);
-            DrawFrame(&gadget, lightbar, rect[0], rect[1]);
-            color = g_game->palette[g_game->progress[2] < 100 ? 12 : 10];
-            SetTextColors(color, GetTextKeyColor());
-            if(g_game->progress[2] == 100 && DAT_0051e822 != 100) {
-                ((unsigned char*)&g_loadingBarFlashAlpha)[2] = 0x1e;
-            }
-            flash = ((unsigned char*)&g_loadingBarFlashAlpha)[2];
-            DAT_0051e822 = g_game->progress[2];
-            DrawTextClipped(&gadget, (char*)Translate("Units"), 0x5a, 0xda, -1, flash);
-            rect[0] = 0xcd;
-            rect[2] = ((int)g_game->progress[2] * 7) / 2 + 0xcd;
-            rect[1] = 0xda;
-            rect[3] = 0xee;
-            FillRectangle(&gadget, rect, color);
-            DrawFrame(&gadget, lightbar, rect[0], rect[1]);
-            color = g_game->palette[g_game->progress[3] < 100 ? 12 : 10];
-            SetTextColors(color, GetTextKeyColor());
-            if(g_game->progress[3] == 100 && DAT_0051e823 != 100) {
-                ((unsigned char*)&g_loadingBarFlashAlpha)[3] = 0x1e;
-            }
-            flash = ((unsigned char*)&g_loadingBarFlashAlpha)[3];
-            DAT_0051e823 = g_game->progress[3];
-            DrawTextClipped(&gadget, (char*)Translate("Animation"), 0x5a, 0x106, -1, flash);
-            rect[0] = 0xcd;
-            rect[2] = ((int)g_game->progress[3] * 7) / 2 + 0xcd;
-            rect[1] = 0x106;
-            rect[3] = 0x11a;
-            FillRectangle(&gadget, rect, color);
-            DrawFrame(&gadget, lightbar, rect[0], rect[1]);
-            color = g_game->palette[g_game->progress[4] < 100 ? 12 : 10];
-            SetTextColors(color, GetTextKeyColor());
-            if(g_game->progress[4] == 100 && DAT_0051e824 != 100) {
-                ((unsigned char*)&DAT_0051e6cc)[0] = 0x1e;
-            }
-            flash = ((unsigned char*)&DAT_0051e6cc)[0];
-            DAT_0051e824 = g_game->progress[4];
-            DrawTextClipped(&gadget, (char*)Translate("3D Data"), 0x5a, 0x130, -1, flash);
-            rect[0] = 0xcd;
-            rect[2] = ((int)g_game->progress[4] * 7) / 2 + 0xcd;
-            rect[1] = 0x130;
-            rect[3] = 0x144;
-            FillRectangle(&gadget, rect, color);
-            DrawFrame(&gadget, lightbar, rect[0], rect[1]);
+            DrawLoadingBar(&gadget, lightbar, 0, &g_loadingBarPrevPercent, (unsigned char*)&g_loadingBarFlashAlpha, 0, "Textures", 0x87, rect);
+            DrawLoadingBar(&gadget, lightbar, 1, &DAT_0051e821, (unsigned char*)&g_loadingBarFlashAlpha, 1, "Terrain", 0xb1, rect);
+            DrawLoadingBar(&gadget, lightbar, 2, &DAT_0051e822, (unsigned char*)&g_loadingBarFlashAlpha, 2, "Units", 0xda, rect);
+            DrawLoadingBar(&gadget, lightbar, 3, &DAT_0051e823, (unsigned char*)&g_loadingBarFlashAlpha, 3, "Animation", 0x106, rect);
+            DrawLoadingBar(&gadget, lightbar, 4, &DAT_0051e824, (unsigned char*)&DAT_0051e6cc, 0, "3D Data", 0x130, rect);
             DrawFrame(&gadget, lightbar, rect[0] + *((short*)lightbar + 2),
                          rect[1] + *((short*)lightbar + 3));
-            color = g_game->palette[g_game->progress[5] < 100 ? 12 : 10];
-            SetTextColors(color, GetTextKeyColor());
-            if(g_game->progress[5] == 100 && DAT_0051e825 != 100) {
-                ((unsigned char*)&DAT_0051e6cc)[1] = 0x1e;
-            }
-            flash = ((unsigned char*)&DAT_0051e6cc)[1];
-            DAT_0051e825 = g_game->progress[5];
-            DrawTextClipped(&gadget, (char*)Translate("Explosions"), 0x5a, 0x15b, -1, flash);
-            rect[0] = 0xcd;
-            rect[2] = ((int)g_game->progress[5] * 7) / 2 + 0xcd;
-            rect[1] = 0x15b;
-            rect[3] = 0x16f;
-            FillRectangle(&gadget, rect, color);
-            DrawFrame(&gadget, lightbar, rect[0], rect[1]);
+            DrawLoadingBar(&gadget, lightbar, 5, &DAT_0051e825, (unsigned char*)&DAT_0051e6cc, 1, "Explosions", 0x15b, rect);
         }
         if (((Mission*)g_game->field_391e9)->GetGameType() == 3) {
             DrawSyncStatus(&gadget);

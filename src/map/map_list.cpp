@@ -49,13 +49,13 @@ struct Game {
     char unknown_37ef2[0x39073 - 0x37ef2];
     int noMovie;                       // +0x39073
     char unknown_39077[0x391e9 - 0x39077];
-    Mission* field_391e9;              // +0x391e9
-    struct MissionConditions* field_391ed; // +0x391ed
+    Mission* mapInfo;                  // +0x391e9
+    struct MissionConditions* victoryConditions; // +0x391ed
     char unknown_391f1[0x39219 - 0x391f1];
-    int field_39219;                   // +0x39219
+    int singleCommanderDeath;          // +0x39219
     int mapping;                       // +0x3921d
     int lineOfSight;                   // +0x39221
-    int field_39225;                   // +0x39225
+    int singleLOSType;                 // +0x39225
 };
 #pragma pack(pop)
 
@@ -352,14 +352,14 @@ static MapCache s_mapCache;
 // FUNCTION: 0x434ab0
 void __stdcall SetMissionType(int owner)
 {
-    if (g_game->field_391e9 != 0) {
-        if (g_game->field_391e9->type == owner) {
+    if (g_game->mapInfo != 0) {
+        if (g_game->mapInfo->type == owner) {
             return;
         }
         // Re-read the global here, not through a local: keeps the delete's null check.
-        delete g_game->field_391e9;
+        delete g_game->mapInfo;
     }
-    g_game->field_391e9 = new Mission(owner);
+    g_game->mapInfo = new Mission(owner);
 }
 
 // Frees a global buffer, clears three globals and deletes the object at
@@ -375,8 +375,8 @@ void FreeOtaEnumCacheAndMission()
     g_otaEnumCacheComplete = 0;
     g_otaEnumFileListBytes = 0;
     g_otaEnumFileCount = 0;
-    delete g_game->field_391e9;
-    g_game->field_391e9 = 0;
+    delete g_game->mapInfo;
+    g_game->mapInfo = 0;
 }
 
 // FUNCTION: 0x434bf0
@@ -402,7 +402,7 @@ int __stdcall LoadMapList(void** param_1, int param_2, int param_3)
     
     if (param_2 == 0) {
         s.bFlag = 1;
-        if (g_game->field_391e9->type != 3)
+        if (g_game->mapInfo->type != 3)
             s.bFlag = 0;
     } else {
         s.bFlag = 0;
@@ -423,7 +423,7 @@ int __stdcall LoadMapList(void** param_1, int param_2, int param_3)
         BuildDataPath(a.path, "Maps", files[s.i].data, "OTA");
         TdfFile parser;
         if (parser.LoadFile(a.path) != 0
-            && g_game->field_391e9->SelectSchema(3, &parser, 0) != 0) {
+            && g_game->mapInfo->SelectSchema(3, &parser, 0) != 0) {
             strcpy(a.name, files[s.i].data);
             StripExtension(a.name);
             strcpy(a.lower, a.name);
@@ -486,11 +486,11 @@ Mission::Mission(int owner_)
 // FUNCTION: 0x434ff0
 Mission::~Mission()
 {
-    MissionConditions* obj = g_game->field_391ed;
+    MissionConditions* obj = g_game->victoryConditions;
     if (obj) {
         obj->FreeConditions();
         operator delete(obj);
-        g_game->field_391ed = 0;
+        g_game->victoryConditions = 0;
     }
     if (units)
         GameFreeThunk(units);
@@ -927,8 +927,8 @@ int Mission::LoadMission(char* map)
     char desc[0x80];
     char lower[0x80];
 
-    delete g_game->field_391ed;
-    g_game->field_391ed = new MissionConditions;
+    delete g_game->victoryConditions;
+    g_game->victoryConditions = new MissionConditions;
     surfaceMetal = -1;
     minWindSpeed = -1;
     maxWindSpeed = -1;
@@ -1040,8 +1040,8 @@ int Mission::LoadMission(char* map)
     BuildCampaignFilePath(6, "camps\\useonly", value, "TDF");
     g_game->mapping = parser.current->GetFieldInt("mapping", 0);
     g_game->lineOfSight = parser.current->GetFieldInt("lineofsight", 0);
-    g_game->field_39225 = 1;
-    g_game->field_39219 = 0;
+    g_game->singleLOSType = 1;
+    g_game->singleCommanderDeath = 0;
     parser.current->GetFieldString(memory, "memory", 0x80, DAT_005119b8);
     parser.current->GetFieldString(numPlayers, "numplayers", 0x80, DAT_005119b8);
     parser.current->GetFieldString(planet, "Planet", 0x80, DAT_005119b8);
@@ -1060,7 +1060,7 @@ int Mission::LoadMission(char* map)
     noSeaLevelTrigger = parser.current->GetFieldInt("nosealeveltrigger", 0);
     waterDoesDamage = parser.current->GetFieldInt("waterdoesdamage", 0);
     waterDamage = parser.current->GetFieldInt("waterdamage", 0);
-    g_game->field_391ed->RegisterConditions(&parser);
+    g_game->victoryConditions->RegisterConditions(&parser);
     killMul = GetFloat(parser.current, "killmul");
     timeMul = GetFloat(parser.current, "timemul");
     if (!SelectSchema(type, &parser, schema)) {

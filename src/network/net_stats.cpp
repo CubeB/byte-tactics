@@ -13,7 +13,7 @@ struct Game {
     int count;                         // +0x148e7
     void** items;                      // +0x148eb
     char unknown_148ef[0x38a47 - 0x148ef];
-    int field_38a47;                   // +0x38a47
+    int ticks;                         // +0x38a47
 };
 #pragma pack(pop)
 
@@ -217,7 +217,7 @@ int BitReader::ReadSignedBits(int bits)
 // FUNCTION: 0x415e90
 void ResetNetStats()
 {
-    DAT_00511c20 = g_game->field_38a47;
+    DAT_00511c20 = g_game->ticks;
     g_messageBytesReceived = 0;
     g_messageBytesSent = 0;
     Pair_00419560* p = DAT_00511c60;

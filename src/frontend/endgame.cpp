@@ -298,7 +298,7 @@ struct Game {
     int done;                          // +0x39063
     int steps;                         // +0x39067
     int bar;                           // +0x3906b
-    float field_3906f;                 // +0x3906f
+    float savedPaletteBrightness;      // +0x3906f
     int skip;                          // +0x39073
     void* lastFrame;                   // +0x39077
     void* image_3907b;                 // +0x3907b
@@ -320,7 +320,7 @@ struct Game {
         };
     };
     int mission;                       // +0x391ab
-    int field_391af;                   // +0x391af
+    int won;                           // +0x391af
     char unknown_391b3[0x391cf - 0x391b3];
     char missionFlags[0x1a];           // +0x391cf
     Mission* campaign;                 // +0x391e9
@@ -469,7 +469,7 @@ void SetUpEndMissionScreen()
     g_game->target = (unsigned char*)GameAllocIgnoreTag("desiredPalette", 0x400);
     g_game->current = (unsigned char*)GameAllocIgnoreTag("currentPalette", 0x400);
     Display* display = GetDisplay();
-    g_game->field_3906f = display->paletteBrightness;
+    g_game->savedPaletteBrightness = display->paletteBrightness;
     display->paletteBrightness = 1.0f;
     unsigned char* palette = (unsigned char*)GameAllocIgnoreTag("Palette", 0x400);
     char* name = g_game->campaign->GetNameSlot(5);
@@ -777,7 +777,7 @@ void __stdcall HandleEndMissionClick(Menu* gadget)
             LeaveNetGame();
         g_game->sound->SetTrackCategory(4);
         Display* display = GetDisplay();
-        display->paletteBrightness = g_game->field_3906f;
+        display->paletteBrightness = g_game->savedPaletteBrightness;
         return;
     }
     // LoadGame and SaveGame reset the gadget (ClearSelectedGadget) twice in a row;
@@ -855,7 +855,7 @@ void __stdcall HandleEndMissionClick(Menu* gadget)
 int ShouldShowNextMission()
 {
     if (((Mission*)g_game->campaign)->GetGameType() == 1 &&
-        ((g_game->field_391af == 0 &&
+        ((g_game->won == 0 &&
           ((Mission*)g_game->campaign)->MissionExists(g_game->mission + 1) == 0) ||
          ((Mission*)g_game->campaign)->MissionExists(g_game->mission + 1) != 0)) {
         return 1;
@@ -867,7 +867,7 @@ int ShouldShowNextMission()
 static inline int HasNextMission()
 {
     if (g_game->campaign->GetGameType() == 1 &&
-        ((g_game->field_391af == 0 &&
+        ((g_game->won == 0 &&
           ((Mission*)g_game->campaign)->MissionExists(g_game->mission + 1) == 0) ||
          ((Mission*)g_game->campaign)->MissionExists(g_game->mission + 1) != 0)) {
         return 1;
@@ -918,12 +918,12 @@ void __stdcall OpenEndMissionScreen()
         Gadget* knob = FindGadgetChecked_D(entries, "KNOB");
         knob->field_136 = knob->height - knob->field_142 - 3;
         SetListBoxScrollByName(&g_game->menu, "Missions", g_game->mission);
-        SetListBoxScrollByName(&g_game->menu, "Missions", g_game->mission + (g_game->field_391af != 0));
+        SetListBoxScrollByName(&g_game->menu, "Missions", g_game->mission + (g_game->won != 0));
         ApplyDifficultyButtons();
     }
     Player* player = &g_game->players[g_game->localPlayer];
     int x = g_game->width / 2;
-    if (g_game->field_391af != 0 && (player->active == 0 || !player->info->flag_9b_6)) {
+    if (g_game->won != 0 && (player->active == 0 || !player->info->flag_9b_6)) {
         DrawFrame(layer->surface, GetGafFrame(g_game->image_14813, 0), x, 0x1c);
     } else {
         DrawFrame(layer->surface, GetGafFrame(g_game->image_14817, 0), x, 0x1c);

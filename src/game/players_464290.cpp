@@ -262,12 +262,12 @@ struct Game {
     char startPos[0x38a47 - 0x37f5f];  // +0x37f5f, 0x232-byte records
     unsigned int tick;                 // +0x38a47
     char unknown_38a4b[0x38d6b - 0x38a4b];
-    int field_38d6b;                   // +0x38d6b
+    int pendingSaveStore;              // +0x38d6b
     char unknown_38d6f[0x391e9 - 0x38d6f];
     Mission* mission;                  // +0x391e9
     MissionConditions* list;           // +0x391ed
     char unknown_391f1[0x39239 - 0x391f1];
-    short field_39239;                 // +0x39239
+    short endGameCountdown;            // +0x39239
     // unsigned short bitfields: the only spelling that gives a direct
     // `or byte ptr [m], K`.
     union {
@@ -921,11 +921,11 @@ void __stdcall UpdatePlayers()
             if (g_game->mission->GetGameType() == 1) {
                 if (g_game->list->CheckVictory() == 0) {
                     if (g_game->list->CheckDefeat() != 0) {
-                        if (g_game->field_39239 < 0) {
-                            g_game->field_39239 = 4;
+                        if (g_game->endGameCountdown < 0) {
+                            g_game->endGameCountdown = 4;
                         } else {
-                            g_game->field_39239--;
-                            if (g_game->field_39239 < 0) {
+                            g_game->endGameCountdown--;
+                            if (g_game->endGameCountdown < 0) {
                                 g_game->flags_3923b.w |= 4;
                                 g_game->flags_3923b.w &= 0xffef;
                                 g_game->flags_3923b.b.bit6 = 1;
@@ -939,11 +939,11 @@ void __stdcall UpdatePlayers()
                     // and the jump lands on it, where the original hoists the
                     // reload above the branch and jumps past it. Written out
                     // twice, MSVC tail-merges the copies and hoists it.
-                    if (g_game->field_39239 < 0) {
-                        g_game->field_39239 = 4;
+                    if (g_game->endGameCountdown < 0) {
+                        g_game->endGameCountdown = 4;
                     } else {
-                        g_game->field_39239--;
-                        if (g_game->field_39239 < 0) {
+                        g_game->endGameCountdown--;
+                        if (g_game->endGameCountdown < 0) {
                             g_game->flags_3923b.w |= 4;
                             g_game->flags_3923b.b.bit4 = 1;
                             g_game->flags_3923b.b.bit5 = 1;
@@ -954,11 +954,11 @@ void __stdcall UpdatePlayers()
             } else if ((pi->active == 0 ||
                         (pi->info->flags_9b & 0x40) == 0) &&
                        g_game->list->CheckDefeat() != 0) {
-                if (g_game->field_39239 < 0) {
-                    g_game->field_39239 = 4;
+                if (g_game->endGameCountdown < 0) {
+                    g_game->endGameCountdown = 4;
                 } else {
-                    g_game->field_39239--;
-                    if (g_game->field_39239 < 0) {
+                    g_game->endGameCountdown--;
+                    if (g_game->endGameCountdown < 0) {
                         if (g_game->commanderDeath == 2) {
                             PlayerInfo* self =
                                 g_game->players[FindHostSlot()].info;
@@ -1073,7 +1073,7 @@ void __stdcall UpdatePlayers()
                 if ((pi->unitCount != 0 || pi->unitsCreated == 0) &&
                     (t == 1 || t == 2)) {
                     if ((g_game->flags_3923b.w & 4) == 0 &&
-                        g_game->field_39239 < 0) {
+                        g_game->endGameCountdown < 0) {
                         UpdatePlayerEconomy(pi);
                     }
                 }
@@ -1143,11 +1143,11 @@ void __stdcall UpdatePlayers()
         goto skip508;
 
     countdown_extra:
-        if (g_game->field_39239 < 0) {
-            g_game->field_39239 = 4;
+        if (g_game->endGameCountdown < 0) {
+            g_game->endGameCountdown = 4;
         } else {
-            g_game->field_39239--;
-            if (g_game->field_39239 < 0) {
+            g_game->endGameCountdown--;
+            if (g_game->endGameCountdown < 0) {
                 g_game->flags_3923b.w |= 4;
                 g_game->flags_3923b.b.bit4 = 1;
                 g_game->flags_3923b.b.bit5 = 1;
@@ -1163,12 +1163,12 @@ void __stdcall UpdatePlayers()
     if (g_game->mission->GetGameType() == 3 &&
         g_game->commanderDeath != 2 &&
         CountCombatPlayers() == 0) {
-        if (g_game->field_39239 < 0) {
-            g_game->field_39239 = 4;
+        if (g_game->endGameCountdown < 0) {
+            g_game->endGameCountdown = 4;
             return;
         }
-        g_game->field_39239--;
-        if (g_game->field_39239 < 0) {
+        g_game->endGameCountdown--;
+        if (g_game->endGameCountdown < 0) {
             g_game->flags_3923b.w |= 4;
             g_game->flags_3923b.w &= 0xffef;
             g_game->flags_3923b.b.bit6 = 1;
@@ -1191,7 +1191,7 @@ void InitPlayerResources()
 {
     for (int i = 0; i < 10; i++) {
         Player* player = &g_game->players[i];
-        if (g_game->field_38d6b == 0) {
+        if (g_game->pendingSaveStore == 0) {
             switch (g_game->mission->GetGameType()) {
             case 1:
                 SetStartingStorageBonus(player, (int)g_game->mission->startMetal[i],

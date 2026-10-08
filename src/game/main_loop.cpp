@@ -254,9 +254,9 @@ struct Game {
             unsigned short rest_38a51 : 15;    // +0x38a51
             char unknown_38a53[0x38b53 - 0x38a53];
             char text_38b53[0x100];            // +0x38b53
-            int field_38c53;                   // +0x38c53
-            int field_38c57;                   // +0x38c57
-            unsigned int field_38c5b;          // +0x38c5b
+            int movieCaptureIndex;             // +0x38c53
+            int movieOutputRate;               // +0x38c57
+            unsigned int nextMovieFrameTick;   // +0x38c5b
             char unknown_38c5f[0x38d75 - 0x38c5f];
             Flags_38d75 flags_38d75;           // +0x38d75
             char unknown_38d77[0x38d85 - 0x38d77];
@@ -408,9 +408,9 @@ void MainLoopTick()
     DrawBattleFrame(1, 1);
     CHARGE(8);
     EmptyMainLoopHook_B();
-    if (g_game->field_38c53 > 0 && g_game->field_38c5b <= g_game->leadTick) {
+    if (g_game->movieCaptureIndex > 0 && g_game->nextMovieFrameTick <= g_game->leadTick) {
         SaveScreenshot(g_game->text_38b53, "FRAM");
-        g_game->field_38c5b += 30 / g_game->field_38c57;
+        g_game->nextMovieFrameTick += 30 / g_game->movieOutputRate;
         g_game->lastTick = GetTicks();
     }
     EmptyMainLoopHook_C();

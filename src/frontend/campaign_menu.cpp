@@ -200,7 +200,7 @@ struct Game {
     char unknown_38d85[0x391e9 - 0x38d85];
     Mission* net;                      // +0x391e9
     char unknown_391ed[0x391f1 - 0x391ed];
-    int field_391f1;                   // +0x391f1
+    int mode;                          // +0x391f1
 };
 #pragma pack(pop)
 
@@ -456,7 +456,7 @@ int __stdcall BuildCampaignNameList(char** out, int side)
 // FUNCTION: 0x476c70
 void StartBriefingNarration()
 {
-    if (g_game->field_391f1 != 6) {
+    if (g_game->mode != 6) {
         char* name = (char*)g_game->net->GetNameSlot(3);
         if (name) {
             StreamSoundDelayed(name, 0, 0x3c);
@@ -467,7 +467,7 @@ void StartBriefingNarration()
 // FUNCTION: 0x476ca0
 void StartGlamourSound()
 {
-    if (g_game->field_391f1 != 6) {
+    if (g_game->mode != 6) {
         char* name = (char*)g_game->net->GetNameSlot(8);
         if (name) {
             StreamSoundDelayed(name, 0, 0x3c);
@@ -528,7 +528,7 @@ void InitBriefingText()
         g_briefingWrappedText = AllocColorMarkupText(g_briefingWrappedText);
         DrawHelpPage();
     }
-    if (g_game->field_391f1 != 6) {
+    if (g_game->mode != 6) {
         char* name = (char*)g_game->net->GetNameSlot(3);
         if (name) {
             StreamSoundDelayed(name, 0, 0x3c);
@@ -1375,7 +1375,7 @@ void __stdcall HandleMissionBriefingClick(Menu* menu)
         PlaySoundByName("Options", 0);
         if (!GetButtonStageByName(menu, "SHUTUP")) {
             g_game->input->StopStream();
-        } else if (g_game->field_391f1 != 6) {
+        } else if (g_game->mode != 6) {
             char* text = (char*)g_game->net->GetNameSlot(3);
             if (text) {
                 StreamSoundDelayed(text, 0, 0x3c);

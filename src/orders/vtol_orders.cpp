@@ -234,7 +234,7 @@ struct Game {
         unsigned int tick;
     };
     char unknown_38a4b[0x391e9 - 0x38a4b];
-    Struct_Game391e9* field_391e9;     // +0x391e9
+    Struct_Game391e9* mapInfo;         // +0x391e9
 };
 
 // The link node embedded in an order at +0x12: its +0x4 is the target unit.

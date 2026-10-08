@@ -298,15 +298,15 @@ struct Game {
     int viewWidth;                      // +0x37e37
     int viewHeight;                     // +0x37e3b
     char unknown_37e3f[0x37f1b - 0x37e3f];
-    int field_37f1b;                    // +0x37f1b
-    int field_37f1f;                    // +0x37f1f
+    int displayWidth;                   // +0x37f1b
+    int displayHeight;                  // +0x37f1f
     char unknown_37f23[0x38a37 - 0x37f23];
-    unsigned int field_38a37;           // +0x38a37
-    int field_38a3b;                    // +0x38a3b
+    unsigned int lastTick;              // +0x38a37
+    int simStepsPending;                // +0x38a3b
     char pad_38a3f[0x38a47 - 0x38a3f];
-    int field_38a47;                    // +0x38a47
+    int ticks;                          // +0x38a47
     char pad_38a4b[0x38a4f - 0x38a4b];
-    short field_38a4f;                  // +0x38a4f
+    short speedHysteresis;              // +0x38a4f
     char unknown_38a51[0x38d6f - 0x38a51];
     // volatile: the loader thread writes these; gives the bars' byte loads.
     volatile unsigned char progress[6]; // +0x38d6f
@@ -319,13 +319,13 @@ struct Game {
         } netBits;
     };
     char unknown_38d77[0x391e9 - 0x38d77];
-    int field_391e9;                    // +0x391e9
+    int mapInfo;                        // +0x391e9
     char pad_391ed[0x391f1 - 0x391ed];
-    int field_391f1;                    // +0x391f1
-    void (*field_391f5)();              // +0x391f5
-    int field_391f9;                    // +0x391f9
+    int mode;                           // +0x391f1
+    void (*handler)();                  // +0x391f5
+    int fontComix;                      // +0x391f9
     char unknown_391fd[0x39239 - 0x391fd];
-    short field_39239;                  // +0x39239
+    short endGameCountdown;             // +0x39239
 };
 
 #pragma pack(pop)
@@ -902,9 +902,9 @@ void LoadingScreenFrame(void)
             g_game->cursorMode = 0x14;
             SetCursorAnimation(&g_game->field_519, (void*)g_game->cursorHourglass);
         }
-        SetFont(g_game->field_391f9);
+        SetFont(g_game->fontComix);
         SetPaletteColors(SURFACE_143a7, 0, 0x100);
-        if (((Mission*)g_game->field_391e9)->GetGameType() != 2) {
+        if (((Mission*)g_game->mapInfo)->GetGameType() != 2) {
             SaveSettings();
         }
         while (g_game->field_531 != 0) {
@@ -928,13 +928,13 @@ void LoadingScreenFrame(void)
         surfaceHandle = HAPI_LoadFile((unsigned int*)aux, 0);
         RemapPaletteToClosestIndices(&g_game->field_519, SURFACE_143a7, surfaceHandle);
         GameFreeThunk(surfaceHandle);
-        g_game->field_38a37 = GetTicks();
-        g_game->field_38a3b = 0;
-        g_game->field_38a47 = 0;
-        g_game->field_38a4f = 0;
-        g_game->field_39239 = (short)0xffff;
-        g_game->width = g_game->field_37f1b;
-        g_game->height = g_game->field_37f1f;
+        g_game->lastTick = GetTicks();
+        g_game->simStepsPending = 0;
+        g_game->ticks = 0;
+        g_game->speedHysteresis = 0;
+        g_game->endGameCountdown = (short)0xffff;
+        g_game->width = g_game->displayWidth;
+        g_game->height = g_game->displayHeight;
         g_game->viewCullMinX = 0x80;
         g_game->viewCullMinY = 0x20;
         g_game->viewCullMaxX = g_game->width - 1;
@@ -967,22 +967,22 @@ void LoadingScreenFrame(void)
         StopAllSounds();
         BlankScreen();
         FreePictureCache();
-        if (GetScreenWidth() != g_game->field_37f1b || GetScreenHeight() != g_game->field_37f1f) {
+        if (GetScreenWidth() != g_game->displayWidth || GetScreenHeight() != g_game->displayHeight) {
             GameFreeThunk((void*)g_game->screen);
             g_game->screen = 0;
             SetRestoreSurface(0);
             RestoreScreen();
-            SetWindowPos(*(HWND*)(g_game->displayContext + 0x40), 0, 0, 0, g_game->field_37f1b,
-                         g_game->field_37f1f, 4);
-            SetResolution(g_game->field_37f1b, g_game->field_37f1f);
+            SetWindowPos(*(HWND*)(g_game->displayContext + 0x40), 0, 0, 0, g_game->displayWidth,
+                         g_game->displayHeight, 4);
+            SetResolution(g_game->displayWidth, g_game->displayHeight);
             g_game->screen = (int)AllocSurface("OFFSCREEN", g_game->width, g_game->height);
             SetRestoreSurface(g_game->screen);
         }
         DrawLightBars();
         MainLoopTick();
         ShowSoftwareCursor();
-        g_game->field_391f1 = 6;
-        g_game->field_391f5 = BattleFrame;
+        g_game->mode = 6;
+        g_game->handler = BattleFrame;
         SetCloseHandler(HandleBattleQuitPrompt, 0);
         g_game->field_589 = 0;
         memset((void*)g_game->progress, 0, 8);
@@ -1032,12 +1032,12 @@ void LoadingScreenFrame(void)
                 }
             }
         }
-        SetFont(g_game->field_391f9);
+        SetFont(g_game->fontComix);
         DrawSurface(&gadget, (void*)g_game->surface, 0, 0);
-        if (((Mission*)g_game->field_391e9)->GetGameType() != 1) {
+        if (((Mission*)g_game->mapInfo)->GetGameType() != 1) {
             SetTextColors(color, 0xfe);
             // Local for the strncpy source: the call comes before the length push.
-            char* name = ((Mission*)g_game->field_391e9)->GetMissionName();
+            char* name = ((Mission*)g_game->mapInfo)->GetMissionName();
             strncpy(namebuf, name, 100);
             namebuf[99] = 0;
             if (GetPreferredLanguage() != 0 && _strcmpi((const char*)GetPreferredLanguage(), "english") != 0) {
@@ -1065,7 +1065,7 @@ void LoadingScreenFrame(void)
                          rect[1] + *((short*)lightbar + 3));
             DrawLoadingBar(&gadget, lightbar, 5, &DAT_0051e825, (unsigned char*)&DAT_0051e6cc, 1, "Explosions", 0x15b, rect);
         }
-        if (((Mission*)g_game->field_391e9)->GetGameType() == 3) {
+        if (((Mission*)g_game->mapInfo)->GetGameType() == 3) {
             DrawSyncStatus(&gadget);
             SendLoadProgress();
         }

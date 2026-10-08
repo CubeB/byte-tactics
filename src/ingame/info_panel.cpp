@@ -389,7 +389,7 @@ struct Game {
     unsigned short flags;              // +0x37f2f
     char unknown_37f31[0x38a47 - 0x37f31];
     union {
-        int field_38a47;               // +0x38a47
+        int ticks;                     // +0x38a47
         unsigned int tick;
     };
     unsigned short speed;              // +0x38a4b

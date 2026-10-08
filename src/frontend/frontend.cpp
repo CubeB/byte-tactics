@@ -207,19 +207,19 @@ struct Game {
     char unknown_37e1f[0x37eee - 0x37e1f];
     int difficulty;                    // +0x37eee
     char unknown_37ef2[0x38d7b - 0x37ef2];
-    void* field_38d7b;                 // +0x38d7b
+    void* moviePlayer;                 // +0x38d7b
     char unknown_38d7f[0x391e9 - 0x38d7f];
     Mission* level;                    // +0x391e9
     char unknown_391ed[0x391f1 - 0x391ed];
-    int field_391f1;                   // +0x391f1
+    int mode;                          // +0x391f1
     char unknown_391f5[0x391f9 - 0x391f5];
-    void* field_391f9;                 // +0x391f9
+    void* fontComix;                   // +0x391f9
     char unknown_391fd[0x39201 - 0x391fd];
     char field_39201[0x10];            // +0x39201
     char unknown_39211[0x3923d - 0x39211];
-    int field_3923d;                   // +0x3923d
-    int field_39241;                   // +0x39241
-    int field_39245;                   // +0x39245
+    int playMovie;                     // +0x3923d
+    int introMovieLoop;                // +0x39241
+    int cmdlineSkipIntroMovie;         // +0x39245
 };
 #pragma pack(pop)
 
@@ -686,9 +686,9 @@ void __stdcall HandleMainMenuClick(Gadget_00425d80* gadget)
         }
         SetCursorMode(0x14);
         if (GetKeyState(0x10) < 0) {
-            g_game->field_39241 = 1;
+            g_game->introMovieLoop = 1;
         } else {
-            g_game->field_39241 = 0;
+            g_game->introMovieLoop = 0;
         }
         while (PopKey()) {
         }
@@ -826,7 +826,7 @@ void __stdcall OpenMainMenu()
     GameFreeThunk(palette);
     RenderLayer(&g_game->sub, 0xc0);
     SetKeyboardInput(&g_game->sub, 1);
-    SetFont(g_game->field_391f9);
+    SetFont(g_game->fontComix);
 
     strcpy(version, "v3.1");
     strcpy(palpath, version);
@@ -888,15 +888,15 @@ void __stdcall PlayMovie(char* param_1)
         FlipScreen();
         SetCursorOverlayEnabled(0);
         do {
-            g_game->field_38d7b = new MoviePlayer(path, 0, 600000, 1, 2000000, 1);
-            ((MoviePlayer*)g_game->field_38d7b)->Play();
-            MoviePlayer* p = (MoviePlayer*)g_game->field_38d7b;
+            g_game->moviePlayer = new MoviePlayer(path, 0, 600000, 1, 2000000, 1);
+            ((MoviePlayer*)g_game->moviePlayer)->Play();
+            MoviePlayer* p = (MoviePlayer*)g_game->moviePlayer;
             if (p != 0) {
                 p->Close();
                 operator delete(p);
             }
-        } while (g_game->field_39241 != 0);
-        g_game->field_38d7b = 0;
+        } while (g_game->introMovieLoop != 0);
+        g_game->moviePlayer = 0;
         while (PopKey() != 0) {
         }
         SetOffscreenSurface(g_game->screen);
@@ -1121,14 +1121,14 @@ void RunFrontendStateMachine(void)
         Display_00425d80* p = GetDisplay();
         SetCursorOverlayEnabled(0);
         if (p->fullscreen) {
-            if (g_game->field_3923d) {
+            if (g_game->playMovie) {
                 PlayMovie(g_zrbMovie1);
                 SetState(1, 0x3dc, g_frontendSourceFile);
-                g_game->field_3923d = 0;
+                g_game->playMovie = 0;
                 SaveSettings();
                 return;
             }
-            if (g_game->field_39245 == 0) {
+            if (g_game->cmdlineSkipIntroMovie == 0) {
                 PlayMovie(g_zrbMovie1);
                 SetState(2, 0x3e6, g_frontendSourceFile);
             } else
@@ -1660,7 +1660,7 @@ int __stdcall LoadPictureCached(const char* name, int param_2, int param_3, int 
             void* buf = GameAllocIgnoreTag("Palette", 0x400);
             surface = LoadBitmapByName(name, (int)buf);
             data = (int*)buf;
-            if (g_game->field_391f1 != 6) {
+            if (g_game->mode != 6) {
                 if (g_pictureCache[9].surface != 0) {
                     FreeSurface(g_pictureCache[9].surface);
                     GameFreeThunk(g_pictureCache[9].data);

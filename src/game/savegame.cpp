@@ -170,8 +170,8 @@ struct Game {
     char buf391cf[0x391e9 - 0x391cf];    // +0x391cf
     Mission* mapInfo;                    // +0x391e9
     char unknown_391ed[0x391f1 - 0x391ed];
-    int field_391f1;                     // +0x391f1
-    void (*field_391f5)();               // +0x391f5
+    int mode;                            // +0x391f1
+    void (*handler)();                   // +0x391f5
     char unknown_391f9[0x3923b - 0x391f9];
     union Flags_3923b {
         unsigned short value;
@@ -520,8 +520,8 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
                 ((HapiBank*)g_game->p38d6b)->GetIntegerItem("LineOfSightType", 1);
         }
         g_game->flags_2a44.b2 = 1;
-        g_game->field_391f1 = 2;
-        g_game->field_391f5 = MenuFrame;
+        g_game->mode = 2;
+        g_game->handler = MenuFrame;
         SetCloseHandler(LeaveNetGameCallback, 0);
         if (DAT_0051f2e0)
             GameFreeThunk(DAT_0051f2e0);
@@ -544,8 +544,8 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
                 g_game->p38d6b = 0;
             }
             g_game->flags_2a44.b2 = 0;
-            g_game->field_391f1 = 2;
-            g_game->field_391f5 = MenuFrame;
+            g_game->mode = 2;
+            g_game->handler = MenuFrame;
             SetCloseHandler(LeaveNetGameCallback, 0);
             SetFrontendState(0xe, 0x48c, "c:\\cavedog\\wargame\\wargame.cpp");
         }

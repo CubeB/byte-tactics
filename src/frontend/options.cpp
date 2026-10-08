@@ -363,14 +363,14 @@ struct Game {
             SoundFlags_0045cf60 soundFlags; // +0x37f19
             int width;                 // +0x37f1b
             int height;                // +0x37f1f
-            int field_37f23;           // +0x37f23
-            int field_37f27;           // +0x37f27
+            int textScroll;            // +0x37f23
+            int textLines;             // +0x37f27
             char unknown_37f2b[0x37f39 - 0x37f2b];
         };
     };
     char unknown_37f39[0x38a4b - 0x37f39];
-    unsigned short field_38a4b;        // +0x38a4b
-    short field_38a4d;                 // +0x38a4d
+    unsigned short gameSpeed;          // +0x38a4b
+    short effectiveGameSpeed;          // +0x38a4d
     char unknown_38a4f[0x38a51 - 0x38a4f];
     union {
         unsigned char flags_38a51;     // +0x38a51
@@ -381,7 +381,7 @@ struct Game {
     char unknown_391ed[0x3923b - 0x391ed];
     unsigned char flags_3923b;         // +0x3923b
     char unknown_3923c[0x39249 - 0x3923c];
-    int field_39249;                   // +0x39249
+    int restartMissionRequest;         // +0x39249
 };
 
 // A row of a label table: the format and the largest value it applies to.
@@ -1501,8 +1501,8 @@ void __stdcall HandleGameSpeedSlider(Menu_0045b800* obj, int unused)
         if (e != 0) {
             // Written twice, as in the original.
             int value = SliderValue(e);
-            g_game->field_38a4b = (unsigned short)(value < 1 ? 1 : SliderValue(e));
-            SetGameSpeed(g_game->field_38a4b, 1);
+            g_game->gameSpeed = (unsigned short)(value < 1 ? 1 : SliderValue(e));
+            SetGameSpeed(g_game->gameSpeed, 1);
             MarkChanged(obj);
         }
     }
@@ -1532,11 +1532,11 @@ void __stdcall HandleMaxLinesSlider(Menu_0045b800* obj, int unused)
     Entry_0045b800* e = FindGadgetChecked_D(obj->holder->entries, "MAXLINES");
     if (e != 0) {
         int v = SliderValue(e);
-        g_game->field_37f27 = v < 0 ? 0 : SliderValue(e);
+        g_game->textLines = v < 0 ? 0 : SliderValue(e);
         MarkChanged(obj);
     }
-    if (g_game->field_37f27 != 0)
-        sprintf(text, "%d", g_game->field_37f27);
+    if (g_game->textLines != 0)
+        sprintf(text, "%d", g_game->textLines);
     else
         strcpy(text, "None");
     SetTranslatedTextByName(obj, "MAXLINESTEXT", text, 0);
@@ -1550,8 +1550,8 @@ void __stdcall HandleTextScrollSlider(Menu_0045b800* obj, int unused)
     char text[20];
     Entry_0045b800* e = FindGadgetChecked_D(obj->holder->entries, "TXTSCROL");
     if (e != 0) {
-        g_game->field_37f23 = SliderValue(e);
-        sprintf(text, "%d secs", g_game->field_37f23);
+        g_game->textScroll = SliderValue(e);
+        sprintf(text, "%d secs", g_game->textScroll);
         SetTranslatedTextByName(obj, "TEXTSCROLLTEXT", text, 0);
         MarkChanged(obj);
     }
@@ -1636,10 +1636,10 @@ void ApplyDefaultMusicOptions()
 // FUNCTION: 0x45c6d0
 void ApplyDefaultUiOptions()
 {
-    g_game->field_37f23 = 10;
-    g_game->field_37f27 = 10;
-    g_game->field_38a4b = 10;
-    g_game->field_38a4d = 10;
+    g_game->textScroll = 10;
+    g_game->textLines = 10;
+    g_game->gameSpeed = 10;
+    g_game->effectiveGameSpeed = 10;
     g_game->scrollSpeed = 0x20;
     g_game->interfaceType = 0;
     g_game->unitChat = 10;
@@ -1692,14 +1692,14 @@ void LoadSavedAudioSettings()
 // FUNCTION: 0x45ca50
 void RestoreUiOptions()
 {
-    g_game->field_37f23 = g_optionsBackupTextScroll;
-    g_game->field_38a4b = g_optionsBackupGameSpeed.i;
-    g_game->field_38a4d = g_optionsBackupGameSpeed.i;
+    g_game->textScroll = g_optionsBackupTextScroll;
+    g_game->gameSpeed = g_optionsBackupGameSpeed.i;
+    g_game->effectiveGameSpeed = g_optionsBackupGameSpeed.i;
     g_game->scrollSpeed = g_optionsBackupEdgeScroll.i;
     g_game->interfaceType = g_optionsBackupInterfaceType;
     g_game->unitChat = g_optionsBackupUnitChat;
     g_game->unitChatText = g_optionsBackupUnitChatText;
-    g_game->field_37f27 = g_optionsBackupTextLines;
+    g_game->textLines = g_optionsBackupTextLines;
 }
 
 // Copies six flag bits out of the saved settings value into the flags word at
@@ -1753,14 +1753,14 @@ void LoadSavedSettings()
     SetBrightness(0.5 - g_game->brightness * -0.041666668f);
     g_game->sound->SetWaveVolume(g_game->volume1 << 10);
     g_game->sound->SetAuxVolume(g_game->volume2 << 10, 0);
-    g_game->field_37f23 = g_optionsBackupTextScroll;
-    g_game->field_38a4b = g_optionsBackupGameSpeed.i;
-    g_game->field_38a4d = g_optionsBackupGameSpeed.i;
+    g_game->textScroll = g_optionsBackupTextScroll;
+    g_game->gameSpeed = g_optionsBackupGameSpeed.i;
+    g_game->effectiveGameSpeed = g_optionsBackupGameSpeed.i;
     g_game->scrollSpeed = g_optionsBackupEdgeScroll.i;
     g_game->interfaceType = g_optionsBackupInterfaceType;
     g_game->unitChat = g_optionsBackupUnitChat;
     g_game->unitChatText = g_optionsBackupUnitChatText;
-    g_game->field_37f27 = g_optionsBackupTextLines;
+    g_game->textLines = g_optionsBackupTextLines;
     RestoreVisualOptions();
 }
 
@@ -1775,7 +1775,7 @@ void SaveGameSettings()
     memcpy(g_optionsPrefsSnapshot.block, (char*)g_game + 0x37ee6, 0x53);
     g_optionsPrefsSnapshot.bit0 = g_game->flags14281.bit1;
     g_optionsPrefsSnapshot.bit1 = g_game->flags14281.bit2;
-    g_optionsBackupGameSpeed.i = g_game->field_38a4b;
+    g_optionsBackupGameSpeed.i = g_game->gameSpeed;
     g_optionsBackupEdgeScroll.i = g_game->scrollSpeed;
     g_optionsBackupLockedTrack = g_game->sound->GetLockedTrack();
     for (int i = 0; i < 100; i++) {
@@ -2433,24 +2433,24 @@ void __stdcall HandleSpeedOptionsClick(Gadget_0045ead0* gadget)
     }
     if (IsCurrentGadgetNamed(gadget, "UNDO")) {
         PlaySoundByName("Options", 0);
-        g_game->field_37f23 = g_optionsBackupTextScroll;
-        g_game->field_38a4b = g_optionsBackupGameSpeed.s;
-        g_game->field_38a4d = g_optionsBackupGameSpeed.s;
+        g_game->textScroll = g_optionsBackupTextScroll;
+        g_game->gameSpeed = g_optionsBackupGameSpeed.s;
+        g_game->effectiveGameSpeed = g_optionsBackupGameSpeed.s;
         g_game->scrollSpeed = g_optionsBackupEdgeScroll.b;
         g_game->interfaceType = g_optionsBackupInterfaceType;
         g_game->unitChat = g_optionsBackupUnitChat;
         g_game->unitChatText = g_optionsBackupUnitChatText;
-        g_game->field_37f27 = g_optionsBackupTextLines;
+        g_game->textLines = g_optionsBackupTextLines;
         CloseTopScreen(gadget);
         OpenSpeedOptions();
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "RESTORE")) {
         PlaySoundByName("Options", 0);
-        g_game->field_37f23 = 10;
-        g_game->field_37f27 = 10;
-        g_game->field_38a4b = 10;
-        g_game->field_38a4d = 10;
+        g_game->textScroll = 10;
+        g_game->textLines = 10;
+        g_game->gameSpeed = 10;
+        g_game->effectiveGameSpeed = 10;
         g_game->scrollSpeed = 0x20;
         g_game->interfaceType = 0;
         g_game->unitChat = 10;
@@ -2494,7 +2494,7 @@ void OpenSpeedOptions()
         Entry_0045ed50* e = FindGadgetChecked_D(obj->entries, "GAME");
         e->max = 0x15;
         e->fn = HandleGameSpeedSlider;
-        int value = g_game->field_38a4b;
+        int value = g_game->gameSpeed;
         if (value > 0x15) {
             value = 0x15;
         }
@@ -2521,12 +2521,12 @@ void OpenSpeedOptions()
     SetButtonStageByName(&g_game->gui, "UNITCHAT", g_game->unitChatText / 5);
     SetButtonStageByName(&g_game->gui, "LEFTCLICK", g_game->interfaceType);
     char text[20];
-    sprintf(text, g_game->field_37f27 ? "%d" : "None", g_game->field_37f27);
+    sprintf(text, g_game->textLines ? "%d" : "None", g_game->textLines);
     SetTranslatedTextByName(&g_game->gui, "MAXLINESTEXT", text, 0);
     if (FindGadgetIndex(obj->entries, "MAXLINES", 4) != -1) {
         Entry_0045ed50* e = FindGadgetChecked_D(obj->entries, "MAXLINES");
         e->max = 0x1e;
-        int value = g_game->field_37f27;
+        int value = g_game->textLines;
         if (value > 0x1e) {
             value = 0x1e;
         }
@@ -2540,7 +2540,7 @@ void OpenSpeedOptions()
     if (FindGadgetIndex(obj->entries, "TXTSCROL", 0xe) != -1) {
         Entry_0045ed50* e = FindGadgetChecked_D(obj->entries, "TXTSCROL");
         e->max = 0x14;
-        int value = g_game->field_37f23;
+        int value = g_game->textScroll;
         if (value > 0x14) {
             value = 0x14;
         }
@@ -2857,14 +2857,14 @@ void __stdcall HandleOptionsPanelClick(Gadget_0045fc60* gadget)
             SetBrightness(0.5 - g_game->brightness * -0.041666668f);
             g_game->sound->SetWaveVolume(g_game->volume1 << 10);
             g_game->sound->SetAuxVolume(g_game->volume2 << 10, 0);
-            g_game->field_37f23 = g_optionsBackupTextScroll;
-            g_game->field_38a4b = g_optionsBackupGameSpeed.i;
-            g_game->field_38a4d = g_optionsBackupGameSpeed.i;
+            g_game->textScroll = g_optionsBackupTextScroll;
+            g_game->gameSpeed = g_optionsBackupGameSpeed.i;
+            g_game->effectiveGameSpeed = g_optionsBackupGameSpeed.i;
             g_game->scrollSpeed = g_optionsBackupEdgeScroll.b;
             g_game->interfaceType = g_optionsBackupInterfaceType;
             g_game->unitChat = g_optionsBackupUnitChat;
             g_game->unitChatText = g_optionsBackupUnitChatText;
-            g_game->field_37f27 = g_optionsBackupTextLines;
+            g_game->textLines = g_optionsBackupTextLines;
             RestoreVisualOptions();
             g_optionsShellClosing = 1;
             return;
@@ -2981,7 +2981,7 @@ void OpenOptionsPanel()
     memcpy(g_optionsPrefsSnapshot.block, (char*)g_game + 0x37ee6, 0x53);
     g_optionsPrefsSnapshot.bit0 = g_game->los.bits.bit1;
     g_optionsPrefsSnapshot.bit1 = g_game->los.bits.bit2;
-    g_optionsBackupGameSpeed.i = g_game->field_38a4b;
+    g_optionsBackupGameSpeed.i = g_game->gameSpeed;
     g_optionsBackupEdgeScroll.i = g_game->scrollSpeed;
     g_optionsBackupLockedTrack = g_game->sound->GetLockedTrack();
     for (int i = 0; i < 100; i++) {
@@ -3029,7 +3029,7 @@ void __stdcall HandleRestartDialogClick(Gadget_00460340* gadget)
             return;
         RegisterDataArchives();
         g_game->difficulty = GetButtonStageByName(gadget, "Difficulty");
-        g_game->field_39249 = 1;
+        g_game->restartMissionRequest = 1;
     } else if (IsCurrentGadgetNamed(gadget, "Difficulty")) {
         PlaySoundByName("Options", 0);
         ClearSelectedGadget(gadget);

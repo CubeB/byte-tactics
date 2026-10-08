@@ -607,11 +607,11 @@ struct Game {
     int commanderDeath;                // +0x37ef6
     char unknown_37efa[0x37f1b - 0x37efa]; // +0x37efa
     union {                            // +0x37f1b
-        int field_37f1b;
+        int displayWidth;
         unsigned short width;
     };
     union {                            // +0x37f1f
-        int field_37f1f;
+        int displayHeight;
         unsigned short height;
     };
     char unknown_37f23[0x37f39 - 0x37f23]; // +0x37f23
@@ -2886,8 +2886,8 @@ void __stdcall HandleDisplayModesClick(Gadget_00444930* gui)
         Player_00444930* player = &g_game->players[g_game->localPlayer];
         Entry_00444930* entry = FindGadgetChecked(gadgets, "MODES");
         Mode_00446310* mode = &obj->modes[entry->selected];
-        g_game->field_37f1b = mode->width;
-        g_game->field_37f1f = mode->height;
+        g_game->displayWidth = mode->width;
+        g_game->displayHeight = mode->height;
         player->data->field_8b = (unsigned short)mode->width;
         player->data->field_8d = (unsigned short)mode->height;
         BroadcastPlayerInfo();
@@ -2940,8 +2940,8 @@ void CyclePlayerDisplayMode(void)
                 player->data->field_8b = (unsigned short)mode.width;
                 player->data->field_8d = (unsigned short)mode.height;
                 BroadcastPlayerInfo();
-                g_game->field_37f1b = mode.width;
-                g_game->field_37f1f = mode.height;
+                g_game->displayWidth = mode.width;
+                g_game->displayHeight = mode.height;
                 break;
             }
         }

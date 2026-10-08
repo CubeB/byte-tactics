@@ -211,7 +211,7 @@ struct Game {
     char unknown_38a4b[0x38d73 - 0x38a4b];
     unsigned char progress;            // +0x38d73
     char unknown_38d74[0x391e9 - 0x38d74];
-    Mission* field_391e9;              // +0x391e9
+    Mission* mapInfo;                  // +0x391e9
 };
 #pragma pack(pop)
 
@@ -643,7 +643,7 @@ unsigned char FindHostSlot();
 // FUNCTION: 0x440cd0
 int CheckMapCrc()
 {
-    if (!g_game->field_391e9->GetTerrainLength()) {
+    if (!g_game->mapInfo->GetTerrainLength()) {
         return 0;
     }
     unsigned char me = FindHostSlot();
@@ -658,5 +658,5 @@ int CheckMapCrc()
     if (!check) {
         return 1;
     }
-    return g_game->field_391e9->ComputeMapChecksum() == data->field_a9;
+    return g_game->mapInfo->ComputeMapChecksum() == data->field_a9;
 }

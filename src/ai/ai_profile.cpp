@@ -12,7 +12,7 @@ struct Game {
     char unknown_0[0x1439b];
     void* unitDefs;                    // +0x1439b
     char unknown_1439f[0x24e4a];
-    Mission* field_391e9;              // +0x391e9
+    Mission* mapInfo;                  // +0x391e9
 };
 #pragma pack(pop)
 extern Game* g_game;
@@ -139,7 +139,7 @@ int AIProfileParser::ReadInt()
     if (token != 0x101) {
         if (errorReported == 0) {
             sprintf(buffer, "parse error reading AI profile %s\n%s\nlast string =",
-                    (char*)g_game->field_391e9->GetNameSlot(7),
+                    (char*)g_game->mapInfo->GetNameSlot(7),
                     "expecting int", this);
         }
         errorReported = 1;
@@ -163,7 +163,7 @@ void AIProfileParser::ReportParseError(char* text)
     char buffer[256];
     if (!errorReported) {
         sprintf(buffer, "parse error reading AI profile %s\n%s\nlast string =",
-                (char*)g_game->field_391e9->GetNameSlot(7), text, this);
+                (char*)g_game->mapInfo->GetNameSlot(7), text, this);
     }
     errorReported = 1;
 }

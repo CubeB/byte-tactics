@@ -196,7 +196,7 @@ struct Game {
     char unknown_142bb[0x14357 - 0x142bb];
     Unit* units;                        // +0x14357
     char unknown_1435b[0x38a47 - 0x1435b];
-    int field_38a47;                    // +0x38a47
+    int ticks;                          // +0x38a47
 };
 
 class MovementClass {

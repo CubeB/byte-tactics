@@ -105,7 +105,7 @@ struct Game {
     char unknown_14[0x37e1b - 0x14];
     Display_0047c3a0* screen;           // +0x37e1b
     char unknown_37e1f[0x39241 - 0x37e1f];
-    int field_39241;                    // +0x39241
+    int introMovieLoop;                 // +0x39241
 };
 #pragma pack(pop)
 
@@ -497,13 +497,13 @@ void MoviePlayer::Play()
             // WM_MOUSEMOVE (0x200) and WM_LBUTTONDOWN (0x201).
             if (msg.message == 0x104 && msg.wParam == 0x73) {
                 field_8 = 1;
-                g_game->field_39241 = 0;
+                g_game->introMovieLoop = 0;
                 PostQuitMessage(0);
                 return;
             }
             if (msg.message == 0x102) {
                 field_8 = 1;
-                g_game->field_39241 = 0;
+                g_game->introMovieLoop = 0;
             }
             TranslateMessage(&msg);
             DispatchMessageA(&msg);

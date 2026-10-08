@@ -6,7 +6,7 @@
 // The Game views: 0x495860/0x4958c0 read 0x531 as a struct pointer with
 // `value` at +0x4, while 0x495e90 reads the same pointer as an int and then
 // `*(int*)(field_531 + 4)`. One pointer type covers both. The two byte flags
-// 0x495a30 names as `field_37f2f`/`field_38a51` are anonymous unions with the
+// 0x495a30 names as `uiOptionFlags`/`pauseFlags` are anonymous unions with the
 // bitfield views 0x495e90 uses.
 //
 // Needed by 0x495a30: its frame layout depends on this header.
@@ -191,31 +191,31 @@ struct Game {
     char unknown_37ec0[0x37f06 - 0x37ec0];
     Flags_00495e90_37f06 flags_37f06;   // +0x37f06
     char unknown_37f08[0x37f27 - 0x37f08];
-    int field_37f27;                    // +0x37f27
+    int textLines;                      // +0x37f27
     char unknown_37f2b[0x37f2f - 0x37f2b];
     // Both views of the flag word are used: raw `& 2` tests and the b1 bitfield.
     union {
-        unsigned short field_37f2f;     // +0x37f2f
+        unsigned short uiOptionFlags;   // +0x37f2f
         Flags_00495e90_37f2f flags_37f2f;
     };
     char unknown_37f31[0x38a47 - 0x37f31];
-    int field_38a47;                    // +0x38a47
-    unsigned short field_38a4b;         // +0x38a4b
+    int ticks;                          // +0x38a47
+    unsigned short gameSpeed;           // +0x38a4b
     char unknown_38a4d[0x38a51 - 0x38a4d];
     union {
-        unsigned short field_38a51;     // +0x38a51
+        unsigned short pauseFlags;      // +0x38a51
         Flags_00495e90_38a51 flags_38a51;
     };
     char field_38a53[0x38b53 - 0x38a53];
     char field_38b53[0x38c53 - 0x38b53];
-    int field_38c53;                    // +0x38c53
-    int unknown_38c57;
-    int field_38c5b;                    // +0x38c5b
+    int movieCaptureIndex;              // +0x38c53
+    int movieOutputRate;
+    int nextMovieFrameTick;             // +0x38c5b
     char unknown_38c5f[0x391b3 - 0x38c5f];
-    int field_391b3;                    // +0x391b3
-    unsigned short field_391b7;         // +0x391b7
-    int field_391b9;                    // +0x391b9
-    unsigned short field_391bd;         // +0x391bd
+    int unitInfoHoverTrack;             // +0x391b3
+    unsigned short unitInfoHoverUnitId;  // +0x391b7
+    int unitBuilderHoverTrack;          // +0x391b9
+    unsigned short unitBuilderHoverUnitId;  // +0x391bd
     char unknown_391bf[0x391e9 - 0x391bf];
     Mission* net;                       // +0x391e9
     char unknown_391ed[0x3923b - 0x391ed];
@@ -403,14 +403,14 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
             g_game->viewFlags = fl & ~1;
             g_game->viewFlags &= ~2;
             RecalculateLineOfSight(1);
-            savedA = g_game->field_38a51 & 1;
-            g_game->field_38a51 = (unsigned short)(g_game->field_38a51 & ~1);
-            int savedB = (g_game->field_37f2f >> 6) & 1;
+            savedA = g_game->pauseFlags & 1;
+            g_game->pauseFlags = (unsigned short)(g_game->pauseFlags & ~1);
+            int savedB = (g_game->uiOptionFlags >> 6) & 1;
 
-            g_game->field_37f2f = (unsigned short)(g_game->field_37f2f & ~0x40);
-            savedC = g_game->field_37f27;
+            g_game->uiOptionFlags = (unsigned short)(g_game->uiOptionFlags & ~0x40);
+            savedC = g_game->textLines;
 
-            g_game->field_37f27 = 0;
+            g_game->textLines = 0;
             SurfaceFromFrame(&surf, bm);
             FrameFromSurface(&pal, ((SrcHolder_00495a30*)GetDisplay())->frame);
 
@@ -469,10 +469,10 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
                 }
             }
             GameFreeThunk(bm);
-            g_game->field_38a51 = (unsigned short)(g_game->field_38a51 ^ ((savedA ^ g_game->field_38a51) & 1));
+            g_game->pauseFlags = (unsigned short)(g_game->pauseFlags ^ ((savedA ^ g_game->pauseFlags) & 1));
             bit6 = (savedB & 1) << 6;
-            g_game->field_37f2f = (unsigned short)((((unsigned short)g_game->field_37f2f) & ~0x40) | bit6);
-            g_game->field_37f27 = savedC;
+            g_game->uiOptionFlags = (unsigned short)((((unsigned short)g_game->uiOptionFlags) & ~0x40) | bit6);
+            g_game->textLines = savedC;
             SetCameraPosition(scrollX, scrollY, 0);
             g_game->viewFlags = (unsigned short)(g_game->viewFlags ^ ((savedbit0 ^ g_game->viewFlags) & 1));
             g_game->viewFlags = (unsigned short)((unsigned short)((g_game->viewFlags & ~2) | ((savedbit1 & 1) << 1)));
@@ -605,10 +605,10 @@ void HandleGameKey(void)
     case 0xe2:
         if (key != 0) {
             if (g_game->hoverUnitId != 0) {
-                g_game->field_391b3 = 1;
-                g_game->field_391b7 = g_game->hoverUnitId;
+                g_game->unitInfoHoverTrack = 1;
+                g_game->unitInfoHoverUnitId = g_game->hoverUnitId;
             } else {
-                g_game->field_391b3 = 0;
+                g_game->unitInfoHoverTrack = 0;
             }
         } else {
             OpenUnitInfoDialog();
@@ -625,10 +625,10 @@ void HandleGameKey(void)
     case 0xe3:
         if (key != 0) {
             if (g_game->hoverUnitId != 0) {
-                g_game->field_391b9 = 1;
-                g_game->field_391bd = g_game->hoverUnitId;
+                g_game->unitBuilderHoverTrack = 1;
+                g_game->unitBuilderHoverUnitId = g_game->hoverUnitId;
             } else {
-                g_game->field_391b9 = 0;
+                g_game->unitBuilderHoverTrack = 0;
             }
         } else {
             if (!g_game->flags_37ebe.b0) {
@@ -644,11 +644,11 @@ void HandleGameKey(void)
 
     case 0xd7: {
         if (g_game->flags_37f2f.b1) {
-            if (g_game->field_38c53 != 0) {
-                g_game->field_38c53 = 0;
+            if (g_game->movieCaptureIndex != 0) {
+                g_game->movieCaptureIndex = 0;
             } else {
                 // Reset in both arms: the compiler hoists the common store.
-                g_game->field_38c53 = 0;
+                g_game->movieCaptureIndex = 0;
                 // path[0x100] and data[4] (case 0xf8) pin the frame size.
                 char path[0x100];
                 char findData[0x118];
@@ -657,18 +657,18 @@ void HandleGameKey(void)
                 if (h >= 0) {
                     do {
                         int n = atoi(&findData[0x19]);
-                        if (n > g_game->field_38c53)
-                            g_game->field_38c53 = n;
+                        if (n > g_game->movieCaptureIndex)
+                            g_game->movieCaptureIndex = n;
                     } while (HAPI_FindNext(h, findData) == 0);
                     HAPI_FindClose(h);
                 }
-                g_game->field_38c53++;
+                g_game->movieCaptureIndex++;
                 sprintf(g_game->field_38b53, "%s\\MOVIE%03i",
-                        g_game->field_38a53, g_game->field_38c53);
+                        g_game->field_38a53, g_game->movieCaptureIndex);
                 MakeDirectoryPath(g_game->field_38b53);
                 DrawBattleFrame(0, 1);
                 SaveScreenshot(g_game->field_38b53, "FRAM");
-                g_game->field_38c5b = g_game->field_38a47;
+                g_game->nextMovieFrameTick = g_game->ticks;
             }
         }
         break;
@@ -790,9 +790,9 @@ void HandleGameKey(void)
             Player_495e90* pl = &g_game->players[g_game->localPlayer];
             if (pl->valid != 0 && (pl->data->field_9b & 0x40) != 0)
                 break;
-            if (g_game->field_38a4b <= 1)
+            if (g_game->gameSpeed <= 1)
                 break;
-            SetGameSpeed(g_game->field_38a4b - 1, 1);
+            SetGameSpeed(g_game->gameSpeed - 1, 1);
         }
         break;
 
@@ -802,9 +802,9 @@ void HandleGameKey(void)
             Player_495e90* pl = &g_game->players[g_game->localPlayer];
             if (pl->valid != 0 && (pl->data->field_9b & 0x40) != 0)
                 break;
-            if (g_game->field_38a4b >= 0x14)
+            if (g_game->gameSpeed >= 0x14)
                 break;
-            SetGameSpeed(g_game->field_38a4b + 1, 1);
+            SetGameSpeed(g_game->gameSpeed + 1, 1);
         }
         break;
 

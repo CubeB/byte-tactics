@@ -424,20 +424,20 @@ struct Game {
     char unknown_after_features[0x14357 - (0x2cf3 + 0x115 * 256)];
     Unit* units;                       // +0x14357
     char unknown_1435b[0x37f1b - 0x1435b];
-    unsigned short field_37f1b;        // +0x37f1b
+    unsigned short displayWidth;       // +0x37f1b
     char unknown_37f1d[0x37f1f - 0x37f1d];
-    unsigned short field_37f1f;        // +0x37f1f
+    unsigned short displayHeight;      // +0x37f1f
     char unknown_37f21[0x37f2f - 0x37f21];
-    unsigned char field_37f2f;         // +0x37f2f
+    unsigned char uiOptionFlags;       // +0x37f2f
     char unknown_37f30;
-    unsigned int field_37f31;          // +0x37f31
+    unsigned int lobbyTimeoutSecs;     // +0x37f31
     char unknown_37f35[0x38a47 - 0x37f35];
     union {
         unsigned int ticks;            // +0x38a47
         struct {
             char unknown_38a47[0x38a51 - 0x38a47];
             union {
-                unsigned char field_38a51;   // +0x38a51
+                unsigned char pauseFlags;    // +0x38a51
                 unsigned short bit_38a51 : 1;
             };
         };
@@ -466,7 +466,7 @@ struct Game {
     char connection[4];                // +0x39211
     char unknown_39215[0x3923b - 0x39215];
     union {
-        unsigned short field_3923b;    // +0x3923b
+        unsigned short endGameFlags;   // +0x3923b
         struct {
             unsigned short bits_3923b : 2;
             unsigned short flag2 : 1;
@@ -1063,7 +1063,7 @@ void LeaveNetGame()
     }
     HAPINET_quitgame(g_game->net);
     SetCloseHandler(0, 0);
-    g_game->field_3923b |= 4;
+    g_game->endGameFlags |= 4;
     int reason = g_game->players[g_game->localPlayer].reason;
     char* text;
     if (reason != 0) {
@@ -1238,8 +1238,8 @@ int __stdcall CreateLocalPlayer(unsigned char playerIndex, int flag)
     info->gameFlags = (info->gameFlags ^ ((g_game->numPlayersSigned ^ info->gameFlags) & 0xf)) & 0x7fff;
     info->flag_9d_0 = (strlen(g_game->passWord) != 0);
     info->maxUnits = 0x64;
-    info->width = g_game->field_37f1b;
-    info->height = g_game->field_37f1f;
+    info->width = g_game->displayWidth;
+    info->height = g_game->displayHeight;
     info->versionMajor = g_game->version;
     info->versionMinor = g_game->versionMinor;
 
@@ -1803,8 +1803,8 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
 
         p->info->color = 0xff;
         p->info->gameFlags &= 0xffdf;
-        p->info->width = g_game->field_37f1b;
-        p->info->height = g_game->field_37f1f;
+        p->info->width = g_game->displayWidth;
+        p->info->height = g_game->displayHeight;
         g_game->numPlayers = 0;
 
         int result;
@@ -2600,10 +2600,10 @@ void UpdateTimeoutDialog()
         int elapsed = (GetTicks() - player->lastHeard) / 30;
         char buf[200];
         sprintf(buf, Translate("will be rejected in %d seconds"),
-                g_game->field_37f31 - elapsed + 0x78);
+                g_game->lobbyTimeoutSecs - elapsed + 0x78);
         SetTranslatedTextByName(g_game->message, "TIMETEXT", buf, 0);
         MarkChanged(g_game->message);
-        if (elapsed < g_game->field_37f31 + 0x78)
+        if (elapsed < g_game->lobbyTimeoutSecs + 0x78)
             return;
         RejectPlayer(g_timeoutPlayerDpid, 6);
         CloseTopScreen(g_game->message);
@@ -2705,7 +2705,7 @@ static inline int IsTimedOut(Player* p, unsigned int now)
         unsigned int last = p->lastHeard;
         if (g_timeoutTimerStart > last)
             last = g_timeoutTimerStart;
-        if (now - last > (unsigned int)(g_game->field_37f31 * 30))
+        if (now - last > (unsigned int)(g_game->lobbyTimeoutSecs * 30))
             return 1;
     }
     return 0;
@@ -2714,9 +2714,9 @@ static inline int IsTimedOut(Player* p, unsigned int now)
 // FUNCTION: 0x453c20
 void CheckPlayerTimeouts()
 {
-    if (g_game->field_37f2f & 1)
+    if (g_game->uiOptionFlags & 1)
         return;
-    if (g_game->field_38a51 & 1) {
+    if (g_game->pauseFlags & 1) {
         g_timeoutTimerStart = GetTicks();
         return;
     }

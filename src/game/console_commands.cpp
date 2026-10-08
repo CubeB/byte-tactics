@@ -234,11 +234,11 @@ struct Game {
         };
     };
     char unknown_37f31[0x37f35 - 0x37f31];
-    int field_37f35;                   // +0x37f35
+    int netSendDropPct;                // +0x37f35
     char unknown_37f39[0x38a37 - 0x37f39];
     int lastShotTime;                  // +0x38a37
     char unknown_38a3b[0x38a47 - 0x38a3b];
-    int field_38a47;                   // +0x38a47
+    int ticks;                         // +0x38a47
     char unknown_38a4b[0x38a53 - 0x38a4b];
     // The install path the Film command replaces and the film speed value
     // overlap.
@@ -246,15 +246,15 @@ struct Game {
         char path[0x20c];              // +0x38a53
         struct {
             char unknown_38a53[0x38c57 - 0x38a53];
-            int field_38c57;           // +0x38c57
+            int movieOutputRate;       // +0x38c57
         };
     };
-    int field_38c5f;                   // +0x38c5f
-    int field_38c63;                   // +0x38c63
+    int imageOutputDirDirty;           // +0x38c5f
+    int movieOutputRateDirty;          // +0x38c63
     char unknown_38c67[0x38dd5 - 0x38c67];
-    int field_38dd5;                   // +0x38dd5
+    int profileBarsEnabled;            // +0x38dd5
     char unknown_38dd9[0x391ed - 0x38dd9];
-    MissionConditions* field_391ed;    // +0x391ed
+    MissionConditions* victoryConditions;  // +0x391ed
     char unknown_391f1[0x391fd - 0x391f1];
     int font;                          // +0x391fd
     char unknown_39201[0x3923b - 0x39201];
@@ -643,7 +643,7 @@ void __stdcall CmdKill(CommandArgs* args)
     } else {
         KillPlayerUnits(args->GetIntArg(1, 0));
     }
-    g_game->field_391ed->Deactivate();
+    g_game->victoryConditions->Deactivate();
 }
 
 // FUNCTION: 0x416500
@@ -1074,7 +1074,7 @@ void __stdcall CmdFilm(CommandArgs* args)
         if (g_game->path[strlen(g_game->path) - 1] == '\\' ||
             g_game->path[strlen(g_game->path) - 1] == '/')
             g_game->path[strlen(g_game->path) - 1] = 0;
-        g_game->field_38c5f = 1;
+        g_game->imageOutputDirDirty = 1;
         SaveSettings();
     }
 }
@@ -1084,8 +1084,8 @@ void __stdcall CmdFilm(CommandArgs* args)
 void __stdcall CmdFilmSpeed(CommandArgs* args)
 {
     if (args->count > 1 && args->GetIntArg(1, 0) > 0) {
-        g_game->field_38c57 = args->GetIntArg(1, 0);
-        g_game->field_38c63 = 1;
+        g_game->movieOutputRate = args->GetIntArg(1, 0);
+        g_game->movieOutputRateDirty = 1;
         SaveSettings();
     }
 }
@@ -1138,7 +1138,7 @@ void __stdcall CmdBigBrother(int unused)
 // FUNCTION: 0x417520
 void __stdcall CmdProfile(void* args)
 {
-    g_game->field_38dd5 = g_game->field_38dd5 == 0 ? 1 : 0;
+    g_game->profileBarsEnabled = g_game->profileBarsEnabled == 0 ? 1 : 0;
 }
 
 // FUNCTION: 0x417540
@@ -1160,7 +1160,7 @@ void __stdcall CmdNowISee(void*)
 void __stdcall CmdNetStats(int)
 {
     FUN_004161f0();
-    DAT_00511c20 = g_game->field_38a47;
+    DAT_00511c20 = g_game->ticks;
     g_messageBytesReceived = 0;
     g_messageBytesSent = 0;
     Pair_00419560* p = DAT_00511c60;
@@ -1706,7 +1706,7 @@ void __stdcall CmdSenderror(CommandArgs* args)
         int value = args->GetIntArg(1, 0);
         if (value < 0 || value > 100)
             value = 0;
-        g_game->field_37f35 = value;
+        g_game->netSendDropPct = value;
     }
 }
 

@@ -173,7 +173,7 @@ struct Game {
     char unknown_148d7[0x38a47 - 0x148d7];
     unsigned int frame;               // +0x38a47
     char unknown_38a4b[0x391bf - 0x38a4b];
-    int field_391bf;                  // +0x391bf
+    int showRanges;                   // +0x391bf
 };
 
 struct Rect {
@@ -364,7 +364,7 @@ void __stdcall DrawUnitRangeRings(void* surface, View* view, Order* order,
     Unit* unit = order->unit;
     UnitType* def = unit->def;
     int index = 0;
-    if (g_game->field_391bf == 0) {
+    if (g_game->showRanges == 0) {
         short mincloak = def->minCloakDistance;
         if (mincloak != 0 && (unit->activateFlags & 4)) {
             DrawRangeCircle(surface, view, &order->unit->pos, mincloak, g_game->shadowColor, 0, 0);
@@ -563,7 +563,7 @@ void __stdcall DrawWeaponCoverage(void* surface, View* view, Order* order,
         *out = pos;
         return;
     }
-    if (g_game->field_391bf != 0 &&
+    if (g_game->showRanges != 0 &&
         (g_missionOrderTableBegin[order->kind].field_10 == 1 || g_missionOrderTableBegin[order->kind].field_10 == 2)) {
         int color;
         if (g_game->frame & 1)

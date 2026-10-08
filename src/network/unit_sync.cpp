@@ -190,7 +190,7 @@ struct Game {
     char unknown_14393[0x1439b - 0x1438f - sizeof(int)];
     Def_0046d040* defs;                 // +0x1439b
     char unknown_1439f[0x391e9 - 0x1439b - sizeof(Def_0046d040*)];
-    Mission* field_391e9;               // +0x391e9
+    Mission* mapInfo;                   // +0x391e9
     char unknown_391ed[0x39201 - 0x391e9 - sizeof(Mission*)];
     char field_39201[1];                // +0x39201
 };
@@ -246,7 +246,7 @@ int __stdcall ReportGameEvent(int msg)
         if (g_reportFlags & 3) {
             // its own statement, not an argument: the call has to be emitted
             // ahead of the other nine arguments being set up
-            int team = (int)g_game->field_391e9->GetMissionName();
+            int team = (int)g_game->mapInfo->GetMissionName();
             if (RIReport(msg, &rect, (char*)&g_game->field_39201, thing, &g_reportPlayerName,
                              team, g_game->player,
                              id, g_onlineReportPlayers, DAT_0051e57c))
@@ -255,7 +255,7 @@ int __stdcall ReportGameEvent(int msg)
     }
 
     if (DAT_0051e58c) {
-        int team = (int)g_game->field_391e9->GetMissionName();
+        int team = (int)g_game->mapInfo->GetMissionName();
         DAT_0051e584(msg, &rect, (char*)&g_game->field_39201, thing, &g_reportPlayerName,
                      team, g_game->player,
                      id, g_onlineReportPlayers, DAT_0051e57c);

@@ -95,7 +95,7 @@ struct Struct_Game391e9 {
     char pad0[0xd3c]; int field_d3c;
 };
 struct Game {
-    char pad0[0x391e9]; Struct_Game391e9* field_391e9;
+    char pad0[0x391e9]; Struct_Game391e9* mapInfo;
 };
 class Class_0044e2d0 {
 public:
@@ -227,7 +227,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
         UnitDef* def = unit->def;
         // size and rate are loaded before the !rate test.
         int size = def->altitude;
-        int rate = g_game->field_391e9->field_d3c;
+        int rate = g_game->mapInfo->field_d3c;
         if (!rate)
             break;
         // Float local x: keeps the constant multiply from moving outermost.

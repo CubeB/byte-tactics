@@ -421,7 +421,7 @@ struct Projectile_0049c880 {
 #pragma pack(pop)
 
 // The game state, as the weapon code sees it. The time word keeps one name per
-// view (now, frame, field_38a47, teamColor); 49d270's defs and 49e5b0's entries
+// view (now, frame, ticks, teamColor); 49d270's defs and 49e5b0's entries
 // are one union, as are the two tracked-projectile pointers, 499a30's selected
 // and 49c740's tracked.
 struct Game {
@@ -463,7 +463,7 @@ struct Game {
     Unit* units;                       // +0x14357
     char unknown_1435b[0x38a47 - 0x1435b];
     union {
-        int field_38a47;               // +0x38a47
+        int ticks;                     // +0x38a47
         int frame;
         unsigned int now;
         int teamColor;
@@ -1819,7 +1819,7 @@ void __stdcall InitProjectile(Proj_0049c740* proj, Shot_0049c740* shot, Vec3* po
     // Second clear via an unsigned short local, stored last: `&=` folds into one mask.
     unsigned short f = proj->flags;
     // nextSmokeTick is stored before the mask clear: puts g_game in edx.
-    proj->nextSmokeTick = g_game->field_38a47;
+    proj->nextSmokeTick = g_game->ticks;
     proj->interceptedProjectile = 0;
     proj->targetUnit = 0;
     proj->flags = f & ~0x30;
@@ -1831,7 +1831,7 @@ void __stdcall InitProjectile(Proj_0049c740* proj, Shot_0049c740* shot, Vec3* po
             if (unit->slots[i].shot == shot)
                 break;
         proj->piece = (short)QueryWeaponPiece(unit, i);
-        unit->workTime = g_game->field_38a47 + 0x258;
+        unit->workTime = g_game->ticks + 0x258;
     } else {
         proj->player = 0xa;
         proj->owner = 0;
@@ -2105,7 +2105,7 @@ int __stdcall FireVLaunchProjectile(Shot_0049cc20* shot, Unit* unit, Vec3* pos,
     if (!proj)
         return 0;
 
-    InitProjectile(proj, shot->def, pos, aim, g_game->field_38a47, unit);
+    InitProjectile(proj, shot->def, pos, aim, g_game->ticks, unit);
     proj->angle = 0;
     proj->pitch0 = 0x4000;
     shot->field_8 = 0;
@@ -2119,9 +2119,9 @@ int __stdcall FireVLaunchProjectile(Shot_0049cc20* shot, Unit* unit, Vec3* pos,
     memset(&proj->dir, 0, 12);
     UnitType_0049cc20* u = proj->unit;
     if (u->f_68 != 0 && !(u->flags.all & 0x8000000)) {
-        proj->time = (u->f_dc << 16) / (unsigned int)u->f_68 + g_game->field_38a47;
+        proj->time = (u->f_dc << 16) / (unsigned int)u->f_68 + g_game->ticks;
     } else {
-        proj->time = g_game->field_38a47 + u->f_e6;
+        proj->time = g_game->ticks + u->f_e6;
     }
     proj->targetUnit = param_5;
     proj->interceptedProjectile = param_6;
@@ -2201,7 +2201,7 @@ int __stdcall FireBallisticProjectile(Shot_0049cde0* shot, Unit* unit, Vec3* pos
         proj->targetUnit = 0;
     }
     if (proj) {
-        InitProjectile(proj, shot->def, pos, 0, g_game->field_38a47, unit);
+        InitProjectile(proj, shot->def, pos, 0, g_game->ticks, unit);
         proj->angle = shot->heading;
         proj->pitch0 = shot->pitch;
         // The whole product is its own statement: inside the assignment the
@@ -2213,9 +2213,9 @@ int __stdcall FireBallisticProjectile(Shot_0049cde0* shot, Unit* unit, Vec3* pos
         proj->dirz = -FUN_004b7123(shot->heading, scale);
         if (shot->def->flags.f23) {
             proj->time = (int)_hypot((double)(pos->x - aim->x), (double)(pos->z - aim->z)) / scale
-                       + g_game->field_38a47;
+                       + g_game->ticks;
         } else {
-            proj->time = g_game->field_38a47 + shot->def->f_e6;
+            proj->time = g_game->ticks + shot->def->f_e6;
         }
         // active before targetUnit: the reverse of the natural order is the original's.
         proj->active = shot->def->f_ea;
@@ -2269,7 +2269,7 @@ int __stdcall SpawnProjectileFromUnitMotion(Shot_0049d000* shot, Unit* unit, Vec
         proj->targetUnit = 0;
     }
     if (proj) {
-        InitProjectile(proj, shot->weapon, pos, 0, g_game->field_38a47, unit);
+        InitProjectile(proj, shot->weapon, pos, 0, g_game->ticks, unit);
         proj->Setup(unit);
         proj->dirX = -FUN_004b70ef(proj->angle, unit->type->range);
         proj->dirZ = -FUN_004b7123(proj->angle, unit->type->range);
@@ -2977,7 +2977,7 @@ int __stdcall FireDroppedWeapon(Unit* unit, Aim_0049dd60* aim,
         projectile->targetUnit = 0;
     }
     if (projectile != 0) {
-        InitProjectile(projectile, aim->type, &p, 0, g_game->field_38a47, unit);
+        InitProjectile(projectile, aim->type, &p, 0, g_game->ticks, unit);
         projectile->heading = unit->heading;
         projectile->speed = 0;
         projectile->velY = 0;
@@ -3046,7 +3046,7 @@ int __stdcall SpawnProjectile(Unit_0049df10* unit, Vec3* a, Vec3* b, int flag)
     }
     if (!proj)
         return 0;
-    InitProjectile(proj, unit, a, 0, g_game->field_38a47, 0);
+    InitProjectile(proj, unit, a, 0, g_game->ticks, 0);
     proj->dir = *b;
     if (flag) {
         // Read into a local first: only then does MSVC hoist the byte load

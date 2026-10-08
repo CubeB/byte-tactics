@@ -244,7 +244,7 @@ struct Game {
     char unknown_1437f[0x37f06 - 0x1437f];
     Flags_37f06 visualFlags;           // +0x37f06
     char unknown_37f08[0x38a47 - 0x37f08];
-    unsigned int field_38a47;          // +0x38a47
+    unsigned int ticks;                // +0x38a47
 };
 #pragma pack(pop)
 
@@ -884,7 +884,7 @@ int Class_00458d30::ShadeByIntensity(GafFrame* image, Model_459200* model)
     int a = b;
     b ^= 9;
     a ^= 5;
-    unsigned int map = g_game->field_38a47;
+    unsigned int map = g_game->ticks;
     a += map * 0x21 / 30;
     b += map * 0x39 / 30;
     int palette1;

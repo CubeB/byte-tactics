@@ -104,12 +104,12 @@ struct Game {
     char unknown_37efe[0x391e9 - 0x37efe];
     Mission* net;                      // +0x391e9
     char unknown_391ed[0x391f1 - 0x391ed];
-    int field_391f1;                   // +0x391f1
-    void (*field_391f5)(void);         // +0x391f5
+    int mode;                          // +0x391f1
+    void (*handler)(void);             // +0x391f5
     char unknown_391f9[0x3923b - 0x391f9];
-    Flags16_00499200 field_3923b;      // +0x3923b
+    Flags16_00499200 endGameFlags;     // +0x3923b
     char unknown_3923d[0x39249 - 0x3923d];
-    int field_39249;                   // +0x39249
+    int restartMissionRequest;         // +0x39249
 };
 #pragma pack(pop)
 
@@ -363,7 +363,7 @@ void BattleFrame(void)
         }
     }
 
-    if (g_game->field_3923b.bits.b2 || g_game->field_3923b.bits.b4) {
+    if (g_game->endGameFlags.bits.b2 || g_game->endGameFlags.bits.b4) {
         if (g_game->net->GetGameType() != 3 ||
             (g_game->net->GetGameType() == 3 &&
              BroadcastPendingViewState() != 0)) {
@@ -377,14 +377,14 @@ void BattleFrame(void)
             ShutdownIngameSystems();
             ClearKeyQueue();
             g_game->sound->SetTrackCategory(4);
-            g_game->field_391f1 = 7;
-            g_game->field_391f5 = EndGameFrame;
+            g_game->mode = 7;
+            g_game->handler = EndGameFrame;
             SetCloseHandler(LeaveNetGameCallback, 0);
             SetEndGameState(0);
         }
     }
 
-    if (g_game->field_39249 != 0) {
+    if (g_game->restartMissionRequest != 0) {
         // Each arm keeps its own copy of the hook stores, and `|= 4` in both: the compiler merges them.
         if (g_game->net->GetGameType() == 1) {
             ShutdownIngameSystems();
@@ -398,8 +398,8 @@ void BattleFrame(void)
                 g_game->flags_2a44.bits.b3 = 1;
                 g_game->flags_2a44.value |= 4;
             }
-            g_game->field_391f1 = 2;
-            g_game->field_391f5 = MenuFrame;
+            g_game->mode = 2;
+            g_game->handler = MenuFrame;
             SetCloseHandler(LeaveNetGameCallback, 0);
         } else {
             unsigned int saved = g_game->numPlayers;
@@ -412,8 +412,8 @@ void BattleFrame(void)
             g_game->net->LoadMissionByName(g_game->options + 0x11c);
             ApplySlotsToGamePlayers();
             g_game->flags_2a44.value |= 4;
-            g_game->field_391f1 = 2;
-            g_game->field_391f5 = MenuFrame;
+            g_game->mode = 2;
+            g_game->handler = MenuFrame;
             SetCloseHandler(LeaveNetGameCallback, 0);
         }
         g_game->sound->SetTrackCategory(4);

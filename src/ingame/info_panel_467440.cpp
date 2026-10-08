@@ -115,7 +115,7 @@ struct Game {
     Unit* units;                       // +0x14357
     Unit* units_end;                   // +0x1435b
     char unknown_1435f[0x38a47 - 0x1435f];
-    int field_38a47;                   // +0x38a47
+    int ticks;                         // +0x38a47
 
     PlayerInfo_00467440* Current() { return &players[playerIndex]; }
 };
@@ -240,7 +240,7 @@ void UpdateSensorRadarAndCloak(void)
                     if (HasReadyUnitInRange(u->playerIndex, &u->pos.vec, u->def->mincloakdistance)) {
                         // Written through an int& so the flags load stays after the store.
                         int& b0 = u->workTime;
-                        b0 = g_game->field_38a47 + 0x5a;
+                        b0 = g_game->ticks + 0x5a;
                         u->flags |= 0x1000;
                     }
                 }

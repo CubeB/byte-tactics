@@ -315,7 +315,7 @@ struct Game {
     void* radlogohigh;                   // +0x147e3
     void* nuclogo;                       // +0x147e7
     char unknown_147eb[0x37f2f - 0x147eb];
-    Flags14281_00466dc0 field_37f2f;     // +0x37f2f
+    Flags14281_00466dc0 uiOptionFlags;   // +0x37f2f
 };
 #pragma pack(pop)
 
@@ -620,7 +620,7 @@ void DrawRadarUnits(void)
         enabled = 0;
     else
         enabled = 1;
-    if (g_game->field_37f2f.bits.bit9)
+    if (g_game->uiOptionFlags.bits.bit9)
         enabled = 1;
 
     Unit* u = g_game->units;

@@ -247,7 +247,7 @@ struct Game {
     char unknown_37efa[0x37f06 - 0x37efa];
     unsigned char visualFlags;         // +0x37f06
     char unknown_37f07[0x37f2f - 0x37f07];
-    unsigned short field_37f2f;        // +0x37f2f, bit 1 is the "verbose" bit
+    unsigned short uiOptionFlags;      // +0x37f2f, bit 1 is the "verbose" bit
     char unknown_37f31[0x38a37 - 0x37f31];
     unsigned int lastTick;             // +0x38a37
     int steps;                         // +0x38a3b
@@ -699,7 +699,7 @@ void __stdcall HandleTalkDialogEvent(Menu* gadget)
             int flags = 1;
             // The cast keeps the shift a 16-bit one, which is what stops MSVC
             // folding this into `test byte ptr [g_game + 0x37f2f], 2`.
-            if (flags & (unsigned char)(g_game->field_37f2f >> 1))
+            if (flags & (unsigned char)(g_game->uiOptionFlags >> 1))
                 flags = 7;
             if (g_nonCampaignGame)
                 flags |= 2;

@@ -148,7 +148,7 @@ struct Game {
     unsigned char cdMode;        // +0x37f16
     char unknown_37f17[0x37f2f - 0x37f17];
     union {
-        unsigned short field_37f2f;
+        unsigned short uiOptionFlags;
         struct {
             unsigned short pad_37f2f : 7;
             unsigned short bit7_37f2f : 1;
@@ -158,34 +158,34 @@ struct Game {
         };
     };
     char unknown_37f31[0x38a37 - 0x37f31];
-    unsigned int field_38a37;   // +0x38a37
+    unsigned int lastTick;      // +0x38a37
     char unknown_38a3b[0x38a43 - 0x38a3b];
-    int field_38a43;   // +0x38a43
-    unsigned int field_38a47;   // +0x38a47
+    int carry;         // +0x38a43
+    unsigned int ticks;         // +0x38a47
     union {
-        short field_38a4b;
+        short gameSpeed;
         unsigned short speed_38a4b;
     };
-    short field_38a4d;   // +0x38a4d
+    short effectiveGameSpeed;  // +0x38a4d
     char unknown_38a4f[0x38c53 - 0x38a4f];
-    int field_38c53;   // +0x38c53
+    int movieCaptureIndex;  // +0x38c53
     char unknown_38c57[0x38c5f - 0x38c57];
-    int field_38c5f;   // +0x38c5f
-    int field_38c63;   // +0x38c63
-    int field_38c67;   // +0x38c67
+    int imageOutputDirDirty;  // +0x38c5f
+    int movieOutputRateDirty;  // +0x38c63
+    int unusedAfterMovieOutputRateDirty;  // +0x38c67
     char unknown_38c6b[0x38d6b - 0x38c6b];
-    int field_38d6b;   // +0x38d6b
+    int pendingSaveStore;  // +0x38d6b
     char unknown_38d6f[0x38d7b - 0x38d6f];
-    int field_38d7b;   // +0x38d7b
+    int moviePlayer;   // +0x38d7b
     char unknown_38d7f[0x391e9 - 0x38d7f];
-    Mission* field_391e9;   // +0x391e9
+    Mission* mapInfo;       // +0x391e9
     char unknown_391ed[0x391f1 - 0x391ed];
     int mode;   // +0x391f1
     void (*handler)();   // +0x391f5
-    int field_391f9;   // +0x391f9
+    int fontComix;     // +0x391f9
     char unknown_391fd[0x3923b - 0x391fd];
     union {
-        unsigned short field_3923b;
+        unsigned short endGameFlags;
         struct {
             unsigned short pad0_3923b : 2;
             unsigned short bit2_3923b : 1;
@@ -197,7 +197,7 @@ struct Game {
         };
     };
     char unknown_3923d[0x39249 - 0x3923d];
-    int field_39249;   // +0x39249
+    int restartMissionRequest;  // +0x39249
 };
 #pragma pack(pop)
 
@@ -299,7 +299,7 @@ int __stdcall RandomInt(int range);
 // FUNCTION: 0x490c40
 void __cdecl UpdateWind()
 {
-    if (g_game->windCounter < g_game->field_38a47) {
+    if (g_game->windCounter < g_game->ticks) {
         // The __int64 cast keeps the _allmul/_alldiv calls; keep this one
         // expression with no temporary.
         g_game->windCounter += ((int)((__int64)rand() * 10 / 0x8000) + 5) * 30;
@@ -327,11 +327,11 @@ void __cdecl UpdateWind()
 // FUNCTION: 0x490da0
 void ResetGameSpeed()
 {
-    if (g_game->field_391e9->GetGameType() == 3) {
-        g_game->field_38a4b = 10;
-        g_game->field_38a4d = 10;
+    if (g_game->mapInfo->GetGameType() == 3) {
+        g_game->gameSpeed = 10;
+        g_game->effectiveGameSpeed = 10;
     }
-    g_game->field_38a43 = 0;
+    g_game->carry = 0;
 }
 
 
@@ -359,7 +359,7 @@ void __stdcall SetGameSpeed(int speed, int param_2)
         AddMessage(buf, 2, 0, 10);
     }
     g_game->speed_38a4b = speed;
-    g_game->field_38a4d = speed;
+    g_game->effectiveGameSpeed = speed;
     if (param_2) {
         char data[3];
         data[0] = 0x19;
@@ -573,21 +573,21 @@ void InitGame()
     g_game->screen = AllocSurface(g_offscreenSurfaceName, g_game->width,
                                       g_game->height);
     SetRestoreSurface(g_game->screen);
-    g_game->field_3923b &= 0xfffe;
-    g_game->field_3923b &= 0xfffd;
-    g_game->field_39249 = 0;
+    g_game->endGameFlags &= 0xfffe;
+    g_game->endGameFlags &= 0xfffd;
+    g_game->restartMissionRequest = 0;
     SetMissionType(0);
-    if (g_game->field_391e9->GetGameType() == 3) {
-        g_game->field_38a4b = 10;
-        g_game->field_38a4d = 10;
+    if (g_game->mapInfo->GetGameType() == 3) {
+        g_game->gameSpeed = 10;
+        g_game->effectiveGameSpeed = 10;
     }
-    g_game->field_38a43 = 0;
+    g_game->carry = 0;
     g_game->maxUnits = g_game->unitLimit;
     g_game->maxUnitsLobby = g_game->maxUnits;
     g_game->chatHudFilterMode = 3;
-    g_game->field_37f2f &= 0xfdff;
-    g_game->field_37f2f &= 0xff7f;
-    g_game->field_37f2f &= 0xfeff;
+    g_game->uiOptionFlags &= 0xfdff;
+    g_game->uiOptionFlags &= 0xff7f;
+    g_game->uiOptionFlags &= 0xfeff;
     SetPageFlipping(0);
     LoadGameResources();
     InitSound();
@@ -621,21 +621,21 @@ void InitGame()
     SetGuiPath(&g_game->gui, g_guisDirName);
     SetAnimsPath(&g_game->gui, g_animsDirName);
     SetFontsPath(&g_game->gui, g_fontsDirName);
-    SetDefaultFont(&g_game->gui, g_game->field_391f9);
+    SetDefaultFont(&g_game->gui, g_game->fontComix);
     InitCursorFrames(&g_game->gui, GetGafFrame(g_game->cursorNormal, 0));
     LoadGafFile(&g_game->gui, g_commonGuiName);
     LoadGafIntoSlot(&g_game->gui, g_hattFont12Name, 0);
     LoadGafIntoSlot(&g_game->gui, g_hattFont11Name, 1);
     g_game->gui.field_14 = g_game->gui.field_8;
     SetTextKeyColor(0xfe);
-    SetFont(g_game->field_391f9);
+    SetFont(g_game->fontComix);
     g_game->debugMode = 0;
-    g_game->field_38c53 = 0;
-    g_game->field_38c5f = 0;
-    g_game->field_38c63 = 0;
-    g_game->field_38c67 = 0;
-    g_game->field_38d6b = 0;
-    g_game->field_38d7b = 0;
+    g_game->movieCaptureIndex = 0;
+    g_game->imageOutputDirDirty = 0;
+    g_game->movieOutputRateDirty = 0;
+    g_game->unusedAfterMovieOutputRateDirty = 0;
+    g_game->pendingSaveStore = 0;
+    g_game->moviePlayer = 0;
     g_game->mode = 0;
     g_game->handler = InitFrame;
     SetCloseHandler(LeaveNetGameCallback, 0);
@@ -750,7 +750,7 @@ void LoadBattleAssets()
     g_game->hoverUnitId = 0;
     g_game->bit0_37ebe = 0;
     g_game->bit11_37ebe = 0;
-    g_game->field_39249 = 0;
+    g_game->restartMissionRequest = 0;
     g_game->bit9_37f2f = 0;
     g_game->bit7_37f2f = 0;
     g_game->bit8_37f2f = 0;
@@ -777,13 +777,13 @@ void LoadBattleAssets()
     g_game->xform = GameAllocIgnoreTag("TEMP XFORM PTS", 0x960);
     g_game->projected = GameAllocIgnoreTag("TEMP PROJECTED PTS", 0x640);
     g_game->assem = GameAllocIgnoreTag("ASSEM PTS", 0xa0);
-    g_game->field_38a37 = GetTicks();
-    g_game->field_38a47 = 0;
-    if (g_game->field_391e9->GetGameType() == 3) {
-        g_game->field_38a4b = 10;
-        g_game->field_38a4d = 10;
+    g_game->lastTick = GetTicks();
+    g_game->ticks = 0;
+    if (g_game->mapInfo->GetGameType() == 3) {
+        g_game->gameSpeed = 10;
+        g_game->effectiveGameSpeed = 10;
     }
-    g_game->field_38a43 = 0;
+    g_game->carry = 0;
     InitMeteors();
     InitRadar();
     InitPlayers();
@@ -875,7 +875,7 @@ void ShutdownIngameSystems()
     FreeWeaponArray();
     FreeMovementClasses();
     FreeUnitCategories();
-    if (g_game->field_391e9->GetGameType() == 3) {
+    if (g_game->mapInfo->GetGameType() == 3) {
         CloseNetSession();
     }
 }

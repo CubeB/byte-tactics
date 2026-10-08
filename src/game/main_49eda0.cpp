@@ -10,10 +10,10 @@ struct Game_0049ee30 {
     char unknown_0[0x2c74];
     unsigned short lockFlags;                // +0x2c74
     char unknown_2c76[0x37f31 - 0x2c76];
-    int field_37f31;                         // +0x37f31
-    int field_37f35;                         // +0x37f35
+    int lobbyTimeoutSecs;                    // +0x37f31
+    int netSendDropPct;                      // +0x37f35
     char unknown_37f39[0x39245 - 0x37f39];
-    int field_39245;                         // +0x39245
+    int cmdlineSkipIntroMovie;               // +0x39245
 };
 #pragma pack(pop)
 
@@ -70,9 +70,9 @@ int __stdcall ParseCommandLine(char* cmdLine, char* appName)
 {
     char* copy = (char*)_alloca(strlen(cmdLine) + 1);
     strcpy(copy, cmdLine);
-    g_game->field_37f31 = 30;
-    g_game->field_37f35 = 0;
-    g_game->field_39245 = 0;
+    g_game->lobbyTimeoutSecs = 30;
+    g_game->netSendDropPct = 0;
+    g_game->cmdlineSkipIntroMovie = 0;
 
     char* p = strtok(copy, " \t");
     while (p) {
@@ -120,7 +120,7 @@ int __stdcall ParseCommandLine(char* cmdLine, char* appName)
                     } catch (...) {
                     }
                 }
-                g_game->field_39245 = 1;
+                g_game->cmdlineSkipIntroMovie = 1;
                 break;
             case 'D':
             case 'd':
@@ -142,7 +142,7 @@ int __stdcall ParseCommandLine(char* cmdLine, char* appName)
                         v = atoi(p);
                     if (v < 0 || v > 100)
                         v = 0;
-                    g_game->field_37f35 = v;
+                    g_game->netSendDropPct = v;
                 }
                 break;
             }
@@ -177,7 +177,7 @@ int __stdcall ParseCommandLine(char* cmdLine, char* appName)
                         SetDirectConnectAddress(colon + 1);
                     SetDirectPlayProvider(n);
                 }
-                g_game->field_39245 = 1;
+                g_game->cmdlineSkipIntroMovie = 1;
                 break;
             case 'P':
             case 'p':
@@ -259,7 +259,7 @@ int __stdcall ParseCommandLine(char* cmdLine, char* appName)
                         v = atoi(p);
                     if (v < 30 || v > 300)
                         v = 30;
-                    g_game->field_37f31 = v;
+                    g_game->lobbyTimeoutSecs = v;
                 }
                 break;
             case 'W':

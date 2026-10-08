@@ -60,7 +60,7 @@ struct Game_00444580 {
     Conn_00444580* conns;               // +0x2aa3
     char unknown_2aa7[0x143a7 - 0x2aa7];
     unsigned char palette[0x391e9 - 0x143a7];   // +0x143a7
-    Mission* field_391e9;               // +0x391e9
+    Mission* mapInfo;                   // +0x391e9
 };
 #pragma pack(pop)
 
@@ -126,7 +126,7 @@ void FillProviderList()
     g_game->conns = (Conn_00444580*)GameAllocIgnoreTag("DPLAY CONNECTIONS", 0x50);
     if (g_game->conns != 0)
         memset(g_game->conns, 0, 0x50);
-    g_game->field_391e9->RefreshMapList(1);
+    g_game->mapInfo->RefreshMapList(1);
     HAPINET_uninitmultiplay(g_game->field_14);
     HAPINET_getconnections(g_game->field_14, g_game->guids, g_game->conns, g_game->descriptions, DAT_004fcfb8);
     Entry_00444580* entries = menu->entries;

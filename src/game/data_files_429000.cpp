@@ -107,8 +107,8 @@ struct Game {
     char progress;                     // +0x38d6f
     unsigned char loadProgress;        // +0x38d70
     char unknown_38d71[0x391f9 - 0x38d71];
-    void* field_391f9;                 // +0x391f9
-    void* field_391fd;                 // +0x391fd
+    void* fontComix;                   // +0x391f9
+    void* fontSmlFont;                 // +0x391fd
 };
 #pragma pack(pop)
 
@@ -668,17 +668,17 @@ void* __stdcall LoadObject3d(const char* name)
 // FUNCTION: 0x42a320
 void LoadGameFonts()
 {
-    g_game->field_391f9 = LoadFontByName("COMIX");
-    g_game->field_391fd = LoadFontByName("smlfont");
+    g_game->fontComix = LoadFontByName("COMIX");
+    g_game->fontSmlFont = LoadFontByName("smlfont");
 }
 
 // FUNCTION: 0x42a3b0
 void FreeGameFonts()
 {
-    GameFreeThunk(g_game->field_391fd);
-    g_game->field_391fd = 0;
-    GameFreeThunk(g_game->field_391f9);
-    g_game->field_391f9 = 0;
+    GameFreeThunk(g_game->fontSmlFont);
+    g_game->fontSmlFont = 0;
+    GameFreeThunk(g_game->fontComix);
+    g_game->fontComix = 0;
 }
 
 // FUNCTION: 0x42a400

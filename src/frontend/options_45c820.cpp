@@ -27,7 +27,7 @@ struct Game {
     char unknown_37f14[0x37f17 - 0x37f14];
     unsigned char unitChat;            // +0x37f17
     char unknown_37f18[0x37f19 - 0x37f18];
-    unsigned short field_37f19;        // +0x37f19
+    unsigned short soundFlags;         // +0x37f19
 };
 #pragma pack(pop)
 
@@ -45,14 +45,14 @@ void __stdcall SetBrightness(float value);
 void RestoreSoundOptions()
 {
     g_game->volume1 = g_optionsBackupFxVolume;
-    g_game->field_37f19 = (g_game->field_37f19 & ~0x10) | (g_optionsBackupSoundFlags & 0x10);
-    g_game->field_37f19 = (g_game->field_37f19 & ~0x20) | (g_optionsBackupSoundFlags & 0x20);
-    g_game->field_37f19 = (g_game->field_37f19 & ~0x40) | ((g_optionsBackupSoundFlags & 0x20) << 1);
+    g_game->soundFlags = (g_game->soundFlags & ~0x10) | (g_optionsBackupSoundFlags & 0x10);
+    g_game->soundFlags = (g_game->soundFlags & ~0x20) | (g_optionsBackupSoundFlags & 0x20);
+    g_game->soundFlags = (g_game->soundFlags & ~0x40) | ((g_optionsBackupSoundFlags & 0x20) << 1);
     if ((((unsigned char)g_optionsBackupSoundFlags) & 7) == 2)
         g_game->sound->Enable3D();
     else
         g_game->sound->Disable3D();
-    g_game->field_37f19 = (g_game->field_37f19 & ~7) | (g_optionsBackupSoundFlags & 7);
+    g_game->soundFlags = (g_game->soundFlags & ~7) | (g_optionsBackupSoundFlags & 7);
     g_game->unitChat = g_optionsBackupUnitChat;
     SetBrightness(0.5 - g_game->brightness * -0.041666668f);
     g_game->sound->SetWaveVolume(g_game->volume1 << 10);

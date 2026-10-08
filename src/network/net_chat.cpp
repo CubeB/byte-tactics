@@ -70,15 +70,15 @@ struct Game {
     int mode;                          // +0x37efe
     int unit_type_mask;                // +0x37f02
     char unknown_37f06[0x37f23 - 0x37f06];
-    int field_37f23;                   // +0x37f23
+    int textScroll;                    // +0x37f23
     union {
-        int field_37f27;               // +0x37f27, AddMessage's ring capacity
+        int textLines;                 // +0x37f27, AddMessage's ring capacity
         int max_lines;                 // +0x37f27, DrawMessages' line limit
     };
     char unknown_37f2b[0x38a47 - 0x37f2b];
     unsigned int now;                  // +0x38a47
     char unknown_38a4b[0x391e9 - 0x38a4b];
-    Mission* field_391e9;              // +0x391e9
+    Mission* mapInfo;                  // +0x391e9
     char unknown_391ed[0x391f9 - 0x391ed];
     int font;                          // +0x391f9
 };
@@ -121,9 +121,9 @@ void __stdcall AddMessage(char* text, unsigned char key, unsigned short value, c
     // Keep g_game, tail and the g_game+0x519 object written out at each use (no locals).
     if (!*text)
         return;
-    if (g_game->field_37f27 == 0)
+    if (g_game->textLines == 0)
         return;
-    if ((g_game->tail + 1) % g_game->field_37f27 == g_game->head) {
+    if ((g_game->tail + 1) % g_game->textLines == g_game->head) {
         g_game->head++;
         if (g_game->head == 30)
             g_game->head = 0;
@@ -154,7 +154,7 @@ void __stdcall SendChatMessage(Player_00463e50* from, char* text, int param_3, c
     sprintf(buf, "<%s%s%s> %s", from->name, to ? "->" : DAT_005119b8,
             to ? to : DAT_005119b8, text);
     SendChatPacket(buf);
-    if (g_game->field_391e9->GetGameType() == 3) {
+    if (g_game->mapInfo->GetGameType() == 3) {
         ReportGameChat(buf);
     }
     AddMessage(buf, param_3, 0, 10);
@@ -166,7 +166,7 @@ int ExpireOldestMessage()
     int result = 0;
     unsigned short i = g_game->head;
     if (g_game->tail != i
-        && g_game->entries[i].time + (g_game->field_37f23 + 1) * 30 < g_game->now) {
+        && g_game->entries[i].time + (g_game->textScroll + 1) * 30 < g_game->now) {
         result = 1;
         g_game->head = i + 1;
         if (g_game->head == 30)

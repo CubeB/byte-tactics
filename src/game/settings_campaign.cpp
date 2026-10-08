@@ -60,14 +60,14 @@ struct Game {
     int ticks;                         // +0x38a47
     char unknown_38a4b[0x38d7f - 0x38a4b];
     unsigned short flags_38d7f;        // +0x38d7f
-    int field_38d81;                   // +0x38d81
+    int numSkirmishPlayers;            // +0x38d81
     char unknown_38d85[0x391ab - 0x38d85];
     int mission;                       // +0x391ab
     char unknown_391af[0x391cf - 0x391af];
     char thumbs[0x19];                 // +0x391cf
     char unknown_391e8[0x391e9 - 0x391e8];
     Mission* campaign;                 // +0x391e9
-    MissionConditions* field_391ed;    // +0x391ed
+    MissionConditions* victoryConditions;  // +0x391ed
     int state;                         // +0x391f1
 };
 #pragma pack(pop)
@@ -193,7 +193,7 @@ int __stdcall LoadSavedGameState(HapiBank* file)
     LoadMappingData(file);
     LoadUnits(file);
     LoadMeteors(file);
-    g_game->field_391ed->LoadConditions(file);
+    g_game->victoryConditions->LoadConditions(file);
     g_game->loaded = 1;
     return 1;
 }
@@ -256,7 +256,7 @@ int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
         SavePlayerFeaturesPlotmap(&file);
         SaveMetalPlotmap(&file);
         SaveMeteors(&file);
-        g_game->field_391ed->SaveConditions(&file);
+        g_game->victoryConditions->SaveConditions(&file);
     }
     int result = file.SaveBank(param_1, g_saveBankName, 1, 0);
     (&file)->CloseBank();
@@ -300,5 +300,5 @@ void SaveAllMissionsSetting()
 // FUNCTION: 0x432b80
 void SaveNumSkirmishPlayers()
 {
-    WriteRegistryDword("Total Annihilation", "NumSkirmishPlayers", g_game->field_38d81);
+    WriteRegistryDword("Total Annihilation", "NumSkirmishPlayers", g_game->numSkirmishPlayers);
 }

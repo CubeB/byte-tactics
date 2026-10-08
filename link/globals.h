@@ -46,7 +46,7 @@ extern char g_cameraAccount[8];                                                 
 extern int g_commandLineUnusedFlagL;                                                              // 0x502898, 4 bytes; 1 of 1 files
 extern int DAT_0050289c;                                                                          // 0x50289c, 4 bytes; 1 of 1 files
 extern char g_campaignKey[12];                                                                    // 0x5028f8, 12 bytes; 1 of 1 files
-extern char DAT_00502910[4];                                                                      // 0x502910, 4 bytes; 1 of 1 files
+extern char g_dotExtSep[4];                                                                       // 0x502910, 4 bytes; 1 of 1 files
 extern char DAT_00502a20[4];                                                                      // 0x502a20, 4 bytes; 3 of 3 files
 extern char DAT_00502a78[12];                                                                     // 0x502a78, 12 bytes; 2 of 2 files
 extern char DAT_00502ae8[4];                                                                      // 0x502ae8, 4 bytes; 2 of 2 files
@@ -213,10 +213,10 @@ extern "C" short DAT_0050a000[512];                                             
 extern "C" int DAT_0050a400[9];                                                                   // 0x50a400, 36 bytes; declared extern "C" in 1 of 1 files
 extern char DAT_0050a430[12];                                                                     // 0x50a430, 12 bytes; 1 of 1 files
 extern const char DAT_0050a43c[12];                                                               // 0x50a43c, 12 bytes; 1 of 1 files
-extern char DAT_0050a548[4];                                                                      // 0x50a548, 4 bytes; 1 of 1 files
-extern char DAT_0050a56c[16];                                                                     // 0x50a56c, 16 bytes; 1 of 1 files
-extern char DAT_0050a57c[4];                                                                      // 0x50a57c, 4 bytes; 1 of 1 files
-extern char DAT_0050a5c0[16];                                                                     // 0x50a5c0, 16 bytes; 1 of 1 files
+extern char g_dotDot[4];                                                                          // 0x50a548, 4 bytes; 1 of 1 files
+extern char g_packageDataName[16];                                                                // 0x50a56c, 16 bytes; 1 of 1 files
+extern char g_dirWildcard[4];                                                                     // 0x50a57c, 4 bytes; 1 of 1 files
+extern char g_hapiFileArrayName[16];                                                              // 0x50a5c0, 16 bytes; 1 of 1 files
 extern int g_emptyStringRefs;                                                                     // 0x50a778, 4 bytes; 1 of 1 files
 extern void* g_emptyString;                                                                       // 0x50a77c, 4 bytes; 1 of 1 files
 extern int g_guaranteePackets;                                                                    // 0x50a780, 4 bytes; 1 of 1 files

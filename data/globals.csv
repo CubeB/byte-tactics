@@ -101,7 +101,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x502898,g_commandLineUnusedFlagL,.data,4,type,data,int,1,0,1,one type,1,,_DAT_00502898,,,01000000
 0x50289c,DAT_0050289c,.data,4,type,data,int,1,0,1,one type,1,,DAT_0050289c,,,01000000
 0x5028f8,g_campaignKey,.data,12,gap,string,char[],1,0,1,one type,1,,s_Campaign_005028f8,,,43616d706169676e00000000
-0x502910,DAT_00502910,.data,4,gap,data,char[],1,0,1,one type,1,,DAT_00502910,,,2e000000
+0x502910,g_dotExtSep,.data,4,gap,data,char[],1,0,1,one type,1,,DAT_00502910,,,2e000000
 0x502a20,DAT_00502a20,.data,4,gap,string,char[],3,0,1,one type,3,,DAT_00502a20,,,26470000
 0x502a78,DAT_00502a78,.data,12,gap,string,char[],2,0,1,one type,2,,s_Difficulty_00502a78,,,446966666963756c74790000
 0x502ae8,DAT_00502ae8,.data,4,gap,string,char[],2,0,1,one type,2,,DAT_00502ae8,,,4f4b0000
@@ -283,10 +283,10 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x50a400,DAT_0050a400,.data,36,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,0x20,,,,000000000000000000000000000000000000000000000000000000000000000000000000
 0x50a430,DAT_0050a430,.data,12,gap,string,char[],1,0,1,one type,1,,s_ALPHA_TABLE_0050a430,1,,414c504841205441424c4500
 0x50a43c,DAT_0050a43c,.data,12,gap,string,const char[],1,0,1,one type,1,,s_SHADE_TABLE_0050a43c,1,,5348414445205441424c4500
-0x50a548,DAT_0050a548,.data,4,gap,string,char[],1,0,1,one type,1,,DAT_0050a548,,,2e2e0000
-0x50a56c,DAT_0050a56c,.data,16,gap,string,char[],1,0,1,one type,1,,s_Package_Data_0050a56c,,,5061636b616765204461746100000000
-0x50a57c,DAT_0050a57c,.data,4,gap,string,char[],1,0,1,one type,1,,DAT_0050a57c,,,5c2a0000
-0x50a5c0,DAT_0050a5c0,.data,16,gap,string,char[],1,0,1,one type,1,,s_HAPIFILE_array_0050a5c0,,,4841504946494c452061727261790000
+0x50a548,g_dotDot,.data,4,gap,string,char[],1,0,1,one type,1,,DAT_0050a548,,,2e2e0000
+0x50a56c,g_packageDataName,.data,16,gap,string,char[],1,0,1,one type,1,,s_Package_Data_0050a56c,,,5061636b616765204461746100000000
+0x50a57c,g_dirWildcard,.data,4,gap,string,char[],1,0,1,one type,1,,DAT_0050a57c,,,5c2a0000
+0x50a5c0,g_hapiFileArrayName,.data,16,gap,string,char[],1,0,1,one type,1,,s_HAPIFILE_array_0050a5c0,,,4841504946494c452061727261790000
 0x50a778,g_emptyStringRefs,.data,4,type,data,int,1,0,1,one type,1,,DAT_0050a778,,,01000000
 0x50a77c,g_emptyString,.data,4,type,data,void*,1,0,1,one type,1,,DAT_0050a77c,,,00000000
 0x50a780,g_guaranteePackets,.data,4,type,data,int,1,0,1,one type,1,,DAT_0050a780,,,01000000

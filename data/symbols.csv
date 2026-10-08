@@ -2645,7 +2645,7 @@ address,name
 0x4bcee0,RestoreStartDirectory
 0x4bcf00,MakeDirectoryPath
 0x4bcf80,HAPI_CopyIntoFile
-0x4bd150,FUN_004bd150
+0x4bd150,HAPI_PackageBuildNullStub
 0x4bd160,HAPI_PackDirectory
 0x4bd3b0,HAPI_BuildArchiveDirectory
 0x4bd830,HAPI_WriteArchiveData
@@ -4135,7 +4135,7 @@ address,name
 0x502898,g_commandLineUnusedFlagL
 0x50289c,DAT_0050289c
 0x5028f8,g_campaignKey
-0x502910,DAT_00502910
+0x502910,g_dotExtSep
 0x502a20,DAT_00502a20
 0x502a78,DAT_00502a78
 0x502ae8,DAT_00502ae8
@@ -4303,10 +4303,10 @@ address,name
 0x509edc,g_errorCaption
 0x50a430,DAT_0050a430
 0x50a43c,DAT_0050a43c
-0x50a548,DAT_0050a548
-0x50a56c,DAT_0050a56c
-0x50a57c,DAT_0050a57c
-0x50a5c0,DAT_0050a5c0
+0x50a548,g_dotDot
+0x50a56c,g_packageDataName
+0x50a57c,g_dirWildcard
+0x50a5c0,g_hapiFileArrayName
 0x50a778,g_emptyStringRefs
 0x50a77c,g_emptyString
 0x50a780,g_guaranteePackets

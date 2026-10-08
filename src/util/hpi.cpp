@@ -118,7 +118,7 @@ struct OPENHAPIFILE {
 // The display context the open archives hang from: the list of open archives
 // at +0x618, the start directory at +0x628 and the last directory set at
 // +0x728.
-struct Display_004be0b0 {
+struct DisplayContext {
     char unknown_0[0x618];
     OPENHAPIFILE** files;              // +0x618
     int count;                         // +0x61c
@@ -149,7 +149,7 @@ void __stdcall HAPI_OpenFileAppend(void* param1)
     HAPI_OpenFile((char*)param1, "a+b");
 }
 
-Display_004be0b0* GetDisplay(void);
+DisplayContext* GetDisplay(void);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
 // HAPI_FindEntry (0x4bb4e0) is gap code and stays in src/util/hpi_4bb4e0.cpp:
@@ -179,7 +179,7 @@ FileHandle* __stdcall HAPI_OpenFile(char* filename, const char* mode)
     int off;
     int k;
     unsigned char* p;
-    Display_004be0b0* state = GetDisplay();
+    DisplayContext* state = GetDisplay();
     FileHandle* h = (FileHandle*)FUN_004d83b0("File Handle", 0x118);
     memset(h, 0, 0x118);
     strncpy(h->name, filename, 0x100);
@@ -951,7 +951,7 @@ int __stdcall HAPI_FindNext(FindFiles* f, struct _finddata_t* fd)
         if (!f->recursive)
             return -1;
     }
-    Display_004be0b0* g = GetDisplay();
+    DisplayContext* g = GetDisplay();
     // Both latch statements stay in the increment clause.
     for (; f->state < g->count; f->index = -1, f->state++) {
         if (f->index < 0) {
@@ -1054,10 +1054,10 @@ public:
     void insert(T* pos, unsigned int n, const T& x);
 };
 }
-typedef std::vector<Class_004c91a0> Class_004be6c0;
+typedef std::vector<Class_004c91a0> FileList;
 
 // FUNCTION: 0x4bca30
-void __stdcall ListDirectory(const char* path, int param_2, Class_004be6c0* param_3)
+void __stdcall ListDirectory(const char* path, int param_2, FileList* param_3)
 {
     struct _finddata_t fd;
     int h = HAPI_FindFirst(path, &fd, -1, 1);
@@ -1086,7 +1086,7 @@ static inline int Next(int h, struct _finddata_t* fd) { int r = HAPI_FindNext((F
 // "path\\name" to the vector passed in. The search handle is closed at the end
 // (the inlined body of 0x4bc8d0).
 // FUNCTION: 0x4bcb50
-void __stdcall FindFilesRecursive(char* path, const char* pat, Class_004be6c0* tree, int state, int recursive)
+void __stdcall FindFilesRecursive(char* path, const char* pat, FileList* tree, int state, int recursive)
 {
     char buf[0x100];
     struct _finddata_t fd;
@@ -1152,7 +1152,7 @@ void __stdcall GetDirectoryEntry(struct _finddata_t* fd, int index, const char* 
 // FUNCTION: 0x4bce10
 void SaveStartDirectory()
 {
-    Display_004be0b0* g = GetDisplay();
+    DisplayContext* g = GetDisplay();
     char buf[12];
     char d = _getdrive() + '@';
     char* p = g->cwd;
@@ -1167,7 +1167,7 @@ void SaveStartDirectory()
 // FUNCTION: 0x4bce60
 int __stdcall SetLastDirectory(char* path)
 {
-    Display_004be0b0* base = GetDisplay();
+    DisplayContext* base = GetDisplay();
     int result = _chdir(path);
     if (result == 0) {
         strncpy(base->lastDir, path, 0x100);
@@ -1178,21 +1178,21 @@ int __stdcall SetLastDirectory(char* path)
 // FUNCTION: 0x4bcea0
 void __stdcall GetLastDirectory(char* dst)
 {
-    Display_004be0b0* s = GetDisplay();
+    DisplayContext* s = GetDisplay();
     strncpy(dst, s->lastDir, 0x100);
 }
 
 // FUNCTION: 0x4bcec0
 void __stdcall GetStartDirectory(char* param)
 {
-    Display_004be0b0* p = GetDisplay();
+    DisplayContext* p = GetDisplay();
     char* src = p->cwd;
     strncpy(param, src, 0x100);
 }
 
 // FUNCTION: 0x4bcee0
 void RestoreStartDirectory() {
-    Display_004be0b0* p = GetDisplay();
+    DisplayContext* p = GetDisplay();
     _chdir(p->cwd);
 }
 
@@ -1285,7 +1285,7 @@ fail:
 }
 
 // FUNCTION: 0x4bd150
-int __stdcall FUN_004bd150(int, int)
+int __stdcall HAPI_PackageBuildNullStub(int, int)
 {
     return 0;
 }
@@ -1420,11 +1420,11 @@ struct Node_004bd3b0 {
 };
 #pragma pack(pop)
 
-extern char DAT_0050a56c[];  // "Package Data"
-extern char DAT_0050a57c[];  // "\\*"
+extern char g_packageDataName[];  // "Package Data"
+extern char g_dirWildcard[];  // "\\*"
 extern char DAT_0050372c[];  // "*"
-extern char DAT_0050a548[];  // ".."
-extern char DAT_00502910[];  // "."
+extern char g_dotDot[];      // ".."
+extern char g_dotExtSep[];   // "."
 extern char DAT_00503374[];  // "\\"
 
 // Builds one package directory in the growing buffer `out` (size,
@@ -1449,13 +1449,13 @@ unsigned int __stdcall HAPI_BuildArchiveDirectory(char* path, HapiBuf* out, int*
     root = nsize;
     nsize += 8;
     out->size = nsize;
-    base = (char*)FUN_004d84a0(out->buf, DAT_0050a56c, nsize);
+    base = (char*)FUN_004d84a0(out->buf, g_packageDataName, nsize);
     out->buf = base;
     *(unsigned int*)(base + root) = 0;
 
     strcpy(buf, path);
     if (buf[strlen(buf) - 1] != '\\') {
-        strcat(buf, DAT_0050a57c);
+        strcat(buf, g_dirWildcard);
         trailing = 0;
     } else {
         strcat(buf, DAT_0050372c);
@@ -1465,7 +1465,7 @@ unsigned int __stdcall HAPI_BuildArchiveDirectory(char* path, HapiBuf* out, int*
     h = HAPI_FindFirst(buf, &fd, -1, 1);
     if (h != -1) {
         do {
-            if (strcmp(fd.name, DAT_00502910) != 0 && strcmp(fd.name, DAT_0050a548) != 0)
+            if (strcmp(fd.name, g_dotExtSep) != 0 && strcmp(fd.name, g_dotDot) != 0)
                 ++(*(unsigned int*)(base + root));
         } while (HAPI_FindNext((FindFiles*)h, &fd) == 0);
         if (h != 0) {
@@ -1482,7 +1482,7 @@ unsigned int __stdcall HAPI_BuildArchiveDirectory(char* path, HapiBuf* out, int*
     if (h != -1) {
         k = 0;
         do {
-            if (strcmp(fd.name, DAT_00502910) != 0 && strcmp(fd.name, DAT_0050a548) != 0) {
+            if (strcmp(fd.name, g_dotExtSep) != 0 && strcmp(fd.name, g_dotDot) != 0) {
                 unsigned int nameOff = Grow(out, strlen(fd.name) + 1);
                 strcpy(out->buf + nameOff, fd.name);
                 // Two steps: a one-expression pointer gets regrouped as (entries + k) + buf.
@@ -1659,12 +1659,12 @@ void __stdcall HAPI_CloseArchive(OPENHAPIFILE* f)
     }
 }
 
-extern char DAT_0050a5c0[];            // "HAPIFILE array"
+extern char g_hapiFileArrayName[];     // "HAPIFILE array"
 
 // FUNCTION: 0x4be0b0
 void* __stdcall HAPI_AddArchive(LPCSTR param_1, int param_2)
 {
-    Display_004be0b0* display = GetDisplay();
+    DisplayContext* display = GetDisplay();
     char fullPath[0x100];
     char* filePart;
     GetFullPathNameA(param_1, 0x100, fullPath, &filePart);
@@ -1678,7 +1678,7 @@ void* __stdcall HAPI_AddArchive(LPCSTR param_1, int param_2)
     if (!file)
         return 0;
 
-    display->files = (OPENHAPIFILE**)FUN_004d84a0(display->files, DAT_0050a5c0, display->count * 4 + 4);
+    display->files = (OPENHAPIFILE**)FUN_004d84a0(display->files, g_hapiFileArrayName, display->count * 4 + 4);
     display->files[display->count] = (OPENHAPIFILE*)file;
     display->count++;
     return file;
@@ -1701,7 +1701,7 @@ static void FreeRecord_004be180(OPENHAPIFILE* p)
 // FUNCTION: 0x4be180
 void HAPI_DropMissingArchives(void)
 {
-    Display_004be0b0* state = GetDisplay();
+    DisplayContext* state = GetDisplay();
     int i;
     for (i = 0; i < state->count; i++) {
         if (state->files[i]->fp == 0) {
@@ -1729,7 +1729,7 @@ void HAPI_DropMissingArchives(void)
 // FUNCTION: 0x4be270
 void __stdcall HAPI_RemoveArchive(OPENHAPIFILE* pRecord)
 {
-    Display_004be0b0* state = GetDisplay();
+    DisplayContext* state = GetDisplay();
     int i;
     for (i = 0; i < state->count; i++) {
         if (state->files[i] == pRecord) {
@@ -1770,7 +1770,7 @@ void __stdcall HAPI_ClearShadowFlags(ArchiveDirectory* list)
 // FUNCTION: 0x4be400
 void __stdcall HAPI_MarkShadowedFiles(char* path, int state, int recursive)
 {
-    Display_004be0b0* d = GetDisplay();
+    DisplayContext* d = GetDisplay();
     char buf[0x100];
     struct _finddata_t fd;
     int i;

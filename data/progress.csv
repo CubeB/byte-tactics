@@ -2648,7 +2648,7 @@ address,size,file,symbol,status,similarity
 0x4bcee0,20,src/util/hpi.cpp,?RestoreStartDirectory@@YGXXZ,matched,100.0
 0x4bcf00,121,src/util/hpi.cpp,?MakeDirectoryPath@@YGXPAD@Z,matched,100.0
 0x4bcf80,454,src/util/hpi.cpp,?HAPI_CopyIntoFile@@YGHPAUFileHandle@@PAD@Z,matched,100.0
-0x4bd150,5,src/util/hpi.cpp,?FUN_004bd150@@YGHHH@Z,matched,100.0
+0x4bd150,5,src/util/hpi.cpp,?HAPI_PackageBuildNullStub@@YGHHH@Z,matched,100.0
 0x4bd160,580,src/util/hpi.cpp,?HAPI_PackDirectory@@YGHPAD0P6AXH@ZIH@Z,matched,100.0
 0x4bd3b0,1148,src/util/hpi.cpp,?HAPI_BuildArchiveDirectory@@YGIPADPAUHapiBuf@@PAH@Z,matched,100.0
 0x4bd830,1332,src/util/hpi_4bd830.cpp,?HAPI_WriteArchiveData@@YGXPAD0HPAU_iobuf@@P6AXI@ZIHH@Z,matched,100.0

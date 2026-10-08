@@ -2805,7 +2805,7 @@ void GetStartDirectory(char*);
 void RestoreStartDirectory(void);
 void MakeDirectoryPath(char*);
 int HAPI_CopyIntoFile(File_004bcf80*, char*);
-int FUN_004bd150(int, int);
+int HAPI_PackageBuildNullStub(int, int);
 int HAPI_PackDirectory(char*, char*, void (__cdecl *)(int), unsigned int, int);
 unsigned int HAPI_BuildArchiveDirectory(char*, HapiBuf_004bd3b0*, int*);
 void HAPI_WriteArchiveData(char*, char*, int, _iobuf*, void (__cdecl *)(unsigned int), unsigned int, int, int);

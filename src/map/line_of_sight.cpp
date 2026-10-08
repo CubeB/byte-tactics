@@ -978,10 +978,43 @@ void ClearBorderFeatures()
     }
 }
 
+// The map block of Game from +0x141fb, which LoadTntMap fills through one base pointer.
+struct MapSettings {
+    int* sortUnits;                    // +0x00
+    int* sortIndices;                  // +0x04
+    int* sortLineCount;                // +0x08
+    char unknown_c[0x24 - 0xc];
+    Grid* grid;                        // +0x24
+    int baseX;                         // +0x28
+    int baseY;                         // +0x2c
+    char unknown_30[0x38 - 0x30];
+    int width;                         // +0x38
+    int height;                        // +0x3c
+    int screenTilesX;                  // +0x40
+    int screenTilesY;                  // +0x44
+    int blocksX;                       // +0x48, map size / 32
+    int blocksY;                       // +0x4c
+    int sortRowWidth;                  // +0x50
+    int sortRowCount;                  // +0x54
+    char unknown_58[0x5c - 0x58];
+    int featureReproduceCursor;        // +0x5c
+    int windSpeedMin;                  // +0x60
+    int windSpeedMax;                  // +0x64
+    int rise;                          // +0x68
+    int tidal;                         // +0x6c, a float copied as bits
+    char unknown_70[0x78 - 0x70];
+    unsigned short* visibilityMask;    // +0x78
+    char unknown_7c[0x84 - 0x7c];
+    unsigned char seaLevel;            // +0x84
+    IconSet* iconSet;                  // +0x88
+    Cell* cells;                       // +0x8c
+    unsigned short* mapValues;         // +0x90
+};
+
 // FUNCTION: 0x483610
 void LoadTntMap()
 {
-    int* mapSettings = (int*)((char*)g_game + 0x141fb);
+    MapSettings* mapSettings = (MapSettings*)((char*)g_game + 0x141fb);
     TntInfo info;
     GafFrame pic;
     char text[64];
@@ -1040,31 +1073,31 @@ void LoadTntMap()
     // REGION r2 begin
     a.n = *(int*)(*(int*)((char*)g_game + 0x391e9) + 0xd34);
     if (a.n >= 0 && info.version >= 0x2000)
-        *(int*)((char*)mapSettings + 0x60) = a.n;
+        mapSettings->windSpeedMin = a.n;
     else
-        *(int*)((char*)mapSettings + 0x60) = info.sea_a;
+        mapSettings->windSpeedMin = info.sea_a;
     a.n = *(int*)(*(int*)((char*)g_game + 0x391e9) + 0xd38);
     if (a.n >= 0 && info.version >= 0x2000)
-        *(int*)((char*)mapSettings + 0x64) = a.n;
+        mapSettings->windSpeedMax = a.n;
     else
-        *(int*)((char*)mapSettings + 0x64) = info.sea_b;
+        mapSettings->windSpeedMax = info.sea_b;
     a.n = *(int*)(*(int*)((char*)g_game + 0x391e9) + 0xd3c);
     // Parenthesised so the two constant multiplies are not folded into one.
     if (a.n >= 0 && info.version >= 0x2000)
-        *(int*)((char*)mapSettings + 0x68) = (int)((a.n * 65536.0) * 0.0011111111111111111);
+        mapSettings->rise = (int)((a.n * 65536.0) * 0.0011111111111111111);
     else if (info.sea_d != 0)
-        *(int*)((char*)mapSettings + 0x68) = (int)((info.sea_d * 65536.0) * 0.0011111111111111111);
+        mapSettings->rise = (int)((info.sea_d * 65536.0) * 0.0011111111111111111);
     else
-        *(int*)((char*)mapSettings + 0x68) = 0x1fdb;
+        mapSettings->rise = 0x1fdb;
     if (*(float*)(*(int*)((char*)g_game + 0x391e9) + 0xd40) >= 0.0f)
-        *(int*)((char*)mapSettings + 0x6c) = *(int*)(*(int*)((char*)g_game + 0x391e9) + 0xd40);
+        mapSettings->tidal = *(int*)(*(int*)((char*)g_game + 0x391e9) + 0xd40);
     else
-        *(int*)((char*)mapSettings + 0x6c) = 0x3f000000;
-    *(unsigned char*)((char*)mapSettings + 0x84) = (unsigned char)info.flag;
-    *(int*)((char*)mapSettings + 0x38) = info.width;
-    *(int*)((char*)mapSettings + 0x3c) = info.height;
-    mapSettings[10] = mapSettings[14] << 4;
-    mapSettings[11] = mapSettings[15] << 4;
+        mapSettings->tidal = 0x3f000000;
+    mapSettings->seaLevel = (unsigned char)info.flag;
+    mapSettings->width = info.width;
+    mapSettings->height = info.height;
+    mapSettings->baseX = mapSettings->width << 4;
+    mapSettings->baseY = mapSettings->height << 4;
     if (info.feature_flags & 1) {
         pic.width = *info.feature_data;
         pic.height = info.feature_data[2];
@@ -1086,13 +1119,13 @@ void LoadTntMap()
     // REGION r2 end
 
     // REGION r3 begin
-    a.n = (mapSettings[10] / 32) * (mapSettings[11] / 32);
+    a.n = (mapSettings->baseX / 32) * (mapSettings->baseY / 32);
     int* dst = (int*)GameAllocIgnoreTag("TILE MAP", a.n * 2);
-    mapSettings[36] = (int)dst;
+    mapSettings->mapValues = (unsigned short*)dst;
     memcpy(dst, info.tile_map_src, a.n * 2);
-    a.n = mapSettings[14] * mapSettings[15];
+    a.n = mapSettings->width * mapSettings->height;
     unsigned char* plot = (unsigned char*)GameAllocIgnoreTag("PLOT MEMORY", a.n * 0xd);
-    mapSettings[35] = (int)plot;
+    mapSettings->cells = (Cell*)plot;
     int fill = *(int*)(*(int*)((char*)g_game + 0x391e9) + 0xd30);
     if (fill < 0 || info.version < 0x2000)
         fill = 0;
@@ -1106,7 +1139,7 @@ void LoadTntMap()
     }
     InitFeatureAnimPool(&info.version);
     if (info.attr_b != 0) {
-        unsigned char* q = *(unsigned char**)&mapSettings[35];
+        unsigned char* q = (unsigned char*)mapSettings->cells;
         if (a.n > 0) {
             unsigned char* src = info.attr_b;
             for (int i = a.n; i > 0; i--) {
@@ -1118,7 +1151,7 @@ void LoadTntMap()
             }
         }
         if (*(int*)((char*)g_game + 0x38d6b) == 0) {
-            q = *(unsigned char**)&mapSettings[35];
+            q = (unsigned char*)mapSettings->cells;
             if (a.n > 0) {
                 unsigned char* src = info.attr_b + 2;
                 do {
@@ -1132,7 +1165,7 @@ void LoadTntMap()
         }
     } else {
         if (info.attr_a != 0) {
-            unsigned char* q = *(unsigned char**)&mapSettings[35];
+            unsigned char* q = (unsigned char*)mapSettings->cells;
             unsigned char* src = info.attr_a;
             if (a.n > 0) {
                 b.n = a.n;
@@ -1147,7 +1180,7 @@ void LoadTntMap()
                 } while (b.n != 0);
             }
             if (*(int*)((char*)g_game + 0x38d6b) == 0) {
-                q = *(unsigned char**)&mapSettings[35];
+                q = (unsigned char*)mapSettings->cells;
                 if (a.n > 0) {
                     unsigned short* sp = (unsigned short*)(info.attr_a + 1);
                     int n = a.n;
@@ -1167,18 +1200,18 @@ void LoadTntMap()
 
     // REGION r4 begin
     unsigned int* set = (unsigned int*)GameAllocIgnoreTag("TILE SET", info.tile_set_count * 0x400 + 8);
-    *(unsigned int**)((char*)mapSettings + 0x88) = set;
+    mapSettings->iconSet = (IconSet*)set;
     *set = info.tile_set_count;
-    *(int*)(*(int*)((char*)mapSettings + 0x88) + 4) = *(int*)((char*)mapSettings + 0x88) + 8;
-    memcpy(*(void**)(*(int*)((char*)mapSettings + 0x88) + 4), info.tile_set_src, info.tile_set_count * 0x400);
+    mapSettings->iconSet->data = (unsigned char*)mapSettings->iconSet + 8;
+    memcpy(mapSettings->iconSet->data, info.tile_set_src, info.tile_set_count * 0x400);
     GameFreeThunk(tnt);
     g_losTables.LoadLosTables();
     int mw = *(int*)((char*)g_game + 0x37e37);
     int mh = *(int*)((char*)g_game + 0x37e3b);
-    *(int*)((char*)mapSettings + 0x40) = mw / 16;
-    *(int*)((char*)mapSettings + 0x44) = mh / 16;
-    *(int*)((char*)mapSettings + 0x48) = mw / 32;
-    *(int*)((char*)mapSettings + 0x4c) = mh / 32;
+    mapSettings->screenTilesX = mw / 16;
+    mapSettings->screenTilesY = mh / 16;
+    mapSettings->blocksX = mw / 32;
+    mapSettings->blocksY = mh / 32;
     int* list = (int*)operator new(0x10);
     int* obj = 0;
     if (list != 0) {
@@ -1189,15 +1222,15 @@ void LoadTntMap()
         obj = list;
     }
     int rb = 2;
-    *(int**)((char*)mapSettings + 0x24) = obj;
+    mapSettings->grid = (Grid*)obj;
     a.n = 2;
     if (mw % 32 != 0)
         a.n = 3;
     if (mh % 32 != 0)
         rb = 3;
     int cols, rows;
-    rows = *(int*)((char*)mapSettings + 0x44) / 2 + rb;
-    cols = *(int*)((char*)mapSettings + 0x40) / 2 + a.n;
+    rows = mapSettings->screenTilesY / 2 + rb;
+    cols = mapSettings->screenTilesX / 2 + a.n;
     obj[1] = cols;
     obj[2] = rows;
     operator delete((void*)obj[0]);
@@ -1220,22 +1253,22 @@ void LoadTntMap()
     // REGION r5 begin
     BuildDerivedLayers();
     ClearBorderFeatures();
-    unsigned int total2 = (unsigned int)(mapSettings[14] * mapSettings[15]) * 2;
+    unsigned int total2 = (unsigned int)(mapSettings->width * mapSettings->height) * 2;
     unsigned int half = total2 / 4;
     int* mapped = (int*)GameAllocIgnoreTag("MAPPED MEMORY", half);
-    mapSettings[30] = (int)mapped;
+    mapSettings->visibilityMask = (unsigned short*)mapped;
     memset(mapped, 0, half);
-    int sx = mapSettings[16] + 0xc;
-    int sy = mapSettings[17] + 0x20;
-    mapSettings[21] = sy;
-    mapSettings[20] = sx;
-    *mapSettings = (int)GameAllocIgnoreTag("SORT UNIT LIST", sy * sx * 4);
-    mapSettings[1] = (int)GameAllocIgnoreTag("SORT INDICES", mapSettings[21] << 2);
-    mapSettings[2] = (int)GameAllocIgnoreTag("SORT LINE COUNT", mapSettings[21] << 1);
+    int sx = mapSettings->screenTilesX + 0xc;
+    int sy = mapSettings->screenTilesY + 0x20;
+    mapSettings->sortRowCount = sy;
+    mapSettings->sortRowWidth = sx;
+    mapSettings->sortUnits = (int*)GameAllocIgnoreTag("SORT UNIT LIST", sy * sx * 4);
+    mapSettings->sortIndices = (int*)GameAllocIgnoreTag("SORT INDICES", mapSettings->sortRowCount << 2);
+    mapSettings->sortLineCount = (int*)GameAllocIgnoreTag("SORT LINE COUNT", mapSettings->sortRowCount << 1);
     StampFeatureMetal();
     *(int*)((char*)g_game + 0x14277) = 0;
     *(int*)((char*)g_game + 0x1427b) = (int)GameAllocIgnoreTag("EYEBALL MEMORY", 0x2d0);
-    mapSettings[23] = 0;
+    mapSettings->featureReproduceCursor = 0;
     *(unsigned char*)((char*)g_game + 0x38d70) = 100;
     // REGION r5 end
 }

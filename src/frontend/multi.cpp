@@ -153,13 +153,13 @@ struct Entry_00440d70 {                // 0x15b bytes
         };
     };
     union {                            // +0x140
-        short field_140;
+        short unitsCreated;
         short value;
     };
     short unknown_142;                 // +0x142
     union {                            // +0x144
         void (__stdcall* callback)(Gadget_00440d70* menu, int index);
-        void (__stdcall* field_144)(void* gadget, int param_2);
+        void (__stdcall* unitCount)(void* gadget, int param_2);
     };
     char unknown_148[2];               // +0x148
     union {                            // +0x14a
@@ -415,15 +415,15 @@ struct Player_00444930 {
     char name[0x73 - 0x2b];            // +0x2b
     unsigned char type;                // +0x73
     char unknown_74[0x108 - 0x74];     // +0x74
-    unsigned char field_108[0xb];      // +0x108
-    unsigned char field_113[0xb];      // +0x113
+    unsigned char allied[0xb];         // +0x108
+    unsigned char alliedBy[0xb];       // +0x113
     char unknown_11e[0x13f - 0x11e];   // +0x11e
     union {                            // +0x13f
         unsigned char alliance;
         unsigned char colour;
     };
-    int field_140;                     // +0x140
-    short field_144;                   // +0x144
+    int unitsCreated;                  // +0x140
+    short unitCount;                   // +0x144
     unsigned char field_146;           // +0x146
     char unknown_147[0x14b - 0x147];   // +0x147
 };
@@ -2784,8 +2784,8 @@ void __stdcall BindNamedSliderWithCallback(char* name, int param_2, int param_3,
         Entry_00444930* gadget = FUN_004a0200(gadgets, name);
         gadget->field_13c = param_2;
         gadget->callback = callback;
-        gadget->field_140 = param_3;
-        SetSliderFromValue(gadget, gadget->field_140);
+        gadget->unitsCreated = param_3;
+        SetSliderFromValue(gadget, gadget->unitsCreated);
         gadget->game = g_game;
     }
     callback(menu, index);
@@ -3052,7 +3052,7 @@ static inline int IsPlaying(Player_00444930* p)
 static inline int IsCounted(Player_00444930* p)
 {
     return (p->type == 1 || p->type == 2 || p->type == 3)
-        && (p->field_144 != 0 || p->field_140 == 0);
+        && (p->unitCount != 0 || p->unitsCreated == 0);
 }
 
 static inline int CountAlliance(int alliance)
@@ -3172,7 +3172,7 @@ void RefreshTeamIcons()
 
 // Recomputes the per-player ally marks. For every active player it walks the
 // players that share its alliance colour (FindNextAlly, inlined), sets the
-// corresponding bytes of field_108/field_113 and bit 1 of the player info
+// corresponding bytes of allied/alliedBy and bit 1 of the player info
 // flags, then keeps that bit only when at least two players share the
 // alliance (CountAlliance, inlined from 0x4468c0).
 
@@ -3213,8 +3213,8 @@ void SyncMutualAlliances()
         j = 0;
         while ((k = FindNextAlly_00446c70(i, j)) != -1) {
             j = k + 1;
-            p->field_113[k] = 1;
-            p->field_108[k] = 1;
+            p->alliedBy[k] = 1;
+            p->allied[k] = 1;
             Player_00444930* q = &g_game->players[k];
             q->info->flags_9d |= 2;
             p->info->flags_9d |= 2;
@@ -3294,7 +3294,7 @@ __inline int IsAlly_00446fb0(Player_00446f50* p)
         return 0;
     if (!IsLiveType_00446fb0(p))
         return 0;
-    if (p->field_144 == 0 && p->field_140 != 0)
+    if (p->unitCount == 0 && p->unitsCreated != 0)
         return 0;
     return 1;
 }
@@ -3308,7 +3308,7 @@ __inline int IsLive_00446fb0(Player_00446f50* p)
         return 0;
     if (p->field_146 == 10)
         return 0;
-    if (p->field_144 == 0 && p->field_140 != 0)
+    if (p->unitCount == 0 && p->unitsCreated != 0)
         return 0;
     if (p->info->field_96 == 0xff)
         return 0;
@@ -3321,8 +3321,8 @@ void RebuildAllyList()
     // 52 bytes, not 44: sets the frame size.
     char text[52];
     // No lp local: both pointers are built from g_game->players[...] directly.
-    unsigned char* a = &g_game->players[g_game->localPlayer].field_108[0];
-    unsigned char* b = &g_game->players[g_game->localPlayer].field_113[0];
+    unsigned char* a = &g_game->players[g_game->localPlayer].allied[0];
+    unsigned char* b = &g_game->players[g_game->localPlayer].alliedBy[0];
 
     if (IsScreenNamed(&g_game->gui, "ALLIES.GUI") != 0) {
         int i;
@@ -3359,8 +3359,8 @@ void __stdcall HandleAlliesClick(Gui_00446f50* gadget)
             && (p->type == 1 || p->type == 2 || p->type == 3)
             && p->field_146 != 10) {
             PlaySoundByName("Options", 0);
-            SetAlliance(local->field_4, p->field_4, local->field_108[i] ^= 1, 0);
-            char* verb = local->field_108[i] ? "allied with" : "broke alliance with";
+            SetAlliance(local->field_4, p->field_4, local->allied[i] ^= 1, 0);
+            char* verb = local->allied[i] ? "allied with" : "broke alliance with";
             sprintf(buf, " %s %s", Translate(verb),
                     (char*)g_game + 0x1b8e + i * 0x14b);
             SendChatMessage(local, buf, 4, 0);
@@ -3396,7 +3396,7 @@ static inline int IsCounted_00447380(Player_00446f50* p)
 {
     if (!IsType_00447380(p))
         return 0;
-    if (p->field_144 == 0 && p->field_140 != 0)
+    if (p->unitCount == 0 && p->unitsCreated != 0)
         return 0;
     return 1;
 }
@@ -3466,7 +3466,7 @@ void __stdcall RefreshAlliesScreen(int param_1)
             if (p->active != 0
                 && IsType_00447380(p)
                 && p->field_146 != 10
-                && (p->field_144 != 0 || p->field_140 == 0)
+                && (p->unitCount != 0 || p->unitsCreated == 0)
                 && p->type != 1
                 && p->type != 2
                 && !(p->type == 3 && p->info->kind == 2)) {
@@ -3474,7 +3474,7 @@ void __stdcall RefreshAlliesScreen(int param_1)
                 if (q->active != 0
                     && IsType_00447380(q)
                     && q->field_146 != 10
-                    && (q->field_144 != 0 || q->field_140 == 0)) {
+                    && (q->unitCount != 0 || q->unitsCreated == 0)) {
                     SetGadgetActiveByName((char*)g_game + 0x519, ally, 1);
                 }
             }
@@ -3521,7 +3521,7 @@ static inline int IsPlaying_004478b0(Player_00446f50* p)
 static inline int IsCounted_004478b0(Player_00446f50* p)
 {
     return (p->type == 1 || p->type == 2 || p->type == 3)
-        && (p->field_144 != 0 || p->field_140 == 0);
+        && (p->unitCount != 0 || p->unitsCreated == 0);
 }
 
 static inline int CountAlliance_004478b0(int alliance)
@@ -3584,7 +3584,7 @@ static inline int IsPlaying_00447b10(Player_00446f50* p)
 static inline int IsCounted_00447b10(Player_00446f50* p)
 {
     return (p->type == 1 || p->type == 2 || p->type == 3)
-        && (p->field_144 != 0 || p->field_140 == 0);
+        && (p->unitCount != 0 || p->unitsCreated == 0);
 }
 
 static inline int IsLocalHuman_00447b10(Player_00446f50* p)
@@ -3775,8 +3775,8 @@ void __stdcall HandleBattleRoomClick(Gui_00446f50* gadget)
 
         sprintf(text, "ALLY%d", i);
         if (IsCurrentGadgetNamed(gadget, text)) {
-            me->field_108[i] ^= 1;
-            SetAlliance(me->field_4, p->field_4, me->field_108[i], 0);
+            me->allied[i] ^= 1;
+            SetAlliance(me->field_4, p->field_4, me->allied[i], 0);
             char same;
             if (me->colour == 5)
                 same = 0;
@@ -3790,12 +3790,12 @@ void __stdcall HandleBattleRoomClick(Gui_00446f50* gadget)
             // Original bug (docs/bugs.md): `<<` binds tighter than `==` and
             // `==` tighter than `|`, so this is ((ally2 << 1) == 3) | ally,
             // and the left side is never true.
-            if (me->field_113[i] << 1 == 3 | me->field_108[i])
+            if (me->alliedBy[i] << 1 == 3 | me->allied[i])
                 PlaySoundByName("Ally", 0);
             else
                 PlaySoundByName("Multi", 0);
             sprintf(text, " %s %s",
-                    Translate(me->field_108[i] ? "allied with" : "broke alliance with"),
+                    Translate(me->allied[i] ? "allied with" : "broke alliance with"),
                     g_game->players[i].name);
             SendChatMessage(me, text, 4, 0);
             g_game->dirty = 1;
@@ -4265,7 +4265,7 @@ void RefreshBattleRoomRows()
             e = FindGadgetOrNull(entries, name);
             if (e) {
                 SetButtonStageByName((Class_004a1080*)&g_game->gui, name,
-                             me->field_113[n] << 1 | me->field_108[n]);
+                             me->alliedBy[n] << 1 | me->allied[n]);
                 e->visible = (IsLocalHuman_00448c70(p) || IsWatching_00448c70(p)
                               || IsLocalAI_00448c70(p) || IsRemoteAI_00448c70(p)
                               || IsWatching_00448c70(local)) ? 0 : 1;
@@ -4753,7 +4753,7 @@ void __stdcall UpdateUnitSliders(Gui_00446f50* param_1, int unused)
                 value = slider->field_13c;
             SetSliderFromValue(slider, value);
             SetGadgetGrayedOutByName(param_1, name, en);
-            slider->field_144(param_1, slider->field_14a);
+            slider->unitCount(param_1, slider->field_14a);
         }
     }
 }

@@ -2132,9 +2132,9 @@ void Class_00463c40::FreeSideDataAndFogSightCounts()
 #pragma pack(push, 1)
 struct Player {
     char unknown_0[0x27];
-    int field_27;
+    int info;
     char unknown_2b[0x73 - 0x2b];
-    char field_73;
+    char type;
     void SetType(int param_1);
 };
 #pragma pack(pop)
@@ -2142,9 +2142,9 @@ struct Player {
 // FUNCTION: 0x463c60
 void Player::SetType(int param_1)
 {
-    field_73 = (char)param_1;
+    type = (char)param_1;
     if (param_1 != 3) {
-        *(char*)((char*)field_27 + 0x94) = (char)param_1;
+        *(char*)((char*)info + 0x94) = (char)param_1;
     }
 }
 

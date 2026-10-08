@@ -26,8 +26,8 @@ struct Player {
         PlayerData* info;
     };
     char unknown_2b[0xa4 - 0x2b];
-    float field_a4;                    // +0xa4
-    float field_a8;                    // +0xa8
+    float energyCapacity;              // +0xa4
+    float metalCapacity;               // +0xa8
     char unknown_ac[0xe4 - 0xac];
     float share_metal;                 // +0xe4
     float share_energy;                // +0xe8
@@ -216,7 +216,7 @@ void __stdcall CmdShareAll(int unused)
 }
 
 // Chat command: sets the local player's metal-sharing threshold to the
-// argument, capped at field_a8, and prints a confirmation.
+// argument, capped at metalCapacity, and prints a confirmation.
 // FUNCTION: 0x419340
 void __stdcall CmdSetShareMetal(CommandArgs* args)
 {
@@ -225,14 +225,14 @@ void __stdcall CmdSetShareMetal(CommandArgs* args)
         Player* p = &g_game->players[g_game->localPlayer];
         // __min macro with an explicit (float) cast: the cast places the store
         // after the next call's pushes.
-        p->share_metal = __min(p->field_a8, (float)args->GetIntArg(1, 0));
+        p->share_metal = __min(p->metalCapacity, (float)args->GetIntArg(1, 0));
         sprintf(buf, "OK.  Will share metal if above %d", args->GetIntArg(1, 0));
         AddMessage(buf, 2, 0, 10);
     }
 }
 
 // Chat command: sets the local player's energy-sharing threshold to the
-// argument, capped at field_a4 (a min() macro, so the argument is read twice),
+// argument, capped at energyCapacity (a min() macro, so the argument is read twice),
 // and prints a confirmation.
 // FUNCTION: 0x419400
 void __stdcall CmdSetShareEnergy(CommandArgs* args)
@@ -242,7 +242,7 @@ void __stdcall CmdSetShareEnergy(CommandArgs* args)
         Player* p = &g_game->players[g_game->localPlayer];
         // __min macro with an explicit (float) cast: the cast places the store
         // after the next call's pushes.
-        p->share_energy = __min(p->field_a4, (float)args->GetIntArg(1, 0));
+        p->share_energy = __min(p->energyCapacity, (float)args->GetIntArg(1, 0));
         sprintf(buf, "OK.  Will share energy if above %d", args->GetIntArg(1, 0));
         AddMessage(buf, 2, 0, 10);
     }

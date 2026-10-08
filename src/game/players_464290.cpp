@@ -126,69 +126,69 @@ struct Player {
     char unknown_8[0xc - 8];
     int field_c;                       // +0x0c
     char unknown_10[0x18 - 0x10];
-    int field_18;                      // +0x18
+    int syncTick;                      // +0x18
     char unknown_1c[0x21 - 0x1c];
-    unsigned char field_21;            // +0x21
-    unsigned char field_22;            // +0x22
+    unsigned char keepaliveFlags;      // +0x21
+    unsigned char rejectReason;        // +0x22
     char unknown_23[0x27 - 0x23];
     PlayerInfo* info;                  // +0x27
     char name[30];                     // +0x2b
     char fullName[0x67 - 0x49];        // +0x49
     Unit* units;                       // +0x67
     Unit* units_end;                   // +0x6b
-    unsigned short field_6f;           // +0x6f
-    unsigned short field_71;           // +0x71
+    unsigned short firstIndex;         // +0x6f
+    unsigned short lastIndex;          // +0x71
     unsigned char type;                // +0x73
     SquadManager* unit;                // +0x74
     char unknown_78[0x7c - 0x78];
     void* buffer;                      // +0x7c
-    int field_80;                      // +0x80
-    int field_84;                      // +0x84
-    int field_88;                      // +0x88
-    float field_8c;                    // +0x8c
-    int field_90;
-    int field_94;
-    float field_98;                    // +0x98
-    int field_9c;
-    int field_a0;
-    int field_a4;
-    int field_a8;
-    int field_ac;
+    int exploredWidth;                 // +0x80
+    int exploredHeight;                // +0x84
+    int exploredSize;                  // +0x88
+    float energy;                      // +0x8c
+    int energyIncome;
+    int energyUsage;
+    float metal;                       // +0x98
+    int metalIncome;
+    int metalUsage;
+    int energyCapacity;
+    int metalCapacity;
+    int totalEnergyProduced;
     int field_b0;
-    int field_b4;
+    int totalMetalProduced;
     int field_b8;
-    int field_bc;
+    int totalEnergyConsumed;
     int field_c0;
-    int field_c4;
+    int totalMetalConsumed;
     int field_c8;
-    int field_cc;
+    int energyWasted;
     int field_d0;
-    int field_d4;
+    int metalWasted;
     int field_d8;
     char unknown_dc[0xe4 - 0xdc];
-    int field_e4;                      // +0xe4
-    int field_e8;                      // +0xe8
+    int shareMetal;                    // +0xe4
+    int shareEnergy;                   // +0xe8
     UnitResources* econ;               // +0xec
-    int field_f0;                      // +0xf0
-    int field_f4;                      // +0xf4
-    int field_f8;                      // +0xf8
-    short field_fc;                    // +0xfc
-    short field_fe;                    // +0xfe
+    int updateTime;                    // +0xf0
+    int winLoseTime;                   // +0xf4
+    int displayTimer;                  // +0xf8
+    short kills;                       // +0xfc
+    short losses;                      // +0xfe
     short field_100;                   // +0x100
     short field_102;                   // +0x102
-    short field_104;                   // +0x104
-    short field_106;                   // +0x106
+    short commanderKills;              // +0x104
+    short commanderLosses;             // +0x106
     unsigned char team_108[11];        // +0x108
     unsigned char team_113[11];        // +0x113
     unsigned char team_11e[11];        // +0x11e
     unsigned char team_129[11];        // +0x129
     unsigned char team_134[11];        // +0x134
     unsigned char alliance;            // +0x13f
-    int field_140;                     // +0x140
-    unsigned short field_144;          // +0x144
+    int unitsCreated;                  // +0x140
+    unsigned short unitCount;          // +0x144
     unsigned char team;                // +0x146
-    unsigned char field_147;           // +0x147
-    unsigned char field_148;           // +0x148
+    unsigned char startPos;            // +0x147
+    unsigned char rank;                // +0x148
     unsigned short flags;              // +0x149
     void Clear() { active = 0; type = 0; }
 };
@@ -318,15 +318,15 @@ void __stdcall SetupPlayerSlot(int player, char type)
     p->team_113[idx] = 1;
     p->unit = 0;
     p->team = (char)player;
-    p->field_148 = (char)player;
+    p->rank = (char)player;
     p->team_108[idx] = 1;
     p->active = 1;
-    p->field_147 = (char)player;
+    p->startPos = (char)player;
     p->alliance = 5;
     p->info->b.bit5 = 0;
     p->index = player & 0xff;
     p->field_c = 0;
-    p->field_22 = 0;
+    p->rejectReason = 0;
 
     if (p->active != 0 && (p->type == 1 || p->type == 2)) {
         p->info->field_99 = g_game->map->field_620 / 0x100000 + 1;
@@ -398,15 +398,15 @@ void ResetPlayerSlots()
         strcpy(p->info->name, DAT_005119b8);
         p->unit = 0;
         p->field_c = 0;
-        p->field_18 = 0;
+        p->syncTick = 0;
         p->units = 0;
         p->units_end = 0;
-        p->field_6f = 0;
-        p->field_71 = 0;
-        p->field_144 = 0;
-        // Stays before field_140 = 0.
-        p->field_21 &= 0xfe;
-        p->field_140 = 0;
+        p->firstIndex = 0;
+        p->lastIndex = 0;
+        p->unitCount = 0;
+        // Stays before unitsCreated = 0.
+        p->keepaliveFlags &= 0xfe;
+        p->unitsCreated = 0;
         p->index = -1;
         p->team = 10;
         p->alliance = 5;
@@ -425,36 +425,36 @@ void __stdcall CreatePlayerAI(int player);
 // FUNCTION: 0x464700
 void __stdcall InitPlayerSlot(Player* p)
 {
-    p->field_f0 = g_game->tick;
-    p->field_f4 = g_game->tick;
+    p->updateTime = g_game->tick;
+    p->winLoseTime = g_game->tick;
     // The third stamp runs here but is written after the clears: C2 has to number its location after theirs.
     goto stamp;
 back:
-    p->field_ac = 0;
-    p->field_b4 = 0;
-    p->field_bc = 0;
-    p->field_c4 = 0;
-    p->field_cc = 0;
-    p->field_d4 = 0;
-    p->field_8c = 0;
-    p->field_90 = 0;
-    p->field_94 = 0;
-    p->field_98 = 0;
-    p->field_9c = 0;
-    p->field_a0 = 0;
-    p->field_a4 = 0;
-    p->field_a8 = 0;
+    p->totalEnergyProduced = 0;
+    p->totalMetalProduced = 0;
+    p->totalEnergyConsumed = 0;
+    p->totalMetalConsumed = 0;
+    p->energyWasted = 0;
+    p->metalWasted = 0;
+    p->energy = 0;
+    p->energyIncome = 0;
+    p->energyUsage = 0;
+    p->metal = 0;
+    p->metalIncome = 0;
+    p->metalUsage = 0;
+    p->energyCapacity = 0;
+    p->metalCapacity = 0;
     p->field_b0 = 0;
     p->field_b8 = 0;
     p->field_c0 = 0;
     p->field_c8 = 0;
-    p->field_e8 = 0;
-    p->field_e4 = 0;
+    p->shareEnergy = 0;
+    p->shareMetal = 0;
     p->field_d0 = 0;
     p->field_d8 = 0;
     goto guard;
 stamp:
-    p->field_f8 = g_game->tick;
+    p->displayTimer = g_game->tick;
     goto back;
 guard:
     if (!p->econ) {
@@ -462,22 +462,22 @@ guard:
     }
     p->econ->Reset(p->team);
     p->flags &= 0xfffe;
-    p->field_fc = 0;
-    p->field_fe = 0;
-    p->field_104 = 0;
-    p->field_106 = 0;
+    p->kills = 0;
+    p->losses = 0;
+    p->commanderKills = 0;
+    p->commanderLosses = 0;
     p->field_102 = p->field_100 = -1;
     // w declared first: puts height/2 in edi and width/2 in ebx.
     int w, h;
     h = g_game->height / 2;
     w = g_game->width / 2;
-    p->field_80 = w;
-    p->field_84 = h;
+    p->exploredWidth = w;
+    p->exploredHeight = h;
     operator delete(p->buffer);
-    int& sz = p->field_88;
+    int& sz = p->exploredSize;
     sz = (h * w + 7) & ~7;
     p->buffer = sz ? operator new(sz) : 0;
-    // Both references are load-bearing (`sz` also for the first block). With `memset(p->buffer, 0, p->field_88)`
+    // Both references are load-bearing (`sz` also for the first block). With `memset(p->buffer, 0, p->exploredSize)`
     // MSVC propagates the phi and the size into the inlined memset, which puts
     // the phi in edi and stores it from edi; the original reloads [esi+0x7c]
     // into edi and keeps the phi in eax. Reading the fields through references
@@ -661,7 +661,7 @@ void __stdcall TransferMetal(unsigned char from, unsigned char to, float amount,
     if (to == 10)
         return;
     if (flag) {
-        float cap = g_game->players[from].field_8c;
+        float cap = g_game->players[from].energy;
         if (amount > cap)
             amount = cap;
     }
@@ -715,7 +715,7 @@ void __stdcall TransferEnergy(unsigned char from, unsigned char to, float amount
     if (to == 10)
         return;
     if (flag) {
-        float cap = g_game->players[from].field_98;
+        float cap = g_game->players[from].metal;
         if (amount > cap)
             amount = cap;
     }
@@ -922,9 +922,9 @@ void __stdcall UpdatePlayers()
         if (bl == g_game->playerIndex)
             DrawRadarUnits();
 
-        if ((unsigned int)pi->field_f0 > g_game->tick)
+        if ((unsigned int)pi->updateTime > g_game->tick)
             goto next_bl;
-        pi->field_f0 += 0x1e;
+        pi->updateTime += 0x1e;
 
         if (bl == g_game->localPlayer) {
             if (g_game->mission->GetGameType() == 1) {
@@ -1079,7 +1079,7 @@ void __stdcall UpdatePlayers()
         if (pi->active != 0) {
             unsigned char t = pi->type;
             if ((t == 1 || t == 2 || t == 3) && pi->team != 0xa) {
-                if ((pi->field_144 != 0 || pi->field_140 == 0) &&
+                if ((pi->unitCount != 0 || pi->unitsCreated == 0) &&
                     (t == 1 || t == 2)) {
                     if ((g_game->flags_3923b.w & 4) == 0 &&
                         g_game->field_39239 < 0) {
@@ -1102,7 +1102,7 @@ void __stdcall UpdatePlayers()
 
     watch_check:
         if (g_game->mission->GetGameType() == 3 &&
-            pi->field_22 == 0) {
+            pi->rejectReason == 0) {
             if ((g_game->players[FindHostSlot()].info->flags_9b & 0x80) != 0 ||
                 CountActiveAIPlayers() > 0) {
                 pi->info->b.bit6 = 1;
@@ -1142,7 +1142,7 @@ void __stdcall UpdatePlayers()
     flags82e:
         g_game->flags_3923b.w |= 4;
         g_game->flags_3923b.w &= 0xffef;
-        if (pi->field_22 == 0)
+        if (pi->rejectReason == 0)
             g_game->flags_3923b.b.bit6 = 1;
         goto skip508;
 
@@ -1205,20 +1205,20 @@ void InitPlayerResources()
             case 1:
                 SetStartingStorageBonus(player, (int)g_game->mission->pos_x[i],
                              (int)g_game->mission->pos_y[i]);
-                player->field_8c = g_game->mission->pos_y[i];
-                player->field_98 = g_game->mission->pos_x[i];
+                player->energy = g_game->mission->pos_y[i];
+                player->metal = g_game->mission->pos_x[i];
                 break;
             case 2:
-                player->field_8c = (float)g_game->slots[i].field_10;
-                player->field_98 = (float)g_game->slots[i].field_c;
+                player->energy = (float)g_game->slots[i].field_10;
+                player->metal = (float)g_game->slots[i].field_c;
                 break;
             case 3: {
                 int index = FindHostSlot();
                 if (index == 10)
                     index = i;
                 Player* other = &g_game->players[index];
-                player->field_8c = other->info->field_a1 * 100;
-                player->field_98 = other->info->field_a3 * 100;
+                player->energy = other->info->field_a1 * 100;
+                player->metal = other->info->field_a3 * 100;
                 break;
             }
             }

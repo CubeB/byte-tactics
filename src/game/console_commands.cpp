@@ -54,11 +54,11 @@ struct Player {
     unsigned char* fog;                // +0x7c
     int fogWidth;                      // +0x80
     char unknown_84[0x8c - 0x84];
-    float field_8c;                    // +0x8c
+    float energy;                      // +0x8c
     char unknown_90[0x98 - 0x90];
-    float field_98;                    // +0x98
+    float metal;                       // +0x98
     char unknown_9c[0x146 - 0x9c];
-    unsigned char field_146;           // +0x146
+    unsigned char index;               // +0x146
     char unknown_147[0x14b - 0x147];
 
     void SetType(int type);
@@ -552,7 +552,7 @@ void __stdcall CmdAI(CommandArgs* args)
     if (i < 10) {
         Player* p = &g_game->players[i];
         if (p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3)
-            && p->field_146 != 10) {
+            && p->index != 10) {
             // Re-derived pointer: MSVC then re-reads the fields instead of
             // reusing the values tested above.
             Player* q = &g_game->players[i];
@@ -794,7 +794,7 @@ void __stdcall CmdLogo(CommandArgs* args)
             if (i < 10) {
                 Player* p = &g_game->players[i];
                 if (p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3)
-                    && p->field_146 != 10) {
+                    && p->index != 10) {
                     int v = args->GetIntArg(1, 0);
                     int j = args->GetIntArg(2, 0);
                     g_game->players[j].data->field_96 = v;
@@ -847,7 +847,7 @@ void __stdcall CmdControl(CommandArgs* args)
     if (i < 10) {
         Player* p = &g_game->players[i];
         if (p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3)
-            && p->field_146 != 10) {
+            && p->index != 10) {
             g_game->localPlayer = args->GetIntArg(1, 0);
             g_game->playerIndex = args->GetIntArg(1, 0);
         }
@@ -861,7 +861,7 @@ void __stdcall CmdView(CommandArgs* args)
     if (i < 10) {
         Player* p = &g_game->players[i];
         if (p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3)
-            && p->field_146 != 10) {
+            && p->index != 10) {
             g_game->playerIndex = args->GetIntArg(1, 0);
         }
     }
@@ -874,7 +874,7 @@ void __stdcall CmdGive(CommandArgs* args)
     if (i < 10) {
         Player* p = &g_game->players[i];
         if (p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3)
-            && p->field_146 != 10) {
+            && p->index != 10) {
             if (_strcmpi(((CommandArgs*)args)->GetArg(3, DAT_005119b8), "metal") == 0) {
                 TransferEnergy(g_game->localPlayer, args->GetIntArg(1, 0),
                              (float)args->GetIntArg(2, 0), 1);
@@ -992,8 +992,8 @@ void __stdcall CmdRadar(int unused)
 // FUNCTION: 0x4170c0
 void __stdcall CmdATM(CommandArgs* args)
 {
-    g_game->players[g_game->playerIndex].field_8c += 1000.0f;
-    g_game->players[g_game->playerIndex].field_98 += 1000.0f;
+    g_game->players[g_game->playerIndex].energy += 1000.0f;
+    g_game->players[g_game->playerIndex].metal += 1000.0f;
 }
 
 // FUNCTION: 0x417130
@@ -1014,8 +1014,8 @@ void __stdcall CmdNoMetal(CommandArgs* args)
     if (i < 10) {
         Player* p = &g_game->players[i];
         if (p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3)
-            && p->field_146 != 10) {
-            g_game->players[i].field_98 = args->GetIntArg(2, 0);
+            && p->index != 10) {
+            g_game->players[i].metal = args->GetIntArg(2, 0);
         }
     }
 }
@@ -1034,8 +1034,8 @@ void __stdcall CmdNoEnergy(CommandArgs* args)
     if (i < 10) {
         Player* p = &g_game->players[i];
         if (p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3)
-            && p->field_146 != 10) {
-            g_game->players[i].field_8c = args->GetIntArg(2, 0);
+            && p->index != 10) {
+            g_game->players[i].energy = args->GetIntArg(2, 0);
         }
     }
 }
@@ -1687,7 +1687,7 @@ void __stdcall CmdPrintWeights(CommandArgs* args)
         if (i < 10) {
             Player* p = &g_game->players[i];
             if (p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3)
-                && p->field_146 != 10) {
+                && p->index != 10) {
                 FILE* f = fopen(((CommandArgs*)args)->GetArg(2, DAT_005119b8), "w+b");
                 if (f != 0) {
                     DumpPlayerAI(args->GetIntArg(1, 0), f);

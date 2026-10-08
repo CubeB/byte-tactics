@@ -133,7 +133,7 @@ struct PlayerInfo {
 
 struct Player {                        // 0x14b bytes
     int active;                        // +0x00
-    int field_4;                       // +0x04
+    int id;                            // +0x04
     char unknown_8[0x18 - 0x8];
     int tick;                          // +0x18
     char unknown_1c[0x27 - 0x1c];
@@ -148,18 +148,18 @@ struct Player {                        // 0x14b bytes
     float energyCapacity;              // +0xa4
     float metalCapacity;               // +0xa8
     char unknown_ac[0xfc - 0xac];
-    short field_fc;                    // +0xfc
-    short field_fe;                    // +0xfe
+    short kills;                       // +0xfc
+    short losses;                      // +0xfe
     char unknown_100[0x104 - 0x100];
-    short field_104;                   // +0x104
-    short field_106;                   // +0x106
+    short commanderKills;              // +0x104
+    short commanderLosses;             // +0x106
     unsigned char allied[10];          // +0x108
     char unknown_112[0x140 - 0x112];
-    int field_140;                     // +0x140
-    unsigned short field_144;          // +0x144
-    unsigned char field_146;           // +0x146
+    int unitsCreated;                  // +0x140
+    unsigned short unitCount;          // +0x144
+    unsigned char index;               // +0x146
     char unknown_147[0x148 - 0x147];
-    unsigned char field_148;           // +0x148
+    unsigned char rank;                // +0x148
     char unknown_149[0x14b - 0x149];
 };
 
@@ -452,13 +452,13 @@ void __stdcall GiveSelectedUnitsToPlayer(unsigned char player)
 static inline int IsPlaying_4934b0(Player* p)
 {
     return p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3)
-        && p->field_146 != 10;
+        && p->index != 10;
 }
 
 static inline int IsCounted_4934b0(Player* p)
 {
     return (p->type == 1 || p->type == 2 || p->type == 3)
-        && (p->field_144 != 0 || p->field_140 == 0);
+        && (p->unitCount != 0 || p->unitsCreated == 0);
 }
 
 // FUNCTION: 0x4934b0
@@ -563,11 +563,11 @@ void OpenShareDialog()
     int count = 0;
     for (int i = 0; i < 10; i++) {
         Player* p = &g_game->players[i];
-        if (p->active && (p->type == 1 || p->type == 2 || p->type == 3) && p->field_146 != 10 &&
-            (p->field_144 != 0 || p->field_140 == 0) && p->type != 1 && !p->info->bit6) {
+        if (p->active && (p->type == 1 || p->type == 2 || p->type == 3) && p->index != 10 &&
+            (p->unitCount != 0 || p->unitsCreated == 0) && p->type != 1 && !p->info->bit6) {
             strcpy(np, p->name);
             np += strlen(p->name) + 1;
-            *ids = p->field_4;
+            *ids = p->id;
             count++;
             ids++;
         }
@@ -724,7 +724,7 @@ void __stdcall HandleTalkDialogEvent(Menu* gadget)
             if (!(' ' < p[1] && strchr(g_chatTargetSeparators, p[1]) != 0)) goto skip0;
             if (isdigit(p[0])) {
                 d = p[0] - '0';
-                if (d < 0 || d > 9 || g_game->players[d].field_4 == 0)
+                if (d < 0 || d > 9 || g_game->players[d].id == 0)
                     goto clear;
                 p += 2;
                 mode = 3;
@@ -1068,13 +1068,13 @@ void __stdcall DrawScorePanel(void* surface)
             unsigned char c = p->type;
             if (c != 1 && c != 2 && c != 3)
                 continue;
-            if (p->field_146 == 0xa)
+            if (p->index == 0xa)
                 continue;
-            if (p->field_144 == 0 && p->field_140 != 0)
+            if (p->unitCount == 0 && p->unitsCreated != 0)
                 continue;
             if (p->info->flags & 0x40)
                 continue;
-            if (p->field_148 != i)
+            if (p->rank != i)
                 continue;
             // Assigned in the order left, right, top, bottom.
             Rect hr;
@@ -1096,11 +1096,11 @@ void __stdcall DrawScorePanel(void* surface)
             DrawFrameQuad(surface, frame, &dst, &src);
 
             DrawTextClipped(surface, p->name, dst.p[0].x + 2, dst.p[0].y + 5, maxw, 0);
-            int kills = g_game->field_37ef6 == 2 ? p->field_104 : p->field_fc;
+            int kills = g_game->field_37ef6 == 2 ? p->commanderKills : p->kills;
             sprintf(buf, "%d", kills);
             DrawTextClipped(surface, buf, dst.p[0].x + 2, dst.p[0].y + 0x14, maxw,
                          DAT_0051f2c8[n]);
-            int losses = g_game->field_37ef6 == 2 ? p->field_106 : p->field_fe;
+            int losses = g_game->field_37ef6 == 2 ? p->commanderLosses : p->losses;
             sprintf(buf, "%d", losses);
             DrawTextClipped(surface, buf, dst.p[1].x - GetTextPixelWidth(buf) - 2,
                          dst.p[0].y + 0x14, maxw, DAT_0051e810[n]);
@@ -1116,14 +1116,14 @@ void __stdcall DrawScorePanel(void* surface)
                 unsigned char c = q->type;
                 if (c != 1 && c != 2 && c != 3)
                     continue;
-                if (q->field_146 == 0xa)
+                if (q->index == 0xa)
                     continue;
-                if (q->field_144 == 0 && q->field_140 != 0)
+                if (q->unitCount == 0 && q->unitsCreated != 0)
                     continue;
                 if (q->info->flags & 0x40)
                     continue;
-                if (q->field_148 > i)
-                    q->field_148--;
+                if (q->rank > i)
+                    q->rank--;
             }
         }
     }
@@ -1191,7 +1191,7 @@ void UpdateCdCategoryByActivity()
             }
             int newstate = g_lastCdActivityMode;
             if (state == 0 && (total > 0x32 || recent > 0x1e)
-                && g_game->players[g_game->localPlayer].field_144 > 0x1e)
+                && g_game->players[g_game->localPlayer].unitCount > 0x1e)
                 newstate = 1;
             else if (state == 1 && total < 10 && recent == 0 && g_cdActivityStableTicks > 0x3c)
                 newstate = 0;
@@ -1302,7 +1302,7 @@ void UpdateFramePacing()
     int best = g_game->ticks;
     g_game->slowest = 0;
     for (Player* p = g_game->players; p != g_game->players + 10; p++) {
-        if (p->active != 0 && p->type == 3 && p->field_144 > 0) {
+        if (p->active != 0 && p->type == 3 && p->unitCount > 0) {
             int tick = p->tick;
             if (tick < best) {
                 g_game->slowest = p;
@@ -1446,7 +1446,7 @@ void __stdcall HandleDebugHotkey(int eventType)
                 if (g_game->players[k].active != 0) {
                     unsigned char kind = g_game->players[k].type;
                     if (kind == 1 || kind == 2 || kind == 3) {
-                        if (g_game->players[k].field_146 != 10) {
+                        if (g_game->players[k].index != 10) {
                             g_game->players[k].energy = g_game->players[k].energyCapacity;
                             g_game->players[k].metal = g_game->players[k].metalCapacity;
                         }

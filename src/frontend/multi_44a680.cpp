@@ -32,13 +32,13 @@ struct PlayerInfo_0044a680 {
 struct Player_0044a680 {                // 0x14b bytes
     int active;                         // +0x00
     char unknown_4[0x22 - 0x4];
-    unsigned char field_22;             // +0x22
+    unsigned char rejectReason;         // +0x22
     char unknown_23[0x27 - 0x23];
     PlayerInfo_0044a680* info;          // +0x27
     char unknown_2b[0x73 - 0x2b];
     unsigned char type;                 // +0x73
     char unknown_74[0x146 - 0x74];
-    unsigned char field_146;            // +0x146
+    unsigned char index;                // +0x146
     char unknown_147[0x14b - 0x147];
 };
 
@@ -172,10 +172,10 @@ inline void __stdcall SwapPlayerSlots(Player_0044a680* param_1, Player_0044a680*
         Player_0044a680* p = &g_game->players[i];
         if (p->active != 0
             && (p->type == 1 || p->type == 2 || p->type == 3)
-            && p->field_146 != 10) {
-            p->field_146 = i;
+            && p->index != 10) {
+            p->index = i;
         } else {
-            g_game->players[i].field_146 = 10;
+            g_game->players[i].index = 10;
         }
     }
 }
@@ -192,7 +192,7 @@ inline void CompactActivePlayerSlots()
             break;
         while ((p->active != 0
                     && (p->type == 1 || p->type == 2 || p->type == 3)
-                    && p->field_146 != 10)
+                    && p->index != 10)
                || p->type == 4) {
             if (p >= end)
                 break;
@@ -201,7 +201,7 @@ inline void CompactActivePlayerSlots()
         q = p + 1;
         for (; q->active == 0
                || (q->type != 1 && q->type != 2 && q->type != 3)
-               || q->field_146 == 10;
+               || q->index == 10;
              q++) {
             if (q >= end)
                 break;
@@ -257,7 +257,7 @@ void UpdateBattleRoom()
         g_game->dirty = 1;
 
     pl = &g_game->players[g_game->localPlayer];
-    if (pl->field_22 != 0) {
+    if (pl->rejectReason != 0) {
         g_game->frontendSubstateRequest = 3;
         CloseTopScreen(&g_game->gui);
         return;

@@ -76,12 +76,12 @@ struct Player {                        // 0x14b bytes
     char unknown_108[0x21];
     char allied[10];                   // +0x129
     char unknown_133[0x140 - 0x133];
-    int field_140;                     // +0x140
+    int unitsCreated;                  // +0x140
     short unitCount;                   // +0x144
     unsigned char index;               // +0x146
-    char unknown_147;
+    char startPos;
     unsigned char rank;                // +0x148
-    unsigned short field_149;          // +0x149
+    unsigned short flags;              // +0x149
 };
 
 struct Name_004864b0 {
@@ -1022,7 +1022,7 @@ found:
     RevealNewUnit(unit);
     // Array subscript, not a byte-offset cast: it fixes the SIB operand order.
     g_game->players[player].unitCount++;
-    g_game->players[player].field_140++;
+    g_game->players[player].unitsCreated++;
     g_game->conditions->NotifyUnitCreated(unit);
     return unit;
 }
@@ -1066,7 +1066,7 @@ Unit* __stdcall CreateUnitFromPacket(unsigned char player, Spawn_004861d0* spawn
     RevealNewUnit(unit);
     // Indexed again from g_game, not through pl: keeps the player index live early.
     g_game->players[player].unitCount++;
-    g_game->players[player].field_140++;
+    g_game->players[player].unitsCreated++;
     g_game->conditions->NotifyUnitCreated(unit);
     return unit;
 }
@@ -1158,7 +1158,7 @@ void __stdcall KillUnit(Unit* unit, int param_2)
         int same = _strcmpi(g_game->names[unit->player->owner->playerIndex].name,
                             unit->type->name) == 0;
         if (same) {
-            unit->player->field_149 &= 0xfffe;
+            unit->player->flags &= 0xfffe;
         }
         int amount;
         int flag;

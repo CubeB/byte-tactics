@@ -52,7 +52,7 @@ struct Player_00481930 {
     char unknown_0[0x7c];
     Grid_00481930 grid;                // +0x7c
     char unknown_8c[0x146 - 0x8c];
-    unsigned char field_146;           // +0x146
+    unsigned char index;               // +0x146
 };
 
 struct Params_00481930 {
@@ -126,7 +126,7 @@ void __stdcall RevealAroundUnit(Params_00481930* params)
     int x, y;
     int limitX, limitY, nx, ny;
     int i, stride, off;
-    unsigned int bit = 1 << params->field_0->field_146;
+    unsigned int bit = 1 << params->field_0->index;
     Frame_00481930* frame;
     int halfW = g_game->width / 2;
     int halfH = g_game->height / 2;
@@ -226,7 +226,7 @@ void __stdcall RevealAroundUnit(Params_00481930* params)
             } while (i < limitY);
         }
     }
-    if (changed && params->field_0->field_146 == g_game->playerIndex) {
+    if (changed && params->field_0->index == g_game->playerIndex) {
         g_game->flag3 = 0;
         g_game->flags_142f1 |= 4;
     }

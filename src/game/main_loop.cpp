@@ -149,7 +149,7 @@ struct Player_00496ce0 {               // 0x14b bytes, array at g_game+0x1b63
         float height;
     };
     char unknown_e4[0x146 - 0xe4];
-    char field_146;                    // +0x146
+    char index;                        // +0x146
     char unknown_147[0x148 - 0x147];
     union {
         struct {
@@ -636,7 +636,7 @@ static int IsPlaying(unsigned char i)
     if (i < 10) {
         Player_00496ce0* p = &g_game->players[i];
         if (p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3)
-            && p->field_146 != 10)
+            && p->index != 10)
             return 1;
     }
     return 0;

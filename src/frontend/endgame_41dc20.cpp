@@ -21,24 +21,24 @@ struct PlayerInfo_0041dc20 {
 struct Player_0041dc20 {               // 0x14b bytes
     int active;                        // +0x00
     char unknown_4[0x22 - 0x4];
-    char field_22;                     // +0x22
+    char rejectReason;                 // +0x22
     char unknown_23[0x27 - 0x23];
     PlayerInfo_0041dc20* info;         // +0x27
     char name[0x73 - 0x2b];            // +0x2b
     unsigned char type;                // +0x73
     char unknown_74[0xac - 0x74];
-    double field_ac;                   // +0xac
-    double field_b4;                   // +0xb4
+    double totalEnergyProduced;        // +0xac
+    double totalMetalProduced;         // +0xb4
     char unknown_bc[0xcc - 0xbc];
-    double field_cc;                   // +0xcc
-    double field_d4;                   // +0xd4
+    double energyWasted;               // +0xcc
+    double metalWasted;                // +0xd4
     char unknown_dc[0xfc - 0xdc];
     short kills;                       // +0xfc
     short losses;                      // +0xfe
     char unknown_100[0x140 - 0x100];
-    int field_140;                     // +0x140
+    int unitsCreated;                  // +0x140
     char unknown_144[0x146 - 0x144];
-    char field_146;                    // +0x146
+    char index;                        // +0x146
     char unknown_147[0x14b - 0x147];
 };
 
@@ -106,15 +106,15 @@ void CollectEndGameStats()
     memset(stats, 0, sizeof g_game->stats);
     for (int i = 0; i < 10; i++) {
         Player_0041dc20* p = &g_game->players[i];
-        if ((p->active && (p->type == 1 || p->type == 2 || p->type == 3) && p->field_146 != 10 && !p->info->flag_9b_6) || p->field_140) {
-            if (p->field_22 == 0) {
+        if ((p->active && (p->type == 1 || p->type == 2 || p->type == 3) && p->index != 10 && !p->info->flag_9b_6) || p->unitsCreated) {
+            if (p->rejectReason == 0) {
                 strncpy(stats[i].name, p->name, 30);
                 stats[i].kills = p->kills;
                 stats[i].losses = p->losses;
-                stats[i].field_26 = (int)p->field_ac;
-                stats[i].field_2a = (int)p->field_b4;
-                stats[i].field_2e = (int)p->field_cc;
-                stats[i].field_32 = (int)p->field_d4;
+                stats[i].field_26 = (int)p->totalEnergyProduced;
+                stats[i].field_2a = (int)p->totalMetalProduced;
+                stats[i].field_2e = (int)p->energyWasted;
+                stats[i].field_32 = (int)p->metalWasted;
                 Mission* c = g_game->campaign;
                 int t = (int)(g_game->ticks / 60 * c->timeMul);
                 stats[i].score = t + (int)(stats[i].kills * c->killMul);

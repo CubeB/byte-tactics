@@ -24,7 +24,7 @@ struct Gui_00491d70 {
 
 struct Player_004917d0 {
     char unknown_0[0x140];
-    int field_140;                     // +0x140
+    int unitsCreated;                  // +0x140
     char unknown_144[0x14b - 0x144];
 };
 
@@ -830,7 +830,7 @@ void LoadBattleAssets()
     InitExplosions();
     InitCommands();
     for (int i = 0; i < 10; i++)
-        g_game->players[i].field_140 = 0;
+        g_game->players[i].unitsCreated = 0;
     g_game->bit2_3923b = 0;
     g_game->bit4_3923b = 0;
     g_game->bit5_3923b = 0;

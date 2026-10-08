@@ -858,7 +858,7 @@ struct Net_00499eb0 {
 };
 
 struct Player_00499eb0 {
-    int field_0;
+    int active;
     char unknown_4[0x73 - 4];
     unsigned char state;
     char unknown_74[0x14b - 0x74];
@@ -918,7 +918,7 @@ void __stdcall DetonateProjectile(Projectile_00499eb0* projectile, Unit* unit)
     }
     unsigned int player = projectile->owner;
     Player_00499eb0* record = (Player_00499eb0*)((char*)g_game + player * 0x14b + 0x1b63);
-    if (!record->field_0 || record->state != 3) {
+    if (!record->active || record->state != 3) {
         if (type->field_d6 <= 0x10 && unit) {
             int damage = ApplyWeaponDamage(projectile, unit, 1.0f);
             Unit* source = projectile->unit;

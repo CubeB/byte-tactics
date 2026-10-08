@@ -124,18 +124,18 @@ struct PlayerInfo {                    // flags at +0x9b and +0x9d
 };
 
 struct Player {                        // 0x14b bytes, ten of them in the game
-    int unknown_0;                     // +0x00, zero when the slot is unused
+    int active;                        // +0x00, zero when the slot is unused
     char unknown_4[0x23];
     PlayerInfo* info;                  // +0x27
     char unknown_2b[0x73 - 0x2b];
     unsigned char state;               // +0x73, only 1, 2 and 3 are looked at
     char unknown_74[0x108 - 0x74];
     unsigned char allied[11];          // +0x108, one entry per other team
-    unsigned char unknown_113[10];     // +0x113, one entry per other team
+    unsigned char alliedBy[10];        // +0x113, one entry per other team
     char unknown_11d[0x140 - 0x11d];
-    int unknown_140;                   // +0x140
+    int unitsCreated;                  // +0x140
     short count;                       // +0x144
-    unsigned char unknown_146;         // +0x146, 0xa skips the team
+    unsigned char index;               // +0x146, 0xa skips the team
     char unknown_147[0x14b - 0x147];
 };
 
@@ -1520,20 +1520,20 @@ int CheckAlliedVictory()
         if (i == g_game->player) {
             continue;
         }
-        if (other->unknown_0 == 0) {
+        if (other->active == 0) {
             continue;
         }
         // state is a local because the original tests it twice, the second
         // time still in al, without reloading it.
         state = other->state;
         if (state == 1 || state == 2 || state == 3) {
-            if (other->unknown_146 == 0xa) {
+            if (other->index == 0xa) {
                 continue;
             }
             if (other->info->flags_9b & 0x40) {
                 continue;
             }
-            if (other->unknown_140 == 0) {
+            if (other->unitsCreated == 0) {
                 return 0;
             }
             if (state == 1 || state == 2 || state == 3) {
@@ -1549,15 +1549,15 @@ int CheckAlliedVictory()
                 if (mine->allied[i] == 0) {
                     return 0;
                 }
-                if (mine->unknown_113[i] == 0) {
+                if (mine->alliedBy[i] == 0) {
                     return 0;
                 }
                 for (j = 0; j < 10; j++) {
                     Player* o = &g_game->players[j];
-                    if (o->unknown_0 != 0
+                    if (o->active != 0
                         && (o->state == 1 || o->state == 2 || o->state == 3)
-                        && o->unknown_146 != 0xa
-                        && (o->count != 0 || o->unknown_140 == 0)) {
+                        && o->index != 0xa
+                        && (o->count != 0 || o->unitsCreated == 0)) {
                         if (other->allied[j] == 0) {
                             return 0;
                         }

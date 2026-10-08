@@ -254,7 +254,7 @@ struct Player {                        // 0x14b bytes
     char unknown_6f[0x73 - 0x6f];
     unsigned char type;                // +0x73
     char unknown_74[0x146 - 0x74];
-    unsigned char field_146;           // +0x146
+    unsigned char index;               // +0x146
     char unknown_147[0x14b - 0x147];
 };
 
@@ -662,7 +662,7 @@ static int IsPlaying(unsigned char i)
     if (i < 10) {
         Player* p = &g_game->players[i];
         if (p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3)
-            && p->field_146 != 10)
+            && p->index != 10)
             return 1;
     }
     return 0;

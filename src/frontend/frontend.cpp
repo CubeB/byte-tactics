@@ -78,14 +78,14 @@ struct PlayerOwner_004269d0 {
 
 // One of the game object's ten player blocks, 0x14b bytes each.
 struct Player_004269d0 {
-    int field_0;                       // +0x0
-    int field_4;                       // +0x4
+    int active;                        // +0x0
+    int id;                            // +0x4
     char unknown_8[0x21 - 8];
-    unsigned char field_21;            // +0x21
+    unsigned char keepaliveFlags;      // +0x21
     char unknown_22[0x27 - 0x22];
     PlayerOwner_004269d0* owner;       // +0x27
     char unknown_2b[0x73 - 0x2b];
-    unsigned char field_73;            // +0x73
+    unsigned char type;                // +0x73
     char unknown_74[0x14b - 0x74];
 };
 
@@ -1468,7 +1468,7 @@ void RunFrontendStateMachine(void)
         case 17:
             CreateNetGame();
             if (CreateLocalPlayer(g_game->localPlayer, 1))
-                AddNetPlayer(g_game->players[(unsigned char)g_game->localPlayer].field_4);
+                AddNetPlayer(g_game->players[(unsigned char)g_game->localPlayer].id);
             SetState(0x11, 0x5ab, g_frontendSourceFile);
             return;
         case 19:
@@ -1505,10 +1505,10 @@ void RunFrontendStateMachine(void)
             if (g_game->flags_2b4c.b4) {
                 g_game->level->LoadMissionByName((int)((char*)g_game + 0x2ab1));
                 for (int i = 0; i < 10; i++) {
-                    if (g_game->players[i].field_0) {
-                        char t = g_game->players[i].field_73;
+                    if (g_game->players[i].active) {
+                        char t = g_game->players[i].type;
                         if (t == 1 || t == 2)
-                            AddNetPlayer(g_game->players[i].field_4);
+                            AddNetPlayer(g_game->players[i].id);
                     }
                 }
                 g_game->flags.b2 = 1;

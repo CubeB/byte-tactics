@@ -79,7 +79,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x4fd4cc,DAT_004fd4cc,.rdata,4,type,float,const float,1,0,1,one type,1,,,,,0000a040
 0x4fd670,DAT_004fd670,.rdata,8,gap,data,signed char[],2,0,1,one type,2,,DAT_004fd670,,,00ffffff00010101
 0x4fd678,DAT_004fd678,.rdata,8,gap,data,signed char[],2,0,1,one type,2,,DAT_004fd678,,,ffff0001010100ff
-0x4fd6f0,DAT_004fd6f0,.rdata,8,gap,vtable,void*[],3,1,2,conflicting: shape,4,,PTR_FUN_004fd6f0,2,src/data/vtables.cpp,90144800b0144800
+0x4fd6f0,DAT_004fd6f0,.rdata,4,type,data,void (__stdcall* const const*)(void),1,1,2,conflicting: shape,2,,PTR_FUN_004fd6f0,1,src/data/vtables.cpp,90144800
 0x4fd750,g_buildPercentScale,.rdata,4,type,float,float,1,0,1,one type,1,,,,,8180803b
 0x4fda70,DAT_004fda70,.rdata,8,type,float,const double,1,0,1,one type,1,,,,src/data/unused.cpp,0000000000000040
 0x4fdaf0,DAT_004fdaf0,.rdata,16,gap,data,V4i,1,1,2,conflicting: struct names only,2,0xc,,,,00000000000000000000000000000000
@@ -353,7 +353,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x511ddc,g_byteRatesTick,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_00511ddc,,,
 0x511de0,DAT_00511de0,.bss,4,type,data,int,2,0,1,one type,2,,DAT_00511de0,,,
 0x511de4,g_cdPathMismatch,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511de4,,,
-0x511de8,g_game,.bss,4,type,data,Game*,333,47,15,conflicting: shape,380,,DAT_00511de8,,,
+0x511de8,g_game,.bss,4,type,data,Game*,314,47,15,conflicting: shape,361,,DAT_00511de8,,,
 0x511dec,g_endGameGlamourSoundStarted,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511dec,,,
 0x511df0,g_explodedPieces,.bss,400,type,data,ExplodedPiece*[100],1,0,1,one type,1,0x190,DAT_00511df0,,,
 0x511f80,DAT_00511f80,.bss,16,gap,data,CMemoryCache,2,0,1,one type,2,,DAT_00511f80,,,

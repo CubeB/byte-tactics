@@ -274,7 +274,7 @@ extern unsigned int g_netStatsTick;                                             
 extern unsigned int g_byteRatesTick;                                                              // 0x511ddc, 4 bytes; 1 of 1 files
 extern int DAT_00511de0;                                                                          // 0x511de0, 4 bytes; 2 of 2 files
 extern int g_cdPathMismatch;                                                                      // 0x511de4, 4 bytes; 1 of 1 files
-extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 333 of 380 files (conflicting: shape)
+extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 314 of 361 files (conflicting: shape)
 extern int g_endGameGlamourSoundStarted;                                                          // 0x511dec, 4 bytes; 1 of 1 files
 extern ExplodedPiece* g_explodedPieces[100];                                                      // 0x511df0, 400 bytes; 1 of 1 files
 extern unsigned char DAT_00511f80[16];                                                            // 0x511f80, 16 bytes; CMemoryCache by value in 2 of 2 files
@@ -720,7 +720,6 @@ extern long DAT_0052a4fc;                                                       
 //   0x5120b8 DAT_005120b8: Entry_00428730[10] (1), char[] (1), Entry_004287d0[10] (1), Entry_00428850[10] (1), and 1 more
 //   0x51e598 IUUnitSyncEntry::IU?$pair::?$_Tree::_Nil: defined in src/network/unit_sync.cpp
 //   0x529e9c DAT_00529e9c: char (3), bool (2)
-//   0x4fd6f0 DAT_004fd6f0: defined in src/data/vtables.cpp
 //   0x5129d0 g_sendCondenser: defined in src/network/net_condenser.cpp
 //   0x51e6a0 g_losTables: defined in src/map/line_of_sight.cpp
 //   0x528ab4 DAT_00528ab4: void* (2), void (__stdcall*)(void) (1), int (__stdcall*)(void*, unsigned long, unsigned long*, Line_004de550*) (1)
@@ -766,6 +765,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x4fd388 g_pointMarkerVtable: defined in src/data/vtables.cpp
 //   0x4fd3b8 g_pathOrderVtable: defined in src/data/vtables.cpp
 //   0x4fd3f8 g_airManeuverOrderVtable: defined in src/data/vtables.cpp
+//   0x4fd6f0 DAT_004fd6f0: defined in src/data/vtables.cpp
 //   0x501d38 g_consoleCommands: defined in src/game/console_commands.cpp
 //   0x501f48 g_cheatCommands: defined in src/game/console_commands.cpp
 //   0x501fd0 g_debugCommands: defined in src/game/console_commands.cpp

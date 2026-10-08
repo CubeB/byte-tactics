@@ -4305,15 +4305,15 @@ piece,0x508c3c,15,src/units/unit_commands_487bf0.cpp,6,0,game data
 piece,0x508c24,9,src/units/unit_save.cpp,8,0,game data
 piece,0x508c30,11,src/units/unit_save.cpp,9,0,game data
 piece,0x508c14,16,src/units/unit_save.cpp,3,0,game data
-piece,0x4fd6f8,4,src/units/units_4866d0.cpp,3,0,game data
-piece,0x4fd6fc,4,src/units/units_4866d0.cpp,3,4,game data
-piece,0x4fd700,8,src/units/units_4866d0.cpp,3,8,game data
-piece,0x4fd708,8,src/units/units_4866d0.cpp,3,16,game data
-piece,0x4fd698,84,src/units/units_485d40.cpp,4,0,game data
-piece,0x508be0,7,src/units/units_485d40.cpp,3,0,game data
-piece,0x508bd4,12,src/units/units_4854a0.cpp,7,0,game data
-piece,0x508bc8,10,src/units/units_4854a0.cpp,6,0,game data
-piece,0x508bb8,16,src/units/units_4854a0.cpp,5,0,game data
+piece,0x4fd6f8,4,src/units/units_485010.cpp,44,0,game data
+piece,0x4fd6fc,4,src/units/units_485010.cpp,44,4,game data
+piece,0x4fd700,8,src/units/units_485010.cpp,44,8,game data
+piece,0x4fd708,8,src/units/units_485010.cpp,44,16,game data
+piece,0x4fd698,84,src/units/units_485010.cpp,25,0,game data
+piece,0x508be0,7,src/units/units_485010.cpp,24,0,game data
+piece,0x508bd4,12,src/units/units_485010.cpp,15,0,game data
+piece,0x508bc8,10,src/units/units_485010.cpp,14,0,game data
+piece,0x508bb8,16,src/units/units_485010.cpp,13,0,game data
 piece,0x5031f4,5,src/map/plot_map.cpp,14,0,game data
 piece,0x508ba8,15,src/map/plot_map.cpp,7,0,game data
 piece,0x508ba0,8,src/map/plot_map.cpp,3,0,game data
@@ -12270,8 +12270,7 @@ same,0x502a78,11,src/frontend/skirmish_menu_479660.cpp,81,0,
 same,0x506290,6,src/frontend/skirmish_menu_479660.cpp,103,0,
 same,0x4814f0,16,src/map/line_of_sight.cpp,6,0,
 same,0x502288,8,src/map/plot_map.cpp,15,0,
-same,0x508be8,7,src/units/units_4864b0.cpp,4,0,
-same,0x4fd6f8,4,src/units/units_4864b0.cpp,3,0,
+same,0x508be8,7,src/units/units_485010.cpp,45,0,
 same,0x51e6b0,16,src/units/unit_commands_487bf0.cpp,36,0,
 same,0x4fd748,4,src/units/unit.cpp,15,0,
 same,0x508d80,9,src/units/unit_targets_489280.cpp,44,0,

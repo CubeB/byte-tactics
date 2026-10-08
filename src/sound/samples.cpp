@@ -1086,13 +1086,13 @@ int Sound::OpenSample(char* path, int mode, int p3, int p4) {
         HAPI_SeekFile(file, 0);
         switch (mode) {
         case 0:
-            result = (int)((Sound*)this)->CreateSampleFromFile(file, size, 0x2b11, 8, 1);
+            result = (int)this->CreateSampleFromFile(file, size, 0x2b11, 8, 1);
             break;
         case 1:
-            result = ((Sound*)this)->PlayFileSample(file, size, 0x2b11, 8, 1, p3, (Pos_004cf570*)p4);
+            result = this->PlayFileSample(file, size, 0x2b11, 8, 1, p3, (Pos_004cf570*)p4);
             break;
         case 2:
-            ((Sound*)this)->StartStream(file, 0x2b11, 8, 1, p3);
+            this->StartStream(file, 0x2b11, 8, 1, p3);
             return 1;
         }
         break;
@@ -1105,13 +1105,13 @@ int Sound::OpenSample(char* path, int mode, int p3, int p4) {
         HAPI_SeekFile(file, 0x28);
         switch (mode) {
         case 0:
-            result = (int)((Sound*)this)->CreateSampleFromFile(file, size - 0x28, x, 8, 1);
+            result = (int)this->CreateSampleFromFile(file, size - 0x28, x, 8, 1);
             break;
         case 1:
-            result = ((Sound*)this)->PlayFileSample(file, size - 0x28, x, 8, 1, p3, (Pos_004cf570*)p4);
+            result = this->PlayFileSample(file, size - 0x28, x, 8, 1, p3, (Pos_004cf570*)p4);
             break;
         case 2:
-            ((Sound*)this)->StartStream(file, x, 8, 1, p3);
+            this->StartStream(file, x, 8, 1, p3);
             return 1;
         }
         break;

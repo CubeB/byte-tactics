@@ -233,7 +233,7 @@ void Sound::PlayNextTrack()
                 currentTrack = one;
             else
                 currentTrack++;
-            ((Sound*)this)->PlayCdTrack(currentTrack, trackCount - currentTrack + 1);
+            this->PlayCdTrack(currentTrack, trackCount - currentTrack + 1);
             if (currentTrack > trackCount)
                 currentTrack = one;
             goto done;
@@ -244,7 +244,7 @@ void Sound::PlayNextTrack()
             playing = res == zero ? strcmp(buf, "playing") == zero : zero;
             if (playing != zero)
                 goto done;
-            ((Sound*)this)->PlayCdTrack(rand() % trackCount + 1, one);
+            this->PlayCdTrack(rand() % trackCount + 1, one);
             goto done;
             }
         case 3:
@@ -253,7 +253,7 @@ void Sound::PlayNextTrack()
             playing = res == zero ? strcmp(buf, "playing") == zero : zero;            if (playing == zero || currentTrack != lockedTrack) {
                 if (lockedTrack == zero)
                     lockedTrack = one;
-                ((Sound*)this)->PlayCdTrack(lockedTrack, one);
+                this->PlayCdTrack(lockedTrack, one);
             }
             goto done;
             }
@@ -279,7 +279,7 @@ void Sound::PlayNextTrack()
                     j = i;
                     while (j <= trackCount && arr_214[j] == trackCategory)
                         j++;
-                    ((Sound*)this)->PlayCdTrack(i, j - i);
+                    this->PlayCdTrack(i, j - i);
                     break;
                 }
             }
@@ -326,7 +326,7 @@ void __cdecl HandleCdMessage(int param_1, int param_2, int param_3)
         RemoveTimer(g_cdFadeTimer);
         g_cdNextTrackTimer = g_cdFadeTimer = -1;
         if (param_2 == 0x8000) {
-            ((Sound*)g_cdPlayer)->QueryDisc();
+            g_cdPlayer->QueryDisc();
             if (g_cdPlayer->callback)
                 g_cdPlayer->callback();
         }

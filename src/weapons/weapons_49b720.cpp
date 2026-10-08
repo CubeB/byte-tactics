@@ -194,7 +194,7 @@ static inline void Remove(Proj_0049b720* p)
 }
 
 // Stays in its own file: the b0 arm's register tie follows this file's symbol
-// ids, which the gathered weapons_499a30.cpp moves.
+// ids, which the joined weapons.cpp moves.
 // FUNCTION: 0x49b720
 void UpdateProjectiles()
 {

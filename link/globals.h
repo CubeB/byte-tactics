@@ -273,7 +273,7 @@ extern unsigned int g_netStatsTick;                                             
 extern unsigned int g_byteRatesTick;                                                              // 0x511ddc, 4 bytes; 1 of 1 files
 extern int DAT_00511de0;                                                                          // 0x511de0, 4 bytes; 2 of 2 files
 extern int g_cdPathMismatch;                                                                      // 0x511de4, 4 bytes; 1 of 1 files
-extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 464 of 527 files (conflicting: shape)
+extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 448 of 507 files (conflicting: shape)
 extern int DAT_00511dec;                                                                          // 0x511dec, 4 bytes; 1 of 1 files
 extern ExplodedPiece* g_explodedPieces[100];                                                      // 0x511df0, 400 bytes; 1 of 1 files
 extern unsigned char DAT_00511f80[16];                                                            // 0x511f80, 16 bytes; CMemoryCache by value in 3 of 3 files
@@ -922,7 +922,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x51e850 DAT_0051e850: part of another global: DAT_0051e828+0x28
 //   0x51e854 DAT_0051e854: part of another global: DAT_0051e828+0x2c
 //   0x51e858 DAT_0051e858: part of another global: DAT_0051e828+0x30
-//   0x51f310 DAT_0051f310: defined in src/weapons/weapons_49c740.cpp
+//   0x51f310 DAT_0051f310: defined in src/weapons/weapons.cpp
 //   0x51fbb8 std::HH::HU?$pair::?$_Tree::_Nilrefs: defined in src/util/int_map_4b2290.cpp
 //   0x51fbbc std::HH::HU?$pair::?$_Tree::_Nil: defined in src/util/int_map_4b2290.cpp
 //   0x51fe00 g_screenLockCount: part of another global: g_language+0x40

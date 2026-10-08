@@ -99,7 +99,7 @@ The matching is done; this is how far the source has got toward reading like sou
 
 **Readability cleanup: about 61% of the way** (mean of the rows with a target)
 
-`[########################----------------]`
+`[#########################---------------]`
 
 Counts in `src/` and `include/` at `origin/main`, against `e9367f13` (the roadmap's starting point).
 
@@ -109,17 +109,17 @@ Counts in `src/` and `include/` at `origin/main`, against `e9367f13` (the roadma
 | Placeholder functions `FUN_<addr>` | 1,076 | 291 | 0, named | 73% | `[###############-----]` |
 | Placeholder globals `DAT_<addr>` | 737 | 220 | 0, named | 70% | `[##############------]` |
 | Placeholder classes `Class_<addr>` | 769 | 690 | 0, named | 10% | `[##------------------]` |
-| Placeholder fields `field_<offset>` | 589 | 403 | 0, named | 32% | `[######--------------]` |
+| Placeholder fields `field_<offset>` | 589 | 395 | 0, named | 33% | `[#######-------------]` |
 | Files that define `Unit` | 285 | 83 | 1, one shared definition | 71% | `[##############------]` |
 | Files opening with matching history | 301 | 1 | 0, none | 100% | `[####################]` |
 | Casts `((T*)x)->` | 1,698 | 993 | 0, casts the types allow | 42% | `[########------------]` |
-| Byte-offset access `*(T*)(p + off)` and `(char*)p + off` | 1,284 | 924 | cases with no struct | | |
+| Byte-offset access `*(T*)(p + off)` and `(char*)p + off` | 1,284 | 922 | cases with no struct | | |
 
 | Cleanup issues | | | |
 | --- | --- | --- | ---: |
 | Gather issues | 125 of 125 closed | `[####################]` | 100% |
-| Join issues | 20 of 24 closed | `[#################---]` | 83% |
-| Name issues | 120 of 135 closed | `[##################--]` | 88% |
+| Join issues | 20 of 25 closed | `[################----]` | 80% |
+| Name issues | 123 of 141 closed | `[#################---]` | 87% |
 <!-- cleanup:end -->
 
 ## Next steps

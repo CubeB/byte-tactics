@@ -3006,7 +3006,7 @@ address,name
 0x4d0070,Sound::SetWaveVolume
 0x4d00d0,Sound::SetAuxVolume
 0x4d0130,Sound::RestoreMixerVolumes
-0x4d01b0,Class_004d01b0::DetectSampleFormat
+0x4d01b0,Sound::DetectSampleFormat
 0x4d02a0,Sound::OpenSample
 0x4d0620,Sound::LoadSample
 0x4d0640,Sound::PlaySample

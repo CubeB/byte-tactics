@@ -26,8 +26,6 @@ public:
     void LoadBriefing();
     int GetDescription();
     char* GetMissionName();
-    int GetTerrainLength();
-    bool HasMissionName();
     char unknown_0[0xd54];
     float killMul;                     // +0xd54
     float timeMul;                     // +0xd58

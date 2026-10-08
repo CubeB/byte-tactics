@@ -2980,7 +2980,7 @@ address,size,file,symbol,status,similarity
 0x4d0070,88,src/sound/samples.cpp,?SetWaveVolume@Sound@@QAEHH@Z,matched,100.0
 0x4d00d0,81,src/sound/samples.cpp,?SetAuxVolume@Sound@@QAEHHH@Z,matched,100.0
 0x4d0130,124,src/sound/samples.cpp,?RestoreMixerVolumes@Sound@@QAEXXZ,matched,100.0
-0x4d01b0,233,src/sound/samples.cpp,?DetectSampleFormat@Class_004d01b0@@QAEHPAX@Z,matched,100.0
+0x4d01b0,233,src/sound/samples.cpp,?DetectSampleFormat@Sound@@QAEHPAX@Z,matched,100.0
 0x4d02a0,895,src/sound/samples.cpp,?OpenSample@Sound@@QAEHPADHHH@Z,matched,100.0
 0x4d0620,19,src/sound/samples.cpp,?LoadSample@Sound@@QAEXPAD@Z,matched,100.0
 0x4d0640,25,src/sound/samples.cpp,?PlaySample@Sound@@QAEXPBDHH@Z,matched,100.0

@@ -397,6 +397,9 @@ public:
     void RetargetWeapons(int force);
     void TickIfActive();
     void DeleteTimers();
+    Unit* FindNearestEnemyUnit(int x, int y, int z);
+    Unit* FindNearestEnemyUnit(Vec3 pos);
+    void TickTimers();
 };
 
 struct Target_00406f50 {
@@ -439,6 +442,7 @@ public:
 
     AssaultTimer(SquadManager* p, Group* q, int a, int b);
     virtual void OnTimer();                         // slot 0, 0x4077e0
+    void RebalanceAssaultGroupByCentroid(int kind, int limit);
 };
 
 // Vtable 0x4fc990, constructor 0x4079a0, ??_G 0x4079d0.
@@ -484,55 +488,36 @@ public:
     virtual void OnTimer();                         // slot 0, 0x407e90
 };
 
-class Class_004071f0 {
-public:
-    Unit* owner;                       // +0x0
-    Unit* FindNearestEnemyUnit(int x, int y, int z);
-    Unit* FindNearestEnemyUnit(Vec3 pos);
-};
-
-// 0x20 bytes, the object behind each of SquadManager's ten timers.
-class Class_00407560 {
-public:
-    void* vtable;
-    struct Owner_00407560* owner;      // +0x4
-    Group* group;                      // +0x8
-
-    void RebalanceAssaultGroupByCentroid(int kind, int limit);
-};
-
-struct Owner_00407560 {
-    char unknown_0[0x11];
-    Class_00407560* members[8];        // +0x11
-};
-
-class Class_00408bf0 {                 // SquadManager's own layout, another view
-public:
-    void* target;                      // +0x0
-    char unknown_4;
-    int countdown;                     // +0x5
-    char unknown_9[0x11 - 0x9];
-    SquadTimer* timers[10];            // +0x11
-
-    void TickTimers();
-};
-
-// The object behind the constructor of 0x407350's family: the placement grid
-// fields of the same player AI object.
-struct Sub {
-    short v0;                          // +0x00
-    short v1;                          // +0x02
-    short v2;                          // +0x04
-    short v3;                          // +0x06
-    int   v4;                          // +0x08
-};
-
-struct Class_0040a150 {
-    char unknown_0[0xf1];
-    Sub  s0;                           // +0xf1
-    Sub  s1;                           // +0xfd
-    void InitPlacementGrid();
-};
+// The AI controller (SquadManager) and the assault slot (AssaultTimer) methods
+// that had class views of their own are declared on those classes now, and the
+// placement-grid fields of the old player-AI view sit on PlayerAI.
+//
+// Unused here: the symbol ids these declarations take keep the allocation
+// (docs/c2-regalloc.md); they stand where the removed class views stood.
+char FindGameCdDrive(int);
+int FUN_00490200();
+int AreAllPlayersReady(void);
+int CountActiveAIPlayers(void);
+int CountComputerPlayers(void);
+int CountHumanPlayers(void);
+int ExpireOldestMessage(void);
+int AreAllSlotsEmpty(void);
+int CheckAlliedVictory(void);
+int CheckMapCrc(void);
+char IsGonzo();
+int FindFreeSlot(void);
+int FindOpenSlot(void);
+int GetBuildSiteHeight(void);
+int GetCdPathMismatch(void);
+int GetCdPosition(void);
+int GetCobChecksum(int);
+int GetCpuFamily(void);
+char IsMemFussy();
+int GetCursorSprite(void);
+int GetDebugFillPattern(void);
+char IsBackAlign();
+char IsMemSet();
+char IsPentiumOrBetter();
 
 class Class_00438760 {
 public:
@@ -697,6 +682,7 @@ public:
 
     PlayerAI(unsigned char player);
     void InitUnitTables();
+    void InitPlacementGrid();
     void ComputeBaseWeights();
     bool FindCellNearFeatures(UnitDef* type, Vec3* pos, std::vector<Elem_0040cc40>* list, int range, Point16* out);
     bool FindRandomPlacementCell(UnitDef* type, Vec3* pos, int range, Point16* out);
@@ -1022,7 +1008,7 @@ void __stdcall ReactToAttack(Unit* attacker, Unit* unit, int unused)
 }
 
 // FUNCTION: 0x4071f0
-Unit* Class_004071f0::FindNearestEnemyUnit(int x,int y,int z)
+Unit* SquadManager::FindNearestEnemyUnit(int x,int y,int z)
 {
     int best=0x7fffffff;
     Unit* result=0;
@@ -1030,7 +1016,7 @@ Unit* Class_004071f0::FindNearestEnemyUnit(int x,int y,int z)
         Player* p=&g_game->players[i];
         // The original retains the player-index range check inside the loop.
         if(i>=10) continue;
-        if(p->active && (p->state==1 || p->state==2 || p->state==3) && p->index!=10 && !owner->allied[p->index]) {
+        if(p->active && (p->state==1 || p->state==2 || p->state==3) && p->index!=10 && !player->allied[p->index]) {
             Unit* u=p->firstUnit;
             Unit* last=p->lastUnit;
             for(;u<=last;++u) {
@@ -1138,9 +1124,9 @@ int SquadTimer::CountGroupUnitsInRadius(Vec3* pos, int radius)
 // over every unit of the other group that lies closer than that.
 // SetUnitSquad(unit, id) moves a unit to a group.
 // FUNCTION: 0x407560
-void Class_00407560::RebalanceAssaultGroupByCentroid(int kind, int limit)
+void AssaultTimer::RebalanceAssaultGroupByCentroid(int kind, int limit)
 {
-    Class_00407560* other = owner->members[kind];
+    SquadTimer* other = owner->timers[kind];
     if (other == this)
         return;
     if (group->units.empty()) {
@@ -1210,7 +1196,7 @@ void AssaultTimer::OnTimer()
     Vec3 pos;
     Vec3 retreat;
     next = g_game->ticks + 300;
-    ((Class_00407560*)this)->RebalanceAssaultGroupByCentroid(kind, limit);
+    RebalanceAssaultGroupByCentroid(kind, limit);
     if (!group->units.empty()) {
         if ((int)group->units.size() <= minimum || (!attacking && (int)group->units.size() < maximum)) {
             if (Rally(owner, &retreat)) {
@@ -1221,7 +1207,7 @@ void AssaultTimer::OnTimer()
         }
         attacking = 1;
         GetAveragePosition(&pos);
-        Unit* target = ((Class_004071f0*)owner)->FindNearestEnemyUnit(pos);
+        Unit* target = owner->FindNearestEnemyUnit(pos);
         if (target)
             group->Send(3, 0, target, 0, 0, 0);
     }
@@ -1326,7 +1312,7 @@ void SquadScoutTimer::OnTimer()
         Vec3 pos = GetRallyPoint(player);
         if ((pos.xWhole | pos.zWhole) == 0) {
             GetAveragePosition(&dest);
-            Unit* target = ((Class_004071f0*)owner)->FindNearestEnemyUnit(dest);
+            Unit* target = owner->FindNearestEnemyUnit(dest);
             group->Send(9, 1, 0, &target->pos, 0, 0);
         } else {
             int n = RandomInt(2) + 2;
@@ -1486,11 +1472,11 @@ void SquadManager::RetargetWeapons(int force)
 }
 
 // FUNCTION: 0x408bf0
-void Class_00408bf0::TickTimers()
+void SquadManager::TickTimers()
 {
     if (--countdown <= 0) {
         countdown = 30;
-        ((SquadManager*)this)->AssignSquads();
+        AssignSquads();
     }
     for (int i = 0; i < 10; i++) {
         if (timers[i] != 0 && timers[i]->next <= g_game->ticks) {
@@ -1567,7 +1553,7 @@ PlayerAI::PlayerAI(unsigned char p)
 {
     lastTick = 0;
     field_109 = 0;
-    ((Class_0040a150*)this)->InitPlacementGrid();
+    InitPlacementGrid();
     int n = g_game->count;
     weights.resize(n, 0);
     counts.resize(n, 0);
@@ -1722,24 +1708,24 @@ void ResetAIPlayers()
     LoadDefaultAIScript();
 }
 
-// Initialises two 12-byte sub-structures of the object. Each Sub is
-// { short v0, v1, v2, v3; int v4; }; the object has one at +0xf1 (s0) and a
-// second at +0xfd (s1). v0/v1 become a size from the base v4 plus a random
-// amount (+8), and v2/v3 become a random offset centred on that size
-// (rand(size) - size/2).
+// Initialises the two placement-grid blocks of the object: spacing0/offset0
+// with margin0 (+0xf1) and spacing1/offset1 with margin1 (+0xfd). Each
+// spacing component becomes its margin plus 8 plus a random amount, and each
+// offset component a random offset centred on the spacing
+// (rand(spacing) - spacing/2).
 // FUNCTION: 0x40a150
-void Class_0040a150::InitPlacementGrid()
+void PlayerAI::InitPlacementGrid()
 {
-    s0.v4 = 3;
-    s0.v0 = RandomInt(10) + s0.v4 + 8;
-    s0.v1 = RandomInt(3) + s0.v4 + 8;
-    s0.v2 = RandomInt(s0.v0) - s0.v0 / 2;
-    s0.v3 = RandomInt(s0.v1) - s0.v1 / 2;
-    s1.v4 = 6;
-    s1.v0 = RandomInt(0x14) + s1.v4 + 8;
-    s1.v1 = RandomInt(3) + s1.v4 + 8;
-    s1.v2 = RandomInt(s1.v0) - s1.v0 / 2;
-    s1.v3 = RandomInt(s1.v1) - s1.v1 / 2;
+    margin0 = 3;
+    spacing0.x = RandomInt(10) + margin0 + 8;
+    spacing0.y = RandomInt(3) + margin0 + 8;
+    offset0.x = RandomInt(spacing0.x) - spacing0.x / 2;
+    offset0.y = RandomInt(spacing0.y) - spacing0.y / 2;
+    margin1 = 6;
+    spacing1.x = RandomInt(0x14) + margin1 + 8;
+    spacing1.y = RandomInt(3) + margin1 + 8;
+    offset1.x = RandomInt(spacing1.x) - spacing1.x / 2;
+    offset1.y = RandomInt(spacing1.y) - spacing1.y / 2;
 }
 
 // FUNCTION: 0x40a260

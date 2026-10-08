@@ -829,9 +829,11 @@ public:
 
 class Class_004a1080;
 struct Dialog;
-struct Class_004a1450;
-struct Class_0049fb10;
 struct Struct_004c6ac0;
+
+// Unused here: the symbol id this declaration takes keeps the allocation
+// (docs/c2-regalloc.md).
+int FUN_0044cfe0(void);
 
 typedef void (__stdcall* Callback_00449bb0)(Gui_00446f50* gui, int index);
 typedef void (__stdcall* Callback_0044c7e0)(Gui_00446f50* gui, int index);
@@ -3568,9 +3570,9 @@ void OpenAlliesDialog()
         count = 0;
     else
         count = CountAlliance_004478b0(alliance);
-    SetGadgetGrayedOutByName((Class_004a1450*)&g_game->gui, "VICTORY",
+    SetGadgetGrayedOutByName(&g_game->gui, "VICTORY",
                  (count > 1 || win) ? 1 : 0);
-    SetKeyboardInput((Class_0049fb10*)&g_game->gui, 1);
+    SetKeyboardInput(&g_game->gui, 1);
     RenderLayer((Dialog*)&g_game->gui, 0x40);
 }
 

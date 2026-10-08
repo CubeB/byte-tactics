@@ -138,7 +138,7 @@ struct Player {
     int exploredSize;                  // +0x88
     float energy;                      // +0x8c
     int energyIncome;
-    int energyUsage;
+    float energyUsage;                 // +0x94
     float metal;                       // +0x98
     int metalIncome;
     int metalUsage;
@@ -595,15 +595,17 @@ float __stdcall GetEnergyIncome(void* param_1)
     return *(float*)((char*)param_1 + 0x90);
 }
 
-struct Class_00464ac0 {
-    char unknown_0[0x94];
-    float field_0x94;
-};
+// Unused here: the symbol ids these declarations take keep the allocation
+// (docs/c2-regalloc.md).
+int FUN_0044cfe0(void);
+int FUN_0044d440(void);
+int FUN_0044d900(void);
+int FUN_00490200();
 
 // FUNCTION: 0x464ac0
-float __stdcall GetEnergyUsage(Class_00464ac0* param_1)
+float __stdcall GetEnergyUsage(Player* param_1)
 {
-    return param_1->field_0x94;
+    return param_1->energyUsage;
 }
 
 // FUNCTION: 0x464ad0

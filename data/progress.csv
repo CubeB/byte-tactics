@@ -70,14 +70,14 @@ address,size,file,symbol,status,similarity
 0x406f40,1,src/ai/ai_player.cpp,?FUN_00406f40@@YGXXZ,matched,100.0
 0x406f50,46,src/ai/ai_player.cpp,?MarkOwnerNetDirtyFromDamageSplit@SquadManager@@QAEXPAUObj_00406f50@@HH@Z,matched,100.0
 0x406f80,613,src/ai/ai_player.cpp,?ReactToAttack@@YGXPAUUnit@@0H@Z,matched,100.0
-0x4071f0,340,src/ai/ai_player.cpp,?FindNearestEnemyUnit@Class_004071f0@@QAEPAUUnit@@HHH@Z,matched,100.0
+0x4071f0,340,src/ai/ai_player.cpp,?FindNearestEnemyUnit@SquadManager@@QAEPAUUnit@@HHH@Z,matched,100.0
 0x407350,40,src/ai/ai_player.cpp,??0SquadTimer@@QAE@PAVSquadManager@@PAUGroup@@@Z,matched,100.0
 0x407380,1,src/ai/ai_player.cpp,?OnTimer@SquadTimer@@UAEXXZ,matched,100.0
 0x407390,32,src/ai/ai_player.cpp,??_GSquadTimer@@UAEPAXI@Z,matched,100.0
 0x4073b0,83,src/ai/ai_player.cpp,?TryGetBaseBuildOrScoutCentroid@SquadTimer@@QAEHPAUVec3@@@Z,matched,100.0
 0x407410,143,src/ai/ai_player.cpp,?GetAveragePosition@SquadTimer@@QAEHPAUVec3@@@Z,matched,100.0
 0x4074a0,189,src/ai/ai_player.cpp,?CountGroupUnitsInRadius@SquadTimer@@QAEHPAUVec3@@H@Z,matched,100.0
-0x407560,639,src/ai/ai_player.cpp,?RebalanceAssaultGroupByCentroid@Class_00407560@@QAEXHH@Z,matched,100.0
+0x407560,639,src/ai/ai_player.cpp,?RebalanceAssaultGroupByCentroid@AssaultTimer@@QAEXHH@Z,matched,100.0
 0x4077e0,329,src/ai/ai_player.cpp,?OnTimer@AssaultTimer@@UAEXXZ,matched,100.0
 0x407930,75,src/ai/ai_player.cpp,??0AssaultTimer@@QAE@PAVSquadManager@@PAUGroup@@HH@Z,matched,100.0
 0x407980,32,src/ai/ai_player.cpp,??_GAssaultTimer@@UAEPAXI@Z,matched,100.0
@@ -102,7 +102,7 @@ address,size,file,symbol,status,similarity
 0x408830,229,src/ai/ai_player.cpp,?AssignSquads@SquadManager@@QAEXXZ,matched,100.0
 0x408920,117,src/ai/ai_player.cpp,?RetargetWeapon@@YGXPAUUnit@@I@Z,matched,100.0
 0x4089a0,578,src/ai/ai_player.cpp,?RetargetWeapons@SquadManager@@QAEXH@Z,matched,100.0
-0x408bf0,73,src/ai/ai_player.cpp,?TickTimers@Class_00408bf0@@QAEXXZ,matched,100.0
+0x408bf0,73,src/ai/ai_player.cpp,?TickTimers@SquadManager@@QAEXXZ,matched,100.0
 0x408c40,112,src/ai/ai_player.cpp,?TickIfActive@SquadManager@@QAEXXZ,matched,100.0
 0x408cb0,602,src/ai/ai_player.cpp,??0SquadManager@@QAE@PAUPlayer@@@Z,matched,100.0
 0x408f10,32,src/ai/ai_player.cpp,?DeleteTimers@SquadManager@@QAEXXZ,matched,100.0
@@ -118,7 +118,7 @@ address,size,file,symbol,status,similarity
 0x409f80,185,src/ai/ai_player.cpp,?ParseDownloadableAiWeightScripts@@YGXH@Z,matched,100.0
 0x40a040,185,src/ai/ai_player.cpp,?ReparseAiWeightScriptsIfLimitNotSticky@@YGXH@Z,matched,100.0
 0x40a100,75,src/ai/ai_player.cpp,?ResetAIPlayers@@YGXXZ,matched,100.0
-0x40a150,265,src/ai/ai_player.cpp,?InitPlacementGrid@Class_0040a150@@QAEXXZ,matched,100.0
+0x40a150,265,src/ai/ai_player.cpp,?InitPlacementGrid@PlayerAI@@QAEXXZ,matched,100.0
 0x40a260,834,src/ai/ai_player.cpp,?FindCellNearFeatures@PlayerAI@@QAE_NPAUUnitDef@@PAUVec3@@PAV?$vector@UElem_0040cc40@@V?$allocator@UElem_0040cc40@@@std@@@std@@HPAUPoint16@@@Z,matched,100.0
 0x40a5b0,19,src/ai/ai_player.cpp,??0Elem_0040cc40@@QAE@ABU0@@Z,matched,100.0
 0x40a5d0,473,src/ai/ai_player.cpp,?FindRandomPlacementCell@PlayerAI@@QAE_NPAUUnitDef@@PAUVec3@@HPAUPoint16@@@Z,matched,100.0
@@ -618,7 +618,7 @@ address,size,file,symbol,status,similarity
 0x433380,377,src/map/los_tables.cpp,?LoadLosTable@LosTables@@QAEXPAVTdfFile@@F@Z,matched,100.0
 0x433500,19,src/map/los_tables_433500.cpp,?GetLosTable@LosTables@@QAEPAV?$vector@UElem_00434020@@V?$allocator@UElem_00434020@@@std@@@std@@H@Z,matched,100.0
 0x433520,19,src/map/los_tables.cpp,?GetLosTableCount@LosTables@@QAEHXZ,matched,100.0
-0x433540,119,src/map/los_tables.cpp,?FreeLines@Class_00433540@@QAEXXZ,matched,100.0
+0x433540,119,src/map/los_tables.cpp,?FreeLines@LosTable@@QAEXXZ,matched,100.0
 0x4335c0,19,src/map/los_tables.cpp,?GetLosLineCount@LosTable@@QAEHXZ,matched,100.0
 0x4335e0,16,src/map/los_tables.cpp,?GetLosLine@LosTable@@QAEPAVLosLine@@F@Z,matched,100.0
 0x4335f0,194,src/map/los_tables.cpp,?ResizeLines@LosTable@@QAEXF@Z,matched,100.0
@@ -1327,7 +1327,7 @@ address,size,file,symbol,status,similarity
 0x4649d0,48,src/game/players_464290.cpp,?RebuildAIFeatureCells@@YGXXZ,matched,100.0
 0x464a00,162,src/game/players_464290.cpp,?FreePlayers@@YGXXZ,matched,100.0
 0x464ab0,13,src/game/players_464290.cpp,?GetEnergyIncome@@YGMPAX@Z,matched,100.0
-0x464ac0,13,src/game/players_464290.cpp,?GetEnergyUsage@@YGMPAUClass_00464ac0@@@Z,matched,100.0
+0x464ac0,13,src/game/players_464290.cpp,?GetEnergyUsage@@YGMPAUPlayer@@@Z,matched,100.0
 0x464ad0,19,src/game/players_464290.cpp,?GetNetEnergy@@YGMPAX@Z,matched,100.0
 0x464af0,13,src/game/players_464290.cpp,?GetMetalIncome@@YGMPAX@Z,matched,100.0
 0x464b00,13,src/game/players_464290.cpp,?GetMetalUsage@@YGMPAX@Z,matched,100.0
@@ -1708,7 +1708,7 @@ address,size,file,symbol,status,similarity
 0x47ffa0,123,src/sound/sound_47ed40.cpp,?RemoveSpeechAt@SpeechQueue@@QAEXH@Z,matched,100.0
 0x480020,160,src/sound/sound_47ed40.cpp,?RemoveSpeechOfId@SpeechQueue@@QAEXPAUUnit@@@Z,matched,100.0
 0x4800c0,60,src/sound/sound_47ed40.cpp,?EraseSwapBack@Class_004800c0@@QAEPAPAUUnit@@PAPAU2@@Z,matched,100.0
-0x480100,93,src/sound/sound_47ed40.cpp,?EraseByValue@Class_00480100@@QAEHH@Z,matched,100.0
+0x480100,93,src/sound/sound_47ed40.cpp,?EraseByValue@IntDynArray@@QAEHH@Z,matched,100.0
 0x480160,42,src/sound/sound_47ed40.cpp,??0Squad@@QAE@HH@Z,matched,100.0
 0x480190,86,src/units/squads.cpp,?CreateSquads@@YGXPAUOwner@@@Z,matched,100.0
 0x4801f0,83,src/units/squads.cpp,?FreeSquads@@YGXPAUOwner@@@Z,matched,100.0

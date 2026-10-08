@@ -796,7 +796,7 @@ static inline void Dummy(void) {}
 
 int __stdcall GetOrderCursor(unsigned char type, Unit* unit, Unit* target, int* out);
 
-class Class_00480100 {
+class IntDynArray {
 public:
     int EraseByValue(int value);
 };
@@ -821,7 +821,7 @@ int __stdcall ResolveCursorModeForSelection(char arg)
     }
 
     if (target != 0)
-        ((Class_00480100*)&vec)->EraseByValue((int)target);
+        ((IntDynArray*)&vec)->EraseByValue((int)target);
 
     if (vec.empty()) {
         if (arg == 1 && target != 0

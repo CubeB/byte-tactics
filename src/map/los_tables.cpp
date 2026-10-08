@@ -135,6 +135,7 @@ public:
     int GetLosLineCount();
     void ResizeLines(short n);
     LosLine* GetLosLine(short i);
+    void FreeLines();
 };
 
 typedef std::vector<Elem_00434020> Inner_00433500;
@@ -156,11 +157,6 @@ public:
     int GetLosTableCount();
 };
 
-class Class_00433540 {
-public:
-    void FreeLines();
-};
-
 struct Elem_004336c0 {
     int value;                         // +0x0
 };
@@ -168,6 +164,10 @@ struct Elem_004336c0 {
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
 int RIReport(int, int, int, int, int, int, int, int, int, int);
 void CopyDwordIfNonNull(int*, int*);
+int FUN_0044cfe0(void);
+int FUN_0044d440(void);
+int FUN_0044d900(void);
+int FUN_00490200();
 
 extern void __cdecl operator delete(void*);
 
@@ -385,7 +385,7 @@ typedef void (std::allocator<Elem_00434020>::*DestroyFn_00434020)(Elem_00434020*
 DestroyFn_00434020 g_destroy_00434020 = &std::allocator<Elem_00434020>::destroy;
 
 // FUNCTION: 0x433540
-void Class_00433540::FreeLines()
+void LosTable::FreeLines()
 {
     // Explicit destructor call from a method, as in 0x4330b0 above.
     ((Outer_00434020*)this)->~vector();

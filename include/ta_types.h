@@ -141,7 +141,7 @@ class Class_00408830;
 class Class_004089a0;
 class Class_00408bf0;
 class Class_00409730;
-struct Class_0040a150;
+struct PlayerAI;
 struct Class_0040a7b0;
 class Class_0040aa40;
 class Class_0040ad20;
@@ -484,7 +484,7 @@ class SpeechQueue;
 class Class_0047ffa0;
 class Class_00480020;
 class Class_004800c0;
-class Class_00480100;
+class IntDynArray;
 class Squad;
 class Class_00480c30;
 class Class_00480c50;
@@ -12091,7 +12091,7 @@ public:
     void RemoveSpeechOfId(int);
 };
 
-class Class_00480100 {  // 0x10 bytes, 2 views
+class IntDynArray {     // 0x10 bytes, 2 views
 public:
     std::vector<int> items;  // +0x0
     int EraseByValue(int);
@@ -20386,7 +20386,7 @@ struct Sub {  // 0xc bytes, 1 view
     int v4;  // +0x8
 };
 
-struct Class_0040a150 {  // 0x109 bytes, 2 views
+struct PlayerAI {        // 0x109 bytes, 2 views
     char unknown_0[241];
     Sub s0;  // +0xf1
     Sub s1;  // +0xfd

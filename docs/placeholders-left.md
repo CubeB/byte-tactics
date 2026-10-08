@@ -56,6 +56,12 @@ entry points.
 | `FUN_004e16b0` | `src/debug/debug_lib_4e16b0.cpp` | `cpuid_Version_info` | no evidence: sets a flag from CPUID EDX bit 23 (SEP) after `IsPentiumOrBetter`; nothing reads the flag, so what it would name is unknown (#6313) |
 | `FUN_004e6110` | `src/orders/order_targets.cpp` | `CRT_PurecallAbort` | already named: the address is the CRT `_purecall` in `data/symbols.csv`; the spelling that stays is the base class's pure slot 8 declaration, and `rename.py` refuses `FillWorldPos` there because the file already uses that name for five class views (#6313) |
 
+## Classes
+
+| placeholder | file | Thaldren's name | why it stays |
+| --- | --- | --- | --- |
+| `Class_00452370` | `src/game/game_state_490ac0.cpp` | `Net_ShutdownMultiplaySession` | no evidence for a name: one call-site view of the packet-data area of `g_game` at +0x12ef, the same type as `Class_00451fd0` in `net_game.cpp`, which no exe name marks; Thaldren names only the function at 0x452370 (#6372) |
+
 ## Globals
 
 | placeholder | file | Thaldren's name | why it stays |

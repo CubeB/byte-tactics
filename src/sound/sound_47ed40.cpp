@@ -836,7 +836,7 @@ Class_004800c0::UnitVector::iterator Class_004800c0::EraseSwapBack(UnitVector::i
     return where;
 }
 
-class Class_00480100 {
+class IntDynArray {
 public:
     std::vector<int> items;            // +0x0 (_First +0x4, _Last +0x8)
 
@@ -846,7 +846,7 @@ public:
 // Removes the first occurrence of a value from a std::vector by moving the
 // last element into its slot and erasing the last element.
 // FUNCTION: 0x480100
-int Class_00480100::EraseByValue(int value)
+int IntDynArray::EraseByValue(int value)
 {
     std::vector<int>::iterator it = std::find(items.begin(), items.end(), value);
     if (it == items.end()) {

@@ -2185,7 +2185,7 @@ unsigned short FindUnitTypeId(const char*);
 void InitUnitCategories(void);
 void FreeUnitCategories(void);
 void* GetCategoryMask(char*);
-float GetEnergyUse(Unit_00488f30*);
+float GetEnergyUse(UnitDef*);
 char* MakePropList(UnitType_00489280*);
 int UnitCanBuild(Unit_004894f0*, short);
 void ClearUnitRefs(Owner_00489740*);

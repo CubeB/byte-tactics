@@ -19,11 +19,17 @@ struct Type_004851c0 {
     int modelMaxY;                     // +0x16e
 };
 
+struct Vec3_004851c0 {
+    int x;
+    int y;
+    int z;
+};
+
 struct Unit {
-    char unknown_0[0x6e];
-    int y;                      // +0x6e
-    char unknown_72[0x92 - 0x72];
-    Type_004851c0* type;               // +0x92
+    char unknown_0[0x6a];
+    Vec3_004851c0 pos;                 // +0x6a
+    char unknown_76[0x92 - 0x76];
+    Type_004851c0* def;                // +0x92
     char unknown_96[0x118 - 0x96];
 };
 
@@ -41,12 +47,6 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-
-struct Vec3_004851c0 {
-    int x;
-    int y;
-    int z;
-};
 
 static inline Cell_004851c0* GetCell(int x, int y)
 {
@@ -81,7 +81,7 @@ int __stdcall FindHighestPointOnLine(Vec3_004851c0 a, Vec3_004851c0 b)
             short v = g_game->features[c->feature * 256 + 0xfa] + c->height;
             if (best < v) best = v;
             if (c->unit) {
-                short w = (g_game->units[c->unit].type->modelMaxY + g_game->units[c->unit].y) >> 16;
+                short w = (g_game->units[c->unit].def->modelMaxY + g_game->units[c->unit].pos.y) >> 16;
                 if (best < w) best = w;
             }
         }

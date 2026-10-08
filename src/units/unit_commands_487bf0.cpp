@@ -52,18 +52,18 @@ struct Unit {
     Def_00488310* def;                 // +0x92
     Player_00488310* player;           // +0x96
     char unknown_9a[0xa6 - 0x9a];
-    unsigned short type;               // +0xa6
-    short team;                        // +0xa8
+    unsigned short unitDefIndex;       // +0xa6
+    short id;                          // +0xa8
     char unknown_aa[0xfb - 0xaa];
-    int fb;                            // +0xfb
+    int postTransferHoldoff;           // +0xfb
     char unknown_ff[0x104 - 0xff];
     union {
-        float speed;                   // +0x104
+        float buildLeft;               // +0x104
         int speed_bits;
     };
-    short s108;                        // +0x108
+    short health;                      // +0x108
     char unknown_10a[0x10e - 0x10a];
-    unsigned char state;               // +0x10e
+    unsigned char activateFlags;       // +0x10e
     char unknown_10f[0x110 - 0x10f];
     unsigned int flags;                // +0x110
     void SetStateBits(unsigned char mask, int set);
@@ -401,7 +401,7 @@ void __cdecl CreateMissionUnits()
         if (u) {
             // The mask is 0xffffff80, not 0x80: keeps the byte zero-extension.
             u->flags = (u->flags & ~0x8000) | ((e->flags & 0xffffff80) << 8);
-            u->s108 = (unsigned short)((unsigned)(u->def->f1fa * e->f1a) / 100);
+            u->health = (unsigned short)((unsigned)(u->def->f1fa * e->f1a) / 100);
             u->tail.f66 = e->f18;
             units[i] = u;
         }
@@ -460,12 +460,12 @@ void __stdcall GiveUnitToPlayer(Unit* unit, Player_00488310* other, OwnershipTra
         if (other->type == 3) {
             OwnershipTransferPacket pk;
             unit->flags &= ~0x10;
-            unit->fb = 0x96;
+            unit->postTransferHoldoff = 0x96;
             pk.type = 0x14;
             pk.newOwnerNetId = GetPlayerDpid(other);
-            pk.unitId = unit->team;
-            pk.buildPercent = (int)unit->speed;
-            pk.hitPoints = unit->s108;
+            pk.unitId = unit->id;
+            pk.buildPercent = (int)unit->buildLeft;
+            pk.hitPoints = unit->health;
             pk.tail = unit->tail;
             unsigned char a = unit->b1f & 2;
             pk.stockpile0 = a ? unit->b1e : 0;
@@ -481,13 +481,13 @@ void __stdcall GiveUnitToPlayer(Unit* unit, Player_00488310* other, OwnershipTra
     if (other->type != 1 && other->type != 2)
         return;
 
-    Unit* n = CreateUnit(other->f146, unit->type, unit->pos, 1, unit->flags & 3, 0);
+    Unit* n = CreateUnit(other->f146, unit->unitDefIndex, unit->pos, 1, unit->flags & 3, 0);
     if (!n)
         return;
     n->flags &= 0xffc3ffff;
     if (p) {
-        n->s108 = (short)p->hitPoints;
-        n->speed = (float)p->buildPercent;
+        n->health = (short)p->hitPoints;
+        n->buildLeft = (float)p->buildPercent;
         n->tail = p->tail;
         if (n->b1f & 2)
             n->b1e = p->stockpile0;
@@ -496,7 +496,7 @@ void __stdcall GiveUnitToPlayer(Unit* unit, Player_00488310* other, OwnershipTra
         if (n->b57 & 2)
             n->b56 = p->stockpile2;
     } else {
-        n->s108 = unit->s108;
+        n->health = unit->health;
         n->speed_bits = unit->speed_bits;
         n->tail = unit->tail;
         if (n->b1f & 2)
@@ -507,8 +507,8 @@ void __stdcall GiveUnitToPlayer(Unit* unit, Player_00488310* other, OwnershipTra
             n->b56 = unit->b56;
         DamageUnit(0, unit, 30000, 4, 0);
     }
-    ((Unit*)n)->SetStateBits(unit->state, 1);
-    ((Unit*)n)->SetStateBits(~unit->state, 0);
+    ((Unit*)n)->SetStateBits(unit->activateFlags, 1);
+    ((Unit*)n)->SetStateBits(~unit->activateFlags, 0);
 }
 
 // A quicksort of a range of item pointers ordered by ComparePlayers through a

@@ -39,7 +39,7 @@ struct Unit {
     char unknown_7a[0x7e - 0x7a];
     Point16_437840 footprint;          // +0x7e
     char unknown_82[0x92 - 0x82];
-    UnitType_437840* type;             // +0x92
+    UnitType_437840* def;              // +0x92
     char unknown_96[0x9a - 0x96];
     CobScript* script;                 // +0x9a
 };
@@ -198,7 +198,7 @@ Cell_437840* __stdcall GetMapCell(int x, int y);
 // FUNCTION: 0x437840
 void __stdcall UpdateMetalExtraction(Unit* unit)
 {
-    if (unit->type->extractsMetal > 0.0f) {
+    if (unit->def->extractsMetal > 0.0f) {
         Fixed_437840 total;
         total.value = 0;
         Point16_437840 fp = unit->footprint;
@@ -210,7 +210,7 @@ void __stdcall UpdateMetalExtraction(Unit* unit)
                 }
             }
         }
-        unit->extraction = unit->type->extractsMetal * 1.52587890625e-05 * (float)total.value;
+        unit->extraction = unit->def->extractsMetal * 1.52587890625e-05 * (float)total.value;
         if (unit->script)
             unit->script->StartScriptWithArgs("SetSpeed", 0, 0, 1, total.parts.whole, 0, 0, 0);
     }
@@ -222,7 +222,7 @@ void __stdcall UpdateMetalExtraction(Unit* unit)
 // FUNCTION: 0x437910
 void __stdcall UpdateWindGenerator(Unit* unit)
 {
-    if (unit->type->field_1d2 > 0.0f && g_game->windEnabled) {
+    if (unit->def->field_1d2 > 0.0f && g_game->windEnabled) {
         unit->script->StartScriptWithArgs("SetDirection", 0, 0, 1, g_game->windDirection, 0, 0, 0);
         unit->script->StartScriptWithArgs("SetSpeed", 0, 0, 1, g_game->windSpeed << 4, 0, 0, 0);
     }

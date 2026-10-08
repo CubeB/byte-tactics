@@ -24,9 +24,9 @@ struct Owner {
 
 struct Unit {
     char unknown_0[0x96];
-    Owner* owner;                      // +0x96
+    Owner* player;                     // +0x96
     char unknown_9a[0xa6 - 0x9a];
-    short active;                      // +0xa6
+    short unitDefIndex;                // +0xa6
     char unknown_a8[0xac - 0xa8];
     int group;                         // +0xac, the squad index; OrderSquad's `key`
     char unknown_b0[0x118 - 0xb0];
@@ -102,9 +102,9 @@ void __stdcall SetUnitSquad(Unit* unit, int index)
 {
     // RemoveFast stays a separate inline helper: a flat body inlines push_back's size() calls too.
     if (unit->group != -1)
-        RemoveFast(unit->owner->squads[unit->group].items, unit);
+        RemoveFast(unit->player->squads[unit->group].items, unit);
     if (index != -1)
-        unit->owner->squads[index].items.push_back(unit);
+        unit->player->squads[index].items.push_back(unit);
     unit->group = index;
 }
 
@@ -116,7 +116,7 @@ void __stdcall OrderSquad(Owner* owner, int key, unsigned char mode, int remove,
                             Unit* target, int flags, int param_7, int param_8)
 {
     for (Unit* u = owner->first; u <= owner->last; u++) {
-        if (u->active != 0 && u->group == key) {
+        if (u->unitDefIndex != 0 && u->group == key) {
             Class_00438760 kind = GetOrderType(mode, u, target, flags);
             AddOrder(kind, remove, u, target, flags, param_7, param_8);
         }

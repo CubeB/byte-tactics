@@ -1,6 +1,8 @@
 // Decompiled by Opus, Haiku and Sonnet. Names are provisional.
+// Stays in its own file: merged with the module's second part the inlined draw
+// rotates its temporaries (particles_472630.cpp).
 // Class_004750b0 (vtable 0x4fd638, 0x34 bytes), derived from ParticleSystem
-// (the family is listed in 0x471cc0.cpp): the same shape as SmokeParticles,
+// (the family is listed in particles_470a40.cpp): the same shape as SmokeParticles,
 // without the fog culling.
 // Needed: without <windows.h> slot 2 subtracts the scroll y before the half height.
 #include <windows.h>
@@ -112,96 +114,6 @@ public:
     virtual void FUN_00475150(Vec3_00475150* pos, int a, int b, int c); // slot 6, 0x475150
 };
 
-// The constructor: an empty vector of particles, and the current tick as the
-// next emit time. The base constructor is called out of line.
-// FUNCTION: 0x4750b0
-// FUNCTION: 0x475110 ??_GClass_004750b0@@UAEPAXI@Z
-Class_004750b0::Class_004750b0()
-{
-    time = g_game->ticks;
-}
-
-// Slot 6.
-// FUNCTION: 0x475150
-void Class_004750b0::FUN_00475150(Vec3_00475150* p, int a, int b, int c)
-{
-    SetLifetime(c);
-    pos = *p;
-    unknown_1c = a;
-    unknown_24 = GetGafFrameCount(g_game->unknown_147cf) - 1;
-    if (b != 0)
-        unknown_20 = b;
-    else
-        unknown_20 = 7;
-    Emit();
-}
-
-// Slot 4: appends one particle holding the effect named by
-// g_game->unknown_147cf at this->pos, a random lifetime of 2 to unknown_24 - 1
-// periods, and a countdown of unknown_20 periods.
-// FUNCTION: 0x4751c0
-void Class_004750b0::Emit()
-{
-    int missed = (field_4 - g_game->ticks + unknown_1c) / unknown_1c;
-    if (missed > 0)
-        records.reserve(records.size() + missed);
-    // The two pointers have to be locals: the original hoists both addresses
-    // into callee saved registers before the loop, and reads the record's
-    // position and the vector's _Last through them.
-    Vec3_00475150* p = &pos;
-    std::vector<Class_00474fc0>* v = &records;
-    // One-trip countdown loop stays: the original keeps it as a counter.
-    int i = 1;
-    do {
-        Class_00474fc0 rec;
-        rec.pos = *p;
-        rec.period = unknown_20;
-        rec.timer = unknown_20;
-        rec.data = g_game->unknown_147cf;
-        rec.limit = (int)((__int64)rand() * (unknown_24 - 2) / 0x8000) + 2;
-        rec.count = 0;
-        ((Class_00476490*)v)->FUN_00476490(v->end(), 1, &rec);
-    } while (--i);
-    time = g_game->ticks + unknown_1c;
-}
-
-// Slot 3: this class always answers 0.
-// FUNCTION: 0x475330
-int Class_004750b0::FUN_00472e70()
-{
-    return 0;
-}
-
-// Slot 1: steps every particle with the body of 0x474fc0 inlined (drift by the
-// game's per-tick counts, and when the countdown runs out count one more round
-// and restart the countdown at half the period plus a random part of the
-// other half). A particle that has counted as many rounds as its limit is
-// erased. Then slot 5 says whether to emit more (slot 4).
-// FUNCTION: 0x475600
-void Class_004750b0::Update()
-{
-    std::vector<Class_00474fc0>::iterator it = records.begin();
-    while (it != records.end()) {
-        it->pos.x += g_game->windX * 8;
-        it->pos.y += g_game->rise * 16;
-        it->pos.z += g_game->windZ * 8;
-        if (--it->timer == 0) {
-            it->count++;
-            int half = it->period / 2;
-            it->timer = (int)((__int64)rand() * half / 0x8000) + half;
-        }
-        if (it->count >= it->limit) {
-            records.erase(it);
-        } else {
-            ++it;
-        }
-    }
-    if (FUN_004750f0())
-        Emit();
-}
-
-// Slot 2: draws every particle relative to the game's scroll position, with
-// the particle's draw method (0x475040) inlined.
 // FUNCTION: 0x475700
 void Class_004750b0::FUN_00472e30(int dest)
 {

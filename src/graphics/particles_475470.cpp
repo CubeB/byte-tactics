@@ -1,6 +1,9 @@
 // Decompiled by Opus, Haiku, Sonnet, DeepSeek V4.1 Flash and Space Bunny Free. Names are provisional.
+// Stays in its own file: merged with the module's second part its fog-culled
+// loop walks from the wrong field (particles_472630.cpp).
 // SmokeParticles (vtable 0x4fd618, 0x38 bytes), derived from ParticleSystem
-// (the family is listed in 0x471cc0.cpp): smoke that drifts with the wind.
+// (the family is listed in particles_470a40.cpp): smoke that drifts with the wind.
+#include <windows.h>   // only for its symbol ids
 #include <stddef.h>
 #include <stdlib.h>
 #include <vector>
@@ -179,131 +182,6 @@ public:
                               int alt);                 // slot 6, 0x474d50
 };
 
-// The constructor: an empty vector of particles, and the current tick as the
-// next emit time. The base constructor is called out of line.
-// FUNCTION: 0x474cd0
-// FUNCTION: 0x474d10 ??_GSmokeParticles@@UAEPAXI@Z
-SmokeParticles::SmokeParticles()
-{
-    time = g_game->ticks;
-}
-
-// Slot 6. Sibling of 0x475150 (same base call, position copy and virtual
-// call).
-// FUNCTION: 0x474d50
-void SmokeParticles::FUN_00474d50(Vec3_00474d50* p, int limit, int a, int b, int c,
-                                  int alt)
-{
-    SetLifetime(c);
-    pos = *p;
-    unknown_1c = a;
-    unknown_28 = alt;
-    if (alt)
-        unknown_24 = GetGafFrameCount(g_game->unknown_147d3) - 1;
-    else
-        unknown_24 = GetGafFrameCount(g_game->unknown_147cf) - 1;
-    if (limit != 0)
-        unknown_24 = limit < unknown_24 ? limit : unknown_24;
-    if (b != 0)
-        unknown_20 = b;
-    else
-        unknown_20 = 7;
-    Emit();
-}
-
-// Slot 4: works out how many periods of unknown_1c have passed since
-// field_4, reserves room for that many more particles, and appends one built
-// from the position at +0x2c, unknown_20 and a random size. It then pushes
-// the clock forward by unknown_1c.
-// FUNCTION: 0x474df0
-void SmokeParticles::Emit()
-{
-    int periods = (field_4 - g_game->ticks + unknown_1c) / unknown_1c;
-    if (periods > 0) {
-        records.reserve(periods + records.size());
-    }
-    Vec3_00474d50* p = &pos;
-    Vec_00474cd0* v = &records;
-    for (int i = 1; i != 0; i--) {
-        Class_00474b00 rec;
-        rec.pos = *p;
-        rec.period = unknown_20;
-        rec.timer = unknown_20;
-        rec.data = unknown_28 ? g_game->unknown_147d3 : g_game->unknown_147cf;
-        rec.limit = (int)(((__int64)rand() * (unknown_24 - 2)) / 0x8000) + 2;
-        rec.count = 0;
-        ((Class_00476210*)v)->FUN_00476210(v->end(), 1, rec);
-    }
-    time = g_game->ticks + unknown_1c;
-}
-
-// Slot 3: true once there are no particles and the game time has passed the
-// deadline in field_4.
-// FUNCTION: 0x474f80
-int SmokeParticles::FUN_00472e70()
-{
-    int count;
-
-    count = records.size();
-
-    bool isZero = (count == 0);
-    if (isZero) {
-        if ((unsigned int)field_4 < (unsigned int)g_game->ticks) {
-            return 1;
-        }
-    }
-
-    return 0;
-}
-
-// Slot 1: twin of 0x475600, which inlines the same body, so here the
-// particles are walked by a loop instead. Each drifts by the game's per-tick
-// counts (x, z by the wind times 8, y by the rise times 4) and, when its
-// countdown runs out, counts one more round and restarts the countdown at
-// half the period plus a random part of the other half. A particle that has
-// counted as many rounds as its limit is erased. Then slot 5 says whether to
-// emit more (slot 4).
-// FUNCTION: 0x475340
-void SmokeParticles::Update()
-{
-    std::vector<Class_00474b00>::iterator it = records.begin();
-    while (it != records.end()) {
-        it->pos.x += g_game->windX * 8;
-        it->pos.y += g_game->rise * 4;
-        it->pos.z += g_game->windZ * 8;
-        if (--it->timer == 0) {
-            it->count++;
-            int half = it->period / 2;
-            it->timer = (int)((__int64)rand() * half / 0x8000) + half;
-        }
-        if (it->count >= it->limit) {
-            records.erase(it);
-        } else {
-            ++it;
-        }
-    }
-    if (FUN_00475440())
-        Emit();
-}
-
-// Slot 5: whether it is time to emit again.
-// FUNCTION: 0x475440
-int SmokeParticles::FUN_00475440()
-{
-    if (time <= field_4 && (unsigned int)time <= (unsigned int)g_game->ticks) {
-        return 1;
-    }
-    return 0;
-}
-
-// Slot 2, the fog-culled twin of Class_004750b0::FUN_00472e30 (0x475700). Every
-// particle is drawn through a record method that computes the screen position
-// first and only draws when the particle's world cell is visible to the local
-// player: the player's explored byte map (+0x7c data, +0x80 width, +0x84
-// height) when bit 1 of the flag byte at +0x14281 is set, else that player's
-// bit in the global short map at +0x14273 (the matched 0x408090). The same
-// explored-map test appears in 0x407e90 (0x407f74), 0x465ac0 (0x465b6a) and
-// 0x473a00.
 // FUNCTION: 0x475470
 void SmokeParticles::FUN_00472e30(int dest)
 {

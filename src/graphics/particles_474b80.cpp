@@ -1,4 +1,7 @@
 // Decompiled by Opus, space-bunny-free, LongCat 2.5 Preview Free, deepseek-v4.1-flash, deepseek-v4.1, mimo-v2.6-pro and Sonnet. Names are provisional.
+// Stays in its own file: merged with the module's second part, the fog arm's
+// cell address picks the other SIB base and keeps the fog pointer in a register
+// (particles_472630.cpp).
 // The smoke puff: drifted by Step, drawn by DrawParticle when the local player
 // can see it, and dropped once IsExpired.
 #include <stddef.h>
@@ -100,27 +103,6 @@ static inline int IsSeen_00474b80(Player_00474b80* p, Player_00474b80* q, int co
             (1 << g_game->playerIndex)) != 0;
 }
 
-// Drifts the puff by the game's per-tick counts (x, z by the wind times 8, y
-// by the rise times 4; SmokeParticles' Update, 0x475340, inlines the same
-// step) and, when the countdown runs out, counts one more round and restarts
-// the countdown at half the period plus a random part of the other half.
-// FUNCTION: 0x474b00
-void Class_00474b00::Step()
-{
-    x += g_game->windX * 8;
-    y += g_game->rise * 4;
-    z += g_game->windZ * 8;
-    if (--countdown == 0) {
-        rounds++;
-        int half = period / 2;
-        countdown = (int)((__int64)rand() * half / 0x8000) + half;
-    }
-}
-
-// Draws the sprite of the record's data (through GetGafFrame) at
-// (dest, sx, sy), offset by the caller's px/py, when the position is visible to
-// the local player: the explored byte map when bit 1 of the fog flags byte at
-// g_game+0x14281 is set, the shared per-player visibility mask otherwise.
 // FUNCTION: 0x474b80
 void Class_00474b00::DrawParticle(void* dest, short px, short py)
 {
@@ -151,9 +133,3 @@ void Class_00474b00::DrawParticle(void* dest, short px, short py)
         DrawFrameBlended(dest, GetGafFrame(data, rounds), sx, sy);
 }
 
-// Whether the puff has counted all its rounds.
-// FUNCTION: 0x474cb0
-int Class_00474b00::IsExpired(int unused)
-{
-    return rounds >= limit;
-}

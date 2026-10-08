@@ -1,19 +1,26 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// Creates a SmokeParticles (vtable 0x4fd618) from the object pool, initialises
-// it through virtual slot 6, then appends it to the
-// std::vector<ParticleSystem*> picked by the short index. When that list
-// already holds more than 400 entries its oldest element is deleted and erased
-// first. Twin of 0x472720, 0x4728f0 and 0x4729d0, which differ only in the
-// constants passed to slot 6.
+// Decompiled by Opus, space-bunny-free, Sonnet, Haiku, DeepSeek V4.1 Flash, Claude Opus 5.5, Space Bunny Free, GPT-6, deepseek-v4.1-flash, deepseek-v4.1, GPT-6 Astra, GPT-6.1-sol, LongCat 2.5 Preview Free and mimo-v2.6-pro. Names are provisional.
+// The particles module's second part (0x472630 to 0x476710): the smoke and
+// wake emission entry points, the particles' step, draw and expire methods,
+// the SmokeParticles and Class_004750b0 systems with their vector members,
+// and the out-of-line std::vector members they call. 0x473a00, 0x474b80,
+// 0x475470 and 0x475700 keep files of their own: each matches only in the
+// context of its own file. The rest of the module's files (0x472ab0,
+// 0x4732e0, 0x473d50, 0x4750f0, 0x4758c0, 0x475bd0, 0x475ef0, 0x476210,
+// 0x476490) are their own contexts too.
+#include <windows.h>
 #include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 #include <vector>
+#include <ctype.h>     // only for its symbol ids, with the block above
 
 class Class_00470eb0 {                 // the pool's allocation method
 public:
     void* AllocSlot(unsigned int size);
 };
 
-// The object pool (see 0x470ae0.cpp); its method returns the object to the
+// The object pool (see particles_470a40.cpp); its method returns the object to the
 // free list. Needed by the inlined operator new.
 class Class_00470ed0 {
 public:
@@ -62,44 +69,17 @@ public:
         return p;
     }
 
-    static void __stdcall operator delete(void* p)
-    {
-        DAT_0051e610.FreeSlot(p);
-    }
+    static void __stdcall operator delete(void* p);
+
+    void SetLifetime(int ticks);
 };
 
-struct Vec3_00472630 {
-    int x;
-    int y;
-    int z;
-};
-
-struct Record_00472630 {
-    int unknown[8];
-};
-
-// Vtable 0x4fd618, constructor 0x474cd0, ??_G 0x474d10; 0x38 bytes.
-class SmokeParticles : public ParticleSystem {
-public:
-    int time;                                           // +0x8
-    std::vector<Record_00472630> records;               // +0xc
-    char unknown_1c[0x38 - 0x1c];
-
-    SmokeParticles();
-    virtual void Update();                              // slot 1, 0x475340
-    virtual void FUN_00472e30(int);                     // slot 2, 0x475470
-    virtual int FUN_00472e70();                         // slot 3, 0x474f80
-    virtual void Emit();                                // slot 4, 0x474df0
-    virtual int FUN_00475440();                         // slot 5, 0x475440
-    virtual void FUN_00474d50(Vec3_00472630* pos, int limit, int a, int b, int c,
-                              int alt);                 // slot 6, 0x474d50
-};
-
-// The owner of the per-index lists.
-class Lists_00472630 {
+// The owner of the per-index lists (see 0x471d90).
+class ParticleLists {
 public:
     std::vector<ParticleSystem*> lists[10];             // 0x10 bytes each
 
+    // Inlined member helper: leaves std::vector::insert (0x4732e0) out of line.
     void Add(short index, ParticleSystem* p)
     {
         if (lists[index].size() > 400) {
@@ -110,22 +90,1243 @@ public:
     }
 };
 
+struct Vec3_00472630 {
+    int x;
+    int y;
+    int z;
+};
+
+struct Vec3_00472720 {
+    int x;
+    int y;
+    int z;
+};
+
+struct Vec3_00472810 {
+    int x;
+    int y;
+    int z;
+};
+
+struct Vec3_00474cd0 {
+    int x;
+    int y;
+    int z;
+};
+
+struct Vec3_00474d50 {
+    int x;
+    int y;
+    int z;
+};
+
+struct Vec3_00475150 {
+    int x;
+    int y;
+    int z;
+};
+
+struct Vec3_00473560 {
+    int x;
+    int y;
+    int z;
+    Vec3_00473560& operator+=(const Vec3_00473560& o)
+    {
+        x += o.x;
+        y += o.y;
+        z += o.z;
+        return *this;
+    }
+};
+
+struct Vec3i_00474130 {
+    int x;
+    int y;
+    int z;
+    Vec3i_00474130& operator+=(const Vec3i_00474130& o)
+    {
+        x += o.x;
+        y += o.y;
+        z += o.z;
+        return *this;
+    }
+};
+
+struct Vec3_004742c0 {
+    int x;
+    int y;
+    int z;
+
+    Vec3_004742c0 operator-(const Vec3_004742c0& o) const
+    {
+        Vec3_004742c0 r;
+        r.x = x - o.x;
+        r.y = y - o.y;
+        r.z = z - o.z;
+        return r;
+    }
+
+    // s is 16.16 fixed point. MSVC 5 only orders the two __allmul arguments
+    // the way the original does (and keeps the cdq that sign extends the
+    // quotient) when the three components go through one inlined method.
+    void Scale(int s)
+    {
+        // One named 64-bit product: MSVC 5 then orders the two __allmul
+        // operands as the original does.
+        __int64 p;
+        p = (__int64)x * s;
+        x = (int)(p >> 16);
+        p = (__int64)y * s;
+        y = (int)(p >> 16);
+        p = (__int64)z * s;
+        z = (int)(p >> 16);
+    }
+};
+
+struct Vec3_004739b0 {
+    int x, y, z;
+    Vec3_004739b0& operator+=(const Vec3_004739b0& o)
+    {
+        x += o.x;
+        y += o.y;
+        z += o.z;
+        return *this;
+    }
+};
+
+struct Vec3_00474580 {
+    int x, y, z;
+    void operator+=(const Vec3_00474580& o) { x += o.x; y += o.y; z += o.z; }
+};
+
+#pragma pack(push, 1)
+// The integer halves of the 16.16 position.
+struct Pos_00473590 {
+    short x;                       // +0x00 (record +0x06)
+    char unknown_2[0x4 - 0x2];
+    short h;                       // +0x04 (record +0x0a)
+    char unknown_6[0x8 - 0x6];
+    short y;                       // +0x08 (record +0x0e)
+};
+
+struct MapSize_00473590 {
+    unsigned int width;            // +0x80
+    unsigned int height;           // +0x84
+
+    int Contains(int col, int row)
+    {
+        return (unsigned int)col < width && (unsigned int)row < height;
+    }
+};
+
+struct Player_00473590 {
+    char unknown_0[0x7c];
+    unsigned char* seen;           // +0x7c
+    MapSize_00473590 size;         // +0x80
+    char unknown_88[0x14b - 0x88];
+};
+
+// The integer halves of the 16.16 position.
+struct Pos_004739b0 {
+    char unknown_0[0x2];
+    short x;                           // +0x2
+    char unknown_4[0x2];
+    short height;                      // +0x6
+    char unknown_8[0x2];
+    short y;                           // +0xa
+};
+
+struct Rect_004b0510 {
+    int x1;                          // +0x0
+    int y1;                          // +0x4
+    int x2;                          // +0x8
+    int y2;                          // +0xc
+};
+
+struct MapSize_00473a00 {
+    unsigned int width;              // +0x0
+    unsigned int height;             // +0x4
+
+    int Contains(unsigned int tx, unsigned int ty)
+    {
+        return tx < width && ty < height;
+    }
+};
+
+struct ByteMap_00473a00 {
+    unsigned char* data;             // +0x0
+    MapSize_00473a00 size;           // +0x4
+
+    unsigned char Get(int x, int y) { return data[size.width * y + x]; }
+};
+
+struct Player_00473a00 {
+    char unknown_0[0x7c];
+    ByteMap_00473a00 explored;       // +0x7c
+    char unknown_88[0x14b - 0x88];   // stride 331
+};
+
+struct MapSize_004745e0 {
+    unsigned int width;             // +0x80
+    unsigned int height;            // +0x84
+
+    int Contains(int col, int row)
+    {
+        return (unsigned int)col < width && (unsigned int)row < height;
+    }
+};
+
+struct ByteMap_004745e0 {
+    unsigned char* data;            // +0x7c
+    MapSize_004745e0 size;          // +0x80
+
+    unsigned char Get(int tx, int ty) { return data[size.width * ty + tx]; }
+};
+
+struct Map_004745e0 {               // one entry of g_game->players
+    char unknown_0[0x7c];
+    ByteMap_004745e0 explored;      // +0x7c
+    char unknown_88[0x14b - 0x88];
+};
+
+struct MapSize_00474b80 {
+    unsigned int width;            // +0x80
+    unsigned int height;           // +0x84
+
+    int Contains(int col, int row)
+    {
+        return (unsigned int)col < width && (unsigned int)row < height;
+    }
+};
+
+struct ByteMap_00474b80 {
+    unsigned char* data;           // +0x7c
+    MapSize_00474b80 size;         // +0x80
+
+    unsigned char Get(int x, int y) { return data[size.width * y + x]; }
+};
+
+struct Player_00474b80 {
+    char unknown_0[0x7c];
+    ByteMap_00474b80 explored;     // +0x7c
+    char unknown_88[0x14b - 0x88];
+};
+
+struct Position_00475470 {             // 16.16 fixed point; only high words read
+    short xFrac;
+    short x;                           // +0x2
+    short yFrac;
+    short y;                           // +0x6
+    short zFrac;
+    short z;                           // +0xa
+};
+
+struct MapSize_00475470 {
+    unsigned int width;                // +0x0
+    unsigned int height;               // +0x4
+    int Contains(unsigned int tx, unsigned int ty)
+    {
+        return tx < width && ty < height;
+    }
+};
+
+struct ByteMap_00475470 {
+    unsigned char* data;               // +0x0
+    MapSize_00475470 size;             // +0x4
+    int Index(int x, int y) { return size.width * y + x; }
+    // Get goes through Index: the extra register shapes both arms.
+    unsigned char Get(int x, int y) { return data[Index(x, y)]; }
+};
+
+struct Player_00475470 {
+    char unknown_0[0x7c];
+    ByteMap_00475470 explored;         // +0x7c
+    char unknown_88[0x14b - 0x88];
+};
+
+struct Position_00475150 {             // 16.16 fixed point; only high words read
+    short xFrac;
+    short x;                           // +0x2
+    short yFrac;
+    short y;                           // +0x6, the height
+    short zFrac;
+    short z;                           // +0xa
+};
+#pragma pack(pop)
+
 #pragma pack(push, 1)
 struct Game {
-    char unknown_0[0x38d77];
-    Lists_00472630* lists;              // +0x38d77
+    char unknown_0[0x1b63];
+    union {
+        Player_00473590 players_00473590[10];   // +0x1b63, stride 0x14b
+        Player_00473a00 players_00473a00[10];
+        Map_004745e0 players_004745e0[10];
+        Player_00474b80 players_00474b80[10];
+        Player_00475470 players_00475470[10];
+    };
+    char unknown_2851[0x2a43 - 0x2851];
+    unsigned char playerIndex;         // +0x2a43
+    char unknown_2a44[0x14263 - 0x2a44];
+    int rise;                          // +0x14263
+    char unknown_14267[0x14273 - 0x14267];
+    unsigned short* visibilityMask;    // +0x14273
+    char unknown_14277[0x1427f - 0x14277];
+    unsigned char seaLevel;            // +0x1427f
+    char unknown_14280;
+    unsigned char flags;               // +0x14281, bit 1 (mask 2)
+    char unknown_14282[0x1431f - 0x14282];
+    short scrollX;                     // +0x1431f
+    char unknown_14321[2];
+    short scrollY;                     // +0x14323
+    char unknown_14325[0x147cf - 0x14325];
+    void* unknown_147cf;               // +0x147cf, the smoke animation
+    void* unknown_147d3;               // +0x147d3, the other smoke animation
+    char unknown_147d7[0x37ecc - 0x147d7];
+    int windX;                         // +0x37ecc
+    char unknown_37ed0[4];
+    int windZ;                         // +0x37ed4
+    char unknown_37ed8[0x38a47 - 0x37ed8];
+    int ticks;                         // +0x38a47
+    char unknown_38a4b[0x38d77 - 0x38a4b];
+    ParticleLists* lists;              // +0x38d77, the ten per-index lists
 };
 #pragma pack(pop)
 
 extern Game* g_game;
 
+void* __stdcall GetGafFrame(void* a, int b);
+void __stdcall DrawFrameBlended(void* dest, void* src, int x, int y);
+int __stdcall GetGafFrameCount(void* ptr);
+void __stdcall FillRectangle(void* surface, Rect_004b0510* rect, int color);
+int __stdcall GetGroundHeight(void* param_1);
+
+// The second arm of the spark draws, inlined. The two player parameters are
+// not a typo: the Contains test reads the map width through `p` and the index
+// reads it through `q`, two address nodes, which is what stops the width load
+// folding into the imul and keeps the original's `mov edx,[edx+0x80]; imul
+// edx,ecx` pair.
+static inline int IsSeen_00473590(Player_00473590* p, Player_00473590* q, int col, int row)
+{
+    if (!p->size.Contains(col, row))
+        return 0;
+    return (g_game->visibilityMask[q->size.width * row + col] &
+            (1 << g_game->playerIndex)) != 0;
+}
+
+// The allocation lever, as at 0x473a00: the wrap pins the prologue, the
+// pre-branch block and the mask arm's register choice without emitting a
+// single extra instruction.
+static inline int Identity_00473590(int v) { return v; }
+
+static inline int Identity_00473a00(int v) { return v; }
+
+static inline int IsSeen_00473a00(Player_00473a00* p, Player_00473a00* q, int col, int row)
+{
+    if (!p->explored.size.Contains((unsigned int)col, (unsigned int)row))
+        return 0;
+    return (g_game->visibilityMask[q->explored.size.width * row + col] &
+            (1 << g_game->playerIndex)) != 0;
+}
+
+static inline int Identity_00474170(int v) { return v; }
+
+static inline int IsSeen_00474170(Player_00473590* p, Player_00473590* q, int col, int row)
+{
+    if (!p->size.Contains(col, row))
+        return 0;
+    return (g_game->visibilityMask[q->size.width * row + col] &
+            (1 << g_game->playerIndex)) != 0;
+}
+
+// The pin the earlier passes were looking for: a helper that returns its
+// argument. It emits no instruction, but MSVC 5 allocates what it returns as a
+// fresh live range, which is what holds the frame in place.
+static inline int Identity_004745e0(int v) { return v; }
+
+static inline int IsSeen_004745e0(Map_004745e0* p, Map_004745e0* q, int col, int row)
+{
+    if (!p->explored.size.Contains(col, row))
+        return 0;
+    return (g_game->visibilityMask[q->explored.size.width * row + col] &
+            (1 << g_game->playerIndex)) != 0;
+}
+
+static inline int Identity_00474b80(int v) { return v; }
+
+static inline int IsSeen_00474b80(Player_00474b80* p, Player_00474b80* q, int col, int row)
+{
+    if (!p->explored.size.Contains(col, row))
+        return 0;
+    return (g_game->visibilityMask[q->explored.size.width * row + col] &
+            (1 << g_game->playerIndex)) != 0;
+}
+
+#pragma pack(push, 1)
+struct Pos_004745e0 {
+    short x;                        // +0
+    char unknown_2[2];
+    short height;                   // +4
+    char unknown_6[2];
+    short y;                        // +8
+
+    // Is this record's position inside the explored byte map of the local
+    // player (flags bit 1 set), or inside their bit of the shared visibility
+    // mask (bit clear)? The two arms keep their own fail block, as the original
+    // does.
+    int Visible()
+    {
+        Map_004745e0* p = &g_game->players_004745e0[g_game->playerIndex];
+        Map_004745e0* p2 = &g_game->players_004745e0[g_game->playerIndex];
+        int visible;
+        if ((g_game->flags & 2) == 2) {
+            int col = x >> 5;
+            int row = (y - (height >> 1)) >> 5;
+            if (p->explored.size.Contains(col, row) &&
+                p->explored.Get(col, row) != 0)
+                visible = 1;
+            else
+                visible = 0;
+        } else {
+            int col = x >> 5;
+            int row = (y - (height >> 1)) >> 5;
+            visible = Identity_004745e0(IsSeen_004745e0(p, p2, col, row));
+        }
+        return visible;
+    }
+};
+#pragma pack(pop)
+
+// One smoke puff (the element of SmokeParticles' vector), 0x20 bytes.
+struct Class_00474b00 {
+    void* data;                        // +0x00, the animation
+    union {
+        Vec3_00474d50 pos;             // +0x04
+        Position_00475470 posw;
+    };
+    int limit;                         // +0x10, the rounds it lives
+    int count;                         // +0x14, the rounds so far (the frame)
+    int period;                        // +0x18
+    int timer;                         // +0x1c
+
+    void Step();
+    void DrawParticle(void* dest, short px, short py);
+    int IsExpired(int unused);
+};
+
+// One particle of Class_004750b0, 0x20 bytes.
+struct Class_00474fc0 {
+    void* data;                        // +0x00, the animation
+    union {
+        Vec3_00475150 pos;             // +0x04
+        Position_00475150 posw;
+    };
+    int limit;                         // +0x10, the rounds it lives
+    int count;                         // +0x14, the rounds so far (the frame)
+    int period;                        // +0x18
+    int timer;                         // +0x1c
+
+    void Step();
+    void DrawParticle(void* dest, short px, short py);
+    int IsExpired(int unused);
+};
+
+// Vtable 0x4fd618, constructor 0x474cd0, ??_G 0x474d10; 0x38 bytes.
+class SmokeParticles : public ParticleSystem {
+public:
+    int time;                                           // +0x8, the next emit tick
+    std::vector<Class_00474b00> records;               // +0xc (_First +0x10)
+    int unknown_1c;                                     // +0x1c, the emit period
+    int unknown_20;                                     // +0x20
+    int unknown_24;                                     // +0x24, the frame count - 1
+    int unknown_28;                                     // +0x28, the other animation
+    Vec3_00474d50 pos;                                  // +0x2c
+
+    SmokeParticles();
+    virtual void Update();                              // slot 1, 0x475340
+    virtual void FUN_00472e30(int);                     // slot 2, 0x475470
+    virtual int FUN_00472e70();                         // slot 3, 0x474f80
+    virtual void Emit();                                // slot 4, 0x474df0
+    virtual int FUN_00475440();                         // slot 5, 0x475440
+    virtual void FUN_00474d50(Vec3_00474d50* pos, int limit, int a, int b, int c,
+                              int alt);                 // slot 6, 0x474d50
+};
+
+// Vtable 0x4fd638, constructor 0x4750b0, ??_G 0x475110; 0x34 bytes.
+class Class_004750b0 : public ParticleSystem {
+public:
+    int time;                                           // +0x8, the next emit tick
+    std::vector<Class_00474fc0> records;                // +0xc (_First +0x10)
+    int unknown_1c;                                     // +0x1c, the emit period
+    int unknown_20;                                     // +0x20
+    int unknown_24;                                     // +0x24, the frame count - 1
+    Vec3_00475150 pos;                                  // +0x28
+
+    Class_004750b0();
+    virtual void Update();                              // slot 1, 0x475600
+    virtual void FUN_00472e30(int);                     // slot 2, 0x475700
+    virtual int FUN_00472e70();                         // slot 3, 0x475330
+    virtual void Emit();                                // slot 4, 0x4751c0
+    // In particles_4750f0.cpp: it is defined returning bool, and Update tests
+    // its result as an int.
+    virtual int FUN_004750f0();                         // slot 5, 0x4750f0
+    virtual void FUN_00475150(Vec3_00475150* pos, int a, int b, int c); // slot 6, 0x475150
+};
+
+// One teleport spark (the element of TeleportParticles' vector), 0x34 bytes.
+#pragma pack(push, 1)
+class Class_00473560 {
+public:
+    void* data;                    // +0x00, the animation
+    union {
+        struct {
+            Vec3_00473560 pos;     // +0x04
+            Vec3_00473560 pos2;    // +0x10
+            Vec3_00473560 vel;     // +0x1c
+        };
+        struct {
+            char unknown_4[0x6 - 0x4];
+            Pos_00473590 posw;     // +0x06
+        };
+    };
+    int count;                     // +0x28, the frame count
+    int field_2c;                  // +0x2c, the frame
+    int field_30;                  // +0x30, the tick it expires
+
+    void Step();
+    void DrawParticle(void* dest, short px, short py);
+    int IsExpired(int param_1);
+};
+#pragma pack(pop)
+
+// One nano spark (the element of NanoParticles' vector), 0x30 bytes.
+#pragma pack(push, 1)
+struct Class_004739b0 {
+public:
+    union {
+        Vec3_004739b0 pos;             // +0x0
+        Pos_004739b0 posw;
+    };
+    char unknown_c[0xc];
+    Vec3_004739b0 vel;                 // +0x18
+    char unknown_24[4];
+    int flags;                         // +0x28, low 4 bits: frame; the colour
+    int field_2c;                      // +0x2c, the tick it expires
+
+    void Step();
+    void DrawParticle(int param_1, short x, short y);
+    int IsExpired(int value);
+};
+#pragma pack(pop)
+
+// One exhaust puff (the element of ThrustParticles' vector), 0x3c bytes.
+#pragma pack(push, 1)
+class Class_00474130 {
+public:
+    void* data;                    // +0x00, the animation
+    union {
+        struct {
+            Vec3i_00474130 pos;    // +0x04
+            Vec3i_00474130 pos1;   // +0x10
+            Vec3i_00474130 vel;    // +0x1c
+        };
+        struct {
+            char unknown_4[0x6 - 0x4];
+            Pos_00473590 posw;     // +0x06
+        };
+    };
+    int mod2_28;                   // +0x28, the frame count
+    int field_2c;                  // +0x2c, the frame
+    int val_30;                    // +0x30
+    int mod_34;                    // +0x34
+    int field_38;                  // +0x38, the tick it expires
+
+    void Step();
+    void DrawParticle(void* dest, short px, short py);
+    int IsExpired(int value);
+};
+#pragma pack(pop)
+
+// One wake spark (the element of WakeParticles' vector), 0x44 bytes.
+#pragma pack(push, 1)
+class Class_00474580 {
+public:
+    int unknown_0;                     // +0x00
+    union {
+        struct {
+            Vec3_00474580 pos;         // +0x04
+            Vec3_00474580 pos2;        // +0x10
+            Vec3_00474580 vel;         // +0x1c
+        };
+        struct {
+            char unknown_4[0x6 - 0x4];
+            Pos_004745e0 posw;         // +0x06
+        };
+    };
+    int min;                           // +0x28
+    int max;                           // +0x2c
+    int value;                         // +0x30, the colour
+    int step;                          // +0x34
+    int tick;                          // +0x38
+    int period;                        // +0x3c
+    int field_40;                      // +0x40, the tick it expires
+
+    void Step();
+    void DrawParticle(void* surface, short px, short py);
+    int IsExpired(int param_1);
+};
+#pragma pack(pop)
+
+struct Shape_00472ab0;
+
+// Vtable 0x4fd5d8, ??_G 0x4716a0; 0x44 bytes.
+class ThrustParticles : public ParticleSystem {
+public:
+    int field_8;                                        // +0x8
+    std::vector<Class_00474130> items;                  // +0xc (_First +0x10)
+    int unknown_1c;                                     // +0x1c
+    Vec3_004742c0 unknown_20;                           // +0x20
+    Vec3_004742c0 unknown_2c;                           // +0x2c
+    Vec3_004742c0 unknown_38;                           // +0x38
+
+    ThrustParticles() {}
+    virtual void Update();                              // slot 1, 0x473010
+    virtual void FUN_00472e30(int);                     // slot 2, 0x4730f0
+    virtual int FUN_00472e70();                         // slot 3, 0x473130
+    virtual void FUN_004743a0();                        // slot 4, 0x4743a0
+    virtual int FUN_004730c0();                         // slot 5, 0x4730c0
+    virtual void FUN_004742c0(Shape_00472ab0* p, Shape_00472ab0* q, int a, int b);
+    void FUN_004742c0(Vec3_004742c0* p, Vec3_004742c0* q, int a, int b);
+};
+
+// The pool allocator of the vector members below, to call their out-of-line
+// insert under this name.
+class Class_00476210 {
+public:
+    void FUN_00476210(std::vector<Class_00474b00>::iterator p, unsigned int m,
+                     const Class_00474b00& x);
+};
+
+class Class_00476490 {
+public:
+    void FUN_00476490(Class_00474fc0* pos, int count, const Class_00474fc0* src);
+};
+
+// The vector's own out-of-line size() (0x475840) under the name
+// data/symbols.csv gives that address.
+class Class_00475840 {
+public:
+    int unknown_0;
+    int field_4;
+    int field_8;
+
+    int FUN_00475840();
+};
+
+// std::vector<Elem_00473500> and its out-of-line members: size() (0x472d30),
+// _Destroy (0x4732d0), _Ucopy (0x473500) and _Ufill (0x473530). 0x471820 and
+// 0x471a50 call them.
+struct Elem_00473500 {
+    int unknown_0;
+};
+
+typedef std::vector<Elem_00473500> Vec_00473500;
+typedef Vec_00473500::size_type (Vec_00473500::*SizeFn_00473500)() const;
+typedef Vec_00473500::iterator (Vec_00473500::*UcopyFn_00473500)(
+    Vec_00473500::const_iterator, Vec_00473500::const_iterator, Vec_00473500::iterator);
+typedef void (Vec_00473500::*UfillFn_00473500)(
+    Vec_00473500::iterator, Vec_00473500::size_type, const Elem_00473500&);
+typedef void (Vec_00473500::*DestroyFn_00473500)(Vec_00473500::iterator, Vec_00473500::iterator);
+
+// _Ucopy, _Ufill and _Destroy are protected: a derived class takes their
+// addresses to emit them out of line.
+struct Access_00473500 : Vec_00473500 {
+    static UcopyFn_00473500 ucopy;
+    static UfillFn_00473500 ufill;
+    static DestroyFn_00473500 destroy;
+};
+
+// Taking the member's address emits the out-of-line copy.
+SizeFn_00473500 g_size_00473500 = &Vec_00473500::size;
+
+// std::vector<Class_004739b0> (0x30-byte element type) and its out-of-line
+// members: reserve (0x475770), _Destroy (0x475870), _Ucopy (0x475880) and
+// _Ufill (0x476710).
+typedef std::vector<Class_004739b0> Vec_004739b0;
+typedef void (Vec_004739b0::*ReserveFn_004739b0)(Vec_004739b0::size_type);
+typedef Vec_004739b0::iterator (Vec_004739b0::*UcopyFn_004739b0)(
+    Vec_004739b0::const_iterator, Vec_004739b0::const_iterator, Vec_004739b0::iterator);
+typedef void (Vec_004739b0::*UfillFn_004739b0)(
+    Vec_004739b0::iterator, Vec_004739b0::size_type, const Class_004739b0&);
+typedef void (Vec_004739b0::*DestroyFn_004739b0)(Vec_004739b0::iterator, Vec_004739b0::iterator);
+
+struct Access_00475770 : Vec_004739b0 {
+    static ReserveFn_004739b0 fn;
+};
+
+struct Access_00475870 : Vec_004739b0 {
+    static DestroyFn_004739b0 fn;
+};
+
+struct Access_00475880 : Vec_004739b0 {
+    static UcopyFn_004739b0 fn;
+};
+
+struct Access_00476710 : Vec_004739b0 {
+    static UfillFn_004739b0 fn;
+};
+
 // FUNCTION: 0x472630
 void __stdcall EmitSmoke(Vec3_00472630* pos, int param_2, int param_3, short index)
 {
-    Lists_00472630* owner = g_game->lists;
+    ParticleLists* owner = g_game->lists;
     SmokeParticles* e = new SmokeParticles;
     if (e) {
-        e->FUN_00474d50(pos, 0, param_2, 0, param_3, 0);
+        e->FUN_00474d50((Vec3_00474d50*)pos, 0, param_2, 0, param_3, 0);
         owner->Add(index, e);
     }
 }
+
+// FUNCTION: 0x472720
+void __stdcall FUN_00472720(Vec3_00472720* pos, int param_2, int param_3, short index)
+{
+    ParticleLists* owner = g_game->lists;
+    SmokeParticles* e = new SmokeParticles;
+    if (e) {
+        e->FUN_00474d50((Vec3_00474d50*)pos, 0, param_2, 0, param_3, 1);
+        owner->Add(index, e);
+    }
+}
+
+// FUNCTION: 0x472810
+void __stdcall EmitWhiteSmoke(Vec3_00472810* pos, short index)
+{
+    ParticleLists* owner = g_game->lists;
+    SmokeParticles* e = new SmokeParticles;
+    if (e) {
+        e->FUN_00474d50((Vec3_00474d50*)pos, 0, 1, 0, 0, 0);
+        owner->Add(index, e);
+    }
+}
+
+// FUNCTION: 0x4728f0
+void __stdcall EmitBlackSmoke(Vec3_00474cd0* p, short index)
+{
+    // The list owner is read through a reference before the allocation, so
+    // g_game and its +0x38d77 field are loaded ahead of the pool call and stay
+    // live across it.
+    ParticleLists& l = *g_game->lists;
+    SmokeParticles* e = new SmokeParticles;
+    if (e) {
+        e->FUN_00474d50((Vec3_00474d50*)p, 0, 1, 0, 0, 1);
+        l.Add(index, e);
+    }
+}
+
+// FUNCTION: 0x4729d0
+void __stdcall FUN_004729d0(Vec3_00474cd0* p, short index)
+{
+    ParticleLists& l = *g_game->lists;
+    SmokeParticles* e = new SmokeParticles;
+    if (e) {
+        e->FUN_00474d50((Vec3_00474d50*)p, 3, 1, 0x1e, 0, 0);
+        l.Add(index, e);
+    }
+}
+
+// FUNCTION: 0x472c50
+void __stdcall FUN_00472c50(Vec3_00475150* p, short index)
+{
+    ParticleLists& l = *g_game->lists;
+    Class_004750b0* e = new Class_004750b0;
+    if (e) {
+        e->FUN_00475150(p, 5, 0, 0x96);
+        l.Add(index, e);
+    }
+}
+
+// FUNCTION: 0x472d30 ?size@?$vector@UElem_00473500@@V?$allocator@UElem_00473500@@@std@@@std@@QBEIXZ
+SizeFn_00473500 g_size_00472d30 = &Vec_00473500::size;
+
+// std::vector<Elem_00473500>::_Destroy(first, last) from MSVC 5's <vector>:
+// empty, since the element type is trivial.
+// FUNCTION: 0x4732d0 ?_Destroy@?$vector@UElem_00473500@@V?$allocator@UElem_00473500@@@std@@@std@@IAEXPAUElem_00473500@@0@Z
+DestroyFn_00473500 Access_00473500::destroy = &Access_00473500::_Destroy;
+
+// std::vector<Elem_00473500>::_Ucopy(first, last, dest): copies [first, last)
+// into raw storage at dest and returns the end of the copies. The element type
+// is a guess: any 4-byte trivially copyable type compiles to the same code.
+// FUNCTION: 0x473500 ?_Ucopy@?$vector@UElem_00473500@@V?$allocator@UElem_00473500@@@std@@@std@@IAEPAUElem_00473500@@PBU3@0PAU3@@Z
+UcopyFn_00473500 Access_00473500::ucopy = &Access_00473500::_Ucopy;
+
+// std::vector<Elem_00473500>::_Ufill(first, n, value) from MSVC 5's <vector>:
+// copy-constructs n copies of value into raw storage at first.
+// FUNCTION: 0x473530 ?_Ufill@?$vector@UElem_00473500@@V?$allocator@UElem_00473500@@@std@@@std@@IAEXPAUElem_00473500@@IABU3@@Z
+UfillFn_00473500 Access_00473500::ufill = &Access_00473500::_Ufill;
+
+// Moves the position by its velocity (an inlined Vec3 operator+=) and steps
+// the frame.
+// FUNCTION: 0x473560
+void Class_00473560::Step()
+{
+    pos += vel;
+    field_2c = (field_2c + 1) % count;
+}
+
+// FUNCTION: 0x473590
+void Class_00473560::DrawParticle(void* dest, short px, short py)
+{
+    Pos_00473590* q = &posw;
+    short sx = q->x - px + 0x80;
+    short sy = q->y - (q->h >> 1) - py + 0x20;
+    // Two locals with the same value. The original reads the map width twice
+    // per arm, once for the bounds test and once for the index, and a single
+    // pointer makes MSVC 5 fold one of the two away.
+    Player_00473590* p = &g_game->players_00473590[g_game->playerIndex];
+    Player_00473590* p2 = &g_game->players_00473590[g_game->playerIndex];
+    int visible;
+    if ((g_game->flags & 2) == 2) {
+        int col = posw.x >> 5;
+        int row = (posw.y - (posw.h >> 1)) >> 5;
+        // Local free on purpose: the width is re-read and the fog map pointer
+        // folds into the add, which is what the original does.
+        if (p->size.Contains(col, row) &&
+            p->seen[p2->size.width * row + col] != 0)
+            visible = 1;
+        else
+            visible = 0;
+    } else {
+        int col = posw.x >> 5;
+        int row = (posw.y - (posw.h >> 1)) >> 5;
+        visible = Identity_00473590(IsSeen_00473590(p, p2, col, row));
+    }
+    if (visible)
+        DrawFrameBlended(dest, GetGafFrame(data, field_2c), sx, sy);
+}
+
+// Whether the tick has passed the spark's expiry.
+// FUNCTION: 0x4736c0
+int Class_00473560::IsExpired(int param_1)
+{
+    return param_1 > field_30;
+}
+
+// Advances the position by its velocity and steps a 1..7 animation counter
+// kept in the low four bits of the flags word.
+// FUNCTION: 0x4739b0
+void Class_004739b0::Step()
+{
+    short frame = (flags & 0xf) + 1;
+    pos += vel;
+    if (frame > 7)
+        frame = 1;
+    flags = (flags & 0xfff0) + frame;
+}
+
+// Whether the tick has passed the spark's expiry.
+// FUNCTION: 0x473b30
+int Class_004739b0::IsExpired(int value)
+{
+    return value > field_2c;
+}
+
+// The three adds are an inlined vector operator+=.
+// FUNCTION: 0x474130
+void Class_00474130::Step()
+{
+    pos += vel;
+    val_30 = (val_30 + 1) % mod_34;
+    if (val_30 == 0) {
+        field_2c = (field_2c + 1) % mod2_28;
+    }
+}
+
+// FUNCTION: 0x474170
+void Class_00474130::DrawParticle(void* dest, short px, short py)
+{
+    Pos_00473590* q = &posw;
+    short sx = q->x - px + 0x80;
+    short sy = q->y - (q->h >> 1) - py + 0x20;
+    Player_00473590* p = &g_game->players_00473590[g_game->playerIndex];
+    Player_00473590* p2 = &g_game->players_00473590[g_game->playerIndex];
+    int visible;
+    if ((g_game->flags & 2) == 2) {
+        int col = posw.x >> 5;
+        int row = (posw.y - (posw.h >> 1)) >> 5;
+        if (p->size.Contains(col, row) &&
+            p->seen[p2->size.width * row + col] != 0)
+            visible = 1;
+        else
+            visible = 0;
+    } else {
+        int col = posw.x >> 5;
+        int row = (posw.y - (posw.h >> 1)) >> 5;
+        visible = Identity_00474170(IsSeen_00474170(p, p2, col, row));
+    }
+    if (visible)
+        DrawFrameBlended(dest, GetGafFrame(data, field_2c), sx, sy);
+}
+
+// Whether the tick has passed the puff's expiry.
+// FUNCTION: 0x4742a0
+int Class_00474130::IsExpired(int value)
+{
+    return value > field_38;
+}
+
+// Slot 6 of ThrustParticles: keeps the two points it is given, puts their
+// difference in a third one and scales that by the 16.16 reciprocal of the id
+// ((1 << 32) / (id << 16) is 65536 / id), so the offset ends up divided by it.
+// FUNCTION: 0x4742c0
+void ThrustParticles::FUN_004742c0(Vec3_004742c0* p, Vec3_004742c0* q, int a, int b)
+{
+    ((ParticleSystem*)this)->SetLifetime(b);
+    unknown_1c = a;
+    unknown_20 = *p;
+    unknown_2c = *q;
+    unknown_38 = unknown_2c - unknown_20;
+    int scale = (int)(((__int64)1 << 32) / (b << 16));
+    unknown_38.Scale(scale);
+    FUN_004743a0();
+}
+
+// Moves by the velocity, then every `period` ticks steps a value that wraps
+// between min and max.
+// FUNCTION: 0x474580
+void Class_00474580::Step()
+{
+    pos += vel;
+    tick = (tick + 1) % period;
+    if (tick == 0) {
+        value += step;
+        if (value > max) value = min;
+        if (value < min) value = max;
+    }
+}
+
+// FUNCTION: 0x4745e0
+void Class_00474580::DrawParticle(void* surface, short px, short py)
+{
+    Rect_004b0510 r;
+    short sx = posw.x - px;
+    short sy = posw.y - py;
+    r.x1 = sx + 0x80;
+    r.y1 = sy - (posw.height >> 1) + 0x20;
+    r.x2 = r.x1 + 1;
+    r.y2 = r.y1 + 1;
+    // Visible() stays a member: inlined here, the arms' pos loads are CSE'd
+    // against the header's.
+    if (posw.Visible())
+        FillRectangle(surface, &r, value);
+}
+
+// Expired once the tick has passed field_40 or the spark is above the sea
+// (its ground height not below the sea level).
+// FUNCTION: 0x474720
+int Class_00474580::IsExpired(int param_1)
+{
+    if (param_1 <= field_40) {
+        int r = GetGroundHeight(&pos);
+        if (r < g_game->seaLevel)
+            return 0;
+    }
+    return 1;
+}
+
+// Drifts the puff by the game's per-tick counts (x, z by the wind times 8, y
+// by the rise times 4; SmokeParticles' Update, 0x475340, inlines the same
+// step) and, when the countdown runs out, counts one more round and restarts
+// the countdown at half the period plus a random part of the other half.
+// FUNCTION: 0x474b00
+void Class_00474b00::Step()
+{
+    pos.x += g_game->windX * 8;
+    pos.y += g_game->rise * 4;
+    pos.z += g_game->windZ * 8;
+    if (--timer == 0) {
+        count++;
+        int half = period / 2;
+        timer = (int)((__int64)rand() * half / 0x8000) + half;
+    }
+}
+
+// Whether the puff has counted all its rounds.
+// FUNCTION: 0x474cb0
+int Class_00474b00::IsExpired(int unused)
+{
+    return count >= limit;
+}
+
+// The constructor: an empty vector of particles, and the current tick as the
+// next emit time. The base constructor is called out of line.
+// Not inlined into the emitters: they called it out of line in their own
+// files.
+#pragma auto_inline(off)
+// FUNCTION: 0x474cd0
+// FUNCTION: 0x474d10 ??_GSmokeParticles@@UAEPAXI@Z
+SmokeParticles::SmokeParticles()
+{
+    time = g_game->ticks;
+}
+#pragma auto_inline(on)
+
+// Slot 6. Sibling of 0x475150 (same base call, position copy and virtual
+// call).
+// FUNCTION: 0x474d50
+void SmokeParticles::FUN_00474d50(Vec3_00474d50* p, int limit, int a, int b, int c,
+                                  int alt)
+{
+    SetLifetime(c);
+    pos = *p;
+    unknown_1c = a;
+    unknown_28 = alt;
+    if (alt)
+        unknown_24 = GetGafFrameCount(g_game->unknown_147d3) - 1;
+    else
+        unknown_24 = GetGafFrameCount(g_game->unknown_147cf) - 1;
+    if (limit != 0)
+        unknown_24 = limit < unknown_24 ? limit : unknown_24;
+    if (b != 0)
+        unknown_20 = b;
+    else
+        unknown_20 = 7;
+    Emit();
+}
+
+// Slot 4: works out how many periods of unknown_1c have passed since
+// field_4, reserves room for that many more particles, and appends one built
+// from the position at +0x2c, unknown_20 and a random size. It then pushes
+// the clock forward by unknown_1c.
+// FUNCTION: 0x474df0
+void SmokeParticles::Emit()
+{
+    int periods = (field_4 - g_game->ticks + unknown_1c) / unknown_1c;
+    if (periods > 0) {
+        records.reserve(periods + records.size());
+    }
+    Vec3_00474d50* p = &pos;
+    std::vector<Class_00474b00>* v = &records;
+    for (int i = 1; i != 0; i--) {
+        Class_00474b00 rec;
+        rec.pos = *p;
+        rec.period = unknown_20;
+        rec.timer = unknown_20;
+        rec.data = unknown_28 ? g_game->unknown_147d3 : g_game->unknown_147cf;
+        rec.limit = (int)(((__int64)rand() * (unknown_24 - 2)) / 0x8000) + 2;
+        rec.count = 0;
+        ((Class_00476210*)v)->FUN_00476210(v->end(), 1, rec);
+    }
+    time = g_game->ticks + unknown_1c;
+}
+
+// Slot 3: true once there are no particles and the game time has passed the
+// deadline in field_4.
+// FUNCTION: 0x474f80
+int SmokeParticles::FUN_00472e70()
+{
+    int count;
+
+    count = records.size();
+
+    bool isZero = (count == 0);
+    if (isZero) {
+        if ((unsigned int)field_4 < (unsigned int)g_game->ticks) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+// Drifts the 16.16 position by the wind (x, z) and a vertical rate (y), and
+// when the timer runs out counts one more step and restarts the timer at a
+// random value between period/2 and period. Slot 1 of Class_004750b0
+// (0x475600) inlines this; this out-of-line copy is never called. 0x474b00 is
+// the same update for SmokeParticles's records (y * 4).
+// FUNCTION: 0x474fc0
+void Class_00474fc0::Step()
+{
+    pos.x += g_game->windX * 8;
+    pos.y += g_game->rise * 16;
+    pos.z += g_game->windZ * 8;
+    if (--timer == 0) {
+        count++;
+        int half = period / 2;
+        timer = (int)((__int64)rand() * half / 0x8000) + half;
+    }
+}
+
+// Draws the particle's frame at its screen position, relative to the scroll
+// position px, py.
+// FUNCTION: 0x475040
+void Class_00474fc0::DrawParticle(void* dest, short px, short py)
+{
+    short sy = posw.z - (posw.y >> 1) - py + 0x20;
+    short sx = posw.x - px + 0x80;
+    DrawFrameBlended(dest, GetGafFrame(data, count), sx, sy);
+}
+
+// Whether the particle has taken all its steps.
+// FUNCTION: 0x475090
+int Class_00474fc0::IsExpired(int unused)
+{
+    return count >= limit ? 1 : 0;
+}
+
+// The constructor: an empty vector of particles, and the current tick as the
+// next emit time. The base constructor is called out of line.
+// Not inlined into 0x472c50: it called it out of line in its own file.
+#pragma auto_inline(off)
+// FUNCTION: 0x4750b0
+// FUNCTION: 0x475110 ??_GClass_004750b0@@UAEPAXI@Z
+Class_004750b0::Class_004750b0()
+{
+    time = g_game->ticks;
+}
+#pragma auto_inline(on)
+
+// Slot 6.
+// FUNCTION: 0x475150
+void Class_004750b0::FUN_00475150(Vec3_00475150* p, int a, int b, int c)
+{
+    SetLifetime(c);
+    pos = *p;
+    unknown_1c = a;
+    unknown_24 = GetGafFrameCount(g_game->unknown_147cf) - 1;
+    if (b != 0)
+        unknown_20 = b;
+    else
+        unknown_20 = 7;
+    Emit();
+}
+
+// Slot 4: appends one particle holding the effect named by
+// g_game->unknown_147cf at this->pos, a random lifetime of 2 to unknown_24 - 1
+// periods, and a countdown of unknown_20 periods.
+// FUNCTION: 0x4751c0
+void Class_004750b0::Emit()
+{
+    int missed = (field_4 - g_game->ticks + unknown_1c) / unknown_1c;
+    if (missed > 0)
+        records.reserve(records.size() + missed);
+    // The two pointers have to be locals: the original hoists both addresses
+    // into callee saved registers before the loop, and reads the record's
+    // position and the vector's _Last through them.
+    Vec3_00475150* p = &pos;
+    std::vector<Class_00474fc0>* v = &records;
+    // One-trip countdown loop stays: the original keeps it as a counter.
+    int i = 1;
+    do {
+        Class_00474fc0 rec;
+        rec.pos = *p;
+        rec.period = unknown_20;
+        rec.timer = unknown_20;
+        rec.data = g_game->unknown_147cf;
+        rec.limit = (int)((__int64)rand() * (unknown_24 - 2) / 0x8000) + 2;
+        rec.count = 0;
+        ((Class_00476490*)v)->FUN_00476490(v->end(), 1, &rec);
+    } while (--i);
+    time = g_game->ticks + unknown_1c;
+}
+
+// Slot 3: this class always answers 0.
+// FUNCTION: 0x475330
+int Class_004750b0::FUN_00472e70()
+{
+    return 0;
+}
+
+// Slot 1: twin of 0x475600, which inlines the same body, so here the
+// particles are walked by a loop instead. Each drifts by the game's per-tick
+// counts (x, z by the wind times 8, y by the rise times 4) and, when its
+// countdown runs out, counts one more round and restarts the countdown at
+// half the period plus a random part of the other half. A particle that has
+// counted as many rounds as its limit is erased. Then slot 5 says whether to
+// emit more (slot 4).
+// FUNCTION: 0x475340
+void SmokeParticles::Update()
+{
+    std::vector<Class_00474b00>::iterator it = records.begin();
+    while (it != records.end()) {
+        it->pos.x += g_game->windX * 8;
+        it->pos.y += g_game->rise * 4;
+        it->pos.z += g_game->windZ * 8;
+        if (--it->timer == 0) {
+            it->count++;
+            int half = it->period / 2;
+            it->timer = (int)((__int64)rand() * half / 0x8000) + half;
+        }
+        if (it->count >= it->limit) {
+            records.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    if (FUN_00475440())
+        Emit();
+}
+
+// Slot 5: whether it is time to emit again.
+// FUNCTION: 0x475440
+int SmokeParticles::FUN_00475440()
+{
+    if (time <= field_4 && (unsigned int)time <= (unsigned int)g_game->ticks) {
+        return 1;
+    }
+    return 0;
+}
+
+// Slot 1: steps every particle with the body of 0x474fc0 inlined (drift by the
+// game's per-tick counts, and when the countdown runs out count one more round
+// and restart the countdown at half the period plus a random part of the
+// other half). A particle that has counted as many rounds as its limit is
+// erased. Then slot 5 says whether to emit more (slot 4).
+// FUNCTION: 0x475600
+void Class_004750b0::Update()
+{
+    std::vector<Class_00474fc0>::iterator it = records.begin();
+    while (it != records.end()) {
+        it->pos.x += g_game->windX * 8;
+        it->pos.y += g_game->rise * 16;
+        it->pos.z += g_game->windZ * 8;
+        if (--it->timer == 0) {
+            it->count++;
+            int half = it->period / 2;
+            it->timer = (int)((__int64)rand() * half / 0x8000) + half;
+        }
+        if (it->count >= it->limit) {
+            records.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    if (FUN_004750f0())
+        Emit();
+}
+
+// std::vector<Class_004739b0>::reserve from MSVC 5's <vector>.
+// FUNCTION: 0x475770 ?reserve@?$vector@UClass_004739b0@@V?$allocator@UClass_004739b0@@@std@@@std@@QAEXI@Z
+ReserveFn_004739b0 Access_00475770::fn = &Access_00475770::reserve;
+
+// The vector's own out-of-line size(): three words of a std::vector, the first
+// pointer at +0x4 and the second at +0x8.
+// FUNCTION: 0x475840
+int Class_00475840::FUN_00475840()
+{
+    return field_4 == 0 ? 0 : (field_8 - field_4) / 48;
+}
+
+// std::vector<Class_004739b0>::_Destroy(first, last) from MSVC 5's <vector>:
+// empty, since the element type is trivial.
+// FUNCTION: 0x475870 ?_Destroy@?$vector@UClass_004739b0@@V?$allocator@UClass_004739b0@@@std@@@std@@IAEXPAUClass_004739b0@@0@Z
+DestroyFn_004739b0 Access_00475870::fn = &Access_00475870::_Destroy;
+
+// std::vector<Class_004739b0>::_Ucopy(first, last, dest) from MSVC 5's
+// <vector>: copies [first, last) into raw storage at dest and returns the
+// end of the copies.
+// FUNCTION: 0x475880 ?_Ucopy@?$vector@UClass_004739b0@@V?$allocator@UClass_004739b0@@@std@@@std@@IAEPAUClass_004739b0@@PBU3@0PAU3@@Z
+UcopyFn_004739b0 Access_00475880::fn = &Access_00475880::_Ucopy;
+
+// std::vector<Class_004739b0>::_Ufill(first, n, value) from MSVC 5's <vector>:
+// copy-constructs n copies of value into raw storage at first.
+// FUNCTION: 0x476710 ?_Ufill@?$vector@UClass_004739b0@@V?$allocator@UClass_004739b0@@@std@@@std@@IAEXPAUClass_004739b0@@IABU3@@Z
+UfillFn_004739b0 Access_00476710::fn = &Access_00476710::_Ufill;

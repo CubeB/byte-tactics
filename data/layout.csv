@@ -4515,8 +4515,8 @@ piece,0x507c18,13,src/frontend/campaign_menu_476a60.cpp,4,0,game data
 piece,0x507c04,15,src/frontend/campaign_menu_4769f0.cpp,3,0,game data
 piece,0x507bf8,9,src/frontend/campaign_menu_476830.cpp,3,0,game data
 piece,0x503384,8,src/frontend/campaign_menu_476740.cpp,3,0,game data
-piece,0x4fd638,28,src/graphics/particles_4750b0.cpp,3,0,game data
-piece,0x4fd618,28,src/graphics/smoke_particles.cpp,3,0,game data
+piece,0x4fd638,28,src/graphics/particles_472630.cpp,61,0,game data
+piece,0x4fd618,28,src/graphics/particles_472630.cpp,44,0,game data
 piece,0x4fd5d8,28,src/graphics/particles_472ab0.cpp,3,0,game data
 piece,0x4fd5f8,28,src/graphics/particles_470a40.cpp,63,0,game data
 piece,0x4fd5b8,28,src/graphics/particles_470a40.cpp,49,0,game data

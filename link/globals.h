@@ -745,7 +745,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x51fba4 g_guiContext: Root_004a32a0* (1), Holder_004a3ef0* (1), int* (1)
 //   0x528a50 DAT_00528a50: void* (2), Node_004da8d0* (1)
 //   0x529e00 DAT_00529e00: Counter_004e1e50 (1), Entry_004df590[] (1), EventEntry (1)
-//   0x4fc9a0 DAT_004fc9a0: defined in src/data/vtables.cpp
+//   0x4fc9a0 g_spatialTimerVtable: defined in src/data/vtables.cpp
 //   0x4fca18 g_vtolOrders: defined in src/orders/unit_orders.cpp
 //   0x4fccd8 IID_IDirectDraw2: defined in src/data/guids.cpp
 //   0x4fcd78 IID_IDirectPlay3A: defined in src/data/guids.cpp

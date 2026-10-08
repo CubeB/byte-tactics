@@ -80,7 +80,7 @@ struct Weapon_0049a120 {
 
 class SquadManager {
 public:
-    void FUN_00406f50(Weapon_0049a120* weapon, int enemyDamage, int friendlyDamage);
+    void MarkOwnerNetDirtyFromDamageSplit(Weapon_0049a120* weapon, int enemyDamage, int friendlyDamage);
 };
 
 struct Holder_0049a120 {
@@ -389,5 +389,5 @@ void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
     }
 
     if (weapon->attacker)
-        weapon->attacker->holder->object->FUN_00406f50(weapon, enemyDamage, friendlyDamage);
+        weapon->attacker->holder->object->MarkOwnerNetDirtyFromDamageSplit(weapon, enemyDamage, friendlyDamage);
 }

@@ -640,9 +640,9 @@ struct Weapon_0049a120;
 
 class SquadManager {
 public:
-    void FUN_00406f50(Weapon_499c70* weapon, int a, int b);
-    void FUN_00406f50(Projectile_00499eb0* projectile, int a, int b);
-    void FUN_00406f50(Weapon_0049a120* weapon, int enemyDamage, int friendlyDamage);
+    void MarkOwnerNetDirtyFromDamageSplit(Weapon_499c70* weapon, int a, int b);
+    void MarkOwnerNetDirtyFromDamageSplit(Projectile_00499eb0* projectile, int a, int b);
+    void MarkOwnerNetDirtyFromDamageSplit(Weapon_0049a120* weapon, int enemyDamage, int friendlyDamage);
 };
 
 struct Player_499c70 {
@@ -673,7 +673,7 @@ void __stdcall ApplyWeaponHit(Weapon_499c70* weapon, Unit* target)
             a = damage;
         else
             b = damage;
-        ((Player_499c70*)attacker->player)->field_74->FUN_00406f50(weapon, a, b);
+        ((Player_499c70*)attacker->player)->field_74->MarkOwnerNetDirtyFromDamageSplit(weapon, a, b);
     }
 }
 
@@ -929,7 +929,7 @@ void __stdcall DetonateProjectile(Projectile_00499eb0* projectile, Unit* unit)
                     a = damage;
                 else
                     b = damage;
-                ((Holder_00499eb0*)source->player)->object->FUN_00406f50(projectile, a & 0xffff, b & 0xffff);
+                ((Holder_00499eb0*)source->player)->object->MarkOwnerNetDirtyFromDamageSplit(projectile, a & 0xffff, b & 0xffff);
                 return;
             }
         } else {

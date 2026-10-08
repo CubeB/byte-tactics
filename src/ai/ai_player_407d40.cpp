@@ -46,9 +46,9 @@ public:
 };
 
 extern void* DAT_004fc980[];
-extern void* DAT_004fc9a0[];
+extern void* g_spatialTimerVtable[];
 
-class Class_00407d40 {
+class SpatialTimer {
 public:
     // Plain field, not a virtual class: both vtable stores come from source.
     void* vptr_slot;                   // +0x0
@@ -61,14 +61,14 @@ public:
     Vec3_00407d40 c;                   // +0x2c
     int field_38;                      // +0x38
 
-    Class_00407d40(SquadManager* p, void* q);
+    SpatialTimer(SquadManager* p, void* q);
 };
 
 SquadTimer::SquadTimer(SquadManager* p, void* q)
     : owner(p), field_8(q), field_c(0), field_10(p->field_4) {}
 
 // FUNCTION: 0x407d40
-Class_00407d40::Class_00407d40(SquadManager* p, void* q)
+SpatialTimer::SpatialTimer(SquadManager* p, void* q)
 {
     owner = p;
     field_8 = q;
@@ -80,6 +80,6 @@ Class_00407d40::Class_00407d40(SquadManager* p, void* q)
     Vec3_00407d40 temp(g_game);
     // Order matters: field_38, then the late vtable store, then c.
     field_38 = 0;
-    vptr_slot = DAT_004fc9a0;
+    vptr_slot = g_spatialTimerVtable;
     c = temp;
 }

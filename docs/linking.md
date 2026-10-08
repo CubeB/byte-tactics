@@ -853,8 +853,8 @@ is clean: 312 of the 312 globals in `.rdata`/`.data` hold the original's bytes
 exits 0. The placement report of the ordinary link, whose order LINK chooses,
 shows 3,296 game and gap functions in 383 runs (382 inferred boundaries, 92 of
 them backwards) and 6 of 116 units with a member out of order
-(`IURect_0046e160`, `PAUUnit`, `SquadTimer`, `Class_00407a90`,
-`Class_00407d40`, `Class_004079d0`); those are the first candidates for a
+(`IURect_0046e160`, `PAUUnit`, `SquadTimer`, `SquadScoutTimer`,
+`SpatialTimer`, `EscortTimer`); those are the first candidates for a
 `/ORDER` or a link-order file. Against `build/place/TotalA.exe` the same tool
 reports one run, no boundary and no out-of-order unit, as it must: that build
 is `orig/TotalA.exe` byte for byte.

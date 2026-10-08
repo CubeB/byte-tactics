@@ -11,7 +11,7 @@
 //     and four of them fall out of their windows next to the functions above)
 //   0x407d40, 0x407e70, 0x407e90  ai_player_407d40.cpp, ai_player_407e70.cpp
 //     (the constructor's vtable stores need the plain and the derived view of
-//     Class_00407d40 apart)
+//     SpatialTimer apart)
 //   0x408090  ai_player_408090.cpp
 //   0x408100  ai_player_408100.cpp (its symbol count comes from ta_types.h)
 //   0x408620  ai_player_408620.cpp
@@ -392,7 +392,7 @@ public:
     Unit* cursor;                      // +0x39
 
     SquadManager(Player* p);
-    void FUN_00406f50(struct Obj_00406f50* obj, int a, int b);
+    void MarkOwnerNetDirtyFromDamageSplit(struct Obj_00406f50* obj, int a, int b);
     void AssignSquads();
     void RetargetWeapons(int force);
     void TickIfActive();
@@ -423,13 +423,13 @@ public:
     SquadTimer(SquadManager* p, Group* q);
     virtual void OnTimer();                         // slot 0
     virtual ~SquadTimer() {}                        // slot 1
-    int FUN_004073b0(Vec3* out);
+    int TryGetBaseBuildOrScoutCentroid(Vec3* out);
     int GetAveragePosition(Vec3* out);
     int CountGroupUnitsInRadius(Vec3* pos, int radius);
 };
 
 // Vtable 0x4fc988, constructor 0x407930, ??_G 0x407980.
-class Class_00407930 : public SquadTimer {
+class AssaultTimer : public SquadTimer {
 public:
     int minimum;                       // +0x14
     int maximum;                       // +0x18
@@ -437,50 +437,50 @@ public:
     int kind;                          // +0x20
     int attacking;                     // +0x24
 
-    Class_00407930(SquadManager* p, Group* q, int a, int b);
+    AssaultTimer(SquadManager* p, Group* q, int a, int b);
     virtual void OnTimer();                         // slot 0, 0x4077e0
 };
 
 // Vtable 0x4fc990, constructor 0x4079a0, ??_G 0x4079d0.
-class Class_004079d0 : public SquadTimer {
+class EscortTimer : public SquadTimer {
 public:
     int other;                         // +0x14
 
-    Class_004079d0(SquadManager* p, Group* q, int a);
+    EscortTimer(SquadManager* p, Group* q, int a);
     virtual void OnTimer();                         // slot 0, 0x4079f0
 };
 
 // Vtable 0x4fc998, constructor 0x407a90, ??_G 0x407ac0.
-class Class_00407a90 : public SquadTimer {
+class SquadScoutTimer : public SquadTimer {
 public:
-    Class_00407a90(SquadManager* p, Group* q);
+    SquadScoutTimer(SquadManager* p, Group* q);
     virtual void OnTimer();                         // slot 0, 0x407ae0
 };
 
 // Vtable 0x4fc9a8, constructor 0x4085d0, ??_G 0x408600.
-class Class_004085d0 : public SquadTimer {
+class ScoutTimer : public SquadTimer {
 public:
-    Class_004085d0(SquadManager* p, Group* q);
+    ScoutTimer(SquadManager* p, Group* q);
     virtual void OnTimer();                         // slot 0, 0x408100
 };
 
 // Vtable 0x4fc9b0, constructor 0x4087e0, ??_G 0x408810.
-class Class_00408810 : public SquadTimer {
+class BuildTimer : public SquadTimer {
 public:
-    Class_00408810(SquadManager* p, Group* q);
+    BuildTimer(SquadManager* p, Group* q);
     virtual void OnTimer();                         // slot 0, 0x4086d0
 };
 
 // Vtable 0x4fc9a0, constructor 0x407d40, ??_G 0x407e70. Its constructor and
 // slot 0 stay in ai_player_407d40.cpp and ai_player_407e70.cpp.
-class Class_00407d40 : public SquadTimer {
+class SpatialTimer : public SquadTimer {
 public:
     Vec3 a;                            // +0x14
     Vec3 b;                            // +0x20
     Vec3 c;                            // +0x2c
     int field_38;                      // +0x38
 
-    Class_00407d40(SquadManager* p, void* q);
+    SpatialTimer(SquadManager* p, void* q);
     virtual void OnTimer();                         // slot 0, 0x407e90
 };
 
@@ -498,7 +498,7 @@ public:
     struct Owner_00407560* owner;      // +0x4
     Group* group;                      // +0x8
 
-    void FUN_00407560(int kind, int limit);
+    void RebalanceAssaultGroupByCentroid(int kind, int limit);
 };
 
 struct Owner_00407560 {
@@ -821,7 +821,7 @@ float __stdcall GetNetEnergy(Player*);
 float __stdcall GetNetMetal(Player*);
 float __stdcall GetEnergyIncome(Player*);
 float __stdcall GetMetalIncome(Player*);
-int __stdcall FUN_00406ee0(int, unsigned short, int);
+int __stdcall IsCountBelowAiLimit(int, unsigned short, int);
 int __stdcall GetBuildRating(unsigned int player, unsigned short id);
 int __stdcall FindWeaponTarget(Unit* unit, unsigned int weapon, int param_3);
 void __stdcall GetBasePosition(int index, Struct_0040ba80* out);
@@ -957,7 +957,7 @@ void __stdcall CmdLimit(CommandArgs* args)
 }
 
 // FUNCTION: 0x406ee0
-int __stdcall FUN_00406ee0(unsigned char player, unsigned short id, int value)
+int __stdcall IsCountBelowAiLimit(unsigned char player, unsigned short id, int value)
 {
     return IsUnderLimit(player, id, value);
 }
@@ -977,7 +977,7 @@ void FUN_00406f40(void)
 }
 
 // FUNCTION: 0x406f50
-void SquadManager::FUN_00406f50(Obj_00406f50* obj, int a, int b)
+void SquadManager::MarkOwnerNetDirtyFromDamageSplit(Obj_00406f50* obj, int a, int b)
 {
     Target_00406f50* t = obj->target;
     if (t) {
@@ -1052,12 +1052,12 @@ Unit* Class_004071f0::FindNearestEnemyUnit(int x,int y,int z)
 //
 //   class           vtable    constructor  ??_G      slot 0
 //   SquadTimer  0x4fc980  0x407350     0x407390  0x407380 (empty)
-//   Class_00407930  0x4fc988  0x407930     0x407980  0x4077e0
-//   Class_004079d0  0x4fc990  0x4079a0     0x4079d0  0x4079f0
-//   Class_00407a90  0x4fc998  0x407a90     0x407ac0  0x407ae0
-//   Class_00407d40  0x4fc9a0  0x407d40     0x407e70  0x407e90
-//   Class_004085d0  0x4fc9a8  0x4085d0     0x408600  0x408100
-//   Class_00408810  0x4fc9b0  0x4087e0     0x408810  0x4086d0
+//   AssaultTimer  0x4fc988  0x407930     0x407980  0x4077e0
+//   EscortTimer  0x4fc990  0x4079a0     0x4079d0  0x4079f0
+//   SquadScoutTimer  0x4fc998  0x407a90     0x407ac0  0x407ae0
+//   SpatialTimer  0x4fc9a0  0x407d40     0x407e70  0x407e90
+//   ScoutTimer  0x4fc9a8  0x4085d0     0x408600  0x408100
+//   BuildTimer  0x4fc9b0  0x4087e0     0x408810  0x4086d0
 // FUNCTION: 0x407350
 SquadTimer::SquadTimer(SquadManager* p, Group* q)
     : owner(p), group(q), next(0), player(p->field_4)
@@ -1081,7 +1081,7 @@ void SquadTimer::OnTimer()
 // The owner's constructor (0x408cb0) fills an array of ten timer pointers at
 // +0x11, so the three used here are entries 5, 1 and 4.
 // FUNCTION: 0x4073b0
-int SquadTimer::FUN_004073b0(Vec3* out)
+int SquadTimer::TryGetBaseBuildOrScoutCentroid(Vec3* out)
 {
     if (owner->timers[5]->GetAveragePosition(out))
         return 1;
@@ -1130,7 +1130,7 @@ int SquadTimer::CountGroupUnitsInRadius(Vec3* pos, int radius)
     return count;
 }
 
-// Method of the SquadTimer family, called by Class_00407930::OnTimer
+// Method of the SquadTimer family, called by AssaultTimer::OnTimer
 // (0x4077e0) with its kind and limit fields. Balances this object's group
 // against the owner's member of the given kind: takes one unit from it when
 // this group is empty, sends the unit farthest from the group's centre to that
@@ -1138,7 +1138,7 @@ int SquadTimer::CountGroupUnitsInRadius(Vec3* pos, int radius)
 // over every unit of the other group that lies closer than that.
 // SetUnitSquad(unit, id) moves a unit to a group.
 // FUNCTION: 0x407560
-void Class_00407560::FUN_00407560(int kind, int limit)
+void Class_00407560::RebalanceAssaultGroupByCentroid(int kind, int limit)
 {
     Class_00407560* other = owner->members[kind];
     if (other == this)
@@ -1191,7 +1191,7 @@ void Class_00407560::FUN_00407560(int kind, int limit)
         SetUnitSquad(*it, group->id);
 }
 
-// SquadTimer::FUN_004073b0, inlined: the position of the first of three of
+// SquadTimer::TryGetBaseBuildOrScoutCentroid, inlined: the position of the first of three of
 // the owner's squads that has one.
 static inline int Rally(SquadManager*& owner, Vec3* pos)
 {
@@ -1205,12 +1205,12 @@ static inline int Rally(SquadManager*& owner, Vec3* pos)
 }
 
 // FUNCTION: 0x4077e0
-void Class_00407930::OnTimer()
+void AssaultTimer::OnTimer()
 {
     Vec3 pos;
     Vec3 retreat;
     next = g_game->ticks + 300;
-    ((Class_00407560*)this)->FUN_00407560(kind, limit);
+    ((Class_00407560*)this)->RebalanceAssaultGroupByCentroid(kind, limit);
     if (!group->units.empty()) {
         if ((int)group->units.size() <= minimum || (!attacking && (int)group->units.size() < maximum)) {
             if (Rally(owner, &retreat)) {
@@ -1227,12 +1227,12 @@ void Class_00407930::OnTimer()
     }
 }
 
-// Constructor of Class_00407930 (vtable 0x4fc988), derived from SquadTimer
+// Constructor of AssaultTimer (vtable 0x4fc988), derived from SquadTimer
 // (the family is listed at 0x407350). The owner creates two of them, with
 // (3, 20000) and (7, 50000).
 // FUNCTION: 0x407930
-// FUNCTION: 0x407980 ??_GClass_00407930@@UAEPAXI@Z
-Class_00407930::Class_00407930(SquadManager* p, Group* q, int a, int b)
+// FUNCTION: 0x407980 ??_GAssaultTimer@@UAEPAXI@Z
+AssaultTimer::AssaultTimer(SquadManager* p, Group* q, int a, int b)
     : SquadTimer(p, q), limit(b), kind(a)
 {
     // limit and kind stay in the initialiser list, the rest in the body.
@@ -1241,12 +1241,12 @@ Class_00407930::Class_00407930(SquadManager* p, Group* q, int a, int b)
     minimum = 3;
 }
 
-// Constructor of Class_004079d0 (vtable 0x4fc990), derived from SquadTimer
+// Constructor of EscortTimer (vtable 0x4fc990), derived from SquadTimer
 // (the family is listed at 0x407350). The owner creates two of them, with 2
 // and 6.
 // FUNCTION: 0x4079a0
-// FUNCTION: 0x4079d0 ??_GClass_004079d0@@UAEPAXI@Z
-Class_004079d0::Class_004079d0(SquadManager* p, Group* q, int a)
+// FUNCTION: 0x4079d0 ??_GEscortTimer@@UAEPAXI@Z
+EscortTimer::EscortTimer(SquadManager* p, Group* q, int a)
     : SquadTimer(p, q), other(a)
 {
 }
@@ -1254,7 +1254,7 @@ Class_004079d0::Class_004079d0(SquadManager* p, Group* q, int a)
 // Slot 0: every 150 ticks, when both this squad and the owner's squad
 // `other` have units, sends this squad to the other's average position.
 // FUNCTION: 0x4079f0
-void Class_004079d0::OnTimer()
+void EscortTimer::OnTimer()
 {
     next = g_game->ticks + 150;
     SquadTimer* o = owner->timers[other];
@@ -1268,11 +1268,11 @@ void Class_004079d0::OnTimer()
     }
 }
 
-// Constructor of Class_00407a90 (vtable 0x4fc998), derived from SquadTimer
+// Constructor of SquadScoutTimer (vtable 0x4fc998), derived from SquadTimer
 // (the family is listed at 0x407350) without new fields.
 // FUNCTION: 0x407a90
-// FUNCTION: 0x407ac0 ??_GClass_00407a90@@UAEPAXI@Z
-Class_00407a90::Class_00407a90(SquadManager* p, Group* q)
+// FUNCTION: 0x407ac0 ??_GSquadScoutTimer@@UAEPAXI@Z
+SquadScoutTimer::SquadScoutTimer(SquadManager* p, Group* q)
     : SquadTimer(p, q)
 {
 }
@@ -1305,7 +1305,7 @@ static inline Vec3 GetRallyPoint(int index)
     return p;
 }
 
-// Slot 0 of Class_00407a90 (vtable 0x4fc998), derived from SquadTimer
+// Slot 0 of SquadScoutTimer (vtable 0x4fc998), derived from SquadTimer
 // (the family is listed at 0x407350).
 // Sets `next` to 30..929 ticks from now. A group of fewer than 5 units
 // either moves (mode 9) to the unit nearest its average position, or, when
@@ -1314,7 +1314,7 @@ static inline Vec3 GetRallyPoint(int index)
 // random point on the map edge. The unit FindNearestEnemyUnit returns is used
 // without a null check.
 // FUNCTION: 0x407ae0
-void Class_00407a90::OnTimer()
+void SquadScoutTimer::OnTimer()
 {
     Vec3 dest;
     // Computed first: in one expression with next it folds into a lea.
@@ -1361,8 +1361,8 @@ void Class_00407a90::OnTimer()
 // deleting destructor here too: the destructor is trivial, so only the inlined
 // base destructor's store of 0x4fc980 is left.
 // FUNCTION: 0x4085d0
-// FUNCTION: 0x408600 ??_GClass_004085d0@@UAEPAXI@Z
-Class_004085d0::Class_004085d0(SquadManager* p, Group* q)
+// FUNCTION: 0x408600 ??_GScoutTimer@@UAEPAXI@Z
+ScoutTimer::ScoutTimer(SquadManager* p, Group* q)
     : SquadTimer(p, q)
 {
 }
@@ -1385,7 +1385,7 @@ void __stdcall UpdateConverter(Unit* unit)
 // plentiful and off otherwise, and queues a build order for each idle
 // builder.
 // FUNCTION: 0x4086d0
-void Class_00408810::OnTimer()
+void BuildTimer::OnTimer()
 {
     next = g_game->ticks + 30;
     for (std::vector<Unit*>::iterator it = group->units.begin(); it != group->units.end(); ++it) {
@@ -1406,11 +1406,11 @@ void Class_00408810::OnTimer()
     }
 }
 
-// Constructor of Class_00408810 (vtable 0x4fc9b0), derived from SquadTimer
+// Constructor of BuildTimer (vtable 0x4fc9b0), derived from SquadTimer
 // (the family is listed at 0x407350) without new fields.
 // FUNCTION: 0x4087e0
-// FUNCTION: 0x408810 ??_GClass_00408810@@UAEPAXI@Z
-Class_00408810::Class_00408810(SquadManager* p, Group* q)
+// FUNCTION: 0x408810 ??_GBuildTimer@@UAEPAXI@Z
+BuildTimer::BuildTimer(SquadManager* p, Group* q)
     : SquadTimer(p, q)
 {
 }
@@ -1534,15 +1534,15 @@ SquadManager::SquadManager(Player* p)
     field_d = 0;
     for (int i = 0; i < 10; i++)
         timers[i] = 0;
-    timers[1] = new Class_00408810(this, &player->groups[1]);
-    timers[4] = new Class_004085d0(this, &player->groups[4]);
+    timers[1] = new BuildTimer(this, &player->groups[1]);
+    timers[4] = new ScoutTimer(this, &player->groups[4]);
     timers[5] = new SquadTimer(this, &player->groups[5]);
-    timers[2] = new Class_00407930(this, &player->groups[2], 3, 20000);
-    timers[3] = new Class_004079d0(this, &player->groups[3], 2);
-    timers[6] = new Class_00407930(this, &player->groups[6], 7, 50000);
-    timers[7] = new Class_004079d0(this, &player->groups[7], 6);
-    timers[8] = new Class_00407a90(this, &player->groups[8]);
-    timers[9] = new Class_00407d40(this, &player->groups[9]);
+    timers[2] = new AssaultTimer(this, &player->groups[2], 3, 20000);
+    timers[3] = new EscortTimer(this, &player->groups[3], 2);
+    timers[6] = new AssaultTimer(this, &player->groups[6], 7, 50000);
+    timers[7] = new EscortTimer(this, &player->groups[7], 6);
+    timers[8] = new SquadScoutTimer(this, &player->groups[8]);
+    timers[9] = new SpatialTimer(this, &player->groups[9]);
 }
 
 // FUNCTION: 0x408f10
@@ -1670,7 +1670,7 @@ int __stdcall IsUnderLimit(int player, unsigned short index, int value)
 #pragma auto_inline(on)
 
 // FUNCTION: 0x409f80
-void __stdcall FUN_00409f80(int player)
+void __stdcall ParseDownloadableAiWeightScripts(int player)
 {
     PlayerAI* p = g_playerAI[player];
     EnableAICommands();
@@ -1690,7 +1690,7 @@ void __stdcall FUN_00409f80(int player)
 }
 
 // FUNCTION: 0x40a040
-void __stdcall FUN_0040a040(int player)
+void __stdcall ReparseAiWeightScriptsIfLimitNotSticky(int player)
 {
     PlayerAI* p = g_playerAI[player];
     EnableAICommands();
@@ -1861,7 +1861,7 @@ void PlayerAI::UpdateEveryThirtyTicks()
     }
 }
 // FUNCTION: 0x40ad70
-void __stdcall FUN_0040ad70(int unused1, int unused2, int param_3)
+void __stdcall ProbeUnitDefEnergyRate(int unused1, int unused2, int param_3)
 {
     GetEnergyUse(param_3);
 }
@@ -2001,7 +2001,7 @@ void __stdcall GetBasePosition(int index, Struct_0040ba80* out)
 }
 
 // FUNCTION: 0x40bab0
-void __stdcall FUN_0040bab0(int index, int unused, Struct_0040bab0* out)
+void __stdcall GetMirroredBasePosition(int index, int unused, Struct_0040bab0* out)
 {
     out->a = (g_game->baseX << 16) -
              ((Struct_0040bab0*)((char*)g_playerAI[index] + 0x35))->a;
@@ -2044,7 +2044,7 @@ int __stdcall GetBuildRating(int player,unsigned short type)
     int metal2=min(max(metal,0),100);
     int energy2=min(max(energy-metal2,0),100);
     int normal=max(100-metal2-energy2,0);
-    if(!FUN_00406ee0(player,type,owner->counts[type])) return 0;
+    if(!IsCountBelowAiLimit(player,type,owner->counts[type])) return 0;
     Elem_0040cfb0* r=&owner->ratings[type];
     return (normal*r->a+r->b*metal2+r->c*energy2)*owner->weights[type]/10000;
 }
@@ -2162,7 +2162,7 @@ void __stdcall DumpPlayerAI(int player, FILE* file)
 }
 
 // FUNCTION: 0x40c4f0
-int __stdcall FUN_0040c4f0(int param_1)
+int __stdcall HasSpecialUnit(int param_1)
 {
     return *(int*)((char*)g_playerAI[param_1] + 0x79);
 }

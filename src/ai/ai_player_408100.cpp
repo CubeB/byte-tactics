@@ -1,5 +1,5 @@
 // Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by GPT-6, finished by Claude Opus 5.5. Names are provisional.
-// Slot 0 of Class_004085d0 (vtable 0x4fc9a8), derived from SquadTimer (family
+// Slot 0 of ScoutTimer (vtable 0x4fc9a8), derived from SquadTimer (family
 // listed in ai_player.cpp, which also holds the class and its
 // constructor).
 // Runs every 90 ticks over the units of this object's group: first gives each
@@ -122,7 +122,7 @@ static inline int MapRange()
 }
 
 // FUNCTION: 0x408100
-void Class_004085d0::OnTimer()
+void ScoutTimer::OnTimer()
 {
     field_c = g_game->ticks + 90;
     Vec3 origin;

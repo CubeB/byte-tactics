@@ -77,9 +77,9 @@ void FUN_0044f650();
 void OnAimCobReturn();
 void AimCobStub();
 
-// Class_00407d40's, a class of the 0x4fc980 family: stored by its constructor 0x407d40.
+// SpatialTimer's, a class of the 0x4fc980 family: stored by its constructor 0x407d40.
 // GLOBAL: 0x4fc9a0
-extern VirtualFunction const DAT_004fc9a0[2] = {
+extern VirtualFunction const g_spatialTimerVtable[2] = {
     FUN_00407e90, FUN_00407e70,
 };
 

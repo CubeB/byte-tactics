@@ -130,11 +130,11 @@ class Class_00405d90;
 class SquadManager;
 class Class_004071f0;
 class Class_00407560;
-class Class_00407930;
-class Class_004079d0;
-class Class_00407a90;
-class Class_00407d40;
-class Class_004085d0;
+class AssaultTimer;
+class EscortTimer;
+class SquadScoutTimer;
+class SpatialTimer;
+class ScoutTimer;
 class Class_00408620;
 class Class_00408810;
 class Class_00408830;
@@ -2976,7 +2976,7 @@ public:
 class SquadManager {    // 0x1 bytes, 3 views
 public:
     char unknown_0[1];
-    void FUN_00406f50(Obj_00406f50*, int, int);
+    void MarkOwnerNetDirtyFromDamageSplit(Obj_00406f50*, int, int);
 };
 
 struct Obj_00406f50 {  // 0x6b bytes, 26 views
@@ -20129,7 +20129,7 @@ public:
     virtual void Func(int);
     virtual void OnTimer(void);
     int CountGroupUnitsInRadius(Vec*, int);
-    int FUN_004073b0(Vec3*);
+    int TryGetBaseBuildOrScoutCentroid(Vec3*);
     int GetAveragePosition(Vec3*);
 };
 
@@ -20146,7 +20146,7 @@ public:
     void* vtable;  // +0x0
     Owner_00407560* owner;  // +0x4
     Group* group;  // +0x8
-    void FUN_00407560(int, int);
+    void RebalanceAssaultGroupByCentroid(int, int);
 };
 
 struct Owner_00407560 {  // 0x31 bytes, 1 view
@@ -20154,15 +20154,15 @@ struct Owner_00407560 {  // 0x31 bytes, 1 view
     Class_00407560* members[8];  // +0x11
 };
 
-class Class_00407930 : public Base {  // 0x28 bytes, 4 views
+class AssaultTimer : public Base {    // 0x28 bytes, 4 views
 public:
     int field_14;  // +0x14
     int field_18;  // +0x18
     int field_1c;  // +0x1c
     int field_20;  // +0x20
     int field_24;  // +0x24
-    Class_00407930(Class_00407930&);
-    Class_00407930(AI*, void*, int, int);
+    AssaultTimer(AssaultTimer&);
+    AssaultTimer(AI*, void*, int, int);
     virtual void OnTimer(void);
 };
 
@@ -20174,18 +20174,18 @@ struct Owner_2 {  // 0x29 bytes, 1 view
     Base* c;  // +0x25
 };
 
-class Class_004079d0 : public Base {  // 0x18 bytes, 4 views
+class EscortTimer : public Base {     // 0x18 bytes, 4 views
 public:
     int field_14;  // +0x14
-    Class_004079d0(Class_004079d0&);
-    Class_004079d0(AI*, void*, int);
+    EscortTimer(EscortTimer&);
+    EscortTimer(AI*, void*, int);
     virtual void OnTimer(void);
 };
 
-class Class_00407a90 : public Base {  // 0x14 bytes, 4 views
+class SquadScoutTimer : public Base {  // 0x14 bytes, 4 views
 public:
-    Class_00407a90(Class_00407a90&);
-    Class_00407a90(AI*, void*);
+    SquadScoutTimer(SquadScoutTimer&);
+    SquadScoutTimer(AI*, void*);
     virtual void OnTimer(void);
 };
 
@@ -20198,21 +20198,21 @@ union Fixed_00407ae0 {  // 0x4 bytes, 1 view
     union { int value; FixedParts_00407ae0 parts; };  // +0x0
 };
 
-class Class_00407d40 : public Base {  // 0x3c bytes, 4 views
+class SpatialTimer : public Base {    // 0x3c bytes, 4 views
 public:
     Vec3 a;  // +0x14
     Vec3 b;  // +0x20
     Vec3 c;  // +0x2c
     int field_38;  // +0x38
-    Class_00407d40(Class_00407d40&);
-    Class_00407d40(AI*, void*);
+    SpatialTimer(SpatialTimer&);
+    SpatialTimer(AI*, void*);
     virtual void OnTimer(void);
 };
 
-class Class_004085d0 : public Base {  // 0x14 bytes, 4 views
+class ScoutTimer : public Base {      // 0x14 bytes, 4 views
 public:
-    Class_004085d0(Class_004085d0&);
-    Class_004085d0(AI*, void*);
+    ScoutTimer(ScoutTimer&);
+    ScoutTimer(AI*, void*);
     virtual void OnTimer(void);
 };
 
@@ -20220,7 +20220,7 @@ class Class_00408620 {  // 0x14 bytes, 1 view
 public:
     char unknown_0[16];
     int field_10;  // +0x10
-    void FUN_00408620(Unit*);
+    void TryIssueIdleFactoryBuildOrder(Unit*);
 };
 
 struct Info_00408670 {  // 0x9c bytes, 1 view

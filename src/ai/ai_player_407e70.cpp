@@ -1,6 +1,6 @@
 // Decompiled by Claude Opus 5.5, deepseek-v4.1-flash and Opus. Names are
 // provisional.
-// Slot 0 of Class_00407d40 (vtable 0x4fc9a0), derived from SquadTimer
+// Slot 0 of SpatialTimer (vtable 0x4fc9a0), derived from SquadTimer
 // (the family is listed in ai_player.cpp, whose declarations this copies).
 // Sets field_c to 30..179 ticks from now. When the group has units, moves the
 // probe point b by the step c (one time in ten it restarts from a with a new
@@ -135,14 +135,14 @@ public:
 };
 
 // Vtable 0x4fc9a0, constructor 0x407d40, ??_G 0x407e70.
-class Class_00407d40 : public SquadTimer {
+class SpatialTimer : public SquadTimer {
 public:
     Vec3_00407d40 a;                    // +0x14
     Vec3_00407d40 b;                    // +0x20
     Vec3_00407d40 c;                    // +0x2c
     int field_38;                       // +0x38
 
-    Class_00407d40(SquadManager* p, void* q);
+    SpatialTimer(SquadManager* p, void* q);
     virtual void OnTimer();                         // slot 0, 0x407e90
 };
 
@@ -168,8 +168,8 @@ void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* unit,
 
 // Constructor 0x407d40 defined again, unannotated: emits the vtable and the
 // scalar deleting destructor.
-// FUNCTION: 0x407e70 ??_GClass_00407d40@@UAEPAXI@Z
-Class_00407d40::Class_00407d40(SquadManager* p, void* q)
+// FUNCTION: 0x407e70 ??_GSpatialTimer@@UAEPAXI@Z
+SpatialTimer::SpatialTimer(SquadManager* p, void* q)
     : SquadTimer(p, q)
 {
     // Half of g_game's baseX and baseY, in 16.16 fixed point.
@@ -183,7 +183,7 @@ Class_00407d40::Class_00407d40(SquadManager* p, void* q)
 }
 
 // FUNCTION: 0x407e90
-void Class_00407d40::OnTimer()
+void SpatialTimer::OnTimer()
 {
     // Computed first or the sum folds into one lea.
     int delay = RandomInt(150) + 30;

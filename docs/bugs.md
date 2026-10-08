@@ -109,7 +109,7 @@ GPT-6 Astra in #38.
 
 ## Group attack target used without a null check (likely)
 
-**0x407ae0**, slot 0 of `Class_00407a90` (an AI unit group). It pushes
+**0x407ae0**, slot 0 of `SquadScoutTimer` (an AI unit group). It pushes
 `&target->pos` straight after `Class_004071f0::FindNearestEnemyUnit`, which returns 0
 when it finds no enemy unit (see 0x4071f0.cpp), so with no enemy the group is
 sent towards address 0x6a. Found by Claude Opus 5.5 in #54.
@@ -124,7 +124,7 @@ SetUnitSquad is decompiled. Found by Claude Opus 5.5 in #54.
 
 ## Base height overwritten while measuring flat distances (likely)
 
-**0x408100**, slot 0 of `Class_004085d0` (one of the AI's unit groups). To get
+**0x408100**, slot 0 of `ScoutTimer` (one of the AI's unit groups). To get
 a horizontal distance it overwrites the base position's y in place (at
 0x408250 and 0x40834f) and never restores it, so every later unit in the loop
 is measured against the previous unit's height instead of the base's. Found by

@@ -23,16 +23,16 @@ extern Game* g_game;
 unsigned short __stdcall ChooseBuildOption(int param_1, Obj_00408620* param_2);
 void __stdcall QueueBuildOrder(char* name, Obj_00408620* param_2, int param_3);
 
-class Class_00408620 {
+class BuildTimer {
 public:
     char unknown_0[0x10];
     int field_10;                      // +0x10
 
-    void FUN_00408620(Obj_00408620* param_1);
+    void TryIssueIdleFactoryBuildOrder(Obj_00408620* param_1);
 };
 
 // FUNCTION: 0x408620
-void Class_00408620::FUN_00408620(Obj_00408620* param_1)
+void BuildTimer::TryIssueIdleFactoryBuildOrder(Obj_00408620* param_1)
 {
     if (param_1->field_5c != 0)
         return;

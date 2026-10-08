@@ -510,8 +510,8 @@ public:
 char* __stdcall HAPI_LoadFile(const char* name, int* size);
 int __stdcall ExecuteCommandText(char* text, int len, Class_004b74f0* vars, int param_4);
 void __cdecl FUN_004d85a0(char* text);
-void __stdcall FUN_00409f80(int player);
-void __stdcall FUN_0040a040(int player);
+void __stdcall ParseDownloadableAiWeightScripts(int player);
+void __stdcall ReparseAiWeightScriptsIfLimitNotSticky(int player);
 
 // FUNCTION: 0x4648e0
 void LoadDefaultAIScript()
@@ -531,8 +531,8 @@ void LoadDefaultAIScript()
     for (int i = 0; i < 10; i++) {
         Player* p = &g_game->players[i];
         if (p->active && p->type == 2) {
-            FUN_00409f80(i);
-            FUN_0040a040(i);
+            ParseDownloadableAiWeightScripts(i);
+            ReparseAiWeightScriptsIfLimitNotSticky(i);
         }
     }
 }

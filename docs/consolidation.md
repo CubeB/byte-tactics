@@ -151,7 +151,7 @@ revisit them once the surrounding code is known.
 
 - The 0x4fc980 family is consolidated (table in 0x407350.cpp): base
   `SquadTimer` and six derived classes, one per 2-slot vtable, owned by
-  `SquadManager`. `Class_004079d0` and `Class_00408810` are not yet named
+  `SquadManager`. `EscortTimer` and `BuildTimer` are not yet named
   after their constructors (0x4079a0, 0x4087e0); 0x407d40 (a constructor) is
   unmatched at about 78%, its vtable stored between two vector computations.
 - 0x417a60 (the debug crash command) divides by `(one >> 1)` with

@@ -4818,10 +4818,10 @@ piece,0x506178,64,src/network/net_condenser.cpp,22,0,game data
 piece,0x506138,64,src/network/net_condenser.cpp,21,0,game data
 piece,0x5060fc,58,src/network/net_condenser.cpp,20,0,game data
 piece,0x50609c,96,src/network/net_condenser.cpp,17,0,game data
-piece,0x4fd458,44,src/orders/order_targets_44de80.cpp,94,0,game data
-piece,0x4fd3e8,4,src/orders/order_targets_44de80.cpp,28,0,game data
-piece,0x4fd3f0,4,src/orders/order_targets_44de80.cpp,28,8,game data
-piece,0x4fd3ec,4,src/orders/order_targets_44de80.cpp,28,4,game data
+piece,0x4fd458,44,src/orders/order_targets.cpp,178,0,game data
+piece,0x4fd3e8,4,src/orders/order_targets.cpp,112,0,game data
+piece,0x4fd3f0,4,src/orders/order_targets.cpp,112,8,game data
+piece,0x4fd3ec,4,src/orders/order_targets.cpp,112,4,game data
 piece,0x50608c,14,src/frontend/multi_44c7e0.cpp,23,0,game data
 piece,0x50607c,15,src/frontend/multi_44c7e0.cpp,22,0,game data
 piece,0x506074,6,src/frontend/multi_44c7e0.cpp,21,0,game data

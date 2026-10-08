@@ -6,7 +6,7 @@
 // Stays in its own file: the std::copy specialization below changes the
 // vector<Point_0044eec0> instantiations 0x44d0e0 and 0x44d560 share (their
 // inlined clear turns into a call to 0x44eef0), so it cannot join them in
-// the merged order_targets_44ce40.cpp.
+// order_targets.cpp.
 #include <string.h>
 #include <utility>
 

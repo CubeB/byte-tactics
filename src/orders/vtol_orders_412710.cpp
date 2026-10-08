@@ -46,9 +46,17 @@ struct UnitDef {
 struct Mover {
     char pad0[0xdc]; int speed;
 };
-struct Player {
-    char pad0[0x146]; unsigned char index;
-};
+// Unused here: these forward declarations take the symbol ids that keep 0x412710 matching (docs/c2-regalloc.md).
+struct Sound;
+struct HapiBank;
+struct TdfFile;
+struct TdfRecord;
+struct Mission;
+struct Gadget;
+struct Layer;
+struct Weapon;
+struct Feature;
+#include "../network/player.h"
 struct Unit {
     UnitMotion* type;
     char pad4[0x10 - 4]; Mover* mover;

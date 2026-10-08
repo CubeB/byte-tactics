@@ -132,37 +132,7 @@ struct PlayerInfo {
     };
 };
 
-struct Player {                        // 0x14b bytes
-    int active;                        // +0x00
-    int id;                            // +0x04
-    char unknown_8[0x18 - 0x8];
-    int tick;                          // +0x18
-    char unknown_1c[0x27 - 0x1c];
-    PlayerInfo* info;                  // +0x27
-    char name[0x48];                   // +0x2b
-    unsigned char type;                // +0x73
-    char unknown_74[0x8c - 0x74];
-    float energy;                      // +0x8c
-    char unknown_90[0x98 - 0x90];
-    float metal;                       // +0x98
-    char unknown_9c[0xa4 - 0x9c];
-    float energyCapacity;              // +0xa4
-    float metalCapacity;               // +0xa8
-    char unknown_ac[0xfc - 0xac];
-    short kills;                       // +0xfc
-    short losses;                      // +0xfe
-    char unknown_100[0x104 - 0x100];
-    short commanderKills;              // +0x104
-    short commanderLosses;             // +0x106
-    unsigned char allied[10];          // +0x108
-    char unknown_112[0x140 - 0x112];
-    int unitsCreated;                  // +0x140
-    unsigned short unitCount;          // +0x144
-    unsigned char index;               // +0x146
-    char unknown_147[0x148 - 0x147];
-    unsigned char rank;                // +0x148
-    char unknown_149[0x14b - 0x149];
-};
+#include "../network/player.h"
 
 struct Unit {
     char unknown_0[0x86];
@@ -1304,7 +1274,7 @@ void UpdateFramePacing()
     g_game->slowest = 0;
     for (Player* p = g_game->players; p != g_game->players + 10; p++) {
         if (p->active != 0 && p->type == 3 && p->unitCount > 0) {
-            int tick = p->tick;
+            int tick = p->syncTick;
             if (tick < best) {
                 g_game->slowest = p;
                 best = tick;

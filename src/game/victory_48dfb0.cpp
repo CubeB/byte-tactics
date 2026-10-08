@@ -117,21 +117,7 @@ struct PlayerInfo {                    // flags at +0x9b and +0x9d
     unsigned char flags_9d;            // +0x9d, bit 2 is tested
 };
 
-struct Player {                        // 0x14b bytes, ten of them in the game
-    int active;                        // +0x00, zero when the slot is unused
-    char unknown_4[0x23];
-    PlayerInfo* info;                  // +0x27
-    char unknown_2b[0x73 - 0x2b];
-    unsigned char state;               // +0x73, only 1, 2 and 3 are looked at
-    char unknown_74[0x108 - 0x74];
-    unsigned char allied[11];          // +0x108, one entry per other team
-    unsigned char alliedBy[10];        // +0x113, one entry per other team
-    char unknown_11d[0x140 - 0x11d];
-    int unitsCreated;                  // +0x140
-    short count;                       // +0x144
-    unsigned char index;               // +0x146, 0xa skips the team
-    char unknown_147[0x14b - 0x147];
-};
+#include "../network/player.h"
 
 struct PlayerName {
     char name[0x232];                  // +0x00
@@ -1468,7 +1454,7 @@ int AreEnemiesEliminated()
 {
     Player* p = &g_game->players[g_game->player];
     for (unsigned char i = 0; i < 10; i++) {
-        if (i != g_game->player && !p->allied[i] && g_game->players[i].count != 0)
+        if (i != g_game->player && !p->allied[i] && g_game->players[i].unitCount != 0)
             return 0;
     }
     return 1;
@@ -1479,7 +1465,7 @@ int AreEnemiesEliminated()
 // FUNCTION: 0x490050
 int IsLocalPlayerEliminated()
 {
-    return g_game->players[g_game->player].count == 0 ? 1 : 0;
+    return g_game->players[g_game->player].unitCount == 0 ? 1 : 0;
 }
 
 // FUNCTION: 0x490080
@@ -1507,7 +1493,7 @@ int CheckAlliedVictory()
         }
         // state is a local because the original tests it twice, the second
         // time still in al, without reloading it.
-        state = other->state;
+        state = other->type;
         if (state == 1 || state == 2 || state == 3) {
             if (other->index == 0xa) {
                 continue;
@@ -1519,7 +1505,7 @@ int CheckAlliedVictory()
                 return 0;
             }
             if (state == 1 || state == 2 || state == 3) {
-                if (other->count == 0) {
+                if (other->unitCount == 0) {
                     continue;
                 }
                 if (!(other->info->flags_9d & 2)) {
@@ -1537,9 +1523,9 @@ int CheckAlliedVictory()
                 for (j = 0; j < 10; j++) {
                     Player* o = &g_game->players[j];
                     if (o->active != 0
-                        && (o->state == 1 || o->state == 2 || o->state == 3)
+                        && (o->type == 1 || o->type == 2 || o->type == 3)
                         && o->index != 0xa
-                        && (o->count != 0 || o->unitsCreated == 0)) {
+                        && (o->unitCount != 0 || o->unitsCreated == 0)) {
                         if (other->allied[j] == 0) {
                             return 0;
                         }
@@ -1555,7 +1541,7 @@ int CheckAlliedVictory()
 // FUNCTION: 0x490200
 int FUN_00490200()
 {
-    return g_game->players[g_game->player].count == 0 ? 1 : 0;
+    return g_game->players[g_game->player].unitCount == 0 ? 1 : 0;
 }
 
 // FUNCTION: 0x490360
@@ -1577,9 +1563,9 @@ int MissionConditions::CheckDefeat()
         case 1:
             return AnyDefeatConditionMet();
         case 2:
-            return g_game->players[g_game->player].count == 0;
+            return g_game->players[g_game->player].unitCount == 0;
         case 3:
-            return g_game->players[g_game->player].count == 0;
+            return g_game->players[g_game->player].unitCount == 0;
         }
     }
     return 0;

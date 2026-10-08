@@ -13,7 +13,9 @@
 struct Mission;
 
 #pragma pack(push, 1)
-struct PlayerInfo_0044a680 {
+#include "../network/player.h"
+
+struct PlayerInfo {
     char map[0x97];                     // +0x00
     unsigned char flags;                // +0x97, bit 0: host
     char unknown_98[0x9d - 0x98];
@@ -27,19 +29,6 @@ struct PlayerInfo_0044a680 {
     unsigned char versionMajor;         // +0xa7
     unsigned char versionMinor;         // +0xa8
     int mapCrc;                         // +0xa9
-};
-
-struct Player_0044a680 {                // 0x14b bytes
-    int active;                         // +0x00
-    char unknown_4[0x22 - 0x4];
-    unsigned char rejectReason;         // +0x22
-    char unknown_23[0x27 - 0x23];
-    PlayerInfo_0044a680* info;          // +0x27
-    char unknown_2b[0x73 - 0x2b];
-    unsigned char type;                 // +0x73
-    char unknown_74[0x146 - 0x74];
-    unsigned char index;                // +0x146
-    char unknown_147[0x14b - 0x147];
 };
 
 struct Gadget_0044a680 {                // 0x15b bytes
@@ -69,7 +58,7 @@ struct Game {
     char unknown_0[0x519];
     Gui_0044a680 gui;                   // +0x519
     char unknown_535[0x1b63 - 0x535];
-    Player_0044a680 players[10];        // +0x1b63
+    Player players[10];                 // +0x1b63
     char unknown_2851[0x2a30 - 0x2851];
     void* net;                          // +0x2a30
     char unknown_2a34[0x2a3c - 0x2a34];
@@ -88,15 +77,15 @@ struct Game {
 };
 #pragma pack(pop)
 
-struct Mission { int GetTerrainLength(); int ComputeMapChecksum(); void LoadMissionByName(PlayerInfo_0044a680* info); char* GetMissionName(); };
+struct Mission { int GetTerrainLength(); int ComputeMapChecksum(); void LoadMissionByName(PlayerInfo* info); char* GetMissionName(); };
 struct UnitSync {
     int AllPlayersSynced();
     void ProcessSync();
     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
     char* GetSyncStatusText();
     void CheckUnitAvailable(unsigned int, int);
+    void SendSyncMessage(unsigned char, int, int, int);
 };
-struct Player { void SetType(int param); };
 
 extern Game* g_game;
 extern int g_battleRoomSlotsBuilt;
@@ -143,7 +132,7 @@ int CheckMapCrc()
         return 0;
     }
     unsigned char me = FindHostSlot();
-    PlayerInfo_0044a680* data = 0;
+    PlayerInfo* data = 0;
     int check = 0;
     if (me != 10) {
         data = g_game->players[me].info;
@@ -162,15 +151,15 @@ int CheckMapCrc()
 
 // The slot swap at 0x4453a0, which has no callers. MSVC inlines it only when
 // it is declared inline (it has a loop).
-inline void __stdcall SwapPlayerSlots(Player_0044a680* param_1, Player_0044a680* param_2)
+inline void __stdcall SwapPlayerSlots(Player* param_1, Player* param_2)
 {
-    Player_0044a680 tmp = *param_2;
+    Player tmp = *param_2;
     *param_2 = *param_1;
     *param_1 = tmp;
-    ((Player*)param_1)->SetType(0);
+    param_1->SetType(0);
     param_1->active = 0;
     for (int i = 0; i <= 10; i++) {
-        Player_0044a680* p = &g_game->players[i];
+        Player* p = &g_game->players[i];
         if (p->active != 0
             && (p->type == 1 || p->type == 2 || p->type == 3)
             && p->index != 10) {
@@ -185,9 +174,9 @@ inline void __stdcall SwapPlayerSlots(Player_0044a680* param_1, Player_0044a680*
 // its loops, like 0x4453a0.
 inline void CompactActivePlayerSlots()
 {
-    Player_0044a680* p = g_game->players;
-    Player_0044a680* q = g_game->players + 1;
-    Player_0044a680* end = g_game->players + 10;
+    Player* p = g_game->players;
+    Player* q = g_game->players + 1;
+    Player* end = g_game->players + 10;
     while (1) {
         if (q >= end && p >= end)
             break;
@@ -223,7 +212,7 @@ void __stdcall UpdateEnergyText(Gui_0044a680* gui, int unused)
 
     if (value != 0) {
         int shown = ReadSliderValue(value) / 100 * 100;
-        PlayerInfo_0044a680* info;
+        PlayerInfo* info;
 
         _itoa(shown, text, 10);
         SetTranslatedTextByName(gui, "ENERGYTEXT", text, 0);
@@ -247,7 +236,7 @@ void __stdcall SetNamedSliderValue(Gui_0044a680* gui, char* name, int value)
 // FUNCTION: 0x44a680
 void UpdateBattleRoom()
 {
-    Player_0044a680* pl;
+    Player* pl;
     Gadget_0044a680* entries;
 
     g_game->frame++;
@@ -286,7 +275,7 @@ void UpdateBattleRoom()
             unsigned char host = FindHostSlot();
             if (host != 10) {
                 if (IsScreenNamed(&g_game->gui, "LOUNGE2.GUI") != 0) {
-                    PlayerInfo_0044a680* info = g_game->players[host].info;
+                    PlayerInfo* info = g_game->players[host].info;
                     g_game->map->LoadMissionByName(info);
                     SetNamedSliderValue(&g_game->gui, "MAXUNITS", g_game->players[host].info->maxUnits - 0x14);
                     SetNamedSliderValue(&g_game->gui, "METAL", g_game->players[host].info->metal * 100);
@@ -295,7 +284,7 @@ void UpdateBattleRoom()
                     UpdateEnergyText(&g_game->gui, 0);
                     UpdateMetalText(&g_game->gui, 0);
                 } else if (IsScreenNamed(&g_game->gui, "viewmap.gui") != 0) {
-                    PlayerInfo_0044a680* info = g_game->players[host].info;
+                    PlayerInfo* info = g_game->players[host].info;
                     if (strcmp(g_game->map->GetMissionName(), info->map) != 0) {
                         g_game->map->LoadMissionByName(g_game->players[host].info);
                         ShowSelectedMapInfo();
@@ -356,12 +345,12 @@ void UpdateBattleRoom()
         {
             // unsigned char counter (a short works too), not int.
             for (unsigned char i = 0; i < 10; i++) {
-                Player_0044a680* p = &g_game->players[i];
+                Player* p = &g_game->players[i];
                 if (p->type != 0 && p->type != 4) {
                     RECT rect;
                     char buf[20];
                     int widget;
-                    PlayerInfo_0044a680* info;
+                    PlayerInfo* info;
                     int w;
                     int h;
                     sprintf(buf, "LOGO%i", i);
@@ -384,7 +373,7 @@ void UpdateBattleRoom()
     ((UnitSync*)g_game->net)->ProcessSync();
     if (g_heartbeatNextTick < (unsigned int)GetTicks()) {
         unsigned char r;
-        PlayerInfo_0044a680* info;
+        PlayerInfo* info;
         g_heartbeatNextTick = GetTicks() + 0x3c;
         r = FindGameCdDrive(1);
         info = pl->info;

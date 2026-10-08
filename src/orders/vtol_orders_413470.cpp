@@ -45,9 +45,7 @@ class Class_0044e730 { public: void SetApproachRadius(short); };
 struct Mover {
     char pad0[0xdc]; int speed;
 };
-struct Player {
-    char pad0[0x146]; unsigned char index;
-};
+#include "../network/player.h"
 struct Unit {
     UnitMotion* type;
     char pad4[0x10 - 4]; Mover* mover;

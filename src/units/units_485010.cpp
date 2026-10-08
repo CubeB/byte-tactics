@@ -44,7 +44,7 @@ struct Entry_486360 {
     char unknown_f6[0x100 - 0xf6];
 };
 
-struct Owner_004864b0 {
+struct PlayerInfo {
     char unknown_0[0x95];
     unsigned char side;                // +0x95
     char unknown_96[5];
@@ -54,35 +54,9 @@ struct Owner_004864b0 {
 
 struct Unit;
 
-struct Player {                        // 0x14b bytes
-    int active;                        // +0x0
-    union {
-        unsigned int key;              // +0x4
-        int dpid;
-    };
-    char unknown_8[0x1f];
-    Owner_004864b0* owner;             // +0x27
-    char name[0x3c];                   // +0x2b
-    Unit* units_begin;                 // +0x67
-    Unit* units_end;                   // +0x6b
-    char unknown_6f[0x73 - 0x6f];
-    unsigned char state;               // +0x73
-    char unknown_74[0xfc - 0x74];
-    short kills;                       // +0xfc
-    short losses;                      // +0xfe
-    char unknown_100[4];
-    short kills2;                      // +0x104
-    short losses2;                     // +0x106
-    char unknown_108[0x21];
-    char allied[10];                   // +0x129
-    char unknown_133[0x140 - 0x133];
-    int unitsCreated;                  // +0x140
-    short unitCount;                   // +0x144
-    unsigned char index;               // +0x146
-    char startPos;
-    unsigned char rank;                // +0x148
-    unsigned short flags;              // +0x149
-};
+// Unused here: these forward declarations take the symbol ids that keep 0x4854a0 matching (docs/c2-regalloc.md).
+struct Sound;
+#include "../network/player.h"
 
 struct Name_004864b0 {
     char name[0x232];                  // +0x0
@@ -622,7 +596,7 @@ void __stdcall AllocateUnitMemory(void)
 int __stdcall ComparePlayers(Player* a, Player* b)
 {
     if (g_game->mission->GetGameType() == 3)
-        return a->key < b->key;
+        return a->id < b->id;
     return a < b;
 }
 
@@ -983,7 +957,7 @@ Unit* __stdcall CreateUnit(unsigned char player, unsigned short typeId, Pos_0048
         return 0;
     if (type->limit != -1) {
         int count = 0;
-        for (Unit* u = pl->units_begin; u <= pl->units_end; u++) {
+        for (Unit* u = pl->unitsBegin; u <= pl->unitsEnd; u++) {
             if (u->typeId == typeId)
                 count++;
         }
@@ -991,10 +965,10 @@ Unit* __stdcall CreateUnit(unsigned char player, unsigned short typeId, Pos_0048
             return 0;
     }
     Unit* unit;
-    for (unit = pl->units_begin; unit <= pl->units_end; unit++) {
+    for (unit = pl->unitsBegin; unit <= pl->unitsEnd; unit++) {
         if (id != 0) {
             unit = &g_game->units[id];
-            if (unit < pl->units_begin || unit > pl->units_end)
+            if (unit < pl->unitsBegin || unit > pl->unitsEnd)
                 return 0;
         }
         if (unit->typeId == 0)
@@ -1054,7 +1028,7 @@ Unit* __stdcall CreateUnitFromPacket(unsigned char player, Spawn_004861d0* spawn
     } else {
         unit = &g_game->units[spawn->id];
     }
-    if (pl->units_begin == 0) {
+    if (pl->unitsBegin == 0) {
         return 0;
     }
     if (unit->typeId != 0) {
@@ -1122,7 +1096,7 @@ void __stdcall CreateUnitCorpse(Unit* unit, int depth, int flag)
 // FUNCTION: 0x486460
 int __stdcall IsUnitCommander(Unit* unit)
 {
-    return _strcmpi(g_game->names[unit->player->owner->side].name, unit->type->name) == 0;
+    return _strcmpi(g_game->names[unit->player->info->side].name, unit->type->name) == 0;
 }
 
 // A live unit that changed its type (the linked unit name at g_game+0x37f5f
@@ -1155,7 +1129,7 @@ void __stdcall KillPlayerUnits(unsigned char player);
 void __stdcall KillUnit(Unit* unit, int param_2)
 {
     if ((unit->flags.all & 0x10000000) != 0) {
-        int same = _strcmpi(g_game->names[unit->player->owner->side].name,
+        int same = _strcmpi(g_game->names[unit->player->info->side].name,
                             unit->type->name) == 0;
         if (same) {
             unit->player->flags &= 0xfffe;
@@ -1192,12 +1166,12 @@ void __stdcall KillUnit(Unit* unit, int param_2)
         else
             cmd.parentId = unit->parent->id;
         if (unit->player->active != 0 &&
-            (unit->player->state == 1 || unit->player->state == 2)) {
-            BroadcastPacket(unit->player->dpid, (unsigned char*)&cmd, 0xb);
+            (unit->player->type == 1 || unit->player->type == 2)) {
+            BroadcastPacket(unit->player->id, (unsigned char*)&cmd, 0xb);
         }
         ApplyUnitDeath(&cmd, 1);
         if (same && g_game->mode != 0 && unit->player->active != 0 &&
-            (unit->player->state == 1 || unit->player->state == 2)) {
+            (unit->player->type == 1 || unit->player->type == 2)) {
             PopUntilNamedLayout(1);
             KillPlayerUnits(unit->playerIndex);
         }
@@ -1279,12 +1253,12 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
             unit->player->losses++;
             if (unit->lastAttackerSlot != 10 && unit->buildLeft == 0.0f && unit->playerIndex != unit->lastAttackerSlot)
                 g_game->players[unit->lastAttackerSlot].kills++;
-            int same = _strcmpi(g_game->names[unit->player->owner->side].name,
+            int same = _strcmpi(g_game->names[unit->player->info->side].name,
                                 unit->type->name) == 0;
             if (same) {
                 if (unit->lastAttackerSlot != 10)
-                    g_game->players[unit->lastAttackerSlot].kills2++;
-                unit->player->losses2++;
+                    g_game->players[unit->lastAttackerSlot].commanderKills++;
+                unit->player->commanderLosses++;
             }
             if (unit->parent != 0 && unit->buildLeft == 0.0f && unit->playerIndex != unit->lastAttackerSlot)
                 unit->parent->killCount++;
@@ -1294,12 +1268,12 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
         }
         break;
     case 3:
-        if (unit->player != 0 && g_game->players[g_game->localPlayer].allied[unit->player->index] == 0) {
+        if (unit->player != 0 && g_game->players[g_game->localPlayer].field_129[unit->player->index] == 0) {
             unit->player->losses++;
-            int same = _strcmpi(g_game->names[unit->player->owner->side].name,
+            int same = _strcmpi(g_game->names[unit->player->info->side].name,
                                 unit->type->name) == 0;
             if (same)
-                unit->player->losses2++;
+                unit->player->commanderLosses++;
             credited = 1;
         }
         break;
@@ -1307,24 +1281,24 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
 
     if (credited && unit->lastAttackerSlot != 10) {
         Player* rec = &g_game->players[unit->lastAttackerSlot];
-        if (rec->active != 0 && (rec->state == 1 || rec->state == 2 || rec->state == 3)
+        if (rec->active != 0 && (rec->type == 1 || rec->type == 2 || rec->type == 3)
             && rec->index != 10
             && (g_game->mission->GetGameType() == 3 || g_game->mission->GetGameType() == 2)
             && rec->rank > 0) {
             int rank = rec->rank;
             int best = rank;
-            int mine = g_game->mode == 2 ? rec->kills2 : rec->kills;
+            int mine = g_game->mode == 2 ? rec->commanderKills : rec->kills;
             int i = 10;
             Player* p = g_game->players;
             // do/while over a Player pointer: otherwise the frame grows.
             do {
-                if (p->state != 0) {
-                    bool hid = p->owner->b6;
+                if (p->type != 0) {
+                    bool hid = p->info->b6;
                     if (!hid) {
                         // Two compare arms: the compiler merges their setg.
                         int ahead;
                         if (g_game->mode == 2)
-                            ahead = mine > p->kills2;
+                            ahead = mine > p->commanderKills;
                         else
                             ahead = mine > p->kills;
                         if (ahead) {
@@ -1349,7 +1323,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
                 if (best == 0) {
                     char text[100];
                     sprintf(text, Translate(g_takenLeadFormat), rec->name,
-                            g_game->mode == 2 ? rec->kills2 : rec->kills);
+                            g_game->mode == 2 ? rec->commanderKills : rec->kills);
                     AddMessage(text, 2, 0, 10);
                 }
             }
@@ -1364,7 +1338,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
         float health = 1.0f - unit->buildLeft;
         float f = health;
         f *= unit->type->x18a;
-        if ((*par)->playerRef.player->active != 0 && (*par)->playerRef.player->state == 2) {
+        if ((*par)->playerRef.player->active != 0 && (*par)->playerRef.player->type == 2) {
             switch (g_game->difficulty) {
             case 0:
                 (*par)->playerRef.field_18 = (*par)->playerRef.field_18 - f * -0.5;
@@ -1410,7 +1384,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
     unit->player->unitCount--;
     if (unit->player->unitCount == 0) {
         if (g_game->mission->GetGameType() == 3)
-            AnnouncePlayerLeft(unit->player->dpid);
+            AnnouncePlayerLeft(unit->player->id);
         if (g_game->mission->GetGameType() == 2)
             AnnounceForcesDestroyed(unit->player);
     }
@@ -1455,8 +1429,8 @@ void __stdcall KillPlayerUnits(unsigned char player)
     if (p != 0) {
         if (p->unitCount != 0) {
             // Indexed again from g_game, not through p: keeps the index base clean.
-            Unit* u = g_game->players[player].units_begin;
-            Unit* last = g_game->players[player].units_end;
+            Unit* u = g_game->players[player].unitsBegin;
+            Unit* last = g_game->players[player].unitsEnd;
             if (u != 0) {
                 for (; u <= last; u++) {
                     unsigned int flags = u->flags.all;
@@ -1464,7 +1438,7 @@ void __stdcall KillPlayerUnits(unsigned char player)
                         if (!(flags & 0x4000)) {
                             Player* d = u->player;
                             if (d->active != 0 &&
-                                (d->state == 1 || d->state == 2)) {
+                                (d->type == 1 || d->type == 2)) {
                                 DamageUnit(u, u, 0x7530, 3, 0);
                             } else {
                                 DetonateUnitWeapon(u, 1);

@@ -5,9 +5,16 @@
 // the map, the object grid and its visitors, and the feature picker for the
 // build-site scan.
 //
-// Four of the module's functions (0x47cc30 AddUnitToMap, 0x47d0e0
-// RemoveUnitFromMap, 0x47d820 GetFootprintHeight and 0x47e2d0) match only in
-// their own file's symbol context, so they stay in files of their own.
+// Four of the module's functions match only in their own file's symbol
+// context, so they stay in files of their own, each for a different reason:
+// 0x47cc30 AddUnitToMap: the symbol count moves the owner index multiply onto
+// the other operand.
+// 0x47d0e0 RemoveUnitFromMap: the count clears bit 14 of g_game's id, which
+// decides how the cell index multiply folds.
+// 0x47d820 GetFootprintHeight: the count changes the operand order of the
+// footprint mask load.
+// 0x47e2d0 CanPlaceFootprintAt: the symbol ids move the def load and the
+// feature lookup's operand order.
 //
 // The full windows.h stays: its declaration count decides how the cell index
 // multiply folds.

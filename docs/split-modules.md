@@ -25,3 +25,7 @@ reason is what stopped it. A module whose row list is empty is one file.
 | graphics/particles | src/graphics/particles_475ef0.cpp | `// FLAGS: /Gi`, which the merged file cannot carry. |
 | graphics/particles | src/graphics/particles_476210.cpp | `// FLAGS: /Gi`, which the merged file cannot carry. |
 | graphics/particles | src/graphics/particles_476490.cpp | `// FLAGS: /Gi`, which the merged file cannot carry. |
+| map/terrain | src/map/terrain_47cc30.cpp | The symbol count moves the owner index multiply onto the other operand. |
+| map/terrain | src/map/terrain_47d0e0.cpp | The count clears bit 14 of g_game's id, which decides how the cell index multiply folds. |
+| map/terrain | src/map/terrain_47d820.cpp | The count changes the operand order of the footprint mask load. |
+| map/terrain | src/map/terrain_47e2d0.cpp | The symbol ids move the def load and the feature lookup's operand order. |

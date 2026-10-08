@@ -2,6 +2,7 @@
 
     uv run tools/rename_fields.py <Type> --from pairs.csv [--dry-run]
     uv run tools/rename_fields.py <Type> --from pairs.csv --views Class_004ce260,Class_004cdb40
+    uv run tools/rename_fields.py <Type> --from pairs.csv --no-explain-views
     uv run tools/rename_fields.py <Type> --from pairs.csv --jobs 8
 
 Each row of pairs.csv is `offset,new[,evidence]`: the offset is hex (`0x4e`
@@ -16,14 +17,16 @@ refuses the job. This tool edits the views of one type only.
 The type's views are the views tools/gametypes.py extracts from each file
 whose name is the type's, `<Type>` or `<Type>_<address>`: the rule its
 base_name() strips the address with, and the one docs/tidy-up.md gives for a
-file's own view of a type (`Unit_0041b2e0` is a Unit). A type whose views use
-more than one name (the projectile's are `Projectile_*`, `Proj_*` and the
-weapon that carries it) is renamed one name family per run. `--views` adds
-view names the name rule cannot find, such as a `Class_004ce260` that is
-really a Sound: the pairs are applied to those views as well. Re-running with
-the same pairs after a rebase is safe: a renamed member is no longer `field_`,
-so there is nothing left to do, and a name that is not found prints the
-extracted names that come closest.
+file's own view of a type (`Unit_0041b2e0` is a Unit), plus every view
+tools/gametypes.py's join (what `gametypes.py --explain` prints) puts in the
+type's group: the `Entry_*` views of a Gadget, the `PlayerData_*` views of a
+PlayerInfo. The join runs over every file this tool reads, so a view a gap
+file has joins with the game files'. The joined views are listed before the
+rename; `--no-explain-views` renames only the name family, and `--views` adds
+view names neither finds, such as those of a type tools/gametypes.py leaves
+out of the header. Re-running with the same pairs after a rebase is safe: a
+renamed member is no longer `field_`, so there is nothing left to do, and a
+name that is not found prints the extracted names that come closest.
 
 The views are read from the same /Z7 objects tools/gametypes.py reads
 (`--dump` writes them as JSON), plus the gap files its header leaves out and
@@ -402,21 +405,30 @@ class Source:
 class Renamer:
     """One run: the type's view names and each file's verdicts."""
 
-    def __init__(self, type_name: str, files: dict, extra_views: list[str] | None = None):
+    def __init__(self, type_name: str, files: dict, extra_views: list[str] | None = None,
+                 joined: dict[str, list[str]] | None = None):
         self.type_name = type_name
         self.exact = bool(gt.SUFFIX.search(type_name))
         self.extra = set(extra_views or ())
+        self.joined = {stem: set(views) for stem, views in (joined or {}).items()}
+        self.joined_names = {view for views in self.joined.values() for view in views}
         self.family: dict[str, list[str]] = defaultdict(list)
         for stem, data in files.items():
+            joined_here = self.joined.get(stem, ())
             for view in data["views"]:
-                if view == type_name or view in self.extra \
+                if view == type_name or view in self.extra or view in joined_here \
                         or (not self.exact and gt.base_name(view) == type_name):
                     self.family[stem].append(view)
 
-    def is_ours(self, tname: str | None) -> bool:
+    def is_ours(self, tname: str | None, ours: set[str]) -> bool:
         if not tname:
             return False
         if tname in self.extra:
+            return True
+        # A joined view is the type only where the join put it: the name rule is
+        # name-wide, but one name can be another type's view in another file, and
+        # `ours` names the family views this file declares (or includes).
+        if tname in self.joined_names and tname in ours:
             return True
         return tname == self.type_name if self.exact else gt.base_name(tname) == self.type_name
 
@@ -447,24 +459,24 @@ class Renamer:
                 return None
         return t
 
-    def use_verdict(self, src: Source, pos: int) -> str | None:
+    def use_verdict(self, src: Source, pos: int, ours: set[str]) -> str | None:
         """ours | other | None for one code use."""
         t = self.resolved(src, pos)
         if t is None:
             return None
-        return "ours" if self.is_ours(t) else "other"
+        return "ours" if self.is_ours(t, ours) else "other"
 
-    def code_verdict(self, src: Source, pos: int) -> str | None:
+    def code_verdict(self, src: Source, pos: int, ours: set[str]) -> str | None:
         s = src.struct_at(pos)
         if s:
-            if self.is_ours(s[0]):
+            if self.is_ours(s[0], ours):
                 return "ours"
             if src.depth_in(s[1], pos) == 0:
                 return "other"  # a member declaration of the other struct
-            return self.use_verdict(src, pos)
-        return self.use_verdict(src, pos)
+            return self.use_verdict(src, pos, ours)
+        return self.use_verdict(src, pos, ours)
 
-    def comment_verdict(self, src: Source, pos: int, old: str) -> str | None:
+    def comment_verdict(self, src: Source, pos: int, old: str, ours: set[str]) -> str | None:
         f = src.func_at(pos)
         s = src.struct_at(pos)
         if f:
@@ -481,7 +493,7 @@ class Renamer:
             region = (nxt[2], nxt[4]) if nxt else (0, len(src.code))
         seen = set()
         for m in word_pattern(old).finditer(src.code, region[0], region[1]):
-            seen.add(self.code_verdict(src, m.start()))
+            seen.add(self.code_verdict(src, m.start(), ours))
         if not seen:
             return None
         if seen == {"ours"}:
@@ -518,11 +530,11 @@ class Renamer:
             if kind == "literal":
                 continue
             if kind == "comment":
-                v = self.comment_verdict(src, pos, old)
+                v = self.comment_verdict(src, pos, old, ours)
                 if v == "ours" or (v is None and not ambiguous):
                     edits.append((pos, old, new))
                 continue
-            v = self.code_verdict(src, pos)
+            v = self.code_verdict(src, pos, ours)
             if v == "other":
                 continue  # another class's member, whatever the method says
             if v == "ours":
@@ -620,6 +632,33 @@ def extract_all(jobs: int) -> tuple[dict, dict[str, Path]]:
             files[stem] = data
             paths[stem] = path
     return files, paths
+
+
+def explained_views(files: dict, name: str) -> dict[str, list[str]]:
+    """The views tools/gametypes.py's join puts in the type asked for.
+
+    The join is gametypes' own: the Program, its edges and its layouts, which
+    are what `gametypes.py --explain` prints. It runs over every file this tool
+    reads, the game files plus the gap, library and header views its extraction
+    adds, so a view only a gap file has joins with the game files' as well.
+    `name` is the type's name or any view name in its group; the result is the
+    group's views as {file id: [view name]}, empty when none joins to it.
+    """
+    definers = {r["symbol"]: gt.file_id(gt.ROOT / r["file"])
+                for r in csv.DictReader(gt.PROGRESS.open())}
+    program = gt.Program(files, definers, gt.declared_names(), gt.system_names())
+    program.build()
+    layouts = program.layouts()
+    # The name is the type's own when a type has it; a view name only says which
+    # group it joined (a file's `Gadget` view can be a Layer, so the group named
+    # Gadget wins and the names are not mixed with it).
+    group = [lay for lay in layouts if lay.name == name] \
+        or [lay for lay in layouts if any(node[1] == name for node in lay.nodes)]
+    out: dict[str, list[str]] = defaultdict(list)
+    for lay in group:
+        for stem, view in lay.nodes:
+            out[stem].append(view)
+    return dict(out)
 
 
 INCLUDE = re.compile(r'^\s*#\s*include\s+[<"]([^">]+)[>"]', re.M)
@@ -737,8 +776,11 @@ def main() -> int:
                     help="a CSV of offset,new[,evidence] rows")
     ap.add_argument("--dry-run", action="store_true", help="print what would change and stop")
     ap.add_argument("--views", metavar="Name,Name", default="",
-                    help="further view names of the type, which its name rule cannot find "
-                         "(Class_004ce260,Class_004cdb40)")
+                    help="further view names of the type, which neither its name rule nor "
+                         "gametypes' join finds")
+    ap.add_argument("--no-explain-views", action="store_true",
+                    help="rename only the name rule's views, not the ones tools/gametypes.py's "
+                         "join adds")
     ap.add_argument("--jobs", type=int, default=min(8, os.cpu_count() or 4))
     args = ap.parse_args()
 
@@ -750,7 +792,10 @@ def main() -> int:
 
     extra = [v for v in re.split(r"[,\s]+", args.views) if v]
     files, paths = extract_all(args.jobs)
-    rename = Renamer(args.type, files, extra)
+    joined: dict[str, list[str]] = {}
+    if not args.no_explain_views:
+        joined = explained_views(files, args.type)
+    rename = Renamer(args.type, files, extra, joined)
     if not rename.family:
         names = sorted({v for data in files.values() for v in data["views"]})
         close = [n for n in names if args.type.lower() in n.lower()]
@@ -842,6 +887,13 @@ def main() -> int:
             edits_by_file[stem] = edits
 
     count = sum(len(e) for e in edits_by_file.values())
+    joined_names = sorted({v for views in joined.values() for v in views})
+    if not args.no_explain_views:
+        if joined_names:
+            print(f"{args.type}: gametypes joins {len(joined_names)} view name(s): "
+                  + ", ".join(joined_names))
+        else:
+            print(f"{args.type}: gametypes joins no view name, the name rule and --views apply")
     print(f"{args.type}: {len(rename.family)} file(s) with a view, {len(planned)} planned, "
           f"{len(pairs)} pair(s), {'would rename' if args.dry_run else 'renamed'} {count} "
           f"occurrence(s) in {len(edits_by_file)} file(s)")

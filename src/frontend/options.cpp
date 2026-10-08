@@ -1008,7 +1008,7 @@ extern char g_explodeSoundFile[];      // "sounds\\explode.wav"
 extern char DAT_005119b8[];
 extern int DAT_00512c80;
 extern int DAT_00512c84;
-extern char DAT_00512ca8[];
+extern char g_cmdlineHostGameName[];
 extern char DAT_00512d90[];
 extern int g_helpDialogBaseGadgetCount;
 extern Entry_45ffb0 g_optionsFlipFrame;
@@ -1316,8 +1316,8 @@ void __stdcall SetHostGameName(int flag, char* text)
 {
     DAT_00512c84 = flag != 0;
     if (text) {
-        DAT_00512ca8[0] = 0;
-        strncat(DAT_00512ca8, text, 0x3f);
+        g_cmdlineHostGameName[0] = 0;
+        strncat(g_cmdlineHostGameName, text, 0x3f);
     }
 }
 

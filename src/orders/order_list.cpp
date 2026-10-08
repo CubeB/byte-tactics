@@ -232,7 +232,7 @@ public:
     // in order_queue_4384a0.cpp).
     virtual void OrStatusFlags(unsigned int);
 
-    unsigned char kind;              // +0x4, index into DAT_00512344
+    unsigned char kind;              // +0x4, index into g_missionOrderTableBegin
     unsigned char count;             // +0x5
     unsigned int flags6;             // +0x6, bit 0 set while the node waits
     unsigned int wakeFrame;          // +0xa
@@ -365,7 +365,7 @@ struct Elem_0043c390 {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern Elem_0043c390* DAT_00512344;
+extern Elem_0043c390* g_missionOrderTableBegin;
 
 void __stdcall DeleteOrder(Unit* owner, Class_0043a1f0* node);
 
@@ -381,7 +381,7 @@ void __stdcall DrawOrderRangeRing(void* a, void* b, Class_0043a1f0* e, Vec3* p, 
 
 // The list-walking dispatcher of the unit: for every object linked into the unit's
 // list at +0x5c (link field at +0x4a, kind byte at +0x4) it looks up the kind's
-// default flags in the table at DAT_00512344 (0x19-byte entries, the flags dword
+// default flags in the table at g_missionOrderTableBegin (0x19-byte entries, the flags dword
 // at +0xc, indexed by the kind byte) and, masked with the `mask` parameter, calls
 // one of five helpers per bit: bit 0 -> 0x438c00, bit 1 -> 0x4394e0, bit 2 ->
 // 0x4399f0, bit 3 -> 0x439740, bit 4 -> 0x4390a0. Bit 4 is only acted on for the
@@ -397,23 +397,23 @@ void __stdcall DrawOrderOverlays(Unit* unit, unsigned int mask, void* obj,
     Vec3 pos = unit->pos;
     bool done = false;
     for (Class_0043a1f0* e = unit->list; e != 0; e = e->next) {
-        if (DAT_00512344[e->kind].field_c & mask & 1) {
+        if (g_missionOrderTableBegin[e->kind].field_c & mask & 1) {
             pos = base;
             DrawBuildFootprint(obj, sel, e, &pos, flag);
         }
-        if (DAT_00512344[e->kind].field_c & mask & 2) {
+        if (g_missionOrderTableBegin[e->kind].field_c & mask & 2) {
             pos = base;
             DrawPathAnim(obj, sel, e, &pos, flag);
         }
-        if (DAT_00512344[e->kind].field_c & mask & 4) {
+        if (g_missionOrderTableBegin[e->kind].field_c & mask & 4) {
             pos = base;
             DrawOrderRangeRing(obj, sel, e, &pos, flag);
         }
-        if (DAT_00512344[e->kind].field_c & mask & 8) {
+        if (g_missionOrderTableBegin[e->kind].field_c & mask & 8) {
             pos = base;
             DrawWeaponCoverage(obj, sel, e, &pos, flag);
         }
-        if (DAT_00512344[e->kind].field_c & mask & 0x10) {
+        if (g_missionOrderTableBegin[e->kind].field_c & mask & 0x10) {
             if (!done) {
                 DrawUnitRangeRings(obj, sel, e, &pos, flag);
                 done = true;
@@ -488,9 +488,9 @@ int __stdcall GetOrderTarget(int param_1)
 int __stdcall GetOrderName(Unit* obj)
 {
     if (obj && obj->list) {
-        return DAT_00512344[obj->list->kind].value;
+        return g_missionOrderTableBegin[obj->list->kind].value;
     }
-    return DAT_00512344[0].value;
+    return g_missionOrderTableBegin[0].value;
 }
 
 // Finds the object's list node of the given kind; the kind table's flag
@@ -499,7 +499,7 @@ int __stdcall GetOrderName(Unit* obj)
 Class_0043a1f0* __stdcall FindOrderByType(Unit* obj, unsigned char kind)
 {
     Class_0043a1f0* n;
-    if (DAT_00512344[kind].flags & 0x40000)
+    if (g_missionOrderTableBegin[kind].flags & 0x40000)
         n = obj->list2;
     else
         n = obj->list;
@@ -634,7 +634,7 @@ void __stdcall EnsurePatrolReturnOrder(Unit* p, Class_0043a1f0* item)
 // base has no destructor of its own.
 // The link member's constructor puts the object in its owner's list and the
 // body then points the link's value at the object; the kind's default flag
-// bits come from the kind table at DAT_00512344, with bits 9 and 10 cleared
+// bits come from the kind table at g_missionOrderTableBegin, with bits 9 and 10 cleared
 // when the list owner or the position pointer is absent.
 // This view keeps `kind(k)` a plain member initialiser; the other file's view
 // adds a second base that rules it out.
@@ -651,7 +651,7 @@ Class_0043a1f0::Class_0043a1f0(unsigned char k, Unit* o, Vec3* p, int a, int b, 
     field_4e = 0;
     wakeFrame = -1;
     pos = p ? *p : Vec3Init_0043a1f0(0, 0, 0);
-    flags = DAT_00512344[k & 0xff].flags;
+    flags = g_missionOrderTableBegin[k & 0xff].flags;
     unit = 0;
     next = 0;
     attached = 0;
@@ -990,8 +990,8 @@ public:
 #pragma pack(pop)
 
 extern Game* g_game;
-extern Elem_0043c390* DAT_00512344;
-extern int DAT_00512348;
+extern Elem_0043c390* g_missionOrderTableBegin;
+extern int g_missionOrderTableEnd;
 extern Elem_0043c390 g_readyOrder[];
 extern signed char g_slopeSpeedFactor[];
 
@@ -1087,7 +1087,7 @@ void __stdcall AdjustBuildCount(int kind, Unit* owner, int id, int amount)
 {
     Class_0043a1f0* node;
     if (amount > 0) {
-        if (DAT_00512344[kind & 0xff].flags & 0x40000)
+        if (g_missionOrderTableBegin[kind & 0xff].flags & 0x40000)
             node = owner->list2;
         else
             node = owner->list;
@@ -1103,7 +1103,7 @@ void __stdcall AdjustBuildCount(int kind, Unit* owner, int id, int amount)
     }
     for (;;) {
         Class_0043a1f0* found = 0;
-        if (DAT_00512344[kind & 0xff].flags & 0x40000)
+        if (g_missionOrderTableBegin[kind & 0xff].flags & 0x40000)
             node = owner->list2;
         else
             node = owner->list;
@@ -1289,7 +1289,7 @@ static void ClearTargets_0043b7c0(Unit* unit)
 }
 
 // Per-frame driver of a unit's command list (+0x5c): every node that is due
-// (or has a pending bit) is handed to its kind's callback in DAT_00512344,
+// (or has a pending bit) is handed to its kind's callback in g_missionOrderTableBegin,
 // and the answer decides what happens to it. The list head is re-read after
 // every node, so a node the callback re-queues is seen again in the same
 // pass. 0x43bad0 is the twin for the +0x60 list.
@@ -1314,7 +1314,7 @@ void __stdcall RunOrders(Unit* unit)
         node->flags6 = 0;
         if (pending & 0x10000)
             ClearTargets_0043b7c0(unit);
-        switch (DAT_00512344[node->kind].notify(node->unit, node, pending)) {
+        switch (g_missionOrderTableBegin[node->kind].notify(node->unit, node, pending)) {
         case 3:
             Wait_0043b7c0(node, 0xf);
             break;
@@ -1385,7 +1385,7 @@ static void RemoveAndDelete(Unit* p, Class_0043a1f0* child)
 
 // Drives a parent's list of attach/spot nodes (Class_0043a1f0) once per pass:
 // every node that is due (or not waiting) is offered to the callback table
-// DAT_00512344, and the answer decides what happens to it. The list is
+// g_missionOrderTableBegin, and the answer decides what happens to it. The list is
 // restarted from the head after every node, so nodes added by the callback
 // are seen in the same pass.
 // FUNCTION: 0x43bad0
@@ -1396,7 +1396,7 @@ void __stdcall RunSecondaryOrders(Unit* p)
         if (child->flags6 == 0 || g_game->frame >= child->wakeFrame) {
             child->flags6 = 0;
             // Case order (3, 1, 0, 2/4, 5/8/9, 6/7, default) sets the body layout.
-            switch (DAT_00512344[child->kind].notify(child->unit, child, 0)) {
+            switch (g_missionOrderTableBegin[child->kind].notify(child->unit, child, 0)) {
             case 3: {
                 // Ask again in a while. The temporary keeps the sum from being
                 // folded into one lea, which is what the original does.
@@ -1436,7 +1436,7 @@ void __stdcall RunSecondaryOrders(Unit* p)
 }
 
 // File-static: internal linkage keeps the vector bounds in registers across the sort.
-static Vec_0043c390 DAT_00512340;
+static Vec_0043c390 g_missionOrderTableVec;
 
 // std::_Unguarded_insert
 inline void __stdcall InsertShiftOrderTypes(Elem_0043c390* _L, Elem_0043c390 _V, Pred_0043c390 _P)
@@ -1539,10 +1539,10 @@ extern int DAT_0051234c;
 void __stdcall RegisterOrderTypes(Elem_0043c390* from, int count)
 {
     // Own statement: `size() + count` in one expression swaps the lea operands.
-    int sz = DAT_00512340.size();
-    DAT_00512340.reserve(sz + count);
-    std::copy(from, from + count, std::back_inserter(DAT_00512340));
-    sort_0043bc90(DAT_00512340.begin(), DAT_00512340.end(), CompareOrderTypeNames);
+    int sz = g_missionOrderTableVec.size();
+    g_missionOrderTableVec.reserve(sz + count);
+    std::copy(from, from + count, std::back_inserter(g_missionOrderTableVec));
+    sort_0043bc90(g_missionOrderTableVec.begin(), g_missionOrderTableVec.end(), CompareOrderTypeNames);
 }
 
 // FUNCTION: 0x43c020
@@ -1568,7 +1568,7 @@ void RegisterAllOrderTypes()
 // FUNCTION: 0x43c350
 void ClearOrderTypeTable()
 {
-    DAT_00512348 = (int)DAT_00512344;
+    g_missionOrderTableEnd = (int)g_missionOrderTableBegin;
 }
 
 // FUNCTION: 0x43c360

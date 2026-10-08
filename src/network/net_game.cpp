@@ -2918,7 +2918,7 @@ struct Packet_00457d30 {
 
 #pragma pack(pop)
 
-extern char DAT_00512ca8[];
+extern char g_cmdlineHostGameName[];
 extern char DAT_00512c98[];
 
 int __stdcall HAPINET_guaranteepackets(int param_1);
@@ -3662,8 +3662,8 @@ int InitLobbiedConnection()
 
             char username[16];
             username[0] = 0;
-            if (DAT_00512ca8[0] != 0) {
-                strncat(username, DAT_00512ca8, 0x10);
+            if (g_cmdlineHostGameName[0] != 0) {
+                strncat(username, g_cmdlineHostGameName, 0x10);
             } else if (DAT_00512c98[0] != 0) {
                 strncat(username, DAT_00512c98, 0x10);
             } else {

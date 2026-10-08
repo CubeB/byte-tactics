@@ -343,7 +343,7 @@ struct Game {
 // GLOBAL: 0x511de8
 extern Game* g_game;
 extern int g_endGameGlamourSoundStarted;
-extern CMemoryCache DAT_00511f80;
+extern CMemoryCache g_debrisMemCache;
 extern void __cdecl FreeMemoryCache();
 
 void __cdecl FUN_004d83a0(int);
@@ -1226,12 +1226,12 @@ void __stdcall RunEndGameState()
 // FUNCTION: 0x4205f0
 void InitMemoryCache(void)
 {
-    DAT_00511f80.ClearPointers();
+    g_debrisMemCache.ClearPointers();
     atexit(FreeMemoryCache);
 }
 
 // FUNCTION: 0x420610
 void __cdecl FreeMemoryCache()
 {
-    DAT_00511f80.FreeBuffer();
+    g_debrisMemCache.FreeBuffer();
 }

@@ -204,16 +204,16 @@ extern Game* g_game;
 typedef int (__stdcall *SendFn_0046c620)(int, Rect_0046c620*, void*, int, Name_0046c620*,
                                          int, int, int, void*, void*);
 
-extern int DAT_0051e550;
+extern int g_onlineReportScores;
 extern Name_0046c620 g_reportPlayerName;
-extern int* DAT_0051e574;
+extern int* g_onlineReportPlayers;
 extern void* DAT_0051e57c;
 extern SendFn_0046c620 DAT_0051e584;
 extern int DAT_0051e58c;
 extern int DAT_0051e590;
 extern int g_reportFlags;
 extern void (*DAT_0051e580)(void);
-extern int (__stdcall* DAT_0051e548)(int, int);
+extern int (__stdcall* g_riReportGameChat)(int, int);
 
 Rect_0046c620* __stdcall GetSessionGuidInstance(Net_4c97b0* p);
 int __stdcall GetCreatedLobbyInterface(Net_4c97b0* p);
@@ -228,7 +228,7 @@ int __stdcall ReportGameEvent(int msg)
 {
     if (!DAT_0051e590 && !DAT_0051e58c)
         return 4;
-    if (!DAT_0051e574 || !DAT_0051e57c || !DAT_0051e550)
+    if (!g_onlineReportPlayers || !DAT_0051e57c || !g_onlineReportScores)
         return 1;
 
     Rect_0046c620 rect = *GetSessionGuidInstance(&g_game->net);
@@ -252,7 +252,7 @@ int __stdcall ReportGameEvent(int msg)
             int team = g_game->field_391e9->GetMissionName();
             if (RIReport(msg, &rect, (char*)&g_game->field_39201, thing, &g_reportPlayerName,
                              team, g_game->player,
-                             id, DAT_0051e574, DAT_0051e57c))
+                             id, g_onlineReportPlayers, DAT_0051e57c))
                 DAT_0051e590 = 0;
         }
     }
@@ -261,7 +261,7 @@ int __stdcall ReportGameEvent(int msg)
         int team = g_game->field_391e9->GetMissionName();
         DAT_0051e584(msg, &rect, (char*)&g_game->field_39201, thing, &g_reportPlayerName,
                      team, g_game->player,
-                     id, DAT_0051e574, DAT_0051e57c);
+                     id, g_onlineReportPlayers, DAT_0051e57c);
     }
 
     return 0;
@@ -273,11 +273,11 @@ int __stdcall ReportGameChat(int msg)
     if ((DAT_0051e590 != 0 && (g_reportFlags & 8)) || DAT_0051e58c != 0) {
         FillScoreTables();
         if (DAT_0051e590 != 0 && (g_reportFlags & 8)) {
-            if (RIReportGameChat(DAT_0051e574[g_game->player], msg))
+            if (RIReportGameChat(g_onlineReportPlayers[g_game->player], msg))
                 DAT_0051e590 = 0;
         }
         if (DAT_0051e58c != 0)
-            return DAT_0051e548(DAT_0051e574[g_game->player], msg);
+            return g_riReportGameChat(g_onlineReportPlayers[g_game->player], msg);
         return 0;
     }
     return 4;

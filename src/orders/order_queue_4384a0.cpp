@@ -1,6 +1,6 @@
 // Decompiled by Opus, Haiku, deepseek-v4.1, DeepSeek V4.1 Flash, deepseek-v4.1-flash, space-bunny-free, Space Bunny Free and Claude Opus 5.5. Names are provisional.
 // The build-queue object Class_0043a1f0 and the code around it: the unit's
-// list of orders at +0x5c, the order-type table at DAT_00512344, the
+// list of orders at +0x5c, the order-type table at g_missionOrderTableBegin, the
 // StartBuilding and StopBuilding script calls and the objects attached to an
 // order. A build-queue object holds a kind from the order-type table, the unit
 // it belongs to, a link into its owner's list and an attached object at +0x52.
@@ -62,7 +62,7 @@ struct Unit {                          // 0x118 bytes
     void ReleaseWeapons(int param_1);
 };
 
-struct Entry_0043a1f0 {                // 0x19-byte entries at DAT_00512344
+struct Entry_0043a1f0 {                // 0x19-byte entries at g_missionOrderTableBegin
     char unknown_0[4];
     void (__stdcall* notify)(Unit* unit, Class_0043a1f0* obj, int code);   // +0x4
     char unknown_8[0x11 - 0x8];
@@ -149,8 +149,8 @@ void __stdcall SendScriptCall(Unit* obj, int index, int param_3, int param_4, in
 void __stdcall QueueUnitSpeech(Unit* unit, int kind, char* text);
 
 extern Game* g_game;
-extern Entry_0043a1f0* DAT_00512344;
-extern Entry_0043a1f0* DAT_00512348;
+extern Entry_0043a1f0* g_missionOrderTableBegin;
+extern Entry_0043a1f0* g_missionOrderTableEnd;
 
 // The 0x10-byte link at +0x12: its constructor puts the object in its
 // owner's list; 0x489650 is its destructor.
@@ -406,8 +406,8 @@ extern int __cdecl _strcmpi(const char*, const char*);
 // FUNCTION: 0x438760
 Class_00438760::Class_00438760(const char* name)
 {
-    Entry_0043a1f0* first = DAT_00512344;
-    int n = DAT_00512348 - DAT_00512344;
+    Entry_0043a1f0* first = g_missionOrderTableBegin;
+    int n = g_missionOrderTableEnd - g_missionOrderTableBegin;
     for (; 0 < n; ) {
         int n2 = n / 2;
         Entry_0043a1f0* m = first;
@@ -418,8 +418,8 @@ Class_00438760::Class_00438760(const char* name)
         else
             n = n2;
     }
-    if (first != DAT_00512348 && _strcmpi(first->name, name) == 0) {
-        index = (unsigned char)(first - DAT_00512344);
+    if (first != g_missionOrderTableEnd && _strcmpi(first->name, name) == 0) {
+        index = (unsigned char)(first - g_missionOrderTableBegin);
         return;
     }
     index = 0;
@@ -438,7 +438,7 @@ int OrderType::GetTableEntry()
 {
     unsigned int result = 0;
     result = *(unsigned char*)this;
-    int* base = (int*)&DAT_00512344;
+    int* base = (int*)&g_missionOrderTableBegin;
     int fives = result * 5;
     return *base + fives * 4 + fives;
 }
@@ -449,7 +449,7 @@ int __fastcall GetTableEntryByTypeByte(unsigned char* param_1)
     unsigned int eax = 0;
     eax = *param_1;
     eax = eax + eax * 4;
-    int edx = (int)DAT_00512344 + eax * 4;
+    int edx = (int)g_missionOrderTableBegin + eax * 4;
     eax = eax + edx;
     return eax;
 }
@@ -662,7 +662,7 @@ void Class_00438ad0::AttachBuildFootprintMarker(Point_00438ad0 cell, Point_00438
 }
 
 // Changes the object's kind: stores the new kind and reloads its flags from
-// the kind table (DAT_00512344, 0x19-byte entries, default flags at +0x11),
+// the kind table (g_missionOrderTableBegin, 0x19-byte entries, default flags at +0x11),
 // keeping the object's own bits 9 and 10 (0x600; the constructor 0x43a0c0
 // clears them individually). The layout (kind at +0x4, flags at +0x42)
 // matches Class_0043a1f0, which this probably is.
@@ -683,7 +683,7 @@ void Class_00438b90::MergeFlagsFromTable(int k)
 {
     kind = k;
     // The two table index expressions must differ, or the entry load is shared.
-    flags = ((DAT_00512344[k & 0xff].flags ^ flags) & 0x600) ^ DAT_00512344[kind].flags;
+    flags = ((g_missionOrderTableBegin[k & 0xff].flags ^ flags) & 0x600) ^ g_missionOrderTableBegin[kind].flags;
 }
 
 // FUNCTION: 0x438be0
@@ -705,7 +705,7 @@ int __stdcall GetOrderFlags(void* param)
 Class_0043a1f0::~Class_0043a1f0()
 {
     if (flags6 & 2) {
-        DAT_00512344[kind].notify(unit, this, 2);
+        g_missionOrderTableBegin[kind].notify(unit, this, 2);
     }
     if (flags & 0x400000) {
         Unit* obj = unit;
@@ -755,10 +755,10 @@ short __stdcall ResolveUnitTypeKey(HapiBank* file, unsigned short id)
 
 static unsigned char KindByName_0043a420(char* s)
 {
-    Entry_0043a1f0* e = LowerBoundOrderTypes(DAT_00512344, DAT_00512348, s, OrderTypeNameLess, 0);
-    if (e == DAT_00512348 || _strcmpi(e->name, s) != 0)
+    Entry_0043a1f0* e = LowerBoundOrderTypes(g_missionOrderTableBegin, g_missionOrderTableEnd, s, OrderTypeNameLess, 0);
+    if (e == g_missionOrderTableEnd || _strcmpi(e->name, s) != 0)
         return 0;
-    return (unsigned char)(e - DAT_00512344);
+    return (unsigned char)(e - g_missionOrderTableBegin);
 }
 
 static unsigned char KindByIndex_0043a420(unsigned char want)
@@ -766,7 +766,7 @@ static unsigned char KindByIndex_0043a420(unsigned char want)
     // Stays a helper with idx declared before k: inline, the scan keeps its counter in ECX.
     int idx = 0;
     int k = 0;
-    for (Entry_0043a1f0* p = DAT_00512344; p <= DAT_00512348; p++, idx++) {
+    for (Entry_0043a1f0* p = g_missionOrderTableBegin; p <= g_missionOrderTableEnd; p++, idx++) {
         if (!(p->flag14 & 1)) {
             if (k == want)
                 break;
@@ -848,7 +848,7 @@ Class_0043a1f0::Class_0043a1f0(Unit* punit, HapiBank* file, char* name)
     flags = desc.flags;
     field_4e = desc.field_36;
 
-    char* sname = DAT_00512344[desc.kind].name;
+    char* sname = g_missionOrderTableBegin[desc.kind].name;
     if (strcmp(sname, "MobileBuild") == 0 || strcmp(sname, "VTOL_MobileBuild") == 0 ||
         strcmp(sname, "BuildingBuild") == 0) {
         field_36 = (unsigned short)ResolveUnitTypeKey((HapiBank*)file, (unsigned short)field_36);
@@ -929,9 +929,9 @@ int Class_0043a1f0::SerializeToSave(Unit* punit, File_0043a970* file, char* name
 
     char buf1[0x80];
     sprintf(buf1, "%s%s", name, "_name");
-    ((HapiBank*)file)->SetStringItem(buf1, DAT_00512344[kind].name);
+    ((HapiBank*)file)->SetStringItem(buf1, g_missionOrderTableBegin[kind].name);
 
-    char* s = DAT_00512344[kind].name;
+    char* s = g_missionOrderTableBegin[kind].name;
     if (strcmp(s, "MobileBuild") == 0 || strcmp(s, "VTOL_MobileBuild") == 0 ||
         strcmp(s, "BuildingBuild") == 0) {
         unsigned short id = field_36;

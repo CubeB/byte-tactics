@@ -277,7 +277,7 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern CMemoryCache DAT_00511f80;
+extern CMemoryCache g_debrisMemCache;
 extern ExplodedPiece* g_explodedPieces[100];
 extern int g_explosion0Duration, g_explosion0StartSize, g_explosion0EndSize, g_explosion1Duration, g_explosion1StartSize, g_explosion1EndSize, g_explosion2Duration, g_explosion2StartSize, g_explosion2EndSize;
 extern unsigned short g_faceVertexIndices[6][4];
@@ -360,7 +360,7 @@ void InitExplosions()
             g_game->frames[i][j].nverts = 4;
             g_game->frames[i][j].vindex = g_faceVertexIndices[j];
         }
-    DAT_00511f80.InitCache(100000);
+    g_debrisMemCache.InitCache(100000);
     memset(g_explodedPieces, 0, sizeof(g_explodedPieces));
 }
 
@@ -382,7 +382,7 @@ Object3D* AllocExplodePieceObject()
 void FreeExplosions(void)
 {
     if (g_game->image != 0) {
-        DAT_00511f80.FreeCache();
+        g_debrisMemCache.FreeCache();
         for (int i = 0; i < 3; i++) {
             if (g_game->explosions[i] != 0) {
                 for (int j = 0; j < g_game->explosions[i]->count; j++) {
@@ -795,7 +795,7 @@ void __stdcall StartExplodePiece(ExplodedPiece* param_1)
         return;
     }
     int num = rec->desc->vertexCount;
-    if (DAT_00511f80.AllocHandle((int*)&g_explodedPieces[index], num * 12 + 0x66) == 0) {
+    if (g_debrisMemCache.AllocHandle((int*)&g_explodedPieces[index], num * 12 + 0x66) == 0) {
         return;
     }
     ExplodedBlock* block = (ExplodedBlock*)g_explodedPieces[index];

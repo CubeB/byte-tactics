@@ -6,8 +6,8 @@
 // Must stay out of net_stats.cpp (no <ddraw.h> here); <stdlib.h> must stay too.
 #include <stdlib.h>
 
-extern int DAT_00511bc8;
-extern int DAT_00511c50;
+extern int g_packetBytesSent;
+extern int g_packetBytesReceived;
 extern int g_byteRatesLastSent;
 extern int g_byteRatesLastReceived;
 extern unsigned int g_byteRatesTick;
@@ -23,10 +23,10 @@ void __stdcall GetByteRates(unsigned int* sent, unsigned int* received)
     unsigned int elapsed = now - g_byteRatesTick;
     if (elapsed > 30) {
         g_byteRatesTick = now;
-        g_bytesSentPerSecond = (DAT_00511bc8 * 30 - g_byteRatesLastSent * 30) / elapsed;
-        g_bytesReceivedPerSecond = (DAT_00511c50 * 30 - g_byteRatesLastReceived * 30) / elapsed;
-        g_byteRatesLastSent = DAT_00511bc8;
-        g_byteRatesLastReceived = DAT_00511c50;
+        g_bytesSentPerSecond = (g_packetBytesSent * 30 - g_byteRatesLastSent * 30) / elapsed;
+        g_bytesReceivedPerSecond = (g_packetBytesReceived * 30 - g_byteRatesLastReceived * 30) / elapsed;
+        g_byteRatesLastSent = g_packetBytesSent;
+        g_byteRatesLastReceived = g_packetBytesReceived;
     }
     *sent = g_bytesSentPerSecond;
     *received = g_bytesReceivedPerSecond;

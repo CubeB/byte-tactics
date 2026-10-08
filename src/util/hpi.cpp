@@ -1425,7 +1425,7 @@ extern char g_dirWildcard[];  // "\\*"
 extern char DAT_0050372c[];  // "*"
 extern char g_dotDot[];      // ".."
 extern char g_dotExtSep[];   // "."
-extern char DAT_00503374[];  // "\\"
+extern char g_pathSepBackslash[];  // "\\"
 
 // Builds one package directory in the growing buffer `out` (size,
 // pointer): a header {count, entries offset}, then one 9-byte entry per file
@@ -1494,7 +1494,7 @@ unsigned int __stdcall HAPI_BuildArchiveDirectory(char* path, HapiBuf* out, int*
                     e->flags |= 1;
                     strcpy(buf, path);
                     if (!trailing)
-                        strcat(buf, DAT_00503374);
+                        strcat(buf, g_pathSepBackslash);
                     strcat(buf, fd.name);
                     unsigned int sub = HAPI_BuildArchiveDirectory(buf, out, total);
                     e = (ArchiveEntry*)(out->buf + entries);

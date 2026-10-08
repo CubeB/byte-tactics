@@ -382,7 +382,7 @@ struct FindData_004cb170 {
     char name[260];                    // +0x14
 };
 
-extern char DAT_00503374[];
+extern char g_pathSepBackslash[];
 extern char DAT_005119b8[];
 
 int __stdcall HAPI_FindFirst(const char* path, FindData_004cb170* fd, int a, int b);
@@ -408,7 +408,7 @@ int __stdcall SaveScreenshot(char* param_1, char* param_2)
     if (game->field_dc == 0)
         return 0;
 
-    const char* sep = flag ? DAT_00503374 : DAT_005119b8;
+    const char* sep = flag ? g_pathSepBackslash : DAT_005119b8;
     sprintf(filename, "%s%s%s*.pcx", param_1, sep, param_2);
 
     int handle = HAPI_FindFirst(filename, &fd, -1, 1);
@@ -421,7 +421,7 @@ int __stdcall SaveScreenshot(char* param_1, char* param_2)
         HAPI_FindClose(handle);
     }
 
-    sep = flag ? DAT_00503374 : DAT_005119b8;
+    sep = flag ? g_pathSepBackslash : DAT_005119b8;
     sprintf(filename, "%s%s%s%04i.pcx", param_1, sep, param_2, best + 1);
 
     Bitmap_004caec0* bitmap = game->bitmap;

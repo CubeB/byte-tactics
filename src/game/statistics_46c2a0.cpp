@@ -89,7 +89,7 @@ struct ScoreBoard_0046c2a0 {           // 0xc bytes
 };
 
 extern Game_0046c2a0* g_game;
-extern PlayerInfo_0046c2a0** DAT_0051e574;
+extern PlayerInfo_0046c2a0** g_onlineReportPlayers;
 extern ScoreBoard_0046c2a0** DAT_0051e57c;
 extern char* g_sideNames[2];           // "Arm", "Core"
 extern char* g_scoreNames[9];          // "Kills", "Losses", ..., "I am Winner"
@@ -108,26 +108,26 @@ int FillScoreTables()
         Player_0046c2a0* p = &g_game->players[i];
         if ((p->active && (p->type == 1 || p->type == 2 || p->type == 3) && p->index != 10) || p->unitsCreated || p->active) {
             count++;
-            DAT_0051e574[i]->name = p->name;
-            DAT_0051e574[i]->id = p->id;
-            DAT_0051e574[i]->flags = 1;
+            g_onlineReportPlayers[i]->name = p->name;
+            g_onlineReportPlayers[i]->id = p->id;
+            g_onlineReportPlayers[i]->flags = 1;
             if ((p->active && p->type == 2) || (p->active && p->type == 3 && p->data->field_94 == 2))
-                DAT_0051e574[i]->flags |= 2;
+                g_onlineReportPlayers[i]->flags |= 2;
             if (p->active && p->data->flag_9b_6)
-                DAT_0051e574[i]->flags |= 4;
+                g_onlineReportPlayers[i]->flags |= 4;
             if (p->active && (p->data->field_97 & 1))
-                DAT_0051e574[i]->flags |= 8;
-            DAT_0051e574[i]->side = g_sideNames[p->data->side];
+                g_onlineReportPlayers[i]->flags |= 8;
+            g_onlineReportPlayers[i]->side = g_sideNames[p->data->side];
             int n = 0;
-            PlayerInfo_0046c2a0** allies = DAT_0051e574[i]->allies;
+            PlayerInfo_0046c2a0** allies = g_onlineReportPlayers[i]->allies;
             PlayerInfo_0046c2a0** a = allies;
             for (j = 0; j < 10; j++) {
                 if (j != i && p->allied[j]) {
                     n++;
-                    *a++ = DAT_0051e574[j];
+                    *a++ = g_onlineReportPlayers[j];
                 }
             }
-            DAT_0051e574[i]->numAllies = n;
+            g_onlineReportPlayers[i]->numAllies = n;
             for (; n < 10; n++)
                 allies[n] = 0;
             Mission* c = g_game->campaign;

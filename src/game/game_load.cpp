@@ -343,7 +343,7 @@ extern "C" int g_loadingBarFlashDecayTick;
 extern int g_usePacketManager;
 extern "C" unsigned char g_loadingBarPrevPercent, DAT_0051e821, DAT_0051e822;
 extern "C" unsigned char DAT_0051e823, DAT_0051e824, DAT_0051e825;
-extern int DAT_005091cc;
+extern int g_nonCampaignGame;
 
 static inline ViewFlags_497180* g_game_view() { return (ViewFlags_497180*)((char*)g_game + 0x14281); }
 
@@ -511,7 +511,7 @@ unsigned short __stdcall GetCellFeature(Cell_00498da0* cell);
 //   shift; the 2-bit field at bits 11-12 and the 1-bit field at 13 give the
 //   `shr ecx,0xb; and ecx,3` and `shr ecx,0xd; and ecx,1` extracts.
 // - Case 2's statement order is copy 0x37eec -> 0x37ee6 first, then
-//   DAT_005091cc = 1, then the settings block; the store through g_game makes
+//   g_nonCampaignGame = 1, then the settings block; the store through g_game makes
 //   MSVC reload g_game for the block, as the original does.
 // - The commander spawn loop is `for (int i = 0; i < 10; i++)` indexing
 //   0x14b-byte records; MSVC strength-reduces it to the byte offset in ebx and
@@ -550,18 +550,18 @@ void __cdecl LoadMatch(void*)
 
     switch (((Mission*)*(void**)((char*)g_game + 0x391e9))->GetGameType()) {
     case 1:
-        DAT_005091cc = 0;
+        g_nonCampaignGame = 0;
         ApplyMissionOptionFlags((Settings_00496e10*)((char*)g_game + 0x39219));
         ApplyUseOnlyUnits();
         break;
     case 2:
         *(unsigned short*)((char*)g_game + 0x37ee6) = *(unsigned short*)((char*)g_game + 0x37eec);
-        DAT_005091cc = 1;
+        g_nonCampaignGame = 1;
         ApplyMissionOptionFlags((Settings_00496e10*)((char*)*(void**)((char*)g_game + 0x29a0) + 0x108));
         break;
     case 3: {
         *(unsigned short*)((char*)g_game + 0x37ee6) = *(unsigned short*)((char*)g_game + 0x37eec);
-        DAT_005091cc = 1;
+        g_nonCampaignGame = 1;
         *(unsigned short*)((char*)g_game + 0x38a51) &= 0xfffe;
 
         int sel = FindHostSlot();
@@ -593,7 +593,7 @@ void __cdecl LoadMatch(void*)
         int sel2 = FindHostSlot();
         char* p2 = *(char**)((char*)g_game + 0x1b63 + 0x14b * sel2 + 0x27);
         PlayerFlags_497180* pf = (PlayerFlags_497180*)(p2 + 0x9b);
-        DAT_005091cc = pf->b13;
+        g_nonCampaignGame = pf->b13;
         *(int*)((char*)g_game + 0x37ef6) = pf->b11_12;
         g_game_view()->bit1 = pf->b9;
         g_game_view()->bit2 = pf->b10;

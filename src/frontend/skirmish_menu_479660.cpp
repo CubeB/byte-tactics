@@ -1240,7 +1240,7 @@ void __stdcall HandleSkirmishCheatText(Cheat* cheat)
 
 extern char g_skirmishGuiName[];
 extern char g_skirmishSetupPictureName[];
-extern char DAT_00502a78[];
+extern char g_difficultyKey[];
 extern char g_easyGadgetName[];
 extern char g_mediumGadgetName[];
 extern char g_hardGadgetName[];
@@ -1262,7 +1262,7 @@ void OpenSkirmishMenu(void)
     LoadPictureCached(g_skirmishSetupPictureName, 0, 0, 0);
 
     g_game->difficulty = g_game->table->field_228;
-    difficulty = FindGadgetOrNull(g_game->menu.holder->entries, DAT_00502a78);
+    difficulty = FindGadgetOrNull(g_game->menu.holder->entries, g_difficultyKey);
     if (g_game->difficulty == 0) {
         difficulty->stageIndex = 0;
         SetGadgetStatusByName(&g_game->menu, g_easyGadgetName, 1);

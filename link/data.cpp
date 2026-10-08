@@ -16,8 +16,8 @@ double TWO_PI = 6.28318530717958;  // 0x4fd2b0 .rdata
 double ONE_EIGHTH = 0.125;  // 0x4fd2b8 .rdata
 const float DAT_004fd4c0 = 0.0f;  // 0x4fd4c0 .rdata
 const float DAT_004fd4cc = 5.0f;  // 0x4fd4cc .rdata
-signed char DAT_004fd670[8] = {0, -1, -1, -1, 0, 1, 1, 1};  // 0x4fd670 .rdata
-signed char DAT_004fd678[8] = {-1, -1, 0, 1, 1, 1, 0, -1};  // 0x4fd678 .rdata
+signed char g_dirDeltaX[8] = {0, -1, -1, -1, 0, 1, 1, 1};  // 0x4fd670 .rdata
+signed char g_dirDeltaZ[8] = {-1, -1, 0, 1, 1, 1, 0, -1};  // 0x4fd678 .rdata
 float g_buildPercentScale = 0.003921568859368563f;  // 0x4fd750 .rdata
 unsigned char DAT_004fdaf0[16] = {0};  // 0x4fdaf0 .rdata
 double g_shadeStep = -0.06875;  // 0x4fdbe8 .rdata
@@ -39,7 +39,7 @@ int DAT_0050289c = 1;  // 0x50289c .data
 char g_campaignKey[12] = "Campaign";  // 0x5028f8 .data
 char g_dotExtSep[4] = ".";  // 0x502910 .data
 char DAT_00502a20[4] = "&G";  // 0x502a20 .data
-char DAT_00502a78[12] = "Difficulty";  // 0x502a78 .data
+char g_difficultyKey[12] = "Difficulty";  // 0x502a78 .data
 char DAT_00502ae8[4] = "OK";  // 0x502ae8 .data
 char g_optionsSoundName[8] = "Options";  // 0x502b38 .data
 // 0x502bf8 .data
@@ -68,7 +68,7 @@ char g_zrbMovie2[8] = "2.zrb";  // 0x503294 .data
 char g_zrbMovie1[8] = "1.zrb";  // 0x50329c .data
 char* g_saveBankName = (char*)"Total Annihilation 3.0";  // 0x50331c .data
 char* g_summaryAccountName = (char*)"Summary";  // 0x503320 .data
-char DAT_00503374[4] = "\\";  // 0x503374 .data
+char g_pathSepBackslash[4] = "\\";  // 0x503374 .data
 const char g_fontsDirName[8] = "fonts";  // 0x50338c .data
 char g_tdfExtension[4] = "TDF";  // 0x50341c .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
 char DAT_0050372c[4] = "*";  // 0x50372c .data
@@ -180,7 +180,7 @@ char DAT_00509018[16] = "NumLeftToKill";  // 0x509018 .data
 char DAT_00509028[32] = "VictoryCondition_KillUnitType";  // 0x509028 .data
 char DAT_005090fc[32] = "DefeatCondition_AllUnitsKilled";  // 0x5090fc .data
 char* DAT_005091c8 = (char*)"SAVEGAME";  // 0x5091c8 .data
-int DAT_005091cc = 1;  // 0x5091cc .data
+int g_nonCampaignGame = 1;  // 0x5091cc .data
 int g_lastCdActivityMode = -1;  // 0x5091d0 .data
 const char g_offscreenSurfaceName[12] = "OFFSCREEN";  // 0x5091d4 .data
 const char g_cdListsKey[8] = "CDLISTS";  // 0x509200 .data
@@ -334,9 +334,9 @@ int g_lastPacketBytesSent;  // 0x511a4c .bss
 unsigned int g_bytesReceivedPerSecond;  // 0x511a50 .bss
 unsigned char DAT_00511a54[4];  // 0x511a54 .bss
 int g_messageCountByType[45][2];  // 0x511a58 .bss (the type runs past the next known address, 0x511a58+0x4)
-int DAT_00511bc0;  // 0x511bc0 .bss
-int DAT_00511bc4;  // 0x511bc4 .bss
-int DAT_00511bc8;  // 0x511bc8 .bss
+int g_messageBytesReceived;  // 0x511bc0 .bss
+int g_messageBytesSent;  // 0x511bc4 .bss
+int g_packetBytesSent;  // 0x511bc8 .bss
 int g_lastPacketBytesReceived;  // 0x511bcc .bss
 char g_commandLineBuf[80];  // 0x511bd0 .bss
 int DAT_00511c20;  // 0x511c20 .bss
@@ -344,14 +344,14 @@ int g_lastPacketsSent;  // 0x511c24 .bss
 int g_lastPacketsReceived;  // 0x511c28 .bss
 int g_byteRatesLastSent;  // 0x511c2c .bss
 unsigned int g_packetBytesReceivedRate;  // 0x511c30 .bss
-int DAT_00511c34;  // 0x511c34 .bss
+int g_packetsSent;  // 0x511c34 .bss
 unsigned int g_messageBytesReceivedRate;  // 0x511c38 .bss
 unsigned int g_messageBytesSentRate;  // 0x511c3c .bss
 int g_lastMessageBytesReceived;  // 0x511c40 .bss
 int g_lastMessageBytesSent;  // 0x511c44 .bss
-int DAT_00511c48;  // 0x511c48 .bss
+int g_packetsReceived;  // 0x511c48 .bss
 unsigned int g_packetBytesSentRate;  // 0x511c4c .bss
-int DAT_00511c50;  // 0x511c50 .bss
+int g_packetBytesReceived;  // 0x511c50 .bss
 unsigned char DAT_00511c54[4];  // 0x511c54 .bss
 int g_messageBytesByType[45][2];  // 0x511c58 .bss (the type runs past the next known address, 0x511c58+0x8)
 unsigned int g_packetsReceivedRate;  // 0x511dc0 .bss
@@ -362,12 +362,12 @@ int g_contourSpacing;  // 0x511dd0 .bss
 int g_contourOffset;  // 0x511dd4 .bss
 unsigned int g_netStatsTick;  // 0x511dd8 .bss
 unsigned int g_byteRatesTick;  // 0x511ddc .bss
-int DAT_00511de0;  // 0x511de0 .bss
+int g_cdBypassDriveScan;  // 0x511de0 .bss
 int g_cdPathMismatch;  // 0x511de4 .bss
 Game* g_game;  // 0x511de8 .bss
 int g_endGameGlamourSoundStarted;  // 0x511dec .bss
 ExplodedPiece* g_explodedPieces[100];  // 0x511df0 .bss
-unsigned char DAT_00511f80[16];  // 0x511f80 .bss
+unsigned char g_debrisMemCache[16];  // 0x511f80 .bss
 int g_explosion0Duration;  // 0x511f90 .bss
 int g_explosion0StartSize;  // 0x511f94 .bss
 int g_explosion0EndSize;  // 0x511f98 .bss

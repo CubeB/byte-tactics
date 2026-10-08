@@ -98,7 +98,7 @@ extern char g_maxUnitsKey[];          // "maxunits"
 extern char g_campaignKey[];          // "Campaign"
 extern char g_missionKey[];           // "Mission"
 extern char g_mapKey[];               // "Map"
-extern char DAT_00502a78[];           // "Difficulty"
+extern char g_difficultyKey[];        // "Difficulty"
 extern char g_sideKey[];              // "Side"
 extern char g_playersKey[];           // "Players"
 extern char g_gameTypeKey[];          // "Gametype"
@@ -239,7 +239,7 @@ int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
     }
     (&file)->SetStringItem(g_missionKey, g_game->campaign->GetMissionName());
     (&file)->SetStringItem(g_mapKey, g_game->campaign->GetMissionName());
-    (&file)->SetIntegerItem(DAT_00502a78, g_game->difficulty);
+    (&file)->SetIntegerItem(g_difficultyKey, g_game->difficulty);
     (&file)->SetIntegerItem(g_sideKey, g_game->players[g_game->localPlayer].unit->side);
     (&file)->SetIntegerItem(g_playersKey, g_game->numPlayers);
     (&file)->SetIntegerItem(g_gameTypeKey, g_game->campaign->GetGameType());

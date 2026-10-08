@@ -31,8 +31,8 @@ extern double TWO_PI;                                                           
 extern double ONE_EIGHTH;                                                                         // 0x4fd2b8, 8 bytes; 1 of 1 files
 extern const float DAT_004fd4c0;                                                                  // 0x4fd4c0, 4 bytes; 1 of 1 files
 extern const float DAT_004fd4cc;                                                                  // 0x4fd4cc, 4 bytes; 1 of 1 files
-extern signed char DAT_004fd670[8];                                                               // 0x4fd670, 8 bytes; 2 of 2 files
-extern signed char DAT_004fd678[8];                                                               // 0x4fd678, 8 bytes; 2 of 2 files
+extern signed char g_dirDeltaX[8];                                                                // 0x4fd670, 8 bytes; 2 of 2 files
+extern signed char g_dirDeltaZ[8];                                                                // 0x4fd678, 8 bytes; 2 of 2 files
 extern float g_buildPercentScale;                                                                 // 0x4fd750, 4 bytes; 1 of 1 files
 extern unsigned char DAT_004fdaf0[16];                                                            // 0x4fdaf0, 16 bytes; V4i by value in 1 of 2 files (conflicting: struct names only)
 extern double g_shadeStep;                                                                        // 0x4fdbe8, 8 bytes; 1 of 1 files
@@ -50,7 +50,7 @@ extern int DAT_0050289c;                                                        
 extern char g_campaignKey[12];                                                                    // 0x5028f8, 12 bytes; 1 of 1 files
 extern char g_dotExtSep[4];                                                                       // 0x502910, 4 bytes; 1 of 1 files
 extern char DAT_00502a20[4];                                                                      // 0x502a20, 4 bytes; 1 of 1 files
-extern char DAT_00502a78[12];                                                                     // 0x502a78, 12 bytes; 2 of 2 files
+extern char g_difficultyKey[12];                                                                  // 0x502a78, 12 bytes; 2 of 2 files
 extern char DAT_00502ae8[4];                                                                      // 0x502ae8, 4 bytes; 2 of 2 files
 extern char g_optionsSoundName[8];                                                                // 0x502b38, 8 bytes; 1 of 1 files
 extern unsigned short g_faceVertexIndices[6][4];                                                  // 0x502bf8, 48 bytes; 1 of 1 files
@@ -75,7 +75,7 @@ extern char g_zrbMovie2[8];                                                     
 extern char g_zrbMovie1[8];                                                                       // 0x50329c, 8 bytes; 1 of 1 files
 extern char* g_saveBankName;                                                                      // 0x50331c, 4 bytes; 1 of 1 files
 extern char* g_summaryAccountName;                                                                // 0x503320, 4 bytes; 1 of 1 files
-extern char DAT_00503374[4];                                                                      // 0x503374, 4 bytes; 3 of 3 files
+extern char g_pathSepBackslash[4];                                                                // 0x503374, 4 bytes; 3 of 3 files
 extern const char g_fontsDirName[8];                                                              // 0x50338c, 8 bytes; 1 of 1 files
 extern char g_tdfExtension[4];                                                                    // 0x50341c, 4 bytes; 1 of 1 files
 extern char DAT_0050372c[4];                                                                      // 0x50372c, 4 bytes; 3 of 3 files
@@ -182,7 +182,7 @@ extern char DAT_00509018[16];                                                   
 extern char DAT_00509028[32];                                                                     // 0x509028, 32 bytes; 1 of 1 files
 extern char DAT_005090fc[32];                                                                     // 0x5090fc, 32 bytes; 1 of 1 files
 extern char* DAT_005091c8;                                                                        // 0x5091c8, 4 bytes; 2 of 2 files
-extern int DAT_005091cc;                                                                          // 0x5091cc, 4 bytes; 2 of 2 files
+extern int g_nonCampaignGame;                                                                     // 0x5091cc, 4 bytes; 2 of 2 files
 extern int g_lastCdActivityMode;                                                                  // 0x5091d0, 4 bytes; 1 of 1 files
 extern const char g_offscreenSurfaceName[12];                                                     // 0x5091d4, 12 bytes; 1 of 1 files
 extern const char g_cdListsKey[8];                                                                // 0x509200, 8 bytes; 1 of 1 files
@@ -247,9 +247,9 @@ extern int g_lastPacketBytesSent;                                               
 extern unsigned int g_bytesReceivedPerSecond;                                                     // 0x511a50, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00511a54[4];                                                             // 0x511a54, 4 bytes; nothing refers to it
 extern int g_messageCountByType[45][2];                                                           // 0x511a58, 360 bytes; 1 of 1 files
-extern int DAT_00511bc0;                                                                          // 0x511bc0, 4 bytes; 3 of 3 files
-extern int DAT_00511bc4;                                                                          // 0x511bc4, 4 bytes; 3 of 3 files
-extern int DAT_00511bc8;                                                                          // 0x511bc8, 4 bytes; 4 of 4 files
+extern int g_messageBytesReceived;                                                                // 0x511bc0, 4 bytes; 3 of 3 files
+extern int g_messageBytesSent;                                                                    // 0x511bc4, 4 bytes; 3 of 3 files
+extern int g_packetBytesSent;                                                                     // 0x511bc8, 4 bytes; 4 of 4 files
 extern int g_lastPacketBytesReceived;                                                             // 0x511bcc, 4 bytes; 1 of 1 files
 extern char g_commandLineBuf[80];                                                                 // 0x511bd0, 80 bytes; 1 of 1 files
 extern int DAT_00511c20;                                                                          // 0x511c20, 4 bytes; 3 of 3 files
@@ -257,14 +257,14 @@ extern int g_lastPacketsSent;                                                   
 extern int g_lastPacketsReceived;                                                                 // 0x511c28, 4 bytes; 1 of 1 files
 extern int g_byteRatesLastSent;                                                                   // 0x511c2c, 4 bytes; 1 of 1 files
 extern unsigned int g_packetBytesReceivedRate;                                                    // 0x511c30, 4 bytes; 1 of 1 files
-extern int DAT_00511c34;                                                                          // 0x511c34, 4 bytes; 3 of 3 files
+extern int g_packetsSent;                                                                         // 0x511c34, 4 bytes; 3 of 3 files
 extern unsigned int g_messageBytesReceivedRate;                                                   // 0x511c38, 4 bytes; 1 of 1 files
 extern unsigned int g_messageBytesSentRate;                                                       // 0x511c3c, 4 bytes; 1 of 1 files
 extern int g_lastMessageBytesReceived;                                                            // 0x511c40, 4 bytes; 1 of 1 files
 extern int g_lastMessageBytesSent;                                                                // 0x511c44, 4 bytes; 1 of 1 files
-extern int DAT_00511c48;                                                                          // 0x511c48, 4 bytes; 3 of 3 files
+extern int g_packetsReceived;                                                                     // 0x511c48, 4 bytes; 3 of 3 files
 extern unsigned int g_packetBytesSentRate;                                                        // 0x511c4c, 4 bytes; 1 of 1 files
-extern int DAT_00511c50;                                                                          // 0x511c50, 4 bytes; 4 of 4 files
+extern int g_packetBytesReceived;                                                                 // 0x511c50, 4 bytes; 4 of 4 files
 extern unsigned char DAT_00511c54[4];                                                             // 0x511c54, 4 bytes; nothing refers to it
 extern int g_messageBytesByType[45][2];                                                           // 0x511c58, 360 bytes; 1 of 1 files
 extern unsigned int g_packetsReceivedRate;                                                        // 0x511dc0, 4 bytes; 1 of 1 files
@@ -275,12 +275,12 @@ extern int g_contourSpacing;                                                    
 extern int g_contourOffset;                                                                       // 0x511dd4, 4 bytes; 1 of 1 files
 extern unsigned int g_netStatsTick;                                                               // 0x511dd8, 4 bytes; 1 of 1 files
 extern unsigned int g_byteRatesTick;                                                              // 0x511ddc, 4 bytes; 1 of 1 files
-extern int DAT_00511de0;                                                                          // 0x511de0, 4 bytes; 2 of 2 files
+extern int g_cdBypassDriveScan;                                                                   // 0x511de0, 4 bytes; 2 of 2 files
 extern int g_cdPathMismatch;                                                                      // 0x511de4, 4 bytes; 1 of 1 files
 extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 143 of 162 files (conflicting: shape)
 extern int g_endGameGlamourSoundStarted;                                                          // 0x511dec, 4 bytes; 1 of 1 files
 extern ExplodedPiece* g_explodedPieces[100];                                                      // 0x511df0, 400 bytes; 1 of 1 files
-extern unsigned char DAT_00511f80[16];                                                            // 0x511f80, 16 bytes; CMemoryCache by value in 2 of 2 files
+extern unsigned char g_debrisMemCache[16];                                                        // 0x511f80, 16 bytes; CMemoryCache by value in 2 of 2 files
 extern int g_explosion0Duration;                                                                  // 0x511f90, 4 bytes; 1 of 1 files
 extern int g_explosion0StartSize;                                                                 // 0x511f94, 4 bytes; 1 of 1 files
 extern int g_explosion0EndSize;                                                                   // 0x511f98, 4 bytes; 1 of 1 files
@@ -735,10 +735,10 @@ extern long DAT_0052a4fc;                                                       
 //   0x4fd2f8 DAT_004fd2f8: defined in src/data/vtables.cpp
 //   0x511a60 DAT_00511a60: part of another global: g_messageCountByType+0x8
 //   0x511c60 DAT_00511c60: part of another global: g_messageBytesByType+0x8
-//   0x512344 DAT_00512344: part of another global: DAT_00512340$S35323+0x4
-//   0x512ca8 DAT_00512ca8: part of another global: DAT_00512c80+0x28
+//   0x512344 g_missionOrderTableBegin: part of another global: g_missionOrderTableVec+0x4
+//   0x512ca8 g_cmdlineHostGameName: part of another global: DAT_00512c80+0x28
 //   0x512d48 DAT_00512d48: part of another global: DAT_00512c80+0xc8
-//   0x51e574 DAT_0051e574: PlayerInfo_0046c2a0** (1), PlayerInfo_0046bce0** (1), int* (1)
+//   0x51e574 g_onlineReportPlayers: PlayerInfo_0046c2a0** (1), PlayerInfo_0046bce0** (1), int* (1)
 //   0x51e57c DAT_0051e57c: ScoreBoard_0046c2a0** (1), ScoreBoard_0046bce0** (1), void* (1)
 //   0x51e59c IUUnitSyncEntry::IU?$pair::?$_Tree::_Nilrefs: defined in src/network/unit_sync.cpp
 //   0x51fba4 g_guiContext: Root_004a32a0* (1), Holder_004a3ef0* (1), int* (1)
@@ -773,7 +773,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x50ced8 g_profilerDialog: defined in src/debug/debug_dialogs.cpp
 //   0x50d980 g_pentiumEvents: defined in src/debug/perf_counters.cpp
 //   0x50da00 g_pentiumProEvents: defined in src/debug/perf_counters.cpp
-//   0x512348 DAT_00512348: part of another global: DAT_00512340$S35323+0x8
+//   0x512348 g_missionOrderTableEnd: part of another global: g_missionOrderTableVec+0x8
 //   0x512358 MovementClassTable::g_movementClasses: defined in src/units/movement_class.cpp
 //   0x512764 g_battleRoomBaseGadgetCount: short (1), int (1)
 //   0x512770 DAT_00512770: char[] (1), Serial_00441c30 (1)
@@ -784,8 +784,8 @@ extern long DAT_0052a4fc;                                                       
 //   0x512d28 DAT_00512d28: part of another global: DAT_00512c80+0xa8
 //   0x512d90 DAT_00512d90: part of another global: DAT_00512c80+0x110
 //   0x512f49 g_optionsBackupUnitChat: part of another global: g_optionsPrefsSnapshot+0x31
-//   0x51e548 DAT_0051e548: int (__stdcall*)(int, char*) (1), int (__stdcall*)(int, int) (1)
-//   0x51e550 DAT_0051e550: char** (1), int (1)
+//   0x51e548 g_riReportGameChat: int (__stdcall*)(int, char*) (1), int (__stdcall*)(int, int) (1)
+//   0x51e550 g_onlineReportScores: char** (1), int (1)
 //   0x51e580 DAT_0051e580: int (__stdcall*)(void) (1), void (__stdcall*)(void) (1)
 //   0x51e584 DAT_0051e584: int (__stdcall*)(int, int, int, int, int, int, int, int, int, int) (1), int (__stdcall*)(int, Rect_0046c620*, void*, int, Name_0046c620*, int, int, int, void*, void*) (1)
 //   0x51e58c DAT_0051e58c: void* (1), int (1)
@@ -867,7 +867,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x50b6e0 DAT_0050b6e0: defined in src/data/unused.cpp
 //   0x5122c4 g_mapCacheBegin: part of another global: src/map/map_list.cpp:0x5122c0+0x4
 //   0x5122c8 g_mapCacheEnd: part of another global: src/map/map_list.cpp:0x5122c0+0x8
-//   0x512340 DAT_00512340$S35323: defined in src/map/meteors.cpp
+//   0x512340 g_missionOrderTableVec: defined in src/map/meteors.cpp
 //   0x512370 DAT_00512370: part of another global: MovementClassTable::g_movementClasses+0x18
 //   0x512774 g_serialBaudRate: part of another global: DAT_00512770+0x4
 //   0x5129f1 DAT_005129f1: part of another global: g_sendCondenser+0x21

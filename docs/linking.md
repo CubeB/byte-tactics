@@ -81,7 +81,7 @@ that library member is linked.
 
 **Global types**: for every global the source refers to by address, the types
 the files declare for it. The type is read from the mangled name of each data
-symbol (`?DAT_00512344@@3PAUEntry@@A` is an `Entry*`). An array mangles exactly
+symbol (`?g_missionOrderTableBegin@@3PAUEntry@@A` is an `Entry*`). An array mangles exactly
 like a pointer (`char x[]` and `char* x` are both `PAD`, so they link but mean
 different things), so arrays are read from the declarations themselves. The
 verdicts are *one type*; *struct names only* (the views agree once struct names
@@ -153,7 +153,7 @@ What stands out:
   `docs/consolidation.md`) and constructors, destructors and class
   `operator delete`s repeated in each file of a class family
   (`SquadTimer`'s constructor in 8 files, `ParticleSystem`'s destructor and
-  `operator delete` in 6). The 3 globals defined twice are `DAT_00512340`,
+  `operator delete` in 6). The 3 globals defined twice are `g_missionOrderTableVec`,
   `g_movementClasses` and `g_packetManager`.
 - **53 folds are silent hazards.** Inline functions and vtables that differ
   between objects link without complaint and the linker keeps any one. Most

@@ -279,7 +279,7 @@ struct Game {
 #pragma pack(pop)
 
 extern int g_shareDialogPlayerNetIds[10];
-extern int DAT_005091cc;
+extern int g_nonCampaignGame;
 extern char g_chatDraftText[];
 extern char g_livePlayerPrefix[];      // "LIVEPLYR"
 extern char g_smallButtonSoundName[];  // "SmallButton"
@@ -706,7 +706,7 @@ void __stdcall HandleTalkDialogEvent(Menu* gadget)
             // folding this into `test byte ptr [g_game + 0x37f2f], 2`.
             if (flags & (unsigned char)(g_game->field_37f2f >> 1))
                 flags = 7;
-            if (DAT_005091cc)
+            if (g_nonCampaignGame)
                 flags |= 2;
             int r = ExecuteCommandLine(p + 1, flags);
             entries = gadget->layer->entries;

@@ -15,7 +15,7 @@ struct FindData_0041d4c0 {
 };
 
 extern int DAT_0050289c;
-extern int DAT_00511de0;
+extern int g_cdBypassDriveScan;
 extern int g_cdPathMismatch;
 
 void HAPI_DropMissingArchives();
@@ -114,7 +114,7 @@ char __stdcall FindGameCdDrive(int side)
     }
     char drive = 0;
     do {
-        if (DAT_00511de0 != 0)
+        if (g_cdBypassDriveScan != 0)
             drive = drive ? '\0' : 'h';
         else
             drive = FindNextCdDrive(drive);

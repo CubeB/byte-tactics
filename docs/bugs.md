@@ -643,7 +643,7 @@ Things that look wrong in the original but have no effect, kept for the record.
   has no UNITINFO section it returns 0 at once (`je 0x42b1bc` from 0x42ac78),
   freeing that file's buffer but not closing the file (the normal path calls
   HAPI_CloseFile at 0x42b173) and not freeing the weapon TDF table at
-  DAT_005122a0 (only the normal end does, from 0x42b20a). Found by a Claude
+  s_weaponTdfParsers (only the normal end does, from 0x42b20a). Found by a Claude
   Code / Opus 5.5 subagent in #2662.
 - **0x413470** (an order handler), state 3 (likely): after two misses it
   allocates a `Class_0044e2d0` waypoint and sets its speed with
@@ -992,14 +992,14 @@ Things that look wrong in the original but have no effect, kept for the record.
   whether the later loops that run to this count (0x430c06 onwards) then
   overrun was not checked. Found in ozgb's OpenCode run in #2244, which gives
   the address of the neighbouring Gamma block (0x4301b7).
-- **0x43a420** (possible): the unit type table DAT_00512344 is a
+- **0x43a420** (possible): the unit type table g_missionOrderTableBegin is a
   `std::vector` (0x512348 is its end), and the name lookup treats it that way
   (`cmp esi, eax; je` at 0x43a51f), but the fallback scan for records without
   a name (0x43a556 to 0x43a598) loops while `p <= end` (`jbe` at 0x43a58d),
   reading the flag byte of the element past the end, and when no kind matches
   it leaves with an index two past the last valid one. That index is not
   rejected (only the name path returns 0) and is used as
-  `DAT_00512344[kind].name` (0x43a66d to 0x43a679) in a `strcmp`. Only a record
+  `g_missionOrderTableBegin[kind].name` (0x43a66d to 0x43a679) in a `strcmp`. Only a record
   whose kind is beyond the table (from another version's save, say) reaches
   it. Found by ozgb's Codex / GPT-6 in #1986 and OpenCode / deepseek-v4.1 in
   #2179.

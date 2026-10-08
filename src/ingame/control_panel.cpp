@@ -445,13 +445,13 @@ struct Game {
 // GLOBAL: 0x511de8
 extern Game* g_game;
 
-extern int DAT_00511bc0;
-extern int DAT_00511bc4;
-extern int DAT_00511bc8;
+extern int g_messageBytesReceived;
+extern int g_messageBytesSent;
+extern int g_packetBytesSent;
 extern int DAT_00511c20;
-extern int DAT_00511c34;
-extern int DAT_00511c48;
-extern int DAT_00511c50;
+extern int g_packetsSent;
+extern int g_packetsReceived;
+extern int g_packetBytesReceived;
 extern Pair_00419560 DAT_00511a60[44];
 extern Pair_00419560 DAT_00511c60[44];
 extern Option_00419560 g_consoleCommands;
@@ -548,8 +548,8 @@ static inline void CellToWorld(Point origin, Point c, Vec3* v)
 void InitCommands()
 {
     DAT_00511c20 = g_game->sideNames[4].field_224;
-    DAT_00511bc0 = 0;
-    DAT_00511bc4 = 0;
+    g_messageBytesReceived = 0;
+    g_messageBytesSent = 0;
     // The second field of the second table is cleared through a walking
     // pointer: the original keeps a separate induction pointer for it.
     Pair_00419560* p = DAT_00511c60;
@@ -560,10 +560,10 @@ void InitCommands()
         p->b = 0;
         p++;
     }
-    DAT_00511c34 = 0;
-    DAT_00511bc8 = 0;
-    DAT_00511c48 = 0;
-    DAT_00511c50 = 0;
+    g_packetsSent = 0;
+    g_packetBytesSent = 0;
+    g_packetsReceived = 0;
+    g_packetBytesReceived = 0;
     RegisterCommands(&g_consoleCommands);
     RegisterCommands(&g_cheatCommands);
     RegisterCommands(&g_debugCommands);

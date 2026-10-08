@@ -457,13 +457,13 @@ void __stdcall CmdSFX(CommandArgs* args);
 extern Game* g_game;
 extern char DAT_005119b8[];
 extern char g_commandLineBuf[];
-extern int DAT_00511bc0;
-extern int DAT_00511bc4;
-extern int DAT_00511bc8;
+extern int g_messageBytesReceived;
+extern int g_messageBytesSent;
+extern int g_packetBytesSent;
 extern int DAT_00511c20;
-extern int DAT_00511c34;
-extern int DAT_00511c48;
-extern int DAT_00511c50;
+extern int g_packetsSent;
+extern int g_packetsReceived;
+extern int g_packetBytesReceived;
 extern int g_contourSpacing;           // contour spacing
 extern int g_contourOffset;            // contour offset
 extern int DAT_0051e698;
@@ -471,7 +471,7 @@ extern Pair_00419560 DAT_00511a60[44];
 extern Pair_00419560 DAT_00511c60[44];
 extern unsigned char g_contourColors[];  // colour by height band
 extern unsigned char g_movementClassColors[];
-extern signed char DAT_004fd670[], DAT_004fd678[];
+extern signed char g_dirDeltaX[], g_dirDeltaZ[];
 
 void __stdcall AddMessage(char* text, int param_2, int param_3, int param_4);
 extern void RemoveAllFeatures();
@@ -1161,8 +1161,8 @@ void __stdcall CmdNetStats(int)
 {
     FUN_004161f0();
     DAT_00511c20 = g_game->field_38a47;
-    DAT_00511bc0 = 0;
-    DAT_00511bc4 = 0;
+    g_messageBytesReceived = 0;
+    g_messageBytesSent = 0;
     Pair_00419560* p = DAT_00511c60;
     for (int i = 0; i < 44; i++) {
         DAT_00511a60[i].a = 0;
@@ -1171,10 +1171,10 @@ void __stdcall CmdNetStats(int)
         p->b = 0;
         p++;
     }
-    DAT_00511c34 = 0;
-    DAT_00511bc8 = 0;
-    DAT_00511c48 = 0;
-    DAT_00511c50 = 0;
+    g_packetsSent = 0;
+    g_packetBytesSent = 0;
+    g_packetsReceived = 0;
+    g_packetBytesReceived = 0;
 }
 
 // FUNCTION: 0x4175e0
@@ -1612,14 +1612,14 @@ void __stdcall DrawMapDebugOverlay(void* surface)
                     case 1: arrowColor = colors[15]; break;
                     case 2: arrowColor = colors[4]; break;
                     }
-                    DrawLine(surface, cx - DAT_004fd670[cell->direction] * 14,
-                                 cy - DAT_004fd678[cell->direction] * 14, cx, cy, arrowColor);
+                    DrawLine(surface, cx - g_dirDeltaX[cell->direction] * 14,
+                                 cy - g_dirDeltaZ[cell->direction] * 14, cx, cy, arrowColor);
                     int direction = (cell->direction + 1) & 7;
-                    DrawLine(surface, cx - DAT_004fd670[direction] * 4,
-                                 cy - DAT_004fd678[direction] * 4, cx, cy, arrowColor);
+                    DrawLine(surface, cx - g_dirDeltaX[direction] * 4,
+                                 cy - g_dirDeltaZ[direction] * 4, cx, cy, arrowColor);
                     direction = (cell->direction - 1) & 7;
-                    DrawLine(surface, cx - DAT_004fd670[direction] * 4,
-                                 cy - DAT_004fd678[direction] * 4, cx, cy, arrowColor);
+                    DrawLine(surface, cx - g_dirDeltaX[direction] * 4,
+                                 cy - g_dirDeltaZ[direction] * 4, cx, cy, arrowColor);
                 }
             } else if (g_game->mode == 2) {
                 if (tile->height > g_game->seaLevel) {

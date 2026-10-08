@@ -146,7 +146,7 @@ struct Game {
 
 extern Game* g_game;
 extern char DAT_00512d48[];
-extern char DAT_00512ca8[];
+extern char g_cmdlineHostGameName[];
 
 int __stdcall ReadRegistryDword(void* section, void* key, void* value);
 int __stdcall ReadRegistryData(void* section, void* key, void* buf, void* size);
@@ -442,9 +442,9 @@ void LoadSettings()
             g_game->nickname[0] = 0;
         }
     }
-    if (DAT_00512ca8[0] != 0) {
+    if (g_cmdlineHostGameName[0] != 0) {
         g_game->gameName[0] = 0;
-        strncat(g_game->gameName, DAT_00512ca8, 0x10);
+        strncat(g_game->gameName, g_cmdlineHostGameName, 0x10);
     } else {
         value = 0x11;
         if (ReadRegistryData("Total Annihilation", "Game Name", g_game->gameName, &value) == 0) {

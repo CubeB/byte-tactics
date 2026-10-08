@@ -66,7 +66,7 @@ extern char g_cameraZPosition[]; // "Z Position"
 extern char g_cameraXPosition[]; // "X Position"
 
 extern int g_commandLineUnusedFlagL;
-extern int DAT_00511de0;
+extern int g_cdBypassDriveScan;
 
 void ClampCameraPosition(void);
 
@@ -173,5 +173,5 @@ void __stdcall SetCommandLineUnusedFlagL(int val)
 // FUNCTION: 0x41d4b0
 void __stdcall SetBypassDriveScan(int val)
 {
-    DAT_00511de0 = val;
+    g_cdBypassDriveScan = val;
 }

@@ -45,3 +45,4 @@ Class_004c4760::GetFieldDouble,0x4c4760,"TdfRecord::GetFieldDouble under the vie
 Class_004b4bf0::GetBoxSize,0x4b4bf0,"HapiBank::GetBoxSize under its view class in include/ta_types.h, which 0x424c00 includes"
 Class_004b4c10::SeekBox,0x4b4c10,"HapiBank::SeekBox under its view class in include/ta_types.h, which 0x424c00 includes"
 Class_004c91a0::~Class_004c91a0,0x4c9390,"the string handle's destructor, Class_004c9390::ReleaseRef; TdfRecord's scalar deleting destructor (0x4c32f0) calls it out of line, its inline budget spent"
+g_missionOrderTableVec$S35323,0x512340,"the order_list.cpp static view of the mission order table vector; its $S suffix is that file's symbol id, while the meteors.cpp definition the initialiser 0x438450 references carries the undecorated name"

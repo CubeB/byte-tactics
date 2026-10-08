@@ -224,8 +224,8 @@ struct Pair_0040d880 {
 };
 
 extern const Table_0040d880 g_turnCosts;
-extern signed char DAT_004fd670[];     // dx per direction
-extern signed char DAT_004fd678[];     // dy per direction
+extern signed char g_dirDeltaX[];      // dx per direction
+extern signed char g_dirDeltaZ[];      // dy per direction
 
 class Planner_0040eb70;
 
@@ -763,8 +763,8 @@ __int64 Pathfinder::Estimate(int param1, int param2)
 void Pathfinder::ExpandNeighbour(NodeData* from, Cell* fromCell, int turn)
 {
     int dir = (fromCell->dir + turn) & 7;
-    unsigned int x = from->pos.x + DAT_004fd670[dir];
-    unsigned int y = from->pos.y + DAT_004fd678[dir];
+    unsigned int x = from->pos.x + g_dirDeltaX[dir];
+    unsigned int y = from->pos.y + g_dirDeltaZ[dir];
     if (!grid.InBounds(x, y))
         return;
     unsigned int i = grid.width * y + x;
@@ -865,8 +865,8 @@ void Pathfinder::TracePath()
             pts[n & 0x3f] = cur;
             n++;
         }
-        cur.x -= DAT_004fd670[dir];
-        cur.y -= DAT_004fd678[dir];
+        cur.x -= g_dirDeltaX[dir];
+        cur.y -= g_dirDeltaZ[dir];
     }
     pts[n & 0x3f] = start;
     n++;
@@ -903,8 +903,8 @@ greedy:
             if (best == 0)
                 return 0;
             dir = Dir(x, y);
-            nx = DAT_004fd670[dir] + x;
-            ny = DAT_004fd678[dir] + y;
+            nx = g_dirDeltaX[dir] + x;
+            ny = g_dirDeltaZ[dir] + y;
             if (Passable(nx, ny) < 1)
                 break;
             x = nx;
@@ -927,14 +927,14 @@ greedy:
             char stop = (dirA - 3) & 7;
             dirA = (dirA - 2) & 7;
             steps++;
-            nx = DAT_004fd670[dirA] + ax;
-            ny = DAT_004fd678[dirA] + ay;
+            nx = g_dirDeltaX[dirA] + ax;
+            ny = g_dirDeltaZ[dirA] + ay;
             while (Passable(nx, ny) < 1) {
                 if (dirA == stop)
                     return best;
                 dirA = (dirA + 1) & 7;
-                nx = DAT_004fd670[dirA] + ax;
-                ny = DAT_004fd678[dirA] + ay;
+                nx = g_dirDeltaX[dirA] + ax;
+                ny = g_dirDeltaZ[dirA] + ay;
             }
             if (ax == bx && ay == by && dirA == dirB && started)
                 return best;
@@ -954,14 +954,14 @@ greedy:
 
             stop = (dirB + 3) & 7;
             dirB = (dirB + 2) & 7;
-            nx = bx - DAT_004fd670[dirB];
-            ny = by - DAT_004fd678[dirB];
+            nx = bx - g_dirDeltaX[dirB];
+            ny = by - g_dirDeltaZ[dirB];
             while (Passable(nx, ny) < 1) {
                 if (dirB == stop)
                     return best;
                 dirB = (dirB - 1) & 7;
-                nx = bx - DAT_004fd670[dirB];
-                ny = by - DAT_004fd678[dirB];
+                nx = bx - g_dirDeltaX[dirB];
+                ny = by - g_dirDeltaZ[dirB];
             }
             if (ax == bx && ay == by && dirA == dirB)
                 return best;

@@ -39,9 +39,9 @@ extern char DAT_00512c98[];      // 0x512c98
 extern Guid_0046bf30 DAT_004fcd98;
 extern Guid_0046bf30 DAT_004fcdb8;
 extern Guid_0046bf30 DAT_004fcdc8;
-extern PlayerInfo_0046bce0** DAT_0051e574;
+extern PlayerInfo_0046bce0** g_onlineReportPlayers;
 extern ScoreBoard_0046bce0** DAT_0051e57c;
-extern char** DAT_0051e550;
+extern char** g_onlineReportScores;
 extern int DAT_0051e590;
 extern HMODULE DAT_0051e58c;
 
@@ -61,7 +61,7 @@ extern TermFn_0046bf30 g_riTerminate;          // _RITerminate@0
 extern SetCbFn_0046bf30 g_riSetCallbacks;     // _RISetCallbacks@8
 extern TimerFn_0046bf30 DAT_0051e580;         // _RIIntervalTimer@0
 extern ReportFn_0046bf30 DAT_0051e584;         // _RIReport@40
-extern ChatFn_0046bf30 DAT_0051e548;          // _RIReportGameChat@8
+extern ChatFn_0046bf30 g_riReportGameChat;    // _RIReportGameChat@8
 
 void ShutdownScoreTables();
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
@@ -89,18 +89,18 @@ int AllocScoreTables()
     int failed;
     int i;
 
-    DAT_0051e574 = (PlayerInfo_0046bce0**)FUN_004d83b0("PlayersArray", 0x28);
+    g_onlineReportPlayers = (PlayerInfo_0046bce0**)FUN_004d83b0("PlayersArray", 0x28);
     DAT_0051e57c = (ScoreBoard_0046bce0**)FUN_004d83b0("ScoreBoardsArray", 0x28);
-    DAT_0051e550 = (char**)FUN_004d83b0("ScoresArray", 0x28);
-    if (DAT_0051e574 == 0)
+    g_onlineReportScores = (char**)FUN_004d83b0("ScoresArray", 0x28);
+    if (g_onlineReportPlayers == 0)
         goto failed;
     if (DAT_0051e57c == 0)
         goto failed;
-    if (DAT_0051e550 == 0)
+    if (g_onlineReportScores == 0)
         goto failed;
-    memset(DAT_0051e574, 0, 0x28);
+    memset(g_onlineReportPlayers, 0, 0x28);
     memset(DAT_0051e57c, 0, 0x28);
-    memset(DAT_0051e550, 0, 0x28);
+    memset(g_onlineReportScores, 0, 0x28);
     failed = 0;
     i = 0;
     // Both loops are `while (1)` with an early `break`: a `for` is rotated to a
@@ -109,14 +109,14 @@ int AllocScoreTables()
         if (i >= 10)
             break;
         wsprintfA(name, "PlayerInfo%d", i);
-        DAT_0051e574[i] = (PlayerInfo_0046bce0*)FUN_004d83b0(name, 0x18);
-        if (DAT_0051e574[i] == 0) {
+        g_onlineReportPlayers[i] = (PlayerInfo_0046bce0*)FUN_004d83b0(name, 0x18);
+        if (g_onlineReportPlayers[i] == 0) {
             failed = 1;
             break;
         }
         wsprintfA(name, "Allies%d", i);
-        DAT_0051e574[i]->allies = FUN_004d83b0(name, 0x28);
-        if (DAT_0051e574[i]->allies == 0) {
+        g_onlineReportPlayers[i]->allies = FUN_004d83b0(name, 0x28);
+        if (g_onlineReportPlayers[i]->allies == 0) {
             failed = 1;
             break;
         }
@@ -134,12 +134,12 @@ int AllocScoreTables()
         }
         memset(DAT_0051e57c[i]->ppScores, 0, 0x24);
         wsprintfA(name, "Scores%d", i);
-        DAT_0051e550[i] = (char*)FUN_004d83b0(name, 0x48);
-        if (DAT_0051e550[i] == 0) {
+        g_onlineReportScores[i] = (char*)FUN_004d83b0(name, 0x48);
+        if (g_onlineReportScores[i] == 0) {
             failed = 1;
             break;
         }
-        memset(DAT_0051e550[i], 0, 0x48);
+        memset(g_onlineReportScores[i], 0, 0x48);
         int** slot = (int**)DAT_0051e57c[i]->ppScores;
         int j = 0;
         while (1) {
@@ -147,7 +147,7 @@ int AllocScoreTables()
                 break;
             // Three separate statements: otherwise the pointer becomes an induction
             // variable.
-            *slot = (int*)(DAT_0051e550[i] + j);
+            *slot = (int*)(g_onlineReportScores[i] + j);
             j += 8;
             slot++;
         }
@@ -223,8 +223,8 @@ int __stdcall LoadReporterDll(int* param_1, int param_2)
                     if (g_riInitializeEx != 0) {
                         DAT_0051e584 = (ReportFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RIReport@40");
                         if (DAT_0051e584 != 0) {
-                            DAT_0051e548 = (ChatFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RIReportGameChat@8");
-                            if (DAT_0051e548 != 0) {
+                            g_riReportGameChat = (ChatFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RIReportGameChat@8");
+                            if (g_riReportGameChat != 0) {
                                 g_riSetCallbacks = (SetCbFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RISetCallbacks@8");
                                 if (g_riSetCallbacks != 0) {
                                     DAT_0051e580 = (TimerFn_0046bf30)GetProcAddress(DAT_0051e58c, "_RIIntervalTimer@0");
@@ -279,28 +279,28 @@ void ShutdownScoreTables()
         DAT_0051e58c = 0;
     }
     for (int i = 0; i < 10; i++) {
-        if (DAT_0051e574 != 0) {
-            FUN_004d85a0(DAT_0051e574[i]->allies);
-            FUN_004d85a0(DAT_0051e574[i]);
+        if (g_onlineReportPlayers != 0) {
+            FUN_004d85a0(g_onlineReportPlayers[i]->allies);
+            FUN_004d85a0(g_onlineReportPlayers[i]);
         }
         if (DAT_0051e57c != 0) {
             FUN_004d85a0(DAT_0051e57c[i]->ppScores);
             FUN_004d85a0(DAT_0051e57c[i]);
         }
-        if (DAT_0051e550 != 0) {
-            FUN_004d85a0(DAT_0051e550[i]);
+        if (g_onlineReportScores != 0) {
+            FUN_004d85a0(g_onlineReportScores[i]);
         }
     }
-    if (DAT_0051e574 != 0) {
-        FUN_004d85a0(DAT_0051e574);
-        DAT_0051e574 = 0;
+    if (g_onlineReportPlayers != 0) {
+        FUN_004d85a0(g_onlineReportPlayers);
+        g_onlineReportPlayers = 0;
     }
     if (DAT_0051e57c != 0) {
         FUN_004d85a0(DAT_0051e57c);
         DAT_0051e57c = 0;
     }
-    if (DAT_0051e550 != 0) {
-        FUN_004d85a0(DAT_0051e550);
-        DAT_0051e550 = 0;
+    if (g_onlineReportScores != 0) {
+        FUN_004d85a0(g_onlineReportScores);
+        g_onlineReportScores = 0;
     }
 }

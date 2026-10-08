@@ -280,4 +280,4 @@ void MeteorParams::LoadMeteorDefaults()
 // This destructor only frees the storage.
 // FUNCTION: 0x438450 _$E4
 // FUNCTION: 0x438480 _$E2
-Vector_00438480<int> DAT_00512340;
+Vector_00438480<int> g_missionOrderTableVec;

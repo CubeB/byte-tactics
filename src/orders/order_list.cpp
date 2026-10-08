@@ -958,15 +958,15 @@ class Class_0043db50 { public: void UpdateSfxOccupy(Unit* u); };
 class UnitMotion {
 public:
     Iface_0043dd20* obj;               // +0x0
-    int field_4;                       // +0x4
+    int movementClass;                 // +0x4
     Vec3 velocity;                     // +0x8
     Vec3 p2;                           // +0x14
-    int field_20;                      // +0x20, speed
-    short field_24;                    // +0x24, turn this tick
-    int field_26;                      // +0x26
-    int field_2a;                      // +0x2a
+    int speed;                         // +0x20
+    short turn;                        // +0x24, turn this tick
+    int pathLockStamp;                 // +0x26
+    int lastMoveTick;                  // +0x2a
     union {
-        unsigned char field_2e;        // +0x2e
+        unsigned char flags;           // +0x2e
         struct {
             unsigned char mode : 2;    // bits 0-1
             unsigned char flag : 1;    // bit 2
@@ -1687,8 +1687,8 @@ static inline void ClampToCell(Vec3& pos, Point cell, Point draft)
 // FUNCTION: 0x43cc20
 void UnitMotion::UpdateVelocityFromHeading(Unit* unit, int amount)
 {
-    field_20 = field_20 + amount;
-    ClampToZero(field_20);
+    speed = speed + amount;
+    ClampToZero(speed);
 
     // Direction index, limited to the eleven entries of the table.
     int idx = unit->pitch >> 11;
@@ -1702,10 +1702,10 @@ void UnitMotion::UpdateVelocityFromHeading(Unit* unit, int amount)
     range = (int)(((__int64)range << 16) / 0x640000);
     if (unit->pos.yWhole < g_game->seaLevel && !(unit->type->flags1 & 0x81000))
         range = (int)(((__int64)range * 0x8000) >> 16);
-    if (field_20 > range)
-        field_20 = range;
+    if (speed > range)
+        speed = range;
 
-    int dist = field_20;
+    int dist = speed;
     unsigned short angle = unit->heading;
     Vec3 v;
     v.x = -FUN_004b70ef(angle, dist);
@@ -1718,7 +1718,7 @@ void UnitMotion::UpdateVelocityFromHeading(Unit* unit, int amount)
 void UnitMotion::SteerGroundUnit(Unit* unit)
 {
     if (obj->v5() == 0) {
-        field_24 = 0;
+        turn = 0;
         // Bound temporary: loads unit before the turn store and keeps the rate in eax.
         const int& amount = -unit->type->field_19a;
         UpdateVelocityFromHeading(unit, amount);
@@ -1764,23 +1764,23 @@ void UnitMotion::SteerGroundUnit(Unit* unit)
     if (diff != 0) {
         unsigned short max = unit->type->max_turn;
         if (sdiff >= max)
-            field_24 = max;
+            turn = max;
         else if (sdiff <= -max)
-            field_24 = -max;
+            turn = -max;
         else
-            field_24 = diff;
-        unit->heading += field_24;
+            turn = diff;
+        unit->heading += turn;
         unit->moved = 1;
     } else {
-        field_24 = 0;
+        turn = 0;
     }
 
-    // field_20 is copied to spd below so its sign extension is not shared with this
+    // speed is copied to spd below so its sign extension is not shared with this
     // multiply; otherwise it becomes _allmul instead of a one-operand imul.
-    int turned = (int)((((__int64)(adiff & 0xffff) * (__int64)field_20)
+    int turned = (int)((((__int64)(adiff & 0xffff) * (__int64)speed)
                         / unit->type->max_turn));
     int rate = unit->type->field_19a;
-    int spd = field_20;
+    int spd = speed;
     int t = (int)(((__int64)spd * spd) >> 16);
     int q = (int)(((__int64)t << 16) / (2 * rate));
     int r = (int)(((__int64)q * q) >> 32);
@@ -1821,13 +1821,13 @@ void UnitMotion::ApplyBankAndPitch(Unit* owner, Vec3* v)
 #pragma auto_inline(on)
 
 // Changes the 2-bit mode at +0x2e; entering state 1 clears the velocity and
-// field_20 and clears flag 1 on the owner, any other state sets it.
+// speed and clears flag 1 on the owner, any other state sets it.
 // FUNCTION: 0x43d210
 void UnitMotion::SetFlightMode(Unit* owner, int newState)
 {
     if (mode != newState) {
         if (newState == 1) {
-            field_20 = 0;
+            speed = 0;
             Vec3 zero(0, 0, 0);
             velocity = zero;
             ApplyBankAndPitch(owner, &zero);
@@ -1849,8 +1849,8 @@ void UnitMotion::SetFlightMode(Unit* owner, int newState)
 void UnitMotion::SteerAircraft(Unit* unit) {
     if (mode != 2) {
         velocity = Vec3(0, 0, 0);
-        field_20 = 0;
-        field_24 = 0;
+        speed = 0;
+        turn = 0;
         return;
     }
 
@@ -1885,10 +1885,10 @@ void UnitMotion::SteerAircraft(Unit* unit) {
 
     if (unit->spatialBucket != g_game->field_142b7) {
         int lim;
-        if ((field_20 & -4) < 0x40000)
+        if ((speed & -4) < 0x40000)
             lim = 0x10000;
         else
-            lim = field_20 >> 2;
+            lim = speed >> 2;
         if (da.y <= -lim)
             velocity.y = lim;
         else if (da.y >= lim)
@@ -1902,15 +1902,15 @@ void UnitMotion::SteerAircraft(Unit* unit) {
     if (d != 0) {
         unsigned short max = unit->type->max_turn;
         if (d >= (int)max)
-            field_24 = max;
+            turn = max;
         else if (d <= -(int)max)
-            field_24 = (short)-max;
+            turn = (short)-max;
         else
-            field_24 = d;
-        unit->f64.y = (short)(unit->f64.y + field_24);
+            turn = d;
+        unit->f64.y = (short)(unit->f64.y + turn);
         unit->moved = 1;
     } else {
-        field_24 = 0;
+        turn = 0;
     }
 
     if (hd < 8.0f)
@@ -1928,7 +1928,7 @@ void UnitMotion::SteerAircraft(Unit* unit) {
 
     AddFixed(velocity.x, vx);
     AddFixed(velocity.z, vz);
-    field_20 = velocity.Length();
+    speed = velocity.Length();
 
     // Own block so the address-taken delta shares a stack slot with db.
     {
@@ -1958,10 +1958,10 @@ void UnitMotion::UpdatePosition(Unit* u)
         Short3 o = GetPieceAngles(u->obj, u->index);
         u->f64 = o;
         if (u->obj->field_0 != 0) {
-            field_20 = u->obj->field_0->field_20;
+            speed = u->obj->field_0->field_20;
             velocity = u->obj->field_0->velocity;
         } else {
-            field_20 = 0;
+            speed = 0;
             Vec3 zero(0, 0, 0);
             velocity = zero;
         }
@@ -1977,7 +1977,7 @@ void UnitMotion::UpdatePosition(Unit* u)
     if (pos.x == u->pos.x && pos.z == u->pos.z && pos.y == u->pos.y && m == u->mode)
         return;
 
-    field_2a = g_game->field_38a47;
+    lastMoveTick = g_game->field_38a47;
     Point draft = u->draft;
     // Field by field, with draft.x * 0x80000 (a << 19 evaluates draft.x first).
     Point cell;
@@ -1998,9 +1998,9 @@ void UnitMotion::UpdatePosition(Unit* u)
         // ClampToCell stays an inline helper taking both Points by value.
         ClampToCell(pos, u->cell, u->draft);
 
-        if (field_20 > (u->type->maxvelocity / 2)) {
+        if (speed > (u->type->maxvelocity / 2)) {
             int half = u->type->maxvelocity / 2;
-            field_20 = half;
+            speed = half;
             unsigned short angle = u->f64.y;
             Vec3 vec;
             vec.x = -FUN_004b70ef(angle, half);
@@ -2029,12 +2029,12 @@ void UnitMotion::UpdatePosition(Unit* u)
 void UnitMotion::UpdateMoveRate(Unit* unit)
 {
     int rate;
-    if ((field_2e & 4) == 0 && unit->obj == 0
-        && (field_20 != 0 || field_24 != 0)) {
-        if (field_20 <= unit->type->field_1ae) {
+    if ((flags & 4) == 0 && unit->obj == 0
+        && (speed != 0 || turn != 0)) {
+        if (speed <= unit->type->field_1ae) {
             rate = 1;
         } else {
-            rate = 2 + (field_20 > unit->type->field_1b2);
+            rate = 2 + (speed > unit->type->field_1b2);
         }
     } else {
         rate = 0;
@@ -2068,13 +2068,13 @@ void UnitMotion::UpdateMoveRate(Unit* unit)
 UnitMotion::UnitMotion(Unit* unit)
 {
     velocity = Vec3(0, 0, 0);
-    field_20 = 0;
-    field_24 = 0;
-    field_26 = 0;
+    speed = 0;
+    turn = 0;
+    pathLockStamp = 0;
     p2 = Vec3(0, 0, 0);
     mode = 1;
     flag = 0;
-    field_4 = unit->type->field_1b6;
+    movementClass = unit->type->field_1b6;
     if (unit->target->field_0 != 0 && unit->target->type == 3) {
         if (unit->type->flag_800)
             obj = (Iface_0043dd20*)new Class_00490880(unit);
@@ -2116,9 +2116,9 @@ void UnitMotion::SaveMotion(Unit* info, HapiBank* file)
     Record_0043dd70 hdr;
     hdr.velocity = velocity;
     hdr.p2 = p2;
-    hdr.field_20 = field_20;
-    hdr.field_24 = field_24;
-    hdr.field_26 = field_26;
+    hdr.field_20 = speed;
+    hdr.field_24 = turn;
+    hdr.field_26 = pathLockStamp;
     hdr.mode = mode;
     hdr.flag = flag;
     sprintf(name, "u%04xmob", info->id);
@@ -2140,9 +2140,9 @@ void UnitMotion::LoadMotion(Unit* unit, HapiBank* file)
     file->ReadBox(&rec, 0x23);
     velocity = rec.velocity;
     p2 = rec.p2;
-    field_20 = rec.field_20;
-    field_24 = rec.field_24;
-    field_26 = rec.field_26;
+    speed = rec.field_20;
+    turn = rec.field_24;
+    pathLockStamp = rec.field_26;
     mode = rec.mode;
     flag = rec.flag;
 }

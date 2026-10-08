@@ -16,7 +16,7 @@ struct HWND__;
 
 class Sound {
 public:
-    int field_0;                       // +0x00
+    int open;                          // +0x00
     int use3D;                         // +0x04
     float minDistance;                 // +0x08
     float maxDistance;                 // +0x0c
@@ -43,19 +43,19 @@ public:
     int streamSize;                    // +0x1f0
     int streamPos;                     // +0x1f4
     int streamOffset;                  // +0x1f8
-    int field_1fc;                     // +0x1fc
+    int playbackOrder;                 // +0x1fc
     int trackCount;                    // +0x200
-    int field_204;                     // +0x204
+    int lockedTrack;                   // +0x204
     int currentTrack;                  // +0x208
     int playState;                     // +0x20c
     int discSerial;                    // +0x210
     char arr_214[100];                 // +0x214
     int trackCategory;                 // +0x278
-    int field_27c;                     // +0x27c
+    int cdEnabled;                     // +0x27c
     int dataTrack;                     // +0x280, track 1 is not audio
-    int field_284;                     // +0x284
+    int step;                          // +0x284
     int streamTimer;                   // +0x288, the stream's timer
-    int field_28c;                     // +0x28c
+    int callback;                      // +0x28c
     int noDriver;                      // +0x290
 
     int GetDiscSerial();

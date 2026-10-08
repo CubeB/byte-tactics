@@ -745,7 +745,7 @@ void Sound::SetTrackCategory(int mode)
     if (old >= 0)
         g_cdCategorySavedTrack[old] = currentTrack;
     trackCategory = mode;
-    if (field_1fc == 4 || mode == 2 || mode == 3) {
+    if (playbackOrder == 4 || mode == 2 || mode == 3) {
         g_cdFadeVolume = cdVolume;
         if (old == 4) {
             if (g_cdFadeTimer >= 0) {
@@ -766,7 +766,7 @@ void Sound::SetTrackCategory(int mode)
                 g_cdNextTrackTimer = -1;
                 ((Class_004cdb40*)this)->PlayNextTrack();
             } else {
-                field_284 = cdVolume / -18;
+                step = cdVolume / -18;
                 g_cdFadeTimer = AddTimer(2, 0, OnCdFadeTimer);
             }
         }
@@ -896,7 +896,7 @@ int Sound::PlayCdTrack(int index, int flag)
     MCIERROR err;
     HWND hwnd;
 
-    if (field_27c == 0)
+    if (cdEnabled == 0)
         return 1;
     playState = 1;
     if (index == 0) {

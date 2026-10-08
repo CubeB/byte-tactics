@@ -271,7 +271,7 @@ extern void* DAT_00526ff4;
 // FUNCTION: 0x4cee50
 Sound::Sound()
 {
-    field_0 = 0;
+    open = 0;
     use3D = 0;
     noDriver = 0;
     minDistance = 1.0f;

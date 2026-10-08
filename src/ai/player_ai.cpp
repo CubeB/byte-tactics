@@ -66,7 +66,7 @@ struct UnitDef {
 
 struct Mission {
     char unknown_0[0xd30];
-    int field_d30;                     // +0xd30
+    int surfaceMetal;                  // +0xd30
 };
 
 struct Feature {

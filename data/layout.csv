@@ -4265,8 +4265,8 @@ piece,0x4fd748,4,src/units/unit_position.cpp,17,0,game data
 piece,0x4fd74c,4,src/units/unit_position.cpp,17,4,game data
 piece,0x5050f4,14,src/units/unit.cpp,4,0,game data
 piece,0x505104,13,src/units/unit.cpp,18,0,game data
-piece,0x508d58,14,src/units/unit_targets_48a1e0.cpp,3,0,game data
-piece,0x4fd754,4,src/units/unit_ref.cpp,7,0,game data
+piece,0x508d58,14,src/units/unit_targets_489280.cpp,51,0,game data
+piece,0x4fd754,4,src/units/unit_targets_489280.cpp,23,0,game data
 piece,0x508d4c,9,src/units/unit_targets_489280.cpp,14,0,game data
 piece,0x508d48,4,src/units/unit_targets_489280.cpp,11,0,game data
 piece,0x4fd730,8,src/units/unit_targets_489280.cpp,6,0,game data
@@ -12285,7 +12285,7 @@ same,0x508be8,7,src/units/units_4864b0.cpp,4,0,
 same,0x4fd6f8,4,src/units/units_4864b0.cpp,3,0,
 same,0x51e6b0,16,src/units/unit_commands_487bf0.cpp,36,0,
 same,0x4fd748,4,src/units/unit.cpp,15,0,
-same,0x508d80,9,src/units/unit_targets_489fa0.cpp,3,0,
+same,0x508d80,9,src/units/unit_targets_489280.cpp,44,0,
 same,0x4fd758,4,src/ingame/selection_48bd50.cpp,3,0,
 same,0x4fd758,4,src/ingame/selection_48be00.cpp,3,0,
 same,0x4fd758,4,src/ingame/selection_48bf30.cpp,3,0,

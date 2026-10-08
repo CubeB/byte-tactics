@@ -1581,7 +1581,7 @@ address,size,file,symbol,status,similarity
 0x475870,3,src/graphics/particles.cpp,?_Destroy@?$vector@UNanoParticle@@V?$allocator@UNanoParticle@@@std@@@std@@IAEXPAUNanoParticle@@0@Z,matched,100.0
 0x475880,58,src/graphics/particles.cpp,?_Ucopy@?$vector@UNanoParticle@@V?$allocator@UNanoParticle@@@std@@@std@@IAEPAUNanoParticle@@PBU3@0PAU3@@Z,matched,100.0
 0x4758c0,779,src/graphics/particles_4758c0.cpp,?insert@?$vector@UTeleportParticle@@V?$allocator@UTeleportParticle@@@std@@@std@@QAEXPAUTeleportParticle@@IABU3@@Z,matched,100.0
-0x475bd0,791,src/graphics/particles_475bd0.cpp,?insert@?$vector@URecord_00475bd0@@V?$allocator@URecord_00475bd0@@@std@@@std@@QAEXPAURecord_00475bd0@@IABU3@@Z,matched,100.0
+0x475bd0,791,src/graphics/particles_475bd0.cpp,?insert@?$vector@UThrustParticle@@V?$allocator@UThrustParticle@@@std@@@std@@QAEXPAUThrustParticle@@IABU3@@Z,matched,100.0
 0x475ef0,794,src/graphics/particles_475ef0.cpp,?insert@?$vector@UElement_00475ef0@@V?$allocator@UElement_00475ef0@@@std@@@std@@QAEXPAUElement_00475ef0@@IABU3@@Z,matched,100.0
 0x476210,636,src/graphics/particles_476210.cpp,?insert@?$vector@UElem_00476210@@V?$allocator@UElem_00476210@@@std@@@std@@QAEXPAUElem_00476210@@IABU3@@Z,matched,100.0
 0x476490,632,src/graphics/particles_476490.cpp,?insert@?$vector@UElem_00476490@@V?$allocator@UElem_00476490@@@std@@@std@@QAEXPAUElem_00476490@@IABU3@@Z,matched,100.0

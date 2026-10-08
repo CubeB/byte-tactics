@@ -1068,29 +1068,29 @@ void Sound::Set3DDistances(float minimum, float maximum)
 }
 
 // FUNCTION: 0x4cfed0
-int FUN_004cfed0(void)
+int NullStubRet0(void)
 {
     return 0;
 }
 
 // FUNCTION: 0x4cfee0
-void FUN_004cfee0(void)
+void NopRet_B(void)
 {
 }
 
 // FUNCTION: 0x4cfef0
-int FUN_004cfef0(void)
+int NullStubRet0_B(void)
 {
     return 0;
 }
 
 // FUNCTION: 0x4cff00
-void FUN_004cff00(void)
+void NopRet_C(void)
 {
 }
 
 // FUNCTION: 0x4cff10
-int FUN_004cff10(void)
+int NullStubRet0_C(void)
 {
     return 0;
 }
@@ -1455,7 +1455,7 @@ int Sound::FindDataChunkSize(void* file)
 }
 
 // FUNCTION: 0x4d09e0
-void FUN_004d09e0()
+void InitLzssLock()
 {
     DAT_0052a4fc = 0;
     if (DAT_0052a4f8 != 0) {
@@ -1466,7 +1466,7 @@ void FUN_004d09e0()
 }
 
 // FUNCTION: 0x4d0a10
-void __stdcall FUN_004d0a10(int index)
+void __stdcall LzssInitTree(int index)
 {
     DAT_00526ff0->field_6000 = 0;
     DAT_00526ff0->field_6004 = (short)index;
@@ -1477,7 +1477,7 @@ void __stdcall FUN_004d0a10(int index)
 }
 
 // FUNCTION: 0x4d0a70
-int __cdecl FUN_004d0a70(void)
+int __cdecl LzssAllocWindow(void)
 {
     void* eax = calloc(1, 0x1011);
     DAT_00526ff4 = eax;
@@ -1486,7 +1486,7 @@ int __cdecl FUN_004d0a70(void)
 }
 
 // FUNCTION: 0x4d0a90
-int FUN_004d0a90()
+int LzssAllocTree()
 {
     void* p = calloc(0x1001, 6);
     DAT_00526ff0 = (Struct_00526ff0*)p;

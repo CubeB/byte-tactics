@@ -5942,7 +5942,7 @@ piece,0x501020,4,init/?FUN_00463ba0@@YGXXZ,1,0,game data
 piece,0x501024,4,init/?InitParticlePool@@YGXXZ,1,0,game data
 piece,0x501038,4,init/?ClearDefaultCommandHandler@@YGXXZ,1,0,game data
 piece,0x501040,4,init/?InitBlitLock@@YGXXZ,1,0,game data
-piece,0x501044,4,init/?FUN_004d09e0@@YGXXZ,1,0,game data
+piece,0x501044,4,init/?InitLzssLock@@YGXXZ,1,0,game data
 piece,0x501068,4,LIBCMT.LIB#344,2,0,library data
 piece,0x52d000,424,res,2,0,resources
 piece,0x52d1b0,2216,res,3,0,resources

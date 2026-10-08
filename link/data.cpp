@@ -20,7 +20,7 @@ signed char DAT_004fd670[8] = {0, -1, -1, -1, 0, 1, 1, 1};  // 0x4fd670 .rdata
 signed char DAT_004fd678[8] = {-1, -1, 0, 1, 1, 1, 0, -1};  // 0x4fd678 .rdata
 float g_buildPercentScale = 0.003921568859368563f;  // 0x4fd750 .rdata
 unsigned char DAT_004fdaf0[16] = {0};  // 0x4fdaf0 .rdata
-double DAT_004fdbe8 = -0.06875;  // 0x4fdbe8 .rdata
+double g_shadeStep = -0.06875;  // 0x4fdbe8 .rdata
 char g_hapiCopyright[40] = "Copyright 0000 Cavedog Entertainment";  // 0x4fdbf0 .rdata
 int g_aiCommandsEnabled = 1;  // 0x501774 .data
 // 0x501d18 .data
@@ -296,8 +296,8 @@ short DAT_0050a000[512] = {
     8153, 8162, 8170, 8177, 8182, 8186, 8190, 8191
 };
 int DAT_0050a400[9] = {0};  // 0x50a400 .data
-char DAT_0050a430[12] = "ALPHA TABLE";  // 0x50a430 .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
-const char DAT_0050a43c[12] = "SHADE TABLE";  // 0x50a43c .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
+char g_alphaTableName[12] = "ALPHA TABLE";  // 0x50a430 .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
+const char g_shadeTableName[12] = "SHADE TABLE";  // 0x50a43c .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
 char g_dotDot[4] = "..";  // 0x50a548 .data
 char g_packageDataName[16] = "Package Data";  // 0x50a56c .data
 char g_dirWildcard[4] = "\\*";  // 0x50a57c .data

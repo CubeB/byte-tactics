@@ -84,7 +84,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x4fda70,DAT_004fda70,.rdata,8,type,float,const double,1,0,1,one type,1,,,,src/data/unused.cpp,0000000000000040
 0x4fdaf0,DAT_004fdaf0,.rdata,16,gap,data,V4i,1,1,2,conflicting: struct names only,2,0xc,,,,00000000000000000000000000000000
 0x4fdbe0,DAT_004fdbe0,.rdata,4,type,data,const unsigned char*,1,0,1,one type,1,,,,src/data/unused.cpp,00000000
-0x4fdbe8,DAT_004fdbe8,.rdata,8,type,float,double,1,0,1,one type,1,,,,,9a9999999999b1bf
+0x4fdbe8,g_shadeStep,.rdata,8,type,float,double,1,0,1,one type,1,,,,,9a9999999999b1bf
 0x4fdbf0,g_hapiCopyright,.rdata,40,gap,string,char[],1,0,1,one type,1,,,,,436f7079726967687420303030302043617665646f6720456e7465727461696e6d656e7400000000
 0x501774,g_aiCommandsEnabled,.data,4,type,data,int,1,0,1,one type,1,,DAT_00501774,,,01000000
 0x501d18,DAT_00501d18,.data,32,gap,data,unsigned char[],1,0,1,one type,1,,DAT_00501d18,,,000000000000000000006f6e6d6c6b6a585756555453525150ffffffffffffff
@@ -279,8 +279,8 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x509f00,DAT_00509f00,.data,256,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,,,,,00006500c9002e019201f6015b02bf0223038703eb034e04b20415057905db053e06a10603076507c60728088908ea084a09aa090a0a690ac80a260b840be20b
 0x50a000,DAT_0050a000,.data,1024,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,,,,,0020ff1ffe1ffa1ff61ff11fea1fe21fd91fce1fc21fb51fa71f981f871f761f631f4e1f391f221f0a1ff11ed71ebc1e9f1e811e631e421e211eff1ddb1db61d
 0x50a400,DAT_0050a400,.data,36,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,0x20,,,,000000000000000000000000000000000000000000000000000000000000000000000000
-0x50a430,DAT_0050a430,.data,12,gap,string,char[],1,0,1,one type,1,,s_ALPHA_TABLE_0050a430,1,,414c504841205441424c4500
-0x50a43c,DAT_0050a43c,.data,12,gap,string,const char[],1,0,1,one type,1,,s_SHADE_TABLE_0050a43c,1,,5348414445205441424c4500
+0x50a430,g_alphaTableName,.data,12,gap,string,char[],1,0,1,one type,1,,s_ALPHA_TABLE_0050a430,1,,414c504841205441424c4500
+0x50a43c,g_shadeTableName,.data,12,gap,string,const char[],1,0,1,one type,1,,s_SHADE_TABLE_0050a43c,1,,5348414445205441424c4500
 0x50a548,g_dotDot,.data,4,gap,string,char[],1,0,1,one type,1,,DAT_0050a548,,,2e2e0000
 0x50a56c,g_packageDataName,.data,16,gap,string,char[],1,0,1,one type,1,,s_Package_Data_0050a56c,,,5061636b616765204461746100000000
 0x50a57c,g_dirWildcard,.data,4,gap,string,char[],1,0,1,one type,1,,DAT_0050a57c,,,5c2a0000

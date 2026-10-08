@@ -2590,7 +2590,7 @@ address,name
 0x4bab00,SetShadeTable
 0x4bab30,SetLightTable
 0x4bab60,SetGrayTable
-0x4bab90,FUN_004bab90
+0x4bab90,NopRetC
 0x4baba0,SetBlueTable
 0x4babd0,BuildLightTable
 0x4bad30,BuildGrayTable
@@ -4116,7 +4116,7 @@ address,name
 0x4fd9e0,??_7Class_00490880@@6B@
 0x4fdaf0,DAT_004fdaf0
 0x4fdb00,??_7CobScript@@6B@
-0x4fdbe8,DAT_004fdbe8
+0x4fdbe8,g_shadeStep
 0x4fdbf0,g_hapiCopyright
 0x4fdca4,??_7logic_error@std@@6B@
 0x4fdcb4,??_7out_of_range@std@@6B@
@@ -4300,8 +4300,8 @@ address,name
 0x5097e8,g_languageValueName
 0x5097f4,DAT_005097f4
 0x509edc,g_errorCaption
-0x50a430,DAT_0050a430
-0x50a43c,DAT_0050a43c
+0x50a430,g_alphaTableName
+0x50a43c,g_shadeTableName
 0x50a548,g_dotDot
 0x50a56c,g_packageDataName
 0x50a57c,g_dirWildcard

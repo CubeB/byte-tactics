@@ -2755,7 +2755,7 @@ void SetAlphaTable(unsigned int*);
 void SetShadeTable(unsigned int*);
 void SetLightTable(unsigned int*);
 void SetGrayTable(unsigned int*);
-void FUN_004bab90(int, int, int);
+void NopRetC(int, int, int);
 void SetBlueTable(unsigned int*);
 unsigned char* BuildLightTable(tagPALETTEENTRY*);
 unsigned char* BuildGrayTable(tagPALETTEENTRY*);

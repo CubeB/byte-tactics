@@ -322,6 +322,7 @@ char* DAT_0050d660 = (char*)"Performance status";  // 0x50d660 .data
 char DAT_0050d6b4[36] = "Performance dialog failed to open";  // 0x50d6b4 .data
 char* DAT_0050d72c = (char*)"Memory Status";  // 0x50d72c .data
 char DAT_005119b8[8];  // 0x5119b8 .bss
+PlayerAI* g_playerAI[10];  // 0x5119c0 .bss
 int g_playerBudgetCap[10];  // 0x5119e8 .bss
 int g_playerTickLoad[10];  // 0x511a10 .bss
 int g_budgetRefreshCounter;  // 0x511a38 .bss
@@ -569,6 +570,7 @@ int DAT_00512c64;  // 0x512c64 .bss
 int DAT_00512c68;  // 0x512c68 .bss
 unsigned char DAT_00512c6c[4];  // 0x512c6c .bss
 int DAT_00512c70;  // 0x512c70 .bss
+char* g_loungeChatter;  // 0x512c74 .bss
 int g_loungeRefreshTime;  // 0x512c78 .bss
 unsigned int g_timeoutTimerStart;  // 0x512c7c .bss
 unsigned char DAT_00512c80[336];  // 0x512c80 .bss (the type runs past the next known address, 0x512c80+0x4)
@@ -668,7 +670,6 @@ unsigned long g_lastSoundReapTick;  // 0x51fb94 .bss
 unsigned char DAT_0051fb98[4];  // 0x51fb98 .bss
 char* g_loopingWav;  // 0x51fb9c .bss
 int* g_diskWav;  // 0x51fba0 .bss
-Dialog* g_guiContext;  // 0x51fba4 .bss
 int DAT_0051fba8;  // 0x51fba8 .bss
 int DAT_0051fbac;  // 0x51fbac .bss
 int DAT_0051fbb0;  // 0x51fbb0 .bss

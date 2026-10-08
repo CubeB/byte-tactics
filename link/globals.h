@@ -10,11 +10,11 @@
 class Class_004d02a0;
 class FreeBlockMap;
 class NameTable;
+class PlayerAI;
 class SpeechQueue;
 class TranslationTable;
 struct Chunk;
 struct Class_004c6a60;
-struct Dialog;
 struct Entry_004426e0;
 struct ExplodedPiece;
 struct Game;
@@ -50,7 +50,7 @@ extern int g_commandLineUnusedFlagL;                                            
 extern int DAT_0050289c;                                                                          // 0x50289c, 4 bytes; 1 of 1 files
 extern char g_campaignKey[12];                                                                    // 0x5028f8, 12 bytes; 1 of 1 files
 extern char g_dotExtSep[4];                                                                       // 0x502910, 4 bytes; 1 of 1 files
-extern char DAT_00502a20[4];                                                                      // 0x502a20, 4 bytes; 3 of 3 files
+extern char DAT_00502a20[4];                                                                      // 0x502a20, 4 bytes; 2 of 2 files
 extern char DAT_00502a78[12];                                                                     // 0x502a78, 12 bytes; 2 of 2 files
 extern char DAT_00502ae8[4];                                                                      // 0x502ae8, 4 bytes; 2 of 2 files
 extern char g_optionsSoundName[8];                                                                // 0x502b38, 8 bytes; 1 of 1 files
@@ -117,7 +117,7 @@ extern char DAT_00505f20[16];                                                   
 extern char DAT_00505f30[16];                                                                     // 0x505f30, 16 bytes; 1 of 1 files
 extern char DAT_00505f40[4];                                                                      // 0x505f40, 4 bytes; 1 of 1 files
 extern char* g_leftGameTexts[8];                                                                  // 0x5061b8, 32 bytes; 1 of 1 files
-extern int g_timeoutPlayerDpid;                                                                   // 0x5061d8, 4 bytes; 3 of 3 files
+extern int g_timeoutPlayerDpid;                                                                   // 0x5061d8, 4 bytes; 1 of 1 files
 extern char DAT_00506290[8];                                                                      // 0x506290, 8 bytes; 1 of 1 files
 extern char s_PACKET_DATA_00506524[12];                                                           // 0x506524, 12 bytes; 1 of 1 files
 extern char DAT_00506578[8];                                                                      // 0x506578, 8 bytes; 1 of 1 files
@@ -142,7 +142,7 @@ extern char g_testGadgetName[8];                                                
 extern char g_volTextGadgetName[8];                                                               // 0x5069c8, 8 bytes; 1 of 1 files
 extern char g_modeGadgetName[8];                                                                  // 0x5069d0, 8 bytes; 1 of 1 files
 extern char g_explodeSoundFile[20];                                                               // 0x5069d8, 20 bytes; 1 of 1 files
-extern int g_usePacketManager;                                                                    // 0x506dbc, 4 bytes; 19 of 19 files
+extern int g_usePacketManager;                                                                    // 0x506dbc, 4 bytes; 11 of 11 files
 extern char DAT_00507318[32];                                                                     // 0x507318, 32 bytes; 1 of 1 files
 extern char g_radarPicTempName[16];                                                               // 0x5074e8, 16 bytes; 1 of 1 files
 extern char g_radarPictureName[16];                                                               // 0x5074f8, 16 bytes; 1 of 1 files
@@ -235,7 +235,8 @@ extern char* DAT_0050d4d0;                                                      
 extern char* DAT_0050d660;                                                                        // 0x50d660, 4 bytes; 2 of 2 files
 extern char DAT_0050d6b4[36];                                                                     // 0x50d6b4, 36 bytes; 1 of 1 files
 extern char* DAT_0050d72c;                                                                        // 0x50d72c, 4 bytes; 3 of 3 files
-extern char DAT_005119b8[8];                                                                      // 0x5119b8, 8 bytes; 42 of 46 files (conflicting: shape)
+extern char DAT_005119b8[8];                                                                      // 0x5119b8, 8 bytes; 41 of 44 files (conflicting: shape)
+extern PlayerAI* g_playerAI[10];                                                                  // 0x5119c0, 40 bytes; 2 of 3 files (conflicting: struct names only)
 extern int g_playerBudgetCap[10];                                                                 // 0x5119e8, 40 bytes; 1 of 1 files
 extern int g_playerTickLoad[10];                                                                  // 0x511a10, 40 bytes; 1 of 1 files
 extern int g_budgetRefreshCounter;                                                                // 0x511a38, 4 bytes; 1 of 1 files
@@ -277,7 +278,7 @@ extern unsigned int g_netStatsTick;                                             
 extern unsigned int g_byteRatesTick;                                                              // 0x511ddc, 4 bytes; 1 of 1 files
 extern int DAT_00511de0;                                                                          // 0x511de0, 4 bytes; 2 of 2 files
 extern int g_cdPathMismatch;                                                                      // 0x511de4, 4 bytes; 1 of 1 files
-extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 201 of 224 files (conflicting: shape)
+extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 170 of 191 files (conflicting: shape)
 extern int g_endGameGlamourSoundStarted;                                                          // 0x511dec, 4 bytes; 1 of 1 files
 extern ExplodedPiece* g_explodedPieces[100];                                                      // 0x511df0, 400 bytes; 1 of 1 files
 extern unsigned char DAT_00511f80[16];                                                            // 0x511f80, 16 bytes; CMemoryCache by value in 2 of 2 files
@@ -290,7 +291,7 @@ extern int g_explosion1EndSize;                                                 
 extern int g_explosion2Duration;                                                                  // 0x511fa8, 4 bytes; 1 of 1 files
 extern int g_explosion2StartSize;                                                                 // 0x511fac, 4 bytes; 1 of 1 files
 extern int g_explosion2EndSize;                                                                   // 0x511fb0, 4 bytes; 1 of 1 files
-extern List_00422ea0* DAT_00511fb4;                                                               // 0x511fb4, 4 bytes, DAT_00511fb4$S23898; 1 of 2 files (conflicting: struct names only)
+extern List_00422ea0* DAT_00511fb4;                                                               // 0x511fb4, 4 bytes, DAT_00511fb4$S22242; 1 of 2 files (conflicting: struct names only)
 extern char DAT_00511fb8[256];                                                                    // 0x511fb8, 256 bytes; 1 of 1 files
 extern unsigned char DAT_005120b8[464];                                                           // 0x5120b8, 464 bytes; Entry_00428730[10] by value in 1 of 1 files
 extern int DAT_00512288;                                                                          // 0x512288, 4 bytes; 1 of 1 files
@@ -483,6 +484,7 @@ extern int DAT_00512c64;                                                        
 extern int DAT_00512c68;                                                                          // 0x512c68, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00512c6c[4];                                                             // 0x512c6c, 4 bytes; nothing refers to it
 extern int DAT_00512c70;                                                                          // 0x512c70, 4 bytes; 1 of 1 files
+extern char* g_loungeChatter;                                                                     // 0x512c74, 4 bytes; 1 of 1 files
 extern int g_loungeRefreshTime;                                                                   // 0x512c78, 4 bytes; 1 of 1 files
 extern unsigned int g_timeoutTimerStart;                                                          // 0x512c7c, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00512c80[336];                                                           // 0x512c80, 336 bytes; int in 3 of 4 files (conflicting: shape), but used past its end
@@ -582,7 +584,6 @@ extern unsigned long g_lastSoundReapTick;                                       
 extern unsigned char DAT_0051fb98[4];                                                             // 0x51fb98, 4 bytes; nothing refers to it
 extern char* g_loopingWav;                                                                        // 0x51fb9c, 4 bytes; 1 of 1 files
 extern int* g_diskWav;                                                                            // 0x51fba0, 4 bytes; 1 of 1 files
-extern Dialog* g_guiContext;                                                                      // 0x51fba4, 4 bytes; 15 of 31 files (conflicting: shape)
 extern int DAT_0051fba8;                                                                          // 0x51fba8, 4 bytes; 1 of 1 files
 extern int DAT_0051fbac;                                                                          // 0x51fbac, 4 bytes; 1 of 1 files
 extern int DAT_0051fbb0;                                                                          // 0x51fbb0, 4 bytes; 1 of 1 files
@@ -713,10 +714,9 @@ extern int g_lzssLockOwner;                                                     
 extern void* DAT_0052a4f8;                                                                        // 0x52a4f8, 4 bytes; 2 of 2 files
 extern long DAT_0052a4fc;                                                                         // 0x52a4fc, 4 bytes; 1 of 2 files (conflicting: signedness or const)
 
-// Not declared: 210 globals defined in a data file or whose type is not settled (see data/globals.csv).
-//   0x5119c0 g_playerAI: PlayerAI*[] (11), void*[] (5), Owner*[] (3), Player_40b0d0*[] (1), and 2 more
-//   0x513000 g_packetManager: defined in src/network/packets_460e20.cpp
+// Not declared: 209 globals defined in a data file or whose type is not settled (see data/globals.csv).
 //   0x5292c4 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib_4e17c0.cpp
+//   0x513000 g_packetManager: defined in src/network/packets_460e20.cpp
 //   0x528a54 std::IH::IU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib_4db610.cpp
 //   0x4fcdb8 DPSPGUID_SERIAL: defined in src/data/guids.cpp
 //   0x4fcdc8 DPSPGUID_MODEM: defined in src/data/guids.cpp
@@ -724,6 +724,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x4fcd98 DPSPGUID_IPX: defined in src/data/guids.cpp
 //   0x4fcda8 DPSPGUID_TCPIP: defined in src/data/guids.cpp
 //   0x51e598 IUUnitSyncEntry::IU?$pair::?$_Tree::_Nil: defined in src/network/unit_sync.cpp
+//   0x51fba4 g_guiContext: Dialog* (1), Root_004a32a0* (1), Holder_004a3ef0* (1), Gui* (1), and 1 more
 //   0x529e9c DAT_00529e9c: char (3), bool (2)
 //   0x51e6a0 g_losTables: defined in src/map/line_of_sight.cpp
 //   0x528ab4 DAT_00528ab4: void* (2), void (__stdcall*)(void) (1), int (__stdcall*)(void*, unsigned long, unsigned long*, Line_004de550*) (1)
@@ -735,7 +736,6 @@ extern long DAT_0052a4fc;                                                       
 //   0x511c60 DAT_00511c60: part of another global: g_messageBytesByType+0x8
 //   0x512344 DAT_00512344: part of another global: DAT_00512340$S35323+0x4
 //   0x5129b8 DAT_005129b8: int* (2), int (1)
-//   0x512c74 g_loungeChatter: void* (2), char* (1)
 //   0x512ca8 DAT_00512ca8: part of another global: DAT_00512c80+0x28
 //   0x512d48 DAT_00512d48: part of another global: DAT_00512c80+0xc8
 //   0x51e574 DAT_0051e574: PlayerInfo_0046c2a0** (1), PlayerInfo_0046bce0** (1), int* (1)

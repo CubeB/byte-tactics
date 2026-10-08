@@ -102,7 +102,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x50289c,DAT_0050289c,.data,4,type,data,int,1,0,1,one type,1,,DAT_0050289c,,,01000000
 0x5028f8,g_campaignKey,.data,12,gap,string,char[],1,0,1,one type,1,,s_Campaign_005028f8,,,43616d706169676e00000000
 0x502910,g_dotExtSep,.data,4,gap,data,char[],1,0,1,one type,1,,DAT_00502910,,,2e000000
-0x502a20,DAT_00502a20,.data,4,gap,string,char[],3,0,1,one type,3,,DAT_00502a20,,,26470000
+0x502a20,DAT_00502a20,.data,4,gap,string,char[],2,0,1,one type,2,,DAT_00502a20,,,26470000
 0x502a78,DAT_00502a78,.data,12,gap,string,char[],2,0,1,one type,2,,s_Difficulty_00502a78,,,446966666963756c74790000
 0x502ae8,DAT_00502ae8,.data,4,gap,string,char[],2,0,1,one type,2,,DAT_00502ae8,,,4f4b0000
 0x502b38,g_optionsSoundName,.data,8,gap,string,char[],1,0,1,one type,1,,s_Options_00502b38,,,4f7074696f6e7300
@@ -172,7 +172,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x505f30,DAT_00505f30,.data,16,gap,string,char[],1,0,1,one type,1,,s_SAVEGAME_NAMES_00505f30,,,5341564547414d45204e414d45530000
 0x505f40,DAT_00505f40,.data,4,gap,string,char[],1,0,1,one type,1,,DAT_00505f40,,,4c535400
 0x5061b8,g_leftGameTexts,.data,32,type,string,char*[8],1,0,1,one type,1,,PTR_s_has_left_the_scene_005061b8,8,,70625000586250003c6250002c6250001c62500008625000f4615000dc615000
-0x5061d8,g_timeoutPlayerDpid,.data,4,type,data,int,3,0,1,one type,3,,DAT_005061d8,,,ffffffff
+0x5061d8,g_timeoutPlayerDpid,.data,4,type,data,int,1,0,1,one type,1,,DAT_005061d8,,,ffffffff
 0x506290,DAT_00506290,.data,8,gap,string,char[],1,0,1,one type,1,,s__s__s_00506290,,,2573202573000000
 0x506524,s_PACKET_DATA_00506524,.data,12,gap,string,char[],1,0,1,one type,1,,s_PACKET_DATA_00506524,1,,5041434b4554204441544100
 0x506578,DAT_00506578,.data,8,gap,string,char[],1,0,1,one type,1,,DAT_00506578,,,54414c4b00000000
@@ -201,7 +201,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x5069c8,g_volTextGadgetName,.data,8,gap,string,char[],1,0,1,one type,1,,s_VOLTEXT_005069c8,,,564f4c5445585400
 0x5069d0,g_modeGadgetName,.data,8,gap,string,char[],1,0,1,one type,1,,DAT_005069d0,,,4d4f444500000000
 0x5069d8,g_explodeSoundFile,.data,20,gap,string,char[],1,0,1,one type,1,,s_sounds_explode_wav_005069d8,,,736f756e64735c6578706c6f64652e7761760000
-0x506dbc,g_usePacketManager,.data,4,type,data,int,19,0,1,one type,19,,DAT_00506dbc,,,01000000
+0x506dbc,g_usePacketManager,.data,4,type,data,int,11,0,1,one type,11,,DAT_00506dbc,,,01000000
 0x507318,DAT_00507318,.data,32,gap,string,char[],1,0,1,one type,1,,s_You_re_out__Continue_Watching__00507318,,,596f75277265206f7574212020436f6e74696e7565205761746368696e673f00
 0x5074e8,g_radarPicTempName,.data,16,gap,string,char[],1,0,1,one type,1,,s_RADARPIC_TEMP_005074e8,,,52414441525049432054454d50000000
 0x5074f8,g_radarPictureName,.data,16,gap,string,char[],1,0,1,one type,1,,s_RADAR_PICTURE_005074f8,,,52414441522050494354555245000000
@@ -306,8 +306,8 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x50d72c,DAT_0050d72c,.data,4,type,data,char*,3,0,1,one type,3,,PTR_s_Memory_Status_0050d72c,1,,30d75000
 0x50d980,g_pentiumEvents,.data,128,gap,data,EventEntry[],1,1,2,conflicting: array or pointer,2,,DAT_0050d980,8,src/debug/perf_counters.cpp,000300500cdd5000030000000000000000030150f8dc5000030000000000000000030b50d4dc5000030000000003285000032250b8dc50000300000000000000
 0x50da00,g_pentiumProEvents,.data,272,gap,data,EventEntry[],1,1,2,conflicting: array or pointer,2,,DAT_0050da00,17,src/debug/perf_counters.cpp,00030560d4dc500003000000000343600001106048dc500001000000000000000002116030dc500002000000000000000002126024dc50000200000000000000
-0x5119b8,DAT_005119b8,.bss,8,gap,data,char[],42,4,3,conflicting: shape,46,,DAT_005119b8,,,
-0x5119c0,g_playerAI,.bss,40,gap,data,PlayerAI*[],11,11,6,conflicting: shape,22,0x28,DAT_005119c0,,,
+0x5119b8,DAT_005119b8,.bss,8,gap,data,char[],41,3,3,conflicting: shape,44,,DAT_005119b8,,,
+0x5119c0,g_playerAI,.bss,40,gap,data,PlayerAI*[],2,1,2,conflicting: struct names only,3,0x28,DAT_005119c0,,,
 0x5119e8,g_playerBudgetCap,.bss,40,type,data,int[10],1,0,1,one type,1,0x28,DAT_005119e8,,,
 0x511a10,g_playerTickLoad,.bss,40,type,data,int[10],1,0,1,one type,1,,DAT_00511a10,,,
 0x511a38,g_budgetRefreshCounter,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511a38,,,
@@ -351,7 +351,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x511ddc,g_byteRatesTick,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_00511ddc,,,
 0x511de0,DAT_00511de0,.bss,4,type,data,int,2,0,1,one type,2,,DAT_00511de0,,,
 0x511de4,g_cdPathMismatch,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511de4,,,
-0x511de8,g_game,.bss,4,type,data,Game*,201,23,14,conflicting: shape,223,,DAT_00511de8,,,
+0x511de8,g_game,.bss,4,type,data,Game*,170,21,14,conflicting: shape,190,,DAT_00511de8,,,
 0x511dec,g_endGameGlamourSoundStarted,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511dec,,,
 0x511df0,g_explodedPieces,.bss,400,type,data,ExplodedPiece*[100],1,0,1,one type,1,0x190,DAT_00511df0,,,
 0x511f80,DAT_00511f80,.bss,16,gap,data,CMemoryCache,2,0,1,one type,2,,DAT_00511f80,,,
@@ -364,7 +364,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x511fa8,g_explosion2Duration,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511fa8,,,
 0x511fac,g_explosion2StartSize,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511fac,,,
 0x511fb0,g_explosion2EndSize,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511fb0,,,
-0x511fb4,DAT_00511fb4$S23898,.bss,4,type,data,List_00422ea0*,1,1,2,conflicting: struct names only,2,,DAT_00511fb4,,,
+0x511fb4,DAT_00511fb4$S22242,.bss,4,type,data,List_00422ea0*,1,1,2,conflicting: struct names only,2,,DAT_00511fb4,,,
 0x511fb8,DAT_00511fb8,.bss,256,gap,data,char[],1,0,1,one type,1,,DAT_00511fb8,,,
 0x5120b8,DAT_005120b8,.bss,464,gap,data,Entry_00428730[10],1,0,1,one type,1,0x198,DAT_005120b8,,,
 0x512288,DAT_00512288,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00512288,,,
@@ -572,7 +572,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x512c68,DAT_00512c68,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_00512c68,,,
 0x512c6c,DAT_00512c6c,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
 0x512c70,DAT_00512c70,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_00512c70,,,
-0x512c74,g_loungeChatter,.bss,4,type,data,void*,2,1,2,conflicting: shape,3,,DAT_00512c74,,,
+0x512c74,g_loungeChatter,.bss,4,type,data,char*,1,0,1,one type,1,,DAT_00512c74,,,
 0x512c78,g_loungeRefreshTime,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00512c78,,,
 0x512c7c,g_timeoutTimerStart,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_00512c7c,,,
 0x512c80,DAT_00512c80,.bss,336,type>gap,data,int,3,1,2,conflicting: shape,4,,DAT_00512c80,,,
@@ -630,7 +630,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x512ff4,g_optionsBackupSurface,.bss,4,type,data,Class_004c6a60*,1,0,1,one type,1,,DAT_00512ff4,,,
 0x512ff8,g_battleQuitIntent,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00512ff8,,,
 0x512ffc,DAT_00512ffc,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
-0x513000,g_packetManager,.bss,46396,definition,data,PacketManager,21,0,1,one type,21,0xb54c,DAT_00513000,,src/network/packets_460e20.cpp,
+0x513000,g_packetManager,.bss,46396,definition,data,PacketManager,14,0,1,one type,14,0xb54c,DAT_00513000,,src/network/packets_460e20.cpp,
 0x513008,DAT_00513008,.bss,4,gap,data,PacketChannel,1,0,1,one type,1,,DAT_00513008,,in g_packetManager+0x8,
 0x51e300,DAT_0051e300,.bss,4,gap,data,PacketReceiver,1,0,1,one type,1,,_DAT_0051e300,,in g_packetManager+0xb300,
 0x51e53c,DAT_0051e53c,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051e53c,,,
@@ -733,7 +733,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51fb98,DAT_0051fb98,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
 0x51fb9c,g_loopingWav,.bss,4,type,data,char*,1,0,1,one type,1,,DAT_0051fb9c,,,
 0x51fba0,g_diskWav,.bss,4,type,data,int*,1,0,1,one type,1,,DAT_0051fba0,,,
-0x51fba4,g_guiContext,.bss,4,type,data,Dialog*,15,16,17,conflicting: shape,31,,DAT_0051fba4,,,
+0x51fba4,g_guiContext,.bss,4,type,data,int*,1,4,5,conflicting: shape,5,,DAT_0051fba4,,,
 0x51fba8,DAT_0051fba8,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051fba8,,,
 0x51fbac,DAT_0051fbac,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051fbac,,,
 0x51fbb0,DAT_0051fbb0,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051fbb0,,,

@@ -10,7 +10,7 @@
 
 void* __cdecl FUN_004d8450(int size);
 void* __cdecl FUN_004d8580(void* table, int size);
-void __stdcall FUN_00470f60(void* dest, void* src);
+void __stdcall CopyPointer(void* dest, void* src);
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
 
@@ -76,7 +76,7 @@ namespace std {
                 iterator _S = alloc.allocate(_N, (void*)0);
                 iterator _Q = _S;
                 for (iterator _F = _First; _F != _P; ++_F, ++_Q)
-                    FUN_00470f60(_Q, _F);
+                    CopyPointer(_Q, _F);
                 _Ufill(_Q, _M, _X);
                 _Ucopy(_P, _Last, _Q + _M);
                 _Destroy(_First, _Last);

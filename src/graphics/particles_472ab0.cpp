@@ -30,7 +30,7 @@ public:
     void FreeSlot(void* p);
 };
 
-extern Class_00470ed0 DAT_0051e610;
+extern Class_00470ed0 g_particlePool;
 extern char DAT_0051e608;
 
 // Vtable 0x4fd5a8, constructor 0x471cc0, destructor 0x471d00, ??_G 0x471cd0.
@@ -41,14 +41,14 @@ public:
     ParticleSystem() { field_4 = 0; }
     virtual ~ParticleSystem();                          // slot 0
     virtual void Update() = 0;                          // slot 1
-    virtual void FUN_00472e30(int) = 0;                 // slot 2
-    virtual int FUN_00472e70() = 0;                     // slot 3
+    virtual void Render(int) = 0;                       // slot 2
+    virtual int IsFinished() = 0;                       // slot 3
 
     static void* __stdcall operator new(size_t size)
     {
         if (DAT_0051e608)
             return 0;
-        void* p = ((Class_00470eb0*)&DAT_0051e610)->AllocSlot(size);
+        void* p = ((Class_00470eb0*)&g_particlePool)->AllocSlot(size);
         if (p)
             memset(p, 0, size);
         return p;
@@ -56,11 +56,11 @@ public:
 
     static void __stdcall operator delete(void* p)
     {
-        DAT_0051e610.FreeSlot(p);
+        g_particlePool.FreeSlot(p);
     }
 };
 
-class Class_00474130 {                 // see thrust_particles.cpp
+class ThrustParticle {                 // see thrust_particles.cpp
 public:
     char unknown_0[0x3c];
     void DrawParticle(int param_1, short param_2, short param_3);
@@ -80,13 +80,13 @@ struct Shape_00472ab0 {
 class ThrustParticles : public ParticleSystem {
 public:
     int field_8;                                        // +0x8
-    std::vector<Class_00474130> items;                  // +0xc (_First +0x10)
+    std::vector<ThrustParticle> items;                  // +0xc (_First +0x10)
     char unknown_1c[0x44 - 0x1c];
 
     ThrustParticles() {}
     virtual void Update();                              // slot 1, 0x473010
-    virtual void FUN_00472e30(int);                     // slot 2, 0x4730f0
-    virtual int FUN_00472e70();                         // slot 3, 0x473130
+    virtual void Render(int);                           // slot 2, 0x4730f0
+    virtual int IsFinished();                           // slot 3, 0x473130
     virtual void FUN_004743a0();                        // slot 4, 0x4743a0
     virtual int FUN_004730c0();                         // slot 5, 0x4730c0
     virtual void FUN_004742c0(Shape_00472ab0* p, Shape_00472ab0* q, int a, int b);
@@ -118,7 +118,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x472ab0
-void __stdcall FUN_00472ab0(Shape_00472ab0* param_1, short index)
+void __stdcall EmitJitteredThrustParticles(Shape_00472ab0* param_1, short index)
 {
     // One struct copy, then three separate += statements, not a loop.
     Shape_00472ab0 s = *param_1;

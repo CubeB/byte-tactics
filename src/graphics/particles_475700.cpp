@@ -1,7 +1,7 @@
 // Decompiled by Opus, Haiku and Sonnet. Names are provisional.
 // Stays in its own file: merged with the module's second part the inlined draw
 // rotates its temporaries (particles.cpp).
-// Class_004750b0 (vtable 0x4fd638, 0x34 bytes), derived from ParticleSystem
+// TimedSubParticles (vtable 0x4fd638, 0x34 bytes), derived from ParticleSystem
 // (the family is listed in particles.cpp): the same shape as SmokeParticles,
 // without the fog culling.
 // Needed: without <windows.h> slot 2 subtracts the scroll y before the half height.
@@ -52,7 +52,7 @@ void* __stdcall GetGafFrame(void* a, int b);
 void __stdcall DrawFrameBlended(void* dest, void* src, int x, int y);
 
 // One particle, 0x20 bytes.
-struct Class_00474fc0 {
+struct TimedSubParticle {
     void* data;                        // +0x00, the animation
     union {
         Vec3_00475150 pos;             // +0x04
@@ -75,9 +75,9 @@ struct Class_00474fc0 {
 };
 
 // The particle vector, to call its out-of-line insert under this name.
-class Class_00476490 {
+class Vec_00476490 {
 public:
-    void FUN_00476490(Class_00474fc0* pos, int count, const Class_00474fc0* src);
+    void FUN_00476490(TimedSubParticle* pos, int count, const TimedSubParticle* src);
 };
 
 class ParticleSystem {
@@ -87,26 +87,26 @@ public:
     ParticleSystem();
     virtual ~ParticleSystem();                          // slot 0
     virtual void Update() = 0;                          // slot 1
-    virtual void FUN_00472e30(int) = 0;                 // slot 2
-    virtual int FUN_00472e70() = 0;                     // slot 3
+    virtual void Render(int) = 0;                       // slot 2
+    virtual int IsFinished() = 0;                       // slot 3
     static void* __stdcall operator new(size_t size);   // 0x471d10
     static void __stdcall operator delete(void* p);     // 0x471d50
     void SetLifetime(int ticks);
 };
 
-class Class_004750b0 : public ParticleSystem {
+class TimedSubParticles : public ParticleSystem {
 public:
     int time;                                           // +0x8, the next emit tick
-    std::vector<Class_00474fc0> records;                // +0xc (_First +0x10)
+    std::vector<TimedSubParticle> records;              // +0xc (_First +0x10)
     int unknown_1c;                                     // +0x1c, the emit period
     int unknown_20;                                     // +0x20
     int unknown_24;                                     // +0x24, the frame count - 1
     Vec3_00475150 pos;                                  // +0x28
 
-    Class_004750b0();
+    TimedSubParticles();
     virtual void Update();                              // slot 1, 0x475600
-    virtual void FUN_00472e30(int);                     // slot 2, 0x475700
-    virtual int FUN_00472e70();                         // slot 3, 0x475330
+    virtual void Render(int);                           // slot 2, 0x475700
+    virtual int IsFinished();                           // slot 3, 0x475330
     virtual void Emit();                                // slot 4, 0x4751c0
     // In particles_4750f0.cpp: it is defined returning bool, and Update tests
     // its result as an int.
@@ -115,9 +115,9 @@ public:
 };
 
 // FUNCTION: 0x475700
-void Class_004750b0::FUN_00472e30(int dest)
+void TimedSubParticles::Render(int dest)
 {
-    for (std::vector<Class_00474fc0>::iterator it = records.begin(); it != records.end(); ++it) {
+    for (std::vector<TimedSubParticle>::iterator it = records.begin(); it != records.end(); ++it) {
         it->Draw((void*)dest, g_game->scrollX, g_game->scrollY);
     }
 }

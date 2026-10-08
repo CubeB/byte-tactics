@@ -116,7 +116,7 @@ static inline int IsVisible(Player_00475470* map, Position_00475470* pos)
 
 // The 32-byte record; its unculled draw method is 0x475040.
 // One particle, 0x20 bytes.
-struct Class_00474b00 {
+struct SmokeParticle {
     void* data;                        // +0x00, the animation
     union {
         Vec3_00474d50 pos;             // +0x04
@@ -139,13 +139,13 @@ struct Class_00474b00 {
     }
 };
 
-typedef std::vector<Class_00474b00> Vec_00474cd0;
+typedef std::vector<SmokeParticle> Vec_00474cd0;
 
 // The particle vector, to call its out-of-line insert under this name.
 class Class_00476210 {
 public:
     void FUN_00476210(Vec_00474cd0::iterator p, unsigned int m,
-                     const Class_00474b00& x);
+                     const SmokeParticle& x);
 };
 
 class ParticleSystem {
@@ -155,8 +155,8 @@ public:
     ParticleSystem();
     virtual ~ParticleSystem();                          // slot 0
     virtual void Update() = 0;                          // slot 1
-    virtual void FUN_00472e30(int) = 0;                 // slot 2
-    virtual int FUN_00472e70() = 0;                     // slot 3
+    virtual void Render(int) = 0;                       // slot 2
+    virtual int IsFinished() = 0;                       // slot 3
     static void* __stdcall operator new(size_t size);   // 0x471d10
     static void __stdcall operator delete(void* p);     // 0x471d50
     void SetLifetime(int ticks);
@@ -174,8 +174,8 @@ public:
 
     SmokeParticles();
     virtual void Update();                              // slot 1, 0x475340
-    virtual void FUN_00472e30(int);                     // slot 2, 0x475470
-    virtual int FUN_00472e70();                         // slot 3, 0x474f80
+    virtual void Render(int);                           // slot 2, 0x475470
+    virtual int IsFinished();                           // slot 3, 0x474f80
     virtual void Emit();                                // slot 4, 0x474df0
     virtual int FUN_00475440();                         // slot 5, 0x475440
     virtual void FUN_00474d50(Vec3_00474d50* pos, int limit, int a, int b, int c,
@@ -183,9 +183,9 @@ public:
 };
 
 // FUNCTION: 0x475470
-void SmokeParticles::FUN_00472e30(int dest)
+void SmokeParticles::Render(int dest)
 {
-    for (std::vector<Class_00474b00>::iterator it = records.begin(); it != records.end();
+    for (std::vector<SmokeParticle>::iterator it = records.begin(); it != records.end();
          ++it) {
         it->DrawIfVisible((void*)dest, g_game->scrollX, g_game->scrollY);
     }

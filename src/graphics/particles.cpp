@@ -1,7 +1,7 @@
 // Decompiled by Opus, space-bunny-free, Sonnet, Haiku, DeepSeek V4.1 Flash, Claude Opus 5.5, Space Bunny Free, GPT-6, claude-opus-5-5, deepseek-v4.1-flash, deepseek-v4.1, GPT-6 Astra, GPT-6.1-sol, LongCat 2.5 Preview Free and mimo-v2.6-pro. Names are provisional.
 // The particles module's translation unit: the object pool (vtable 0x4fd580),
 // the ten per-index lists, the ParticleSystem base (vtable 0x4fd5a8) and its
-// Teleport, Nano, Thrust, Wake, Smoke and Class_004750b0 subclasses, their
+// Teleport, Nano, Thrust, Wake, Smoke and TimedSubParticles subclasses, their
 // particle records, and the out-of-line std::vector members they call. The
 // lists and the pool are reached through g_game.
 //
@@ -10,7 +10,7 @@
 // files: they see a list as a std::vector<Elem_00473500> whose inlined insert
 // cannot agree with the std::vector<ParticleSystem*> view used here. 0x471de0
 // stays in particles_471de0.cpp: its SIB byte follows the file's symbol total
-// (docs/c2-regalloc.md). The smoke and Class_004750b0 cluster (0x472630 to
+// (docs/c2-regalloc.md). The smoke and TimedSubParticles cluster (0x472630 to
 // 0x472c50 and the two classes' constructors and deleting destructors) stays
 // in particles_472630.cpp: there ParticleSystem's constructor, destructor and
 // operator new are not defined, which is what keeps the base calls and the
@@ -46,7 +46,7 @@ struct Elem_00470f00 {
     int unknown_0;
 };
 
-// The pool object at DAT_0051e610 (vtable 0x4fd580). 0x470c10, its Grow,
+// The pool object at g_particlePool (vtable 0x4fd580). 0x470c10, its Grow,
 // stays in particles_470c10.cpp.
 class Class_00470c10 {
 public:
@@ -192,7 +192,7 @@ struct Pos_004745e0 {
 };
 
 // One teleport spark (the element of TeleportParticles' vector), 0x34 bytes.
-class Class_00473560 {
+class TeleportParticle {
 public:
     void* field_0;                     // +0x00, the animation
     union {
@@ -222,7 +222,7 @@ public:
     char* first;                       // +0x04
     char* last;                        // +0x08
     char* end;                         // +0x0c
-    void FUN_004758c0(char* where, int count, const Class_00473560& val);
+    void FUN_004758c0(char* where, int count, const TeleportParticle& val);
 };
 
 struct Vec3_004739b0 {
@@ -247,7 +247,7 @@ struct Pos_004739b0 {
 };
 
 // One nano spark (the element of NanoParticles' vector), 0x30 bytes.
-struct Class_004739b0 {
+struct NanoParticle {
 public:
     union {
         Vec3_004739b0 pos;             // +0x0
@@ -337,7 +337,7 @@ struct Vec3_004742c0 {
 };
 
 // One exhaust puff (the element of ThrustParticles' vector), 0x3c bytes.
-class Class_00474130 {
+class ThrustParticle {
 public:
     unsigned short* bitmask;           // +0x00, the animation
     union {
@@ -362,12 +362,12 @@ public:
     int IsExpired(int param_1);
 };
 
-typedef std::vector<Class_00474130> Vec_004743a0;
+typedef std::vector<ThrustParticle> Vec_004743a0;
 
 // The particle vector, to call its out-of-line insert under this name.
 class Class_00475bd0 {
 public:
-    void* FUN_00475bd0(Class_00474130* at, unsigned int n, const Class_00474130& x);
+    void* FUN_00475bd0(ThrustParticle* at, unsigned int n, const ThrustParticle& x);
 };
 
 struct Pair_00474880 {
@@ -423,7 +423,7 @@ static inline Vec3_00474760 operator-(const Vec3_00474760& p, const Vec3_0047476
 }
 
 // One wake spark (the element of WakeParticles' vector), 0x44 bytes.
-class Class_00474580 {
+class WakeParticle {
 public:
     void* data;                        // +0x00
     union {
@@ -457,7 +457,7 @@ public:
     char* first;                       // +0x04
     char* last;                        // +0x08
     char* end;                         // +0x0c
-    void FUN_00475ef0(char* where, int count, const Class_00474580& val);
+    void FUN_00475ef0(char* where, int count, const WakeParticle& val);
 };
 
 // Vtable 0x4fd5a8, constructor 0x471cc0, destructor 0x471d00, ??_G 0x471cd0.
@@ -470,8 +470,8 @@ public:
     ParticleSystem();
     virtual ~ParticleSystem();                          // slot 0
     virtual void Update() = 0;                          // slot 1
-    virtual void FUN_00472e30(int) = 0;                 // slot 2
-    virtual int FUN_00472e70() = 0;                     // slot 3
+    virtual void Render(int) = 0;                       // slot 2
+    virtual int IsFinished() = 0;                       // slot 3
     static void* __stdcall operator new(size_t size);   // 0x471d10
     static void __stdcall operator delete(void* p);     // 0x471d50
     void SetLifetime(int ticks);
@@ -481,7 +481,7 @@ public:
 class TeleportParticles : public ParticleSystem {
 public:
     int field_8;                                        // +0x8, the next emit tick
-    std::vector<Class_00473560> items;                  // +0xc (_First +0x10)
+    std::vector<TeleportParticle> items;                // +0xc (_First +0x10)
     int field_1c;                                       // +0x1c, the sparks' lifetime
     Vec3_004736e0 pos1;                                 // +0x20
     Vec3_004736e0 pos2;                                 // +0x2c
@@ -489,8 +489,8 @@ public:
 
     TeleportParticles() {}
     virtual void Update();                              // slot 1, 0x472d50
-    virtual void FUN_00472e30(int);                     // slot 2, 0x472e30
-    virtual int FUN_00472e70();                         // slot 3, 0x472e70
+    virtual void Render(int);                           // slot 2, 0x472e30
+    virtual int IsFinished();                           // slot 3, 0x472e70
     virtual void Emit();                                // slot 4, 0x4737c0
     virtual int FUN_00472e00();                         // slot 5, 0x472e00
     virtual void FUN_004736e0(Vec3_004736e0* a, Vec3_004736e0* b, int c);  // slot 6
@@ -500,14 +500,14 @@ public:
 class NanoParticles : public ParticleSystem {
 public:
     int field_8;                                        // +0x8, the next emit tick
-    std::vector<Class_004739b0> items;                  // +0xc (_First +0x10)
+    std::vector<NanoParticle> items;                    // +0xc (_First +0x10)
     Seg_00473b50 seg_1c;                                // +0x1c, centre and box
     Seg_00473b50 seg_34;                                // +0x34, target and box
 
     NanoParticles() {}
     virtual void Update();                              // slot 1, 0x472eb0
-    virtual void FUN_00472e30(int);                     // slot 2, 0x472f90
-    virtual int FUN_00472e70();                         // slot 3, 0x472fd0
+    virtual void Render(int);                           // slot 2, 0x472f90
+    virtual int IsFinished();                           // slot 3, 0x472fd0
     virtual void Emit();                                // slot 4, 0x473d50
     virtual int FUN_00472f60();                         // slot 5, 0x472f60
     virtual void FUN_00473b50(Seg_00473b50* a, Seg_00473b50* b, int c);  // slot 6
@@ -527,8 +527,8 @@ public:
 
     ThrustParticles() {}
     virtual void Update();                              // slot 1, 0x473010
-    virtual void FUN_00472e30(int);                     // slot 2, 0x4730f0
-    virtual int FUN_00472e70();                         // slot 3, 0x473130
+    virtual void Render(int);                           // slot 2, 0x4730f0
+    virtual int IsFinished();                           // slot 3, 0x473130
     virtual void FUN_004743a0();                        // slot 4, 0x4743a0
     virtual int FUN_004730c0();                         // slot 5, 0x4730c0
     virtual void FUN_004742c0(Shape_00472ab0* p, Shape_00472ab0* q, int a, int b);
@@ -539,7 +539,7 @@ public:
 class WakeParticles : public ParticleSystem {
 public:
     int field_8;                                        // +0x8, the next emit tick
-    std::vector<Class_00474580> items;                  // +0xc (_First +0x10)
+    std::vector<WakeParticle> items;                    // +0xc (_First +0x10)
     int field_1c;                                       // +0x1c
     Vec3_00474760 pos_a;                                // +0x20
     Vec3_00474760 pos_b;                                // +0x2c
@@ -548,8 +548,8 @@ public:
 
     WakeParticles() {}
     virtual void Update();                              // slot 1, 0x473170
-    virtual void FUN_00472e30(int);                     // slot 2, 0x473250
-    virtual int FUN_00472e70();                         // slot 3, 0x473290
+    virtual void Render(int);                           // slot 2, 0x473250
+    virtual int IsFinished();                           // slot 3, 0x473290
     virtual void Emit();                                // slot 4, 0x474880
     virtual int FUN_00473220();                         // slot 5, 0x473220
     virtual void FUN_00474760(Vec3_00474760* a, Vec3_00474760* b, int param_3,
@@ -715,7 +715,7 @@ struct Lists_00472530 {
     }
 };
 
-// The smoke and Class_004750b0 systems' point types.
+// The smoke and TimedSubParticles systems' point types.
 struct Vec3_00472630 {
     int x;
     int y;
@@ -802,7 +802,7 @@ struct Rect_004b0510 {
 };
 
 // One smoke puff (the element of SmokeParticles' vector), 0x20 bytes.
-struct Class_00474b00 {
+struct SmokeParticle {
     void* data;                        // +0x00, the animation
     union {
         Vec3_00474d50 pos;             // +0x04
@@ -818,8 +818,8 @@ struct Class_00474b00 {
     int IsExpired(int unused);
 };
 
-// One particle of Class_004750b0, 0x20 bytes.
-struct Class_00474fc0 {
+// One particle of TimedSubParticles, 0x20 bytes.
+struct TimedSubParticle {
     void* data;                        // +0x00, the animation
     union {
         Vec3_00475150 pos;             // +0x04
@@ -839,7 +839,7 @@ struct Class_00474fc0 {
 class SmokeParticles : public ParticleSystem {
 public:
     int time;                                           // +0x8, the next emit tick
-    std::vector<Class_00474b00> records;               // +0xc (_First +0x10)
+    std::vector<SmokeParticle> records;                // +0xc (_First +0x10)
     int unknown_1c;                                     // +0x1c, the emit period
     int unknown_20;                                     // +0x20
     int unknown_24;                                     // +0x24, the frame count - 1
@@ -848,8 +848,8 @@ public:
 
     SmokeParticles();
     virtual void Update();                              // slot 1, 0x475340
-    virtual void FUN_00472e30(int);                     // slot 2, 0x475470
-    virtual int FUN_00472e70();                         // slot 3, 0x474f80
+    virtual void Render(int);                           // slot 2, 0x475470
+    virtual int IsFinished();                           // slot 3, 0x474f80
     virtual void Emit();                                // slot 4, 0x474df0
     virtual int FUN_00475440();                         // slot 5, 0x475440
     virtual void FUN_00474d50(Vec3_00474d50* pos, int limit, int a, int b, int c,
@@ -857,19 +857,19 @@ public:
 };
 
 // Vtable 0x4fd638, constructor 0x4750b0, ??_G 0x475110; 0x34 bytes.
-class Class_004750b0 : public ParticleSystem {
+class TimedSubParticles : public ParticleSystem {
 public:
     int time;                                           // +0x8, the next emit tick
-    std::vector<Class_00474fc0> records;                // +0xc (_First +0x10)
+    std::vector<TimedSubParticle> records;              // +0xc (_First +0x10)
     int unknown_1c;                                     // +0x1c, the emit period
     int unknown_20;                                     // +0x20
     int unknown_24;                                     // +0x24, the frame count - 1
     Vec3_00475150 pos;                                  // +0x28
 
-    Class_004750b0();
+    TimedSubParticles();
     virtual void Update();                              // slot 1, 0x475600
-    virtual void FUN_00472e30(int);                     // slot 2, 0x475700
-    virtual int FUN_00472e70();                         // slot 3, 0x475330
+    virtual void Render(int);                           // slot 2, 0x475700
+    virtual int IsFinished();                           // slot 3, 0x475330
     virtual void Emit();                                // slot 4, 0x4751c0
     // In particles_4750f0.cpp: it is defined returning bool, and Update tests
     // its result as an int.
@@ -1017,9 +1017,9 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern Class_00470ed0 DAT_0051e610;
+extern Class_00470ed0 g_particlePool;
 extern char DAT_0051e608;
-extern unsigned char DAT_0051e634;
+extern unsigned char g_particlePoolDestroyed;
 extern void __stdcall ExitParticlePool();
 
 void* __stdcall GetGafFrame(void* a, int b);
@@ -1136,15 +1136,15 @@ struct Access_00473500 : Vec_00473500 {
     static DestroyFn_00473500 destroy;
 };
 
-// std::vector<Class_004739b0> (0x30-byte element type) and its out-of-line
+// std::vector<NanoParticle> (0x30-byte element type) and its out-of-line
 // members: reserve (0x475770), _Destroy (0x475870), _Ucopy (0x475880) and
 // _Ufill (0x476710).
-typedef std::vector<Class_004739b0> Vec_004739b0;
+typedef std::vector<NanoParticle> Vec_004739b0;
 typedef void (Vec_004739b0::*ReserveFn_004739b0)(Vec_004739b0::size_type);
 typedef Vec_004739b0::iterator (Vec_004739b0::*UcopyFn_004739b0)(
     Vec_004739b0::const_iterator, Vec_004739b0::const_iterator, Vec_004739b0::iterator);
 typedef void (Vec_004739b0::*UfillFn_004739b0)(
-    Vec_004739b0::iterator, Vec_004739b0::size_type, const Class_004739b0&);
+    Vec_004739b0::iterator, Vec_004739b0::size_type, const NanoParticle&);
 typedef void (Vec_004739b0::*DestroyFn_004739b0)(Vec_004739b0::iterator, Vec_004739b0::iterator);
 
 struct Access_00475770 : Vec_004739b0 {
@@ -1167,13 +1167,13 @@ struct Access_00476710 : Vec_004739b0 {
 // insert under this name.
 class Class_00476210 {
 public:
-    void FUN_00476210(std::vector<Class_00474b00>::iterator p, unsigned int m,
-                     const Class_00474b00& x);
+    void FUN_00476210(std::vector<SmokeParticle>::iterator p, unsigned int m,
+                     const SmokeParticle& x);
 };
 
-class Class_00476490 {
+class Vec_00476490 {
 public:
-    void FUN_00476490(Class_00474fc0* pos, int count, const Class_00474fc0* src);
+    void FUN_00476490(TimedSubParticle* pos, int count, const TimedSubParticle* src);
 };
 
 // The vector's own out-of-line size() (0x475840) under the name
@@ -1184,7 +1184,7 @@ public:
     int field_4;
     int field_8;
 
-    int FUN_00475840();
+    int GetCount();
 };
 
 // std::copy for 14-byte elements, compiled with __stdcall as the default
@@ -1192,7 +1192,7 @@ public:
 // elements into another. It is the second std::copy instantiation, so
 // data/aliases.csv lists 0x470a40 for std::copy (0x4256a0 is the first).
 // FUNCTION: 0x470a40
-Elem_00470a40* __stdcall FUN_00470a40(Elem_00470a40* first, Elem_00470a40* last, Elem_00470a40* dest)
+Elem_00470a40* __stdcall CopyStructRange(Elem_00470a40* first, Elem_00470a40* last, Elem_00470a40* dest)
 {
     for (; first != last; ++dest, ++first)
         *dest = *first;
@@ -1217,7 +1217,7 @@ ObjectPool* Class_00470a90::Construct(int param_1, int param_2)
 // a std::vector while erasing it from the front, then the vector's own
 // destructor frees the storage.
 //
-// The game's instance is the function-local static DAT_0051e610 constructed
+// The game's instance is the function-local static g_particlePool constructed
 // with (1000, 0x4c) at 0x471c80. The static object below must stay: it makes
 // the compiler emit the vtable and with it this COMDAT.
 // FUNCTION: 0x470ae0 ??_GObjectPool@@UAEPAXI@Z
@@ -1320,7 +1320,7 @@ struct Access_00470f30 : Vec_00470f30 {
 UfillFn_00470f30 Access_00470f30::fn = &Access_00470f30::_Ufill;
 
 // FUNCTION: 0x470f60
-void __stdcall FUN_00470f60(int* param_1, int* param_2)
+void __stdcall CopyPointer(int* param_1, int* param_2)
 {
     if (param_1 != 0) {
         *param_1 = *param_2;
@@ -1358,7 +1358,7 @@ void ParticleLists::UpdateAll()
         std::vector<ParticleSystem*>::iterator it = lists[i].begin();
         while (it != lists[i].end()) {
             ParticleSystem* l = *it;
-            if (l->FUN_00472e70()) {
+            if (l->IsFinished()) {
                 delete l;
                 lists[i].erase(it);
             } else {
@@ -1375,7 +1375,7 @@ void ParticleLists::DrawAll(void* param)
 {
     for (int i = 0; i < 10; i++) {
         for (std::vector<ParticleSystem*>::iterator it = lists[i].begin(); it != lists[i].end(); it++)
-            (*it)->FUN_00472e30((int)param);
+            (*it)->Render((int)param);
     }
 }
 
@@ -1385,7 +1385,7 @@ void ParticleLists::DrawList(void* param, short index)
 {
     std::vector<ParticleSystem*>* s = &lists[index];
     for (std::vector<ParticleSystem*>::iterator p = s->begin(); p != s->end(); p++)
-        (*p)->FUN_00472e30((int)param);
+        (*p)->Render((int)param);
 }
 
 // Creates a TeleportParticles (vtable 0x4fd588), initialises it through virtual
@@ -1469,23 +1469,23 @@ void ParticleLists::AddWakeParticles(int param_1, int param_2, int param_3,
 static WakeParticles* s_wake = new WakeParticles;
 
 // FUNCTION: 0x471c80
-void FUN_00471c80()
+void InitParticlePool()
 {
-    ((Class_00470a90*)&DAT_0051e610)->Construct(0x3e8, 0x4c);
+    ((Class_00470a90*)&g_particlePool)->Construct(0x3e8, 0x4c);
     atexit((void (__cdecl*)(void))ExitParticlePool);
 }
 
 // FUNCTION: 0x471ca0
 void ExitParticlePool()
 {
-    if ((DAT_0051e634 & 1) == 0) {
-        DAT_0051e634 |= 1;
-        ((Class_00470b80*)&DAT_0051e610)->Destroy();
+    if ((g_particlePoolDestroyed & 1) == 0) {
+        g_particlePoolDestroyed |= 1;
+        ((Class_00470b80*)&g_particlePool)->Destroy();
     }
 }
 
 // Constructor of ParticleSystem, the base of a family of objects allocated
-// from the pool DAT_0051e610 through the class's own operator new (0x471d10)
+// from the pool g_particlePool through the class's own operator new (0x471d10)
 // and operator delete (0x471d50). The base vtable 0x4fd5a8 holds the virtual
 // destructor and three pure virtuals; every derived class overrides those
 // three and adds three more of its own (slot 6 initialises the object and
@@ -1498,7 +1498,7 @@ void ExitParticlePool()
 //   ThrustParticles  0x4fd5d8  inline       0x4716a0  0x473010 0x4730f0 0x473130 0x4743a0 0x4730c0 0x4742c0
 //   WakeParticles  0x4fd5f8  inline       0x4717e0  0x473170 0x473250 0x473290 0x474880 0x473220 0x474760
 //   SmokeParticles  0x4fd618  0x474cd0     0x474d10  0x475340 0x475470 0x474f80 0x474df0 0x475440 0x474d50
-//   Class_004750b0  0x4fd638  0x4750b0     0x475110  0x475600 0x475700 0x475330 0x4751c0 0x4750f0 0x475150
+//   TimedSubParticles  0x4fd638  0x4750b0     0x475110  0x475600 0x475700 0x475330 0x4751c0 0x4750f0 0x475150
 //
 // The base destructor is 0x471d00. An override keeps the name of the base
 // slot it overrides, so slots 1-3 of every derived class carry the names of
@@ -1518,25 +1518,25 @@ ParticleSystem::~ParticleSystem()
 }
 
 // The class-specific operator new of ParticleSystem (the family is listed
-// at the constructor): takes a zeroed object from the pool DAT_0051e610, or
+// at the constructor): takes a zeroed object from the pool g_particlePool, or
 // returns null while DAT_0051e608 is set. Its operator delete is 0x471d50.
 // FUNCTION: 0x471d10
 void* __stdcall ParticleSystem::operator new(size_t size)
 {
     if (DAT_0051e608)
         return 0;
-    void* p = (void*)((Class_00470eb0*)&DAT_0051e610)->AllocSlot(size);
+    void* p = (void*)((Class_00470eb0*)&g_particlePool)->AllocSlot(size);
     if (p)
         memset(p, 0, size);
     return p;
 }
 
 // The class-specific operator delete of ParticleSystem (the family is listed
-// at the constructor): returns the object to the pool DAT_0051e610.
+// at the constructor): returns the object to the pool g_particlePool.
 // FUNCTION: 0x471d50
 void __stdcall ParticleSystem::operator delete(void* p)
 {
-    DAT_0051e610.FreeSlot((int)p);
+    g_particlePool.FreeSlot((int)p);
 }
 
 // SetLifetime, called out of line from slot 6 of the derived classes below.
@@ -1751,7 +1751,7 @@ SizeFn_00473500 g_size_00472d30 = &Vec_00473500::size;
 // FUNCTION: 0x472d50
 void TeleportParticles::Update()
 {
-    std::vector<Class_00473560>::iterator it = items.begin();
+    std::vector<TeleportParticle>::iterator it = items.begin();
 
     while (it != items.end()) {
         it->Step();
@@ -1782,16 +1782,16 @@ int TeleportParticles::FUN_00472e00()
 // Calls 0x473590 on every element of the std::vector of 52-byte elements
 // whose emptiness 0x472e70 tests.
 // FUNCTION: 0x472e30
-void TeleportParticles::FUN_00472e30(int p)
+void TeleportParticles::Render(int p)
 {
-    for (std::vector<Class_00473560>::iterator it = items.begin(); it != items.end(); ++it) {
+    for (std::vector<TeleportParticle>::iterator it = items.begin(); it != items.end(); ++it) {
         it->DrawParticle((void*)p, g_game->field_1431f, g_game->field_14323);
     }
 }
 
 // Returns whether the particle vector is empty.
 // FUNCTION: 0x472e70
-int TeleportParticles::FUN_00472e70()
+int TeleportParticles::IsFinished()
 {
     return items.empty();
 }
@@ -1803,7 +1803,7 @@ int TeleportParticles::FUN_00472e70()
 // FUNCTION: 0x472eb0
 void NanoParticles::Update()
 {
-    std::vector<Class_004739b0>::iterator it = items.begin();
+    std::vector<NanoParticle>::iterator it = items.begin();
     while (it != items.end()) {
         it->Step();
         if (it->IsExpired(g_game->ticks))
@@ -1831,15 +1831,15 @@ int NanoParticles::FUN_00472f60()
 // Slot 2: calls DrawParticle on every particle, passing the map scroll
 // position as shorts.
 // FUNCTION: 0x472f90
-void NanoParticles::FUN_00472e30(int param_1)
+void NanoParticles::Render(int param_1)
 {
-    for (std::vector<Class_004739b0>::iterator it = items.begin(); it != items.end(); ++it)
+    for (std::vector<NanoParticle>::iterator it = items.begin(); it != items.end(); ++it)
         it->DrawParticle(param_1, g_game->scroll_x, g_game->scroll_y);
 }
 
 // Slot 3: whether there are no particles.
 // FUNCTION: 0x472fd0
-int NanoParticles::FUN_00472e70()
+int NanoParticles::IsFinished()
 {
     return items.empty();
 }
@@ -1851,7 +1851,7 @@ int NanoParticles::FUN_00472e70()
 // FUNCTION: 0x473010
 void ThrustParticles::Update()
 {
-    for (std::vector<Class_00474130>::iterator it = items.begin(); it != items.end(); ) {
+    for (std::vector<ThrustParticle>::iterator it = items.begin(); it != items.end(); ) {
         it->Step();
         if (it->IsExpired(g_game->ticks))
             items.erase(it);
@@ -1878,16 +1878,16 @@ int ThrustParticles::FUN_004730c0()
 // Slot 2: calls DrawParticle on every particle with the argument and the map
 // scroll position.
 // FUNCTION: 0x4730f0
-void ThrustParticles::FUN_00472e30(int param_1)
+void ThrustParticles::Render(int param_1)
 {
-    for (std::vector<Class_00474130>::iterator it = items.begin(); it != items.end(); ++it) {
+    for (std::vector<ThrustParticle>::iterator it = items.begin(); it != items.end(); ++it) {
         it->DrawParticle((void*)param_1, g_game->scroll_x, g_game->scroll_y);
     }
 }
 
 // Slot 3: whether there are no particles.
 // FUNCTION: 0x473130
-int ThrustParticles::FUN_00472e70()
+int ThrustParticles::IsFinished()
 {
     return items.empty();
 }
@@ -1898,7 +1898,7 @@ int ThrustParticles::FUN_00472e70()
 // FUNCTION: 0x473170
 void WakeParticles::Update()
 {
-    std::vector<Class_00474580>::iterator it = items.begin();
+    std::vector<WakeParticle>::iterator it = items.begin();
 
     while (it != items.end()) {
         it->Step();
@@ -1926,16 +1926,16 @@ int WakeParticles::FUN_00473220()
 // Slot 2: calls DrawParticle on every particle with the argument and the map
 // scroll position.
 // FUNCTION: 0x473250
-void WakeParticles::FUN_00472e30(int param_1)
+void WakeParticles::Render(int param_1)
 {
-    for (std::vector<Class_00474580>::iterator it = items.begin(); it != items.end(); ++it) {
+    for (std::vector<WakeParticle>::iterator it = items.begin(); it != items.end(); ++it) {
         it->DrawParticle((void*)param_1, g_game->scroll_x, g_game->scroll_y);
     }
 }
 
 // Slot 3: whether there are no particles.
 // FUNCTION: 0x473290
-int WakeParticles::FUN_00472e70()
+int WakeParticles::IsFinished()
 {
     return items.empty();
 }
@@ -1961,7 +1961,7 @@ UfillFn_00473500 Access_00473500::ufill = &Access_00473500::_Ufill;
 // The original calls this out of line from 0x472d50; in this file /Ob2 would inline it.
 #pragma auto_inline(off)
 // FUNCTION: 0x473560
-void Class_00473560::Step()
+void TeleportParticle::Step()
 {
     pos1 += dir;
     field_2c = (field_2c + 1) % field_28;
@@ -1969,7 +1969,7 @@ void Class_00473560::Step()
 #pragma auto_inline(on)
 
 // FUNCTION: 0x473590
-void Class_00473560::DrawParticle(void* dest, short px, short py)
+void TeleportParticle::DrawParticle(void* dest, short px, short py)
 {
     Pos_00473590* q = &posw;
     short sx = q->x - px + 0x80;
@@ -2003,7 +2003,7 @@ void Class_00473560::DrawParticle(void* dest, short px, short py)
 // The original calls this out of line from 0x472d50; in this file /Ob2 would inline it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4736c0
-int Class_00473560::IsExpired(int param_1)
+int TeleportParticle::IsExpired(int param_1)
 {
     return param_1 > field_30;
 }
@@ -2046,7 +2046,7 @@ void TeleportParticles::Emit()
         items.reserve(grow + items.size());
 
     for (int i = 0; i < 1; i++) {
-        Class_00473560 e;
+        TeleportParticle e;
 
         e.pos1 = pos1;
         e.pos2 = pos2;
@@ -2068,7 +2068,7 @@ void TeleportParticles::Emit()
 // The original calls this out of line from 0x472eb0; in this file /Ob2 would inline it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4739b0
-void Class_004739b0::Step()
+void NanoParticle::Step()
 {
     short frame = (flags & 0xf) + 1;
     pos += vel;
@@ -2082,7 +2082,7 @@ void Class_004739b0::Step()
 // The original calls this out of line from 0x472eb0; in this file /Ob2 would inline it.
 #pragma auto_inline(off)
 // FUNCTION: 0x473b30
-int Class_004739b0::IsExpired(int value)
+int NanoParticle::IsExpired(int value)
 {
     return value > field_2c;
 }
@@ -2104,7 +2104,7 @@ void NanoParticles::FUN_00473b50(Seg_00473b50* a, Seg_00473b50* b, int c)
 // The original calls this out of line from 0x473010; in this file /Ob2 would inline it.
 #pragma auto_inline(off)
 // FUNCTION: 0x474130
-void Class_00474130::Step()
+void ThrustParticle::Step()
 {
     pos0 += pos2;
     field_30 = (field_30 + 1) % field_34;
@@ -2115,7 +2115,7 @@ void Class_00474130::Step()
 #pragma auto_inline(on)
 
 // FUNCTION: 0x474170
-void Class_00474130::DrawParticle(void* dest, short px, short py)
+void ThrustParticle::DrawParticle(void* dest, short px, short py)
 {
     Pos_00473590* q = &posw;
     short sx = q->x - px + 0x80;
@@ -2144,7 +2144,7 @@ void Class_00474130::DrawParticle(void* dest, short px, short py)
 // The original calls this out of line from 0x473010; in this file /Ob2 would inline it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4742a0
-int Class_00474130::IsExpired(int value)
+int ThrustParticle::IsExpired(int value)
 {
     return value > field_38;
 }
@@ -2185,7 +2185,7 @@ void ThrustParticles::FUN_004743a0()
     Vec3_004742c0* p = &pos0;
     Vec_004743a0* v = &items;
     for (int i = 1; i != 0; i--) {
-        Class_00474130 rec;
+        ThrustParticle rec;
         rec.field_34 = field_1c;
         rec.field_38 = field_4;
         rec.field_30 = 0;
@@ -2205,7 +2205,7 @@ void ThrustParticles::FUN_004743a0()
 // The original calls this out of line from 0x473170; in this file /Ob2 would inline it.
 #pragma auto_inline(off)
 // FUNCTION: 0x474580
-void Class_00474580::Step()
+void WakeParticle::Step()
 {
     pos += vel;
     field_38 = (field_38 + 1) % field_3c;
@@ -2220,7 +2220,7 @@ void Class_00474580::Step()
 // The original calls this out of line from 0x473250; in this file /Ob2 would inline it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4745e0
-void Class_00474580::DrawParticle(void* surface, short px, short py)
+void WakeParticle::DrawParticle(void* surface, short px, short py)
 {
     Rect_004b0510 r;
     short sx = posw.x - px;
@@ -2241,7 +2241,7 @@ void Class_00474580::DrawParticle(void* surface, short px, short py)
 // The original calls this out of line from 0x473170; in this file /Ob2 would inline it.
 #pragma auto_inline(off)
 // FUNCTION: 0x474720
-int Class_00474580::IsExpired(int param_1)
+int WakeParticle::IsExpired(int param_1)
 {
     if (param_1 <= field_40) {
         int r = GetGroundHeight(&pos);
@@ -2291,7 +2291,7 @@ void WakeParticles::Emit()
     // Keep the do/while countdown with its counter (i = 1).
     int i = 1;
     do {
-        Class_00474580 e;
+        WakeParticle e;
 
         e.field_38 = 0;
         e.field_3c = field_1c;
@@ -2324,7 +2324,7 @@ void WakeParticles::Emit()
 // step) and, when the countdown runs out, counts one more round and restarts
 // the countdown at half the period plus a random part of the other half.
 // FUNCTION: 0x474b00
-void Class_00474b00::Step()
+void SmokeParticle::Step()
 {
     pos.x += g_game->windX * 8;
     pos.y += g_game->rise * 4;
@@ -2338,7 +2338,7 @@ void Class_00474b00::Step()
 
 // Whether the puff has counted all its rounds.
 // FUNCTION: 0x474cb0
-int Class_00474b00::IsExpired(int unused)
+int SmokeParticle::IsExpired(int unused)
 {
     return count >= limit;
 }
@@ -2383,9 +2383,9 @@ void SmokeParticles::Emit()
         records.reserve(periods + records.size());
     }
     Vec3_00474d50* p = &pos;
-    std::vector<Class_00474b00>* v = &records;
+    std::vector<SmokeParticle>* v = &records;
     for (int i = 1; i != 0; i--) {
-        Class_00474b00 rec;
+        SmokeParticle rec;
         rec.pos = *p;
         rec.period = unknown_20;
         rec.timer = unknown_20;
@@ -2400,7 +2400,7 @@ void SmokeParticles::Emit()
 // Slot 3: true once there are no particles and the game time has passed the
 // deadline in field_4.
 // FUNCTION: 0x474f80
-int SmokeParticles::FUN_00472e70()
+int SmokeParticles::IsFinished()
 {
     int count;
 
@@ -2418,11 +2418,11 @@ int SmokeParticles::FUN_00472e70()
 
 // Drifts the 16.16 position by the wind (x, z) and a vertical rate (y), and
 // when the timer runs out counts one more step and restarts the timer at a
-// random value between period/2 and period. Slot 1 of Class_004750b0
+// random value between period/2 and period. Slot 1 of TimedSubParticles
 // (0x475600) inlines this; this out-of-line copy is never called. 0x474b00 is
 // the same update for SmokeParticles's records (y * 4).
 // FUNCTION: 0x474fc0
-void Class_00474fc0::Step()
+void TimedSubParticle::Step()
 {
     pos.x += g_game->windX * 8;
     pos.y += g_game->rise * 16;
@@ -2437,7 +2437,7 @@ void Class_00474fc0::Step()
 // Draws the particle's frame at its screen position, relative to the scroll
 // position px, py.
 // FUNCTION: 0x475040
-void Class_00474fc0::DrawParticle(void* dest, short px, short py)
+void TimedSubParticle::DrawParticle(void* dest, short px, short py)
 {
     short sy = posw.z - (posw.y >> 1) - py + 0x20;
     short sx = posw.x - px + 0x80;
@@ -2446,7 +2446,7 @@ void Class_00474fc0::DrawParticle(void* dest, short px, short py)
 
 // Whether the particle has taken all its steps.
 // FUNCTION: 0x475090
-int Class_00474fc0::IsExpired(int unused)
+int TimedSubParticle::IsExpired(int unused)
 {
     return count >= limit ? 1 : 0;
 }
@@ -2457,7 +2457,7 @@ int Class_00474fc0::IsExpired(int unused)
 
 // Slot 6.
 // FUNCTION: 0x475150
-void Class_004750b0::FUN_00475150(Vec3_00475150* p, int a, int b, int c)
+void TimedSubParticles::FUN_00475150(Vec3_00475150* p, int a, int b, int c)
 {
     SetLifetime(c);
     pos = *p;
@@ -2474,7 +2474,7 @@ void Class_004750b0::FUN_00475150(Vec3_00475150* p, int a, int b, int c)
 // g_game->unknown_147cf at this->pos, a random lifetime of 2 to unknown_24 - 1
 // periods, and a countdown of unknown_20 periods.
 // FUNCTION: 0x4751c0
-void Class_004750b0::Emit()
+void TimedSubParticles::Emit()
 {
     int missed = (field_4 - g_game->ticks + unknown_1c) / unknown_1c;
     if (missed > 0)
@@ -2483,25 +2483,25 @@ void Class_004750b0::Emit()
     // into callee saved registers before the loop, and reads the record's
     // position and the vector's _Last through them.
     Vec3_00475150* p = &pos;
-    std::vector<Class_00474fc0>* v = &records;
+    std::vector<TimedSubParticle>* v = &records;
     // One-trip countdown loop stays: the original keeps it as a counter.
     int i = 1;
     do {
-        Class_00474fc0 rec;
+        TimedSubParticle rec;
         rec.pos = *p;
         rec.period = unknown_20;
         rec.timer = unknown_20;
         rec.data = g_game->unknown_147cf;
         rec.limit = (int)((__int64)rand() * (unknown_24 - 2) / 0x8000) + 2;
         rec.count = 0;
-        ((Class_00476490*)v)->FUN_00476490(v->end(), 1, &rec);
+        ((Vec_00476490*)v)->FUN_00476490(v->end(), 1, &rec);
     } while (--i);
     time = g_game->ticks + unknown_1c;
 }
 
 // Slot 3: this class always answers 0.
 // FUNCTION: 0x475330
-int Class_004750b0::FUN_00472e70()
+int TimedSubParticles::IsFinished()
 {
     return 0;
 }
@@ -2516,7 +2516,7 @@ int Class_004750b0::FUN_00472e70()
 // FUNCTION: 0x475340
 void SmokeParticles::Update()
 {
-    std::vector<Class_00474b00>::iterator it = records.begin();
+    std::vector<SmokeParticle>::iterator it = records.begin();
     while (it != records.end()) {
         it->pos.x += g_game->windX * 8;
         it->pos.y += g_game->rise * 4;
@@ -2552,9 +2552,9 @@ int SmokeParticles::FUN_00475440()
 // other half). A particle that has counted as many rounds as its limit is
 // erased. Then slot 5 says whether to emit more (slot 4).
 // FUNCTION: 0x475600
-void Class_004750b0::Update()
+void TimedSubParticles::Update()
 {
-    std::vector<Class_00474fc0>::iterator it = records.begin();
+    std::vector<TimedSubParticle>::iterator it = records.begin();
     while (it != records.end()) {
         it->pos.x += g_game->windX * 8;
         it->pos.y += g_game->rise * 16;
@@ -2574,30 +2574,30 @@ void Class_004750b0::Update()
         Emit();
 }
 
-// std::vector<Class_004739b0>::reserve from MSVC 5's <vector>.
-// FUNCTION: 0x475770 ?reserve@?$vector@UClass_004739b0@@V?$allocator@UClass_004739b0@@@std@@@std@@QAEXI@Z
+// std::vector<NanoParticle>::reserve from MSVC 5's <vector>.
+// FUNCTION: 0x475770 ?reserve@?$vector@UNanoParticle@@V?$allocator@UNanoParticle@@@std@@@std@@QAEXI@Z
 ReserveFn_004739b0 Access_00475770::fn = &Access_00475770::reserve;
 
 // The vector's own out-of-line size(): three words of a std::vector, the first
 // pointer at +0x4 and the second at +0x8.
 // FUNCTION: 0x475840
-int Class_00475840::FUN_00475840()
+int Class_00475840::GetCount()
 {
     return field_4 == 0 ? 0 : (field_8 - field_4) / 48;
 }
 
-// std::vector<Class_004739b0>::_Destroy(first, last) from MSVC 5's <vector>:
+// std::vector<NanoParticle>::_Destroy(first, last) from MSVC 5's <vector>:
 // empty, since the element type is trivial.
-// FUNCTION: 0x475870 ?_Destroy@?$vector@UClass_004739b0@@V?$allocator@UClass_004739b0@@@std@@@std@@IAEXPAUClass_004739b0@@0@Z
+// FUNCTION: 0x475870 ?_Destroy@?$vector@UNanoParticle@@V?$allocator@UNanoParticle@@@std@@@std@@IAEXPAUNanoParticle@@0@Z
 DestroyFn_004739b0 Access_00475870::fn = &Access_00475870::_Destroy;
 
-// std::vector<Class_004739b0>::_Ucopy(first, last, dest) from MSVC 5's
+// std::vector<NanoParticle>::_Ucopy(first, last, dest) from MSVC 5's
 // <vector>: copies [first, last) into raw storage at dest and returns the
 // end of the copies.
-// FUNCTION: 0x475880 ?_Ucopy@?$vector@UClass_004739b0@@V?$allocator@UClass_004739b0@@@std@@@std@@IAEPAUClass_004739b0@@PBU3@0PAU3@@Z
+// FUNCTION: 0x475880 ?_Ucopy@?$vector@UNanoParticle@@V?$allocator@UNanoParticle@@@std@@@std@@IAEPAUNanoParticle@@PBU3@0PAU3@@Z
 UcopyFn_004739b0 Access_00475880::fn = &Access_00475880::_Ucopy;
 
-// std::vector<Class_004739b0>::_Ufill(first, n, value) from MSVC 5's <vector>:
+// std::vector<NanoParticle>::_Ufill(first, n, value) from MSVC 5's <vector>:
 // copy-constructs n copies of value into raw storage at first.
-// FUNCTION: 0x476710 ?_Ufill@?$vector@UClass_004739b0@@V?$allocator@UClass_004739b0@@@std@@@std@@IAEXPAUClass_004739b0@@IABU3@@Z
+// FUNCTION: 0x476710 ?_Ufill@?$vector@UNanoParticle@@V?$allocator@UNanoParticle@@@std@@@std@@IAEXPAUNanoParticle@@IABU3@@Z
 UfillFn_004739b0 Access_00476710::fn = &Access_00476710::_Ufill;

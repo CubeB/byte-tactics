@@ -605,8 +605,8 @@ int g_reportFlags;  // 0x51e594 .bss
 char g_unitSyncStatusText[104];  // 0x51e5a0 .bss
 char DAT_0051e608;  // 0x51e608 .bss
 unsigned char DAT_0051e609[7];  // 0x51e609 .bss
-unsigned char DAT_0051e610[36];  // 0x51e610 .bss
-unsigned char DAT_0051e634;  // 0x51e634 .bss
+unsigned char g_particlePool[36];  // 0x51e610 .bss
+unsigned char g_particlePoolDestroyed;  // 0x51e634 .bss
 unsigned char DAT_0051e635[7];  // 0x51e635 .bss
 char* DAT_0051e63c;  // 0x51e63c .bss
 unsigned char DAT_0051e644[8];  // 0x51e644 .bss

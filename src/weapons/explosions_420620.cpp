@@ -288,7 +288,7 @@ void* __stdcall BuildLensFrame(int, int, int);
 void __stdcall InitGafSequence(GafRef* ref, GafSequence* src, int index);
 void __stdcall EmitSmoke(int* pos, int a, int b, int c);
 void __stdcall EmitWhiteSmoke(void* buf, int arg);
-void __stdcall FUN_00472ab0(void* buf, int arg);
+void __stdcall EmitJitteredThrustParticles(void* buf, int arg);
 int __stdcall PointInRect(void* rect, int x, int y);
 void* __stdcall GetGafSequenceFrame(GafRef* ref);
 void* __stdcall GetGafFrame(GafSequence* table, int index);
@@ -762,7 +762,7 @@ int __stdcall DrawExplodedPiece(void* surface, ExplodedPiece* obj)
         buf[0] = inner->pos.x;
         buf[1] = inner->pos.y;
         buf[2] = inner->pos.z;
-        FUN_00472ab0(buf, 9);
+        EmitJitteredThrustParticles(buf, 9);
     }
 
     angles[0] = inner->angle_14;

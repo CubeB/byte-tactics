@@ -439,31 +439,31 @@ class Class_004736e0;
 class Class_00473a00;
 class Class_00473b30;
 class Class_00473b50;
-struct Class_00474130;
+struct ThrustParticle;
 class Class_00474170;
 class Class_004742a0;
 class Class_004742c0;
 class Class_004743a0;
-class Class_00474580;
+class WakeParticle;
 class Class_004745e0;
 class Class_00474720;
 class Class_00474760;
-struct Class_00474b00;
+struct SmokeParticle;
 class Class_00474cb0;
 class SmokeParticles;
 class Class_00474d50;
 struct Class_00474f80;
-class Class_00474fc0;
+class TimedSubParticle;
 class Class_00475040;
 class Class_00475090;
-class Class_004750b0;
+class TimedSubParticles;
 class Class_004750f0;
 class Class_00475150;
 class Class_00475440;
 struct Class_00475840;
 class Class_00475bd0;
 class Class_00476210;
-class Class_00476490;
+class Vec_00476490;
 class MoviePlayer;
 class Class_0047bf20;
 class Class_0047bf70;
@@ -10781,8 +10781,8 @@ public:
     SmokeParticles(void);
     virtual void Notify(void*);
     virtual void FUN_00472d50(void);
-    virtual void FUN_00472e30(int);
-    virtual int FUN_00472e70(void);
+    virtual void Render(int);
+    virtual int IsFinished(void);
     virtual void FUN_00474df0(void);
     virtual int FUN_00475440(void);
     virtual void FUN_00474d50(Vec3*, int, int, int, int, int);
@@ -10838,8 +10838,8 @@ public:
     TeleportParticles(void);
     virtual void FUN_00471430(void);
     virtual void FUN_00472d50(void);
-    virtual void FUN_00472e30(int);
-    virtual int FUN_00472e70(void);
+    virtual void Render(int);
+    virtual int IsFinished(void);
     virtual void FUN_004737c0(void);
     virtual int FUN_00472e00(void);
     virtual void FUN_004736e0(int, int, int);
@@ -10872,8 +10872,8 @@ public:
     NanoParticles(NanoParticles&);
     NanoParticles(void);
     void FUN_00472d50(void);
-    void FUN_00472e30(int);
-    int FUN_00472e70(void);
+    void Render(int);
+    int IsFinished(void);
     void FUN_00473d50(void);
     int FUN_00472f60(void);
     void FUN_00473b50(int, int, int);
@@ -10922,8 +10922,8 @@ public:
     WakeParticles(WakeParticles&);
     WakeParticles(void);
     void FUN_00472d50(void);
-    void FUN_00472e30(int);
-    int FUN_00472e70(void);
+    void Render(int);
+    int IsFinished(void);
     void FUN_00474880(void);
     int FUN_00473220(void);
     void FUN_00474760(int, int, int, int, int);
@@ -10939,11 +10939,11 @@ public:
 class Class_00471a50 {  // 0x10 bytes, 1 view
 public:
     std::vector<Elem_00473500> lists[1];  // +0x0
-    void Add(short, Class_004750b0*);
-    void FUN_00471a50(Vec3*, int, int, int, short);
+    void Add(short, TimedSubParticles*);
+    void AddTimedSubParticles(Vec3*, int, int, int, short);
 };
 
-class Class_004750b0 {  // 0x34 bytes, 7 views
+class TimedSubParticles {  // 0x34 bytes, 7 views
 public:
     char unknown_0[8];
     int time;  // +0x8
@@ -10952,11 +10952,11 @@ public:
     int unknown_20;  // +0x20
     int unknown_24;  // +0x24
     Vec3 pos;  // +0x28
-    Class_004750b0(Class_004750b0&);
-    Class_004750b0(void);
+    TimedSubParticles(TimedSubParticles&);
+    TimedSubParticles(void);
     void FUN_00472d50(void);
-    void FUN_00472e30(int);
-    int FUN_00472e70(void);
+    void Render(int);
+    int IsFinished(void);
     void FUN_004751c0(void);
     int FUN_004750f0(void);
     void FUN_00475150(Vec3*, int, int, int);
@@ -11007,7 +11007,7 @@ public:
 struct Class_00472e30 {  // 0x1c bytes, 1 view
     char unknown_0[12];
     std::vector<Class_00473590> items;  // +0xc
-    void FUN_00472e30(void*);
+    void Render(void*);
 };
 
 struct Elem_00472e70 {  // 0x34 bytes, 1 view
@@ -11017,7 +11017,7 @@ struct Elem_00472e70 {  // 0x34 bytes, 1 view
 struct Class_00472e70 {  // 0x1c bytes, 1 view
     char unknown_0[12];
     std::vector<Elem_00472e70> items;  // +0xc
-    int FUN_00472e70(void);
+    int IsFinished(void);
 };
 
 class Class_00473b30 {  // 0x30 bytes, 2 views
@@ -11081,7 +11081,7 @@ struct Class_00473130 {  // 0x1c bytes, 1 view
     int FUN_00473130(void);
 };
 
-class Class_00474580 {  // 0x44 bytes, 2 views
+class WakeParticle {    // 0x44 bytes, 2 views
 public:
     int unknown_0;  // +0x0
     Vec3 pos;  // +0x4
@@ -11100,7 +11100,7 @@ public:
 class Class_00473170 {  // 0x1c bytes, 1 view
 public:
     char unknown_4[8];
-    std::vector<Class_00474580> items;  // +0xc
+    std::vector<WakeParticle> items;    // +0xc
     virtual void FUN_004717e0(void);
     virtual void FUN_00473170(void);
     virtual void FUN_00473250(int);
@@ -11199,7 +11199,7 @@ struct Class_00475840 {  // 0xc bytes, 2 views
     int unknown_0;  // +0x0
     int field_4;  // +0x4
     int field_8;  // +0x8
-    int FUN_00475840(void);
+    int GetCount(void);
 };
 
 union Fix_00473d50 {  // 0x4 bytes, 1 view
@@ -11234,8 +11234,8 @@ public:
     ThrustParticles(ThrustParticles&);
     ThrustParticles(void);
     void FUN_00472d50(void);
-    void FUN_00472e30(int);
-    int FUN_00472e70(void);
+    void Render(int);
+    int IsFinished(void);
     void FUN_004743a0(void);
     int FUN_004730c0(void);
     void FUN_004742c0(int, int, int, int);
@@ -11308,7 +11308,7 @@ public:
     virtual void FUN_00474760(Vec3*, Vec3*, int, int, int);
 };
 
-struct Class_00474b00 {  // 0x20 bytes, 1 view
+struct SmokeParticle {   // 0x20 bytes, 1 view
     int field_0;  // +0x0
     Pair_00419560* cursor1;  // +0x4
     int* cursor2;  // +0x8
@@ -11367,7 +11367,7 @@ struct Class_00474f80 {  // 0x18 bytes, 1 view
     int FUN_00474f80(void);
 };
 
-class Class_00474fc0 {  // 0x20 bytes, 1 view
+class TimedSubParticle {  // 0x20 bytes, 1 view
 public:
     int field_0;  // +0x0
     int x;  // +0x4
@@ -11423,7 +11423,7 @@ public:
     void FUN_00475150(Vec3*, int, int, int);
 };
 
-class Class_00476490 {  // 0x1 bytes, 1 view
+class Vec_00476490 {    // 0x1 bytes, 1 view
 public:
     char unknown_0[1];
     void FUN_00476490(Record_00474cd0*, int, Record_00474cd0*);

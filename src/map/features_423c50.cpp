@@ -83,7 +83,7 @@ int __stdcall RemoveFeature(Cell_00423c50* cell, int flag);
 void __stdcall MoveFeatureSpot(int index, int* head);
 int __stdcall GetGroundHeight(Vec3_00423c50* pos);
 void* __stdcall CreateObjectState(void* obj);
-void __stdcall FUN_00472c50(Vec3_00423c50* p, short index);
+void __stdcall EmitTimedSubParticles(Vec3_00423c50* p, short index);
 void __stdcall RefreshAllPassMaps(Point16_00423c50 a, Point16_00423c50 b);
 
 // Inlined copy of AllocFeatureSpot: takes a spot off the free list.
@@ -187,10 +187,10 @@ Spot_00423c50* __stdcall PlaceFeature(Cell_00423c50* cell, unsigned short featur
     }
     if (f->bit5) {
         if (pos) {
-            FUN_00472c50(pos, 4);
+            EmitTimedSubParticles(pos, 4);
         } else {
             Vec3_00423c50 p = FootprintCentre_00421eb0(&at, f);
-            FUN_00472c50(&p, 4);
+            EmitTimedSubParticles(&p, 4);
         }
     }
     int index = cell - g_game->cells;

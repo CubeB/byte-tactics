@@ -1916,7 +1916,7 @@ void __stdcall FUN_0049c980(Obj_0049c980* obj, Src_0049c980* src)
 short __cdecl FUN_004b715a(int x, int z);
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
-void __stdcall FUN_004729d0(Vec3* p, short index);
+void __stdcall EmitWeaponSmoke(Vec3* p, short index);
 
 extern char* DAT_00509678[4];
 
@@ -2026,7 +2026,7 @@ int __stdcall FireLineOfSightProjectile(Fire_0049c9c0* fire, Unit* unit,
     ((CobScript*)unit->anims)->StartScriptWithArgs("RockUnit", 0, 0, 2, b, a, 0, 0);
 
     if (fire->shot->f_bit9)
-        FUN_004729d0(p3, 9);
+        EmitWeaponSmoke(p3, 9);
     return 1;
 }
 
@@ -2132,7 +2132,7 @@ int __stdcall FireVLaunchProjectile(Shot_0049cc20* shot, Unit* unit, Vec3* pos,
     int b = -FUN_004b7123(angle, 800);
     unit->anims->StartScriptWithArgs("RockUnit", 0, 0, 2, b, a, 0, 0);
     if (shot->def->flags.bits.bit9)
-        FUN_004729d0(pos, 9);
+        EmitWeaponSmoke(pos, 9);
     return 1;
 }
 
@@ -2226,7 +2226,7 @@ int __stdcall FireBallisticProjectile(Shot_0049cde0* shot, Unit* unit, Vec3* pos
         int b = -FUN_004b7123(angle, 800);
         unit->anims->StartScriptWithArgs("RockUnit", 0, 0, 2, b, a, 0, 0);
         if (shot->def->flags.f9)
-            FUN_004729d0(pos, 9);
+            EmitWeaponSmoke(pos, 9);
         return 1;
     }
     return 0;

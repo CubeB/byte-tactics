@@ -1,7 +1,7 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Stays in its own file: it needs the std::vector<Elem_00473500> view of the
 // lists, whose inlined insert cannot agree with particles.cpp's.
-// Creates a Class_004750b0 (vtable 0x4fd638) from the object pool, initialises
+// Creates a TimedSubParticles (vtable 0x4fd638) from the object pool, initialises
 // it through virtual slot 6 (0x475150) with the first four arguments, then
 // appends it to the std::vector of pointers selected by the short index in the
 // last argument. When that list already holds more than 400 entries its oldest
@@ -23,7 +23,7 @@ public:
     void FreeSlot(void* p);
 };
 
-extern Class_00470ed0 DAT_0051e610;
+extern Class_00470ed0 g_particlePool;
 extern char DAT_0051e608;
 
 // Vtable 0x4fd5a8, constructor 0x471cc0, destructor 0x471d00, ??_G 0x471cd0.
@@ -34,14 +34,14 @@ public:
     ParticleSystem();
     virtual ~ParticleSystem();                          // slot 0
     virtual void Update() = 0;                          // slot 1
-    virtual void FUN_00472e30(int) = 0;                 // slot 2
-    virtual int FUN_00472e70() = 0;                     // slot 3
+    virtual void Render(int) = 0;                       // slot 2
+    virtual int IsFinished() = 0;                       // slot 3
 
     static void* __stdcall operator new(size_t size)
     {
         if (DAT_0051e608)
             return 0;
-        void* p = ((Class_00470eb0*)&DAT_0051e610)->AllocSlot(size);
+        void* p = ((Class_00470eb0*)&g_particlePool)->AllocSlot(size);
         if (p)
             // memset, not a dword loop: keeps inline budget free for insert.
             memset(p, 0, size);
@@ -50,14 +50,14 @@ public:
 
     static void __stdcall operator delete(void* p)
     {
-        DAT_0051e610.FreeSlot(p);
+        g_particlePool.FreeSlot(p);
     }
 };
 
-class Class_004750b0;
+class TimedSubParticles;
 
 struct Elem_00473500 {                 // the vector's element (see 0x473500.cpp)
-    Class_004750b0* p;
+    TimedSubParticles* p;
 };
 
 struct Vec3_00475150 {
@@ -66,21 +66,21 @@ struct Vec3_00475150 {
     int z;
 };
 
-struct Class_00474fc0 {
+struct TimedSubParticle {
     int unknown[8];
 };
 
 // Vtable 0x4fd638, constructor 0x4750b0, ??_G 0x475110; 0x34 bytes.
-class Class_004750b0 : public ParticleSystem {
+class TimedSubParticles : public ParticleSystem {
 public:
     int time;                                           // +0x8
-    std::vector<Class_00474fc0> records;               // +0xc (_First +0x10)
+    std::vector<TimedSubParticle> records;             // +0xc (_First +0x10)
     char unknown_1c[0x34 - 0x1c];
 
-    Class_004750b0();
+    TimedSubParticles();
     virtual void Update();                              // slot 1, 0x475600
-    virtual void FUN_00472e30(int);                     // slot 2, 0x475700
-    virtual int FUN_00472e70();                         // slot 3, 0x475330
+    virtual void Render(int);                           // slot 2, 0x475700
+    virtual int IsFinished();                           // slot 3, 0x475330
     virtual void Emit();                                // slot 4, 0x4751c0
     virtual int FUN_004750f0();                         // slot 5, 0x4750f0
     virtual void FUN_00475150(Vec3_00475150* p, int a, int b, int c);  // slot 6
@@ -91,7 +91,7 @@ class ParticleLists {
 public:
     std::vector<Elem_00473500> lists[1];                // 0x10 bytes each
 
-    void Add(short index, Class_004750b0* p)
+    void Add(short index, TimedSubParticles* p)
     {
         if (lists[index].size() > 400) {
             delete lists[index][0].p;
@@ -101,15 +101,15 @@ public:
         lists[index].push_back(*(Elem_00473500*)&p);
     }
 
-    void FUN_00471a50(Vec3_00475150* param_1, int param_2, int param_3,
-                      int param_4, short index);
+    void AddTimedSubParticles(Vec3_00475150* param_1, int param_2, int param_3,
+                              int param_4, short index);
 };
 
 // FUNCTION: 0x471a50
-void ParticleLists::FUN_00471a50(Vec3_00475150* param_1, int param_2,
-                                  int param_3, int param_4, short index)
+void ParticleLists::AddTimedSubParticles(Vec3_00475150* param_1, int param_2,
+                                        int param_3, int param_4, short index)
 {
-    Class_004750b0* e = new Class_004750b0;
+    TimedSubParticles* e = new TimedSubParticles;
     if (e) {
         e->FUN_00475150(param_1, param_2, param_3, param_4);
         Add(index, e);

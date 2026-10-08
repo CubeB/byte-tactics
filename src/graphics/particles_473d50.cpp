@@ -2,7 +2,7 @@
 //
 // Slot 4 of NanoParticles (vtable 0x4fd5b8, family in 0x471cc0.cpp; the rest
 // of the class is in nano_particles.cpp, which uses the real <vector>): makes
-// room in the std::vector<Class_004739b0> at +0xc for five particles a beat,
+// room in the std::vector<NanoParticle> at +0xc for five particles a beat,
 // then per particle picks a random point in the box at +0x28 around the
 // centre at +0x1c and one in the box at +0x40 around the point at +0x34,
 // appends a record holding both points, the step that divides the segment
@@ -47,7 +47,7 @@ union Fix_00473d50 {
     short half[2];
 };
 
-struct Class_004739b0 {
+struct NanoParticle {
     Vec3_00473d50 pos;                 // +0x00
     Vec3_00473d50 tgt;                 // +0x0c
     Vec3_00473d50 vel;                 // +0x18
@@ -61,7 +61,7 @@ struct Class_004739b0 {
 // +0x04 and its second at +0x08, so the cast below is a no-op.
 class Class_00475840 {
 public:
-    unsigned int FUN_00475840() const;
+    unsigned int GetCount() const;
 };
 
 namespace std {
@@ -131,7 +131,7 @@ public:
     size_type raw_size() const
         {return (_First == 0 ? 0 : _Last - _First); }
     size_type size() const
-        {return (((Class_00475840*)this)->FUN_00475840()); }
+        {return (((Class_00475840*)this)->GetCount()); }
     void reserve(size_type _N);
     void push_back(const _Ty& _X)
         {insert(end(), 1, _X); }
@@ -170,7 +170,7 @@ public:
     char unknown_0[4];                          // +0x00
     int field_4;                                // +0x04
     int time;                                   // +0x08
-    std::vector<Class_004739b0> records;         // +0x0c
+    std::vector<NanoParticle> records;           // +0x0c
     Vec3_00473d50 center;                       // +0x1c
     Vec3_00473d50 radius;                       // +0x28
     Vec3_00473d50 target;                       // +0x34
@@ -188,7 +188,7 @@ void NanoParticles::Emit()
 
     int i = 0;
     for (int n = 5; n != 0; n--) {
-        Class_004739b0 e;
+        NanoParticle e;
         e.pos.x = (int)(((__int64)rand() * radius.x) / 0x8000) + center.x;
         e.pos.y = (int)(((__int64)rand() * radius.y) / 0x8000) + center.y;
         e.pos.z = (int)(((__int64)rand() * radius.z) / 0x8000) + center.z;

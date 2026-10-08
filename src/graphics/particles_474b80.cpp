@@ -63,7 +63,7 @@ struct Game {
 };
 
 // One smoke puff (the element of SmokeParticles' vector), 0x20 bytes.
-struct Class_00474b00 {
+struct SmokeParticle {
     void* data;                    // +0x00, the animation
     union {
         struct {
@@ -104,7 +104,7 @@ static inline int IsSeen_00474b80(Player_00474b80* p, Player_00474b80* q, int co
 }
 
 // FUNCTION: 0x474b80
-void Class_00474b00::DrawParticle(void* dest, short px, short py)
+void SmokeParticle::DrawParticle(void* dest, short px, short py)
 {
     Pos_00474b80* q = &posw;
     short sx = q->x - px + 0x80;

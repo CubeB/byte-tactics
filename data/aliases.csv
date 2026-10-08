@@ -16,7 +16,7 @@ List_004737c0::FUN_004758c0,0x4758c0,"std::vector<T>::insert, matched with /Gi u
 Class_00475bd0::FUN_00475bd0,0x475bd0,"std::vector<T>::insert, matched with /Gi under its real name (#5040); caller 0x4743a0 uses this view name"
 List_00474880::FUN_00475ef0,0x475ef0,"std::vector<T>::insert, matched with /Gi under its real name (#5040); caller 0x474880 uses this view name"
 Class_00476210::FUN_00476210,0x476210,"std::vector<T>::insert, matched with /Gi under its real name (#5040); caller 0x474df0 uses this view name"
-Class_00476490::FUN_00476490,0x476490,"std::vector<T>::insert, matched with /Gi under its real name (#5040); caller 0x4751c0 uses this view name"
+Vec_00476490::FUN_00476490,0x476490,"std::vector<T>::insert, matched with /Gi under its real name (#5040); caller 0x4751c0 uses this view name"
 Class_0046eba0::FUN_0046eba0,0x46eba0,"std::vector<Packet>::insert, matched with /Gi under its real name (#5041); caller 0x46cef0 uses this view name"
 PAUUnit::?$vector::insert,0x48ddc0,"overload: insert(iterator, const T&); 0x408f30 (insert(iterator, size_type, const T&)) now matches with /Gi under the same checker name and takes it in data/symbols.csv; caller 0x48d220 uses it for this one"
 MapCache::FUN_00437580,0x437580,"std::vector<MapCacheEntry>::insert, matched with /Gi under its real name (#5056); caller 0x4373a0 uses this view name"

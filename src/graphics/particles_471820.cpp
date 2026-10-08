@@ -23,7 +23,7 @@ public:
     void FreeSlot(void* p);
 };
 
-extern Class_00470ed0 DAT_0051e610;
+extern Class_00470ed0 g_particlePool;
 extern char DAT_0051e608;
 
 // Vtable 0x4fd5a8, constructor 0x471cc0, destructor 0x471d00, ??_G 0x471cd0.
@@ -34,14 +34,14 @@ public:
     ParticleSystem() { field_4 = 0; }
     virtual ~ParticleSystem();                          // slot 0
     virtual void Update() = 0;                          // slot 1
-    virtual void FUN_00472e30(int) = 0;                 // slot 2
-    virtual int FUN_00472e70() = 0;                     // slot 3
+    virtual void Render(int) = 0;                       // slot 2
+    virtual int IsFinished() = 0;                       // slot 3
 
     static void* __stdcall operator new(size_t size)
     {
         if (DAT_0051e608)
             return 0;
-        void* p = ((Class_00470eb0*)&DAT_0051e610)->AllocSlot(size);
+        void* p = ((Class_00470eb0*)&g_particlePool)->AllocSlot(size);
         if (p)
             memset(p, 0, size);
         return p;
@@ -49,7 +49,7 @@ public:
 
     static void __stdcall operator delete(void* p)
     {
-        DAT_0051e610.FreeSlot(p);
+        g_particlePool.FreeSlot(p);
     }
 };
 
@@ -59,7 +59,7 @@ struct Elem_00473500 {                 // the vector's element (see 0x473500.cpp
     SmokeParticles* p;
 };
 
-struct Class_00474b00 {
+struct SmokeParticle {
     int unknown[8];
 };
 
@@ -69,13 +69,13 @@ struct Vec3_00474d50;
 class SmokeParticles : public ParticleSystem {
 public:
     int time;                                           // +0x8
-    std::vector<Class_00474b00> records;               // +0xc (_First +0x10)
+    std::vector<SmokeParticle> records;                // +0xc (_First +0x10)
     char unknown_1c[0x38 - 0x1c];
 
     SmokeParticles();
     virtual void Update();                              // slot 1, 0x475340
-    virtual void FUN_00472e30(int);                     // slot 2, 0x475470
-    virtual int FUN_00472e70();                         // slot 3, 0x474f80
+    virtual void Render(int);                           // slot 2, 0x475470
+    virtual int IsFinished();                           // slot 3, 0x474f80
     virtual void Emit();                                // slot 4, 0x474df0
     virtual int FUN_00475440();                         // slot 5, 0x475440
     virtual void FUN_00474d50(Vec3_00474d50* pos, int limit, int a, int b, int c,

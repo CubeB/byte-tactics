@@ -517,8 +517,8 @@ extern int g_reportFlags;                                                       
 extern char g_unitSyncStatusText[104];                                                            // 0x51e5a0, 104 bytes; 1 of 1 files
 extern char DAT_0051e608;                                                                         // 0x51e608, 1 bytes; 6 of 6 files
 extern unsigned char DAT_0051e609[7];                                                             // 0x51e609, 7 bytes; nothing refers to it
-extern unsigned char DAT_0051e610[36];                                                            // 0x51e610, 36 bytes; Class_00470ed0 by value in 5 of 5 files
-extern unsigned char DAT_0051e634;                                                                // 0x51e634, 1 bytes; 1 of 1 files
+extern unsigned char g_particlePool[36];                                                          // 0x51e610, 36 bytes; Class_00470ed0 by value in 5 of 5 files
+extern unsigned char g_particlePoolDestroyed;                                                     // 0x51e634, 1 bytes; 1 of 1 files
 extern unsigned char DAT_0051e635[7];                                                             // 0x51e635, 7 bytes; nothing refers to it
 extern char* DAT_0051e63c;                                                                        // 0x51e63c, 4 bytes; 3 of 3 files
 extern unsigned char DAT_0051e644[8];                                                             // 0x51e644, 8 bytes; nothing refers to it

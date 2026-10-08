@@ -25,7 +25,7 @@ public:
     void FreeSlot(void* p);
 };
 
-extern Class_00470ed0 DAT_0051e610;
+extern Class_00470ed0 g_particlePool;
 extern char DAT_0051e608;
 
 // Vtable 0x4fd5a8, constructor 0x471cc0, destructor 0x471d00, ??_G 0x471cd0.
@@ -36,8 +36,8 @@ public:
     ParticleSystem();
     virtual ~ParticleSystem();                          // slot 0
     virtual void Update() = 0;                          // slot 1
-    virtual void FUN_00472e30(int) = 0;                 // slot 2
-    virtual int FUN_00472e70() = 0;                     // slot 3
+    virtual void Render(int) = 0;                       // slot 2
+    virtual int IsFinished() = 0;                       // slot 3
 
     // Not memset: the dword loop plus byte tail is what operator new at
     // 0x471d10 shows, and the loop's size is what /Ob2 charges this function's
@@ -48,7 +48,7 @@ public:
     {
         if (DAT_0051e608)
             return 0;
-        void* p = ((Class_00470eb0*)&DAT_0051e610)->AllocSlot(size);
+        void* p = ((Class_00470eb0*)&g_particlePool)->AllocSlot(size);
         if (p)
         {
             int* q = (int*)p;
@@ -494,7 +494,7 @@ struct Pos_004745e0 {
 #pragma pack(pop)
 
 // One smoke puff (the element of SmokeParticles' vector), 0x20 bytes.
-struct Class_00474b00 {
+struct SmokeParticle {
     void* data;                        // +0x00, the animation
     union {
         Vec3_00474d50 pos;             // +0x04
@@ -510,8 +510,8 @@ struct Class_00474b00 {
     int IsExpired(int unused);
 };
 
-// One particle of Class_004750b0, 0x20 bytes.
-struct Class_00474fc0 {
+// One particle of TimedSubParticles, 0x20 bytes.
+struct TimedSubParticle {
     void* data;                        // +0x00, the animation
     union {
         Vec3_00475150 pos;             // +0x04
@@ -531,7 +531,7 @@ struct Class_00474fc0 {
 class SmokeParticles : public ParticleSystem {
 public:
     int time;                                           // +0x8, the next emit tick
-    std::vector<Class_00474b00> records;               // +0xc (_First +0x10)
+    std::vector<SmokeParticle> records;                // +0xc (_First +0x10)
     int unknown_1c;                                     // +0x1c, the emit period
     int unknown_20;                                     // +0x20
     int unknown_24;                                     // +0x24, the frame count - 1
@@ -540,8 +540,8 @@ public:
 
     SmokeParticles();
     virtual void Update();                              // slot 1, 0x475340
-    virtual void FUN_00472e30(int);                     // slot 2, 0x475470
-    virtual int FUN_00472e70();                         // slot 3, 0x474f80
+    virtual void Render(int);                           // slot 2, 0x475470
+    virtual int IsFinished();                           // slot 3, 0x474f80
     virtual void Emit();                                // slot 4, 0x474df0
     virtual int FUN_00475440();                         // slot 5, 0x475440
     virtual void FUN_00474d50(Vec3_00474d50* pos, int limit, int a, int b, int c,
@@ -549,19 +549,19 @@ public:
 };
 
 // Vtable 0x4fd638, constructor 0x4750b0, ??_G 0x475110; 0x34 bytes.
-class Class_004750b0 : public ParticleSystem {
+class TimedSubParticles : public ParticleSystem {
 public:
     int time;                                           // +0x8, the next emit tick
-    std::vector<Class_00474fc0> records;                // +0xc (_First +0x10)
+    std::vector<TimedSubParticle> records;              // +0xc (_First +0x10)
     int unknown_1c;                                     // +0x1c, the emit period
     int unknown_20;                                     // +0x20
     int unknown_24;                                     // +0x24, the frame count - 1
     Vec3_00475150 pos;                                  // +0x28
 
-    Class_004750b0();
+    TimedSubParticles();
     virtual void Update();                              // slot 1, 0x475600
-    virtual void FUN_00472e30(int);                     // slot 2, 0x475700
-    virtual int FUN_00472e70();                         // slot 3, 0x475330
+    virtual void Render(int);                           // slot 2, 0x475700
+    virtual int IsFinished();                           // slot 3, 0x475330
     virtual void Emit();                                // slot 4, 0x4751c0
     // In particles_4750f0.cpp: it is defined returning bool, and Update tests
     // its result as an int.
@@ -571,7 +571,7 @@ public:
 
 // One teleport spark (the element of TeleportParticles' vector), 0x34 bytes.
 #pragma pack(push, 1)
-class Class_00473560 {
+class TeleportParticle {
 public:
     void* data;                    // +0x00, the animation
     union {
@@ -597,7 +597,7 @@ public:
 
 // One nano spark (the element of NanoParticles' vector), 0x30 bytes.
 #pragma pack(push, 1)
-struct Class_004739b0 {
+struct NanoParticle {
 public:
     union {
         Vec3_004739b0 pos;             // +0x0
@@ -617,7 +617,7 @@ public:
 
 // One exhaust puff (the element of ThrustParticles' vector), 0x3c bytes.
 #pragma pack(push, 1)
-class Class_00474130 {
+class ThrustParticle {
 public:
     void* data;                    // +0x00, the animation
     union {
@@ -645,7 +645,7 @@ public:
 
 // One wake spark (the element of WakeParticles' vector), 0x44 bytes.
 #pragma pack(push, 1)
-class Class_00474580 {
+class WakeParticle {
 public:
     int unknown_0;                     // +0x00
     union {
@@ -679,7 +679,7 @@ struct Shape_00472ab0;
 class ThrustParticles : public ParticleSystem {
 public:
     int field_8;                                        // +0x8
-    std::vector<Class_00474130> items;                  // +0xc (_First +0x10)
+    std::vector<ThrustParticle> items;                  // +0xc (_First +0x10)
     int unknown_1c;                                     // +0x1c
     Vec3_004742c0 unknown_20;                           // +0x20
     Vec3_004742c0 unknown_2c;                           // +0x2c
@@ -687,8 +687,8 @@ public:
 
     ThrustParticles() {}
     virtual void Update();                              // slot 1, 0x473010
-    virtual void FUN_00472e30(int);                     // slot 2, 0x4730f0
-    virtual int FUN_00472e70();                         // slot 3, 0x473130
+    virtual void Render(int);                           // slot 2, 0x4730f0
+    virtual int IsFinished();                           // slot 3, 0x473130
     virtual void FUN_004743a0();                        // slot 4, 0x4743a0
     virtual int FUN_004730c0();                         // slot 5, 0x4730c0
     virtual void FUN_004742c0(Shape_00472ab0* p, Shape_00472ab0* q, int a, int b);
@@ -699,13 +699,13 @@ public:
 // insert under this name.
 class Class_00476210 {
 public:
-    void FUN_00476210(std::vector<Class_00474b00>::iterator p, unsigned int m,
-                     const Class_00474b00& x);
+    void FUN_00476210(std::vector<SmokeParticle>::iterator p, unsigned int m,
+                     const SmokeParticle& x);
 };
 
-class Class_00476490 {
+class Vec_00476490 {
 public:
-    void FUN_00476490(Class_00474fc0* pos, int count, const Class_00474fc0* src);
+    void FUN_00476490(TimedSubParticle* pos, int count, const TimedSubParticle* src);
 };
 
 // The vector's own out-of-line size() (0x475840) under the name
@@ -716,7 +716,7 @@ public:
     int field_4;
     int field_8;
 
-    int FUN_00475840();
+    int GetCount();
 };
 
 // std::vector<Elem_00473500> and its out-of-line members: size() (0x472d30),
@@ -745,15 +745,15 @@ struct Access_00473500 : Vec_00473500 {
 // Taking the member's address emits the out-of-line copy.
 SizeFn_00473500 g_size_00473500 = &Vec_00473500::size;
 
-// std::vector<Class_004739b0> (0x30-byte element type) and its out-of-line
+// std::vector<NanoParticle> (0x30-byte element type) and its out-of-line
 // members: reserve (0x475770), _Destroy (0x475870), _Ucopy (0x475880) and
 // _Ufill (0x476710).
-typedef std::vector<Class_004739b0> Vec_004739b0;
+typedef std::vector<NanoParticle> Vec_004739b0;
 typedef void (Vec_004739b0::*ReserveFn_004739b0)(Vec_004739b0::size_type);
 typedef Vec_004739b0::iterator (Vec_004739b0::*UcopyFn_004739b0)(
     Vec_004739b0::const_iterator, Vec_004739b0::const_iterator, Vec_004739b0::iterator);
 typedef void (Vec_004739b0::*UfillFn_004739b0)(
-    Vec_004739b0::iterator, Vec_004739b0::size_type, const Class_004739b0&);
+    Vec_004739b0::iterator, Vec_004739b0::size_type, const NanoParticle&);
 typedef void (Vec_004739b0::*DestroyFn_004739b0)(Vec_004739b0::iterator, Vec_004739b0::iterator);
 
 struct Access_00475770 : Vec_004739b0 {
@@ -784,7 +784,7 @@ void __stdcall EmitSmoke(Vec3_00472630* pos, int param_2, int param_3, short ind
 }
 
 // FUNCTION: 0x472720
-void __stdcall FUN_00472720(Vec3_00472720* pos, int param_2, int param_3, short index)
+void __stdcall EmitTimedBlackSmoke(Vec3_00472720* pos, int param_2, int param_3, short index)
 {
     ParticleLists* owner = g_game->lists;
     SmokeParticles* e = new SmokeParticles;
@@ -820,7 +820,7 @@ void __stdcall EmitBlackSmoke(Vec3_00474cd0* p, short index)
 }
 
 // FUNCTION: 0x4729d0
-void __stdcall FUN_004729d0(Vec3_00474cd0* p, short index)
+void __stdcall EmitWeaponSmoke(Vec3_00474cd0* p, short index)
 {
     ParticleLists& l = *g_game->lists;
     SmokeParticles* e = new SmokeParticles;
@@ -831,10 +831,10 @@ void __stdcall FUN_004729d0(Vec3_00474cd0* p, short index)
 }
 
 // FUNCTION: 0x472c50
-void __stdcall FUN_00472c50(Vec3_00475150* p, short index)
+void __stdcall EmitTimedSubParticles(Vec3_00475150* p, short index)
 {
     ParticleLists& l = *g_game->lists;
-    Class_004750b0* e = new Class_004750b0;
+    TimedSubParticles* e = new TimedSubParticles;
     if (e) {
         e->FUN_00475150(p, 5, 0, 0x96);
         l.Add(index, e);
@@ -852,8 +852,8 @@ SmokeParticles::SmokeParticles()
 
 #pragma auto_inline(off)
 // FUNCTION: 0x4750b0
-// FUNCTION: 0x475110 ??_GClass_004750b0@@UAEPAXI@Z
-Class_004750b0::Class_004750b0()
+// FUNCTION: 0x475110 ??_GTimedSubParticles@@UAEPAXI@Z
+TimedSubParticles::TimedSubParticles()
 {
     time = g_game->ticks;
 }

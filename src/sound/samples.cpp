@@ -1,8 +1,9 @@
-// Decompiled by Haiku, deepseek-v4.1-flash, space-bunny-free, Opus, Sonnet, GPT-6.1-sol, mimo-v2.6-pro, Claude Opus 5.5 and LongCat 2.5 Preview Free. Names are provisional.
-// The sound object's DirectSound sample and streaming methods, in address
-// order (the samples module of data/modules.csv). The object's CD audio
-// methods are in cd_audio.cpp; the Sound class below is the view the
-// gathered files shared.
+// Decompiled by Haiku, deepseek-v4.1, deepseek-v4.1-flash, space-bunny-free, Opus, Sonnet, GPT-6.1-sol, mimo-v2.6-pro, Claude Opus 5.5 and LongCat 2.5 Preview Free. Names are provisional.
+// The sound object's DirectSound sample and streaming methods and the
+// module's mixer volume, sample file and timer helpers, in address order
+// (the samples module of data/modules.csv). The object's CD audio methods
+// are in cd_audio.cpp; the Sound class below is the view the gathered files
+// shared.
 
 #include <windows.h>
 #include <mmsystem.h>
@@ -40,6 +41,13 @@ public:
 
 class Class_004d00d0 {
 public:
+    char unknown_0[0x14];
+    unsigned int aux_device;           // +0x14
+    char unknown_18[0x20 - 0x18];
+    int aux_volume_set;                // +0x20
+    char unknown_24[0x284 - 0x24];
+    int field_284;                     // +0x284
+
     int SetAuxVolume(int volume, int temporary);
 };
 
@@ -52,11 +60,41 @@ extern App_004b6220* GetDisplay();
 
 class Class_004cff30 {
 public:
+    char unknown_0[0x10];
+    int wave_devices;                  // +0x10
+    int aux_device;                    // +0x14
+    int wave_volume;                   // +0x18
+    int aux_volume;                    // +0x1c
+
+    // Returns the left-channel volume of the first wave-out device that
+    // reports one, or -1.
+    int GetWaveVolume()
+    {
+        DWORD volume;
+        for (int i = 0; i < wave_devices; i++) {
+            if (waveOutGetVolume((HWAVEOUT)i, &volume) == 0)
+                return volume & 0xffff;
+        }
+        return -1;
+    }
+
+    // Returns the left-channel volume of the selected auxiliary device, or -1.
+    int GetAuxVolume()
+    {
+        DWORD volume;
+        if (aux_device >= 0 && auxGetVolume(aux_device, &volume) == 0)
+            return volume & 0xffff;
+        return -1;
+    }
+
     void InitMixerVolumes();
 };
 
 class Class_004d0040 {
 public:
+    char unknown_0[0x14];
+    int aux_device;                    // +0x14, negative when there is none
+
     int QueryAuxVolume();
 };
 
@@ -108,7 +146,10 @@ int __stdcall HAPI_readfromfile(FileHandle* file, void* buf, int size);
 
 class Class_004d02a0 {
 public:
-    void OpenSample(const char* name, int mode, int a, int b);
+    char unknown_0[0x288];
+    int field288;                      // +0x288
+
+    int OpenSample(char* name, int mode, int a, int b);
 };
 
 void __stdcall OnStreamTimer(int unused1);
@@ -209,6 +250,107 @@ public:
     int ReadWaveFormat(void* file, int* sampleRate, int* bitsPerSample, int* channels);
     int FindDataChunkSize(void* file);
 };
+
+class Class_004cfff0 {
+public:
+    char unknown_0[0x10];
+    int wave_devices;                  // +0x10
+
+    int QueryWaveVolume();
+};
+
+class Class_004d0070 {
+public:
+    char unknown_0[0x10];
+    int wave_devices;                  // +0x10
+
+    int SetWaveVolume(int volume);
+};
+
+static inline int ClampVolume(int v)
+{
+    if (v < 0) {
+        v = 0;
+    }
+    if (v > 0xffff) {
+        v = 0xffff;
+    }
+    return v;
+}
+
+class Class_004d0130 {
+public:
+    char unknown_0[0x10];
+    int wave_devices;                  // +0x10
+    unsigned int aux_device;           // +0x14
+    int wave_volume;                   // +0x18
+    int aux_volume;                    // +0x1c
+    int aux_volume_set;                // +0x20
+    char unknown_24[0x284 - 0x24];
+    int field_284;                     // +0x284
+
+    void RestoreMixerVolumes();
+};
+
+// The only caller (0x4d02a0) passes its object in ecx, so this is a method
+// that ignores `this` (it compiles the same as a __stdcall free function).
+struct Class_004d01b0 { int DetectSampleFormat(void* file); };
+
+struct WaveFormat {
+    unsigned short wFormatTag;
+    unsigned short nChannels;
+    int nSamplesPerSec;
+    int nAvgBytesPerSec;
+    unsigned short nBlockAlign;
+    unsigned short wBitsPerSample;
+};
+
+FileHandle* __stdcall HAPI_OpenFileRead(char* path);
+
+static inline unsigned int FindChunk(FileHandle* file, const char* tag) {
+    // Declared in this order, all unsigned: offset before size, and the chunk tests keep jb/jle.
+    unsigned int limit, id, offset, size;
+    HAPI_SeekFile(file, 4);
+    HAPI_readfromfile(file, &limit, 4);
+    limit += 8;
+    HAPI_SeekFile(file, 12);
+    HAPI_readfromfile(file, &id, 4);
+    HAPI_readfromfile(file, &size, 4);
+    offset = 20;
+    for (;;) {
+        if (strncmp((char*)&id, tag, 4) == 0)
+            return size;
+        HAPI_SeekFile(file, size + offset);
+        offset += size;
+        if (offset >= limit)
+            return 0;
+        HAPI_readfromfile(file, &id, 4);
+        HAPI_readfromfile(file, &size, 4);
+        offset += 8;
+    }
+}
+
+extern Class_004d02a0* g_cdPlayer;
+
+extern HANDLE DAT_0052a4f8;
+extern int DAT_0052a4fc;
+
+struct Entry_004d0a10 {
+    short a;                 // +0x0
+    short b;                 // +0x2
+    short c;                 // +0x4
+};
+
+struct Struct_00526ff0 {
+    Entry_004d0a10 entries[0x1000];
+    short field_6000;        // +0x6000
+    short field_6002;        // +0x6002
+    short field_6004;        // +0x6004
+};
+
+extern Struct_00526ff0* DAT_00526ff0;
+
+extern void* DAT_00526ff4;
 
 // The constructor of the 0x294-byte sound/volume object (allocated by
 // 0x49ea3d); 0x4cff30 opens the devices and 0x4d0040 reads the aux volume.
@@ -925,10 +1067,245 @@ void Sound::Set3DDistances(float minimum, float maximum)
     maxDistance = maximum;
 }
 
+// FUNCTION: 0x4cfed0
+int FUN_004cfed0(void)
+{
+    return 0;
+}
+
+// FUNCTION: 0x4cfee0
+void FUN_004cfee0(void)
+{
+}
+
+// FUNCTION: 0x4cfef0
+int FUN_004cfef0(void)
+{
+    return 0;
+}
+
+// FUNCTION: 0x4cff00
+void FUN_004cff00(void)
+{
+}
+
+// FUNCTION: 0x4cff10
+int FUN_004cff10(void)
+{
+    return 0;
+}
+
 // FUNCTION: 0x4cff20
 int Sound::HasNoDriver()
 {
     return noDriver;
+}
+
+// Picks the first CD-audio auxiliary device, then caches the wave-out and
+// auxiliary volumes (-1 when unavailable).
+// The original calls this out of line from the constructor (0x4cee50).
+#pragma auto_inline(off)
+// FUNCTION: 0x4cff30
+void Class_004cff30::InitMixerVolumes()
+{
+    AUXCAPSA caps;
+
+    wave_devices = waveOutGetNumDevs();
+    aux_device = -1;
+
+    int aux_count = auxGetNumDevs();
+    for (int i = 0; i < aux_count; i++) {
+        // Result held in a named local: sets the callee-saved register order.
+        int result = auxGetDevCapsA(i, &caps, sizeof(caps));
+        if (result == 0 && caps.wTechnology == AUXCAPS_CDAUDIO) {
+            aux_device = i;
+            break;
+        }
+    }
+
+    wave_volume = GetWaveVolume();
+    aux_volume = GetAuxVolume();
+}
+#pragma auto_inline(on)
+
+// Returns the left-channel volume of the first wave-out device that reports
+// one, or -1. The dllimport call is what makes MSVC keep the import address
+// in ebx for the loop.
+// FUNCTION: 0x4cfff0
+int Class_004cfff0::QueryWaveVolume()
+{
+    DWORD volume;
+    for (int i = 0; i < wave_devices; i++) {
+        if (waveOutGetVolume((HWAVEOUT)i, &volume) == 0)
+            return volume & 0xffff;
+    }
+    return -1;
+}
+
+// Returns the aux (CD) volume of the left channel, 0..0xffff, or -1 when
+// there is no aux device or its volume cannot be read. The setter is
+// 0x4d00d0. The original calls this out of line from the constructor (0x4cee50).
+#pragma auto_inline(off)
+// FUNCTION: 0x4d0040
+int Class_004d0040::QueryAuxVolume()
+{
+    DWORD volume;
+    if (aux_device >= 0 && auxGetVolume(aux_device, &volume) == 0) {
+        return volume & 0xffff;
+    }
+    return -1;
+}
+#pragma auto_inline(on)
+
+// Sets the volume of every wave-out device, clamped to 0..0xffff. Returns
+// nonzero if any device failed.
+// FUNCTION: 0x4d0070
+int Class_004d0070::SetWaveVolume(int volume)
+{
+    int v = ClampVolume(volume);
+    int failed = 0;
+    for (int i = 0; i < wave_devices; i++) {
+        if (waveOutSetVolume((HWAVEOUT)i, (v << 16) | v) != 0) {
+            failed = 1;
+        }
+    }
+    return failed;
+}
+
+// Sets the aux (CD) volume, clamped to 0..0xffff; unless `temporary`, it is
+// also remembered. Returns nonzero on success.
+// FUNCTION: 0x4d00d0
+int Class_004d00d0::SetAuxVolume(int volume, int temporary)
+{
+    if (field_284 != 0 && temporary == 0) {
+        return 1;
+    }
+    int v = ClampVolume(volume);
+    if (temporary == 0) {
+        aux_volume_set = v;
+    }
+    return auxSetVolume(aux_device, (v << 16) | v) == 0;
+}
+
+// FUNCTION: 0x4d0130
+void Class_004d0130::RestoreMixerVolumes()
+{
+    if (wave_volume >= 0) {
+        int v = ClampVolume(wave_volume);
+        for (int i = 0; i < wave_devices; i++) {
+            waveOutSetVolume((HWAVEOUT)i, (v << 16) | v);
+        }
+    }
+    if (aux_volume >= 0 && field_284 == 0) {
+        int v = ClampVolume(aux_volume);
+        aux_volume_set = v;
+        auxSetVolume(aux_device, (v << 16) | v);
+    }
+}
+
+// Sniffs the head of a sound file: 0x4d01b0 returns 1 for a DIGI/HSHD/SDAT
+// file, 2 for a RIFF/WAVE file and 0 for anything else. The four byte tag is
+// read into one local buffer that MSVC lays over the dead parameter slot.
+// FUNCTION: 0x4d01b0
+int Class_004d01b0::DetectSampleFormat(void* file)
+{
+    char tag[4];
+    HAPI_SeekFile(file, 0);
+    HAPI_readfromfile(file, tag, 4);
+    if (strncmp(tag, "DIGI", 4) == 0) {
+        HAPI_SeekFile(file, 8);
+        HAPI_readfromfile(file, tag, 4);
+        if (strncmp(tag, "HSHD", 4) == 0) {
+            HAPI_SeekFile(file, 0x20);
+            HAPI_readfromfile(file, tag, 4);
+            if (strncmp(tag, "SDAT", 4) == 0) {
+                return 1;
+            }
+        }
+    }
+    if (strncmp(tag, "RIFF", 4) == 0) {
+        HAPI_SeekFile(file, 8);
+        HAPI_readfromfile(file, tag, 4);
+        if (strncmp(tag, "WAVE", 4) == 0) {
+            return 2;
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: 0x4d02a0
+int Class_004d02a0::OpenSample(char* path, int mode, int p3, int p4) {
+    int result = 0;
+    FileHandle* file = HAPI_OpenFileRead(path);
+    if (file == 0)
+        return result;
+    int kind = ((Class_004d01b0*)this)->DetectSampleFormat(file);
+    int size = HAPI_FileLength(file);
+    switch (kind) {
+    case 0:
+        HAPI_SeekFile(file, 0);
+        switch (mode) {
+        case 0:
+            result = (int)((Sound*)this)->CreateSampleFromFile(file, size, 0x2b11, 8, 1);
+            break;
+        case 1:
+            result = ((Sound*)this)->PlayFileSample(file, size, 0x2b11, 8, 1, p3, (Pos_004cf570*)p4);
+            break;
+        case 2:
+            ((Sound*)this)->StartStream(file, 0x2b11, 8, 1, p3);
+            return 1;
+        }
+        break;
+    case 1: {
+        unsigned int x;
+        HAPI_SeekFile(file, 0x16);
+        HAPI_readfromfile(file, &x, 4);
+        if (x == 0x2af8)
+            x = 0x2b11;
+        HAPI_SeekFile(file, 0x28);
+        switch (mode) {
+        case 0:
+            result = (int)((Sound*)this)->CreateSampleFromFile(file, size - 0x28, x, 8, 1);
+            break;
+        case 1:
+            result = ((Sound*)this)->PlayFileSample(file, size - 0x28, x, 8, 1, p3, (Pos_004cf570*)p4);
+            break;
+        case 2:
+            ((Sound*)this)->StartStream(file, x, 8, 1, p3);
+            return 1;
+        }
+        break;
+    }
+    case 2: {
+        unsigned int len = FindChunk(file, "fmt ");
+        if (len < 0x10)
+            goto end;
+        WaveFormat wfx;
+        HAPI_readfromfile(file, &wfx, 0x10);
+        int bits = wfx.wBitsPerSample;
+        int chans = wfx.nChannels;
+        len = FindChunk(file, "data");
+        if ((int)len <= 0)
+            goto end;
+        switch (mode) {
+        case 0:
+            result = (int)((Sound*)this)
+                         ->CreateSampleFromFile(file, len, wfx.nSamplesPerSec, bits, chans);
+            break;
+        case 1:
+            result = ((Sound*)this)
+                         ->PlayFileSample(file, len, wfx.nSamplesPerSec, bits, chans, p3, (Pos_004cf570*)p4);
+            break;
+        case 2:
+            ((Sound*)this)->StartStream(file, wfx.nSamplesPerSec, bits, chans, p3);
+            return 1;
+        }
+        break;
+    }
+    }
+end:
+    HAPI_CloseFile(file);
+    return result;
 }
 
 // FUNCTION: 0x4d0620
@@ -940,13 +1317,21 @@ void Sound::LoadSample(char* param_1)
 // FUNCTION: 0x4d0640
 void Sound::PlaySample(const char* param1, int param2, int param3)
 {
-    ((Class_004d02a0*)this)->OpenSample(param1, 1, param2, param3);
+    ((Class_004d02a0*)this)->OpenSample((char*)param1, 1, param2, param3);
 }
 
 // FUNCTION: 0x4d0660
 void Sound::StreamSample(char* a, int b)
 {
     ((Class_004d02a0*)this)->OpenSample(a, 2, b, 0);
+}
+
+// FUNCTION: 0x4d0680
+void __stdcall OnStreamTimer(int unused1)
+{
+    RemoveTimer(g_cdPlayer->field288);
+    g_cdPlayer->field288 = -1;
+    g_cdPlayer->OpenSample(DAT_0051ff60, 2, DAT_0051ff58, 0);
 }
 
 // Remembers a name and a value, then starts a timer whose callback
@@ -1067,4 +1452,43 @@ int Sound::FindDataChunkSize(void* file)
         HAPI_readfromfile(file, &len, 4);
         pos += 8;
     }
+}
+
+// FUNCTION: 0x4d09e0
+void FUN_004d09e0()
+{
+    DAT_0052a4fc = 0;
+    if (DAT_0052a4f8 != 0) {
+        ResetEvent(DAT_0052a4f8);
+        return;
+    }
+    DAT_0052a4f8 = CreateEventA(0, 0, 0, 0);
+}
+
+// FUNCTION: 0x4d0a10
+void __stdcall FUN_004d0a10(int index)
+{
+    DAT_00526ff0->field_6000 = 0;
+    DAT_00526ff0->field_6004 = (short)index;
+    DAT_00526ff0->field_6002 = 0;
+    DAT_00526ff0->entries[index].a = 0x1000;
+    DAT_00526ff0->entries[index].c = 0;
+    DAT_00526ff0->entries[index].b = 0;
+}
+
+// FUNCTION: 0x4d0a70
+int __cdecl FUN_004d0a70(void)
+{
+    void* eax = calloc(1, 0x1011);
+    DAT_00526ff4 = eax;
+    if (eax != 0) return 0;
+    return -1;
+}
+
+// FUNCTION: 0x4d0a90
+int FUN_004d0a90()
+{
+    void* p = calloc(0x1001, 6);
+    DAT_00526ff0 = (Struct_00526ff0*)p;
+    return p ? 0 : -1;
 }

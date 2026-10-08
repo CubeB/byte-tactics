@@ -9,6 +9,10 @@
 // 0x410c70, 0x410e70, 0x4111b0, 0x4118e0, 0x411f50, 0x412710, 0x412d40,
 // 0x413470, 0x414380, 0x414770, 0x414a80 and 0x4152f0) each match only in
 // their own file's symbol context, so they stay in files of their own.
+// 0x40f790 (AddVec3) merges only with 79 more symbol ids in front of it, and
+// they move 0x413d80 and 0x415250 off their windows. 0x410c70 swaps the base
+// and index of its owner load at every count tried, and its inlined vector
+// code moves 0x413bc0.
 // The helpers below that no handler here calls still count symbols: removing
 // them moves the register allocation of the handlers that do match.
 #include <windows.h>

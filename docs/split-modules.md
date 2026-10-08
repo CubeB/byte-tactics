@@ -29,3 +29,5 @@ reason is what stopped it. A module whose row list is empty is one file.
 | map/terrain | src/map/terrain_47d0e0.cpp | The count clears bit 14 of g_game's id, which decides how the cell index multiply folds. |
 | map/terrain | src/map/terrain_47d820.cpp | The count changes the operand order of the footprint mask load. |
 | map/terrain | src/map/terrain_47e2d0.cpp | The symbol ids move the def load and the feature lookup's operand order. |
+| orders/vtol_orders | src/orders/vtol_orders_40f790.cpp | The two reference arguments take the other registers; it matches only with 79 more symbol ids before it (one count in 0 to 127), and those move 0x413d80 and 0x415250 off their windows. |
+| orders/vtol_orders | src/orders/vtol_orders_410c70.cpp | Merged, its owner load takes the other base and index at every count from 0 to 79 more ids, and its inlined vector code moves 0x413bc0 off its window. |

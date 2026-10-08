@@ -31,11 +31,11 @@ struct Player_0046c2a0 {               // 0x14b bytes
     char name[0x73 - 0x2b];            // +0x2b
     unsigned char type;                // +0x73
     char unknown_74[0xac - 0x74];
-    double field_ac;                   // +0xac
-    double field_b4;                   // +0xb4
+    double totalEnergyProduced;        // +0xac
+    double totalMetalProduced;         // +0xb4
     char unknown_bc[0xcc - 0xbc];
-    double field_cc;                   // +0xcc
-    double field_d4;                   // +0xd4
+    double energyWasted;               // +0xcc
+    double metalWasted;                // +0xd4
     char unknown_dc[0xfc - 0xdc];
     short kills;                       // +0xfc
     short losses;                      // +0xfe
@@ -44,9 +44,9 @@ struct Player_0046c2a0 {               // 0x14b bytes
     short commandersLost;              // +0x106
     char allied[10];                   // +0x108
     char unknown_112[0x140 - 0x112];
-    int field_140;                     // +0x140
+    int unitsCreated;                  // +0x140
     char unknown_144[0x146 - 0x144];
-    char field_146;                    // +0x146
+    char index;                        // +0x146
     char unknown_147[0x14b - 0x147];
 };
 
@@ -106,7 +106,7 @@ int FillScoreTables()
     int count = 0;
     for (int i = 0; i < 10; i++) {
         Player_0046c2a0* p = &g_game->players[i];
-        if ((p->active && (p->type == 1 || p->type == 2 || p->type == 3) && p->field_146 != 10) || p->field_140 || p->active) {
+        if ((p->active && (p->type == 1 || p->type == 2 || p->type == 3) && p->index != 10) || p->unitsCreated || p->active) {
             count++;
             DAT_0051e574[i]->name = p->name;
             DAT_0051e574[i]->id = p->id;
@@ -144,16 +144,16 @@ int FillScoreTables()
             s->value = p->losses;
             s = DAT_0051e57c[i]->scores[2];
             s->name = g_scoreNames[2];
-            s->value = (int)p->field_ac;
+            s->value = (int)p->totalEnergyProduced;
             s = DAT_0051e57c[i]->scores[3];
             s->name = g_scoreNames[3];
-            s->value = (int)p->field_b4;
+            s->value = (int)p->totalMetalProduced;
             s = DAT_0051e57c[i]->scores[4];
             s->name = g_scoreNames[4];
-            s->value = (int)p->field_cc;
+            s->value = (int)p->energyWasted;
             s = DAT_0051e57c[i]->scores[5];
             s->name = g_scoreNames[5];
-            s->value = (int)p->field_d4;
+            s->value = (int)p->metalWasted;
             s = DAT_0051e57c[i]->scores[6];
             s->name = g_scoreNames[6];
             s->value = p->commandersKilled;

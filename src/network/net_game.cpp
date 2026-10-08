@@ -205,13 +205,13 @@ struct Player {
         int dpid;
         int field_4;
     };
-    int field_8;                       // +0x08
+    int joinTime;                      // +0x08
     union {
         int field_c;                   // +0x0c
         int team;
     };
     int messages;                      // +0x10
-    int field_14;                      // +0x14
+    int ping;                          // +0x14
     char unknown_18[0x1c - 0x18];
     union {
         int field_1c;                  // +0x1c
@@ -222,7 +222,7 @@ struct Player {
         unsigned char progress;
     };
     union {
-        unsigned char field_21;        // +0x21
+        unsigned char keepaliveFlags;  // +0x21
         unsigned char flags_21;
     };
     union {
@@ -256,29 +256,29 @@ struct Player {
     };
     char unknown_9c[0xa4 - 0x9c];
     union {
-        int field_a4;                  // +0xa4
+        int energyCapacity;            // +0xa4
         float field_a4f;
     };
     union {
-        int field_a8;                  // +0xa8
+        int metalCapacity;             // +0xa8
         float field_a8f;
     };
-    double field_ac;                   // +0xac
-    double field_b4;                   // +0xb4
-    double field_bc;                   // +0xbc
-    double field_c4;                   // +0xc4
-    double field_cc;                   // +0xcc
-    double field_d4;                   // +0xd4
+    double totalEnergyProduced;        // +0xac
+    double totalMetalProduced;         // +0xb4
+    double totalEnergyConsumed;        // +0xbc
+    double totalMetalConsumed;         // +0xc4
+    double energyWasted;               // +0xcc
+    double metalWasted;                // +0xd4
     char unknown_dc[0xe4 - 0xdc];
-    float field_e4;                    // +0xe4
-    float field_e8;                    // +0xe8
+    float shareMetal;                  // +0xe4
+    float shareEnergy;                 // +0xe8
     char unknown_ec[0xfc - 0xec];
-    short field_fc;                    // +0xfc
-    short field_fe;                    // +0xfe
+    short kills;                       // +0xfc
+    short losses;                      // +0xfe
     char unknown_100[0x104 - 0x100];
-    short field_104;                   // +0x104
-    short field_106;                   // +0x106
-    unsigned char field_108[0x16];     // +0x108
+    short commanderKills;              // +0x104
+    short commanderLosses;             // +0x106
+    unsigned char allied[0x16];        // +0x108
     unsigned char t0[11];              // +0x11e
     unsigned char t1[11];              // +0x129
     unsigned char t2[11];              // +0x134
@@ -286,13 +286,13 @@ struct Player {
         unsigned char field_13f;       // +0x13f
         char alliance;
     };
-    int field_140;                     // +0x140
-    short field_144;                   // +0x144
+    int unitsCreated;                  // +0x140
+    short unitCount;                   // +0x144
     union {
         unsigned char field_146;       // +0x146
         unsigned char index;
     };
-    unsigned char field_147;           // +0x147
+    unsigned char startPos;            // +0x147
     char unknown_148[0x14b - 0x148];
     void SetType(int value);
 };
@@ -1239,8 +1239,8 @@ int __stdcall CreateLocalPlayer(unsigned char playerIndex, int flag)
 
     player->info->flag_97_0 = same;
     player->info->field_96 = 0xff;
-    player->field_21 &= 0xfd;
-    player->field_8 = GetTicks();
+    player->keepaliveFlags &= 0xfd;
+    player->joinTime = GetTicks();
     PlayerInfo* info = player->info;
     info->field_9b = (info->field_9b ^ ((g_game->numPlayersSigned ^ info->field_9b) & 0xf)) & 0x7fff;
     info->flag_9d_0 = (strlen(g_game->passWord) != 0);
@@ -3153,7 +3153,7 @@ void __stdcall HandlePing(Message_004565a0* p)
     unsigned char other = FindPlayerIndex(g_game->lobby2);
     // No bound check on either index: an id of -1 makes FindPlayerIndex
     // return 10, the spare eleventh slot (the table has 11, see docs/bugs.md).
-    g_game->players[other].field_14 = GetTickCount() - p->start_tick;
+    g_game->players[other].ping = GetTickCount() - p->start_tick;
 }
 
 // Returns 0 when no player is in state 3. Otherwise every active player of
@@ -3319,7 +3319,7 @@ int AssignStartPositions() {
                 if (g_game->players[k4].type == 3) {
                     SendPacketToPlayer(FirstJoinedId_004568c0(), PlayerId_004568c0(k4), packet, 2);
                 } else if (IsConnected_004568c0(&g_game->players[k4])) {
-                    g_game->players[k4].field_147 = packet[1];
+                    g_game->players[k4].startPos = packet[1];
                     g_game->startPosAssignAck[k4] = 1;
                 }
             }
@@ -3393,7 +3393,7 @@ static inline int PlayerReady(Player* p)
     return p->active != 0
         && (p->type == 1 || p->type == 2 || p->type == 3)
         && p->field_146 != 10
-        && (p->field_144 != 0 || p->field_140 == 0);
+        && (p->unitCount != 0 || p->unitsCreated == 0);
 }
 
 // FUNCTION: 0x456ee0
@@ -3425,11 +3425,11 @@ void __stdcall SendShareEnergy(unsigned char from, unsigned char to, int value)
     if (first->active != 0
         && (first->type == 1 || first->type == 2 || first->type == 3)
         && first->field_146 != 10
-        && (first->field_144 != 0 || first->field_140 == 0)
+        && (first->unitCount != 0 || first->unitsCreated == 0)
         && second->active != 0
         && (second->type == 1 || second->type == 2 || second->type == 3)
         && second->field_146 != 10
-        && (second->field_144 != 0 || second->field_140 == 0)) {
+        && (second->unitCount != 0 || second->unitsCreated == 0)) {
         Packet_00457050 packet;
         packet.type = 0x16;
         packet.subtype = 2;
@@ -3465,7 +3465,7 @@ void __stdcall SendShareMapInfo(unsigned char from, unsigned char to)
 }
 
 // Scans the ten player slots twice. The outer pass picks every slot that looks
-// like a local player (active, type 1 or 2, field_140 set, field_22 clear); the
+// like a local player (active, type 1 or 2, unitsCreated set, field_22 clear); the
 // inner pass then looks for a network slot (active, type 3) whose data->field_94
 // is 1 and whose team (field_146) is still clear in the target's three per-team
 // byte tables, and hands the pair to SendPlayerEconomy, returning 0 in that case.
@@ -3480,13 +3480,13 @@ int FUN_004572a0()
             continue;
         if (pi->type != 1 && pi->type != 2)
             continue;
-        if (pi->field_140 == 0)
+        if (pi->unitsCreated == 0)
             continue;
         if (pi->field_22 != 0)
             continue;
         for (int j = 0; j < 10; j++) {
             Player* pj = &g_game->players[j];
-            if (pj->active != 0 && pj->type == 3 || pj->field_140 == 0
+            if (pj->active != 0 && pj->type == 3 || pj->unitsCreated == 0
                 || pj->field_22 != 0) {
                 // Two sibling ifs, each with its own call: the jump layout and
                 // registers follow the original.
@@ -3533,20 +3533,20 @@ void __stdcall SendPlayerEconomy(Player* player, Player* target,
     Packet_004573d0 packet;
     packet.type = 0x28;
     packet.flag = flag;
-    packet.field_2 = player->field_fc;
-    packet.field_6 = player->field_fe;
-    packet.field_a = player->field_104;
-    packet.field_e = player->field_106;
+    packet.field_2 = player->kills;
+    packet.field_6 = player->losses;
+    packet.field_a = player->commanderKills;
+    packet.field_e = player->commanderLosses;
     packet.field_12 = player->field_98;
     packet.field_16 = player->field_8c;
-    packet.field_1a = player->field_a8;
-    packet.field_1e = player->field_a4;
-    packet.field_22 = (float)player->field_ac;
-    packet.field_26 = (float)player->field_bc;
-    packet.field_2a = (float)player->field_cc;
-    packet.field_2e = (float)player->field_b4;
-    packet.field_32 = (float)player->field_c4;
-    packet.field_36 = (float)player->field_d4;
+    packet.field_1a = player->metalCapacity;
+    packet.field_1e = player->energyCapacity;
+    packet.field_22 = (float)player->totalEnergyProduced;
+    packet.field_26 = (float)player->totalEnergyConsumed;
+    packet.field_2a = (float)player->energyWasted;
+    packet.field_2e = (float)player->totalMetalProduced;
+    packet.field_32 = (float)player->totalMetalConsumed;
+    packet.field_36 = (float)player->metalWasted;
 
     if (target != 0) {
         if (target->field_22 == 0)
@@ -3594,20 +3594,20 @@ void __stdcall HandlePlayerEconomy(Packet_00457540* packet, Player* player)
     }
 
     if (found == 0) {
-        player->field_fc = packet->field_2;
-        player->field_fe = packet->field_6;
-        player->field_104 = packet->field_a;
-        player->field_106 = packet->field_e;
+        player->kills = packet->field_2;
+        player->losses = packet->field_6;
+        player->commanderKills = packet->field_a;
+        player->commanderLosses = packet->field_e;
         player->field_98 = packet->field_12;
         player->field_8c = packet->field_16;
-        player->field_a8 = packet->field_1a;
-        player->field_a4 = packet->field_1e;
-        player->field_ac = packet->field_22;
-        player->field_bc = packet->field_26;
-        player->field_cc = packet->field_2a;
-        player->field_b4 = packet->field_2e;
-        player->field_c4 = packet->field_32;
-        player->field_d4 = packet->field_36;
+        player->metalCapacity = packet->field_1a;
+        player->energyCapacity = packet->field_1e;
+        player->totalEnergyProduced = packet->field_22;
+        player->totalEnergyConsumed = packet->field_26;
+        player->energyWasted = packet->field_2a;
+        player->totalMetalProduced = packet->field_2e;
+        player->totalMetalConsumed = packet->field_32;
+        player->metalWasted = packet->field_36;
     }
 
     if (packet->flag == 0)
@@ -3827,7 +3827,7 @@ int CountActiveAIPlayers()
         if (g_game->players[i].active != 0
             && g_game->players[i].type == 2
             && g_game->players[i].field_146 != 10
-            && (g_game->players[i].field_144 != 0 || g_game->players[i].field_140 == 0))
+            && (g_game->players[i].unitCount != 0 || g_game->players[i].unitsCreated == 0))
             count++;
     }
     return count;
@@ -3842,7 +3842,7 @@ int FUN_00457c10()
             && (g_game->players[i].type == 1 || g_game->players[i].type == 2)
             && (g_game->players[i].type == 1 || g_game->players[i].type == 2 || g_game->players[i].type == 3)
             && g_game->players[i].field_146 != 10
-            && (g_game->players[i].field_144 != 0 || g_game->players[i].field_140 == 0))
+            && (g_game->players[i].unitCount != 0 || g_game->players[i].unitsCreated == 0))
             count++;
     }
     return count;
@@ -3869,7 +3869,7 @@ int CountCombatPlayers()
         if (g_game->players[i].active != 0
             && (g_game->players[i].type == 1 || g_game->players[i].type == 2 || g_game->players[i].type == 3)
             && g_game->players[i].field_146 != 10
-            && (g_game->players[i].field_144 != 0 || g_game->players[i].field_140 == 0)
+            && (g_game->players[i].unitCount != 0 || g_game->players[i].unitsCreated == 0)
             && (g_game->players[i].type == 1
                 || (g_game->players[i].type == 3 && g_game->players[i].data->field_94 == 1))
             && !(g_game->players[i].data->flags_9b & 0x40))
@@ -3891,23 +3891,23 @@ void __stdcall UpdateResourceSharing(Player* player)
 
     if (g_game->ticks % 60 == 0) {
         Player* found = player;
-        if (player->info->bits_97.b1 && player->energy > player->field_e4) {
+        if (player->info->bits_97.b1 && player->energy > player->shareMetal) {
             for (int i = 0; i < 10; i++) {
                 Player* p = &g_game->players[i];
                 if (p->active != 0
                     && (p->type == 1 || p->type == 2 || p->type == 3)
                     && p->field_146 != 10
                     && (p->type == 1 || p->type == 2 || p->type == 3)
-                    && (p->field_144 != 0 || p->field_140 == 0)
+                    && (p->unitCount != 0 || p->unitsCreated == 0)
                     && p->type == 3
                     && p->info->field_94 == 1
-                    && player->field_108[i] != 0
+                    && player->allied[i] != 0
                     && p->energy < player->energy)
                     found = p;
             }
         }
-        if (found != player && player->energy > player->field_e4) {
-            float amount = (player->energy - player->field_e4) * 0.33333334f;
+        if (found != player && player->energy > player->shareMetal) {
+            float amount = (player->energy - player->shareMetal) * 0.33333334f;
             float limit = found->field_a8f - found->energy;
             // The min() must be a ternary into a fresh local, not an if.
             float result = amount < limit ? amount : limit;
@@ -3916,23 +3916,23 @@ void __stdcall UpdateResourceSharing(Player* player)
         }
 
         found = player;
-        if (player->info->bits_97.b2 && player->metal > player->field_e8) {
+        if (player->info->bits_97.b2 && player->metal > player->shareEnergy) {
             for (int i = 0; i < 10; i++) {
                 Player* p = &g_game->players[i];
                 if (p->active != 0
                     && (p->type == 1 || p->type == 2 || p->type == 3)
                     && p->field_146 != 10
                     && (p->type == 1 || p->type == 2 || p->type == 3)
-                    && (p->field_144 != 0 || p->field_140 == 0)
+                    && (p->unitCount != 0 || p->unitsCreated == 0)
                     && p->type == 3
                     && p->info->field_94 == 1
-                    && player->field_108[i] != 0
+                    && player->allied[i] != 0
                     && p->metal < player->metal)
                     found = p;
             }
         }
-        if (found != player && player->metal > player->field_e8) {
-            float amount = (player->metal - player->field_e8) * 0.5f;
+        if (found != player && player->metal > player->shareEnergy) {
+            float amount = (player->metal - player->shareEnergy) * 0.5f;
             float limit = found->field_a4f - found->metal;
             // The min() must be a ternary into a fresh local, not an if.
             float result = amount < limit ? amount : limit;
@@ -3950,10 +3950,10 @@ void __stdcall UpdateResourceSharing(Player* player)
                 && (p->type == 1 || p->type == 2 || p->type == 3)
                 && p->field_146 != 10
                 && (p->type == 1 || p->type == 2 || p->type == 3)
-                && (p->field_144 != 0 || p->field_140 == 0)
+                && (p->unitCount != 0 || p->unitsCreated == 0)
                 && p->type == 3
                 && p->info->field_94 == 1
-                && player->field_108[i] != 0) {
+                && player->allied[i] != 0) {
                 unsigned char a = player->field_146;
                 unsigned char b = p->field_146;
                 if (a != 10 && b != 10) {

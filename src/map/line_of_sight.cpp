@@ -130,7 +130,7 @@ struct Player {
     char unknown_74[0x7c - 0x74];
     PlayerGrid grid;                   // +0x7c
     char unknown_8c[0x146 - 0x8c];
-    unsigned char field_146;           // +0x146
+    unsigned char index;               // +0x146
     char unknown_147[0x14b - 0x147];   // stride 0x14b
 };
 

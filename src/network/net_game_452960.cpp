@@ -25,9 +25,9 @@ struct Player_00452960 {
     unsigned char type;                // +0x73
     char unknown_74[0x108 - 0x74];
     unsigned char allies[0xb];         // +0x108
-    unsigned char field_113[0xb];      // +0x113
+    unsigned char alliedBy[0xb];       // +0x113
     char unknown_11e[0x146 - 0x11e];
-    unsigned char field_146;           // +0x146
+    unsigned char index;               // +0x146
     char unknown_147[0x14b - 0x147];
 };
 
@@ -146,21 +146,21 @@ int __stdcall SetAlliance(int from, int to, unsigned char value, int extra)
     unsigned char idx_;
     unsigned char& idx = idx_;
     if (IsActive12_00452960(p1)) {
-        idx = p2->field_146;
+        idx = p2->index;
         p1->allies[idx] = value;
         if (IsState2_00452960(p2)
             || (IsState3_00452960(p2) && p2->data->field_94 == 2)
             || extra != 0) {
-            idx = p2->field_146;
-            p1->field_113[idx] = value;
+            idx = p2->index;
+            p1->alliedBy[idx] = value;
         }
         result = 1;
     }
     if (IsActive12_00452960(p2)) {
-        idx = p1->field_146;
-        p2->field_113[idx] = value;
+        idx = p1->index;
+        p2->alliedBy[idx] = value;
         if (IsState2_00452960(p2) || extra != 0) {
-            idx = p1->field_146;
+            idx = p1->index;
             p2->allies[idx] = value;
         }
         result = 1;

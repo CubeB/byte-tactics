@@ -37,12 +37,12 @@ class Player {
 public:
     int active;                        // +0x00
     int id;                            // +0x04
-    int field_8;                       // +0x08
+    int joinTime;                      // +0x08
     int team;                          // +0x0c
     int messages;                      // +0x10
     char unknown_14[8];
     int last_time;                     // +0x1c
-    unsigned char field_20;            // +0x20
+    unsigned char progress;            // +0x20
     unsigned char flags_21;            // +0x21
     char unknown_22[5];
     PlayerInfo* info;                  // +0x27
@@ -54,10 +54,10 @@ public:
     unsigned char allies[0x16];        // +0x108
     unsigned char field_11e[0x16];     // +0x11e
     unsigned char field_134[0xb];      // +0x134
-    unsigned char field_13f;           // +0x13f
+    unsigned char alliance;            // +0x13f
     char unknown_140[6];
     unsigned char index;               // +0x146
-    unsigned char field_147;           // +0x147
+    unsigned char startPos;            // +0x147
     char unknown_148[3];
     void SetType(int);
     Player();
@@ -624,7 +624,7 @@ int HandleNetPackets()
         case 36: {
             Player* p = PlayerBySlot(*(int*)(packet + 1));
             if (p)
-                p->field_13f = packet[5];
+                p->alliance = packet[5];
             if (!(g_game->flags_2a44 & 4))
                 g_game->dirty = 1;
             break;
@@ -652,7 +652,7 @@ int HandleNetPackets()
         case 30: {
             unsigned char reply[5];
             reply[0] = 0x1f;
-            recipient->field_147 = packet[1];
+            recipient->startPos = packet[1];
             *(int*)(reply + 1) = recipient->id;
             SendPacketToPlayer(recipient->id, player->id, reply, 5);
             break;
@@ -860,7 +860,7 @@ int HandleNetPackets()
             break;
         }
         case 42:
-            player->field_20 = packet[1];
+            player->progress = packet[1];
             break;
         }
     }

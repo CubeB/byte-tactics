@@ -21,7 +21,7 @@ struct Player_004816a0 {
     char unknown_80[0x88 - 0x80];
     int seenCount;                     // +0x88
     char unknown_8c[0x146 - 0x8c];
-    unsigned char field_146;           // +0x146
+    unsigned char index;               // +0x146
     char unknown_147[0x14b - 0x147];
 };
 
@@ -120,7 +120,7 @@ void __stdcall RecalculateLineOfSight(int arg)
         Player_004816a0* p = &g_game->players[i];
         if (p->active == 0) continue;
         if (p->type != 1 && p->type != 2 && p->type != 3) continue;
-        if (p->field_146 == 10) continue;
+        if (p->index == 10) continue;
         memset(p->seenMap, (unsigned char)~((unsigned char)g_game->flags >> 1) & 1, p->seenCount);
     }
     for (Unit* u = g_game->units + 1; u <= g_game->units_end; u++) {

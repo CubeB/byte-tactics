@@ -2084,18 +2084,18 @@ struct Grid_00463be0 {
 };
 
 struct Player {
-    int field_0;                       // +0x0
+    int active;                        // +0x0
     char unknown_4[0x27 - 0x4];
     union {
         char* data;                    // +0x27 (0xb9 bytes)
-        void* field_27;
+        void* info;
     };
     char unknown_2b[0x73 - 0x2b];
-    char field_73;                     // +0x73
+    char type;                         // +0x73
     char unknown_74[0x7c - 0x74];
     Grid_00463be0 grid;                // +0x7c
     char unknown_8c[0x146 - 0x8c];
-    char field_146;                    // +0x146
+    char index;                        // +0x146
     char unknown_147[0x14b - 0x147];
 
     Player();
@@ -2105,9 +2105,9 @@ struct Player {
 #pragma pack(pop)
 
 // FUNCTION: 0x463be0
-Player::Player() : field_0(0), field_73(0)
+Player::Player() : active(0), type(0)
 {
-    field_146 = 10;
+    index = 10;
     data = (char*)operator new(0xb9);
     FUN_004d83a0((int)data);
     memset(data, 0, 0xb9);
@@ -2116,16 +2116,16 @@ Player::Player() : field_0(0), field_73(0)
 // FUNCTION: 0x463c40
 void Player::FreeSideDataAndFogSightCounts()
 {
-    delete field_27;
+    delete info;
     delete grid.cells;
 }
 
 // FUNCTION: 0x463c60
 void Player::SetType(int param_1)
 {
-    field_73 = (char)param_1;
+    type = (char)param_1;
     if (param_1 != 3) {
-        *((char*)field_27 + 0x94) = (char)param_1;
+        *((char*)info + 0x94) = (char)param_1;
     }
 }
 

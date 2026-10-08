@@ -228,7 +228,7 @@ struct Game {
 
 struct Player_00409730 {
     char unknown_0[0x144];
-    unsigned short field_144;          // +0x144
+    unsigned short unitCount;          // +0x144
 };
 
 struct UnitList_00409730 {
@@ -343,7 +343,7 @@ void PlayerAI::ComputeBaseWeights()
             x *= 2;
         if (def->minwaterdepth >= 0)
             x *= 3;
-        if (player->field_144 > (unsigned short)(g_game->field_1434f / 2)) {
+        if (player->unitCount > (unsigned short)(g_game->field_1434f / 2)) {
             x += (char)vec_8d[i] / 2;
         }
         if (def->flag_245_8)

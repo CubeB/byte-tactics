@@ -34,9 +34,9 @@ struct Player_00452cc0 {
     unsigned char type;                // +0x73
     char unknown_74[0x108 - 0x74];
     unsigned char allies[0xb];         // +0x108
-    unsigned char field_113[0xb];      // +0x113
+    unsigned char alliedBy[0xb];       // +0x113
     char unknown_11e[0x146 - 0x11e];
-    unsigned char field_146;           // +0x146
+    unsigned char index;               // +0x146
     char unknown_147[0x14b - 0x147];
 };
 
@@ -146,10 +146,10 @@ void __stdcall RemovePlayer(int id)
         return;
     if (p->type != 1 && p->type != 2 && p->type != 3)
         return;
-    if (p->field_146 == 10)
+    if (p->index == 10)
         return;
 
-    unsigned char slot = p->field_146;
+    unsigned char slot = p->index;
     int f = p->data->flags;
     // The no-op |= 0 must stay: without it the zero-extension folds into the mask.
     p->data->flags |= 0;               // emits no code; needed for the match
@@ -158,7 +158,7 @@ void __stdcall RemovePlayer(int id)
     for (int i = 0; i < 10; i++) {
         Player_00452cc0* q = &g_game->players[i];
         if (IsPlaying(q)) {
-            q->field_113[slot] = 0;
+            q->alliedBy[slot] = 0;
             q->allies[slot] = 0;
         }
     }

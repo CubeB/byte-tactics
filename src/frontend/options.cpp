@@ -307,7 +307,7 @@ struct Opts_0045f1d0 {                 // 0x14b bytes
 };
 
 struct Player_45c070 {
-    int field_0;                      // +0x00
+    int active;                       // +0x00
     char unknown_4[0x27 - 0x4];
     Opts_0045f1d0* info;              // +0x27
     char unknown_2b[0x14b - 0x2b];
@@ -1549,7 +1549,7 @@ void __stdcall SetGadgetTextFromValueTable(Entry_0045c010* table, char* name, in
 void __stdcall HandleGameSpeedSlider(Menu_0045b800* obj, int unused)
 {
     Player_45c070* player = &g_game->players[g_game->localPlayer];
-    if (player->field_0 == 0 || !player->info->u.flag_9b_6) {
+    if (player->active == 0 || !player->info->u.flag_9b_6) {
         Entry_0045b800* e = FUN_004a0200(obj->holder->entries, "GAME");
         if (e != 0) {
             // Written twice, as in the original.

@@ -71,7 +71,7 @@ struct Player {
     char unknown_1c[0x67 - 0x1c];
     Unit* f67;                         // +0x67
     Unit* f6b;                         // +0x6b
-    unsigned short field_6f;           // +0x6f
+    unsigned short firstIndex;         // +0x6f
     char unknown_71[0x73 - 0x71];
     unsigned char f73;                 // +0x73
     char unknown_74[0x146 - 0x74];
@@ -842,7 +842,7 @@ void __stdcall SendUnitStates(Player* p)
             continue;
         if (!u->motion->player->v7())
             continue;
-        stream.WriteBits(u->id - u->player->field_6f, 0x10);
+        stream.WriteBits(u->id - u->player->firstIndex, 0x10);
         stream.WriteBits(u->unitDefIndex, g_game->field_14393);
         u->motion->player->WriteTo(&stream);
         // `>> 3`, not `/ 8`: that is the original's `add ecx, 7; sar ecx, 3`

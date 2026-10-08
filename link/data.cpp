@@ -664,7 +664,6 @@ int DAT_0051fba8;  // 0x51fba8 .bss
 int DAT_0051fbac;  // 0x51fbac .bss
 int DAT_0051fbb0;  // 0x51fbb0 .bss
 int DAT_0051fbb4;  // 0x51fbb4 .bss
-int DAT_0051fbb8;  // 0x51fbb8 .bss
 unsigned char DAT_0051fbd4[4];  // 0x51fbd4 .bss
 unsigned char DAT_0051fbd8[172];  // 0x51fbd8 .bss
 unsigned int DAT_0051fc84;  // 0x51fc84 .bss

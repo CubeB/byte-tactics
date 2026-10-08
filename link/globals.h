@@ -574,7 +574,6 @@ extern int DAT_0051fba8;                                                        
 extern int DAT_0051fbac;                                                                          // 0x51fbac, 4 bytes; 1 of 1 files
 extern int DAT_0051fbb0;                                                                          // 0x51fbb0, 4 bytes; 1 of 1 files
 extern int DAT_0051fbb4;                                                                          // 0x51fbb4, 4 bytes; 1 of 1 files
-extern int DAT_0051fbb8;                                                                          // 0x51fbb8, 4 bytes; 2 of 2 files
 extern unsigned char DAT_0051fbd4[4];                                                             // 0x51fbd4, 4 bytes; nothing refers to it
 extern unsigned char DAT_0051fbd8[172];                                                           // 0x51fbd8, 172 bytes; Timer_4b63f0[] by value in 1 of 1 files
 extern unsigned int DAT_0051fc84;                                                                 // 0x51fc84, 4 bytes; 4 of 4 files

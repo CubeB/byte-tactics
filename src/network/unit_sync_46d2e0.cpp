@@ -50,18 +50,11 @@ struct _Tree {
                             Node_0046d2e0* candidate, const Pair_0046d2e0& val);
 };
 
-class Class_0046fad0 {                 // pair<iterator, bool>
+class InsertResult {                   // pair<iterator, bool>
 public:
     Node_0046d2e0* first;
     bool second;
-    Class_0046fad0(Node_0046d2e0** first, const bool* second);
-};
-
-class Class_0046e880 {                 // the map seen as the tree's root header
-public:
-    char unknown_0[4];
-    int* field_4;                      // +0x4
-    int* Begin(int* param_1);          // _Tree::begin
+    InsertResult(Node_0046d2e0** first, const bool* second);
 };
 
 struct Less_0046d2e0 {
@@ -71,7 +64,7 @@ struct Less_0046d2e0 {
     }
 };
 
-class Map_0046d2e0 : public _Tree<unsigned int, Pair_0046d2e0, int, int, int> {
+class UnitSyncMap : public _Tree<unsigned int, Pair_0046d2e0, int, int, int> {
 public:
     char allocator;                    // +0x0
     Less_0046d2e0 key_compare;         // +0x1
@@ -79,6 +72,8 @@ public:
     char multi;                        // +0x8
     char unknown_9[3];
     int size;                          // +0xc
+
+    int* Begin(int* param_1);          // _Tree::begin
 
     UnitSyncEntry& operator[](const unsigned int& k)
     {
@@ -88,7 +83,7 @@ public:
         return p.ptr->value;
     }
 
-    Class_0046fad0 insert(const Pair_0046d2e0& val)
+    InsertResult insert(const Pair_0046d2e0& val)
     {
         Node_0046d2e0* out1;
         Node_0046d2e0* out2;
@@ -112,26 +107,26 @@ public:
         }
         if (multi) {
             inserted1 = 1;
-            return Class_0046fad0(_Insert(&out1, where, candidate, val), &inserted1);
+            return InsertResult(_Insert(&out1, where, candidate, val), &inserted1);
         }
         iterator it(candidate);
         if (went_left) {
             int root;
-            iterator other((Node_0046d2e0*)*((Class_0046e880*)this)->Begin(&root));
+            iterator other((Node_0046d2e0*)*Begin(&root));
             bool same = (it == other);
 
             if (same) {
                 inserted2 = 1;
-                return Class_0046fad0(_Insert(&out2, where, candidate, val), &inserted2);
+                return InsertResult(_Insert(&out2, where, candidate, val), &inserted2);
             }
             it._Dec();
         }
         if (key_compare(it.ptr->key, val.first)) {
             inserted3 = 1;
-            return Class_0046fad0(_Insert(&out3, where, candidate, val), &inserted3);
+            return InsertResult(_Insert(&out3, where, candidate, val), &inserted3);
         }
         inserted4 = 0;
-        return Class_0046fad0(&it.ptr, &inserted4);
+        return InsertResult(&it.ptr, &inserted4);
     }
 };
 
@@ -155,7 +150,7 @@ extern Game* g_game;
 
 class UnitSync {
 public:
-    Map_0046d2e0 rects;                // +0x00
+    UnitSyncMap rects;                // +0x00
     char unknown_10[0x58 - 0x10];
     int direct;                        // +0x58
 

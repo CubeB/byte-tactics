@@ -60,6 +60,7 @@ public:
     unsigned char startPos;            // +0x147
     char unknown_148[3];
     void SetType(int);
+    int IsPlayableSlot();
     Player();
     void FreeSideDataAndFogSightCounts();
 };
@@ -176,10 +177,17 @@ int RIReport(int, int, int, int, int, int, int, int, int, int);
 int DrawWrappedText(char*, char*, int, int, int, int, int);
 void ParseDownloadableAiWeightScripts(int);
 
-class Class_00456030 {
-public:
-    int IsPlayableSlot();
-};
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+int __stdcall CountLocalComputerPlayers();
+int __stdcall CountActiveAIPlayers();
+int __stdcall CountActiveHumanOrAiPlayers();
+int __stdcall CountRemotePlayers();
+int __stdcall CountCombatPlayers();
+int __stdcall AreAllPlayersReady();
+int __stdcall BroadcastPendingViewState();
+int __stdcall InitLobbiedConnection();
+void __stdcall SendNetHeartbeat();
+void __stdcall RemoveLocalPlayers();
 
 extern Game* g_game;
 extern char DAT_005119b8[];
@@ -473,7 +481,7 @@ int HandleNetPackets()
                 PlayerById(msg->id);
                 // int, not unsigned char.
                 int target = FindPlayerIndex(msg->id);
-                if (!((Class_00456030*)&g_game->players[FindHost()])->IsPlayableSlot())
+                if (!g_game->players[FindHost()].IsPlayableSlot())
                     break;
                 // info is read before payload: on equal priority the register goes to the first written.
                 PlayerInfo* info = LocalPlayer()->info;

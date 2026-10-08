@@ -32,7 +32,7 @@ struct DPNAME {
 typedef void (__stdcall *FuncPtr)(void*);
 extern FuncPtr g_packetHandlers[];
 
-class Class_0044fda0 {
+class NetPacket {
 public:
     void DispatchPacket();
 };
@@ -58,13 +58,6 @@ public:
 class MissionConditions {
 public:
     int CheckVictory();
-};
-
-struct Class_00456030 {
-    int field_0;                       // +0x0
-    char unknown_4[0x73 - 0x4];
-    char field_73;                     // +0x73
-    int IsPlayableSlot();
 };
 
 #pragma pack(push, 1)
@@ -288,6 +281,7 @@ struct Player {
     unsigned char startPos;            // +0x147
     char unknown_148[0x14b - 0x148];
     void SetType(int value);
+    int IsPlayableSlot();
 };
 
 // A unit: the player it belongs to, its script and the fields the network
@@ -557,7 +551,7 @@ int __stdcall RejectPacketType8(int arg1)
 }
 
 // FUNCTION: 0x44fda0
-void Class_0044fda0::DispatchPacket()
+void NetPacket::DispatchPacket()
 {
     unsigned int idx = 0;
     idx = *(unsigned char*)this;
@@ -2738,9 +2732,9 @@ void CheckPlayerTimeouts()
 // The original calls this out of line from 0x453d40.
 #pragma auto_inline(off)
 // FUNCTION: 0x456030
-int Class_00456030::IsPlayableSlot()
+int Player::IsPlayableSlot()
 {
-    if (field_0 != 0 && (field_73 == 1 || field_73 == 2)) {
+    if (active != 0 && (state == 1 || state == 2)) {
         return 1;
     }
     return 0;
@@ -3189,7 +3183,7 @@ static inline int PlayerId_004568c0(unsigned char pi) {
 // FUNCTION: 0x4568c0
 int AssignStartPositions() {
     unsigned char idx = FindOccupied_004568c0();
-    int res = ((Class_00456030*)&g_game->players[idx])->IsPlayableSlot();
+    int res = g_game->players[idx].IsPlayableSlot();
     if (res != 0 && g_game->startPosShuffleReady == 0) {
         int* out = g_game->startPosShuffle;
         if (g_game->players[g_game->localPlayer].info->bits_9b.flag14) {

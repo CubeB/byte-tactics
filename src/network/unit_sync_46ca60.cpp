@@ -135,10 +135,6 @@ public:
     int disabled;
 
     ~UnitSync() {}
-};
-
-class Class_0046e160 {
-public:
     void ApplyToUnitTypes();
 };
 
@@ -153,7 +149,7 @@ extern Game* g_game;
 // __fastcall: keeps the erase loop comparing the iterator slot directly.
 void __fastcall FinishUnitSync()
 {
-    ((Class_0046e160*)g_game->sync)->ApplyToUnitTypes();
+    g_game->sync->ApplyToUnitTypes();
     delete g_game->sync;
     g_game->sync = 0;
 }

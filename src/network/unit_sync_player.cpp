@@ -90,10 +90,7 @@ public:
     int pendingPlayerCount;                        // +0x5c
     int checksumProgress;                          // +0x60
     int disabled;                                  // +0x64
-};
 
-class Class_0046e160 {
-public:
     void ApplyToUnitTypes();
 };
 
@@ -107,7 +104,7 @@ extern Game* g_game;
 // FUNCTION: 0x470300 ??_GUnitSyncPlayer@@QAEPAXI@Z
 void FinishUnitSync()
 {
-    ((Class_0046e160*)g_game->sync)->ApplyToUnitTypes();
+    g_game->sync->ApplyToUnitTypes();
     if (g_game->sync)
         delete g_game->sync;
     g_game->sync = 0;

@@ -21,7 +21,7 @@ struct Rect_004b0230 {
     int y1;                          // +0xc
 };
 
-struct Pic_004b0230 {
+struct GafFrame {
     unsigned short width;            // +0x0
     unsigned short height;           // +0x2
     char unknown_4[0x28 - 0x4];
@@ -30,7 +30,7 @@ struct Pic_004b0230 {
 struct Bits_004b0230 {
     unsigned short count;            // +0x0
     char unknown_2[0x28 - 0x2];
-    Pic_004b0230* child[1];          // +0x28
+    GafFrame* child[1];              // +0x28
 };
 
 struct Gaf_004b0230 {
@@ -72,8 +72,8 @@ void __stdcall GetGadgetRectByIndex(char* entries, int index, Rect_004b0230* out
 int __stdcall FindBackgroundCell(char* entries, int index);
 Bits_004b0230* __stdcall FindGafEntry(Gaf_004b0230* gaf, const char* name);
 void __stdcall DrawSurface(Surface_004b0230* dst, Cell_004b0230* cell, int x, int y);
-Pic_004b0230* __stdcall GetGafFrame(Bits_004b0230* bits, int index);
-void __stdcall DrawFrame(Surface_004b0230* dst, Pic_004b0230* pic, int x, int y);
+GafFrame* __stdcall GetGafFrame(Bits_004b0230* bits, int index);
+void __stdcall DrawFrame(Surface_004b0230* dst, GafFrame* pic, int x, int y);
 
 // Draws a double (two-line) bevelled border: the top and left pairs of edges
 // use the third argument's colour, the right and bottom pairs the fourth's.
@@ -130,17 +130,17 @@ void __stdcall DrawListboxFrame(Object_004b0230* obj, int index, Bits_004b0230* 
     int width;
     int x0;
     Rect_004b0230 rect;
-    Pic_004b0230* tile;
+    GafFrame* tile;
     int w;
     // Own local, not the reused index parameter: orders the loop-latch reloads.
     int row;
     int y;
     int yoff;
-    Pic_004b0230* p;
+    GafFrame* p;
     int y0;
     Cell_004b0230* cell;
     int h;
-    Pic_004b0230* sub;
+    GafFrame* sub;
     entries = obj->holder->entries;
     GetGadgetRectByIndex(entries, index, &rect);
 

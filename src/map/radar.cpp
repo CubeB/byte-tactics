@@ -9,12 +9,10 @@
 #include <math.h>
 #include <ddraw.h>
 
-struct Pic_4665d0 {
-    unsigned short w;                   // +0x0
-    unsigned short h;                   // +0x2
-    unsigned short x;                   // +0x4
-    unsigned short y;                   // +0x6
-};
+// Unused here: real functions declared to keep the file's symbol count.
+void __stdcall SetCameraPosition(int x, int y, int z);
+void __stdcall RecalculateLineOfSight(int param);
+void __stdcall CollectVisibleUnitIds();
 
 struct Point_4665d0 {
     int x;
@@ -40,17 +38,17 @@ struct Surface_4665d0 {
 };
 
 #pragma pack(push, 1)
-struct Frame_004b8ae0 {
-    unsigned short a;                   // +0x0
-    unsigned short b;                   // +0x2
-    unsigned short c;                   // +0x4
-    unsigned short d;                   // +0x6
-    unsigned char flag8;                // +0x8
-    unsigned char flag9;                // +0x9
-    unsigned char flaga;                // +0xa
-    unsigned char flagb;                // +0xb
+struct GafFrame {
+    unsigned short width;               // +0x0
+    unsigned short height;              // +0x2
+    unsigned short xOffset;             // +0x4
+    unsigned short yOffset;             // +0x6
+    unsigned char transparency;         // +0x8
+    unsigned char compressed;           // +0x9
+    unsigned char layers;               // +0xa
+    unsigned char blend;                // +0xb
     char unknown_c[4];                  // +0xc
-    int unknown_10;                     // +0x10
+    int pixelsOrLayers;                 // +0x10
     char unknown_14[4];                 // +0x14
 };
 
@@ -269,7 +267,7 @@ struct Game {
     int zoomX;                           // +0x1423b
     int zoomY;                           // +0x1423f
     char unknown_14243[0x1426b - 0x14243];
-    Frame_004b8ae0* radarFrame;          // +0x1426b
+    GafFrame* radarFrame;                // +0x1426b
     char unknown_1426f[0x14273 - 0x1426f];
     unsigned short* visibilityMask;      // +0x14273
     char unknown_14277[0x14281 - 0x14277];
@@ -334,8 +332,8 @@ void __stdcall FillSurface(Surface_4665d0* surface, int mode);
 void __stdcall DrawFrameQuad(Surface_4665d0* surface, void* pic, Quad_4665d0* dst, Quad_4665d0* src);
 void __cdecl GameFreeThunk(void* pic);
 
-void __stdcall FrameFromSurface(Frame_004b8ae0* dst, void* src);
-void __stdcall DownsampleFrame(Frame_004b8ae0* dst, Frame_004b8ae0* src);
+void __stdcall FrameFromSurface(GafFrame* dst, void* src);
+void __stdcall DownsampleFrame(GafFrame* dst, GafFrame* src);
 void __stdcall DrawPixel(void* picture, int x, int y, int pixel);
 void* __stdcall AllocSurface(char* name, int width, int height);
 void __stdcall FreeSurface(void* picture);
@@ -355,7 +353,7 @@ void __stdcall DrawDashedCircle(void* surface, int x, int y, int radius, int col
 // scaled one and it is centred, otherwise the width is.
 
 // FUNCTION: 0x4665d0
-void __stdcall ResizeRadarPicture(Pic_4665d0* pic, int x, int y, int w, int h)
+void __stdcall ResizeRadarPicture(GafFrame* pic, int x, int y, int w, int h)
 {
     if (pic == 0) {
         return;
@@ -374,23 +372,23 @@ void __stdcall ResizeRadarPicture(Pic_4665d0* pic, int x, int y, int w, int h)
     if (dw >= dh) {
         dwx = x;
         dhy = dh * y / dw;
-        sw = pic->w;
-        sh = dh * pic->h / dw;
+        sw = pic->width;
+        sh = dh * pic->height / dw;
         ox = 0;
         oy = (y - dhy) / 2;
     } else {
         dwx = dw * x / dh;
         dhy = y;
-        sw = dw * pic->w / dh;
-        sh = pic->h;
+        sw = dw * pic->width / dh;
+        sh = pic->height;
         ox = (x - dwx) / 2;
         oy = 0;
     }
-    void* temp = AllocFrame("TEMP RADAR PIC", pic->w, pic->h);
+    void* temp = AllocFrame("TEMP RADAR PIC", pic->width, pic->height);
     SurfaceFromFrame(&surface, temp);
     DrawFrame(&surface, (short*)pic, 0, 0);
-    pic->w = x;
-    pic->h = y;
+    pic->width = x;
+    pic->height = y;
     SurfaceFromFrame(&surface, pic);
     FillSurface(&surface, 0);
 
@@ -440,7 +438,7 @@ void __stdcall BuildRadarPicture()
     g_game->width = width;
     g_game->height = height;
     g_game->pictureSurface = AllocSurface(g_radarPictureName, width, height);
-    Frame_004b8ae0 frame;
+    GafFrame frame;
     FrameFromSurface(&frame, g_game->pictureSurface);
     if (g_game->radarFrame) {
         DownsampleFrame(g_game->radarFrame, &frame);
@@ -462,7 +460,7 @@ void __stdcall BuildRadarPicture()
             DrawPixel(temp, i, j, pixel);
         }
     }
-    Frame_004b8ae0 tempFrame;
+    GafFrame tempFrame;
     FrameFromSurface(&tempFrame, temp);
     DownsampleFrame(&tempFrame, &frame);
     FreeSurface(temp);

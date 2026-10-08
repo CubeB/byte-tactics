@@ -160,7 +160,7 @@ struct Surface {
 
 // A GAF frame header: its size and origin, the colour key, the two flag
 // bytes, the child count, and the pointers to its one or two pixel planes.
-struct Bitmap_004b7f90 {
+struct GafFrame {
     unsigned short width;              // +0x0
     unsigned short height;             // +0x2
     short x;                           // +0x4
@@ -169,7 +169,7 @@ struct Bitmap_004b7f90 {
     unsigned char flag9;               // +0x9
     unsigned char count;               // +0xa
     unsigned char kind;                // +0xb
-    int unknown_c;                     // +0xc
+    int reserved;                      // +0xc
     unsigned char* plane0;             // +0x10
     unsigned char* plane1;             // +0x14
 };
@@ -182,7 +182,7 @@ void __cdecl BlitRect(Surface* dst, Surface* src, Rect_004b7e60* rect,
                       Rect_004b7e60* pos);
 void __cdecl BlitCompressed(unsigned char* pixels, int pitch, Rect_004b7e60* rect,
                             void* plane, Rect_004b7e60* other);
-void __stdcall DrawFrameBlended(Surface* dst, Bitmap_004b7f90* bmp, int x, int y);
+void __stdcall DrawFrameBlended(Surface* dst, GafFrame* bmp, int x, int y);
 
 // Draws a bitmap (or a list of nested bitmaps) into `dst`, or into the screen
 // when `dst` is null: the screen is then locked with LockScreen and unlocked
@@ -195,7 +195,7 @@ void __stdcall DrawFrameBlended(Surface* dst, Bitmap_004b7f90* bmp, int x, int y
 // rect with ClipRects and blits through BlitRectKeyed, or, when the mode
 // byte at +9 is set, through BlitCompressed.
 // FUNCTION: 0x4b7f90
-void __stdcall DrawFrame(Surface* dst, Bitmap_004b7f90* bmp, int x, int y)
+void __stdcall DrawFrame(Surface* dst, GafFrame* bmp, int x, int y)
 {
     Surface screen;
     if (dst == 0) {
@@ -206,7 +206,7 @@ void __stdcall DrawFrame(Surface* dst, Bitmap_004b7f90* bmp, int x, int y)
     if (bmp != 0) {
         if (bmp->count > 0) {
             for (int i = 0; i < (int)bmp->count; i++) {
-                Bitmap_004b7f90* e = ((Bitmap_004b7f90**)bmp->plane0)[i];
+                GafFrame* e = ((GafFrame**)bmp->plane0)[i];
                 if (e->kind > 0)
                     DrawFrameBlended(dst, e, x, y);
                 else
@@ -257,7 +257,7 @@ void __stdcall DrawFrame(Surface* dst, Bitmap_004b7f90* bmp, int x, int y)
 // rect with ClipRects and blits through the hand-written BlitRect, or,
 // when the mode byte at +9 is set, through BlitCompressed.
 // FUNCTION: 0x4b8150
-void __stdcall DrawFrameOpaque(Surface* dst, Bitmap_004b7f90* bmp, int x, int y)
+void __stdcall DrawFrameOpaque(Surface* dst, GafFrame* bmp, int x, int y)
 {
     Surface screen;
     if (dst == 0) {
@@ -268,7 +268,7 @@ void __stdcall DrawFrameOpaque(Surface* dst, Bitmap_004b7f90* bmp, int x, int y)
     if (bmp != 0) {
         if (bmp->count > 0) {
             for (int i = 0; i < (int)bmp->count; i++) {
-                Bitmap_004b7f90* e = ((Bitmap_004b7f90**)bmp->plane0)[i];
+                GafFrame* e = ((GafFrame**)bmp->plane0)[i];
                 if (e->kind > 0)
                     DrawFrameBlended(dst, e, x, y);
                 else
@@ -352,7 +352,7 @@ struct Src_004b8310 {
     int field_0;
     int field_1;
     int field_2;
-    Bitmap_004b7f90** field_3;
+    GafFrame** field_3;
 };
 
 // The clip rect and the source descriptor DrawFrameBlended builds together.
@@ -365,10 +365,10 @@ Display_004b8310* GetDisplay();
 void __cdecl BlitRectBlended(Surface* p, Src_004b8310* src, Rect_004b7e60* rect,
                              Rect_004b7e60* pos, int colour, unsigned char* palette);
 void __cdecl BlitCompressedLit(unsigned char* pixels, int pitch, Rect_004b7e60* drect,
-                               Bitmap_004b7f90** src, Rect_004b7e60* srect,
+                               GafFrame** src, Rect_004b7e60* srect,
                                unsigned char* palette);
 void __cdecl BlitCompressedBlended(unsigned char* pixels, int pitch, Rect_004b7e60* drect,
-                                   Bitmap_004b7f90** src, Rect_004b7e60* srect,
+                                   GafFrame** src, Rect_004b7e60* srect,
                                    unsigned char* palette);
 
 // Draws one bitmap (`param_2`, a BITMAPINFO: width/height shorts, x/y origin
@@ -382,7 +382,7 @@ void __cdecl BlitCompressedBlended(unsigned char* pixels, int pitch, Rect_004b7e
 // destination's own clip rect with ClipRects and blits through
 // BlitRectBlended, or, when the mode byte at +9 is set, through BlitCompressedBlended.
 // FUNCTION: 0x4b8500
-void __stdcall DrawFrameBlended(Surface* param_1, Bitmap_004b7f90* param_2, int x, int y)
+void __stdcall DrawFrameBlended(Surface* param_1, GafFrame* param_2, int x, int y)
 {
     Display_004b8310* d = GetDisplay();
     if ((d->flags.byte & 0x20) != 0) {
@@ -396,7 +396,7 @@ void __stdcall DrawFrameBlended(Surface* param_1, Bitmap_004b7f90* param_2, int 
         if (param_2 != 0) {
             if (param_2->count > 0) {
                 for (int i = 0; i < param_2->count; i++)
-                    DrawFrameBlended(param_1, ((Bitmap_004b7f90**)param_2->plane0)[i], x, y);
+                    DrawFrameBlended(param_1, ((GafFrame**)param_2->plane0)[i], x, y);
             } else {
                 Rect_004b7e60 screen_rect;
                 Rect_004b7e60 sprite_rect = { 0, 0, param_2->width - 1, param_2->height - 1 };
@@ -416,12 +416,12 @@ void __stdcall DrawFrameBlended(Surface* param_1, Bitmap_004b7f90* param_2, int 
                         src.field_0 = param_2->width;
                         src.field_1 = param_2->height;
                         src.field_2 = param_2->width;
-                        src.field_3 = (Bitmap_004b7f90**)param_2->plane0;
+                        src.field_3 = (GafFrame**)param_2->plane0;
                         BlitRectBlended(param_1, &src, &sprite_rect, &screen_rect,
                             param_2->colour, d->field_c0);
                     } else {
                         BlitCompressedBlended(param_1->pixels, param_1->pitch, &screen_rect,
-                            (Bitmap_004b7f90**)param_2->plane0, &sprite_rect, d->field_c0);
+                            (GafFrame**)param_2->plane0, &sprite_rect, d->field_c0);
                     }
                 }
             }
@@ -448,7 +448,7 @@ void __stdcall ResetClipRect(int* param_1);
 // dx, dy, flag bits), resets its clip rect with ResetClipRect and blits with
 // BlitRectRemapDest using the palette at display +0xcc.
 // FUNCTION: 0x4b86e0
-void __stdcall DrawFrameGray(Surface* param_1, Bitmap_004b7f90* param_2, int x, int y)
+void __stdcall DrawFrameGray(Surface* param_1, GafFrame* param_2, int x, int y)
 {
     Display_004b8310* d = GetDisplay();
     // Flag tested as bit 0x100 of the word: fuses into a byte test at +0xf1.
@@ -462,7 +462,7 @@ void __stdcall DrawFrameGray(Surface* param_1, Bitmap_004b7f90* param_2, int x, 
         if (param_2 != 0) {
             if (param_2->count > 0) {
                 for (int i = 0; i < param_2->count; i++)
-                    DrawFrameGray(param_1, ((Bitmap_004b7f90**)param_2->plane0)[i], x, y);
+                    DrawFrameGray(param_1, ((GafFrame**)param_2->plane0)[i], x, y);
             } else {
                 Rect_004b7e60 other;
                 Rect_004b7e60 rect;
@@ -517,7 +517,7 @@ void __stdcall DrawFrameGray(Surface* param_1, Bitmap_004b7f90* param_2, int x, 
 // own clip rect with ClipRects, then walks the clipped rows and
 // columns.
 // FUNCTION: 0x4b88d0
-void __stdcall EraseFrameDithered(Surface* dst, Bitmap_004b7f90* bmp, int x, int y, int parity)
+void __stdcall EraseFrameDithered(Surface* dst, GafFrame* bmp, int x, int y, int parity)
 {
     Surface screen;
     if (bmp->flag9 == 0) {
@@ -529,7 +529,7 @@ void __stdcall EraseFrameDithered(Surface* dst, Bitmap_004b7f90* bmp, int x, int
         if (bmp != 0) {
             if (bmp->count > 0) {
                 for (int i = 0; i < (int)bmp->count; i++) {
-                    Bitmap_004b7f90* e = ((Bitmap_004b7f90**)bmp->plane0)[i];
+                    GafFrame* e = ((GafFrame**)bmp->plane0)[i];
                     EraseFrameDithered(dst, e, x, y, parity);
                 }
             } else {
@@ -574,27 +574,21 @@ void __stdcall EraseFrameDithered(Surface* dst, Bitmap_004b7f90* bmp, int x, int
     }
 }
 
-// A frame header as 0x4b8a80's source record reads it: the size, origin and
-// pixel pointer of a GAF frame.
-struct Src_004b8a80 {
-    unsigned short width;           // +0x0
-    unsigned short height;          // +0x2
-    unsigned short x;               // +0x4
-    unsigned short y;               // +0x6
-    char unknown_8[8];
-    int bits;                       // +0x10
-};
+// Unused here: real functions declared to keep the file's symbol count.
+void __stdcall SetCameraPosition(int x, int y, int z);
+void __stdcall RecalculateLineOfSight(int param);
+void __stdcall CollectVisibleUnitIds();
 
-// Initialises a drawing surface description from a source record: width,
-// height, pitch (= width) and bits, then resets its clip rectangle through
+// Initialises a drawing surface description from a frame: width, height,
+// pitch (= width) and pixels, then resets its clip rectangle through
 // ResetClipRect.
 // FUNCTION: 0x4b8a80
-void __stdcall SurfaceFromFrame(Surface* dst, Src_004b8a80* src)
+void __stdcall SurfaceFromFrame(Surface* dst, GafFrame* src)
 {
     dst->width = src->width;
     dst->height = src->height;
     dst->pitch = src->width;
-    dst->pixels = (unsigned char*)src->bits;
+    dst->pixels = src->plane0;
     dst->field_10 = 10000;
     dst->field_14 = -1;
     dst->x = src->x;
@@ -619,35 +613,26 @@ struct Src_004b8ae0 {
     unsigned short f;               // +0x1a
 };
 
-// A 0x14-byte frame header as 0x4b8ae0 writes it.
-struct Dst_004b8ae0 {
-    unsigned short a;               // +0x0
-    unsigned short b;               // +0x2
-    unsigned short e;               // +0x4
-    unsigned short f;               // +0x6
-    unsigned char flag8;            // +0x8
-    unsigned char flag9;            // +0x9
-    unsigned char flaga;            // +0xa
-    unsigned char flagb;            // +0xb
-    char unknown_c[4];
-    int d;                          // +0x10
-};
+// Unused here: real functions declared to keep the file's symbol count.
+void __stdcall DrawBattleFrame(int param_1, int param_2);
+void __stdcall HAPI_FindClose(int handle);
+void __stdcall InstallOutOfMemoryHandler();
 
-// Initialises a 0x14-byte sprite/frame reference from a source record. The
-// first field is written twice in the original.
+// Initialises a frame from a surface description. The width is written
+// twice in the original (first the surface's width, then its pitch).
 // FUNCTION: 0x4b8ae0
-void __stdcall FrameFromSurface(Dst_004b8ae0* dst, Src_004b8ae0* src)
+void __stdcall FrameFromSurface(GafFrame* dst, Src_004b8ae0* src)
 {
-    dst->a = src->a;
-    dst->b = src->b;
-    dst->a = src->c;
-    dst->d = src->d;
-    dst->e = src->e;
-    dst->f = src->f;
+    dst->width = src->a;
+    dst->height = src->b;
+    dst->width = src->c;
+    dst->plane0 = (unsigned char*)src->d;
+    dst->x = src->e;
+    dst->y = src->f;
     dst->flag9 = 0;
-    dst->flag8 = 0xff;
-    dst->flaga = 0;
-    dst->flagb = 0;
+    dst->colour = 0xff;
+    dst->count = 0;
+    dst->kind = 0;
 }
 
 // One 8-byte entry of a GAF sequence: the frame's timer value.
@@ -833,9 +818,9 @@ GafEntry_004b8d40* __stdcall FindGafEntry(Gaf_004b8d40* gaf, const char* name)
 
 void* __cdecl GameAllocIgnoreTag(const char* name, unsigned int size);
 // FUNCTION: 0x4b8da0
-Bitmap_004b7f90* __stdcall AllocFrame(const char* name, int width, int height)
+GafFrame* __stdcall AllocFrame(const char* name, int width, int height)
 {
-    Bitmap_004b7f90* p = (Bitmap_004b7f90*)GameAllocIgnoreTag(name, height * width + 0x18);
+    GafFrame* p = (GafFrame*)GameAllocIgnoreTag(name, height * width + 0x18);
     if (p == 0) {
         return 0;
     }
@@ -850,11 +835,11 @@ Bitmap_004b7f90* __stdcall AllocFrame(const char* name, int width, int height)
     p->kind = 0;
     return p;
 }
-// FUNCTION: 0x4b8e00 ?AllocDepthFrame@@YGPAUBitmap_004b7f90@@IHH@Z
-Bitmap_004b7f90* __stdcall AllocDepthFrame(unsigned int heap, int width, int height)
+// FUNCTION: 0x4b8e00 ?AllocDepthFrame@@YGPAUGafFrame@@IHH@Z
+GafFrame* __stdcall AllocDepthFrame(unsigned int heap, int width, int height)
 {
     int size = height * width;
-    Bitmap_004b7f90* b = (Bitmap_004b7f90*)GameAllocIgnoreTag((const char*)heap, size * 2 + sizeof(Bitmap_004b7f90));
+    GafFrame* b = (GafFrame*)GameAllocIgnoreTag((const char*)heap, size * 2 + sizeof(GafFrame));
     unsigned char* p = (unsigned char*)(b + 1);
     b->plane0 = p;
     b->height = height;
@@ -869,7 +854,7 @@ Bitmap_004b7f90* __stdcall AllocDepthFrame(unsigned int heap, int width, int hei
     return b;
 }
 // FUNCTION: 0x4b8e50
-void __stdcall ClearFrame(Bitmap_004b7f90* b, int color)
+void __stdcall ClearFrame(GafFrame* b, int color)
 {
     if (b->flag9 == 0) {
         memset(b->plane0, color, b->width * b->height);
@@ -898,7 +883,7 @@ void __cdecl BlitCompressedShadow(unsigned char* pixels, int pitch, Rect_004b7e6
 // blitter). Both blitters are hand-written assembly and take the display's
 // cached object at +0xc8 as their last argument.
 // FUNCTION: 0x4b8ec0
-void __stdcall DrawFrameShadow(Surface* dst, Bitmap_004b7f90* bmp, int x, int y)
+void __stdcall DrawFrameShadow(Surface* dst, GafFrame* bmp, int x, int y)
 {
     Display_004b8310* d = GetDisplay();
     if (d->flags.bits.has_obj_c8 == 1) {
@@ -911,7 +896,7 @@ void __stdcall DrawFrameShadow(Surface* dst, Bitmap_004b7f90* bmp, int x, int y)
         if (bmp != 0) {
             if (bmp->count > 0) {
                 for (int i = 0; i < (int)bmp->count; i++) {
-                    Bitmap_004b7f90* e = ((Bitmap_004b7f90**)bmp->plane0)[i];
+                    GafFrame* e = ((GafFrame**)bmp->plane0)[i];
                     DrawFrameShadow(dst, e, x, y);
                 }
             } else if (bmp->plane0 != 0) {
@@ -953,10 +938,10 @@ void __stdcall DrawFrameShadow(Surface* dst, Bitmap_004b7f90* bmp, int x, int y)
 // Each cell inside radius w/4 of the centre holds the offset (in cells) to
 // the source pixel of a magnifying lens; the others hold 0x7d00 (no
 // displacement).
-Bitmap_004b7f90* __stdcall AllocDepthFrame(const char* name, int width, int height)
+GafFrame* __stdcall AllocDepthFrame(const char* name, int width, int height)
 {
     int size = height * width;
-    Bitmap_004b7f90* b = (Bitmap_004b7f90*)GameAllocIgnoreTag(name, size * 2 + sizeof(Bitmap_004b7f90));
+    GafFrame* b = (GafFrame*)GameAllocIgnoreTag(name, size * 2 + sizeof(GafFrame));
     unsigned char* p = (unsigned char*)(b + 1);
     b->width = width;
     b->plane0 = p;
@@ -975,7 +960,7 @@ Bitmap_004b7f90* __stdcall AllocDepthFrame(const char* name, int width, int heig
 void* __stdcall BuildLensFrame(int w, int h, int lens)
 {
     double scale = lens;
-    Bitmap_004b7f90* f = AllocDepthFrame("LensFrame", w * 2, h);
+    GafFrame* f = AllocDepthFrame("LensFrame", w * 2, h);
     if (!f)
         return 0;
     f->width /= 2;
@@ -1023,7 +1008,7 @@ static void SwapPtr(unsigned char*& a, unsigned char*& b)
 //
 // The two scratch buffers are swapped twice around the blit.
 // FUNCTION: 0x4b9360
-void __stdcall DrawLens(void* dst, Bitmap_004b7f90* sprite, int x, int y)
+void __stdcall DrawLens(void* dst, GafFrame* sprite, int x, int y)
 {
     SwapPtr(sprite->plane0, sprite->plane1);
 
@@ -1082,7 +1067,7 @@ void __stdcall DrawLens(void* dst, Bitmap_004b7f90* sprite, int x, int y)
     sprite->plane0 = (unsigned char*)saved;
 }
 // FUNCTION: 0x4b94c0
-void __stdcall GrabBackground(void* dst, Bitmap_004b7f90* sprite, int x, int y)
+void __stdcall GrabBackground(void* dst, GafFrame* sprite, int x, int y)
 {
     Surface surface;
     surface.width = sprite->width;
@@ -1114,7 +1099,7 @@ void __stdcall GrabBackground(void* dst, Bitmap_004b7f90* sprite, int x, int y)
 
 // Clears every pixel of an 8-bit image that is not the colour key.
 // FUNCTION: 0x4b96a0
-void __stdcall ZeroFramePixels(Bitmap_004b7f90* image)
+void __stdcall ZeroFramePixels(GafFrame* image)
 {
     int count = image->height * image->width;
     unsigned char* p = image->plane0;
@@ -1129,7 +1114,7 @@ void __stdcall ZeroFramePixels(Bitmap_004b7f90* image)
 // Remaps every pixel of an 8-bit image whose mask value is at most `level`
 // (and that is not the colour key) through a table of the current palette.
 // FUNCTION: 0x4b96e0
-void __stdcall TintFrameBelow(Bitmap_004b7f90* image, unsigned char level)
+void __stdcall TintFrameBelow(GafFrame* image, unsigned char level)
 {
     unsigned char* p = image->plane0;
     unsigned char* m = image->plane1;
@@ -1153,7 +1138,7 @@ void __stdcall TintFrameBelow(Bitmap_004b7f90* image, unsigned char level)
 // pixel that is not the transparent colour through the display's 256x256
 // table at +0xc0.
 // FUNCTION: 0x4b9740
-void __stdcall DrawFrameScaledBlended(Surface* dst, Bitmap_004b7f90* bmp, int x, int y, double sx, double sy)
+void __stdcall DrawFrameScaledBlended(Surface* dst, GafFrame* bmp, int x, int y, double sx, double sy)
 {
     Display_004b8310* d = GetDisplay();
     Surface screen;
@@ -1164,7 +1149,7 @@ void __stdcall DrawFrameScaledBlended(Surface* dst, Bitmap_004b7f90* bmp, int x,
     }
     if (bmp->count > 0) {
         for (int i = 0; i < (int)bmp->count; i++)
-            DrawFrameScaledBlended(dst, ((Bitmap_004b7f90**)bmp->plane0)[i], x, y, sx, sy);
+            DrawFrameScaledBlended(dst, ((GafFrame**)bmp->plane0)[i], x, y, sx, sy);
     } else {
         // The rects are declared before w and h: sets the order of the edge leas.
         Rect_004b7e60 src;
@@ -1221,7 +1206,7 @@ void __stdcall DrawFrameScaledBlended(Surface* dst, Bitmap_004b7f90* bmp, int x,
 // byte (+0xb) is set is drawn by the blending version 0x4b9740, any other by
 // this function again.
 // FUNCTION: 0x4b9a50
-void __stdcall DrawFrameScaled(Surface* dst, Bitmap_004b7f90* bmp, int x, int y, double sx, double sy)
+void __stdcall DrawFrameScaled(Surface* dst, GafFrame* bmp, int x, int y, double sx, double sy)
 {
     Surface screen;
     if (dst == 0) {
@@ -1231,7 +1216,7 @@ void __stdcall DrawFrameScaled(Surface* dst, Bitmap_004b7f90* bmp, int x, int y,
     }
     if (bmp->count > 0) {
         for (int i = 0; i < (int)bmp->count; i++) {
-            Bitmap_004b7f90* e = ((Bitmap_004b7f90**)bmp->plane0)[i];
+            GafFrame* e = ((GafFrame**)bmp->plane0)[i];
             if (e->kind > 0)
                 DrawFrameScaledBlended(dst, e, x, y, sx, sy);
             else
@@ -1302,7 +1287,7 @@ void __stdcall DrawFrameScaled(Surface* dst, Bitmap_004b7f90* bmp, int x, int y,
 // skipping source pixels equal to the source colour key and writing the
 // destination colour key.
 // FUNCTION: 0x4b9d70
-void __stdcall CutOutFrame(Bitmap_004b7f90* src, Bitmap_004b7f90* dst, int x, int y)
+void __stdcall CutOutFrame(GafFrame* src, GafFrame* dst, int x, int y)
 {
     int srcCol, dstCol, srcRow, dstRow;
     x += src->x - dst->x;
@@ -1348,7 +1333,7 @@ int __stdcall CompressRow(char* dest, char* src, int width, unsigned char key);
 // transparent key colour). Each row is preceded by its 16-bit compressed
 // length; with a null destination it only measures. Returns the total size.
 // FUNCTION: 0x4b9e60
-int __stdcall CompressFrame(unsigned char* dest, Bitmap_004b7f90* img)
+int __stdcall CompressFrame(unsigned char* dest, GafFrame* img)
 {
     int total = 0;
     unsigned char* src = img->plane0;
@@ -1544,7 +1529,7 @@ int __stdcall CompressRow(char* dest, char* src, int width, unsigned char key)
 // Fills every pixel of an 8-bit image whose mask value is at most `level`
 // with the image's colour key.
 // FUNCTION: 0x4ba1b0
-void __stdcall CutFrameBelow(Bitmap_004b7f90* image, unsigned char level)
+void __stdcall CutFrameBelow(GafFrame* image, unsigned char level)
 {
     unsigned char* p = image->plane0;
     unsigned char* m = image->plane1;

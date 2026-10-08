@@ -65,7 +65,7 @@ struct LosTable_00481930 {
     unsigned short count;              // +0x00
 };
 
-struct Frame_00481930 {
+struct GafFrame {
     unsigned short width;              // +0x00
     unsigned short height;             // +0x02
     char unknown_4[4];                 // +0x04
@@ -100,7 +100,7 @@ struct Game {
 
 extern Game* g_game;
 
-Frame_00481930* __stdcall GetGafFrame(LosTable_00481930* table, int index);
+GafFrame* __stdcall GetGafFrame(LosTable_00481930* table, int index);
 
 inline int LodRaw_00481930(Params_00481930* params)
 {
@@ -123,7 +123,7 @@ void __stdcall RevealAroundUnit(Params_00481930* params)
     int limitX, limitY, nx, ny;
     int i, stride, off;
     unsigned int bit = 1 << params->field_0->index;
-    Frame_00481930* frame;
+    GafFrame* frame;
     int halfW = g_game->width / 2;
     int halfH = g_game->height / 2;
     x = params->field_4[0];

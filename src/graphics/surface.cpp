@@ -40,13 +40,21 @@ struct Surface {
     void Unlock() { UnlockScreen(this); }
 };
 
-// The cursor bitmap: two sizes and the offset from the cursor's position.
+// A GAF frame header: the cursor bitmap, and the frames the quad and polygon
+// drawing read pixels from and draw into.
 #pragma pack(push, 1)
-struct Bitmap_004c67c0 {
+struct GafFrame {
     unsigned short width;              // +0x0
     unsigned short height;             // +0x2
-    short dx;                          // +0x4
-    short dy;                          // +0x6
+    short xOffset;                     // +0x4
+    short yOffset;                     // +0x6
+    unsigned char transparency;        // +0x8
+    unsigned char compressed;          // +0x9
+    unsigned char layers;              // +0xa
+    unsigned char blend;               // +0xb
+    int reserved;                      // +0xc
+    unsigned char* pixelsOrLayers;     // +0x10
+    unsigned char* scratch;            // +0x14
 };
 #pragma pack(pop)
 
@@ -122,7 +130,7 @@ struct Display {
     int rect_x;                        // +0x196
     int rect_y;                        // +0x19a
     char unknown_19e[0x1b2 - 0x19e];
-    Bitmap_004c67c0* bmp;              // +0x1b2
+    GafFrame* bmp;                     // +0x1b2
     int x;                             // +0x1b6
     int y;                             // +0x1ba
     int* saveMouse1;                   // +0x1be
@@ -238,7 +246,7 @@ int __stdcall UnlockPrimary(Surface* unused, RECT* r1, RECT* r2);
 void __cdecl BlitSurface(Surface* dst, Surface* src, int x, int y);
 void __cdecl BlitSurfaceKeyed(Surface* dst, Surface* src, int x, int y, int color);
 void __stdcall DrawSurface(Surface* dst, Surface* bmp, int x, int y);
-void __stdcall DrawFrame(Surface* dst, Bitmap_004c67c0* bmp, int x, int y);
+void __stdcall DrawFrame(Surface* dst, GafFrame* bmp, int x, int y);
 void __stdcall DrawCursor(Display* obj, Surface* dst);
 int GetScreenWidth(void);
 int GetScreenHeight(void);
@@ -622,8 +630,8 @@ void __stdcall DrawCursor(Display* obj, Surface* dst)
         obj->saveMouse1[0] = obj->bmp->width;
         obj->saveMouse1[1] = obj->bmp->height;
         obj->saveMouse1[2] = obj->bmp->width;
-        obj->x = obj->rect_x - obj->bmp->dx;
-        obj->y = obj->rect_y - obj->bmp->dy;
+        obj->x = obj->rect_x - obj->bmp->xOffset;
+        obj->y = obj->rect_y - obj->bmp->yOffset;
         DrawSurface((Surface*)obj->saveMouse1, dst, -obj->x, -obj->y);
         DrawFrame(dst, obj->bmp, obj->rect_x, obj->rect_y);
     }
@@ -1144,11 +1152,10 @@ void __stdcall InterpEdgeUvFromScanline_B(int value, Range* out, int at_low, int
 // the same amount, so the source follows the clip), clips the right edge, and
 // then blits: 8 bits per pixel is an inline loop, 0x10/0x20/0x40/0x80 go to
 // helpers, and anything else is an inline loop with a per-row byte stride.
-struct Info_4c7310 {
-    unsigned short bits;
-    char unknown_2[0x10 - 2];
-    unsigned char* data;
-};
+// Unused here: real functions declared to keep the file's symbol count.
+void __stdcall AccumulateScreenShake(int dx, int dy, int value);
+void __stdcall ActivatePlayerGadgets(char* prefix);
+void AddDownloadBuildOptions();
 
 void __cdecl BlitSpan128(unsigned char* dest, unsigned char* src, int width, int y, int x, int rowstep, int colstep);
 void __cdecl BlitSpan64(unsigned char* dest, unsigned char* src, int width, int y, int x, int rowstep, int colstep);
@@ -1156,10 +1163,10 @@ void __cdecl BlitSpan32(unsigned char* dest, unsigned char* src, int width, int 
 void __cdecl BlitSpan16(unsigned char* dest, unsigned char* src, int width, int y, int x, int rowstep, int colstep);
 
 // FUNCTION: 0x4c7310
-void __stdcall DrawQuadRow(int param_1, int* rect, Surface* surf, Info_4c7310* info)
+void __stdcall DrawQuadRow(int param_1, int* rect, Surface* surf, GafFrame* info)
 {
     unsigned char* dest = (unsigned char*)surf->pixels;
-    unsigned char* src = info->data;
+    unsigned char* src = info->pixelsOrLayers;
     int rowstep = (rect[4] - rect[2]) / (rect[1] - rect[0]);
     int colstep = (rect[5] - rect[3]) / (rect[1] - rect[0]);
     Rect bounds;
@@ -1181,7 +1188,7 @@ void __stdcall DrawQuadRow(int param_1, int* rect, Surface* surf, Info_4c7310* i
         y = rect[2];
         x = rect[3];
         dest += surf->pitch * param_1 + rect[0];
-        switch (info->bits) {
+        switch (info->width) {
         case 0x80:
             BlitSpan128(dest, src, width, y, x, rowstep, colstep);
             return;
@@ -1205,7 +1212,7 @@ void __stdcall DrawQuadRow(int param_1, int* rect, Surface* surf, Info_4c7310* i
         default: {
             int n = width;
             do {
-                *dest++ = src[(y >> 16) + (x >> 16) * info->bits];
+                *dest++ = src[(y >> 16) + (x >> 16) * info->width];
                 y += rowstep;
                 x += colstep;
             } while (--n);
@@ -1228,17 +1235,15 @@ struct Rec_004c7580 {
     int pad[4];
 };
 
-struct Frame_004c7580 {
-    unsigned short w;    // +0x00
-    unsigned short h;    // +0x02
-    char unknown_04[0xc];
-    void* data;          // +0x10
-};
+// Unused here: real functions declared to keep the file's symbol count.
+int __stdcall AssignPlayerColor(int from, int to, int group);
+void __stdcall AddAnimplayPointer(void* item);
+int AllocFeatureSpot();
 
 void __stdcall DrawQuadRow(int y, int* rect, void* surf, void* info);
 
 // FUNCTION: 0x4c7580
-void __stdcall DrawFrameQuad(void* surf, Frame_004c7580* bmp,
+void __stdcall DrawFrameQuad(void* surf, GafFrame* bmp,
                             Quad_004c7580* dst, Quad_004c7580* src)
 {
     if (bmp == 0)
@@ -1263,12 +1268,12 @@ void __stdcall DrawFrameQuad(void* surf, Frame_004c7580* bmp,
         src = &tmp;
         tmp.p[0].x = 0;
         tmp.p[0].y = 0;
-        tmp.p[1].x = bmp->w - 1;
+        tmp.p[1].x = bmp->width - 1;
         tmp.p[1].y = 0;
-        tmp.p[2].x = bmp->w - 1;
-        tmp.p[2].y = bmp->h - 1;
+        tmp.p[2].x = bmp->width - 1;
+        tmp.p[2].y = bmp->height - 1;
         tmp.p[3].x = 0;
-        tmp.p[3].y = bmp->h - 1;
+        tmp.p[3].y = bmp->height - 1;
     }
 
     int y0, y1;
@@ -1430,25 +1435,22 @@ unlock:
 }
 
 // MATCH. Preserve the native 0x80 case fallthrough into the 0x40 scaler.
-struct Info_4c7a20 {
-    unsigned short bits;          // +0x00
-    char gap_2[0xe];
-    unsigned char* data;          // +0x10
-};
+// Unused here: real functions declared to keep the file's symbol count.
+int __stdcall BroadcastPacket(int id, unsigned char* packet, int size);
+void __stdcall AddCdActivitySample(int param_1);
+int AllocScoreTables();
 
-struct Surf_4c7a20 {
-    unsigned short pitch;         // +0x00
-    char gap_2[0xe];
-    unsigned char* pixels;        // +0x10
-    unsigned char* mask;          // +0x14
-};
+// Unused here: real functions declared to keep the file's symbol count.
+void __stdcall BuildEntryGuiName(char* dest, unsigned short index, int n);
+int __stdcall AddNetPlayer(int param_1);
+void ApplyBrightnessAndVolume();
 
 // FUNCTION: 0x4c7a20
-void __stdcall DrawTexturedSpan(int row, int* span, Surf_4c7a20* surf, Info_4c7a20* info)
+void __stdcall DrawTexturedSpan(int row, int* span, GafFrame* surf, GafFrame* info)
 {
-    unsigned char* mask = surf->mask;
-    unsigned char* dest = surf->pixels;
-    unsigned char* src = info->data;
+    unsigned char* mask = surf->scratch;
+    unsigned char* dest = surf->pixelsOrLayers;
+    unsigned char* src = info->pixelsOrLayers;
     int width = span[1] - span[0];
     int rowstep = (span[4] - span[2]) / width;
     int colstep = (span[5] - span[3]) / width;
@@ -1461,18 +1463,18 @@ void __stdcall DrawTexturedSpan(int row, int* span, Surf_4c7a20* surf, Info_4c7a
         span[0] = 0;
         span[6] = clippedDepth;
     }
-    if (span[1] > surf->pitch - 1)
-        span[1] = surf->pitch - 1;
+    if (span[1] > surf->width - 1)
+        span[1] = surf->width - 1;
     width = span[1] - span[0];
     if (width > 0) {
         int y = span[2];
         int x = span[3];
         int w = span[6];
 
-        dest += surf->pitch * row + span[0];
+        dest += surf->width * row + span[0];
         if (mask != 0) {
-            mask += surf->pitch * row + span[0];
-            switch (info->bits) {
+            mask += surf->width * row + span[0];
+            switch (info->width) {
             case 0x80: {
                 int n = width;
                 do {
@@ -1547,7 +1549,7 @@ void __stdcall DrawTexturedSpan(int row, int* span, Surf_4c7a20* surf, Info_4c7a
                 int n = width;
                 do {
                     if (*mask <= (unsigned char)(w >> 16)) {
-                        *dest = src[(y >> 16) + ((x >> 16) * info->bits)];
+                        *dest = src[(y >> 16) + ((x >> 16) * info->width)];
                         *mask = (unsigned char)(w >> 16);
                     }
                     x += colstep;
@@ -1559,7 +1561,7 @@ void __stdcall DrawTexturedSpan(int row, int* span, Surf_4c7a20* surf, Info_4c7a
                 return; }
             }
         }
-        switch (info->bits) {
+        switch (info->width) {
         case 0x80:
             BlitSpan128(dest, src, width, y, x, rowstep, colstep);
         case 0x40:
@@ -1582,7 +1584,7 @@ void __stdcall DrawTexturedSpan(int row, int* span, Surf_4c7a20* surf, Info_4c7a
         default: {
             int n = width;
             do {
-                *dest++ = src[(y >> 16) + ((x >> 16) * info->bits)];
+                *dest++ = src[(y >> 16) + ((x >> 16) * info->width)];
                 y += rowstep;
                 x += colstep;
             } while (--n);
@@ -1604,19 +1606,12 @@ void __stdcall DrawTexturedSpan(int row, int* span, Surf_4c7a20* surf, Info_4c7a
 // sub-texel mask, anything else uses the width itself as a row stride. With no
 // depth buffer the four power-of-two formats dispatch to the FUN_004cd8xx span
 // helpers and the remaining formats run inline loops.
-struct Surface_004c8020 {
-    unsigned short width;
-    char pad[14];
-    unsigned char* data;
-    unsigned char* depth;
-};
-
 // FUNCTION: 0x4c8020
-void __stdcall DrawLitTexturedSpan(int row, int* span, Surface_004c8020* target, Surface_004c8020* texture)
+void __stdcall DrawLitTexturedSpan(int row, int* span, GafFrame* target, GafFrame* texture)
 {
-    unsigned char* dest = target->data;
-    unsigned char* depth = target->depth;
-    unsigned char* src = texture->data;
+    unsigned char* dest = target->pixelsOrLayers;
+    unsigned char* depth = target->scratch;
+    unsigned char* src = texture->pixelsOrLayers;
     Display* display = GetDisplay();
     int width = span[1] - span[0];
     int du = (span[4] - span[2]) / width;
@@ -1767,11 +1762,10 @@ void __stdcall DrawLitTexturedSpan(int row, int* span, Surface_004c8020* target,
     }
 }
 
-struct Surface_4c8760 { unsigned short width, height; };
-void __stdcall DrawTexturedSpan(int, int*, Surface_4c8760*, Surface_4c8760*);
+void __stdcall DrawTexturedSpan(int, int*, GafFrame*, GafFrame*);
 
 // FUNCTION: 0x4c8760
-void __stdcall DrawTexturedPolygon(Surface_4c8760* target, Surface_4c8760* texture, int* vertices, int* coords)
+void __stdcall DrawTexturedPolygon(GafFrame* target, GafFrame* texture, int* vertices, int* coords)
 {
     int i, defaults[8];
     int spans[800][10];
@@ -1904,11 +1898,10 @@ void __stdcall DrawTexturedPolygon(Surface_4c8760* target, Surface_4c8760* textu
         }
 }
 
-struct Surface_4c8bb0 { unsigned short width, height; };
-void __stdcall DrawLitTexturedSpan(int, int*, Surface_4c8bb0*, Surface_4c8bb0*);
+void __stdcall DrawLitTexturedSpan(int, int*, GafFrame*, GafFrame*);
 
 // FUNCTION: 0x4c8bb0
-void __stdcall DrawLitTexturedPolygon(Surface_4c8bb0* target, Surface_4c8bb0* texture, int* vertices, int* coords)
+void __stdcall DrawLitTexturedPolygon(GafFrame* target, GafFrame* texture, int* vertices, int* coords)
 {
     int i, defaults[8];
     int spans[800][10];

@@ -93,7 +93,7 @@ struct Game {
     void* losTable;                    // +0x1485b
 };
 
-struct Frame_482270 {
+struct GafFrame {
     unsigned short width;              // +0x0
     unsigned short height;             // +0x2
     char unknown_4[4];
@@ -106,7 +106,7 @@ struct Frame_482270 {
 
 extern Game* g_game;
 
-Frame_482270* __stdcall GetGafFrame(unsigned short* table, int index);
+GafFrame* __stdcall GetGafFrame(unsigned short* table, int index);
 
 // FUNCTION: 0x482270
 void __stdcall AddLineOfSight(Params_482270* params)
@@ -175,7 +175,7 @@ void __stdcall AddLineOfSight(Params_482270* params)
         }
     } else {
         int ref = *params->field_c;
-        Frame_482270* frame =
+        GafFrame* frame =
             GetGafFrame((unsigned short*)g_game->losTable, ref);
         // limitX and limitY are if/else statements, not ?:.
         int limitX;

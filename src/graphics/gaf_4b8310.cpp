@@ -27,7 +27,7 @@ public:
     Rect_004b8310* GetClipRect(Rect_004b8310* out);
 };
 
-struct Sprite_004b8310 {
+struct GafFrame {
     unsigned short width;                // +0x0
     unsigned short height;               // +0x2
     short dx;                            // +0x4
@@ -36,14 +36,14 @@ struct Sprite_004b8310 {
     unsigned char flag_9;                // +0x9
     unsigned char count;                 // +0xa
     char unknown_b[0x10 - 0xb];
-    Sprite_004b8310** items;             // +0x10
+    GafFrame** items;                    // +0x10
 };
 
 struct Src_004b8310 {
     int field_0;
     int field_1;
     int field_2;
-    Sprite_004b8310** field_3;
+    GafFrame** field_3;
 };
 
 struct Bounds_src_004b8310 {
@@ -71,12 +71,12 @@ Display_004b8310* GetDisplay(void);
 int __stdcall LockScreen(Surface_004b8310* out);
 int __stdcall UnlockScreen(Surface_004b8310* s);
 void __stdcall ClipRects(Rect_004b8310* other, Rect_004b8310* rect, Rect_004b8310* bounds);
-void __stdcall DrawFrameBlended(Surface* p, Sprite_004b8310* s, int x, int y);
+void __stdcall DrawFrameBlended(Surface* p, GafFrame* s, int x, int y);
 void __cdecl BlitRectBlended(Surface* p, Src_004b8310* src, Rect_004b8310* srect, Rect_004b8310* drect, int colour, unsigned char* palette);
-void __cdecl BlitCompressedLit(int linkid, int sprite, Rect_004b8310* drect, Sprite_004b8310** src, Rect_004b8310* srect, unsigned char* palette);
+void __cdecl BlitCompressedLit(int linkid, int sprite, Rect_004b8310* drect, GafFrame** src, Rect_004b8310* srect, unsigned char* palette);
 
 // FUNCTION: 0x4b8310
-void __stdcall DrawFrameLit(Surface* param_1, Sprite_004b8310* param_2, int x, int y, int param_5)
+void __stdcall DrawFrameLit(Surface* param_1, GafFrame* param_2, int x, int y, int param_5)
 {
     Display_004b8310* d = GetDisplay();
     if ((d->flags & 0x80) == 0x80) {

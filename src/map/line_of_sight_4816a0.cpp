@@ -46,16 +46,16 @@ struct Unit {
     char unknown_f9[0x118 - 0xf9];
 };
 
-struct Entry_004816a0 {
+struct GafFrame {
     int field_0;                       // +0x00
-    short field_4;                     // +0x04
-    short field_6;                     // +0x06
+    short xOffset;                     // +0x04
+    short yOffset;                     // +0x06
 };
 
 struct Cell_004816a0 {
     unsigned short count;              // +0x00
     char unknown_2[0x28 - 0x2];
-    Entry_004816a0* entries;           // +0x28
+    void* entries;                     // +0x28
 };
 
 struct Params_004816a0 {
@@ -104,7 +104,7 @@ extern Game* g_game;
 void __stdcall UpdateLineOfSight(Params_004816a0* params);
 void __stdcall AddLineOfSight(Params_004816a0* params);
 void __stdcall RevealAroundUnit(Params_004816a0* params);
-Entry_004816a0* __stdcall GetGafFrame(Cell_004816a0* table, int index);
+GafFrame* __stdcall GetGafFrame(Cell_004816a0* table, int index);
 void UpdateRadarMapped();
 void DrawRadarUnits();
 
@@ -151,10 +151,10 @@ void __stdcall RecalculateLineOfSight(int arg)
                 int y = ((short*)&params.pos.y)[1] / 64;
                 int cx = params.pos.x / 0x200000;
                 int cy = params.pos.z / 0x200000 - y;
-                Entry_004816a0* e = GetGafFrame(g_game->losTable, i);
+                GafFrame* e = GetGafFrame(g_game->losTable, i);
                 // Full 32 bit subtractions, truncated only at the stores.
-                int vx = cx - e->field_4;
-                int vz = cy - e->field_6;
+                int vx = cx - e->xOffset;
+                int vz = cy - e->yOffset;
                 params.field_4[0] = (short)vx;
                 params.field_4[1] = (short)vz;
                 *params.field_c = (unsigned char)i;

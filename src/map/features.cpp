@@ -82,7 +82,7 @@ struct SmokePos {
     Coord x, y, z;
 };
 
-struct Frame {
+struct GafFrame {
     unsigned short width;
     unsigned short height;
     unsigned short originX;
@@ -525,7 +525,7 @@ void __stdcall ReplaceFeatureWithDead(int x, int y, int flag);
 void __stdcall SpreadFire(Feature* f, Point16* cell);
 int __stdcall StepGafSequence(Anim* anim);
 int __stdcall GetCellMeanHeight(Vec3* pos);
-Frame* __stdcall GetGafSequenceFrame(Anim* anim);
+GafFrame* __stdcall GetGafSequenceFrame(Anim* anim);
 void __stdcall EmitWhiteSmoke(SmokePos* pos, short index);
 void __stdcall ApplyAreaDamageAt(void* owner, Vec3* pos);
 void* __stdcall CreateObjectState(void* obj);
@@ -1176,7 +1176,7 @@ static inline int Rand(unsigned short n)
 static inline SmokePos SmokeAt(Spot* spot, Feature* f)
 {
     SmokePos p = FootprintCentreSmoke(&spot->cell, f);
-    Frame* frame = GetGafSequenceFrame(&spot->anim);
+    GafFrame* frame = GetGafSequenceFrame(&spot->anim);
     unsigned short w = frame->width;
     // The narrowed (unsigned short)(w >> 2) keeps `r - originX` before the add.
     p.x.f.whole += Rand(w >> 1) - frame->originX + (unsigned short)(w >> 2);

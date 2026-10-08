@@ -87,7 +87,8 @@ struct FindData_00495930 {
     char name[260];                    // +0x14
 };
 
-struct Class_004b8da0;
+// Unused here: a real function declared to keep the file's symbol count.
+int GetDisplayFieldE4();
 
 struct Class_004cb7c0 {
     char unknown_0[0xc];
@@ -110,7 +111,7 @@ struct Class_004cb7d0 {
 };
 
 // 24 bytes, not 20: keeps the trailing 4 bytes of the sprite record.
-struct Dst_004b8ae0 {
+struct GafFrame {
     unsigned short a;                       // +0x0
     unsigned short b;                       // +0x2
     unsigned short e;                       // +0x4
@@ -121,7 +122,7 @@ struct Dst_004b8ae0 {
     unsigned char flagb;                    // +0xb
     char unknown_c[4];
     int d;                                  // +0x10
-    int field_14;                           // +0x14
+    int scratch;                            // +0x14
 };
 
 struct Src_004b8ae0 {
@@ -249,16 +250,16 @@ int __stdcall HAPI_FindFirst(const char* path, void* findData, int a, int b);
 int __stdcall HAPI_FindNext(int handle, void* findData);
 void __stdcall HAPI_FindClose(int handle);
 void __stdcall BuildScreenshotPath(char* out, const char* dir, const char* name, const char* ext);
-Class_004b8da0* __stdcall AllocFrame(const char* name, int width, int height);
+GafFrame* __stdcall AllocFrame(const char* name, int width, int height);
 void __cdecl SetOutOfMemoryHandler(int param);
 void __stdcall InstallOutOfMemoryHandler();
 void __stdcall SurfaceFromFrame(Surface_00495a30* dst, void* src);
 void* __stdcall GetDisplay();
-void __stdcall FrameFromSurface(Dst_004b8ae0* dst, Src_004b8ae0* src);
+void __stdcall FrameFromSurface(GafFrame* dst, Src_004b8ae0* src);
 void __stdcall SetCameraPosition(int x, int y, int z);
 void __stdcall CollectVisibleUnitIds();
 void __stdcall DrawBattleFrame(int param_1, int param_2);
-void __stdcall DrawFrame(Surface_00495a30* surf, Dst_004b8ae0* pal, int x, int y);
+void __stdcall DrawFrame(Surface_00495a30* surf, GafFrame* pal, int x, int y);
 void __stdcall ClearFrame(void* b, int color);
 void __stdcall RecalculateLineOfSight(int param);
 void __cdecl GameFreeThunk(void* b);
@@ -378,7 +379,7 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
     Class_004cb7f0 bmp;
     bmp.Init();
     if (bmp.Open(filename, w, h)) {
-        Class_004b8da0* bm;
+        GafFrame* bm;
         off27 = g_game->viewCullMinX;
         int bh, off2b;
         bw = g_game->screenTilesX * 16;
@@ -396,7 +397,7 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
             int scrollX;
             Surface_00495a30 surf;
             scrollX = g_game->scrollX;
-            Dst_004b8ae0 pal;
+            GafFrame pal;
             fl = g_game->viewFlags;
             int savedbit0, scrollY = g_game->scrollY, bit6;
             int savedbit1;

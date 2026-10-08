@@ -157,18 +157,18 @@ struct Unit {
 };
 
 // A GAF frame (32x32 tile bitmap); GetGafFrame returns one of these.
-struct Bitmap {
+struct GafFrame {
     unsigned short width;              // +0x0
     unsigned short height;             // +0x2
-    short field_4;                     // +0x4
-    short field_6;                     // +0x6
+    short xOffset;                     // +0x4
+    short yOffset;                     // +0x6
     unsigned char mask;                // +0x8
     unsigned char flag9;               // +0x9
     unsigned char count;               // +0xa
     unsigned char kind;                // +0xb
-    int unknown_c;                     // +0xc
+    int reserved;                      // +0xc
     unsigned char* data;               // +0x10
-    int unknown_14;                    // +0x14
+    int scratch;                       // +0x14
 };
 
 // The table GetGafFrame indexes: a count and 8-byte entries at +0x28.
@@ -267,16 +267,10 @@ struct TntInfo {
     unsigned short* feature_data;
 };
 
-struct TntHeader {
-    unsigned short width;
-    unsigned short height;
-    unsigned short pad0;
-    unsigned short pad1;
-    unsigned char flag[4];
-    int zero0;
-    unsigned short* data;
-    int zero1;
-};
+// Unused here: real functions declared to keep the file's symbol count.
+void __stdcall SetCameraPosition(int x, int y, int z);
+void __stdcall RecalculateLineOfSight(int param);
+void __stdcall CollectVisibleUnitIds();
 
 union Slot {
     int n;
@@ -411,7 +405,7 @@ void* __cdecl GameAllocIgnoreTag(const char* name, unsigned int size);
 void __cdecl GameFreeThunk(void* p);
 void __stdcall FatalError(char* message);
 int* __stdcall LoadFileWithProgress(int* file);
-Bitmap* __stdcall GetGafFrame(void* table, int index);
+GafFrame* __stdcall GetGafFrame(void* table, int index);
 void __stdcall UpdateLineOfSight(Params* params);
 void __stdcall AddLineOfSight(Params* params);
 void __stdcall RemoveLineOfSight(Params* params);
@@ -424,7 +418,7 @@ void BuildFogTiles();
 void* __stdcall AllocFrame(const char* name, int width, int height);
 void __stdcall SurfaceFromFrame(void* dst, void* src);
 void __stdcall DrawFrame(void* surface, void* header, int x, int y);
-void __stdcall DrawFrameOpaque(void* dst, Bitmap* bmp, int x, int y);
+void __stdcall DrawFrameOpaque(void* dst, GafFrame* bmp, int x, int y);
 void __stdcall DrawTile(void* dst, int x, int y, unsigned char* pix);
 void __stdcall DrawFrameGray(void* surface, void* bmp, int x, int y);
 void __stdcall EraseFrameDithered(void* surface, void* bmp, int x, int y, int color);
@@ -642,9 +636,9 @@ void __stdcall UpdateLineOfSight(Params* params)
         // cx before cy: puts its magic multiply ahead of the subtraction.
         int cx = params->pos.x / 0x200000;
         int cy = params->pos.z / 0x200000 - ((short*)&params->pos.y)[1] / 64;
-        Bitmap* e = GetGafFrame(g_game->losTable, i);
-        cx -= e->field_4;
-        cy -= e->field_6;
+        GafFrame* e = GetGafFrame(g_game->losTable, i);
+        cx -= e->xOffset;
+        cy -= e->yOffset;
         if (params->field_4[0] != cx || params->field_4[1] != cy || *params->field_c != i) {
             if ((g_game->flags.raw & 2) == 2) {
                 RemoveLineOfSight(params);
@@ -703,9 +697,9 @@ void __stdcall InitUnitSightCircleReveal(Params* params)
     }
     int x = params->pos.x / 0x200000;
     int y = params->pos.z / 0x200000 - params->pos.y_hi / 64;
-    Bitmap* entry = GetGafFrame(g_game->losTable, lod);
-    x -= entry->field_4;
-    y -= entry->field_6;
+    GafFrame* entry = GetGafFrame(g_game->losTable, lod);
+    x -= entry->xOffset;
+    y -= entry->yOffset;
     params->field_4[0] = (short)x;
     params->field_4[1] = (short)y;
     *params->field_c = (char)lod;
@@ -999,7 +993,7 @@ void LoadTntMap()
 {
     int* mapSettings = (int*)((char*)g_game + 0x141fb);
     TntInfo info;
-    TntHeader pic;
+    GafFrame pic;
     char text[64];
     Slot a;
     Slot b;
@@ -1084,15 +1078,15 @@ void LoadTntMap()
     if (info.feature_flags & 1) {
         pic.width = *info.feature_data;
         pic.height = info.feature_data[2];
-        pic.pad0 = 0;
-        pic.pad1 = 0;
-        pic.flag[0] = 0;
-        pic.flag[1] = 0;
-        pic.flag[2] = 0;
-        pic.flag[3] = 0;
-        pic.zero0 = 0;
-        pic.data = info.feature_data + 4;
-        pic.zero1 = 0;
+        pic.xOffset = 0;
+        pic.yOffset = 0;
+        pic.mask = 0;
+        pic.flag9 = 0;
+        pic.count = 0;
+        pic.kind = 0;
+        pic.reserved = 0;
+        pic.data = (unsigned char*)(info.feature_data + 4);
+        pic.scratch = 0;
         *(void**)((char*)g_game + 0x1426b) = AllocFrame("TED GENERATED PIC", *(int*)info.feature_data, *(int*)(info.feature_data + 2));
         SurfaceFromFrame(text, *(void**)((char*)g_game + 0x1426b));
         DrawFrame(text, &pic, 0, 0);
@@ -1316,7 +1310,7 @@ void __stdcall DrawMapTiles(void* surface)
     int offX, offY;
     int edgeX, edgeY;
     int scrollX, scrollY, viewW, viewH;
-    Bitmap bmp;
+    GafFrame bmp;
     screenX = g_game->rect.left;
     screenY = g_game->rect.top;
     scrollX = g_game->scrollX;
@@ -1339,8 +1333,8 @@ void __stdcall DrawMapTiles(void* surface)
     int stride = g_game->width / 2;
     bmp.width = 32;
     bmp.height = 32;
-    bmp.field_4 = 0;
-    bmp.field_6 = 0;
+    bmp.xOffset = 0;
+    bmp.yOffset = 0;
     bmp.flag9 = 0;
     bmp.count = 0;
 

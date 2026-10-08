@@ -288,18 +288,18 @@ int __stdcall LoadSoundByName(char* name, const char* file)
     return i;
 }
 
-struct Bitmap_004b8da0 {
+struct GafFrame {
     short width;              // +0x0
     short height;             // +0x2
-    short field_4;            // +0x4
-    short field_6;            // +0x6
-    unsigned char field_8;    // +0x8
-    unsigned char field_9;    // +0x9
-    unsigned char field_a;    // +0xa
-    unsigned char field_b;    // +0xb
-    int field_c;              // +0xc
+    short xOffset;            // +0x4
+    short yOffset;            // +0x6
+    unsigned char transparency;  // +0x8
+    unsigned char compressed;  // +0x9
+    unsigned char layers;     // +0xa
+    unsigned char blend;      // +0xb
+    int reserved;             // +0xc
     unsigned char* data;      // +0x10
-    int field_14;             // +0x14
+    int scratch;              // +0x14
     unsigned char pixels[1];  // +0x18
 };
 
@@ -314,7 +314,7 @@ struct Pic_004295b0 {
 int __stdcall HAPI_FileLength(void* file);
 int __stdcall HAPI_readfromfile(void* file, void* buf, int size);
 int __stdcall HAPI_SeekFile(void* file, int pos);
-Bitmap_004b8da0* __stdcall AllocFrame(char* name, int width, int height);
+GafFrame* __stdcall AllocFrame(char* name, int width, int height);
 
 // Loads a picture from `path`. It reads a 0x40-byte header; if bit 0 of the
 // byte at header+0x2c is set it seeks to the offset stored at header+0x28,
@@ -322,7 +322,7 @@ Bitmap_004b8da0* __stdcall AllocFrame(char* name, int width, int height);
 // width*height pixels into it. Otherwise it returns null. The two dwords at
 // header+4 and header+8 are reported through the output pointers.
 // FUNCTION: 0x4295b0
-Bitmap_004b8da0* __stdcall LoadRadarPic(char* path, int* outX, int* outY)
+GafFrame* __stdcall LoadRadarPic(char* path, int* outX, int* outY)
 {
     void* file = HAPI_OpenFileRead(path);
     if (file == 0) {
@@ -331,7 +331,7 @@ Bitmap_004b8da0* __stdcall LoadRadarPic(char* path, int* outX, int* outY)
     HAPI_FileLength(file);
     Pic_004295b0 pic;
     HAPI_readfromfile(file, pic.header, 0x40);
-    Bitmap_004b8da0* bmp;
+    GafFrame* bmp;
     if (pic.header[0x2c] & 1) {
         HAPI_SeekFile(file, *(int*)(pic.header + 0x28));
         HAPI_readfromfile(file, &pic.w, 8);

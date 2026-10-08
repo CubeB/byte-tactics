@@ -9,11 +9,11 @@ struct Vertex_0045a610 {
     int z;
 };
 
-struct View_0045a610 {
-    short field_0;                   // width
-    short field_2;                   // height
-    short field_4;                   // x origin, added to every vertex x
-    short field_6;                   // y origin, added to every vertex y
+struct GafFrame {
+    short width;                     // +0x0
+    short height;                    // +0x2
+    short xOffset;                   // +0x4, added to every vertex x
+    short yOffset;                   // +0x6, added to every vertex y
 };
 
 struct Face_00458fa0 {
@@ -64,17 +64,17 @@ struct Model_00458fa0 {
 };
 #pragma pack(pop)
 
-void __stdcall DrawPolygonEdges(View_0045a610* view, Vertex_0045a610* points, int count, int color);
+void __stdcall DrawPolygonEdges(GafFrame* view, Vertex_0045a610* points, int count, int color);
 
 // A method that ignores `this`: its one caller (0x458dd0, MATCH) passes its own
 // `this` through in ecx, and spells the parameters (image, model, palette).
 class Class_00458fa0 {
 public:
-    void DrawPieceEdges(View_0045a610* view, Model_00458fa0* model, int color);
+    void DrawPieceEdges(GafFrame* view, Model_00458fa0* model, int color);
 };
 
 // FUNCTION: 0x458fa0
-void Class_00458fa0::DrawPieceEdges(View_0045a610* view, Model_00458fa0* model, int color)
+void Class_00458fa0::DrawPieceEdges(GafFrame* view, Model_00458fa0* model, int color)
 {
     Vertex_0045a610 verts[2000];
     Vertex_0045a610 tmp[25];
@@ -97,8 +97,8 @@ void Class_00458fa0::DrawPieceEdges(View_0045a610* view, Model_00458fa0* model, 
                     verts[j].x = x;
                     verts[j].y = z - (y >> 1);
                     verts[j].z = y + bright;
-                    verts[j].x += view->field_4;
-                    verts[j].y += view->field_6;
+                    verts[j].x += view->xOffset;
+                    verts[j].y += view->yOffset;
                 }
                 // f is assigned in both arms, not set before the if.
                 Face_00458fa0* f;

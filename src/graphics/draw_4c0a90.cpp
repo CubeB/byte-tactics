@@ -15,7 +15,7 @@ struct Span_004c0a90 {
     int z2;                            // +0x1c (16.16)
 };
 
-struct Surface_004c0a90 {
+struct GafFrame {
     unsigned short pitch;              // +0x0
     char unknown_2[0x10 - 0x2];
     unsigned char* bits;               // +0x10
@@ -24,7 +24,7 @@ struct Surface_004c0a90 {
 
 // Not gathered into draw.cpp: its register allocation follows symbol ids.
 // FUNCTION: 0x4c0a90
-void __stdcall PlotSpanEnds(int row, Span_004c0a90* span, Surface_004c0a90* surf, unsigned char color)
+void __stdcall PlotSpanEnds(int row, Span_004c0a90* span, GafFrame* surf, unsigned char color)
 {
     unsigned char* d = surf->depth;
     unsigned char* p = surf->bits;

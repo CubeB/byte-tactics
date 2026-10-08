@@ -1429,9 +1429,18 @@ struct Dialog_4a1b40 {
     void* fallback;                     // +0xcd2
 };
 
-struct Glyph_004a1b40 {
+struct GafFrame {
     unsigned short width;               // +0x0
     unsigned short height;              // +0x2
+    short xOffset;                      // +0x4
+    short yOffset;                      // +0x6
+    unsigned char transparency;         // +0x8
+    unsigned char compressed;           // +0x9
+    unsigned char layers;               // +0xa
+    unsigned char blend;                // +0xb
+    int reserved;                       // +0xc
+    unsigned char* pixelsOrLayers;      // +0x10
+    unsigned char* scratch;             // +0x14
 };
 
 struct Language_004a1b40 {
@@ -1455,17 +1464,14 @@ struct Rect_004a1b40 {
 struct Point_004a1b40 { int x; int y; };
 struct Quad_004a1b40 { Point_004a1b40 points[4]; };
 
-struct Cell_004a1b40 {
-    unsigned short width;               // +0x00
-    unsigned short height;              // +0x02
-    char unknown_04[0x10 - 0x04];
-    int field_10;                       // +0x10
-    char unknown_14[0x18 - 0x14];
-};
+// Unused here: real functions declared to keep the file's symbol count.
+void __stdcall AccumulateScreenShake(int dx, int dy, int value);
+void __stdcall ActivatePlayerGadgets(char* prefix);
+void AddDownloadBuildOptions();
 
 struct Item_004a1b40 {
     char unknown_0[0x28];
-    Cell_004a1b40* cell;                // +0x28
+    GafFrame* cell;                      // +0x28
 };
 
 struct Surface {
@@ -1506,7 +1512,7 @@ static inline int Measure_004a1b40(char* text)
     char* q = text;
     while (*q) {
         char ch = *q;
-        Glyph_004a1b40* glyph = (Glyph_004a1b40*)GetGafFrame(
+        GafFrame* glyph = (GafFrame*)GetGafFrame(
             g_guiContext->language->glyphs, (unsigned char)ch);
         if (0 != glyph)
             width += glyph->width;
@@ -1519,7 +1525,7 @@ static inline int LineHeight_004a1b40()
 {
     if (0 == g_guiContext->language)
         return GetFontHeight();
-    return ((Glyph_004a1b40*)GetGafFrame(g_guiContext->language->glyphs, 0x49))->height + 2;
+    return ((GafFrame*)GetGafFrame(g_guiContext->language->glyphs, 0x49))->height + 2;
 }
 
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
@@ -1663,7 +1669,7 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
         }
     } else if (flags & 0xa0) {
         Item_004a1b40** colPtr;
-        Cell_004a1b40* cellPtr;
+        GafFrame* cellPtr;
         Rect_004a1b40 cellRect;
         Rect_004a1b40 clip;
         unsigned int bp = (flags >> 7) & 1;
@@ -1676,20 +1682,20 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
         } else {
             // colPtr is zeroed only in this arm.
             colPtr = 0;
-            cellPtr = &((Cell_004a1b40*)me->field_c6)[k];
+            cellPtr = &((GafFrame*)me->field_c6)[k];
         }
         int yy = bounds.top + 2;
         bounds.left += 2;
         int y = step + yy;
         for (;;) {
-            Cell_004a1b40* cell;
+            GafFrame* cell;
             if (0 != bp) {
                 cell = cellPtr;
                 cellPtr++;
             } else {
                 cell = (*colPtr)->cell;
             }
-            if (cell != 0 && cell->field_10 != 0) {
+            if (cell != 0 && cell->pixelsOrLayers != 0) {
                 Quad_004a1b40 dst;
                 Quad_004a1b40 src;
                 dst.points[3].x = bounds.left;
@@ -1787,10 +1793,10 @@ void __stdcall GetSliderRects(Entry_004a23b0* base, int index, int* r1, int* r2)
 // 0x4a23b0 (fields x/y/w/h at 0x13..0x19) and 0x4a0f30 (holder at +0x18).
 // Needed only for compiler state: changes how the loop test's sum is formed.
 
-struct Glyph_004a2480 {
-    unsigned short width;              // +0x0
-    unsigned short height;             // +0x2
-};
+// Unused here: real functions declared to keep the file's symbol count.
+int __stdcall AssignPlayerColor(int from, int to, int group);
+void __stdcall AddAnimplayPointer(void* item);
+int AllocFeatureSpot();
 
 #pragma pack(push, 1)
 struct Entry_004a2480 {
@@ -1837,7 +1843,7 @@ void __stdcall DrawGafBar(Class_004a2480* param_1, int index)
     void* surface = base->surface;
     Entry_004a2480* e = &base[index];
     unsigned short* glyphs = e->glyphs;
-    Glyph_004a2480* glyph = (Glyph_004a2480*)GetGafFrame(glyphs, 0);
+    GafFrame* glyph = (GafFrame*)GetGafFrame(glyphs, 0);
     int x = e->x;
     int y = e->y + e->h / 2;
     if (glyph != 0)
@@ -1848,21 +1854,21 @@ void __stdcall DrawGafBar(Class_004a2480* param_1, int index)
     if (glyph != 0)
         DrawFrame(surface, glyph, x, y);
     x += glyph->width;
-    Glyph_004a2480* mid = (Glyph_004a2480*)GetGafFrame(glyphs, 1);
+    GafFrame* mid = (GafFrame*)GetGafFrame(glyphs, 1);
     if (x + mid->width < limit) {
         do {
             DrawFrame(surface, mid, x, y);
             x += mid->width;
         } while (x + mid->width < limit);
     }
-    Glyph_004a2480* last = (Glyph_004a2480*)GetGafFrame(glyphs, 2);
+    GafFrame* last = (GafFrame*)GetGafFrame(glyphs, 2);
     DrawFrame(surface, last, limit - last->width, y);
 }
 #pragma pack(push, 1)
-struct Glyph_004a2580 {
-    unsigned short width;              // +0x0
-    unsigned short height;             // +0x2
-};
+// Unused here: real functions declared to keep the file's symbol count.
+int __stdcall BroadcastPacket(int id, unsigned char* packet, int size);
+void __stdcall AddCdActivitySample(int param_1);
+int AllocScoreTables();
 
 struct Entry_004a2580 {                // 0x15b bytes
     unsigned char type;                // +0x00
@@ -1954,7 +1960,7 @@ void __stdcall DrawSliderBar(Object_004a2580* obj, int index)
     Entry_004a2580* e = &entries[index];
     void* surface = Surface_004a2580(obj);
     // One glyph pointer for every fetch, and one limit in the w<h arm: frame slot order.
-    Glyph_004a2580* g;
+    GafFrame* g;
 
     int n = 0;
     int i = 1;
@@ -1986,19 +1992,19 @@ void __stdcall DrawSliderBar(Object_004a2580* obj, int index)
             int y = e->y;
             int x = e->x;
             int limit = y + e->h - 1;
-            g = (Glyph_004a2580*)GetGafFrame(e->glyphs, e->field_152);
+            g = (GafFrame*)GetGafFrame(e->glyphs, e->field_152);
             if (g != 0)
                 DrawFrame(surf, g, x, y);
             y += g->height;
-            g = (Glyph_004a2580*)GetGafFrame(e->glyphs, e->field_152 + 1);
+            g = (GafFrame*)GetGafFrame(e->glyphs, e->field_152 + 1);
             while (y + g->height <= limit) {
                 DrawFrame(surf, g, x, y);
                 y += g->height;
             }
-            g = (Glyph_004a2580*)GetGafFrame(e->glyphs, e->field_152 + 2);
+            g = (GafFrame*)GetGafFrame(e->glyphs, e->field_152 + 2);
             DrawFrame(surf, g, x, limit - g->height + 1);
             x += g->width / 2;
-            g = (Glyph_004a2580*)GetGafFrame(e->glyphs, e->field_152 + 3);
+            g = (GafFrame*)GetGafFrame(e->glyphs, e->field_152 + 3);
             x -= g->width / 2;
             int ybase = e->off + e->y + 3;
             // The clamps use the <windows.h> min() macro, pulled in by <ddraw.h>.
@@ -2011,33 +2017,33 @@ void __stdcall DrawSliderBar(Object_004a2580* obj, int index)
             DrawFrame(surf, g, x, ybase);
             lc -= g->height;
             ybase += g->height;
-            g = (Glyph_004a2580*)GetGafFrame(e->glyphs, e->field_152 + 4);
+            g = (GafFrame*)GetGafFrame(e->glyphs, e->field_152 + 4);
             while (ybase <= limit - g->height) {
                 DrawFrame(surf, g, x, ybase);
                 ybase += g->height;
                 lc -= g->height;
             }
             DrawFrame(surf, g, x, limit - g->height);
-            g = (Glyph_004a2580*)GetGafFrame(e->glyphs, e->field_152 + 5);
+            g = (GafFrame*)GetGafFrame(e->glyphs, e->field_152 + 5);
             DrawFrame(surf, g, x, limit - g->height + 1);
         } else {
             void* surf = Surface_004a2580(obj);
             int x = e->x;
             int y = e->y;
             int limit = x + e->w - 1;
-            g = (Glyph_004a2580*)GetGafFrame(e->glyphs, e->field_152);
+            g = (GafFrame*)GetGafFrame(e->glyphs, e->field_152);
             if (g != 0)
                 DrawFrame(surf, g, x, y);
             x += g->width;
-            g = (Glyph_004a2580*)GetGafFrame(e->glyphs, e->field_152 + 1);
+            g = (GafFrame*)GetGafFrame(e->glyphs, e->field_152 + 1);
             while (x + g->width <= limit) {
                 DrawFrame(surf, g, x, y);
                 x += g->width;
             }
-            g = (Glyph_004a2580*)GetGafFrame(e->glyphs, e->field_152 + 2);
+            g = (GafFrame*)GetGafFrame(e->glyphs, e->field_152 + 2);
             DrawFrame(surf, g, limit - g->width + 1, y);
             y += g->height / 2;
-            g = (Glyph_004a2580*)GetGafFrame(e->glyphs, e->field_152 + 3);
+            g = (GafFrame*)GetGafFrame(e->glyphs, e->field_152 + 3);
             y -= g->height / 2;
             int a = e->off + e->x + 3;
             a = min(a, limit - g->width - 2);
@@ -2073,7 +2079,7 @@ void __stdcall DrawSliderBar(Object_004a2580* obj, int index)
                 char* p = text;
                 for (; *p != 0; p++) {
                     unsigned char c = *p;
-                    g = (Glyph_004a2580*)GetGafFrame((unsigned short*)g_guiContext->font->glyphs, c);
+                    g = (GafFrame*)GetGafFrame((unsigned short*)g_guiContext->font->glyphs, c);
                     if (g != 0)
                         total += g->width;
                 }
@@ -2474,10 +2480,10 @@ struct Entry_004a32a0 { // 0x15b bytes
 };
 #pragma pack(pop)
 
-struct Glyph_004a32a0 {
-    unsigned short width;
-    unsigned short height; // +0x02
-};
+// Unused here: real functions declared to keep the file's symbol count.
+void __stdcall BuildEntryGuiName(char* dest, unsigned short index, int n);
+int __stdcall AddNetPlayer(int param_1);
+void ApplyBrightnessAndVolume();
 
 struct Dialog_4a32a0 {
     char unknown_00[0x18];
@@ -2498,7 +2504,7 @@ void __stdcall DrawSlider(Root_004a32a0* param_1, int param_2);
 static inline int FontHeight_004a32a0() {
     if (g_guiContext->language == 0)
         return GetFontHeight();
-    return (int)((Glyph_004a32a0*)GetGafFrame(g_guiContext->language->glyphs, 0x49))->height + 2;
+    return (int)((GafFrame*)GetGafFrame(g_guiContext->language->glyphs, 0x49))->height + 2;
 }
 
 // The entry search of 0x4a0180, 0x4a0200, 0x4a0280 and 0x4a35a0.
@@ -2830,27 +2836,26 @@ void __stdcall TrySetFocus(Object_004a3780* obj, int index);
 void __stdcall DrawListBox(Object_004a3780* obj, int index);
 void __stdcall SyncAssocGadgets(Object_004a3780* obj, int index);
 
-struct Row_004a3780 {
-    short unknown_0;
-    unsigned short height;             // +0x02
-    char unknown_4[0x18 - 0x4];
-};
+// Unused here: real functions declared to keep the file's symbol count.
+void* __stdcall BuildLensFrame(int w, int h, int lens);
+int __stdcall AllocAlphaTable(int param_1);
+void __cdecl ApplyCampaignSideSelection();
 
 struct Item_004a3780 {
     char unknown_0[0x28];
-    Row_004a3780* row;                 // +0x28
+    GafFrame* row;                       // +0x28
 };
 
-struct Glyph_004a3780 {
-    unsigned short width;              // +0x00
-    unsigned short height;             // +0x02
-};
+// Unused here: real functions declared to keep the file's symbol count.
+char* __stdcall BuildScrollItems1(char* names, char* flags, int count);
+char* __stdcall AllocColorMarkupText(char* s);
+void ApplyDefaultMusicOptions();
 
 static inline int LineHeight_004a3780()
 {
     if (0 == g_guiContext->list)
         return GetFontHeight();
-    return ((Glyph_004a3780*)GetGafFrame(g_guiContext->list->field_0c, 0x49))->height + 2;
+    return ((GafFrame*)GetGafFrame(g_guiContext->list->field_0c, 0x49))->height + 2;
 }
 
 // FUNCTION: 0x4a3780
@@ -2959,10 +2964,10 @@ skip0:;
             // Original bug, kept: `(flags & 0x20) | 0x80` is always true
             // (and ecx,0x20 / or cl,0x80 / test cl,cl at 0x4a3c29).
             int flag8 = (flags >> 7) & 1;
-            Row_004a3780* fixed;
+            GafFrame* fixed;
             Item_004a3780** ip;
             if (flag8)
-                fixed = &((Row_004a3780*)me->field_c6)[me->field_bc];
+                fixed = &((GafFrame*)me->field_c6)[me->field_bc];
             else
                 ip = &((Item_004a3780**)me->field_c6)[me->field_bc];
             // k is declared after the pointer choice, not before the if (flag8).
@@ -2971,7 +2976,7 @@ skip0:;
             int remain = point.y - r.y0 - 2;
             int n2 = 0;
             for (;;) {
-                Row_004a3780* row = flag8 ? fixed : (*ip)->row;
+                GafFrame* row = flag8 ? fixed : (*ip)->row;
                 if (me->field_da != 0)
                     remain -= span;
                 else
@@ -3430,7 +3435,11 @@ struct Dialog_4a4660 {
 };
 
 struct Rect_004a4660 { int left, top, right, bottom; };
-struct Glyph_004a4660 { unsigned short width, height; };
+// Unused here: real functions declared to keep the file's symbol count.
+char* __stdcall BuildScrollItems2(char* names, int a, int b);
+void* __stdcall AllocZeroedWithTickOffset(unsigned int size);
+void ApplyDefaultSoundOptions();
+
 struct Language_004a4660 { char unknown_0[0xc]; unsigned short *glyphs; };
 struct LanguageRoot_004a4660 { char unknown_0[0x14]; Language_004a4660 *language; };
 
@@ -3456,7 +3465,7 @@ static inline int Measure_004a4660(char *text)
     char *q = text;
     while (*q != 0) {
         char ch = *q;
-        Glyph_004a4660 *glyph = (Glyph_004a4660 *)GetGafFrame(
+        GafFrame *glyph = (GafFrame *)GetGafFrame(
             g_guiContext->language->glyphs, (unsigned char)ch);
         if (glyph != 0)
             width += glyph->width;
@@ -3502,7 +3511,7 @@ void __stdcall DrawProgressBarGadget(Dialog_4a4660 *obj, int index)
         if (g_guiContext->language == 0) {
             height = GetFontHeight();
         } else {
-            Glyph_004a4660 *glyph = (Glyph_004a4660 *)GetGafFrame(
+            GafFrame *glyph = (GafFrame *)GetGafFrame(
                 g_guiContext->language->glyphs, 0x49);
             height = glyph->height + 2;
         }
@@ -3633,14 +3642,10 @@ struct Rect_004a4980 {
     int y2;
 };
 
-struct Frame_004a4980 {
-    unsigned short w;                 // +0x00
-    unsigned short h;                 // +0x02
-    short field_4;                    // +0x04
-    short field_6;                    // +0x06
-    char unknown_8;                   // +0x08
-    unsigned char field_9;            // +0x09
-};
+// Unused here: real functions declared to keep the file's symbol count.
+void __stdcall SetCameraPosition(int x, int y, int z);
+void __stdcall RecalculateLineOfSight(int param);
+void __stdcall CollectVisibleUnitIds();
 
 char* __stdcall GetGafFrame(void* glyphs, int c);
 void __stdcall DrawFrame(void* surface, void* frame, int x, int y);
@@ -3682,24 +3687,24 @@ void __stdcall DrawHotspot(Dialog_4a4980* obj, int index)
 
     void* field_be = *(void**)((char*)e + 0xbe);
     if (field_be != 0) {
-        Frame_004a4980* result = (Frame_004a4980*)GetGafFrame(field_be, e->field_c6);
+        GafFrame* result = (GafFrame*)GetGafFrame(field_be, e->field_c6);
         if (result != 0) {
-            src.p[1].x = result->w - 1;
-            src.p[2].x = result->w - 1;
-            src.p[2].y = result->h - 1;
-            src.p[3].y = result->h - 1;
-            if (result->field_9 == 0) {
+            src.p[1].x = result->width - 1;
+            src.p[2].x = result->width - 1;
+            src.p[2].y = result->height - 1;
+            src.p[3].y = result->height - 1;
+            if (result->compressed == 0) {
                 DrawFrameQuad(*(void**)((char*)entries + 0xbc), result, &dst, &src);
                 return;
             }
-            DrawFrame(*(void**)((char*)entries + 0xbc), result, result->field_4 + rect.x1, result->field_6 + rect.y1);
+            DrawFrame(*(void**)((char*)entries + 0xbc), result, result->xOffset + rect.x1, result->yOffset + rect.y1);
             return;
         }
     } else if (e->field_c2 != 0) {
-        src.p[1].x = ((Frame_004a4980*)e->field_c2)->w - 1;
-        src.p[2].x = ((Frame_004a4980*)e->field_c2)->w - 1;
-        src.p[2].y = ((Frame_004a4980*)e->field_c2)->h - 1;
-        src.p[3].y = ((Frame_004a4980*)e->field_c2)->h - 1;
+        src.p[1].x = ((GafFrame*)e->field_c2)->width - 1;
+        src.p[2].x = ((GafFrame*)e->field_c2)->width - 1;
+        src.p[2].y = ((GafFrame*)e->field_c2)->height - 1;
+        src.p[3].y = ((GafFrame*)e->field_c2)->height - 1;
         DrawFrameQuad(*(void**)((char*)entries + 0xbc), e->field_c2, &dst, &src);
     } else {
         FillRectangle(*(void**)((char*)entries + 0xbc), &rect, obj->field_8b9);
@@ -3928,7 +3933,10 @@ struct Dialog_4a4d70 {
 };
 
 struct Rect_004a4d70 { int left, top, right, bottom; };
-struct Glyph_004a4d70 { unsigned short width, height; };
+// Unused here: real functions declared to keep the file's symbol count.
+void __stdcall CenterCameraOnPoint(int a, int b, int c);
+void __stdcall AnnouncePlayerLeft(int id);
+void ApplyDefaultUiOptions();
 
 struct LanguageRoot_004a4d70 {
     int current;                       // +0x00
@@ -3952,9 +3960,9 @@ void __stdcall DrawTextClipped(void* surface, char* text, int x, int y, int maxw
 void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2,
                             int colour);
 
-static inline Glyph_004a4d70* GetGlyph_004a4d70(unsigned char c)
+static inline GafFrame* GetGlyph_004a4d70(unsigned char c)
 {
-    return (Glyph_004a4d70*)GetGafFrame(g_guiContext->language->glyphs, c);
+    return (GafFrame*)GetGafFrame(g_guiContext->language->glyphs, c);
 }
 
 static inline int Measure_004a4d70(char* text)
@@ -3968,7 +3976,7 @@ static inline int Measure_004a4d70(char* text)
     char* q = text;
     while (*q != 0) {
         char ch = *q;
-        Glyph_004a4d70* glyph = GetGlyph_004a4d70(ch);
+        GafFrame* glyph = GetGlyph_004a4d70(ch);
         if (glyph != 0)
             width += glyph->width;
         ++q;
@@ -4100,10 +4108,10 @@ int __stdcall GetTextPixelWidth(unsigned char* text)
 // Line height of the current font: the height of the 'I' glyph plus 2, or
 // GetFontHeight's value when no font is loaded.
 
-struct Glyph_004a50b0 {
-    unsigned short width;              // +0x0
-    unsigned short height;             // +0x2
-};
+// Unused here: real functions declared to keep the file's symbol count.
+void __cdecl CheckFillPattern(unsigned int* block, unsigned int fill, unsigned int size);
+void __stdcall AppendToDebugFile(char* text);
+void ApplyDefaultVisualOptions();
 
 struct Font_004a50b0 {
     char unknown_0[0xc];
@@ -4124,12 +4132,12 @@ int GetFontLineHeight()
     if (g_guiContext->font == 0) {
         return GetFontHeight();
     }
-    return ((Glyph_004a50b0*)GetGafFrame(g_guiContext->font->glyphs, 'I'))->height + 2;
+    return ((GafFrame*)GetGafFrame(g_guiContext->font->glyphs, 'I'))->height + 2;
 }
-struct Glyph_004a50e0 {
-    unsigned short width;              // +0x0
-    unsigned short height;             // +0x2
-};
+// Unused here: real functions declared to keep the file's symbol count.
+int __stdcall CloakOffOrder(char* unit, int unused1, int unused2);
+int __stdcall BroadcastPlayerLeft(int id);
+void ApplyDifficultyButtons();
 
 struct Font_004a50e0 {
     char unknown_0[0xc];
@@ -4157,7 +4165,7 @@ void __stdcall DrawTextClipped(void* surface, char* text, int x, int y, int maxw
     while (*s) {
         if (*s >= ' ') {
             unsigned char c = *s;
-            Glyph_004a50e0* g = (Glyph_004a50e0*)GetGafFrame(g_guiContext->font->glyphs, c);
+            GafFrame* g = (GafFrame*)GetGafFrame(g_guiContext->font->glyphs, c);
             if (g) {
                 if (maxw != -1 && (int)g->width > maxw)
                     return;
@@ -4180,10 +4188,10 @@ void __stdcall DrawTextClipped(void* surface, char* text, int x, int y, int maxw
 }
 // Started by Space Bunny Free (partial, 80.1%); finished by deepseek-v4.1-flash.
 
-struct Glyph_004a51d0 {
-    unsigned short width;              // +0x0
-    unsigned short height;             // +0x2
-};
+// Unused here: real functions declared to keep the file's symbol count.
+int __stdcall CloakOnOrder(char* param1, int unused1, int unused2);
+void __stdcall CalcRadarViewportRect(int* param_1);
+int ApplyPalette();
 
 struct Font_004a51d0 {
     char unknown_0[0xc];
@@ -4205,7 +4213,7 @@ static inline int LineHeight_004a50b0()
 {
     if (g_guiContext->font == 0)
         return GetFontHeight();
-    return (int)((Glyph_004a51d0*)GetGafFrame(g_guiContext->font->glyphs, 'I'))->height + 2;
+    return (int)((GafFrame*)GetGafFrame(g_guiContext->font->glyphs, 'I'))->height + 2;
 }
 
 static inline int Measure(char* word, int t)
@@ -4269,12 +4277,11 @@ done:
 
 #pragma pack(push, 1)
 
-struct Glyph {                          // 8 bytes, returned by GetGafFrame
-    unsigned short width;               // +0x00
-    unsigned short height;              // +0x02
-    short xoff;                         // +0x04
-    short yoff;                         // +0x06
-};
+// Unused here: real functions declared to keep the file's symbol count.
+void __stdcall DrawBattleFrame(int param_1, int param_2);
+void __stdcall HAPI_FindClose(int handle);
+void __stdcall InstallOutOfMemoryHandler();
+int GetDisplayFieldE4();
 
 struct GafEntry {                       // 4 bytes: frame table header
     unsigned short count;               // +0x00
@@ -4315,7 +4322,7 @@ struct Gadget {                         // 0x15b bytes, one GUI list entry
         } assets;
         struct {                        // type 12
             char unknown_b6[2];
-            Glyph* glyph;               // +0xb8
+            GafFrame* glyph;                    // +0xb8
             unsigned char flag;         // +0xbc
         } frame;
         struct {                        // type 2
@@ -4489,7 +4496,7 @@ int __stdcall GetTextWidth(int font, char* text);
 int GetFontHeight();
 void __stdcall SetTextColors(int colour, int font);
 int GetTextKeyColor();
-Glyph* __stdcall GetGafFrame(GafEntry* table, int index);
+GafFrame* __stdcall GetGafFrame(GafEntry* table, int index);
 GafEntry* __stdcall FindGafEntry(void* gaf, const char* name);
 void* __stdcall LoadGaf(char* path);
 char* __stdcall ChangeExtension(char* out, char* in, const char* ext);
@@ -4507,8 +4514,8 @@ int __stdcall FillRectangle(void* surface, Rect* rect, int colour);
 void __stdcall GrayRectangle(void* surface, Rect* rect);
 void __stdcall FadeRectangle(void* surface, Rect* rect, int level);
 void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2, int colour);
-void __stdcall DrawFrame(void* surface, Glyph* glyph, int x, int y);
-void __stdcall DrawFrameLit(void* surface, Glyph* glyph, int x, int y, int style);
+void __stdcall DrawFrame(void* surface, GafFrame* glyph, int x, int y);
+void __stdcall DrawFrameLit(void* surface, GafFrame* glyph, int x, int y, int style);
 void __stdcall FillBevelBox(void* surface, Rect* rect, unsigned int a, unsigned int b, unsigned int c);
 void __stdcall FillBevelBoxDarkFirst(void* surface, Rect* rect, unsigned int a, unsigned int b, unsigned int c);
 void __stdcall DrawTextClipped(void* surface, char* text, int x, int y, int maxw, int style);
@@ -4553,7 +4560,7 @@ static inline int GetTextPixelWidth(char* text)
     char* p = text;
     while (*p != 0) {
         char ch = *p;
-        Glyph* glyph = GetGafFrame(g_guiContext->language->glyphs, (unsigned char)ch);
+        GafFrame* glyph = GetGafFrame(g_guiContext->language->glyphs, (unsigned char)ch);
         if (glyph != 0)
             width += glyph->width;
         ++p;
@@ -4565,7 +4572,7 @@ static inline int LineHeight()
 {
     if (g_guiContext->language == 0)
         return GetFontHeight();
-    Glyph* glyph = GetGafFrame(g_guiContext->language->glyphs, 0x49);
+    GafFrame* glyph = GetGafFrame(g_guiContext->language->glyphs, 0x49);
     return glyph->height + 2;
 }
 
@@ -4791,7 +4798,7 @@ void __stdcall DrawGadgetGlyph(Gui* obj, int index)
         obj->layer->dirty = 1;
     Gadget* entries = obj->layer->entries;
     Gadget* e = &entries[index];
-    Glyph* glyph = e->u.frame.glyph;
+    GafFrame* glyph = e->u.frame.glyph;
     if (glyph == 0)
         return;
     // One struct local, not four scalars: keeps right/bottom stored and the frame size.
@@ -4807,9 +4814,9 @@ void __stdcall DrawGadgetGlyph(Gui* obj, int index)
     rect.bottom = e->h + rect.top - 1;
     int count = e->colours;
     if (count > 0) {
-        DrawFrameLit(entries->u.assets.surface, glyph, glyph->xoff + rect.left, glyph->yoff + rect.top, count);
+        DrawFrameLit(entries->u.assets.surface, glyph, glyph->xOffset + rect.left, glyph->yOffset + rect.top, count);
     } else {
-        DrawFrame(entries->u.assets.surface, glyph, glyph->xoff + rect.left, glyph->yoff + rect.top);
+        DrawFrame(entries->u.assets.surface, glyph, glyph->xOffset + rect.left, glyph->yOffset + rect.top);
     }
     if (e->u.frame.flag & 1) {
         FadeRectangle(entries->u.assets.surface, &rect, -0x1c);
@@ -4877,7 +4884,7 @@ void __stdcall DrawButton(Gui* menu, int index)
     textw = TruncateGadgetText(menu, index);
     surface = entries->u.assets.surface;
     if (me->gaf != 0) {
-        Glyph* glyph;
+        GafFrame* glyph;
         if (me->field_13c & 1) {
             if (me->flags & 0x100) {
                 glyph = GetGafFrame(me->gaf, me->gaf->count - 1);
@@ -4908,9 +4915,9 @@ void __stdcall DrawButton(Gui* menu, int index)
         }
         if (glyph != 0) {
             if (me->colours != 0)
-                DrawFrameLit(surface, glyph, glyph->xoff + rect.left, glyph->yoff + rect.top, me->colours);
+                DrawFrameLit(surface, glyph, glyph->xOffset + rect.left, glyph->yOffset + rect.top, me->colours);
             else
-                DrawFrame(surface, glyph, glyph->xoff + rect.left, glyph->yoff + rect.top);
+                DrawFrame(surface, glyph, glyph->xOffset + rect.left, glyph->yOffset + rect.top);
         }
     } else {
         if (me->field_13c & 1) {
@@ -5720,14 +5727,14 @@ void __stdcall FindButtonGaf(Gui* button, Gadget* obj)
                 if (entry != 0) {
                     best = 1000;
                     for (int i = 0; i < entry->count; i++) {
-                        Glyph* f = GetGafFrame(entry, i);
+                        GafFrame* f = GetGafFrame(entry, i);
                         if (f != 0) {
-                            f->yoff = 0;
-                            f->xoff = 0;
+                            f->yOffset = 0;
+                            f->xOffset = 0;
                         }
                     }
                     for (int j = 0; j < entry->count; j += 4) {
-                        Glyph* f = GetGafFrame(entry, j);
+                        GafFrame* f = GetGafFrame(entry, j);
                         int d = abs(obj->h - f->height) + abs(obj->w - f->width);
                         if (d < best) {
                             obj->field_13b = (unsigned char)j;
@@ -5740,7 +5747,7 @@ void __stdcall FindButtonGaf(Gui* button, Gadget* obj)
     }
     obj->gaf = entry;
     if (entry != 0) {
-        Glyph* f = GetGafFrame(entry, obj->field_13b);
+        GafFrame* f = GetGafFrame(entry, obj->field_13b);
         if (f != 0) {
             obj->w = f->width;
             obj->h = f->height;
@@ -5874,9 +5881,9 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                         g = FindGafEntry(menu->gaf, "BackTile");
                         if (g != 0) {
                             for (int frameIndex = 0; frameIndex < g->count; frameIndex++) {
-                                Glyph* frame = GetGafFrame(g, frameIndex);
-                                frame->yoff = 0;
-                                frame->xoff = 0;
+                                GafFrame* frame = GetGafFrame(g, frameIndex);
+                                frame->yOffset = 0;
+                                frame->xOffset = 0;
                             }
                         }
                     }
@@ -5894,12 +5901,12 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                 g = FindGafEntry(menu->gaf, "SLIDERS");
                 if (g != 0) {
                     for (int f = 0; f < g->count; f++) {
-                        Glyph* frame = GetGafFrame(g, f);
-                        frame->yoff = 0;
-                        frame->xoff = 0;
+                        GafFrame* frame = GetGafFrame(g, f);
+                        frame->yOffset = 0;
+                        frame->xOffset = 0;
                     }
                     orientation = entries[i].w > entries[i].h ? 10 : 0;
-                    Glyph* frame = GetGafFrame(g, orientation);
+                    GafFrame* frame = GetGafFrame(g, orientation);
                     if (entries[i].w < entries[i].h)
                         entries[i].w = frame->width;
                     else
@@ -5915,7 +5922,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                 firstEnd->gaf = g;
                 firstEnd->field_13b = entries[i].sliderStyle + 6;
                 firstEnd->team = entries[i].team;
-                Glyph* frame = GetGafFrame(g, entries[i].sliderStyle + 6);
+                GafFrame* frame = GetGafFrame(g, entries[i].sliderStyle + 6);
                 firstEnd->w = frame->width;
                 firstEnd->h = frame->height;
                 firstEnd->flags = 0x3400;
@@ -5955,9 +5962,9 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
             GafEntry* input = menu->gaf ? FindGafEntry(menu->gaf, "TEXTINPUT") : 0;
             if (input != 0) {
                 for (int f = 0; f < input->count; f++) {
-                    Glyph* frame = GetGafFrame(input, f);
-                    frame->yoff = 0;
-                    frame->xoff = 0;
+                    GafFrame* frame = GetGafFrame(input, f);
+                    frame->yOffset = 0;
+                    frame->xOffset = 0;
                 }
             }
             entries[i].inputGaf = input;
@@ -5970,9 +5977,9 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
             GafEntry* list = menu->gaf ? FindGafEntry(menu->gaf, "LISTBOX") : 0;
             if (list != 0) {
                 for (int f = 0; f < list->count; f++) {
-                    Glyph* frame = GetGafFrame(list, f);
-                    frame->yoff = 0;
-                    frame->xoff = 0;
+                    GafFrame* frame = GetGafFrame(list, f);
+                    frame->yOffset = 0;
+                    frame->xOffset = 0;
                 }
             }
             entries[i].u.list.gaf = list;
@@ -6041,14 +6048,14 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                         if (g) {
                             int best = 1000;
                             for (int f = 0; f < g->count; ++f) {
-                                Glyph* frame = GetGafFrame(g, f);
+                                GafFrame* frame = GetGafFrame(g, f);
                                 if (frame != 0) {
-                                    frame->yoff = 0;
-                                    frame->xoff = 0;
+                                    frame->yOffset = 0;
+                                    frame->xOffset = 0;
                                 }
                             }
                             for (int j = 0; j < g->count; j += 4) {
-                                Glyph* frame = GetGafFrame(g, j);
+                                GafFrame* frame = GetGafFrame(g, j);
                                 int distance = abs(entries[i].h - frame->height) + abs(entries[i].w - frame->width);
                                 if (distance < best) {
                                     entries[i].field_13b = (unsigned char)j;
@@ -6061,7 +6068,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
             }
             entries[i].gaf = g;
             if (g != 0) {
-                Glyph* frame = GetGafFrame(g, entries[i].field_13b);
+                GafFrame* frame = GetGafFrame(g, entries[i].field_13b);
                 if (frame != 0) {
                     entries[i].w = frame->width;
                     entries[i].h = frame->height;

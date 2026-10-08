@@ -16,7 +16,7 @@ extern float g_lightY;
 extern float g_lightX;
 extern float g_lightZ;
 extern const float DAT_004fd4cc;
-struct Bitmap_459c70;
+struct GafFrame;
 
 // A 16.16 fixed-point position.
 struct Vec3 { int x; int y; int z; };
@@ -40,17 +40,17 @@ Vec3f __stdcall CrossProduct(Vec3f a, Vec3f b);
 Vec3f __stdcall NormalizeVector(Vec3f v);
 void* __stdcall GetGafSequenceFrame(void* pic);
 void* __stdcall GetGafFrame(unsigned short* table, int index);
-void __stdcall DownsampleFrame(Bitmap_459c70* dst, Bitmap_459c70* src);
-void __stdcall FillFlatPolygon(Bitmap_459c70* surface, void* poly, int count, int flag);
-void __stdcall DrawTexturedPolygon(Bitmap_459c70* surface, void* pic, void* poly, int flag);
-void __stdcall FillShadedPolygon(Bitmap_459c70* surface, void* poly, int count, int flag);
-void __stdcall DrawLitTexturedPolygon(Bitmap_459c70* surface, void* pic, void* poly, int flag);
+void __stdcall DownsampleFrame(GafFrame* dst, GafFrame* src);
+void __stdcall FillFlatPolygon(GafFrame* surface, void* poly, int count, int flag);
+void __stdcall DrawTexturedPolygon(GafFrame* surface, void* pic, void* poly, int flag);
+void __stdcall FillShadedPolygon(GafFrame* surface, void* poly, int count, int flag);
+void __stdcall DrawLitTexturedPolygon(GafFrame* surface, void* pic, void* poly, int flag);
 
-struct Bitmap_459c70 {
+struct GafFrame {
     unsigned short width;            // +0x00
     unsigned short height;           // +0x02
-    short field_4;                   // +0x04
-    short field_6;                   // +0x06
+    short xOffset;                   // +0x04
+    short yOffset;                   // +0x06
     char colorKey;                   // +0x08
     char unknown_9[7];
     char* data;                      // +0x10
@@ -124,7 +124,7 @@ struct List_459c70 {
     int count;                       // +0x00
     char unknown_4[8];
     Owner_459c70* owner;             // +0x0c
-    Bitmap_459c70* bitmap;           // +0x10
+    GafFrame* bitmap;                // +0x10
     char unknown_14[0x22 - 0x14];
     Piece_459c70 pieces[1];          // +0x22
 };
@@ -134,12 +134,12 @@ struct Poly_459c70 { int x; int y; int z; int shade; };
 
 struct UnitTable {
     char unknown_0[0x10];
-    Bitmap_459c70* shadow;           // +0x10
+    GafFrame* shadow;                // +0x10
 
     void MeasureModel(int* width, int* height, int* originX, int* originY, List_459c70* model, Vec3* offset);
     int BuildObjectPicture(List_459c70* list, int param_2, int param_3);
-    void DrawPieces(Bitmap_459c70* bitmap, List_459c70* list, int kind, int useColor);
-    void DrawLitPieces(Bitmap_459c70* bitmap, List_459c70* list, int kind, int useColor);
+    void DrawPieces(GafFrame* bitmap, List_459c70* list, int kind, int useColor);
+    void DrawLitPieces(GafFrame* bitmap, List_459c70* list, int kind, int useColor);
 };
 
 static __inline int shade_bias(Owner_459c70* owner)
@@ -164,7 +164,7 @@ static __inline int shade_bias(List_459c70* list)
 // Must stay the first function in the file: compiled later, a lea in the
 // summing loop moves above the fadd.
 // FUNCTION: 0x459c70
-void UnitTable::DrawLitPieces(Bitmap_459c70* bitmap, List_459c70* list,
+void UnitTable::DrawLitPieces(GafFrame* bitmap, List_459c70* list,
     int kind, int useColor)
 {
     PieceInfo_459c70* info;
@@ -175,17 +175,17 @@ void UnitTable::DrawLitPieces(Bitmap_459c70* bitmap, List_459c70* list,
     Poly_459c70 vertex[2000];
 
     int mode;
-    Bitmap_459c70* src;
+    GafFrame* src;
     if (((Flags_37f06*)(g_game + 0x37f06))->antiAlias) {
         if ((list->owner->field_110 & 0x20000000) != 0 && useColor != 0) {
-            Bitmap_459c70* shadow = this->shadow;
+            GafFrame* shadow = this->shadow;
             mode = 1;
             shadow->width = (unsigned short)(bitmap->width << 1);
             shadow->height = (unsigned short)(bitmap->height << 1);
             shadow->unknown_9[0] = 0;
             shadow->colorKey = 1;
-            shadow->field_4 = (short)(bitmap->field_4 << 1);
-            shadow->field_6 = (short)(bitmap->field_6 << 1);
+            shadow->xOffset = (short)(bitmap->xOffset << 1);
+            shadow->yOffset = (short)(bitmap->yOffset << 1);
             memset(shadow->data2, 0, shadow->width * shadow->height);
             memset(shadow->data, 1, shadow->width * shadow->height);
             // Last in the shadow branch.
@@ -228,8 +228,8 @@ void UnitTable::DrawLitPieces(Bitmap_459c70* bitmap, List_459c70* list,
                     if (mode) vertex[k].z = y/2 + shade_bias(list);
                     else vertex[k].z = y + shade_bias(list);
                     vertex[k].shade = s;
-                    vertex[k].x += (short)bitmap->field_4;
-                    vertex[k].y += (short)bitmap->field_6;
+                    vertex[k].x += (short)bitmap->xOffset;
+                    vertex[k].y += (short)bitmap->yOffset;
                     accum[k][0] = accum[k][1] = accum[k][2] = 0.0f;
                     // A store here, not a memset before the loop.
                     weight[k] = 0;
@@ -364,8 +364,8 @@ public:
     int InitCache(unsigned int size);
     void FreeCache();
     int AllocHandle(void** handle, int size);
-    int AllocBitmap(Bitmap_459c70** handle, int w, int h);
-    int AllocTwoPlaneBitmap(Bitmap_459c70** handle, int w, int h);
+    int AllocBitmap(GafFrame** handle, int w, int h);
+    int AllocTwoPlaneBitmap(GafFrame** handle, int w, int h);
     void FlushCache();
     void ReleaseHandle(int handle);
 };

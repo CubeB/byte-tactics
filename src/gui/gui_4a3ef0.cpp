@@ -38,11 +38,11 @@ struct Gadget_004a3ef0 {               // 0x15b bytes
 };
 #pragma pack(pop)
 
-struct Glyph_004a3ef0 { unsigned short width, height; };
+struct GafFrame { unsigned short width, height; };
 
 struct Font_004a3ef0 {
     char unknown_0[0x28];
-    Glyph_004a3ef0* glyph;             // +0x28
+    GafFrame* glyph;                   // +0x28
 };
 
 struct List_004a3ef0 {
@@ -70,9 +70,9 @@ int GetFontHeight();
 void __stdcall DrawSliderBar(Dialog* param_1, int param_2);
 
 // The one helper for every GetGafFrame glyph fetch.
-static inline Glyph_004a3ef0* GetGlyph_004a3ef0(unsigned char c)
+static inline GafFrame* GetGlyph_004a3ef0(unsigned char c)
 {
-    return (Glyph_004a3ef0*)GetGafFrame(g_guiContext->list->field_0c, c);
+    return (GafFrame*)GetGafFrame(g_guiContext->list->field_0c, c);
 }
 
 static inline int Find_004a3ef0(Gadget_004a3ef0* entries, unsigned char kind)

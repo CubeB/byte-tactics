@@ -14,7 +14,7 @@ struct Sub_0041bde0 {
 
 struct Unit {
     char unknown_0[0x92];
-    Sub_0041bde0* sub;                   // +0x92
+    Sub_0041bde0* def;                   // +0x92
     char unknown_96[0xa6 - 0x96];
     short unitDefIndex;                      // +0xa6
     char unknown_a8[0x110 - 0xa8];
@@ -51,14 +51,14 @@ void __stdcall StepBuildMenuPage(int param_1)
                 if (!unit->menuOpen) {
                     unit->menuOpen = 1;
                     unit->page = 1;
-                } else if (unit->page == unit->sub->pageCount - 1) {
+                } else if (unit->page == unit->def->pageCount - 1) {
                     unit->menuOpen = 0;
                 } else {
                     unit->page++;
                 }
             } else {
                 // Compared as page == pageCount - 1; keeps the original load order.
-                if (unit->page == unit->sub->pageCount - 1)
+                if (unit->page == unit->def->pageCount - 1)
                     unit->page = 1;
                 else
                     unit->page++;

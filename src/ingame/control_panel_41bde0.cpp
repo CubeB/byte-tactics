@@ -2,8 +2,8 @@
 // Steps the selected unit's build menu to the next page (wrapping to page 1),
 // or closes it after the last page when param_1 is set.
 // Needed: without it the sub-object pointer is allocated to edx, not esi.
-// Kept its own file: in control_panel_41bd10.cpp the include set and prelude
-// move that pointer from esi to edx.
+// Kept its own file: in control_panel.cpp the include set and prelude move
+// that pointer from esi to edx.
 #include <stdlib.h>
 
 #pragma pack(push, 1)

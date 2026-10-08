@@ -87,17 +87,7 @@ public:
 };
 
 // The sound object at g_game+0x10.
-class Sound {
-public:
-    char unknown_0[4];
-    int field_4;
-
-    int GetCurrentTrack();
-    void Enable3D();
-    void Disable3D();
-    int PlayCdTrack(int index, int flag);
-    void SetTrackCategory(int mode);
-};
+#include "../sound/sound.h"
 
 // The mission or game-mode object at g_game+0x391e9.
 class Mission {
@@ -346,7 +336,7 @@ struct Flags_00460680 {
 // flag words share a union.
 struct Game {
     char unknown_0[0x10];
-    void* sound;                       // +0x10
+    Sound* sound;                      // +0x10
     char unknown_14[0x519 - 0x14];
     union {
         Menu_0045b800 menu;            // +0x519, the menu helpers' view
@@ -1673,7 +1663,7 @@ void ApplyDefaultSoundOptions()
     g_game->soundFlags.bits.b4 = 1;
     g_game->soundFlags.bits.b5 = 1;
     g_game->soundFlags.bits.speech = 1;
-    ((Sound*)g_game->sound)->Disable3D();
+    g_game->sound->Disable3D();
     g_game->soundFlags.word = (g_game->soundFlags.word & 0xfff9) | 1;
     g_game->field_37f17 = 10;
     SetBrightness(0.5 - g_game->brightness * -0.041666668f);
@@ -1921,8 +1911,8 @@ void TickMusicOptions()
     char value[20];
     GetGadgetText(&g_game->gui, "TRACKNUM", value);
     int track = atoi(value);
-    if (track != ((Sound*)g_game->sound)->GetCurrentTrack()) {
-        g_musicUiSelectedTrack = ((Sound*)g_game->sound)->GetCurrentTrack();
+    if (track != g_game->sound->GetCurrentTrack()) {
+        g_musicUiSelectedTrack = g_game->sound->GetCurrentTrack();
         UpdateTrackGadgets();
         FUN_0049fa90((Dialog*)&g_game->gui);
     }
@@ -1997,7 +1987,7 @@ void __stdcall HandleMusicOptionsClick(Object_0045d280* obj)
     }
     if (IsCurrentGadgetNamed(obj, g_cdPlayGadgetName)) {  // "CDPLAY"
         PlaySoundByName(g_optionsSoundName, 0);
-        ((Sound*)g_game->sound)->PlayCdTrack(g_musicUiSelectedTrack, 1);
+        g_game->sound->PlayCdTrack(g_musicUiSelectedTrack, 1);
         ClearSelectedGadget(obj);
         return;
     } else if (IsCurrentGadgetNamed(obj, g_cdNextGadgetName)) {  // "CDNEXT"
@@ -2133,9 +2123,9 @@ void __stdcall HandleSoundOptionsClick(Object_0045da90* obj)
         if ((g_game->soundFlags.word & 7) == 0)
             StopAllSounds();
         if ((g_game->soundFlags.word & 7) == 2)
-            ((Sound*)g_game->sound)->Enable3D();
+            g_game->sound->Enable3D();
         else
-            ((Sound*)g_game->sound)->Disable3D();
+            g_game->sound->Disable3D();
         if ((g_game->soundFlags.word & 7) == 1 && !g_game->bits_2a44.prefsWord.prefs)
             PlayLoopingSoundByName(g_bgmSoundName, 0);
         SetButtonStageByName(&g_game->gui, g_modeGadgetName, g_game->soundFlags.word & 7);
@@ -2159,7 +2149,7 @@ void __stdcall HandleSoundOptionsClick(Object_0045da90* obj)
         g_game->soundFlags.bits.b4 = 1;
         g_game->soundFlags.bits.b5 = 1;
         g_game->soundFlags.bits.speech = 1;
-        ((Sound*)g_game->sound)->Disable3D();
+        g_game->sound->Disable3D();
         g_game->soundFlags.word = (g_game->soundFlags.word & 0xfff9) | 1;
         g_game->field_37f17 = 10;
         SetBrightness(0.5 - g_game->brightness * -0.041666668f);
@@ -3135,7 +3125,7 @@ void __stdcall HandleSurrenderChoice(Gadget_004605c0* gadget)
         return;
     PlaySoundByName("Exit", 0);
     if (IsGadgetNamed(owner, gadget->field_60, "CHOICE1")) {
-        ((Sound*)g_game->sound)->SetTrackCategory(4);
+        g_game->sound->SetTrackCategory(4);
         switch (g_battleQuitIntent) {
         case 0:
         case 1:

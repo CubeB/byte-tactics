@@ -11,11 +11,7 @@
 #include <new.h>
 #include <stdlib.h>
 
-class Sound {
-public:
-    void SetTrackCategory(int param_1);
-    void StopStream();
-};
+#include "../sound/sound.h"
 
 class Mission {
 public:

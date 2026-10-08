@@ -21,10 +21,7 @@ public:
     int GetTrackCategory();
 };
 
-class Sound {
-public:
-    void SetTrackCategory(int param_1);
-};
+#include "../sound/sound.h"
 
 unsigned int __cdecl GetMilliseconds(void);
 

@@ -27,7 +27,7 @@ public:
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x10];
-    void* sound;                       // +0x10
+    Sound* sound;                      // +0x10
     char unknown_14[0x37f08 - 0x14];
     int brightness;                    // +0x37f08
     int volume1;                       // +0x37f0c
@@ -57,9 +57,9 @@ void RestoreSoundOptions()
     g_game->field_37f19 = (g_game->field_37f19 & ~0x20) | (g_optionsBackupSoundFlags & 0x20);
     g_game->field_37f19 = (g_game->field_37f19 & ~0x40) | ((g_optionsBackupSoundFlags & 0x20) << 1);
     if ((((unsigned char)g_optionsBackupSoundFlags) & 7) == 2)
-        ((Sound*)g_game->sound)->Enable3D();
+        g_game->sound->Enable3D();
     else
-        ((Sound*)g_game->sound)->Disable3D();
+        g_game->sound->Disable3D();
     g_game->field_37f19 = (g_game->field_37f19 & ~7) | (g_optionsBackupSoundFlags & 7);
     g_game->field_37f17 = g_optionsBackupUnitChat;
     SetBrightness(0.5 - g_game->brightness * -0.041666668f);

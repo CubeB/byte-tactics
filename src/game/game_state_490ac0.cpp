@@ -46,10 +46,12 @@ struct Zero11_004917d0 {
     }
 };
 
+class Sound;
+
 struct Game {
     char unknown_0[0xc];
     Display_00491a70* field_c;   // +0xc
-    void* cd;   // +0x10
+    Sound* cd;  // +0x10
     char unknown_14[0x519 - 0x14];
     Gui_00491d70 gui;   // +0x519
     char unknown_535[0x589 - 0x535];
@@ -497,9 +499,9 @@ void ReopenCdAudio()
     mciSendStringA("open cdaudio", 0, 0, 0);
     ((Class_004cedc0*)g_game->cd)->EnableCdAudio(g_game->field_37f14 & 1);
     ((Class_004ce7a0*)g_game->cd)->SetPlaybackOrder(g_game->field_37f16);
-    ((Sound*)g_game->cd)->SetTrackCategory(saved);
+    g_game->cd->SetTrackCategory(saved);
 
-    int id = ((Sound*)g_game->cd)->GetDiscSerial();
+    int id = g_game->cd->GetDiscSerial();
     int index = 0;
     int* slot = &DAT_0051e848;
     // Test *slot != id first, with the break as its own block: else the loop is rotated.
@@ -652,7 +654,7 @@ void InitGame()
     ((Class_004ce7a0*)g_game->cd)->SetPlaybackOrder(g_game->field_37f16);
     ((Class_004cd9d0*)g_game->cd)->SetCdCallback(ReopenCdAudio);
     ReopenCdAudio();
-    ((Sound*)g_game->cd)->SetTrackCategory(0);
+    g_game->cd->SetTrackCategory(0);
     ApplyBrightnessAndVolume();
     LoadSideData();
     LoadLogos();
@@ -892,7 +894,7 @@ void ShutdownIngameSystems()
 {
     g_game->flags_2a44w &= 0xfffb;
     ((Class_004ced40*)g_game->cd)->StopCdAudio();
-    ((Sound*)g_game->cd)->SetTrackCategory(4);
+    g_game->cd->SetTrackCategory(4);
     CollectEndGameStats();
     EmptyShutdownPreCleanup();
     FreeUnitMemory();

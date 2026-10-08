@@ -57,10 +57,7 @@ public:
     void LoadMissionByName(void* p);
 };
 
-class Sound {
-public:
-    void SetTrackCategory(int a);
-};
+#include "../sound/sound.h"
 
 struct Game {
     char unknown_0[0x10];

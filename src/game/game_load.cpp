@@ -219,10 +219,12 @@ struct Cell_00498da0 {
 
 // One view of the game state. The ranges two views name differently sit in
 // anonymous unions, so each function keeps the names it matched with.
+class Sound;
+
 struct Game {
     char unknown_0[0xc];
     int field_c;                        // +0xc
-    int field_10;                       // +0x10
+    Sound* field_10;                    // +0x10
     char unknown_10[0x519 - 0x14];
     union {                             // +0x519
         Menu_00497ce0 menu;
@@ -980,8 +982,8 @@ void LoadingScreenFrame(void)
         SetCloseHandler(HandleBattleQuitPrompt, 0);
         g_game->field_589 = 0;
         memset((void*)g_game->progress, 0, 8);
-        ((Sound*)g_game->field_10)->SetTrackCategory(0);
-        if (!((Sound*)g_game->field_10)->IsCdPlaying()) {
+        g_game->field_10->SetTrackCategory(0);
+        if (!g_game->field_10->IsCdPlaying()) {
             ((Class_004cdb40*)g_game->field_10)->PlayNextTrack();
         }
         // Index players[i], not explicit offsets: keeps the SIB base and index order.

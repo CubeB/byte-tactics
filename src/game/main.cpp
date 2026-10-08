@@ -143,7 +143,7 @@ struct Game {
     unsigned char field_3;                   // +3
     char unknown_4[0xc - 4];                 // +4
     void* field_c;                           // +0xc
-    void* field_10;                          // +0x10
+    Sound* field_10;                         // +0x10
     char unknown_14[0x2a44 - 0x14];
     unsigned short field_2a44;               // +0x2a44
     char unknown_2a46[0x37f14 - 0x2a46];
@@ -349,7 +349,7 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                 ((Class_004cd9d0*)g_game->field_10)->SetCdCallback(ReopenCdAudio);
                 ((Class_004cedc0*)g_game->field_10)->EnableCdAudio(g_game->field_37f14 & 1);
                 ((Class_004ce7a0*)g_game->field_10)->SetPlaybackOrder(g_game->field_37f16);
-                ((Sound*)g_game->field_10)->SetTrackCategory(g_cdTrackCategory);
+                g_game->field_10->SetTrackCategory(g_cdTrackCategory);
                 ReopenCdAudio();
                 g_cdNeedsReopenAfterFocus = 0;
             }
@@ -361,7 +361,7 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
             {
                 DWORD tick = GetTickCount();
                 if ((int)(tick - g_lastSoundReapTick) >= 100) {
-                    ((Sound*)g_game->field_10)->ReapFinishedBuffers();
+                    g_game->field_10->ReapFinishedBuffers();
                     g_lastSoundReapTick = tick;
                 }
             }

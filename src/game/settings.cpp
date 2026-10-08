@@ -74,10 +74,12 @@ struct UnitDef_00431740 {
     char unknown_245[0x249 - 0x245];
 };
 
+class Sound;
+
 struct Game {
     char unknown_0[0xc];
     char* field_c;                       // +0x0c
-    void* sound;                         // +0x10
+    Sound* sound;                        // +0x10
     char unknown_14[0x29a0 - 0x14];
     Options* options;                    // +0x29a0
     char unknown_29a4[0x2bc1 - 0x29a4];
@@ -338,21 +340,21 @@ void LoadSettings()
     int ok13 = ReadRegistryDword("Total Annihilation", "Sound Mode", &value);
     if (ok13 != 0) {
         if (value == 2) {
-            ((Sound*)g_game->sound)->Enable3D();
+            g_game->sound->Enable3D();
         } else {
-            ((Sound*)g_game->sound)->Disable3D();
+            g_game->sound->Disable3D();
         }
         g_game->soundFlags.soundMode = value;
     } else {
         WriteRegistryDword("Total Annihilation", "Sound Mode",
-                     (((Sound*)g_game->sound)->Is3DEnabled() != 0) + 1);
+                     (g_game->sound->Is3DEnabled() != 0) + 1);
         g_game->soundFlags.soundMode = 1;
     }
     int ok14 = ReadRegistryDword("Total Annihilation", "MixingBuffers", &value);
     if (ok14 != 0) {
-        ((Sound*)g_game->sound)->SetMaxBuffers(value);
+        g_game->sound->SetMaxBuffers(value);
     } else {
-        ((Sound*)g_game->sound)->SetMaxBuffers(8);
+        g_game->sound->SetMaxBuffers(8);
     }
     int ok15 = ReadRegistryDword("Total Annihilation", "RestoreVolume", &value);
     if (ok15 != 0) {
@@ -709,7 +711,7 @@ void SaveSettings()
     WriteRegistryDword("Total Annihilation", "Sound Mode", g_game->soundFlags.soundMode);
     WriteRegistryDword("Total Annihilation", "RestoreVolume", g_game->soundFlags.restoreVolume);
     WriteRegistryDword("Total Annihilation", "MixingBuffers",
-                 ((Sound*)g_game->sound)->GetMaxBuffers());
+                 g_game->sound->GetMaxBuffers());
     if (g_game->soundFlags.restoreVolume) {
         WriteRegistryDword("Total Annihilation", "WaveOutVolume",
                      ((Class_004cfff0*)g_game->sound)->QueryWaveVolume());

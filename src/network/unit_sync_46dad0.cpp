@@ -21,12 +21,12 @@ struct PlayerInfo_0046dad0 {
     unsigned char type; // +0x73
 };
 
-struct Packet_0046dad0 { // 0xe bytes
+struct UnitSyncPacket { // 0xe bytes
     unsigned char type;  // +0x0
     unsigned char arg;   // +0x1
-    int field_2;         // +0x2
-    int field_6;         // +0x6
-    int field_a;         // +0xa
+    int id;              // +0x2
+    int key;             // +0x6
+    int value;           // +0xa
 };
 
 struct Def_0046dad0 { // 0x249 bytes
@@ -94,6 +94,10 @@ class Class_0046e610 {
     ~Class_0046e610();
 };
 
+int __cdecl GetLocalHumanDpid();
+int __cdecl GetHostDpid();
+void __stdcall SendPacketToPlayer(int a, unsigned int b, void* c, int d);
+
 struct PacketSequencer { // 0x2c bytes, the entry's +0x30 member
     int field_0;
     int field_4;
@@ -102,6 +106,11 @@ struct PacketSequencer { // 0x2c bytes, the entry's +0x30 member
     Class_0046e610 list_d; // +0x1c
 
     PacketSequencer();
+    void SendUnsequenced(unsigned int param_1, void* param_2);
+    void Inl(unsigned int param_1, void* param_2) {
+        *(int*)((char*)param_2 + 2) = 0;
+        SendPacketToPlayer(GetLocalHumanDpid(), param_1, param_2, 0xe);
+    }
 };
 
 struct Class_0046eaa0 {    // 0x5c bytes, one vector element
@@ -114,19 +123,6 @@ struct Class_0046eaa0 {    // 0x5c bytes, one vector element
     PacketSequencer sub;   // +0x30
 
     Class_0046eaa0& operator=(const Class_0046eaa0& src);
-};
-
-int __cdecl GetLocalHumanDpid();
-int __cdecl GetHostDpid();
-void __stdcall SendPacketToPlayer(int a, unsigned int b, void* c, int d);
-
-class Class_0046cec0 {
-  public:
-    void SendUnsequenced(unsigned int param_1, void* param_2);
-    void Inl(unsigned int param_1, void* param_2) {
-        *(int*)((char*)param_2 + 2) = 0;
-        SendPacketToPlayer(GetLocalHumanDpid(), param_1, param_2, 0xe);
-    }
 };
 
 extern char* g_game;
@@ -156,7 +152,7 @@ class UnitSync {
 
     void ProcessSync();
     void CheckUnitAvailable(unsigned int key, int y);
-    void SendSyncPacket(void* target, Packet_0046dad0* packet, int unused);
+    void SendSyncPacket(void* target, UnitSyncPacket* packet, int unused);
 };
 
 // FUNCTION: 0x46dad0
@@ -211,11 +207,11 @@ void UnitSync::ProcessSync() {
                     ((Vec_0046d860*)&players)->Push(entry);
                     Class_0046eaa0* e = &players.back();
                     if (disabled == 0) {
-                        Packet_0046dad0 packet;
+                        UnitSyncPacket packet;
                         packet.type = 0x1a;
                         packet.arg = 0;
-                        packet.field_6 = 0;
-                        packet.field_a = 0;
+                        packet.key = 0;
+                        packet.value = 0;
                         this->SendSyncPacket(e, &packet, 1);
                         e->field_28++;
                     }
@@ -245,16 +241,16 @@ void UnitSync::ProcessSync() {
                     return;
                 int v = ((Game*)g_game)->count - 1;
                 if (disabled == 0) {
-                    Packet_0046dad0 packet;
+                    UnitSyncPacket packet;
                     packet.type = 0x1a;
                     packet.arg = 1;
-                    packet.field_6 = 0;
-                    packet.field_a = v;
+                    packet.key = 0;
+                    packet.value = v;
                     if (direct != 0) {
-                        ((Class_0046cec0*)((char*)this + 0x2c))->SendUnsequenced(DAT_00000000, &packet);
+                        ((PacketSequencer*)((char*)this + 0x2c))->SendUnsequenced(DAT_00000000, &packet);
                     } else {
                         unsigned int id = GetHostDpid();
-                        ((Class_0046cec0*)((char*)this + 0x2c))->SendUnsequenced(id, &packet);
+                        ((PacketSequencer*)((char*)this + 0x2c))->SendUnsequenced(id, &packet);
                     }
                 }
                 checksumProgress = 1;
@@ -273,31 +269,31 @@ void UnitSync::ProcessSync() {
                 int y = def->y;
                 unsigned int key = def->key;
                 if (disabled == 0) {
-                    Packet_0046dad0 packet;
+                    UnitSyncPacket packet;
                     packet.type = 0x1a;
                     packet.arg = 2;
-                    packet.field_6 = key;
-                    packet.field_a = y;
+                    packet.key = key;
+                    packet.value = y;
                     // Only this send is the inlined copy (Inl); all others are real
                     // SendUnsequenced calls with the id read into a local first.
                     if (direct != 0) {
-                        ((Class_0046cec0*)((char*)this + 0x2c))->Inl(DAT_00000000, &packet);
+                        ((PacketSequencer*)((char*)this + 0x2c))->Inl(DAT_00000000, &packet);
                     } else {
                         unsigned int id = GetHostDpid();
-                        ((Class_0046cec0*)((char*)this + 0x2c))->SendUnsequenced(id, &packet);
+                        ((PacketSequencer*)((char*)this + 0x2c))->SendUnsequenced(id, &packet);
                     }
                 }
                 n++;
                 checksumProgress++;
             }
         } else {
-            Packet_0046dad0 packet;
+            UnitSyncPacket packet;
             packet.type = 0x1a;
             packet.arg = 4;
-            packet.field_6 = 0;
-            packet.field_a = pendingPlayerCount;
+            packet.key = 0;
+            packet.value = pendingPlayerCount;
             unsigned int id = GetHostDpid();
-            ((Class_0046cec0*)((char*)this + 0x2c))->SendUnsequenced(id, &packet);
+            ((PacketSequencer*)((char*)this + 0x2c))->SendUnsequenced(id, &packet);
         }
     }
 }

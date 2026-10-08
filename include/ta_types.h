@@ -312,7 +312,7 @@ class Class_0044f8a0;
 class Class_0044f940;
 class Class_0044f9c0_2;
 class NetCondenser;
-class Class_0044fda0;
+class NetPacket;
 class Class_00451fd0;
 struct Class_00452370;
 class Class_00456030;
@@ -374,7 +374,7 @@ class SonarJamVisitor;
 struct FrameTimers;
 struct Class_0046c620;
 class Class_0046cc10;
-class Class_0046cec0;
+class PacketSequencer;
 class Class_0046cef0;
 class Class_0046d040;
 class Class_0046d4c0;
@@ -396,7 +396,7 @@ class Class_0046e9b0;
 struct Class_0046eaa0;
 class Class_0046eba0;
 class Class_0046f720;
-class Class_0046fad0;
+class InsertResult;
 class Class_0046fe60;
 class Class_00470250;
 struct Class_00470560;
@@ -7964,7 +7964,7 @@ public:
     int SendPacket(void*, int);
 };
 
-class Class_0044fda0 {  // 0x1 bytes, 1 view
+class NetPacket {       // 0x1 bytes, 1 view
 public:
     char unknown_0[1];
     void DispatchPacket(void);
@@ -10101,7 +10101,7 @@ public:
     void SendSequenced(Elem_0046faf0*, Elem_0046faf0*);
 };
 
-class Class_0046cec0 {  // 0x1 bytes, 2 views
+class PacketSequencer {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
     void SendUnsequenced(unsigned int, void*);
@@ -10194,12 +10194,12 @@ public:
     int* FUN_0046e880(int*);
 };
 
-class Class_0046fad0 {  // 0x8 bytes, 2 views
+class InsertResult {    // 0x8 bytes, 2 views
 public:
     Node_0046fad0* first;  // +0x0
     unsigned char second;  // +0x4
     char unknown_5[3];
-    Class_0046fad0(Node_0046fad0*&, bool&);
+    InsertResult(Node_0046fad0*&, bool&);
 };
 
 struct Less_0046d2e0 {  // 0x1 bytes, 1 view

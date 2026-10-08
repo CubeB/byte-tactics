@@ -2,7 +2,7 @@
 // FLAGS: /Gi
 // Stays in its own file: it is built with /Gi, which unit_sync.cpp
 // cannot carry.
-// std::vector<Packet_0046cef0>::insert(iterator, size_type, const T&) from
+// std::vector<UnitSyncPacket>::insert(iterator, size_type, const T&) from
 // MSVC 5's <vector>, emitted out of line. Its one caller, 0x46cef0, appends a
 // packet to the queue at +0x1c of PacketSequencer with push_back, whose inlined
 // insert(end(), x) calls this with a count of 1. The element is the 14-byte
@@ -10,25 +10,25 @@
 #include <vector>
 
 #pragma pack(push, 1)
-struct Packet_0046cef0 {               // 0xe bytes
+struct UnitSyncPacket {                // 0xe bytes
     unsigned char type;                // +0x0
     unsigned char arg;                 // +0x1
     unsigned int id;                   // +0x2
-    int field_6;                       // +0x6
-    int field_a;                       // +0xa
+    int key;                           // +0x6
+    int value;                         // +0xa
 };
 #pragma pack(pop)
 
-typedef std::vector<Packet_0046cef0> Vec_0046eba0;
+typedef std::vector<UnitSyncPacket> Vec_0046eba0;
 typedef void (Vec_0046eba0::*InsertFn_0046eba0)(
     Vec_0046eba0::iterator, Vec_0046eba0::size_type,
-    const Packet_0046cef0&);
+    const UnitSyncPacket&);
 
 // The push_back of 0x46cef0's queue, the use that instantiates this insert.
-void __stdcall Push_0046eba0(Vec_0046eba0* v, const Packet_0046cef0& x)
+void __stdcall Push_0046eba0(Vec_0046eba0* v, const UnitSyncPacket& x)
 {
     v->push_back(x);
 }
 
-// FUNCTION: 0x46eba0 ?insert@?$vector@UPacket_0046cef0@@V?$allocator@UPacket_0046cef0@@@std@@@std@@QAEXPAUPacket_0046cef0@@IABU3@@Z
+// FUNCTION: 0x46eba0 ?insert@?$vector@UUnitSyncPacket@@V?$allocator@UUnitSyncPacket@@@std@@@std@@QAEXPAUUnitSyncPacket@@IABU3@@Z
 InsertFn_0046eba0 g_insert_0046eba0 = &Vec_0046eba0::insert;

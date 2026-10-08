@@ -669,7 +669,7 @@ struct Class_004bbd00_File;
 struct Class_004bbd00_Other;
 struct Class_004bce10;
 struct Class_004be010;
-class Class_004c2ea0;
+class TdfFile;
 class Class_004c2f60;
 class Class_004c3240;
 class Class_004c33a0;
@@ -3976,7 +3976,7 @@ public:
     int AllVictoryConditionsMet(void);
     int AnyDefeatConditionMet(void);
     int CheckVictory(void);
-    void RegisterConditions(Class_004c2ea0*);
+    void RegisterConditions(TdfFile*);
     void SaveConditions(void*);
     void LoadConditions(HapiBank*);
     void Deactivate(void);
@@ -5947,13 +5947,13 @@ struct Elem_00434a60 {  // 0x8 bytes, 1 view
     ~Elem_00434a60(void);
 };
 
-class Class_004c2ea0 {  // 0xc bytes, 9 views
+class TdfFile {         // 0xc bytes, 9 views
 public:
     int field_0;  // +0x0
     void* current;  // +0x4
     int field_8;  // +0x8
-    Class_004c2ea0(void);
-    ~Class_004c2ea0(void);
+    TdfFile(void);
+    ~TdfFile(void);
 };
 
 class Class_00434f70 {  // 0xdc4 bytes, 1 view
@@ -5961,7 +5961,7 @@ public:
     int owner;  // +0x0
     char unknown_4[2560];
     int field_a04;  // +0xa04
-    Class_004c2ea0 field_a08;  // +0xa08
+    TdfFile field_a08;         // +0xa08
     char text_a14[256];  // +0xa14
     char text_b14[256];  // +0xb14
     int field_c14;  // +0xc14
@@ -5990,7 +5990,7 @@ public:
     char campaign[256];  // +0x4
     char names[9][256];  // +0x104
     int field_a04;  // +0xa04
-    Class_004c2ea0 list;  // +0xa08
+    TdfFile list;         // +0xa08
     char text_a14[256];  // +0xa14
     char text_b14[256];  // +0xb14
     int field_c14;  // +0xc14
@@ -6130,7 +6130,7 @@ public:
     int ruleCount;  // +0xdb8
     MissionFeature_00436c30* features;  // +0xdbc
     int featureCount;  // +0xdc0
-    void LoadMissionData(char*, Class_004c2ea0*);
+    void LoadMissionData(char*, TdfFile*);
 };
 
 class MeteorParams {    // 0x30 bytes, 3 views

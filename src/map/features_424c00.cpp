@@ -60,9 +60,9 @@ struct Model3D_00424c00 {
 #pragma pack(pop)
 
 extern Game* g_game;
-typedef std::vector<Class_004c2ea0*> FeatureList;
+typedef std::vector<TdfFile*> FeatureList;
 // File-scope static, as in 0x4223e0.
-static FeatureList* DAT_00511fb4;
+static FeatureList* s_featureTdfParsers;
 
 void __stdcall LoadFeatureFileList();
 unsigned short __stdcall LoadFeatureType(char* name);
@@ -90,10 +90,10 @@ static inline unsigned short FeatureIndex(char* name)
 // FreeFeatureFileList, inlined
 static inline void FreeFeatureList()
 {
-    for (Class_004c2ea0** p = DAT_00511fb4->begin(); p < DAT_00511fb4->end(); p++)
+    for (TdfFile** p = s_featureTdfParsers->begin(); p < s_featureTdfParsers->end(); p++)
         delete *p;
-    delete DAT_00511fb4;
-    DAT_00511fb4 = 0;
+    delete s_featureTdfParsers;
+    s_featureTdfParsers = 0;
 }
 
 // FUNCTION: 0x424c00

@@ -500,7 +500,7 @@ typedef std::vector<TdfFile*> FeatureList;
 // File-scope static: 0x4223e0 needs it static (an extern global changes
 // register use in its inlined ~vector), and 0x422460, 0x4224b0 and 0x422ea0
 // walk the vector through begin() and end().
-static FeatureList* DAT_00511fb4;
+static FeatureList* s_featureTdfParsers;
 
 void __cdecl FUN_004d85a0(void* p);
 void __stdcall FreeObjectState(void* obj);
@@ -634,13 +634,13 @@ void* __stdcall FindOptionalGafEntry(void* list, int unused, char* name)
 // FUNCTION: 0x4222e0
 void __stdcall LoadFeatureFileList()
 {
-    DAT_00511fb4 = new std::vector<TdfFile*>;
+    s_featureTdfParsers = new std::vector<TdfFile*>;
     std::vector<Elem> list;
     FindFilesRecursive("features", "*.tdf", &list, -1, 1);
     for (std::vector<Elem>::iterator it = list.begin(); it < list.end(); it++) {
         TdfFile* obj = new TdfFile;
         if (obj->LoadFile(it->name.data)) {
-            DAT_00511fb4->push_back(obj);
+            s_featureTdfParsers->push_back(obj);
         } else {
             delete obj;
         }
@@ -650,16 +650,16 @@ void __stdcall LoadFeatureFileList()
 // FUNCTION: 0x4223e0
 void FreeFeatureFileList()
 {
-    for (TdfFile** p = DAT_00511fb4->begin(); p < DAT_00511fb4->end(); p++)
+    for (TdfFile** p = s_featureTdfParsers->begin(); p < s_featureTdfParsers->end(); p++)
         delete *p;
-    delete DAT_00511fb4;
-    DAT_00511fb4 = 0;
+    delete s_featureTdfParsers;
+    s_featureTdfParsers = 0;
 }
 
 // FUNCTION: 0x422460
 TdfFile* __stdcall FindFeatureFile(char* name)
 {
-    for (TdfFile** p = DAT_00511fb4->begin(); p < DAT_00511fb4->end(); p++) {
+    for (TdfFile** p = s_featureTdfParsers->begin(); p < s_featureTdfParsers->end(); p++) {
         (*p)->ResetCurrentRecord();
         if (((TdfFile*)*p)->SelectRecord(name))
             return *p;

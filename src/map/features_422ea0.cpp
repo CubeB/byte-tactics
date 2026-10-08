@@ -48,7 +48,7 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern List_00422ea0* DAT_00511fb4;
+extern List_00422ea0* s_featureTdfParsers;
 extern char DAT_005119b8[];
 
 unsigned short __stdcall LoadFeatureType(char* name);
@@ -56,7 +56,7 @@ unsigned short __stdcall LoadFeatureType(char* name);
 // FindFeatureFile, inlined
 static inline TdfFile* FindEntry(char* name)
 {
-    for (TdfFile** p = DAT_00511fb4->first; p < DAT_00511fb4->last; p++) {
+    for (TdfFile** p = s_featureTdfParsers->first; p < s_featureTdfParsers->last; p++) {
         (*p)->ResetCurrentRecord();
         if (((TdfFile*)*p)->SelectRecord(name))
             return *p;

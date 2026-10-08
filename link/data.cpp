@@ -377,7 +377,7 @@ int g_explosion1EndSize;  // 0x511fa4 .bss
 int g_explosion2Duration;  // 0x511fa8 .bss
 int g_explosion2StartSize;  // 0x511fac .bss
 int g_explosion2EndSize;  // 0x511fb0 .bss
-List_00422ea0* DAT_00511fb4;  // 0x511fb4 .bss
+unsigned char DAT_00511fb4[4];  // 0x511fb4 .bss
 char g_frontendErrorText[256];  // 0x511fb8 .bss
 unsigned char g_pictureCache[464];  // 0x5120b8 .bss
 int DAT_00512288;  // 0x512288 .bss
@@ -734,6 +734,7 @@ unsigned int DAT_00528a00;  // 0x528a00 .bss
 unsigned int DAT_00528a04;  // 0x528a04 .bss
 unsigned int DAT_00528a08;  // 0x528a08 .bss
 unsigned char DAT_00528a0c[4];  // 0x528a0c .bss
+void* DAT_00528a10;  // 0x528a10 .bss
 unsigned char DAT_00528a14[8];  // 0x528a14 .bss
 unsigned int DAT_00528a1c;  // 0x528a1c .bss
 unsigned char DAT_00528a20[8];  // 0x528a20 .bss
@@ -741,13 +742,21 @@ FreeBlockMap* DAT_00528a40;  // 0x528a40 .bss
 void* DAT_00528a44;  // 0x528a44 .bss
 unsigned char DAT_00528a48[4];  // 0x528a48 .bss
 int DAT_00528a4c;  // 0x528a4c .bss
-Node_004dde70* DAT_00528a50;  // 0x528a50 .bss
 unsigned char DAT_00528a5c[4];  // 0x528a5c .bss
 unsigned char DAT_00528a78[44];  // 0x528a78 .bss
 void* DAT_00528aa4;  // 0x528aa4 .bss
 char DAT_00528aa8;  // 0x528aa8 .bss
 char DAT_00528aac;  // 0x528aac .bss
 void* DAT_00528ab0;  // 0x528ab0 .bss
+void (__stdcall* DAT_00528ab4)(void);  // 0x528ab4 .bss
+int (__stdcall* DAT_00528ab8)(void*, char*, unsigned long);  // 0x528ab8 .bss
+int (__stdcall* DAT_00528abc)(void*);  // 0x528abc .bss
+int (__stdcall* DAT_00528ac0)(unsigned long, void*, void*, void*, void*, void*, void*, void*, void*);  // 0x528ac0 .bss
+void* DAT_00528ac4;  // 0x528ac4 .bss
+void* DAT_00528ac8;  // 0x528ac8 .bss
+void (__stdcall* DAT_00528acc)(void);  // 0x528acc .bss
+unsigned long (__stdcall* DAT_00528ad0)(unsigned long);  // 0x528ad0 .bss
+void (__stdcall* DAT_00528ad4)(void);  // 0x528ad4 .bss
 char DAT_00528ad8;  // 0x528ad8 .bss
 char DAT_00528adc;  // 0x528adc .bss
 void* DAT_00528ae0;  // 0x528ae0 .bss

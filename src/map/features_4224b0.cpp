@@ -105,7 +105,7 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern List_004224b0* DAT_00511fb4;
+extern List_004224b0* s_featureTdfParsers;
 extern char DAT_005119b8[];
 
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
@@ -120,7 +120,7 @@ void __stdcall InitGafSequence(Ref_004224b0* ref, Seq_004224b0* src, int index);
 // FindFeatureFile, inlined
 static inline TdfFile* FindEntry(char* name)
 {
-    for (TdfFile** p = DAT_00511fb4->first; p < DAT_00511fb4->last; p++) {
+    for (TdfFile** p = s_featureTdfParsers->first; p < s_featureTdfParsers->last; p++) {
         (*p)->ResetCurrentRecord();
         if (((TdfFile*)*p)->SelectRecord(name))
             return *p;

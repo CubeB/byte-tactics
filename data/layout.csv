@@ -4048,23 +4048,23 @@ piece,0x506938,6,src/gui/dialogs_4aa8f0.cpp,7,0,game data
 piece,0x502808,5,src/gui/dialogs_4aa8f0.cpp,5,0,game data
 piece,0x502810,5,src/gui/dialogs_4aa8f0.cpp,4,0,game data
 piece,0x505ae8,7,src/gui/dialogs_4aa8f0.cpp,3,0,game data
-piece,0x5098c4,9,src/gui/gui_4a53c0.cpp,79,0,game data
-piece,0x509970,8,src/gui/gui_4a53c0.cpp,64,0,game data
-piece,0x509964,9,src/gui/gui_4a53c0.cpp,63,0,game data
-piece,0x50995c,8,src/gui/gui_4a53c0.cpp,62,0,game data
-piece,0x509950,10,src/gui/gui_4a53c0.cpp,61,0,game data
-piece,0x509948,8,src/gui/gui_4a53c0.cpp,60,0,game data
-piece,0x509908,9,src/gui/gui_4a53c0.cpp,48,0,game data
-piece,0x509940,7,src/gui/gui_4a53c0.cpp,59,0,game data
-piece,0x5098f8,13,src/gui/gui_4a53c0.cpp,47,0,game data
-piece,0x509934,12,src/gui/gui_4a53c0.cpp,58,0,game data
-piece,0x5098ec,9,src/gui/gui_4a53c0.cpp,46,0,game data
-piece,0x50992c,5,src/gui/gui_4a53c0.cpp,57,0,game data
-piece,0x509920,12,src/gui/gui_4a53c0.cpp,56,0,game data
-piece,0x509914,11,src/gui/gui_4a53c0.cpp,55,0,game data
-piece,0x5098b0,20,src/gui/gui_4a1990.cpp,40,0,game data
-piece,0x5098e0,12,src/gui/gui_4a1990.cpp,37,0,game data
-piece,0x5098d0,15,src/gui/gui_4a04f0.cpp,19,0,game data
+piece,0x5098c4,9,src/gui/gui.cpp,67,0,game data
+piece,0x509970,8,src/gui/gui.cpp,265,0,game data
+piece,0x509964,9,src/gui/gui.cpp,264,0,game data
+piece,0x50995c,8,src/gui/gui.cpp,263,0,game data
+piece,0x509950,10,src/gui/gui.cpp,262,0,game data
+piece,0x509948,8,src/gui/gui.cpp,261,0,game data
+piece,0x509908,9,src/gui/gui.cpp,249,0,game data
+piece,0x509940,7,src/gui/gui.cpp,260,0,game data
+piece,0x5098f8,13,src/gui/gui.cpp,248,0,game data
+piece,0x509934,12,src/gui/gui.cpp,259,0,game data
+piece,0x5098ec,9,src/gui/gui.cpp,247,0,game data
+piece,0x50992c,5,src/gui/gui.cpp,258,0,game data
+piece,0x509920,12,src/gui/gui.cpp,257,0,game data
+piece,0x509914,11,src/gui/gui.cpp,256,0,game data
+piece,0x5098b0,20,src/gui/gui.cpp,62,0,game data
+piece,0x5098e0,12,src/gui/gui.cpp,169,0,game data
+piece,0x5098d0,15,src/gui/gui.cpp,98,0,game data
 piece,0x5098a0,14,src/game/main.cpp,24,0,game data
 piece,0x509894,12,src/game/main.cpp,23,0,game data
 piece,0x509764,45,src/game/main.cpp,10,0,game data
@@ -12272,7 +12272,7 @@ same,0x504924,16,src/game/game_load.cpp,4,0,
 same,0x5091d4,10,src/game/game_load.cpp,31,0,
 same,0x504ab8,8,src/game/game_load.cpp,25,0,
 same,0x504990,4,src/game/game_load.cpp,24,0,
-same,0x503374,2,src/gui/gui_49f8c0.cpp,25,0,
+same,0x503374,2,src/gui/gui.cpp,35,0,
 same,0x502ae8,3,src/gui/dialogs_4aa8f0.cpp,6,0,
 same,0x503168,12,src/gui/dialogs_4aa8f0.cpp,67,0,
 same,0x503374,2,src/gui/file_list.cpp,10,0,

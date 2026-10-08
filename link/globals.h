@@ -48,7 +48,7 @@ extern int g_commandLineUnusedFlagL;                                            
 extern int DAT_0050289c;                                                                                      // 0x50289c, 4 bytes; 1 of 1 files
 extern char g_campaignKey[12];                                                                                // 0x5028f8, 12 bytes; 1 of 1 files
 extern char g_dotExtSep[4];                                                                                   // 0x502910, 4 bytes; 1 of 1 files
-extern char DAT_00502a20[4];                                                                                  // 0x502a20, 4 bytes; 2 of 2 files
+extern char DAT_00502a20[4];                                                                                  // 0x502a20, 4 bytes; 1 of 1 files
 extern char DAT_00502a78[12];                                                                                 // 0x502a78, 12 bytes; 2 of 2 files
 extern char DAT_00502ae8[4];                                                                                  // 0x502ae8, 4 bytes; 2 of 2 files
 extern char g_optionsSoundName[8];                                                                            // 0x502b38, 8 bytes; 1 of 1 files
@@ -233,7 +233,7 @@ extern char* DAT_0050d4d0;                                                      
 extern char* DAT_0050d660;                                                                                    // 0x50d660, 4 bytes; 1 of 1 files
 extern char DAT_0050d6b4[36];                                                                                 // 0x50d6b4, 36 bytes; 1 of 1 files
 extern char* DAT_0050d72c;                                                                                    // 0x50d72c, 4 bytes; 1 of 1 files
-extern char DAT_005119b8[8];                                                                                  // 0x5119b8, 8 bytes; 33 of 35 files (conflicting: shape)
+extern char DAT_005119b8[8];                                                                                  // 0x5119b8, 8 bytes; 32 of 34 files (conflicting: shape)
 extern PlayerAI* g_playerAI[10];                                                                              // 0x5119c0, 40 bytes; 2 of 3 files (conflicting: struct names only)
 extern int g_playerBudgetCap[10];                                                                             // 0x5119e8, 40 bytes; 1 of 1 files
 extern int g_playerTickLoad[10];                                                                              // 0x511a10, 40 bytes; 1 of 1 files
@@ -731,7 +731,6 @@ extern long DAT_0052a4fc;                                                       
 //   0x4fcd98 DPSPGUID_IPX: defined in src/data/guids.cpp
 //   0x4fcda8 DPSPGUID_TCPIP: defined in src/data/guids.cpp
 //   0x51e598 IUUnitSyncEntry::IU?$pair::?$_Tree::_Nil: defined in src/network/unit_sync.cpp
-//   0x51fba4 g_guiContext: Dialog* (1), Root_004a32a0* (1), Holder_004a3ef0* (1), Gui* (1), and 1 more
 //   0x51e6a0 g_losTables: defined in src/map/line_of_sight.cpp
 //   0x4fcfb8 DAT_004fcfb8: defined in src/data/guids.cpp
 //   0x4fd2f8 DAT_004fd2f8: defined in src/data/vtables.cpp
@@ -743,6 +742,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x51e574 DAT_0051e574: PlayerInfo_0046c2a0** (1), PlayerInfo_0046bce0** (1), int* (1)
 //   0x51e57c DAT_0051e57c: ScoreBoard_0046c2a0** (1), ScoreBoard_0046bce0** (1), void* (1)
 //   0x51e59c IUUnitSyncEntry::IU?$pair::?$_Tree::_Nilrefs: defined in src/network/unit_sync.cpp
+//   0x51fba4 g_guiContext: Root_004a32a0* (1), Holder_004a3ef0* (1), int* (1)
 //   0x528a50 DAT_00528a50: void* (2), Node_004da8d0* (1)
 //   0x529e00 DAT_00529e00: Counter_004e1e50 (1), Entry_004df590[] (1), EventEntry (1)
 //   0x4fc9a0 DAT_004fc9a0: defined in src/data/vtables.cpp

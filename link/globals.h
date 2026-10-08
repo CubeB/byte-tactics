@@ -99,9 +99,9 @@ extern char g_buildTimeFormat[16];                                              
 extern char g_buildDateFormat[16];                                                                // 0x5049ac, 16 bytes; 1 of 1 files
 extern char DAT_00504a64[8];                                                                      // 0x504a64, 8 bytes; 1 of 1 files
 extern const char g_defaultLanguage[8];                                                           // 0x504ab8, 8 bytes; 1 of 1 files
-extern char DAT_00504e98[8];                                                                      // 0x504e98, 8 bytes; 1 of 1 files
-extern char DAT_00504ea0[8];                                                                      // 0x504ea0, 8 bytes; 1 of 1 files
-extern char DAT_00504ea8[8];                                                                      // 0x504ea8, 8 bytes; 1 of 1 files
+extern char g_hardGadgetName[8];                                                                  // 0x504e98, 8 bytes; 1 of 1 files
+extern char g_mediumGadgetName[8];                                                                // 0x504ea0, 8 bytes; 1 of 1 files
+extern char g_easyGadgetName[8];                                                                  // 0x504ea8, 8 bytes; 1 of 1 files
 extern int DAT_00505490[6];                                                                       // 0x505490, 24 bytes; 1 of 1 files
 extern unsigned int DAT_005054a8;                                                                 // 0x5054a8, 4 bytes; 1 of 1 files
 extern char* DAT_005054b0[23];                                                                    // 0x5054b0, 92 bytes; 2 of 2 files
@@ -147,19 +147,19 @@ extern char g_radarPictureName[16];                                             
 extern char g_radarMappedName[16];                                                                // 0x507508, 16 bytes; 1 of 1 files
 extern char g_radarFinalName[12];                                                                 // 0x507518, 12 bytes; 1 of 1 files
 extern int DAT_00507b6c;                                                                          // 0x507b6c, 4 bytes; 2 of 2 files
-extern char* DAT_00507b88[3];                                                                     // 0x507b88, 12 bytes; 1 of 1 files
+extern char* g_forcesDestroyedTexts[3];                                                           // 0x507b88, 12 bytes; 1 of 1 files
 extern char DAT_00508384[8];                                                                      // 0x508384, 8 bytes; 1 of 1 files
-extern const char DAT_00508460[16];                                                               // 0x508460, 16 bytes; 1 of 1 files
-extern const char DAT_00508470[4];                                                                // 0x508470, 4 bytes; 1 of 1 files
-extern const char DAT_00508474[4];                                                                // 0x508474, 4 bytes; 1 of 1 files
-extern const char DAT_00508478[8];                                                                // 0x508478, 8 bytes; 1 of 1 files
-extern const char DAT_00508480[8];                                                                // 0x508480, 8 bytes; 1 of 1 files
-extern const char DAT_00508488[8];                                                                // 0x508488, 8 bytes; 1 of 1 files
-extern const char DAT_00508490[4];                                                                // 0x508490, 4 bytes; 1 of 1 files
-extern const char DAT_00508494[4];                                                                // 0x508494, 4 bytes; 1 of 1 files
-extern const char DAT_00508498[4];                                                                // 0x508498, 4 bytes; 1 of 1 files
-extern char DAT_0050849c[16];                                                                     // 0x50849c, 16 bytes; 1 of 1 files
-extern char DAT_005084ac[16];                                                                     // 0x5084ac, 16 bytes; 1 of 1 files
+extern const char g_skirmishCheatSoundName[16];                                                   // 0x508460, 16 bytes; 1 of 1 files
+extern const char g_cheatTenPlayers[4];                                                           // 0x508470, 4 bytes; 1 of 1 files
+extern const char g_cheatNinePlayers[4];                                                          // 0x508474, 4 bytes; 1 of 1 files
+extern const char g_cheatThreePlayers[8];                                                         // 0x508478, 8 bytes; 1 of 1 files
+extern const char g_cheatEightPlayers[8];                                                         // 0x508480, 8 bytes; 1 of 1 files
+extern const char g_cheatSevenPlayers[8];                                                         // 0x508488, 8 bytes; 1 of 1 files
+extern const char g_cheatSixPlayers[4];                                                           // 0x508490, 4 bytes; 1 of 1 files
+extern const char g_cheatFivePlayers[4];                                                          // 0x508494, 4 bytes; 1 of 1 files
+extern const char g_cheatFourPlayers[4];                                                          // 0x508498, 4 bytes; 1 of 1 files
+extern char g_skirmishSetupPictureName[16];                                                       // 0x50849c, 16 bytes; 1 of 1 files
+extern char g_skirmishGuiName[16];                                                                // 0x5084ac, 16 bytes; 1 of 1 files
 extern char DAT_00508a78[44];                                                                     // 0x508a78, 44 bytes; 1 of 1 files
 extern char DAT_00508aa4[16];                                                                     // 0x508aa4, 16 bytes; 1 of 1 files
 extern char DAT_00508ab4[16];                                                                     // 0x508ab4, 16 bytes; 1 of 1 files

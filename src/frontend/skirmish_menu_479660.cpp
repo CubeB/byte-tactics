@@ -360,7 +360,7 @@ GafEntry* __stdcall FindGafEntry(Gaf* gaf, const char* name);
 int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 
 // FUNCTION: 0x479bf0
-void __stdcall FUN_00479bf0(Rec1* obj, char* name)
+void __stdcall BindGadgetAnimSequence(Rec1* obj, char* name)
 {
     Backdrop* h = (Backdrop*)g_game->menu.holder->entries;
     obj->entry = 0;
@@ -405,13 +405,13 @@ void BuildSkirmishPlayerRows(void)
         rec1.h.h = 0x14;
         rec1.h.attr = 2;
         rec1.text[0] = 0;
-        FUN_00479bf0(&rec1, "skirmname");
+        BindGadgetAnimSequence(&rec1, "skirmname");
         AddButtonGadget(&g_game->menu, &rec1);
 
         wsprintfA(rec1.h.name, "Side%d", i);
         rec1.h.x = 0xa3;
         rec1.h.w = 0x2d;
-        FUN_00479bf0(&rec1, "SIDEx");
+        BindGadgetAnimSequence(&rec1, "SIDEx");
         rec1.frame = 0;
         rec1.f136 = 2;
         AddButtonGadget(&g_game->menu, &rec1);
@@ -439,14 +439,14 @@ void BuildSkirmishPlayerRows(void)
         rec1.f138 = 0;
         // Explicit store, not redundant: the extra use of the zero keeps it in EBX.
         rec1.entry = 0;
-        FUN_00479bf0(&rec1, "skirmmet");
+        BindGadgetAnimSequence(&rec1, "skirmmet");
         strcpy(rec1.text, Translate("Left click to increase metal. Right click to decrease metal."));
         AddButtonGadget(&g_game->menu, &rec1);
 
         wsprintfA(rec1.h.name, "Energy%d", i);
         rec1.h.x = 0x151;
         rec1.h.w = 0x2d;
-        FUN_00479bf0(&rec1, "skirmmet");
+        BindGadgetAnimSequence(&rec1, "skirmmet");
         strcpy(rec1.text, Translate("Left click to increase energy. Right click to decrease energy."));
         AddButtonGadget(&g_game->menu, &rec1);
         y += step;
@@ -624,7 +624,7 @@ void RefreshSkirmishSetup()
 // on the same side as `self` (type 5 excluded), stopping at `self` itself.
 // Returns that index, or -1 when the table ends first.
 // FUNCTION: 0x47a700
-int __stdcall FUN_0047a700(int self, int start)
+int __stdcall FindNextAllySlot(int self, int start)
 {
     Player* players = g_game->table->players;
     int n = g_game->playerCount;
@@ -644,7 +644,7 @@ void __stdcall FUN_00464290(unsigned char player, unsigned char kind);
 // Marks, for each active player (active 1 or 2), every player slot that shares
 // its team type (or is the player itself), in the entry's `marks` array.
 // FUNCTION: 0x47a760
-void FUN_0047a760()
+void ApplySlotsToGamePlayers()
 {
     for (int i = 0; i < g_game->playerCount; i++) {
         if (g_game->table->players[i].active == 1) {
@@ -760,7 +760,7 @@ void ShowSelectedMapInfo();
 
 // Like 0x444c40, without the MAPPIC update.
 // FUNCTION: 0x47aaa0
-void __stdcall FUN_0047aaa0(Menu* menu, int unused)
+void __stdcall UpdateSkirmishMapSelection(Menu* menu, int unused)
 {
     Gadget* g = FindGadgetChecked(menu->holder->entries, "MAPNAMES");
     if (g_game->mission->LoadMissionByName(SkipTextLines(g->items, g->selected)) != 0) {
@@ -801,7 +801,7 @@ void OpenSkirmishMapSelector()
     LoadMapList(&data->items, 0, 0);
     SortFileList(data->items, 0, 0, n);
     FUN_004a32a0(&g_game->menu, "MAPNAMES", data->items, n, 0);
-    FindGadgetChecked(layer->entries, "MAPNAMES")->onSelect = FUN_0047aaa0;
+    FindGadgetChecked(layer->entries, "MAPNAMES")->onSelect = UpdateSkirmishMapSelection;
 
     for (int i = 0; i < n; i++) {
         if (strcmp(g_game->table->mapName, SkipTextLines(data->items, i)) == 0) {
@@ -820,7 +820,7 @@ void OpenSkirmishMapSelector()
 }
 
 // FUNCTION: 0x47acb0
-void __stdcall FUN_0047acb0(Menu* obj, void* unused)
+void __stdcall SelectLogosGadget(Menu* obj, void* unused)
 {
     Layer* ptr = obj->holder;
     Gadget* val = ptr->entries;
@@ -1008,7 +1008,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
                 }
                 g_game->field_2a3c = c1 + c2;
 
-                FUN_0047a760();
+                ApplySlotsToGamePlayers();
                 InitMissionStatus();
                 SaveSettings();
                 g_game->field_2bc0 = 2;
@@ -1191,15 +1191,15 @@ struct Cheat {
 };
 #pragma pack(pop)
 
-extern const char DAT_00508498[];
-extern const char DAT_00508494[];
-extern const char DAT_00508490[];
-extern const char DAT_00508488[];
-extern const char DAT_00508480[];
-extern const char DAT_00508478[];
-extern const char DAT_00508474[];
-extern const char DAT_00508470[];
-extern const char DAT_00508460[];
+extern const char g_cheatFourPlayers[];
+extern const char g_cheatFivePlayers[];
+extern const char g_cheatSixPlayers[];
+extern const char g_cheatSevenPlayers[];
+extern const char g_cheatEightPlayers[];
+extern const char g_cheatThreePlayers[];
+extern const char g_cheatNinePlayers[];
+extern const char g_cheatTenPlayers[];
+extern const char g_skirmishCheatSoundName[];
 
 void SaveNumSkirmishPlayers();
 void LoadSettings();
@@ -1210,21 +1210,21 @@ void __stdcall HandleSkirmishCheatText(Cheat* cheat)
 {
     int zero = 0;
     int code = 0;
-    if (strncmp((char*)cheat->text + 0x34, DAT_00508498, 3) == 0)
+    if (strncmp((char*)cheat->text + 0x34, g_cheatFourPlayers, 3) == 0)
         code = 4;
-    else if (strncmp((char*)cheat->text + 0x35, DAT_00508494, 2) == 0)
+    else if (strncmp((char*)cheat->text + 0x35, g_cheatFivePlayers, 2) == 0)
         code = 5;
-    else if (strncmp((char*)cheat->text + 0x34, DAT_00508490, 3) == 0)
+    else if (strncmp((char*)cheat->text + 0x34, g_cheatSixPlayers, 3) == 0)
         code = 6;
-    else if (strncmp((char*)cheat->text + 0x33, DAT_00508488, 4) == 0)
+    else if (strncmp((char*)cheat->text + 0x33, g_cheatSevenPlayers, 4) == 0)
         code = 7;
-    else if (strncmp((char*)cheat->text + 0x32, DAT_00508480, 5) == 0)
+    else if (strncmp((char*)cheat->text + 0x32, g_cheatEightPlayers, 5) == 0)
         code = 8;
-    else if (strncmp((char*)cheat->text + 0x33, DAT_00508478, 4) == 0)
+    else if (strncmp((char*)cheat->text + 0x33, g_cheatThreePlayers, 4) == 0)
         code = 3;
-    else if (strncmp((char*)cheat->text + 0x34, DAT_00508474, 3) == 0)
+    else if (strncmp((char*)cheat->text + 0x34, g_cheatNinePlayers, 3) == 0)
         code = 9;
-    else if (strncmp((char*)cheat->text + 0x35, DAT_00508470, 2) == 0)
+    else if (strncmp((char*)cheat->text + 0x35, g_cheatTenPlayers, 2) == 0)
         code = 10;
 
     if (code != zero) {
@@ -1238,18 +1238,18 @@ void __stdcall HandleSkirmishCheatText(Cheat* cheat)
         LoadSettings();
         cheat->text->target->field_b6 = g_game->table->field_220;
         RefreshSkirmishSetup();
-        PlaySoundByName(DAT_00508460, 0);
+        PlaySoundByName(g_skirmishCheatSoundName, 0);
         FUN_004a7960(cheat, 1);
         FUN_0049fa90(&g_game->menu);
     }
 }
 
-extern char DAT_005084ac[];
-extern char DAT_0050849c[];
+extern char g_skirmishGuiName[];
+extern char g_skirmishSetupPictureName[];
 extern char DAT_00502a78[];
-extern char DAT_00504ea8[];
-extern char DAT_00504ea0[];
-extern char DAT_00504e98[];
+extern char g_easyGadgetName[];
+extern char g_mediumGadgetName[];
+extern char g_hardGadgetName[];
 
 void BlankScreen();
 Gadget* __stdcall FindGadgetOrNull(Gadget* entries, char* name);
@@ -1262,24 +1262,24 @@ void OpenSkirmishMenu(void)
     Layer* dialog;
 
     BlankScreen();
-    dialog = LoadGuiLayer(&g_game->menu, DAT_005084ac, 0);
+    dialog = LoadGuiLayer(&g_game->menu, g_skirmishGuiName, 0);
     dialog->handler = HandleSkirmishClick;
     dialog->data = (Data*)g_game;
-    LoadPictureCached(DAT_0050849c, 0, 0, 0);
+    LoadPictureCached(g_skirmishSetupPictureName, 0, 0, 0);
 
     g_game->difficulty = g_game->table->field_228;
     difficulty = FindGadgetOrNull(g_game->menu.holder->entries, DAT_00502a78);
     if (g_game->difficulty == 0) {
         difficulty->field_137 = 0;
-        SetGadgetStatusByName(&g_game->menu, DAT_00504ea8, 1);
+        SetGadgetStatusByName(&g_game->menu, g_easyGadgetName, 1);
     }
     if (g_game->difficulty == 1) {
         difficulty->field_137 = 1;
-        SetGadgetStatusByName(&g_game->menu, DAT_00504ea0, 1);
+        SetGadgetStatusByName(&g_game->menu, g_mediumGadgetName, 1);
     }
     if (g_game->difficulty == 2) {
         difficulty->field_137 = 2;
-        SetGadgetStatusByName(&g_game->menu, DAT_00504e98, 1);
+        SetGadgetStatusByName(&g_game->menu, g_hardGadgetName, 1);
     }
     FUN_0049fa90(&g_game->menu);
 
@@ -1295,7 +1295,7 @@ void OpenSkirmishMenu(void)
     FUN_00491c80(0x13);
 }
 
-extern char* DAT_00507b88[];
+extern char* g_forcesDestroyedTexts[];
 
 void __stdcall AddMessage(char* text, int param_2, int param_3, unsigned char param_4);
 
@@ -1308,6 +1308,6 @@ void __stdcall AnnounceForcesDestroyed(Slot* player)
     const char* side = "Core";
     if (!player->unit->isCore)
         side = "Arm";
-    sprintf(buf, "%s %s", side, Translate(DAT_00507b88[(unsigned int)rand() % 3]));
+    sprintf(buf, "%s %s", side, Translate(g_forcesDestroyedTexts[(unsigned int)rand() % 3]));
     AddMessage(buf, 4, 0, player->color);
 }

@@ -154,9 +154,9 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x5049ac,g_buildDateFormat,.data,16,gap,string,char[],1,0,1,one type,1,,s_BUILD_DATE___s_005049ac,,,4255494c4420444154453a2025730000
 0x504a64,DAT_00504a64,.data,8,gap,string,char[],1,0,1,one type,1,,s_camps_00504a64,,,63616d7073000000
 0x504ab8,g_defaultLanguage,.data,8,gap,string,const char[],1,0,1,one type,1,,s_english_00504ab8,,,656e676c69736800
-0x504e98,DAT_00504e98,.data,8,gap,string,char[],1,0,1,one type,1,,DAT_00504e98,,,4861726400000000
-0x504ea0,DAT_00504ea0,.data,8,gap,string,char[],1,0,1,one type,1,,s_Medium_00504ea0,,,4d656469756d0000
-0x504ea8,DAT_00504ea8,.data,8,gap,string,char[],1,0,1,one type,1,,DAT_00504ea8,,,4561737900000000
+0x504e98,g_hardGadgetName,.data,8,gap,string,char[],1,0,1,one type,1,,DAT_00504e98,,,4861726400000000
+0x504ea0,g_mediumGadgetName,.data,8,gap,string,char[],1,0,1,one type,1,,s_Medium_00504ea0,,,4d656469756d0000
+0x504ea8,g_easyGadgetName,.data,8,gap,string,char[],1,0,1,one type,1,,DAT_00504ea8,,,4561737900000000
 0x505200,g_rangeByPitch,.data,4,type,data,signed char*,1,0,1,one type,1,,,,src/weapons/ballistics.cpp,19374655
 0x505205,DAT_00505205,.data,7,gap,data,signed char[],1,0,1,one type,1,,,,src/weapons/ballistics.cpp,644b3219140f00
 0x505490,DAT_00505490,.data,24,gap,data,int[],1,0,1,one type,1,,DAT_00505490,,,00c2010000e1000000960000004b00004038000080250000
@@ -211,19 +211,19 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x507b68,DAT_00507b68,.data,4,type,data,int,1,0,1,one type,1,,,,src/data/unused.cpp,01000000
 0x507b6c,DAT_00507b6c,.data,4,type,data,int,2,0,1,one type,2,,DAT_00507b6c,,,01000000
 0x507b70,DAT_00507b70,.data,24,gap,data,unsigned char[],1,1,2,conflicting: shape,2,0x1,DAT_00507b70,,,353340d0755652d4755652d4755652d4755652d400000000
-0x507b88,DAT_00507b88,.data,12,gap,data,char*[],1,0,1,one type,1,,PTR_s_forces_have_been_obliterated_00507b88,3,,d87b5000b87b5000947b5000
+0x507b88,g_forcesDestroyedTexts,.data,12,gap,data,char*[],1,0,1,one type,1,,PTR_s_forces_have_been_obliterated_00507b88,3,,d87b5000b87b5000947b5000
 0x508384,DAT_00508384,.data,8,gap,string,char[],1,0,1,one type,1,,s_Allies_00508384,,,416c6c6965730000
-0x508460,DAT_00508460,.data,16,gap,string,const char[],1,0,1,one type,1,,s_SkirmishCheat_00508460,,,536b69726d6973684368656174000000
-0x508470,DAT_00508470,.data,4,gap,string,const char[],1,0,1,one type,1,,DAT_00508470,,,2a580000
-0x508474,DAT_00508474,.data,4,gap,string,const char[],1,0,1,one type,1,,DAT_00508474,,,2a495800
-0x508478,DAT_00508478,.data,8,gap,string,const char[],1,0,1,one type,1,,DAT_00508478,,,2a49494900000000
-0x508480,DAT_00508480,.data,8,gap,string,const char[],1,0,1,one type,1,,s__VIII_00508480,,,2a56494949000000
-0x508488,DAT_00508488,.data,8,gap,string,const char[],1,0,1,one type,1,,DAT_00508488,,,2a56494900000000
-0x508490,DAT_00508490,.data,4,gap,string,const char[],1,0,1,one type,1,,DAT_00508490,1,,2a564900
-0x508494,DAT_00508494,.data,4,gap,string,const char[],1,0,1,one type,1,,DAT_00508494,,,2a560000
-0x508498,DAT_00508498,.data,4,gap,string,const char[],1,0,1,one type,1,,DAT_00508498,,,2a495600
-0x50849c,DAT_0050849c,.data,16,gap,string,char[],1,0,1,one type,1,,s_Skirmsetup4x_0050849c,,,536b69726d7365747570347800000000
-0x5084ac,DAT_005084ac,.data,16,gap,string,char[],1,0,1,one type,1,,s_SKIRMISH_GUI_005084ac,,,534b49524d4953482e47554900000000
+0x508460,g_skirmishCheatSoundName,.data,16,gap,string,const char[],1,0,1,one type,1,,s_SkirmishCheat_00508460,,,536b69726d6973684368656174000000
+0x508470,g_cheatTenPlayers,.data,4,gap,string,const char[],1,0,1,one type,1,,DAT_00508470,,,2a580000
+0x508474,g_cheatNinePlayers,.data,4,gap,string,const char[],1,0,1,one type,1,,DAT_00508474,,,2a495800
+0x508478,g_cheatThreePlayers,.data,8,gap,string,const char[],1,0,1,one type,1,,DAT_00508478,,,2a49494900000000
+0x508480,g_cheatEightPlayers,.data,8,gap,string,const char[],1,0,1,one type,1,,s__VIII_00508480,,,2a56494949000000
+0x508488,g_cheatSevenPlayers,.data,8,gap,string,const char[],1,0,1,one type,1,,DAT_00508488,,,2a56494900000000
+0x508490,g_cheatSixPlayers,.data,4,gap,string,const char[],1,0,1,one type,1,,DAT_00508490,1,,2a564900
+0x508494,g_cheatFivePlayers,.data,4,gap,string,const char[],1,0,1,one type,1,,DAT_00508494,,,2a560000
+0x508498,g_cheatFourPlayers,.data,4,gap,string,const char[],1,0,1,one type,1,,DAT_00508498,,,2a495600
+0x50849c,g_skirmishSetupPictureName,.data,16,gap,string,char[],1,0,1,one type,1,,s_Skirmsetup4x_0050849c,,,536b69726d7365747570347800000000
+0x5084ac,g_skirmishGuiName,.data,16,gap,string,char[],1,0,1,one type,1,,s_SKIRMISH_GUI_005084ac,,,534b49524d4953482e47554900000000
 0x5086d8,g_unitMessages,.data,4,type,data,UnitMessage*,1,0,1,one type,1,,,,src/units/unit_messages.cpp,00000000
 0x5086dc,DAT_005086dc,.data,32,gap,data,Message_0047fad0[],1,0,1,one type,1,0x10,DAT_005086dc,,src/units/unit_messages.cpp,0000000000000000000000000000000000000000010000000a00000000000000
 0x5086e0,DAT_005086e0,.data,596,gap,data,Table_0047fd70[24],1,1,2,conflicting: struct names only,2,0x24c,DAT_005086e0,36,src/units/unit_messages.cpp,00000000000000000000000000000000010000000a00000000000000708a50000000000000000000020000000900000014000000648a5000548a500000000000

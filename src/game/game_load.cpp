@@ -402,7 +402,7 @@ unsigned char __stdcall FindHostSlot();
 void ApplyUseOnlyUnits();
 void HandleNetPackets();
 void __stdcall LoadPlayerControllers(void* mission);
-void FUN_0047a760();
+void ApplySlotsToGamePlayers();
 void FUN_004917d0();
 void FUN_00465e30();
 void __stdcall RecalculateLineOfSight(int x);
@@ -622,7 +622,7 @@ void __cdecl LoadMatch(void*)
                 if (count > cur)
                     cur = count;
                 *(int*)((char*)g_game + 0x38d81) = cur;
-                FUN_0047a760();
+                ApplySlotsToGamePlayers();
             }
         }
     }

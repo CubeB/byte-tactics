@@ -142,7 +142,7 @@ void __stdcall SetEndGameState(int a);
 void BlankScreen();
 int FUN_004572a0();
 void FUN_00463c80();
-void FUN_0047a760();
+void ApplySlotsToGamePlayers();
 void FUN_0048bd00();
 int __stdcall SelectUnitsInBox(void* p);
 unsigned short __stdcall FUN_0048cd80();
@@ -421,7 +421,7 @@ void BattleFrame(void)
             SetCursor(0x14);
             g_game->field_2a3c = saved;
             ((Mission*)g_game->net)->LoadMissionByName(g_game->field_29a0 + 0x11c);
-            FUN_0047a760();
+            ApplySlotsToGamePlayers();
             g_game->field_2a44.value |= 4;
             g_game->field_391f1 = 2;
             g_game->field_391f5 = MenuFrame;

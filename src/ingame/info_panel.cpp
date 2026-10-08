@@ -868,17 +868,17 @@ int __stdcall DrawUnitStateProbe(void* surface)
     int prev;
     Mission_00467e50* m;
 
-    if (*(int*)((char*)g_game + 0x391b3) == 0 || *(unsigned short*)((char*)g_game + 0x391b7) == 0)
+    if (g_game->f_391b3 == 0 || g_game->f_391b7 == 0)
         return 0;
     unit = (Unit*)(*(int*)((char*)g_game + 0x14357)
-                            + *(unsigned short*)((char*)g_game + 0x391b7) * 0x118);
+                            + g_game->f_391b7 * 0x118);
     if ((unit->f_110 & 0x10000000) == 0 || (unit->f_110 & 0x4000) != 0) {
-        *(int*)((char*)g_game + 0x391b3) = 0;
-        *(unsigned short*)((char*)g_game + 0x391b7) = 0;
+        g_game->f_391b3 = 0;
+        g_game->f_391b7 = 0;
     }
-    colors = (unsigned char*)((char*)g_game + 0xdcb);
+    colors = &g_game->colors[0];
     SetTextColors(colors[15], GetTextKeyColor());
-    SetFont(*(int*)((char*)g_game + 0x391f9));
+    SetFont(g_game->f_391f9);
     lineH = GetFontHeight() + 3;
     y = lineH * 7;
     GetDisplayFieldE4();
@@ -1276,7 +1276,7 @@ void __stdcall DrawSelectionBox(Vec3* view, Unit* unit)
         pos.x = unit->x - (g_game->scroll_x << 16);
         pos.y = unit->y;
         pos.z = unit->z - (g_game->scroll_y << 16);
-        DrawRotatedQuadOutline(view, &pos, corners, (char*)unit + 0x64);
+        DrawRotatedQuadOutline(view, &pos, corners, (char*)&unit->rot);
     }
 }
 

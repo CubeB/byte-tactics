@@ -60,7 +60,7 @@ class Class_0047cb00 {
 public:
     char unknown_0[6];
     void* head;
-    void FUN_0047cb00(void* node);
+    void UnlinkUnit(void* node);
 };
 
 class UnitMotion;

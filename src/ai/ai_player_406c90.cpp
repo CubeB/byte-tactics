@@ -624,7 +624,7 @@ void __stdcall PopHeapFirst(Elem_0040cc40* first, Elem_0040cc40* last, Elem_0040
                             Elem_0040cc40 val, int*);
 Cell* __stdcall GetMapCell(int x, int y);
 int __stdcall FUN_00465ac0(Player*, Unit*);
-int __stdcall FUN_0047db70(UnitDef* type, short a, Point16 cell, int b);
+int __stdcall CanPlaceUnitFootprint(UnitDef* type, short a, Point16 cell, int b);
 int __stdcall CanBuildAt(UnitDef* type, Point16 cell, int a, int b);
 int GetBuildSiteMetal(void);
 float __stdcall GetEnergyUse(UnitDef* p);
@@ -1445,7 +1445,7 @@ bool PlayerAI::FindCellNearFeatures(UnitDef* type, Vec3* pos, std::vector<Elem_0
 // random direction and distance (within `range` cells) from `pos`, snapped
 // to the class's placement grid (spacing, offset and a random jitter reduced
 // by a margin; the second grid is used for types whose field_1c0 is
-// non-negative). A cell is accepted when FUN_0047db70 allows the type there
+// non-negative). A cell is accepted when CanPlaceUnitFootprint allows the type there
 // and the score GetBuildSiteMetal is at most the type's footprint area times
 // twice net->field_d30.
 // FUNCTION: 0x40a5d0
@@ -1464,7 +1464,7 @@ bool PlayerAI::FindRandomPlacementCell(UnitDef* type, Vec3* pos, int range, Poin
         Point16 cell = WorldToCell(v, type->origin);
         cell.x = cell.x / spacing.x * spacing.x + offset.x + RandomInt(spacing.x - margin - type->origin.x);
         cell.y = cell.y / spacing.y * spacing.y + offset.y + RandomInt(spacing.y - margin - type->origin.y);
-        if (FUN_0047db70(type, 0, cell, 1) && GetBuildSiteMetal() <= threshold) {
+        if (CanPlaceUnitFootprint(type, 0, cell, 1) && GetBuildSiteMetal() <= threshold) {
             if (out)
                 *out = cell;
             return true;

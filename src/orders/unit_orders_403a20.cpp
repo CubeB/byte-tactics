@@ -55,8 +55,8 @@ static inline UnitDef* Definitions() { return g_game->defs; }
 union Fixed { int value; struct { unsigned short fraction; short whole; }; };
 void __stdcall QueueUnitSpeech(Unit*, int, const char*);
 void __stdcall MarkSelectionOrdersDirty(Unit*);
-int __stdcall FUN_0047db70(UnitDef*, int, Point, int);
-void __stdcall FUN_0047ddc0(UnitDef*, Vec3*);
+int __stdcall CanPlaceUnitFootprint(UnitDef*, int, Point, int);
+void __stdcall SnapWorldPosToFootprint(UnitDef*, Vec3*);
 Unit* __stdcall CreateUnit(unsigned char, short, Vec3, int, int, int);
 void __stdcall AddOrder(Class_00438760, int, Unit*, Unit*, Vec3*, int, int);
 short __stdcall GetHeadingBetween(Vec3*, Vec3*);
@@ -115,7 +115,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
                 return 8;
             }
         }
-        if (!FUN_0047db70(def, 0, WorldToCell(order->pos, Definitions()[order->type].origin), 1)) {
+        if (!CanPlaceUnitFootprint(def, 0, WorldToCell(order->pos, Definitions()[order->type].origin), 1)) {
             if (!order->retries)
                 QueueUnitSpeech(unit, 7, "Waiting for target area to clear");
             else if (order->retries > 10) {
@@ -127,7 +127,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
             return 2;
         }
         ((Unit*)unit)->ClaimWeapons(3);
-        FUN_0047ddc0(def, &order->pos);
+        SnapWorldPosToFootprint(def, &order->pos);
         ((Class_004895c0*)((char*)order + 0x12))->SetUnit(
             CreateUnit(unit->player, (short)order->type, order->pos, 0, 1, 0));
         if (!order->target) {

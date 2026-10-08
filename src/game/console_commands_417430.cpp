@@ -277,7 +277,7 @@ unsigned int __stdcall ExecuteCommandText(char* text, int size, CommandArgs* var
 void __cdecl FUN_004d85a0(void* data);
 int __stdcall HAPI_CloseFile(void* file);
 int __stdcall MatchWildcard(const char* name, const char* pattern);
-void __stdcall FUN_0047ddc0(UnitDef* def, Vec3* pos);
+void __stdcall SnapWorldPosToFootprint(UnitDef* def, Vec3* pos);
 void* __stdcall CreateUnit(unsigned char owner, short id, Vec3 pos, int param_4, int param_5, int param_6);
 extern Display_00417a60* GetDisplay();
 void ToggleFullScreen();
@@ -482,7 +482,7 @@ void __stdcall FUN_00417890(CommandArgs* args)
         UnitDef* def=&g_game->defs[i];
         if (MatchWildcard(def->name,args->GetArg(0,DAT_005119b8))) {
             if (count) pos.x-=def->min.x;
-            FUN_0047ddc0(def,&pos);
+            SnapWorldPosToFootprint(def,&pos);
             CreateUnit(((CommandArgs*)args)->GetIntArg(1,0),i,pos,1,1,0);
             pos.x+=def->max.x+0x200000;
             if (pos.x >= (g_game->mapWidth<<16)) { pos.x=0xa00000; pos.z+=0xa00000; }

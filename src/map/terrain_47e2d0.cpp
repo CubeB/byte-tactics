@@ -79,7 +79,7 @@ extern Game* g_game;
 // Stays in a file of its own: in the merged file the symbol ids move the def
 // load and the feature lookup's operand order.
 // FUNCTION: 0x47e2d0
-int __stdcall FUN_0047e2d0(Unit* unit, Vec3* pos)
+int __stdcall CanPlaceFootprintAt(Unit* unit, Vec3* pos)
 {
     Point footprint = unit->footprint;
     Vec3 v = *pos;

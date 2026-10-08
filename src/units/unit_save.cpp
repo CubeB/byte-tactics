@@ -238,7 +238,7 @@ Unit* __stdcall CreateUnit(unsigned char player, unsigned short typeId,
                                       unsigned short id);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* builder, int piece, int p4);
 void __stdcall SetUnitSquad(Unit* unit, int id);
-void __stdcall FUN_0047db20(Unit* unit);
+void __stdcall ForceNeighborFootprintReclaim(Unit* unit);
 
 // FUNCTION: 0x486fd0
 void __stdcall LoadUnits(HapiBank* file)
@@ -399,7 +399,7 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
 
 
     if (unit->b_10f & 4)
-        FUN_0047db20(unit);
+        ForceNeighborFootprintReclaim(unit);
     return unit;
     }
     return 0;

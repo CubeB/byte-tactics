@@ -338,7 +338,7 @@ struct Game {
 extern Game* g_game;
 
 UnitType_00488b10* __stdcall FindUnitType(const char* name);
-void __stdcall FUN_0047ddc0(UnitType_00488b10* type, Vec3_00487bf0* pos);
+void __stdcall SnapWorldPosToFootprint(UnitType_00488b10* type, Vec3_00487bf0* pos);
 Unit* __stdcall CreateUnit(unsigned char player, unsigned short id,
                                       Vec3_00487bf0 pos, int a, int b, int c);
 void __stdcall FatalError(char* message);
@@ -406,7 +406,7 @@ void __cdecl CreateMissionUnits()
             sprintf(buf, "Player number %d invalid for unit %s", e->player, e->name);
             FatalError(buf);
         }
-        FUN_0047ddc0(item, &e->pos);
+        SnapWorldPosToFootprint(item, &e->pos);
         Unit* u = CreateUnit((unsigned char)(e->player - 1), item->id, e->pos, 1, 1, 0);
         if (u) {
             // The mask is 0xffffff80, not 0x80: keeps the byte zero-extension.

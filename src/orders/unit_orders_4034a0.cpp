@@ -507,8 +507,8 @@ void __stdcall EmitNanoParticles(Vec3* from, Box* to, int count);
 void __stdcall EmitNanoParticles(Vec3* from, Vec3* to, int count);
 void __stdcall EmitReverseNanoParticles(Box* from, Vec3* to, int count);
 void __stdcall EmitReverseNanoParticles(Vec3* from, Vec3* to, int count);
-int __stdcall FUN_0047db70(UnitDef* type, int a, Point16 cell, int b);
-void __stdcall FUN_0047ddc0(UnitDef* type, Vec3* pos);
+int __stdcall CanPlaceUnitFootprint(UnitDef* type, int a, Point16 cell, int b);
+void __stdcall SnapWorldPosToFootprint(UnitDef* type, Vec3* pos);
 Unit* __stdcall CreateUnit(unsigned char player, short type, Vec3 pos, int a, int b, int c);
 void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* owner, Unit* id, Vec3* pos,
                         int param_6, int param_7);
@@ -527,7 +527,7 @@ Cell* __stdcall GetMapCellAtPosition(Vec3* pos);
 void __stdcall RemoveFeature(void* target, int flag);
 int __stdcall BroadcastPacket(int player, void* data, int size);
 void __stdcall VisitObjectsInRange(Vec3* pos, int range, const Class_00405d90& visitor);
-int __stdcall FUN_0047ea40(Vec3* pos, int range, Vec3** energy, float* energyAmount,
+int __stdcall PickRandomReclaimableResourcesInRadius(Vec3* pos, int range, Vec3** energy, float* energyAmount,
                            Vec3** metal, float* metalAmount);
 int __stdcall FUN_0049adf0(Unit* unit, int weapon);
 int __stdcall FUN_0049adf0(Unit* unit, unsigned char weapon);

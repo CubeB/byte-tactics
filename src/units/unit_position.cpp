@@ -159,14 +159,14 @@ class Class_0047cb00 {
 public:
     char unknown_0[6];
     void* head;                        // +6
-    void FUN_0047cb00(void* node);
+    void UnlinkUnit(void* node);
 };
 
 class Class_0047cb40 {
 public:
     char unknown_0[6];
     int head;                          // +6
-    void FUN_0047cb40(int node);
+    void PrependUnit(int node);
 };
 
 struct Unit {
@@ -518,7 +518,7 @@ void __stdcall ApplyAttachUnit(Order* order)
                             }
                             *link = u->next;
                         } else {
-                            u->list->FUN_0047cb00(u);
+                            u->list->UnlinkUnit(u);
                         }
                         u->f9 = order->param;
                         if (t) {
@@ -532,7 +532,7 @@ void __stdcall ApplyAttachUnit(Order* order)
                             u->next = 0;
                             u->f110.bits.b17 = 0;
                             u->owner = 0;
-                            ((Class_0047cb40*)u->list)->FUN_0047cb40((int)u);
+                            ((Class_0047cb40*)u->list)->PrependUnit((int)u);
                         }
                         u->motion->bits_2e = order->param2;
                         if (u->player->f0) {

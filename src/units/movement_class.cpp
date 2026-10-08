@@ -18,7 +18,7 @@ void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
 
 struct MovementClass;
-unsigned int __stdcall FUN_0047e1f0(MovementClass* obj, int x, int y);
+unsigned int __stdcall GetPassMapFootprintValueWithEdgeStrips(MovementClass* obj, int x, int y);
 
 class TdfRecord {
 public:
@@ -447,7 +447,7 @@ void MovementClass::RefreshPassMap(Point a, Point b)
     if (left < right && top < bottom) {
         for (int y = top; y < bottom; y++) {
             for (int x = left; x < right; x++) {
-                unsigned int v = FUN_0047e1f0(this, x, y);
+                unsigned int v = GetPassMapFootprintValueWithEdgeStrips(this, x, y);
                 // m holds only 3 << shift; the ~ stays at the use (a whole-mask local changes the frame).
                 unsigned int m = 3 << ((y & 0xf) * 2);
                 unsigned int* p = &cells[(y >> 4) * width + x];

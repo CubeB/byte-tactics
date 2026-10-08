@@ -242,18 +242,18 @@ class Class_0047cb00 {
 public:
     char unknown_0[6];
     Node_0047cb00* head;                // +6
-    void FUN_0047cb00(Node_0047cb00* node);
+    void UnlinkUnit(Node_0047cb00* node);
 };
 
 struct Class_0047cb40 {
     char unknown_0[0x6];
     int field_6;
-    void FUN_0047cb40(int param_1);
+    void PrependUnit(int param_1);
 };
 
-class Class_0047db20 {
+class ClaimFootprintVisitor {
 public:
-    virtual void FUN_0047ed30(Unit* obj);
+    virtual void ClaimFootprint(Unit* obj);
 };
 
 class Visitor_0047e750 {
@@ -287,7 +287,7 @@ struct Entry {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern Class_0047db20 DAT_004fd660[];
+extern ClaimFootprintVisitor g_claimFootprintVtable[];
 extern int DAT_0051e684;
 extern int DAT_0051e688;
 void __stdcall UpdateCellHeightRange(Point pos, Point size);
@@ -298,7 +298,7 @@ void __stdcall RemoveUnitFromMap(Unit* unit);
 Cell* __stdcall GetMapCell(int x, int y);
 
 // FUNCTION: 0x47c790
-void __stdcall FUN_0047c790(Unit* obj)
+void __stdcall ClaimFootprintCells(Unit* obj)
 {
     unsigned int f = obj->flags.all;
     unsigned char b = (unsigned char)((f & 0x8000000) >> 27);
@@ -394,14 +394,14 @@ void __stdcall FUN_0047c790(Unit* obj)
     }
 }
 
-// Runs VisitObjectsInArea over an area with a stack visitor of Class_0047db20, as
-// FUN_0047db20 does for an object's area.
-void __stdcall VisitObjectsInArea(Point pos, Point size, Class_0047db20* visitor);
+// Runs VisitObjectsInArea over an area with a stack visitor of ClaimFootprintVisitor, as
+// ForceNeighborFootprintReclaim does for an object's area.
+void __stdcall VisitObjectsInArea(Point pos, Point size, ClaimFootprintVisitor* visitor);
 
 // FUNCTION: 0x47cac0
-void __stdcall FUN_0047cac0(Point pos, Point size)
+void __stdcall ClaimFootprintsInArea(Point pos, Point size)
 {
-    Class_0047db20 visitor;
+    ClaimFootprintVisitor visitor;
     VisitObjectsInArea(pos, size, &visitor);
 }
 
@@ -411,7 +411,7 @@ void FUN_0047caf0(void)
 }
 
 // FUNCTION: 0x47cb00
-void Class_0047cb00::FUN_0047cb00(Node_0047cb00* node)
+void Class_0047cb00::UnlinkUnit(Node_0047cb00* node)
 {
     Node_0047cb00** pp = &head;
     Node_0047cb00* n = head;
@@ -424,7 +424,7 @@ void Class_0047cb00::FUN_0047cb00(Node_0047cb00* node)
 }
 
 // FUNCTION: 0x47cb40
-void Class_0047cb40::FUN_0047cb40(int param_1)
+void Class_0047cb40::PrependUnit(int param_1)
 {
     int temp = field_6;
     *(int*)((char*)param_1 + 0x8e) = temp;
@@ -432,7 +432,7 @@ void Class_0047cb40::FUN_0047cb40(int param_1)
 }
 
 // FUNCTION: 0x47cb60
-void __stdcall FUN_0047cb60(Unit* unit, Owner* owner)
+void __stdcall SetOwner(Unit* unit, Owner* owner)
 {
     Owner* cur = unit->owner;
     if (owner != cur) {
@@ -457,7 +457,7 @@ void __stdcall FUN_0047cb60(Unit* unit, Owner* owner)
 void __stdcall RemoveUnitFromMap(Unit* unit);
 
 // FUNCTION: 0x47cbd0
-void __stdcall FUN_0047cbd0(Unit* unit)
+void __stdcall ClearFootprintAndUnlink(Unit* unit)
 {
     RemoveUnitFromMap(unit);
     if (unit->unknown_86 == 0) {
@@ -714,31 +714,31 @@ int __stdcall IsFootprintClear(Unit* obj, int flag)
 }
 
 int __stdcall IsFootprintClear(Unit* obj, int flag);
-void __stdcall FUN_0047c790(Unit* obj);
+void __stdcall ClaimFootprintCells(Unit* obj);
 void __stdcall RefreshAllPassMaps(Point pos, Point size);
 
 // FUNCTION: 0x47dac0
-void __stdcall FUN_0047dac0(Unit* obj, int flag)
+void __stdcall SetYardOpen(Unit* obj, int flag)
 {
     if (IsFootprintClear(obj, flag)) {
         obj->bit2 = flag;
         obj->flags.all |= 0x8000000;
-        FUN_0047c790(obj);
+        ClaimFootprintCells(obj);
         RefreshAllPassMaps(obj->pos, obj->size);
     }
 }
 
-void __stdcall VisitObjectsInArea(Point pos, Point size, Class_0047db20* visitor);
+void __stdcall VisitObjectsInArea(Point pos, Point size, ClaimFootprintVisitor* visitor);
 void __stdcall RefreshAllPassMaps(Point pos, Point size);
 
 // The visitor is declared after the flag update so that it reuses obj's
 // stack slot; size and pos go through locals (in that order) so that pos is
 // loaded early, as in the original.
 // FUNCTION: 0x47db20
-void __stdcall FUN_0047db20(Unit* obj)
+void __stdcall ForceNeighborFootprintReclaim(Unit* obj)
 {
     obj->flags.all |= 0x8000000;
-    Class_0047db20 visitor;
+    ClaimFootprintVisitor visitor;
     Point size = obj->size;
     Point pos = obj->pos;
     VisitObjectsInArea(pos, size, &visitor);
@@ -773,7 +773,7 @@ static inline int SteepCell(Cell* c)
 }
 
 // FUNCTION: 0x47db70
-int __stdcall FUN_0047db70(UnitDef* unit, UnitDef* other, Point cell, int flags)
+int __stdcall CanPlaceUnitFootprint(UnitDef* unit, UnitDef* other, Point cell, int flags)
 {
     Point fp = unit->origin;
     if (cell.x < 0 || cell.y < 0)
@@ -839,7 +839,7 @@ static inline void CellToWorld(Point origin, Point c, Vec3* v)
 }
 
 // FUNCTION: 0x47ddc0
-void __stdcall FUN_0047ddc0(UnitDef* unit, Vec3* pos)
+void __stdcall SnapWorldPosToFootprint(UnitDef* unit, Vec3* pos)
 {
     if (unit->field_22f)
         return;
@@ -913,7 +913,7 @@ int __stdcall GetPassMapCellValue(MovementClass* obj, Cell* cell)
 // This is the pathfinder's "can this rectangle be crossed" scan.
 // Kept only for its effect on compiler state: without a header the match breaks.
 // FUNCTION: 0x47dfc0
-int __stdcall FUN_0047dfc0(MovementClass* obj, int x, int y, int w, int h)
+int __stdcall GetPassMapFootprintValue(MovementClass* obj, int x, int y, int w, int h)
 {
     if (x < 0 || y < 0)
         return 0;
@@ -989,35 +989,35 @@ int __stdcall FUN_0047dfc0(MovementClass* obj, int x, int y, int w, int h)
 // Tests whether a unit whose footprint is footprintX x footprintY cells can sit
 // at cell (x, y): its own rectangle plus the four strips that touch it (row
 // above, column right, row below, column left), each one cell wider or taller so
-// the corners are covered too. FUN_0047dfc0 returns 3 for a rectangle that is
+// the corners are covered too. GetPassMapFootprintValue returns 3 for a rectangle that is
 // completely free, 1 when something is in the way and 0 when the rectangle
 // leaves the map, so the first failure is passed straight back to the caller
 // while any later failure is reported as a plain 1.
-int __stdcall FUN_0047dfc0(MovementClass* obj, int x, int y, int w, int h);
+int __stdcall GetPassMapFootprintValue(MovementClass* obj, int x, int y, int w, int h);
 
 // The two footprint fields are copied into locals before the first call: that
 // keeps them in registers across the five calls instead of loading each field
 // again, and it is what puts the `h + 1` and `x - 1` values of the third and
 // second calls into the two stack slots the last call reads back.
 // FUNCTION: 0x47e1f0
-unsigned int __stdcall FUN_0047e1f0(MovementClass* obj, int x, int y)
+unsigned int __stdcall GetPassMapFootprintValueWithEdgeStrips(MovementClass* obj, int x, int y)
 {
     int h = obj->footprintY;
     int w = obj->footprintX;
-    unsigned int r = FUN_0047dfc0(obj, x, y, w, h);
+    unsigned int r = GetPassMapFootprintValue(obj, x, y, w, h);
     if (r <= 1)
         return r;
-    if (FUN_0047dfc0(obj, x - 1, y - 1, w + 1, 1) != 3)
+    if (GetPassMapFootprintValue(obj, x - 1, y - 1, w + 1, 1) != 3)
         return 1;
-    if (FUN_0047dfc0(obj, x + w, y - 1, 1, h + 1) != 3)
+    if (GetPassMapFootprintValue(obj, x + w, y - 1, 1, h + 1) != 3)
         return 1;
-    if (FUN_0047dfc0(obj, x, y + h, w + 1, 1) != 3)
+    if (GetPassMapFootprintValue(obj, x, y + h, w + 1, 1) != 3)
         return 1;
-    return FUN_0047dfc0(obj, x - 1, y, 1, h + 1) == 3 ? 3 : 1;
+    return GetPassMapFootprintValue(obj, x - 1, y, 1, h + 1) == 3 ? 3 : 1;
 }
 
 // FUNCTION: 0x47e570
-int __stdcall FUN_0047e570(Struct_0047e570* p, int id)
+int __stdcall IsPadSlotFree(Struct_0047e570* p, int id)
 {
     if (p->field_86 != 0) {
         return 0;
@@ -1031,9 +1031,9 @@ int __stdcall FUN_0047e570(Struct_0047e570* p, int id)
 }
 
 // Scans every grid cell overlapping the rectangle [pos, pos+size), calling
-// visitor->FUN_0047ed30 for each object (and child) whose own rectangle overlaps.
+// visitor->ClaimFootprint for each object (and child) whose own rectangle overlaps.
 // FUNCTION: 0x47e5c0
-void __stdcall VisitObjectsInArea(Point pos, Point size, Class_0047db20* visitor)
+void __stdcall VisitObjectsInArea(Point pos, Point size, ClaimFootprintVisitor* visitor)
 {
     // Declared apart from its assignment: keeps the sum from fusing.
     int sumy;
@@ -1058,13 +1058,13 @@ void __stdcall VisitObjectsInArea(Point pos, Point size, Class_0047db20* visitor
                 Point op = o->pos;
                 Point os = o->size;
                 if (pos.x < os.x + op.x && sumx > op.x && pos.y < os.y + op.y && sumy > op.y) {
-                    visitor->FUN_0047ed30(o);
+                    visitor->ClaimFootprint(o);
                 }
                 for (Unit* c = o->child; c != 0; c = c->next) {
                     Point cs = c->size;
                     Point cp = c->pos;
                     if (pos.x < cs.x + cp.x && sumx > cp.x && pos.y < cp.y + cs.y && sumy > cp.y) {
-                        visitor->FUN_0047ed30(c);
+                        visitor->ClaimFootprint(c);
                     }
                 }
             }
@@ -1174,7 +1174,7 @@ unsigned short __stdcall GetCellFeature(void* cell);
 int __stdcall RandomInt(int range);
 
 // FUNCTION: 0x47ea40
-int __stdcall FUN_0047ea40(Vec3* center, Fixed radius, Vec3** out1, float* val1, Vec3** out2, float* val2)
+int __stdcall PickRandomReclaimableResourcesInRadius(Vec3* center, Fixed radius, Vec3** out1, float* val1, Vec3** out2, float* val2)
 {
     int countB = 0;
     int countA = 0;
@@ -1248,10 +1248,12 @@ int __stdcall FUN_0047ea40(Vec3* center, Fixed radius, Vec3** out1, float* val1,
     return found;
 }
 
-void __stdcall FUN_0047c790(int param_1);
+void __stdcall ClaimFootprintCells(Unit* obj);
 
+// The visitor's slot: the class's virtual method, defined out of line (the
+// vtable needs it under the class's own name).
 // FUNCTION: 0x47ed30
-void __stdcall FUN_0047ed30(int param_1)
+void ClaimFootprintVisitor::ClaimFootprint(Unit* obj)
 {
-    FUN_0047c790(param_1);
+    ClaimFootprintCells(obj);
 }

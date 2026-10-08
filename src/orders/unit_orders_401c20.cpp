@@ -301,7 +301,7 @@ void __stdcall UpdateBuildMenuIfFocusUnit(Unit* unit);
 void __stdcall FinishConstruction(Unit* unit, Unit* target);
 int __stdcall WaitIfNotInBuildStance(Unit* unit, Order* order, int flags);
 Vec_00401c20 __stdcall GetPiecePosition(Unit* unit, int piece);
-int __stdcall FUN_0047db70(UnitDef* type, short a, Point16 cell, int b);
+int __stdcall CanPlaceUnitFootprint(UnitDef* type, short a, Point16 cell, int b);
 Unit* __stdcall CreateUnit(unsigned char player, unsigned short type, Vec_00401c20 pos,
                            int a, int b, int c);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* builder, char piece, char p4);
@@ -654,7 +654,7 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
         order->pos = GetPiecePosition(unit, piece);
         UnitDef* ut = &g_game->unitTypes[order->unitType];
         Point16 cell = GridCell(order->pos, ut->footprint);
-        if (!FUN_0047db70(ut, 0, cell, unit->flags & 3)) {
+        if (!CanPlaceUnitFootprint(ut, 0, cell, unit->flags & 3)) {
             ((Class_00439e80*)order)->FUN_00439e80(15);
             order->flags |= 2;
             return 2;

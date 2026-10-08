@@ -1005,7 +1005,7 @@ int __stdcall GetHeadingBetween(Vec3* from, Vec3* to);
 Vec3 __stdcall GetPiecePosition(Path_0043d6d0* obj, int index);
 Short3 __stdcall GetPieceAngles(Path_0043d6d0* obj, int index);
 void __stdcall SetUnitPosition(Unit* unit, Vec3 pos, int mode);
-int __stdcall FUN_0047db70(UnitType_0043cd20* type, short a8, Point cell, int mode);
+int __stdcall CanPlaceUnitFootprint(UnitType_0043cd20* type, short a8, Point cell, int mode);
 void __stdcall RemoveUnitFromMap(Unit* unit);
 void __stdcall AddUnitToMap(Unit* unit);
 void __stdcall UpdateUnitLineOfSight(Unit* unit);
@@ -1991,7 +1991,7 @@ void UnitMotion::UpdatePosition(Unit* u)
 
     if (u->target->field_0 != 0) {
         if (u->target->type == 1 || u->target->type == 2)
-            flag = FUN_0047db70(u->type, u->id, cell, m) == 0;
+            flag = CanPlaceUnitFootprint(u->type, u->id, cell, m) == 0;
     }
 
     if (flag) {

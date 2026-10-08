@@ -152,7 +152,7 @@ extern Game* g_game;
 int __stdcall RandomInt(int range);
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
-int __stdcall FUN_0047db70(UnitDef* type, short a, Point16 cell, int b);
+int __stdcall CanPlaceUnitFootprint(UnitDef* type, short a, Point16 cell, int b);
 int __stdcall CanBuildAt(UnitDef* type, Point16 cell, int a, int b);
 int GetBuildSiteMetal(void);
 void __stdcall MakeHeap(Elem_0040cc40* first, Elem_0040cc40* last, int*, Elem_0040cc40*);

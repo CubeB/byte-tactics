@@ -123,7 +123,7 @@ extern Game* g_game;
 Vec3 __stdcall GetPiecePosition(Unit* obj, int param);
 int __stdcall GetGroundHeight(Vec3* pos);
 int __cdecl FUN_004b715a(int a, int b);
-void __stdcall FUN_0047dac0(Unit* unit, int flag);
+void __stdcall SetYardOpen(Unit* unit, int flag);
 int __stdcall FUN_00465ac0(Player* player, Unit* unit);
 void __stdcall UpdateObjectState(Unit* unit);
 void __stdcall EmitThrustParticles(int, int, int, int, short);
@@ -135,7 +135,7 @@ int __stdcall RandomInt(int range);
 void __stdcall StartExplodePiece(Header_00481140* h);
 void __stdcall AddExplosionEffect(void* pos, void* src, int index, int flag);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* transporter, int a, int b);
-int __stdcall FUN_0047db70(UnitDef* type, short a, int position, int b);
+int __stdcall CanPlaceUnitFootprint(UnitDef* type, short a, int position, int b);
 
 static inline Unit* GetUnit(unsigned short id)
 {
@@ -323,7 +323,7 @@ void UnitScript::SetUnitValue(int which, int value)
         unit->bit1 = value;
         break;
     case 18:
-        FUN_0047dac0(unit, value);
+        SetYardOpen(unit, value);
         break;
     case 19:
         unit->bit3 = value;
@@ -604,7 +604,7 @@ void UnitScript::DropUnit(unsigned short id)
 {
     Unit* u = GetUnit(id);
     if (u != 0 && (u->flags & 0x10000000) && u->transporter == state->unit) {
-        if (FUN_0047db70(u->def, u->id, u->field_76, 1)) {
+        if (CanPlaceUnitFootprint(u->def, u->id, u->field_76, 1)) {
             AttachUnitToPiece(u, 0, -1, 1);
         }
     }

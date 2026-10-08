@@ -55,17 +55,17 @@ struct Game {
     int field_142b7;
 };
 
-class Class_0047db20 {
+class ClaimFootprintVisitor {
 public:
-    virtual void FUN_0047ed30();
+    virtual void ClaimFootprint();
 };
 #pragma pack(pop)
 
 extern Game* g_game;
-extern Class_0047db20 DAT_004fd660[];
+extern ClaimFootprintVisitor g_claimFootprintVtable[];
 
 void __stdcall UpdateCellHeightRange(Point pos, Point size);
-void __stdcall VisitObjectsInArea(Point pos, Point size, Class_0047db20* visitor);
+void __stdcall VisitObjectsInArea(Point pos, Point size, ClaimFootprintVisitor* visitor);
 void __stdcall RefreshPassMapsForUnit(Obj_0047db20* obj);
 
 // Reads the position through a const reference: written inline, the two
@@ -123,7 +123,7 @@ void __stdcall RemoveUnitFromMap(Obj_0047db20* obj)
     obj->flags.all &= ~0x08000000;
     if (obj->flags.bits.flag26) {
         obj->flags.all &= ~0x04000000;
-        Class_0047db20 visitor;
+        ClaimFootprintVisitor visitor;
         VisitObjectsInArea(obj->pos, obj->size, &visitor);
     }
     RefreshPassMapsForUnit(obj);

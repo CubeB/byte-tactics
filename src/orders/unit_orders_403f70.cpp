@@ -57,8 +57,8 @@ static inline UnitDef* Definitions() { return g_game->defs; }
 union Fixed { int value; struct { unsigned short fraction; short whole; }; };
 void __stdcall QueueUnitSpeech(Unit*, int, const char*);
 void __stdcall MarkSelectionOrdersDirty(Unit*);
-int __stdcall FUN_0047db70(UnitDef*, int, Point, int);
-void __stdcall FUN_0047ddc0(UnitDef*, Vec3*);
+int __stdcall CanPlaceUnitFootprint(UnitDef*, int, Point, int);
+void __stdcall SnapWorldPosToFootprint(UnitDef*, Vec3*);
 Unit* __stdcall CreateUnit(unsigned char, short, Vec3, int, int, int);
 void __stdcall AddOrder(Class_00438760, int, Unit*, Unit*, Vec3*, int, int);
 short __stdcall GetHeadingBetween(Vec3*, Vec3*);

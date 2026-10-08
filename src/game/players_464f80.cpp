@@ -186,7 +186,7 @@ void UpdateRadarMapped();
 unsigned char __stdcall FindHostSlot();
 unsigned short __stdcall FindUnitTypeId(const char* name);
 int __stdcall RandomInt(int range);
-int __stdcall FUN_0047db70(UnitDef_00464f80* type, int a, Point16 cell, int c);
+int __stdcall CanPlaceUnitFootprint(UnitDef_00464f80* type, int a, Point16 cell, int c);
 short __stdcall FindFeatureAtPos(Pos_00464f80* pos, int a, int b);
 int __stdcall GetCellMeanHeight(Pos_00464f80* pos);
 Unit* __stdcall CreateUnit(unsigned char player, unsigned short typeId,
@@ -368,7 +368,7 @@ void __stdcall FUN_00464f80()
                                     cell.y = zacc >> 20;
                                     do {
                                         cell.x = xacc >> 20;
-                                        if (FUN_0047db70(
+                                        if (CanPlaceUnitFootprint(
                                                 (UnitDef_00464f80*)((char*)g_game->types + typeOff),
                                                 0, cell, 1) != 0)
                                             hits++;

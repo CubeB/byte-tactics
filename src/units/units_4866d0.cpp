@@ -179,7 +179,7 @@ void __stdcall SetUnitSquad(void* unit, int flag);
 void __stdcall RemoveUnitProjectiles(void* unit);
 void __stdcall AttachUnitToPiece(void* unit, void* builder, int a, int c);
 void __stdcall DamageUnit(void* a, void* b, int c, int d, int e);
-void __stdcall FUN_0047cbd0(void* unit);
+void __stdcall ClearFootprintAndUnlink(void* unit);
 void __stdcall RemoveUnitLineOfSight(void* unit);
 void __stdcall FUN_00494ff0(int flag);
 char* __stdcall Translate(char* text);
@@ -225,7 +225,7 @@ void __stdcall ApplyUnitDeath(Cmd_004866d0* cmd, int local)
         DamageUnit(unit->parent, unit->x8a, 30000, depth, 0);
         AttachUnitToPiece(unit->x8a, 0, -1, 1);
     }
-    FUN_0047cbd0(unit);
+    ClearFootprintAndUnlink(unit);
     if ((g_game->x14281 & 2) == 2)
         RemoveUnitLineOfSight(unit);
     if (local == 0 && cmd->amount > 0)

@@ -104,7 +104,7 @@ public:
 int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
-int __stdcall FUN_0047e570(Unit* unit, int id);
+int __stdcall IsPadSlotFree(Unit* unit, int id);
 void __stdcall QueueUnitSpeech(Unit*, int, const char*);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, int p3, int p4);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
@@ -137,7 +137,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 // 0x411840, matched in 0x411840.cpp; inlined into the cases below.
 int __stdcall FindLandingPad(Unit* unit, int pad)
 {
-    if (pad != -1 && FUN_0047e570(unit, pad)) {
+    if (pad != -1 && IsPadSlotFree(unit, pad)) {
         return pad;
     }
     int pads[4];
@@ -147,7 +147,7 @@ int __stdcall FindLandingPad(Unit* unit, int pad)
     pads[3] = -1;
     ((CobScript*)unit->script)->QueryScript("QueryLandingPad", &pads[0], &pads[1], &pads[2], &pads[3]);
     for (int i = 0; i < 4; i++) {
-        if (pads[i] != -1 && FUN_0047e570(unit, pads[i])) {
+        if (pads[i] != -1 && IsPadSlotFree(unit, pads[i])) {
             return pads[i];
         }
     }
@@ -236,7 +236,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
         int dropped = 0;
         if (flags & 0x40)
             return 8;
-        if (!FUN_0047e570(host, order->angle)) {
+        if (!IsPadSlotFree(host, order->angle)) {
             QueueUnitSpeech(unit, 7, "Landing aborted: no pads available");
             return 0;
         }

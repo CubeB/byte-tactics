@@ -476,7 +476,7 @@ class Class_0047c3a0;
 class Class_0047c6c0;
 struct Class_0047cb00;
 struct Class_0047cb40;
-class Class_0047db20;
+class ClaimFootprintVisitor;
 class Class_0047f960;
 class Class_0047f990;
 class Class_0047fa30;
@@ -11815,10 +11815,10 @@ struct SmkStats_0047c530 {  // 0x54 bytes, 1 view
     unsigned int highestExtraUsed;  // +0x50
 };
 
-class Class_0047db20 {  // 0x4 bytes, 4 views
+class ClaimFootprintVisitor {  // 0x4 bytes, 4 views
 public:
-    virtual void FUN_0047ed30(Obj_0047e5c0*);
-    virtual void FUN_0047ed30(void);
+    virtual void ClaimFootprint(Obj_0047e5c0*);
+    virtual void ClaimFootprint(void);
 };
 
 struct Class_0047cb00 {  // 0xa bytes, 9 views
@@ -11827,13 +11827,13 @@ struct Class_0047cb00 {  // 0xa bytes, 9 views
     int flags;  // +0x2
     Unit* head;  // +0x6
     Class_0047cb00(void);
-    void FUN_0047cb00(Unit*);
+    void UnlinkUnit(Unit*);
 };
 
 struct Class_0047cb40 {  // 0xa bytes, 2 views
     char unknown_0[6];
     int head;  // +0x6
-    void FUN_0047cb40(int);
+    void PrependUnit(int);
 };
 
 union Fix_0047d2e0 {  // 0x4 bytes, 1 view

@@ -37,7 +37,7 @@ void __stdcall VisitObjectsInRange(Vec3*, int, const Class_00405d90&);
 int __stdcall RandomInt(int);
 Class_00438760 __stdcall GetOrderType(unsigned char, Unit*, Unit*, int);
 int __stdcall FUN_0043b400(Unit*, Unit*, int);
-int __stdcall FUN_0047ea40(Vec3*, int, Vec3**, float*, Vec3**, float*);
+int __stdcall PickRandomReclaimableResourcesInRadius(Vec3*, int, Vec3**, float*, Vec3**, float*);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
 
 // FUNCTION: 0x405980
@@ -81,7 +81,7 @@ int __stdcall RepairPatrolOrder(Unit* unit, Order* order, int flags)
                 // Empty statement stops range2 being folded into the call.
                 do {} while (0); // emits no code; keeps range2 out of the call (see top)
                 float energyAmount, metalAmount;
-                if (FUN_0047ea40(&unit->pos, range2, &energy, &energyAmount, &metal, &metalAmount)) {
+                if (PickRandomReclaimableResourcesInRadius(&unit->pos, range2, &energy, &energyAmount, &metal, &metalAmount)) {
                     if (metal && unit->owner->metal < unit->owner->metalCapacity * 0.2) {
                         ((Class_004388d0*)order)->SetAttachedFx(0);
                         AppendOrder(unit, new Class_0043a1f0("RECLAIM", 0, metal, 0, 0, 0));

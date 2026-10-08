@@ -442,7 +442,7 @@ int __cdecl FUN_004b7123(short, int);
 short __cdecl FUN_004b715a(int, int);
 int __stdcall GetHeadingBetween(Vec3*, Vec3*);
 int __stdcall GetGroundHeight(Vec3*);
-int __stdcall FUN_0047e2d0(Unit*, Vec3*);
+int __stdcall CanPlaceFootprintAt(Unit*, Vec3*);
 void __stdcall AttachUnitToPiece(Unit*, Unit*, int, int);
 void __stdcall QueueUnitSpeech(Unit*, int, const char*);
 void __stdcall GetFactoriesInRadius(int, Vec3*, int, std::vector<Unit*>*);
@@ -458,9 +458,9 @@ int __stdcall WeaponCanReachUnit(Unit*, Unit*, unsigned char);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
 void __stdcall SetWeaponTargetPos(Unit*, Vec3*, int);
 void __stdcall ClearWeaponTarget(Unit*, int);
-int __stdcall FUN_0047e570(Unit*, int);
-int __stdcall FUN_0047db70(UnitDef*, int, Point, int);
-void __stdcall FUN_0047ddc0(UnitDef*, Vec3*);
+int __stdcall IsPadSlotFree(Unit*, int);
+int __stdcall CanPlaceUnitFootprint(UnitDef*, int, Point, int);
+void __stdcall SnapWorldPosToFootprint(UnitDef*, Vec3*);
 Unit* __stdcall CreateUnit(unsigned char, short, Vec3, int, int, int);
 void __stdcall AddOrder(Class_00438760, int, Unit*, Unit*, Vec3*, int, int);
 void __stdcall StartBuildingScript(Unit*, Order*, short);
@@ -475,7 +475,7 @@ int __stdcall ComputeReclaimDamagePulse(Unit*, Unit*, int);
 void __stdcall DamageUnit(Unit*, Unit*, int, int, int);
 void __stdcall MarkSelectionOrdersDirty(Unit*);
 int __stdcall AddRepairProgress(Unit*, Unit*, float);
-int __stdcall FUN_0047ea40(Vec3*, Fixed, Vec3**, float*, Vec3**, float*);
+int __stdcall PickRandomReclaimableResourcesInRadius(Vec3*, Fixed, Vec3**, float*, Vec3**, float*);
 void __stdcall VisitObjectsInRange(Vec3*, int, const Class_00410c70&);
 void __stdcall VisitObjectsInRange(Vec3*, int, const Class_004158d0&);
 int __stdcall SendScriptCallByName(Unit*, char*, char, int, int, int, int);
@@ -663,7 +663,7 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
         }
         break;
     case 1: {
-        if (FUN_0047e2d0(unit, &unit->pos)) {
+        if (CanPlaceFootprintAt(unit, &unit->pos)) {
             unit->script->StartScript("EndTransport", 0, 1);
             Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
             int h = max(GetGroundHeight(&unit->pos), g_game->seaLevel);
@@ -680,7 +680,7 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
             Point fp = unit->footprint;
             Point cell = WorldToCellMul(p, fp);
             CellToWorld(fp, cell, &p);
-            if (FUN_0047e2d0(unit, &p)) {
+            if (CanPlaceFootprintAt(unit, &p)) {
                 ((Class_004388d0*)order)->SetAttachedFx((int)new Class_0044e2d0(order, p));
                 order->flags = 0xe0;
                 return 2;
@@ -941,7 +941,7 @@ int __stdcall VtolUnloadOrder(Unit* unit, Order* order, int flags)
         break;
     case 1: {
         Unit* cargo = order->target.owner;
-        if (FUN_0047db70(cargo->def, 0, WorldToCell(order->pos, cargo->footprint), 1)) {
+        if (CanPlaceUnitFootprint(cargo->def, 0, WorldToCell(order->pos, cargo->footprint), 1)) {
             Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
             // Through an int local: passing the expression straight sign-extends differently.
             int h = unit->cargo->def->field_170;
@@ -957,7 +957,7 @@ int __stdcall VtolUnloadOrder(Unit* unit, Order* order, int flags)
         if (flags & 0x40)
             return 9;
         Unit* cargo = order->target.owner;
-        if (!FUN_0047db70(cargo->def, 0, WorldToCell(order->pos, cargo->footprint), 1)) {
+        if (!CanPlaceUnitFootprint(cargo->def, 0, WorldToCell(order->pos, cargo->footprint), 1)) {
             QueueUnitSpeech(unit, 7, "Unable to unload unit");
             return 9;
         }
@@ -981,7 +981,7 @@ int __stdcall VtolUnloadOrder(Unit* unit, Order* order, int flags)
 // FUNCTION: 0x411840
 int __stdcall FindLandingPad(Unit* unit, int pad)
 {
-    if (pad != -1 && FUN_0047e570(unit, pad)) {
+    if (pad != -1 && IsPadSlotFree(unit, pad)) {
         return pad;
     }
     int pads[4];
@@ -991,7 +991,7 @@ int __stdcall FindLandingPad(Unit* unit, int pad)
     pads[3] = -1;
     unit->script->QueryScript("QueryLandingPad", &pads[0], &pads[1], &pads[2], &pads[3]);
     for (int i = 0; i < 4; i++) {
-        if (pads[i] != -1 && FUN_0047e570(unit, pads[i])) {
+        if (pads[i] != -1 && IsPadSlotFree(unit, pads[i])) {
             return pads[i];
         }
     }
@@ -1122,14 +1122,14 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
     case 2: {
         if (flags&0x40) return 8;
         UnitDef* def=&g_game->defs[order->type];
-        if (!FUN_0047db70(def,0,WorldToCell(order->pos,g_game->defs[order->type].origin),1)) {
+        if (!CanPlaceUnitFootprint(def,0,WorldToCell(order->pos,g_game->defs[order->type].origin),1)) {
             if (!order->retries) QueueUnitSpeech(unit,7,"Waiting for target area to clear");
             else if (order->retries>10) { QueueUnitSpeech(unit,7,"Target area was blocked"); return 8; }
             ++order->retries;
             ((Class_00439e80*)order)->FUN_00439e80(30);
             return 2;
         }
-        FUN_0047ddc0(def,&order->pos);
+        SnapWorldPosToFootprint(def,&order->pos);
         ((Class_004895c0*)&order->target)->SetUnit(CreateUnit(unit->player,(short)order->type,order->pos,0,1,0));
         if (!order->targetUnit) { QueueUnitSpeech(unit,7,"Unable to create any more units"); return 8; }
         QueueUnitSpeech(unit,9,"Starting construction");

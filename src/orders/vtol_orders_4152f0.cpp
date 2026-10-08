@@ -92,7 +92,7 @@ void __stdcall GetFactoriesInRadius(int player, Vec3* pos, int range, std::vecto
 void __stdcall VisitObjectsInRange(Vec3*, int, const Class_004158d0&);
 int __stdcall FUN_0043b400(Unit*, Unit*, int);
 union Fixed { int v; struct { unsigned short frac; short whole; } p; };
-int __stdcall FUN_0047ea40(Vec3*, Fixed, Vec3**, float*, Vec3**, float*);
+int __stdcall PickRandomReclaimableResourcesInRadius(Vec3*, Fixed, Vec3**, float*, Vec3**, float*);
 
 // inline: no function may be compiled before VtolRepairPatrolOrder, or the landed test returns.
 inline void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
@@ -192,7 +192,7 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
             float energyAmount, metalAmount;
             Fixed range;
             range.v = 0xf00000;
-            if (FUN_0047ea40(&unit->pos, range, &energy, &energyAmount, &metal, &metalAmount)) {
+            if (PickRandomReclaimableResourcesInRadius(&unit->pos, range, &energy, &energyAmount, &metal, &metalAmount)) {
                 // Amounts read through GetEnergy/GetMetal and Total: gives the x87 load order.
                 if (unit->owner->GetMetal() < unit->owner->metalCapacity * 0.2 && metal) {
                     ((Class_004388d0*)order)->SetAttachedFx(0);

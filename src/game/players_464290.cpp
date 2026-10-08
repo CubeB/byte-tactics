@@ -1,87 +1,307 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// Starts a player: clears the five 11-byte per-team tables, records the side,
-// the alliance and the player index, then builds the player's short name
-// ("Player", "Core" or "Arm") for a campaign and for a skirmish game.
-
+// Decompiled by space-bunny-free, Sonnet 5.5, deepseek-v4.1-flash, GPT-6.1-sol, deepseek-v4.1, mimo-v2.6-pro, DeepSeek V4.1 Flash, GPT-6, claude-opus-5-5, Opus, Haiku, Space Bunny Free, opus and Claude Opus 5.5. Names are provisional.
+// The player slots (g_game + 0x1b63, 0x14b bytes each): starting, resetting,
+// initialising and freeing them, the metal and energy transfers, the per-tick
+// player update, the unit line-of-sight loop and the camera setup.
 #include <stdio.h>
 #include <string.h>
 
 class Mission {
 public:
+    char unknown_0[0xd44];
+    int field_d44;                     // +0xd44
+    char unknown_d48[0xd5c - 0xd48];
+    float pos_x[10];                   // +0xd5c
+    float pos_y[10];                   // +0xd84
     int GetGameType();
+    char* GetNameSlot(int index);
 };
 
-// The object at g_game + 0x0c. Only the field at +0x620 is read here.
-struct Map_00464290 {
-    char unknown_0[0x620];
-    int field_620;                    // +0x620
+class MissionConditions {
+public:
+    int CheckVictory();
+    int CheckDefeat();
 };
+
+class Pathfinder {
+public:
+    void RunSearches();
+};
+
+struct Player;
+struct Unit;
 
 #pragma pack(push, 1)
-struct PlayerInfo_00464290 {
-    char unknown_0[0x94];
-    unsigned char field_94;           // +0x94
-    unsigned char side;               // +0x95
-    char unknown_96[0x99 - 0x96];
-    unsigned short field_99;          // +0x99
-    unsigned short bits_9b : 5;       // +0x9b, bits 0 to 4
-    unsigned short bit5 : 1;
-    unsigned short bit6 : 1;
-    unsigned short watching : 1;
-    unsigned short mapping : 1;
-    unsigned short bit9 : 1;
-    unsigned short bit10 : 1;
-    unsigned short commander : 2;
-    unsigned short cheating : 1;
-    unsigned short fixedloc : 1;
-    unsigned short closed : 1;
+class UnitResources {                  // 0x34 bytes
+public:
+    float metal;                       // +0x0
+    char unknown_4[0x18 - 0x4];
+    float energy;                      // +0x18
+    char unknown_1c[0x30 - 0x1c];
+    Player* player;                    // +0x30
+    void Reset(unsigned char playerIndex);
+    int SpendEnergy(float amount);
+    int SpendMetal(float amount);
 };
 
-struct Player_00464290 {
-    int active;                       // +0x00
-    int index;                        // +0x04
+class SquadManager {                   // 0x3d bytes
+public:
+    void* player;                      // +0x0
+    unsigned char field_4;             // +0x4
+    int countdown;                     // +0x5
+    int field_9;                       // +0x9
+    int field_d;                       // +0xd
+    void* timers[10];                  // +0x11
+    void* cursor;                      // +0x39
+    SquadManager(void* p);
+    void DeleteTimers();
+    void TickIfActive();
+};
+
+struct Vec3 {
+    int x, y, z;
+};
+
+struct Point16 {
+    short x, y;
+};
+
+struct Map {
+    char unknown_0[0x620];
+    int field_620;                     // +0x620
+};
+
+struct UnitType {
+    char unknown_0[0x249];
+};
+
+// A unit. Only the fields these functions use are named.
+struct Unit {
+    char unknown_0[0xbc];
+    float field_bc;                    // +0xbc
+    char unknown_c0[0xd4 - 0xc0];
+    float field_d4;                    // +0xd4
+    char unknown_d8[0xec - 0xd8];
+    Player* owner;                     // +0xec
+    char unknown_f0[0x110 - 0xf0];
+    unsigned int flags;                // +0x110
+    char unknown_114[0x118 - 0x114];
+};
+
+struct PlayerInfo {
+    char name[0x94];                   // +0x00
+    unsigned char field_94;            // +0x94
+    unsigned char side;                // +0x95
+    unsigned char logo;                // +0x96
+    unsigned short bit_97 : 1;         // +0x97
+    unsigned short rest_97 : 15;
+    unsigned short field_99;           // +0x99
+    // unsigned short bitfields: the only spelling that gives a direct
+    // `or byte ptr [m], K`.
+    union {
+        unsigned char flags_9b;        // +0x9b
+        struct {
+            unsigned short low : 4;
+            unsigned short bit4 : 1;
+            unsigned short bit5 : 1;
+            unsigned short bit6 : 1;
+            unsigned short watching : 1;
+            unsigned short mapping : 1;
+            unsigned short bit9 : 1;
+            unsigned short bit10 : 1;
+            unsigned short commander : 2;
+            unsigned short cheating : 1;
+            unsigned short fixedloc : 1;
+            unsigned short closed : 1;
+        } b;
+    };
+    char unknown_9d[0xa1 - 0x9d];
+    unsigned short field_a1;           // +0xa1
+    unsigned short field_a3;           // +0xa3
+    char unknown_a5[0xb9 - 0xa5];
+};
+
+struct Player {
+    int active;                        // +0x00
+    int index;                         // +0x04
     char unknown_8[0xc - 8];
-    int field_c;                      // +0x0c
-    char unknown_10[0x22 - 0x10];
-    unsigned char field_22;           // +0x22
+    int field_c;                       // +0x0c
+    char unknown_10[0x18 - 0x10];
+    int field_18;                      // +0x18
+    char unknown_1c[0x21 - 0x1c];
+    unsigned char field_21;            // +0x21
+    unsigned char field_22;            // +0x22
     char unknown_23[0x27 - 0x23];
-    PlayerInfo_00464290* info;        // +0x27
-    char name[30];                    // +0x2b
-    char fullName[0x73 - 0x49];       // +0x49
-    unsigned char type;               // +0x73
-    int field_74;                     // +0x74
-    char unknown_78[0x108 - 0x78];
-    unsigned char team_108[11];       // +0x108
-    unsigned char team_113[11];       // +0x113
-    unsigned char team_11e[11];       // +0x11e
-    unsigned char team_129[11];       // +0x129
-    unsigned char team_134[11];       // +0x134
-    unsigned char alliance;           // +0x13f
-    char unknown_140[0x146 - 0x140];
-    unsigned char field_146;          // +0x146
-    unsigned char field_147;          // +0x147
-    unsigned char field_148;          // +0x148
-    char unknown_149[0x14b - 0x149];
+    PlayerInfo* info;                  // +0x27
+    char name[30];                     // +0x2b
+    char fullName[0x67 - 0x49];        // +0x49
+    Unit* units;                       // +0x67
+    Unit* units_end;                   // +0x6b
+    unsigned short field_6f;           // +0x6f
+    unsigned short field_71;           // +0x71
+    unsigned char type;                // +0x73
+    SquadManager* unit;                // +0x74
+    char unknown_78[0x7c - 0x78];
+    void* buffer;                      // +0x7c
+    int field_80;                      // +0x80
+    int field_84;                      // +0x84
+    int field_88;                      // +0x88
+    float field_8c;                    // +0x8c
+    int field_90;
+    int field_94;
+    float field_98;                    // +0x98
+    int field_9c;
+    int field_a0;
+    int field_a4;
+    int field_a8;
+    int field_ac;
+    int field_b0;
+    int field_b4;
+    int field_b8;
+    int field_bc;
+    int field_c0;
+    int field_c4;
+    int field_c8;
+    int field_cc;
+    int field_d0;
+    int field_d4;
+    int field_d8;
+    char unknown_dc[0xe4 - 0xdc];
+    int field_e4;                      // +0xe4
+    int field_e8;                      // +0xe8
+    UnitResources* econ;               // +0xec
+    int field_f0;                      // +0xf0
+    int field_f4;                      // +0xf4
+    int field_f8;                      // +0xf8
+    short field_fc;                    // +0xfc
+    short field_fe;                    // +0xfe
+    short field_100;                   // +0x100
+    short field_102;                   // +0x102
+    short field_104;                   // +0x104
+    short field_106;                   // +0x106
+    unsigned char team_108[11];        // +0x108
+    unsigned char team_113[11];        // +0x113
+    unsigned char team_11e[11];        // +0x11e
+    unsigned char team_129[11];        // +0x129
+    unsigned char team_134[11];        // +0x134
+    unsigned char alliance;            // +0x13f
+    int field_140;                     // +0x140
+    unsigned short field_144;          // +0x144
+    unsigned char team;                // +0x146
+    unsigned char field_147;           // +0x147
+    unsigned char field_148;           // +0x148
+    unsigned short flags;              // +0x149
+    void Clear() { active = 0; type = 0; }
+};
+
+struct Slot {                          // 0x18 bytes
+    int controller;                    // +0x0
+    char unknown_4[0xc - 0x4];
+    int field_c;                       // +0xc
+    int field_10;                      // +0x10
+    int unknown_14;
+};
+
+struct Menu {
+    char unknown_0[0x40];
+};
+
+struct Form {
+    char unknown_0[0xcc];
+    char choice1[0x10];                // +0xcc
+    char choice2[0x20];                // +0xdc
+};
+
+struct Gadget;
+
+struct Screen {
+    char unknown_0[4];
+    Form* form;                        // +0x4
+    void (__stdcall *callback)(Gadget*); // +0x8
+};
+
+struct Gadget {
+    char unknown_0[0x18];
+    Screen* screen;                    // +0x18
+    char unknown_1c[0x60 - 0x1c];
+    int selected;                      // +0x60
 };
 
 struct Game {
     char unknown_0[0xc];
-    Map_00464290* map;                // +0x0c
-    char unknown_10[0x1b63 - 0x10];
-    Player_00464290 players[10];      // +0x1b63
-    char unknown_2851[0x391e9 - 0x2851];
-    Mission* campaign;                // +0x391e9
+    Map* map;                          // +0x0c
+    char unknown_10[0x519 - 0x10];
+    Menu menu;                         // +0x519
+    char unknown_559[0x1a3f - 0x559];
+    // Unused but must stay: the info pointer is addressed one slot below players.
+    PlayerInfo* infos[11];             // +0x1a3f (addressing only, see above)
+    char unknown_1a6b[0x1b63 - 0x1a6b];
+    Player players[11];                // +0x1b63
+    char unknown_299c[0x29a0 - 0x299c];
+    Slot* slots;                       // +0x29a0
+    char unknown_29a4[0x2a3e - 0x29a4];
+    unsigned short field_2a3e;         // +0x2a3e
+    unsigned short field_2a40;         // +0x2a40
+    unsigned char localPlayer;         // +0x2a42
+    unsigned char field_2a43;          // +0x2a43
+    char unknown_2a44[0x2c28 - 0x2a44];
+    int table_2c28[11];                // +0x2c28
+    char unknown_2c54[0x14207 - 0x2c54];
+    Pathfinder* pathfinder;            // +0x14207
+    char unknown_1420b[0x14223 - 0x1420b];
+    int screen_x;                      // +0x14223
+    int screen_y;                      // +0x14227
+    char unknown_1422b[0x14233 - 0x1422b];
+    int width;                         // +0x14233
+    int height;                        // +0x14237
+    char unknown_1423b[0x1427f - 0x1423b];
+    unsigned char field_1427f;         // +0x1427f
+    char unknown_14280[0x14281 - 0x14280];
+    unsigned short flags;              // +0x14281
+    char unknown_14283[0x142ef - 0x14283];
+    short blinkTimer;                  // +0x142ef
+    unsigned short blinkOn : 1;        // +0x142f1, bit 0
+    unsigned short rest_142f1 : 15;
+    char unknown_142f3[0x1439b - 0x142f3];
+    UnitType* types;                   // +0x1439b
+    char unknown_1439f[0x37eee - 0x1439f];
+    int difficulty;                    // +0x37eee
+    char unknown_37ef2[0x37ef6 - 0x37ef2];
+    int field_37ef6;                   // +0x37ef6
+    char unknown_37efa[0x37f5f - 0x37efa];
+    char startPos[0x38a47 - 0x37f5f];  // +0x37f5f, 0x232-byte records
+    unsigned int tick;                 // +0x38a47
+    char unknown_38a4b[0x38d6b - 0x38a4b];
+    int field_38d6b;                   // +0x38d6b
+    char unknown_38d6f[0x391e9 - 0x38d6f];
+    Mission* mission;                  // +0x391e9
+    MissionConditions* list;           // +0x391ed
+    char unknown_391f1[0x39239 - 0x391f1];
+    short field_39239;                 // +0x39239
+    // unsigned short bitfields: the only spelling that gives a direct
+    // `or byte ptr [m], K`.
+    union {
+        unsigned short w;
+        struct {
+            unsigned short padb2 : 2;
+            unsigned short bit2 : 1;
+            unsigned short bit3 : 1;
+            unsigned short bit4 : 1;
+            unsigned short bit5 : 1;
+            unsigned short bit6 : 1;
+            unsigned short rest2 : 9;
+        } b;
+    } flags_3923b;                     // +0x3923b
 };
 #pragma pack(pop)
 
 extern Game* g_game;
 
-char* __stdcall Translate(char* text);
+const char* __stdcall Translate(const char* text);
 
 // FUNCTION: 0x464290
 void __stdcall FUN_00464290(int player, char type)
 {
-    Player_00464290* p = &g_game->players[player & 0xff];
+    Player* p = &g_game->players[player & 0xff];
     // Declared after p: puts the pointer in the addressing-mode index slot.
     int idx = player & 0xff;
 
@@ -96,14 +316,14 @@ void __stdcall FUN_00464290(int player, char type)
         p->info->field_94 = t;
     }
     p->team_113[idx] = 1;
-    p->field_74 = 0;
-    p->field_146 = (char)player;
+    p->unit = 0;
+    p->team = (char)player;
     p->field_148 = (char)player;
     p->team_108[idx] = 1;
     p->active = 1;
     p->field_147 = (char)player;
     p->alliance = 5;
-    p->info->bit5 = 0;
+    p->info->b.bit5 = 0;
     p->index = player & 0xff;
     p->field_c = 0;
     p->field_22 = 0;
@@ -112,7 +332,7 @@ void __stdcall FUN_00464290(int player, char type)
         p->info->field_99 = g_game->map->field_620 / 0x100000 + 1;
     }
 
-    if (g_game->campaign->GetGameType() == 1) {
+    if (g_game->mission->GetGameType() == 1) {
         if (type == 1) {
             sprintf(p->name, Translate("Player"));
         } else if (type == 2) {
@@ -126,7 +346,7 @@ void __stdcall FUN_00464290(int player, char type)
         strcpy(p->fullName, p->name);
     }
 
-    if (g_game->campaign->GetGameType() == 2) {
+    if (g_game->mission->GetGameType() == 2) {
         if (type == 1) {
             sprintf(p->name, Translate("Player"));
         } else if (type == 2) {
@@ -138,4 +358,902 @@ void __stdcall FUN_00464290(int player, char type)
         }
         strcpy(p->fullName, p->name);
     }
+}
+
+extern char DAT_005119b8[];
+
+// FUNCTION: 0x4644d0
+void ResetPlayerSlots()
+{
+    Player* p;
+    int i;
+
+    for (i = 0; i <= 10; i++) {
+        PlayerInfo* t = g_game->players[i].info;
+        memset(&g_game->players[i], 0, 0x14b);
+        g_game->players[i].info = t;
+    }
+
+    g_game->localPlayer = 0;
+    g_game->field_2a43 = 0;
+    memset(g_game->table_2c28, 0, 0x2c);
+
+    p = &g_game->players[0];
+    for (i = 0; i <= 10; i++, p++) {
+        memset(p->team_108, 0, 11);
+        memset(p->team_113, 0, 11);
+        memset(p->info, 0, 0xb9);
+        sprintf(p->name, "Player %d First", i);
+        sprintf(p->fullName, "Player %d Second", i);
+        p->team_108[i] = 1;
+        p->team_113[i] = 1;
+        // Inlined helper: separate stores let the reload of p->info be hoisted.
+        p->Clear();
+        p->info->field_94 = 0;
+        p->info->field_99 = 0;
+        p->info->b.bit4 = 0;
+        p->info->bit_97 = 0;
+        p->info->logo = (char)i;
+        p->info->side = 0;
+        strcpy(p->info->name, DAT_005119b8);
+        p->unit = 0;
+        p->field_c = 0;
+        p->field_18 = 0;
+        p->units = 0;
+        p->units_end = 0;
+        p->field_6f = 0;
+        p->field_71 = 0;
+        p->field_144 = 0;
+        // Stays before field_140 = 0.
+        p->field_21 &= 0xfe;
+        p->field_140 = 0;
+        p->index = -1;
+        p->team = 10;
+        p->alliance = 5;
+        p->info->b.bit5 = 0;
+    }
+
+    g_game->field_2a3e = 0;
+    g_game->field_2a40 = 0;
+}
+
+void* __cdecl operator new(unsigned int size);
+void __cdecl operator delete(void* p);
+void __stdcall CreateSquads(Player* p);
+void __stdcall CreatePlayerAI(int player);
+
+// FUNCTION: 0x464700
+void __stdcall InitPlayerSlot(Player* p)
+{
+    p->field_f0 = g_game->tick;
+    p->field_f4 = g_game->tick;
+    // The third stamp runs here but is written after the clears: C2 has to number its location after theirs.
+    goto stamp;
+back:
+    p->field_ac = 0;
+    p->field_b4 = 0;
+    p->field_bc = 0;
+    p->field_c4 = 0;
+    p->field_cc = 0;
+    p->field_d4 = 0;
+    p->field_8c = 0;
+    p->field_90 = 0;
+    p->field_94 = 0;
+    p->field_98 = 0;
+    p->field_9c = 0;
+    p->field_a0 = 0;
+    p->field_a4 = 0;
+    p->field_a8 = 0;
+    p->field_b0 = 0;
+    p->field_b8 = 0;
+    p->field_c0 = 0;
+    p->field_c8 = 0;
+    p->field_e8 = 0;
+    p->field_e4 = 0;
+    p->field_d0 = 0;
+    p->field_d8 = 0;
+    goto guard;
+stamp:
+    p->field_f8 = g_game->tick;
+    goto back;
+guard:
+    if (!p->econ) {
+        p->econ = new UnitResources;
+    }
+    p->econ->Reset(p->team);
+    p->flags &= 0xfffe;
+    p->field_fc = 0;
+    p->field_fe = 0;
+    p->field_104 = 0;
+    p->field_106 = 0;
+    p->field_102 = p->field_100 = -1;
+    // w declared first: puts height/2 in edi and width/2 in ebx.
+    int w, h;
+    h = g_game->height / 2;
+    w = g_game->width / 2;
+    p->field_80 = w;
+    p->field_84 = h;
+    operator delete(p->buffer);
+    int& sz = p->field_88;
+    sz = (h * w + 7) & ~7;
+    p->buffer = sz ? operator new(sz) : 0;
+    // Both references are load-bearing (`sz` also for the first block). With `memset(p->buffer, 0, p->field_88)`
+    // MSVC propagates the phi and the size into the inlined memset, which puts
+    // the phi in edi and stores it from edi; the original reloads [esi+0x7c]
+    // into edi and keeps the phi in eax. Reading the fields through references
+    // stops that propagation, and it also stops the scheduler from hoisting
+    // the size load `mov ecx, [esi+0x88]` above the phi store (with the size
+    // read directly the load comes first, the original has it second).
+    void*& bref = p->buffer;
+    memset(bref, 0, sz);
+    CreateSquads(p);
+    // Keep `||` with both tests as written: the branch layout depends on it.
+    if (!p->active || p->type != 3) {
+        p->unit = new SquadManager(p);
+        CreatePlayerAI(p->team);
+    }
+}
+
+class CommandArgs {
+public:
+    char unknown_0[0xd0];
+    int field_d0;
+    CommandArgs* InitArgs();
+};
+
+class Class_004b74f0 {
+public:
+    char* args[0x34];                  // +0x00
+    int count;                         // +0xd0
+};
+
+char* __stdcall HAPI_LoadFile(const char* name, int* size);
+int __stdcall ExecuteCommandText(char* text, int len, Class_004b74f0* vars, int param_4);
+void __cdecl FUN_004d85a0(char* text);
+void __stdcall FUN_00409f80(int player);
+void __stdcall FUN_0040a040(int player);
+
+// FUNCTION: 0x4648e0
+void FUN_004648e0()
+{
+    int size;
+    char* name = g_game->mission->GetNameSlot(7);
+    char* text = HAPI_LoadFile(name, &size);
+    if (text == 0) {
+        text = HAPI_LoadFile("ai\\default.txt", &size);
+    }
+    if (text != 0) {
+        Class_004b74f0 vars;
+        ((CommandArgs*)&vars)->InitArgs();
+        ExecuteCommandText(text, size, &vars, -1);
+        FUN_004d85a0(text);
+    }
+    for (int i = 0; i < 10; i++) {
+        Player* p = &g_game->players[i];
+        if (p->active && p->type == 2) {
+            FUN_00409f80(i);
+            FUN_0040a040(i);
+        }
+    }
+}
+
+// A char loop counter gives the separate countdown register (edi = 10), as
+// in 0x403100; the entry pointer is computed before the test.
+// FUNCTION: 0x464990
+void InitPlayers()
+{
+    for (char i = 0; i < 10; i++) {
+        Player* p = &g_game->players[i];
+        if (p->type) {
+            InitPlayerSlot(p);
+        }
+    }
+    FUN_004648e0();
+}
+
+void __stdcall RebuildFeatureCells(int param_1);
+
+// FUNCTION: 0x4649d0
+void FUN_004649d0()
+{
+    for (char i = 0; i < 10; i++) {
+        if (g_game->players[i].unit) {
+            RebuildFeatureCells(i);
+        }
+    }
+}
+
+void __stdcall FreeSquads(Player* param_1);
+// Takes an int: the byte-to-int promotion is part of the original code.
+void __stdcall DestroyPlayerAI(int param_1);
+
+// The loop bound is `p <= g_game->players + 10`, one past the last slot, so
+// the body also runs once on the fields that follow the array (the `ja` guard
+// only skips the loop when the array is empty). The original really does
+// that.
+// FUNCTION: 0x464a00
+void FreePlayers()
+{
+    for (Player* p = g_game->players; p <= g_game->players + 10; p++) {
+        // Fields reached as indices off q: keeps two induction variables.
+        int* q = (int*)((char*)p + 0x84);
+        q[-1] = 0;
+        q[0] = 0;
+        delete[] ((void**)q)[-2];
+        q[1] = 0;
+        ((void**)q)[-2] = 0;
+        FreeSquads(p);
+        if (((SquadManager**)q)[-4]) {
+            DestroyPlayerAI(((unsigned char*)q)[0xc2]);
+            if (SquadManager* u = ((SquadManager**)q)[-4]) {
+                u->DeleteTimers();
+                delete u;
+            }
+            ((SquadManager**)q)[-4] = 0;
+        }
+        if (((void**)q)[0x1a]) {
+            delete[] ((void**)q)[0x1a];
+            ((void**)q)[0x1a] = 0;
+        }
+    }
+}
+
+// FUNCTION: 0x464ab0
+float __stdcall FUN_00464ab0(void* param_1)
+{
+    return *(float*)((char*)param_1 + 0x90);
+}
+
+struct Class_00464ac0 {
+    char unknown_0[0x94];
+    float field_0x94;
+};
+
+// FUNCTION: 0x464ac0
+float __stdcall FUN_00464ac0(Class_00464ac0* param_1)
+{
+    return param_1->field_0x94;
+}
+
+// FUNCTION: 0x464ad0
+float __stdcall FUN_00464ad0(void* param_1)
+{
+    return *(float*)((char*)param_1 + 0x90) - *(float*)((char*)param_1 + 0x94);
+}
+
+// FUNCTION: 0x464af0
+float __stdcall FUN_00464af0(void* param_1)
+{
+    return *(float*)((char*)param_1 + 0x9c);
+}
+
+// FUNCTION: 0x464b00
+float __stdcall FUN_00464b00(void* param_1)
+{
+    return *(float*)((char*)param_1 + 0xa0);
+}
+
+struct Class_464b10 {
+    char unknown_0[0x9c];
+    float field_9c;
+    float field_a0;
+};
+
+// FUNCTION: 0x464b10
+float __stdcall FUN_00464b10(Class_464b10* param_1)
+{
+    return param_1->field_9c - param_1->field_a0;
+}
+
+void __stdcall SendShareMetal(unsigned char from, unsigned char to, int value);
+
+// Moves `amount` metal from player `from` to player `to`, the metal twin of
+// 0x464c60 (which moves energy). It is clamped to what `from` has stored,
+// taken out of `from`'s economy object (only when `flag` is set) and added to
+// `to`'s economy object. An AI player (type 2) on easy or medium only counts
+// 0.5 or 0.7 of it, and the transfer is announced over the network when `flag`
+// is set. Same shape as 0x464c60, which moves energy with UnitResources.
+// FUNCTION: 0x464b30
+void __stdcall TransferMetal(unsigned char from, unsigned char to, float amount, int flag)
+{
+    if (from == 10)
+        return;
+    if (to == 10)
+        return;
+    if (flag) {
+        float cap = g_game->players[from].field_8c;
+        if (amount > cap)
+            amount = cap;
+    }
+    if (amount == 0.0f)
+        return;
+    Player* player;
+    // Receiver read inside both arms of the flag test: homes `to` in ebx.
+    player = flag ? (g_game->players[from].econ->SpendEnergy(amount),
+                     g_game->players[to].econ->player)
+                  : g_game->players[to].econ->player;
+    if (player->active != 0 && player->type == 2) {
+        switch (g_game->difficulty) {
+        case 0:
+            g_game->players[to].econ->metal
+                = g_game->players[to].econ->metal - amount * -0.5;
+            break;
+        case 1:
+            g_game->players[to].econ->metal
+                = g_game->players[to].econ->metal - amount * -0.7;
+            break;
+        default: {
+            // Add goes through a local float: fixes the x87 operand order.
+            float m = g_game->players[to].econ->metal;
+            m += amount;
+            g_game->players[to].econ->metal = m;
+            break;
+        }
+        }
+    } else {
+        // Add goes through a local float: fixes the x87 operand order.
+        float m = g_game->players[to].econ->metal;
+        m += amount;
+        g_game->players[to].econ->metal = m;
+    }
+    if (flag)
+        SendShareMetal(from, to, *(int*)&amount);
+}
+
+void __stdcall SendShareEnergy(unsigned char from, unsigned char to, int value);
+
+// Moves `amount` energy from player `from` to player `to`. The amount is first
+// clamped to what `from` has stored, then (only when `flag` is set) taken out of
+// `from`'s economy object and added to `to`'s. An AI player (type 2) on easy or
+// medium only counts 0.5 or 0.7 of it, and the transfer is announced over the
+// network when `flag` is set (the amount travels as its bit pattern).
+// FUNCTION: 0x464c60
+void __stdcall TransferEnergy(unsigned char from, unsigned char to, float amount, int flag)
+{
+    if (from == 10)
+        return;
+    if (to == 10)
+        return;
+    if (flag) {
+        float cap = g_game->players[from].field_98;
+        if (amount > cap)
+            amount = cap;
+    }
+    if (amount == 0.0f)
+        return;
+    Player* player;
+    // Receiver read inside both arms of the flag test: homes `to` in ebx.
+    player = flag ? (g_game->players[from].econ->SpendMetal(amount), g_game->players[to].econ->player)
+                  : g_game->players[to].econ->player;
+    if (player->active != 0 && player->type == 2) {
+        switch (g_game->difficulty) {
+        case 0:
+            g_game->players[to].econ->energy += amount * 0.5;
+            break;
+        case 1:
+            g_game->players[to].econ->energy += amount * 0.7;
+            break;
+        default:
+            // Full `players[to].econ` expression: keeps the store from folding
+            // into the load.
+            g_game->players[to].econ->energy = amount + g_game->players[to].econ->energy;
+            break;
+        }
+    } else {
+        g_game->players[to].econ->energy = amount + g_game->players[to].econ->energy;
+    }
+    if (flag)
+        SendShareEnergy(from, to, *(int*)&amount);
+}
+
+void __stdcall UpdateUnitLineOfSight(Unit* unit);
+
+// Calls UpdateUnitLineOfSight for every unit in the range whose flag 0x10000000 is set.
+// FUNCTION: 0x464da0
+void __stdcall FUN_00464da0(Player* range)
+{
+    for (Unit* u = range->units; u <= range->units_end; u++) {
+        if (u->flags & 0x10000000) {
+            UpdateUnitLineOfSight(u);
+        }
+    }
+}
+
+void BroadcastPlayerInfo();
+void __stdcall ReportGameEvent(int param_1);
+void __stdcall PlaySoundByName(char* str, int flag);
+int __stdcall IsGadgetNamed(int param1, int param2, char* name);
+void __stdcall FUN_004ab0a0(void* param_1);
+
+// FUNCTION: 0x464de0
+void __stdcall FUN_00464de0(Gadget* gadget)
+{
+    int screen = (int)gadget->screen->form;
+    if (gadget->selected == -1)
+        return;
+    PlaySoundByName("BigButton", 0);
+    if (IsGadgetNamed(screen, gadget->selected, "CHOICE1")) {
+        BroadcastPlayerInfo();
+        g_game->flags_3923b.b.bit4 = 0;
+        ReportGameEvent(4);
+        return;
+    }
+    if (!IsGadgetNamed(screen, gadget->selected, "CHOICE2")) {
+        FUN_004ab0a0(gadget);
+        return;
+    }
+    g_game->flags_3923b.b.bit2 = 1;
+    g_game->flags_3923b.b.bit4 = 0;
+}
+
+extern char DAT_00503120[];
+extern char DAT_00503128[];
+extern char DAT_0050313c[];
+extern char DAT_00503160[];
+extern char DAT_00503164[];
+extern char DAT_00503168[];
+extern char DAT_00507318[];
+
+Screen* __stdcall LoadGuiLayer(Menu* menu, char* name, int value);
+void __stdcall FUN_0049fb10(Menu* menu, int flag);
+void __stdcall FUN_004a0bf0(Menu* menu, char* name, char* text, int value);
+void __stdcall RenderLayer(Menu* menu, int value);
+
+// FUNCTION: 0x464e70
+void FUN_00464e70()
+{
+    Screen* screen = LoadGuiLayer(&g_game->menu, DAT_00503168, 0x900);
+    if (screen) {
+        Form* form;
+        FUN_0049fb10(&g_game->menu, 1);
+        form = screen->form;
+        FUN_004a0bf0(&g_game->menu, DAT_00503128, DAT_00503164, 0);
+        FUN_004a0bf0(&g_game->menu, DAT_00503120, DAT_00503160, 0);
+        FUN_004a0bf0(&g_game->menu, DAT_0050313c, DAT_00507318, 0);
+        strcpy(form->choice1, DAT_00503128);
+        strcpy(form->choice2, DAT_00503120);
+        screen->callback = FUN_00464de0;
+        RenderLayer(&g_game->menu, 0x40);
+    }
+}
+
+extern int DAT_0051e53c;
+
+void __stdcall UpdatePlayerAI(int player);
+void DrawRadarUnits();
+void UpdateSensorRadarAndCloak();
+void UpdateRadarMapped();
+unsigned char __stdcall FindHostSlot();
+unsigned short __stdcall FindUnitTypeId(const char* name);
+int __stdcall RandomInt(int range);
+int __stdcall CanPlaceUnitFootprint(UnitType* type, int a, Point16 cell, int c);
+short __stdcall FindFeatureAtPos(Vec3* pos, int a, int b);
+int __stdcall GetCellMeanHeight(Vec3* pos);
+Unit* __stdcall CreateUnit(unsigned char player, unsigned short typeId,
+                           Vec3 pos, int a, int b, int c);
+void __stdcall SetStartingStorageBonus(Player* player, int height, int width);
+void __stdcall RecalculateLineOfSight(int on);
+void __stdcall FocusCommander(int on);
+void __stdcall UpdatePlayerEconomy(Player* player);
+void __stdcall SendPlayerEconomy(Player* player, int a, int b);
+int __stdcall FUN_00457cb0();
+int __stdcall FUN_00457bc0();
+void __stdcall OpenMessageBox(Menu* menu, const char* text, int a, int b, int c);
+
+static int loopCond_00464f80(unsigned char i)
+{
+    if (i >= 0xa)
+        return 0;
+    return 1;
+}
+
+// The loop's latch test. It has to be a second, separately spelled inlined
+// helper: with the same expression at both test sites MSVC folds one of them
+// away, and the original keeps both.
+static int more_00464f80(unsigned char i)
+{
+    if (i < 0xa)
+        return 1;
+    return 0;
+}
+
+// The three scale constants, named so that each lands in .rdata as its own
+// object of exactly the original's width, and in this order: MSVC 5 emits a
+// float LITERAL in an 8-byte slot but a named static const float in 4, and
+// literals come after statics, so with 100.0f spelled as a literal it is the
+// first .rdata object and the checker reads its slot's 4 padding bytes as
+// part of it (the original's next constant is another function's 12700.0f).
+static const double kNegSeven = -0.7;
+static const double kNegHalf = -0.5;
+static const float kHundred = 100.0f;
+
+// FUNCTION: 0x464f80
+void __stdcall FUN_00464f80()
+{
+    g_game->pathfinder->RunSearches();
+    // bl is declared before the guard and pi before the first goto, or the jump
+    // is rejected.
+    unsigned char bl = 0;
+    // `for (;;)` with loopCond at the top and more() at next_bl: keeps both the
+    // entry guard and the latch test.
+    for (;;) {
+        if (!loopCond_00464f80(bl))
+            goto next_bl;
+        Player* pi;
+        // Array form, not through pi: gives the original's load-then-lea order.
+        if (g_game->players[bl].active == 0)
+            goto next_bl;
+        pi = &g_game->players[bl];
+
+        {
+            unsigned char t = pi->type;
+            if (t != 1 && t != 2 && t != 3)
+                goto next_bl;
+        }
+        if (pi->team == 0xa)
+            goto next_bl;
+        {
+            // Fresh pointer for the whole second group: stops it being merged with
+            // the first.
+            Player* pi2 = &g_game->players[bl];
+            if (pi2->active == 0)
+                goto next_bl;
+            unsigned char t2 = pi2->type;
+            if (t2 != 1 && t2 != 2 && t2 != 3)
+                goto next_bl;
+            if (pi2->team == 0xa)
+                goto next_bl;
+        }
+
+        if (pi->unit != 0)
+            pi->unit->TickIfActive();
+
+        UpdatePlayerAI(bl);
+
+        {
+            Unit* u = pi->units;
+            while (u <= pi->units_end) {
+                if (u->flags & 0x10000000)
+                    UpdateUnitLineOfSight(u);
+                u = (Unit*)((char*)u + 0x118);
+            }
+        }
+
+        if (bl == g_game->field_2a43)
+            DrawRadarUnits();
+
+        if ((unsigned int)pi->field_f0 > g_game->tick)
+            goto next_bl;
+        pi->field_f0 += 0x1e;
+
+        if (bl == g_game->localPlayer) {
+            if (g_game->mission->GetGameType() == 1) {
+                if (g_game->list->CheckVictory() == 0) {
+                    if (((MissionConditions*)g_game->list)->CheckDefeat() != 0) {
+                        if (g_game->field_39239 < 0) {
+                            g_game->field_39239 = 4;
+                        } else {
+                            g_game->field_39239--;
+                            if (g_game->field_39239 < 0) {
+                                g_game->flags_3923b.w |= 4;
+                                g_game->flags_3923b.w &= 0xffef;
+                                g_game->flags_3923b.b.bit6 = 1;
+                            }
+                        }
+                    }
+                } else {
+                    // This is a second copy of the countdown_extra block, and
+                    // the duplication is load-bearing: with a `goto` here MSVC
+                    // 5 leaves the `mov eax,[g_game]` reload after the `jne`
+                    // and the jump lands on it, where the original hoists the
+                    // reload above the branch and jumps past it. Written out
+                    // twice, MSVC tail-merges the copies and hoists it.
+                    if (g_game->field_39239 < 0) {
+                        g_game->field_39239 = 4;
+                    } else {
+                        g_game->field_39239--;
+                        if (g_game->field_39239 < 0) {
+                            g_game->flags_3923b.w |= 4;
+                            g_game->flags_3923b.b.bit4 = 1;
+                            g_game->flags_3923b.b.bit5 = 1;
+                        }
+                    }
+                    goto skip508;
+                }
+            } else if ((pi->active == 0 ||
+                        (pi->info->flags_9b & 0x40) == 0) &&
+                       ((MissionConditions*)g_game->list)->CheckDefeat() != 0) {
+                if (g_game->field_39239 < 0) {
+                    g_game->field_39239 = 4;
+                } else {
+                    g_game->field_39239--;
+                    if (g_game->field_39239 < 0) {
+                        if (g_game->field_37ef6 == 2) {
+                            PlayerInfo* self =
+                                g_game->players[FindHostSlot()].info;
+                            // `unsigned int` with the 0xffff mask: avoids a spilled raw result.
+                            unsigned int typeId;
+                            typeId = FindUnitTypeId(
+                                &g_game->startPos[0x232 *
+                                    g_game->players[g_game->localPlayer].info->side]) & 0xffff;
+                            int bound = 9999;
+                            int typeOff = typeId * 0x249;
+                            Vec3 pos;
+                            do {
+                                int cx = g_game->screen_x / 10;
+                                int cy = g_game->screen_y / 10;
+                                pos.x = (RandomInt(g_game->screen_x - 2 * cx) + cx) << 16;
+                                pos.y = 0;
+                                pos.z = (RandomInt(g_game->screen_y - 2 * cy) + cy) << 16;
+                                // Declared in the order hh, hits, zacc, outer, hw: places the
+                                // `shl` where the original has it.
+                                int hh = g_game->height << 16;
+                                int hits = 0;
+                                unsigned int zacc =
+                                    (unsigned int)pos.z - (unsigned int)hh;
+                                int outer = 3;
+                                int hw = g_game->width << 16;
+                                do {
+                                    unsigned int xacc =
+                                        (unsigned int)pos.x - (unsigned int)hw;
+                                    int inner = 3;
+                                    Point16 cell;
+                                    cell.y = zacc >> 20;
+                                    do {
+                                        cell.x = xacc >> 20;
+                                        if (CanPlaceUnitFootprint(
+                                                (UnitType*)((char*)g_game->types + typeOff),
+                                                0, cell, 1) != 0)
+                                            hits++;
+                                        xacc += hw;
+                                    } while (--inner != 0);
+                                    zacc += hh;
+                                } while (--outer != 0);
+                                if (hits >= 9 && FindFeatureAtPos(&pos, 0, 0) == -1) {
+                                    if (g_game->mission->field_d44 == 0)
+                                        break;
+                                    if (GetCellMeanHeight(&pos) >
+                                        (int)g_game->field_1427f)
+                                        break;
+                                }
+                            } while (--bound > 0);
+
+                            {
+                                Unit* unit = CreateUnit(
+                                    g_game->localPlayer, typeId, pos, 1, 1, 0);
+                                SetStartingStorageBonus(pi,
+                                             self->field_a3 * 100,
+                                             self->field_a1 * 100);
+                                {
+                                    // The slot is written through a local
+                                    // pointer because that is what makes MSVC 5
+                                    // re-read unit->owner in the next block:
+                                    // it cannot prove the store disjoint from
+                                    // it. Written as `unit->field_bc = f` the
+                                    // pointer is forwarded from the first block
+                                    // instead and the second `mov eax,
+                                    // [esi+0xec]` disappears.
+                                    float* slot = &unit->field_bc;
+                                    float f = (float)self->field_a1 * kHundred;
+                                    if (unit->owner->active != 0 &&
+                                        unit->owner->type == 2) {
+                                        switch (g_game->difficulty) {
+                                        case 0: f = *slot - f * kNegHalf; break;
+                                        case 1: f = *slot - f * kNegSeven; break;
+                                        default: f = *slot + f; break;
+                                        }
+                                    } else {
+                                        f = *slot + f;
+                                    }
+                                    *slot = f;
+                                }
+                                {
+                                    float* slot = &unit->field_d4;
+                                    float f = (float)self->field_a3 * kHundred;
+                                    if (unit->owner->active != 0 &&
+                                        unit->owner->type == 2) {
+                                        switch (g_game->difficulty) {
+                                        case 0: f = *slot - f * kNegHalf; break;
+                                        case 1: f = *slot - f * kNegSeven; break;
+                                        default: f = *slot + f; break;
+                                        }
+                                    } else {
+                                        f = *slot + f;
+                                    }
+                                    *slot = f;
+                                }
+                                RecalculateLineOfSight(1);
+                                FocusCommander(1);
+                            }
+                        } else {
+                            goto watch_check;
+                        }
+                    }
+                }
+            } else {
+                goto check230;
+            }
+        }
+
+    skip508:
+        if (pi->active != 0) {
+            unsigned char t = pi->type;
+            if ((t == 1 || t == 2 || t == 3) && pi->team != 0xa) {
+                if ((pi->field_144 != 0 || pi->field_140 == 0) &&
+                    (t == 1 || t == 2)) {
+                    if ((g_game->flags_3923b.w & 4) == 0 &&
+                        g_game->field_39239 < 0) {
+                        UpdatePlayerEconomy(pi);
+                    }
+                }
+            }
+        }
+
+        if (bl == g_game->field_2a43) {
+            UpdateSensorRadarAndCloak();
+            UpdateRadarMapped();
+            if (g_game->mission->GetGameType() == 3) {
+                DAT_0051e53c++;
+                if ((DAT_0051e53c & 3) == 0)
+                    SendPlayerEconomy(pi, 0, 0);
+            }
+        }
+        goto next_bl;
+
+    watch_check:
+        if (g_game->mission->GetGameType() == 3 &&
+            pi->field_22 == 0) {
+            if ((g_game->players[FindHostSlot()].info->flags_9b & 0x80) != 0 ||
+                FUN_00457bc0() > 0) {
+                pi->info->b.bit6 = 1;
+                if (bl == g_game->localPlayer) {
+                    g_game->flags &= 0xfffe;
+                    g_game->flags &= 0xfffd;
+                    RecalculateLineOfSight(1);
+                    BroadcastPlayerInfo();
+                    if (FUN_00457bc0() == 0) {
+                        Screen* dlg = LoadGuiLayer(&g_game->menu, "YESORNO.GUI", 0x900);
+                        if (dlg != 0) {
+                            FUN_0049fb10(&g_game->menu, 1);
+                            Form* w = dlg->form;
+                            FUN_004a0bf0(&g_game->menu, "CHOICE1", "Yes", 0);
+                            FUN_004a0bf0(&g_game->menu, "CHOICE2", "No", 0);
+                            FUN_004a0bf0(&g_game->menu, "TITLE",
+                                         "You're out!  Continue Watching?", 0);
+                            strcpy(w->choice1, "CHOICE1");
+                            strcpy(w->choice2, "CHOICE2");
+                            dlg->callback = FUN_00464de0;
+                            RenderLayer(&g_game->menu, 0x40);
+                        }
+                        goto skip508;
+                    }
+                    if (FUN_00457cb0() <= 0)
+                        goto skip508;
+                    OpenMessageBox(&g_game->menu,
+                                 Translate("You are placed in watch mode because you are hosting AI players which are still alive.  If you exit, they will be terminated."),
+                                 500, 1, 1);
+                    g_game->flags_3923b.w &= 0xffef;
+                    goto skip508;
+                }
+                goto skip508;
+            }
+        }
+
+    flags82e:
+        g_game->flags_3923b.w |= 4;
+        g_game->flags_3923b.w &= 0xffef;
+        if (pi->field_22 == 0)
+            g_game->flags_3923b.b.bit6 = 1;
+        goto skip508;
+
+    check230:
+        if (g_game->list->CheckVictory() != 0)
+            goto countdown_extra;
+        goto skip508;
+
+    countdown_extra:
+        if (g_game->field_39239 < 0) {
+            g_game->field_39239 = 4;
+        } else {
+            g_game->field_39239--;
+            if (g_game->field_39239 < 0) {
+                g_game->flags_3923b.w |= 4;
+                g_game->flags_3923b.b.bit4 = 1;
+                g_game->flags_3923b.b.bit5 = 1;
+            }
+        }
+        goto skip508;
+
+    next_bl:
+        if (!more_00464f80(++bl))
+            break;
+    }
+
+    if (g_game->mission->GetGameType() == 3 &&
+        g_game->field_37ef6 != 2 &&
+        FUN_00457cb0() == 0) {
+        if (g_game->field_39239 < 0) {
+            g_game->field_39239 = 4;
+            return;
+        }
+        g_game->field_39239--;
+        if (g_game->field_39239 < 0) {
+            g_game->flags_3923b.w |= 4;
+            g_game->flags_3923b.w &= 0xffef;
+            g_game->flags_3923b.b.bit6 = 1;
+        }
+    }
+}
+
+// 0x4658e0 (players_4658e0.cpp) and 0x465ac0 (players_465ac0.cpp) stay in
+// files of their own: each matches only with that file's header set and
+// symbol count.
+
+// Sets each player's two camera floats (player +0x8c and +0x98) from the game
+// mode: mode 1 copies the net player's stored floats, mode 2 the per-slot
+// integers converted to float, mode 3 the colour-index player's info values
+// times 100 (read from players[index] but stored into players[i], as the
+// original does, so a player with a colour index other than its own slot
+// gets the other player's view position).
+// FUNCTION: 0x465e30
+void FUN_00465e30()
+{
+    for (int i = 0; i < 10; i++) {
+        Player* player = &g_game->players[i];
+        if (g_game->field_38d6b == 0) {
+            switch (g_game->mission->GetGameType()) {
+            case 1:
+                SetStartingStorageBonus(player, (int)g_game->mission->pos_x[i],
+                             (int)g_game->mission->pos_y[i]);
+                player->field_8c = g_game->mission->pos_y[i];
+                player->field_98 = g_game->mission->pos_x[i];
+                break;
+            case 2:
+                player->field_8c = (float)g_game->slots[i].field_10;
+                player->field_98 = (float)g_game->slots[i].field_c;
+                break;
+            case 3: {
+                int index = FindHostSlot();
+                if (index == 10)
+                    index = i;
+                Player* other = &g_game->players[index];
+                player->field_8c = other->info->field_a1 * 100;
+                player->field_98 = other->info->field_a3 * 100;
+                break;
+            }
+            }
+        }
+    }
+}
+
+#include "../util/hapi_bank.h"
+
+// Reads each player's "Controller" value from its "Player%i" section.
+// FUNCTION: 0x465fb0
+void __stdcall LoadPlayerControllers(HapiBank* file)
+{
+    char name[16];
+    for (int i = 0; i < 10; i++) {
+        Player* player = &g_game->players[i];
+        int* slot = &g_game->slots[i].controller;
+        sprintf(name, "Player%i", i);
+        if (file->OpenAccount(name)) {
+            *slot = ((HapiBank*)file)->GetIntegerItem("Controller", 0);
+            player->type = *slot;
+        } else {
+            *slot = 0;
+            player->type = 0;
+        }
+    }
+}
+
+// FUNCTION: 0x466580
+void FUN_00466580()
+{
+    if (g_game->blinkTimer > 0) {
+        g_game->blinkTimer--;
+        return;
+    }
+    g_game->blinkTimer = 7;
+    g_game->blinkOn = !g_game->blinkOn;
 }

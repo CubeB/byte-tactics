@@ -695,7 +695,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51e698,DAT_0051e698,.bss,4,type,data,int,2,0,1,one type,2,,DAT_0051e698,,,
 0x51e69c,g_playLooping,.bss,4,type,data,int,2,0,1,one type,2,,DAT_0051e69c,,,
 0x51e6a0,g_losTables,.bss,16,definition,data,char[],3,3,3,conflicting: shape,6,0xc,DAT_0051e6a0,,src/map/line_of_sight_4814c0.cpp,
-0x51e6b0,DAT_0051e6b0$S4554,.bss,12,gap,data,"std::vector<UnitCategory, std::allocator<UnitCategory> >",1,0,1,one type,1,0x8,DAT_0051e6b0,,,
+0x51e6b0,DAT_0051e6b0,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,DAT_0051e6b0,,,
 0x51e6bc,DAT_0051e6bc,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,_DAT_0051e6bc,,,
 0x51e6c0,DAT_0051e6c0,.bss,4,type,data,int,2,0,1,one type,2,,_DAT_0051e6c0,,,
 0x51e6c4,DAT_0051e6c4,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_0051e6c4,,,

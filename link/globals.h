@@ -535,7 +535,7 @@ extern int g_noDirectSound;                                                     
 extern int g_useWindowsSound;                                                                     // 0x51e694, 4 bytes; 9 of 10 files (conflicting: shape)
 extern int DAT_0051e698;                                                                          // 0x51e698, 4 bytes; 2 of 2 files
 extern int g_playLooping;                                                                         // 0x51e69c, 4 bytes; 2 of 2 files
-extern unsigned char DAT_0051e6b0[12];                                                            // 0x51e6b0, 12 bytes, DAT_0051e6b0$S4554; std::vector<UnitCategory, std::allocator<UnitCategory> > by value in 1 of 1 files
+extern unsigned char DAT_0051e6b0[4];                                                             // 0x51e6b0, 4 bytes; nothing refers to it
 extern unsigned char DAT_0051e6bc[4];                                                             // 0x51e6bc, 4 bytes; nothing refers to it
 extern int DAT_0051e6c0;                                                                          // 0x51e6c0, 4 bytes; 2 of 2 files
 extern unsigned int DAT_0051e6c4;                                                                 // 0x51e6c4, 4 bytes; 1 of 1 files

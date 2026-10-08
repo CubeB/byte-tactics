@@ -273,7 +273,7 @@ extern unsigned int g_netStatsTick;                                             
 extern unsigned int g_byteRatesTick;                                                              // 0x511ddc, 4 bytes; 1 of 1 files
 extern int DAT_00511de0;                                                                          // 0x511de0, 4 bytes; 2 of 2 files
 extern int g_cdPathMismatch;                                                                      // 0x511de4, 4 bytes; 1 of 1 files
-extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 374 of 425 files (conflicting: shape)
+extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 360 of 409 files (conflicting: shape)
 extern int DAT_00511dec;                                                                          // 0x511dec, 4 bytes; 1 of 1 files
 extern ExplodedPiece* g_explodedPieces[100];                                                      // 0x511df0, 400 bytes; 1 of 1 files
 extern unsigned char DAT_00511f80[16];                                                            // 0x511f80, 16 bytes; CMemoryCache by value in 2 of 2 files
@@ -536,11 +536,11 @@ extern unsigned int DAT_0051e67c;                                               
 extern unsigned int DAT_0051e680;                                                                 // 0x51e680, 4 bytes; 1 of 1 files
 extern int DAT_0051e684;                                                                          // 0x51e684, 4 bytes; 2 of 2 files
 extern int DAT_0051e688;                                                                          // 0x51e688, 4 bytes; 2 of 2 files
-extern SpeechQueue* DAT_0051e68c;                                                                 // 0x51e68c, 4 bytes; 4 of 8 files (conflicting: struct names only)
-extern int g_noDirectSound;                                                                       // 0x51e690, 4 bytes; 8 of 10 files (conflicting: shape)
-extern int g_useWindowsSound;                                                                     // 0x51e694, 4 bytes; 9 of 10 files (conflicting: shape)
+extern SpeechQueue* DAT_0051e68c;                                                                 // 0x51e68c, 4 bytes; 1 of 1 files
+extern int g_noDirectSound;                                                                       // 0x51e690, 4 bytes; 1 of 1 files
+extern int g_useWindowsSound;                                                                     // 0x51e694, 4 bytes; 1 of 1 files
 extern int DAT_0051e698;                                                                          // 0x51e698, 4 bytes; 2 of 2 files
-extern int g_playLooping;                                                                         // 0x51e69c, 4 bytes; 2 of 2 files
+extern int g_playLooping;                                                                         // 0x51e69c, 4 bytes; 1 of 1 files
 extern unsigned char DAT_0051e6b0[4];                                                             // 0x51e6b0, 4 bytes; nothing refers to it
 extern int g_mapLoadFlag;                                                                         // 0x51e6c0, 4 bytes; 1 of 1 files
 extern unsigned int DAT_0051e6c4;                                                                 // 0x51e6c4, 4 bytes; 1 of 1 files
@@ -704,7 +704,7 @@ extern int DAT_0052a4f4;                                                        
 extern void* DAT_0052a4f8;                                                                        // 0x52a4f8, 4 bytes; 2 of 2 files
 extern long DAT_0052a4fc;                                                                         // 0x52a4fc, 4 bytes; 1 of 2 files (conflicting: signedness or const)
 
-// Not declared: 227 globals defined in a data file or whose type is not settled (see data/globals.csv).
+// Not declared: 225 globals defined in a data file or whose type is not settled (see data/globals.csv).
 //   0x5119c0 g_playerAI: PlayerAI*[] (11), void*[] (5), Owner*[] (3), Player_40b0d0*[] (1), and 2 more
 //   0x513000 g_packetManager: defined in src/network/packets_460e20.cpp
 //   0x5292c4 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib_4e17c0.cpp
@@ -726,7 +726,6 @@ extern long DAT_0052a4fc;                                                       
 //   0x529e00 DAT_00529e00: Counter_004e1e50 (1), Entry_004df590[] (1), unsigned int (1), EventEntry (1)
 //   0x4fcfb8 DAT_004fcfb8: defined in src/data/guids.cpp
 //   0x4fd2f8 DAT_004fd2f8: defined in src/data/vtables.cpp
-//   0x5086e8 DAT_005086e8: defined in src/units/unit_messages.cpp
 //   0x511a60 DAT_00511a60: part of another global: g_messageCountByType+0x8
 //   0x511c60 DAT_00511c60: part of another global: g_messageBytesByType+0x8
 //   0x512298 DAT_00512298: Smoke_00425b80* (1), void* (1), char* (1)
@@ -770,7 +769,6 @@ extern long DAT_0052a4fc;                                                       
 //   0x501f48 g_cheatCommands: defined in src/game/console_commands.cpp
 //   0x501fd0 g_debugCommands: defined in src/game/console_commands.cpp
 //   0x507b70 DAT_00507b70: unsigned char[] (1), ColourEntry_00478790[] (1)
-//   0x5086e0 DAT_005086e0: defined in src/units/unit_messages.cpp
 //   0x50a788 DAT_0050a788: defined in src/data/guids.cpp
 //   0x50c958 g_assertDialog: defined in src/debug/debug_dialogs.cpp
 //   0x50cd38 g_memoryDialog: defined in src/debug/debug_dialogs.cpp

@@ -4333,11 +4333,11 @@ piece,0x508af8,15,src/map/line_of_sight.cpp,11,0,game data
 piece,0x4fd668,4,src/units/unit_script.cpp,4,0,game data
 piece,0x4fd66c,4,src/units/unit_script.cpp,4,4,game data
 piece,0x508af0,7,src/units/squads.cpp,3,0,game data
-piece,0x508ae8,5,src/sound/speech_queue.cpp,18,0,game data
-piece,0x508ae0,5,src/sound/speech_queue.cpp,17,0,game data
-piece,0x504cd4,4,src/sound/speech_queue.cpp,16,0,game data
-piece,0x508ac4,7,src/sound/speech_queue.cpp,15,0,game data
-piece,0x508acc,12,src/sound/speech_queue.cpp,9,0,game data
+piece,0x508ae8,5,src/sound/sound_47ed40.cpp,58,0,game data
+piece,0x508ae0,5,src/sound/sound_47ed40.cpp,57,0,game data
+piece,0x504cd4,4,src/sound/sound_47ed40.cpp,16,0,game data
+piece,0x508ac4,7,src/sound/sound_47ed40.cpp,15,0,game data
+piece,0x508acc,12,src/sound/sound_47ed40.cpp,51,0,game data
 piece,0x4fd664,4,src/map/terrain_47ea40.cpp,3,0,game data
 piece,0x4fd660,4,src/map/terrain_47db20.cpp,3,0,game data
 piece,0x508550,10,src/graphics/movies.cpp,41,0,game data

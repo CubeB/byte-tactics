@@ -226,8 +226,6 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x5084ac,DAT_005084ac,.data,16,gap,string,char[],1,0,1,one type,1,,s_SKIRMISH_GUI_005084ac,,,534b49524d4953482e47554900000000
 0x5086d8,g_unitMessages,.data,4,type,data,UnitMessage*,1,0,1,one type,1,,,,src/units/unit_messages.cpp,00000000
 0x5086dc,DAT_005086dc,.data,32,gap,data,Message_0047fad0[],1,0,1,one type,1,0x10,DAT_005086dc,,src/units/unit_messages.cpp,0000000000000000000000000000000000000000010000000a00000000000000
-0x5086e0,DAT_005086e0,.data,596,gap,data,Table_0047fd70[24],1,1,2,conflicting: struct names only,2,0x24c,DAT_005086e0,36,src/units/unit_messages.cpp,00000000000000000000000000000000010000000a00000000000000708a50000000000000000000020000000900000014000000648a5000548a500000000000
-0x5086e8,DAT_005086e8,.data,4,gap,data,Message_0047f850[],1,2,3,conflicting: struct names only,3,,DAT_005086e8,,src/units/unit_messages.cpp,00000000
 0x5086fc,g_speechCategories,.data,560,gap,data,SoundInfo_005086fc[],1,0,1,one type,1,0x228,PTR_s_select_005086fc,36,src/units/unit_messages.cpp,708a50000000000000000000020000000900000014000000648a5000548a500000000000030000000400000002000000488a5000000000000000000004000000
 0x508a78,DAT_00508a78,.data,44,gap,string,char[],1,0,1,one type,1,,s_Error__Sound_system_initializati_00508a78,,,4572726f723a2020536f756e642073797374656d20696e697469616c697a6174696f6e206661696c65642e00
 0x508aa4,DAT_00508aa4,.data,16,gap,string,char[],1,0,1,one type,1,,s_UseWindowsSound_00508aa4,,,55736557696e646f7773536f756e6400
@@ -353,7 +351,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x511ddc,g_byteRatesTick,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_00511ddc,,,
 0x511de0,DAT_00511de0,.bss,4,type,data,int,2,0,1,one type,2,,DAT_00511de0,,,
 0x511de4,g_cdPathMismatch,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511de4,,,
-0x511de8,g_game,.bss,4,type,data,Game*,374,51,15,conflicting: shape,425,,DAT_00511de8,,,
+0x511de8,g_game,.bss,4,type,data,Game*,360,49,15,conflicting: shape,409,,DAT_00511de8,,,
 0x511dec,DAT_00511dec,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511dec,,,
 0x511df0,g_explodedPieces,.bss,400,type,data,ExplodedPiece*[100],1,0,1,one type,1,0x190,DAT_00511df0,,,
 0x511f80,DAT_00511f80,.bss,16,gap,data,CMemoryCache,2,0,1,one type,2,,DAT_00511f80,,,
@@ -689,11 +687,11 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51e680,DAT_0051e680,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_0051e680,,,
 0x51e684,DAT_0051e684,.bss,4,type,data,int,2,0,1,one type,2,,DAT_0051e684,,,
 0x51e688,DAT_0051e688,.bss,4,type,data,int,2,0,1,one type,2,,DAT_0051e688,,,
-0x51e68c,DAT_0051e68c,.bss,4,type,data,SpeechQueue*,4,4,3,conflicting: struct names only,8,,DAT_0051e68c,,,
-0x51e690,g_noDirectSound,.bss,4,type,data,int,8,2,2,conflicting: shape,10,,DAT_0051e690,,,
-0x51e694,g_useWindowsSound,.bss,4,type,data,int,9,1,2,conflicting: shape,10,,DAT_0051e694,,,
+0x51e68c,DAT_0051e68c,.bss,4,type,data,SpeechQueue*,1,0,1,one type,1,,DAT_0051e68c,,,
+0x51e690,g_noDirectSound,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051e690,,,
+0x51e694,g_useWindowsSound,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051e694,,,
 0x51e698,DAT_0051e698,.bss,4,type,data,int,2,0,1,one type,2,,DAT_0051e698,,,
-0x51e69c,g_playLooping,.bss,4,type,data,int,2,0,1,one type,2,,DAT_0051e69c,,,
+0x51e69c,g_playLooping,.bss,4,type,data,int,1,0,1,one type,1,,INT_0051e69c,,,
 0x51e6a0,g_losTables,.bss,16,definition,data,char[],3,1,2,conflicting: shape,4,0xc,DAT_0051e6a0,,src/map/line_of_sight.cpp,
 0x51e6b0,DAT_0051e6b0,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,DAT_0051e6b0,,,
 0x51e6c0,g_mapLoadFlag,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_0051e6c0,,,

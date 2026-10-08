@@ -6217,7 +6217,7 @@ public:
 class MapCache {        // 0x4 bytes, 1 view
 public:
     char unknown_0[4];
-    void FUN_00437580(MapCacheEntry*, int, MapCacheEntry&);
+    void InsertMapCacheEntry(MapCacheEntry*, int, MapCacheEntry&);
 };
 
 class MapCacheEntry {   // 0x8 bytes, 3 views
@@ -10114,7 +10114,7 @@ public:
     Packet_0046cef0* first;  // +0x4
     Packet_0046cef0* last;  // +0x8
     Packet_0046cef0* end;  // +0xc
-    void FUN_0046eba0(Packet_0046cef0*, int, Packet_0046cef0*);
+    void InsertPacket(Packet_0046cef0*, int, Packet_0046cef0*);
 };
 
 class Class_0046cef0 {  // 0x2c bytes, 1 view
@@ -10427,7 +10427,7 @@ struct PlayerInfo_0046dad0 {  // 0x74 bytes, 1 view
 class Vec_0046d860 {  // 0x10 bytes, 1 view
 public:
     char unknown_0[16];
-    void FUN_0046f7a0(Class_0046eaa0*, unsigned int, Class_0046eaa0&);
+    void InsertPlayerRecord(Class_0046eaa0*, unsigned int, Class_0046eaa0&);
     void Push(Class_0046eaa0&);
 };
 

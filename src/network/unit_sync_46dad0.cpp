@@ -139,8 +139,8 @@ int __stdcall ComputeUnitScriptChecksum(Def_0046dad0* def);
 // vector<Class_0046eaa0>::insert).
 class Vec_0046d860 : public std::vector<Class_0046eaa0> {
   public:
-    void FUN_0046f7a0(iterator where, size_type n, const Class_0046eaa0& x);
-    void Push(const Class_0046eaa0& x) { FUN_0046f7a0(end(), 1, x); }
+    void InsertPlayerRecord(iterator where, size_type n, const Class_0046eaa0& x);
+    void Push(const Class_0046eaa0& x) { InsertPlayerRecord(end(), 1, x); }
 };
 
 class UnitSync {

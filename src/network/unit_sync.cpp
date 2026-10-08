@@ -770,7 +770,7 @@ struct Packet_0046cef0 {         // 0xe bytes
 #pragma pack(pop)
 
 // A list seen as a std::vector of packets (allocator byte, _First, _Last,
-// _End): ReceiveSequenced reads the lists through it, and FUN_0046eba0 is that
+// _End): ReceiveSequenced reads the lists through it, and InsertPacket is that
 // vector's insert(end(), count, val), out of line.
 class Class_0046eba0 {
 public:
@@ -778,7 +778,7 @@ public:
     Packet_0046cef0* first;      // +0x4
     Packet_0046cef0* last;       // +0x8
     Packet_0046cef0* end;        // +0xc
-    void FUN_0046eba0(Packet_0046cef0* where, int count, Packet_0046cef0* val);
+    void InsertPacket(Packet_0046cef0* where, int count, Packet_0046cef0* val);
 };
 
 struct PacketSequencer {
@@ -862,7 +862,7 @@ void PacketSequencer::ReceiveSequenced(Packet_0046cef0* packet, int param_2, voi
     // Through a reference, so the call sets up ecx before evaluating its
     // arguments, as the original does.
     Class_0046eba0& v = *(Class_0046eba0*)&list_d;
-    v.FUN_0046eba0(v.last, 1, packet);
+    v.InsertPacket(v.last, 1, packet);
     for (unsigned int i = cur + 1; i <= max; i++) {
         Packet_0046cef0* p;
         for (p = ((Class_0046eba0*)&list_d)->first; p != ((Class_0046eba0*)&list_d)->last; p++) {

@@ -2246,7 +2246,7 @@ int AreEnemiesEliminated(void);
 int IsLocalPlayerEliminated(void);
 int CheckAlliedVictory(void);
 int FUN_00490200(void);
-void FUN_00490aa0(void);
+void QueryGlobalMemoryStatus(void);
 void CreateOffscreenSurface(void);
 void FreeOffscreenSurface(void);
 void SetGameMode(int);

@@ -29,7 +29,7 @@
 // 0x4cce87  XorRect(surface, rect, value)                          xor a rectangle with a byte
 // 0x4cced5  RemapRect(pixels, pitch, w, h, table)                  translate pixels through a table
 // 0x4ccf60  BlitText(pixels, pitch, font, text, x, y, c1, c2, c3)  glyph blitter
-// 0x4cd010  FUN_004cd010(dst, src, x0, y0, x1, y1, step)           no callers
+// 0x4cd010  SampleBresenhamLine(dst, src, x0, y0, x1, y1, step)    no callers
 // 0x4cd896..0x4cd962  (dest, src, width, y, x, rowstep, colstep)   sample a span of src into dest
 
 // FUNCTION: 0x4cbbe0
@@ -2721,7 +2721,7 @@ extern "C" __declspec(naked) void __cdecl BlitText(unsigned char* pixels, int pi
 }
 
 // FUNCTION: 0x4cd010
-extern "C" __declspec(naked) void __cdecl FUN_004cd010(void* dst, void* src, int x0, int y0, int x1, int y1, int step)
+extern "C" __declspec(naked) void __cdecl SampleBresenhamLine(void* dst, void* src, int x0, int y0, int x1, int y1, int step)
 {
     __asm {
         push ebp

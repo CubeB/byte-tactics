@@ -1979,7 +1979,7 @@ void Class_00490880::FUN_0044efd0(BitReader* reader)
 }
 
 // FUNCTION: 0x490aa0
-void FUN_00490aa0(void)
+void QueryGlobalMemoryStatus(void)
 {
     MEMORYSTATUS mem;
     mem.dwLength = 0x20;

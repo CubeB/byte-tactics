@@ -1984,7 +1984,7 @@ address,name
 0x4909a0,??_GClass_00490880@@UAEPAXI@Z
 0x4909e0,Class_00490880::~Class_00490880
 0x490a10,Class_00490880::FUN_0044efd0
-0x490aa0,FUN_00490aa0
+0x490aa0,QueryGlobalMemoryStatus
 0x490ac0,CreateOffscreenSurface
 0x490b00,FreeOffscreenSurface
 0x490b30,SetGameMode
@@ -4381,7 +4381,7 @@ address,name
 0x511fa8,g_explosion2Duration
 0x511fac,g_explosion2StartSize
 0x511fb0,g_explosion2EndSize
-0x511fb4,s_featureTdfParsers$S32680
+0x511fb4,s_featureTdfParsers$S23898
 0x511fb8,g_frontendErrorText
 0x5120b8,g_pictureCache
 0x512288,DAT_00512288

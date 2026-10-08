@@ -337,7 +337,7 @@ extern MapCacheEntry* g_mapCacheEnd;
 
 class MapCache : public std::vector<MapCacheEntry> {
 public:
-    void FUN_00437580(MapCacheEntry* pos, int count, const MapCacheEntry& val);
+    void InsertMapCacheEntry(MapCacheEntry* pos, int count, const MapCacheEntry& val);
 };
 
 
@@ -1460,6 +1460,6 @@ int Mission::ComputeMapChecksum()
     HAPI_CloseFile(file);
     // The checksum is stored after the copy constructor, not inside it:
     // a two-argument constructor hoists the +0xc1c load above the call.
-    s_mapCache.FUN_00437580(g_mapCacheEnd, 1, MapCacheEntry(Class_004c91b0(name)).SetChecksum(this));
+    s_mapCache.InsertMapCacheEntry(g_mapCacheEnd, 1, MapCacheEntry(Class_004c91b0(name)).SetChecksum(this));
     return field_c20 ^ field_c1c;
 }

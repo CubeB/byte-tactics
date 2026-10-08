@@ -1993,7 +1993,7 @@ address,size,file,symbol,status,similarity
 0x4909a0,58,src/game/victory_48dfb0.cpp,??_GClass_00490880@@UAEPAXI@Z,matched,100.0
 0x4909e0,37,src/game/victory_48dfb0.cpp,??1Class_00490880@@UAE@XZ,matched,100.0
 0x490a10,134,src/game/victory_48dfb0.cpp,?FUN_0044efd0@Class_00490880@@UAEXPAVBitReader@@@Z,matched,100.0
-0x490aa0,26,src/game/victory_48dfb0.cpp,?FUN_00490aa0@@YGXXZ,matched,100.0
+0x490aa0,26,src/game/victory_48dfb0.cpp,?QueryGlobalMemoryStatus@@YGXXZ,matched,100.0
 0x490ac0,60,src/game/game_state_490ac0.cpp,?CreateOffscreenSurface@@YGXXZ,matched,100.0
 0x490b00,48,src/game/game_state_490ac0.cpp,?FreeOffscreenSurface@@YGXXZ,matched,100.0
 0x490b30,260,src/game/game_state_490ac0.cpp,?SetGameMode@@YGXH@Z,matched,100.0

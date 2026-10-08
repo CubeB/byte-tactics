@@ -150,8 +150,8 @@ class UnitSync {
     std::list<unsigned int> queue;             // +0x20
     char unknown_2c[0x58 - 0x2c];
     int direct;   // +0x58
-    int field_5c; // +0x5c
-    int field_60; // +0x60
+    int pendingPlayerCount; // +0x5c
+    int checksumProgress; // +0x60
     int disabled; // +0x64
 
     void ProcessSync();
@@ -238,9 +238,9 @@ void UnitSync::ProcessSync() {
         return;
     }
 
-    if (field_5c > 0) {
-        if (field_60 < ((Game*)g_game)->count) {
-            if (field_60 == 0) {
+    if (pendingPlayerCount > 0) {
+        if (checksumProgress < ((Game*)g_game)->count) {
+            if (checksumProgress == 0) {
                 if (GetHostDpid() == -1)
                     return;
                 int v = ((Game*)g_game)->count - 1;
@@ -257,17 +257,17 @@ void UnitSync::ProcessSync() {
                         ((Class_0046cec0*)((char*)this + 0x2c))->SendUnsequenced(id, &packet);
                     }
                 }
-                field_60 = 1;
+                checksumProgress = 1;
                 return;
             }
 
             // Nested if/else with this loop: it re-reads g_game first and returns
-            // when field_60 >= count.
+            // when checksumProgress >= count.
             for (int n = 0; n < 4;) {
                 Game* game = (Game*)g_game;
-                if (field_60 >= game->count)
+                if (checksumProgress >= game->count)
                     return;
-                Def_0046dad0* def = &game->defs[field_60];
+                Def_0046dad0* def = &game->defs[checksumProgress];
                 ComputeUnitScriptChecksum(def);
                 // y then key, read into locals before the disabled test.
                 int y = def->y;
@@ -288,14 +288,14 @@ void UnitSync::ProcessSync() {
                     }
                 }
                 n++;
-                field_60++;
+                checksumProgress++;
             }
         } else {
             Packet_0046dad0 packet;
             packet.type = 0x1a;
             packet.arg = 4;
             packet.field_6 = 0;
-            packet.field_a = field_5c;
+            packet.field_a = pendingPlayerCount;
             unsigned int id = GetHostDpid();
             ((Class_0046cec0*)((char*)this + 0x2c))->SendUnsequenced(id, &packet);
         }

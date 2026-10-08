@@ -664,7 +664,7 @@ public:
             int direct;                        // +0x58
             union {
                 int* first;                    // +0x5c
-                int field_5c;
+                int pendingPlayerCount;
             };
             int* last;                         // +0x60
             int disabled;                      // +0x64
@@ -1102,7 +1102,7 @@ void UnitSync::HandleSyncPacket(Packet_0046d6c0* packet, unsigned char player)
     if (disabled != 0) {
         return;
     }
-    field_5c++;
+    pendingPlayerCount++;
     if (direct != 0) {
         std::vector<Entry_0046d6c0>::iterator i = ((std::vector<Entry_0046d6c0>*)&players)->begin();
         if (i != ((std::vector<Entry_0046d6c0>*)&players)->end()) {

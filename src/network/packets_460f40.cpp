@@ -283,20 +283,20 @@ extern int g_netFrameRateConfig;
 // packets that SendQueued hands to the outgoing buffer.
 class PacketChannel {
 public:
-    int field_0;                       // +0x00, the buffer last handed out
-    unsigned int field_4;              // +0x04, ticks between sends
+    int bufferIndex;                   // +0x00, the buffer last handed out
+    unsigned int sendPacingTicks;      // +0x04, ticks between sends
     PacketBuffer** buffers;            // +0x08
-    unsigned int field_c;              // +0x0c, the buffer count
-    int field_10;                      // +0x10, the frame number
-    int field_14;                      // +0x14, the player's DPID
-    unsigned int field_18;             // +0x18, the minimum retain time
-    int field_1c;                      // +0x1c, the packet last handed out
-    unsigned int field_20;             // +0x20, queued bytes
-    unsigned int field_24;             // +0x24, the next send time
+    unsigned int bufferCount;          // +0x0c, the buffer count
+    int frameNumber;                   // +0x10, the frame number
+    int dpid;                          // +0x14, the player's DPID
+    unsigned int timeoutTicks;         // +0x18, the minimum retain time
+    int packetIndex;                   // +0x1c, the packet last handed out
+    unsigned int queuedBytes;          // +0x20, queued bytes
+    unsigned int nextSendTick;         // +0x24, the next send time
     Packet* packets;                   // +0x28
     unsigned int count;                // +0x2c, the packet count
-    Packet* field_30;                  // +0x30, the first packet in use
-    Packet* field_34;                  // +0x34, the last packet in use
+    Packet* firstPacket;               // +0x30, the first packet in use
+    Packet* lastPacket;                // +0x34, the last packet in use
     PacketRing queue;                  // +0x38
 
     PacketChannel();
@@ -320,17 +320,17 @@ public:
     virtual ~PacketReceiver();
     int field_4;                       // +0x04
     void* owner;                       // +0x08
-    int field_c;                       // +0x0c current frame's sender
-    int field_10;                      // +0x10
-    PlayerFrameInfo* field_14;         // +0x14 entry whose saved frame is in use
+    int fromId;                        // +0x0c current frame's sender
+    int toId;                          // +0x10
+    PlayerFrameInfo* savedFrameEntry;  // +0x14 entry whose saved frame is in use
     char* buffer;                      // +0x18
     char* spare;                       // +0x1c
     PlayerFrameInfo entries[10];       // +0x20
     int capacity;                      // +0x228
     int length;                        // +0x22c
-    int field_230;                     // +0x230 spare buffer's length
-    int field_234;                     // +0x234
-    int field_238;                     // +0x238
+    int spareLength;                   // +0x230 spare buffer's length
+    int spareFromId;                   // +0x234
+    int spareToId;                     // +0x238
 
     PlayerFrameInfo* FindPlayerFrameInfo(long id);
     int ResetReceiveBuffer();
@@ -402,9 +402,9 @@ int __stdcall InitPacketManager(int param_1, int param_2)
                 }
             }
             g_packetManager.member.length = 0;
-            if (g_packetManager.member.field_14 != 0) {
-                g_packetManager.member.field_14->pendingBytes = 0;
-                g_packetManager.member.field_14 = 0;
+            if (g_packetManager.member.savedFrameEntry != 0) {
+                g_packetManager.member.savedFrameEntry->pendingBytes = 0;
+                g_packetManager.member.savedFrameEntry = 0;
             }
             g_packetManager.channels[0].InitPools(0, g_packetManager.m_defaultSendPacingMs, param_1, param_2);
             PacketChannel* p = &g_packetManager.channels[1];
@@ -463,9 +463,9 @@ static inline int SendTo(int from, int to, void* data, int size)
 static inline void Reset(PacketChannel* e)
 {
     e->InitPools(-1, 0xc8, 2, 0x64);
-    e->field_0 = -1;
-    e->field_1c = -1;
-    e->field_24 = 0;
+    e->bufferIndex = -1;
+    e->packetIndex = -1;
+    e->nextSendTick = 0;
 }
 
 // Appends len bytes to the net send buffer, growing it (by at least 0x200
@@ -524,23 +524,23 @@ void PacketManager::HandleIntegrityNop(int, int, int)
 {
 }
 
-// Finds the entry (of the 11 inside this) whose field_14 is param_1 and returns
+// Finds the entry (of the 11 inside this) whose dpid is param_1 and returns
 // it. When there is none, param_2 decides whether a new entry may be made:
-// first an unused slot (field_14 == -1), otherwise the first slot whose
-// field_14 is not the color of any of the ten player slots in g_game. The
+// first an unused slot (dpid == -1), otherwise the first slot whose
+// dpid is not the color of any of the ten player slots in g_game. The
 // chosen entry is re-initialised with InitPools and returned.
 // FUNCTION: 0x461630
 PacketChannel* PacketManager::FindChannel(int param_1, int param_2)
 {
     unsigned i;
     for (i = 0; i <= 10; i++) {
-        if (channels[i].field_14 == param_1)
+        if (channels[i].dpid == param_1)
             return &channels[i];
     }
     if (param_2 == 0)
         return 0;
     for (i = 0; i <= 10; i++) {
-        if (channels[i].field_14 == -1) {
+        if (channels[i].dpid == -1) {
             channels[i].InitPools(param_1, m_defaultSendPacingMs, 2, 0x64);
             return &channels[i];
         }
@@ -550,7 +550,7 @@ PacketChannel* PacketManager::FindChannel(int param_1, int param_2)
         // Must walk a pointer here; the outer loops stay plain array indexing.
         GameEntry* p = &g_game->players[0];
         for (int j = 0; j < 10; j++, p++) {
-            if (p->id == channels[i].field_14) {
+            if (p->id == channels[i].dpid) {
                 used = 1;
                 break;
             }
@@ -585,9 +585,9 @@ int PacketManager::InitChannels(int arg1, int arg2)
             }
         }
         member.length = 0;
-        if (member.field_14 != 0) {
-            member.field_14->pendingBytes = 0;
-            member.field_14 = 0;
+        if (member.savedFrameEntry != 0) {
+            member.savedFrameEntry->pendingBytes = 0;
+            member.savedFrameEntry = 0;
         }
         channels[0].InitPools(0, m_defaultSendPacingMs, arg1, arg2);
         PacketChannel* e = channels + 1;
@@ -608,9 +608,9 @@ void PacketManager::ReleaseChannel(int id)
     PacketChannel* e = FindChannel(id, 0);
     if (e != 0) {
         e->InitPools(-1, 0xc8, 2, 0x64);
-        e->field_0 = -1;
-        e->field_1c = -1;
-        e->field_24 = 0;
+        e->bufferIndex = -1;
+        e->packetIndex = -1;
+        e->nextSendTick = 0;
     }
 }
 
@@ -630,7 +630,7 @@ int PacketManager::SendAllQueued(int param_1)
         return 0;
     }
     for (unsigned int i = 0; i <= 10; i++) {
-        if (channels[i].field_14 != -1) {
+        if (channels[i].dpid != -1) {
             if (channels[i].SendQueued(param_1) == 0) {
                 return 0;
             }
@@ -691,7 +691,7 @@ void PacketManager::SetDefaultSendPacing(int rate)
     }
     PacketTrace("setting m_defaultSendPacingMs to: %lums\n", m_defaultSendPacingMs);
     for (int i = 0; i < 11; i++) {
-        channels[i].field_4 = (m_defaultSendPacingMs * 30 + 999) / 1000;
+        channels[i].sendPacingTicks = (m_defaultSendPacingMs * 30 + 999) / 1000;
     }
 }
 
@@ -721,8 +721,8 @@ static inline int IsReusable(PacketBuffer* buf, int minRetain)
 
 // FUNCTION: 0x461a70
 PacketChannel::PacketChannel()
-    : field_0(-1), field_4(0), buffers(0), field_c(0), field_10(-2), field_14(-1), field_18(0),
-      field_1c(-1), field_20(0), field_24(0), packets(0), count(0), field_30(0), field_34(0)
+    : bufferIndex(-1), sendPacingTicks(0), buffers(0), bufferCount(0), frameNumber(-2), dpid(-1), timeoutTicks(0),
+      packetIndex(-1), queuedBytes(0), nextSendTick(0), packets(0), count(0), firstPacket(0), lastPacket(0)
 {
     ((Class_00462860*)this)->SetMinRetainMs(4000);
     ((Class_004628a0*)this)->SetSendPacingMs(200);
@@ -734,7 +734,7 @@ PacketChannel::PacketChannel()
 PacketChannel::~PacketChannel()
 {
     if (buffers) {
-        for (unsigned int i = 0; i < field_c; i++) {
+        for (unsigned int i = 0; i < bufferCount; i++) {
             delete buffers[i];
         }
         delete buffers;
@@ -746,21 +746,21 @@ PacketChannel::~PacketChannel()
 PacketBuffer* PacketChannel::AllocBuffer()
 {
     for (;;) {
-        if (field_c > 0) {
-            unsigned int ix = field_0;
-            field_0 = ix;
+        if (bufferCount > 0) {
+            unsigned int ix = bufferIndex;
+            bufferIndex = ix;
             ++ix;
-            if (ix >= field_c)
+            if (ix >= bufferCount)
                 ix = 0;
             PacketBuffer* buf = buffers[ix];
-            if (IsReusable(buf, field_18)) {
+            if (IsReusable(buf, timeoutTicks)) {
                 buf->FreePackets();
-                field_0 = ix;
+                bufferIndex = ix;
                 return buf;
             }
-            if (field_c >= 0x22) {
+            if (bufferCount >= 0x22) {
                 buf->FreePackets();
-                field_0 = ix;
+                bufferIndex = ix;
                 PacketTrace("force-allocated a previously-used buffer, ix=%ld\n", ix);
                 return buf;
             }
@@ -776,15 +776,15 @@ Packet* PacketChannel::AllocPacket(int param_1)
     unsigned int idx;
     Packet* packet;
     for (;;) {
-        PacketTrace("current packet pool index: %ld\n", field_1c);
-        idx = field_1c + 1;
+        PacketTrace("current packet pool index: %ld\n", packetIndex);
+        idx = packetIndex + 1;
         if (idx >= count)
             idx = 0;
         packet = &packets[idx];
         PacketBuffer* owner = packet->owner;
         if (owner == 0)
             break;
-        if (IsReusable(owner, field_18)) {
+        if (IsReusable(owner, timeoutTicks)) {
             owner->FreePackets();
             break;
         }
@@ -795,7 +795,7 @@ Packet* PacketChannel::AllocPacket(int param_1)
         }
         GrowPools(0, 0x320);
     }
-    field_1c = idx;
+    packetIndex = idx;
     PacketTrace("current packet pool index set to: %ld\n", idx);
     packet->frame = param_1;
     return packet;
@@ -820,7 +820,7 @@ int __fastcall GetCurrentBuffer(int *ecx)
 // FUNCTION: 0x461d80
 int PacketChannel::GetMinRetainMs()
 {
-    unsigned int val = field_18;
+    unsigned int val = timeoutTicks;
     return (val / 30) * 1000;
 }
 
@@ -844,8 +844,8 @@ int PacketChannel::InitPools(int a1, unsigned int a2, int a3, int a4)
     unsigned int j;
     int k;
     int* p;
-    field_14 = a1;
-    field_4 = (a2 * 30 + 999) / 1000;
+    dpid = a1;
+    sendPacingTicks = (a2 * 30 + 999) / 1000;
     if (packets == 0) {
         if (a4 == 0)
             a4 = 100;
@@ -880,7 +880,7 @@ int PacketChannel::InitPools(int a1, unsigned int a2, int a3, int a4)
         buffers = (PacketBuffer**)operator new(a3 * 4);
         if (buffers == 0)
             goto fail;
-        for (field_c = 0; field_c < a3; field_c++) {
+        for (bufferCount = 0; bufferCount < a3; bufferCount++) {
             PacketBuffer* q = (PacketBuffer*)operator new(0x43e);
             if (q) {
                 q->pool = this;
@@ -891,12 +891,12 @@ int PacketChannel::InitPools(int a1, unsigned int a2, int a3, int a4)
             } else {
                 q = 0;
             }
-            buffers[field_c] = q;
-            if (buffers[field_c] == 0)
+            buffers[bufferCount] = q;
+            if (buffers[bufferCount] == 0)
                 goto fail;
         }
     }
-    for (i = 0; i < field_c; i++) {
+    for (i = 0; i < bufferCount; i++) {
         // The pointer local is what puts the store in eax and the call in ecx.
         PacketBuffer* q = buffers[i];
         q->count = 0;
@@ -912,10 +912,10 @@ int PacketChannel::InitPools(int a1, unsigned int a2, int a3, int a4)
     t.next = 0;
     for (j = 0; j < count; j++)
         packets[j] = t;
-    field_0 = -1;
-    field_1c = -1;
-    field_30 = 0;
-    field_34 = 0;
+    bufferIndex = -1;
+    packetIndex = -1;
+    firstPacket = 0;
+    lastPacket = 0;
     // p keeps the latch's test a memory operand, so the body's own test at
     // the top of the loop reloads queue.count (0x461f43).
     p = &queue.count;
@@ -929,7 +929,7 @@ int PacketChannel::InitPools(int a1, unsigned int a2, int a3, int a4)
             }
         } while (*p != 0);
     }
-    field_20 = 0;
+    queuedBytes = 0;
     return 1;
     // Single shared `return 0` via goto; counters sit at function scope so no
     // jump skips an initialiser.
@@ -944,7 +944,7 @@ void PacketChannel::EnqueuePacket(Packet* item)
 {
     queue.Push(item);
     item->queued = 0;
-    field_20 += item->size;
+    queuedBytes += item->size;
 }
 
 // DequeuePacket as GrowPools and RemovePacket expand it: the ring's pop and push
@@ -960,7 +960,7 @@ static inline void DequeueByCalls(PacketChannel* channel, Packet* item)
             break;
         channel->queue.PushPacket(value);
     }
-    channel->field_20 -= item->size;
+    channel->queuedBytes -= item->size;
 }
 
 // Grows both pools of a channel: a new buffer-pointer array of `growbufs` more
@@ -972,37 +972,37 @@ static inline void DequeueByCalls(PacketChannel* channel, Packet* item)
 int PacketChannel::GrowPools(int growbufs, int growpackets)
 {
     PacketTrace("current buffer pool count: %d, current packet pool count: %d\n",
-                 field_c, count);
+                 bufferCount, count);
     PacketTrace("bufs to grow by: %d, packets to grow by: %d\n", growbufs, growpackets);
     PacketTrace("current buffer pool ix: %d, current packet pool ix: %d\n",
-                 field_0, field_1c);
-    if (field_c <= 0 || count <= 0) {
+                 bufferIndex, packetIndex);
+    if (bufferCount <= 0 || count <= 0) {
         return 1;
     }
 
     // operator new/delete, not new[]: new[] references ??_U / ??_V instead.
-    int total = field_c + growbufs;
+    int total = bufferCount + growbufs;
     PacketBuffer** np = (PacketBuffer**)operator new(total * 4);
     if (np) {
         memset(np, 0, total * 4);
-        if (field_0 >= 0) {
+        if (bufferIndex >= 0) {
             int i = 0;
-            int ix = field_0;
-            while (i < field_c) {
+            int ix = bufferIndex;
+            while (i < bufferCount) {
                 ix = ix + 1;
-                if (ix >= field_c) {
+                if (ix >= bufferCount) {
                     ix = 0;
                 }
                 np[i] = buffers[ix];
                 i = i + 1;
             }
         } else {
-            memcpy(np, buffers, field_c * 4);
+            memcpy(np, buffers, bufferCount * 4);
         }
-        field_0 = field_c - 1;
+        bufferIndex = bufferCount - 1;
         int ok = 1;
         while (1) {
-            if (field_c >= (unsigned int)total) {
+            if (bufferCount >= (unsigned int)total) {
                 break;
             }
             PacketBuffer* q = (PacketBuffer*)operator new(0x43e);
@@ -1015,9 +1015,9 @@ int PacketChannel::GrowPools(int growbufs, int growpackets)
             } else {
                 q = 0;
             }
-            np[field_c] = q;
-            ok = (np[field_c] != 0);
-            field_c = field_c + 1;
+            np[bufferCount] = q;
+            ok = (np[bufferCount] != 0);
+            bufferCount = bufferCount + 1;
             if (!ok) {
                 break;
             }
@@ -1047,10 +1047,10 @@ int PacketChannel::GrowPools(int growbufs, int growpackets)
         if (base) {
         int n = 0;
         int j;
-        if (field_0 >= 0) {
-            field_34 = 0;
-            field_30 = 0;
-            for (int i = 0; i < field_c; i++) {
+        if (bufferIndex >= 0) {
+            lastPacket = 0;
+            firstPacket = 0;
+            for (int i = 0; i < bufferCount; i++) {
                 PacketBuffer* p = buffers[i];
                 if (p->count > 0) {
                     Packet* c = p->first;
@@ -1069,19 +1069,19 @@ int PacketChannel::GrowPools(int growbufs, int growpackets)
                                 DequeueByCalls(this, c);
                                 EnqueuePacket(e);
                             }
-                            e->prev = field_34;
+                            e->prev = lastPacket;
                             e->owner = p;
                             e->next = 0;
                             // Both arms store tail = e: gives e the register weight the
                             // allocation needs; the stores are merged again.
-                            if (field_34) {
-                                field_34->next = e;
-                                field_34 = e;
+                            if (lastPacket) {
+                                lastPacket->next = e;
+                                lastPacket = e;
                             } else {
-                                field_34 = e;
+                                lastPacket = e;
                             }
-                            if (!field_30) {
-                                field_30 = e;
+                            if (!firstPacket) {
+                                firstPacket = e;
                             }
                             // One j++ in the latch: keeps its temporary in esi.
                             j++;
@@ -1098,7 +1098,7 @@ int PacketChannel::GrowPools(int growbufs, int growpackets)
         operator delete(packets);
         packets = base;
         count = totalentries;
-        field_1c = n - 1;
+        packetIndex = n - 1;
         PacketTrace("current packet pool index set to: %ld\n", n - 1);
         return 1;
         }
@@ -1154,16 +1154,16 @@ void PacketChannel::DequeuePacket(Packet* item)
             break;
         queue.Push(value);
     }
-    field_20 -= item->size;
+    queuedBytes -= item->size;
 }
 
 // FUNCTION: 0x462470
 void PacketChannel::ResetChannel()
 {
     InitPools(-1, 0xc8, 2, 0x64);
-    field_0 = -1;
-    field_1c = -1;
-    field_24 = 0;
+    bufferIndex = -1;
+    packetIndex = -1;
+    nextSendTick = 0;
 }
 
 // Sends one player's queued packets: every packet whose frame matches the
@@ -1178,15 +1178,15 @@ int PacketChannel::SendQueued(int force)
 {
     unsigned int now = GetTicks();
     PacketTrace("player: %ld, ticks betw sends=%lu, nextsend=%lu, gametimereal=%lu\n",
-                 field_14, field_4, field_24, now);
+                 dpid, sendPacingTicks, nextSendTick, now);
     // Keep this nesting with the trailing `return 1`: it gives the three epilogues.
-    if (now >= field_24 || force != 0) {
-        field_24 = now + field_4;
+    if (now >= nextSendTick || force != 0) {
+        nextSendTick = now + sendPacingTicks;
         int n;
         while ((n = queue.count) != 0) {
             int headFrame = queue.Peek()->frame;
             int sent = 0;
-            PacketTrace("assigning packets to frame number: %ld\n", field_10);
+            PacketTrace("assigning packets to frame number: %ld\n", frameNumber);
             for (int i = 0; i < n; i++) {
                 Packet* entry = queue.Peek();
                 queue.Pop();
@@ -1195,7 +1195,7 @@ int PacketChannel::SendQueued(int force)
                     PacketTrace("extracted packet (len=%ld, type=%d, data=\"%s\")\n",
                                  entry->size, entry->owner->data[entry->offset],
                                  &entry->owner->data[entry->offset + 1]);
-                    entry->queued = field_10;
+                    entry->queued = frameNumber;
                     entry->sentTime = GetTicks();
                     if (g_packetManager.AppendToSendBuffer(&entry->owner->data[entry->offset], entry->size) == 0)
                         return 0;
@@ -1204,20 +1204,20 @@ int PacketChannel::SendQueued(int force)
                     queue.Push(entry);
                 }
             }
-            field_20 = 0;
+            queuedBytes = 0;
             if (sent > 0) {
-                PacketTrace("sending %ld packets in frame: %ld\n", sent, field_10);
-                *(int*)g_packetManager.buffer = field_14 != 0 ? -1 : field_10;
+                PacketTrace("sending %ld packets in frame: %ld\n", sent, frameNumber);
+                *(int*)g_packetManager.buffer = dpid != 0 ? -1 : frameNumber;
                 // Read in this order (nbytes, id, data) before the log call.
                 unsigned int nbytes = g_packetManager.size;
-                int id = field_14;
+                int id = dpid;
                 unsigned char* data = g_packetManager.buffer;
                 PacketTrace("bytes to send to (DPID)(%ld): %ld\n", id, nbytes);
                 g_sendCondenser.SendPacketTo(g_game->session, headFrame, id, data, nbytes);
                 g_packetManager.size = g_packetManager.buffer != 0 ? 4 : 0;
-                field_10--;
-                if (field_10 >= -1)
-                    field_10 = -2;
+                frameNumber--;
+                if (frameNumber >= -1)
+                    frameNumber = -2;
                 if (queue.count == 0)
                     return 1;
             }
@@ -1240,13 +1240,13 @@ void NetCondenser::SendPacketTo(void* session, int from, int value, void* data, 
 // FUNCTION: 0x462710
 int PacketChannel::AddPacket(int param_1, void* param_2, unsigned int param_3)
 {
-    if (field_20 >= 0x42a || queue.count == 0x400) {
+    if (queuedBytes >= 0x42a || queue.count == 0x400) {
         SendQueued(1);
         if (queue.count != 0)
             return 0;
     }
     Class_00462ae0* block = 0;
-    int idx = field_0;
+    int idx = bufferIndex;
     if (idx >= 0)
         block = (Class_00462ae0*)buffers[idx];
     if (block == 0) {
@@ -1257,27 +1257,27 @@ int PacketChannel::AddPacket(int param_1, void* param_2, unsigned int param_3)
     Packet* pkt = AllocPacket(param_1);
     if (pkt == 0)
         return 0;
-    int r = ((PacketBuffer*)block)->AppendPacket(pkt, field_1c, param_2, param_3, field_34);
+    int r = ((PacketBuffer*)block)->AppendPacket(pkt, packetIndex, param_2, param_3, lastPacket);
     if (r == 0) {
-        field_1c = field_1c - 1;
+        packetIndex = packetIndex - 1;
         block = (Class_00462ae0*)AllocBuffer();
         if (block != 0) {
             pkt = AllocPacket(param_1);
             if (pkt != 0)
-                r = ((PacketBuffer*)block)->AppendPacket(pkt, field_1c, param_2, param_3, field_34);
+                r = ((PacketBuffer*)block)->AppendPacket(pkt, packetIndex, param_2, param_3, lastPacket);
             else
                 r = 0;
         }
     }
     if (r != 0) {
-        if (field_30 == 0)
-            field_30 = pkt;
-        if (field_34 != 0)
-            field_34->next = pkt;
-        field_34 = pkt;
+        if (firstPacket == 0)
+            firstPacket = pkt;
+        if (lastPacket != 0)
+            lastPacket->next = pkt;
+        lastPacket = pkt;
         queue.Push(pkt);
         pkt->queued = 0;
-        field_20 += pkt->size;
+        queuedBytes += pkt->size;
         return 1;
     }
     if (block != 0 && pkt->owner == (PacketBuffer*)block)
@@ -1294,14 +1294,14 @@ void Class_00462860::SetMinRetainMs(unsigned int ms)
         ms = 60000;
     else if (ms < 4000)
         ms = 4000;
-    ((PacketChannel*)this)->field_18 = (ms * 30 + 999) / 1000;
+    ((PacketChannel*)this)->timeoutTicks = (ms * 30 + 999) / 1000;
 }
 
 // FUNCTION: 0x4628a0
 void Class_004628a0::SetSendPacingMs(int param_1)
 {
     unsigned int v = param_1 * 30 + 999;
-    ((PacketChannel*)this)->field_4 = v / 1000u;
+    ((PacketChannel*)this)->sendPacingTicks = v / 1000u;
 }
 
 // Appends `size` bytes at `src` to the buffer's inline storage (at +0x14),
@@ -1419,7 +1419,7 @@ void Class_00462ae0::RemovePacket(Packet* packet)
                 break;
             mgr->queue.PushPacket(value);
         }
-        mgr->field_20 -= packet->size;
+        mgr->queuedBytes -= packet->size;
     }
 
     if (first == packet) {
@@ -1431,10 +1431,10 @@ void Class_00462ae0::RemovePacket(Packet* packet)
     }
 
     PacketChannel* m = manager;
-    if (m->field_34 == packet)
-        m->field_34 = packet->prev;
-    if (m->field_30 == packet)
-        m->field_30 = packet->next;
+    if (m->lastPacket == packet)
+        m->lastPacket = packet->prev;
+    if (m->firstPacket == packet)
+        m->firstPacket = packet->next;
     if (packet->prev != 0)
         packet->prev->next = packet->next;
     if (packet->next != 0) {
@@ -1482,8 +1482,8 @@ int Class_00462bf0::GetData()
 // destructor 0x462cc0, destructor 0x462d30).
 // FUNCTION: 0x462c00
 PacketReceiver::PacketReceiver(void* o)
-    : field_4(0), owner(o), field_c(-1), field_10(-1), field_14(0), buffer(0), spare(0),
-      capacity(0), length(0), field_230(0), field_234(-1), field_238(-1)
+    : field_4(0), owner(o), fromId(-1), toId(-1), savedFrameEntry(0), buffer(0), spare(0),
+      capacity(0), length(0), spareLength(0), spareFromId(-1), spareToId(-1)
 {
 }
 
@@ -1588,9 +1588,9 @@ int PacketReceiver::ResetReceiveBuffer()
         }
     }
     length = 0;
-    if (field_14 != 0) {
-        field_14->pendingBytes = 0;
-        field_14 = 0;
+    if (savedFrameEntry != 0) {
+        savedFrameEntry->pendingBytes = 0;
+        savedFrameEntry = 0;
     }
     return 1;
 }
@@ -1632,36 +1632,36 @@ int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
     entry = 0;
     if (length == 0) {
         int n = 0;
-        if (field_14 != 0) {
+        if (savedFrameEntry != 0) {
             if (spare != 0) {
                 buffer = spare;
-                if (field_230 > 0) {
-                    length = field_230;
-                    field_c = field_234;
-                    field_10 = field_238;
+                if (spareLength > 0) {
+                    length = spareLength;
+                    fromId = spareFromId;
+                    toId = spareToId;
                     n = length - 4;
                     if (n > 0)
-                        field_14->frameSeq = *(int*)buffer;
+                        savedFrameEntry->frameSeq = *(int*)buffer;
                 } else {
                     length = 0;
                 }
                 spare = 0;
-                field_14->pendingBytes = 0;
-                field_14 = 0;
-            } else if (field_14->pendingBytes > 0) {
+                savedFrameEntry->pendingBytes = 0;
+                savedFrameEntry = 0;
+            } else if (savedFrameEntry->pendingBytes > 0) {
                 spare = buffer;
-                field_234 = field_c;
-                field_230 = 0;
-                field_238 = field_10;
-                buffer = field_14->frame;
-                field_14->frameSeq = *(int*)buffer;
-                length = field_14->pendingBytes;
-                field_c = field_14->playerNetId;
-                field_10 = field_14->pendingDpToId;
+                spareFromId = fromId;
+                spareLength = 0;
+                spareToId = toId;
+                buffer = savedFrameEntry->frame;
+                savedFrameEntry->frameSeq = *(int*)buffer;
+                length = savedFrameEntry->pendingBytes;
+                fromId = savedFrameEntry->playerNetId;
+                toId = savedFrameEntry->pendingDpToId;
                 n = length - 4;
-                field_14->pendingBytes = 0;
+                savedFrameEntry->pendingBytes = 0;
             } else {
-                field_14 = 0;
+                savedFrameEntry = 0;
             }
         }
         if (n == 0) {
@@ -1692,14 +1692,14 @@ int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
             // Always true here (the enclosing test), so MSVC emits no test; the error
             // block stays after B only as this if's else arm.
             if (n == 0) {
-                field_c = *(int*)((char*)net + 0x4b5);
-                field_10 = *(int*)((char*)net + 0x4b9);
+                fromId = *(int*)((char*)net + 0x4b5);
+                toId = *(int*)((char*)net + 0x4b9);
                 if (*(int*)((char*)net + 0x4b5) != 0) {
                     if ((unsigned int)length >= sizeof(int)) {
                         if (length == sizeof(int))
                             return (int)0x80004005;
                         if (*(int*)buffer != -1) {
-                            entry = ((PacketReceiver*)this)->FindPlayerFrameInfo(field_c);
+                            entry = ((PacketReceiver*)this)->FindPlayerFrameInfo(fromId);
                             if (entry != 0) {
                                 if (entry->frameSeq != -1) {
                                     int prev = entry->frameSeq - 1;
@@ -1729,8 +1729,8 @@ int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
                                                 entry->pendingCap = length;
                                             }
                                             memcpy(entry->frame, buffer, length);
-                                            entry->pendingDpToId = field_10;
-                                            entry->playerNetId = field_c;
+                                            entry->pendingDpToId = toId;
+                                            entry->playerNetId = fromId;
                                             entry->pendingBytes = length;
                                             length = 0;
                                             return (int)0x887700be;
@@ -1738,31 +1738,31 @@ int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
                                         prev = Prev_00462f30(entry->frameSeq);
                                         if (*(int*)entry->frame <= cur) {
                                             if (prev != cur)
-                                                ReportPacketGap(field_c, prev, Next_00462f30(cur));
+                                                ReportPacketGap(fromId, prev, Next_00462f30(cur));
                                             int p2 = Prev_00462f30(*(int*)buffer);
                                             if (p2 != *(int*)entry->frame)
-                                                ReportPacketGap(field_c, p2, Next_00462f30(*(int*)entry->frame));
+                                                ReportPacketGap(fromId, p2, Next_00462f30(*(int*)entry->frame));
                                             flag = 0;
-                                            field_14 = entry;
+                                            savedFrameEntry = entry;
                                         } else {
                                             if (prev != *(int*)entry->frame)
-                                                ReportPacketGap(field_c, prev, Next_00462f30(*(int*)entry->frame));
+                                                ReportPacketGap(fromId, prev, Next_00462f30(*(int*)entry->frame));
                                             int p2 = Prev_00462f30(*(int*)entry->frame);
                                             if (p2 != *(int*)buffer)
-                                                ReportPacketGap(field_c, p2, Next_00462f30(*(int*)buffer));
+                                                ReportPacketGap(fromId, p2, Next_00462f30(*(int*)buffer));
                                         }
                                     }
                                     if (flag && entry->pendingBytes > 0) {
                                         // Swap the saved frame in, keep this one as the spare.
                                         spare = buffer;
-                                        field_230 = length;
-                                        field_234 = field_c;
-                                        field_238 = field_10;
+                                        spareLength = length;
+                                        spareFromId = fromId;
+                                        spareToId = toId;
                                         buffer = entry->frame;
                                         length = entry->pendingBytes;
-                                        field_c = entry->playerNetId;
-                                        field_10 = entry->pendingDpToId;
-                                        field_14 = entry;
+                                        fromId = entry->playerNetId;
+                                        toId = entry->pendingDpToId;
+                                        savedFrameEntry = entry;
                                         entry->pendingBytes = 0;
                                     }
                                 }
@@ -1796,7 +1796,7 @@ int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
     }
 
     if (entry == 0) {
-        entry = ((PacketReceiver*)this)->FindPlayerFrameInfo(field_c);
+        entry = ((PacketReceiver*)this)->FindPlayerFrameInfo(fromId);
         if (entry == 0) {
             length = 0;
             return (int)0x887700be;
@@ -1811,7 +1811,7 @@ int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
         // the duplicated Peek.
         FrameQueue* tail = &entry->tail;
         Frame* f;
-        if (tail->QueueFrames(buffer, length, tick, field_c, field_10, field_14 == 0)) {
+        if (tail->QueueFrames(buffer, length, tick, fromId, toId, savedFrameEntry == 0)) {
             length = 0;
             len = 0;
             f = tail->Peek();

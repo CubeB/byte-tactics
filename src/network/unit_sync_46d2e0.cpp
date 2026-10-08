@@ -157,7 +157,7 @@ class UnitSync {
 public:
     Map_0046d2e0 rects;                // +0x00
     char unknown_10[0x58 - 0x10];
-    int field_58;                      // +0x58
+    int direct;                        // +0x58
 
     void ResetEntries();
 };
@@ -179,8 +179,8 @@ void UnitSync::ResetEntries()
         // Dead store that must stay: the uninitialised slot is what the insert copies.
         v.y = 0;
         v.w = 1;
-        // field_58 is an int read into the short field.
-        v.h = (short)field_58;
+        // direct is an int read into the short field.
+        v.h = (short)direct;
         v.flag = FlagOf_0046d2e0(&g_game->defs[i]) ? 0 : -1;
         rects[v.x] = v;
     }

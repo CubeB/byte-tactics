@@ -123,12 +123,12 @@ public:
     int field_2c;                         // +0x2c
     int field_30;                         // +0x30
     int field_34;                         // +0x34
-    std::vector<Elem_0046faf0> field_38;  // +0x38
-    Vec_0046d1a0 field_48;                // +0x48
-    int field_58;                         // +0x58
-    int field_5c;                         // +0x5c
-    int field_60;                         // +0x60
-    int field_64;                         // +0x64
+    std::vector<Elem_0046faf0> list_a;    // +0x38
+    Vec_0046d1a0 list_b;                  // +0x48
+    int direct;                           // +0x58
+    int pendingPlayerCount;               // +0x5c
+    int checksumProgress;                 // +0x60
+    int disabled;                         // +0x64
 
     ~UnitSync();
 };

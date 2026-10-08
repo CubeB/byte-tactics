@@ -68,7 +68,7 @@ public:
 
 class UnitSyncPlayer {                 // 0x5c bytes
 public:
-    int field_0;                       // +0x00
+    int id;                            // +0x00
     VecInt_0046ca60 list_a;            // +0x04
     VecInt_0046ca60 list_b;            // +0x14
     char unknown_24[0x18];             // +0x24
@@ -127,12 +127,12 @@ public:
     int field_2c;
     int field_30;
     int field_34;
-    std::vector<Elem_0046faf0> field_38;
-    std::vector<Elem_0046faf0> field_48;
-    int field_58;
-    int field_5c;
-    int field_60;
-    int field_64;
+    std::vector<Elem_0046faf0> list_a;
+    std::vector<Elem_0046faf0> list_b;
+    int direct;
+    int pendingPlayerCount;
+    int checksumProgress;
+    int disabled;
 
     ~UnitSync() {}
 };

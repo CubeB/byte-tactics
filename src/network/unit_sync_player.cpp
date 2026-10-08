@@ -39,12 +39,12 @@ struct Pair_0046faf0 {                 // 32 bytes
 
 class UnitSyncPlayer {
 public:
-    int field_0;                               // +0x00
+    int id;                                    // +0x00
     std::vector<int> list_a;                   // +0x04
     std::vector<int> list_b;                   // +0x14
-    int field_24;                              // +0x24
-    int field_28;                              // +0x28
-    int field_2c;                              // +0x2c
+    int expected;                              // +0x24
+    int sent;                                  // +0x28
+    int ackd;                                  // +0x2c
     int field_30;                              // +0x30
     int field_34;                              // +0x34
     int field_38;                              // +0x38
@@ -84,12 +84,12 @@ public:
     int field_2c;                                  // +0x2c
     int field_30;                                  // +0x30
     int field_34;                                  // +0x34
-    Class_0046e610 field_38;                       // +0x38
-    std::vector<int> field_48;                     // +0x48
-    int field_58;                                  // +0x58
-    int field_5c;                                  // +0x5c
-    int field_60;                                  // +0x60
-    int field_64;                                  // +0x64
+    Class_0046e610 list_a;                         // +0x38
+    std::vector<int> list_b;                       // +0x48
+    int direct;                                    // +0x58
+    int pendingPlayerCount;                        // +0x5c
+    int checksumProgress;                          // +0x60
+    int disabled;                                  // +0x64
 };
 
 class Class_0046e160 {
@@ -123,8 +123,8 @@ void FinishUnitSync()
 // size(), allocator.allocate() (??2@YAPAXI@Z, the array new) and _Ucopy.
 // FUNCTION: 0x470390
 UnitSyncPlayer::UnitSyncPlayer(const UnitSyncPlayer& other)
-    : field_0(other.field_0), list_a(other.list_a), list_b(other.list_b),
-      field_24(other.field_24), field_28(other.field_28), field_2c(other.field_2c),
+    : id(other.id), list_a(other.list_a), list_b(other.list_b),
+      expected(other.expected), sent(other.sent), ackd(other.ackd),
       field_30(other.field_30), field_34(other.field_34), field_38(other.field_38),
       pair(other.pair)
 {

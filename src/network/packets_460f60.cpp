@@ -37,12 +37,12 @@ class PacketReceiver {
 public:
     virtual ~PacketReceiver();
     int field_4;
-    int field_8;
-    int field_c;
-    int field_10;
-    int field_14;
-    void* field_18;                    // +0x18
-    void* field_1c;                    // +0x1c
+    int owner;
+    int fromId;
+    int toId;
+    int savedFrameEntry;
+    void* buffer;                      // +0x18
+    void* spare;                       // +0x1c
     PlayerFrameInfo entries[10];       // +0x20
 };
 
@@ -78,9 +78,9 @@ Buffers_00462d30::~Buffers_00462d30()
 
 PacketReceiver::~PacketReceiver()
 {
-    void* p = field_1c;
+    void* p = spare;
     if (!p)
-        p = field_18;
+        p = buffer;
     operator delete(p);
 }
 

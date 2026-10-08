@@ -62,26 +62,26 @@ public:
 };
 
 struct PacketChannel {
-    int field_0;                       // +0x00
+    int bufferIndex;                   // +0x00
     unsigned int sendPacingTicks;      // +0x04, set by 0x4628a0
     void** items;                      // +0x08
     unsigned count;                    // +0x0c
-    int field_10;                      // +0x10
-    int field_14;                      // +0x14
+    int frameNumber;                   // +0x10
+    int dpid;                          // +0x14
     unsigned int timeoutTicks;         // +0x18, set by 0x462860
-    int field_1c;                      // +0x1c
-    int field_20;                      // +0x20
-    int field_24;                      // +0x24
-    void* field_28;                    // +0x28
-    int field_2c;                      // +0x2c
-    int field_30;                      // +0x30
-    int field_34;                      // +0x34
-    PacketRing field_38;               // +0x38
+    int packetIndex;                   // +0x1c
+    int queuedBytes;                   // +0x20
+    int nextSendTick;                  // +0x24
+    void* packets;                     // +0x28
+    int packetCount;                   // +0x2c
+    int firstPacket;                   // +0x30
+    int lastPacket;                    // +0x34
+    PacketRing queue;                  // +0x38
     char unknown_44[0x1044 - 0x44];
 
     PacketChannel()
-        : field_0(-1), sendPacingTicks(0), items(0), count(0), field_10(-2), field_14(-1), timeoutTicks(0),
-          field_1c(-1), field_20(0), field_24(0), field_28(0), field_2c(0), field_30(0), field_34(0)
+        : bufferIndex(-1), sendPacingTicks(0), items(0), count(0), frameNumber(-2), dpid(-1), timeoutTicks(0),
+          packetIndex(-1), queuedBytes(0), nextSendTick(0), packets(0), packetCount(0), firstPacket(0), lastPacket(0)
     {
         ((Class_00462860*)this)->SetMinRetainMs(4000);
         ((Class_004628a0*)this)->SetSendPacingMs(200);
@@ -95,7 +95,7 @@ struct PacketChannel {
                 operator delete(items[i]);
             operator delete(items);
         }
-        operator delete(field_28);
+        operator delete(packets);
     }
 };
 
@@ -103,29 +103,29 @@ class PacketReceiver {
 public:
     virtual ~PacketReceiver()
     {
-        void* p = field_1c;
+        void* p = spare;
         if (!p)
-            p = field_18;
+            p = buffer;
         operator delete(p);
     }
     int field_4;                       // +0x04
     void* owner;                       // +0x08
-    int field_c;                       // +0x0c
-    int field_10;                      // +0x10
-    int field_14;                      // +0x14
-    void* field_18;                    // +0x18
-    void* field_1c;                    // +0x1c
+    int fromId;                        // +0x0c
+    int toId;                          // +0x10
+    int savedFrameEntry;               // +0x14
+    void* buffer;                      // +0x18
+    void* spare;                       // +0x1c
     PlayerFrameInfo entries[10];       // +0x20
-    int field_228;                     // +0x228
-    int field_22c;                     // +0x22c
-    int field_230;                     // +0x230
-    int field_234;                     // +0x234
-    int field_238;                     // +0x238
+    int capacity;                      // +0x228
+    int length;                        // +0x22c
+    int spareLength;                   // +0x230
+    int spareFromId;                   // +0x234
+    int spareToId;                     // +0x238
 
-    // field_228 stays in the initialiser list: the vtable store must come after it.
+    // capacity stays in the initialiser list: the vtable store must come after it.
     PacketReceiver(void* o)
-        : field_4(0), owner(o), field_c(-1), field_10(-1), field_14(0), field_18(0), field_1c(0),
-          field_228(0), field_22c(0), field_230(0), field_234(-1), field_238(-1)
+        : field_4(0), owner(o), fromId(-1), toId(-1), savedFrameEntry(0), buffer(0), spare(0),
+          capacity(0), length(0), spareLength(0), spareFromId(-1), spareToId(-1)
     {
     }
 };

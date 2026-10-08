@@ -1,0 +1,5009 @@
+// Decompiled by Space Bunny Free, deepseek-v4.1-flash, Haiku, GPT-6, deepseek-v4.1, space-bunny-free, claude-sonnet-5-5, Opus, DeepSeek V4.1 Flash, Claude Opus 5.5, Sonnet, Sonnet 5.5, deepseek-v4-flash, LongCat 2.5 Preview Free, GPT-6.1-sol, GPT-5.6-Terra, claude-opus-5-5, mimo-v2.6-pro and Haiku. Names are provisional.
+//
+// The multiplayer front end (0x440d70 to 0x44ce20): the new game, TCP,
+// serial, modem and game list dialogs, the connection and service provider
+// screens and the score reporting setup, the game setup dialogs (map, team
+// logo, battle room, watching, alliances, the unit limit and the display
+// mode chooser), the allies screen, the battle room's click handler and
+// per-frame refresh, the end-of-multi screen, the save and load game lists
+// and the unit restrictions dialog, in address order.
+//
+// 0x441220, 0x441460, 0x443ff0, 0x444580, 0x449bb0, 0x44a680 and 0x44c420
+// stay in files of their own: in this file's symbol context each one's
+// registers or operand order land differently (docs/c2-regalloc.md), and
+// each matches only in its own file. 0x4441a0 stays in multi_4441a0.cpp: it
+// is a gap region (data/functions.csv), and place.py builds a gap region
+// from a file that holds only that region's functions.
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <windows.h>
+#include <ddraw.h>
+#include <math.h>
+
+struct Entry_00440d70;
+struct Layer_00440d70;
+struct Gadget_00440d70;
+struct Game;
+struct Record_00446f50;
+struct Options_00446f50;
+struct PlayerInfo_00444930;
+struct Player_00444930;
+struct UnitType_00446f50;
+struct Logos_00445110;
+class UnitSync;
+
+#pragma pack(push, 1)
+
+// The 0x15b-byte menu control record. Entry 0 holds the count at +0xb6; the
+// other entries hold NUL terminated text there. +0xcc is entry 0's label,
+// +0xce the two-argument handler the menu calls for its own entries, and
+// +0xd2 the record the entry is bound to. The views of the three parts are
+// one type here: +0xb6's text, count and entry_text, +0xc2's text pointer,
+// +0xce's handler and +0xd6's flags keep their part's name.
+struct Entry_00440d70 {                // 0x15b bytes
+    union {                            // +0x00
+        unsigned char type;
+        unsigned char state;
+        unsigned char field_0;
+    };
+    char unknown_1;                    // +0x01
+    char name[0x13];                   // +0x02
+    short field_15;                    // +0x15
+    short field_17;                    // +0x17
+    union {                            // +0x19
+        short field_19;
+        short height;
+    };
+    int field_1b;                      // +0x1b
+    int field_1f;                      // +0x1f
+    int colour;                        // +0x23
+    char unknown_27[0x29 - 0x27];      // +0x27
+    union {                            // +0x29
+        char field_29;
+        unsigned char visible;
+    };
+    char unknown_2a[0xb6 - 0x2a];      // +0x2a
+    union {                            // +0xb6
+        char text[0x138 - 0xb6];       // the list or label text
+        short count;                   // entry 0's count
+        char entry_text[0xcc - 0xb6];  // one entry's own text
+        struct {                       // entry 0's label
+            char unknown_b6l[0xcc - 0xb6];
+            char label[0x138 - 0xcc];  // +0xcc
+        };
+        struct {                       // the unit restrictions' flags list
+            char unknown_b6f[0xbe - 0xb6];
+            union {
+                int field_be;          // +0xbe
+                struct {
+                    short unknown_be;
+                    short count;       // +0xc0, the list's length
+                } list;
+            };
+        };
+        struct {                       // the dialog's own fields
+            char unknown_b6b[0xba - 0xb6];
+            union {                    // +0xba
+                short selected;
+                short field_ba;
+                unsigned char field_ba_byte;
+                short index;
+            };
+            union {                    // +0xbc
+                struct {
+                    char unknown_bc[0xc0 - 0xbc];
+                    unsigned short field_c0;   // +0xc0
+                };
+                struct {
+                    short field_bc;    // +0xbc
+                    char unknown_be2[0xc0 - 0xbe];
+                };
+            };
+            union {                    // +0xc2
+                char* text_c2;
+                void* field_c2;
+            };
+            union {                    // +0xc6
+                char unknown_c6[0xcc - 0xc6];
+                void* field_c6;        // +0xc6
+                struct {
+                    short frame;       // +0xc6
+                    union {
+                        unsigned int field_c8;     // +0xc8
+                        struct {
+                            unsigned int c8_0 : 1;
+                            unsigned int c8_rest : 31;
+                        };
+                    };
+                };
+            };
+            char unknown_cc[0xce - 0xcc];  // +0xcc
+            union {                    // +0xce
+                void (__stdcall* handler)(Gadget_00440d70* menu, Entry_00440d70* entry);
+                void (__stdcall* onSelect)(Gadget_00440d70* menu, int index);
+                void* field_ce;
+            };
+            union {                    // +0xd2
+                int data;
+                Record_00446f50* records;
+            };
+            union {                    // +0xd6
+                char* flags;
+                unsigned char* bits;
+            };
+            short field_da;            // +0xda
+            char unknown_dc[0x138 - 0xdc]; // +0xdc
+        };
+    };
+    unsigned short field_138;          // +0x138
+    unsigned char field_13a;           // +0x13a
+    char unknown_13b;                  // +0x13b
+    union {                            // +0x13c
+        int field_13c;
+        int max;
+        struct {
+            unsigned short field_13c_bit : 1;
+            unsigned short unknown_13d : 15;
+        };
+        struct {
+            unsigned short b13c_0 : 1;
+            unsigned short b13c_rest : 15;
+        };
+    };
+    union {                            // +0x140
+        short field_140;
+        short value;
+    };
+    short unknown_142;                 // +0x142
+    union {                            // +0x144
+        void (__stdcall* callback)(Gadget_00440d70* menu, int index);
+        void (__stdcall* field_144)(void* gadget, int param_2);
+    };
+    char unknown_148[2];               // +0x148
+    union {                            // +0x14a
+        void* game;
+        int field_14a;
+    };
+    char unknown_14e[0x15b - 0x14e];   // +0x14e
+};
+
+typedef Entry_00440d70 Entry_00444930;
+typedef Entry_00440d70 Entry_00446f50;
+
+// The 16-byte group copied out of g_game+0x2b6e.
+struct Group_00441220 {
+    unsigned int a;                    // +0x00
+    unsigned int b;                    // +0x04
+    unsigned int c;                    // +0x08
+    unsigned int d;                    // +0x0c
+};
+
+// The 0xb9-byte message 441220 copies into g_game+0x2ab1.
+struct Msg_00441220 {
+    char pad_0[0x99];
+    Group_00441220 group;              // +0x99
+    char pad_1[0xb9 - 0xa9];
+};
+
+// The 0xbc-byte message 4437c0 copies the group into.
+struct Msg_004437c0 {
+    char pad_0[0x99];
+    Group_00441220 group;              // +0x99
+    char pad_1[0x13];
+};
+
+// A DirectPlay connection block.
+struct Conn_443ff0 {
+    void* data;                        // +0x0
+    int size;                          // +0x4
+};
+
+// The selected connection: its GUID and its block.
+struct ConnInfo_443ff0 {
+    GUID guid;                         // +0x0
+    Conn_443ff0 conn;                  // +0x10
+};
+
+// The network object at g_game+0x14, as the HAPINET_ wrappers lay it out.
+struct Net_00443100 {
+    void* dp;                          // +0x00
+    void* dp3;                         // +0x04
+    char unknown_8[0x431 - 8];         // +0x08
+    GUID* guids;                       // +0x431
+    char unknown_435[0x4b9 - 0x435];   // +0x435
+    void* lobby;                       // +0x4b9
+    char unknown_4bd[0x4e5 - 0x4bd];   // +0x4bd
+    int count;                         // +0x4e5
+    int field_4fd;                     // +0x4e9
+    char unknown_4ed[0x505 - 0x4ed];   // +0x4ed
+};
+
+// One 0x54-byte game description: its size and the offset of its block.
+struct Desc_004437c0 {
+    char unknown_0[0x4c];              // +0x00
+    int size;                          // +0x4c
+    int offset;                        // +0x50
+};
+
+// One 0x102-byte account record: a name and a number string.
+struct Entry_004426e0 {
+    char name[0x81];                   // +0x00
+    char number[0x81];                 // +0x81
+};
+
+// The serial address block written to DAT_00512770.
+struct Serial_00441c30 {               // 0x14 bytes
+    int unknown_0;                     // +0x00
+    char unknown_4[4];                 // +0x04
+    unsigned long unknown_8;           // +0x08
+    unsigned long unknown_c;           // +0x0c
+    unsigned long unknown_10;          // +0x10
+};
+
+// One element of the compound address list.
+struct Elem_00441c30 {                 // 0x18 bytes
+    GUID guid;                         // +0x00
+    unsigned long size;                // +0x10
+    void* data;                        // +0x14
+};
+
+// The record header of a game description block: a flag word with bitfields
+// at offset 2, then the fields up to version.
+struct Settings_00441460 {
+    unsigned short field_0;
+    unsigned short players : 4;
+    unsigned short playing : 1;
+    unsigned short pad5 : 3;
+    unsigned short black : 1;
+    unsigned short nocmd : 1;
+    unsigned short pad10 : 1;
+    unsigned short mode : 2;
+    unsigned short pad13 : 2;
+    unsigned short lock : 1;
+    unsigned short field_4;
+    unsigned short field_6;
+    unsigned short field_8;
+    unsigned short field_a;
+    unsigned short field_c;
+    unsigned short version;
+};
+
+struct Record_00441460 {               // 0x54 bytes
+    Settings_00441460 settings;        // +0x00
+    int field_10;                      // +0x10
+    char name[0x20];                   // +0x14
+    char name2[0x20];                  // +0x34
+};
+
+// One online service: its id and its name.
+struct LinkInfo {
+    int id;                            // +0x00, -1: unused
+    char name[32];                     // +0x04
+};
+
+// The per-player block g_game->players[i].info points at. Every view of it
+// meets here: part 1's player name at +0x80, part 2's connection flags and
+// part 3's battle room fields share the memory.
+struct PlayerInfo_00444930 {
+    union {
+        struct {
+            char unknown_0a[0x80];     // +0x00
+            char name[0x1b];           // +0x80
+        };
+        struct {
+            char map[0x8b];            // +0x00
+            union {                    // +0x8b
+                unsigned short width;
+                unsigned short field_8b;
+            };
+            union {                    // +0x8d
+                unsigned short height;
+                unsigned short field_8d;
+            };
+            char unknown_8f[0x94 - 0x8f];  // +0x8f
+            char kind;                 // +0x94
+            unsigned char side;        // +0x95
+            unsigned char field_96;    // +0x96
+            union {                    // +0x97
+                unsigned char flags_97;
+                struct {
+                    unsigned char f97_0 : 1;
+                    unsigned char f97_rest : 7;
+                };
+                struct {
+                    unsigned short f97_0_wide : 1;
+                    unsigned short f97_rest_wide : 15;
+                };
+            };
+            unsigned short memory;     // +0x99
+            union {                    // +0x9b
+                unsigned char flags_9b;
+                unsigned short flags;
+                struct {
+                    unsigned short bits_9b_0 : 6;
+                    unsigned short bit6 : 1;
+                    unsigned short watching : 1;
+                    unsigned short mapping : 1;
+                    unsigned short bit9 : 1;
+                    unsigned short bit10 : 1;
+                    unsigned short commander : 2;
+                    unsigned short cheating : 1;
+                    unsigned short fixedloc : 1;
+                    unsigned short closed : 1;
+                };
+                struct {
+                    unsigned short low : 4;
+                    unsigned short started : 1;
+                    unsigned short ready : 1;
+                    unsigned short bit6 : 1;
+                    unsigned short watching : 1;
+                    unsigned short mapping : 1;
+                    unsigned short los : 1;
+                    unsigned short losType : 1;
+                    unsigned short commander : 2;
+                    unsigned short cheating : 1;
+                    unsigned short fixedloc : 1;
+                    unsigned short closed : 1;
+                } b;
+            };
+            union {                    // +0x9d
+                unsigned short flags_9d;
+                struct {
+                    unsigned short f9d_0 : 2;
+                    unsigned short f9d_2 : 1;
+                    unsigned short f9d_rest : 13;
+                };
+                struct {
+                    unsigned char f9d_0_byte : 2;
+                    unsigned char f9d_2_byte : 1;
+                    unsigned char f9d_rest_byte : 5;
+                };
+            };
+            union {                    // +0x9f
+                unsigned short pingLimit;
+                char unknown_9f[2];
+            };
+            union {                    // +0xa1
+                unsigned short energy;
+                unsigned short field_a1;
+            };
+            union {                    // +0xa3
+                unsigned short metal;
+                unsigned short field_a3;
+            };
+            union {                    // +0xa5
+                unsigned short maxUnits;
+                unsigned short maxunits;
+            };
+            unsigned char versionMajor;    // +0xa7
+            unsigned char versionMinor;    // +0xa8
+            union {                    // +0xa9
+                unsigned int mapCrc;
+                unsigned int field_a9;
+            };
+            char unknown_ad[0xb9 - 0xad];  // +0xad
+        };
+    };
+};
+
+typedef PlayerInfo_00444930 PlayerInfo_441080;
+typedef PlayerInfo_00444930 PlayerInfo_00446f50;
+
+// The 0x14b-byte player slot at g_game+0x1b63: the union of the three parts'
+// views (the info pointer at +0x27, the type at +0x73, the alliance at
+// +0x13f).
+struct Player_00444930 {
+    int active;                        // +0x00
+    int field_4;                       // +0x04
+    unsigned int time;                 // +0x08
+    char unknown_c[0x14 - 0xc];        // +0x0c
+    unsigned int ping;                 // +0x14
+    char unknown_18[0x22 - 0x18];      // +0x18
+    union {                            // +0x22
+        unsigned char status;
+        unsigned char field_22;
+    };
+    char unknown_23[0x27 - 0x23];      // +0x23
+    union {                            // +0x27
+        PlayerInfo_00444930* info;
+        PlayerInfo_00444930* data;
+        PlayerInfo_00444930* unit;
+        int field_27;
+    };
+    char name[0x73 - 0x2b];            // +0x2b
+    unsigned char type;                // +0x73
+    char unknown_74[0x108 - 0x74];     // +0x74
+    unsigned char field_108[0xb];      // +0x108
+    unsigned char field_113[0xb];      // +0x113
+    char unknown_11e[0x13f - 0x11e];   // +0x11e
+    union {                            // +0x13f
+        unsigned char alliance;
+        unsigned char colour;
+    };
+    int field_140;                     // +0x140
+    short field_144;                   // +0x144
+    unsigned char field_146;           // +0x146
+    char unknown_147[0x14b - 0x147];   // +0x147
+};
+
+typedef Player_00444930 Player_441080;
+typedef Player_00444930 Player_00446f50;
+
+// The player record seen as an object by the two slot shufflers.
+class Player {
+public:
+    void SetType(int param_1);
+};
+
+// The mission object g_game+0x391e9 points at (defined in the game's own
+// files).
+class Mission {
+public:
+    int GetGameType();
+    int GetNameSlot(int param_1);
+    char* GetTranslatedName();
+    int GetDescription();
+    int LoadMissionByName(char* name);
+    void LoadMissionByName(PlayerInfo_00444930* info);
+    char* GetMissionName();
+    unsigned int ComputeMapChecksum();
+    bool HasMissionName();
+    void RefreshMapList(int param_1);
+    int GetTerrainLength();
+    int GetTerrainSizeTier();
+};
+
+// The layer LoadGuiLayer returns: the entry table at +4, the click handler at
+// +8 and the dialog's block or owner at +0xc.
+struct Layer_00440d70 {
+    Layer_00440d70* unknown_0;         // +0x00
+    Entry_00440d70* entries;           // +0x04
+    void* handler;                     // +0x08
+    union {                            // +0x0c
+        void* owner;
+        void* layout;
+        void* data;
+        int field_c;
+    };
+    char unknown_10[0x1c - 0x10];      // +0x10
+    void* field_1c;                    // +0x1c
+    int field_20;                      // +0x20
+    char unknown_24[0x37 - 0x24];      // +0x24
+    int field_37;                      // +0x37
+};
+
+typedef Layer_00440d70 Holder_00444930;
+typedef Layer_00440d70 Layer_00446f50;
+
+// The menu object at g_game+0x519: its +0x18 is the layer above, its +0x60
+// the id of the entry that was clicked (-1 when the menu is closing).
+struct Gadget_00440d70 {
+    char unknown_0[0x18];              // +0x00
+    union {                            // +0x18
+        Layer_00440d70* layer;
+        Layer_00440d70* holder;
+        Layer_00440d70* table;
+    };
+    char unknown_1c[0x60 - 0x1c];      // +0x1c
+    union {                            // +0x60
+        int field_60;
+        int current;
+    };
+};
+
+typedef Gadget_00440d70 Gadget_00444930;
+typedef Gadget_00440d70 Gui_00446f50;
+
+// The game state. Every view of it in this module meets here: the fields are
+// at the offsets the functions use, and the differently typed views of the
+// flag words share a union.
+struct Game {
+    char unknown_0;                    // +0x00
+    signed char version;               // +0x01
+    char unknown_2[0x10 - 2];          // +0x02
+    void* field_10;                    // +0x10
+    union {                            // +0x14
+        Net_00443100 net;              // the HAPINET_ wrappers' view
+        struct {
+            char unknown_14[0x499 - 0x14]; // +0x14
+            int field_499;             // +0x499
+            char unknown_49d[0x519 - 0x49d]; // +0x49d
+        };
+    };
+    union {                            // +0x519
+        Gadget_00440d70 menu;
+        Gui_00446f50 gui;
+    };
+    char unknown_57d[0x12ef - 0x57d];  // +0x57d
+    char messages[30][0x48];           // +0x12ef
+    char unknown_1b5f[0x1b63 - 0x1b5f]; // +0x1b5f
+    Player_00444930 players[10];       // +0x1b63
+    char unknown_2851[0x29a0 - 0x2851]; // +0x2851
+    Options_00446f50* options;         // +0x29a0
+    char unknown_29a4[0x2a30 - 0x29a4]; // +0x29a4
+    UnitSync* sync;                    // +0x2a30
+    char unknown_2a34[0x2a3c - 0x2a34]; // +0x2a34
+    unsigned short field_2a3c;         // +0x2a3c
+    unsigned short scrollEnd;          // +0x2a3e
+    unsigned short scrollStart;        // +0x2a40
+    unsigned char localPlayer;         // +0x2a42
+    char unknown_2a43;                 // +0x2a43
+    union {                            // +0x2a44
+        unsigned char field_2a44;
+        unsigned char flags_2a44_byte;
+        unsigned short flags_2a44;
+        struct {
+            unsigned short pad_2a44 : 2;
+            unsigned short bit2 : 1;
+            unsigned short rest_2a44 : 13;
+        };
+    };
+    char unknown_2a46;                 // +0x2a46
+    union {                            // +0x2a47
+        struct {
+            char unknown_2a47[4];      // +0x2a47
+            void* data[15];            // +0x2a4b
+        };
+        void* data16[16];              // +0x2a47
+    };
+    char unknown_2a87[0x2a9b - 0x2a87]; // +0x2a87
+    char* chatter;                     // +0x2a9b
+    GUID* sessions;                    // +0x2a9f
+    Conn_443ff0* conns;                // +0x2aa3
+    Desc_004437c0* desc;               // +0x2aa7
+    char* shared;                      // +0x2aab
+    union {                            // +0x2aaf
+        unsigned short field_2aaf;
+        struct {
+            unsigned short bit0 : 1;
+            unsigned short bit1 : 1;
+            unsigned short bits2 : 14;
+        };
+    };
+    char buffer[0xb9];                 // +0x2ab1
+    char game_info[0x54];              // +0x2b6a
+    char unknown_2bbe[0x2bbf - 0x2bbe]; // +0x2bbe
+    unsigned char field_2bbf;          // +0x2bbf
+    union {                            // +0x2bc0
+        unsigned char field_2bc0;
+        char state;
+    };
+    char gameName[0x11];               // +0x2bc1
+    char nickname[0x11];               // +0x2bd2
+    char password[0xb];                // +0x2be3
+    union {                            // +0x2bee
+        unsigned char field_2bee;
+        struct {
+            unsigned short flag0 : 1;
+            unsigned short bits1 : 15;
+        };
+        struct {
+            unsigned short dirty : 1;
+            unsigned short dirty_rest : 15;
+        };
+        struct {
+            unsigned short bits0 : 4;
+            unsigned short flag4 : 1;
+            unsigned short bits5 : 11;
+        };
+    };
+    char unknown_2bf0[0x2c28 - 0x2bf0]; // +0x2bf0
+    int field_2c28[11];                // +0x2c28
+    char unknown_2c54[0x2c74 - 0x2c54]; // +0x2c54
+    struct {                           // +0x2c74
+        unsigned short locked : 1;
+        unsigned short locked_rest : 15;
+    };
+    char unknown_2c76[0x2cbe - 0x2c76]; // +0x2c76
+    signed char field_2cbe;            // +0x2cbe
+    char unknown_2cbf[0x1438f - 0x2cbf]; // +0x2cbf
+    int count;                         // +0x1438f
+    char unknown_14393[0x1439b - 0x14393]; // +0x14393
+    UnitType_00446f50* unitTypes;      // +0x1439b
+    char unknown_1439f[0x148d7 - 0x1439f]; // +0x1439f
+    void* logos;                       // +0x148d7
+    union {                            // +0x148db
+        Logos_00445110* logos32;
+        int field_148db;
+    };
+    char unknown_148df[0x37e1b - 0x148df]; // +0x148df
+    int field_37e1b;                   // +0x37e1b
+    char unknown_37e1f[0x37ebe - 0x37e1f]; // +0x37e1f
+    unsigned short field_37ebe;        // +0x37ebe
+    char unknown_37ec0[0x37ee8 - 0x37ec0]; // +0x37ec0
+    unsigned short field_37ee8;        // +0x37ee8
+    unsigned short maxUnits;           // +0x37eea
+    unsigned short field_37eec;        // +0x37eec
+    int field_37eee;                   // +0x37eee
+    char unknown_37ef2[0x37ef6 - 0x37ef2]; // +0x37ef2
+    int field_37ef6;                   // +0x37ef6
+    char unknown_37efa[0x37f1b - 0x37efa]; // +0x37efa
+    union {                            // +0x37f1b
+        int field_37f1b;
+        unsigned short width;
+    };
+    union {                            // +0x37f1f
+        int field_37f1f;
+        unsigned short height;
+    };
+    char unknown_37f23[0x37f39 - 0x37f23]; // +0x37f23
+    int sides;                         // +0x37f39
+    char unknown_37f3d[0x38a47 - 0x37f3d]; // +0x37f3d
+    int frame;                         // +0x38a47
+    char unknown_38a4b[0x38a51 - 0x38a4b]; // +0x38a4b
+    union {                            // +0x38a51
+        unsigned short flag_38a51 : 1;
+        unsigned short bits_38a51 : 15;
+    };
+    char unknown_38a53[0x38c6b - 0x38a53]; // +0x38a53
+    char save_38c6b[0x100];            // +0x38c6b
+    char unknown_38d6b[0x391e9 - 0x38d6b]; // +0x38d6b
+    union {                            // +0x391e9
+        Mission* field_391e9;
+        Mission* map;
+    };
+    char unknown_391ed[0x39201 - 0x391ed]; // +0x391ed
+    ConnInfo_443ff0 info;              // +0x39201
+    char unknown_39219[0x39229 - 0x39219]; // +0x39219
+    int commander;                     // +0x39229
+    int mapping;                       // +0x3922d
+    int los;                           // +0x39231
+    int losType;                       // +0x39235
+    char unknown_39239[0x3923b - 0x39239]; // +0x39239
+    struct {                           // +0x3923b
+        unsigned short bits0_3923b : 2;
+        unsigned short flag2_3923b : 1;
+        unsigned short bit3_3923b : 1;
+        unsigned short flag4_3923b : 1;
+        unsigned short rest_3923b : 11;
+    };
+};
+
+// One element of the team logo table at g_game+0x148db.
+struct LogoEntry_00445110 {
+    void* ptr;                             // +0x00
+    int unknown_4;                         // +0x04
+};
+
+struct Logos_00445110 {
+    unsigned short count;                  // +0x00
+    char unknown_2[0x28 - 0x2];            // +0x02
+    LogoEntry_00445110 entries[1];         // +0x28
+};
+
+// The map selector's layout block at layer+0xc (0x444ea0).
+struct Data_00444ea0 {
+    char unknown_0[0x14];                  // +0x00
+    char* items;                           // +0x14
+};
+
+// The map dialog's layout block at holder+0xc (0x444cb0).
+struct Layout_00444cb0 {
+    char unknown_0[0x14];                  // +0x00
+    void* field_14;                        // +0x14
+};
+
+// The logo dialog's layout block at holder+0xc (0x445110): the byte list of
+// the free logo indices, the pointer list handed to the GUI and the copied
+// animation sequences.
+struct AnimSeq_00445110 {
+    char unknown_0[0x28];                  // +0x00
+    void* field_28;                        // +0x28
+    char unknown_2c[0x30 - 0x2c];          // +0x2c
+};
+
+struct Layout_00445110 {
+    char selected[0x18];                   // +0x00
+    void** ptrList;                        // +0x18
+    AnimSeq_00445110* seqs;                // +0x1c
+};
+
+// The map preview dialog's layout block at holder+0xc (0x444930).
+struct Layout_00444930 {
+    char unknown_0[0x18];                  // +0x00
+    void* field_18;                        // +0x18
+    void* field_1c;                        // +0x1c
+};
+
+// The display mode list 0x4461d0 and 0x446310 share.
+struct Mode_00446310 {
+    int width;                             // +0x00
+    int height;                            // +0x04
+    int field_8;                           // +0x08
+};
+
+struct Class_00446310 {
+    int count;                             // +0x00
+    Mode_00446310* modes;                  // +0x04
+    char unknown_8[0x14 - 0x8];            // +0x08
+    char* available;                       // +0x14
+    char unknown_18[0x20 - 0x18];          // +0x18
+};
+
+// The first 0x13e bytes of an entry, copied out by 0x445300 and 0x4455b0.
+struct Head_00444930 {
+    unsigned char state;                   // +0x00
+    char unknown_1;                        // +0x01
+    char name[0x13];                       // +0x02
+    short field_15;                        // +0x15
+    char unknown_17[2];                    // +0x17
+    short field_19;                        // +0x19
+    int flags;                             // +0x1b
+    char unknown_1f[0x29 - 0x1f];          // +0x1f
+    unsigned char field_29;                // +0x29
+    char unknown_2a[0xb6 - 0x2a];          // +0x2a
+    char text[0x13e - 0xb6];               // +0xb6
+};
+
+// One 0x62-byte record of the unit restrictions table at 0x5129b4.
+struct Record_00446f50 {
+    char name[0x52];                   // +0x00
+    int field_52;                      // +0x52 unit type index
+    int field_56;                      // +0x56 previous value
+    int field_5a;                      // +0x5a value
+    int field_5e;                      // +0x5e
+};
+
+// One 0x249-byte unit type instance of g_game->unitTypes: the name and
+// description area, the costs and the bit at +0x245 that marks a type that
+// cannot be restricted.
+struct UnitType_00446f50 {
+    char unitName[0x20];               // +0x00
+    union {
+        char name[0x225];              // +0x20
+        struct {
+            char nameShort[0x80];      // +0x20
+            char description[0xe6];    // +0xa0
+            float energyCost;          // +0x186
+            float metalCost;           // +0x18a
+            char unknown_18e[0x245 - 0x18e];
+        };
+        struct {
+            char unknown_13e[0x13e - 0x20];
+            int field_13e;             // +0x13e
+        };
+    };
+    union {
+        unsigned int raw;              // +0x245
+        struct {
+            unsigned int low : 15;
+            unsigned int flag : 1;
+            unsigned int high : 16;
+        } bits;
+        struct {
+            unsigned int f245_low : 15;
+            unsigned int f245_15 : 1;
+            unsigned int f245_high : 16;
+        };
+    } field_245;
+};
+
+struct Event_44c220 {
+    int field_0;                       // +0x00
+    int field_4;                       // +0x04
+    short field_8;                     // +0x08
+    short field_a;                     // +0x0a
+    int field_c;                       // +0x0c
+};
+
+struct Info_0044c7e0 {                  // filled by UnitSync::GetUnitEntry
+    char unknown_0[0xa];
+    short field_a;                     // +0x0a
+    int field_c;                       // +0x0c
+};
+
+class UnitSync {
+public:
+    int SendAllQueued(int value);
+    int IsPlayerSynced(int id);
+    int AllPlayersSynced();
+    void ProcessSync();
+    char* GetSyncStatusText();
+    void CheckUnitAvailable(unsigned int, int);
+    int PopChangedEntry(Event_44c220* event);
+    void SetUnitLimit(UnitType_00446f50* unit, int value);
+    int DisallowUnit(UnitType_00446f50* unit);
+    int AllowUnit(UnitType_00446f50* unit);
+    int GetUnitEntry(UnitType_00446f50* type, Info_0044c7e0* out);
+};
+
+struct Options_00446f50 {
+    char unknown_0[0x118];
+    int fixedloc;                      // +0x118
+};
+
+struct Record_0044c0d0 {
+    unsigned short a;                  // +0x00
+    unsigned short b;                  // +0x02
+    unsigned short e;                  // +0x04
+    unsigned short f;                  // +0x06
+    unsigned char flag8;               // +0x08
+    unsigned char flag9;               // +0x09
+    unsigned char flaga;               // +0x0a
+    unsigned char flagb;               // +0x0b
+    int unknown_c;                     // +0x0c
+    int d;                             // +0x10
+    int unknown_14;                    // +0x14
+};
+
+class Class_0044ce20
+{
+public:
+    void* vtable;
+    int field_4;
+
+    Class_0044ce20(int param_1);
+};
+
+class PacketManager {
+public:
+    int SendAllQueued(int value);
+};
+
+#pragma pack(pop)
+
+class Class_004a1080;
+struct Dialog;
+struct Class_004a1450;
+struct Class_0049fb10;
+struct Struct_004c6ac0;
+
+typedef void (__stdcall* Callback_00449bb0)(Gui_00446f50* gui, int index);
+typedef void (__stdcall* Callback_0044c7e0)(Gui_00446f50* gui, int index);
+
+// GLOBAL: 0x511de8
+extern Game* g_game;
+// GLOBAL: 0x512c84
+extern int DAT_00512c84;
+// GLOBAL: 0x512d90
+extern char DAT_00512d90[];
+extern int DAT_00512768;
+extern int DAT_00512978;
+extern int DAT_0051297c;
+extern int DAT_005129a4;
+extern unsigned int DAT_005129a8;
+extern char* DAT_005129ac;
+extern char* DAT_005129b0;
+extern int* DAT_005129b8;
+extern int DAT_005129c0;
+extern int* DAT_005129c4;
+// GLOBAL: 0x5129c8
+extern int DAT_005129c8;
+extern unsigned int DAT_0050550c;
+extern char* DAT_005091c8;             // savegame directory
+extern char DAT_005119b8[];
+extern char DAT_0050372c[];            // "*"
+extern char DAT_00505f40[];            // "LST"
+extern char DAT_00505f18[];            // "GAMES"
+extern char DAT_00505f30[];            // "SAVEGAME NAMES"
+extern char DAT_00505f20[];            // "SAVEGAME DESCS"
+extern char* DAT_00505518[];
+extern char* DAT_005054b0[];
+extern char DAT_00512ce8[];
+extern int DAT_00512d68;
+extern int DAT_00512d6c;
+extern int DAT_00512d70;
+extern int DAT_00512d74;
+extern int DAT_00512d78;
+extern int DAT_00512d7c;
+extern int DAT_00512d80;
+extern int DAT_00512d84;
+extern int DAT_00512d88;
+extern int DAT_00512d8c;
+extern void* DAT_004fd2f8;
+extern int g_usePacketManager;
+extern PacketManager g_packetManager;
+// GLOBAL: 0x5129b4
+extern Record_00446f50* DAT_005129b4;
+extern char DAT_00512d28;
+extern char DAT_00512d48;
+extern int DAT_00512c80;
+extern char* DAT_00512980;
+extern int DAT_00512984;
+extern Entry_004426e0* DAT_00512988;
+extern char* DAT_0051298c;
+extern GUID DAT_004fcdc8;
+extern GUID DAT_004fcda8;
+extern GUID DAT_004fcd98;
+extern GUID DAT_004fcdb8;
+extern GUID DAT_004fcec8;
+extern GUID DAT_004fce88;
+extern GUID DAT_004fcea8;
+extern GUID DAT_004fcee8;
+extern GUID DAT_004fcf08;
+extern char DAT_004fcfb8[];
+extern Serial_00441c30 DAT_00512770;
+extern int DAT_00512774;
+extern int DAT_00505490[];
+extern unsigned int DAT_005054a8;
+extern unsigned int DAT_00512788;
+extern LinkInfo DAT_005127c8[];
+extern char DAT_00502ae8[];                // "OK"
+extern char DAT_00505974[];                // "Multi"
+extern char* DAT_00512990;
+extern int DAT_00512760;
+extern short DAT_00512764;
+extern int DAT_0051276c;
+extern int DAT_00512994;
+extern int DAT_00505510;
+
+int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
+Entry_00440d70* __stdcall FindGadgetChecked(void* entries, const char* name);
+int __stdcall IsCurrentGadgetNamed(void* menu, const char* name);
+int __stdcall IsCurrentGadgetNamed(Gadget_00440d70* gadget, const char* name);
+Entry_00440d70* __stdcall FindGadgetOrNull(void* entries, const char* name);
+Entry_00440d70* __stdcall FUN_004a0010(Entry_00440d70* entries, const char* name);
+Entry_00440d70* __stdcall FUN_004a0010(void* entries, const char* name);
+Entry_00440d70* __stdcall FUN_004a0180(void* entries, const char* name);
+Entry_00440d70* __stdcall FUN_004a0200(void* entries, char* name);
+Entry_00440d70* __stdcall FUN_004a0280(void* entries, char* name);
+void __stdcall SelectGadgetByIndex(void* menu, int index);
+void __stdcall FUN_004a7190(void* menu, int index);
+int __stdcall FUN_0049fc50(void* menu, int index);
+void __stdcall FUN_0049fa90(void* menu);
+void __stdcall FUN_0049fa50(void* gui);
+void __stdcall FUN_0049fb10(void* menu, int value);
+void __stdcall FUN_0049fad0(void* menu);
+void __stdcall FUN_004ab0a0(void* menu);
+void __stdcall FUN_004ab170(void* menu, int a, int b);
+void __stdcall FUN_004ab190(void* gui, int flag);
+void __stdcall FUN_004a0570(void* menu, const char* name, int value);
+void __stdcall FUN_004a0bf0(void* menu, const char* name, char* text, int param_4);
+void __stdcall FUN_004a1250(void* menu, const char* name, int value);
+void __stdcall FUN_004a1250(void* gui, char* name, int value);
+void __stdcall FUN_004a2e40(void* menu, const char* name, int index);
+void __stdcall FUN_004a32a0(void* menu, const char* name, char* text, int count, int flag);
+void __stdcall FUN_004a09c0(void* menu, int index, int param_3, int param_4);
+void __stdcall FUN_004a1450(void* menu, char* name, int value);
+void __stdcall FUN_004a5d30(void* gui, int flag);
+int __stdcall FUN_004a5d50(void* menu, int index);
+char* __stdcall GetGadgetText(void* menu, const char* key, char* out);
+int __stdcall GetGadgetStatus(void* menu, int handle);
+char __stdcall FUN_004a04f0(void* menu, char* name);
+int __stdcall GetButtonStage(void* gadget, int index);
+int __stdcall GetButtonStageByName(void* gadget, char* name);
+void __stdcall SetButtonStageByName(void* gui, char* name, int value);
+int __stdcall SetButtonStageByName(Class_004a1080* obj, char* name, int value);
+void __stdcall SetGadgetStatusByName(void* gui, char* name, int value);
+void __stdcall SetGadgetName(void* gui, char* name, char* text);
+void __stdcall SetGadgetText(void* gui, int index, char* text);
+void __stdcall SetGadgetRows(void* table, char* name, int* pics, int count);
+void __stdcall DrawButton(void* gadget, int value);
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
+Layer_00440d70* __stdcall LoadGuiLayer(void* menu, const char* name, int flags);
+void __stdcall RenderLayer(void* menu, int value);
+void __stdcall CloseTopScreen(void* menu);
+void __stdcall PlaySoundByName(const char* name, int flag);
+void __stdcall PlaySoundByName(char* str, int flag);
+void BlankScreen();
+void __stdcall OpenMessageBox(void* menu, const char* text, int a, int b, int c);
+char* __stdcall Translate(const char* text);
+char* __stdcall Translate(char* text);
+void __stdcall SetFrontendState(int state, int line, const char* file);
+void __stdcall SetFrontendState(int a, int line, char* file);
+void __stdcall SetFrontendErrorText(char* text);
+void __stdcall SetFrontendSubState(char state, int line, char* file);
+int __stdcall ReadGameRegistryValue(const char* key, void* buf, unsigned int* size);
+void __stdcall WriteGameRegistryValue(void* key, void* buf, int value);
+void __stdcall SetCursorMode(int value);
+void __stdcall EnableReporter(int value);
+void __stdcall SetOffscreenSurface(int a);
+void FlipScreen();
+int __stdcall HAPINET_getgames(char* net, void* desc, int a);
+int __stdcall BuildCompoundAddress(int* addressOut, int* sizeOut);
+int __stdcall HAPINET_createcompoundaddress(void* net, void* elements, unsigned long count,
+                           void* address, unsigned long* size);
+int __stdcall HAPINET_initlobbiedconnection(void* net);
+int __stdcall HAPINET_createdplayinterface(GUID* sp, void* net);
+int __stdcall HAPINET_getplayeraddress(void* net, unsigned long player, void* data,
+                           unsigned long* size);
+int __stdcall HAPINET_enumaddress(void* net, void* callback, void* address, unsigned long size,
+                           void* context);
+int __stdcall HAPINET_releasedplayinterface(void* net);
+void __stdcall HAPINET_uninitmultiplay(void* net);
+void __stdcall HAPINET_getconnections(void* net, void* guids, void* conns,
+                           void* descriptions, void* param_5);
+void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void __cdecl FUN_004d85a0(void* p);
+int IsOnlineConfigLoaded();
+void OrLabelAttribs();
+int __stdcall LoadReporterDll(unsigned int* a, unsigned int* b);
+void __stdcall RunWhileScreenNamed(void* p, char* name);
+char* GetPreferredLanguage();
+unsigned char FindHostSlot();
+char* __stdcall GetRejectReasonText(int value);
+unsigned int __stdcall OnlineGetLinkInfo(LinkInfo* links);
+int __stdcall OnlineProcessButtonCommand(int button, char* message, unsigned int size);
+void OnlineUnload();
+void OpenOptionsPanel();
+// Defined in multi_443ff0.cpp, which keeps its own view of the game.
+int __stdcall SelectConnection(int index);
+void __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
+void __stdcall FUN_004ac7d0(void* menu, void* palette, void* param_3);
+void SendNetHeartbeat(void);
+void __stdcall OpenSelectGameDialog();
+int InitScoreReporting();
+void __stdcall HandleSerialDialogClick(Gadget_00440d70* gadget);
+// Defined in multi_441220.cpp, which keeps its own views of the menu and the
+// entry record.
+void __stdcall FUN_00441220(Gadget_00440d70* menu, Entry_00440d70* entry);
+void __stdcall FUN_00442380(Gadget_00440d70* menu, Entry_00440d70* entry);
+void __stdcall FUN_004423a0(Gadget_00440d70* menu, Entry_00440d70* entry);
+void __stdcall HandleNewMultiClick(Gadget_00440d70* gadget);
+void __stdcall HandleTcpDialogClick(Gadget_00440d70* gadget);
+void __stdcall HandleModemDialogClick(Gadget_00440d70* gadget);
+void __stdcall HandleSelectGameClick(Gadget_00440d70* menu);
+void __stdcall HandleReportClick(Gadget_00440d70* obj);
+// Defined in multi_441460.cpp, which keeps its own view of the game.
+int __stdcall ConnectToGame(Layer_00440d70* gadget);
+void __stdcall ShowSelectedAccount(Gadget_00440d70* menu, Entry_00440d70* entry);
+void __stdcall OpenReportDialog(unsigned int* count, char** names);
+void FillAccountList(void);
+int __stdcall FUN_004444d0(Entry_00440d70* entries, int param_2, short param_3,
+                           int param_4, char* param_5);
+void FUN_00443590(void);
+
+void __stdcall RequestPlayerColor(int value);
+void* __stdcall LoadRadarPic(char* path, int* outX, int* outY);
+void __stdcall ResizeRadarPicture(void* bmp, int param_2, int param_3, int param_4, int param_5);
+char* __stdcall SkipTextLines(char* text, int n);
+void __stdcall ReportGameEvent(int msg);
+void BroadcastPlayerInfo(void);
+void UpdateNetGameInfo(void);
+int __stdcall LoadMapList(char** out, int param_2, int param_3);
+void __stdcall SortFileList(char* items, int b, int c, int count);
+void __stdcall SetGadgetItems(void* gui, const char* name, void** items, int count);
+int __stdcall ReadSliderValue(void* gadget);
+void __stdcall SetSliderFromValue(Entry_00440d70* gadget, int value);
+int __stdcall IsGadgetNamed(int param1, int param2, char* name);
+int __stdcall GetSlotDpid(unsigned char player);
+void __stdcall RejectPlayer(int param_1, int param_2);
+void SaveSettings(void);
+int __stdcall GetDisplayModes(Class_00446310* obj);
+void __stdcall SortDisplayModes(Class_00446310* obj);
+void __stdcall RefreshAlliesScreen(int value);
+void __stdcall OpenRejectDialog(int player);
+void __stdcall FUN_00452bd0(Player_00444930* player);
+int IsHostLocal();
+void __stdcall HandleControlDialogClick(Gadget_00440d70* gadget);
+void __stdcall SetAlliance(int, int, int, int);
+void __stdcall SetAlliance(int a, int b, unsigned char allied, int d);
+void ShowSelectedMapInfo(void);
+void __stdcall HandleViewMapClick(Gadget_00440d70* gadget);
+void __stdcall HandleMapSelectClick(Gadget_00440d70* gadget);
+void __stdcall HandleLogoSelectClick(Gadget_00440d70* gadget);
+void __stdcall HandleRejectChoice(Gadget_00440d70* gadget);
+void __stdcall UpdateMapSelection(Gadget_00440d70* menu, int unused);
+
+void __stdcall SetGameMode(int a);
+void LeaveNetGame();
+void* __stdcall LoadBitmapByName(char* name, unsigned char* palette);
+void __stdcall DrawSurface(void* dest, void* image, int x, int y);
+void __stdcall FreeSurface(void* image);
+void ShowSoftwareCursor();
+void __stdcall MakeDirectoryPath(char* path);
+void __stdcall RemoveFile(char* path);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
+int __stdcall CountDirectoryEntries(const char* path, int flag);
+int __stdcall ScanDirectory(char* path, void* buffer, char* p3, int p4, int p5, int p6);
+void __stdcall HandleAlliesClick(Gui_00446f50* gadget);
+void __stdcall HandleBattleRoomClick(Gui_00446f50* gadget);
+void __stdcall HandleEndMultiClick(Gui_00446f50* gadget);
+void __stdcall HandleLoadListClick(Gui_00446f50* menu);
+void __stdcall HandleRestrictionsClick(Gui_00446f50* menu);
+void __stdcall HandleSaveGameClick(Gui_00446f50* menu);
+void __stdcall HandleUnitCountSlider(void* obj, char* gadget);
+void __stdcall UpdateSideGadget(int side);
+void __stdcall UpdateUnitSliders(Gui_00446f50* gui, int value);
+void __stdcall UpdateMaxUnitsText(Gui_00446f50* gui, int index);
+void __stdcall UpdateMetalText(Gui_00446f50* gui, int index);
+void RefreshBattleRoomRows();
+void RebuildAllyList();
+void OpenLoadListDialog();
+void OpenSaveGameDialog();
+void OpenUnitRestrictions();
+void FUN_0044c220();
+int __stdcall IsScreenNamed(void* gui, const char* name);
+void __stdcall FUN_004a15c0(Entry_00446f50* entries, int widget, RECT* rect);
+void __stdcall FUN_004a50e0(int a, char* text, int x, int y, int w, int h);
+int FUN_00456760();
+void __stdcall CreateUnitSync(int param_1);
+char __stdcall FindGameCdDrive(int side);
+int __stdcall HandleNetPackets();
+void* __stdcall LoadPcx(char* path, int param_2);
+void __stdcall FrameFromSurface(void* dst, void* src);
+void* __stdcall FindGafEntry(void* gaf, const char* name);
+void FatalError(char* message);
+int CountLocalComputerPlayers();
+unsigned int GetTicks();
+void __stdcall AddMessage(char* text, int a, int b, int c);
+void __stdcall SendChatMessage(void* from, char* text, int a, int b);
+int __stdcall CreateLocalPlayer(unsigned char player, int state);
+int __stdcall GetFontLineHeight();
+int __stdcall GetTextPixelWidth(char* text);
+
+// Click handler of the "create new game" dialog (NEWMULTI.GUI, opened by
+// OpenNewMultiDialog). Clicking a text field gives it the focus and loads its
+// contents; OK copies the password (bounded to 11 characters) into g_game and
+// the game and player names into two stack buffers, complains if either is
+// empty, then starts the game (InitScoreReporting) and sets the pending front-end
+// state at g_game+0x2bc0 to 17. CANCEL goes back to the previous dialog.
+// FUNCTION: 0x440d70
+void __stdcall HandleNewMultiClick(Gadget_00440d70* gadget)
+{
+    Entry_00440d70* entries = gadget->layer->entries;
+    if (gadget->field_60 == -1)
+        return;
+    // The three text fields share one tail: the first two hand the next field
+    // the focus, the third one the OK button.
+    if (IsCurrentGadgetNamed(gadget, "GAMENAME")) {
+        SelectGadgetByIndex(gadget, FindGadgetIndex(entries, "NICKNAME", 3));
+        FUN_0049fc50(gadget, FindGadgetIndex(entries, "NICKNAME", 3));
+        FUN_0049fa90(gadget);
+        FUN_004ab0a0(gadget);
+        return;
+    }
+    if (IsCurrentGadgetNamed(gadget, "NICKNAME")) {
+        SelectGadgetByIndex(gadget, FindGadgetIndex(entries, "PASSWORD", 3));
+        FUN_0049fc50(gadget, FindGadgetIndex(entries, "PASSWORD", 3));
+        FUN_0049fa90(gadget);
+        FUN_004ab0a0(gadget);
+        return;
+    }
+    if (IsCurrentGadgetNamed(gadget, "PASSWORD")) {
+        SelectGadgetByIndex(gadget, FindGadgetIndex(entries, "OK", 1));
+        FUN_0049fa90(gadget);
+        FUN_004ab0a0(gadget);
+        return;
+    }
+    if (FindGadgetIndex(entries, "OK", 0xe) == gadget->field_60) {
+        // 100 bytes each, and the pointer local in front of them, is what
+        // puts them at +0x14 and +0x78 of the 0xcc-byte frame.
+        char nickbuf[100];
+        char namebuf[100];
+        char* dst;
+        int gi;                        // GAMENAME gadget index
+        int ni;                        // NICKNAME gadget index
+        PlaySoundByName("BigButton", 0);
+        char* pw = (char*)FUN_004a0010(entries, "PASSWORD");
+        lstrcpynA(g_game->password, pw + 0xb6, 0xb);
+        gi = FindGadgetIndex(entries, "GAMENAME", 3);
+        dst = namebuf;                 // copied through a pointer, as in the original
+        strcpy(dst, entries[gi].text);
+        if (strlen(namebuf) == 0) {
+            FUN_004a7190(gadget, gi);
+            FUN_004ab0a0(gadget);
+            OpenMessageBox((char*)gadget, Translate("You must enter a game name"), 0x140, 1, 1);
+            return;
+        }
+        ni = FindGadgetIndex(entries, "NICKNAME", 3);
+        strcpy(nickbuf, entries[ni].text);
+        if (strlen(nickbuf) == 0) {
+            FUN_004a7190(gadget, ni);
+            FUN_004ab0a0(gadget);
+            OpenMessageBox((char*)gadget, Translate("You must enter your name"), 0x140, 1, 1);
+            return;
+        }
+        strcpy(g_game->gameName, namebuf);
+        strcpy(g_game->nickname, nickbuf);
+        if (!InitScoreReporting()) {
+            g_game->field_2bc0 = 0x11;
+            return;
+        }
+        FUN_004ab0a0(gadget);
+        return;
+    }
+    if (FindGadgetIndex(entries, "CANCEL", 0xe) == gadget->field_60) {
+        PlaySoundByName("Previous", 0);
+        CloseTopScreen(gadget);
+        OpenSelectGameDialog();
+        return;
+    }
+    FUN_004ab0a0(gadget);
+}
+
+// Opens the new multiplayer game dialog (NEWMULTI.GUI), sets its click
+// handler, fills in the game, player and password fields and shows it.
+// FUNCTION: 0x441080
+void OpenNewMultiDialog()
+{
+    DWORD size;
+    Layer_00440d70* layer = LoadGuiLayer(&g_game->menu, "NEWMULTI.GUI", 0x80);
+    layer->handler = HandleNewMultiClick;
+    layer->owner = g_game;
+    LoadPictureCached("createnew", 0, 0, 0);
+    Entry_00440d70* entries = layer->entries;
+    if (IsOnlineConfigLoaded() && DAT_00512d48 != 0) {
+        g_game->nickname[0] = 0;
+        strncat(g_game->nickname, &DAT_00512d48, 0x10);
+    }
+    if (strlen(g_game->nickname) == 0) {
+        size = 0x11;
+        GetUserNameA(g_game->nickname, &size);
+    }
+    Entry_00440d70* gname = FUN_004a0010(entries, "GAMENAME");
+    FUN_004a0bf0(&g_game->menu, "GAMENAME", g_game->gameName, 0);
+    gname->field_138 = 0x10;
+    Entry_00440d70* nname = FUN_004a0010(entries, "NICKNAME");
+    FUN_004a0bf0(&g_game->menu, "NICKNAME", g_game->nickname, 0);
+    nname->field_138 = 0x10;
+    char* pw = g_game->players[g_game->localPlayer].info->name;
+    if (strlen(pw) == 0)
+        pw = g_game->password;
+    FUN_004a0bf0(&g_game->menu, "PASSWORD", pw, 0xa);
+    OrLabelAttribs();
+    FUN_0049fb10(&g_game->menu, 1);
+    RenderLayer(&g_game->menu, 0x40);
+}
+
+// Returns the local player's name, the byte at g_game+0x2a42 selecting the
+// player record and +0x1b8a (0x1b63 + 0x27) its info block; the name is at
+// +0x80 of that block.
+// FUNCTION: 0x441430
+int __cdecl FUN_00441430()
+{
+    int ecx = (int)g_game;
+    unsigned int edx = *(unsigned char*)(ecx + 0x2a42);
+    int eax = edx;
+    ecx = ecx + edx;
+    eax = eax << 5;
+    eax = eax + edx;
+    eax = eax + eax * 4;
+    eax = *(int*)(ecx + eax * 2 + 0x1b8a);
+    return eax + 0x80;
+}
+
+// Maps the selected DirectPlay service provider GUID to an index:
+// 0 modem, 1 TCP/IP, 2 IPX, 3 serial, 4 anything else. The four globals hold
+// DPSPGUID_MODEM, DPSPGUID_TCPIP, DPSPGUID_IPX and DPSPGUID_SERIAL.
+// FUNCTION: 0x441bc0
+int GetServiceProviderIndex()
+{
+    GUID* guid = &g_game->info.guid;
+    if (memcmp(guid, &DAT_004fcdc8, sizeof(GUID)) == 0) {
+        return 0;
+    }
+    if (memcmp(guid, &DAT_004fcda8, sizeof(GUID)) == 0) {
+        return 1;
+    }
+    if (memcmp(guid, &DAT_004fcd98, sizeof(GUID)) == 0) {
+        return 2;
+    }
+    if (memcmp(guid, &DAT_004fcdb8, sizeof(GUID)) == 0) {
+        return 3;
+    }
+    return 4;
+}
+
+// Builds a DirectPlay compound address for the service provider selected in
+// g_game + 0x39201 and hands it to the lobby's CreateCompoundAddress.
+// Returns 0 on success, with the address block and its size in the two out
+// parameters; otherwise the HRESULT from the lobby.
+// FUNCTION: 0x441c30
+int __stdcall BuildCompoundAddress(int* addressOut, int* sizeOut)
+{
+    // block before size, all three buffers at function top: prologue and frame layout.
+    HGLOBAL block = 0;
+    unsigned long size = 0;
+    Elem_00441c30 elements[3];
+    GUID guid;
+    char buf1[200];
+    char buf2[200];
+    char buf3[200];
+    unsigned long count;
+    int result;
+
+    guid = g_game->info.guid;
+
+    if (memcmp(&guid, &DAT_004fcdc8, sizeof(GUID)) == 0) {
+        elements[0].guid = DAT_004fce88;
+        elements[0].size = 0x10;
+        elements[0].data = &DAT_004fcdc8;
+        // memset, not = "": plain rep stosd.
+        memset(buf1, 0, sizeof(buf1));
+        char* s = DAT_00512980;
+        if (s == 0) {
+            s = DAT_005119b8;
+        }
+        lstrcpyA(buf1, s);
+        elements[1].guid = DAT_004fcec8;
+        elements[1].size = lstrlenA(buf1) + 1;
+        elements[1].data = buf1;
+        lstrcpyA(buf2, GetGadgetText(&g_game->menu, "NUMBER", 0));
+        elements[2].guid = DAT_004fcea8;
+        elements[2].size = lstrlenA(buf2) + 1;
+        elements[2].data = buf2;
+        count = 3;
+    } else if (memcmp(&guid, &DAT_004fcda8, sizeof(GUID)) == 0) {
+        elements[0].guid = DAT_004fce88;
+        elements[0].size = 0x10;
+        elements[0].data = &DAT_004fcda8;
+        char* t = GetGadgetText(&g_game->menu, "ADDRESS", 0);
+        if (t == 0) {
+            t = DAT_005119b8;
+        }
+        lstrcpyA(buf3, t);
+        elements[1].guid = DAT_004fcee8;
+        elements[1].size = lstrlenA(buf3) + 1;
+        elements[1].data = buf3;
+        count = 2;
+    } else if (memcmp(&guid, &DAT_004fcd98, sizeof(GUID)) == 0) {
+        elements[0].guid = DAT_004fce88;
+        elements[0].size = 0x10;
+        elements[0].data = &DAT_004fcd98;
+        count = 1;
+    } else if (memcmp(&guid, &DAT_004fcdb8, sizeof(GUID)) == 0) {
+        elements[0].guid = DAT_004fce88;
+        elements[0].size = 0x10;
+        elements[0].data = &DAT_004fcdb8;
+        DAT_00512770.unknown_8 = 0;
+        DAT_00512770.unknown_c = 0;
+        DAT_00512770.unknown_10 = 3;
+        elements[1].guid = DAT_004fcf08;
+        elements[1].size = 0x14;
+        elements[1].data = &DAT_00512770;
+        count = 2;
+    } else {
+        elements[0].guid = DAT_004fce88;
+        elements[0].size = 0x10;
+        elements[0].data = &guid;
+        count = 1;
+    }
+
+    result = HAPINET_createcompoundaddress(&g_game->net, elements, count, 0, &size);
+    if (result != 0x8877001e) goto cleanup;
+    block = (HGLOBAL)FUN_004d83b0("COMPOUND ADDR", size);
+    if (block == 0) {
+        result = 0x8007000e;
+        goto cleanup;
+    }
+    result = HAPINET_createcompoundaddress(&g_game->net, elements, count, block, &size);
+    if (result < 0) {
+        // Label inside this body, reached by goto: the shared cleanup block is the true arm.
+cleanup:
+        if (block != 0) {
+            GlobalUnlock(GlobalHandle(block));
+            GlobalFree(GlobalHandle(block));
+        }
+        return result;
+    }
+    *addressOut = (int)block;
+    *sizeOut = size;
+    return 0;
+}
+
+// FUNCTION: 0x442000
+int __stdcall FUN_00442000(int unused)
+{
+    int a = 0;
+    int b = 0;
+    int result = BuildCompoundAddress(&a, &b);
+    if (result >= 0) {
+        g_game->info.conn.data = (void*)a;
+        result = 0;
+        g_game->info.conn.size = b;
+    }
+    return result;
+}
+
+// Click handler of the TCP dialog (TCP.GUI, opened by OpenTcpDialog). OK and a
+// direct-connect address both set the multiplayer connection-mode bits of
+// g_game (+0x2aaf) and connect; JOIN sets only the second bit; ADDRESS selects
+// the address gadget; PREV goes back; anything else resets the gadget. The
+// address text is then written to the registry under TCPADDR.
+// The original build called this helper from both connection paths and /Ob2
+// inlined it at each one; 0x442000 is the out-of-line copy of the same body.
+// Writing the two zero stores inside the helper, rather than inline in the
+// caller, is what makes MSVC 5 schedule the first store after the argument
+// push (`mov [esp+0x1c], ebx`), matching the original. Spelling the same
+// statements inline in HandleTcpDialogClick hoists that store one instruction early.
+static int TryConnect_00442050()
+{
+    int a = 0;
+    int b = 0;
+    int result = BuildCompoundAddress(&a, &b);
+    if (result >= 0) {
+        g_game->info.conn.data = (void*)a;
+        g_game->info.conn.size = b;
+    }
+    return result;
+}
+
+// FUNCTION: 0x442050
+void __stdcall HandleTcpDialogClick(Gadget_00440d70* gadget)
+{
+    Entry_00440d70* entries = gadget->layer->entries;
+    if (DAT_00512d90[0] != 0) {
+        if (DAT_00512c84 == 0)
+            DAT_00512d90[0] = 0;
+    }
+    else if (gadget->field_60 == -1) {
+        return;
+    }
+    else if (FindGadgetIndex(entries, "OK", 0xe) == gadget->field_60) {
+        goto connect;
+    }
+    else if (FindGadgetIndex(entries, "JOIN", 0xe) == gadget->field_60) {
+        g_game->bit1 = 1;
+        g_game->bit0 = 0;
+        TryConnect_00442050();
+        PlaySoundByName("Smlbutton", 0);
+        goto tcpaddr;
+    }
+    else if (IsCurrentGadgetNamed(gadget, "ADDRESS") != 0) {
+    }
+    else {
+        if (IsCurrentGadgetNamed(gadget, "PREV") != 0) {
+            SetFrontendState(0xf, 0x305, "c:\\cavedog\\wargame\\multi.cpp");
+            PlaySoundByName("Previous", 0);
+            return;
+        }
+        FUN_004ab0a0(gadget);
+        return;
+    }
+connect:
+    g_game->bit0 = 1;
+    g_game->bit1 = 1;
+    TryConnect_00442050();
+    PlaySoundByName("Smlbutton", 0);
+    BlankScreen();
+tcpaddr:
+    WriteGameRegistryValue("TCPADDR", GetGadgetText(gadget, "ADDRESS", 0), 0x80);
+}
+
+// Opens the TCP settings dialog (TCP.GUI) with HandleTcpDialogClick as its handler.
+// The "ADDRESS" setting gets the direct-connect address typed on the command
+// line (DAT_00512d90) when there is one, otherwise the "TCPADDR" value; the
+// ADDRESS gadget is then selected in the dialog.
+// FUNCTION: 0x4421f0
+void OpenTcpDialog()
+{
+    Layer_00440d70* dialog = LoadGuiLayer(&g_game->menu, "TCP.GUI", 0x800);
+    dialog->handler = HandleTcpDialogClick;
+    dialog->owner = g_game;
+    dialog->field_1c = 0;
+    LoadPictureCached(0, 0, 0, 0);
+    HAPINET_initlobbiedconnection(&g_game->net);
+    FindGadgetIndex(dialog->entries, "ADDRESS", 3);
+    char* address = GetGadgetText(&g_game->menu, "ADDRESS", 0);
+    int direct = DAT_00512d90[0];
+    unsigned int len = 0x80;
+    if (direct) {
+        address[0] = 0;
+        strncat(address, DAT_00512d90, len - 1);
+    } else {
+        if (!ReadGameRegistryValue("TCPADDR", address, &len)) {
+            address[0] = 0;
+        }
+    }
+    FUN_004a0bf0(&g_game->menu, "ADDRESS", address, 0);
+    if (direct) {
+        HandleTcpDialogClick(&g_game->menu);
+        g_game->field_2aaf = g_game->field_2aaf ^ ((DAT_00512c84 != 0) ^ g_game->field_2aaf) & 1;
+    } else {
+        SelectGadgetByIndex(&g_game->menu, FindGadgetIndex(dialog->entries, "ADDRESS", 3));
+        FUN_0049fc50(&g_game->menu, FindGadgetIndex(dialog->entries, "ADDRESS", 3));
+        FUN_0049fb10(&g_game->menu, 1);
+        RenderLayer(&g_game->menu, 0x40);
+    }
+}
+
+// The original calls these two out of line from OpenSerialDialog; in this file
+// /Ob2 would inline their bodies there.
+#pragma auto_inline(off)
+// FUNCTION: 0x442380
+void __stdcall FUN_00442380(Gadget_00440d70* menu, Entry_00440d70* entry)
+{
+    int value = entry->index;
+    if (value >= 0) {
+        DAT_00512774 = DAT_00505490[value];
+    }
+}
+
+// FUNCTION: 0x4423a0
+void __stdcall FUN_004423a0(Gadget_00440d70* menu, Entry_00440d70* entry)
+{
+    int val = entry->index;
+    if (val >= 0) {
+        DAT_00512770.unknown_0 = val + 1;
+    }
+}
+#pragma auto_inline(on)
+
+// Click handler of the serial-link dialog (SERIAL.GUI, opened by OpenSerialDialog).
+// HOST and JOIN set the multiplayer connection-mode bits of g_game (+0x2aaf)
+// and save the address returned by BuildCompoundAddress; PREV goes back; anything else
+// resets the gadget. The chosen baud rate and COM port are then written back to
+// the registry under SERBAUD and SERPORT.
+// FUNCTION: 0x4423c0
+void __stdcall HandleSerialDialogClick(Gadget_00440d70* gadget)
+{
+    Entry_00440d70* entries = gadget->layer->entries;
+    int a;
+    int r;
+    if (gadget->field_60 == -1)
+        return;
+    if (FindGadgetIndex(entries, "HOST", 0xe) == gadget->field_60) {
+        g_game->bit0 = 1;
+        g_game->bit1 = 1;
+        a = 0;
+        int b = 0;
+        r = BuildCompoundAddress(&a, &b);
+        if (r >= 0) {
+            g_game->info.conn.data = (void*)a;
+            g_game->info.conn.size = b;
+        }
+        PlaySoundByName("SMLBUTTON", 0);
+        BlankScreen();
+    } else if (FindGadgetIndex(entries, "JOIN", 0xe) == gadget->field_60) {
+        g_game->bit1 = 1;
+        g_game->bit0 = 0;
+        int a = 0, b = 0;
+        r = BuildCompoundAddress(&a, &b);
+        if (r >= 0) {
+            g_game->info.conn.data = (void*)a;
+            g_game->info.conn.size = b;
+        }
+        PlaySoundByName("SMLBUTTON", 0);
+    } else if (IsCurrentGadgetNamed(gadget, "PREV")) {
+        SetFrontendState(0xf, 0x395, "c:\\cavedog\\wargame\\multi.cpp");
+        PlaySoundByName("Previous", 0);
+        return;
+    } else {
+        FUN_004ab0a0(gadget);
+        return;
+    }
+    a = FindGadgetChecked(entries, "SPEEDS")->index;
+    WriteGameRegistryValue("SERBAUD", &a, 4);
+    a = FindGadgetChecked(entries, "PORTS")->index;
+    WriteGameRegistryValue("SERPORT", &a, 4);
+}
+
+// Opens the serial link dialog (SERIAL.GUI), gives the "PORTS" and "SPEEDS"
+// menus a single entry each, and restores the saved values from the registry.
+// FUNCTION: 0x442560
+void OpenSerialDialog()
+{
+    Layer_00440d70* gadget = LoadGuiLayer(&g_game->menu, "SERIAL.GUI", 0x800);
+    gadget->handler = HandleSerialDialogClick;
+    gadget->owner = g_game;
+    gadget->field_1c = 0;
+    LoadPictureCached(0, 0, 0, 0);
+    HAPINET_initlobbiedconnection((char*)g_game + 0x14);
+    FUN_004a32a0(&g_game->menu, "PORTS", "COM1\0COM2\0COM3\0COM4", 4, 0);
+    FUN_004a32a0(&g_game->menu, "SPEEDS", "115200\0" "57600\0" "38400\0" "19200\0" "14400\0" "9600", 6, 0);
+
+    int value;
+    unsigned int size = 4;
+
+    if (ReadGameRegistryValue("SERBAUD", &value, &size)) {
+        FUN_004a2e40(&g_game->menu, "SPEEDS", value);
+    }
+    if (ReadGameRegistryValue("SERPORT", &value, &size)) {
+        FUN_004a2e40(&g_game->menu, "PORTS", value);
+    }
+    Entry_00440d70* entry = FindGadgetChecked(gadget->entries, "PORTS");
+    entry->handler = FUN_004423a0;
+    FUN_004423a0(&g_game->menu, entry);
+    Entry_00440d70* speeds = FindGadgetChecked(gadget->entries, "SPEEDS");
+    speeds->handler = FUN_00442380;
+    FUN_00442380(&g_game->menu, speeds);
+    FUN_0049fb10(&g_game->menu, 1);
+    RenderLayer(&g_game->menu, 0x40);
+}
+
+// Fills the ACCOUNTS menu entry with the 20 account names and restores the
+// selected one.
+// FUNCTION: 0x4426e0
+void FillAccountList(void)
+{
+    char* buffer = DAT_0051298c;
+    *buffer = 0;
+    for (int i = 0; i < 20; i++) {
+        strcpy(buffer, DAT_00512988[i].name);
+        buffer += strlen(DAT_00512988[i].name) + 1;
+    }
+    Entry_00440d70* entry = FindGadgetChecked(g_game->menu.layer->entries, "ACCOUNTS");
+    int player = entry->index;
+    FUN_004a32a0((char*)g_game + 0x519, "ACCOUNTS", DAT_0051298c, 20, 0);
+    FUN_004a2e40((char*)g_game + 0x519, "ACCOUNTS", player);
+}
+
+// Copies the selected account's name and number into the NAME and NUMBER
+// entries and refreshes the ACCOUNTS list.
+// FUNCTION: 0x4427a0
+void RefreshAccountList(void)
+{
+    Entry_00440d70* entry = FindGadgetChecked(g_game->menu.layer->entries, "ACCOUNTS");
+    if (entry != 0 && DAT_00512988 != 0) {
+        GetGadgetText((char*)g_game + 0x519, "NAME",
+                     DAT_00512988[entry->index].name);
+        GetGadgetText((char*)g_game + 0x519, "NUMBER",
+                     DAT_00512988[entry->index].number);
+        char* buffer = DAT_0051298c;
+        *buffer = 0;
+        for (int i = 0; i < 20; i++) {
+            strcpy(buffer, DAT_00512988[i].name);
+            buffer += strlen(DAT_00512988[i].name) + 1;
+        }
+        int player = FindGadgetChecked(g_game->menu.layer->entries, "ACCOUNTS")->index;
+        FUN_004a32a0((char*)g_game + 0x519, "ACCOUNTS", DAT_0051298c, 20, 0);
+        FUN_004a2e40((char*)g_game + 0x519, "ACCOUNTS", player);
+    }
+}
+
+// The original calls this out of line from 0x443100; in this file /Ob2 would
+// inline its body there.
+#pragma auto_inline(off)
+// Shows the account the player entry selected in the NAME and NUMBER entries.
+// FUNCTION: 0x4428f0
+void __stdcall ShowSelectedAccount(Gadget_00440d70* menu, Entry_00440d70* player)
+{
+    int entry = player->index;
+    if (entry >= 0) {
+        FUN_004a0bf0(menu, "NAME", DAT_00512988[entry].name, 0);
+        FUN_004a0bf0(menu, "NUMBER", DAT_00512988[entry].number, 0);
+        int index = FindGadgetIndex(menu->layer->entries, "NAME", 3);
+        SelectGadgetByIndex(menu, index);
+        FUN_0049fc50(menu, index);
+        FUN_0049fa90(menu);
+    }
+}
+#pragma auto_inline(on)
+
+// The last used entry is moved to the front of the modem number list, which is
+// then written to the registry under "MODEMNUMBERS".
+// FUNCTION: 0x442970
+void SaveModemNumbers(void)
+{
+    if (DAT_00512988 != 0) {
+        short count = FindGadgetChecked(g_game->menu.layer->entries, "ACCOUNTS")->index;
+        if (count > 0) {
+            Entry_004426e0 temp;
+            memcpy(&temp, &DAT_00512988[count], 0x102);
+            for (int i = count; i > 0; i--)
+                memcpy(&DAT_00512988[i], &DAT_00512988[i - 1], 0x102);
+            memcpy(&DAT_00512988[0], &temp, 0x102);
+        }
+        WriteGameRegistryValue("MODEMNUMBERS", DAT_00512988, 0x1428);
+    }
+}
+
+// Click handler of the modem/phone dialog.
+// NAME/NUMBER select an account; HOST and JOIN move the selected account to the
+// front of the modem number list, save it under MODEMNUMBERS and connect; PREV
+// goes back; anything else resets the gadget.
+// Needed: it flips the shift loop address to lea edi, [ecx+eax].
+// The selected account is copied into the NAME and NUMBER gadgets and the
+// account list is refreshed.
+static inline void LoadAccount_00442a30()
+{
+    Entry_00440d70* entry = FindGadgetChecked(g_game->menu.layer->entries, "ACCOUNTS");
+    if (entry != 0 && DAT_00512988 != 0) {
+        GetGadgetText((char*)g_game + 0x519, "NAME",
+                     DAT_00512988[entry->index].name);
+        GetGadgetText((char*)g_game + 0x519, "NUMBER",
+                     DAT_00512988[entry->index].number);
+        FillAccountList();
+    }
+}
+
+// The last used entry moves to the front of the modem number list, which is
+// then written to the registry under MODEMNUMBERS.
+static inline void SaveModemNumbers_00442a30()
+{
+    if (DAT_00512988 != 0) {
+        short count = FindGadgetChecked(g_game->menu.layer->entries, "ACCOUNTS")->index;
+        if (count > 0) {
+            Entry_004426e0 temp;
+            memcpy(&temp, &DAT_00512988[count], 0x102);
+            for (int i = count; i > 0; i--)
+                memcpy(&DAT_00512988[i], &DAT_00512988[i - 1], 0x102);
+            memcpy(&DAT_00512988[0], &temp, 0x102);
+        }
+        WriteGameRegistryValue("MODEMNUMBERS", DAT_00512988, 0x1428);
+    }
+}
+
+static inline int TryConnect_00442a30()
+{
+    int a = 0;
+    int b = 0;
+    int result = BuildCompoundAddress(&a, &b);
+    if (result >= 0) {
+        g_game->info.conn.data = (void*)a;
+        g_game->info.conn.size = b;
+    }
+    return result;
+}
+
+// FUNCTION: 0x442a30
+void __stdcall HandleModemDialogClick(Gadget_00440d70* gadget)
+{
+    Entry_00440d70* entries = gadget->layer->entries;
+    if (gadget->field_60 == -1) {
+        if (DAT_00512980 != 0) {
+            FUN_004d85a0(DAT_00512980);
+            DAT_00512980 = 0;
+        }
+        if (DAT_0051298c != 0) {
+            FUN_004d85a0(DAT_0051298c);
+            DAT_0051298c = 0;
+        }
+        if (DAT_00512988 != 0) {
+            FUN_004d85a0(DAT_00512988);
+            DAT_00512988 = 0;
+        }
+        return;
+    }
+    if (IsCurrentGadgetNamed(gadget, "NAME")) {
+        LoadAccount_00442a30();
+        FUN_0049fc50(gadget, FindGadgetIndex(entries, "NUMBER", 3));
+        FUN_0049fa90(gadget);
+        FUN_004ab0a0(gadget);
+        return;
+    }
+    if (IsCurrentGadgetNamed(gadget, "NUMBER")) {
+        LoadAccount_00442a30();
+        SelectGadgetByIndex(gadget, FindGadgetIndex(entries, "JOIN", 1));
+        FUN_0049fc50(gadget, FindGadgetIndex(entries, "JOIN", 1));
+        strcpy((char*)entries + 0xcc, "JOIN");
+        FUN_0049fa90(gadget);
+        FUN_004ab0a0(gadget);
+        return;
+    }
+    if (FindGadgetIndex(entries, "HOST", 0xe) == gadget->field_60) {
+        LoadAccount_00442a30();
+        SaveModemNumbers_00442a30();
+        g_game->bit0 = 1;
+        g_game->bit1 = 1;
+        TryConnect_00442a30();
+        PlaySoundByName("SMLBUTTON", 0);
+        BlankScreen();
+        return;
+    }
+    if (FindGadgetIndex(entries, "JOIN", 0xe) != gadget->field_60) {
+        if (IsCurrentGadgetNamed(gadget, "ACCOUNTS") == 0) {
+            if (IsCurrentGadgetNamed(gadget, "PREV")) {
+                SetFrontendState(0xf, 0x47f, "c:\\cavedog\\wargame\\multi.cpp");
+                PlaySoundByName("Previous", 0);
+                return;
+            }
+            FUN_004ab0a0(gadget);
+            return;
+        }
+    }
+    LoadAccount_00442a30();
+    SaveModemNumbers_00442a30();
+    g_game->bit1 = 1;
+    g_game->bit0 = 0;
+    TryConnect_00442a30();
+    PlaySoundByName("SMLBUTTON", 0);
+    OpenMessageBox(gadget, Translate("Connecting... press ESC to abort"),
+                 0xfa, 1, 1);
+}
+
+// An IDirectPlayLobby::EnumAddress callback (LPDPENUMADDRESSCALLBACK). When
+// the chunk is DPAID_Modem (DAT_004fcec8, {f6dcc200-a2fe-11d0-9c4f-00a0c905425e}),
+// the data is a double-null-terminated list of modem names; each one is
+// copied into the buffer at DAT_00512980 and counted in DAT_00512984.
+// Where the next name goes: after the first string if the buffer is not empty.
+static inline char* NameSlot(char* buffer)
+{
+    if (strlen(buffer) != 0)
+        return buffer + strlen(buffer) + 1;
+    return buffer;
+}
+
+// FUNCTION: 0x443070
+BOOL __stdcall EnumModemAddressCallback(REFGUID guidDataType, DWORD dataSize, LPCVOID data, LPVOID context)
+{
+    char* name = (char*)data;
+    if (IsEqualGUID(guidDataType, DAT_004fcec8)) {
+        while (lstrlenA(name) != 0) {
+            strcpy(NameSlot(DAT_00512980), name);
+            DAT_00512984++;
+            name += lstrlenA(name) + 1;
+        }
+    }
+    return TRUE;
+}
+
+// DirectX 5's DPERR_BUFFERTOOSMALL, MAKE_DPHRESULT(30).
+#define DPERR_BUFFERTOOSMALL_00443100 0x8877001e
+
+struct Len { unsigned int v; };
+
+// Opens the modem/phone dialog (MODEM.GUI), enumerates the machine's modems,
+// loads or initialises the 20 account records and shows the dialog.
+// FUNCTION: 0x443100
+void __stdcall OpenModemDialog()
+{
+    // __stdcall keeps the gadget reload after the push. size is initialised, after addr.
+    char* addr = 0;
+    unsigned long size = 0;
+    Len len;
+    // Each HRESULT goes through r before it is compared.
+    int r;
+    Layer_00440d70* gadget;
+    // 8-byte local, not the large Mission type.
+    struct { void* dp; void* dp3; } net;
+    GUID iid = DAT_004fcdc8;
+
+    gadget = LoadGuiLayer(&g_game->menu, "MODEM.GUI", 0x800);
+    gadget->handler = HandleModemDialogClick;
+    gadget->owner = g_game;
+    LoadPictureCached(0, 0, 0, 0);
+    HAPINET_initlobbiedconnection(&g_game->net);
+    r = HAPINET_createdplayinterface(&iid, (Net_00443100*)&net);
+    if (r >= 0) {
+        r = HAPINET_getplayeraddress((Net_00443100*)&net, 0, 0, &size);
+        if (r == DPERR_BUFFERTOOSMALL_00443100) {
+            addr = (char*)FUN_004d83b0("MODEMADDR", size);
+            if (addr != 0) {
+                r = HAPINET_getplayeraddress((Net_00443100*)&net, 0, addr, &size);
+                if (r >= 0) {
+                    DAT_00512980 = (char*)FUN_004d83b0("MODEMINFO", 0xc8);
+                    memset(DAT_00512980, 0, 0xc8);
+                    DAT_00512984 = 0;
+                    r = HAPINET_enumaddress(&g_game->net, (void*)EnumModemAddressCallback, addr, size, 0);
+                    if (DAT_00512984 == 0) {
+                        CloseTopScreen(&g_game->menu);
+                        SetFrontendErrorText("Unable to find any modems");
+                        SetFrontendState(0xf, 0x4e4, "c:\\cavedog\\wargame\\multi.cpp");
+                        SetFrontendSubState(0, 0x4e5, "c:\\cavedog\\wargame\\multi.cpp");
+                        FUN_004d85a0(DAT_00512980);
+                        FUN_004d85a0(addr);
+                        HAPINET_releasedplayinterface((Net_00443100*)&net);
+                        return;
+                    }
+                    if (r >= 0) {
+                        int i;
+                        FUN_004a32a0(&g_game->menu, "MODEMS", DAT_00512980, DAT_00512984, 0);
+                        DAT_00512988 = (Entry_004426e0*)FUN_004d83b0("MODEMACCOUNTS", 0x1428);
+                        len.v = 0x1428;
+                        r = ReadGameRegistryValue("MODEMNUMBERS", DAT_00512988, &len.v);
+                        if (r == 0) {
+                            for (i = 0; i < 20; i++) {
+                                strcpy(DAT_00512988[i].name, "UNUSED");
+                                DAT_00512988[i].number[0] = 0;
+                            }
+                        }
+                        char* buffer = (char*)FUN_004d83b0("ACCOUNTNAMES", 0xa00);
+                        DAT_0051298c = buffer;
+                        *buffer = 0;
+                        // Separate p runs the copy loop: keeps eax free until loop entry.
+                        char* p = buffer;
+                        for (i = 0; i < 20; i++) {
+                            strcpy(p, DAT_00512988[i].name);
+                            p += strlen(DAT_00512988[i].name) + 1;
+                        }
+                        Entry_00440d70* entry = FindGadgetChecked(g_game->menu.layer->entries, "ACCOUNTS");
+                        int player = entry->index;
+                        FUN_004a32a0(&g_game->menu, "ACCOUNTS", DAT_0051298c, 20, 0);
+                        FUN_004a2e40(&g_game->menu, "ACCOUNTS", player);
+                        entry = FindGadgetChecked(gadget->entries, "ACCOUNTS");
+                        entry->handler = ShowSelectedAccount;
+                        ShowSelectedAccount(&g_game->menu, entry);
+                    }
+                }
+            }
+        }
+    }
+    FUN_0049fb10(&g_game->menu, 1);
+    RenderLayer(&g_game->menu, 0x40);
+    HAPINET_releasedplayinterface((Net_00443100*)&net);
+    FUN_004d85a0(addr);
+}
+
+// FUNCTION: 0x443480
+void __stdcall HandleReportClick(Gadget_00440d70* obj)
+{
+    int i;
+    Entry_00440d70* entries;
+    int value;
+    char buf[16];
+    int handle;
+    int acc;
+
+    entries = obj->layer->entries;
+    if (obj->field_60 == -1)
+        return;
+    if (IsCurrentGadgetNamed(obj, "OK")) {
+        acc = 0;
+        for (i = 0; i < 16u; i++) {
+            wsprintfA(buf, "CHK%d", i);
+            handle = FindGadgetIndex(entries, buf, 1);
+            if (!FUN_004a04f0(obj, buf))
+                break;
+            value = GetGadgetStatus(obj, handle);
+            acc = (int)(pow(2.0, i) * value + acc);
+        }
+
+        SetCursorMode(0x14);
+        EnableReporter(acc);
+        if ((g_game->field_2bee & 0x10) || g_game->field_2bbf == 0x14) {
+            g_game->field_2bc0 = 0x15;
+        } else {
+            g_game->field_2bc0 = 0x11;
+        }
+    } else {
+        FUN_004ab0a0(obj);
+    }
+}
+
+// FUNCTION: 0x443590
+void FUN_00443590(void)
+{
+    SendNetHeartbeat();
+}
+
+// Opens the REPORT.GUI dialog, fills in the "CHK%d" / "SERVICE%d" menu
+// entries from the score report tables, and shows it.
+// FUNCTION: 0x4435a0
+void __stdcall OpenReportDialog(unsigned int* count, char** names)
+{
+    char name[16];
+    Layer_00440d70* gadget = LoadGuiLayer(&g_game->menu, "REPORT.GUI", 0x800);
+    gadget->handler = HandleReportClick;
+    gadget->owner = g_game;
+    gadget->field_1c = FUN_00443590;
+    LoadPictureCached("scorebg", 0, 1, 0);
+    for (unsigned int i = 0; i < *count; i++) {
+        wsprintfA(name, "CHK%d", i);
+        FUN_004a0570(&g_game->menu, name, 1);
+        wsprintfA(name, "SERVICE%d", i);
+        FUN_004a0570(&g_game->menu, name, 1);
+        FUN_004a0bf0(&g_game->menu, name, names[i], 0x80);
+    }
+    FUN_0049fb10(&g_game->menu, 1);
+    RenderLayer(&g_game->menu, 0x141);
+    SetCursorMode(0x13);
+    FUN_0049fa90(&g_game->menu);
+    FUN_0049fad0(&g_game->menu);
+}
+
+// FUNCTION: 0x4436e0
+int InitScoreReporting(void)
+{
+    if (g_game->field_391e9->GetGameType() != 3)
+        return 0;
+    int saved = g_game->field_2cbe;
+    SetCursorMode(0x14);
+    int r = LoadReporterDll(&DAT_005054a8, &DAT_00512788);
+    if (r == 0) {
+        if (DAT_005054a8 > 0) {
+            SetCursorMode(0x13);
+            OpenReportDialog(&DAT_005054a8, (char**)&DAT_00512788);
+            SetCursorMode(saved);
+            return 1;
+        }
+    } else if (r != 4) {
+        SetOffscreenSurface(g_game->field_37e1b);
+        OpenMessageBox(&g_game->menu, Translate("Unable to initialize scores reporting."), 0x190, 1, 0);
+        LoadPictureCached("ReportError", 0, 1, 0);
+        RunWhileScreenNamed(&g_game->menu, "MSGBOX.GUI");
+    }
+    SetCursorMode(saved);
+    return 0;
+}
+
+// The 0xbc-byte frame is `Msg_004437c0 msg;`: the group of four dwords is
+// copied out of g_game+0x2b6e at msg+0x99, so the leading pad is real and the
+// trailing pad keeps the struct at 0xbc exactly.
+// Handler for the SELGAME (multiplayer game list) screen. Processes the
+// UPDATE / PREVMENU / WATCH / JOINGAME / STARTNEW buttons and the per-entry
+// "compatible version" check. param_1 is &g_game->menu (g_game+0x519); its
+// +0x18 field is the widget created by LoadGuiLayer, whose +4 is the GUI entry
+// table and whose +0x60 is the id of the pressed entry.
+// FUNCTION: 0x4437c0
+void __stdcall HandleSelectGameClick(Gadget_00440d70* param_1)
+{
+    Entry_00440d70* entries = param_1->layer->entries;
+    int i;
+    int id;
+    int cur;
+
+    if (DAT_00512d90[0] != 0) {
+        DAT_00512d90[0] = 0;
+        if (DAT_00512c84 != 0)
+            goto startnew;
+    }
+
+    if (param_1->field_60 == -1) {
+        for (i = 0; i < 0xf; i++) {
+            FUN_004d85a0(g_game->data[i]);
+            g_game->data[i] = 0;
+        }
+        FUN_004d85a0(g_game->shared);
+        FUN_004d85a0(g_game->desc);
+        g_game->shared = 0;
+        g_game->desc = 0;
+        return;
+    }
+
+    if (FindGadgetIndex(entries, "UPDATE", 0xe) == param_1->field_60) {
+        char* pass = (char*)FUN_004a0010(entries, "PASSWORD");
+        if (pass != 0) {
+            cur = g_game->localPlayer;
+            strcpy(g_game->players[cur].info->name, pass + 0xb6);
+        }
+        PlaySoundByName("Multi", 0);
+        ConnectToGame(param_1->layer);
+        FUN_0049fa90(param_1);
+        FUN_004ab0a0(param_1);
+        return;
+    }
+
+    if (FindGadgetIndex(entries, "PREVMENU", 0xe) == param_1->field_60) {
+        g_game->field_2bc0 = 3;
+        PlaySoundByName("Previous", 0);
+        return;
+    }
+
+    if (FindGadgetIndex(entries, "WATCH", 0xe) == param_1->field_60 ||
+        FindGadgetIndex(entries, "JOINGAME", 0xe) == param_1->field_60 ||
+        entries[param_1->field_60].type == 2) {
+        Entry_00440d70* e = FindGadgetChecked(entries, "GAMENAME");
+        Msg_004437c0 msg;
+        unsigned int flags;
+        // int, not unsigned: keeps the version test a signed compare (jg/jl).
+        int ver;
+        char* pass;
+        unsigned int b;
+
+        *(Desc_004437c0*)g_game->game_info = g_game->desc[e->index];
+        msg.group = *(Group_00441220*)((char*)g_game + 0x2b6e);
+        flags = *(unsigned int*)((char*)&msg.group + 2);
+        ver = *(unsigned int*)((char*)&msg.group + 0xe) & 0xff;
+
+        if (ver <= (int)g_game->version && ver >= (int)g_game->version) {
+            if ((flags & 0x8000) != 0 || (flags & 0x10) != 0) {
+                PlaySoundByName("Previous", 0);
+                FUN_004ab0a0(param_1);
+                return;
+            }
+            GetGadgetText(param_1, "NICKNAME", g_game->nickname);
+            if (strlen(g_game->nickname) == 0) {
+                FUN_004a7190(param_1, FindGadgetIndex(entries, "NICKNAME", 3));
+                FUN_004ab0a0(param_1);
+                OpenMessageBox(param_1, Translate("You must enter your name"), 0xc8, 1, 1);
+                return;
+            }
+            pass = (char*)FUN_004a0010(entries, "PASSWORD");
+            lstrcpynA(g_game->password, pass + 0xb6, 0xb);
+            cur = g_game->localPlayer;
+            lstrcpynA(g_game->players[cur].info->name, pass + 0xb6, 0xb);
+            b = FindHostSlot();
+            if (b != 0xa &&
+                (g_game->players[b].info->flags & 0x10) == 0x10)
+                g_game->field_2a44 |= 4;
+            if (IsCurrentGadgetNamed(param_1, "WATCH")) {
+                cur = g_game->localPlayer;
+                g_game->players[cur].info->flags |= 0x40;
+                PlaySoundByName("Multi", 0);
+                g_game->field_2bc0 = 0x13;
+                return;
+            }
+            cur = g_game->localPlayer;
+            g_game->players[cur].info->flags &= 0xffbf;
+            PlaySoundByName("BigButton", 0);
+            g_game->field_2bc0 = 0x12;
+            return;
+        }
+        SetFrontendErrorText("You do not have a compatible version for this game.");
+    } else if (FindGadgetIndex(entries, "STARTNEW", 0xe) == param_1->field_60) {
+startnew:
+        cur = g_game->localPlayer;
+        g_game->players[cur].info->flags &= 0xffbf;
+        PlaySoundByName("BigButton", 0);
+        GetGadgetText(param_1, "NICKNAME", g_game->nickname);
+        BlankScreen();
+        CloseTopScreen(param_1);
+        OpenNewMultiDialog();
+        FUN_004ab0a0(param_1);
+        return;
+    }
+    FUN_004ab0a0(param_1);
+}
+
+// Opens the network game selection dialog (SELGAME.GUI) and sets up the
+// buffers it needs: a 0x690 byte "GAME DESCRIPTIONS" block, a 0xe74 byte
+// "PLAYER SHARED" block and 15 blocks of 0xa00 bytes named "DATA0" .. "DATA14",
+// then a table of (size, offset) pairs (0xb9 bytes each) in the descriptions
+// block pointing into the shared block. Every GUI entry from 1 up whose type
+// byte is 2 gets FUN_00441220 as its handler and the descriptions block as its
+// data. ConnectToGame then connects; on failure an "Invalid TCP/IP Address"
+// message box is shown, g_game->field_2bc0 is set to 3 and the function
+// returns. On success the game name is put on the menu, and a connection that
+// came back with an error status (neither 0 nor 2) is reported and cleared.
+// FUNCTION: 0x443cb0
+void OpenSelectGameDialog()
+{
+    char name[0x14];
+    int i;
+    int j;
+
+    BlankScreen();
+    Layer_00440d70* gadget = LoadGuiLayer(&g_game->menu, "SELGAME.GUI", 0x80);
+    gadget->handler = HandleSelectGameClick;
+    gadget->owner = g_game;
+    LoadPictureCached("selectgame2x", 0, 0, 0);
+    g_game->desc = (Desc_004437c0*)FUN_004d83b0("GAME DESCRIPTIONS", 0x690);
+    g_game->shared = (char*)FUN_004d83b0("PLAYER SHARED", 0xe74);
+    for (i = 0; i < 0xf; i++) {
+        sprintf(name, "DATA%d", i);
+        g_game->data[i] = FUN_004d83b0(name, 0xa00);
+    }
+    // Offset is j * 0xb9, no separate off counter.
+    for (j = 0; j < 20; j++) {
+        g_game->desc[j].size = 0xb9;
+        g_game->desc[j].offset = (int)(g_game->shared + j * 0xb9);
+    }
+    FUN_004a0bf0(&g_game->menu, "PASSWORD", g_game->password, 10);
+    FUN_004a0bf0(&g_game->menu, "NICKNAME", g_game->nickname, 10);
+    FUN_004a1250(&g_game->menu, "JOIN", 1);
+    FUN_004a1250(&g_game->menu, "WATCH", 1);
+    for (i = 1; i < gadget->entries->count; i++) {
+        if (gadget->entries[i].type == 2) {
+            // Indexed inline and bound by reference: no named entries pointer local.
+            Entry_00440d70& e = gadget->entries[i];
+            e.handler = FUN_00441220;
+            e.data = (int)g_game->desc;
+        }
+    }
+    RenderLayer(&g_game->menu, 0x40);
+    if (!ConnectToGame(gadget)) {
+        CloseTopScreen(&g_game->menu);
+        OpenMessageBox(&g_game->menu, Translate("Invalid TCP/IP Address"), 0xc8, 1, 1);
+        g_game->field_2bc0 = 3;
+        return;
+    }
+    SelectGadgetByIndex(&g_game->menu, FindGadgetIndex(gadget->entries, "GAMENAME", 2));
+    OrLabelAttribs();
+    FUN_0049fb10(&g_game->menu, 1);
+    RenderLayer(&g_game->menu, 0x40);
+    Player_441080* conn = &g_game->players[g_game->localPlayer];
+    if (conn->status != 0 && conn->status != 2) {
+        RenderLayer(&g_game->menu, 0x40);
+        char* msg = GetRejectReasonText(conn->status);
+        OpenMessageBox(&g_game->menu, Translate(msg), 0x140, 1, 1);
+        FUN_0049fa90(&g_game->menu);
+        FUN_0049fad0(&g_game->menu);
+        conn->status = 0;
+    }
+    if (DAT_00512d90[0] != 0 && DAT_00512c84 != 0) {
+        if (strlen(g_game->nickname) != 0)
+            HandleSelectGameClick(&g_game->menu);
+    }
+}
+
+// Appends a copy of entry `param_2` to the table (count at +0xb6 of entry 0),
+// initialises it through the menu (FUN_004a09c0), then sets its name, value,
+// state and flags. The body is inlined at 0x4447d4 by the caller that builds a
+// name with sprintf first.
+// FUNCTION: 0x4444d0
+int __stdcall FUN_004444d0(Entry_00440d70* entries, int param_2, short param_3, int param_4, char* param_5)
+{
+    int index = ++entries[0].count;
+    Entry_00440d70* d = &entries[index];
+    Entry_00440d70* s = &entries[param_2];
+    *d = *s;
+    FUN_004a09c0((char*)g_game + 0x519, index, param_4, 0);
+    strcpy(d->name, param_5);
+    d->field_15 = param_3;
+    d->field_29 = 1;
+    d->field_1f = 0;
+    return index;
+}
+
+// FUNCTION: 0x444910
+void __stdcall FUN_00444910(Gadget_00440d70* param1, int param2)
+{
+    param1->field_60 = FindGadgetIndex(param1->layer->entries, "LOGOS", 2);
+}
+// Handler for the multiplayer side-selection dialog. When the dialog closes
+// (current gadget -1) it frees the layout data; when the player picks a side
+// (LOGOS/SELECT) it copies that side's byte into the local player's info.
+
+// FUNCTION: 0x444930
+void __stdcall HandleLogoSelectClick(Gadget_00444930* param_1)
+{
+    Entry_00444930* entries = param_1->holder->entries;
+    Layout_00444930* layout = (Layout_00444930*)param_1->holder->layout;
+
+    if (param_1->field_60 == -1) {
+        FUN_004d85a0(layout->field_1c);
+        FUN_004d85a0(layout->field_18);
+        FUN_004d85a0(layout);
+        PlaySoundByName("Multi", 0);
+        return;
+    }
+    if (IsCurrentGadgetNamed(param_1, "LOGOS") || IsCurrentGadgetNamed(param_1, "SELECT")) {
+        Player_00444930* player = &g_game->players[g_game->localPlayer];
+        Entry_00444930* entry = FindGadgetChecked(entries, "LOGOS");
+        player->info->field_96 = ((char*)layout)[entry->field_ba_byte];
+        g_game->flag0 = 1;
+        RequestPlayerColor(player->info->field_96);
+        return;
+    }
+    if (!IsCurrentGadgetNamed(param_1, "Cancel"))
+        FUN_004ab0a0(param_1);
+}
+
+// FUNCTION: 0x444a20
+void ShowSelectedMapInfo()
+{
+    int outX;
+    int outY;
+    char buffer[100];
+
+    if (FindGadgetIndex(g_game->menu.holder->entries, "MAPNAME", 5) != -1) {
+        FUN_004a0bf0(&g_game->menu, "MAPNAME",
+                     (char*)((Mission*)g_game->field_391e9)->GetTranslatedName(), 0);
+    }
+
+    sprintf(buffer, "%s  %s: %s",
+            (char*)g_game->field_391e9 + 0xdc4,
+            Translate("Players"),
+            (char*)g_game->field_391e9 + 0xe44);
+    FUN_004a0bf0(&g_game->menu, "SIZE", (char*)buffer, 0);
+
+    Entry_00444930* entry = FUN_004a0280(g_game->menu.holder->entries, "MAPPIC");
+    if (entry->field_c2 != 0) {
+        FUN_004d85a0(entry->field_c2);
+        entry->field_c2 = 0;
+    }
+    void* bmp = LoadRadarPic(
+        (char*)((Mission*)g_game->field_391e9)->GetNameSlot(1), &outX, &outY);
+    entry->field_c2 = bmp;
+    if (bmp != 0) {
+        ResizeRadarPicture(bmp, entry->field_17, entry->field_19, outX << 4, outY << 4);
+    }
+
+    FUN_004a0bf0(&g_game->menu, "DESCRIPTION",
+                 (char*)((Mission*)g_game->field_391e9)->GetDescription(), 0);
+    FUN_0049fa90(&g_game->menu);
+}
+
+// FUNCTION: 0x444ba0
+void __stdcall HandleViewMapClick(Gadget_00444930* param_1)
+{
+    if (param_1->field_60 != -1) {
+        if (IsCurrentGadgetNamed(param_1, DAT_00502ae8)) {
+            PlaySoundByName(DAT_00505974, 0);
+        } else {
+            FUN_004ab0a0(param_1);
+        }
+    }
+}
+
+// Opens the map view dialog (VIEWMAP.GUI) with HandleViewMapClick as its handler.
+// FUNCTION: 0x444be0
+void OpenViewMapDialog()
+{
+    LoadGuiLayer(&g_game->menu, "VIEWMAP.GUI", 0x900)->handler = HandleViewMapClick;
+    LoadPictureCached("DVIEWMAP", 0, 0, 0);
+    ShowSelectedMapInfo();
+    FUN_0049fb10(&g_game->menu, 1);
+    RenderLayer(&g_game->menu, 0x40);
+}
+
+// FUNCTION: 0x444c40
+void __stdcall UpdateMapSelection(Gadget_00444930* menu, int unused)
+{
+    Entry_00444930* g = FindGadgetChecked(menu->holder->entries, "MAPNAMES");
+    if (g_game->field_391e9->LoadMissionByName(SkipTextLines(g->text_c2, g->selected)) == 0) {
+        FUN_004a0570(menu, "MAPPIC", 0);
+    } else {
+        FUN_004a0570(menu, "MAPPIC", 1);
+        ShowSelectedMapInfo();
+    }
+}
+
+// FUNCTION: 0x444cb0
+void __stdcall HandleMapSelectClick(Gadget_00444930* param_1)
+{
+    void* entries = param_1->holder->entries;
+    Layout_00444cb0* layout = (Layout_00444cb0*)param_1->holder->layout;
+
+    if (param_1->field_60 == -1) {
+        Entry_00444930* entry = FUN_004a0280(g_game->menu.holder->entries, "MAPPIC");
+        if (entry->text_c2 != 0) {
+            FUN_004d85a0(entry->text_c2);
+            entry->text_c2 = 0;
+        }
+        FUN_004d85a0(layout->field_14);
+        FUN_004d85a0(layout);
+        FUN_004d85a0(DAT_00512990);
+        DAT_00512990 = 0;
+        return;
+    }
+
+    if (IsCurrentGadgetNamed(param_1, "MAPNAMES") || IsCurrentGadgetNamed(param_1, "LOAD")) {
+        PlaySoundByName("Multi", 0);
+        Entry_00444930* g = FindGadgetChecked(entries, "MAPNAMES");
+        ((Mission*)g_game->field_391e9)->LoadMissionByName(
+            SkipTextLines(g->text_c2, g->selected));
+
+        Player_00444930* player = &g_game->players[g_game->localPlayer];
+        strcpy(player->data->map,
+               ((Mission*)g_game->field_391e9)->GetMissionName());
+        player->data->field_a9 =
+            ((Mission*)g_game->field_391e9)->ComputeMapChecksum();
+
+        BroadcastPlayerInfo();
+        ReportGameEvent(5);
+        UpdateNetGameInfo();
+
+        for (int i = 0; i < 10; i++) {
+            if (g_game->players[i].active == 0 ||
+                (g_game->players[i].type != 1 && g_game->players[i].type != 2)) {
+                g_game->players[i].data->flags &= 0xffdf;
+            }
+        }
+        return;
+    }
+
+    if (IsCurrentGadgetNamed(param_1, "PREVMENU")) {
+        PlaySoundByName("Previous", 0);
+        ((Mission*)g_game->field_391e9)->LoadMissionByName(DAT_00512990);
+        BroadcastPlayerInfo();
+        return;
+    }
+
+    FUN_004ab0a0(param_1);
+}
+
+// Opens the multiplayer map selector (SELMAP.GUI): saves the map the local
+// player was last on in a global buffer, counts the multiplayer maps, fills
+// the MAPNAMES list with them, selects the saved one, then applies the
+// selection the way the MAPNAMES callback does.
+
+// The call to Mission::RefreshMapList(0) is compiled without its
+// argument push, although the callee ends in "ret 4" (see 0x435d30) and every
+// other call site of it does push (0x430b98, 0x4446d7, 0x44a49e). That leaves
+// the stack 4 bytes short, so this call is kept exactly as the original has
+// it. It is never reached: the only caller (0x4488ea) calls this function
+// precisely when Mission::HasMissionName() is false, and the test at the
+// top of this function then returns early.
+
+// FUNCTION: 0x444ea0
+void OpenMultiMapSelector()
+{
+    DAT_00512990 = (char*)FUN_004d83b0("OLDMAPNAME", 0xc8);
+
+    if (!((Mission*)g_game->field_391e9)->HasMissionName()) {
+        OpenMessageBox(&g_game->menu,
+                     Translate("There are no multiplayer maps to choose from"),
+                     0x140, 1, 1);
+        return;
+    }
+
+    strcpy(DAT_00512990,
+           ((Mission*)g_game->field_391e9)->GetMissionName());
+    ((Mission*)g_game->field_391e9)->RefreshMapList(0);
+
+    int n = LoadMapList(0, 0, 0);
+    if (n == 0) {
+        OpenMessageBox(&g_game->menu,
+                     Translate("There are no multiplayer maps to choose from"),
+                     0x140, 1, 1);
+        return;
+    }
+
+    Holder_00444930* layer = LoadGuiLayer(&g_game->menu, "SELMAP.GUI", 0x980);
+    layer->handler = HandleMapSelectClick;
+    Data_00444ea0* data = (Data_00444ea0*)FUN_004d83b0("SELECT MAP DATA", 0x20);
+    layer->data = data;
+    LoadPictureCached("DSELECTMAP2", 0, 0, 0);
+    LoadMapList(&data->items, 0, 0);
+    SortFileList(data->items, 0, 0, n);
+    FUN_004a32a0(&g_game->menu, "MAPNAMES", data->items, n, 0);
+    FindGadgetChecked(layer->entries, "MAPNAMES")->onSelect = UpdateMapSelection;
+
+    for (int i = 0; i < n; i++) {
+        if (strcmp(DAT_00512990, SkipTextLines(data->items, i)) == 0) {
+            FUN_004a2e40(&g_game->menu, "MAPNAMES", i);
+            break;
+        }
+    }
+
+    Gadget_00444930* menu = &g_game->menu;
+    Entry_00444930* g = FindGadgetChecked(menu->holder->entries, "MAPNAMES");
+    if (((Mission*)g_game->field_391e9)->LoadMissionByName(
+            SkipTextLines(g->text_c2, g->selected)) == 0) {
+        FUN_004a0570(menu, "MAPPIC", 0);
+    } else {
+        FUN_004a0570(menu, "MAPPIC", 1);
+        ShowSelectedMapInfo();
+    }
+    FUN_0049fb10(&g_game->menu, 1);
+    RenderLayer(&g_game->menu, 0x40);
+}
+
+// Sets up the multiplayer "select team logo" dialog (LOGOSEL.GUI). It opens
+// the dialog, allocates a small layout object holding the list of logo
+// pointers and a copy of the logo sequence records, then walks the ten player
+// slots: a slot takes a logo index j when its type byte is neither 0 nor 4
+// and its player data's logo byte is at least j. The pointer list and the
+// byte array are filled in from the slots that no player claimed.
+
+// FUNCTION: 0x445110
+void OpenLogoSelectDialog()
+{
+    Holder_00444930* gui = LoadGuiLayer(&g_game->menu, "LOGOSEL.GUI", 0x800);
+    gui->handler = HandleLogoSelectClick;
+    Layout_00445110* layout = (Layout_00445110*)FUN_004d83b0("SELECT TEAM LOGO", 0x20);
+    gui->layout = layout;
+    int count = g_game->logos32->count;
+    layout->ptrList = (void**)FUN_004d83b0("ANIMSEQ PTR LIST", count * 4);
+    layout->seqs = (AnimSeq_00445110*)FUN_004d83b0("ACTUAL ANIMSEQS", count * 0x30);
+    void** cursor = layout->ptrList;
+    int n = 0;
+    for (int j = 0; j < count; j++) {
+        // Array indexing (players[k]): strength-reduced to a pointer over the type byte.
+        int k;
+        for (k = 0; k < 10; k++) {
+            if (g_game->players[k].type != 0 && g_game->players[k].type != 4
+                && g_game->players[k].data->field_96 >= j)
+                break;
+        }
+        layout->seqs[j] = *(AnimSeq_00445110*)g_game->logos32;
+        layout->seqs[j].field_28 = g_game->logos32->entries[j].ptr;
+        if (k == 10) {
+            *cursor = &layout->seqs[j];
+            ((char*)layout)[n] = (char)j;
+            // n before cursor: sets the eax/ecx roles in this block.
+            n++;
+            cursor++;
+        }
+    }
+    Entry_00444930* logo = FindGadgetChecked(gui->entries, "LOGOS");
+    if (logo != 0) {
+        logo->field_ce = FUN_00444910;
+    }
+    int index = FindGadgetIndex(gui->entries, "LOGOS", 2);
+    if (index != -1) {
+        ((Entry_00444930*)((char*)gui->entries + index * 0x15b))->field_1b |= 0x40;
+    }
+    SetGadgetItems(gui, "LOGOS", layout->ptrList, n);
+    FUN_0049fb10(&g_game->menu, 1);
+    RenderLayer(&g_game->menu, 0x40);
+}
+
+// FUNCTION: 0x445300
+void __stdcall FUN_00445300(Entry_00444930* param_1)
+{
+    if (param_1->state == 1) {
+        Head_00444930 tmp = *(Head_00444930*)param_1;
+        int index = FindGadgetIndex(g_game->menu.holder->entries, param_1->name, 0xe);
+        FUN_004a5d50(&g_game->menu, index);
+        param_1->field_15 += 2;
+        param_1->state = 5;
+        strcpy(param_1->entry_text, tmp.text);
+        param_1->field_1b |= 0x10;
+    }
+}
+
+// Swaps two player slots, clears the first one (type 0, not active), then
+// stamps field_146 of every playing slot with its own index, or 10 for the
+// others.
+
+// FUNCTION: 0x4453a0
+void __stdcall SwapPlayerSlots(Player_00444930* param_1, Player_00444930* param_2)
+{
+    Player_00444930 tmp = *param_2;
+    *param_2 = *param_1;
+    *param_1 = tmp;
+    ((Player*)param_1)->SetType(0);
+    param_1->active = 0;
+    // The original bound is i <= 10, not i < 10: the offset test is
+    // "cmp eax, 0xcee; jle" (0xcee is 10 * 0x14b, the size of players), so
+    // the last pass reads and writes players[10]. The table really has 11
+    // slots (+0x1b63 to +0x299c), so this is the spare last slot, not an
+    // overrun; this file declares only the first ten.
+    for (int i = 0; i <= 10; i++) {
+        Player_00444930* p = &g_game->players[i];
+        if (p->active != 0
+            && (p->type == 1 || p->type == 2 || p->type == 3)
+            && p->field_146 != 10) {
+            p->field_146 = i;
+        } else {
+            // Re-derived: with the same pointer variable in both arms MSVC
+            // keeps g_game in edx instead of ecx.
+            g_game->players[i].field_146 = 10;
+        }
+    }
+}
+
+// Compacts the player list: finds the first slot the renumbering pass would
+// call dead, moves the next live slot into it, clears the slot it left, then
+// renumbers every slot's field_146.
+// FUNCTION: 0x445450
+void FUN_00445450()
+{
+    Player_00444930* p = g_game->players;
+    Player_00444930* q = g_game->players + 1;
+    Player_00444930* end = g_game->players + 10;
+    while (1) {
+        if (q >= end && p >= end)
+            break;
+        // Step over slots that are in use, and over type 4 slots.
+        while ((p->active != 0
+                    && (p->type == 1 || p->type == 2 || p->type == 3)
+                    && p->field_146 != 10)
+               || p->type == 4) {
+            if (p >= end)
+                break;
+            p++;
+        }
+        q = p + 1;
+        // Find the next slot that is in use.
+        for (; q->active == 0
+               || (q->type != 1 && q->type != 2 && q->type != 3)
+               || q->field_146 == 10;
+             q++) {
+            if (q >= end)
+                break;
+        }
+        if (q >= end)
+            break;
+        if (p >= end)
+            break;
+        Player_00444930 tmp = *p;
+        *p = *q;
+        *q = tmp;
+        ((Player*)q)->SetType(0);
+        q->active = 0;
+        for (int i = 0; i <= 10; i++) {
+            // Global read into a local first: moves the reload into ecx.
+            Game* g = g_game;
+            // Through a byte pointer: avoids a reload via an extra lea.
+            unsigned char* f = &g->players[i].field_146;
+            if (g->players[i].active != 0
+                && (g->players[i].type == 1 || g->players[i].type == 2
+                    || g->players[i].type == 3) && *f != 10) {
+                *f = (unsigned char)i;
+            } else {
+                *f = 10;
+            }
+        }
+    }
+}
+
+static void CloneFix_004455b0(Entry_00444930* rec)
+{
+    Head_00444930 tmp = *(Head_00444930*)rec;
+    int index = FindGadgetIndex(g_game->menu.holder->entries, rec->name, 0xe);
+    FUN_004a5d50(&g_game->menu, index);
+    rec->field_15 += 2;
+    rec->state = 5;
+    strcpy(rec->entry_text, tmp.text);
+    rec->field_1b |= 0x10;
+}
+
+// FUNCTION: 0x4455b0
+void __cdecl FUN_004455b0(void)
+{
+    char* base = (char*)g_game->menu.holder->entries;
+    int p = 0;
+    int t;
+    char** slot;
+
+    *(short*)(base + 0xb6) = DAT_00512764;
+    do {
+        for (t = 0, slot = DAT_005054b0; *slot != 0; slot++, t++) {
+            int index = FindGadgetIndex(base, *slot, 0xe);
+            Entry_00444930* rec = (Entry_00444930*)(base + 0x15b * index);
+            Entry_00444930* dst;
+            short count;
+
+            DAT_00512760 = rec->field_15;
+            if (t == 0)
+                DAT_0051276c = rec->field_19;
+            count = ++*(short*)(base + 0xb6);
+            dst = (Entry_00444930*)(base + 0x15b * count);
+            *dst = *rec;
+            dst->name[strlen(dst->name) - 1] = (char)('0' + p);
+            dst->field_15 += p * 20;
+            dst->unknown_1 = 0;
+            dst->field_29 = 1;
+            if (dst->state != 5) {
+                switch (t) {
+                case 0:
+                    if (p == g_game->localPlayer) {
+                        if (dst->state == 1)
+                            CloneFix_004455b0(dst);
+                        dst->field_1b = 1;
+                    } else {
+                        dst->field_1b |= 0x8000;
+                    }
+                    break;
+                case 1:
+                    if (p != g_game->localPlayer) {
+                        dst->field_13c_bit = 1;
+                        dst->field_138 = 0;
+                    }
+                    break;
+                case 2:
+                    {
+                        // Indexed through g_game->players[p], not a byte offset: g_game is the SIB base.
+                        Player_00444930* pl = &g_game->players[p];
+                        if (pl->active == 0 || (pl->type != 1 && pl->type != 2))
+                            dst->field_29 = 0;
+                    }
+                    break;
+                case 3:
+                    {
+                        Player_00444930* pl = &g_game->players[p];
+                        int ok = pl->active != 0 && (pl->type == 1 || pl->type == 2);
+                        FUN_004a1450(&g_game->menu, dst->name, !ok);
+                    }
+                    dst->field_29 = 0;
+                    break;
+                case 6:
+                    if (p != g_game->localPlayer && dst->state == 1)
+                        CloneFix_004455b0(dst);
+                    if (*(int*)&g_game->players[p] != 0 &&
+                        (&g_game->players[p])->type == 2)
+                        dst->field_29 = 0;
+                    break;
+                case 7:
+                    if (p == g_game->localPlayer)
+                        dst->field_29 = 0;
+                    break;
+                case 9:
+                    dst->field_29 = 0;
+                    SetButtonStageByName((Class_004a1080*)&g_game->menu, dst->name, 10);
+                    break;
+                default:
+                    if (dst->state == 1)
+                        CloneFix_004455b0(dst);
+                    break;
+                }
+            }
+        }
+        p++;
+    } while (p < 10);
+
+    {
+        char name[52];
+        int index;
+        sprintf(name, "PLAYER%d", g_game->localPlayer);
+        index = FindGadgetIndex(base, name, 0xe);
+        if (index != -1) {
+            Entry_00444930* rec = (Entry_00444930*)(base + 0x15b * index);
+            if (rec->state == 1)
+                CloneFix_004455b0(rec);
+        }
+        sprintf(name, "READY%d", g_game->localPlayer);
+        index = FindGadgetIndex(base, name, 1);
+        if (index != -1) {
+            Entry_00444930* rec = (Entry_00444930*)(base + 0x15b * index);
+            rec->field_13a = (unsigned char)tolower(name[0]);
+            strcpy(base + 0xcc, name);
+        }
+    }
+    DAT_00512994 = 1;
+}
+
+// GUI callback (see the entry a slider widget stores at +0x144): shows the
+// unit limit of the player being watched, as text, and remembers it on the
+// local player. FindHostSlot picks the watched player, or 10 for "nobody",
+// in which case the value comes from the widget's own slider instead.
+
+// FUNCTION: 0x445b70
+void __stdcall UpdateMaxUnitsText(Gadget_00444930* gui, int index)
+{
+    char text[0x14];
+    int count;
+    Entry_00444930* maxunits = (Entry_00444930*)FUN_004a0200(gui->holder->entries, "MAXUNITS");
+    if (maxunits != 0) {
+        int player = FindHostSlot();
+        if (player == g_game->localPlayer || player == 10) {
+            count = ReadSliderValue(maxunits) + 0x14;
+        } else {
+            count = g_game->players[player].data->maxunits;
+        }
+        _itoa(count, text, 10);
+        FUN_004a0bf0(gui, "MAXUNITSTEXT", text, 0);
+        g_game->players[g_game->localPlayer].data->maxunits = count;
+        PlayerInfo_00444930* data = g_game->players[g_game->localPlayer].data;
+        unsigned char f = data->flags_97;
+        data->maxunits = count;
+        if (f & 1) {
+            BroadcastPlayerInfo();
+        }
+    }
+}
+
+// Writes the local player's stored metal (gadget "METAL") rounded down to
+// hundreds into the "METALTEXT" label, mirrors it into the unit at +0xa3 and,
+// if the unit's flag byte at +0x97 has bit 0, re-sends the player block and the
+// name call. Near-copy of 0x445d60 (the "ENERGY" one) and 0x445b70.
+
+// FUNCTION: 0x445c70
+void __stdcall UpdateMetalText(Gadget_00444930* sub, int unused)
+{
+    char text[20];
+    void* value = FUN_004a0200(sub->holder->entries, "METAL");
+
+    if (value != 0) {
+        int shown = ReadSliderValue(value) / 100 * 100;
+        int hundreds;
+        PlayerInfo_00444930* unit;
+
+        _itoa(shown, text, 10);
+        FUN_004a0bf0(sub, "METALTEXT", text, 0);
+        hundreds = shown / 100;
+        g_game->players[g_game->localPlayer].unit->field_a3 = (unsigned short)hundreds;
+        // The original writes the same value to the same field a second time,
+        // through a freshly looked up unit pointer, before testing its flag.
+        unit = g_game->players[g_game->localPlayer].unit;
+        unit->field_a3 = (unsigned short)hundreds;
+        if (unit->flags_97 & 1) {
+            BroadcastPlayerInfo();
+            UpdateNetGameInfo();
+        }
+    }
+}
+
+// Shows the local player's stored energy (gadget "ENERGY") rounded down to
+// hundreds in the "ENERGYTEXT" label, mirrors it into the unit at +0xa1 and,
+// if the unit's flag byte at +0x97 has bit 0, re-sends the player block and
+// the name call. Near-copy of 0x445c70 (the "METAL" one).
+
+// FUNCTION: 0x445d60
+void __stdcall UpdateEnergyText(Gadget_00444930* sub, int unused)
+{
+    char text[20];
+    void* value = FUN_004a0200(sub->holder->entries, "ENERGY");
+
+    if (value != 0) {
+        int shown = ReadSliderValue(value) / 100 * 100;
+        PlayerInfo_00444930* unit;
+
+        _itoa(shown, text, 10);
+        FUN_004a0bf0(sub, "ENERGYTEXT", text, 0);
+        unit = g_game->players[g_game->localPlayer].unit;
+        unit->field_a1 = (unsigned short)(shown / 100);
+        if (unit->flags_97 & 1) {
+            BroadcastPlayerInfo();
+            UpdateNetGameInfo();
+        }
+    }
+}
+
+// Sets the value of the named gadget of a menu (see 0x445e50).
+
+// FUNCTION: 0x445e20
+void __stdcall FUN_00445e20(Gadget_00444930* menu, char* name, int value)
+{
+    Entry_00444930* gadget = FUN_004a0200(menu->holder->entries, name);
+    SetSliderFromValue(gadget, value);
+}
+// Sets up the gadget with the given name in the game's menu (if it exists),
+// then hands the gadget's index to the callback.
+
+typedef void (__stdcall* Callback_00445e50)(Gadget_00444930* menu, int index);
+
+// FUNCTION: 0x445e50
+void __stdcall FUN_00445e50(char* name, int param_2, int param_3, Callback_00445e50 callback)
+{
+    Gadget_00444930* menu = &g_game->menu;
+    void* gadgets = menu->holder->entries;
+    int index = FindGadgetIndex(gadgets, name, 0xe);
+    if (index != -1) {
+        Entry_00444930* gadget = FUN_004a0200(gadgets, name);
+        gadget->field_13c = param_2;
+        gadget->callback = callback;
+        gadget->field_140 = param_3;
+        SetSliderFromValue(gadget, gadget->field_140);
+        gadget->game = g_game;
+    }
+    callback(menu, index);
+    FUN_0049fa90(menu);
+}
+
+// Pushes the local player's status flags (commander, mapping, los type,
+// watching, cheating, fixed position, game open) into the GUI by name.
+// SetButtonStageByName's value parameter is widened to an int here, as in 0x446450.
+
+// FUNCTION: 0x445ed0
+void UpdateBattleRoomFlags()
+{
+    int i = FindHostSlot();
+    if (i == 10) {
+        i = g_game->localPlayer;
+    }
+    PlayerInfo_00444930* info = g_game->players[i].info;
+
+    SetButtonStageByName((Class_004a1080*)&g_game->menu, "COMMANDER", info->commander);
+    SetButtonStageByName((Class_004a1080*)&g_game->menu, "MAPPING", !info->mapping);
+    int los;
+    if (!info->bit9) {
+        los = 2;
+    } else {
+        los = !info->bit10;
+    }
+    SetButtonStageByName((Class_004a1080*)&g_game->menu, "LOSTYPE", los);
+    SetButtonStageByName((Class_004a1080*)&g_game->menu, "WATCHING", info->watching);
+    SetButtonStageByName((Class_004a1080*)&g_game->menu, "CHEATING", info->cheating);
+    SetButtonStageByName((Class_004a1080*)&g_game->menu, "FIXEDLOC", info->fixedloc);
+    SetButtonStageByName((Class_004a1080*)&g_game->menu, "GAMEOPEN", !info->closed);
+}
+
+// Handler for a two-choice dialog gadget: "CHOICE1" acts on the local
+// player, "CHOICE2" does nothing, anything else is passed on.
+
+// FUNCTION: 0x446020
+void __stdcall HandleRejectChoice(Gadget_00444930* gadget)
+{
+    int owner = (int)gadget->holder->entries;
+    if (gadget->field_60 == -1)
+        return;
+    if (IsGadgetNamed(owner, gadget->field_60, "CHOICE1")) {
+        RejectPlayer(GetSlotDpid((unsigned char)DAT_00505510), 1);
+    } else if (!IsGadgetNamed(owner, gadget->field_60, "CHOICE2")) {
+        FUN_004ab0a0(gadget);
+    }
+}
+
+// Opens the YESORNO.GUI dialog for player DAT_00505510, fills its CHOICE1 /
+// CHOICE2 / TITLE fields and installs HandleRejectChoice as the handler. The title
+// is "Reject <player name>?".
+
+// FUNCTION: 0x446080
+void __stdcall OpenRejectDialog(int player)
+{
+    char buf[100];
+    DAT_00505510 = player;
+    Holder_00444930* gadget = LoadGuiLayer(&g_game->menu, "YESORNO.GUI", 0x100);
+    if (gadget != 0) {
+        FUN_0049fb10(&g_game->menu, 1);
+        void* entries = gadget->entries;
+        FindGadgetIndex(entries, "CHOICE1", 1);
+        FindGadgetIndex(entries, "CHOICE2", 1);
+        FindGadgetIndex(entries, "TITLE", 5);
+        FUN_004a0bf0(&g_game->menu, "CHOICE1", "Yes", 0);
+        FUN_004a0bf0(&g_game->menu, "CHOICE2", "No", 0);
+        sprintf(buf, "%s %s?", Translate("Reject"),
+                g_game->players[DAT_00505510].name);
+        FUN_004a0bf0(&g_game->menu, "TITLE", buf, 0);
+        gadget->handler = HandleRejectChoice;
+        gadget->owner = g_game;
+        FUN_0049fb10(&g_game->menu, 1);
+        RenderLayer(&g_game->menu, 0x40);
+    }
+}
+
+// Handler for the "MODES" (display mode) dialog. When a mode gadget is
+// selected (MODES or SELECT), it copies the selected display mode into the
+// game's width/height and the local player's screen size, then applies it.
+// CANCEL exits the game, OK plays the button sound. With no current gadget
+// (-1) it frees the display mode list.
+
+// FUNCTION: 0x4461d0
+void __stdcall HandleDisplayModesClick(Gadget_00444930* gui)
+{
+    Holder_00444930* holder = gui->holder;
+    Entry_00444930* gadgets = holder->entries;
+    Class_00446310* obj = (Class_00446310*)holder->layout;
+    if (gui->field_60 == -1) {
+        FUN_004d85a0(obj->available);
+        FUN_004d85a0(obj->modes);
+        FUN_004d85a0(obj);
+        return;
+    }
+    if (IsCurrentGadgetNamed(gui, "MODES") || IsCurrentGadgetNamed(gui, "SELECT")) {
+        Player_00444930* player = &g_game->players[g_game->localPlayer];
+        Entry_00444930* entry = FindGadgetChecked(gadgets, "MODES");
+        Mode_00446310* mode = &obj->modes[entry->selected];
+        g_game->field_37f1b = mode->width;
+        g_game->field_37f1f = mode->height;
+        player->data->field_8b = (unsigned short)mode->width;
+        player->data->field_8d = (unsigned short)mode->height;
+        BroadcastPlayerInfo();
+        SaveSettings();
+        return;
+    }
+    if (IsCurrentGadgetNamed(gui, "CANCEL")) {
+        PlaySoundByName("Exit", 0);
+        SaveSettings();
+        return;
+    }
+    if (IsCurrentGadgetNamed(gui, "OK")) {
+        PlaySoundByName("SMLBUTTON", 0);
+        SaveSettings();
+        return;
+    }
+    FUN_004ab0a0(gui);
+}
+
+// Screen resolution selection: builds the display mode list, then advances the
+// local player's mode to the next (or previous) entry.
+
+// FUNCTION: 0x446310
+void FUN_00446310(void)
+{
+    Class_00446310* obj = (Class_00446310*)FUN_004d83b0("SELECT VIDEO MODE", 0x20);
+    obj->available = 0;
+    obj->modes = (Mode_00446310*)FUN_004d83b0("DISPLAY MODES", 0x4b0);
+
+    if (GetDisplayModes(obj) != 0) {
+        SortDisplayModes(obj);
+        obj->available = (char*)FUN_004d83b0("AVAILABLE MODES", obj->count << 8);
+        obj->available[0] = 0;
+
+        Player_00444930* player = &g_game->players[g_game->localPlayer];
+        int count = obj->count;
+        for (int i = 0; i < count; i++) {
+            if (obj->modes[i].width == player->data->field_8b
+                && obj->modes[i].height == player->data->field_8d) {
+                if (g_game->menu.holder->field_37 == 2) {
+                    i--;
+                    if (i < 0)
+                        i = count - 1;
+                } else {
+                    i++;
+                    if (i >= count)
+                        i = 0;
+                }
+                Mode_00446310& mode = obj->modes[i];
+                player->data->field_8b = (unsigned short)mode.width;
+                player->data->field_8d = (unsigned short)mode.height;
+                BroadcastPlayerInfo();
+                g_game->field_37f1b = mode.width;
+                g_game->field_37f1f = mode.height;
+                break;
+            }
+        }
+    }
+    FUN_004d85a0(obj->modes);
+    FUN_004d85a0(obj);
+}
+
+// Sets the GUI's "WATCHING" and "GAMEOPEN" controls from the local player's
+// flags and marks the GUI for redraw. SetButtonStageByName's value is widened as an
+// int here (its own file says char; the checker compares names only).
+
+// FUNCTION: 0x446450
+void UpdateWatchingGadgets()
+{
+    PlayerInfo_00444930* info = g_game->players[g_game->localPlayer].info;
+    SetButtonStageByName((Class_004a1080*)&g_game->menu, "WATCHING", info->watching);
+    SetButtonStageByName((Class_004a1080*)&g_game->menu, "GAMEOPEN", !info->closed);
+    FUN_0049fa90((Dialog*)&g_game->menu);
+}
+
+// Handler for the CONTROL.GUI dialog: choosing a "LIVEPLYR%d" entry opens the
+// reject dialog for that player, WATCHING toggles the local player's watching
+// flag and republishes the GUI values, OK kicks every playing player in state
+// 3 without watch permission, and any other gadget clears the current one.
+
+// FUNCTION: 0x4464d0
+void __stdcall HandleControlDialogClick(Gadget_00444930* gui)
+{
+    PlayerInfo_00444930* info = g_game->players[g_game->localPlayer].info;
+    if (gui->field_60 != -1) {
+        char buf[100];
+        for (int i = 0; i < 10; i++) {
+            sprintf(buf, "LIVEPLYR%d", i);
+            if (IsCurrentGadgetNamed(gui, buf)) {
+                OpenRejectDialog(i);
+                return;
+            }
+        }
+        if (IsCurrentGadgetNamed(gui, "WATCHING")) {
+            info->watching = !info->watching;
+            PlaySoundByName("Options", 0);
+            info = g_game->players[g_game->localPlayer].info;
+            SetButtonStageByName((Class_004a1080*)&g_game->menu, "WATCHING", info->watching);
+            SetButtonStageByName((Class_004a1080*)&g_game->menu, "GAMEOPEN", !info->closed);
+            FUN_0049fa90((Class_004a1080*)&g_game->menu);
+            BroadcastPlayerInfo();
+        } else if (IsCurrentGadgetNamed(gui, "OK")) {
+            UpdateNetGameInfo();
+            PlaySoundByName("Options", 0);
+            if (!info->watching) {
+                for (int i = 0; i < 10; i++) {
+                    if (g_game->players[i].active != 0) {
+                        if (g_game->players[i].type == 3) {
+                            if (g_game->players[i].info->bit6) {
+                                RejectPlayer(g_game->players[i].field_4, 9);
+                            }
+                        }
+                    }
+                }
+            }
+            return;
+        }
+        // Written once after the chain, not in each arm; the OK arm returns early.
+        FUN_004ab0a0(gui);
+    }
+}
+
+// Opens the CONTROL.GUI dialog (with HandleControlDialogClick as its handler) when the
+// local player's info does not have bit 6 set, then sets the WATCHING and
+// GAMEOPEN controls from that player's flags.
+
+// FUNCTION: 0x4466b0
+void OpenControlDialog()
+{
+    PlayerInfo_00444930* info = g_game->players[g_game->localPlayer].info;
+    if (info->bit6) {
+        return;
+    }
+    Holder_00444930* gadget = LoadGuiLayer(&g_game->menu, "CONTROL.GUI", 0x800);
+    gadget->handler = HandleControlDialogClick;
+    gadget->owner = g_game;
+    RefreshAlliesScreen(1);
+    info = g_game->players[g_game->localPlayer].info;
+    SetButtonStageByName((Class_004a1080*)&g_game->menu, "WATCHING", info->watching);
+    SetButtonStageByName((Class_004a1080*)&g_game->menu, "GAMEOPEN", !info->closed);
+    FUN_0049fa90((Dialog*)&g_game->menu);
+    FUN_0049fb10((Dialog*)&g_game->menu, 1);
+    RenderLayer((Dialog*)&g_game->menu, 0x40);
+}
+
+// Returns whether two players are allied: alliance 5 means "no alliance".
+
+// FUNCTION: 0x4467c0
+bool __stdcall ArePlayersAllied(Player_00444930* a, Player_00444930* b)
+{
+    if (a->alliance == 5)
+        return false;
+    return a->alliance == b->alliance;
+}
+
+static inline int IsPlaying(Player_00444930* p)
+{
+    return p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3)
+        && p->field_146 != 10;
+}
+
+static inline int IsCounted(Player_00444930* p)
+{
+    return (p->type == 1 || p->type == 2 || p->type == 3)
+        && (p->field_144 != 0 || p->field_140 == 0);
+}
+
+static inline int CountAlliance(int alliance)
+{
+    if (alliance == 5)
+        return 0;
+    int count = 0;
+    for (int i = 0; i < 10; i++) {
+        Player_00444930* p = &g_game->players[i];
+        if (g_game->bit2) {
+            if (p->alliance == alliance && IsPlaying(p) && IsCounted(p))
+                count++;
+        } else {
+            if (p->alliance == alliance && IsPlaying(p))
+                count++;
+        }
+    }
+    return count;
+}
+
+// Counts the players (0..9) that are still in the game and belong to `alliance`
+// when the extra "counted" test applies. Same helper that 0x4468c0 inlines.
+
+// FUNCTION: 0x4467f0
+int __stdcall FUN_004467f0(int alliance)
+{
+    if (alliance == 5)
+        return 0;
+    int count = 0;
+    for (int i = 0; i < 10; i++) {
+        Player_00444930* p = &g_game->players[i];
+        if (g_game->bit2) {
+            if (p->alliance == alliance && IsPlaying(p) && IsCounted(p))
+                count++;
+        } else {
+            if (p->alliance == alliance && IsPlaying(p))
+                count++;
+        }
+    }
+    return count;
+}
+
+// Returns true if some alliance (0..4) contains every counted player, i.e.
+// the players still in the game are all on one side.
+
+// With both calls in one expression MSVC calls the later-declared one first.
+int CountHumanPlayers();
+int CountComputerPlayers();
+
+// FUNCTION: 0x4468c0
+char FUN_004468c0()
+{
+    int total = CountComputerPlayers() + CountHumanPlayers();
+    for (int alliance = 0; alliance < 5; alliance++) {
+        if (CountAlliance(alliance) == total)
+            return 1;
+    }
+    return 0;
+}
+
+// FUNCTION: 0x4469c0
+int __stdcall FindNextAlly(int player, int start)
+{
+    Player_00444930* players = g_game->players;
+    if (start == 10)
+        return -1;
+    for (int i = start; i < 10; i++) {
+        if ((players[i].alliance == players[player].alliance && players[i].type != 0
+             && players[i].alliance != 5) || i == player)
+            return i;
+    }
+    return -1;
+}
+
+// Refreshes the "TEAMICONS%d" gadget for every active player: the name uses
+// either the player index or a running icon counter, and the value comes from
+// the player's alliance and how many players are still counted on that side.
+
+// FUNCTION: 0x446a50
+void RefreshTeamIcons()
+{
+    int i = 0;
+    int teamIcon = 0;
+    char buffer[0x40];
+
+    for (; i < 10; i++) {
+        Player_00444930* p = &g_game->players[i];
+        if (IsPlaying(p) && p->type != 4
+            && (!(g_game->flags_2a44 & 4) || IsCounted(p))
+            && (!(g_game->flags_2a44 & 4) || p->info->field_96 != 0xff)) {
+            if (g_game->bit2) {
+                wsprintfA(buffer, "TEAMICONS%d", teamIcon);
+                teamIcon++;
+            } else {
+                wsprintfA(buffer, "TEAMICONS%d", i);
+            }
+
+            int alliance = p->alliance;
+            int count = CountAlliance(alliance);
+
+            // Three separate calls: they tail-merge in the original.
+            switch (count) {
+            case 0:
+                SetButtonStageByName((Class_004a1080*)&g_game->menu, buffer, 10);
+                break;
+            case 1:
+                SetButtonStageByName((Class_004a1080*)&g_game->menu, buffer, alliance * 2 + 1);
+                break;
+            default:
+                SetButtonStageByName((Class_004a1080*)&g_game->menu, buffer, alliance * 2);
+                break;
+            }
+        }
+    }
+    g_game->flag0 = 1;
+}
+
+// Recomputes the per-player ally marks. For every active player it walks the
+// players that share its alliance colour (FindNextAlly, inlined), sets the
+// corresponding bytes of field_108/field_113 and bit 1 of the player info
+// flags, then keeps that bit only when at least two players share the
+// alliance (CountAlliance, inlined from 0x4468c0).
+
+// The original's out-of-line FindNextAlly, inlined at its only call site.
+static inline int FindNextAlly_00446c70(int player, int start)
+{
+    Player_00444930* players = g_game->players;
+    if (start == 10)
+        return -1;
+    for (int i = start; i < 10; i++) {
+        if ((players[i].alliance == players[player].alliance && players[i].type != 0
+             && players[i].alliance != 5) || i == player)
+            return i;
+    }
+    return -1;
+}
+
+// The original calls this out of line from 0x446f50, 0x447b10 and
+// 0x448c70; in this file /Ob2 would inline it.
+#pragma auto_inline(off)
+// FUNCTION: 0x446c70
+void FUN_00446c70()
+{
+    for (int i = 0; i < 10; i++) {
+        // j and k before p: puts p in the base slot of the field stores.
+        int j;
+        int k;
+        Player_00444930* p = &g_game->players[i];
+        if (p->active == 0)
+            continue;
+        unsigned char type = p->type;
+        if (type != 1 && type != 2 && type != 3)
+            continue;
+        if (p->field_146 == 10)
+            continue;
+        if (type == 4)
+            continue;
+        j = 0;
+        while ((k = FindNextAlly_00446c70(i, j)) != -1) {
+            j = k + 1;
+            p->field_113[k] = 1;
+            p->field_108[k] = 1;
+            Player_00444930* q = &g_game->players[k];
+            q->info->flags_9d |= 2;
+            p->info->flags_9d |= 2;
+        }
+        if (CountAlliance(p->alliance) < 2)
+            p->info->flags_9d &= 0xfffd;
+    }
+}
+
+#pragma auto_inline(on)
+
+static inline int IsSelectable(Player_00444930* p)
+{
+    return (p->type == 1 || p->type == 2 || p->type == 3)
+        && p->field_146 != 10;
+}
+
+// For every other player on the same side, marks the relation and clears
+// bit 1 in player->info->flags_9d. The extra "g_game->players[i].type != 4"
+// check is dead: IsSelectable already restricts type to 1, 2 or 3, so the
+// condition can never be false; kept because the compiler emitted it.
+
+// The original calls this out of line from 0x446f50 and 0x447b10;
+// in this file /Ob2 would inline it.
+#pragma auto_inline(off)
+// FUNCTION: 0x446e90
+void __stdcall FUN_00446e90(Player_00444930* player)
+{
+    if (player->alliance != 5) {
+        for (int i = 0; i < 10; i++) {
+            Player_00444930* p = &g_game->players[i];
+            if (g_game->players[i].active
+                && IsSelectable(p)
+                && g_game->players[i].type != 4
+                && g_game->players[i].alliance == player->alliance
+                && i != player->field_146) {
+                SetAlliance(player->field_4, p->field_4, 0, 1);
+                player->info->flags_9d &= 0xfffd;
+            }
+        }
+    }
+}
+#pragma auto_inline(on)
+// FUNCTION: 0x446f50
+void __stdcall CyclePlayerAlliance(int index)
+{
+    int colour = g_game->players[index].colour;
+    Player_00446f50* player = &g_game->players[index];
+    FUN_00446e90(player);
+    player->colour = (colour + 1) % 6;
+    FUN_00452bd0(player);
+    FUN_00446c70();
+    RefreshTeamIcons();
+}
+
+__inline int IsLiveType_00446fb0(Player_00446f50* p)
+{
+    if (p->type != 1 && p->type != 2 && p->type != 3)
+        return 0;
+    return 1;
+}
+
+// Players are passed by pointer with no local copy: keeps g_game in eax.
+__inline int IsAlly_00446fb0(Player_00446f50* p)
+{
+    // First active test reads a local, the second reads p->active: keeps both tests.
+    int act = p->active;
+    if (!act)
+        return 0;
+    if (p->info->flags_9b & 0x40)
+        return 0;
+    if (!p->active)
+        return 0;
+    if (!IsLiveType_00446fb0(p))
+        return 0;
+    if (p->field_146 == 10)
+        return 0;
+    if (!IsLiveType_00446fb0(p))
+        return 0;
+    if (p->field_144 == 0 && p->field_140 != 0)
+        return 0;
+    return 1;
+}
+
+// Separate from IsAlly: runs the type chain once.
+__inline int IsLive_00446fb0(Player_00446f50* p)
+{
+    if (!p->active)
+        return 0;
+    if (!IsLiveType_00446fb0(p))
+        return 0;
+    if (p->field_146 == 10)
+        return 0;
+    if (p->field_144 == 0 && p->field_140 != 0)
+        return 0;
+    if (p->info->field_96 == 0xff)
+        return 0;
+    return 1;
+}
+
+// FUNCTION: 0x446fb0
+void RebuildAllyList()
+{
+    // 52 bytes, not 44: sets the frame size.
+    char text[52];
+    // No lp local: both pointers are built from g_game->players[...] directly.
+    unsigned char* a = &g_game->players[g_game->localPlayer].field_108[0];
+    unsigned char* b = &g_game->players[g_game->localPlayer].field_113[0];
+
+    if (IsScreenNamed(&g_game->gui, "ALLIES.GUI") != 0) {
+        int i;
+        // Pointer induction variables, not a[i] / b[i]; i < 10, not i != 10.
+        for (i = 0; i < 10; ++i, ++a, ++b) {
+            if (IsAlly_00446fb0(&g_game->players[i]) && i != g_game->localPlayer
+                && IsLive_00446fb0(&g_game->players[i])) {
+                sprintf(text, "LIVEALLY%d", i);
+                SetButtonStageByName(&g_game->gui, text, (*b << 1) | *a);
+            }
+        }
+        FUN_0049fa90(&g_game->gui);
+    }
+}
+
+// FUNCTION: 0x447150
+void __stdcall HandleAlliesClick(Gui_00446f50* gadget)
+{
+    void* entries = gadget->table->entries;
+    char buf[100];
+
+    if (gadget->current == -1) {
+        g_game->field_37ebe &= 0xffdf;
+        return;
+    }
+
+    int i = 0;
+    Player_00446f50* local = &g_game->players[g_game->localPlayer];
+
+    for (; i < 10; i++) {
+        sprintf(buf, "LIVEALLY%d", i);
+        Player_00446f50* p = &g_game->players[i];
+        if (IsCurrentGadgetNamed(gadget, buf) && p->active
+            && (p->type == 1 || p->type == 2 || p->type == 3)
+            && p->field_146 != 10) {
+            PlaySoundByName("Options", 0);
+            SetAlliance(local->field_4, p->field_4, local->field_108[i] ^= 1, 0);
+            char* verb = local->field_108[i] ? "allied with" : "broke alliance with";
+            sprintf(buf, " %s %s", Translate(verb),
+                    (char*)g_game + 0x1b8e + i * 0x14b);
+            SendChatMessage(local, buf, 4, 0);
+            RebuildAllyList();
+            DrawButton(&g_game->gui, gadget->current);
+        }
+    }
+
+    if (IsCurrentGadgetNamed(gadget, "VICTORY")) {
+        PlaySoundByName("Options", 0);
+        FUN_004ab0a0(gadget);
+        return;
+    }
+    if (IsCurrentGadgetNamed(gadget, "OK")) {
+        PlaySoundByName("Options", 0);
+        int old = (local->info->flags_9d >> 1) & 1;
+        int index = FindGadgetIndex(entries, "VICTORY", 1);
+        unsigned int value = GetButtonStage(gadget, index);
+        local->info->flags_9d = (local->info->flags_9d & 0xfffd) | ((value & 1) << 1);
+        if (old != ((local->info->flags_9d >> 1) & 1))
+            BroadcastPlayerInfo();
+    } else {
+        FUN_004ab0a0(gadget);
+    }
+}
+
+static inline int IsType_00447380(Player_00446f50* p)
+{
+    return p->type == 1 || p->type == 2 || p->type == 3;
+}
+
+static inline int IsCounted_00447380(Player_00446f50* p)
+{
+    if (!IsType_00447380(p))
+        return 0;
+    if (p->field_144 == 0 && p->field_140 != 0)
+        return 0;
+    return 1;
+}
+
+static inline int IsWatching_00447380(Player_00446f50* p)
+{
+    return p->active != 0 && (p->info->flags_9b & 0x40);
+}
+
+static inline int IsActive_00447380(Player_00446f50* p)
+{
+    return p->active != 0
+        && (p->type == 1 || p->type == 2 || p->type == 3)
+        && p->field_146 != 10;
+}
+
+// FUNCTION: 0x447380
+void __stdcall RefreshAlliesScreen(int param_1)
+{
+    Entry_00446f50* entries = g_game->gui.table->entries;
+    int i;
+    int n;
+    Player_00446f50* local = &g_game->players[g_game->localPlayer];
+    char player[20];
+    char teamicons[20];
+    char ally[20];
+    char live[20];
+    char logo[20];
+    char name[0x80];
+
+    for (i = 0, n = 0; i < 10; i++) {
+        sprintf(player, "PLAYER%d", i);
+        sprintf(logo, "LOGO%d", i);
+        sprintf(ally, "ALLY%d", i);
+        sprintf(teamicons, "TEAMICONS%d", i);
+        FUN_004a0570((char*)g_game + 0x519, player, 0);
+        FUN_004a0570((char*)g_game + 0x519, logo, 0);
+        FUN_004a0570((char*)g_game + 0x519, ally, 0);
+        FUN_004a0570((char*)g_game + 0x519, teamicons, 0);
+
+        Player_00446f50* p = &g_game->players[i];
+        // Two helpers, not one: gives the register rotation of the second sprintf group.
+        if (!IsWatching_00447380(p) && IsActive_00447380(p)
+            && (i != g_game->localPlayer || param_1 == 0)
+            && (!(g_game->flags_2a44 & 4) || IsCounted_00447380(p))
+            && p->info->field_96 != 0xff) {
+            sprintf(player, "PLAYER%d", n);
+            sprintf(logo, "LOGO%d", n);
+            sprintf(ally, "ALLY%d", n);
+            sprintf(teamicons, "TEAMICONS%d", n);
+            lstrcpynA(name, p->name, 0x80);
+
+            int idx = FindGadgetIndex(entries, player, 0xe);
+            if (entries[idx].field_0 == 1) {
+                Entry_00446f50* e = FindGadgetOrNull(entries, player);
+                if (e != 0 && (e->field_1b & 0x4000)) {
+                    strcat(name, "|");
+                    strcat(name, p->name);
+                }
+            }
+
+            FUN_004a0bf0((char*)g_game + 0x519, player, name, 0x80);
+            FUN_004a0570((char*)g_game + 0x519, player, 1);
+            sprintf(live, "LIVEPLYR%d", i);
+            SetGadgetName((char*)g_game + 0x519, player, live);
+
+            if (p->active != 0
+                && IsType_00447380(p)
+                && p->field_146 != 10
+                && (p->field_144 != 0 || p->field_140 == 0)
+                && p->type != 1
+                && p->type != 2
+                && !(p->type == 3 && p->info->kind == 2)) {
+                Player_00446f50* q = &g_game->players[g_game->localPlayer];
+                if (q->active != 0
+                    && IsType_00447380(q)
+                    && q->field_146 != 10
+                    && (q->field_144 != 0 || q->field_140 == 0)) {
+                    FUN_004a0570((char*)g_game + 0x519, ally, 1);
+                }
+            }
+
+            sprintf(live, "LIVEALLY%d", i);
+            SetGadgetName((char*)g_game + 0x519, ally, live);
+
+            if (p->colour == local->colour && p->colour != 5) {
+                FUN_004a1450((char*)g_game + 0x519, live, 1);
+            }
+
+            FUN_004a0570((char*)g_game + 0x519, teamicons, 1);
+
+            int value;
+            if (p->active != 0 && (p->type == 1 || p->type == 2)
+                && !(g_game->flags_2a44 & 4)) {
+                value = 0;
+            } else {
+                value = 1;
+            }
+            FUN_004a1450((char*)g_game + 0x519, teamicons, value);
+
+            Entry_00446f50* e2 = FUN_004a0280(entries, logo);
+            if (e2 != 0) {
+                e2->visible = 1;
+                e2->field_be = g_game->field_148db;
+                e2->frame = p->info->field_96;
+                e2->field_c8 &= ~1;
+            }
+
+            n++;
+        }
+    }
+}
+
+static inline int IsPlaying_004478b0(Player_00446f50* p)
+{
+    return p->active != 0
+        && (p->type == 1 || p->type == 2 || p->type == 3)
+        && p->field_146 != 10;
+}
+
+// Repeats the type test of IsPlaying (dead): must stay.
+static inline int IsCounted_004478b0(Player_00446f50* p)
+{
+    return (p->type == 1 || p->type == 2 || p->type == 3)
+        && (p->field_144 != 0 || p->field_140 == 0);
+}
+
+static inline int CountAlliance_004478b0(int alliance)
+{
+    int count = 0;
+    unsigned char f = (g_game->flags_2a44 >> 2) & 1;
+    for (int j = 0; j < 10; j++) {
+        Player_00446f50* q = &g_game->players[j];
+        if (f) {
+            if (q->colour == alliance && IsPlaying_004478b0(q)
+                && IsCounted_004478b0(q))
+                count++;
+        } else {
+            if (q->colour == alliance && IsPlaying_004478b0(q))
+                count++;
+        }
+    }
+    return count;
+}
+
+// FUNCTION: 0x4478b0
+void OpenAlliesDialog()
+{
+    Layer_00446f50* gadget = LoadGuiLayer(&g_game->gui, "ALLIES.GUI", 0x800);
+    gadget->handler = HandleAlliesClick;
+    gadget->field_c = (int)g_game;
+    g_game->field_37ebe |= 0x20;
+    char* entries = (char*)g_game->gui.table->entries;
+    int i, j;
+    for (i = 0; (j = FindGadgetIndex(entries, "ALLYx", 0xe)) != -1; i++)
+        sprintf(entries + j * 0x15b + 2, "ALLY%d", i);
+    for (i = 0; (j = FindGadgetIndex(entries, "TEAMICONSx", 0xe)) != -1; i++)
+        sprintf(entries + j * 0x15b + 2, "TEAMICONS%d", i);
+    RefreshAlliesScreen(0);
+    RebuildAllyList();
+    RefreshTeamIcons();
+    Player_00446f50* local = &g_game->players[g_game->localPlayer];
+    int old = (local->info->flags_9d >> 1) & 1;
+    unsigned char win = (local->info->flags_9b >> 6) & 1;
+    SetButtonStageByName((Class_004a1080*)&g_game->gui, "VICTORY", old);
+    int alliance = local->colour;
+    int count;
+    if (alliance == 5)
+        count = 0;
+    else
+        count = CountAlliance_004478b0(alliance);
+    FUN_004a1450((Class_004a1450*)&g_game->gui, "VICTORY",
+                 (count > 1 || win) ? 1 : 0);
+    FUN_0049fb10((Class_0049fb10*)&g_game->gui, 1);
+    RenderLayer((Dialog*)&g_game->gui, 0x40);
+}
+
+static inline int IsPlaying_00447b10(Player_00446f50* p)
+{
+    return p->active != 0
+        && (p->type == 1 || p->type == 2 || p->type == 3)
+        && p->field_146 != 10;
+}
+
+static inline int IsCounted_00447b10(Player_00446f50* p)
+{
+    return (p->type == 1 || p->type == 2 || p->type == 3)
+        && (p->field_144 != 0 || p->field_140 == 0);
+}
+
+static inline int IsLocalHuman_00447b10(Player_00446f50* p)
+{
+    return p->active != 0 && p->type == 1;
+}
+
+static inline int IsRemoteHuman_00447b10(Player_00446f50* p)
+{
+    return p->active != 0 && p->type == 3 && p->info->kind == 1;
+}
+
+static inline int IsLocal_00447b10(Player_00446f50* p)
+{
+    return p->active != 0 && (p->type == 1 || p->type == 2);
+}
+
+static inline int CountAlliance_00447b10(int alliance)
+{
+    if (alliance == 5)
+        return 0;
+    int count = 0;
+    unsigned char f = (g_game->flags_2a44 >> 2) & 1;
+    for (int j = 0; j < 10; j++) {
+        Player_00446f50* q = &g_game->players[j];
+        if (f) {
+            if (q->colour == alliance && IsPlaying_00447b10(q) && IsCounted_00447b10(q))
+                count++;
+        } else {
+            if (q->colour == alliance && IsPlaying_00447b10(q))
+                count++;
+        }
+    }
+    return count;
+}
+
+// The free slot search at 0x440c10, which has no callers. MSVC inlines it only
+// when it is declared inline (it has two loops).
+inline int FindUnusedLogo()
+{
+    int used[10];
+    memset(used, 0, sizeof(used));
+    for (int i = 0; i < 10; i++) {
+        Player_00446f50* p = &g_game->players[i];
+        if (p->active && (p->type == 1 || p->type == 2 || p->type == 3) && p->field_146 != 10)
+            used[p->info->field_96 < 9 ? p->info->field_96 : 9] = 1;
+    }
+    int result = 0;
+    for (int j = 0; j < 10; j++) {
+        if (!used[j]) {
+            result = j;
+            break;
+        }
+    }
+    return result;
+}
+
+// The map check at 0x440cd0, which has no callers: /Ob2 inlined it.
+int CheckMapCrc_00447b10()
+{
+    if (!g_game->map->GetTerrainLength()) {
+        return 0;
+    }
+    unsigned char me = FindHostSlot();
+    PlayerInfo_00446f50* data = 0;
+    int check = 0;
+    if (me != 10) {
+        data = g_game->players[me].info;
+        // Version test form must stay: `>= 2`, else `== 1 && minor >= 2`.
+        if (data->versionMajor >= 2)
+            check = 1;
+        else if (data->versionMajor == 1 && data->versionMinor >= 2)
+            check = 1;
+    }
+    if (!check) {
+        return 1;
+    }
+    if (g_game->map->ComputeMapChecksum() != data->mapCrc)
+        return 0;
+    return 1;
+}
+
+// The colour cycle at 0x446f50, which has no callers: /Ob2 inlined it.
+void __stdcall CyclePlayerAlliance_00447b10(int index)
+{
+    // Declared before colour.
+    Player_00446f50* player = &g_game->players[index];
+    int colour = g_game->players[index].colour;
+    FUN_00446e90(player);
+    player->colour = (colour + 1) % 6;
+    FUN_00452bd0(player);
+    FUN_00446c70();
+    RefreshTeamIcons();
+}
+
+// FUNCTION: 0x447b10
+void __stdcall HandleBattleRoomClick(Gui_00446f50* gadget)
+{
+    // 249 or 250 bytes: puts used[] of the inlined FindUnusedLogo above the text.
+    char text[250];
+    Entry_00446f50* entries = gadget->table->entries;
+
+    if (gadget->current == -1) {
+        FUN_004d85a0(g_game->chatter);
+        g_game->chatter = 0;
+        DAT_00512994 = 0;
+        FUN_00446c70();
+        return;
+    }
+
+    int lp = g_game->localPlayer;
+    Player_00446f50* me = &g_game->players[lp];
+    int canAdd = IsHostLocal();
+    int i = 0;
+    // Not a for loop: that gives the tail's registers to the wrong values.
+    while (1) {
+        Player_00446f50* p = &g_game->players[i];
+
+        sprintf(text, "LOGO%d", i);
+        if (IsCurrentGadgetNamed(gadget, text) && IsLocal_00447b10(p)) {
+            PlaySoundByName("Multi", 0);
+            RequestPlayerColor(p->info->field_96 + 1);
+            g_game->dirty = 1;
+            BroadcastPlayerInfo();
+        }
+
+        sprintf(text, "PLAYER%d", i);
+        if (IsCurrentGadgetNamed(gadget, text) && i != lp) {
+            PlaySoundByName("Multi", 0);
+            char type = p->type;
+            if (type == 0 && canAdd) {
+                // SetType is a Player method: called through a cast, as 0x445450 does.
+                ((Player*)p)->SetType(4);
+                p->field_4 = -1;
+                g_game->field_499--;
+            } else if (type != 4 && type != 0) {
+                if (p->active != 0 && type == 2 && GetTicks() - p->time > 30) {
+                    RejectPlayer(p->field_4, 1);
+                    ((Player*)p)->SetType(0);
+                } else if (canAdd && p->active != 0 && p->type == 3) {
+                    OpenRejectDialog(i);
+                }
+            } else {
+                if (type == 4) {
+                    ((Player*)p)->SetType(0);
+                    g_game->field_499++;
+                    UpdateNetGameInfo();
+                }
+                if (g_game->players[FindHostSlot()].info->b.closed) {
+                    OpenMessageBox(&g_game->gui, Translate("Can't add another player when game is closed."), 500, 1, 1);
+                    ((Player*)p)->SetType(0);
+                    g_game->dirty = 1;
+                    break;
+                }
+                if (g_game->players[FindHostSlot()].info->b.commander != 2 && !CountLocalComputerPlayers()) {
+                    CreateLocalPlayer(i, 2);
+                    p->info->field_96 = FindUnusedLogo();
+                }
+            }
+            g_game->dirty = 1;
+            UpdateNetGameInfo();
+            BroadcastPlayerInfo();
+        }
+
+        sprintf(text, "SIDE%d", i);
+        if (IsCurrentGadgetNamed(gadget, text)) {
+            PlaySoundByName("Multi", 0);
+            if (p->active != 0 && p->info->b.bit6) {
+                p->info->b.bit6 = 0;
+                p->info->side = 0;
+            } else {
+                p->info->side++;
+                if (p->info->side >= g_game->sides) {
+                    p->info->side = 0;
+                    if (g_game->players[FindHostSlot()].info->b.watching
+                        && p->active != 0 && p->type == 1) {
+                        p->info->b.bit6 = 1;
+                    } else {
+                        SetButtonStageByName(gadget, text, 0);
+                        DrawButton(gadget, gadget->current);
+                    }
+                }
+            }
+            g_game->dirty = 1;
+            ReportGameEvent(4);
+            BroadcastPlayerInfo();
+        }
+
+        sprintf(text, "ALLY%d", i);
+        if (IsCurrentGadgetNamed(gadget, text)) {
+            me->field_108[i] ^= 1;
+            SetAlliance(me->field_4, p->field_4, me->field_108[i], 0);
+            char same;
+            if (me->colour == 5)
+                same = 0;
+            else
+                same = me->colour == p->colour;
+            if (same) {
+                FUN_00446e90(me);
+                me->colour = 5;
+                FUN_00452bd0(me);
+            }
+            // Original bug (docs/bugs.md): `<<` binds tighter than `==` and
+            // `==` tighter than `|`, so this is ((ally2 << 1) == 3) | ally,
+            // and the left side is never true.
+            if (me->field_113[i] << 1 == 3 | me->field_108[i])
+                PlaySoundByName("Ally", 0);
+            else
+                PlaySoundByName("Multi", 0);
+            sprintf(text, " %s %s",
+                    Translate(me->field_108[i] ? "allied with" : "broke alliance with"),
+                    g_game->players[i].name);
+            SendChatMessage(me, text, 4, 0);
+            g_game->dirty = 1;
+            BroadcastPlayerInfo();
+        }
+
+        sprintf(text, "TEAMICONS%d", i);
+        if (IsCurrentGadgetNamed(gadget, text)) {
+            PlaySoundByName("Ally", 0);
+            CyclePlayerAlliance_00447b10(i);
+            FUN_00452bd0(p);
+        }
+
+        sprintf(text, "RES%d", i);
+        if (IsCurrentGadgetNamed(gadget, text) && IsLocalHuman_00447b10(p)) {
+            PlaySoundByName("Multi", 0);
+            FUN_00446310();
+            FUN_004ab0a0(gadget);
+            g_game->dirty = 1;
+            return;
+        }
+
+        sprintf(text, "READY%d", i);
+        if (IsCurrentGadgetNamed(gadget, text) && IsLocalHuman_00447b10(p)) {
+            PlaySoundByName("Multi", 0);
+            if (CheckMapCrc_00447b10()) {
+                p->info->b.ready = GetGadgetStatus(&g_game->gui, FindGadgetIndex(entries, text, 1));
+                if (p->info->f97_0) {
+                    strcpy(entries->label, "START");
+                    g_game->gui.table->field_20 = FindGadgetIndex(entries, "START", 1);
+                }
+                for (int j = 0; j < 10; j++) {
+                    Player_00446f50* q = &g_game->players[j];
+                    if (IsLocal_00447b10(q))
+                        q->info->b.ready = g_game->players[g_game->localPlayer].info->b.ready;
+                }
+                g_game->dirty = 1;
+                BroadcastPlayerInfo();
+            } else {
+                SetGadgetStatusByName(&g_game->gui, text, 0);
+            }
+        }
+        i++;
+        if (i >= 10)
+            break;
+    }
+    if (i != g_game->field_2a3c)
+        g_game->dirty = 1;
+
+    if (IsCurrentGadgetNamed(gadget, "PREVMENU")) {
+        PlaySoundByName("Previous", 0);
+        for (int j = 0; j < 10; j++) {
+            Player_00446f50* q = &g_game->players[j];
+            if (IsLocal_00447b10(q))
+                RejectPlayer(q->field_4, 2);
+        }
+        g_game->state = 3;
+        return;
+    }
+    if (IsCurrentGadgetNamed(gadget, "MESSAGE")) {
+        Entry_00446f50* box = FUN_004a0010(entries, "MESSAGE");
+        char* msg = box->text;
+        if (strlen(msg) != 0) {
+            if (_strcmpi(msg, "+syncerr") == 0) {
+                char* s = g_game->sync->GetSyncStatusText();
+                if (s)
+                    AddMessage(s, 4, 0, 10);
+            } else {
+                SendChatMessage(me, msg, 4, 0);
+                if (g_usePacketManager)
+                    g_packetManager.SendAllQueued(1);
+            }
+            g_game->dirty = 1;
+            strcpy(msg, "");
+        }
+        FUN_004a7190(&g_game->gui, FindGadgetIndex(g_game->gui.table->entries, "MESSAGE", 3));
+    } else if (IsCurrentGadgetNamed(gadget, "COMMANDER")) {
+        PlaySoundByName("Multi", 0);
+        me->info->b.commander++;
+        if (me->info->b.commander > 2)
+            me->info->b.commander = 0;
+        BroadcastPlayerInfo();
+        UpdateNetGameInfo();
+        g_game->dirty = 1;
+    } else if (IsCurrentGadgetNamed(gadget, "LOSTYPE")) {
+        PlaySoundByName("Multi", 0);
+        if (!me->info->b.los) {
+            me->info->b.los = 1;
+            me->info->b.losType = 1;
+        } else if (me->info->b.losType == 1) {
+            me->info->b.losType = 0;
+        } else {
+            me->info->b.los = 0;
+        }
+        BroadcastPlayerInfo();
+        UpdateNetGameInfo();
+        g_game->dirty = 1;
+    } else if (IsCurrentGadgetNamed(gadget, "WATCHING")) {
+        PlaySoundByName("Multi", 0);
+        me->info->b.watching = !me->info->b.watching;
+        if (!me->info->b.watching && me->active != 0 && me->info->b.bit6)
+            me->info->b.bit6 = 0;
+        BroadcastPlayerInfo();
+        UpdateNetGameInfo();
+        g_game->dirty = 1;
+    } else if (IsCurrentGadgetNamed(gadget, "CHEATING")) {
+        PlaySoundByName("Multi", 0);
+        me->info->b.cheating = !me->info->b.cheating;
+        BroadcastPlayerInfo();
+        g_game->dirty = 1;
+    } else if (IsCurrentGadgetNamed(gadget, "FIXEDLOC")) {
+        PlaySoundByName("Multi", 0);
+        me->info->b.fixedloc = !me->info->b.fixedloc;
+        BroadcastPlayerInfo();
+        g_game->dirty = 1;
+    } else if (IsCurrentGadgetNamed(gadget, "MAPPING")) {
+        PlaySoundByName("Multi", 0);
+        me->info->b.mapping = GetButtonStageByName(gadget, "MAPPING") == 0;
+        BroadcastPlayerInfo();
+        UpdateNetGameInfo();
+        g_game->dirty = 1;
+    } else if (IsCurrentGadgetNamed(gadget, "START")) {
+        int count = 0;
+        PlaySoundByName("BigButton", 0);
+        for (int j = 0; j < 10; j++) {
+            Player_00446f50* q = &g_game->players[j];
+            if ((IsLocalHuman_00447b10(q) || IsRemoteHuman_00447b10(q)) && q->info->f9d_2_byte)
+                count++;
+        }
+        if (count < 1 || (count < 2 && CountHumanPlayers() > 3) || (count < 3 && CountHumanPlayers() > 6)) {
+            FUN_004ab0a0(&g_game->gui);
+            OpenMessageBox(gadget, Translate("There are not enough game CDs present to play"), 200, 1, 1);
+            return;
+        }
+        int total = CountComputerPlayers() + CountHumanPlayers();
+        for (int t = 0; t < 5; t++) {
+            if (CountAlliance_00447b10(t) == total) {
+                FUN_004ab0a0(&g_game->gui);
+                OpenMessageBox(gadget, Translate("Can not start game with all players on the same team."), 200, 1, 1);
+                return;
+            }
+        }
+        if (!g_game->map->HasMissionName()) {
+            PlaySoundByName("Multi", 0);
+            OpenMultiMapSelector();
+            // Emits no code, but keeps the gadget in esi for the button tests.
+            goto done;
+        }
+        if (!me->info->b.watching) {
+            for (int j = 0; j < 10; j++) {
+                Player_00446f50* q = &g_game->players[j];
+                if (q->active != 0 && q->type == 3 && (q->info->flags_9b & 0x40))
+                    RejectPlayer(q->field_4, 9);
+            }
+        }
+        g_game->state = 0x11;
+        me->info->b.started = 1;
+        UpdateNetGameInfo();
+        g_game->los = me->info->b.los;
+        g_game->losType = me->info->b.losType;
+        g_game->commander = me->info->b.commander;
+        g_game->options->fixedloc = me->info->b.fixedloc;
+        g_game->mapping = me->info->b.mapping;
+        SaveSettings();
+        g_game->field_37eee = 2;
+        return;
+    } else if (IsCurrentGadgetNamed(gadget, "GAMEOPEN")) {
+        PlaySoundByName("Multi", 0);
+        me->info->b.closed = GetButtonStageByName(gadget, "GAMEOPEN") == 0;
+        BroadcastPlayerInfo();
+        UpdateNetGameInfo();
+        g_game->dirty = 1;
+    } else if (IsCurrentGadgetNamed(gadget, "RESTRICTIONS")) {
+        PlaySoundByName("Options", 0);
+        OpenUnitRestrictions();
+        FUN_004ab0a0(gadget);
+    } else {
+        // MAP and MAPNAME through a local, not `MAP || MAPNAME` in the
+        // else-if: with the `||` the MAP body joins the region where C2 keeps
+        // the constant 1 in ebp, and FUN_0049fb10 gets `push ebp` (99.2%).
+        int hit = IsCurrentGadgetNamed(gadget, "MAP");
+        if (!hit)
+            hit = IsCurrentGadgetNamed(gadget, "MAPNAME");
+        if (hit) {
+            PlaySoundByName("Multi", 0);
+            if (me->info->f97_0) {
+                OpenMultiMapSelector();
+            } else {
+                Layer_00446f50* view = LoadGuiLayer(&g_game->gui, "VIEWMAP.GUI", 0x900);
+                view->handler = HandleViewMapClick;
+                LoadPictureCached("DVIEWMAP", 0, 0, 0);
+                ShowSelectedMapInfo();
+                FUN_0049fb10(&g_game->gui, 1);
+                RenderLayer(&g_game->gui, 0x40);
+            }
+        }
+    }
+done:
+    FUN_004ab0a0(gadget);
+}
+
+// FUNCTION: 0x448bf0
+void __stdcall UpdateSideGadget(int side)
+{
+    char name[20];
+    Player_00446f50* p = &g_game->players[side];
+
+    sprintf(name, "SIDE%d", side);
+    SetButtonStageByName((Class_004a1080*)&g_game->gui, name,
+                 (p->active != 0 && (p->info->flags_9b & 0x40)) ? 2 : p->info->side);
+}
+
+static inline int IsPlaying_00448c70(Player_00446f50* p)
+{
+    return p->active != 0
+        && (p->type == 1 || p->type == 2 || p->type == 3)
+        && p->field_146 != 10;
+}
+
+static inline int IsWatching_00448c70(Player_00446f50* p)
+{
+    return p->active != 0 && (p->info->flags_9b & 0x40);
+}
+
+static inline int IsLocalHuman_00448c70(Player_00446f50* p)
+{
+    return p->active != 0 && p->type == 1;
+}
+
+static inline int IsLocalAI_00448c70(Player_00446f50* p)
+{
+    return p->active != 0 && p->type == 2;
+}
+
+static inline int IsRemoteHuman_00448c70(Player_00446f50* p)
+{
+    return p->active != 0 && p->type == 3 && p->info->kind == 1;
+}
+
+static inline int IsRemoteAI_00448c70(Player_00446f50* p)
+{
+    return p->active != 0 && p->type == 3 && p->info->kind == 2;
+}
+
+static inline int IsLocal_00448c70(Player_00446f50* p)
+{
+    return p->active != 0 && (p->type == 1 || p->type == 2);
+}
+
+// The map check at 0x440cd0, which has no callers: /Ob2 inlined it.
+int CheckMapCrc_00448c70()
+{
+    if (!g_game->map->GetTerrainLength()) {
+        return 0;
+    }
+    unsigned char me = FindHostSlot();
+    PlayerInfo_00446f50* data = 0;
+    int check = 0;
+    if (me != 10) {
+        data = g_game->players[me].info;
+        // Version test form must stay: inlined, it gives the right registers for g_game/check.
+        if (data->versionMajor >= 2)
+            check = 1;
+        else if (data->versionMajor == 1 && data->versionMinor >= 2)
+            check = 1;
+    }
+    if (!check) {
+        return 1;
+    }
+    if (g_game->map->ComputeMapChecksum() != data->mapCrc)
+        return 0;
+    return 1;
+}
+
+// The SIDE%d update at 0x448bf0, which has no callers: /Ob2 inlined it.
+void __stdcall UpdateSideGadget_00448c70(int side)
+{
+    char name[20];
+    Player_00446f50* p = &g_game->players[side];
+
+    sprintf(name, "SIDE%d", side);
+    SetButtonStageByName((Class_004a1080*)&g_game->gui, name,
+                 (p->active != 0 && (p->info->flags_9b & 0x40)) ? 2 : p->info->side);
+}
+
+// FUNCTION: 0x448c70
+void RefreshBattleRoomRows()
+{
+    char name[20];
+    // Shared by the mapname and PING text: one frame slot.
+    char* str;
+    unsigned int minPing = 0xffffffff;
+    int count = 0;
+    Player_00446f50* me = &g_game->players[g_game->localPlayer];
+    int ready = me->info->b.ready;
+    Entry_00446f50* output = FindGadgetChecked(g_game->gui.table->entries, "OUTPUT");
+
+    int end = g_game->scrollEnd;
+    int start = g_game->scrollStart;
+    if (end < start)
+        end += 30;
+    if (end - start > output->height / (GetFontLineHeight() + 2)) {
+        g_game->scrollStart++;
+        if (g_game->scrollStart >= 30)
+            g_game->scrollStart = 0;
+    }
+    if (g_game->scrollEnd != g_game->scrollStart) {
+        for (int i = g_game->scrollStart; g_game->scrollEnd != i; ) {
+            char* line = SkipTextLines(g_game->chatter, count);
+            strcpy(line, g_game->messages[i]);
+            count++;
+            i++;
+            if (i == 30)
+                i = 0;
+        }
+    }
+    UpdateBattleRoomFlags();
+    output->list.count = count;
+
+    Entry_00446f50* mapname = FUN_004a0180(g_game->gui.table->entries, "MAPNAME");
+    char* map = g_game->map->GetMissionName();
+    if (!g_game->map->HasMissionName()) {
+        mapname->colour = 0xc;
+        FUN_004a0bf0(&g_game->gui, "MAPNAME", "NOT SELECTED", 0);
+    } else {
+        char* cur = g_game->map->GetTranslatedName();
+        str = mapname->text;
+        int differs = strcmp(str, cur);
+        if (differs) {
+            if (IsScreenNamed(&g_game->gui, "viewmap.gui"))
+                ShowSelectedMapInfo();
+            else
+                g_game->map->LoadMissionByName(map);
+        }
+        if (!CheckMapCrc_00448c70()) {
+            mapname->colour = ((int)GetTicks() / 30 & 1) ? 0xc : 0;
+            if (differs) {
+                SendChatMessage(me, Translate("does not have this map"), 4, 0);
+                me->info->b.ready = 0;
+                sprintf(name, "READY%d", g_game->localPlayer);
+                SetGadgetStatusByName(&g_game->gui, name, 0);
+                BroadcastPlayerInfo();
+            }
+            if (!g_game->players[g_game->localPlayer].info->f97_0)
+                FUN_004a1450(&g_game->gui, "MAP", 1);
+        } else {
+            mapname->colour = 0;
+            FUN_004a1450(&g_game->gui, "MAP", 0);
+        }
+        strcpy(str, g_game->map->GetTranslatedName());
+    }
+
+    int i;
+    for (i = 0; i < 10; i++) {
+        Player_00446f50* p = &g_game->players[i];
+        if (IsLocal_00448c70(p))
+            p->info->b.ready = g_game->players[g_game->localPlayer].info->b.ready;
+    }
+    for (i = 0; i < 10; i++) {
+        Player_00446f50* p = &g_game->players[i];
+        if (g_game->players[g_game->localPlayer].info->b.commander == 2
+            && (IsLocalAI_00448c70(p) || IsRemoteAI_00448c70(p))) {
+            RejectPlayer(p->field_4, 0xb);
+            BroadcastPlayerInfo();
+        }
+        if (FindHostSlot() != 10
+            && !g_game->players[FindHostSlot()].info->b.watching
+            && p->active != 0) {
+            unsigned short flags = p->info->flags;
+            if (flags & 0x40) {
+                p->info->flags = flags & ~0x40;
+                p->info->side = 0;
+                BroadcastPlayerInfo();
+            }
+        }
+    }
+    FUN_00446c70();
+    RefreshTeamIcons();
+
+    char* entries = (char*)g_game->gui.table->entries;
+    Player_00446f50* local = &g_game->players[g_game->localPlayer];
+    // Plain unsigned char counter, no int copy.
+    for (unsigned char n = 0; n < 10; n++) {
+        char text[32];
+        char res[52];
+        char blocked[52];
+        Player_00446f50* p = &g_game->players[n];
+        Entry_00446f50* e;
+        if (!IsPlaying_00448c70(p) && !IsWatching_00448c70(p)) {
+            sprintf(name, "CD%d", n);
+            FUN_004a0570(&g_game->gui, name, 0);
+            FUN_004a1450(&g_game->gui, name, 0);
+            sprintf(name, "PLAYER%d", n);
+            char* s = "UNUSED";
+            if (p->type == 4) {
+                sprintf(blocked, "[%s]", Translate("BLOCKED"));
+                s = blocked;
+            }
+            strncpy(text, s, 0x1e);
+            FUN_004a0bf0(&g_game->gui, name, text, 0);
+            FUN_004a5d50(&g_game->gui, FindGadgetIndex(entries, name, 0xe));
+            FUN_004a1450(&g_game->gui, name, ready);
+            sprintf(name, "LOGO%d", n);
+            e = FUN_004a0280(entries, name);
+            if (e)
+                e->visible = 0;
+            sprintf(name, "SIDE%d", n);
+            e = FindGadgetOrNull(entries, name);
+            if (e)
+                e->visible = 0;
+            if (n != g_game->localPlayer) {
+                sprintf(name, "ALLY%d", n);
+                e = FindGadgetOrNull(entries, name);
+                if (e)
+                    e->visible = 0;
+            }
+            sprintf(name, "TEAMICONS%d", n);
+            e = FindGadgetOrNull(entries, name);
+            if (e)
+                e->visible = 0;
+            sprintf(name, "RES%d", n);
+            e = FUN_004a0180(entries, name);
+            if (e)
+                e->visible = 0;
+            sprintf(name, "PING%d", n);
+            e = FUN_004a0180(entries, name);
+            if (e)
+                e->visible = 0;
+            sprintf(name, "MEM%d", n);
+            e = FUN_004a0180(entries, name);
+            if (e)
+                e->visible = 0;
+            sprintf(name, "READY%d", n);
+            e = FindGadgetOrNull(entries, name);
+            if (e) {
+                e->b13c_0 = 1;
+                e->field_138 = 0;
+                e->visible = 0;
+            }
+        } else {
+            sprintf(name, "CD%d", n);
+            FUN_004a0570(&g_game->gui, name,
+                         ((IsLocalHuman_00448c70(p) || IsRemoteHuman_00448c70(p))
+                          && p->info->f9d_2_byte) ? 1 : 0);
+            FUN_004a1450(&g_game->gui, name, 0);
+            sprintf(name, "LOGO%d", n);
+            e = FUN_004a0280(entries, name);
+            if (e) {
+                e->visible = (p->info->field_96 == 0xff && !ready) ? 0 : 1;
+                e->c8_0 = !ready;
+                e->field_be = g_game->field_148db;
+                e->frame = p->info->field_96;
+            }
+            sprintf(name, "PLAYER%d", n);
+            strncpy(text, p->name, 0x1e);
+            FUN_004a0bf0(&g_game->gui, name, text, 0);
+            FUN_004a5d50(&g_game->gui, FindGadgetIndex(entries, name, 0xe));
+            FUN_004a1450(&g_game->gui, name, ready);
+            sprintf(name, "SIDE%d", n);
+            e = FindGadgetOrNull(entries, name);
+            if (e) {
+                UpdateSideGadget_00448c70(n);
+                e->visible = 1;
+                FUN_004a1450(&g_game->gui, name, (IsLocal_00448c70(p) && !ready) ? 0 : 1);
+            }
+            sprintf(name, "ALLY%d", n);
+            e = FindGadgetOrNull(entries, name);
+            if (e) {
+                SetButtonStageByName((Class_004a1080*)&g_game->gui, name,
+                             me->field_113[n] << 1 | me->field_108[n]);
+                e->visible = (IsLocalHuman_00448c70(p) || IsWatching_00448c70(p)
+                              || IsLocalAI_00448c70(p) || IsRemoteAI_00448c70(p)
+                              || IsWatching_00448c70(local)) ? 0 : 1;
+                FUN_004a1450(&g_game->gui, name, ready);
+            }
+            sprintf(name, "TEAMICONS%d", n);
+            e = FindGadgetOrNull(entries, name);
+            if (e) {
+                // `|| 0` emits no code but gives the 1-before-0 layout.
+                e->visible = (IsWatching_00448c70(p) || 0) ? 0 : 1;  // see the top
+                FUN_004a1450(&g_game->gui, name, (IsLocal_00448c70(p) && !ready) ? 0 : 1);
+            }
+            sprintf(name, "RES%d", n);
+            if (!IsLocalHuman_00448c70(p) && !IsRemoteHuman_00448c70(p))
+                sprintf(res, "%s", "n/a");
+            else
+                sprintf(res, "%dx%d", p->info->width, p->info->height);
+            FUN_004a0bf0(&g_game->gui, name, res, 0);
+            if (IsLocalHuman_00448c70(p)) {
+                FUN_004a1450(&g_game->gui, name, ready);
+            } else {
+                e = FUN_004a0180(entries, name);
+                if (e)
+                    e->visible = 1;
+            }
+            sprintf(name, "PING%d", n);
+            e = FUN_004a0180(entries, name);
+            if (IsRemoteHuman_00448c70(p)) {
+                if (e) {
+                    str = e->text;
+                    _itoa(p->ping, str, 10);
+                    if (IsHostLocal())
+                        strcat(str, g_game->sync->IsPlayerSynced(GetSlotDpid(n)) ? ":s" : "");
+                    if (minPing >= p->ping)
+                        minPing = p->ping;
+                    e->visible = 1;
+                }
+            } else {
+                FUN_004a0bf0(&g_game->gui, name, "n/a", 0);
+                if (e)
+                    e->visible = 1;
+            }
+            sprintf(name, "MEM%d", n);
+            e = FUN_004a0180(entries, name);
+            // Full tail in each arm, not shared: gives p and n their registers.
+            if (!IsLocalHuman_00448c70(p) && !IsRemoteHuman_00448c70(p)) {
+                sprintf(e->text, "%s", "n/a");
+                e->colour = p->info->memory < g_game->map->GetTerrainSizeTier() ? 0xc : 0;
+                e->visible = 1;
+            } else {
+                sprintf(e->text, "%d", p->info->memory);
+                e->colour = p->info->memory < g_game->map->GetTerrainSizeTier() ? 0xc : 0;
+                e->visible = 1;
+            }
+            sprintf(name, "READY%d", n);
+            e = FindGadgetOrNull(entries, name);
+            if (e) {
+                e->field_138 = g_game->players[n].info->b.ready;
+                e->visible = 1;
+                e->b13c_0 = !IsLocalHuman_00448c70(p);
+            }
+        }
+    }
+    FUN_0049fa90(&g_game->gui);
+    PlayerInfo_00446f50* info = me->info;
+    if (info->f97_0 && minPing < info->pingLimit) {
+        info->pingLimit = minPing;
+        UpdateNetGameInfo();
+    }
+}
+
+// 0x449bb0 OpenBattleRoom stays in src/frontend/multi_449bb0.cpp: it matches
+// only with the generated ta_types.h and ta_protos.h in front of its own
+// types and externs (docs/c2-regalloc.md), so its declarations cannot be
+// folded into this file.
+
+// 0x44a680 UpdateBattleRoom stays in src/frontend/multi_44a680.cpp: in this
+// file's symbol context the version text's rect sums and g_game loads land in
+// different registers; the file matches alone with its own includes.
+
+// FUNCTION: 0x44afb0
+void __stdcall HandleEndMultiClick(Gui_00446f50* obj)
+{
+    if (obj->current == -1) {
+        if (g_game->flag4)
+            LeaveNetGame();
+    } else if (IsCurrentGadgetNamed(obj, "OK")) {
+        PlaySoundByName("BigButton", 0);
+        SetFrontendState(2, 0x1412, "c:\\cavedog\\wargame\\multi.cpp");
+        SetGameMode(1);
+    } else {
+        FUN_004ab0a0(obj);
+    }
+}
+
+// FUNCTION: 0x44b020
+void OpenEndMultiScreen()
+{
+    unsigned char palette[0x400];
+    void* image;
+
+    BlankScreen();
+    image = LoadBitmapByName("Mission02WinBW", palette);
+    SetPaletteColors(palette, 0, 0x100);
+    SetOffscreenSurface(g_game->field_37e1b);
+    DrawSurface(0, image, 0, 0);
+    FreeSurface(image);
+    FlipScreen();
+    LoadGuiLayer(&g_game->gui, "ENDMULTI.GUI", 0x80)->handler = HandleEndMultiClick;
+    FUN_004a0bf0(&g_game->gui, "RESULT",
+                 Translate(g_game->flag4_3923b ? "Victory" : "Failure"), 0);
+    RenderLayer(&g_game->gui, 0xc0);
+    ShowSoftwareCursor();
+}
+
+// FUNCTION: 0x44b100
+void FUN_0044b100()
+{
+    if (DAT_005129ac) {
+        FUN_004d85a0(DAT_005129ac);
+    }
+    if (DAT_005129b0) {
+        FUN_004d85a0(DAT_005129b0);
+    }
+    DAT_005129ac = DAT_005129b0 = 0;
+}
+
+// Reads pairs of ints from a binary file given by `name`. For each pair the
+// first int is matched against the field at +0x13e of the 0x249-byte entries
+// at g_game+0x1439b (entries are 1-based here); the second int is then stored
+// in the field at +0x5a of the 0x62-byte entry of the table at DAT_005129b4
+// whose +0x52 field equals the matched index.
+// FUNCTION: 0x44b140
+void __stdcall FUN_0044b140(char* name)
+{
+    FILE* f = fopen(name, "rb");
+    int count;
+    fread(&count, 4, 1, f);
+    for (int i = 0; i < count; i++) {
+        int a, b;
+        fread(&a, 4, 1, f);
+        fread(&b, 4, 1, f);
+        int n = g_game->count;
+        for (int idx = 1; idx < n; idx++) {
+            if (g_game->unitTypes[idx].field_13e == a) {
+                for (int j = 0; j < n; j++) {
+                    if (DAT_005129b4[j].field_52 == idx) {
+                        DAT_005129b4[j].field_5a = b;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+    }
+    fclose(f);
+}
+
+// FUNCTION: 0x44b230
+void __stdcall FUN_0044b230(char* filename)
+{
+    FILE* f = fopen(filename, "wb+");
+
+    int count = g_game->count - 1;
+    fwrite(&count, 4, 1, f);
+    count++;
+
+    for (int i = 1; i < count; i++) {
+        for (int j = 0; j < g_game->count; j++) {
+            if (*(int*)((char*)DAT_005129b4 + 0x52 + j * 0x62) == i) {
+                int v = g_game->unitTypes[i].field_13e;
+                fwrite(&v, 4, 1, f);
+                v = *(int*)((char*)DAT_005129b4 + 0x5a + j * 0x62);
+                fwrite(&v, 4, 1, f);
+                break;
+            }
+        }
+    }
+
+    fclose(f);
+}
+
+// FUNCTION: 0x44b330
+void CopySelectedGameName()
+{
+    Gui_00446f50* menu = &g_game->gui;
+    void* gadgets = g_game->gui.table->entries;
+    Entry_00446f50* games = FindGadgetChecked(gadgets, "GAMES");
+    int index = FindGadgetIndex(gadgets, "GAMENAME", 3);
+    char* name;
+    if (games->selected > -1 && (name = SkipTextLines(DAT_005129b0, games->selected)) != 0 && strlen(name) != 0)
+        SetGadgetText(menu, index, name);
+    else
+        SetGadgetText(menu, index, DAT_005119b8);
+    FUN_0049fa90(&g_game->gui);
+}
+
+// FUNCTION: 0x44b3c0
+void __stdcall HandleLoadListClick(Gui_00446f50* menu)
+{
+    void* gadgets = menu->table->entries;
+    if (menu->current == -1)
+        return;
+    if (IsCurrentGadgetNamed(menu, "CANCEL")) {
+        PlaySoundByName("Previous", 0);
+        return;
+    }
+    if (IsCurrentGadgetNamed(menu, "LOAD") || IsCurrentGadgetNamed(menu, "GAMES")) {
+        PlaySoundByName("Options", 0);
+        Entry_00446f50* games = FindGadgetChecked(gadgets, "GAMES");
+        sprintf(g_game->save_38c6b, "%s\\%s", DAT_005091c8,
+                SkipTextLines(DAT_005129ac, games->selected));
+        FUN_0044b140(g_game->save_38c6b);
+        Layer_00446f50* inner = menu->table;
+        menu->table = inner->unknown_0;
+        UpdateUnitSliders(menu, 0);
+        menu->table = inner;
+        if (DAT_005129ac)
+            FUN_004d85a0(DAT_005129ac);
+        if (DAT_005129b0)
+            FUN_004d85a0(DAT_005129b0);
+        DAT_005129b0 = 0;
+        DAT_005129ac = 0;
+    } else if (menu->current != -1) {
+        FUN_004ab0a0(menu);
+    }
+}
+
+// FUNCTION: 0x44b4e0
+void* __stdcall ListSaveGameFiles(int* out)
+{
+    char path[0x100];
+    BuildDataPath(path, DAT_005091c8, DAT_0050372c, DAT_00505f40);
+    int count = CountDirectoryEntries(path, 0);
+    *out = count;
+    if (count == 0) {
+        FUN_004a32a0((char*)g_game + 0x519, DAT_00505f18, DAT_005119b8, 0, 0);
+        return 0;
+    }
+    DAT_005129ac = (char*)FUN_004d83b0(DAT_00505f30, count << 8);
+    DAT_005129b0 = (char*)FUN_004d83b0(DAT_00505f20, *out << 8);
+    memset(DAT_005129b0, 0, *out << 8);
+    memset(DAT_005129ac, 0, *out << 8);
+    ScanDirectory(path, DAT_005129ac, 0, 0, 0, 1);
+    FUN_004a32a0((char*)g_game + 0x519, DAT_00505f18, DAT_005129ac, *out, 0);
+    return *out ? DAT_005129ac : 0;
+}
+
+// FUNCTION: 0x44b600
+void __stdcall FUN_0044b600(int unused1, int unused2)
+{
+    Gui_00446f50* menu = &g_game->gui;
+    void* gadgets = g_game->gui.table->entries;
+    Entry_00446f50* games = FindGadgetChecked(gadgets, "GAMES");
+    int index = FindGadgetIndex(gadgets, "GAMENAME", 3);
+    char* name;
+    if (games->selected > -1 && (name = SkipTextLines(DAT_005129b0, games->selected)) != 0 && strlen(name) != 0)
+        SetGadgetText(menu, index, name);
+    else
+        SetGadgetText(menu, index, DAT_005119b8);
+    FUN_0049fa90(&g_game->gui);
+}
+
+// FUNCTION: 0x44b690
+void __stdcall HandleSaveGameClick(Gui_00446f50* menu)
+{
+    Entry_00446f50* entries = menu->table->entries;
+    if (menu->current == -1) {
+        FUN_004ab190(menu, 1);
+        if (DAT_005129ac)
+            FUN_004d85a0(DAT_005129ac);
+        if (DAT_005129b0)
+            FUN_004d85a0(DAT_005129b0);
+        DAT_005129ac = DAT_005129b0 = 0;
+        g_game->flag_38a51 = 0;
+        return;
+    }
+    if (IsCurrentGadgetNamed(menu, "CANCEL")) {
+        PlaySoundByName("Previous", 0);
+        return;
+    }
+    if (IsCurrentGadgetNamed(menu, "DELETE")) {
+        PlaySoundByName("SMLBUTTON", 0);
+        Entry_00446f50* games = FindGadgetChecked(entries, "GAMES");
+        char buf[0x100];
+        sprintf(buf, "%s\\%s", DAT_005091c8,
+                SkipTextLines(DAT_005129ac, games->selected));
+        RemoveFile(buf);
+        int count;
+        ListSaveGameFiles(&count);
+        char* p = DAT_005129b0;
+        for (int i = 0; i < count; i++) {
+            strcpy(p, SkipTextLines(DAT_005129ac, i));
+            p += strlen(SkipTextLines(DAT_005129ac, i));
+            while (*p != '.')
+                p--;
+            *p++ = 0;
+        }
+        FUN_004a32a0(&g_game->gui, "GAMES", DAT_005129b0, count, 0);
+        FUN_004ab0a0(menu);
+        Gui_00446f50* menu2 = &g_game->gui;
+        Entry_00446f50* gadgets = g_game->gui.table->entries;
+        Entry_00446f50* games2 = FindGadgetChecked(gadgets, "GAMES");
+        int index = FindGadgetIndex(gadgets, "GAMENAME", 3);
+        char* name;
+        if (games2->selected > -1 &&
+            (name = SkipTextLines(DAT_005129b0, games2->selected)) != 0 &&
+            strlen(name) != 0)
+            SetGadgetText(menu2, index, name);
+        else
+            SetGadgetText(menu2, index, DAT_005119b8);
+        FUN_0049fa90(&g_game->gui);
+        return;
+    }
+    if (IsCurrentGadgetNamed(menu, "GAMES") || IsCurrentGadgetNamed(menu, "LOAD") ||
+        IsCurrentGadgetNamed(menu, "GAMENAME")) {
+        PlaySoundByName("Options", 0);
+        int idx = FindGadgetIndex(entries, "GAMENAME", 3);
+        char* name = entries[idx].text;
+        if (strlen(name) != 0) {
+            BuildDataPath(g_game->save_38c6b, DAT_005091c8, name, "LST");
+            FUN_0044b230(g_game->save_38c6b);
+        }
+    } else if (menu->current != -1) {
+        FUN_004ab0a0(menu);
+    }
+}
+
+static char* GetSaveDescriptions()
+{
+    return DAT_005129b0;
+}
+
+// FUNCTION: 0x44b990
+void __stdcall OpenSaveGameDialog()
+{
+    int count;
+    Layer_00446f50* layer = LoadGuiLayer(&g_game->gui, "SAVELIST.GUI", 0x880);
+    layer->handler = HandleSaveGameClick;
+    layer->data = g_game;
+    LoadPictureCached("DSaveList", 0, 0, 0);
+    MakeDirectoryPath(DAT_005091c8);
+    ListSaveGameFiles(&count);
+    FUN_004a0bf0(&g_game->gui, "TITLE", "Save Game", 0);
+    char* ptr = GetSaveDescriptions();
+    int i = 0;
+    for (; i < count; i++) {
+        strcpy(ptr, SkipTextLines(DAT_005129ac, i));
+        ptr += strlen(SkipTextLines(DAT_005129ac, i));
+        while (*ptr != '.')
+            ptr--;
+        *ptr = 0;
+        ptr++;
+    }
+    FUN_004a32a0(&g_game->gui, "GAMES", DAT_005129b0, count, 0);
+    if (count == 0)
+        FUN_004a0570(&g_game->gui, "DELETE", 0);
+    Entry_00446f50* games = FindGadgetChecked(layer->entries, "GAMES");
+    if (games != 0)
+        games->field_ce = FUN_0044b600;
+    int index = FindGadgetIndex(layer->entries, "GAMENAME", 3);
+    layer->entries[index].field_1b |= 2;
+
+    Gui_00446f50* menu = &g_game->gui;
+    Entry_00446f50* entries = g_game->gui.table->entries;
+    Entry_00446f50* games2 = FindGadgetChecked(entries, "GAMES");
+    int index2 = FindGadgetIndex(entries, "GAMENAME", 3);
+    char* name;
+    if (games2->selected > -1 && (name = SkipTextLines(DAT_005129b0, games2->selected)) != 0 && strlen(name) != 0)
+        SetGadgetText(menu, index2, name);
+    else
+        SetGadgetText(menu, index2, DAT_005119b8);
+    FUN_0049fa90(&g_game->gui);
+
+    FUN_004a7190(&g_game->gui, index);
+    FUN_0049fb10(&g_game->gui, 1);
+    OrLabelAttribs();
+    FUN_004a0570(&g_game->gui, "LoadGame", 0);
+    FUN_0049fa50(&g_game->gui);
+    RenderLayer(&g_game->gui, 0x40);
+}
+
+// FUNCTION: 0x44bc10
+void OpenLoadListDialog()
+{
+    Layer_00446f50* gadget = LoadGuiLayer(&g_game->gui, "LOADLIST.GUI", 0x981);
+    gadget->handler = HandleLoadListClick;
+    gadget->data = g_game;
+    LoadPictureCached("DLoadList", 0, 0, 0);
+    int count;
+    if (ListSaveGameFiles(&count) == 0) {
+        CloseTopScreen(&g_game->gui);
+        OpenMessageBox(&g_game->gui,
+                     Translate("There are no saved lists to choose from"),
+                     0x140, 1, 1);
+        return;
+    }
+    char* p = DAT_005129b0;
+    for (int i = 0; i < count; i++) {
+        strcpy(p, SkipTextLines(DAT_005129ac, i));
+        p += strlen(SkipTextLines(DAT_005129ac, i));
+        char c = *p;
+        while (c != '.') {
+            c = *--p;
+        }
+        *p = 0;
+        p++;
+    }
+    FUN_004a32a0(&g_game->gui, "GAMES", DAT_005129b0, count, 0);
+    FUN_004a0570(&g_game->gui, "DELETE", 0);
+    FUN_004a0570(&g_game->gui, "GAMENAME", 0);
+    Entry_00446f50* entry = FindGadgetChecked(gadget->entries, "GAMES");
+    if (entry != 0) {
+        entry->field_ce = (void*)FUN_0044b600;
+    }
+    Gui_00446f50* menu = &g_game->gui;
+    void* gadgets = g_game->gui.table->entries;
+    Entry_00446f50* games = FindGadgetChecked(gadgets, "GAMES");
+    int index = FindGadgetIndex(gadgets, "GAMENAME", 3);
+    char* name;
+    if (games->selected > -1 && (name = SkipTextLines(DAT_005129b0, games->selected)) != 0 && strlen(name) != 0)
+        SetGadgetText(menu, index, name);
+    else
+        SetGadgetText(menu, index, DAT_005119b8);
+    FUN_0049fa90(&g_game->gui);
+    FUN_0049fb10(&g_game->gui, 1);
+    OrLabelAttribs();
+    FUN_004a0570(&g_game->gui, "SaveGame", 0);
+    FUN_0049fa50(&g_game->gui);
+    RenderLayer(&g_game->gui, 0x40);
+    g_game->flag_38a51 |= 1;
+}
+
+// FUNCTION: 0x44be70
+void __stdcall HandleUnitCountSlider(void* obj, char* gadget)
+{
+    int n = atoi(gadget + 8);
+    Entry_00446f50* desc = FindGadgetChecked(g_game->gui.table->entries, "DESCLIST");
+    char count[20];
+    sprintf(count, "COUNT%d", n);
+    int value = ReadSliderValue(gadget);
+    char buf[20];
+    if (value > 0x64) {
+        sprintf(buf, Translate("No Limit"));
+        value = -1;
+    } else {
+        _itoa(value, buf, 10);
+    }
+    DAT_005129b4[n + desc->field_bc].field_5a = value;
+    g_game->sync->SetUnitLimit(
+        &g_game->unitTypes[DAT_005129b4[n + desc->field_bc].field_52], value);
+    desc->flags[n + desc->field_bc] = DAT_005129b4[n + desc->field_bc].field_5e == 0;
+    desc->flags[n + desc->field_bc] |= DAT_005129b4[n + desc->field_bc].field_5a == 0 ? 2 : 0;
+    FUN_004a0bf0(obj, count, (char*)buf, 0);
+}
+
+// FUNCTION: 0x44bfd0
+void __stdcall UpdateUnitSliders(Gui_00446f50* param_1, int unused)
+{
+    // C-style locals, loop counter first: sets the operand order of the flags store.
+    int i;
+    Entry_00446f50* desc;
+    int human;
+    int base;
+    Entry_00446f50* slider;
+    int en;
+    int value;
+    char name[20];
+
+    desc = FindGadgetChecked(param_1->table->entries, "DESCLIST");
+    human = IsHostLocal();
+    base = desc->field_bc;
+
+    for (i = 0; i < 12; i++) {
+        sprintf(name, "SLIDER%d", i);
+        slider = FUN_004a0200(param_1->table->entries, name);
+        if (slider != 0) {
+            if (human == 0 || DAT_005129b4[base + i].field_5e == 0)
+                en = 1;
+            else
+                en = 0;
+            desc->flags[base + i] = en != 0;
+            value = DAT_005129b4[base + i].field_5a;
+            if (value == -1)
+                value = slider->field_13c;
+            SetSliderFromValue(slider, value);
+            FUN_004a1450(param_1, name, en);
+            slider->field_144(param_1, slider->field_14a);
+        }
+    }
+}
+
+// FUNCTION: 0x44c0d0
+void LoadUnitPortrait()
+{
+    Record_0044c0d0 rec;
+    char path[256];
+    Entry_00446f50* pic = FindGadgetChecked(g_game->gui.table->entries, "PICLIST");
+    if (DAT_00512768 == 0) {
+        DAT_0051297c = (int)pic->field_c6;
+        DAT_00512978 = (int)DAT_005129b8;
+    }
+    int i = DAT_00512768++;
+    if (i < g_game->count) {
+        int type = DAT_005129b4[i].field_52;
+        UnitType_00446f50* defs = g_game->unitTypes;
+        if (defs[type].name && ((unsigned char)(defs[type].field_245.raw >> 15) & 1) == 0) {
+            // Indexed by the reloaded entry field, not defs[type].name.
+            BuildDataPath(path, "unitpics", defs[DAT_005129b4[i].field_52].name, "PCX");
+            void* img = LoadPcx(path, 0);
+            *(void**)DAT_00512978 = img;
+            DAT_00512978 += 4;
+            if (img != 0) {
+                FrameFromSurface(&rec, img);
+                rec.flag8 = 9;
+            } else {
+                // rec.a before rec.b: field_17 is loaded before the 0x20 store.
+                rec.a = pic->field_17;
+                rec.b = 0x20;
+                rec.d = 0;
+            }
+            *(Record_0044c0d0*)DAT_0051297c = rec;
+            DAT_0051297c += 0x18;
+            FUN_0049fa90(&g_game->gui);
+        }
+    }
+}
+
+// FUNCTION: 0x44c220
+void FUN_0044c220()
+{
+    Event_44c220 event;
+    int n = 0;
+    Entry_00446f50* entry = (Entry_00446f50*)FindGadgetChecked(g_game->gui.table->entries, "PICLIST");
+
+    if (DAT_005129c8 < (int)GetTicks()) {
+        DAT_005129c8 = GetTicks() + 2;
+        LoadUnitPortrait();
+    }
+
+    while (g_game->sync->PopChangedEntry(&event) != 0) {
+        n++;
+        for (int i = 0; i < entry->list.count; i++) {
+            if (event.field_0 == g_game->unitTypes[DAT_005129b4[i].field_52].field_13e) {
+                entry->flags[i] = (event.field_a == 0);
+                DAT_005129b4[i].field_5e = event.field_a;
+                DAT_005129b4[i].field_5a = event.field_c;
+                entry->flags[i] |= (event.field_c != 0) ? 0 : 2;
+            }
+        }
+    }
+
+    if (n != 0) {
+        UpdateUnitSliders(&g_game->gui, 0);
+        FUN_0049fa90(&g_game->gui);
+    }
+}
+
+// FUNCTION: 0x44c370
+void __stdcall FUN_0044c370(void* panel, Entry_00446f50* unit)
+{
+    char buf[20];
+    UnitType_00446f50* def = &g_game->unitTypes[unit->records[unit->field_ba].field_52];
+    sprintf(buf, "%d", (int)def->energyCost);
+    FUN_004a0bf0(panel, "ENERGYTEXT", (char*)buf, 0);
+    sprintf(buf, "%d", (int)def->metalCost);
+    FUN_004a0bf0(panel, "METALTEXT", (char*)buf, 0);
+}
+
+// 0x44c420 HandleRestrictionsClick stays in src/frontend/multi_44c420.cpp:
+// in this file's symbol context two address computations swap their operand
+// order; its own file needs <stdio.h> without <windows.h>, which the rest of
+// this file needs.
+
+// FUNCTION: 0x44c7a0
+int __cdecl FUN_0044c7a0(const char* a, const char* b)
+{
+    return strcmp(a, b);
+}
+
+// The slider set-up at 0x445e50, which has no callers: /Ob2 inlined it.
+void __stdcall FUN_00445e50_0044c7e0(char* name, int max, int value, Callback_0044c7e0 callback)
+{
+    Gui_00446f50* gui = &g_game->gui;
+    Entry_00446f50* gadgets = gui->table->entries;
+    int index = FindGadgetIndex(gadgets, name, 0xe);
+    if (index != -1) {
+        Entry_00446f50* gadget = FUN_004a0200(gadgets, name);
+        gadget->max = max;
+        gadget->callback = callback;
+        gadget->value = value;
+        SetSliderFromValue(gadget, gadget->value);
+        gadget->game = g_game;
+    }
+    callback(gui, index);
+    FUN_0049fa90(gui);
+}
+
+// FUNCTION: 0x44c7e0
+void OpenUnitRestrictions()
+{
+    int host = g_game->players[g_game->localPlayer].info->f97_0 & 1;
+    Layer_00446f50* layer;
+    Entry_00446f50* entries;
+    char* flags;
+    Entry_00446f50* desc;
+    Entry_00446f50* pic;
+    int* pics;
+    char* text;
+    char* dst;
+    int n;
+    int i;
+
+    layer = LoadGuiLayer(&g_game->gui, "RESTRICT2.GUI", 0x880);
+    layer->handler = HandleRestrictionsClick;
+    layer->field_c = 0;
+    layer->field_1c = FUN_0044c220;
+    DAT_00512768 = 0;
+    LoadPictureCached("UnitRestrict5x", 0, 0, 0);
+
+    entries = layer->entries;
+    flags = (char*)FUN_004d83b0("FLAGS", g_game->count);
+    desc = FindGadgetChecked(entries, "DESCLIST");
+    desc->field_ce = FUN_0044c370;
+    desc->flags = flags;
+    desc->field_da = 0x20;
+    desc->field_1b |= 0x100;
+
+    pic = FindGadgetChecked(layer->entries, "PICLIST");
+    pic->flags = flags;
+    pic->field_1b |= 0x180;
+    pic->field_da = desc->field_da;
+
+    pics = (int*)FUN_004d83b0("UNITPICARRAY", g_game->count * 0x18);
+    memset(pics, 0, g_game->count * 0x18);
+    text = (char*)FUN_004d83b0("UNITTEXTARRAY", g_game->count << 5);
+    *(int*)text = 0;
+
+    DAT_005129b4 = (Record_00446f50*)FUN_004d83b0("UNITSRESTRICTINFO", g_game->count * 0x62);
+    desc->records = DAT_005129b4;
+    for (i = 0; i < g_game->count; i++)
+        DAT_005129b4[i].field_52 = 0;
+
+    DAT_005129b8 = (int*)FUN_004d83b0("UNITSPICS", g_game->count << 2);
+    memset(DAT_005129b8, 0, g_game->count << 2);
+    memset(DAT_005129b4, 0, g_game->count * 0x62);
+    DAT_005129c4 = (int*)FUN_004d83b0("OLDCOUNTS", g_game->count << 2);
+
+    n = 0;
+    for (i = 1; i < g_game->count; i++) {
+        // continue on the bit, an int bitfield tested positively.
+        if (g_game->unitTypes[i].field_245.bits.flag)
+            continue;
+        if (!g_game->unitTypes[i].name)
+            continue;
+        {
+            UnitType_00446f50* type = &g_game->unitTypes[i];
+            Info_0044c7e0 info;
+            int count;
+            sprintf(DAT_005129b4[n].name, "%s\r%s %dM  %dE",
+                    g_game->unitTypes[i].unitName, Translate(type->description),
+                    (int)type->metalCost, (int)type->energyCost);
+            DAT_005129b4[n].field_52 = i;
+            g_game->sync->GetUnitEntry(&g_game->unitTypes[i], &info);
+            // One ternary: the if-statement form swaps the ebx/ebp registers.
+            count = info.field_c == -1 ? 0x65 : info.field_c;
+            DAT_005129b4[n].field_5a = count;
+            DAT_005129c4[n] = count;
+            DAT_005129b4[n].field_5e = info.field_a;
+            n++;
+        }
+    }
+
+    qsort(DAT_005129b4, n, 0x62, (int (__cdecl*)(const void*, const void*))FUN_0044c7a0);
+
+    dst = text;
+    for (i = 0; i < g_game->count; i++) {
+        strcpy(dst, DAT_005129b4[i].name);
+        dst += strlen(DAT_005129b4[i].name) + 1;
+    }
+
+    for (i = 0; i < 0xc; i++) {
+        char name[0x14];
+        Entry_00446f50* slider;
+        sprintf(name, "SLIDER%d", i);
+        slider = FUN_004a0200(entries, name);
+        slider->game = slider;
+        slider->max = 0x65;
+        slider->callback = (void (__stdcall*)(Gadget_00440d70*, int))HandleUnitCountSlider;
+    }
+
+    FUN_00445e50_0044c7e0("SCROLLSLIDER", 0xd2, 0, UpdateUnitSliders);
+
+    FUN_004a32a0(&g_game->gui, "DESCLIST", text, n, 0);
+    SetGadgetRows(g_game->gui.table, "PICLIST", pics, n);
+    UpdateUnitSliders(&g_game->gui, 0);
+
+    {
+        Gui_00446f50* gui = &g_game->gui;
+        UnitType_00446f50* type = &g_game->unitTypes[desc->records[desc->field_ba].field_52];
+        char buf[0x14];
+        sprintf(buf, "%d", (int)type->energyCost);
+        FUN_004a0bf0(gui, "ENERGYTEXT", buf, 0);
+        sprintf(buf, "%d", (int)type->metalCost);
+        FUN_004a0bf0(gui, "METALTEXT", buf, 0);
+    }
+
+    {
+        int enabled = host == 0;
+        FUN_004a1250(&g_game->gui, "Load", enabled);
+        FUN_004a1250(&g_game->gui, "Save", enabled);
+        FUN_004a1250(&g_game->gui, "Reset", enabled);
+    }
+    RenderLayer(&g_game->gui, 0x40);
+    FUN_0049fb10(&g_game->gui, 1);
+    DAT_005129c0 = 0;
+}
+
+// FUNCTION: 0x44ce20
+Class_0044ce20::Class_0044ce20(int param_1)
+{
+    vtable = &DAT_004fd2f8;
+    field_4 = param_1;
+}

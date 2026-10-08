@@ -3,6 +3,7 @@
     uv run tools/cleanup_progress.py                  # markdown table for HEAD
     uv run tools/cleanup_progress.py --ref origin/main
     uv run tools/cleanup_progress.py --write docs/cleanup-progress.md
+    uv run tools/cleanup_progress.py --readme --issues  # rewrite the README block
     uv run tools/cleanup_progress.py --issues         # add the gather/join/name issue counts (needs gh)
 
 Each row counts something in `src/` and `include/` at a git ref and compares it
@@ -116,6 +117,7 @@ def main() -> None:
     ap.add_argument("--ref", default="HEAD")
     ap.add_argument("--base", default=BASE)
     ap.add_argument("--write", metavar="FILE")
+    ap.add_argument("--readme", action="store_true", help="rewrite the block between the cleanup markers in README.md")
     ap.add_argument("--issues", action="store_true")
     args = ap.parse_args()
 
@@ -153,7 +155,14 @@ def main() -> None:
         if extra:
             out += ["", "| Cleanup issues | | | |", "| --- | --- | --- | ---: |"] + extra
     text = "\n".join(out) + "\n"
-    if args.write:
+    if args.readme:
+        path = ROOT / "README.md"
+        old = path.read_text()
+        start, end = "<!-- cleanup:start -->", "<!-- cleanup:end -->"
+        a, b = old.index(start) + len(start), old.index(end)
+        intro = "\n## Cleanup progress\n\nThe matching is done; this is how far the source has got toward reading like source.\n\n"
+        path.write_text(old[:a] + intro + text + old[b:])
+    elif args.write:
         Path(args.write).write_text("# Cleanup progress\n\nWritten by `tools/cleanup_progress.py`.\n\n" + text)
     else:
         print(text)

@@ -379,7 +379,7 @@ struct Obj {
     unsigned short entry;              // +0x2c
 };
 
-struct Placement {
+struct MissionFeature {
     char name[0x80];
     int x;                             // +0x80
     int y;                             // +0x84
@@ -415,14 +415,7 @@ struct Model {
     Rot16 rot;
 };
 
-class Mission {
-public:
-    char unknown_0[0xdbc];
-    Placement* placements;             // +0xdbc
-    int placementCount;                // +0xdc0
-
-    int GetGameType();
-};
+#include "../map/mission.h"
 
 struct Game {
     char unknown_0[0x1b63];
@@ -708,8 +701,8 @@ static inline int FindFeature(char* name)
 // FUNCTION: 0x423160
 void PlaceMissionFeatures(void)
 {
-    for (int i = 0; i < g_game->net->placementCount; i++) {
-        Placement* p = &g_game->net->placements[i];
+    for (int i = 0; i < g_game->net->featureCount; i++) {
+        MissionFeature* p = &g_game->net->features[i];
         if (p->name[0] == 0)
             continue;
         unsigned short id = (unsigned short)FindFeature(p->name);

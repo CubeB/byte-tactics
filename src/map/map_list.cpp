@@ -294,7 +294,7 @@ public:
     int GetTerrainSizeTier();
     int MissionExists(int index);
     int LoadMissionByName(char* map);
-    void SelectMission(int param_1);
+    int SelectMission(int param_1);
     int GetTranslatedName();
     int GetMissionName();
     bool HasMissionName();
@@ -829,11 +829,11 @@ int Mission::LoadMissionByName(char* map)
 }
 
 // FUNCTION: 0x435c00
-void Mission::SelectMission(int param_1)
+int Mission::SelectMission(int param_1)
 {
     tntChecksum = 0;
     missionIndex = param_1;
-    LoadMission(0);
+    return LoadMission(0);
 }
 
 // FUNCTION: 0x435c20

@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <string.h>
 
+// GLOBAL: 0x512dd0
 extern char g_onlineDllPath[MAX_PATH + 1];
 extern HMODULE g_onlineDll;
 

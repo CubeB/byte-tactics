@@ -39,7 +39,7 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                            LPSTR lpCmdLine, int nCmdShow);
 int __stdcall ExceptionFilter(EXCEPTION_POINTERS* exception, const char* thread);
 bool __cdecl FUN_004da0e0(const char* arg);
-void __stdcall FUN_0045b670(char* param_1);
+void __stdcall Onl_LoadConfigFile(char* param_1);
 void __stdcall SetBypassDriveScan(int val);
 void __stdcall SetCommandLineUnusedFlagL(int val);
 void __stdcall SetHostGameName(int flag, char* text);
@@ -116,7 +116,7 @@ int __stdcall ParseCommandLine(char* cmdLine, char* appName)
                     p = strtok(NULL, " \t");
                 if (p && *p) {
                     try {
-                        FUN_0045b670(p);
+                        Onl_LoadConfigFile(p);
                     } catch (...) {
                     }
                 }

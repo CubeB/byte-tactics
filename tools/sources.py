@@ -247,6 +247,28 @@ def data_annotations() -> list[tuple[int, str]]:
     return _data_annotations
 
 
+_gap_annotations: list[tuple[int, str]] | None = None
+
+
+def gap_annotations() -> list[tuple[int, str]]:
+    """(address, name) for every name only gap sources spell: the function a
+    `// FUNCTION:` annotation defines, and a global a `// GLOBAL:` annotation
+    marks on the declaration of it. Gap code is checked by tools/gapcheck.py,
+    not by tools/progress.py, so no match there learns these names; without
+    them in data/symbols.csv a rename loses tools/globals.py's definition of
+    the global and adds tools/place.py relocation rows."""
+    global _gap_annotations
+    if _gap_annotations is None:
+        out: list[tuple[int, str]] = []
+        for src in sources("gap"):
+            for address, qualname in annotations(src):
+                if qualname and not qualname.startswith("="):
+                    out.append((address, qualname))
+            out.extend((a, n) for a, n in global_annotations(src) if n)
+        _gap_annotations = out
+    return _gap_annotations
+
+
 def object_source(obj: Path, cache: Path) -> Path:
     """The source file an object in a mirror of src/ (such as build/progress/) was compiled from."""
     return SRC / obj.relative_to(cache).with_suffix(".cpp")

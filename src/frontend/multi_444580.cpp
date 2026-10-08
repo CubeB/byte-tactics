@@ -70,7 +70,8 @@ struct LinkInfo {
 };
 
 extern Game_00444580* g_game;
-extern LinkInfo DAT_005127c8[];
+// GLOBAL: 0x5127c8
+extern LinkInfo g_linkInfo[];
 extern char DAT_004fcfb8[];
 
 void __stdcall CloseTopScreen(void* menu);
@@ -137,18 +138,18 @@ void FillProviderList()
     int n = 0;
     int count = 0;
     try {
-        count = OnlineGetLinkInfo(DAT_005127c8);
+        count = OnlineGetLinkInfo(g_linkInfo);
     } catch (...) {
     }
     if (count != 0 && tmpl != -1) {
         y = entries[tmpl].field_15;
         k = 0;
         for (n = 0; n < count; k++) {
-            if (DAT_005127c8[k].id != -1) {
+            if (g_linkInfo[k].id != -1) {
                 n++;
                 char name[0x1c];
                 sprintf(name, "SERVICE%d", k);
-                CloneServiceSlot(entries, tmpl, y, (int)DAT_005127c8[k].name, name);
+                CloneServiceSlot(entries, tmpl, y, (int)g_linkInfo[k].name, name);
                 y += entries[tmpl].field_19 + 1;
             }
         }

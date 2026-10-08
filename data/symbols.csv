@@ -860,6 +860,7 @@ address,name
 0x4437c0,HandleSelectGameClick
 0x443cb0,OpenSelectGameDialog
 0x443ff0,SelectConnection
+0x4441a0,FUN_004441a0
 0x4444d0,CloneServiceSlot
 0x444580,FillProviderList
 0x444910,CacheLogosGadgetIndex
@@ -1167,9 +1168,12 @@ address,name
 0x45b030,RestorePieceVertices
 0x45b0a0,PoseModel
 0x45b150,TransformPieces
+0x45b250,OnlineProcessButtonCommand
 0x45b480,OnlineTranslate
+0x45b490,OnlineGetLinkInfo
 0x45b640,OnlineUnload
 0x45b660,IsOnlineConfigLoaded
+0x45b670,Onl_LoadConfigFile
 0x45b800,SetDirectConnectAddress
 0x45b820,SetHostGameName
 0x45b860,SetDirectPlayProvider
@@ -2121,6 +2125,7 @@ address,name
 0x49e700,OutOfMemoryHandler
 0x49e830,GameMain
 0x49ed90,AtexitNoOp
+0x49eda0,WinMain
 0x49ee30,ParseCommandLine
 0x49f540,ChdirToExeDirectory
 0x49f580,GetPreferredLanguage
@@ -2507,6 +2512,7 @@ address,name
 0x4b6f70,CrossProduct
 0x4b6ff0,NormalizeVector
 0x4b7070,VectorLengthFloat
+0x4b70a0,FixedSine
 0x4b70ef,FUN_004b70ef
 0x4b7123,FUN_004b7123
 0x4b715a,FUN_004b715a
@@ -2922,12 +2928,14 @@ address,name
 0x4cc332,BlitRectShadow
 0x4cc3d0,BlitCompressedLit
 0x4cc51d,BlitCompressed
+0x4cc650,IsLineVisible
 0x4cc7ab,BlitLine
 0x4cc8df,BlitLineRemapped
 0x4ccdea,FillSolidRect
 0x4cce87,XorRect
 0x4cced5,RemapRect
 0x4ccf60,BlitText
+0x4cd010,SampleBresenhamLine
 0x4cd896,BlitSpan128
 0x4cd8da,BlitSpan64
 0x4cd91e,BlitSpan32
@@ -3105,8 +3113,14 @@ address,name
 0x4da0b0,FUN_004da0b0
 0x4da0c0,AbortProgram
 0x4da0e0,FUN_004da0e0
+0x4da120,ShowDebugMessage
+0x4da150,CallDebugHelperDll
 0x4da1d0,InitDebugSupport
 0x4da2a0,UnhandledExceptionHandler
+0x4da2c0,DebugThreadProc
+0x4da2e0,RunDebugThread
+0x4da380,HandleDialogMessage
+0x4da3e0,FUN_004da3e0
 0x4da3f0,NormalizeLineEndings
 0x4da480,GetDialogTemplate
 0x4da4f0,ShowDialogBox
@@ -3224,6 +3238,7 @@ address,name
 0x4e1590,Class_004e1590::OpenMappedFile
 0x4e1650,MappedFile::CloseMappedFile
 0x4e1680,HasPerfCounters
+0x4e16b0,FUN_004e16b0
 0x4e1700,IsPentiumOrBetter
 0x4e1730,GetTimeSeconds
 0x4e17c0,NameTable::NameTable
@@ -4382,7 +4397,7 @@ address,name
 0x511fa8,g_explosion2Duration
 0x511fac,g_explosion2StartSize
 0x511fb0,g_explosion2EndSize
-0x511fb4,s_featureTdfParsers$S32680
+0x511fb4,s_featureTdfParsers$S23898
 0x511fb8,g_frontendErrorText
 0x5120b8,g_pictureCache
 0x512288,DAT_00512288
@@ -4423,6 +4438,7 @@ address,name
 0x512770,DAT_00512770
 0x512774,g_serialBaudRate
 0x512788,g_reporterNames
+0x5127c8,g_linkInfo
 0x512978,g_unitRestrictPicCursor
 0x51297c,g_unitRestrictRecordCursor
 0x512980,g_modemInfo
@@ -4593,6 +4609,7 @@ address,name
 0x512d88,g_lobbyMapping
 0x512d8c,g_lobbyWatching
 0x512d90,DAT_00512d90
+0x512dd0,g_onlineDllPath
 0x512ee8,g_onlineConfigLoaded
 0x512eec,g_onlineDll
 0x512ef0,g_helpDialogBaseGadgetCount

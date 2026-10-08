@@ -902,7 +902,7 @@ extern int g_serialBaudRate;
 extern int g_serialBaudRateTable[];
 extern unsigned int g_reporterCount;
 extern unsigned int g_reporterNames;
-extern LinkInfo DAT_005127c8[];
+extern LinkInfo g_linkInfo[];
 extern char DAT_00502ae8[];                // "OK"
 extern char g_multiSoundName[];            // "Multi"
 extern char* g_oldMapName;

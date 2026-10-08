@@ -328,7 +328,7 @@ extern int DAT_0051276c;                                                        
 extern unsigned char DAT_00512780[8];                                                             // 0x512780, 8 bytes; nothing refers to it
 extern unsigned int g_reporterNames;                                                              // 0x512788, 4 bytes; 1 of 1 files
 extern unsigned char DAT_0051278c[60];                                                            // 0x51278c, 60 bytes; nothing refers to it
-extern unsigned char DAT_005127c8[432];                                                           // 0x5127c8, 432 bytes; LinkInfo[] by value in 2 of 2 files
+extern unsigned char g_linkInfo[432];                                                             // 0x5127c8, 432 bytes; LinkInfo[] by value in 2 of 2 files
 extern int g_unitRestrictPicCursor;                                                               // 0x512978, 4 bytes; 1 of 1 files
 extern int g_unitRestrictRecordCursor;                                                            // 0x51297c, 4 bytes; 1 of 1 files
 extern char* g_modemInfo;                                                                         // 0x512980, 4 bytes; 1 of 1 files
@@ -489,7 +489,8 @@ extern char* g_loungeChatter;                                                   
 extern int g_loungeRefreshTime;                                                                   // 0x512c78, 4 bytes; 1 of 1 files
 extern unsigned int g_timeoutTimerStart;                                                          // 0x512c7c, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00512c80[336];                                                           // 0x512c80, 336 bytes; int in 3 of 4 files (conflicting: shape), but used past its end
-extern unsigned char DAT_00512dd0[260];                                                           // 0x512dd0, 260 bytes; nothing refers to it
+extern char g_onlineDllPath[260];                                                                 // 0x512dd0, 260 bytes; 3 of 3 files
+extern unsigned char DAT_00512ed4[20];                                                            // 0x512ed4, 20 bytes; nothing refers to it
 extern int g_onlineConfigLoaded;                                                                  // 0x512ee8, 4 bytes; 2 of 2 files
 extern void* g_onlineDll;                                                                         // 0x512eec, 4 bytes; 4 of 4 files
 extern int g_helpDialogBaseGadgetCount;                                                           // 0x512ef0, 4 bytes; 1 of 1 files

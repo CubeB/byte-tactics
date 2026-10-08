@@ -5,6 +5,7 @@
 #include <string.h>
 
 extern int DAT_00512c80[0x54];      // the online configuration, 0x150 bytes
+// GLOBAL: 0x512dd0
 extern char g_onlineDllPath[MAX_PATH + 1];
 extern int g_onlineConfigLoaded;
 extern HMODULE g_onlineDll;
@@ -59,7 +60,7 @@ static int LoadConfigFile(char* file, void* config, int size)
 }
 
 // FUNCTION: 0x45b670
-int __stdcall FUN_0045b670(char* file)
+int __stdcall Onl_LoadConfigFile(char* file)
 {
     g_onlineConfigLoaded = 0;
     memset(DAT_00512c80, 0, sizeof(DAT_00512c80));

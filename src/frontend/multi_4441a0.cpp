@@ -46,7 +46,8 @@ struct LinkInfo {
 };
 
 extern Game_004441a0* g_game;
-extern LinkInfo DAT_005127c8[];
+// GLOBAL: 0x5127c8
+extern LinkInfo g_linkInfo[];
 
 void __cdecl FUN_004d85a0(void* p);
 int __stdcall IsCurrentGadgetNamed(void* menu, char* name);
@@ -101,7 +102,7 @@ void __stdcall FUN_004441a0(Menu_004441a0* menu)
         int result = 2;
         try {
             SetCursorMode(0x14);
-            result = OnlineProcessButtonCommand(DAT_005127c8[link].id, message, sizeof(message));
+            result = OnlineProcessButtonCommand(g_linkInfo[link].id, message, sizeof(message));
             SetCursorMode(0x13);
         } catch (...) {
             SetCursorMode(0x13);
@@ -113,7 +114,7 @@ void __stdcall FUN_004441a0(Menu_004441a0* menu)
         }
         if (message[0] == 0)
             sprintf(message, "The %s service failed or took%stoo long. Please see the readme%sfile for more information.",
-                    DAT_005127c8[link].name, "\n\n", "\n\n");
+                    g_linkInfo[link].name, "\n\n", "\n\n");
         char* msg = Translate(message);
         OpenMessageBox(menu, msg, sizeof(message), 1, 1);
         ClearSelectedGadget(menu);

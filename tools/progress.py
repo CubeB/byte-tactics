@@ -7,7 +7,8 @@
 Writes:
   data/progress.csv  status of every annotated function
   data/symbols.csv   name -> address map, rebuilt from scratch out of verified
-                     matches only (plus the runtime library's names)
+                     matches only (plus the runtime library's names and the
+                     names gap files' annotations give)
   README.md          the section between the progress markers
 """
 
@@ -24,7 +25,7 @@ from check import (DEFAULT_FLAGS, ROOT, SYMBOLS, Original, annotations, base_nam
                    compile_source)
 from coff import parse_object
 from issues import BANDS
-from sources import sources as files_of_kind
+from sources import gap_annotations, sources as files_of_kind
 
 README = ROOT / "README.md"
 PROGRESS = ROOT / "data/progress.csv"
@@ -250,6 +251,18 @@ def main() -> None:
                         and not ref.symbol.startswith(NOT_LEARNED) and not real.startswith("$")):
                     del symbols[placeholder]
                     symbols[real] = ref.target
+
+    # Names only gap sources spell, from the annotations beside their
+    # definitions and declarations (tools/sources.py). Gap code is checked by
+    # tools/gapcheck.py, so no match above learns them, and without a row the
+    # tools that read the address out of a placeholder name (tools/globals.py,
+    # tools/place.py, tools/linkcheck.py) lose the name on a rename. The
+    # matches come first: a gap function can share a name with a game function
+    # (FatalError, 0x4b6290 and 0x4d9ab0), and the learned one keeps it. One
+    # name per address, as the table has it.
+    for address, name in gap_annotations():
+        if name not in symbols and address not in symbols.values():
+            symbols[name] = address
 
     PROGRESS.parent.mkdir(exist_ok=True)
     with PROGRESS.open("w", newline="") as fh:

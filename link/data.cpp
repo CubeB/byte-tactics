@@ -415,7 +415,7 @@ int DAT_0051276c;  // 0x51276c .bss
 unsigned char DAT_00512780[8];  // 0x512780 .bss
 unsigned int g_reporterNames;  // 0x512788 .bss
 unsigned char DAT_0051278c[60];  // 0x51278c .bss
-unsigned char DAT_005127c8[432];  // 0x5127c8 .bss
+unsigned char g_linkInfo[432];  // 0x5127c8 .bss
 int g_unitRestrictPicCursor;  // 0x512978 .bss
 int g_unitRestrictRecordCursor;  // 0x51297c .bss
 char* g_modemInfo;  // 0x512980 .bss
@@ -576,7 +576,8 @@ char* g_loungeChatter;  // 0x512c74 .bss
 int g_loungeRefreshTime;  // 0x512c78 .bss
 unsigned int g_timeoutTimerStart;  // 0x512c7c .bss
 unsigned char DAT_00512c80[336];  // 0x512c80 .bss (the type runs past the next known address, 0x512c80+0x4)
-unsigned char DAT_00512dd0[260];  // 0x512dd0 .bss
+char g_onlineDllPath[260];  // 0x512dd0 .bss
+unsigned char DAT_00512ed4[20];  // 0x512ed4 .bss
 int g_onlineConfigLoaded;  // 0x512ee8 .bss
 void* g_onlineDll;  // 0x512eec .bss
 int g_helpDialogBaseGadgetCount;  // 0x512ef0 .bss

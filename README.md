@@ -106,20 +106,20 @@ Counts in `src/` and `include/` at `origin/main`, against `e9367f13` (the roadma
 | | Start | Now | Target | Done | |
 | --- | ---: | ---: | --- | ---: | --- |
 | Source files (`.cpp`) | 2,727 | 315 | 112, one per module (`data/modules.csv`) | 92% | `[##################--]` |
-| Placeholder functions `FUN_<addr>` | 1,076 | 398 | 0, named | 63% | `[#############-------]` |
-| Placeholder globals `DAT_<addr>` | 737 | 378 | 0, named | 49% | `[##########----------]` |
-| Placeholder classes `Class_<addr>` | 769 | 711 | 0, named | 8% | `[##------------------]` |
-| Placeholder fields `field_<offset>` | 589 | 543 | 0, named | 8% | `[##------------------]` |
+| Placeholder functions `FUN_<addr>` | 1,076 | 395 | 0, named | 63% | `[#############-------]` |
+| Placeholder globals `DAT_<addr>` | 737 | 377 | 0, named | 49% | `[##########----------]` |
+| Placeholder classes `Class_<addr>` | 769 | 709 | 0, named | 8% | `[##------------------]` |
+| Placeholder fields `field_<offset>` | 589 | 539 | 0, named | 8% | `[##------------------]` |
 | Files that define `Unit` | 285 | 83 | 1, one shared definition | 71% | `[##############------]` |
 | Files opening with matching history | 301 | 1 | 0, none | 100% | `[####################]` |
-| Casts `((T*)x)->` | 1,698 | 1,147 | 0, casts the types allow | 32% | `[######--------------]` |
+| Casts `((T*)x)->` | 1,698 | 1,146 | 0, casts the types allow | 33% | `[#######-------------]` |
 | Byte-offset access `*(T*)(p + off)` and `(char*)p + off` | 1,284 | 1,066 | cases with no struct | | |
 
 | Cleanup issues | | | |
 | --- | --- | --- | ---: |
 | Gather issues | 125 of 125 closed | `[####################]` | 100% |
 | Join issues | 19 of 19 closed | `[####################]` | 100% |
-| Name issues | 100 of 119 closed | `[#################---]` | 84% |
+| Name issues | 102 of 121 closed | `[#################---]` | 84% |
 <!-- cleanup:end -->
 
 ## Next steps

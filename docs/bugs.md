@@ -1152,3 +1152,12 @@ Things that look wrong in the original but have no effect, kept for the record.
   is off the ground or in view range, where the intent reads as both; both
   halves of the function have it. Found by OpenCode / deepseek-v4.1-flash in
   #6143.
+- **0x47e2d0** (possible): the visibility index's row term shifts
+  `footprint.x` by 2, where the row extent is `footprint.y` (the footprint is a
+  Point), so non-square footprints index the wrong row. Found by OpenCode /
+  deepseek-v4.1-flash in #6146.
+- **0x4cb9e0** (`SaveBmp`, possible, harmless): the seek offset is
+  `(bmp.height - n) * stride + dataOffset`, where `n` is the height `Open` has
+  just stored in `bmp.height`, so the difference is always 0 and the seek
+  always lands on `dataOffset`. Found by OpenCode / deepseek-v4.1-flash in
+  #6147.

@@ -73,7 +73,7 @@ void __cdecl FUN_004d85a0(int* param_1);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 int __stdcall ReadSoundEntry(Source_0042f450* source, char* key, int* out);
-void __stdcall FUN_00429470(char* name, char* value);
+void __stdcall LoadSoundByName(char* name, char* value);
 void LoadSoundCategories();
 void FreeSoundCategories();
 void __stdcall FreeSoundSet(IDirectSoundBuffer** set);
@@ -166,7 +166,7 @@ void FreeSoundCategories()
 }
 
 // Loads gamedata\allsound.TDF and registers every "sound" entry found in it
-// through FUN_00429470, then runs the general sound loader LoadSoundCategories.
+// through LoadSoundByName, then runs the general sound loader LoadSoundCategories.
 // FUNCTION: 0x42f7e0
 void LoadAllSound()
 {
@@ -183,7 +183,7 @@ void LoadAllSound()
         while (more) {
             ((TdfRecord*)obj.field_4)->CopyRecordName(name, 0x20);
             if (((TdfRecord*)obj.field_4)->GetFieldString(value, "sound", 0x100, DAT_005119b8))
-                FUN_00429470(name, value);
+                LoadSoundByName(name, value);
             i++;
             obj.ResetCurrentRecord();
             more = obj.SelectRecordAt(i);

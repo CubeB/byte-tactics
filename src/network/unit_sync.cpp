@@ -638,7 +638,7 @@ int __cdecl GetLocalHumanDpid();
 unsigned int GetHostDpid();
 void __stdcall SendPacketToPlayer(int a, unsigned int b, void* c, int d);
 Player_0046e0b0* __stdcall FindPlayerByDpid(int id);
-int __stdcall FUN_0042a610(Def_0046d040* def);
+int __stdcall ComputeUnitScriptChecksum(Def_0046d040* def);
 void ProtectUnitDefsReadWrite();
 void ProtectUnitDefsReadOnly();
 extern char g_unitSyncStatusText[];
@@ -1270,7 +1270,7 @@ void UnitSync::CheckUnitAvailable(unsigned int key, int y)
             for (int i = 1; i < n; i++) {
                 Def_0046d040* def = &g_game->defs[i];
                 if (def->key == key) {
-                    FUN_0042a610(def);
+                    ComputeUnitScriptChecksum(def);
                     it.ptr->value.y = def->y;
                     break;
                 }

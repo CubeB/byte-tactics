@@ -323,7 +323,7 @@ void __cdecl FUN_004d85a0(void* p);
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 void __stdcall FUN_004a0bf0(void* menu, const char* name, char* text, int param_4);
 Entry_00444930* __stdcall FUN_004a0280(void* entries, char* name);
-void* __stdcall FUN_004295b0(char* path, int* outX, int* outY);
+void* __stdcall LoadRadarPic(char* path, int* outX, int* outY);
 void __stdcall ResizeRadarPicture(void* bmp, int param_2, int param_3, int param_4, int param_5);
 void __stdcall FUN_0049fa90(void* menu);
 char* __stdcall Translate(char* text);
@@ -418,7 +418,7 @@ void ShowSelectedMapInfo()
         FUN_004d85a0(entry->field_c2);
         entry->field_c2 = 0;
     }
-    void* bmp = FUN_004295b0(
+    void* bmp = LoadRadarPic(
         (char*)((Mission*)g_game->field_391e9)->GetNameSlot(1), &outX, &outY);
     entry->field_c2 = bmp;
     if (bmp != 0) {

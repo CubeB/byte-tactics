@@ -417,7 +417,7 @@ public:
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
 void __stdcall FatalError(char* message);
-int* __stdcall FUN_00429660(int* file);
+int* __stdcall LoadFileWithProgress(int* file);
 Bitmap* __stdcall GetGafFrame(void* table, int index);
 void __stdcall UpdateLineOfSight(Params* params);
 void __stdcall AddLineOfSight(Params* params);
@@ -1014,7 +1014,7 @@ void LoadTntMap()
 
     // REGION r1 begin
     tnt = ((Mission*)*(void**)((char*)g_game + 0x391e9))->GetNameSlot(1);
-    tnt = FUN_00429660(tnt);
+    tnt = LoadFileWithProgress(tnt);
     info.version = *tnt;
     switch (info.version) {
     case 0x1020:

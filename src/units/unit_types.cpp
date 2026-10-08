@@ -387,7 +387,7 @@ void __stdcall MirrorObject(void* obj);
 int __stdcall GetObjectHeight(void* obj);
 void* __stdcall LoadCobScript(char* path);
 void __stdcall StripExtension(char* text);
-void __stdcall FUN_0042a140(void* obj, char* name);
+void __stdcall BindModelTextures(void* obj, char* name);
 short __stdcall FindOrLoadFeatureType(char* name);
 void* __stdcall FindMovementClass(char* name);
 char* __stdcall FindWeaponByName(char* name);
@@ -1115,7 +1115,7 @@ void LoadUnitTypes() {
         if (model == 0)
             FatalError(objpath);
         MirrorObject(model);
-        FUN_0042a140(model, namebuf);
+        BindModelTextures(model, namebuf);
         g_game->field_14377[u] = model;
         type->extentmin.y = 0;
         type->extentmax.y = GetObjectHeight(g_game->field_14377[u]);

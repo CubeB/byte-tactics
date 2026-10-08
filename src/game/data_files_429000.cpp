@@ -263,7 +263,7 @@ void* __stdcall LoadSoundFile(const char* name);
 // name (in the +0x35e13 table), and loads the file through LoadSoundFile when
 // the sound is new. Returns the index, or 0 when the table is full.
 // FUNCTION: 0x429470
-int __stdcall FUN_00429470(char* name, const char* file)
+int __stdcall LoadSoundByName(char* name, const char* file)
 {
     int i;
     for (i = 0; i < g_game->soundCount; i++) {
@@ -322,7 +322,7 @@ Bitmap_004b8da0* __stdcall AllocFrame(char* name, int width, int height);
 // width*height pixels into it. Otherwise it returns null. The two dwords at
 // header+4 and header+8 are reported through the output pointers.
 // FUNCTION: 0x4295b0
-Bitmap_004b8da0* __stdcall FUN_004295b0(char* path, int* outX, int* outY)
+Bitmap_004b8da0* __stdcall LoadRadarPic(char* path, int* outX, int* outY)
 {
     void* file = HAPI_OpenFileRead(path);
     if (file == 0) {
@@ -351,7 +351,7 @@ Bitmap_004b8da0* __stdcall FUN_004295b0(char* path, int* outX, int* outY)
 // Reads a whole file into a new buffer in ten chunks, updating the loading
 // progress (9..90) after each chunk.
 // FUNCTION: 0x429660
-char* __stdcall FUN_00429660(char* path)
+char* __stdcall LoadFileWithProgress(char* path)
 {
     void* file = HAPI_OpenFileRead(path);
     if (file == 0) {
@@ -400,7 +400,7 @@ void* __stdcall LoadAnimGaf(char* name)
 void* __stdcall FindGafEntry(void* gaf, const char* name);
 
 // FUNCTION: 0x429850
-void __stdcall FUN_00429850(int param_1, char* param_2)
+void __stdcall FindGafSequence(int param_1, char* param_2)
 {
     FindGafEntry((void*)param_1, param_2);
 }
@@ -598,12 +598,12 @@ void __stdcall InitGafSequence(Ref_0042a140* ref, void* src, int index);
 // object resolves its texture name against the loaded GAF files and either
 // points it at a plain texture or starts an animation sequence.
 // FUNCTION: 0x42a140
-void __stdcall FUN_0042a140(Model_0042a140* model, const char* name)
+void __stdcall BindModelTextures(Model_0042a140* model, const char* name)
 {
     if (model->child1)
-        FUN_0042a140(model->child1, name);
+        BindModelTextures(model->child1, name);
     if (model->child2)
-        FUN_0042a140(model->child2, name);
+        BindModelTextures(model->child2, name);
 
     Elem_0042a140* elem = model->entries;
     for (int i = 0; i < model->count; i++, elem++) {
@@ -659,7 +659,7 @@ void* __stdcall LoadObject3d(const char* name)
         FatalError(path);
     }
     MirrorObject(data);
-    FUN_0042a140((Model_0042a140*)data, name);
+    BindModelTextures((Model_0042a140*)data, name);
     return data;
 }
 
@@ -673,7 +673,7 @@ void LoadGameFonts()
 }
 
 // FUNCTION: 0x42a3b0
-void FUN_0042a3b0()
+void FreeGameFonts()
 {
     FUN_004d85a0(g_game->field_391fd);
     g_game->field_391fd = 0;
@@ -682,7 +682,7 @@ void FUN_0042a3b0()
 }
 
 // FUNCTION: 0x42a400
-int FUN_0042a400()
+int LoadDefaultPalette()
 {
     void* palette = LoadPaletteByName("PALETTE");
     memcpy(g_game->palette, palette, 0x400);
@@ -738,7 +738,7 @@ void LoadTextureGafs()
 // the table itself) and the buffer at +0x148eb, clearing the pointers and
 // the size at +0x148e7.
 // FUNCTION: 0x42a570
-void FUN_0042a570()
+void FreeTextureGafs()
 {
     for (int i = 0; i < g_game->blockCount; i++) {
         FUN_004d85a0(g_game->blocks[i]);
@@ -789,7 +789,7 @@ void __cdecl ProtectBlockReadOnly(void* p);
 // checksum of each file into field_142, and locks the unit type table while
 // reading. Does nothing once field_142 is nonzero.
 // FUNCTION: 0x42a610
-void __stdcall FUN_0042a610(Def_0042a610* def)
+void __stdcall ComputeUnitScriptChecksum(Def_0042a610* def)
 {
     if (def->field_142)
         return;

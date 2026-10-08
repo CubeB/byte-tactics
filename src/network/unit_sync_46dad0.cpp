@@ -132,7 +132,7 @@ class Class_0046cec0 {
 extern char* g_game;
 extern int DAT_00000000;
 
-int __stdcall FUN_0042a610(Def_0046dad0* def);
+int __stdcall ComputeUnitScriptChecksum(Def_0046dad0* def);
 
 // 0x46f7a0 has no name in the exe, so it is modelled as a method of a
 // vector subclass to keep the call out of line (it is the out-of-line
@@ -268,7 +268,7 @@ void UnitSync::ProcessSync() {
                 if (field_60 >= game->count)
                     return;
                 Def_0046dad0* def = &game->defs[field_60];
-                FUN_0042a610(def);
+                ComputeUnitScriptChecksum(def);
                 // y then key, read into locals before the disabled test.
                 int y = def->y;
                 unsigned int key = def->key;

@@ -179,10 +179,10 @@ void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const
 void __stdcall FatalError(char* path);
 void* __stdcall Load3do(char* path);
 void __stdcall MirrorObject(void* p);
-void __stdcall FUN_0042a140(void* a, char* b);
+void __stdcall BindModelTextures(void* a, char* b);
 void* __stdcall LoadAnimGaf(char* name);
 void* __stdcall FindGafEntry(void* a, char* b);
-int __stdcall FUN_00429470(void* a, char* b);
+int __stdcall LoadSoundByName(void* a, char* b);
 class TdfFile {
 public:
     int root;                          // +0x0
@@ -335,7 +335,7 @@ void __stdcall LoadWeaponType(Class_004c4440* parser) {
         if (h == 0)
             FatalError(path);
         MirrorObject(h);
-        FUN_0042a140(h, model);
+        BindModelTextures(h, model);
         g_game->weapons[count].text = h;
         strcpy(g_game->weapons[count].model, model);
     } else {
@@ -374,17 +374,17 @@ model_done:
         }
     }
     if (((TdfRecord*)parser)->GetFieldString(model, "soundstart", 0x100, DAT_005119b8) != 0) {
-        w->soundstart = (unsigned short)FUN_00429470(0, model);
+        w->soundstart = (unsigned short)LoadSoundByName(0, model);
     } else {
         w->soundstart = 0xffff;
     }
     if (((TdfRecord*)parser)->GetFieldString(model, "soundhit", 0x100, DAT_005119b8) != 0) {
-        w->soundhit = (unsigned short)FUN_00429470(0, model);
+        w->soundhit = (unsigned short)LoadSoundByName(0, model);
     } else {
         w->soundhit = 0xffff;
     }
     if (((TdfRecord*)parser)->GetFieldString(model, "soundwater", 0x100, DAT_005119b8) != 0) {
-        w->soundwater = (unsigned short)FUN_00429470(0, model);
+        w->soundwater = (unsigned short)LoadSoundByName(0, model);
     } else {
         w->soundwater = 0xffff;
     }

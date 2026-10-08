@@ -1120,3 +1120,10 @@ Things that look wrong in the original but have no effect, kept for the record.
   768-byte stack buffer (the frame reserves 0x320 bytes), overrunning it by
   0x100 bytes into the rest of the frame. Found by OpenCode /
   deepseek-v4.1-flash in #6104.
+- **0x49d580** (possible): on the aiming path for weapons with flag bit 1,
+  the heading is stored into argument one's home slot (the shooter pointer),
+  and AimWithinTolerance at 0x49d681 then reads that slot as its first angle
+  (`mov edx, [esp+0x58]`) while edi still holds the real shooter, so the angle
+  checked is a pointer's low 16 bits. The target read back from the same slot
+  at 0x49d745 feeds `target->f_a8` (0x49d812) and FireLineOfSightProjectile
+  (0x49d77d). Found by OpenCode / deepseek-v4.1-flash in #6105.

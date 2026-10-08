@@ -4782,11 +4782,11 @@ piece,0x5068b0,7,src/frontend/options.cpp,43,0,game data
 piece,0x5068a8,5,src/frontend/options.cpp,42,0,game data
 piece,0x5068a0,7,src/frontend/options.cpp,41,0,game data
 piece,0x506898,8,src/frontend/options.cpp,40,0,game data
-piece,0x506624,11,src/graphics/model_render_45aec0.cpp,3,0,game data
-piece,0x506614,13,src/graphics/model_render_45a950.cpp,3,0,game data
-piece,0x4fd4c8,4,src/graphics/model_render_4597f0.cpp,3,0,game data
-piece,0x4fd4c4,4,src/graphics/model_render_458d30.cpp,5,4,game data
-piece,0x506604,16,src/graphics/model_render_458180.cpp,3,0,game data
+piece,0x506624,11,src/graphics/model_render.cpp,54,0,game data
+piece,0x506614,13,src/graphics/model_render.cpp,39,0,game data
+piece,0x4fd4c8,4,src/graphics/model_render.cpp,12,8,game data
+piece,0x4fd4c4,4,src/graphics/model_render.cpp,12,4,game data
+piece,0x506604,16,src/graphics/model_render.cpp,5,0,game data
 piece,0x4fd4b8,4,src/network/net_game_456110.cpp,70,0,game data
 piece,0x4fd4bc,4,src/network/net_game_456110.cpp,70,4,game data
 piece,0x5063b0,38,src/network/net_game_456110.cpp,51,0,game data
@@ -12183,8 +12183,8 @@ same,0x502ae8,3,src/frontend/multi_44c420.cpp,5,0,
 same,0x506290,6,src/network/net_game_44fd40.cpp,40,0,
 same,0x506578,5,src/network/net_game_4538f0.cpp,4,0,
 same,0x506578,5,src/network/net_game_453a50.cpp,4,0,
+same,0x4fd4c0,4,src/graphics/model_render.cpp,12,0,
 same,0x4fd4c0,4,src/graphics/model_render_4581e0.cpp,3,0,
-same,0x4fd4c0,4,src/graphics/model_render_458d30.cpp,5,0,
 same,0x506884,6,src/frontend/options.cpp,34,0,
 same,0x50692c,10,src/frontend/options.cpp,71,0,
 same,0x4fd4f0,8,src/frontend/options_45c820.cpp,3,0,

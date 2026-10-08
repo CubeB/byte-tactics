@@ -696,7 +696,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51e69c,g_playLooping,.bss,4,type,data,int,2,0,1,one type,2,,DAT_0051e69c,,,
 0x51e6a0,g_losTables,.bss,16,definition,data,char[],3,3,3,conflicting: shape,6,0xc,DAT_0051e6a0,,src/map/line_of_sight_4814c0.cpp,
 0x51e6b0,DAT_0051e6b0,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,DAT_0051e6b0,,,
-0x51e6c0,DAT_0051e6c0,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_0051e6c0,,,
+0x51e6c0,g_mapLoadFlag,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_0051e6c0,,,
 0x51e6c4,DAT_0051e6c4,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_0051e6c4,,,
 0x51e6c8,g_loadingBarFlashAlpha,.bss,8,parts,data,"extern ""C"" (no type)",1,0,1,one type,1,0x4,DAT_0051e6c8,,,
 0x51e6cc,DAT_0051e6cc,.bss,4,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,0x1,DAT_0051e6cc,,in g_loadingBarFlashAlpha+0x4,

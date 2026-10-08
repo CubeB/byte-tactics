@@ -631,7 +631,7 @@ int g_useWindowsSound;  // 0x51e694 .bss
 int DAT_0051e698;  // 0x51e698 .bss
 int g_playLooping;  // 0x51e69c .bss
 unsigned char DAT_0051e6b0[4];  // 0x51e6b0 .bss
-int DAT_0051e6c0;  // 0x51e6c0 .bss
+int g_mapLoadFlag;  // 0x51e6c0 .bss
 unsigned int DAT_0051e6c4;  // 0x51e6c4 .bss
 unsigned char g_loadingBarFlashAlpha[8];  // 0x51e6c8 .bss
 int DAT_0051e6d0[10];  // 0x51e6d0 .bss

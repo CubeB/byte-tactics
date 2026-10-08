@@ -537,10 +537,10 @@ static inline int RangeSize_00488810(Item_00485940** low, Item_00485940** high)
     return (int)((char*)high - (char*)low) & ~3;
 }
 
-void __stdcall FUN_00488810(Item_00485940** first, Item_00485940** last, Pred_00488810 pred, int unused);
+void __stdcall QuickSort(Item_00485940** first, Item_00485940** last, Pred_00488810 pred, int unused);
 
 // FUNCTION: 0x488810
-void __stdcall FUN_00488810(Item_00485940** first, Item_00485940** last, Pred_00488810 pred, int unused)
+void __stdcall QuickSort(Item_00485940** first, Item_00485940** last, Pred_00488810 pred, int unused)
 {
     while (((int)((char*)last - (char*)first) & ~3) > 0x40) {
         int len = (int)((char*)last - (char*)first);
@@ -578,10 +578,10 @@ void __stdcall FUN_00488810(Item_00485940** first, Item_00485940** last, Pred_00
         }
 
         if (RangeSize_00488810(i, last) <= RangeSize_00488810(first, i)) {
-            FUN_00488810(i, last, pred, 0);
+            QuickSort(i, last, pred, 0);
             last = i;
         } else {
-            FUN_00488810(first, i, pred, 0);
+            QuickSort(first, i, pred, 0);
             first = i;
         }
     }
@@ -591,7 +591,7 @@ void __stdcall FUN_00488810(Item_00485940** first, Item_00485940** last, Pred_00
 // ComparePlayers, from a file compiled with __stdcall as the default
 // (compare 0x488960).
 // FUNCTION: 0x488920
-void __stdcall FUN_00488920(Item_00485940** last, Item_00485940* value, Pred_00488810 pred)
+void __stdcall InsertShift(Item_00485940** last, Item_00485940* value, Pred_00488810 pred)
 {
     for (Item_00485940** m = last; pred(value, *--m); last = m)
         *last = *m;
@@ -601,7 +601,7 @@ void __stdcall FUN_00488920(Item_00485940** last, Item_00485940* value, Pred_004
 // std::sort's _Unguarded_partition for a vector of item pointers ordered by
 // ComparePlayers, from a file compiled with __stdcall as the default.
 // FUNCTION: 0x488960
-Item_00485940** __stdcall FUN_00488960(Item_00485940** first, Item_00485940** last,
+Item_00485940** __stdcall Partition(Item_00485940** first, Item_00485940** last,
                                         Item_00485940* pivot, Pred_00488810 pred)
 {
     for (;; ++first) {
@@ -653,7 +653,7 @@ public:
     Class_004c93b0 name;               // +0x0
     int value;                         // +0x4
 
-    Class_00489240* FUN_00489240(Class_00489240* other);
+    Class_00489240* AssignCategory(Class_00489240* other);
 };
 
 class UnitCategory {
@@ -665,7 +665,7 @@ public:
     UnitCategory(const UnitCategory& other);
     UnitCategory& operator=(const UnitCategory& other)
     {
-        ((Class_00489240*)this)->FUN_00489240((Class_00489240*)&other);
+        ((Class_00489240*)this)->AssignCategory((Class_00489240*)&other);
         return *this;
     }
     ~UnitCategory() { name.ReleaseRef(); }
@@ -673,7 +673,7 @@ public:
 
 // FUNCTION: 0x4889d0 _$E5
 // FUNCTION: 0x488a00 _$E3
-static std::vector<UnitCategory> DAT_0051e6b0;
+static std::vector<UnitCategory> s_unitCategories;
 
 extern "C" int __cdecl _strcmpi(const char* str1, const char* str2);
 
@@ -738,12 +738,12 @@ unsigned short __stdcall FindUnitTypeId(const char* name)
     return 0;
 }
 
-extern int DAT_0051e6c0;
+extern int g_mapLoadFlag;
 
 // FUNCTION: 0x488be0
 void InitUnitCategories()
 {
-    DAT_0051e6c0 = 1;
+    g_mapLoadFlag = 1;
 }
 
 // Empties the file-local global vector: frees each element's value, then
@@ -752,10 +752,10 @@ void InitUnitCategories()
 // FUNCTION: 0x488bf0
 void FreeUnitCategories()
 {
-    for (std::vector<UnitCategory>::iterator it = DAT_0051e6b0.begin(); it != DAT_0051e6b0.end(); it++)
+    for (std::vector<UnitCategory>::iterator it = s_unitCategories.begin(); it != s_unitCategories.end(); it++)
         delete it->value;
-    DAT_0051e6b0.clear();
-    DAT_0051e6c0 = 0;
+    s_unitCategories.clear();
+    g_mapLoadFlag = 0;
 }
 
 // 0x40-byte set (512 bits), as in the callers 0x406db0 and 0x406e40.
@@ -774,8 +774,8 @@ public:
 // FUNCTION: 0x488c50
 UnitTypeSet* __stdcall GetCategoryMask(char* name)
 {
-    UnitCategory* first = DAT_0051e6b0.begin();
-    int n = DAT_0051e6b0.end() - first;
+    UnitCategory* first = s_unitCategories.begin();
+    int n = s_unitCategories.end() - first;
     for (; 0 < n; ) {
         int n2 = n / 2;
         UnitCategory* m = first + n2;
@@ -784,11 +784,11 @@ UnitTypeSet* __stdcall GetCategoryMask(char* name)
         else
             n = n2;
     }
-    if (first != DAT_0051e6b0.end() && _strcmpi(first->name.data, name) == 0)
+    if (first != s_unitCategories.end() && _strcmpi(first->name.data, name) == 0)
         return (UnitTypeSet*)first->value;
 
     UnitTypeSet* p = new UnitTypeSet;
-    DAT_0051e6b0.insert(first, UnitCategory(Class_004c91b0(name), p));
+    s_unitCategories.insert(first, UnitCategory(Class_004c91b0(name), p));
     return p;
 }
 
@@ -866,7 +866,7 @@ InsertFn_00488fb0 g_insert_00488fb0 = &Vec_00488fb0::insert;
 // Assignment of a record holding a reference-counted string handle (assigned
 // by 0x4c93b0) and an int.
 // FUNCTION: 0x489240
-Class_00489240* Class_00489240::FUN_00489240(Class_00489240* other)
+Class_00489240* Class_00489240::AssignCategory(Class_00489240* other)
 {
     name.Assign(&other->name);
     value = other->value;

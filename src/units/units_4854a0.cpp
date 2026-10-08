@@ -2,7 +2,7 @@
 // This translation unit stands in for <algorithm> with __stdcall
 // instantiations, because the original was built with /Gz and its sort helpers
 // are callee-clean (0x488810, 0x488920, 0x488960). The three helper templates
-// carry their real global names (FUN_00488810/FUN_00488920/FUN_00488960) so
+// carry their real global names (QuickSort/InsertShift/Partition) so
 // the recursive and out-of-line calls at 0x485691/0x48574b/0x48576d/0x485778
 // reference the names data/symbols.csv already has, while the body and
 // one-level inline stay exactly as the std:: originals. The std headers are
@@ -14,9 +14,9 @@
 
 #define _ALGORITHM_
 
-template<class _RI, class _Ty, class _Pr> void __stdcall FUN_00488810(_RI _F, _RI _L, _Pr _P, _Ty *);
-template<class _RI, class _Ty, class _Pr> _RI __stdcall FUN_00488960(_RI _F, _RI _L, _Ty _Piv, _Pr _P);
-template<class _RI, class _Ty, class _Pr> void __stdcall FUN_00488920(_RI _L, _Ty _V, _Pr _P);
+template<class _RI, class _Ty, class _Pr> void __stdcall QuickSort(_RI _F, _RI _L, _Pr _P, _Ty *);
+template<class _RI, class _Ty, class _Pr> _RI __stdcall Partition(_RI _F, _RI _L, _Ty _Piv, _Pr _P);
+template<class _RI, class _Ty, class _Pr> void __stdcall InsertShift(_RI _L, _Ty _V, _Pr _P);
 
 namespace std {
 const int _CHUNK_SIZE = 7;
@@ -40,10 +40,10 @@ template<class _RI, class _Ty, class _Pr> inline void __stdcall _Sort_0(_RI _F, 
     {if (_L - _F <= _SORT_MAX)
         _Insertion_sort(_F, _L, _P);
     else
-        {FUN_00488810(_F, _L, _P, (_Ty *)0);
+        {QuickSort(_F, _L, _P, (_Ty *)0);
         _Insertion_sort(_F, _F + _SORT_MAX, _P);
         for (_F += _SORT_MAX; _F != _L; ++_F)
-            FUN_00488920(_F, _Ty(*_F), _P); }}
+            InsertShift(_F, _Ty(*_F), _P); }}
 template<class _RI, class _Pr> inline void __stdcall _Insertion_sort(_RI _F, _RI _L, _Pr _P)
     {_Insertion_sort_1(_F, _L, _P, _Val_type(_F)); }
 template<class _RI, class _Ty, class _Pr> inline void __stdcall _Insertion_sort_1(_RI _F, _RI _L, _Pr _P, _Ty *)
@@ -51,18 +51,18 @@ template<class _RI, class _Ty, class _Pr> inline void __stdcall _Insertion_sort_
         for (_RI _M = _F; ++_M != _L; )
             {_Ty _V = *_M;
             if (!_P(_V, *_F))
-                FUN_00488920(_M, _V, _P);
+                InsertShift(_M, _V, _P);
             else
                 {copy_backward(_F, _M, _M + 1);
                 *_F = _V; }}}
 }
 
-template<class _RI, class _Ty, class _Pr> void __stdcall FUN_00488920(_RI _L, _Ty _V, _Pr _P)
+template<class _RI, class _Ty, class _Pr> void __stdcall InsertShift(_RI _L, _Ty _V, _Pr _P)
     {for (_RI _M = _L; _P(_V, *--_M); _L = _M)
         *_L = *_M;
     *_L = _V; }
 
-template<class _RI, class _Ty, class _Pr> _RI __stdcall FUN_00488960(_RI _F, _RI _L, _Ty _Piv, _Pr _P)
+template<class _RI, class _Ty, class _Pr> _RI __stdcall Partition(_RI _F, _RI _L, _Ty _Piv, _Pr _P)
     {for (; ; ++_F)
         {for (; _P(*_F, _Piv); ++_F)
             ;
@@ -72,14 +72,14 @@ template<class _RI, class _Ty, class _Pr> _RI __stdcall FUN_00488960(_RI _F, _RI
             return (_F);
         std::iter_swap(_F, _L); }}
 
-template<class _RI, class _Ty, class _Pr> void __stdcall FUN_00488810(_RI _F, _RI _L, _Pr _P, _Ty *)
+template<class _RI, class _Ty, class _Pr> void __stdcall QuickSort(_RI _F, _RI _L, _Pr _P, _Ty *)
     {for (; std::_SORT_MAX < _L - _F; )
-        {_RI _M = FUN_00488960(_F, _L, std::_Median(_Ty(*_F),
+        {_RI _M = Partition(_F, _L, std::_Median(_Ty(*_F),
             _Ty(*(_F + (_L - _F) / 2)), _Ty(*(_L - 1)), _P), _P);
         if (_L - _M <= _M - _F)
-            FUN_00488810(_M, _L, _P, std::_Val_type(_F)), _L = _M;
+            QuickSort(_M, _L, _P, std::_Val_type(_F)), _L = _M;
         else
-            FUN_00488810(_F, _M, _P, std::_Val_type(_F)), _F = _M; }}
+            QuickSort(_F, _M, _P, std::_Val_type(_F)), _F = _M; }}
 
 #include <algorithm>
 

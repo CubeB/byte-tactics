@@ -1802,9 +1802,9 @@ address,name
 0x487bf0,RunInitialMission
 0x488310,CreateMissionUnits
 0x488570,GiveUnitToPlayer
-0x488810,FUN_00488810
-0x488920,FUN_00488920
-0x488960,FUN_00488960
+0x488810,QuickSort
+0x488920,InsertShift
+0x488960,Partition
 0x488a50,FindUnitType
 0x488b10,FindUnitTypeId
 0x488be0,InitUnitCategories
@@ -1814,7 +1814,7 @@ address,name
 0x488e70,UnitDef::AddToCategories
 0x488f30,GetEnergyUse
 0x488fb0,VUnitCategory::?$vector::insert
-0x489240,Class_00489240::FUN_00489240
+0x489240,Class_00489240::AssignCategory
 0x489260,UnitCategory::UnitCategory
 0x489280,MakePropList
 0x4894f0,UnitCanBuild
@@ -4682,8 +4682,8 @@ address,name
 0x51e698,DAT_0051e698
 0x51e69c,g_playLooping
 0x51e6a0,g_losTables
-0x51e6b0,DAT_0051e6b0$S5473
-0x51e6c0,DAT_0051e6c0
+0x51e6b0,s_unitCategories$S5473
+0x51e6c0,g_mapLoadFlag
 0x51e6c4,DAT_0051e6c4
 0x51e6c8,g_loadingBarFlashAlpha
 0x51e6cc,DAT_0051e6cc

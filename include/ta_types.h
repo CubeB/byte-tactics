@@ -12775,7 +12775,7 @@ class Class_00489240 {  // 0x8 bytes, 2 views
 public:
     Class_004c9390 name;  // +0x0
     int value;  // +0x4
-    Class_00489240* FUN_00489240(Class_00489240*);
+    Class_00489240* AssignCategory(Class_00489240*);
 };
 
 struct UnitType_00489280 {  // 0x240 bytes, 1 view

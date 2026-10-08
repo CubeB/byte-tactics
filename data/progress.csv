@@ -1808,9 +1808,9 @@ address,size,file,symbol,status,similarity
 0x487bf0,1811,src/units/unit_commands_487bf0.cpp,?RunInitialMission@@YGXPAUUnit@@PADPAUTable_00487bf0@@@Z,matched,100.0
 0x488310,596,src/units/unit_commands_487bf0.cpp,?CreateMissionUnits@@YAXXZ,matched,100.0
 0x488570,657,src/units/unit_commands_487bf0.cpp,?GiveUnitToPlayer@@YGXPAUUnit@@PAUPlayer_00488310@@PAUPacket_00488570@@@Z,matched,100.0
-0x488810,263,src/units/unit_commands_487bf0.cpp,?FUN_00488810@@YGXPAPAUItem_00485940@@0P6GHPAU1@1@ZH@Z,matched,100.0
-0x488920,59,src/units/unit_commands_487bf0.cpp,?FUN_00488920@@YGXPAPAUItem_00485940@@PAU1@P6GH11@Z@Z,matched,100.0
-0x488960,98,src/units/unit_commands_487bf0.cpp,?FUN_00488960@@YGPAPAUItem_00485940@@PAPAU1@0PAU1@P6GH11@Z@Z,matched,100.0
+0x488810,263,src/units/unit_commands_487bf0.cpp,?QuickSort@@YGXPAPAUItem_00485940@@0P6GHPAU1@1@ZH@Z,matched,100.0
+0x488920,59,src/units/unit_commands_487bf0.cpp,?InsertShift@@YGXPAPAUItem_00485940@@PAU1@P6GH11@Z@Z,matched,100.0
+0x488960,98,src/units/unit_commands_487bf0.cpp,?Partition@@YGPAPAUItem_00485940@@PAPAU1@0PAU1@P6GH11@Z@Z,matched,100.0
 0x4889d0,42,src/units/unit_commands_487bf0.cpp,_$E5,matched,100.0
 0x488a00,67,src/units/unit_commands_487bf0.cpp,_$E3,matched,100.0
 0x488a50,191,src/units/unit_commands_487bf0.cpp,?FindUnitType@@YGPAUUnitType_00488b10@@PBD@Z,matched,100.0
@@ -1822,7 +1822,7 @@ address,size,file,symbol,status,similarity
 0x488e70,188,src/units/unit_types.cpp,?AddToCategories@UnitDef@@QAEXPAD@Z,matched,100.0
 0x488f30,124,src/units/unit_commands_487bf0.cpp,?GetEnergyUse@@YGMPAUUnit@@@Z,matched,100.0
 0x488fb0,649,src/units/unit_commands_487bf0.cpp,?insert@?$vector@VUnitCategory@@V?$allocator@VUnitCategory@@@std@@@std@@QAEXPAVUnitCategory@@IABV3@@Z,matched,100.0
-0x489240,27,src/units/unit_commands_487bf0.cpp,?FUN_00489240@Class_00489240@@QAEPAV1@PAV1@@Z,matched,100.0
+0x489240,27,src/units/unit_commands_487bf0.cpp,?AssignCategory@Class_00489240@@QAEPAV1@PAV1@@Z,matched,100.0
 0x489260,27,src/units/unit_commands_487bf0.cpp,??0UnitCategory@@QAE@ABV0@@Z,matched,100.0
 0x489280,618,src/units/unit_targets_489280.cpp,?MakePropList@@YGPADPAUUnitType@@@Z,matched,100.0
 0x4894f0,68,src/units/unit_targets_489280.cpp,?UnitCanBuild@@YGHPAVUnit@@F@Z,matched,100.0

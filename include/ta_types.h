@@ -2821,11 +2821,11 @@ public:
 
 struct Cell {  // 0x14 bytes, 52 views
     unsigned short spot;  // +0x0
-    unsigned short field_2;  // +0x2
+    unsigned short unit2;  // +0x2
     unsigned char height;  // +0x4
-    unsigned char field_5;  // +0x5
-    unsigned char field_6;  // +0x6
-    unsigned char unknown_7;  // +0x7
+    unsigned char high;  // +0x5
+    unsigned char low;  // +0x6
+    unsigned char metal;  // +0x7
     unsigned short feature;  // +0x8
     unsigned char offsetY;  // +0xa
     unsigned char offsetX;  // +0xb
@@ -8379,7 +8379,7 @@ struct Surface {  // 0x30 bytes, 69 views
     int field_14;  // +0x14
     unsigned short x;  // +0x18
     unsigned short y;  // +0x1a
-    Rect field_1c;  // +0x1c
+    Rect clip;  // +0x1c
     unsigned int flag0 : 1;  // +0x2c
     unsigned int flag1 : 1;
     unsigned int : 30;

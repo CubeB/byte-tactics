@@ -57,7 +57,7 @@ struct Layer {
     void (__stdcall* handler)(Menu*);  // +0x08
     Data* data;                        // +0x0c
     char unknown_10[0x37 - 0x10];
-    int field_37;                      // +0x37
+    int clickMode;                     // +0x37
     void (__stdcall* textHandler)(Cheat*);   // +0x3b
 };
 
@@ -1044,15 +1044,15 @@ void __stdcall HandleSkirmishClick(Menu* menu)
     } else if (strcmp(frame.bf, "Color") == 0) {
         PlaySoundByName("Skirmish", 0);
         GetCurrentMouseEvent(frame.ev);
-        if (menu->holder->field_37 == 1) {
+        if (menu->holder->clickMode == 1) {
             CyclePlayerColor(0);
         }
-        if (menu->holder->field_37 == 2) {
+        if (menu->holder->clickMode == 2) {
             CyclePlayerColor(1);
         }
     } else if (strcmp(frame.bf, "Energy") == 0) {
         GetCurrentMouseEvent(frame.ev);
-        if (menu->holder->field_37 == 1) {
+        if (menu->holder->clickMode == 1) {
             PlaySoundByName("Skirmish", 0);
             Table* t = g_game->table;
             int* p = &t->players[player].energy;
@@ -1065,7 +1065,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
             _itoa(g_game->table->players[player].energy, frame.sA, 10);
             SetTranslatedTextByName(menu, frame.sB, frame.sA, 10);
         }
-        if (menu->holder->field_37 == 2) {
+        if (menu->holder->clickMode == 2) {
             PlaySoundByName("Skirmish", 0);
             Table* t = g_game->table;
             int* p = &t->players[player].energy;
@@ -1076,7 +1076,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
             SetTranslatedTextByName(menu, frame.sB, frame.sA, 10);
         }
     } else if (strcmp(frame.bf, "Metal") == 0) {
-        if (menu->holder->field_37 == 1) {
+        if (menu->holder->clickMode == 1) {
             PlaySoundByName("Skirmish", 0);
             Table* t = g_game->table;
             int* p = &t->players[player].metal;
@@ -1089,7 +1089,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
             _itoa(g_game->table->players[player].metal, frame.sB, 10);
             SetTranslatedTextByName(menu, frame.sA, frame.sB, 10);
         }
-        if (menu->holder->field_37 == 2) {
+        if (menu->holder->clickMode == 2) {
             PlaySoundByName("Skirmish", 0);
             Table* t = g_game->table;
             int* p = &t->players[player].metal;

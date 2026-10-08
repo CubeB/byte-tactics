@@ -12,8 +12,8 @@ struct Point {
 };
 
 struct Cell_0047db20 {
-    short field_0;
-    short field_2;
+    short unit;
+    short unit2;
     char unknown_4[0xc - 0x4];
     unsigned char field_c;
 };
@@ -89,7 +89,7 @@ void __stdcall RemoveUnitFromMap(Obj_0047db20* obj)
                 for (int i = size.x; i > 0; i--) {
                     unsigned char m = obj->unit->mask[index];
                     index++;
-                    if (cell->field_0 == obj->id) cell->field_0 = 0;
+                    if (cell->unit == obj->id) cell->unit = 0;
                     if (m & 1) cell->field_c &= 0xfd;
                     cell++;
                 }
@@ -105,7 +105,7 @@ void __stdcall RemoveUnitFromMap(Obj_0047db20* obj)
         } else if ((obj->flags.all & 3) == 1) {
             for (int j = size.y; j > 0; j--) {
                 for (int i = size.x; i > 0; i--) {
-                    if (cell->field_0 == obj->id) cell->field_0 = 0;
+                    if (cell->unit == obj->id) cell->unit = 0;
                     cell++;
                 }
                 cell += g_game->width - size.x;
@@ -113,7 +113,7 @@ void __stdcall RemoveUnitFromMap(Obj_0047db20* obj)
         } else if ((obj->flags.all & 3) == 2) {
             for (int j = size.y; j > 0; j--) {
                 for (int i = size.x; i > 0; i--) {
-                    if (cell->field_2 == obj->id) cell->field_2 = 0;
+                    if (cell->unit2 == obj->id) cell->unit2 = 0;
                     cell++;
                 }
                 cell += g_game->width - size.x;

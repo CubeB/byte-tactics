@@ -66,10 +66,10 @@ struct Record_00440af0 {
 struct Cell_00440500 {
     unsigned short spot;               // +0x0
     char unknown_2[2];
-    unsigned char field_4;
+    unsigned char height;
     unsigned char high;                // +0x5
     unsigned char low;                 // +0x6
-    unsigned char unknown_7;
+    unsigned char metal;
     unsigned short feature;            // +0x8
     unsigned char spotY;               // +0xa
     unsigned char spotX;               // +0xb

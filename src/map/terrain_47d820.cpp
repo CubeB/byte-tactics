@@ -40,8 +40,8 @@ struct Point {
 
 struct Cell {
     char unknown_0[0x5];
-    unsigned char field_5;              // +0x5, highest floor
-    unsigned char field_6;              // +0x6, lowest floor
+    unsigned char high;                 // +0x5, highest floor
+    unsigned char low;                  // +0x6, lowest floor
     char unknown_7[0xd - 0x7];          // 13 bytes per cell
 };
 
@@ -85,14 +85,14 @@ int __stdcall GetFootprintHeight(Unit_0047d820* unit, Point cell)
         for (int col = fp.x; col > 0; col--) {
             int f = unit->mask[i++];
             if (f & 8) {
-                if (c->field_6 < low)
-                    low = c->field_6;
-                if (c->field_5 > high)
-                    high = c->field_5;
+                if (c->low < low)
+                    low = c->low;
+                if (c->high > high)
+                    high = c->high;
             }
             if (f & 0x10) {
-                if (c->field_5 > high2)
-                    high2 = c->field_5;
+                if (c->high > high2)
+                    high2 = c->high;
             }
             c++;
         }

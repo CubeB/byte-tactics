@@ -63,7 +63,7 @@ struct Cell {
     unsigned char height;              // +0x4
     unsigned char high;                // +0x5
     unsigned char low;                 // +0x6
-    unsigned char field_7;             // +0x7
+    unsigned char metal;               // +0x7
     unsigned short feature;            // +0x8
     union {
         struct {

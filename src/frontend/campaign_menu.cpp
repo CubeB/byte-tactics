@@ -128,7 +128,7 @@ struct Layer {
     void (__stdcall* handler)(Menu*);  // +0x8
     void* data;                        // +0xc
     char unknown_10[0x3b - 0x10];
-    void (__stdcall* field_3b)(Object_00477510*);  // +0x3b
+    void (__stdcall* textHandler)(Object_00477510*);  // +0x3b
 };
 
 // The GUI system object at g_game + 0x519.
@@ -850,7 +850,7 @@ void OpenSingleMenu()
         // Original oddity, kept: the test guards an |= of the same bit.
         g_game->flags_38d7f |= 1;
     }
-    g_game->menu.layer->field_3b = ToggleAnyMission;
+    g_game->menu.layer->textHandler = ToggleAnyMission;
     if (GetPreferredLanguage() && _strcmpi((char*)GetPreferredLanguage(), "spanish") == 0) {
         SetQuickKeyByName(&g_game->menu, "Skirmish", 0x73);
     }

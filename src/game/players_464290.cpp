@@ -5,16 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
-class Mission {
-public:
-    char unknown_0[0xd44];
-    int lavaWorld;                     // +0xd44
-    char unknown_d48[0xd5c - 0xd48];
-    float pos_x[10];                   // +0xd5c
-    float pos_y[10];                   // +0xd84
-    int GetGameType();
-    char* GetNameSlot(int index);
-};
+#include "../map/mission.h"
 
 class MissionConditions {
 public:
@@ -1203,10 +1194,10 @@ void InitPlayerResources()
         if (g_game->field_38d6b == 0) {
             switch (g_game->mission->GetGameType()) {
             case 1:
-                SetStartingStorageBonus(player, (int)g_game->mission->pos_x[i],
-                             (int)g_game->mission->pos_y[i]);
-                player->energy = g_game->mission->pos_y[i];
-                player->metal = g_game->mission->pos_x[i];
+                SetStartingStorageBonus(player, (int)g_game->mission->startMetal[i],
+                             (int)g_game->mission->startEnergy[i]);
+                player->energy = g_game->mission->startEnergy[i];
+                player->metal = g_game->mission->startMetal[i];
                 break;
             case 2:
                 player->energy = (float)g_game->slots[i].field_10;

@@ -47,15 +47,7 @@ union Flags16_00499200 {
     BitFlags16_00499200 bits;
 };
 
-class Mission {
-public:
-    int GetGameType();
-    int GetMissionIndex();
-    char* GetCampaignName();
-    void LoadCampaign(void* p);
-    int SelectMission(int a);
-    void LoadMissionByName(void* p);
-};
+#include "../map/mission.h"
 
 #include "../sound/sound.h"
 

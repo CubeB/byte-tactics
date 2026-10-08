@@ -1,8 +1,8 @@
 // Mission: one campaign or map (Thaldren's MapInfo, 0xec4 bytes), the object
-// at g_game+0x391e9. The one declaration of the class for the files that call
-// it; map_list.cpp, which defines the methods, keeps its own view, since its
-// TdfFile view and its int spellings of the four pointer getters below do not
-// fit this one. The types behind the pointers stay private to their own files.
+// at g_game+0x391e9. The one declaration of the class: map_list.cpp defines
+// the methods and the files that call them include this. The types behind the
+// pointers (MissionUnit, MissionRule, MissionFeature) stay private to the
+// files that read them.
 #ifndef MISSION_H
 #define MISSION_H
 
@@ -42,12 +42,8 @@ public:
     int waterDamage;                   // +0xd50
     float killMul;                     // +0xd54
     float timeMul;                     // +0xd58
-    float humanMetal;                  // +0xd5c
-    float computerMetal;               // +0xd60
-    char unknown_d64[0xd84 - 0xd64];
-    float humanEnergy;                 // +0xd84
-    float computerEnergy;              // +0xd88
-    char unknown_d8c[0xdac - 0xd8c];
+    float startMetal[10];              // +0xd5c, per player
+    float startEnergy[10];             // +0xd84, per player
     MissionUnit* units;                // +0xdac
     int unitCount;                     // +0xdb0
     MissionRule* rules;                // +0xdb4
@@ -75,7 +71,7 @@ public:
     int GetTerrainSizeTier();
     int MissionExists(int index);
     int LoadMissionByName(char* map);
-    void SelectMission(int param_1);
+    int SelectMission(int param_1);
     char* GetTranslatedName();
     char* GetMissionName();
     bool HasMissionName();

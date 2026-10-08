@@ -675,7 +675,7 @@ address,size,file,symbol,status,similarity
 0x435920,81,src/map/map_list.cpp,?GetTerrainSizeTier@Mission@@QAEHXZ,matched,100.0
 0x435980,147,src/map/map_list.cpp,?MissionExists@Mission@@QAEHH@Z,matched,100.0
 0x435a20,465,src/map/map_list.cpp,?LoadMissionByName@Mission@@QAEHPAD@Z,matched,100.0
-0x435c00,30,src/map/map_list.cpp,?SelectMission@Mission@@QAEXH@Z,matched,100.0
+0x435c00,30,src/map/map_list.cpp,?SelectMission@Mission@@QAEHH@Z,matched,100.0
 0x435c20,7,src/map/map_list.cpp,?GetTranslatedName@Mission@@QAEHXZ,matched,100.0
 0x435c30,7,src/map/map_list.cpp,?GetMissionName@Mission@@QAEHXZ,matched,100.0
 0x435c40,14,src/map/map_list.cpp,?HasMissionName@Mission@@QAE_NXZ,matched,100.0

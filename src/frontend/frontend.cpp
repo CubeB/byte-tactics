@@ -20,12 +20,7 @@ public:
     void CloseCdPlayerWindow();
 };
 
-class Mission {
-public:
-    void LoadCampaign(char* name);
-    int SelectMission(int value);
-    void LoadMissionByName(int param);
-};
+#include "../map/mission.h"
 
 // A player block's method view (the players array of the game object).
 struct Player {
@@ -1499,7 +1494,7 @@ void RunFrontendStateMachine(void)
             unsigned char* q = (unsigned char*)g_game + 0x14b * (unsigned char)g_game->localPlayer + 0x1b84;
             *q = (g_game->flags_2b4c.b4 << 1) | (*q & 0xfd);
             if (g_game->flags_2b4c.b4) {
-                g_game->level->LoadMissionByName((int)((char*)g_game + 0x2ab1));
+                g_game->level->LoadMissionByName((char*)g_game + 0x2ab1);
                 for (int i = 0; i < 10; i++) {
                     if (g_game->players[i].active) {
                         char t = g_game->players[i].type;

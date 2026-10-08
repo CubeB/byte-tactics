@@ -90,12 +90,7 @@ public:
 #include "../sound/sound.h"
 
 // The mission or game-mode object at g_game+0x391e9.
-class Mission {
-public:
-    int GetGameType();
-    char* GetMissionName();
-    char* GetMissionName(int player);
-};
+#include "../map/mission.h"
 
 class CMemoryCache {
 public:
@@ -1258,7 +1253,7 @@ void __stdcall SortDisplayModes(List_0045e5e0* list);
 int __stdcall GetDisplayModes(List_0045e5e0* list);
 int FindHostSlot();
 char* __cdecl _itoa(int value, char* buf, int radix);
-char* __stdcall WordWrapText(Menu_004604a0* menu, char* text, int player);
+char* __stdcall WordWrapText(Menu_004604a0* menu, char* text, int width, int index);
 int __stdcall SetCursorMode(int value);
 void ApplyDifficultyButtons();
 char __stdcall FindGameCdDrive(int disc);
@@ -3105,8 +3100,8 @@ void OpenRestartDialog()
     int index = FindGadgetIndex(gadgets, "MISSIONNAME", 5);
     menu->field_14 = menu->field_c;
     char* text = WordWrapText((Menu_004604a0*)&g_game->gui,
-                              g_game->mode->GetMissionName(gadgets[index].width),
-                              -1);
+                              g_game->mode->GetMissionName(),
+                              gadgets[index].width, -1);
     menu->field_14 = menu->field_8;
     char* first = strtok(text, "\n");
     SetTranslatedTextByName((Menu_004604a0*)&g_game->gui, "MISSIONNAME", (int)first, 0x80);

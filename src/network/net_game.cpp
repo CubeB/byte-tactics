@@ -39,11 +39,7 @@ public:
 
 class PacketChannel;
 
-class Mission {
-public:
-    int GetGameType();
-    int GetMissionName();
-};
+#include "../map/mission.h"
 
 class PacketManager {
 public:
@@ -1172,7 +1168,7 @@ void __stdcall BuildGameInfo(char* name, int* d, int* c, int* b, int* a)
     memset(name, ' ', 0x20);
     name[0x1f] = 0;
     strncpy(name, g_game->gameName, 0x10);
-    int src = g_game->campaign->GetMissionName();
+    int src = (int)g_game->campaign->GetMissionName();
     strncpy(name + 0x10, (char*)src, 0xf);
     char* q = name;
     int n = 0x20;

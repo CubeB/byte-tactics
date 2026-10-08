@@ -169,18 +169,14 @@ struct Game {
     Mission* field_391e9;               // +0x391e9
 };
 
-class Entry_00487af0 {
+class MissionUnit {
 public:
     char* field_0;                     // +0x0
     char* field_4;                     // +0x4
     char unknown_8[0x24 - 8];
 };
 
-struct Mission {
-    char unknown_0[0xdac];
-    Entry_00487af0* list;              // +0xdac
-    int count;                         // +0xdb0
-};
+#include "../map/mission.h"
 
 struct Struct_00487af0 {
     char unknown_0[4];
@@ -550,14 +546,14 @@ int __stdcall FindMissionUnit(char* name, Struct_00487af0* param_2, int value)
 
     if (value) {
         while (*Elem_00487af0(param_2->field_4, i++) != value) {
-            if (i >= g_game->field_391e9->count)
+            if (i >= g_game->field_391e9->unitCount)
                 return 0;
         }
     }
-    if (i >= g_game->field_391e9->count)
+    if (i >= g_game->field_391e9->unitCount)
         return 0;
-    for (; i < g_game->field_391e9->count; i++) {
-        Entry_00487af0* e = &g_game->field_391e9->list[i];
+    for (; i < g_game->field_391e9->unitCount; i++) {
+        MissionUnit* e = &g_game->field_391e9->units[i];
         if (e->field_4 && _strcmpi(e->field_4, name) == 0 && param_2->field_4[i])
             return param_2->field_4[i];
         if (e->field_0 && _strcmpi(e->field_0, name) == 0 && param_2->field_4[i])

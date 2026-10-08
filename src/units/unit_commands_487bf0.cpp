@@ -285,7 +285,7 @@ struct UnitType_00488b10 {              // 0x249 bytes
     char unknown_220[0x249 - 0x220];
 };
 
-struct Entry_00488310 {               // 0x24 bytes
+struct MissionUnit {               // 0x24 bytes
     char* name;                       // +0x0
     char* unknown_4;                  // +0x4
     char* extra;                      // +0x8
@@ -297,12 +297,7 @@ struct Entry_00488310 {               // 0x24 bytes
     unsigned char flags;              // +0x23
 };
 
-class Mission {
-public:
-    char unknown_0[0xdac];
-    Entry_00488310* list;             // +0xdac
-    int count;                        // +0xdb0
-};
+#include "../map/mission.h"
 
 class MissionConditions {
 public:
@@ -384,10 +379,10 @@ void __cdecl CreateMissionUnits()
 {
     Player_00488310* p;
     char buf[100];
-    int n = g_game->net->count;        // only the constructor takes it; the
-    std::vector<Unit*> units(n);       // loops re-read net->count themselves
-    for (int i = 0; i < g_game->net->count; i++) {
-        Entry_00488310* e = &g_game->net->list[i];
+    int n = g_game->net->unitCount;        // only the constructor takes it; the
+    std::vector<Unit*> units(n);       // loops re-read net->unitCount themselves
+    for (int i = 0; i < g_game->net->unitCount; i++) {
+        MissionUnit* e = &g_game->net->units[i];
         UnitType_00488b10* item = FindUnitType(e->name);
         if (item == 0) {
             units[i] = 0;
@@ -411,12 +406,12 @@ void __cdecl CreateMissionUnits()
             units[i] = u;
         }
     }
-    for (int j = 0; j < g_game->net->count; j++) {
-        Entry_00488310* e = &g_game->net->list[j];
+    for (int j = 0; j < g_game->net->unitCount; j++) {
+        MissionUnit* e = &g_game->net->units[j];
         if (e->extra && units[j])
             RunInitialMission(units[j], e->extra, (Table_00487bf0*)&units);
     }
-    if (g_game->net->count <= 0)
+    if (g_game->net->unitCount <= 0)
         g_game->mission->Deactivate();
 }
 

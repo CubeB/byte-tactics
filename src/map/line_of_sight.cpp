@@ -283,11 +283,7 @@ union Slot {
     Point p;
 };
 
-// The object at g_game + 0x391e9 (a mission, 0xd44 bytes).
-struct Net {
-    char unknown_0[0xd44];
-    int field_d44;                     // +0xd44
-};
+class Mission;
 
 struct Flags_004848e0 {
     unsigned short damagebars : 1;
@@ -356,7 +352,7 @@ struct Game {
     char unknown_37f08[0x38a47 - 0x37f08];
     unsigned int ticks;                // +0x38a47
     char unknown_38a4b[0x391e9 - 0x38a4b];
-    Net* net;                          // +0x391e9
+    Mission* net;                      // +0x391e9
 };
 
 #pragma pack(pop)
@@ -409,10 +405,7 @@ public:
     void LoadLosTables();
 };
 
-class Mission {
-public:
-    int* GetNameSlot(int index);
-};
+#include "../map/mission.h"
 
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
@@ -990,7 +983,7 @@ void ClearBorderFeatures()
         }
     }
 
-    if (g_game->net->field_d44 != 0) {
+    if (g_game->net->lavaWorld != 0) {
         Cell* c = g_game->cells;
         Cell* end = c + g_game->width * g_game->height;
         while (c < end) {
@@ -1013,7 +1006,7 @@ void LoadTntMap()
     int* tnt;
 
     // REGION r1 begin
-    tnt = ((Mission*)*(void**)((char*)g_game + 0x391e9))->GetNameSlot(1);
+    tnt = (int*)((Mission*)*(void**)((char*)g_game + 0x391e9))->GetNameSlot(1);
     tnt = LoadFileWithProgress(tnt);
     info.version = *tnt;
     switch (info.version) {

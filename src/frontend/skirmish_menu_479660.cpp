@@ -129,7 +129,7 @@ struct Game {
 extern Game* g_game;
 
 int __stdcall FindGadgetIndex(Gadget* entries, const char* name, int flag);
-void __stdcall FUN_0049fa90(Menu* menu);
+void __stdcall MarkChanged(Menu* menu);
 
 // FUNCTION: 0x479660
 void RefreshAllyIcons(void)
@@ -166,7 +166,7 @@ void RefreshAllyIcons(void)
             }
         }
     }
-    FUN_0049fa90(&g_game->menu);
+    MarkChanged(&g_game->menu);
 }
 
 // Returns 1 when every active player (other than type 5) has the same type
@@ -192,8 +192,8 @@ int AreAllPlayersInOneAllyGroup(void)
 }
 #pragma auto_inline(on)
 
-void __stdcall FUN_004a0570(Menu* menu, char* name, int value);
-void __stdcall FUN_004a0bf0(Menu* menu, char* key, char* text, int flag);
+void __stdcall SetGadgetActiveByName(Menu* menu, char* name, int value);
+void __stdcall SetTranslatedTextByName(Menu* menu, char* key, char* text, int flag);
 char* __stdcall Translate(char* key);
 
 // Copies of the campaign_menu functions at 0x479500, 0x479590 and 0x4795e0:
@@ -268,51 +268,51 @@ void __stdcall CycleSlotController(int playerIndex)
     switch (g_game->table->players[playerIndex].active) {
     case 0:
         g_game->table->players[playerIndex].active = 2;
-        FUN_004a0bf0(&g_game->menu, buffer, Translate("Computer"), 0);
+        SetTranslatedTextByName(&g_game->menu, buffer, Translate("Computer"), 0);
         break;
     case 1:
         g_game->table->players[playerIndex].active = 0;
-        FUN_004a0bf0(&g_game->menu, buffer, Translate("Open"), 0);
+        SetTranslatedTextByName(&g_game->menu, buffer, Translate("Open"), 0);
         break;
     case 2:
         if (CountHumanSlots() == 0) {
             g_game->table->players[playerIndex].active = 1;
-            FUN_004a0bf0(&g_game->menu, buffer, Translate("Player"), 0);
+            SetTranslatedTextByName(&g_game->menu, buffer, Translate("Player"), 0);
         } else {
             g_game->table->players[playerIndex].active = 0;
-            FUN_004a0bf0(&g_game->menu, buffer, Translate("Open"), 0);
+            SetTranslatedTextByName(&g_game->menu, buffer, Translate("Open"), 0);
         }
         break;
     }
 
     if (g_game->table->players[playerIndex].active == 0) {
         wsprintfA(buffer, "Player%d", playerIndex);
-        FUN_004a0570(&g_game->menu, buffer, 1);
+        SetGadgetActiveByName(&g_game->menu, buffer, 1);
         wsprintfA(buffer, "Side%d", playerIndex);
-        FUN_004a0570(&g_game->menu, buffer, 0);
+        SetGadgetActiveByName(&g_game->menu, buffer, 0);
         wsprintfA(buffer, "Allies%d", playerIndex);
-        FUN_004a0570(&g_game->menu, buffer, 0);
+        SetGadgetActiveByName(&g_game->menu, buffer, 0);
         wsprintfA(buffer, "Metal%d", playerIndex);
-        FUN_004a0570(&g_game->menu, buffer, 0);
+        SetGadgetActiveByName(&g_game->menu, buffer, 0);
         wsprintfA(buffer, "Energy%d", playerIndex);
-        FUN_004a0570(&g_game->menu, buffer, 0);
+        SetGadgetActiveByName(&g_game->menu, buffer, 0);
         wsprintfA(buffer, "Color%d", playerIndex);
-        FUN_004a0570(&g_game->menu, buffer, 0);
+        SetGadgetActiveByName(&g_game->menu, buffer, 0);
     } else {
         if (IsColorTaken(g_game->table->players[playerIndex].color, playerIndex))
             NewColour(playerIndex);
         wsprintfA(buffer, "Player%d", playerIndex);
-        FUN_004a0570(&g_game->menu, buffer, 1);
+        SetGadgetActiveByName(&g_game->menu, buffer, 1);
         wsprintfA(buffer, "Side%d", playerIndex);
-        FUN_004a0570(&g_game->menu, buffer, 1);
+        SetGadgetActiveByName(&g_game->menu, buffer, 1);
         wsprintfA(buffer, "Allies%d", playerIndex);
-        FUN_004a0570(&g_game->menu, buffer, 1);
+        SetGadgetActiveByName(&g_game->menu, buffer, 1);
         wsprintfA(buffer, "Metal%d", playerIndex);
-        FUN_004a0570(&g_game->menu, buffer, 1);
+        SetGadgetActiveByName(&g_game->menu, buffer, 1);
         wsprintfA(buffer, "Energy%d", playerIndex);
-        FUN_004a0570(&g_game->menu, buffer, 1);
+        SetGadgetActiveByName(&g_game->menu, buffer, 1);
         wsprintfA(buffer, "Color%d", playerIndex);
-        FUN_004a0570(&g_game->menu, buffer, 1);
+        SetGadgetActiveByName(&g_game->menu, buffer, 1);
     }
     RefreshAllyIcons();
 }
@@ -509,24 +509,24 @@ void RefreshSkirmishSetup()
             int type = g_game->table->players[i].active;
             switch (type) {
             case 2:
-                FUN_004a0bf0(&g_game->menu, buf, Translate("Computer"), 0);
+                SetTranslatedTextByName(&g_game->menu, buf, Translate("Computer"), 0);
                 break;
             case 1:
-                FUN_004a0bf0(&g_game->menu, buf, Translate("Player"), 0);
+                SetTranslatedTextByName(&g_game->menu, buf, Translate("Player"), 0);
                 break;
             case 0:
-                FUN_004a0bf0(&g_game->menu, buf, "Open", 0);
-                FUN_004a0570(&g_game->menu, buf, 1);
+                SetTranslatedTextByName(&g_game->menu, buf, "Open", 0);
+                SetGadgetActiveByName(&g_game->menu, buf, 1);
                 wsprintfA(buf, "Side%d", i);
-                FUN_004a0570(&g_game->menu, buf, 0);
+                SetGadgetActiveByName(&g_game->menu, buf, 0);
                 wsprintfA(buf, "Allies%d", i);
-                FUN_004a0570(&g_game->menu, buf, 0);
+                SetGadgetActiveByName(&g_game->menu, buf, 0);
                 wsprintfA(buf, "Metal%d", i);
-                FUN_004a0570(&g_game->menu, buf, 0);
+                SetGadgetActiveByName(&g_game->menu, buf, 0);
                 wsprintfA(buf, "Energy%d", i);
-                FUN_004a0570(&g_game->menu, buf, 0);
+                SetGadgetActiveByName(&g_game->menu, buf, 0);
                 wsprintfA(buf, "Color%d", i);
-                FUN_004a0570(&g_game->menu, buf, 0);
+                SetGadgetActiveByName(&g_game->menu, buf, 0);
                 break;
             }
 
@@ -535,11 +535,11 @@ void RefreshSkirmishSetup()
 
             wsprintfA(buf, "Metal%d", i);
             _itoa(g_game->table->players[i].metal, num, 10);
-            FUN_004a0bf0(&g_game->menu, buf, num, 0);
+            SetTranslatedTextByName(&g_game->menu, buf, num, 0);
 
             wsprintfA(buf, "Energy%d", i);
             _itoa(g_game->table->players[i].energy, num, 10);
-            FUN_004a0bf0(&g_game->menu, buf, num, 0);
+            SetTranslatedTextByName(&g_game->menu, buf, num, 0);
 
             wsprintfA(buf, "Color%d", i);
             index = FindGadgetIndex(entries, buf, 6);
@@ -616,8 +616,8 @@ void RefreshSkirmishSetup()
         }
     }
 
-    FUN_004a0bf0(&g_game->menu, "MapName", g_game->table->mapName, 0);
-    FUN_0049fa90(&g_game->menu);
+    SetTranslatedTextByName(&g_game->menu, "MapName", g_game->table->mapName, 0);
+    MarkChanged(&g_game->menu);
 }
 
 // Searches the player table from index `start` for the first active player
@@ -774,9 +774,9 @@ Layer* __stdcall LoadGuiLayer(Menu* menu, const char* name, int flags);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void __stdcall SortFileList(char* items, int b, int c, int count);
-void __stdcall FUN_004a32a0(Menu* menu, char* name, char* items, int count, int flag);
-void __stdcall FUN_004a2e40(Menu* menu, char* name, int index);
-void __stdcall FUN_0049fb10(Menu* menu, int value);
+void __stdcall ConfigureListBoxByName(Menu* menu, char* name, char* items, int count, int flag);
+void __stdcall SetListBoxScrollByName(Menu* menu, char* name, int index);
+void __stdcall SetKeyboardInput(Menu* menu, int value);
 void __stdcall RenderLayer(Menu* menu, int value);
 void __stdcall SetCursorMode(int value);
 
@@ -800,12 +800,12 @@ void OpenSkirmishMapSelector()
     LoadPictureCached("DSELECTMAP2", 0, 0, 0);
     LoadMapList(&data->items, 0, 0);
     SortFileList(data->items, 0, 0, n);
-    FUN_004a32a0(&g_game->menu, "MAPNAMES", data->items, n, 0);
+    ConfigureListBoxByName(&g_game->menu, "MAPNAMES", data->items, n, 0);
     FindGadgetChecked(layer->entries, "MAPNAMES")->onSelect = UpdateSkirmishMapSelection;
 
     for (int i = 0; i < n; i++) {
         if (strcmp(g_game->table->mapName, SkipTextLines(data->items, i)) == 0) {
-            FUN_004a2e40(&g_game->menu, "MAPNAMES", i);
+            SetListBoxScrollByName(&g_game->menu, "MAPNAMES", i);
             break;
         }
     }
@@ -814,7 +814,7 @@ void OpenSkirmishMapSelector()
     if (g_game->mission->LoadMissionByName(SkipTextLines(g->items, g->selected)) != 0) {
         ShowSelectedMapInfo();
     }
-    FUN_0049fb10(&g_game->menu, 1);
+    SetKeyboardInput(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
     SetCursorMode(0x13);
 }
@@ -870,7 +870,7 @@ void __stdcall CyclePlayerColor(int param_1)
             gadget->field_c6 = (unsigned short)g_game->table->players[current].color;
         }
     }
-    FUN_0049fa90(&g_game->menu);
+    MarkChanged(&g_game->menu);
 }
 
 // Advances the current player's cyclic counter (0..5), then refreshes.
@@ -1069,7 +1069,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
                 *q = 0x1f4;
             wsprintfA(frame.sB, "Energy%d", player);
             _itoa(g_game->table->players[player].energy, frame.sA, 10);
-            FUN_004a0bf0(menu, frame.sB, frame.sA, 10);
+            SetTranslatedTextByName(menu, frame.sB, frame.sA, 10);
         }
         if (menu->holder->field_37 == 2) {
             PlaySoundByName("Skirmish", 0);
@@ -1079,7 +1079,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
             *p = max(*p + -0x1f4, 0xc8);
             wsprintfA(frame.sB, "Energy%d", player);
             _itoa(g_game->table->players[player].energy, frame.sA, 10);
-            FUN_004a0bf0(menu, frame.sB, frame.sA, 10);
+            SetTranslatedTextByName(menu, frame.sB, frame.sA, 10);
         }
     } else if (strcmp(frame.bf, "Metal") == 0) {
         if (menu->holder->field_37 == 1) {
@@ -1093,7 +1093,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
                 *q = 0x1f4;
             wsprintfA(frame.sA, "Metal%d", player);
             _itoa(g_game->table->players[player].metal, frame.sB, 10);
-            FUN_004a0bf0(menu, frame.sA, frame.sB, 10);
+            SetTranslatedTextByName(menu, frame.sA, frame.sB, 10);
         }
         if (menu->holder->field_37 == 2) {
             PlaySoundByName("Skirmish", 0);
@@ -1102,7 +1102,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
             *p = max(*p + -0x1f4, 0xc8);
             wsprintfA(frame.sA, "Metal%d", player);
             _itoa(g_game->table->players[player].metal, frame.sB, 10);
-            FUN_004a0bf0(menu, frame.sA, frame.sB, 10);
+            SetTranslatedTextByName(menu, frame.sA, frame.sB, 10);
         }
     } else if (IsCurrentGadgetNamed(menu, "CommanderDeath")) {
         PlaySoundByName("Skirmish", 0);
@@ -1203,7 +1203,7 @@ extern const char g_skirmishCheatSoundName[];
 
 void SaveNumSkirmishPlayers();
 void LoadSettings();
-void __stdcall FUN_004a7960(Cheat*, int);
+void __stdcall SelectAdjacentGadget(Cheat*, int);
 
 // FUNCTION: 0x47b9f0
 void __stdcall HandleSkirmishCheatText(Cheat* cheat)
@@ -1239,8 +1239,8 @@ void __stdcall HandleSkirmishCheatText(Cheat* cheat)
         cheat->text->target->field_b6 = g_game->table->field_220;
         RefreshSkirmishSetup();
         PlaySoundByName(g_skirmishCheatSoundName, 0);
-        FUN_004a7960(cheat, 1);
-        FUN_0049fa90(&g_game->menu);
+        SelectAdjacentGadget(cheat, 1);
+        MarkChanged(&g_game->menu);
     }
 }
 
@@ -1281,7 +1281,7 @@ void OpenSkirmishMenu(void)
         difficulty->field_137 = 2;
         SetGadgetStatusByName(&g_game->menu, g_hardGadgetName, 1);
     }
-    FUN_0049fa90(&g_game->menu);
+    MarkChanged(&g_game->menu);
 
     if (!g_game->mission->LoadMissionByName(g_game->table->mapName)) {
         g_game->mission->RefreshMapList(0);
@@ -1290,7 +1290,7 @@ void OpenSkirmishMenu(void)
 
     RefreshSkirmishSetup();
     g_game->menu.holder->textHandler = HandleSkirmishCheatText;
-    FUN_0049fb10(&g_game->menu, 1);
+    SetKeyboardInput(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
     SetCursorMode(0x13);
 }

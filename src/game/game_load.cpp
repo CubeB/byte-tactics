@@ -428,7 +428,7 @@ void __stdcall RenderLayer(Menu_00497ce0* menu, int value);
 void __stdcall FUN_0049fad0(Menu_00497ce0* menu);
 void __stdcall BlitMenuLayers(Menu_00497ce0* menu, int a, int b);
 void __stdcall FillRectangle(void* surface, void* rect, int color);
-void __stdcall FUN_004a50e0(void* surface, const char* text, int x, int y, int len, int flag);
+void __stdcall DrawTextClipped(void* surface, const char* text, int x, int y, int len, int flag);
 char* __stdcall Translate(char* s);
 
 void LoadThreadMain();
@@ -451,7 +451,7 @@ void __cdecl FUN_004d85a0(void*);
 void __stdcall BuildDataPath(void*, char*, char*, char*);
 void __stdcall SendProbe(unsigned int, int);
 void __stdcall DrawSyncStatus(void*);
-void __stdcall FUN_0049fa70(void*);
+void __stdcall DisableKeyCommands(void*);
 int __stdcall GetTextPixelWidth(char*);
 void __stdcall CloseTopScreen(void*);
 void __stdcall SetCursorAnimation(void*, void*);
@@ -848,7 +848,7 @@ void __stdcall DrawSyncStatus(void* surface)
                 int pc = q->percent;
                 r.x2 = r.x1 + (pc * (slot - 2)) / 100;
                 FillRectangle(surface, &r, g_game->color2);
-                FUN_004a50e0(surface, q->name, r.x1, 420, slot - 2, 0);
+                DrawTextClipped(surface, q->name, r.x1, 420, slot - 2, 0);
                 x += slot;
             }
         }
@@ -864,7 +864,7 @@ void __stdcall DrawSyncStatus(void* surface)
         text = buf;
     }
 
-    FUN_004a50e0(surface, text, 10, 400, -1, 0);
+    DrawTextClipped(surface, text, 10, 400, -1, 0);
 }
 // The loading-screen frame: on the first call it starts the loader thread
 // (LoadThreadMain), once the loader sets the "loaded" bit it restores the game
@@ -891,7 +891,7 @@ void LoadingScreenFrame(void)
         while (g_game->field_531 != 0) {
             CloseTopScreen(&g_game->field_519);
         }
-        FUN_0049fa70(&g_game->field_519);
+        DisableKeyCommands(&g_game->field_519);
         if (g_game->field_2cbe != 0x14) {
             g_game->field_2cbe = 0x14;
             SetCursorAnimation(&g_game->field_519, (void*)g_game->field_148cf);
@@ -1041,7 +1041,7 @@ void LoadingScreenFrame(void)
             textWidth = GetTextPixelWidth(buf);
             {
                 int x = gadget.width / 2 - textWidth / 2;
-                FUN_004a50e0(&gadget, buf, x,
+                DrawTextClipped(&gadget, buf, x,
                              (int)((double)gadget.height - (double)GetFontHeight() * 1.5), -1, 0);
             }
         }
@@ -1057,7 +1057,7 @@ void LoadingScreenFrame(void)
             }
             flash = ((unsigned char*)&g_loadingBarFlashAlpha)[0];
             g_loadingBarPrevPercent = g_game->progress[0];
-            FUN_004a50e0(&gadget, (char*)Translate("Textures"), 0x5a, 0x87, -1, flash);
+            DrawTextClipped(&gadget, (char*)Translate("Textures"), 0x5a, 0x87, -1, flash);
             // Each bar's rect is written left, right, top, bottom.
             rect[0] = 0xcd;
             rect[2] = ((int)g_game->progress[0] * 7) / 2 + 0xcd;
@@ -1072,7 +1072,7 @@ void LoadingScreenFrame(void)
             }
             flash = ((unsigned char*)&g_loadingBarFlashAlpha)[1];
             DAT_0051e821 = g_game->progress[1];
-            FUN_004a50e0(&gadget, (char*)Translate("Terrain"), 0x5a, 0xb1, -1, flash);
+            DrawTextClipped(&gadget, (char*)Translate("Terrain"), 0x5a, 0xb1, -1, flash);
             rect[0] = 0xcd;
             rect[2] = ((int)g_game->progress[1] * 7) / 2 + 0xcd;
             rect[1] = 0xb1;
@@ -1086,7 +1086,7 @@ void LoadingScreenFrame(void)
             }
             flash = ((unsigned char*)&g_loadingBarFlashAlpha)[2];
             DAT_0051e822 = g_game->progress[2];
-            FUN_004a50e0(&gadget, (char*)Translate("Units"), 0x5a, 0xda, -1, flash);
+            DrawTextClipped(&gadget, (char*)Translate("Units"), 0x5a, 0xda, -1, flash);
             rect[0] = 0xcd;
             rect[2] = ((int)g_game->progress[2] * 7) / 2 + 0xcd;
             rect[1] = 0xda;
@@ -1100,7 +1100,7 @@ void LoadingScreenFrame(void)
             }
             flash = ((unsigned char*)&g_loadingBarFlashAlpha)[3];
             DAT_0051e823 = g_game->progress[3];
-            FUN_004a50e0(&gadget, (char*)Translate("Animation"), 0x5a, 0x106, -1, flash);
+            DrawTextClipped(&gadget, (char*)Translate("Animation"), 0x5a, 0x106, -1, flash);
             rect[0] = 0xcd;
             rect[2] = ((int)g_game->progress[3] * 7) / 2 + 0xcd;
             rect[1] = 0x106;
@@ -1114,7 +1114,7 @@ void LoadingScreenFrame(void)
             }
             flash = ((unsigned char*)&DAT_0051e6cc)[0];
             DAT_0051e824 = g_game->progress[4];
-            FUN_004a50e0(&gadget, (char*)Translate("3D Data"), 0x5a, 0x130, -1, flash);
+            DrawTextClipped(&gadget, (char*)Translate("3D Data"), 0x5a, 0x130, -1, flash);
             rect[0] = 0xcd;
             rect[2] = ((int)g_game->progress[4] * 7) / 2 + 0xcd;
             rect[1] = 0x130;
@@ -1130,7 +1130,7 @@ void LoadingScreenFrame(void)
             }
             flash = ((unsigned char*)&DAT_0051e6cc)[1];
             DAT_0051e825 = g_game->progress[5];
-            FUN_004a50e0(&gadget, (char*)Translate("Explosions"), 0x5a, 0x15b, -1, flash);
+            DrawTextClipped(&gadget, (char*)Translate("Explosions"), 0x5a, 0x15b, -1, flash);
             rect[0] = 0xcd;
             rect[2] = ((int)g_game->progress[5] * 7) / 2 + 0xcd;
             rect[1] = 0x15b;

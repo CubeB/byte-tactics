@@ -318,7 +318,7 @@ void __cdecl LeaveNetGameCallback(int param);
 void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
 void MenuFrame();
 void EnterMainMenuState();
-void __stdcall FUN_0049fa50(Sub_00496b10* p);
+void __stdcall EnableKeyCommands(Sub_00496b10* p);
 void RefreshUnitInfo();
 void RunFrontendStateMachine();
 void HideSoftwareCursor();
@@ -453,7 +453,7 @@ void ReturnToMainMenuFrame()
     g_game->flag4_3923b = 0;
     g_game->flag2_3923b = 0;
     ClearKeyQueue();
-    FUN_0049fa50(&g_game->sub);
+    EnableKeyCommands(&g_game->sub);
     g_game->mode = 2;
     g_game->handler = MenuFrame;
     SetCloseHandler(LeaveNetGameCallback, 0);

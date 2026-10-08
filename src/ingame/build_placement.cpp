@@ -156,7 +156,7 @@ void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall ClickSelectHoverUnit(View* arg);
 void __stdcall IssueOrderToSelection(void* a, unsigned char b, Class_00438760 kind, Vec3* d, int e, int f);
 int __stdcall FindGadgetIndexBySubstring(int value, char* name);
-void __stdcall FUN_004a6a40(void* obj, int index);
+void __stdcall ClearGroupStatus(void* obj, int index);
 void __stdcall CloseTopScreen(void* a);
 void __stdcall SetCursorAnimation(void* a, void* b);
 void __stdcall SetCloseHandler(void* a, int b);
@@ -185,7 +185,7 @@ void __stdcall HandleLeftClick(View* param_1)
             g_game->flags_2cc6 &= 0xdf;
             index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
             if (index != -1) {
-                FUN_004a6a40(g_game->field_519, index);
+                ClearGroupStatus(g_game->field_519, index);
             }
         } else {
             PlaySoundByName("notoktobuild", 0);
@@ -216,7 +216,7 @@ void __stdcall HandleLeftClick(View* param_1)
     g_game->flags_2cc6 &= 0xdf;
     index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
     if (index != -1) {
-        FUN_004a6a40(g_game->field_519, index);
+        ClearGroupStatus(g_game->field_519, index);
     }
 }
 
@@ -233,7 +233,7 @@ void __stdcall HandleRightClick(View* param_1)
         g_game->flags_2cc6 &= 0xdf;
         int index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
         if (index != -1) {
-            FUN_004a6a40(g_game->field_519, index);
+            ClearGroupStatus(g_game->field_519, index);
         }
         return;
     }
@@ -298,7 +298,7 @@ void BattleFrame(void)
             g_game->flags_2cc6 &= 0xdf;
             int index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
             if (index != -1) {
-                FUN_004a6a40(g_game->field_519, index);
+                ClearGroupStatus(g_game->field_519, index);
             }
         }
     }

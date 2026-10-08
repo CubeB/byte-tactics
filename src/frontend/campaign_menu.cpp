@@ -254,8 +254,8 @@ void __stdcall FillMissionList();
 char* __stdcall Translate(const char* text);
 void __stdcall AddTextGadget(Layer* dialog, const char* name, char* text, int x, int y,
                             int w, int flags);
-void __stdcall FUN_004a0bf0(Menu* menu, const char* name, char* text, int value);
-void __stdcall FUN_004a0c70(Menu* menu, const char* name, int value);
+void __stdcall SetTranslatedTextByName(Menu* menu, const char* name, char* text, int value);
+void __stdcall SetGadgetColorByName(Menu* menu, const char* name, int value);
 void __stdcall AddBlinkWord(Menu* menu, char* text, int x, int y, int count,
                             int colour, float a, float b);
 void __stdcall ClearBlinkWords(Menu* menu);
@@ -279,13 +279,13 @@ int __stdcall StepGafSequence(Anim_00478b40* anim);
 int __stdcall GetButtonStageByName(Menu* menu, char* name);
 int __stdcall SetButtonStageByName(Menu* menu, char* name, char value);
 void __stdcall AllocBlinkWords(Menu* menu, int param_2);
-void __stdcall FUN_004a0570(Menu* menu, const char* name, int value);
-void __stdcall FUN_004a1530(Menu* menu, const char* name, char value);
-void __stdcall FUN_004a2be0(Menu* menu, int index);
-void __stdcall FUN_004a32a0(Menu* menu, const char* name, void* data, int count, int flag);
-void __stdcall FUN_0049fa90(Menu* menu);
+void __stdcall SetGadgetActiveByName(Menu* menu, const char* name, int value);
+void __stdcall SetQuickKeyByName(Menu* menu, const char* name, char value);
+void __stdcall SyncAssocGadgets(Menu* menu, int index);
+void __stdcall ConfigureListBoxByName(Menu* menu, const char* name, void* data, int count, int flag);
+void __stdcall MarkChanged(Menu* menu);
 void __stdcall FUN_0049fad0(Menu* menu);
-void __stdcall FUN_0049fb10(Menu* menu, int value);
+void __stdcall SetKeyboardInput(Menu* menu, int value);
 void __stdcall RenderLayer(Menu* menu, int value);
 Layer* __stdcall LoadGuiLayer(Menu* menu, const char* name, int flags);
 void __stdcall SelectGadgetByName(Menu* menu, const char* name);
@@ -628,14 +628,14 @@ void DrawHelpPage()
 
     if (nextPage == 0) {
         if (g_briefingPageIndex == 0)
-            FUN_004a0bf0(&g_game->menu, "MOREBAR", DAT_005119b8, 0);
+            SetTranslatedTextByName(&g_game->menu, "MOREBAR", DAT_005119b8, 0);
         else
-            FUN_004a0bf0(&g_game->menu, "MOREBAR",
+            SetTranslatedTextByName(&g_game->menu, "MOREBAR",
                          Translate("BACK TO START"), 0);
     } else {
-        FUN_004a0bf0(&g_game->menu, "MOREBAR", Translate("MORE..."), 0);
+        SetTranslatedTextByName(&g_game->menu, "MOREBAR", Translate("MORE..."), 0);
     }
-    FUN_004a0c70(&g_game->menu, "MOREBAR",
+    SetGadgetColorByName(&g_game->menu, "MOREBAR",
                  g_briefingTextColors[g_game->flag_37ef2 * 4 + 1]);
 
     char buf[0x80];
@@ -734,7 +734,7 @@ void ApplyDifficultyButtons()
         gadget->value = 2;
         SetGadgetStatusByName(&g_game->menu, "Hard", 1);
     }
-    FUN_0049fa90(&g_game->menu);
+    MarkChanged(&g_game->menu);
 }
 
 // FUNCTION: 0x4774d0
@@ -751,14 +751,14 @@ void __stdcall ToggleAnyMission(Object_00477510* obj)
 {
     if (strncmp(obj->info->name, "DRDEATH", 7) == 0) {
         if (!(g_game->flags_38d7f & 1)) {
-            FUN_004a0570(&g_game->menu, "AnyMsn", 1);
+            SetGadgetActiveByName(&g_game->menu, "AnyMsn", 1);
             g_game->flags_38d7f |= 1;
         } else {
-            FUN_004a0570(&g_game->menu, "AnyMsn", 0);
+            SetGadgetActiveByName(&g_game->menu, "AnyMsn", 0);
             g_game->flags_38d7f &= ~1;
         }
         SaveAllMissionsSetting();
-        FUN_0049fa90(&g_game->menu);
+        MarkChanged(&g_game->menu);
     }
 }
 
@@ -846,15 +846,15 @@ void OpenSingleMenu()
     }
     SetMissionType(1);
     if (g_game->flags_38d7f & 1) {
-        FUN_004a0570(&g_game->menu, "AnyMsn", 1);
+        SetGadgetActiveByName(&g_game->menu, "AnyMsn", 1);
         // Original oddity, kept: the test guards an |= of the same bit.
         g_game->flags_38d7f |= 1;
     }
     g_game->menu.layer->field_3b = ToggleAnyMission;
     if (GetPreferredLanguage() && _strcmpi((char*)GetPreferredLanguage(), "spanish") == 0) {
-        FUN_004a1530(&g_game->menu, "Skirmish", 0x73);
+        SetQuickKeyByName(&g_game->menu, "Skirmish", 0x73);
     }
-    FUN_0049fb10(&g_game->menu, 1);
+    SetKeyboardInput(&g_game->menu, 1);
     SetCursorMode(0x13);
     RenderLayer(&g_game->menu, 0x40);
 }
@@ -869,12 +869,12 @@ void __stdcall FillCampaignList(char* param_1)
     }
     PlaySoundByName("smlbutton", 0);
     int count = BuildCampaignNameList(&g_campaignNameList, (int)param_1);
-    FUN_004a32a0(&g_game->menu, "Campaign",
+    ConfigureListBoxByName(&g_game->menu, "Campaign",
                  g_campaignNameList, count, 0);
     int index = FindGadgetIndex(layer->entries,
                              "Campaign", 2);
-    FUN_004a2be0(&g_game->menu, index);
-    FUN_0049fa90(&g_game->menu);
+    SyncAssocGadgets(&g_game->menu, index);
+    MarkChanged(&g_game->menu);
 }
 
 // FUNCTION: 0x4779e0
@@ -889,10 +889,10 @@ void __stdcall FillMissionList(Menu* menu, int unused)
         FindGadgetChecked(g_game->menu.layer->entries, "Campaign");
     g_game->net->LoadCampaign(SkipTextLines(layout->text, layout->selected));
     int count = g_game->net->BuildMissionList((int*)&g_missionNameList);
-    FUN_004a32a0(menu, "Missions", g_missionNameList, count, 0);
-    FUN_004a2be0(&g_game->menu,
+    ConfigureListBoxByName(menu, "Missions", g_missionNameList, count, 0);
+    SyncAssocGadgets(&g_game->menu,
                  FindGadgetIndex(layer->entries, "Missions", 2));
-    FUN_0049fa90(&g_game->menu);
+    MarkChanged(&g_game->menu);
 }
 
 // Inlined copies of FillCampaignList (0x477940) and FillMissionList (0x4779e0):
@@ -907,10 +907,10 @@ static inline void FillCampaignListInline(int side)
     }
     PlaySoundByName("smlbutton", 0);
     int count = BuildCampaignNameList(&g_campaignNameList, side);
-    FUN_004a32a0(&g_game->menu, "Campaign", g_campaignNameList, count, 0);
+    ConfigureListBoxByName(&g_game->menu, "Campaign", g_campaignNameList, count, 0);
     int index = FindGadgetIndex(layer->entries, "Campaign", 2);
-    FUN_004a2be0(&g_game->menu, index);
-    FUN_0049fa90(&g_game->menu);
+    SyncAssocGadgets(&g_game->menu, index);
+    MarkChanged(&g_game->menu);
 }
 
 static inline void FillMissionListInline(Menu* menu, Entry* unused)
@@ -925,10 +925,10 @@ static inline void FillMissionListInline(Menu* menu, Entry* unused)
     g_game->net->LoadCampaign(
         SkipTextLines(layout->text, layout->selected));
     int count = g_game->net->BuildMissionList((int*)&g_missionNameList);
-    FUN_004a32a0(menu, "Missions", g_missionNameList, count, 0);
-    FUN_004a2be0(&g_game->menu,
+    ConfigureListBoxByName(menu, "Missions", g_missionNameList, count, 0);
+    SyncAssocGadgets(&g_game->menu,
                  FindGadgetIndex(layer->entries, "Missions", 2));
-    FUN_0049fa90(&g_game->menu);
+    MarkChanged(&g_game->menu);
 }
 
 // FUNCTION: 0x477ab0
@@ -1043,7 +1043,7 @@ ArmSide:
         *(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95) = 0;
         *(unsigned char*)(*(int*)(playerInfo + 0x1cd5) + 0x95) = 1;
         FillCampaignListInline(*(unsigned char*)(*(int*)((char*)g_game + 0x14b * g_game->localPlayer + 0x1b8a) + 0x95));
-        FUN_004a0570(menu, "Campaign", g_campaignSimplifiedLayout == 0);
+        SetGadgetActiveByName(menu, "Campaign", g_campaignSimplifiedLayout == 0);
         if (g_anyMissionMode != 0)
             FillMissionListInline(&g_game->menu, FindGadgetChecked(entries, "Campaign"));
 
@@ -1136,11 +1136,11 @@ void __stdcall OpenNewGameMenu(int param_1)
         SetGadgetStatusByName(&g_game->menu, "Hard", 1);
     }
 
-    FUN_0049fa90(&g_game->menu);
+    MarkChanged(&g_game->menu);
 
     if (g_campaignSimplifiedLayout == 0 || param_1 != 0) {
-        FUN_004a0570(&g_game->menu, "Campaign", 1);
-        FUN_004a0570(&g_game->menu, "CampaignKnob", 1);
+        SetGadgetActiveByName(&g_game->menu, "Campaign", 1);
+        SetGadgetActiveByName(&g_game->menu, "CampaignKnob", 1);
         Entry* c = FindGadgetChecked(entries, "Campaign");
         // Original bug, kept: c is dereferenced on both branches even if null.
         if (c != 0 && g_anyMissionMode != 0)
@@ -1156,14 +1156,14 @@ void __stdcall OpenNewGameMenu(int param_1)
         }
         PlaySoundByName("smlbutton", 0);
         int count = BuildCampaignNameList(&g_campaignNameList, side);
-        FUN_004a32a0(&g_game->menu, "Campaign", g_campaignNameList, count, 0);
+        ConfigureListBoxByName(&g_game->menu, "Campaign", g_campaignNameList, count, 0);
         int ci = FindGadgetIndex(cur->entries, "Campaign", 2);
-        FUN_004a2be0(&g_game->menu, ci);
-        FUN_0049fa90(&g_game->menu);
+        SyncAssocGadgets(&g_game->menu, ci);
+        MarkChanged(&g_game->menu);
 
         if (param_1 != 0) {
-            FUN_004a0570(&g_game->menu, "Missions", 1);
-            FUN_004a0570(&g_game->menu, "MissionsKnob", 1);
+            SetGadgetActiveByName(&g_game->menu, "Missions", 1);
+            SetGadgetActiveByName(&g_game->menu, "MissionsKnob", 1);
             FindGadgetChecked(entries, "Missions");
 
             Menu* menu = &g_game->menu;
@@ -1178,10 +1178,10 @@ void __stdcall OpenNewGameMenu(int param_1)
             g_game->net->LoadCampaign(text);
             int mc = g_game->net->BuildMissionList(
                 (int*)&g_missionNameList);
-            FUN_004a32a0(menu, "Missions", g_missionNameList, mc, 0);
+            ConfigureListBoxByName(menu, "Missions", g_missionNameList, mc, 0);
             int mi = FindGadgetIndex(mlayer->entries, "Missions", 2);
-            FUN_004a2be0(&g_game->menu, mi);
-            FUN_0049fa90(&g_game->menu);
+            SyncAssocGadgets(&g_game->menu, mi);
+            MarkChanged(&g_game->menu);
         }
     }
 
@@ -1192,7 +1192,7 @@ void __stdcall OpenNewGameMenu(int param_1)
     else
         SelectGadgetByName(&g_game->menu, "Campaign");
 
-    FUN_0049fb10(&g_game->menu, 1);
+    SetKeyboardInput(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
     SetCursorMode(0x13);
 }
@@ -1295,7 +1295,7 @@ void __stdcall UpdateSolarSystem(Menu* arg1, Entry* arg2)
         pf->xoffset = 0;
         DrawFrame(surface, pf, 0, 0);
     } else {
-        FUN_0049fa90(arg1);
+        MarkChanged(arg1);
     }
 }
 
@@ -1308,7 +1308,7 @@ void __stdcall UpdatePlanet(Menu* arg1, Entry* arg2)
         if (g_game->input->IsStreamActive() == 0) {
             if (GetButtonStageByName(arg1, "SHUTUP")) {
                 SetButtonStageByName(arg1, "SHUTUP", 0);
-                FUN_0049fa90(arg1);
+                MarkChanged(arg1);
             }
         }
         if (arg2->field_be != 0) {
@@ -1341,7 +1341,7 @@ void __stdcall UpdatePlanet(Menu* arg1, Entry* arg2)
             FillRectangle(surface, &rect, colour);
             DrawFrame(surface, frame, px, py);
         } else {
-            FUN_0049fa90(arg1);
+            MarkChanged(arg1);
         }
     }
 }
@@ -1397,7 +1397,7 @@ void __stdcall HandleMissionBriefingClick(Menu* menu)
         if (g_briefingWrappedText) {
             PlaySoundByName("More", 0);
             DrawHelpPage();
-            FUN_0049fa90(menu);
+            MarkChanged(menu);
         }
     }
     ClearSelectedGadget(menu);
@@ -1436,7 +1436,7 @@ void OpenMissionBriefing(void)
     i = FindGadgetIndex(gadgets, "TextRegion", 0xe);
     gadgets[i].flags &= ~0x10;
 
-    FUN_004a0570(&g_game->menu, "SOLARSYSTEM", 0);
+    SetGadgetActiveByName(&g_game->menu, "SOLARSYSTEM", 0);
     SetButtonStageByName(&g_game->menu, "SHUTUP", 1);
 
     g_briefingWindSpeed = g_game->net->field_d34 +
@@ -1545,10 +1545,10 @@ void OpenMissionBriefing(void)
         }
     }
 
-    FUN_004a0570(&g_game->menu, "SOLARSYSTEM", 0);
+    SetGadgetActiveByName(&g_game->menu, "SOLARSYSTEM", 0);
     AllocBlinkWords(&g_game->menu, 0xf);
     InitBriefingText();
-    FUN_0049fb10(&g_game->menu, 1);
+    SetKeyboardInput(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0xc0);
     SetCursorMode(0x13);
 }

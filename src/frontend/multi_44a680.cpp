@@ -109,19 +109,19 @@ void ShowSelectedMapInfo();
 void __stdcall UpdateMaxUnitsText(Gui_0044a680* gui, int index);
 void __stdcall UpdateMetalText(Gui_0044a680* gui, int index);
 void __stdcall PlaySoundByName(char* name, int param);
-void __stdcall FUN_0049fa90(Gui_0044a680* gui);
+void __stdcall MarkChanged(Gui_0044a680* gui);
 void __stdcall FUN_0049fad0(Gui_0044a680* gui);
 int __stdcall FindGadgetIndex(Gadget_0044a680* entries, char* name, int type);
-void __stdcall FUN_004a0570(Gui_0044a680* gui, char* name, int param);
-void __stdcall FUN_004a0bf0(Gui_0044a680* gui, char* name, char* text, int param);
-void __stdcall FUN_004a1250(Gui_0044a680* gui, char* name, int param);
+void __stdcall SetGadgetActiveByName(Gui_0044a680* gui, char* name, int param);
+void __stdcall SetTranslatedTextByName(Gui_0044a680* gui, char* name, char* text, int param);
+void __stdcall SetGrayedOutByName(Gui_0044a680* gui, char* name, int param);
 Gadget_0044a680* __stdcall FUN_004a0200(Gadget_0044a680* entries, char* name);
 Gadget_0044a680* __stdcall FUN_004a0280(Gadget_0044a680* entries, char* name);
-void __stdcall FUN_004a15c0(Gadget_0044a680* entries, int widget, RECT* rect);
+void __stdcall GetGadgetRectByIndex(Gadget_0044a680* entries, int widget, RECT* rect);
 int __stdcall GetTextPixelWidth(char* text);
 int __stdcall GetFontLineHeight();
-void __stdcall FUN_004a50e0(int a, char* text, int x, int y, int w, int h);
-void __stdcall FUN_004a5d30(Gui_0044a680* gui, int flag);
+void __stdcall DrawTextClipped(int a, char* text, int x, int y, int w, int h);
+void __stdcall SetCurrentFont(Gui_0044a680* gui, int flag);
 void __stdcall CloseTopScreen(void* gui);
 int __stdcall IsScreenNamed(Gui_0044a680* gui, char* name);
 void __stdcall SetSliderFromValue(Gadget_0044a680* gadget, int value);
@@ -223,7 +223,7 @@ void __stdcall UpdateEnergyText(Gui_0044a680* gui, int unused)
         PlayerInfo_0044a680* info;
 
         _itoa(shown, text, 10);
-        FUN_004a0bf0(gui, "ENERGYTEXT", text, 0);
+        SetTranslatedTextByName(gui, "ENERGYTEXT", text, 0);
         info = g_game->players[g_game->localPlayer].info;
         info->energy = (unsigned short)(shown / 100);
         if (info->flags & 1) {
@@ -308,12 +308,12 @@ void UpdateBattleRoom()
                 int ready = AreAllPlayersReady();
                 Gadget_0044a680* start;
 
-                FUN_004a1250(&g_game->gui, "SYNCHING", 1);
+                SetGrayedOutByName(&g_game->gui, "SYNCHING", 1);
                 start = FUN_004a0280(g_game->gui.table->entries, "battlestart");
                 if (start->frame > 0 && g_startCountdownNextTick < GetTicks()) {
                     if (start->frame < 8) {
                         start->frame++;
-                        FUN_0049fa90(&g_game->gui);
+                        MarkChanged(&g_game->gui);
                         g_game->dirty = 1;
                     }
                     g_startCountdownNextTick += 4;
@@ -335,21 +335,21 @@ void UpdateBattleRoom()
                         unsigned int colour = GetTicks() & 0x1f;
                         if (colour != entries[idx].colour) {
                             entries[idx].colour = colour;
-                            FUN_0049fa90(&g_game->gui);
+                            MarkChanged(&g_game->gui);
                         }
                     }
                 }
-                FUN_004a1250(&g_game->gui, "START", ready == 0);
-                FUN_004a0570(&g_game->gui, "START", synched);
-                FUN_004a0570(&g_game->gui, "SYNCHING", synched == 0);
+                SetGrayedOutByName(&g_game->gui, "START", ready == 0);
+                SetGadgetActiveByName(&g_game->gui, "START", synched);
+                SetGadgetActiveByName(&g_game->gui, "SYNCHING", synched == 0);
             }
             RefreshBattleRoomRows();
-            FUN_0049fa90(&g_game->gui);
+            MarkChanged(&g_game->gui);
         }
     }
 
     if (IsScreenNamed(&g_game->gui, "LOUNGE2.GUI") != 0) {
-        FUN_004a5d30(&g_game->gui, 1);
+        SetCurrentFont(&g_game->gui, 1);
         {
             // unsigned char counter (a short works too), not int.
             for (unsigned char i = 0; i < 10; i++) {
@@ -363,19 +363,19 @@ void UpdateBattleRoom()
                     int h;
                     sprintf(buf, "LOGO%i", i);
                     widget = FindGadgetIndex(entries, buf, 0xe);
-                    FUN_004a15c0(entries, widget, &rect);
+                    GetGadgetRectByIndex(entries, widget, &rect);
                     info = p->info;
                     sprintf(buf, "%i.%i", info->versionMajor, info->versionMinor);
                     w = GetTextPixelWidth(buf);
                     h = GetFontLineHeight();
-                    FUN_004a50e0(0, buf,
+                    DrawTextClipped(0, buf,
                                  (rect.left + rect.right - w) / 2,
                                  (rect.top + rect.bottom - h) / 2,
                                  w, 0);
                 }
             }
         }
-        FUN_004a5d30(&g_game->gui, 0);
+        SetCurrentFont(&g_game->gui, 0);
     }
 
     ((UnitSync*)g_game->net)->ProcessSync();

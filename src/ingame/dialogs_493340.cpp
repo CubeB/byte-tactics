@@ -310,12 +310,12 @@ extern PacketManager g_packetManager;
 
 Gadget* __stdcall FUN_004a0200(Gadget* entries, char* name);
 int __stdcall ReadSliderValue(Gadget* entry);
-void __stdcall FUN_004a0bf0(Menu* menu, char* name, char* text, int param_4);
+void __stdcall SetTranslatedTextByName(Menu* menu, char* name, char* text, int param_4);
 void __stdcall PlaySoundByName(char* name, int flag);
 Gadget* __stdcall FindGadgetChecked(Gadget* entries, char* name);
 int __stdcall IsCurrentGadgetNamed(Menu* menu, char* name);
 void __cdecl FUN_004d85a0(void* p);
-void __stdcall FUN_0049fa90(Menu* menu);
+void __stdcall MarkChanged(Menu* menu);
 void __stdcall ClearSelectedGadget(Menu* menu);
 void __stdcall TransferEnergy(unsigned char from, unsigned char to, float amount, int flag);
 void __stdcall TransferMetal(unsigned char from, unsigned char to, float amount, int flag);
@@ -332,10 +332,10 @@ int __stdcall FindGadgetIndex(Gadget* entries, char* name, int type);
 void __stdcall SetSliderFromValue(Gadget* entry, int param_2);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __stdcall CloseTopScreen(Menu* menu);
-void __stdcall FUN_004a32a0(Menu* menu, char* name, char* text, int count, int flag);
-void __stdcall FUN_0049fb10(Menu* menu, int value);
+void __stdcall ConfigureListBoxByName(Menu* menu, char* name, char* text, int count, int flag);
+void __stdcall SetKeyboardInput(Menu* menu, int value);
 void __stdcall RenderLayer(Menu* menu, int value);
-void __stdcall FUN_004a0570(Menu* menu, char* name, int value);
+void __stdcall SetGadgetActiveByName(Menu* menu, char* name, int value);
 void __stdcall SetButtonStageByName(Menu* menu, char* name, int value);
 int __stdcall GetButtonStage(Menu* menu, int index);
 Gadget* __stdcall FUN_004a0010(Gadget* entries, char* name);
@@ -343,7 +343,7 @@ void __stdcall GetGadgetText(Menu* menu, char* name, char* text);
 void ResetPlayerGadgets();
 void OpenTalkDialog();
 int __stdcall ExecuteCommandLine(char* cmd, int flags);
-void __stdcall FUN_0049fc50(Menu* menu, int index);
+void __stdcall TrySetFocus(Menu* menu, int index);
 void __stdcall SendChatMessage(Player* from, char* text, int param_3, char* to);
 void __stdcall HandleTalkDialogEvent(Menu* gadget);
 void __stdcall RefreshAlliesScreen(int value);
@@ -360,7 +360,7 @@ char* __stdcall Translate(char* text);
 void __stdcall AddTextGadget(Layer* obj, char* name, char* text, int x, short y, int w, int flags);
 int __stdcall IsUnitVisibleToPlayer(Player* player, Unit* unit);
 unsigned short __stdcall FindUnitTypeId(char* name);
-void __stdcall FUN_0049fa70(Menu* menu);
+void __stdcall DisableKeyCommands(Menu* menu);
 void OpenInGameOptions();
 void OpenShareDialog();
 void OpenControlDialog();
@@ -370,7 +370,7 @@ unsigned int GetTicks();
 int GetScreenWidth();
 int __stdcall IsKeyDown(int key);
 void __stdcall FadeRectangle(void* surface, Rect* rect, int level);
-void __stdcall FUN_004a50e0(void* surface, char* text, int x, int y, int maxw, int style);
+void __stdcall DrawTextClipped(void* surface, char* text, int x, int y, int maxw, int style);
 int __stdcall GetTextPixelWidth(char* text);
 void* __stdcall GetGafFrame(void* glyphs, int c);
 void __stdcall DrawFrameQuad(void* surface, void* pic, Quad* dst, Quad* src);
@@ -379,7 +379,7 @@ int __stdcall IsScreenNamed(Menu* menu, const char* name);
 void HideSoftwareCursor();
 void __stdcall HandleTabMenuEvent(Menu* gadget);
 int IsHostLocal();
-void __stdcall FUN_0049fa50(Menu* menu);
+void __stdcall EnableKeyCommands(Menu* menu);
 void ShowSoftwareCursor();
 void HandleNetPackets(void);
 void UpdateAllUnits(void);
@@ -408,7 +408,7 @@ void __stdcall UpdateMetalReadout(Menu* obj, int unused)
     Gadget* value = FUN_004a0200(obj->layer->entries, "METAL");
     if (value != 0) {
         sprintf(buf, "%d", ReadSliderValue(value));
-        FUN_004a0bf0(obj, "METAL#", buf, 0);
+        SetTranslatedTextByName(obj, "METAL#", buf, 0);
     }
 }
 
@@ -419,7 +419,7 @@ void __stdcall UpdateEnergyReadout(Menu* obj, int unused)
     Gadget* value = FUN_004a0200(obj->layer->entries, "ENERGY");
     if (value != 0) {
         sprintf(buf, "%d", ReadSliderValue(value));
-        FUN_004a0bf0(obj, "ENERGY#", buf, 0);
+        SetTranslatedTextByName(obj, "ENERGY#", buf, 0);
     }
 }
 
@@ -480,13 +480,13 @@ void __stdcall HandleShareDialogEvent(Menu* obj)
         return;
     }
     if (IsCurrentGadgetNamed(obj, "MAPINFO")) {
-        FUN_0049fa90(obj);
+        MarkChanged(obj);
         PlaySoundByName("Options", 0);
         ClearSelectedGadget(obj);
         return;
     }
     if (IsCurrentGadgetNamed(obj, "SHARUNIT")) {
-        FUN_0049fa90(obj);
+        MarkChanged(obj);
         PlaySoundByName("Options", 0);
         ClearSelectedGadget(obj);
         return;
@@ -582,7 +582,7 @@ void OpenShareDialog()
         CloseTopScreen(&g_game->menu);
         return;
     }
-    FUN_004a32a0(&g_game->menu, "PLYRLIST", names, count, 0);
+    ConfigureListBoxByName(&g_game->menu, "PLYRLIST", names, count, 0);
     char text[0x34];
     // Both tail blocks go through the local menu pointer, menu first, with no
     // self-comparison: this fixes their register choice.
@@ -592,7 +592,7 @@ void OpenShareDialog()
     Gadget* e = FUN_004a0200(ents, "METAL");
     if (e) {
         sprintf(text, "%d", ReadSliderValue(e));
-        FUN_004a0bf0(menu, "METAL#", text, 0);
+        SetTranslatedTextByName(menu, "METAL#", text, 0);
     }
     menu = &g_game->menu;
     lyr = menu->layer;
@@ -600,10 +600,10 @@ void OpenShareDialog()
     e = FUN_004a0200(ents, "ENERGY");
     if (e) {
         sprintf(text, "%d", ReadSliderValue(e));
-        FUN_004a0bf0(menu, "ENERGY#", text, 0);
+        SetTranslatedTextByName(menu, "ENERGY#", text, 0);
     }
-    FUN_0049fa90(&g_game->menu);
-    FUN_0049fb10(&g_game->menu, 1);
+    MarkChanged(&g_game->menu);
+    SetKeyboardInput(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
 }
 
@@ -620,7 +620,7 @@ void ResetPlayerGadgets(void)
     unsigned char* p = g_game->players[g_game->localPlayer].allied;
     for (int i = 0; i < 10; i++, p++) {
         sprintf(buf, "PLAYER%d", i);
-        FUN_004a0570(&g_game->menu, buf, 0);
+        SetGadgetActiveByName(&g_game->menu, buf, 0);
         unsigned char state = g_game->players[i].type;
         if (state != 0 && state != 4 && i != g_game->localPlayer) {
             sprintf(buf, "LIVEPLYR%d", i);
@@ -676,7 +676,7 @@ void __stdcall HandleTalkDialogEvent(Menu* gadget)
         // omission looks like an oversight rather than a deliberate choice.
         unsigned char v = (unsigned char)GetButtonStage(gadget, gadget->current);
         g_game->field_2bf1[n] = v;
-        FUN_0049fa90(gadget);
+        MarkChanged(gadget);
         ClearSelectedGadget(gadget);
         goto tail;
     }
@@ -767,7 +767,7 @@ clear:
     }
 tail:
     int index = FindGadgetIndex(entries, g_talkGadgetName, 3);
-    FUN_0049fc50(&g_game->menu, index);
+    TrySetFocus(&g_game->menu, index);
     g_game->menu.layer->field_20 = FindGadgetIndex(entries, g_talkGadgetName, 3);
 }
 
@@ -795,16 +795,16 @@ void OpenTalkDialog()
     Gadget* entries = d->entries;
     d->handler = HandleTalkDialogEvent;
     g_game->flags_37ebe |= 4;
-    FUN_004a0bf0(&g_game->menu, "TALK", g_chatDraftText, 0);
+    SetTranslatedTextByName(&g_game->menu, "TALK", g_chatDraftText, 0);
     SetButtonStageByName(&g_game->menu, "SENDTO", multi);
     if (g_game->net->GetGameType() != 3) {
-        FUN_004a0570(&g_game->menu, "SENDTO", 0);
+        SetGadgetActiveByName(&g_game->menu, "SENDTO", 0);
     } else if (multi) {
         SetButtonStageByName(&g_game->menu, "SENDTYPE", g_game->mode_2bf0);
         RefreshAlliesScreen(1);
         ResetPlayerGadgets();
     }
-    FUN_0049fc50(&g_game->menu, FindGadgetIndex(entries, "TALK", 3));
+    TrySetFocus(&g_game->menu, FindGadgetIndex(entries, "TALK", 3));
     d->field_20 = FindGadgetIndex(entries, "TALK", 3);
     d->owner = g_game;
     RenderLayer(&g_game->menu, 0x40 | (multi ? 0 : 0x80));
@@ -920,8 +920,8 @@ void __stdcall OpenUnitInfoDialog(void)
     }
 
     FUN_004d85a0(stats);
-    FUN_004a0bf0(&g_game->menu, "NAME", def, 0x80);
-    FUN_0049fa90(&g_game->menu);
+    SetTranslatedTextByName(&g_game->menu, "NAME", def, 0x80);
+    MarkChanged(&g_game->menu);
 }
 
 // FUNCTION: 0x494740
@@ -929,7 +929,7 @@ void __stdcall HandleTabMenuEvent(Menu* gadget)
 {
     if (gadget->current == -1) {
         g_game->flags_2bee &= 0xff1f;
-        FUN_0049fa70(gadget);
+        DisableKeyCommands(gadget);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "OPTIONS")) {
@@ -969,7 +969,7 @@ void __stdcall HandleTabMenuCancel(Menu* gadget)
 {
     if (gadget->current == -1) {
         g_game->flags_2bee &= 0xff1f;
-        FUN_0049fa70(&g_game->menu);
+        DisableKeyCommands(&g_game->menu);
         return;
     }
     if (!IsCurrentGadgetNamed(gadget, "CANCEL"))
@@ -1051,9 +1051,9 @@ void __stdcall DrawScorePanel(void* surface)
     Quad src;
     src.p[0].x=1; src.p[0].y=1; src.p[3].x=1; src.p[1].y=1;
     strcpy(buf, Translate("Kills"));
-    FUN_004a50e0(surface, buf, panel.left + 2, y, maxw, 0);
+    DrawTextClipped(surface, buf, panel.left + 2, y, maxw, 0);
     strcpy(buf, Translate("Losses"));
-    FUN_004a50e0(surface, buf, panel.right - GetTextPixelWidth(buf) - 2, y, maxw, 0);
+    DrawTextClipped(surface, buf, panel.right - GetTextPixelWidth(buf) - 2, y, maxw, 0);
     y += 0xf;
 
     for (int i = 0; i < (int)g_game->numPlayers; i++) {
@@ -1101,14 +1101,14 @@ void __stdcall DrawScorePanel(void* surface)
             src.p[3].y = frame[1] - 1;
             DrawFrameQuad(surface, frame, &dst, &src);
 
-            FUN_004a50e0(surface, p->name, dst.p[0].x + 2, dst.p[0].y + 5, maxw, 0);
+            DrawTextClipped(surface, p->name, dst.p[0].x + 2, dst.p[0].y + 5, maxw, 0);
             int kills = g_game->field_37ef6 == 2 ? p->field_104 : p->field_fc;
             sprintf(buf, "%d", kills);
-            FUN_004a50e0(surface, buf, dst.p[0].x + 2, dst.p[0].y + 0x14, maxw,
+            DrawTextClipped(surface, buf, dst.p[0].x + 2, dst.p[0].y + 0x14, maxw,
                          DAT_0051f2c8[n]);
             int losses = g_game->field_37ef6 == 2 ? p->field_106 : p->field_fe;
             sprintf(buf, "%d", losses);
-            FUN_004a50e0(surface, buf, dst.p[1].x - GetTextPixelWidth(buf) - 2,
+            DrawTextClipped(surface, buf, dst.p[1].x - GetTextPixelWidth(buf) - 2,
                          dst.p[0].y + 0x14, maxw, DAT_0051e810[n]);
             y += 0x28;
             break;
@@ -1262,16 +1262,16 @@ void ToggleTabMenu()
     int mode = g_game->net->GetGameType();
     if (mode == 3 && !g_game->players[g_game->localPlayer].info->bit6) {
         int v = count > 0;
-        FUN_004a0570(&g_game->menu, "ALLIES", v);
-        FUN_004a0570(&g_game->menu, "SHARE", v);
+        SetGadgetActiveByName(&g_game->menu, "ALLIES", v);
+        SetGadgetActiveByName(&g_game->menu, "SHARE", v);
         int ctl = !(g_game->field_2c74 & 1) && IsHostLocal();
-        FUN_004a0570(&g_game->menu, "CONTROL", ctl);
+        SetGadgetActiveByName(&g_game->menu, "CONTROL", ctl);
     } else {
-        FUN_004a0570(&g_game->menu, "ALLIES", 0);
-        FUN_004a0570(&g_game->menu, "SHARE", 0);
-        FUN_004a0570(&g_game->menu, "CONTROL", 0);
+        SetGadgetActiveByName(&g_game->menu, "ALLIES", 0);
+        SetGadgetActiveByName(&g_game->menu, "SHARE", 0);
+        SetGadgetActiveByName(&g_game->menu, "CONTROL", 0);
     }
-    FUN_0049fa50(&g_game->menu);
+    EnableKeyCommands(&g_game->menu);
     RenderLayer(&g_game->menu, 0x40);
     ShowSoftwareCursor();
 }

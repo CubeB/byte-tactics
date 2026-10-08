@@ -1065,14 +1065,14 @@ extern int g_battleQuitIntent;
 // Flags live in this struct, not a standalone global: keeps the load order.
 extern Settings_45cde0 g_optionsPrefsSnapshot;
 
-void __stdcall FUN_0049fa90(Menu_0045b800* menu);
-void __stdcall FUN_004a0570(Menu_0045b800* menu, char* name, int value);
+void __stdcall MarkChanged(Menu_0045b800* menu);
+void __stdcall SetGadgetActiveByName(Menu_0045b800* menu, char* name, int value);
 char* __stdcall FUN_004a0180(Entry_0045b800* entries, char* name);
 Entry_0045b800* __stdcall FUN_004a0200(Entry_0045b800* entries, char* name);
-void __stdcall FUN_004a0bf0(Menu_0045b800* obj, char* name, char* text, int param_4);
-void __stdcall FUN_004a1200(Menu_0045b800* menu, int index, int value);
-void __stdcall FUN_004a1250(Menu_0045b800* obj, char* name, int value);
-void __stdcall FUN_004a1450(Menu_0045b800* obj, char* name, int param_3);
+void __stdcall SetTranslatedTextByName(Menu_0045b800* obj, char* name, char* text, int param_4);
+void __stdcall SetGrayedOut(Menu_0045b800* menu, int index, int value);
+void __stdcall SetGrayedOutByName(Menu_0045b800* obj, char* name, int value);
+void __stdcall SetGadgetGrayedOutByName(Menu_0045b800* obj, char* name, int param_3);
 int __stdcall SetButtonStageByName(Menu_0045b800* obj, char* name, int value);
 void __stdcall SetBrightness(float value);
 void __stdcall SetGameSpeed(unsigned int param1, int param2);
@@ -1096,14 +1096,14 @@ void __stdcall RenderLayer(Sub_004609b0* sub, int value);
 void __stdcall RenderLayer(Gui_00460cc0* sub, int value);
 void __stdcall RenderLayer(char* menu, int value);
 
-void __stdcall FUN_0049fa90(Sub_0045cf60* sub);
-void __stdcall FUN_0049fa90(Dialog* obj);
-void __stdcall FUN_0049fa90(void* obj);
-void __stdcall FUN_0049fa90(Menu_0045de30* obj);
-void __stdcall FUN_0049fa90(Gui_0045e100* gui);
-void __stdcall FUN_0049fa90(Gadget_0045f770* gadget);
-void __stdcall FUN_0049fa90(Sub_0045f8c0* sub);
-void __stdcall FUN_0049fa90(char* menu);
+void __stdcall MarkChanged(Sub_0045cf60* sub);
+void __stdcall MarkChanged(Dialog* obj);
+void __stdcall MarkChanged(void* obj);
+void __stdcall MarkChanged(Menu_0045de30* obj);
+void __stdcall MarkChanged(Gui_0045e100* gui);
+void __stdcall MarkChanged(Gadget_0045f770* gadget);
+void __stdcall MarkChanged(Sub_0045f8c0* sub);
+void __stdcall MarkChanged(char* menu);
 
 void __stdcall BlitMenuLayers(Sub_0045cf60* sub, unsigned int* a, int* b);
 void __stdcall BlitMenuLayers(char* menu, int a, int b);
@@ -1124,36 +1124,36 @@ Dialog_004608b0* __stdcall LoadGuiLayer(Sub_004608b0* sub, const char* name, int
 Info_004609b0* __stdcall LoadGuiLayer(Sub_004609b0* sub, const char* name, int flags);
 Gadget_00460cc0* __stdcall LoadGuiLayer(Gui_00460cc0* sub, const char* name, int flags);
 
-void __stdcall FUN_004a1250(void* obj, char* name, int value);
-void __stdcall FUN_004a1250(Dialog* obj, char* name, int value);
-void __stdcall FUN_004a1200(Gui_00460cc0* sub, int index, int value);
+void __stdcall SetGrayedOutByName(void* obj, char* name, int value);
+void __stdcall SetGrayedOutByName(Dialog* obj, char* name, int value);
+void __stdcall SetGrayedOut(Gui_00460cc0* sub, int index, int value);
 int __stdcall GetGadgetText(void* settings, const char* key, char* out);
 
-void __stdcall FUN_0049fa50(void* obj);
-void __stdcall FUN_0049fa50(Gui_00460cc0* sub);
-void __stdcall FUN_0049fa70(Sub_004609b0* sub);
-void __stdcall FUN_0049fb10(void* obj, int value);
-void __stdcall FUN_0049fb10(Layer_0045f1d0* menu, int flag);
-void __stdcall FUN_0049fb10(Menu_00460160* menu, int value);
-void __stdcall FUN_0049fb10(Menu_004604a0* menu, int value);
-void __stdcall FUN_0049fb10(Sub_00460680* sub, int value);
-void __stdcall FUN_0049fb10(Sub_004608b0* sub, int value);
-void __stdcall FUN_0049fb10(Sub_004609b0* sub, int value);
-void __stdcall FUN_0049fb10(Gui_00460cc0* sub, int value);
+void __stdcall EnableKeyCommands(void* obj);
+void __stdcall EnableKeyCommands(Gui_00460cc0* sub);
+void __stdcall DisableKeyCommands(Sub_004609b0* sub);
+void __stdcall SetKeyboardInput(void* obj, int value);
+void __stdcall SetKeyboardInput(Layer_0045f1d0* menu, int flag);
+void __stdcall SetKeyboardInput(Menu_00460160* menu, int value);
+void __stdcall SetKeyboardInput(Menu_004604a0* menu, int value);
+void __stdcall SetKeyboardInput(Sub_00460680* sub, int value);
+void __stdcall SetKeyboardInput(Sub_004608b0* sub, int value);
+void __stdcall SetKeyboardInput(Sub_004609b0* sub, int value);
+void __stdcall SetKeyboardInput(Gui_00460cc0* sub, int value);
 
 int __stdcall SetButtonStageByName(void* obj, char* name, int value);
 int __stdcall SetButtonStageByName(Class_004a1080* obj, char* name, int value);
-void __stdcall FUN_004a0570(void* obj, char* name, int value);
-void __stdcall FUN_004a0570(Object_004a0570* obj, char* name, int value);
-void __stdcall FUN_004a0570(Menu_0045e5e0* menu, char* name, int value);
-void __stdcall FUN_004a0570(Sub_004608b0* sub, const char* name, int value);
-void __stdcall FUN_004a1450(void* obj, char* name, int value);
-void __stdcall FUN_004a1450(Object_004a1450* obj, char* name, int value);
-void __stdcall FUN_004a0bf0(void* obj, char* name, char* text, int value);
-void __stdcall FUN_004a0bf0(Menu_004604a0* menu, const char* name, int value, int count);
-void __stdcall FUN_004a0bf0(Sub_00460680* sub, const char* name, const char* text, int param_4);
-void __stdcall FUN_004a0bf0(Sub_004608b0* sub, const char* name, int value, int param_4);
-void __stdcall FUN_004a0bf0(Gui_00460cc0* sub, const char* name, const char* value, int flags);
+void __stdcall SetGadgetActiveByName(void* obj, char* name, int value);
+void __stdcall SetGadgetActiveByName(Object_004a0570* obj, char* name, int value);
+void __stdcall SetGadgetActiveByName(Menu_0045e5e0* menu, char* name, int value);
+void __stdcall SetGadgetActiveByName(Sub_004608b0* sub, const char* name, int value);
+void __stdcall SetGadgetGrayedOutByName(void* obj, char* name, int value);
+void __stdcall SetGadgetGrayedOutByName(Object_004a1450* obj, char* name, int value);
+void __stdcall SetTranslatedTextByName(void* obj, char* name, char* text, int value);
+void __stdcall SetTranslatedTextByName(Menu_004604a0* menu, const char* name, int value, int count);
+void __stdcall SetTranslatedTextByName(Sub_00460680* sub, const char* name, const char* text, int param_4);
+void __stdcall SetTranslatedTextByName(Sub_004608b0* sub, const char* name, int value, int param_4);
+void __stdcall SetTranslatedTextByName(Gui_00460cc0* sub, const char* name, const char* value, int flags);
 
 int __stdcall IsCurrentGadgetNamed(void* obj, char* name);
 int __stdcall IsCurrentGadgetNamed(Gui_0045e100* gui, char* name);
@@ -1345,10 +1345,10 @@ void __stdcall SetGadgetsDisabledByPrefix(char* name, int value)
     for (int i = 0; i <= g_game->menu.holder->entries->count; i++) {
         if (strncmp(g_game->menu.holder->entries[i].name, name, strlen(name)) == 0 &&
             g_game->menu.holder->entries[i].type == 1) {
-            FUN_004a1200(&g_game->menu, i, value);
+            SetGrayedOut(&g_game->menu, i, value);
         }
     }
-    FUN_0049fa90(&g_game->menu);
+    MarkChanged(&g_game->menu);
 }
 
 // FUNCTION: 0x45b920
@@ -1356,7 +1356,7 @@ void __stdcall DeactivateGadgetsByPrefix(char* prefix)
 {
     for (int i = 0; i <= g_game->menu.holder->entries[0].count; i++) {
         if (strncmp(g_game->menu.holder->entries[i].name, prefix, strlen(prefix)) == 0) {
-            FUN_004a0570(&g_game->menu, g_game->menu.holder->entries[i].name, 0);
+            SetGadgetActiveByName(&g_game->menu, g_game->menu.holder->entries[i].name, 0);
         }
     }
 }
@@ -1463,7 +1463,7 @@ void __stdcall HandleVideoModeSlider(Menu_0045b800* obj, int unused)
         g_game->width = r->width;
         g_game->height = r->height;
     }
-    FUN_0049fa90(&g_game->menu);
+    MarkChanged(&g_game->menu);
 }
 
 // Applies the brightness value and the two volume levels (scaled by 1024) to
@@ -1513,7 +1513,7 @@ void __stdcall HandleMusicVolumeSlider(Menu_0045b800* obj, int unused)
 }
 
 // Formats "<label> (<speed>)" for a game-speed setting, then passes the
-// original name and label (not the formatted text) to FUN_004a0bf0 on the
+// original name and label (not the formatted text) to SetTranslatedTextByName on the
 // settings block at g_game+0x519.
 // FUNCTION: 0x45bf60
 void __stdcall SetGameSpeedLabel(char* name, char* label, int speed, int normal)
@@ -1532,7 +1532,7 @@ void __stdcall SetGameSpeedLabel(char* name, char* label, int speed, int normal)
         text = "Faster";
     }
     sprintf(buf, "%s (%s)", label, text);
-    FUN_004a0bf0(&g_game->menu, name, label, 0);
+    SetTranslatedTextByName(&g_game->menu, name, label, 0);
 }
 
 // FUNCTION: 0x45c010
@@ -1544,7 +1544,7 @@ void __stdcall SetGadgetTextFromValueTable(Entry_0045c010* table, char* name, in
     while (table->format != 0) {
         if (value <= table->min) {
             sprintf(buf, table->format, value);
-            FUN_004a0bf0(&g_game->menu, name, buf, 0);
+            SetTranslatedTextByName(&g_game->menu, name, buf, 0);
             return;
         }
         table++;
@@ -1566,21 +1566,21 @@ void __stdcall HandleGameSpeedSlider(Menu_0045b800* obj, int unused)
             int value = SliderValue(e);
             g_game->field_38a4b = (unsigned short)(value < 1 ? 1 : SliderValue(e));
             SetGameSpeed(g_game->field_38a4b, 1);
-            FUN_0049fa90(obj);
+            MarkChanged(obj);
         }
     }
 }
 
 // Reads the "SCREEN" slider of the menu object and stores its value in
 // g_game->field_1434d, writing 1 instead of any value of 1 or less, then
-// marks the object changed (FUN_0049fa90 sets obj->field_cca = 1).
+// marks the object changed (MarkChanged sets obj->field_cca = 1).
 // FUNCTION: 0x45c170
 void __stdcall HandleScreenSlider(Menu_0045b800* obj, int unused)
 {
     Entry_0045b800* e = FUN_004a0200(obj->holder->entries, "SCREEN");
     if (e != 0) {
         g_game->field_1434d = SliderValue(e) > 1 ? SliderValue(e) : 1;
-        FUN_0049fa90(obj);
+        MarkChanged(obj);
     }
 }
 
@@ -1596,13 +1596,13 @@ void __stdcall HandleMaxLinesSlider(Menu_0045b800* obj, int unused)
     if (e != 0) {
         int v = SliderValue(e);
         g_game->field_37f27 = v < 0 ? 0 : SliderValue(e);
-        FUN_0049fa90(obj);
+        MarkChanged(obj);
     }
     if (g_game->field_37f27 != 0)
         sprintf(text, "%d", g_game->field_37f27);
     else
         strcpy(text, "None");
-    FUN_004a0bf0(obj, "MAXLINESTEXT", text, 0);
+    SetTranslatedTextByName(obj, "MAXLINESTEXT", text, 0);
 }
 
 // Reads the "TXTSCROL" slider into the text scroll time and shows it as
@@ -1615,8 +1615,8 @@ void __stdcall HandleTextScrollSlider(Menu_0045b800* obj, int unused)
     if (e != 0) {
         g_game->field_37f23 = SliderValue(e);
         sprintf(text, "%d secs", g_game->field_37f23);
-        FUN_004a0bf0(obj, "TEXTSCROLLTEXT", text, 0);
-        FUN_0049fa90(obj);
+        SetTranslatedTextByName(obj, "TEXTSCROLLTEXT", text, 0);
+        MarkChanged(obj);
     }
 }
 
@@ -1634,16 +1634,16 @@ void UpdateTrackGadgets()
 
     if (FindGadgetIndex(menu->holder->entries, "TRACKTYPE", 1) != -1) {
         int disc = g_musicUiSelectedTrack;
-        FUN_004a1250(menu, "TRACKTYPE",
+        SetGrayedOutByName(menu, "TRACKTYPE",
                      ((g_game->f_37f14 & 1) && g_game->field_37f16 == 4) ? 0 : 1);
         SetButtonStageByName(menu, "TRACKTYPE", ((Class_004ce7e0*)g_game->sound)->GetCategoryOfTrack(disc));
         if (disc == 0)
             strcpy(buf, "NO DISC");
         else
             sprintf(buf, "%d", disc);
-        FUN_004a0bf0(menu, "TRACKNUM", buf, 0);
+        SetTranslatedTextByName(menu, "TRACKNUM", buf, 0);
     }
-    FUN_004a1450(menu, "TRACKNUM", (char)(~g_game->f_37f14) & 1);
+    SetGadgetGrayedOutByName(menu, "TRACKNUM", (char)(~g_game->f_37f14) & 1);
     if (g_game->field_37f16 == 3) {
         // the track number is re-read from the global here, not taken from disc
         int track = g_musicUiSelectedTrack;
@@ -1886,7 +1886,7 @@ void BlitOptionsPanel()
         return;
     }
     RenderLayer((Sub_0045cf60*)&g_game->gui, 0x40);
-    FUN_0049fa90((Sub_0045cf60*)&g_game->gui);
+    MarkChanged((Sub_0045cf60*)&g_game->gui);
     BlitMenuLayers((Sub_0045cf60*)&g_game->gui, 0, 0);
     SetOffscreenSurface(g_game->field_37e1b);
     FlipScreen();
@@ -1906,8 +1906,8 @@ int __cdecl OpenOptionsLayout()
         strcpy(buf, "STARTOPT.GUI");
     }
     int result = LoadGuiLayer(&g_game->gui, buf, 0x80);
-    FUN_004a1250(&g_game->gui, "MUSIC", *(int*)g_game->sound == 0);
-    FUN_0049fa50(&g_game->gui);
+    SetGrayedOutByName(&g_game->gui, "MUSIC", *(int*)g_game->sound == 0);
+    EnableKeyCommands(&g_game->gui);
     if (g_game->bits_2a44.prefsWord.prefs && g_game->mode->GetGameType() != 3) {
         g_game->flags_38a51 |= 1;
     }
@@ -1924,7 +1924,7 @@ void TickMusicOptions()
     if (track != ((Sound*)g_game->sound)->GetCurrentTrack()) {
         g_musicUiSelectedTrack = ((Sound*)g_game->sound)->GetCurrentTrack();
         UpdateTrackGadgets();
-        FUN_0049fa90((Dialog*)&g_game->gui);
+        MarkChanged((Dialog*)&g_game->gui);
     }
 }
 
@@ -1933,15 +1933,15 @@ void UpdateMusicGadgets()
 {
     SetButtonStageByName((Class_004a1080*)&g_game->gui, "NOTRAK", g_game->flags_37f14.notrak & 1);
     SetButtonStageByName((Class_004a1080*)&g_game->gui, "TRACKMODE", g_game->field_37f16 - 1);
-    FUN_004a1450((Object_004a1450*)&g_game->gui, "MUSICVOL", (char)(~g_game->flags_37f14.notrak & 1));
-    FUN_004a1250((Dialog*)&g_game->gui, "CDPREV", (char)(~g_game->flags_37f14.notrak & 1));
-    FUN_004a1250((Dialog*)&g_game->gui, "CDSTOP", (char)(~g_game->flags_37f14.notrak & 1));
-    FUN_004a1250((Dialog*)&g_game->gui, "CDPLAY", (char)(~g_game->flags_37f14.notrak & 1));
-    FUN_004a1250((Dialog*)&g_game->gui, "CDNEXT", (char)(~g_game->flags_37f14.notrak & 1));
-    FUN_004a1250((Dialog*)&g_game->gui, "TRACKMODE", (char)(~g_game->flags_37f14.notrak & 1));
+    SetGadgetGrayedOutByName((Object_004a1450*)&g_game->gui, "MUSICVOL", (char)(~g_game->flags_37f14.notrak & 1));
+    SetGrayedOutByName((Dialog*)&g_game->gui, "CDPREV", (char)(~g_game->flags_37f14.notrak & 1));
+    SetGrayedOutByName((Dialog*)&g_game->gui, "CDSTOP", (char)(~g_game->flags_37f14.notrak & 1));
+    SetGrayedOutByName((Dialog*)&g_game->gui, "CDPLAY", (char)(~g_game->flags_37f14.notrak & 1));
+    SetGrayedOutByName((Dialog*)&g_game->gui, "CDNEXT", (char)(~g_game->flags_37f14.notrak & 1));
+    SetGrayedOutByName((Dialog*)&g_game->gui, "TRACKMODE", (char)(~g_game->flags_37f14.notrak & 1));
     // Spelled as one negated test, not an if/else with a call in each arm:
     // MSVC then materialises the value in a register instead of pushing 0/1.
-    FUN_004a1250((Dialog*)&g_game->gui, "TRACKTYPE", !((g_game->flags_37f14.notrak & 1) && g_game->field_37f16 == 4));
+    SetGrayedOutByName((Dialog*)&g_game->gui, "TRACKTYPE", !((g_game->flags_37f14.notrak & 1) && g_game->field_37f16 == 4));
 }
 
 // FUNCTION: 0x45d280
@@ -1958,7 +1958,7 @@ void __stdcall HandleMusicOptionsClick(Object_0045d280* obj)
         g_game->flags_37ebe.loadedBits.loaded = 0;
         return;
     }
-    FUN_0049fa90(obj);
+    MarkChanged(obj);
     // Result kept in a local: testing the call directly is longer.
     int notrak = IsCurrentGadgetNamed(obj, g_notrakGadgetName);
     if (notrak != 0) {              // "NOTRAK"
@@ -2067,7 +2067,7 @@ void OpenMusicOptions()
         LoadPictureCached("optmusic4x", 0, 0, 0);
     }
     obj->callback8 = HandleMusicOptionsClick;
-    FUN_0049fa50(&g_game->gui);
+    EnableKeyCommands(&g_game->gui);
     obj->callback1c = TickMusicOptions;
     SetGadgetStatusByName(&g_game->gui, "MUSIC", 1);
     if (FindGadgetIndex(obj->gadgets, "MUSICVOL", 0xe) != -1) {
@@ -2095,8 +2095,8 @@ void OpenMusicOptions()
         int index = FindGadgetIndex(gadgets, "TRACKTYPE", 1);
         ((Class_004ce7c0*)g_game->sound)->SetCategoryOfTrack(g_musicUiSelectedTrack, gadgets[index].value);
     }
-    FUN_0049fa90(&g_game->gui);
-    FUN_0049fb10(&g_game->gui, 1);
+    MarkChanged(&g_game->gui);
+    SetKeyboardInput(&g_game->gui, 1);
     OrLabelAttribs();
     RenderLayer(&g_game->gui, 0x40);
 }
@@ -2105,10 +2105,10 @@ void OpenMusicOptions()
 void UpdateSoundGadgets()
 {
     SetButtonStageByName((Class_004a1080*)&g_game->gui, g_modeGadgetName, g_game->soundFlags.byte & 7);
-    FUN_004a0570((Object_004a0570*)&g_game->gui, g_volTextGadgetName, (g_game->soundFlags.byte & 7) != 0);
-    FUN_004a1450((Object_004a1450*)&g_game->gui, g_fxVolGadgetName, (g_game->soundFlags.byte & 7) == 0);
-    FUN_004a1450((Object_004a1450*)&g_game->gui, g_testGadgetName, (g_game->soundFlags.byte & 7) == 0);
-    FUN_004a1450((Object_004a1450*)&g_game->gui, g_speechGadgetName, (g_game->soundFlags.byte & 7) == 0);
+    SetGadgetActiveByName((Object_004a0570*)&g_game->gui, g_volTextGadgetName, (g_game->soundFlags.byte & 7) != 0);
+    SetGadgetGrayedOutByName((Object_004a1450*)&g_game->gui, g_fxVolGadgetName, (g_game->soundFlags.byte & 7) == 0);
+    SetGadgetGrayedOutByName((Object_004a1450*)&g_game->gui, g_testGadgetName, (g_game->soundFlags.byte & 7) == 0);
+    SetGadgetGrayedOutByName((Object_004a1450*)&g_game->gui, g_speechGadgetName, (g_game->soundFlags.byte & 7) == 0);
 }
 
 // FUNCTION: 0x45da90
@@ -2119,7 +2119,7 @@ void __stdcall HandleSoundOptionsClick(Object_0045da90* obj)
         g_game->flags_37ebe.loadedBits.loaded = 0;
         return;
     }
-    FUN_0049fa90(obj);
+    MarkChanged(obj);
     int mode = obj->field_60;
     if (IsCurrentGadgetNamed(obj, g_speechGadgetName)) {
         PlaySoundByName(g_optionsSoundName, 0);
@@ -2139,10 +2139,10 @@ void __stdcall HandleSoundOptionsClick(Object_0045da90* obj)
         if ((g_game->soundFlags.word & 7) == 1 && !g_game->bits_2a44.prefsWord.prefs)
             PlayLoopingSoundByName(g_bgmSoundName, 0);
         SetButtonStageByName(&g_game->gui, g_modeGadgetName, g_game->soundFlags.word & 7);
-        FUN_004a0570(&g_game->gui, g_volTextGadgetName, (g_game->soundFlags.word & 7) != 0);
-        FUN_004a1450(&g_game->gui, g_fxVolGadgetName, (g_game->soundFlags.word & 7) == 0);
-        FUN_004a1450(&g_game->gui, g_testGadgetName, (g_game->soundFlags.word & 7) == 0);
-        FUN_004a1450(&g_game->gui, g_speechGadgetName, (g_game->soundFlags.word & 7) == 0);
+        SetGadgetActiveByName(&g_game->gui, g_volTextGadgetName, (g_game->soundFlags.word & 7) != 0);
+        SetGadgetGrayedOutByName(&g_game->gui, g_fxVolGadgetName, (g_game->soundFlags.word & 7) == 0);
+        SetGadgetGrayedOutByName(&g_game->gui, g_testGadgetName, (g_game->soundFlags.word & 7) == 0);
+        SetGadgetGrayedOutByName(&g_game->gui, g_speechGadgetName, (g_game->soundFlags.word & 7) == 0);
         ClearSelectedGadget(obj);
         PlaySoundByName(g_optionsSoundName, 0);
         return;
@@ -2201,7 +2201,7 @@ void OpenSoundOptions()
     }
     Entry_0045de30* entries = obj->entries;
     obj->fn = HandleSoundOptionsClick;
-    FUN_0049fa50(&g_game->gui);
+    EnableKeyCommands(&g_game->gui);
     SetGadgetStatusByName(&g_game->gui, "SOUND", 1);
     // Result in a local; the call reads obj->entries while later calls use entries.
     int found = FindGadgetIndex(obj->entries, "FXVOL", 0xe);
@@ -2226,12 +2226,12 @@ void OpenSoundOptions()
     }
     SetButtonStageByName(&g_game->gui, "SPEECH", g_game->soundFlags.bits.speech ? g_game->field_37f17 / 5 : 0);
     SetButtonStageByName(&g_game->gui, "MODE", g_game->soundFlags.word & 7);
-    FUN_004a0570(&g_game->gui, "VOLTEXT", (g_game->soundFlags.word & 7) != 0);
-    FUN_004a1450(&g_game->gui, "FXVOL", (g_game->soundFlags.word & 7) == 0);
-    FUN_004a1450(&g_game->gui, "TEST", (g_game->soundFlags.word & 7) == 0);
-    FUN_004a1450(&g_game->gui, "SPEECH", (g_game->soundFlags.word & 7) == 0);
-    FUN_0049fa90(&g_game->gui);
-    FUN_0049fb10(&g_game->gui, 1);
+    SetGadgetActiveByName(&g_game->gui, "VOLTEXT", (g_game->soundFlags.word & 7) != 0);
+    SetGadgetGrayedOutByName(&g_game->gui, "FXVOL", (g_game->soundFlags.word & 7) == 0);
+    SetGadgetGrayedOutByName(&g_game->gui, "TEST", (g_game->soundFlags.word & 7) == 0);
+    SetGadgetGrayedOutByName(&g_game->gui, "SPEECH", (g_game->soundFlags.word & 7) == 0);
+    MarkChanged(&g_game->gui);
+    SetKeyboardInput(&g_game->gui, 1);
     OrLabelAttribs();
     RenderLayer(&g_game->gui, 0x40);
 }
@@ -2262,7 +2262,7 @@ void __stdcall HandleVisualOptionsClick(Gui_0045e100* gui)
         g_game->flags_37f06.bits.b1 = GetButtonStageByName(gui, "ANTI") & 1;
         if (g_game->flags_37ebe.bits.b0)
             g_game->ptr_1437b->FlushCache();
-        FUN_0049fa90(gui);
+        MarkChanged(gui);
         ClearSelectedGadget(gui);
         return;
     }
@@ -2274,7 +2274,7 @@ void __stdcall HandleVisualOptionsClick(Gui_0045e100* gui)
         g_game->flags_37f06.bits.b2 = g_game->flags_37f06.bits.b3;
         if (g_game->flags_37ebe.bits.b0)
             g_game->ptr_1437b->FlushCache();
-        FUN_0049fa90(gui);
+        MarkChanged(gui);
         ClearSelectedGadget(gui);
         return;
     }
@@ -2284,7 +2284,7 @@ void __stdcall HandleVisualOptionsClick(Gui_0045e100* gui)
         g_game->flags_37f06.bits.b5 = GetButtonStageByName(gui, "SHADING") & 1;
         if (g_game->flags_37ebe.bits.b0)
             g_game->ptr_1437b->FlushCache();
-        FUN_0049fa90(gui);
+        MarkChanged(gui);
         ClearSelectedGadget(gui);
         return;
     }
@@ -2384,7 +2384,7 @@ void __stdcall OpenVisualOptions(int param_1)
             LoadPictureCached("optvisual4x", i, i, i);
         }
     }
-    FUN_0049fa50(&g_game->gui);
+    EnableKeyCommands(&g_game->gui);
     layer->handler = HandleVisualOptionsClick;
 
     if (!(g_game->flags_37ebe.byte & 1)) {
@@ -2429,12 +2429,12 @@ void __stdcall OpenVisualOptions(int param_1)
         if (g_game->flags_37ebe.byte & 1) {
             for (i = 0; i <= ((Holder_0045e5e0*)g_game->gui.holder)->entries->count; i++) {
                 if (strncmp(((Holder_0045e5e0*)g_game->gui.holder)->entries[i].name, "MAP", strlen("MAP")) == 0) {
-                    FUN_004a0570(&g_game->gui, ((Holder_0045e5e0*)g_game->gui.holder)->entries[i].name, 0);
+                    SetGadgetActiveByName(&g_game->gui, ((Holder_0045e5e0*)g_game->gui.holder)->entries[i].name, 0);
                 }
             }
             for (i = 0; i <= ((Holder_0045e5e0*)g_game->gui.holder)->entries->count; i++) {
                 if (strncmp(((Holder_0045e5e0*)g_game->gui.holder)->entries[i].name, "VID", strlen("VID")) == 0) {
-                    FUN_004a0570(&g_game->gui, ((Holder_0045e5e0*)g_game->gui.holder)->entries[i].name, 0);
+                    SetGadgetActiveByName(&g_game->gui, ((Holder_0045e5e0*)g_game->gui.holder)->entries[i].name, 0);
                 }
             }
         }
@@ -2469,7 +2469,7 @@ void __stdcall OpenVisualOptions(int param_1)
         }
     }
 
-    FUN_0049fb10(&g_game->gui, 1);
+    SetKeyboardInput(&g_game->gui, 1);
     OrLabelAttribs();
     RenderLayer(&g_game->gui, 0x40);
 }
@@ -2550,7 +2550,7 @@ void OpenSpeedOptions()
         LoadPictureCached("optinterface4x", 0, 0, 0);
     }
     obj->fn = HandleSpeedOptionsClick;
-    FUN_0049fa50(&g_game->gui);
+    EnableKeyCommands(&g_game->gui);
     int found = FindGadgetIndex(obj->entries, "GAME", 0xe);
     SetGadgetStatusByName(&g_game->gui, "SPEEDS", 1);
     if (found != -1) {
@@ -2585,7 +2585,7 @@ void OpenSpeedOptions()
     SetButtonStageByName(&g_game->gui, "LEFTCLICK", g_game->field_37efa);
     char text[20];
     sprintf(text, g_game->field_37f27 ? "%d" : "None", g_game->field_37f27);
-    FUN_004a0bf0(&g_game->gui, "MAXLINESTEXT", text, 0);
+    SetTranslatedTextByName(&g_game->gui, "MAXLINESTEXT", text, 0);
     if (FindGadgetIndex(obj->entries, "MAXLINES", 4) != -1) {
         Entry_0045ed50* e = FUN_004a0200(obj->entries, "MAXLINES");
         e->max = 0x1e;
@@ -2618,7 +2618,7 @@ void OpenSpeedOptions()
         if (obj->entries[i].type == 4)
             obj->entries[i].fn(&g_game->gui, 0);
     }
-    FUN_0049fb10(&g_game->gui, 1);
+    SetKeyboardInput(&g_game->gui, 1);
     OrLabelAttribs();
     RenderLayer(&g_game->gui, 0x40);
 }
@@ -2717,7 +2717,7 @@ void ShowGameSettingsDialog()
     int i;
     for (i = count + 1; i <= layer->entries->u.count; i++)
         entries[i].flags = 1;
-    FUN_0049fb10((Layer_0045f1d0*)&g_game->gui, 1);
+    SetKeyboardInput((Layer_0045f1d0*)&g_game->gui, 1);
     RenderLayer((Layer_0045f1d0*)&g_game->gui, 0x40);
 }
 
@@ -2735,7 +2735,7 @@ void __stdcall HandleBriefingClick(Gadget_0045f770* gadget)
     if (IsCurrentGadgetNamed(gadget, "TextRegion") || IsCurrentGadgetNamed(gadget, "MOREBAR")) {
         PlaySoundByName("Options", 0);
         DrawHelpPage();
-        FUN_0049fa90(gadget);
+        MarkChanged(gadget);
         ClearSelectedGadget(gadget);
     }
     if (gadget->field_60 != -1)
@@ -2818,7 +2818,7 @@ void __stdcall FillHelpPage(Sub_0045f8c0* sub, int page, int lineCount)
             }
         }
     }
-    FUN_0049fa90(sub);
+    MarkChanged(sub);
 }
 
 // FUNCTION: 0x45fac0
@@ -2845,7 +2845,7 @@ void OpenHelpDialog()
     LoadPictureCached("dhelp", 0, 0, 0);
     g_helpDialogBaseGadgetCount = g->info->field_b6;
     FillHelpPage((Sub_0045fb30*)&g_game->gui, 0, 0x11);
-    FUN_0049fb10((Sub_0045fb30*)&g_game->gui, 1);
+    SetKeyboardInput((Sub_0045fb30*)&g_game->gui, 1);
     RenderLayer((Sub_0045fb30*)&g_game->gui, 0x40);
 }
 
@@ -2885,7 +2885,7 @@ void __stdcall HandleOptionsPanelClick(Gadget_0045fc60* gadget)
         if (g_game->bits_2a44.bits.bit2) {
         } else {
             RenderLayer((char*)&g_game->gui, 0x40);
-            FUN_0049fa90((char*)&g_game->gui);
+            MarkChanged((char*)&g_game->gui);
             BlitMenuLayers((char*)&g_game->gui, 0, 0);
             SetOffscreenSurface((int)g_game->field_37e1b);
             FlipScreen();
@@ -3011,7 +3011,7 @@ void __stdcall DrawOptionsScrollBar(void* surf)
         src.p[2].y = g_optionsFlipFrame.h - 1;
         src.p[3].y = g_optionsFlipFrame.h - 1;
         DrawFrameQuad(surf, &g_optionsFlipFrame, &dst, &src);
-        FUN_0049fa90((char*)&g_game->gui);
+        MarkChanged((char*)&g_game->gui);
         g_game->flags_142f1 |= 2;
         g_game->field_37e98 = 1;
     }
@@ -3050,7 +3050,7 @@ void OpenOptionsPanel()
     for (int i = 0; i < 100; i++) {
         g_optionsBackupTrackTypes[i] = ((Class_004ce7e0*)g_game->sound)->GetCategoryOfTrack(i);
     }
-    FUN_0049fb10((Menu_00460160*)&g_game->gui, 1);
+    SetKeyboardInput((Menu_00460160*)&g_game->gui, 1);
     RenderLayer((Menu_00460160*)&g_game->gui, 0xc0);
     if (g_game->bits_2a44.bits.bit2) {
         PlaySoundByName("Panel", 0);
@@ -3116,13 +3116,13 @@ void OpenRestartDialog()
                               -1);
     menu->field_14 = menu->field_8;
     char* first = strtok(text, "\n");
-    FUN_004a0bf0((Menu_004604a0*)&g_game->gui, "MISSIONNAME", (int)first, 0x80);
+    SetTranslatedTextByName((Menu_004604a0*)&g_game->gui, "MISSIONNAME", (int)first, 0x80);
     char* second = strtok(0, "\n");
     if (second) {
-        FUN_004a0bf0((Menu_004604a0*)&g_game->gui, "MISSIONNAME1", (int)second, 0x80);
+        SetTranslatedTextByName((Menu_004604a0*)&g_game->gui, "MISSIONNAME1", (int)second, 0x80);
     }
     ApplyDifficultyButtons();
-    FUN_0049fb10((Menu_004604a0*)&g_game->gui, 1);
+    SetKeyboardInput((Menu_004604a0*)&g_game->gui, 1);
     RenderLayer((Menu_004604a0*)&g_game->gui, 0x40);
     SetCursorMode(0x13);
 }
@@ -3162,7 +3162,7 @@ void OpenSurrenderDialog()
     if (gadget == 0) {
         return;
     }
-    FUN_0049fb10((Sub_00460680*)&g_game->gui, 1);
+    SetKeyboardInput((Sub_00460680*)&g_game->gui, 1);
     char* entries = gadget->entries;
     FindGadgetIndex(entries, "CHOICE1", 1);
     FindGadgetIndex(entries, "CHOICE2", 1);
@@ -3171,14 +3171,14 @@ void OpenSurrenderDialog()
     // function copies "CHOICE2" (0x503120) into both fields.
     strcpy(entries + 0xcc, "CHOICE2");
     strcpy(entries + 0xdc, "CHOICE2");
-    FUN_004a0bf0((Sub_00460680*)&g_game->gui, "CHOICE1", "Yes", 0);
-    FUN_004a0bf0((Sub_00460680*)&g_game->gui, "CHOICE2", "No", 0);
+    SetTranslatedTextByName((Sub_00460680*)&g_game->gui, "CHOICE1", "Yes", 0);
+    SetTranslatedTextByName((Sub_00460680*)&g_game->gui, "CHOICE2", "No", 0);
     if (g_battleQuitIntent == 0) {
-        FUN_004a0bf0((Sub_00460680*)&g_game->gui, "TITLE", "Surrender this battle and return to main menu?", 0);
+        SetTranslatedTextByName((Sub_00460680*)&g_game->gui, "TITLE", "Surrender this battle and return to main menu?", 0);
     } else if (g_battleQuitIntent == 2) {
         const char* title = g_game->flags_2bee.flag4 ? "Exit the Battle"
                                                 : "Surrender this battle and exit to Windows?";
-        FUN_004a0bf0((Sub_00460680*)&g_game->gui, "TITLE", title, 0);
+        SetTranslatedTextByName((Sub_00460680*)&g_game->gui, "TITLE", title, 0);
     }
     SelectGadgetByName((Sub_00460680*)&g_game->gui, "CHOICE2");
     gadget->handler = HandleSurrenderChoice;
@@ -3221,22 +3221,22 @@ void OpenExitMenu()
     dialog->handler = HandleExitMenuClick;
     FindGadgetIndex(dialog->gadgets, "RESTART", 1);
     if (g_game->mode->GetGameType() == 1) {
-        FUN_004a0570((Sub_004608b0*)&g_game->gui, "RESTART", 1);
-        FUN_004a0bf0((Sub_004608b0*)&g_game->gui, "RESTART", (int)Translate("Restart"), 0x80);
+        SetGadgetActiveByName((Sub_004608b0*)&g_game->gui, "RESTART", 1);
+        SetTranslatedTextByName((Sub_004608b0*)&g_game->gui, "RESTART", (int)Translate("Restart"), 0x80);
         goto tail;
     }
     // Restart body written twice on purpose: the compiler merges them and lays
     // restart out before main-menu.
     if (g_game->mode->GetGameType() == 2) {
-        FUN_004a0570((Sub_004608b0*)&g_game->gui, "RESTART", 1);
-        FUN_004a0bf0((Sub_004608b0*)&g_game->gui, "RESTART", (int)Translate("Restart"), 0x80);
+        SetGadgetActiveByName((Sub_004608b0*)&g_game->gui, "RESTART", 1);
+        SetTranslatedTextByName((Sub_004608b0*)&g_game->gui, "RESTART", (int)Translate("Restart"), 0x80);
         goto tail;
     }
     if (g_game->flags_2bee.flag4) {
-        FUN_004a0570((Sub_004608b0*)&g_game->gui, "MAINMENU", 0);
+        SetGadgetActiveByName((Sub_004608b0*)&g_game->gui, "MAINMENU", 0);
     }
 tail:
-    FUN_0049fb10((Sub_004608b0*)&g_game->gui, 1);
+    SetKeyboardInput((Sub_004608b0*)&g_game->gui, 1);
     RenderLayer((Sub_004608b0*)&g_game->gui, 0x40);
 }
 
@@ -3251,7 +3251,7 @@ void __cdecl HandleBattleQuitPrompt(int)
 void __stdcall HandleInGameOptionsClick(Gadget_004609b0* gadget)
 {
     if (gadget->field_60 == -1) {
-        FUN_0049fa70((Sub_004609b0*)&g_game->gui);
+        DisableKeyCommands((Sub_004609b0*)&g_game->gui);
         g_optionsShellActive = 0;
         if (g_optionsFlipSurface) {
             FreeSurface(g_optionsFlipSurface);
@@ -3291,7 +3291,7 @@ void __stdcall HandleInGameOptionsClick(Gadget_004609b0* gadget)
         LoadPictureCached("dhelp", 0, 0, 0);
         g_helpDialogBaseGadgetCount = g->info->count;
         FillHelpPage((Sub_004609b0*)&g_game->gui, 0, 0x11);
-        FUN_0049fb10((Sub_004609b0*)&g_game->gui, 1);
+        SetKeyboardInput((Sub_004609b0*)&g_game->gui, 1);
         RenderLayer((Sub_004609b0*)&g_game->gui, 0x40);
         return;
     }
@@ -3335,15 +3335,15 @@ void OpenInGameOptions()
 {
     Gadget_00460cc0* gadget = LoadGuiLayer((Gui_00460cc0*)&g_game->gui, "ARMOPT.GUI", 0x800);
     gadget->handler = HandleInGameOptionsClick;
-    FUN_004a1200((Gui_00460cc0*)&g_game->gui, FindGadgetIndex(gadget->info, "SAVEGAME", 1),
+    SetGrayedOut((Gui_00460cc0*)&g_game->gui, FindGadgetIndex(gadget->info, "SAVEGAME", 1),
                  g_game->mode->GetGameType() == 3);
-    FUN_004a1200((Gui_00460cc0*)&g_game->gui, FindGadgetIndex(gadget->info, "LOADGAME", 1),
+    SetGrayedOut((Gui_00460cc0*)&g_game->gui, FindGadgetIndex(gadget->info, "LOADGAME", 1),
                  g_game->mode->GetGameType() == 3);
     if (g_game->mode->GetGameType() == 3 || g_game->mode->GetGameType() == 2) {
-        FUN_004a0bf0((Gui_00460cc0*)&g_game->gui, "MISSION", Translate("Settings"), 0x80);
+        SetTranslatedTextByName((Gui_00460cc0*)&g_game->gui, "MISSION", Translate("Settings"), 0x80);
     }
-    FUN_0049fa50((Gui_00460cc0*)&g_game->gui);
-    FUN_0049fb10((Gui_00460cc0*)&g_game->gui, 1);
+    EnableKeyCommands((Gui_00460cc0*)&g_game->gui);
+    SetKeyboardInput((Gui_00460cc0*)&g_game->gui, 1);
     RenderLayer((Gui_00460cc0*)&g_game->gui, 0x40);
     if (g_game->mode->GetGameType() != 3) {
         g_game->flags_38a51 |= 1;

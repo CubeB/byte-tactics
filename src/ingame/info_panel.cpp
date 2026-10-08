@@ -616,7 +616,7 @@ int __stdcall GetBuildRating(int player, unsigned short type);
 
 void __stdcall PlaySoundByName(char* name, int param_2);
 int __stdcall IsKeyDown(int key);
-void __stdcall FUN_004a50e0(void* surf, void* text, int x, int y, int color, int just);
+void __stdcall DrawTextClipped(void* surf, void* text, int x, int y, int color, int just);
 
 void __stdcall GetObjectBounds(Object_004cb650* obj, Vec3* lo, Vec3* hi, int arg);
 void __stdcall DrawRotatedQuadOutline(void* surface, Vec3* offset, Vec3* corners, short* angles);
@@ -1176,11 +1176,11 @@ void __stdcall DrawStatusPanel(Surface* win)
     int minutes = rest / 1800;
     int seconds = (rest - minutes * 1800) / 30;
     sprintf(buf, "%s : %02d:%02d:%02d", Translate("Game Time"), hours, minutes, seconds);
-    FUN_004a50e0(win, buf, left + 0x19, bottom + 0xa, -1, 0);
+    DrawTextClipped(win, buf, left + 0x19, bottom + 0xa, -1, 0);
     int team = g_game->team_number;
     sprintf(buf, "%s : %d  (Max %d)", Translate("Total Units"),
             g_game->players_004689c0[team].field_119, g_game->max_units);
-    FUN_004a50e0(win, buf, left + 0xbe, bottom + 0xa, -1, 0);
+    DrawTextClipped(win, buf, left + 0xbe, bottom + 0xa, -1, 0);
     if (g_game->speed2 == 10)
         sprintf(num, Translate("Normal"));
     else
@@ -1188,7 +1188,7 @@ void __stdcall DrawStatusPanel(Surface* win)
     sprintf(buf, "%s %s", Translate("Game Speed"), num);
     if (g_game->speed2 != g_game->speed)
         sprintf(buf + strlen(buf), " (%+d)", (int)g_game->speed - 10);
-    FUN_004a50e0(win, buf, left + 0x17c, bottom + 0xa, -1, 0);
+    DrawTextClipped(win, buf, left + 0x17c, bottom + 0xa, -1, 0);
     g_game->field_52d = g_game->field_521;
 }
 

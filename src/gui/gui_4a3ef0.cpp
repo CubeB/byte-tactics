@@ -3,7 +3,7 @@
 // scroll-up step, the mirror image of 0x4a99c0: find the entry of type 2
 // whose +0x01 byte equals this entry's, then, by the flag bits 0x10, 0x20 and
 // 0x80 of that entry, recompute the size of a line (+0x142) and the scroll
-// position (+0x136), and refresh the gadget with FUN_004a2580.
+// position (+0x136), and refresh the gadget with DrawSliderBar.
 //
 // Suspected original bug, reproduced: the 0x20 arm divides by the line total
 // unguarded, so a `field_c0` of zero or less divides by zero (the jle at
@@ -67,7 +67,7 @@ extern Holder_004a3ef0* g_guiContext;
 void __stdcall SetFont(int id);
 int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 int GetFontHeight();
-void __stdcall FUN_004a2580(Dialog* param_1, int param_2);
+void __stdcall DrawSliderBar(Dialog* param_1, int param_2);
 
 // The one helper for every GetGafFrame glyph fetch.
 static inline Glyph_004a3ef0* GetGlyph_004a3ef0(unsigned char c)
@@ -162,5 +162,5 @@ void __stdcall DrawSlider(Dialog* param_1, int param_2)
             }
         }
     }
-    FUN_004a2580(param_1, param_2);
+    DrawSliderBar(param_1, param_2);
 }

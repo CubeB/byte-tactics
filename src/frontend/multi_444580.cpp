@@ -84,10 +84,10 @@ void __stdcall HAPINET_uninitmultiplay(void* param_1);
 void __stdcall HAPINET_getconnections(void* param_1, void* guids, void* conns, void* descriptions, void* param_5);
 int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
 unsigned int __stdcall OnlineGetLinkInfo(LinkInfo* links);
-void __stdcall FUN_004a09c0(void* menu, int index, int param_3, int param_4);
-void __stdcall FUN_004a32a0(void* menu, char* name, void* items, int count, int flag);
+void __stdcall SetTranslatedText(void* menu, int index, int param_3, int param_4);
+void __stdcall ConfigureListBoxByName(void* menu, char* name, void* items, int count, int flag);
 void OrLabelAttribs();
-void __stdcall FUN_0049fb10(void* menu, int value);
+void __stdcall SetKeyboardInput(void* menu, int value);
 void __stdcall RenderLayer(void* menu, int value);
 
 // Appends a copy of entry `from` under a new name. This is 0x4444d0, which the
@@ -99,7 +99,7 @@ static int __stdcall CloneServiceSlot(Entry_00444580* entries, int from, short y
 {
     int index = ++entries[0].count;
     entries[index] = entries[from];
-    FUN_004a09c0(&g_game->menu, index, param_4, 0);
+    SetTranslatedText(&g_game->menu, index, param_4, 0);
     strcpy(entries[index].name, name);
     entries[index].field_15 = y;
     entries[index].field_29 = 1;
@@ -154,8 +154,8 @@ void FillProviderList()
         }
     }
     strcpy(entries->field_cc, "SELECT");
-    FUN_004a32a0(&g_game->menu, "DPLAY", g_game->descriptions, g_game->field_4f9, 0);
+    ConfigureListBoxByName(&g_game->menu, "DPLAY", g_game->descriptions, g_game->field_4f9, 0);
     OrLabelAttribs();
-    FUN_0049fb10(&g_game->menu, 1);
+    SetKeyboardInput(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
 }

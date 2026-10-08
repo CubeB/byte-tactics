@@ -151,7 +151,7 @@ void FlipScreen();
 void __stdcall FatalError(char* path);
 char* __stdcall Translate(char* text);
 void __stdcall DrawButton(Dialog* param_1, int param_2);
-void __stdcall FUN_004a7960(Dialog* menu, int value);
+void __stdcall SelectAdjacentGadget(Dialog* menu, int value);
 
 extern char DAT_005119b8[];
 
@@ -206,25 +206,25 @@ void __stdcall RunWhileScreenNamed(Dialog* menu, char* name)
 }
 
 // FUNCTION: 0x49fa50
-void __stdcall FUN_0049fa50(Dialog* p)
+void __stdcall EnableKeyCommands(Dialog* p)
 {
     *(int*)((char*)p + 0xa2) = 1;
 }
 
 // FUNCTION: 0x49fa70
-void __stdcall FUN_0049fa70(Dialog* obj)
+void __stdcall DisableKeyCommands(Dialog* obj)
 {
     obj->field_a2 = 0;
 }
 
 // FUNCTION: 0x49fa90
-void __stdcall FUN_0049fa90(Dialog* obj)
+void __stdcall MarkChanged(Dialog* obj)
 {
     obj->changed = 1;
 }
 
 // FUNCTION: 0x49fab0
-void __stdcall FUN_0049fab0(void* param_1)
+void __stdcall ClearChanged(void* param_1)
 {
     *(int*)((char*)param_1 + 0xcca) = 0;
 }
@@ -244,7 +244,7 @@ void __stdcall FUN_0049faf0(Dialog* param)
 }
 
 // FUNCTION: 0x49fb10
-void __stdcall FUN_0049fb10(int param_1, int param_2)
+void __stdcall SetKeyboardInput(int param_1, int param_2)
 {
     int eax = *(int*)(param_1 + 0x18);
     if (eax != 0) {
@@ -253,7 +253,7 @@ void __stdcall FUN_0049fb10(int param_1, int param_2)
 }
 
 // FUNCTION: 0x49fb30
-int __stdcall FUN_0049fb30(Dialog* obj)
+int __stdcall GetKeyboardInput(Dialog* obj)
 {
     if (obj->holder != 0) {
         return obj->holder->field_18;
@@ -262,34 +262,34 @@ int __stdcall FUN_0049fb30(Dialog* obj)
 }
 
 // FUNCTION: 0x49fb50
-void __stdcall FUN_0049fb50(Dialog* obj, const char* dir)
+void __stdcall SetFontsPath(Dialog* obj, const char* dir)
 {
     strncpy(obj->path_bb6, dir, 0x100);
     strcat(obj->path_bb6, "\\");
 }
 
 // FUNCTION: 0x49fba0
-void __stdcall FUN_0049fba0(Dialog* obj, const char* dir)
+void __stdcall SetGuiPath(Dialog* obj, const char* dir)
 {
     strncpy(obj->path_9b6, dir, 0x100);
     strcat(obj->path_9b6, "\\");
 }
 
 // FUNCTION: 0x49fbf0
-void __stdcall FUN_0049fbf0(Dialog* obj, const char* dir)
+void __stdcall SetAnimsPath(Dialog* obj, const char* dir)
 {
     strncpy(obj->path_ab6, dir, 0x100);
     strcat(obj->path_ab6, "\\");
 }
 
 // FUNCTION: 0x49fc40
-void __stdcall FUN_0049fc40(Dialog* param_1)
+void __stdcall ClearFocus(Dialog* param_1)
 {
     param_1->focus = 0xffffffff;
 }
 
 // FUNCTION: 0x49fc50
-int __stdcall FUN_0049fc50(Dialog* obj, int index)
+int __stdcall TrySetFocus(Dialog* obj, int index)
 {
     if (obj->focus != -1 && obj->holder->entries[obj->focus].type == 3) {
         obj->focus = -1;
@@ -305,7 +305,7 @@ int __stdcall FUN_0049fc50(Dialog* obj, int index)
 }
 
 // FUNCTION: 0x49fcf0
-int __stdcall FUN_0049fcf0(int param_1, int param_2)
+int __stdcall IsFocused(int param_1, int param_2)
 {
     int result = 0;
     result = *(int*)(param_1 + 0x64) == param_2;
@@ -313,7 +313,7 @@ int __stdcall FUN_0049fcf0(int param_1, int param_2)
 }
 
 // FUNCTION: 0x49fd10
-bool __stdcall FUN_0049fd10(int param_1)
+bool __stdcall HasFocus(int param_1)
 {
     return *(int*)(param_1 + 0x64) != -1;
 }
@@ -456,7 +456,7 @@ int __stdcall IsGadgetNamed(Entry_0049f8c0* entries, int i, char* name)
 }
 
 // FUNCTION: 0x4a0340
-void __stdcall FUN_004a0340(Dialog* param_1, int index)
+void __stdcall ClearPeerStatus(Dialog* param_1, int index)
 {
     Entry_0049f8c0* entries = param_1->holder->entries;
     Entry_0049f8c0* me = &entries[index];
@@ -476,7 +476,7 @@ void __stdcall FUN_004a0340(Dialog* param_1, int index)
 }
 
 // FUNCTION: 0x4a03f0
-void __stdcall FUN_004a03f0(Dialog* menu, int index, int value)
+void __stdcall SetGadgetActive(Dialog* menu, int index, int value)
 {
     Entry_0049f8c0* entries = menu->holder->entries;
     int i;
@@ -506,13 +506,13 @@ void __stdcall FUN_004a03f0(Dialog* menu, int index, int value)
                 i++;
             }
             if (found != -1) {
-                FUN_004a03f0(menu, found, 0);
+                SetGadgetActive(menu, found, 0);
             }
         }
     }
 
     if (value == 0 && index == menu->holder->selected) {
-        FUN_004a7960(menu, 1);
+        SelectAdjacentGadget(menu, 1);
     }
     menu->changed = 1;
 }
@@ -598,8 +598,8 @@ struct Dialog_004a04f0 {
 
 #pragma pack(pop)
 
-void __stdcall FUN_004a03f0(Dialog_004a04f0* menu, int index, int value);
-void __stdcall FUN_004a0340(Dialog_004a04f0* obj, int index);
+void __stdcall SetGadgetActive(Dialog_004a04f0* menu, int index, int value);
+void __stdcall ClearPeerStatus(Dialog_004a04f0* obj, int index);
 char* __stdcall Translate(char* text);
 void __stdcall FatalError(char* path);
 void __stdcall DrawLitRectangle(int surface, Rect* rect, int level);
@@ -633,7 +633,7 @@ static inline char* GetData(Dialog_004a04f0* obj)
 }
 
 // FUNCTION: 0x4a04f0
-char __stdcall FUN_004a04f0(Dialog_004a04f0* obj, char* name)
+char __stdcall GetGadgetActiveByName(Dialog_004a04f0* obj, char* name)
 {
     Entry_004a04f0* entries = obj->holder->entries;
     int i = FindEntry(entries, name);
@@ -644,12 +644,12 @@ char __stdcall FUN_004a04f0(Dialog_004a04f0* obj, char* name)
 }
 
 // FUNCTION: 0x4a0570
-void __stdcall FUN_004a0570(Dialog_004a04f0* obj, char* name, int param_3)
+void __stdcall SetGadgetActiveByName(Dialog_004a04f0* obj, char* name, int param_3)
 {
     if (obj->holder) {
         int index = FindEntry(obj->holder->entries, name);
         if (index != -1)
-            FUN_004a03f0(obj, index, param_3);
+            SetGadgetActive(obj, index, param_3);
     }
 }
 
@@ -657,7 +657,7 @@ void __stdcall FUN_004a0570(Dialog_004a04f0* obj, char* name, int param_3)
 // come from separate if statements that re-test entry->type; the tolower calls
 // are compared directly, with no named temporaries.
 // FUNCTION: 0x4a05e0
-void __stdcall FUN_004a05e0(Dialog_004a04f0* obj, int index)
+void __stdcall AssignQuickKey(Dialog_004a04f0* obj, int index)
 {
     Entry_004a04f0* entries;
     Entry_004a04f0* scan;
@@ -735,7 +735,7 @@ void __stdcall SetGadgetTextByName(Dialog_004a04f0* obj, char* name, char* text)
         if (index != -1) {
             strncpy(entries[index].text, text, 0x80);
             obj->changed = 1;
-            FUN_004a05e0(obj, index);
+            AssignQuickKey(obj, index);
         }
     }
 }
@@ -746,7 +746,7 @@ struct Object_004a0880;
 void __stdcall SetGadgetText(Object_004a0880* obj, int index, char* text);
 
 // FUNCTION: 0x4a08f0
-void __stdcall FUN_004a08f0(Dialog_004a04f0* obj, int index)
+void __stdcall TranslateGadgetItems(Dialog_004a04f0* obj, int index)
 {
     Entry_004a04f0* entry = GetEntry(obj, index);
     char temp[0x80];
@@ -763,7 +763,7 @@ void __stdcall FUN_004a08f0(Dialog_004a04f0* obj, int index)
 }
 
 // FUNCTION: 0x4a09c0
-void __stdcall FUN_004a09c0(Dialog_004a04f0* context, int index, char* source, int value)
+void __stdcall SetTranslatedText(Dialog_004a04f0* context, int index, char* source, int value)
 {
     if (index == -1 || context->holder == 0)
         return;
@@ -774,7 +774,7 @@ void __stdcall FUN_004a09c0(Dialog_004a04f0* context, int index, char* source, i
     case 5:
         strncpy(entries[index].text, text, 0x80);
         if (entries[index].count_136 != 0)
-            FUN_004a05e0(context, index);
+            AssignQuickKey(context, index);
         break;
     case 3:
         if (text != 0) {
@@ -787,7 +787,7 @@ void __stdcall FUN_004a09c0(Dialog_004a04f0* context, int index, char* source, i
         break;
     case 1:
         strncpy(entries[index].text, text, 0x80);
-        FUN_004a05e0(context, index);
+        AssignQuickKey(context, index);
         if (entries[index].count_136 != 0) {
             char* p = entries[index].text;
             while (*p != 0) {
@@ -814,12 +814,12 @@ void __stdcall FUN_004a09c0(Dialog_004a04f0* context, int index, char* source, i
 }
 
 // FUNCTION: 0x4a0bf0
-void __stdcall FUN_004a0bf0(Dialog_004a04f0* obj, char* name, char* param_3, int param_4)
+void __stdcall SetTranslatedTextByName(Dialog_004a04f0* obj, char* name, char* param_3, int param_4)
 {
     if (obj->holder != 0) {
         int index = FindEntry(obj->holder->entries, name);
         if (index != -1) {
-            FUN_004a09c0(obj, index, param_3, param_4);
+            SetTranslatedText(obj, index, param_3, param_4);
         }
     }
 }
@@ -827,7 +827,7 @@ void __stdcall FUN_004a0bf0(Dialog_004a04f0* obj, char* name, char* param_3, int
 // Finds a gadget by name (as in 0x4a0570), stores a value into it and marks
 // the object as changed.
 // FUNCTION: 0x4a0c70
-void __stdcall FUN_004a0c70(Dialog_004a04f0* obj, char* name, int value)
+void __stdcall SetGadgetColorByName(Dialog_004a04f0* obj, char* name, int value)
 {
     if (obj->holder) {
         Entry_004a04f0* entries = obj->holder->entries;
@@ -976,7 +976,7 @@ int __stdcall SetGadgetStatusByName(Dialog_004a04f0* obj, char* name, int value)
         entries[i].field_138 = value;
         obj->changed = 1;
         if (value) {
-            FUN_004a0340(obj, i);
+            ClearPeerStatus(obj, i);
         }
         return 1;
     }
@@ -987,11 +987,11 @@ int __stdcall SetGadgetStatusByName(Dialog_004a04f0* obj, char* name, int value)
 void __stdcall SetGadgetStatus(Dialog_004a04f0* param_1, int param_2, short param_3)
 {
     *(short*)(GetData(param_1) + param_2 * 347 + 0x138) = param_3;
-    FUN_004a0340(param_1, param_2);
+    ClearPeerStatus(param_1, param_2);
 }
 
 // FUNCTION: 0x4a1200
-void __stdcall FUN_004a1200(Dialog_004a04f0* obj, int index, int value)
+void __stdcall SetGrayedOut(Dialog_004a04f0* obj, int index, int value)
 {
     GetEntries(obj)[index].flag_bit = value;
     obj->changed = 1;
@@ -999,7 +999,7 @@ void __stdcall FUN_004a1200(Dialog_004a04f0* obj, int index, int value)
 
 // Finds a gadget by name and sets its flag bit (see 0x4a1080 and 0x4a1200).
 // FUNCTION: 0x4a1250
-void __stdcall FUN_004a1250(Dialog_004a04f0* obj, char* name, int value)
+void __stdcall SetGrayedOutByName(Dialog_004a04f0* obj, char* name, int value)
 {
     Entry_004a04f0* entries = obj->holder->entries;
     int i = FindEntry(entries, name);
@@ -1014,7 +1014,7 @@ void __stdcall FUN_004a1250(Dialog_004a04f0* obj, char* name, int value)
 // bits 0x1800. The other types write one flag bit. The `or`/`and` in type 2
 // and the `& 1` merges come from the source's explicit masks.
 // FUNCTION: 0x4a12e0
-void __stdcall FUN_004a12e0(Dialog_004a04f0* obj, int index, int value)
+void __stdcall SetGadgetGrayedOut(Dialog_004a04f0* obj, int index, int value)
 {
     Entry_004a04f0* entries = obj->holder->entries;
     if (index == -1) {
@@ -1054,27 +1054,27 @@ void __stdcall FUN_004a12e0(Dialog_004a04f0* obj, int index, int value)
 }
 
 // Looks up a menu entry by name and, when found, passes its index to
-// FUN_004a12e0; byte-identical to 0x4a14c0.
+// SetGadgetGrayedOut; byte-identical to 0x4a14c0.
 // FUNCTION: 0x4a1450
-void __stdcall FUN_004a1450(Dialog_004a04f0* obj, char* name, int param_3)
+void __stdcall SetGadgetGrayedOutByName(Dialog_004a04f0* obj, char* name, int param_3)
 {
     int index = FindEntry(obj->holder->entries, name);
     if (index != -1)
-        FUN_004a12e0(obj, index, param_3);
+        SetGadgetGrayedOut(obj, index, param_3);
 }
 
 // Looks up a menu entry by name and, when found, passes its index to
-// FUN_004a12e0; compare 0x4a0570 and 0x4a1530.
+// SetGadgetGrayedOut; compare 0x4a0570 and 0x4a1530.
 // FUNCTION: 0x4a14c0
 void __stdcall FUN_004a14c0(Dialog_004a04f0* obj, char* name, int param_3)
 {
     int index = FindEntry(obj->holder->entries, name);
     if (index != -1)
-        FUN_004a12e0(obj, index, param_3);
+        SetGadgetGrayedOut(obj, index, param_3);
 }
 
 // FUNCTION: 0x4a1530
-void __stdcall FUN_004a1530(Dialog_004a04f0* obj, char* name, char value)
+void __stdcall SetQuickKeyByName(Dialog_004a04f0* obj, char* name, char value)
 {
     int i = FindEntry(obj->holder->entries, name);
     obj->holder->entries[i].field_13a = value;
@@ -1082,7 +1082,7 @@ void __stdcall FUN_004a1530(Dialog_004a04f0* obj, char* name, char value)
 }
 
 // FUNCTION: 0x4a15c0
-void __stdcall FUN_004a15c0(char* param_1, int param_2, Rect* param_3)
+void __stdcall GetGadgetRectByIndex(char* param_1, int param_2, Rect* param_3)
 {
     char* e = param_1 + param_2 * 0x15b;
     if (*e == 0) {
@@ -1113,7 +1113,7 @@ void __stdcall GetGadgetRect(Entry_004a04f0* entry, Rect* rect)
 }
 
 // FUNCTION: 0x4a1680
-void __stdcall FUN_004a1680(char* param_1, int param_2, Rect* param_3)
+void __stdcall GetGadgetScreenRect(char* param_1, int param_2, Rect* param_3)
 {
     char* e = param_1 + param_2 * 0x15b;
     param_3->left = *(short*)(e + 0x13);
@@ -1130,7 +1130,7 @@ void __stdcall FUN_004a1680(char* param_1, int param_2, Rect* param_3)
 // type 3 is cleared first, then the selected one is given state 30 and, unless
 // its type rules it out, a box is drawn around it in six shrinking steps.
 // FUNCTION: 0x4a16f0
-void __stdcall FUN_004a16f0(Dialog_004a04f0* obj, int index, int param_3)
+void __stdcall DrawGadgetSelectionBox(Dialog_004a04f0* obj, int index, int param_3)
 {
     Entry_004a04f0* entries = obj->holder->entries;
     int i;
@@ -1205,7 +1205,7 @@ int __stdcall SelectFontForEntry(Entry_004a04f0* entries, int index)
 // Counts the type-8 entries up to the one numbered by entries[index].field_27.
 // Both paths return 0 in the original, although the caller tests the result.
 // FUNCTION: 0x4a18c0
-int __stdcall FUN_004a18c0(Entry_004a04f0* entries, int index)
+int __stdcall FindBackgroundCell(Entry_004a04f0* entries, int index)
 {
     int n = 0;
     for (int i = 1; i < entries->count + 1; i++) {
@@ -1220,7 +1220,7 @@ int __stdcall FUN_004a18c0(Entry_004a04f0* entries, int index)
 }
 
 // FUNCTION: 0x4a1920
-int __stdcall FUN_004a1920(Rect* r, int px, int py)
+int __stdcall IsPointInRect(Rect* r, int px, int py)
 {
     if (px >= r->left && px <= r->right && py >= r->top && py <= r->bottom) {
         return 1;
@@ -1261,7 +1261,7 @@ struct Entry_004a1990 {
 #pragma pack(pop)
 
 // FUNCTION: 0x4a1990
-int __stdcall FUN_004a1990(Entry_004a1990* entries, int index)
+int __stdcall FindAssocListBox(Entry_004a1990* entries, int index)
 {
     unsigned char id = entries[index].id;
     for (int i = 1; i < entries->count + 1; i++) {
@@ -1282,7 +1282,7 @@ struct Entry_004a19f0 {
 #pragma pack(pop)
 
 // FUNCTION: 0x4a19f0
-int __stdcall FUN_004a19f0(Entry_004a19f0* entries, int index)
+int __stdcall FindAssocSlider(Entry_004a19f0* entries, int index)
 {
     unsigned char id = entries[index].id;
     for (int i = 1; i < entries->count + 1; i++) {
@@ -1303,7 +1303,7 @@ struct Entry_004a1a50 {
 #pragma pack(pop)
 
 // FUNCTION: 0x4a1a50
-int __stdcall FUN_004a1a50(Entry_004a1a50* entries, int index)
+int __stdcall FindAssocTextInput(Entry_004a1a50* entries, int index)
 {
     unsigned char id = entries[index].id;
     for (int i = 1; i < entries->count + 1; i++) {
@@ -1485,9 +1485,9 @@ char* __stdcall GetGafFrame(void* glyphs, int c);
 void __stdcall SetTextColors(int colour, int font);
 int GetTextKeyColor();
 char* __stdcall SkipTextLines(char* text, int line);
-void __stdcall FUN_004a50e0(void* surface, char* text, int x, int y, int maxw,
+void __stdcall DrawTextClipped(void* surface, char* text, int x, int y, int maxw,
                             int style);
-int __stdcall FUN_004a51d0(void* surface, char* text, int x, int y, int maxw,
+int __stdcall DrawWrappedText(void* surface, char* text, int x, int y, int maxw,
                             int rem, int style);
 void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2,
                             int colour);
@@ -1631,9 +1631,9 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
                 xw = rowRect.right - xx + 1;
             }
             if (me->field_da > 6 + LineHeight_004a1b40())
-                FUN_004a51d0(entries->surface, q, xx, ty, xw, bounds.bottom - bounds.top, 0);
+                DrawWrappedText(entries->surface, q, xx, ty, xw, bounds.bottom - bounds.top, 0);
             else
-                FUN_004a50e0(entries->surface, q, xx, ty, xw, 0);
+                DrawTextClipped(entries->surface, q, xx, ty, xw, 0);
             q = SkipTextLines(q, 1);
             if (flag) {
                 flag = 0;
@@ -1762,7 +1762,7 @@ struct Entry_004a23b0 {
 #pragma pack(pop)
 
 // FUNCTION: 0x4a23b0
-void __stdcall FUN_004a23b0(Entry_004a23b0* base, int index, int* r1, int* r2)
+void __stdcall GetSliderRects(Entry_004a23b0* base, int index, int* r1, int* r2)
 {
     Entry_004a23b0* e = base + index;
     r1[0] = e->x;
@@ -1926,7 +1926,7 @@ struct Dialog_4a2580 {
 };
 
 void __stdcall SetFont(int id);
-void __stdcall FUN_004a23b0(Entry_004a2580* base, int index, int* r1, int* r2);
+void __stdcall GetSliderRects(Entry_004a2580* base, int index, int* r1, int* r2);
 void __stdcall DrawRaisedBox(void* surface, int* r, int a, int b, int c);
 void __stdcall DrawSunkenBox(void* surface, int* r, int a, int b, int c);
 char* __stdcall GetGafFrame(void* glyphs, int c);
@@ -1948,7 +1948,7 @@ static inline void* Surface_004a2580(Object_004a2580* o)
 #include <setjmp.h>
 
 // FUNCTION: 0x4a2580
-void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
+void __stdcall DrawSliderBar(Object_004a2580* obj, int index)
 {
     Entry_004a2580* entries = obj->holder->entries;
     Entry_004a2580* e = &entries[index];
@@ -1972,7 +1972,7 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
 
     int r1[4];
     int r2[4];
-    FUN_004a23b0(entries, index, r1, r2);
+    GetSliderRects(entries, index, r1, r2);
 
     unsigned short* gl = e->glyphs;
     if (gl == 0) {
@@ -2140,12 +2140,12 @@ struct Dialog_4a2be0 {
 };
 
 void __stdcall DrawListBox(Dialog_4a2be0* param_1, int param_2);
-void __stdcall FUN_004a2580(Dialog_4a2be0* param_1, int param_2);
+void __stdcall DrawSliderBar(Dialog_4a2be0* param_1, int param_2);
 void __stdcall DrawTextInput(Dialog_4a2be0* param_1, int param_2);
 char* __stdcall SkipTextLines(char* text, int line);
 
 // FUNCTION: 0x4a2be0
-void __stdcall FUN_004a2be0(Dialog_4a2be0* param_1, int param_2)
+void __stdcall SyncAssocGadgets(Dialog_4a2be0* param_1, int param_2)
 {
     Entry_004a2be0* entries = param_1->holder->entries;
     int i = 1;
@@ -2205,7 +2205,7 @@ void __stdcall FUN_004a2be0(Dialog_4a2be0* param_1, int param_2)
                             }
                             if (*(short*)entry != result) {
                                 *(short*)entry = result;
-                                FUN_004a2580(param_1, i);
+                                DrawSliderBar(param_1, i);
                             }
                         }
                     }
@@ -2297,7 +2297,7 @@ extern int Pad_a2e40_e1;
 extern int Pad_a2e40_e2;
 
 // FUNCTION: 0x4a2e40
-void __stdcall FUN_004a2e40(Dialog_4a2e40* param_1, char* param_2, int param_3) {
+void __stdcall SetListBoxScrollByName(Dialog_4a2e40* param_1, char* param_2, int param_3) {
     Entry_004a2e40* entries = param_1->holder->entries;
     int found = FindEntry(entries, param_2);
     if (found == -1)
@@ -2393,7 +2393,7 @@ int GetFontHeight();
 char* __stdcall GetGafFrame(void* glyphs, int c);
 unsigned int __cdecl GetTicks();
 // FUNCTION: 0x4a30c0
-void __stdcall FUN_004a30c0(Class_004a30c0* obj, int index)
+void __stdcall ResetListBox(Class_004a30c0* obj, int index)
 {
     Entry_004a30c0* entries = obj->holder->entries;
     Entry_004a30c0* e = &entries[index];
@@ -2431,7 +2431,7 @@ void __stdcall TruncateTextWithEllipsis(int a1, char* text, int a3, int a4, int 
 // (one name per line) and copies it back over a3. Each line is truncated to
 // 100 bytes, expanded by TruncateTextWithEllipsis (marker glyphs) and appended in place.
 // FUNCTION: 0x4a31c0
-void __stdcall FUN_004a31c0(int a1, int a2, char* a3, int a4)
+void __stdcall TruncateListItems(int a1, int a2, char* a3, int a4)
 {
     char* items = (char*)FUN_004d83b0("SCROLLITEMS", *(int*)(a3 - 0x44));
     char* out = items;
@@ -2487,7 +2487,7 @@ struct Dialog_4a32a0 {
 void __stdcall FatalError(char* msg);
 int GetFontHeight();
 char* __stdcall GetGafFrame(void* glyphs, int c);
-void __stdcall FUN_004a03f0(Root_004a32a0* menu, int index, int value);
+void __stdcall SetGadgetActive(Root_004a32a0* menu, int index, int value);
 // Keeps its own file, src/gui/gui_4a3ef0.cpp: DrawSlider only
 // matches at that file's symbol count.
 void __stdcall DrawSlider(Root_004a32a0* param_1, int param_2);
@@ -2520,7 +2520,7 @@ static inline int FindType_004a32a0(Entry_004a32a0* entries, unsigned char kind)
 }
 
 // FUNCTION: 0x4a32a0
-void __stdcall FUN_004a32a0(Dialog_4a32a0* param_1, char* name, int bitmap, int count, int flag) {
+void __stdcall ConfigureListBoxByName(Dialog_4a32a0* param_1, char* name, int bitmap, int count, int flag) {
     Holder_004a32a0* holder = param_1->holder;
     Entry_004a32a0* entries = holder->entries;
     int index = FindName_004a32a0(entries, name);
@@ -2566,12 +2566,12 @@ void __stdcall FUN_004a32a0(Dialog_4a32a0* param_1, char* name, int bitmap, int 
     if (found == -1)
         return;
     char* text = (char*)&holder->entries[found].name;
-    // Captured in a local before the name search, and passed on to FUN_004a03f0.
+    // Captured in a local before the name search, and passed on to SetGadgetActive.
     Root_004a32a0* root = g_guiContext;
     if (root->holder != 0) {
         int j2 = FindName_004a32a0(root->holder->entries, text);
         if (j2 != -1) {
-            FUN_004a03f0(root, j2, remain < 0);
+            SetGadgetActive(root, j2, remain < 0);
         }
     }
     if (remain < 0) {
@@ -2826,9 +2826,9 @@ int __stdcall IsDoubleClickMessage(Object_004a3780* obj, unsigned char buttons);
 int __stdcall IsMouseButtonMessage(Object_004a3780* obj, unsigned char buttons);
 int __stdcall HasMouseKeyFlags(Object_004a3780* obj, unsigned int mask);
 void __stdcall SetClickMode(Object_004a3780* obj, int param_2);
-void __stdcall FUN_0049fc50(Object_004a3780* obj, int index);
+void __stdcall TrySetFocus(Object_004a3780* obj, int index);
 void __stdcall DrawListBox(Object_004a3780* obj, int index);
-void __stdcall FUN_004a2be0(Object_004a3780* obj, int index);
+void __stdcall SyncAssocGadgets(Object_004a3780* obj, int index);
 
 struct Row_004a3780 {
     short unknown_0;
@@ -2915,12 +2915,12 @@ skip0:;
         }
     } else if (IsMouseButtonMessage(obj, 1)) {
         if (point.x >= r.x0 && point.x <= r.x1 && point.y >= r.y0 && point.y <= r.y1) {
-            FUN_0049fc50(obj, index);
+            TrySetFocus(obj, index);
             SetClickMode(obj, 1);
         }
     } else if (IsMouseButtonMessage(obj, 2)) {
         if (point.x >= r.x0 && point.x <= r.x1 && point.y >= r.y0 && point.y <= r.y1) {
-            FUN_0049fc50(obj, index);
+            TrySetFocus(obj, index);
             SetClickMode(obj, 2);
         }
     }
@@ -3034,7 +3034,7 @@ ret1:
             // Shared by both scroll tails via goto: MSVC 5 does not merge return blocks.
 finish:
             DrawListBox(obj, index);
-            FUN_004a2be0(obj, index);
+            SyncAssocGadgets(obj, index);
         }
     }
 end:
@@ -3091,7 +3091,7 @@ void __stdcall FUN_004a3eb0(Dialog_4a3eb0* obj, int i)
 // bar thumb: while the entry has the focus, either drag the offset (+0x140)
 // with the mouse or step it by one when the mouse is outside the thumb, then
 // clamp it to 0..field_136-1 and, if it changed, mark the holder dirty,
-// redraw (FUN_004a2580, FUN_004a2be0) and call the entry's callback. Without
+// redraw (DrawSliderBar, SyncAssocGadgets) and call the entry's callback. Without
 // the focus, a left or right press inside the gadget takes the focus, and a
 // press on the thumb starts a drag.
 
@@ -3141,10 +3141,10 @@ struct Object_004a4170 {
     short field_94;                    // +0x94, off when the drag began
 };
 
-void __stdcall FUN_0049fc50(Object_004a4170* obj, int index);
-void __stdcall FUN_004a23b0(Entry_004a4170* base, int index, int* r1, int* r2);
-void __stdcall FUN_004a2580(Object_004a4170* obj, int index);
-void __stdcall FUN_004a2be0(Object_004a4170* obj, int index);
+void __stdcall TrySetFocus(Object_004a4170* obj, int index);
+void __stdcall GetSliderRects(Entry_004a4170* base, int index, int* r1, int* r2);
+void __stdcall DrawSliderBar(Object_004a4170* obj, int index);
+void __stdcall SyncAssocGadgets(Object_004a4170* obj, int index);
 int __stdcall IsMouseButtonMessage(Object_004a4170* obj, unsigned char buttons);
 int __stdcall HasMouseKeyFlags(Object_004a4170* obj, unsigned int mask);
 void __stdcall SetClickMode(Object_004a4170* obj, int param_2);
@@ -3159,8 +3159,8 @@ static inline void OffsetChanged_004a4170(Object_004a4170* obj, int index, Entry
         return;
     if (obj->holder)
         obj->holder->field_14 = 1;
-    FUN_004a2580(obj, index);
-    FUN_004a2be0(obj, index);
+    DrawSliderBar(obj, index);
+    SyncAssocGadgets(obj, index);
     if (e->cb)
         e->cb(obj, e->field_14a);
 }
@@ -3180,7 +3180,7 @@ void __stdcall HandleSliderInput(Object_004a4170* obj, int index)
     p.y -= entries->y1;
     int r1[4];
     int r2[4];
-    FUN_004a23b0(entries, index, r1, r2);
+    GetSliderRects(entries, index, r1, r2);
 
     if (obj->focus == index) {
         if (!HasMouseKeyFlags(obj, 3)) {
@@ -3220,7 +3220,7 @@ void __stdcall HandleSliderInput(Object_004a4170* obj, int index)
         obj->field_78 = 0;
         if (p.x < r1[0] || p.x > r1[2] || p.y < r1[1] || p.y > r1[3])
             return;
-        FUN_0049fc50(obj, index);
+        TrySetFocus(obj, index);
         SetClickMode(obj, 1);
         if (p.x < r2[0] || p.x > r2[2] || p.y < r2[1] || p.y > r2[3])
             return;
@@ -3233,7 +3233,7 @@ void __stdcall HandleSliderInput(Object_004a4170* obj, int index)
         obj->field_78 = 0;
         if (p.x < r1[0] || p.x > r1[2] || p.y < r1[1] || p.y > r1[3])
             return;
-        FUN_0049fc50(obj, index);
+        TrySetFocus(obj, index);
         SetClickMode(obj, 2);
         if (p.x < r2[0] || p.x > r2[2] || p.y < r2[1] || p.y > r2[3])
             return;
@@ -3283,7 +3283,7 @@ struct Object_0049fc50 {
 };
 #pragma pack(pop)
 
-int __stdcall FUN_0049fc50(Object_0049fc50* obj, int index);
+int __stdcall TrySetFocus(Object_0049fc50* obj, int index);
 int __stdcall IsMouseButtonMessage(Object_0049fc50* obj, unsigned char buttons);
 int __stdcall HasMouseKeyFlags(Object_0049fc50* obj, unsigned int mask);
 void __stdcall SetClickMode(Object_0049fc50* obj, int param_2);
@@ -3291,7 +3291,7 @@ int PopKey(void);
 int __stdcall IsKeyDown(int key);
 
 // FUNCTION: 0x4a4440
-int __stdcall FUN_004a4440(Object_0049fc50* obj, int index, char key)
+int __stdcall HandleLabelInput(Object_0049fc50* obj, int index, char key)
 {
     Entry_0049fc50* entries = obj->holder->entries;
     Entry_0049fc50* entry = &entries[index];
@@ -3320,12 +3320,12 @@ int __stdcall FUN_004a4440(Object_0049fc50* obj, int index, char key)
     if (IsMouseButtonMessage(obj, 1)) {
         if (rel_x < rect.x1 || rel_x > rect.x2 || rel_y < rect.y1 || rel_y > rect.y2)
             goto fail;
-        FUN_0049fc50(obj, index);
+        TrySetFocus(obj, index);
         SetClickMode(obj, 1);
     } else if (IsMouseButtonMessage(obj, 2)) {
         if (rel_x < rect.x1 || rel_x > rect.x2 || rel_y < rect.y1 || rel_y > rect.y2)
             goto fail;
-        FUN_0049fc50(obj, index);
+        TrySetFocus(obj, index);
         SetClickMode(obj, 2);
     }
 
@@ -3437,7 +3437,7 @@ struct LanguageRoot_004a4660 { char unknown_0[0x14]; Language_004a4660 *language
 void __stdcall LockScreen(void *);
 void __stdcall FillBevelBox(void *, Rect_004a4660 *, unsigned int, unsigned int, unsigned int);
 void __stdcall FillRectangle(void *, Rect_004a4660 *, int);
-void __stdcall FUN_004a50e0(void *, char *, int, int, int, int);
+void __stdcall DrawTextClipped(void *, char *, int, int, int, int);
 char* __stdcall GetGafFrame(void* glyphs, int c);
 int GetFont();
 int __stdcall GetTextWidth(int, char *);
@@ -3466,7 +3466,7 @@ static inline int Measure_004a4660(char *text)
 }
 
 // FUNCTION: 0x4a4660
-void __stdcall FUN_004a4660(Dialog_4a4660 *obj, int index)
+void __stdcall DrawProgressBarGadget(Dialog_4a4660 *obj, int index)
 {
     Entry_004a4660 *entries = obj->holder->entries;
     Entry_004a4660 *entry = (Entry_004a4660 *)((char *)entries + index * 0x15b);
@@ -3506,7 +3506,7 @@ void __stdcall FUN_004a4660(Dialog_4a4660 *obj, int index)
                 g_guiContext->language->glyphs, 0x49);
             height = glyph->height + 2;
         }
-        FUN_004a50e0(surface, text,
+        DrawTextClipped(surface, text,
             (entry->w / 2 - width / 2) + entry->x,
             (entry->h / 2 - height / 2) + entry->y, -1, 0);
     }
@@ -3543,10 +3543,10 @@ struct Dialog_4a4890 {
 };
 
 unsigned int __cdecl GetTicks();
-void __stdcall FUN_004a4660(Dialog_4a4890* obj, int i);
+void __stdcall DrawProgressBarGadget(Dialog_4a4890* obj, int i);
 
 // FUNCTION: 0x4a4890
-void __stdcall FUN_004a4890(Dialog_4a4890* obj, int i)
+void __stdcall TickProgressBar(Dialog_4a4890* obj, int i)
 {
     Entry_004a4890* e = &obj->table->entries[i];
     if (e->active && e->value < e->max) {
@@ -3558,7 +3558,7 @@ void __stdcall FUN_004a4890(Dialog_4a4890* obj, int i)
             }
             e->next = GetTicks() + e->interval;
         }
-        FUN_004a4660(obj, i);
+        DrawProgressBarGadget(obj, i);
     }
 }
 struct ElemArray_4a4930 {
@@ -3572,7 +3572,7 @@ struct GameState_4a4930 {
 };
 
 // FUNCTION: 0x4a4930
-void __stdcall FUN_004a4930(GameState_4a4930* param_1, int index)
+void __stdcall ResetProgressBar(GameState_4a4930* param_1, int index)
 {
     char* e = param_1->arr->base + index * 0x15b;
     *(int*)(e + 0xb6) = 0;
@@ -3648,7 +3648,7 @@ void __stdcall FillRectangle(void* surface, Rect_004a4980* rect, int color);
 void __stdcall DrawFrameQuad(void* surf, void* entry, Quad_004a4980* dst, Quad_004a4980* src);
 
 // FUNCTION: 0x4a4980
-void __stdcall FUN_004a4980(Dialog_4a4980* obj, int index)
+void __stdcall DrawHotspot(Dialog_4a4980* obj, int index)
 {
     Entry_004a4980* entries = obj->holder->entries;
     Entry_004a4980* e = &entries[index];
@@ -3750,10 +3750,10 @@ struct Dialog_4a4b50 {
 extern int __stdcall IsMouseButtonMessage(Dialog_4a4b50* obj, unsigned char buttons);
 extern int __stdcall HasMouseKeyFlags(Dialog_4a4b50* obj, unsigned int mask);
 extern void __stdcall SetClickMode(Dialog_4a4b50* obj, int value);
-extern int __stdcall FUN_0049fc50(Dialog_4a4b50* obj, int index);
+extern int __stdcall TrySetFocus(Dialog_4a4b50* obj, int index);
 
 // FUNCTION: 0x4a4b50
-int __stdcall FUN_004a4b50(Dialog_4a4b50* obj, int index)
+int __stdcall HandleHotspotInput(Dialog_4a4b50* obj, int index)
 {
     Entry_004a4b50* entries = obj->table->entries;
     // Entries are indexed as entries[index], not through a stored pointer.
@@ -3775,13 +3775,13 @@ int __stdcall FUN_004a4b50(Dialog_4a4b50* obj, int index)
             // Position copied into a local Point before each hit test.
             Point_004a4b50 p = obj->pos;
             if (p.x >= r.left && p.x <= r.right && p.y >= r.top && p.y <= r.bottom) {
-                FUN_0049fc50(obj, index);
+                TrySetFocus(obj, index);
                 SetClickMode(obj, 1);
             }
         } else if (IsMouseButtonMessage(obj, 2)) {
             Point_004a4b50 p = obj->pos;
             if (p.x >= r.left && p.x <= r.right && p.y >= r.top && p.y <= r.bottom) {
-                FUN_0049fc50(obj, index);
+                TrySetFocus(obj, index);
                 SetClickMode(obj, 2);
             }
         }
@@ -3849,7 +3849,7 @@ static inline void FillRect_004a4c90(Entry_004a4c90* e, Rect_004a4c90* r)
 }
 
 // FUNCTION: 0x4a4c90
-void __stdcall FUN_004a4c90(Dialog_4a4c90* obj, int index, unsigned char param_3)
+void __stdcall DrawLineGadget(Dialog_4a4c90* obj, int index, unsigned char param_3)
 {
     Entry_004a4c90* entries = obj->holder->entries;
     Entry_004a4c90* e = (Entry_004a4c90*)((char*)entries + index * 0x15b);
@@ -3947,7 +3947,7 @@ int GetTextKeyColor();
 int __stdcall DrawListboxFrame(Dialog_4a4d70* obj, int index, void* bmp);
 void __stdcall CopySurfaceRect(void* dst, void* src, Rect_004a4d70* rect, int* pos);
 int __stdcall FillRectangle(void* surface, Rect_004a4d70* rect, int colour);
-void __stdcall FUN_004a50e0(void* surface, char* text, int x, int y, int maxw, int style);
+void __stdcall DrawTextClipped(void* surface, char* text, int x, int y, int maxw, int style);
 // The colour parameter must be int: forces the zero extension of the colour load.
 void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2,
                             int colour);
@@ -4025,7 +4025,7 @@ void __stdcall DrawTextInput(Dialog_4a4d70* obj, int index)
     // The style is read as entries[index].colours rather than me->colours:
     // sharing one load with the colour read above swaps the SIB registers of
     // that read (see the 0x4a4d70 entry in docs/field-notes.md, Part 5).
-    FUN_004a50e0(entries->surface, me->b6.text, rect.left, rect.top,
+    DrawTextClipped(entries->surface, me->b6.text, rect.left, rect.top,
                  rect.right - rect.left, entries[index].colours);
 
     if (index == obj->focus) {
@@ -4147,7 +4147,7 @@ void __stdcall DrawFrameLit(void* surface, void* glyph, int x, int y, int style)
 void __stdcall DrawString(void* surface, char* text, int x, int y, int maxWidth);
 
 // FUNCTION: 0x4a50e0
-void __stdcall FUN_004a50e0(void* surface, char* text, int x, int y, int maxw, int style)
+void __stdcall DrawTextClipped(void* surface, char* text, int x, int y, int maxw, int style)
 {
     if (g_guiContext->font == 0) {
         DrawString(surface, text, x, y, -1);
@@ -4199,7 +4199,7 @@ char* __stdcall GetGafFrame(void* glyphs, int c);
 int GetFont();
 int __stdcall GetTextWidth(int a, char* text);
 int GetFontHeight();
-void __stdcall FUN_004a50e0(char* dest, char* text, int p3, int x, int maxw, int style);
+void __stdcall DrawTextClipped(char* dest, char* text, int p3, int x, int maxw, int style);
 
 static inline int LineHeight_004a50b0()
 {
@@ -4224,7 +4224,7 @@ static inline int Measure(char* word, int t)
 }
 
 // FUNCTION: 0x4a51d0
-int __stdcall FUN_004a51d0(char* p2, char* text, int p4, int y, int maxw, int rem, int p7)
+int __stdcall DrawWrappedText(char* p2, char* text, int p4, int y, int maxw, int rem, int p7)
 {
     int last = 0;
     int w;
@@ -4250,7 +4250,7 @@ int __stdcall FUN_004a51d0(char* p2, char* text, int p4, int y, int maxw, int re
             i++;
             continue;
         }
-        FUN_004a50e0(p2, word, p4, y, maxw, p7);
+        DrawTextClipped(p2, word, p4, y, maxw, p7);
         text[i] = saved;
         y += LineHeight_004a50b0() + 2;
         rem -= LineHeight_004a50b0() + 2;
@@ -4511,25 +4511,25 @@ void __stdcall DrawFrame(void* surface, Glyph* glyph, int x, int y);
 void __stdcall DrawFrameLit(void* surface, Glyph* glyph, int x, int y, int style);
 void __stdcall FillBevelBox(void* surface, Rect* rect, unsigned int a, unsigned int b, unsigned int c);
 void __stdcall FillBevelBoxDarkFirst(void* surface, Rect* rect, unsigned int a, unsigned int b, unsigned int c);
-void __stdcall FUN_004a50e0(void* surface, char* text, int x, int y, int maxw, int style);
-int __stdcall FUN_004a51d0(void* surface, char* text, int x, int y, int maxw, int rem, int style);
+void __stdcall DrawTextClipped(void* surface, char* text, int x, int y, int maxw, int style);
+int __stdcall DrawWrappedText(void* surface, char* text, int x, int y, int maxw, int rem, int style);
 
-void __stdcall FUN_004a05e0(Gui* obj, int index);
-void __stdcall FUN_004a0340(Gui* obj, int index);
-void __stdcall FUN_004a16f0(Gui* obj, int index, int param3);
-void __stdcall FUN_004a2580(Gui* obj, int index);
-void __stdcall FUN_004a2be0(Gui* obj, int index);
-void __stdcall FUN_004a2e40(Gui* obj, char* name, int line);
+void __stdcall AssignQuickKey(Gui* obj, int index);
+void __stdcall ClearPeerStatus(Gui* obj, int index);
+void __stdcall DrawGadgetSelectionBox(Gui* obj, int index, int param3);
+void __stdcall DrawSliderBar(Gui* obj, int index);
+void __stdcall SyncAssocGadgets(Gui* obj, int index);
+void __stdcall SetListBoxScrollByName(Gui* obj, char* name, int line);
 void __stdcall DrawListBox(Gui* obj, int index);
 void __stdcall DrawSlider(Gui* obj, int index);
 void __stdcall DrawTextInput(Gui* obj, int index);
 void __stdcall DrawListboxFrame(Gui* obj, int index, void* bmp);
-void __stdcall FUN_004a4660(Gui* obj, int index);
-void __stdcall FUN_004a4980(Gui* obj, int index);
-void __stdcall FUN_004a4c90(Gui* obj, int index, unsigned int param3);
-int __stdcall FUN_004a4440(Gui* obj, int index, int key);
-int __stdcall FUN_004a4b50(Gui* obj, int index);
-int __stdcall FUN_0049fc50(Gui* obj, int index);
+void __stdcall DrawProgressBarGadget(Gui* obj, int index);
+void __stdcall DrawHotspot(Gui* obj, int index);
+void __stdcall DrawLineGadget(Gui* obj, int index, unsigned int param3);
+int __stdcall HandleLabelInput(Gui* obj, int index, int key);
+int __stdcall HandleHotspotInput(Gui* obj, int index);
+int __stdcall TrySetFocus(Gui* obj, int index);
 int __stdcall IsMouseButtonMessage(Gui* obj, unsigned char buttons);
 int __stdcall HasMouseKeyFlags(Gui* obj, unsigned int mask);
 void __stdcall SetClickMode(Gui* obj, int value);
@@ -4569,7 +4569,7 @@ static inline int LineHeight()
     return glyph->height + 2;
 }
 
-// The same height without the named glyph local; FUN_004a56b0 needs this form.
+// The same height without the named glyph local; DrawLabel needs this form.
 static inline int LineHeightDirect()
 {
     if (g_guiContext->language == 0)
@@ -4593,7 +4593,7 @@ static inline int FindEntry(Entry* entries, char* name)
 // width and line height back into the entry. +0xb6 is a union (count on entry
 // 0, NUL terminated text elsewhere); +0x1b is a 4-byte field.
 // FUNCTION: 0x4a53c0
-void __stdcall FUN_004a53c0(Gui* obj, int index)
+void __stdcall LayoutLabelText(Gui* obj, int index)
 {
     Entry* entries = obj->layer->entries;
     Entry* entry = &entries[index];
@@ -4635,7 +4635,7 @@ void __stdcall FUN_004a53c0(Gui* obj, int index)
 }
 
 // FUNCTION: 0x4a56b0
-void __stdcall FUN_004a56b0(Gui* obj, int index)
+void __stdcall DrawLabel(Gui* obj, int index)
 {
     obj->language = obj->values[1];
     Entry* entries = obj->layer->entries;
@@ -4695,11 +4695,11 @@ void __stdcall FUN_004a56b0(Gui* obj, int index)
     if (i == -1) {
         int lh = LineHeightDirect();
         if (rect.bottom - rect.top > lh * 2)
-            FUN_004a51d0(entries->u.assets.surface, entries[index].u.text, nx, rect.top,
+            DrawWrappedText(entries->u.assets.surface, entries[index].u.text, nx, rect.top,
                          rect.right - rect.left + 1,
                          rect.bottom - rect.top + 1, entries[index].colours);
         else
-            FUN_004a50e0(entries->u.assets.surface, entries[index].u.text, nx, rect.top,
+            DrawTextClipped(entries->u.assets.surface, entries[index].u.text, nx, rect.top,
                          rect.right - rect.left + 1, entries[index].colours);
     } else {
         DrawString(entries->u.assets.surface, entries[index].u.text, nx, rect.top, -1);
@@ -4749,13 +4749,13 @@ void __stdcall FUN_004a56b0(Gui* obj, int index)
 }
 
 // FUNCTION: 0x4a5d30
-void __stdcall FUN_004a5d30(Gui* p, int index)
+void __stdcall SetCurrentFont(Gui* p, int index)
 {
     p->language = p->values[index];
 }
 
 // FUNCTION: 0x4a5d50
-int __stdcall FUN_004a5d50(Gui* menu, int index)
+int __stdcall TruncateGadgetText(Gui* menu, int index)
 {
     Entry* entries = menu->layer->entries;
     char* text = GetGadgetText(menu, entries[index].name, 0);
@@ -4785,7 +4785,7 @@ int __stdcall FUN_004a5d50(Gui* menu, int index)
 // The +0xbc field is a union because entry 0 holds the
 // destination surface pointer there while every other entry holds flag bits.
 // FUNCTION: 0x4a5e50
-void __stdcall FUN_004a5e50(Gui* obj, int index)
+void __stdcall DrawGadgetGlyph(Gui* obj, int index)
 {
     if (obj->layer != 0)
         obj->layer->dirty = 1;
@@ -4874,7 +4874,7 @@ void __stdcall DrawButton(Gui* menu, int index)
     if (i == entries->u.count + 1)
         SetFont(g_guiContext->fontId);
 
-    textw = FUN_004a5d50(menu, index);
+    textw = TruncateGadgetText(menu, index);
     surface = entries->u.assets.surface;
     if (me->gaf != 0) {
         Glyph* glyph;
@@ -4950,18 +4950,18 @@ void __stdcall DrawButton(Gui* menu, int index)
             menu->language = menu->values[1];
 
         if (me->flags & 1) {
-            FUN_004a50e0(surface, p, t + rect.left + 3, y,
+            DrawTextClipped(surface, p, t + rect.left + 3, y,
                          rect.right - rect.left + 1, 0);
         } else if (me->flags & 4) {
             x = rect.right - textw - 3;
             if (x < rect.left)
                 x = rect.left;
-            FUN_004a50e0(surface, p, x, y, rect.right - rect.left + 1, 0);
+            DrawTextClipped(surface, p, x, y, rect.right - rect.left + 1, 0);
         } else if (me->flags & 2) {
             x = (rect.right - textw - rect.left) / 2 + t;
             x += rect.left + 1;
             if (me->field_13a == 0 || (me->field_13c & 1)) {
-                FUN_004a50e0(surface, p, x, y, 1 + (rect.right - rect.left), 0);
+                DrawTextClipped(surface, p, x, y, 1 + (rect.right - rect.left), 0);
             } else {
                 // Declared in this block: key1[1] = 0 hoists into the inlined strcpy.
                 char key1[2];
@@ -4976,14 +4976,14 @@ void __stdcall DrawButton(Gui* menu, int index)
                     GetFont();
                     strcpy(buf, p);
                     *found = 0;
-                    FUN_004a50e0(surface, buf, x, y, width, 0);
+                    DrawTextClipped(surface, buf, x, y, width, 0);
                     x += GetTextPixelWidth(buf);
                     saved = x;
                     if (me->field_138 != 0)
                         SetTextColors(menu->colours[0], GetTextKeyColor());
                     else
                         SetTextColors(menu->colours[me->colours], GetTextKeyColor());
-                    FUN_004a50e0(surface, key1, x, y, width, 0);
+                    DrawTextClipped(surface, key1, x, y, width, 0);
                     x += GetTextPixelWidth(key1);
                     if (me->field_138 != 0) {
                         DrawLine(surface, saved, LineHeight() + y - 1,
@@ -4998,9 +4998,9 @@ void __stdcall DrawButton(Gui* menu, int index)
                         SetTextColors(menu->colours[0], GetTextKeyColor());
                     else
                         SetTextColors(menu->colours[me->colours], GetTextKeyColor());
-                    FUN_004a50e0(surface, found + 1, x, y, width, 0);
+                    DrawTextClipped(surface, found + 1, x, y, width, 0);
                 } else {
-                    FUN_004a50e0(surface, p, x, y, width, 0);
+                    DrawTextClipped(surface, p, x, y, width, 0);
                 }
             }
         } else if (me->flags & 0x20) {
@@ -5016,19 +5016,19 @@ void __stdcall DrawButton(Gui* menu, int index)
                 key2[1] = 0;
                 GetFont();
                 *found = 0;
-                FUN_004a50e0(surface, p, xb, ys, width, 0);
+                DrawTextClipped(surface, p, xb, ys, width, 0);
                 // Suspected original bug: this measures `text` (the first
                 // string, [esp+0x4c] at 0x4a681e), not the drawn prefix `p`,
                 // so the underline is misplaced when stage selects a later
                 // string. The flags 2 branch measures its truncated copy.
                 xb += GetTextPixelWidth(text);
                 SetTextColors(menu->colours[10], GetTextKeyColor());
-                FUN_004a50e0(surface, key2, xb, ys, width, 0);
+                DrawTextClipped(surface, key2, xb, ys, width, 0);
                 xb += GetTextPixelWidth(key2);
                 SetTextColors(menu->colours[me->colours], GetTextKeyColor());
-                FUN_004a50e0(surface, found + 1, xb, ys, width, 0);
+                DrawTextClipped(surface, found + 1, xb, ys, width, 0);
             } else {
-                FUN_004a50e0(surface, p, xb, ys, rect.right - rect.left + 1, 0);
+                DrawTextClipped(surface, p, xb, ys, rect.right - rect.left + 1, 0);
             }
         }
     } while (pass--);
@@ -5041,7 +5041,7 @@ void __stdcall DrawButton(Gui* menu, int index)
 }
 
 // FUNCTION: 0x4a69d0
-void __stdcall FUN_004a69d0(Gui* param_1)
+void __stdcall ClearAllStatus(Gui* param_1)
 {
     Entry* entries = param_1->layer->entries;
     Entry* e = &entries[1];
@@ -5056,7 +5056,7 @@ void __stdcall FUN_004a69d0(Gui* param_1)
 
 // Sibling of 0x4a69d0, limited to the entries on the same team as `index`.
 // FUNCTION: 0x4a6a40
-void __stdcall FUN_004a6a40(Gui* param_1, int index)
+void __stdcall ClearGroupStatus(Gui* param_1, int index)
 {
     Entry* entries = param_1->layer->entries;
     Entry* e = &entries[1];
@@ -5108,12 +5108,12 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
         obj->field_68 = index;
         if (IsMouseButtonMessage(obj, 1)) {
             obj->focus = -1;
-            FUN_0049fc50(obj, index);
+            TrySetFocus(obj, index);
             SetClickMode(obj, 1);
             obj->field_cce = entry->field_138;
         } else if (IsMouseButtonMessage(obj, 2)) {
             obj->focus = -1;
-            FUN_0049fc50(obj, index);
+            TrySetFocus(obj, index);
             SetClickMode(obj, 2);
             obj->field_cce = entry->field_138;
         }
@@ -5131,7 +5131,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
                 return 0;
             }
             entry->field_138 = 1;
-            FUN_004a0340(obj, index);
+            ClearPeerStatus(obj, index);
             DrawButton(obj, index);
             return 1;
         }
@@ -5145,7 +5145,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
                     return 0;
                 }
                 entry->field_138 = (obj->field_cce == 0);
-                FUN_004a0340(obj, index);
+                ClearPeerStatus(obj, index);
                 DrawButton(obj, index);
                 return 1;
             }
@@ -5173,7 +5173,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
                 entry->field_138 = 0;
             else if (entry->field_138 == 0)
                 entry->field_138 = 1;
-            FUN_004a0340(obj, index);
+            ClearPeerStatus(obj, index);
             DrawButton(obj, index);
             obj->focus = -1;
             return 1;
@@ -5191,7 +5191,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
                 else
                     entry->field_138 = 0;
             }
-            FUN_004a0340(obj, index);
+            ClearPeerStatus(obj, index);
             DrawButton(obj, index);
             obj->focus = -1;
             return 1;
@@ -5199,7 +5199,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
         if (!HasMouseKeyFlags(obj, 3)) {
             obj->focus = -1;
             entry->field_138 = 0;
-            FUN_004a0340(obj, index);
+            ClearPeerStatus(obj, index);
             if (point.x >= r.left && point.x <= r.right
                 && point.y >= r.top && point.y <= r.bottom
                 && !(entry->flags & 0x1800)) {
@@ -5260,8 +5260,8 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
         }
         if (obj->layer)
             obj->layer->dirty = 1;
-        FUN_004a2580(obj, found);
-        FUN_004a2be0(obj, found);
+        DrawSliderBar(obj, found);
+        SyncAssocGadgets(obj, found);
         if (f->callback)
             f->callback(obj, f->callbackArg);
         return 0;
@@ -5280,7 +5280,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
                                 DrawButton(obj, index);
                             }
                         }
-                        FUN_004a0340(obj, index);
+                        ClearPeerStatus(obj, index);
                         PopKey();
                         return 1;
                     }
@@ -5293,7 +5293,7 @@ fail:
 }
 
 // FUNCTION: 0x4a7190
-void __stdcall FUN_004a7190(Gui* obj, int index)
+void __stdcall BeginTextEdit(Gui* obj, int index)
 {
     Entry* entries = obj->layer->entries;
     Entry* target = &entries[index];
@@ -5315,7 +5315,7 @@ void __stdcall FUN_004a7190(Gui* obj, int index)
         SetFont(g_guiContext->fontId);
     }
 
-    FUN_0049fc50(obj, index);
+    TrySetFocus(obj, index);
     obj->layer->current = index;
     CommitTextEdit(obj, index, target->u.text, target->field_138, 0);
     ClearKeyQueue();
@@ -5342,17 +5342,17 @@ static inline int SelectFontForEntry_inlined(Entry* entries, int index)
     return i;
 }
 
-// One mouse button's action on the entry: the rect FUN_004a15c0 fills here is
+// One mouse button's action on the entry: the rect GetGadgetRectByIndex fills here is
 // never read, but its block-scoped local shares the frame slot of the hit
 // test's rect, as in the original.
 static inline void Activate(Gui* obj, int index)
 {
     Rect rect;
     Entry* ep = obj->layer->entries;
-    FUN_004a15c0((char*)ep, index, &rect);
+    GetGadgetRectByIndex((char*)ep, index, &rect);
     SetTextColors(obj->colours[ep[index].colours], GetTextKeyColor());
     SelectFontForEntry(ep, index);
-    FUN_0049fc50(obj, index);
+    TrySetFocus(obj, index);
     obj->layer->current = index;
     CommitTextEdit(obj, index, ep[index].u.text, ep[index].field_138, 0);
     ClearKeyQueue();
@@ -5367,14 +5367,14 @@ int __stdcall HandleTextInput(Gui* obj, int index, int key)
 {
     Entry* entries = obj->layer->entries;
     Rect rect;
-    FUN_004a15c0((char*)entries, index, &rect);
+    GetGadgetRectByIndex((char*)entries, index, &rect);
     SelectFontForEntry_inlined(entries, index);
 
     Point point = obj->point;
     int rel_x = point.x - entries->x;
     int rel_y = point.y - entries->y;
 
-    if (FUN_004a1920(&rect, rel_x, rel_y)) {
+    if (IsPointInRect(&rect, rel_x, rel_y)) {
         obj->field_68 = index;
         if (IsMouseButtonMessage(obj, 1)) {
             Activate(obj, index);
@@ -5385,16 +5385,16 @@ int __stdcall HandleTextInput(Gui* obj, int index, int key)
         }
     }
 
-    if (FUN_0049fcf0((int)obj, index)) {
+    if (IsFocused((int)obj, index)) {
         SetTextColors(obj->colours[entries[index].colours],
                      obj->colours[entries[index].image]);
         int r = HandleTextEditKey(obj, index, key);
         if (r == 13) {
-            FUN_0049fc40((Dialog*)obj);
+            ClearFocus((Dialog*)obj);
             return 1;
         }
         if (r == 27) {
-            FUN_0049fc40((Dialog*)obj);
+            ClearFocus((Dialog*)obj);
             entries[index].u.text[0] = 0;
             return 1;
         }
@@ -5459,7 +5459,7 @@ static inline void DoSelect(Gui* menu, Entry* entries, int sel)
     }
     if (i == entries->u.count + 1)
         SetFont(g_guiContext->fontId);
-    FUN_0049fc50(menu, sel);
+    TrySetFocus(menu, sel);
     menu->layer->current = sel;
     CommitTextEdit(menu, sel, entry->u.text, entry->field_138, 0);
     ClearKeyQueue();
@@ -5516,14 +5516,14 @@ void __stdcall SelectGadgetByIndex(Gui* menu, int index)
             SetFont(g_guiContext->fontId);
         }
 
-        FUN_0049fc50(menu, i);
+        TrySetFocus(menu, i);
         menu->layer->current = i;
         CommitTextEdit(menu, i, entry->u.text, entry->field_138, 0);
         ClearKeyQueue();
     }
 }
 
-// The real FUN_004a7190, inlined here by /Ob2 (the out-of-line function alone is not inlined).
+// The real BeginTextEdit, inlined here by /Ob2 (the out-of-line function alone is not inlined).
 static inline void FUN_004a7190_inlined(Gui* obj, int index)
 {
     Entry* entries = obj->layer->entries;
@@ -5546,14 +5546,14 @@ static inline void FUN_004a7190_inlined(Gui* obj, int index)
         SetFont(g_guiContext->fontId);
     }
 
-    FUN_0049fc50(obj, index);
+    TrySetFocus(obj, index);
     obj->layer->current = index;
     CommitTextEdit(obj, index, target->u.text, target->field_138, 0);
     ClearKeyQueue();
 }
 
 // FUNCTION: 0x4a7960
-void __stdcall FUN_004a7960(Gui* menu, int dir)
+void __stdcall SelectAdjacentGadget(Gui* menu, int dir)
 {
     int used[200];
 
@@ -5668,7 +5668,7 @@ void __stdcall FUN_004a7960(Gui* menu, int dir)
 }
 
 // FUNCTION: 0x4a7ee0
-void __stdcall FUN_004a7ee0(Entry* entries, int index)
+void __stdcall MoveEntryToFront(Entry* entries, int index)
 {
     Entry temp;
     if (index != -1) {
@@ -6012,7 +6012,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
             pf = &cur->flags;
             if ((cur->flags & 0x1800) || (cur->resourceFlags & 1))
                 break;
-            FUN_004a05e0(menu, i);
+            AssignQuickKey(menu, i);
             strncpy(textbuf, entries[i].name, 0x10);
             entries[i].field_13b = 0;
             textbuf[0x10] = 0;
@@ -6111,7 +6111,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
             if (strlen((char*)&entries[i].field_136) == 0)
                 entries[i].flags |= 0x10;
             else
-                FUN_004a05e0(menu, i);
+                AssignQuickKey(menu, i);
             entries[i].colours = 0;
             break;
 
@@ -6150,7 +6150,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                 DrawListboxFrame(menu, i, entries[i].u.assets.background);
                 break;
             case 12:
-                FUN_004a5e50(menu, i);
+                DrawGadgetGlyph(menu, i);
                 break;
             case 1:
                 if (force != 0 || (flags & 0x48) != 0)
@@ -6203,7 +6203,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                 break;
             case 5:
                 if (force || (flags & 0x40))
-                    FUN_004a56b0(menu, i);
+                    DrawLabel(menu, i);
                 break;
             case 6:
                 if (force) {
@@ -6214,7 +6214,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                     base[i].u.t6.f_c6 = 0;
                 }
                 if (force || (flags & 0x40))
-                    FUN_004a4980(menu, i);
+                    DrawHotspot(menu, i);
                 break;
             case 13:
                 if (force) {
@@ -6222,11 +6222,11 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                     base[i].u.anim.field_c6 = GetTicks() + base[i].u.anim.field_c2;
                 }
                 if (force || (flags & 0x40))
-                    FUN_004a4660(menu, i);
+                    DrawProgressBarGadget(menu, i);
                 break;
             case 10:
                 if (force || (flags & 0x40))
-                    FUN_004a4c90(menu, i, flags);
+                    DrawLineGadget(menu, i, flags);
                 break;
             default:
                 break;
@@ -6234,10 +6234,10 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
     }
         if (menu->layer->current != -1 && menu->field_a2 != 0) {
             savedType = entries[menu->layer->current].type;
-            FUN_004a16f0(menu, menu->layer->current, 8);
+            DrawGadgetSelectionBox(menu, menu->layer->current, 8);
             int j = FindEntry(entries, entries[0].u.text + 0x16);
             if (j != -1 && savedType != 1 && entries[i].field_29 != 0)
-                FUN_004a16f0(menu, j, 8);
+                DrawGadgetSelectionBox(menu, j, 8);
         }
     }
 
@@ -6318,8 +6318,8 @@ void __stdcall DecrementKnobPos(Gui* obj, int index)
     }
     if (e->field_140 != old) {
         obj->changed = 1;
-        FUN_004a2580(obj, index);
-        FUN_004a2be0(obj, index);
+        DrawSliderBar(obj, index);
+        SyncAssocGadgets(obj, index);
     }
     if (e->callback) {
         e->callback(obj, e->callbackArg);
@@ -6327,8 +6327,8 @@ void __stdcall DecrementKnobPos(Gui* obj, int index)
 }
 
 // Forward declarations of the list steps below: their symbol ids keep IncrementKnobPos matching.
-void __stdcall FUN_004a9830(Gui* param_1, int index);
-void __stdcall FUN_004a99c0(Gui* param_1, int index);
+void __stdcall ListBoxSelectUp(Gui* param_1, int index);
+void __stdcall ListBoxSelectDown(Gui* param_1, int index);
 
 // Must stay a static inline helper: written inline it changes the load order.
 static inline Entry* entry_at(Gui* obj, int index)
@@ -6357,8 +6357,8 @@ void __stdcall IncrementKnobPos(Gui* obj, int index)
     }
     if (e->field_140 != old) {
         obj->changed = 1;
-        FUN_004a2580(obj, index);
-        FUN_004a2be0(obj, index);
+        DrawSliderBar(obj, index);
+        SyncAssocGadgets(obj, index);
     }
     if (e->callback) {
         e->callback(obj, e->callbackArg);
@@ -6388,7 +6388,7 @@ extern int Pad_a9830_e4;
 extern int Pad_a9830_e5;
 
 // FUNCTION: 0x4a9830
-void __stdcall FUN_004a9830(Gui* param_1, int index)
+void __stdcall ListBoxSelectUp(Gui* param_1, int index)
 {
     Entry* entries = param_1->layer->entries;
     Entry* me = &entries[index];
@@ -6440,19 +6440,19 @@ void __stdcall FUN_004a9830(Gui* param_1, int index)
             }
         }
         DrawListBox(param_1, index);
-        FUN_004a2be0(param_1, index);
+        SyncAssocGadgets(param_1, index);
         return;
     }
     if (me->u.list.field_c0 != 0) {
-        FUN_004a2e40(param_1, me->name, isel);
+        SetListBoxScrollByName(param_1, me->name, isel);
     }
 }
 
-// Forward declarations of the functions below: their symbol ids keep FUN_004a99c0 matching.
+// Forward declarations of the functions below: their symbol ids keep ListBoxSelectDown matching.
 int __stdcall HandleGuiCommand(Gui* obj, int cmd);
 int __stdcall UpdateMenu(Gui* menu);
 void __stdcall SetCurrentGuiContext(Gui* ctx);
-int FUN_004aa8d0(void);
+int GetGuiContext(void);
 void __stdcall FUN_004aa8e0(int* param_1, int param_2);
 
 // The list gadget's scroll-down step. First it does what 0x4a1810 does: picks
@@ -6465,7 +6465,7 @@ void __stdcall FUN_004aa8e0(int* param_1, int param_2);
 // nothing happens. A selection sitting on a line whose text starts with
 // "&G" is not moved either.
 // FUNCTION: 0x4a99c0
-void __stdcall FUN_004a99c0(Gui* param_1, int index)
+void __stdcall ListBoxSelectDown(Gui* param_1, int index)
 {
     Entry* entries = param_1->layer->entries;
     Entry* me = &entries[index];
@@ -6511,12 +6511,12 @@ void __stdcall FUN_004a99c0(Gui* param_1, int index)
                 }
             }
             DrawListBox(param_1, index);
-            FUN_004a2be0(param_1, index);
+            SyncAssocGadgets(param_1, index);
             return;
         }
     }
     if (me->u.list.field_c0 != 0) {
-        FUN_004a2e40(param_1, me->name, isel);
+        SetListBoxScrollByName(param_1, me->name, isel);
     }
 }
 
@@ -6546,9 +6546,9 @@ int __stdcall HandleGuiCommand(Gui* obj, int cmd)
     switch (cmd) {
     case 9:
         if (IsKeyDown(0xf9))
-            FUN_004a7960(obj, 0);
+            SelectAdjacentGadget(obj, 0);
         else
-            FUN_004a7960(obj, 1);
+            SelectAdjacentGadget(obj, 1);
         obj->changed = 1;
         cmd = 0;
         break;
@@ -6587,7 +6587,7 @@ int __stdcall HandleGuiCommand(Gui* obj, int cmd)
         if (type == 1) {
             if (e->flags & 0x10) {
                 e->field_138 = 1;
-                FUN_004a0340(obj, index);
+                ClearPeerStatus(obj, index);
                 DrawButton(obj, index);
             }
         }
@@ -6601,11 +6601,11 @@ int __stdcall HandleGuiCommand(Gui* obj, int cmd)
         break;
     case 0xf5:
         if (type == 2) {
-            FUN_004a9830(obj, index);
+            ListBoxSelectUp(obj, index);
             if (e->u.list.callback)
                 e->u.list.callback(obj, e);
         } else {
-            FUN_004a7960(obj, 2);
+            SelectAdjacentGadget(obj, 2);
         }
         obj->changed = 1;
         cmd = 0;
@@ -6616,17 +6616,17 @@ int __stdcall HandleGuiCommand(Gui* obj, int cmd)
         if (type == 4 && e->w > e->h)
             DecrementKnobPos(obj, index);
         else
-            FUN_004a7960(obj, 0);
+            SelectAdjacentGadget(obj, 0);
         obj->changed = 1;
         cmd = 0;
         break;
     case 0xf7:
         if (type == 2) {
-            FUN_004a99c0(obj, index);
+            ListBoxSelectDown(obj, index);
             if (e->u.list.callback)
                 e->u.list.callback(obj, e);
         } else {
-            FUN_004a7960(obj, 3);
+            SelectAdjacentGadget(obj, 3);
         }
         obj->changed = 1;
         cmd = 0;
@@ -6637,7 +6637,7 @@ int __stdcall HandleGuiCommand(Gui* obj, int cmd)
         if (type == 4 && e->w > e->h)
             IncrementKnobPos(obj, index);
         else
-            FUN_004a7960(obj, 1);
+            SelectAdjacentGadget(obj, 1);
         obj->changed = 1;
         cmd = 0;
         break;
@@ -6651,14 +6651,14 @@ int __stdcall HandleGuiCommand(Gui* obj, int cmd)
     return cmd;
 }
 
-// FUN_004a7190's body with its group scan left as a call to SelectFontForEntry, as
+// BeginTextEdit's body with its group scan left as a call to SelectFontForEntry, as
 // on the case 5 path here (and twice in HandleTextInput).
 static inline void SelectCurrentByName(Gui* menu, Entry* entries, int sel)
 {
     Entry* entry = &entries[sel];
     SetTextColors(menu->colours[entry->colours], GetTextKeyColor());
     SelectFontForEntry(entries, sel);
-    FUN_0049fc50(menu, sel);
+    TrySetFocus(menu, sel);
     menu->layer->current = sel;
     CommitTextEdit(menu, sel, entry->u.text, entry->field_138, 0);
     ClearKeyQueue();
@@ -6679,8 +6679,8 @@ static inline void UpdateHelpText(Gui* obj)
     }
 }
 
-// The real FUN_004a4890 (0x4a4890), inlined here by /Ob2.
-static inline void FUN_004a4890(Gui* menu, int i)
+// The real TickProgressBar (0x4a4890), inlined here by /Ob2.
+static inline void TickProgressBar(Gui* menu, int i)
 {
     // Entries in their own local first: the one-expression form shifts registers.
     Entry* entries = menu->layer->entries;
@@ -6694,7 +6694,7 @@ static inline void FUN_004a4890(Gui* menu, int i)
             }
             e->u.anim.field_c6 = GetTicks() + e->u.anim.field_c2;
         }
-        FUN_004a4660(menu, i);
+        DrawProgressBarGadget(menu, i);
     }
 }
 
@@ -6860,7 +6860,7 @@ int __stdcall UpdateMenu(Gui* menu)
                 HandleSliderInput(menu, i);
                 break;
             case 5:
-                if (FUN_004a4440(menu, i, key) != 0) {
+                if (HandleLabelInput(menu, i, key) != 0) {
                     sel = -1;
                     int found = FindEntry(entries, (char*)&e->field_136);
                     // Keep this if/else nesting, with sel = i in the else.
@@ -6899,16 +6899,16 @@ int __stdcall UpdateMenu(Gui* menu)
                 }
                 break;
             case 6:
-                if (FUN_004a4b50(menu, i) == 1)
+                if (HandleHotspotInput(menu, i) == 1)
                     sel = i;
                 break;
             case 13:
-                FUN_004a4890(menu, i);
+                TickProgressBar(menu, i);
                 break;
             case 12:
                 if (e->colours != 0 && elapsed) {
                         e->colours--;
-                        FUN_004a5e50(menu, i);
+                        DrawGadgetGlyph(menu, i);
                         if (menu->layer != 0)
                             menu->layer->dirty = 1;
                     }
@@ -6960,7 +6960,7 @@ void __stdcall SetCurrentGuiContext(Gui* ctx)
 }
 
 // FUNCTION: 0x4aa8d0
-int FUN_004aa8d0(void)
+int GetGuiContext(void)
 {
     return (int)g_guiContext;
 }

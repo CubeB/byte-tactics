@@ -82,7 +82,7 @@ void __stdcall SetOffscreenSurface(int a);
 void FlipScreen();
 int __stdcall HAPINET_getgames(char* net, void* desc, int a);
 void __stdcall CloseTopScreen(Sub_00441460* sub);
-void __stdcall FUN_004a32a0(Sub_00441460* sub, const char* name, char* text, int count, int flag);
+void __stdcall ConfigureListBoxByName(Sub_00441460* sub, const char* name, char* text, int count, int flag);
 char* GetPreferredLanguage();
 int __stdcall FindGadgetIndex(void* entries, const char* name, int type);
 void __stdcall UpdateGameSelection(Sub_00441460* sub, char* entry);
@@ -225,16 +225,16 @@ shown:
         } while (--left);
     }
 
-    FUN_004a32a0(&g_game->sub, "GAMENAME", (char*)g_game->data[1], g_game->field_4fd, 0);
-    FUN_004a32a0(&g_game->sub, "PLAYERS", (char*)g_game->data[2], g_game->field_4fd, 0);
-    FUN_004a32a0(&g_game->sub, "MAPNAME", (char*)g_game->data[3], g_game->field_4fd, 0);
-    FUN_004a32a0(&g_game->sub, "STATUS", (char*)g_game->data[4], g_game->field_4fd, 0);
-    FUN_004a32a0(&g_game->sub, "METAL", (char*)g_game->data[6], g_game->field_4fd, 0);
-    FUN_004a32a0(&g_game->sub, "ENERGY", (char*)g_game->data[7], g_game->field_4fd, 0);
-    FUN_004a32a0(&g_game->sub, "COMMANDER", (char*)g_game->data[9], g_game->field_4fd, 0);
-    FUN_004a32a0(&g_game->sub, "LOS", (char*)g_game->data[11], g_game->field_4fd, 0);
-    FUN_004a32a0(&g_game->sub, "PING", (char*)g_game->data[8], g_game->field_4fd, 0);
-    FUN_004a32a0(&g_game->sub, "FULLMAP", (char*)g_game->data[10], g_game->field_4fd, 0);
+    ConfigureListBoxByName(&g_game->sub, "GAMENAME", (char*)g_game->data[1], g_game->field_4fd, 0);
+    ConfigureListBoxByName(&g_game->sub, "PLAYERS", (char*)g_game->data[2], g_game->field_4fd, 0);
+    ConfigureListBoxByName(&g_game->sub, "MAPNAME", (char*)g_game->data[3], g_game->field_4fd, 0);
+    ConfigureListBoxByName(&g_game->sub, "STATUS", (char*)g_game->data[4], g_game->field_4fd, 0);
+    ConfigureListBoxByName(&g_game->sub, "METAL", (char*)g_game->data[6], g_game->field_4fd, 0);
+    ConfigureListBoxByName(&g_game->sub, "ENERGY", (char*)g_game->data[7], g_game->field_4fd, 0);
+    ConfigureListBoxByName(&g_game->sub, "COMMANDER", (char*)g_game->data[9], g_game->field_4fd, 0);
+    ConfigureListBoxByName(&g_game->sub, "LOS", (char*)g_game->data[11], g_game->field_4fd, 0);
+    ConfigureListBoxByName(&g_game->sub, "PING", (char*)g_game->data[8], g_game->field_4fd, 0);
+    ConfigureListBoxByName(&g_game->sub, "FULLMAP", (char*)g_game->data[10], g_game->field_4fd, 0);
 
     i = FindGadgetIndex(gadget->entries, "GAMENAME", 2);
     if (i != -1)

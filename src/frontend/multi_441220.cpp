@@ -46,8 +46,8 @@ struct Game {
 extern Game* g_game;
 
 int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
-void __stdcall FUN_004a0570(void* menu, const char* name, int value);
-void __stdcall FUN_0049fa90(void* menu);
+void __stdcall SetGadgetActiveByName(void* menu, const char* name, int value);
+void __stdcall MarkChanged(void* menu);
 
 static inline void Apply_00441220(unsigned short* p, unsigned short r, int ge, Entry_00441220* entry)
 {
@@ -96,7 +96,7 @@ void __stdcall UpdateGameSelection(Menu_00441220* menu, Entry_00441220* entry)
     }
 
     int password = msg.group.f1 & 1;
-    FUN_004a0570((char*)g_game + 0x519, "PASSWORDTEXT", password);
-    FUN_004a0570((char*)g_game + 0x519, "PASSWORD", password);
-    FUN_0049fa90(menu);
+    SetGadgetActiveByName((char*)g_game + 0x519, "PASSWORDTEXT", password);
+    SetGadgetActiveByName((char*)g_game + 0x519, "PASSWORD", password);
+    MarkChanged(menu);
 }

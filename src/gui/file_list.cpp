@@ -15,7 +15,7 @@ long __stdcall HAPI_FileLengthByName(char* name);
 void __stdcall GetCurrentDriveLetter(char* buf);
 char* __stdcall GetDriveDirectory(char* drive, char* buf, int size);
 int __stdcall ScanDirectory(char* path, char* list, char* sizes, int mode, int flag, int what);
-void __stdcall FUN_004a32a0(void* gui, const char* name, int x, int y, int z);
+void __stdcall ConfigureListBoxByName(void* gui, const char* name, int x, int y, int z);
 void __stdcall StripFileName(char* path);
 void __stdcall StripPath(char* path);
 void __stdcall ChangeDrive(char* drive);
@@ -124,7 +124,7 @@ Entry* __stdcall FindGadgetOrNull(Entry* entries, char* name);
 int __stdcall IsGadgetNamed(Entry* entries, int i, char* name);
 int __stdcall FindGadgetIndex(Entry* entries, char* name, int type);
 Entry* __stdcall FindGadgetChecked(Entry* entries, char* name);
-void __stdcall FUN_0049fa90(void* obj);
+void __stdcall MarkChanged(void* obj);
 void __stdcall ClearSelectedGadget(void* obj);
 void __stdcall RefreshFileList(FileRequester* obj);
 void* __stdcall LoadGuiLayer(void* param_1, char* param_2, int param_3);
@@ -315,8 +315,8 @@ void __stdcall RefreshFileList(FileRequester* obj)
     GetDriveDirectory(obj->drive, obj->cwd, 0x100);
     int n = ScanDirectory(obj->field_c + 0xb6, obj->names, obj->sizes, 1, 0, 0);
     SortFileList(obj->names, obj->sizes, 0, n);
-    FUN_004a32a0(obj->gui, "SWIN", (int)obj->names, n, 0);
-    FUN_004a32a0(obj->gui, "SIZE", (int)obj->sizes, n, 0);
+    ConfigureListBoxByName(obj->gui, "SWIN", (int)obj->names, n, 0);
+    ConfigureListBoxByName(obj->gui, "SIZE", (int)obj->sizes, n, 0);
     obj->field_4->field_140 = 0;
     strcpy(obj->field_10 + 0xb6, obj->cwd);
 }
@@ -420,7 +420,7 @@ void __stdcall FileRequesterHandler(Gadget* gadget)
         }
     } else {
         RefreshFileList(req);
-        FUN_0049fa90(gadget);
+        MarkChanged(gadget);
         ClearSelectedGadget(gadget);
     }
 }
@@ -480,7 +480,7 @@ FileRequester* Dialog::OpenFileRequester(Dialog* self, char* arg2, char* arg3, c
     GetDriveDirectory(obj->save_drive, obj->save_cwd, 0x100);
     RefreshFileList(obj);
 
-    FUN_0049fa90(self);
+    MarkChanged(self);
 
     return obj;
 }

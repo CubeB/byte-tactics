@@ -195,19 +195,19 @@ int IsOnlineConfigLoaded();
 void __stdcall SetSliderFromValue(Gadget_00449bb0* gadget, int value);
 int __stdcall ReadSliderValue(Gadget_00449bb0* gadget);
 void __stdcall CreateUnitSync(int param_1);
-void __stdcall FUN_0049fa90(Gui_00449bb0* gui);
-void __stdcall FUN_0049fb10(Gui_00449bb0* gui, int value);
+void __stdcall MarkChanged(Gui_00449bb0* gui);
+void __stdcall SetKeyboardInput(Gui_00449bb0* gui, int value);
 int __stdcall FindGadgetIndex(Gadget_00449bb0* entries, char* name, int type);
 Gadget_00449bb0* __stdcall FindGadgetChecked(Gadget_00449bb0* entries, char* name);
 Gadget_00449bb0* __stdcall FUN_004a0180(Gadget_00449bb0* entries, char* name);
 Gadget_00449bb0* __stdcall FUN_004a0200(Gadget_00449bb0* entries, char* name);
 Gadget_00449bb0* __stdcall FUN_004a0280(Gadget_00449bb0* entries, char* name);
-void __stdcall FUN_004a0570(Gui_00449bb0* gui, char* name, int value);
-void __stdcall FUN_004a0bf0(Gui_00449bb0* gui, char* name, char* text, int size);
-void __stdcall FUN_004a1250(Gui_00449bb0* gui, char* name, int value);
-void __stdcall FUN_004a1450(Gui_00449bb0* gui, char* name, int value);
-void __stdcall FUN_004a32a0(Gui_00449bb0* gui, char* name, char* text, int count, int flag);
-void __stdcall FUN_004a7190(Gui_00449bb0* gui, int index);
+void __stdcall SetGadgetActiveByName(Gui_00449bb0* gui, char* name, int value);
+void __stdcall SetTranslatedTextByName(Gui_00449bb0* gui, char* name, char* text, int size);
+void __stdcall SetGrayedOutByName(Gui_00449bb0* gui, char* name, int value);
+void __stdcall SetGadgetGrayedOutByName(Gui_00449bb0* gui, char* name, int value);
+void __stdcall ConfigureListBoxByName(Gui_00449bb0* gui, char* name, char* text, int count, int flag);
+void __stdcall BeginTextEdit(Gui_00449bb0* gui, int index);
 void __stdcall RenderLayer(Gui_00449bb0* gui, int value);
 Layer_00449bb0* __stdcall LoadGuiLayer(Gui_00449bb0* gui, const char* name, int size);
 int __stdcall IsScreenNamed(Gui_00449bb0* gui, char* name);
@@ -226,7 +226,7 @@ void __stdcall UpdateEnergyText(Gui_00449bb0* gui, int unused)
         PlayerInfo_00449bb0* info;
 
         _itoa(shown, text, 10);
-        FUN_004a0bf0(gui, "ENERGYTEXT", text, 0);
+        SetTranslatedTextByName(gui, "ENERGYTEXT", text, 0);
         info = g_game->players[g_game->localPlayer].info;
         info->energy = (unsigned short)(shown / 100);
         if (info->f97_0 & 1) {
@@ -251,7 +251,7 @@ void __stdcall BindNamedSliderWithCallback(char* name, int max, int value, Callb
         gadget->game = g_game;
     }
     callback(gui, index);
-    FUN_0049fa90(gui);
+    MarkChanged(gui);
 }
 
 // FUNCTION: 0x449bb0
@@ -296,7 +296,7 @@ void OpenBattleRoom()
         i = FindGadgetIndex(entries, "MAP", 1);
         if (i != -1) {
             entries[i].field_1b = 2;
-            FUN_004a0bf0(&g_game->gui, "MAP", "View Map", 0);
+            SetTranslatedTextByName(&g_game->gui, "MAP", "View Map", 0);
         }
     }
 
@@ -353,7 +353,7 @@ void OpenBattleRoom()
 
     if (!host || g_game->locked) {
         for (char** p = g_hostOnlyGadgets; *p; p++)
-            FUN_004a1250(&g_game->gui, *p, 1);
+            SetGrayedOutByName(&g_game->gui, *p, 1);
     }
 
     UpdateBattleRoomFlags();
@@ -366,17 +366,17 @@ void OpenBattleRoom()
     }
     isHost = g_game->players[g_game->localPlayer].info->f97_0;
     CreateUnitSync(isHost);
-    FUN_004a0570(&g_game->gui, "START", ((UnitSync*)g_game->net)->AllPlayersSynced());
-    FUN_004a1250(&g_game->gui, "START",
+    SetGadgetActiveByName(&g_game->gui, "START", ((UnitSync*)g_game->net)->AllPlayersSynced());
+    SetGrayedOutByName(&g_game->gui, "START",
                  host && AreAllPlayersReady() && ((UnitSync*)g_game->net)->AllPlayersSynced() ? 0 : 1);
-    FUN_004a1250(&g_game->gui, "RESTRICTIONS", 0);
-    FUN_004a32a0(&g_game->gui, "OUTPUT", g_game->chatter, 0, 0);
+    SetGrayedOutByName(&g_game->gui, "RESTRICTIONS", 0);
+    ConfigureListBoxByName(&g_game->gui, "OUTPUT", g_game->chatter, 0, 0);
     {
         Gadget_00449bb0* output = FindGadgetChecked(entries, "OUTPUT");
         output->field_1b |= 0x100;
     }
-    FUN_004a0bf0(&g_game->gui, "METALTEXT", "0", 0);
-    FUN_004a0bf0(&g_game->gui, "ENERGYTEXT", "0", 0);
+    SetTranslatedTextByName(&g_game->gui, "METALTEXT", "0", 0);
+    SetTranslatedTextByName(&g_game->gui, "ENERGYTEXT", "0", 0);
 
     BindNamedSliderWithCallback("METAL", 0x2711, metal, UpdateMetalText);
     {
@@ -384,9 +384,9 @@ void OpenBattleRoom()
         BindNamedSliderWithCallback("MAXUNITS", g_game->maxUnits - 20, g_game->maxUnits - 20, UpdateMaxUnitsText);
     }
     if (!isHost || g_game->locked) {
-        FUN_004a1450(&g_game->gui, "MAXUNITS", 1);
-        FUN_004a1450(&g_game->gui, "ENERGY", 1);
-        FUN_004a1450(&g_game->gui, "METAL", 1);
+        SetGadgetGrayedOutByName(&g_game->gui, "MAXUNITS", 1);
+        SetGadgetGrayedOutByName(&g_game->gui, "ENERGY", 1);
+        SetGadgetGrayedOutByName(&g_game->gui, "METAL", 1);
     }
     BindNamedSliderWithCallback("ENERGY", 0x2711, energy, UpdateEnergyText);
 
@@ -398,7 +398,7 @@ void OpenBattleRoom()
     strcpy(info->map, ((Class_00435c30*)g_game->map)->GetMissionName());
     info->mapCrc = ((Class_004373a0*)g_game->map)->ComputeMapChecksum();
     BroadcastPlayerInfo();
-    FUN_004a7190(&g_game->gui, FindGadgetIndex(g_game->gui.table->entries, "MESSAGE", 0xe));
+    BeginTextEdit(&g_game->gui, FindGadgetIndex(g_game->gui.table->entries, "MESSAGE", 0xe));
 
     for (char** p = g_battleRoomGadgetNames; *p; p++) {
         int k = FindGadgetIndex(layer->entries, *p, 0xe);
@@ -416,9 +416,9 @@ void OpenBattleRoom()
         start->anim.frames = FindGafEntry(layer->entries->head.gaf, "battlestart");
         start->frame = 0;
         start->c8_0 = 1;
-        FUN_004a0570(&g_game->gui, "battlestart", 1);
+        SetGadgetActiveByName(&g_game->gui, "battlestart", 1);
     }
 
-    FUN_0049fb10(&g_game->gui, 1);
+    SetKeyboardInput(&g_game->gui, 1);
     RenderLayer(&g_game->gui, 0x40);
 }

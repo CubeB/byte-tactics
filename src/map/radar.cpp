@@ -567,7 +567,7 @@ void UpdateRadarMapped()
 // at each use instead of a `shot` local.
 static PlayerInfo_00466dc0* PlayerInfo_00466dc0_Get(unsigned char p)
 {
-    return (PlayerInfo_00466dc0*)((char*)g_game + 0x1b63) + p;
+    return &g_game->players[0] + p;
 }
 
 // True when (px, py) is inside the current player's visible area. The two

@@ -251,7 +251,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x5091c8,DAT_005091c8,.data,4,type,data,char*,5,0,1,one type,5,,PTR_s_SAVEGAME_005091c8,1,,8c6d5000
 0x5091cc,DAT_005091cc,.data,4,type,data,int,2,0,1,one type,2,,DAT_005091cc,,,01000000
 0x5091d0,DAT_005091d0,.data,4,type,data,int,1,0,1,one type,1,,DAT_005091d0,,,ffffffff
-0x5091d4,DAT_005091d4,.data,12,gap,string,const char[],3,0,1,one type,3,,s_OFFSCREEN_005091d4,,,4f464653435245454e000000
+0x5091d4,DAT_005091d4,.data,12,gap,string,const char[],1,0,1,one type,1,,s_OFFSCREEN_005091d4,,,4f464653435245454e000000
 0x509200,DAT_00509200,.data,8,gap,string,const char[],1,0,1,one type,1,,s_CDLISTS_00509200,,,43444c4953545300
 0x509238,DAT_00509238,.data,12,gap,string,const char[],1,0,1,one type,1,,s_UnitLimit_00509238,,,556e69744c696d6974000000
 0x509244,DAT_00509244,.data,12,gap,string,const char[],1,0,1,one type,1,,s_hattfont11_00509244,,,68617474666f6e7431310000
@@ -353,7 +353,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x511ddc,g_byteRatesTick,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_00511ddc,,,
 0x511de0,DAT_00511de0,.bss,4,type,data,int,2,0,1,one type,2,,DAT_00511de0,,,
 0x511de4,g_cdPathMismatch,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511de4,,,
-0x511de8,g_game,.bss,4,type,data,Game*,365,51,15,conflicting: shape,416,,DAT_00511de8,,,
+0x511de8,g_game,.bss,4,type,data,Game*,347,49,15,conflicting: shape,396,,DAT_00511de8,,,
 0x511dec,DAT_00511dec,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511dec,,,
 0x511df0,g_explodedPieces,.bss,400,type,data,ExplodedPiece*[100],1,0,1,one type,1,0x190,DAT_00511df0,,,
 0x511f80,DAT_00511f80,.bss,16,gap,data,CMemoryCache,2,0,1,one type,2,,DAT_00511f80,,,
@@ -712,7 +712,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51e823,DAT_0051e823,.bss,1,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,,DAT_0051e823,,in g_loadingBarPrevPercent+0x3,
 0x51e824,DAT_0051e824,.bss,1,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,,DAT_0051e824,,in g_loadingBarPrevPercent+0x4,
 0x51e825,DAT_0051e825,.bss,3,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,,DAT_0051e825,,,
-0x51e828,DAT_0051e828,.bss,2720,type>gap,data,int[680],2,3,5,conflicting: shape,5,0xa18,DAT_0051e828,,,
+0x51e828,DAT_0051e828,.bss,2720,gap,data,CdLists_490f80,1,0,1,one type,1,0xa18,DAT_0051e828,,,
 0x51e848,DAT_0051e848,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051e848,,in DAT_0051e828+0x20,
 0x51e84c,DAT_0051e84c,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051e84c,,in DAT_0051e828+0x24,
 0x51e850,DAT_0051e850,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_0051e850,,in DAT_0051e828+0x28,
@@ -724,7 +724,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51f2dc,DAT_0051f2dc,.bss,4,type,data,int,2,1,2,conflicting: signedness or const,3,,DAT_0051f2dc,,,
 0x51f2e0,DAT_0051f2e0,.bss,4,type,data,int*,1,1,2,conflicting: shape,2,,DAT_0051f2e0,,,
 0x51f2e4,DAT_0051f2e4,.bss,4,type,data,int*,1,1,2,conflicting: shape,2,,DAT_0051f2e4,,,
-0x51f2e8,DAT_0051f2e8,.bss,4,type,data,int*,1,2,3,conflicting: shape,3,,DAT_0051f2e8,,,
+0x51f2e8,DAT_0051f2e8,.bss,4,type,data,int*,1,1,2,conflicting: shape,2,,DAT_0051f2e8,,,
 0x51f2ec,DAT_0051f2ec,.bss,4,type,data,int*,1,1,2,conflicting: shape,2,,DAT_0051f2ec,,,
 0x51f2f0,DAT_0051f2f0,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051f2f0,,,
 0x51f2f4,DAT_0051f2f4,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051f2f4,,,

@@ -642,6 +642,7 @@ unsigned char DAT_0051e810[10];  // 0x51e810 .bss (the type runs past the next k
 unsigned char DAT_0051e81a[6];  // 0x51e81a .bss
 unsigned char g_loadingBarPrevPercent[5];  // 0x51e820 .bss
 unsigned char DAT_0051e825[3];  // 0x51e825 .bss
+unsigned char DAT_0051e828[2720];  // 0x51e828 .bss
 unsigned char DAT_0051f2c8[10];  // 0x51f2c8 .bss (the type runs past the next known address, 0x51f2c8+0x8)
 unsigned char DAT_0051f2d2[6];  // 0x51f2d2 .bss
 unsigned int DAT_0051f2d8;  // 0x51f2d8 .bss

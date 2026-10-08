@@ -32,21 +32,6 @@ void ResetAllocStats(void);
 double GetTimeSeconds(void);
 char __cdecl FormatWorkingSet(char* dest);
 
-class Class_004e0520 {
-public:
-    char unknown_0[0x79];
-    unsigned char workingSet;          // +0x79
-    void LoadWorkingSetPref(int readOnly);
-};
-
-class Class_004e05f0 {
-public:
-    HWND hwnd;                         // +0x00
-    char unknown_4[0x74];
-    char flag_78;                      // +0x78
-    void SetMemoryStatusWindowVisible(char on);
-};
-
 struct Rate_004e0b90 {
     double table[10]; double total; int index; int unknown_5c;
 };
@@ -110,6 +95,8 @@ public:
 
     int HandleMemoryStatusMessage(unsigned int msg, int wParam, int lParam);
     void CreateMemoryStatusDialog();
+    void LoadWorkingSetPref(int readOnly);
+    void SetMemoryStatusWindowVisible(char on);
 };
 
 // 0x4e05c0 CreateMemoryStatusDialog is defined in src/debug/debug_lib.cpp;
@@ -123,7 +110,7 @@ int MemoryStatusDialog::HandleMemoryStatusMessage(unsigned int msg, int wParam, 
     case 0x312:
         if (wParam != 10)
             return 0;
-        ((Class_004e05f0*)this)->SetMemoryStatusWindowVisible(!IsWindowVisible(hwnd));
+        SetMemoryStatusWindowVisible(!IsWindowVisible(hwnd));
         return 0;
 
     case 0x110: {
@@ -134,7 +121,7 @@ int MemoryStatusDialog::HandleMemoryStatusMessage(unsigned int msg, int wParam, 
         RegisterHotKey(hwnd, 10, 1, 0x23);
         CheckDlgButton(hwnd, 0x3f9, workingSet);
         if (flag_78)
-            ((Class_004e05f0*)this)->SetMemoryStatusWindowVisible(1);
+            SetMemoryStatusWindowVisible(1);
         return 1;
     }
 
@@ -142,7 +129,7 @@ int MemoryStatusDialog::HandleMemoryStatusMessage(unsigned int msg, int wParam, 
         switch (wParam & 0xffff) {
         case 0x3f9:
             workingSet = (workingSet == 0);
-            ((Class_004e0520*)this)->LoadWorkingSetPref(0);
+            LoadWorkingSetPref(0);
             return 0;
         case 0x3fa:
             OpenUrl(hwnd, "http://10.0.150.18/programming/library/extras/memorystatusdialog.html", ".htm");
@@ -152,7 +139,7 @@ int MemoryStatusDialog::HandleMemoryStatusMessage(unsigned int msg, int wParam, 
             return 0;
         case 1:
         case 2:
-            ((Class_004e05f0*)this)->SetMemoryStatusWindowVisible(0);
+            SetMemoryStatusWindowVisible(0);
             return 0;
         default:
             return 0;

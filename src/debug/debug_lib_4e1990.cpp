@@ -51,22 +51,14 @@ struct Less_004e1990 {
     }
 };
 
-class Class_004e2580 {
+class NameMapTree {
 public:
     Iter_004e1990 LowerBound(const NameKey& key);
-};
-
-class Class_004dfea0 {
-public:
     Iter_004e1990 Erase(Iter_004e1990 it);
-};
-
-class Class_004e2250 {
-public:
     InsertResult_004e1990 InsertOrFind(const NameKey& key);
 };
 
-class Class_004e1990 {
+class NameTable : public NameMapTree {
 public:
     Less_004e1990 compare;             // +0x0
     Node_004e1990* head;               // +0x4
@@ -77,22 +69,22 @@ public:
     Iter_004e1990 End() { return Iter_004e1990(head); }
     Iter_004e1990 Find(const NameKey& key)
     {
-        Iter_004e1990 p = ((Class_004e2580*)this)->LowerBound(key);
+        Iter_004e1990 p = LowerBound(key);
         return (p == End() || compare(key, p.ptr->key)) ? End() : p;
     }
     void Upsert(const NameKey& key);
 };
 
 // FUNCTION: 0x4e1990
-void Class_004e1990::Upsert(const NameKey& key)
+void NameTable::Upsert(const NameKey& key)
 {
     CritSec_004e1ac0* lock = GetNameTableLock();
     EnterCriticalSection(&lock->cs);
     Iter_004e1990 it = Find(key);
     if (it != End())
-        ((Class_004dfea0*)this)->Erase(it);
+        Erase(it);
     else
         changed = 1;
-    ((Class_004e2250*)this)->InsertOrFind(key);
+    InsertOrFind(key);
     LeaveCriticalSection(&lock->cs);
 }

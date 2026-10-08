@@ -43,20 +43,20 @@ extern unsigned int g_lastAllocOffset;  // the last offset handed out
 extern unsigned int g_freeBlockWraps;  // how often the search wrapped
 
 // The tree's iterator: one pointer. PrevNode is its _Dec().
-class Class_004dd2a0 {
+class FreeBlockIter {
 public:
     Node_004db000* ptr;
 
-    Class_004dd2a0() {}
-    Class_004dd2a0(Node_004db000* q) : ptr(q) {}
-    bool operator==(const Class_004dd2a0& o) const { return ptr == o.ptr; }
-    bool operator!=(const Class_004dd2a0& o) const { return !(*this == o); }
+    FreeBlockIter() {}
+    FreeBlockIter(Node_004db000* q) : ptr(q) {}
+    bool operator==(const FreeBlockIter& o) const { return ptr == o.ptr; }
+    bool operator!=(const FreeBlockIter& o) const { return !(*this == o); }
     Pair_004db000& operator*() const { return ptr->value; }
     Pair_004db000* operator->() const { return &ptr->value; }
-    Class_004dd2a0& operator++() { Inc(); return *this; }
-    Class_004dd2a0 operator++(int) { Class_004dd2a0 tmp = *this; ++*this; return tmp; }
-    Class_004dd2a0& operator--() { PrevNode(); return *this; }
-    Class_004dd2a0 operator--(int) { Class_004dd2a0 tmp = *this; --*this; return tmp; }
+    FreeBlockIter& operator++() { Inc(); return *this; }
+    FreeBlockIter operator++(int) { FreeBlockIter tmp = *this; ++*this; return tmp; }
+    FreeBlockIter& operator--() { PrevNode(); return *this; }
+    FreeBlockIter operator--(int) { FreeBlockIter tmp = *this; --*this; return tmp; }
     void PrevNode();
     void Inc()
     {
@@ -75,27 +75,36 @@ public:
 
 // A pair-like helper: an iterator and a byte, built by a member function that
 // takes both by reference.
-class Class_004ddbe0 {
+class MapInsertResult {
 public:
-    Class_004dd2a0 first;
+    FreeBlockIter first;
     unsigned char second;
-    Class_004ddbe0() {}
+    MapInsertResult() {}
     // const reference: the hidden return pointer of insert is what gets pushed.
-    Class_004ddbe0* Assign(const Class_004dd2a0& first, unsigned char& second);
+    MapInsertResult* Assign(const FreeBlockIter& first, unsigned char& second);
 };
 
-class Class_004dd250 { public: Node_004db000* LowerBound(const Pair_004db000& k); };
-class Class_004dc130 { public: Class_004dd2a0 Erase(Class_004dd2a0 it); };
-class Class_004dbec0 { public: Class_004ddbe0 Insert(const Pair_004db000& v); };
-
-// Insert is an insert() that returns through a hidden pointer (its
-// return type has a constructor), so its result arrives in eax as the address
-// of the caller's temporary.
-class Class_004dce60 {
-public:
-    Class_004dd2a0 Insert(Node_004db000* x, Node_004db000* y,
-                                 Pair_004db000* v);
-};
+// Unused here: other entry points of the allocator, declared to keep this
+// file's symbol ids (TakeFreeBlock matches only in a window of them).
+void __cdecl CountAlloc(unsigned int size);
+void __cdecl CountFree(int size);
+void ResetAllocStats(void);
+char IsMemFussy();
+char IsGonzo();
+char IsMemSet();
+int GetDebugFillPattern();
+char IsBackAlign();
+void __cdecl FillPattern(void* at, int value, unsigned int count);
+unsigned int __cdecl RoundUpToPage(unsigned int size);
+unsigned int __cdecl RoundUpToDoublePage(unsigned int size);
+size_t __cdecl GetBlockSize(void* p);
+void* __cdecl GameAlloc(unsigned int size);
+void __cdecl GameFree(void* p);
+void* __cdecl GameCalloc(unsigned int count, unsigned int size);
+int __cdecl SetOutOfMemoryHandler(int param_1);
+void* __cdecl GameRealloc(void* param_1, unsigned int param_2);
+char* __cdecl GameStrdup(char* s);
+void __cdecl ProtectBlock(void* p, int protect);
 
 struct Less_004db000 {
     bool operator()(const unsigned int& a, const unsigned int& b) const { return a < b; }
@@ -109,16 +118,25 @@ public:
     unsigned int count;                // +0xc
     unsigned int total;                // +0x10
 
-    Class_004dd2a0 begin() { return Class_004dd2a0(head->left); }
-    Class_004dd2a0 end() { return Class_004dd2a0(head); }
+    FreeBlockIter begin() { return FreeBlockIter(head->left); }
+    FreeBlockIter end() { return FreeBlockIter(head); }
     unsigned int size() const { return count; }
     // The original tests this as a value (sete; neg; sbb; inc; test), which
     // MSVC 5 only does for a `!` applied to a bool-returning member.
-    bool Neq(Class_004dd2a0 a, Class_004dd2a0 b) { return !(a == b); }
-    Class_004dd2a0 upper_bound(const Pair_004db000& k)
+    bool Neq(FreeBlockIter a, FreeBlockIter b) { return !(a == b); }
+    FreeBlockIter upper_bound(const Pair_004db000& k)
     {
-        return Class_004dd2a0(((Class_004dd250*)this)->LowerBound(k));
+        return FreeBlockIter(LowerBound(k));
     }
+
+    Node_004db000* LowerBound(const Pair_004db000& k);
+    FreeBlockIter Erase(FreeBlockIter it);
+    MapInsertResult InsertOrFindInline(const Pair_004db000& v);
+    // Insert is an insert() that returns through a hidden pointer (its
+    // return type has a constructor), so its result arrives in eax as the address
+    // of the caller's temporary.
+    FreeBlockIter Insert(Node_004db000* x, Node_004db000* y,
+                                 Pair_004db000* v);
 
     void AddFreeBlock(Pair_004db000 p);
     unsigned int TakeFreeBlock(unsigned int bytes);
@@ -171,14 +189,14 @@ unsigned int FreeBlockMap::TakeFreeBlock(unsigned int bytes)
         k.offset = g_lastAllocOffset;
         k.length = 0;
         // STL-style iterator operators (--, ++, ->) throughout: their inlining shapes the code.
-        Class_004dd2a0 lb = upper_bound(k);
+        FreeBlockIter lb = upper_bound(k);
         if (lb != begin()) {
-            Class_004dd2a0 it = lb;
+            FreeBlockIter it = lb;
             it--;
             if (g_lastAllocOffset >= it->offset && g_lastAllocOffset + bytes <= it->offset + it->length)
                 lb = it;
         }
-        Class_004dd2a0 cur = lb;
+        FreeBlockIter cur = lb;
         int tries = 0;
         do {
             if (cur == end()) {
@@ -192,7 +210,7 @@ unsigned int FreeBlockMap::TakeFreeBlock(unsigned int bytes)
                 unsigned int len, base;
                 base = cur->offset;
                 len = cur->length;
-                ((Class_004dc130*)this)->Erase(cur);
+                Erase(cur);
                 if (g_lastAllocOffset == 0)
                     g_lastAllocOffset = base;
                 unsigned int mark;
@@ -201,10 +219,10 @@ unsigned int FreeBlockMap::TakeFreeBlock(unsigned int bytes)
                 else
                     mark = base;
                 if (mark > base)
-                    ((Class_004dbec0*)this)->Insert(Pair_004db000(base, mark - base));
+                    InsertOrFindInline(Pair_004db000(base, mark - base));
                 unsigned int end = mark + bytes;
                 if (end < base + len)
-                    ((Class_004dbec0*)this)->Insert(Pair_004db000(end, base - mark + len - bytes));
+                    InsertOrFindInline(Pair_004db000(end, base - mark + len - bytes));
                 g_lastAllocOffset = end;
                 return mark;
             }

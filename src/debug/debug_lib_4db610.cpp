@@ -11,7 +11,7 @@
 #include <map>
 #include <windows.h>
 
-class Class_004ddd70 {
+class FreeBlockAllocator {
 public:
     void* Allocate(unsigned int n);
 };
@@ -22,7 +22,7 @@ class PoolAlloc_004db610 : public std::allocator<int> {
 public:
     char* _Charalloc(size_t n)
     {
-        return (char*)((Class_004ddd70*)this)->Allocate(n);
+        return (char*)((FreeBlockAllocator*)this)->Allocate(n);
     }
 };
 

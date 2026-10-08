@@ -3588,11 +3588,11 @@ piece,0x50dd3c,16,src/debug/debug_lib.cpp,524,0,game data
 piece,0x50dd30,12,src/debug/debug_lib.cpp,523,0,game data
 piece,0x50dd28,7,src/debug/debug_lib.cpp,522,0,game data
 piece,0x50dd20,7,src/debug/debug_lib.cpp,521,0,game data
-piece,0x529e68,4,src/debug/debug_lib.cpp,6,300,game data
-piece,0x529de0,24,src/debug/debug_lib.cpp,6,248,game data
+piece,0x529e68,4,src/debug/debug_lib.cpp,6,292,game data
+piece,0x529de0,24,src/debug/debug_lib.cpp,6,112,game data
 piece,0x4fdc48,8,src/debug/debug_lib.cpp,500,0,game data
 piece,0x4fdc50,8,src/debug/debug_lib.cpp,500,8,game data
-piece,0x529538,128,src/debug/debug_lib.cpp,6,16,game data
+piece,0x529538,128,src/debug/debug_lib.cpp,6,160,game data
 piece,0x50d974,6,src/debug/memory_status_dialog.cpp,8,0,game data
 piece,0x5056f4,3,src/debug/memory_status_dialog.cpp,7,0,game data
 piece,0x4fdc38,8,src/debug/memory_status_dialog.cpp,6,0,game data
@@ -3603,13 +3603,13 @@ piece,0x50d804,70,src/debug/memory_status_dialog.cpp,3,0,game data
 piece,0x50d7f8,10,src/debug/debug_lib.cpp,477,0,game data
 piece,0x50d7e8,16,src/debug/debug_lib.cpp,476,0,game data
 piece,0x50d75c,138,src/debug/debug_lib.cpp,475,0,game data
-piece,0x529510,24,src/debug/debug_lib.cpp,6,304,game data
+piece,0x529510,24,src/debug/debug_lib.cpp,6,296,game data
 piece,0x50d740,11,src/debug/debug_lib.cpp,455,0,game data
 piece,0x5292d0,560,src/debug/debug_lib_4dfd50.cpp,3,8,game data
 piece,0x50d6d8,75,src/debug/debug_lib.cpp,438,0,game data
 piece,0x50d678,59,src/debug/debug_lib.cpp,426,0,game data
 piece,0x50d654,9,src/debug/debug_lib.cpp,417,0,game data
-piece,0x5292bc,4,src/debug/debug_lib.cpp,6,144,game data
+piece,0x5292bc,4,src/debug/debug_lib.cpp,6,56,game data
 piece,0x50d648,9,src/debug/debug_lib.cpp,414,0,game data
 piece,0x50d638,13,src/debug/debug_lib.cpp,413,0,game data
 piece,0x50d628,13,src/debug/debug_lib.cpp,412,0,game data
@@ -3638,9 +3638,9 @@ piece,0x50d464,9,src/debug/debug_lib.cpp,390,0,game data
 piece,0x50d454,13,src/debug/debug_lib.cpp,389,0,game data
 piece,0x50d444,13,src/debug/debug_lib.cpp,388,0,game data
 piece,0x504328,5,src/debug/debug_lib.cpp,387,0,game data
-piece,0x528a64,4,src/debug/debug_lib.cpp,6,184,game data
+piece,0x528a64,4,src/debug/debug_lib.cpp,6,100,game data
 piece,0x50d434,14,src/debug/debug_lib.cpp,370,0,game data
-piece,0x528a6c,4,src/debug/debug_lib.cpp,6,292,game data
+piece,0x528a6c,4,src/debug/debug_lib.cpp,6,156,game data
 piece,0x528a60,1,src/debug/debug_lib_4de180.cpp,15,4,game data
 piece,0x50d428,9,src/debug/debug_lib_4de180.cpp,16,0,game data
 piece,0x528a68,4,src/debug/debug_lib_4de180.cpp,15,0,game data
@@ -3654,11 +3654,11 @@ piece,0x50d3b4,17,src/debug/debug_lib_4de180.cpp,8,0,game data
 piece,0x50d3a0,18,src/debug/debug_lib_4de180.cpp,7,0,game data
 piece,0x50d38c,19,src/debug/debug_lib_4de180.cpp,6,0,game data
 piece,0x50d374,21,src/debug/debug_lib_4de180.cpp,5,0,game data
-piece,0x528a70,4,src/debug/debug_lib.cpp,6,272,game data
+piece,0x528a70,4,src/debug/debug_lib.cpp,6,136,game data
 piece,0x50d364,10,src/debug/debug_lib.cpp,271,0,game data
 piece,0x50d338,42,src/debug/debug_lib.cpp,262,0,game data
-piece,0x5289ec,4,src/debug/debug_lib.cpp,6,276,game data
-piece,0x528a28,24,src/debug/debug_lib.cpp,6,152,game data
+piece,0x5289ec,4,src/debug/debug_lib.cpp,6,140,game data
+piece,0x528a28,24,src/debug/debug_lib.cpp,6,64,game data
 piece,0x50d330,5,src/debug/debug_lib.cpp,234,0,game data
 piece,0x50d318,22,src/debug/debug_lib.cpp,233,0,game data
 piece,0x50d2ec,43,src/debug/debug_lib.cpp,232,0,game data
@@ -3734,18 +3734,18 @@ piece,0x50c330,7,src/debug/debug_lib.cpp,100,0,game data
 piece,0x50c32c,4,src/debug/debug_lib.cpp,99,0,game data
 piece,0x50c2f8,51,src/debug/debug_lib.cpp,90,0,game data
 piece,0x50c2cc,44,src/debug/debug_lib.cpp,89,0,game data
-piece,0x5289a8,4,src/debug/debug_lib.cpp,6,288,game data
+piece,0x5289a8,4,src/debug/debug_lib.cpp,6,152,game data
 piece,0x50c2c0,9,src/debug/debug_lib.cpp,36,0,game data
-piece,0x528998,4,src/debug/debug_lib.cpp,6,8,game data
-piece,0x5289ac,4,src/debug/debug_lib.cpp,6,280,game data
+piece,0x528998,4,src/debug/debug_lib.cpp,6,52,game data
+piece,0x5289ac,4,src/debug/debug_lib.cpp,6,144,game data
 piece,0x50c2a0,10,src/debug/debug_lib.cpp,27,0,game data
-piece,0x52899c,4,src/debug/debug_lib.cpp,6,296,game data
-piece,0x5289b0,4,src/debug/debug_lib.cpp,6,148,game data
+piece,0x52899c,4,src/debug/debug_lib.cpp,6,288,game data
+piece,0x5289b0,4,src/debug/debug_lib.cpp,6,60,game data
 piece,0x50c290,6,src/debug/debug_lib.cpp,17,0,game data
-piece,0x5289a0,4,src/debug/debug_lib.cpp,6,180,game data
-piece,0x528994,4,src/debug/debug_lib.cpp,6,284,game data
+piece,0x5289a0,4,src/debug/debug_lib.cpp,6,96,game data
+piece,0x528994,4,src/debug/debug_lib.cpp,6,148,game data
 piece,0x50c25c,9,src/debug/debug_lib.cpp,7,0,game data
-piece,0x5289a4,4,src/debug/debug_lib.cpp,6,4,game data
+piece,0x5289a4,4,src/debug/debug_lib.cpp,6,48,game data
 piece,0x50baf0,27,src/util/sqsh.cpp,51,0,game data
 piece,0x50bad4,26,src/util/sqsh.cpp,50,0,game data
 piece,0x50bab8,27,src/util/sqsh.cpp,49,0,game data
@@ -12286,23 +12286,23 @@ same,0x4d82b0,16,src/debug/debug_lib.cpp,38,0,
 same,0x502910,2,src/debug/debug_lib.cpp,235,0,
 same,0x50c8ac,8,src/debug/debug_lib.cpp,231,0,
 same,0x4da7c0,16,src/debug/debug_lib.cpp,239,0,
-same,0x5289f4,4,src/debug/debug_lib.cpp,6,188,
-same,0x528a20,8,src/debug/debug_lib.cpp,6,192,
+same,0x5289f4,4,src/debug/debug_lib.cpp,6,104,
+same,0x528a20,4,src/debug/debug_lib.cpp,6,108,
 same,0x4db7b0,16,src/debug/debug_lib.cpp,273,0,
-same,0x528a78,48,src/debug/debug_lib.cpp,6,200,
+same,0x528a78,44,src/debug/debug_lib.cpp,6,0,
 same,0x4de0f0,16,src/debug/debug_lib.cpp,359,0,
 same,0x4de4c0,16,src/debug/debug_lib_4de180.cpp,20,0,
 same,0x50d2c4,7,src/debug/debug_lib_4de180.cpp,4,0,
 same,0x4de540,16,src/debug/debug_lib.cpp,374,0,
-same,0x5292b8,4,src/debug/debug_lib.cpp,6,176,
+same,0x5292b8,4,src/debug/debug_lib.cpp,6,92,
 same,0x4df1d0,16,src/debug/debug_lib.cpp,421,0,
 same,0x50d6b4,34,src/debug/debug_lib.cpp,429,0,
-same,0x5292c8,1,src/debug/debug_lib_4dfd10.cpp,3,560,
-same,0x5292d0,560,src/debug/debug_lib_4dfd10.cpp,3,0,
+same,0x5292c8,8,src/debug/debug_lib_4dfd10.cpp,3,0,
+same,0x5292d0,560,src/debug/debug_lib_4dfd10.cpp,3,8,
 same,0x4dfd50,16,src/debug/debug_lib_4dfd10.cpp,5,0,
-same,0x5295c4,4,src/debug/debug_lib.cpp,6,0,
+same,0x5295c4,4,src/debug/debug_lib.cpp,6,44,
 same,0x4e0730,16,src/debug/debug_lib.cpp,466,0,
-same,0x52952c,4,src/debug/debug_lib.cpp,6,12,
+same,0x52952c,4,src/debug/debug_lib.cpp,6,88,
 same,0x4e1450,16,src/debug/debug_lib.cpp,483,0,
 same,0x4e1b00,16,src/debug/debug_lib.cpp,516,0,
 same,0x5122a0,4,src/units/unit_types_42a8d0.cpp,43,4,

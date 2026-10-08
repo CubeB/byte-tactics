@@ -7,7 +7,7 @@ public:
     char unknown_0[0x14];
 };
 
-class Class_004df1e0 {
+class PerformanceDialog {
 public:
     int unknown_0;                     // +0x0
     int unknown_4;                     // +0x4
@@ -21,13 +21,13 @@ public:
     char text[0x1f4];                  // +0x28
     NameTable map;                     // +0x21c
 
-    Class_004df1e0();
-    ~Class_004df1e0() {}
+    PerformanceDialog();
+    ~PerformanceDialog() {}
 };
 
 // FUNCTION: 0x4dfd10
-Class_004df1e0* GetPerformanceWindow(void)
+PerformanceDialog* GetPerformanceWindow(void)
 {
-    static Class_004df1e0 obj;
+    static PerformanceDialog obj;
     return &obj;
 }

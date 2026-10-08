@@ -14,7 +14,7 @@ extern void (*g_outOfMemoryHandler)();
 // ---- the live-block map ----------------------------------------------------
 
 // The per-block record; its first dword is the map's key.
-class Class_004d8820 {
+class BlockInfo {
 public:
     unsigned int base;    // +0x0
     unsigned int size;    // +0x4
@@ -22,40 +22,37 @@ public:
     char unknown_c[0x20]; // +0xc
     unsigned int tag;     // +0x2c
 
-    Class_004d8820(unsigned int a, unsigned int b, unsigned int c, unsigned int d, const char* e);
+    BlockInfo(int a, int b, int c, int d, const char* e);
 };
 
 struct LiveNode {
     LiveNode* left;        // +0x0
     LiveNode* parent;      // +0x4
     LiveNode* right;       // +0x8
-    Class_004d8820 value;  // +0xc
+    BlockInfo value;       // +0xc
 };
 
-class Iter_004dce00 {
+class BlockMapIter {
 public:
     LiveNode* ptr;
 
-    Iter_004dce00() {}
-    Iter_004dce00(LiveNode* q) : ptr(q) {}
-    bool operator==(const Iter_004dce00& o) const { return ptr == o.ptr; }
-    Class_004d8820& operator*() const { return ptr->value; }
-    Class_004d8820* operator->() const { return &ptr->value; }
+    BlockMapIter() {}
+    BlockMapIter(LiveNode* q) : ptr(q) {}
+    bool operator==(const BlockMapIter& o) const { return ptr == o.ptr; }
+    BlockInfo& operator*() const { return ptr->value; }
+    BlockInfo* operator->() const { return &ptr->value; }
 };
 
-class Class_004dc910 {
-public:
-    Iter_004dce00 erase(Iter_004dce00 it);
-};
-
-class Class_004dce00 {
+class BlockMap {
 public:
     char unknown_0[4];
     LiveNode* head;        // +0x4
 
-    Iter_004dce00 end() { return Iter_004dce00(head); }
-    Iter_004dce00 Find(const unsigned int& key); // find
-    Iter_004dce00 erase(Iter_004dce00 it) { return ((Class_004dc910*)this)->erase(it); }
+    BlockMapIter end() { return BlockMapIter(head); }
+    BlockMapIter Find(const unsigned int& key); // find
+    BlockMapIter erase(BlockMapIter it);
+    // An inline front for erase, as the original map called the tree's erase.
+    BlockMapIter Remove(BlockMapIter it) { return erase(it); }
 };
 
 // ---- the debug arena: a ring of the last 0x2000 freed records ---------------
@@ -119,30 +116,25 @@ struct Node_004dacf0 {
     int color;             // +0x14
 };
 
-class Class_004dbe10 {
+class FreeBlockIter {
 public:
     Node_004dacf0* ptr;
 
-    Class_004dbe10() {}
-    Class_004dbe10(Node_004dacf0* q) : ptr(q) {}
-    bool operator==(const Class_004dbe10& o) const { return ptr == o.ptr; }
-    bool operator!=(const Class_004dbe10& o) const { return !(*this == o); }
+    FreeBlockIter() {}
+    FreeBlockIter(Node_004dacf0* q) : ptr(q) {}
+    bool operator==(const FreeBlockIter& o) const { return ptr == o.ptr; }
+    bool operator!=(const FreeBlockIter& o) const { return !(*this == o); }
     Pair_004db000& operator*() const { return ptr->value; }
     Pair_004db000* operator->() const { return &ptr->value; }
-    Class_004dbe10 Previous(int); // operator--(int)
+    FreeBlockIter Previous(int); // operator--(int)
 };
 
-class Class_004ddbe0 {
+class MapInsertResult {
 public:
-    Class_004dbe10 first;
+    FreeBlockIter first;
     unsigned char second;
-    Class_004ddbe0() {}
+    MapInsertResult() {}
 };
-
-class Class_004dbd20 { public: Class_004dbe10 UpperBound(const unsigned int& k); };
-class Class_004dbeb0 { public: Class_004dbe10 Begin(); };
-class Class_004dbd00 { public: Class_004dbe10 Erase(Class_004dbe10 it); };
-class Class_004dce60 { public: Class_004ddbe0 InsertOrFind(const Pair_004db000& v); };
 
 class FreeBlockMap {
 public:
@@ -152,20 +144,25 @@ public:
     unsigned int count;    // +0xc
     unsigned int total;    // +0x10
 
-    Class_004dbe10 begin() { return ((Class_004dbeb0*)this)->Begin(); }
-    Class_004dbe10 end() { return Class_004dbe10(head); }
-    Class_004dbe10 upper_bound(const unsigned int& k)
+    FreeBlockIter UpperBound(const unsigned int& k);
+    FreeBlockIter Begin();
+    FreeBlockIter EraseCopyIter(FreeBlockIter it);
+    MapInsertResult InsertOrFind(const Pair_004db000& v);
+
+    FreeBlockIter begin() { return Begin(); }
+    FreeBlockIter end() { return FreeBlockIter(head); }
+    FreeBlockIter upper_bound(const unsigned int& k)
     {
-        return ((Class_004dbd20*)this)->UpperBound(k);
+        return UpperBound(k);
     }
-    Class_004dbe10 erase(Class_004dbe10 it) { return ((Class_004dbd00*)this)->Erase(it); }
-    Class_004ddbe0 insert(const Pair_004db000& v) { return ((Class_004dce60*)this)->InsertOrFind(v); }
+    FreeBlockIter erase(FreeBlockIter it) { return EraseCopyIter(it); }
+    MapInsertResult insert(const Pair_004db000& v) { return InsertOrFind(v); }
 
     // 0x4db000: add a free block, merged with the free blocks on either side.
     void AddFreeBlock(Pair_004db000 p)
     {
-        Class_004dbe10 it;
-        Class_004dbe10 n = upper_bound(p.offset);
+        FreeBlockIter it;
+        FreeBlockIter n = upper_bound(p.offset);
         it = n;
         if (it == begin())
             it = end();
@@ -189,7 +186,7 @@ public:
 };
 
 CRITICAL_SECTION* GetAllocLock();
-Class_004dce00* GetBlockMap();
+BlockMap* GetBlockMap();
 Arena_004da9f0* GetFreedBlockRing();
 FreeBlockMap* GetFreeBlockSet();
 char IsBackAlign();
@@ -206,9 +203,9 @@ void __cdecl FreeDebugBlock(void* p, int flags)
         return;
     CRITICAL_SECTION* lock = GetAllocLock();
     EnterCriticalSection(lock);
-    Class_004dce00* live = GetBlockMap();
-    Class_004d8820 rec((unsigned int)p, 0, 0, 0, 0);
-    Iter_004dce00 it = live->Find(rec.base);
+    BlockMap* live = GetBlockMap();
+    BlockInfo rec((unsigned int)p, 0, 0, 0, 0);
+    BlockMapIter it = live->Find(rec.base);
     if (it == GetBlockMap()->end()) {
         LeaveCriticalSection(lock);
         return;
@@ -226,7 +223,7 @@ void __cdecl FreeDebugBlock(void* p, int flags)
     else
         arena->ring[arena->count & 0x1fff] = *old;
     arena->count++;
-    GetBlockMap()->erase(it);
+    GetBlockMap()->Remove(it);
     CountFree(size);
     g_committedBytes -= (size + 0xfff) & 0xfffff000;
     p = (void*)((unsigned int)p & 0xfffff000);

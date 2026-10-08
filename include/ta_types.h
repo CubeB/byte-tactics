@@ -773,7 +773,7 @@ class CallSite;
 struct Class_004d8b30;
 class Class_004d8b60;
 class Class_004d8bd0;
-class Class_004d8c00;
+class BlockHistory;
 class Class_004d8d40;
 class StackTrace;
 class Class_004d9ca0;
@@ -794,19 +794,19 @@ class Class_004dce60;
 class Class_004dd150;
 class Class_004dd1f0;
 class Class_004dd250;
-class Class_004dd2a0;
+class FreeBlockIter;
 class Class_004dd3d0;
 class Class_004dd430;
 class Class_004dd710;
 class Class_004dd770;
 class Class_004dd7d0;
-class Class_004ddbe0;
+class MapInsertResult;
 class Class_004ddc00;
 class Class_004ddc90;
 class Class_004ddce0;
-class Class_004ddd70;
-class Class_004dddf0;
-class Class_004dde70;
+class FreeBlockAllocator;
+class BlockMapAllocator;
+class BlockMapIter;
 class LoadedImage;
 class Class_004ddfa0;
 class Class_004ddfe0;
@@ -819,7 +819,7 @@ class Class_004df4e0;
 class Class_004df590;
 class Class_004dfea0;
 class Class_004e03f0;
-class Class_004e0450;
+class NameMapIter;
 class Class_004e0520;
 class Class_004e0570;
 class Class_004e05c0;
@@ -849,9 +849,9 @@ class Class_004e2580;
 class Class_004e2620;
 class Class_004e2950;
 class Class_004e29b0;
-class Class_004e2a10;
+class NameMapInsertResult;
 class Class_004e2a30;
-class Class_004e2b60;
+class NameMapAllocator;
 class CavedogRegistryKey;
 class Class_004e2cc0;
 class Class_004e2ce0;
@@ -18860,13 +18860,13 @@ public:
     Class_004d88d0(char*, int, int);
 };
 
-class Class_004d8c00 {  // 0x149 bytes, 1 view
+class BlockHistory {    // 0x149 bytes, 1 view
 public:
     char unknown_0[48];
     Class_004d88d0 field_30;  // +0x30
     TraceRecord field_bc;     // +0xbc
     char field_148;  // +0x148
-    Class_004d8c00(Class_004d87f0_2&, char*, int, int);
+    BlockHistory(Class_004d87f0_2&, char*, int, int);
 };
 
 class Class_004d8d40 {  // 0x148 bytes, 2 views
@@ -18922,7 +18922,7 @@ public:
     ~CritSec_004e1ac0(void);
 };
 
-class Class_004dddf0 {  // 0x1 bytes, 3 views
+class BlockMapAllocator {  // 0x1 bytes, 3 views
 public:
     char unknown_0[1];
     void* FUN_004dddf0(unsigned int);
@@ -18949,36 +18949,36 @@ public:
     void Init(void);
     static LiveNode*& _Parent(LiveNode*);
     unsigned int size(void);
-    Class_004e0450 begin(void);
+    NameMapIter begin(void);
     static LiveNode*& _Right(LiveNode*);
-    Class_004e0450 end(void);
+    NameMapIter end(void);
     static std::pair<NameKey, Value_004e2250>& _Value(LiveNode*);
-    Class_004e0450 erase(Class_004e0450, Class_004e0450);
+    NameMapIter erase(NameMapIter, NameMapIter);
     static LiveNode* _Max(LiveNode*);
 };
 
-class Class_004dd2a0 {  // 0x4 bytes, 21 views
+class FreeBlockIter {   // 0x4 bytes, 21 views
 public:
     LiveNode* ptr;  // +0x0
-    Class_004dd2a0(LiveNode*);
-    Class_004dd2a0(void);
+    FreeBlockIter(LiveNode*);
+    FreeBlockIter(void);
     void FUN_004dd340(void);
-    Class_004dd2a0 operator++(int);
-    Class_004dd2a0& operator++(void);
-    unsigned char operator==(Class_004dd2a0&);
+    FreeBlockIter operator++(int);
+    FreeBlockIter& operator++(void);
+    unsigned char operator==(FreeBlockIter&);
     void Dec(void);
     void Inc(void);
-    Class_004dd2a0 Next(int);
+    FreeBlockIter Next(int);
     LiveNode* Mynode(void);
     LiveNode* _Mynode(void);
-    unsigned char operator!=(Class_004dd2a0&);
+    unsigned char operator!=(FreeBlockIter&);
     void FUN_004dd2a0(void);
     void FUN_004dd820(void);
     Pair_00419560& operator*(void);
     Pair_00419560* operator->(void);
-    Class_004dd2a0 Previous(int);
-    Class_004dd2a0 operator--(int);
-    Class_004dd2a0& operator--(void);
+    FreeBlockIter Previous(int);
+    FreeBlockIter operator--(int);
+    FreeBlockIter& operator--(void);
 };
 
 class Class_004db450 {  // 0x14 bytes, 2 views
@@ -18988,33 +18988,33 @@ public:
     char unknown_8[8];
     int total;  // +0x10
     bool GrowReservation(unsigned int);
-    unsigned char Neq(Class_004dd2a0, Class_004dd2a0);
-    void Tail(unsigned int, unsigned int, Class_004dd2a0&);
+    unsigned char Neq(FreeBlockIter, FreeBlockIter);
+    void Tail(unsigned int, unsigned int, FreeBlockIter&);
 };
 
 class Class_004dbd00 {  // 0x1 bytes, 3 views
 public:
     char unknown_0[1];
-    Class_004dd2a0 FUN_004dbd00(Class_004dd2a0);
+    FreeBlockIter FUN_004dbd00(FreeBlockIter);
 };
 
 class Class_004dbeb0 {  // 0x8 bytes, 4 views
 public:
     char unknown_0[4];
     int* field_4;  // +0x4
-    Class_004dd2a0 FUN_004dbeb0(void);
+    FreeBlockIter FUN_004dbeb0(void);
     int* FUN_004dbeb0(int*);
 };
 
-class Class_004ddbe0 {  // 0x8 bytes, 8 views
+class MapInsertResult {  // 0x8 bytes, 8 views
 public:
-    Class_004dd2a0 first;  // +0x0
+    FreeBlockIter first;   // +0x0
     unsigned char second;  // +0x4
     char unknown_5[3];
-    Class_004ddbe0(Class_004dd2a0, unsigned char);
-    Class_004ddbe0(Class_004ddbe0&);
-    Class_004ddbe0(void);
-    Class_004ddbe0* FUN_004ddbe0(int*, unsigned char*);
+    MapInsertResult(FreeBlockIter, unsigned char);
+    MapInsertResult(MapInsertResult&);
+    MapInsertResult(void);
+    MapInsertResult* FUN_004ddbe0(int*, unsigned char*);
 };
 
 struct Less_004db000 {  // 0x1 bytes, 1 view
@@ -19033,23 +19033,23 @@ public:
     unsigned int total;  // +0x10
     FreeBlockMap(FreeBlockMap&);
     FreeBlockMap(void);
-    Class_004dd2a0 Begin(void);
-    Class_004dd2a0 begin(void);
-    Class_004dd2a0 End(void);
-    Class_004dd2a0 end(void);
+    FreeBlockIter Begin(void);
+    FreeBlockIter begin(void);
+    FreeBlockIter End(void);
+    FreeBlockIter end(void);
     static void* operator new(unsigned int);
-    Class_004dd2a0 upper_bound(unsigned int&);
-    unsigned char Neq(Class_004dd2a0, Class_004dd2a0);
+    FreeBlockIter upper_bound(unsigned int&);
+    unsigned char Neq(FreeBlockIter, FreeBlockIter);
     unsigned int size(void);
-    Class_004dd2a0 erase(Class_004dd2a0);
+    FreeBlockIter erase(FreeBlockIter);
     unsigned int TakeFreeBlock(unsigned int);
-    Class_004ddbe0 insert(Pair_00419560&);
+    MapInsertResult insert(Pair_00419560&);
     void AddFreeBlock(Pair_00419560);
     unsigned char Grow(unsigned int);
 };
 
 struct InsertResult_004db450 {  // 0x8 bytes, 1 view
-    Class_004dd2a0 first;  // +0x0
+    FreeBlockIter first;   // +0x0
     int second;  // +0x4
 };
 
@@ -19058,7 +19058,7 @@ struct Frame_004db450 {  // 0x10 bytes, 1 view
     Pair_00419560 p;  // +0x8
 };
 
-class Class_004ddd70 {  // 0x1 bytes, 3 views
+class FreeBlockAllocator {  // 0x1 bytes, 3 views
 public:
     char unknown_0[1];
     void* FUN_004ddd70(unsigned int);
@@ -19140,8 +19140,8 @@ public:
     LiveNode* head;  // +0x4
     char unknown_8[4];
     int size;  // +0xc
-    Class_004dd2a0 FUN_004dce60(LiveNode*, LiveNode*, Pair_00419560*);
-    Class_004ddbe0 FUN_004dbbc0(Pair_00419560&);
+    FreeBlockIter FUN_004dce60(LiveNode*, LiveNode*, Pair_00419560*);
+    MapInsertResult FUN_004dbbc0(Pair_00419560&);
     static LiveNode*& Left(LiveNode*);
     void Lrotate(LiveNode*);
     static LiveNode*& Right(LiveNode*);
@@ -19149,8 +19149,8 @@ public:
     static unsigned int& Key(LiveNode*);
     LiveNode*& Root(void);
     LiveNode*& Lmost(void);
-    Class_004dd2a0 begin(void);
-    Class_004ddbe0 TreeInsert(Pair_00419560&);
+    FreeBlockIter begin(void);
+    MapInsertResult TreeInsert(Pair_00419560&);
 };
 
 struct Less_004dbd20 {  // 0x1 bytes, 1 view
@@ -19163,7 +19163,7 @@ public:
     Less_004dbd20 key_compare;  // +0x0
     char unknown_1[3];
     LiveNode* head;  // +0x4
-    Class_004dd2a0 UpperBound(unsigned int&);
+    FreeBlockIter UpperBound(unsigned int&);
 };
 
 class Class_004dd150 {  // 0x8 bytes, 2 views
@@ -19199,8 +19199,8 @@ public:
     unsigned char rebuild;  // +0x8
     char unknown_9[3];
     int size;  // +0xc
-    Class_004dd2a0 Begin(void);
-    Class_004ddbe0 FUN_004dbec0(Pair_00419560*);
+    FreeBlockIter Begin(void);
+    MapInsertResult FUN_004dbec0(Pair_00419560*);
     void FUN_004dbec0(InsertResult_004db450*, Pair_00419560*);
 };
 
@@ -19221,9 +19221,9 @@ public:
     unsigned char multi;  // +0x8
     char unknown_9[3];
     unsigned int size;  // +0xc
-    Class_004dd2a0 FUN_004dc130(Class_004dd2a0);
+    FreeBlockIter FUN_004dc130(FreeBlockIter);
     static LiveNode*& Left(LiveNode*);
-    void FUN_004dc130(Class_004dd2a0*, Class_004dd2a0);
+    void FUN_004dc130(FreeBlockIter*, FreeBlockIter);
     static LiveNode*& Parent(LiveNode*);
     static LiveNode*& Right(LiveNode*);
     static int& Color(LiveNode*);
@@ -19249,8 +19249,8 @@ public:
     Less_004dc620 key_compare;  // +0x0
     char unknown_1[3];
     LiveNode* head;  // +0x4
-    Class_004dd2a0 FUN_004dc620(unsigned int&);
-    void FUN_004dc620(Class_004dd2a0*, unsigned int&);
+    FreeBlockIter FUN_004dc620(unsigned int&);
+    void FUN_004dc620(FreeBlockIter*, unsigned int&);
 };
 
 class Class_004dd710 {  // 0x8 bytes, 2 views
@@ -19286,11 +19286,11 @@ public:
     unsigned char rebuild;  // +0x8
     char unknown_9[3];
     int size;  // +0xc
-    Class_004dd2a0 Begin(void);
-    Class_004ddbe0 FUN_004dc680(Class_004d8820*);
+    FreeBlockIter Begin(void);
+    MapInsertResult FUN_004dc680(Class_004d8820*);
 };
 
-class Class_004dde70 {  // 0x4 bytes, 2 views
+class BlockMapIter {    // 0x4 bytes, 2 views
 public:
     LiveNode* ptr;  // +0x0
     void FUN_004dde70(void);
@@ -19343,10 +19343,10 @@ public:
     unsigned char unknown_8;  // +0x8
     char unknown_9[3];
     int size;  // +0xc
-    Class_004dd2a0* FUN_004dd430(Class_004dd2a0*, LiveNode*, LiveNode*, Class_004d8820*);
+    FreeBlockIter* FUN_004dd430(FreeBlockIter*, LiveNode*, LiveNode*, Class_004d8820*);
     void Lrotate(LiveNode*);
     void Rrotate(LiveNode*);
-    Class_004dd2a0 FUN_004dd430(LiveNode*, LiveNode*, Class_004d8820&);
+    FreeBlockIter FUN_004dd430(LiveNode*, LiveNode*, Class_004d8820&);
 };
 
 struct Less_004dd7d0 {  // 0x1 bytes, 1 view
@@ -19359,9 +19359,9 @@ public:
     Less_004dd7d0 key_compare;  // +0x0
     char unknown_1[3];
     LiveNode* head;  // +0x4
-    Class_004dd2a0 End(void);
+    FreeBlockIter End(void);
     LiveNode* FUN_004dd7d0(unsigned int&);
-    Class_004dd2a0 Begin(void);
+    FreeBlockIter Begin(void);
 };
 
 struct Less_004ddc90 {  // 0x1 bytes, 1 view
@@ -19542,19 +19542,19 @@ public:
     void EnableControls(void);
 };
 
-class Class_004e0450 {  // 0x4 bytes, 11 views
+class NameMapIter {     // 0x4 bytes, 11 views
 public:
     LiveNode* ptr;  // +0x0
-    Class_004e0450(LiveNode*);
-    Class_004e0450(void);
+    NameMapIter(LiveNode*);
+    NameMapIter(void);
     void FUN_004e0450(void);
     void FUN_004e2ab0(void);
-    Class_004e0450 operator++(int);
-    Class_004e0450& operator++(void);
-    Class_004e0450& operator--(void);
-    unsigned char operator==(Class_004e0450&);
+    NameMapIter operator++(int);
+    NameMapIter& operator++(void);
+    NameMapIter& operator--(void);
+    unsigned char operator==(NameMapIter&);
     LiveNode* _Mynode(void);
-    unsigned char operator!=(Class_004e0450&);
+    unsigned char operator!=(NameMapIter&);
 };
 
 class Class_004e18c0 {  // 0x14 bytes, 2 views
@@ -19566,10 +19566,10 @@ public:
     int size;  // +0xc
     unsigned char changed;  // +0x10
     char unknown_11[3];
-    Class_004e0450 begin(void);
+    NameMapIter begin(void);
     void FUN_004e18c0(void);
-    Class_004e0450 end(void);
-    Class_004e0450 erase(Class_004e0450, Class_004e0450);
+    NameMapIter end(void);
+    NameMapIter erase(NameMapIter, NameMapIter);
 };
 
 struct Iterator_004df590 {  // 0x4 bytes, 1 view
@@ -19643,7 +19643,7 @@ public:
     char _Multi;  // +0x8
     char unknown_9[3];
     unsigned int _Size;  // +0xc
-    Class_004e0450 FUN_004dfea0(Class_004e0450);
+    NameMapIter FUN_004dfea0(NameMapIter);
     static int& _Color(LiveNode*);
     static LiveNode*& _Left(LiveNode*);
     static LiveNode*& _Parent(LiveNode*);
@@ -19760,7 +19760,7 @@ public:
     void CloseMappedFile(void);
 };
 
-class Class_004e2b60 {  // 0x1 bytes, 3 views
+class NameMapAllocator {  // 0x1 bytes, 3 views
 public:
     char unknown_0[1];
     std::pair<char*, Value_004e17c0>* address(std::pair<char*, Value_004e17c0>&);
@@ -19783,7 +19783,7 @@ class Class_004e2240 {  // 0x8 bytes, 2 views
 public:
     char unknown_0[4];
     int* field_4;  // +0x4
-    Class_004e0450 FUN_004e2240(void);
+    NameMapIter FUN_004e2240(void);
     int* FUN_004e2240(int*);
 };
 
@@ -19796,18 +19796,18 @@ public:
 class Class_004e2250 {  // 0x10 bytes, 2 views
 public:
     char unknown_0[16];
-    Class_004e0450 begin(void);
-    Class_004e2a10 FUN_004e2250(std::pair<NameKey, Value_004e2250>&);
+    NameMapIter begin(void);
+    NameMapInsertResult FUN_004e2250(std::pair<NameKey, Value_004e2250>&);
 };
 
-class Class_004e2a10 {  // 0x8 bytes, 3 views
+class NameMapInsertResult {  // 0x8 bytes, 3 views
 public:
-    Class_004e0450 first;  // +0x0
+    NameMapIter first;     // +0x0
     unsigned char second;  // +0x4
     char unknown_5[3];
-    Class_004e2a10(Class_004e0450&, unsigned char&);
-    Class_004e2a10(void);
-    Class_004e2a10* FUN_004e2a10(Data1*, Data2*);
+    NameMapInsertResult(NameMapIter&, unsigned char&);
+    NameMapInsertResult(void);
+    NameMapInsertResult* FUN_004e2a10(Data1*, Data2*);
 };
 
 struct Less_004e1990 {  // 0x1 bytes, 1 view
@@ -19825,9 +19825,9 @@ public:
     int size;  // +0xc
     unsigned char changed;  // +0x10
     char unknown_11[3];
-    Class_004e0450 End(void);
+    NameMapIter End(void);
     void Upsert(NameKey&);
-    Class_004e0450 Find(NameKey&);
+    NameMapIter Find(NameKey&);
 };
 
 class Class_004e2e20 {  // 0x8 bytes, 2 views
@@ -19995,7 +19995,7 @@ public:
     Less_004e2580 compare;  // +0x0
     char unknown_1[3];
     LiveNode* head;  // +0x4
-    Class_004e0450 FUN_004e2580(char*&);
+    NameMapIter FUN_004e2580(char*&);
     LiveNode* Lbound(char*&);
 };
 
@@ -20011,7 +20011,7 @@ public:
     LiveNode* head;  // +0x4
     int nilref;  // +0x8
     unsigned int size;  // +0xc
-    Class_004e0450 FUN_004e2620(LiveNode*, LiveNode*, Value_004df590&);
+    NameMapIter FUN_004e2620(LiveNode*, LiveNode*, Value_004df590&);
     LiveNode*& _Root(void);
     LiveNode*& _Lmost(void);
     LiveNode*& _Rmost(void);

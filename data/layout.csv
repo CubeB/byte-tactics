@@ -5813,31 +5813,31 @@ piece,0x4fcc60,4,src/orders/vtol_orders_410850.cpp,3,0,game data
 piece,0x501b1c,15,src/orders/vtol_orders_40fbe0.cpp,3,0,game data
 piece,0x5012bc,15,src/orders/vtol_orders.cpp,8,0,game data
 piece,0x50192c,28,src/ai/pathfind.cpp,45,0,game data
-piece,0x501908,17,src/ai/ai_player_40c250.cpp,19,0,game data
-piece,0x5018ec,25,src/ai/ai_player_40c250.cpp,18,0,game data
-piece,0x5018e4,8,src/ai/ai_player_40c250.cpp,17,0,game data
-piece,0x5018d8,6,src/ai/ai_player_40c250.cpp,15,0,game data
-piece,0x5018c4,17,src/ai/ai_player_40c250.cpp,14,0,game data
-piece,0x5018b0,19,src/ai/ai_player_40c250.cpp,13,0,game data
-piece,0x50189c,19,src/ai/ai_player_40c250.cpp,12,0,game data
-piece,0x501894,5,src/ai/ai_player_40c250.cpp,11,0,game data
-piece,0x50188c,7,src/ai/ai_player_40c250.cpp,10,0,game data
-piece,0x501884,5,src/ai/ai_player_40c250.cpp,9,0,game data
-piece,0x501870,19,src/ai/ai_player_40c250.cpp,8,0,game data
-piece,0x50183c,51,src/ai/ai_player_40c250.cpp,7,0,game data
-piece,0x5017e0,92,src/ai/ai_player_40c250.cpp,6,0,game data
-piece,0x5017d8,5,src/ai/ai_player_40c250.cpp,5,0,game data
-piece,0x5017d4,4,src/ai/ai_player_40c250.cpp,4,0,game data
-piece,0x5017ac,39,src/ai/ai_player_40c250.cpp,3,0,game data
-piece,0x4fc9b8,4,src/ai/ai_player_40bfe0.cpp,3,0,game data
-piece,0x4fc9f0,4,src/ai/ai_player_40bb00.cpp,3,0,game data
-piece,0x4fc9f4,4,src/ai/ai_player_40bb00.cpp,3,4,game data
-piece,0x4fc9f8,4,src/ai/ai_player_40bb00.cpp,3,8,game data
-piece,0x4fc9fc,4,src/ai/ai_player_40bb00.cpp,3,16,game data
-piece,0x4fca00,4,src/ai/ai_player_40bb00.cpp,3,20,game data
-piece,0x4fca04,4,src/ai/ai_player_40bb00.cpp,3,24,game data
-piece,0x4fca08,4,src/ai/ai_player_40bb00.cpp,3,28,game data
-piece,0x4fc9cc,4,src/ai/ai_player_40bb00.cpp,3,32,game data
+piece,0x501908,17,src/ai/ai_player_409dc0.cpp,68,0,game data
+piece,0x5018ec,25,src/ai/ai_player_409dc0.cpp,67,0,game data
+piece,0x5018e4,8,src/ai/ai_player_409dc0.cpp,66,0,game data
+piece,0x5018d8,6,src/ai/ai_player_409dc0.cpp,64,0,game data
+piece,0x5018c4,17,src/ai/ai_player_409dc0.cpp,63,0,game data
+piece,0x5018b0,19,src/ai/ai_player_409dc0.cpp,62,0,game data
+piece,0x50189c,19,src/ai/ai_player_409dc0.cpp,61,0,game data
+piece,0x501894,5,src/ai/ai_player_409dc0.cpp,60,0,game data
+piece,0x50188c,7,src/ai/ai_player_409dc0.cpp,59,0,game data
+piece,0x501884,5,src/ai/ai_player_409dc0.cpp,58,0,game data
+piece,0x501870,19,src/ai/ai_player_409dc0.cpp,57,0,game data
+piece,0x50183c,51,src/ai/ai_player_409dc0.cpp,56,0,game data
+piece,0x5017e0,92,src/ai/ai_player_409dc0.cpp,55,0,game data
+piece,0x5017d8,5,src/ai/ai_player_409dc0.cpp,54,0,game data
+piece,0x5017d4,4,src/ai/ai_player_409dc0.cpp,53,0,game data
+piece,0x5017ac,39,src/ai/ai_player_409dc0.cpp,52,0,game data
+piece,0x4fc9b8,4,src/ai/ai_player_409dc0.cpp,39,12,game data
+piece,0x4fc9f0,4,src/ai/ai_player_409dc0.cpp,39,0,game data
+piece,0x4fc9f4,4,src/ai/ai_player_409dc0.cpp,39,4,game data
+piece,0x4fc9f8,4,src/ai/ai_player_409dc0.cpp,39,8,game data
+piece,0x4fc9fc,4,src/ai/ai_player_409dc0.cpp,39,16,game data
+piece,0x4fca00,4,src/ai/ai_player_409dc0.cpp,39,20,game data
+piece,0x4fca04,4,src/ai/ai_player_409dc0.cpp,39,24,game data
+piece,0x4fca08,4,src/ai/ai_player_409dc0.cpp,39,28,game data
+piece,0x4fc9cc,4,src/ai/ai_player_409dc0.cpp,39,32,game data
 piece,0x4fc9d8,8,src/ai/player_ai.cpp,3,8,game data
 piece,0x4fc9e0,8,src/ai/player_ai.cpp,3,16,game data
 piece,0x4fc9e8,8,src/ai/player_ai.cpp,3,24,game data
@@ -12074,7 +12074,6 @@ same,0x4fc9c0,4,src/ai/ai_player_4095d0.cpp,3,8,
 same,0x4fc9b8,4,src/ai/ai_player_409730.cpp,5,0,
 same,0x4fc9cc,4,src/ai/ai_player_409730.cpp,5,20,
 same,0x4fc9b8,8,src/ai/player_ai.cpp,3,0,
-same,0x4fc9b8,4,src/ai/ai_player_40bb00.cpp,3,12,
 same,0x4fcc40,4,src/orders/vtol_orders_4118e0.cpp,9,0,
 same,0x4fcc50,4,src/orders/vtol_orders_411f50.cpp,5,8,
 same,0x4fcc40,4,src/orders/vtol_orders_414380.cpp,4,0,

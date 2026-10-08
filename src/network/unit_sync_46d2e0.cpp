@@ -1,8 +1,8 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, GPT-6.1-sol
 // and space-bunny-free, edited by deepseek-v4.1, retried by Sonnet 5.5. Names are provisional.
-// A method of UnitSync, whose other methods are in unit_sync_46c620.cpp.
+// A method of UnitSync, whose other methods are in unit_sync.cpp.
 // Stays in its own file: its hand-written _Tree model calls the out-of-line
-// _Insert (0x46fb80), which unit_sync_46c620.cpp's _Tree model cannot share.
+// _Insert (0x46fb80), which unit_sync.cpp's _Tree model cannot share.
 //
 // The value handed to the map insert has an uninitialised y: the node briefly
 // holds stack garbage before `= v` overwrites y with 0.

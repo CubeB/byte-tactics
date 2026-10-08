@@ -1,7 +1,7 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// A method of UnitSync, whose other methods are in unit_sync_46c620.cpp.
+// A method of UnitSync, whose other methods are in unit_sync.cpp.
 // Stays in its own file: it needs the real <map>, <list> or <vector>
-// instantiations its own way, which unit_sync_46c620.cpp's views cannot share.
+// instantiations its own way, which unit_sync.cpp's views cannot share.
 //
 // The destructor of the 0x68-byte object held at g_game+0x2a30
 // (UnitSync, constructor 0x46d040, created by 0x46c8e0). Nothing calls

@@ -1652,8 +1652,8 @@ piece,0x512358,1024,src/units/movement_class.cpp,3,0,game data
 piece,0x5129d0,40,src/network/net_condenser.cpp,3,0,game data
 piece,0x5129f8,37,src/network/net_condenser.cpp,3,40,game data
 piece,0x513000,46396,src/network/packets_460e20.cpp,3,0,game data
-piece,0x51e598,4,src/network/unit_sync_46c620.cpp,16,0,game data
-piece,0x51e59c,4,src/network/unit_sync_46c620.cpp,17,0,game data
+piece,0x51e598,4,src/network/unit_sync.cpp,3,0,game data
+piece,0x51e59c,4,src/network/unit_sync.cpp,2,0,game data
 piece,0x51e6a0,16,src/map/line_of_sight_4814c0.cpp,3,0,game data
 piece,0x51f310,12,src/weapons/weapons_49c740.cpp,3,0,game data
 piece,0x51fbb8,4,src/util/int_map_4b2290.cpp,4,0,game data
@@ -4523,9 +4523,9 @@ piece,0x4fd5b8,28,src/graphics/particles_470a40.cpp,49,0,game data
 piece,0x4fd588,28,src/graphics/particles_470a40.cpp,41,0,game data
 piece,0x4fd5a8,16,src/graphics/particles_470a40.cpp,44,0,game data
 piece,0x4fd580,4,src/graphics/particles_470a40.cpp,7,0,game data
-piece,0x507b40,35,src/network/unit_sync_46c620.cpp,48,0,game data
-piece,0x507b24,26,src/network/unit_sync_46c620.cpp,47,0,game data
-piece,0x507b08,25,src/network/unit_sync_46c620.cpp,46,0,game data
+piece,0x507b40,35,src/network/unit_sync.cpp,48,0,game data
+piece,0x507b24,26,src/network/unit_sync.cpp,47,0,game data
+piece,0x507b08,25,src/network/unit_sync.cpp,46,0,game data
 piece,0x507af8,13,src/game/statistics.cpp,26,0,game data
 piece,0x507aec,12,src/game/statistics.cpp,25,0,game data
 piece,0x507adc,16,src/game/statistics.cpp,24,0,game data
@@ -12238,8 +12238,8 @@ same,0x504910,10,src/ingame/info_panel_4689c0.cpp,11,0,
 same,0x506290,6,src/ingame/info_panel_4689c0.cpp,4,0,
 same,0x4fd568,4,src/ingame/info_panel_468cf0.cpp,22,0,
 same,0x504910,10,src/ingame/info_panel_468cf0.cpp,13,0,
-same,0x502ae8,3,src/network/unit_sync_46c620.cpp,49,0,
-same,0x470a40,80,src/network/unit_sync_46c620.cpp,109,0,
+same,0x502ae8,3,src/network/unit_sync.cpp,49,0,
+same,0x470a40,80,src/network/unit_sync.cpp,245,0,
 same,0x50341c,4,src/frontend/campaign_menu_4767f0.cpp,5,0,
 same,0x50372c,2,src/frontend/campaign_menu_4767f0.cpp,4,0,
 same,0x504a64,6,src/frontend/campaign_menu_4767f0.cpp,3,0,

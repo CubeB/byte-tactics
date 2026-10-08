@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // PacketSequencer::SendSequenced. The rest of the class is in
-// unit_sync_46c620.cpp; this stays apart because it needs the hand-written
+// unit_sync.cpp; this stays apart because it needs the hand-written
 // std::vector below, which cannot share a file with <vector>.
 #include <memory>
 #include <xutility>

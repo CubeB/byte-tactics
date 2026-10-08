@@ -56,7 +56,7 @@ extern Game* g_game;
 static inline UnitDef* Definitions() { return g_game->defs; }
 union Fixed { int value; struct { unsigned short fraction; short whole; }; };
 void __stdcall QueueUnitSpeech(Unit*, int, const char*);
-void __stdcall FUN_0041c110(Unit*);
+void __stdcall MarkSelectionOrdersDirty(Unit*);
 int __stdcall FUN_0047db70(UnitDef*, int, Point, int);
 void __stdcall FUN_0047ddc0(UnitDef*, Vec3*);
 Unit* __stdcall CreateUnit(unsigned char, short, Vec3, int, int, int);
@@ -73,7 +73,7 @@ class Class_00438a00 { public: void FUN_00438a00(Vec3*, int, int); };
 // FUNCTION: 0x403f70
 int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
 {
-    if (flags & 2) { FUN_0041c110(unit); return 5; }
+    if (flags & 2) { MarkSelectionOrdersDirty(unit); return 5; }
     Unit* target = order->target;
     if (!target) {
         QueueUnitSpeech(unit, 7, "Construction terminated");
@@ -101,7 +101,7 @@ int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
         if (target->progress == 0.0f) return 5;
         ((Unit*)unit)->ClaimWeapons(3);
         StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &order->target->pos) - unit->angle);
-        FUN_0041c110(unit);
+        MarkSelectionOrdersDirty(unit);
         return 1;
     case 2:
         return FUN_00438700(unit, order, 10);

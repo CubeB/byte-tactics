@@ -170,7 +170,7 @@ unsigned short __stdcall GetCellFeature(Cell* cell);
 Cell* __stdcall GetMapCellAtPosition(Vec3* pos);
 void __stdcall RemoveFeature(void* target, int flag);
 int __stdcall BroadcastPacket(int player, void* data, int size);
-void __stdcall FUN_0041c110(Unit* unit);
+void __stdcall MarkSelectionOrdersDirty(Unit* unit);
 Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit* unit, Unit* target, int flags);
 void __stdcall AppendOrder(Unit* owner, Class_0043a1f0* node);
 
@@ -279,7 +279,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
         }
         order->target.owner->buildLeft = 0;
         order->target.owner->health = 1;
-        FUN_0041c110(unit);
+        MarkSelectionOrdersDirty(unit);
         break;
     }
     case 6: {

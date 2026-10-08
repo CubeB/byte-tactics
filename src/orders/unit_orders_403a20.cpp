@@ -54,7 +54,7 @@ extern Game* g_game;
 static inline UnitDef* Definitions() { return g_game->defs; }
 union Fixed { int value; struct { unsigned short fraction; short whole; }; };
 void __stdcall QueueUnitSpeech(Unit*, int, const char*);
-void __stdcall FUN_0041c110(Unit*);
+void __stdcall MarkSelectionOrdersDirty(Unit*);
 int __stdcall FUN_0047db70(UnitDef*, int, Point, int);
 void __stdcall FUN_0047ddc0(UnitDef*, Vec3*);
 Unit* __stdcall CreateUnit(unsigned char, short, Vec3, int, int, int);
@@ -82,11 +82,11 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
 {
     if (flags & 8) {
         QueueUnitSpeech(unit, 7, "Construction terminated");
-        FUN_0041c110(unit);
+        MarkSelectionOrdersDirty(unit);
         return 8;
     }
     if (flags & 2) {
-        FUN_0041c110(unit);
+        MarkSelectionOrdersDirty(unit);
         return 5;
     }
     unsigned int state = 0;
@@ -136,7 +136,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
             return 2;
         }
         QueueUnitSpeech(unit, 9, "Starting construction");
-        FUN_0041c110(unit);
+        MarkSelectionOrdersDirty(unit);
         AddOrder("getbuilt", 1, order->target, unit, 0, 0, 0);
         StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &order->target->pos) - unit->angle);
         return 1;

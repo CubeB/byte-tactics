@@ -275,7 +275,7 @@ void __stdcall StepBuildMenuPageBack(int param);
 void __stdcall StepBuildMenuPage(int param);
 void __stdcall OpenBuildMenuPage(int param);
 void __stdcall SelectSquad(int index, int key);
-void __stdcall FUN_0041c2e0(int param);
+void __stdcall CycleCameraFollow(int param);
 void __stdcall FUN_00417b50(int param_1, int param_2);
 void OpenUnitInfoDialog(void);
 void OpenShareDialog(void);
@@ -776,11 +776,11 @@ void HandleGameKey(void)
         break;
 
     case 0x74:
-        FUN_0041c2e0(0);
+        CycleCameraFollow(0);
         break;
 
     case 0x54:
-        FUN_0041c2e0(1);
+        CycleCameraFollow(1);
         break;
 
     case 0xd:

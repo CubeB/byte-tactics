@@ -473,8 +473,8 @@ void __stdcall ReclaimFeature(Unit*, Vec3*);
 unsigned short __stdcall FindFeatureAtPos(Vec3*, Point16*, Point16*);
 int __stdcall FUN_00438650(Unit*, Unit*, int);
 void __stdcall DamageUnit(Unit*, Unit*, int, int, int);
-void __stdcall FUN_0041c110(Unit*);
-int __stdcall FUN_0041bd10(Unit*, Unit*, float);
+void __stdcall MarkSelectionOrdersDirty(Unit*);
+int __stdcall AddRepairProgress(Unit*, Unit*, float);
 int __stdcall FUN_0047ea40(Vec3*, Fixed, Vec3**, float*, Vec3**, float*);
 void __stdcall VisitObjectsInRange(Vec3*, int, const Class_00410c70&);
 void __stdcall VisitObjectsInRange(Vec3*, int, const Class_004158d0&);
@@ -1087,8 +1087,8 @@ int __stdcall VtolEvadeOrder(Unit* unit,Order* order,int flags)
 // FUNCTION: 0x413d80
 int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
 {
-    if (flags&2) { FUN_0041c110(unit); return 5; }
-    if (flags&8) { QueueUnitSpeech(unit,7,"Construction terminated"); FUN_0041c110(unit); return 8; }
+    if (flags&2) { MarkSelectionOrdersDirty(unit); return 5; }
+    if (flags&8) { QueueUnitSpeech(unit,7,"Construction terminated"); MarkSelectionOrdersDirty(unit); return 8; }
     unsigned int state=0; state=order->state;
     switch(state) {
     case 0:
@@ -1135,7 +1135,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
         QueueUnitSpeech(unit,9,"Starting construction");
         AddOrder("GETBUILT",1,order->targetUnit,unit,0,0,0);
         StartBuildingScript(unit,order,FUN_004b715a(unit->pos.x-order->targetUnit->pos.x,unit->pos.z-order->targetUnit->pos.z)-unit->heading);
-        FUN_0041c110(unit);
+        MarkSelectionOrdersDirty(unit);
         return 1;
     }
     case 3:
@@ -1244,7 +1244,7 @@ int __stdcall VtolRepairUnitOrder(Unit* unit, Order* order, int flags)
         if ((unsigned int)order->targetUnit->health >= order->targetUnit->def->maxHealth)
             return 1;
         {
-            FUN_0041bd10(unit, order->targetUnit, (float)(unit->def->workerTime / 30));
+            AddRepairProgress(unit, order->targetUnit, (float)(unit->def->workerTime / 30));
             Vec3 nano;
             GetNanoPiecePosition(order->source, &nano);
             Box box;

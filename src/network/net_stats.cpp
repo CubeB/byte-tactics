@@ -213,7 +213,7 @@ int BitReader::ReadSignedBits(int bits)
     return r;
 }
 
-// Same reset sequence as FUN_00419560 and CmdNetStats.
+// Same reset sequence as InitCommands and CmdNetStats.
 // FUNCTION: 0x415e90
 void ResetNetStats()
 {
@@ -303,7 +303,7 @@ void __stdcall FormatNetStats(char* text)
 // the two cannot share a translation unit (tools/headers.py).
 
 // The sums are never used (their consumer was presumably compiled out).
-// As in FUN_00419560, the second field of the second table is read through a
+// As in InitCommands, the second field of the second table is read through a
 // walking pointer.
 // FUNCTION: 0x4161f0
 void FUN_004161f0()

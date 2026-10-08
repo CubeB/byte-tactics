@@ -119,7 +119,7 @@ unsigned short __stdcall GetHeadingBetween(Vec3* from, Vec3* to);
 void __stdcall StartBuildingScript(Unit* unit, Order* order, short turn);
 int __stdcall FUN_00438700(Unit* unit, Order* order, int flags);
 void __stdcall StopBuildingScript(Unit* unit, Order* order);
-int __stdcall FUN_0041bd10(Unit* builder, Unit* unit, float amount);
+int __stdcall AddRepairProgress(Unit* builder, Unit* unit, float amount);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
 void __stdcall EmitNanoParticles(Vec3* from, Box* to, int count);
 
@@ -175,7 +175,7 @@ int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
             return 0;
         }
         unit->repairTime = g_game->ticks + 150;
-        if (FUN_0041bd10(unit, order->target, (float)(unit->type->workerTime / 30))) {
+        if (AddRepairProgress(unit, order->target, (float)(unit->type->workerTime / 30))) {
             Vec3 nano;
             GetNanoPiecePosition(order->source, &nano);
             Box box;

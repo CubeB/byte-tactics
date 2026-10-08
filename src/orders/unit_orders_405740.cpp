@@ -28,7 +28,7 @@ struct Game { char pad0[0x38a47]; int tick; };
 #pragma pack(pop)
 extern Game* g_game;
 void __stdcall QueueUnitSpeech(Unit*, int, const char*);
-int __stdcall FUN_0041bd10(Unit*, Unit*, float);
+int __stdcall AddRepairProgress(Unit*, Unit*, float);
 void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
 void __stdcall EmitNanoParticles(Vec3*, Vec3*, int);
 // FUNCTION: 0x405740
@@ -55,7 +55,7 @@ int __stdcall RepairUnitNoMoveOrder(Unit* unit, Order* order, int unused)
         unit->timeout = g_game->tick + 150;
         int rate = 0;
         rate = unit->def->buildRate;
-        if (FUN_0041bd10(unit, order->target.Get(), (float)(rate / 30))) {
+        if (AddRepairProgress(unit, order->target.Get(), (float)(rate / 30))) {
             Vec3 start;
             GetNanoPiecePosition(order->source, &start);
             Vec3 bounds[2];

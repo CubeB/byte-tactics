@@ -454,9 +454,9 @@ extern int DAT_00511c48;
 extern int DAT_00511c50;
 extern Pair_00419560 DAT_00511a60[44];
 extern Pair_00419560 DAT_00511c60[44];
-extern Option_00419560 DAT_00501d38;
-extern Option_00419560 DAT_00501f48;
-extern Option_00419560 DAT_00501fd0;
+extern Option_00419560 g_consoleCommands;
+extern Option_00419560 g_cheatCommands;
+extern Option_00419560 g_debugCommands;
 
 // The second part's own views and externs: the mouse and the display its
 // functions read.
@@ -545,7 +545,7 @@ static inline void CellToWorld(Point origin, Point c, Vec3* v)
 }
 
 // FUNCTION: 0x419560
-void FUN_00419560()
+void InitCommands()
 {
     DAT_00511c20 = g_game->sideNames[4].field_224;
     DAT_00511bc0 = 0;
@@ -564,9 +564,9 @@ void FUN_00419560()
     DAT_00511bc8 = 0;
     DAT_00511c48 = 0;
     DAT_00511c50 = 0;
-    RegisterCommands(&DAT_00501d38);
-    RegisterCommands(&DAT_00501f48);
-    RegisterCommands(&DAT_00501fd0);
+    RegisterCommands(&g_consoleCommands);
+    RegisterCommands(&g_cheatCommands);
+    RegisterCommands(&g_debugCommands);
     SetDefaultCommandHandler(FUN_00417890, 4);
 }
 
@@ -624,7 +624,7 @@ void __stdcall IssueMobileBuildOrders(Arg_00419670* arg)
 }
 
 // FUNCTION: 0x4197d0
-int FUN_004197d0(void)
+int UpdatePlacementGhostValidity(void)
 {
     UnitType* item = &g_game->buildTypes[g_game->field_2cc4];
     Point cell = WorldToCell(g_game->pos, item->origin);
@@ -733,14 +733,14 @@ void __stdcall QueueBuildOrder(char* name, Unit* unit, int count)
 }
 
 // FUNCTION: 0x419bc0
-void __stdcall FUN_00419bc0(unsigned char param_1)
+void __stdcall SetOrderIntent(unsigned char param_1)
 {
     g_game->field_2cc3 = param_1;
     g_game->flags.value = g_game->flags.value & 0xf7;
 }
 
 // Handles a click on an order button: finds which order the button's name
-// contains and selects that order mode (FUN_00419bc0 inlined), plays the
+// contains and selects that order mode (SetOrderIntent inlined), plays the
 // "immediateorders" or "specialorders" sound and returns 1; returns 0 when the
 // name is no order. STOP issues the stop order at once.
 static inline void SetOrderMode(unsigned char mode)
@@ -1166,7 +1166,7 @@ static inline MenuEntry* Entries(MenuEntry* t)
 }
 
 // FUNCTION: 0x41ac90
-void __stdcall FUN_0041ac90(Menu* obj)
+void __stdcall DisableUnavailableBuildMenuEntries(Menu* obj)
 {
     MenuEntry* t = obj->layer->entries;
     int n = t->u.count;
@@ -1189,7 +1189,7 @@ static inline void SetPrevNext(Unit* unit)
     }
 }
 
-// Inlined copy of FUN_0041ac90.
+// Inlined copy of DisableUnavailableBuildMenuEntries.
 static inline void UpdateCounts(Menu* menu)
 {
     MenuEntry* entry = menu->layer->entries;
@@ -1286,7 +1286,7 @@ void __stdcall OpenGeneratorDialog(Unit* unit)
 }
 
 // FUNCTION: 0x41b200
-int __stdcall FUN_0041b200(Unit* obj)
+int __stdcall GetBuildMenuPage(Unit* obj)
 {
     if (obj->flags.bits.buildPage) {
         return obj->flags.bits.page;
@@ -1307,7 +1307,7 @@ void __stdcall BuildEntryGuiName(char* dest, unsigned short index, int n)
 }
 
 // FUNCTION: 0x41b2a0
-Unit* FUN_0041b2a0()
+Unit* GetBuildMenuFocusUnit()
 {
     unsigned short index = g_game->unitIndex;
     if (index) {
@@ -1420,14 +1420,14 @@ int __stdcall AddBuildProgress(Unit* builder, Unit* unit, float amount)
 }
 
 // FUNCTION: 0x41bcd0
-void __stdcall FUN_0041bcd0(Unit* param_1, int param_2)
+void __stdcall ApplyUnfinishedBuildDecay(Unit* param_1, int param_2)
 {
     float val = -((float)(param_1->type->buildTime * param_2) / param_1->type->energyCost);
     AddBuildProgress(param_1, param_1, val);
 }
 
 // FUNCTION: 0x41bd10
-int __stdcall FUN_0041bd10(Unit* builder, Unit* unit, float f)
+int __stdcall AddRepairProgress(Unit* builder, Unit* unit, float f)
 {
     int result = 0;
     UnitType* s = unit->type;
@@ -1526,7 +1526,7 @@ void __stdcall OpenBuildMenuPage(int param_1)
 }
 
 // FUNCTION: 0x41c110
-void __stdcall FUN_0041c110(Unit* unit)
+void __stdcall MarkSelectionOrdersDirty(Unit* unit)
 {
     if (unit->field_ff == g_game->localPlayer && (unit->flags.lo & 0x10)) {
         g_game->orderState.raw |= 0x10;
@@ -1534,7 +1534,7 @@ void __stdcall FUN_0041c110(Unit* unit)
 }
 
 // FUNCTION: 0x41c150
-void __stdcall FUN_0041c150(Unit* unit)
+void __stdcall UpdateBuildMenuIfFocusUnit(Unit* unit)
 {
     Game* g = g_game;
     unsigned short val1 = g->unitIndex;
@@ -1562,7 +1562,7 @@ static Unit* GetSelectedUnit()
 }
 
 // FUNCTION: 0x41c180
-void FUN_0041c180()
+void DispatchOrdersPanelPageFlags()
 {
     if (g_game->orderState.bits.next) {
         g_game->orderState.bits.next = 0;
@@ -1594,7 +1594,7 @@ void FUN_0041c180()
 }
 
 // FUNCTION: 0x41c2b0
-void FUN_0041c2b0()
+void ResetCameraState()
 {
     char saved = g_game->scrollSpeed;
     memset(&g_game->followUnit, 0, 0x5c);
@@ -1602,7 +1602,7 @@ void FUN_0041c2b0()
 }
 
 // FUNCTION: 0x41c2e0
-void __stdcall FUN_0041c2e0(int param)
+void __stdcall CycleCameraFollow(int param)
 {
     Unit* val = g_game->followUnit;
     Unit* result = FindNextSelectedUnit(val, param);
@@ -1631,7 +1631,7 @@ void FindLocalCommander()
 }
 
 // FUNCTION: 0x41c390
-void __cdecl FUN_0041c390()
+void __cdecl ClearCameraFollowState()
 {
     g_game->value_1434b = 0;
     g_game->followUnit = 0;
@@ -1725,7 +1725,7 @@ void __stdcall StartScreenShake(int dx, int dy, int value)
 }
 
 // FUNCTION: 0x41c640
-void __stdcall FUN_0041c640(int dx, int dy, int value)
+void __stdcall AccumulateScreenShake(int dx, int dy, int value)
 {
     if ((g_game->flags_37f2f & 0x10) == 0) {
         if ((g_game->flags_1434e & 1) == 0) {

@@ -162,7 +162,7 @@ public:
 #pragma pack(pop)
 
 void __stdcall QueueUnitSpeech(Unit* unit, int kind, char* text);
-void __stdcall FUN_0041c110(Unit* unit);
+void __stdcall MarkSelectionOrdersDirty(Unit* unit);
 int __stdcall BroadcastPacket(int player, void* data, int size);
 
 // The twin of ClaimWeapons (0x4898b0) with bit 4 the other way round: it
@@ -373,7 +373,7 @@ void Unit::SetStateBits(int mask, int set)
             }
             if (lost & 4)
                 QueueUnitSpeech(this, 0xf, 0);
-            FUN_0041c110(this);
+            MarkSelectionOrdersDirty(this);
             if (player->active != 0) {
                 if (player->kind == 1 || player->kind == 2) {
                     Packet_0048b090 packet;

@@ -78,7 +78,7 @@ extern Game* g_game;
 static inline UnitDef* Definitions() { return g_game->defs; }
 union Fixed { int value; struct { unsigned short fraction; short whole; }; };
 void __stdcall QueueUnitSpeech(Unit*, int, const char*);
-void __stdcall FUN_0041c110(Unit*);
+void __stdcall MarkSelectionOrdersDirty(Unit*);
 int __stdcall FUN_0047db70(UnitDef*, int, Point, int);
 void __stdcall FUN_0047ddc0(UnitDef*, Vec3*);
 Unit* __stdcall CreateUnit(unsigned char, short, Vec3, int, int, int);
@@ -113,7 +113,7 @@ static inline short Angle(Vec3* a,Vec3* b) { return FUN_004b715a(a->x-b->x,a->z-
 int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
 {
     if (order->target.Get() && !(flags&8)) {
-        if (flags&2) { FUN_0041c110(unit); return 5; }
+        if (flags&2) { MarkSelectionOrdersDirty(unit); return 5; }
         unsigned int state=0; state=order->state;
         switch(state) {
         case 0:
@@ -148,7 +148,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
         if (flags&0x40) return 8;
         if (order->target.Get()->progress==0.0f) return 5;
         StartBuildingScript(unit,order,(short)GetHeadingBetween(&unit->pos,&order->target.Get()->pos));
-        FUN_0041c110(unit);
+        MarkSelectionOrdersDirty(unit);
         return 1;
     case 3: {
         if (g_game->tick%150==0) {
@@ -182,6 +182,6 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
         return 7;
     }
     QueueUnitSpeech(unit,7,"Construction terminated by hostile action");
-    FUN_0041c110(unit);
+    MarkSelectionOrdersDirty(unit);
     return 8;
 }

@@ -23,7 +23,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __cdecl FUN_004197d0(void);
+int __cdecl UpdatePlacementGhostValidity(void);
 unsigned short __cdecl FUN_0048cd80(void);
 int __stdcall FUN_0048d220(unsigned char mode);
 void __stdcall FUN_004ab400(Obj_004ab400* p, Src_004ab400* src);
@@ -34,7 +34,7 @@ void __stdcall FUN_00491cc0(int unused)
     unsigned char flags = g_game->flags_2cc6;
 
     if ((flags & 2) != 0 && g_game->mode_2cc3 == 0xe) {
-        FUN_004197d0();
+        UpdatePlacementGhostValidity();
         return;
     }
     if ((flags & 2) == 0 && (flags & 1) == 0) {

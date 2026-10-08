@@ -297,7 +297,7 @@ void __stdcall DamageUnit(Unit* unit, Unit* target, int n, int kind, int flag);
 void __stdcall SetWeaponTargetUnit(Unit* unit, Unit* target, int weapon);
 Unit* __stdcall GetWeaponTargetUnit(Unit* unit, int index);
 int __stdcall WeaponCanReachUnit(Unit* unit, Unit* target, int param_3);
-void __stdcall FUN_0041c150(Unit* unit);
+void __stdcall UpdateBuildMenuIfFocusUnit(Unit* unit);
 void __stdcall FinishConstruction(Unit* unit, Unit* target);
 int __stdcall FUN_00438700(Unit* unit, Order* order, int flags);
 Vec_00401c20 __stdcall GetPiecePosition(Unit* unit, int piece);
@@ -307,12 +307,12 @@ Unit* __stdcall CreateUnit(unsigned char player, unsigned short type, Vec_00401c
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* builder, char piece, char p4);
 void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* owner, Unit* id, void* pos,
                         int param_6, int param_7);
-int __stdcall FUN_0041bd10(Unit* builder, Unit* unit, float amount);
+int __stdcall AddRepairProgress(Unit* builder, Unit* unit, float amount);
 int __stdcall AddBuildProgress(Unit* unit, Unit* target, float amount);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec_00401c20* out);
 void __stdcall EmitNanoParticles(Vec_00401c20* from, Box* to, int count);
-void __stdcall FUN_0041c110(Unit* unit);
-void __stdcall FUN_0041bcd0(Unit* unit, int param);
+void __stdcall MarkSelectionOrdersDirty(Unit* unit);
+void __stdcall ApplyUnfinishedBuildDecay(Unit* unit, int param);
 void __stdcall FUN_0043a020(Unit* unit, Order* order);
 Order* __stdcall FUN_0043b700(Unit* unit);
 int __stdcall FUN_0043b1f0(Unit* unit, Order* order, int param);
@@ -561,7 +561,7 @@ int __stdcall SelfRepairOrder(Unit* unit, Order* order, int unused)
         if ((unsigned int)unit->health >= unit->def->maxHealth)
             return 1;
         unit->repairTime = g_game->ticks + 0x96;
-        if (FUN_0041bd10(order->target.owner, unit, (float)(order->target.owner->def->workerTime / 30))) {
+        if (AddRepairProgress(order->target.owner, unit, (float)(order->target.owner->def->workerTime / 30))) {
             Vec_00401c20 nano;
             GetNanoPiecePosition(order->target.owner, &nano);
             Box box;
@@ -625,13 +625,13 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
             DamageUnit(unit, order->target.owner, 30000, 9, 0);
         }
         unit->SetStateBits(9, 0);
-        FUN_0041c150(unit);
+        UpdateBuildMenuIfFocusUnit(unit);
         return 5;
     }
     if (flags & 8) {
         QueueUnitSpeech(unit, 7, "Construction stopped");
         order->count--;
-        FUN_0041c150(unit);
+        UpdateBuildMenuIfFocusUnit(unit);
         return 0;
     }
     switch (order->state) {
@@ -672,7 +672,7 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
         order->target.owner->bits.bits20 = unit->bits.bits20;
         AddOrder("getbuilt", 1, order->target.owner, unit, 0, 0, 0);
         unit->SetStateBits(8, 1);
-        FUN_0041c150(unit);
+        UpdateBuildMenuIfFocusUnit(unit);
         return 1;
     }
     case 3:
@@ -704,7 +704,7 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
         FinishConstruction(unit, order->target.owner);
         order->target.SetUnit(0);
         order->count--;
-        FUN_0041c150(unit);
+        UpdateBuildMenuIfFocusUnit(unit);
         return 0;
     }
     return 7;
@@ -757,7 +757,7 @@ int __stdcall BuildWeaponOrder(Unit* unit, Order* order, int unused)
     case 2:
         unit->weapons[order->weapon].stockpile++;
         order->count--;
-        FUN_0041c150(unit);
+        UpdateBuildMenuIfFocusUnit(unit);
         return 0;
     default:
         return 7;
@@ -794,7 +794,7 @@ int __stdcall ParalyzeOrder(Unit* unit, Order* order, int unused)
 int __stdcall GetBuiltOrder(Unit* unit, Order* order, unsigned int flags)
 {
     if (unit->buildLeft == 0.0f) {
-        FUN_0041c110(unit);
+        MarkSelectionOrdersDirty(unit);
         if (unit->active) {
             int queued = 0;
             if (order->target.owner) {
@@ -840,7 +840,7 @@ int __stdcall GetBuiltOrder(Unit* unit, Order* order, unsigned int flags)
             ((Class_00439e80*)order)->FUN_00439e80(30);
         } else if (flags & 1) {
             ((Class_00439e80*)order)->FUN_00439e80(11);
-            FUN_0041bcd0(unit, 11);
+            ApplyUnfinishedBuildDecay(unit, 11);
         }
         order->Wait();
         return 2;

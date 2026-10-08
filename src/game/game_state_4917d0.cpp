@@ -108,7 +108,7 @@ void CreateParticleLists();
 void AllocWeaponArray();
 void LoadWeaponTypes();
 void LoadTntMap();
-void FUN_0041c2b0();
+void ResetCameraState();
 void LoadUnitTypes();
 void LoadDownloadMenus();
 void AllocateUnitMemory();
@@ -121,7 +121,7 @@ void InitRadar();
 void InitPlayers();
 void FUN_0044f6a0();
 void InitExplosions();
-void FUN_00419560();
+void InitCommands();
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 unsigned int GetTicks();
 
@@ -151,7 +151,7 @@ void FUN_004917d0()
     AllocWeaponArray();
     LoadWeaponTypes();
     LoadTntMap();
-    FUN_0041c2b0();
+    ResetCameraState();
     LoadUnitTypes();
     LoadDownloadMenus();
     AllocateUnitMemory();
@@ -176,7 +176,7 @@ void FUN_004917d0()
     InitPlayers();
     FUN_0044f6a0();
     InitExplosions();
-    FUN_00419560();
+    InitCommands();
     for (int i = 0; i < 10; i++)
         g_game->players[i].field_140 = 0;
     g_game->bit2_3923b = 0;

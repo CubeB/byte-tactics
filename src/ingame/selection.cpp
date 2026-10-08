@@ -941,7 +941,7 @@ void FUN_0048d4d0(void)
 //   flags dword at +0x110, +0x92 the type (name at +0x20), +0xa6 a type
 //   index, +0xfb an int, +0x104 the build fraction, +0x110 the flags dword.
 // - the unit array at g_game+0x14357 is indexed by the same 0x118 stride.
-void __cdecl FUN_0041c390(void);
+void __cdecl ClearCameraFollowState(void);
 
 // FUNCTION: 0x48d630
 void __stdcall FUN_0048d630(int param_1)
@@ -953,7 +953,7 @@ void __stdcall FUN_0048d630(int param_1)
         if (u->flags.done && u->field_104 == 0.0f && u->field_fb == 0
             && (u->owner == 0 || u->owner->flags.bit30)) {
             if (strcmp(u->def->name, playerName) == 0) {
-                FUN_0041c390();
+                ClearCameraFollowState();
                 CenterCameraOnMapPosition((Vec3*)&u->pos_x, 1);
                 if (param_1 == 0)
                     return;

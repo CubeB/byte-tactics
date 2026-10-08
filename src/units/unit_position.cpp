@@ -336,11 +336,11 @@ void __stdcall FUN_0043bad0(Unit* u);
 void __stdcall UpdateUnitHeight(Unit* u);
 void __stdcall KillUnit(Unit* u, int n);
 void __stdcall DamageUnit(int a, Unit* u, int damage, int kind, int flag);
-int __stdcall FUN_0041bd10(Unit* u, Unit* u2, float f);
+int __stdcall AddRepairProgress(Unit* u, Unit* u2, float f);
 void __stdcall SendUnitStates(Player* p);
 void __stdcall FUN_0048d790(void);
 int __stdcall IsKeyDown(int n);
-void __stdcall FUN_0041c2e0(int n);
+void __stdcall CycleCameraFollow(int n);
 Unit* __stdcall CreateUnitFromPacket(unsigned char player, Spawn* spawn);
 void __stdcall WriteUnitState(BitWriter* stream, Unit* u);
 void __stdcall ReadUnitState(BitReader* reader, Unit* u);
@@ -629,7 +629,7 @@ void __stdcall UpdateAllUnits(void)
                                 if (u->type->f200 != 0 && u->field_108 < u->type->f1fa
                                     && (g_game->ticks & 7) == 0) {
                                     int n = u->type->f200 * 8;
-                                    FUN_0041bd10(u, u, (float)(n / 30));
+                                    AddRepairProgress(u, u, (float)(n / 30));
                                 }
                                 RunOrders(u);
                                 FUN_0043bad0(u);
@@ -661,7 +661,7 @@ void __stdcall UpdateAllUnits(void)
             if (g_game->f14371 <= 0) {
                 g_game->f14371 = 0x5a;
                 FUN_0048d790();
-                FUN_0041c2e0(0);
+                CycleCameraFollow(0);
             }
         }
     }

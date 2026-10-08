@@ -872,7 +872,7 @@ struct Holder_00499eb0 {
 #pragma pack(pop)
 
 void* __stdcall GetMapCellAtPosition(Vec3_0049b720* position);
-void __stdcall FUN_0041c640(int a, int b, int c);void __stdcall AddExplosionEffect(Vec3_0049b720* position, void* value, int a, int b);
+void __stdcall AccumulateScreenShake(int a, int b, int c);void __stdcall AddExplosionEffect(Vec3_0049b720* position, void* value, int a, int b);
 void __stdcall EmitWhiteSmoke(Vec3_0049b720* position, int value);
 // The sound id stays unsigned int: gives the original's zero extension.
 void __stdcall PlaySoundAt(unsigned int sound, Vec3_0049b720* position, int value);
@@ -905,7 +905,7 @@ void __stdcall DetonateProjectile(Projectile_00499eb0* projectile, Unit* unit)
         projectile->field_69 = projectile->field_69 | 2;
         return;
     }
-    FUN_0041c640(type->field_cc, type->field_cc, type->field_d0);
+    AccumulateScreenShake(type->field_cc, type->field_cc, type->field_d0);
     if (hostile && !unit) {
         PlaySoundAt(type->sound2, position, 0);
         AddExplosionEffect(position, type->field_7c, 0, hostile);
@@ -3159,7 +3159,7 @@ int __stdcall WeaponCanReachPos(Unit* unit, Vec3* a2, Vec3* a3,
                            unsigned char a4);
 int __stdcall SendScriptCallByName(Unit* obj, char* name, char field_5, int field_6, int field_a,
                            unsigned short field_e, unsigned short field_12);
-void __stdcall FUN_0041c150(Unit* unit);
+void __stdcall UpdateBuildMenuIfFocusUnit(Unit* unit);
 
 // FUNCTION: 0x49e1a0
 void __stdcall UpdateUnitWeapons(Unit* unit) {
@@ -3243,7 +3243,7 @@ void __stdcall UpdateUnitWeapons(Unit* unit) {
                 continue;
             if (attached->f_111.b28) {
                 e->f_1a--;
-                FUN_0041c150(unit);
+                UpdateBuildMenuIfFocusUnit(unit);
             } else {
                 int n = unit->f_b8 / 5;
                 if (n > 5)

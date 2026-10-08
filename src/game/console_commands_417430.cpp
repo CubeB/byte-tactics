@@ -263,7 +263,7 @@ short __stdcall FindUnitTypeId(char* name);
 void __stdcall KillUnitsOfType(short id);
 void __stdcall ReloadUnitType(unsigned short id);
 extern void ResetAIPlayers();
-extern void FUN_0041c390(void);
+extern void ClearCameraFollowState(void);
 void __stdcall RecalculateLineOfSight(int flag);
 void FUN_004161f0();
 void __stdcall WriteScreenshot(char* name, char* description, int x, int y, int w, int h);
@@ -335,7 +335,7 @@ void __stdcall CmdBigBrother(int unused)
 {
     if (g_game->paused) {
         g_game->paused = 0;
-        FUN_0041c390();
+        ClearCameraFollowState();
     } else {
         g_game->paused = 1;
         g_game->field_14371 = 1;
@@ -363,7 +363,7 @@ void __stdcall CmdNowISee(void*)
     RecalculateLineOfSight(1);
 }
 
-// Same reset sequence as FUN_00419560, run as a callback after FUN_004161f0.
+// Same reset sequence as InitCommands, run as a callback after FUN_004161f0.
 // FUNCTION: 0x417570
 void __stdcall CmdNetStats(int)
 {

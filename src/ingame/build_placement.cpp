@@ -134,8 +134,8 @@ public:
 extern Game* g_game;
 
 void BeginMouseScroll();
-void FUN_004197d0();
-void FUN_0041c180();
+void UpdatePlacementGhostValidity();
+void DispatchOrdersPanelPageFlags();
 void UpdateMouseScroll();
 void CenterCameraOnRadarClick();
 void __stdcall FUN_0041d9f0(int a);
@@ -283,7 +283,7 @@ void BattleFrame(void)
 
     unsigned char flags = g_game->flags_2cc6;
     if ((flags & 2) != 0 && g_game->orderMode == 0xe) {
-        FUN_004197d0();
+        UpdatePlacementGhostValidity();
     } else if ((flags & 2) == 0 && (flags & 1) == 0) {
         SetCursor(0x13);
     } else {
@@ -291,7 +291,7 @@ void BattleFrame(void)
         SetCursor(FUN_0048d220(g_game->orderMode));
     }
 
-    FUN_0041c180();
+    DispatchOrdersPanelPageFlags();
     if ((g_game->flags_2cc6 & 0x20) != 0) {
         if (IsKeyDown(0xf9) == 0) {
             g_game->orderMode = 1;

@@ -16,7 +16,7 @@ public:
 
 #include "../map/mission.h"
 
-struct PlayerData_00452cc0 {
+struct PlayerInfo {
     char unknown_0[0x97];
     unsigned char flags;               // +0x97, bit 0: host
     char unknown_98[0x9d - 0x98];
@@ -29,7 +29,7 @@ struct Player_00452cc0 {
     char unknown_8[0xc - 8];
     int lobbyDataSynced;               // +0x0c
     char unknown_10[0x27 - 0x10];
-    PlayerData_00452cc0* data;         // +0x27
+    PlayerInfo* data;                  // +0x27
     char unknown_2b[0x73 - 0x2b];
     unsigned char type;                // +0x73
     char unknown_74[0x108 - 0x74];

@@ -63,7 +63,7 @@ struct UnitType {
 
 struct Owner_0048ea40 {
     char unknown_0[0x95];
-    unsigned char playerIndex;         // +0x95
+    unsigned char side;                // +0x95
 };
 
 struct Link_0048ea40 {
@@ -645,7 +645,7 @@ extern char DAT_00508f24[]; // "Celebrated"
 void VictoryKillEnemyCommander::OnUnitDied(Unit* unit)
 {
     if (unit->kind == 1) {
-        if (_strcmpi(unit->info->name, g_game->names[unit->link->owner->playerIndex].name) == 0) {
+        if (_strcmpi(unit->info->name, g_game->names[unit->link->owner->side].name) == 0) {
             satisfied = 1;
             if (celebrated == 0) {
                 PlaySoundByName("Victory Condition", 0);
@@ -1127,7 +1127,7 @@ void VictoryTimerRunsOut::LoadState(HapiBank* obj)
 void DefeatCommanderKilled::OnUnitDied(Unit* unit)
 {
     if (unit->kind == 0) {
-        if (_strcmpi(unit->info->name, g_game->names[unit->link->owner->playerIndex].name) == 0) {
+        if (_strcmpi(unit->info->name, g_game->names[unit->link->owner->side].name) == 0) {
             satisfied = 1;
         }
     }

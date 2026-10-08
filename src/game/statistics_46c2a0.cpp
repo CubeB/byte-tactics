@@ -11,12 +11,12 @@
 #include "../map/mission.h"
 
 #pragma pack(push, 1)
-struct PlayerData_0046c2a0 {
+struct PlayerInfo {
     char unknown_0[0x94];
-    unsigned char field_94;            // +0x94
+    unsigned char kind;                // +0x94
     unsigned char side;                // +0x95
     char unknown_96;
-    unsigned char field_97;            // +0x97
+    unsigned char flags;               // +0x97
     char unknown_98[0x9b - 0x98];
     unsigned short bits_9b_0 : 6;      // +0x9b, bits 0 to 5
     unsigned short flag_9b_6 : 1;      // bit 6 (mask 0x40)
@@ -27,7 +27,7 @@ struct Player_0046c2a0 {               // 0x14b bytes
     int active;                        // +0x00
     int id;                            // +0x04
     char unknown_8[0x27 - 0x8];
-    PlayerData_0046c2a0* data;         // +0x27
+    PlayerInfo* data;                  // +0x27
     char name[0x73 - 0x2b];            // +0x2b
     unsigned char type;                // +0x73
     char unknown_74[0xac - 0x74];
@@ -111,11 +111,11 @@ int FillScoreTables()
             g_onlineReportPlayers[i]->name = p->name;
             g_onlineReportPlayers[i]->id = p->id;
             g_onlineReportPlayers[i]->flags = 1;
-            if ((p->active && p->type == 2) || (p->active && p->type == 3 && p->data->field_94 == 2))
+            if ((p->active && p->type == 2) || (p->active && p->type == 3 && p->data->kind == 2))
                 g_onlineReportPlayers[i]->flags |= 2;
             if (p->active && p->data->flag_9b_6)
                 g_onlineReportPlayers[i]->flags |= 4;
-            if (p->active && (p->data->field_97 & 1))
+            if (p->active && (p->data->flags & 1))
                 g_onlineReportPlayers[i]->flags |= 8;
             g_onlineReportPlayers[i]->side = g_sideNames[p->data->side];
             int n = 0;

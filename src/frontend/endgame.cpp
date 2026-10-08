@@ -140,7 +140,7 @@ struct Display {
 
 struct PlayerInfo {
     char unknown_0[0x95];
-    unsigned char flag_95;             // +0x95
+    unsigned char side;                // +0x95
     unsigned char color;               // +0x96
     char unknown_97[0x9b - 0x97];
     unsigned short bits_9b_0 : 6;      // +0x9b
@@ -1133,7 +1133,7 @@ void __stdcall RunEndGameState()
         int next=((Mission*)g_game->campaign)->MissionExists(g_game->mission+1);
         if(g_game->campaign->GetGameType()==1 && g_game->bit4_3923b && !next && !g_game->skip) {
             if((unsigned char)GetDisplay()->network) {
-                if(!g_game->players[0].info->flag_95) SetFrontendState(4,0x4ce,"c:\\cavedog\\wargame\\endgame.cpp");
+                if(!g_game->players[0].info->side) SetFrontendState(4,0x4ce,"c:\\cavedog\\wargame\\endgame.cpp");
                 else SetFrontendState(5,0x4d3,"c:\\cavedog\\wargame\\endgame.cpp");
             } else SetFrontendState(2,0x4d9,"c:\\cavedog\\wargame\\endgame.cpp");
             SetGameMode(2);

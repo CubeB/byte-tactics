@@ -70,15 +70,15 @@ union Flags_00495e90_3923b {
     };
 };
 
-struct PlayerData_495e90 {
+struct PlayerInfo {
     char unknown_0[0x9b];
-    unsigned char field_9b;             // +0x9b
+    unsigned char gameFlags;            // +0x9b
 };
 
 struct Player_495e90 {
     int valid;                          // +0x00
     char unknown_4[0x27 - 0x4];
-    PlayerData_495e90* data;            // +0x27
+    PlayerInfo* data;                   // +0x27
     char unknown_2b[0x14b - 0x2b];
 };
 
@@ -788,7 +788,7 @@ void HandleGameKey(void)
     case 0x5f:
         if (!(g_game->flags_3923b.raw & 2)) {
             Player_495e90* pl = &g_game->players[g_game->localPlayer];
-            if (pl->valid != 0 && (pl->data->field_9b & 0x40) != 0)
+            if (pl->valid != 0 && (pl->data->gameFlags & 0x40) != 0)
                 break;
             if (g_game->gameSpeed <= 1)
                 break;
@@ -800,7 +800,7 @@ void HandleGameKey(void)
     case 0x3d:
         if (!(g_game->flags_3923b.raw & 2)) {
             Player_495e90* pl = &g_game->players[g_game->localPlayer];
-            if (pl->valid != 0 && (pl->data->field_9b & 0x40) != 0)
+            if (pl->valid != 0 && (pl->data->gameFlags & 0x40) != 0)
                 break;
             if (g_game->gameSpeed >= 0x14)
                 break;

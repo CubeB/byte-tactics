@@ -32,8 +32,8 @@ struct Pos_0049b090 {
 
 // 13 bytes, the stride the cell arithmetic at +0x6e walks with `n * 13`.
 struct Cell_0049b090 {
-    unsigned short unit0;             // +0x0
-    unsigned short unit1;             // +0x2
+    unsigned short unit;              // +0x0
+    unsigned short unit2;             // +0x2
     unsigned char height;             // +0x4
     unsigned char radius;             // +0x5
     unsigned char ground;             // +0x6
@@ -188,15 +188,15 @@ void __stdcall CheckProjectileCollision(ProjType_0049b090* type, Proj_0049b090* 
             DetonateProjectile(proj, 0);
     }
     proj->radius = (cell->radius + cell->ground) / 2;
-    if (cell->unit0) {
-        Unit* u = &g_game->units[cell->unit0];
+    if (cell->unit) {
+        Unit* u = &g_game->units[cell->unit];
         if (u->owner != proj->owner && proj->py.i < u->type->high + u->elev) {
             DetonateProjectile(proj, u);
             return;
         }
     }
-    if (cell->unit1) {
-        Unit* u = &g_game->units[cell->unit1];
+    if (cell->unit2) {
+        Unit* u = &g_game->units[cell->unit2];
         if (u->owner != proj->owner) {
             if (proj->py.i >= u->type->low + u->elev
                 && proj->py.i <= u->type->high + u->elev) {

@@ -46,7 +46,7 @@ struct Entry_486360 {
 
 struct Owner_004864b0 {
     char unknown_0[0x95];
-    unsigned char playerIndex;         // +0x95
+    unsigned char side;                // +0x95
     char unknown_96[5];
     unsigned short b0 : 1, b1 : 1, b2 : 1, b3 : 1, b4 : 1, b5 : 1, b6 : 1, b7 : 1,
         b8 : 1, b9 : 1, b10 : 1, b11 : 1, b12 : 1, b13 : 1, b14 : 1, b15 : 1;   // +0x9b
@@ -1122,7 +1122,7 @@ void __stdcall CreateUnitCorpse(Unit* unit, int depth, int flag)
 // FUNCTION: 0x486460
 int __stdcall IsUnitCommander(Unit* unit)
 {
-    return _strcmpi(g_game->names[unit->player->owner->playerIndex].name, unit->type->name) == 0;
+    return _strcmpi(g_game->names[unit->player->owner->side].name, unit->type->name) == 0;
 }
 
 // A live unit that changed its type (the linked unit name at g_game+0x37f5f
@@ -1155,7 +1155,7 @@ void __stdcall KillPlayerUnits(unsigned char player);
 void __stdcall KillUnit(Unit* unit, int param_2)
 {
     if ((unit->flags.all & 0x10000000) != 0) {
-        int same = _strcmpi(g_game->names[unit->player->owner->playerIndex].name,
+        int same = _strcmpi(g_game->names[unit->player->owner->side].name,
                             unit->type->name) == 0;
         if (same) {
             unit->player->flags &= 0xfffe;
@@ -1279,7 +1279,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
             unit->player->losses++;
             if (unit->lastAttackerSlot != 10 && unit->buildLeft == 0.0f && unit->playerIndex != unit->lastAttackerSlot)
                 g_game->players[unit->lastAttackerSlot].kills++;
-            int same = _strcmpi(g_game->names[unit->player->owner->playerIndex].name,
+            int same = _strcmpi(g_game->names[unit->player->owner->side].name,
                                 unit->type->name) == 0;
             if (same) {
                 if (unit->lastAttackerSlot != 10)
@@ -1296,7 +1296,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
     case 3:
         if (unit->player != 0 && g_game->players[g_game->localPlayer].allied[unit->player->index] == 0) {
             unit->player->losses++;
-            int same = _strcmpi(g_game->names[unit->player->owner->playerIndex].name,
+            int same = _strcmpi(g_game->names[unit->player->owner->side].name,
                                 unit->type->name) == 0;
             if (same)
                 unit->player->losses2++;

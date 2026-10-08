@@ -6,7 +6,7 @@
 // arg = -1, state 2 sets the flag byte and arg = the local player's id, state 3
 // clears the flag and arg = -1.
 #pragma pack(push, 1)
-struct PlayerData_00450530 {
+struct PlayerInfo {
     char unknown_0[0x97];
     unsigned char flags;               // +0x97
 };
@@ -17,7 +17,7 @@ struct Player_00450530 {
     char unknown_8[0xc - 0x8];
     int lobbyDataSynced;               // +0x0c
     char unknown_10[0x27 - 0x10];
-    PlayerData_00450530* data;         // +0x27
+    PlayerInfo* data;                  // +0x27
     char unknown_2b[0x73 - 0x2b];
     unsigned char state;               // +0x73
     char unknown_74[0x146 - 0x74];

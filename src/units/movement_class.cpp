@@ -64,7 +64,7 @@ struct Record_00440af0 {
 
 // One terrain cell as 0x440500 reads it.
 struct Cell_00440500 {
-    unsigned short spot;               // +0x0
+    unsigned short unit;               // +0x0
     char unknown_2[2];
     unsigned char height;
     unsigned char high;                // +0x5
@@ -105,22 +105,22 @@ struct MovementClass {
 };
 
 // The same 32 bytes as MovementClass under the view 0x440500 builds the map
-// with (its own field names and BuildPassMap method).
+// with (the BuildPassMap method).
 class Class_00440500 {
 public:
-    int* field_0;                      // +0x0
-    short field_4;                     // +0x4, footprint x
-    short field_6;                     // +0x6, footprint y
-    short field_8;
-    short field_a;
-    unsigned char field_c;
-    unsigned char field_d;
-    unsigned char field_e;
-    unsigned char field_f;
-    unsigned int field_10;             // +0x10, width
-    unsigned int field_14;             // +0x14, height
-    unsigned int* field_18;            // +0x18, the 2-bit map
-    int field_1c;
+    int* name;                         // +0x0
+    short footprintX;                  // +0x4
+    short footprintZ;                  // +0x6
+    short maxWaterDepth;
+    short minWaterDepth;
+    unsigned char maxSlope;
+    unsigned char badSlope;
+    unsigned char maxWaterSlope;
+    unsigned char badWaterSlope;
+    unsigned int width;                // +0x10
+    unsigned int height;               // +0x14
+    unsigned int* cells;               // +0x18, the 2-bit map
+    int lastTick;
 
     void BuildPassMap();
 };
@@ -157,7 +157,7 @@ struct Struct_00440a70 {
 #pragma pack(push, 1)
 struct PlayerInfo_00440c10 {
     char unknown_0[0x96];
-    unsigned char slot;                // +0x96
+    unsigned char color;               // +0x96
 };
 
 struct Player_00440c10 {               // 0x14b bytes
@@ -171,16 +171,16 @@ struct Player_00440c10 {               // 0x14b bytes
     char unknown_147[0x14b - 0x147];
 };
 
-struct PlayerData_00440cd0 {
+struct PlayerInfo {
     char unknown_0[0xa7];
-    unsigned char field_a7;            // +0xa7
-    unsigned char field_a8;            // +0xa8
-    unsigned int field_a9;             // +0xa9
+    unsigned char versionMajor;        // +0xa7
+    unsigned char versionMinor;        // +0xa8
+    unsigned int mapCrc;               // +0xa9
 };
 
 struct Player_00440cd0 {
     char unknown_0[0x27];
-    PlayerData_00440cd0* data;         // +0x27
+    PlayerInfo* data;                  // +0x27
     char unknown_2b[0x14b - 0x2b];
 };
 #pragma pack(pop)
@@ -337,11 +337,11 @@ static inline void setcell(unsigned int* q, int sh, unsigned int val)
     *q = (*q & ~(3 << sh)) | (val << sh);
 }
 
-// Builds the 2-bit-per-cell passability map (field_18) for one footprint.
+// Builds the 2-bit-per-cell passability map (cells) for one footprint.
 // Pass 1 walks the map row by row, filling one scratch row with the raw cost
 // of every cell and marking 1 on the outer edge of the usable (3) area; pass 2
 // reads the map back column by column and marks 1 on the inner edge. Each pass
-// works on a scratch row whose two bytes in front and field_4/field_6 cells
+// works on a scratch row whose two bytes in front and footprintX/footprintZ cells
 // past the end are zeroed.
 // FUNCTION: 0x440500
 void Class_00440500::BuildPassMap()
@@ -352,29 +352,29 @@ void Class_00440500::BuildPassMap()
     int n;
     unsigned char* v;
     unsigned int size;
-    if (field_10 + field_4 > field_6 + field_14)
-        size = field_10 + field_4;
+    if (width + footprintX > footprintZ + height)
+        size = width + footprintX;
     else
-        size = field_6 + field_14;
+        size = footprintZ + height;
 
     buf = (unsigned char*)operator new(size + 3);
     v = buf + 2;
 
     // Braces keep the two int j apart: MSVC 5 leaks a for-init variable into the enclosing scope.
     {
-    for (int j = 0; j < field_14; j++) {
-        Cell_00440500* c = &g_game->cells[j * field_10];
-        for (n = 0; n < field_10; n++, c++)
+    for (int j = 0; j < height; j++) {
+        Cell_00440500* c = &g_game->cells[j * width];
+        for (n = 0; n < width; n++, c++)
             v[n] = (unsigned char)GetPassMapCellValue(this, c);
         v[-2] = 0;
         v[-1] = 0;
-        for (n = 0; n <= field_4; n++)
-            (v + n)[field_10] = 0;
+        for (n = 0; n <= footprintX; n++)
+            (v + n)[width] = 0;
         b = 0;
         p = v;
         n = 0;
-        for (; n < field_10; n++, p++) {
-            int e = n + field_4 - 1;
+        for (; n < width; n++, p++) {
+            int e = n + footprintX - 1;
             if (v[e] <= b) {
                 b = v[e];
             } else if (p[-1] <= b) {
@@ -384,26 +384,26 @@ void Class_00440500::BuildPassMap()
                     if (b >= v[k]) b = v[k];
             }
             if (b == 3 && (p[-1] < 3 || v[e + 1] < 3))
-                setcell(&field_18[(j >> 4) * field_10 + n], (j & 0xf) * 2, 1);
+                setcell(&cells[(j >> 4) * width + n], (j & 0xf) * 2, 1);
             else
-                setcell(&field_18[(j >> 4) * field_10 + n], (j & 0xf) * 2, b);
+                setcell(&cells[(j >> 4) * width + n], (j & 0xf) * 2, b);
         }
     }
     }
 
     {
-    for (int j = 0; j < field_10; j++) {
-        for (n = 0; n < field_14; n++)
-            v[n] = (unsigned char)((field_18[(n >> 4) * field_10 + j]
+    for (int j = 0; j < width; j++) {
+        for (n = 0; n < height; n++)
+            v[n] = (unsigned char)((cells[(n >> 4) * width + j]
                                     >> ((n & 0xf) * 2)) & 3);
         v[-2] = 0;
         v[-1] = 0;
-        for (n = 0; n <= field_6; n++)
-            (v + n)[field_14] = 0;
+        for (n = 0; n <= footprintZ; n++)
+            (v + n)[height] = 0;
         b = 0;
         n = 0;
-        for (; n < field_14; n++) {
-            int e = n + field_6 - 1;
+        for (; n < height; n++) {
+            int e = n + footprintZ - 1;
             if (v[e] <= b) {
                 b = v[e];
             } else if (v[n - 1] <= b) {
@@ -413,9 +413,9 @@ void Class_00440500::BuildPassMap()
                     if (b >= v[k]) b = v[k];
             }
             if (b == 3 && (v[n - 1] < 3 || v[e + 1] < 3))
-                setcell(&field_18[(n >> 4) * field_10 + j], (n & 0xf) * 2, 1);
+                setcell(&cells[(n >> 4) * width + j], (n & 0xf) * 2, 1);
             else
-                setcell(&field_18[(n >> 4) * field_10 + j], (n & 0xf) * 2, b);
+                setcell(&cells[(n >> 4) * width + j], (n & 0xf) * 2, b);
         }
     }
     }
@@ -620,7 +620,7 @@ int FindUnusedLogo()
     for (int i = 0; i < 10; i++) {
         Player_00440c10* p = &g_game->players[i];
         if (p->active && (p->type == 1 || p->type == 2 || p->type == 3) && p->side != 10)
-            used[p->info->slot < 9 ? p->info->slot : 9] = 1;
+            used[p->info->color < 9 ? p->info->color : 9] = 1;
     }
     int result = 0;
     for (int j = 0; j < 10; j++) {
@@ -647,16 +647,16 @@ int CheckMapCrc()
         return 0;
     }
     unsigned char me = FindHostSlot();
-    PlayerData_00440cd0* data = 0;
+    PlayerInfo* data = 0;
     int check = 0;
     if (me != 10) {
         data = g_game->players2[me].data;
-        if (data->field_a7 >= 2 || (data->field_a7 == 1 && data->field_a8 >= 2)) {
+        if (data->versionMajor >= 2 || (data->versionMajor == 1 && data->versionMinor >= 2)) {
             check = 1;
         }
     }
     if (!check) {
         return 1;
     }
-    return g_game->mapInfo->ComputeMapChecksum() == data->field_a9;
+    return g_game->mapInfo->ComputeMapChecksum() == data->mapCrc;
 }

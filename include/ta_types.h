@@ -2820,7 +2820,7 @@ public:
 };
 
 struct Cell {  // 0x14 bytes, 52 views
-    unsigned short spot;  // +0x0
+    unsigned short unit;  // +0x0
     unsigned short unit2;  // +0x2
     unsigned char height;  // +0x4
     unsigned char high;  // +0x5
@@ -3261,8 +3261,8 @@ public:
 
 struct Map_0040d7b0 {  // 0x1c bytes, 2 views
     char unknown_0[4];
-    short originX;  // +0x4
-    short originY;  // +0x6
+    short footprintX;  // +0x4
+    short footprintZ;  // +0x6
     char unknown_8[8];
     unsigned int width;  // +0x10
     unsigned int height;  // +0x14
@@ -6805,11 +6805,11 @@ class Class_00440500 {  // 0x20 bytes, 3 views
 public:
     void* field_0;  // +0x0
     short footprintX;  // +0x4
-    short footprintY;  // +0x6
-    short minHeight;  // +0x8
-    short maxHeight;  // +0xa
-    unsigned char wetSlope;  // +0xc
-    unsigned char wetSlope2;  // +0xd
+    short footprintZ;  // +0x6
+    short maxWaterDepth;  // +0x8
+    short minWaterDepth;  // +0xa
+    unsigned char maxSlope;  // +0xc
+    unsigned char badSlope;  // +0xd
     unsigned char field_e;  // +0xe
     unsigned char field_f;  // +0xf
     unsigned int field_10;  // +0x10
@@ -6824,15 +6824,15 @@ public:
     int* field_0;  // +0x0
     short field_4;  // +0x4
     short field_6;  // +0x6
-    short minHeight;  // +0x8
-    short maxHeight;  // +0xa
-    unsigned char wetSlope;  // +0xc
-    unsigned char wetSlope2;  // +0xd
-    unsigned char drySlope;  // +0xe
-    unsigned char drySlope2;  // +0xf
+    short maxWaterDepth;  // +0x8
+    short minWaterDepth;  // +0xa
+    unsigned char maxSlope;  // +0xc
+    unsigned char badSlope;  // +0xd
+    unsigned char maxWaterSlope;  // +0xe
+    unsigned char badWaterSlope;  // +0xf
     unsigned int width;  // +0x10
     unsigned int height;  // +0x14
-    unsigned int* data;  // +0x18
+    unsigned int* cells;  // +0x18
     unsigned int lastTick;  // +0x1c
     void RefreshPassMap(Point16, Point16);
 };

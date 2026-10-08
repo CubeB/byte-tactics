@@ -306,7 +306,7 @@ struct Cell {                          // 13 bytes per cell
     union {
         char unknown_0[8];
         struct {
-            short spotId;              // +0x0
+            short unit;                // +0x0
             char unknown_2[6];
         };
         struct {
@@ -1209,7 +1209,7 @@ void __stdcall UpdateFeatures()
                 x += RandomInt(f->seedSpread) - f->seedSpread / 2;
                 z += RandomInt(f->seedSpread) - f->seedSpread / 2;
                 Cell* t = GetMapCell(x, z);
-                if (t && c->spotId == 0 && t->feature == 0xffff)
+                if (t && c->unit == 0 && t->feature == 0xffff)
                     PlaceFeature(t, c->feature, 0, 0, 10);
             }
         }

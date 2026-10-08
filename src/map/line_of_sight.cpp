@@ -58,7 +58,7 @@ struct Rect {
 // A map cell (13 bytes): the feature at +0x8, its footprint offsets at +0xa,
 // and the ground heights at +0x4 to +0x6.
 struct Cell {
-    unsigned short spot;               // +0x0
+    unsigned short unit;               // +0x0
     char unknown_2[2];
     unsigned char height;              // +0x4
     unsigned char high;                // +0x5

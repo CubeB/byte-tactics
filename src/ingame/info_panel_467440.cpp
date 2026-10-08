@@ -35,17 +35,17 @@ struct UnitDef_00467440 {
     unsigned int flags2;               // +0x245
 };
 
-struct PlayerData_00467440 {
+struct PlayerInfo {
     char unknown_0[0x97];
-    unsigned char field_97;            // +0x97
+    unsigned char flags;               // +0x97
     char unknown_98[0x9b - 0x98];
-    unsigned char field_9b;            // +0x9b
+    unsigned char gameFlags;           // +0x9b
 };
 
 struct Owner_00467440 {
     void* field_0;                     // +0x0
     char unknown_4[0x27 - 0x4];
-    PlayerData_00467440* data;         // +0x27
+    PlayerInfo* data;                  // +0x27
     char unknown_2b[0x73 - 0x2b];
     char field_73;                     // +0x73
     char unknown_74[0x108 - 0x74];
@@ -89,7 +89,7 @@ struct ByteMap_00467440 {
 struct PlayerInfo_00467440 {
     void* field_0;                     // +0x0
     char unknown_4[0x27 - 0x4];
-    PlayerData_00467440* data;         // +0x27
+    PlayerInfo* data;                  // +0x27
     char unknown_2b[0x67 - 0x2b];
     Unit* field_67;                    // +0x67
     Unit* field_6b;                    // +0x6b
@@ -182,8 +182,8 @@ void UpdateSensorRadarAndCloak(void)
             a->flags &= ~0x1000;
             if (a->playerIndex == player
                 || (a->player->field_108[pl->field_146] != 0
-                    && (a->player->data->field_97 & 0x40) != 0)
-                || (*(int*)pl != 0 && (pl->data->field_9b & 0x40) != 0)) {
+                    && (a->player->data->flags & 0x40) != 0)
+                || (*(int*)pl != 0 && (pl->data->gameFlags & 0x40) != 0)) {
                 a->flags |= 0x300;
             } else {
                 a->flags &= ~0x700;

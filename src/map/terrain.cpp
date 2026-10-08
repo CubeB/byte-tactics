@@ -203,16 +203,16 @@ class MovementClass {
 public:
     void* name;                         // +0x0
     short footprintX;                   // +0x4
-    short footprintY;                   // +0x6
-    short minHeight;                    // +0x8
-    short maxHeight;                    // +0xa
-    unsigned char wetSlope;             // +0xc
-    unsigned char wetSlope2;            // +0xd
-    unsigned char drySlope;             // +0xe
-    unsigned char drySlope2;            // +0xf
+    short footprintZ;                   // +0x6
+    short maxWaterDepth;                // +0x8
+    short minWaterDepth;                // +0xa
+    unsigned char maxSlope;             // +0xc
+    unsigned char badSlope;             // +0xd
+    unsigned char maxWaterSlope;        // +0xe
+    unsigned char badWaterSlope;        // +0xf
     unsigned int width;                 // +0x10
     unsigned int height;                // +0x14
-    unsigned int* data;                 // +0x18
+    unsigned int* cells;                // +0x18
     unsigned int lastTick;              // +0x1c
 };
 
@@ -898,19 +898,19 @@ int __stdcall GetPassMapCellValue(MovementClass* obj, Cell* cell)
         if (!unit || unit->lastTick < obj->lastTick)
             return 0;
     }
-    int minHeight = g_game->seaLevel - obj->minHeight;
+    int minHeight = g_game->seaLevel - obj->maxWaterDepth;
     if ((int)cell->low < minHeight)
         return 0;
-    int maxHeight = g_game->seaLevel - obj->maxHeight;
+    int maxHeight = g_game->seaLevel - obj->minWaterDepth;
     if ((int)cell->high > maxHeight)
         return 0;
     unsigned char diff = cell->high - cell->low;
     if (cell->low < g_game->seaLevel) {
-        if (diff > obj->drySlope2)
-            return !(obj->drySlope < diff);
+        if (diff > obj->badWaterSlope)
+            return !(obj->maxWaterSlope < diff);
     } else {
-        if (diff > obj->wetSlope2)
-            return !(obj->wetSlope < diff);
+        if (diff > obj->badSlope)
+            return !(obj->maxSlope < diff);
     }
     return 3;
 }
@@ -931,8 +931,8 @@ int __stdcall GetPassMapFootprintValue(MovementClass* obj, int x, int y, int w, 
     int row;
     Cell* cell = &g_game->cells[index];
     int rowStep = g_game->width - w;
-    int minHeight = g_game->seaLevel - obj->minHeight;
-    int maxHeight = g_game->seaLevel - obj->maxHeight;
+    int minHeight = g_game->seaLevel - obj->maxWaterDepth;
+    int maxHeight = g_game->seaLevel - obj->minWaterDepth;
     // Increments live in the for headers: schedules the pointer advance.
     for (row = 0; row < h; row++, cell += rowStep) {
         for (int col = 0; col < w; col++, cell++) {
@@ -972,15 +972,15 @@ int __stdcall GetPassMapFootprintValue(MovementClass* obj, int x, int y, int w, 
                 return 0;
             unsigned char diff = cell->high - cell->low;
             if (cell->low < g_game->seaLevel) {
-                if (diff > obj->drySlope2) {
-                    if (diff > obj->drySlope)
+                if (diff > obj->badWaterSlope) {
+                    if (diff > obj->maxWaterSlope)
                         return 0;
                     if (result > 1)
                         result = 1;
                 }
             } else {
-                if (diff > obj->wetSlope2) {
-                    if (diff > obj->wetSlope)
+                if (diff > obj->badSlope) {
+                    if (diff > obj->maxSlope)
                         return 0;
                     if (result > 1)
                         result = 1;
@@ -991,7 +991,7 @@ int __stdcall GetPassMapFootprintValue(MovementClass* obj, int x, int y, int w, 
     return result;
 }
 
-// Tests whether a unit whose footprint is footprintX x footprintY cells can sit
+// Tests whether a unit whose footprint is footprintX x footprintZ cells can sit
 // at cell (x, y): its own rectangle plus the four strips that touch it (row
 // above, column right, row below, column left), each one cell wider or taller so
 // the corners are covered too. GetPassMapFootprintValue returns 3 for a rectangle that is
@@ -1007,7 +1007,7 @@ int __stdcall GetPassMapFootprintValue(MovementClass* obj, int x, int y, int w, 
 // FUNCTION: 0x47e1f0
 unsigned int __stdcall GetPassMapFootprintValueWithEdgeStrips(MovementClass* obj, int x, int y)
 {
-    int h = obj->footprintY;
+    int h = obj->footprintZ;
     int w = obj->footprintX;
     unsigned int r = GetPassMapFootprintValue(obj, x, y, w, h);
     if (r <= 1)

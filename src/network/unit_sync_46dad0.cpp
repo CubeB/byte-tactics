@@ -8,7 +8,7 @@
 
 struct Data_0046dad0 {
     char unknown_0[0x94];
-    unsigned char field_94; // +0x94
+    unsigned char kind;     // +0x94
 };
 
 #pragma pack(push, 1)
@@ -173,7 +173,7 @@ void UnitSync::ProcessSync() {
                 for (int i = 0; i < 10; i++) {
                     PlayerInfo_0046dad0* p =
                         (PlayerInfo_0046dad0*)(g_game + 0x1b63 + i * 0x14b);
-                    if (p->field_0 != 0 && p->type == 3 && p->data->field_94 == 1 &&
+                    if (p->field_0 != 0 && p->type == 3 && p->data->kind == 1 &&
                         it->id == p->field_4) {
                         live = 1;
                         break;
@@ -190,7 +190,7 @@ void UnitSync::ProcessSync() {
 
         for (int i = 0; i < 10; i++) {
             PlayerInfo_0046dad0* p = (PlayerInfo_0046dad0*)(g_game + 0x1b63 + i * 0x14b);
-            if (p->field_0 != 0 && p->type == 3 && p->data->field_94 == 1) {
+            if (p->field_0 != 0 && p->type == 3 && p->data->kind == 1) {
                 int found = 0;
                 for (std::vector<Class_0046eaa0>::iterator j = players.begin(); j != players.end();
                      ++j) {

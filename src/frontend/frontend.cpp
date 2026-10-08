@@ -57,7 +57,7 @@ struct Bits_00426e80 {
 // the flag at +0x95 and the ready/synced bits at +0x97 and +0x9b.
 struct PlayerOwner_004269d0 {
     char unknown_0[0x95];
-    unsigned char flag;                // +0x95
+    unsigned char side;                // +0x95
     char unknown_96[0x97 - 0x96];
     unsigned short ready : 1;          // +0x97
     unsigned short rest_97 : 15;
@@ -937,11 +937,11 @@ void HandleFrontendDebugKey(void)
     switch (event) {
     case 'A':
     case 'a':
-        g_game->players[g_game->localPlayer].owner->flag = 0;
+        g_game->players[g_game->localPlayer].owner->side = 0;
         return;
     case 'C':
     case 'c':
-        g_game->players[g_game->localPlayer].owner->flag = 1;
+        g_game->players[g_game->localPlayer].owner->side = 1;
         return;
     case 'E':
     case 'e':

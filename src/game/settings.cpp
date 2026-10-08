@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
+#include "../map/mission.h"
 
 #pragma pack(push, 1)
 struct SkirmishPlayer {
@@ -172,32 +173,6 @@ public:
     int SetWaveVolume(int value);
     int SetAuxVolume(int value, int flag);
 };
-
-class TdfFile {
-public:
-    int field_0;
-    void* current;                     // +0x4
-    int field_8;
-    TdfFile();
-    ~TdfFile();
-    int LoadFile(char* file);
-    void ResetCurrentRecord();
-    int SelectRecordAt(int index);
-};
-
-class TdfRecord {
-public:
-    const char* field_0;
-    void CopyRecordName(char* dest, size_t count);
-};
-
-class Mission {
-public:
-    char* GetNameSlot(int index);
-    char* GetMissionName();
-    void RefreshMapList(int arg);
-};
-
 
 // FUNCTION: 0x42f910
 void __stdcall SaveTrackSettings(unsigned char* tracks)
@@ -692,7 +667,7 @@ void ApplyUseOnlyUnits()
             g_game->defs[i].flags &= 0xff7fffff;
         parser.ResetCurrentRecord();
         for (int j = 0; parser.SelectRecordAt(j); j++, parser.ResetCurrentRecord()) {
-            ((TdfRecord*)parser.current)->CopyRecordName(name, 0x100);
+            parser.current->CopyRecordName(name, 0x100);
             for (int k = 0; k < g_game->count; k++) {
                 if (_strcmpi(g_game->defs[k].name, name) == 0) {
                     g_game->defs[k].flags |= 0x800000;

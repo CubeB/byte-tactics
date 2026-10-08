@@ -26,7 +26,7 @@ struct Smoke_00425b80;
 struct Struct_00526ff0;
 
 extern unsigned char g_turnCosts[8];                                                              // 0x4fca10, 8 bytes; const Table_0040d880 by value in 1 of 1 files
-extern unsigned char DAT_004fcc68[8];                                                             // 0x4fcc68, 8 bytes; 1 of 1 files
+extern unsigned char g_movementClassColors[8];                                                    // 0x4fcc68, 8 bytes; 1 of 1 files
 extern char g_directXWarningText[200];                                                            // 0x4fd050, 200 bytes; 1 of 1 files
 extern double TWO_PI;                                                                             // 0x4fd2b0, 8 bytes; 1 of 1 files
 extern double ONE_EIGHTH;                                                                         // 0x4fd2b8, 8 bytes; 1 of 1 files
@@ -39,7 +39,7 @@ extern unsigned char DAT_004fdaf0[16];                                          
 extern double g_shadeStep;                                                                        // 0x4fdbe8, 8 bytes; 1 of 1 files
 extern char g_hapiCopyright[40];                                                                  // 0x4fdbf0, 40 bytes; 1 of 1 files
 extern int g_aiCommandsEnabled;                                                                   // 0x501774, 4 bytes; 1 of 1 files
-extern unsigned char DAT_00501d18[32];                                                            // 0x501d18, 32 bytes; 1 of 1 files
+extern unsigned char g_contourColors[32];                                                         // 0x501d18, 32 bytes; 1 of 1 files
 extern char g_mappingKey[8];                                                                      // 0x502288, 8 bytes; 1 of 1 files
 extern char g_screenshotDirFormat[16];                                                            // 0x5024fc, 16 bytes; 1 of 1 files
 extern const char g_guisDirName[8];                                                               // 0x502820, 8 bytes; 1 of 1 files
@@ -252,7 +252,7 @@ extern int DAT_00511bc0;                                                        
 extern int DAT_00511bc4;                                                                          // 0x511bc4, 4 bytes; 3 of 3 files
 extern int DAT_00511bc8;                                                                          // 0x511bc8, 4 bytes; 4 of 4 files
 extern int g_lastPacketBytesReceived;                                                             // 0x511bcc, 4 bytes; 1 of 1 files
-extern char DAT_00511bd0[80];                                                                     // 0x511bd0, 80 bytes; 1 of 1 files
+extern char g_commandLineBuf[80];                                                                 // 0x511bd0, 80 bytes; 1 of 1 files
 extern int DAT_00511c20;                                                                          // 0x511c20, 4 bytes; 3 of 3 files
 extern int g_lastPacketsSent;                                                                     // 0x511c24, 4 bytes; 1 of 1 files
 extern int g_lastPacketsReceived;                                                                 // 0x511c28, 4 bytes; 1 of 1 files
@@ -272,8 +272,8 @@ extern unsigned int g_packetsReceivedRate;                                      
 extern unsigned int g_packetsSentRate;                                                            // 0x511dc4, 4 bytes; 1 of 1 files
 extern int g_compressedBytesSent;                                                                 // 0x511dc8, 4 bytes; 1 of 1 files
 extern int g_lastCompressedBytesSent;                                                             // 0x511dcc, 4 bytes; 1 of 1 files
-extern int DAT_00511dd0;                                                                          // 0x511dd0, 4 bytes; 1 of 1 files
-extern int DAT_00511dd4;                                                                          // 0x511dd4, 4 bytes; 1 of 1 files
+extern int g_contourSpacing;                                                                      // 0x511dd0, 4 bytes; 1 of 1 files
+extern int g_contourOffset;                                                                       // 0x511dd4, 4 bytes; 1 of 1 files
 extern unsigned int g_netStatsTick;                                                               // 0x511dd8, 4 bytes; 1 of 1 files
 extern unsigned int g_byteRatesTick;                                                              // 0x511ddc, 4 bytes; 1 of 1 files
 extern int DAT_00511de0;                                                                          // 0x511de0, 4 bytes; 2 of 2 files

@@ -276,7 +276,7 @@ void __stdcall StepBuildMenuPage(int param);
 void __stdcall OpenBuildMenuPage(int param);
 void __stdcall SelectSquad(int index, int key);
 void __stdcall CycleCameraFollow(int param);
-void __stdcall FUN_00417b50(int param_1, int param_2);
+void __stdcall ExecuteCommandLine(int param_1, int param_2);
 void OpenUnitInfoDialog(void);
 void OpenShareDialog(void);
 void FocusNextLocalUnit(void);
@@ -693,7 +693,7 @@ void HandleGameKey(void)
 
     case 0x5c:
         if (g_game->flags_37f2f.b1)
-            FUN_00417b50(0, -1);
+            ExecuteCommandLine(0, -1);
         break;
 
     case 0xe5:

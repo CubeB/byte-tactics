@@ -10,7 +10,7 @@
 #include "globals.h"
 
 unsigned char g_turnCosts[8] = {0, 40, 60, 80, 100, 80, 60, 40};  // 0x4fca10 .rdata
-unsigned char DAT_004fcc68[8] = {4, 14, 10};  // 0x4fcc68 .rdata
+unsigned char g_movementClassColors[8] = {4, 14, 10};  // 0x4fcc68 .rdata
 char g_directXWarningText[200] = "Warning! The currently installed version of Microsoft%sDirectX may not function properly with Total Annihilation.%sPlease install the version of DirectX included on the%sTotal Annihilation setup CD.";  // 0x4fd050 .rdata
 double TWO_PI = 6.28318530717958;  // 0x4fd2b0 .rdata
 double ONE_EIGHTH = 0.125;  // 0x4fd2b8 .rdata
@@ -24,7 +24,7 @@ double g_shadeStep = -0.06875;  // 0x4fdbe8 .rdata
 char g_hapiCopyright[40] = "Copyright 0000 Cavedog Entertainment";  // 0x4fdbf0 .rdata
 int g_aiCommandsEnabled = 1;  // 0x501774 .data
 // 0x501d18 .data
-unsigned char DAT_00501d18[32] = {
+unsigned char g_contourColors[32] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 111, 110, 109, 108, 107, 106,
     88, 87, 86, 85, 84, 83, 82, 81, 80, 255, 255, 255, 255, 255, 255, 255
 };
@@ -338,7 +338,7 @@ int DAT_00511bc0;  // 0x511bc0 .bss
 int DAT_00511bc4;  // 0x511bc4 .bss
 int DAT_00511bc8;  // 0x511bc8 .bss
 int g_lastPacketBytesReceived;  // 0x511bcc .bss
-char DAT_00511bd0[80];  // 0x511bd0 .bss
+char g_commandLineBuf[80];  // 0x511bd0 .bss
 int DAT_00511c20;  // 0x511c20 .bss
 int g_lastPacketsSent;  // 0x511c24 .bss
 int g_lastPacketsReceived;  // 0x511c28 .bss
@@ -358,8 +358,8 @@ unsigned int g_packetsReceivedRate;  // 0x511dc0 .bss
 unsigned int g_packetsSentRate;  // 0x511dc4 .bss
 int g_compressedBytesSent;  // 0x511dc8 .bss
 int g_lastCompressedBytesSent;  // 0x511dcc .bss
-int DAT_00511dd0;  // 0x511dd0 .bss
-int DAT_00511dd4;  // 0x511dd4 .bss
+int g_contourSpacing;  // 0x511dd0 .bss
+int g_contourOffset;  // 0x511dd4 .bss
 unsigned int g_netStatsTick;  // 0x511dd8 .bss
 unsigned int g_byteRatesTick;  // 0x511ddc .bss
 int DAT_00511de0;  // 0x511de0 .bss

@@ -19,8 +19,8 @@ typedef unsigned int uint;
 extern char* g_game;
 unsigned long GetMilliseconds();
 int __stdcall FormatNetStats(int);
-int __stdcall FUN_00417f30(int,int);
-int __stdcall FUN_00418310(int);
+int __stdcall DrawSelectedGoal(int,int);
+int __stdcall DrawMapDebugOverlay(int);
 int __stdcall DrawExplosions(int);
 struct Mission { int GetGameType(); };
 int __stdcall DrawUnit(int,int);
@@ -245,7 +245,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   ctx.SetClipRect(*(OverlayRect *)(g_game + 0x37e27));
   ProfileMark((FrameTimers *)(g_game + 0x38d85), 8);
   DrawMapTiles((int)&ctx);
-  FUN_00418310((int)&ctx);
+  DrawMapDebugOverlay((int)&ctx);
   x = *(short *)(g_game + 0x2cac) - *(int *)(g_game + 0x1431f) + 0x80;
   // Compiler state, not meaning: reading viewY through this alias of g_game
   // is what makes MSVC subtract (h >> 1) first, as the original does.
@@ -457,7 +457,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   }
   ProfileMark((FrameTimers *)(g_game + 0x38d85), 4);
   if ((*(ushort *)(g_game + 0x3923b) & 1) && (*(ushort *)(g_game + 0x3923b) & 2) && param_1 != 0)
-    FUN_00417f30((int)&ctx, FindNextSelectedUnit(0, 0));
+    DrawSelectedGoal((int)&ctx, FindNextSelectedUnit(0, 0));
   if (param_1 != 0)
     DrawFogOfWar((int)&ctx);
   ProfileMark((FrameTimers *)(g_game + 0x38d85), 5);

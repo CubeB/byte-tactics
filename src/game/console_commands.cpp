@@ -456,7 +456,7 @@ void __stdcall CmdSFX(CommandArgs* args);
 // GLOBAL: 0x511de8
 extern Game* g_game;
 extern char DAT_005119b8[];
-extern char DAT_00511bd0[];
+extern char g_commandLineBuf[];
 extern int DAT_00511bc0;
 extern int DAT_00511bc4;
 extern int DAT_00511bc8;
@@ -464,13 +464,13 @@ extern int DAT_00511c20;
 extern int DAT_00511c34;
 extern int DAT_00511c48;
 extern int DAT_00511c50;
-extern int DAT_00511dd0;               // contour spacing
-extern int DAT_00511dd4;               // contour offset
+extern int g_contourSpacing;           // contour spacing
+extern int g_contourOffset;            // contour offset
 extern int DAT_0051e698;
 extern Pair_00419560 DAT_00511a60[44];
 extern Pair_00419560 DAT_00511c60[44];
-extern unsigned char DAT_00501d18[];   // colour by height band
-extern unsigned char DAT_004fcc68[];
+extern unsigned char g_contourColors[];  // colour by height band
+extern unsigned char g_movementClassColors[];
 extern signed char DAT_004fd670[], DAT_004fd678[];
 
 void __stdcall AddMessage(char* text, int param_2, int param_3, int param_4);
@@ -525,7 +525,7 @@ void __stdcall SetTextColors(int color, int background);
 void __stdcall DrawString(void* surface, const char* text, int x, int y, int maxWidth);
 void __stdcall FillPolygon(void* surface, Point_00417f60* points, int count, int color);
 void __stdcall FillRectangle(void* surface, Rect* rect, int color);
-void __stdcall FUN_004181d0(void* surface, Point_00417f60* corners, unsigned char* heights);
+void __stdcall DrawCellContours(void* surface, Point_00417f60* corners, unsigned char* heights);
 Unit* __stdcall FindNextSelectedUnit(int, int);
 void __stdcall DumpPlayerAI(int player, FILE* file);
 
@@ -923,8 +923,8 @@ void __stdcall CmdMapping(int unused)
 // FUNCTION: 0x416db0
 void __stdcall CmdContour(CommandArgs* args)
 {
-    DAT_00511dd0 = (int)(args->GetFloatArg(1, 0.0f) * 256.0f);
-    DAT_00511dd4 = (int)(args->GetFloatArg(2, 0.75f) * 256.0f);
+    g_contourSpacing = (int)(args->GetFloatArg(1, 0.0f) * 256.0f);
+    g_contourOffset = (int)(args->GetFloatArg(2, 0.75f) * 256.0f);
 }
 
 // Toggles one flag bit in a 16-bit bitfield inside the game state (the same
@@ -1266,7 +1266,7 @@ void __stdcall CmdInclude(CommandArgs* args)
 }
 
 // FUNCTION: 0x417890
-void __stdcall FUN_00417890(CommandArgs* args)
+void __stdcall DefaultCommandHandler(CommandArgs* args)
 {
     Vec3 pos=g_game->pos;
     int count=0;
@@ -1335,16 +1335,16 @@ void __stdcall CmdDebugBreak(CommandArgs* args)
 
 // Splits the command line param_1 into tokens in a local tokenizer object and
 // dispatches it with the flags param_2. A null command line copies the global
-// command buffer DAT_00511bd0 instead. Compare 0x416780.
+// command buffer g_commandLineBuf instead. Compare 0x416780.
 // FUNCTION: 0x417b50
-void __stdcall FUN_00417b50(char* param_1, int param_2)
+void __stdcall ExecuteCommandLine(char* param_1, int param_2)
 {
     char buf[0xd4];
 
     if (param_1 == 0)
-        param_1 = DAT_00511bd0;
+        param_1 = g_commandLineBuf;
     else
-        strncpy(DAT_00511bd0, param_1, 0x4f);
+        strncpy(g_commandLineBuf, param_1, 0x4f);
 
     ((CommandArgs*)buf)->InitArgs();
     ((CommandArgs*)buf)->Tokenize(param_1, 0);
@@ -1353,7 +1353,7 @@ void __stdcall FUN_00417b50(char* param_1, int param_2)
 
 // Converts a 16.16 fixed-point world position into screen coordinates.
 // FUNCTION: 0x417bb0
-void __stdcall FUN_00417bb0(Pos_00417bb0* pos, int* screen_x, int* screen_y)
+void __stdcall WorldToScreenWithHeight(Pos_00417bb0* pos, int* screen_x, int* screen_y)
 {
     int height = GetGroundHeight(pos);
     *screen_x = pos->x - g_game->scrollX + 0x80;
@@ -1370,7 +1370,7 @@ static inline void WorldToScreen(Pos_00417bb0* pos, int* screen_x, int* screen_y
 // Converts a map position in whole units into screen coordinates, through the
 // 16.16 fixed-point conversion of 0x417bb0 (inlined).
 // FUNCTION: 0x417c00
-void __stdcall FUN_00417c00(int x, int z, int* screen_x, int* screen_y)
+void __stdcall WorldToScreenTileOffset(int x, int z, int* screen_x, int* screen_y)
 {
     Pos_00417bb0 pos;
     *(int*)&pos.x_frac = x << 16;
@@ -1381,7 +1381,7 @@ void __stdcall FUN_00417c00(int x, int z, int* screen_x, int* screen_y)
 // Draws a line from a world position to the same position shifted by
 // (dx, dz) whole map units, converting both ends to screen coordinates.
 // FUNCTION: 0x417c70
-void __stdcall FUN_00417c70(void* surface, Pos_00417bb0* p, short dx, short dz, int color)
+void __stdcall DrawWorldDeltaLine(void* surface, Pos_00417bb0* p, short dx, short dz, int color)
 {
     Pos_00417bb0 pos;
     *(int*)&pos.x_frac = (dx << 16) + *(int*)&p->x_frac;
@@ -1401,7 +1401,7 @@ void __stdcall FUN_00417c70(void* surface, Pos_00417bb0* p, short dx, short dz, 
 // screen coordinates: a start point (a 4-byte pair of shorts) and an end point
 // formed by adding the dx/dz deltas to it.
 // FUNCTION: 0x417d30
-void __stdcall FUN_00417d30(void* surface, Point16 from, short dx, short dz, int color)
+void __stdcall DrawWorldSegmentLine(void* surface, Point16 from, short dx, short dz, int color)
 {
     Pos_00417bb0 pos1, pos2;
     int x1 = from.x << 16;
@@ -1448,7 +1448,7 @@ void Class_0044f010::FUN_0044ef50(void* surface)
 }
 
 // FUNCTION: 0x417f30
-void __stdcall FUN_00417f30(int param_1, Iface_00417f30*** param_2)
+void __stdcall DrawSelectedGoal(int param_1, Iface_00417f30*** param_2)
 {
     if (param_2 && *param_2 && **param_2) {
         (**param_2)->Method_28(param_1);
@@ -1458,12 +1458,12 @@ void __stdcall FUN_00417f30(int param_1, Iface_00417f30*** param_2)
 // Draws the contour lines that cross one triangle of the height map. Each
 // corner is a screen point and a height (8 fraction bits). The corners are
 // sorted by height, then every contour level between the lowest and highest
-// corner (the multiples of DAT_00511dd0, offset by DAT_00511dd4) is drawn as
+// corner (the multiples of g_contourSpacing, offset by g_contourOffset) is drawn as
 // one line across the triangle: first where it crosses the long edge 1-3 and
 // the upper edge 2-3, then the long edge and the lower edge 1-2. The colour
-// comes from the level's height above sea level through DAT_00501d18.
+// comes from the level's height above sea level through g_contourColors.
 // FUNCTION: 0x417f60
-void __stdcall FUN_00417f60(void* surface, Point_00417f60 p1, int z1,
+void __stdcall DrawTriangleContours(void* surface, Point_00417f60 p1, int z1,
                             Point_00417f60 p2, int z2,
                             Point_00417f60 p3, int z3)
 {
@@ -1481,9 +1481,9 @@ void __stdcall FUN_00417f60(void* surface, Point_00417f60 p1, int z1,
         tz = z2; z2 = z3; z3 = tz;
         tp = p2; p2 = p3; p3 = tp;
     }
-    int level = z3 / DAT_00511dd0 * DAT_00511dd0 + DAT_00511dd4;
+    int level = z3 / g_contourSpacing * g_contourSpacing + g_contourOffset;
     while (level > z3) {
-        level -= DAT_00511dd0;
+        level -= g_contourSpacing;
     }
     if (level > z2) {
         int dz13 = z3 - z1;
@@ -1496,8 +1496,8 @@ void __stdcall FUN_00417f60(void* surface, Point_00417f60 p1, int z1,
                          (p1.y * (dz13 - h13) + h13 * p3.y) / dz13,
                          (p2.x * (dz23 - h23) + h23 * p3.x) / dz23,
                          (p2.y * (dz23 - h23) + h23 * p3.y) / dz23,
-                         DAT_00501d18[((level >> 8) - g_game->seaLevel + 0x100) >> 4]);
-            level -= DAT_00511dd0;
+                         g_contourColors[((level >> 8) - g_game->seaLevel + 0x100) >> 4]);
+            level -= g_contourSpacing;
         } while (level > z2);
     }
     if (level > z1) {
@@ -1512,8 +1512,8 @@ void __stdcall FUN_00417f60(void* surface, Point_00417f60 p1, int z1,
                          (p1.y * (dz13 - h13) + h13 * p3.y) / dz13,
                          (p1.x * (dz12 - h12) + h12 * p2.x) / dz12,
                          (p1.y * (dz12 - h12) + h12 * p2.y) / dz12,
-                         DAT_00501d18[((level >> 8) - g_game->seaLevel + 0x100) >> 4]);
-            level -= DAT_00511dd0;
+                         g_contourColors[((level >> 8) - g_game->seaLevel + 0x100) >> 4]);
+            level -= g_contourSpacing;
         } while (level > z1);
     }
 }
@@ -1522,24 +1522,24 @@ void __stdcall FUN_00417f60(void* surface, Point_00417f60 p1, int z1,
 // position and height are the rounded averages of the four corners. The
 // corner heights are bytes, scaled to 8 fraction bits.
 // FUNCTION: 0x4181d0
-void __stdcall FUN_004181d0(void* surface, Point_00417f60* corners, unsigned char* heights)
+void __stdcall DrawCellContours(void* surface, Point_00417f60* corners, unsigned char* heights)
 {
     Point_00417f60 mid;
     mid.x = (corners[0].x + corners[1].x + corners[2].x + corners[3].x + 2) / 4;
     mid.y = (corners[0].y + corners[1].y + corners[2].y + corners[3].y + 2) / 4;
     int midHeight = (heights[0] + heights[1] + heights[2] + heights[3]) * 64;
     // "* 256", not "<< 8": gives mov cl,[mem]; shl ecx,8 instead of mov ch.
-    FUN_00417f60(surface, corners[0], heights[0] * 256, corners[1], heights[1] * 256, mid, midHeight);
-    FUN_00417f60(surface, corners[1], heights[1] * 256, corners[2], heights[2] * 256, mid, midHeight);
-    FUN_00417f60(surface, corners[2], heights[2] * 256, corners[3], heights[3] * 256, mid, midHeight);
-    FUN_00417f60(surface, corners[3], heights[3] * 256, corners[0], heights[0] * 256, mid, midHeight);
+    DrawTriangleContours(surface, corners[0], heights[0] * 256, corners[1], heights[1] * 256, mid, midHeight);
+    DrawTriangleContours(surface, corners[1], heights[1] * 256, corners[2], heights[2] * 256, mid, midHeight);
+    DrawTriangleContours(surface, corners[2], heights[2] * 256, corners[3], heights[3] * 256, mid, midHeight);
+    DrawTriangleContours(surface, corners[3], heights[3] * 256, corners[0], heights[0] * 256, mid, midHeight);
 }
 
 // Debug overlay for the map: walks the visible tiles, works out the screen
 // quad of each one from its four corner heights and draws what the current
 // debug mode asks for (1: movement classes and path arrows, 2: tile
 // contents, 3: metal values, 4: fog of war), plus the contour lines of
-// 0x4181d0 when DAT_00511dd0 is set.
+// 0x4181d0 when g_contourSpacing is set.
 //
 // The header set fixes the operand order of the tile and fog multiplies.
 // <direct.h> is only for its symbol ids: it puts 0x418310 in the window it
@@ -1547,9 +1547,9 @@ void __stdcall FUN_004181d0(void* surface, Point_00417f60* corners, unsigned cha
 // moves 0x4181d0 out of its own window.
 #include <direct.h>
 // FUNCTION: 0x418310
-void __stdcall FUN_00418310(void* surface)
+void __stdcall DrawMapDebugOverlay(void* surface)
 {
-    if (!g_game->mode && !DAT_00511dd0) return;
+    if (!g_game->mode && !g_contourSpacing) return;
     Movement* movement = 0;
     Player* player = &g_game->players[g_game->playerIndex];
     if (g_game->mode == 1) {
@@ -1591,7 +1591,7 @@ void __stdcall FUN_00418310(void* surface)
                 if (movement) {
                     unsigned int state = (movement->states[movement->width * (y >> 4) + x] >> ((y & 15) * 2)) & 3;
                     if (state < 3) {
-                        unsigned char color = colors[DAT_004fcc68[state]];
+                        unsigned char color = colors[g_movementClassColors[state]];
                         DrawLine(surface, p[0].x, p[0].y, p[2].x, p[2].y, color);
                         DrawLine(surface, p[1].x, p[1].y, p[3].x, p[3].y, color);
                     }
@@ -1670,7 +1670,7 @@ void __stdcall FUN_00418310(void* surface)
                     FillRectangle(surface, &r, colors[15]);
                 }
             }
-            if (DAT_00511dd0) FUN_004181d0(surface, p, heights);
+            if (g_contourSpacing) DrawCellContours(surface, p, heights);
         }
         if (offscreen) break;
     }

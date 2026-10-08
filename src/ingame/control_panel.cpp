@@ -488,7 +488,7 @@ Display_0041ce90* GetDisplay();
 
 void __stdcall RegisterCommands(Option_00419560* option);
 void __stdcall SetDefaultCommandHandler(void (__stdcall* callback)(int), int param_2);
-void __stdcall FUN_00417890(int param_1);
+void __stdcall DefaultCommandHandler(int param_1);
 
 void __stdcall GetGadgetName(MenuEntry* entries, char* name, int index);
 void __stdcall IssueOrCancelOrder(Class_00438760 kind, int remove, Unit* owner,
@@ -567,7 +567,7 @@ void InitCommands()
     RegisterCommands(&g_consoleCommands);
     RegisterCommands(&g_cheatCommands);
     RegisterCommands(&g_debugCommands);
-    SetDefaultCommandHandler(FUN_00417890, 4);
+    SetDefaultCommandHandler(DefaultCommandHandler, 4);
 }
 
 // Copies the 32-character name of entry `index` of the table at

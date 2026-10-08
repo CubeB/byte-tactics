@@ -342,7 +342,7 @@ Gadget* __stdcall FUN_004a0010(Gadget* entries, char* name);
 void __stdcall GetGadgetText(Menu* menu, char* name, char* text);
 void ResetPlayerGadgets();
 void OpenTalkDialog();
-int __stdcall FUN_00417b50(char* cmd, int flags);
+int __stdcall ExecuteCommandLine(char* cmd, int flags);
 void __stdcall FUN_0049fc50(Menu* menu, int index);
 void __stdcall SendChatMessage(Player* from, char* text, int param_3, char* to);
 void __stdcall HandleTalkDialogEvent(Menu* gadget);
@@ -714,7 +714,7 @@ void __stdcall HandleTalkDialogEvent(Menu* gadget)
                 flags = 7;
             if (DAT_005091cc)
                 flags |= 2;
-            int r = FUN_00417b50(p + 1, flags);
+            int r = ExecuteCommandLine(p + 1, flags);
             entries = gadget->layer->entries;
             if (r & 2)
                 mode = 0;

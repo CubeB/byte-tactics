@@ -331,9 +331,10 @@ defines:
 3. **Dry-run, then rename**: `uv run tools/rename.py --from pairs.csv
    [--join] --keep-going --dry-run`, then again with `--full` instead of
    `--dry-run`. A pair the tool refuses waits for phase 3; say which in the
-   pull request. The tool compares words, not scopes. So it also refuses a
-   method name that a file already uses for another class's member (two
-   `Reset`s, say): a more specific name usually passes.
+   pull request. Methods of different classes may share a name (two
+   `Reset`s, say), since `data/symbols.csv` says which class each belongs to;
+   two methods of one class (an overload), or a free function or type that
+   already spells the name, are still refused.
 4. **Open the pull request against main**, with the pairs and their evidence in
    its body. A rename rewrites every file that spells the name, in other
    modules too, so rebase onto main first. If the rebase conflicts, reset to

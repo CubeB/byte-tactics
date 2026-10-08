@@ -619,7 +619,7 @@ original's bytes, as rows of these kinds:
 | `same` | a slice of an object that is not placed itself but stands for the piece at `address`: the original had one copy of a literal, a constant or a file static that the tree's objects each keep | 572 |
 | `reloc` | the target of a reference that no name leads to: the 136 calls to the other copy of `std::_Lockit`, the 30 names whose address only the original's bytes give (the vector deleting destructors, `SmackSoundEnable`), and three more | 169 |
 
-An object is named by its source file (`src/map/features_4223e0.cpp`,
+An object is named by its source file (`src/map/features.cpp`,
 `src/weapons/weapons_49a120.cpp`), by a library and the member's place in it
 (`LIBCMT.LIB#123`, `KERNEL32.LIB#40`, the import libraries too), as
 `zlib/deflate.obj`, `link/data.obj`, `init/<symbol>` (the initialiser table

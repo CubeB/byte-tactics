@@ -50,22 +50,22 @@ struct AccountList {                 // 0x0c bytes
 };
 
 // An open HAPI file.
-struct HapiFile {
-    void* field_0;                   // +0x00
-    void* field_4;                   // +0x04
-    void* field_8;                   // +0x08
-    int field_c;                     // +0x0c
-    void* field_10;                  // +0x10
-    void* field_14;                  // +0x14
+struct FileHandle {
+    void* fp;                        // +0x00
+    void* shared;                    // +0x04
+    void* info;                      // +0x08
+    int pos;                         // +0x0c
+    void* buffer;                    // +0x10, the block sizes
+    void* buffer2;                   // +0x14, the current block
     char name[0x100];                // +0x18
 };
 
-HapiFile* __stdcall HAPI_OpenFileRead(char* name);
-int __stdcall HAPI_CloseFile(HapiFile* file);
-long __stdcall HAPI_SeekFile(HapiFile* file, long pos);
-long __stdcall HAPI_TellFile(HapiFile* file);
-void __stdcall HAPI_readfromfile(HapiFile* file, void* buf, int size);
-long __stdcall HAPI_FileLength(HapiFile* file);
+FileHandle* __stdcall HAPI_OpenFileRead(char* name);
+int __stdcall HAPI_CloseFile(FileHandle* file);
+long __stdcall HAPI_SeekFile(FileHandle* file, long pos);
+long __stdcall HAPI_TellFile(FileHandle* file);
+void __stdcall HAPI_readfromfile(FileHandle* file, void* buf, int size);
+long __stdcall HAPI_FileLength(FileHandle* file);
 
 void* __cdecl GameAllocShared(unsigned int size);
 void* __cdecl GameCalloc(unsigned int count, unsigned int size);
@@ -203,7 +203,7 @@ int HapiBank::OpenBank(char* filename, char* name, char* account)
     PoolImage img;
     char errmsg[0x80];
     // Separate from filename and name: reusing one variable changes the register split.
-    HapiFile* file;
+    FileHandle* file;
     long remaining;
     long pos;
 
@@ -494,7 +494,7 @@ void HapiBank::SaveAccount(int index, FILE* file, StringPool* buf, int compress)
 // section body and files its records away in the current section of the parsed
 // bank: integers, doubles, strings and raw blobs, in that order.
 // FUNCTION: 0x4b4270
-void HapiBank::LoadAccount(HapiFile* fh, int* image, char* name)
+void HapiBank::LoadAccount(FileHandle* fh, int* image, char* name)
 {
     // The image base is an int and the record offsets are pointer-typed.
     int buf;

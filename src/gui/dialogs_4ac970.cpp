@@ -40,9 +40,9 @@ static inline int CellX(Gadget_004ac970* gadgets, int index)
     return gadgets[index].x + gadgets->x;
 }
 
-// Not in dialogs_4abb20.cpp: it matches only with this file's own compiler
-// state; in the gathered file every header set and declaration-count shift
-// tried moved its registers (see the pull request for issue 5817).
+// Stays out of dialogs_4aa8f0.cpp: it matches only while the symbol ids of
+// its file stay small, and no header set or declaration count in the joined
+// file reaches them (docs/c2-regalloc.md).
 // FUNCTION: 0x4ac970
 void __stdcall FUN_004ac970(Object_004ac970* obj, int cell, int color)
 {

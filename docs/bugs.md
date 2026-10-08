@@ -1053,7 +1053,7 @@ Things that look wrong in the original but have no effect, kept for the record.
   without the count check. Found by ozgb's Codex / GPT-6 in #1898.
 - **0x49be60** (likely): for a kind-3 projectile it passes a stack local
   (`lea ecx, [esp+0x38]` at 0x49c252) as the rotation argument of
-  FUN_0046bae0, which hands it to RotateByAngles for every vertex, and that reads
+  DrawModel3doProjected, which hands it to RotateByAngles for every vertex, and that reads
   three angles from it (0x4b6cd6, 0x4b6cf6, 0x4b6d1b); nothing in 0x49be60
   writes those bytes, so the model is rotated by whatever the stack held. Kind
   1 builds its angles from the shot's +0x34 to +0x38 (0x49c0fd) and another arm

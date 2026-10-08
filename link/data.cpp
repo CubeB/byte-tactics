@@ -591,8 +591,8 @@ Class_004c6a60* g_optionsBackupSurface;  // 0x512ff4 .bss
 int g_battleQuitIntent;  // 0x512ff8 .bss
 unsigned char DAT_00512ffc[4];  // 0x512ffc .bss
 int DAT_0051e53c;  // 0x51e53c .bss
-int DAT_0051e540;  // 0x51e540 .bss
-int DAT_0051e544;  // 0x51e544 .bss
+int g_probePanelBottom;  // 0x51e540 .bss
+int g_statusPanelNextTick;  // 0x51e544 .bss
 int (__stdcall* g_riInitializeEx)(int*, int);  // 0x51e54c .bss
 int (__stdcall* g_riGetVersion)(char*);  // 0x51e554 .bss
 void (__cdecl* g_riTerminate)(void);  // 0x51e558 .bss

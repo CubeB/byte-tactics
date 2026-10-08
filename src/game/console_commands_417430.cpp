@@ -287,7 +287,7 @@ int __stdcall GetGroundHeight(Pos_00417bb0* pos);
 // The real callee takes unsigned char; int here reproduces the original's
 // loop-invariant widening of the colour byte.
 void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2, int color);
-void __stdcall FUN_0046b9d0(void* a, short* b, int c, int d);
+void __stdcall DrawMapTileSelectionOutline(void* a, short* b, int c, int d);
 void __stdcall SetFont(int font);
 int __stdcall GetTextKeyColor();
 void __stdcall SetTextColors(int color, int background);
@@ -634,7 +634,7 @@ void __stdcall FUN_00417d30(void* surface, Point16 from, short dx, short dz, int
 // FUNCTION: 0x417e00
 void Class_0044f010::FUN_0044ef50(void* surface)
 {
-    FUN_0046b9d0(surface, (short*)(this->field_8 + 0x76), *(int*)(this->field_8 + 0x7e), 0xf);
+    DrawMapTileSelectionOutline(surface, (short*)(this->field_8 + 0x76), *(int*)(this->field_8 + 0x7e), 0xf);
     unsigned char color = *(unsigned char*)((char*)g_game + 0xdcb + ((this->field_64 & 1) ? 9 : 12));
     for (int i = 0; i < this->count - 1; i++) {
         Pos_00417bb0 p1;

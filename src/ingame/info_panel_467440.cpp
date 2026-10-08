@@ -123,7 +123,7 @@ struct Game {
 
 class DetectionVisitor {
 public:
-    virtual void FUN_00467840(Unit* unit);
+    virtual void MarkUnitsInRadarOrSonarRadius(Unit* unit);
     int field_4;                       // +0x4
     int field_8;                       // +0x8
     Vec3_00467440 pos;                 // +0xc
@@ -164,7 +164,7 @@ static inline int IsSeen_00467440(PlayerInfo_00467440* p, UnitPos_00467440* pos)
 }
 
 // FUNCTION: 0x467440
-void FUN_00467440(void)
+void UpdateSensorRadarAndCloak(void)
 {
     if (g_game->field_2a3c < 2) {
         return;

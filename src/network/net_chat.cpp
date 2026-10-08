@@ -105,7 +105,7 @@ void __stdcall CenterCameraOnPoint(int a, int b, int c);
 void __stdcall SetFont(int);
 void __stdcall SetTextColors(int, int);
 int GetFontHeight();
-void __stdcall FUN_00467c00(void*, void*, Rect_00464060*, int);
+void __stdcall BlitSideLogoToRect(void*, void*, Rect_00464060*, int);
 void __stdcall FUN_004a50e0(void*, void*, int, int, int, int);
 // SendChatMessage's original translation unit declared AddMessage with int
 // arguments while the function itself takes narrower widths. Keeping the int
@@ -284,7 +284,7 @@ void __stdcall DrawMessages(void* surf)
                 r.right = t + 138;
                 r.bottom = y + t;
                 height = (int)(138.0 - t * -1.5);
-                FUN_00467c00(surf, &g_game->players[id], &r, 0);
+                BlitSideLogoToRect(surf, &g_game->players[id], &r, 0);
             }
             FUN_004a50e0(surf, &g_game->entries[i], height, y, -1, 0);
             y += start;

@@ -22,7 +22,7 @@ int __stdcall FUN_00439d20(void* owner);
 int __stdcall FUN_00439dd0(void* unit);
 int __stdcall FUN_00439df0(void* obj);
 int __stdcall FUN_00465ac0(void* map, void* u);
-void __stdcall FUN_00467c00(void* surf, void* player, void* rect, int dy);
+void __stdcall BlitSideLogoToRect(void* surf, void* player, void* rect, int dy);
 unsigned short __stdcall FindUnitTypeId(const char* name);
 int __stdcall FillRectangle(void* surface, void* rect, int color);
 
@@ -249,7 +249,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
                     DrawBar_0046a860(surface, (Rect_0046a860*)(panel + 0x152), *(short*)(unit + 0x108),
                                      maximum, yOffset, (unsigned char*)palette);
                 }
-                FUN_00467c00(surface, *(void**)(unit + 0x96), panel + 0x132, yOffset);
+                BlitSideLogoToRect(surface, *(void**)(unit + 0x96), panel + 0x132, yOffset);
                 if (*(unsigned char*)(unit + 0xff) == *(unsigned char*)(g_game + 0x2a43) ||
                     (*(unsigned char*)(g_game + 0x3923b) & 2)) {
                     // Declared in this block, not at function scope: affects load scheduling.

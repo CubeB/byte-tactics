@@ -416,7 +416,7 @@ struct Game {
 
 class DetectionVisitor {
 public:
-    virtual void FUN_00467840(Unit* unit);
+    virtual void MarkUnitsInRadarOrSonarRadius(Unit* unit);
     int field_4;                       // +0x4
     int field_8;                       // +0x8
     Vec3 pos;                          // +0xc
@@ -571,8 +571,8 @@ public:
 
 extern Game* g_game;
 
-extern int DAT_0051e540;
-extern int DAT_0051e544;
+extern int g_probePanelBottom;
+extern int g_statusPanelNextTick;
 
 unsigned short* __stdcall FindGafEntry(void* gaf, const char* name);
 int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
@@ -619,8 +619,8 @@ int __stdcall IsKeyDown(int key);
 void __stdcall FUN_004a50e0(void* surf, void* text, int x, int y, int color, int just);
 
 void __stdcall GetObjectBounds(Object_004cb650* obj, Vec3* lo, Vec3* hi, int arg);
-void __stdcall FUN_00467a50(void* surface, Vec3* offset, Vec3* corners, short* angles);
-void __stdcall FUN_00467a50(Vec3* view, Vec3* pos, Vec3* corners, void* unit);
+void __stdcall DrawRotatedQuadOutline(void* surface, Vec3* offset, Vec3* corners, short* angles);
+void __stdcall DrawRotatedQuadOutline(Vec3* view, Vec3* pos, Vec3* corners, void* unit);
 
 int __stdcall GetGafSequenceFrame(short* ref);
 void __stdcall FillPolygon(void* surface, Point* points, int count, int color);
@@ -637,7 +637,7 @@ int __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, i
 // object. Same unit flag field as the neighbours 0x467960 and 0x467980.
 
 // FUNCTION: 0x467840
-void DetectionVisitor::FUN_00467840(Unit* unit)
+void DetectionVisitor::MarkUnitsInRadarOrSonarRadius(Unit* unit)
 {
     if (unit->field_a6 == 0 || unit->field_ff == g_game->playerIndex) {
         return;
@@ -662,7 +662,7 @@ void DetectionVisitor::FUN_00467840(Unit* unit)
 }
 
 // FUNCTION: 0x467950
-void __stdcall FUN_00467950(void* param_1)
+void __stdcall MarkRecentlyDamaged(void* param_1)
 {
     *(char*)((char*)param_1 + 0xfa) = 0xf0;
 }
@@ -696,7 +696,7 @@ void LoadLightBar()
 }
 
 // FUNCTION: 0x467a20
-void __stdcall FUN_00467a20(void* param_1, short* param_2, int param_3, int param_4)
+void __stdcall BlitGafFrameAtOffset(void* param_1, short* param_2, int param_3, int param_4)
 {
     DrawFrame(param_1, param_2, param_2[2] + param_3, param_2[3] + param_4);
 }
@@ -706,7 +706,7 @@ void __stdcall FUN_00467a20(void* param_1, short* param_2, int param_3, int para
 // resulting quad on the surface.
 
 // FUNCTION: 0x467a50
-void __stdcall FUN_00467a50(void* surface, Vec3* offset,
+void __stdcall DrawRotatedQuadOutline(void* surface, Vec3* offset,
                             Vec3* corners, short* angles)
 {
     Vec3* scratch = g_game->scratch;
@@ -763,7 +763,7 @@ void __stdcall DrawProgressBar(void* surface, int value, int max, Rect_004b0510*
 // texture rectangle, dst the screen rectangle.
 
 // FUNCTION: 0x467c00
-void __stdcall FUN_00467c00(void* surf, Player_467c00* player, Rect_467c00* rect, int dy)
+void __stdcall BlitSideLogoToRect(void* surf, Player_467c00* player, Rect_467c00* rect, int dy)
 {
     unsigned char idx = player->data->field_96;
     Entry_467c00* entry = (Entry_467c00*)*(void**)((char*)g_game->logos32 + idx * 8 + 0x28);
@@ -842,7 +842,7 @@ void DrawLightBars()
 // probe" cursor. Draws a fading panel, then a column of lines ("Unit State
 // Probe", uid, player, controller, build time left, damage, occupy, autotarget
 // weights and the mission queues) at x 0x86. The running y is also written to
-// DAT_0051e540 so the next overlay stacks below this one.
+// g_probePanelBottom so the next overlay stacks below this one.
 
 // FUNCTION: 0x467e50
 int __stdcall DrawUnitStateProbe(void* surface)
@@ -871,7 +871,7 @@ int __stdcall DrawUnitStateProbe(void* surface)
     lineH = GetFontHeight() + 3;
     y = lineH * 7;
     FUN_004c6b60();
-    prev = DAT_0051e540;
+    prev = g_probePanelBottom;
     r.x1 = 0x83;
     r.x2 = 0x191;
     r.y1 = y;
@@ -957,7 +957,7 @@ int __stdcall DrawUnitStateProbe(void* surface)
             }
         }
     }
-    DAT_0051e540 = y;
+    g_probePanelBottom = y;
     return 1;
 }
 
@@ -1057,10 +1057,10 @@ int __stdcall DrawUnitBuilderProbe(void* surface)
     r.left = 0x83;
     r.right = 0x191;
     r.top = y;
-    if (DAT_0051e540 == 0)
+    if (g_probePanelBottom == 0)
         r.bottom = lineHeight * 20;
     else
-        r.bottom = DAT_0051e540;
+        r.bottom = g_probePanelBottom;
     FadeRectangle(surface, &r, -0x18);
     r.right++;
     r.bottom++;
@@ -1113,14 +1113,14 @@ int __stdcall DrawUnitBuilderProbe(void* surface)
             } while (i < unit->type->count);
         }
     }
-    DAT_0051e540 = y;
+    g_probePanelBottom = y;
     return 1;
 }
 
 // The status panel's scroll/refresh tick. When the space bar is held, `panel`
 // moves a third of the way toward 0 (opening "Options") or toward -31
 // (reopening "Panel"), so the panel slides instead of snapping. The rate limit
-// DAT_0051e544 (GetTickCount() + 15) keeps one move per frame. Everything drawn
+// g_statusPanelNextTick (GetTickCount() + 15) keeps one move per frame. Everything drawn
 // below is positioned relative to bounds.bottom + `panel`, so the text scrolls
 // with it. The three lines are drawn at fixed offsets from bounds.left (0x19,
 // 0xbe, 0x17c), each sprintf'ed into the same 256-byte `buf` before it is drawn,
@@ -1134,8 +1134,8 @@ void __stdcall DrawStatusPanel(Surface* win)
     char buf[0x100];
     char num[0x34];
     int v = g_game->panel;
-    if (DAT_0051e544 < (int)GetMilliseconds()) {
-        DAT_0051e544 = GetMilliseconds() + 15;
+    if (g_statusPanelNextTick < (int)GetMilliseconds()) {
+        g_statusPanelNextTick = GetMilliseconds() + 15;
         if (!IsKeyDown(0x20) || (g_game->team_index != -1 && ((unsigned char*)g_game->teams->data)[g_game->team_index * 347] == 3)) {
             if (v < 0) {
                 if (v == -31)
@@ -1265,7 +1265,7 @@ void __stdcall DrawSelectionBox(Vec3* view, Unit* unit)
         pos.x = unit->x - (g_game->scroll_x << 16);
         pos.y = unit->y;
         pos.z = unit->z - (g_game->scroll_y << 16);
-        FUN_00467a50(view, &pos, corners, (char*)unit + 0x64);
+        DrawRotatedQuadOutline(view, &pos, corners, (char*)unit + 0x64);
     }
 }
 
@@ -1274,7 +1274,7 @@ void __stdcall DrawSelectionBox(Vec3* view, Unit* unit)
 // bar for g_game->values[index] is drawn at 100/total scale.
 
 // FUNCTION: 0x46b900
-void __stdcall FUN_0046b900(int surface, const char* text, int index)
+void __stdcall DrawProfileBarLine(int surface, const char* text, int index)
 {
     Rect_0046b900 rect;
     int x = g_game->width_0046b900 - 0x5a;
@@ -1304,7 +1304,7 @@ void __stdcall FUN_0046b900(int surface, const char* text, int index)
 // selects a colour from the table at g_game+0xdcb.
 
 // FUNCTION: 0x46b9d0
-void __stdcall FUN_0046b9d0(void* surface, short* pos, Size_0046b9d0 size, int kind)
+void __stdcall DrawMapTileSelectionOutline(void* surface, short* pos, Size_0046b9d0 size, int kind)
 {
     unsigned char* colors = (unsigned char*)g_game + 0xdcb;
     int h = GetCellHeight(pos);
@@ -1347,7 +1347,7 @@ void __stdcall DrawClosedPolygon(void* surface, Point* points, int count, int co
 // bit 1 is set, the entry GetGafSequenceFrame looks up from the reference at +0x10.
 
 // FUNCTION: 0x46bae0
-void __stdcall FUN_0046bae0(void* surface, Vec3* offset,
+void __stdcall DrawModel3doProjected(void* surface, Vec3* offset,
                             Object_0046bae0* obj, short* angles)
 {
     Vec3* v = obj->verts;
@@ -1394,7 +1394,7 @@ void __stdcall FUN_0046bae0(void* surface, Vec3* offset,
 }
 
 // FUNCTION: 0x46bc60
-void __stdcall FUN_0046bc60(int param_1)
+void __stdcall ReportGameEventCallback(int param_1)
 {
     ReportGameEvent(param_1);
 }

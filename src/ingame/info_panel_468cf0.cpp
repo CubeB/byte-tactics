@@ -32,15 +32,15 @@ float __stdcall FUN_00464af0(int);
 float __stdcall FUN_00464b00(int);
 int __stdcall FUN_004658e0(int,int,int,int,int,int);
 int __stdcall DrawRadar(int);
-int __stdcall FUN_00467a20(int,int,int,int);
-int __stdcall FUN_00467c00(int,int,int,int);
+int __stdcall BlitGafFrameAtOffset(int,int,int,int);
+int __stdcall BlitSideLogoToRect(int,int,int,int);
 int __stdcall DrawNetworkStats(int);
 int __stdcall DrawStatusPanel(int);
 int __stdcall DrawHitPointBar(int,int,int,int);
 int __stdcall DrawSelectionBox(int,int);
-int __stdcall FUN_0046a610(int,int,int,int);
+int __stdcall BlitFeatureGaf(int,int,int,int);
 int __stdcall DrawUnitInfoPanel(int);
-int __stdcall FUN_0046b900(int,int,int);
+int __stdcall DrawProfileBarLine(int,int,int);
 int __stdcall DrawParticleList(int,int);
 int __stdcall DrawMapTiles(int);
 int __stdcall DrawFogOfWar(int);
@@ -145,10 +145,10 @@ static void DrawResourcePanel(Surface *ctx, int pl, Resources *res)
   // do/while, not a for loop.
   do {
     ushort *gaf = (ushort *)GetGafFrame(*(int *)(g_game + 0x1481f + (side + (bx > 0x81) * 5) * 4), 0);
-    FUN_00467a20((int)ctx, (int)gaf, bx, 0);
+    BlitGafFrameAtOffset((int)ctx, (int)gaf, bx, 0);
     bx += *gaf;
   } while (bx < *(int *)(g_game + 0x37e1f));
-  FUN_00467c00((int)ctx, pl, sd + 0x42, 0);
+  BlitSideLogoToRect((int)ctx, pl, sd + 0x42, 0);
   OverlayRect *r = (OverlayRect *)(sd + 0x52);
   bar = *r;
   if (*(float *)(pl + 0xa4) > 0.0f) {
@@ -218,7 +218,7 @@ static inline int ShowSelectBox(int drawObjects)
 }
 
 // FUNCTION: 0x468cf0
-void __stdcall FUN_00468cf0(int param_1, int param_2)
+void __stdcall DrawBattleFrame(int param_1, int param_2)
 {
   // Plain locals in this order (an escaping struct changes the frame layout);
   // the tail also needs these while loops and (int) casts.
@@ -356,10 +356,10 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
           if (*(byte *)(feat + 0xfa) < 10) {
             if ((*(byte *)(feat + 0xff) & 8) && ((*(byte *)(tile + 0xc) >> 3 & 0xf) != idx)) {
               if (FUN_004658e0(player, x, y, *(short *)(feat + 0x94), *(short *)(feat + 0x96), *(byte *)(tile + 4)))
-                FUN_0046a610((int)&ctx, tile, x, y);
+                BlitFeatureGaf((int)&ctx, tile, x, y);
             }
             else
-              FUN_0046a610((int)&ctx, tile, x, y);
+              BlitFeatureGaf((int)&ctx, tile, x, y);
           }
           else
             *(byte *)(tile + 0xc) |= 4;
@@ -396,10 +396,10 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
           int feat = *(int *)(g_game + 0x1426f) + *(ushort *)(tile + 8) * 0x100;
           if ((*(byte *)(feat + 0xff) & 8) && ((*(byte *)(tile + 0xc) >> 3 & 0xf) != idx)) {
             if (FUN_004658e0(player, x, y, (int)*(short *)(feat + 0x94), *(short *)(feat + 0x96), *(byte *)(tile + 4)))
-              FUN_0046a610((int)&ctx, tile, x, y);
+              BlitFeatureGaf((int)&ctx, tile, x, y);
           }
           else
-            FUN_0046a610((int)&ctx, tile, x, y);
+            BlitFeatureGaf((int)&ctx, tile, x, y);
         }
       }
     }
@@ -550,15 +550,15 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
   ResetClipRect((int)&ctx);
   FUN_004ab170((int)(g_game + 0x519), (int)&ctx, (int)(g_game + 0x37e27));
   if (*(int *)(g_game + 0x38dd5) != 0 && param_1 != 0) {
-    FUN_0046b900((int)&ctx, (int)"Network", 0);
-    FUN_0046b900((int)&ctx, (int)"Units", 1);
-    FUN_0046b900((int)&ctx, (int)"Logic", 2);
-    FUN_0046b900((int)&ctx, (int)"Render Static", 3);
-    FUN_0046b900((int)&ctx, (int)"Render Stuff", 4);
-    FUN_0046b900((int)&ctx, (int)"Render Fog", 5);
-    FUN_0046b900((int)&ctx, (int)"SFX", 6);
-    FUN_0046b900((int)&ctx, (int)"Weapon", 7);
-    FUN_0046b900((int)&ctx, (int)"Misc", 8);
+    DrawProfileBarLine((int)&ctx, (int)"Network", 0);
+    DrawProfileBarLine((int)&ctx, (int)"Units", 1);
+    DrawProfileBarLine((int)&ctx, (int)"Logic", 2);
+    DrawProfileBarLine((int)&ctx, (int)"Render Static", 3);
+    DrawProfileBarLine((int)&ctx, (int)"Render Stuff", 4);
+    DrawProfileBarLine((int)&ctx, (int)"Render Fog", 5);
+    DrawProfileBarLine((int)&ctx, (int)"SFX", 6);
+    DrawProfileBarLine((int)&ctx, (int)"Weapon", 7);
+    DrawProfileBarLine((int)&ctx, (int)"Misc", 8);
   }
   DrawOptionsScrollBar((int)&ctx);
   ShowSoftwareCursor();

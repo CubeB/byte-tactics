@@ -503,8 +503,8 @@ extern Class_004c6a60* g_optionsBackupSurface;                                  
 extern int g_battleQuitIntent;                                                                    // 0x512ff8, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00512ffc[4];                                                             // 0x512ffc, 4 bytes; nothing refers to it
 extern int DAT_0051e53c;                                                                          // 0x51e53c, 4 bytes; 1 of 1 files
-extern int DAT_0051e540;                                                                          // 0x51e540, 4 bytes; 1 of 1 files
-extern int DAT_0051e544;                                                                          // 0x51e544, 4 bytes; 1 of 1 files
+extern int g_probePanelBottom;                                                                    // 0x51e540, 4 bytes; 1 of 1 files
+extern int g_statusPanelNextTick;                                                                 // 0x51e544, 4 bytes; 1 of 1 files
 extern int (__stdcall* g_riInitializeEx)(int*, int);                                              // 0x51e54c, 4 bytes; 1 of 1 files
 extern int (__stdcall* g_riGetVersion)(char*);                                                    // 0x51e554, 4 bytes; 1 of 1 files
 extern void (__cdecl* g_riTerminate)(void);                                                       // 0x51e558, 4 bytes; 1 of 1 files

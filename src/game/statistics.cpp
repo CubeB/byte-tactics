@@ -66,7 +66,7 @@ extern ChatFn_0046bf30 DAT_0051e548;          // _RIReportGameChat@8
 void ShutdownScoreTables();
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 int AllocScoreTables();
-void __stdcall FUN_0046bc60(int param_1);
+void __stdcall ReportGameEventCallback(int param_1);
 int __stdcall ShowGameMessage(char* text, int mode);
 void __stdcall RISetCallbacks(int param_1, int param_2);
 void __stdcall HAPINET_uninitmultiplay(void* p);
@@ -208,7 +208,7 @@ int __stdcall LoadReporterDll(int* param_1, int param_2)
     }
 
     DAT_0051e590 = 1;
-    RISetCallbacks((int)FUN_0046bc60, (int)ShowGameMessage);
+    RISetCallbacks((int)ReportGameEventCallback, (int)ShowGameMessage);
 
     if (DAT_0051e58c == 0) {
         DAT_0051e58c = LoadLibraryA("reporter.dll");
@@ -240,7 +240,7 @@ int __stdcall LoadReporterDll(int* param_1, int param_2)
                                                 FreeLibrary(DAT_0051e58c);
                                                 DAT_0051e58c = 0;
                                             } else {
-                                                g_riSetCallbacks(FUN_0046bc60, ShowGameMessage);
+                                                g_riSetCallbacks(ReportGameEventCallback, ShowGameMessage);
                                             }
                                             goto tail;
                                         }

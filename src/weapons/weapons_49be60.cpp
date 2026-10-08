@@ -149,7 +149,7 @@ extern Game* g_game;
 void* __stdcall GetGafFrame(void* gaf, int frame);
 void __stdcall DrawFrame(void* dest, void* src, int x, int y);
 void __stdcall DrawFrameBlended(void* dest, void* src, int x, int y);
-void __stdcall FUN_0046bae0(void* dest, Vec3_0049be60* pos, void* sprite, void* rect);
+void __stdcall DrawModel3doProjected(void* dest, Vec3_0049be60* pos, void* sprite, void* rect);
 int __stdcall PointInRect(void* region, int x, int y);
 void __stdcall DrawLens(void* dest, void* src, int x, int y);
 void __stdcall DrawLine(void* dest, int x1, int y1, int x2, int y2, unsigned int color);
@@ -255,14 +255,14 @@ void __stdcall DrawProjectiles(void* surface)
                     Angles_0049be60 rot = p->angles;
                     rot.y += 0x8000;
                     rot.z += 0x8000;
-                    FUN_0046bae0(surface, &sp, type->field_74, &rot);
+                    DrawModel3doProjected(surface, &sp, type->field_74, &rot);
                     Sprite_0049be60* s = (Sprite_0049be60*)type->field_74;
                     if (0 != s->field_30 && p->field_46 > time) {
                         if (type->flag_21) {
                             rot.x = p->field_64;
-                            FUN_0046bae0(surface, &sp, s->field_30, &rot);
+                            DrawModel3doProjected(surface, &sp, s->field_30, &rot);
                         } else {
-                            FUN_0046bae0(surface, &sp, s->field_30, &rot);
+                            DrawModel3doProjected(surface, &sp, s->field_30, &rot);
                         }
                     }
                 } else if (type->field_10c == 2) {
@@ -281,7 +281,7 @@ void __stdcall DrawProjectiles(void* surface)
                     int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->field_5e >> 1) + 0x20;
                     DrawFrameBlended(surface, frame0, sx, sy);
                     Angles_0049be60 rot3;
-                    FUN_0046bae0(surface, &sp, type->field_74, &rot3);
+                    DrawModel3doProjected(surface, &sp, type->field_74, &rot3);
                 } else if (type->field_10c == 4) {
                     if (type->field_10d < 0xff) {
                         void* gaf = 0;
@@ -324,7 +324,7 @@ void __stdcall DrawProjectiles(void* surface)
                     int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->field_5e >> 1) + 0x20;
                     int sx = (int)*(short*)((char*)&sp + 2) + 0x80;
                     DrawFrameBlended(surface, frame0, sx, sy);
-                    FUN_0046bae0(surface, &sp, type->field_74, &p->angles);
+                    DrawModel3doProjected(surface, &sp, type->field_74, &p->angles);
                 } else if (type->field_10c == 7) {
                     unsigned int color = g_game->palette[type->field_10d];
                     Vec3_0049be60* start = &p->start;

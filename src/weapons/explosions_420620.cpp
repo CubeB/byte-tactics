@@ -294,7 +294,7 @@ void* __stdcall GetGafSequenceFrame(GafRef* ref);
 void* __stdcall GetGafFrame(GafSequence* table, int index);
 void __stdcall DrawFrameShadow(void* surface, void* frame, int x, int y);
 void __stdcall DrawFrame(void* surface, void* frame, int x, int y);
-void __stdcall FUN_0046bae0(void* surface, Position* pos, void* model, short* rotation);
+void __stdcall DrawModel3doProjected(void* surface, Position* pos, void* model, short* rotation);
 void __stdcall FillPolygon(void* surface, Point* points, int count, int flags);
 void __stdcall DrawFrameQuad(void* surface, void* pic, Point* points, void* src);
 int __stdcall RandomInt(int range);
@@ -447,7 +447,7 @@ void __stdcall DrawExplosions(void* surface)
         int x = pos.x.parts.whole + 128;
         int y = pos.z.parts.whole - (pos.y.parts.whole >> 1) + 32;
         if (PointInRect(g_game->viewport, x, y)) {
-            if (d->obj) FUN_0046bae0(surface, &pos, d->obj, &d->angle_x);
+            if (d->obj) DrawModel3doProjected(surface, &pos, d->obj, &d->angle_x);
             if (d->ref1.src) DrawFrame(surface, GetGafSequenceFrame(&d->ref1), x, y);
         }
     }

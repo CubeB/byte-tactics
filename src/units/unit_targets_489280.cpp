@@ -527,7 +527,7 @@ extern char s_HitByWeapon_00508d74[];
 extern char s_TakeDamage_00508d68[];
 
 void __stdcall AppendOrder(Unit* owner, Class_0043a1f0* node);
-void __stdcall FUN_00467950(Unit* unit);
+void __stdcall MarkRecentlyDamaged(Unit* unit);
 void __stdcall ReactToAttack(Unit* target, Unit* attacker, int amount);
 void __stdcall FUN_00494ff0(int flag);
 int __cdecl FUN_004b7123(unsigned short idx, int scale);
@@ -561,7 +561,7 @@ void __stdcall ApplyUnitDamage(Event_00489ce0* ev)
         return;
     }
 
-    FUN_00467950(unit);
+    MarkRecentlyDamaged(unit);
 
     if (ev->kind != 11)
         ReactToAttack(target, unit, ev->amount);

@@ -136,7 +136,7 @@ static int DrawFlags()
     } while (0)
 
 // FUNCTION: 0x46a610
-void __stdcall FUN_0046a610(void* dest, Cell* cell, int ix, int iy)
+void __stdcall BlitFeatureGaf(void* dest, Cell* cell, int ix, int iy)
 {
     Feature* f = &g_game->features[cell->feature];
     int x = f->footprint.x * 16 / 2 + (ix + 8) * 16 - g_game->scroll_x;

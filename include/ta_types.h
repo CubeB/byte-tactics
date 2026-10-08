@@ -9408,7 +9408,7 @@ public:
     int field_4;  // +0x4
     int field_8;  // +0x8
     Vec3 pos;  // +0xc
-    virtual void FUN_00467840(Unit*);
+    virtual void MarkUnitsInRadarOrSonarRadius(Unit*);
 };
 
 class RadarJamVisitor {  // 0x4 bytes, 1 view

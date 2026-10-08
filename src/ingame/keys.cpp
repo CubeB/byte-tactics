@@ -257,7 +257,7 @@ void* __stdcall GetDisplay();
 void __stdcall FrameFromSurface(Dst_004b8ae0* dst, Src_004b8ae0* src);
 void __stdcall SetCameraPosition(int x, int y, int z);
 void __stdcall FUN_0048bae0();
-void __stdcall FUN_00468cf0(int param_1, int param_2);
+void __stdcall DrawBattleFrame(int param_1, int param_2);
 void __stdcall DrawFrame(Surface_00495a30* surf, Dst_004b8ae0* pal, int x, int y);
 void __stdcall ClearFrame(void* b, int color);
 void __stdcall RecalculateLineOfSight(int param);
@@ -437,7 +437,7 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
                         box.left = col;
                         SetCameraPosition(x + col, y + row, 0);
                         FUN_0048bae0();
-                        FUN_00468cf0(1, 0);
+                        DrawBattleFrame(1, 0);
                         right = (col + bw) - 1;
                         if (right >= surf.width) right = surf.width - 1;
                         box.top = 0;
@@ -482,7 +482,7 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
             g_game->viewFlags = (unsigned short)((unsigned short)((g_game->viewFlags & ~2) | ((savedbit1 & 1) << 1)));
             RecalculateLineOfSight(1);
             FUN_0048bae0();
-            FUN_00468cf0(1, 1);
+            DrawBattleFrame(1, 1);
         }
     }
     ((Class_004cb7d0*)&bmp)->Close();
@@ -670,7 +670,7 @@ void HandleGameKey(void)
                 sprintf(g_game->field_38b53, "%s\\MOVIE%03i",
                         g_game->field_38a53, g_game->field_38c53);
                 MakeDirectoryPath(g_game->field_38b53);
-                FUN_00468cf0(0, 1);
+                DrawBattleFrame(0, 1);
                 SaveScreenshot(g_game->field_38b53, "FRAM");
                 g_game->field_38c5b = g_game->field_38a47;
             }

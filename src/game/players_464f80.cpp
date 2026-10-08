@@ -181,7 +181,7 @@ extern int DAT_0051e53c;
 void __stdcall UpdatePlayerAI(int player);
 void __stdcall UpdateUnitLineOfSight(Unit* unit);
 void DrawRadarUnits();
-void FUN_00467440();
+void UpdateSensorRadarAndCloak();
 void UpdateRadarMapped();
 unsigned char __stdcall FindHostSlot();
 unsigned short __stdcall FindUnitTypeId(const char* name);
@@ -457,7 +457,7 @@ void __stdcall FUN_00464f80()
         }
 
         if (bl == g_game->field_2a43) {
-            FUN_00467440();
+            UpdateSensorRadarAndCloak();
             UpdateRadarMapped();
             if (g_game->mode->GetGameType() == 3) {
                 DAT_0051e53c++;

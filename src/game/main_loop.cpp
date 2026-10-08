@@ -308,7 +308,7 @@ void HandleGameKey();
 void UpdateEdgeScroll();
 void FUN_0048bae0();
 void RefreshSelectionOrders();
-void __stdcall FUN_00468cf0(int a, int b);
+void __stdcall DrawBattleFrame(int a, int b);
 void __stdcall SaveScreenshot(char* buf, char* name);
 void __stdcall FUN_004ab400(Obj_004ab400* p, Src_004ab400* src);
 void ShowSoftwareCursor();
@@ -409,7 +409,7 @@ void MainLoopTick()
             RefreshSelectionOrders();
         }
     }
-    FUN_00468cf0(1, 1);
+    DrawBattleFrame(1, 1);
     CHARGE(8);
     FUN_00428c40();
     if (g_game->field_38c53 > 0 && g_game->field_38c5b <= g_game->leadTick) {

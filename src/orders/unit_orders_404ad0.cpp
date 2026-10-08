@@ -42,10 +42,7 @@ struct Feature {
     char unknown_ff[0x100 - 0xff];
 };
 
-struct UnitDef {
-    char unknown_0[0x245];
-    unsigned int flags;                // +0x245
-};
+#include "../units/unit_def.h"
 
 struct Unit {
     int active;                        // +0x0
@@ -107,7 +104,7 @@ int __stdcall ReclaimOrder(Unit* unit, Order* order, int flags)
         return 8;
     switch (order->state) {
     case 0:
-        if (unit->active && (unit->type->flags & 0x400)) {
+        if (unit->active && (unit->type->flags2 & 0x400)) {
             ((Class_00438ad0*)order)->AttachBuildFootprintMarker(cell, size);
             order->flags = 0xe0;
             return 1;

@@ -28,13 +28,7 @@ class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
 class Class_00439e80 { public: void SetDeadlineTicks(int); };
 class Class_0044e6c0 { public: void SetAltitude(int); };
 #pragma pack(push, 1)
-struct UnitDef {
-    char pad0[0x1fa]; unsigned int maxHealth;
-    char pad1fe[0x202 - 0x1fe]; short range;
-    char pad204[0x21c - 0x204]; short altitude;
-    char pad21e[0x241 - 0x21e]; unsigned int flags;
-    unsigned int flags2;
-};
+#include "../units/unit_def.h"
 struct Owner {
     char pad0[0x8c]; float energy;
     float GetEnergy() { return energy; }
@@ -148,7 +142,7 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
     for (;;) {
         switch (order->state) {
         case 0:
-            if (unit->type && (unit->def->flags & 0x800) && (unit->def->flags2 & 0x200)) {
+            if (unit->type && (unit->def->flags1 & 0x800) && (unit->def->flags2 & 0x200)) {
                 if (order->target != 0)
                     order->pos = order->target->pos;
                 EnsurePatrolReturnOrder(unit, order);

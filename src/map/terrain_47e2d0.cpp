@@ -22,15 +22,7 @@ struct Unit {
     unsigned char player;              // +0xff
 };
 
-struct UnitDef {
-    char unknown_0[0x1be];
-    short maxwaterdepth;               // +0x1be
-    short minwaterdepth;               // +0x1c0
-    char unknown_1c2[0x228 - 0x1c2];
-    unsigned char maxslope;            // +0x228
-    char unknown_229[0x241 - 0x229];
-    unsigned int flags;                // +0x241
-};
+#include "../units/unit_def.h"
 
 struct Feature {
     char unknown_0[0xfe];
@@ -104,7 +96,7 @@ int __stdcall CanPlaceFootprintAt(Unit* unit, Vec3* pos)
     int sl = g->seaLevel;
     int lowBound = sl - bd0;
     int upperBound = sl - def->minwaterdepth;
-    if (lowBound < sl && (def->flags & 0x800) && !(def->flags & 0x200000))
+    if (lowBound < sl && (def->flags1 & 0x800) && !(def->flags1 & 0x200000))
         lowBound = sl;
     Cell* cell = &g->cells[c * w + a];
     int rowStep = w - x;

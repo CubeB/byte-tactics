@@ -15,7 +15,7 @@ class Class_00439e80 { public: void SetDeadlineTicks(int); };
 #pragma pack(push, 1)
 struct WeaponDef { char pad0[0x111]; unsigned int flags; };
 struct Weapon { char pad0[8]; WeaponDef* def; char padc[11]; unsigned char flags; char pad18[4]; };
-struct UnitDef { char pad0[0x1fa]; unsigned int maxHealth; char pad1fe[0x231-0x1fe]; unsigned int* weaponCategories[3]; unsigned int* categories; unsigned int flags; };
+#include "../units/unit_def.h"
 struct Owner { char pad0[0x108]; unsigned char allied[0x3e]; unsigned char index; };
 struct Unit {
     char pad0[8]; Weapon weapons[3]; Order* order;
@@ -46,7 +46,7 @@ int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
 {
     if (!order->target) return 5;
     if (unit->busy) return 7;
-    if ((unsigned char)(order->target->def->flags >> 11) & 1) return 8;
+    if ((unsigned char)(order->target->def->flags1 >> 11) & 1) return 8;
     unsigned int state=0; state=order->state;
     switch(state) {
     case 0: {
@@ -74,7 +74,7 @@ int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
                 }
             }
         }
-        if ((unsigned int)order->target->health < order->target->def->maxHealth && (unit->def->flags&0x40)) {
+        if ((unsigned int)order->target->health < order->target->def->maxHealth && (unit->def->flags1&0x40)) {
             Class_00438760 kind=GetOrderType(8,unit,order->target,0);
             if(kind.index) {
                 ((Class_004388d0*)order)->SetAttachedFx(0);
@@ -83,7 +83,7 @@ int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
             }
         }
         if (order->target->order && order->target->order->kind.index &&
-            (unit->def->flags&0x40) && (order->target->def->flags&0x40) &&
+            (unit->def->flags1&0x40) && (order->target->def->flags1&0x40) &&
             (order->target->order->capabilities&0x100000) && unit!=order->target->order->Target()) {
             int building=order->target->order->kind=="MobileBuild" ||
                          order->target->order->kind=="BuildingBuild";

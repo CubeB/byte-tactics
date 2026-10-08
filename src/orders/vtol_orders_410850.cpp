@@ -31,7 +31,7 @@ class Class_00439e80 { public: void SetDeadlineTicks(int); };
 #pragma pack(push, 1)
 struct WeaponDef { char pad0[0xdc]; int range; char pade0[0x111-0xe0]; unsigned int flags; };
 struct Weapon { char pad0[8]; WeaponDef* def; char padc[11]; unsigned char flags; char pad18[4]; };
-struct UnitDef { char pad0[0x1fa]; unsigned int maxHealth; char pad1fe[4]; short searchRange; char pad204[0x21c-0x204]; short altitude; char pad21e[0x231-0x21e]; unsigned int* weaponCategories[3]; unsigned int* categories; unsigned int flags; };
+#include "../units/unit_def.h"
 struct Owner { char pad0[0x108]; unsigned char allied[0x3e]; unsigned char index; };
 class UnitMotion { public: char pad0[0x2e]; unsigned char flags; void SetFlightMode(Unit*, int); };
 struct Unit {
@@ -89,7 +89,7 @@ void __stdcall VisitObjectsInRange(Vec3*, int, const GroundAllyVisitor&);
 // inline or not according to the original.
 static inline int IsDamaged(Unit* u) { return (unsigned int)u->health < (u->def->maxHealth>>2)*3; }
 static inline void FindPads(Unit* u, std::vector<Unit*>* pads) { GetFactoriesInRadius(u->owner->index,&u->pos,0xf00,pads); }
-static inline int SearchRange(Unit* u) { return u->def->searchRange<<16; }
+static inline int SearchRange(Unit* u) { return u->def->range<<16; }
 static inline int Patrol(Unit* unit, Order* order, int flags)
 {
     if (IsDamaged(unit)) {
@@ -142,7 +142,7 @@ int __stdcall VtolSeekGuardOrder(Unit* unit, Order* order, int flags)
     }
     switch(order->state) {
     case 0:
-        if (unit->motion && (unit->def->flags&0x800)) {
+        if (unit->motion && (unit->def->flags1&0x800)) {
             Vec3* pos=&order->pos;
             if (!pos->x && !pos->z && !pos->y) *pos=unit->pos;
             order->angle=RandomInt(0x10000);

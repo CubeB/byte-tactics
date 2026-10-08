@@ -44,13 +44,7 @@ struct Feature {
     char unknown_ff[0x100 - 0xff];
 };
 
-struct UnitDef {
-    char unknown_0[0x21c];
-    short altitude;                    // +0x21c
-    char unknown_21e[0x241 - 0x21e];
-    unsigned int flags;                // +0x241
-    unsigned int flags2;               // +0x245
-};
+#include "../units/unit_def.h"
 
 struct Unit {
     UnitMotion* type;                  // +0x0
@@ -141,7 +135,7 @@ int __stdcall VtolReclaimOrder(Unit* unit, Order* order, int flags)
         return 8;
     switch (order->state) {
     case 0:
-        if (unit->type && (unit->def->flags & 0x800) && (unit->def->flags2 & 0x400)) {
+        if (unit->type && (unit->def->flags1 & 0x800) && (unit->def->flags2 & 0x400)) {
             ((Class_00438880*)order)->AnnounceStatusIfFlagged("Reclaiming");
             PrepVtolClimb(unit, order, 0);
             return 1;

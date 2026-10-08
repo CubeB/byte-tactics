@@ -7,7 +7,7 @@ class Class_004388d0 { public: void SetAttachedFx(int); };
 class Class_00438930 { public: void AttachApproachRadiusGoal(Vec3*, int); };
 class Class_00439e80 { public: void SetDeadlineTicks(int); };
 #pragma pack(push, 1)
-struct UnitDef { char pad0[0x202]; short range; };
+#include "../units/unit_def.h"
 struct Owner {
     char pad0[0x8c]; float energy;
     char pad90[8]; float metal;

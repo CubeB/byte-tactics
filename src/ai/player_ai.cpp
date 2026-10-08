@@ -57,12 +57,7 @@ struct Player { char pad[0x108]; unsigned char allied[0x3e]; unsigned char index
 struct Def { char pad[0x156]; int builder; char pad15a[0x22f-0x15a]; char mobile; char pad230[0x241-0x230]; unsigned flags; char pad245[0x249-0x245]; };
 struct Unit { char pad[0x6a]; int x,y,z; char pad76[0x92-0x76]; Def* def; Player* owner; char pad9a[12]; unsigned short id; char pada8[0x104-0xa8]; float progress; char pad108[6]; unsigned char active; char pad10f; unsigned flags; int pad114; unsigned char PlayerIndex() const { return owner->index; } int Ready() const { return (flags&0x10000000) && !(flags&0x4000); } };
 
-struct UnitDef {
-    char unknown_0[0x14a];
-    Point16 origin;                    // +0x14a
-    char unknown_14e[0x1c0 - 0x14e];
-    short minwaterdepth;               // +0x1c0
-};
+#include "../units/unit_def.h"
 
 struct Mission {
     char unknown_0[0xd30];

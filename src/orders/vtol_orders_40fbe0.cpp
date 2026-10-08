@@ -18,7 +18,7 @@ class Class_00439e80 { public: void SetDeadlineTicks(int); };
 #pragma pack(push, 1)
 struct WeaponDef { char pad0[0xdc]; int range; char pade0[0x111-0xe0]; unsigned int flags; };
 struct Weapon { char pad0[8]; WeaponDef* def; char padc[11]; unsigned char flags; char pad18[4]; };
-struct UnitDef { char pad0[0x1fa]; unsigned int maxHealth; char pad1fe[0x21c-0x1fe]; short altitude; char pad21e[0x231-0x21e]; unsigned int* weaponCategories[3]; unsigned int* categories; unsigned int flags; };
+#include "../units/unit_def.h"
 struct Owner { char pad0[0x108]; unsigned char allied[0x3e]; unsigned char index; };
 class UnitMotion { public: char pad0[0x2e]; unsigned char flags; void SetFlightMode(Unit*, int); };
 struct Unit {
@@ -85,7 +85,7 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
         *dst=order->target->pos;
         switch(order->state) {
         case 0:
-            if (unit->motion && (unit->def->flags&0x800)) {
+            if (unit->motion && (unit->def->flags1&0x800)) {
                 ((Class_00438880*)order)->AnnounceStatusIfFlagged("Guarding");
                 unit->ClaimWeapons(3);
                 if (unit->busy) AttachUnitToPiece(unit,0,-1,2);
@@ -143,9 +143,9 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
             // local for it: that is what makes MSVC reload it after each
             // Class_00438760 constructor call, and what frees the callee-saved
             // register the block's zero constant ends up in.
-            if (order->target->order && order->target->order->kind.index && (unit->def->flags&0x40) &&
+            if (order->target->order && order->target->order->kind.index && (unit->def->flags1&0x40) &&
                 unit->CanRepair(order->target->order->target) &&
-                (order->target->def->flags&0x40) && order->target->order &&
+                (order->target->def->flags1&0x40) && order->target->order &&
                 (order->target->order->capabilities&0x100000) && unit!=order->target->order->target) {
                 int building = order->target->order->kind=="MobileBuild" || order->target->order->kind=="BuildingBuild" || order->target->order->kind=="VTOL_MobileBuild";
                 int actionable = ((order->target->order->capabilities&0x200) && order->target->order->target) || (order->target->order->capabilities&0x400);

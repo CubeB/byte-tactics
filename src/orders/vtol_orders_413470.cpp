@@ -41,11 +41,7 @@ class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_0044e730 { public: void SetApproachRadius(short); };
 
 #pragma pack(push, 1)
-struct UnitDef {
-    char pad0[0x1fa]; unsigned int maxHealth;
-    char pad1fe[0x21c - 0x1fe]; short altitude;
-    char pad21e[0x241 - 0x21e]; unsigned int flags;
-};
+#include "../units/unit_def.h"
 struct Mover {
     char pad0[0xdc]; int speed;
 };
@@ -190,7 +186,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
     state = order->state;
     switch (state) {
     case 0:
-        if (unit->type && (unit->def->flags & 0x800)) {
+        if (unit->type && (unit->def->flags1 & 0x800)) {
             ((Class_00438880*)order)->AnnounceStatusIfFlagged("Attacking");
             PrepVtolClimb(unit, order, 0);
             return 1;

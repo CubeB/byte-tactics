@@ -44,12 +44,7 @@ class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_0044e730 { public: void SetApproachRadius(short); };
 class CobScript { public: void StartScript(const char*, int, int); int QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5); };
 #pragma pack(push, 1)
-struct UnitDef {
-    char pad0[0x170]; short field_170;
-    char pad172[0x1fa - 0x172]; unsigned int maxHealth;
-    char pad1fe[0x21c - 0x1fe]; short altitude;
-    char pad21e[0x241 - 0x21e]; unsigned int flags;
-};
+#include "../units/unit_def.h"
 struct Class_Unit10 {
     char pad0[0xdc]; int field_dc;
 };
@@ -168,7 +163,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
     state = order->state;
     switch (state) {
     case 0:
-        if (unit->type && (unit->def->flags & 0x800)) {
+        if (unit->type && (unit->def->flags1 & 0x800)) {
             ((Class_00438880*)order)->AnnounceStatusIfFlagged("Landing");
             PrepVtolClimb(unit, order, 0);
             order->angle = RandomInt(0x10000);
@@ -248,8 +243,8 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
             AttachUnitToPiece(unit, order->target.owner, order->angle, 0);
         }
         if (!dropped && unit->health < unit->def->maxHealth
-            && (order->target.owner->def->flags & 0x200)
-            && (order->target.owner->def->flags & 0x40)
+            && (order->target.owner->def->flags1 & 0x200)
+            && (order->target.owner->def->flags1 & 0x40)
             && order->target.owner->buildLeft == 0.0f) {
             ((Class_004388d0*)order)->SetAttachedFx(0);
             AppendOrder(unit, new Class_0043a1f0("SELFREPAIR", order->target.owner, 0, 0, 0, 0));

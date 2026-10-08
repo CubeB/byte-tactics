@@ -27,7 +27,7 @@ class Class_00439e80 { public: void SetDeadlineTicks(int); };
 #pragma pack(push, 1)
 struct WeaponDef { char pad0[0xdc]; int range; char pade0[0x111-0xe0]; unsigned int flags; };
 struct Weapon { char pad0[8]; WeaponDef* def; char padc[11]; unsigned char flags; char pad18[4]; };
-struct UnitDef { char pad0[0x1fa]; unsigned int maxHealth; char pad1fe[0x21c-0x1fe]; short altitude; char pad21e[0x231-0x21e]; unsigned int* weaponCategories[3]; unsigned int* categories; unsigned int flags; };
+#include "../units/unit_def.h"
 struct Owner { char pad0[0x108]; unsigned char allied[0x3e]; unsigned char index; };
 class UnitMotion { public: char pad0[0x2e]; unsigned char flags; void SetFlightMode(Unit*, int); };
 struct Unit {
@@ -92,7 +92,7 @@ int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
     unsigned int state=0; state=order->state;
     switch(state) {
     case 0:
-        if (unit->motion && (unit->def->flags&0x800)) {
+        if (unit->motion && (unit->def->flags1&0x800)) {
             if (order->target) {
                 if (IssueAttackOrder(unit,order->target,0)) { order->flags=0; return 0; }
             } else {

@@ -79,11 +79,7 @@ public:
 };
 
 #pragma pack(push, 1)
-class UnitDef {
-public:
-    char unknown_0[0x249];
-    UnitDef& operator=(const UnitDef& src);
-};
+#include "../units/unit_def.h"
 #pragma pack(pop)
 
 typedef int (__stdcall* Compare)(const UnitDef&, const UnitDef&);

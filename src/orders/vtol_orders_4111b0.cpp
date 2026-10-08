@@ -28,12 +28,7 @@ class Class_0044e730 { public: void SetApproachRadius(short); };
 class CobScript { public: int StartScriptWithArgs(char*, void*, int, int, int, int, int, int); void StartScript(const char*, int, int); int QueryScript(char* name, int* p2, int* p3, int* p4, int* p5); };
 
 #pragma pack(push, 1)
-struct UnitDef {
-    char pad0[0x16e]; int modelMaxY;
-    char pad172[0x21c - 0x172]; short altitude;
-    char pad21e[0x22a - 0x21e]; unsigned char capacity;
-    char pad22b[0x241 - 0x22b]; unsigned int flags;
-};
+#include "../units/unit_def.h"
 struct Unit {
     UnitMotion* type;
     char pad4[0x6a - 4]; Vec3 pos;
@@ -117,7 +112,7 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
             return 8;
         switch (order->state) {
         case 0:
-            if (unit->type && (unit->def->flags & 0x800)) {
+            if (unit->type && (unit->def->flags1 & 0x800)) {
                 if (target->size > (short)unit->def->capacity) {
                     QueueUnitSpeech(unit, 7, "Unit is too heavy to transport");
                     return 8;

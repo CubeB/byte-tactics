@@ -32,11 +32,7 @@ class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_0044e730 { public: void SetApproachRadius(short); };
 
 #pragma pack(push, 1)
-struct UnitDef {
-    char pad0[0x1fa]; unsigned int maxHealth;
-    char pad1fe[0x21c - 0x1fe]; short altitude;
-    char pad21e[0x241 - 0x21e]; unsigned int flags;
-};
+#include "../units/unit_def.h"
 struct Player {
     char pad0[0x146]; unsigned char index;
 };
@@ -177,7 +173,7 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
         order->field_4e &= ~0xe0;
         return 1;
     case 0:
-        if (unit->type && (unit->def->flags & 0x800)) {
+        if (unit->type && (unit->def->flags1 & 0x800)) {
             EnsurePatrolReturnOrder(unit, order);
             ((Class_00438880*)order)->AnnounceStatusIfFlagged("Patrolling");
             PrepVtolClimb(unit, order, 0);

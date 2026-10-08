@@ -10,7 +10,7 @@ inline void _Construct(Unit** dest, Unit* const& src) { CopyDwordIfNonNull(dest,
 }
 #include <vector>
 #pragma pack(push, 1)
-struct UnitDef { char pad0[0x241]; unsigned int flags; };
+#include "../units/unit_def.h"
 struct Owner { char pad0[0x108]; unsigned char allied[0x3e]; unsigned char index; };
 struct Unit { char pad0[0x92]; UnitDef* def; Owner* owner; };
 #pragma pack(pop)
@@ -26,6 +26,6 @@ public:
 // FUNCTION: 0x410c70
 void GroundAllyVisitor::CollectGroundAlly(Unit* unit)
 {
-    if (unit->owner->allied[owner->index] && !(unit->def->flags & 0x800) && unit != self)
+    if (unit->owner->allied[owner->index] && !(unit->def->flags1 & 0x800) && unit != self)
         units->push_back(unit);
 }

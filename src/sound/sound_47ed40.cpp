@@ -715,10 +715,10 @@ void SpeechQueue::PlayNextSpeechEntry()
         return;
     }
     if (g_game->frame >= interval + lastFrame) {
-        ((SpeechQueue*)this)->PlaySpeech(0, 1, 1);
+        this->PlaySpeech(0, 1, 1);
         lastFrame = g_game->frame;
     } else {
-        ((SpeechQueue*)this)->PlaySpeech(0, 0, 1);
+        this->PlaySpeech(0, 0, 1);
     }
     if (entries[0].data) {
         FUN_004d85a0(entries[0].data);

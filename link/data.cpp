@@ -646,7 +646,7 @@ unsigned char g_cdListsDiscEntries[2720];  // 0x51e828 .bss
 unsigned char DAT_0051f2c8[10];  // 0x51f2c8 .bss (the type runs past the next known address, 0x51f2c8+0x8)
 unsigned char DAT_0051f2d2[6];  // 0x51f2d2 .bss
 unsigned int DAT_0051f2d8;  // 0x51f2d8 .bss
-int DAT_0051f2dc;  // 0x51f2dc .bss
+unsigned int DAT_0051f2dc;  // 0x51f2dc .bss
 int DAT_0051f2f0;  // 0x51f2f0 .bss
 int DAT_0051f2f4;  // 0x51f2f4 .bss
 unsigned int DAT_0051f2f8;  // 0x51f2f8 .bss

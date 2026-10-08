@@ -274,7 +274,7 @@ extern unsigned int g_netStatsTick;                                             
 extern unsigned int g_byteRatesTick;                                                              // 0x511ddc, 4 bytes; 1 of 1 files
 extern int DAT_00511de0;                                                                          // 0x511de0, 4 bytes; 2 of 2 files
 extern int g_cdPathMismatch;                                                                      // 0x511de4, 4 bytes; 1 of 1 files
-extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 317 of 362 files (conflicting: shape)
+extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 301 of 346 files (conflicting: shape)
 extern int g_endGameGlamourSoundStarted;                                                          // 0x511dec, 4 bytes; 1 of 1 files
 extern ExplodedPiece* g_explodedPieces[100];                                                      // 0x511df0, 400 bytes; 1 of 1 files
 extern unsigned char DAT_00511f80[16];                                                            // 0x511f80, 16 bytes; CMemoryCache by value in 2 of 2 files
@@ -546,19 +546,19 @@ extern unsigned char DAT_0051e6b0[4];                                           
 extern int g_mapLoadFlag;                                                                         // 0x51e6c0, 4 bytes; 1 of 1 files
 extern unsigned int DAT_0051e6c4;                                                                 // 0x51e6c4, 4 bytes; 1 of 1 files
 extern "C" unsigned char g_loadingBarFlashAlpha[8];                                               // 0x51e6c8, 4 bytes; extern "C" (no type) with the globals inside it
-extern int DAT_0051e6d0[10];                                                                      // 0x51e6d0, 40 bytes; 2 of 2 files
+extern int DAT_0051e6d0[10];                                                                      // 0x51e6d0, 40 bytes; 1 of 1 files
 extern char g_savegameRadarFrame[24];                                                             // 0x51e6f8, 24 bytes; 1 of 1 files
-extern int DAT_0051e710[30];                                                                      // 0x51e710, 120 bytes; 3 of 3 files
-extern char DAT_0051e788[136];                                                                    // 0x51e788, 136 bytes; 2 of 2 files
-extern unsigned char DAT_0051e810[10];                                                            // 0x51e810, 10 bytes; 2 of 3 files (conflicting: signedness or const)
+extern int DAT_0051e710[30];                                                                      // 0x51e710, 120 bytes; 2 of 2 files
+extern char DAT_0051e788[136];                                                                    // 0x51e788, 136 bytes; 1 of 1 files
+extern unsigned char DAT_0051e810[10];                                                            // 0x51e810, 10 bytes; 2 of 2 files
 extern unsigned char DAT_0051e81a[6];                                                             // 0x51e81a, 6 bytes; nothing refers to it
 extern "C" unsigned char g_loadingBarPrevPercent[5];                                              // 0x51e820, 1 bytes; extern "C" (no type) in declared extern "C" in 1 of 1 files, but used past its end
 extern "C" unsigned char DAT_0051e825[3];                                                         // 0x51e825, 1 bytes; extern "C" (no type) in declared extern "C" in 1 of 1 files, but used past its end
 extern unsigned char g_cdListsDiscEntries[2720];                                                  // 0x51e828, 2720 bytes; CdLists_490f80 by value in 1 of 1 files
-extern unsigned char DAT_0051f2c8[10];                                                            // 0x51f2c8, 10 bytes; 2 of 3 files (conflicting: signedness or const)
+extern unsigned char DAT_0051f2c8[10];                                                            // 0x51f2c8, 10 bytes; 2 of 2 files
 extern unsigned char DAT_0051f2d2[6];                                                             // 0x51f2d2, 6 bytes; nothing refers to it
 extern unsigned int DAT_0051f2d8;                                                                 // 0x51f2d8, 4 bytes; 1 of 2 files (conflicting: signedness or const)
-extern int DAT_0051f2dc;                                                                          // 0x51f2dc, 4 bytes; 2 of 3 files (conflicting: signedness or const)
+extern unsigned int DAT_0051f2dc;                                                                 // 0x51f2dc, 4 bytes; 1 of 2 files (conflicting: signedness or const)
 extern int DAT_0051f2f0;                                                                          // 0x51f2f0, 4 bytes; 1 of 1 files
 extern int DAT_0051f2f4;                                                                          // 0x51f2f4, 4 bytes; 1 of 1 files
 extern unsigned int DAT_0051f2f8;                                                                 // 0x51f2f8, 4 bytes; 1 of 1 files

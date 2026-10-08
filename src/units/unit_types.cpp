@@ -326,18 +326,19 @@ public:
     void SetCurrentRecord(int record);
 };
 
-class Class_004c9390 {
+// The reference-counted string handle: a pointer to the characters with the
+// reference count in the int just before them.
+class StringRef {
 public:
-    char* data;
+    char* p;                           // count in the dword before p
 
+    StringRef(const StringRef& other);
+    StringRef(const char* text);
+    ~StringRef() { ReleaseRef(); }
     void ReleaseRef();
-};
-
-class Class_004c91a0 {
-public:
-    char* p;
-
-    ~Class_004c91a0() { ((Class_004c9390*)this)->ReleaseRef(); }
+    StringRef* Assign(const StringRef* other);
+    StringRef* AssignText(const char* text);
+    StringRef* MakeLower();
 };
 
 class Class_00438760 {
@@ -372,7 +373,7 @@ void* __cdecl GameAllocIgnoreTag(const char* name, int size);
 unsigned short __stdcall FindUnitTypeId(char* name);
 void __stdcall LoadUnitFbi(char* path, UnitDef* type);
 void AddDownloadBuildOptions();
-void __stdcall ListDirectory(const char* pattern, int flags, std::vector<Class_004c91a0>* out);
+void __stdcall ListDirectory(const char* pattern, int flags, std::vector<StringRef>* out);
 void __stdcall InsertionSortUnitTypes(void* start, void* end, void* cmp, int param);
 void __stdcall SortUnitTypes(void* start, void* end, void* cmp, int param);
 int __stdcall CompareUnitTypeNames(const char* a, const char* b);
@@ -1257,7 +1258,7 @@ void LoadDownloadMenus()
     int i;
     char path[256];
     char unitbuf[256];
-    std::vector<Class_004c91a0> files;
+    std::vector<StringRef> files;
     BuildDataPath(path, "download", "*", "TDF");
     ListDirectory(path, 0, &files);
 

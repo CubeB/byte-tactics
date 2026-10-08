@@ -2069,53 +2069,54 @@ Class_004c90b0* Class_004c90b0::Append(const Class_004c90b0& other)
 extern int g_emptyStringRefs;
 extern void* g_emptyString;
 
-class Class_004c9180
-{
+// The reference-counted string handle: a pointer to the characters with the
+// reference count in the int just before them. The constructors are
+// 0x4c9180 (empty), 0x4c91a0 (copy) and 0x4c91b0 (from text); copying and
+// assignment bump the count and ReleaseRef decrements it and frees the block
+// at zero. The other methods of the type in this file (0x4c90b0, 0x4c9230,
+// 0x4c9290, 0x4c9310, 0x4c93f0, 0x4c9490) are declared for completeness and
+// keep their placeholder classes until they are named too.
+class StringRef {
 public:
-    void* vtable;
-    Class_004c9180();
+    char* data;              // refcount lives in the dword before data
+
+    StringRef();
+    StringRef(const StringRef& other);
+    StringRef(const char* text);
+    StringRef(const char* text, int len);
+    ~StringRef() { ReleaseRef(); }
+    StringRef& operator=(const StringRef& other)
+    {
+        Assign(&other);
+        return *this;
+    }
+    StringRef* Assign(const StringRef* other);
+    void ReleaseRef();
+    StringRef* Append(const StringRef& other);
+    StringRef* MakeLower();
+    StringRef* MakeUpper();
+    StringRef* AssignText(const char* text);
+    char* GetUnique();
+    int IsEmpty() const;
+    StringRef SubString(int start, int end) const;
 };
 
-// FUNCTION: 0x4c9180
-Class_004c9180::Class_004c9180()
+// FUNCTION: 0x4c9180 ??0StringRef@@QAE@XZ
+StringRef::StringRef()
 {
     g_emptyStringRefs++;
-    vtable = &g_emptyString;
+    data = (char*)&g_emptyString;
 }
 
-// Copy constructor of a reference-counted string handle: the handle points at
-// character data whose reference count is stored just before it. The
-// assignment operator of the same handle is at 0x4c93b0.
-class Class_004c91a0 {
-public:
-    char* ptr;
-
-    Class_004c91a0(const Class_004c91a0& other);
-};
-
-// FUNCTION: 0x4c91a0
-Class_004c91a0::Class_004c91a0(const Class_004c91a0& other)
+// FUNCTION: 0x4c91a0 ??0StringRef@@QAE@ABV0@@Z
+StringRef::StringRef(const StringRef& other)
 {
-    ptr = other.ptr;
-    ((int*)ptr)[-1]++;
+    data = other.data;
+    ((int*)data)[-1]++;
 }
 
-// Constructor of the reference-counted string handle from a C string (see
-// 0x4c9180 for the default constructor, 0x4c91a0 for the copy constructor and
-// 0x4c93b0 for assignment). The handle points at the characters; the
-// reference count is the int just before them. An empty or null string shares
-// the global empty string, whose count is g_emptyStringRefs. The class is named
-// after this address because data/symbols.csv maps one name per constructor
-// (Class_004c91a0::Class_004c91a0 is already the copy constructor).
-class Class_004c91b0 {
-public:
-    char* ptr;
-
-    Class_004c91b0(const char* text);
-};
-
-// FUNCTION: 0x4c91b0
-Class_004c91b0::Class_004c91b0(const char* text)
+// FUNCTION: 0x4c91b0 ??0StringRef@@QAE@PBD@Z
+StringRef::StringRef(const char* text)
 {
     char* chars;
     if (text == 0 || *text == 0) {
@@ -2127,7 +2128,7 @@ Class_004c91b0::Class_004c91b0(const char* text)
         chars = (char*)(block + 1);
         strcpy(chars, text);
     }
-    ptr = chars;
+    data = chars;
 }
 
 // Constructor of the reference-counted string handle (see 0x4c91b0) from the
@@ -2221,25 +2222,16 @@ Class_004c9310* Class_004c9310::MakeUpper()
     return this;
 }
 
-// Reference-count decrement and free for a reference-counted string handle
-// (see the copy constructor at 0x4c91a0 and assignment at 0x4c93b0, which
-// share the same shape). data/symbols.csv already names this address and
-// class independently (Class_004c9390::ReleaseRef), and every existing
-// caller (map_list.cpp, 0x432c00.cpp, 0x488a00.cpp, 0x4b75d0.cpp) already
-// calls it that way as a plain method, so that established name is kept
-// here rather than renamed to Class_004c91a0::~Class_004c91a0.
+// The type's reference-count decrement and free, called by every file that
+// spells the handle and by the scalar deleting destructors 0x432c00 and
+// 0x432c20. ReleaseRef is data/symbols.csv's established name for this
+// address; the destructor spelling StringRef::~StringRef in
+// data/aliases.csv is the same function.
 
 extern "C" void __cdecl free(void*);
 
-class Class_004c9390 {
-public:
-    char* data;
-
-    void ReleaseRef();
-};
-
 // FUNCTION: 0x4c9390
-void Class_004c9390::ReleaseRef()
+void StringRef::ReleaseRef()
 {
     ((int*)data)[-1]--;
     int* p = (int*)data - 1;

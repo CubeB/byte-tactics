@@ -202,10 +202,7 @@ struct Player {
         int field_4;
     };
     int joinTime;                      // +0x08
-    union {
-        int field_c;                   // +0x0c
-        int team;
-    };
+    int lobbyDataSynced;               // +0x0c
     int messages;                      // +0x10
     int ping;                          // +0x14
     char unknown_18[0x1c - 0x18];
@@ -865,7 +862,7 @@ char FindFreePlayerId(void)
             if (p->active != 0
                 && (p->type == 1 || p->type == 2 || p->type == 3)
                 && p->field_146 != 10
-                && p->field_c == id) {
+                && p->lobbyDataSynced == id) {
                 used = 1;
             }
         }
@@ -891,8 +888,8 @@ void CheckDuplicatePlayerIds(void)
         if (g_game->players[i].active != 0
             && (g_game->players[i].type == 1 || g_game->players[i].type == 2 || g_game->players[i].type == 3)
             && g_game->players[i].field_146 != 10
-            && g_game->players[i].field_c > 0 && g_game->players[i].field_c <= 10) {
-            if (++counts[g_game->players[i].field_c] > 1) {
+            && g_game->players[i].lobbyDataSynced > 0 && g_game->players[i].lobbyDataSynced <= 10) {
+            if (++counts[g_game->players[i].lobbyDataSynced] > 1) {
                 dup = 1;
                 break;
             }
@@ -1987,10 +1984,10 @@ int __stdcall BroadcastPacket(int id, unsigned char* packet, int size)
                 continue;
             if (g_game->players[i].state != 3)
                 continue;
-            if (g_broadcastPeersSeen[g_game->players[i].field_c] != 0)
+            if (g_broadcastPeersSeen[g_game->players[i].lobbyDataSynced] != 0)
                 continue;
             SendPacketToPlayer(id, g_game->players[i].field_4, packet, size);
-            int c = g_game->players[i].field_c;
+            int c = g_game->players[i].lobbyDataSynced;
             if (c >= 0 && c < 10)
                 g_broadcastPeersSeen[c] = 1;
         }
@@ -2468,9 +2465,9 @@ int __stdcall RejectPlayer(int id, unsigned char value)
         *(int*)(msg + 1) = id;
         result = BroadcastPacket(FindActiveId_00453010(), msg, 6);
         if (p->active != 0 && p->state == 3 && p->field_27->kind == 1) {
-            unsigned char c = p->field_c;
+            unsigned char c = p->lobbyDataSynced;
             for (int i = 0; i < 10; i++) {
-                if (g_game->players[i].field_c == c) {
+                if (g_game->players[i].lobbyDataSynced == c) {
                     RemovePlayer(g_game->players[i].id);
                     g_game->players[i].field_22 = value;
                 }
@@ -2732,8 +2729,8 @@ void CheckPlayerTimeouts()
     for (i = 0; i < 10; i++, p++) {
         if (IsTimedOut(p, now)) {
             if (team < 0)
-                team = p->team;
-            else if (team != p->team)
+                team = p->lobbyDataSynced;
+            else if (team != p->lobbyDataSynced)
                 mixed = 1;
         }
     }

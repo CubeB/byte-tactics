@@ -3,17 +3,17 @@
 // instantiation the 0x4c54f0 map code calls.
 #include <stddef.h>
 
-class Class_004c91a0 {
+class StringRef {
 public:
     char* p;
 
-    Class_004c91a0();
-    Class_004c91a0(const Class_004c91a0& other);
+    StringRef();
+    StringRef(const StringRef& other);
 };
 
 struct TdfField {
-    Class_004c91a0 a;                  // +0x0
-    Class_004c91a0 b;                  // +0x4
+    StringRef a;                    // +0x0
+    StringRef b;                    // +0x4
 };
 
 void* __cdecl operator new(unsigned int size);

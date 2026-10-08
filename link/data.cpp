@@ -146,6 +146,7 @@ char g_radarPictureName[16] = "RADAR PICTURE";  // 0x5074f8 .data
 char g_radarMappedName[16] = "RADAR MAPPED";  // 0x507508 .data
 char g_radarFinalName[12] = "RADAR FINAL";  // 0x507518 .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
 int DAT_00507b6c = 1;  // 0x507b6c .data
+unsigned char DAT_00507b70[1] = {53};  // 0x507b70 .data
 char* g_forcesDestroyedTexts[3] = {(char*)"forces have been obliterated", (char*)"vermin have been exterminated", (char*)"forces have gone to a better place"};  // 0x507b88 .data
 char DAT_00508384[8] = "Allies";  // 0x508384 .data
 const char g_skirmishCheatSoundName[16] = "SkirmishCheat";  // 0x508460 .data
@@ -609,12 +610,13 @@ unsigned char g_particlePool[36];  // 0x51e610 .bss
 unsigned char g_particlePoolDestroyed;  // 0x51e634 .bss
 unsigned char DAT_0051e635[7];  // 0x51e635 .bss
 char* DAT_0051e63c;  // 0x51e63c .bss
-unsigned char DAT_0051e644[8];  // 0x51e644 .bss
+unsigned char DAT_0051e640[12];  // 0x51e640 .bss
 int DAT_0051e64c;  // 0x51e64c .bss
 int DAT_0051e650;  // 0x51e650 .bss
 int DAT_0051e654;  // 0x51e654 .bss
 unsigned char DAT_0051e658[4];  // 0x51e658 .bss
-int* DAT_0051e65c;  // 0x51e65c .bss
+char* DAT_0051e65c;  // 0x51e65c .bss
+char* DAT_0051e660;  // 0x51e660 .bss
 unsigned char DAT_0051e664[4];  // 0x51e664 .bss
 int DAT_0051e668;  // 0x51e668 .bss
 int DAT_0051e66c;  // 0x51e66c .bss

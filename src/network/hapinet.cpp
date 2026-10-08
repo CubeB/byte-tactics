@@ -1,6 +1,8 @@
 // Decompiled by space-bunny-free, Haiku, Opus, Sonnet and DeepSeek V4.1 Flash. Names are provisional.
 // The HAPINET DirectPlay wrapper: the error strings, the packet send and
-// receive calls, the session and lobby setup and the enumeration callbacks.
+// receive calls, the session, provider and player calls, the lobby and
+// address calls, the interface setup and teardown, and the report interface
+// stubs.
 
 #include <windows.h>
 #include <stdio.h>
@@ -48,6 +50,14 @@ struct Conn_4ca100 {
     unsigned long size;              // +0x4
 };
 
+// A connection's name, from the EnumConnections callback.
+struct DPName_4ca100 {
+    unsigned long dwSize;
+    unsigned long dwFlags;
+    char* lpszShortNameA;
+    char* lpszLongNameA;
+};
+
 // The buffer holding the connection settings; +8 points at the session
 // description.
 struct Connection_4c9a70 {
@@ -64,22 +74,23 @@ public:
     virtual int __stdcall AddPlayerToGroup(unsigned long group, unsigned long player);
     virtual int __stdcall Close();
     virtual int __stdcall Slot05();
-    virtual int __stdcall Slot06();
+    virtual int __stdcall CreatePlayer(unsigned long* id, DPName_4ca100* name, void* event,
+                                       void* data, unsigned long size, unsigned long flags);   // +0x18
     virtual int __stdcall Slot07();
     virtual int __stdcall Slot08();
-    virtual int __stdcall Slot09();
+    virtual int __stdcall DestroyPlayer(unsigned long id);                                    // +0x24
     virtual int __stdcall Slot10();
     virtual int __stdcall Slot11();
-    virtual int __stdcall Slot12();
+    virtual int __stdcall EnumPlayers(void* session, void* callback, void* context, unsigned long flags);   // +0x30
     virtual int __stdcall EnumSessions(void* desc, unsigned long timeout, void* callback, void* context, unsigned long flags);
     virtual int __stdcall Slot14();
     virtual int __stdcall Slot15();
     virtual int __stdcall Slot16();
     virtual int __stdcall Slot17();
-    virtual int __stdcall Slot18();
+    virtual int __stdcall GetPlayerAddress(unsigned long player, void* data, unsigned long* size);   // +0x48
     virtual int __stdcall Slot19();
     virtual int __stdcall GetPlayerData(unsigned long player, void* data, unsigned long* size, unsigned long flags);
-    virtual int __stdcall Slot21();
+    virtual int __stdcall GetPlayerName(unsigned long id, void* data, unsigned long* size);   // +0x54
     virtual int __stdcall GetSessionDesc(void* data, unsigned long* size);
     virtual int __stdcall Slot23();
     virtual int __stdcall Slot24(void* desc, unsigned long flags);
@@ -88,53 +99,69 @@ public:
     virtual int __stdcall Slot27();
     virtual int __stdcall Slot28();
     virtual int __stdcall SetPlayerData(unsigned long player, void* data, unsigned long size, unsigned long flags);
-    virtual int __stdcall Slot30();
+    virtual int __stdcall SetPlayerName(unsigned long id, void* name, unsigned long flags);   // +0x78
     virtual int __stdcall SetSessionDesc(void* desc, unsigned long flags);
     virtual int __stdcall Slot32();
     virtual int __stdcall Slot33();
     virtual int __stdcall Slot34();
     virtual int __stdcall EnumConnections(GUID_004c9920* application, void* callback, void* context, unsigned long flags);
+    virtual int __stdcall Slot36();
+    virtual int __stdcall Slot37();
+    virtual int __stdcall Slot38(int val, int flag);                                          // +0x98
 };
 
-// IDirectPlayLobby-like COM interface: Connect and the connection settings.
+// IDirectPlayLobby-like COM interface: the slots this module calls.
 class Lobby_4c9a70 {
 public:
-    virtual int __stdcall QueryInterface(void* iid, void** out);
+    virtual int __stdcall QueryInterface(GUID* riid, void** ppvObject);
     virtual unsigned long __stdcall AddRef();
     virtual unsigned long __stdcall Release();
-    virtual int __stdcall Connect(unsigned long flags, unsigned long* appId, int conn);
-    virtual int __stdcall Slot04();
-    virtual int __stdcall Slot05();
-    virtual int __stdcall Slot06();
-    virtual int __stdcall Slot07();
-    virtual int __stdcall Slot08();
+    virtual int __stdcall Connect(unsigned long flags, void** dp, void* outer);
+    virtual int __stdcall CreateAddress(GUID* sp, GUID* device, const void* address,
+                                        unsigned long addressSize, void* dest,
+                                        unsigned long* destSize);
+    virtual int __stdcall EnumAddress(void* callback, const void* address,
+                                      unsigned long length, void* context);
+    virtual int __stdcall EnumAddressTypes(void* callback, GUID* sp, void* context,
+                                           unsigned long flags);
+    virtual int __stdcall EnumLocalApplications(void* callback, void* context,
+                                                unsigned long flags);
+    virtual int __stdcall GetConnectionSettings(unsigned long appID, void* connection,
+                                                unsigned long* dataSize);                 // +0x20
     virtual int __stdcall Slot09();
     virtual int __stdcall Slot10();
     virtual int __stdcall Slot11();
     virtual int __stdcall SetConnectionSettings(unsigned long a, unsigned long b, Connection_4c9a70* conn);
+    virtual int __stdcall Slot13();
+    virtual int __stdcall CreateCompoundAddress(void* elements, unsigned long count, void* address,
+                                                unsigned long* size);                     // +0x38
 };
 
 #pragma pack(push, 1)
-// The HAPINET network object: the session name, the application GUID, the
-// session description, the DirectPlay and lobby interfaces and the
-// enumeration buffers.
+// The HAPINET network object: the session and player names, the application
+// and service provider GUIDs, the session description, the DirectPlay and
+// lobby interfaces, the enumeration buffers and the counters.
 struct Net_4c97b0 {
     char name[0x10];                  // +0x0
-    char unknown_10[0x431 - 0x10];    // +0x10
+    char unknown_10;                  // +0x10
+    char longName[16];                // +0x11
+    char shortName[16];               // +0x21
+    char unknown_31[0x431 - 0x31];    // +0x31
     GUID_004c9920* guids;             // +0x431
     Conn_4ca100* conns;               // +0x435
     char* names;                      // +0x439
     GUID_004c9920 application;        // +0x43d
-    char unknown_44d[0x10];           // +0x44d
+    GUID_004c9920 sp;                 // +0x44d
     SessionDesc_4c9890 desc;          // +0x45d
-    char unknown_4ad[8];              // +0x4ad
+    int field_4ad;                    // +0x4ad
+    char unknown_4b1[4];              // +0x4b1
     unsigned long from;               // +0x4b5
     unsigned long to;                 // +0x4b9
     GameRec_4c9c50* games;            // +0x4bd
     DirectPlay_4c97b0* dp1;           // +0x4c1
     DirectPlay_4c97b0* dp;            // +0x4c5
-    Lobby_4c9a70* lobby2;             // +0x4c9
-    Lobby_4c9a70* lobby1;             // +0x4cd
+    Lobby_4c9a70* created;            // +0x4c9
+    Lobby_4c9a70* lobby;              // +0x4cd
     Connection_4c9a70* connection;    // +0x4d1
     int connection_size;              // +0x4d5
     char unknown_4d9[4];              // +0x4d9
@@ -145,18 +172,33 @@ struct Net_4c97b0 {
 };
 #pragma pack(pop)
 
-// A connection's name, from the EnumConnections callback.
-struct DPName_4ca100 {
-    unsigned long dwSize;
-    unsigned long dwFlags;
-    char* lpszShortNameA;
-    char* lpszLongNameA;
+#pragma pack(push, 1)
+// The player data block HAPINET_addplayer passes to CreatePlayer.
+struct PlayerData_004ca6a0 {
+    char name[17];                     // +0x00
+    short field_11;                    // +0x11
+    short field_13;                    // +0x13
 };
+#pragma pack(pop)
+
+// The DirectPlay interface pair HAPINET_createdplayinterface fills: the base
+// object at +0x0 and the IDirectPlay3 interface at +0x4.
+struct Net_004ca900 {
+    DirectPlay_4c97b0* dp;            // +0x0
+    DirectPlay_4c97b0* dp3;           // +0x4
+};
+
+// DPLAYX.dll ordinal 2 (DirectPlayEnumerateA from the DirectX 5 dplay.h).
+typedef BOOL (__stdcall* EnumSpCallback_4ca400)(GUID_004c9920* sp, char* name, DWORD major, DWORD minor, Net_4c97b0* context);
 
 extern int g_enumSessionsResult;
 extern int g_guaranteePackets;
 extern GUID_004c9920* DAT_0050a788[4];
 extern GUID_004c9920 DAT_004fdaf0;
+extern GUID DAT_004fce18;              // IID_IDirectPlayLobby2A
+extern GUID DAT_004fcd78;              // IID_IDirectPlay3A
+extern int DAT_0051ff08;
+extern int DAT_0051ff04;
 
 void __cdecl HapinetTrace(const char*);
 void __cdecl HapinetTrace(int);
@@ -166,12 +208,15 @@ char* __stdcall Translate(char* text);
 int __cdecl PeekKey();
 int __cdecl PopKey();
 char* __stdcall SkipTextLines(char* text, int n);
+int GetDisplay();
+extern "C" HRESULT __stdcall DirectPlayCreate(GUID* sp, DirectPlay_4c97b0** dp, void* unknown);
+extern "C" HRESULT __stdcall DirectPlayLobbyCreateA(GUID* lpGUID,
+                                                    Lobby_4c9a70** lplpDPL,
+                                                    void* lpUnkOuter, void* lpReserved,
+                                                    unsigned long dwFlags);
+extern "C" HRESULT __stdcall DirectPlayEnumerateA(EnumSpCallback_4ca400 callback, void* context);
 int __stdcall HAPINET_initmultiplay(Net_4c97b0* net, GUID_004c9920* sp, GUID_004c9920* application);
 
-// HAPINET_GetDPErrorString: maps a DirectPlay HRESULT (the DPERR_* values of
-// dplay.h, 0x88770000 + the enum ordinal) to the message TA prints. DP_OK and
-// the undocumented default are Cavedog's own additions. HapinetTrace is the
-// trace stub, so the argument is re-read from the stack after the call.
 // FUNCTION: 0x4c9530
 char* __stdcall HAPINET_GetDPErrorString(int error)
 {
@@ -388,11 +433,11 @@ int __stdcall HAPINET_createorjoinlobbygame(Net_4c97b0* net, char* password, uns
         if (d->dwUser2 == 0) d->dwUser2 = user2;
         if (d->dwUser3 == 0) d->dwUser3 = user3;
         if (d->dwUser4 == 0) d->dwUser4 = user4;
-        hr = net->lobby1->SetConnectionSettings(0, 0, net->connection);
+        hr = net->lobby->SetConnectionSettings(0, 0, net->connection);
     }
     if (hr >= 0) {
         net->desc = *net->connection->desc;
-        hr = net->lobby1->Connect(0, (unsigned long*)&net->dp, 0);
+        hr = net->lobby->Connect(0, (void**)&net->dp, 0);
     }
     return hr >= 0;
 }
@@ -413,13 +458,13 @@ void __stdcall HAPINET_uninitmultiplay(Net_4c97b0* net)
         net->dp1->Release();
         net->dp1 = 0;
     }
-    if (net->lobby1 != 0) {
-        net->lobby1->Release();
-        net->lobby1 = 0;
+    if (net->lobby != 0) {
+        net->lobby->Release();
+        net->lobby = 0;
     }
-    if (net->lobby2 != 0) {
-        net->lobby2->Release();
-        net->lobby2 = 0;
+    if (net->created != 0) {
+        net->created->Release();
+        net->created = 0;
     }
     if (net->connection != 0) {
         FUN_004d85a0(net->connection);
@@ -638,4 +683,299 @@ int __stdcall HAPINET_getconnections(Net_4c97b0* net, int a, int b, int c, GUID_
     net->names = (char*)c;
     int hr = net->dp->EnumConnections(application, HAPINET_enumconnections, net, 1);
     return hr == 0 ? 1 : 0;
+}
+// FUNCTION: 0x4ca330
+int __stdcall HAPINET_enumproviders(GUID_004c9920* guid, char* name, unsigned long major,
+                           unsigned long minor, Net_4c97b0* net)
+{
+    char local[200];
+    HapinetTrace((int)"HAPINET_enumproviders\n");
+    net->guids[net->field_4e5] = *guid;
+    sprintf(local, "%s %d.%d", name, major, minor);
+    char* slot = SkipTextLines(net->names, net->field_4e5);
+    strcpy(slot, local);
+    net->field_4e5++;
+    return 1;
+}
+
+// HAPINET_getproviders: enumerates the service providers into the GUID array
+// at +0x431 and the name buffer at +0x439.
+// FUNCTION: 0x4ca400
+int __stdcall HAPINET_getproviders(Net_4c97b0* net, int a, int c)
+{
+    HapinetTrace((int)"HAPINET_getproviders\n");
+    net->field_4e5 = 0;
+    net->guids = (GUID_004c9920*)a;
+    net->names = (char*)c;
+    DirectPlayEnumerateA(HAPINET_enumproviders, net);
+    return 1;
+}
+
+// HAPINET_passwordrequired: tests flag 0x400 in the current connection's
+// description, or in the local copy when there is no connection.
+// FUNCTION: 0x4ca450
+unsigned int __stdcall HAPINET_passwordrequired(Net_4c97b0* net)
+{
+    HapinetTrace((int)"HAPINET_passwordrequired\n");
+    if (net->connection != 0)
+        return net->connection->desc->dwFlags & 0x400;
+    return net->desc.dwFlags & 0x400;
+}
+
+// HAPINET_initlobbiedconnection: creates the DirectPlay lobby (DPLAYX ordinal
+// 4), queries IID_IDirectPlayLobby2A from it, then copies the connection
+// settings into a malloc'd buffer. The GUID at 0x4fce18 is
+// IID_IDirectPlayLobby2A; slot 8 (+0x20) of that interface is
+// GetConnectionSettings, which first reports DPERR_BUFFERTOOSMALL (0x8877001e)
+// with a null buffer and the required size.
+// FUNCTION: 0x4ca490
+int __stdcall HAPINET_initlobbiedconnection(Net_4c97b0* net)
+{
+    HapinetTrace((int)"HAPINET_initlobbiedconnection\n");
+    if (net->lobby != 0)
+        return 0;
+    net->created = 0;
+    net->lobby = 0;
+    net->connection = 0;
+    net->connection_size = 0;
+    int hr = DirectPlayLobbyCreateA(0, &net->created, 0, 0, 0);
+    if (hr >= 0) {
+        hr = net->created->QueryInterface(&DAT_004fce18, (void**)&net->lobby);
+        if (hr >= 0) {
+            unsigned long size = 0;
+            hr = net->lobby->GetConnectionSettings(0, 0, &size);
+            if (hr == (int)0x8877001e) {
+                net->connection = (Connection_4c9a70*)FUN_004d83b0("DPLAY LOBBY CONNECTION", size);
+                if (net->connection != 0) {
+                    hr = net->lobby->GetConnectionSettings(0, net->connection, &size);
+                    if (hr >= 0)
+                        net->connection_size = size;
+                } else {
+                    hr = (int)0x8007000e;
+                }
+            }
+            HapinetTrace((int)"HAPINET_guaranteepackets\n");
+            g_guaranteePackets = 1;
+        }
+    }
+    return hr >= 0;
+}
+
+// HAPINET_initconnection: opens the session through slot 38 of the DirectPlay
+// interface at +0x4c5.
+// FUNCTION: 0x4ca590
+int __stdcall HAPINET_initconnection(Net_4c97b0* param_1, int* param_2)
+{
+    HapinetTrace((int)"HAPINET_initconnection\n");
+    return param_1->dp->Slot38(*param_2, 0) >= 0;
+}
+
+// The original calls this out of line from HAPINET_getconnections; in
+// this file /Ob2 would inline it into the caller.
+#pragma auto_inline(off)
+// HAPINET_initmultiplay: creates the DirectPlay object from the service
+// provider GUID in sp, stores the application GUID and answers whether the
+// queried DirectPlay interface came back.
+// FUNCTION: 0x4ca5d0
+int __stdcall HAPINET_initmultiplay(Net_4c97b0* net, GUID_004c9920* sp, GUID_004c9920* application)
+{
+    HapinetTrace((int)"HAPINET_initmultiplay\n");
+    g_guaranteePackets = 0;
+    net->field_4ad = *(int*)(GetDisplay() + 0x40);
+    net->application = *application;
+    net->created = 0;
+    net->lobby = 0;
+    net->connection = 0;
+    net->connection_size = 0;
+    net->dp1 = 0;
+    net->dp = 0;
+    net->sp = *sp;
+    int hr = DirectPlayCreate((GUID*)&net->sp, &net->dp1, 0);
+    if (hr != 0)
+        return 0;
+    hr = net->dp1->QueryInterface(&DAT_004fcd78, (void**)&net->dp);
+    return hr == 0 ? 1 : 0;
+}
+#pragma auto_inline(on)
+
+// FUNCTION: 0x4ca6a0
+int __stdcall HAPINET_addplayer(Net_4c97b0* net, unsigned long* id, char* shortName, char* longName,
+                           char* name, short field_11, short field_13)
+{
+    HapinetTrace((int)"HAPINET_addplayer\n");
+    if (net->dp != 0) {
+        DPName_4ca100 dpname;
+        dpname.dwSize = sizeof(DPName_4ca100);
+        dpname.dwFlags = 0;
+        dpname.lpszShortNameA = shortName;
+        dpname.lpszLongNameA = longName;
+        strncpy(net->longName, longName, 16);
+        strncpy(net->shortName, shortName, 16);
+        PlayerData_004ca6a0 data;
+        memset(&data, 0, sizeof(data));
+        strncpy(data.name, name, 16);
+        data.field_11 = field_11;
+        data.field_13 = field_13;
+        int hr = net->dp->CreatePlayer(id, &dpname, 0, &data, sizeof(data), 0);
+        return hr == 0 ? 1 : 0;
+    }
+    return 0;
+}
+
+// FUNCTION: 0x4ca780
+int __stdcall HAPINET_removeplayer(Net_4c97b0* net, unsigned long id)
+{
+    HapinetTrace((int)"HAPINET_removeplayer\n");
+    if (net->dp != 0) {
+        int hr = net->dp->DestroyPlayer(id);
+        return hr == 0 ? 1 : 0;
+    }
+    return 0;
+}
+
+// HAPINET_getplayername: IDirectPlay2::GetPlayerName (+0x54); returns
+// 0x88770140 when there is no DirectPlay interface.
+// FUNCTION: 0x4ca7c0
+int __stdcall HAPINET_getplayername(Net_4c97b0* net, unsigned long id, void* data, unsigned long* size)
+{
+    HapinetTrace((int)"HAPINET_getplayername\n");
+    if (net->dp != 0) {
+        return net->dp->GetPlayerName(id, data, size);
+    }
+    return 0x88770140;
+}
+
+// HAPINET_setplayername: IDirectPlay2::SetPlayerName (+0x78); returns
+// 0x88770140 when there is no DirectPlay interface.
+// FUNCTION: 0x4ca800
+int __stdcall HAPINET_setplayername(Net_4c97b0* net, unsigned long id, void* name, unsigned long flags)
+{
+    HapinetTrace((int)"HAPINET_setplayername\n");
+    if (net->dp != 0) {
+        return net->dp->SetPlayerName(id, name, flags);
+    }
+    return 0x88770140;
+}
+
+// HAPINET_enumplayers: IDirectPlay2::EnumPlayers (+0x30); returns 0x88770140
+// when there is no DirectPlay interface.
+// FUNCTION: 0x4ca840
+int __stdcall HAPINET_enumplayers(Net_4c97b0* net, void* session, void* callback, void* context, unsigned long flags)
+{
+    HapinetTrace((int)"HAPINET_enumplayers\n");
+    if (net->dp != 0) {
+        return net->dp->EnumPlayers(session, callback, context, flags);
+    }
+    return 0x88770140;
+}
+
+// HAPINET_createcompoundaddress: IDirectPlayLobby2::CreateCompoundAddress
+// (+0x38) on the lobby interface at +0x4cd; returns 0x88770140 when there
+// is none.
+// FUNCTION: 0x4ca880
+int __stdcall HAPINET_createcompoundaddress(Net_4c97b0* net, void* elements, unsigned long count, void* address,
+                           unsigned long* size)
+{
+    HapinetTrace((int)"HAPINET_createcompoundaddress\n");
+    if (net->lobby != 0) {
+        return net->lobby->CreateCompoundAddress(elements, count, address, size);
+    }
+    return 0x88770140;
+}
+
+// HAPINET_enumaddress: IDirectPlayLobby::EnumAddress (+0x14) on the lobby
+// interface; returns 0x88770140 when there is none. Same shape as 0x4ca840.
+// FUNCTION: 0x4ca8c0
+int __stdcall HAPINET_enumaddress(Net_4c97b0* net, void* callback, void* address, unsigned long size, void* context)
+{
+    HapinetTrace((int)"HAPINET_enumaddress\n");
+    if (net->lobby != 0) {
+        return net->lobby->EnumAddress(callback, address, size, context);
+    }
+    return 0x88770140;
+}
+
+// HAPINET_createdplayinterface: DirectPlayCreate (DPLAYX ordinal 1), then
+// QueryInterface for IDirectPlay3A (the GUID at 0x4fcd78) into the second
+// slot.
+// FUNCTION: 0x4ca900
+HRESULT __stdcall HAPINET_createdplayinterface(GUID* sp, Net_004ca900* net)
+{
+    HapinetTrace((int)"HAPINET_createdplayinterface\n");
+    memset(net, 0, sizeof(Net_004ca900));
+    HRESULT hr = DirectPlayCreate(sp, &net->dp, 0);
+    if (hr >= 0) {
+        hr = net->dp->QueryInterface(&DAT_004fcd78, (void**)&net->dp3);
+    }
+    return hr;
+}
+
+// Releases the IDirectPlay3 interface, then the DirectPlay object.
+// FUNCTION: 0x4ca940
+int __stdcall HAPINET_releasedplayinterface(Net_004ca900* net)
+{
+    HapinetTrace((int)"HAPINET_releasedplayinterface\n");
+    int result = 0;
+    if (net->dp3 != 0) {
+        result = net->dp3->Release();
+        net->dp3 = 0;
+    }
+    if (net->dp != 0) {
+        net->dp->Release();
+        net->dp = 0;
+    }
+    return result;
+}
+
+// DirectX 5's DPERR_UNINITIALIZED, MAKE_DPHRESULT(320); the toolchain's
+// DirectX 3 <dplay.h> does not define it.
+#define DPERR_UNINITIALIZED_004ca990 0x88770140
+
+// HAPINET_getplayeraddress: IDirectPlay2::GetPlayerAddress (+0x48) on the
+// interface at +0x4.
+// FUNCTION: 0x4ca990
+int __stdcall HAPINET_getplayeraddress(Net_004ca900* net, unsigned long player, void* data, unsigned long* size)
+{
+    HapinetTrace((int)"HAPINET_getplayeraddress\n");
+    if (net->dp3 != 0)
+        return net->dp3->GetPlayerAddress(player, data, size);
+    return DPERR_UNINITIALIZED_004ca990;
+}
+
+// Returns the lobby object at +0x4c9.
+// FUNCTION: 0x4ca9d0
+int __stdcall FUN_004ca9d0(Net_4c97b0* param_1)
+{
+    return (int)param_1->created;
+}
+
+// FUNCTION: 0x4ca9e0
+int __stdcall FUN_004ca9e0(int param_1)
+{
+    return param_1 + 0x465;
+}
+
+// FUNCTION: 0x4ca9f0
+int __stdcall FUN_004ca9f0(int)
+{
+    return 0;
+}
+
+// FUNCTION: 0x4caa00
+int __stdcall RIReportGameChat(int arg1, int arg2)
+{
+    return 1;
+}
+
+// FUNCTION: 0x4caa10
+int __stdcall RIReport(int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10)
+{
+    return 1;
+}
+
+// FUNCTION: 0x4caa20
+void __stdcall RISetCallbacks(int param_1, int param_2)
+{
+    DAT_0051ff08 = param_1;
+    DAT_0051ff04 = param_2;
 }

@@ -1901,8 +1901,8 @@ Class_0044de80::Class_0044de80(int owner, HapiBank* file, char* name)
     Rec_0044de80 rec;
     ((Class_004895c0*)&rec.ref_vt)->Class_004895c0::Class_004895c0(0, 0);
     file->OpenNamedBox(name);
-    ((HapiBank*)file)->SeekBox(0);
-    if (((HapiBank*)file)->ReadBox(&rec, 0x36) == 0x36) {
+    file->SeekBox(0);
+    if (file->ReadBox(&rec, 0x36) == 0x36) {
         field_12 = LoadUnit(rec.id1, file);
         ref.SetUnit((Owner_004895c0*)LoadUnit(rec.id2, file));
         field_8 = rec.f1;
@@ -2021,8 +2021,8 @@ int Class_0044dfb0::FUN_0044dfb0(int unused, HapiBank* file, char* name)
     rec.pos = pos;
     rec.i4 = i4;
     file->OpenNamedBox(name);
-    ((HapiBank*)file)->SeekBox(0);
-    ((HapiBank*)file)->WriteBox(&rec, 0x36);
+    file->SeekBox(0);
+    file->WriteBox(&rec, 0x36);
     ((UnitRef*)&rec.ref_vt)->Unlink();
     return 1;
 }

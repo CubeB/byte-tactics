@@ -2023,7 +2023,7 @@ int __stdcall FireLineOfSightProjectile(Fire_0049c9c0* fire, Unit* unit,
     short angle = unit->f_1a[((fire->f_1b >> 2) & 3) * 7].angle - unit->heading;
     int a = -FUN_004b70ef(angle, 800);
     int b = -FUN_004b7123(angle, 800);
-    ((CobScript*)unit->anims)->StartScriptWithArgs("RockUnit", 0, 0, 2, b, a, 0, 0);
+    unit->anims->StartScriptWithArgs("RockUnit", 0, 0, 2, b, a, 0, 0);
 
     if (fire->shot->f_bit9)
         EmitWeaponSmoke(p3, 9);
@@ -2126,7 +2126,7 @@ int __stdcall FireVLaunchProjectile(Shot_0049cc20* shot, Unit* unit, Vec3* pos,
     proj->targetUnit = param_5;
     proj->interceptedProjectile = param_6;
     proj->active = shot->def->f_ea;
-    ((CobScript*)unit->anims)->StartScript(g_fireScriptNames[(shot->field_1b >> 2) & 3], 0, 0);
+    unit->anims->StartScript(g_fireScriptNames[(shot->field_1b >> 2) & 3], 0, 0);
     short angle = unit->aim_0049cc20[(shot->field_1b >> 2) & 3][0][0] - unit->heading;
     int a = -FUN_004b70ef(angle, 800);
     int b = -FUN_004b7123(angle, 800);
@@ -2220,7 +2220,7 @@ int __stdcall FireBallisticProjectile(Shot_0049cde0* shot, Unit* unit, Vec3* pos
         // active before targetUnit: the reverse of the natural order is the original's.
         proj->active = shot->def->f_ea;
         proj->targetUnit = param_5;
-        ((CobScript*)unit->anims)->StartScript(g_fireScriptNames[(shot->field_1b >> 2) & 3], 0, 0);
+        unit->anims->StartScript(g_fireScriptNames[(shot->field_1b >> 2) & 3], 0, 0);
         short angle = unit->aim_0049cde0[(shot->field_1b >> 2) & 3][0] - unit->heading;
         int a = -FUN_004b70ef(angle, 800);
         int b = -FUN_004b7123(angle, 800);

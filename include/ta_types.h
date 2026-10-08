@@ -12323,7 +12323,7 @@ struct Class_00481490 {  // 0x1c bytes, 4 views
     void* vtable;  // +0x0
     int field_4;  // +0x4
     char unknown_8[20];
-    void FUN_00481490(int);
+    void OnAimCobReturn(int);
 };
 
 struct Cell_004816a0 {  // 0x2c bytes, 6 views

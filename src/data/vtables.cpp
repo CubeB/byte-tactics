@@ -74,7 +74,7 @@ void FUN_0044f590();
 void FUN_0044f5b0();
 void FUN_0044f5c0();
 void FUN_0044f650();
-void FUN_00481490();
+void OnAimCobReturn();
 void AimCobStub();
 
 // Class_00407d40's, a class of the 0x4fc980 family: stored by its constructor 0x407d40.
@@ -142,5 +142,5 @@ extern VirtualFunction const DAT_004fd488[12] = {
 // Stored by 0x485e90, 0x485f50 and 0x4861d0.
 // GLOBAL: 0x4fd6f0
 extern VirtualFunction const g_weaponAimCobVtable[2] = {
-    FUN_00481490, AimCobStub,
+    OnAimCobReturn, AimCobStub,
 };

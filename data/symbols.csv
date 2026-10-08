@@ -1735,7 +1735,7 @@ address,name
 0x4813b0,UnitScript::DropUnit
 0x481430,UnitScript::IsCarryingUnit
 0x481470,UnitScript::GetTransporterId
-0x481490,Class_00481490::FUN_00481490
+0x481490,Class_00481490::OnAimCobReturn
 0x4814b0,AimCobStub
 0x4814f0,FreeLosTables
 0x481500,InitEyeballs
@@ -4381,7 +4381,7 @@ address,name
 0x511fa8,g_explosion2Duration
 0x511fac,g_explosion2StartSize
 0x511fb0,g_explosion2EndSize
-0x511fb4,s_featureTdfParsers$S32680
+0x511fb4,s_featureTdfParsers$S23898
 0x511fb8,g_frontendErrorText
 0x5120b8,g_pictureCache
 0x512288,DAT_00512288

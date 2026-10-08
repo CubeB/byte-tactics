@@ -163,11 +163,11 @@ public:
     char unknown_0[4];
     int field_4;                       // +0x4
 
-    void FUN_00481490(int enable);
+    void OnAimCobReturn(int enable);
 };
 
 // FUNCTION: 0x481490
-void Class_00481490::FUN_00481490(int enable)
+void Class_00481490::OnAimCobReturn(int enable)
 {
     if (enable) {
         field_4 = 1;

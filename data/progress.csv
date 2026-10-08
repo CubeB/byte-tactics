@@ -1740,7 +1740,7 @@ address,size,file,symbol,status,similarity
 0x4813b0,123,src/units/unit_script.cpp,?DropUnit@UnitScript@@UAEXG@Z,matched,100.0
 0x481430,62,src/units/unit_script.cpp,?IsCarryingUnit@UnitScript@@UAEHH@Z,matched,100.0
 0x481470,32,src/units/unit_script.cpp,?GetTransporterId@UnitScript@@UAEHXZ,matched,100.0
-0x481490,18,src/units/unit_script_calls.cpp,?FUN_00481490@Class_00481490@@QAEXH@Z,matched,100.0
+0x481490,18,src/units/unit_script_calls.cpp,?OnAimCobReturn@Class_00481490@@QAEXH@Z,matched,100.0
 0x4814b0,5,src/units/unit_script_calls.cpp,?AimCobStub@@YGHHHHH@Z,matched,100.0
 0x4814c0,42,src/map/line_of_sight.cpp,_$E4,matched,100.0
 0x4814f0,10,src/map/line_of_sight.cpp,?FreeLosTables@@YGXXZ,matched,100.0

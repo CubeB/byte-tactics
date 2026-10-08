@@ -650,6 +650,14 @@ def address_of(sym: str, symbols: dict[str, int]) -> int | None:
         return int(m.group(1), 16)
     if name in symbols:
         return symbols[name]
+    # A method's plain spelling, as src/data/vtables.cpp declares a hand-stored
+    # slot (`void OnAimCobReturn();` for the address data/symbols.csv names
+    # Class_00481490::OnAimCobReturn): take the one method with that leaf name.
+    # A name several methods share stays unresolved, as before.
+    if "::" not in name:
+        hits = {a for n, a in symbols.items() if "::" in n and n.split("::")[-1] == name}
+        if len(hits) == 1:
+            return next(iter(hits))
     if not sym.startswith("?"):
         return symbols.get(sym)
     return None

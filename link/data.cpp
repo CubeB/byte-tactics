@@ -42,11 +42,9 @@ char DAT_00502a20[4] = "&G";  // 0x502a20 .data
 char DAT_00502a78[12] = "Difficulty";  // 0x502a78 .data
 char DAT_00502b38[8] = "Options";  // 0x502b38 .data
 // 0x502bf8 .data
-unsigned char DAT_00502bf8[64] = {
-    0, 0, 1, 0, 2, 0, 3, 0, 2, 0, 1, 0, 6, 0, 5, 0,
-    0, 0, 3, 0, 4, 0, 7, 0, 1, 0, 0, 0, 7, 0, 6, 0,
-    3, 0, 2, 0, 5, 0, 4, 0, 4, 0, 5, 0, 6, 0, 7, 0,
-    101, 120, 112, 108, 111, 100, 101, 112, 105, 101, 99, 101
+unsigned short DAT_00502bf8[6][4] = {
+    {0, 1, 2, 3}, {2, 1, 6, 5}, {0, 3, 4, 7}, {1, 0, 7, 6},
+    {3, 2, 5, 4}, {4, 5, 6, 7}
 };
 const char DAT_00502e30[8] = "anims";  // 0x502e30 .data
 char g_descriptionKey[12] = "Description";  // 0x502e78 .data
@@ -364,6 +362,7 @@ int DAT_00511de0;  // 0x511de0 .bss
 int g_cdPathMismatch;  // 0x511de4 .bss
 Game* g_game;  // 0x511de8 .bss
 int DAT_00511dec;  // 0x511dec .bss
+ExplodedPiece* DAT_00511df0[100];  // 0x511df0 .bss
 unsigned char DAT_00511f80[16];  // 0x511f80 .bss
 int DAT_00511f90;  // 0x511f90 .bss
 int DAT_00511f94;  // 0x511f94 .bss

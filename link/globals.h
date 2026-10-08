@@ -14,6 +14,7 @@ class TranslationTable;
 struct Chunk;
 struct Dialog;
 struct Entry_004426e0;
+struct ExplodedPiece;
 struct Game;
 struct Node_004dde70;
 struct Player_00437cd0;
@@ -48,7 +49,7 @@ extern char DAT_00502910[4];                                                    
 extern char DAT_00502a20[4];                                                                      // 0x502a20, 4 bytes; 3 of 3 files
 extern char DAT_00502a78[12];                                                                     // 0x502a78, 12 bytes; 2 of 2 files
 extern char DAT_00502b38[8];                                                                      // 0x502b38, 8 bytes; 2 of 2 files
-extern unsigned char DAT_00502bf8[64];                                                            // 0x502bf8, 64 bytes; Shape[6] by value in 1 of 1 files
+extern unsigned short DAT_00502bf8[6][4];                                                         // 0x502bf8, 48 bytes; 1 of 1 files
 extern const char DAT_00502e30[8];                                                                // 0x502e30, 8 bytes; 1 of 1 files
 extern char g_descriptionKey[12];                                                                 // 0x502e78, 12 bytes; 1 of 1 files
 extern char DAT_00502f9c[104];                                                                    // 0x502f9c, 104 bytes; 1 of 1 files
@@ -269,9 +270,10 @@ extern unsigned int g_netStatsTick;                                             
 extern unsigned int g_byteRatesTick;                                                              // 0x511ddc, 4 bytes; 1 of 1 files
 extern int DAT_00511de0;                                                                          // 0x511de0, 4 bytes; 2 of 2 files
 extern int g_cdPathMismatch;                                                                      // 0x511de4, 4 bytes; 1 of 1 files
-extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 632 of 717 files (conflicting: shape)
+extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 623 of 708 files (conflicting: shape)
 extern int DAT_00511dec;                                                                          // 0x511dec, 4 bytes; 1 of 1 files
-extern unsigned char DAT_00511f80[16];                                                            // 0x511f80, 16 bytes; CMemoryCache by value in 5 of 5 files
+extern ExplodedPiece* DAT_00511df0[100];                                                          // 0x511df0, 400 bytes; 1 of 1 files
+extern unsigned char DAT_00511f80[16];                                                            // 0x511f80, 16 bytes; CMemoryCache by value in 3 of 3 files
 extern int DAT_00511f90;                                                                          // 0x511f90, 4 bytes; 1 of 1 files
 extern int DAT_00511f94;                                                                          // 0x511f94, 4 bytes; 1 of 1 files
 extern int DAT_00511f98;                                                                          // 0x511f98, 4 bytes; 1 of 1 files
@@ -698,7 +700,7 @@ extern int DAT_0052a4f4;                                                        
 extern void* DAT_0052a4f8;                                                                        // 0x52a4f8, 4 bytes; 3 of 3 files
 extern long DAT_0052a4fc;                                                                         // 0x52a4fc, 4 bytes; 2 of 3 files (conflicting: signedness or const)
 
-// Not declared: 233 globals defined in a data file or whose type is not settled (see data/globals.csv).
+// Not declared: 232 globals defined in a data file or whose type is not settled (see data/globals.csv).
 //   0x513000 g_packetManager: defined in src/network/packets_460e20.cpp
 //   0x5119c0 g_playerAI: PlayerAI*[] (11), void*[] (5), Owner*[] (3), Player_40b0d0*[] (1), and 2 more
 //   0x51fbd0 g_display: void* (4), int (2), Display_004b4f50* (1), Display_004b5370* (1), and 14 more
@@ -709,7 +711,6 @@ extern long DAT_0052a4fc;                                                       
 //   0x4fd2f8 DAT_004fd2f8: defined in src/data/vtables.cpp
 //   0x512344 DAT_00512344: part of another global: DAT_00512340$S5516+0x4
 //   0x4fd3b8 DAT_004fd3b8: defined in src/data/vtables.cpp
-//   0x511df0 DAT_00511df0: Obj_00421170*[] (2), int[100] (1), void*[100] (1), Obj_00420f30*[100] (1), and 2 more
 //   0x51e59c IUUnitSyncEntry::IU?$pair::?$_Tree::_Nilrefs: defined in src/network/unit_sync_46c620.cpp
 //   0x4fcdb8 DPSPGUID_SERIAL: defined in src/data/guids.cpp
 //   0x4fcdc8 DPSPGUID_MODEM: defined in src/data/guids.cpp

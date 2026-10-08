@@ -361,7 +361,7 @@ guide's "known wall" note on `vector::insert`.*
    `data/symbols.csv` folds two COMDAT `std::vector<T>::size` instantiations
    after their own placeholder file addresses. `0x472d30` and `0x470770` are
    really `std::vector<T>::size`, and `std::copy` needs an aliases row. Verified
-   fix: re-match `src/graphics/particles_472d30.cpp` as
+   fix: re-match `src/graphics/particles_472630.cpp` as
    `&std::vector<Elem_00473500>::size` and update the rows, which releases all
    four at once.
 2. **The callee-saved register rotation wall, now 8 functions**: `0x4861d0`,

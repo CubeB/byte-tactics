@@ -352,12 +352,12 @@ effect, the missing piece is usually a helper that was inlined:
 - If swapping the operands of `this->a + this->b` changes nothing, move the
   expression into a small `static inline` helper that takes the object
   pointer (`MidX(this)` doing `w->x1 + w->x2`); MSVC then keeps the source
-  order. See `src/orders/order_targets_44dc60.cpp`.
+  order. See `src/orders/order_targets.cpp`.
 - A value that sits in a scratch register on one path, and is copied into
   place (`mov edx, ebp`) just before the paths merge on the other, is the
   return value of an inlined function with one `return` per path. A local
   assigned on both paths gets a callee-saved register for the whole function
-  instead. See `src/graphics/surface_4c9290.cpp`.
+  instead. See `src/graphics/surface.cpp`.
 - A loop that walks a pointer, where the offset is added after the loop
   guard (`add eax, K` after `test/jle`), is plain array indexing
   (`arr[i].field`) in the source; adding the offset yourself moves the `add`
@@ -930,7 +930,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   (e.g. +4) before the vtable store is the base's inline constructor (its own
   vtable store is dead and disappears), followed by the derived class storing
   its vtable. Declare the base constructor inline in the class
-  (see `src/orders/order_targets_44d010.cpp`).
+  (see `src/orders/order_targets.cpp`).
 - **Freeing and zeroing several {_First,_Last,_End} triples, last member first**:
   the empty destructor of a class with `std::vector` members.
 - **A per-element call inside an inlined vector destroy loop**: the element type

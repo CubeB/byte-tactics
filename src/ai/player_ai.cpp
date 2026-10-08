@@ -2,7 +2,7 @@
 // PlayerAI's RefreshUnitLists, which matches only in a file of its own: the
 // addressing mode of its weight load follows this file's symbol ids. The rest
 // of the class, its constructor and its other methods are in
-// ai_player_406c90.cpp.
+// ai_player.cpp.
 #include <windows.h>
 #include <vector>
 #include <math.h>
@@ -131,7 +131,7 @@ public:
     int margin1;                       // +0x105
     int field_109;                     // +0x109
 
-    // In ai_player_406c90.cpp: it builds the unit lists one and two wrapper
+    // In ai_player.cpp: it builds the unit lists one and two wrapper
     // levels deep to spend its inline budget as the original does.
     PlayerAI(unsigned char player);
     void InitUnitTables();

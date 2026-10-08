@@ -1,7 +1,7 @@
 // Decompiled by Claude Opus 5.5, deepseek-v4.1-flash and Opus. Names are
 // provisional.
 // Slot 0 of Class_00407d40 (vtable 0x4fc9a0), derived from SquadTimer
-// (the family is listed in ai_player_406c90.cpp, whose declarations this copies).
+// (the family is listed in ai_player.cpp, whose declarations this copies).
 // Sets field_c to 30..179 ticks from now. When the group has units, moves the
 // probe point b by the step c (one time in ten it restarts from a with a new
 // random direction of length 0x140 map units), and when the owner can see or

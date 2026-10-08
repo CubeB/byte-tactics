@@ -276,7 +276,7 @@ extern unsigned int g_netStatsTick;                                             
 extern unsigned int g_byteRatesTick;                                                                          // 0x511ddc, 4 bytes; 1 of 1 files
 extern int DAT_00511de0;                                                                                      // 0x511de0, 4 bytes; 2 of 2 files
 extern int g_cdPathMismatch;                                                                                  // 0x511de4, 4 bytes; 1 of 1 files
-extern Game* g_game;                                                                                          // 0x511de8, 4 bytes; 145 of 164 files (conflicting: shape)
+extern Game* g_game;                                                                                          // 0x511de8, 4 bytes; 144 of 163 files (conflicting: shape)
 extern int g_endGameGlamourSoundStarted;                                                                      // 0x511dec, 4 bytes; 1 of 1 files
 extern ExplodedPiece* g_explodedPieces[100];                                                                  // 0x511df0, 400 bytes; 1 of 1 files
 extern unsigned char DAT_00511f80[16];                                                                        // 0x511f80, 16 bytes; CMemoryCache by value in 2 of 2 files

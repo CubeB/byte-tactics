@@ -1,5 +1,5 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by GPT-6, finished by Claude Opus 5.5. Names are provisional.
-// A method of PlayerAI, whose other methods are in ai_player_406c90.cpp.
+// A method of PlayerAI, whose other methods are in ai_player.cpp.
 // Symbol ids must stay small: the cut-down <vector> below and this header set
 // decide the store SIB and the order of the weapon divisions.
 #include <stdio.h>

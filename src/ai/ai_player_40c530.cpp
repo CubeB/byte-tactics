@@ -5,6 +5,12 @@
 // +0x4d, the 3-byte entries at +0x65, the shorts at +0x7d, the bytes at +0x8d
 // and +0x9d, the 1-byte entries at +0xad and the 4-byte entries at +0xcd.
 // Each is emitted by taking its address (or by the use the comment names).
+//
+// These members stay out of ai_player.cpp: their register allocation follows
+// the symbol ids of the emissions before them in this file, and in the joined
+// file 0x40c600, 0x40cca0, 0x40d020 and 0x40d290 fall out of their windows
+// (docs/c2-regalloc.md). Splitting just those four out does not help, because
+// the emissions this file still holds are their context.
 #include <windows.h>
 #include <shlobj.h>
 #include <imagehlp.h>

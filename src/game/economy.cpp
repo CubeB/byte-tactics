@@ -19,16 +19,6 @@ struct Player;
 
 #pragma pack(push, 1)
 
-// The unit's (and the player's) resource accounts: energy, then metal.
-struct Res_00401360 {
-    float produced;                    // +0x0
-    float used;                        // +0x4
-    float demand;                      // +0x8
-    float backlog;                     // +0xc
-    float lastProduced;                // +0x10
-    float lastUsed;                    // +0x14
-};
-
 struct PlayerRes_00401360 {
     float stored;                      // +0x0
     float produced;                    // +0x4
@@ -54,22 +44,10 @@ struct UnitInfo {
     unsigned short id;                 // +0xa8
 };
 
-// A unit's resource accounts: units/unit_save.cpp saves and loads the two
+// A unit's resource accounts; the class is declared in
+// src/game/unit_resources.h. units/unit_save.cpp saves and loads the two
 // 0x18-byte account blocks through SaveUnitAccounts and LoadUnitAccounts.
-class UnitResources {
-public:
-    Res_00401360 res[2];               // +0x0
-    Player* player;                    // +0x30
-
-    void SaveUnitAccounts(UnitInfo* info, HapiBank* file);
-    void LoadUnitAccounts(UnitInfo* info, HapiBank* file);
-    void Reset(unsigned char playerIndex);
-    int RequestEnergy(UnitResources* r, float amount);
-    int RequestEnergyAndMetal(float dx, float dy);
-    int SpendEnergy(float amount);
-    int SpendMetal(float amount);
-    int SpendEnergyAndMetal(float energy, float metal);
-};
+#include "unit_resources.h"
 
 struct Player {
     int active;                        // +0x0
@@ -198,8 +176,8 @@ void UnitResources::SaveUnitAccounts(UnitInfo* info, HapiBank* file)
     sprintf(name, "u%04xacc", info->id);
     file->OpenNamedBox(name);
     file->SeekBox(0);
-    file->WriteBox(&res[0], 0x18);
-    file->WriteBox(&res[1], 0x18);
+    file->WriteBox(&energyMake, 0x18);
+    file->WriteBox(&metalMake, 0x18);
 }
 
 // Load counterpart of 0x4010b0: reads the two 0x18-byte blocks back from the
@@ -211,29 +189,29 @@ void UnitResources::LoadUnitAccounts(UnitInfo* info, HapiBank* file)
     sprintf(name, "u%04xacc", info->id);
     if (file->OpenNamedBox(name)) {
         file->SeekBox(0);
-        file->ReadBox(&res[0], 0x18);
-        file->ReadBox(&res[1], 0x18);
+        file->ReadBox(&energyMake, 0x18);
+        file->ReadBox(&metalMake, 0x18);
     }
 }
 
 // FUNCTION: 0x401180
 int UnitResources::RequestEnergy(UnitResources* r, float amount)
 {
-    r->res[0].used += amount;
-    if (r->res[0].backlog > 0.0f)
+    r->energyUse += amount;
+    if (r->energyStall > 0.0f)
         return 0;
-    r->res[0].demand += amount;
+    r->energyUsePaid += amount;
     return 1;
 }
 
 // FUNCTION: 0x4011c0
 int UnitResources::RequestEnergyAndMetal(float dx, float dy)
 {
-    res[0].used += dx;
-    res[1].used += dy;
-    if (res[0].backlog <= 0.0f && res[1].backlog <= 0.0f) {
-        res[0].demand += dx;
-        res[1].demand += dy;
+    energyUse += dx;
+    metalUse += dy;
+    if (energyStall <= 0.0f && metalStall <= 0.0f) {
+        energyUsePaid += dx;
+        metalUsePaid += dy;
         return 1;
     }
     return 0;
@@ -244,7 +222,7 @@ int UnitResources::SpendEnergy(float amount)
 {
     if (player->res[0].stored >= amount) {
         player->res[0].stored -= amount;
-        res[0].used += amount;
+        energyUse += amount;
         return 1;
     }
     return 0;
@@ -256,7 +234,7 @@ int UnitResources::SpendMetal(float amount)
 {
     if (player->res[1].stored >= amount) {
         player->res[1].stored -= amount;
-        res[1].used += amount;
+        metalUse += amount;
         return 1;
     }
     return 0;
@@ -267,10 +245,10 @@ int UnitResources::SpendEnergyAndMetal(float energy, float metal)
 {
     if (player->res[0].stored >= energy && player->res[1].stored >= metal) {
         player->res[0].stored -= energy;
-        res[0].used += energy;
+        energyUse += energy;
         if (player->res[1].stored >= metal) {
             player->res[1].stored -= metal;
-            res[1].used += metal;
+            metalUse += metal;
         }
         return 1;
     }

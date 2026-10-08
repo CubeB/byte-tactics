@@ -135,7 +135,7 @@ Point_0044eec0* __stdcall copy(Point_0044eec0* first, Point_0044eec0* last, Poin
 
 typedef std::vector<Point_0044eec0> Vec_0044da00;
 
-class Class_0044da00 {
+class PointMarker {
 public:
     char unknown_0[8];
     int x1;                 // +0x8
@@ -155,7 +155,7 @@ static Point_0044eec0 MakePoint_0044da00(int x, int y)
 }
 
 // FUNCTION: 0x44da00
-void Class_0044da00::AppendGoalCell(Vec_0044da00* list)
+void PointMarker::AppendGoalCell(Vec_0044da00* list)
 {
     list->clear();
     for (int i = x1; i <= x2; i++) {

@@ -20,7 +20,6 @@ struct Game;
 struct Node_004dde70;
 struct Player_00437cd0;
 struct Record_005129b4;
-struct Struct_00526ff0;
 
 extern unsigned char g_turnCosts[8];                                                              // 0x4fca10, 8 bytes; const Table_0040d880 by value in 1 of 1 files
 extern unsigned char DAT_004fcc68[8];                                                             // 0x4fcc68, 8 bytes; 1 of 1 files
@@ -609,12 +608,11 @@ extern unsigned char DAT_0051ff4c[12];                                          
 extern int DAT_0051ff58;                                                                          // 0x51ff58, 4 bytes; 2 of 2 files
 extern unsigned char DAT_0051ff5c[4];                                                             // 0x51ff5c, 4 bytes; nothing refers to it
 extern char DAT_0051ff60[112];                                                                    // 0x51ff60, 112 bytes; 2 of 2 files
-extern char g_lzssPresetWindow[176];                                                              // 0x51ffd0, 176 bytes; 3 of 3 files
+extern char g_lzssPresetWindow[176];                                                              // 0x51ffd0, 176 bytes; 1 of 1 files
 extern unsigned char DAT_00520080[3944];                                                          // 0x520080, 3944 bytes; nothing refers to it
-extern char g_lzssPresetTree[24584];                                                              // 0x520fe8, 24584 bytes; 2 of 2 files
-extern Struct_00526ff0* DAT_00526ff0;                                                             // 0x526ff0, 4 bytes; 2 of 10 files (conflicting: shape)
-extern int g_lzssPresetReady;                                                                     // 0x526ff8, 4 bytes; 3 of 3 files
-extern int g_lzssUsePreset;                                                                       // 0x526ffc, 4 bytes; 4 of 4 files
+extern char g_lzssPresetTree[24584];                                                              // 0x520fe8, 24584 bytes; 1 of 1 files
+extern int g_lzssPresetReady;                                                                     // 0x526ff8, 4 bytes; 1 of 1 files
+extern int g_lzssUsePreset;                                                                       // 0x526ffc, 4 bytes; 1 of 1 files
 extern char DAT_005289b4;                                                                         // 0x5289b4, 1 bytes; 1 of 1 files
 extern char DAT_005289b8;                                                                         // 0x5289b8, 1 bytes; 1 of 1 files
 extern void (__stdcall* DAT_005289bc)(void);                                                      // 0x5289bc, 4 bytes; 11 of 11 files
@@ -700,11 +698,11 @@ extern char DAT_0052a4e4;                                                       
 extern long DAT_0052a4e8;                                                                         // 0x52a4e8, 4 bytes; 5 of 6 files (conflicting: signedness or const)
 extern long DAT_0052a4ec;                                                                         // 0x52a4ec, 4 bytes; 5 of 5 files
 extern void* DAT_0052a4f0;                                                                        // 0x52a4f0, 4 bytes; 6 of 6 files
-extern int DAT_0052a4f4;                                                                          // 0x52a4f4, 4 bytes; 2 of 2 files
-extern void* DAT_0052a4f8;                                                                        // 0x52a4f8, 4 bytes; 3 of 3 files
-extern long DAT_0052a4fc;                                                                         // 0x52a4fc, 4 bytes; 2 of 3 files (conflicting: signedness or const)
+extern int DAT_0052a4f4;                                                                          // 0x52a4f4, 4 bytes; 1 of 1 files
+extern void* DAT_0052a4f8;                                                                        // 0x52a4f8, 4 bytes; 2 of 2 files
+extern long DAT_0052a4fc;                                                                         // 0x52a4fc, 4 bytes; 1 of 2 files (conflicting: signedness or const)
 
-// Not declared: 227 globals defined in a data file or whose type is not settled (see data/globals.csv).
+// Not declared: 228 globals defined in a data file or whose type is not settled (see data/globals.csv).
 //   0x5119c0 g_playerAI: PlayerAI*[] (11), void*[] (5), Owner*[] (3), Player_40b0d0*[] (1), and 2 more
 //   0x513000 g_packetManager: defined in src/network/packets_460e20.cpp
 //   0x51fbd0 g_display: void* (4), int (2), Display_004b4f50* (1), Display_004b5370* (1), and 14 more
@@ -714,7 +712,6 @@ extern long DAT_0052a4fc;                                                       
 //   0x4fcdc8 DPSPGUID_MODEM: defined in src/data/guids.cpp
 //   0x5129ac DAT_005129ac: char* (4), int* (1), void* (1)
 //   0x51e6a0 g_losTables: defined in src/map/line_of_sight_4814c0.cpp
-//   0x526ff4 DAT_00526ff4: char* (4), void* (2)
 //   0x4fcd98 DPSPGUID_IPX: defined in src/data/guids.cpp
 //   0x4fcda8 DPSPGUID_TCPIP: defined in src/data/guids.cpp
 //   0x5120b8 DAT_005120b8: Entry_00428730[10] (1), char[] (1), Entry_004287d0[10] (1), Entry_00428850[10] (1), and 1 more
@@ -745,6 +742,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x51e59c IUUnitSyncEntry::IU?$pair::?$_Tree::_Nilrefs: defined in src/network/unit_sync.cpp
 //   0x51e660 DAT_0051e660: int* (2), char* (1)
 //   0x51f2e8 DAT_0051f2e8: int (1), int* (1), char* (1)
+//   0x526ff0 DAT_00526ff0: Struct_00526ff0* (1), void* (1), Node_004d0b10* (1)
 //   0x528a10 DAT_00528a10: void* (2), Node_004ddc00* (1)
 //   0x528ac0 DAT_00528ac0: void* (1), void (__stdcall*)(void) (1), int (__stdcall*)(unsigned long, void*, void*, void*, void*, void*, void*, void*, void*) (1)
 //   0x528ac4 DAT_00528ac4: void* (2), void (__stdcall*)(void) (1)
@@ -803,6 +801,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x51f2ec DAT_0051f2ec: int* (1), char* (1)
 //   0x51fc78 g_closeHandler: part of another global: DAT_0051fbd8+0xa0
 //   0x51fc7c g_closeHandlerArg: part of another global: DAT_0051fbd8+0xa4
+//   0x526ff4 DAT_00526ff4: void* (1), char* (1)
 //   0x528ab8 DAT_00528ab8: void* (1), int (__stdcall*)(void*, char*, unsigned long) (1)
 //   0x528abc DAT_00528abc: int (__stdcall*)(void*) (1), void (__stdcall*)(void) (1)
 //   0x528ad0 DAT_00528ad0: int (1), unsigned long (__stdcall*)(unsigned long) (1)

@@ -1,4 +1,6 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, claude-sonnet-5-5, Space Bunny Free and Claude Opus 5.5. Names are provisional.
+// Kept its own file: info_panel.cpp includes <windows.h> and <ddraw.h> for
+// 0x4685a0 and 0x46a610, which flips this function's imul operand order.
 // Draws the game view's overlays into a copy of the screen context: the
 // cursor cross, the resource panel (metal and energy bars and counters, only
 // redrawn when the smoothed values change), the features and units of the

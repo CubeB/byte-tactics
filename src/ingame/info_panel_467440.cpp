@@ -1,5 +1,7 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, GPT-6.1-sol, finished by mimo-v2.6-pro, finished by DeepSeek V4.1 Flash, checked by GPT-6. Names are provisional.
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, GPT-6.1-sol. Names are provisional.
+// Kept its own file: in info_panel.cpp the file's total symbol count moves the
+// last loop's player pointer from eax to edx.
 // Five loops over the unit array (stride 0x118).
 
 #pragma pack(push, 1)

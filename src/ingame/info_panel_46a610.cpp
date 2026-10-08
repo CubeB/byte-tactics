@@ -1,4 +1,6 @@
 // Decompiled by Space Bunny Free. Names are provisional.
+// Kept its own file: in info_panel.cpp the declaration order swaps the first
+// two shade loads (cell->shade and cell[1].shade).
 // Draws one cell of the map/visibility grid: works out the blit position of
 // the cell (the feature's footprint offset, the smoothed shading of the four
 // cells of the 2x2 block, the cell's screen position and the scroll offset),

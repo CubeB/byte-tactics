@@ -4541,7 +4541,7 @@ piece,0x507a18,13,src/game/statistics.cpp,7,0,game data
 piece,0x5079fc,13,src/game/statistics.cpp,5,0,game data
 piece,0x5079f0,11,src/game/statistics.cpp,4,0,game data
 piece,0x5079e4,9,src/game/statistics.cpp,3,0,game data
-piece,0x4fd578,8,src/ingame/info_panel_46bc70.cpp,3,0,game data
+piece,0x4fd578,8,src/ingame/info_panel.cpp,57,8,game data
 piece,0x507930,23,src/ingame/info_panel_46a860.cpp,30,0,game data
 piece,0x507914,25,src/ingame/info_panel_46a860.cpp,29,0,game data
 piece,0x507904,15,src/ingame/info_panel_46a860.cpp,28,0,game data
@@ -4588,40 +4588,40 @@ piece,0x5077d4,14,src/ingame/info_panel_468cf0.cpp,8,0,game data
 piece,0x5077c4,13,src/ingame/info_panel_468cf0.cpp,7,0,game data
 piece,0x5077b8,11,src/ingame/info_panel_468cf0.cpp,6,0,game data
 piece,0x5077a8,5,src/ingame/info_panel_468cf0.cpp,3,0,game data
-piece,0x507788,12,src/ingame/info_panel_4689c0.cpp,9,0,game data
-piece,0x507774,18,src/ingame/info_panel_4689c0.cpp,8,0,game data
-piece,0x5068c0,7,src/ingame/info_panel_4689c0.cpp,7,0,game data
-piece,0x507770,4,src/ingame/info_panel_4689c0.cpp,6,0,game data
-piece,0x50775c,7,src/ingame/info_panel_4689c0.cpp,3,0,game data
-piece,0x507748,19,src/ingame/info_panel_4685a0.cpp,13,0,game data
-piece,0x507734,19,src/ingame/info_panel_4685a0.cpp,12,0,game data
-piece,0x507724,16,src/ingame/info_panel_4685a0.cpp,11,0,game data
-piece,0x50765c,7,src/ingame/info_panel_4685a0.cpp,10,0,game data
-piece,0x507650,9,src/ingame/info_panel_4685a0.cpp,9,0,game data
-piece,0x507648,6,src/ingame/info_panel_4685a0.cpp,8,0,game data
-piece,0x507640,7,src/ingame/info_panel_4685a0.cpp,7,0,game data
-piece,0x507624,27,src/ingame/info_panel_4685a0.cpp,6,0,game data
-piece,0x507710,17,src/ingame/info_panel_4685a0.cpp,5,0,game data
-piece,0x5076e4,43,src/ingame/info_panel_4685a0.cpp,4,0,game data
-piece,0x5076cc,22,src/ingame/info_panel_4685a0.cpp,3,0,game data
-piece,0x4fd560,8,src/ingame/info_panel_468380.cpp,5,0,game data
-piece,0x5076b8,17,src/ingame/info_panel_468380.cpp,4,0,game data
-piece,0x5076a4,20,src/ingame/info_panel_468380.cpp,3,0,game data
-piece,0x507690,17,src/ingame/info_panel_467e50.cpp,22,0,game data
-piece,0x50767c,17,src/ingame/info_panel_467e50.cpp,21,0,game data
-piece,0x507664,21,src/ingame/info_panel_467e50.cpp,20,0,game data
-piece,0x507614,16,src/ingame/info_panel_467e50.cpp,14,0,game data
-piece,0x5075fc,22,src/ingame/info_panel_467e50.cpp,13,0,game data
-piece,0x5075f0,12,src/ingame/info_panel_467e50.cpp,12,0,game data
-piece,0x5075e8,5,src/ingame/info_panel_467e50.cpp,11,0,game data
-piece,0x5075e0,7,src/ingame/info_panel_467e50.cpp,10,0,game data
-piece,0x5075dc,4,src/ingame/info_panel_467e50.cpp,9,0,game data
-piece,0x5075d0,12,src/ingame/info_panel_467e50.cpp,8,0,game data
-piece,0x5075a8,40,src/ingame/info_panel_467e50.cpp,7,0,game data
-piece,0x50759c,11,src/ingame/info_panel_467e50.cpp,6,0,game data
-piece,0x50757c,31,src/ingame/info_panel_467e50.cpp,5,0,game data
-piece,0x507568,20,src/ingame/info_panel_467e50.cpp,4,0,game data
-piece,0x507550,22,src/ingame/info_panel_467e50.cpp,3,0,game data
+piece,0x507788,12,src/ingame/info_panel.cpp,74,0,game data
+piece,0x507774,18,src/ingame/info_panel.cpp,73,0,game data
+piece,0x5068c0,7,src/ingame/info_panel.cpp,72,0,game data
+piece,0x507770,4,src/ingame/info_panel.cpp,71,0,game data
+piece,0x50775c,7,src/ingame/info_panel.cpp,68,0,game data
+piece,0x507748,19,src/ingame/info_panel.cpp,65,0,game data
+piece,0x507734,19,src/ingame/info_panel.cpp,64,0,game data
+piece,0x507724,16,src/ingame/info_panel.cpp,63,0,game data
+piece,0x50765c,7,src/ingame/info_panel.cpp,47,0,game data
+piece,0x507650,9,src/ingame/info_panel.cpp,46,0,game data
+piece,0x507648,6,src/ingame/info_panel.cpp,45,0,game data
+piece,0x507640,7,src/ingame/info_panel.cpp,44,0,game data
+piece,0x507624,27,src/ingame/info_panel.cpp,43,0,game data
+piece,0x507710,17,src/ingame/info_panel.cpp,62,0,game data
+piece,0x5076e4,43,src/ingame/info_panel.cpp,61,0,game data
+piece,0x5076cc,22,src/ingame/info_panel.cpp,60,0,game data
+piece,0x4fd560,8,src/ingame/info_panel.cpp,57,0,game data
+piece,0x5076b8,17,src/ingame/info_panel.cpp,56,0,game data
+piece,0x5076a4,20,src/ingame/info_panel.cpp,55,0,game data
+piece,0x507690,17,src/ingame/info_panel.cpp,50,0,game data
+piece,0x50767c,17,src/ingame/info_panel.cpp,49,0,game data
+piece,0x507664,21,src/ingame/info_panel.cpp,48,0,game data
+piece,0x507614,16,src/ingame/info_panel.cpp,42,0,game data
+piece,0x5075fc,22,src/ingame/info_panel.cpp,41,0,game data
+piece,0x5075f0,12,src/ingame/info_panel.cpp,40,0,game data
+piece,0x5075e8,5,src/ingame/info_panel.cpp,39,0,game data
+piece,0x5075e0,7,src/ingame/info_panel.cpp,38,0,game data
+piece,0x5075dc,4,src/ingame/info_panel.cpp,37,0,game data
+piece,0x5075d0,12,src/ingame/info_panel.cpp,36,0,game data
+piece,0x5075a8,40,src/ingame/info_panel.cpp,35,0,game data
+piece,0x50759c,11,src/ingame/info_panel.cpp,34,0,game data
+piece,0x50757c,31,src/ingame/info_panel.cpp,33,0,game data
+piece,0x507568,20,src/ingame/info_panel.cpp,32,0,game data
+piece,0x507550,22,src/ingame/info_panel.cpp,31,0,game data
 piece,0x4fd55c,4,src/ingame/info_panel_467440.cpp,5,0,game data
 piece,0x4fd558,4,src/ingame/info_panel_467440.cpp,4,0,game data
 piece,0x4fd554,4,src/ingame/info_panel_467440.cpp,3,0,game data
@@ -12229,9 +12229,9 @@ same,0x503160,3,src/game/players_464f80.cpp,8,0,
 same,0x503120,8,src/game/players_464f80.cpp,7,0,
 same,0x507318,32,src/game/players_464f80.cpp,6,0,
 same,0x50313c,6,src/game/players_464f80.cpp,5,0,
-same,0x502b38,8,src/ingame/info_panel_4689c0.cpp,12,0,
-same,0x504910,10,src/ingame/info_panel_4689c0.cpp,11,0,
-same,0x506290,6,src/ingame/info_panel_4689c0.cpp,4,0,
+same,0x502b38,8,src/ingame/info_panel.cpp,77,0,
+same,0x504910,10,src/ingame/info_panel.cpp,76,0,
+same,0x506290,6,src/ingame/info_panel.cpp,69,0,
 same,0x4fd568,4,src/ingame/info_panel_468cf0.cpp,22,0,
 same,0x504910,10,src/ingame/info_panel_468cf0.cpp,13,0,
 same,0x502ae8,3,src/network/unit_sync.cpp,49,0,

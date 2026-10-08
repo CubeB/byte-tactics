@@ -1,5 +1,7 @@
 // Decompiled by deepseek-v4.1, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by claude-sonnet-5-5, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
 // FLAGS: /Gi
+// Kept its own file: it matches only under /Gi, which the other functions do
+// not use.
 // Draws the selected unit / feature info panel (and the PFSTATE debug overlay).
 #include <windows.h>
 #include <stdio.h>

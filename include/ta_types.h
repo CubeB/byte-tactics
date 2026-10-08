@@ -245,14 +245,14 @@ class Class_00440500;
 class Class_00440830;
 class Class_00440af0;
 class Class_0044ce20;
-class Class_0044ce50;
+class OrderFx;
 class Class_0044ce70;
 class Class_0044ce90;
 class Class_0044cf00;
 class Class_0044cf60;
 class Class_0044cff0;
 class Class_0044d010;
-class Class_0044d0e0;
+class ApproachRadius;
 class Class_0044d290;
 class Class_0044d2c0;
 class Class_0044d310;
@@ -264,15 +264,15 @@ class Class_0044d560;
 class Class_0044d720;
 class Class_0044d7c0;
 class Class_0044d800;
-class Class_0044d840;
+class RingApproach;
 class Class_0044d8a0;
 class Class_0044d910;
 class Class_0044d930;
 class Class_0044da00;
-struct Class_0044dc60;
+struct PointMarker;
 class Class_0044dcb0;
 class Class_0044dd00;
-class Class_0044ddc0;
+class PathOrder;
 class Class_0044de80;
 class Class_0044df80;
 class Class_0044dfb0;
@@ -291,7 +291,7 @@ class Class_0044e730;
 class Class_0044e740;
 class Class_0044e7b0;
 class Class_0044e9c0;
-class Class_0044ea60;
+class AirManeuverOrder;
 class Class_0044eb40;
 struct Class_0044ec20;
 class Class_0044ef20;
@@ -306,7 +306,7 @@ struct Class_0044f480_target;
 class Class_0044f4a0;
 class Class_0044f570;
 class Class_0044f5b0;
-class Class_0044f5c0;
+class PatrolGoal;
 class Class_0044f650;
 class Class_0044f8a0;
 class Class_0044f940;
@@ -3565,29 +3565,29 @@ public:
     int celebrated;  // +0x8
     virtual ~Base_00490a10(void);
     virtual void Unknown_0(void);
-    virtual void FUN_0044ce80(void);
+    virtual void SerializeSave(void);
     virtual void FUN_0044ef90(void*);
     virtual void FUN_0044ce40(void);
     virtual void FUN_0044efb0(void);
     virtual int FUN_0044ef40(int, int, int);
-    virtual void FUN_0044cf30(void);
+    virtual void IsFxStyle(void);
     virtual int FUN_0044cf00(Unit*);
     virtual int FUN_0044f000(Unit*);
     virtual int FUN_0044ef80(void);
-    virtual void FUN_0044cf20(void);
+    virtual void ContainsCell(void);
     virtual int FUN_0044eff0(void);
     virtual void FUN_0044ce90(void);
     virtual int FUN_0044efe0(void);
-    virtual void FUN_0044cec0(void);
+    virtual void ApproxDist(void);
     virtual void FUN_0044efc0(Vec3*);
     virtual void FUN_004e6110(void);
     virtual int FUN_0044efd0(short*);
-    virtual void FUN_0044cf40(void);
+    virtual void TryGetDesiredHeading(void);
     virtual void FUN_0044cf50(void);
     virtual void FUN_0044ef50(int);
-    virtual int FUN_0044cef0(void);
+    virtual int KeepAfterComplete(void);
     virtual int FUN_0044ef50_11(void);
-    void FUN_0044ced0(int);
+    void AddFlags(int);
 };
 
 struct Cell_0040e630 {  // 0x4 bytes, 1 view
@@ -3812,7 +3812,7 @@ public:
     short field_c;  // +0xc
     char unknown_e[24];
     Vec3 pos;  // +0x26
-    void FUN_0044e6c0(int);
+    void SetAltitude(int);
 };
 
 class Class_0044e730 {  // 0xc bytes, 16 views
@@ -3822,7 +3822,7 @@ public:
     unsigned short flag : 1;
     unsigned short unknown_rest : 11;
     short value;  // +0xa
-    void FUN_0044e730(short);
+    void SetApproachRadius(short);
 };
 
 union Fixed_2 {  // 0x4 bytes, 1 view
@@ -3872,7 +3872,7 @@ public:
     unsigned short unknown_rest : 9;
     char unknown_a[4];
     short value;  // +0xe
-    void FUN_0044e720(short);
+    void SetHeading(short);
 };
 
 class Order_00415250 {  // 0x1a bytes, 1 view
@@ -7184,7 +7184,7 @@ public:
     Class_0044de80(int, HapiBank*, char*);
 };
 
-class Class_0044ce50 {  // 0x4 bytes, 1 view
+class OrderFx {         // 0x4 bytes, 1 view
 public:
     void** vtable;  // +0x0
     void* FUN_0044ce50(unsigned char);
@@ -7233,7 +7233,7 @@ struct Header_0044d010_2 {  // 0x10 bytes, 1 view
     Vec3 v;  // +0x4
 };
 
-class Class_0044d0e0 {  // 0xc bytes, 1 view
+class ApproachRadius {  // 0xc bytes, 1 view
 public:
     char unknown_0[8];
     Point16 pos;  // +0x8
@@ -7377,7 +7377,7 @@ public:
     int FUN_0044d800(Unit*);
 };
 
-class Class_0044d840 {  // 0x14 bytes, 1 view
+class RingApproach {    // 0x14 bytes, 1 view
 public:
     char unknown_0[8];
     short x;  // +0x8
@@ -7413,7 +7413,7 @@ public:
     void FUN_0044da00(std::vector<Point16>*);
 };
 
-struct Class_0044dc60 {  // 0x18 bytes, 1 view
+struct PointMarker {     // 0x18 bytes, 1 view
     char unknown_0[4];
     char* mapPtr;  // +0x4
     int x1;  // +0x8
@@ -7453,7 +7453,7 @@ public:
     int FUN_0044dd00(int, int);
 };
 
-class Class_0044ddc0 {  // 0x32 bytes, 1 view
+class PathOrder {       // 0x32 bytes, 1 view
 public:
     char unknown_0[8];
     unsigned short flags;  // +0x8
@@ -7690,7 +7690,7 @@ public:
     Class_0044e9c0(Owner_0044e9c0*, BitReader*);
 };
 
-class Class_0044ea60 {  // 0x2c bytes, 1 view
+class AirManeuverOrder {  // 0x2c bytes, 1 view
 public:
     char unknown_0[8];
     short field_8;  // +0x8
@@ -7772,8 +7772,8 @@ public:
     virtual int FUN_0044efe0(void);
     virtual void FUN_0044efc0(int);
     virtual void FUN_0044ef50(int);
-    void FUN_0044f080(Point16*, int);
-    void FUN_0044f100(int);
+    void SetWaypoints(Point16*, int);
+    void TruncateWaypointsFrom(int);
 };
 
 class Class_0044f570 : public Class_0044ef20 {  // 0x1c bytes, 3 views
@@ -7826,17 +7826,17 @@ public:
 class Base_00490a10_2 {  // 0x4 bytes, 1 view
 public:
     virtual ~Base_00490a10_2(void);
-    virtual void FUN_0044ce80(void);
+    virtual void SerializeSave(void);
     virtual void FUN_0044ce40(void);
-    virtual void FUN_0044cf30(void);
+    virtual void IsFxStyle(void);
     virtual int FUN_0044cf00(Struct_004907e0*);
-    virtual int FUN_0044cf20(int, int);
+    virtual int ContainsCell(int, int);
     virtual void FUN_0044ce90(void);
-    virtual void FUN_0044cec0(void);
+    virtual void ApproxDist(void);
     virtual int FUN_004e6110(Vec3*);
-    virtual int FUN_0044cf40(void);
+    virtual int TryGetDesiredHeading(void);
     virtual void FUN_0044cf50(void);
-    virtual int FUN_0044cef0(void);
+    virtual int KeepAfterComplete(void);
 };
 
 union Coord_0044f2a0 {  // 0x4 bytes, 1 view
@@ -7906,7 +7906,7 @@ public:
     int FUN_0044f5b0(void);
 };
 
-class Class_0044f5c0 {  // 0x1c bytes, 1 view
+class PatrolGoal {      // 0x1c bytes, 1 view
 public:
     void* vtable;  // +0x0
     int field_4;  // +0x4

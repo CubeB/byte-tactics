@@ -28,8 +28,8 @@ public:
 class Class_004388d0 { public: void SetAttachedFx(int); };
 class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
-class Class_0044e730 { public: void FUN_0044e730(short); };
+class Class_0044e6c0 { public: void SetAltitude(int); };
+class Class_0044e730 { public: void SetApproachRadius(short); };
 
 #pragma pack(push, 1)
 struct UnitDef {
@@ -111,7 +111,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
-        ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c / 2);
+        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c / 2);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
@@ -131,7 +131,7 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
         short angle = GetHeadingBetween(&unit->pos, &order->pos);
         Vec3 dest = FUN_0040f790(order->pos, Offset(angle, 0x1400000));
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
-        ((Class_0044e730*)obj)->FUN_0044e730(0x150);
+        ((Class_0044e730*)obj)->SetApproachRadius(0x150);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= 0xe0;
         // Landing block stays inline, no helper: the landed path returns 0

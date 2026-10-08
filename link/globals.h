@@ -761,11 +761,11 @@ extern long DAT_0052a4fc;                                                       
 //   0x4fcf08 DPAID_ComPort: defined in src/data/guids.cpp
 //   0x4fcf68 IID_IDirectSound3DBuffer: defined in src/data/guids.cpp
 //   0x4fd288 g_readyOrder: defined in src/orders/unit_orders.cpp
-//   0x4fd328 DAT_004fd328: defined in src/data/vtables.cpp
-//   0x4fd358 DAT_004fd358: defined in src/data/vtables.cpp
-//   0x4fd388 DAT_004fd388: defined in src/data/vtables.cpp
-//   0x4fd3b8 DAT_004fd3b8: defined in src/data/vtables.cpp
-//   0x4fd3f8 DAT_004fd3f8: defined in src/data/vtables.cpp
+//   0x4fd328 g_approachRadiusVtable: defined in src/data/vtables.cpp
+//   0x4fd358 g_ringApproachVtable: defined in src/data/vtables.cpp
+//   0x4fd388 g_pointMarkerVtable: defined in src/data/vtables.cpp
+//   0x4fd3b8 g_pathOrderVtable: defined in src/data/vtables.cpp
+//   0x4fd3f8 g_airManeuverOrderVtable: defined in src/data/vtables.cpp
 //   0x501d38 g_consoleCommands: defined in src/game/console_commands.cpp
 //   0x501f48 g_cheatCommands: defined in src/game/console_commands.cpp
 //   0x501fd0 g_debugCommands: defined in src/game/console_commands.cpp

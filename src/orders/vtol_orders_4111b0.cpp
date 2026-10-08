@@ -23,8 +23,8 @@ public:
 };
 class Class_004388d0 { public: void SetAttachedFx(int); };
 class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
-class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
-class Class_0044e730 { public: void FUN_0044e730(short); };
+class Class_0044e6c0 { public: void SetAltitude(int); };
+class Class_0044e730 { public: void SetApproachRadius(short); };
 class CobScript { public: int StartScriptWithArgs(char*, void*, int, int, int, int, int, int); void StartScript(const char*, int, int); int QueryScript(char* name, int* p2, int* p3, int* p4, int* p5); };
 
 #pragma pack(push, 1)
@@ -88,7 +88,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
-        ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c / 2);
+        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c / 2);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
@@ -129,8 +129,8 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
             break;
         case 1: {
             Class_0044e190* obj = new Class_0044e190(order, order->target);
-            ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c);
-            ((Class_0044e730*)obj)->FUN_0044e730(0x30);
+            ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c);
+            ((Class_0044e730*)obj)->SetApproachRadius(0x30);
             ((Class_004388d0*)order)->SetAttachedFx((int)obj);
             order->flags = 0x100e8;
             return 1;
@@ -147,7 +147,7 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
             SendScriptCallByName(unit, "BeginTransport", 1, height, 0, 0, 0);
             Vec3 offset = GetPieceOffset(unit, order->piece);
             Class_0044e250* obj = new Class_0044e250(order, order->target, -1);
-            ((Class_0044e6c0*)obj)->FUN_0044e6c0(-offset.yw);
+            ((Class_0044e6c0*)obj)->SetAltitude(-offset.yw);
             ((Class_004388d0*)order)->SetAttachedFx((int)obj);
             order->flags = 0x100ea;
             return 1;
@@ -162,7 +162,7 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
             AttachUnitToPiece(target, unit, order->piece, 0);
             QueueUnitSpeech(unit, 12, 0);
             Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
-            ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c);
+            ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c);
             order->flags |= 0xe0;
             return 1;
         }

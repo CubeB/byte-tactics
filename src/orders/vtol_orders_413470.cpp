@@ -37,8 +37,8 @@ public:
 };
 class Class_004388d0 { public: void SetAttachedFx(int); };
 class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
-class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
-class Class_0044e730 { public: void FUN_0044e730(short); };
+class Class_0044e6c0 { public: void SetAltitude(int); };
+class Class_0044e730 { public: void SetApproachRadius(short); };
 
 #pragma pack(push, 1)
 struct UnitDef {
@@ -148,7 +148,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
-        ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c / 2);
+        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c / 2);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
@@ -175,7 +175,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         short angle = GetHeadingBetween(&unit->pos, &centre);
         Vec3 dest = FUN_0040f790(unit->pos, Offset(angle, 0x3200000));
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
-        ((Class_0044e730*)obj)->FUN_0044e730(0x80);
+        ((Class_0044e730*)obj)->SetApproachRadius(0x80);
         order->flags |= 0xe0;
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         return 2;
@@ -203,7 +203,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         Vec3 off = Offset(RandomInt(0x4000) + angle - 0x2000, dist / 2);
         Vec3 p = unit->pos + off;
         Class_0044e2d0* obj = new Class_0044e2d0(order, p);
-        ((Class_0044e730*)obj)->FUN_0044e730(0x80);
+        ((Class_0044e730*)obj)->SetApproachRadius(0x80);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags = 0x100e8;
         return 1;
@@ -212,7 +212,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         unit->ClaimWeapons(0);
         SetWeaponTargetUnit(unit, order->target, 0);
         Class_0044e2d0* obj = new Class_0044e2d0(order, order->target->pos);
-        ((Class_0044e730*)obj)->FUN_0044e730(speed);
+        ((Class_0044e730*)obj)->SetApproachRadius(speed);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags = 0x100e8;
         order->side = 0;
@@ -228,7 +228,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
             Vec3 p = Add(order->target->pos, off);
             // The new waypoint is never given to the order (see the header).
             Class_0044e2d0* obj = new Class_0044e2d0(order, p);
-            ((Class_0044e730*)obj)->FUN_0044e730(0x80);
+            ((Class_0044e730*)obj)->SetApproachRadius(0x80);
             order->flags |= 0x110e8;
             return 2;
         }
@@ -244,8 +244,8 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         Vec3 off = Offset(angle, speed * 2 / 3 << 16);
         Vec3 p = order->target->pos - off;
         Class_0044e330* obj = new Class_0044e330(order, order->target, p);
-        ((Class_0044e730*)obj)->FUN_0044e730(0x10);
-        ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c);
+        ((Class_0044e730*)obj)->SetApproachRadius(0x10);
+        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags = 0x100e8;
         if ((unsigned int)unit->field_108 < (unit->def->field_1fa >> 2) * 3) {

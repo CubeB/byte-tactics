@@ -773,7 +773,7 @@ void BuildAllPassMaps();
 void InitMeteors();
 void InitRadar();
 void InitPlayers();
-void FUN_0044f6a0();
+void CreatePathfinder();
 void InitExplosions();
 void InitCommands();
 unsigned int GetTicks();
@@ -827,7 +827,7 @@ void FUN_004917d0()
     InitMeteors();
     InitRadar();
     InitPlayers();
-    FUN_0044f6a0();
+    CreatePathfinder();
     InitExplosions();
     InitCommands();
     for (int i = 0; i < 10; i++)
@@ -874,7 +874,7 @@ void EmptyShutdownPreCleanup();
 void FreeUnitMemory();
 void DestroyParticleLists();
 void FreeExplosions();
-void FUN_0044f6e0();
+void DestroyPathfinder();
 void FreePlayers();
 void FreeRadar();
 void FreeMapResources();
@@ -898,7 +898,7 @@ void FUN_00491b60()
     FreeUnitMemory();
     DestroyParticleLists();
     FreeExplosions();
-    FUN_0044f6e0();
+    DestroyPathfinder();
     FreePlayers();
     FreeRadar();
     FreeMapResources();

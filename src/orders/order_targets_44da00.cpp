@@ -123,13 +123,13 @@ struct Point_0044eec0 {
 };
 
 // The out-of-line copy the inlined vector::clear tail calls (0x44eef0).
-Point_0044eec0* __stdcall FUN_0044eef0(Point_0044eec0* first, Point_0044eec0* last, Point_0044eec0* dest);
+Point_0044eec0* __stdcall CopyDwordRangeUnchecked(Point_0044eec0* first, Point_0044eec0* last, Point_0044eec0* dest);
 
 namespace std {
 template <>
 Point_0044eec0* __stdcall copy(Point_0044eec0* first, Point_0044eec0* last, Point_0044eec0* dest)
 {
-    return FUN_0044eef0(first, last, dest);
+    return CopyDwordRangeUnchecked(first, last, dest);
 }
 }
 

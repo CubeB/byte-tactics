@@ -316,14 +316,14 @@ public:
 
 class Class_0044ced0 {
 public:
-    void FUN_0044ced0(int param_1);
+    void AddFlags(int param_1);
 };
 
 class Class_0044f010 {
 public:
     char unknown_0[4];
     Target* target;                    // +0x4
-    void FUN_0044f080(Point16* points, int count);
+    void SetWaypoints(Point16* points, int count);
 };
 
 class Planner_0040eb70 {
@@ -536,7 +536,7 @@ public:
     }
     void Finish()
     {
-        path->FUN_0044f080(0, 0);
+        path->SetWaypoints(0, 0);
         Release();
     }
     int CostFix(int x, int y)
@@ -878,7 +878,7 @@ void Pathfinder::TracePath()
         out[i].x = (pt.x * 2 + owner->originX) * 8;
         out[i].y = (pt.y * 2 + owner->originY) * 8;
     }
-    path->FUN_0044f080(out, count);
+    path->SetWaypoints(out, count);
 }
 
 // Bug-style path probe: walks straight towards the goal (x first, then y)
@@ -1011,21 +1011,21 @@ void Pathfinder::StartSearch(Target* t)
 
     // Each early exit is its own `Finish(); return;`, not a goto to a shared block.
     if (target->IsGoal(start.x, start.y)) {
-        ((Class_0044ced0*)target)->FUN_0044ced0(0x100);
+        ((Class_0044ced0*)target)->AddFlags(0x100);
         Finish();
         return;
     }
     int cost = Cost(start.x, start.y);
     if (!grid.InBounds(start.x, start.y)) {
-        ((Class_0044ced0*)target)->FUN_0044ced0(0x200);
+        ((Class_0044ced0*)target)->AddFlags(0x200);
         Finish();
         return;
     }
     probe = ProbeStraightPath();
     if (probe == 0) {
-        ((Class_0044ced0*)target)->FUN_0044ced0(0x100);
+        ((Class_0044ced0*)target)->AddFlags(0x100);
     } else {
-        ((Class_0044ced0*)target)->FUN_0044ced0(0x200);
+        ((Class_0044ced0*)target)->AddFlags(0x200);
         if (probe >= cost) {
             Finish();
             return;
@@ -1220,7 +1220,7 @@ void Pathfinder::RunSearches()
                     break;
             }
         } else {
-            path->FUN_0044f080(0, 0);
+            path->SetWaypoints(0, 0);
             Release();
         }
         total -= steps;

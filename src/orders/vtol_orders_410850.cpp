@@ -48,7 +48,7 @@ class Class_0044e2d0 { public: char data[0x36]; Class_0044e2d0(Order*, const Vec
 struct Game { char pad0[0x1422b]; int width, height; char pad14233[0x142b7-0x14233]; int water; };
 #pragma pack(pop)
 extern Game* g_game;
-class Class_0044e730 { public: void FUN_0044e730(int); };
+class Class_0044e730 { public: void SetApproachRadius(int); };
 short __stdcall GetHeadingBetween(Vec3*, Vec3*);
 Class_00438760 __stdcall GetOrderType(unsigned char, Unit*, Unit*, int);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
@@ -117,7 +117,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
     if (flags&0xe0) order->angle+=-RandomInt(0x2000)-0x4000;
     Vec3 pos=order->pos+Offset((short)order->angle,(unit->weapons[0].def->range+160)<<16);
     Class_0044e2d0* move=new Class_0044e2d0(order,pos);
-    ((Class_0044e730*)move)->FUN_0044e730(128);
+    ((Class_0044e730*)move)->SetApproachRadius(128);
     ((Class_004388d0*)order)->SetAttachedFx((int)move);
     ((Class_00439e80*)order)->FUN_00439e80(30);
     order->flags|=0xf8;
@@ -135,7 +135,7 @@ int __stdcall VtolSeekGuardOrder(Unit* unit, Order* order, int flags)
         short angle=GetHeadingBetween(&unit->pos,&center);
         Vec3 pos=FUN_0040f790(unit->pos,Direction(angle,0x3200000));
         Class_0044e2d0* move=new Class_0044e2d0(order,pos);
-        ((Class_0044e730*)move)->FUN_0044e730(128);
+        ((Class_0044e730*)move)->SetApproachRadius(128);
         order->flags|=0xe0;
         ((Class_004388d0*)order)->SetAttachedFx((int)move);
         return 2;

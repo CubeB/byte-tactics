@@ -53,8 +53,8 @@ class Class_00438760 { public: unsigned char index; Class_00438760(const char*);
 class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
 class Class_004388d0 { public: void SetAttachedFx(int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
-class Class_0044e730 { public: void FUN_0044e730(short); };
+class Class_0044e6c0 { public: void SetAltitude(int); };
+class Class_0044e730 { public: void SetApproachRadius(short); };
 #pragma pack(push, 1)
 struct UnitDef {
     char pad0[0x1fa]; unsigned int maxHealth;
@@ -149,7 +149,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
-        ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c / 2);
+        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->field_21c / 2);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
@@ -196,7 +196,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
             int angle = GetHeadingBetween(up, op);
             Vec3 dest = unit->pos + Offset(angle, 0x8c00000);
             Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
-            ((Class_0044e730*)obj)->FUN_0044e730(0x3c0);
+            ((Class_0044e730*)obj)->SetApproachRadius(0x3c0);
             ((Class_004388d0*)order)->SetAttachedFx((int)obj);
             order->flags |= 0xe2;
             return 1;
@@ -214,7 +214,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
         int radius = dist / 2;
         Vec3 dest = unit->pos + Offset(RandomInt(0x4000) + angle - 0x2000, radius);
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
-        ((Class_0044e730*)obj)->FUN_0044e730(0x1e0);
+        ((Class_0044e730*)obj)->SetApproachRadius(0x1e0);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags = 0x100e8;
         return 1;
@@ -240,7 +240,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
             obj = (Class_0044e2d0*)new Class_0044e190(order, order->target.owner);
         else
             obj = new Class_0044e2d0(order, order->pos);
-        ((Class_0044e730*)obj)->FUN_0044e730(time);
+        ((Class_0044e730*)obj)->SetApproachRadius(time);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         ((Class_00439e80*)order)->FUN_00439e80(1);
         order->flags |= 0x100e8;
@@ -252,7 +252,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
         int angle = GetHeadingBetween(&unit->pos, &order->pos);
         Vec3 dest = unit->pos + Offset(angle, (unit->def->field_216 + 0x3c0) << 16);
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
-        ((Class_0044e730*)obj)->FUN_0044e730(0x3c0);
+        ((Class_0044e730*)obj)->SetApproachRadius(0x3c0);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags = 0xe2;
         return 1;
@@ -261,7 +261,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
         ClearWeaponTarget(unit, 0);
         Vec3 dest = unit->pos + Offset(unit->angle, 0x5a00000);
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
-        ((Class_0044e730*)obj)->FUN_0044e730(0x80);
+        ((Class_0044e730*)obj)->SetApproachRadius(0x80);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags = 0xe2;
         if (unit->health < unit->def->maxHealth / 4 * 3) {

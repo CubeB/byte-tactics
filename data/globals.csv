@@ -69,11 +69,11 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x4fd2b8,ONE_EIGHTH,.rdata,8,type,float,double,1,0,1,one type,1,,,,,000000000000c03f
 0x4fd2e4,DAT_004fd2e4,.rdata,4,type,float,const float,1,0,1,one type,1,,,,src/data/unused.cpp,00000040
 0x4fd2f8,DAT_004fd2f8,.rdata,4,type,data,void*,1,2,3,conflicting: shape,3,,PTR_FUN_004fd2f8,1,src/data/vtables.cpp,50ce4400
-0x4fd328,DAT_004fd328,.rdata,4,type,data,void (__stdcall* const const*)(void),1,1,2,conflicting: shape,2,,PTR_FUN_004fd328,1,src/data/vtables.cpp,f0cf4400
-0x4fd358,DAT_004fd358,.rdata,4,type,data,void (__stdcall* const const*)(void),1,1,2,conflicting: shape,2,,PTR_FUN_004fd358,1,src/data/vtables.cpp,50d44400
-0x4fd388,DAT_004fd388,.rdata,4,type,data,void (__stdcall* const const*)(void),1,1,2,conflicting: shape,2,,PTR_FUN_004fd388,1,src/data/vtables.cpp,10d94400
-0x4fd3b8,DAT_004fd3b8,.rdata,4,type,data,void (__stdcall* const const*)(void),1,1,2,conflicting: shape,2,,PTR_FUN_004fd3b8,1,src/data/vtables.cpp,80df4400
-0x4fd3f8,DAT_004fd3f8,.rdata,4,type,data,void (__stdcall* const const*)(void),1,1,2,conflicting: shape,2,,PTR_FUN_004fd3f8,1,src/data/vtables.cpp,b0e74400
+0x4fd328,g_approachRadiusVtable,.rdata,4,type,data,void (__stdcall* const const*)(void),1,1,2,conflicting: shape,2,,PTR_FUN_004fd328,1,src/data/vtables.cpp,f0cf4400
+0x4fd358,g_ringApproachVtable,.rdata,4,type,data,void (__stdcall* const const*)(void),1,1,2,conflicting: shape,2,,PTR_FUN_004fd358,1,src/data/vtables.cpp,50d44400
+0x4fd388,g_pointMarkerVtable,.rdata,4,type,data,void (__stdcall* const const*)(void),1,1,2,conflicting: shape,2,,PTR_FUN_004fd388,1,src/data/vtables.cpp,10d94400
+0x4fd3b8,g_pathOrderVtable,.rdata,4,type,data,void (__stdcall* const const*)(void),1,1,2,conflicting: shape,2,,PTR_FUN_004fd3b8,1,src/data/vtables.cpp,80df4400
+0x4fd3f8,g_airManeuverOrderVtable,.rdata,4,type,data,void (__stdcall* const const*)(void),1,1,2,conflicting: shape,2,,PTR_FUN_004fd3f8,1,src/data/vtables.cpp,b0e74400
 0x4fd488,DAT_004fd488,.rdata,4,type,data,void (__stdcall* const const*)(void),1,0,1,one type,1,,PTR_FUN_004fd488,1,src/data/vtables.cpp,90f54400
 0x4fd4c0,DAT_004fd4c0,.rdata,4,type,float,const float,1,0,1,one type,1,,,,,00000000
 0x4fd4cc,DAT_004fd4cc,.rdata,4,type,float,const float,1,0,1,one type,1,,,,,0000a040

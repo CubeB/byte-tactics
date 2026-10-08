@@ -88,7 +88,7 @@ the tool.
   two rows in `data/aliases.csv` accept both spellings until those files use
   `std::map<int, int>`.
 - `Class_0044cf60` and `Class_0044d010`: both constructors store vtable
-  `DAT_004fd328` and fill the same fields (+8 packed point, +0xc radius,
+  `g_approachRadiusVtable` and fill the same fields (+8 packed point, +0xc radius,
   +0x10 radius squared). Probably overloaded constructors of one class.
 - `Class_004c91a0` (copy constructor, 0x4c91a0), `Class_004c9390` (destructor:
   decrement and free, 0x4c9390) and `Class_004c93b0` (assignment,
@@ -102,7 +102,7 @@ the tool.
   0x470a90 (`Class_00470a90::Construct`) and its destructor 0x470b80
   (`Class_00470b80::Destroy`).
 - `Class_0044e250` and `Class_0044e330`: two constructors storing vtable
-  `DAT_004fd3b8`.
+  `g_pathOrderVtable`.
 - The pathfinder ("AISearch touched mapentries" is its grid): one class with
   a binary heap of 20-byte nodes at +0 and the grid at +0x1c (cells +0x1c,
   width +0x20, height +0x24, cell count rounded up to 8 at +0x28, one dirty bit
@@ -224,7 +224,7 @@ revisit them once the surrounding code is known.
 
 - The `Class_0044ce20` family (vtables around 0x4fd3f8, constructors 0x44e740
   and 0x44e9c0 among others) still stores its vtables by hand
-  (`vtable = DAT_004fd3f8;`), like the 0x4fc980 family before its
+  (`vtable = g_airManeuverOrderVtable;`), like the 0x4fc980 family before its
   consolidation.
 - The family that stores vtable 0x4fd2f8 and then 0x4fd3b8 (a base and a
   derived class) does the same: constructors 0x44de80, 0x44e080, 0x44e190,

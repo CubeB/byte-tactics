@@ -21,9 +21,9 @@ struct Unit;
 class UnitMotion { public: char pad0[0x2e]; unsigned char flags; void SetFlightMode(Unit*,int); };
 class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
 class Class_004388d0 { public: void SetAttachedFx(int); };
-class Class_0044e730 { public: void FUN_0044e730(int); };
-class Class_0044e720 { public: void FUN_0044e720(int); };
-class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
+class Class_0044e730 { public: void SetApproachRadius(int); };
+class Class_0044e720 { public: void SetHeading(int); };
+class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
 class Class_00438ad0 { public: void AttachBuildFootprintMarker(Point, Point); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
@@ -128,7 +128,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
                 if ((unit->motion->flags&3)==1) {
                     unit->motion->SetFlightMode(unit,2);
                     Class_0044e2d0* move=new Class_0044e2d0(order,unit->pos);
-                    ((Class_0044e6c0*)move)->FUN_0044e6c0(unit->def->altitude/2);
+                    ((Class_0044e6c0*)move)->SetAltitude(unit->def->altitude/2);
                     ((Class_004388d0*)order)->SetAttachedFx((int)move);
                     order->flags|=0xe0;
                 }
@@ -139,7 +139,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
     case 1: {
         order->retries=0;
         Class_0044e2d0* move=new Class_0044e2d0(order,order->target.Get()->pos);
-        ((Class_0044e730*)move)->FUN_0044e730(unit->def->buildRange);
+        ((Class_0044e730*)move)->SetApproachRadius(unit->def->buildRange);
         ((Class_004388d0*)order)->SetAttachedFx((int)move);
         order->flags=0xe0;
         return 1;
@@ -157,7 +157,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
             angle+=0xdb6e;
             Vec3 pos=order->target.Get()->pos-Offset(angle,range);
             Class_0044e2d0* move=new Class_0044e2d0(order,pos);
-            ((Class_0044e720*)move)->FUN_0044e720((unsigned short)angle);
+            ((Class_0044e720*)move)->SetHeading((unsigned short)angle);
             ((Class_004388d0*)order)->SetAttachedFx((int)move);
         }
         int rate=0; rate=unit->def->buildRate;

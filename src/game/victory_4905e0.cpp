@@ -68,7 +68,7 @@ public:
     virtual int FUN_0044efd0(short* param);         // slot 9
     virtual void FUN_0044ef50(int);                 // slot 10
     virtual int FUN_0044ef50_11();                  // slot 11
-    void FUN_0044ced0(int param);
+    void AddFlags(int param);
 };
 
 class Class_0044f010;                  // slot 6's result
@@ -170,7 +170,7 @@ void Class_00490630::FUN_0044efb0()
     if (dist > 0x1400000 || (!field_4->FUN_0044efd0(&field_24) && dist > 0x100000))
         field_24 = (short)GetHeadingBetween(&owner->pos, &pos);
     if (field_4->FUN_0044f000(owner)) {
-        field_4->FUN_0044ced0(0x20);
+        field_4->AddFlags(0x20);
         if (!field_4->FUN_0044ef50_11())
             FUN_0044ef90(0);
     }

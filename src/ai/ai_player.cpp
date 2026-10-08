@@ -1400,7 +1400,7 @@ void BuildTimer::OnTimer()
             } else if (u->def->field_152 && !u->orders) {
                 unsigned short id = ChooseBuildOption(player, u);
                 if (id)
-                    QueueBuildOrder((char*)&g_game->defs[id] + 0x20, u, 1);
+                    QueueBuildOrder((char*)&g_game->defs[id].description[0], u, 1);
             }
         }
     }

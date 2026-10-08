@@ -12,11 +12,7 @@ struct View {
     int field_14;                      // +0x14
 };
 
-struct Vec3 {
-    int x;
-    int y;
-    int z;
-};
+#include "../util/vec3.h"
 
 struct Struct_00499200_531 {
     int unknown_0;

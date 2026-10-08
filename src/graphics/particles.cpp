@@ -618,9 +618,7 @@ struct Lists_004720d0 {
     std::vector<ParticleSystem*> lists[1];              // 0x10 each
 };
 
-struct Vec3 {
-    int x, y, z;
-};
+#include "../util/vec3.h"
 
 // The 24-byte struct slot 6 (0x473b50) copies both to the object, at +0x1c
 // and +0x34; here both halves are initialised from the position argument.

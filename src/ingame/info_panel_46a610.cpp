@@ -10,13 +10,7 @@
 
 #include <ddraw.h>
 
-struct Vec3 {
-    int x, y, z;
-};
-
-struct Point16 {
-    short x, z;
-};
+#include "../util/vec3.h"
 
 struct Rot16 {
     short x, y, z;
@@ -146,7 +140,7 @@ void __stdcall BlitFeatureGaf(void* dest, Cell* cell, int ix, int iy)
     s += cell[g_game->width].shade;
     s += cell[g_game->width + 1].shade;
     int shade = s >> 3;
-    int y = f->footprint.z * 16 / 2 - shade + (iy + 2) * 16 - g_game->scrollY;
+    int y = f->footprint.y * 16 / 2 - shade + (iy + 2) * 16 - g_game->scrollY;
     if (cell->flags) {
         FeatureSpot* spot = &g_game->spots[cell->spot];
         if (f->drawn) {

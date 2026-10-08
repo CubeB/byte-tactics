@@ -18,11 +18,7 @@
 
 #pragma pack(push, 1)
 
-struct Vec3 {
-    int x;
-    int y;
-    int z;
-};
+#include "../util/vec3.h"
 
 struct Point {
     int x;
@@ -44,10 +40,6 @@ union UnitPos_00467440 {
 
 struct Rot16 {
     short x, y, z;
-};
-
-struct Point16 {
-    short x, z;
 };
 
 #include "../units/unit_def.h"

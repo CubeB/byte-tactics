@@ -18,8 +18,7 @@ extern float g_lightZ;
 extern const float DAT_004fd4cc;
 struct GafFrame;
 
-// A 16.16 fixed-point position.
-struct Vec3 { int x; int y; int z; };
+#include "../util/vec3.h"
 
 struct Flags_37f06 {
     unsigned short damagebars : 1;

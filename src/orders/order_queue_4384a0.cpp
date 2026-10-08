@@ -250,7 +250,7 @@ public:
 // The base class: one virtual slot, its vtable at 0x4fd2cc.
 class Class_0043a1e0 {
 public:
-    virtual void FUN_0043a1e0(unsigned int);  // slot 0: 0x43a1e0, empty
+    virtual void OrStatusFlags(unsigned int);  // slot 0: 0x43a1e0, empty
 };
 
 #pragma pack(push, 1)
@@ -270,7 +270,7 @@ struct Head_0043a1f0 {
 class Class_0043a1f0 : public Class_0043a1e0, public Head_0043a1f0 {
 public:
     // Slot 0 of vtable 0x4fd2c8, overriding the base's.
-    virtual void FUN_0043a1e0(unsigned int);
+    virtual void OrStatusFlags(unsigned int);
 
     Class_004895c0 link;               // +0x12
     Vec3_0043a1f0 pos;                 // +0x22
@@ -359,7 +359,7 @@ void __stdcall StopBuildingScript(Unit* obj, Class_0043a1f0* target)
 }
 
 // FUNCTION: 0x438650
-int __stdcall FUN_00438650(Unit* a, Unit* b, int n)
+int __stdcall ComputeReclaimDamagePulse(Unit* a, Unit* b, int n)
 {
     UnitType* bt = b->type;
     float v = bt->field_18a > 10.0f ? bt->field_18a : 10.0f;
@@ -382,7 +382,7 @@ int __stdcall FUN_00438650(Unit* a, Unit* b, int n)
 }
 
 // FUNCTION: 0x438700
-unsigned int __stdcall FUN_00438700(void* param_1, void* param_2, unsigned int param_3)
+unsigned int __stdcall WaitIfNotInBuildStance(void* param_1, void* param_2, unsigned int param_3)
 {
     if ((*(unsigned char*)((char*)param_1 + 0x10f) & 1) == 0) {
         *(unsigned int*)((char*)param_2 + 6) = param_3 | 4;
@@ -392,7 +392,7 @@ unsigned int __stdcall FUN_00438700(void* param_1, void* param_2, unsigned int p
 }
 
 // FUNCTION: 0x438730
-int __stdcall FUN_00438730(char* param_1, char* param_2, unsigned int param_3)
+int __stdcall WaitIfCobBusy(char* param_1, char* param_2, unsigned int param_3)
 {
     if (*(unsigned char*)(param_1 + 0x10f) & 2) {
         *(unsigned int*)(param_2 + 6) = param_3 | 4;
@@ -430,11 +430,11 @@ struct OrderType;
 struct OrderType
 {
 public:
-    int FUN_00438830();
+    int GetTableEntry();
 };
 
 // FUNCTION: 0x438830
-int OrderType::FUN_00438830()
+int OrderType::GetTableEntry()
 {
     unsigned int result = 0;
     result = *(unsigned char*)this;
@@ -444,7 +444,7 @@ int OrderType::FUN_00438830()
 }
 
 // FUNCTION: 0x438850
-int __fastcall FUN_00438850(unsigned char* param_1)
+int __fastcall GetTableEntryByTypeByte(unsigned char* param_1)
 {
     unsigned int eax = 0;
     eax = *param_1;
@@ -455,7 +455,7 @@ int __fastcall FUN_00438850(unsigned char* param_1)
 }
 
 // FUNCTION: 0x438870
-void Class_0043a1f0::FUN_0043a1e0(unsigned int param_1)
+void Class_0043a1f0::OrStatusFlags(unsigned int param_1)
 {
     field_4e |= param_1;
 }
@@ -470,12 +470,12 @@ public:
     char unknown_12[0x42 - 0x12];
     unsigned int flags;                // +0x42
 
-    void FUN_00438880(char* text);
+    void AnnounceStatusIfFlagged(char* text);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x438880
-void Class_00438880::FUN_00438880(char* text)
+void Class_00438880::AnnounceStatusIfFlagged(char* text)
 {
     if (flags & 0x2000) {
         flags &= ~0x2000;
@@ -491,12 +491,12 @@ public:
     char unknown_1[0x40];
     int value;
 
-    void FUN_004388b0();
+    void ReattachFxToUnit();
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x4388b0
-void Class_004388b0::FUN_004388b0()
+void Class_004388b0::ReattachFxToUnit()
 {
     if (value != 0) {
         void* p1 = *(void**)obj_ptr;
@@ -516,12 +516,12 @@ public:
     unsigned int flags;                 // +0x4e
     Attached_0043a1f0* attached;        // +0x52
 
-    void FUN_004388d0(Attached_0043a1f0* obj);
+    void SetAttachedFx(Attached_0043a1f0* obj);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x4388d0
-void Class_004388d0::FUN_004388d0(Attached_0043a1f0* obj)
+void Class_004388d0::SetAttachedFx(Attached_0043a1f0* obj)
 {
     if (unit->owner) {
         if (attached) {
@@ -549,12 +549,12 @@ public:
     unsigned int flags;                 // +0x4e
     Attached_0043a1f0* attached;        // +0x52
 
-    void FUN_00438930(int* p, int n);
+    void AttachApproachRadiusGoal(int* p, int n);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x438930
-void Class_00438930::FUN_00438930(int* p, int n)
+void Class_00438930::AttachApproachRadiusGoal(int* p, int n)
 {
     if ((unit->type->flags32 & 0x800) == 0) {
         Class_0044cf60* obj = new Class_0044cf60((Source_0044cf60*)this, p[0], p[2], n);
@@ -588,12 +588,12 @@ public:
     unsigned int flags;                // +0x4e
     Attached_0043a1f0* attached;       // +0x52
 
-    void FUN_00438a00(Vec3_0043a1f0* pos, int radius1, int radius2);
+    void AttachRingApproachGoal(Vec3_0043a1f0* pos, int radius1, int radius2);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x438a00
-void Class_00438a00::FUN_00438a00(Vec3_0043a1f0* pos, int radius1, int radius2)
+void Class_00438a00::AttachRingApproachGoal(Vec3_0043a1f0* pos, int radius1, int radius2)
 {
     if (!(unit->type->flags32 & 0x800)) {
         Class_0044d3b0* obj = new Class_0044d3b0(this, pos->x, pos->z, radius1, radius2);
@@ -629,12 +629,12 @@ public:
     unsigned int flags;                // +0x4e
     Attached_0043a1f0* attached;       // +0x52
 
-    void FUN_00438ad0(Point_00438ad0 cell, Point_00438ad0 size);
+    void AttachBuildFootprintMarker(Point_00438ad0 cell, Point_00438ad0 size);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x438ad0
-void Class_00438ad0::FUN_00438ad0(Point_00438ad0 cell, Point_00438ad0 size)
+void Class_00438ad0::AttachBuildFootprintMarker(Point_00438ad0 cell, Point_00438ad0 size)
 {
     if (!(unit->type->flags32 & 0x800)) {
         Class_0044d8a0* obj = new Class_0044d8a0(this, cell, size);
@@ -674,12 +674,12 @@ public:
     char unknown_5[0x42 - 5];
     unsigned int flags;                // +0x42
 
-    void FUN_00438b90(int k);
+    void MergeFlagsFromTable(int k);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x438b90
-void Class_00438b90::FUN_00438b90(int k)
+void Class_00438b90::MergeFlagsFromTable(int k)
 {
     kind = k;
     // The two table index expressions must differ, or the entry load is shared.
@@ -687,7 +687,7 @@ void Class_00438b90::FUN_00438b90(int k)
 }
 
 // FUNCTION: 0x438be0
-int __stdcall FUN_00438be0(void* param)
+int __stdcall GetOrderFlags(void* param)
 {
     if (!param) return 0;
     void* ptr1 = *(void**)((char*)param + 0x5c);

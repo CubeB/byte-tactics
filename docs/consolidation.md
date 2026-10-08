@@ -258,7 +258,7 @@ can disagree on types (a real link would fail). Known cases:
 
 - `SetBrightness`: its file takes `int`; callers such as 0x417290 pass `float`.
 - `LoadSample`: its file returns `void`; 0x47efe0 uses a `void*` result.
-- `Class_00438b90::FUN_00438b90` takes the 1-byte class `Class_00438760` by value
+- `Class_00438b90::MergeFlagsFromTable` takes the 1-byte class `Class_00438760` by value
   (see 0x403190); its own file declares `int k`. GetOrderType returns the same
   class through a hidden buffer.
 - `FUN_004d83b0` returns a pointer (0x481500) but its file says `void`.

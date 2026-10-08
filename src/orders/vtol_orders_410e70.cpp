@@ -25,8 +25,8 @@ public:
     unsigned char field_2e;            // +0x2e
     void SetFlightMode(Unit* unit, int state);
 };
-class Class_004388d0 { public: void FUN_004388d0(int); };
-class Class_00438880 { public: void FUN_00438880(const char*); };
+class Class_004388d0 { public: void SetAttachedFx(int); };
+class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
 class Class_0044e730 { public: void FUN_0044e730(short); };
@@ -112,7 +112,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c / 2);
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -132,7 +132,7 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
         Vec3 dest = FUN_0040f790(order->pos, Offset(angle, 0x1400000));
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->FUN_0044e730(0x150);
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= 0xe0;
         // Landing block stays inline, no helper: the landed path returns 0
         // through the plain scope-exit destructor.
@@ -140,7 +140,7 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
             std::vector<Unit*> v;
             GetFactoriesInRadius(unit->player->index, &unit->pos, 0xf00, &v);
             if (!v.empty()) {
-                ((Class_004388d0*)order)->FUN_004388d0(0);
+                ((Class_004388d0*)order)->SetAttachedFx(0);
                 Unit* target = v[RandomInt(v.size())];
                 AppendOrder(unit, new Class_0043a1f0("VTOL_LANDING", (int)target, 0, 0, 0, 0));
                 order->flags = 0;
@@ -179,7 +179,7 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
     case 0:
         if (unit->type && (unit->def->flags & 0x800)) {
             FUN_0043a020(unit, order);
-            ((Class_00438880*)order)->FUN_00438880("Patrolling");
+            ((Class_00438880*)order)->AnnounceStatusIfFlagged("Patrolling");
             FUN_0040f200(unit, order, 0);
             unit->ReleaseWeapons(3);
             return 1;

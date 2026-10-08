@@ -25,8 +25,8 @@ public:
     unsigned char field_2e;            // +0x2e
     void SetFlightMode(Unit* unit, int state);
 };
-class Class_004388d0 { public: void FUN_004388d0(int); };
-class Class_00438880 { public: void FUN_00438880(const char*); };
+class Class_004388d0 { public: void SetAttachedFx(int); };
+class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
 class Class_00439e80 { public: void FUN_00439e80(int ticks); };
 
@@ -118,7 +118,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c / 2);
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -142,14 +142,14 @@ int __stdcall VtolReclaimOrder(Unit* unit, Order* order, int flags)
     switch (order->state) {
     case 0:
         if (unit->type && (unit->def->flags & 0x800) && (unit->def->flags2 & 0x400)) {
-            ((Class_00438880*)order)->FUN_00438880("Reclaiming");
+            ((Class_00438880*)order)->AnnounceStatusIfFlagged("Reclaiming");
             FUN_0040f200(unit, order, 0);
             return 1;
         }
         break;
     case 1: {
         Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags = 0xe0;
         return 1;
     }

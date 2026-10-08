@@ -222,7 +222,7 @@ public:
 };
 #pragma pack(pop)
 
-class Class_004388b0 { public: void FUN_004388b0(); };
+class Class_004388b0 { public: void ReattachFxToUnit(); };
 class Class_00401110 { public: void LoadUnitAccounts(Unit*, HapiBank*); };
 class Class_004010b0 {
 public:
@@ -376,7 +376,7 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
         } while (k < rec.f23);
     }
     if (unit->listHead != 0)
-        ((Class_004388b0*)unit->listHead)->FUN_004388b0();
+        ((Class_004388b0*)unit->listHead)->ReattachFxToUnit();
     sprintf(script, "Script%i", i);
     file->OpenNamedBox(script);
     ((CobScript*)unit->field_9a)->LoadScriptState(file);

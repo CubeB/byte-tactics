@@ -51,17 +51,17 @@ public:
 
 class Class_00438880 {
 public:
-    void FUN_00438880(char* text);
+    void AnnounceStatusIfFlagged(char* text);
 };
 
 class Class_00438930 {
 public:
-    void FUN_00438930(int* pos, int param);
+    void AttachApproachRadiusGoal(int* pos, int param);
 };
 
 class Class_004388d0 {
 public:
-    void FUN_004388d0(int param);
+    void SetAttachedFx(int param);
 };
 
 class Class_004895c0 {
@@ -167,7 +167,7 @@ public:
     char unknown_1a[0x36 - 0x1a];
     int state;                         // +0x36
 
-    void FUN_00438b90(Class_00438760 kind);
+    void MergeFlagsFromTable(Class_00438760 kind);
 };
 
 struct Order {
@@ -299,7 +299,7 @@ Unit* __stdcall GetWeaponTargetUnit(Unit* unit, int index);
 int __stdcall WeaponCanReachUnit(Unit* unit, Unit* target, int param_3);
 void __stdcall UpdateBuildMenuIfFocusUnit(Unit* unit);
 void __stdcall FinishConstruction(Unit* unit, Unit* target);
-int __stdcall FUN_00438700(Unit* unit, Order* order, int flags);
+int __stdcall WaitIfNotInBuildStance(Unit* unit, Order* order, int flags);
 Vec_00401c20 __stdcall GetPiecePosition(Unit* unit, int piece);
 int __stdcall FUN_0047db70(UnitDef* type, short a, Point16 cell, int b);
 Unit* __stdcall CreateUnit(unsigned char player, unsigned short type, Vec_00401c20 pos,
@@ -322,7 +322,7 @@ int __stdcall FUN_0043b1f0(Unit* unit, Order* order, int param);
 // FUNCTION: 0x401c20
 int __stdcall StopOrder(Unit* unit, Class_00438880* order, int unused)
 {
-    order->FUN_00438880(0);
+    order->AnnounceStatusIfFlagged(0);
     ClearWeaponTarget(unit, 0);
     ClearWeaponTarget(unit, 1);
     ClearWeaponTarget(unit, 2);
@@ -459,7 +459,7 @@ int __stdcall AttackNoMoveOrder(Unit* unit, Order* order, int flags)
         return 5;
     switch (order->state) {
     case 0:
-        ((Class_00438880*)order)->FUN_00438880(0);
+        ((Class_00438880*)order)->AnnounceStatusIfFlagged(0);
         return 1;
     case 1:
         unit->ClaimWeapons(0);
@@ -647,7 +647,7 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
         }
         break;
     case 1:
-        return FUN_00438700(unit, order, 2);
+        return WaitIfNotInBuildStance(unit, order, 2);
     case 2: {
         int piece = -1;
         unit->script->QueryScript("QueryBuildInfo", &piece, 0, 0, 0);
@@ -778,7 +778,7 @@ int __stdcall ParalyzeOrder(Unit* unit, Order* order, int unused)
     unit->ClaimWeapons(3);
     for (char i = 0; i < 3; i++)
         ClearWeaponTarget(unit, i);
-    ((Class_004388d0*)order)->FUN_004388d0(0);
+    ((Class_004388d0*)order)->SetAttachedFx(0);
     ((Class_00439e80*)order)->FUN_00439e80(order->ticks);
     order->ticks = 0;
     unit->SetStateBits(0x10, 1);
@@ -950,13 +950,13 @@ void RegisterUnitOrders()
 // FUNCTION: 0x403190
 int __stdcall AttackSpecialOrder(Unit* unit, Class_00438b90* order, int unused)
 {
-    order->FUN_00438b90(GetOrderType(3, unit, order->target, 0));
+    order->MergeFlagsFromTable(GetOrderType(3, unit, order->target, 0));
     order->state = 2;
     return 2;
 }
 
 // Order handler: state 0 (only when the unit's +0x86 is clear) resets the
-// order and calls FUN_00438930 with its position; state 1 posts message 6
+// order and calls AttachApproachRadiusGoal with its position; state 1 posts message 6
 // when bit 0x20 of the third argument is set.
 // FUNCTION: 0x4031d0
 int __stdcall MoveGroundOrder(Unit* unit, Order* order, int flags)
@@ -965,8 +965,8 @@ int __stdcall MoveGroundOrder(Unit* unit, Order* order, int flags)
     case 0:
         if (unit->blocked != 0)
             return 7;
-        ((Class_00438880*)order)->FUN_00438880(0);
-        ((Class_00438930*)order)->FUN_00438930((int*)&order->pos, order->field_36 + 4);
+        ((Class_00438880*)order)->AnnounceStatusIfFlagged(0);
+        ((Class_00438930*)order)->AttachApproachRadiusGoal((int*)&order->pos, order->field_36 + 4);
         order->flags = 0xe0;
         return 1;
     case 1:
@@ -989,8 +989,8 @@ int __stdcall AttackKamikazeOrder(Unit* unit, Order* order, unsigned flags)
     switch(state) {
     case 0:
         if(unit->blocked) return 7;
-        ((Class_00438880*)order)->FUN_00438880(0);
-        ((Class_00438930*)order)->FUN_00438930((int*)&order->pos,unit->def->radius<16?16:unit->def->radius);
+        ((Class_00438880*)order)->AnnounceStatusIfFlagged(0);
+        ((Class_00438930*)order)->AttachApproachRadiusGoal((int*)&order->pos,unit->def->radius<16?16:unit->def->radius);
         ((Class_00439e80*)order)->FUN_00439e80(60);
         order->flags|=0xe0; return 1;
     case 1:
@@ -1012,12 +1012,12 @@ int __stdcall PatrolOrder(Unit* unit, Order* order, int flags)
     switch(state) {
     case 0:
         if(!unit->active) return 7;
-        ((Class_00438880*)order)->FUN_00438880(0);
+        ((Class_00438880*)order)->AnnounceStatusIfFlagged(0);
         FUN_0043a020(unit,order);
         ((Class_00439e80*)order)->FUN_00439e80(1); return 1;
     case 1:
         unit->ReleaseWeapons(3);
-        ((Class_00438930*)order)->FUN_00438930((int*)&order->pos,0);
+        ((Class_00438930*)order)->AttachApproachRadiusGoal((int*)&order->pos,0);
         ((Class_00439e80*)order)->FUN_00439e80(15);
         order->flags|=0xe0; return 1;
     case 2:

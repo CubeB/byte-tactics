@@ -35,7 +35,7 @@ union Fixed {
 
 class Class_00438ad0 {
 public:
-    void FUN_00438ad0(Point16 cell, Point16 size);
+    void AttachBuildFootprintMarker(Point16 cell, Point16 size);
 };
 
 class Class_00439e80 {
@@ -45,7 +45,7 @@ public:
 
 class Class_00438880 {
 public:
-    void FUN_00438880(char* text);
+    void AnnounceStatusIfFlagged(char* text);
 };
 
 #pragma pack(push, 1)
@@ -117,7 +117,7 @@ void __stdcall QueueUnitSpeech(Unit* unit, int kind, char* text);
 int __stdcall RandomInt(int range);
 unsigned short __stdcall GetHeadingBetween(Vec3* from, Vec3* to);
 void __stdcall StartBuildingScript(Unit* unit, Order* order, short turn);
-int __stdcall FUN_00438700(Unit* unit, Order* order, int flags);
+int __stdcall WaitIfNotInBuildStance(Unit* unit, Order* order, int flags);
 void __stdcall StopBuildingScript(Unit* unit, Order* order);
 int __stdcall AddRepairProgress(Unit* builder, Unit* unit, float amount);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
@@ -141,7 +141,7 @@ int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
     switch (order->state) {
     case 0:
         if (unit->active && (unit->type->flags & 0x40) && order->target->buildLeft == 0.0f) {
-            ((Class_00438880*)order)->FUN_00438880("Repairing");
+            ((Class_00438880*)order)->AnnounceStatusIfFlagged("Repairing");
             return 1;
         }
         break;
@@ -155,7 +155,7 @@ int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
         unsigned int range = 0;
         range = unit->type->buildDistance;
         if (gap > (int)range) {
-            ((Class_00438ad0*)order)->FUN_00438ad0(order->target->cell, order->target->footprint);
+            ((Class_00438ad0*)order)->AttachBuildFootprintMarker(order->target->cell, order->target->footprint);
             ((Class_00439e80*)order)->FUN_00439e80(RandomInt(30) + 30);
             order->flags |= 0xe8;
             return 2;
@@ -165,7 +165,7 @@ int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
         return 1;
     }
     case 2:
-        return FUN_00438700(unit, order, 8);
+        return WaitIfNotInBuildStance(unit, order, 8);
     case 3:
         if ((unsigned int)order->target->health >= order->target->type->maxHealth)
             return 1;

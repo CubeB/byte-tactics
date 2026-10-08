@@ -20,9 +20,9 @@ struct Vec3 {
 };
 struct Order;
 class Class_00438760 { public: unsigned char index; Class_00438760() {} Class_00438760(const char*); int operator==(const Class_00438760& v) const { return index==v.index; } };
-class Class_00438880 { public: void FUN_00438880(const char*); };
-class Class_004388d0 { public: void FUN_004388d0(int); };
-class Class_00438930 { public: void FUN_00438930(Vec3*, int); };
+class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
+class Class_004388d0 { public: void SetAttachedFx(int); };
+class Class_00438930 { public: void AttachApproachRadiusGoal(Vec3*, int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 #pragma pack(push, 1)
 struct WeaponDef { char pad0[0xdc]; int range; char pade0[0x111-0xe0]; unsigned int flags; };
@@ -86,7 +86,7 @@ int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
         Class_0044e2d0* move=new Class_0044e2d0(order,pos);
         ((Class_0044e730*)move)->FUN_0044e730(128);
         order->flags|=0xe0;
-        ((Class_004388d0*)order)->FUN_004388d0((int)move);
+        ((Class_004388d0*)order)->SetAttachedFx((int)move);
         return 2;
     }
     unsigned int state=0; state=order->state;
@@ -106,7 +106,7 @@ int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
                     unit->motion->SetFlightMode(unit,2);
                     Class_0044e2d0* move=new Class_0044e2d0(order,unit->pos);
                     ((Class_0044e6c0*)move)->FUN_0044e6c0(unit->def->altitude/2);
-                    ((Class_004388d0*)order)->FUN_004388d0((int)move);
+                    ((Class_004388d0*)order)->SetAttachedFx((int)move);
                     order->flags|=0xe0;
                 }
             }
@@ -119,7 +119,7 @@ int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
             Class_00410830 pads;
             GetFactoriesInRadius(unit->owner->index,&unit->pos,0xf00,&pads);
             if (!pads.empty()) {
-                ((Class_004388d0*)order)->FUN_004388d0(0);
+                ((Class_004388d0*)order)->SetAttachedFx(0);
                 Unit* pad=pads[RandomInt(pads.count())];
                 AppendOrder(unit,new Class_0043a1f0("VTOL_LANDING",pad,0,0,0,0));
                 order->flags=0;
@@ -132,7 +132,7 @@ int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
         Vec3 pos=FUN_0040f790(order->pos,Offset((short)order->angle,(unit->weapons[0].def->range+160)<<16));
         Class_0044e2d0* move=new Class_0044e2d0(order,pos);
         ((Class_0044e730*)move)->FUN_0044e730(128);
-        ((Class_004388d0*)order)->FUN_004388d0((int)move);
+        ((Class_004388d0*)order)->SetAttachedFx((int)move);
         ((Class_00439e80*)order)->FUN_00439e80(RandomInt(30)+30);
         order->flags|=0xe0;
         return 2;

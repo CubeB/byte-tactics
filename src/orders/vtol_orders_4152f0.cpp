@@ -23,8 +23,8 @@ public:
     unsigned char field_2e;            // +0x2e
     void SetFlightMode(Unit* unit, int state);
 };
-class Class_004388d0 { public: void FUN_004388d0(int); };
-class Class_00438880 { public: void FUN_00438880(const char*); };
+class Class_004388d0 { public: void SetAttachedFx(int); };
+class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
 #pragma pack(push, 1)
@@ -105,7 +105,7 @@ inline void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0((Order*)order, unit->pos);
         ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c / 2);
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -116,7 +116,7 @@ static inline int Land(Unit* unit, Order* order)
         Class_00410830 pads;
         GetFactoriesInRadius(unit->owner->index, &unit->pos, 0xf00, &pads);
         if (!pads.empty()) {
-            ((Class_004388d0*)order)->FUN_004388d0(0);
+            ((Class_004388d0*)order)->SetAttachedFx(0);
             Unit* pad = pads[RandomInt(pads.size())];
             AppendOrder(unit, new Class_0043a1f0("VTOL_LANDING", pad, 0, 0, 0, 0));
             order->flags = 0;
@@ -152,7 +152,7 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
                 if (order->target != 0)
                     order->pos = order->target->pos;
                 FUN_0043a020(unit, order);
-                ((Class_00438880*)order)->FUN_00438880("Patrolling");
+                ((Class_00438880*)order)->AnnounceStatusIfFlagged("Patrolling");
                 FUN_0040f200(unit, order, 0);
                 return 1;
             }
@@ -162,7 +162,7 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
                 return 6;
             Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
             ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c);
-            ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+            ((Class_004388d0*)order)->SetAttachedFx((int)obj);
             ((Class_00439e80*)order)->FUN_00439e80(0x2d);
             order->flags |= 0xe0;
             if (Land(unit, order))
@@ -179,7 +179,7 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
                         return 3;
                     }
                     if (unit->CanRepair(target) && target->progress != 0.0f) {
-                        ((Class_004388d0*)order)->FUN_004388d0(0);
+                        ((Class_004388d0*)order)->SetAttachedFx(0);
                         AppendOrder(unit, new Class_0043a1f0("VTOL_HELPBUILD", target, 0, 0, 0, 0));
                         order->flags = 0;
                         return 3;
@@ -195,25 +195,25 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
             if (FUN_0047ea40(&unit->pos, range, &energy, &energyAmount, &metal, &metalAmount)) {
                 // Amounts read through GetEnergy/GetMetal and Total: gives the x87 load order.
                 if (unit->owner->GetMetal() < unit->owner->metalCapacity * 0.2 && metal) {
-                    ((Class_004388d0*)order)->FUN_004388d0(0);
+                    ((Class_004388d0*)order)->SetAttachedFx(0);
                     AppendOrder(unit, new Class_0043a1f0("VTOL_RECLAIM", 0, metal, 0, 0, 0));
                     order->flags = 0;
                     return 3;
                 }
                 if (unit->owner->GetEnergy() < unit->owner->energyCapacity * 0.2 && energy) {
-                    ((Class_004388d0*)order)->FUN_004388d0(0);
+                    ((Class_004388d0*)order)->SetAttachedFx(0);
                     AppendOrder(unit, new Class_0043a1f0("VTOL_RECLAIM", 0, energy, 0, 0, 0));
                     order->flags = 0;
                     return 3;
                 }
                 if (metal && Total(unit->owner->GetMetal(), metalAmount) <= unit->owner->metalCapacity) {
-                    ((Class_004388d0*)order)->FUN_004388d0(0);
+                    ((Class_004388d0*)order)->SetAttachedFx(0);
                     AppendOrder(unit, new Class_0043a1f0("VTOL_RECLAIM", 0, metal, 0, 0, 0));
                     order->flags = 0;
                     return 3;
                 }
                 if (energy && Total(unit->owner->GetEnergy(), energyAmount) <= unit->owner->energyCapacity) {
-                    ((Class_004388d0*)order)->FUN_004388d0(0);
+                    ((Class_004388d0*)order)->SetAttachedFx(0);
                     AppendOrder(unit, new Class_0043a1f0("VTOL_RECLAIM", 0, energy, 0, 0, 0));
                     order->flags = 0;
                     return 3;

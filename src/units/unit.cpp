@@ -106,7 +106,7 @@ extern Game* g_game;
 // One virtual slot, called on the object a link belongs to.
 class Class_0043a1e0 {
 public:
-    virtual void FUN_0043a1e0(unsigned int value);
+    virtual void OrStatusFlags(unsigned int value);
 };
 
 // The links of the owner's list; the head of a unit's list is at +0xa2.
@@ -368,7 +368,7 @@ void Unit::SetStateBits(int mask, int set)
                 QueueUnitSpeech(this, 0xe, 0);
                 for (link = head; link; link = link->next) {
                     if (link->value)
-                        link->value->FUN_0043a1e0(0x10000);
+                        link->value->OrStatusFlags(0x10000);
                 }
             }
             if (lost & 4)

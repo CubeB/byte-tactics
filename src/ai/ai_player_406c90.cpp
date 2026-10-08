@@ -603,7 +603,7 @@ int __stdcall FUN_0043b1f0(Unit*, Unit*, int);
 Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
 void __stdcall SetWeaponTargetUnit(Unit*, int, unsigned int);
-unsigned int __stdcall FUN_00438be0(Unit*);
+unsigned int __stdcall GetOrderFlags(Unit*);
 void __stdcall FUN_0047f850(Unit*, int, int);
 void __stdcall SetUnitSquad(Unit* unit, int squad);
 int* __stdcall FindTargetableProjectile(Unit* unit, unsigned int weapon);
@@ -790,7 +790,7 @@ void __stdcall ReactToAttack(Unit* attacker, Unit* unit, int unused)
             }
         }
     }
-    if (!(FUN_00438be0(unit)&0x80) && (unit->player!=unit->ownerIndex || unit->state==1))
+    if (!(GetOrderFlags(unit)&0x80) && (unit->player!=unit->ownerIndex || unit->state==1))
         FUN_0047f850(unit,2,0);
 }
 

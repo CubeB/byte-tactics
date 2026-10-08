@@ -31,8 +31,8 @@ public:
     unsigned char field_2e;            // +0x2e
     void SetFlightMode(Unit* unit, int state);
 };
-class Class_004388d0 { public: void FUN_004388d0(int); };
-class Class_00438880 { public: void FUN_00438880(const char*); };
+class Class_004388d0 { public: void SetAttachedFx(int); };
+class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
 class Class_0044e730 { public: void FUN_0044e730(short); };
@@ -144,7 +144,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c / 2);
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -177,7 +177,7 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
     switch (state) {
     case 0:
         if (unit->type && (unit->def->flags & 0x800)) {
-            ((Class_00438880*)order)->FUN_00438880("Attacking");
+            ((Class_00438880*)order)->AnnounceStatusIfFlagged("Attacking");
             FUN_0040f200(unit, order, 0);
             return 1;
         }
@@ -190,7 +190,7 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
         Vec3 p = unit->pos + off;
         Class_0044e2d0* obj = new Class_0044e2d0(order, p);
         ((Class_0044e730*)obj)->FUN_0044e730(0x80);
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags = 0x100e8;
         return 1;
     }
@@ -202,7 +202,7 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
             SetWeaponTargetPos(unit, &order->pos, 0);
         Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
         ((Class_0044e730*)obj)->FUN_0044e730(speed);
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags = 0x100e8;
         return 1;
     }
@@ -212,7 +212,7 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
         Vec3 p = order->pos + off;
         Class_0044e2d0* obj = new Class_0044e2d0(order, p);
         ((Class_0044e730*)obj)->FUN_0044e730(RandomInt(0x80) + 0x80);
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags = 0x100ea;
         return 1;
     }
@@ -221,7 +221,7 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
             Class_00410830 v;
             GetFactoriesInRadius(unit->player->index, &unit->pos, 0xf00, &v);
             if (!v.empty()) {
-                ((Class_004388d0*)order)->FUN_004388d0(0);
+                ((Class_004388d0*)order)->SetAttachedFx(0);
                 Unit* target = v[RandomInt(v.size())];
                 AppendOrder(unit, new Class_0043a1f0("VTOL_LANDING", (int)target, 0, 0, 0, 0));
                 order->flags = 0;
@@ -237,7 +237,7 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
         Vec3 p = sum;
         Class_0044e2d0* obj = new Class_0044e2d0(order, p);
         ((Class_0044e730*)obj)->FUN_0044e730(0x80);
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags = 0x100ea;
         // The empty Dummy() calls make the landed ~vector call _Destroy out of
         // line and the empty one inline it.

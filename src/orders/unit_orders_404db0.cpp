@@ -47,7 +47,7 @@ public:
 
 class Class_00438ad0 {
 public:
-    void FUN_00438ad0(Point16 cell, Point16 size);
+    void AttachBuildFootprintMarker(Point16 cell, Point16 size);
 };
 
 class Class_00439e80 {
@@ -160,7 +160,7 @@ int __stdcall RandomInt(int range);
 int __stdcall GetGroundHeight(Vec3* pos);
 unsigned short __stdcall GetHeadingBetween(Vec3* from, Vec3* to);
 void __stdcall StartBuildingScript(Unit* unit, Order* order, short turn);
-int __stdcall FUN_00438700(Unit* unit, Order* order, int flags);
+int __stdcall WaitIfNotInBuildStance(Unit* unit, Order* order, int flags);
 unsigned short __stdcall FindUnitTypeId(char* name);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
 void __stdcall EmitNanoParticles(Vec3* from, Box* to, int count);
@@ -197,7 +197,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
     switch (order->state) {
     case 0:
         if (unit->active && (unit->type->flags & 0x800)) {
-            ((Class_00438ad0*)order)->FUN_00438ad0(cell, size);
+            ((Class_00438ad0*)order)->AttachBuildFootprintMarker(cell, size);
             order->flags = 0xe0;
             return 1;
         }
@@ -213,7 +213,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
         return 1;
     }
     case 2:
-        return FUN_00438700(unit, order, 0);
+        return WaitIfNotInBuildStance(unit, order, 0);
     case 3: {
         char name[0x40];
         lstrcpynA(name, f->name, 0x40);

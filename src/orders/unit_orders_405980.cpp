@@ -3,8 +3,8 @@
 struct Vec3 { int x, y, z; };
 struct Unit;
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
-class Class_004388d0 { public: void FUN_004388d0(int); };
-class Class_00438930 { public: void FUN_00438930(Vec3*, int); };
+class Class_004388d0 { public: void SetAttachedFx(int); };
+class Class_00438930 { public: void AttachApproachRadiusGoal(Vec3*, int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 #pragma pack(push, 1)
 struct UnitDef { char pad0[0x202]; short range; };
@@ -52,7 +52,7 @@ int __stdcall RepairPatrolOrder(Unit* unit, Order* order, int flags)
             return 1;
         case 1: {
             if (flags & 0xe0) return 6;
-            ((Class_00438930*)order)->FUN_00438930(&order->pos, 16);
+            ((Class_00438930*)order)->AttachApproachRadiusGoal(&order->pos, 16);
             ((Class_00439e80*)order)->FUN_00439e80(60);
             order->flags |= 0xe0;
             if (unit->owner->energy >= unit->owner->energyCapacity * 0.2) {
@@ -83,26 +83,26 @@ int __stdcall RepairPatrolOrder(Unit* unit, Order* order, int flags)
                 float energyAmount, metalAmount;
                 if (FUN_0047ea40(&unit->pos, range2, &energy, &energyAmount, &metal, &metalAmount)) {
                     if (metal && unit->owner->metal < unit->owner->metalCapacity * 0.2) {
-                        ((Class_004388d0*)order)->FUN_004388d0(0);
+                        ((Class_004388d0*)order)->SetAttachedFx(0);
                         AppendOrder(unit, new Class_0043a1f0("RECLAIM", 0, metal, 0, 0, 0));
-                        ((Class_004388d0*)order)->FUN_004388d0(0);
+                        ((Class_004388d0*)order)->SetAttachedFx(0);
                         order->flags = 0;
                         return 3;
                     }
                     if (energy && unit->owner->energy < unit->owner->energyCapacity * 0.2) {
-                        ((Class_004388d0*)order)->FUN_004388d0(0);
+                        ((Class_004388d0*)order)->SetAttachedFx(0);
                         AppendOrder(unit, new Class_0043a1f0("RECLAIM", 0, energy, 0, 0, 0));
                         order->flags = 0;
                         return 3;
                     }
                     if (metal && unit->owner->metal + metalAmount <= unit->owner->metalCapacity) {
-                        ((Class_004388d0*)order)->FUN_004388d0(0);
+                        ((Class_004388d0*)order)->SetAttachedFx(0);
                         AppendOrder(unit, new Class_0043a1f0("RECLAIM", 0, metal, 0, 0, 0));
                         order->flags = 0;
                         return 3;
                     }
                     if (energy && unit->owner->energy + energyAmount <= unit->owner->energyCapacity) {
-                        ((Class_004388d0*)order)->FUN_004388d0(0);
+                        ((Class_004388d0*)order)->SetAttachedFx(0);
                         AppendOrder(unit, new Class_0043a1f0("RECLAIM", 0, energy, 0, 0, 0));
                         order->flags = 0;
                         return 3;

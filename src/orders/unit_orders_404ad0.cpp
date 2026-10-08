@@ -20,7 +20,7 @@ struct Point16 {
 
 class Class_00438ad0 {
 public:
-    void FUN_00438ad0(Point16 cell, Point16 size);
+    void AttachBuildFootprintMarker(Point16 cell, Point16 size);
 };
 
 class Class_00439e80 {
@@ -85,7 +85,7 @@ int __stdcall RandomInt(int range);
 int __stdcall GetGroundHeight(Vec3* pos);
 unsigned short __stdcall GetHeadingBetween(Vec3* from, Vec3* to);
 void __stdcall StartBuildingScript(Unit* unit, Order* order, short turn);
-int __stdcall FUN_00438700(Unit* unit, Order* order, int flags);
+int __stdcall WaitIfNotInBuildStance(Unit* unit, Order* order, int flags);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
 void __stdcall EmitReverseNanoParticles(Box* from, Vec3* to, int count);
 void __stdcall ReclaimFeature(Unit* unit, Vec3* pos);
@@ -108,7 +108,7 @@ int __stdcall ReclaimOrder(Unit* unit, Order* order, int flags)
     switch (order->state) {
     case 0:
         if (unit->active && (unit->type->flags & 0x400)) {
-            ((Class_00438ad0*)order)->FUN_00438ad0(cell, size);
+            ((Class_00438ad0*)order)->AttachBuildFootprintMarker(cell, size);
             order->flags = 0xe0;
             return 1;
         }
@@ -125,7 +125,7 @@ int __stdcall ReclaimOrder(Unit* unit, Order* order, int flags)
         return 1;
     }
     case 2:
-        return FUN_00438700(unit, order, 0);
+        return WaitIfNotInBuildStance(unit, order, 0);
     case 3:
         QueueUnitSpeech(unit, 11, 0);
     case 4:

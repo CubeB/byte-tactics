@@ -387,14 +387,14 @@ public:
     void FUN_0044ec10(int);
 };
 
-class Class_004388d0 { public: void FUN_004388d0(int); };
-class Class_00438880 { public: void FUN_00438880(const char*); };
-class Class_00438930 { public: void FUN_00438930(Vec3*, int); };
+class Class_004388d0 { public: void SetAttachedFx(int); };
+class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
+class Class_00438930 { public: void AttachApproachRadiusGoal(Vec3*, int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
 class Class_0044e730 { public: void FUN_0044e730(int); };
 class Class_0044e720 { public: void FUN_0044e720(int); };
-class Class_00438ad0 { public: void FUN_00438ad0(Point, Point); };
+class Class_00438ad0 { public: void AttachBuildFootprintMarker(Point, Point); };
 
 #pragma pack(push, 2)
 class Class_0043a1f0 {
@@ -464,14 +464,14 @@ void __stdcall FUN_0047ddc0(UnitDef*, Vec3*);
 Unit* __stdcall CreateUnit(unsigned char, short, Vec3, int, int, int);
 void __stdcall AddOrder(Class_00438760, int, Unit*, Unit*, Vec3*, int, int);
 void __stdcall StartBuildingScript(Unit*, Order*, short);
-int __stdcall FUN_00438700(Unit*, Order*, int);
+int __stdcall WaitIfNotInBuildStance(Unit*, Order*, int);
 int __stdcall AddBuildProgress(Unit*, Unit*, float);
 void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
 void __stdcall EmitNanoParticles(Vec3*, Box*, int);
 void __stdcall EmitReverseNanoParticles(Box*, Vec3*, int);
 void __stdcall ReclaimFeature(Unit*, Vec3*);
 unsigned short __stdcall FindFeatureAtPos(Vec3*, Point16*, Point16*);
-int __stdcall FUN_00438650(Unit*, Unit*, int);
+int __stdcall ComputeReclaimDamagePulse(Unit*, Unit*, int);
 void __stdcall DamageUnit(Unit*, Unit*, int, int, int);
 void __stdcall MarkSelectionOrdersDirty(Unit*);
 int __stdcall AddRepairProgress(Unit*, Unit*, float);
@@ -619,7 +619,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c / 2);
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -645,7 +645,7 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->FUN_0044e730(0x80);
         order->flags |= 0xe0;
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         return 2;
     }
     unsigned int state = 0;
@@ -668,7 +668,7 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
             Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
             int h = max(GetGroundHeight(&unit->pos), g_game->seaLevel);
             ((Class_0044e6c0*)obj)->FUN_0044e6c0(h <= g_game->seaLevel ? GetGroundHeight(&unit->pos) - g_game->seaLevel : 0);
-            ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+            ((Class_004388d0*)order)->SetAttachedFx((int)obj);
             order->flags = 0xe0;
             unit->SetStateBits(1, 0);
             return 1;
@@ -681,7 +681,7 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
             Point cell = WorldToCellMul(p, fp);
             CellToWorld(fp, cell, &p);
             if (FUN_0047e2d0(unit, &p)) {
-                ((Class_004388d0*)order)->FUN_004388d0((int)new Class_0044e2d0(order, p));
+                ((Class_004388d0*)order)->SetAttachedFx((int)new Class_0044e2d0(order, p));
                 order->flags = 0xe0;
                 return 2;
             }
@@ -698,7 +698,7 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
         Vec3 dest = sum;
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->FUN_0044e730(0x40);
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= 0xe0;
         return 2;
     }
@@ -758,7 +758,7 @@ int __stdcall VtolStandbyOrder(Unit* unit, Order* order, int flags)
                 p += Offset(angle, distance);
                 Class_0044e2d0* obj = new Class_0044e2d0(order, p);
                 ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c);
-                ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+                ((Class_004388d0*)order)->SetAttachedFx((int)obj);
                 ((Class_00439e80*)order)->FUN_00439e80(RandomInt(0xf) + 0x1e);
                 order->state = 1;
                 return 2;
@@ -790,10 +790,10 @@ int __stdcall VtolMoveOrder(Unit* unit, Order* order, int flags)
         }
         break;
     case 1:
-        ((Class_00438880*)order)->FUN_00438880(0);
+        ((Class_00438880*)order)->AnnounceStatusIfFlagged(0);
         unit->ReleaseWeapons(3);
         Snap(&order->pos, unit->footprint);
-        ((Class_004388d0*)order)->FUN_004388d0((int)new Class_0044e2d0(order, order->pos));
+        ((Class_004388d0*)order)->SetAttachedFx((int)new Class_0044e2d0(order, order->pos));
         order->flags = 0xe0;
         return 1;
     case 2:
@@ -862,7 +862,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
         Class_00410830 pads;
         FindPads(unit,&pads);
         if (!pads.empty()) {
-            ((Class_004388d0*)order)->FUN_004388d0(0);
+            ((Class_004388d0*)order)->SetAttachedFx(0);
             Unit* pad=pads[RandomInt(pads.size())];
             AppendOrder(unit,new Class_0043a1f0("VTOL_LANDING",pad,0,0,0,0));
             order->flags=0;
@@ -874,7 +874,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
     Class_00410c70 visitor(unit->owner,&units,unit);
     VisitObjectsInRange(&unit->pos,range,visitor);
     if (!units.empty()) {
-        ((Class_004388d0*)order)->FUN_004388d0(0);
+        ((Class_004388d0*)order)->SetAttachedFx(0);
         Class_00438760 kind=GetOrderType(7,unit,units[0],0);
         AppendOrder(unit,new Class_0043a1f0(kind,units[0],0,0,0,0));
         order->flags=0;
@@ -884,7 +884,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
     Vec3 pos=Add(order->pos,Offset((short)order->angle,(unit->weapons[0].def->range+160)<<16));
     Class_0044e2d0* move=new Class_0044e2d0(order,pos);
     ((Class_0044e730*)move)->FUN_0044e730(128);
-    ((Class_004388d0*)order)->FUN_004388d0((int)move);
+    ((Class_004388d0*)order)->SetAttachedFx((int)move);
     ((Class_00439e80*)order)->FUN_00439e80(30);
     order->flags|=0xf8;
     return 2;
@@ -929,12 +929,12 @@ int __stdcall VtolUnloadOrder(Unit* unit, Order* order, int flags)
     switch (state) {
     case 0:
         if (unit->type && (unit->def->flags & 0x800)) {
-            ((Class_00438880*)order)->FUN_00438880("Unloading");
+            ((Class_00438880*)order)->AnnounceStatusIfFlagged("Unloading");
             ((Class_004895c0*)&order->target)->SetUnit(unit->cargo);
             Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
             ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c);
             ((Class_0044e730*)obj)->FUN_0044e730(0x140);
-            ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+            ((Class_004388d0*)order)->SetAttachedFx((int)obj);
             order->flags = 0xe8;
             return 1;
         }
@@ -946,7 +946,7 @@ int __stdcall VtolUnloadOrder(Unit* unit, Order* order, int flags)
             // Through an int local: passing the expression straight sign-extends differently.
             int h = unit->cargo->def->field_170;
             ((Class_0044e6c0*)obj)->FUN_0044e6c0(h);
-            ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+            ((Class_004388d0*)order)->SetAttachedFx((int)obj);
             order->flags = 0xe8;
             return 1;
         }
@@ -965,7 +965,7 @@ int __stdcall VtolUnloadOrder(Unit* unit, Order* order, int flags)
         AttachUnitToPiece(unit->cargo, 0, -1, 1);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c);
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags = 0xe0;
         return 1;
     }
@@ -1045,7 +1045,7 @@ static inline int IsAhead(Unit* unit, Order* order)
 // sides, and lands on a free pad when damaged (VTOL_LANDING).
 //
 // Suspected original bug: that same branch builds a Class_0044e2d0 waypoint
-// and sets its speed, but never passes it to the order (no FUN_004388d0
+// and sets its speed, but never passes it to the order (no SetAttachedFx
 // call, unlike every other branch), so the object leaks.
 // FUNCTION: 0x413bc0
 int __stdcall VtolEvadeOrder(Unit* unit,Order* order,int flags)
@@ -1062,7 +1062,7 @@ int __stdcall VtolEvadeOrder(Unit* unit,Order* order,int flags)
         else pos=unit->pos+Offset(unit->heading+0x4000,range<<16);
             Class_0044e2d0* move=new Class_0044e2d0(order,pos);
             ((Class_0044e730*)move)->FUN_0044e730(128);
-            ((Class_004388d0*)order)->FUN_004388d0((int)move);
+            ((Class_004388d0*)order)->SetAttachedFx((int)move);
             order->flags=0x100e8;
             return 1;
         }
@@ -1073,7 +1073,7 @@ int __stdcall VtolEvadeOrder(Unit* unit,Order* order,int flags)
         else pos=unit->pos+Offset(unit->heading+0x4000,range<<17);
         Class_0044e2d0* move=new Class_0044e2d0(order,pos);
         ((Class_0044e730*)move)->FUN_0044e730(128);
-        ((Class_004388d0*)order)->FUN_004388d0((int)move);
+        ((Class_004388d0*)order)->SetAttachedFx((int)move);
         order->flags=0x100e8;
         return 1;
     }
@@ -1093,7 +1093,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
     switch(state) {
     case 0:
         if (unit->type && (unit->def->flags&0x800)) {
-            ((Class_00438880*)order)->FUN_00438880("Building");
+            ((Class_00438880*)order)->AnnounceStatusIfFlagged("Building");
             unit->ClaimWeapons(3);
             if (unit->field_86) AttachUnitToPiece(unit,0,-1,2);
             unit->SetStateBits(1,1);
@@ -1101,7 +1101,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
                 unit->type->SetFlightMode(unit,2);
                 Class_0044e2d0* move=new Class_0044e2d0(order,unit->pos);
                 ((Class_0044e6c0*)move)->FUN_0044e6c0(unit->def->field_21c/2);
-                ((Class_004388d0*)order)->FUN_004388d0((int)move);
+                ((Class_004388d0*)order)->SetAttachedFx((int)move);
                 order->flags|=0xe0;
             }
             return 1;
@@ -1115,7 +1115,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
         FUN_00414350(cell,&order->pos,origin);
         Class_0044e2d0* move=new Class_0044e2d0(order,order->pos);
         ((Class_0044e730*)move)->FUN_0044e730(unit->def->buildRange);
-        ((Class_004388d0*)order)->FUN_004388d0((int)move);
+        ((Class_004388d0*)order)->SetAttachedFx((int)move);
         order->flags=0xe0;
         return 1;
     }
@@ -1139,7 +1139,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
         return 1;
     }
     case 3:
-        FUN_00438700(unit,order,10);
+        WaitIfNotInBuildStance(unit,order,10);
     case 4: {
         if (g_game->tick%150==0) {
             int angle=GetHeadingBetween(&unit->pos,&order->targetUnit->pos);
@@ -1148,7 +1148,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
             Vec3 pos=order->targetUnit->pos-Offset(angle,range);
             Class_0044e2d0* move=new Class_0044e2d0(order,pos);
             ((Class_0044e720*)move)->FUN_0044e720((unsigned short)angle);
-            ((Class_004388d0*)order)->FUN_004388d0((int)move);
+            ((Class_004388d0*)order)->SetAttachedFx((int)move);
         }
         int rate=0; rate=unit->def->buildRate;
         if (AddBuildProgress(unit,order->targetUnit,(float)(rate/30))) {
@@ -1220,7 +1220,7 @@ int __stdcall VtolRepairUnitOrder(Unit* unit, Order* order, int flags)
                 QueueUnitSpeech(unit, 7, "Repair mission failed");
                 return 8;
             }
-            ((Class_00438880*)order)->FUN_00438880("Repairing");
+            ((Class_00438880*)order)->AnnounceStatusIfFlagged("Repairing");
             FUN_0040f200(unit, order, 0);
             return 1;
         }
@@ -1228,7 +1228,7 @@ int __stdcall VtolRepairUnitOrder(Unit* unit, Order* order, int flags)
     case 1: {
         Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
         ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c);
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags = 0xe8;
         return 1;
     }
@@ -1297,7 +1297,7 @@ static inline int Land(Unit* unit, Order* order)
         std::vector<Unit*> pads;
         GetFactoriesInRadius(unit->owner->index, &unit->pos, 0xf00, &pads);
         if (!pads.empty()) {
-            ((Class_004388d0*)order)->FUN_004388d0(0);
+            ((Class_004388d0*)order)->SetAttachedFx(0);
             Unit* pad = pads[RandomInt(pads.size())];
             AppendOrder(unit, new Class_0043a1f0("VTOL_LANDING", pad, 0, 0, 0, 0));
             order->flags = 0;

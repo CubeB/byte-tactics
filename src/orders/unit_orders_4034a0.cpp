@@ -17,10 +17,10 @@ struct Vec3 {
     Vec3() {}
     Vec3(int a, int b, int c) : x(a), y(b), z(c) {}
 };
-class Class_00438880 { public: void FUN_00438880(int); };
-class Class_004388d0 { public: void FUN_004388d0(int); };
-class Class_00438930 { public: void FUN_00438930(Vec3*, int); };
-class Class_00438a00 { public: void FUN_00438a00(Vec3*, int, int); };
+class Class_00438880 { public: void AnnounceStatusIfFlagged(int); };
+class Class_004388d0 { public: void SetAttachedFx(int); };
+class Class_00438930 { public: void AttachApproachRadiusGoal(Vec3*, int); };
+class Class_00438a00 { public: void AttachRingApproachGoal(Vec3*, int, int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 class Class_004897e0 { public: unsigned char ChooseWeapon(); };
 #pragma pack(push, 1)
@@ -53,7 +53,7 @@ struct Order {
     char pad32[4];
     int weapon, step, radius;
     int Advance(int distance) {
-        ((Class_00438930*)this)->FUN_00438930(&target->pos, distance);
+        ((Class_00438930*)this)->AttachApproachRadiusGoal(&target->pos, distance);
         step++;
         return 1;
     }
@@ -79,13 +79,13 @@ int __stdcall AttackChaseOrder(Unit* unit, Order* order, unsigned int flags)
     switch (state) {
     case 0:
         if (!unit->active || (unit->def->flags & 0x800) || !(unit->flags & 0x80000000)) break;
-        ((Class_00438880*)order)->FUN_00438880(0);
+        ((Class_00438880*)order)->AnnounceStatusIfFlagged(0);
         order->pos = unit->pos;
         order->step = 0;
         if (!weapon) order->weapon = ((Class_004897e0*)unit)->ChooseWeapon();
         return 1;
     case 1:
-        ((Class_004388d0*)order)->FUN_004388d0(0);
+        ((Class_004388d0*)order)->SetAttachedFx(0);
         if (flags & 0x3000) return 1;
         if (!WeaponCanReachUnit(unit, order->target, weapon)) return 1;
         unit->ClaimWeapons(0);
@@ -100,7 +100,7 @@ int __stdcall AttackChaseOrder(Unit* unit, Order* order, unsigned int flags)
             return order->Advance(weapon);
         case 1: case 2: case 3: case 4:
             if (abs(unit->pos.y - order->target->pos.y) > 0x80000) {
-                ((Class_00438930*)order)->FUN_00438930(&order->target->pos, weapon / 2);
+                ((Class_00438930*)order)->AttachApproachRadiusGoal(&order->target->pos, weapon / 2);
                 order->step = 6;
                 return 1;
             } else {
@@ -111,19 +111,19 @@ int __stdcall AttackChaseOrder(Unit* unit, Order* order, unsigned int flags)
                 int dz = -FUN_004b7123(angle, distance);
                 Vec3* target = &order->target->pos;
                 Vec3 pos = *target + Vec3(dx, 0, dz);
-                ((Class_00438930*)order)->FUN_00438930(&pos, weapon / 4);
+                ((Class_00438930*)order)->AttachApproachRadiusGoal(&pos, weapon / 4);
                 return 1;
             }
         case 5:
             return order->Advance(weapon / 2);
         case 6:
-            ((Class_00438930*)order)->FUN_00438930(&order->target->pos, 0);
+            ((Class_00438930*)order)->AttachApproachRadiusGoal(&order->target->pos, 0);
             break;
         case 7:
-            ((Class_00438a00*)order)->FUN_00438a00(&order->target->pos, weapon, weapon / 2);
+            ((Class_00438a00*)order)->AttachRingApproachGoal(&order->target->pos, weapon, weapon / 2);
             break;
         case 8:
-            ((Class_00438a00*)order)->FUN_00438a00(&order->target->pos, weapon * 2, weapon);
+            ((Class_00438a00*)order)->AttachRingApproachGoal(&order->target->pos, weapon * 2, weapon);
             order->step = 0;
             return 1;
         default: return 7;

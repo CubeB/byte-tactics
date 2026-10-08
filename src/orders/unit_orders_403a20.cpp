@@ -14,7 +14,7 @@ struct Vec3 {
 };
 struct Unit;
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
-class Class_00438ad0 { public: void FUN_00438ad0(Point, Point); };
+class Class_00438ad0 { public: void AttachBuildFootprintMarker(Point, Point); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 class Class_004895c0 { public: void SetUnit(Unit*); };
 #pragma pack(push, 1)
@@ -61,7 +61,7 @@ Unit* __stdcall CreateUnit(unsigned char, short, Vec3, int, int, int);
 void __stdcall AddOrder(Class_00438760, int, Unit*, Unit*, Vec3*, int, int);
 short __stdcall GetHeadingBetween(Vec3*, Vec3*);
 void __stdcall StartBuildingScript(Unit*, Order*, short);
-int __stdcall FUN_00438700(Unit*, Order*, int);
+int __stdcall WaitIfNotInBuildStance(Unit*, Order*, int);
 int __stdcall AddBuildProgress(Unit*, Unit*, float);
 void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
 void __stdcall EmitNanoParticles(Vec3*, Vec3*, int);
@@ -97,7 +97,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
         Point cell = WorldToCell(order->pos, def->origin);
         CellToWorld(def->origin, cell, &order->pos);
         order->retries = 0;
-        ((Class_00438ad0*)order)->FUN_00438ad0(cell, def->origin);
+        ((Class_00438ad0*)order)->AttachBuildFootprintMarker(cell, def->origin);
         order->flags = 0xe0;
         return 1;
     }
@@ -142,7 +142,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
         return 1;
     }
     case 2:
-        return FUN_00438700(unit, order, 10);
+        return WaitIfNotInBuildStance(unit, order, 10);
     case 3: {
         int rate = 0;
         rate = unit->def->buildRate;

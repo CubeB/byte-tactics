@@ -223,14 +223,14 @@ public:
 // The base class: one virtual slot, its vtable at 0x4fd2cc.
 class Class_0043a1e0 {
 public:
-    virtual void FUN_0043a1e0(unsigned int);  // slot 0: 0x43a1e0, empty
+    virtual void OrStatusFlags(unsigned int);  // slot 0: 0x43a1e0, empty
 };
 
 class Class_0043a1f0 : public Class_0043a1e0 {
 public:
     // Slot 0 of vtable 0x4fd2c8, overriding the base's: 0x438870 (defined
     // in order_queue_4384a0.cpp).
-    virtual void FUN_0043a1e0(unsigned int);
+    virtual void OrStatusFlags(unsigned int);
 
     unsigned char kind;              // +0x4, index into DAT_00512344
     unsigned char count;             // +0x5
@@ -667,7 +667,7 @@ Class_0043a1f0::Class_0043a1f0(unsigned char k, Unit* o, Vec3* p, int a, int b, 
 // Class_0043a1e0 is the base of Class_0043a1f0 (vtable 0x4fd2c8), which
 // overrides this slot with 0x438870 (see order_queue_4384a0.cpp).
 // FUNCTION: 0x43a1e0
-void Class_0043a1e0::FUN_0043a1e0(unsigned int)
+void Class_0043a1e0::OrStatusFlags(unsigned int)
 {
 }
 

@@ -19,13 +19,13 @@ struct Vec3 {
 };
 struct Unit;
 class UnitMotion { public: char pad0[0x2e]; unsigned char flags; void SetFlightMode(Unit*,int); };
-class Class_00438880 { public: void FUN_00438880(const char*); };
-class Class_004388d0 { public: void FUN_004388d0(int); };
+class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
+class Class_004388d0 { public: void SetAttachedFx(int); };
 class Class_0044e730 { public: void FUN_0044e730(int); };
 class Class_0044e720 { public: void FUN_0044e720(int); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
-class Class_00438ad0 { public: void FUN_00438ad0(Point, Point); };
+class Class_00438ad0 { public: void AttachBuildFootprintMarker(Point, Point); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 class Class_004895c0 { public: void SetUnit(Unit*); };
 #pragma pack(push, 1)
@@ -85,7 +85,7 @@ Unit* __stdcall CreateUnit(unsigned char, short, Vec3, int, int, int);
 void __stdcall AddOrder(Class_00438760, int, Unit*, Unit*, Vec3*, int, int);
 int __stdcall GetHeadingBetween(Vec3*, Vec3*);
 void __stdcall StartBuildingScript(Unit*, Order*, short);
-int __stdcall FUN_00438700(Unit*, Order*, int);
+int __stdcall WaitIfNotInBuildStance(Unit*, Order*, int);
 int __stdcall AddBuildProgress(Unit*, Unit*, float);
 void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
 void __stdcall EmitNanoParticles(Vec3*, Vec3*, int);
@@ -121,7 +121,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
         if (unit->motion) {
             if (unit->def->flags&0x800) {
                 if (!unit->def->canBuild) return 7;
-                ((Class_00438880*)order)->FUN_00438880("Building");
+                ((Class_00438880*)order)->AnnounceStatusIfFlagged("Building");
                 ((Unit*)unit)->ClaimWeapons(3);
                 if (unit->busy) AttachUnitToPiece(unit,0,-1,2);
                 ((Unit*)unit)->SetStateBits(1,1);
@@ -129,7 +129,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
                     unit->motion->SetFlightMode(unit,2);
                     Class_0044e2d0* move=new Class_0044e2d0(order,unit->pos);
                     ((Class_0044e6c0*)move)->FUN_0044e6c0(unit->def->altitude/2);
-                    ((Class_004388d0*)order)->FUN_004388d0((int)move);
+                    ((Class_004388d0*)order)->SetAttachedFx((int)move);
                     order->flags|=0xe0;
                 }
                 return 1;
@@ -140,7 +140,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
         order->retries=0;
         Class_0044e2d0* move=new Class_0044e2d0(order,order->target.Get()->pos);
         ((Class_0044e730*)move)->FUN_0044e730(unit->def->buildRange);
-        ((Class_004388d0*)order)->FUN_004388d0((int)move);
+        ((Class_004388d0*)order)->SetAttachedFx((int)move);
         order->flags=0xe0;
         return 1;
     }
@@ -158,7 +158,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
             Vec3 pos=order->target.Get()->pos-Offset(angle,range);
             Class_0044e2d0* move=new Class_0044e2d0(order,pos);
             ((Class_0044e720*)move)->FUN_0044e720((unsigned short)angle);
-            ((Class_004388d0*)order)->FUN_004388d0((int)move);
+            ((Class_004388d0*)order)->SetAttachedFx((int)move);
         }
         int rate=0; rate=unit->def->buildRate;
         // The ok local is needed: it adds a register candidate that keeps order in esi.

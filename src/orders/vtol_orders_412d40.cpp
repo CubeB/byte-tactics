@@ -36,8 +36,8 @@ public:
     unsigned char field_2e;            // +0x2e
     void SetFlightMode(Unit* unit, int state);
 };
-class Class_004388d0 { public: void FUN_004388d0(int); };
-class Class_00438880 { public: void FUN_00438880(const char*); };
+class Class_004388d0 { public: void SetAttachedFx(int); };
+class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
 class Class_0044e730 { public: void FUN_0044e730(short); };
@@ -143,7 +143,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c / 2);
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -181,7 +181,7 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->FUN_0044e730(0x80);
         order->flags |= 0xe0;
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         return 2;
     }
     if (order->range && (int)_hypot(unit->p.x - order->x, unit->p.z - order->z) >= order->range)
@@ -189,7 +189,7 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
     switch (order->state) {
     case 0:
         if (unit->type && (unit->def->flags & 0x800)) {
-            ((Class_00438880*)order)->FUN_00438880("Attacking");
+            ((Class_00438880*)order)->AnnounceStatusIfFlagged("Attacking");
             FUN_0040f200(unit, order, 0);
             ((Class_00439e80*)order)->FUN_00439e80(1);
             order->field_36 = 0;
@@ -206,7 +206,7 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
                 Vec3 to = Offset(unit->heading, unit->def->field_192);
                 Class_0044e740* obj = new Class_0044e740(order, from, to);
                 obj->FUN_0044ec10(unit->def->field_21c);
-                ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+                ((Class_004388d0*)order)->SetAttachedFx((int)obj);
                 ((Class_00439e80*)order)->FUN_00439e80(RandomInt(0x1e) + 0x3c);
                 order->field_36 = 0;
                 return 2;
@@ -223,14 +223,14 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
                 Vec3 p = order->target->pos;
                 p.x += order->target->type->v.x * 45;
                 p.z += order->target->type->v.z * 45;
-                ((Class_004388d0*)order)->FUN_004388d0((int)new Class_0044e740(order, p,
+                ((Class_004388d0*)order)->SetAttachedFx((int)new Class_0044e740(order, p,
                     order->target->type->v + Offset(order->target->heading, order->target->def->field_192 / 2)));
             }
             ((Class_00439e80*)order)->FUN_00439e80(0x2d);
             order->flags |= 0x100e8;
             return 2;
         }
-        ((Class_004388d0*)order)->FUN_004388d0(0);
+        ((Class_004388d0*)order)->SetAttachedFx(0);
         AppendOrder(unit, new Class_0043a1f0("VTOL_EVADE", (int)order->target, 0, 0, 0, 0));
         order->field_36 = 0;
         order->flags = 0;

@@ -14,8 +14,8 @@ struct Point { short x, y; };
 union Fixed { int value; struct { unsigned short fraction; short whole; }; };
 struct Unit;
 extern const float DAT_004fc930, DAT_004fc934, DAT_004fc938, DAT_004fc93c;
-class Class_00438880 { public: void FUN_00438880(const char*); };
-class Class_00438ad0 { public: void FUN_00438ad0(Point, Point); };
+class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
+class Class_00438ad0 { public: void AttachBuildFootprintMarker(Point, Point); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 #pragma pack(push, 1)
 struct UnitDef {
@@ -55,11 +55,11 @@ void __stdcall QueueUnitSpeech(Unit*, int, const char*);
 short __stdcall GetHeadingBetween(Vec3*, Vec3*);
 void __stdcall StartBuildingScript(Unit*, Order*, short);
 void __stdcall StopBuildingScript(Unit*, Order*);
-int __stdcall FUN_00438700(Unit*, Order*, int);
+int __stdcall WaitIfNotInBuildStance(Unit*, Order*, int);
 void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
 void __stdcall EmitReverseNanoParticles(Vec3*, Vec3*, int);
 void __stdcall GiveUnitToPlayer(Unit*, void*, int);
-int __stdcall FUN_00438650(Unit*, Unit*, int);
+int __stdcall ComputeReclaimDamagePulse(Unit*, Unit*, int);
 void __stdcall DamageUnit(Unit*, Unit*, int, int, int);
 static inline int SquaredDistance(int dx, int dz)
 {
@@ -82,7 +82,7 @@ int __stdcall ReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
                 QueueUnitSpeech(unit, 7, "Reclamation failed");
                 return 8;
             }
-            ((Class_00438880*)order)->FUN_00438880("Reclaiming");
+            ((Class_00438880*)order)->AnnounceStatusIfFlagged("Reclaiming");
             unit->ClaimWeapons(3);
             return 1;
         }
@@ -90,10 +90,10 @@ int __stdcall ReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
         return 7;
     case 1:
         if (flags & 0x20) return 1;
-        ((Class_00438ad0*)order)->FUN_00438ad0(target->cell, target->footprint);
+        ((Class_00438ad0*)order)->AttachBuildFootprintMarker(target->cell, target->footprint);
         order->flags |= 0x100e8;
         ((Class_00439e80*)order)->FUN_00439e80(15);
-        order->elapsed = FUN_00438650(unit, order->target.Get(), 15);
+        order->elapsed = ComputeReclaimDamagePulse(unit, order->target.Get(), 15);
         order->duration = 0;
         return 2;
     case 2:
@@ -101,7 +101,7 @@ int __stdcall ReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
         StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &target->pos) - unit->angle);
         return 1;
     case 3:
-        return FUN_00438700(unit, order, 0x10008);
+        return WaitIfNotInBuildStance(unit, order, 0x10008);
     case 4:
         QueueUnitSpeech(unit, 11, 0);
         return 1;

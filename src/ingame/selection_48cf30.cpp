@@ -24,7 +24,7 @@ struct UnitType_0048cf30 {
 class OrderType {
 public:
     unsigned char index;
-    UnitType_0048cf30* FUN_00438830();
+    UnitType_0048cf30* GetTableEntry();
 };
 
 // A unit type index built from a name.
@@ -92,7 +92,7 @@ void __stdcall IssueOrderToSelection(UnitType_0048cf30* entry, unsigned char mod
     if (mode)
         flag_b = OrderModeTakesTarget(mode);
     else
-        flag_b = (kind.FUN_00438830()->flags >> 9) & 1;
+        flag_b = (kind.GetTableEntry()->flags >> 9) & 1;
     if (flag_b) {
         if (!g_game->field_2cba)
             except = 0;
@@ -131,7 +131,7 @@ void __stdcall IssueOrderToSelection(UnitType_0048cf30* entry, unsigned char mod
         if (kind.index != fire.index || (u->def->flags & 2)) {
             Class_00438760 move = Order("Standing_MoveOrder");
             if (kind.index != move.index || (u->def->flags & 1)) {
-                if (pos && (kind.FUN_00438830()->flags & 2)) {
+                if (pos && (kind.GetTableEntry()->flags & 2)) {
                     // Two-step deltas, z first then x: one-step avoids a CSE across the branch.
                     int dz = u->z;
                     dz -= avg[2];

@@ -482,7 +482,7 @@ struct MissionName_00467e50 {
 };
 
 struct OrderType {
-    MissionName_00467e50* FUN_00438830();
+    MissionName_00467e50* GetTableEntry();
 };
 
 struct Rect_004685a0 {
@@ -929,11 +929,11 @@ int __stdcall DrawUnitStateProbe(void* surface)
                  m = (Mission_00467e50*)m->next) {
                 if (m->target != 0)
                     sprintf(buf, "    '%s' state: %d  tgt: '%s'\n",
-                            ((OrderType*)((char*)m + 4))->FUN_00438830()->name,
+                            ((OrderType*)((char*)m + 4))->GetTableEntry()->name,
                             m->state, *(char**)((char*)m->target + 0x92));
                 else
                     sprintf(buf, "    '%s' state: %d\n",
-                            ((OrderType*)((char*)m + 4))->FUN_00438830()->name,
+                            ((OrderType*)((char*)m + 4))->GetTableEntry()->name,
                             m->state);
                 DrawString(surface, buf, 0x86, y, -1);
                 y += lineH;
@@ -946,11 +946,11 @@ int __stdcall DrawUnitStateProbe(void* surface)
                  m = (Mission_00467e50*)m->next) {
                 if (m->target != 0)
                     sprintf(buf, "    '%s' state: %d  tgt: '%s'\n",
-                            ((OrderType*)((char*)m + 4))->FUN_00438830()->name,
+                            ((OrderType*)((char*)m + 4))->GetTableEntry()->name,
                             m->state, *(char**)((char*)m->target + 0x92));
                 else
                     sprintf(buf, "    '%s' state: %d\n",
-                            ((OrderType*)((char*)m + 4))->FUN_00438830()->name,
+                            ((OrderType*)((char*)m + 4))->GetTableEntry()->name,
                             m->state);
                 DrawString(surface, buf, 0x86, y, -1);
                 y += lineH;

@@ -2231,7 +2231,7 @@ public:
     unsigned char index;  // +0x0
     Class_00438760(char*);
     Class_00438760(void);
-    int FUN_00438830(void);
+    int GetTableEntry(void);
     int operator==(Class_00438760&);
 };
 
@@ -2241,7 +2241,7 @@ public:
     Unit_00438880* unit;  // +0xe
     char unknown_12[48];
     unsigned int flags;  // +0x42
-    void FUN_00438880(char*);
+    void AnnounceStatusIfFlagged(char*);
 };
 
 struct Vec3 {  // 0xc bytes, 298 views
@@ -2582,7 +2582,7 @@ struct Order {  // 0x56 bytes, 87 views
     ~Order(void);
     Order(Order&);
     Order(Unit*, HapiBank*, char*);
-    void FUN_0043a1e0(unsigned int);
+    void OrStatusFlags(unsigned int);
     Unit* Target(void);
     int FUN_0043a970(Unit*, File_0043a970*, char*);
     Vec3* Position(void);
@@ -2627,7 +2627,7 @@ public:
     char unknown_12[60];
     unsigned int flags;  // +0x4e
     Attached_004388d0* attached;  // +0x52
-    void FUN_004388d0(Attached_004388d0*);
+    void SetAttachedFx(Attached_004388d0*);
 };
 
 struct Order_00402d10 {  // 0x3a bytes, 1 view
@@ -2713,7 +2713,7 @@ public:
     int state;  // +0x36
     char unknown_3a[8];
     unsigned int flags;  // +0x42
-    void FUN_00438b90(int);
+    void MergeFlagsFromTable(int);
 };
 
 class Class_00438930 {  // 0x56 bytes, 10 views
@@ -2723,7 +2723,7 @@ public:
     char unknown_12[60];
     unsigned int flags;  // +0x4e
     Attached_004388d0_2* attached;  // +0x52
-    void FUN_00438930(int*, int);
+    void AttachApproachRadiusGoal(int*, int);
 };
 
 class Order_004031d0 {  // 0x3a bytes, 1 view
@@ -2753,7 +2753,7 @@ public:
     char unknown_12[60];
     unsigned int flags;  // +0x4e
     Attached_00438a00* attached;  // +0x52
-    void FUN_00438a00(Vec3*, int, int);
+    void AttachRingApproachGoal(Vec3*, int, int);
 };
 
 class Class_004897e0 {  // 0x58 bytes, 2 views
@@ -2800,7 +2800,7 @@ public:
     char unknown_12[60];
     unsigned int flags;  // +0x4e
     Class_0044d8a0* attached;  // +0x52
-    void FUN_00438ad0(Point16, Point16);
+    void AttachBuildFootprintMarker(Point16, Point16);
 };
 
 union Fixed {  // 0x4 bytes, 16 views
@@ -6327,7 +6327,7 @@ public:
     void* obj_ptr;  // +0xe
     char unknown_12[64];
     int value;  // +0x52
-    void FUN_004388b0(void);
+    void ReattachFxToUnit(void);
 };
 
 class Attached_004388d0 {  // 0x4 bytes, 1 view
@@ -6477,7 +6477,7 @@ struct Obj_00439e30 {  // 0x64 bytes, 1 view
 
 class Class_0043a1e0 {  // 0x4 bytes, 6 views
 public:
-    virtual void FUN_0043a1e0(unsigned int);
+    virtual void OrStatusFlags(unsigned int);
     virtual void Notify(int);
 };
 

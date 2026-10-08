@@ -15,7 +15,7 @@ struct Vec3 {
 };
 struct Unit;
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
-class Class_00438ad0 { public: void FUN_00438ad0(Point, Point); };
+class Class_00438ad0 { public: void AttachBuildFootprintMarker(Point, Point); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 class Class_004895c0 { public: void SetUnit(Unit*); };
 #pragma pack(push, 1)
@@ -63,11 +63,11 @@ Unit* __stdcall CreateUnit(unsigned char, short, Vec3, int, int, int);
 void __stdcall AddOrder(Class_00438760, int, Unit*, Unit*, Vec3*, int, int);
 short __stdcall GetHeadingBetween(Vec3*, Vec3*);
 void __stdcall StartBuildingScript(Unit*, Order*, short);
-int __stdcall FUN_00438700(Unit*, Order*, int);
+int __stdcall WaitIfNotInBuildStance(Unit*, Order*, int);
 int __stdcall AddBuildProgress(Unit*, Unit*, float);
 void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
 void __stdcall EmitNanoParticles(Vec3*, Vec3*, int);
-class Class_00438a00 { public: void FUN_00438a00(Vec3*, int, int); };
+class Class_00438a00 { public: void AttachRingApproachGoal(Vec3*, int, int); };
 // The original radius expression adds the second dimension twice rather than
 // squaring it: fld x; fld y; fld st(1); fmul st(2); fadd st(1); fadd st(1).
 // FUNCTION: 0x403f70
@@ -89,7 +89,7 @@ int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
         int radius = (int)(sqrt(x * x + y + y) * 16.0) / 2;
         unsigned int range = 0;
         range = unit->def->buildRange;
-        ((Class_00438a00*)order)->FUN_00438a00(&target->pos, range + radius, radius);
+        ((Class_00438a00*)order)->AttachRingApproachGoal(&target->pos, range + radius, radius);
         order->flags = 0xe8;
         return 1;
     }
@@ -104,7 +104,7 @@ int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
         MarkSelectionOrdersDirty(unit);
         return 1;
     case 2:
-        return FUN_00438700(unit, order, 10);
+        return WaitIfNotInBuildStance(unit, order, 10);
     case 3: {
         int rate = 0;
         rate = unit->def->buildRate;

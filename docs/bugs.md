@@ -513,7 +513,7 @@ Things that look wrong in the original but have no effect, kept for the record.
   FUN_004ab0a0(gadget) twice in a row in its load and save branches. Found by
   Claude Opus 5.5 in #211.
 
-- **0x405980**: in the first reclaim branch FUN_004388d0(0) is called twice
+- **0x405980**: in the first reclaim branch SetAttachedFx(0) is called twice
   (0x405bce and 0x405c0e), in the other three branches once; with argument 0 it
   only releases the order's +0x52 attachment, which the first call has already
   cleared. Found by ozgb's Cline / deepseek-v4.1 in #2167.
@@ -649,7 +649,7 @@ Things that look wrong in the original but have no effect, kept for the record.
   allocates a `Class_0044e2d0` waypoint and sets its speed with
   `FUN_0044e730(0x80)`, then only ORs 0x110e8 into the order flags and returns
   2. Every other branch hands the waypoint to the order through
-  `FUN_004388d0`; this one never does, so the object leaks and the waypoint
+  `SetAttachedFx`; this one never does, so the object leaks and the waypoint
   is lost. Found by Claude Opus 5.5 in #98. **0x4111b0** (VTOL transport,
   state 4) does the same with its pickup waypoint (#96).
 - **0x4384a0** (possible): when `operator new(0x56)` returns 0 it skips the

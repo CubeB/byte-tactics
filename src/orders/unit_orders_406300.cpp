@@ -8,9 +8,9 @@ struct Vec3 {
 struct Unit;
 struct Order;
 class Class_00438760 { public: unsigned char index; Class_00438760() {} Class_00438760(const char*); int operator==(const Class_00438760& v) const { return index==v.index; } };
-class Class_00438880 { public: void FUN_00438880(const char*); };
-class Class_004388d0 { public: void FUN_004388d0(int); };
-class Class_00438930 { public: void FUN_00438930(Vec3*, int); };
+class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
+class Class_004388d0 { public: void SetAttachedFx(int); };
+class Class_00438930 { public: void AttachApproachRadiusGoal(Vec3*, int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 #pragma pack(push, 1)
 struct WeaponDef { char pad0[0x111]; unsigned int flags; };
@@ -50,7 +50,7 @@ int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
     unsigned int state=0; state=order->state;
     switch(state) {
     case 0: {
-        ((Class_00438880*)order)->FUN_00438880("Guarding");
+        ((Class_00438880*)order)->AnnounceStatusIfFlagged("Guarding");
         ((Unit*)unit)->ReleaseWeapons(3);
         order->radius=(unit->width + order->target->width + 2) << 4;
         int distance=order->radius << 16;
@@ -77,7 +77,7 @@ int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
         if ((unsigned int)order->target->health < order->target->def->maxHealth && (unit->def->flags&0x40)) {
             Class_00438760 kind=GetOrderType(8,unit,order->target,0);
             if(kind.index) {
-                ((Class_004388d0*)order)->FUN_004388d0(0);
+                ((Class_004388d0*)order)->SetAttachedFx(0);
                 AppendOrder(unit,new Class_0043a1f0(kind,order->target,0,0,0,0));
                 order->flags=0; return 3;
             }
@@ -91,14 +91,14 @@ int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
             int actionable=((other->capabilities&0x200) && other->target) || (other->capabilities&0x400);
             Class_00438760 kind;
             if (!building && actionable) {
-                ((Class_004388d0*)order)->FUN_004388d0(0);
+                ((Class_004388d0*)order)->SetAttachedFx(0);
                 kind=order->target->order->kind;
                 // Target() and Position() on the base: keeps the two order->order loads from merging.
                 AppendOrder(unit,new Class_0043a1f0(kind,order->Target()->order->target,order->Target()->order->Position(),0,0,0));
                 order->flags=0; return 3;
             }
             if (building && other->target) {
-                ((Class_004388d0*)order)->FUN_004388d0(0);
+                ((Class_004388d0*)order)->SetAttachedFx(0);
                 kind=Class_00438760("HelpBuild");
                 AppendOrder(unit,new Class_0043a1f0(kind,order->Target()->order->target,order->Target()->order->Position(),0,0,0));
                 order->flags=0; return 3;
@@ -106,7 +106,7 @@ int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
         }
 follow:
         Vec3 pos=order->target->pos+order->pos;
-        ((Class_00438930*)order)->FUN_00438930(&pos,order->radius/2);
+        ((Class_00438930*)order)->AttachApproachRadiusGoal(&pos,order->radius/2);
         ((Class_00439e80*)order)->FUN_00439e80(30);
         order->flags|=0x18;
         return 2;

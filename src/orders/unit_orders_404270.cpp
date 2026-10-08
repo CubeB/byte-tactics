@@ -17,7 +17,7 @@ struct Vec3 {
 };
 struct Unit;
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
-class Class_00438ad0 { public: void FUN_00438ad0(Point, Point); };
+class Class_00438ad0 { public: void AttachBuildFootprintMarker(Point, Point); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 class Class_004895c0 { public: void SetUnit(Unit*); };
 #pragma pack(push, 1)
@@ -63,11 +63,11 @@ Unit* __stdcall CreateUnit(unsigned char, short, Vec3, int, int, int);
 void __stdcall AddOrder(Class_00438760, int, Unit*, Unit*, Vec3*, int, int);
 short __stdcall GetHeadingBetween(Vec3*, Vec3*);
 void __stdcall StartBuildingScript(Unit*, Order*, short);
-int __stdcall FUN_00438700(Unit*, Order*, int);
+int __stdcall WaitIfNotInBuildStance(Unit*, Order*, int);
 int __stdcall AddBuildProgress(Unit*, Unit*, float);
 void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
 void __stdcall EmitNanoParticles(Vec3*, Vec3*, int);
-class Class_00438a00 { public: void FUN_00438a00(Vec3*, int, int); };
+class Class_00438a00 { public: void AttachRingApproachGoal(Vec3*, int, int); };
 static inline Point WorldToCell(Vec3 v, Point origin)
 {
     Point c;
@@ -102,7 +102,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
         Point cell = WorldToCell(order->pos, def->origin);
         CellToWorld(def->origin, cell, &order->pos);
         order->retries = 0;
-        ((Class_00438ad0*)order)->FUN_00438ad0(cell, def->origin);
+        ((Class_00438ad0*)order)->AttachBuildFootprintMarker(cell, def->origin);
         order->flags = 0xe0;
         return 1;
     }
@@ -147,7 +147,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
         return 1;
     }
     case 2:
-        return FUN_00438700(unit, order, 10);
+        return WaitIfNotInBuildStance(unit, order, 10);
     case 3: {
         int rate = 0;
         rate = unit->def->buildRate;
@@ -193,7 +193,7 @@ int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
         int radius = (int)(sqrt(x * x + y + y) * 16.0) / 2;
         unsigned int range = 0;
         range = unit->def->buildRange;
-        ((Class_00438a00*)order)->FUN_00438a00(&target->pos, range + radius, radius);
+        ((Class_00438a00*)order)->AttachRingApproachGoal(&target->pos, range + radius, radius);
         order->flags = 0xe8;
         return 1;
     }
@@ -208,7 +208,7 @@ int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
         MarkSelectionOrdersDirty(unit);
         return 1;
     case 2:
-        return FUN_00438700(unit, order, 10);
+        return WaitIfNotInBuildStance(unit, order, 10);
     case 3: {
         int rate = 0;
         rate = unit->def->buildRate;
@@ -241,8 +241,8 @@ struct Vec3 { int x, y, z; };
 struct Point { short x, y; };
 union Fixed { int value; struct { unsigned short fraction; short whole; }; };
 struct Unit;
-class Class_00438880 { public: void FUN_00438880(const char*); };
-class Class_00438ad0 { public: void FUN_00438ad0(Point, Point); };
+class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
+class Class_00438ad0 { public: void AttachBuildFootprintMarker(Point, Point); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 #pragma pack(push, 1)
 struct UnitDef {
@@ -284,7 +284,7 @@ void __stdcall QueueUnitSpeech(Unit*, int, const char*);
 short __stdcall GetHeadingBetween(Vec3*, Vec3*);
 void __stdcall StartBuildingScript(Unit*, Order*, short);
 void __stdcall StopBuildingScript(Unit*, Order*);
-int __stdcall FUN_00438700(Unit*, Order*, int);
+int __stdcall WaitIfNotInBuildStance(Unit*, Order*, int);
 void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
 void __stdcall EmitReverseNanoParticles(Vec3*, Vec3*, int);
 void __stdcall GiveUnitToPlayer(Unit*, void*, int);
@@ -310,7 +310,7 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
             QueueUnitSpeech(unit, 7, "That unit is a cloud of vapor and cannot be captured");
             return 8;
         }
-        ((Class_00438880*)order)->FUN_00438880("Capturing");
+        ((Class_00438880*)order)->AnnounceStatusIfFlagged("Capturing");
         order->duration = (int)(order->target.Get()->def->EnergyCost() / 2000 + order->target.Get()->def->MetalCost() / 140 + 150);
         order->duration = order->duration < 1800 ? order->duration : 1800;
         order->duration = (order->target.Get()->health + order->target.Get()->def->MaxHealth()) * order->duration / (order->target.Get()->def->maxHealth * 2);
@@ -318,7 +318,7 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
         experience = order->target.Get()->experience;
         order->duration = ((experience / 5 + 10) * order->duration * 10) / 100;
         unit->ClaimWeapons(3);
-        ((Class_00438ad0*)order)->FUN_00438ad0(order->target.Get()->cell, order->target.Get()->footprint);
+        ((Class_00438ad0*)order)->AttachBuildFootprintMarker(order->target.Get()->cell, order->target.Get()->footprint);
         order->flags = 0x100e8;
         return 1;
     }
@@ -336,7 +336,7 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
         return 1;
     }
     case 2:
-        return FUN_00438700(unit, order, 0x10008);
+        return WaitIfNotInBuildStance(unit, order, 0x10008);
     case 3:
         QueueUnitSpeech(unit, 11, 0);
         return 1;

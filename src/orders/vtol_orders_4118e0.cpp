@@ -37,8 +37,8 @@ public:
     void SetUnit(Unit* o);
 };
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
-class Class_00438880 { public: void FUN_00438880(const char*); };
-class Class_004388d0 { public: void FUN_004388d0(int); };
+class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
+class Class_004388d0 { public: void SetAttachedFx(int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
 class Class_0044e730 { public: void FUN_0044e730(short); };
@@ -129,7 +129,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c / 2);
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -169,7 +169,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
     switch (state) {
     case 0:
         if (unit->type && (unit->def->flags & 0x800)) {
-            ((Class_00438880*)order)->FUN_00438880("Landing");
+            ((Class_00438880*)order)->AnnounceStatusIfFlagged("Landing");
             FUN_0040f200(unit, order, 0);
             order->angle = RandomInt(0x10000);
             return 1;
@@ -184,7 +184,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
         order->angle += 0x4000;
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->FUN_0044e730(0x80);
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags = 0xe8;
         order->state = 1;
         return 2;
@@ -192,7 +192,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
     case 2: {
         Class_0044e250* obj = new Class_0044e250(order, order->target.owner, -1);
         ((Class_0044e730*)obj)->FUN_0044e730(0xa0);
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags = 0xe8;
         return 1;
     }
@@ -205,7 +205,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
         }
         Class_0044e250* obj = new Class_0044e250(order, order->target.owner, order->angle);
         ((Class_0044e730*)obj)->FUN_0044e730(0x30);
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags = 0xe8;
         return 1;
     }
@@ -226,7 +226,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
         else
             ((Class_0044e6c0*)obj)->FUN_0044e6c0(0);
         unit->script->StartScript("EndTransport", 0, 1);
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         ((Class_00439e80*)order)->FUN_00439e80(0xf);
         order->state = 5;
         order->flags |= 0xe8;
@@ -251,7 +251,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
             && (order->target.owner->def->flags & 0x200)
             && (order->target.owner->def->flags & 0x40)
             && order->target.owner->buildLeft == 0.0f) {
-            ((Class_004388d0*)order)->FUN_004388d0(0);
+            ((Class_004388d0*)order)->SetAttachedFx(0);
             AppendOrder(unit, new Class_0043a1f0("SELFREPAIR", order->target.owner, 0, 0, 0, 0));
         }
         return 5;

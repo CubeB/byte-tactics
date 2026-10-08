@@ -22,8 +22,8 @@ public:
     unsigned char field_2e;            // +0x2e
     void SetFlightMode(Unit* unit, int state);
 };
-class Class_004388d0 { public: void FUN_004388d0(int); };
-class Class_00438880 { public: void FUN_00438880(const char*); };
+class Class_004388d0 { public: void SetAttachedFx(int); };
+class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 #pragma pack(push, 1)
@@ -85,7 +85,7 @@ public:
 void __stdcall QueueUnitSpeech(Unit* unit, int kind, const char* text);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
 void __stdcall EmitReverseNanoParticles(Vec3* box, Vec3* from, int count);
-int __stdcall FUN_00438650(Unit* unit, Unit* target, int n);
+int __stdcall ComputeReclaimDamagePulse(Unit* unit, Unit* target, int n);
 void __stdcall DamageUnit(Unit* unit, Unit* target, int a, int b, int c);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 void __stdcall FUN_00414350(Point cell, Vec3* out, Point origin);
@@ -109,7 +109,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c / 2);
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -136,19 +136,19 @@ int __stdcall VtolReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
                 QueueUnitSpeech(unit, 7, "That unit cannot be reclaimed");
                 return 8;
             }
-            ((Class_00438880*)order)->FUN_00438880("Reclaiming");
+            ((Class_00438880*)order)->AnnounceStatusIfFlagged("Reclaiming");
             FUN_0040f200(unit, order, 0);
             return 1;
         }
         return 7;
     case 1: {
-        order->elapsed = FUN_00438650(unit, target, 15);
+        order->elapsed = ComputeReclaimDamagePulse(unit, target, 15);
         order->duration = 0;
         Point origin = unit->footprint;
         Point cell = WorldToCell(order->pos, origin);
         FUN_00414350(cell, &order->pos, origin);
         Class_0044e2d0* obj = new Class_0044e2d0(order, order->target.Get()->pos);
-        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags |= 0x100e8;
         QueueUnitSpeech(unit, 11, 0);
         return 1;

@@ -55,9 +55,10 @@ struct Map {
     int field_620;                     // +0x620
 };
 
-struct UnitType {
-    char unknown_0[0x249];
-};
+// The original declares the tag as a struct here (the decorated name of
+// CanPlaceUnitFootprint), so forward-declare it before the header.
+struct UnitDef;
+#include "../units/unit_def.h"
 
 // A unit. Only the fields these functions use are named.
 struct Unit {
@@ -247,7 +248,7 @@ struct Game {
     unsigned short blinkOn : 1;        // +0x142f1, bit 0
     unsigned short rest_142f1 : 15;
     char unknown_142f3[0x1439b - 0x142f3];
-    UnitType* types;                   // +0x1439b
+    UnitDef* types;                   // +0x1439b
     char unknown_1439f[0x37eee - 0x1439f];
     int difficulty;                    // +0x37eee
     char unknown_37ef2[0x37ef6 - 0x37ef2];
@@ -813,7 +814,7 @@ void UpdateRadarMapped();
 unsigned char __stdcall FindHostSlot();
 unsigned short __stdcall FindUnitTypeId(const char* name);
 int __stdcall RandomInt(int range);
-int __stdcall CanPlaceUnitFootprint(UnitType* type, int a, Point16 cell, int c);
+int __stdcall CanPlaceUnitFootprint(UnitDef* type, int a, Point16 cell, int c);
 short __stdcall FindFeatureAtPos(Vec3* pos, int a, int b);
 int __stdcall GetCellMeanHeight(Vec3* pos);
 Unit* __stdcall CreateUnit(unsigned char player, unsigned short typeId,
@@ -989,7 +990,7 @@ void __stdcall UpdatePlayers()
                                     do {
                                         cell.x = xacc >> 20;
                                         if (CanPlaceUnitFootprint(
-                                                (UnitType*)((char*)g_game->types + typeOff),
+                                                (UnitDef*)((char*)g_game->types + typeOff),
                                                 0, cell, 1) != 0)
                                             hits++;
                                         xacc += hw;

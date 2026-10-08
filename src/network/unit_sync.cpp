@@ -1091,7 +1091,7 @@ void UnitSync::HandleSyncPacket(UnitSyncPacket* packet, unsigned char player)
                 Vec_0046d6c0& w = i->pairs;
                 w.insert(w.end(), 1, packet->value);
             }
-            ((UnitSync*)this)->CheckUnitAvailable(packet->key, packet->value);
+            this->CheckUnitAvailable(packet->key, packet->value);
             break;
 
         case 3:
@@ -1112,7 +1112,7 @@ void UnitSync::HandleSyncPacket(UnitSyncPacket* packet, unsigned char player)
             r.h = packet->match;
             r.unknown_c = packet->limit;
             (*(Map_0046d6c0*)&map)[packet->key] = r;
-            ((UnitSync*)this)->NotifyEntryChanged(packet->key);
+            this->NotifyEntryChanged(packet->key);
         }
     }
 }
@@ -1167,7 +1167,7 @@ void UnitSync::NotifyEntryChanged(unsigned int param_1)
                 packet.enabled = v->field_8;
                 packet.match = v->field_a;
                 packet.limit = v->field_c;
-                ((UnitSync*)this)->SendSyncPacket((unsigned int*)&*i, &packet, 1);
+                this->SendSyncPacket((unsigned int*)&*i, &packet, 1);
                 i->sent++;
             }
         }

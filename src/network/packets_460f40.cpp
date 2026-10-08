@@ -1226,8 +1226,8 @@ int PacketChannel::SendQueued(int force)
 void NetCondenser::SendPacketTo(void* session, int from, int value, void* data, int size)
 {
     field_21 = value;
-    ((NetCondenser*)this)->Accumulate(data, size);
-    ((NetCondenser*)this)->SendPacket(session, from);
+    this->Accumulate(data, size);
+    this->SendPacket(session, from);
 }
 #pragma auto_inline(on)
 
@@ -1674,7 +1674,7 @@ int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
                         if (length == sizeof(int))
                             return (int)0x80004005;
                         if (*(int*)buffer != -1) {
-                            entry = ((PacketReceiver*)this)->FindPlayerFrameInfo(fromId);
+                            entry = this->FindPlayerFrameInfo(fromId);
                             if (entry != 0) {
                                 if (entry->frameSeq != -1) {
                                     int prev = entry->frameSeq - 1;
@@ -1771,7 +1771,7 @@ int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
     }
 
     if (entry == 0) {
-        entry = ((PacketReceiver*)this)->FindPlayerFrameInfo(fromId);
+        entry = this->FindPlayerFrameInfo(fromId);
         if (entry == 0) {
             length = 0;
             return (int)0x887700be;

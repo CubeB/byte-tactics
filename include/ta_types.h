@@ -11236,7 +11236,7 @@ public:
     void FUN_00472d50(void);
     void Render(int);
     int IsFinished(void);
-    void FUN_004743a0(void);
+    void Emit(void);
     int FUN_004730c0(void);
     void FUN_004742c0(int, int, int, int);
     void FUN_00473010(void);
@@ -11273,7 +11273,7 @@ public:
     Vec3 pos0;  // +0x20
     Vec3 pos1;  // +0x2c
     Vec3 pos2;  // +0x38
-    virtual void FUN_004743a0(void);
+    virtual void Emit(void);
 };
 
 class Class_00475bd0 {  // 0x1 bytes, 1 view

@@ -543,8 +543,8 @@ public:
     virtual void Render(int);                           // slot 2, 0x475470
     virtual int IsFinished();                           // slot 3, 0x474f80
     virtual void Emit();                                // slot 4, 0x474df0
-    virtual int FUN_00475440();                         // slot 5, 0x475440
-    virtual void FUN_00474d50(Vec3_00474d50* pos, int limit, int a, int b, int c,
+    virtual int IsEmitDue();                            // slot 5, 0x475440
+    virtual void Init(Vec3_00474d50* pos, int limit, int a, int b, int c,
                               int alt);                 // slot 6, 0x474d50
 };
 
@@ -565,8 +565,8 @@ public:
     virtual void Emit();                                // slot 4, 0x4751c0
     // In particles_4750f0.cpp: it is defined returning bool, and Update tests
     // its result as an int.
-    virtual int FUN_004750f0();                         // slot 5, 0x4750f0
-    virtual void FUN_00475150(Vec3_00475150* pos, int a, int b, int c); // slot 6, 0x475150
+    virtual int IsEmitDue();                            // slot 5, 0x4750f0
+    virtual void Init(Vec3_00475150* pos, int a, int b, int c); // slot 6, 0x475150
 };
 
 // One teleport spark (the element of TeleportParticles' vector), 0x34 bytes.
@@ -689,10 +689,10 @@ public:
     virtual void Update();                              // slot 1, 0x473010
     virtual void Render(int);                           // slot 2, 0x4730f0
     virtual int IsFinished();                           // slot 3, 0x473130
-    virtual void FUN_004743a0();                        // slot 4, 0x4743a0
-    virtual int FUN_004730c0();                         // slot 5, 0x4730c0
-    virtual void FUN_004742c0(Shape_00472ab0* p, Shape_00472ab0* q, int a, int b);
-    void FUN_004742c0(Vec3_004742c0* p, Vec3_004742c0* q, int a, int b);
+    virtual void Emit();                                // slot 4, 0x4743a0
+    virtual int IsEmitDue();                            // slot 5, 0x4730c0
+    virtual void Init(Shape_00472ab0* p, Shape_00472ab0* q, int a, int b);
+    void Init(Vec3_004742c0* p, Vec3_004742c0* q, int a, int b);
 };
 
 // The pool allocator of the vector members below, to call their out-of-line
@@ -778,7 +778,7 @@ void __stdcall EmitSmoke(Vec3_00472630* pos, int param_2, int param_3, short ind
     ParticleLists* owner = g_game->lists;
     SmokeParticles* e = new SmokeParticles;
     if (e) {
-        e->FUN_00474d50((Vec3_00474d50*)pos, 0, param_2, 0, param_3, 0);
+        e->Init((Vec3_00474d50*)pos, 0, param_2, 0, param_3, 0);
         owner->Add(index, e);
     }
 }
@@ -789,7 +789,7 @@ void __stdcall EmitTimedBlackSmoke(Vec3_00472720* pos, int param_2, int param_3,
     ParticleLists* owner = g_game->lists;
     SmokeParticles* e = new SmokeParticles;
     if (e) {
-        e->FUN_00474d50((Vec3_00474d50*)pos, 0, param_2, 0, param_3, 1);
+        e->Init((Vec3_00474d50*)pos, 0, param_2, 0, param_3, 1);
         owner->Add(index, e);
     }
 }
@@ -800,7 +800,7 @@ void __stdcall EmitWhiteSmoke(Vec3_00472810* pos, short index)
     ParticleLists* owner = g_game->lists;
     SmokeParticles* e = new SmokeParticles;
     if (e) {
-        e->FUN_00474d50((Vec3_00474d50*)pos, 0, 1, 0, 0, 0);
+        e->Init((Vec3_00474d50*)pos, 0, 1, 0, 0, 0);
         owner->Add(index, e);
     }
 }
@@ -814,7 +814,7 @@ void __stdcall EmitBlackSmoke(Vec3_00474cd0* p, short index)
     ParticleLists& l = *g_game->lists;
     SmokeParticles* e = new SmokeParticles;
     if (e) {
-        e->FUN_00474d50((Vec3_00474d50*)p, 0, 1, 0, 0, 1);
+        e->Init((Vec3_00474d50*)p, 0, 1, 0, 0, 1);
         l.Add(index, e);
     }
 }
@@ -825,7 +825,7 @@ void __stdcall EmitWeaponSmoke(Vec3_00474cd0* p, short index)
     ParticleLists& l = *g_game->lists;
     SmokeParticles* e = new SmokeParticles;
     if (e) {
-        e->FUN_00474d50((Vec3_00474d50*)p, 3, 1, 0x1e, 0, 0);
+        e->Init((Vec3_00474d50*)p, 3, 1, 0x1e, 0, 0);
         l.Add(index, e);
     }
 }
@@ -836,7 +836,7 @@ void __stdcall EmitTimedSubParticles(Vec3_00475150* p, short index)
     ParticleLists& l = *g_game->lists;
     TimedSubParticles* e = new TimedSubParticles;
     if (e) {
-        e->FUN_00475150(p, 5, 0, 0x96);
+        e->Init(p, 5, 0, 0x96);
         l.Add(index, e);
     }
 }

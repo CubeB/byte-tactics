@@ -420,7 +420,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x512988,DAT_00512988,.bss,4,type,data,Entry_004426e0*,1,0,1,one type,1,,DAT_00512988,,,
 0x51298c,DAT_0051298c,.bss,4,type,data,char*,1,0,1,one type,1,,DAT_0051298c,,,
 0x512990,DAT_00512990,.bss,4,type,data,char*,1,0,1,one type,1,,DAT_00512990,,,
-0x512994,DAT_00512994,.bss,4,type,data,int,4,0,1,one type,4,,DAT_00512994,,,
+0x512994,DAT_00512994,.bss,4,type,data,int,3,0,1,one type,3,,DAT_00512994,,,
 0x512998,DAT_00512998,.bss,12,gap,unreferenced,unsigned char[12],0,0,0,,0,,,,,
 0x5129a4,DAT_005129a4,.bss,4,type,data,int,1,0,1,one type,1,,DAT_005129a4,,,
 0x5129a8,DAT_005129a8,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_005129a8,,,

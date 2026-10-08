@@ -335,7 +335,7 @@ extern int DAT_00512984;                                                        
 extern Entry_004426e0* DAT_00512988;                                                                          // 0x512988, 4 bytes; 1 of 1 files
 extern char* DAT_0051298c;                                                                                    // 0x51298c, 4 bytes; 1 of 1 files
 extern char* DAT_00512990;                                                                                    // 0x512990, 4 bytes; 1 of 1 files
-extern int DAT_00512994;                                                                                      // 0x512994, 4 bytes; 4 of 4 files
+extern int DAT_00512994;                                                                                      // 0x512994, 4 bytes; 3 of 3 files
 extern unsigned char DAT_00512998[12];                                                                        // 0x512998, 12 bytes; nothing refers to it
 extern int DAT_005129a4;                                                                                      // 0x5129a4, 4 bytes; 1 of 1 files
 extern unsigned int DAT_005129a8;                                                                             // 0x5129a8, 4 bytes; 1 of 1 files

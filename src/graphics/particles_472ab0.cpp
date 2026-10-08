@@ -87,9 +87,9 @@ public:
     virtual void Update();                              // slot 1, 0x473010
     virtual void Render(int);                           // slot 2, 0x4730f0
     virtual int IsFinished();                           // slot 3, 0x473130
-    virtual void FUN_004743a0();                        // slot 4, 0x4743a0
-    virtual int FUN_004730c0();                         // slot 5, 0x4730c0
-    virtual void FUN_004742c0(Shape_00472ab0* p, Shape_00472ab0* q, int a, int b);
+    virtual void Emit();                                // slot 4, 0x4743a0
+    virtual int IsEmitDue();                            // slot 5, 0x4730c0
+    virtual void Init(Shape_00472ab0* p, Shape_00472ab0* q, int a, int b);
 };
 
 // The owner of the per-index lists.
@@ -130,7 +130,7 @@ void __stdcall EmitJitteredThrustParticles(Shape_00472ab0* param_1, short index)
     Lists_00472ab0* lists = g_game->lists;
     ThrustParticles* p = new ThrustParticles;
     if (p) {
-        p->FUN_004742c0(&s, &s, 1, r);
+        p->Init(&s, &s, 1, r);
         lists->Add(index, p);
     }
 }

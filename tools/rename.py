@@ -38,8 +38,11 @@ What it refuses, pair by pair:
 
   - a NEW that is not an identifier, or is a C++ keyword;
   - two names of one file that would become one: a file spelling OLD that
-    already spells NEW, or another OLD renamed to the same NEW (merging two
-    types in one file is phase 3, not a rename);
+    already spells NEW, or another OLD renamed to the same NEW. Two member
+    functions of different classes may share a name (data/symbols.csv says
+    which class a method belongs to: `Class::FUN_<address>`); two of one
+    class would be overloads, and a free function or a type in the way is
+    still refused (merging two types in one file is phase 3, not a rename);
   - a NEW that data/symbols.csv gives another address after the rename;
   - a NEW that is already a type in other files, unless --join says OLD's
     views are views of that type (the evidence: tools/gametypes.py --explain);
@@ -263,6 +266,30 @@ def refusals(pairs: list[tuple[str, str]], tree: Tree, join: bool) -> dict[tuple
     for old, new in pairs:
         groups[new].add(old)
     rel = lambda p: str(p.relative_to(ROOT))  # noqa: E731
+    # Which class each name is a method of, from data/symbols.csv's `Class::FUN_`
+    # rows: the one clash a rename allows below is between methods of different
+    # classes. A name the table gives no class is no method (a free function, a
+    # type, a global).
+    rows = list(csv.DictReader(SYMBOLS.open())) if SYMBOLS.exists() else []
+    members: dict[str, set[str]] = defaultdict(set)
+    plain: set[str] = set()
+    for r in rows:
+        cls, sep, name = r["name"].rpartition("::")
+        if sep and IDENT.match(name):
+            members[name].add(cls)
+        elif IDENT.match(r["name"]):
+            plain.add(r["name"])
+
+    def allowed_clash(first: str, second: str) -> bool:
+        """Whether two names may become one: both are methods, of different
+        classes. Two of one class would be overloads, and a free function or a
+        type in the way keeps the clash refused (merging types is phase 3)."""
+        if first in tree.types or second in tree.types:
+            return False
+        a = None if first in plain else members.get(first)
+        b = None if second in plain else members.get(second)
+        return bool(a) and bool(b) and not (a & b)
+
     for old, new in pairs:
         if not IDENT.match(new) or new in KEYWORDS:
             out[(old, new)].append(f"{new!r} is not a name C++ allows")
@@ -271,6 +298,7 @@ def refusals(pairs: list[tuple[str, str]], tree: Tree, join: bool) -> dict[tuple
         if old in tree.entries:
             out[(old, new)].append(f"{old} names a gap entry label (// ENTRY:), whose symbol the annotation makes")
         others = (groups[new] - {old}) | ({new} if new not in olds else set())
+        others = {o for o in others if not allowed_clash(old, o)}
         clash = [p for p, toks in tree.tokens.items()
                  if old in toks and (toks | tree.included[p]) & others and p not in tree.headers]
         if clash:
@@ -288,10 +316,10 @@ def refusals(pairs: list[tuple[str, str]], tree: Tree, join: bool) -> dict[tuple
                                    f"renaming {old} to it makes their views one type; pass --join if the "
                                    f"evidence says they are (tools/gametypes.py --explain {new})")
     # The name table after the rename: one address per name.
-    if SYMBOLS.exists():
+    if rows:
         renamer = Renamer(pairs)
         seen: dict[str, tuple[str, str]] = {}
-        for r in csv.DictReader(SYMBOLS.open()):
+        for r in rows:
             name = renamer.symbols(r["name"])
             if name in seen and seen[name][0] != r["address"] and (name != r["name"] or seen[name][1] != name):
                 culprits = [pr for pr in pairs if pr[1] in name]

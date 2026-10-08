@@ -82,8 +82,8 @@ public:
     virtual void Render(int);                           // slot 2, 0x475700
     virtual int IsFinished();                           // slot 3, 0x475330
     virtual void Emit();                                // slot 4, 0x4751c0
-    virtual int FUN_004750f0();                         // slot 5, 0x4750f0
-    virtual void FUN_00475150(Vec3_00475150* p, int a, int b, int c);  // slot 6
+    virtual int IsEmitDue();                            // slot 5, 0x4750f0
+    virtual void Init(Vec3_00475150* p, int a, int b, int c);          // slot 6
 };
 
 // The owner of the per-index lists.
@@ -111,7 +111,7 @@ void ParticleLists::AddTimedSubParticles(Vec3_00475150* param_1, int param_2,
 {
     TimedSubParticles* e = new TimedSubParticles;
     if (e) {
-        e->FUN_00475150(param_1, param_2, param_3, param_4);
+        e->Init(param_1, param_2, param_3, param_4);
         Add(index, e);
     }
 }

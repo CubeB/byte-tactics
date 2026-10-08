@@ -110,8 +110,8 @@ public:
     virtual void Emit();                                // slot 4, 0x4751c0
     // In particles_4750f0.cpp: it is defined returning bool, and Update tests
     // its result as an int.
-    virtual int FUN_004750f0();                         // slot 5, 0x4750f0
-    virtual void FUN_00475150(Vec3_00475150* pos, int a, int b, int c); // slot 6, 0x475150
+    virtual int IsEmitDue();                            // slot 5, 0x4750f0
+    virtual void Init(Vec3_00475150* pos, int a, int b, int c); // slot 6, 0x475150
 };
 
 // FUNCTION: 0x475700

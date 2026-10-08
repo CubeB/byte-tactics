@@ -77,8 +77,8 @@ public:
     virtual void Render(int);                           // slot 2, 0x475470
     virtual int IsFinished();                           // slot 3, 0x474f80
     virtual void Emit();                                // slot 4, 0x474df0
-    virtual int FUN_00475440();                         // slot 5, 0x475440
-    virtual void FUN_00474d50(Vec3_00474d50* pos, int limit, int a, int b, int c,
+    virtual int IsEmitDue();                            // slot 5, 0x475440
+    virtual void Init(Vec3_00474d50* pos, int limit, int a, int b, int c,
                               int alt);                 // slot 6, 0x474d50
 };
 
@@ -107,7 +107,7 @@ void ParticleLists::AddSmoke(Vec3_00474d50* param_1, int param_2, int param_3,
 {
     SmokeParticles* p = new SmokeParticles;
     if (p) {
-        p->FUN_00474d50(param_1, param_2, param_3, param_4, param_5, param_7);
+        p->Init(param_1, param_2, param_3, param_4, param_5, param_7);
         Add(index, p);
     }
 }

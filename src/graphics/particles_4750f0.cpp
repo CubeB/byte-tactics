@@ -8,11 +8,11 @@ extern UnknownStruct* g_game;
 
 class TimedSubParticles {
 public:
-    bool FUN_004750f0();
+    bool IsEmitDue();
 };
 
 // FUNCTION: 0x4750f0
-bool TimedSubParticles::FUN_004750f0()
+bool TimedSubParticles::IsEmitDue()
 {
     return *(unsigned int*)((char*)this + 8) <= *(unsigned int*)((char*)g_game + 0x38a47);
 }

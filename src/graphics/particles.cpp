@@ -492,8 +492,8 @@ public:
     virtual void Render(int);                           // slot 2, 0x472e30
     virtual int IsFinished();                           // slot 3, 0x472e70
     virtual void Emit();                                // slot 4, 0x4737c0
-    virtual int FUN_00472e00();                         // slot 5, 0x472e00
-    virtual void FUN_004736e0(Vec3_004736e0* a, Vec3_004736e0* b, int c);  // slot 6
+    virtual int IsEmitDue();                            // slot 5, 0x472e00
+    virtual void Init(Vec3_004736e0* a, Vec3_004736e0* b, int c);          // slot 6
 };
 
 // Vtable 0x4fd5b8, ??_G 0x471560; 0x4c bytes.
@@ -509,8 +509,8 @@ public:
     virtual void Render(int);                           // slot 2, 0x472f90
     virtual int IsFinished();                           // slot 3, 0x472fd0
     virtual void Emit();                                // slot 4, 0x473d50
-    virtual int FUN_00472f60();                         // slot 5, 0x472f60
-    virtual void FUN_00473b50(Seg_00473b50* a, Seg_00473b50* b, int c);  // slot 6
+    virtual int IsEmitDue();                            // slot 5, 0x472f60
+    virtual void Init(Seg_00473b50* a, Seg_00473b50* b, int c);          // slot 6
 };
 
 struct Shape_00472ab0;
@@ -529,10 +529,10 @@ public:
     virtual void Update();                              // slot 1, 0x473010
     virtual void Render(int);                           // slot 2, 0x4730f0
     virtual int IsFinished();                           // slot 3, 0x473130
-    virtual void FUN_004743a0();                        // slot 4, 0x4743a0
-    virtual int FUN_004730c0();                         // slot 5, 0x4730c0
-    virtual void FUN_004742c0(Shape_00472ab0* p, Shape_00472ab0* q, int a, int b);
-    void FUN_004742c0(Vec3_004742c0* p, Vec3_004742c0* q, int a, int b);
+    virtual void Emit();                                // slot 4, 0x4743a0
+    virtual int IsEmitDue();                            // slot 5, 0x4730c0
+    virtual void Init(Shape_00472ab0* p, Shape_00472ab0* q, int a, int b);
+    void Init(Vec3_004742c0* p, Vec3_004742c0* q, int a, int b);
 };
 
 // Vtable 0x4fd5f8, ??_G 0x4717e0; 0x48 bytes.
@@ -551,8 +551,8 @@ public:
     virtual void Render(int);                           // slot 2, 0x473250
     virtual int IsFinished();                           // slot 3, 0x473290
     virtual void Emit();                                // slot 4, 0x474880
-    virtual int FUN_00473220();                         // slot 5, 0x473220
-    virtual void FUN_00474760(Vec3_00474760* a, Vec3_00474760* b, int param_3,
+    virtual int IsEmitDue();                            // slot 5, 0x473220
+    virtual void Init(Vec3_00474760* a, Vec3_00474760* b, int param_3,
                               int param_4, int param_5);  // slot 6
 };
 
@@ -851,8 +851,8 @@ public:
     virtual void Render(int);                           // slot 2, 0x475470
     virtual int IsFinished();                           // slot 3, 0x474f80
     virtual void Emit();                                // slot 4, 0x474df0
-    virtual int FUN_00475440();                         // slot 5, 0x475440
-    virtual void FUN_00474d50(Vec3_00474d50* pos, int limit, int a, int b, int c,
+    virtual int IsEmitDue();                            // slot 5, 0x475440
+    virtual void Init(Vec3_00474d50* pos, int limit, int a, int b, int c,
                               int alt);                 // slot 6, 0x474d50
 };
 
@@ -873,8 +873,8 @@ public:
     virtual void Emit();                                // slot 4, 0x4751c0
     // In particles_4750f0.cpp: it is defined returning bool, and Update tests
     // its result as an int.
-    virtual int FUN_004750f0();                         // slot 5, 0x4750f0
-    virtual void FUN_00475150(Vec3_00475150* pos, int a, int b, int c); // slot 6, 0x475150
+    virtual int IsEmitDue();                            // slot 5, 0x4750f0
+    virtual void Init(Vec3_00475150* pos, int a, int b, int c); // slot 6, 0x475150
 };
 
 // The explored-cell views of the smoke draws.
@@ -1397,7 +1397,7 @@ void ParticleLists::AddTeleportParticles(int param_1, int param_2, int param_3, 
 {
     TeleportParticles* p = new TeleportParticles;
     if (p) {
-        p->FUN_004736e0((Vec3_004736e0*)param_1, (Vec3_004736e0*)param_2, param_3);
+        p->Init((Vec3_004736e0*)param_1, (Vec3_004736e0*)param_2, param_3);
         Add(index, p);
     }
 }
@@ -1416,7 +1416,7 @@ void ParticleLists::AddNanoParticles(int param_1, int param_2, int param_3, shor
 {
     NanoParticles* p = new NanoParticles;
     if (p) {
-        p->FUN_00473b50((Seg_00473b50*)param_1, (Seg_00473b50*)param_2, param_3);
+        p->Init((Seg_00473b50*)param_1, (Seg_00473b50*)param_2, param_3);
         Add(index, p);
     }
 }
@@ -1437,7 +1437,7 @@ void ParticleLists::AddThrustParticles(int param_1, int param_2, int param_3, in
 {
     ThrustParticles* p = new ThrustParticles;
     if (p) {
-        p->FUN_004742c0((Shape_00472ab0*)param_1, (Shape_00472ab0*)param_2, param_3, param_4);
+        p->Init((Shape_00472ab0*)param_1, (Shape_00472ab0*)param_2, param_3, param_4);
         Add(index, p);
     }
 }
@@ -1458,7 +1458,7 @@ void ParticleLists::AddWakeParticles(int param_1, int param_2, int param_3,
 {
     WakeParticles* p = new WakeParticles;
     if (p) {
-        p->FUN_00474760((Vec3_00474760*)param_1, (Vec3_00474760*)param_2, param_3, param_4, param_6);
+        p->Init((Vec3_00474760*)param_1, (Vec3_00474760*)param_2, param_3, param_4, param_6);
         Add(index, p);
     }
 }
@@ -1622,7 +1622,7 @@ void __stdcall EmitTeleportParticles(int param_1, int param_2, int param_3, shor
     Lists_00471fd0* l = g_game->lists_00471fd0;
     TeleportParticles* p = new TeleportParticles;
     if (p) {
-        p->FUN_004736e0((Vec3_004736e0*)param_1, (Vec3_004736e0*)param_2, param_3);
+        p->Init((Vec3_004736e0*)param_1, (Vec3_004736e0*)param_2, param_3);
         Add(l, index, p);
     }
 }
@@ -1659,7 +1659,7 @@ void __stdcall EmitNanoParticles(Vec3_004720d0* p, void* param_2, short index)
     Lists_004720d0* lists = g_game->lists_004720d0;
     NanoParticles* q = new NanoParticles;
     if (q) {
-        q->FUN_00473b50((Seg_00473b50*)&ctx.a, (Seg_00473b50*)param_2, 1);
+        q->Init((Seg_00473b50*)&ctx.a, (Seg_00473b50*)param_2, 1);
         Add_004720d0(lists, index, q);
     }
 }
@@ -1679,7 +1679,7 @@ void __stdcall EmitReverseNanoParticles(Pos_00472200* param_1, Vec3* param_2, sh
     Class_00472200* lists = g_game->lists_00472200;
     NanoParticles* p = new NanoParticles;
     if (p) {
-        p->FUN_00473b50((Seg_00473b50*)param_1, (Seg_00473b50*)&pos, 1);
+        p->Init((Seg_00473b50*)param_1, (Seg_00473b50*)&pos, 1);
         lists->Add(param_3, p);
     }
 }
@@ -1700,7 +1700,7 @@ void __stdcall EmitThrustParticles(int param_1, int param_2, int param_3, int pa
     Lists_00472330* lists = g_game->lists_00472330;
     ThrustParticles* p = new ThrustParticles;
     if (p) {
-        p->FUN_004742c0((Shape_00472ab0*)param_1, (Shape_00472ab0*)param_2, param_3, param_4);
+        p->Init((Shape_00472ab0*)param_1, (Shape_00472ab0*)param_2, param_3, param_4);
         lists->Add(index, p);
     }
 }
@@ -1717,7 +1717,7 @@ void __stdcall EmitWakeParticles(int param_1, int param_2, int param_3, short in
     Lists_00472430* l = g_game->lists_00472430;
     WakeParticles* p = new WakeParticles;
     if (p) {
-        p->FUN_00474760((Vec3_00474760*)param_1, (Vec3_00474760*)param_2, param_3, 1, 1);
+        p->Init((Vec3_00474760*)param_1, (Vec3_00474760*)param_2, param_3, 1, 1);
         l->Add(index, p);
     }
 }
@@ -1736,7 +1736,7 @@ void __stdcall EmitBubbles(int param_1, int param_2, int param_3, short index)
     Lists_00472530* l = g_game->lists_00472530;
     WakeParticles* p = new WakeParticles;
     if (p) {
-        p->FUN_00474760((Vec3_00474760*)param_1, (Vec3_00474760*)param_2, param_3, 1, 0);
+        p->Init((Vec3_00474760*)param_1, (Vec3_00474760*)param_2, param_3, 1, 0);
         l->Add(index, p);
     }
 }
@@ -1761,14 +1761,14 @@ void TeleportParticles::Update()
             ++it;
         }
     }
-    if (FUN_00472e00()) {
+    if (IsEmitDue()) {
         Emit();
     }
 }
 
 // Slot 5: whether it is time to emit again.
 // FUNCTION: 0x472e00
-int TeleportParticles::FUN_00472e00()
+int TeleportParticles::IsEmitDue()
 {
     if (field_8 <= field_4) {
         unsigned int game_val = g_game->field_38a47;
@@ -1811,13 +1811,13 @@ void NanoParticles::Update()
         else
             ++it;
     }
-    if (FUN_00472f60())
+    if (IsEmitDue())
         Emit();
 }
 
 // Slot 5: whether it is time to emit again.
 // FUNCTION: 0x472f60
-int NanoParticles::FUN_00472f60()
+int NanoParticles::IsEmitDue()
 {
     if (field_8 <= field_4) {
         unsigned int game_val = g_game->ticks;
@@ -1858,13 +1858,13 @@ void ThrustParticles::Update()
         else
             ++it;
     }
-    if (FUN_004730c0())
-        FUN_004743a0();
+    if (IsEmitDue())
+        Emit();
 }
 
 // Slot 5: whether it is time to emit again.
 // FUNCTION: 0x4730c0
-int ThrustParticles::FUN_004730c0()
+int ThrustParticles::IsEmitDue()
 {
     if (field_8 <= field_4) {
         unsigned int val = g_game->ticks;
@@ -1908,14 +1908,14 @@ void WakeParticles::Update()
             ++it;
         }
     }
-    if (FUN_00473220()) {
+    if (IsEmitDue()) {
         Emit();
     }
 }
 
 // Slot 5: whether it is time to emit again.
 // FUNCTION: 0x473220
-int WakeParticles::FUN_00473220()
+int WakeParticles::IsEmitDue()
 {
     if (field_8 <= field_4 && field_8 <= g_game->now) {
         return 1;
@@ -2014,7 +2014,7 @@ int TeleportParticle::IsExpired(int param_1)
 // divides the difference by how many 327680-unit segments its length holds
 // instead of multiplying it by a reciprocal id.
 // FUNCTION: 0x4736e0
-void TeleportParticles::FUN_004736e0(Vec3_004736e0* a, Vec3_004736e0* b, int c)
+void TeleportParticles::Init(Vec3_004736e0* a, Vec3_004736e0* b, int c)
 {
     SetLifetime(c);
     pos1 = *a;
@@ -2090,7 +2090,7 @@ int NanoParticle::IsExpired(int value)
 
 // Slot 6: takes the two segments and keeps the middle 3/11 of each.
 // FUNCTION: 0x473b50
-void NanoParticles::FUN_00473b50(Seg_00473b50* a, Seg_00473b50* b, int c)
+void NanoParticles::Init(Seg_00473b50* a, Seg_00473b50* b, int c)
 {
     SetLifetime(c);
     seg_1c = *a;
@@ -2154,7 +2154,7 @@ int ThrustParticle::IsExpired(int value)
 // difference in a third one and scales that by the 16.16 reciprocal of the id
 // ((1 << 32) / (id << 16) is 65536 / id), so the offset ends up divided by it.
 // FUNCTION: 0x4742c0
-void ThrustParticles::FUN_004742c0(Vec3_004742c0* p, Vec3_004742c0* q, int a, int b)
+void ThrustParticles::Init(Vec3_004742c0* p, Vec3_004742c0* q, int a, int b)
 {
     ((ParticleSystem*)this)->SetLifetime(b);
     field_1c = a;
@@ -2163,7 +2163,7 @@ void ThrustParticles::FUN_004742c0(Vec3_004742c0* p, Vec3_004742c0* q, int a, in
     pos2 = pos1 - pos0;
     int scale = (int)(((__int64)1 << 32) / (b << 16));
     pos2.Scale(scale);
-    FUN_004743a0();
+    Emit();
 }
 
 // Slot 4 (same 0x3c-byte record family as 0x474df0 and
@@ -2176,7 +2176,7 @@ void ThrustParticles::FUN_004742c0(Vec3_004742c0* p, Vec3_004742c0* q, int a, in
 // positions land at +0x04/+0x10/+0x1c and field_4 is the record's last dword
 // at +0x38, inside the 0x3c bytes.
 // FUNCTION: 0x4743a0
-void ThrustParticles::FUN_004743a0()
+void ThrustParticles::Emit()
 {
     int extra = field_4 - g_game->ticks + 1;
     if (extra > 0) {
@@ -2256,7 +2256,7 @@ int WakeParticle::IsExpired(int param_1)
 // a length of 32768 (2^31/len as 16.16), and the two arguments it passes on,
 // then updates itself.
 // FUNCTION: 0x474760
-void WakeParticles::FUN_00474760(Vec3_00474760* a, Vec3_00474760* b, int param_3,
+void WakeParticles::Init(Vec3_00474760* a, Vec3_00474760* b, int param_3,
                                   int param_4, int param_5)
 {
     SetLifetime(param_4);
@@ -2351,7 +2351,7 @@ int SmokeParticle::IsExpired(int unused)
 // Slot 6. Sibling of 0x475150 (same base call, position copy and virtual
 // call).
 // FUNCTION: 0x474d50
-void SmokeParticles::FUN_00474d50(Vec3_00474d50* p, int limit, int a, int b, int c,
+void SmokeParticles::Init(Vec3_00474d50* p, int limit, int a, int b, int c,
                                   int alt)
 {
     SetLifetime(c);
@@ -2457,7 +2457,7 @@ int TimedSubParticle::IsExpired(int unused)
 
 // Slot 6.
 // FUNCTION: 0x475150
-void TimedSubParticles::FUN_00475150(Vec3_00475150* p, int a, int b, int c)
+void TimedSubParticles::Init(Vec3_00475150* p, int a, int b, int c)
 {
     SetLifetime(c);
     pos = *p;
@@ -2532,13 +2532,13 @@ void SmokeParticles::Update()
             ++it;
         }
     }
-    if (FUN_00475440())
+    if (IsEmitDue())
         Emit();
 }
 
 // Slot 5: whether it is time to emit again.
 // FUNCTION: 0x475440
-int SmokeParticles::FUN_00475440()
+int SmokeParticles::IsEmitDue()
 {
     if (time <= field_4 && (unsigned int)time <= (unsigned int)g_game->ticks) {
         return 1;
@@ -2570,7 +2570,7 @@ void TimedSubParticles::Update()
             ++it;
         }
     }
-    if (FUN_004750f0())
+    if (IsEmitDue())
         Emit();
 }
 

@@ -1089,7 +1089,7 @@ Things that look wrong in the original but have no effect, kept for the record.
   stores (`field_38a4b`, `field_38a4d`) never run. Harmless dead code unless
   the test was meant to come before the reset. Found by OpenCode /
   deepseek-v4.1-flash in #6051.
-- **0x474760** (`WakeParticles::FUN_00474760`, possible): divides 2^32 by
+- **0x474760** (`WakeParticles::Init`, possible): divides 2^32 by
   twice the length of the direction between its two points with no test for
   zero, so two identical points raise a divide exception at 0x474811
   (`_alldiv`). Harmless if callers never pass coincident points. Found by

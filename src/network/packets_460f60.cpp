@@ -1,4 +1,6 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
+// Stays in a file of its own: this destructor matches only with the inline
+// PacketReceiver destructor below, where packets_460f40.cpp needs another form.
 // The compiler-generated static destructor (_$E2) of the global object
 // g_packetManager, whose dynamic initialiser is 0x460e20 and whose out-of-line
 // destructor is 0x461420.

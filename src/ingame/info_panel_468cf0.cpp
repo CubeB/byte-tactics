@@ -46,9 +46,9 @@ int __stdcall DrawMapTiles(int);
 int __stdcall DrawFogOfWar(int);
 int __stdcall FindNextSelectedUnit(int,int);
 int __stdcall DrawSelectedUnitOrderOverlays(int,int);
-int __stdcall FUN_004948e0(int);
+int __stdcall DrawScorePanel(int);
 int __stdcall DrawProjectiles(int);
-int __stdcall FUN_004ab170(int,int,int);
+int __stdcall BlitMenuLayers(int,int,int);
 int GetFrameRate();
 int GetScreenHeight();
 int __stdcall PointInRect(int,int,int);
@@ -503,7 +503,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   if ((*(Mission **)(g_game + 0x391e9))->GetGameType() == 3 ||
       (*(Mission **)(g_game + 0x391e9))->GetGameType() == 2) {
     ResetClipRect((int)&ctx);
-    FUN_004948e0((int)&ctx);
+    DrawScorePanel((int)&ctx);
     ctx.SetClipRect(*(OverlayRect *)(g_game + 0x37e27));
   }
   DrawStatusPanel((int)&ctx);
@@ -548,7 +548,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   if (((Bits8 *)(g_game + 0x38a51))->b1)
     DrawFrame((int)&ctx, GetGafFrame(*(int *)(g_game + 0x148cf), 0), *(int *)(g_game + 0x37e1f) - 0x10, *(int *)(g_game + 0x37e23) - 0x50);
   ResetClipRect((int)&ctx);
-  FUN_004ab170((int)(g_game + 0x519), (int)&ctx, (int)(g_game + 0x37e27));
+  BlitMenuLayers((int)(g_game + 0x519), (int)&ctx, (int)(g_game + 0x37e27));
   if (*(int *)(g_game + 0x38dd5) != 0 && param_1 != 0) {
     DrawProfileBarLine((int)&ctx, (int)"Network", 0);
     DrawProfileBarLine((int)&ctx, (int)"Units", 1);

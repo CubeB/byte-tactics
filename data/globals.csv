@@ -115,7 +115,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x50310c,g_extTdf,.data,4,gap,string,char[],1,0,1,one type,1,,DAT_0050310c,,,74646600
 0x503120,DAT_00503120,.data,8,gap,string,char[],1,0,1,one type,1,,DAT_00503120,,,43484f4943453200
 0x503128,DAT_00503128,.data,8,gap,string,char[],1,0,1,one type,1,,DAT_00503128,,,43484f4943453100
-0x503130,DAT_00503130,.data,12,gap,string,char[],1,0,1,one type,1,,s_SmallButton_00503130,,,536d616c6c427574746f6e00
+0x503130,g_smallButtonSoundName,.data,12,gap,string,char[],1,0,1,one type,1,,s_SmallButton_00503130,,,536d616c6c427574746f6e00
 0x50313c,DAT_0050313c,.data,8,gap,string,char[],1,0,1,one type,1,,s_TITLE_0050313c,,,5449544c45000000
 0x503160,DAT_00503160,.data,4,gap,string,char[],1,0,1,one type,1,,DAT_00503160,,,4e6f0000
 0x503164,DAT_00503164,.data,4,gap,string,char[],1,0,1,one type,1,,DAT_00503164,,,59657300
@@ -175,7 +175,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x5061d8,g_timeoutPlayerDpid,.data,4,type,data,int,1,0,1,one type,1,,DAT_005061d8,,,ffffffff
 0x506290,DAT_00506290,.data,8,gap,string,char[],1,0,1,one type,1,,s__s__s_00506290,,,2573202573000000
 0x506524,s_PACKET_DATA_00506524,.data,12,gap,string,char[],1,0,1,one type,1,,s_PACKET_DATA_00506524,1,,5041434b4554204441544100
-0x506578,DAT_00506578,.data,8,gap,string,char[],1,0,1,one type,1,,DAT_00506578,,,54414c4b00000000
+0x506578,g_talkGadgetName,.data,8,gap,string,char[],1,0,1,one type,1,,DAT_00506578,,,54414c4b00000000
 0x50658c,DAT_0050658c,.data,56,gap,string,char[],1,0,1,one type,1,,s_has_modified_his_executable__Gam_0050658c,,,686173206d6f646966696564206869732065786563757461626c652e202047616d6520696e746567726974792062726561636865642e0000
 0x5065c4,DAT_005065c4,.data,28,gap,string,char[],1,0,1,one type,1,,s_Player__s_has_disconnected_005065c4,,,506c617965722025732068617320646973636f6e6e65637465640000
 0x5065f8,g_lightX,.data,4,type,float,float,2,0,1,one type,2,,_DAT_005065f8,,,cdcc4cbf
@@ -212,7 +212,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x507b6c,g_campaignSimplifiedLayout,.data,4,type,data,int,1,0,1,one type,1,,DAT_00507b6c,,,01000000
 0x507b70,g_briefingTextColors,.data,1,gap,data,unsigned char[],1,0,1,one type,1,0x1,DAT_00507b70,,,35
 0x507b88,g_forcesDestroyedTexts,.data,12,gap,data,char*[],1,0,1,one type,1,,PTR_s_forces_have_been_obliterated_00507b88,3,,d87b5000b87b5000947b5000
-0x508384,DAT_00508384,.data,8,gap,string,char[],1,0,1,one type,1,,s_Allies_00508384,,,416c6c6965730000
+0x508384,g_alliesChatTarget,.data,8,gap,string,char[],1,0,1,one type,1,,s_Allies_00508384,,,416c6c6965730000
 0x508460,g_skirmishCheatSoundName,.data,16,gap,string,const char[],1,0,1,one type,1,,s_SkirmishCheat_00508460,,,536b69726d6973684368656174000000
 0x508470,g_cheatTenPlayers,.data,4,gap,string,const char[],1,0,1,one type,1,,DAT_00508470,,,2a580000
 0x508474,g_cheatNinePlayers,.data,4,gap,string,const char[],1,0,1,one type,1,,DAT_00508474,,,2a495800
@@ -248,7 +248,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x5090fc,DAT_005090fc,.data,32,gap,string,char[],1,0,1,one type,1,,s_DefeatCondition_AllUnitsKilled_005090fc,,,446566656174436f6e646974696f6e5f416c6c556e6974734b696c6c65640000
 0x5091c8,DAT_005091c8,.data,4,type,data,char*,2,0,1,one type,2,,PTR_s_SAVEGAME_005091c8,1,,8c6d5000
 0x5091cc,DAT_005091cc,.data,4,type,data,int,2,0,1,one type,2,,DAT_005091cc,,,01000000
-0x5091d0,DAT_005091d0,.data,4,type,data,int,1,0,1,one type,1,,DAT_005091d0,,,ffffffff
+0x5091d0,g_lastCdActivityMode,.data,4,type,data,int,1,0,1,one type,1,,DAT_005091d0,,,ffffffff
 0x5091d4,g_offscreenSurfaceName,.data,12,gap,string,const char[],1,0,1,one type,1,,s_OFFSCREEN_005091d4,,,4f464653435245454e000000
 0x509200,g_cdListsKey,.data,8,gap,string,const char[],1,0,1,one type,1,,s_CDLISTS_00509200,,,43444c4953545300
 0x509238,g_unitLimitKey,.data,12,gap,string,const char[],1,0,1,one type,1,,s_UnitLimit_00509238,,,556e69744c696d6974000000
@@ -257,11 +257,11 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x50925c,g_commonGuiName,.data,12,gap,string,const char[],1,0,1,one type,1,,s_commongui_0050925c,,,636f6d6d6f6e677569000000
 0x509268,g_skirmishInfoTag,.data,16,gap,string,const char[],1,0,1,one type,1,,s_SkirmishInfo_00509268,,,536b69726d697368496e666f00000000
 0x509310,g_invalidSavegameText,.data,24,gap,string,const char[],1,0,1,one type,1,,s_Invalid_savegame_file_00509310,,,496e76616c6964207361766567616d652066696c65000000
-0x5093ec,DAT_005093ec,.data,8,gap,string,char[],1,0,1,one type,1,,,,,456e656d69657300
-0x5093f4,DAT_005093f4,.data,4,gap,string,char[],1,0,1,one type,1,,DAT_005093f4,,,2c3a3b00
-0x5093f8,DAT_005093f8,.data,8,gap,string,char[],1,0,1,one type,1,,s_SENDTO_005093f8,,,53454e44544f0000
-0x509400,DAT_00509400,.data,12,gap,string,char[],1,0,1,one type,1,,s_SENDTYPE_00509400,,,53454e445459504500000000
-0x50940c,DAT_0050940c,.data,12,gap,string,char[],1,0,1,one type,1,,s_LIVEPLYR_0050940c,,,4c495645504c595200000000
+0x5093ec,g_enemiesChatTarget,.data,8,gap,string,char[],1,0,1,one type,1,,,,,456e656d69657300
+0x5093f4,g_chatTargetSeparators,.data,4,gap,string,char[],1,0,1,one type,1,,DAT_005093f4,,,2c3a3b00
+0x5093f8,g_sendToGadgetName,.data,8,gap,string,char[],1,0,1,one type,1,,s_SENDTO_005093f8,,,53454e44544f0000
+0x509400,g_sendTypeGadgetName,.data,12,gap,string,char[],1,0,1,one type,1,,s_SENDTYPE_00509400,,,53454e445459504500000000
+0x50940c,g_livePlayerPrefix,.data,12,gap,string,char[],1,0,1,one type,1,,s_LIVEPLYR_0050940c,,,4c495645504c595200000000
 0x50966c,g_screenshotPrefix,.data,12,gap,string,char[],1,0,1,one type,1,,DAT_0050966c,,,53484f540000000000000000
 0x509678,g_fireScriptNames,.data,16,type,data,char*[4],1,0,1,one type,1,,PTR_s_FirePrimary_00509678,3,,dc965000cc965000bc96500000000000
 0x509688,g_aimScriptNames,.data,12,type,data,char*[3],1,0,1,one type,1,,PTR_s_AimPrimary_00509688,3,,b0965000a096500094965000
@@ -306,7 +306,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x50d72c,DAT_0050d72c,.data,4,type,data,char*,1,0,1,one type,1,,PTR_s_Memory_Status_0050d72c,1,,30d75000
 0x50d980,g_pentiumEvents,.data,128,gap,data,EventEntry[],1,1,2,conflicting: array or pointer,2,,DAT_0050d980,8,src/debug/perf_counters.cpp,000300500cdd5000030000000000000000030150f8dc5000030000000000000000030b50d4dc5000030000000003285000032250b8dc50000300000000000000
 0x50da00,g_pentiumProEvents,.data,272,gap,data,EventEntry[],1,1,2,conflicting: array or pointer,2,,DAT_0050da00,17,src/debug/perf_counters.cpp,00030560d4dc500003000000000343600001106048dc500001000000000000000002116030dc500002000000000000000002126024dc50000200000000000000
-0x5119b8,DAT_005119b8,.bss,8,gap,data,char[],34,2,3,conflicting: shape,36,,DAT_005119b8,,,
+0x5119b8,DAT_005119b8,.bss,8,gap,data,char[],33,2,3,conflicting: shape,35,,DAT_005119b8,,,
 0x5119c0,g_playerAI,.bss,40,gap,data,PlayerAI*[],2,1,2,conflicting: struct names only,3,0x28,DAT_005119c0,,,
 0x5119e8,g_playerBudgetCap,.bss,40,type,data,int[10],1,0,1,one type,1,0x28,DAT_005119e8,,,
 0x511a10,g_playerTickLoad,.bss,40,type,data,int[10],1,0,1,one type,1,,DAT_00511a10,,,
@@ -351,7 +351,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x511ddc,g_byteRatesTick,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_00511ddc,,,
 0x511de0,DAT_00511de0,.bss,4,type,data,int,2,0,1,one type,2,,DAT_00511de0,,,
 0x511de4,g_cdPathMismatch,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511de4,,,
-0x511de8,g_game,.bss,4,type,data,Game*,147,19,14,conflicting: shape,165,,DAT_00511de8,,,
+0x511de8,g_game,.bss,4,type,data,Game*,145,19,14,conflicting: shape,163,,DAT_00511de8,,,
 0x511dec,g_endGameGlamourSoundStarted,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511dec,,,
 0x511df0,g_explodedPieces,.bss,400,type,data,ExplodedPiece*[100],1,0,1,one type,1,0x190,DAT_00511df0,,,
 0x511f80,DAT_00511f80,.bss,16,gap,data,CMemoryCache,2,0,1,one type,2,,DAT_00511f80,,,
@@ -689,10 +689,10 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51e6c4,DAT_0051e6c4,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_0051e6c4,,,
 0x51e6c8,g_loadingBarFlashAlpha,.bss,8,parts,data,"extern ""C"" (no type)",1,0,1,one type,1,0x4,DAT_0051e6c8,,,
 0x51e6cc,DAT_0051e6cc,.bss,4,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,0x1,DAT_0051e6cc,,in g_loadingBarFlashAlpha+0x4,
-0x51e6d0,DAT_0051e6d0,.bss,40,type,data,int[10],1,0,1,one type,1,,DAT_0051e6d0,,,
+0x51e6d0,g_shareDialogPlayerNetIds,.bss,40,type,data,int[10],1,0,1,one type,1,,DAT_0051e6d0,,,
 0x51e6f8,g_savegameRadarFrame,.bss,24,gap,data,char[],1,0,1,one type,1,,DAT_0051e6f8,,,
 0x51e710,DAT_0051e710,.bss,120,type,data,int[30],2,0,2,one type,2,,DAT_0051e710,,,
-0x51e788,DAT_0051e788,.bss,136,gap,data,char[],1,0,1,one type,1,,DAT_0051e788,,,
+0x51e788,g_chatDraftText,.bss,136,gap,data,char[],1,0,1,one type,1,,DAT_0051e788,,,
 0x51e810,DAT_0051e810,.bss,10,type>gap,data,unsigned char[10],2,0,1,one type,2,0x8,DAT_0051e810,,,
 0x51e81a,DAT_0051e81a,.bss,6,gap,unreferenced,unsigned char[6],0,0,0,,0,,,,,
 0x51e820,g_loadingBarPrevPercent,.bss,5,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,0x4,_DAT_0051e820,,,
@@ -715,10 +715,10 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51f2e4,DAT_0051f2e4,.bss,4,type,data,int*,1,1,2,conflicting: shape,2,,DAT_0051f2e4,,,
 0x51f2e8,DAT_0051f2e8,.bss,4,type,data,int*,1,1,2,conflicting: shape,2,,DAT_0051f2e8,,,
 0x51f2ec,DAT_0051f2ec,.bss,4,type,data,int*,1,1,2,conflicting: shape,2,,DAT_0051f2ec,,,
-0x51f2f0,DAT_0051f2f0,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051f2f0,,,
-0x51f2f4,DAT_0051f2f4,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051f2f4,,,
-0x51f2f8,DAT_0051f2f8,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_0051f2f8,,,
-0x51f2fc,DAT_0051f2fc,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051f2fc,,,
+0x51f2f0,g_chatDraftInitialized,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051f2f0,,,
+0x51f2f4,g_scorePanelFlashDecayTick,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051f2f4,,,
+0x51f2f8,g_cdActivityLastSampleTick,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_0051f2f8,,,
+0x51f2fc,g_cdActivityStableTicks,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051f2fc,,,
 0x51f300,g_netProbeNextTick,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051f300,,,
 0x51f304,g_netHeartbeatNextTick,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051f304,,,
 0x51f308,g_loadingBarFlashDecayTick,.bss,8,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,,DAT_0051f308,,,

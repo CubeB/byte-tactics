@@ -1593,8 +1593,8 @@ char* __stdcall SkipTextLines(char* text, int n);
 int __cdecl GetTicks();
 int __stdcall IsDoubleClickMessage(Object_004a3780* obj, unsigned char buttons);
 int __stdcall IsMouseButtonMessage(Object_004a3780* obj, unsigned char buttons);
-int __stdcall FUN_004ab5b0(Object_004a3780* obj, unsigned int mask);
-void __stdcall FUN_004ab690(Object_004a3780* obj, int param_2);
+int __stdcall HasMouseKeyFlags(Object_004a3780* obj, unsigned int mask);
+void __stdcall SetClickMode(Object_004a3780* obj, int param_2);
 void __stdcall FUN_0049fc50(Object_004a3780* obj, int index);
 void __stdcall DrawListBox(Object_004a3780* obj, int index);
 void __stdcall FUN_004a2be0(Object_004a3780* obj, int index);
@@ -1698,18 +1698,18 @@ skip0:;
     } else if (IsMouseButtonMessage(obj, 1)) {
         if (point.x >= r.x0 && point.x <= r.x1 && point.y >= r.y0 && point.y <= r.y1) {
             FUN_0049fc50(obj, index);
-            FUN_004ab690(obj, 1);
+            SetClickMode(obj, 1);
         }
     } else if (IsMouseButtonMessage(obj, 2)) {
         if (point.x >= r.x0 && point.x <= r.x1 && point.y >= r.y0 && point.y <= r.y1) {
             FUN_0049fc50(obj, index);
-            FUN_004ab690(obj, 2);
+            SetClickMode(obj, 2);
         }
     }
 
     if (obj->focus != index)
         goto end;
-    if (!FUN_004ab5b0(obj, 3))
+    if (!HasMouseKeyFlags(obj, 3))
         obj->focus = -1;
     if (point.x >= r.x0 && point.x <= r.x1 && point.y >= r.y0 && point.y <= r.y1) {
         obj->holder->field_20 = index;
@@ -1919,8 +1919,8 @@ void __stdcall FUN_004a23b0(Entry_004a4170* base, int index, int* r1, int* r2);
 void __stdcall FUN_004a2580(Object_004a4170* obj, int index);
 void __stdcall FUN_004a2be0(Object_004a4170* obj, int index);
 int __stdcall IsMouseButtonMessage(Object_004a4170* obj, unsigned char buttons);
-int __stdcall FUN_004ab5b0(Object_004a4170* obj, unsigned int mask);
-void __stdcall FUN_004ab690(Object_004a4170* obj, int param_2);
+int __stdcall HasMouseKeyFlags(Object_004a4170* obj, unsigned int mask);
+void __stdcall SetClickMode(Object_004a4170* obj, int param_2);
 
 static inline void OffsetChanged_004a4170(Object_004a4170* obj, int index, Entry_004a4170* e, int old)
 {
@@ -1956,7 +1956,7 @@ void __stdcall HandleSliderInput(Object_004a4170* obj, int index)
     FUN_004a23b0(entries, index, r1, r2);
 
     if (obj->focus == index) {
-        if (!FUN_004ab5b0(obj, 3)) {
+        if (!HasMouseKeyFlags(obj, 3)) {
             obj->focus = -1;
             obj->field_78 = 0;
         }
@@ -1994,7 +1994,7 @@ void __stdcall HandleSliderInput(Object_004a4170* obj, int index)
         if (p.x < r1[0] || p.x > r1[2] || p.y < r1[1] || p.y > r1[3])
             return;
         FUN_0049fc50(obj, index);
-        FUN_004ab690(obj, 1);
+        SetClickMode(obj, 1);
         if (p.x < r2[0] || p.x > r2[2] || p.y < r2[1] || p.y > r2[3])
             return;
         obj->saved = p;
@@ -2007,7 +2007,7 @@ void __stdcall HandleSliderInput(Object_004a4170* obj, int index)
         if (p.x < r1[0] || p.x > r1[2] || p.y < r1[1] || p.y > r1[3])
             return;
         FUN_0049fc50(obj, index);
-        FUN_004ab690(obj, 2);
+        SetClickMode(obj, 2);
         if (p.x < r2[0] || p.x > r2[2] || p.y < r2[1] || p.y > r2[3])
             return;
         obj->saved = p;
@@ -2058,8 +2058,8 @@ struct Object_0049fc50 {
 
 int __stdcall FUN_0049fc50(Object_0049fc50* obj, int index);
 int __stdcall IsMouseButtonMessage(Object_0049fc50* obj, unsigned char buttons);
-int __stdcall FUN_004ab5b0(Object_0049fc50* obj, unsigned int mask);
-void __stdcall FUN_004ab690(Object_0049fc50* obj, int param_2);
+int __stdcall HasMouseKeyFlags(Object_0049fc50* obj, unsigned int mask);
+void __stdcall SetClickMode(Object_0049fc50* obj, int param_2);
 int PopKey(void);
 int __stdcall IsKeyDown(int key);
 
@@ -2094,18 +2094,18 @@ int __stdcall FUN_004a4440(Object_0049fc50* obj, int index, char key)
         if (rel_x < rect.x1 || rel_x > rect.x2 || rel_y < rect.y1 || rel_y > rect.y2)
             goto fail;
         FUN_0049fc50(obj, index);
-        FUN_004ab690(obj, 1);
+        SetClickMode(obj, 1);
     } else if (IsMouseButtonMessage(obj, 2)) {
         if (rel_x < rect.x1 || rel_x > rect.x2 || rel_y < rect.y1 || rel_y > rect.y2)
             goto fail;
         FUN_0049fc50(obj, index);
-        FUN_004ab690(obj, 2);
+        SetClickMode(obj, 2);
     }
 
 fail:
     if (obj->focus != index)
         goto check_queue;
-    if (FUN_004ab5b0(obj, 3))
+    if (HasMouseKeyFlags(obj, 3))
         goto check_queue;
     obj->focus = -1;
     if (rel_x < rect.x1 || rel_x > rect.x2 || rel_y < rect.y1 || rel_y > rect.y2)
@@ -2480,7 +2480,7 @@ void __stdcall FUN_004a4980(Dialog_4a4980* obj, int index)
 // height; a type-0 header uses origin 0,0), the entry may have a callback at
 // +0xb6, and bit 0 of +0xc8 enables mouse handling. A left click (or a right
 // click when there is no left) selects the entry and stores 1/2 via
-// FUN_004ab690; when the entry was already focused and FUN_004ab5b0 says no
+// SetClickMode; when the entry was already focused and HasMouseKeyFlags says no
 // button of mask 3 is down, focus is cleared. Returns 1 when the click landed
 // inside the rectangle of the entry whose focus was just cleared.
 #pragma pack(push, 1)
@@ -2518,8 +2518,8 @@ struct Dialog_4a4b50 {
 #pragma pack(pop)
 
 extern int __stdcall IsMouseButtonMessage(Dialog_4a4b50* obj, unsigned char buttons);
-extern int __stdcall FUN_004ab5b0(Dialog_4a4b50* obj, unsigned int mask);
-extern void __stdcall FUN_004ab690(Dialog_4a4b50* obj, int value);
+extern int __stdcall HasMouseKeyFlags(Dialog_4a4b50* obj, unsigned int mask);
+extern void __stdcall SetClickMode(Dialog_4a4b50* obj, int value);
 extern int __stdcall FUN_0049fc50(Dialog_4a4b50* obj, int index);
 
 // FUNCTION: 0x4a4b50
@@ -2546,16 +2546,16 @@ int __stdcall FUN_004a4b50(Dialog_4a4b50* obj, int index)
             Point_004a4b50 p = obj->pos;
             if (p.x >= r.left && p.x <= r.right && p.y >= r.top && p.y <= r.bottom) {
                 FUN_0049fc50(obj, index);
-                FUN_004ab690(obj, 1);
+                SetClickMode(obj, 1);
             }
         } else if (IsMouseButtonMessage(obj, 2)) {
             Point_004a4b50 p = obj->pos;
             if (p.x >= r.left && p.x <= r.right && p.y >= r.top && p.y <= r.bottom) {
                 FUN_0049fc50(obj, index);
-                FUN_004ab690(obj, 2);
+                SetClickMode(obj, 2);
             }
         }
-        if (obj->focus == index && !FUN_004ab5b0(obj, 3)) {
+        if (obj->focus == index && !HasMouseKeyFlags(obj, 3)) {
             obj->focus = -1;
             // Read through a pointer so the two loads stay after the focus store.
             Point_004a4b50* pp = &obj->pos;

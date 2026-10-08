@@ -421,12 +421,12 @@ void __stdcall SpawnCommanderAtStartPos(int team, int startpos);
 void __stdcall CreateUnit(unsigned char team, unsigned short id, FixedPos_497180 pos, int a,
     int b, int c);
 Gadget_497180* __stdcall LoadGuiLayer(Sub_497180* sub, const char* name, int flags);
-void __stdcall FUN_00494890(Gadget_497180* gadget);
+void __stdcall HandleMain2LayoutEvent(Gadget_497180* gadget);
 void __cdecl operator delete(void* p);
 
 void __stdcall RenderLayer(Menu_00497ce0* menu, int value);
 void __stdcall FUN_0049fad0(Menu_00497ce0* menu);
-void __stdcall FUN_004ab170(Menu_00497ce0* menu, int a, int b);
+void __stdcall BlitMenuLayers(Menu_00497ce0* menu, int a, int b);
 void __stdcall FillRectangle(void* surface, void* rect, int color);
 void __stdcall FUN_004a50e0(void* surface, const char* text, int x, int y, int len, int flag);
 char* __stdcall Translate(char* s);
@@ -454,8 +454,8 @@ void __stdcall DrawSyncStatus(void*);
 void __stdcall FUN_0049fa70(void*);
 int __stdcall GetTextPixelWidth(char*);
 void __stdcall CloseTopScreen(void*);
-void __stdcall FUN_004ab400(void*, void*);
-void __stdcall FUN_004ac7d0(void*, void*, void*);
+void __stdcall SetCursorAnimation(void*, void*);
+void __stdcall RemapPaletteToClosestIndices(void*, void*, void*);
 void __stdcall SetCloseHandler(void (__cdecl *)(int), int);
 void __stdcall SetResolution(int, int);
 void __stdcall FatalError(char*);
@@ -763,7 +763,7 @@ tail:
     }
     Gadget_497180* gadget =
         LoadGuiLayer((Sub_497180*)((char*)g_game + 0x519), (char*)g_game + 0x37ea0, 0x20);
-    gadget->handler = FUN_00494890;
+    gadget->handler = HandleMain2LayoutEvent;
     gadget->owner = (char*)g_game;
 
     char* currec = (char*)g_game + 0x1b63 + 0x14b * *(unsigned char*)((char*)g_game + 0x2a42);
@@ -811,7 +811,7 @@ void __stdcall DrawSyncStatus(void* surface)
 
     RenderLayer(&g_game->menu, 0x40);
     FUN_0049fad0(&g_game->menu);
-    FUN_004ab170(&g_game->menu, 0, 0);
+    BlitMenuLayers(&g_game->menu, 0, 0);
 
     const char* text;
     if (g_game->netBits.synced) {
@@ -894,7 +894,7 @@ void LoadingScreenFrame(void)
         FUN_0049fa70(&g_game->field_519);
         if (g_game->field_2cbe != 0x14) {
             g_game->field_2cbe = 0x14;
-            FUN_004ab400(&g_game->field_519, (void*)g_game->field_148cf);
+            SetCursorAnimation(&g_game->field_519, (void*)g_game->field_148cf);
         }
         SetFont(g_game->field_391f9);
         SetPaletteColors(SURFACE_143a7, 0, 0x100);
@@ -920,7 +920,7 @@ void LoadingScreenFrame(void)
         }
         BuildDataPath(aux, "palettes", "guipal", "PAL");
         surfaceHandle = HAPI_LoadFile((unsigned int*)aux, 0);
-        FUN_004ac7d0(&g_game->field_519, SURFACE_143a7, surfaceHandle);
+        RemapPaletteToClosestIndices(&g_game->field_519, SURFACE_143a7, surfaceHandle);
         FUN_004d85a0(surfaceHandle);
         g_game->field_38a37 = GetTicks();
         g_game->field_38a3b = 0;

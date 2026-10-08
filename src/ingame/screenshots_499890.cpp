@@ -54,7 +54,7 @@ void __stdcall MakeDirectoryPath(char*);
 int __stdcall GetTicks();
 void __stdcall PeekMouseEvent(Input_00499890*);
 void __stdcall UpdateMenu(void*);
-void FUN_00494e70();
+void UpdateCdCategoryByActivity();
 void PlayNextSpeech();
 void __stdcall PopMouseEvent(int*);
 void UpdateTimers();
@@ -92,7 +92,7 @@ void MainFrameTick()
     PeekMouseEvent(&first);
     UpdateMenu(g_game->menu);
     PeekMouseEvent(&second);
-    FUN_00494e70();
+    UpdateCdCategoryByActivity();
     PlayNextSpeech();
     if (first.fields[4] == second.fields[4])
         PopMouseEvent(g_game->selected.fields);

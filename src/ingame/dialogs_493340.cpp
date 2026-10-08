@@ -284,27 +284,27 @@ struct Game {
 };
 #pragma pack(pop)
 
-extern int DAT_0051e6d0[10];
+extern int g_shareDialogPlayerNetIds[10];
 extern int DAT_005091cc;
-extern char DAT_0051e788[];
-extern char DAT_0050940c[];            // "LIVEPLYR"
-extern char DAT_00503130[];            // "SmallButton"
-extern char DAT_00509400[];            // "SENDTYPE"
-extern char DAT_005093f8[];            // "SENDTO"
-extern char DAT_00506578[];            // "TALK"
-extern char DAT_005093f4[];            // ",:;"
-extern char DAT_005093ec[];            // "Enemies"
-extern char DAT_00508384[];            // "Allies"
-extern int DAT_0051f2f0;
+extern char g_chatDraftText[];
+extern char g_livePlayerPrefix[];      // "LIVEPLYR"
+extern char g_smallButtonSoundName[];  // "SmallButton"
+extern char g_sendTypeGadgetName[];    // "SENDTYPE"
+extern char g_sendToGadgetName[];      // "SENDTO"
+extern char g_talkGadgetName[];        // "TALK"
+extern char g_chatTargetSeparators[];  // ",:;"
+extern char g_enemiesChatTarget[];     // "Enemies"
+extern char g_alliesChatTarget[];      // "Allies"
+extern int g_chatDraftInitialized;
 extern unsigned char DAT_0051f2c8[10];
 extern unsigned char DAT_0051e810[10];
 extern int DAT_0051f2d8;
-extern int DAT_0051f2f4;
-extern unsigned int DAT_0051f2f8;
-extern int DAT_0051f2fc;
+extern int g_scorePanelFlashDecayTick;
+extern unsigned int g_cdActivityLastSampleTick;
+extern int g_cdActivityStableTicks;
 extern int DAT_0051f2dc;
 extern int DAT_0051e710[];
-extern int DAT_005091d0;
+extern int g_lastCdActivityMode;
 extern int g_usePacketManager;
 extern PacketManager g_packetManager;
 
@@ -316,7 +316,7 @@ Gadget* __stdcall FindGadgetChecked(Gadget* entries, char* name);
 int __stdcall IsCurrentGadgetNamed(Menu* menu, char* name);
 void __cdecl FUN_004d85a0(void* p);
 void __stdcall FUN_0049fa90(Menu* menu);
-void __stdcall FUN_004ab0a0(Menu* menu);
+void __stdcall ClearSelectedGadget(Menu* menu);
 void __stdcall TransferEnergy(unsigned char from, unsigned char to, float amount, int flag);
 void __stdcall TransferMetal(unsigned char from, unsigned char to, float amount, int flag);
 int __stdcall GetButtonStageByName(Menu* menu, char* name);
@@ -352,7 +352,7 @@ void __stdcall FreeSurface(void* param_1);
 void __stdcall GetGadgetRect(Gadget* entry, Rect* rect);
 void __stdcall DrawSurface(void* dest, void* image, int x, int y);
 void __stdcall HandleUnitInfoDialogEvent(Menu* gadget);
-void __stdcall FUN_00494290(Menu* gadget, Gadget* entry);
+void __stdcall DrawUnitInfoImage(Menu* gadget, Gadget* entry);
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void* __stdcall LoadPcx(char* path, int param);
 char* __stdcall MakePropList(void* obj);
@@ -365,7 +365,7 @@ void OpenInGameOptions();
 void OpenShareDialog();
 void OpenControlDialog();
 void OpenAlliesDialog();
-void __stdcall FUN_00494890(Menu* gadget);
+void __stdcall HandleMain2LayoutEvent(Menu* gadget);
 unsigned int GetTicks();
 int GetScreenWidth();
 int __stdcall IsKeyDown(int key);
@@ -482,13 +482,13 @@ void __stdcall HandleShareDialogEvent(Menu* obj)
     if (IsCurrentGadgetNamed(obj, "MAPINFO")) {
         FUN_0049fa90(obj);
         PlaySoundByName("Options", 0);
-        FUN_004ab0a0(obj);
+        ClearSelectedGadget(obj);
         return;
     }
     if (IsCurrentGadgetNamed(obj, "SHARUNIT")) {
         FUN_0049fa90(obj);
         PlaySoundByName("Options", 0);
-        FUN_004ab0a0(obj);
+        ClearSelectedGadget(obj);
         return;
     }
     if (IsCurrentGadgetNamed(obj, "OK")) {
@@ -497,7 +497,7 @@ void __stdcall HandleShareDialogEvent(Menu* obj)
         short idx = plyr->selected;
         if (idx < 0)
             return;
-        int pi = FindSlotByDpid(DAT_0051e6d0[idx]);
+        int pi = FindSlotByDpid(g_shareDialogPlayerNetIds[idx]);
         Player* p = &g_game->players[pi];
         if (IsPlaying_4934b0(p) && !(p->info->flags & 0x40) && IsCounted_4934b0(p)) {
             TransferEnergy(g_game->localPlayer, pi,
@@ -518,7 +518,7 @@ void __stdcall HandleShareDialogEvent(Menu* obj)
         return;
     }
     if (obj->current != -1)
-        FUN_004ab0a0(obj);
+        ClearSelectedGadget(obj);
 }
 
 // Opens the resource sharing screen (SHARE.GUI): it walks the ten player
@@ -564,8 +564,8 @@ void OpenShareDialog()
     char* names = (char*)FUN_004d83b0("PLAYERS", g_game->numPlayers * 30);
     char* np = names;
     *np = 0;
-    memset(DAT_0051e6d0, -1, sizeof(DAT_0051e6d0));
-    int* ids = DAT_0051e6d0;
+    memset(g_shareDialogPlayerNetIds, -1, sizeof(g_shareDialogPlayerNetIds));
+    int* ids = g_shareDialogPlayerNetIds;
     int count = 0;
     for (int i = 0; i < 10; i++) {
         Player* p = &g_game->players[i];
@@ -664,10 +664,10 @@ void __stdcall HandleTalkDialogEvent(Menu* gadget)
         g_game->flags_37ebe &= ~4;
         return;
     }
-    if (_strnicmp(entries[gadget->current].name, DAT_0050940c, 8) == 0) {
-        PlaySoundByName(DAT_00503130, 0);
+    if (_strnicmp(entries[gadget->current].name, g_livePlayerPrefix, 8) == 0) {
+        PlaySoundByName(g_smallButtonSoundName, 0);
         g_game->mode_2bf0 = 3;
-        SetButtonStageByName(gadget, DAT_00509400, g_game->mode_2bf0);
+        SetButtonStageByName(gadget, g_sendTypeGadgetName, g_game->mode_2bf0);
         n = atoi(&entries[gadget->current].name[8]);
         // Kept as the original has it: n is never range checked before it
         // indexes the 11-byte selection mask, so a "LIVEPLYR42" style name
@@ -677,30 +677,30 @@ void __stdcall HandleTalkDialogEvent(Menu* gadget)
         unsigned char v = (unsigned char)GetButtonStage(gadget, gadget->current);
         g_game->field_2bf1[n] = v;
         FUN_0049fa90(gadget);
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         goto tail;
     }
-    if (IsCurrentGadgetNamed(gadget, DAT_005093f8)) {
-        PlaySoundByName(DAT_00503130, 0);
+    if (IsCurrentGadgetNamed(gadget, g_sendToGadgetName)) {
+        PlaySoundByName(g_smallButtonSoundName, 0);
         unsigned char v = (unsigned char)GetButtonStage(gadget, gadget->current);
         g_game->bits_2bee.bit8 = v & 1;
-        GetGadgetText(gadget, DAT_00506578, DAT_0051e788);
+        GetGadgetText(gadget, g_talkGadgetName, g_chatDraftText);
         CloseTopScreen(gadget);
         OpenTalkDialog();
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         return;
     }
-    if (IsCurrentGadgetNamed(gadget, DAT_00509400)) {
-        PlaySoundByName(DAT_00503130, 0);
-        g_game->mode_2bf0 = (unsigned char)GetButtonStageByName(gadget, DAT_00509400);
+    if (IsCurrentGadgetNamed(gadget, g_sendTypeGadgetName)) {
+        PlaySoundByName(g_smallButtonSoundName, 0);
+        g_game->mode_2bf0 = (unsigned char)GetButtonStageByName(gadget, g_sendTypeGadgetName);
         if (g_game->mode_2bf0 >= 4)
             g_game->mode_2bf0 = 0;
         ResetPlayerGadgets();
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         goto tail;
     }
-    if (IsCurrentGadgetNamed(gadget, DAT_00506578)) {
-        Gadget* talk = FUN_004a0010(entries, DAT_00506578);
+    if (IsCurrentGadgetNamed(gadget, g_talkGadgetName)) {
+        Gadget* talk = FUN_004a0010(entries, g_talkGadgetName);
         mode = g_game->mode_2bf0;
         lstrcpynA(buf, (char*)talk + 0xb6, 0x100);
         char* p = buf;
@@ -727,7 +727,7 @@ void __stdcall HandleTalkDialogEvent(Menu* gadget)
             Saved saved = *(Saved*)g_game->field_2bf1;
             // Early out rather than a positive `if`, and the empty statement
             // at skip0 below is load bearing: either change costs 9 points.
-            if (!(' ' < p[1] && strchr(DAT_005093f4, p[1]) != 0)) goto skip0;
+            if (!(' ' < p[1] && strchr(g_chatTargetSeparators, p[1]) != 0)) goto skip0;
             if (isdigit(p[0])) {
                 d = p[0] - '0';
                 if (d < 0 || d > 9 || g_game->players[d].field_4 == 0)
@@ -743,13 +743,13 @@ void __stdcall HandleTalkDialogEvent(Menu* gadget)
                 if (c != 'a') {
                     if (c == 'e') {
                         mode = 2;
-                        to = DAT_005093ec;
+                        to = g_enemiesChatTarget;
                     } else {
                         goto after;
                     }
                 } else {
                     mode = 1;
-                    to = DAT_00508384;
+                    to = g_alliesChatTarget;
                 }
                 p += 2;
             }
@@ -762,13 +762,13 @@ after:
             g_game->mode_2bf0 = oldmode;
         }
 clear:
-        memset(DAT_0051e788, 0, 0x81);
+        memset(g_chatDraftText, 0, 0x81);
         g_game->bits_2bee.bit8 = 0;
     }
 tail:
-    int index = FindGadgetIndex(entries, DAT_00506578, 3);
+    int index = FindGadgetIndex(entries, g_talkGadgetName, 3);
     FUN_0049fc50(&g_game->menu, index);
-    g_game->menu.layer->field_20 = FindGadgetIndex(entries, DAT_00506578, 3);
+    g_game->menu.layer->field_20 = FindGadgetIndex(entries, g_talkGadgetName, 3);
 }
 
 // The functions before 0x493bf0 declare g_game inside their bodies: its symbol
@@ -781,9 +781,9 @@ void OpenTalkDialog()
     PlayerInfo* info = g_game->players[g_game->localPlayer].info;
     if (info->bit6)
         return;
-    if (DAT_0051f2f0 == 0) {
-        DAT_0051f2f0 = 1;
-        memset(DAT_0051e788, 0, 0x81);
+    if (g_chatDraftInitialized == 0) {
+        g_chatDraftInitialized = 1;
+        memset(g_chatDraftText, 0, 0x81);
     }
     if (g_game->flags_37ebe & 0x800)
         return;
@@ -795,7 +795,7 @@ void OpenTalkDialog()
     Gadget* entries = d->entries;
     d->handler = HandleTalkDialogEvent;
     g_game->flags_37ebe |= 4;
-    FUN_004a0bf0(&g_game->menu, "TALK", DAT_0051e788, 0);
+    FUN_004a0bf0(&g_game->menu, "TALK", g_chatDraftText, 0);
     SetButtonStageByName(&g_game->menu, "SENDTO", multi);
     if (g_game->net->GetGameType() != 3) {
         FUN_004a0570(&g_game->menu, "SENDTO", 0);
@@ -823,14 +823,14 @@ void __stdcall HandleUnitInfoDialogEvent(Menu* gadget)
         PlaySoundByName("smlbutton", 0);
         return;
     }
-    FUN_004ab0a0(&g_game->menu);
+    ClearSelectedGadget(&g_game->menu);
 }
 
 // Draws a gadget's image at the gadget's position (GetGadgetRect fills its
 // bounding rectangle).
 
 // FUNCTION: 0x494290
-void __stdcall FUN_00494290(Menu* gadget, Gadget* entry)
+void __stdcall DrawUnitInfoImage(Menu* gadget, Gadget* entry)
 {
     if (entry->image) {
         Rect r;
@@ -875,7 +875,7 @@ void __stdcall OpenUnitInfoDialog(void)
     layer->handler = HandleUnitInfoDialogEvent;
     layer->owner = g_game;
     Gadget* hotr = FUN_004a0280(entries, "HOTR");
-    hotr->u.callback = (void*)FUN_00494290;
+    hotr->u.callback = (void*)DrawUnitInfoImage;
     char* def = g_game->unitDefs + 0x249 * (unsigned)type;
     BuildDataPath(buf, "unitpics", def + 0x20, "PCX");
     hotr->image = LoadPcx(buf, 0);
@@ -936,36 +936,36 @@ void __stdcall HandleTabMenuEvent(Menu* gadget)
         g_game->byte_37ebe |= 1;
         PlaySoundByName("BigButton", 0);
         OpenInGameOptions();
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "SHARE")) {
         PlaySoundByName("BigButton", 0);
         OpenShareDialog();
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "CONTROL")) {
         PlaySoundByName("BigButton", 0);
         OpenControlDialog();
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "ALLIES")) {
         PlaySoundByName("BigButton", 0);
         OpenAlliesDialog();
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "CANCEL")) {
         CloseTopScreen(gadget);
         return;
     }
-    FUN_004ab0a0(gadget);
+    ClearSelectedGadget(gadget);
 }
 
 // FUNCTION: 0x494840
-void __stdcall FUN_00494840(Menu* gadget)
+void __stdcall HandleTabMenuCancel(Menu* gadget)
 {
     if (gadget->current == -1) {
         g_game->flags_2bee &= 0xff1f;
@@ -973,19 +973,19 @@ void __stdcall FUN_00494840(Menu* gadget)
         return;
     }
     if (!IsCurrentGadgetNamed(gadget, "CANCEL"))
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
 }
 
 // FUNCTION: 0x494890
-void __stdcall FUN_00494890(Menu* gadget)
+void __stdcall HandleMain2LayoutEvent(Menu* gadget)
 {
     if (gadget->current != -1) {
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
     }
 }
 
 // FUNCTION: 0x4948b0
-void __stdcall FUN_004948b0(int param_1, int param_2)
+void __stdcall FlashScorePanelKillLoss(int param_1, int param_2)
 {
     if (param_1 >= 0) {
         DAT_0051f2c8[param_1] = 0x1e;
@@ -996,10 +996,10 @@ void __stdcall FUN_004948b0(int param_1, int param_2)
 }
 
 // FUNCTION: 0x4948e0
-void __stdcall FUN_004948e0(void* surface)
+void __stdcall DrawScorePanel(void* surface)
 {
-    if (DAT_0051f2f4 < (int)GetTicks()) {
-        DAT_0051f2f4 = GetTicks() + 1;
+    if (g_scorePanelFlashDecayTick < (int)GetTicks()) {
+        g_scorePanelFlashDecayTick = GetTicks() + 1;
         for (int i = 0; i < 10; i++) {
             if (DAT_0051f2c8[i] > 0)
                 DAT_0051f2c8[i] -= 2;
@@ -1137,8 +1137,8 @@ void __stdcall FUN_004948e0(void* surface)
 
 // Frame-time / desync watchdog: keeps a 30-entry ring of per-frame counters at
 // DAT_0051e710, and when the ring total (or the last five entries) grows too
-// large it flips the network state DAT_005091d0 between 0 and 1 and resets the
-// counter DAT_0051f2fc.
+// large it flips the network state g_lastCdActivityMode between 0 and 1 and resets the
+// counter g_cdActivityStableTicks.
 //
 // Matches with netFlags declared `volatile`. Without it, only the two tests
 // on g_game->netFlags at 0x494e8b differ. The original emits two memory-operand bit tests
@@ -1167,13 +1167,13 @@ void __stdcall FUN_004948e0(void* surface)
 // see docs/consolidation.md.
 
 // FUNCTION: 0x494e70
-void FUN_00494e70()
+void UpdateCdCategoryByActivity()
 {
     if ((g_game->flags_2a44 & 4)
         && (!(g_game->netFlags & 1) || (g_game->netFlags & 2))
-        && GetTicks() > DAT_0051f2f8 + 0x1e) {
+        && GetTicks() > g_cdActivityLastSampleTick + 0x1e) {
         int state = g_game->field_10->GetTrackCategory();
-        if (++DAT_0051f2fc > 10) {
+        if (++g_cdActivityStableTicks > 10) {
             int recent = 0;
             int n = 5;
             int i = DAT_0051f2dc - 1;
@@ -1195,28 +1195,28 @@ void FUN_00494e70()
                 i--;
                 p--;
             }
-            int newstate = DAT_005091d0;
+            int newstate = g_lastCdActivityMode;
             if (state == 0 && (total > 0x32 || recent > 0x1e)
                 && g_game->players[g_game->localPlayer].field_144 > 0x1e)
                 newstate = 1;
-            else if (state == 1 && total < 10 && recent == 0 && DAT_0051f2fc > 0x3c)
+            else if (state == 1 && total < 10 && recent == 0 && g_cdActivityStableTicks > 0x3c)
                 newstate = 0;
-            if (newstate != DAT_005091d0) {
+            if (newstate != g_lastCdActivityMode) {
                 ((Sound*)g_game->field_10)->SetTrackCategory(newstate);
-                DAT_0051f2fc = 0;
-                DAT_005091d0 = newstate;
+                g_cdActivityStableTicks = 0;
+                g_lastCdActivityMode = newstate;
             }
         }
         if (++DAT_0051f2dc >= 30)
             DAT_0051f2dc = 0;
         DAT_0051e710[DAT_0051f2dc] = 0;
         ReportIntervalTimer();
-        DAT_0051f2f8 = GetTicks();
+        g_cdActivityLastSampleTick = GetTicks();
     }
 }
 
 // FUNCTION: 0x494ff0
-void __stdcall FUN_00494ff0(int param_1)
+void __stdcall AddCdActivitySample(int param_1)
 {
     DAT_0051e710[DAT_0051f2dc] += param_1;
 }
@@ -1277,13 +1277,13 @@ void ToggleTabMenu()
 }
 
 // Opens a dialog whose GUI file name is kept in the game object, with
-// FUN_00494890 as its handler and the game object as its owner.
+// HandleMain2LayoutEvent as its handler and the game object as its owner.
 
 // FUNCTION: 0x495200
-void FUN_00495200()
+void OpenMain2Layout()
 {
     Layer* gadget = LoadGuiLayer(&g_game->menu, g_game->guiName, 0x20);
-    gadget->handler = FUN_00494890;
+    gadget->handler = HandleMain2LayoutEvent;
     gadget->owner = g_game;
 }
 
@@ -1418,7 +1418,7 @@ void __stdcall RunGameSteps(int showStats)
 // inside the do-while is what leaves the preheader test in the binary.
 
 // FUNCTION: 0x4956c0
-void __stdcall FUN_004956c0(int eventType)
+void __stdcall HandleDebugHotkey(int eventType)
 {
     switch (eventType) {
     case 0x69:

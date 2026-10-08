@@ -511,11 +511,11 @@ void __stdcall FUN_004a1200(Menu* menu, int index, int value);
 void __stdcall FUN_004a03f0(Menu* menu, int index, char value);
 void __stdcall RenderLayer(Menu* menu, int value);
 void __stdcall FUN_004a0570(Menu* menu, char* name, int param_3);
-void __stdcall FUN_004ab0a0(Menu* menu);
+void __stdcall ClearSelectedGadget(Menu* menu);
 int __stdcall HandleOrdersPanelClick(Menu* menu, MenuEntry* entries);
 int __stdcall HandleOrderButtonClick(Menu* menu, MenuEntry* entries);
 int __stdcall IsKeyDown(int key);
-int __stdcall FUN_004ab6b0(Menu* menu);
+int __stdcall GetClickMode(Menu* menu);
 void __stdcall QueueBuildOrder(char* name, Unit* unit, int count);
 void __stdcall RefreshBuildCountTexts(Menu* menu, Unit* unit);
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
@@ -1139,12 +1139,12 @@ void __stdcall HandleBuildPanelClick(Menu* menu)
                 char text[256];
                 GetGadgetName(entries, text, menu->index);
                 if (IsKeyDown(0xf9)) {
-                    if (FUN_004ab6b0(menu) == 1)
+                    if (GetClickMode(menu) == 1)
                         QueueBuildOrder(text, unit, 5);
                     else
                         QueueBuildOrder(text, unit, -5);
                 } else {
-                    if (FUN_004ab6b0(menu) == 1)
+                    if (GetClickMode(menu) == 1)
                         QueueBuildOrder(text, unit, 1);
                     else
                         QueueBuildOrder(text, unit, -1);
@@ -1156,7 +1156,7 @@ void __stdcall HandleBuildPanelClick(Menu* menu)
             }
         }
         // One call after the chain, not one per branch.
-        FUN_004ab0a0(menu);
+        ClearSelectedGadget(menu);
     }
 }
 

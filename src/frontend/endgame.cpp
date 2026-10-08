@@ -190,7 +190,7 @@ struct Header {
     char unknown_2a[0xb6 - 0x2a];
 };
 
-struct Bar {                           // 0xd6 bytes, passed to FUN_004ab3a0
+struct Bar {                           // 0xd6 bytes, passed to AddBarGadget
     Header h;
     int max;                           // +0xb6
     int field_ba;                      // +0xba
@@ -202,7 +202,7 @@ struct Bar {                           // 0xd6 bytes, passed to FUN_004ab3a0
     int field_d2;                      // +0xd2
 };
 
-struct Button {                        // 0xcc bytes, passed to FUN_004ab310
+struct Button {                        // 0xcc bytes, passed to AddHotspotGadget
     Header h;
     char unknown_b6[0xc8 - 0xb6];
     int flags;                         // +0xc8
@@ -385,9 +385,9 @@ void __stdcall PlaySoundByName(const char* name, int param_2);
 int __stdcall IsCurrentGadgetNamed(Menu* gadget, char* name);
 int __stdcall FindGadgetIndex(Entry* entries, char* name, int type);
 Entry* __stdcall FindGadgetChecked(Entry* entries, char* name);
-void __stdcall FUN_004ab0a0(Menu* menu);
-int __stdcall FUN_004ab310(Menu* menu, Button* record);
-int __stdcall FUN_004ab3a0(Menu* menu, Bar* record);
+void __stdcall ClearSelectedGadget(Menu* menu);
+int __stdcall AddHotspotGadget(Menu* menu, Button* record);
+int __stdcall AddBarGadget(Menu* menu, Bar* record);
 int GetFontLineHeight();
 int __stdcall AddTextGadget(Layer* holder, char* type, char* text, int x, int y,
                            int width, int attr);
@@ -407,7 +407,7 @@ void __stdcall FUN_0049fad0(Menu* menu);
 void __stdcall FUN_0049fa90(Menu* menu);
 void __stdcall FUN_0049fa50(Menu* menu);
 void __stdcall UpdateMenu(Menu* menu);
-void __stdcall FUN_004ab170(Menu* menu, void* param_2, void* param_3);
+void __stdcall BlitMenuLayers(Menu* menu, void* param_2, void* param_3);
 void __stdcall DrawSurface(void* dest, void* image, int x, int y);
 void __stdcall DrawMessages(void* surface);
 void __stdcall SetOffscreenSurface(void* surface);
@@ -604,7 +604,7 @@ void StepPaletteFade(void)
     bar.max = g_game->maxStats[n];                                          \
     bar.scale = max(bar.value * 0.06666667f, 1.0f);                         \
     wsprintfA(bar.h.name, fmt, i);                                          \
-    FUN_004ab3a0(&g_game->menu, &bar);
+    AddBarGadget(&g_game->menu, &bar);
 
 // FUNCTION: 0x41e420
 void FillEndGameStatistics(void)
@@ -639,7 +639,7 @@ void FillEndGameStatistics(void)
             button.h.y = bar.h.y;
             button.h.width = 0x5b;
             button.h.height = 0x15;
-            FUN_004ab310(&g_game->menu, &button);
+            AddHotspotGadget(&g_game->menu, &button);
             int idx = FindGadgetIndex(entries, name, 6);
             if (idx != -1) {
                 Entry* e = &entries[idx];
@@ -787,20 +787,20 @@ void __stdcall HandleEndMissionClick(Menu* gadget)
         display->field_614 = g_game->field_3906f;
         return;
     }
-    // LoadGame and SaveGame reset the gadget (FUN_004ab0a0) twice in a row;
+    // LoadGame and SaveGame reset the gadget (ClearSelectedGadget) twice in a row;
     // the second call is redundant.
     if (IsCurrentGadgetNamed(gadget, "LoadGame")) {
         PlaySoundByName("BigButton", 0);
         ShowLoadGameScreen();
-        FUN_004ab0a0(gadget);
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
+        ClearSelectedGadget(gadget);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "SaveGame")) {
         PlaySoundByName("BigButton", 0);
         ShowSaveGameScreen();
-        FUN_004ab0a0(gadget);
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
+        ClearSelectedGadget(gadget);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "Start") || IsCurrentGadgetNamed(gadget, "Missions")) {
@@ -808,7 +808,7 @@ void __stdcall HandleEndMissionClick(Menu* gadget)
             OpenMessageBox(&g_game->menu,
                          Translate("Please insert the Campaign CD (Disc 2) and try again"),
                          200, 1, 1);
-            FUN_004ab0a0(&g_game->menu);
+            ClearSelectedGadget(&g_game->menu);
         }
         RegisterDataArchives();
         PlaySoundByName("BigButton", 0);
@@ -839,23 +839,23 @@ void __stdcall HandleEndMissionClick(Menu* gadget)
         if (g_game->difficulty == 0) {
             g_game->options->difficulty = 1;
             g_game->difficulty = 1;
-            FUN_004ab0a0(gadget);
+            ClearSelectedGadget(gadget);
             return;
         }
         if (g_game->difficulty == 1) {
             g_game->options->difficulty = 2;
             g_game->difficulty = 2;
-            FUN_004ab0a0(gadget);
+            ClearSelectedGadget(gadget);
             return;
         }
         if (g_game->difficulty == 2) {
             g_game->options->difficulty = 0;
             g_game->difficulty = 0;
-            FUN_004ab0a0(gadget);
+            ClearSelectedGadget(gadget);
             return;
         }
     }
-    FUN_004ab0a0(gadget);
+    ClearSelectedGadget(gadget);
 }
 
 // FUNCTION: 0x41f040
@@ -1011,7 +1011,7 @@ void __stdcall HandleCdCheckClick(Menu* gadget)
                          Translate("Please insert the Campaign CD (Disc 2) and try again"),
                          200, 1, 1);
         }
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
     }
 }
 
@@ -1036,7 +1036,7 @@ int DrawEndGameFrame()
         DrawSurface(g_game->surface, g_game->lastFrame, d->width, d->height);
         DrawMessages(g_game->surface);
         UpdateMenu(&g_game->menu);
-        FUN_004ab170(&g_game->menu, 0, 0);
+        BlitMenuLayers(&g_game->menu, 0, 0);
         ShowSoftwareCursor();
         FlipScreen();
         return 1;
@@ -1097,7 +1097,7 @@ void __stdcall RunEndGameState()
                 DrawSurface(g_game->surface,g_game->lastFrame,e->width,e->height);
                 DrawMessages(g_game->surface);
                 UpdateMenu(&g_game->menu);
-                FUN_004ab170(&g_game->menu,0,0);
+                BlitMenuLayers(&g_game->menu,0,0);
                 ShowSoftwareCursor();
                 FlipScreen();
             }
@@ -1186,7 +1186,7 @@ void __stdcall RunEndGameState()
             g_game->state=8; SetCursorMode(19); SetCursorOverlayEnabled(1);
             break;
         }
-        UpdateMenu(&g_game->menu); FUN_004ab170(&g_game->menu,0,0);
+        UpdateMenu(&g_game->menu); BlitMenuLayers(&g_game->menu,0,0);
         int skip=0;
         int clicked=PopKey();
         if(clicked && g_game->campaign->GetGameType()!=3) skip=1;
@@ -1221,7 +1221,7 @@ void __stdcall RunEndGameState()
     }
     case 8:
         HideSoftwareCursor(); UpdateMenu(&g_game->menu); ShowSoftwareCursor(); FlipScreen();
-        HideSoftwareCursor(); FUN_004ab170(&g_game->menu,0,0); ShowSoftwareCursor();
+        HideSoftwareCursor(); BlitMenuLayers(&g_game->menu,0,0); ShowSoftwareCursor();
         break;
     }
     FlipScreen();

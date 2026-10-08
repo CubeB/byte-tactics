@@ -254,10 +254,10 @@ Layer_00493060* __stdcall LoadGuiLayer(Menu_00493060* menu, const char* name, in
 Gadget_004931d0* __stdcall LoadGuiLayer(char* sub, const char* name, int flags);
 int __stdcall IsCurrentGadgetNamed(Gadget_00492360* gadget, char* name);
 int __stdcall IsCurrentGadgetNamed(Gadget_00492df0* gadget, char* name);
-void __stdcall FUN_004ab0a0(Gadget_00492360* menu);
-void __stdcall FUN_004ab0a0(Gadget_00492df0* menu);
-void __stdcall FUN_004ab400(void* menu, void* data);
-void __stdcall FUN_004ab190(Gadget_00492df0* menu, int flag);
+void __stdcall ClearSelectedGadget(Gadget_00492360* menu);
+void __stdcall ClearSelectedGadget(Gadget_00492df0* menu);
+void __stdcall SetCursorAnimation(void* menu, void* data);
+void __stdcall SetDescListCleanupFlag(Gadget_00492df0* menu, int flag);
 const char* __stdcall Translate(const char* key);
 void __stdcall OpenMessageBox(void* menu, const char* message, int a, int b, int c);
 void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget);
@@ -391,7 +391,7 @@ done:
 void __stdcall ShowInvalidSavegameDialog(void* param_1)
 {
     OpenMessageBox(param_1, Translate(g_invalidSavegameText), 0x140, 1, 1);
-    FUN_004ab0a0((Gadget_00492360*)param_1);
+    ClearSelectedGadget((Gadget_00492360*)param_1);
 }
 
 // Load game screen click handler (sibling of 0x492df0, save game screen).
@@ -424,7 +424,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
     }
     if (!IsCurrentGadgetNamed(gadget, "LOAD") && !IsCurrentGadgetNamed(gadget, "GAMES")) {
         if (gadget->field_60 != -1)
-            FUN_004ab0a0(gadget);
+            ClearSelectedGadget(gadget);
         return;
     }
     Entry_00492360* e = FindGadgetChecked(entries, "GAMES");
@@ -439,7 +439,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
                 OpenMessageBox(g_game->message,
                     Translate("Please insert the Campaign CD (Disc 2) and try again"),
                     200, 1, 1);
-                FUN_004ab0a0((Gadget_00492360*)g_game->message);
+                ClearSelectedGadget((Gadget_00492360*)g_game->message);
                 return;
             }
             break;
@@ -448,7 +448,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
                 OpenMessageBox(g_game->message,
                     Translate("Please insert the Multiplayer CD (Disc 1) and try again"),
                     200, 1, 1);
-                FUN_004ab0a0((Gadget_00492360*)g_game->message);
+                ClearSelectedGadget((Gadget_00492360*)g_game->message);
                 return;
             }
             break;
@@ -459,7 +459,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         BlankScreen();
         if (g_game->field_2cbe != 20) {
             g_game->field_2cbe = 20;
-            FUN_004ab400(g_game->message, g_game->p148cf);
+            SetCursorAnimation(g_game->message, g_game->p148cf);
         }
         if (g_game->flags_2a44.b2)
             FUN_0049fa70(g_game->message);
@@ -556,7 +556,7 @@ invalid:
     }
     g_game->p38d6b = 0;
     OpenMessageBox(gadget, Translate("Invalid savegame file"), 0x140, 1, 1);
-    FUN_004ab0a0(gadget);
+    ClearSelectedGadget(gadget);
 }
 
 // Lists the saved games: builds the search pattern for the "SAV" files in the
@@ -635,7 +635,7 @@ void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
     Entry_00492df0* entries = gadget->layer->entries;
     Save_00492df0 save;
     if (gadget->field_60 == -1) {
-        FUN_004ab190(gadget, 1);
+        SetDescListCleanupFlag(gadget, 1);
         if (DAT_0051f2e0)
             FUN_004d85a0(DAT_0051f2e0);
         if (DAT_0051f2e4)
@@ -662,14 +662,14 @@ void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
         sprintf(save.path, "%s\\%s", DAT_005091c8, SkipTextLines(DAT_0051f2e0, e->field_ba));
         RemoveFile(save.path);
         ListSavedGames(&save.count);
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         ShowSavedGameInfo();
         return;
     }
     if (!IsCurrentGadgetNamed(gadget, "GAMES") && !IsCurrentGadgetNamed(gadget, "LOAD") &&
         !IsCurrentGadgetNamed(gadget, "GAMENAME")) {
         if (gadget->field_60 != -1)
-            FUN_004ab0a0(gadget);
+            ClearSelectedGadget(gadget);
         return;
     }
     if (g_game->flags_2a44.bit2_2a44)

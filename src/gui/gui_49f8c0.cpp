@@ -85,7 +85,7 @@ struct Obj2_49fd20 {
 #pragma pack(pop)
 
 void __stdcall UpdateMenu(Dialog* menu);
-void __stdcall FUN_004ab0b0(void* param_1, unsigned int* param_2, int* param_3);
+void __stdcall BlitLayers(void* param_1, unsigned int* param_2, int* param_3);
 void ShowSoftwareCursor();
 void FlipScreen();
 void __stdcall FatalError(char* path);
@@ -139,7 +139,7 @@ void __stdcall RunWhileScreenNamed(Dialog* menu, char* name)
             DispatchMessageA(&msg);
         }
         UpdateMenu(menu);
-        FUN_004ab0b0(menu->holder, 0, 0);
+        BlitLayers(menu->holder, 0, 0);
         ShowSoftwareCursor();
         FlipScreen();
     }

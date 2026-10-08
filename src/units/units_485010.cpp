@@ -1219,10 +1219,10 @@ void __stdcall AttachUnitToPiece(void* unit, void* builder, int a, int c);
 void __stdcall DamageUnit(void* a, void* b, int c, int d, int e);
 void __stdcall ClearFootprintAndUnlink(void* unit);
 void __stdcall RemoveUnitLineOfSight(void* unit);
-void __stdcall FUN_00494ff0(int flag);
+void __stdcall AddCdActivitySample(int flag);
 char* __stdcall Translate(char* text);
 void __stdcall AddMessage(char* text, int a, int b, int c);
-void __stdcall FUN_004948b0(int a, int b);
+void __stdcall FlashScorePanelKillLoss(int a, int b);
 void __stdcall DetonateUnitWeapon(void* unit, int flag);
 void __stdcall ClearUnitRefs(void* unit);
 void __stdcall FreeObjectState(void* state);
@@ -1289,7 +1289,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
             if (unit->parent != 0 && unit->field_104 == 0.0f && unit->field_ff != unit->field_f4)
                 unit->parent->field_b8++;
             if (unit->field_f4 == g_game->localPlayer)
-                FUN_00494ff0(5);
+                AddCdActivitySample(5);
             credited = 1;
         }
         break;
@@ -1355,7 +1355,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
             }
         }
         if (g_game->b7)
-            FUN_004948b0(unit->field_f4, unit->player->index);
+            FlashScorePanelKillLoss(unit->field_f4, unit->player->index);
     }
 
     if (cmd->kind == 5 && unit->parent != 0) {

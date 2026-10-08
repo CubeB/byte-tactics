@@ -281,11 +281,11 @@ int __stdcall FUN_004a4440(Gui* obj, int index, int key);
 int __stdcall FUN_004a4b50(Gui* obj, int index);
 int __stdcall FUN_0049fc50(Gui* obj, int index);
 int __stdcall IsMouseButtonMessage(Gui* obj, unsigned char buttons);
-int __stdcall FUN_004ab5b0(Gui* obj, unsigned int mask);
-void __stdcall FUN_004ab690(Gui* obj, int value);
-void __stdcall FUN_004ab6c0(Gui* obj, int index, char* text, int maxLength, int clear);
-void __stdcall FUN_004ab5d0(Gui* obj);
-void __stdcall FUN_004ab440(Gui* obj, int inside);
+int __stdcall HasMouseKeyFlags(Gui* obj, unsigned int mask);
+void __stdcall SetClickMode(Gui* obj, int value);
+void __stdcall CommitTextEdit(Gui* obj, int index, char* text, int maxLength, int clear);
+void __stdcall UpdateCursorAndMouse(Gui* obj);
+void __stdcall SetCursorHover(Gui* obj, int inside);
 int __stdcall HandleListBoxInput(Gui* obj, int index, int key);
 void __stdcall HandleSliderInput(Gui* obj, int index);
 int __stdcall HandleTextEditKey(Gui* obj, int index, int key);
@@ -856,19 +856,19 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
         if (IsMouseButtonMessage(obj, 1)) {
             obj->focus = -1;
             FUN_0049fc50(obj, index);
-            FUN_004ab690(obj, 1);
+            SetClickMode(obj, 1);
             obj->field_cce = entry->field_138;
         } else if (IsMouseButtonMessage(obj, 2)) {
             obj->focus = -1;
             FUN_0049fc50(obj, index);
-            FUN_004ab690(obj, 2);
+            SetClickMode(obj, 2);
             obj->field_cce = entry->field_138;
         }
     }
 
     if (obj->focus == index) {
         if (entry->flags & 0x10) {
-            if (!FUN_004ab5b0(obj, 3))
+            if (!HasMouseKeyFlags(obj, 3))
                 goto fail;
             obj->focus = -1;
             if (point.x < r.left || point.x > r.right
@@ -883,7 +883,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
             return 1;
         }
         if (entry->flags & 0x40) {
-            if (!FUN_004ab5b0(obj, 3)) {
+            if (!HasMouseKeyFlags(obj, 3)) {
                 obj->focus = -1;
                 if (point.x < r.left || point.x > r.right
                     || point.y < r.top || point.y > r.bottom) {
@@ -911,7 +911,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
             return 0;
         }
         if (entry->flags & 8) {
-            if (FUN_004ab5b0(obj, 3))
+            if (HasMouseKeyFlags(obj, 3))
                 goto fail;
             if (point.x < r.left || point.x > r.right
                 || point.y < r.top || point.y > r.bottom)
@@ -943,7 +943,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
             obj->focus = -1;
             return 1;
         }
-        if (!FUN_004ab5b0(obj, 3)) {
+        if (!HasMouseKeyFlags(obj, 3)) {
             obj->focus = -1;
             entry->field_138 = 0;
             FUN_004a0340(obj, index);
@@ -1064,7 +1064,7 @@ void __stdcall FUN_004a7190(Gui* obj, int index)
 
     FUN_0049fc50(obj, index);
     obj->layer->current = index;
-    FUN_004ab6c0(obj, index, target->u.text, target->field_138, 0);
+    CommitTextEdit(obj, index, target->u.text, target->field_138, 0);
     ClearKeyQueue();
 }
 
@@ -1139,7 +1139,7 @@ static inline void Activate(Gui* obj, int index)
     SelectFontForEntry(ep, index);
     FUN_0049fc50(obj, index);
     obj->layer->current = index;
-    FUN_004ab6c0(obj, index, ep[index].u.text, ep[index].field_138, 0);
+    CommitTextEdit(obj, index, ep[index].u.text, ep[index].field_138, 0);
     ClearKeyQueue();
 }
 
@@ -1163,10 +1163,10 @@ int __stdcall HandleTextInput(Gui* obj, int index, int key)
         obj->field_68 = index;
         if (IsMouseButtonMessage(obj, 1)) {
             Activate(obj, index);
-            FUN_004ab690(obj, 1);
+            SetClickMode(obj, 1);
         } else if (IsMouseButtonMessage(obj, 2)) {
             Activate(obj, index);
-            FUN_004ab690(obj, 2);
+            SetClickMode(obj, 2);
         }
     }
 
@@ -1246,7 +1246,7 @@ static inline void DoSelect(Gui* menu, Entry* entries, int sel)
         SetFont(g_guiContext->font);
     FUN_0049fc50(menu, sel);
     menu->layer->current = sel;
-    FUN_004ab6c0(menu, sel, entry->u.text, entry->field_138, 0);
+    CommitTextEdit(menu, sel, entry->u.text, entry->field_138, 0);
     ClearKeyQueue();
 }
 
@@ -1303,7 +1303,7 @@ void __stdcall SelectGadgetByIndex(Gui* menu, int index)
 
         FUN_0049fc50(menu, i);
         menu->layer->current = i;
-        FUN_004ab6c0(menu, i, entry->u.text, entry->field_138, 0);
+        CommitTextEdit(menu, i, entry->u.text, entry->field_138, 0);
         ClearKeyQueue();
     }
 }
@@ -1333,7 +1333,7 @@ static inline void FUN_004a7190_inlined(Gui* obj, int index)
 
     FUN_0049fc50(obj, index);
     obj->layer->current = index;
-    FUN_004ab6c0(obj, index, target->u.text, target->field_138, 0);
+    CommitTextEdit(obj, index, target->u.text, target->field_138, 0);
     ClearKeyQueue();
 }
 
@@ -2427,7 +2427,7 @@ static inline void SelectCurrentByName(Gui* menu, Entry* entries, int sel)
     SelectFontForEntry(entries, sel);
     FUN_0049fc50(menu, sel);
     menu->layer->current = sel;
-    FUN_004ab6c0(menu, sel, entry->u.text, entry->field_138, 0);
+    CommitTextEdit(menu, sel, entry->u.text, entry->field_138, 0);
     ClearKeyQueue();
 }
 
@@ -2515,7 +2515,7 @@ int __stdcall UpdateMenu(Gui* menu)
     int now = GetTicks();
     menu->field_9a = now - menu->time;
     menu->time = now;
-    FUN_004ab5d0(menu);
+    UpdateCursorAndMouse(menu);
 
     int key;
     if (menu->layer->field_18 == 0) {
@@ -2565,7 +2565,7 @@ int __stdcall UpdateMenu(Gui* menu)
         int ptY = pt.y;
         box.right = entries->w + box.left - 1;
         box.bottom = entries->h + box.top - 1;
-        FUN_004ab440(menu, pt.x >= box.left && pt.x <= box.right &&
+        SetCursorHover(menu, pt.x >= box.left && pt.x <= box.right &&
                            ptY >= box.top && ptY <= box.bottom);
     }
 

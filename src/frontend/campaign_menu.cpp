@@ -289,7 +289,7 @@ void __stdcall FUN_0049fb10(Menu* menu, int value);
 void __stdcall RenderLayer(Menu* menu, int value);
 Layer* __stdcall LoadGuiLayer(Menu* menu, const char* name, int flags);
 void __stdcall SelectGadgetByName(Menu* menu, const char* name);
-void __stdcall FUN_004ac7d0(Menu* menu, void* param_2, void* param_3);
+void __stdcall RemapPaletteToClosestIndices(Menu* menu, void* param_2, void* param_3);
 void __stdcall PlaySoundByName(const char* name, int value);
 char __stdcall FindGameCdDrive(int side);
 void RegisterDataArchives();
@@ -307,7 +307,7 @@ void __stdcall SetOffscreenSurface(int param_1);
 void __stdcall DrawSurface(void* dest, void* image, int x, int y);
 void __stdcall FreeSurface(void* param_1);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
-void __stdcall FUN_004ab0a0(void* menu);
+void __stdcall ClearSelectedGadget(void* menu);
 void __stdcall SetCursorMode(int n);
 int __stdcall IsCurrentGadgetNamed(Menu* menu, char* name);
 int __stdcall BuildCampaignNameList(char** out, int side);
@@ -775,7 +775,7 @@ void __stdcall HandleSingleMenuClick(Menu* gadget)
             SetCursorMode(0x14);
         } else {
             OpenMessageBox((char*)&g_game->menu, Translate("Please insert the Campaign CD (Disc 2) and try again"), 200, 1, 1);
-            FUN_004ab0a0((char*)&g_game->menu);
+            ClearSelectedGadget((char*)&g_game->menu);
         }
         return;
     }
@@ -787,7 +787,7 @@ void __stdcall HandleSingleMenuClick(Menu* gadget)
             SetCursorMode(0x14);
         } else {
             OpenMessageBox((char*)&g_game->menu, Translate("Please insert the Multiplayer CD (Disc 1) and try again"), 200, 1, 1);
-            FUN_004ab0a0((char*)&g_game->menu);
+            ClearSelectedGadget((char*)&g_game->menu);
         }
         return;
     }
@@ -795,12 +795,12 @@ void __stdcall HandleSingleMenuClick(Menu* gadget)
         PlaySoundByName("BigButton", 0);
         SetCursorMode(0x14);
         ShowLoadGameScreen();
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "Options")) {
         PlaySoundByName("options", 0);
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         SetCursorMode(0x14);
         OpenOptionsPanel();
         return;
@@ -819,11 +819,11 @@ void __stdcall HandleSingleMenuClick(Menu* gadget)
             SetCursorMode(0x14);
         } else {
             OpenMessageBox((char*)&g_game->menu, Translate("Please insert the Campaign CD (Disc 2) and try again"), 200, 1, 1);
-            FUN_004ab0a0((char*)&g_game->menu);
+            ClearSelectedGadget((char*)&g_game->menu);
         }
         return;
     }
-    FUN_004ab0a0(gadget);
+    ClearSelectedGadget(gadget);
 }
 
 // FUNCTION: 0x4777a0
@@ -954,7 +954,7 @@ void __stdcall HandleNewGameClick(Menu* menu)
             OpenMessageBox((char*)&g_game->menu,
                          Translate("Please insert the Campaign CD (Disc 2) and try again"),
                          200, 1, 1);
-            FUN_004ab0a0(&g_game->menu);
+            ClearSelectedGadget(&g_game->menu);
             return;
         }
         RegisterDataArchives();
@@ -1008,7 +1008,7 @@ void __stdcall HandleNewGameClick(Menu* menu)
             } else {
                 goto End;
             }
-            FUN_004ab0a0(menu);
+            ClearSelectedGadget(menu);
             return;
         }
         if (IsCurrentGadgetNamed(menu, "Side0") || IsCurrentGadgetNamed(menu, "Arm"))
@@ -1028,7 +1028,7 @@ void __stdcall HandleNewGameClick(Menu* menu)
             FillCampaignListInline(*(unsigned char*)(*(int*)((char*)g_game + 0x14b * g_game->localPlayer + 0x1b8a) + 0x95));
         if (g_anyMissionMode != 0) {
             FillMissionListInline(&g_game->menu, FindGadgetChecked(entries, "Campaign"));
-            FUN_004ab0a0(menu);
+            ClearSelectedGadget(menu);
             return;
         }
         goto End;
@@ -1049,7 +1049,7 @@ ArmSide:
 
     }
 End:
-    FUN_004ab0a0(menu);
+    ClearSelectedGadget(menu);
 }
 
 // FUNCTION: 0x478240
@@ -1368,7 +1368,7 @@ void __stdcall HandleMissionBriefingClick(Menu* menu)
         OpenMessageBox((char*)&g_game->menu,
                      Translate("Please insert the Campaign CD (Disc 2) and try again"),
                      200, 1, 1);
-        FUN_004ab0a0(&g_game->menu);
+        ClearSelectedGadget(&g_game->menu);
         return;
     }
     if (IsCurrentGadgetNamed(menu, "SHUTUP")) {
@@ -1381,7 +1381,7 @@ void __stdcall HandleMissionBriefingClick(Menu* menu)
                 StreamSoundDelayed(text, 0, 0x3c);
             }
         }
-        FUN_004ab0a0(menu);
+        ClearSelectedGadget(menu);
         PlaySoundByName("SmallButton", 0);
         return;
     }
@@ -1400,7 +1400,7 @@ void __stdcall HandleMissionBriefingClick(Menu* menu)
             FUN_0049fa90(menu);
         }
     }
-    FUN_004ab0a0(menu);
+    ClearSelectedGadget(menu);
 }
 
 // FUNCTION: 0x478e80
@@ -1425,7 +1425,7 @@ void OpenMissionBriefing(void)
     dialog->data = g_game;
 
     LoadPictureCached(buf, 1, 1, 0);
-    FUN_004ac7d0(&g_game->menu, (char*)g_game + 0x143a7, (char*)g_game + 0x5cb);
+    RemapPaletteToClosestIndices(&g_game->menu, (char*)g_game + 0x143a7, (char*)g_game + 0x5cb);
 
     gadgets = g_game->menu.layer->entries;
     strcpy((char*)gadgets + 0xcc, "Start");

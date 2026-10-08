@@ -60,7 +60,7 @@ extern char g_frontendSourceFile[32];                                           
 extern char g_extTdf[4];                                                                                      // 0x50310c, 4 bytes; 1 of 1 files
 extern char DAT_00503120[8];                                                                                  // 0x503120, 8 bytes; 1 of 1 files
 extern char DAT_00503128[8];                                                                                  // 0x503128, 8 bytes; 1 of 1 files
-extern char DAT_00503130[12];                                                                                 // 0x503130, 12 bytes; 1 of 1 files
+extern char g_smallButtonSoundName[12];                                                                       // 0x503130, 12 bytes; 1 of 1 files
 extern char DAT_0050313c[8];                                                                                  // 0x50313c, 8 bytes; 1 of 1 files
 extern char DAT_00503160[4];                                                                                  // 0x503160, 4 bytes; 1 of 1 files
 extern char DAT_00503164[4];                                                                                  // 0x503164, 4 bytes; 1 of 1 files
@@ -118,7 +118,7 @@ extern char* g_leftGameTexts[8];                                                
 extern int g_timeoutPlayerDpid;                                                                               // 0x5061d8, 4 bytes; 1 of 1 files
 extern char DAT_00506290[8];                                                                                  // 0x506290, 8 bytes; 1 of 1 files
 extern char s_PACKET_DATA_00506524[12];                                                                       // 0x506524, 12 bytes; 1 of 1 files
-extern char DAT_00506578[8];                                                                                  // 0x506578, 8 bytes; 1 of 1 files
+extern char g_talkGadgetName[8];                                                                              // 0x506578, 8 bytes; 1 of 1 files
 extern char DAT_0050658c[56];                                                                                 // 0x50658c, 56 bytes; 1 of 1 files
 extern char DAT_005065c4[28];                                                                                 // 0x5065c4, 28 bytes; 1 of 1 files
 extern float g_lightX;                                                                                        // 0x5065f8, 4 bytes; 2 of 2 files
@@ -149,7 +149,7 @@ extern char g_radarFinalName[12];                                               
 extern int g_campaignSimplifiedLayout;                                                                        // 0x507b6c, 4 bytes; 1 of 1 files
 extern unsigned char g_briefingTextColors[1];                                                                 // 0x507b70, 1 bytes; 1 of 1 files
 extern char* g_forcesDestroyedTexts[3];                                                                       // 0x507b88, 12 bytes; 1 of 1 files
-extern char DAT_00508384[8];                                                                                  // 0x508384, 8 bytes; 1 of 1 files
+extern char g_alliesChatTarget[8];                                                                            // 0x508384, 8 bytes; 1 of 1 files
 extern const char g_skirmishCheatSoundName[16];                                                               // 0x508460, 16 bytes; 1 of 1 files
 extern const char g_cheatTenPlayers[4];                                                                       // 0x508470, 4 bytes; 1 of 1 files
 extern const char g_cheatNinePlayers[4];                                                                      // 0x508474, 4 bytes; 1 of 1 files
@@ -182,7 +182,7 @@ extern char DAT_00509028[32];                                                   
 extern char DAT_005090fc[32];                                                                                 // 0x5090fc, 32 bytes; 1 of 1 files
 extern char* DAT_005091c8;                                                                                    // 0x5091c8, 4 bytes; 2 of 2 files
 extern int DAT_005091cc;                                                                                      // 0x5091cc, 4 bytes; 2 of 2 files
-extern int DAT_005091d0;                                                                                      // 0x5091d0, 4 bytes; 1 of 1 files
+extern int g_lastCdActivityMode;                                                                              // 0x5091d0, 4 bytes; 1 of 1 files
 extern const char g_offscreenSurfaceName[12];                                                                 // 0x5091d4, 12 bytes; 1 of 1 files
 extern const char g_cdListsKey[8];                                                                            // 0x509200, 8 bytes; 1 of 1 files
 extern const char g_unitLimitKey[12];                                                                         // 0x509238, 12 bytes; 1 of 1 files
@@ -191,11 +191,11 @@ extern const char g_hattFont12Name[12];                                         
 extern const char g_commonGuiName[12];                                                                        // 0x50925c, 12 bytes; 1 of 1 files
 extern const char g_skirmishInfoTag[16];                                                                      // 0x509268, 16 bytes; 1 of 1 files
 extern const char g_invalidSavegameText[24];                                                                  // 0x509310, 24 bytes; 1 of 1 files
-extern char DAT_005093ec[8];                                                                                  // 0x5093ec, 8 bytes; 1 of 1 files
-extern char DAT_005093f4[4];                                                                                  // 0x5093f4, 4 bytes; 1 of 1 files
-extern char DAT_005093f8[8];                                                                                  // 0x5093f8, 8 bytes; 1 of 1 files
-extern char DAT_00509400[12];                                                                                 // 0x509400, 12 bytes; 1 of 1 files
-extern char DAT_0050940c[12];                                                                                 // 0x50940c, 12 bytes; 1 of 1 files
+extern char g_enemiesChatTarget[8];                                                                           // 0x5093ec, 8 bytes; 1 of 1 files
+extern char g_chatTargetSeparators[4];                                                                        // 0x5093f4, 4 bytes; 1 of 1 files
+extern char g_sendToGadgetName[8];                                                                            // 0x5093f8, 8 bytes; 1 of 1 files
+extern char g_sendTypeGadgetName[12];                                                                         // 0x509400, 12 bytes; 1 of 1 files
+extern char g_livePlayerPrefix[12];                                                                           // 0x50940c, 12 bytes; 1 of 1 files
 extern char g_screenshotPrefix[12];                                                                           // 0x50966c, 12 bytes; 1 of 1 files
 extern char* g_fireScriptNames[4];                                                                            // 0x509678, 16 bytes; 1 of 1 files
 extern char* g_aimScriptNames[3];                                                                             // 0x509688, 12 bytes; 1 of 1 files
@@ -233,7 +233,7 @@ extern char* DAT_0050d4d0;                                                      
 extern char* DAT_0050d660;                                                                                    // 0x50d660, 4 bytes; 1 of 1 files
 extern char DAT_0050d6b4[36];                                                                                 // 0x50d6b4, 36 bytes; 1 of 1 files
 extern char* DAT_0050d72c;                                                                                    // 0x50d72c, 4 bytes; 1 of 1 files
-extern char DAT_005119b8[8];                                                                                  // 0x5119b8, 8 bytes; 34 of 36 files (conflicting: shape)
+extern char DAT_005119b8[8];                                                                                  // 0x5119b8, 8 bytes; 33 of 35 files (conflicting: shape)
 extern PlayerAI* g_playerAI[10];                                                                              // 0x5119c0, 40 bytes; 2 of 3 files (conflicting: struct names only)
 extern int g_playerBudgetCap[10];                                                                             // 0x5119e8, 40 bytes; 1 of 1 files
 extern int g_playerTickLoad[10];                                                                              // 0x511a10, 40 bytes; 1 of 1 files
@@ -276,7 +276,7 @@ extern unsigned int g_netStatsTick;                                             
 extern unsigned int g_byteRatesTick;                                                                          // 0x511ddc, 4 bytes; 1 of 1 files
 extern int DAT_00511de0;                                                                                      // 0x511de0, 4 bytes; 2 of 2 files
 extern int g_cdPathMismatch;                                                                                  // 0x511de4, 4 bytes; 1 of 1 files
-extern Game* g_game;                                                                                          // 0x511de8, 4 bytes; 147 of 166 files (conflicting: shape)
+extern Game* g_game;                                                                                          // 0x511de8, 4 bytes; 145 of 164 files (conflicting: shape)
 extern int g_endGameGlamourSoundStarted;                                                                      // 0x511dec, 4 bytes; 1 of 1 files
 extern ExplodedPiece* g_explodedPieces[100];                                                                  // 0x511df0, 400 bytes; 1 of 1 files
 extern unsigned char DAT_00511f80[16];                                                                        // 0x511f80, 16 bytes; CMemoryCache by value in 2 of 2 files
@@ -554,10 +554,10 @@ extern unsigned char DAT_0051e6b0[4];                                           
 extern int g_mapLoadFlag;                                                                                     // 0x51e6c0, 4 bytes; 1 of 1 files
 extern unsigned int DAT_0051e6c4;                                                                             // 0x51e6c4, 4 bytes; 1 of 1 files
 extern "C" unsigned char g_loadingBarFlashAlpha[8];                                                           // 0x51e6c8, 4 bytes; extern "C" (no type) with the globals inside it
-extern int DAT_0051e6d0[10];                                                                                  // 0x51e6d0, 40 bytes; 1 of 1 files
+extern int g_shareDialogPlayerNetIds[10];                                                                     // 0x51e6d0, 40 bytes; 1 of 1 files
 extern char g_savegameRadarFrame[24];                                                                         // 0x51e6f8, 24 bytes; 1 of 1 files
 extern int DAT_0051e710[30];                                                                                  // 0x51e710, 120 bytes; 2 of 2 files
-extern char DAT_0051e788[136];                                                                                // 0x51e788, 136 bytes; 1 of 1 files
+extern char g_chatDraftText[136];                                                                             // 0x51e788, 136 bytes; 1 of 1 files
 extern unsigned char DAT_0051e810[10];                                                                        // 0x51e810, 10 bytes; 2 of 2 files
 extern unsigned char DAT_0051e81a[6];                                                                         // 0x51e81a, 6 bytes; nothing refers to it
 extern "C" unsigned char g_loadingBarPrevPercent[5];                                                          // 0x51e820, 1 bytes; extern "C" (no type) in declared extern "C" in 1 of 1 files, but used past its end
@@ -567,10 +567,10 @@ extern unsigned char DAT_0051f2c8[10];                                          
 extern unsigned char DAT_0051f2d2[6];                                                                         // 0x51f2d2, 6 bytes; nothing refers to it
 extern unsigned int DAT_0051f2d8;                                                                             // 0x51f2d8, 4 bytes; 1 of 2 files (conflicting: signedness or const)
 extern unsigned int DAT_0051f2dc;                                                                             // 0x51f2dc, 4 bytes; 1 of 2 files (conflicting: signedness or const)
-extern int DAT_0051f2f0;                                                                                      // 0x51f2f0, 4 bytes; 1 of 1 files
-extern int DAT_0051f2f4;                                                                                      // 0x51f2f4, 4 bytes; 1 of 1 files
-extern unsigned int DAT_0051f2f8;                                                                             // 0x51f2f8, 4 bytes; 1 of 1 files
-extern int DAT_0051f2fc;                                                                                      // 0x51f2fc, 4 bytes; 1 of 1 files
+extern int g_chatDraftInitialized;                                                                            // 0x51f2f0, 4 bytes; 1 of 1 files
+extern int g_scorePanelFlashDecayTick;                                                                        // 0x51f2f4, 4 bytes; 1 of 1 files
+extern unsigned int g_cdActivityLastSampleTick;                                                               // 0x51f2f8, 4 bytes; 1 of 1 files
+extern int g_cdActivityStableTicks;                                                                           // 0x51f2fc, 4 bytes; 1 of 1 files
 extern int g_netProbeNextTick;                                                                                // 0x51f300, 4 bytes; 1 of 1 files
 extern int g_netHeartbeatNextTick;                                                                            // 0x51f304, 4 bytes; 1 of 1 files
 extern "C" unsigned char g_loadingBarFlashDecayTick[8];                                                       // 0x51f308, 4 bytes; extern "C" (no type) in declared extern "C" in 1 of 1 files, but used past its end

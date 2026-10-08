@@ -310,7 +310,7 @@ void CollectVisibleUnitIds();
 void RefreshSelectionOrders();
 void __stdcall DrawBattleFrame(int a, int b);
 void __stdcall SaveScreenshot(char* buf, char* name);
-void __stdcall FUN_004ab400(Obj_004ab400* p, Src_004ab400* src);
+void __stdcall SetCursorAnimation(Obj_004ab400* p, Src_004ab400* src);
 void ShowSoftwareCursor();
 void __stdcall SetMissionType(int param);
 void ClearKeyQueue();
@@ -325,7 +325,7 @@ void HideSoftwareCursor();
 void PreBattleFrame();
 void CampaignSetupFrame();
 void LoadingScreenFrame();
-void __stdcall FUN_004ab170(Sub_00496b10* sub, unsigned int* param_2, int* param_3);
+void __stdcall BlitMenuLayers(Sub_00496b10* sub, unsigned int* param_2, int* param_3);
 int __stdcall BroadcastPacket(int player, void* data, int size);
 void SendNetHeartbeat();
 void __stdcall SetupPlayerSlot(unsigned char player, unsigned char kind);
@@ -427,7 +427,7 @@ void InitFrame()
 {
     if (g_game->selected != 0x13) {
         g_game->selected = 0x13;
-        FUN_004ab400((Obj_004ab400*)&g_game->sub, g_game->table[0x13]);
+        SetCursorAnimation((Obj_004ab400*)&g_game->sub, g_game->table[0x13]);
     }
     ShowSoftwareCursor();
     g_game->bit2 = 0;
@@ -497,7 +497,7 @@ void MenuFrame()
         }
     }
     HideSoftwareCursor();
-    FUN_004ab170(&g_game->sub, 0, 0);
+    BlitMenuLayers(&g_game->sub, 0, 0);
     ShowSoftwareCursor();
 }
 

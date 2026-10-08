@@ -378,7 +378,7 @@ void __stdcall BindGadgetAnimSequence(Rec1* obj, char* name)
 }
 
 int __stdcall AddButtonGadget(void* obj, void* record);
-int __stdcall FUN_004ab310(void* obj, void* record);
+int __stdcall AddHotspotGadget(void* obj, void* record);
 
 // Skirmish setup screen builder: for each player it fills two menu-object
 // templates (rec1 = the name/side/colour/resource buttons, rec2 = the colour
@@ -421,14 +421,14 @@ void BuildSkirmishPlayerRows(void)
         rec2.h.w = 0x14;
         rec2.h.h = 0x14;
         rec2.text[0] = 0;
-        FUN_004ab310(&g_game->menu, &rec2);
+        AddHotspotGadget(&g_game->menu, &rec2);
 
         wsprintfA(rec2.h.name, "Allies%d", i);
         rec2.h.x = 0xf1;
         rec2.h.w = 0x28;
         rec2.h.h = 0x14;
         strcpy(rec2.text, Translate("Click to select an allegiance symbol."));
-        FUN_004ab310(&g_game->menu, &rec2);
+        AddHotspotGadget(&g_game->menu, &rec2);
 
         wsprintfA(rec1.h.name, "Metal%d", i);
         rec1.h.x = 0x11e;
@@ -713,7 +713,7 @@ int __stdcall IsCurrentGadgetNamed(Menu* menu, char* name);
 Gadget* __stdcall FindGadgetChecked(Gadget* entries, char* name);
 Gadget* __stdcall FUN_004a0280(Gadget* entries, char* name);
 void __stdcall FUN_004a0e00(Menu* menu, char* name, char* value);
-void __stdcall FUN_004ab0a0(Menu* menu);
+void __stdcall ClearSelectedGadget(Menu* menu);
 char* __stdcall SkipTextLines(char* text, int line);
 
 // Menu gadget callback. With no gadget selected it frees the MAPPIC bitmap and
@@ -742,7 +742,7 @@ void __stdcall HandleSkirmishMapClick(Menu* menu)
         if (IsCurrentGadgetNamed(menu, "PREVMENU")) {
             PlaySoundByName("Previous", 0);
         } else {
-            FUN_004ab0a0(menu);
+            ClearSelectedGadget(menu);
         }
         return;
     }
@@ -925,7 +925,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
             OpenMessageBox(&g_game->menu,
                          Translate("Please insert the Multiplayer CD (Disc 1) and try again"),
                          0xc8, 1, 1);
-            FUN_004ab0a0(&g_game->menu);
+            ClearSelectedGadget(&g_game->menu);
         }
         RegisterDataArchives();
 
@@ -945,7 +945,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
             OpenMessageBox(&g_game->menu,
                          Translate("The terrain for the selected map does not exist."),
                          0x1e0, 1, 1);
-            FUN_004ab0a0(menu);
+            ClearSelectedGadget(menu);
             return;
         }
 
@@ -975,7 +975,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
                     OpenMessageBox(&g_game->menu,
                                  Translate("There are too many players enabled for this map"),
                                  0x1e0, 1, 1);
-                    FUN_004ab0a0(menu);
+                    ClearSelectedGadget(menu);
                     return;
                 }
 
@@ -983,7 +983,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
                     OpenMessageBox(&g_game->menu,
                                  Translate("All players may not be in the same allied group."),
                                  0x1e0, 1, 1);
-                    FUN_004ab0a0(menu);
+                    ClearSelectedGadget(menu);
                     return;
                 }
 
@@ -1019,7 +1019,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
         OpenMessageBox(&g_game->menu,
                      Translate("There must be at least one player and one computer opponent"),
                      0x1e0, 1, 1);
-        FUN_004ab0a0(menu);
+        ClearSelectedGadget(menu);
         return;
     }
 
@@ -1031,7 +1031,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
     }
 
 
-    // One if/else-if chain falling through to a single FUN_004ab0a0 at the end:
+    // One if/else-if chain falling through to a single ClearSelectedGadget at the end:
     // no per-arm return.
     if (strcmp(frame.bf, "Player") == 0) {
         PlaySoundByName("Skirmish", 0);
@@ -1176,7 +1176,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
         }
     }
 
-    FUN_004ab0a0(menu);
+    ClearSelectedGadget(menu);
 }
 
 #pragma pack(push, 1)

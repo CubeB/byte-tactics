@@ -1653,7 +1653,7 @@ Entry_004538f0* __stdcall FUN_004a0010(Entry_004538f0* entries, char* name);
 int __stdcall SendChatMessage(Player* from, char* text, int param_3, char* to);
 int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
 void __stdcall FUN_004a7190(void* menu, int index);
-void __stdcall FUN_004ab0a0(void* param_1);
+void __stdcall ClearSelectedGadget(void* param_1);
 void __stdcall FUN_0049fa90(void* menu);
 int __stdcall IsScreenNamed(void* obj, const char* name);
 void* __stdcall LoadGuiLayer(void* obj, const char* name, int size);
@@ -2653,7 +2653,7 @@ void __stdcall HandleTimeoutDialog(Gadget_004538f0* gadget)
             strcpy(entry->text, DAT_005119b8);
         }
         FUN_004a7190(g_game->message, FindGadgetIndex(g_game->layer_531->entries, "TALK", 3));
-        FUN_004ab0a0(g_game->message);
+        ClearSelectedGadget(g_game->message);
         FUN_0049fa90(g_game->message);
         return;
     }
@@ -2661,7 +2661,7 @@ void __stdcall HandleTimeoutDialog(Gadget_004538f0* gadget)
         RejectPlayer(g_timeoutPlayerDpid, 6);
         return;
     }
-    FUN_004ab0a0(gadget);
+    ClearSelectedGadget(gadget);
 }
 
 static __inline unsigned char FindSlot_00453a50(int id)

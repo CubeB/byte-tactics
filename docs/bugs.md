@@ -510,7 +510,7 @@ Things that look wrong in the original but have no effect, kept for the record.
 - **0x41f0a0** scans the 25 mission flags at g_game+0x391cf for the first
   'U' after filling the missions list and never uses the index, perhaps a
   lost "select the first unplayed mission" step. **0x41ec50** calls
-  FUN_004ab0a0(gadget) twice in a row in its load and save branches. Found by
+  ClearSelectedGadget(gadget) twice in a row in its load and save branches. Found by
   Claude Opus 5.5 in #211.
 
 - **0x405980**: in the first reclaim branch SetAttachedFx(0) is called twice
@@ -574,7 +574,7 @@ Things that look wrong in the original but have no effect, kept for the record.
 
 - **0x4a7960**: the tail that refreshes a type-3 (text) selection is emitted
   twice in a row (0x4a7c76 to 0x4a7d81, then 0x4a7d86 to 0x4a7e98), so its
-  colour and language setup, the FUN_004ab6c0 redraw and ClearKeyQueue run
+  colour and language setup, the CommitTextEdit redraw and ClearKeyQueue run
   twice. Found by ozgb's deepseek-v4.1-flash in #2606.
 
 - **0x4a9fd0** (hit testing): entry 0 is tested by adding the window origin to

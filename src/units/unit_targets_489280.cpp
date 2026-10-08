@@ -529,7 +529,7 @@ extern char s_TakeDamage_00508d68[];
 void __stdcall AppendOrder(Unit* owner, Class_0043a1f0* node);
 void __stdcall MarkRecentlyDamaged(Unit* unit);
 void __stdcall ReactToAttack(Unit* target, Unit* attacker, int amount);
-void __stdcall FUN_00494ff0(int flag);
+void __stdcall AddCdActivitySample(int flag);
 int __cdecl FUN_004b7123(unsigned short idx, int scale);
 int __cdecl FUN_004b70ef(short idx, int scale);
 
@@ -573,7 +573,7 @@ void __stdcall ApplyUnitDamage(Event_00489ce0* ev)
         unit->unknown_f4 = c;
         unit->last = target;
         if (target->teamId == g_game->teamId || unit->teamId == g_game->teamId)
-            FUN_00494ff0(1);
+            AddCdActivitySample(1);
     }
 
     if (ev->kind == 2) {

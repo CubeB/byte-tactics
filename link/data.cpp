@@ -54,7 +54,7 @@ char g_frontendSourceFile[32] = "c:\\cavedog\\wargame\\frontend.cpp";  // 0x5030
 char g_extTdf[4] = "tdf";  // 0x50310c .data
 char DAT_00503120[8] = "CHOICE2";  // 0x503120 .data
 char DAT_00503128[8] = "CHOICE1";  // 0x503128 .data
-char DAT_00503130[12] = "SmallButton";  // 0x503130 .data
+char g_smallButtonSoundName[12] = "SmallButton";  // 0x503130 .data
 char DAT_0050313c[8] = "TITLE";  // 0x50313c .data
 char DAT_00503160[4] = "No";  // 0x503160 .data
 char DAT_00503164[4] = "Yes";  // 0x503164 .data
@@ -117,7 +117,7 @@ char* g_leftGameTexts[8] = {(char*)"has left the scene", (char*)"has been shown 
 int g_timeoutPlayerDpid = -1;  // 0x5061d8 .data
 char DAT_00506290[8] = "%s %s";  // 0x506290 .data
 char s_PACKET_DATA_00506524[12] = "PACKET DATA";  // 0x506524 .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
-char DAT_00506578[8] = "TALK";  // 0x506578 .data
+char g_talkGadgetName[8] = "TALK";  // 0x506578 .data
 char DAT_0050658c[56] = "has modified his executable.  Game integrity breached.";  // 0x50658c .data
 char DAT_005065c4[28] = "Player %s has disconnected";  // 0x5065c4 .data
 float g_lightX = -0.800000011920929f;  // 0x5065f8 .data
@@ -148,7 +148,7 @@ char g_radarFinalName[12] = "RADAR FINAL";  // 0x507518 .data (holds 1 value(s) 
 int g_campaignSimplifiedLayout = 1;  // 0x507b6c .data
 unsigned char g_briefingTextColors[1] = {53};  // 0x507b70 .data
 char* g_forcesDestroyedTexts[3] = {(char*)"forces have been obliterated", (char*)"vermin have been exterminated", (char*)"forces have gone to a better place"};  // 0x507b88 .data
-char DAT_00508384[8] = "Allies";  // 0x508384 .data
+char g_alliesChatTarget[8] = "Allies";  // 0x508384 .data
 const char g_skirmishCheatSoundName[16] = "SkirmishCheat";  // 0x508460 .data
 const char g_cheatTenPlayers[4] = "*X";  // 0x508470 .data
 const char g_cheatNinePlayers[4] = "*IX";  // 0x508474 .data
@@ -181,7 +181,7 @@ char DAT_00509028[32] = "VictoryCondition_KillUnitType";  // 0x509028 .data
 char DAT_005090fc[32] = "DefeatCondition_AllUnitsKilled";  // 0x5090fc .data
 char* DAT_005091c8 = (char*)"SAVEGAME";  // 0x5091c8 .data
 int DAT_005091cc = 1;  // 0x5091cc .data
-int DAT_005091d0 = -1;  // 0x5091d0 .data
+int g_lastCdActivityMode = -1;  // 0x5091d0 .data
 const char g_offscreenSurfaceName[12] = "OFFSCREEN";  // 0x5091d4 .data
 const char g_cdListsKey[8] = "CDLISTS";  // 0x509200 .data
 const char g_unitLimitKey[12] = "UnitLimit";  // 0x509238 .data
@@ -190,11 +190,11 @@ const char g_hattFont12Name[12] = "hattfont12";  // 0x509250 .data
 const char g_commonGuiName[12] = "commongui";  // 0x50925c .data
 const char g_skirmishInfoTag[16] = "SkirmishInfo";  // 0x509268 .data
 const char g_invalidSavegameText[24] = "Invalid savegame file";  // 0x509310 .data
-char DAT_005093ec[8] = "Enemies";  // 0x5093ec .data
-char DAT_005093f4[4] = ",:;";  // 0x5093f4 .data
-char DAT_005093f8[8] = "SENDTO";  // 0x5093f8 .data
-char DAT_00509400[12] = "SENDTYPE";  // 0x509400 .data
-char DAT_0050940c[12] = "LIVEPLYR";  // 0x50940c .data
+char g_enemiesChatTarget[8] = "Enemies";  // 0x5093ec .data
+char g_chatTargetSeparators[4] = ",:;";  // 0x5093f4 .data
+char g_sendToGadgetName[8] = "SENDTO";  // 0x5093f8 .data
+char g_sendTypeGadgetName[12] = "SENDTYPE";  // 0x509400 .data
+char g_livePlayerPrefix[12] = "LIVEPLYR";  // 0x50940c .data
 char g_screenshotPrefix[12] = "SHOT";  // 0x50966c .data
 char* g_fireScriptNames[4] = {(char*)"FirePrimary", (char*)"FireSecondary", (char*)"FireTertiary"};  // 0x509678 .data
 char* g_aimScriptNames[3] = {(char*)"AimPrimary", (char*)"AimSecondary", (char*)"AimTertiary"};  // 0x509688 .data
@@ -642,10 +642,10 @@ unsigned char DAT_0051e6b0[4];  // 0x51e6b0 .bss
 int g_mapLoadFlag;  // 0x51e6c0 .bss
 unsigned int DAT_0051e6c4;  // 0x51e6c4 .bss
 unsigned char g_loadingBarFlashAlpha[8];  // 0x51e6c8 .bss
-int DAT_0051e6d0[10];  // 0x51e6d0 .bss
+int g_shareDialogPlayerNetIds[10];  // 0x51e6d0 .bss
 char g_savegameRadarFrame[24];  // 0x51e6f8 .bss
 int DAT_0051e710[30];  // 0x51e710 .bss
-char DAT_0051e788[136];  // 0x51e788 .bss
+char g_chatDraftText[136];  // 0x51e788 .bss
 unsigned char DAT_0051e810[10];  // 0x51e810 .bss (the type runs past the next known address, 0x51e810+0x8)
 unsigned char DAT_0051e81a[6];  // 0x51e81a .bss
 unsigned char g_loadingBarPrevPercent[5];  // 0x51e820 .bss
@@ -655,10 +655,10 @@ unsigned char DAT_0051f2c8[10];  // 0x51f2c8 .bss (the type runs past the next k
 unsigned char DAT_0051f2d2[6];  // 0x51f2d2 .bss
 unsigned int DAT_0051f2d8;  // 0x51f2d8 .bss
 unsigned int DAT_0051f2dc;  // 0x51f2dc .bss
-int DAT_0051f2f0;  // 0x51f2f0 .bss
-int DAT_0051f2f4;  // 0x51f2f4 .bss
-unsigned int DAT_0051f2f8;  // 0x51f2f8 .bss
-int DAT_0051f2fc;  // 0x51f2fc .bss
+int g_chatDraftInitialized;  // 0x51f2f0 .bss
+int g_scorePanelFlashDecayTick;  // 0x51f2f4 .bss
+unsigned int g_cdActivityLastSampleTick;  // 0x51f2f8 .bss
+int g_cdActivityStableTicks;  // 0x51f2fc .bss
 int g_netProbeNextTick;  // 0x51f300 .bss
 int g_netHeartbeatNextTick;  // 0x51f304 .bss
 unsigned char g_loadingBarFlashDecayTick[8];  // 0x51f308 .bss

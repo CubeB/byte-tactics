@@ -763,7 +763,7 @@ void BroadcastPlayerInfo();
 void __stdcall ReportGameEvent(int param_1);
 void __stdcall PlaySoundByName(char* str, int flag);
 int __stdcall IsGadgetNamed(int param1, int param2, char* name);
-void __stdcall FUN_004ab0a0(void* param_1);
+void __stdcall ClearSelectedGadget(void* param_1);
 
 // FUNCTION: 0x464de0
 void __stdcall ContinueWatchingCallback(Gadget* gadget)
@@ -779,7 +779,7 @@ void __stdcall ContinueWatchingCallback(Gadget* gadget)
         return;
     }
     if (!IsGadgetNamed(screen, gadget->selected, "CHOICE2")) {
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         return;
     }
     g_game->flags_3923b.b.bit2 = 1;

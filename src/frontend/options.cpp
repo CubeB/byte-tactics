@@ -1105,8 +1105,8 @@ void __stdcall FUN_0049fa90(Gadget_0045f770* gadget);
 void __stdcall FUN_0049fa90(Sub_0045f8c0* sub);
 void __stdcall FUN_0049fa90(char* menu);
 
-void __stdcall FUN_004ab170(Sub_0045cf60* sub, unsigned int* a, int* b);
-void __stdcall FUN_004ab170(char* menu, int a, int b);
+void __stdcall BlitMenuLayers(Sub_0045cf60* sub, unsigned int* a, int* b);
+void __stdcall BlitMenuLayers(char* menu, int a, int b);
 
 void __stdcall SetOffscreenSurface(void* p);
 void __stdcall SetOffscreenSurface(int param_1);
@@ -1175,16 +1175,16 @@ void __stdcall PlaySoundByName(char* name, int value);
 void __stdcall PlayLoopingSoundByName(char* name, int value);
 void __stdcall PlaySoundFile(char* name);
 void __stdcall StopAllSounds();
-void __stdcall FUN_004ab0a0(void* obj);
-void __stdcall FUN_004ab0a0(Gui_0045e100* gui);
-void __stdcall FUN_004ab0a0(Gadget_0045ead0* gadget);
-void __stdcall FUN_004ab0a0(Gadget_0045f190* gadget);
-void __stdcall FUN_004ab0a0(Gadget_0045f770* gadget);
-void __stdcall FUN_004ab0a0(Gadget_0045fac0* gadget);
-void __stdcall FUN_004ab0a0(Gadget_0045fc60* gadget);
-void __stdcall FUN_004ab0a0(Gadget_004605c0* gadget);
-void __stdcall FUN_004ab0a0(Gadget_00460800* gadget);
-void __stdcall FUN_004ab0a0(Gadget_004609b0* gadget);
+void __stdcall ClearSelectedGadget(void* obj);
+void __stdcall ClearSelectedGadget(Gui_0045e100* gui);
+void __stdcall ClearSelectedGadget(Gadget_0045ead0* gadget);
+void __stdcall ClearSelectedGadget(Gadget_0045f190* gadget);
+void __stdcall ClearSelectedGadget(Gadget_0045f770* gadget);
+void __stdcall ClearSelectedGadget(Gadget_0045fac0* gadget);
+void __stdcall ClearSelectedGadget(Gadget_0045fc60* gadget);
+void __stdcall ClearSelectedGadget(Gadget_004605c0* gadget);
+void __stdcall ClearSelectedGadget(Gadget_00460800* gadget);
+void __stdcall ClearSelectedGadget(Gadget_004609b0* gadget);
 
 void __stdcall CloseTopScreen(void* queue);
 void __stdcall CloseTopScreen(Gui_0045e100* gui);
@@ -1887,7 +1887,7 @@ void BlitOptionsPanel()
     }
     RenderLayer((Sub_0045cf60*)&g_game->gui, 0x40);
     FUN_0049fa90((Sub_0045cf60*)&g_game->gui);
-    FUN_004ab170((Sub_0045cf60*)&g_game->gui, 0, 0);
+    BlitMenuLayers((Sub_0045cf60*)&g_game->gui, 0, 0);
     SetOffscreenSurface(g_game->field_37e1b);
     FlipScreen();
 }
@@ -1967,7 +1967,7 @@ void __stdcall HandleMusicOptionsClick(Object_0045d280* obj)
         unsigned short f = g_game->flags_37f14.word;
         g_game->flags_37f14.word = f ^ ((f ^ v) & 1);
         ((Class_004cedc0*)g_game->sound)->EnableCdAudio(g_game->flags_37f14.word & 1);
-        FUN_004ab0a0(obj);
+        ClearSelectedGadget(obj);
         UpdateMusicGadgets();
     } else if (IsCurrentGadgetNamed(obj, g_trackModeGadgetName)) {  // "TRACKMODE"
         PlaySoundByName(g_optionsSoundName, 0);
@@ -1975,7 +1975,7 @@ void __stdcall HandleMusicOptionsClick(Object_0045d280* obj)
         ((Class_004ce7a0*)g_game->sound)->SetPlaybackOrder(g_game->field_37f16);
         if (g_game->field_37f16 == 3) {
             g_musicUiSelectedTrack = ((Class_004ce5a0*)g_game->sound)->GetLockedTrack();
-            FUN_004ab0a0(obj);
+            ClearSelectedGadget(obj);
             UpdateTrackGadgets();
             return;
         }
@@ -1983,7 +1983,7 @@ void __stdcall HandleMusicOptionsClick(Object_0045d280* obj)
             SetButtonStageByName(obj, g_trackTypeGadgetName, (unsigned char)((Class_004ce7e0*)g_game->sound)->GetCategoryOfTrack(g_musicUiSelectedTrack));
             ApplyTrackType();
         }
-        FUN_004ab0a0(obj);
+        ClearSelectedGadget(obj);
         UpdateTrackGadgets();
         return;
     } else if (IsCurrentGadgetNamed(obj, g_trackTypeGadgetName)) {  // "TRACKTYPE"
@@ -1992,13 +1992,13 @@ void __stdcall HandleMusicOptionsClick(Object_0045d280* obj)
         int i = obj->field_60;
         ((Class_004ce7c0*)g_game->sound)->SetCategoryOfTrack(g_musicUiSelectedTrack, entries[i].value);
         UpdateTrackGadgets();
-        FUN_004ab0a0(obj);
+        ClearSelectedGadget(obj);
         return;
     }
     if (IsCurrentGadgetNamed(obj, g_cdPlayGadgetName)) {  // "CDPLAY"
         PlaySoundByName(g_optionsSoundName, 0);
         ((Sound*)g_game->sound)->PlayCdTrack(g_musicUiSelectedTrack, 1);
-        FUN_004ab0a0(obj);
+        ClearSelectedGadget(obj);
         return;
     } else if (IsCurrentGadgetNamed(obj, g_cdNextGadgetName)) {  // "CDNEXT"
         PlaySoundByName(g_optionsSoundName, 0);
@@ -2008,7 +2008,7 @@ void __stdcall HandleMusicOptionsClick(Object_0045d280* obj)
             g_musicUiSelectedTrack = 1;
         g_musicUiSelectedTrack = ((Class_004ce8c0*)g_game->sound)->SelectTrack(g_musicUiSelectedTrack);
         UpdateTrackGadgets();
-        FUN_004ab0a0(obj);
+        ClearSelectedGadget(obj);
         return;
     } else if (IsCurrentGadgetNamed(obj, g_cdPrevGadgetName)) {  // "CDPREV"
         PlaySoundByName(g_optionsSoundName, 0);
@@ -2017,14 +2017,14 @@ void __stdcall HandleMusicOptionsClick(Object_0045d280* obj)
             g_musicUiSelectedTrack = ((Class_004ce450*)g_game->sound)->GetTrackCount();
         g_musicUiSelectedTrack = ((Class_004ce8c0*)g_game->sound)->SelectTrack(g_musicUiSelectedTrack);
         UpdateTrackGadgets();
-        FUN_004ab0a0(obj);
+        ClearSelectedGadget(obj);
         return;
     } else if (IsCurrentGadgetNamed(obj, g_cdStopGadgetName)) {  // "CDSTOP"
         PlaySoundByName(g_optionsSoundName, 0);
         ((Class_004ced40*)g_game->sound)->StopCdAudio();
         g_musicUiSelectedTrack = ((Class_004ce8c0*)g_game->sound)->SelectTrack(1);
         UpdateTrackGadgets();
-        FUN_004ab0a0(obj);
+        ClearSelectedGadget(obj);
         return;
     }
     if (IsCurrentGadgetNamed(obj, g_undoGadgetName)) {  // "UNDO"
@@ -2044,7 +2044,7 @@ void __stdcall HandleMusicOptionsClick(Object_0045d280* obj)
     int save = obj->field_60;
     if (obj->field_60 != -1) {
         if (entries[obj->field_60].state != 1) {
-            FUN_004ab0a0(obj);
+            ClearSelectedGadget(obj);
             return;
         }
         Vtable_0045d280* p = obj->holder->field_0;
@@ -2125,7 +2125,7 @@ void __stdcall HandleSoundOptionsClick(Object_0045da90* obj)
         PlaySoundByName(g_optionsSoundName, 0);
         g_game->soundFlags.bits.speech = entries[obj->field_60].value != 0;
         g_game->field_37f17 = entries[obj->field_60].value * 5;
-        FUN_004ab0a0(obj);
+        ClearSelectedGadget(obj);
     } else if (IsCurrentGadgetNamed(obj, g_modeGadgetName)) {
         int v = GetButtonStageByName(obj, g_modeGadgetName);
         unsigned short f = g_game->soundFlags.word;
@@ -2143,7 +2143,7 @@ void __stdcall HandleSoundOptionsClick(Object_0045da90* obj)
         FUN_004a1450(&g_game->gui, g_fxVolGadgetName, (g_game->soundFlags.word & 7) == 0);
         FUN_004a1450(&g_game->gui, g_testGadgetName, (g_game->soundFlags.word & 7) == 0);
         FUN_004a1450(&g_game->gui, g_speechGadgetName, (g_game->soundFlags.word & 7) == 0);
-        FUN_004ab0a0(obj);
+        ClearSelectedGadget(obj);
         PlaySoundByName(g_optionsSoundName, 0);
         return;
     }
@@ -2172,12 +2172,12 @@ void __stdcall HandleSoundOptionsClick(Object_0045da90* obj)
     }
     if (IsCurrentGadgetNamed(obj, g_testGadgetName)) {
         PlaySoundFile(g_explodeSoundFile);
-        FUN_004ab0a0(obj);
+        ClearSelectedGadget(obj);
         return;
     }
     if (obj->field_60 != -1) {
         if (entries[mode].type != 1) {
-            FUN_004ab0a0(obj);
+            ClearSelectedGadget(obj);
             return;
         }
         Vtable_0045da90* p = obj->holder->field_0;
@@ -2263,7 +2263,7 @@ void __stdcall HandleVisualOptionsClick(Gui_0045e100* gui)
         if (g_game->flags_37ebe.bits.b0)
             g_game->ptr_1437b->FlushCache();
         FUN_0049fa90(gui);
-        FUN_004ab0a0(gui);
+        ClearSelectedGadget(gui);
         return;
     }
 
@@ -2275,7 +2275,7 @@ void __stdcall HandleVisualOptionsClick(Gui_0045e100* gui)
         if (g_game->flags_37ebe.bits.b0)
             g_game->ptr_1437b->FlushCache();
         FUN_0049fa90(gui);
-        FUN_004ab0a0(gui);
+        ClearSelectedGadget(gui);
         return;
     }
 
@@ -2285,7 +2285,7 @@ void __stdcall HandleVisualOptionsClick(Gui_0045e100* gui)
         if (g_game->flags_37ebe.bits.b0)
             g_game->ptr_1437b->FlushCache();
         FUN_0049fa90(gui);
-        FUN_004ab0a0(gui);
+        ClearSelectedGadget(gui);
         return;
     }
 
@@ -2325,7 +2325,7 @@ void __stdcall HandleVisualOptionsClick(Gui_0045e100* gui)
 
     if (gui->field_60 != -1) {
         if (entries[gui->field_60].state != 1) {
-            FUN_004ab0a0(gui);
+            ClearSelectedGadget(gui);
             return;
         }
         Screen_0045e100* next = gui->top->next;
@@ -2485,12 +2485,12 @@ void __stdcall HandleSpeedOptionsClick(Gadget_0045ead0* gadget)
     if (IsCurrentGadgetNamed((Gadget_0045ead0*)&g_game->gui, "LEFTCLICK")) {
         PlaySoundByName("Options", 0);
         g_game->field_37efa = GetButtonStageByName((Gadget_0045ead0*)&g_game->gui, "LEFTCLICK");
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         return;
     }
     if (IsCurrentGadgetNamed((Gadget_0045ead0*)&g_game->gui, "UNITCHAT")) {
         PlaySoundByName("Options", 0);
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         g_game->field_37f18 = (unsigned char)(GetButtonStageByName((Gadget_0045ead0*)&g_game->gui, "UNITCHAT") * 5);
         return;
     }
@@ -2525,7 +2525,7 @@ void __stdcall HandleSpeedOptionsClick(Gadget_0045ead0* gadget)
     int i = gadget->field_60;
     // Index with gadget->field_60 * 347, not the local i: selects the original lea.
     if (data[gadget->field_60 * 347] != 1) {
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         return;
     }
     if (i != -1) {
@@ -2631,7 +2631,7 @@ void __stdcall HandleGameSettingsDialogClick(Gadget_0045f190* gadget)
             PlaySoundByName("Options", 0);
             return;
         }
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
     }
 }
 
@@ -2736,10 +2736,10 @@ void __stdcall HandleBriefingClick(Gadget_0045f770* gadget)
         PlaySoundByName("Options", 0);
         DrawHelpPage();
         FUN_0049fa90(gadget);
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
     }
     if (gadget->field_60 != -1)
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
 }
 
 // FUNCTION: 0x45f800
@@ -2833,7 +2833,7 @@ void __stdcall HandleHelpClick(Gadget_0045fac0* gadget)
             PlaySoundByName("Options", 0);
             FillHelpPage(gadget, GetButtonStageByName(gadget, "Page"), 0x11);
         }
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
     }
 }
 
@@ -2886,7 +2886,7 @@ void __stdcall HandleOptionsPanelClick(Gadget_0045fc60* gadget)
         } else {
             RenderLayer((char*)&g_game->gui, 0x40);
             FUN_0049fa90((char*)&g_game->gui);
-            FUN_004ab170((char*)&g_game->gui, 0, 0);
+            BlitMenuLayers((char*)&g_game->gui, 0, 0);
             SetOffscreenSurface((int)g_game->field_37e1b);
             FlipScreen();
         }
@@ -2936,7 +2936,7 @@ void __stdcall HandleOptionsPanelClick(Gadget_0045fc60* gadget)
             OpenSoundOptions();
         } else {
             if (gadget->field_60 != -1)
-                FUN_004ab0a0(gadget);
+                ClearSelectedGadget(gadget);
             return;
         }
         g_optionsShellClosing = 0;
@@ -3072,7 +3072,7 @@ void __stdcall HandleRestartDialogClick(Gadget_00460340* gadget)
                 OpenMessageBox((char*)&g_game->gui,
                              Translate("Please insert the Campaign CD (Disc 2) and try again"),
                              200, 1, 1);
-                FUN_004ab0a0((char*)&g_game->gui);
+                ClearSelectedGadget((char*)&g_game->gui);
                 return;
             }
             ok = true;
@@ -3082,7 +3082,7 @@ void __stdcall HandleRestartDialogClick(Gadget_00460340* gadget)
                 OpenMessageBox((char*)&g_game->gui,
                              Translate("Please insert the Multiplayer CD (Disc 1) and try again"),
                              200, 1, 1);
-                FUN_004ab0a0((char*)&g_game->gui);
+                ClearSelectedGadget((char*)&g_game->gui);
                 return;
             }
             ok = true;
@@ -3095,9 +3095,9 @@ void __stdcall HandleRestartDialogClick(Gadget_00460340* gadget)
         g_game->field_39249 = 1;
     } else if (IsCurrentGadgetNamed(gadget, "Difficulty")) {
         PlaySoundByName("Options", 0);
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
     } else if (!IsCurrentGadgetNamed(gadget, "CANCEL") && gadget->field_60 != -1) {
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
     }
 }
 
@@ -3151,7 +3151,7 @@ void __stdcall HandleSurrenderChoice(Gadget_004605c0* gadget)
             return;
         }
     } else if (!IsGadgetNamed(owner, gadget->field_60, "CHOICE2")) {
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
     }
 }
 
@@ -3209,7 +3209,7 @@ void __stdcall HandleExitMenuClick(Gadget_00460800* gadget)
                 return;
             }
             if (gadget->field_60 != -1)
-                FUN_004ab0a0(gadget);
+                ClearSelectedGadget(gadget);
         }
     }
 }
@@ -3327,7 +3327,7 @@ void __stdcall HandleInGameOptionsClick(Gadget_004609b0* gadget)
         return;
     }
     if (gadget->field_60 != -1)
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
 }
 
 // FUNCTION: 0x460cc0

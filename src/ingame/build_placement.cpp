@@ -158,7 +158,7 @@ void __stdcall IssueOrderToSelection(void* a, unsigned char b, Class_00438760 ki
 int __stdcall FindGadgetIndexBySubstring(int value, char* name);
 void __stdcall FUN_004a6a40(void* obj, int index);
 void __stdcall CloseTopScreen(void* a);
-void __stdcall FUN_004ab400(void* a, void* b);
+void __stdcall SetCursorAnimation(void* a, void* b);
 void __stdcall SetCloseHandler(void* a, int b);
 int GetTicks();
 void ClearKeyQueue();
@@ -251,7 +251,7 @@ void __stdcall HandleRightClick(View* param_1)
             g_game->flags_2cc6 = g_game->flags_2cc6 | 0x10;
             if (g_game->selected != 0x13) {
                 g_game->selected = 0x13;
-                FUN_004ab400((void*)g_game->field_519, g_game->table[0x13]);
+                SetCursorAnimation((void*)g_game->field_519, g_game->table[0x13]);
                 return;
             }
         }
@@ -266,7 +266,7 @@ static inline void SetCursor(int n)
 {
     if (g_game->selected != n) {
         g_game->selected = n;
-        FUN_004ab400(g_game->field_519, g_game->table[n]);
+        SetCursorAnimation(g_game->field_519, g_game->table[n]);
     }
 }
 

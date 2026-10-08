@@ -133,7 +133,7 @@ struct Menu_004aa8f0 {
     char name[0x100];              // +0x9b6
 };
 
-// The records AddButtonGadget, FUN_004ab310 and FUN_004ab3a0 copy into an
+// The records AddButtonGadget, AddHotspotGadget and AddBarGadget copy into an
 // entry slot: the slot's first bytes viewed as the control's definition.
 struct Record_004ab2b0 {
     unsigned char type;            // +0x0
@@ -198,7 +198,7 @@ extern int __cdecl GetTextKeyColor(void);
 extern void __stdcall SetTextColors(int a, int b);
 extern void __stdcall SetFont(int a);
 extern void __cdecl ClearKeyQueue(void);
-extern void __stdcall FUN_004ab6c0(Menu_004aa8f0* menu, int index, char* text,
+extern void __stdcall CommitTextEdit(Menu_004aa8f0* menu, int index, char* text,
                                    int maxLength, int clear);
 
 extern int __stdcall PointInRect(Rect_004b6720* r, int x, int y);
@@ -426,7 +426,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Menu_004aa8f0* menu, const char* name,
             SetFont(*g_guiContext);
         FUN_0049fc50(menu, 1);
         menu->layer->field_20 = 1;
-        FUN_004ab6c0(menu, 1, (char*)sub + 0xb6,
+        CommitTextEdit(menu, 1, (char*)sub + 0xb6,
                      *(short*)((char*)sub + 0x138), 0);
         ClearKeyQueue();
         }
@@ -453,7 +453,7 @@ int __stdcall IsPointInEntryRect(Menu_004aa8f0* obj)
 }
 
 // FUNCTION: 0x4ab040
-int __stdcall FUN_004ab040(Menu_004aa8f0* obj)
+int __stdcall HasLayer(Menu_004aa8f0* obj)
 {
     return obj->layer != 0;
 }
@@ -470,19 +470,19 @@ int __stdcall IsScreenNamed(Menu_004aa8f0* obj, const char* name)
 }
 
 // FUNCTION: 0x4ab0a0
-void __stdcall FUN_004ab0a0(void* param_1)
+void __stdcall ClearSelectedGadget(void* param_1)
 {
     *(int*)((char*)param_1 + 0x60) = -1;
 }
 
 // FUNCTION: 0x4ab0b0
-int __stdcall FUN_004ab0b0(Layer_004aa8f0* node, void* param_2, Rect_004b6720* param_3)
+int __stdcall BlitLayers(Layer_004aa8f0* node, void* param_2, Rect_004b6720* param_3)
 {
     Rect_004b6720 rect;
     if (node == 0) {
         return 0;
     }
-    FUN_004ab0b0(node->next, param_2, param_3);
+    BlitLayers(node->next, param_2, param_3);
     Entry_004aa8f0* g = node->entries;
     rect.left = g->x;
     rect.top = g->y;
@@ -505,13 +505,13 @@ finish:
 }
 
 // FUNCTION: 0x4ab170
-void __stdcall FUN_004ab170(Menu_004aa8f0* param_1, unsigned int* param_2, int* param_3)
+void __stdcall BlitMenuLayers(Menu_004aa8f0* param_1, unsigned int* param_2, int* param_3)
 {
-    FUN_004ab0b0(param_1->layer, param_2, (Rect_004b6720*)param_3);
+    BlitLayers(param_1->layer, param_2, (Rect_004b6720*)param_3);
 }
 
 // FUNCTION: 0x4ab190
-void __stdcall FUN_004ab190(int param_1, int param_2)
+void __stdcall SetDescListCleanupFlag(int param_1, int param_2)
 {
     *(int*)(param_1 + 0xcc6) = param_2;
 }
@@ -557,7 +557,7 @@ void __stdcall AddTextGadget(Layer_004aa8f0* obj, char* name, char* text,
 }
 
 // FUNCTION: 0x4ab290
-int __stdcall FUN_004ab290(Menu_004aa8f0* menu, int value)
+int __stdcall SetBackgroundSurface(Menu_004aa8f0* menu, int value)
 {
     if (menu->layer != 0)
         menu->layer->field_24 = value;
@@ -583,7 +583,7 @@ int __stdcall AddButtonGadget(Menu_004aa8f0* obj, Record_004ab2b0* record)
 // entries; entry 0 holds the count) and marks the new entry as type 6.
 // Same shape as 0x4ab2b0 (type 1) and 0x4ab3a0 (type 0xd).
 // FUNCTION: 0x4ab310
-int __stdcall FUN_004ab310(Menu_004aa8f0* obj, Record_004ab310* record)
+int __stdcall AddHotspotGadget(Menu_004aa8f0* obj, Record_004ab310* record)
 {
     Entry_004ab310* entries = (Entry_004ab310*)obj->layer->entries;
     if (entries->record.count == 200) {
@@ -604,7 +604,7 @@ int __stdcall FUN_004ab310(Menu_004aa8f0* obj, Record_004ab310* record)
 // entries; entry 0 holds the count) and marks the new entry as type 0xd.
 // Same shape as 0x4ab2b0, which appends a 0x13e-byte type 1 record.
 // FUNCTION: 0x4ab3a0
-int __stdcall FUN_004ab3a0(Menu_004aa8f0* obj, Record_004ab3a0* record)
+int __stdcall AddBarGadget(Menu_004aa8f0* obj, Record_004ab3a0* record)
 {
     Entry_004ab3a0* entries = (Entry_004ab3a0*)obj->layer->entries;
     if (entries->record.count == 200) {
@@ -620,7 +620,7 @@ int __stdcall FUN_004ab3a0(Menu_004aa8f0* obj, Record_004ab3a0* record)
 // first entry, sets the active flag and passes the entry's value on to
 // SetCursorSprite.
 // FUNCTION: 0x4ab400
-void __stdcall FUN_004ab400(Menu_004aa8f0* p, Src_004ab400* src)
+void __stdcall SetCursorAnimation(Menu_004aa8f0* p, Src_004ab400* src)
 {
     p->src_2c = src;
     InitGafSequence(&p->ref, src, 0);
@@ -652,7 +652,7 @@ static inline void SetValue(Menu_004aa8f0* p, int value)
 }
 
 // FUNCTION: 0x4ab440
-void __stdcall FUN_004ab440(Menu_004aa8f0* p, int alt)
+void __stdcall SetCursorHover(Menu_004aa8f0* p, int alt)
 {
     if (alt) {
         if (p->src_28)
@@ -672,7 +672,7 @@ void __stdcall FUN_004ab440(Menu_004aa8f0* p, int alt)
 // the whole dword but an `and al, 0xfe` on just the low byte is the
 // dword-bitfield clear idiom from the guide).
 // FUNCTION: 0x4ab4c0
-void __stdcall FUN_004ab4c0(Menu_004aa8f0* p)
+void __stdcall ApplySharedCursorFrame(Menu_004aa8f0* p)
 {
     SetCursorSprite(p->field_1c);
     p->flags_5c.active = 0;
@@ -681,7 +681,7 @@ void __stdcall FUN_004ab4c0(Menu_004aa8f0* p)
 // Compare 0x4ab4c0 and 0x4ab400: sets the three values at +0x1c..+0x24,
 // passes the value on to SetCursorSprite and clears the active flag.
 // FUNCTION: 0x4ab4e0
-void __stdcall FUN_004ab4e0(Menu_004aa8f0* p, int value)
+void __stdcall InitCursorFrames(Menu_004aa8f0* p, int value)
 {
     p->field_1c = value;
     p->field_20 = value;
@@ -733,7 +733,7 @@ int __stdcall IsDoubleClickMessage(Menu_004aa8f0* obj, unsigned char buttons)
 
 // Returns 1 when any of the mask bits are set in the object's field at +0x54.
 // FUNCTION: 0x4ab5b0
-int __stdcall FUN_004ab5b0(Menu_004aa8f0* obj, unsigned int mask)
+int __stdcall HasMouseKeyFlags(Menu_004aa8f0* obj, unsigned int mask)
 {
     return (obj->field_54 & mask) != 0;
 }
@@ -743,7 +743,7 @@ int __stdcall FUN_004ab5b0(Menu_004aa8f0* obj, unsigned int mask)
 // tests its point against the element's rectangle (from the entry at +0x18)
 // and, on a hit or a plain code, pops the event into the element at +0x3c.
 // FUNCTION: 0x4ab5d0
-void __stdcall FUN_004ab5d0(Menu_004aa8f0* p)
+void __stdcall UpdateCursorAndMouse(Menu_004aa8f0* p)
 {
     if (p->flags_5c.active) {
         int old = p->ref.index;
@@ -769,14 +769,14 @@ void __stdcall FUN_004ab5d0(Menu_004aa8f0* p)
 }
 
 // FUNCTION: 0x4ab690
-void __stdcall FUN_004ab690(void* param_1, int param_2)
+void __stdcall SetClickMode(void* param_1, int param_2)
 {
     *(int*)((char*)param_1 + 0x58) = param_2;
     *(int*)(*(int*)((char*)param_1 + 0x18) + 0x37) = param_2;
 }
 
 // FUNCTION: 0x4ab6b0
-int __stdcall FUN_004ab6b0(Menu_004aa8f0* obj)
+int __stdcall GetClickMode(Menu_004aa8f0* obj)
 {
     return obj->field_58;
 }
@@ -788,7 +788,7 @@ int __stdcall FUN_004ab6b0(Menu_004aa8f0* obj)
 // inlined into it now that both live in one file.
 #pragma auto_inline(off)
 // FUNCTION: 0x4ab6c0
-void __stdcall FUN_004ab6c0(Menu_004aa8f0* control, int index, char* text,
+void __stdcall CommitTextEdit(Menu_004aa8f0* control, int index, char* text,
                             int maxLength, int clear)
 {
     int length = strlen(text);
@@ -1364,7 +1364,7 @@ void __stdcall TruncateTextWithEllipsis(Menu_004aa8f0* obj, unsigned char* text,
 // Unused here: forward declarations of later functions of this file. Their
 // symbol ids in front of each palette helper (here and before 0x4ac7d0,
 // 0x4ac8c0 and 0x4acbe0) set its register allocation (docs/c2-regalloc.md).
-void __stdcall FUN_004ac8a0(char* obj, void* dest);
+void __stdcall CopyPaletteEntries(char* obj, void* dest);
 
 // Builds a 256-entry remap table: for each colour of the source palette,
 // the index of the closest colour (sum of absolute RGB differences) in the
@@ -1398,7 +1398,7 @@ void __stdcall ApplySlidersToPaletteEntry(PaletteDialog_004aa8f0* obj, PalEntry_
 // table: for each colour of the copied palette, the index of the closest
 // colour (sum of absolute RGB differences) in the source palette.
 // FUNCTION: 0x4ac7d0
-void __stdcall FUN_004ac7d0(Palette_004aa8f0* pal, PalEntry_004aa8f0* src, PalEntry_004aa8f0* copy)
+void __stdcall RemapPaletteToClosestIndices(Palette_004aa8f0* pal, PalEntry_004aa8f0* src, PalEntry_004aa8f0* copy)
 {
     memcpy(pal->dest, copy, 0x400);
 
@@ -1422,19 +1422,19 @@ void __stdcall FUN_004ac7d0(Palette_004aa8f0* pal, PalEntry_004aa8f0* src, PalEn
 }
 
 // FUNCTION: 0x4ac8a0
-void __stdcall FUN_004ac8a0(char* obj, void* dest)
+void __stdcall CopyPaletteEntries(char* obj, void* dest)
 {
     memcpy(dest, obj + 0xb2, 0x100 * sizeof(int));
 }
 
 void __stdcall ShowPaletteEntryRgb(Menu_004aa8f0* obj, unsigned char* colors, int index);
-void __stdcall FUN_004acae0(unsigned char* data, int a, int b);
+void __stdcall LerpPaletteRange(unsigned char* data, int a, int b);
 void __stdcall WriteTabs(FileHandle* file, int depth);
 
 // Draws the 16 x 16 palette grid: one 8 x 8 cell per colour, at the "COLS"
 // gadget's position.
 // FUNCTION: 0x4ac8c0
-void __stdcall FUN_004ac8c0(Menu_004aa8f0* obj)
+void __stdcall DrawColorGrid(Menu_004aa8f0* obj)
 {
     // grid before gadgets: operand order of the prologue sums follows symbol order.
     Entry_004aa8f0 *grid, *gadgets;
@@ -1478,7 +1478,7 @@ void __stdcall ShowPaletteEntryRgb(Menu_004aa8f0* obj, unsigned char* colors, in
 // Note: the two 0x400-byte copies run on a 768-byte stack buffer (see the bug
 // note in the pull request); the original really does emit them, so they stay.
 // FUNCTION: 0x4acae0
-void __stdcall FUN_004acae0(unsigned char* data, int a, int b)
+void __stdcall LerpPaletteRange(unsigned char* data, int a, int b)
 {
     unsigned char buf[768];
     memcpy(buf, data, 0x400);

@@ -77,7 +77,7 @@ extern Guid_00441460 DAT_004fcdb8;
 
 char* __stdcall Translate(const char* text);
 void __stdcall OpenMessageBox(Sub_00441460* sub, char* text, int a, int b, int c);
-void __stdcall FUN_004ab170(Sub_00441460* sub, int a, int b);
+void __stdcall BlitMenuLayers(Sub_00441460* sub, int a, int b);
 void __stdcall SetOffscreenSurface(int a);
 void FlipScreen();
 int __stdcall HAPINET_getgames(char* net, void* desc, int a);
@@ -130,7 +130,7 @@ conn:
     msg = "Connecting  (ESC to abort)";
 shown:
     OpenMessageBox(&g_game->sub, Translate(msg), 0x96, 0, 1);
-    FUN_004ab170(&g_game->sub, g_game->field_37e1b, 0);
+    BlitMenuLayers(&g_game->sub, g_game->field_37e1b, 0);
     SetOffscreenSurface(g_game->field_37e1b);
     FlipScreen();
     FlipScreen();

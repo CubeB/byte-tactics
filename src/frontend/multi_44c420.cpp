@@ -82,8 +82,8 @@ extern int* DAT_005129c4;
 
 Entry_0044c420* __stdcall FindGadgetChecked(void* gadgets, char* name);
 int __stdcall IsCurrentGadgetNamed(Menu_0044c420* gui, char* name);
-void __stdcall FUN_004ab0a0(Menu_0044c420* obj);
-void __stdcall FUN_004ab190(int param_1, int param_2);
+void __stdcall ClearSelectedGadget(Menu_0044c420* obj);
+void __stdcall SetDescListCleanupFlag(int param_1, int param_2);
 void __stdcall FUN_0049fa90(Menu_0044c420* obj);
 void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall UpdateUnitSliders(Menu_0044c420* menu, int value);
@@ -120,7 +120,7 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
         FUN_004d85a0(DAT_005129b8);
         DAT_005129b8 = 0;
         FUN_004d85a0(desc->field_c2);
-        FUN_004ab190((int)menu, 1);
+        SetDescListCleanupFlag((int)menu, 1);
         if (IsHostLocal() != 0) {
             for (i = 0; i < g_game->count; i++) {
                 type = DAT_005129b4[i].field_52;
@@ -149,13 +149,13 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
     if (IsCurrentGadgetNamed(menu, "Load") != 0) {
         PlaySoundByName("Options", 0);
         OpenLoadListDialog();
-        FUN_004ab0a0(menu);
+        ClearSelectedGadget(menu);
         return;
     }
     if (IsCurrentGadgetNamed(menu, "Save") != 0) {
         PlaySoundByName("Options", 0);
         OpenSaveGameDialog();
-        FUN_004ab0a0(menu);
+        ClearSelectedGadget(menu);
         return;
     }
     if (IsCurrentGadgetNamed(menu, "Reset") != 0) {
@@ -176,7 +176,7 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
         }
         UpdateUnitSliders(menu, 0);
         FUN_0049fa90(menu);
-        FUN_004ab0a0(menu);
+        ClearSelectedGadget(menu);
         return;
     }
     if (IsCurrentGadgetNamed(menu, "OK") != 0) {
@@ -199,5 +199,5 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
         return;
     }
     if (menu->field_60 != -1)
-        FUN_004ab0a0(menu);
+        ClearSelectedGadget(menu);
 }

@@ -588,7 +588,7 @@ void __stdcall FUN_0049fbf0(void* param_1, const char* name);
 void __stdcall FUN_0049fb50(void* param_1, const char* name);
 void __stdcall FUN_004aa8e0(void* param_1, int param_2);
 void* __stdcall GetGafFrame(void* param_1, int param_2);
-void __stdcall FUN_004ab4e0(void* param_1, void* param_2);
+void __stdcall InitCursorFrames(void* param_1, void* param_2);
 void __stdcall LoadGafFile(void* param_1, const char* name);
 void __stdcall LoadGafIntoSlot(void* param_1, const char* name, int param_3);
 void __stdcall SetTextKeyColor(int param_1);
@@ -662,7 +662,7 @@ void InitGame()
     FUN_0049fbf0(&g_game->gui, g_animsDirName);
     FUN_0049fb50(&g_game->gui, g_fontsDirName);
     FUN_004aa8e0(&g_game->gui, g_game->field_391f9);
-    FUN_004ab4e0(&g_game->gui, GetGafFrame(g_game->field_148cb, 0));
+    InitCursorFrames(&g_game->gui, GetGafFrame(g_game->field_148cb, 0));
     LoadGafFile(&g_game->gui, g_commonGuiName);
     LoadGafIntoSlot(&g_game->gui, g_hattFont12Name, 0);
     LoadGafIntoSlot(&g_game->gui, g_hattFont11Name, 1);
@@ -934,22 +934,22 @@ void ShutdownIngameAndQuit()
 }
 
 // Selects entry n (a signed byte at +0x2cbe) and hands the matching table
-// entry at +0x1487f to FUN_004ab400 for the object at +0x519.
+// entry at +0x1487f to SetCursorAnimation for the object at +0x519.
 struct Obj_004ab400;
 
-void __stdcall FUN_004ab400(Obj_004ab400* p, Src_004ab400* src);
+void __stdcall SetCursorAnimation(Obj_004ab400* p, Src_004ab400* src);
 
 // FUNCTION: 0x491c80
 void __stdcall SetCursorMode(int n)
 {
     if (g_game->selected != n) {
         g_game->selected = n;
-        FUN_004ab400((Obj_004ab400*)&g_game->gui, g_game->table[n]);
+        SetCursorAnimation((Obj_004ab400*)&g_game->gui, g_game->table[n]);
     }
 }
 
 // Picks the order/state table entry at +0x1487f and hands it to
-// FUN_004ab400 for the object at +0x519, mirroring 0x491c80.
+// SetCursorAnimation for the object at +0x519, mirroring 0x491c80.
 int __cdecl UpdatePlacementGhostValidity(void);
 unsigned short __cdecl PickUnitUnderCursor(void);
 int __stdcall ResolveCursorModeForSelection(unsigned char mode);
@@ -966,7 +966,7 @@ void __stdcall UpdateBattleHoverMode(int unused)
     if ((flags & 2) == 0 && (flags & 1) == 0) {
         if (g_game->selected != 0x13) {
             g_game->selected = 0x13;
-            FUN_004ab400((Obj_004ab400*)&g_game->gui, g_game->table[0x13]);
+            SetCursorAnimation((Obj_004ab400*)&g_game->gui, g_game->table[0x13]);
         }
         return;
     }
@@ -974,7 +974,7 @@ void __stdcall UpdateBattleHoverMode(int unused)
     int n = ResolveCursorModeForSelection(g_game->mode_2cc3);
     if (g_game->selected != n) {
         g_game->selected = n;
-        FUN_004ab400((Obj_004ab400*)&g_game->gui, g_game->table[n]);
+        SetCursorAnimation((Obj_004ab400*)&g_game->gui, g_game->table[n]);
     }
 }
 

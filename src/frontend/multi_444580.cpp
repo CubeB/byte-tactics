@@ -75,7 +75,7 @@ extern char DAT_004fcfb8[];
 
 void __stdcall CloseTopScreen(void* menu);
 void __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
-void __stdcall FUN_004ac7d0(void* menu, void* palette, void* param_3);
+void __stdcall RemapPaletteToClosestIndices(void* menu, void* palette, void* param_3);
 Gadget_00444580* __stdcall LoadGuiLayer(void* menu, char* name, int size);
 void __stdcall FUN_004441a0(void* menu);
 void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
@@ -115,7 +115,7 @@ void FillProviderList()
     if (g_game->menu.holder != 0 && strcmp(g_game->menu.holder->entries->name, "SELPROV.GUI") == 0)
         CloseTopScreen(&g_game->menu);
     SetPaletteColors(g_game->palette, 0, 0x100);
-    FUN_004ac7d0(&g_game->menu, g_game->palette, g_game->field_5cb);
+    RemapPaletteToClosestIndices(&g_game->menu, g_game->palette, g_game->field_5cb);
     Gadget_00444580* menu = LoadGuiLayer(&g_game->menu, "SELPROV.GUI", 0x80);
     menu->handler = FUN_004441a0;
     menu->field_c = (int)g_game;

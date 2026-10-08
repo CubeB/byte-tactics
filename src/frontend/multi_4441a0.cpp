@@ -59,7 +59,7 @@ int __stdcall OnlineProcessButtonCommand(int button, char* message, unsigned int
 void OnlineUnload();
 char* __stdcall Translate(char* text);
 void __stdcall OpenMessageBox(void* menu, char* text, int size, int param_4, int param_5);
-void __stdcall FUN_004ab0a0(void* menu);
+void __stdcall ClearSelectedGadget(void* menu);
 void OpenOptionsPanel();
 
 // The SELPROV.GUI menu's handler.
@@ -116,7 +116,7 @@ void __stdcall FUN_004441a0(Menu_004441a0* menu)
                     DAT_005127c8[link].name, "\n\n", "\n\n");
         char* msg = Translate(message);
         OpenMessageBox(menu, msg, sizeof(message), 1, 1);
-        FUN_004ab0a0(menu);
+        ClearSelectedGadget(menu);
         return;
     }
     if (FindGadgetIndex(entries, "PREVMENU", 0xe) == menu->selected) {
@@ -126,9 +126,9 @@ void __stdcall FUN_004441a0(Menu_004441a0* menu)
     }
     if (IsCurrentGadgetNamed(menu, "SETTINGS")) {
         PlaySoundByName("Options", 0);
-        FUN_004ab0a0(menu);
+        ClearSelectedGadget(menu);
         OpenOptionsPanel();
         return;
     }
-    FUN_004ab0a0(menu);
+    ClearSelectedGadget(menu);
 }

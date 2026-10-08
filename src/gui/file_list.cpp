@@ -125,7 +125,7 @@ int __stdcall IsGadgetNamed(Entry* entries, int i, char* name);
 int __stdcall FindGadgetIndex(Entry* entries, char* name, int type);
 Entry* __stdcall FindGadgetChecked(Entry* entries, char* name);
 void __stdcall FUN_0049fa90(void* obj);
-void __stdcall FUN_004ab0a0(void* obj);
+void __stdcall ClearSelectedGadget(void* obj);
 void __stdcall RefreshFileList(FileRequester* obj);
 void* __stdcall LoadGuiLayer(void* param_1, char* param_2, int param_3);
 void __stdcall SelectFontForEntry(Entry_004a1810* entries, int index);
@@ -421,7 +421,7 @@ void __stdcall FileRequesterHandler(Gadget* gadget)
     } else {
         RefreshFileList(req);
         FUN_0049fa90(gadget);
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
     }
 }
 

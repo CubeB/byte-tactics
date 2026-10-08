@@ -946,9 +946,9 @@ void __stdcall FUN_0049fa90(void* menu);
 void __stdcall FUN_0049fa50(void* gui);
 void __stdcall FUN_0049fb10(void* menu, int value);
 void __stdcall FUN_0049fad0(void* menu);
-void __stdcall FUN_004ab0a0(void* menu);
-void __stdcall FUN_004ab170(void* menu, int a, int b);
-void __stdcall FUN_004ab190(void* gui, int flag);
+void __stdcall ClearSelectedGadget(void* menu);
+void __stdcall BlitMenuLayers(void* menu, int a, int b);
+void __stdcall SetDescListCleanupFlag(void* gui, int flag);
 void __stdcall FUN_004a0570(void* menu, const char* name, int value);
 void __stdcall FUN_004a0bf0(void* menu, const char* name, char* text, int param_4);
 void __stdcall FUN_004a1250(void* menu, const char* name, int value);
@@ -1022,7 +1022,7 @@ void OpenOptionsPanel();
 // Defined in multi_443ff0.cpp, which keeps its own view of the game.
 int __stdcall SelectConnection(int index);
 void __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
-void __stdcall FUN_004ac7d0(void* menu, void* palette, void* param_3);
+void __stdcall RemapPaletteToClosestIndices(void* menu, void* palette, void* param_3);
 void SendNetHeartbeat(void);
 void __stdcall OpenSelectGameDialog();
 int InitScoreReporting();
@@ -1143,20 +1143,20 @@ void __stdcall HandleNewMultiClick(Gadget_00440d70* gadget)
         SelectGadgetByIndex(gadget, FindGadgetIndex(entries, "NICKNAME", 3));
         FUN_0049fc50(gadget, FindGadgetIndex(entries, "NICKNAME", 3));
         FUN_0049fa90(gadget);
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "NICKNAME")) {
         SelectGadgetByIndex(gadget, FindGadgetIndex(entries, "PASSWORD", 3));
         FUN_0049fc50(gadget, FindGadgetIndex(entries, "PASSWORD", 3));
         FUN_0049fa90(gadget);
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "PASSWORD")) {
         SelectGadgetByIndex(gadget, FindGadgetIndex(entries, "OK", 1));
         FUN_0049fa90(gadget);
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         return;
     }
     if (FindGadgetIndex(entries, "OK", 0xe) == gadget->field_60) {
@@ -1175,7 +1175,7 @@ void __stdcall HandleNewMultiClick(Gadget_00440d70* gadget)
         strcpy(dst, entries[gi].text);
         if (strlen(namebuf) == 0) {
             FUN_004a7190(gadget, gi);
-            FUN_004ab0a0(gadget);
+            ClearSelectedGadget(gadget);
             OpenMessageBox((char*)gadget, Translate("You must enter a game name"), 0x140, 1, 1);
             return;
         }
@@ -1183,7 +1183,7 @@ void __stdcall HandleNewMultiClick(Gadget_00440d70* gadget)
         strcpy(nickbuf, entries[ni].text);
         if (strlen(nickbuf) == 0) {
             FUN_004a7190(gadget, ni);
-            FUN_004ab0a0(gadget);
+            ClearSelectedGadget(gadget);
             OpenMessageBox((char*)gadget, Translate("You must enter your name"), 0x140, 1, 1);
             return;
         }
@@ -1193,7 +1193,7 @@ void __stdcall HandleNewMultiClick(Gadget_00440d70* gadget)
             g_game->field_2bc0 = 0x11;
             return;
         }
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         return;
     }
     if (FindGadgetIndex(entries, "CANCEL", 0xe) == gadget->field_60) {
@@ -1202,7 +1202,7 @@ void __stdcall HandleNewMultiClick(Gadget_00440d70* gadget)
         OpenSelectGameDialog();
         return;
     }
-    FUN_004ab0a0(gadget);
+    ClearSelectedGadget(gadget);
 }
 
 // Opens the new multiplayer game dialog (NEWMULTI.GUI), sets its click
@@ -1441,7 +1441,7 @@ void __stdcall HandleTcpDialogClick(Gadget_00440d70* gadget)
             PlaySoundByName("Previous", 0);
             return;
         }
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         return;
     }
 connect:
@@ -1553,7 +1553,7 @@ void __stdcall HandleSerialDialogClick(Gadget_00440d70* gadget)
         PlaySoundByName("Previous", 0);
         return;
     } else {
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         return;
     }
     a = FindGadgetChecked(entries, "SPEEDS")->index;
@@ -1743,7 +1743,7 @@ void __stdcall HandleModemDialogClick(Gadget_00440d70* gadget)
         LoadAccount_00442a30();
         FUN_0049fc50(gadget, FindGadgetIndex(entries, "NUMBER", 3));
         FUN_0049fa90(gadget);
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "NUMBER")) {
@@ -1752,7 +1752,7 @@ void __stdcall HandleModemDialogClick(Gadget_00440d70* gadget)
         FUN_0049fc50(gadget, FindGadgetIndex(entries, "JOIN", 1));
         strcpy((char*)entries + 0xcc, "JOIN");
         FUN_0049fa90(gadget);
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         return;
     }
     if (FindGadgetIndex(entries, "HOST", 0xe) == gadget->field_60) {
@@ -1772,7 +1772,7 @@ void __stdcall HandleModemDialogClick(Gadget_00440d70* gadget)
                 PlaySoundByName("Previous", 0);
                 return;
             }
-            FUN_004ab0a0(gadget);
+            ClearSelectedGadget(gadget);
             return;
         }
     }
@@ -1931,7 +1931,7 @@ void __stdcall HandleReportClick(Gadget_00440d70* obj)
             g_game->field_2bc0 = 0x11;
         }
     } else {
-        FUN_004ab0a0(obj);
+        ClearSelectedGadget(obj);
     }
 }
 
@@ -2034,7 +2034,7 @@ void __stdcall HandleSelectGameClick(Gadget_00440d70* param_1)
         PlaySoundByName("Multi", 0);
         ConnectToGame(param_1->layer);
         FUN_0049fa90(param_1);
-        FUN_004ab0a0(param_1);
+        ClearSelectedGadget(param_1);
         return;
     }
 
@@ -2063,13 +2063,13 @@ void __stdcall HandleSelectGameClick(Gadget_00440d70* param_1)
         if (ver <= (int)g_game->version && ver >= (int)g_game->version) {
             if ((flags & 0x8000) != 0 || (flags & 0x10) != 0) {
                 PlaySoundByName("Previous", 0);
-                FUN_004ab0a0(param_1);
+                ClearSelectedGadget(param_1);
                 return;
             }
             GetGadgetText(param_1, "NICKNAME", g_game->nickname);
             if (strlen(g_game->nickname) == 0) {
                 FUN_004a7190(param_1, FindGadgetIndex(entries, "NICKNAME", 3));
-                FUN_004ab0a0(param_1);
+                ClearSelectedGadget(param_1);
                 OpenMessageBox(param_1, Translate("You must enter your name"), 0xc8, 1, 1);
                 return;
             }
@@ -2104,10 +2104,10 @@ startnew:
         BlankScreen();
         CloseTopScreen(param_1);
         OpenNewMultiDialog();
-        FUN_004ab0a0(param_1);
+        ClearSelectedGadget(param_1);
         return;
     }
-    FUN_004ab0a0(param_1);
+    ClearSelectedGadget(param_1);
 }
 
 // Opens the network game selection dialog (SELGAME.GUI) and sets up the
@@ -2231,7 +2231,7 @@ void __stdcall HandleLogoSelectClick(Gadget_00444930* param_1)
         return;
     }
     if (!IsCurrentGadgetNamed(param_1, "Cancel"))
-        FUN_004ab0a0(param_1);
+        ClearSelectedGadget(param_1);
 }
 
 // FUNCTION: 0x444a20
@@ -2276,7 +2276,7 @@ void __stdcall HandleViewMapClick(Gadget_00444930* param_1)
         if (IsCurrentGadgetNamed(param_1, DAT_00502ae8)) {
             PlaySoundByName(DAT_00505974, 0);
         } else {
-            FUN_004ab0a0(param_1);
+            ClearSelectedGadget(param_1);
         }
     }
 }
@@ -2355,7 +2355,7 @@ void __stdcall HandleMapSelectClick(Gadget_00444930* param_1)
         return;
     }
 
-    FUN_004ab0a0(param_1);
+    ClearSelectedGadget(param_1);
 }
 
 // Opens the multiplayer map selector (SELMAP.GUI): saves the map the local
@@ -2849,7 +2849,7 @@ void __stdcall HandleRejectChoice(Gadget_00444930* gadget)
     if (IsGadgetNamed(owner, gadget->field_60, "CHOICE1")) {
         RejectPlayer(GetSlotDpid((unsigned char)DAT_00505510), 1);
     } else if (!IsGadgetNamed(owner, gadget->field_60, "CHOICE2")) {
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
     }
 }
 
@@ -2921,7 +2921,7 @@ void __stdcall HandleDisplayModesClick(Gadget_00444930* gui)
         SaveSettings();
         return;
     }
-    FUN_004ab0a0(gui);
+    ClearSelectedGadget(gui);
 }
 
 // Screen resolution selection: builds the display mode list, then advances the
@@ -3023,7 +3023,7 @@ void __stdcall HandleControlDialogClick(Gadget_00444930* gui)
             return;
         }
         // Written once after the chain, not in each arm; the OK arm returns early.
-        FUN_004ab0a0(gui);
+        ClearSelectedGadget(gui);
     }
 }
 
@@ -3388,7 +3388,7 @@ void __stdcall HandleAlliesClick(Gui_00446f50* gadget)
 
     if (IsCurrentGadgetNamed(gadget, "VICTORY")) {
         PlaySoundByName("Options", 0);
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "OK")) {
@@ -3400,7 +3400,7 @@ void __stdcall HandleAlliesClick(Gui_00446f50* gadget)
         if (old != ((local->info->flags_9d >> 1) & 1))
             BroadcastPlayerInfo();
     } else {
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
     }
 }
 
@@ -3830,7 +3830,7 @@ void __stdcall HandleBattleRoomClick(Gui_00446f50* gadget)
         if (IsCurrentGadgetNamed(gadget, text) && IsLocalHuman_00447b10(p)) {
             PlaySoundByName("Multi", 0);
             FUN_00446310();
-            FUN_004ab0a0(gadget);
+            ClearSelectedGadget(gadget);
             g_game->dirty = 1;
             return;
         }
@@ -3943,14 +3943,14 @@ void __stdcall HandleBattleRoomClick(Gui_00446f50* gadget)
                 count++;
         }
         if (count < 1 || (count < 2 && CountHumanPlayers() > 3) || (count < 3 && CountHumanPlayers() > 6)) {
-            FUN_004ab0a0(&g_game->gui);
+            ClearSelectedGadget(&g_game->gui);
             OpenMessageBox(gadget, Translate("There are not enough game CDs present to play"), 200, 1, 1);
             return;
         }
         int total = CountComputerPlayers() + CountHumanPlayers();
         for (int t = 0; t < 5; t++) {
             if (CountAlliance_00447b10(t) == total) {
-                FUN_004ab0a0(&g_game->gui);
+                ClearSelectedGadget(&g_game->gui);
                 OpenMessageBox(gadget, Translate("Can not start game with all players on the same team."), 200, 1, 1);
                 return;
             }
@@ -3988,7 +3988,7 @@ void __stdcall HandleBattleRoomClick(Gui_00446f50* gadget)
     } else if (IsCurrentGadgetNamed(gadget, "RESTRICTIONS")) {
         PlaySoundByName("Options", 0);
         OpenUnitRestrictions();
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
     } else {
         // MAP and MAPNAME through a local, not `MAP || MAPNAME` in the
         // else-if: with the `||` the MAP body joins the region where C2 keeps
@@ -4011,7 +4011,7 @@ void __stdcall HandleBattleRoomClick(Gui_00446f50* gadget)
         }
     }
 done:
-    FUN_004ab0a0(gadget);
+    ClearSelectedGadget(gadget);
 }
 
 // FUNCTION: 0x448bf0
@@ -4374,7 +4374,7 @@ void __stdcall HandleEndMultiClick(Gui_00446f50* obj)
         SetFrontendState(2, 0x1412, "c:\\cavedog\\wargame\\multi.cpp");
         SetGameMode(1);
     } else {
-        FUN_004ab0a0(obj);
+        ClearSelectedGadget(obj);
     }
 }
 
@@ -4507,7 +4507,7 @@ void __stdcall HandleLoadListClick(Gui_00446f50* menu)
         DAT_005129b0 = 0;
         DAT_005129ac = 0;
     } else if (menu->current != -1) {
-        FUN_004ab0a0(menu);
+        ClearSelectedGadget(menu);
     }
 }
 
@@ -4551,7 +4551,7 @@ void __stdcall HandleSaveGameClick(Gui_00446f50* menu)
 {
     Entry_00446f50* entries = menu->table->entries;
     if (menu->current == -1) {
-        FUN_004ab190(menu, 1);
+        SetDescListCleanupFlag(menu, 1);
         if (DAT_005129ac)
             FUN_004d85a0(DAT_005129ac);
         if (DAT_005129b0)
@@ -4582,7 +4582,7 @@ void __stdcall HandleSaveGameClick(Gui_00446f50* menu)
             *p++ = 0;
         }
         FUN_004a32a0(&g_game->gui, "GAMES", DAT_005129b0, count, 0);
-        FUN_004ab0a0(menu);
+        ClearSelectedGadget(menu);
         Gui_00446f50* menu2 = &g_game->gui;
         Entry_00446f50* gadgets = g_game->gui.table->entries;
         Entry_00446f50* games2 = FindGadgetChecked(gadgets, "GAMES");
@@ -4607,7 +4607,7 @@ void __stdcall HandleSaveGameClick(Gui_00446f50* menu)
             FUN_0044b230(g_game->save_38c6b);
         }
     } else if (menu->current != -1) {
-        FUN_004ab0a0(menu);
+        ClearSelectedGadget(menu);
     }
 }
 

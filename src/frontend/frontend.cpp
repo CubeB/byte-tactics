@@ -305,7 +305,7 @@ void __cdecl FUN_004d85a0(void* p);
 void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall SetCursorMode(int param_1);
 int __stdcall IsCurrentGadgetNamed(Gadget_00425d80* gadget, char* name);
-void __stdcall FUN_004ab0a0(void* param_1);
+void __stdcall ClearSelectedGadget(void* param_1);
 char* __stdcall Translate(char* text);
 Display_00425d80* __stdcall GetDisplay(void);
 void __stdcall CloseTopScreen(Sub_004263b0* sub);
@@ -315,7 +315,7 @@ Dialog_004263b0* __stdcall LoadGuiLayer(Sub_004263b0* sub, const char* name, int
 void __stdcall PlayLoopingSoundByName(const char* name, int param_2);
 void __stdcall FUN_0049fa50(Sub_004263b0* sub);
 void* __stdcall HAPI_LoadFile(char* name, int flag);
-void __stdcall FUN_004ac7d0(Sub_004263b0* sub, int value, void* palette);
+void __stdcall RemapPaletteToClosestIndices(Sub_004263b0* sub, int value, void* palette);
 void __stdcall RenderLayer(Sub_004263b0* sub, int value);
 void __stdcall FUN_0049fb10(Sub_004263b0* sub, int value);
 void __stdcall SetFont(void* param);
@@ -390,7 +390,7 @@ void __stdcall HandleCloseCdPlayerChoice(Gadget_00426190* gadget);
 void __stdcall OpenCloseCdPlayerDialog();
 void __stdcall FreeSurface(void* param_1);
 void* __stdcall LoadBitmapByName(const char* name, int param_2);
-int __stdcall FUN_004ab290(int param_1, int param_2);
+int __stdcall SetBackgroundSurface(int param_1, int param_2);
 int __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
 
 // The original calls this out of line from the state helpers; with the whole
@@ -673,7 +673,7 @@ void __stdcall HandleMainMenuClick(Gadget_00425d80* gadget)
         OpenMessageBox(&g_game->sub,
                      Translate("Please insert the Multiplayer CD (Disc 1) and try again"),
                      200, 1, 1);
-        FUN_004ab0a0(&g_game->sub);
+        ClearSelectedGadget(&g_game->sub);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "INTRO")) {
@@ -683,14 +683,14 @@ void __stdcall HandleMainMenuClick(Gadget_00425d80* gadget)
             OpenMessageBox(&g_game->sub,
                          "Debug:  You must be in full-screen mode to play a movie.",
                          200, 1, 1);
-            FUN_004ab0a0(&g_game->sub);
+            ClearSelectedGadget(&g_game->sub);
             return;
         }
         if (!FindGameCdDrive(0) && !FindGameCdDrive(1)) {
             OpenMessageBox(&g_game->sub,
                          Translate("Please insert a Total Annihilation CD and try again"),
                          200, 1, 1);
-            FUN_004ab0a0(&g_game->sub);
+            ClearSelectedGadget(&g_game->sub);
             return;
         }
         SetCursorMode(0x14);
@@ -729,21 +729,21 @@ void __stdcall HandleMainMenuClick(Gadget_00425d80* gadget)
             OpenMessageBox(&g_game->sub,
                          "Debug:  You must be in full-screen mode to play a movie.",
                          200, 1, 1);
-            FUN_004ab0a0(&g_game->sub);
+            ClearSelectedGadget(&g_game->sub);
             return;
         }
         if (!FindGameCdDrive(0) && !FindGameCdDrive(1)) {
             OpenMessageBox(&g_game->sub,
                          Translate("Please insert a Total Annihilation CD and try again"),
                          200, 1, 1);
-            FUN_004ab0a0(&g_game->sub);
+            ClearSelectedGadget(&g_game->sub);
             return;
         }
         SetCursorMode(0x14);
         g_game->field_2bc0 = 9;
         return;
     }
-    FUN_004ab0a0(gadget);
+    ClearSelectedGadget(gadget);
 }
 
 // Handler for a two-choice dialog gadget (same shape as 0x446020): plays
@@ -759,7 +759,7 @@ void __stdcall HandleCloseCdPlayerChoice(Gadget_00426190* gadget)
     if (IsGadgetNamed(owner, gadget->field_60, "CHOICE1")) {
         g_game->sound->CloseCdPlayerWindow();
     } else if (!IsGadgetNamed(owner, gadget->field_60, "CHOICE2")) {
-        FUN_004ab0a0(gadget);
+        ClearSelectedGadget(gadget);
     }
 }
 
@@ -831,7 +831,7 @@ void __stdcall OpenMainMenu()
 
     BuildDataPath(palpath, "palettes", "guipal", "PAL");
     void* palette = HAPI_LoadFile(palpath, 0);
-    FUN_004ac7d0(&g_game->sub, (int)found, palette);
+    RemapPaletteToClosestIndices(&g_game->sub, (int)found, palette);
     FUN_004d85a0(palette);
     RenderLayer(&g_game->sub, 0xc0);
     FUN_0049fb10(&g_game->sub, 1);
@@ -1482,7 +1482,7 @@ void RunFrontendStateMachine(void)
                 BlankScreen();
                 Force640x480Surfaces();
                 if (InitScoreReporting()) {
-                    FUN_004ab0a0(&g_game->sub);
+                    ClearSelectedGadget(&g_game->sub);
                     SetSubState(0x14, 0x5c1, g_frontendSourceFile);
                 } else
                     SetSubState(0x15, 0x5c4, g_frontendSourceFile);
@@ -1691,7 +1691,7 @@ after:
     // Nested if, one trailing return 0: both failure exits share one return block.
     if (param_4 == 0) {
         if (g_game->sub.current != 0) {
-            FUN_004ab290((int)&g_game->sub, (int)surface);
+            SetBackgroundSurface((int)&g_game->sub, (int)surface);
             if (param_3 != 0)
                 SetPaletteColors((unsigned char*)data, 0, 0x100);
         } else {

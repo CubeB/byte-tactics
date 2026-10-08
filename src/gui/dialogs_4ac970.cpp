@@ -44,7 +44,7 @@ static inline int CellX(Gadget_004ac970* gadgets, int index)
 // its file stay small, and no header set or declaration count in the joined
 // file reaches them (docs/c2-regalloc.md).
 // FUNCTION: 0x4ac970
-void __stdcall FUN_004ac970(Object_004ac970* obj, int cell, int color)
+void __stdcall DrawColorCellOutline(Object_004ac970* obj, int cell, int color)
 {
     Gadget_004ac970* gadgets = obj->holder->gadgets;
     // Lookup result goes through its own local before index.

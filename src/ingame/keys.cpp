@@ -292,11 +292,11 @@ void __stdcall RestoreCameraPosition(int param);
 void CycleMessageUnits(void);
 void ResetChatHudIndices(void);
 void __stdcall SetGameSpeed(int param_1, int param_2);
-void __stdcall FUN_004ab190(Sub_495e90* gui, int param);
+void __stdcall SetDescListCleanupFlag(Sub_495e90* gui, int param);
 int GetLocalDpid(void);
 void __stdcall BroadcastPacket(int param_1, void* param_2, int param_3);
 void ToggleTabMenu(void);
-void __stdcall FUN_004956c0(int eventType);
+void __stdcall HandleDebugHotkey(int eventType);
 void __stdcall OpenInGameOptions(void);
 void __stdcall MakeDirectoryPath(char* path);
 void __stdcall SaveScreenshot(char* param_1, const char* param_2);
@@ -682,11 +682,11 @@ void HandleGameKey(void)
         if (g_game->flags_37f2f.b1) {
             g_game->flags_3923b.b1 = !g_game->flags_3923b.b1;
             if (g_game->flags_3923b.b1) {
-                FUN_004ab190(&g_game->gui, 0);
+                SetDescListCleanupFlag(&g_game->gui, 0);
             } else {
                 g_game->flags_3923b.b0 = 0;
                 g_game->field_14280 = 0;
-                FUN_004ab190(&g_game->gui, 1);
+                SetDescListCleanupFlag(&g_game->gui, 1);
             }
         }
         break;
@@ -817,5 +817,5 @@ void HandleGameKey(void)
     }
 
     if (g_game->flags_3923b.b1)
-        FUN_004956c0(event);
+        HandleDebugHotkey(event);
 }

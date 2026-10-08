@@ -81,6 +81,7 @@ void __stdcall FUN_0043afc0(OrderType kind, int flag, Unit* unit,
 
 static inline Class_00438760 Order(const char* name) { return Class_00438760(name); }
 
+// Kept out of the merged selection.cpp: it only matches at this file's symbol count.
 // FUNCTION: 0x48cf30
 void __stdcall IssueOrderToSelection(UnitType_0048cf30* entry, unsigned char mode,
                             OrderType kind, int* pos, int param_5, int param_6)

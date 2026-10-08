@@ -4258,8 +4258,8 @@ piece,0x4fd788,4,src/game/mission_conditions.cpp,6,0,game data
 piece,0x508da8,15,src/game/mission_conditions.cpp,5,0,game data
 piece,0x4fd770,24,src/game/mission_conditions.cpp,4,0,game data
 piece,0x4fd768,4,src/game/mission_conditions.cpp,3,0,game data
-piece,0x4fd758,4,src/ingame/selection_48dd10.cpp,3,0,game data
-piece,0x508da0,7,src/ingame/selection_48dc30.cpp,4,0,game data
+piece,0x4fd758,4,src/ingame/selection.cpp,10,0,game data
+piece,0x508da0,7,src/ingame/selection.cpp,51,0,game data
 piece,0x4fd760,8,src/ingame/selection_48cf30.cpp,5,0,game data
 piece,0x4fd748,4,src/units/unit_position.cpp,17,0,game data
 piece,0x4fd74c,4,src/units/unit_position.cpp,17,4,game data
@@ -12283,18 +12283,6 @@ same,0x4fd6f8,4,src/units/units_4864b0.cpp,3,0,
 same,0x51e6b0,16,src/units/unit_commands_487bf0.cpp,36,0,
 same,0x4fd748,4,src/units/unit.cpp,15,0,
 same,0x508d80,9,src/units/unit_targets_489280.cpp,44,0,
-same,0x4fd758,4,src/ingame/selection_48bd50.cpp,3,0,
-same,0x4fd758,4,src/ingame/selection_48be00.cpp,3,0,
-same,0x4fd758,4,src/ingame/selection_48bf30.cpp,3,0,
-same,0x4fd758,4,src/ingame/selection_48c030.cpp,3,0,
-same,0x4fd758,4,src/ingame/selection_48c390.cpp,3,0,
-same,0x4fd758,4,src/ingame/selection_48c7f0.cpp,3,0,
-same,0x4fd758,4,src/ingame/selection_48c9b0.cpp,3,0,
-same,0x4fd758,4,src/ingame/selection_48d220.cpp,3,0,
-same,0x4fd758,4,src/ingame/selection_48d630.cpp,3,0,
-same,0x4fd758,4,src/ingame/selection_48d790.cpp,3,0,
-same,0x4fd758,4,src/ingame/selection_48d9a0.cpp,3,0,
-same,0x4fd758,4,src/ingame/selection_48dc30.cpp,3,0,
 same,0x508f60,33,src/game/victory_destroy_all_units.cpp,10,0,
 same,0x508f30,10,src/game/victory_destroy_all_units.cpp,9,0,
 same,0x508f24,11,src/game/victory_destroy_all_units.cpp,8,0,

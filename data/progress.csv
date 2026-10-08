@@ -1511,7 +1511,7 @@ address,size,file,symbol,status,similarity
 0x472810,224,src/graphics/particles_472630.cpp,?EmitWhiteSmoke@@YGXPAUVec3_00472810@@F@Z,matched,100.0
 0x4728f0,224,src/graphics/particles_472630.cpp,?EmitBlackSmoke@@YGXPAUVec3_00474cd0@@F@Z,matched,100.0
 0x4729d0,224,src/graphics/particles_472630.cpp,?EmitWeaponSmoke@@YGXPAUVec3_00474cd0@@F@Z,matched,100.0
-0x472ab0,413,src/graphics/particles_472ab0.cpp,?EmitJitteredThrustParticles@@YGXPAUShape_00472ab0@@F@Z,matched,100.0
+0x472ab0,413,src/graphics/particles.cpp,?EmitJitteredThrustParticles@@YGXPAUShape_00472ab0@@F@Z,matched,100.0
 0x472c50,223,src/graphics/particles_472630.cpp,?EmitTimedSubParticles@@YGXPAUVec3_00475150@@F@Z,matched,100.0
 0x472d30,19,src/graphics/particles.cpp,?size@?$vector@UElem_00473500@@V?$allocator@UElem_00473500@@@std@@@std@@QBEIXZ,matched,100.0
 0x472d50,163,src/graphics/particles.cpp,?Update@TeleportParticles@@UAEXXZ,matched,100.0

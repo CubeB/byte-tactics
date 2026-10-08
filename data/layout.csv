@@ -4514,7 +4514,7 @@ piece,0x507bf8,9,src/frontend/campaign_menu.cpp,14,0,game data
 piece,0x503384,8,src/frontend/campaign_menu.cpp,3,0,game data
 piece,0x4fd638,28,src/graphics/particles_472630.cpp,21,0,game data
 piece,0x4fd618,28,src/graphics/particles_472630.cpp,16,0,game data
-piece,0x4fd5d8,28,src/graphics/particles_472ab0.cpp,3,0,game data
+piece,0x4fd5d8,28,src/graphics/particles.cpp,56,0,game data
 piece,0x4fd5f8,28,src/graphics/particles.cpp,63,0,game data
 piece,0x4fd5b8,28,src/graphics/particles.cpp,49,0,game data
 piece,0x4fd588,28,src/graphics/particles.cpp,41,0,game data

@@ -5,19 +5,22 @@
 // particle records, and the out-of-line std::vector members they call. The
 // lists and the pool are reached through g_game.
 //
-// 0x470c10 stays in particles_470c10.cpp: its Grow needs the hand-written
-// <vector> view of the pool. 0x471160, 0x471820 and 0x471a50 stay in their
-// files: they see a list as a std::vector<Elem_00473500> whose inlined insert
-// cannot agree with the std::vector<ParticleSystem*> view used here. 0x471de0
-// stays in particles_471de0.cpp: its SIB byte follows the file's symbol total
-// (docs/c2-regalloc.md). The smoke and TimedSubParticles cluster (0x472630 to
-// 0x472c50 and the two classes' constructors and deleting destructors) stays
-// in particles_472630.cpp: there ParticleSystem's constructor, destructor and
-// operator new are not defined, which is what keeps the base calls and the
-// vector insert out of line as the original has them. The rest of the module's
-// files (0x472ab0, 0x4732e0, 0x473a00, 0x473d50, 0x474b80, 0x4750f0,
-// 0x475470, 0x475700, 0x4758c0, 0x475bd0, 0x475ef0, 0x476210, 0x476490) are
-// their own contexts too.
+// Files the gather still leaves separate (docs/split-modules.md):
+// 0x470c10 and 0x473d50 need a hand-written <vector> view that cannot share
+// this file with the real <vector>. 0x471160, 0x471820 and 0x471a50 need the
+// std::vector<Elem_00473500> view of the lists, whose inlined add cannot agree
+// with this file's std::vector<ParticleSystem*>. 0x471de0's SIB byte follows
+// the file's symbol total (docs/c2-regalloc.md). The smoke and
+// TimedSubParticles cluster (0x472630 to 0x472c50 and the two classes'
+// constructors and deleting destructors) stays in particles_472630.cpp: there
+// ParticleSystem's constructor, destructor and operator new are not defined,
+// which keeps the base calls and the vector insert out of line as the original
+// has them. The six vector::insert files (0x4732e0, 0x4758c0, 0x475bd0,
+// 0x475ef0, 0x476210, 0x476490) carry // FLAGS: /Gi, which this file cannot.
+// 0x473a00, 0x474b80 and 0x475470's fog-culled draws and 0x475700's inlined
+// draw pick other registers (SIB base, fog pointer, temporaries) in this
+// file's symbol context. 0x4750f0 returns bool where 0x475600 tests the
+// result as an int.
 #include <windows.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -2601,3 +2604,38 @@ UcopyFn_004739b0 Access_00475880::fn = &Access_00475880::_Ucopy;
 // copy-constructs n copies of value into raw storage at first.
 // FUNCTION: 0x476710 ?_Ufill@?$vector@UNanoParticle@@V?$allocator@UNanoParticle@@@std@@@std@@IAEXPAUNanoParticle@@IABU3@@Z
 UfillFn_004739b0 Access_00476710::fn = &Access_00476710::_Ufill;
+
+
+struct Shape_00472ab0 {
+    Pair_00474880 v[3];
+};
+
+// Creates a ThrustParticles (vtable 0x4fd5d8) from the object pool after
+// jittering the high short of each of the three pairs of the 12-byte point it
+// is given, then initialises it through virtual slot 6 (0x4742c0) with that
+// same point twice, a 1 and a fourth random number, then appends it to the
+// list selected by the short index. Twin of 0x472330, which takes the four
+// arguments of slot 6 as parameters instead of building them here. At the end
+// of the file on purpose: in address order its declarations move 0x4745e0's
+// symbol count, and its fog arm then picks the wrong SIB base.
+// Suspected original bug: the same point is passed as both of the first two
+// arguments of slot 6, so 0x4742c0 copies the same data into unknown_20 and
+// unknown_2c and their difference (unknown_38, the vector from the first to
+// the second point, scaled by 1/b) is always zero.
+// FUNCTION: 0x472ab0
+void __stdcall EmitJitteredThrustParticles(Shape_00472ab0* param_1, short index)
+{
+    // One struct copy, then three separate += statements, not a loop.
+    Shape_00472ab0 s = *param_1;
+    s.v[0].hi += (int)((__int64)rand() * 3 / 0x8000) - 1;
+    s.v[1].hi += (int)((__int64)rand() * 3 / 0x8000) - 1;
+    s.v[2].hi += (int)((__int64)rand() * 3 / 0x8000) - 1;
+    // A statement of its own before the allocation: rand() runs before the g_game load.
+    int r = (int)((__int64)rand() * 3 / 0x8000) + 1;
+    Lists_00472330* lists = g_game->lists_00472330;
+    ThrustParticles* p = new ThrustParticles;
+    if (p) {
+        p->Init(&s, &s, 1, r);
+        lists->Add(index, p);
+    }
+}

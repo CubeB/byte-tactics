@@ -1184,3 +1184,6 @@ Things that look wrong in the original but have no effect, kept for the record.
 - **0x478790** (possible): the frame loop runs `k <= n`, one frame past the
   count, and the palette index is the window pointer plus 0x8b2 rather than a
   slot number. Found by OpenCode / deepseek-v4.1-flash in #6182.
+- **0x4befe0** (`ReadPixel`, possible): when the screen lock fails it returns
+  an uninitialised colour whose stack home is `y`'s slot, so it returns `y`.
+  Found by OpenCode / deepseek-v4.1-flash in #6184.

@@ -1709,7 +1709,7 @@ struct Struct_004907e0 {               // the owner, the object at +0x8
 };
 #pragma pack(pop)
 
-class Class_0044f010;                  // slot 6's result
+class AiSearchGoal;                    // slot 6's result
 
 // The object at +0x4. Only the offsets of the virtuals it is asked for matter.
 class Class_0044ced0 {
@@ -1730,30 +1730,30 @@ public:
 };
 
 // Vtable 0x4fd428, constructor 0x44ef20, ??_G 0x44ef60.
-class Class_0044ef20 {
+class PathGoal {
 public:
     Class_0044ced0* field_4;            // +0x4
     Struct_004907e0* owner;             // +0x8
 
-    Class_0044ef20(Struct_004907e0* p);
-    virtual ~Class_0044ef20() {}                    // slot 0
+    PathGoal(Struct_004907e0* p);
+    virtual ~PathGoal() {}                          // slot 0
     virtual void SetPathOrder(void* param);         // slot 1
     virtual void TickTowardGoal();                  // slot 2
     virtual void FUN_0044ef40(Vec3*, int, int);  // slot 3
     virtual void ExportGoalPose(Vec3*, Vec3*, short*);  // slot 4
     virtual int FUN_0044ef80();                     // slot 5
-    virtual Class_0044f010* TryClaimRepath();       // slot 6
+    virtual AiSearchGoal* TryClaimRepath();         // slot 6
     virtual int HasNetUnitState();                  // slot 7
     virtual void SerializeNetUnitState(BitWriter*);  // slot 8
     virtual void FUN_0044efd0(BitReader*);          // slot 9
     virtual void DrawOnSurface(void*);              // slot 10
 };
 
-// Class_00490630: a moving object that follows its owner, derived from
-// Class_0044ef20 (see order_targets_44ef20.cpp for the family) and the base of
-// Class_004907e0 and Class_00490880.
+// PackedGoal: a moving object that follows its owner, derived from
+// PathGoal (see order_targets_44ef20.cpp for the family) and the base of
+// LiteGoal and PackedPosGoal.
 // Vtable 0x4fd980, constructor 0x4905e0, ??_G 0x490630.
-class Class_00490630 : public Class_0044ef20 {
+class PackedGoal : public PathGoal {
 public:
     Vec3 pos;                  // +0xc
     Vec3 vel;                  // +0x18
@@ -1770,7 +1770,7 @@ public:
         unsigned char field_27;
     };
 
-    Class_00490630(Struct_004907e0* p);
+    PackedGoal(Struct_004907e0* p);
     virtual void TickTowardGoal();                  // slot 2, 0x490690
     virtual void ExportGoalPose(Vec3*, Vec3*, short*);  // slot 4, 0x490650
 };
@@ -1782,21 +1782,21 @@ unsigned short __stdcall GetHeadingBetween(Vec3* from, Vec3* to);
 // so only the inlined base destructor's store of 0x4fd428 is left. 0x4907e0
 // inlines the same constructor.
 // FUNCTION: 0x4905e0
-// FUNCTION: 0x490630 ??_GClass_00490630@@UAEPAXI@Z
-Class_00490630::Class_00490630(Struct_004907e0* p)
-    : Class_0044ef20(p)
+// FUNCTION: 0x490630 ??_GPackedGoal@@UAEPAXI@Z
+PackedGoal::PackedGoal(Struct_004907e0* p)
+    : PathGoal(p)
 {
     pos = p->pos;
     vel = Vec3(0, 0, 0);
     field_24 = p->field_66;
 }
 
-// Class_00490630's override of slot 4 (vtable 0x4fd980, inherited by
-// Class_004907e0 and Class_00490880; the class family is listed in
+// PackedGoal's override of slot 4 (vtable 0x4fd980, inherited by
+// LiteGoal and PackedPosGoal; the class family is listed in
 // order_targets_44ef20.cpp): copies out the position, the velocity and field_24
 // (the heading 0x490690 turns towards the owner).
 // FUNCTION: 0x490650
-void Class_00490630::ExportGoalPose(Vec3* outPos, Vec3* outVel,
+void PackedGoal::ExportGoalPose(Vec3* outPos, Vec3* outVel,
                                   short* outHeading)
 {
     *outPos = pos;
@@ -1804,8 +1804,8 @@ void Class_00490630::ExportGoalPose(Vec3* outPos, Vec3* outVel,
     *outHeading = field_24;
 }
 
-// Class_00490630's override of slot 2 (vtable 0x4fd980, inherited by
-// Class_00490880 and called directly by Class_004907e0's own override,
+// PackedGoal's override of slot 2 (vtable 0x4fd980, inherited by
+// PackedPosGoal and called directly by LiteGoal's own override,
 // 0x490880; the class family is listed in order_targets_44ef20.cpp): one update
 // step of a moving object. The object at +0x4 moves this object's position (its
 // slot 8) and the difference goes into vel. When the object has drifted further
@@ -1816,7 +1816,7 @@ void Class_00490630::ExportGoalPose(Vec3* outPos, Vec3* outVel,
 // the object at +0x4 gets the last word: slot 4 saying it is done, plus slot
 // 11, means slot 1 with 0.
 // FUNCTION: 0x490690
-void Class_00490630::TickTowardGoal()
+void PackedGoal::TickTowardGoal()
 {
     if (!field_4)
         return;
@@ -1841,13 +1841,13 @@ void Class_00490630::TickTowardGoal()
     }
 }
 
-// Class_004907e0 (vtable 0x4fd9b0), derived from Class_00490630 and
-// Class_0044ef20 (see order_targets_44ef20.cpp for the family): the moving
+// LiteGoal (vtable 0x4fd9b0), derived from PackedGoal and
+// PathGoal (see order_targets_44ef20.cpp for the family): the moving
 // object that also sends its state, with a dirty bit and the owner's mode.
 // Vtable 0x4fd9b0, constructor 0x4907e0, ??_G 0x490840.
-class Class_004907e0 : public Class_00490630 {
+class LiteGoal : public PackedGoal {
 public:
-    Class_004907e0(Struct_004907e0* p);
+    LiteGoal(Struct_004907e0* p);
     virtual void SetPathOrder(void* param);         // slot 1, 0x490860
     virtual void TickTowardGoal();                  // slot 2, 0x490880
     virtual int HasNetUnitState();                  // slot 7, 0x4908b0
@@ -1861,9 +1861,9 @@ public:
 // destructors are trivial, so only the inlined base destructor's store of
 // 0x4fd428 is left in it.
 // FUNCTION: 0x4907e0
-// FUNCTION: 0x490840 ??_GClass_004907e0@@UAEPAXI@Z
-Class_004907e0::Class_004907e0(Struct_004907e0* p)
-    : Class_00490630(p)
+// FUNCTION: 0x490840 ??_GLiteGoal@@UAEPAXI@Z
+LiteGoal::LiteGoal(Struct_004907e0* p)
+    : PackedGoal(p)
 {
     dirty = 1;
     mode = 0;
@@ -1871,34 +1871,34 @@ Class_004907e0::Class_004907e0(Struct_004907e0* p)
 
 // Slot 1: the base's (0x44ef90) and then the dirty bit.
 // FUNCTION: 0x490860
-void Class_004907e0::SetPathOrder(void* param)
+void LiteGoal::SetPathOrder(void* param)
 {
-    Class_0044ef20::SetPathOrder(param);
+    PathGoal::SetPathOrder(param);
     dirty = 1;
 }
 
 // Slot 2: sets the dirty bit when the mode differs from the owner's, then runs
 // the middle class's own slot 2 (0x490690).
 // FUNCTION: 0x490880
-void Class_004907e0::TickTowardGoal()
+void LiteGoal::TickTowardGoal()
 {
     if ((owner->target->field_2e & 3) != mode)
         dirty = 1;
-    Class_00490630::TickTowardGoal();
+    PackedGoal::TickTowardGoal();
 }
 
 // Slot 7: the dirty bit.
 // FUNCTION: 0x4908b0
-int Class_004907e0::HasNetUnitState()
+int LiteGoal::HasNetUnitState()
 {
     return field_27 & 1;
 }
 
 // Slot 8: writes the object at +0x4 (a 2-bit kind, then its own data) and the
 // owner's mode to the stream, then takes that mode as its own and clears the
-// dirty bit. The matching reader looks like 0x490a10 (Class_00490880's slot 9).
+// dirty bit. The matching reader looks like 0x490a10 (PackedPosGoal's slot 9).
 // FUNCTION: 0x4908c0
-void Class_004907e0::SerializeNetUnitState(BitWriter* stream)
+void LiteGoal::SerializeNetUnitState(BitWriter* stream)
 {
     if (field_4 == 0) {
         stream->WriteBits(0, 2);
@@ -1927,23 +1927,23 @@ public:
 };
 #pragma pack(pop)
 
-// Class_00490880 (vtable 0x4fd9e0), derived from Class_00490630 and
-// Class_0044ef20 (see order_targets_44ef20.cpp for the family): the moving
+// PackedPosGoal (vtable 0x4fd9e0), derived from PackedGoal and
+// PathGoal (see order_targets_44ef20.cpp for the family): the moving
 // object that reads its state from the stream.
 // Vtable 0x4fd9e0, constructor 0x490940, destructor 0x4909e0, ??_G 0x4909a0.
-// Slots 2 and 4 are inherited from Class_00490630.
-class Class_00490880 : public Class_00490630 {
+// Slots 2 and 4 are inherited from PackedGoal.
+class PackedPosGoal : public PackedGoal {
 public:
-    Class_00490880(Struct_004907e0* p);
-    virtual ~Class_00490880();                      // slot 0
+    PackedPosGoal(Struct_004907e0* p);
+    virtual ~PackedPosGoal();                       // slot 0
     virtual void FUN_0044efd0(BitReader*);          // slot 9, 0x490a10
 };
 
 // The constructor: the base constructor (0x44ef20) is out of line, the middle
-// class's constructor is inlined, as in Class_004907e0's.
+// class's constructor is inlined, as in LiteGoal's.
 // FUNCTION: 0x490940
-Class_00490880::Class_00490880(Struct_004907e0* p)
-    : Class_00490630(p)
+PackedPosGoal::PackedPosGoal(Struct_004907e0* p)
+    : PackedGoal(p)
 {
 }
 
@@ -1951,9 +1951,9 @@ Class_00490880::Class_00490880(Struct_004907e0* p)
 // scalar deleting destructor inlines the same body; in both, the middle
 // class's vtable store is dead, and the empty inline base destructor leaves
 // only the base vtable store of 0x4fd428.
-// FUNCTION: 0x4909a0 ??_GClass_00490880@@UAEPAXI@Z
+// FUNCTION: 0x4909a0 ??_GPackedPosGoal@@UAEPAXI@Z
 // FUNCTION: 0x4909e0
-Class_00490880::~Class_00490880()
+PackedPosGoal::~PackedPosGoal()
 {
     delete field_4;
     field_4 = 0;
@@ -1963,7 +1963,7 @@ Class_00490880::~Class_00490880()
 // 2 pick its class, anything else leaves none), then passes a 2-bit state read
 // after it to the owner.
 // FUNCTION: 0x490a10
-void Class_00490880::FUN_0044efd0(BitReader* reader)
+void PackedPosGoal::FUN_0044efd0(BitReader* reader)
 {
     if (field_4) {
         delete field_4;

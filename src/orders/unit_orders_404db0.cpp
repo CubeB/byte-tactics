@@ -35,13 +35,13 @@ public:
 };
 #pragma pack(pop)
 
-class Class_004895c0 {
+class PathOrderAttach {
 public:
     Unit* owner;                       // +0x4
-    Class_004895c0* next;              // +0x8
+    PathOrderAttach* next;             // +0x8
     int value;                         // +0xc
 
-    virtual ~Class_004895c0();
+    virtual ~PathOrderAttach();
     void SetUnit(Unit* o);
 };
 
@@ -117,7 +117,7 @@ struct Order {
     unsigned char state;               // +0x5
     unsigned int flags;                // +0x6
     char unknown_a[0x12 - 0xa];
-    Class_004895c0 target;             // +0x12
+    PathOrderAttach target;            // +0x12
     Vec3 pos;                          // +0x22
     char unknown_2e[0x36 - 0x2e];
     int unitType;                      // +0x36

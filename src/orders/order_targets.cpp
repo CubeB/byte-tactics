@@ -3,8 +3,8 @@
 // and rectangles, with their hit tests, world-position writers, area loaders
 // and constructors), the std::vector<Point_0044eec0> point-list builders and
 // the class that writes a target to a bit stream, the Class_0044e740,
-// AirManeuverOrder and Class_0044eb40 path-target classes, the Class_0044ef20
-// family with its Class_0044f010 path, the Pathfinder singleton, and the
+// AirManeuverOrder and Class_0044eb40 path-target classes, the PathGoal
+// family with its AiSearchGoal path, the Pathfinder singleton, and the
 // out-of-line std::vector<Point_0044eec0> members. The module's files
 // gathered in address order; 0x44da00 and 0x44ec30 keep their own files
 // (0x44da00's std::copy specialization changes the vector instantiations
@@ -569,26 +569,26 @@ struct Vec3_0044de80 {
     int z;
 };
 
-class Class_004895c0;
+class PathOrderAttach;
 
 #pragma pack(push, 2)
 struct Owner_004895c0 {
     char unknown_0[0x92];
     UnitDef* def;                      // +0x92
     char unknown_96[0xa2 - 0x96];
-    Class_004895c0* head;              // +0xa2
+    PathOrderAttach* head;             // +0xa2
     short flag;                        // +0xa6
 };
 #pragma pack(pop)
 
-class Class_004895c0 {
+class PathOrderAttach {
 public:
     Owner_004895c0* owner;             // +0x4
-    Class_004895c0* next;              // +0x8
+    PathOrderAttach* next;             // +0x8
     int value;                         // +0xc
 
-    Class_004895c0(Owner_004895c0* o = 0, int v = 0);
-    virtual ~Class_004895c0();
+    PathOrderAttach(Owner_004895c0* o = 0, int v = 0);
+    virtual ~PathOrderAttach();
     void SetUnit(Owner_004895c0* o);
 };
 
@@ -627,7 +627,7 @@ public:
     short field_e;                     // +0xe
     short field_10;                    // +0x10
     Unit* field_12;                    // +0x12
-    Class_004895c0 ref;                // +0x16
+    PathOrderAttach ref;               // +0x16
     Vec3_0044de80 pos;                 // +0x26
     int field_32;                      // +0x32
 
@@ -701,7 +701,7 @@ public:
     short field_e;                     // +0xe
     short field_10;                    // +0x10
     Owner_0044e080* owner;             // +0x12
-    Class_004895c0 ref;                // +0x16
+    PathOrderAttach ref;               // +0x16
     int pos_x;                         // +0x26
     int pos_y;                         // +0x2a
     int pos_z;                         // +0x2e
@@ -722,7 +722,7 @@ public:
     short field_e;                     // +0xe
     short field_10;                    // +0x10
     Unit* field_12;                    // +0x12
-    Class_004895c0 ref;                // +0x16
+    PathOrderAttach ref;               // +0x16
     Vec3_0044e3c0 pos;                 // +0x26
     int field_32;                      // +0x32
 
@@ -742,7 +742,7 @@ public:
     short field_e;                     // +0xe
     short field_10;                    // +0x10
     Unit* field_12;                    // +0x12
-    Class_004895c0 ref;                // +0x16
+    PathOrderAttach ref;               // +0x16
     Vec3_0044e3c0 pos;                 // +0x26
 
     Class_0044e250(Source_0044e250* source, int unit, short value);
@@ -767,7 +767,7 @@ public:
     short field_e;                     // +0xe
     short field_10;                    // +0x10
     int field_12;                      // +0x12
-    Class_004895c0 ref;                // +0x16
+    PathOrderAttach ref;               // +0x16
     Vec3_0044e2d0 pos;                 // +0x26
 
     Class_0044e2d0(Source_0044e2d0* source, const Vec3_0044e2d0& p);
@@ -792,7 +792,7 @@ public:
     short field_e;                     // +0xe
     short field_10;                    // +0x10
     int field_12;                      // +0x12
-    Class_004895c0 ref;                // +0x16
+    PathOrderAttach ref;               // +0x16
     Vec3_0044e330 pos;                 // +0x26
 
     Class_0044e330(Source_0044e330* source, int unit, const Vec3_0044e330& p);
@@ -1179,22 +1179,22 @@ public:
     virtual int KeepAfterComplete();                    // slot 11
 };
 
-class Class_0044f010;
+class AiSearchGoal;
 
 // Vtable 0x4fd428, constructor 0x44ef20, ??_G 0x44ef60.
-class Class_0044ef20 {
+class PathGoal {
 public:
     Base_00490a10* field_4;            // +0x4
     Struct_004907e0* owner;            // +0x8
 
-    Class_0044ef20(Struct_004907e0* p);
-    virtual ~Class_0044ef20() {}                    // slot 0
+    PathGoal(Struct_004907e0* p);
+    virtual ~PathGoal() {}                          // slot 0
     virtual void SetPathOrder(void* param);         // slot 1
     virtual void TickTowardGoal();                  // slot 2
     virtual void FUN_0044ef40(Vec3_004907e0*, int, int);  // slot 3
     virtual void ExportGoalPose(Vec3_004907e0*, Vec3_004907e0*, short*);  // slot 4
     virtual int FUN_0044ef80();                     // slot 5
-    virtual Class_0044f010* TryClaimRepath();       // slot 6
+    virtual AiSearchGoal* TryClaimRepath();         // slot 6
     virtual int HasNetUnitState();                  // slot 7
     virtual void SerializeNetUnitState(BitWriter*);  // slot 8
     virtual void FUN_0044efd0(BitReader*);          // slot 9
@@ -1208,7 +1208,7 @@ struct Point_0044f080 {
 
 // Vtable 0x4fd458, constructor 0x44f010, destructor 0x44f450, ??_G 0x44f040.
 // Slots 4 and 9 are inherited.
-class Class_0044f010 : public Class_0044ef20 {
+class AiSearchGoal : public PathGoal {
 public:
     Point_0044f080 points[20];         // +0xc
     int count;                         // +0x5c
@@ -1224,13 +1224,13 @@ public:
         unsigned char field_64;
     };
 
-    Class_0044f010(Struct_004907e0* p);
-    virtual ~Class_0044f010();                      // slot 0
+    AiSearchGoal(Struct_004907e0* p);
+    virtual ~AiSearchGoal();                        // slot 0
     virtual void SetPathOrder(void* param);         // slot 1, 0x44f2a0
     virtual void TickTowardGoal();                  // slot 2, 0x44f1a0
     virtual void FUN_0044ef40(Vec3_004907e0*, int, int);  // slot 3, 0x44f150
     virtual int FUN_0044ef80();                     // slot 5, 0x44f290
-    virtual Class_0044f010* TryClaimRepath();       // slot 6, 0x44f260
+    virtual AiSearchGoal* TryClaimRepath();         // slot 6, 0x44f260
     virtual int HasNetUnitState();                  // slot 7, 0x44f480
     virtual void SerializeNetUnitState(BitWriter*);  // slot 8, 0x44f4a0
     // In console_commands_417e00.cpp: it was compiled with the console code,
@@ -1238,18 +1238,6 @@ public:
     virtual void DrawOnSurface(void*);              // slot 10, 0x417e00
     void SetWaypoints(Point_0044f080* src, int n);
     void TruncateWaypointsFrom(int n);
-};
-
-// Vtable 0x4fd488, constructor 0x44f570, ??_G 0x44f590.
-class Class_0044f570 : public Class_0044ef20 {
-public:
-    char unknown_c[0x18 - 0xc];
-    int field_18;                      // +0x18
-
-    Class_0044f570(Struct_004907e0* p);
-    virtual void FUN_0044ef40(Vec3_004907e0*, int, int);  // slot 3, 0x44f650
-    virtual int FUN_0044ef80();                     // slot 5, 0x44f5b0
-    virtual void FUN_0044efd0(BitReader*);          // slot 9, 0x44f5c0
 };
 
 class Class_0044f5b0 {
@@ -1277,16 +1265,31 @@ struct Point_0044f5c0 {
     short y;                           // +0x2
 };
 
-class PatrolGoal {
+// Unused here: a forward declaration of the type below; its symbol id, with
+// the two declarations in the class, keeps the allocation the merged class
+// moved (docs/c2-regalloc.md).
+struct Vec3_0044f650;
+
+// Vtable 0x4fd488, constructor 0x44f570, ??_G 0x44f590.
+class PatrolGoal : public PathGoal {
 public:
-    void* vtable;                      // +0x0
-    int field_4;                       // +0x4
-    Owner_0044f5c0* owner;             // +0x8
     Point_0044f5c0 points[3];          // +0xc
     int count;                         // +0x18
 
+    PatrolGoal(Struct_004907e0* p);
+    virtual void FUN_0044ef40(Vec3_004907e0*, int, int);  // slot 3, 0x44f650
+    virtual int FUN_0044ef80();                     // slot 5, 0x44f5b0
+    virtual void FUN_0044efd0(BitReader*);          // slot 9, 0x44f5c0
     void FUN_0044f5c0(BitReader* reader);
+    // Unused here: the slot methods the other views declare keep the symbol
+    // ids of the functions after the merged class (docs/c2-regalloc.md).
+    int FUN_0044f5b0();
+    void FUN_0044f650(Vec3_0044f650*, int, int);
 };
+
+// Unused here: a forward declaration of a later function of this file; its
+// symbol id keeps the allocation (docs/c2-regalloc.md).
+void CreatePathfinder();
 
 struct Point_0044f650 {
     short x;                           // +0x0
@@ -1899,7 +1902,7 @@ Class_0044de80::Class_0044de80(int owner, HapiBank* file, char* name)
 {
     vtable = g_pathOrderVtable;
     Rec_0044de80 rec;
-    ((Class_004895c0*)&rec.ref_vt)->Class_004895c0::Class_004895c0(0, 0);
+    ((PathOrderAttach*)&rec.ref_vt)->PathOrderAttach::PathOrderAttach(0, 0);
     file->OpenNamedBox(name);
     file->SeekBox(0);
     if (file->ReadBox(&rec, 0x36) == 0x36) {
@@ -1953,7 +1956,7 @@ struct Rec_0044dfb0 {
     int unknown_0;                  // +0x0
     int unknown_4;                  // +0x4
     short id1;                      // +0x8
-    void* ref_vt;                   // +0xa (Class_004895c0)
+    void* ref_vt;                   // +0xa (PathOrderAttach)
     void* ref_owner;                // +0xe
     void* ref_next;                 // +0x12
     int ref_value;                  // +0x16
@@ -1977,7 +1980,7 @@ public:
     short fe;                       // +0xe
     short f10;                      // +0x10
     Unit_0044dfb0* unit1;           // +0x12
-    void* ref_vt;                   // +0x16 (Class_004895c0)
+    void* ref_vt;                   // +0x16 (PathOrderAttach)
     Unit_0044dfb0* owner;           // +0x1a
     void* ref_next;                 // +0x1e
     int ref_value;                  // +0x22
@@ -2003,8 +2006,8 @@ int Class_0044dfb0::SerializeToSave(int unused, HapiBank* file, char* name)
 {
     // The first 8 bytes of rec stay unassigned, as in the original.
     Rec_0044dfb0 rec;
-    Class_004895c0* ref = (Class_004895c0*)&rec.ref_vt;
-    ref->Class_004895c0::Class_004895c0(0, 0);
+    PathOrderAttach* ref = (PathOrderAttach*)&rec.ref_vt;
+    ref->PathOrderAttach::PathOrderAttach(0, 0);
     if (unit1 == 0)
         rec.id1 = 0;
     else
@@ -2500,7 +2503,7 @@ UfillFn_0044eec0 Access_0044eec0::fn = &Access_0044eec0::_Ufill;
 // std::copy for 4-byte elements (two shorts), compiled with __stdcall as the
 // default convention. Its one caller (0x44da00) is an inlined
 // vector::erase(begin(), end()) whose _Destroy is 0x44ee60. Not a member of
-// the Class_0044ef20 family next to it: it takes no `this`.
+// the PathGoal family next to it: it takes no `this`.
 // FUNCTION: 0x44eef0
 Point_0044eef0* __stdcall CopyDwordRangeUnchecked(Point_0044eef0* first, Point_0044eef0* last, Point_0044eef0* dest)
 {
@@ -2512,16 +2515,16 @@ Point_0044eef0* __stdcall CopyDwordRangeUnchecked(Point_0044eef0* first, Point_0
 // The base of a class family (vtable 0x4fd428, 11 slots; constructor
 // 0x44ef20, ??_G 0x44ef60). Derived classes, all with this class's
 // declaration copied verbatim:
-//   Class_0044f010  vtable 0x4fd458  ctor 0x44f010  dtor 0x44f450  ??_G 0x44f040
-//   Class_0044f570  vtable 0x4fd488  ctor 0x44f570  ??_G 0x44f590
-//   Class_00490630  vtable 0x4fd980  ctor 0x4905e0  ??_G 0x490630
-//     Class_004907e0  vtable 0x4fd9b0  ctor 0x4907e0  ??_G 0x490840
-//     Class_00490880  vtable 0x4fd9e0  ctor 0x490940  dtor 0x4909e0  ??_G 0x4909a0
+//   AiSearchGoal  vtable 0x4fd458  ctor 0x44f010  dtor 0x44f450  ??_G 0x44f040
+//   PatrolGoal  vtable 0x4fd488  ctor 0x44f570  ??_G 0x44f590
+//   PackedGoal  vtable 0x4fd980  ctor 0x4905e0  ??_G 0x490630
+//     LiteGoal  vtable 0x4fd9b0  ctor 0x4907e0  ??_G 0x490840
+//     PackedPosGoal  vtable 0x4fd9e0  ctor 0x490940  dtor 0x4909e0  ??_G 0x4909a0
 
 // The constructor.
 // FUNCTION: 0x44ef20
-// FUNCTION: 0x44ef60 ??_GClass_0044ef20@@UAEPAXI@Z
-Class_0044ef20::Class_0044ef20(Struct_004907e0* p)
+// FUNCTION: 0x44ef60 ??_GPathGoal@@UAEPAXI@Z
+PathGoal::PathGoal(Struct_004907e0* p)
 {
     owner = p;
     field_4 = 0;
@@ -2529,26 +2532,26 @@ Class_0044ef20::Class_0044ef20(Struct_004907e0* p)
 
 // Slot 3: does nothing.
 // FUNCTION: 0x44ef40
-void Class_0044ef20::FUN_0044ef40(Vec3_004907e0*, int, int)
+void PathGoal::FUN_0044ef40(Vec3_004907e0*, int, int)
 {
 }
 
 // Slot 10: does nothing.
 // FUNCTION: 0x44ef50
-void Class_0044ef20::DrawOnSurface(void*)
+void PathGoal::DrawOnSurface(void*)
 {
 }
 
 // Slot 5: whether there is an object at +0x4.
 // FUNCTION: 0x44ef80
-int Class_0044ef20::FUN_0044ef80()
+int PathGoal::FUN_0044ef80()
 {
     return field_4 != 0;
 }
 
 // Slot 1: sets the object at +0x4, first telling the one it replaces 0x80.
 // FUNCTION: 0x44ef90
-void Class_0044ef20::SetPathOrder(void* param)
+void PathGoal::SetPathOrder(void* param)
 {
     if (field_4 != 0) {
         ((Class_0044ced0*)field_4)->AddFlags(0x80);
@@ -2558,46 +2561,46 @@ void Class_0044ef20::SetPathOrder(void* param)
 
 // Slot 2: does nothing.
 // FUNCTION: 0x44efb0
-void Class_0044ef20::TickTowardGoal()
+void PathGoal::TickTowardGoal()
 {
 }
 
 // Slot 8: does nothing.
 // FUNCTION: 0x44efc0
-void Class_0044ef20::SerializeNetUnitState(BitWriter*)
+void PathGoal::SerializeNetUnitState(BitWriter*)
 {
 }
 
 // Slot 9: does nothing.
 // FUNCTION: 0x44efd0
-void Class_0044ef20::FUN_0044efd0(BitReader*)
+void PathGoal::FUN_0044efd0(BitReader*)
 {
 }
 
 // Slot 7: 0.
 // FUNCTION: 0x44efe0
-int Class_0044ef20::HasNetUnitState()
+int PathGoal::HasNetUnitState()
 {
     return 0;
 }
 
 // Slot 6: none.
 // FUNCTION: 0x44eff0
-Class_0044f010* Class_0044ef20::TryClaimRepath()
+AiSearchGoal* PathGoal::TryClaimRepath()
 {
     return 0;
 }
 
 // Slot 4: does nothing.
 // FUNCTION: 0x44f000
-void Class_0044ef20::ExportGoalPose(Vec3_004907e0*, Vec3_004907e0*, short*)
+void PathGoal::ExportGoalPose(Vec3_004907e0*, Vec3_004907e0*, short*)
 {
 }
 
 // The constructor.
 // FUNCTION: 0x44f010
-Class_0044f010::Class_0044f010(Struct_004907e0* p)
-    : Class_0044ef20(p)
+AiSearchGoal::AiSearchGoal(Struct_004907e0* p)
+    : PathGoal(p)
 {
     count = 0;
     active = 0;
@@ -2610,7 +2613,7 @@ Class_0044f010::Class_0044f010(Struct_004907e0* p)
 // points asks the object at +0x4 about the owner and flags it (0x40) when that
 // fails.
 // FUNCTION: 0x44f080
-void Class_0044f010::SetWaypoints(Point_0044f080* src, int n)
+void AiSearchGoal::SetWaypoints(Point_0044f080* src, int n)
 {
     if (n == 0) {
         if (field_4 && field_4->ContainsUnit(owner) == 0)
@@ -2630,7 +2633,7 @@ void Class_0044f010::SetWaypoints(Point_0044f080* src, int n)
 // Drops the first n path points, clears the active flag when fewer
 // than two are left and sets flag 3.
 // FUNCTION: 0x44f100
-void Class_0044f010::TruncateWaypointsFrom(int n)
+void AiSearchGoal::TruncateWaypointsFrom(int n)
 {
     if (n != 0) {
         std::copy(points + n, points + count, points);
@@ -2644,7 +2647,7 @@ void Class_0044f010::TruncateWaypointsFrom(int n)
 // Slot 3: fills n positions from the path points, repeating the last point past the
 // end of the path.
 // FUNCTION: 0x44f150
-void Class_0044f010::FUN_0044ef40(Vec3_004907e0* out, int unused, int n)
+void AiSearchGoal::FUN_0044ef40(Vec3_004907e0* out, int unused, int n)
 {
     for (int i = 0; i < n; i++) {
         int j = i < count ? i : count - 1;
@@ -2658,7 +2661,7 @@ void Class_0044f010::FUN_0044ef40(Vec3_004907e0* out, int unused, int n)
 // its second path point (within 5 units of the owner), drops that point with
 // an overlapping std::copy and refreshes the flags.
 // FUNCTION: 0x44f1a0
-void Class_0044f010::TickTowardGoal()
+void AiSearchGoal::TickTowardGoal()
 {
     if (field_4) {
         if (field_4->ContainsUnit(owner)) {
@@ -2688,7 +2691,7 @@ void Class_0044f010::TickTowardGoal()
 // field_60), or null. The path search scheduler (0x40eb70) calls it through
 // slot 6 to pick the path to search for next.
 // FUNCTION: 0x44f260
-Class_0044f010* Class_0044f010::TryClaimRepath()
+AiSearchGoal* AiSearchGoal::TryClaimRepath()
 {
     if (field_64 & 2) {
         unsigned int limit = g_game->field_38a47;
@@ -2702,7 +2705,7 @@ Class_0044f010* Class_0044f010::TryClaimRepath()
 
 // Slot 5: the active flag (bit 0 of +0x64).
 // FUNCTION: 0x44f290
-int Class_0044f010::FUN_0044ef80()
+int AiSearchGoal::FUN_0044ef80()
 {
     return field_64 & 1;
 }
@@ -2714,7 +2717,7 @@ int Class_0044f010::FUN_0044ef80()
 // object as the owner is. With no usable point left it resets the path to
 // two points taken from the owner and the object's position.
 // FUNCTION: 0x44f2a0
-void Class_0044f010::SetPathOrder(void* param)
+void AiSearchGoal::SetPathOrder(void* param)
 {
     g_game->field_14207->AbortIfGoalMatch(this);
     if (field_4)
@@ -2765,9 +2768,9 @@ void Class_0044f010::SetPathOrder(void* param)
 
 // The out-of-line destructor: it stores its own vtable, unregisters the object, then the empty inline base destructor
 // stores 0x4fd428.
-// FUNCTION: 0x44f040 ??_GClass_0044f010@@UAEPAXI@Z
+// FUNCTION: 0x44f040 ??_GAiSearchGoal@@UAEPAXI@Z
 // FUNCTION: 0x44f450
-Class_0044f010::~Class_0044f010()
+AiSearchGoal::~AiSearchGoal()
 {
     g_game->field_14207->AbortIfGoalMatch(this);
 }
@@ -2776,7 +2779,7 @@ Class_0044f010::~Class_0044f010()
 // set, or flag 2 no longer matches bit 2 of the owner's target. Slot 8
 // (0x44f4a0) writes the path out and brings both flags up to date.
 // FUNCTION: 0x44f480
-int Class_0044f010::HasNetUnitState()
+int AiSearchGoal::HasNetUnitState()
 {
     return (field_64 & 8) || ((owner->target->field_2e ^ field_64) & 4);
 }
@@ -2786,7 +2789,7 @@ int Class_0044f010::HasNetUnitState()
 // points of 16 bits each, and finally copies the unit's mode into flag 2 while
 // clearing flag 3 (the "changed" flag the readers rely on).
 // FUNCTION: 0x44f4a0
-void Class_0044f010::SerializeNetUnitState(BitWriter* stream)
+void AiSearchGoal::SerializeNetUnitState(BitWriter* stream)
 {
     int n;
     if (active) {
@@ -2820,11 +2823,11 @@ void Class_0044f010::SerializeNetUnitState(BitWriter* stream)
 // destructor is trivial, so the dead store of this class's vtable disappears
 // and only the inlined base destructor's store of 0x4fd428 is left.
 // FUNCTION: 0x44f570
-// FUNCTION: 0x44f590 ??_GClass_0044f570@@UAEPAXI@Z
-Class_0044f570::Class_0044f570(Struct_004907e0* p)
-    : Class_0044ef20(p)
+// FUNCTION: 0x44f590 ??_GPatrolGoal@@UAEPAXI@Z
+PatrolGoal::PatrolGoal(Struct_004907e0* p)
+    : PathGoal(p)
 {
-    field_18 = 0;
+    count = 0;
 }
 
 // FUNCTION: 0x44f5b0
@@ -2836,7 +2839,7 @@ int Class_0044f5b0::FUN_0044f5b0()
 // FUNCTION: 0x44f5c0
 void PatrolGoal::FUN_0044f5c0(BitReader* reader)
 {
-    owner->target->flag_2 = reader->ReadBit();
+    ((Owner_0044f5c0*)owner)->target->flag_2 = reader->ReadBit();
     count = reader->ReadBits(2);
     for (int i = 0; i < count; i++) {
         points[i].x = reader->ReadBits(16);

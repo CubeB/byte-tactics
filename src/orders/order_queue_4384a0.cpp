@@ -154,16 +154,16 @@ extern Entry_0043a1f0* DAT_00512348;
 
 // The 0x10-byte link at +0x12: its constructor puts the object in its
 // owner's list; 0x489650 is its destructor.
-class Class_004895c0 {
+class PathOrderAttach {
 public:
     void* vptr;                        // +0x0
     Unit* owner;                       // +0x4
-    Class_004895c0* next;              // +0x8
+    PathOrderAttach* next;             // +0x8
     void* value;                       // +0xc, the object the link belongs to
 
     void SetValue(void* v) { value = v; }
 
-    Class_004895c0(Unit* o, int v);
+    PathOrderAttach(Unit* o, int v);
     void SetUnit(Unit* o);
 };
 
@@ -272,7 +272,7 @@ public:
     // Slot 0 of vtable 0x4fd2c8, overriding the base's.
     virtual void OrStatusFlags(unsigned int);
 
-    Class_004895c0 link;               // +0x12
+    PathOrderAttach link;              // +0x12
     Vec3_0043a1f0 pos;                 // +0x22
     int field_2e;                      // +0x2e
     int field_32;                      // +0x32

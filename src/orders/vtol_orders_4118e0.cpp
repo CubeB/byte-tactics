@@ -28,12 +28,12 @@ public:
     unsigned char flags;               // +0x2e
     void SetFlightMode(Unit* unit, int state);
 };
-class Class_004895c0 {
+class PathOrderAttach {
 public:
     Unit* owner;                       // +0x4
-    Class_004895c0* next;              // +0x8
+    PathOrderAttach* next;             // +0x8
     int value;                         // +0xc
-    virtual ~Class_004895c0();
+    virtual ~PathOrderAttach();
     void SetUnit(Unit* o);
 };
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
@@ -76,7 +76,7 @@ void __stdcall KillUnit(Unit*, int);
 
 struct Order {
     char pad0[5]; unsigned char state; unsigned int flags;
-    char padA[0x12 - 0xa]; Class_004895c0 target;
+    char padA[0x12 - 0xa]; PathOrderAttach target;
     Vec3 pos;
     char pad2e[8]; int angle;
 };

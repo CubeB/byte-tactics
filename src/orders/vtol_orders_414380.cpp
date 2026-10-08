@@ -27,7 +27,7 @@ class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
 class Class_00438ad0 { public: void AttachBuildFootprintMarker(Point, Point); };
 class Class_00439e80 { public: void SetDeadlineTicks(int); };
-class Class_004895c0 { public: void SetUnit(Unit*); };
+class PathOrderAttach { public: void SetUnit(Unit*); };
 #pragma pack(push, 1)
 struct UnitDef {
     char pad0[0x14a]; Point origin;

@@ -65,13 +65,13 @@ namespace AirManeuverOrder { void FillWorldPos(); }
 namespace Class_0044eb40 { void GetDesiredHeading(); }
 namespace Class_0044e740 { void IsComplete(); }
 void FUN_0044ec00();
-namespace Class_0044ef20 { void DrawOnSurface(); }
-namespace Class_0044ef20 { void SetPathOrder(); }
-namespace Class_0044ef20 { void TickTowardGoal(); }
-namespace Class_0044ef20 { void SerializeNetUnitState(); }
-namespace Class_0044ef20 { void HasNetUnitState(); }
-namespace Class_0044ef20 { void TryClaimRepath(); }
-namespace Class_0044ef20 { void ExportGoalPose(); }
+namespace PathGoal { void DrawOnSurface(); }
+namespace PathGoal { void SetPathOrder(); }
+namespace PathGoal { void TickTowardGoal(); }
+namespace PathGoal { void SerializeNetUnitState(); }
+namespace PathGoal { void HasNetUnitState(); }
+namespace PathGoal { void TryClaimRepath(); }
+namespace PathGoal { void ExportGoalPose(); }
 void FUN_0044f590();
 void FUN_0044f5b0();
 void FUN_0044f5c0();
@@ -133,12 +133,12 @@ extern VirtualFunction const g_airManeuverOrderVtable[12] = {
     AirManeuverOrder::FillWorldPos, Class_0044eb40::GetDesiredHeading, Class_0044e740::SerializeToBits, FUN_0044ea50,
 };
 
-// Class_0044f570's: stored by 0x44f570.
+// PatrolGoal's: stored by 0x44f570.
 // GLOBAL: 0x4fd488
 extern VirtualFunction const DAT_004fd488[12] = {
-    FUN_0044f590, Class_0044ef20::SetPathOrder, Class_0044ef20::TickTowardGoal, FUN_0044f650,
-    Class_0044ef20::ExportGoalPose, FUN_0044f5b0, Class_0044ef20::TryClaimRepath, Class_0044ef20::HasNetUnitState,
-    Class_0044ef20::SerializeNetUnitState, FUN_0044f5c0, Class_0044ef20::DrawOnSurface, 0,
+    FUN_0044f590, PathGoal::SetPathOrder, PathGoal::TickTowardGoal, FUN_0044f650,
+    PathGoal::ExportGoalPose, FUN_0044f5b0, PathGoal::TryClaimRepath, PathGoal::HasNetUnitState,
+    PathGoal::SerializeNetUnitState, FUN_0044f5c0, PathGoal::DrawOnSurface, 0,
 };
 
 // Stored by 0x485e90, 0x485f50 and 0x4861d0.

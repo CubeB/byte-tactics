@@ -319,7 +319,7 @@ public:
     void AddFlags(int param_1);
 };
 
-class Class_0044f010 {
+class AiSearchGoal {
 public:
     char unknown_0[4];
     Target* target;                    // +0x4
@@ -334,7 +334,7 @@ public:
     virtual void unused3();
     virtual void unused4();
     virtual void unused5();
-    virtual Class_0044f010* GetPath();
+    virtual AiSearchGoal* GetPath();
 };
 
 static int FixMul(int a, int b)
@@ -488,7 +488,7 @@ public:
     int costScale;                     // +0x50
     int baseScale;                     // +0x54
     Unit* object;                      // +0x58
-    Class_0044f010* path;              // +0x5c
+    AiSearchGoal* path;                // +0x5c
     Target* target;                    // +0x60
     MovementClass* owner;              // +0x64
     union {

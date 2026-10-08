@@ -16,7 +16,7 @@ public:
 
 class Unit;
 class UnitRef;
-class Class_004895c0;
+class PathOrderAttach;
 class Class_0043a1f0;
 
 // One virtual slot, called on the object a link belongs to.
@@ -124,7 +124,7 @@ public:
     char unknown_9e[0xa2 - 0x9e];
     union {
         UnitRef* head;                 // +0xa2, the links of this unit's list
-        Class_004895c0* link;
+        PathOrderAttach* link;
     };
     unsigned short map;                // +0xa6
     unsigned short id;                 // +0xa8
@@ -284,17 +284,17 @@ void UnitRef::UnlinkFromUnit()
     }
 }
 
-class Class_004895c0 {
+class PathOrderAttach {
 public:
     Unit* owner;                       // +0x4
-    Class_004895c0* next;              // +0x8
+    PathOrderAttach* next;             // +0x8
     Listener_004896f0* value;          // +0xc
 
-    Class_004895c0(Unit* o, int v);
-    virtual ~Class_004895c0()
+    PathOrderAttach(Unit* o, int v);
+    virtual ~PathOrderAttach()
     {
         if (owner != 0) {
-            Class_004895c0** pp = &owner->link;
+            PathOrderAttach** pp = &owner->link;
             while (*pp != this)
                 pp = &(*pp)->next;
             *pp = next;
@@ -309,7 +309,7 @@ public:
 // owner is set and its flag at +0xa6 is non-zero. The only vtable slot is
 // the scalar deleting destructor (0x489600), which unlinks it again.
 // FUNCTION: 0x4895c0
-Class_004895c0::Class_004895c0(Unit* o, int v)
+PathOrderAttach::PathOrderAttach(Unit* o, int v)
     : value((Listener_004896f0*)v)
 {
     if (o != 0 && o->map != 0) {
@@ -322,30 +322,30 @@ Class_004895c0::Class_004895c0(Unit* o, int v)
     next = 0;
 }
 
-// The compiler-generated scalar deleting destructor of Class_004895c0
+// The compiler-generated scalar deleting destructor of PathOrderAttach
 // (vtable 0x4fd754, constructor 0x4895c0). The destructor (out of line at
 // 0x489650) is inlined here: it unlinks the object from its owner's list
 // (head at +0xa2) and clears the link.
-// FUNCTION: 0x489600 ??_GClass_004895c0@@UAEPAXI@Z
+// FUNCTION: 0x489600 ??_GPathOrderAttach@@UAEPAXI@Z
 
-// The out-of-line destructor of Class_004895c0 (vtable 0x4fd754): unlinks
+// The out-of-line destructor of PathOrderAttach (vtable 0x4fd754): unlinks
 // the object from its owner's list (head at +0xa2) and clears the link.
 // Callers already call it as UnitRef::Unlink, so it is written as that
 // method, which runs the real destructor non-virtually.
 // FUNCTION: 0x489650
 void UnitRef::Unlink()
 {
-    ((Class_004895c0*)this)->Class_004895c0::~Class_004895c0();
+    ((PathOrderAttach*)this)->PathOrderAttach::~PathOrderAttach();
 }
 
 // Moves the link to a new owner: unlinks it from the current owner's list
 // (as the destructor 0x489650 does), then links it into `o`'s list (as the
 // constructor 0x4895c0 does) when `o` is set and its flag is non-zero.
 // FUNCTION: 0x489690
-void Class_004895c0::SetUnit(Unit* o)
+void PathOrderAttach::SetUnit(Unit* o)
 {
     if (owner != 0) {
-        Class_004895c0** pp = &owner->link;
+        PathOrderAttach** pp = &owner->link;
         while (*pp != this)
             pp = &(*pp)->next;
         *pp = next;

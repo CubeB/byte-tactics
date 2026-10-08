@@ -207,16 +207,16 @@ class Class_0043a1f0;
 
 // The 0x10-byte link at +0x12: its constructor puts the object in its
 // owner's list; 0x489650 is its destructor.
-class Class_004895c0 {
+class PathOrderAttach {
 public:
     void* vptr;                      // +0x0
     Unit* owner;                     // +0x4
-    Class_004895c0* next;            // +0x8
+    PathOrderAttach* next;           // +0x8
     void* value;                     // +0xc, the object the link belongs to
 
     void SetValue(void* v) { value = v; }
 
-    Class_004895c0(Unit* o, int v);
+    PathOrderAttach(Unit* o, int v);
     void SetUnit(Unit* o);
 };
 
@@ -237,7 +237,7 @@ public:
     unsigned int flags6;             // +0x6, bit 0 set while the node waits
     unsigned int wakeFrame;          // +0xa
     void* unit;                      // +0xe
-    Class_004895c0 link;             // +0x12
+    PathOrderAttach link;            // +0x12
     Vec3 pos;                        // +0x22
     Point field_2e;                  // +0x2e
     Point field_32;                  // +0x32
@@ -949,10 +949,10 @@ public:
     virtual int v5();
 };
 
-class Class_00490880 { public: char unknown[0x27]; Class_00490880(Unit* unit); };
-class Class_004907e0 { public: char unknown[0x28]; Class_004907e0(Unit* unit); };
-class Class_0044f570 { public: char unknown[0x1c]; Class_0044f570(Unit* unit); };
-class Class_0044f010 { public: char unknown[0x65]; Class_0044f010(Unit* unit); };
+class PackedPosGoal { public: char unknown[0x27]; PackedPosGoal(Unit* unit); };
+class LiteGoal { public: char unknown[0x28]; LiteGoal(Unit* unit); };
+class PatrolGoal { public: char unknown[0x1c]; PatrolGoal(Unit* unit); };
+class AiSearchGoal { public: char unknown[0x65]; AiSearchGoal(Unit* unit); };
 class Class_0043db50 { public: void UpdateSfxOccupy(Unit* u); };
 
 class UnitMotion {
@@ -2077,14 +2077,14 @@ UnitMotion::UnitMotion(Unit* unit)
     movementClass = unit->type->field_1b6;
     if (unit->target->field_0 != 0 && unit->target->type == 3) {
         if (unit->type->flag_800)
-            obj = (Iface_0043dd20*)new Class_00490880(unit);
+            obj = (Iface_0043dd20*)new PackedPosGoal(unit);
         else
-            obj = (Iface_0043dd20*)new Class_0044f570(unit);
+            obj = (Iface_0043dd20*)new PatrolGoal(unit);
     } else {
         if (unit->type->flag_800)
-            obj = (Iface_0043dd20*)new Class_004907e0(unit);
+            obj = (Iface_0043dd20*)new LiteGoal(unit);
         else
-            obj = (Iface_0043dd20*)new Class_0044f010(unit);
+            obj = (Iface_0043dd20*)new AiSearchGoal(unit);
     }
 }
 

@@ -100,13 +100,13 @@ public:
     void SetAttachedFx(int param);
 };
 
-class Class_004895c0 {
+class PathOrderAttach {
 public:
     Unit* owner;                       // +0x4
-    Class_004895c0* next;              // +0x8
+    PathOrderAttach* next;             // +0x8
     int value;                         // +0xc
 
-    virtual ~Class_004895c0();
+    virtual ~PathOrderAttach();
     void SetUnit(Unit* o);
     Unit* Get() { return owner; }
 };
@@ -270,7 +270,7 @@ struct Order {
     };
     char unknown_a[0xe - 0xa];
     Unit* source;                      // +0xe
-    Class_004895c0 target;             // +0x12, its owner is at +0x16
+    PathOrderAttach target;            // +0x12, its owner is at +0x16
     Vec3 pos;                          // +0x22
     Point16 start;                     // +0x2e
     char unknown_32[0x36 - 0x32];

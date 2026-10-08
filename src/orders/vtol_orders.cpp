@@ -238,12 +238,12 @@ struct Game {
 };
 
 // The link node embedded in an order at +0x12: its +0x4 is the target unit.
-class Class_004895c0 {
+class PathOrderAttach {
 public:
     Unit* owner;                       // +0x4
-    Class_004895c0* next;              // +0x8
+    PathOrderAttach* next;             // +0x8
     int value;                         // +0xc
-    virtual ~Class_004895c0();
+    virtual ~PathOrderAttach();
     void SetUnit(Unit* o);
 };
 
@@ -930,7 +930,7 @@ int __stdcall VtolUnloadOrder(Unit* unit, Order* order, int flags)
     case 0:
         if (unit->type && (unit->def->flags & 0x800)) {
             ((Class_00438880*)order)->AnnounceStatusIfFlagged("Unloading");
-            ((Class_004895c0*)&order->target)->SetUnit(unit->cargo);
+            ((PathOrderAttach*)&order->target)->SetUnit(unit->cargo);
             Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
             ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
             ((Class_0044e730*)obj)->SetApproachRadius(0x140);
@@ -1130,7 +1130,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
             return 2;
         }
         SnapWorldPosToFootprint(def,&order->pos);
-        ((Class_004895c0*)&order->target)->SetUnit(CreateUnit(unit->player,(short)order->type,order->pos,0,1,0));
+        ((PathOrderAttach*)&order->target)->SetUnit(CreateUnit(unit->player,(short)order->type,order->pos,0,1,0));
         if (!order->targetUnit) { QueueUnitSpeech(unit,7,"Unable to create any more units"); return 8; }
         QueueUnitSpeech(unit,9,"Starting construction");
         AddOrder("GETBUILT",1,order->targetUnit,unit,0,0,0);

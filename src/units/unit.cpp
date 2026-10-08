@@ -110,11 +110,11 @@ public:
 };
 
 // The links of the owner's list; the head of a unit's list is at +0xa2.
-class Class_004895c0 {
+class PathOrderAttach {
 public:
     void* vptr;                        // +0x0
     void* owner;                       // +0x4
-    Class_004895c0* next;              // +0x8
+    PathOrderAttach* next;             // +0x8
     Class_0043a1e0* value;             // +0xc
 };
 
@@ -138,7 +138,7 @@ public:
     Player_0048b090* player;           // +0x96
     CobScript* script;                 // +0x9a
     void* block;                       // +0x9e
-    Class_004895c0* head;              // +0xa2
+    PathOrderAttach* head;             // +0xa2
     char unknown_a6[0xa8 - 0xa6];
     unsigned short id;                 // +0xa8
     char unknown_aa[0x104 - 0xaa];
@@ -334,7 +334,7 @@ void Unit::SetStateBits(int mask, int set)
     // Old state read through the in-class accessor: it fixes the set arm's load order.
     unsigned char lost, gained, old = GetState();
     int isOne, active;
-    Class_004895c0* link;
+    PathOrderAttach* link;
     int now;
     if (set)
         now = old | (unsigned char)mask;

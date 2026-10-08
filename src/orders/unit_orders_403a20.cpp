@@ -16,7 +16,7 @@ struct Unit;
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
 class Class_00438ad0 { public: void AttachBuildFootprintMarker(Point, Point); };
 class Class_00439e80 { public: void SetDeadlineTicks(int); };
-class Class_004895c0 { public: void SetUnit(Unit*); };
+class PathOrderAttach { public: void SetUnit(Unit*); };
 #pragma pack(push, 1)
 struct UnitDef {
     char pad0[0x14a]; Point origin;
@@ -128,7 +128,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
         }
         ((Unit*)unit)->ClaimWeapons(3);
         SnapWorldPosToFootprint(def, &order->pos);
-        ((Class_004895c0*)((char*)order + 0x12))->SetUnit(
+        ((PathOrderAttach*)((char*)order + 0x12))->SetUnit(
             CreateUnit(unit->player, (short)order->type, order->pos, 0, 1, 0));
         if (!order->target) {
             QueueUnitSpeech(unit, 7, "Unable to create any more units");

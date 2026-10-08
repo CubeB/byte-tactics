@@ -294,9 +294,9 @@ class Class_0044e9c0;
 class AirManeuverOrder;
 class Class_0044eb40;
 struct Class_0044ec20;
-class Class_0044ef20;
+class PathGoal;
 class Class_0044ef80;
-class Class_0044f010;
+class AiSearchGoal;
 class Class_0044f150;
 class Class_0044f260;
 class Class_0044f290;
@@ -507,7 +507,7 @@ struct UnitType;
 class Class_00489240;
 class UnitCategory;
 class Class_00489540;
-class Class_004895c0;
+class PathOrderAttach;
 class Class_00489650;
 class Class_004896f0;
 class Class_00489740;
@@ -583,10 +583,10 @@ class Class_0048fd70;
 class Class_0048fdb0;
 class MissionConditions;
 struct Class_00490360;
-class Class_00490630;
+class PackedGoal;
 class Class_00490650;
-class Class_004907e0;
-class Class_00490880;
+class LiteGoal;
+class PackedPosGoal;
 struct Class_00490880_link;
 struct Class_00490880_target;
 struct Class_004908b0;
@@ -2312,14 +2312,14 @@ struct Order_00402160 {  // 0x1a bytes, 1 view
     int field_16;  // +0x16
 };
 
-class Class_004895c0 {  // 0x10 bytes, 25 views
+class PathOrderAttach {  // 0x10 bytes, 25 views
 public:
     Unit* owner;  // +0x4
-    Class_004895c0* next;  // +0x8
+    PathOrderAttach* next;  // +0x8
     int value;  // +0xc
-    virtual ~Class_004895c0(void);
-    Class_004895c0(Class_004895c0&);
-    Class_004895c0(Unit*, int);
+    virtual ~PathOrderAttach(void);
+    PathOrderAttach(PathOrderAttach&);
+    PathOrderAttach(Unit*, int);
     virtual void Unknown_0(void);
     void SetValue(void*);
     void SetUnit(Unit*);
@@ -2330,7 +2330,7 @@ struct Order_004021f0 {  // 0x3e bytes, 1 view
     unsigned char state;  // +0x5
     unsigned int flags;  // +0x6
     char unknown_a[8];
-    Class_004895c0 target;  // +0x12
+    PathOrderAttach target;  // +0x12
     Vec3 pos;  // +0x22
     char unknown_2e[8];
     int wait;  // +0x36
@@ -2347,7 +2347,7 @@ struct Order_4 {  // 0x3e bytes, 1 view
     unsigned char state;  // +0x5
     unsigned int flags;  // +0x6
     char unknown_a[8];
-    Class_004895c0 target;  // +0x12
+    PathOrderAttach target;  // +0x12
     Vec3 pos;  // +0x22
     char unknown_2e[8];
     int unitType;  // +0x36
@@ -2407,7 +2407,7 @@ struct Unit {  // 0x118 bytes, 462 views
     Player* player;  // +0x96
     Class_004b0a70* script;  // +0x9a
     SpotState* state;  // +0x9e
-    Class_004895c0* head;  // +0xa2
+    PathOrderAttach* head;  // +0xa2
     unsigned short field_a6;  // +0xa6
     unsigned short id;  // +0xa8
     unsigned short fix_lo;  // +0xaa
@@ -3508,7 +3508,7 @@ public:
     Point16 start;  // +0x30
     Point16 found;  // +0x34
     char unknown_38[36];
-    Class_0044f010* path;  // +0x5c
+    AiSearchGoal* path;    // +0x5c
     char unknown_60[4];
     Map_0040d7b0* map;  // +0x64
     void TracePath(void);
@@ -3671,7 +3671,7 @@ public:
     int costScale;  // +0x50
     char unknown_54[4];
     Unit* object;  // +0x58
-    Class_0044f010* path;  // +0x5c
+    AiSearchGoal* path;    // +0x5c
     Target_0040e630* target;  // +0x60
     Dummy_00440be0* owner;  // +0x64
     Table_0040d880 table;  // +0x68
@@ -3753,7 +3753,7 @@ public:
     virtual void unused5(void);
     virtual void v5(void);
     virtual void vf5(void);
-    virtual Class_0044f010* GetPath(void);
+    virtual AiSearchGoal* GetPath(void);
     virtual void v6(void);
     virtual void vf6(void);
     virtual int vf7(void);
@@ -7087,7 +7087,7 @@ public:
     short field_e;  // +0xe
     short field_10;  // +0x10
     int field_12;  // +0x12
-    Class_004895c0 ref;  // +0x16
+    PathOrderAttach ref;  // +0x16
     Vec3 pos;  // +0x26
     char unknown_32[4];
     Class_0044e2d0(Class_0044e2d0&);
@@ -7102,7 +7102,7 @@ public:
     short field_e;  // +0xe
     short field_10;  // +0x10
     Unit* field_12;  // +0x12
-    Class_004895c0 ref;  // +0x16
+    PathOrderAttach ref;  // +0x16
     Vec3 pos;  // +0x26
     int field_32;  // +0x32
     Class_0044e190(Class_0044e190&);
@@ -7117,7 +7117,7 @@ public:
     short field_e;  // +0xe
     short field_10;  // +0x10
     Unit* field_12;  // +0x12
-    Class_004895c0 ref;  // +0x16
+    PathOrderAttach ref;  // +0x16
     Vec3 pos;  // +0x26
     char unknown_32[4];
     Class_0044e250(Class_0044e250&);
@@ -7148,7 +7148,7 @@ public:
     short field_e;  // +0xe
     short field_10;  // +0x10
     int field_12;  // +0x12
-    Class_004895c0 ref;  // +0x16
+    PathOrderAttach ref;  // +0x16
     Vec3 pos;  // +0x26
     char unknown_32[4];
     Class_0044e330(Class_0044e330&);
@@ -7177,7 +7177,7 @@ public:
     short field_e;  // +0xe
     short field_10;  // +0x10
     Unit* field_12;  // +0x12
-    Class_004895c0 ref;  // +0x16
+    PathOrderAttach ref;  // +0x16
     Vec3 pos;  // +0x26
     int field_32;  // +0x32
     Class_0044de80(Class_0044de80&);
@@ -7551,7 +7551,7 @@ public:
     short field_e;  // +0xe
     short field_10;  // +0x10
     Owner_0044e080* owner;  // +0x12
-    Class_004895c0 ref;  // +0x16
+    PathOrderAttach ref;  // +0x16
     int pos_x;  // +0x26
     int pos_y;  // +0x2a
     int pos_z;  // +0x2e
@@ -7731,12 +7731,12 @@ struct Class_0044ec20 {  // 0x26 bytes, 1 view
     void FUN_0044ec20(short);
 };
 
-class Class_0044ef20 {  // 0xc bytes, 15 views
+class PathGoal {        // 0xc bytes, 15 views
 public:
     Base_00490a10* field_4;  // +0x4
     Unit* owner;  // +0x8
-    virtual ~Class_0044ef20(void);
-    Class_0044ef20(Unit*);
+    virtual ~PathGoal(void);
+    PathGoal(Unit*);
     virtual void SetPathOrder(void*);
     virtual void TickTowardGoal(void);
     virtual void FUN_0044ef40(int, int, int);
@@ -7751,7 +7751,7 @@ public:
     virtual void DrawOnSurface(void);
 };
 
-class Class_0044f010 : public Class_0044ef20 {  // 0x68 bytes, 10 views
+class AiSearchGoal : public PathGoal {          // 0x68 bytes, 10 views
 public:
     Point16 points[20];  // +0xc
     int count;  // +0x5c
@@ -7762,8 +7762,8 @@ public:
     unsigned char flag_3 : 1;
     unsigned char : 4;
     char unknown_65[3];
-    virtual ~Class_0044f010(void);
-    Class_0044f010(int);
+    virtual ~AiSearchGoal(void);
+    AiSearchGoal(int);
     virtual void SetPathOrder(void*);
     virtual void TickTowardGoal(void);
     virtual void FUN_0044ef40(int, int, int);
@@ -7776,7 +7776,7 @@ public:
     void TruncateWaypointsFrom(int);
 };
 
-class Class_0044f570 : public Class_0044ef20 {  // 0x1c bytes, 3 views
+class Class_0044f570 : public PathGoal {        // 0x1c bytes, 3 views
 public:
     char unknown_c[12];
     int field_18;  // +0x18
@@ -13818,7 +13818,7 @@ public:
     virtual void VisitUnit(void*) = 0;
 };
 
-class Class_00490630 : public Class_0044ef20 {  // 0x28 bytes, 8 views
+class PackedGoal : public PathGoal {            // 0x28 bytes, 8 views
 public:
     Vec3 pos;  // +0xc
     Vec3 vel;  // +0x18
@@ -13827,24 +13827,24 @@ public:
     unsigned char dirty : 1;  // +0x27
     unsigned char mode : 2;
     unsigned char : 5;
-    Class_00490630(Unit*);
+    PackedGoal(Unit*);
     virtual void TickTowardGoal(void);
     virtual void ExportGoalPose(int, int, int);
 };
 
-class Class_004907e0 : public Class_00490630 {  // 0x28 bytes, 4 views
+class LiteGoal : public PackedGoal {            // 0x28 bytes, 4 views
 public:
-    Class_004907e0(Unit*);
+    LiteGoal(Unit*);
     virtual void SetPathOrder(void*);
     virtual void TickTowardGoal(void);
     virtual int HasNetUnitState(void);
     virtual void SerializeNetUnitState(int);
 };
 
-class Class_00490880 : public Class_00490630 {  // 0x28 bytes, 6 views
+class PackedPosGoal : public PackedGoal {       // 0x28 bytes, 6 views
 public:
-    virtual ~Class_00490880(void);
-    Class_00490880(Unit*);
+    virtual ~PackedPosGoal(void);
+    PackedPosGoal(Unit*);
     virtual void FUN_0044efd0(int);
     virtual void FUN_00490690(void);
     void FUN_00490880(void);

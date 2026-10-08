@@ -322,7 +322,7 @@ struct Point16 {
     short z;                           // +0x2
 };
 
-class Class_0044f010 {
+class AiSearchGoal {
 public:
     char unknown_4[4];
     char* field_8;                     // +0x8
@@ -1416,7 +1416,7 @@ void __stdcall DrawWorldSegmentLine(void* surface, Point16 from, short dx, short
     DrawLine(surface, sx1, sy1, sx2, sy2, color & 0xff);
 }
 
-// Class_0044f010's override of slot 10 (vtable 0x4fd458). The rest of the
+// AiSearchGoal's override of slot 10 (vtable 0x4fd458). The rest of the
 // class is in order_targets_44f010.cpp; this one sits far from it in the exe,
 // compiled with the console code.
 // Draws an open polyline stored on the object as 16-bit map points: each
@@ -1424,7 +1424,7 @@ void __stdcall DrawWorldSegmentLine(void* surface, Point16 from, short dx, short
 // helper of 0x417bb0) and one line is drawn. The colour byte comes from a
 // two-entry table in game state, selected by bit 0 of the object's field 0x64.
 // FUNCTION: 0x417e00
-void Class_0044f010::DrawOnSurface(void* surface)
+void AiSearchGoal::DrawOnSurface(void* surface)
 {
     DrawMapTileSelectionOutline(surface, (short*)(this->field_8 + 0x76), *(int*)(this->field_8 + 0x7e), 0xf);
     unsigned char color = *(unsigned char*)((char*)g_game + 0xdcb + ((this->field_64 & 1) ? 9 : 12));

@@ -5177,10 +5177,10 @@ piece,0x503378,9,src/map/map_list.cpp,41,0,game data
 piece,0x504a30,49,src/map/map_list.cpp,25,0,game data
 piece,0x504a24,11,src/map/map_list.cpp,16,0,game data
 piece,0x504a18,11,src/map/map_list.cpp,15,0,game data
-piece,0x504a04,7,src/map/los_tables_432ba0.cpp,39,0,game data
-piece,0x504a00,3,src/map/los_tables_432ba0.cpp,38,0,game data
-piece,0x5049f8,8,src/map/los_tables_432ba0.cpp,23,0,game data
-piece,0x5049ec,9,src/map/los_tables_432ba0.cpp,22,0,game data
+piece,0x504a04,7,src/map/los_tables.cpp,35,0,game data
+piece,0x504a00,3,src/map/los_tables.cpp,34,0,game data
+piece,0x5049f8,8,src/map/los_tables.cpp,21,0,game data
+piece,0x5049ec,9,src/map/los_tables.cpp,20,0,game data
 piece,0x5049e8,4,src/map/los_tables_433130.cpp,6,0,game data
 piece,0x5049dc,10,src/map/los_tables_433130.cpp,4,0,game data
 piece,0x5049d0,10,src/map/los_tables_433130.cpp,3,0,game data

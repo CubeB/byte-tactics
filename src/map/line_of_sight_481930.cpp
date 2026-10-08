@@ -18,10 +18,6 @@ public:
 class LosTable {
 public:
     short GetLosLineCount();
-};
-
-class Class_4335e0 {
-public:
     void* GetLosLine(short i);
 };
 
@@ -146,7 +142,7 @@ void __stdcall RevealAroundUnit(Params_00481930* params)
             }
             int ref = *params->field_c;
             for (short i = 0; (short)i < count; i++) {
-                void* line = ((Class_4335e0*)table)->GetLosLine(i);
+                void* line = ((LosTable*)table)->GetLosLine(i);
                 short num = ((LosLine*)line)->GetLosLineStepCount();
                 // Declared in this order: bestIdx, j1, bestDiff; j1 is set in the guard.
                 int bestIdx = 0;

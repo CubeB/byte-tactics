@@ -669,30 +669,30 @@ void __stdcall AddObjectBounds(Object_004cb2f0* obj, Vec3_004cb2f0* offset,
     }
 }
 
-// The BMP writer object: the file, the image size and where the pixels start.
-struct Class_004cb7c0 {
-    char unknown_0[0xc];
-    FILE* file;                        // +0xc
+// The BMP writer: the image size, the offset of the pixel data and the file.
+class BmpWriter {
+public:
+    int width;                  // +0x0
+    int height;                 // +0x4
+    int dataOffset;             // +0x8
+    FILE* file;                 // +0xc
 
-    Class_004cb7c0* Init();
+    BmpWriter* Init();
+    void Close();
+    bool Open(const char* name, int w, int h);
+    bool WriteRows(Bitmap_004caec0* image, int x, int rows, int unused_4, int y,
+                      int unused_6, int srcY);
 };
 
 // FUNCTION: 0x4cb7c0
-Class_004cb7c0* Class_004cb7c0::Init()
+BmpWriter* BmpWriter::Init()
 {
     file = 0;
     return this;
 }
 
-struct Class_004cb7d0 {
-    char unknown_0[0xc];
-    FILE* file;                        // +0xc
-
-    void Close();
-};
-
 // FUNCTION: 0x4cb7d0
-void Class_004cb7d0::Close()
+void BmpWriter::Close()
 {
     if (file != NULL) {
         fclose(file);
@@ -736,15 +736,6 @@ struct BmpInfo {
     RgbQuad colors[256];
 };
 
-class Class_004cb7f0 {
-public:
-    int width;                  // +0x0
-    int height;                 // +0x4
-    int dataOffset;             // +0x8
-    FILE* file;                 // +0xc
-    bool Open(const char* name, int w, int h);
-};
-
 // Opens a 256-colour BMP file for writing and emits the BMP file header,
 // the BITMAPINFOHEADER and the palette (the game's RGB palette bytes are
 // stored red, green, blue and written out reversed as blue, green, red).
@@ -752,7 +743,7 @@ public:
 // (ftell right after the header) and the FILE*. Returns false if the file
 // cannot be opened or either header write is short.
 // FUNCTION: 0x4cb7f0
-bool Class_004cb7f0::Open(const char* name, int w, int h)
+bool BmpWriter::Open(const char* name, int w, int h)
 {
     void* palbase = GetDisplay();
 
@@ -802,19 +793,8 @@ bool Class_004cb7f0::Open(const char* name, int w, int h)
 // Bitmap file writer: seeks to the file row for `y` and writes `height` rows
 // of the image, bottom-up, each padded to a multiple of 4 bytes. Returns
 // false when the seek or a write fails.
-class Class_004cb940 {
-public:
-    int unknown_0;
-    int height;                        // +0x4
-    int dataOffset;                    // +0x8
-    FILE* file;                        // +0xc
-
-    bool WriteRows(Bitmap_004caec0* image, int x, int rows, int unused_4, int y,
-                      int unused_6, int srcY);
-};
-
 // FUNCTION: 0x4cb940
-bool Class_004cb940::WriteRows(Bitmap_004caec0* image, int x, int rows, int unused_4,
+bool BmpWriter::WriteRows(Bitmap_004caec0* image, int x, int rows, int unused_4,
                                   int y, int unused_6, int srcY)
 {
     int stride = (image->width + 3) & ~3;
@@ -830,14 +810,14 @@ bool Class_004cb940::WriteRows(Bitmap_004caec0* image, int x, int rows, int unus
 }
 
 // Writes the pixel rows of a bitmap into the file opened by
-// Class_004cb7f0::Open, bottom-up, each row padded to 4 bytes.
+// BmpWriter::Open, bottom-up, each row padded to 4 bytes.
 // Suspected original bug: the seek offset subtracts `n` (the image height the
 // caller just passed to Open, which stores it in bmp.height), so
 // `bmp.height - n` is always 0 and the seek always lands on dataOffset.
 // FUNCTION: 0x4cb9e0
 int __stdcall SaveBmp(char* name, Bitmap_004caec0* image)
 {
-    Class_004cb7f0 bmp;
+    BmpWriter bmp;
     bool ok;
     bmp.file = 0;
     if (!bmp.Open(name, image->width, image->height)) {

@@ -13,11 +13,6 @@
 
 #include "../map/mission.h"
 
-class Class_004ce680 {
-public:
-    int GetTrackCategory();
-};
-
 #include "../sound/sound.h"
 
 unsigned int __cdecl GetMilliseconds(void);
@@ -197,7 +192,7 @@ struct Flags16 {
 
 struct Game {
     char unknown_0[0x10];
-    Class_004ce680* sound;             // +0x10
+    Sound* sound;                      // +0x10
     char unknown_14[0x511 - 0x14];
     Player* slowest;                   // +0x511
     int lag;                           // +0x515

@@ -774,7 +774,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51ff08,g_reporterReport,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_0051ff08,,,
 0x51ff0c,g_enumSessionsResult,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051ff0c,,,
 0x51ff10,g_cdFadeVolume,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051ff10,,,
-0x51ff14,g_cdPlayer,.bss,4,type,data,Class_004d02a0*,1,1,2,conflicting: struct names only,2,,DAT_0051ff14,,,
+0x51ff14,g_cdPlayer,.bss,4,type,data,Sound*,2,0,1,one type,2,,DAT_0051ff14,,,
 0x51ff18,g_cdPlayerWindow,.bss,4,type,data,void*,1,0,1,one type,1,,DAT_0051ff18,,,
 0x51ff1c,DAT_0051ff1c,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
 0x51ff20,g_cdCategorySavedTrack,.bss,40,gap,data,int[],1,0,1,one type,1,,DAT_0051ff20,,,

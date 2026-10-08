@@ -90,25 +90,20 @@ struct FindData_00495930 {
 // Unused here: a real function declared to keep the file's symbol count.
 int GetDisplayFieldE4();
 
-struct Class_004cb7c0 {
-    char unknown_0[0xc];
-    int field_c;                            // +0xc
-    Class_004cb7c0* Init();
-};
-
-struct Class_004cb7f0 : public Class_004cb7c0 {
-    bool Open(const char* name, int width, int height);
-};
-
-struct Class_004cb940 {
-    bool WriteRows(void* image, int x, int rows, int unused_4, int y, int unused_6, int srcY);
-};
-
-struct Class_004cb7d0 {
+struct BmpWriter {
     char unknown_0[0xc];
     void* file;                             // +0xc
+    BmpWriter* Init();
+    bool Open(const char* name, int width, int height);
+    bool WriteRows(void* image, int x, int rows, int unused_4, int y, int unused_6, int srcY);
     void Close();
 };
+
+// Unused here: the symbol ids these declarations take keep WriteScreenshot's
+// allocation, standing in for the view classes merged above
+// (docs/c2-regalloc.md).
+int RIReport(int, int, int, int, int, int, int, int, int, int);
+void WalkFrameChain(int*, int*, int, int, int*, int, int*, int*, int, int*);
 
 // 24 bytes, not 20: keeps the trailing 4 bytes of the sprite record.
 struct GafFrame {
@@ -376,7 +371,7 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
     BuildScreenshotPath(filename, dir, name, "bmp");
 
     int y2;
-    Class_004cb7f0 bmp;
+    BmpWriter bmp;
     bmp.Init();
     if (bmp.Open(filename, w, h)) {
         GafFrame* bm;
@@ -459,7 +454,7 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
                         srcY = 1;
                     }
                     if (y2 + rows > h) rows = h + sy;
-                    if (!((Class_004cb940*)&bmp)->WriteRows(&surf, w, rows, 0, row, 0, srcY)) break;
+                    if (!bmp.WriteRows(&surf, w, rows, 0, row, 0, srcY)) break;
                     if (var24 < h) {
                         row = row - 1;
                         var10++;
@@ -486,7 +481,7 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
             DrawBattleFrame(1, 1);
         }
     }
-    ((Class_004cb7d0*)&bmp)->Close();
+    bmp.Close();
 }
 
 // In-game keyboard command dispatcher: PopKey returns the event (0 means

@@ -408,14 +408,20 @@ void LoadCdLists(void)
 
 // Copies the per-track bytes from the CD object into the CD-list settings
 // block and saves it to the registry under "CDLISTS".
-class Class_004ce450 {
+class Sound {
 public:
+    void SetTrackCategory(int param_1);
+    int GetDiscSerial();
+    int IsFirstTrackData();
+    int GetTrackCategory();
+    int SetCdCallback(void (*param_1)());
+    void CopyTrackTypeTable(const void* src);
     int GetTrackCount();
-};
-
-class Class_004ce7e0 {
-public:
     unsigned char GetCategoryOfTrack(int param_1);
+    int SetPlaybackOrder(int param_1);
+    void PlayNextTrack();
+    int StopCdAudio();
+    void EnableCdAudio(int on);
 };
 
 void __stdcall WriteGameRegistryValue(void* key, void* buf, int value);
@@ -423,8 +429,8 @@ void __stdcall WriteGameRegistryValue(void* key, void* buf, int value);
 // FUNCTION: 0x490f80
 void SaveCdLists()
 {
-    for (int i = 0; i < ((Class_004ce450*)g_game->cd)->GetTrackCount(); i++) {
-        g_cdListsDiscEntries.tracks[i] = ((Class_004ce7e0*)g_game->cd)->GetCategoryOfTrack(i + 1);
+    for (int i = 0; i < g_game->cd->GetTrackCount(); i++) {
+        g_cdListsDiscEntries.tracks[i] = g_game->cd->GetCategoryOfTrack(i + 1);
     }
     WriteGameRegistryValue("CDLISTS", &g_cdListsDiscEntries, sizeof(g_cdListsDiscEntries));
 }
@@ -436,46 +442,6 @@ void SaveCdLists()
 // front after shifting the others up, provided the drive reports 16 audio
 // tracks. The final cleanup call depends on the game mode.
 
-class Class_004ce3e0 {
-public:
-    void CopyTrackTypeTable(const void* src);
-};
-
-class Class_004ce460 {
-public:
-    int IsFirstTrackData();
-};
-
-class Class_004ce680 {
-public:
-    int GetTrackCategory();
-};
-
-class Sound {
-public:
-    void SetTrackCategory(int param_1);
-    int GetDiscSerial();
-};
-
-class Class_004ce7a0 {
-public:
-    int SetPlaybackOrder(int param_1);
-};
-
-class Class_004cdb40 {
-public:
-    void PlayNextTrack();
-};
-
-class Class_004ced40 {
-public:
-    int StopCdAudio();
-};
-
-class Class_004cedc0 {
-public:
-    void EnableCdAudio(int on);
-};
 
 extern int DAT_0051e848;
 extern int g_cachedCdTrackTypes;
@@ -490,12 +456,12 @@ void ReopenCdAudio()
     char tracks[16] = {1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     char buf[0x88];
 
-    int saved = ((Class_004ce680*)g_game->cd)->GetTrackCategory();
+    int saved = g_game->cd->GetTrackCategory();
     mciSendStringA("stop cdaudio", 0, 0, 0);
     mciSendStringA("close cdaudio", 0, 0, 0);
     mciSendStringA("open cdaudio", 0, 0, 0);
-    ((Class_004cedc0*)g_game->cd)->EnableCdAudio(g_game->musicMode & 1);
-    ((Class_004ce7a0*)g_game->cd)->SetPlaybackOrder(g_game->cdMode);
+    g_game->cd->EnableCdAudio(g_game->musicMode & 1);
+    g_game->cd->SetPlaybackOrder(g_game->cdMode);
     g_game->cd->SetTrackCategory(saved);
 
     int id = g_game->cd->GetDiscSerial();
@@ -518,13 +484,13 @@ void ReopenCdAudio()
             memcpy((char*)&g_cdListsDiscEntries + j * 0x88,
                    (char*)&g_cdListsDiscEntries + (j - 1) * 0x88, 0x88);
         memcpy(&g_cdListsDiscEntries, buf, 0x88);
-        ((Class_004ce3e0*)g_game->cd)->CopyTrackTypeTable(&g_cachedCdTrackTypes);
+        g_game->cd->CopyTrackTypeTable(&g_cachedCdTrackTypes);
     }
 newdisc:
     if (index == 0x14) {
-        if (((Class_004ce450*)g_game->cd)->GetTrackCount() == 0x10) {
-            if (((Class_004ce460*)g_game->cd)->IsFirstTrackData() != 0) {
-                ((Class_004ce3e0*)g_game->cd)->CopyTrackTypeTable(tracks);
+        if (g_game->cd->GetTrackCount() == 0x10) {
+            if (g_game->cd->IsFirstTrackData() != 0) {
+                g_game->cd->CopyTrackTypeTable(tracks);
             }
         }
         // Downward pointer walk against the addresses, not an index loop.
@@ -538,15 +504,10 @@ newdisc:
         DAT_0051e848 = id;
     }
     if ((g_game->flags_2a44 & 4) != 0 && g_game->mode == 6)
-        ((Class_004cdb40*)g_game->cd)->PlayNextTrack();
+        g_game->cd->PlayNextTrack();
     else
-        ((Class_004ced40*)g_game->cd)->StopCdAudio();
+        g_game->cd->StopCdAudio();
 }
-
-class Class_004cd9d0 {
-public:
-    int SetCdCallback(void (*param_1)());
-};
 
 extern const char g_skirmishInfoTag[];     // "SkirmishInfo"
 extern const char g_cdListsKey[];          // "CDLISTS"
@@ -647,9 +608,9 @@ void InitGame()
     int ok = ReadGameRegistryValue(g_cdListsKey, &g_cdListsDiscEntries, &size);
     if (ok == 0)
         memset(&g_cdListsDiscEntries, 0, 0xaa0);
-    ((Class_004cedc0*)g_game->cd)->EnableCdAudio(g_game->musicMode & 1);
-    ((Class_004ce7a0*)g_game->cd)->SetPlaybackOrder(g_game->cdMode);
-    ((Class_004cd9d0*)g_game->cd)->SetCdCallback(ReopenCdAudio);
+    g_game->cd->EnableCdAudio(g_game->musicMode & 1);
+    g_game->cd->SetPlaybackOrder(g_game->cdMode);
+    g_game->cd->SetCdCallback(ReopenCdAudio);
     ReopenCdAudio();
     g_game->cd->SetTrackCategory(0);
     ApplyBrightnessAndVolume();
@@ -717,8 +678,8 @@ void FreeOtaEnumCacheAndMission();
 // FUNCTION: 0x4916a0
 void ShutdownGame(void)
 {
-    for (int i = 0; i < ((Class_004ce450*)g_game->cd)->GetTrackCount(); i++) {
-        g_cdListsDiscEntries.tracks[i] = ((Class_004ce7e0*)g_game->cd)->GetCategoryOfTrack(i + 1);
+    for (int i = 0; i < g_game->cd->GetTrackCount(); i++) {
+        g_cdListsDiscEntries.tracks[i] = g_game->cd->GetCategoryOfTrack(i + 1);
     }
     WriteGameRegistryValue("CDLISTS", &g_cdListsDiscEntries, 0xaa0);
     FreePictureCache();
@@ -890,7 +851,7 @@ void CloseNetSession();
 void ShutdownIngameSystems()
 {
     g_game->flags_2a44w &= 0xfffb;
-    ((Class_004ced40*)g_game->cd)->StopCdAudio();
+    g_game->cd->StopCdAudio();
     g_game->cd->SetTrackCategory(4);
     CollectEndGameStats();
     EmptyShutdownPreCleanup();

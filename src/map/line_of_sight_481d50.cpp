@@ -17,10 +17,6 @@ public:
 class LosTable {
 public:
     short GetLosLineCount();
-};
-
-class Class_4335e0 {
-public:
     void* GetLosLine(short i);
 };
 
@@ -139,7 +135,7 @@ void __stdcall RemoveLineOfSight(Params_00481d50* params)
         ((Map_00481d50*)params->field_0)->explored.at(x, y)--;
         int ref = *params->field_c;
         for (i = 0; i < count; i++) {
-            void* line = ((Class_4335e0*)table)->GetLosLine(i);
+            void* line = ((LosTable*)table)->GetLosLine(i);
             short num = ((LosLine*)line)->GetLosLineStepCount();
             // Declared in this order: bestIdx, j1, bestDiff, j; j1 is set in the guard.
             int bestIdx = 0;

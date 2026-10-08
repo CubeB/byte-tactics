@@ -294,12 +294,12 @@ public:
     void Disable3D();
     void Enable3D();
     void SetTrackCategory(int);
+    int StopCdAudio();
 };
 
-class Class_004ced40 {
-public:
-    void StopCdAudio();
-};
+// Unused here: the symbol ids this declaration takes keep the allocation after the
+// Sound join (docs/c2-regalloc.md).
+int ScanDirectory(char*, char*, char*, int, int, int);
 
 struct Display_00417a60 {
     char unknown_0[0xf0];
@@ -751,7 +751,7 @@ void __stdcall CmdCDPlay(CommandArgs* param_1)
 // FUNCTION: 0x416810
 void __stdcall CmdCDStop(int unused)
 {
-    ((Class_004ced40*)g_game->sound)->StopCdAudio();
+    ((Sound*)g_game->sound)->StopCdAudio();
 }
 
 // FUNCTION: 0x416820

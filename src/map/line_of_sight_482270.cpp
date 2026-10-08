@@ -15,10 +15,6 @@ public:
 class LosTable {
 public:
     short GetLosLineCount();
-};
-
-class Class_4335e0 {
-public:
     void* GetLosLine(short i);
 };
 
@@ -31,6 +27,7 @@ public:
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
 int RIReport(int, int, int, int, int, int, int, int, int, int);
 void CopyDwordIfNonNull(int*, int*);
+int ScanDirectory(char*, char*, char*, int, int, int);
 
 extern char g_losTables[];
 
@@ -139,7 +136,7 @@ void __stdcall AddLineOfSight(Params_482270* params)
         ((Player_482270*)params->field_0)->grid.at(x, y)++;
         int ref = *params->field_c;
         for (i = 0; i < count; i++) {
-            void* line = ((Class_4335e0*)table)->GetLosLine(i);
+            void* line = ((LosTable*)table)->GetLosLine(i);
             short num = ((LosLine*)line)->GetLosLineStepCount();
             // Declared in this order: bestIdx, j1, bestDiff, j; dx and dy stay int locals.
             int bestIdx = 0;

@@ -23,18 +23,10 @@ public:
     int Is3DEnabled();
     void Set3DDistances(float a, float b);
     void StopAllBuffers();
+    void OpenCdAudio();
+    void RestoreMixerVolumes();
     // Unused here: the symbol ids this declaration takes keep PlaySoundAt's allocation (docs/c2-regalloc.md).
     void SetMaxBuffers(int count);
-};
-
-class Class_004ce260 {
-public:
-    void OpenCdAudio();
-};
-
-class Class_004d0130 {
-public:
-    void RestoreMixerVolumes();
 };
 
 struct SoundParams_0047ed40 {
@@ -263,7 +255,7 @@ void InitSound(void)
                 FatalError(g_soundInitError);
         }
     }
-    ((Class_004ce260*)g_game->sound)->OpenCdAudio();
+    g_game->sound->OpenCdAudio();
     g_speechQueue = new SpeechQueue(0x1e, 0x96);
 }
 
@@ -327,7 +319,7 @@ void ShutdownSound()
         operator delete(list);
         g_speechQueue = 0;
     }
-    ((Class_004d0130*)g_game->sound)->RestoreMixerVolumes();
+    g_game->sound->RestoreMixerVolumes();
     Sound* sound = g_game->sound;
     if (sound) {
         sound->ReleaseDirectSound();

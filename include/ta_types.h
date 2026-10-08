@@ -868,7 +868,7 @@ class Class_004e2f90;
 class Class_004e2fe0;
 class Class_004e3030;
 class Class_004e8230;
-class Class_4335e0;
+class LosTable;
 class Class_44ef90;
 struct DisplayContext;
 struct Cmd_004866d0;
@@ -5916,7 +5916,7 @@ public:
     int GetLosLineCount(void);
 };
 
-class Class_4335e0 {  // 0x8 bytes, 4 views
+class LosTable {      // 0x8 bytes, 4 views
 public:
     char unknown_0[4];
     int field_4;  // +0x4

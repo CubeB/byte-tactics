@@ -134,6 +134,7 @@ public:
 
     int GetLosLineCount();
     void ResizeLines(short n);
+    LosLine* GetLosLine(short i);
 };
 
 typedef std::vector<Elem_00434020> Inner_00433500;
@@ -158,14 +159,6 @@ public:
 class Class_00433540 {
 public:
     void FreeLines();
-};
-
-struct Class_4335e0 {
-public:
-    char unknown_0[4];
-    int field_4;
-
-    int GetLosLine(short param_1);
 };
 
 struct Elem_004336c0 {
@@ -419,12 +412,9 @@ void LosTable::ResizeLines(short n)
 }
 
 // FUNCTION: 0x4335e0
-int Class_4335e0::GetLosLine(short param_1)
+LosLine* LosTable::GetLosLine(short param_1)
 {
-    int f = field_4;
-    int val = param_1;
-    val *= 0x10;
-    return val + f;
+    return (LosLine*)&(*this)[param_1];
 }
 
 // std::vector<T>::~vector() from MSVC 5's <vector>, out of line, for a

@@ -7,10 +7,10 @@
 #ifndef LINK_GLOBALS_H
 #define LINK_GLOBALS_H
 
-class Class_004d02a0;
 class FreeBlockMap;
 class NameTable;
 class PlayerAI;
+class Sound;
 class SpeechQueue;
 class TranslationTable;
 struct Chunk;
@@ -612,7 +612,7 @@ extern int g_reporterNotify;                                                    
 extern int g_reporterReport;                                                                      // 0x51ff08, 4 bytes; 1 of 1 files
 extern int g_enumSessionsResult;                                                                  // 0x51ff0c, 4 bytes; 1 of 1 files
 extern int g_cdFadeVolume;                                                                        // 0x51ff10, 4 bytes; 1 of 1 files
-extern Class_004d02a0* g_cdPlayer;                                                                // 0x51ff14, 4 bytes; 1 of 2 files (conflicting: struct names only)
+extern Sound* g_cdPlayer;                                                                         // 0x51ff14, 4 bytes; 2 of 2 files
 extern void* g_cdPlayerWindow;                                                                    // 0x51ff18, 4 bytes; 1 of 1 files
 extern unsigned char DAT_0051ff1c[4];                                                             // 0x51ff1c, 4 bytes; nothing refers to it
 extern int g_cdCategorySavedTrack[10];                                                            // 0x51ff20, 40 bytes; 1 of 1 files

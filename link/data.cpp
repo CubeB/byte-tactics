@@ -699,7 +699,7 @@ int g_reporterNotify;  // 0x51ff04 .bss
 int g_reporterReport;  // 0x51ff08 .bss
 int g_enumSessionsResult;  // 0x51ff0c .bss
 int g_cdFadeVolume;  // 0x51ff10 .bss
-Class_004d02a0* g_cdPlayer;  // 0x51ff14 .bss
+Sound* g_cdPlayer;  // 0x51ff14 .bss
 void* g_cdPlayerWindow;  // 0x51ff18 .bss
 unsigned char DAT_0051ff1c[4];  // 0x51ff1c .bss
 int g_cdCategorySavedTrack[10];  // 0x51ff20 .bss

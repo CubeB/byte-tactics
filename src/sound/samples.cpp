@@ -34,23 +34,6 @@ extern int __stdcall RemoveTimer(int handle);
 extern int __stdcall AddTimer(int delay, int id, void (__stdcall* callback)(void*));
 extern void __stdcall OnCdFadeTimer(void* unused);
 
-class Class_004cdb40 {
-public:
-    void PlayNextTrack();
-};
-
-class Class_004d00d0 {
-public:
-    char unknown_0[0x14];
-    unsigned int aux_device;           // +0x14
-    char unknown_18[0x20 - 0x18];
-    int aux_volume_set;                // +0x20
-    char unknown_24[0x284 - 0x24];
-    int field_284;                     // +0x284
-
-    int SetAuxVolume(int volume, int temporary);
-};
-
 struct App_004b6220 {
     char unknown_0[0x40];
     HWND hwnd;                         // +0x40
@@ -58,54 +41,7 @@ struct App_004b6220 {
 
 extern App_004b6220* GetDisplay();
 
-class Class_004cff30 {
-public:
-    char unknown_0[0x10];
-    int wave_devices;                  // +0x10
-    int aux_device;                    // +0x14
-    int wave_volume;                   // +0x18
-    int aux_volume;                    // +0x1c
-
-    // Returns the left-channel volume of the first wave-out device that
-    // reports one, or -1.
-    int GetWaveVolume()
-    {
-        DWORD volume;
-        for (int i = 0; i < wave_devices; i++) {
-            if (waveOutGetVolume((HWAVEOUT)i, &volume) == 0)
-                return volume & 0xffff;
-        }
-        return -1;
-    }
-
-    // Returns the left-channel volume of the selected auxiliary device, or -1.
-    int GetAuxVolume()
-    {
-        DWORD volume;
-        if (aux_device >= 0 && auxGetVolume(aux_device, &volume) == 0)
-            return volume & 0xffff;
-        return -1;
-    }
-
-    void InitMixerVolumes();
-};
-
-class Class_004d0040 {
-public:
-    char unknown_0[0x14];
-    int aux_device;                    // +0x14, negative when there is none
-
-    int QueryAuxVolume();
-};
-
 struct FileHandle;
-
-class Class_004ce410 {
-public:
-    int open;                          // +0x0
-
-    void CloseCdAudio();
-};
 
 void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 
@@ -144,14 +80,6 @@ long __stdcall HAPI_TellFile(FileHandle* file);
 long __stdcall HAPI_FileLength(FileHandle* file);
 int __stdcall HAPI_readfromfile(FileHandle* file, void* buf, int size);
 
-class Class_004d02a0 {
-public:
-    char unknown_0[0x288];
-    int field288;                      // +0x288
-
-    int OpenSample(char* name, int mode, int a, int b);
-};
-
 void __stdcall OnStreamTimer(int unused1);
 int __stdcall AddTimer(int delay, int param, void (__stdcall* callback)(int));
 
@@ -165,22 +93,6 @@ int __stdcall HAPI_readfromfile(void* file, void* buf, int size);
 // the streamed sample, at g_game+0x10.
 #include "sound.h"
 
-class Class_004cfff0 {
-public:
-    char unknown_0[0x10];
-    int wave_devices;                  // +0x10
-
-    int QueryWaveVolume();
-};
-
-class Class_004d0070 {
-public:
-    char unknown_0[0x10];
-    int wave_devices;                  // +0x10
-
-    int SetWaveVolume(int volume);
-};
-
 static inline int ClampVolume(int v)
 {
     if (v < 0) {
@@ -191,20 +103,6 @@ static inline int ClampVolume(int v)
     }
     return v;
 }
-
-class Class_004d0130 {
-public:
-    char unknown_0[0x10];
-    int wave_devices;                  // +0x10
-    unsigned int aux_device;           // +0x14
-    int wave_volume;                   // +0x18
-    int aux_volume;                    // +0x1c
-    int aux_volume_set;                // +0x20
-    char unknown_24[0x284 - 0x24];
-    int field_284;                     // +0x284
-
-    void RestoreMixerVolumes();
-};
 
 // The only caller (0x4d02a0) passes its object in ecx, so this is a method
 // that ignores `this` (it compiles the same as a __stdcall free function).
@@ -244,7 +142,7 @@ static inline unsigned int FindChunk(FileHandle* file, const char* tag) {
     }
 }
 
-extern Class_004d02a0* g_cdPlayer;
+extern Sound* g_cdPlayer;
 
 extern HANDLE DAT_0052a4f8;
 extern int DAT_0052a4fc;
@@ -281,7 +179,7 @@ Sound::Sound()
     for (int j = 0; j < 8; j++) {
         sets[j] = 0;
     }
-    ((Class_004cff30*)this)->InitMixerVolumes();
+    InitMixerVolumes();
     maxBuffers = 8;
     count = 0;
     sequence = 1;
@@ -291,7 +189,7 @@ Sound::Sound()
         flags[i] = 0;
     }
     stream = 0;
-    cdVolume = ((Class_004d0040*)this)->QueryAuxVolume();
+    cdVolume = QueryAuxVolume();
     streamTimer = -1;
 }
 
@@ -319,7 +217,7 @@ void Sound::ReleaseDirectSound()
         stream = 0;
         HAPI_CloseFile(streamFile);
     }
-    ((Class_004ce410*)this)->CloseCdAudio();
+    CloseCdAudio();
     if (primary != 0)
         primary->Release();
     if (directSound != 0)
@@ -1015,30 +913,51 @@ int Sound::HasNoDriver()
     return noDriver;
 }
 
+// The two volume readers the original inlined into InitMixerVolumes (their
+// out-of-line twins are 0x4cfff0 and 0x4d0040). They stay free helpers because
+// sound.h cannot include <mmsystem.h>.
+static inline int GetWaveOutVolume(Sound* sound)
+{
+    DWORD volume;
+    for (int i = 0; i < sound->waveDevices; i++) {
+        if (waveOutGetVolume((HWAVEOUT)i, &volume) == 0)
+            return volume & 0xffff;
+    }
+    return -1;
+}
+
+static inline int GetAuxOutVolume(Sound* sound)
+{
+    DWORD volume;
+    if (sound->auxDevice >= 0 && auxGetVolume(sound->auxDevice, &volume) == 0)
+        return volume & 0xffff;
+    return -1;
+}
+
 // Picks the first CD-audio auxiliary device, then caches the wave-out and
 // auxiliary volumes (-1 when unavailable).
 // The original calls this out of line from the constructor (0x4cee50).
 #pragma auto_inline(off)
 // FUNCTION: 0x4cff30
-void Class_004cff30::InitMixerVolumes()
+void Sound::InitMixerVolumes()
 {
     AUXCAPSA caps;
 
-    wave_devices = waveOutGetNumDevs();
-    aux_device = -1;
+    waveDevices = waveOutGetNumDevs();
+    auxDevice = -1;
 
     int aux_count = auxGetNumDevs();
     for (int i = 0; i < aux_count; i++) {
         // Result held in a named local: sets the callee-saved register order.
         int result = auxGetDevCapsA(i, &caps, sizeof(caps));
         if (result == 0 && caps.wTechnology == AUXCAPS_CDAUDIO) {
-            aux_device = i;
+            auxDevice = i;
             break;
         }
     }
 
-    wave_volume = GetWaveVolume();
-    aux_volume = GetAuxVolume();
+    waveVolume = GetWaveOutVolume(this);
+    auxVolume = GetAuxOutVolume(this);
 }
 #pragma auto_inline(on)
 
@@ -1046,10 +965,10 @@ void Class_004cff30::InitMixerVolumes()
 // one, or -1. The dllimport call is what makes MSVC keep the import address
 // in ebx for the loop.
 // FUNCTION: 0x4cfff0
-int Class_004cfff0::QueryWaveVolume()
+int Sound::QueryWaveVolume()
 {
     DWORD volume;
-    for (int i = 0; i < wave_devices; i++) {
+    for (int i = 0; i < waveDevices; i++) {
         if (waveOutGetVolume((HWAVEOUT)i, &volume) == 0)
             return volume & 0xffff;
     }
@@ -1061,10 +980,10 @@ int Class_004cfff0::QueryWaveVolume()
 // 0x4d00d0. The original calls this out of line from the constructor (0x4cee50).
 #pragma auto_inline(off)
 // FUNCTION: 0x4d0040
-int Class_004d0040::QueryAuxVolume()
+int Sound::QueryAuxVolume()
 {
     DWORD volume;
-    if (aux_device >= 0 && auxGetVolume(aux_device, &volume) == 0) {
+    if (auxDevice >= 0 && auxGetVolume(auxDevice, &volume) == 0) {
         return volume & 0xffff;
     }
     return -1;
@@ -1074,11 +993,11 @@ int Class_004d0040::QueryAuxVolume()
 // Sets the volume of every wave-out device, clamped to 0..0xffff. Returns
 // nonzero if any device failed.
 // FUNCTION: 0x4d0070
-int Class_004d0070::SetWaveVolume(int volume)
+int Sound::SetWaveVolume(int volume)
 {
     int v = ClampVolume(volume);
     int failed = 0;
-    for (int i = 0; i < wave_devices; i++) {
+    for (int i = 0; i < waveDevices; i++) {
         if (waveOutSetVolume((HWAVEOUT)i, (v << 16) | v) != 0) {
             failed = 1;
         }
@@ -1089,31 +1008,31 @@ int Class_004d0070::SetWaveVolume(int volume)
 // Sets the aux (CD) volume, clamped to 0..0xffff; unless `temporary`, it is
 // also remembered. Returns nonzero on success.
 // FUNCTION: 0x4d00d0
-int Class_004d00d0::SetAuxVolume(int volume, int temporary)
+int Sound::SetAuxVolume(int volume, int temporary)
 {
-    if (field_284 != 0 && temporary == 0) {
+    if (step != 0 && temporary == 0) {
         return 1;
     }
     int v = ClampVolume(volume);
     if (temporary == 0) {
-        aux_volume_set = v;
+        cdVolume = v;
     }
-    return auxSetVolume(aux_device, (v << 16) | v) == 0;
+    return auxSetVolume(auxDevice, (v << 16) | v) == 0;
 }
 
 // FUNCTION: 0x4d0130
-void Class_004d0130::RestoreMixerVolumes()
+void Sound::RestoreMixerVolumes()
 {
-    if (wave_volume >= 0) {
-        int v = ClampVolume(wave_volume);
-        for (int i = 0; i < wave_devices; i++) {
+    if (waveVolume >= 0) {
+        int v = ClampVolume(waveVolume);
+        for (int i = 0; i < waveDevices; i++) {
             waveOutSetVolume((HWAVEOUT)i, (v << 16) | v);
         }
     }
-    if (aux_volume >= 0 && field_284 == 0) {
-        int v = ClampVolume(aux_volume);
-        aux_volume_set = v;
-        auxSetVolume(aux_device, (v << 16) | v);
+    if (auxVolume >= 0 && step == 0) {
+        int v = ClampVolume(auxVolume);
+        cdVolume = v;
+        auxSetVolume(auxDevice, (v << 16) | v);
     }
 }
 
@@ -1148,7 +1067,7 @@ int Class_004d01b0::DetectSampleFormat(void* file)
 }
 
 // FUNCTION: 0x4d02a0
-int Class_004d02a0::OpenSample(char* path, int mode, int p3, int p4) {
+int Sound::OpenSample(char* path, int mode, int p3, int p4) {
     int result = 0;
     FileHandle* file = HAPI_OpenFileRead(path);
     if (file == 0)
@@ -1203,15 +1122,13 @@ int Class_004d02a0::OpenSample(char* path, int mode, int p3, int p4) {
             goto end;
         switch (mode) {
         case 0:
-            result = (int)((Sound*)this)
-                         ->CreateSampleFromFile(file, len, wfx.nSamplesPerSec, bits, chans);
+            result = (int)CreateSampleFromFile(file, len, wfx.nSamplesPerSec, bits, chans);
             break;
         case 1:
-            result = ((Sound*)this)
-                         ->PlayFileSample(file, len, wfx.nSamplesPerSec, bits, chans, p3, (Pos_004cf570*)p4);
+            result = PlayFileSample(file, len, wfx.nSamplesPerSec, bits, chans, p3, (Pos_004cf570*)p4);
             break;
         case 2:
-            ((Sound*)this)->StartStream(file, wfx.nSamplesPerSec, bits, chans, p3);
+            StartStream(file, wfx.nSamplesPerSec, bits, chans, p3);
             return 1;
         }
         break;
@@ -1225,26 +1142,26 @@ end:
 // FUNCTION: 0x4d0620
 void Sound::LoadSample(char* param_1)
 {
-    ((Class_004d02a0*)this)->OpenSample(param_1, 0, 0, 0);
+    OpenSample(param_1, 0, 0, 0);
 }
 
 // FUNCTION: 0x4d0640
 void Sound::PlaySample(const char* param1, int param2, int param3)
 {
-    ((Class_004d02a0*)this)->OpenSample((char*)param1, 1, param2, param3);
+    OpenSample((char*)param1, 1, param2, param3);
 }
 
 // FUNCTION: 0x4d0660
 void Sound::StreamSample(char* a, int b)
 {
-    ((Class_004d02a0*)this)->OpenSample(a, 2, b, 0);
+    OpenSample(a, 2, b, 0);
 }
 
 // FUNCTION: 0x4d0680
 void __stdcall OnStreamTimer(int unused1)
 {
-    RemoveTimer(g_cdPlayer->field288);
-    g_cdPlayer->field288 = -1;
+    RemoveTimer(g_cdPlayer->streamTimer);
+    g_cdPlayer->streamTimer = -1;
     g_cdPlayer->OpenSample(DAT_0051ff60, 2, DAT_0051ff58, 0);
 }
 

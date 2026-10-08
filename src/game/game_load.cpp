@@ -370,14 +370,11 @@ public:
 
 #include "../util/hapi_bank.h"
 
-class Class_004cdb40 {
-public:
-    void PlayNextTrack();
-};
-
 extern PacketManager g_packetManager;
 
 #include "../sound/sound.h"
+// Unused here: the symbol id this declaration takes keeps LoadMatch's allocation (docs/c2-regalloc.md).
+int ScanDirectory();
 
 void __stdcall SeedRandom(int x);
 void __stdcall SleepMilliseconds(int x);
@@ -991,7 +988,7 @@ void LoadingScreenFrame(void)
         memset((void*)g_game->progress, 0, 8);
         g_game->sound->SetTrackCategory(0);
         if (!g_game->sound->IsCdPlaying()) {
-            ((Class_004cdb40*)g_game->sound)->PlayNextTrack();
+            g_game->sound->PlayNextTrack();
         }
         // Index players[i], not explicit offsets: keeps the SIB base and index order.
         for (i = 0; i < 10; i++) {

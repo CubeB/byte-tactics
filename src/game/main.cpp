@@ -103,37 +103,19 @@ public:
     Sound();
     void SetTrackCategory(int param_1);
     void ReapFinishedBuffers();
-};
-
-class Class_004ce680 {
-public:
-    int GetTrackCategory();
-};
-
-class Class_004ce410 {
-public:
     void CloseCdAudio();
-};
-
-class Class_004ce260 {
-public:
     void OpenCdAudio();
-};
-
-class Class_004cd9d0 {
-public:
     void SetCdCallback(void (*param_1)());
-};
-
-class Class_004cedc0 {
-public:
+    int GetTrackCategory();
     void EnableCdAudio(int param_1);
-};
-
-class Class_004ce7a0 {
-public:
     void SetPlaybackOrder(int param_1);
 };
+
+// Unused here: the symbol ids these declarations take keep the allocation,
+// standing in for the view classes merged into Sound (docs/c2-regalloc.md).
+int RIReport(int, int, int, int, int, int, int, int, int, int);
+void ScaleUnitWeights(int, unsigned int*, float, int);
+void __stdcall DrawFrame(void* surface, void* header, int x, int y);
 
 #pragma pack(push, 1)
 struct Game {
@@ -340,15 +322,15 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         for (;;) {
             if (g_displayContext.field_e0 == lzero && *(int*)g_game->sound != 0) {
                 SaveCdLists();
-                g_cdTrackCategory = ((Class_004ce680*)g_game->sound)->GetTrackCategory();
-                ((Class_004ce410*)g_game->sound)->CloseCdAudio();
+                g_cdTrackCategory = g_game->sound->GetTrackCategory();
+                g_game->sound->CloseCdAudio();
                 g_cdNeedsReopenAfterFocus = 1;
             } else if (g_displayContext.field_e0 != lzero && *(int*)g_game->sound == 0
                        && g_cdNeedsReopenAfterFocus != 0) {
-                ((Class_004ce260*)g_game->sound)->OpenCdAudio();
-                ((Class_004cd9d0*)g_game->sound)->SetCdCallback(ReopenCdAudio);
-                ((Class_004cedc0*)g_game->sound)->EnableCdAudio(g_game->musicMode & 1);
-                ((Class_004ce7a0*)g_game->sound)->SetPlaybackOrder(g_game->cdMode);
+                g_game->sound->OpenCdAudio();
+                g_game->sound->SetCdCallback(ReopenCdAudio);
+                g_game->sound->EnableCdAudio(g_game->musicMode & 1);
+                g_game->sound->SetPlaybackOrder(g_game->cdMode);
                 g_game->sound->SetTrackCategory(g_cdTrackCategory);
                 ReopenCdAudio();
                 g_cdNeedsReopenAfterFocus = 0;

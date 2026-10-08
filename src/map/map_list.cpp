@@ -75,7 +75,7 @@ extern PacketManager g_packetManager;
 
 class Class_0048dfb0 {
 public:
-    void FUN_0048dfb0();
+    void FreeConditions();
 };
 
 int __stdcall HAPI_FileLengthByName(char* path);
@@ -108,7 +108,7 @@ struct Class_0048df90 {
     char unknown_0[0x8c];
 
     Class_0048df90();
-    ~Class_0048df90() { ((Class_0048dfb0*)this)->FUN_0048dfb0(); }
+    ~Class_0048df90() { ((Class_0048dfb0*)this)->FreeConditions(); }
 };
 
 class MissionConditions {
@@ -494,7 +494,7 @@ Mission::~Mission()
 {
     Class_0048dfb0* obj = (Class_0048dfb0*)g_game->field_391ed;
     if (obj) {
-        obj->FUN_0048dfb0();
+        obj->FreeConditions();
         operator delete(obj);
         g_game->field_391ed = 0;
     }

@@ -3,7 +3,7 @@
 // (the dword at +0x88, set to 1 by Class_0048df90), then asks the game mode
 // which test to run: 1 runs the victory conditions (0x48fed0),
 // 2 runs the "every other player is dead or allied" loop (0x48ffd0)
-// and 3 calls FUN_00490080.
+// and 3 calls CheckAlliedVictory.
 
 class Mission {
 public:
@@ -60,8 +60,8 @@ extern Game* g_game;
 // 0x490080 is a __thiscall method in the original (the caller loads ecx with
 // this), but its own file matched it as a free function, so it is declared
 // here as a __fastcall free function: that still passes the first argument in
-// ecx and gives the linker the established name FUN_00490080.
-int __fastcall FUN_00490080(void* self);
+// ecx and gives the linker the established name CheckAlliedVictory.
+int __fastcall CheckAlliedVictory(void* self);
 
 class MissionConditions {
 public:
@@ -113,7 +113,7 @@ int MissionConditions::CheckVictory()
         return 1;
     }
     case 3:
-        return FUN_00490080(this);
+        return CheckAlliedVictory(this);
     }
     return 0;
 }

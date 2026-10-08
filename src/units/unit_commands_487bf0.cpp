@@ -314,7 +314,7 @@ public:
     char unknown_0[0x88];
     int field_88;
 
-    void FUN_004904b0();
+    void Deactivate();
     void NotifyUnitCaptured(Unit* unit);
 };
 
@@ -422,7 +422,7 @@ void __cdecl CreateMissionUnits()
             RunInitialMission(units[j], e->extra, (Table_00487bf0*)&units);
     }
     if (g_game->net->count <= 0)
-        g_game->mission->FUN_004904b0();
+        g_game->mission->Deactivate();
 }
 
 // Moves a unit to another player. Does nothing when the unit already belongs

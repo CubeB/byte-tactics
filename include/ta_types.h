@@ -3979,7 +3979,7 @@ public:
     void RegisterConditions(Class_004c2ea0*);
     void SaveConditions(void*);
     void LoadConditions(HapiBank*);
-    void FUN_004904b0(void);
+    void Deactivate(void);
     void NotifyUnitDied(int);
     void NotifyUnitCaptured(int);
     void NotifyUnitCreated(int);
@@ -6048,7 +6048,7 @@ public:
     int countA;  // +0x40
     void* bufsB[16];  // +0x44
     int countB;  // +0x84
-    void FUN_0048dfb0(void);
+    void FreeConditions(void);
 };
 
 class Class_00435320 {  // 0xc18 bytes, 1 view

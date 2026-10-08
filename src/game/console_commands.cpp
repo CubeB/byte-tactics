@@ -128,7 +128,7 @@ public:
 
 class MissionConditions {
 public:
-    void FUN_004904b0();
+    void Deactivate();
 };
 
 // The option flags word at +0x37f06.
@@ -643,7 +643,7 @@ void __stdcall CmdKill(CommandArgs* args)
     } else {
         KillPlayerUnits(args->GetIntArg(1, 0));
     }
-    g_game->field_391ed->FUN_004904b0();
+    g_game->field_391ed->Deactivate();
 }
 
 // FUNCTION: 0x416500

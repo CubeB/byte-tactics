@@ -108,8 +108,8 @@ Counts in `src/` and `include/` at `origin/main`, against `e9367f13` (the roadma
 | Source files (`.cpp`) | 2,727 | 315 | 112, one per module (`data/modules.csv`) | 92% | `[##################--]` |
 | Placeholder functions `FUN_<addr>` | 1,076 | 291 | 0, named | 73% | `[###############-----]` |
 | Placeholder globals `DAT_<addr>` | 737 | 220 | 0, named | 70% | `[##############------]` |
-| Placeholder classes `Class_<addr>` | 769 | 690 | 0, named | 10% | `[##------------------]` |
-| Placeholder fields `field_<offset>` | 589 | 395 | 0, named | 33% | `[#######-------------]` |
+| Placeholder classes `Class_<addr>` | 769 | 689 | 0, named | 10% | `[##------------------]` |
+| Placeholder fields `field_<offset>` | 589 | 396 | 0, named | 33% | `[#######-------------]` |
 | Files that define `Unit` | 285 | 83 | 1, one shared definition | 71% | `[##############------]` |
 | Files opening with matching history | 301 | 1 | 0, none | 100% | `[####################]` |
 | Casts `((T*)x)->` | 1,698 | 993 | 0, casts the types allow | 42% | `[########------------]` |
@@ -118,8 +118,8 @@ Counts in `src/` and `include/` at `origin/main`, against `e9367f13` (the roadma
 | Cleanup issues | | | |
 | --- | --- | --- | ---: |
 | Gather issues | 125 of 125 closed | `[####################]` | 100% |
-| Join issues | 20 of 25 closed | `[################----]` | 80% |
-| Name issues | 123 of 141 closed | `[#################---]` | 87% |
+| Join issues | 20 of 26 closed | `[###############-----]` | 76% |
+| Name issues | 121 of 139 closed | `[#################---]` | 87% |
 <!-- cleanup:end -->
 
 ## Next steps

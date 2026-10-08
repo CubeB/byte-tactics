@@ -72,6 +72,7 @@ void __stdcall FUN_004c5d60(TdfField* p, const TdfField& value);
 void __stdcall FUN_004c5cd0(TdfField* first, TdfField* last, const TdfField& x);
 TdfField* __stdcall FUN_004c5d10(TdfField* first, TdfField* last, TdfField* dest);
 
+// Own file: with the real <vector> (tdf_4c54f0.cpp) the helpers below are inlined into this insert.
 // FUNCTION: 0x4c59d0
 TdfField* Class_004c5ba0::FUN_004c59d0(iterator p, const TdfField& x)
 {

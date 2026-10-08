@@ -2,7 +2,7 @@
 // loaded into a tree of sections (TdfRecord), and the file keeps a root and a
 // current section. Callers select a section and read its `name = value;`
 // entries by key. The layout of a section and the code that builds the tree
-// stay in tdf_record.cpp and tdf_file.cpp; callers only hold pointers to a
+// stay in tdf_4c2ea0.cpp; callers only hold pointers to a
 // TdfRecord, so only its methods are declared here.
 #ifndef TDF_H
 #define TDF_H

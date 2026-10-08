@@ -330,7 +330,7 @@ public:
     int count;                         // +0x5c
     char unknown_60[4];
     unsigned char field_64;            // +0x64
-    virtual void FUN_0044ef50(void* surface);  // slot 10
+    virtual void DrawOnSurface(void* surface);  // slot 10
 };
 
 class Iface_00417f30 {
@@ -1424,7 +1424,7 @@ void __stdcall DrawWorldSegmentLine(void* surface, Point16 from, short dx, short
 // helper of 0x417bb0) and one line is drawn. The colour byte comes from a
 // two-entry table in game state, selected by bit 0 of the object's field 0x64.
 // FUNCTION: 0x417e00
-void Class_0044f010::FUN_0044ef50(void* surface)
+void Class_0044f010::DrawOnSurface(void* surface)
 {
     DrawMapTileSelectionOutline(surface, (short*)(this->field_8 + 0x76), *(int*)(this->field_8 + 0x7e), 0xf);
     unsigned char color = *(unsigned char*)((char*)g_game + 0xdcb + ((this->field_64 & 1) ? 9 : 12));

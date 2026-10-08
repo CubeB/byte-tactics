@@ -35,7 +35,7 @@ class OrderFx {
 public:
     void** vtable;
 
-    void* FUN_0044ce50(unsigned char flag);
+    void* Destroy(unsigned char flag);
 };
 
 class Class_0044ce70 {
@@ -51,7 +51,7 @@ struct Elem_0044ce90 {
 
 class Class_0044ce90 {
 public:
-    void FUN_0044ce90(std::vector<Elem_0044ce90*>* list);
+    void FillGoalCells(std::vector<Elem_0044ce90*>* list);
 };
 
 struct Class_0044ced0 {
@@ -71,7 +71,7 @@ public:
     virtual void FUN_00000004();
     virtual void FUN_00000005(int param_1, int param_2);
 
-    void FUN_0044cf00(int param_1);
+    void ContainsUnit(int param_1);
 };
 
 struct Point_0044cf60 {
@@ -119,7 +119,7 @@ class Class_0044cff0 {
 public:
     void* vtable;
 
-    void* FUN_0044cff0(unsigned char flag);
+    void* Destroy(unsigned char flag);
 };
 
 struct Vec3_0044d010 {
@@ -137,7 +137,7 @@ class Class_0044d010 : public Class_0044ce20 {
 public:
     Vec3_0044d010 v;                   // +0x8
 
-    int FUN_0044d090(int unused, HapiBank* file, char* name);
+    int Serialize(int unused, HapiBank* file, char* name);
     Class_0044d010(int owner, HapiBank* file, char* name);
 };
 
@@ -148,7 +148,7 @@ public:
     char unknown_0[8];
     Point_0044eec0 pos;                // +0x8
 
-    void FUN_0044d0e0(Vec_0044d0e0* list);
+    void AppendGoalCell(Vec_0044d0e0* list);
 };
 
 class Class_0044d290 {
@@ -185,7 +185,7 @@ public:
     Owner_0044d2c0* owner;             // +0x4
     Point_0044d2c0 pos;                // +0x8
 
-    int FUN_0044d2c0(int* out);
+    int FillWorldPos(int* out);
 };
 
 struct Obj_0044d310 {
@@ -202,7 +202,7 @@ public:
     char unknown_c[0x10 - 0xc];
     int radiusSq;                      // +0x10
 
-    int FUN_0044d310(Obj_0044d310* obj);
+    int ContainsUnit(Obj_0044d310* obj);
 };
 
 class Class_0044d350 {
@@ -212,7 +212,7 @@ public:
     short y;                           // +0xa
     int radius;                        // +0xc
 
-    int FUN_0044d350(int px, int py);
+    int ApproxDistExcess(int px, int py);
 };
 
 struct Point_0044d3b0 {
@@ -249,7 +249,7 @@ public:
     void** vtable;
     char unknown_4[0x49d];
 
-    Class_0044d450* FUN_0044d450(unsigned char flag);
+    Class_0044d450* Destroy(unsigned char flag);
 };
 
 struct Data_0044d470 {
@@ -269,7 +269,7 @@ class Class_0044d470 : public Class_0044ce20 {
 public:
     Data_0044d470 data;                // +0x8
 
-    int FUN_0044d500(int unused, HapiBank* file, char* name);
+    int Serialize(int unused, HapiBank* file, char* name);
     Class_0044d470(int owner, HapiBank* file, char* name);
 };
 
@@ -282,7 +282,7 @@ public:
     int field_c;                       // +0xc
     int field_10;                      // +0x10
 
-    void FUN_0044d560(Vec_0044d560* list);
+    void AppendGoalCell(Vec_0044d560* list);
 };
 
 struct Point_0044d720 {
@@ -326,7 +326,7 @@ public:
     int radius1;                       // +0xc
     int radius2;                       // +0x10
 
-    int FUN_0044d720(Vec3_0044d720* out);
+    int FillWorldPos(Vec3_0044d720* out);
 };
 
 class Class_0044d7c0 {
@@ -398,7 +398,7 @@ public:
     int field_14;                      // +0x14 (min distance squared)
     int field_18;                      // +0x18 (max distance squared)
 
-    int FUN_0044d800(Unit* unit);
+    int ContainsUnit(Unit* unit);
 };
 
 class RingApproach {
@@ -409,7 +409,7 @@ public:
     int inner;                         // +0xc
     int outer;                         // +0x10
 
-    int FUN_0044d840(int px, int py);
+    int ApproxDistExcess(int px, int py);
 };
 
 struct View_0044d8a0 {
@@ -444,7 +444,7 @@ class Class_0044d910 {
 public:
     virtual ~Class_0044d910() {}
 
-    Class_0044d910* FUN_0044d910(unsigned char should_delete);
+    Class_0044d910* Destroy(unsigned char should_delete);
 };
 
 struct Rect_0044d930 {
@@ -463,7 +463,7 @@ class Class_0044d930 : public Class_0044ce20 {
 public:
     Rect_0044d930 r;                   // +0x8
 
-    int FUN_0044d9a0(int unused, HapiBank* file, char* name);
+    int Serialize(int unused, HapiBank* file, char* name);
     Class_0044d930(int owner, HapiBank* file, char* name);
 };
 
@@ -477,7 +477,7 @@ public:
     int y1;                 // +0x10
     int y2;                 // +0x14
 
-    void FUN_0044da00(Vec_0044da00* list);
+    void AppendGoalCell(Vec_0044da00* list);
 };
 
 struct Pos16_44dc60 {
@@ -498,7 +498,7 @@ struct PointMarker {
     int y1;                  // +0x10
     int y2;                  // +0x14
 
-    int FUN_0044dc60(int* out);
+    int FillWorldPos(int* out);
 };
 
 class Class_0044dcb0 {
@@ -556,7 +556,7 @@ public:
     int field_2a;                   // +0x2a
     int field_2e;                   // +0x2e
 
-    void FUN_0044ddc0(BitWriter* stream);
+    void SerializeToBits(BitWriter* stream);
 };
 
 #pragma pack(pop)
@@ -640,7 +640,7 @@ public:
     void** vtable;
     char unknown_4[0x12];
 
-    void* FUN_0044df80(unsigned char flag);
+    void* Destroy(unsigned char flag);
 };
 
 // Reads bit fields from an array of dwords, lowest bits first.
@@ -825,7 +825,7 @@ public:
     Vec3_0044e3c0 pos;                     // +0x26
     int field_32;                          // +0x32
 
-    int FUN_0044e3c0(Vec3_0044e3c0* out);
+    int FillWorldPos(Vec3_0044e3c0* out);
 };
 
 struct Vec3_0044e530 {
@@ -849,7 +849,7 @@ public:
     Object_0044e530* self;             // +0x12
     char unknown_16[0x1a - 0x16];
     Object_0044e530* target;           // +0x1a
-    int FUN_0044e530(unsigned short* out);
+    int GetDesiredHeading(unsigned short* out);
 };
 
 struct Vec3_0044e5b0 {
@@ -880,7 +880,7 @@ public:
     char unknown_c[0x1a - 0xc];        // +0xc
     Object_0044e5b0* target;           // +0x1a
 
-    int FUN_0044e5b0(Object_0044e5b0* arg);
+    int IsComplete(Object_0044e5b0* arg);
 };
 #pragma pack(pop)
 
@@ -983,9 +983,9 @@ public:
 
     Class_0044e740(Source_0044e740* source, const Vec3_0044e740& a, const Vec3_0044e740& b);
     Class_0044e740(int owner, HapiBank* file, char* name);
-    int FUN_0044e880(int unused, HapiBank* file, char* name);
-    void FUN_0044e930(BitWriter* stream);
-    int FUN_0044eb60(Object_0044e740* unit);
+    int SerializeToSave(int unused, HapiBank* file, char* name);
+    void SerializeToBits(BitWriter* stream);
+    int IsComplete(Object_0044e740* unit);
     void FUN_0044ec10(int);
 };
 #pragma pack(pop)
@@ -994,7 +994,7 @@ class Class_0044e7b0 {
 public:
     void* vtable;
 
-    void* FUN_0044e7b0(int param_1);
+    void* Destroy(int param_1);
 };
 
 struct Owner_0044e9c0;
@@ -1057,7 +1057,7 @@ public:
     char unknown_26[2];
     Object_0044ea60* self;             // +0x28
 
-    int FUN_0044ea60(Vec3_0044ea60* out);
+    int FillWorldPos(Vec3_0044ea60* out);
 };
 #pragma pack(pop)
 
@@ -1077,7 +1077,7 @@ public:
     Vec3_0044eb40 target;              // +0x0a
     char unknown_16[0x28 - 0x16];
     Object_0044eb40* self;             // +0x28
-    int FUN_0044eb40(unsigned short* out);
+    int GetDesiredHeading(unsigned short* out);
 };
 #pragma pack(pop)
 
@@ -1169,9 +1169,9 @@ public:
     virtual void SerializeSave();                       // slot 1
     virtual void GetType();                             // slot 2
     virtual void IsFxStyle();                           // slot 3
-    virtual int FUN_0044cf00(Struct_004907e0* owner);   // slot 4
+    virtual int ContainsUnit(Struct_004907e0* owner);   // slot 4
     virtual int ContainsCell(int x, int y);             // slot 5
-    virtual void FUN_0044ce90();                        // slot 6
+    virtual void FillGoalCells();                       // slot 6
     virtual void ApproxDist();                          // slot 7
     virtual int FUN_004e6110(Vec3_004907e0* out);       // slot 8
     virtual int TryGetDesiredHeading();                 // slot 9
@@ -1189,16 +1189,16 @@ public:
 
     Class_0044ef20(Struct_004907e0* p);
     virtual ~Class_0044ef20() {}                    // slot 0
-    virtual void FUN_0044ef90(void* param);         // slot 1
-    virtual void FUN_0044efb0();                    // slot 2
+    virtual void SetPathOrder(void* param);         // slot 1
+    virtual void TickTowardGoal();                  // slot 2
     virtual void FUN_0044ef40(Vec3_004907e0*, int, int);  // slot 3
-    virtual void FUN_0044f000(Vec3_004907e0*, Vec3_004907e0*, short*);  // slot 4
+    virtual void ExportGoalPose(Vec3_004907e0*, Vec3_004907e0*, short*);  // slot 4
     virtual int FUN_0044ef80();                     // slot 5
-    virtual Class_0044f010* FUN_0044eff0();         // slot 6
-    virtual int FUN_0044efe0();                     // slot 7
-    virtual void FUN_0044efc0(BitWriter*);          // slot 8
+    virtual Class_0044f010* TryClaimRepath();       // slot 6
+    virtual int HasNetUnitState();                  // slot 7
+    virtual void SerializeNetUnitState(BitWriter*);  // slot 8
     virtual void FUN_0044efd0(BitReader*);          // slot 9
-    virtual void FUN_0044ef50(void*);               // slot 10
+    virtual void DrawOnSurface(void*);              // slot 10
 };
 
 struct Point_0044f080 {
@@ -1226,16 +1226,16 @@ public:
 
     Class_0044f010(Struct_004907e0* p);
     virtual ~Class_0044f010();                      // slot 0
-    virtual void FUN_0044ef90(void* param);         // slot 1, 0x44f2a0
-    virtual void FUN_0044efb0();                    // slot 2, 0x44f1a0
+    virtual void SetPathOrder(void* param);         // slot 1, 0x44f2a0
+    virtual void TickTowardGoal();                  // slot 2, 0x44f1a0
     virtual void FUN_0044ef40(Vec3_004907e0*, int, int);  // slot 3, 0x44f150
     virtual int FUN_0044ef80();                     // slot 5, 0x44f290
-    virtual Class_0044f010* FUN_0044eff0();         // slot 6, 0x44f260
-    virtual int FUN_0044efe0();                     // slot 7, 0x44f480
-    virtual void FUN_0044efc0(BitWriter*);          // slot 8, 0x44f4a0
+    virtual Class_0044f010* TryClaimRepath();       // slot 6, 0x44f260
+    virtual int HasNetUnitState();                  // slot 7, 0x44f480
+    virtual void SerializeNetUnitState(BitWriter*);  // slot 8, 0x44f4a0
     // In console_commands_417e00.cpp: it was compiled with the console code,
     // far from the rest of the class.
-    virtual void FUN_0044ef50(void*);               // slot 10, 0x417e00
+    virtual void DrawOnSurface(void*);              // slot 10, 0x417e00
     void SetWaypoints(Point_0044f080* src, int n);
     void TruncateWaypointsFrom(int n);
 };
@@ -1320,7 +1320,7 @@ int GetType(void)
 }
 
 // FUNCTION: 0x44ce50
-void* OrderFx::FUN_0044ce50(unsigned char flag)
+void* OrderFx::Destroy(unsigned char flag)
 {
     vtable = DAT_004fd2f8;
     if (flag & 1) {
@@ -1344,7 +1344,7 @@ int __stdcall SerializeSave(int, int, int)
 // Slot 6 of the vtable at 0x4fd2f8: the default implementation ignores the
 // object and empties the caller's list (an inlined vector::clear()).
 // FUNCTION: 0x44ce90
-void Class_0044ce90::FUN_0044ce90(std::vector<Elem_0044ce90*>* list)
+void Class_0044ce90::FillGoalCells(std::vector<Elem_0044ce90*>* list)
 {
     list->clear();
 }
@@ -1376,7 +1376,7 @@ int KeepAfterComplete(void)
 }
 
 // FUNCTION: 0x44cf00
-void Class_0044cf00::FUN_0044cf00(int param_1)
+void Class_0044cf00::ContainsUnit(int param_1)
 {
     short esi = *(short*)(param_1 + 0x78);
     short eax = *(short*)(param_1 + 0x76);
@@ -1432,7 +1432,7 @@ int FUN_0044cfe0(void)
 }
 
 // FUNCTION: 0x44cff0
-void* Class_0044cff0::FUN_0044cff0(unsigned char flag)
+void* Class_0044cff0::Destroy(unsigned char flag)
 {
     vtable = DAT_004fd2f8;
     if (flag & 1) {
@@ -1469,7 +1469,7 @@ Class_0044d010::Class_0044d010(int owner, HapiBank* file, char* name)
 // header whose last three dwords are the stored values (the first dword is
 // left uninitialised, as in the original).
 // FUNCTION: 0x44d090
-int Class_0044d010::FUN_0044d090(int unused, HapiBank* file, char* name)
+int Class_0044d010::Serialize(int unused, HapiBank* file, char* name)
 {
     Header_0044d010 hdr;
     hdr.v.x = v.x;
@@ -1489,7 +1489,7 @@ int Class_0044d010::FUN_0044d090(int unused, HapiBank* file, char* name)
 //   list->clear();          // erase(begin(), end())
 //   list->push_back(pos);   // inserts *(Point*)(this + 8) at the end
 // FUNCTION: 0x44d0e0
-void ApproachRadius::FUN_0044d0e0(Vec_0044d0e0* list)
+void ApproachRadius::AppendGoalCell(Vec_0044d0e0* list)
 {
     list->clear();
     list->push_back(pos);
@@ -1516,7 +1516,7 @@ static inline void ToWorld(int* out, Point_0044d2c0 a, Point_0044d2c0 b)
 }
 
 // FUNCTION: 0x44d2c0
-int Class_0044d2c0::FUN_0044d2c0(int* out)
+int Class_0044d2c0::FillWorldPos(int* out)
 {
     ToWorld(out, pos, owner->inner->pos);
     return 1;
@@ -1524,7 +1524,7 @@ int Class_0044d2c0::FUN_0044d2c0(int* out)
 
 // Whether obj lies within the circle around (x, y).
 // FUNCTION: 0x44d310
-int Class_0044d310::FUN_0044d310(Obj_0044d310* obj)
+int Class_0044d310::ContainsUnit(Obj_0044d310* obj)
 {
     int dy = obj->y - y;
     int dx = obj->x - x;
@@ -1534,7 +1534,7 @@ int Class_0044d310::FUN_0044d310(Obj_0044d310* obj)
 // Approximate distance from (px, py) to the edge of the circle around
 // (x, y), 0 when inside: 18 * major + 7 * minor axis distance.
 // FUNCTION: 0x44d350
-int Class_0044d350::FUN_0044d350(int px, int py)
+int Class_0044d350::ApproxDistExcess(int px, int py)
 {
     int dx = abs(px - x);
     int dy = abs(py - y);
@@ -1576,7 +1576,7 @@ int FUN_0044d440(void)
 }
 
 // FUNCTION: 0x44d450
-Class_0044d450* Class_0044d450::FUN_0044d450(unsigned char flag)
+Class_0044d450* Class_0044d450::Destroy(unsigned char flag)
 {
     vtable = DAT_004fd2f8;
     if ((flag & 1) != 0) {
@@ -1615,7 +1615,7 @@ Class_0044d470::Class_0044d470(int owner, HapiBank* file, char* name)
 // whose last five dwords are the stored values. The first dword is left
 // uninitialised, exactly as in 0x44d090 and 0x44d9a0.
 // FUNCTION: 0x44d500
-int Class_0044d470::FUN_0044d500(int unused, HapiBank* file, char* name)
+int Class_0044d470::Serialize(int unused, HapiBank* file, char* name)
 {
     Header_0044d470 hdr;
     hdr.data.a = data.a;
@@ -1632,7 +1632,7 @@ int Class_0044d470::FUN_0044d500(int unused, HapiBank* file, char* name)
 // Clears a std::vector<Point_0044eec0> and then appends a copy of the point
 // at +0x8, with its y moved by (field_c + field_10) / 32.
 // FUNCTION: 0x44d560
-void Class_0044d560::FUN_0044d560(Vec_0044d560* list)
+void Class_0044d560::AppendGoalCell(Vec_0044d560* list)
 {
     list->clear();
     Point_0044eec0 p = pos;
@@ -1672,7 +1672,7 @@ static inline int MeanRadius(Class_0044d720* c)
 }
 
 // FUNCTION: 0x44d720
-int Class_0044d720::FUN_0044d720(Vec3_0044d720* out)
+int Class_0044d720::FillWorldPos(Vec3_0044d720* out)
 {
     Inner_0044d720* inner = owner->inner;
     ToWorld(out, pos, inner->cell);
@@ -1696,7 +1696,7 @@ bool Class_0044d7c0::FUN_0044d7c0(int param_1, int param_2)
 // Same test as 0x44d7c0, on a unit's position: 1 when the squared distance
 // from the centre lies within [field_14, field_18].
 // FUNCTION: 0x44d800
-int Class_0044d800::FUN_0044d800(Unit* unit)
+int Class_0044d800::ContainsUnit(Unit* unit)
 {
     int dy = unit->y - field_a;
     int dx = unit->x - field_8;
@@ -1708,7 +1708,7 @@ int Class_0044d800::FUN_0044d800(Unit* unit)
 // inner radius +0xc and the outer radius +0x10, 0 between the radii.
 // Same 18 * major + 7 * minor metric as 0x44d350.
 // FUNCTION: 0x44d840
-int RingApproach::FUN_0044d840(int px, int py)
+int RingApproach::ApproxDistExcess(int px, int py)
 {
     int dx = abs(px - x);
     int dy = abs(py - y);
@@ -1745,7 +1745,7 @@ int FUN_0044d900(void)
 }
 
 // FUNCTION: 0x44d910
-Class_0044d910* Class_0044d910::FUN_0044d910(unsigned char should_delete)
+Class_0044d910* Class_0044d910::Destroy(unsigned char should_delete)
 {
     Class_0044d910* esi = this;
     *(void**)esi = DAT_004fd2f8;
@@ -1777,7 +1777,7 @@ Class_0044d930::Class_0044d930(int owner, HapiBank* file, char* name)
 // header whose last four dwords are the stored values (the first dword is
 // left uninitialised, as in the original), like 0x44d090.
 // FUNCTION: 0x44d9a0
-int Class_0044d930::FUN_0044d9a0(int unused, HapiBank* file, char* name)
+int Class_0044d930::Serialize(int unused, HapiBank* file, char* name)
 {
     Header_0044d930 hdr;
     hdr.r.a = r.a;
@@ -1796,7 +1796,7 @@ static inline int MidX_44dc60(PointMarker* w)
 }
 
 // FUNCTION: 0x44dc60
-int PointMarker::FUN_0044dc60(int* out)
+int PointMarker::FillWorldPos(int* out)
 {
     short avg = (short)MidX_44dc60(this);
     short z = (short)y2;
@@ -1866,7 +1866,7 @@ int Class_0044dd00::FUN_0044dd00(int x, int y)
 // Slot 0 of vtable 0x4fd3e0: writes the flag word and, per flag bit, the
 // short fields (or the three dwords) to a bit stream.
 // FUNCTION: 0x44ddc0
-void PathOrder::FUN_0044ddc0(BitWriter* stream)
+void PathOrder::SerializeToBits(BitWriter* stream)
 {
     stream->WriteBits(flags, 8);
     if ((flags & 1) != 0) {
@@ -1927,7 +1927,7 @@ int FUN_0044df70(void)
 // restore this object's own vtable, conditionally operator delete, and
 // return `this`.
 // FUNCTION: 0x44df80
-void* Class_0044df80::FUN_0044df80(unsigned char flag)
+void* Class_0044df80::Destroy(unsigned char flag)
 {
     ((UnitRef*)((char*)this + 0x16))->Unlink();
     vtable = DAT_004fd2f8;
@@ -1984,7 +1984,7 @@ public:
     Vec3_0044dfb0 pos;              // +0x26
     int i4;                         // +0x32
 
-    int FUN_0044dfb0(int unused, HapiBank* file, char* name);
+    int SerializeToSave(int unused, HapiBank* file, char* name);
 };
 #pragma pack(pop)
 
@@ -1999,7 +1999,7 @@ public:
 // counterpart (0x44de80) reads all 0x36 bytes but never looks at 0..7, so the
 // bytes are only leaked, never used.
 // FUNCTION: 0x44dfb0
-int Class_0044dfb0::FUN_0044dfb0(int unused, HapiBank* file, char* name)
+int Class_0044dfb0::SerializeToSave(int unused, HapiBank* file, char* name)
 {
     // The first 8 bytes of rec stay unassigned, as in the original.
     Rec_0044dfb0 rec;
@@ -2149,7 +2149,7 @@ static inline Vec3_0044e3c0 Direction_0044e3c0(short angle, int scale)
 }
 
 // FUNCTION: 0x44e3c0
-int Class_0044e3c0::FUN_0044e3c0(Vec3_0044e3c0* out)
+int Class_0044e3c0::FillWorldPos(Vec3_0044e3c0* out)
 {
     unsigned short f = flags;
     if ((f & 1) && !(f & 0x80)) {
@@ -2184,7 +2184,7 @@ int Class_0044e3c0::FUN_0044e3c0(Vec3_0044e3c0* out)
 }
 
 // FUNCTION: 0x44e530
-int Class_0044e530::FUN_0044e530(unsigned short* out)
+int Class_0044e530::GetDesiredHeading(unsigned short* out)
 {
     unsigned short f = flags;
     if ((f & 0x84) && target != 0) {
@@ -2211,7 +2211,7 @@ int Class_0044e530::FUN_0044e530(unsigned short* out)
 // itself through vtable slot +0x20, measures the horizontal (x/z) distance to
 // `arg`, converts it from 16.16 to pixels, then tests range/flags.
 // FUNCTION: 0x44e5b0
-int Class_0044e5b0::FUN_0044e5b0(Object_0044e5b0* arg)
+int Class_0044e5b0::IsComplete(Object_0044e5b0* arg)
 {
     Vec3_0044e5b0 pos;
     v8(&pos);
@@ -2292,7 +2292,7 @@ int FUN_0044e7a0(void)
 }
 
 // FUNCTION: 0x44e7b0
-void* Class_0044e7b0::FUN_0044e7b0(int param_1)
+void* Class_0044e7b0::Destroy(int param_1)
 {
     vtable = &DAT_004fd2f8;
     if ((param_1 & 1) != 0) {
@@ -2329,7 +2329,7 @@ Class_0044e740::Class_0044e740(int owner, HapiBank* file, char* name)
 // the id as a dword but only its low word (0x487080 masks with 0xffff), so
 // writing it as a word is harmless.
 // FUNCTION: 0x44e880
-int Class_0044e740::FUN_0044e880(int unused, HapiBank* file, char* name)
+int Class_0044e740::SerializeToSave(int unused, HapiBank* file, char* name)
 {
     Header_0044e740 hdr;
     // if/else, not a ternary: puts the store of 0 on the fallthrough path.
@@ -2353,7 +2353,7 @@ int Class_0044e740::FUN_0044e880(int unused, HapiBank* file, char* name)
 // Writes the flag word, the two
 // points, and (when flag bit 0 is set) the word at +0x24 to a bit stream.
 // FUNCTION: 0x44e930
-void Class_0044e740::FUN_0044e930(BitWriter* stream)
+void Class_0044e740::SerializeToBits(BitWriter* stream)
 {
     stream->WriteBits(field_8, 1);
     stream->WriteBits(target.x, 0x20);
@@ -2398,7 +2398,7 @@ int FUN_0044ea50(void)
 // The rotation helper takes a pair of ints, so the (x, z) step is built in the
 // local's x and y fields and read back from y into other.z.
 // FUNCTION: 0x44ea60
-int AirManeuverOrder::FUN_0044ea60(Vec3_0044ea60* out)
+int AirManeuverOrder::FillWorldPos(Vec3_0044ea60* out)
 {
     *out = target;
     target.x += other.x;
@@ -2427,7 +2427,7 @@ int AirManeuverOrder::FUN_0044ea60(Vec3_0044ea60* out)
 // Virtual slot 9 (vtable at 0x4fd3f8), the same slot as 0x44e530: writes the
 // heading from the owner's position (+0x6a) to the target point at +0xa.
 // FUNCTION: 0x44eb40
-int Class_0044eb40::FUN_0044eb40(unsigned short* out)
+int Class_0044eb40::GetDesiredHeading(unsigned short* out)
 {
     *out = GetHeadingBetween(&self->pos, &target);
     return 1;
@@ -2438,7 +2438,7 @@ int Class_0044eb40::FUN_0044eb40(unsigned short* out)
 // bit 0 is set, when the heading from the origin to the second point equals
 // the stored heading.
 // FUNCTION: 0x44eb60
-int Class_0044e740::FUN_0044eb60(Object_0044e740* unit)
+int Class_0044e740::IsComplete(Object_0044e740* unit)
 {
     if ((float)_hypot(unit->pos.x - target.x, unit->pos.z - target.z) / 65536.0f < 48.0f)
         return 1;
@@ -2535,7 +2535,7 @@ void Class_0044ef20::FUN_0044ef40(Vec3_004907e0*, int, int)
 
 // Slot 10: does nothing.
 // FUNCTION: 0x44ef50
-void Class_0044ef20::FUN_0044ef50(void*)
+void Class_0044ef20::DrawOnSurface(void*)
 {
 }
 
@@ -2548,7 +2548,7 @@ int Class_0044ef20::FUN_0044ef80()
 
 // Slot 1: sets the object at +0x4, first telling the one it replaces 0x80.
 // FUNCTION: 0x44ef90
-void Class_0044ef20::FUN_0044ef90(void* param)
+void Class_0044ef20::SetPathOrder(void* param)
 {
     if (field_4 != 0) {
         ((Class_0044ced0*)field_4)->AddFlags(0x80);
@@ -2558,13 +2558,13 @@ void Class_0044ef20::FUN_0044ef90(void* param)
 
 // Slot 2: does nothing.
 // FUNCTION: 0x44efb0
-void Class_0044ef20::FUN_0044efb0()
+void Class_0044ef20::TickTowardGoal()
 {
 }
 
 // Slot 8: does nothing.
 // FUNCTION: 0x44efc0
-void Class_0044ef20::FUN_0044efc0(BitWriter*)
+void Class_0044ef20::SerializeNetUnitState(BitWriter*)
 {
 }
 
@@ -2576,21 +2576,21 @@ void Class_0044ef20::FUN_0044efd0(BitReader*)
 
 // Slot 7: 0.
 // FUNCTION: 0x44efe0
-int Class_0044ef20::FUN_0044efe0()
+int Class_0044ef20::HasNetUnitState()
 {
     return 0;
 }
 
 // Slot 6: none.
 // FUNCTION: 0x44eff0
-Class_0044f010* Class_0044ef20::FUN_0044eff0()
+Class_0044f010* Class_0044ef20::TryClaimRepath()
 {
     return 0;
 }
 
 // Slot 4: does nothing.
 // FUNCTION: 0x44f000
-void Class_0044ef20::FUN_0044f000(Vec3_004907e0*, Vec3_004907e0*, short*)
+void Class_0044ef20::ExportGoalPose(Vec3_004907e0*, Vec3_004907e0*, short*)
 {
 }
 
@@ -2613,7 +2613,7 @@ Class_0044f010::Class_0044f010(Struct_004907e0* p)
 void Class_0044f010::SetWaypoints(Point_0044f080* src, int n)
 {
     if (n == 0) {
-        if (field_4 && field_4->FUN_0044cf00(owner) == 0)
+        if (field_4 && field_4->ContainsUnit(owner) == 0)
             ((Class_0044ced0*)field_4)->AddFlags(0x40);
         active = 0;
     } else {
@@ -2658,13 +2658,13 @@ void Class_0044f010::FUN_0044ef40(Vec3_004907e0* out, int unused, int n)
 // its second path point (within 5 units of the owner), drops that point with
 // an overlapping std::copy and refreshes the flags.
 // FUNCTION: 0x44f1a0
-void Class_0044f010::FUN_0044efb0()
+void Class_0044f010::TickTowardGoal()
 {
     if (field_4) {
-        if (field_4->FUN_0044cf00(owner)) {
+        if (field_4->ContainsUnit(owner)) {
             ((Class_0044ced0*)field_4)->AddFlags(0x20);
             if (!field_4->KeepAfterComplete())
-                FUN_0044ef90(0);
+                SetPathOrder(0);
         }
     }
     if (count >= 2) {
@@ -2688,7 +2688,7 @@ void Class_0044f010::FUN_0044efb0()
 // field_60), or null. The path search scheduler (0x40eb70) calls it through
 // slot 6 to pick the path to search for next.
 // FUNCTION: 0x44f260
-Class_0044f010* Class_0044f010::FUN_0044eff0()
+Class_0044f010* Class_0044f010::TryClaimRepath()
 {
     if (field_64 & 2) {
         unsigned int limit = g_game->field_38a47;
@@ -2714,7 +2714,7 @@ int Class_0044f010::FUN_0044ef80()
 // object as the owner is. With no usable point left it resets the path to
 // two points taken from the owner and the object's position.
 // FUNCTION: 0x44f2a0
-void Class_0044f010::FUN_0044ef90(void* param)
+void Class_0044f010::SetPathOrder(void* param)
 {
     g_game->field_14207->AbortIfGoalMatch(this);
     if (field_4)
@@ -2776,7 +2776,7 @@ Class_0044f010::~Class_0044f010()
 // set, or flag 2 no longer matches bit 2 of the owner's target. Slot 8
 // (0x44f4a0) writes the path out and brings both flags up to date.
 // FUNCTION: 0x44f480
-int Class_0044f010::FUN_0044efe0()
+int Class_0044f010::HasNetUnitState()
 {
     return (field_64 & 8) || ((owner->target->field_2e ^ field_64) & 4);
 }
@@ -2786,7 +2786,7 @@ int Class_0044f010::FUN_0044efe0()
 // points of 16 bits each, and finally copies the unit's mode into flag 2 while
 // clearing flag 3 (the "changed" flag the readers rely on).
 // FUNCTION: 0x44f4a0
-void Class_0044f010::FUN_0044efc0(BitWriter* stream)
+void Class_0044f010::SerializeNetUnitState(BitWriter* stream)
 {
     int n;
     if (active) {

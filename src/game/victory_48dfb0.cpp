@@ -1718,11 +1718,11 @@ public:
     virtual void vf1();
     virtual int GetType();                          // +0x08
     virtual void vf3();
-    virtual int FUN_0044f000(Struct_004907e0* param);   // slot 4
+    virtual int ExportGoalPose(Struct_004907e0* param);  // slot 4
     virtual void vf5();
     virtual void vf6();
     virtual void vf7();
-    virtual void FUN_0044efc0(Vec3* param);  // slot 8
+    virtual void SerializeNetUnitState(Vec3* param);  // slot 8
     virtual int FUN_0044efd0(short* param);         // slot 9
     virtual void Write(BitWriter* stream);          // +0x28
     virtual int FUN_0044ef50_11();                  // slot 11
@@ -1737,16 +1737,16 @@ public:
 
     Class_0044ef20(Struct_004907e0* p);
     virtual ~Class_0044ef20() {}                    // slot 0
-    virtual void FUN_0044ef90(void* param);         // slot 1
-    virtual void FUN_0044efb0();                    // slot 2
+    virtual void SetPathOrder(void* param);         // slot 1
+    virtual void TickTowardGoal();                  // slot 2
     virtual void FUN_0044ef40(Vec3*, int, int);  // slot 3
-    virtual void FUN_0044f000(Vec3*, Vec3*, short*);  // slot 4
+    virtual void ExportGoalPose(Vec3*, Vec3*, short*);  // slot 4
     virtual int FUN_0044ef80();                     // slot 5
-    virtual Class_0044f010* FUN_0044eff0();         // slot 6
-    virtual int FUN_0044efe0();                     // slot 7
-    virtual void FUN_0044efc0(BitWriter*);          // slot 8
+    virtual Class_0044f010* TryClaimRepath();       // slot 6
+    virtual int HasNetUnitState();                  // slot 7
+    virtual void SerializeNetUnitState(BitWriter*);  // slot 8
     virtual void FUN_0044efd0(BitReader*);          // slot 9
-    virtual void FUN_0044ef50(void*);               // slot 10
+    virtual void DrawOnSurface(void*);              // slot 10
 };
 
 // Class_00490630: a moving object that follows its owner, derived from
@@ -1771,8 +1771,8 @@ public:
     };
 
     Class_00490630(Struct_004907e0* p);
-    virtual void FUN_0044efb0();                    // slot 2, 0x490690
-    virtual void FUN_0044f000(Vec3*, Vec3*, short*);  // slot 4, 0x490650
+    virtual void TickTowardGoal();                  // slot 2, 0x490690
+    virtual void ExportGoalPose(Vec3*, Vec3*, short*);  // slot 4, 0x490650
 };
 
 unsigned short __stdcall GetHeadingBetween(Vec3* from, Vec3* to);
@@ -1796,7 +1796,7 @@ Class_00490630::Class_00490630(Struct_004907e0* p)
 // order_targets_44ef20.cpp): copies out the position, the velocity and field_24
 // (the heading 0x490690 turns towards the owner).
 // FUNCTION: 0x490650
-void Class_00490630::FUN_0044f000(Vec3* outPos, Vec3* outVel,
+void Class_00490630::ExportGoalPose(Vec3* outPos, Vec3* outVel,
                                   short* outHeading)
 {
     *outPos = pos;
@@ -1816,12 +1816,12 @@ void Class_00490630::FUN_0044f000(Vec3* outPos, Vec3* outVel,
 // the object at +0x4 gets the last word: slot 4 saying it is done, plus slot
 // 11, means slot 1 with 0.
 // FUNCTION: 0x490690
-void Class_00490630::FUN_0044efb0()
+void Class_00490630::TickTowardGoal()
 {
     if (!field_4)
         return;
     Vec3 old = pos;
-    field_4->FUN_0044efc0(&pos);
+    field_4->SerializeNetUnitState(&pos);
     vel = pos - old;
     int dist = (int)_hypot(owner->pos.x - pos.x, owner->pos.z - pos.z);
     if (dist > 0xa00000) {
@@ -1834,10 +1834,10 @@ void Class_00490630::FUN_0044efb0()
     }
     if (dist > 0x1400000 || (!field_4->FUN_0044efd0(&field_24) && dist > 0x100000))
         field_24 = (short)GetHeadingBetween(&owner->pos, &pos);
-    if (field_4->FUN_0044f000(owner)) {
+    if (field_4->ExportGoalPose(owner)) {
         field_4->AddFlags(0x20);
         if (!field_4->FUN_0044ef50_11())
-            FUN_0044ef90(0);
+            SetPathOrder(0);
     }
 }
 
@@ -1848,10 +1848,10 @@ void Class_00490630::FUN_0044efb0()
 class Class_004907e0 : public Class_00490630 {
 public:
     Class_004907e0(Struct_004907e0* p);
-    virtual void FUN_0044ef90(void* param);         // slot 1, 0x490860
-    virtual void FUN_0044efb0();                    // slot 2, 0x490880
-    virtual int FUN_0044efe0();                     // slot 7, 0x4908b0
-    virtual void FUN_0044efc0(BitWriter*);          // slot 8, 0x4908c0
+    virtual void SetPathOrder(void* param);         // slot 1, 0x490860
+    virtual void TickTowardGoal();                  // slot 2, 0x490880
+    virtual int HasNetUnitState();                  // slot 7, 0x4908b0
+    virtual void SerializeNetUnitState(BitWriter*);  // slot 8, 0x4908c0
 };
 
 // The constructor: the base constructor (0x44ef20) is out of line, the middle
@@ -1871,25 +1871,25 @@ Class_004907e0::Class_004907e0(Struct_004907e0* p)
 
 // Slot 1: the base's (0x44ef90) and then the dirty bit.
 // FUNCTION: 0x490860
-void Class_004907e0::FUN_0044ef90(void* param)
+void Class_004907e0::SetPathOrder(void* param)
 {
-    Class_0044ef20::FUN_0044ef90(param);
+    Class_0044ef20::SetPathOrder(param);
     dirty = 1;
 }
 
 // Slot 2: sets the dirty bit when the mode differs from the owner's, then runs
 // the middle class's own slot 2 (0x490690).
 // FUNCTION: 0x490880
-void Class_004907e0::FUN_0044efb0()
+void Class_004907e0::TickTowardGoal()
 {
     if ((owner->target->field_2e & 3) != mode)
         dirty = 1;
-    Class_00490630::FUN_0044efb0();
+    Class_00490630::TickTowardGoal();
 }
 
 // Slot 7: the dirty bit.
 // FUNCTION: 0x4908b0
-int Class_004907e0::FUN_0044efe0()
+int Class_004907e0::HasNetUnitState()
 {
     return field_27 & 1;
 }
@@ -1898,7 +1898,7 @@ int Class_004907e0::FUN_0044efe0()
 // owner's mode to the stream, then takes that mode as its own and clears the
 // dirty bit. The matching reader looks like 0x490a10 (Class_00490880's slot 9).
 // FUNCTION: 0x4908c0
-void Class_004907e0::FUN_0044efc0(BitWriter* stream)
+void Class_004907e0::SerializeNetUnitState(BitWriter* stream)
 {
     if (field_4 == 0) {
         stream->WriteBits(0, 2);

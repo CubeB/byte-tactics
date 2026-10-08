@@ -1166,4 +1166,4 @@ Things that look wrong in the original but have no effect, kept for the record.
   (`CopyTrackTypeTable`, 0x4ce3e0), but `SaveGameSettings` (0x45cde0) saved it
   from +0x214 (`GetCategoryOfTrack(i)` for i = 0 to 99, 0x4ce7e0), so every
   restored track takes the previous track's type and the last one is dropped.
-  Found by Claude Code / Claude Sonnet 5.5 in #6156.
+  Found by OpenCode / deepseek-v4.1-flash in #6156.

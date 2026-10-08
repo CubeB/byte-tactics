@@ -104,9 +104,15 @@ static inline int ClampVolume(int v)
     return v;
 }
 
-// The only caller (0x4d02a0) passes its object in ecx, so this is a method
-// that ignores `this` (it compiles the same as a __stdcall free function).
-struct Class_004d01b0 { int DetectSampleFormat(void* file); };
+// Unused here: forward declarations of real functions; their symbol ids keep
+// the allocation the removed Class_004d01b0 view moved (docs/c2-regalloc.md).
+void EnableAICommands();
+void ResetAIPlayers();
+void StepAllGafSequences();
+void ResetNetStats();
+void InitCommands();
+int UpdatePlacementGhostValidity();
+void RegisterUnitOrders();
 
 struct WaveFormat {
     unsigned short wFormatTag;
@@ -1039,8 +1045,9 @@ void Sound::RestoreMixerVolumes()
 // Sniffs the head of a sound file: 0x4d01b0 returns 1 for a DIGI/HSHD/SDAT
 // file, 2 for a RIFF/WAVE file and 0 for anything else. The four byte tag is
 // read into one local buffer that MSVC lays over the dead parameter slot.
+// It ignores `this`; the only caller (0x4d02a0) passes its object in ecx.
 // FUNCTION: 0x4d01b0
-int Class_004d01b0::DetectSampleFormat(void* file)
+int Sound::DetectSampleFormat(void* file)
 {
     char tag[4];
     HAPI_SeekFile(file, 0);
@@ -1072,7 +1079,7 @@ int Sound::OpenSample(char* path, int mode, int p3, int p4) {
     FileHandle* file = HAPI_OpenFileRead(path);
     if (file == 0)
         return result;
-    int kind = ((Class_004d01b0*)this)->DetectSampleFormat(file);
+    int kind = DetectSampleFormat(file);
     int size = HAPI_FileLength(file);
     switch (kind) {
     case 0:

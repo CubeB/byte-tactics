@@ -127,6 +127,7 @@ public:
     int FindChunkSize(void* file, char* target);
     int ReadWaveFormat(void* file, int* sampleRate, int* bitsPerSample, int* channels);
     int FindDataChunkSize(void* file);
+    int DetectSampleFormat(void* file);
 };
 
 #endif

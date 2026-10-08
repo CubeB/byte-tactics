@@ -155,17 +155,11 @@ public:
     virtual void ReadFrom(BitReader* reader);      // +0x24
 };
 
-class Class_0047cb00 {
+class SpatialBucket {
 public:
     char unknown_0[6];
     void* head;                        // +6
     void UnlinkUnit(void* node);
-};
-
-class Class_0047cb40 {
-public:
-    char unknown_0[6];
-    int head;                          // +6
     void PrependUnit(int node);
 };
 
@@ -180,7 +174,7 @@ struct Unit {
     Point16 cell;                      // +0x76
     char unknown_7a[0x7e - 0x7a];
     Point16 origin;                    // +0x7e
-    Class_0047cb00* list;              // +0x82
+    SpatialBucket* list;               // +0x82
     Unit* owner;                       // +0x86
     Unit* first;                       // +0x8a
     Unit* next;                        // +0x8e
@@ -532,7 +526,7 @@ void __stdcall ApplyAttachUnit(Order* order)
                             u->next = 0;
                             u->f110.bits.b17 = 0;
                             u->owner = 0;
-                            ((Class_0047cb40*)u->list)->PrependUnit((int)u);
+                            u->list->PrependUnit((int)u);
                         }
                         u->motion->bits_2e = order->param2;
                         if (u->player->f0) {

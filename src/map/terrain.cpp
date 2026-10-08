@@ -245,16 +245,14 @@ struct Node_0047cb00 {
     Node_0047cb00* next;                // +0x8e
 };
 
-class Class_0047cb00 {
+class SpatialBucket {
 public:
     char unknown_0[6];
-    Node_0047cb00* head;                // +6
+    union {
+        Node_0047cb00* head;            // +6
+        int field_6;                    // +6
+    };
     void UnlinkUnit(Node_0047cb00* node);
-};
-
-struct Class_0047cb40 {
-    char unknown_0[0x6];
-    int field_6;
     void PrependUnit(int param_1);
 };
 
@@ -418,7 +416,7 @@ void FUN_0047caf0(void)
 }
 
 // FUNCTION: 0x47cb00
-void Class_0047cb00::UnlinkUnit(Node_0047cb00* node)
+void SpatialBucket::UnlinkUnit(Node_0047cb00* node)
 {
     Node_0047cb00** pp = &head;
     Node_0047cb00* n = head;
@@ -431,7 +429,7 @@ void Class_0047cb00::UnlinkUnit(Node_0047cb00* node)
 }
 
 // FUNCTION: 0x47cb40
-void Class_0047cb40::PrependUnit(int param_1)
+void SpatialBucket::PrependUnit(int param_1)
 {
     int temp = field_6;
     *(int*)((char*)param_1 + 0x8e) = temp;

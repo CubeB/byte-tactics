@@ -193,7 +193,7 @@ struct WeaponAimCobCb {                // 0x1c bytes, vtable 0x4fd6f0
     char unknown_4[0x1c - 0x4];
 };
 
-class Class_0047cb00 {
+class SpatialBucket {
 public:
     char unknown_0[6];
     void* head;
@@ -270,7 +270,7 @@ struct Unit {                          // 0x118 bytes
     short losCacheCellX;                    // +0x7a
     short losCacheCellZ;                    // +0x7c
     ShortPair_485a40 offset;           // +0x7e
-    Class_0047cb00* list;              // +0x82
+    SpatialBucket* list;               // +0x82
     Unit* owner;                       // +0x86
     Unit* first;                       // +0x8a
     Unit* next;                        // +0x8e

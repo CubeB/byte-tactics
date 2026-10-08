@@ -252,29 +252,26 @@ struct MovementClassTable {
     static MovementClassTable g_movementClasses;
 };
 
-// The memory cache object at g_game+0x1437b. Its three methods are separate
-// classes in data/symbols.csv (Construct, Initialize, Destroy), so the names
-// stay apart for the calls.
-class Class_00458160 {
+// The unit table object at g_game+0x1437b: the memory cache with the composite
+// frame at +0x10, and the three methods this module calls.
+class UnitTable {
 public:
     char unknown_0[0x10];
-    int field_10;
+    union {
+        int field_10;                  // +0x10
+        void* ptr;                     // +0x10
+    };
 
-    Class_00458160* Construct(void);
-};
-
-class Class_00458180 {
-public:
+    UnitTable* Construct(void);
     void Initialize(int size);
-};
-
-class Class_004581c0 {
-public:
-    char unknown_0[0x10];
-    void* ptr;                         // +0x10
-
     void Destroy();
 };
+
+// Unused here: the symbol ids these declarations take keep LoadUnitTypes'
+// allocation, standing in for the two view classes merged above
+// (docs/c2-regalloc.md).
+int RIReport(int, int, int, int, int, int, int, int, int, int);
+void CopyDwordIfNonNull(int*, int*);
 
 // A parsed TDF file; the getters read the current section.
 class TdfRecord;
@@ -989,7 +986,7 @@ void LoadUnitTypes() {
     }
 
     // operator new plus Construct(), not `new`: the symbol table has no constructor here.
-    Class_00458160* obj = (Class_00458160*)operator new(0x14);
+    UnitTable* obj = (UnitTable*)operator new(0x14);
     obj = obj ? obj->Construct() : 0;
     g_game->field_1437b = obj;
 
@@ -1006,7 +1003,7 @@ void LoadUnitTypes() {
             scale = (float)d;
     }
     int size = (int)(v * scale);
-    ((Class_00458180*)g_game->field_1437b)->Initialize((size + 0xfff) & 0xfffff000);
+    ((UnitTable*)g_game->field_1437b)->Initialize((size + 0xfff) & 0xfffff000);
 
     ProtectBlockReadWrite(g_game->field_1439b);
 
@@ -1216,7 +1213,7 @@ void FreeUnitTypes()
         }
     }
 
-    Class_004581c0* obj = (Class_004581c0*)g_game->field_1437b;
+    UnitTable* obj = (UnitTable*)g_game->field_1437b;
     if (obj != 0) {
         obj->Destroy();
         delete obj;

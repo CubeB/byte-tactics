@@ -125,7 +125,7 @@ struct List_458810 {
 
 struct Vec3_458810;
 
-class Class_004581e0 {
+class UnitTable {
 public:
     int BuildObjectPicture(List_458810* list, int param_2, int param_3);
 };
@@ -463,7 +463,7 @@ void CMemoryCache::DrawObjectState(List_458810* list, Vec3_458810* result)
         rebuild = 1;
     if (rebuild) {
         list->field_14 = 0;
-        ((Class_004581e0*)this)->BuildObjectPicture(list, 0, 1);
+        ((UnitTable*)this)->BuildObjectPicture(list, 0, 1);
     }
     Vec3_458810 coords;
     coords.x = x;

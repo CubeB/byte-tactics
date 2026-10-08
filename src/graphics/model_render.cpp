@@ -334,41 +334,32 @@ struct Model_459200 {
 };
 #pragma pack(pop)
 
-class Class_00458160 {
+class UnitTable {
 public:
     char unknown_0[0x10];
-    int field_10;
+    union {
+        int field_10;                  // +0x10
+        void* buffer;                  // +0x10
+        void* ptr;                     // +0x10
+        Image_4589c0* shadow;          // +0x10
+    };
 
-    Class_00458160* Construct(void);
-};
-
-class Class_00458180 {
-public:
-    char unknown_0[0x10];
-    void* buffer;                      // +0x10
-
+    UnitTable* Construct(void);
     int Initialize(unsigned int size);
-};
-
-class Class_004581c0 {
-public:
-    char unknown_0[0x10];
-    void* ptr;                         // +0x10
-
     void Destroy();
-};
-
-class Class_004581e0 {
-public:
-    char unknown_0[0x10];
-    Image_4589c0* shadow;              // +0x10
-
     void MeasureModel(int* width, int* height, int* originX, int* originY, Model_459200* model, Vec3* offset);
     int BuildObjectPicture(Model_459200* list, int param_2, int param_3);
     void DrawPieces(Image_4589c0* bitmap, Model_459200* list, int kind, int useColor);
     // Defined in model_render_4581e0.cpp: only matches at that file's symbol count.
     void DrawLitPieces(Image_4589c0* bitmap, Model_459200* list, int kind, int useColor);
 };
+
+// Unused here: the symbol ids these declarations take keep MeasureModel's
+// allocation, standing in for the three view classes merged above
+// (docs/c2-regalloc.md).
+void WriteScreenshot(char*, char*, int, int, int, int);
+int ScanDirectory(char*, char*, char*, int, int, int);
+int AccessRegistryValue(char*, char*, unsigned char*, unsigned long*, unsigned long, unsigned long);
 
 class Class_00458310 {
 public:
@@ -434,7 +425,7 @@ void __fastcall TransformPieces(Model_459200* model, Piece_459c70* piece,
                                 Vector3s* pos, Vec3* box, int force);
 
 // FUNCTION: 0x458160
-Class_00458160* Class_00458160::Construct(void)
+UnitTable* UnitTable::Construct(void)
 {
     ((CMemoryCache*)this)->ClearPointers();
     field_10 = 0;
@@ -442,7 +433,7 @@ Class_00458160* Class_00458160::Construct(void)
 }
 
 // FUNCTION: 0x458180
-int Class_00458180::Initialize(unsigned int size)
+int UnitTable::Initialize(unsigned int size)
 {
     if (!((CMemoryCache*)this)->InitCache(size))
         return 0;
@@ -451,7 +442,7 @@ int Class_00458180::Initialize(unsigned int size)
 }
 
 // FUNCTION: 0x4581c0
-void Class_004581c0::Destroy()
+void UnitTable::Destroy()
 {
     if (ptr) {
         FUN_004d85a0(ptr);
@@ -468,7 +459,7 @@ static __inline int shade_bias(Unit_459200* owner)
 }
 
 // FUNCTION: 0x4581e0
-void Class_004581e0::MeasureModel(int* width, int* height, int* originX, int* originY, Model_459200* model, Vec3* offset)
+void UnitTable::MeasureModel(int* width, int* height, int* originX, int* originY, Model_459200* model, Vec3* offset)
 {
     int minX;
     int minY;
@@ -515,7 +506,7 @@ void Class_004581e0::MeasureModel(int* width, int* height, int* originX, int* or
 // them, stores the origin in the bitmap header and hands the drawing to
 // 0x459c70 / 0x459830.
 // FUNCTION: 0x4586a0
-int Class_004581e0::BuildObjectPicture(Model_459200* list, int param_2, int param_3)
+int UnitTable::BuildObjectPicture(Model_459200* list, int param_2, int param_3)
 {
     // Plain ints: the stores into the short header fields narrow them.
     int w;
@@ -549,7 +540,7 @@ int Class_004581e0::BuildObjectPicture(Model_459200* list, int param_2, int para
 // unit flagged, it draws into the doubled shadow bitmap instead and then
 // downsamples that back into the caller's bitmap.
 // FUNCTION: 0x459830
-void Class_004581e0::DrawPieces(Image_4589c0* bitmap, Model_459200* list,
+void UnitTable::DrawPieces(Image_4589c0* bitmap, Model_459200* list,
     int kind, int useColor)
 {
     Vec3 vertex[2000];

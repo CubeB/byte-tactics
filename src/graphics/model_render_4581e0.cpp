@@ -132,7 +132,7 @@ struct List_459c70 {
 
 struct Poly_459c70 { int x; int y; int z; int shade; };
 
-struct Class_004581e0 {
+struct UnitTable {
     char unknown_0[0x10];
     Bitmap_459c70* shadow;           // +0x10
 
@@ -164,7 +164,7 @@ static __inline int shade_bias(List_459c70* list)
 // Must stay the first function in the file: compiled later, a lea in the
 // summing loop moves above the fadd.
 // FUNCTION: 0x459c70
-void Class_004581e0::DrawLitPieces(Bitmap_459c70* bitmap, List_459c70* list,
+void UnitTable::DrawLitPieces(Bitmap_459c70* bitmap, List_459c70* list,
     int kind, int useColor)
 {
     PieceInfo_459c70* info;

@@ -3,7 +3,7 @@
 // and rectangles, with their hit tests, world-position writers, area loaders
 // and constructors), the std::vector<Point_0044eec0> point-list builders and
 // the class that writes a target to a bit stream, the AirManeuverOrder
-// and Class_0044eb40 path-target classes, the PathGoal
+// and PathOrder path-target classes, the PathGoal
 // family with its AiSearchGoal path, the Pathfinder singleton, and the
 // out-of-line std::vector<Point_0044eec0> members. The module's files
 // gathered in address order; 0x44da00 and 0x44ec30 keep their own files
@@ -31,6 +31,10 @@ extern void* g_pointMarkerVtable[];
 
 extern void __cdecl operator delete(void* p);
 
+struct Elem_0044ce90 {
+    int unknown_0;
+};
+
 // The base of the family: vtable 0x4fd2f8 and, at +0x4, the source object
 // (or its index) the subclass was built with.
 class OrderFx {
@@ -45,6 +49,7 @@ public:
         field_4 = param_1;
     }
 
+    OrderFx(int arg1, int arg2, int arg3);
     void* Destroy(unsigned char flag);
     int GetType();
     int IsFxStyle();
@@ -52,23 +57,40 @@ public:
     int ApproxDist(int, int);
     void WriteBits(int);
     int KeepAfterComplete();
-};
-
-class Class_0044ce70 {
-public:
-    void* vtable;
-
-    Class_0044ce70(int arg1, int arg2, int arg3);
-};
-
-struct Elem_0044ce90 {
-    int unknown_0;
-};
-
-class Class_0044ce90 {
-public:
     void FillGoalCells(std::vector<Elem_0044ce90*>* list);
 };
+
+// Unused here: forward declarations of real functions; their symbol ids keep
+// the allocation the merged OrderFx-family views moved (docs/c2-regalloc.md).
+void RegisterUnitOrders();
+void RegisterGroundOrders();
+void EnableAICommands();
+void RegisterAICommands();
+void ResetAIPlayers();
+void RegisterVtolOrders();
+void StepAllGafSequences();
+void ResetNetStats();
+void InitCommands();
+int UpdatePlacementGhostValidity();
+void RefreshSelectionOrders();
+void DispatchOrdersPanelPageFlags();
+void ResetCameraState();
+void FindLocalCommander();
+void ClampCameraPosition();
+void ClampCameraTarget();
+void UpdateScreenShake();
+void UpdateCameraFollow();
+void BeginMouseScroll();
+void EndMouseScroll();
+void UpdateMouseScroll();
+void UpdateEdgeScroll();
+void CenterCameraOnRadarClick();
+void CenterCameraOnStartPosition();
+void RegisterDataArchives();
+int GetCdPathMismatch();
+void CreateGameObject();
+void InitMissionStatus();
+void SetUpEndMissionScreen();
 
 struct Class_0044ced0 {
     char unknown_0[4];
@@ -107,13 +129,6 @@ struct Source_0044cf60 {
 };
 #pragma pack(pop)
 
-class Class_0044cff0 {
-public:
-    void* vtable;
-
-    void* Destroy(unsigned char flag);
-};
-
 struct Vec3_0044d010 {
     int x;
     int y;
@@ -126,6 +141,12 @@ struct Header_0044d010 {
 };
 
 typedef std::vector<Point_0044eec0> Vec_0044d0e0;
+
+struct Obj_0044d310 {
+    char unknown_0[0x76];
+    short x;                           // +0x76
+    short y;                           // +0x78
+};
 
 // The circle area: the point at +0x8, radius +0xc and radiusSq +0x10
 // ((radius / 16) squared). The file-loading constructor 0x44d010 and its
@@ -147,17 +168,11 @@ public:
     ApproachRadius(Source_0044cf60* source, int x, int y, int r);
     ApproachRadius(int owner, HapiBank* file, char* name);
     int GetType();
-};
-
-class Class_0044d290 {
-public:
-    char unknown_0[0x8];
-    short x;                           // +0x8
-    short y;                           // +0xa
-    char unknown_c[0x10 - 0xc];
-    int radiusSq;                      // +0x10
-
+    void* Destroy(unsigned char flag);
+    int ContainsUnit(Obj_0044d310* obj);
     int ContainsCell(int px, int py);
+    int FillWorldPos(int* out);
+    int ApproxDistExcess(int px, int py);
 };
 
 struct Point_0044d2c0 {
@@ -177,42 +192,6 @@ struct Owner_0044d2c0 {
 };
 #pragma pack(pop)
 
-class Class_0044d2c0 {
-public:
-    char unknown_0[4];
-    Owner_0044d2c0* owner;             // +0x4
-    Point_0044d2c0 pos;                // +0x8
-
-    int FillWorldPos(int* out);
-};
-
-struct Obj_0044d310 {
-    char unknown_0[0x76];
-    short x;                           // +0x76
-    short y;                           // +0x78
-};
-
-class Class_0044d310 {
-public:
-    char unknown_0[0x8];
-    short x;                           // +0x8
-    short y;                           // +0xa
-    char unknown_c[0x10 - 0xc];
-    int radiusSq;                      // +0x10
-
-    int ContainsUnit(Obj_0044d310* obj);
-};
-
-class Class_0044d350 {
-public:
-    char unknown_0[0x8];
-    short x;                           // +0x8
-    short y;                           // +0xa
-    int radius;                        // +0xc
-
-    int ApproxDistExcess(int px, int py);
-};
-
 struct Point_0044d3b0 {
     short x;
     short y;
@@ -230,15 +209,6 @@ struct Source_0044d3b0 {
 };
 #pragma pack(pop)
 
-struct Class_0044d450
-{
-public:
-    void** vtable;
-    char unknown_4[0x49d];
-
-    Class_0044d450* Destroy(unsigned char flag);
-};
-
 struct Data_0044d470 {
     int a;
     int b;
@@ -253,16 +223,6 @@ struct Header_0044d470 {
 };
 
 typedef std::vector<Point_0044eec0> Vec_0044d560;
-
-class Class_0044d560 {
-public:
-    char unknown_0[8];
-    Point_0044eec0 pos;                // +0x8
-    int field_c;                       // +0xc
-    int field_10;                      // +0x10
-
-    void AppendGoalCell(Vec_0044d560* list);
-};
 
 struct Point_0044d720 {
     short x;
@@ -296,29 +256,6 @@ unsigned short __stdcall GetHeadingBetween(void* from, void* to);
 // Fixed-point trig helpers written in assembly.
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
-
-class Class_0044d720 {
-public:
-    char unknown_0[4];
-    Owner_0044d720* owner;             // +0x4
-    Point_0044d720 pos;                // +0x8
-    int radius1;                       // +0xc
-    int radius2;                       // +0x10
-
-    int FillWorldPos(Vec3_0044d720* out);
-};
-
-class Class_0044d7c0 {
-public:
-    char unknown_0[8];
-    short field_8;      // +0x8
-    short field_a;      // +0xa
-    char unknown_c[0x14 - 0xc];
-    int field_14;       // +0x14 (min distance squared)
-    int field_18;       // +0x18 (max distance squared)
-
-    bool ContainsCell(int param_1, int param_2);
-};
 
 struct Vec3_0044e3c0 {
     int x;
@@ -368,18 +305,6 @@ struct Unit {
 };
 #pragma pack(pop)
 
-class Class_0044d800 {
-public:
-    char unknown_0[8];
-    short field_8;                     // +0x8
-    short field_a;                     // +0xa
-    char unknown_c[0x14 - 0xc];
-    int field_14;                      // +0x14 (min distance squared)
-    int field_18;                      // +0x18 (max distance squared)
-
-    int ContainsUnit(Unit* unit);
-};
-
 // The donut area: the point at +0x8, inner radius +0xc, outer +0x10 and each
 // (radius / 16) squared at +0x14 and +0x18. The two constructors' view (a
 // point and two radii) and the bit-stream view (x, y, inner, outer) name the
@@ -389,7 +314,7 @@ class RingApproach : public OrderFx {
 public:
     union {
         struct {
-            Point_0044d3b0 pos;        // +0x8
+            Point_0044eec0 pos;        // +0x8
             int radius2;               // +0xc
             int radius1;               // +0x10
             int radius2Sq;             // +0x14
@@ -409,6 +334,11 @@ public:
     RingApproach(Source_0044d3b0* source, int x, int y, int r1, int r2);
     RingApproach(int owner, HapiBank* file, char* name);
     int GetType();
+    void* Destroy(unsigned char flag);
+    int ContainsUnit(Unit* unit);
+    bool ContainsCell(int px, int py);
+    void AppendGoalCell(Vec_0044d560* list);
+    int FillWorldPos(Vec3_0044d720* out);
 };
 
 struct View_0044d8a0 {
@@ -429,13 +359,6 @@ struct Point_0044d8a0 {
     short y;
 };
 
-class Class_0044d910 {
-public:
-    virtual ~Class_0044d910() {}
-
-    Class_0044d910* Destroy(unsigned char should_delete);
-};
-
 struct Rect_0044d930 {
     int a;
     int b;
@@ -449,17 +372,6 @@ struct Header_0044d930 {
 };
 
 typedef std::vector<Point_0044eec0> Vec_0044da00;
-
-class Class_0044da00 {
-public:
-    char unknown_0[8];
-    int x1;                 // +0x8
-    int x2;                 // +0xc
-    int y1;                 // +0x10
-    int y2;                 // +0x14
-
-    void AppendGoalCell(Vec_0044da00* list);
-};
 
 struct Pos16_44dc60 {
     short x;
@@ -497,27 +409,9 @@ public:
     PointMarker(Owner_0044d8a0* owner, Point_0044d8a0 pos, Point_0044d8a0 size);
     PointMarker(int owner, HapiBank* file, char* name);
     int GetType();
-};
-
-class Class_0044dcb0 {
-public:
-    char unknown_0[8];
-    int x1;                  // +8
-    int x2;                  // +0xc
-    int y1;                  // +0x10
-    int y2;                  // +0x14
-
+    void* Destroy(unsigned char should_delete);
+    void AppendGoalCell(Vec_0044da00* list);
     int ContainsCell(int x, int y);
-};
-
-class Class_0044dd00 {
-public:
-    char unknown_0[8];
-    int x1;                            // +0x8
-    int x2;                            // +0xc
-    int y1;                            // +0x10
-    int y2;                            // +0x14
-
     int ApproxDist(int x, int y);
 };
 
@@ -534,29 +428,28 @@ public:
     void WriteBits(int value, int bits);
 };
 
-struct Target_0044ddc0 {
-    char unknown_0[0xa8];
-    unsigned short field_a8;        // +0xa8
-};
-
-class PathOrder {
+class PathOrder : public OrderFx {
 public:
-    char unknown_0[8];
     unsigned short flags;           // +0x8
     short field_a;                  // +0xa
     short field_c;                  // +0xc
     short field_e;                  // +0xe
     short field_10;                 // +0x10
-    char unknown_12[0x1a - 0x12];
-    Target_0044ddc0* ptr;           // +0x1a
-    char unknown_1e[0x26 - 0x1e];
-    int field_26;                   // +0x26
-    int field_2a;                   // +0x2a
-    int field_2e;                   // +0x2e
+    Unit* unit;                     // +0x12
+    char unknown_16[4];             // +0x16
+    Unit* target;                   // +0x1a
+    char unknown_1e[8];             // +0x1e
+    Vec3_0044e3c0 pos;              // +0x26
+    int field_32;                   // +0x32
 
     void SerializeToBits(BitWriter* stream);
     int GetType();
     int IsFxStyle();
+    void* Destroy(unsigned char flag);
+    int SerializeToSave(int unused, HapiBank* file, char* name);
+    int KeepAfterComplete();
+    int FillWorldPos(Vec3_0044e3c0* out);
+    int GetDesiredHeading(unsigned short* out);
 };
 
 #pragma pack(pop)
@@ -634,14 +527,6 @@ public:
     Class_0044de80(int owner, HapiBank* file, char* name);
 };
 #pragma pack(pop)
-
-class Class_0044df80 {
-public:
-    void** vtable;
-    char unknown_4[0x12];
-
-    void* Destroy(unsigned char flag);
-};
 
 // Reads bit fields from an array of dwords, lowest bits first.
 // Bit reader, see src/network/net_stats.cpp.
@@ -800,58 +685,6 @@ public:
 #pragma pack(pop)
 
 #pragma pack(push, 1)
-class Class_0044e3a0 {
-public:
-    char unknown_0[8];
-    unsigned char field_8;
-    char unknown_9[17];
-    int field_1a;
-
-    int KeepAfterComplete();
-};
-
-class Class_0044e3c0 {
-public:
-    char unknown_0[8];
-    unsigned short flags;                  // +0x8
-    short field_a;                         // +0xa
-    short field_c;                         // +0xc
-    short field_e;                         // +0xe
-    short field_10;                        // +0x10
-    Unit* unit;                            // +0x12
-    char unknown_16[4];                    // +0x16
-    Unit* target;                          // +0x1a
-    char unknown_1e[8];                    // +0x1e
-    Vec3_0044e3c0 pos;                     // +0x26
-    int field_32;                          // +0x32
-
-    int FillWorldPos(Vec3_0044e3c0* out);
-};
-
-struct Vec3_0044e530 {
-    int x, y, z;
-};
-
-struct Object_0044e530 {
-    char unknown_0[0x66];
-    unsigned short heading;            // +0x66
-    char unknown_68[0x6a - 0x68];
-    Vec3_0044e530 pos;                 // +0x6a
-};
-
-class Class_0044e530 {
-public:
-    char unknown_0[8];
-    unsigned short flags;              // +0x08
-    char unknown_a[0xe - 0xa];
-    unsigned short heading;            // +0x0e
-    char unknown_10[0x12 - 0x10];
-    Object_0044e530* self;             // +0x12
-    char unknown_16[0x1a - 0x16];
-    Object_0044e530* target;           // +0x1a
-    int GetDesiredHeading(unsigned short* out);
-};
-
 struct Vec3_0044e5b0 {
     int x, y, z;
 };
@@ -973,13 +806,6 @@ struct Header_0044e740 {
 
 #pragma pack(pop)
 
-class Class_0044e7b0 {
-public:
-    void* vtable;
-
-    void* Destroy(int param_1);
-};
-
 struct Owner_0044e9c0;
 
 #pragma pack(push, 2)
@@ -1018,7 +844,13 @@ class AirManeuverOrder : public OrderFx {
 public:
     union {
         struct {
-            unsigned short field_8;    // +0x8, bit 0: heading set
+            union {
+                unsigned short field_8;    // +0x8, bit 0: heading set
+                struct {
+                    unsigned short headingSet : 1;
+                    unsigned short unknown_rest : 15;
+                };
+            };
             Vec3_0044e740 target;      // +0xa
             Vec3_0044e740 other;       // +0x16
             short field_22;            // +0x22
@@ -1052,38 +884,11 @@ public:
     int GetType();
     int IsFxStyle();
     int KeepAfterComplete();
-};
-#pragma pack(pop)
-
-struct Vec3_0044eb40 {
-    int x, y, z;
-};
-
-#pragma pack(push, 1)
-struct Object_0044eb40 {
-    char unknown_0[0x6a];
-    Vec3_0044eb40 pos;                 // +0x6a
-};
-
-class Class_0044eb40 {
-public:
-    char unknown_0[0xa];
-    Vec3_0044eb40 target;              // +0x0a
-    char unknown_16[0x28 - 0x16];
-    Object_0044eb40* self;             // +0x28
+    void* Destroy(int param_1);
     int GetDesiredHeading(unsigned short* out);
-};
-#pragma pack(pop)
-
-struct Class_0044ec20 {
-    char unknown_0[8];
-    unsigned short flag : 1;           // +0x8 bit 0
-    unsigned short unknown_rest : 15;
-    char unknown_a[0x24 - 0xa];
-    short value;                       // +0x24
-
     void SetHeading(short v);
 };
+#pragma pack(pop)
 
 // The same vector as 0x44ee90 (_Ucopy) and 0x44eec0 (_Ufill): 0x44d0e0,
 // 0x44d560 and 0x44da00 call 0x44ee90 and then this with ecx set to it.
@@ -1326,8 +1131,8 @@ void* OrderFx::Destroy(unsigned char flag)
     return this;
 }
 
-// FUNCTION: 0x44ce70
-Class_0044ce70::Class_0044ce70(int arg1, int arg2, int arg3)
+// FUNCTION: 0x44ce70 ??0OrderFx@@QAE@HHH@Z
+OrderFx::OrderFx(int arg1, int arg2, int arg3)
 {
     vtable = DAT_004fd2f8;
 }
@@ -1341,7 +1146,7 @@ int __stdcall SerializeSave(int, int, int)
 // Slot 6 of the vtable at 0x4fd2f8: the default implementation ignores the
 // object and empties the caller's list (an inlined vector::clear()).
 // FUNCTION: 0x44ce90
-void Class_0044ce90::FillGoalCells(std::vector<Elem_0044ce90*>* list)
+void OrderFx::FillGoalCells(std::vector<Elem_0044ce90*>* list)
 {
     list->clear();
 }
@@ -1429,7 +1234,7 @@ int ApproachRadius::GetType()
 }
 
 // FUNCTION: 0x44cff0
-void* Class_0044cff0::Destroy(unsigned char flag)
+void* ApproachRadius::Destroy(unsigned char flag)
 {
     vtable = DAT_004fd2f8;
     if (flag & 1) {
@@ -1495,10 +1300,10 @@ void ApproachRadius::AppendGoalCell(Vec_0044d0e0* list)
 // Point version of 0x44d310: whether (px, py) lies within the circle around
 // (x, y).
 // FUNCTION: 0x44d290
-int Class_0044d290::ContainsCell(int px, int py)
+int ApproachRadius::ContainsCell(int px, int py)
 {
-    int dy = py - y;
-    int dx = px - x;
+    int dy = py - pos.y;
+    int dx = px - pos.x;
     return dx * dx + dy * dy <= radiusSq;
 }
 
@@ -1506,35 +1311,35 @@ int Class_0044d290::ContainsCell(int px, int py)
 // which use the same centre at +0x8): writes the centre, offset by a point
 // of the owner, as 16.16 world coordinates.
 
-static inline void ToWorld(int* out, Point_0044d2c0 a, Point_0044d2c0 b)
+static inline void ToWorld(int* out, Point_0044eec0 a, Point_0044d2c0 b)
 {
     out[0] = (a.x * 2 + b.x) << 19;
     out[2] = (a.y * 2 + b.y) << 19;
 }
 
 // FUNCTION: 0x44d2c0
-int Class_0044d2c0::FillWorldPos(int* out)
+int ApproachRadius::FillWorldPos(int* out)
 {
-    ToWorld(out, pos, owner->inner->pos);
+    ToWorld(out, pos, ((Owner_0044d2c0*)field_4)->inner->pos);
     return 1;
 }
 
 // Whether obj lies within the circle around (x, y).
 // FUNCTION: 0x44d310
-int Class_0044d310::ContainsUnit(Obj_0044d310* obj)
+int ApproachRadius::ContainsUnit(Obj_0044d310* obj)
 {
-    int dy = obj->y - y;
-    int dx = obj->x - x;
+    int dy = obj->y - pos.y;
+    int dx = obj->x - pos.x;
     return dx * dx + dy * dy <= radiusSq;
 }
 
 // Approximate distance from (px, py) to the edge of the circle around
 // (x, y), 0 when inside: 18 * major + 7 * minor axis distance.
 // FUNCTION: 0x44d350
-int Class_0044d350::ApproxDistExcess(int px, int py)
+int ApproachRadius::ApproxDistExcess(int px, int py)
 {
-    int dx = abs(px - x);
-    int dy = abs(py - y);
+    int dx = abs(px - pos.x);
+    int dy = abs(py - pos.y);
     int d;
     if (dx > dy)
         d = dy * 7 + dx * 18;
@@ -1555,7 +1360,7 @@ RingApproach::RingApproach(Source_0044d3b0* source, int x, int y, int r1, int r2
 {
     vtable = g_ringApproachVtable;
     Point_0044d3b0 org = source->map->origin;
-    Point_0044d3b0 p;
+    Point_0044eec0 p;
     p.x = (x - (org.x << 19) + 0x80000) >> 20;
     p.y = (y - (org.y << 19) + 0x80000) >> 20;
     pos = p;
@@ -1573,7 +1378,7 @@ int RingApproach::GetType()
 }
 
 // FUNCTION: 0x44d450
-Class_0044d450* Class_0044d450::Destroy(unsigned char flag)
+void* RingApproach::Destroy(unsigned char flag)
 {
     vtable = DAT_004fd2f8;
     if ((flag & 1) != 0) {
@@ -1627,14 +1432,14 @@ int RingApproach::Serialize(int unused, HapiBank* file, char* name)
 }
 
 // Clears a std::vector<Point_0044eec0> and then appends a copy of the point
-// at +0x8, with its y moved by (field_c + field_10) / 32.
+// at +0x8, with its y moved by (radius2 + radius1) / 32.
 // FUNCTION: 0x44d560
-void Class_0044d560::AppendGoalCell(Vec_0044d560* list)
+void RingApproach::AppendGoalCell(Vec_0044d560* list)
 {
     list->clear();
     Point_0044eec0 p = pos;
-    // Sum written field_10 + field_c: the operand order follows the load order.
-    p.y = p.y + (field_10 + field_c) / 32;
+    // Sum written radius1 + radius2: the operand order follows the load order.
+    p.y = p.y + (radius1 + radius2) / 32;
     list->push_back(p);
 }
 
@@ -1643,7 +1448,7 @@ void Class_0044d560::AppendGoalCell(Vec_0044d560* list)
 // back towards the owner by the mean of the two radii at +0xc and +0x10.
 // The mean needs its own inline helper to load +0xc first.
 
-static inline void ToWorld(Vec3_0044d720* out, Point_0044d720 a, Point_0044d720 b)
+static inline void ToWorld(Vec3_0044d720* out, Point_0044eec0 a, Point_0044d720 b)
 {
     out->x = (a.x * 2 + b.x) << 19;
     out->z = (a.y * 2 + b.y) << 19;
@@ -1660,18 +1465,18 @@ static inline Vec3_0044d720 Direction(short angle, int scale)
     return v;
 }
 
-static inline int MeanRadius(Class_0044d720* c)
+static inline int MeanRadius(RingApproach* c)
 {
-    // The locals keep the loads radius1 first; a single sum commutes them.
-    int r1 = c->radius1;
-    int r2 = c->radius2;
+    // The locals keep the loads of the inner radius first; a single sum commutes them.
+    int r1 = c->inner;
+    int r2 = c->outer;
     return (r1 + r2) / 2;
 }
 
 // FUNCTION: 0x44d720
-int Class_0044d720::FillWorldPos(Vec3_0044d720* out)
+int RingApproach::FillWorldPos(Vec3_0044d720* out)
 {
-    Inner_0044d720* inner = owner->inner;
+    Inner_0044d720* inner = ((Owner_0044d720*)field_4)->inner;
     ToWorld(out, pos, inner->cell);
     short angle = GetHeadingBetween(&inner->pos, out);
     Vec3_0044d720 d = Direction(angle, MeanRadius(this) << 16);
@@ -1682,23 +1487,23 @@ int Class_0044d720::FillWorldPos(Vec3_0044d720* out)
 }
 
 // FUNCTION: 0x44d7c0
-bool Class_0044d7c0::ContainsCell(int param_1, int param_2)
+bool RingApproach::ContainsCell(int px, int py)
 {
-    int dy = param_2 - field_a;
-    int dx = param_1 - field_8;
+    int dy = py - y;
+    int dx = px - x;
     int distSq = dx * dx + dy * dy;
-    return distSq <= field_18 && distSq >= field_14;
+    return distSq <= radius1Sq && distSq >= radius2Sq;
 }
 
 // Same test as 0x44d7c0, on a unit's position: 1 when the squared distance
-// from the centre lies within [field_14, field_18].
+// from the centre lies within [radius2Sq, radius1Sq].
 // FUNCTION: 0x44d800
-int Class_0044d800::ContainsUnit(Unit* unit)
+int RingApproach::ContainsUnit(Unit* unit)
 {
-    int dy = unit->y - field_a;
-    int dx = unit->x - field_8;
+    int dy = unit->y - y;
+    int dx = unit->x - x;
     int distSq = dx * dx + dy * dy;
-    return distSq <= field_18 && distSq >= field_14;
+    return distSq <= radius1Sq && distSq >= radius2Sq;
 }
 
 // Approximate distance from (px, py) to the ring around (x, y) with the
@@ -1742,10 +1547,10 @@ int PointMarker::GetType()
 }
 
 // FUNCTION: 0x44d910
-Class_0044d910* Class_0044d910::Destroy(unsigned char should_delete)
+void* PointMarker::Destroy(unsigned char should_delete)
 {
-    Class_0044d910* esi = this;
-    *(void**)esi = DAT_004fd2f8;
+    PointMarker* esi = this;
+    esi->vtable = DAT_004fd2f8;
     if (should_delete & 1) {
         operator delete(esi);
     }
@@ -1808,7 +1613,7 @@ int PointMarker::FillWorldPos(int* out)
 // Same rectangle layout as 0x44dc60 (x1/x2 at +8/+0xc, y1/y2 at +0x10/+0x14):
 // is the point (x, y) on the rectangle's border?
 // FUNCTION: 0x44dcb0
-int Class_0044dcb0::ContainsCell(int x, int y)
+int PointMarker::ContainsCell(int x, int y)
 {
     if ((x == x1 || x == x2) && y >= y1 && y <= y2) {
         return 1;
@@ -1829,7 +1634,7 @@ int Class_0044dcb0::ContainsCell(int x, int y)
 #define Min_0044dd00(a, b) ((a) < (b) ? (a) : (b))
 
 // FUNCTION: 0x44dd00
-int Class_0044dd00::ApproxDist(int x, int y)
+int PointMarker::ApproxDist(int x, int y)
 {
     int dx;
     if (x < x1) {
@@ -1869,7 +1674,7 @@ void PathOrder::SerializeToBits(BitWriter* stream)
     stream->WriteBits(flags, 8);
     if ((flags & 1) != 0) {
         stream->WriteBits(field_10, 0x10);
-        stream->WriteBits((int)(unsigned short)(ptr == 0 ? 0 : ptr->field_a8), 0x10);
+        stream->WriteBits((int)(unsigned short)(target == 0 ? 0 : (unsigned short)target->id), 0x10);
     }
     if ((flags & 0x10) != 0) {
         stream->WriteBits(field_a, 0x10);
@@ -1881,9 +1686,9 @@ void PathOrder::SerializeToBits(BitWriter* stream)
         stream->WriteBits(field_e, 0x10);
     }
     if ((flags & 0x20) != 0) {
-        stream->WriteBits(field_26, 0x20);
-        stream->WriteBits(field_2a, 0x20);
-        stream->WriteBits(field_2e, 0x20);
+        stream->WriteBits(pos.x, 0x20);
+        stream->WriteBits(pos.y, 0x20);
+        stream->WriteBits(pos.z, 0x20);
     }
 }
 
@@ -1925,7 +1730,7 @@ int PathOrder::GetType()
 // restore this object's own vtable, conditionally operator delete, and
 // return `this`.
 // FUNCTION: 0x44df80
-void* Class_0044df80::Destroy(unsigned char flag)
+void* PathOrder::Destroy(unsigned char flag)
 {
     ((UnitRef*)((char*)this + 0x16))->Unlink();
     vtable = DAT_004fd2f8;
@@ -1934,17 +1739,6 @@ void* Class_0044df80::Destroy(unsigned char flag)
     }
     return this;
 }
-
-struct Unit_0044dfb0 {
-    char unknown_0[0xa8];
-    short id;                       // +0xa8
-};
-
-struct Vec3_0044dfb0 {
-    int x;
-    int y;
-    int z;
-};
 
 #pragma pack(push, 2)
 struct Rec_0044dfb0 {
@@ -1961,28 +1755,8 @@ struct Rec_0044dfb0 {
     short f3;                       // +0x20
     short f4;                       // +0x22
     short f5;                       // +0x24
-    Vec3_0044dfb0 pos;              // +0x26
+    Vec3_0044e3c0 pos;              // +0x26
     int i4;                         // +0x32
-};
-
-class Class_0044dfb0 {
-public:
-    void* vtable;                   // +0x0
-    void* field_4;                  // +0x4
-    short f8;                       // +0x8
-    short fa;                       // +0xa
-    short fc;                       // +0xc
-    short fe;                       // +0xe
-    short f10;                      // +0x10
-    Unit_0044dfb0* unit1;           // +0x12
-    void* ref_vt;                   // +0x16 (PathOrderAttach)
-    Unit_0044dfb0* owner;           // +0x1a
-    void* ref_next;                 // +0x1e
-    int ref_value;                  // +0x22
-    Vec3_0044dfb0 pos;              // +0x26
-    int i4;                         // +0x32
-
-    int SerializeToSave(int unused, HapiBank* file, char* name);
 };
 #pragma pack(pop)
 
@@ -1997,27 +1771,27 @@ public:
 // counterpart (0x44de80) reads all 0x36 bytes but never looks at 0..7, so the
 // bytes are only leaked, never used.
 // FUNCTION: 0x44dfb0
-int Class_0044dfb0::SerializeToSave(int unused, HapiBank* file, char* name)
+int PathOrder::SerializeToSave(int unused, HapiBank* file, char* name)
 {
     // The first 8 bytes of rec stay unassigned, as in the original.
     Rec_0044dfb0 rec;
     PathOrderAttach* ref = (PathOrderAttach*)&rec.ref_vt;
     ref->PathOrderAttach::PathOrderAttach(0, 0);
-    if (unit1 == 0)
+    if (unit == 0)
         rec.id1 = 0;
     else
-        rec.id1 = unit1->id;
-    if (owner == 0)
+        rec.id1 = unit->id;
+    if (target == 0)
         rec.id2 = 0;
     else
-        rec.id2 = owner->id;
-    rec.f1 = f8;
-    rec.f2 = fa;
-    rec.f3 = fc;
-    rec.f4 = fe;
-    rec.f5 = f10;
+        rec.id2 = target->id;
+    rec.f1 = flags;
+    rec.f2 = field_a;
+    rec.f3 = field_c;
+    rec.f4 = field_e;
+    rec.f5 = field_10;
     rec.pos = pos;
-    rec.i4 = i4;
+    rec.i4 = field_32;
     file->OpenNamedBox(name);
     file->SeekBox(0);
     file->WriteBox(&rec, 0x36);
@@ -2125,8 +1899,8 @@ Class_0044e330::Class_0044e330(Source_0044e330* source, int unit, const Vec3_004
 }
 
 // FUNCTION: 0x44e3a0
-int Class_0044e3a0::KeepAfterComplete() {
-    if ((field_8 & 1) == 0 || field_1a == 0) {
+int PathOrder::KeepAfterComplete() {
+    if ((flags & 1) == 0 || target == 0) {
         return 0;
     }
     return 1;
@@ -2147,7 +1921,7 @@ static inline Vec3_0044e3c0 Direction_0044e3c0(short angle, int scale)
 }
 
 // FUNCTION: 0x44e3c0
-int Class_0044e3c0::FillWorldPos(Vec3_0044e3c0* out)
+int PathOrder::FillWorldPos(Vec3_0044e3c0* out)
 {
     unsigned short f = flags;
     if ((f & 1) && !(f & 0x80)) {
@@ -2182,23 +1956,23 @@ int Class_0044e3c0::FillWorldPos(Vec3_0044e3c0* out)
 }
 
 // FUNCTION: 0x44e530
-int Class_0044e530::GetDesiredHeading(unsigned short* out)
+int PathOrder::GetDesiredHeading(unsigned short* out)
 {
     unsigned short f = flags;
     if ((f & 0x84) && target != 0) {
         if (f & 2) {
-            *out = GetHeadingBetween(&self->pos, &target->pos);
+            *out = GetHeadingBetween(&unit->pos, &target->pos);
             return 1;
         }
         if (f & 0x40) {
-            *out = heading;
+            *out = field_e;
             return 1;
         }
         *out = target->heading;
         return 1;
     }
     if (f & 0x40) {
-        *out = heading;
+        *out = field_e;
         return 1;
     }
     return 0;
@@ -2290,7 +2064,7 @@ int AirManeuverOrder::GetType()
 }
 
 // FUNCTION: 0x44e7b0
-void* Class_0044e7b0::Destroy(int param_1)
+void* AirManeuverOrder::Destroy(int param_1)
 {
     vtable = &DAT_004fd2f8;
     if ((param_1 & 1) != 0) {
@@ -2425,7 +2199,7 @@ int AirManeuverOrder::FillWorldPos(Vec3_0044e740* out)
 // Virtual slot 9 (vtable at 0x4fd3f8), the same slot as 0x44e530: writes the
 // heading from the owner's position (+0x6a) to the target point at +0xa.
 // FUNCTION: 0x44eb40
-int Class_0044eb40::GetDesiredHeading(unsigned short* out)
+int AirManeuverOrder::GetDesiredHeading(unsigned short* out)
 {
     *out = GetHeadingBetween(&self->pos, &target);
     return 1;
@@ -2465,10 +2239,10 @@ void AirManeuverOrder::SetAltitude(int)
 // Sets a flag bit in the word at +0x8 (a 1-bit unsigned short bitfield, which
 // MSVC sets with `or byte ptr` straight to memory) and stores a short.
 // FUNCTION: 0x44ec20
-void Class_0044ec20::SetHeading(short v)
+void AirManeuverOrder::SetHeading(short v)
 {
-    flag = 1;
-    value = v;
+    headingSet = 1;
+    heading = v;
 }
 
 // std::vector<Point_0044eec0>::_Destroy(first, last) from MSVC 5's <vector>:

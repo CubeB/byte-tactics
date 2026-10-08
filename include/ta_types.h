@@ -225,7 +225,7 @@ class Class_00438b90;
 class Class_00439e80;
 class Class_0043a1e0;
 class Class_0043a420;
-class Class_0043c360;
+class MissionOrderTable;
 class Class_0043cbb0;
 class Class_0043cc20;
 class Class_0043cd20;
@@ -6560,7 +6560,7 @@ struct Elem_0043c390 {  // 0x19 bytes, 8 views
     int operator!=(Elem_0043c390&);
 };
 
-class Class_0043c360 {  // 0xc bytes, 1 view
+class MissionOrderTable {  // 0xc bytes, 1 view
 public:
     char unknown_0[4];
     int field_4;  // +0x4

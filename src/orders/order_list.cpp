@@ -907,7 +907,7 @@ void __stdcall AddOrder(int kind, int remove, Unit* owner, void* id,
 // The second part's own views: the mover object and the sort's holders.
 #pragma pack(push, 1)
 
-class Class_0043c360 {
+class MissionOrderTable {
 public:
     char unknown_0[0x4];
     int field_4;
@@ -916,13 +916,15 @@ public:
     int GetCount(void);
 };
 
-class Class_0043cbb0 {
-public:
-    char unknown_0[0x24];
-    short turn;                        // +0x24
-
-    void ApplyClampedTurnDelta(Unit* unit, short amount);
-};
+// Unused here: forward declarations of real functions; their symbol ids keep
+// the allocation the merged UnitMotion view moved (docs/c2-regalloc.md).
+void EnableAICommands();
+void ResetAIPlayers();
+void StepAllGafSequences();
+void ResetNetStats();
+void InitCommands();
+int UpdatePlacementGhostValidity();
+void RefreshSelectionOrders();
 
 typedef std::vector<Elem_0043c390> Vec_0043c390;
 typedef int(__stdcall* Pred_0043c390)(const Elem_0043c390&, const Elem_0043c390&);
@@ -984,6 +986,7 @@ public:
     UnitMotion(Unit* unit);
     void DestroyObject();
     void UpdateMotion(Unit* u);
+    void ApplyClampedTurnDelta(Unit* unit, short amount);
     void SaveMotion(Unit* info, HapiBank* file);
     void LoadMotion(Unit* unit, HapiBank* file);
 };
@@ -1572,7 +1575,7 @@ void ClearOrderTypeTable()
 }
 
 // FUNCTION: 0x43c360
-int Class_0043c360::GetCount(void)
+int MissionOrderTable::GetCount(void)
 {
     return field_4 == 0 ? 0 : (field_8 - field_4) / 0x19;
 }
@@ -1629,7 +1632,7 @@ Elem_0043c390* __stdcall LowerBoundOrderTypes(Elem_0043c390* first, Elem_0043c39
 // Clamps a turn amount to +-the unit type's limit, applies it to the unit's
 // heading and flags the unit as moved.
 // FUNCTION: 0x43cbb0
-void Class_0043cbb0::ApplyClampedTurnDelta(Unit* unit, short amount)
+void UnitMotion::ApplyClampedTurnDelta(Unit* unit, short amount)
 {
     if (amount != 0) {
         unsigned short max = unit->type->max_turn;

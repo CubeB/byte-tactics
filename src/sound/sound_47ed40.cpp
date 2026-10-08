@@ -81,7 +81,7 @@ struct Unit {
     char unknown_0[0x92];
     char* name;                        // +0x92
     char unknown_96[0xa8 - 0x96];
-    unsigned short field_a8;           // +0xa8
+    unsigned short id;           // +0xa8
     char unknown_aa[0xff - 0xaa];
     unsigned char owner;               // +0xff
     char unknown_100[0x110 - 0x100];
@@ -782,7 +782,7 @@ void SpeechQueue::PlaySpeech(int index, int param_2, int param_3)
         if (e->unit->flags & 0x10000000) {
             char msg[100];
             sprintf(msg, "%s: %s", e->unit->name, text);
-            AddMessage(msg, 1, e->unit->field_a8, '\n');
+            AddMessage(msg, 1, e->unit->id, '\n');
         }
     }
 }

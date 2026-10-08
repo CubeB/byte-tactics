@@ -73,9 +73,9 @@ struct Unit {
         Vec3 pos;                      // +0x6a
         FixedVec3 fixedPos;
     };
-    char pad76[0x86 - 0x76]; int field_86;
+    char pad76[0x86 - 0x76]; int carrier;
     char pad8a[8]; UnitDef* def;
-    Struct_Unit96* field_96;
+    Struct_Unit96* player;
     char pad9a[0x108 - 0x9a]; short health;
     char pad10a[0x110 - 0x10a]; unsigned int flags;
     void ReleaseWeapons(int);
@@ -143,7 +143,7 @@ static inline Vec3 Offset(short angle, int distance)
 void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
     unit->ClaimWeapons(3);
-    if (unit->field_86)
+    if (unit->carrier)
         AttachUnitToPiece(unit, 0, -1, 2);
     unit->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
@@ -266,7 +266,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
         order->flags = 0xe2;
         if (unit->health < unit->def->maxHealth / 4 * 3) {
             std::vector<Unit*> pads;
-            GetFactoriesInRadius(unit->field_96->field_146, &unit->pos, 0xf00, &pads);
+            GetFactoriesInRadius(unit->player->field_146, &unit->pos, 0xf00, &pads);
             if (!pads.empty()) {
                 ((Class_004388d0*)order)->SetAttachedFx(0);
                 Unit* pad = pads[RandomInt(pads.size())];

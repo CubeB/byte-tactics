@@ -189,7 +189,7 @@ struct Unit {
     CobScript* f9a;                    // +0x9a
     Block* block;                      // +0x9e
     char unknown_a2[0xa6 - 0xa2];
-    unsigned short field_a6;           // +0xa6
+    unsigned short unitDefIndex;           // +0xa6
     unsigned short id;                 // +0xa8
     char unknown_aa[0xf5 - 0xaa];
     unsigned char ff5;                 // +0xf5
@@ -201,10 +201,10 @@ struct Unit {
     int ffb;                           // +0xfb
     unsigned char playerIndex;         // +0xff
     char unknown_100[0x104 - 0x100];
-    float field_104;                   // +0x104
-    short field_108;                   // +0x108
+    float buildLeft;                   // +0x104
+    short health;                   // +0x108
     char unknown_10a[0x10e - 0x10a];
-    unsigned char field_10e;           // +0x10e
+    unsigned char activateFlags;           // +0x10e
     char unknown_10f[0x110 - 0x10f];
     union {
         unsigned int flags;            // +0x110
@@ -580,7 +580,7 @@ void __stdcall UpdateAllUnits(void)
             Unit* last = p->f6b;
             Unit* u = p->f67;
             while (u <= last) {
-                    if (u->field_a6 != 0) {
+                    if (u->unitDefIndex != 0) {
                         (*cnt)++;
                         UpdateWindGenerator(u);
                         if (p->f0 != 0) {
@@ -599,14 +599,14 @@ void __stdcall UpdateAllUnits(void)
                             u->ffb--;
                         }
                         if (u->f110.bits.b4 != 0) {
-                            if (!(u->f110.bits.b5) || u->field_104 != 0.0f || u->ffb != 0
+                            if (!(u->f110.bits.b5) || u->buildLeft != 0.0f || u->ffb != 0
                                 || (u->owner != 0 && !(u->owner->f110.bits.b30))) {
                                 u->f110.bits.b4 = 0;
                             }
                         }
                         // Unsigned `% 30` (here and below) keeps the original's `div`.
                         if ((unsigned int)g_game->ticks % 30 == 0) {
-                            int v = u->field_108 * 100 / u->type->f1fa;
+                            int v = u->health * 100 / u->type->f1fa;
                             if (v < 0) {
                                 v = 0;
                             }
@@ -626,7 +626,7 @@ void __stdcall UpdateAllUnits(void)
                                     && !u->type->f241.bits.floats) {
                                     DamageUnit(0, u, g_game->mode->waterDamage, 0xb, 0);
                                 }
-                                if (u->type->f200 != 0 && u->field_108 < u->type->f1fa
+                                if (u->type->f200 != 0 && u->health < u->type->f1fa
                                     && (g_game->ticks & 7) == 0) {
                                     int n = u->type->f200 * 8;
                                     AddRepairProgress(u, u, (float)(n / 30));
@@ -676,13 +676,13 @@ void __stdcall UpdateAllUnits(void)
 void __stdcall WriteUnitState(BitWriter* stream, Unit* u)
 {
     extern Game* g_game;
-    stream->WriteBits(u->field_a6, g_game->field_14393);
-    if (u->field_a6 == 0)
+    stream->WriteBits(u->unitDefIndex, g_game->field_14393);
+    if (u->unitDefIndex == 0)
         return;
-    stream->WriteBits(u->field_108, 0x10);
+    stream->WriteBits(u->health, 0x10);
     // `!= 0.0f` gives the original's fcomp / C3 test.
-    stream->WriteBits((u->field_104 != 0.0f) ? 1 - (int)(u->field_104 * -254.0f) : 0, 8);
-    stream->WriteBits(u->field_10e, 8);
+    stream->WriteBits((u->buildLeft != 0.0f) ? 1 - (int)(u->buildLeft * -254.0f) : 0, 8);
+    stream->WriteBits(u->activateFlags, 8);
     stream->WriteBits(u->flags & 3, 2);
     if (u->owner) {
         // Hand-written advance: the store through stream->data reloads and retests the link.
@@ -749,11 +749,11 @@ void __stdcall ReadUnitState(BitReader* reader, Unit* u)
     // A local declared after the first read: keeps the 0 in ebp, compared as 16 bit.
     int zero = 0;
     if (type == zero) {
-        if (u->field_a6 != zero)
+        if (u->unitDefIndex != zero)
             u->f110.bits.b14 = 1;
         return;
     }
-    if (u->field_a6 != type) {
+    if (u->unitDefIndex != type) {
         Spawn spawn;
         spawn.type = type;
         spawn.id = u->id;
@@ -763,12 +763,12 @@ void __stdcall ReadUnitState(BitReader* reader, Unit* u)
         CreateUnitFromPacket((u->tail16.a & ~0xff) | u->playerIndex, &spawn);
     }
     u->block->field_10 = zero;
-    u->field_108 = reader->ReadBits(0x10);
+    u->health = reader->ReadBits(0x10);
     // Unsigned into an __int64: gives `fild qword` with no `cdq`.
     __int64 alpha = (unsigned int)reader->ReadBits(8);
     float scale = (float)alpha * g_buildPercentScale;
-    if (scale != u->field_104) {
-        u->field_104 = scale;
+    if (scale != u->buildLeft) {
+        u->buildLeft = scale;
         u->f110.bits.b13 = 1;
     }
     // Byte-typed: SetStateBits takes a byte, spilled with a byte store.
@@ -849,7 +849,7 @@ void __stdcall SendUnitStates(Player* p)
         if (!u->motion->player->v7())
             continue;
         stream.WriteBits(u->id - u->player->field_6f, 0x10);
-        stream.WriteBits(u->field_a6, g_game->field_14393);
+        stream.WriteBits(u->unitDefIndex, g_game->field_14393);
         u->motion->player->WriteTo(&stream);
         // `>> 3`, not `/ 8`: that is the original's `add ecx, 7; sar ecx, 3`
         // with no sign fix-up.
@@ -910,7 +910,7 @@ void __stdcall ReceiveUnitStates(Player* p, unsigned int* data)
     while (index != -1) {
         Unit* unit = &p->f67[index];
         unsigned short type = (unsigned short)reader.ReadBits(g_game->field_14393);
-        if (unit->field_a6 != type) {
+        if (unit->unitDefIndex != type) {
             // Declared inside the `if`: at function scope the two struct copies are not interleaved.
             Spawn spawn;
             spawn.id = unit->id;

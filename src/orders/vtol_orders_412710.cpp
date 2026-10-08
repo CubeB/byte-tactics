@@ -59,10 +59,10 @@ struct Unit {
         struct { unsigned short xf; short x; int y; unsigned short zf; short z; } p;
     };
     char pad76[0x82 - 0x76];
-    int field_82; int field_86;
+    int spatialBucket; int carrier;
     char pad8a[8]; UnitDef* def;
     Player* player;
-    char pad9a[0x108 - 0x9a]; short field_108;
+    char pad9a[0x108 - 0x9a]; short health;
     char pad10a[0x110 - 0x10a]; unsigned int flags;
     void ClaimWeapons(int);
     void ReleaseWeapons(int);
@@ -128,7 +128,7 @@ static inline Vec3 Offset(short angle, int distance)
 
 // Empty inline call sites: see the header.
 static inline void Dummy(void) {}
-static inline int IsDamaged(Unit* u) { return (unsigned int)u->field_108 < (u->def->maxHealth >> 2) * 3; }
+static inline int IsDamaged(Unit* u) { return (unsigned int)u->health < (u->def->maxHealth >> 2) * 3; }
 static inline int GetSpeed(Unit* unit)
 {
     return unit->mover->speed;
@@ -137,7 +137,7 @@ static inline int GetSpeed(Unit* unit)
 void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
     ((Unit*)unit)->ClaimWeapons(3);
-    if (unit->field_86)
+    if (unit->carrier)
         AttachUnitToPiece(unit, 0, -1, 2);
     ((Unit*)unit)->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
@@ -166,7 +166,7 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
     }
     if (order->target)
         order->pos = order->target->pos;
-    if (unit->field_82 == g_game->field_142b7) {
+    if (unit->spatialBucket == g_game->field_142b7) {
         ((Class_00439e80*)order)->SetDeadlineTicks(0x1e);
         order->state = 2;
     }

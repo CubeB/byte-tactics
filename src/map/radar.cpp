@@ -170,14 +170,14 @@ struct Unit {
     char unknown_76[0x1c];
     UnitType_00466dc0* type;             // +0x92
     char unknown_96[0x10];
-    short field_a6;                      // +0xa6
-    short field_a8;                      // +0xa8
+    short unitDefIndex;                      // +0xa6
+    short id;                      // +0xa8
     char unknown_aa[0x50];
-    unsigned char field_fa;              // +0xfa
+    unsigned char recentlyDamagedTimer;              // +0xfa
     char unknown_fb[0x4];
-    unsigned char field_ff;              // +0xff
+    unsigned char playerIndex;              // +0xff
     char unknown_100[0xe];
-    unsigned char field_10e;             // +0x10e
+    unsigned char activateFlags;             // +0x10e
     char unknown_10f[0x1];
     Flags110_00466dc0 flags_110;         // +0x110
     char unknown_114[0x4];
@@ -630,25 +630,25 @@ void DrawRadarUnits(void)
     if (u <= end) {
         do {
             UnitType_00466dc0*& type = u->type;
-            if (u->field_a6 != 0) {
+            if (u->unitDefIndex != 0) {
                 if (enabled != 0 || (u->flags_110.all & 0x300) != 0 ||
-                    u->field_ff == g_game->currentPlayer) {
+                    u->playerIndex == g_game->currentPlayer) {
                     int x = u->field_6c * g_game->width /
                             g_game->mapWidth;
                     int y = ScaleY_00466dc0(u) / g_game->mapHeight;
-                    if (u->field_fa == 0 ||
+                    if (u->recentlyDamagedTimer == 0 ||
                         (g_game->timer.byte.field_142f0.b.hi & 1) != 0) {
                         DrawFrame(surface,
                             GetGafFrame(g_game->field_147df,
-                                PlayerInfo_00466dc0_Get(u->field_ff)->data->field_96),
+                                PlayerInfo_00466dc0_Get(u->playerIndex)->data->field_96),
                             x, y);
                     }
-                    if (u->field_a8 == g_game->field_2cba) {
+                    if (u->id == g_game->field_2cba) {
                         DrawFrame(surface,
                             GetGafFrame(g_game->field_147e3, 0), x, y);
                     }
                     if (u->flags_110.bits.bit4) {
-                        if ((u->field_10e & 1) != 0 ||
+                        if ((u->activateFlags & 1) != 0 ||
                             (type->flags2 & 4) == 0) {
                             if (type->radardistance != 0)
                                 DrawCircle(surface, x, y,
@@ -687,7 +687,7 @@ void DrawRadarUnits(void)
                             } while (n != 0);
                         }
                     }
-                    out[0] = u->field_a8;
+                    out[0] = u->id;
                     *(int*)(out + 1) = g_game->posX + x;
                     *(int*)(out + 3) = g_game->posY + y;
                     out += 5;
@@ -717,7 +717,7 @@ void DrawRadarUnits(void)
                 }
             } else {
                 if (OnRadar_00466dc0(px, py) ||
-                    ((Tail_00466dc0*)((char*)q))->owner->field_ff ==
+                    ((Tail_00466dc0*)((char*)q))->owner->playerIndex ==
                         g_game->currentPlayer) {
                     DrawFrame(surface,
                         GetGafFrame(g_game->field_147e7,

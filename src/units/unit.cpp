@@ -132,7 +132,7 @@ public:
         };
     };
     char unknown_72[0x8a - 0x72];
-    Node_00489a90* field_8a;           // +0x8a, list head of the cargo count
+    Node_00489a90* cargo;           // +0x8a, list head of the cargo count
     char unknown_8e[4];
     Def_00489a90* def;                 // +0x92
     Player_0048b090* player;           // +0x96
@@ -277,7 +277,7 @@ fail:
 int Unit::CountCargo()
 {
     int count = 0;
-    Node_00489a90* node = field_8a;
+    Node_00489a90* node = cargo;
     while (node) {
         if (node->owner == this)
             count++;

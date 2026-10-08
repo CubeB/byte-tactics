@@ -57,13 +57,13 @@ struct Unit {
     UnitPos_00467440 pos;              // +0x6a
     char unknown_76[0x92 - 0x76];
     UnitDef_00467440* def;             // +0x92
-    Owner_00467440* field_96;          // +0x96
+    Owner_00467440* player;          // +0x96
     char unknown_9a[0xb0 - 0x9a];
-    int field_b0;                      // +0xb0
+    int workTime;                      // +0xb0
     char unknown_b4[0xff - 0xb4];
-    unsigned char field_ff;            // +0xff
+    unsigned char playerIndex;            // +0xff
     char unknown_100[0x10e - 0x100];
-    unsigned char field_10e;           // +0x10e
+    unsigned char activateFlags;           // +0x10e
     char unknown_10f;
     unsigned int flags;                // +0x110
     char unknown_114[0x118 - 0x114];
@@ -180,9 +180,9 @@ void UpdateSensorRadarAndCloak(void)
     for (a = first; a <= last; a++) {
         if (a->flags & 0x10000000) {
             a->flags &= ~0x1000;
-            if (a->field_ff == player
-                || (a->field_96->field_108[pl->field_146] != 0
-                    && (a->field_96->data->field_97 & 0x40) != 0)
+            if (a->playerIndex == player
+                || (a->player->field_108[pl->field_146] != 0
+                    && (a->player->data->field_97 & 0x40) != 0)
                 || (*(int*)pl != 0 && (pl->data->field_9b & 0x40) != 0)) {
                 a->flags |= 0x300;
             } else {
@@ -192,7 +192,7 @@ void UpdateSensorRadarAndCloak(void)
     }
 
     for (u = pl->field_67; u <= pl->field_6b; u++) {
-        if ((u->flags & 0x10000000) && !(u->flags & 0x4000) && (u->field_10e & 1)) {
+        if ((u->flags & 0x10000000) && !(u->flags & 0x4000) && (u->activateFlags & 1)) {
             if (u->def->radardistance != 0 || u->def->sonardistance != 0) {
                 // t is computed before b is loaded, then squared.
                 short a = u->def->radardistance;
@@ -214,9 +214,9 @@ void UpdateSensorRadarAndCloak(void)
     }
 
     for (u = first; u <= last; u++) {
-        // The ff local and the `, 1` term keep the field_ff load a separate term.
+        // The ff local and the `, 1` term keep the playerIndex load a separate term.
         unsigned char ff;
-        if ((u->flags & 0x10000000) && (ff = u->field_ff, 1) && ff != pl->field_146 && (u->field_10e & 1)) {
+        if ((u->flags & 0x10000000) && (ff = u->playerIndex, 1) && ff != pl->field_146 && (u->activateFlags & 1)) {
             if (u->def->radardistancejam != 0) {
                 int r = (int)u->def->radardistancejam << 16;
                 Vec3_00467440* pp = &u->pos.vec;
@@ -233,13 +233,13 @@ void UpdateSensorRadarAndCloak(void)
     }
 
     for (u = first; u <= last; u++) {
-        if ((u->flags & 0x10000000) && u->field_96->field_0 != 0) {
-            char c = u->field_96->field_73;
+        if ((u->flags & 0x10000000) && u->player->field_0 != 0) {
+            char c = u->player->field_73;
             if (c == 1 || c == 2) {
                 if (u->def->flags2 & 0x2000) {
-                    if (HasReadyUnitInRange(u->field_ff, &u->pos.vec, u->def->mincloakdistance)) {
+                    if (HasReadyUnitInRange(u->playerIndex, &u->pos.vec, u->def->mincloakdistance)) {
                         // Written through an int& so the flags load stays after the store.
-                        int& b0 = u->field_b0;
+                        int& b0 = u->workTime;
                         b0 = g_game->field_38a47 + 0x5a;
                         u->flags |= 0x1000;
                     }
@@ -251,7 +251,7 @@ void UpdateSensorRadarAndCloak(void)
     for (u = first; u <= last; u++) {
         // Shared temp: using u->flags directly changes the code.
         unsigned int f = u->flags;
-        if ((f & 0x10000000) && !(f & 0x100) && !(u->field_10e & 4)) {
+        if ((f & 0x10000000) && !(f & 0x100) && !(u->activateFlags & 4)) {
             // int, not unsigned char: the latter spills playerIndex.
             int pi = g_game->playerIndex;
             PlayerInfo_00467440* p2 = g_game->Current();

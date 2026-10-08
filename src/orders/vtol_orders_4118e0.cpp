@@ -58,7 +58,7 @@ struct Unit {
     char pad4[0x10 - 4]; Class_Unit10* field_10;
     char pad14[0x6a - 0x14]; Vec3 pos;
     char pad76[8]; Point footprint;
-    int field_82; int field_86;
+    int spatialBucket; int carrier;
     Unit* cargo;
     char pad8e[4]; UnitDef* def;
     char pad96[4]; CobScript* script;
@@ -122,7 +122,7 @@ static inline Vec3 Offset(short angle, int distance)
 void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
     ((Unit*)unit)->ClaimWeapons(3);
-    if (unit->field_86)
+    if (unit->carrier)
         AttachUnitToPiece(unit, 0, -1, 2);
     ((Unit*)unit)->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {

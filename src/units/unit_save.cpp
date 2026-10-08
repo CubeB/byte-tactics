@@ -117,28 +117,28 @@ struct Obj {
 struct Unit {
     void* vtable;                       // +0x0
     Piece pieces[3];                    // +0x4
-    int field_58;                       // +0x58
+    int extraction;                       // +0x58
     void* listHead;                     // +0x5c
     void* listTail;                     // +0x60
-    Pair field_64;                      // +0x64 (int + short)
+    Pair rot;                      // +0x64 (int + short)
     Vec3 pos;                           // +0x6a
-    int field_76;                       // +0x76
-    int field_7a;                       // +0x7a
-    int field_7e;                       // +0x7e
+    int cell;                       // +0x76
+    int losCacheCellX;                       // +0x7a
+    int footprint;                       // +0x7e
     char gap_82[4];
     void* f86;                          // +0x86
     char gap_8a[8];
-    void* field_92;                     // +0x92
+    void* def;                     // +0x92
     char gap_96[4];
-    void* field_9a;                     // +0x9a
+    void* script;                     // +0x9a
     char gap_9e[0xa];
     unsigned short id;                  // +0xa8
     char gap_aa[2];
-    int field_ac;                       // +0xac
-    int field_b0;                       // +0xb0
+    int group;                       // +0xac
+    int workTime;                       // +0xb0
     char gap_b4[4];
-    short field_b8;                     // +0xb8
-    short field_ba;                     // +0xba
+    short killCount;                     // +0xb8
+    short netDirtyFlags;                     // +0xba
     char info[0x34];                    // +0xbc
     Unit* child;                        // +0xf0
     unsigned char b_f4;
@@ -151,8 +151,8 @@ struct Unit {
     char gap_fb[4];
     unsigned char b_ff;                 // +0xff
     char gap_100[4];
-    int field_104;                      // +0x104
-    short field_108;                    // +0x108
+    int buildLeft;                      // +0x104
+    short health;                    // +0x108
     char gap_10a[4];
     unsigned char b_10e;
     union { unsigned char b_10f; Bits10F bf; };
@@ -302,9 +302,9 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
     unit = CreateUnit(rec.player, FindUnitTypeId(rec.name), rec.pos, 1, rec.flags.b & 3, rec.id);
     if (unit != 0) {
 
-    unit->field_64 = rec.s;
-    unit->field_108 = rec.f3d;
-    unit->field_b8 = rec.f3f;
+    unit->rot = rec.s;
+    unit->health = rec.f3d;
+    unit->killCount = rec.f3f;
     unit->pos.y = rec.pos.y;
 
     if (rec.childA != 0) {
@@ -315,17 +315,17 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
     unit->child = LoadUnit(rec.childB, file);
     unit->b_f9 = rec.b8d;
     unit->b_f4 = rec.b8e;
-    unit->field_58 = rec.f8f;
-    unit->field_76 = rec.f93;
-    unit->field_7a = rec.f97;
-    unit->field_7e = rec.f9b;
-    unit->field_ac = rec.f9f;
+    unit->extraction = rec.f8f;
+    unit->cell = rec.f93;
+    unit->losCacheCellX = rec.f97;
+    unit->footprint = rec.f9b;
+    unit->group = rec.f9f;
     SetUnitSquad(unit, rec.f9f);
-    unit->field_104 = rec.fa7;
+    unit->buildLeft = rec.fa7;
     unit->b_f5 = rec.bab;
     unit->b_f6 = rec.bac;
     unit->b_f7 = rec.bad;
-    unit->field_ba = rec.bae;
+    unit->netDirtyFlags = rec.bae;
     unit->b_f8 = rec.bb0;
     unit->b_fa = rec.bb1;
     unit->b_10e = rec.bb2;
@@ -343,7 +343,7 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
     unit->flags = (unit->flags & ~0x200) | (rec.flags.b & 0x200);
     unit->flags = (unit->flags & ~0x400) | (rec.flags.b & 0x400);
     unit->flags = (unit->flags & ~0x800) | (rec.flags.b & 0x800);
-    unit->field_b0 = rec.fa3;
+    unit->workTime = rec.fa3;
     unit->flags = (unit->flags & ~0x2000) | (rec.flags.c << 13);
     unit->flags = (unit->flags & ~0x4000) | ((rec.flags.e << 14) & 0x4000);
     unit->flags = (unit->flags & ~0x8000) | ((rec.flags.e << 14) & 0x8000);
@@ -379,7 +379,7 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
         ((Class_004388b0*)unit->listHead)->ReattachFxToUnit();
     sprintf(script, "Script%i", i);
     file->OpenNamedBox(script);
-    ((CobScript*)unit->field_9a)->LoadScriptState(file);
+    ((CobScript*)unit->script)->LoadScriptState(file);
 
     // Plain array indexing in this field order: it anchors the loop pointer.
     for (int j = 0; j < 3; j++) {
@@ -424,7 +424,7 @@ void __stdcall SaveUnits(HapiBank* file)
 
             sprintf(script, "Script%i", count);
             file->OpenNamedBox(script);
-            ((CobScript*)unit->field_9a)->SaveScriptState(file);
+            ((CobScript*)unit->script)->SaveScriptState(file);
 
             int n = 0;
             Class_0043a1f0* c = (Class_0043a1f0*)unit->listHead;
@@ -451,10 +451,10 @@ void __stdcall SaveUnits(HapiBank* file)
             rec.id = unit->id;
 
             rec.pos = unit->pos;
-            rec.s = unit->field_64;
+            rec.s = unit->rot;
             rec.f23 = n;
-            rec.f3d = unit->field_108;
-            rec.f3f = unit->field_b8;
+            rec.f3d = unit->health;
+            rec.f3f = unit->killCount;
             rec.f27 = unit->vtable != 0;
 
             // Plain short local assigned in the nested if, not a pointer.
@@ -474,19 +474,19 @@ void __stdcall SaveUnits(HapiBank* file)
             }
             rec.childB = id8b;
             // Keep this statement order: it decides the scratch register chains.
-            rec.f93 = unit->field_76;
+            rec.f93 = unit->cell;
             rec.b8e = unit->b_f4;
-            rec.f8f = unit->field_58;
-            rec.f9f = unit->field_ac;
-            rec.f97 = unit->field_7a;
-            rec.f9b = unit->field_7e;
+            rec.f8f = unit->extraction;
+            rec.f9f = unit->group;
+            rec.f97 = unit->losCacheCellX;
+            rec.f9b = unit->footprint;
             rec.bac = unit->b_f6;
-            rec.fa7 = unit->field_104;
+            rec.fa7 = unit->buildLeft;
             rec.bab = unit->b_f5;
             rec.bb0 = unit->b_f8;
             rec.bad = unit->b_f7;
-            rec.bae = unit->field_ba;
-            rec.fa3 = unit->field_b0;
+            rec.bae = unit->netDirtyFlags;
+            rec.fa3 = unit->workTime;
             rec.bb1 = unit->b_fa;
             rec.fb2 = unit->b_10e;
             unsigned int u = unit->flags;

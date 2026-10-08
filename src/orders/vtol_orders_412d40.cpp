@@ -57,7 +57,7 @@ struct Unit {
         struct { unsigned short xf; short x; int y; unsigned short zf; short z; } p;
     };
     char pad76[0x82 - 0x76];
-    int field_82; int field_86;
+    int spatialBucket; int carrier;
     char pad8a[8]; UnitDef* def;
     char pad96[0x110 - 0x96]; unsigned int flags;
     void ClaimWeapons(int);
@@ -136,7 +136,7 @@ static inline Vec3 Add(const Vec3& a, const Vec3& b)
 void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
     unit->ClaimWeapons(3);
-    if (unit->field_86)
+    if (unit->carrier)
         AttachUnitToPiece(unit, 0, -1, 2);
     unit->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
@@ -172,7 +172,7 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
             AppendOrderToTail(unit, new Class_0043a1f0("VTOL_SEEKATTACK", 0, &unit->pos, 0, 0, 0));
         return 5;
     }
-    if (unit->field_82 == g_game->field_142b7) {
+    if (unit->spatialBucket == g_game->field_142b7) {
         Vec3 centre;
         centre.x = g_game->width / 2 << 16;
         centre.z = g_game->height / 2 << 16;

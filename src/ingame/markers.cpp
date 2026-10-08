@@ -110,7 +110,7 @@ struct Anim {
 struct Player;
 
 struct Unit {
-    int field_0;                      // +0x0
+    int motion;                      // +0x0
     char unknown_4[0x10 - 4];
     Slot slots[3];                    // +0x10
     char unknown_64[0x6a - 0x64];
@@ -119,7 +119,7 @@ struct Unit {
     UnitType* def;                    // +0x92
     Player* owner;                    // +0x96
     char unknown_9a[0x10e - 0x9a];
-    unsigned char field_10e;          // +0x10e
+    unsigned char activateFlags;          // +0x10e
     char unknown_10f[0x110 - 0x10f];
     unsigned int flag0 : 1;           // +0x110
     unsigned int flag1 : 1;
@@ -366,7 +366,7 @@ void __stdcall DrawUnitRangeRings(void* surface, View* view, Order* order,
     int index = 0;
     if (g_game->field_391bf == 0) {
         short mincloak = def->minCloakDistance;
-        if (mincloak != 0 && (unit->field_10e & 4)) {
+        if (mincloak != 0 && (unit->activateFlags & 4)) {
             DrawRangeCircle(surface, view, &order->unit->pos, mincloak, g_game->field_dda, 0, 0);
         }
         if ((def->flags & 0x10000000) && def->weapon_220 != 0) {
@@ -379,7 +379,7 @@ void __stdcall DrawUnitRangeRings(void* surface, View* view, Order* order,
                 radius = r;
             // Read as &order->unit->pos: a unit local would change it to lea.
             DrawRangeCircle(surface, view, &order->unit->pos, radius, g_game->field_dd7, 0, 0);
-            if (unit->field_0 != 0) {
+            if (unit->motion != 0) {
                 DrawRangeCircle(surface, view, &order->unit->pos, def->kamikazeDistance,
                              g_game->field_dd7, 0, 0);
                 return;

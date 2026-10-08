@@ -58,10 +58,10 @@ struct Unit {
     char pad14[0x6a - 0x14];
     Vec3 pos;
     char pad76[0x82 - 0x76];
-    int field_82; int field_86;
+    int spatialBucket; int carrier;
     char pad8a[8]; UnitDef* def;
     Player* player;
-    char pad9a[0x108 - 0x9a]; short field_108;
+    char pad9a[0x108 - 0x9a]; short health;
     char pad10a[0x110 - 0x10a]; unsigned int flags;
     void ClaimWeapons(int);
     void ReleaseWeapons(int);
@@ -142,7 +142,7 @@ static inline Vec3 Add(const Vec3& a, const Vec3& b)
 void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
     unit->ClaimWeapons(3);
-    if (unit->field_86)
+    if (unit->carrier)
         AttachUnitToPiece(unit, 0, -1, 2);
     unit->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
@@ -168,7 +168,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
             AppendOrderToTail(unit, new Class_0043a1f0("VTOL_SEEKATTACK", 0, &unit->pos, 0, 0, 0));
         return 5;
     }
-    if (unit->field_82 == g_game->field_142b7) {
+    if (unit->spatialBucket == g_game->field_142b7) {
         Vec3 centre;
         centre.x = g_game->width / 2 << 16;
         centre.z = g_game->height / 2 << 16;
@@ -248,7 +248,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
         ((Class_004388d0*)order)->SetAttachedFx((int)obj);
         order->flags = 0x100e8;
-        if ((unsigned int)unit->field_108 < (unit->def->maxHealth >> 2) * 3) {
+        if ((unsigned int)unit->health < (unit->def->maxHealth >> 2) * 3) {
             std::vector<Unit*> v;
             GetFactoriesInRadius(unit->player->index, &unit->pos, 0xf00, &v);
             if (!v.empty()) {

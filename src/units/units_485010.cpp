@@ -262,13 +262,13 @@ struct Unit {                          // 0x118 bytes
     Class_00481490 sub_24;             // +0x24
     Class_00481490 sub_40;             // +0x40
     char unknown_5c[0x64 - 0x5c];
-    short field_64;                    // +0x64
-    unsigned short field_66;           // +0x66
-    short field_68;                    // +0x68
+    short bank;                    // +0x64
+    unsigned short heading;           // +0x66
+    short pitch;                    // +0x68
     Pos_00485a40 pos;                  // +0x6a
     ShortPair_485a40 screen;           // +0x76
-    short field_7a;                    // +0x7a
-    short field_7c;                    // +0x7c
+    short losCacheCellX;                    // +0x7a
+    short losCacheCellZ;                    // +0x7c
     ShortPair_485a40 offset;           // +0x7e
     Class_0047cb00* list;              // +0x82
     Unit* owner;                       // +0x86
@@ -280,35 +280,35 @@ struct Unit {                          // 0x118 bytes
     ObjectState_00485d40* state;       // +0x9e
     char unknown_a2[0xa6 - 0xa2];
     unsigned short typeId;             // +0xa6
-    unsigned short field_a8;           // +0xa8
-    short field_aa;                    // +0xaa
-    unsigned int field_ac;             // +0xac
-    int field_b0;                      // +0xb0
+    unsigned short id;           // +0xa8
+    short hoverBobPhase;                    // +0xaa
+    unsigned int group;             // +0xac
+    int workTime;                      // +0xb0
     char unknown_b4[0xb8 - 0xb4];
-    short field_b8;                    // +0xb8
-    short field_ba;                    // +0xba
+    short killCount;                    // +0xb8
+    short netDirtyFlags;                    // +0xba
     UnitResources playerRef;           // +0xbc
     Unit* parent;                      // +0xf0
-    unsigned char field_f4;            // +0xf4
-    unsigned char field_f5;            // +0xf5
-    unsigned char field_f6;            // +0xf6
-    unsigned char field_f7;            // +0xf7
-    unsigned char field_f8;            // +0xf8
-    unsigned char field_f9;            // +0xf9
-    unsigned char field_fa;            // +0xfa
-    int field_fb;                      // +0xfb
-    unsigned char field_ff;            // +0xff
-    int field_100;                     // +0x100
-    float field_104;                   // +0x104
-    short field_108;                   // +0x108
+    unsigned char lastAttackerSlot;            // +0xf4
+    unsigned char lastDamageType;            // +0xf5
+    unsigned char healthPercent;            // +0xf6
+    unsigned char prevHealthPercent;            // +0xf7
+    unsigned char losSightFrameIdx;            // +0xf8
+    unsigned char transportPiece;            // +0xf9
+    unsigned char recentlyDamagedTimer;            // +0xfa
+    int postTransferHoldoff;                      // +0xfb
+    unsigned char playerIndex;            // +0xff
+    int unfinishedInitZero;                     // +0x100
+    float buildLeft;                   // +0x104
+    short health;                   // +0x108
     char unknown_10a[0x10e - 0x10a];
-    unsigned char field_10e;           // +0x10e
+    unsigned char activateFlags;           // +0x10e
     struct {
         unsigned char lo : 4;          // +0x10f
         unsigned char hi : 4;
-    } field_10f;
+    } cobStateFlags;
     Flags_485a40 flags;                // +0x110
-    Flags114_485a40 field_114;         // +0x114
+    Flags114_485a40 zBufferFlag;         // +0x114
     void ReleaseWeapons(unsigned char index);
     void SetStateBits(int a, int b);
 };
@@ -666,19 +666,19 @@ void __stdcall InitUnitFromType(Unit* unit, Pos_00485a40 pos, int param_5)
     unit->flags.bits.b14 = 0;
     unit->offset = unit->type->offset;
     unit->flags.bits.b31 = unit->type->flags.bits.hi;
-    unit->field_114.bits.b0 = unit->type->flags.bits.b7;
+    unit->zBufferFlag.bits.b0 = unit->type->flags.bits.b7;
     unit->flags.bits.b30 = unit->type->flags.bits.b9;
 
     if (param_5) {
-        unit->field_104 = 0;
-        unit->field_108 = unit->type->hp;
+        unit->buildLeft = 0;
+        unit->health = unit->type->hp;
     } else {
-        unit->field_104 = 1.0f;
-        unit->field_100 = 0;
-        unit->field_108 = 0;
+        unit->buildLeft = 1.0f;
+        unit->unfinishedInitZero = 0;
+        unit->health = 0;
     }
 
-    unit->field_10f.lo = 0;
+    unit->cobStateFlags.lo = 0;
     unit->flags.bits.b0 = 1;
     unit->flags.bits.b1 = 0;
     unit->flags.bits.b2 = 0;
@@ -689,11 +689,11 @@ void __stdcall InitUnitFromType(Unit* unit, Pos_00485a40 pos, int param_5)
     unit->flags.bits.b11 = 0;
     unit->flags.bits.b16 = 1;
     unit->flags.bits.b17 = 0;
-    unit->field_f6 = 0;
-    unit->field_f7 = 0;
-    unit->field_10e = 0;
-    unit->field_b0 = 0;
-    unit->field_68 = 0;
+    unit->healthPercent = 0;
+    unit->prevHealthPercent = 0;
+    unit->activateFlags = 0;
+    unit->workTime = 0;
+    unit->pitch = 0;
     unit->pos = pos;
 
     ShortPair_485a40 off = unit->offset;
@@ -702,13 +702,13 @@ void __stdcall InitUnitFromType(Unit* unit, Pos_00485a40 pos, int param_5)
     screen.y = (short)((pos.z - off.y * 0x80000 + 0x80000) >> 20);
     unit->screen = screen;
 
-    unit->field_66 = (short)(RandomInt(unit->type->field_210)
+    unit->heading = (short)(RandomInt(unit->type->field_210)
                              + (0x8000 - unit->type->field_210 / 2));
-    unit->field_64 = 0;
-    unit->field_7a = 0;
-    unit->field_7c = 0;
-    unit->field_fa = 0;
-    unit->field_fb = 0;
+    unit->bank = 0;
+    unit->losCacheCellX = 0;
+    unit->losCacheCellZ = 0;
+    unit->recentlyDamagedTimer = 0;
+    unit->postTransferHoldoff = 0;
     unit->flags.bits.b9 = (unit->player->index == g_game->field_2a43);
     unit->flags.bits.b8 = 0;
 
@@ -717,10 +717,10 @@ void __stdcall InitUnitFromType(Unit* unit, Pos_00485a40 pos, int param_5)
         ((Unit*)unit)->ReleaseWeapons(i);
     }
 
-    unit->field_ba = 0;
-    unit->field_b8 = 0;
+    unit->netDirtyFlags = 0;
+    unit->killCount = 0;
     unit->parent = 0;
-    unit->field_f4 = 0xa;
+    unit->lastAttackerSlot = 0xa;
     unit->flags.bits.moveOrder = unit->type->flags.bits.movOrder;
     unit->flags.bits.fireOrder = unit->type->flags.bits.fireOrder;
     unit->flags.bits.b11 = unit->type->flags.bits.canAttack;
@@ -733,10 +733,10 @@ void __stdcall InitUnitFromType(Unit* unit, Pos_00485a40 pos, int param_5)
         unit->flags.bits.f24_25 = 0;
     }
 
-    unit->field_f8 = 0;
-    unit->playerRef.Reset(unit->field_ff);
-    unit->field_f9 = 0xff;
-    unit->field_aa = (short)RandomInt(0x10000);
+    unit->losSightFrameIdx = 0;
+    unit->playerRef.Reset(unit->playerIndex);
+    unit->transportPiece = 0xff;
+    unit->hoverBobPhase = (short)RandomInt(0x10000);
     SetUnitSquad(unit, 0);
 }
 
@@ -892,7 +892,7 @@ public:
 void __stdcall CreateUnitMotion(Unit* unit)
 {
     unit->obj = new UnitMotion(unit);
-    unit->field_66 = unit->type->field_210;
+    unit->heading = unit->type->field_210;
 }
 
 extern void* g_weaponAimCobVtable[];
@@ -927,7 +927,7 @@ void __stdcall InitUnit(int unitType, Pos_00485a40 pos, int param_5, Unit* unit)
     UpdateMetalExtraction(unit);
     if (type->mobile == 1) {
         unit->obj = new UnitMotion(unit);
-        unit->field_66 = unit->type->field_210;
+        unit->heading = unit->type->field_210;
     }
 }
 
@@ -966,7 +966,7 @@ static inline void __stdcall InitUnit_00485e90(unsigned short unitType, Pos_0048
     UpdateMetalExtraction(unit);
     if (type->mobile == 1) {
         unit->obj = new UnitMotion(unit);
-        unit->field_66 = unit->type->field_210;
+        unit->heading = unit->type->field_210;
     }
 }
 
@@ -1015,7 +1015,7 @@ found:
         if (unit->type->flags.bit18)
             ((Unit*)unit)->SetStateBits(1, 1);
         if (unit->type->flags.bit24) {
-            unit->field_f5 = 7;
+            unit->lastDamageType = 7;
             unit->flags.bit14 = 1;
         }
     }
@@ -1101,7 +1101,7 @@ void __stdcall CreateUnitCorpse(Unit* unit, int depth, int flag)
         if (target != 0) {
             Pos_00485070* pos = (Pos_00485070*)&unit->pos;
             if (GetGroundHeight(pos) <= g_game->limit) {
-                Result_486360* r = PlaceFeature(target, id, pos, &unit->field_64, unit->field_ff);
+                Result_486360* r = PlaceFeature(target, id, pos, &unit->bank, unit->playerIndex);
                 if (r != 0) {
                     if (!(unit->type->flags.all & 0x1000000)) {
                         r->field_18 = -11468;
@@ -1110,7 +1110,7 @@ void __stdcall CreateUnitCorpse(Unit* unit, int depth, int flag)
                     flag = 0;
                 }
             } else {
-                PlaceFeature(target, id, pos, &unit->field_64, unit->field_ff);
+                PlaceFeature(target, id, pos, &unit->bank, unit->playerIndex);
             }
             if (flag) {
                 EmitSmoke(pos, 0xf, 900, 9);
@@ -1129,7 +1129,7 @@ int __stdcall IsUnitCommander(Unit* unit)
 // matches the unit type's name) recomputes a "Killed" kill count and sends the
 // 0xb byte command record at +0xa it builds here to its own player. param_2 is
 // the command kind: 7 means a spy / non-kill path, 4/5/9 or a positive
-// field_108 skip the recount, otherwise the kills are a percentage of the
+// health skip the recount, otherwise the kills are a percentage of the
 // type's maxHealth.
 
 #pragma pack(push, 1)
@@ -1165,32 +1165,32 @@ void __stdcall KillUnit(Unit* unit, int param_2)
         if (param_2 == 7) {
             flag = 1;
             amount = 0;
-        } else if (param_2 == 4 || param_2 == 5 || param_2 == 9 || unit->field_108 > 0) {
+        } else if (param_2 == 4 || param_2 == 5 || param_2 == 9 || unit->health > 0) {
             amount = 0;
             flag = 0;
         } else {
-            amount = ((int)(unit->field_108 * -100 / unit->type->maxHealth) + unit->field_f7) / 2;
+            amount = ((int)(unit->health * -100 / unit->type->maxHealth) + unit->prevHealthPercent) / 2;
             if (amount < 1)
                 amount = 1;
             if (amount > 100)
                 amount = 100;
             unit->script->QueryScript("Killed", &amount, &flag, 0, 0);
         }
-        if (unit->field_104 != 0.0f) {
+        if (unit->buildLeft != 0.0f) {
             flag = 0;
         }
         Cmd_004864b0 cmd;
         // unitId before amount: sets the register roles.
-        cmd.unitId = unit->field_a8;
+        cmd.unitId = unit->id;
         cmd.amount = amount;
         cmd.type = 0xc;
         cmd.count = flag;
         cmd.kind = param_2;
-        cmd.killerId = GetSlotDpid(unit->field_f4);
+        cmd.killerId = GetSlotDpid(unit->lastAttackerSlot);
         if (unit->parent == 0)
             cmd.parentId = 0;
         else
-            cmd.parentId = unit->parent->field_a8;
+            cmd.parentId = unit->parent->id;
         if (unit->player->active != 0 &&
             (unit->player->state == 1 || unit->player->state == 2)) {
             BroadcastPacket(unit->player->dpid, (unsigned char*)&cmd, 0xb);
@@ -1199,7 +1199,7 @@ void __stdcall KillUnit(Unit* unit, int param_2)
         if (same && g_game->mode != 0 && unit->player->active != 0 &&
             (unit->player->state == 1 || unit->player->state == 2)) {
             PopUntilNamedLayout(1);
-            KillPlayerUnits(unit->field_ff);
+            KillPlayerUnits(unit->playerIndex);
         }
     }
 }
@@ -1249,7 +1249,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
     else
         parent = &g_game->units[cmd->parentId];
     unit->parent = parent;
-    unit->field_f4 = FindSlotByDpid(cmd->killerId);
+    unit->lastAttackerSlot = FindSlotByDpid(cmd->killerId);
     g_game->conditions->NotifyUnitDied(unit);
     DeleteOrders(unit, 1);
     RemoveSpeechOfUnit(unit);
@@ -1271,24 +1271,24 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
     int credited = 0;
     switch (cmd->kind) {
     case 5:
-        if (unit->field_f4 == 10 || unit->field_f4 == unit->field_ff)
+        if (unit->lastAttackerSlot == 10 || unit->lastAttackerSlot == unit->playerIndex)
             break;
     case 1:
     case 6:
         if (unit->player != 0) {
             unit->player->losses++;
-            if (unit->field_f4 != 10 && unit->field_104 == 0.0f && unit->field_ff != unit->field_f4)
-                g_game->players[unit->field_f4].kills++;
+            if (unit->lastAttackerSlot != 10 && unit->buildLeft == 0.0f && unit->playerIndex != unit->lastAttackerSlot)
+                g_game->players[unit->lastAttackerSlot].kills++;
             int same = _strcmpi(g_game->names[unit->player->owner->playerIndex].name,
                                 unit->type->name) == 0;
             if (same) {
-                if (unit->field_f4 != 10)
-                    g_game->players[unit->field_f4].kills2++;
+                if (unit->lastAttackerSlot != 10)
+                    g_game->players[unit->lastAttackerSlot].kills2++;
                 unit->player->losses2++;
             }
-            if (unit->parent != 0 && unit->field_104 == 0.0f && unit->field_ff != unit->field_f4)
-                unit->parent->field_b8++;
-            if (unit->field_f4 == g_game->localPlayer)
+            if (unit->parent != 0 && unit->buildLeft == 0.0f && unit->playerIndex != unit->lastAttackerSlot)
+                unit->parent->killCount++;
+            if (unit->lastAttackerSlot == g_game->localPlayer)
                 AddCdActivitySample(5);
             credited = 1;
         }
@@ -1305,8 +1305,8 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
         break;
     }
 
-    if (credited && unit->field_f4 != 10) {
-        Player* rec = &g_game->players[unit->field_f4];
+    if (credited && unit->lastAttackerSlot != 10) {
+        Player* rec = &g_game->players[unit->lastAttackerSlot];
         if (rec->active != 0 && (rec->state == 1 || rec->state == 2 || rec->state == 3)
             && rec->index != 10
             && (g_game->mission->GetGameType() == 3 || g_game->mission->GetGameType() == 2)
@@ -1355,13 +1355,13 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
             }
         }
         if (g_game->b7)
-            FlashScorePanelKillLoss(unit->field_f4, unit->player->index);
+            FlashScorePanelKillLoss(unit->lastAttackerSlot, unit->player->index);
     }
 
     if (cmd->kind == 5 && unit->parent != 0) {
         // Field pointer, not a Unit* copy; and the copy into f is needed too.
         Unit** par = &unit->parent;
-        float health = 1.0f - unit->field_104;
+        float health = 1.0f - unit->buildLeft;
         float f = health;
         f *= unit->type->x18a;
         if ((*par)->playerRef.player->active != 0 && (*par)->playerRef.player->state == 2) {
@@ -1379,7 +1379,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
             (*par)->playerRef.field_18 += f;
         }
     }
-    if (cmd->amount > 0 && unit->field_104 == 0.0f)
+    if (cmd->amount > 0 && unit->buildLeft == 0.0f)
         DetonateUnitWeapon(unit, cmd->kind == 3);
     if (cmd->count > 0) {
         // Local flag: without it the script's virtual delete uses another register.

@@ -35,14 +35,14 @@ struct Unit {
     char unknown_0[0x6a];
     Vec3_004816a0 position;            // +0x6a
     char unknown_76[0x7a - 0x76];
-    short field_7a;                    // +0x7a
+    short losCacheCellX;                    // +0x7a
     char unknown_7c[0x92 - 0x7c];
     UnitDef_004816a0* def;             // +0x92
     Player_004816a0* owner;            // +0x96
     char unknown_9a[0xa6 - 0x9a];
     unsigned short id;                 // +0xa6
     char unknown_a8[0xf8 - 0xa8];
-    unsigned char field_f8;            // +0xf8
+    unsigned char losSightFrameIdx;            // +0xf8
     char unknown_f9[0x118 - 0xf9];
 };
 
@@ -128,9 +128,9 @@ void __stdcall RecalculateLineOfSight(int arg)
             continue;
         Params_004816a0 params;
         params.field_0 = u->owner;
-        params.field_4 = &u->field_7a;
+        params.field_4 = &u->losCacheCellX;
         params.field_8 = u->def->range;
-        params.field_c = &u->field_f8;
+        params.field_c = &u->losSightFrameIdx;
         params.pos = u->position;
         params.field_a = u->def->field_170;
         if (params.pos.y < (int)((g_game->seaLevel + 1) << 16))

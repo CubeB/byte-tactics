@@ -301,14 +301,14 @@ struct Player {
 // game reads. One type for the views of the part files.
 struct Unit {
     char unknown_0[0x64];
-    Short3_00456050 field_64;          // +0x64
-    Vec3_00456050 field_6a;            // +0x6a
+    Short3_00456050 rot;          // +0x64
+    Vec3_00456050 pos;            // +0x6a
     char unknown_76[0x96 - 0x76];
     Player* player;                    // +0x96
     CobScript* names;                  // +0x9a
     char unknown_9e[0xa6 - 0x9e];
-    short field_a6;                    // +0xa6
-    short field_a8;                    // +0xa8
+    short unitDefIndex;                    // +0xa6
+    short id;                    // +0xa8
     char unknown_aa[0x110 - 0xaa];
     unsigned int flags_110;            // +0x110
     char unknown_114[4];
@@ -2785,10 +2785,10 @@ void __stdcall SendNewUnit(Unit* obj)
 {
     Packet_00456050 packet;
     packet.type = 9;
-    packet.field_1 = obj->field_a6;
-    packet.field_3 = obj->field_a8;
-    packet.field_5 = obj->field_6a;
-    packet.field_11 = obj->field_64;
+    packet.field_1 = obj->unitDefIndex;
+    packet.field_3 = obj->id;
+    packet.field_5 = obj->pos;
+    packet.field_11 = obj->rot;
     BroadcastPacket(obj->player->field_4, &packet, 0x17);
 }
 
@@ -2797,8 +2797,8 @@ void __stdcall BroadcastBuilderLink(Unit* obj, Unit* target)
 {
     Packet_004560c0 packet;
     packet.type = 0x12;
-    packet.field_1 = target->field_a8;
-    packet.field_3 = obj->field_a8;
+    packet.field_1 = target->id;
+    packet.field_3 = obj->id;
     BroadcastPacket(obj->player->field_4, &packet, 5);
 }
 
@@ -2955,7 +2955,7 @@ int __stdcall SendScriptCallNoArgsByName(Unit* obj, char* name)
         return 0;
     }
     packet.type = 0x10;
-    packet.id = obj->field_a8;
+    packet.id = obj->id;
     packet.index = index;
     packet.field_5 = 0;
     packet.field_6 = 0;
@@ -2973,7 +2973,7 @@ int __stdcall SendScriptCallNoArgs(Unit* obj, short index)
         return 0;
     }
     packet.type = 0x10;
-    packet.id = obj->field_a8;
+    packet.id = obj->id;
     packet.index = index;
     packet.field_5 = 0;
     packet.field_6 = 0;
@@ -2995,7 +2995,7 @@ int __stdcall SendScriptCallByName(Unit* obj, char* name, char field_5,
         return 0;
     }
     packet.type = 0x10;
-    packet.id = obj->field_a8;
+    packet.id = obj->id;
     packet.index = index;
     packet.field_5 = field_5;
     packet.field_6 = field_6;
@@ -3016,7 +3016,7 @@ int __stdcall SendScriptCall(Unit* obj, short index, char field_5,
         return 0;
     }
     packet.type = 0x10;
-    packet.id = obj->field_a8;
+    packet.id = obj->id;
     packet.index = index;
     packet.field_5 = field_5;
     packet.field_6 = field_6;

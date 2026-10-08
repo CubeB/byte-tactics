@@ -46,7 +46,7 @@ struct Unit {                          // 0x118 bytes
     Class_0043a1f0* first;             // +0x5c
     Class_0043a1f0* firstTop;          // +0x60, for children with flag 0x40000
     char unknown_64[0x86 - 0x64];
-    int field_86;                      // +0x86
+    int carrier;                      // +0x86
     char unknown_8a[0x92 - 0x8a];
     UnitType* type;                    // +0x92
     char unknown_96[0x9a - 0x96];
@@ -54,7 +54,7 @@ struct Unit {                          // 0x118 bytes
     char unknown_9e[0xa8 - 0x9e];
     unsigned short typeId;             // +0xa8
     char unknown_aa[0xb8 - 0xaa];
-    unsigned short field_b8;           // +0xb8
+    unsigned short killCount;           // +0xb8
     char unknown_ba[0x110 - 0xba];
     unsigned int flags;                // +0x110
     char unknown_114[0x118 - 0x114];
@@ -317,7 +317,7 @@ static inline void InsertBefore(Unit* p, Class_0043a1f0* child, Class_0043a1f0* 
 // FUNCTION: 0x4384a0
 void __stdcall AddBeCarriedOrder(Unit* p)
 {
-    if (p->field_86) {
+    if (p->carrier) {
         Class_0043a1f0* first = p->first;
         Class_0043a1f0** pp = &p->first;
         Class_0043a1f0* node;
@@ -333,7 +333,7 @@ void __stdcall AddBeCarriedOrder(Unit* p)
             }
         }
         Class_0043a1f0* child =
-            new Class_0043a1f0("BECARRIED", p->field_86, 0, 0, 0, 0);
+            new Class_0043a1f0("BECARRIED", p->carrier, 0, 0, 0, 0);
         InsertBefore(p, child, (child->flags & 0x40000) ? p->firstTop : p->first);
     }
 }
@@ -372,7 +372,7 @@ int __stdcall ComputeReclaimDamagePulse(Unit* a, Unit* b, int n)
             int hi;
         } w;
     } p;
-    p.w.lo = a->type->field_1fe * ((a->field_b8 + 5) / 5) * (int)bt->maxHealth * n;
+    p.w.lo = a->type->field_1fe * ((a->killCount + 5) / 5) * (int)bt->maxHealth * n;
     p.w.hi = 0;
     int r = (int)((double)p.q / (v * 300.0f));
     if (r <= 1) {

@@ -94,7 +94,7 @@ struct UnitDef_00407e90 {
 };
 
 struct Unit {
-    int field_0;                        // +0x0
+    int motion;                        // +0x0
     char unknown_4[0x6a - 0x4];
     Vec3_00407d40 pos;                  // +0x6a
     char unknown_76[0x92 - 0x76];
@@ -211,7 +211,7 @@ void Class_00407d40::OnTimer()
          it != ((Group_00407e90*)field_8)->units.end(); ++it) {
         Unit* u = *it;
         if (u->def->flag4) {
-            if (u->field_0 || WeaponCanReachPos(u, &u->pos, &a, 0)) {
+            if (u->motion || WeaponCanReachPos(u, &u->pos, &a, 0)) {
                 Class_00438760 kind = GetOrderType(3, u, 0, &a);
                 if (kind.index)
                     AddOrder(kind, 0, u, 0, &a, 0, 0);

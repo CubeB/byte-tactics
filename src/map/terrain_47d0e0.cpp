@@ -37,11 +37,11 @@ struct Obj_0047db20 {
     Point pos;
     char unknown_7a[4];
     Point size;
-    int field_82;
+    int spatialBucket;
     char unknown_86[0x92 - 0x86];
     Unit_0047db20* unit;
     char unknown_96[0xa8 - 0x96];
-    short field_a8;
+    short id;
     char unknown_aa[0x110 - 0xaa];
     Flags_0047db20 flags;
 };
@@ -80,7 +80,7 @@ static inline Cell_0047db20* CellAt(const Point& p)
 // FUNCTION: 0x47d0e0
 void __stdcall RemoveUnitFromMap(Obj_0047db20* obj)
 {
-    if (obj->field_82 != g_game->field_142b7) {
+    if (obj->spatialBucket != g_game->field_142b7) {
         Point size = obj->size;
         Cell_0047db20* cell = CellAt(obj->pos);
         int index = 0;
@@ -89,7 +89,7 @@ void __stdcall RemoveUnitFromMap(Obj_0047db20* obj)
                 for (int i = size.x; i > 0; i--) {
                     unsigned char m = obj->unit->mask[index];
                     index++;
-                    if (cell->field_0 == obj->field_a8) cell->field_0 = 0;
+                    if (cell->field_0 == obj->id) cell->field_0 = 0;
                     if (m & 1) cell->field_c &= 0xfd;
                     cell++;
                 }
@@ -105,7 +105,7 @@ void __stdcall RemoveUnitFromMap(Obj_0047db20* obj)
         } else if ((obj->flags.all & 3) == 1) {
             for (int j = size.y; j > 0; j--) {
                 for (int i = size.x; i > 0; i--) {
-                    if (cell->field_0 == obj->field_a8) cell->field_0 = 0;
+                    if (cell->field_0 == obj->id) cell->field_0 = 0;
                     cell++;
                 }
                 cell += g_game->width - size.x;
@@ -113,7 +113,7 @@ void __stdcall RemoveUnitFromMap(Obj_0047db20* obj)
         } else if ((obj->flags.all & 3) == 2) {
             for (int j = size.y; j > 0; j--) {
                 for (int i = size.x; i > 0; i--) {
-                    if (cell->field_2 == obj->field_a8) cell->field_2 = 0;
+                    if (cell->field_2 == obj->id) cell->field_2 = 0;
                     cell++;
                 }
                 cell += g_game->width - size.x;

@@ -47,7 +47,7 @@ struct Unit {
     char unknown_76[0x7e - 0x76];
     Point footprint;                   // +0x7e
     char unknown_82[0x86 - 0x82];
-    int field_86;                      // +0x86
+    int carrier;                      // +0x86
     char unknown_8a[0x92 - 0x8a];
     UnitDef* def;                      // +0x92
     void ClaimWeapons(int);
@@ -102,7 +102,7 @@ static inline Point WorldToCell(Vec3 v, Point origin)
 void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
     unit->ClaimWeapons(3);
-    if (unit->field_86)
+    if (unit->carrier)
         AttachUnitToPiece(unit, 0, -1, 2);
     unit->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {

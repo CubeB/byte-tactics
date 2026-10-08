@@ -278,7 +278,7 @@ struct Economy;
 class SquadTimer;
 
 struct Unit {                          // 0x118 bytes
-    int field_0;                       // +0x0
+    int motion;                       // +0x0
     char unknown_4[0xc];
     // Two views of +0x10: the three weapons, or the order list at +0x5c.
     union {
@@ -313,7 +313,7 @@ struct Unit {                          // 0x118 bytes
     unsigned char allied[6];           // +0x108
     union {
         unsigned short flags10e;       // +0x10e
-        unsigned char field_10e;
+        unsigned char activateFlags;
         unsigned char status;
         unsigned char active;
     };
@@ -1475,7 +1475,7 @@ void SquadManager::RetargetWeapons(int force)
                     Unit* target = GetWeaponTargetUnit(cursor, w);
                     if (target && (player->allied[target->owner->index]
                         || Contains(cursor->def->weaponCategories[w], target->category)
-                        || (cursor->weapons[w].def->flag7 && (target->field_10e & 0x10))))
+                        || (cursor->weapons[w].def->flag7 && (target->activateFlags & 0x10))))
                         target = 0;
                     if (!target)
                         RetargetWeapon(cursor, w);

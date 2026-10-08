@@ -157,12 +157,12 @@ struct Unit {
     char unknown_9a[0x9e - 0x9a];
     SpotState* state;                  // +0x9e
     char unknown_a2[0xa6 - 0xa2];
-    unsigned short field_a6;           // +0xa6
+    unsigned short unitDefIndex;           // +0xa6
     unsigned short f_a8;               // +0xa8
     char unknown_aa[0xb0 - 0xaa];
-    int field_b0;                      // +0xb0
+    int workTime;                      // +0xb0
     char unknown_b4[0xff - 0xb4];
-    unsigned char field_ff;            // +0xff
+    unsigned char playerIndex;            // +0xff
     char unknown_100[0x104 - 0x100];
     float f_104;                       // +0x104
     union {
@@ -170,7 +170,7 @@ struct Unit {
         short f_108;
     };
     char unknown_10a[0x10e - 0x10a];
-    unsigned char field_10e;           // +0x10e
+    unsigned char activateFlags;           // +0x10e
     char unknown_10f[0x110 - 0x10f];
     union {
         unsigned int flags;            // +0x110
@@ -639,7 +639,7 @@ int __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, i
 // FUNCTION: 0x467840
 void DetectionVisitor::MarkUnitsInRadarOrSonarRadius(Unit* unit)
 {
-    if (unit->field_a6 == 0 || unit->field_ff == g_game->playerIndex) {
+    if (unit->unitDefIndex == 0 || unit->playerIndex == g_game->playerIndex) {
         return;
     }
 
@@ -1097,7 +1097,7 @@ int __stdcall DrawUnitBuilderProbe(void* surface)
         if (unit->type->count > 0) {
             do {
                 unsigned short id = unit->type->types[i];
-                int prob = GetBuildRating(unit->field_ff, id);
+                int prob = GetBuildRating(unit->playerIndex, id);
                 Def_004685a0* def = &g_game->defs[id];
                 Rect_004685a0 bar;
                 bar.left = 0x88;
@@ -1247,7 +1247,7 @@ void __stdcall DrawSelectionBox(Vec3* view, Unit* unit)
     if (f->flag) {
         Vec3 lo;
         Vec3 hi;
-        GetObjectBounds(g_game->types[unit->field_a6], &lo, &hi, 0);
+        GetObjectBounds(g_game->types[unit->unitDefIndex], &lo, &hi, 0);
         Vec3 corners[4];
         corners[0].x = lo.x;
         corners[0].y = lo.y;

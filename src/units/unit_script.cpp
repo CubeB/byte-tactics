@@ -25,10 +25,10 @@ struct UnitDef {
 
 struct Unit {
     char unknown_0[0x66];
-    short field_66;                     // +0x66
+    short heading;                     // +0x66
     char unknown_68[0x6a - 0x68];
     Vec3 pos;                           // +0x6a
-    int field_76;                       // +0x76
+    int cell;                       // +0x76
     char unknown_7a[0x86 - 0x7a];
     Unit* transporter;                  // +0x86
     Unit* carried;                      // +0x8a, the first unit it carries
@@ -42,7 +42,7 @@ struct Unit {
     unsigned short dirty : 1;
     unsigned short unknown_ba_3 : 13;
     char unknown_bc[0x104 - 0xbc];
-    float field_104;                    // +0x104
+    float buildLeft;                    // +0x104
     short health;                       // +0x108
     char unknown_10a[0x10e - 0x10a];
     unsigned char on : 1;               // +0x10e bit 0
@@ -267,7 +267,7 @@ int UnitScript::GetUnitValue(int which, int a, int b, int c, int d)
         int lo = a << 16;
         if (lo < 0)
             hi += 0x10000;
-        return (unsigned short)(FUN_004b715a(hi, lo) - unit->field_66);
+        return (unsigned short)(FUN_004b715a(hi, lo) - unit->heading);
     }
     case 13: {
         int hi = a & 0xffff0000;
@@ -290,10 +290,10 @@ int UnitScript::GetUnitValue(int which, int a, int b, int c, int d)
     }
     case 17: {
         int result;
-        if (unit->field_104 == 0.0f)
+        if (unit->buildLeft == 0.0f)
             result = 0;
         else
-            result = 1 - (int)(unit->field_104 * -99.0f);
+            result = 1 - (int)(unit->buildLeft * -99.0f);
         return result;
     }
     case 18:
@@ -604,7 +604,7 @@ void UnitScript::DropUnit(unsigned short id)
 {
     Unit* u = GetUnit(id);
     if (u != 0 && (u->flags & 0x10000000) && u->transporter == state->unit) {
-        if (CanPlaceUnitFootprint(u->def, u->id, u->field_76, 1)) {
+        if (CanPlaceUnitFootprint(u->def, u->id, u->cell, 1)) {
             AttachUnitToPiece(u, 0, -1, 1);
         }
     }

@@ -16,7 +16,7 @@ struct Unit {
     char unknown_0[0x92];
     Sub_0041bde0* sub;                   // +0x92
     char unknown_96[0xa6 - 0x96];
-    short field_a6;                      // +0xa6
+    short unitDefIndex;                      // +0xa6
     char unknown_a8[0x110 - 0xa8];
     unsigned int bits_110_0 : 22;
     unsigned int menuOpen : 1;           // bit 22
@@ -44,7 +44,7 @@ void __stdcall StepBuildMenuPage(int param_1)
     unsigned short index = g_game->unitIndex;
     if (index != 0) {
         Unit* unit = &g_game->units[index];
-        if (unit->field_a6 == 0)
+        if (unit->unitDefIndex == 0)
             unit = 0;
         if (unit != 0) {
             if (param_1 != 0) {

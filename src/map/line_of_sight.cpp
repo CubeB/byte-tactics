@@ -152,7 +152,7 @@ struct Unit {
     char unknown_9a[0xa6 - 0x9a];
     unsigned short id;                 // +0xa6
     char unknown_a8[0xf8 - 0xa8];
-    unsigned char field_f8[4];         // +0xf8
+    unsigned char losSightFrameIdx[4];         // +0xf8
     char unknown_fc[0x118 - 0xfc];     // stride 0x118
 };
 
@@ -563,7 +563,7 @@ void __stdcall RemoveUnitLineOfSight(Unit* unit)
     p.field_0 = unit->owner;
     p.field_4 = unit->cell;
     p.field_8 = unit->type->range;
-    p.field_c = unit->field_f8;
+    p.field_c = unit->losSightFrameIdx;
     p.pos = unit->pos;
     p.field_a = unit->type->field_170;
     int minY = (g_game->seaLevel + 1) << 16;
@@ -678,7 +678,7 @@ void __stdcall UpdateUnitLineOfSight(Unit* unit)
     p.field_0 = unit->owner;
     p.field_4 = unit->cell;
     p.field_8 = unit->type->range;
-    p.field_c = unit->field_f8;
+    p.field_c = unit->losSightFrameIdx;
     p.pos = unit->pos;
     p.field_a = unit->type->field_170;
     int minY = (g_game->seaLevel + 1) << 16;

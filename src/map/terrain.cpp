@@ -113,7 +113,7 @@ struct Feature {
 struct Unit {                           // 0x118 bytes
     union {
         Unit* unit;                     // +0x0
-        unsigned char* field_0;         // +0x0
+        unsigned char* motion;         // +0x0
     };
     char unknown_4[0x26 - 0x4];
     unsigned int lastTick;              // +0x26, when the unit last moved
@@ -136,7 +136,7 @@ struct Unit {                           // 0x118 bytes
     UnitDef* def;                       // +0x92
     Player* player;                     // +0x96
     char unknown_9a[0xa8 - 0x9a];
-    unsigned short field_a8;            // +0xa8, the owner's own id
+    unsigned short id;            // +0xa8, the owner's own id
     char unknown_aa[0xff - 0xaa];
     unsigned char playerId;             // +0xff
     char unknown_100[0x10f - 0x100];
@@ -325,13 +325,13 @@ void __stdcall ClaimFootprintCells(Unit* obj)
                     rec->flags.all |= 0x8000000;
                     obj->flags.all |= 0x4000000;
                 a_write:
-                    cell->field_0 = obj->field_a8;
+                    cell->field_0 = obj->id;
                     goto a_next;
                 a_b:
                     rec->flags.all |= 0x4000000;
                     obj->flags.all |= 0x8000000;
                 a_next: ;
-                } else if (cell->field_0 == obj->field_a8) {
+                } else if (cell->field_0 == obj->id) {
                     cell->field_0 = 0;
                 }
                 index++;
@@ -355,7 +355,7 @@ void __stdcall ClaimFootprintCells(Unit* obj)
                 rec->flags.all |= 0x8000000;
                 obj->flags.all |= 0x4000000;
             b_write:
-                cell->field_0 = obj->field_a8;
+                cell->field_0 = obj->id;
                 goto b_next;
             b_b:
                 rec->flags.all |= 0x4000000;
@@ -381,7 +381,7 @@ void __stdcall ClaimFootprintCells(Unit* obj)
                 rec->flags.all |= 0x8000000;
                 obj->flags.all |= 0x4000000;
             c_write:
-                cell->field_2 = obj->field_a8;
+                cell->field_2 = obj->id;
                 goto c_next;
             c_b:
                 rec->flags.all |= 0x4000000;
@@ -706,7 +706,7 @@ int __stdcall IsFootprintClear(Unit* obj, int flag)
         Cell* c = g_game->cells + y * width;
         for (int x = p.x; x < xend; x++) {
             // The post-increment stays inside the mask read, not at the loop bottom.
-            if ((obj->def->mask[n++] & bit) && c[x].field_0 != 0 && c[x].field_0 != obj->field_a8)
+            if ((obj->def->mask[n++] & bit) && c[x].field_0 != 0 && c[x].field_0 != obj->id)
                 return 0;
         }
     }

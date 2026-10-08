@@ -81,7 +81,7 @@ public:
 class Unit {
 public:
     char unknown_0[0x9a];
-    CobScript* field_9a;               // +0x9a
+    CobScript* script;               // +0x9a
     char unknown_9e[0x110 - 0x9e];
     unsigned int flags_110;            // +0x110
     char unknown_114[4];
@@ -740,7 +740,7 @@ int HandleNetPackets()
         case 16: {
             Unit* unit = UnitAt(*(unsigned short*)(packet + 1));
             if (unit->flags_110 & 0x10000000)
-                unit->field_9a->StartScriptWithArgsByIndex(*(short*)(packet + 3), 0, 0, packet[5],
+                unit->script->StartScriptWithArgsByIndex(*(short*)(packet + 3), 0, 0, packet[5],
                                              *(int*)(packet + 6), *(int*)(packet + 10),
                                              *(int*)(packet + 14), *(int*)(packet + 18));
             break;

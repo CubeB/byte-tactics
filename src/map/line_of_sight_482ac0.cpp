@@ -22,7 +22,7 @@ struct Unit {
     short cell[2];                      // +0x7a
     char unknown_7e[0x92 - 0x7e];
     UnitType_482ac0* type;              // +0x92
-    void* field_96;                     // +0x96
+    void* player;                     // +0x96
     char unknown_9a[0xf8 - 0x9a];
     unsigned char cell_id[4];           // +0xf8
 };
@@ -75,7 +75,7 @@ int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 void __stdcall RevealNewUnit(Unit* unit)
 {
     Params_482ac0 p;
-    p.field_0 = unit->field_96;
+    p.field_0 = unit->player;
     p.field_4 = unit->cell;
     p.field_8 = unit->type->range;
     p.field_c = unit->cell_id;

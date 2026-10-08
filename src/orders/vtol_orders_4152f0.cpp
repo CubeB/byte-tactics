@@ -46,7 +46,7 @@ struct Owner {
 struct Unit {
     UnitMotion* type;
     char pad4[0x6a - 4]; Vec3 pos;
-    char pad76[0x86 - 0x76]; int field_86;
+    char pad76[0x86 - 0x76]; int carrier;
     char pad8a[8]; UnitDef* def;
     Owner* owner;
     char pad9a[0x104 - 0x9a]; float progress;
@@ -98,7 +98,7 @@ int __stdcall PickRandomReclaimableResourcesInRadius(Vec3*, Fixed, Vec3**, float
 inline void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
     unit->ClaimWeapons(3);
-    if (unit->field_86)
+    if (unit->carrier)
         AttachUnitToPiece(unit, 0, -1, 2);
     unit->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {

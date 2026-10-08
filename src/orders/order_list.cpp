@@ -291,16 +291,16 @@ struct Unit {                          // 0x118 bytes
     union {
         Short3 f64;                    // +0x64
         struct {
-            short field_64;            // +0x64
+            short bank;            // +0x64
             short heading;             // +0x66
-            short field_68;            // +0x68, in 2048ths of a circle
+            short pitch;            // +0x68, in 2048ths of a circle
         };
     };
     Vec3 pos;                          // +0x6a, 16.16
     Point cell;                        // +0x76
     char unknown_7a[0x7e - 0x7a];
     Point draft;                       // +0x7e
-    int field_82;                      // +0x82
+    int spatialBucket;                      // +0x82
     Path_0043d6d0* obj;                // +0x86
     char unknown_8a[0x92 - 0x8a];
     UnitType_0043cd20* type;           // +0x92
@@ -312,7 +312,7 @@ struct Unit {                          // 0x118 bytes
     char unknown_9e[0xa8 - 0x9e];
     unsigned short id;                 // +0xa8
     char unknown_aa[0xba - 0xaa];
-    unsigned short field_ba;           // +0xba, the unit's pending mask
+    unsigned short netDirtyFlags;           // +0xba, the unit's pending mask
     char unknown_bc[0xf9 - 0xbc];
     signed char index;                 // +0xf9
     char unknown_fa[0x110 - 0xfa];
@@ -1306,10 +1306,10 @@ void __stdcall RunOrders(Unit* unit)
             node->wakeFrame = 0xffffffff;
             node->field_4e |= 1;
         }
-        unsigned int pending = (node->field_4e | unit->field_ba) & node->flags6;
+        unsigned int pending = (node->field_4e | unit->netDirtyFlags) & node->flags6;
         if (node->flags6 != 0 && pending == 0)
             return;
-        unit->field_ba &= ~pending;
+        unit->netDirtyFlags &= ~pending;
         node->field_4e &= ~pending;
         node->flags6 = 0;
         if (pending & 0x10000)
@@ -1691,7 +1691,7 @@ void UnitMotion::UpdateVelocityFromHeading(Unit* unit, int amount)
     ClampToZero(field_20);
 
     // Direction index, limited to the eleven entries of the table.
-    int idx = unit->field_68 >> 11;
+    int idx = unit->pitch >> 11;
     if (idx < -5)
         idx = -5;
     if (idx > 5)
@@ -1799,7 +1799,7 @@ void UnitMotion::SteerGroundUnit(Unit* unit)
 // +0x1a2/+0x1a6.
 //
 // Suspected original bug: the second FUN_004b715a call reads xz[0] (the rotated
-// x component) instead of xz[1], so field_68 (the z offset) is computed from
+// x component) instead of xz[1], so pitch (the z offset) is computed from
 // the rotated x.
 // The original calls this from SetFlightMode and SteerAircraft.
 #pragma auto_inline(off)
@@ -1815,8 +1815,8 @@ void UnitMotion::ApplyBankAndPitch(Unit* owner, Vec3* v)
     xz[1] = p2.z;
     FUN_004b7173(owner->heading, xz);
     int n = (int)(((__int64)g_game->count2 << 16) / 0xccd);
-    owner->field_64 = (short)FUN_004b715a((int)(((__int64)owner->type->field_1a2 * -xz[0]) >> 16), n);
-    owner->field_68 = (short)FUN_004b715a((int)(((__int64)owner->type->field_1a6 * -xz[0]) >> 16), n);
+    owner->bank = (short)FUN_004b715a((int)(((__int64)owner->type->field_1a2 * -xz[0]) >> 16), n);
+    owner->pitch = (short)FUN_004b715a((int)(((__int64)owner->type->field_1a6 * -xz[0]) >> 16), n);
 }
 #pragma auto_inline(on)
 
@@ -1883,7 +1883,7 @@ void UnitMotion::SteerAircraft(Unit* unit) {
     Vec3 da = unit->pos - a;
     Vec3 db = velocity - b;
 
-    if (unit->field_82 != g_game->field_142b7) {
+    if (unit->spatialBucket != g_game->field_142b7) {
         int lim;
         if ((field_20 & -4) < 0x40000)
             lim = 0x10000;

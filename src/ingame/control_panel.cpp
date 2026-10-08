@@ -216,7 +216,7 @@ union UnitFlags {
 };
 
 struct Unit {
-    int field_0;                       // +0x0
+    int motion;                       // +0x0
     char unknown_4[0x8 - 4];
     unsigned int field_8;              // +0x8
     char unknown_c[0x10 - 0xc];
@@ -226,15 +226,15 @@ struct Unit {
     char unknown_1f[0x6a - 0x1f];
     Vec3 pos;                          // +0x6a
     char unknown_76[0x86 - 0x76];
-    int field_86;                      // +0x86
+    int carrier;                      // +0x86
     char unknown_8a[0x92 - 0x8a];
     UnitType* type;                    // +0x92
     Player* player;                    // +0x96
     char unknown_9a[0x9e - 0x9a];
-    Nano_0041b8d0* field_9e;           // +0x9e
+    Nano_0041b8d0* state;           // +0x9e
     char unknown_a2[0xa6 - 0xa2];
-    unsigned short field_a6;           // +0xa6
-    unsigned short field_a8;           // +0xa8
+    unsigned short unitDefIndex;           // +0xa6
+    unsigned short id;           // +0xa8
     char unknown_aa[0xbb - 0xaa];
     unsigned char flags_bb;            // +0xbb
     UnitResources store;               // +0xbc
@@ -243,11 +243,11 @@ struct Unit {
     char unknown_d8[0xec - 0xd8];
     Player* field_ec;                  // +0xec
     char unknown_f0[0xf5 - 0xf0];
-    unsigned char field_f5;            // +0xf5
+    unsigned char lastDamageType;            // +0xf5
     char unknown_f6[0xff - 0xf6];
-    unsigned char field_ff;            // +0xff
+    unsigned char playerIndex;            // +0xff
     char unknown_100[0x104 - 0x100];
-    float field_104;                   // +0x104
+    float buildLeft;                   // +0x104
     short hp;                          // +0x108
     char unknown_10a[0x10e - 0x10a];
     unsigned short onOff : 1;          // +0x10e bit 0
@@ -714,7 +714,7 @@ void __stdcall UpdateOnOffButton(Unit* unit)
 // FUNCTION: 0x419b00
 void __stdcall QueueBuildOrder(char* name, Unit* unit, int count)
 {
-    if (unit->field_ff == g_game->field_2a43) {
+    if (unit->playerIndex == g_game->field_2a43) {
         if (count > 0)
             PlaySoundByName("addbuild", 0);
         else
@@ -727,7 +727,7 @@ void __stdcall QueueBuildOrder(char* name, Unit* unit, int count)
     unsigned short id = FindUnitTypeId(name);
     if (id == 0)
         return;
-    int mobile = unit->field_0;
+    int mobile = unit->motion;
     const char* kind = mobile ? "MOBILEBUILD" : "BUILDINGBUILD";
     AdjustBuildCount(Class_00438760(kind), unit, id, count);
 }
@@ -1209,7 +1209,7 @@ static inline void UpdateCounts(Menu* menu)
 // FUNCTION: 0x41ace0
 void __stdcall OpenBuildMenuGui(Unit* unit, char* guiName, int page)
 {
-    if (unit->field_104 == 0.0f) {
+    if (unit->buildLeft == 0.0f) {
         Player* player = &g_game->players[g_game->localPlayer];
         int found = 0;
         char path[256];
@@ -1255,8 +1255,8 @@ void __stdcall OpenBuildMenuGui(Unit* unit, char* guiName, int page)
             if (page != 0)
                 UpdateCounts(&g_game->menu);
             RenderLayer(&g_game->menu, 0x40);
-            g_game->unitIndex = unit->field_a8;
-            g_game->field_37e9e = unit->field_a6;
+            g_game->unitIndex = unit->id;
+            g_game->field_37e9e = unit->unitDefIndex;
         }
     }
 }
@@ -1276,8 +1276,8 @@ void __stdcall OpenGeneratorDialog(Unit* unit)
         RefreshOrderButtons(unit);
         RenderLayer(&g_game->menu, 0x40);
         if (unit != 0) {
-            g_game->unitIndex = unit->field_a8;
-            g_game->field_37e9e = unit->field_a6;
+            g_game->unitIndex = unit->id;
+            g_game->field_37e9e = unit->unitDefIndex;
         } else {
             g_game->unitIndex = 0;
             g_game->field_37e9e = 0;
@@ -1312,7 +1312,7 @@ Unit* GetBuildMenuFocusUnit()
     unsigned short index = g_game->unitIndex;
     if (index) {
         Unit* unit = &g_game->units[index];
-        if (unit->field_a6)
+        if (unit->unitDefIndex)
             return unit;
     }
     return 0;
@@ -1327,8 +1327,8 @@ void __stdcall FinishConstruction(Unit* unit, Unit* target)
 {
     if (unit && (unit->flags.raw & 0x10000000) && unit->type->ids != 0
         && target && (target->flags.raw & 0x10000000)) {
-        target->field_9e->field_10 = 0;
-        target->field_104 = 0;
+        target->state->field_10 = 0;
+        target->buildLeft = 0;
         // In place, not through a local: the OR result is reused for the 0x20000000 test.
         target->flags.raw |= 0x2000;
         if (target->player->active != 0
@@ -1337,16 +1337,16 @@ void __stdcall FinishConstruction(Unit* unit, Unit* target)
                 if (IsScreenNamed(&g_game->menu, "BUILDER.GUI"))
                     FUN_0049fa90(&g_game->menu);
             } else {
-                if (target->field_86 != 0)
+                if (target->carrier != 0)
                     AttachUnitToPiece(target, 0, -1, 1);
             }
         }
         if (target->type->flags.bits.flag_18)
             target->SetStateBits(1, 1);
-        if (g_game->unitIndex == unit->field_a8)
+        if (g_game->unitIndex == unit->id)
             RefreshBuildCountTexts(&g_game->menu, unit);
         if (target->type->flags.bits.flag_24) {
-            target->field_f5 = 7;
+            target->lastDamageType = 7;
             target->flags.raw |= 0x4000;
         }
         if (target->player->active != 0
@@ -1370,14 +1370,14 @@ void __stdcall FinishConstruction(Unit* unit, Unit* target)
 int __stdcall AddBuildProgress(Unit* builder, Unit* unit, float amount)
 {
     int result = 0;
-    if (unit->field_104 == 0.0f)
+    if (unit->buildLeft == 0.0f)
         return 0;
     if (amount >= 0.0f)
         unit->flags_bb |= 0x80;
     if (amount == 0.0f)
         return 0;
     UnitType* type = unit->type;
-    float prev = unit->field_104;
+    float prev = unit->buildLeft;
     float next = min(max(prev - amount / type->buildTime, 0.0f), 1.0f);
     float step = prev - next;
     float energyCharge = type->energyCost * step;
@@ -1404,17 +1404,17 @@ int __stdcall AddBuildProgress(Unit* builder, Unit* unit, float amount)
         }
         // hp is set before remaining; the other order also changes the build path.
         unit->hp = max(hp + unit->hp, 0);
-        unit->field_104 = next;
+        unit->buildLeft = next;
         unit->flags.raw |= 0x2000;
         if (next >= 1.0f)
             DamageUnit(unit, unit, 30000, 9, 0);
     } else if (builder->store.RequestEnergyAndMetal(energyCharge, metalCharge)) {
         unit->hp = min(hp + unit->hp, unit->type->maxHp);
-        unit->field_104 = next;
+        unit->buildLeft = next;
         unit->flags.raw |= 0x2000;
         result = 1;
     }
-    if (unit->field_104 == 0.0f)
+    if (unit->buildLeft == 0.0f)
         FinishConstruction(builder, unit);
     return result;
 }
@@ -1468,7 +1468,7 @@ void __stdcall StepBuildMenuPageBack(int param_1)
     if (index == 0)
         goto nextbuild;
     u = &g_game->units[index];
-    if (u->field_a6 == 0)
+    if (u->unitDefIndex == 0)
         u = 0;
     if (u == 0)
         goto nextbuild;
@@ -1511,7 +1511,7 @@ void __stdcall OpenBuildMenuPage(int param_1)
     unsigned short index = g_game->unitIndex;
     if (index != 0) {
         Unit* unit = &g_game->units[index];
-        if (unit->field_a6 == 0)
+        if (unit->unitDefIndex == 0)
             unit = 0;
         if (unit != 0) {
             if (param_1 < unit->type->buildMenuPageCount) {
@@ -1528,7 +1528,7 @@ void __stdcall OpenBuildMenuPage(int param_1)
 // FUNCTION: 0x41c110
 void __stdcall MarkSelectionOrdersDirty(Unit* unit)
 {
-    if (unit->field_ff == g_game->localPlayer && (unit->flags.lo & 0x10)) {
+    if (unit->playerIndex == g_game->localPlayer && (unit->flags.lo & 0x10)) {
         g_game->orderState.raw |= 0x10;
     }
 }
@@ -1538,7 +1538,7 @@ void __stdcall UpdateBuildMenuIfFocusUnit(Unit* unit)
 {
     Game* g = g_game;
     unsigned short val1 = g->unitIndex;
-    unsigned short val2 = unit->field_a8;
+    unsigned short val2 = unit->id;
     if (val1 == val2) {
         RefreshBuildCountTexts(&g->menu, unit);
     }
@@ -1549,13 +1549,13 @@ void __stdcall UpdateBuildMenuIfFocusUnit(Unit* unit)
 void __stdcall StepBuildMenuPage(int param_1);
 
 // The unit at g_game->unitIndex, or 0 when the index is empty or the slot is
-// not live (field_a6 == 0). Inlined at both call sites below.
+// not live (unitDefIndex == 0). Inlined at both call sites below.
 static Unit* GetSelectedUnit()
 {
     unsigned short index = g_game->unitIndex;
     if (index) {
         Unit* unit = &g_game->units[index];
-        if (unit->field_a6)
+        if (unit->unitDefIndex)
             return unit;
     }
     return 0;
@@ -1624,7 +1624,7 @@ void FindLocalCommander()
     Player* p = &g_game->players[g_game->localPlayer];
     unsigned int* set = GetCategoryMask("Commander");
     for (Unit* u = p->units; u <= p->unitsEnd; u++) {
-        if (TestBit(set, u->field_a6)) {
+        if (TestBit(set, u->unitDefIndex)) {
             g_game->followUnit = u;
         }
     }

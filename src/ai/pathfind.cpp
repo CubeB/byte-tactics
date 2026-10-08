@@ -242,7 +242,7 @@ struct Unit {                          // 0x118 bytes
     char unknown_68[0x76 - 0x68];
     Point16 pos;                       // +0x76
     char unknown_7a[0xa6 - 0x7a];
-    short field_a6;                    // +0xa6
+    short unitDefIndex;                    // +0xa6
     char unknown_a8[0x118 - 0xa8];
 };
 
@@ -1172,7 +1172,7 @@ void Pathfinder::RunSearches()
             else
                 (*c)++;
             Unit* u = cursor[player];
-            if (u->field_a6 != 0 && u->owner != 0 && u->owner->owner != 0) {
+            if (u->unitDefIndex != 0 && u->owner != 0 && u->owner->owner != 0) {
                 path = u->owner->planner->GetPath();
                 if (path != 0) {
                     object = u;

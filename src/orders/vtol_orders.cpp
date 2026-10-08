@@ -320,8 +320,8 @@ struct Unit {
     Vec3 pos;                          // +0x6a
     char unknown_76[0x7e - 0x76];
     Point footprint;                   // +0x7e
-    int field_82;                      // +0x82
-    int field_86;                      // +0x86
+    int spatialBucket;                      // +0x82
+    int carrier;                      // +0x86
     Unit* cargo;                       // +0x8a
     char unknown_8e[4];
     UnitDef* def;                      // +0x92
@@ -612,7 +612,7 @@ static inline Unit* OrderTarget(Order* order)
 void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
     unit->ClaimWeapons(3);
-    if (unit->field_86)
+    if (unit->carrier)
         AttachUnitToPiece(unit, 0, -1, 2);
     unit->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
@@ -625,7 +625,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 }
 
 // Order handler that ends a transport (the unit script's "EndTransport").
-// When unit->field_82 equals g_game->water the unit heads towards the
+// When unit->spatialBucket equals g_game->water the unit heads towards the
 // map centre instead. State 0 prepares the order, state 1 tries the unit's
 // own spot, then twelve random nearby cells snapped to the map grid, then a
 // point circling the order's position; state 2 finishes.
@@ -636,7 +636,7 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
         return 5;
     if (flags & 0x40)
         return 5;
-    if (unit->field_82 == g_game->water) {
+    if (unit->spatialBucket == g_game->water) {
         Vec3 centre;
         centre.x = g_game->width / 2 << 16;
         centre.z = g_game->height / 2 << 16;
@@ -1095,7 +1095,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
         if (unit->type && (unit->def->flags&0x800)) {
             ((Class_00438880*)order)->AnnounceStatusIfFlagged("Building");
             unit->ClaimWeapons(3);
-            if (unit->field_86) AttachUnitToPiece(unit,0,-1,2);
+            if (unit->carrier) AttachUnitToPiece(unit,0,-1,2);
             unit->SetStateBits(1,1);
             if ((unit->type->field_2e&3)==1) {
                 unit->type->SetFlightMode(unit,2);

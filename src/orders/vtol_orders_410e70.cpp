@@ -43,10 +43,10 @@ struct Player {
 struct Unit {
     UnitMotion* type;
     char pad4[0x6a - 4]; Vec3 pos;
-    char pad76[0x86 - 0x76]; int field_86;
+    char pad76[0x86 - 0x76]; int carrier;
     char pad8a[8]; UnitDef* def;
     Player* player;
-    char pad9a[0x108 - 0x9a]; short field_108;
+    char pad9a[0x108 - 0x9a]; short health;
     void ClaimWeapons(int);
     void ReleaseWeapons(int);
     void SetStateBits(int, int);
@@ -105,7 +105,7 @@ Vec3 __stdcall AddVec3(const Vec3& a, const Vec3& b)
 void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
     unit->ClaimWeapons(3);
-    if (unit->field_86)
+    if (unit->carrier)
         AttachUnitToPiece(unit, 0, -1, 2);
     unit->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
@@ -136,7 +136,7 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
         order->flags |= 0xe0;
         // Landing block stays inline, no helper: the landed path returns 0
         // through the plain scope-exit destructor.
-        if ((unsigned int)unit->field_108 < (unit->def->maxHealth >> 2) * 3) {
+        if ((unsigned int)unit->health < (unit->def->maxHealth >> 2) * 3) {
             std::vector<Unit*> v;
             GetFactoriesInRadius(unit->player->index, &unit->pos, 0xf00, &v);
             if (!v.empty()) {

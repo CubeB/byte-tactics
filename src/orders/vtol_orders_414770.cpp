@@ -57,7 +57,7 @@ struct Unit {
     char unknown_4[0x6a - 0x4];
     Vec3 pos;                          // +0x6a
     char unknown_76[0x86 - 0x76];
-    int field_86;                      // +0x86
+    int carrier;                      // +0x86
     char unknown_8a[0x92 - 0x8a];
     UnitDef* def;                      // +0x92
     char unknown_96[0xb0 - 0x96];
@@ -111,7 +111,7 @@ void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
     unit->ClaimWeapons(3);
-    if (unit->field_86)
+    if (unit->carrier)
         AttachUnitToPiece(unit, 0, -1, 2);
     unit->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {

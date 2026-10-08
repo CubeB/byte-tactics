@@ -380,7 +380,7 @@ struct Unit {
     short x;                           // +0x76
     short y;                           // +0x78
     char unknown_7a[0x82 - 0x7a];
-    int field_82;                      // +0x82
+    int spatialBucket;                      // +0x82
     char unknown_86[0x92 - 0x86];
     UnitDef* def;                      // +0x92
     char unknown_96[0xa8 - 0x96];
@@ -2153,7 +2153,7 @@ int Class_0044e3c0::FUN_0044e3c0(Vec3_0044e3c0* out)
 {
     unsigned short f = flags;
     if ((f & 1) && !(f & 0x80)) {
-        if (target == 0 || target->field_82 == g_game->field_142b7)
+        if (target == 0 || target->spatialBucket == g_game->field_142b7)
             return 0;
         // Through a local pointer: keeps the struct-assignment destination in edi.
         Vec3_0044e3c0* p = &pos;
@@ -2174,7 +2174,7 @@ int Class_0044e3c0::FUN_0044e3c0(Vec3_0044e3c0* out)
             if (def->flag22)
                 pos.y = (def->altitude + g_game->seaLevel) << 16;
             else
-                pos.y = (def->altitude + *(unsigned char*)(unit->field_82 + 1)) << 16;
+                pos.y = (def->altitude + *(unsigned char*)(unit->spatialBucket + 1)) << 16;
         }
     }
     if (pos.y > 0x1ff0000)

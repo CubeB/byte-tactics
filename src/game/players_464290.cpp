@@ -77,7 +77,7 @@ struct UnitType {
 // A unit. Only the fields these functions use are named.
 struct Unit {
     char unknown_0[0xbc];
-    float field_bc;                    // +0xbc
+    float resourceSlot;                    // +0xbc
     char unknown_c0[0xd4 - 0xc0];
     float field_d4;                    // +0xd4
     char unknown_d8[0xec - 0xd8];
@@ -1029,11 +1029,11 @@ void __stdcall UpdatePlayers()
                                     // pointer because that is what makes MSVC 5
                                     // re-read unit->owner in the next block:
                                     // it cannot prove the store disjoint from
-                                    // it. Written as `unit->field_bc = f` the
+                                    // it. Written as `unit->resourceSlot = f` the
                                     // pointer is forwarded from the first block
                                     // instead and the second `mov eax,
                                     // [esi+0xec]` disappears.
-                                    float* slot = &unit->field_bc;
+                                    float* slot = &unit->resourceSlot;
                                     float f = (float)self->field_a1 * kHundred;
                                     if (unit->owner->active != 0 &&
                                         unit->owner->type == 2) {

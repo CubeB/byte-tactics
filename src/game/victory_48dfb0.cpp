@@ -78,9 +78,9 @@ struct Link_0048ea40 {
 };
 
 struct Unit {
-    int field_0;                       // +0x0
+    int motion;                       // +0x0
     char unknown_4[0x76 - 0x4];
-    short field_76;                    // +0x76
+    short cell;                    // +0x76
     short field_78;                    // +0x78
     char unknown_7a[0x86 - 0x7a];
     Unit* owner;                       // +0x86
@@ -88,12 +88,12 @@ struct Unit {
     UnitType* info;                    // +0x92
     Link_0048ea40* link;               // +0x96
     char unknown_9a[0xa6 - 0x9a];
-    short field_a6;                    // +0xa6
+    short unitDefIndex;                    // +0xa6
     char unknown_a8[0xfb - 0xa8];
-    int field_fb;                      // +0xfb
+    int postTransferHoldoff;                      // +0xfb
     unsigned char kind;                // +0xff
     char unknown_100[0x104 - 0x100];
-    float field_104;                   // +0x104
+    float buildLeft;                   // +0x104
     char unknown_108[0x110 - 0x108];
     unsigned int flags;                // +0x110
     char unknown_114[0x118 - 0x114];
@@ -106,7 +106,7 @@ struct UnitList {
     void ForEach(Listener_0048ff40* visitor)
     {
         for (Unit* unit = first; unit <= last; unit++) {
-            if (unit->field_a6 != 0) {
+            if (unit->unitDefIndex != 0) {
                 int result = visitor->VisitUnit(unit);
                 if (!result) {
                     break;
@@ -742,7 +742,7 @@ extern char DAT_00508f84[]; // "NumUnits"
 // FUNCTION: 0x48ec00
 int VictoryKillAllMobileUnits::VisitUnit(Unit* unit)
 {
-    if (unit->field_0 != 0) {
+    if (unit->motion != 0) {
         numUnits++;
     }
     return numUnits <= 1;
@@ -755,7 +755,7 @@ int VictoryKillAllMobileUnits::VisitUnit(Unit* unit)
 // FUNCTION: 0x48ec20
 void VictoryKillAllMobileUnits::OnUnitDied(Unit* unit)
 {
-    if (unit->kind == 1 && unit->field_0 != 0) {
+    if (unit->kind == 1 && unit->motion != 0) {
         numUnits = 0;
         g_game->units2.ForEach(this);
         if (numUnits <= 1) {
@@ -796,7 +796,7 @@ extern char DAT_00508fb4[]; // "VictoryCondition_BuildUnitType"
 // FUNCTION: 0x48ed50
 int VictoryBuildUnitType::VisitUnit(Unit* unit)
 {
-    if (unit->field_a6 == id && unit->field_104 == 0.0f) {
+    if (unit->unitDefIndex == id && unit->buildLeft == 0.0f) {
         satisfied = 1;
         if (celebrated == 0) {
             PlaySoundByName("Victory Condition", 0);
@@ -876,7 +876,7 @@ void VictoryCaptureUnitType::LoadState(HapiBank* obj)
 // FUNCTION: 0x48ef80
 int VictoryKillAllOfType::VisitUnit(Unit* unit)
 {
-    if (unit->field_a6 == id) {
+    if (unit->unitDefIndex == id) {
         count++;
     }
     return count <= 1;
@@ -982,7 +982,7 @@ void VictoryMoveUnitToRadius::VisitUnit(Unit* unit)
         if (name[0] != 0 && _strcmpi(name, unit->info->name) != 0) {
             return;
         }
-        if ((unit->flags & 0x20) && unit->field_104 == 0.0f && unit->field_fb == 0
+        if ((unit->flags & 0x20) && unit->buildLeft == 0.0f && unit->postTransferHoldoff == 0
             && (unit->owner == 0 || (unit->owner->flags & 0x40000000))) {
             satisfied = 1;
             if (celebrated == 0) {
@@ -1018,7 +1018,7 @@ void VictoryMoveUnitToRadius::LoadState(HapiBank* obj)
 int VictoryUnitTypePassesX::VisitUnit(Unit* unit)
 {
     if (name[0] == 0 || _strcmpi(name, unit->info->name) == 0) {
-        if (abs(unit->field_76 - field_30) <= 2) {
+        if (abs(unit->cell - field_30) <= 2) {
             satisfied = 1;
             if (celebrated == 0) {
                 PlaySoundByName("Victory Condition", 0);
@@ -1180,7 +1180,7 @@ extern char DAT_005090fc[]; // "DefeatCondition_AllUnitsKilled"
 // FUNCTION: 0x48f790
 int DefeatAllUnitsKilled::VisitUnit(Unit* unit)
 {
-    if ((unit->flags & 0x20) && unit->field_104 == 0.0f && unit->field_fb == 0
+    if ((unit->flags & 0x20) && unit->buildLeft == 0.0f && unit->postTransferHoldoff == 0
         && (unit->owner == 0 || (unit->owner->flags & 0x40000000))) {
         satisfied = 0;
     }
@@ -1256,7 +1256,7 @@ void DefeatUnitTypeKilled::LoadState(HapiBank* obj)
 // FUNCTION: 0x48f9a0
 int DefeatAllUnitsKilledOfType::VisitUnit(Unit* unit)
 {
-    if (unit->field_a6 == id) {
+    if (unit->unitDefIndex == id) {
         count++;
     }
     return count <= 1;
@@ -1306,7 +1306,7 @@ void DefeatAllUnitsKilledOfType::LoadState(HapiBank* obj)
 // FUNCTION: 0x48fb30
 int DefeatAnyUnitPassesX::VisitUnit(Unit* unit)
 {
-    int diff = abs((int)unit->field_76 - field_10);
+    int diff = abs((int)unit->cell - field_10);
 
     if (diff <= 2) {
         satisfied = 1;

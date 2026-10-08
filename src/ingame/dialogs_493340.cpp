@@ -168,13 +168,13 @@ struct Player {                        // 0x14b bytes
 
 struct Unit {
     char unknown_0[0x86];
-    int field_86;                      // +0x86
-    int field_8a;                      // +0x8a
+    int carrier;                      // +0x86
+    int cargo;                      // +0x8a
     char unknown_8e[0xa6 - 0x8e];
     unsigned short type;               // +0xa6
     char unknown_a8[0xf0 - 0xa8];
-    int field_f0;                      // +0xf0
-    unsigned char field_f4;            // +0xf4
+    int attacker;                      // +0xf0
+    unsigned char lastAttackerSlot;            // +0xf4
     char unknown_f5[0x110 - 0xf5];
     union {
         unsigned int flags;            // +0x110
@@ -445,7 +445,7 @@ void __stdcall GiveSelectedUnitsToPlayer(unsigned char player)
     unsigned int* set = GetCategoryMask("Commander");
     for (std::vector<Unit*>::iterator it = list.begin(); it != list.end(); it++) {
         Unit* unit = *it;
-        if ((unit->flags & 3) != 2 && unit->field_8a == 0 && unit->field_86 == 0
+        if ((unit->flags & 3) != 2 && unit->cargo == 0 && unit->carrier == 0
             && !TestBit(set, unit->type)) {
             GiveUnitToPlayer(unit, p, 0);
         }
@@ -1435,9 +1435,9 @@ void __stdcall HandleDebugHotkey(int eventType)
     case 0x5d: {
         Unit* u = &g_game->units[g_game->field_2cba];
         if (u->type != 0) {
-            u->field_f4 = 10;
+            u->lastAttackerSlot = 10;
             u->flag_110 = 1;
-            u->field_f0 = 0;
+            u->attacker = 0;
         }
         break;
     }

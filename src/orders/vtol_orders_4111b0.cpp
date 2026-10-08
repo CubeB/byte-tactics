@@ -38,7 +38,7 @@ struct Unit {
     UnitMotion* type;
     char pad4[0x6a - 4]; Vec3 pos;
     char pad76[0x7e - 0x76]; short size;
-    char pad80[0x86 - 0x80]; int field_86; int field_8a;
+    char pad80[0x86 - 0x80]; int carrier; int cargo;
     char pad8e[4]; UnitDef* def;
     char pad96[4]; CobScript* script;
     void ClaimWeapons(int);
@@ -82,7 +82,7 @@ Vec3 __stdcall GetPieceOffset(Unit* unit, int piece);
 void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
     unit->ClaimWeapons(3);
-    if (unit->field_86)
+    if (unit->carrier)
         AttachUnitToPiece(unit, 0, -1, 2);
     unit->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
@@ -113,7 +113,7 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
             QueueUnitSpeech(unit, 7, "Transport mission failed");
             return 8;
         }
-        if (unit->field_8a)
+        if (unit->cargo)
             return 8;
         switch (order->state) {
         case 0:

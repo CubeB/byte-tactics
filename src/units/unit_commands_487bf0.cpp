@@ -35,7 +35,7 @@ struct Def_00488310 {
 };
 
 struct Unit {
-    int field_0;                       // +0x0
+    int motion;                       // +0x0
     char unknown_4[0x1e - 4];
     unsigned char b1e;                 // +0x1e
     unsigned char b1f;                 // +0x1f
@@ -67,10 +67,10 @@ struct Unit {
     char unknown_10f[0x110 - 0x10f];
     unsigned int flags;                // +0x110
     char unknown_114[0x1c6 - 0x114];
-    float field_1c6;                   // +0x1c6
+    float energyUse;                   // +0x1c6
     char unknown_1ca[0x1d2 - 0x1ca];
-    float field_1d2;                   // +0x1d2
-    float field_1d6;                   // +0x1d6
+    float windGenerator;                   // +0x1d2
+    float tidalGenerator;                   // +0x1d6
     void SetStateBits(unsigned char mask, int set);
 };
 
@@ -220,7 +220,7 @@ void __stdcall RunInitialMission(Unit* unit, char* text, Table_00487bf0* table)
                 L.pos.z = (int)(65536.0 * L.f2);
                 unsigned short id = FindUnitTypeId(buf);
                 if (id != 0) {
-                    if (unit->field_0 != 0)
+                    if (unit->motion != 0)
                         AddOrder("MOBILEBUILD", 1, unit, 0,
                                      &L.pos, id, L.n);
                     else
@@ -838,14 +838,14 @@ void UnitTypeSet::AddTypeOrCategory(char* text, int* out)
 // FUNCTION: 0x488f30
 float __stdcall GetEnergyUse(Unit* unit)
 {
-    if (unit->field_1c6 != 0.0) {
-        return unit->field_1c6;
+    if (unit->energyUse != 0.0) {
+        return unit->energyUse;
     }
-    if (unit->field_1d2 > 0.0f) {
-        return -(g_game->field_37ede * unit->field_1d2);
+    if (unit->windGenerator > 0.0f) {
+        return -(g_game->field_37ede * unit->windGenerator);
     }
-    if (unit->field_1d6 > 0.0f) {
-        return -(g_game->field_14267 * unit->field_1d6);
+    if (unit->tidalGenerator > 0.0f) {
+        return -(g_game->field_14267 * unit->tidalGenerator);
     }
     return 0.0f;
 }

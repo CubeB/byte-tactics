@@ -221,7 +221,7 @@ struct Vec3_0049abb0 {
 
 // 499a30's views are folded in under the union's other members: its def at
 // +0xc is f_c (its f10a and f111 are team and flags.value), its weapons[3]
-// are slots[3], its f16/f18/f1b are f_16/f_18/f_1b, its owner is field_ff,
+// are slots[3], its f16/f18/f1b are f_16/f_18/f_1b, its owner is playerIndex,
 // its armour is f_b8, its state is flags, its type is utype and its pos is
 // pos_0049abb0.
 // The unit, as the weapon code sees it. The views disagree about the bytes at
@@ -309,7 +309,7 @@ struct Unit {
         short id;                      // 49d1e0's unit id
     };
     char unknown_aa[0xb0 - 0xaa];
-    int field_b0;                      // +0xb0, 49c740's
+    int workTime;                      // +0xb0, 49c740's
     char unknown_b4[0xb8 - 0xb4];
     unsigned short f_b8;               // +0xb8, the aiming inaccuracy
     union {                            // +0xba
@@ -328,7 +328,7 @@ struct Unit {
         };
     };
     char unknown_f0[0xff - 0xf0];
-    unsigned char field_ff;            // +0xff, the owner's player colour (49c740)
+    unsigned char playerIndex;            // +0xff, the owner's player colour (49c740)
     char unknown_100[0x108 - 0x100];
     short f_108;                       // +0x108
     unsigned char team;                // +0x10a
@@ -370,10 +370,10 @@ struct Proj_0049c740 {
     unsigned char player;              // +0x66
     char unknown_67[0x69 - 0x67];
     unsigned short flags;              // +0x69
-    // Written as an inline method the load of u->field_ff comes before the
+    // Written as an inline method the load of u->playerIndex comes before the
     // store of owner, as the original has it; in the enclosing function it
     // sinks below it.
-    void SetOwner(Unit* u) { player = u->field_ff; owner = u; }
+    void SetOwner(Unit* u) { player = u->playerIndex; owner = u; }
 };
 
 struct DefFlags_0049d270 {
@@ -669,7 +669,7 @@ void __stdcall ApplyWeaponHit(Weapon_499c70* weapon, Unit* target)
     if (attacker) {
         unsigned short a = 0;
         unsigned short b = 0;
-        if (weapon->owner != target->field_ff)
+        if (weapon->owner != target->playerIndex)
             a = damage;
         else
             b = damage;
@@ -925,7 +925,7 @@ void __stdcall DetonateProjectile(Projectile_00499eb0* projectile, Unit* unit)
             if (source) {
                 int a = 0;
                 int b = 0;
-                if (projectile->owner != unit->field_ff)
+                if (projectile->owner != unit->playerIndex)
                     a = damage;
                 else
                     b = damage;
@@ -1592,7 +1592,7 @@ void __stdcall DetonateUnitWeapon(Unit* unit, int second)
         proj.start = unit->pos_0049abb0;
         proj.targetUnit = 0;
         proj.ownerUnit = 0;
-        proj.owner = unit->field_ff;
+        proj.owner = unit->playerIndex;
         DetonateProjectile(&proj, 0);
     }
 }
@@ -1831,7 +1831,7 @@ void __stdcall InitProjectile(Proj_0049c740* proj, Shot_0049c740* shot, Vec3* po
             if (unit->slots[i].shot == shot)
                 break;
         proj->piece = (short)QueryWeaponPiece(unit, i);
-        unit->field_b0 = g_game->field_38a47 + 0x258;
+        unit->workTime = g_game->field_38a47 + 0x258;
     } else {
         proj->player = 0xa;
         proj->owner = 0;

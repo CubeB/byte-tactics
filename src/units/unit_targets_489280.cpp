@@ -130,7 +130,7 @@ public:
     unsigned short id;                 // +0xa8
     unsigned short fix_lo;             // +0xaa
     char unknown_ac[0xb8 - 0xac];
-    unsigned short field_b8;           // +0xb8, armour: divided by 5, capped at 5
+    unsigned short killCount;           // +0xb8, armour: divided by 5, capped at 5
     char unknown_ba[0xf0 - 0xba];
     void* last;                        // +0xf0
     char unknown_f4;
@@ -468,7 +468,7 @@ void __stdcall DamageUnit(Unit* source, Unit* target, int amount, int type, unsi
     if (type != 10) {
         if ((target->state & 2) && amount < 0x7530)
             amount = (int)(((__int64)target->def->f1aa * amount) >> 0x10);
-        int armour = target->field_b8 / 5;
+        int armour = target->killCount / 5;
         if (armour > 5)
             armour = 5;
         dmg = (25 - armour) * amount * 4 / 100;
@@ -754,7 +754,7 @@ int __stdcall GetWeaponTargetPos(Unit* unit, Vec3_0048a1e0* pos, int index)
     }
     GetSweetSpot(def, (int)pos);
     if ((e->flags & 2) && !(e->target->field_111 & 0x2000000) && def->body != 0
-        && unit->field_b8 > 5 && e->target->radius != 0) {
+        && unit->killCount > 5 && e->target->radius != 0) {
         Vec3_0048a1e0 d;
         d.x = unit->pos.x - pos->x;
         d.y = unit->pos.y - pos->y;

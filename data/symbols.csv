@@ -1735,7 +1735,7 @@ address,name
 0x4813b0,UnitScript::DropUnit
 0x481430,UnitScript::IsCarryingUnit
 0x481470,UnitScript::GetTransporterId
-0x481490,Class_00481490::OnAimCobReturn
+0x481490,WeaponAimCobCb::OnAimCobReturn
 0x4814b0,AimCobStub
 0x4814f0,FreeLosTables
 0x481500,InitEyeballs
@@ -2755,7 +2755,7 @@ address,name
 0x4c4340,Class_004c4340::MakeTrimmedString
 0x4c43f0,TdfRecord::ComputeRecordChecksum
 0x4c4420,TdfRecord::CopyRecordName
-0x4c4440,Class_004c4440::GetRecordName
+0x4c4440,TdfRecord::GetRecordName
 0x4c4450,Class_004c4450::GetSubRecordCount
 0x4c4470,TdfRecord::FindSubRecord
 0x4c44c0,Class_004c44c0::GetSubRecord

@@ -188,6 +188,7 @@ public:
 
     void ComputeRecordChecksum(char* start, char* end);
     void CopyRecordName(char* dest, size_t count);
+    int GetRecordName();
     TdfRecord* FindSubRecord(const char* name);
     int GetFieldCount();
     char* GetFieldName(int index);
@@ -519,16 +520,22 @@ void TdfRecord::CopyRecordName(char* dest, size_t count)
     strncpy(dest, name, count);
 }
 
-class Class_004c4440 {
-public:
-    int GetRecordName();
-};
-
 // FUNCTION: 0x4c4440
-int Class_004c4440::GetRecordName()
+int TdfRecord::GetRecordName()
 {
-    return *(int*)this;
+    return (int)name;
 }
+
+// Unused here: classes of the neighbouring files (the string handle's other
+// methods, 0x4c90b0 to 0x4c9490, and the translation table), declared for the
+// symbol ids that GetRecordName's own class took before it joined TdfRecord.
+class Class_004c90b0;
+class Class_004c9230;
+class Class_004c9290;
+class Class_004c9310;
+class Class_004c93f0;
+class Class_004c9490;
+class TranslationTable;
 
 // size() of the std::vector of pointers held at +4 (_First at +8), the same
 // layout as TdfRecord's children.

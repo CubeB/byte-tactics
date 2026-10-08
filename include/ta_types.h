@@ -498,7 +498,7 @@ class Class_00481340;
 class Class_004813b0;
 class Class_00481430;
 class Class_00481470;
-struct Class_00481490;
+struct WeaponAimCobCb;
 struct Eye;
 class UnitScript;
 class Class_00488c50;
@@ -12319,7 +12319,7 @@ public:
     unsigned short FUN_00481470(void);
 };
 
-struct Class_00481490 {  // 0x1c bytes, 4 views
+struct WeaponAimCobCb {  // 0x1c bytes, 4 views
     void* vtable;  // +0x0
     int field_4;  // +0x4
     char unknown_8[20];

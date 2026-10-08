@@ -1691,8 +1691,8 @@ address,name
 0x47f680,PlayNextSpeech
 0x47f750,StopAllSounds
 0x47f780,QueueUnitSpeech
-0x47f7e0,FUN_0047f7e0
-0x47f850,FUN_0047f850
+0x47f7e0,QueueUnitSpeechIfVisible
+0x47f850,QueueUnitSpeechIfNotVisible
 0x47f8c0,RemoveSpeechOfUnit
 0x47f960,SpeechQueue::SpeechQueue
 0x47f990,SpeechQueue::ClearSpeechList
@@ -1702,8 +1702,8 @@ address,name
 0x47fd70,SpeechQueue::PlaySpeech
 0x47ffa0,SpeechQueue::RemoveSpeechAt
 0x480020,SpeechQueue::RemoveSpeechOfId
-0x4800c0,Class_004800c0::FUN_004800c0
-0x480100,Class_00480100::FUN_00480100
+0x4800c0,Class_004800c0::EraseSwapBack
+0x480100,Class_00480100::EraseByValue
 0x480160,Squad::Squad
 0x480190,CreateSquads
 0x4801f0,FreeSquads
@@ -4251,11 +4251,11 @@ address,name
 0x508498,g_cheatFourPlayers
 0x50849c,g_skirmishSetupPictureName
 0x5084ac,g_skirmishGuiName
-0x5086dc,DAT_005086dc
+0x5086dc,g_speechTypes
 0x5086fc,g_speechCategories
-0x508a78,DAT_00508a78
-0x508aa4,DAT_00508aa4
-0x508ab4,DAT_00508ab4
+0x508a78,g_soundInitError
+0x508aa4,g_useWindowsSoundKey
+0x508ab4,g_noDirectSoundKey
 0x508be8,g_killedScriptName
 0x508bf0,g_takenLeadFormat
 0x508d68,s_TakeDamage_00508d68
@@ -4667,7 +4667,7 @@ address,name
 0x51e680,g_briefingPlanetNextTick
 0x51e684,DAT_0051e684
 0x51e688,DAT_0051e688
-0x51e68c,DAT_0051e68c
+0x51e68c,g_speechQueue
 0x51e690,g_noDirectSound
 0x51e694,g_useWindowsSound
 0x51e698,DAT_0051e698

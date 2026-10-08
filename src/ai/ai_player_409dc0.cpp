@@ -340,7 +340,7 @@ struct Class_0040a150 {
 
 struct Class_004800c0 {
 public:
-    void FUN_004800c0(Unit**);
+    void EraseSwapBack(Unit**);
 };
 
 #pragma pack(pop)
@@ -622,7 +622,7 @@ Unit* __stdcall FindWeaponTarget(Unit* unit,unsigned char weapon,int useRange)
         if(candidates.empty()) break;
         std::vector<Unit*>::iterator it=candidates.begin()+RandomInt(candidates.size());
         Unit* target=*it;
-        ((Class_004800c0*)&candidates)->FUN_004800c0(it);
+        ((Class_004800c0*)&candidates)->EraseSwapBack(it);
         if((target->flags&0x10000000) && !(target->flags&0x4000) &&
            ((target->def->flags&0x8000) || ai || (g_game->flags&4)) &&
            ((unit->def->flags&0x10000000) || WeaponCanReachUnit(unit,target,weapon)) &&

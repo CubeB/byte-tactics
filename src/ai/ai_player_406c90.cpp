@@ -604,7 +604,7 @@ Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
 void __stdcall SetWeaponTargetUnit(Unit*, int, unsigned int);
 unsigned int __stdcall GetOrderFlags(Unit*);
-void __stdcall FUN_0047f850(Unit*, int, int);
+void __stdcall QueueUnitSpeechIfNotVisible(Unit*, int, int);
 void __stdcall SetUnitSquad(Unit* unit, int squad);
 int* __stdcall FindTargetableProjectile(Unit* unit, unsigned int weapon);
 int __stdcall FindWeaponTarget(Unit* unit, unsigned int weapon, int param_3);
@@ -791,7 +791,7 @@ void __stdcall ReactToAttack(Unit* attacker, Unit* unit, int unused)
         }
     }
     if (!(GetOrderFlags(unit)&0x80) && (unit->player!=unit->ownerIndex || unit->state==1))
-        FUN_0047f850(unit,2,0);
+        QueueUnitSpeechIfNotVisible(unit,2,0);
 }
 
 // FUNCTION: 0x4071f0

@@ -1696,8 +1696,8 @@ address,size,file,symbol,status,similarity
 0x47f680,196,src/sound/sound_47ed40.cpp,?PlayNextSpeech@@YGXXZ,matched,100.0
 0x47f750,37,src/sound/sound_47ed40.cpp,?StopAllSounds@@YGXXZ,matched,100.0
 0x47f780,93,src/sound/sound_47ed40.cpp,?QueueUnitSpeech@@YGXPAUUnit@@HPAD@Z,matched,100.0
-0x47f7e0,102,src/sound/sound_47ed40.cpp,?FUN_0047f7e0@@YGXPAUUnit@@HPAD@Z,matched,100.0
-0x47f850,102,src/sound/sound_47ed40.cpp,?FUN_0047f850@@YGXPAUUnit@@HPAD@Z,matched,100.0
+0x47f7e0,102,src/sound/sound_47ed40.cpp,?QueueUnitSpeechIfVisible@@YGXPAUUnit@@HPAD@Z,matched,100.0
+0x47f850,102,src/sound/sound_47ed40.cpp,?QueueUnitSpeechIfNotVisible@@YGXPAUUnit@@HPAD@Z,matched,100.0
 0x47f8c0,150,src/sound/sound_47ed40.cpp,?RemoveSpeechOfUnit@@YGXH@Z,matched,100.0
 0x47f960,39,src/sound/sound_47ed40.cpp,??0SpeechQueue@@QAE@HH@Z,matched,100.0
 0x47f990,146,src/sound/sound_47ed40.cpp,?ClearSpeechList@SpeechQueue@@QAEXXZ,matched,100.0
@@ -1707,8 +1707,8 @@ address,size,file,symbol,status,similarity
 0x47fd70,557,src/sound/sound_47ed40.cpp,?PlaySpeech@SpeechQueue@@QAEXHHH@Z,matched,100.0
 0x47ffa0,123,src/sound/sound_47ed40.cpp,?RemoveSpeechAt@SpeechQueue@@QAEXH@Z,matched,100.0
 0x480020,160,src/sound/sound_47ed40.cpp,?RemoveSpeechOfId@SpeechQueue@@QAEXPAUUnit@@@Z,matched,100.0
-0x4800c0,60,src/sound/sound_47ed40.cpp,?FUN_004800c0@Class_004800c0@@QAEPAPAUUnit@@PAPAU2@@Z,matched,100.0
-0x480100,93,src/sound/sound_47ed40.cpp,?FUN_00480100@Class_00480100@@QAEHH@Z,matched,100.0
+0x4800c0,60,src/sound/sound_47ed40.cpp,?EraseSwapBack@Class_004800c0@@QAEPAPAUUnit@@PAPAU2@@Z,matched,100.0
+0x480100,93,src/sound/sound_47ed40.cpp,?EraseByValue@Class_00480100@@QAEHH@Z,matched,100.0
 0x480160,42,src/sound/sound_47ed40.cpp,??0Squad@@QAE@HH@Z,matched,100.0
 0x480190,86,src/units/squads.cpp,?CreateSquads@@YGXPAUOwner@@@Z,matched,100.0
 0x4801f0,83,src/units/squads.cpp,?FreeSquads@@YGXPAUOwner@@@Z,matched,100.0

@@ -197,16 +197,16 @@ struct Message_0047fad0 {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern SpeechQueue* DAT_0051e68c;
-extern Message_0047fad0 DAT_005086dc[24];
+extern SpeechQueue* g_speechQueue;
+extern Message_0047fad0 g_speechTypes[24];
 extern int g_noDirectSound;            // NoDirectSound
 extern int g_useWindowsSound;          // UseWindowsSound
 extern int g_playLooping;
 extern int DAT_0051e698;
 
-extern char DAT_00508ab4[]; // "NoDirectSound"
-extern char DAT_00508aa4[]; // "UseWindowsSound"
-extern char DAT_00508a78[]; // "Error:  Sound system initialization failed."
+extern char g_noDirectSoundKey[]; // "NoDirectSound"
+extern char g_useWindowsSoundKey[]; // "UseWindowsSound"
+extern char g_soundInitError[]; // "Error:  Sound system initialization failed."
 
 unsigned int __stdcall GetPreferenceInt(char* key, int defaultValue);
 int IsWindowsSoundAvailable(void);
@@ -245,9 +245,9 @@ SpeechQueue::SpeechQueue(int param_1, int param_2)
 // FUNCTION: 0x47ed40
 void InitSound(void)
 {
-    if (GetPreferenceInt(DAT_00508ab4, 0))
+    if (GetPreferenceInt(g_noDirectSoundKey, 0))
         g_noDirectSound = 1;
-    if (GetPreferenceInt(DAT_00508aa4, 0))
+    if (GetPreferenceInt(g_useWindowsSoundKey, 0))
         g_useWindowsSound = 1;
     if (g_useWindowsSound) {
         if (!IsWindowsSoundAvailable())
@@ -260,17 +260,17 @@ void InitSound(void)
             if (g_game->sound->HasNoDriver())
                 g_noDirectSound = 1;
             else
-                FatalError(DAT_00508a78);
+                FatalError(g_soundInitError);
         }
     }
     ((Class_004ce260*)g_game->sound)->OpenCdAudio();
-    DAT_0051e68c = new SpeechQueue(0x1e, 0x96);
+    g_speechQueue = new SpeechQueue(0x1e, 0x96);
 }
 
 // FUNCTION: 0x47ee30
 void ResetSpeech()
 {
-    SpeechQueue* list = DAT_0051e68c;
+    SpeechQueue* list = g_speechQueue;
     if (list->count > 0) {
         int* count = &list->count;
         do {
@@ -295,13 +295,13 @@ void ResetSpeech()
     // Must go through list, not the global.
     list->lastFrame = 0;
     for (int k = 0; k < 24; k++)
-        DAT_005086dc[k].minFrame = 0;
+        g_speechTypes[k].minFrame = 0;
 }
 
 // FUNCTION: 0x47eee0
 void ShutdownSound()
 {
-    SpeechQueue* list = DAT_0051e68c;
+    SpeechQueue* list = g_speechQueue;
     if (list) {
         if (list->count > 0) {
             int* count = &list->count;
@@ -325,7 +325,7 @@ void ShutdownSound()
         }
         list->lastFrame = 0;
         operator delete(list);
-        DAT_0051e68c = 0;
+        g_speechQueue = 0;
     }
     ((Class_004d0130*)g_game->sound)->RestoreMixerVolumes();
     Sound* sound = g_game->sound;
@@ -545,7 +545,7 @@ void __stdcall PlaySoundAtByName(char* name, int param_2, int param_3)
     PlaySoundAt(FindSound(name), (Pos_0047f300*)param_2, param_3);
 }
 
-// Ages the sound driver held in DAT_0051e68c: if the list is not empty, and
+// Ages the sound driver held in g_speechQueue: if the list is not empty, and
 // the game frame has reached the driver's next expiry, it refreshes that
 // expiry and plays the entry's sound. Either way it then drops the head entry
 // of the nine-entry list and frees its data.
@@ -555,14 +555,14 @@ void __stdcall PlaySoundAtByName(char* name, int param_2, int param_3)
 // FUNCTION: 0x47f680
 void PlayNextSpeech()
 {
-    SpeechQueue* driver = DAT_0051e68c;
-    int& count = DAT_0051e68c->count;
+    SpeechQueue* driver = g_speechQueue;
+    int& count = g_speechQueue->count;
     if (count) {
-        if (g_game->frame >= DAT_0051e68c->lastFrame + DAT_0051e68c->interval) {
-            DAT_0051e68c->PlaySpeech(0, 1, 1);
+        if (g_game->frame >= g_speechQueue->lastFrame + g_speechQueue->interval) {
+            g_speechQueue->PlaySpeech(0, 1, 1);
             driver->lastFrame = g_game->frame;
         } else {
-            DAT_0051e68c->PlaySpeech(0, 0, 1);
+            g_speechQueue->PlaySpeech(0, 0, 1);
         }
         if (driver->entries[0].data) {
             FUN_004d85a0(driver->entries[0].data);
@@ -592,16 +592,16 @@ void __stdcall QueueUnitSpeech(Unit* unit, int kind, char* text)
 {
     if (unit->owner == g_game->playerIndex && (unit->flags & 0x10000000) && !(unit->flags & 0x4000)) {
         if (text == 0) {
-            text = DAT_005086dc[kind].text;
+            text = g_speechTypes[kind].text;
         }
-        DAT_0051e68c->EnqueueSpeech(unit, kind, Translate(text));
+        g_speechQueue->EnqueueSpeech(unit, kind, Translate(text));
     }
 }
 
 // QueueUnitSpeech is inlined here: the text argument is loaded early because it
 // crosses the inline boundary.
 // FUNCTION: 0x47f7e0
-void __stdcall FUN_0047f7e0(Unit* unit, int kind, char* text)
+void __stdcall QueueUnitSpeechIfVisible(Unit* unit, int kind, char* text)
 {
     if (IsUnitVisible(unit) != 0) {
         QueueUnitSpeech(unit, kind, text);
@@ -609,22 +609,22 @@ void __stdcall FUN_0047f7e0(Unit* unit, int kind, char* text)
 }
 
 // FUNCTION: 0x47f850
-void __stdcall FUN_0047f850(Unit* unit, int kind, char* text)
+void __stdcall QueueUnitSpeechIfNotVisible(Unit* unit, int kind, char* text)
 {
     if (IsUnitVisible(unit) == 0) {
         QueueUnitSpeech(unit, kind, text);
     }
 }
 
-// Removes every entry whose unit field equals id from the list at DAT_0051e68c,
+// Removes every entry whose unit field equals id from the list at g_speechQueue,
 // freeing its data and shifting the later entries down.
 // The count is used through its own pointer: accessed as list->count, MSVC
 // keeps the list pointer live instead of reusing its register for the entries.
 // FUNCTION: 0x47f8c0
 void __stdcall RemoveSpeechOfUnit(int id)
 {
-    int* count = &DAT_0051e68c->count;
-    SpeechEntry* entries = DAT_0051e68c->entries;
+    int* count = &g_speechQueue->count;
+    SpeechEntry* entries = g_speechQueue->entries;
     int i = 0;
     while (i < *count) {
         if (entries[i].unit == (Unit*)id) {
@@ -663,7 +663,7 @@ void SpeechQueue::ClearSpeechEntries(void)
 // FUNCTION: 0x47fad0
 void SpeechQueue::EnqueueSpeech(Unit* unit, int kind, char* text)
 {
-    if (g_game->frame < DAT_005086dc[kind].minFrame)
+    if (g_game->frame < g_speechTypes[kind].minFrame)
         return;
 
     for (int i = 0; i < count; i++)
@@ -684,7 +684,7 @@ void SpeechQueue::EnqueueSpeech(Unit* unit, int kind, char* text)
     int j;
     if (count != 0) {
         for (j = 0; j < count; j++)
-            if (DAT_005086dc[entries[j].kind].priority < DAT_005086dc[kind].priority)
+            if (g_speechTypes[entries[j].kind].priority < g_speechTypes[kind].priority)
                 break;
 
         for (int i = count; i > j; i--)
@@ -696,7 +696,7 @@ void SpeechQueue::EnqueueSpeech(Unit* unit, int kind, char* text)
     entries[j].kind = kind;
     entries[j].frame = g_game->frame;
     entries[j].unit = unit;
-    entries[j].priority = DAT_005086dc[kind].priority;
+    entries[j].priority = g_speechTypes[kind].priority;
     if (text) {
         entries[j].data = (char*)FUN_004d83b0("Speech Text", strlen(text) + 1);
         strcpy(entries[j].data, text);
@@ -765,8 +765,8 @@ void SpeechQueue::PlaySpeech(int index, int param_2, int param_3)
                    && (g_game->flags_37f19 & 7) && g_noDirectSound == 0) {
             g_game->sound->PlaySample(path, -0x249, 0);
         }
-        DAT_005086dc[slot].minFrame =
-            g_game->frame + DAT_005086dc[slot].cooldown * 0x1e;
+        g_speechTypes[slot].minFrame =
+            g_game->frame + g_speechTypes[slot].cooldown * 0x1e;
     }
 
     if (param_3 != 0 && (int)e->priority > 10 - g_game->field_37f18) {
@@ -828,7 +828,7 @@ public:
     typedef std::vector<Unit*> UnitVector;
     UnitVector units;       // allocator +0x0, _First +0x4, _Last +0x8, _End +0xc
 
-    UnitVector::iterator FUN_004800c0(UnitVector::iterator where);
+    UnitVector::iterator EraseSwapBack(UnitVector::iterator where);
 };
 
 // Unordered erase: overwrites *where with the last element, drops the last
@@ -836,7 +836,7 @@ public:
 // remain) and returns where, which now holds the moved element. The only
 // caller (0x40b8b2) passes a slot of this same vector.
 // FUNCTION: 0x4800c0
-Class_004800c0::UnitVector::iterator Class_004800c0::FUN_004800c0(UnitVector::iterator where)
+Class_004800c0::UnitVector::iterator Class_004800c0::EraseSwapBack(UnitVector::iterator where)
 {
     UnitVector::iterator last = units.end() - 1;
     *where = *last;
@@ -848,13 +848,13 @@ class Class_00480100 {
 public:
     std::vector<int> items;            // +0x0 (_First +0x4, _Last +0x8)
 
-    int FUN_00480100(int value);
+    int EraseByValue(int value);
 };
 
 // Removes the first occurrence of a value from a std::vector by moving the
 // last element into its slot and erasing the last element.
 // FUNCTION: 0x480100
-int Class_00480100::FUN_00480100(int value)
+int Class_00480100::EraseByValue(int value)
 {
     std::vector<int>::iterator it = std::find(items.begin(), items.end(), value);
     if (it == items.end()) {

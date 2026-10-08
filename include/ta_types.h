@@ -3241,7 +3241,7 @@ public:
 class Class_004800c0 {  // 0x10 bytes, 2 views
 public:
     std::vector<Unit*> units;  // +0x0
-    Unit** FUN_004800c0(Unit**);
+    Unit** EraseSwapBack(Unit**);
 };
 
 struct Player_00446080 {  // 0x14b bytes, 2 views
@@ -12094,7 +12094,7 @@ public:
 class Class_00480100 {  // 0x10 bytes, 2 views
 public:
     std::vector<int> items;  // +0x0
-    int FUN_00480100(int);
+    int EraseByValue(int);
 };
 
 struct Diff_00480570 {  // 0x8 bytes, 2 views

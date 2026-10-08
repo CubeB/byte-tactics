@@ -798,7 +798,7 @@ int __stdcall GetOrderCursor(unsigned char type, Unit* unit, Unit* target, int* 
 
 class Class_00480100 {
 public:
-    int FUN_00480100(int value);
+    int EraseByValue(int value);
 };
 
 // FUNCTION: 0x48d220
@@ -821,7 +821,7 @@ int __stdcall ResolveCursorModeForSelection(char arg)
     }
 
     if (target != 0)
-        ((Class_00480100*)&vec)->FUN_00480100((int)target);
+        ((Class_00480100*)&vec)->EraseByValue((int)target);
 
     if (vec.empty()) {
         if (arg == 1 && target != 0

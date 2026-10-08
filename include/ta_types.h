@@ -126,7 +126,7 @@ class Class_004010b0;
 class Class_00401110;
 class Class_00401180;
 class Class_004011c0;
-class Class_00405d90;
+class DamagedAllyCollector;
 class SquadManager;
 class Class_004071f0;
 class Class_00407560;
@@ -183,7 +183,7 @@ class Class_004335c0;
 class Class_004335f0;
 class Class_004336f0;
 class Class_004339c0;
-class Class_004339e0;
+class LosLine;
 class Class_00434f70;
 class Class_004352b0;
 class Class_00435320;
@@ -2872,13 +2872,13 @@ struct Order_9 {  // 0x1a bytes, 1 view
     UnitRef target;  // +0x12
 };
 
-class Class_00405d90 {  // 0x10 bytes, 7 views
+class DamagedAllyCollector {  // 0x10 bytes, 7 views
 public:
     Player* owner;  // +0x4
     std::vector<Unit*>* units;  // +0x8
     Unit* self;  // +0xc
-    Class_00405d90(Class_00405d90&);
-    Class_00405d90(Player*, std::vector<Unit*>*, Unit*);
+    DamagedAllyCollector(DamagedAllyCollector&);
+    DamagedAllyCollector(Player*, std::vector<Unit*>*, Unit*);
     virtual void CollectDamagedAlly(Unit*);
     virtual void CollectGroundAlly(Unit*);
     virtual void CollectRepairableUnit(Unit*);
@@ -5935,7 +5935,7 @@ public:
     int GetLosLineStepCount(void);
 };
 
-class Class_004339e0 {  // 0x1 bytes, 4 views
+class LosLine {         // 0x1 bytes, 4 views
 public:
     char unknown_0[1];
     void GetLosLineStep(short, unsigned short*, unsigned short*);

@@ -106,7 +106,7 @@ class Class_004a1080;
 class Object_004a0570;
 class Object_004a1450;
 struct Dialog;
-struct Class_004c6a60;
+struct Surface;
 struct Mode_0045e4c0;
 struct Gui_0045e100;
 
@@ -726,7 +726,7 @@ struct Layer_00460160 {
     short field_17;                    // +0x17
     short field_19;                    // +0x19
     char unknown_1b[0xbc - 0x1b];
-    Class_004c6a60* field_bc;          // +0xbc
+    Surface* field_bc;                 // +0xbc
 };
 
 struct Holder_00460160 {
@@ -908,7 +908,7 @@ struct Gadget_00460cc0 {
 };
 
 // The surface laid out by AllocSurface: the pixels follow a 0x30-byte header.
-struct Class_004c6a60 {
+struct Surface {
     char unknown_0[0xc];
     char* pixels;                   // +0xc
 };
@@ -1047,10 +1047,10 @@ extern char g_optionsBackupTrackTypes[];
 extern int g_optionsBackupLockedTrack;
 extern int g_musicUiSelectedTrack;
 extern int g_optionsShellActive;
-extern Class_004c6a60* g_optionsFlipSurface;
+extern Surface* g_optionsFlipSurface;
 extern int g_optionsLightbarX;
 extern int g_optionsLightbarAnim;
-extern Class_004c6a60* g_optionsBackupSurface;
+extern Surface* g_optionsBackupSurface;
 extern int g_battleQuitIntent;
 // Flags live in this struct, not a standalone global: keeps the load order.
 extern Settings_45cde0 g_optionsPrefsSnapshot;
@@ -1268,12 +1268,12 @@ int __stdcall PopUntilNamedLayout(int force);
 void BlankScreen();
 void __stdcall SetGameMode(int a);
 void __stdcall SelectGadgetByName(Sub_00460680* sub, const char* name);
-void __stdcall FrameFromSurface(Dst_004b8ae0* dst, Class_004c6a60* src);
-Class_004c6a60* __stdcall AllocSurface(char* name, int width, int height);
+void __stdcall FrameFromSurface(Dst_004b8ae0* dst, Surface* src);
+Surface* __stdcall AllocSurface(char* name, int width, int height);
 void __stdcall DrawSurface(int a, void* surface, int b, int c);
-void __stdcall DrawSurface(Class_004c6a60* surface, int a, int b, int c);
+void __stdcall DrawSurface(Surface* surface, int a, int b, int c);
 void __stdcall FreeSurface(void* surface);
-void __stdcall FreeSurface(Class_004c6a60* surface);
+void __stdcall FreeSurface(Surface* surface);
 void* __stdcall FindGafEntry(void* gaf, const char* name);
 void* __stdcall GetGafFrame(void* a, int b);
 void __stdcall DrawFrame(int a, void* b, int c, int d);

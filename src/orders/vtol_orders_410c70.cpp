@@ -2,7 +2,7 @@
 // Unit visitor (vtable 0x4fcc60, built on the stack by 0x410850 and passed to
 // VisitObjectsInRange): collects every unit whose owner is allied with this owner,
 // whose def lacks flag 0x800, and that is not the visitor's own unit. The
-// same shape as Class_00405d90 (0x405d90), with the vector::push_back inlined.
+// same shape as DamagedAllyCollector (0x405d90), with the vector::push_back inlined.
 struct Unit;
 void __stdcall CopyDwordIfNonNull(Unit**, Unit* const*);
 namespace std {

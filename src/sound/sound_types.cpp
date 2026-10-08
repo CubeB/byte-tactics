@@ -8,6 +8,7 @@ public:
     const char* field_0;
     void CopyRecordName(char* dest, unsigned int count);
     int GetFieldString(char* dst, char* key, unsigned int size, char* def);
+    int GetSubRecordCount();
 };
 
 class TdfFile {
@@ -22,11 +23,6 @@ public:
     void Unload();
     int SelectRecordAt(int index);
     void ResetCurrentRecord();
-};
-
-class Class_004c4450 {
-public:
-    int GetSubRecordCount();
 };
 
 struct Source_0042f450 {
@@ -118,7 +114,7 @@ void LoadSoundCategories()
 
     BuildDataPath(path, "gamedata", "sound", "TDF");
     if (obj.LoadFile(path)) {
-        g_game->entry_count = ((Class_004c4450*)obj.field_0)->GetSubRecordCount();
+        g_game->entry_count = ((TdfRecord*)obj.field_0)->GetSubRecordCount();
         int size = g_game->entry_count * 0x160;
         g_game->entries = (Entry_0042f740*)FUN_004d83b0("Sound Categories", size);
         memset(g_game->entries, 0, size);

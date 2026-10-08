@@ -262,6 +262,9 @@ struct Game {
 // allocated from and the handles that keep them.
 class CMemoryCache {
 public:
+    char unknown_0[0x10];
+    Image_4589c0* bitmap;              // +0x10
+
     void ClearPointers(void);
     int InitCache(unsigned int size);
     void FreeBuffer();
@@ -273,6 +276,15 @@ public:
     void ReleaseHandle(int handle);
     void BuildShadow(Model_459200*, Image_4589c0*);
     void DrawObjectState(Model_459200*, void* context);
+    void DrawObjectPieces(int param_1, Model_459200* list, Vec3 v, int param_6);
+    // Defined in model_render_4584d0.cpp: only matches at that file's symbol count.
+    void DrawPiece(Model_459200* model, void* surface, Vec3* camera,
+        Object3do* info, Vec3* vertices, unsigned char palette, int useColor);
+    // Defined in model_render_4589c0.cpp: only matches at that file's symbol count.
+    void DrawObjectPicture(int param_2, Model_459200* model, Vec3 v, int useColor);
+    void MergeIntoComposite(Image_4589c0* src, Model_459200* model);
+    void MeasureShadow(int* width, int* height, int* originX, int* originY, Model_459200* model);
+    void DrawShadowShape(Image_4589c0* view, Model_459200* model);
 };
 
 // A unit or feature instance: the object the piece tree and the pictures
@@ -364,28 +376,6 @@ public:
                         Pos_4589c0 pos);
 };
 
-class Class_00458430 {
-public:
-    void DrawObjectPieces(int param_1, Model_459200* list, Vec3 v, int param_6);
-};
-
-class Class_004584d0 {
-public:
-    // Defined in model_render_4584d0.cpp: only matches at that file's symbol count.
-    void DrawPiece(Model_459200* model, void* surface, Vec3* camera,
-        Object3do* info, Vec3* vertices, unsigned char palette, int useColor);
-};
-
-class Class_00459200 {
-public:
-    char unknown_0[0x10];
-    Image_4589c0* bitmap;              // +0x10
-
-    // Defined in model_render_4589c0.cpp: only matches at that file's symbol count.
-    void DrawObjectPicture(int param_2, Model_459200* model, Vec3 v, int useColor);
-    void MergeIntoComposite(Image_4589c0* src, Model_459200* model);
-};
-
 class Class_00458d30 {
 public:
     // level stays unsigned char: only the low byte of the quotient is needed.
@@ -406,15 +396,11 @@ public:
     Image_4589c0* MakeSilhouette(Image_4589c0* src);
 };
 
-class Class_0045a510 {
-public:
-    void MeasureShadow(int* width, int* height, int* originX, int* originY, Model_459200* model);
-};
-
-class Class_0045a610 {
-public:
-    void DrawShadowShape(Image_4589c0* view, Model_459200* model);
-};
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+int RIReport(int, int, int, int, int, int, int, int, int, int);
+void WalkFrameChain(int*, int*, int, int, int*, int, int*, int*, int, int*);
+int DrawWrappedText(char*, char*, int, int, int, int, int);
+void ScaleUnitWeights(int, unsigned int*, float, int);
 
 void* __stdcall AllocDepthFrame(const char* name, int width, int height);
 Vec3f __stdcall VectorFromToInt(Vec3 a, Vec3 b);
@@ -721,15 +707,15 @@ void Class_00458310::AddModelBounds(int* minX, int* maxX, int* minY, int* maxY,
 }
 
 // FUNCTION: 0x458430
-void Class_00458430::DrawObjectPieces(int param_1, Model_459200* list, Vec3 v, int param_6)
+void CMemoryCache::DrawObjectPieces(int param_1, Model_459200* list, Vec3 v, int param_6)
 {
     if (list->bitmap != 0) {
-        ((Class_00459200*)this)->DrawObjectPicture(param_1, list, v, param_6);
+        DrawObjectPicture(param_1, list, v, param_6);
         return;
     }
     for (int i = list->count - 1; i >= 0; i--) {
         if (list->pieces[i].flags.bits.visible) {
-            ((Class_004584d0*)this)->DrawPiece(list, (void*)param_1, &v, list->pieces[i].object,
+            DrawPiece(list, (void*)param_1, &v, list->pieces[i].object,
                                                   list->pieces[i].points, list->owner->kind, param_6);
         }
     }
@@ -753,8 +739,6 @@ void __stdcall HalveFrame(Image_4589c0* src, Image_4589c0* dst)
     }
 }
 
-class Class_00459200;
-
 template <class T> inline void Swap(T& a, T& b)
 {
     T t = a;
@@ -766,7 +750,7 @@ template <class T> inline void Swap(T& a, T& b)
 // re-blits `bmp` (pixels, then the shade plane through a pixels/shade swap) into
 // it.
 // FUNCTION: 0x4589c0
-void Class_00459200::MergeIntoComposite(Image_4589c0* bmp, Model_459200* model)
+void CMemoryCache::MergeIntoComposite(Image_4589c0* bmp, Model_459200* model)
 {
     // One named origin is passed to both AddModelBounds calls.
     Pos_4589c0 origin(0, 0, 0);
@@ -976,7 +960,7 @@ Image_4589c0* Class_0045a470::MakeSilhouette(Image_4589c0* src)
 }
 
 // FUNCTION: 0x45a510
-void Class_0045a510::MeasureShadow(int* width, int* height, int* originX, int* originY, Model_459200* model)
+void CMemoryCache::MeasureShadow(int* width, int* height, int* originX, int* originY, Model_459200* model)
 {
     int minX;
     int minY;
@@ -1014,7 +998,7 @@ void Class_0045a510::MeasureShadow(int* width, int* height, int* originX, int* o
 }
 
 // FUNCTION: 0x45a610
-void Class_0045a610::DrawShadowShape(Image_4589c0* view, Model_459200* model)
+void CMemoryCache::DrawShadowShape(Image_4589c0* view, Model_459200* model)
 {
     Vec3 verts[2000];
     Vec3 tmp[25];

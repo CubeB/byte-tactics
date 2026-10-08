@@ -372,16 +372,13 @@ public:
 
     void FreeTables();
     void* GetLosTable(int n);
+    short GetLosTableCount();
+    void LoadLosTables();
 
     std::allocator<int> allocator;     // +0x0
     int* first;                        // +0x4
     int* last;                         // +0x8
     int* end;                          // +0xc
-};
-
-class Class_00433520 {
-public:
-    short GetLosTableCount();
 };
 
 class LosTable {
@@ -397,17 +394,13 @@ public:
 class LosLine {
 public:
     short GetLosLineStepCount();
-};
-
-class Class_004339e0 {
-public:
     void GetLosLineStep(short i, int* a, int* b);
 };
 
-class Class_00433130 {
-public:
-    void LoadLosTables();
-};
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+int RIReport(int, int, int, int, int, int, int, int, int, int);
+int DrawWrappedText(char*, char*, int, int, int, int, int);
+void ParseDownloadableAiWeightScripts(int);
 
 class Mission {
 public:
@@ -1195,7 +1188,7 @@ void LoadTntMap()
     *(int*)(*(int*)((char*)mapSettings + 0x88) + 4) = *(int*)((char*)mapSettings + 0x88) + 8;
     memcpy(*(void**)(*(int*)((char*)mapSettings + 0x88) + 4), info.tile_set_src, info.tile_set_count * 0x400);
     FUN_004d85a0(tnt);
-    ((Class_00433130*)&g_losTables)->LoadLosTables();
+    g_losTables.LoadLosTables();
     int mw = *(int*)((char*)g_game + 0x37e37);
     int mh = *(int*)((char*)g_game + 0x37e3b);
     *(int*)((char*)mapSettings + 0x40) = mw / 16;

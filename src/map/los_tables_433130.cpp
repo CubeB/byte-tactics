@@ -70,25 +70,21 @@ public:
     int GetFieldInt(const char* name, int def);
 };
 
-class LosTables {
-public:
-    void LoadLosTable(TdfFile* tdf, short index);
-};
-
 // Stays in its own file: it needs a hand-written std::vector so that insert
 // and erase stay out of line, and los_tables_432ba0.cpp's real <vector>
 // would redefine it.
-class Class_00433130 {
+class LosTables {
 public:
     W2_00433130 tables;                // +0x0
 
+    void LoadLosTable(TdfFile* tdf, short index);
     void LoadLosTables();
 };
 
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 
 // FUNCTION: 0x433130
-void Class_00433130::LoadLosTables()
+void LosTables::LoadLosTables()
 {
     TdfFile tdf;
     char path[256];
@@ -105,7 +101,7 @@ void Class_00433130::LoadLosTables()
                     tables.erase(tables.begin() + n, tables.end());
             }
             for (short i = 0; i < numtables; i++)
-                ((LosTables*)this)->LoadLosTable(&tdf, i);
+                LoadLosTable(&tdf, i);
         }
         (&tdf)->Unload();
     }

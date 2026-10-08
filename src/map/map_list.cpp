@@ -50,7 +50,7 @@ struct Game {
     int noMovie;                       // +0x39073
     char unknown_39077[0x391e9 - 0x39077];
     Mission* field_391e9;              // +0x391e9
-    struct Class_0048df90* field_391ed; // +0x391ed
+    struct MissionConditions* field_391ed; // +0x391ed
     char unknown_391f1[0x39219 - 0x391f1];
     int field_39219;                   // +0x39219
     int mapping;                       // +0x3921d
@@ -72,11 +72,6 @@ extern int g_otaEnumFileListBytes;
 extern int g_otaEnumFileCount;
 extern int g_usePacketManager;
 extern PacketManager g_packetManager;
-
-class Class_0048dfb0 {
-public:
-    void FreeConditions();
-};
 
 int __stdcall HAPI_FileLengthByName(char* path);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
@@ -102,19 +97,24 @@ public:
     int GetFieldInt(const char* name, int def);
     double GetFieldDouble(const char* name, double def);
     TdfRecord* FindSubRecord(const char* name);
-};
-
-struct Class_0048df90 {
-    char unknown_0[0x8c];
-
-    Class_0048df90();
-    ~Class_0048df90() { ((Class_0048dfb0*)this)->FreeConditions(); }
+    TdfRecord* GetSubRecord(int index);
+    int GetSubRecordCount();
 };
 
 class MissionConditions {
 public:
+    char unknown_0[0x8c];
+
+    MissionConditions();
+    ~MissionConditions() { FreeConditions(); }
+    void FreeConditions();
     void RegisterConditions(TdfFile* parser);
 };
+
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+void WalkFrameChain(int*, int*, int, int, int*, int, int*, int*, int, int*);
+int GetBuildRating(int, unsigned short);
+void RegisterUnitOrders();
 
 class MeteorParams {
 public:
@@ -149,15 +149,9 @@ static inline float GetFloat(TdfRecord* section, const char* key)
 
 void __stdcall FatalError(char* text);
 
-class Class_004c44c0 {
-public:
-    TdfRecord* GetSubRecord(int index);
-};
-
-class Class_004c4450 {
-public:
-    int GetSubRecordCount();
-};
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+int RIReport(int, int, int, int, int, int, int, int, int, int);
+void CopyDwordIfNonNull(int*, int*);
 
 struct MissionUnit {
     char* name;                        // +0x0
@@ -492,7 +486,7 @@ Mission::Mission(int owner_)
 // FUNCTION: 0x434ff0
 Mission::~Mission()
 {
-    Class_0048dfb0* obj = (Class_0048dfb0*)g_game->field_391ed;
+    MissionConditions* obj = g_game->field_391ed;
     if (obj) {
         obj->FreeConditions();
         operator delete(obj);
@@ -934,7 +928,7 @@ int Mission::LoadMission(char* map)
     char lower[0x80];
 
     delete g_game->field_391ed;
-    g_game->field_391ed = new Class_0048df90;
+    g_game->field_391ed = new MissionConditions;
     surfaceMetal = -1;
     minWindSpeed = -1;
     maxWindSpeed = -1;
@@ -1066,7 +1060,7 @@ int Mission::LoadMission(char* map)
     noSeaLevelTrigger = parser.current->GetFieldInt("nosealeveltrigger", 0);
     waterDoesDamage = parser.current->GetFieldInt("waterdoesdamage", 0);
     waterDamage = parser.current->GetFieldInt("waterdamage", 0);
-    ((MissionConditions*)g_game->field_391ed)->RegisterConditions(&parser);
+    g_game->field_391ed->RegisterConditions(&parser);
     killMul = GetFloat(parser.current, "killmul");
     timeMul = GetFloat(parser.current, "timemul");
     if (!SelectSchema(type, &parser, schema)) {
@@ -1199,7 +1193,7 @@ int Mission::SelectSchema(int type, TdfFile* parser, char* schema)
             TdfRecord* section = parser->current;
             int count = 0;
             if (parser->SelectRecord("specials")) {
-                Class_004c44c0* specials = (Class_004c44c0*)parser->current;
+                TdfRecord* specials = parser->current;
                 TdfRecord* s;
                 for (int i = 0; (s = specials->GetSubRecord(i)) != 0; i++) {
                     if (s->GetFieldString(what, "specialwhat", 0x10, DAT_005119b8)) {
@@ -1244,11 +1238,11 @@ void Mission::LoadMissionData(char* name, TdfFile* parser)
 
     TdfRecord* list = root->FindSubRecord("units");
     if (list)
-        count = ((Class_004c4450*)list)->GetSubRecordCount();
+        count = list->GetSubRecordCount();
     else
         count = 0;
     for (i = 0; i < count; i++) {
-        TdfRecord* s = ((Class_004c44c0*)list)->GetSubRecord(i);
+        TdfRecord* s = list->GetSubRecord(i);
         if (s->GetFieldString(buf, "Unitname", 0x400, DAT_005119b8))
             total += strlen(buf) + 1;
         if (s->GetFieldString(buf, "Ident", 0x400, DAT_005119b8))
@@ -1264,7 +1258,7 @@ void Mission::LoadMissionData(char* name, TdfFile* parser)
     char* strings = (char*)units + unitBytes;
     for (i = 0; i < count; i++) {
         MissionUnit* u = &units[i];
-        TdfRecord* s = ((Class_004c44c0*)list)->GetSubRecord(i);
+        TdfRecord* s = list->GetSubRecord(i);
         if (s->GetFieldString(strings, "Unitname", 0x400, DAT_005119b8)) {
             u->name = strings;
             strings += strlen(strings) + 1;
@@ -1302,7 +1296,7 @@ void Mission::LoadMissionData(char* name, TdfFile* parser)
 
     list = root->FindSubRecord("specials");
     if (list)
-        count = ((Class_004c4450*)list)->GetSubRecordCount();
+        count = list->GetSubRecordCount();
     else
         count = 0;
     ruleCount = count;
@@ -1311,7 +1305,7 @@ void Mission::LoadMissionData(char* name, TdfFile* parser)
     for (i = 0; i < count; i++) {
         MissionRule* r = &rules[i];
         r->type = 0;
-        TdfRecord* s = ((Class_004c44c0*)list)->GetSubRecord(i);
+        TdfRecord* s = list->GetSubRecord(i);
         if (s->GetFieldString(text, "specialwhat", 0x100, DAT_005119b8)) {
             static int len = strlen("StartPos");
             if (_strnicmp(text, "StartPos", len) == 0) {
@@ -1332,7 +1326,7 @@ void Mission::LoadMissionData(char* name, TdfFile* parser)
 
     list = root->FindSubRecord("features");
     if (list)
-        count = ((Class_004c4450*)list)->GetSubRecordCount();
+        count = list->GetSubRecordCount();
     else
         count = 0;
     featureCount = count;
@@ -1341,7 +1335,7 @@ void Mission::LoadMissionData(char* name, TdfFile* parser)
     features = (MissionFeature*)FUN_004d83b0("MISSIONFEATURE DATA", count * sizeof(MissionFeature));
     for (i = 0; i < count; i++) {
         MissionFeature* f = &features[i];
-        TdfRecord* s = ((Class_004c44c0*)list)->GetSubRecord(i);
+        TdfRecord* s = list->GetSubRecord(i);
         if (!s->GetFieldString(f->name, "Featurename", 0x80, DAT_005119b8))
             f->name[0] = 0;
         f->x = s->GetFieldInt("XPos", -1);

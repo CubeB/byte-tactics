@@ -389,6 +389,7 @@ struct Unit {
     char unknown_114[0x118 - 0x114];   // sizeof(Unit) is the units array's stride
     void ReleaseWeapons(int param);
     void ClaimWeapons(int param);
+    unsigned char ChooseWeapon();
     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
     void SetStateBits(int which, int on);
     int CanReclaim(Unit* unit);
@@ -405,9 +406,6 @@ inline int Order::Advance(int distance) {
 extern Game* g_game;
 
 void __stdcall RegisterOrderTypes(void* table, int id);
-// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
-extern char DAT_004fc490[];
-
 void __stdcall ClearWeaponTarget(Unit* unit, int weapon);
 void __stdcall AppendOrder(Unit* owner, Class_0043a1f0* node);
 int __stdcall RandomInt(int range);
@@ -1185,10 +1183,8 @@ public:
     void AttachBuildFootprintMarker(Point16 cell, Point16 size);
 };
 
-class Class_004897e0 {
-public:
-    unsigned char ChooseWeapon();
-};
+// Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
+int DrawWrappedText(char*, char*, int, int, int, int, int);
 
 struct Feature {
     char name[0x94];                   // +0x0
@@ -1228,12 +1224,12 @@ struct Packet {
     short z;
 };
 
-class Class_00405d90 {
+class DamagedAllyCollector {
 public:
     Player* owner;
     std::vector<Unit*>* units;
     Unit* self;
-    Class_00405d90(Player* o, std::vector<Unit*>* v, Unit* s) : owner(o), units(v), self(s) {}
+    DamagedAllyCollector(Player* o, std::vector<Unit*>* v, Unit* s) : owner(o), units(v), self(s) {}
     virtual void CollectDamagedAlly(Unit*);
 };
 
@@ -1266,7 +1262,7 @@ unsigned short __stdcall GetCellFeature(Cell* cell);
 Cell* __stdcall GetMapCellAtPosition(Vec3* pos);
 void __stdcall RemoveFeature(void* target, int flag);
 int __stdcall BroadcastPacket(int player, void* data, int size);
-void __stdcall VisitObjectsInRange(Vec3* pos, int range, const Class_00405d90& visitor);
+void __stdcall VisitObjectsInRange(Vec3* pos, int range, const DamagedAllyCollector& visitor);
 int __stdcall PickRandomReclaimableResourcesInRadius(Vec3* pos, int range, Vec3** energy, float* energyAmount,
                            Vec3** metal, float* metalAmount);
 int __stdcall GetWeaponRange(Unit* unit, int weapon);
@@ -1303,7 +1299,7 @@ int __stdcall AttackChaseOrder(Unit* unit, Order* order, unsigned int flags)
         ((Class_00438880*)order)->AnnounceStatusIfFlagged(0);
         order->pos = unit->pos;
         order->step = 0;
-        if (!weapon) order->weapon = ((Class_004897e0*)unit)->ChooseWeapon();
+        if (!weapon) order->weapon = unit->ChooseWeapon();
         return 1;
     case 1:
         ((Class_004388d0*)order)->SetAttachedFx(0);
@@ -1736,7 +1732,7 @@ int __stdcall RepairUnitNoMoveOrder(Unit* unit, Order* order, int unused)
 
 
 // FUNCTION: 0x405d90
-void Class_00405d90::CollectDamagedAlly(Unit* unit)
+void DamagedAllyCollector::CollectDamagedAlly(Unit* unit)
 {
     if (unit == self) return;
     unsigned int index = 0;

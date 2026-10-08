@@ -693,6 +693,7 @@ public:
     void SendSyncMessageTo(Target_0046d530* target, unsigned char arg, int a, int b, int unused);
     void SendEntryTo(Target_0046d530* target, unsigned char arg, Source_0046d630* src, int unused);
     void HandleSyncPacket(Packet_0046d6c0* packet, unsigned char player);
+    void ReceiveSyncPacket(void* param_1, int param_2);
     void NotifyEntryChanged(unsigned int param_1);
     void CheckUnitAvailable(unsigned int key, int y);
     char* GetSyncStatusText();
@@ -937,22 +938,17 @@ void UnitSync::SendSyncPacket(unsigned int* param_1, Packet_0046d530* param_2, i
 }
 #pragma auto_inline(on)
 
-class Class_0046d500 {
-public:
-    void ReceiveSyncPacket(void* param_1, int param_2);
-};
-
 // HandleSyncPacket reads fields of the same object (offsets +0x14, +0x58, +0x5c,
 // +0x64) that this function's "this" belongs to; no `mov ecx` appears before
 // the call, so ecx (this) flows through unchanged from ReceiveSyncPacket's own
 // thiscall "this" into HandleSyncPacket's.
 // FUNCTION: 0x46d500
-void Class_0046d500::ReceiveSyncPacket(void* param_1, int param_2)
+void UnitSync::ReceiveSyncPacket(void* param_1, int param_2)
 {
     unsigned char b = *((unsigned char*)param_1 + 1);
     *(int*)((char*)param_1 + 2) = 0;
     if (b < 0x64) {
-        ((UnitSync*)this)->HandleSyncPacket((Packet_0046d6c0*)param_1, param_2);
+        HandleSyncPacket((Packet_0046d6c0*)param_1, param_2);
     }
 }
 

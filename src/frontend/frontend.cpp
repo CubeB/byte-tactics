@@ -32,16 +32,12 @@ struct Player {
     void SetType(int param);
 };
 
-class Class_0047bf20 {
-public:
-    void Close();
-};
-
 class MoviePlayer {
 public:
     char pad[0x5b8];
     MoviePlayer(char* path, int a, int b, int c, int d, int e);
     void Play();
+    void Close();
 };
 
 struct V4i {
@@ -899,7 +895,7 @@ void __stdcall PlayMovie(char* param_1)
         do {
             g_game->field_38d7b = new MoviePlayer(path, 0, 600000, 1, 2000000, 1);
             ((MoviePlayer*)g_game->field_38d7b)->Play();
-            Class_0047bf20* p = (Class_0047bf20*)g_game->field_38d7b;
+            MoviePlayer* p = (MoviePlayer*)g_game->field_38d7b;
             if (p != 0) {
                 p->Close();
                 operator delete(p);

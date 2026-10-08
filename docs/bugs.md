@@ -1187,3 +1187,12 @@ Things that look wrong in the original but have no effect, kept for the record.
 - **0x4befe0** (`ReadPixel`, possible): when the screen lock fails it returns
   an uninitialised colour whose stack home is `y`'s slot, so it returns `y`.
   Found by OpenCode / deepseek-v4.1-flash in #6184.
+- **0x4b88d0** (`EraseFrameDithered`, possible): the first test reads the
+  record's byte at +9 before the later `bmp != 0` check on the same pointer,
+  so a null record would crash before the null check. Found by OpenCode /
+  deepseek-v4.1-flash in #6186.
+- **0x4288d0** (possible): the picture-cache name search matches a cached
+  picture whose surface is already 0 and moves it to the front, then the alloc
+  path shifts and inserts a second entry with the same name at index 0,
+  leaving a duplicate at index 1. Found by OpenCode / deepseek-v4.1-flash in
+  #6187.

@@ -22,6 +22,7 @@ struct List_00422ea0;
 struct Node_004dde70;
 struct Player_00437cd0;
 struct Record_005129b4;
+struct Smoke_00425b80;
 struct Struct_00526ff0;
 
 extern unsigned char g_turnCosts[8];                                                              // 0x4fca10, 8 bytes; const Table_0040d880 by value in 1 of 1 files
@@ -276,7 +277,7 @@ extern unsigned int g_netStatsTick;                                             
 extern unsigned int g_byteRatesTick;                                                              // 0x511ddc, 4 bytes; 1 of 1 files
 extern int DAT_00511de0;                                                                          // 0x511de0, 4 bytes; 2 of 2 files
 extern int g_cdPathMismatch;                                                                      // 0x511de4, 4 bytes; 1 of 1 files
-extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 232 of 268 files (conflicting: shape)
+extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 222 of 247 files (conflicting: shape)
 extern int g_endGameGlamourSoundStarted;                                                          // 0x511dec, 4 bytes; 1 of 1 files
 extern ExplodedPiece* g_explodedPieces[100];                                                      // 0x511df0, 400 bytes; 1 of 1 files
 extern unsigned char DAT_00511f80[16];                                                            // 0x511f80, 16 bytes; CMemoryCache by value in 2 of 2 files
@@ -289,12 +290,14 @@ extern int g_explosion1EndSize;                                                 
 extern int g_explosion2Duration;                                                                  // 0x511fa8, 4 bytes; 1 of 1 files
 extern int g_explosion2StartSize;                                                                 // 0x511fac, 4 bytes; 1 of 1 files
 extern int g_explosion2EndSize;                                                                   // 0x511fb0, 4 bytes; 1 of 1 files
-extern List_00422ea0* DAT_00511fb4;                                                               // 0x511fb4, 4 bytes, DAT_00511fb4$S23898; 1 of 2 files (conflicting: struct names only)
-extern char DAT_00511fb8[256];                                                                    // 0x511fb8, 256 bytes; 5 of 5 files
+extern List_00422ea0* DAT_00511fb4;                                                               // 0x511fb4, 4 bytes, DAT_00511fb4$S22242; 1 of 2 files (conflicting: struct names only)
+extern char DAT_00511fb8[256];                                                                    // 0x511fb8, 256 bytes; 1 of 1 files
+extern unsigned char DAT_005120b8[464];                                                           // 0x5120b8, 464 bytes; Entry_00428730[10] by value in 1 of 1 files
 extern int DAT_00512288;                                                                          // 0x512288, 4 bytes; 1 of 1 files
 extern int DAT_0051228c;                                                                          // 0x51228c, 4 bytes; 1 of 1 files
 extern int DAT_00512290;                                                                          // 0x512290, 4 bytes; 1 of 1 files
 extern int DAT_00512294;                                                                          // 0x512294, 4 bytes; 1 of 1 files
+extern Smoke_00425b80* DAT_00512298;                                                              // 0x512298, 4 bytes; 1 of 1 files
 extern int DAT_0051229c;                                                                          // 0x51229c, 4 bytes; 1 of 1 files
 extern unsigned char DAT_005122a0[4];                                                             // 0x5122a0, 4 bytes; nothing refers to it
 extern char* g_otaEnumFileList;                                                                   // 0x5122d4, 4 bytes; 1 of 1 files
@@ -591,8 +594,8 @@ extern unsigned int g_randomSeed;                                               
 extern unsigned char DAT_0051fc8c[4];                                                             // 0x51fc8c, 4 bytes; nothing refers to it
 extern int g_defaultCommandHandler;                                                               // 0x51fc90, 4 bytes; 1 of 1 files
 extern int g_defaultCommandMask;                                                                  // 0x51fc94, 4 bytes; 1 of 1 files
-extern unsigned char DAT_0051fcb0[256];                                                           // 0x51fcb0, 256 bytes; 2 of 2 files
-extern int DAT_0051fdb0;                                                                          // 0x51fdb0, 4 bytes; 3 of 3 files
+extern unsigned char DAT_0051fcb0[256];                                                           // 0x51fcb0, 256 bytes; 1 of 1 files
+extern int DAT_0051fdb0;                                                                          // 0x51fdb0, 4 bytes; 1 of 1 files
 extern unsigned char DAT_0051fdb4[4];                                                             // 0x51fdb4, 4 bytes; nothing refers to it
 extern TranslationTable* g_translations;                                                          // 0x51fdb8, 4 bytes; 3 of 3 files
 extern unsigned char DAT_0051fdbc[4];                                                             // 0x51fdbc, 4 bytes; nothing refers to it
@@ -710,7 +713,7 @@ extern int g_lzssLockOwner;                                                     
 extern void* DAT_0052a4f8;                                                                        // 0x52a4f8, 4 bytes; 2 of 2 files
 extern long DAT_0052a4fc;                                                                         // 0x52a4fc, 4 bytes; 1 of 2 files (conflicting: signedness or const)
 
-// Not declared: 220 globals defined in a data file or whose type is not settled (see data/globals.csv).
+// Not declared: 217 globals defined in a data file or whose type is not settled (see data/globals.csv).
 //   0x5119c0 g_playerAI: PlayerAI*[] (11), void*[] (5), Owner*[] (3), Player_40b0d0*[] (1), and 2 more
 //   0x513000 g_packetManager: defined in src/network/packets_460e20.cpp
 //   0x5292c4 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib_4e17c0.cpp
@@ -720,7 +723,6 @@ extern long DAT_0052a4fc;                                                       
 //   0x5129ac DAT_005129ac: char* (4), int* (1), void* (1)
 //   0x4fcd98 DPSPGUID_IPX: defined in src/data/guids.cpp
 //   0x4fcda8 DPSPGUID_TCPIP: defined in src/data/guids.cpp
-//   0x5120b8 DAT_005120b8: Entry_00428730[10] (1), char[] (1), Entry_004287d0[10] (1), Entry_00428850[10] (1), and 1 more
 //   0x51e598 IUUnitSyncEntry::IU?$pair::?$_Tree::_Nil: defined in src/network/unit_sync.cpp
 //   0x529e9c DAT_00529e9c: char (3), bool (2)
 //   0x4fd6f0 DAT_004fd6f0: defined in src/data/vtables.cpp
@@ -733,7 +735,6 @@ extern long DAT_0052a4fc;                                                       
 //   0x4fd2f8 DAT_004fd2f8: defined in src/data/vtables.cpp
 //   0x511a60 DAT_00511a60: part of another global: g_messageCountByType+0x8
 //   0x511c60 DAT_00511c60: part of another global: g_messageBytesByType+0x8
-//   0x512298 DAT_00512298: Smoke_00425b80* (1), void* (1), char* (1)
 //   0x512344 DAT_00512344: part of another global: DAT_00512340$S35323+0x4
 //   0x5129b8 DAT_005129b8: int* (2), int (1)
 //   0x512c74 g_loungeChatter: void* (2), char* (1)
@@ -866,7 +867,6 @@ extern long DAT_0052a4fc;                                                       
 //   0x5086dc DAT_005086dc: defined in src/units/unit_messages.cpp
 //   0x5086fc g_speechCategories: defined in src/units/unit_messages.cpp
 //   0x50b6e0 DAT_0050b6e0: defined in src/data/unused.cpp
-//   0x5120bc DAT_005120bc: part of another global: DAT_005120b8+0x4
 //   0x5122c4 g_mapCacheBegin: part of another global: src/map/map_list.cpp:0x5122c0+0x4
 //   0x5122c8 g_mapCacheEnd: part of another global: src/map/map_list.cpp:0x5122c0+0x8
 //   0x512340 DAT_00512340$S35323: defined in src/map/meteors.cpp

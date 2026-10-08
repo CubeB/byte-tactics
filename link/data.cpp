@@ -378,10 +378,12 @@ int g_explosion2StartSize;  // 0x511fac .bss
 int g_explosion2EndSize;  // 0x511fb0 .bss
 List_00422ea0* DAT_00511fb4;  // 0x511fb4 .bss
 char DAT_00511fb8[256];  // 0x511fb8 .bss
+unsigned char DAT_005120b8[464];  // 0x5120b8 .bss
 int DAT_00512288;  // 0x512288 .bss
 int DAT_0051228c;  // 0x51228c .bss
 int DAT_00512290;  // 0x512290 .bss
 int DAT_00512294;  // 0x512294 .bss
+Smoke_00425b80* DAT_00512298;  // 0x512298 .bss
 int DAT_0051229c;  // 0x51229c .bss
 unsigned char DAT_005122a0[4];  // 0x5122a0 .bss
 char* g_otaEnumFileList;  // 0x5122d4 .bss

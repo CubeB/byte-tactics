@@ -479,15 +479,13 @@ struct Game {
     };
 };
 
-struct Packet_00450a10 {
+struct SideDataPacket {
     unsigned char type;                // +0x0
     PlayerInfo data;                   // +0x1
 };
 
-struct Packet_00450f90 {
-    unsigned char type;                // +0x0
-    PlayerInfo data;                   // +0x1
-};
+// Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
+void Unused_00450f90(int a, int b, int c, int d, int e, int f);
 
 #pragma pack(pop)
 
@@ -959,7 +957,7 @@ int __stdcall AddNetPlayer(int param_1)
         return 1;
     }
     unsigned long size;
-    Packet_00450a10 packet;
+    SideDataPacket packet;
     char buf[0x400];
     int result;
     // Destinations precomputed before the branch: keeps the strcpy source scan canonical.
@@ -1120,7 +1118,7 @@ static inline int IsPlaying_00450f90(Player* player)
 // FUNCTION: 0x450f90
 void BroadcastPlayerInfo()
 {
-    Packet_00450f90 packet;
+    SideDataPacket packet;
     if (g_game->flags_2a44_w & 1) {
         for (int i = 0; i < 10; i++) {
             Player* player = &g_game->players[i];
@@ -1378,39 +1376,32 @@ struct Gui_00453a50 {
     void (__stdcall* field_1c)(void*); // +0x1c
 };
 
-struct Packet_4517b0 {
+// Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
+void Unused_4517b0(int a, int b, int c, int d, int e, int f);
+
+// Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
+void Unused_00452960(int a, int b, int c, int d, int e, int f);
+
+struct AllyFlagsPacket {
     unsigned char type;                // +0x0
-    PlayerInfo data;                   // +0x1
+    int fromNetId;                     // +0x1
+    int toNetId;                       // +0x5
+    char allied;                       // +0x9
+    int force;                         // +0xa
 };
 
-struct Packet_00452960 {
+struct UnitCreatePacket {
     unsigned char type;                // +0x0
-    int from;                          // +0x1
-    int to;                            // +0x5
-    unsigned char value;               // +0x9
-    int extra;                         // +0xa
+    short defIndex;                    // +0x1
+    short unitId;                      // +0x3
+    Vec3_00456050 pos;                 // +0x5
+    Short3_00456050 rot;               // +0x11
 };
 
-struct Packet_00452b70 {
+struct BuilderLinkPacket {
     unsigned char type;                // +0x0
-    int from;                          // +0x1
-    int to;                            // +0x5
-    char value;                        // +0x9
-    int extra;                         // +0xa
-};
-
-struct Packet_00456050 {
-    unsigned char type;                // +0x0
-    short field_1;                     // +0x1
-    short field_3;                     // +0x3
-    Vec3_00456050 field_5;             // +0x5
-    Short3_00456050 field_11;          // +0x11
-};
-
-struct Packet_004560c0 {
-    unsigned char type;                // +0x0
-    short field_1;                     // +0x1
-    short field_3;                     // +0x3
+    short constructedUnitId;           // +0x1
+    short builderUnitId;               // +0x3
 };
 
 // The incoming packet's header, cast onto g_game->buffer.
@@ -1745,7 +1736,7 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
     // The name buffer is never read again and must stay dead; the whole body
     // stays under the if (an early return would move the epilogues).
     char name[0x100];
-    Packet_4517b0 packet;
+    SideDataPacket packet;
     DWORD size;
 
     if (player == g_game->localPlayer) {
@@ -2325,12 +2316,12 @@ int __stdcall BroadcastPlayerLeft(int id)
 // FUNCTION: 0x452b70
 int __stdcall SendAlliance(int from, int to, char value, int extra)
 {
-    Packet_00452b70* msg = (Packet_00452b70*)g_game->buffer;
-    msg->value = value;
+    AllyFlagsPacket* msg = (AllyFlagsPacket*)g_game->buffer;
+    msg->allied = value;
     msg->type = 0x23;
-    msg->from = from;
-    msg->to = to;
-    msg->extra = extra;
+    msg->fromNetId = from;
+    msg->toNetId = to;
+    msg->force = extra;
     int result = SendPacketToPlayer(from, to, msg, 0xe);
     if (g_usePacketManager != 0) {
         g_packetManager.SendAllQueued(1);
@@ -2760,22 +2751,22 @@ int Class_00456030::IsPlayableSlot()
 // FUNCTION: 0x456050
 void __stdcall SendNewUnit(Unit* obj)
 {
-    Packet_00456050 packet;
+    UnitCreatePacket packet;
     packet.type = 9;
-    packet.field_1 = obj->unitDefIndex;
-    packet.field_3 = obj->id;
-    packet.field_5 = obj->pos;
-    packet.field_11 = obj->rot;
+    packet.defIndex = obj->unitDefIndex;
+    packet.unitId = obj->id;
+    packet.pos = obj->pos;
+    packet.rot = obj->rot;
     BroadcastPacket(obj->player->field_4, &packet, 0x17);
 }
 
 // FUNCTION: 0x4560c0
 void __stdcall BroadcastBuilderLink(Unit* obj, Unit* target)
 {
-    Packet_004560c0 packet;
+    BuilderLinkPacket packet;
     packet.type = 0x12;
-    packet.field_1 = target->id;
-    packet.field_3 = obj->id;
+    packet.constructedUnitId = target->id;
+    packet.builderUnitId = obj->id;
     BroadcastPacket(obj->player->field_4, &packet, 5);
 }
 
@@ -2789,29 +2780,25 @@ void __stdcall BroadcastBuilderLink(Unit* obj, Unit* target)
 #include <time.h>
 #pragma pack(push, 1)
 
-struct Message_004565a0 {
-    char unknown_0[1];
-    int start_tick;                    // +0x01
-    int sent_tick;                     // +0x05
-    int id;                            // +0x09
-};
+// Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
+void Unused_004565a0(int a, int b, int c, int d, int e, int f);
 
-struct Packet_00456110 {
+struct UnitScriptCallPacket {
     unsigned char type;                // +0x0
     short id;                          // +0x1
     short index;                       // +0x3
-    char field_5;                      // +0x5
-    int field_6;                       // +0x6
-    int field_a;                       // +0xa
-    int field_e;                       // +0xe
-    int field_12;                      // +0x12
+    char argCount;                     // +0x5
+    int arg0;                          // +0x6
+    int arg1;                          // +0xa
+    int arg2;                          // +0xe
+    int arg3;                          // +0x12
 };
 
-struct Msg13_00456310 {
+struct LatencyPacket {
     unsigned char type;                // +0x00
-    int start_tick;                    // +0x01
-    int sent_tick;                     // +0x05
-    int id;                            // +0x09
+    int sendTick;                      // +0x01
+    int echoTick;                      // +0x05
+    int targetPlayerNetId;             // +0x09
 };
 
 struct Msg26_00456310 {
@@ -2829,85 +2816,50 @@ struct Packet_00456de0 {
     unsigned char progress;             // +0x1
 };
 
-struct Packet_00456ee0 {
+struct ResourceSharePacket {
     unsigned char type;                // +0x0
     int subtype;                       // +0x1
-    int from;                          // +0x5
-    int to;                            // +0x9
-    int extra;                         // +0xd
+    int fromNetId;                     // +0x5
+    int toNetId;                       // +0x9
+    int amount;                        // +0xd
 };
 
-struct Packet_00457050 {
+// Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
+void Unused_00457050(int a, int b, int c, int d, int e, int f);
+
+// Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
+void Unused_004571c0(int a, int b, int c, int d, int e, int f);
+
+struct PlayerViewStatePacket {        // 0x3a bytes
     unsigned char type;                // +0x0
-    int subtype;                       // +0x1
-    int from;                          // +0x5
-    int to;                            // +0x9
-    int value;                         // +0xd
+    unsigned char shareFlag;           // +0x1
+    int unitsKilled;                   // +0x2
+    int unitsLost;                     // +0x6
+    int commandersKilled;              // +0xa
+    int commandersLost;                // +0xe
+    int metalAmount;                   // +0x12
+    int energyAmount;                  // +0x16
+    int metalStorage;                  // +0x1a
+    int energyStorage;                 // +0x1e
+    float energyProduced;              // +0x22
+    float energyConsumed;              // +0x26
+    float energyWasted;                // +0x2a
+    float metalProduced;               // +0x2e
+    float metalConsumed;               // +0x32
+    float metalWasted;                 // +0x36
 };
 
-struct Packet_004571c0 {
+// Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
+void Unused_00457540(int a, int b, int c, int d, int e, int f);
+
+struct ShareLosAckPacket {             // 3 bytes
     unsigned char type;                // +0x0
-    int subtype;                       // +0x1
-    int from;                          // +0x5
-    int to;                            // +0x9
-    int zero;                          // +0xd
+    unsigned char ackLos;              // +0x1
+    unsigned char ackMapping;          // +0x2
 };
 
-struct Packet_004573d0 {              // 0x3a bytes
-    unsigned char type;                // +0x0
-    unsigned char flag;                // +0x1
-    int field_2;                       // +0x2
-    int field_6;                       // +0x6
-    int field_a;                       // +0xa
-    int field_e;                       // +0xe
-    int field_12;                      // +0x12
-    int field_16;                      // +0x16
-    int field_1a;                      // +0x1a
-    int field_1e;                      // +0x1e
-    float field_22;                    // +0x22
-    float field_26;                    // +0x26
-    float field_2a;                    // +0x2a
-    float field_2e;                    // +0x2e
-    float field_32;                    // +0x32
-    float field_36;                    // +0x36
-};
-
-struct Packet_00457540 {              // 0x3a bytes
-    unsigned char type;                // +0x0
-    unsigned char flag;                // +0x1
-    short field_2;                     // +0x2
-    char unknown_4[0x6 - 0x4];
-    short field_6;                     // +0x6
-    char unknown_8[0xa - 0x8];
-    short field_a;                     // +0xa
-    char unknown_c[0xe - 0xc];
-    short field_e;                     // +0xe
-    char unknown_10[0x12 - 0x10];
-    int field_12;                      // +0x12
-    int field_16;                      // +0x16
-    int field_1a;                      // +0x1a
-    int field_1e;                      // +0x1e
-    float field_22;                    // +0x22
-    float field_26;                    // +0x26
-    float field_2a;                    // +0x2a
-    float field_2e;                    // +0x2e
-    float field_32;                    // +0x32
-    float field_36;                    // +0x36
-};
-
-struct TeamPacket_00457540 {           // 3 bytes
-    unsigned char type;                // +0x0
-    unsigned char flag;                // +0x1
-    unsigned char flag2;               // +0x2
-};
-
-struct Packet_00457d30 {
-    unsigned char type;                // +0x0
-    int subtype;                       // +0x1
-    int from;                          // +0x5
-    int to;                            // +0x9
-    int zero;                          // +0xd
-};
+// Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
+void Unused_00457d30(int a, int b, int c, int d, int e, int f);
 
 #pragma pack(pop)
 
@@ -2926,7 +2878,7 @@ void __stdcall SetMissionType(int a);
 // FUNCTION: 0x456110
 int __stdcall SendScriptCallNoArgsByName(Unit* obj, char* name)
 {
-    Packet_00456110 packet;
+    UnitScriptCallPacket packet;
     int index = obj->names->FindScript(name);
     if (!(g_game->flags_2a44 & 1)) {
         return 0;
@@ -2934,39 +2886,39 @@ int __stdcall SendScriptCallNoArgsByName(Unit* obj, char* name)
     packet.type = 0x10;
     packet.id = obj->id;
     packet.index = index;
-    packet.field_5 = 0;
-    packet.field_6 = 0;
-    packet.field_a = 0;
-    packet.field_e = 0;
-    packet.field_12 = 0;
+    packet.argCount = 0;
+    packet.arg0 = 0;
+    packet.arg1 = 0;
+    packet.arg2 = 0;
+    packet.arg3 = 0;
     return BroadcastPacket(obj->player->id, &packet, 0x16);
 }
 
 // FUNCTION: 0x456190
 int __stdcall SendScriptCallNoArgs(Unit* obj, short index)
 {
-    Packet_00456110 packet;
+    UnitScriptCallPacket packet;
     if (!(g_game->flags_2a44 & 1)) {
         return 0;
     }
     packet.type = 0x10;
     packet.id = obj->id;
     packet.index = index;
-    packet.field_5 = 0;
-    packet.field_6 = 0;
-    packet.field_a = 0;
-    packet.field_e = 0;
-    packet.field_12 = 0;
+    packet.argCount = 0;
+    packet.arg0 = 0;
+    packet.arg1 = 0;
+    packet.arg2 = 0;
+    packet.arg3 = 0;
     return BroadcastPacket(obj->player->id, &packet, 0x16);
 }
 
 // Sends a 0x16-byte type 0x10 packet for the object, like 0x456290, with the
 // index looked up by name in the object's name table (+0x9a) first.
 // FUNCTION: 0x456200
-int __stdcall SendScriptCallByName(Unit* obj, char* name, char field_5,
-                           int field_6, int field_a, int field_e, int field_12)
+int __stdcall SendScriptCallByName(Unit* obj, char* name, char argCount,
+                           int arg0, int arg1, int arg2, int arg3)
 {
-    Packet_00456110 packet;
+    UnitScriptCallPacket packet;
     short index = obj->names->FindScript(name);
     if (!(g_game->flags_2a44 & 1)) {
         return 0;
@@ -2974,32 +2926,32 @@ int __stdcall SendScriptCallByName(Unit* obj, char* name, char field_5,
     packet.type = 0x10;
     packet.id = obj->id;
     packet.index = index;
-    packet.field_5 = field_5;
-    packet.field_6 = field_6;
-    packet.field_a = field_a;
-    packet.field_e = field_e;
-    packet.field_12 = field_12;
+    packet.argCount = argCount;
+    packet.arg0 = arg0;
+    packet.arg1 = arg1;
+    packet.arg2 = arg2;
+    packet.arg3 = arg3;
     return BroadcastPacket(obj->player->id, &packet, 0x16);
 }
 
 // Sends a 0x16-byte type 0x10 packet for the object (the sibling 0x456110
 // sends the same packet with only the index filled in).
 // FUNCTION: 0x456290
-int __stdcall SendScriptCall(Unit* obj, short index, char field_5,
-                           int field_6, int field_a, int field_e, int field_12)
+int __stdcall SendScriptCall(Unit* obj, short index, char argCount,
+                           int arg0, int arg1, int arg2, int arg3)
 {
-    Packet_00456110 packet;
+    UnitScriptCallPacket packet;
     if (!(g_game->flags_2a44 & 1)) {
         return 0;
     }
     packet.type = 0x10;
     packet.id = obj->id;
     packet.index = index;
-    packet.field_5 = field_5;
-    packet.field_6 = field_6;
-    packet.field_a = field_a;
-    packet.field_e = field_e;
-    packet.field_12 = field_12;
+    packet.argCount = argCount;
+    packet.arg0 = arg0;
+    packet.arg1 = arg1;
+    packet.arg2 = arg2;
+    packet.arg3 = arg3;
     return BroadcastPacket(obj->player->id, &packet, 0x16);
 }
 
@@ -3021,11 +2973,11 @@ void SendNetHeartbeat()
             if (g_usePacketManager != 0)
                 g_packetManager.SendAllQueued(1);
 
-            Msg13_00456310 msg;
+            LatencyPacket msg;
             msg.type = 2;
-            msg.start_tick = GetTickCount();
-            msg.sent_tick = 0;
-            msg.id = p->id;
+            msg.sendTick = GetTickCount();
+            msg.echoTick = 0;
+            msg.targetPlayerNetId = p->id;
 
             int was = HAPINET_guaranteepackets(0);
             BroadcastPacket(p->id, (unsigned char*)&msg, 0xd);
@@ -3116,15 +3068,15 @@ static inline unsigned char FindPlayerIndex(int id)
 }
 
 // FUNCTION: 0x4565a0
-void __stdcall HandlePing(Message_004565a0* p)
+void __stdcall HandlePing(LatencyPacket* p)
 {
-    if (p->sent_tick == 0) {                       // not sent yet
+    if (p->echoTick == 0) {                       // not sent yet
         if (g_usePacketManager != 0) {
             g_packetManager.SendAllQueued(1);
         }
-        p->sent_tick = GetTickCount();
+        p->echoTick = GetTickCount();
         int packets_were_guaranteed = HAPINET_guaranteepackets(0);
-        SendPacketToPlayer(g_game->lobby1, p->id, p, 0xd);
+        SendPacketToPlayer(g_game->lobby1, p->targetPlayerNetId, p, 0xd);
         if (g_usePacketManager != 0) {
             g_packetManager.SendAllQueued(1);
         }
@@ -3134,7 +3086,7 @@ void __stdcall HandlePing(Message_004565a0* p)
         return;
     }
 
-    unsigned char index = FindPlayerIndex(p->id);
+    unsigned char index = FindPlayerIndex(p->targetPlayerNetId);
     // Table lookup goes through the pl pointer local.
     Player* pl = &g_game->players[index];
     if (pl->active == 0) {
@@ -3146,7 +3098,7 @@ void __stdcall HandlePing(Message_004565a0* p)
     unsigned char other = FindPlayerIndex(g_game->lobby2);
     // No bound check on either index: an id of -1 makes FindPlayerIndex
     // return 10, the spare eleventh slot (the table has 11, see docs/bugs.md).
-    g_game->players[other].ping = GetTickCount() - p->start_tick;
+    g_game->players[other].ping = GetTickCount() - p->sendTick;
 }
 
 // Returns 0 when no player is in state 3. Otherwise every active player of
@@ -3396,12 +3348,12 @@ void __stdcall SendShareMetal(unsigned char from, unsigned char to, int param_3)
     Player* b = &g_game->players[to];
 
     if (PlayerReady(a) && PlayerReady(b)) {
-        Packet_00456ee0 packet;
+        ResourceSharePacket packet;
         packet.type = 0x16;
         packet.subtype = 1;
-        packet.from = PlayerDpid(from);
-        packet.to = PlayerDpid(to);
-        packet.extra = param_3;
+        packet.fromNetId = PlayerDpid(from);
+        packet.toNetId = PlayerDpid(to);
+        packet.amount = param_3;
         SendPacketToPlayer(PlayerDpid(from), PlayerDpid(to), &packet, sizeof(packet));
     }
 }
@@ -3423,12 +3375,12 @@ void __stdcall SendShareEnergy(unsigned char from, unsigned char to, int value)
         && (second->type == 1 || second->type == 2 || second->type == 3)
         && second->field_146 != 10
         && (second->unitCount != 0 || second->unitsCreated == 0)) {
-        Packet_00457050 packet;
+        ResourceSharePacket packet;
         packet.type = 0x16;
         packet.subtype = 2;
-        packet.from = PlayerDpid(from);
-        packet.to = PlayerDpid(to);
-        packet.value = value;
+        packet.fromNetId = PlayerDpid(from);
+        packet.toNetId = PlayerDpid(to);
+        packet.amount = value;
         SendPacketToPlayer(PlayerDpid(from), PlayerDpid(to), &packet, sizeof(packet));
     }
 }
@@ -3447,12 +3399,12 @@ static inline int PlayerDpid_00457d30(unsigned char i)
 void __stdcall SendShareMapInfo(unsigned char from, unsigned char to)
 {
     if (from != 10 && to != 10) {
-        Packet_004571c0 packet;
+        ResourceSharePacket packet;
         packet.type = 0x16;
         packet.subtype = 3;
-        packet.from = PlayerDpid_00457d30(from);
-        packet.to = PlayerDpid_00457d30(to);
-        packet.zero = 0;
+        packet.fromNetId = PlayerDpid_00457d30(from);
+        packet.toNetId = PlayerDpid_00457d30(to);
+        packet.amount = 0;
         SendPacketToPlayer(PlayerDpid_00457d30(from), PlayerDpid_00457d30(to), &packet, sizeof(packet));
     }
 }
@@ -3523,23 +3475,23 @@ void __stdcall SendPlayerEconomy(Player* player, Player* target,
     if (player->field_22 != 0)
         return;
 
-    Packet_004573d0 packet;
+    PlayerViewStatePacket packet;
     packet.type = 0x28;
-    packet.flag = flag;
-    packet.field_2 = player->kills;
-    packet.field_6 = player->losses;
-    packet.field_a = player->commanderKills;
-    packet.field_e = player->commanderLosses;
-    packet.field_12 = player->field_98;
-    packet.field_16 = player->field_8c;
-    packet.field_1a = player->metalCapacity;
-    packet.field_1e = player->energyCapacity;
-    packet.field_22 = (float)player->totalEnergyProduced;
-    packet.field_26 = (float)player->totalEnergyConsumed;
-    packet.field_2a = (float)player->energyWasted;
-    packet.field_2e = (float)player->totalMetalProduced;
-    packet.field_32 = (float)player->totalMetalConsumed;
-    packet.field_36 = (float)player->metalWasted;
+    packet.shareFlag = flag;
+    packet.unitsKilled = player->kills;
+    packet.unitsLost = player->losses;
+    packet.commandersKilled = player->commanderKills;
+    packet.commandersLost = player->commanderLosses;
+    packet.metalAmount = player->field_98;
+    packet.energyAmount = player->field_8c;
+    packet.metalStorage = player->metalCapacity;
+    packet.energyStorage = player->energyCapacity;
+    packet.energyProduced = (float)player->totalEnergyProduced;
+    packet.energyConsumed = (float)player->totalEnergyConsumed;
+    packet.energyWasted = (float)player->energyWasted;
+    packet.metalProduced = (float)player->totalMetalProduced;
+    packet.metalConsumed = (float)player->totalMetalConsumed;
+    packet.metalWasted = (float)player->metalWasted;
 
     if (target != 0) {
         if (target->field_22 == 0)
@@ -3571,7 +3523,7 @@ void __stdcall SendPlayerEconomy(Player* player, Player* target,
 // team number, the two tables at +0x11e and +0x129 are eleven bytes each, one
 // entry per team.
 // FUNCTION: 0x457540
-void __stdcall HandlePlayerEconomy(Packet_00457540* packet, Player* player)
+void __stdcall HandlePlayerEconomy(PlayerViewStatePacket* packet, Player* player)
 {
     if (player == 0)
         return;
@@ -3587,28 +3539,28 @@ void __stdcall HandlePlayerEconomy(Packet_00457540* packet, Player* player)
     }
 
     if (found == 0) {
-        player->kills = packet->field_2;
-        player->losses = packet->field_6;
-        player->commanderKills = packet->field_a;
-        player->commanderLosses = packet->field_e;
-        player->field_98 = packet->field_12;
-        player->field_8c = packet->field_16;
-        player->metalCapacity = packet->field_1a;
-        player->energyCapacity = packet->field_1e;
-        player->totalEnergyProduced = packet->field_22;
-        player->totalEnergyConsumed = packet->field_26;
-        player->energyWasted = packet->field_2a;
-        player->totalMetalProduced = packet->field_2e;
-        player->totalMetalConsumed = packet->field_32;
-        player->metalWasted = packet->field_36;
+        player->kills = *(short*)&packet->unitsKilled;
+        player->losses = *(short*)&packet->unitsLost;
+        player->commanderKills = *(short*)&packet->commandersKilled;
+        player->commanderLosses = *(short*)&packet->commandersLost;
+        player->field_98 = packet->metalAmount;
+        player->field_8c = packet->energyAmount;
+        player->metalCapacity = packet->metalStorage;
+        player->energyCapacity = packet->energyStorage;
+        player->totalEnergyProduced = packet->energyProduced;
+        player->totalEnergyConsumed = packet->energyConsumed;
+        player->energyWasted = packet->energyWasted;
+        player->totalMetalProduced = packet->metalProduced;
+        player->totalMetalConsumed = packet->metalConsumed;
+        player->metalWasted = packet->metalWasted;
     }
 
-    if (packet->flag == 0)
+    if (packet->shareFlag == 0)
         return;
 
-    TeamPacket_00457540 team;
+    ShareLosAckPacket team;
     team.type = 0x29;
-    team.flag = 1;
+    team.ackLos = 1;
 
     {
     for (int i = 0; i < 10; i++) {
@@ -3623,9 +3575,9 @@ void __stdcall HandlePlayerEconomy(Packet_00457540* packet, Player* player)
         // Must be an if/else of constant stores, not a bool expression, which
         // adds a 32 bit temporary.
         if (p->t0[player->field_146] != 0)
-            team.flag2 = 1;
+            team.ackMapping = 1;
         else
-            team.flag2 = 0;
+            team.ackMapping = 0;
         SendPacketToPlayer(p->dpid, player->dpid, &team, 3);
         if (g_game->conditions->CheckVictory() != 0)
             continue;
@@ -3950,12 +3902,12 @@ void __stdcall UpdateResourceSharing(Player* player)
                 unsigned char a = player->field_146;
                 unsigned char b = p->field_146;
                 if (a != 10 && b != 10) {
-                    Packet_00457d30 packet;
+                    ResourceSharePacket packet;
                     packet.type = 0x16;
                     packet.subtype = 3;
-                    packet.from = PlayerDpid_00457d30(a);
-                    packet.to = PlayerDpid_00457d30(b);
-                    packet.zero = 0;
+                    packet.fromNetId = PlayerDpid_00457d30(a);
+                    packet.toNetId = PlayerDpid_00457d30(b);
+                    packet.amount = 0;
                     SendPacketToPlayer(PlayerDpid_00457d30(a), PlayerDpid_00457d30(b),
                                  &packet, sizeof(packet));
                 }

@@ -424,26 +424,26 @@ void __cdecl CreateMissionUnits()
 // for the new owner with 0x485f50 and filled either from the record passed in
 // or from the old unit, and the old unit's state bits are moved across.
 #pragma pack(push, 1)
-struct Packet_00488570 {               // 0x18 bytes
+struct OwnershipTransferPacket {       // 0x18 bytes
     unsigned char type;                // +0x0
-    short team;                        // +0x1
-    int who;                           // +0x3
-    int x;                             // +0x7
-    int y;                             // +0xb
+    short unitId;                      // +0x1
+    int newOwnerNetId;                 // +0x3
+    int buildPercent;                  // +0x7
+    int hitPoints;                     // +0xb
     Tail_00488570 tail;                // +0xf
-    unsigned char b15;                 // +0x15
-    unsigned char b16;                 // +0x16
-    unsigned char b17;                 // +0x17
+    unsigned char stockpile0;          // +0x15
+    unsigned char stockpile1;          // +0x16
+    unsigned char stockpile2;          // +0x17
 };
 #pragma pack(pop)
 
 int __stdcall GetPlayerDpid(Player_00488310* player);
-void __stdcall BroadcastPacket(int who, Packet_00488570* packet, int size);
+void __stdcall BroadcastPacket(int who, OwnershipTransferPacket* packet, int size);
 void __stdcall DamageUnit(Unit* source, Unit* target, int amount, int type,
                             unsigned short extra);
 
 // FUNCTION: 0x488570
-void __stdcall GiveUnitToPlayer(Unit* unit, Player_00488310* other, Packet_00488570* p)
+void __stdcall GiveUnitToPlayer(Unit* unit, Player_00488310* other, OwnershipTransferPacket* p)
 {
     if (unit->player == other)
         return;
@@ -458,19 +458,19 @@ void __stdcall GiveUnitToPlayer(Unit* unit, Player_00488310* other, Packet_00488
         if (other->active == 0)
             return;
         if (other->type == 3) {
-            Packet_00488570 pk;
+            OwnershipTransferPacket pk;
             unit->flags &= ~0x10;
             unit->fb = 0x96;
             pk.type = 0x14;
-            pk.who = GetPlayerDpid(other);
-            pk.team = unit->team;
-            pk.x = (int)unit->speed;
-            pk.y = unit->s108;
+            pk.newOwnerNetId = GetPlayerDpid(other);
+            pk.unitId = unit->team;
+            pk.buildPercent = (int)unit->speed;
+            pk.hitPoints = unit->s108;
             pk.tail = unit->tail;
             unsigned char a = unit->b1f & 2;
-            pk.b15 = a ? unit->b1e : 0;
-            pk.b16 = a ? unit->b3a : 0;
-            pk.b17 = a ? unit->b56 : 0;
+            pk.stockpile0 = a ? unit->b1e : 0;
+            pk.stockpile1 = a ? unit->b3a : 0;
+            pk.stockpile2 = a ? unit->b56 : 0;
             BroadcastPacket(unit->player->f4, &pk, 0x18);
             DamageUnit(0, unit, 30000, 4, 0);
             return;
@@ -486,15 +486,15 @@ void __stdcall GiveUnitToPlayer(Unit* unit, Player_00488310* other, Packet_00488
         return;
     n->flags &= 0xffc3ffff;
     if (p) {
-        n->s108 = (short)p->y;
-        n->speed = (float)p->x;
+        n->s108 = (short)p->hitPoints;
+        n->speed = (float)p->buildPercent;
         n->tail = p->tail;
         if (n->b1f & 2)
-            n->b1e = p->b15;
+            n->b1e = p->stockpile0;
         if (n->b3b & 2)
-            n->b3a = p->b16;
+            n->b3a = p->stockpile1;
         if (n->b57 & 2)
-            n->b56 = p->b17;
+            n->b56 = p->stockpile2;
     } else {
         n->s108 = unit->s108;
         n->speed_bits = unit->speed_bits;

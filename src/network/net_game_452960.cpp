@@ -31,12 +31,12 @@ struct Player_00452960 {
     char unknown_147[0x14b - 0x147];
 };
 
-struct Packet_00452960 {
+struct AllyFlagsPacket {
     unsigned char type;                // +0x0
-    int from;                          // +0x1
-    int to;                            // +0x5
-    unsigned char value;               // +0x9
-    int extra;                         // +0xa
+    int fromNetId;                     // +0x1
+    int toNetId;                       // +0x5
+    unsigned char allied;              // +0x9
+    int force;                         // +0xa
 };
 
 #include "../map/mission.h"
@@ -165,12 +165,12 @@ int __stdcall SetAlliance(int from, int to, unsigned char value, int extra)
         }
         result = 1;
     } else if (IsType3_00452960(p2)) {
-        Packet_00452960* msg = (Packet_00452960*)g_game->buffer;
-        msg->value = value;
+        AllyFlagsPacket* msg = (AllyFlagsPacket*)g_game->buffer;
+        msg->allied = value;
         msg->type = 0x23;
-        msg->from = from;
-        msg->to = to;
-        msg->extra = extra;
+        msg->fromNetId = from;
+        msg->toNetId = to;
+        msg->force = extra;
         int r = SendPacketToPlayer(from, to, msg, 0xe);
         if (g_usePacketManager != 0)
             g_packetManager.SendAllQueued(1);

@@ -1113,7 +1113,7 @@ address,size,file,symbol,status,similarity
 0x456200,139,src/network/net_game.cpp,?SendScriptCallByName@@YGHPAUUnit@@PADDHHHH@Z,matched,100.0
 0x456290,124,src/network/net_game.cpp,?SendScriptCall@@YGHPAUUnit@@FDHHHH@Z,matched,100.0
 0x456310,641,src/network/net_game.cpp,?SendNetHeartbeat@@YGXXZ,matched,100.0
-0x4565a0,442,src/network/net_game.cpp,?HandlePing@@YGXPAUMessage_004565a0@@@Z,matched,100.0
+0x4565a0,442,src/network/net_game.cpp,?HandlePing@@YGXPAULatencyPacket@@@Z,matched,100.0
 0x456760,225,src/network/net_game.cpp,?AreAllPlayersReady@@YGHXZ,matched,100.0
 0x456850,87,src/network/net_game.cpp,?FindHostSlot@@YGEXZ,matched,100.0
 0x4568b0,3,src/network/net_game.cpp,?ReportPacketGap@@YGXHHH@Z,matched,100.0
@@ -1124,7 +1124,7 @@ address,size,file,symbol,status,similarity
 0x4571c0,218,src/network/net_game.cpp,?SendShareMapInfo@@YGXEE@Z,matched,100.0
 0x4572a0,293,src/network/net_game.cpp,?BroadcastPendingViewState@@YGHXZ,matched,100.0
 0x4573d0,358,src/network/net_game.cpp,?SendPlayerEconomy@@YGXPAUPlayer@@0E@Z,matched,100.0
-0x457540,451,src/network/net_game.cpp,?HandlePlayerEconomy@@YGXPAUPacket_00457540@@PAUPlayer@@@Z,matched,100.0
+0x457540,451,src/network/net_game.cpp,?HandlePlayerEconomy@@YGXPAUPlayerViewStatePacket@@PAUPlayer@@@Z,matched,100.0
 0x457710,439,src/network/net_game.cpp,?InitLobbiedConnection@@YGHXZ,matched,100.0
 0x4578d0,18,src/network/net_game.cpp,?SetPacketRate@@YGXH@Z,matched,100.0
 0x4578f0,340,src/network/net_game.cpp,?LeaveNetGameCallback@@YAXH@Z,matched,100.0
@@ -1807,7 +1807,7 @@ address,size,file,symbol,status,similarity
 0x487af0,241,src/units/unit_save.cpp,?FindMissionUnit@@YGHPADPAUStruct_00487af0@@H@Z,matched,100.0
 0x487bf0,1811,src/units/unit_commands_487bf0.cpp,?RunInitialMission@@YGXPAUUnit@@PADPAUTable_00487bf0@@@Z,matched,100.0
 0x488310,596,src/units/unit_commands_487bf0.cpp,?CreateMissionUnits@@YAXXZ,matched,100.0
-0x488570,657,src/units/unit_commands_487bf0.cpp,?GiveUnitToPlayer@@YGXPAUUnit@@PAUPlayer_00488310@@PAUPacket_00488570@@@Z,matched,100.0
+0x488570,657,src/units/unit_commands_487bf0.cpp,?GiveUnitToPlayer@@YGXPAUUnit@@PAUPlayer_00488310@@PAUOwnershipTransferPacket@@@Z,matched,100.0
 0x488810,263,src/units/unit_commands_487bf0.cpp,?QuickSort@@YGXPAPAUItem_00485940@@0P6GHPAU1@1@ZH@Z,matched,100.0
 0x488920,59,src/units/unit_commands_487bf0.cpp,?InsertShift@@YGXPAPAUItem_00485940@@PAU1@P6GH11@Z@Z,matched,100.0
 0x488960,98,src/units/unit_commands_487bf0.cpp,?Partition@@YGPAPAUItem_00485940@@PAPAU1@0PAU1@P6GH11@Z@Z,matched,100.0

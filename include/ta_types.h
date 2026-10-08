@@ -1679,9 +1679,9 @@ struct Packet_00450a10;
 struct Packet_00450f90;
 struct Packet_00452960;
 struct Packet_00452b70;
-struct Packet_00456050;
-struct Packet_004560c0;
-struct Packet_00456110;
+struct UnitCreatePacket;
+struct BuilderLinkPacket;
+struct UnitScriptCallPacket;
 struct Packet_00456190;
 struct Packet_00456200;
 struct Packet_00456290;
@@ -1703,8 +1703,8 @@ struct Packet_0046d860;
 struct Packet_0046dad0;
 struct Packet_0047f0c0;
 struct Packet_0047f300;
-struct Packet_00488570;
-struct Packet_0048b090;
+struct OwnershipTransferPacket;
+struct ActivateFlagsPacket;
 struct Packet_00499ab0;
 struct Packet_00499ba0;
 struct Packet_0049af90;
@@ -2018,7 +2018,7 @@ struct Target_004908c0;
 struct Target_0049e1a0;
 struct Target_439d20;
 union TeamFlags_459200;
-struct TeamPacket_00457540;
+struct ShareLosAckPacket;
 struct Team_0048d9a0;
 struct Texture_00421700;
 struct Thing_0043f0e0;
@@ -8129,7 +8129,7 @@ struct Settings {  // 0x50 bytes, 1 view
     char unknown_8[72];
 };
 
-struct Packet_00456050 {  // 0x17 bytes, 1 view
+struct UnitCreatePacket {  // 0x17 bytes, 1 view
     unsigned char type;  // +0x0
     short field_1;  // +0x1
     short field_3;  // +0x3
@@ -8137,13 +8137,13 @@ struct Packet_00456050 {  // 0x17 bytes, 1 view
     Rot16 field_11;  // +0x11
 };
 
-struct Packet_004560c0 {  // 0x5 bytes, 1 view
+struct BuilderLinkPacket {  // 0x5 bytes, 1 view
     unsigned char type;  // +0x0
     short field_1;  // +0x1
     short field_3;  // +0x3
 };
 
-struct Packet_00456110 {  // 0x16 bytes, 1 view
+struct UnitScriptCallPacket {  // 0x16 bytes, 1 view
     unsigned char type;  // +0x0
     short id;  // +0x1
     short index;  // +0x3
@@ -8282,7 +8282,7 @@ struct Packet_00457540 {  // 0x3a bytes, 1 view
     float field_36;  // +0x36
 };
 
-struct TeamPacket_00457540 {  // 0x3 bytes, 1 view
+struct ShareLosAckPacket {    // 0x3 bytes, 1 view
     unsigned char type;  // +0x0
     unsigned char flag;  // +0x1
     unsigned char flag2;  // +0x2
@@ -12725,7 +12725,7 @@ struct Outs_t {  // 0x14 bytes, 1 view
     char unknown_0[20];
 };
 
-struct Packet_00488570 {  // 0x18 bytes, 1 view
+struct OwnershipTransferPacket {  // 0x18 bytes, 1 view
     unsigned char type;  // +0x0
     short team;  // +0x1
     int who;  // +0x3
@@ -12992,7 +12992,7 @@ struct Order_0048ab70 {  // 0x7 bytes, 3 views
     unsigned char param2;  // +0x6
 };
 
-struct Packet_0048b090 {  // 0x4 bytes, 1 view
+struct ActivateFlagsPacket {  // 0x4 bytes, 1 view
     unsigned char type;  // +0x0
     short field_1;  // +0x1
     unsigned char field_3;  // +0x3

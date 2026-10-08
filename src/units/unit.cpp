@@ -94,10 +94,10 @@ struct Player_0048b090 {
     char kind;                         // +0x73, 1 or 2 for a real player
 };
 
-struct Packet_0048b090 {
+struct ActivateFlagsPacket {
     unsigned char type;                // +0x0
-    short field_1;                     // +0x1, the unit id
-    unsigned char field_3;             // +0x3, the new state
+    short unitId;                      // +0x1, the unit id
+    unsigned char activateFlags;       // +0x3, the new state
 };
 #pragma pack(pop)
 
@@ -376,10 +376,10 @@ void Unit::SetStateBits(int mask, int set)
             MarkSelectionOrdersDirty(this);
             if (player->active != 0) {
                 if (player->kind == 1 || player->kind == 2) {
-                    Packet_0048b090 packet;
+                    ActivateFlagsPacket packet;
                     packet.type = 0x11;
-                    packet.field_1 = id;
-                    packet.field_3 = state;
+                    packet.unitId = id;
+                    packet.activateFlags = state;
                     BroadcastPacket(player->id, &packet, 4);
                 }
             }

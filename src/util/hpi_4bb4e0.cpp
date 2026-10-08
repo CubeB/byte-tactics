@@ -2,7 +2,7 @@
 #include <malloc.h>
 #include <string.h>
 
-// An archive's directory tree (0x4bb2e0.cpp names the same structs).
+// An archive's directory tree (hpi.cpp names the same structs).
 struct ArchiveDirectory;
 
 #pragma pack(push, 1)

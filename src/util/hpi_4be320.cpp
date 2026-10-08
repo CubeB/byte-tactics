@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
-// Stays in its own file: HAPI_ClearShadowFlags (0x4be3b0, now in
-// hpi_4bc4b0.cpp) would be inlined into the recursive call below, but the
-// original calls it out of line.
+// Stays in its own file: HAPI_ClearShadowFlags (0x4be3b0, now in hpi.cpp)
+// would be inlined into the recursive call below, but the original calls it
+// out of line.
 
 struct ArchiveDirectory;
 

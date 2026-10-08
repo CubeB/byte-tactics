@@ -997,7 +997,7 @@ void LoadingScreenFrame(void)
             && (g_game->players[i].control == 1 || g_game->players[i].control == 2)) {
             FUN_00453320(g_game->players[i].id, 0);
             if (g_usePacketManager != 0)
-                ((PacketManager*)&g_packetManager)->SendAllQueued(1);
+                (&g_packetManager)->SendAllQueued(1);
         }
     }
     HandleNetPackets();
@@ -1010,7 +1010,7 @@ void LoadingScreenFrame(void)
         }
     }
     if (g_usePacketManager != 0) {
-        ((PacketManager*)&g_packetManager)->SendAllQueued(1);
+        (&g_packetManager)->SendAllQueued(1);
     }
     SetOffscreenSurface((void*)g_game->field_37e1b);
     // The result stays in a local: it gives the compare against a register.

@@ -929,7 +929,7 @@ void __stdcall UpdatePlayers()
         if (bl == g_game->localPlayer) {
             if (g_game->mission->GetGameType() == 1) {
                 if (g_game->list->CheckVictory() == 0) {
-                    if (((MissionConditions*)g_game->list)->CheckDefeat() != 0) {
+                    if (g_game->list->CheckDefeat() != 0) {
                         if (g_game->field_39239 < 0) {
                             g_game->field_39239 = 4;
                         } else {
@@ -962,7 +962,7 @@ void __stdcall UpdatePlayers()
                 }
             } else if ((pi->active == 0 ||
                         (pi->info->flags_9b & 0x40) == 0) &&
-                       ((MissionConditions*)g_game->list)->CheckDefeat() != 0) {
+                       g_game->list->CheckDefeat() != 0) {
                 if (g_game->field_39239 < 0) {
                     g_game->field_39239 = 4;
                 } else {
@@ -1238,7 +1238,7 @@ void __stdcall LoadPlayerControllers(HapiBank* file)
         int* slot = &g_game->slots[i].controller;
         sprintf(name, "Player%i", i);
         if (file->OpenAccount(name)) {
-            *slot = ((HapiBank*)file)->GetIntegerItem("Controller", 0);
+            *slot = file->GetIntegerItem("Controller", 0);
             player->type = *slot;
         } else {
             *slot = 0;

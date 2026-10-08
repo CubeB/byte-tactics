@@ -209,9 +209,9 @@ void Class_004010b0::SaveUnitAccounts(UnitInfo* info, HapiBank* file)
     char name[32];
     sprintf(name, "u%04xacc", info->id);
     file->OpenNamedBox(name);
-    ((HapiBank*)file)->SeekBox(0);
-    ((HapiBank*)file)->WriteBox(acc0, 0x18);
-    ((HapiBank*)file)->WriteBox(acc1, 0x18);
+    file->SeekBox(0);
+    file->WriteBox(acc0, 0x18);
+    file->WriteBox(acc1, 0x18);
 }
 
 // Load counterpart of 0x4010b0: reads the two 0x18-byte blocks back from the
@@ -222,9 +222,9 @@ void Class_00401110::LoadUnitAccounts(UnitInfo* info, HapiBank* file)
     char name[32];
     sprintf(name, "u%04xacc", info->id);
     if (file->OpenNamedBox(name)) {
-        ((HapiBank*)file)->SeekBox(0);
-        ((HapiBank*)file)->ReadBox(acc0, 0x18);
-        ((HapiBank*)file)->ReadBox(acc1, 0x18);
+        file->SeekBox(0);
+        file->ReadBox(acc0, 0x18);
+        file->ReadBox(acc1, 0x18);
     }
 }
 

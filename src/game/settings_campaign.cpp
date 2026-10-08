@@ -154,14 +154,14 @@ HapiBank* __stdcall OpenSummaryBank(char* name)
     } else {
         obj = 0;
     }
-    if (((HapiBank*)obj)->OpenBank(name, g_saveBankName, g_summaryAccountName) == 0) {
+    if (obj->OpenBank(name, g_saveBankName, g_summaryAccountName) == 0) {
         if (obj != 0) {
-            ((HapiBank*)obj)->CloseBank();
+            obj->CloseBank();
             delete obj;
         }
         return 0;
     }
-    ((HapiBank*)obj)->OpenAccount(g_summaryAccountName);
+    obj->OpenAccount(g_summaryAccountName);
     return obj;
 }
 
@@ -188,9 +188,9 @@ HapiBank* __stdcall OpenHapiBank(char* name)
     } else {
         obj = 0;
     }
-    if (((HapiBank*)obj)->OpenBank(name, g_saveBankName, 0) == 0) {
+    if (obj->OpenBank(name, g_saveBankName, 0) == 0) {
         if (obj != 0) {
-            ((HapiBank*)obj)->CloseBank();
+            obj->CloseBank();
             delete obj;
         }
         return 0;
@@ -203,8 +203,8 @@ HapiBank* __stdcall OpenHapiBank(char* name)
 int __stdcall LoadSavedGameState(HapiBank* file)
 {
     file->OpenAccount(g_summaryAccountName);
-    if (((HapiBank*)file)->HasItem("maxunits"))
-        g_game->maxUnits = ((HapiBank*)file)->GetIntegerItem("maxunits", 0);
+    if (file->HasItem("maxunits"))
+        g_game->maxUnits = file->GetIntegerItem("maxunits", 0);
     LoadPlayers(file);
     ReadCameraPosition(file);
     LoadFeatures(file);
@@ -229,44 +229,44 @@ int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
     HapiBank file;
     char buf[256];
 
-    ((HapiBank*)&file)->InitBank();
+    (&file)->InitBank();
     file.NewBank();
-    ((HapiBank*)&file)->OpenAccount(g_summaryAccountName);
+    (&file)->OpenAccount(g_summaryAccountName);
 
     sprintf(buf, g_buildDateFormat, g_game->buildDate);
-    ((HapiBank*)&file)->SetIntegerItem(buf, 0);
+    (&file)->SetIntegerItem(buf, 0);
     sprintf(buf, g_buildTimeFormat, g_game->buildTime);
-    ((HapiBank*)&file)->SetIntegerItem(buf, 0);
-    ((HapiBank*)&file)->SetIntegerItem(g_maxUnitsKey, g_game->maxUnits);
-    ((HapiBank*)&file)->SetStringItem(g_campaignKey, ((Mission*)g_game->campaign)->GetCampaignName());
+    (&file)->SetIntegerItem(buf, 0);
+    (&file)->SetIntegerItem(g_maxUnitsKey, g_game->maxUnits);
+    (&file)->SetStringItem(g_campaignKey, ((Mission*)g_game->campaign)->GetCampaignName());
     if (g_game->state != 6) {
         ((Mission*)g_game->campaign)->AdvanceMission();
     }
-    ((HapiBank*)&file)->SetStringItem(g_missionKey, ((Mission*)g_game->campaign)->GetMissionName());
-    ((HapiBank*)&file)->SetStringItem(g_mapKey, ((Mission*)g_game->campaign)->GetMissionName());
-    ((HapiBank*)&file)->SetIntegerItem(DAT_00502a78, g_game->difficulty);
-    ((HapiBank*)&file)->SetIntegerItem(g_sideKey, g_game->players[g_game->localPlayer].unit->side);
-    ((HapiBank*)&file)->SetIntegerItem(g_playersKey, g_game->numPlayers);
-    ((HapiBank*)&file)->SetIntegerItem(g_gameTypeKey, ((Mission*)g_game->campaign)->GetGameType());
-    ((HapiBank*)&file)->SetStringItem(g_thumbsKey, g_game->thumbs);
+    (&file)->SetStringItem(g_missionKey, ((Mission*)g_game->campaign)->GetMissionName());
+    (&file)->SetStringItem(g_mapKey, ((Mission*)g_game->campaign)->GetMissionName());
+    (&file)->SetIntegerItem(DAT_00502a78, g_game->difficulty);
+    (&file)->SetIntegerItem(g_sideKey, g_game->players[g_game->localPlayer].unit->side);
+    (&file)->SetIntegerItem(g_playersKey, g_game->numPlayers);
+    (&file)->SetIntegerItem(g_gameTypeKey, ((Mission*)g_game->campaign)->GetGameType());
+    (&file)->SetStringItem(g_thumbsKey, g_game->thumbs);
     if (((Mission*)g_game->campaign)->GetGameType() == 2) {
-        ((HapiBank*)&file)->SetIntegerItem(g_commanderDeathKey, g_game->options->commanderDeath);
-        ((HapiBank*)&file)->SetIntegerItem(g_locationKey, g_game->options->location);
-        ((HapiBank*)&file)->SetIntegerItem(g_mappingKey, g_game->options->mapping);
-        ((HapiBank*)&file)->SetIntegerItem(g_lineOfSightKey, g_game->options->lineOfSight);
-        ((HapiBank*)&file)->SetIntegerItem(g_lineOfSightTypeKey, g_game->options->lineOfSightType);
+        (&file)->SetIntegerItem(g_commanderDeathKey, g_game->options->commanderDeath);
+        (&file)->SetIntegerItem(g_locationKey, g_game->options->location);
+        (&file)->SetIntegerItem(g_mappingKey, g_game->options->mapping);
+        (&file)->SetIntegerItem(g_lineOfSightKey, g_game->options->lineOfSight);
+        (&file)->SetIntegerItem(g_lineOfSightTypeKey, g_game->options->lineOfSightType);
     }
     if (g_game->state != 6) {
-        ((HapiBank*)&file)->SetIntegerItem(g_betweenMissionsKey, 1);
+        (&file)->SetIntegerItem(g_betweenMissionsKey, 1);
         ((Mission*)g_game->campaign)->SelectMission(g_game->mission);
     }
     if (param_2 != 0) {
-        ((HapiBank*)&file)->SetStringItem(g_descriptionKey, param_2);
+        (&file)->SetStringItem(g_descriptionKey, param_2);
     }
-    ((HapiBank*)&file)->SetIntegerItem(g_gameIdKey, param_3);
-    ((HapiBank*)&file)->SetIntegerItem(g_gameTimeKey, g_game->ticks);
+    (&file)->SetIntegerItem(g_gameIdKey, param_3);
+    (&file)->SetIntegerItem(g_gameTimeKey, g_game->ticks);
     if (g_game->state == 6) {
-        ((HapiBank*)&file)->OpenNamedBox(g_radarImageBoxName);
+        (&file)->OpenNamedBox(g_radarImageBoxName);
         SaveSurface(g_game->finalSurface, &file);
         WriteCameraPosition(&file);
         SavePlayers(&file);
@@ -279,7 +279,7 @@ int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
         g_game->field_391ed->SaveConditions(&file);
     }
     int result = file.SaveBank(param_1, g_saveBankName, 1, 0);
-    ((HapiBank*)&file)->CloseBank();
+    (&file)->CloseBank();
     return result;
 }
 

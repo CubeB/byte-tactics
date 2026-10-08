@@ -302,7 +302,7 @@ void __stdcall ShowSavedGameInfo()
         sprintf(path, "%s\\%s", DAT_005091c8, fname);
         HapiBank* file = OpenSummaryBank(path);
         if (file != 0) {
-            ((HapiBank*)file)->OpenNamedBox("Radar Image");
+            file->OpenNamedBox("Radar Image");
             Entry_00491ec0* radar = FUN_004a0280(menu->layer->entries, "RADAR");
             if (DAT_0051f2ec != 0)
                 FreeSurface(DAT_0051f2ec);
@@ -313,8 +313,8 @@ void __stdcall ShowSavedGameInfo()
             }
             FUN_004a0570(menu, "RADAR", DAT_0051f2ec != 0);
 
-            int players = ((HapiBank*)file)->GetIntegerItem("Players", 0);
-            gametype = ((HapiBank*)file)->GetIntegerItem("Gametype", 0);
+            int players = file->GetIntegerItem("Players", 0);
+            gametype = file->GetIntegerItem("Gametype", 0);
             if (players != 0) {
                 if (gametype == 1)
                     strcpy(name, "Single");
@@ -326,14 +326,14 @@ void __stdcall ShowSavedGameInfo()
             FUN_004a0bf0(menu, "GAMETYPE", name, 0);
 
             if (gametype == 1) {
-                char* campaign = ((HapiBank*)file)->GetStringItem("Campaign", 0);
+                char* campaign = file->GetStringItem("Campaign", 0);
                 if (campaign != 0) {
                     strcpy(name, campaign);
                     FUN_004a0bf0(menu, "CAMPAIGN", name, 0);
                     FUN_004a0570(menu, "CAMPTEXT", 1);
                     FUN_004a0570(menu, "CAMPAIGN", 1);
                 }
-                char* mission = ((HapiBank*)file)->GetStringItem("Mission", 0);
+                char* mission = file->GetStringItem("Mission", 0);
                 if (mission != 0) {
                     strcpy(name, mission);
                     FUN_004a0bf0(menu, "MISSION", name, 0);
@@ -341,20 +341,20 @@ void __stdcall ShowSavedGameInfo()
             } else {
                 FUN_004a0570(menu, "CAMPTEXT", 0);
                 FUN_004a0570(menu, "CAMPAIGN", 0);
-                char* mission = ((HapiBank*)file)->GetStringItem("Map", 0);
+                char* mission = file->GetStringItem("Map", 0);
                 if (mission != 0) {
                     strcpy(name, mission);
                     FUN_004a0bf0(menu, "MISSION", name, 0);
                 }
             }
 
-            int time = ((HapiBank*)file)->GetIntegerItem("Game Time", 0);
+            int time = file->GetIntegerItem("Game Time", 0);
             sprintf(name, "%02d:%02d:%02d", time / 108000, time / 1800 % 60,
                     time / 30 % 60);
             FUN_004a0bf0(menu, "TIME", name, 0);
 
             if (DAT_0051f2e8 != 0) {
-                int side = ((HapiBank*)file)->GetIntegerItem("Side", 0);
+                int side = file->GetIntegerItem("Side", 0);
                 strcpy(name, SkipTextLines(DAT_0051f2e8, side));
             } else {
                 strcpy(name, "???");
@@ -365,7 +365,7 @@ void __stdcall ShowSavedGameInfo()
             diffs[1] = "Medium";
             diffs[2] = "Hard";
             sprintf(name, "%s",
-                    diffs[((HapiBank*)file)->GetIntegerItem("Difficulty", 0)]);
+                    diffs[file->GetIntegerItem("Difficulty", 0)]);
             FUN_004a0bf0(menu, "DIFF", name, 0);
             FreeSummaryBank(file);
             goto done;
@@ -595,13 +595,13 @@ char* __stdcall ListSavedGames(int* count)
         HapiBank* file = OpenSummaryBank(buf);
         char* desc = 0;
         if (file)
-            desc = ((HapiBank*)file)->GetStringItem("Description", 0);
+            desc = file->GetStringItem("Description", 0);
         if (file && desc) {
             strcpy(buf, desc);
             strcpy(dp, buf);
             dp += strlen(buf) + 1;
             found++;
-            ((HapiBank*)file)->CloseBank();
+            file->CloseBank();
             delete file;
         } else {
             char* d = SkipTextLines(DAT_0051f2e0, found);

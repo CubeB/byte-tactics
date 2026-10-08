@@ -136,8 +136,8 @@ void CheckGpfVersion()
     int found = 0;
 
     BuildDataPath(path, "gamedata", "version", "tdf");
-    if (((TdfFile*)&parser)->LoadFile(path)) {
-        if (((TdfFile*)&parser)->SelectRecord("Version")) {
+    if ((&parser)->LoadFile(path)) {
+        if ((&parser)->SelectRecord("Version")) {
             if (parser.current->GetFieldString(buf, "GPFVersion", 0x40, DAT_005119b8)) {
                 found = 1;
                 if (_strcmpi("v3.0", buf) != 0) {
@@ -505,10 +505,10 @@ void LoadGameResources()
     char buf[256];
 
     BuildDataPath(buf, "gamedata", "sidedata", "TDF");
-    ((TdfFile*)&parser)->LoadFile(buf);
+    (&parser)->LoadFile(buf);
     sprintf(buf, "GENERAL");
-    ((TdfFile*)&parser)->ResetCurrentRecord();
-    if (((TdfFile*)&parser)->SelectRecord(buf) == 1) {
+    (&parser)->ResetCurrentRecord();
+    if ((&parser)->SelectRecord(buf) == 1) {
         g_game->baseHeight = parser.current->GetFieldInt("baseheight", 0x1e0);
     } else {
         g_game->baseHeight = 0x1e0;
@@ -518,8 +518,8 @@ void LoadGameResources()
     // while (1) with a mid-body break: a for (;;) gets rotated.
     while (1) {
         sprintf(buf, "SIDE%d", i);
-        ((TdfFile*)&parser)->ResetCurrentRecord();
-        if (!((TdfFile*)&parser)->SelectRecord(buf))
+        (&parser)->ResetCurrentRecord();
+        if (!(&parser)->SelectRecord(buf))
             break;
         // Kept in an int local before the test: gives cmp instead of test.
         int intgaf = parser.current->GetFieldString(buf, "intgaf", 0x1e, DAT_005119b8);
@@ -534,7 +534,7 @@ void LoadGameResources()
         }
         i++;
     }
-    ((TdfFile*)&parser)->Unload();
+    (&parser)->Unload();
 }
 
 // Frees the game's entry table at +0x147af (each entry's pointer at +0x40),

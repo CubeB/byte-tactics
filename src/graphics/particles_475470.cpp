@@ -1,8 +1,8 @@
 // Decompiled by Opus, Haiku, Sonnet, DeepSeek V4.1 Flash and Space Bunny Free. Names are provisional.
 // Stays in its own file: merged with the module's second part its fog-culled
-// loop walks from the wrong field (particles_472630.cpp).
+// loop walks from the wrong field (particles.cpp).
 // SmokeParticles (vtable 0x4fd618, 0x38 bytes), derived from ParticleSystem
-// (the family is listed in particles_470a40.cpp): smoke that drifts with the wind.
+// (the family is listed in particles.cpp): smoke that drifts with the wind.
 #include <windows.h>   // only for its symbol ids
 #include <stddef.h>
 #include <stdlib.h>

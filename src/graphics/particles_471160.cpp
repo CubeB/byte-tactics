@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Stays in its own file: it needs the std::vector<Elem_00473500> view of the
-// lists, whose inlined insert cannot agree with particles_470a40.cpp's.
+// lists, whose inlined insert cannot agree with particles.cpp's.
 // Appends an entry to the std::vector<Elem_00473500> that the short index
 // picks out of the array. When the list already holds more than 400 entries its
 // oldest element is deleted and erased first, exactly as the sibling

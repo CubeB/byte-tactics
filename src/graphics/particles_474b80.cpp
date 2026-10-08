@@ -1,7 +1,7 @@
 // Decompiled by Opus, space-bunny-free, LongCat 2.5 Preview Free, deepseek-v4.1-flash, deepseek-v4.1, mimo-v2.6-pro and Sonnet. Names are provisional.
 // Stays in its own file: merged with the module's second part, the fog arm's
 // cell address picks the other SIB base and keeps the fog pointer in a register
-// (particles_472630.cpp).
+// (particles.cpp).
 // The smoke puff: drifted by Step, drawn by DrawParticle when the local player
 // can see it, and dropped once IsExpired.
 #include <stddef.h>

@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free, finished by DeepSeek V4.1 Flash, verified by GPT-6, finished by claude-opus-5-5, finished by GPT-6, finished by Claude Opus 5.5. Names are provisional.
 // Stays in its own file: its SIB byte follows the file's symbol total, and
-// moving it into particles_470a40.cpp moves the total out of its window
+// moving it into particles.cpp moves the total out of its window
 // (docs/c2-regalloc.md, "Symbol ids").
 // Destroys the ten listener lists that 0x471d90 allocates into the game object
 // (used by 0x471eb0, 0x471f40 and 0x471f90): every listener is deleted and

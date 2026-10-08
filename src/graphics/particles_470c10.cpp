@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Stays in its own file: its Grow needs the hand-written <vector> view of the
-// pool, which cannot share a file with the real <vector> (particles_470a40.cpp).
+// pool, which cannot share a file with the real <vector> (particles.cpp).
 // Grows the arena ObjectPool (vtable 0x4fd580, see 0x470a90.cpp and
 // 0x470ae0.cpp) to param_1 slots of param_2 bytes. The table of slot
 // pointers is reallocated with FUN_004d8580, the raw memory for the new

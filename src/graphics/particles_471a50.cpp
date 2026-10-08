@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Stays in its own file: it needs the std::vector<Elem_00473500> view of the
-// lists, whose inlined insert cannot agree with particles_470a40.cpp's.
+// lists, whose inlined insert cannot agree with particles.cpp's.
 // Creates a Class_004750b0 (vtable 0x4fd638) from the object pool, initialises
 // it through virtual slot 6 (0x475150) with the first four arguments, then
 // appends it to the std::vector of pointers selected by the short index in the

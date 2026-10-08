@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // Stays in its own file: merged with the module's second part, the fog arm's
-// cell address picks the other SIB base (particles_472630.cpp).
+// cell address picks the other SIB base (particles.cpp).
 // The nano spark: moved by Step, drawn as one pixel by DrawParticle when the
 // local player can see it, and dropped once IsExpired.
 

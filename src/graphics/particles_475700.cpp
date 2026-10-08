@@ -1,8 +1,8 @@
 // Decompiled by Opus, Haiku and Sonnet. Names are provisional.
 // Stays in its own file: merged with the module's second part the inlined draw
-// rotates its temporaries (particles_472630.cpp).
+// rotates its temporaries (particles.cpp).
 // Class_004750b0 (vtable 0x4fd638, 0x34 bytes), derived from ParticleSystem
-// (the family is listed in particles_470a40.cpp): the same shape as SmokeParticles,
+// (the family is listed in particles.cpp): the same shape as SmokeParticles,
 // without the fog culling.
 // Needed: without <windows.h> slot 2 subtracts the scroll y before the half height.
 #include <windows.h>

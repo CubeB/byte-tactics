@@ -179,13 +179,13 @@ struct Owner {
 };
 
 struct Unit {
-    Size* size;                        // +0x00
+    Size* motion;                      // +0x00
     char unknown_4[0x6a - 4];
     Vec3 pos;                          // +0x6a
     char unknown_76[0x96 - 0x76];
-    Owner* owner;                      // +0x96
+    Owner* player;                     // +0x96
     char unknown_9a[4];
-    PieceList* pieces;                 // +0x9e
+    PieceList* state;                  // +0x9e
 };
 
 // A piece of a unit's model, 0x36 bytes each, 0x22 bytes after the count in
@@ -481,7 +481,7 @@ void __stdcall ExplodeUnitPieces(Unit* unit)
     s.unit = unit;
     s.ticks = 900;
     s.scale = 1;
-    for (int i = 0; i < unit->pieces->count; i++) {
+    for (int i = 0; i < unit->state->count; i++) {
         s.b1 = RandomInt(100) & 1;
         s.b2 = 1;
         s.b3 = 1;
@@ -664,7 +664,7 @@ void __stdcall DrawExplodedPieceFaces(void* surface, ExplodedPiece* obj, PieceRe
                 void* pic;
                 if (flags.bits.b) {
                     if (flags.bits.c) {
-                        pic = GetGafFrame(face->tex.src, obj->unit->owner->player->color);
+                        pic = GetGafFrame(face->tex.src, obj->unit->player->player->color);
                     } else {
                         pic = GetGafSequenceFrame(&face->tex);
                     }
@@ -784,7 +784,7 @@ int __stdcall DrawExplodedPiece(void* surface, ExplodedPiece* obj)
 void __stdcall StartExplodePiece(ExplodedPiece* param_1)
 {
     Unit* obj = param_1->unit;
-    PieceRec* rec = (PieceRec*)((char*)obj->pieces + 0x22 + param_1->index * 0x36);
+    PieceRec* rec = (PieceRec*)((char*)obj->state + 0x22 + param_1->index * 0x36);
     rec->flags &= 0xfffe;
     if (param_1->b2) {
         BreakPieceIntoDebris(param_1);
@@ -830,7 +830,7 @@ void __stdcall BreakPieceIntoDebris(ExplodedPiece* param)
     // piece is computed from unit, and desc is read before verts: the order of
     // first uses sets the frame slots.
     PieceRec* piece =
-        (PieceRec*)((char*)unit->pieces + 0x22 + param->index * 0x36);
+        (PieceRec*)((char*)unit->state + 0x22 + param->index * 0x36);
     int* count = &g_game->count;
     Object3D* desc = piece->desc;
     Vec3* verts = piece->verts;
@@ -846,10 +846,10 @@ void __stdcall BreakPieceIntoDebris(ExplodedPiece* param)
             if (d->obj == 0)
                 return;
             d->flag = param->b5;
-            if (unit->size) {
-                d->size.x = unit->size->x >> 1;
-                d->size.z = unit->size->z >> 1;
-                d->size.y = unit->size->y >> 1;
+            if (unit->motion) {
+                d->size.x = unit->motion->x >> 1;
+                d->size.z = unit->motion->z >> 1;
+                d->size.y = unit->motion->y >> 1;
             }
             d->vel.x = (0x50 - RandomInt(0xa0)) << 9;
             d->vel.z = (0x50 - RandomInt(0xa0)) << 9;
@@ -916,7 +916,7 @@ void __stdcall BreakPieceIntoDebris(ExplodedPiece* param)
                 o->faces[m].color = desc->faces[i].color;
                 int flags = o->faces[m].flags.raw;
                 if (!(flags & 1) && (flags & 2) && (flags & 4)) {
-                    o->faces[m].tex.pic = GetGafFrame(o->faces[m].tex.src, unit->owner->player->color);
+                    o->faces[m].tex.pic = GetGafFrame(o->faces[m].tex.src, unit->player->player->color);
                     o->faces[m].flags.raw &= ~2;
                 }
             }

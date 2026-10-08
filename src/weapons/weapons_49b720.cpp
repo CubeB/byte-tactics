@@ -65,7 +65,7 @@ struct ProjType_0049b720 {
 
 struct Weapon_0049b720 {
     char unknown_0[0x10];
-    ProjType_0049b720* type;           // +0x10
+    ProjType_0049b720* weapon;         // +0x10
     char unknown_14[0x1c - 0x14];
 };
 
@@ -210,7 +210,7 @@ void UpdateProjectiles()
                 if (type->burstRate >= 5 || (p->counter & 1)) {
                     unsigned char w;
                     for (w = 0; w < 3; w++) {
-                        if (p->unit->weapons[w].type == type)
+                        if (p->unit->weapons[w].weapon == type)
                             break;
                     }
                     GetWeaponPiecePosition(p->unit, &p->pos, w, p->piece);

@@ -83,9 +83,9 @@ struct Unit {
     char unknown_10[0x6e - 0x10];
     int elev;                          // +0x6e
     char unknown_72[0x92 - 0x72];
-    UnitType_0049b090* type;           // +0x92
+    UnitType_0049b090* def;            // +0x92
     char unknown_96[0xff - 0x96];
-    unsigned char owner;               // +0xff
+    unsigned char playerIndex;         // +0xff
     char unknown_100[0x118 - 0x100];
 };
 
@@ -190,16 +190,16 @@ void __stdcall CheckProjectileCollision(ProjType_0049b090* type, Proj_0049b090* 
     proj->radius = (cell->radius + cell->ground) / 2;
     if (cell->unit) {
         Unit* u = &g_game->units[cell->unit];
-        if (u->owner != proj->owner && proj->py.i < u->type->high + u->elev) {
+        if (u->playerIndex != proj->owner && proj->py.i < u->def->high + u->elev) {
             DetonateProjectile(proj, u);
             return;
         }
     }
     if (cell->unit2) {
         Unit* u = &g_game->units[cell->unit2];
-        if (u->owner != proj->owner) {
-            if (proj->py.i >= u->type->low + u->elev
-                && proj->py.i <= u->type->high + u->elev) {
+        if (u->playerIndex != proj->owner) {
+            if (proj->py.i >= u->def->low + u->elev
+                && proj->py.i <= u->def->high + u->elev) {
                 DetonateProjectile(proj, u);
                 return;
             }

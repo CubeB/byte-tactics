@@ -4163,13 +4163,13 @@ address,name
 0x502f9c,g_frontendStateChangeFormat
 0x503004,g_frontendSourceFile
 0x50310c,g_extTdf
-0x503120,DAT_00503120
-0x503128,DAT_00503128
+0x503120,g_choice2GadgetName
+0x503128,g_choice1GadgetName
 0x503130,g_smallButtonSoundName
-0x50313c,DAT_0050313c
-0x503160,DAT_00503160
-0x503164,DAT_00503164
-0x503168,DAT_00503168
+0x50313c,g_titleGadgetName
+0x503160,g_noText
+0x503164,g_yesText
+0x503168,g_yesNoGuiName
 0x5031d4,g_bgmSoundName
 0x50324c,g_serviceErrorMessage
 0x50327c,g_zrbMovie4
@@ -4215,7 +4215,7 @@ address,name
 0x505510,g_rejectPlayer
 0x505518,g_hostOnlyGadgets
 0x505974,g_multiSoundName
-0x505dc4,DAT_00505dc4
+0x505dc4,g_allySoundName
 0x505f18,g_gamesGadgetName
 0x505f20,g_savegameDescsName
 0x505f30,g_savegameNamesName
@@ -4316,6 +4316,9 @@ address,name
 0x5097e8,g_languageValueName
 0x5097f4,DAT_005097f4
 0x509edc,g_errorCaption
+0x509ef0,g_radToAngle16
+0x509ef8,g_angle16ToRad
+0x509f00,g_sinTable
 0x50a430,g_alphaTableName
 0x50a43c,g_shadeTableName
 0x50a548,g_dotDot
@@ -4460,7 +4463,7 @@ address,name
 0x5129f1,DAT_005129f1
 0x5129f8,g_receiveCondenser
 0x512a20,g_packetHandlers
-0x512a28,DAT_00512a28
+0x512a28,g_packetHandlerType2
 0x512a2c,DAT_00512a2c
 0x512a34,DAT_00512a34
 0x512a38,DAT_00512a38
@@ -4544,7 +4547,7 @@ address,name
 0x512b7c,DAT_00512b7c
 0x512b80,DAT_00512b80
 0x512b88,DAT_00512b88
-0x512b90,DAT_00512b90
+0x512b90,g_broadcastPeersSeen
 0x512bc0,g_packetModes
 0x512bc8,DAT_00512bc8
 0x512bcc,DAT_00512bcc
@@ -4644,8 +4647,8 @@ address,name
 0x512ff8,g_battleQuitIntent
 0x513000,g_packetManager
 0x513008,DAT_00513008
-0x51e300,DAT_0051e300
-0x51e53c,DAT_0051e53c
+0x51e300,g_packetManagerReceiver
+0x51e53c,g_economyPacketTick
 0x51e540,g_probePanelBottom
 0x51e544,g_statusPanelNextTick
 0x51e548,g_riReportGameChat
@@ -4693,7 +4696,7 @@ address,name
 0x51e6a0,g_losTables
 0x51e6b0,s_unitCategories$S5473
 0x51e6c0,g_mapLoadFlag
-0x51e6c4,DAT_0051e6c4
+0x51e6c4,g_cdMismatchDefeatTick
 0x51e6c8,g_loadingBarFlashAlpha
 0x51e6cc,DAT_0051e6cc
 0x51e6d0,g_shareDialogPlayerNetIds

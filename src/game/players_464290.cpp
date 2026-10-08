@@ -786,12 +786,12 @@ void __stdcall ContinueWatchingCallback(Gadget* gadget)
     g_game->flags_3923b.b.bit4 = 0;
 }
 
-extern char DAT_00503120[];
-extern char DAT_00503128[];
-extern char DAT_0050313c[];
-extern char DAT_00503160[];
-extern char DAT_00503164[];
-extern char DAT_00503168[];
+extern char g_choice2GadgetName[];
+extern char g_choice1GadgetName[];
+extern char g_titleGadgetName[];
+extern char g_noText[];
+extern char g_yesText[];
+extern char g_yesNoGuiName[];
 extern char DAT_00507318[];
 
 Screen* __stdcall LoadGuiLayer(Menu* menu, char* name, int value);
@@ -802,22 +802,22 @@ void __stdcall RenderLayer(Menu* menu, int value);
 // FUNCTION: 0x464e70
 void ShowContinueWatchingDialog()
 {
-    Screen* screen = LoadGuiLayer(&g_game->menu, DAT_00503168, 0x900);
+    Screen* screen = LoadGuiLayer(&g_game->menu, g_yesNoGuiName, 0x900);
     if (screen) {
         Form* form;
         SetKeyboardInput(&g_game->menu, 1);
         form = screen->form;
-        SetTranslatedTextByName(&g_game->menu, DAT_00503128, DAT_00503164, 0);
-        SetTranslatedTextByName(&g_game->menu, DAT_00503120, DAT_00503160, 0);
-        SetTranslatedTextByName(&g_game->menu, DAT_0050313c, DAT_00507318, 0);
-        strcpy(form->choice1, DAT_00503128);
-        strcpy(form->choice2, DAT_00503120);
+        SetTranslatedTextByName(&g_game->menu, g_choice1GadgetName, g_yesText, 0);
+        SetTranslatedTextByName(&g_game->menu, g_choice2GadgetName, g_noText, 0);
+        SetTranslatedTextByName(&g_game->menu, g_titleGadgetName, DAT_00507318, 0);
+        strcpy(form->choice1, g_choice1GadgetName);
+        strcpy(form->choice2, g_choice2GadgetName);
         screen->callback = ContinueWatchingCallback;
         RenderLayer(&g_game->menu, 0x40);
     }
 }
 
-extern int DAT_0051e53c;
+extern int g_economyPacketTick;
 
 void __stdcall UpdatePlayerAI(int player);
 void DrawRadarUnits();
@@ -1093,8 +1093,8 @@ void __stdcall UpdatePlayers()
             UpdateSensorRadarAndCloak();
             UpdateRadarMapped();
             if (g_game->mission->GetGameType() == 3) {
-                DAT_0051e53c++;
-                if ((DAT_0051e53c & 3) == 0)
+                g_economyPacketTick++;
+                if ((g_economyPacketTick & 3) == 0)
                     SendPlayerEconomy(pi, 0, 0);
             }
         }

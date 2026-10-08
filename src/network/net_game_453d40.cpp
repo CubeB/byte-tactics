@@ -186,7 +186,7 @@ extern char DAT_005119b8[];
 extern int g_packetModes[];
 extern int g_usePacketManager;
 extern PacketManager g_packetManager;
-extern char DAT_00505dc4[];
+extern char g_allySoundName[];
 extern char DAT_005065c4[];
 extern char DAT_0050658c[];
 extern char DAT_00506290[];
@@ -609,7 +609,7 @@ int HandleNetPackets()
             if (!a || !b)
                 break;
             if (packet[9])
-                PlaySoundByName(DAT_00505dc4, 0);
+                PlaySoundByName(g_allySoundName, 0);
             if (IsConnected(b)) {
                 SetAlliance(*(int*)(packet + 1), *(int*)(packet + 5), packet[9],
                              *(int*)(packet + 10));

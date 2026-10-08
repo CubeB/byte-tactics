@@ -52,13 +52,13 @@ char g_descriptionKey[12] = "Description";  // 0x502e78 .data
 char g_frontendStateChangeFormat[104] = "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]";  // 0x502f9c .data
 char g_frontendSourceFile[32] = "c:\\cavedog\\wargame\\frontend.cpp";  // 0x503004 .data
 char g_extTdf[4] = "tdf";  // 0x50310c .data
-char DAT_00503120[8] = "CHOICE2";  // 0x503120 .data
-char DAT_00503128[8] = "CHOICE1";  // 0x503128 .data
+char g_choice2GadgetName[8] = "CHOICE2";  // 0x503120 .data
+char g_choice1GadgetName[8] = "CHOICE1";  // 0x503128 .data
 char g_smallButtonSoundName[12] = "SmallButton";  // 0x503130 .data
-char DAT_0050313c[8] = "TITLE";  // 0x50313c .data
-char DAT_00503160[4] = "No";  // 0x503160 .data
-char DAT_00503164[4] = "Yes";  // 0x503164 .data
-char DAT_00503168[12] = "YESORNO.GUI";  // 0x503168 .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
+char g_titleGadgetName[8] = "TITLE";  // 0x50313c .data
+char g_noText[4] = "No";  // 0x503160 .data
+char g_yesText[4] = "Yes";  // 0x503164 .data
+char g_yesNoGuiName[12] = "YESORNO.GUI";  // 0x503168 .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
 char g_bgmSoundName[4] = "BGM";  // 0x5031d4 .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
 char g_serviceErrorMessage[48] = "An error occurred trying to use this service";  // 0x50324c .data
 char g_zrbMovie4[8] = "4.zrb";  // 0x50327c .data
@@ -108,7 +108,7 @@ unsigned int g_lastPlayerCount = 4294967295u;  // 0x50550c .data
 int g_rejectPlayer = -1;  // 0x505510 .data
 char* g_hostOnlyGadgets[8] = {(char*)"COMMANDER", (char*)"MAPPING", (char*)"LOSTYPE", (char*)"WATCHING", (char*)"CHEATING", (char*)"FIXEDLOC", (char*)"GAMEOPEN"};  // 0x505518 .data
 char g_multiSoundName[8] = "Multi";  // 0x505974 .data
-char DAT_00505dc4[8] = "Ally";  // 0x505dc4 .data
+char g_allySoundName[8] = "Ally";  // 0x505dc4 .data
 char g_gamesGadgetName[8] = "GAMES";  // 0x505f18 .data
 char g_savegameDescsName[16] = "SAVEGAME DESCS";  // 0x505f20 .data
 char g_savegameNamesName[16] = "SAVEGAME NAMES";  // 0x505f30 .data
@@ -207,10 +207,10 @@ const char g_translationFile[24] = "gamedata\\translate.tdf";  // 0x5097d0 .data
 const char g_languageValueName[12] = "language";  // 0x5097e8 .data
 const char DAT_005097f4[8] = "Wargame";  // 0x5097f4 .data
 const char g_errorCaption[20] = "Error";  // 0x509edc .data
-double DAT_00509ef0 = 10430.37835047;  // 0x509ef0 .data
-double DAT_00509ef8 = 9.587379924285e-05;  // 0x509ef8 .data
+double g_radToAngle16 = 10430.37835047;  // 0x509ef0 .data
+double g_angle16ToRad = 9.587379924285e-05;  // 0x509ef8 .data
 // 0x509f00 .data
-short DAT_00509f00[128] = {
+short g_sinTable[128] = {
     0, 101, 201, 302, 402, 502, 603, 703,
     803, 903, 1003, 1102, 1202, 1301, 1401, 1499,
     1598, 1697, 1795, 1893, 1990, 2088, 2185, 2282,
@@ -437,7 +437,7 @@ int* g_unitRestrictOldCounts;  // 0x5129c4 .bss
 int g_unitRestrictNextPicTick;  // 0x5129c8 .bss
 unsigned char DAT_005129cc[4];  // 0x5129cc .bss
 void (__stdcall* g_packetHandlers[2])(void*);  // 0x512a20 .bss
-int (__stdcall* DAT_00512a28)(int);  // 0x512a28 .bss
+int (__stdcall* g_packetHandlerType2)(int);  // 0x512a28 .bss
 int (__stdcall* DAT_00512a2c)(int);  // 0x512a2c .bss
 unsigned char DAT_00512a30[4];  // 0x512a30 .bss
 int (__stdcall* DAT_00512a34)(int);  // 0x512a34 .bss
@@ -527,7 +527,7 @@ int DAT_00512b80;  // 0x512b80 .bss
 unsigned char DAT_00512b84[4];  // 0x512b84 .bss
 int DAT_00512b88;  // 0x512b88 .bss
 unsigned char DAT_00512b8c[4];  // 0x512b8c .bss
-int DAT_00512b90[12];  // 0x512b90 .bss
+int g_broadcastPeersSeen[12];  // 0x512b90 .bss
 int g_packetModes[2];  // 0x512bc0 .bss
 int DAT_00512bc8;  // 0x512bc8 .bss
 int DAT_00512bcc;  // 0x512bcc .bss
@@ -598,7 +598,7 @@ int g_optionsLightbarAnim;  // 0x512ff0 .bss
 Surface* g_optionsBackupSurface;  // 0x512ff4 .bss
 int g_battleQuitIntent;  // 0x512ff8 .bss
 unsigned char DAT_00512ffc[4];  // 0x512ffc .bss
-int DAT_0051e53c;  // 0x51e53c .bss
+int g_economyPacketTick;  // 0x51e53c .bss
 int g_probePanelBottom;  // 0x51e540 .bss
 int g_statusPanelNextTick;  // 0x51e544 .bss
 int (__stdcall* g_riInitializeEx)(int*, int);  // 0x51e54c .bss
@@ -641,7 +641,7 @@ int DAT_0051e698;  // 0x51e698 .bss
 int g_playLooping;  // 0x51e69c .bss
 unsigned char DAT_0051e6b0[4];  // 0x51e6b0 .bss
 int g_mapLoadFlag;  // 0x51e6c0 .bss
-unsigned int DAT_0051e6c4;  // 0x51e6c4 .bss
+unsigned int g_cdMismatchDefeatTick;  // 0x51e6c4 .bss
 unsigned char g_loadingBarFlashAlpha[8];  // 0x51e6c8 .bss
 int g_shareDialogPlayerNetIds[10];  // 0x51e6d0 .bss
 char g_savegameRadarFrame[24];  // 0x51e6f8 .bss

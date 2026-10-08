@@ -20,10 +20,13 @@
 // void FUN_004b72e2(int* in, int* out)           out = DAT_0050a400 applied to in
 // int  FUN_004b7381(int a, int b, int c)         a * b / c, or 0 when c is 0
 
-extern "C" short DAT_00509f00[];        // sine table
+// GLOBAL: 0x509f00
+extern "C" short g_sinTable[];          // sine table
 extern "C" short DAT_0050a000[];        // the sine table from a quarter turn on (cosine)
-extern "C" double DAT_00509ef0;         // 0x8000 / pi: radians to angle units
-extern "C" double DAT_00509ef8;         // pi / 0x8000: angle units to radians
+// GLOBAL: 0x509ef0
+extern "C" double g_radToAngle16;       // 0x8000 / pi: radians to angle units
+// GLOBAL: 0x509ef8
+extern "C" double g_angle16ToRad;       // pi / 0x8000: angle units to radians
 extern "C" int DAT_0050a400[9];         // the rotation matrix FUN_004b71a7 builds
 
 // Stays in its own file: it is a gap region's hand-written assembly, which
@@ -36,7 +39,7 @@ extern "C" __declspec(naked) int __cdecl FixedSine(unsigned short angle)
         mov ebp, esp
         push esi
         push ebx
-        lea esi, DAT_00509f00
+        lea esi, g_sinTable
         movzx ebx, word ptr [ebp + 8]
         shr ebx, 6
         and ebx, 0xfffe
@@ -79,7 +82,7 @@ extern "C" __declspec(naked) int __cdecl FixedSine(unsigned short angle)
         push esi
         push ebx
         push edx
-        lea esi, DAT_00509f00
+        lea esi, g_sinTable
         movsx ebx, word ptr [ebp + 8]
         add ebx, 0x20
         shr ebx, 6
@@ -101,7 +104,7 @@ extern "C" __declspec(naked) int __cdecl FixedSine(unsigned short angle)
         push esi
         push ebx
         push edx
-        lea esi, DAT_00509f00
+        lea esi, g_sinTable
         movzx ebx, word ptr [ebp + 8]
         add ebx, 0x4020
         shr ebx, 6
@@ -123,7 +126,7 @@ extern "C" __declspec(naked) int __cdecl FixedSine(unsigned short angle)
         fild dword ptr [ebp + 8]
         fild dword ptr [ebp + 0xc]
         fpatan
-        fmul DAT_00509ef0
+        fmul g_radToAngle16
         fistp dword ptr [ebp + 8]
         mov eax, [ebp + 8]
         leave
@@ -140,7 +143,7 @@ extern "C" __declspec(naked) int __cdecl FixedSine(unsigned short angle)
         fld st(1)
         fld st(1)
         fild word ptr [ebp + 8]
-        fmul DAT_00509ef8
+        fmul g_angle16ToRad
         fsincos
         fmul st(5), st
         fmulp st(4), st

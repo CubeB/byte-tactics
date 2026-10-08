@@ -59,13 +59,13 @@ extern char g_descriptionKey[12];                                               
 extern char g_frontendStateChangeFormat[104];                                                     // 0x502f9c, 104 bytes; 1 of 1 files
 extern char g_frontendSourceFile[32];                                                             // 0x503004, 32 bytes; 1 of 1 files
 extern char g_extTdf[4];                                                                          // 0x50310c, 4 bytes; 1 of 1 files
-extern char DAT_00503120[8];                                                                      // 0x503120, 8 bytes; 1 of 1 files
-extern char DAT_00503128[8];                                                                      // 0x503128, 8 bytes; 1 of 1 files
+extern char g_choice2GadgetName[8];                                                               // 0x503120, 8 bytes; 1 of 1 files
+extern char g_choice1GadgetName[8];                                                               // 0x503128, 8 bytes; 1 of 1 files
 extern char g_smallButtonSoundName[12];                                                           // 0x503130, 12 bytes; 1 of 1 files
-extern char DAT_0050313c[8];                                                                      // 0x50313c, 8 bytes; 1 of 1 files
-extern char DAT_00503160[4];                                                                      // 0x503160, 4 bytes; 1 of 1 files
-extern char DAT_00503164[4];                                                                      // 0x503164, 4 bytes; 1 of 1 files
-extern char DAT_00503168[12];                                                                     // 0x503168, 12 bytes; 1 of 1 files
+extern char g_titleGadgetName[8];                                                                 // 0x50313c, 8 bytes; 1 of 1 files
+extern char g_noText[4];                                                                          // 0x503160, 4 bytes; 1 of 1 files
+extern char g_yesText[4];                                                                         // 0x503164, 4 bytes; 1 of 1 files
+extern char g_yesNoGuiName[12];                                                                   // 0x503168, 12 bytes; 1 of 1 files
 extern char g_bgmSoundName[4];                                                                    // 0x5031d4, 4 bytes; 1 of 1 files
 extern char g_serviceErrorMessage[48];                                                            // 0x50324c, 48 bytes; 1 of 1 files
 extern char g_zrbMovie4[8];                                                                       // 0x50327c, 8 bytes; 1 of 1 files
@@ -110,7 +110,7 @@ extern unsigned int g_lastPlayerCount;                                          
 extern int g_rejectPlayer;                                                                        // 0x505510, 4 bytes; 1 of 1 files
 extern char* g_hostOnlyGadgets[8];                                                                // 0x505518, 32 bytes; 1 of 1 files
 extern char g_multiSoundName[8];                                                                  // 0x505974, 8 bytes; 1 of 1 files
-extern char DAT_00505dc4[8];                                                                      // 0x505dc4, 8 bytes; 1 of 1 files
+extern char g_allySoundName[8];                                                                   // 0x505dc4, 8 bytes; 1 of 1 files
 extern char g_gamesGadgetName[8];                                                                 // 0x505f18, 8 bytes; 1 of 1 files
 extern char g_savegameDescsName[16];                                                              // 0x505f20, 16 bytes; 1 of 1 files
 extern char g_savegameNamesName[16];                                                              // 0x505f30, 16 bytes; 1 of 1 files
@@ -209,9 +209,9 @@ extern const char g_translationFile[24];                                        
 extern const char g_languageValueName[12];                                                        // 0x5097e8, 12 bytes; 1 of 1 files
 extern const char DAT_005097f4[8];                                                                // 0x5097f4, 8 bytes; 1 of 1 files
 extern const char g_errorCaption[20];                                                             // 0x509edc, 20 bytes; 1 of 1 files
-extern "C" double DAT_00509ef0;                                                                   // 0x509ef0, 8 bytes; declared extern "C" in 1 of 1 files
-extern "C" double DAT_00509ef8;                                                                   // 0x509ef8, 8 bytes; declared extern "C" in 1 of 1 files
-extern "C" short DAT_00509f00[128];                                                               // 0x509f00, 256 bytes; declared extern "C" in 1 of 1 files
+extern "C" double g_radToAngle16;                                                                 // 0x509ef0, 8 bytes; declared extern "C" in 1 of 1 files
+extern "C" double g_angle16ToRad;                                                                 // 0x509ef8, 8 bytes; declared extern "C" in 1 of 1 files
+extern "C" short g_sinTable[128];                                                                 // 0x509f00, 256 bytes; declared extern "C" in 1 of 1 files
 extern "C" short DAT_0050a000[512];                                                               // 0x50a000, 1024 bytes; declared extern "C" in 1 of 1 files
 extern "C" int DAT_0050a400[9];                                                                   // 0x50a400, 36 bytes; declared extern "C" in 1 of 1 files
 extern char g_alphaTableName[12];                                                                 // 0x50a430, 12 bytes; 1 of 1 files
@@ -350,7 +350,7 @@ extern int* g_unitRestrictOldCounts;                                            
 extern int g_unitRestrictNextPicTick;                                                             // 0x5129c8, 4 bytes; 1 of 1 files
 extern unsigned char DAT_005129cc[4];                                                             // 0x5129cc, 4 bytes; nothing refers to it
 extern void (__stdcall* g_packetHandlers[2])(void*);                                              // 0x512a20, 8 bytes; 1 of 1 files
-extern int (__stdcall* DAT_00512a28)(int);                                                        // 0x512a28, 4 bytes; 1 of 1 files
+extern int (__stdcall* g_packetHandlerType2)(int);                                                // 0x512a28, 4 bytes; 1 of 1 files
 extern int (__stdcall* DAT_00512a2c)(int);                                                        // 0x512a2c, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00512a30[4];                                                             // 0x512a30, 4 bytes; nothing refers to it
 extern int (__stdcall* DAT_00512a34)(int);                                                        // 0x512a34, 4 bytes; 1 of 1 files
@@ -440,7 +440,7 @@ extern int DAT_00512b80;                                                        
 extern unsigned char DAT_00512b84[4];                                                             // 0x512b84, 4 bytes; nothing refers to it
 extern int DAT_00512b88;                                                                          // 0x512b88, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00512b8c[4];                                                             // 0x512b8c, 4 bytes; nothing refers to it
-extern int DAT_00512b90[12];                                                                      // 0x512b90, 48 bytes (declared int[11]); 1 of 1 files
+extern int g_broadcastPeersSeen[12];                                                              // 0x512b90, 48 bytes (declared int[11]); 1 of 1 files
 extern int g_packetModes[2];                                                                      // 0x512bc0, 8 bytes; 1 of 1 files
 extern int DAT_00512bc8;                                                                          // 0x512bc8, 4 bytes; 1 of 1 files
 extern int DAT_00512bcc;                                                                          // 0x512bcc, 4 bytes; 1 of 1 files
@@ -511,7 +511,7 @@ extern int g_optionsLightbarAnim;                                               
 extern Surface* g_optionsBackupSurface;                                                           // 0x512ff4, 4 bytes; 1 of 1 files
 extern int g_battleQuitIntent;                                                                    // 0x512ff8, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00512ffc[4];                                                             // 0x512ffc, 4 bytes; nothing refers to it
-extern int DAT_0051e53c;                                                                          // 0x51e53c, 4 bytes; 1 of 1 files
+extern int g_economyPacketTick;                                                                   // 0x51e53c, 4 bytes; 1 of 1 files
 extern int g_probePanelBottom;                                                                    // 0x51e540, 4 bytes; 1 of 1 files
 extern int g_statusPanelNextTick;                                                                 // 0x51e544, 4 bytes; 1 of 1 files
 extern int (__stdcall* g_riInitializeEx)(int*, int);                                              // 0x51e54c, 4 bytes; 1 of 1 files
@@ -554,7 +554,7 @@ extern int DAT_0051e698;                                                        
 extern int g_playLooping;                                                                         // 0x51e69c, 4 bytes; 1 of 1 files
 extern unsigned char DAT_0051e6b0[4];                                                             // 0x51e6b0, 4 bytes; nothing refers to it
 extern int g_mapLoadFlag;                                                                         // 0x51e6c0, 4 bytes; 1 of 1 files
-extern unsigned int DAT_0051e6c4;                                                                 // 0x51e6c4, 4 bytes; 1 of 1 files
+extern unsigned int g_cdMismatchDefeatTick;                                                       // 0x51e6c4, 4 bytes; 1 of 1 files
 extern "C" unsigned char g_loadingBarFlashAlpha[8];                                               // 0x51e6c8, 4 bytes; extern "C" (no type) with the globals inside it
 extern int g_shareDialogPlayerNetIds[10];                                                         // 0x51e6d0, 40 bytes; 1 of 1 files
 extern char g_savegameRadarFrame[24];                                                             // 0x51e6f8, 24 bytes; 1 of 1 files
@@ -848,7 +848,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x4fcfe8 DAT_004fcfe8: defined in src/data/guids.cpp
 //   0x4fcff8 DAT_004fcff8: defined in src/data/guids.cpp
 //   0x4fd2e4 DAT_004fd2e4: defined in src/data/unused.cpp
-//   0x4fd488 DAT_004fd488: defined in src/data/vtables.cpp
+//   0x4fd488 g_patrolGoalVtable: defined in src/data/vtables.cpp
 //   0x4fda70 DAT_004fda70: defined in src/data/unused.cpp
 //   0x4fdbe0 DAT_004fdbe0: defined in src/data/unused.cpp
 //   0x501fcc DAT_00501fcc: defined in src/game/console_commands.cpp
@@ -898,7 +898,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x512f55 g_optionsBackupTextScroll: part of another global: g_optionsPrefsSnapshot+0x3d
 //   0x512f59 g_optionsBackupTextLines: part of another global: g_optionsPrefsSnapshot+0x41
 //   0x513008 DAT_00513008: part of another global: g_packetManager+0x8
-//   0x51e300 DAT_0051e300: part of another global: g_packetManager+0xb300
+//   0x51e300 g_packetManagerReceiver: part of another global: g_packetManager+0xb300
 //   0x51e6cc DAT_0051e6cc: part of another global: g_loadingBarFlashAlpha+0x4
 //   0x51e821 DAT_0051e821: part of another global: g_loadingBarPrevPercent+0x1
 //   0x51e822 DAT_0051e822: part of another global: g_loadingBarPrevPercent+0x2

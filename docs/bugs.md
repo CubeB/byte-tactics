@@ -860,7 +860,7 @@ Things that look wrong in the original but have no effect, kept for the record.
   message whose second byte is uninitialised. Found by DeepSeek V4.1 Flash in
   #139.
 - **0x451df0** (possible): BroadcastPacket's per-group loop reads its "group
-  already sent" table DAT_00512b90 (eleven ints) at the player's group index
+  already sent" table g_broadcastPeersSeen (eleven ints) at the player's group index
   (+0xc, `mov ecx, [eax*4+0x512b90]` at 0x451f5f) before anything checks the
   index; only the store after the send (0x451f90) tests `0 <= group < 10`. A
   group outside 0 to 10 reads past the table. Harmless if the group is always

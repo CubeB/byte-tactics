@@ -447,7 +447,7 @@ public:
 
 extern int GetCdPathMismatch();
 
-extern unsigned int DAT_0051e6c4;
+extern unsigned int g_cdMismatchDefeatTick;
 
 class MissionConditions {
 public:
@@ -1572,11 +1572,11 @@ int MissionConditions::CheckDefeat()
 {
     if (active) {
         if (GetCdPathMismatch()) {
-            if (DAT_0051e6c4 == 0) {
-                DAT_0051e6c4 = (int)((__int64)rand() * 0x2328 / 0x8000) + 0x2328;
+            if (g_cdMismatchDefeatTick == 0) {
+                g_cdMismatchDefeatTick = (int)((__int64)rand() * 0x2328 / 0x8000) + 0x2328;
             }
-            if (DAT_0051e6c4 <= g_game->ticks) {
-                DAT_0051e6c4 = 0;
+            if (g_cdMismatchDefeatTick <= g_game->ticks) {
+                g_cdMismatchDefeatTick = 0;
                 return 1;
             }
         }

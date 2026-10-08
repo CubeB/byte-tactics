@@ -1434,8 +1434,8 @@ struct Packet {
 #pragma pack(pop)
 
 extern PacketChannel DAT_00513008;
-extern int DAT_00512b90[11];
-extern PacketReceiver DAT_0051e300;
+extern int g_broadcastPeersSeen[11];
+extern PacketReceiver g_packetManagerReceiver;
 extern int DAT_00512c8c;
 extern char DAT_00512d48;
 extern char DAT_00512d28;
@@ -1444,12 +1444,12 @@ extern int g_loungeRefreshTime;
 extern int g_timeoutPlayerDpid;
 extern unsigned int g_timeoutTimerStart;
 extern int g_packetModes[];
-extern char DAT_00505dc4[];
+extern char g_allySoundName[];
 extern char DAT_005065c4[];
 extern char DAT_0050658c[];
 extern char DAT_00506290[];
 extern char s_PACKET_DATA_00506524[];
-extern EntryFunc DAT_00512a28;
+extern EntryFunc g_packetHandlerType2;
 extern EntryFunc DAT_00512a2c;
 extern EntryFunc DAT_00512a34;
 extern EntryFunc DAT_00512a38;
@@ -1985,18 +1985,18 @@ int __stdcall BroadcastPacket(int id, unsigned char* packet, int size)
             CountPacket(size, 0, 1);
             return 1;
         }
-        memset(DAT_00512b90, 0, 0x2c);
+        memset(g_broadcastPeersSeen, 0, 0x2c);
         for (int i = 0; i < 10; i++) {
             if (g_game->players[i].active == 0)
                 continue;
             if (g_game->players[i].state != 3)
                 continue;
-            if (DAT_00512b90[g_game->players[i].field_c] != 0)
+            if (g_broadcastPeersSeen[g_game->players[i].field_c] != 0)
                 continue;
             SendPacketToPlayer(id, g_game->players[i].field_4, packet, size);
             int c = g_game->players[i].field_c;
             if (c >= 0 && c < 10)
-                DAT_00512b90[c] = 1;
+                g_broadcastPeersSeen[c] = 1;
         }
     }
     // Single shared return: makes the flags_2a44 test a forward je.
@@ -2022,7 +2022,7 @@ int __stdcall InitPacketTables(Class_00451fd0* param_1)
     DAT_00512c08 = 4;
     DAT_00512c10 = 4;
     DAT_00512ae0 = 13;
-    DAT_00512a28 = FUN_0044fd50;
+    g_packetHandlerType2 = FUN_0044fd50;
     DAT_00512bc8 = 7;
     DAT_00512aec = 65;
     DAT_00512a34 = FUN_0044fd60;
@@ -2512,7 +2512,7 @@ int __stdcall ReceiveNetPacket(void)
     size = g_game->recvPacketSize;
     if (g_usePacketManager != 0) {
         while (1) {
-            int result = DAT_0051e300.ReceiveFrame((char*)g_game + 0x14, g_game->buffer, &size);
+            int result = g_packetManagerReceiver.ReceiveFrame((char*)g_game + 0x14, g_game->buffer, &size);
             if (result == 0) {
                 CountMessage(*g_game->buffer, size, 0);
                 return 1;

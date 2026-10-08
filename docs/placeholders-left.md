@@ -3,7 +3,8 @@
 Phase 5 of `docs/cleanup-roadmap.md` ends when every `FUN_` name that can earn
 a name has one, and the rest are listed here. These are the `FUN_` names that
 were still left after their modules' rename pull requests; issue #6220 named
-the ones it could and recorded the rest on this page.
+the ones it could and recorded the rest on this page. The Globals section
+records the data names left the same way.
 
 ## Gap entry labels
 
@@ -39,3 +40,14 @@ entry points.
 | `FUN_0046c8d0` | `src/network/unit_sync.cpp` | none | no evidence: an empty stub with no callers (#6170) |
 | `FUN_0047caf0` | `src/map/terrain.cpp` | none | no evidence: an empty body with no callers (#6163) |
 | `FUN_00490200` | `src/game/victory_48dfb0.cpp` | `VictoryCond_IsLocalPlayerEliminated` | a dead alias: byte-identical to `IsLocalPlayerEliminated` at 0x490050, which already carries that name, and Thaldren marks this address a DEAD alias of it (#6195) |
+
+## Globals
+
+| placeholder | file | Thaldren's name | why it stays |
+| --- | --- | --- | --- |
+| `DAT_004fc6e8` | `src/orders/unit_orders.cpp` | `MissionOrder_Standby` | not a global of its own: an unused declaration kept for the symbol ids it counts; the table at 0x4fc6e8 is already named `g_groundOrders` |
+| `DAT_004fc980` | `src/ai/ai_player_407d40.cpp` | `AiBehaviorSlot_vftable` | already named by the compiler that emits it: `??_7SquadTimer@@6B@`; renaming the hand spelling makes `tools/check.py` say 0x4fc980 is already named that and no source defines the new name (#6288) |
+| `DAT_0050289c` | `src/game/cd_check.cpp` | `g_dwCdCheck_Enabled` | no evidence for a correct name: the flag is 1 in the shipped exe and makes `FindGameCdDrive` return the current directory (and `RegisterDataArchives` load the local archives), the opposite of the name's polarity (#6037) |
+| `DAT_0051234c` | `src/orders/order_list.cpp` | `g_MissionOrderTableCapacityEnd` | not a global of its own: an unused declaration kept for the symbol ids it counts, the `_End` at +0xc of the vector at 0x512340 |
+| `DAT_0051e598` | `src/network/unit_sync.cpp` | `g_pSyncMapC_NilNode` | already named by the compiler that emits it: `IUUnitSyncEntry::IU?$pair::?$_Tree::_Nil`; renaming the hand spelling makes `tools/check.py` demand that decorated name |
+| `DAT_0051e59c` | `src/network/unit_sync.cpp` | `g_nSyncMapC_NilNodeRefs` | the same for the map's `_Nilrefs`: `IUUnitSyncEntry::IU?$pair::?$_Tree::_Nilrefs` |

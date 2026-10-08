@@ -1127,3 +1127,8 @@ Things that look wrong in the original but have no effect, kept for the record.
   checked is a pointer's low 16 bits. The target read back from the same slot
   at 0x49d745 feeds `target->f_a8` (0x49d812) and FireLineOfSightProjectile
   (0x49d77d). Found by OpenCode / deepseek-v4.1-flash in #6105.
+- **0x444ea0** (possible, unreachable): calls `Mission::RefreshMapList`
+  (0x435d30, which ends in `ret 4`) without pushing its argument, leaving the
+  stack 4 bytes short. The only caller (0x4488ea) reaches it only when
+  `HasMissionName()` is false, which does not happen in practice. Found by
+  OpenCode / deepseek-v4.1-flash in #6111.

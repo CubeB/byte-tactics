@@ -402,7 +402,7 @@ effect, the missing piece is usually a helper that was inlined:
   constant address with no load, and can never match.
 - **`mov ecx, <global>; jmp <method>`**: a tail call of a method on a global
   object. Declare the object (`extern Class_x DAT_00528a78;`) and write
-  `DAT_00528a78.CloseMappedFile();`. See `src/debug/debug_lib_4ddc00.cpp`.
+  `DAT_00528a78.CloseMappedFile();`. See `src/debug/debug_lib.cpp`.
 - **Locals in parameter slots**: MSVC 5 reuses the stack slot of a parameter
   that is no longer needed for a local. When the code writes into a
   parameter's slot (a buffer, an output value), declare an ordinary local and

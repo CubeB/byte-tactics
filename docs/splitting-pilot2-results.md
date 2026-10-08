@@ -115,7 +115,7 @@ Applied: 1 to 3 and 6 in `splitting-huge-functions.md` and `region-brief.md`,
 3 and 4 in `regionrun.sh` (concurrency cap with a pids check, kill timer tied
 to its own run), 5 as `regguard.py --base-file` with the skeleton commit that
 `regionrun.sh` records. Item 7 is the open work on the function itself, listed
-at the top of `src/debug/debug_lib_4d89b0.cpp`.
+at the top of `src/debug/debug_lib.cpp`.
 
 1. Gate the skeleton on the frame size and the prologue shape, not on total
    size.

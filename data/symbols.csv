@@ -4015,8 +4015,9 @@ address,name
 0x4fc410,_imp__SmackBufferOpen
 0x4fc414,_imp__SmackBufferNewPalette
 0x4fc418,_imp__SmackColorRemap
-0x4fc490,DAT_004fc490
-0x4fc6e8,DAT_004fc6e8
+0x4fc490,g_unitOrders
+0x4fc6e8,g_groundOrders
+0x4fc920,Zero_004fc920$S6253
 0x4fc960,??_7Class_00405d90@@6B@
 0x4fc980,??_7SquadTimer@@6B@
 0x4fc988,??_7Class_00407930@@6B@
@@ -4380,7 +4381,7 @@ address,name
 0x511fa8,g_explosion2Duration
 0x511fac,g_explosion2StartSize
 0x511fb0,g_explosion2EndSize
-0x511fb4,DAT_00511fb4$S22242
+0x511fb4,DAT_00511fb4$S23898
 0x511fb8,DAT_00511fb8
 0x5120b8,DAT_005120b8
 0x5120bc,DAT_005120bc

@@ -289,7 +289,7 @@ extern int g_explosion1EndSize;                                                 
 extern int g_explosion2Duration;                                                                  // 0x511fa8, 4 bytes; 1 of 1 files
 extern int g_explosion2StartSize;                                                                 // 0x511fac, 4 bytes; 1 of 1 files
 extern int g_explosion2EndSize;                                                                   // 0x511fb0, 4 bytes; 1 of 1 files
-extern List_00422ea0* DAT_00511fb4;                                                               // 0x511fb4, 4 bytes, DAT_00511fb4$S22242; 1 of 2 files (conflicting: struct names only)
+extern List_00422ea0* DAT_00511fb4;                                                               // 0x511fb4, 4 bytes, DAT_00511fb4$S23898; 1 of 2 files (conflicting: struct names only)
 extern char DAT_00511fb8[256];                                                                    // 0x511fb8, 256 bytes; 5 of 5 files
 extern int DAT_00512288;                                                                          // 0x512288, 4 bytes; 1 of 1 files
 extern int DAT_0051228c;                                                                          // 0x51228c, 4 bytes; 1 of 1 files
@@ -748,8 +748,6 @@ extern long DAT_0052a4fc;                                                       
 //   0x528ac8 DAT_00528ac8: void* (2), void (__stdcall*)(void) (1)
 //   0x528ad4 DAT_00528ad4: void* (1), void (__stdcall*)(void) (1), unsigned long (__stdcall*)(char*, char*, unsigned long, unsigned long) (1)
 //   0x529e10 DAT_00529e10: part of another global: DAT_00529e00+0x10
-//   0x4fc490 g_unitOrders: defined in src/orders/unit_orders.cpp
-//   0x4fc6e8 g_groundOrders: defined in src/orders/unit_orders.cpp
 //   0x4fc9a0 DAT_004fc9a0: defined in src/data/vtables.cpp
 //   0x4fca18 g_vtolOrders: defined in src/orders/unit_orders.cpp
 //   0x4fccd8 IID_IDirectDraw2: defined in src/data/guids.cpp
@@ -805,6 +803,8 @@ extern long DAT_0052a4fc;                                                       
 //   0x529df8 DAT_00529df8: void* (1), EventEntry* (1)
 //   0x529f48 _tls_index: library
 //   0x4fc474 DAT_004fc474: defined in src/data/unused.cpp
+//   0x4fc490 g_unitOrders: defined in src/orders/unit_orders.cpp
+//   0x4fc6e8 g_groundOrders: defined in src/orders/unit_orders.cpp
 //   0x4fc978 DAT_004fc978: defined in src/data/unused.cpp
 //   0x4fc980 DAT_004fc980: vtable
 //   0x4fcc48 DAT_004fcc48: defined in src/data/unused.cpp

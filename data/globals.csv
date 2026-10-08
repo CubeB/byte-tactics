@@ -1,12 +1,12 @@
 address,name,section,size,size_from,kind,type,type_files,other_files,types,verdict,files,max_offset,ghidra,pointers,defined,init
 0x4fc474,DAT_004fc474,.rdata,4,type,data,const unsigned char*,1,0,1,one type,1,,,,src/data/unused.cpp,0002fc07
-0x4fc490,g_unitOrders,.rdata,4,type,data,const UnitOrderType*,1,1,2,conflicting: shape,2,,PTR_s_Stopping_004fc490,1,src/orders/unit_orders.cpp,b0125000
-0x4fc6e8,g_groundOrders,.rdata,4,type,data,const UnitOrderType*,1,1,2,conflicting: shape,2,,PTR_s_Standby_004fc6e8,1,src/orders/unit_orders.cpp,18155000
+0x4fc490,g_unitOrders,.rdata,576,definition,data,const UnitOrderType[],1,1,2,conflicting: shape,1,,PTR_s_Stopping_004fc490,17,src/orders/unit_orders.cpp,b0125000201c400000000000000000001300000000a81250009c12500060214000409743000800000001800200008c1250008012500010304000000000000000
+0x4fc6e8,g_groundOrders,.rdata,552,definition,data,const UnitOrderType[],1,1,2,conflicting: shape,1,,PTR_s_Standby_004fc6e8,21,src/orders/unit_orders.cpp,18155000e05f400000000000100000000f0000020018155000181550009060400000000000100000000f000002010815500000155000d0314000e09443001200
 0x4fc978,DAT_004fc978,.rdata,4,type,float,const float,1,0,1,one type,1,,,,src/data/unused.cpp,00000040
 0x4fc980,DAT_004fc980,.rdata,8,gap,vtable,void*[],1,0,1,one type,1,,PTR_FUN_004fc980,2,,8073400090734000
 0x4fc9a0,DAT_004fc9a0,.rdata,4,type,data,void (__stdcall* const const*)(void),1,1,2,conflicting: shape,2,,PTR_FUN_004fc9a0,1,src/data/vtables.cpp,907e4000
 0x4fca10,g_turnCosts,.rdata,8,gap,data,const Table_0040d880,1,0,1,one type,1,0x4,,,,00283c5064503c28
-0x4fca18,g_vtolOrders,.rdata,4,type,data,const UnitOrderType*,1,1,2,conflicting: shape,2,,PTR_s_Standby_004fca18,1,src/orders/unit_orders.cpp,18155000
+0x4fca18,g_vtolOrders,.rdata,552,definition,data,const UnitOrderType*,1,1,2,conflicting: shape,2,,PTR_s_Standby_004fca18,1,src/orders/unit_orders.cpp,18155000
 0x4fcc48,DAT_004fcc48,.rdata,8,type,float,const double,1,0,1,one type,1,,,,src/data/unused.cpp,0000000000000040
 0x4fcc68,DAT_004fcc68,.rdata,8,gap,data,unsigned char[],1,0,1,one type,1,,DAT_004fcc68,,,040e0a0000000000
 0x4fcca8,CLSID_DirectDraw,.rdata,16,type,data,"extern ""C"" (no type)",1,0,1,one type,1,,,,src/data/guids.cpp,e00eb7d74043cf11b0630020afc2cd35
@@ -64,7 +64,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x4fcfe8,DAT_004fcfe8,.rdata,16,gap,data,const _GUID,1,0,1,one type,1,,,,src/data/guids.cpp,a02b46258dcecf11839b00aa00b93048
 0x4fcff8,DAT_004fcff8,.rdata,16,gap,data,const _GUID,1,0,1,one type,1,,,,src/data/guids.cpp,80fd95454d1dd11199fc0060976abf5a
 0x4fd050,DAT_004fd050,.rdata,200,gap,data,char[],1,0,1,one type,1,,,,,5761726e696e6721205468652063757272656e746c7920696e7374616c6c65642076657273696f6e206f66204d6963726f736f6674257344697265637458206d
-0x4fd288,g_readyOrder,.rdata,28,gap>type,data,const UnitOrderType*,1,1,2,conflicting: array or pointer,2,0x19,PTR_s_Ready_004fd288,2,src/orders/unit_orders.cpp,e8105000a09e430000000000000000000f00000000b8195100000000
+0x4fd288,g_readyOrder,.rdata,28,definition,data,const UnitOrderType*,1,1,2,conflicting: array or pointer,2,0x19,PTR_s_Ready_004fd288,2,src/orders/unit_orders.cpp,e8105000a09e430000000000000000000f00000000b8195100000000
 0x4fd2b0,TWO_PI,.rdata,8,type,float,double,1,0,1,one type,1,,,,,112d4454fb211940
 0x4fd2b8,ONE_EIGHTH,.rdata,8,type,float,double,1,0,1,one type,1,,,,,000000000000c03f
 0x4fd2e4,DAT_004fd2e4,.rdata,4,type,float,const float,1,0,1,one type,1,,,,src/data/unused.cpp,00000040
@@ -364,7 +364,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x511fa8,g_explosion2Duration,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511fa8,,,
 0x511fac,g_explosion2StartSize,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511fac,,,
 0x511fb0,g_explosion2EndSize,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511fb0,,,
-0x511fb4,DAT_00511fb4$S22242,.bss,4,type,data,List_00422ea0*,1,1,2,conflicting: struct names only,2,,DAT_00511fb4,,,
+0x511fb4,DAT_00511fb4$S23898,.bss,4,type,data,List_00422ea0*,1,1,2,conflicting: struct names only,2,,DAT_00511fb4,,,
 0x511fb8,DAT_00511fb8,.bss,256,gap,data,char[],5,0,1,one type,5,,DAT_00511fb8,,,
 0x5120b8,DAT_005120b8,.bss,464,gap,data,char[],1,4,5,conflicting: shape,5,0x198,DAT_005120b8,,,
 0x5120bc,DAT_005120bc,.bss,460,gap,data,Entry_004263b0[10],1,0,1,one type,1,0x194,DAT_005120bc,,in DAT_005120b8+0x4,

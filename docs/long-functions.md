@@ -1,11 +1,12 @@
-# The 20 longest functions: inlined helpers or genuinely long
+# The longest functions: inlined helpers or genuinely long
 
 Phase 7 of `docs/cleanup-roadmap.md` asks which of the biggest functions are
 really helpers the compiler inlined and which are genuinely long, and queues
-the extractions worth doing. This audits the 20 largest game functions: the
+the extractions worth doing. Two audits cover the 40 largest game functions:
+the first (#6250) below, the second (#6408) under "The next 20". The
 addresses and sizes are from `data/functions.csv`, the names from
-`data/symbols.csv`, and the line numbers are at the commit that added this
-file.
+`data/symbols.csv`, and the line numbers are at the commit that added each
+audit.
 
 The functions are already matched, so an extraction only helps if the source
 still compiles to the same bytes. The method was to read each function, look
@@ -247,3 +248,137 @@ The remaining inlined-helper candidates stay here for a later pass:
 loops, lines 932-1008), `DrawBattleFrame` (feature blit and unit draw, lines
 356-423), `DrawUnitInfoPanel` (icon loop and centred text, lines 91-315), and
 `LoadMatch` (player-record filter, lines 694-734).
+
+## The next 20 (issue #6408)
+
+The second audit covers the next 20 game functions by size, with the same
+method: read each function, look for blocks that do one thing with different
+inputs and for code that repeats an out-of-line function's body, then build
+the most promising extraction and check it. Six functions hold repeated
+blocks that could come out as inline helpers; fourteen are genuinely long.
+Three extractions are queued as #6446, #6447 and #6448, and the first was
+proved.
+
+### Verdicts
+
+| Address | Bytes | Function | Verdict |
+| --- | ---: | --- | --- |
+| 0x4a5f40 | 2700 | `DrawButton` | genuinely long (one small text-colour pair) |
+| 0x4d8e60 | 2644 | `ReportException` | genuinely long (log writer; the append spelling is load-bearing) |
+| 0x48e010 | 2542 | `MissionConditions::RegisterConditions` | inlined helpers (queued, proved) |
+| 0x464f80 | 2392 | `UpdatePlayers` | genuinely long (player state machine; the duplication is load-bearing) |
+| 0x42b370 | 2375 | `UnitDef::operator=` | genuinely long (compiler-generated member copy) |
+| 0x44a680 | 2340 | `UpdateBattleRoom` | genuinely long (screen update sequence) |
+| 0x4224b0 | 2324 | `LoadFeatureType` | inlined helpers (queued; both helper shapes moved the frame) |
+| 0x495e90 | 2292 | `HandleGameKey` | genuinely long (key switch) |
+| 0x49be60 | 2272 | `DrawProjectiles` | genuinely long (projectile-type chain) |
+| 0x401360 | 2239 | `UpdatePlayerEconomy` | genuinely long (small accumulate and clamp blocks) |
+| 0x418310 | 2203 | `DrawMapDebugOverlay` | genuinely long (mode chain; small candidates) |
+| 0x42d2e0 | 2173 | `LoadUnitTypes` | genuinely long (load pass) |
+| 0x4a9fd0 | 2164 | `UpdateMenu` | genuinely long (gadget-type switch) |
+| 0x4a1b40 | 2160 | `DrawListBox` | inlined helpers, lower priority (fade run) |
+| 0x4e0b90 | 2150 | `MemoryStatusDialog::HandleMemoryStatusMessage` | genuinely long (message switch; one inlined formatter copy) |
+| 0x430f00 | 2112 | `SaveSettings` | genuinely long (one write per setting) |
+| 0x459c70 | 2047 | `UnitTable::DrawLitPieces` | inlined helpers, lower priority (first-face setup three times) |
+| 0x411f50 | 1980 | `AirStrikeOrder` | inlined helpers (queued; the audit shape reached 96.3%) |
+| 0x40fbe0 | 1976 | `VtolFollowOrder` | inlined helpers, lower priority (two move sites share a shape) |
+| 0x483610 | 1975 | `LoadTntMap` | genuinely long (TNT loader, already in five regions) |
+
+### The functions
+
+**`0x4a5f40 DrawButton`** (2700, `src/gui/gui.cpp:4841-5058`).
+The text-colour if/else (`SetTextColors(menu->colours[field_138 != 0 ? 0 : me->colours], GetTextKeyColor())`) appears three times (4950-4953, 4998-5001, 5013-5016). The hotkey paths (flags 2 and 0x20) draw the letter and the underline differently enough that no larger block repeats, and the `do { ... } while (pass--)` runs once because `pass` starts at 0. The pair is two lines; not queued.
+
+**`0x4d8e60 ReportException`** (2644, `src/debug/debug_lib.cpp:828-978`).
+More than forty `sprintf` appends, most of the form `{ char* d = log + strlen(log); sprintf(d, ...); }`, plus the grouped register (906-917), Dr (940-945) and FPU (948-955) dumps. The comments record that each site's destination form (`d`, `L`, or `strlen` inline) is what sets the push order, so the repetition is deliberate and a helper would unify the forms. Not queued.
+
+**`0x48e010 MissionConditions::RegisterConditions`** (2542, `src/game/victory_48dfb0.cpp:482-606`).
+Eighteen registration blocks and the two "if none registered" defaults (492-603) all end `victory[victoryCount] = ...; victoryCount++;` (or `defeat`). Queued as #6446 and proved below.
+
+**`0x464f80 UpdatePlayers`** (2392, `src/game/players_464290.cpp:863-1190`).
+A per-player loop around a state machine. The filter at the top is written twice with a fresh pointer (881-898), the two starting-resource blocks (1029-1056) differ only in `resourceSlot`/`field_d4` and `energy`/`metal`, and the end-game countdown block appears four times. Comments at 938-943, 967 and 1021-1028 record that the duplication is what makes MSVC reload or hoist the way the original does. Not queued.
+
+**`0x42b370 UnitDef::operator=`** (2375, `src/units/unit_types.cpp:406-488`).
+Compiler-generated: 13 element loops plus about 180 member copies. The issue names it as the example of genuinely long. Not queued.
+
+**`0x44a680 UpdateBattleRoom`** (2340, `src/frontend/multi_44a680.cpp:247-394`).
+The battle-room screen update. `IsScreenNamed("LOUNGE2.GUI")` is tested four times; the two host branches (285-306) both load the host's mission but differ in screen and follow-up calls, and the per-player version loop draws one row per player. No block with one shape. Not queued.
+
+**`0x4224b0 LoadFeatureType`** (2324, `src/map/features_4224b0.cpp:144-291`).
+Eight `seqname*` field reads (189-246): six save the sequence and clear its kind, two only save it, and the reads also fill the same `ok` local used earlier for the "object" read. Queued as #6448; the audit tried two helper shapes, both below MATCH.
+
+**`0x495e90 HandleGameKey`** (2292, `src/ingame/keys.cpp:490-817`).
+A switch on the key code whose case order is fixed by the jump table. The two game-speed guards (787-797, 799-809) share their player-flag test and differ only in the limit and sign. Not queued.
+
+**`0x49be60 DrawProjectiles`** (2272, `src/weapons/weapons_49be60.cpp:176-387`).
+A chain on `type->field_10c` with eight arms. The to-screen projection (`sp.x/y/z = pos... - scroll`) appears four times (249-251, 277-279, 288-290, 321-323) and the `sx`/`sy` pairs recur in most arms, but each arm then draws differently and one arm returns early. Not queued.
+
+**`0x401360 UpdatePlayerEconomy`** (2239, `src/game/economy_401360.cpp:307-439`).
+The four-field accumulation over one resource appears four times (368-375 and 378-385) and the storage clamp twice (422-429). The file header records that the separate `float[2]` arrays and their declaration order are the frame layout, so the blocks stay lower priority. Not queued.
+
+**`0x418310 DrawMapDebugOverlay`** (2203, `src/game/console_commands.cpp:1549-1681`).
+The four corners of a tile are loaded by walking `tile`, `x` and `y` (1573-1588), and the mode 2 and 3 height-colour pair is the same four lines twice (1625-1631, 1650-1656). The walk threads the indices through the stores, which is why the unrolled form is the one that matches. Not queued.
+
+**`0x42d2e0 LoadUnitTypes`** (2173, `src/units/unit_types.cpp:955-1176`).
+The unit load pass: movement classes, the unit table, the type sort, the per-unit FBI, 3DO and GUI loads, then the canbuild lists. The GUI-suffix search (1107-1126) and the canbuild read (1144-1166) are already source loops whose guard shapes carry comments. Not queued.
+
+**`0x4a9fd0 UpdateMenu`** (2164, `src/gui/gui.cpp:6751-6955`).
+A switch on the gadget type (6855-6932); each case calls one input handler, with the label case doing the selection work and the button and sprite cases ticking their colours. No block repeats. Not queued.
+
+**`0x4a1b40 DrawListBox`** (2160, `src/gui/gui.cpp:1555-1771`).
+The text path fades a highlighted row with four consecutive `FadeRectangle` colours (1647-1650), and the selected-row if/else calls with 0x1e in both arms (1652-1655, already in `docs/bugs.md`). A loop or helper for the fade run is plausible but lower priority; the cell path below (from 1671) has its own draw. Not queued.
+
+**`0x4e0b90 MemoryStatusDialog::HandleMemoryStatusMessage`** (2150, `src/debug/memory_status_dialog.cpp:119-280`).
+A message switch whose `WM_CTLCOLORSTATIC` case refreshes the dialog. It calls the file's `static __inline fmt_004e0b90` nine times (198-215) and then spells that formatter's body out once for `g_liveAllocCount` (218-247), with a comment that a tenth call would exceed the inline budget. Genuinely long; not queued.
+
+**`0x430f00 SaveSettings`** (2112, `src/game/settings.cpp:554-653`).
+One `WriteRegistryDword` or `WriteRegistryString` call per setting (560-648), plus a six-field per-skirmish-player loop. The calls take different keys and expressions, so there is no block to pull out. Not queued.
+
+**`0x459c70 UnitTable::DrawLitPieces`** (2047, `src/graphics/model_render_4581e0.cpp:166-371`).
+The first-face setup (`if (info->firstFace != -1) { face = info->faces + 1; fi = 1; } else { face = info->faces; fi = 0; }`) is written three times before three different face walks (240-246, 266-272, 295-301). It returns two values through caller locals, so the helper shape is the same risk as `LoadFeatureType`; lower priority and not queued.
+
+**`0x411f50 AirStrikeOrder`** (1980, `src/orders/vtol_orders_411f50.cpp:159-284`).
+Four arms build the same move effect: `new Class_0044e2d0(order, dest)`, `SetApproachRadius`, `SetAttachedFx` (198-201, 216-219, 254-257, 263-266; state 4 at 238-244 picks one of two classes). Queued as #6447; the audit shape reached 96.3%.
+
+**`0x40fbe0 VtolFollowOrder`** (1976, `src/orders/vtol_orders_40fbe0.cpp:67-188`).
+Move effects at 77-80 and 176-179 share their three statements (radius 128); the middle one (95-98) attaches an altitude instead, and the first site sets the flags before `SetAttachedFx`, not after. Two full sites is borderline; lower priority and not queued.
+
+**`0x483610 LoadTntMap`** (1975, `src/map/line_of_sight.cpp:1014-1275`).
+The TNT loader, already carried through the splitting workflow with five `// REGION` markers. The two version cases (1030-1065) assign the same fields from different offsets (`attr_a`/`attr_b` and the sea values swap), but each case is a straight run of assignments. Not queued.
+
+### Proof: the RegisterConditions extraction
+
+Every append site in `RegisterConditions` becomes a call to one helper, declared before the `MissionConditions` methods:
+
+```cpp
+// Appends a condition to one of the two lists, at the caller's count.
+static inline void AddCondition(MissionCondition** list, int* count, MissionCondition* value)
+{
+    list[*count] = value;
+    (*count)++;
+}
+```
+
+with `AddCondition(victory, &victoryCount, new VictoryKillEnemyCommander);` and so on at the 20 sites, and `defeat`/`defeatCount` for the rest. `check.py 0x48e010` prints MATCH (original 2542 bytes, ours 2542 bytes). The change was reverted before this commit; #6446 is to land it.
+
+Two other candidates were tried and reverted:
+
+- `LoadFeatureType`: an out-parameter helper (`LoadFeatureSeq(TdfRecord*, char* key, char* seqname, Gaf_004224b0*, Seq_004224b0** out)`, 8 sites) reaches 91.8%, ours 2408 bytes against the original's 2324; a return-value helper (`Seq_004224b0* LoadFeatureSeq(...)`) reaches 47.3%, ours 2239, with the helper not inlined. Both move the frame. #6448 records this.
+- `AirStrikeOrder`: the `AttachMove(order, dest, radius)` helper at the four clean sites reaches 96.3% with the same 1980 bytes; the inlined code is right, but one register pair in state 6's health block swaps. A void variant and leaving the state 6 site out stayed at 96.3%, so the swap is whole-function allocation. #6447 records this.
+
+The RegisterConditions helper passed only the list, its count and the new condition, and its body sits in the caller's statement flow; the other two read and write caller state (`ok`, the sequence fields, the case-local `obj`) through parameters, which is where MSVC 5's whole-function register allocation moved (`docs/c2-regalloc.md`).
+
+### Queued extractions
+
+| Issue | Function | Repeated block |
+| --- | --- | --- |
+| #6446 | `MissionConditions::RegisterConditions` 0x48e010 | 18 registration and 2 default blocks, lines 492-603 (proved) |
+| #6447 | `AirStrikeOrder` 0x411f50 | four attach-move blocks, lines 198-266 (audit shape 96.3%) |
+| #6448 | `LoadFeatureType` 0x4224b0 | eight sequence reads, lines 189-246 (both audit shapes moved the frame) |
+
+The remaining inlined-helper candidates stay here for a later pass:
+`DrawLitPieces` (first-face setup, lines 240-301), `VtolFollowOrder` (two move
+sites, lines 77-179), `UpdatePlayerEconomy` (accumulate and clamp blocks,
+lines 368-429), `DrawMapDebugOverlay` (height-colour pair, lines 1625-1656),
+`DrawListBox` (fade run, lines 1647-1650) and `DrawButton` (text-colour pair,
+lines 4950-5016).

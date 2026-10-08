@@ -201,7 +201,7 @@ struct Game {
 
 class MovementClass {
 public:
-    void* field_0;                      // +0x0
+    void* name;                         // +0x0
     short footprintX;                   // +0x4
     short footprintY;                   // +0x6
     short minHeight;                    // +0x8

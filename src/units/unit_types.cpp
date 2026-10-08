@@ -227,19 +227,19 @@ struct Game {
 // The game's movement classes: 0x20-byte entries in a 32-entry table.
 class MovementClass {
 public:
-    int* field_0;                      // +0x0
-    short field_4;                     // +0x4
-    short field_6;                     // +0x6
-    short field_8;                     // +0x8
-    short field_a;                     // +0xa
-    unsigned char field_c;             // +0xc
-    unsigned char field_d;             // +0xd
-    unsigned char field_e;             // +0xe
-    unsigned char field_f;             // +0xf
-    int field_10;                      // +0x10
-    int field_14;                      // +0x14
-    void* field_18;                    // +0x18
-    int field_1c;                      // +0x1c
+    int* name;                         // +0x0
+    short footprintX;                  // +0x4
+    short footprintZ;                  // +0x6
+    short maxWaterDepth;               // +0x8
+    short minWaterDepth;               // +0xa
+    unsigned char maxSlope;            // +0xc
+    unsigned char badSlope;            // +0xd
+    unsigned char maxWaterSlope;       // +0xe
+    unsigned char badWaterSlope;       // +0xf
+    int width;                         // +0x10
+    int height;                        // +0x14
+    void* cells;                       // +0x18
+    int lastTick;                      // +0x1c
 
     MovementClass();
     ~MovementClass();
@@ -818,12 +818,12 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
                 (&movement)->ReadMoveInfo(&parser);
                 move = &movement;
             }
-            unitdef->footprintx = move->field_4;
-            unitdef->footprintz = move->field_6;
-            unitdef->maxwaterdepth = move->field_8;
-            unitdef->minwaterdepth = move->field_a;
-            unitdef->maxslope = move->field_c;
-            unitdef->maxwaterslope = move->field_e;
+            unitdef->footprintx = move->footprintX;
+            unitdef->footprintz = move->footprintZ;
+            unitdef->maxwaterdepth = move->maxWaterDepth;
+            unitdef->minwaterdepth = move->minWaterDepth;
+            unitdef->maxslope = move->maxSlope;
+            unitdef->maxwaterslope = move->maxWaterSlope;
             unitdef->maxslopevelocity = (int)(((__int64)unitdef->maxvelocity << 16) /
                                              ((unitdef->maxslope + 1) * 0x10000));
             char* defaultWeapon = (char*)g_game + 0x2cf3;
@@ -976,7 +976,7 @@ void LoadUnitTypes() {
             parser.ResetCurrentRecord();
             if (parser.SelectRecord(classbuf)) {
                 parser.current->GetFieldString(classbuf, "name", 100, DAT_005119b8);
-                cls->field_0 = (int*)GameStrdup(classbuf);
+                cls->name = (int*)GameStrdup(classbuf);
                 cls->ReadMoveInfo(&parser);
             }
             cls++;

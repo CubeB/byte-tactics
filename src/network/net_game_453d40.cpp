@@ -13,9 +13,9 @@
 
 struct PlayerInfo {
     char unknown_0[0x90];
-    int field_90;                      // +0x90
+    int id;                            // +0x90
     char unknown_94[2];
-    unsigned char field_96;            // +0x96
+    unsigned char color;               // +0x96
     unsigned char flags_97;            // +0x97
     char unknown_98[3];
     union {
@@ -580,7 +580,7 @@ int HandleNetPackets()
             }
             break;
         case 24:
-            g_game->players[to].info->field_96 = packet[1];
+            g_game->players[to].info->color = packet[1];
             if (to == g_game->local && (g_game->flags_2a44 & 1)) {
                 for (int i = 0; i < 10; i++) {
                     Player* p = &g_game->players[i];

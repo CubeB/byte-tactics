@@ -89,12 +89,12 @@ struct Unit {
 
 struct PlayerInfo {
     char name[0x94];                   // +0x00
-    unsigned char field_94;            // +0x94
+    unsigned char kind;                // +0x94
     unsigned char side;                // +0x95
     unsigned char logo;                // +0x96
     unsigned short bit_97 : 1;         // +0x97
     unsigned short rest_97 : 15;
-    unsigned short field_99;           // +0x99
+    unsigned short memory;             // +0x99
     // unsigned short bitfields: the only spelling that gives a direct
     // `or byte ptr [m], K`.
     union {
@@ -115,8 +115,8 @@ struct PlayerInfo {
         } b;
     };
     char unknown_9d[0xa1 - 0x9d];
-    unsigned short field_a1;           // +0xa1
-    unsigned short field_a3;           // +0xa3
+    unsigned short energy;             // +0xa1
+    unsigned short metal;              // +0xa3
     char unknown_a5[0xb9 - 0xa5];
 };
 
@@ -313,7 +313,7 @@ void __stdcall SetupPlayerSlot(int player, char type)
     int t = type;
     p->type = t;
     if (t != 3) {
-        p->info->field_94 = t;
+        p->info->kind = t;
     }
     p->team_113[idx] = 1;
     p->unit = 0;
@@ -329,7 +329,7 @@ void __stdcall SetupPlayerSlot(int player, char type)
     p->rejectReason = 0;
 
     if (p->active != 0 && (p->type == 1 || p->type == 2)) {
-        p->info->field_99 = g_game->map->field_620 / 0x100000 + 1;
+        p->info->memory = g_game->map->field_620 / 0x100000 + 1;
     }
 
     if (g_game->mission->GetGameType() == 1) {
@@ -389,8 +389,8 @@ void ResetPlayerSlots()
         p->team_113[i] = 1;
         // Inlined helper: separate stores let the reload of p->info be hoisted.
         p->Clear();
-        p->info->field_94 = 0;
-        p->info->field_99 = 0;
+        p->info->kind = 0;
+        p->info->memory = 0;
         p->info->b.bit4 = 0;
         p->info->bit_97 = 0;
         p->info->logo = (char)i;
@@ -1022,8 +1022,8 @@ void __stdcall UpdatePlayers()
                                 Unit* unit = CreateUnit(
                                     g_game->localPlayer, typeId, pos, 1, 1, 0);
                                 SetStartingStorageBonus(pi,
-                                             self->field_a3 * 100,
-                                             self->field_a1 * 100);
+                                             self->metal * 100,
+                                             self->energy * 100);
                                 {
                                     // The slot is written through a local
                                     // pointer because that is what makes MSVC 5
@@ -1034,7 +1034,7 @@ void __stdcall UpdatePlayers()
                                     // instead and the second `mov eax,
                                     // [esi+0xec]` disappears.
                                     float* slot = &unit->resourceSlot;
-                                    float f = (float)self->field_a1 * kHundred;
+                                    float f = (float)self->energy * kHundred;
                                     if (unit->owner->active != 0 &&
                                         unit->owner->type == 2) {
                                         switch (g_game->difficulty) {
@@ -1049,7 +1049,7 @@ void __stdcall UpdatePlayers()
                                 }
                                 {
                                     float* slot = &unit->field_d4;
-                                    float f = (float)self->field_a3 * kHundred;
+                                    float f = (float)self->metal * kHundred;
                                     if (unit->owner->active != 0 &&
                                         unit->owner->type == 2) {
                                         switch (g_game->difficulty) {
@@ -1217,8 +1217,8 @@ void InitPlayerResources()
                 if (index == 10)
                     index = i;
                 Player* other = &g_game->players[index];
-                player->energy = other->info->field_a1 * 100;
-                player->metal = other->info->field_a3 * 100;
+                player->energy = other->info->energy * 100;
+                player->metal = other->info->metal * 100;
                 break;
             }
             }

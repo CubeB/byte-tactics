@@ -78,9 +78,9 @@ struct Cell_00440500 {
 #pragma pack(pop)
 
 // The 32-byte entry: a movement class with its own 2-bit-per-cell passability
-// map. field_0 holds its name; the table below owns 32 of them.
+// map. name holds its name; the table below owns 32 of them.
 struct MovementClass {
-    int* field_0;                      // +0x00
+    int* name;                         // +0x00
     short footprintX;                  // +0x04
     short footprintZ;                  // +0x06
     short maxWaterDepth;               // +0x08
@@ -133,7 +133,7 @@ int __stdcall GetPassMapCellValue(Class_00440500* obj, Cell_00440500* cell);
 // data member with a "$S" flag, which is the byte right after the table.
 // The destructor is implicit (there is no user-written body to write): its body
 // is the compiler's own destruction of the 32 entries, each inlining
-// ~MovementClass (GameFreeThunk on field_0, then operator delete on cells),
+// ~MovementClass (GameFreeThunk on name, then operator delete on cells),
 // which is the loop 0x440290 registers with atexit. A user-written loop would
 // otherwise run on top of that destruction.
 struct MovementClassTable {
@@ -247,7 +247,7 @@ MovementClassTable MovementClassTable::g_movementClasses;
 // FUNCTION: 0x4402e0
 MovementClass::MovementClass()
 {
-    field_0 = 0;
+    name = 0;
     footprintX = 0;
     footprintZ = 0;
     maxWaterDepth = 10000;
@@ -269,7 +269,7 @@ MovementClass::MovementClass()
 // FUNCTION: 0x440320
 MovementClass::~MovementClass()
 {
-    GameFreeThunk(field_0);
+    GameFreeThunk(name);
     operator delete(cells);
 }
 
@@ -296,13 +296,13 @@ void MovementClass::ReadMoveInfo(Source_00440340* src)
 }
 
 // Looks an entry up by name in the 32-entry table that the table's definition
-// owns (the class declarations are shared with it; field_0 holds the name).
+// owns (the class declarations are shared with it; name holds the name).
 // FUNCTION: 0x440420
 MovementClass* __stdcall FindMovementClass(char* name)
 {
     for (int i = 0; i < 32; i++) {
-        if (MovementClassTable::g_movementClasses.entries[i].field_0 != 0
-            && _strcmpi((char*)MovementClassTable::g_movementClasses.entries[i].field_0, name) == 0) {
+        if (MovementClassTable::g_movementClasses.entries[i].name != 0
+            && _strcmpi((char*)MovementClassTable::g_movementClasses.entries[i].name, name) == 0) {
             return &MovementClassTable::g_movementClasses.entries[i];
         }
     }
@@ -535,7 +535,7 @@ void FreeMovementClasses(void)
 void __stdcall RefreshAllPassMaps(Point a, Point b)
 {
     for (int i = 0; i < 32; i++) {
-        if (MovementClassTable::g_movementClasses.entries[i].field_0 != 0) {
+        if (MovementClassTable::g_movementClasses.entries[i].name != 0) {
             ((MovementClass*)&MovementClassTable::g_movementClasses.entries[i])->RefreshPassMap(a, b);
         }
     }
@@ -544,7 +544,7 @@ void __stdcall RefreshAllPassMaps(Point a, Point b)
 static inline void UpdateAll(Point a, Point b)
 {
     for (int i = 0; i < 32; i++) {
-        if (MovementClassTable::g_movementClasses.entries[i].field_0 != 0) {
+        if (MovementClassTable::g_movementClasses.entries[i].name != 0) {
             ((MovementClass*)&MovementClassTable::g_movementClasses.entries[i])->RefreshPassMap(a, b);
         }
     }

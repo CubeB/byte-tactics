@@ -5458,19 +5458,19 @@ struct Class_004402e0 {  // 0x20 bytes, 3 views
 };
 
 struct MovementClass {   // 0x20 bytes, 9 views
-    int* field_0;  // +0x0
-    short field_4;  // +0x4
-    short field_6;  // +0x6
-    short field_8;  // +0x8
-    short field_a;  // +0xa
-    unsigned char field_c;  // +0xc
-    unsigned char field_d;  // +0xd
-    unsigned char field_e;  // +0xe
-    unsigned char field_f;  // +0xf
-    int field_10;  // +0x10
-    int field_14;  // +0x14
-    void* field_18;  // +0x18
-    int field_1c;  // +0x1c
+    int* name;  // +0x0
+    short footprintX;  // +0x4
+    short footprintZ;  // +0x6
+    short maxWaterDepth;  // +0x8
+    short minWaterDepth;  // +0xa
+    unsigned char maxSlope;  // +0xc
+    unsigned char badSlope;  // +0xd
+    unsigned char maxWaterSlope;  // +0xe
+    unsigned char badWaterSlope;  // +0xf
+    int width;  // +0x10
+    int height;  // +0x14
+    void* cells;  // +0x18
+    int lastTick;  // +0x1c
     MovementClass(void);
     void ReadMoveInfo(Source_00440340*);
 };

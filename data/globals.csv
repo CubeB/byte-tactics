@@ -238,8 +238,8 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x508d74,s_HitByWeapon_00508d74,.data,12,gap,string,char[],1,0,1,one type,1,,s_HitByWeapon_00508d74,,,4869744279576561706f6e00
 0x508d80,s_paralyze_00508d80,.data,12,gap,string,char[],1,0,1,one type,1,,s_paralyze_00508d80,,,706172616c797a6500000000
 0x508d8c,s_SelectMultipleUnits_00508d8c,.data,20,gap,string,char[],1,0,1,one type,1,,s_SelectMultipleUnits_00508d8c,,,53656c6563744d756c7469706c65556e69747300
-0x508f24,DAT_00508f24,.data,12,gap,string,char[],6,0,1,one type,6,,s_Celebrated_00508f24,,,43656c656272617465640000
-0x508f30,DAT_00508f30,.data,12,gap,string,char[],6,0,1,one type,6,,s_Satisfied_00508f30,,,536174697366696564000000
+0x508f24,DAT_00508f24,.data,12,gap,string,char[],1,0,1,one type,1,,s_Celebrated_00508f24,,,43656c656272617465640000
+0x508f30,DAT_00508f30,.data,12,gap,string,char[],1,0,1,one type,1,,s_Satisfied_00508f30,,,536174697366696564000000
 0x508f3c,DAT_00508f3c,.data,36,gap,string,char[],1,0,1,one type,1,,s_VictoryCondition_KillEnemyComman_00508f3c,,,566963746f7279436f6e646974696f6e5f4b696c6c456e656d79436f6d6d616e64657200
 0x508f60,DAT_00508f60,.data,36,gap,string,char[],1,0,1,one type,1,,s_VictoryCondition_DestroyAllUnits_00508f60,,,566963746f7279436f6e646974696f6e5f44657374726f79416c6c556e69747300000000
 0x508f84,DAT_00508f84,.data,12,gap,string,char[],1,0,1,one type,1,,s_NumUnits_00508f84,,,4e756d556e69747300000000
@@ -353,7 +353,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x511ddc,g_byteRatesTick,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_00511ddc,,,
 0x511de0,DAT_00511de0,.bss,4,type,data,int,2,0,1,one type,2,,DAT_00511de0,,,
 0x511de4,g_cdPathMismatch,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511de4,,,
-0x511de8,g_game,.bss,4,type,data,Game*,336,47,15,conflicting: shape,383,,DAT_00511de8,,,
+0x511de8,g_game,.bss,4,type,data,Game*,319,45,15,conflicting: shape,364,,DAT_00511de8,,,
 0x511dec,DAT_00511dec,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511dec,,,
 0x511df0,g_explodedPieces,.bss,400,type,data,ExplodedPiece*[100],1,0,1,one type,1,0x190,DAT_00511df0,,,
 0x511f80,DAT_00511f80,.bss,16,gap,data,CMemoryCache,2,0,1,one type,2,,DAT_00511f80,,,
@@ -790,13 +790,13 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51ff20,DAT_0051ff20,.bss,40,gap,data,int[],1,0,1,one type,1,,DAT_0051ff20,,,
 0x51ff48,g_playBufferLooping,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051ff48,,,
 0x51ff4c,DAT_0051ff4c,.bss,12,gap,unreferenced,unsigned char[12],0,0,0,,0,,,,,
-0x51ff58,DAT_0051ff58,.bss,4,type,data,int,2,0,1,one type,2,,DAT_0051ff58,,,
+0x51ff58,DAT_0051ff58,.bss,4,type,data,int,1,0,1,one type,1,,INT_0051ff58,,,
 0x51ff5c,DAT_0051ff5c,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
-0x51ff60,DAT_0051ff60,.bss,112,gap,data,char[],2,0,1,one type,2,,DAT_0051ff60,,,
+0x51ff60,DAT_0051ff60,.bss,112,gap,data,char[],1,0,1,one type,1,,s__0051ff60,,,
 0x51ffd0,g_lzssPresetWindow,.bss,176,gap,data,char[],1,0,1,one type,1,,DAT_0051ffd0,,,
 0x520080,DAT_00520080,.bss,3944,gap,unreferenced,unsigned char[3944],0,0,0,,0,,,,,
 0x520fe8,g_lzssPresetTree,.bss,24584,gap,data,char[],1,0,1,one type,1,,DAT_00520fe8,,,
-0x526ff0,DAT_00526ff0,.bss,4,type,data,void*,1,2,3,conflicting: shape,3,,DAT_00526ff0,,,
+0x526ff0,DAT_00526ff0,.bss,4,type,data,Struct_00526ff0*,1,1,2,conflicting: struct names only,2,,DAT_00526ff0,,,
 0x526ff4,DAT_00526ff4,.bss,4,type,data,void*,1,1,2,conflicting: shape,2,,DAT_00526ff4,,,
 0x526ff8,g_lzssPresetReady,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00526ff8,,,
 0x526ffc,g_lzssUsePreset,.bss,4,type>gap,data,int,1,0,1,one type,1,,DAT_00526ffc,,,

@@ -21,6 +21,7 @@ struct Game;
 struct Node_004dde70;
 struct Player_00437cd0;
 struct Record_005129b4;
+struct Struct_00526ff0;
 
 extern unsigned char g_turnCosts[8];                                                              // 0x4fca10, 8 bytes; const Table_0040d880 by value in 1 of 1 files
 extern unsigned char DAT_004fcc68[8];                                                             // 0x4fcc68, 8 bytes; 1 of 1 files
@@ -168,8 +169,8 @@ extern char s_TakeDamage_00508d68[12];                                          
 extern char s_HitByWeapon_00508d74[12];                                                           // 0x508d74, 12 bytes; 1 of 1 files
 extern char s_paralyze_00508d80[12];                                                              // 0x508d80, 12 bytes; 1 of 1 files
 extern char s_SelectMultipleUnits_00508d8c[20];                                                   // 0x508d8c, 20 bytes; 1 of 1 files
-extern char DAT_00508f24[12];                                                                     // 0x508f24, 12 bytes; 6 of 6 files
-extern char DAT_00508f30[12];                                                                     // 0x508f30, 12 bytes; 6 of 6 files
+extern char DAT_00508f24[12];                                                                     // 0x508f24, 12 bytes; 1 of 1 files
+extern char DAT_00508f30[12];                                                                     // 0x508f30, 12 bytes; 1 of 1 files
 extern char DAT_00508f3c[36];                                                                     // 0x508f3c, 36 bytes; 1 of 1 files
 extern char DAT_00508f60[36];                                                                     // 0x508f60, 36 bytes; 1 of 1 files
 extern char DAT_00508f84[12];                                                                     // 0x508f84, 12 bytes; 1 of 1 files
@@ -273,7 +274,7 @@ extern unsigned int g_netStatsTick;                                             
 extern unsigned int g_byteRatesTick;                                                              // 0x511ddc, 4 bytes; 1 of 1 files
 extern int DAT_00511de0;                                                                          // 0x511de0, 4 bytes; 2 of 2 files
 extern int g_cdPathMismatch;                                                                      // 0x511de4, 4 bytes; 1 of 1 files
-extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 336 of 383 files (conflicting: shape)
+extern Game* g_game;                                                                              // 0x511de8, 4 bytes; 319 of 364 files (conflicting: shape)
 extern int DAT_00511dec;                                                                          // 0x511dec, 4 bytes; 1 of 1 files
 extern ExplodedPiece* g_explodedPieces[100];                                                      // 0x511df0, 400 bytes; 1 of 1 files
 extern unsigned char DAT_00511f80[16];                                                            // 0x511f80, 16 bytes; CMemoryCache by value in 2 of 2 files
@@ -608,12 +609,13 @@ extern unsigned char DAT_0051ff1c[4];                                           
 extern int DAT_0051ff20[10];                                                                      // 0x51ff20, 40 bytes; 1 of 1 files
 extern int g_playBufferLooping;                                                                   // 0x51ff48, 4 bytes; 1 of 1 files
 extern unsigned char DAT_0051ff4c[12];                                                            // 0x51ff4c, 12 bytes; nothing refers to it
-extern int DAT_0051ff58;                                                                          // 0x51ff58, 4 bytes; 2 of 2 files
+extern int DAT_0051ff58;                                                                          // 0x51ff58, 4 bytes; 1 of 1 files
 extern unsigned char DAT_0051ff5c[4];                                                             // 0x51ff5c, 4 bytes; nothing refers to it
-extern char DAT_0051ff60[112];                                                                    // 0x51ff60, 112 bytes; 2 of 2 files
+extern char DAT_0051ff60[112];                                                                    // 0x51ff60, 112 bytes; 1 of 1 files
 extern char g_lzssPresetWindow[176];                                                              // 0x51ffd0, 176 bytes; 1 of 1 files
 extern unsigned char DAT_00520080[3944];                                                          // 0x520080, 3944 bytes; nothing refers to it
 extern char g_lzssPresetTree[24584];                                                              // 0x520fe8, 24584 bytes; 1 of 1 files
+extern Struct_00526ff0* DAT_00526ff0;                                                             // 0x526ff0, 4 bytes; 1 of 2 files (conflicting: struct names only)
 extern int g_lzssPresetReady;                                                                     // 0x526ff8, 4 bytes; 1 of 1 files
 extern int g_lzssUsePreset;                                                                       // 0x526ffc, 4 bytes; 1 of 1 files
 extern char DAT_005289b4;                                                                         // 0x5289b4, 1 bytes; 1 of 1 files
@@ -705,7 +707,7 @@ extern int DAT_0052a4f4;                                                        
 extern void* DAT_0052a4f8;                                                                        // 0x52a4f8, 4 bytes; 2 of 2 files
 extern long DAT_0052a4fc;                                                                         // 0x52a4fc, 4 bytes; 1 of 2 files (conflicting: signedness or const)
 
-// Not declared: 226 globals defined in a data file or whose type is not settled (see data/globals.csv).
+// Not declared: 225 globals defined in a data file or whose type is not settled (see data/globals.csv).
 //   0x5119c0 g_playerAI: PlayerAI*[] (11), void*[] (5), Owner*[] (3), Player_40b0d0*[] (1), and 2 more
 //   0x513000 g_packetManager: defined in src/network/packets_460e20.cpp
 //   0x5292c4 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib_4e17c0.cpp
@@ -739,7 +741,6 @@ extern long DAT_0052a4fc;                                                       
 //   0x51e57c DAT_0051e57c: ScoreBoard_0046c2a0** (1), ScoreBoard_0046bce0** (1), void* (1)
 //   0x51e59c IUUnitSyncEntry::IU?$pair::?$_Tree::_Nilrefs: defined in src/network/unit_sync.cpp
 //   0x51e660 DAT_0051e660: int* (2), char* (1)
-//   0x526ff0 DAT_00526ff0: Struct_00526ff0* (1), void* (1), Node_004d0b10* (1)
 //   0x528a10 DAT_00528a10: void* (2), Node_004ddc00* (1)
 //   0x528ac0 DAT_00528ac0: void* (1), void (__stdcall*)(void) (1), int (__stdcall*)(unsigned long, void*, void*, void*, void*, void*, void*, void*, void*) (1)
 //   0x528ac4 DAT_00528ac4: void* (2), void (__stdcall*)(void) (1)

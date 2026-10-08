@@ -67,7 +67,7 @@ struct Game {
     unsigned char netOrCdSentinel;  // +0x2a46
     char unknown_2a47[0x2bee - 0x2a47];
     union {
-        unsigned char field_2bee;
+        unsigned short lobbyUiDirtyFlags;
         struct {
             unsigned short pad_2bee : 5;
             unsigned short flags_2bee : 3;
@@ -79,7 +79,7 @@ struct Game {
     char unknown_2bfc[0x2cba - 0x2bfc];
     unsigned short hoverUnitId;  // +0x2cba
     char unknown_2cbc[0x2cbe - 0x2cbc];
-    signed char selected;   // +0x2cbe
+    signed char cursorMode;  // +0x2cbe
     char unknown_2cbf[0x2cc3 - 0x2cbf];
     unsigned char mode_2cc3;   // +0x2cc3
     unsigned short buildTypeIndex;  // +0x2cc4
@@ -902,8 +902,8 @@ void __stdcall SetCursorAnimation(Obj_004ab400* p, Src_004ab400* src);
 // FUNCTION: 0x491c80
 void __stdcall SetCursorMode(int n)
 {
-    if (g_game->selected != n) {
-        g_game->selected = n;
+    if (g_game->cursorMode != n) {
+        g_game->cursorMode = n;
         SetCursorAnimation((Obj_004ab400*)&g_game->gui, g_game->table[n]);
     }
 }
@@ -924,16 +924,16 @@ void __stdcall UpdateBattleHoverMode(int unused)
         return;
     }
     if ((flags & 2) == 0 && (flags & 1) == 0) {
-        if (g_game->selected != 0x13) {
-            g_game->selected = 0x13;
+        if (g_game->cursorMode != 0x13) {
+            g_game->cursorMode = 0x13;
             SetCursorAnimation((Obj_004ab400*)&g_game->gui, g_game->table[0x13]);
         }
         return;
     }
     g_game->hoverUnitId = PickUnitUnderCursor();
     int n = ResolveCursorModeForSelection(g_game->mode_2cc3);
-    if (g_game->selected != n) {
-        g_game->selected = n;
+    if (g_game->cursorMode != n) {
+        g_game->cursorMode = n;
         SetCursorAnimation((Obj_004ab400*)&g_game->gui, g_game->table[n]);
     }
 }
@@ -945,7 +945,7 @@ void __stdcall CloseTopScreen(Gui_00491d70* queue);
 int __stdcall PopUntilNamedLayout(int force)
 {
     unsigned short flags = g_game->flags_37ebe;
-    if (((flags & 0x800) || (flags & 0x65) || (g_game->field_2bee & 0xe0)) && force == 0) {
+    if (((flags & 0x800) || (flags & 0x65) || (g_game->lobbyUiDirtyFlags & 0xe0)) && force == 0) {
         g_game->flags_37ebe = flags | 0x10;
         return 0;
     }

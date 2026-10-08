@@ -170,18 +170,18 @@ struct Game {
     int featureCount;                   // +0x14253
     char unknown_14257[0x1426f - 0x14257];
     union {
-        unsigned char* field_1426f;     // +0x1426f, the terrain bytes
-        Feature* features;              // +0x1426f, the feature names
+        Feature* features;              // +0x1426f, the feature records
+        unsigned char* featureBytes;    // +0x1426f, one record read as bytes
     };
+    // One member, but a union: its type keeps the symbol count CanBuildAt needs.
     union {
-        unsigned short* field_14273;    // +0x14273, one bit per player
-        unsigned short* visibilityMask; // +0x14273
+        unsigned short* visibilityMask; // +0x14273, one bit per player
     };
     char unknown_14277[0x1427f - 0x14277];
     unsigned char seaLevel;             // +0x1427f
     char unknown_14280[0x14281 - 0x14280];
-    unsigned char losFlags;             // +0x14281
-    char unknown_14282[0x14287 - 0x14282];
+    unsigned short mapFlags;            // +0x14281
+    char unknown_14283[0x14287 - 0x14283];
     Cell* cells;                        // +0x14287
     char unknown_1428b[0x1429f - 0x1428b];
     union {
@@ -192,7 +192,7 @@ struct Game {
         };
     };
     char unknown_142ab[0x142b7 - 0x142ab];
-    Owner* defaultOwner;                // +0x142b7
+    Owner* overflowBucket;              // +0x142b7
     char unknown_142bb[0x14357 - 0x142bb];
     Unit* units;                        // +0x14357
     char unknown_1435b[0x38a47 - 0x1435b];
@@ -524,7 +524,7 @@ static inline int IsSeen_0047d2e0(Los_0047d2e0* los, Position_0047d2e0* pos,
     if (!los->explored.size.Contains(tx, ty))
         r = 0;
     else
-        r = (g_game->field_14273[w * ty + tx] & bit) != 0;
+        r = (g_game->visibilityMask[w * ty + tx] & bit) != 0;
     return r;
 }
 
@@ -535,7 +535,7 @@ static inline unsigned short VisWord_0047d2e0(Los_0047d2e0* los, int tx,
 {
     int ty = (pos->z - (hgt->p.hi >> 1)) >> 5;
     unsigned int w = los->explored.size.width;
-    return g_game->field_14273[w * ty + tx];
+    return g_game->visibilityMask[w * ty + tx];
 }
 
 // Blocked_ and Terrain_ stay early-return helpers.
@@ -547,7 +547,7 @@ static int Blocked_0047d2e0(Cell* c)
     if (v < 0xfffb) {
         if ((int)v >= g_game->featureCount)
             return 1;
-        return (g_game->field_1426f[v * 0x100 + 0xfe] >> 6) & 1;
+        return (g_game->featureBytes[v * 0x100 + 0xfe] >> 6) & 1;
     }
     if (v != 0xfffe)
         return 1;
@@ -555,7 +555,7 @@ static int Blocked_0047d2e0(Cell* c)
     unsigned short v2 = ref->field_8;
     if (v2 >= 0xfffb)
         return 0;
-    return (g_game->field_1426f[v2 * 0x100 + 0xfe] >> 6) & 1;
+    return (g_game->featureBytes[v2 * 0x100 + 0xfe] >> 6) & 1;
 }
 
 static unsigned char* Terrain_0047d2e0(
@@ -567,7 +567,7 @@ Cell* c)
     if (v < 0xfffb) {
         if ((int)v >= g_game->featureCount)
             return 0;
-        return g_game->field_1426f + v * 0x100;
+        return g_game->featureBytes + v * 0x100;
     }
     if (v != 0xfffe)
         return 0;
@@ -575,7 +575,7 @@ Cell* c)
     unsigned short v2 = ref->field_8;
     if (v2 >= 0xfffb)
         return 0;
-    return g_game->field_1426f + v2 * 0x100;
+    return g_game->featureBytes + v2 * 0x100;
 }
 
 // FUNCTION: 0x47d2e0
@@ -608,7 +608,7 @@ int __stdcall CanBuildAt(UnitDef* unit, Point cell, short type, Los_0047d2e0* lo
         unsigned int bit = 1 << g_game->player;
         if ((VisWord_0047d2e0(los, x, (Position_0047d2e0*)&pos, &hgt) & bit) == 0)
             return 0;
-        if ((g_game->losFlags & 2) == 2)
+        if ((g_game->mapFlags & 2) == 2)
             ok = IsExplored_0047d2e0(los, (Position_0047d2e0*)&pos, &hgt);
         else
             ok = IsSeen_0047d2e0(los, (Position_0047d2e0*)&pos, &hgt, bit);

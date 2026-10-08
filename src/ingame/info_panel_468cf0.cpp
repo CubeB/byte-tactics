@@ -156,8 +156,8 @@ struct Game {
   char unknown_1428b[0x142f3 - 0x1428b];
   void* followUnit;                     // +0x142f3
   char unknown_142f7[0x1431f - 0x142f7];
-  int scroll_x;                         // +0x1431f
-  int scroll_y;                         // +0x14323
+  int scrollX;                          // +0x1431f
+  int scrollY;                         // +0x14323
   char unknown_14327[0x14357 - 0x14327];
   int units;                            // +0x14357
   char unknown_1435b[0x1435f - 0x1435b];
@@ -363,7 +363,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   ProfileMark(&g_game->prof, 8);
   DrawMapTiles((int)&ctx);
   DrawMapDebugOverlay((int)&ctx);
-  x = g_game->field_2cac - g_game->scroll_x + 0x80;
+  x = g_game->field_2cac - g_game->scrollX + 0x80;
   // Compiler state, not meaning: reading viewY through this char* alias of
   // g_game is what makes MSVC subtract (h >> 1) first, as the original does.
   char *&game = *(char**)&g_game;
@@ -413,7 +413,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   SetFont(*(int *)((char*)g_game + 0x3816b + *(byte *)(*(int *)(player + 0x27) + 0x95) * 0x232));
   SetTextColors(g_game->colors[15], GetTextKeyColor());
   {
-    int vx = g_game->scroll_x / 16, vy = g_game->scroll_y / 16, h, w, x0, y0, skip;
+    int vx = g_game->scrollX / 16, vy = g_game->scrollY / 16, h, w, x0, y0, skip;
     i = 0;
     while (i < mv->rows) {
       mv->cursor[i] = mv->buf + i * mv->stride;
@@ -444,7 +444,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
     k = 0;
     while (k < g_game->count) {
       int unit = g_game->units + *pIdx * 0x118;
-      int row = ((int)*(short *)(unit + 0x74) - g_game->scroll_y) / 16 + 0x10;
+      int row = ((int)*(short *)(unit + 0x74) - g_game->scrollY) / 16 + 0x10;
       if (row >= 0 && row < mv->rows) {
         int **pCur = &mv->cursor[row];
         mv->count[row]++;
@@ -558,8 +558,8 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
       if ((g_game->visualFlagsByte & 1) || *(int *)(unit + 0xac) != 0) {
         char str[2];
         str[1] = 0;
-        x = *(short *)(unit + 0x6c) - g_game->scroll_x + 0x80;
-        y = *(short *)(unit + 0x74) - g_game->scroll_y - (*(short *)(unit + 0x70) >> 1) + 0x20;
+        x = *(short *)(unit + 0x6c) - g_game->scrollX + 0x80;
+        y = *(short *)(unit + 0x74) - g_game->scrollY - (*(short *)(unit + 0x70) >> 1) + 0x20;
         if (g_game->visualFlagsByte & 1) {
           if (*(char *)(*(int *)(unit + 0x96) + 0x146) == (char)idx)
             DrawHitPointBar((int)&ctx, unit, x, y + 10);
@@ -582,10 +582,10 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   // selection box
   if (ShowSelectBox(param_1)) {
     OverlayRect box;
-    int x1 = g_game->boxStartX - g_game->scroll_x + 0x80;
-    int y1 = g_game->boxStartZ - (g_game->boxStartHeight >> 1) - g_game->scroll_y + 0x20;
-    int x2 = g_game->boxEndX - g_game->scroll_x + 0x80;
-    int y2 = g_game->boxEndZ - (g_game->boxEndHeight >> 1) - g_game->scroll_y + 0x20;
+    int x1 = g_game->boxStartX - g_game->scrollX + 0x80;
+    int y1 = g_game->boxStartZ - (g_game->boxStartHeight >> 1) - g_game->scrollY + 0x20;
+    int x2 = g_game->boxEndX - g_game->scrollX + 0x80;
+    int y2 = g_game->boxEndZ - (g_game->boxEndHeight >> 1) - g_game->scrollY + 0x20;
     int ci;
     if (g_game->orderMode == '\x0e')
       ci = ((g_game->inputFlags & 0x40) ? 6 : 0) + 4;

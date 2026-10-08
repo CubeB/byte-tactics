@@ -30,10 +30,9 @@ struct Game {
     char unknown_0[0x14263];
     int rise;                          // +0x14263
     char unknown_14267[0x1431f - 0x14267];
-    short scrollX;                     // +0x1431f
-    char unknown_14321[2];
-    short scrollY;                     // +0x14323
-    char unknown_14325[0x147cf - 0x14325];
+    int scrollX;                       // +0x1431f
+    int scrollY;                       // +0x14323
+    char unknown_14327[0x147cf - 0x14327];
     void* unknown_147cf;               // +0x147cf, the animation
     char unknown_147d3[0x37ecc - 0x147d3];
     int windX;                         // +0x37ecc

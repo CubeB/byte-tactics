@@ -219,7 +219,7 @@ struct Weapon {
 struct Game {
     char unknown_0[0x14357];
     Unit* units;                       // +0x14357
-    Unit* units_end;                   // +0x1435b
+    Unit* unitsEnd;                    // +0x1435b
     char unknown_1435f[0x1439b - 0x1435f];
     UnitDef* unitTypes;                // +0x1439b
     char unknown_1439f[0x37eee - 0x1439f];

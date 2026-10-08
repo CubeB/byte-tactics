@@ -205,7 +205,7 @@ struct Game {
     Cell_00440500* cells;              // +0x14287
     char unknown_1428b[0x14357 - 0x1428b];
     Record_00440af0* units;            // +0x14357
-    Record_00440af0* units_end;        // +0x1435b
+    Record_00440af0* unitsEnd;         // +0x1435b
     char unknown_1435f[0x38a47 - 0x1435f];
     unsigned int ticks;                // +0x38a47
     char unknown_38a4b[0x38d73 - 0x38a4b];
@@ -588,7 +588,7 @@ void MovementClass::RefreshMovedUnits(Object_00440af0* p)
         this->RefreshPassMap(p->a, p->b);
     }
     if (start != old) {
-        for (Record_00440af0* r = &g_game->units[1]; r <= g_game->units_end; r++) {
+        for (Record_00440af0* r = &g_game->units[1]; r <= g_game->unitsEnd; r++) {
             if ((r->flags & 0x10000000) != 0 && r->unit != 0) {
                 unsigned int t = r->unit->lastTick;
                 if (t >= old && t < start) {

@@ -50,7 +50,7 @@ struct Game {
     char pad2[0x141fb - 0x2a44];
     MapInfo info;                      // +0x141fb
     char pad3[0x14281 - (0x141fb + 0x7c)];
-    FlagWord flags;                    // +0x14281
+    FlagWord mapFlags;                 // +0x14281
     char pad4[0x1431f - 0x14283];
     int scrollX;                       // +0x1431f
     int scrollY;                       // +0x14323
@@ -84,7 +84,7 @@ void BuildFogTiles(void)
     for (int y = y0; y < yEnd; y++) {
         for (int x = x0; x < xEnd; x++) {
             if (x < pg->width && y < pg->height) {
-                if (pg->cells[y * pg->width + x] == 0 && (g_game->flags.raw & 2)) {
+                if (pg->cells[y * pg->width + x] == 0 && (g_game->mapFlags.raw & 2)) {
                     if (x - x0 < grid->width && y - y0 < grid->height)
                         grid->cells[(y - y0) * grid->width + x - x0].hi |= 1;
                     if (x - x0 - 1 < grid->width && y - y0 < grid->height)
@@ -110,7 +110,7 @@ void BuildFogTiles(void)
 
     if (y0 < 0) {
         for (unsigned int i = 0; i < grid->width; i++) {
-            if (g_game->flags.bits.bit1) {
+            if (g_game->mapFlags.bits.bit1) {
                 if (grid->cells[i].hi & 4) grid->cells[i].hi |= 1;
                 if (grid->cells[i].hi & 8) grid->cells[i].hi |= 2;
             }
@@ -121,7 +121,7 @@ void BuildFogTiles(void)
 
     if (yEnd > info->height / 2) {
         for (unsigned int i = 0; i < grid->width; i++) {
-            if (g_game->flags.bits.bit1) {
+            if (g_game->mapFlags.bits.bit1) {
                 if (grid->cells[(grid->height - 2) * grid->width + i].hi & 1)
                     grid->cells[(grid->height - 2) * grid->width + i].hi |= 4;
                 if (grid->cells[(grid->height - 2) * grid->width + i].hi & 2)
@@ -136,7 +136,7 @@ void BuildFogTiles(void)
 
     if (x0 < 0) {
         for (unsigned int i = 0; i < grid->height; i++) {
-            if (g_game->flags.bits.bit1) {
+            if (g_game->mapFlags.bits.bit1) {
                 if (grid->cells[i * grid->width].hi & 8)
                     grid->cells[i * grid->width].hi |= 4;
                 if (grid->cells[i * grid->width].hi & 2)
@@ -154,7 +154,7 @@ void BuildFogTiles(void)
         if (grid->height > 0) {
             unsigned int i = 1;
             do {
-                if (g_game->flags.bits.bit1) {
+                if (g_game->mapFlags.bits.bit1) {
                     if (grid->cells[i * grid->width - 2].hi & 4)
                         grid->cells[i * grid->width - 2].hi |= 8;
                     if (grid->cells[i * grid->width - 2].hi & 1)

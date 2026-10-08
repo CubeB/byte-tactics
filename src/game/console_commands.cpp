@@ -183,7 +183,7 @@ struct Game {
     char unknown_14243[0x1427f - 0x14243];
     unsigned char seaLevel;            // +0x1427f
     unsigned char mode;                // +0x14280
-    ViewFlags viewFlags;               // +0x14281
+    ViewFlags mapFlags;                // +0x14281
     char unknown_14283[0x14287 - 0x14283];
     Tile* tiles;                       // +0x14287
     char unknown_1428b[0x1431f - 0x1428b];
@@ -193,14 +193,14 @@ struct Game {
     unsigned char scrollSpeed;         // +0x1434d
     char unknown_1434e[0x14357 - 0x1434e];
     Unit* units;                       // +0x14357
-    Unit* units_end;                   // +0x1435b
+    Unit* unitsEnd;                    // +0x1435b
     char unknown_1435f[0x14371 - 0x1435f];
     unsigned short autoFollowTicks;    // +0x14371
     unsigned int bit0 : 1;             // +0x14373
-    unsigned int paused : 1;
+    unsigned int autoFollow : 1;
     unsigned int rest_14373 : 30;
     char unknown_14377[0x1437b - 0x14377];
-    CMemoryCache* obj;                 // +0x1437b
+    CMemoryCache* unitTable;           // +0x1437b
     char unknown_1437f[0x1438f - 0x1437f];
     int count;                         // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
@@ -617,14 +617,14 @@ void __stdcall CmdFeature(CommandArgs* args)
 void __stdcall CmdShading(int unused)
 {
     g_game->flags.shading = !g_game->flags.shading;
-    g_game->obj->FlushCache();
+    g_game->unitTable->FlushCache();
     SaveSettings();
 }
 
 // FUNCTION: 0x416460
 void __stdcall CmdSelectable(int unused)
 {
-    for (Unit* u = &g_game->units[1]; u <= g_game->units_end; u++) {
+    for (Unit* u = &g_game->units[1]; u <= g_game->unitsEnd; u++) {
         if (u->flags & 0x10000000) {
             u->flags |= 0x20;
         }
@@ -656,7 +656,7 @@ void __stdcall CmdZBuffer(int)
 void __stdcall CmdAntiAlias(int unused)
 {
     g_game->flags.antiAlias = !g_game->flags.antiAlias;
-    g_game->obj->FlushCache();
+    g_game->unitTable->FlushCache();
     SaveSettings();
 }
 
@@ -665,7 +665,7 @@ void __stdcall CmdAntiAlias(int unused)
 void __stdcall CmdShadow(int unused)
 {
     g_game->flags.shadows = !g_game->flags.shadows;
-    g_game->obj->FlushCache();
+    g_game->unitTable->FlushCache();
     SaveSettings();
 }
 
@@ -705,7 +705,7 @@ void __stdcall CmdFShadow(int unused)
 // FUNCTION: 0x416690
 void __stdcall CmdLOSType(int unused)
 {
-    g_game->viewFlags.bit2 = !g_game->viewFlags.bit2;
+    g_game->mapFlags.bit2 = !g_game->mapFlags.bit2;
     RecalculateLineOfSight(0);
 }
 
@@ -713,13 +713,13 @@ void __stdcall CmdLOSType(int unused)
 void __stdcall CmdLight(CommandArgs* args)
 {
     SetLightVector(args->GetIntArg(1, 0), args->GetIntArg(2, 0), args->GetIntArg(3, 0));
-    g_game->obj->FlushCache();
+    g_game->unitTable->FlushCache();
 }
 
 // FUNCTION: 0x416710
 void __stdcall CmdRCache(int unused)
 {
-    g_game->obj->FlushCache();
+    g_game->unitTable->FlushCache();
 }
 
 // FUNCTION: 0x416730
@@ -798,7 +798,7 @@ void __stdcall CmdLogo(CommandArgs* args)
                     int v = args->GetIntArg(1, 0);
                     int j = args->GetIntArg(2, 0);
                     g_game->players[j].data->color = v;
-                    g_game->obj->FlushCache();
+                    g_game->unitTable->FlushCache();
                     return;
                 }
             }
@@ -906,7 +906,7 @@ void __stdcall CmdIFace(void* param_1)
 // FUNCTION: 0x416d50
 void __stdcall CmdLOS(int unused)
 {
-    g_game->viewFlags.bit1 = !g_game->viewFlags.bit1;
+    g_game->mapFlags.bit1 = !g_game->mapFlags.bit1;
     SaveSettings();
     RecalculateLineOfSight(0);
 }
@@ -915,7 +915,7 @@ void __stdcall CmdLOS(int unused)
 // FUNCTION: 0x416d80
 void __stdcall CmdMapping(int unused)
 {
-    g_game->viewFlags.bit0 = !g_game->viewFlags.bit0;
+    g_game->mapFlags.bit0 = !g_game->mapFlags.bit0;
     SaveSettings();
     RecalculateLineOfSight(1);
 }
@@ -1125,11 +1125,11 @@ void __stdcall CmdReloadAIProfiles(int arg1)
 // FUNCTION: 0x4174e0
 void __stdcall CmdBigBrother(int unused)
 {
-    if (g_game->paused) {
-        g_game->paused = 0;
+    if (g_game->autoFollow) {
+        g_game->autoFollow = 0;
         ClearCameraFollowState();
     } else {
-        g_game->paused = 1;
+        g_game->autoFollow = 1;
         g_game->autoFollowTicks = 1;
     }
 }

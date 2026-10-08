@@ -209,7 +209,7 @@ struct Game {
     unsigned char flags_2a44;          // +0x2a44
     char unknown_2a45[0x2bee - 0x2a45];
     union {
-        unsigned short flags_2bee;     // +0x2bee
+        unsigned short lobbyUiDirtyFlags;  // +0x2bee
         Flags16 bits_2bee;
     };
     unsigned char mode_2bf0;           // +0x2bf0
@@ -776,7 +776,7 @@ void OpenTalkDialog()
     }
     if (g_game->flags_37ebe & 0x800)
         return;
-    int multi = (g_game->flags_2bee & 0x100)
+    int multi = (g_game->lobbyUiDirtyFlags & 0x100)
                 && g_game->net->GetGameType() == 3;
     Layer* d = LoadGuiLayer(&g_game->menu,
                             multi ? "TALK2.GUI" : "TALK.GUI",
@@ -917,7 +917,7 @@ void __stdcall OpenUnitInfoDialog(void)
 void __stdcall HandleTabMenuEvent(Menu* gadget)
 {
     if (gadget->current == -1) {
-        g_game->flags_2bee &= 0xff1f;
+        g_game->lobbyUiDirtyFlags &= 0xff1f;
         DisableKeyCommands(gadget);
         return;
     }
@@ -957,7 +957,7 @@ void __stdcall HandleTabMenuEvent(Menu* gadget)
 void __stdcall HandleTabMenuCancel(Menu* gadget)
 {
     if (gadget->current == -1) {
-        g_game->flags_2bee &= 0xff1f;
+        g_game->lobbyUiDirtyFlags &= 0xff1f;
         DisableKeyCommands(&g_game->menu);
         return;
     }
@@ -1224,14 +1224,14 @@ void __stdcall AddCdActivitySample(int param_1)
 void ToggleTabMenu()
 {
     PlaySoundByName("SmallButton", 0);
-    unsigned short f = g_game->flags_2bee;
+    unsigned short f = g_game->lobbyUiDirtyFlags;
     if (f & 0xe0) {
-        g_game->flags_2bee = f & 0xff1f;
+        g_game->lobbyUiDirtyFlags = f & 0xff1f;
         if (IsScreenNamed(&g_game->menu, "TABMENU.GUI"))
             CloseTopScreen(&g_game->menu);
         return;
     }
-    g_game->flags_2bee = (f & 0xff3f) | 0x20;
+    g_game->lobbyUiDirtyFlags = (f & 0xff3f) | 0x20;
     HideSoftwareCursor();
     Layer* d = LoadGuiLayer(&g_game->menu, "TABMENU.GUI", 0x800);
     d->owner = g_game;

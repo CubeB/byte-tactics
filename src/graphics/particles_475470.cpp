@@ -60,12 +60,11 @@ struct Game {
     char unknown_14267[0x14273 - 0x14267];
     unsigned short* visibilityMask;    // +0x14273
     char unknown_14277[0x14281 - 0x14277];
-    unsigned char flags;               // +0x14281
-    char unknown_14282[0x1431f - 0x14282];
-    short scrollX;                     // +0x1431f
-    char unknown_14321[2];
-    short scrollY;                     // +0x14323
-    char unknown_14325[0x147cf - 0x14325];
+    unsigned short mapFlags;           // +0x14281
+    char unknown_14283[0x1431f - 0x14283];
+    int scrollX;                       // +0x1431f
+    int scrollY;                       // +0x14323
+    char unknown_14327[0x147cf - 0x14327];
     void* unknown_147cf;               // +0x147cf, the smoke animation
     void* unknown_147d3;               // +0x147d3, the other smoke animation
     char unknown_147d7[0x37ecc - 0x147d7];
@@ -109,7 +108,7 @@ static inline int IsSeen(Player_00475470* map, Position_00475470* pos)
 
 static inline int IsVisible(Player_00475470* map, Position_00475470* pos)
 {
-    if ((g_game->flags & 2) == 2)
+    if ((g_game->mapFlags & 2) == 2)
         return IsExplored(map, pos);
     return IsSeen(map, pos);
 }

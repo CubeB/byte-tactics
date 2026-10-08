@@ -340,17 +340,17 @@ struct Game {
     int width;                         // +0x14233
     char unknown_14237[0x1426f - 0x14237];
     Feature* features;                 // +0x1426f
-    unsigned short* field_14273;       // +0x14273
+    unsigned short* visibilityMask;    // +0x14273
     char unknown_14277[0x1427f - 0x14277];
     unsigned char seaLevel;            // +0x1427f
     char unknown_14280[0x14281 - 0x14280];
-    unsigned char field_14281;         // +0x14281
-    char unknown_14282[0x1431f - 0x14282];
-    int scroll_x;                      // +0x1431f
-    int scroll_y;                      // +0x14323
+    unsigned short mapFlags;           // +0x14281
+    char unknown_14283[0x1431f - 0x14283];
+    int scrollX;                       // +0x1431f
+    int scrollY;                       // +0x14323
     char unknown_14327[0x14357 - 0x14327];
     Unit* units;                       // +0x14357
-    Unit* units_end;                   // +0x1435b
+    Unit* unitsEnd;                    // +0x1435b
     char unknown_1435f[0x14377 - 0x1435f];
     Object_004cb650** types;           // +0x14377
     char unknown_1437b[0x14383 - 0x1437b];
@@ -1266,9 +1266,9 @@ void __stdcall DrawSelectionBox(Vec3* view, Unit* unit)
         corners[3].y = lo.y;
         corners[3].z = hi.z;
         Vec3 pos;
-        pos.x = unit->x - (g_game->scroll_x << 16);
+        pos.x = unit->x - (g_game->scrollX << 16);
         pos.y = unit->y;
-        pos.z = unit->z - (g_game->scroll_y << 16);
+        pos.z = unit->z - (g_game->scrollY << 16);
         DrawRotatedQuadOutline(view, &pos, corners, (char*)&unit->rot);
     }
 }
@@ -1312,8 +1312,8 @@ void __stdcall DrawMapTileSelectionOutline(void* surface, short* pos, Size_0046b
 {
     unsigned char* colors = (unsigned char*)g_game + 0xdcb;
     int h = GetCellHeight(pos);
-    int y1 = (pos[1] << 4) - g_game->scroll_y;
-    int x1 = ((pos[0] + 8) << 4) - g_game->scroll_x;
+    int y1 = (pos[1] << 4) - g_game->scrollY;
+    int x1 = ((pos[0] + 8) << 4) - g_game->scrollX;
     Rect_0046b9d0 rect;
     rect.x1 = x1;
     rect.y1 = y1 - (h >> 1) + 0x20;

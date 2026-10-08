@@ -269,7 +269,7 @@ struct Game {
     char unknown_14267[0x1427f - 0x14267];
     unsigned char seaLevel;            // +0x1427f
     char unknown_14280[0x142b7 - 0x14280];
-    int field_142b7;                   // +0x142b7
+    int overflowBucket;                // +0x142b7
     char unknown_142bb[0x1438f - 0x142bb];
     int unitTypeCount;                 // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
@@ -1883,7 +1883,7 @@ void UnitMotion::SteerAircraft(Unit* unit) {
     Vec3 da = unit->pos - a;
     Vec3 db = velocity - b;
 
-    if (unit->spatialBucket != g_game->field_142b7) {
+    if (unit->spatialBucket != g_game->overflowBucket) {
         int lim;
         if ((speed & -4) < 0x40000)
             lim = 0x10000;

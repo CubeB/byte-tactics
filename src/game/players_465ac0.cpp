@@ -6,7 +6,7 @@
 // position plus the def's offsets, bails out when the position is below the
 // game-wide limit, and then asks "is this point visible" four times: at p, at
 // p + (def->f176,0,0), at p + (f176,-f17a,f17e), and finally at p again. The
-// first three go through IsPointVisible unless the player's flags say to use the
+// first three go through IsPointVisible unless the player's map flags say to use the
 // explored byte map instead; the fourth inlines the shared visibility bit mask.
 #pragma pack(push, 1)
 struct MapSize_00465ac0 {
@@ -31,7 +31,7 @@ struct Game {
     char unknown_14277[0x1427f - 0x14277];
     unsigned char limitY;                // +0x1427f
     char debugMode;
-    unsigned char flags;                 // +0x14281
+    unsigned short mapFlags;             // +0x14281
 };
 struct UnitDef_00465ac0 {
     char unknown_0[0x15e];
@@ -76,7 +76,7 @@ extern Game* g_game;
 
 int __stdcall IsPointVisible(Map_00465ac0* map, Position_00465ac0* pos);
 
-// the player's explored byte map, inlined where the game flags ask for it
+// the player's explored byte map, inlined where the game map flags ask for it
 static inline int IsExplored(Map_00465ac0* map, Position_00465ac0* pos)
 {
     int tx = pos->x >> 5;
@@ -112,11 +112,11 @@ static inline int IsExplored2(Map_00465ac0* map, Position_00465ac0* pos)
 // IsVisible and IsVisible2 stay single ternaries, not an if with two returns.
 static inline int IsVisible(Map_00465ac0* map, Position_00465ac0* pos)
 {
-    return (g_game->flags & 2) == 2 ? IsExplored(map, pos) : IsPointVisible(map, pos);
+    return (g_game->mapFlags & 2) == 2 ? IsExplored(map, pos) : IsPointVisible(map, pos);
 }
 static inline int IsVisible2(Map_00465ac0* map, Position_00465ac0* pos)
 {
-    return (g_game->flags & 2) == 2 ? IsExplored2(map, pos) : IsPointVisible(map, pos);
+    return (g_game->mapFlags & 2) == 2 ? IsExplored2(map, pos) : IsPointVisible(map, pos);
 }
 // Branchy shape stays: lets nothing range-track the value.
 static inline int IsExplored3(Map_00465ac0* map, Position_00465ac0* pos)
@@ -135,7 +135,7 @@ static inline int IsExplored3(Map_00465ac0* map, Position_00465ac0* pos)
 // Stays an if: gives the normalisation on all four exits.
 static inline int IsVisible3(Map_00465ac0* map, Position_00465ac0* pos)
 {
-    if ((g_game->flags & 2) == 2)
+    if ((g_game->mapFlags & 2) == 2)
         return IsExplored3(map, pos);
     return IsSeen(map, pos);
 }

@@ -193,11 +193,8 @@ struct Game {
         int featureCount;
     };
     char unknown_14257[0x1426f - 0x14257];
-    union {
-        char* units; // +0x1426f
-        struct Feature_0043e490* features;
-    };
-    unsigned short* visibility; // +0x14273
+    struct Feature_0043e490* features; // +0x1426f
+    unsigned short* visibilityMask; // +0x14273
     char unknown_14277[0x1427f - 0x14277];
     unsigned char threshold; // +0x1427f
     char unknown_14280[0x37efa - 0x14280];
@@ -338,7 +335,7 @@ static inline int Visible(Unit_0043e490* unit, Pos_0043e490* pos) {
     x = pos->x >> 5;
     y = (pos->z - (pos->y >> 1)) >> 5;
     return (unsigned int)x < p->size.width && (unsigned int)y < p->size.height &&
-           0 != ((1 << g_game->localPlayerBit) & g_game->visibility[x + y * unit->player->size.width]);
+           0 != ((1 << g_game->localPlayerBit) & g_game->visibilityMask[x + y * unit->player->size.width]);
 }
 
 // The feature on a map cell, as GetFeature in 0x4237d0.cpp but with the id in
@@ -510,7 +507,7 @@ static inline int Visible(Unit_0043f0e0* unit, Pos_0043f0e0* pos) {
     int x = pos->x >> 5;
     int y = (pos->z - (pos->y >> 1)) >> 5;
     return (unsigned int)x < p->size.width && (unsigned int)y < p->size.height &&
-           0 != ((1 << g_game->localPlayerBit) & g_game->visibility[x + y * unit->player->size.width]);
+           0 != ((1 << g_game->localPlayerBit) & g_game->visibilityMask[x + y * unit->player->size.width]);
 }
 
 #define FEATURE_CHECK(def, unit, pos, mask, result)                                            \
@@ -529,14 +526,14 @@ static inline Thing_0043f0e0* Lookup(Pos_0043f0e0* pos) {
     if (id < 0xfffb) {
         if (id >= g_game->unitCount)
             return 0;
-        return (Thing_0043f0e0*)(g_game->units + (id << 8));
+        return (Thing_0043f0e0*)((char*)g_game->features + (id << 8));
     }
     if (id != 0xfffe)
         return 0;
     id = (cell - (cell->offsetY * g_game->mapWidth + cell->offsetX))->feature;
     if (id >= 0xfffb)
         return 0;
-    return (Thing_0043f0e0*)(g_game->units + (id << 8));
+    return (Thing_0043f0e0*)((char*)g_game->features + (id << 8));
 }
 
 // FUNCTION: 0x43f0e0

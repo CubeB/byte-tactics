@@ -32,7 +32,7 @@ struct Game {
     int width;                         // +0x14233
     int height;                        // +0x14237
     char unknown_1423b[0x1426f - 0x1423b];
-    unsigned char* mapping;            // +0x1426f
+    unsigned char* features;           // +0x1426f
     char unknown_14273[0x14287 - 0x14273];
     Cell_004851c0* cells;              // +0x14287
     char unknown_1428b[0x14357 - 0x1428b];
@@ -78,7 +78,7 @@ int __stdcall FindHighestPointOnLine(Vec3_004851c0 a, Vec3_004851c0 b)
     for (int i = 0; i <= n; i++) {
         Cell_004851c0* c = GetCell(a.x / 0x100000, a.z / 0x100000);
         if (c) {
-            short v = g_game->mapping[c->feature * 256 + 0xfa] + c->height;
+            short v = g_game->features[c->feature * 256 + 0xfa] + c->height;
             if (best < v) best = v;
             if (c->unit) {
                 short w = (g_game->units[c->unit].type->modelMaxY + g_game->units[c->unit].y) >> 16;

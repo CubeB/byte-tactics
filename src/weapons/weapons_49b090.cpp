@@ -16,7 +16,7 @@
 // Original bug: 0x49b2c8 to 0x49b2d6 range-checks the map-feature id against
 // g_game+0x14253, but the 0xfffe reload path at 0x49b2e7 to 0x49b30f re-tests
 // only against 0xfffb and skips the count check, so a feature id read from the
-// neighbouring cell indexes g_game->mapping unchecked.
+// neighbouring cell indexes g_game->features unchecked.
 
 // Only <stdio.h>: no other header set gives the feature block the original's
 // register plan. Nothing here is used from it.
@@ -44,7 +44,7 @@ struct Cell_0049b090 {
     unsigned char unknown_c;          // +0xc
 };
 
-// The mapping is an array of these, indexed as `mapping[f * 256]`.
+// The feature records are an array of these, indexed as `features[f * 256]`.
 struct MapFeature_0049b090 {
     char unknown_0[0xfa];
     unsigned char height;             // +0xfa
@@ -138,7 +138,7 @@ struct Game {
     char unknown_14237[0x14253 - 0x14237];
     int featureCount;                  // +0x14253
     char unknown_14257[0x1426f - 0x14257];
-    MapFeature_0049b090* mapping;      // +0x1426f
+    MapFeature_0049b090* features;     // +0x1426f
     char unknown_14273[0x1427f - 0x14273];
     unsigned char limit;               // +0x1427f
     char unknown_14280[0x142f7 - 0x14280];
@@ -215,19 +215,19 @@ void __stdcall CheckProjectileCollision(ProjType_0049b090* type, Proj_0049b090* 
         // The `!(f == 0xfffe)` chain shape sets the block order.
         if (f < 0xfffb) {
             if (f < g_game->featureCount)
-                mf = g_game->mapping + f;
+                mf = g_game->features + f;
             else
                 mf = 0;
         } else if (!(f == 0xfffe)) {
             mf = 0;
         } else {
-            // This index spelling and `unsigned short f2` merge the mapping tails.
+            // This index spelling and `unsigned short f2` merge the feature tails.
             int n = cell->offX + g_game->width * cell->offY;
             unsigned short f2 = (cell - n)->feature;
             if (f2 >= 0xfffb) {
                 mf = 0;
             } else {
-                mf = g_game->mapping + f2;
+                mf = g_game->features + f2;
             }
         }
         if (mf) {

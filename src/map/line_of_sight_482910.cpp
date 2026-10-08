@@ -3,7 +3,7 @@
 // Appends a new "eyeball" record to the array at g_game + 0x1427b (the same
 // record type as 0x482130), then runs the same inlined processing tail as
 // 0x482ac0 / 0x482830. The tail is the body of 0x482830 inlined on the new
-// record, so the flags & 2 test appears twice.
+// record, so the map-flags & 2 test appears twice.
 
 struct Vec3_482910 {
     int x;
@@ -51,8 +51,8 @@ struct Game {
     Eye_482910* eyes;                  // +0x1427b
     unsigned char seaLevel;            // +0x1427f
     char debugMode;
-    unsigned char flags;               // +0x14281
-    char unknown_14282[0x1485b - 0x14282];
+    unsigned short mapFlags;           // +0x14281
+    char unknown_14283[0x1485b - 0x14283];
     Table_482910* losTable;            // +0x1485b
     char unknown_1485f[0x38a47 - 0x1485f];
     unsigned int ticks;                // +0x38a47
@@ -70,7 +70,7 @@ GafFrame* __stdcall GetGafFrame(unsigned short* table, int index);
 // Plain int parameters: a char or unsigned char one changes the stack frame.
 void __stdcall AddEyeball(Vec3_482910* src, int a, int b, int c)
 {
-    if ((g_game->flags & 2) == 2 && g_game->count < 0x14) {
+    if ((g_game->mapFlags & 2) == 2 && g_game->count < 0x14) {
         Eye_482910* e = &g_game->eyes[g_game->count];
         e->player = (char*)g_game + g_game->playerIndex * 0x14b + 0x1b63;
         // Assigned before screen: &e->screenPos would clobber ecx, which holds g_game.
@@ -84,9 +84,9 @@ void __stdcall AddEyeball(Vec3_482910* src, int a, int b, int c)
             e->pos.y = minY;
         }
         e->expires = g_game->ticks + c;
-        if ((g_game->flags & 2) == 2) {
+        if ((g_game->mapFlags & 2) == 2) {
             *e->flagPtr = 0;
-            if ((g_game->flags & 4) == 4) {
+            if ((g_game->mapFlags & 4) == 4) {
                 UpdateLineOfSight(e);
             } else {
                 int lod = e->x / 32 - 5;

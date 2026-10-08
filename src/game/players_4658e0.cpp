@@ -2,7 +2,7 @@
 // Is point (x, y) or point (x+dx, y+dy) visible to the local player?  The
 // 12-byte Position local (6 shorts, x/y/z among them) is zeroed with an
 // inlined memset and then filled from the arguments. When bit 1 of the game
-// flags word at g_game+0x14281 is set the player's explored byte map at +0x7c
+// map flags word at g_game+0x14281 is set the player's explored byte map at +0x7c
 // (width +0x80, height +0x84) is used, otherwise the shared visibility bit
 // mask at +0x14273 with this player's bit (g_game+0x2a43).
 #include <memory.h>
@@ -27,7 +27,7 @@ struct Game {
     char unknown_2a44[0x14273 - 0x2a44];
     unsigned short* visibilityMask;
     char unknown_14277[0x14281 - 0x14277];
-    unsigned short flags;
+    unsigned short mapFlags;
 };
 #pragma pack(pop)
 extern Game* g_game;
@@ -69,7 +69,7 @@ int __stdcall IsFootprintVisible(Map_004658e0* map, int x, int y, int dx, int dy
     pos.x = (short)(x << 4);
     pos.y = size;
     pos.z = (short)(y << 4);
-    if ((g_game->flags & 2) == 2)
+    if ((g_game->mapFlags & 2) == 2)
         vis = IsExplored(m, &pos);
     else
         vis = IsSeen(m, &pos);
@@ -77,7 +77,7 @@ int __stdcall IsFootprintVisible(Map_004658e0* map, int x, int y, int dx, int dy
         return 1;
     pos.x = (short)(pos.x + (dx << 4));
     pos.z = (short)(pos.z + (dy << 4));
-    if ((g_game->flags & 2) == 2)
+    if ((g_game->mapFlags & 2) == 2)
         return IsExplored(m, &pos);
     return IsSeen(m, &pos);
 }

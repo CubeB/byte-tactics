@@ -198,7 +198,7 @@ struct Game {
     char frontendSubstate;             // +0x2bbf
     char frontendSubstateRequest;      // +0x2bc0
     char unknown_2bc1[0x2bee - 0x2bc1];
-    Bits_00426e80 field_2bee;          // +0x2bee
+    Bits_00426e80 lobbyUiDirtyFlags;   // +0x2bee
     unsigned char chatMode;            // +0x2bf0
     char unknown_2bf1[0x2c7e - 0x2bf1];
     int cursorKeyFlags;                // +0x2c7e
@@ -1144,14 +1144,14 @@ void RunFrontendStateMachine(void)
         case 0:
             if (InitLobbiedConnection()) {
                 g_game->flags.b0 = 1;
-                g_game->field_2bee.b4 = 1;
+                g_game->lobbyUiDirtyFlags.b4 = 1;
                 SetState(0x10, 0x403, g_frontendSourceFile);
                 SetSubState(0x12, 0x404, g_frontendSourceFile);
                 SetCursorOverlayEnabled(1);
                 return;
             }
             SetMissionType(0);
-            g_game->field_2bee.b4 = 0;
+            g_game->lobbyUiDirtyFlags.b4 = 0;
             OpenMainMenu();
             if (DAT_00512c80 == 0) {
                 SetSubState(1, 0x40d, g_frontendSourceFile);
@@ -1557,7 +1557,7 @@ void RunFrontendStateMachine(void)
             DeleteUnitSync();
             ReportGameEvent(8);
             ShutdownScoreTables();
-            if (g_game->field_2bee.b4) {
+            if (g_game->lobbyUiDirtyFlags.b4) {
                 LeaveNetGame();
                 return;
             }

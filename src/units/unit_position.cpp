@@ -230,7 +230,7 @@ struct Game {
     Unit* units;                       // +0x14357
     char unknown_1435b[0x14371 - 0x1435b];
     short f14371;                      // +0x14371
-    F14373 f14373;                     // +0x14373
+    F14373 autoFollowFlags;            // +0x14373
     char unknown_14377[0x14393 - 0x14377];
     int unitDefCountBits;              // +0x14393, bit count for the type index
     char unknown_14397[0x37ee6 - 0x14397];
@@ -649,7 +649,7 @@ void __stdcall UpdateAllUnits(void)
                 }
             }
         }
-    if (g_game->f14373.bits.b1) {
+    if (g_game->autoFollowFlags.bits.b1) {
         if (!IsKeyDown(0xf9)) {
             g_game->f14371--;
             if (g_game->f14371 <= 0) {

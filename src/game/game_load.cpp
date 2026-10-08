@@ -278,8 +278,8 @@ struct Game {
     union { short screen_w; short screenW; };    // +0x142eb
     union { short screen_h; short screenH; };    // +0x142ed
     char unknown_142ef[0x1431f - 0x142ef];
-    int mapOriginX;                     // +0x1431f
-    int mapOriginY;                     // +0x14323
+    int scrollX;                        // +0x1431f
+    int scrollY;                        // +0x14323
     char unknown_14327[0x148cf - 0x14327];
     int cursorHourglass;                // +0x148cf
     char unknown_148d3[0x37e1b - 0x148d3];
@@ -1144,8 +1144,8 @@ void __stdcall UpdateCursorWorldPos(View_00498da0* r)
         g_game->flags.value &= ~2;
     } else {
         Rect_00498da0* lim = &g_game->lim;
-        mx = g_game->mapOriginX + MIN(MAX(r->x, lim->left), lim->right) - lim->left;
-        my = g_game->mapOriginY + MIN(MAX(r->y, lim->top), lim->bottom) - lim->top;
+        mx = g_game->scrollX + MIN(MAX(r->x, lim->left), lim->right) - lim->left;
+        my = g_game->scrollY + MIN(MAX(r->y, lim->top), lim->bottom) - lim->top;
         g_game->flags.value &= ~1;
         g_game->flags.bits.b1 = PointInRect(lim, r->x, r->y);
     }

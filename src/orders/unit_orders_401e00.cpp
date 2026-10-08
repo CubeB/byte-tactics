@@ -62,7 +62,7 @@ struct Order_00401e00 {
 struct Game {
     char unknown_0[0x14357];
     Unit* units;                       // +0x14357
-    Unit* units_end;                   // +0x1435b
+    Unit* unitsEnd;                    // +0x1435b
 };
 #pragma pack(pop)
 
@@ -87,7 +87,7 @@ int __stdcall AttackUTypeOrder(Unit* unit, Order_00401e00* order, int unused)
     case 1: {
         Unit* best = 0;
         int bestDist = 0x7fffffff;
-        for (Unit* u = g_game->units + 1; u <= g_game->units_end; u++) {
+        for (Unit* u = g_game->units + 1; u <= g_game->unitsEnd; u++) {
             if (u->id == order->id && unit->owner->allied[u->owner->index] == 0) {
                 int dz = u->z - unit->z;
                 int dx = u->x - unit->x;

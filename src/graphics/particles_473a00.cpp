@@ -65,7 +65,7 @@ struct Game {
     char unknown_2a44[0x14273 - 0x2a44];
     unsigned short* visibilityMask;  // +0x14273
     char unknown_14277[0x14281 - 0x14277];
-    unsigned char flags;             // +0x14281, bit 1 (mask 2)
+    unsigned short mapFlags;         // +0x14281, bit 1 (mask 2)
 };
 
 extern Game* g_game;
@@ -120,7 +120,7 @@ void NanoParticle::DrawParticle(int param_1, short x, short y)
     Player_00473a00* p = &g_game->players[g_game->playerIndex];
     Player_00473a00* q = &g_game->players[g_game->playerIndex];
     int visible;
-    if ((g_game->flags & 2) == 2) {
+    if ((g_game->mapFlags & 2) == 2) {
         int col = posw.x >> 5;
         int row = (posw.y - (posw.height >> 1)) >> 5;
         visible = p->explored.size.Contains((unsigned int)col, (unsigned int)row) &&

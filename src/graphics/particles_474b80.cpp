@@ -55,8 +55,8 @@ struct Game {
     char unknown_14267[0x14273 - 0x14267];
     unsigned short* visibilityMask;// +0x14273
     char unknown_14277[0x14281 - 0x14277];
-    unsigned char fogFlags;        // +0x14281
-    char unknown_14282[0x37ecc - 0x14282];
+    unsigned short mapFlags;       // +0x14281
+    char unknown_14283[0x37ecc - 0x14283];
     int windX;                     // +0x37ecc
     char unknown_37ed0[0x37ed4 - 0x37ed0];
     int windZ;                     // +0x37ed4
@@ -115,7 +115,7 @@ void SmokeParticle::DrawParticle(void* dest, short px, short py)
     // two width loads.
     Player_00474b80* p2 = &g_game->players[g_game->playerIndex];
     int visible;
-    if ((g_game->fogFlags & 2) == 2) {
+    if ((g_game->mapFlags & 2) == 2) {
         int col = posw.x >> 5;
         int row = (posw.y - (posw.h >> 1)) >> 5;
         // Fog map read through Get(): keeps the fog pointer in a register.

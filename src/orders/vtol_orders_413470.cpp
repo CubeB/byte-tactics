@@ -75,7 +75,7 @@ struct Order {
 };
 struct Game {
     char pad0[0x1422b]; int width; int height;
-    char pad14233[0x142b7 - 0x14233]; int field_142b7;
+    char pad14233[0x142b7 - 0x14233]; int overflowBucket;
 };
 class Class_0044e2d0 {
 public:
@@ -164,7 +164,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
             AppendOrderToTail(unit, new Class_0043a1f0("VTOL_SEEKATTACK", 0, &unit->pos, 0, 0, 0));
         return 5;
     }
-    if (unit->spatialBucket == g_game->field_142b7) {
+    if (unit->spatialBucket == g_game->overflowBucket) {
         Vec3 centre;
         centre.x = g_game->width / 2 << 16;
         centre.z = g_game->height / 2 << 16;

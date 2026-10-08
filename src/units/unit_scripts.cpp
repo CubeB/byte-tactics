@@ -47,7 +47,7 @@ struct Game {
     int featureCount; // +0x14253
     char unknown_14257[0x1426f - 0x14257];
     Feature_0043e490* features;        // +0x1426f
-    unsigned short* visibility;        // +0x14273
+    unsigned short* visibilityMask;    // +0x14273
     char unknown_14277[0x1427f - 0x14277];
     unsigned char seaLevel;            // +0x1427f
     char unknown_14280[0x37efa - 0x14280];
@@ -535,7 +535,7 @@ static inline int Visible(Unit_0043e490* unit, Pos_0043e490* pos) {
     x = pos->x >> 5;
     y = (pos->z - (pos->y >> 1)) >> 5;
     return (unsigned int)x < p->size.width && (unsigned int)y < p->size.height &&
-           0 != ((1 << g_game->localPlayerBit) & g_game->visibility[x + y * unit->player->size.width]);
+           0 != ((1 << g_game->localPlayerBit) & g_game->visibilityMask[x + y * unit->player->size.width]);
 }
 
 // The feature on a map cell, as GetFeature in 0x4237d0.cpp but with the id in

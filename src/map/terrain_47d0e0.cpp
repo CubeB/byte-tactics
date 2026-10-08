@@ -52,7 +52,7 @@ struct Game {
     char unknown_14237[0x14287 - 0x14237];
     Cell_0047db20* cells;
     char unknown_1428b[0x142b7 - 0x1428b];
-    int field_142b7;
+    int overflowBucket;
 };
 
 class ClaimFootprintVisitor {
@@ -80,7 +80,7 @@ static inline Cell_0047db20* CellAt(const Point& p)
 // FUNCTION: 0x47d0e0
 void __stdcall RemoveUnitFromMap(Obj_0047db20* obj)
 {
-    if (obj->spatialBucket != g_game->field_142b7) {
+    if (obj->spatialBucket != g_game->overflowBucket) {
         Point size = obj->size;
         Cell_0047db20* cell = CellAt(obj->pos);
         int index = 0;

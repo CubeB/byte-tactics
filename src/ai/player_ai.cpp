@@ -85,7 +85,7 @@ struct Game {
     Feature* features;                 // +0x1426f
     char unknown_14273[0x14357 - 0x14273];
     Unit* units;                       // +0x14357
-    Unit* end;                         // +0x1435b
+    Unit* unitsEnd;                    // +0x1435b
     char unknown_1435f[0x1438f - 0x1435f];
     int count;                         // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
@@ -198,7 +198,7 @@ void PlayerAI::RefreshUnitLists()
     builders=0; hasSpecial=0;
     struct { float x,y,z,total; } sum={0,0,0,0};
     std::fill(counts.begin(),counts.end(),(short)0);
-    for(Unit* u=g_game->units+1;u<=g_game->end;++u) {
+    for(Unit* u=g_game->units+1;u<=g_game->unitsEnd;++u) {
         if(u->Ready()) {
             if(!owner->IsAllied(u->PlayerIndex())) {
                 if(IsUnitVisibleToPlayer(owner,u) && !(u->flags&0x8000)) visible.push_back(u);

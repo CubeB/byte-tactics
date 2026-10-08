@@ -1,6 +1,6 @@
 // Decompiled by Opus and space-bunny-free. Names are provisional.
 // The map's saved plot maps: the metal byte, the player-feature nibble and the
-// mapping buffer, read from and written to a chunked HapiBank file.
+// visibility-mask buffer, read from and written to a chunked HapiBank file.
 
 // Both includes stay: they decide whether width or height is loaded first in
 // each multiply.
@@ -32,7 +32,7 @@ struct Game {
     int width;                          // +0x14233
     int height;                         // +0x14237
     char unknown_1423b[0x14273 - 0x1423b];
-    void* mapping;                      // +0x14273
+    void* visibilityMask;               // +0x14273
     char unknown_14277[0x14287 - 0x14277];
     Cell* cells;                        // +0x14287
 };
@@ -129,7 +129,7 @@ void __stdcall LoadPlayerFeaturesPlotmap(HapiBank* file)
     }
 }
 
-// Writes the "Mapping" "Data" chunk from the map's mapping buffer; the
+// Writes the "Mapping" "Data" chunk from the map's visibility-mask buffer; the
 // reading counterpart is 0x484fa0.
 // FUNCTION: 0x484f50
 void __stdcall SaveMappingData(HapiBank* file)
@@ -137,16 +137,16 @@ void __stdcall SaveMappingData(HapiBank* file)
     file->OpenAccount("Mapping");
     unsigned int size = g_game->width * g_game->height * sizeof(short) / 4;
     file->OpenNamedBox("Data");
-    file->WriteBox(g_game->mapping, size);
+    file->WriteBox(g_game->visibilityMask, size);
 }
 
-// Reads the "Mapping" "Data" chunk into the map's mapping buffer.
+// Reads the "Mapping" "Data" chunk into the map's visibility-mask buffer.
 // FUNCTION: 0x484fa0
 void __stdcall LoadMappingData(HapiBank* file)
 {
     if (file->OpenAccount("Mapping") && file->OpenNamedBox("Data")) {
         unsigned int size = g_game->width * g_game->height * sizeof(short) / 4;
         if (file->GetBoxSize() == size)
-            file->ReadBox(g_game->mapping, size);
+            file->ReadBox(g_game->visibilityMask, size);
     }
 }

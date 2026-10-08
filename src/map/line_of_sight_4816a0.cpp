@@ -88,12 +88,12 @@ struct Game {
     char unknown_14277[0x1427f - 0x14277];
     unsigned char seaLevel;            // +0x1427f
     unsigned char debugMode;
-    unsigned short flags;              // +0x14281
+    unsigned short mapFlags;           // +0x14281
     char unknown_14283[0x142f1 - 0x14283];
     Flags_142f1_004816a0 viewDirtyFlags;  // +0x142f1
     char unknown_142f2[0x14356 - 0x142f2];
     Unit* units;                       // +0x14357
-    Unit* units_end;                   // +0x1435b
+    Unit* unitsEnd;                    // +0x1435b
     char unknown_1435f[0x1485b - 0x1435f];
     Cell_004816a0* losTable;           // +0x1485b
 };
@@ -112,7 +112,7 @@ void DrawRadarUnits();
 void __stdcall RecalculateLineOfSight(int arg)
 {
     if (arg != 0) {
-        memset(g_game->visibilityMask, (g_game->flags & 1) ? 0 : 0xFFFF,
+        memset(g_game->visibilityMask, (g_game->mapFlags & 1) ? 0 : 0xFFFF,
                g_game->width * g_game->height * sizeof(short) / 4);
     }
     for (unsigned char i = 0; i < 10; i++) {
@@ -121,9 +121,9 @@ void __stdcall RecalculateLineOfSight(int arg)
         if (p->active == 0) continue;
         if (p->type != 1 && p->type != 2 && p->type != 3) continue;
         if (p->index == 10) continue;
-        memset(p->seenMap, (unsigned char)~((unsigned char)g_game->flags >> 1) & 1, p->seenCount);
+        memset(p->seenMap, (unsigned char)~((unsigned char)g_game->mapFlags >> 1) & 1, p->seenCount);
     }
-    for (Unit* u = g_game->units + 1; u <= g_game->units_end; u++) {
+    for (Unit* u = g_game->units + 1; u <= g_game->unitsEnd; u++) {
         if (u->id == 0)
             continue;
         Params_004816a0 params;
@@ -135,9 +135,9 @@ void __stdcall RecalculateLineOfSight(int arg)
         params.field_a = u->def->field_170;
         if (params.pos.y < (int)((g_game->seaLevel + 1) << 16))
             params.pos.y = (g_game->seaLevel + 1) << 16;
-        if ((g_game->flags & 2) == 2) {
+        if ((g_game->mapFlags & 2) == 2) {
             *params.field_c = 0;
-            if ((g_game->flags & 4) == 4) {
+            if ((g_game->mapFlags & 4) == 4) {
                 UpdateLineOfSight(&params);
             } else {
                 int i = params.field_8 / 32 - 5;
@@ -164,7 +164,7 @@ void __stdcall RecalculateLineOfSight(int arg)
         }
     }
     g_game->viewDirtyFlags.mapChanged = 1;
-    g_game->flags &= 0xfff7;
+    g_game->mapFlags &= 0xfff7;
     UpdateRadarMapped();
     DrawRadarUnits();
 }

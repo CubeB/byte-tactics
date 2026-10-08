@@ -240,7 +240,7 @@ struct Game {
     unsigned char seaLevel;            // +0x1427f
     unsigned char debugMode;           // +0x14280
     char unknown_14281[0x1437b - 0x14281];
-    CMemoryCache* obj;                 // +0x1437b
+    CMemoryCache* unitTable;           // +0x1437b
     char unknown_1437f[0x37f06 - 0x1437f];
     Flags_37f06 visualFlags;           // +0x37f06
     char unknown_37f08[0x38a47 - 0x37f08];
@@ -1083,9 +1083,9 @@ void __stdcall FreeObjectState(Model_459200* state)
     for (int i = 0; i < state->count; i++) {
         GameFreeThunk(state->pieces[i].points);
     }
-    if (g_game->obj != 0) {
-        g_game->obj->ReleaseHandle((int)&state->bitmap);
-        g_game->obj->ReleaseHandle((int)&state->shadow);
+    if (g_game->unitTable != 0) {
+        g_game->unitTable->ReleaseHandle((int)&state->bitmap);
+        g_game->unitTable->ReleaseHandle((int)&state->shadow);
     }
     GameFreeThunk(state);
 }
@@ -1181,7 +1181,7 @@ void __stdcall DrawUnit(void* context, Unit_459200* unit)
                 }
             }
         }
-        g_game->obj->DrawObjectState(unit->sprites, context);
+        g_game->unitTable->DrawObjectState(unit->sprites, context);
     }
 }
 

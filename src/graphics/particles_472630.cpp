@@ -366,12 +366,11 @@ struct Game {
     char unknown_14277[0x1427f - 0x14277];
     unsigned char seaLevel;            // +0x1427f
     char debugMode;
-    unsigned char flags;               // +0x14281, bit 1 (mask 2)
-    char unknown_14282[0x1431f - 0x14282];
-    short scrollX;                     // +0x1431f
-    char unknown_14321[2];
-    short scrollY;                     // +0x14323
-    char unknown_14325[0x147cf - 0x14325];
+    unsigned short mapFlags;           // +0x14281, bit 1 (mask 2)
+    char unknown_14283[0x1431f - 0x14283];
+    int scrollX;                       // +0x1431f
+    int scrollY;                       // +0x14323
+    char unknown_14327[0x147cf - 0x14327];
     void* unknown_147cf;               // +0x147cf, the smoke animation
     void* unknown_147d3;               // +0x147d3, the other smoke animation
     char unknown_147d7[0x37ecc - 0x147d7];
@@ -463,7 +462,7 @@ struct Pos_004745e0 {
     short y;                        // +8
 
     // Is this record's position inside the explored byte map of the local
-    // player (flags bit 1 set), or inside their bit of the shared visibility
+    // player (map flags bit 1 set), or inside their bit of the shared visibility
     // mask (bit clear)? The two arms keep their own fail block, as the original
     // does.
     int Visible()
@@ -471,7 +470,7 @@ struct Pos_004745e0 {
         Map_004745e0* p = &g_game->players_004745e0[g_game->playerIndex];
         Map_004745e0* p2 = &g_game->players_004745e0[g_game->playerIndex];
         int visible;
-        if ((g_game->flags & 2) == 2) {
+        if ((g_game->mapFlags & 2) == 2) {
             int col = x >> 5;
             int row = (y - (height >> 1)) >> 5;
             if (p->explored.size.Contains(col, row) &&

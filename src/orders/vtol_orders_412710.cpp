@@ -82,7 +82,7 @@ struct Order {
     char pad46[4]; int field_4a;
 };
 struct Game {
-    char pad0[0x142b7]; int field_142b7;
+    char pad0[0x142b7]; int overflowBucket;
 };
 class Class_0044e2d0 {
 public:
@@ -166,7 +166,7 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
     }
     if (order->target)
         order->pos = order->target->pos;
-    if (unit->spatialBucket == g_game->field_142b7) {
+    if (unit->spatialBucket == g_game->overflowBucket) {
         ((Class_00439e80*)order)->SetDeadlineTicks(0x1e);
         order->state = 2;
     }

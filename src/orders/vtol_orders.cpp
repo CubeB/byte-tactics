@@ -225,7 +225,7 @@ struct Game {
     char unknown_14273[0x1427f - 0x14273];
     unsigned char seaLevel;            // +0x1427f
     char unknown_14280[0x142b7 - 0x14280];
-    int water;                         // +0x142b7
+    int overflowBucket;                // +0x142b7
     char unknown_142bb[0x1439b - 0x142bb];
     UnitDef* defs;                     // +0x1439b
     char unknown_1439f[0x38a47 - 0x1439f];
@@ -625,7 +625,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 }
 
 // Order handler that ends a transport (the unit script's "EndTransport").
-// When unit->spatialBucket equals g_game->water the unit heads towards the
+// When unit->spatialBucket equals g_game->overflowBucket the unit heads towards the
 // map centre instead. State 0 prepares the order, state 1 tries the unit's
 // own spot, then twelve random nearby cells snapped to the map grid, then a
 // point circling the order's position; state 2 finishes.
@@ -636,7 +636,7 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
         return 5;
     if (flags & 0x40)
         return 5;
-    if (unit->spatialBucket == g_game->water) {
+    if (unit->spatialBucket == g_game->overflowBucket) {
         Vec3 centre;
         centre.x = g_game->width / 2 << 16;
         centre.z = g_game->height / 2 << 16;

@@ -20,8 +20,8 @@ struct Game {
     int baseX;                          // +0x14223
     int baseY;                          // +0x14227
     char unknown_1422b[0x14281 - 0x1422b];
-    unsigned char flags;                // +0x14281
-    char unknown_14282[0x38a47 - 0x14282];
+    unsigned short mapFlags;            // +0x14281
+    char unknown_14283[0x38a47 - 0x14283];
     int ticks;                          // +0x38a47
 };
 #pragma pack(pop)
@@ -81,7 +81,7 @@ static inline int IsExplored(Player_00408090* player, Position_00408090* pos)
 
 static inline int IsVisible(Player_00408090* player, Position_00408090* pos)
 {
-    if ((g_game->flags & 2) == 2)
+    if ((g_game->mapFlags & 2) == 2)
         return IsExplored(player, pos);
     return IsPointVisible(player, pos);
 }

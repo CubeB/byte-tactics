@@ -580,10 +580,10 @@ struct Game {
     Feature* features;                 // +0x1426f
     unsigned short* visibilityMask;    // +0x14273
     char unknown_7[0x14281 - 0x14277];
-    unsigned char flags;               // +0x14281
-    char unknown_8[0x14357 - 0x14282];
+    unsigned short mapFlags;           // +0x14281
+    char unknown_8[0x14357 - 0x14283];
     Unit* units;                       // +0x14357
-    Unit* end;                         // +0x1435b
+    Unit* unitsEnd;                    // +0x1435b
     char unknown_9[0x1438f - 0x1435f];
     int count;                         // +0x1438f
     char unknown_10[0x1439b - 0x14393];

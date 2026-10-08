@@ -318,13 +318,13 @@ struct Game {
     Eye* eyes;                         // +0x1427b
     unsigned char seaLevel;            // +0x1427f
     unsigned char debugMode;
-    Flags_14281 flags;                 // +0x14281
+    Flags_14281 mapFlags;              // +0x14281
     IconSet* iconSet;                  // +0x14283
     Cell* cells;                       // +0x14287
     unsigned short* mapValues;         // +0x1428b
     Grid grid1;                        // +0x1428f
     Grid2 grid2;                       // +0x1429f
-    Rec* field_142b7;                  // +0x142b7
+    Rec* overflowBucket;               // +0x142b7
     char unknown_142bb[0x142f1 - 0x142bb];
     Flags_142f1 viewDirtyFlags;        // +0x142f1
     char unknown_142f3[0x1431f - 0x142f3];
@@ -332,7 +332,7 @@ struct Game {
     int scrollY;                       // +0x14323
     char unknown_14327[0x14357 - 0x14327];
     Unit* units;                       // +0x14357
-    Unit* units_end;                   // +0x1435b
+    Unit* unitsEnd;                    // +0x1435b
     char unknown_1435f[0x1485b - 0x1435f];
     FrameTable* losTable;              // +0x1485b
     void* black[4];                    // +0x1485f
@@ -585,7 +585,7 @@ void ExpireEyeballs()
 // FUNCTION: 0x4825b0
 void __stdcall UpdateLineOfSight(Params* params)
 {
-    if ((g_game->flags.raw & 4) == 4) {
+    if ((g_game->mapFlags.raw & 4) == 4) {
         int x = ((short*)&params->pos.x)[1] >> 5;
         int v = params->field_a + ((short*)&params->pos.y)[1];
         if (v < 0) {
@@ -598,7 +598,7 @@ void __stdcall UpdateLineOfSight(Params* params)
         int diff = abs((int)*params->field_c - v);
         unsigned char c = *params->field_c;
         if (params->field_4[0] != x || params->field_4[1] != y || diff > 5) {
-            if (c != 0 && (g_game->flags.raw & 2)) {
+            if (c != 0 && (g_game->mapFlags.raw & 2)) {
                 RemoveLineOfSight(params);
             }
             params->field_4[0] = (short)x;
@@ -608,10 +608,10 @@ void __stdcall UpdateLineOfSight(Params* params)
                 return;
             }
             *params->field_c = (unsigned char)v;
-            if ((unsigned char)(g_game->flags.raw >> 1) & 1) {
+            if ((unsigned char)(g_game->mapFlags.raw >> 1) & 1) {
                 AddLineOfSight(params);
             }
-            if (g_game->flags.raw & 1) {
+            if (g_game->mapFlags.raw & 1) {
                 RevealAroundUnit(params);
             }
         }
@@ -630,7 +630,7 @@ void __stdcall UpdateLineOfSight(Params* params)
         cx -= e->xOffset;
         cy -= e->yOffset;
         if (params->field_4[0] != cx || params->field_4[1] != cy || *params->field_c != i) {
-            if ((g_game->flags.raw & 2) == 2) {
+            if ((g_game->mapFlags.raw & 2) == 2) {
                 RemoveLineOfSight(params);
                 params->field_4[0] = (short)cx;
                 params->field_4[1] = (short)cy;
@@ -641,7 +641,7 @@ void __stdcall UpdateLineOfSight(Params* params)
                 params->field_4[1] = (short)cy;
                 *params->field_c = (unsigned char)i;
             }
-            if (g_game->flags.raw & 1) {
+            if (g_game->mapFlags.raw & 1) {
                 RevealAroundUnit(params);
             }
         }
@@ -668,11 +668,11 @@ void __stdcall UpdateUnitLineOfSight(Unit* unit)
 // FUNCTION: 0x482830
 void __stdcall InitUnitSightCircleReveal(Params* params)
 {
-    if ((g_game->flags.rawByte & 2) != 2) {
+    if ((g_game->mapFlags.rawByte & 2) != 2) {
         return;
     }
     *params->field_c = 0;
-    if ((g_game->flags.rawByte & 4) == 4) {
+    if ((g_game->mapFlags.rawByte & 4) == 4) {
         UpdateLineOfSight(params);
         return;
     }
@@ -701,8 +701,8 @@ void __stdcall InitUnitSightCircleReveal(Params* params)
 void BuildDerivedLayers(void)
 {
     Rec* rec = new Rec;
-    g_game->field_142b7 = rec;
-    g_game->field_142b7->flags = 0x1f;
+    g_game->overflowBucket = rec;
+    g_game->overflowBucket->flags = 0x1f;
 
     Grid2* grid2 = &g_game->grid2;
     int b = g_game->baseY * 0x10000;
@@ -1318,8 +1318,8 @@ void FreeMapResources()
     g2->count = 0;
     g2->cells = 0;
 
-    operator delete(g_game->field_142b7);
-    g_game->field_142b7 = 0;
+    operator delete(g_game->overflowBucket);
+    g_game->overflowBucket = 0;
 }
 
 // FUNCTION: 0x483fa0
@@ -1426,9 +1426,9 @@ void __stdcall DrawMapTiles(void* surface)
 // FUNCTION: 0x4848e0
 void __stdcall DrawFogOfWar(void* surface)
 {
-    if (!(g_game->flags.raw & 8)) {
+    if (!(g_game->mapFlags.raw & 8)) {
         BuildFogTiles();
-        g_game->flags.raw |= 8;
+        g_game->mapFlags.raw |= 8;
     }
 
     Grid* grid = g_game->grid;

@@ -247,7 +247,7 @@ struct Game {
     char unknown_1423b[0x1427f - 0x1423b];
     unsigned char seaLevel;            // +0x1427f
     char unknown_14280[0x14281 - 0x14280];
-    unsigned short flags;              // +0x14281
+    unsigned short mapFlags;           // +0x14281
     char unknown_14283[0x142ef - 0x14283];
     short blinkTimer;                  // +0x142ef
     unsigned short blinkOn : 1;        // +0x142f1, bit 0
@@ -1100,8 +1100,8 @@ void __stdcall UpdatePlayers()
                 CountActiveAIPlayers() > 0) {
                 pi->info->b.bit6 = 1;
                 if (bl == g_game->localPlayer) {
-                    g_game->flags &= 0xfffe;
-                    g_game->flags &= 0xfffd;
+                    g_game->mapFlags &= 0xfffe;
+                    g_game->mapFlags &= 0xfffd;
                     RecalculateLineOfSight(1);
                     BroadcastPlayerInfo();
                     if (CountActiveAIPlayers() == 0) {

@@ -448,8 +448,8 @@ struct Game {
     char unknown_14267[0x1427f - 0x14267];
     unsigned char seaLevel;            // +0x1427f
     char debugMode;
-    unsigned char viewFlags;           // +0x14281
-    char unknown_14282[0x142f3 - 0x14282];
+    unsigned short mapFlags;           // +0x14281
+    char unknown_14283[0x142f3 - 0x14283];
     Unit* trackedUnit;                 // +0x142f3
     union {
         Proj_0049c740* trackedProj;    // +0x142f7

@@ -46,8 +46,8 @@ struct Game {
     char unknown_0[0x1427f];
     unsigned char seaLevel;             // +0x1427f
     char debugMode;
-    unsigned char field_14281;          // +0x14281
-    char unknown_14282[0x1485b - 0x14282];
+    unsigned short mapFlags;            // +0x14281
+    char unknown_14283[0x1485b - 0x14283];
     Cell_482ac0* losTable;              // +0x1485b
 };
 #pragma pack(pop)
@@ -85,9 +85,9 @@ void __stdcall RevealNewUnit(Unit* unit)
     if (p.pos.y < min_y) {
         p.pos.y = min_y;
     }
-    if ((g_game->field_14281 & 2) == 2) {
+    if ((g_game->mapFlags & 2) == 2) {
         *p.field_c = 0;
-        if ((g_game->field_14281 & 4) == 4) {
+        if ((g_game->mapFlags & 4) == 4) {
             UpdateLineOfSight(&p);
         } else {
             int i = p.field_8 / 32 - 5;

@@ -387,15 +387,15 @@ struct Game {
     int mapWidth;                      // +0x1422b
     int mapHeight;                     // +0x1422f
     char unknown_14233[0x14281 - 0x14233];
-    unsigned short flags_14281;        // +0x14281
+    unsigned short mapFlags;           // +0x14281
     char unknown_14283[0x142cb - 0x14283];
     char field_142cb[0x142f1 - 0x142cb]; // +0x142cb, the radar viewport rectangle
     CameraFlags flags_142f1;           // +0x142f1
     Unit* followUnit;                  // +0x142f3
     Follow_0041ca10* follow;           // +0x142f7
     char unknown_142fb[0x1431f - 0x142fb];
-    int x;                             // +0x1431f
-    int y;                             // +0x14323
+    int scrollX;                       // +0x1431f
+    int scrollY;                       // +0x14323
     int x2;                            // +0x14327
     int y2;                            // +0x1432b
     int value_1432f;                   // +0x1432f
@@ -1645,15 +1645,15 @@ void ClampCameraPosition()
 {
     int maxX = g_game->mapWidth - g_game->viewWidth;
     int maxY = g_game->mapHeight - g_game->viewHeight;
-    if (g_game->x < 0) {
-        g_game->x = 0;
-    } else if (g_game->x > maxX) {
-        g_game->x = maxX;
+    if (g_game->scrollX < 0) {
+        g_game->scrollX = 0;
+    } else if (g_game->scrollX > maxX) {
+        g_game->scrollX = maxX;
     }
-    if (g_game->y < 0) {
-        g_game->y = 0;
-    } else if (g_game->y > maxY) {
-        g_game->y = maxY;
+    if (g_game->scrollY < 0) {
+        g_game->scrollY = 0;
+    } else if (g_game->scrollY > maxY) {
+        g_game->scrollY = maxY;
     }
     CalcRadarViewportRect(g_game->field_142cb);
 }
@@ -1696,14 +1696,14 @@ void __stdcall SetCameraPosition(int x, int y, int instant)
             g_game->y2 = maxY;
         }
     } else {
-        g_game->x = x;
-        g_game->y = y;
+        g_game->scrollX = x;
+        g_game->scrollY = y;
         g_game->flags_142f1.lo |= 2;
         ClampCameraPosition();
-        g_game->x2 = g_game->x;
-        g_game->y2 = g_game->y;
+        g_game->x2 = g_game->scrollX;
+        g_game->y2 = g_game->scrollY;
     }
-    g_game->flags_14281 &= 0xfff7;
+    g_game->mapFlags &= 0xfff7;
 }
 
 // FUNCTION: 0x41c5e0
@@ -1754,8 +1754,8 @@ void UpdateScreenShake()
             int dy = g_game->sum_y * count / g_game->value_1432f;
             int rx = (int)(((__int64)rand() * dx) / 32768) - dx / 2;
             int ry = (int)(((__int64)rand() * dy) / 32768) - dy / 2;
-            g_game->x += rx;
-            g_game->y += ry;
+            g_game->scrollX += rx;
+            g_game->scrollY += ry;
             g_game->value_14333--;
         } else {
             g_game->flags_1434e &= 0xfe;
@@ -1785,14 +1785,14 @@ void __stdcall CenterCameraOnPoint(int a, int b, int c)
             g_game->y2 = maxY;
         }
     } else {
-        g_game->x = cx;
-        g_game->y = cy;
+        g_game->scrollX = cx;
+        g_game->scrollY = cy;
         g_game->flags_142f1.lo |= 2;
         ClampCameraPosition();
-        g_game->x2 = g_game->x;
-        g_game->y2 = g_game->y;
+        g_game->x2 = g_game->scrollX;
+        g_game->y2 = g_game->scrollY;
     }
-    g_game->flags_14281 &= 0xfff7;
+    g_game->mapFlags &= 0xfff7;
 }
 
 // FUNCTION: 0x41c8e0
@@ -1816,14 +1816,14 @@ void __stdcall CenterCameraOnMapPosition(Vec3* p, int param_2)
             g_game->y2 = maxY;
         }
     } else {
-        g_game->x = cx;
-        g_game->y = cy;
+        g_game->scrollX = cx;
+        g_game->scrollY = cy;
         g_game->flags_142f1.lo |= 2;
         ClampCameraPosition();
-        g_game->x2 = g_game->x;
-        g_game->y2 = g_game->y;
+        g_game->x2 = g_game->scrollX;
+        g_game->y2 = g_game->scrollY;
     }
-    g_game->flags_14281 &= 0xfff7;
+    g_game->mapFlags &= 0xfff7;
 }
 
 // SetTarget/ClampTarget stay helpers: they give the original's load order.
@@ -1892,17 +1892,17 @@ void UpdateCameraFollow()
         SetTarget((short)(p->x >> 16) - g_game->viewWidth / 2,
                   (short)((p->z - (p->y >> 1)) >> 16) - g_game->viewHeight / 2);
         ClampTarget();
-        g_game->flags_14281 &= 0xfff7;
+        g_game->mapFlags &= 0xfff7;
     }
-    if (g_game->x != g_game->x2) {
+    if (g_game->scrollX != g_game->x2) {
         g_game->flags_142f1.raw |= 2;
-        g_game->flags_14281 &= 0xfff7;
-        g_game->x = Approach(g_game->x, g_game->x2);
+        g_game->mapFlags &= 0xfff7;
+        g_game->scrollX = Approach(g_game->scrollX, g_game->x2);
     }
-    if (g_game->y != g_game->y2) {
+    if (g_game->scrollY != g_game->y2) {
         g_game->flags_142f1.raw |= 2;
-        g_game->flags_14281 &= 0xfff7;
-        g_game->y = Approach(g_game->y, g_game->y2);
+        g_game->mapFlags &= 0xfff7;
+        g_game->scrollY = Approach(g_game->scrollY, g_game->y2);
     }
     UpdateScreenShake();
     ClampCameraPosition();
@@ -1918,8 +1918,8 @@ void BeginMouseScroll()
     CursorState* cursor = &g_game->cursor;
     cursor->flag = 1;
     cursor->rect = g_game->view;
-    cursor->savedScroll.x = g_game->x / 16;
-    cursor->savedScroll.y = g_game->y / 16;
+    cursor->savedScroll.x = g_game->scrollX / 16;
+    cursor->savedScroll.y = g_game->scrollY / 16;
     cursor->center.x = GetScreenWidth() / 2;
     cursor->center.y = GetScreenHeight() / 2;
     SetCursorPosition(cursor->center.x, cursor->center.y);
@@ -1942,13 +1942,13 @@ void EndMouseScroll()
 // 0x41d0f0 and 0x41d1f0.
 static inline void ScrollTo(int x, int y)
 {
-    g_game->x = x;
-    g_game->y = y;
+    g_game->scrollX = x;
+    g_game->scrollY = y;
     g_game->flags_142f1.raw |= 2;
     ClampCameraPosition();
-    g_game->x2 = g_game->x;
-    g_game->y2 = g_game->y;
-    g_game->flags_14281 &= 0xfff7;
+    g_game->x2 = g_game->scrollX;
+    g_game->y2 = g_game->scrollY;
+    g_game->mapFlags &= 0xfff7;
 }
 
 // Mouse scrolling: moves the view by a quarter of the mouse offset from the
@@ -1968,8 +1968,8 @@ void UpdateMouseScroll()
     int dy = (r.y - c->center.y) / 4;
     int y = (dy + c->savedScroll.y) * 16;
     ScrollTo(x, y);
-    c->savedScroll.x = g_game->x / 16;
-    c->savedScroll.y = g_game->y / 16;
+    c->savedScroll.x = g_game->scrollX / 16;
+    c->savedScroll.y = g_game->scrollY / 16;
     SetCursorPosition(c->center.x, c->center.y);
     if (!(r.flags & 2)) {
         CursorState* cursor = &g_game->cursor;
@@ -2022,8 +2022,8 @@ void UpdateEdgeScroll()
             mouse.y = h - 1;
     }
     int talk = IsScreenNamed(&g_game->menu, "TALK.GUI");
-    int x = g_game->x;
-    int y = g_game->y;
+    int x = g_game->scrollX;
+    int y = g_game->scrollY;
     if ((IsKeyDown(0xf4) && !talk) || (mouse.x == 0 && mouse.y < g_game->height))
         x -= speed;
     else if ((IsKeyDown(0xf6) && !talk) || mouse.x == g_game->width - 1)
@@ -2032,14 +2032,14 @@ void UpdateEdgeScroll()
         y -= speed;
     else if ((IsKeyDown(0xf7) && !talk) || mouse.y == g_game->height - 1)
         y += speed;
-    if (g_game->x != x || g_game->y != y) {
-        g_game->x = x;
-        g_game->y = y;
+    if (g_game->scrollX != x || g_game->scrollY != y) {
+        g_game->scrollX = x;
+        g_game->scrollY = y;
         g_game->flags_142f1.lo |= 2;
         ClampCameraPosition();
-        g_game->x2 = g_game->x;
-        g_game->y2 = g_game->y;
-        g_game->flags_14281 &= 0xfff7;
+        g_game->x2 = g_game->scrollX;
+        g_game->y2 = g_game->scrollY;
+        g_game->mapFlags &= 0xfff7;
         g_game->value_1434b = 0;
         g_game->followUnit = 0;
         g_game->follow = 0;

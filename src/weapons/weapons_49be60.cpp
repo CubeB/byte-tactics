@@ -2,7 +2,7 @@
 // The projectile render pass: it walks the 300-entry projectile array (count g_game+0x141f3, base
 // g_game+0x141f7, stride 0x6b) and draws every live projectile (counter at
 // +0x60 is 0) that the local player can see, by the shot kind at type+0x10c
-// (0..7). The visibility test mirrors 0x481930/0x482c20: with viewFlags bit 2
+// (0..7). The visibility test mirrors 0x481930/0x482c20: with map-flags bit 2
 // set it reads the player's explored-cell grid (PlayerInfo+0x7c data, +0x80
 // width, +0x84 height), otherwise it calls IsPointVisible.
 //  - Kind 0's two line arms each make both DrawLine calls (colour2, then
@@ -26,8 +26,8 @@
 //   ushort field_e6 +0xe6 (kind 5 animation divisor); byte field_10c +0x10c
 //   shot kind; byte field_10d +0x10d palette index; byte field_10e +0x10e
 //   second palette index; dword flags +0x111 (bit 21 tested in kind 1).
-//   Game: palette bytes +0xdcb; projectiles +0x141f3/+0x141f7; viewFlags byte
-//   +0x14281 bit 2; shorts scrollX +0x1431f, scrollY +0x14323; gaf pointers
+//   Game: palette bytes +0xdcb; projectiles +0x141f3/+0x141f7; map flags word
+//   +0x14281 bit 2; ints scrollX +0x1431f, scrollY +0x14323; gaf pointers
 //   +0x147bb/+0x147bf/+0x147c3/+0x147c7/+0x147cb (kind 4), +0x147f3 (kind 5),
 //   +0x1480f (the shared sprite, frame 0); ptr +0x1ab9b (kind 2);
 //   localPlayer byte +0x2a43; player array base +0x1b63 stride 0x14b;
@@ -122,8 +122,8 @@ struct Game {
     int projectileCount;               // +0x141f3
     Proj_0049be60* projectiles;        // +0x141f7
     char unknown_141fb[0x14281 - 0x141fb];
-    unsigned char viewFlags;           // +0x14281
-    char unknown_14282[0x1431f - 0x14282];
+    unsigned short mapFlags;           // +0x14281
+    char unknown_14283[0x1431f - 0x14283];
     int scrollX;                       // +0x1431f
     int scrollY;                       // +0x14323
     char unknown_14327[0x147bb - 0x14327];
@@ -196,7 +196,7 @@ void __stdcall DrawProjectiles(void* surface)
             unsigned char player = g_game->localPlayer;
             char* pb = (char*)g_game + 0x1b63 + 0x14b * player;
             Vec3_0049be60* pos = &p->pos;
-            if ((g_game->viewFlags & 2) == 2) {
+            if ((g_game->mapFlags & 2) == 2) {
                 int col = (int)*(short*)((char*)pos + 2) >> 5;
                 PlayerInfo_0049be60* pi = (PlayerInfo_0049be60*)pb;
                 int row = ((int)*(short*)((char*)pos + 10)

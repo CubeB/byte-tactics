@@ -86,7 +86,7 @@ struct Game {
     int boxStartTick;                  // +0x2cb6
     unsigned short hoverUnitId;        // +0x2cba
     char unknown_2cbc[0x2cbe - 0x2cbc];
-    signed char selected;              // +0x2cbe
+    signed char cursorMode;            // +0x2cbe
     char unknown_2cbf[0x2cc3 - 0x2cbf];
     unsigned char orderMode;           // +0x2cc3
     char unknown_2cc4[0x2cc6 - 0x2cc4];
@@ -181,11 +181,11 @@ void __stdcall HandleLeftClick(View* param_1)
         }
         return;
     }
-    if (g_game->selected == 0xf) {
+    if (g_game->cursorMode == 0xf) {
         ClickSelectHoverUnit(param_1);
         return;
     }
-    if (g_game->selected >= 0x11) {
+    if (g_game->cursorMode >= 0x11) {
         if (g_game->interfaceType == 1 && g_game->orderMode == 1) {
             ClearSelection();
             PopUntilNamedLayout(1);
@@ -238,8 +238,8 @@ void __stdcall HandleRightClick(View* param_1)
         }
         if (g_game->flags_2cc6 & 1) {
             g_game->flags_2cc6 = g_game->flags_2cc6 | 0x10;
-            if (g_game->selected != 0x13) {
-                g_game->selected = 0x13;
+            if (g_game->cursorMode != 0x13) {
+                g_game->cursorMode = 0x13;
                 SetCursorAnimation((void*)g_game->menu, g_game->table[0x13]);
                 return;
             }
@@ -253,8 +253,8 @@ void __stdcall HandleRightClick(View* param_1)
 
 static inline void SetCursor(int n)
 {
-    if (g_game->selected != n) {
-        g_game->selected = n;
+    if (g_game->cursorMode != n) {
+        g_game->cursorMode = n;
         SetCursorAnimation(g_game->menu, g_game->table[n]);
     }
 }

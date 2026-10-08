@@ -115,8 +115,8 @@ struct Game {
     char unknown_14243[0x14273 - 0x14243];
     unsigned short* visibilityMask;    // +0x14273
     char unknown_14277[0x14281 - 0x14277];
-    unsigned char flags_14281;         // +0x14281
-    char unknown_14282[0x1431f - 0x14282];
+    unsigned short mapFlags;           // +0x14281
+    char unknown_14283[0x1431f - 0x14283];
     int scrollX;                       // +0x1431f
     int scrollY;                       // +0x14323
     char unknown_14327[0x33a0f - 0x14327];
@@ -451,7 +451,7 @@ static inline int MapContains(unsigned int w, unsigned int h, int tx, int ty)
 }
 
 // Plays the sound at soundIds[index] when the position is visible to the local
-// player: explored (fog) map when g_game->flags_14281 has bit 1 set, the shared
+// player: explored (fog) map when g_game->mapFlags has bit 1 set, the shared
 // per-player visibility mask otherwise. Sends the 0x13 packet first when
 // param_3 is set, and picks the near (-585) or far (-1585) variant depending on
 // whether the position is inside the screen rectangle.
@@ -489,7 +489,7 @@ int __stdcall PlaySoundAt(int index, Pos_0047f300* pos, int param_3)
     Player_0047f300* player2 = g_game->Current();
     // vis stays an int (char or bool changes the 1/0 pair); the flag is compared to 2 explicitly.
     int vis;
-    if ((g_game->flags_14281 & 2) == 2) {
+    if ((g_game->mapFlags & 2) == 2) {
         int tx = pos->x >> 5;
         int ty = (pos->z - (pos->y >> 1)) >> 5;
         if (tx < player->exploredWidth && ty < player->exploredHeight

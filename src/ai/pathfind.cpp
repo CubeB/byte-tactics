@@ -269,7 +269,7 @@ struct Game {
     char unknown_1423b[0x14273 - 0x1423b];
     unsigned short* visibilityMask;    // +0x14273, one bit per player
     char unknown_14277[0x1434f - 0x14277];
-    unsigned short slotsPerPlayer;     // +0x1434f
+    unsigned short unitsPerPlayer;     // +0x1434f
 };
 #pragma pack(pop)
 
@@ -1138,7 +1138,7 @@ void Pathfinder::RunSearches()
     if (++g_budgetRefreshCounter >= 150) {
         g_budgetRefreshCounter = 0;
         for (int i = 0; i < 10; i++) {
-            int r = g_playerTickLoad[i] / g_game->slotsPerPlayer;
+            int r = g_playerTickLoad[i] / g_game->unitsPerPlayer;
             if (r < 1)
                 g_playerBudgetCap[i] = baseScale * 6;
             else if (r < 2)

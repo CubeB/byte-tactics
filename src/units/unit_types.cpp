@@ -200,12 +200,14 @@ struct BuildList_0042dcf0 {
     BuildEntry_0042dcf0 entries[5];    // +0x04
 };
 
+class UnitTable;
+
 struct Game {
     char unknown_0[0xc];               // +0x0
     void* displayContext;              // +0xc
     char unknown_10[0x14377 - 0x10];
     void** models;                     // +0x14377
-    void* memoryCache;                 // +0x1437b
+    UnitTable* unitTable;              // +0x1437b
     char unknown_1437f[0x1438f - 0x1437f];
     int unitTypeCount;                 // +0x1438f
     int unitDefCountBits;              // +0x14393
@@ -985,7 +987,7 @@ void LoadUnitTypes() {
     // operator new plus Construct(), not `new`: the symbol table has no constructor here.
     UnitTable* obj = (UnitTable*)operator new(0x14);
     obj = obj ? obj->Construct() : 0;
-    g_game->memoryCache = obj;
+    g_game->unitTable = obj;
 
     int t = g_game->height * g_game->width * 2;
     int v = (int)(t * 1.3);
@@ -1000,7 +1002,7 @@ void LoadUnitTypes() {
             scale = (float)d;
     }
     int size = (int)(v * scale);
-    ((UnitTable*)g_game->memoryCache)->Initialize((size + 0xfff) & 0xfffff000);
+    ((UnitTable*)g_game->unitTable)->Initialize((size + 0xfff) & 0xfffff000);
 
     ProtectBlockReadWrite(g_game->unitDefs);
 
@@ -1210,12 +1212,12 @@ void FreeUnitTypes()
         }
     }
 
-    UnitTable* obj = (UnitTable*)g_game->memoryCache;
+    UnitTable* obj = (UnitTable*)g_game->unitTable;
     if (obj != 0) {
         obj->Destroy();
         delete obj;
     }
-    g_game->memoryCache = 0;
+    g_game->unitTable = 0;
 
     GameFreeThunk(g_game->models);
     GameFreeThunk(g_game->unitDefs);

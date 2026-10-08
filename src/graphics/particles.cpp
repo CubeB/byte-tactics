@@ -925,20 +925,11 @@ struct Game {
     char unknown_14277[0x1427f - 0x14277];
     unsigned char seaLevel;            // +0x1427f
     char debugMode;
-    unsigned char flags;               // +0x14281, bit 1 (mask 2)
-    char unknown_14282[0x1431f - 0x14282];
-    union {
-        short scroll_x;                // +0x1431f, the map scroll
-        short scrollX;
-        short field_1431f;
-    };
-    char unknown_14321[2];
-    union {
-        short scroll_y;                // +0x14323
-        short scrollY;
-        short field_14323;
-    };
-    char unknown_14325[0x147cf - 0x14325];
+    unsigned short mapFlags;           // +0x14281, bit 1 (mask 2)
+    char unknown_14283[0x1431f - 0x14283];
+    int scrollX;                       // +0x1431f, the map scroll
+    int scrollY;                       // +0x14323
+    char unknown_14327[0x147cf - 0x14327];
     void* unknown_147cf;               // +0x147cf, the wake animation
     void* unknown_147d3;               // +0x147d3, the other smoke animation
     char unknown_147d7[0x147f3 - 0x147d7];
@@ -1055,7 +1046,7 @@ inline int Pos_004745e0::Visible()
     Map_004745e0* p = &g_game->players_004745e0[g_game->playerIndex];
     Map_004745e0* p2 = &g_game->players_004745e0[g_game->playerIndex];
     int visible;
-    if ((g_game->flags & 2) == 2) {
+    if ((g_game->mapFlags & 2) == 2) {
         int col = x >> 5;
         int row = (y - (height >> 1)) >> 5;
         if (p->explored.size.Contains(col, row) &&
@@ -1743,7 +1734,7 @@ int TeleportParticles::IsEmitDue()
 void TeleportParticles::Render(int p)
 {
     for (std::vector<TeleportParticle>::iterator it = items.begin(); it != items.end(); ++it) {
-        it->DrawParticle((void*)p, g_game->field_1431f, g_game->field_14323);
+        it->DrawParticle((void*)p, g_game->scrollX, g_game->scrollY);
     }
 }
 
@@ -1792,7 +1783,7 @@ int NanoParticles::IsEmitDue()
 void NanoParticles::Render(int param_1)
 {
     for (std::vector<NanoParticle>::iterator it = items.begin(); it != items.end(); ++it)
-        it->DrawParticle(param_1, g_game->scroll_x, g_game->scroll_y);
+        it->DrawParticle(param_1, g_game->scrollX, g_game->scrollY);
 }
 
 // Slot 3: whether there are no particles.
@@ -1839,7 +1830,7 @@ int ThrustParticles::IsEmitDue()
 void ThrustParticles::Render(int param_1)
 {
     for (std::vector<ThrustParticle>::iterator it = items.begin(); it != items.end(); ++it) {
-        it->DrawParticle((void*)param_1, g_game->scroll_x, g_game->scroll_y);
+        it->DrawParticle((void*)param_1, g_game->scrollX, g_game->scrollY);
     }
 }
 
@@ -1887,7 +1878,7 @@ int WakeParticles::IsEmitDue()
 void WakeParticles::Render(int param_1)
 {
     for (std::vector<WakeParticle>::iterator it = items.begin(); it != items.end(); ++it) {
-        it->DrawParticle((void*)param_1, g_game->scroll_x, g_game->scroll_y);
+        it->DrawParticle((void*)param_1, g_game->scrollX, g_game->scrollY);
     }
 }
 
@@ -1938,7 +1929,7 @@ void TeleportParticle::DrawParticle(void* dest, short px, short py)
     Player_00473590* p = &g_game->players_00473590[g_game->playerIndex];
     Player_00473590* p2 = &g_game->players_00473590[g_game->playerIndex];
     int visible;
-    if ((g_game->flags & 2) == 2) {
+    if ((g_game->mapFlags & 2) == 2) {
         int col = posw.x >> 5;
         int row = (posw.y - (posw.h >> 1)) >> 5;
         // Local free on purpose: the width is re-read and the fog map pointer
@@ -2081,7 +2072,7 @@ void ThrustParticle::DrawParticle(void* dest, short px, short py)
     Player_00473590* p = &g_game->players_00473590[g_game->playerIndex];
     Player_00473590* p2 = &g_game->players_00473590[g_game->playerIndex];
     int visible;
-    if ((g_game->flags & 2) == 2) {
+    if ((g_game->mapFlags & 2) == 2) {
         int col = posw.x >> 5;
         int row = (posw.y - (posw.h >> 1)) >> 5;
         if (p->size.Contains(col, row) &&

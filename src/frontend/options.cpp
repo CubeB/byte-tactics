@@ -289,23 +289,15 @@ struct Game {
     char unknown_2a46[0x2bc0 - 0x2a46];
     unsigned char frontendSubstateRequest;  // +0x2bc0
     char unknown_2bc1[0x2bee - 0x2bc1];
-    Flags_00460680 flags_2bee;         // +0x2bee
+    Flags_00460680 lobbyUiDirtyFlags;  // +0x2bee
     char unknown_2bf0[0x14281 - 0x2bf0];
-    union {
-        struct {
-            unsigned short bit0 : 1;   // +0x14281
-            unsigned short bit1 : 1;
-            unsigned short bit2 : 1;
-            unsigned short rest : 13;
-        } flags14281;
-        Los_0045cf60 los;              // +0x14281
-    };
+    Los_0045cf60 mapFlags;             // +0x14281
     char unknown_14283[0x142f1 - 0x14283];
     unsigned short flags_142f1;        // +0x142f1
     char unknown_142f3[0x1434d - 0x142f3];
     unsigned char scrollSpeed;         // +0x1434d
     char unknown_1434e[0x1437b - 0x1434e];
-    CMemoryCache* ptr_1437b;           // +0x1437b
+    CMemoryCache* unitTable;           // +0x1437b
     char unknown_1437f[0x37e1b - 0x1437f];
     void* screen;                      // +0x37e1b
     char unknown_37e1f[0x37e98 - 0x37e1f];
@@ -1773,8 +1765,8 @@ void LoadSavedSettings()
 void SaveGameSettings()
 {
     memcpy(g_optionsPrefsSnapshot.block, (char*)&g_game->block[0], 0x53);
-    g_optionsPrefsSnapshot.bit0 = g_game->flags14281.bit1;
-    g_optionsPrefsSnapshot.bit1 = g_game->flags14281.bit2;
+    g_optionsPrefsSnapshot.bit0 = g_game->mapFlags.bits.bit1;
+    g_optionsPrefsSnapshot.bit1 = g_game->mapFlags.bits.bit2;
     g_optionsBackupGameSpeed.i = g_game->gameSpeed;
     g_optionsBackupEdgeScroll.i = g_game->scrollSpeed;
     g_optionsBackupLockedTrack = g_game->sound->GetLockedTrack();
@@ -2198,7 +2190,7 @@ void __stdcall HandleVisualOptionsClick(Gui_0045e100* gui)
         PlaySoundByName("Options", 0);
         g_game->flags_37f06.bits.b1 = GetButtonStageByName(gui, "ANTI") & 1;
         if (g_game->flags_37ebe.bits.b0)
-            g_game->ptr_1437b->FlushCache();
+            g_game->unitTable->FlushCache();
         MarkChanged(gui);
         ClearSelectedGadget(gui);
         return;
@@ -2210,7 +2202,7 @@ void __stdcall HandleVisualOptionsClick(Gui_0045e100* gui)
         g_game->flags_37f06.bits.b3 = g_game->flags_37f06.bits.b4;
         g_game->flags_37f06.bits.b2 = g_game->flags_37f06.bits.b3;
         if (g_game->flags_37ebe.bits.b0)
-            g_game->ptr_1437b->FlushCache();
+            g_game->unitTable->FlushCache();
         MarkChanged(gui);
         ClearSelectedGadget(gui);
         return;
@@ -2220,7 +2212,7 @@ void __stdcall HandleVisualOptionsClick(Gui_0045e100* gui)
         PlaySoundByName("Options", 0);
         g_game->flags_37f06.bits.b5 = GetButtonStageByName(gui, "SHADING") & 1;
         if (g_game->flags_37ebe.bits.b0)
-            g_game->ptr_1437b->FlushCache();
+            g_game->unitTable->FlushCache();
         MarkChanged(gui);
         ClearSelectedGadget(gui);
         return;
@@ -2608,9 +2600,9 @@ void ShowGameSettingsDialog()
                      0x78, 2);
     }
     AddTextGadget(layer, "TEXT", Translate("Mapping Mode:"), 0x12, 0x7e, 0x6e, 2);
-    AddTextGadget(layer, "TEXT", Translate(mapStrs[g_game->los.lb.l0]), 0x8c, 0x7e, 0x78, 2);
+    AddTextGadget(layer, "TEXT", Translate(mapStrs[g_game->mapFlags.lb.l0]), 0x8c, 0x7e, 0x78, 2);
     AddTextGadget(layer, "TEXT", Translate("Line of Sight:"), 0x12, 0x90, 0x6e, 2);
-    unsigned short losFlags = g_game->los.losFlags;
+    unsigned short losFlags = g_game->mapFlags.losFlags;
     int losIdx = !(losFlags & 2) ? 2 : (int)(((unsigned char)~losFlags >> 2) & 1);
     AddTextGadget(layer, "TEXT", Translate(losStrs[losIdx]), 0x8c, 0x90, 0x78, 2);
     int y;
@@ -2979,8 +2971,8 @@ void OpenOptionsPanel()
     }
     panel->handler = HandleOptionsPanelClick;
     memcpy(g_optionsPrefsSnapshot.block, (char*)&g_game->block[0], 0x53);
-    g_optionsPrefsSnapshot.bit0 = g_game->los.bits.bit1;
-    g_optionsPrefsSnapshot.bit1 = g_game->los.bits.bit2;
+    g_optionsPrefsSnapshot.bit0 = g_game->mapFlags.bits.bit1;
+    g_optionsPrefsSnapshot.bit1 = g_game->mapFlags.bits.bit2;
     g_optionsBackupGameSpeed.i = g_game->gameSpeed;
     g_optionsBackupEdgeScroll.i = g_game->scrollSpeed;
     g_optionsBackupLockedTrack = g_game->sound->GetLockedTrack();
@@ -3113,7 +3105,7 @@ void OpenSurrenderDialog()
     if (g_battleQuitIntent == 0) {
         SetTranslatedTextByName((Sub_00460680*)&g_game->gui, "TITLE", "Surrender this battle and return to main menu?", 0);
     } else if (g_battleQuitIntent == 2) {
-        const char* title = g_game->flags_2bee.flag4 ? "Exit the Battle"
+        const char* title = g_game->lobbyUiDirtyFlags.flag4 ? "Exit the Battle"
                                                 : "Surrender this battle and exit to Windows?";
         SetTranslatedTextByName((Sub_00460680*)&g_game->gui, "TITLE", title, 0);
     }
@@ -3169,7 +3161,7 @@ void OpenExitMenu()
         SetTranslatedTextByName((Sub_004608b0*)&g_game->gui, "RESTART", (int)Translate("Restart"), 0x80);
         goto tail;
     }
-    if (g_game->flags_2bee.flag4) {
+    if (g_game->lobbyUiDirtyFlags.flag4) {
         SetGadgetActiveByName((Sub_004608b0*)&g_game->gui, "MAINMENU", 0);
     }
 tail:

@@ -108,12 +108,12 @@ struct Game {
     char unknown_2a3e[0x2a43 - 0x2a3e];
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x14273 - 0x2a44];
-    unsigned short* field_14273;       // +0x14273
+    unsigned short* visibilityMask;    // +0x14273
     char unknown_14277[0x14281 - 0x14277];
-    unsigned char field_14281;         // +0x14281
-    char unknown_14282[0x14357 - 0x14282];
+    unsigned short mapFlags;           // +0x14281
+    char unknown_14283[0x14357 - 0x14283];
     Unit* units;                       // +0x14357
-    Unit* units_end;                   // +0x1435b
+    Unit* unitsEnd;                    // +0x1435b
     char unknown_1435f[0x38a47 - 0x1435f];
     int ticks;                         // +0x38a47
 
@@ -159,7 +159,7 @@ static inline int IsSeen_00467440(PlayerInfo_00467440* p, UnitPos_00467440* pos)
     int ty = (pos->half.f74 - (pos->half.f70 >> 1)) >> 5;
     if (!p->explored.size.Contains(tx, ty))
         return 0;
-    return (g_game->field_14273[p->explored.size.width * ty + tx] &
+    return (g_game->visibilityMask[p->explored.size.width * ty + tx] &
             (1 << g_game->playerIndex)) != 0;
 }
 
@@ -171,7 +171,7 @@ void UpdateSensorRadarAndCloak(void)
     }
     unsigned char player = g_game->playerIndex;
     Unit* first = g_game->units + 1;
-    Unit* last = g_game->units_end;
+    Unit* last = g_game->unitsEnd;
     PlayerInfo_00467440* pl = (PlayerInfo_00467440*)((char*)g_game + 0x1b63
         + (unsigned int)g_game->playerIndex * 0x14b);
     Unit* u;
@@ -257,7 +257,7 @@ void UpdateSensorRadarAndCloak(void)
             PlayerInfo_00467440* p2 = g_game->Current();
             // unsigned int: an int merges the two zero blocks.
             unsigned int vis;
-            if ((g_game->field_14281 & 2) == 2) {
+            if ((g_game->mapFlags & 2) == 2) {
                 vis = IsExplored_00467440(p2, &u->pos);
             } else {
                 vis = IsSeen_00467440(p2, &u->pos);

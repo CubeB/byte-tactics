@@ -176,7 +176,7 @@ struct Game {
     int screenTilesY;                   // +0x1423f
     char unknown_14243[0x14280 - 0x14243];
     unsigned char debugMode;            // +0x14280
-    unsigned short viewFlags;           // +0x14281
+    unsigned short mapFlags;            // +0x14281
     char unknown_14283[0x1431f - 0x14283];
     int scrollX;                        // +0x1431f
     int scrollY;                        // +0x14323
@@ -393,15 +393,15 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
             Surface_00495a30 surf;
             scrollX = g_game->scrollX;
             GafFrame pal;
-            fl = g_game->viewFlags;
+            fl = g_game->mapFlags;
             int savedbit0, scrollY = g_game->scrollY, bit6;
             int savedbit1;
             savedbit0 = fl & 1;
             savedbit1 = (fl >> 1) & 1;
 
             int savedA;
-            g_game->viewFlags = fl & ~1;
-            g_game->viewFlags &= ~2;
+            g_game->mapFlags = fl & ~1;
+            g_game->mapFlags &= ~2;
             RecalculateLineOfSight(1);
             savedA = g_game->pauseFlags & 1;
             g_game->pauseFlags = (unsigned short)(g_game->pauseFlags & ~1);
@@ -474,8 +474,8 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
             g_game->uiOptionFlags = (unsigned short)((((unsigned short)g_game->uiOptionFlags) & ~0x40) | bit6);
             g_game->textLines = savedC;
             SetCameraPosition(scrollX, scrollY, 0);
-            g_game->viewFlags = (unsigned short)(g_game->viewFlags ^ ((savedbit0 ^ g_game->viewFlags) & 1));
-            g_game->viewFlags = (unsigned short)((unsigned short)((g_game->viewFlags & ~2) | ((savedbit1 & 1) << 1)));
+            g_game->mapFlags = (unsigned short)(g_game->mapFlags ^ ((savedbit0 ^ g_game->mapFlags) & 1));
+            g_game->mapFlags = (unsigned short)((unsigned short)((g_game->mapFlags & ~2) | ((savedbit1 & 1) << 1)));
             RecalculateLineOfSight(1);
             CollectVisibleUnitIds();
             DrawBattleFrame(1, 1);

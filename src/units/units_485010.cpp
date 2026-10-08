@@ -326,16 +326,16 @@ struct Game {
     int width;                         // +0x14233
     int height;                        // +0x14237
     char unknown_1423b[0x1426f - 0x1423b];
-    Entry_486360* entries;             // +0x1426f
+    Entry_486360* features;            // +0x1426f
     unsigned short* visibilityMask;    // +0x14273
     char unknown_14277[0x1427f - 0x14277];
     unsigned char limit;               // +0x1427f
     char debugMode;
-    unsigned char field_14281;         // +0x14281
-    char unknown_14282[0x14287 - 0x14282];
+    unsigned short mapFlags;           // +0x14281
+    char unknown_14283[0x14287 - 0x14283];
     Cell_00485010* cells;              // +0x14287
     char unknown_1428b[0x1434f - 0x1428b];
-    unsigned short slotsPerPlayer;     // +0x1434f
+    unsigned short unitsPerPlayer;     // +0x1434f
     unsigned short poolCount;          // +0x14351
     char unknown_14353[0x14357 - 0x14353];
     union {
@@ -343,20 +343,20 @@ struct Game {
         unsigned char* pool;
     };
     union {
-        Unit* units_end;               // +0x1435b
-        unsigned char* unitsEnd;
+        Unit* unitsEnd;                // +0x1435b
+        unsigned char* poolEnd;        // the same bytes, from the pool's end
     };
     void* hotUnits;                    // +0x1435f
     void* hotRadar;                    // +0x14363
     char unknown_14367[0x1436f - 0x14367];
     unsigned short focusUnitId;        // +0x1436f
     char unknown_14371[0x14373 - 0x14371];
-    unsigned int field_14373;          // +0x14373
+    unsigned int autoFollowFlags;      // +0x14373
     Object3do** definitions;           // +0x14377
     char unknown_1437b[0x1439b - 0x1437b];
     UnitType* unitTypes;               // +0x1439b
     char unknown_1439f[0x37ee6 - 0x1439f];
-    unsigned short unitsPerPlayer;     // +0x37ee6
+    unsigned short maxUnits;           // +0x37ee6
     char unknown_37ee8[0x37eee - 0x37ee8];
     int difficulty;                    // +0x37eee
     char unknown_37ef2[4];
@@ -568,17 +568,17 @@ int __stdcall ComparePlayers(Player* a, Player* b);
 void __stdcall AllocateUnitMemory(void)
 {
     g_game->focusUnitId = 0;
-    g_game->field_14373 &= 0xfffffffd;
-    g_game->slotsPerPlayer = g_game->unitsPerPlayer;
-    g_game->poolCount = (unsigned short)(g_game->unitsPerPlayer * 10 + 1);
+    g_game->autoFollowFlags &= 0xfffffffd;
+    g_game->unitsPerPlayer = g_game->maxUnits;
+    g_game->poolCount = (unsigned short)(g_game->maxUnits * 10 + 1);
 
     unsigned char* pool = g_game->pool = (unsigned char*)GameAllocIgnoreTag("UNIT MEMORY", g_game->poolCount * 0x118);
     memset(pool, 0, g_game->poolCount * 0x118);
 
-    unsigned int ten = g_game->unitsPerPlayer * 10;
+    unsigned int ten = g_game->maxUnits * 10;
     g_game->hotUnits = GameAllocIgnoreTag("HOT UNITS", ten * 2);
     g_game->hotRadar = GameAllocIgnoreTag("HOT RADAR UNITS", ten * 10);
-    g_game->unitsEnd = g_game->pool + g_game->poolCount * 0x118 - 0x118;
+    g_game->poolEnd = g_game->pool + g_game->poolCount * 0x118 - 0x118;
 
     unsigned short n;
     for (n = 0; n < g_game->poolCount; n++) {
@@ -598,10 +598,10 @@ void __stdcall AllocateUnitMemory(void)
     int i;
     for (i = 0; i < 10; i++) {
         Player* item = v[i];
-        int c = g_game->unitsPerPlayer * i + 1;
+        int c = g_game->maxUnits * i + 1;
         *(unsigned char**)((char*)item + 0x67) = pool + c * 0x118;
         *(unsigned char**)((char*)item + 0x6b) =
-            *(unsigned char**)((char*)item + 0x67) + g_game->unitsPerPlayer * 0x118 - 0x118;
+            *(unsigned char**)((char*)item + 0x67) + g_game->maxUnits * 0x118 - 0x118;
         *(unsigned short*)((char*)item + 0x6f) =
             *(unsigned short*)(*(unsigned char**)((char*)item + 0x67) + 0xa8);
         *(unsigned short*)((char*)item + 0x71) =
@@ -633,7 +633,7 @@ void __cdecl GameFreeThunk(void* p);
 void FreeUnitMemory(void)
 {
     Unit* u = g_game->units;
-    Unit* end = g_game->units_end;
+    Unit* end = g_game->unitsEnd;
     if (u != 0) {
         for (; u <= end; u = (Unit*)((char*)u + 0x118)) {
             if (u->typeId != 0)
@@ -1094,7 +1094,7 @@ void __stdcall CreateUnitCorpse(Unit* unit, int depth, int flag)
         if (id >= 0xfffb) {
             return;
         }
-        id = g_game->entries[id].next;
+        id = g_game->features[id].next;
     }
     if (id < 0xfffb) {
         void* target = GetMapCell(unit->screen.x, unit->screen.y);
@@ -1263,7 +1263,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
         AttachUnitToPiece(unit->first, 0, -1, 1);
     }
     ClearFootprintAndUnlink(unit);
-    if ((g_game->field_14281 & 2) == 2)
+    if ((g_game->mapFlags & 2) == 2)
         RemoveUnitLineOfSight(unit);
     if (local == 0 && cmd->amount > 0)
         unit->script->StartScriptWithArgs(g_killedScriptName, 0, 1, 1, cmd->amount, 0, 0, 0);
@@ -1420,7 +1420,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
 void __stdcall KillUnitsOfType(short id)
 {
     Unit* u = g_game->units;
-    Unit* end = g_game->units_end;
+    Unit* end = g_game->unitsEnd;
     if (id != 0 && u != 0) {
         for (; u <= end; u = (Unit*)((char*)u + 0x118)) {
             if ((short)u->typeId == id) {
@@ -1434,7 +1434,7 @@ void __stdcall KillUnitsOfType(short id)
 void KillAllUnits(void)
 {
     Unit* u = g_game->units;
-    Unit* end = g_game->units_end;
+    Unit* end = g_game->unitsEnd;
     if (u != 0) {
         for (; u <= end; u = (Unit*)((char*)u + 0x118)) {
             if (u->typeId != 0) {

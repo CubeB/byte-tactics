@@ -271,7 +271,7 @@ struct Game {
     char unknown_1426f[0x14273 - 0x1426f];
     unsigned short* visibilityMask;      // +0x14273
     char unknown_14277[0x14281 - 0x14277];
-    Flags14281_00466dc0 field_14281;     // +0x14281
+    Flags14281_00466dc0 mapFlags;        // +0x14281
     IconSet_00466780* iconSet;           // +0x14283
     char unknown_14287[0x1428b - 0x14287];
     unsigned short* mapValues;           // +0x1428b
@@ -301,8 +301,8 @@ struct Game {
     };
     RadarTimer_00466dc0 timer;           // +0x142ef
     char unknown_142f3[0x1431f - 0x142f3];
-    int scaleX;                          // +0x1431f
-    int scaleY;                          // +0x14323
+    int scrollX;                         // +0x1431f
+    int scrollY;                         // +0x14323
     char unknown_14327[0x14357 - 0x14327];
     Unit* units;                         // +0x14357
     Unit* unitsEnd;                      // +0x1435b
@@ -511,8 +511,8 @@ void __stdcall DrawRadar(void* param_1)
 // FUNCTION: 0x466b70
 void __stdcall CalcRadarViewportRect(int* param_1)
 {
-    param_1[0] = g_game->sizeX * g_game->scaleX / g_game->mapWidth + g_game->originX;
-    param_1[1] = g_game->sizeY * g_game->scaleY / g_game->mapHeight + g_game->originY;
+    param_1[0] = g_game->sizeX * g_game->scrollX / g_game->mapWidth + g_game->originX;
+    param_1[1] = g_game->sizeY * g_game->scrollY / g_game->mapHeight + g_game->originY;
     param_1[2] = g_game->sizeX * g_game->zoomX * 16 / g_game->mapWidth + param_1[0] - 1;
     param_1[3] = g_game->sizeY * g_game->zoomY * 16 / g_game->mapHeight + param_1[1] - 1;
 }
@@ -594,7 +594,7 @@ static inline int OnRadarShort_00466dc0(PlayerInfo_00466dc0* pi, int px, int py)
 static inline int OnRadar_00466dc0(int px, int py)
 {
     PlayerInfo_00466dc0* pi = PlayerInfo_00466dc0_Get(g_game->currentPlayer);
-    if ((g_game->field_14281.all & 2) == 2)
+    if ((g_game->mapFlags.all & 2) == 2)
         return OnRadarByte_00466dc0(pi, px, py);
     return OnRadarShort_00466dc0(pi, px, py);
 }
@@ -616,7 +616,7 @@ void DrawRadarUnits(void)
     DrawSurface(surface, g_game->mappedSurface, 0, 0);
 
     int enabled;
-    if (g_game->field_14281.bits.bit0 || g_game->field_14281.bits.bit1)
+    if (g_game->mapFlags.bits.bit0 || g_game->mapFlags.bits.bit1)
         enabled = 0;
     else
         enabled = 1;

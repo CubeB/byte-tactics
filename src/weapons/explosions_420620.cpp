@@ -252,8 +252,8 @@ struct Game {
     char unknown_14273[0x1427f - 0x14273];
     unsigned char seaLevel;            // +0x1427f
     char unknown_14280[0x1431f - 0x14280];
-    int cameraX;                       // +0x1431f
-    int cameraZ;                       // +0x14323
+    int scrollX;                       // +0x1431f
+    int scrollY;                       // +0x14323
     char unknown_14327[0x147eb - 0x14327];
     GafSequence* src1;                 // +0x147eb
     GafSequence* src2;                 // +0x147ef
@@ -431,9 +431,9 @@ void __stdcall DrawExplosions(void* surface)
     Debris* d = (Debris*)(pCount + 1);
     Position pos;
     for (i = 0; i < *pCount; ++i, d++) {
-        pos.x.value = d->pos.x - (g_game->cameraX << 16);
+        pos.x.value = d->pos.x - (g_game->scrollX << 16);
         pos.y.value = d->pos.y;
-        pos.z.value = d->pos.z - (g_game->cameraZ << 16);
+        pos.z.value = d->pos.z - (g_game->scrollY << 16);
         int x = pos.x.parts.whole + 128;
         int y = pos.z.parts.whole - (pos.y.parts.whole >> 1) + 32;
         if (PointInRect(g_game->viewport, x, y) && d->ref2.src)
@@ -441,9 +441,9 @@ void __stdcall DrawExplosions(void* surface)
     }
     d = (Debris*)(pCount + 1);
     for (i = 0; i < *pCount; ++i, d++) {
-        pos.x.value = d->pos.x - (g_game->cameraX << 16);
+        pos.x.value = d->pos.x - (g_game->scrollX << 16);
         pos.y.value = d->pos.y;
-        pos.z.value = d->pos.z - (g_game->cameraZ << 16);
+        pos.z.value = d->pos.z - (g_game->scrollY << 16);
         int x = pos.x.parts.whole + 128;
         int y = pos.z.parts.whole - (pos.y.parts.whole >> 1) + 32;
         if (PointInRect(g_game->viewport, x, y)) {
@@ -616,9 +616,9 @@ void __stdcall DrawExplodedPieceFaces(void* surface, ExplodedPiece* obj, PieceRe
     Object3D* arr = inner->desc;
     struct Off_004211d0 { int a; int y; int b; };
     Off_004211d0 off;
-    off.a = inner->pos.x - (g_game->cameraX << 16);
+    off.a = inner->pos.x - (g_game->scrollX << 16);
     off.y = inner->pos.y;
-    off.b = inner->pos.z - (g_game->cameraZ << 16);
+    off.b = inner->pos.z - (g_game->scrollY << 16);
 
     // Address of off taken once, high words read as hp[n]: forces the original's spill.
     short* hp = (short*)&off;

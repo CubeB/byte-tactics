@@ -208,7 +208,7 @@ struct Game {
     unsigned short flags_2bee : 3;
     unsigned short rest_2bee : 8;
     char unknown_2bf0[0x2cbe - 0x2bf0];
-    signed char selected;                      // +0x2cbe
+    signed char cursorMode;                    // +0x2cbe
     char unknown_2cbf[0x14281 - 0x2cbf];
     unsigned short bit0_14281 : 1;             // +0x14281, bit 0
     unsigned short bit1_14281 : 1;             // bit 1
@@ -421,8 +421,8 @@ void MainLoopTick()
 // FUNCTION: 0x496a60
 void InitFrame()
 {
-    if (g_game->selected != 0x13) {
-        g_game->selected = 0x13;
+    if (g_game->cursorMode != 0x13) {
+        g_game->cursorMode = 0x13;
         SetCursorAnimation((Obj_004ab400*)&g_game->sub, g_game->table[0x13]);
     }
     ShowSoftwareCursor();

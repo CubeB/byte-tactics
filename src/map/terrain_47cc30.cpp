@@ -90,7 +90,7 @@ struct Game {
     Owner_0047cc30* owners;             // +0x1429f
     int ownerCols;                      // +0x142a3
     char unknown_142a7[0x142b7 - 0x142a7];
-    Owner_0047cc30* defaultOwner;       // +0x142b7
+    Owner_0047cc30* overflowBucket;     // +0x142b7
     char unknown_142bb[0x14357 - 0x142bb];
     UnitRec_0047cc30* units;            // +0x14357
     char unknown_1435b[0x38a47 - 0x1435b];
@@ -250,5 +250,5 @@ void __stdcall AddUnitToMap(Obj_0047cc30* obj)
     return;
 
 remove:
-    SetOwner_0047cc30(obj, g_game->defaultOwner);
+    SetOwner_0047cc30(obj, g_game->overflowBucket);
 }

@@ -45,7 +45,7 @@ struct Unit {
 struct Order { char pad0[4]; Class_00438760 kind; unsigned char state; unsigned int flags; char pada[12]; Unit* target; char pad1a[8]; Vec3 pos; char pad2e[8]; int angle, parity; char pad3e[4]; unsigned int capabilities; char pad46[4]; int next; };
 class Class_0043a1f0 { public: char data[0x56]; Class_0043a1f0(Class_00438760, Unit*, Vec3*, int, int, int); };
 class Class_0044e2d0 { public: char data[0x36]; Class_0044e2d0(Order*, const Vec3&); };
-struct Game { char pad0[0x1422b]; int width, height; char pad14233[0x142b7-0x14233]; int water; };
+struct Game { char pad0[0x1422b]; int width, height; char pad14233[0x142b7-0x14233]; int overflowBucket; };
 #pragma pack(pop)
 extern Game* g_game;
 class Class_0044e730 { public: void SetApproachRadius(int); };
@@ -128,7 +128,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
 int __stdcall VtolSeekGuardOrder(Unit* unit, Order* order, int flags)
 {
     if (flags&0x40) return 5;
-    if (unit->terrain==g_game->water) {
+    if (unit->terrain==g_game->overflowBucket) {
         Vec3 center;
         center.x=(g_game->width/2)<<16;
         center.z=(g_game->height/2)<<16;

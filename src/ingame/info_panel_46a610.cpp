@@ -103,8 +103,8 @@ struct Game {
     char unknown_14237[0x1426f - 0x14237];
     Feature* features;                 // +0x1426f
     char unknown_14273[0x1431f - 0x14273];
-    int scroll_x;                      // +0x1431f
-    int scroll_y;                      // +0x14323
+    int scrollX;                       // +0x1431f
+    int scrollY;                       // +0x14323
     char unknown_14327[0x37f06 - 0x14327];
     unsigned short drawFlags;          // +0x37f06
 };
@@ -139,14 +139,14 @@ static int DrawFlags()
 void __stdcall BlitFeatureGaf(void* dest, Cell* cell, int ix, int iy)
 {
     Feature* f = &g_game->features[cell->feature];
-    int x = f->footprint.x * 16 / 2 + (ix + 8) * 16 - g_game->scroll_x;
+    int x = f->footprint.x * 16 / 2 + (ix + 8) * 16 - g_game->scrollX;
     // Second row indexed as cell[width], not through a next pointer: load order.
     int s = cell->shade;
     s += cell[1].shade;
     s += cell[g_game->width].shade;
     s += cell[g_game->width + 1].shade;
     int shade = s >> 3;
-    int y = f->footprint.z * 16 / 2 - shade + (iy + 2) * 16 - g_game->scroll_y;
+    int y = f->footprint.z * 16 / 2 - shade + (iy + 2) * 16 - g_game->scrollY;
     if (cell->flags) {
         FeatureSpot* spot = &g_game->spots[cell->spot];
         if (f->drawn) {

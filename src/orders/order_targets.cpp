@@ -673,7 +673,7 @@ struct Game {
     char unknown_1420b[0x1427f - 0x1420b];
     unsigned char seaLevel;            // +0x1427f
     char unknown_14280[0x142b7 - 0x14280];
-    int field_142b7;                   // +0x142b7
+    int overflowBucket;                // +0x142b7
     char unknown_142bb[0x14357 - 0x142bb];
     Unit* units;                       // +0x14357
     char unknown_1435b[0x38a47 - 0x1435b];
@@ -2151,7 +2151,7 @@ int Class_0044e3c0::FillWorldPos(Vec3_0044e3c0* out)
 {
     unsigned short f = flags;
     if ((f & 1) && !(f & 0x80)) {
-        if (target == 0 || target->spatialBucket == g_game->field_142b7)
+        if (target == 0 || target->spatialBucket == g_game->overflowBucket)
             return 0;
         // Through a local pointer: keeps the struct-assignment destination in edi.
         Vec3_0044e3c0* p = &pos;

@@ -28,7 +28,7 @@ struct Game {
     int world_w;                       // +0x1422b
     int world_h;                       // +0x1422f
     char unknown_14233[0x14281 - 0x14233];
-    unsigned short flags_14281;        // +0x14281
+    unsigned short mapFlags;           // +0x14281
     char unknown_14283[0x142e7 - 0x14283];
     short origin_x;                    // +0x142e7
     short origin_y;                    // +0x142e9
@@ -42,8 +42,8 @@ struct Game {
     int xs[4];                         // +0x142fb
     int ys[4];                         // +0x1430b
     unsigned char valid[4];            // +0x1431b
-    int x;                             // +0x1431f
-    int y;                             // +0x14323
+    int scrollX;                       // +0x1431f
+    int scrollY;                       // +0x14323
     int x2;                            // +0x14327
     int y2;                            // +0x1432b
     char unknown_1432f[0x1434b - 0x1432f];
@@ -72,8 +72,8 @@ void ClampCameraPosition(void);
 
 static inline void SetPos(int x, int y)
 {
-    g_game->x = x;
-    g_game->y = y;
+    g_game->scrollX = x;
+    g_game->scrollY = y;
 }
 
 // Centres the camera on the screen position stored at +0x2c76, then clamps it.
@@ -83,13 +83,13 @@ void CenterCameraOnRadarClick()
     Rect_0041d0f0 r = g_game->view;
     int y = g_game->world_h * (r.y - g_game->origin_y) / g_game->screen_h - g_game->viewHeight / 2;
     int x = g_game->world_w * (r.x - g_game->origin_x) / g_game->screen_w - g_game->viewWidth / 2;
-    g_game->x = x;
-    g_game->y = y;
+    g_game->scrollX = x;
+    g_game->scrollY = y;
     g_game->flags_142f1 |= 2;
     ClampCameraPosition();
-    g_game->x2 = g_game->x;
-    g_game->y2 = g_game->y;
-    g_game->flags_14281 &= 0xfff7;
+    g_game->x2 = g_game->scrollX;
+    g_game->y2 = g_game->scrollY;
+    g_game->mapFlags &= 0xfff7;
     g_game->value_1434b = 0;
     g_game->value_142f3 = 0;
     g_game->value_142f7 = 0;
@@ -106,9 +106,9 @@ void CenterCameraOnStartPosition()
             SetPos(e->x - g_game->viewWidth / 2, e->z - g_game->viewHeight / 2);
             g_game->flags_142f1 |= 2;
             ClampCameraPosition();
-            g_game->x2 = g_game->x;
-            g_game->y2 = g_game->y;
-            g_game->flags_14281 &= 0xfff7;
+            g_game->x2 = g_game->scrollX;
+            g_game->y2 = g_game->scrollY;
+            g_game->mapFlags &= 0xfff7;
             return;
         }
     }
@@ -120,15 +120,15 @@ void CenterCameraOnStartPosition()
 void __stdcall ReadCameraPosition(HapiBank* file)
 {
     file->OpenAccount(g_cameraAccount);
-    int z = file->GetIntegerItem(g_cameraZPosition, g_game->y);
-    int x = file->GetIntegerItem(g_cameraXPosition, g_game->x);
-    g_game->x = x;
-    g_game->y = z;
+    int z = file->GetIntegerItem(g_cameraZPosition, g_game->scrollY);
+    int x = file->GetIntegerItem(g_cameraXPosition, g_game->scrollX);
+    g_game->scrollX = x;
+    g_game->scrollY = z;
     g_game->flags_142f1 |= 2;
     ClampCameraPosition();
-    g_game->x2 = g_game->x;
-    g_game->y2 = g_game->y;
-    g_game->flags_14281 &= 0xfff7;
+    g_game->x2 = g_game->scrollX;
+    g_game->y2 = g_game->scrollY;
+    g_game->mapFlags &= 0xfff7;
 }
 
 // Writes the camera position to a section ("Camera", "X Position", "Z Position").
@@ -158,9 +158,9 @@ void __stdcall RestoreCameraPosition(int index)
         SetPos(g_game->xs[index], g_game->ys[index]);
         g_game->flags_142f1 |= 2;
         ClampCameraPosition();
-        g_game->x2 = g_game->x;
-        g_game->y2 = g_game->y;
-        g_game->flags_14281 &= 0xfff7;
+        g_game->x2 = g_game->scrollX;
+        g_game->y2 = g_game->scrollY;
+        g_game->mapFlags &= 0xfff7;
     }
 }
 

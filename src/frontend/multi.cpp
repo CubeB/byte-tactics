@@ -560,7 +560,7 @@ struct Game {
     char nickname[0x11];               // +0x2bd2
     char password[0xb];                // +0x2be3
     union {                            // +0x2bee
-        unsigned char field_2bee;
+        unsigned short lobbyUiDirtyFlags;
         struct {
             unsigned short flag0 : 1;
             unsigned short bits1 : 15;
@@ -1910,7 +1910,7 @@ void __stdcall HandleReportClick(Gadget_00440d70* obj)
 
         SetCursorMode(0x14);
         EnableReporter(acc);
-        if ((g_game->field_2bee & 0x10) || g_game->frontendSubstate == 0x14) {
+        if ((g_game->lobbyUiDirtyFlags & 0x10) || g_game->frontendSubstate == 0x14) {
             g_game->frontendSubstateRequest = 0x15;
         } else {
             g_game->frontendSubstateRequest = 0x11;

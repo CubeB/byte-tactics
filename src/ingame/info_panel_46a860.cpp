@@ -113,8 +113,8 @@ struct Game {
     char unknown_14273[0x14287 - 0x14273];
     int cells;                            // +0x14287
     char unknown_1428b[0x1431f - 0x1428b];
-    int scroll_x;                         // +0x1431f
-    int scroll_y;                         // +0x14323
+    int scrollX;                          // +0x1431f
+    int scrollY;                         // +0x14323
     char unknown_14327[0x14353 - 0x14327];
     int field_14353;                      // +0x14353
     char* units;                          // +0x14357
@@ -195,7 +195,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
         DrawString(surface, (unsigned char*)text, 0x208, pfstate, -1);
 
         pfstate -= 0x10;
-        sprintf(text, "X: %d  Y: %d\n", g_game->scroll_x, g_game->scroll_y);
+        sprintf(text, "X: %d  Y: %d\n", g_game->scrollX, g_game->scrollY);
         DrawString(surface, (unsigned char*)text, 0x82, pfstate, -1);
 
         sprintf(text, "UNITS %d\\%d\n", g_game->field_14353, g_game->count);

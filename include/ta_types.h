@@ -9595,7 +9595,7 @@ struct Game {  // 0x3924d bytes, 904 views
     char unknown_2bd1[1];
     char nickname[17];  // +0x2bd2
     char password[11];  // +0x2be3
-    unsigned short flags;  // +0x2bee
+    unsigned short lobbyUiDirtyFlags;  // +0x2bee
     unsigned char mode_2bf0;  // +0x2bf0
     unsigned char chatRecipients[11];  // +0x2bf1
     char unknown_2bfc[44];
@@ -9614,7 +9614,7 @@ struct Game {  // 0x3924d bytes, 904 views
     int boxStartTick;  // +0x2cb6
     unsigned short hoverUnitId;  // +0x2cba
     unsigned short cellFeature;  // +0x2cbc
-    char selected_2cbe;  // +0x2cbe
+    char cursorMode;  // +0x2cbe
     char unknown_2cbf[4];
     unsigned char orderMode;  // +0x2cc3
     unsigned short buildTypeIndex;  // +0x2cc4
@@ -9657,7 +9657,7 @@ struct Game {  // 0x3924d bytes, 904 views
     Eye_00482130* eyes;  // +0x1427b
     unsigned char seaLevel;  // +0x1427f
     unsigned char debugMode;  // +0x14280
-    unsigned short flags_14281;  // +0x14281
+    unsigned short mapFlags;  // +0x14281
     IconSet_00466780* iconSet;  // +0x14283
     Cell* cells;  // +0x14287
     unsigned short* mapValues;  // +0x1428b
@@ -9668,7 +9668,7 @@ struct Game {  // 0x3924d bytes, 904 views
     char unknown_142ab[4];
     int field_142af;  // +0x142af
     int field_142b3;  // +0x142b3
-    int field_142b7;  // +0x142b7
+    int overflowBucket;  // +0x142b7
     Rect viewLimit;  // +0x142bb
     char unknown_142cb[16];
     void* finalSurface;  // +0x142db
@@ -9685,8 +9685,8 @@ struct Game {  // 0x3924d bytes, 904 views
     int xs[4];  // +0x142fb
     int ys[4];  // +0x1430b
     unsigned char valid[4];  // +0x1431b
-    int scroll_x;  // +0x1431f
-    int scroll_y;  // +0x14323
+    int scrollX;  // +0x1431f
+    int scrollY;  // +0x14323
     int x2;  // +0x14327
     int y2;  // +0x1432b
     int value_1432f;  // +0x1432f
@@ -9697,11 +9697,11 @@ struct Game {  // 0x3924d bytes, 904 views
     short value_1434b;  // +0x1434b
     unsigned char scrollSpeed;  // +0x1434d
     unsigned char flags_1434e;  // +0x1434e
-    unsigned short slotsPerPlayer;  // +0x1434f
+    unsigned short unitsPerPlayer;  // +0x1434f
     unsigned short poolCount;  // +0x14351
     int f14353;  // +0x14353
     Unit* units;  // +0x14357
-    Unit* units_end;  // +0x1435b
+    Unit* unitsEnd;  // +0x1435b
     unsigned short* list_1435f;  // +0x1435f
     void* hotRadar;  // +0x14363
     int count_14367;  // +0x14367
@@ -9709,10 +9709,10 @@ struct Game {  // 0x3924d bytes, 904 views
     unsigned short focusUnitId;  // +0x1436f
     unsigned short autoFollowTicks;  // +0x14371
     unsigned int bit0_14373 : 1;  // +0x14373
-    unsigned int paused : 1;
+    unsigned int autoFollow : 1;
     unsigned int rest : 30;
     Class_0045ae80** types;  // +0x14377
-    Class_00437c80* obj;  // +0x1437b
+    Class_00437c80* unitTable;  // +0x1437b
     char unknown_1437f[4];
     void* xform;  // +0x14383
     void* projected;  // +0x14387

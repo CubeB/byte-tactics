@@ -73,9 +73,9 @@ namespace PathGoal { void HasNetUnitState(); }
 namespace PathGoal { void TryClaimRepath(); }
 namespace PathGoal { void ExportGoalPose(); }
 void FUN_0044f590();
-void FUN_0044f5b0();
-void FUN_0044f5c0();
-void FUN_0044f650();
+namespace PatrolGoal { void HasReadyWaypoints(); }
+namespace PatrolGoal { void DeserializeNetUnitState(); }
+namespace PatrolGoal { void FillWaypointWorldPos(); }
 void OnAimCobReturn();
 void AimCobStub();
 
@@ -136,9 +136,9 @@ extern VirtualFunction const g_airManeuverOrderVtable[12] = {
 // PatrolGoal's: stored by 0x44f570.
 // GLOBAL: 0x4fd488
 extern VirtualFunction const g_patrolGoalVtable[12] = {
-    FUN_0044f590, PathGoal::SetPathOrder, PathGoal::TickTowardGoal, FUN_0044f650,
-    PathGoal::ExportGoalPose, FUN_0044f5b0, PathGoal::TryClaimRepath, PathGoal::HasNetUnitState,
-    PathGoal::SerializeNetUnitState, FUN_0044f5c0, PathGoal::DrawOnSurface, 0,
+    FUN_0044f590, PathGoal::SetPathOrder, PathGoal::TickTowardGoal, PatrolGoal::FillWaypointWorldPos,
+    PathGoal::ExportGoalPose, PatrolGoal::HasReadyWaypoints, PathGoal::TryClaimRepath, PathGoal::HasNetUnitState,
+    PathGoal::SerializeNetUnitState, PatrolGoal::DeserializeNetUnitState, PathGoal::DrawOnSurface, 0,
 };
 
 // Stored by 0x485e90, 0x485f50 and 0x4861d0.

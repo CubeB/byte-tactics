@@ -8,8 +8,12 @@
 // handling, the script-call packets, heartbeat, ping, load progress, resource
 // sharing and the lobby connection. The module's three parts joined in
 // address order. The functions that only match with their own file's symbol
-// ids stay apart (net_game_450530.cpp, net_game_452960.cpp,
-// net_game_452cc0.cpp, net_game_453360.cpp and net_game_453d40.cpp).
+// ids stay apart (net_game_450530.cpp, net_game_452960.cpp and
+// net_game_453360.cpp), and so does net_game_453d40.cpp: HandleNetPackets
+// only matches where its base/index orders and registers follow the symbol
+// ids of a file that includes <windows.h> and <memory.h> before g_game; no
+// count of real declarations before it or before g_game reaches that state
+// in this file.
 //
 // <stdio.h> and <stdlib.h> carry 0x450380's sprintf and rand, and <string.h>
 // the string copies of 0x450090, 0x450140, 0x450980, 0x451090 and 0x451220.
@@ -262,7 +266,8 @@ struct Player {
     char unknown_100[0x104 - 0x100];
     short commanderKills;              // +0x104
     short commanderLosses;             // +0x106
-    unsigned char allied[0x16];        // +0x108
+    unsigned char allied[11];          // +0x108
+    unsigned char alliedBy[11];        // +0x113
     unsigned char t0[11];              // +0x11e
     unsigned char t1[11];              // +0x129
     unsigned char t2[11];              // +0x134
@@ -2258,6 +2263,152 @@ char* __stdcall GetRejectReasonText(int reason)
         return "The creator has left the game";
     default:
         return "You were rejected from the game";
+    }
+}
+
+// RemovePlayer inlines the slot lookups the way its original translation unit
+// did; the copies are inline so that the out-of-line definitions above keep
+// their callers. The first lookup calls the out-of-line ones.
+static inline unsigned char FindSlotCall_00452cc0(int id)
+{
+    if (id != -1) {
+        for (unsigned char i = 0; i < 10; i++) {
+            if (GetSlotDpid(i) == id)
+                return i;
+        }
+    }
+    return 10;
+}
+
+static inline Player* FindPlayerCall_00452cc0(int id)
+{
+    if (FindSlotCall_00452cc0(id) == 10)
+        return 0;
+    return &g_game->players[FindSlotByDpid(id)];
+}
+
+static inline int GetSlotDpid_00452cc0(unsigned char index)
+{
+    if (index != 10 && g_game->players[index].type != 0)
+        return g_game->players[index].id;
+    return -1;
+}
+
+static inline unsigned char FindSlot_00452cc0(int id)
+{
+    if (id != -1) {
+        for (unsigned char i = 0; i < 10; i++) {
+            if (GetSlotDpid_00452cc0(i) == id)
+                return i;
+        }
+    }
+    return 10;
+}
+
+static inline Player* FindPlayer_00452cc0(int id)
+{
+    if (FindSlot_00452cc0(id) == 10)
+        return 0;
+    return &g_game->players[FindSlot_00452cc0(id)];
+}
+
+static inline int IsPlaying_00452cc0(Player* p)
+{
+    if (p->active == 0)
+        return 0;
+    if (p->type == 1 || p->type == 2)
+        return 1;
+    return 0;
+}
+
+static inline int IsType1_00452cc0(Player* p)
+{
+    if (p->active == 0)
+        return 0;
+    if (p->type == 1)
+        return 1;
+    return 0;
+}
+
+static inline int IsType3_00452cc0(Player* p)
+{
+    if (p->active == 0)
+        return 0;
+    if (p->type == 3)
+        return 1;
+    return 0;
+}
+
+static inline void Remove_00452cc0(Player* p)
+{
+    p->SetType(0);
+    p->active = 0;
+    p->id = -1;
+    p->lobbyDataSynced = 0;
+}
+
+// Removes the player with the given id: clears its slot in every playing
+// player's two alliance tables, tells KillPlayerUnits, drops it from the
+// session (or only resets it when the 0x2a44 bit 2 mode keeps playing
+// players), and when that player was the host (bit 0 of +0x97) hands the
+// host bit to the type 3 or type 1 player with the highest id.
+// FUNCTION: 0x452cc0
+void __stdcall RemovePlayer(int id)
+{
+    Player* p = FindPlayerCall_00452cc0(id);
+    if (p == 0)
+        return;
+    if (p->active == 0)
+        return;
+    if (p->type != 1 && p->type != 2 && p->type != 3)
+        return;
+    if (p->index == 10)
+        return;
+
+    unsigned char slot = p->index;
+    int f = p->info->flags;
+    // The no-op |= 0 must stay: without it the zero-extension folds into the mask.
+    p->info->flags |= 0;               // emits no code; needed for the match
+    int host = f & 1;
+
+    for (int i = 0; i < 10; i++) {
+        Player* q = &g_game->players[i];
+        if (IsPlaying_00452cc0(q)) {
+            q->alliedBy[slot] = 0;
+            q->allied[slot] = 0;
+        }
+    }
+
+    KillPlayerUnits(FindSlot_00452cc0(id));
+
+    // Remove stays an inline helper written in both arms.
+    if (g_game->flags.bits.b2) {
+        if (!IsPlaying_00452cc0(p))
+            Remove_00452cc0(p);
+    } else {
+        if (IsPlaying_00452cc0(p))
+            HAPINET_removeplayer((char*)&g_game->session[0], p->id);
+        Remove_00452cc0(p);
+    }
+    g_game->numPlayers--;
+    p->info->word_9d &= 0xfffb;
+    memset(&p->allied, 0, 11);
+
+    if (g_game->campaign->GetGameType() == 3)
+        ReportGameEvent(3);
+
+    if ((g_game->flags.value & 4) && host != 0) {
+        unsigned int best = 0;
+        // Index g_game->players[j] directly: a q pointer would be rebased.
+        for (int j = 0; j < 10; j++) {
+            if (IsType3_00452cc0(&g_game->players[j]) || IsType1_00452cc0(&g_game->players[j])) {
+                if (g_game->players[j].id > best)
+                    best = g_game->players[j].id;
+            }
+        }
+        Player* r = FindPlayer_00452cc0(best);
+        if (r != 0)
+            r->info->flags |= 1;
     }
 }
 

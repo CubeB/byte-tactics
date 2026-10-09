@@ -54,3 +54,5 @@ TdfField::TdfField,0x4c54d0,"overload: the two-argument constructor (key, value)
 BlockInfo::BlockInfo,0x4d8820,"overload: the constructor (address, size, allocation number, tag, name); the default constructor is 0x4d87f0, and the checker gives both one name"
 TraceRecord::TraceRecord,0x4d88d0,"overload: the constructor (name, id, count); the default constructor is 0x4d8870, and the checker gives both one name"
 BlockHistory::BlockHistory,0x4d8c00,"overload: the constructor (header, name, id, count); the default constructor is 0x4d8bd0, and the checker gives both one name"
+IUUnitSyncEntry::IU?$pair::?$_Tree::begin,0x46e880,"the real std name of UnitSyncMap::Begin; the real map in UnitSync::ResetEntries calls it"
+IUUnitSyncEntry::IU?$pair::?$_Tree::Viterator::?$pair::?$pair,0x46fad0,"the real std name of InsertResult::InsertResult; the real map in UnitSync::ResetEntries calls it"

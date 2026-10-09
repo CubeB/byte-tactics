@@ -1095,7 +1095,7 @@ address,size,file,symbol,status,similarity
 0x452b70,82,src/network/net_game.cpp,?SendAlliance@@YGHHHDH@Z,matched,100.0
 0x452bd0,97,src/network/net_game.cpp,?BroadcastAllyTeam@@YGHPAUPlayer@@@Z,matched,100.0
 0x452c40,124,src/network/net_game.cpp,?GetRejectReasonText@@YGPADH@Z,matched,100.0
-0x452cc0,848,src/network/net_game_452cc0.cpp,?RemovePlayer@@YGXH@Z,matched,100.0
+0x452cc0,848,src/network/net_game.cpp,?RemovePlayer@@YGXH@Z,matched,100.0
 0x453010,772,src/network/net_game.cpp,?RejectPlayer@@YGHHE@Z,matched,100.0
 0x453320,52,src/network/net_game.cpp,?SendProbe@@YGXHH@Z,matched,100.0
 0x453360,380,src/network/net_game_453360.cpp,?SendChatPacket@@YGHPAD@Z,matched,100.0
@@ -1399,7 +1399,7 @@ address,size,file,symbol,status,similarity
 0x46cef0,325,src/network/unit_sync.cpp,?ReceiveSequenced@PacketSequencer@@QAEXPAUUnitSyncPacket@@HPAXI@Z,matched,100.0
 0x46d040,342,src/network/unit_sync.cpp,??0UnitSync@@QAE@H@Z,matched,100.0
 0x46d1a0,312,src/network/unit_sync_46d1a0.cpp,??1UnitSync@@QAE@XZ,matched,100.0
-0x46d2e0,475,src/network/unit_sync_46d2e0.cpp,?ResetEntries@UnitSync@@QAEXXZ,matched,100.0
+0x46d2e0,475,src/network/unit_sync.cpp,?ResetEntries@UnitSync@@QAEXXZ,matched,100.0
 0x46d4c0,49,src/network/unit_sync.cpp,?SendSyncPacket@UnitSync@@QAEXPAIPAUUnitSyncPacket@@H@Z,matched,100.0
 0x46d500,33,src/network/unit_sync.cpp,?ReceiveSyncPacket@UnitSync@@QAEXPAXH@Z,matched,100.0
 0x46d530,122,src/network/unit_sync.cpp,?SendSyncMessage@UnitSync@@QAEXEHHH@Z,matched,100.0
@@ -1448,9 +1448,9 @@ address,size,file,symbol,status,similarity
 0x46ff70,27,src/network/unit_sync.cpp,?_Buynode@?$_Tree@IU?$pair@IUUnitSyncEntry@@@std@@U_Kfn@?$map@IUUnitSyncEntry@@U?$less@I@std@@V?$allocator@UUnitSyncEntry@@@3@@2@U?$less@I@2@V?$allocator@UUnitSyncEntry@@@2@@std@@IAEPAU_Node@12@PAU312@W4_Redbl@12@@Z,matched,100.0
 0x46ff90,159,src/network/unit_sync.cpp,?_Dec@iterator@?$_Tree@IU?$pair@IUUnitSyncEntry@@@std@@U_Kfn@?$map@IUUnitSyncEntry@@U?$less@I@std@@V?$allocator@UUnitSyncEntry@@@3@@2@U?$less@I@2@V?$allocator@UUnitSyncEntry@@@2@@std@@QAEXXZ,matched,100.0
 0x470030,3,src/network/unit_sync.cpp,?NopChecksumEntryDtor@@YGXH@Z,matched,100.0
-0x470040,526,src/network/unit_sync_470040.cpp,??4Class_0046eaa0@@QAEAAU0@ABU0@@Z,matched,100.0
-0x470250,19,src/network/unit_sync.cpp,?Capacity@Class_00470250@@QAEHXZ,matched,100.0
-0x470270,19,src/network/unit_sync.cpp,?Size@Class_00470270@@QAEHXZ,matched,100.0
+0x470040,526,src/network/unit_sync.cpp,??4Class_0046eaa0@@QAEAAU0@ABU0@@Z,matched,100.0
+0x470250,19,src/network/unit_sync.cpp,?Capacity@Class_00470250@@QBEIXZ,matched,100.0
+0x470270,19,src/network/unit_sync.cpp,?Size@Class_00470270@@QBEIXZ,matched,100.0
 0x470290,3,src/network/unit_sync.cpp,?_Destroy@?$vector@UElem_004702a0@@V?$allocator@UElem_004702a0@@@std@@@std@@IAEXPAUElem_004702a0@@0@Z,matched,100.0
 0x4702a0,46,src/network/unit_sync.cpp,?_Ucopy@?$vector@UElem_004702a0@@V?$allocator@UElem_004702a0@@@std@@@std@@IAEPAUElem_004702a0@@PBU3@0PAU3@@Z,matched,100.0
 0x4702d0,42,src/network/unit_sync.cpp,?CopyDwordRangeOverwrite@@YGPAHPAH00@Z,matched,100.0

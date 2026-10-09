@@ -217,7 +217,7 @@ struct Feature {
 
 struct Struct_Game391e9 {
     char unknown_0[0xd3c];
-    int field_d3c;                     // +0xd3c
+    int gravity;                       // +0xd3c
 };
 
 struct Game {

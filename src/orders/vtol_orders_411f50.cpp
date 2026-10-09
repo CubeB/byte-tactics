@@ -61,7 +61,7 @@ struct UnitDef {
     char pad21e[0x241 - 0x21e]; unsigned int flags;
 };
 struct Struct_Unit96 {
-    char pad0[0x146]; unsigned char field_146;
+    char pad0[0x146]; unsigned char slotIndex;
 };
 struct Unit {
     UnitMotion* type;
@@ -106,7 +106,7 @@ struct Order {
     Vec3* Position();
 };
 struct Struct_Game391e9 {
-    char pad0[0xd3c]; int field_d3c;
+    char pad0[0xd3c]; int gravity;
 };
 struct Game {
     char pad0[0x391e9]; Struct_Game391e9* mapInfo;
@@ -234,7 +234,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
         UnitDef* def = unit->def;
         // size and rate are loaded before the !rate test.
         int size = def->altitude;
-        int rate = g_game->mapInfo->field_d3c;
+        int rate = g_game->mapInfo->gravity;
         if (!rate)
             break;
         // Float local x: keeps the constant multiply from moving outermost.
@@ -269,7 +269,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
         order->flags = 0xe2;
         if (unit->health < unit->def->maxHealth / 4 * 3) {
             std::vector<Unit*> pads;
-            GetFactoriesInRadius(unit->player->field_146, &unit->pos, 0xf00, &pads);
+            GetFactoriesInRadius(unit->player->slotIndex, &unit->pos, 0xf00, &pads);
             if (!pads.empty()) {
                 ((Order*)order)->SetAttachedFx(0);
                 Unit* pad = pads[RandomInt(pads.size())];

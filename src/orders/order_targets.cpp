@@ -267,7 +267,7 @@ struct Vec3_0044e3c0 {
 
 struct Sub_0044e190 {
     char unknown_0[0xdc];
-    int field_dc;                      // +0xdc
+    int range;                         // +0xdc
 };
 
 #pragma pack(push, 1)
@@ -637,7 +637,7 @@ public:
 
 struct Source_0044e2d0 {
     char unknown_0[0xe];
-    int field_e;                       // +0xe
+    int unit;                          // +0xe
 };
 
 struct Vec3_0044e2d0 {
@@ -662,7 +662,7 @@ public:
 
 struct Source_0044e330 {
     char unknown_0[0xe];
-    int field_e;                       // +0xe
+    int unit;                          // +0xe
 };
 
 struct Vec3_0044e330 {
@@ -711,7 +711,7 @@ public:
     virtual void v8(Vec3_0044e5b0* out);   // vtable +0x20
     char unknown_4[4];                 // +0x4
     unsigned short flags;              // +0x8
-    short field_a;                     // +0xa
+    short approachRadius;              // +0xa
     char unknown_c[0x1a - 0xc];        // +0xc
     Object_0044e5b0* target;           // +0x1a
 
@@ -919,12 +919,12 @@ struct Point_0044eef0 {
 
 struct Target_0044f1a0 {
     char unknown_0[0x2e];
-    unsigned char field_2e;            // +0x2e
+    unsigned char occupyFlags;         // +0x2e
 };
 
 struct Target_0044f2a0 {
     char unknown_0[0x42];
-    unsigned int field_42;             // +0x42
+    unsigned int flags;                // +0x42
 };
 
 // A 16.16 fixed-point coordinate: the low word is the fraction, the high
@@ -1842,7 +1842,7 @@ Class_0044e190::Class_0044e190(Order* order, Unit* unit)
     field_10 = -1;
     if ((unsigned char)(ref.owner->def->flags >> 11) & 1) {
         field_8 = 7;
-        int t = field_12->weapon->field_dc;
+        int t = field_12->weapon->range;
         if (t != 0)
             field_32 = t << 16;
         else
@@ -1878,7 +1878,7 @@ Class_0044e2d0::Class_0044e2d0(Source_0044e2d0* source, const Vec3_0044e2d0& p)
     field_c = 0;
     field_10 = -1;
     field_8 = 0x20;
-    field_12 = source->field_e;
+    field_12 = source->unit;
 }
 
 // FUNCTION: 0x44e330
@@ -1891,7 +1891,7 @@ Class_0044e330::Class_0044e330(Source_0044e330* source, int unit, const Vec3_004
     field_a = 0;
     field_c = 0;
     field_10 = -1;
-    field_12 = source->field_e;
+    field_12 = source->unit;
     field_8 = 0xa3;
 }
 
@@ -1987,7 +1987,7 @@ int Class_0044e5b0::IsComplete(Object_0044e5b0* arg)
     float dist = (float)_hypot((double)(arg->pos.x - pos.x), (double)(arg->pos.z - pos.z)) * 1.52587890625e-05f;
     unsigned short flags = this->flags;
     if (flags & 0x10) {
-        return (double)field_a > dist;
+        return (double)approachRadius > dist;
     }
     else {
         if (dist > 0.5f)
@@ -2448,7 +2448,7 @@ void AiSearchGoal::TickTowardGoal()
             flag_3 = 1;
         }
     }
-    if (field_4 && (owner->target->field_2e & 4 || count < 2))
+    if (field_4 && (owner->target->occupyFlags & 4 || count < 2))
         flag_1 = 1;
 }
 
@@ -2515,7 +2515,7 @@ void AiSearchGoal::SetPathOrder(void* param)
                 }
                 if (!active) {
                     Target_0044f2a0* t = owner->list;
-                    if (t && !(t->field_42 & 0x800000)) {
+                    if (t && !(t->flags & 0x800000)) {
                         count = 2;
                         points[0].x = owner->pos.x.half[1];
                         points[0].y = owner->pos.z.half[1];
@@ -2547,7 +2547,7 @@ AiSearchGoal::~AiSearchGoal()
 // FUNCTION: 0x44f480
 int AiSearchGoal::HasNetUnitState()
 {
-    return (field_64 & 8) || ((owner->target->field_2e ^ field_64) & 4);
+    return (field_64 & 8) || ((owner->target->occupyFlags ^ field_64) & 4);
 }
 
 // Slot 8, the write counterpart of the reader 0x44f5c0. It sets the stream's next bit when the
@@ -2563,7 +2563,7 @@ void AiSearchGoal::SerializeNetUnitState(BitWriter* stream)
     } else {
         n = 0;
     }
-    if (owner->target->field_2e & 4) {
+    if (owner->target->occupyFlags & 4) {
         stream->data[stream->bit] |= 1 << stream->index;
     }
     stream->index++;
@@ -2580,7 +2580,7 @@ void AiSearchGoal::SerializeNetUnitState(BitWriter* stream)
         stream->WriteBits(points[i].x, 0x10);
         stream->WriteBits(points[i].y, 0x10);
     }
-    flag_2 = (owner->target->field_2e & 4) != 0;
+    flag_2 = (owner->target->occupyFlags & 4) != 0;
     flag_3 = 0;
 }
 

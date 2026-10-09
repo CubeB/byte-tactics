@@ -1923,7 +1923,7 @@ struct UnitOrderType {
     void (__stdcall* draw)(void* surface, View* view, Order* order, Pos* out, int flag);
     int target;                                                 // +0x0c
     unsigned int flags;                                         // +0x10
-    unsigned char field_14;                                     // +0x14
+    unsigned char internal;                                     // +0x14
     const char* name;                                           // +0x15 the key the table is sorted by
 };
 #pragma pack(pop)

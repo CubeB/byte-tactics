@@ -145,11 +145,11 @@ struct TargetData_0043d6d0 {
     char unknown_0[8];
     Vec3 velocity;                     // +0x8
     char unknown_14[0x20 - 0x14];
-    int field_20;                      // +0x20
+    int speed;                         // +0x20
 };
 
 struct Path_0043d6d0 {
-    TargetData_0043d6d0* field_0;      // +0x0
+    TargetData_0043d6d0* motion;       // +0x0
 };
 
 struct UnitType_0043cd20 {           // 0x249 bytes
@@ -350,7 +350,7 @@ struct Elem_0043c390 {
     int value;                         // +0x0, the status string
     int (__stdcall* notify)(void* unit, Order* obj, unsigned int code); // +4
     char unknown_8[0xc - 8];
-    int field_c;                       // +0xc, the flags 0x439b30 masks
+    int drawMask;                      // +0xc, the flags 0x439b30 masks
     char unknown_10[0x11 - 0x10];
     unsigned int flags;                // +0x11, default flags of the kind
     char* name;                        // +0x15
@@ -396,23 +396,23 @@ void __stdcall DrawOrderOverlays(Unit* unit, unsigned int mask, void* obj,
     Vec3 pos = unit->pos;
     bool done = false;
     for (Order* e = unit->list; e != 0; e = e->next) {
-        if (g_missionOrderTableBegin[e->kind].field_c & mask & 1) {
+        if (g_missionOrderTableBegin[e->kind].drawMask & mask & 1) {
             pos = base;
             DrawBuildFootprint(obj, sel, e, &pos, flag);
         }
-        if (g_missionOrderTableBegin[e->kind].field_c & mask & 2) {
+        if (g_missionOrderTableBegin[e->kind].drawMask & mask & 2) {
             pos = base;
             DrawPathAnim(obj, sel, e, &pos, flag);
         }
-        if (g_missionOrderTableBegin[e->kind].field_c & mask & 4) {
+        if (g_missionOrderTableBegin[e->kind].drawMask & mask & 4) {
             pos = base;
             DrawOrderRangeRing(obj, sel, e, &pos, flag);
         }
-        if (g_missionOrderTableBegin[e->kind].field_c & mask & 8) {
+        if (g_missionOrderTableBegin[e->kind].drawMask & mask & 8) {
             pos = base;
             DrawWeaponCoverage(obj, sel, e, &pos, flag);
         }
-        if (g_missionOrderTableBegin[e->kind].field_c & mask & 0x10) {
+        if (g_missionOrderTableBegin[e->kind].drawMask & mask & 0x10) {
             if (!done) {
                 DrawUnitRangeRings(obj, sel, e, &pos, flag);
                 done = true;
@@ -1959,9 +1959,9 @@ void UnitMotion::UpdatePosition(Unit* u)
         SetUnitPosition(u, v, mode);
         Short3 o = GetPieceAngles(u->obj, u->index);
         u->f64 = o;
-        if (u->obj->field_0 != 0) {
-            speed = u->obj->field_0->field_20;
-            velocity = u->obj->field_0->velocity;
+        if (u->obj->motion != 0) {
+            speed = u->obj->motion->speed;
+            velocity = u->obj->motion->velocity;
         } else {
             speed = 0;
             Vec3 zero(0, 0, 0);

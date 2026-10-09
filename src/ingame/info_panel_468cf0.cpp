@@ -445,12 +445,6 @@ static inline int ShowSelectBox(int drawObjects)
   return 0;
 }
 
-// Unused here: these declarations take the symbol ids that keep DrawBattleFrame
-// matching (docs/c2-regalloc.md).
-int GetScreenWidth();
-int DrawFrameRate();
-void DrawSoftwareCursor();
-
 // FUNCTION: 0x468cf0
 void __stdcall DrawBattleFrame(int param_1, int param_2)
 {

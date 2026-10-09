@@ -550,9 +550,9 @@ float __stdcall GetEnergyIncome(void* param_1)
 
 // Unused here: the symbol ids these declarations take keep the allocation
 // (docs/c2-regalloc.md).
-int FUN_0044cfe0(void);
-int FUN_0044d440(void);
-int FUN_0044d900(void);
+void RegisterUnitOrders(void);
+void RegisterGroundOrders(void);
+void ResetAIPlayers(void);
 int FUN_00490200();
 
 // FUNCTION: 0x464ac0

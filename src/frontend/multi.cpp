@@ -706,7 +706,7 @@ struct Struct_004c6ac0;
 
 // Unused here: the symbol id this declaration takes keeps the allocation
 // (docs/c2-regalloc.md).
-int FUN_0044cfe0(void);
+void EnableAICommands(void);
 
 // Unused here: real functions declared to keep the file's symbol count.
 void RegisterUnitOrders();

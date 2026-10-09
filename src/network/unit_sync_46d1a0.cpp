@@ -51,7 +51,7 @@ struct UnitSyncEntry {             // the map's mapped type, 0x10 bytes
     int y;                         // +0x4
     short w;                       // +0x8
     short h;                       // +0xa
-    int unknown_c;                 // +0xc
+    int limit;                     // +0xc
 };
 
 class UnitSyncPlayer {             // 0x5c bytes, the vector at +0x10 holds these

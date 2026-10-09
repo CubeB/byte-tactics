@@ -50,7 +50,7 @@ inline int Pass(int v) { return v; }
 struct UnitSyncEntry {
     int x, y;
     short w, h;
-    int unknown_c;
+    int limit;
 };
 
 // The vector members are modelled by the classes data/symbols.csv names
@@ -99,9 +99,9 @@ int __cdecl GetHostDpid();
 void __stdcall SendPacketToPlayer(int a, unsigned int b, void* c, int d);
 
 struct PacketSequencer { // 0x2c bytes, the entry's +0x30 member
-    int field_0;
-    int field_4;
-    int field_8;
+    int lastSent;
+    int cur;
+    int max;
     Class_0046e610 list_c; // +0xc
     Class_0046e610 list_d; // +0x1c
 
@@ -117,9 +117,9 @@ struct Class_0046eaa0 {    // 0x5c bytes, one vector element
     int id;                // +0x0
     Class_0046e5e0 list_a; // +0x4
     Wrap_0046e5e0 list_b;  // +0x14
-    int field_24;          // +0x24
-    int field_28;          // +0x28
-    int field_2c;          // +0x2c
+    int expected;          // +0x24
+    int sent;              // +0x28
+    int ackd;              // +0x2c
     PacketSequencer sub;   // +0x30
 
     Class_0046eaa0& operator=(const Class_0046eaa0& src);
@@ -198,10 +198,10 @@ void UnitSync::ProcessSync() {
                 if (found == 0) {
                     Class_0046eaa0 entry;
                     entry.id = p->field_4;
-                    // field_24/28/2c are zeroed by assignments after id.
-                    entry.field_24 = 0;
-                    entry.field_28 = 0;
-                    entry.field_2c = 0;
+                    // expected/28/2c are zeroed by assignments after id.
+                    entry.expected = 0;
+                    entry.sent = 0;
+                    entry.ackd = 0;
                     // Push models the inlined push_back: the lea of this+0x10
                     // comes before the end() load.
                     players.Push(entry);
@@ -213,7 +213,7 @@ void UnitSync::ProcessSync() {
                         packet.key = 0;
                         packet.value = 0;
                         this->SendSyncPacket(e, &packet, 1);
-                        e->field_28++;
+                        e->sent++;
                     }
                     changed = 1;
                 }

@@ -14,9 +14,9 @@ struct Obj_00462d30 {
 
 struct Buffers_00462d30 {
     char* a;                           // +0x0
-    int field_4;
-    int field_8;
-    int field_c;
+    int baseTick;
+    int bufferSize;
+    int skipCount;
     char* b;                           // +0x10
     Obj_00462d30* c;                   // +0x14
     ~Buffers_00462d30();

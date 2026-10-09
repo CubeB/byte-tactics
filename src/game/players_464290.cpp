@@ -37,7 +37,7 @@ public:
 class SquadManager {                   // 0x3d bytes
 public:
     void* player;                      // +0x0
-    unsigned char field_4;             // +0x4
+    unsigned char index;               // +0x4
     int countdown;                     // +0x5
     int field_9;                       // +0x9
     int field_d;                       // +0xd

@@ -79,7 +79,7 @@ extern "C" void __stdcall SendPacketToPlayer(int a, unsigned int b, void* c, int
 
 class PacketSequencer {
 public:
-	int field_0;
+	int lastSent;
 	char unknown_4[8];
 	std::vector<Elem_0046faf0> vec;
 	void SendSequenced(Elem_0046faf0* param_1, Elem_0046faf0* param_2);
@@ -92,7 +92,7 @@ public:
 // the original's single `mov edi, ecx` in the capacity block.
 void PacketSequencer::SendSequenced(Elem_0046faf0* param_1, Elem_0046faf0* param_2)
 {
-	param_2->id = ++field_0;
+	param_2->id = ++lastSent;
 	std::vector<Elem_0046faf0>& _v = vec;
 	_v.insert(_v.end(), 1, *param_2);
 	SendPacketToPlayer(GetLocalHumanDpid(), (unsigned int)param_1, param_2, 0xe);

@@ -142,7 +142,7 @@ struct Name_0046c620 {                  // 17 bytes, the player's name
 struct Net_4c97b0 {                     // the object at g_game+0x14
     Name_0046c620 name;                 // +0x00
     char unknown_11[0x4c9 - 0x11];
-    int field_4c9;                      // +0x4c9
+    int created;                        // +0x4c9
     char unknown_4cd[4];
 };
 
@@ -305,7 +305,7 @@ struct UnitSyncEntry {                 // the map's mapped type, 0x10 bytes
     int y;                             // +0x4
     short w;                           // +0x8
     short h;                           // +0xa
-    int unknown_c;                     // +0xc
+    int limit;                         // +0xc
 };
 
 // A node of the std::map<unsigned int, UnitSyncEntry> tree (MSVC 5 xtree's
@@ -695,7 +695,7 @@ public:
 };
 
 struct PacketSequencer {
-    int field_0;                       // +0x00
+    int lastSent;                      // +0x00
     unsigned int cur;                  // +0x04
     unsigned int max;                  // +0x08
     // Nested struct with its own out-of-line operator=: sets the inline depth
@@ -717,7 +717,7 @@ struct PacketSequencer {
 // FUNCTION: 0x46cbe0
 PacketSequencer::PacketSequencer()
 {
-    field_0 = 0;
+    lastSent = 0;
     cur = 0;
     max = 0;
 }
@@ -792,7 +792,7 @@ void PacketSequencer::ReceiveSequenced(UnitSyncPacket* packet, int param_2, void
 // FUNCTION: 0x470560 ??4PacketSequencer@@QAEAAU0@ABU0@@Z
 PacketSequencer& PacketSequencer::operator=(const PacketSequencer& rhs)
 {
-    field_0 = rhs.field_0;
+    lastSent = rhs.lastSent;
     cur = rhs.cur;
     max = rhs.max;
     list_c = rhs.list_c;
@@ -823,7 +823,7 @@ UnitSync::UnitSync(int param)
             v.y = 0;
             v.w = 1;
             v.h = (short)sub2.flag;
-            v.unknown_c = FlagOf_0046d040(&g_game->defs[i]) ? 0 : -1;
+            v.limit = FlagOf_0046d040(&g_game->defs[i]) ? 0 : -1;
             map[key] = v;
         }
     }
@@ -998,7 +998,7 @@ void UnitSync::HandleSyncPacket(UnitSyncPacket* packet, unsigned char player)
             r.y = 0;
             r.w = packet->enabled;
             r.h = packet->match;
-            r.unknown_c = packet->limit;
+            r.limit = packet->limit;
             map[packet->key] = r;
             this->NotifyEntryChanged(packet->key);
         }
@@ -1028,7 +1028,7 @@ void UnitSync::NotifyEntryChanged(unsigned int param_1)
                 packet.key = v->x;
                 packet.enabled = v->w;
                 packet.match = v->h;
-                packet.limit = v->unknown_c;
+                packet.limit = v->limit;
                 this->SendSyncPacket(&i->id, &packet, 1);
                 i->sent++;
             }
@@ -1223,7 +1223,7 @@ void UnitSync::ApplyToUnitTypes()
         } else {
             ProtectUnitDefsReadWrite();
             def->flags_241.flag_23 = (it.ptr->value.w != 0 && it.ptr->value.h != 0);
-            def->field_15a = it.ptr->value.unknown_c;
+            def->field_15a = it.ptr->value.limit;
         }
         ProtectUnitDefsReadOnly();
     }
@@ -1294,7 +1294,7 @@ void UnitSync::SetUnitLimit(Unit_0046e330* unit, int value)
 {
     UnitSyncIter it = Find(&unit->key);
     if (!(it == End())) {
-        it.ptr->value.unknown_c = value;
+        it.ptr->value.limit = value;
         NotifyEntryChanged(unit->key);
     }
 }
@@ -1434,12 +1434,12 @@ struct Elem_004702a0 {
 };
 
 struct Class_0046eaa0 {                // operator= is 0x470040
-    int field_0;                       // +0x00
+    int id;                            // +0x00
     std::vector<Elem_004702a0> list_a; // +0x04
     std::vector<Elem_004702a0> list_b; // +0x14
-    int field_24;                      // +0x24
-    int field_28;                      // +0x28
-    int field_2c;                      // +0x2c
+    int expected;                      // +0x24
+    int sent;                          // +0x28
+    int ackd;                          // +0x2c
     PacketSequencer sub;               // +0x30
 };
 

@@ -14,18 +14,18 @@
 
 class PacketRing {
 public:
-    int field_0;
-    int field_4;
-    int field_8;
+    int count;
+    int readIdx;
+    int writeIdx;
 
-    PacketRing() { field_0 = 0; field_4 = 0; field_8 = -1; }
+    PacketRing() { count = 0; readIdx = 0; writeIdx = -1; }
 };
 
 struct Buffers_00462d30 {
     char* a;                           // +0x0
-    int field_4;
-    int field_8;
-    int field_c;
+    int baseTick;
+    int bufferSize;
+    int skipCount;
     char* b;                           // +0x10
     char* c;                           // +0x14
     ~Buffers_00462d30()

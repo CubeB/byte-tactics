@@ -8,13 +8,17 @@
 // it queues VTOL_EVADE.
 #include <math.h>
 
-struct Vec3 {
-    union { int x; struct { unsigned short xf; short xw; }; };
-    int y;
-    union { int z; struct { unsigned short zf; short zw; }; };
-    void operator+=(const Vec3& v) { x += v.x; y += v.y; z += v.z; }
-    Vec3 operator+(const Vec3& v) const { Vec3 r = *this; r += v; return r; }
-};
+#include "../util/vec3.h"
+
+// The whole part (high 16 bits) of a 16.16 coordinate.
+static inline short Whole(const int& v) { return ((short*)&v)[1]; }
+
+static inline Vec3 Sum(const Vec3& a, const Vec3& b)
+{
+    Vec3 r = a;
+    r.x += b.x; r.y += b.y; r.z += b.z;
+    return r;
+}
 
 union Fixed {
     int v;
@@ -28,14 +32,7 @@ public:
 };
 
 struct Unit;
-class UnitMotion {
-public:
-    char unknown_0[8];
-    Vec3 v;                            // +0x8
-    char unknown_14[0x2e - 0x14];
-    unsigned char flags;               // +0x2e
-    void SetFlightMode(Unit* unit, int state);
-};
+#include "unit_motion.h"
 
 class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_0044e730 { public: void SetApproachRadius(short); };
@@ -77,15 +74,8 @@ struct Order {
     Order(Class_00438760 type, int a, Vec3* b, int c, int d, int e);
     char unknown_4e[0x8];
     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
-    void ReattachFxToUnit();
     void MergeFlagsFromTable(int k);
-    void AttachRingApproachGoal(Vec3* pos, int radius1, int radius2);
-    ~Order();
-    Order(Unit* unit, void* file, char* name);
-    void OrStatusFlags(unsigned int flags);
-    Unit* Target();
     void Wait();
-    Vec3* Position();
     int Advance(int distance);
 };
 struct Game {
@@ -164,7 +154,7 @@ static inline int IsAhead(Unit* unit, Order* order)
     Fixed dist;
     dist.v = 0x140000;
     Vec3 facing = DirectionFromAngle(unit->heading, dist);
-    return (short)(toward.xw * facing.xw + toward.zw * facing.zw) > 0;
+    return (short)(Whole(toward.x) * Whole(facing.x) + Whole(toward.z) * Whole(facing.z)) > 0;
 }
 
 // Stays in a file of its own: it matches only in this file's symbol context.
@@ -233,7 +223,7 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
                 p.x += order->target->type->v.x * 45;
                 p.z += order->target->type->v.z * 45;
                 order->SetAttachedFx((int)new AirManeuverOrder(order, p,
-                    order->target->type->v + Offset(order->target->heading, order->target->def->maxvelocity / 2)));
+                    Sum(order->target->type->v, Offset(order->target->heading, order->target->def->maxvelocity / 2))));
             }
             order->SetDeadlineTicks(0x2d);
             order->flags |= 0x100e8;

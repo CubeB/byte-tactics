@@ -291,7 +291,7 @@ class VictoryUnitTypePassesX : public MissionCondition, public Listener_0048ff40
 public:
     virtual int VisitUnit(Unit* unit);
     char name[0x20];                     // +0x10
-    int field_30;                        // +0x30
+    int x;                               // +0x30
 
     VictoryUnitTypePassesX(const char* text, int v)
     {
@@ -299,7 +299,7 @@ public:
             name[0] = 0;
         else
             strcpy(name, text);
-        field_30 = v >> 4;
+        x = v >> 4;
     }
     virtual int IsSatisfied();
     virtual void SaveState(HapiBank* file);
@@ -313,7 +313,7 @@ class VictoryUnitTypePassesZ : public MissionCondition, public Listener_0048ff40
 public:
     virtual int VisitUnit(Unit* unit);
     char name[0x20];                     // +0x10
-    int field_30;                        // +0x30
+    int z;                               // +0x30
 
     VictoryUnitTypePassesZ(const char* text, int v)
     {
@@ -321,7 +321,7 @@ public:
             name[0] = 0;
         else
             strcpy(name, text);
-        field_30 = v >> 4;
+        z = v >> 4;
     }
     virtual int IsSatisfied();
     virtual void SaveState(HapiBank* file);
@@ -332,9 +332,9 @@ public:
 // VictoryTimerRunsOut (vtable 0x4fd830).
 class VictoryTimerRunsOut : public MissionCondition {
 public:
-    unsigned int field_c;                // +0xc
+    unsigned int endTick;                // +0xc
 
-    VictoryTimerRunsOut(int t) { field_c = t * 30; }
+    VictoryTimerRunsOut(int t) { endTick = t * 30; }
     virtual int IsSatisfied();
     virtual void SaveState(HapiBank* file);
     virtual void LoadState(HapiBank* file);
@@ -392,9 +392,9 @@ public:
 // DeathTimerRunsOut (vtable 0x4fd7a8).
 class DefeatDeathTimerRunsOut : public MissionCondition {
 public:
-    int field_c;                         // +0xc
+    int endTick;                         // +0xc
 
-    DefeatDeathTimerRunsOut(int t) { field_c = t * 30; }
+    DefeatDeathTimerRunsOut(int t) { endTick = t * 30; }
     virtual int IsSatisfied();
     virtual void SaveState(HapiBank* file);
     virtual void LoadState(HapiBank* file);
@@ -404,9 +404,9 @@ public:
 class DefeatAnyUnitPassesX : public MissionCondition, public Listener_0048ff40 {
 public:
     virtual int VisitUnit(Unit* unit);
-    int field_10;                        // +0x10
+    int x;                               // +0x10
 
-    DefeatAnyUnitPassesX(int v) { field_10 = v >> 4; }
+    DefeatAnyUnitPassesX(int v) { x = v >> 4; }
     virtual int IsSatisfied();
     virtual void SaveState(HapiBank* file);
     virtual void LoadState(HapiBank* file);
@@ -416,9 +416,9 @@ public:
 class DefeatAnyUnitPassesZ : public MissionCondition, public Listener_0048ff40 {
 public:
     virtual int VisitUnit(Unit* unit);
-    int field_10;                        // +0x10
+    int z;                               // +0x10
 
-    DefeatAnyUnitPassesZ(int v) { field_10 = v >> 4; }
+    DefeatAnyUnitPassesZ(int v) { z = v >> 4; }
     virtual int IsSatisfied();
     virtual void SaveState(HapiBank* file);
     virtual void LoadState(HapiBank* file);
@@ -975,7 +975,7 @@ void VictoryMoveUnitToRadius::LoadState(HapiBank* obj)
 int VictoryUnitTypePassesX::VisitUnit(Unit* unit)
 {
     if (name[0] == 0 || _strcmpi(name, unit->def->name) == 0) {
-        if (abs(unit->cell - field_30) <= 2) {
+        if (abs(unit->cell - x) <= 2) {
             satisfied = 1;
             if (celebrated == 0) {
                 PlaySoundByName("Victory Condition", 0);
@@ -1024,7 +1024,7 @@ void VictoryUnitTypePassesX::LoadState(HapiBank* obj)
 int VictoryUnitTypePassesZ::VisitUnit(Unit* unit)
 {
     if (name[0] == 0 || _strcmpi(name, unit->def->name) == 0) {
-        if (abs(unit->field_78 - field_30) <= 2) {
+        if (abs(unit->field_78 - z) <= 2) {
             satisfied = 1;
             if (celebrated == 0) {
                 PlaySoundByName("Victory Condition", 0);
@@ -1073,7 +1073,7 @@ void VictoryUnitTypePassesZ::LoadState(HapiBank* obj)
 int VictoryTimerRunsOut::IsSatisfied()
 {
     unsigned int game_val = g_game->ticks;
-    return game_val >= field_c;
+    return game_val >= endTick;
 }
 
 // Same shape as 0x48fd70: writes the "victory timer runs out" victory
@@ -1263,7 +1263,7 @@ void DefeatAllUnitsKilledOfType::LoadState(HapiBank* obj)
 // FUNCTION: 0x48fb30
 int DefeatAnyUnitPassesX::VisitUnit(Unit* unit)
 {
-    int diff = abs((int)unit->cell - field_10);
+    int diff = abs((int)unit->cell - x);
 
     if (diff <= 2) {
         satisfied = 1;
@@ -1310,7 +1310,7 @@ void DefeatAnyUnitPassesX::LoadState(HapiBank* obj)
 // FUNCTION: 0x48fc40
 int DefeatAnyUnitPassesZ::VisitUnit(Unit* unit)
 {
-    int diff = abs((int)unit->field_78 - field_10);
+    int diff = abs((int)unit->field_78 - z);
 
     if (diff <= 2) {
         satisfied = 1;
@@ -1356,7 +1356,7 @@ void DefeatAnyUnitPassesZ::LoadState(HapiBank* obj)
 int DefeatDeathTimerRunsOut::IsSatisfied()
 {
     unsigned int game_val = g_game->ticks;
-    return game_val >= (unsigned int)field_c;
+    return game_val >= (unsigned int)endTick;
 }
 
 // FUNCTION: 0x48fd70
@@ -1644,7 +1644,7 @@ public:
 struct Target_00490880 {
     char unknown_0[0x2e];
     union {
-        unsigned char field_2e;        // +0x2e
+        unsigned char flags;           // +0x2e
         struct {
             unsigned char mode : 2;    // +0x2e bits 0-1
         };
@@ -1662,7 +1662,7 @@ struct Struct_004907e0 {               // the owner, the object at +0x8
     short bank;                        // +0x68
     Vec3 pos;                 // +0x6a
     char pad76[0x82 - 0x76];
-    unsigned char* field_82;           // +0x82
+    unsigned char* spatialBucket;      // +0x82
     char pad86[0x92 - 0x86];
     UnitDef* def;                      // +0x92
 };
@@ -1770,7 +1770,7 @@ void PackedGoal::ExportGoalPose(Vec3* outPos, Vec3* outVel,
 // slot 8) and the difference goes into vel. When the object has drifted further
 // than 0xa00000 from its owner, its height is snapped to the ground under it,
 // the sea level for a unit whose def has the flag at +0x241 bit 22 set, the
-// owner's field_82 byte 1 otherwise, plus the def's altitude, and past
+// owner's spatialBucket byte 1 otherwise, plus the def's altitude, and past
 // 0x1400000 (or 0x100000 with slot 9 refusing) it turns to face the owner. Then
 // the object at +0x4 gets the last word: slot 4 saying it is done, plus slot
 // 11, means slot 1 with 0.
@@ -1789,7 +1789,7 @@ void PackedGoal::TickTowardGoal()
         else
             // altitude via owner->def-> and first in the add: keeps the two
             // branches from being tail-merged.
-            pos.y = (owner->def->altitude + owner->field_82[1]) << 16;
+            pos.y = (owner->def->altitude + owner->spatialBucket[1]) << 16;
     }
     if (dist > 0x1400000 || (!field_4->TryGetDesiredHeading(&field_24) && dist > 0x100000))
         field_24 = (short)GetHeadingBetween(&owner->pos, &pos);
@@ -1841,7 +1841,7 @@ void LiteGoal::SetPathOrder(void* param)
 // FUNCTION: 0x490880
 void LiteGoal::TickTowardGoal()
 {
-    if ((owner->target->field_2e & 3) != mode)
+    if ((owner->target->flags & 3) != mode)
         dirty = 1;
     PackedGoal::TickTowardGoal();
 }

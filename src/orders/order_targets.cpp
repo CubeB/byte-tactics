@@ -944,7 +944,7 @@ struct Vec3_004907e0 {
 struct Struct_004907e0 {               // the owner
     Target_0044f1a0* target;           // +0x0
     char unknown_4[0x5c - 0x4];
-    Target_0044f2a0* field_5c;         // +0x5c
+    Target_0044f2a0* list;             // +0x5c
     char unknown_60[0x6a - 0x60];
     Vec3_004907e0 pos;                 // +0x6a
 };
@@ -2514,7 +2514,7 @@ void AiSearchGoal::SetPathOrder(void* param)
                         active = 1;
                 }
                 if (!active) {
-                    Target_0044f2a0* t = owner->field_5c;
+                    Target_0044f2a0* t = owner->list;
                     if (t && !(t->field_42 & 0x800000)) {
                         count = 2;
                         points[0].x = owner->pos.x.half[1];

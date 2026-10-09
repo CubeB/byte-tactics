@@ -97,7 +97,7 @@ struct Menu_00493060 {
 
 struct Entry_004931d0 {
     char unknown_0[0xce];
-    void* field_ce;                    // +0xce
+    void* handler;                     // +0xce
 };
 
 struct Gadget_004931d0 {
@@ -737,7 +737,7 @@ void ShowLoadGameScreen()
     SetGadgetActiveByName((char*)&g_game->message[0], "GAMENAME", 0);
     Entry_004931d0* entry = FindGadgetChecked(gadget->info, "GAMES");
     if (entry != 0) {
-        entry->field_ce = (void*)SavedGameSelectHandler;
+        entry->handler = (void*)SavedGameSelectHandler;
     }
     ShowSavedGameInfo();
     SetKeyboardInput((char*)&g_game->message[0], 1);

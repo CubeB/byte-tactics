@@ -558,15 +558,7 @@ void __stdcall RockUnit(Object_00499c10* obj, Source_00499c10* src)
     obj->anims->StartScriptWithArgs("RockUnit", 0, 0, 2, b, a, 0, 0);
 }
 
-struct Weapon_499c70;
-struct Weapon_0049a120;
-
-class SquadManager {
-public:
-    void MarkOwnerNetDirtyFromDamageSplit(Weapon_499c70* weapon, int a, int b);
-    void MarkOwnerNetDirtyFromDamageSplit(Projectile_00499eb0* projectile, int a, int b);
-    void MarkOwnerNetDirtyFromDamageSplit(Weapon_0049a120* weapon, int enemyDamage, int friendlyDamage);
-};
+#include "../ai/squad_manager.h"
 
 #pragma pack(push, 1)
 struct Weapon_499c70 {
@@ -591,7 +583,7 @@ void __stdcall ApplyWeaponHit(Weapon_499c70* weapon, Unit* target)
             a = damage;
         else
             b = damage;
-        attacker->player->ai->MarkOwnerNetDirtyFromDamageSplit(weapon, a, b);
+        attacker->player->ai->MarkOwnerNetDirtyFromDamageSplit((Obj_00406f50*)weapon, a, b);
     }
 }
 
@@ -806,7 +798,7 @@ void __stdcall DetonateProjectile(Projectile_00499eb0* projectile, Unit* unit)
                     a = damage;
                 else
                     b = damage;
-                source->player->ai->MarkOwnerNetDirtyFromDamageSplit(projectile, a & 0xffff, b & 0xffff);
+                source->player->ai->MarkOwnerNetDirtyFromDamageSplit((Obj_00406f50*)projectile, a & 0xffff, b & 0xffff);
                 return;
             }
         } else {

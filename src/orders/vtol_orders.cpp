@@ -106,9 +106,6 @@ class AssaultTimer;
 class EscortTimer;
 class SquadScoutTimer;
 class SpatialTimer;
-class ScoutTimer;
-class OpenHeap;
-class BitWriter;
 
 
 // The command kind, one byte wide, but not a POD type.

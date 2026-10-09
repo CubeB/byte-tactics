@@ -1467,9 +1467,6 @@ struct Elem_004702a0 {
 
 // Unused here: real functions declared to keep the file's symbol count (docs/c2-regalloc.md).
 void RegisterUnitOrders(void);
-void RegisterGroundOrders(void);
-void EnableAICommands(void);
-void RegisterAICommands();
 
 int* __stdcall CopyDwordRangeOverwrite(int* first, int* last, int* dest);
 

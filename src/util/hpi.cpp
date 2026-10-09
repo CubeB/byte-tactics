@@ -143,18 +143,7 @@ struct DisplayContext {
     char lastDir[0x100];               // +0x728
 };
 
-// A file the game has open, loose or inside an archive.
-struct FileHandle {
-    FILE* fp;                          // +0x0
-    OPENHAPIFILE* shared;              // +0x4
-    Info* info;                        // +0x8
-    unsigned int pos;                  // +0xc
-    int* buffer;                       // +0x10, the block sizes
-    unsigned char* buffer2;            // +0x14, the current block
-    char name[0x100];                  // +0x18
-
-    void SetFileName(const char* text);
-};
+#include "file_handle.h"
 
 FileHandle* __stdcall HAPI_OpenFile(char* filename, const char* mode);
 

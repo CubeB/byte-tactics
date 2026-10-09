@@ -54,15 +54,7 @@ struct Layer;
 struct Menu;
 struct BuildList_0041ace0;
 
-// The unit's resource account at +0xbc; its methods are 0x401180 and up.
-class UnitResources {
-public:
-    int RequestEnergyAndMetal(float energy, float metal);
-    // The call site sets ecx to the resource block and also pushes it, so
-    // RequestEnergy is a __thiscall method that takes the block explicitly too
-    // (its body never reads ecx).
-    int RequestEnergy(UnitResources* r, float amount);
-};
+#include "../game/unit_resources.h"
 
 struct Nano_0041b8d0 {
     char unknown_0[0x10];
@@ -227,11 +219,7 @@ struct Unit {
     unsigned short id;           // +0xa8
     char unknown_aa[0xbb - 0xaa];
     unsigned char flags_bb;            // +0xbb
-    UnitResources store;               // +0xbc
-    char unknown_bd[0xd4 - 0xbd];
-    float field_d4;                    // +0xd4
-    char unknown_d8[0xec - 0xd8];
-    Player* field_ec;                  // +0xec
+    UnitResources store;               // +0xbc, 0x34 bytes (metalMake at +0xd4, player at +0xec)
     char unknown_f0[0xf5 - 0xf0];
     unsigned char lastDamageType;            // +0xf5
     char unknown_f6[0xff - 0xf6];
@@ -1375,9 +1363,9 @@ int __stdcall AddBuildProgress(Unit* builder, Unit* unit, float amount)
     int hp = (int)(prev * type->maxHp) - (int)(next * type->maxHp);
     if (amount < 0.0f) {
         float refund = -metalCharge;
-        // Through a float&: writing unit->field_d4 directly moves the hp load and compare.
-        float& store = unit->field_d4;
-        if (unit->field_ec->active != 0 && unit->field_ec->type == 2) {
+        // Through a float&: writing unit->store.metalMake directly moves the hp load and compare.
+        float& store = unit->store.metalMake;
+        if (unit->store.player->active != 0 && unit->store.player->type == 2) {
             switch (g_game->difficulty) {
             case 0:
                 store += refund * 0.5;

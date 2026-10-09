@@ -19,11 +19,7 @@
 #pragma pack(push, 1)
 
 #include "../util/vec3.h"
-
-struct Point {
-    int x;
-    int y;
-};
+#include "../util/point.h"
 
 // The unit position at +0x6a: a vector, or the six shorts of the grid cell.
 union UnitPos_00467440 {

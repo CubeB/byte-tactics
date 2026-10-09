@@ -851,11 +851,7 @@ void __stdcall DrawSurfaceKeyed(Surface* dst, Surface* src, int x, int y, int co
 // in a window of the symbol count (docs/c2-regalloc.md, "Symbol ids").
 #include <malloc.h>
 #include "../util/hapi_bank.h"
-
-struct Point {
-    int x;
-    int y;
-};
+#include "../util/point.h"
 
 void __cdecl BlitRect(Surface* dst, Surface* src, Rect* rect, Point* pos);
 void __cdecl BlitRectKeyed(Surface* dst, Surface* src, Rect* rect, Point* pos, unsigned char transparent);

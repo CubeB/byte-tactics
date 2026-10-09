@@ -47,10 +47,7 @@ struct Rect {
     int bottom;
 };
 
-struct Point {
-    int x;
-    int y;
-};
+#include "../util/point.h"
 
 struct Quad {
     Point p[4];

@@ -26,11 +26,7 @@ union Fixed {
 };
 
 #include "../util/vec3.h"
-
-struct Point {
-    int x;
-    int y;
-};
+#include "../util/point.h"
 
 struct Rect {
     int left;                          // +0x0

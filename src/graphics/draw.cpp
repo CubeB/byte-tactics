@@ -20,10 +20,7 @@ struct Rect {
 };
 
 // A point of the 2D outlines.
-struct Point {
-    int x;
-    int y;
-};
+#include "../util/point.h"
 
 // A vertex of the 3D outlines: the position, with z the 16.16 depth.
 struct Vec3 {

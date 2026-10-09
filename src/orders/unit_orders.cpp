@@ -58,11 +58,22 @@ struct Box {
 
 struct UnitDef;
 
-class CobScript {
-public:
-    int QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5);
-    int StartScriptWithArgs(char* name, void* param_2, int a, int b, int c, int d, int e, int f);
-};
+#include "../units/cob_script.h"
+
+// Unused here: this header and these forward declarations take the symbol ids that keep
+// BuildWeaponOrder (0x402b70) and the order handlers after it matching (docs/c2-regalloc.md).
+#include "../sound/sound.h"
+struct BmpFileHeader;
+struct BmpInfo;
+struct BmpInfoHeader;
+struct CalcedExplosion;
+struct FrameTable;
+struct Chunk;
+class SquadManager;
+class AssaultTimer;
+class EscortTimer;
+class SquadScoutTimer;
+
 
 class UnitResources {
 public:
@@ -1118,33 +1129,6 @@ struct Pad_00400000_4 { int field; };
 struct Pad_00400000_5 { int field; };
 struct Pad_00400000_6 { int field; };
 struct Pad_00400000_7 { int field; };
-struct Pad_00400000_8 { int field; };
-struct Pad_00400000_9 { int field; };
-struct Pad_00400000_10 { int field; };
-struct Pad_00400000_11 { int field; };
-struct Pad_00400000_12 { int field; };
-struct Pad_00400000_13 { int field; };
-struct Pad_00400000_14 { int field; };
-struct Pad_00400000_15 { int field; };
-struct Pad_00400000_16 { int field; };
-struct Pad_00400000_17 { int field; };
-struct Pad_00400000_18 { int field; };
-struct Pad_00400000_19 { int field; };
-struct Pad_00400000_20 { int field; };
-struct Pad_00400000_21 { int field; };
-struct Pad_00400000_22 { int field; };
-struct Pad_00400000_23 { int field; };
-struct Pad_00400000_24 { int field; };
-struct Pad_00400000_25 { int field; };
-struct Pad_00400000_26 { int field; };
-struct Pad_00400000_27 { int field; };
-struct Pad_00400000_28 { int field; };
-struct Pad_00400000_29 { int field; };
-struct Pad_00400000_30 { int field; };
-struct Pad_00400000_31 { int field; };
-struct Pad_00400000_32 { int field; };
-struct Pad_00400000_33 { int field; };
-struct Pad_00400000_34 { int field; };
 
 extern int pad_00400000_0;
 extern int pad_00400000_1;

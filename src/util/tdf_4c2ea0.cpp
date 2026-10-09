@@ -732,11 +732,15 @@ void __stdcall ReleasePair(char* param_1)
     ((Class_004c9390*)(param_1))->ReleaseRef();
 }
 
+// Unused here: the symbol id this forward declaration takes keeps the std::logic_error
+// constructor (0x4c35c0) matching (docs/c2-regalloc.md).
+struct HapiBank;
+
 // FUNCTION: 0x4c5470
 void* TdfField::AssignPair(int* param_1)
 {
     ((Class_004c93b0*)this)->Assign((Class_004c91a0*)param_1);
-    ((Class_004c93b0*)((char*)this + 4))->Assign((Class_004c91a0*)(param_1 + 1));
+    ((Class_004c93b0*)&value)->Assign((Class_004c91a0*)(param_1 + 1));
     return this;
 }
 

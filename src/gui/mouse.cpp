@@ -310,16 +310,17 @@ void __fastcall ShowSoftwareCursor(void)
 // FUNCTION: 0x4c2990
 void __cdecl MouseThreadProc(int param)
 {
+    Obj_004c2380* o = (Obj_004c2380*)param;
     SetThreadPriority(GetCurrentThread(), 2);
-    while (*(int*)(param + 0x1d6) == 0) {
+    while (o->pending == 0) {
         int start = GetTickCount() + 0x21;
         LONG held = LockMouse();
-        if (*(int*)(param + 0x1b2) != 0)
-            RedrawMouseCursor((Obj_004c2380*)param);
+        if (o->sprite != 0)
+            RedrawMouseCursor(o);
         UnlockMouse(held);
         Sleep(max(1, start - (int)GetTickCount()));
     }
-    *(int*)(param + 0x1d6) = 0;
+    o->pending = 0;
 }
 
 // Starts the worker thread (0x4c2990) that StopMouseThread stops.

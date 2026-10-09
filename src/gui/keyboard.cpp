@@ -80,13 +80,13 @@ int PopKey(void)
 // FUNCTION: 0x4c1b00
 int __cdecl PeekKey()
 {
-    int obj = (int)GetDisplay();
-    int field_16e = *(int*)(obj + 0x16e);
-    int field_172 = *(int*)(obj + 0x172);
+    Queue_004c1ab0* q = GetDisplay();
+    int field_16e = q->head;
+    int field_172 = q->tail;
     if (field_16e == field_172) {
         return 0;
     }
-    return *(int*)(obj + 0xf6 + field_172 * 4);
+    return q->entries[field_172];
 }
 
 // Pushes an entry onto the small ring buffer that 0x4c1ab0 pops and 0x4c1b00

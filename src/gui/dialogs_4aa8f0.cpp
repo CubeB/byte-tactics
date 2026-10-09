@@ -78,6 +78,7 @@ struct Layer_004aa8f0 {
     int surface;                   // +0x24
     char unknown_28[0x13];
     int textHandler;               // +0x3b
+    Gadget gadgets[200];           // +0x3f, the entry table the +4 pointer addresses
 };
 
 struct Src_004ab400;
@@ -148,6 +149,8 @@ struct Record_004ab2b0 {
 
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
 int PlaceFeature(int, int, int, int, int);
+void __stdcall UpdateAllCellHeightRanges();
+void __stdcall ClearBorderFeatures();
 
 struct Record_004ab310 {
     unsigned char type;            // +0x0
@@ -290,7 +293,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Gui* menu, const char* name,
         } else {
             layer = (Layer_004aa8f0*)GameAllocIgnoreTag(guiName, 0x10f57);
             memset(layer, 0, 0x10f57);
-            entry = (Gadget*)((char*)layer + 0x3f);
+            entry = layer->gadgets;
         }
         if (ReadGuiFile(entry, layerName) != 0) {
           if (mask != 0) {

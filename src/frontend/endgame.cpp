@@ -98,7 +98,9 @@ struct Gadget {
             unsigned short frame;      // +0xc6, 41e420's
         };
     };
-    char unknown_c8[0x136 - 0xc8];
+    char unknown_c8[0xcc - 0xc8];
+    char okName[0x10];                 // +0xcc, entry 0 only
+    char unknown_dc[0x136 - 0xdc];
     union {                            // +0x136
         short range;
         struct {
@@ -909,7 +911,7 @@ void __stdcall OpenEndMissionScreen()
         // Cast stays: removing it changes the symbol state (docs/c2-regalloc.md).
         ((Mission*)g_game->campaign)->SelectMission(g_game->mission);
         LoadPictureCached("outcome1", 1, 1, 0);
-        strcpy((char*)layer->entries + 0xcc, "Start");
+        strcpy(layer->entries->okName, "Start");
     } else {
         LoadPictureCached("outcome0", 1, 1, 0);
         SelectGadgetByName(&g_game->menu, "MainMenu");
@@ -1069,6 +1071,10 @@ static inline int StatsComplete()
     }
     return 1;
 }
+
+// Unused here: the symbol id this declaration takes keeps 0x41f7f0's register allocation
+// (docs/c2-regalloc.md).
+void __stdcall ClearBorderFeatures();
 
 // FUNCTION: 0x41f7f0
 void __stdcall RunEndGameState()

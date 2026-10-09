@@ -44,7 +44,9 @@ struct Eye_482910 {
 };
 
 struct Game {
-    char unknown_0[0x2a43];
+    char unknown_0[0x1b63];
+    char players[10][0x14b];           // +0x1b63
+    char unknown_2851[0x2a43 - 0x2851];
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x14277 - 0x2a44];
     int count;                         // +0x14277
@@ -72,7 +74,7 @@ void __stdcall AddEyeball(Vec3_482910* src, int a, int b, int c)
 {
     if ((g_game->mapFlags & 2) == 2 && g_game->count < 0x14) {
         Eye_482910* e = &g_game->eyes[g_game->count];
-        e->player = (char*)g_game + g_game->playerIndex * 0x14b + 0x1b63;
+        e->player = g_game->players[g_game->playerIndex];
         // Assigned before screen: &e->screenPos would clobber ecx, which holds g_game.
         e->screen = &e->screenPos;
         e->x = a;

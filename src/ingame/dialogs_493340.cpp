@@ -17,10 +17,7 @@
 
 unsigned int __cdecl GetMilliseconds(void);
 
-class PacketManager {
-public:
-    int SendAllQueued(int param_1);
-};
+#include "../network/packet_manager.h"
 
 class FrameTimers {                    // frame-time profile, embedded at g_game+0x38d85
 public:

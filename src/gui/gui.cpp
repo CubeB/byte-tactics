@@ -5644,6 +5644,16 @@ void __stdcall GetAnimsPath(Gui* obj, char* out)
         strncpy(out, obj->str_ab6, 0x100);
 }
 
+// Clears every frame's offsets of a GAF entry.
+static inline void ClearGlyphOffsets(GafEntry* g)
+{
+    for (int f = 0; f < g->count; f++) {
+        GafFrame* frame = GetGafFrame(g, f);
+        frame->yOffset = 0;
+        frame->xOffset = 0;
+    }
+}
+
 // FUNCTION: 0x4a81e0
 int __stdcall RenderLayer(Gui* menu, unsigned int flags)
 {
@@ -5745,11 +5755,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                     if (g == 0) {
                         g = FindGafEntry(menu->gaf, "BackTile");
                         if (g != 0) {
-                            for (int frameIndex = 0; frameIndex < g->count; frameIndex++) {
-                                GafFrame* frame = GetGafFrame(g, frameIndex);
-                                frame->yOffset = 0;
-                                frame->xOffset = 0;
-                            }
+                            ClearGlyphOffsets(g);
                         }
                     }
                 }
@@ -5765,11 +5771,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
             if (g == 0 && menu->gaf != 0) {
                 g = FindGafEntry(menu->gaf, "SLIDERS");
                 if (g != 0) {
-                    for (int f = 0; f < g->count; f++) {
-                        GafFrame* frame = GetGafFrame(g, f);
-                        frame->yOffset = 0;
-                        frame->xOffset = 0;
-                    }
+                    ClearGlyphOffsets(g);
                     orientation = entries[i].width > entries[i].height ? 10 : 0;
                     GafFrame* frame = GetGafFrame(g, orientation);
                     if (entries[i].width < entries[i].height)
@@ -5826,11 +5828,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
         case 3: {
             GafEntry* input = menu->gaf ? FindGafEntry(menu->gaf, "TEXTINPUT") : 0;
             if (input != 0) {
-                for (int f = 0; f < input->count; f++) {
-                    GafFrame* frame = GetGafFrame(input, f);
-                    frame->yOffset = 0;
-                    frame->xOffset = 0;
-                }
+                ClearGlyphOffsets(input);
             }
             entries[i].inputGaf = input;
             if (entries[i].field_138 >= 0x80)
@@ -5841,11 +5839,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
         case 2: {
             GafEntry* list = menu->gaf ? FindGafEntry(menu->gaf, "LISTBOX") : 0;
             if (list != 0) {
-                for (int f = 0; f < list->count; f++) {
-                    GafFrame* frame = GetGafFrame(list, f);
-                    frame->yOffset = 0;
-                    frame->xOffset = 0;
-                }
+                ClearGlyphOffsets(list);
             }
             entries[i].u.list.gaf = list;
             int j = 1;
@@ -6172,6 +6166,7 @@ void __stdcall CloseTopScreen(Gui* gui)
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
 int DrawEndGameFrame();
 void RunEndGameState();
+void StepBuildMenuPage(int);
 
 extern int Pad_a96d0_e0;
 extern int Pad_a96d0_e1;
@@ -6204,6 +6199,7 @@ void __stdcall DecrementKnobPos(Gui* obj, int index)
 // Forward declarations of the list steps below: their symbol ids keep IncrementKnobPos matching.
 void __stdcall ListBoxSelectUp(Gui* param_1, int index);
 void __stdcall ListBoxSelectDown(Gui* param_1, int index);
+void OpenBuildMenuPage(int);
 
 // Must stay a static inline helper: written inline it changes the load order.
 static inline Gadget* entry_at(Gui* obj, int index)

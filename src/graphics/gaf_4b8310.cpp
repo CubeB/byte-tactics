@@ -40,10 +40,10 @@ struct GafFrame {
 };
 
 struct Src_004b8310 {
-    int field_0;
-    int field_1;
-    int field_2;
-    GafFrame** field_3;
+    int width;
+    int height;
+    int pitch;
+    GafFrame** pixels;
 };
 
 struct Bounds_src_004b8310 {
@@ -62,7 +62,7 @@ struct Screen_004b8310 {
 
 struct Display_004b8310 {
     char unknown_0[0xc8];
-    unsigned char* field_c8;             // +0xc8, palette base
+    unsigned char* lightTable;           // +0xc8
     char unknown_cc[0xf0 - 0xcc];
     unsigned char flags;                 // +0xf0
 };
@@ -109,14 +109,14 @@ void __stdcall DrawFrameLit(Surface* param_1, GafFrame* param_2, int x, int y, i
                     && sprite_rect.right >= sprite_rect.left && sprite_rect.bottom >= sprite_rect.top) {
                     if (param_2->flag_9 == 0) {
                         Src_004b8310& src = bs.src;
-                        src.field_0 = param_2->width;
-                        src.field_1 = param_2->height;
-                        src.field_2 = param_2->width;
-                        src.field_3 = param_2->items;
-                        BlitRectBlended(param_1, &src, &sprite_rect, &screen_rect, param_5, d->field_c8);
+                        src.width = param_2->width;
+                        src.height = param_2->height;
+                        src.pitch = param_2->width;
+                        src.pixels = param_2->items;
+                        BlitRectBlended(param_1, &src, &sprite_rect, &screen_rect, param_5, d->lightTable);
                     } else {
                         BlitCompressedLit(param_1->pixels, param_1->pitch, &screen_rect,
-                            param_2->items, &sprite_rect, d->field_c8 + (param_5 << 8));
+                            param_2->items, &sprite_rect, d->lightTable + (param_5 << 8));
                     }
                 }
             }

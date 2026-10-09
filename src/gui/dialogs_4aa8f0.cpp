@@ -115,25 +115,25 @@ struct Rect_004b6720 {
 struct Gui {
     char unknown_0[0x18];
     Layer_004aa8f0* layer;         // +0x18
-    int field_1c;                  // +0x1c
-    int field_20;                  // +0x20
-    int field_24;                  // +0x24
+    int cursorSharedFrame;         // +0x1c
+    int cursorDefaultFrame;        // +0x20
+    int cursorHoverFrame;          // +0x24
     Src_004ab400* src_28;          // +0x28
     Src_004ab400* src_2c;          // +0x2c
     Ref_004ab400 ref;              // +0x30
     Event_004ab5d0 event;          // +0x3c
-    int field_54;                  // +0x54
-    int field_58;                  // +0x58
+    int mouseKeyFlags;             // +0x54
+    int clickMode;                 // +0x58
     Flags_004ab400 flags_5c;       // +0x5c
-    int field_60;                  // +0x60
-    // Must stay a second field after field_60.
-    int field_64;                  // +0x64
+    int hotGadgetIndex;            // +0x60
+    // Must stay a second field after hotGadgetIndex.
+    int focus;                     // +0x64
     char unknown_68[0x74 - 0x68];
     int cursor;                    // +0x74
     char unknown_78[0x9a - 0x78];
-    int field_9a;                  // +0x9a
+    int animTimer;                 // +0x9a
     char unknown_9e[0x8b2 - 0x9e];
-    unsigned char field_8b2[0x104];// +0x8b2
+    unsigned char colours[0x104];  // +0x8b2
     char name[0x100];              // +0x9b6
 };
 
@@ -154,12 +154,12 @@ struct Record_004ab310 {
     char unknown_1[0xb6 - 0x1];
     union {
         short count;               // +0xb6 (only meaningful in entry 0)
-        int field_b6;              // +0xb6
+        int callback;              // +0xb6 (the optional hotspot function)
     };
     char unknown_ba[0xbe - 0xba];
-    int field_be;                  // +0xbe
+    int image;                     // +0xbe (the image pointer a caller sets)
     int field_c2;                  // +0xc2
-    short field_c6;                // +0xc6
+    short frame;                   // +0xc6
     char unknown_c8[0xcc - 0xc8];
 };
 
@@ -348,7 +348,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Gui* menu, const char* name,
     if (menu->layer != 0)
         menu->layer->keyboardInput = 0;
     strncpy((char*)&entry->name[0], guiName, 0x10);
-    menu->field_64 = -1;
+    menu->focus = -1;
     if ((flags & 0x400) == 0) {
         HideSoftwareCursor();
         ret = RenderLayer(menu, flags | 1);
@@ -399,7 +399,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Gui* menu, const char* name,
             SelectAdjacentGadget(menu, 1);
         }
     }
-    menu->field_60 = -1;
+    menu->hotGadgetIndex = -1;
     // The free path stays last.
     if (ret == 1) {
         if (entry->count == 1 && ((char*)entry)[0x15b] == 3) {
@@ -408,7 +408,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Gui* menu, const char* name,
         int r = GetTextKeyColor();
         // Zeroed before the byte load; SetTextColors stays declared (int, int).
         unsigned int v = 0;
-        v = menu->field_8b2[sub->field_1f];
+        v = menu->colours[sub->field_1f];
         SetTextColors(v, r);
         int i = 0;
         int j;
@@ -596,10 +596,10 @@ int __stdcall AddHotspotGadget(Gui* obj, Record_004ab310* record)
     entries[n].record = *record;
     entries[n].record.type = 6;
     Entry_004ab310* dst = (Entry_004ab310*)&obj->layer->entries[n];
-    dst->record.field_b6 = 0;
-    dst->record.field_be = 0;
+    dst->record.callback = 0;
+    dst->record.image = 0;
     dst->record.field_c2 = 0;
-    dst->record.field_c6 = 0;
+    dst->record.frame = 0;
     return 1;
 }
 
@@ -661,12 +661,12 @@ void __stdcall SetCursorHover(Gui* p, int alt)
         if (p->src_28)
             SetSource(p, p->src_28);
         else
-            SetValue(p, p->field_24);
+            SetValue(p, p->cursorHoverFrame);
     } else {
         if (p->src_2c)
             SetSource(p, p->src_2c);
         else
-            SetValue(p, p->field_20);
+            SetValue(p, p->cursorDefaultFrame);
     }
 }
 
@@ -677,7 +677,7 @@ void __stdcall SetCursorHover(Gui* p, int alt)
 // FUNCTION: 0x4ab4c0
 void __stdcall ApplySharedCursorFrame(Gui* p)
 {
-    SetCursorSprite(p->field_1c);
+    SetCursorSprite(p->cursorSharedFrame);
     p->flags_5c.active = 0;
 }
 
@@ -686,12 +686,12 @@ void __stdcall ApplySharedCursorFrame(Gui* p)
 // FUNCTION: 0x4ab4e0
 void __stdcall InitCursorFrames(Gui* p, int value)
 {
-    p->field_1c = value;
-    p->field_20 = value;
-    p->field_24 = value;
+    p->cursorSharedFrame = value;
+    p->cursorDefaultFrame = value;
+    p->cursorHoverFrame = value;
     SetCursorSprite(value);
     p->flags_5c.active = 0;
-    p->field_54 = 0;
+    p->mouseKeyFlags = 0;
     p->src_28 = 0;
     p->src_2c = 0;
 }
@@ -738,7 +738,7 @@ int __stdcall IsDoubleClickMessage(Gui* obj, unsigned char buttons)
 // FUNCTION: 0x4ab5b0
 int __stdcall HasMouseKeyFlags(Gui* obj, unsigned int mask)
 {
-    return (obj->field_54 & mask) != 0;
+    return (obj->mouseKeyFlags & mask) != 0;
 }
 
 // One tick of a UI element: advances the reference at +0x30 when the active
@@ -750,7 +750,7 @@ void __stdcall UpdateCursorAndMouse(Gui* p)
 {
     if (p->flags_5c.active) {
         int old = p->ref.index;
-        AdvanceGafSequence(&p->ref, p->field_9a);
+        AdvanceGafSequence(&p->ref, p->animTimer);
         if (p->ref.index != old)
             SetCursorSprite(GetGafSequenceFrame(&p->ref));
     }
@@ -762,7 +762,7 @@ void __stdcall UpdateCursorAndMouse(Gui* p)
             GetGadgetScreenRect(p->layer->entries, 0, &r);
             if (IsPointInRect(&r, e.data[0], e.data[1]) != 0 || e.data[2] == 0) {
                 PopMouseEvent(&e);
-                p->field_54 = e.data[2];
+                p->mouseKeyFlags = e.data[2];
                 p->event = e;
             }
         }
@@ -781,7 +781,7 @@ void __stdcall SetClickMode(void* param_1, int param_2)
 // FUNCTION: 0x4ab6b0
 int __stdcall GetClickMode(Gui* obj)
 {
-    return obj->field_58;
+    return obj->clickMode;
 }
 
 // Stores the length of a text in a control (or empties the text when it is
@@ -1014,7 +1014,7 @@ int __stdcall OpenConfirmDialog(Gui* sub, char* title)
 void __stdcall YesNoDialogHandler(Gui* gadget)
 {
     Gadget* entries = gadget->layer->entries;
-    int index = gadget->field_60;
+    int index = gadget->hotGadgetIndex;
     IsGadgetNamed(entries, index, "CHC1");
     IsGadgetNamed(entries, index, "CHC2");
 }
@@ -1043,7 +1043,7 @@ int __stdcall OpenYesNoDialog(Gui* sub, char* param_2, char* param_3, char* para
 void __stdcall MessageBoxHandler(Gui* menu)
 {
     Layer_004aa8f0* layer = menu->layer;
-    IsGadgetNamed(layer->entries, menu->field_60, DAT_00502ae8);
+    IsGadgetNamed(layer->entries, menu->hotGadgetIndex, DAT_00502ae8);
 }
 
 // Returns 1 when the object's entry is named "MSGBOX.GUI" (after a
@@ -1147,7 +1147,7 @@ int __stdcall OpenMessageBox(Gui* gui, char* text, int wrapWidth, int centre, in
 // FUNCTION: 0x4ac080
 void __stdcall NotExistDialogHandler(Gui* obj)
 {
-    IsGadgetNamed(obj->layer->entries, obj->field_60, DAT_00502ae8);
+    IsGadgetNamed(obj->layer->entries, obj->hotGadgetIndex, DAT_00502ae8);
 }
 
 // Opens the "file does not exist" dialog (NOTEXIST.GUI), puts the name in
@@ -1207,7 +1207,7 @@ int __stdcall OpenChoice3Dialog(Gui* menu, const char* title, const char* choice
 void __stdcall InputDialogHandler(Gui* param_1)
 {
     Gadget* esi = param_1->layer->entries;
-    int edi = param_1->field_60;
+    int edi = param_1->hotGadgetIndex;
     IsGadgetNamed(esi, edi, "CHC1");
     IsGadgetNamed(esi, edi, "CHC2");
     IsGadgetNamed(esi, edi, "INPT");

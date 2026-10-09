@@ -108,8 +108,8 @@ void __stdcall CmdShareRadar(int unused)
 {
     char buf[256];
     if (g_game->flags & 1) {
-        g_game->players[g_game->localPlayer].info->share_radar =
-            !g_game->players[g_game->localPlayer].info->share_radar;
+        g_game->players[g_game->localPlayer].info->shareRadar =
+            !g_game->players[g_game->localPlayer].info->shareRadar;
         sprintf(buf, "Toggled ShareRadar to: %s",
                 (g_game->players[g_game->localPlayer].info->flags_97_wide & 0x40)
                     ? "ON" : "OFF");

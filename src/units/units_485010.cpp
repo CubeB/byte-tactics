@@ -44,13 +44,12 @@ struct Entry_486360 {
     char unknown_f6[0x100 - 0xf6];
 };
 
-struct PlayerInfo {
-    char unknown_0[0x95];
-    unsigned char side;                // +0x95
-    char unknown_96[5];
-    unsigned short b0 : 1, b1 : 1, b2 : 1, b3 : 1, b4 : 1, b5 : 1, b6 : 1, b7 : 1,
-        b8 : 1, b9 : 1, b10 : 1, b11 : 1, b12 : 1, b13 : 1, b14 : 1, b15 : 1;   // +0x9b
-};
+#include "../network/player_info.h"
+
+// Unused here: real functions declared to keep the file's symbol count (docs/c2-regalloc.md).
+int AimCobStub(int, int, int, int);
+int StepTowards(int, int, int);
+void NopRetC(int, int, int);
 
 struct Unit;
 
@@ -1293,7 +1292,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
             // do/while over a Player pointer: otherwise the frame grows.
             do {
                 if (p->type != 0) {
-                    bool hid = p->info->b6;
+                    bool hid = p->info->bit6;
                     if (!hid) {
                         // Two compare arms: the compiler merges their setg.
                         int ahead;

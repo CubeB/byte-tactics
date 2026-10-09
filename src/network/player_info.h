@@ -10,7 +10,8 @@
 
 #pragma pack(push, 1)
 struct PlayerInfo {
-    char map[0x8b];                    // +0x00, the map name; the player's own name is at +0x80 in part 1's view
+    char map[0x80];                    // +0x00, the map name
+    char password[0xb];                // +0x80, the game password; bit 0 of +0x9d says one is set
     unsigned short width;              // +0x8b
     unsigned short height;             // +0x8d
     char unknown_8f;                   // +0x8f
@@ -24,10 +25,11 @@ struct PlayerInfo {
         struct {
             unsigned short ready : 1;
             unsigned short shareMetal : 1;
-            unsigned short unknownBit2 : 1;
+            unsigned short shareEnergy : 1;
             unsigned short shareLOS : 1;
-            unsigned short unknownBits4_5 : 2;
-            unsigned short share_radar : 1;
+            unsigned short unknownBit4 : 1;
+            unsigned short shareMapping : 1;
+            unsigned short shareRadar : 1;
             unsigned short unknownRest : 9;
         };
     };
@@ -54,7 +56,8 @@ struct PlayerInfo {
         unsigned char flags_9d;
         unsigned short flags_9d_wide;
         struct {
-            unsigned short f9d_0 : 2;
+            unsigned short hasPassword : 1;
+            unsigned short f9d_1 : 1;
             unsigned short f9d_2 : 1;
             unsigned short f9d_rest : 13;
         };

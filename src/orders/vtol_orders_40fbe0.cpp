@@ -85,7 +85,7 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
             Class_0044e2d0* move=new Class_0044e2d0(order,pos);
             ((Class_0044e730*)move)->SetApproachRadius(128);
             order->flags|=0xe0;
-            ((Order*)order)->SetAttachedFx((int)move);
+            order->SetAttachedFx((int)move);
             return 2;
         }
         // Copied through a pointer: assigning order->pos directly changes codegen.
@@ -94,7 +94,7 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
         switch(order->state) {
         case 0:
             if (unit->motion && (unit->def->flags1&0x800)) {
-                ((Order*)order)->AnnounceStatusIfFlagged("Guarding");
+                order->AnnounceStatusIfFlagged("Guarding");
                 unit->ClaimWeapons(3);
                 if (unit->busy) AttachUnitToPiece(unit,0,-1,2);
                 unit->SetStateBits(1,1);
@@ -102,7 +102,7 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
                     unit->motion->SetFlightMode(unit,2);
                     Class_0044e2d0* move=new Class_0044e2d0(order,unit->pos);
                     ((Class_0044e6c0*)move)->SetAltitude(unit->def->altitude/2);
-                    ((Order*)order)->SetAttachedFx((int)move);
+                    order->SetAttachedFx((int)move);
                     order->flags|=0xe0;
                 }
                 order->angle=RandomInt(0x10000);
@@ -142,7 +142,7 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
             if (unit->CanRepair(order->target)) {
                 Class_00438760 kind=GetOrderType(8,unit,order->target,0);
                 if (kind.index) {
-                    ((Order*)order)->SetAttachedFx(0);
+                    order->SetAttachedFx(0);
                     AppendOrder(unit,new Order(kind,order->target,0,0,0,0));
                     order->flags=0; return 3;
                 }
@@ -164,12 +164,12 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
                     if (kind=="RECLAIM") kind=Class_00438760("VTOL_RECLAIM");
                     if (kind=="RECLAIMUNIT") kind=Class_00438760("VTOL_RECLAIMUNIT");
                     if (kind=="HELPBUILD") kind=Class_00438760("VTOL_HELPBUILD");
-                    ((Order*)order)->SetAttachedFx(0);
+                    order->SetAttachedFx(0);
                     AppendOrder(unit,new Order(kind,OrderTarget(order)->order->target,&order->target->order->pos,0,0,0));
                     order->flags=0; return 3;
                 }
                 if (building && order->target->order->target) {
-                    ((Order*)order)->SetAttachedFx(0);
+                    order->SetAttachedFx(0);
                     kind=Class_00438760("VTOL_HelpBuild");
                     AppendOrder(unit,new Order(kind,OrderTarget(order)->order->target,&order->target->order->pos,0,0,0));
                     order->flags=0; return 3;
@@ -183,8 +183,8 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
             else pos=order->target->pos+Offset(angle,0x1400000);
             Class_0044e2d0* move=new Class_0044e2d0(order,pos);
             ((Class_0044e730*)move)->SetApproachRadius(128);
-            ((Order*)order)->SetAttachedFx((int)move);
-            ((Order*)order)->SetDeadlineTicks(30);
+            order->SetAttachedFx((int)move);
+            order->SetDeadlineTicks(30);
             order->flags|=0xf8;
             return 2;
         }

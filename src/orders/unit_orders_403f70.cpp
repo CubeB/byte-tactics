@@ -82,6 +82,10 @@ int __stdcall WaitIfNotInBuildStance(Unit*, Order*, int);
 int __stdcall AddBuildProgress(Unit*, Unit*, float);
 void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
 void __stdcall EmitNanoParticles(Vec3*, Vec3*, int);
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+struct Feature;
+struct Cell;
+struct Projectile;
 
 // The original radius expression adds the second dimension twice rather than
 // squaring it: fld x; fld y; fld st(1); fmul st(2); fadd st(1); fadd st(1).
@@ -104,7 +108,7 @@ int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
         int radius = (int)(sqrt(x * x + y + y) * 16.0) / 2;
         unsigned int range = 0;
         range = unit->def->buildRange;
-        ((Order*)order)->AttachRingApproachGoal(&target->pos, range + radius, radius);
+        order->AttachRingApproachGoal(&target->pos, range + radius, radius);
         order->flags = 0xe8;
         return 1;
     }
@@ -114,7 +118,7 @@ int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
             return 8;
         }
         if (target->progress == 0.0f) return 5;
-        ((Unit*)unit)->ClaimWeapons(3);
+        unit->ClaimWeapons(3);
         StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &order->target->pos) - unit->heading);
         MarkSelectionOrdersDirty(unit);
         return 1;
@@ -133,7 +137,7 @@ int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
         }
         unit->timeout = g_game->tick + 300;
         if (order->target->progress != 0.0f) {
-            ((Order*)order)->SetDeadlineTicks(1);
+            order->SetDeadlineTicks(1);
             order->flags |= 0xa;
             return 2;
         }

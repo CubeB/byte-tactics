@@ -122,7 +122,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -149,7 +149,7 @@ int __stdcall VtolReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
                 QueueUnitSpeech(unit, 7, "That unit cannot be reclaimed");
                 return 8;
             }
-            ((Order*)order)->AnnounceStatusIfFlagged("Reclaiming");
+            order->AnnounceStatusIfFlagged("Reclaiming");
             PrepVtolClimb(unit, order, 0);
             return 1;
         }
@@ -161,7 +161,7 @@ int __stdcall VtolReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
         Point cell = WorldToCell(order->pos, origin);
         CellToWorldPos(cell, &order->pos, origin);
         Class_0044e2d0* obj = new Class_0044e2d0(order, order->target.Get()->pos);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags |= 0x100e8;
         QueueUnitSpeech(unit, 11, 0);
         return 1;
@@ -190,11 +190,11 @@ int __stdcall VtolReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
             bounds[1].z += order->target.Get()->def->max.z;
             bounds[1].y += order->target.Get()->def->max.y;
             EmitReverseNanoParticles(bounds, &start, 6);
-            ((Order*)order)->SetDeadlineTicks(2);
+            order->SetDeadlineTicks(2);
             order->duration += 2;
             return 2;
         }
-        ((Order*)order)->SetDeadlineTicks(30);
+        order->SetDeadlineTicks(30);
         return 0;
     }
     }

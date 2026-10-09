@@ -113,7 +113,7 @@ int __stdcall ReclaimOrder(Unit* unit, Order* order, int flags)
     switch (order->state) {
     case 0:
         if (unit->motion && (unit->type->flags2 & 0x400)) {
-            ((Order*)order)->AttachBuildFootprintMarker(cell, size);
+            order->AttachBuildFootprintMarker(cell, size);
             order->flags = 0xe0;
             return 1;
         }
@@ -134,7 +134,7 @@ int __stdcall ReclaimOrder(Unit* unit, Order* order, int flags)
     case 3:
         QueueUnitSpeech(unit, 11, 0);
     case 4:
-        ((Order*)order)->SetDeadlineTicks(2);
+        order->SetDeadlineTicks(2);
         order->time -= 2;
         if (order->time <= 0)
             return 1;

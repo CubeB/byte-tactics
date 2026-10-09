@@ -123,6 +123,9 @@ int __cdecl FUN_004b7123(short,int);
 short __cdecl FUN_004b715a(int,int);
 static inline Vec3 Offset(short angle,int distance) { Vec3 v; v.x=-FUN_004b70ef(angle,distance); v.y=0; v.z=-FUN_004b7123(angle,distance); return v; }
 static inline short Angle(Vec3* a,Vec3* b) { return FUN_004b715a(a->x-b->x,a->z-b->z); }
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+int CheckDirectXVersion(int, int, int, int, int);
+struct Feature;
 // Stays in a file of its own: it matches only in this file's symbol context.
 // FUNCTION: 0x414380
 int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
@@ -136,15 +139,15 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
         if (unit->motion) {
             if (unit->def->flags&0x800) {
                 if (!unit->def->canBuild) return 7;
-                ((Order*)order)->AnnounceStatusIfFlagged("Building");
-                ((Unit*)unit)->ClaimWeapons(3);
+                order->AnnounceStatusIfFlagged("Building");
+                unit->ClaimWeapons(3);
                 if (unit->busy) AttachUnitToPiece(unit,0,-1,2);
-                ((Unit*)unit)->SetStateBits(1,1);
+                unit->SetStateBits(1,1);
                 if ((unit->motion->flags&3)==1) {
                     unit->motion->SetFlightMode(unit,2);
                     Class_0044e2d0* move=new Class_0044e2d0(order,unit->pos);
                     ((Class_0044e6c0*)move)->SetAltitude(unit->def->altitude/2);
-                    ((Order*)order)->SetAttachedFx((int)move);
+                    order->SetAttachedFx((int)move);
                     order->flags|=0xe0;
                 }
                 return 1;
@@ -155,7 +158,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
         order->retries=0;
         Class_0044e2d0* move=new Class_0044e2d0(order,order->target.Get()->pos);
         ((Class_0044e730*)move)->SetApproachRadius(unit->def->buildRange);
-        ((Order*)order)->SetAttachedFx((int)move);
+        order->SetAttachedFx((int)move);
         order->flags=0xe0;
         return 1;
     }
@@ -173,7 +176,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
             Vec3 pos=order->target.Get()->pos-Offset(angle,range);
             Class_0044e2d0* move=new Class_0044e2d0(order,pos);
             ((Class_0044e720*)move)->SetHeading((unsigned short)angle);
-            ((Order*)order)->SetAttachedFx((int)move);
+            order->SetAttachedFx((int)move);
         }
         int rate=0; rate=unit->def->buildRate;
         // The ok local is needed: it adds a register candidate that keeps order in esi.
@@ -187,7 +190,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
             EmitNanoParticles(&start,bounds,6);
         }
         if (order->target.Get()->progress!=0.0f) {
-            ((Order*)order)->SetDeadlineTicks(1);
+            order->SetDeadlineTicks(1);
             order->flags|=0xa;
             return 2;
         }

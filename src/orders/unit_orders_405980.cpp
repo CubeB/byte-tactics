@@ -54,8 +54,8 @@ int __stdcall RepairPatrolOrder(Unit* unit, Order* order, int flags)
             return 1;
         case 1: {
             if (flags & 0xe0) return 6;
-            ((Order*)order)->AttachApproachRadiusGoal(&order->pos, 16);
-            ((Order*)order)->SetDeadlineTicks(60);
+            order->AttachApproachRadiusGoal(&order->pos, 16);
+            order->SetDeadlineTicks(60);
             order->flags |= 0xe0;
             if (unit->owner->energy >= unit->owner->energyCapacity * 0.2) {
                 std::vector<Unit*> units;
@@ -85,26 +85,26 @@ int __stdcall RepairPatrolOrder(Unit* unit, Order* order, int flags)
                 float energyAmount, metalAmount;
                 if (PickRandomReclaimableResourcesInRadius(&unit->pos, range2, &energy, &energyAmount, &metal, &metalAmount)) {
                     if (metal && unit->owner->metal < unit->owner->metalCapacity * 0.2) {
-                        ((Order*)order)->SetAttachedFx(0);
+                        order->SetAttachedFx(0);
                         AppendOrder(unit, new Order("RECLAIM", 0, metal, 0, 0, 0));
-                        ((Order*)order)->SetAttachedFx(0);
+                        order->SetAttachedFx(0);
                         order->flags = 0;
                         return 3;
                     }
                     if (energy && unit->owner->energy < unit->owner->energyCapacity * 0.2) {
-                        ((Order*)order)->SetAttachedFx(0);
+                        order->SetAttachedFx(0);
                         AppendOrder(unit, new Order("RECLAIM", 0, energy, 0, 0, 0));
                         order->flags = 0;
                         return 3;
                     }
                     if (metal && unit->owner->metal + metalAmount <= unit->owner->metalCapacity) {
-                        ((Order*)order)->SetAttachedFx(0);
+                        order->SetAttachedFx(0);
                         AppendOrder(unit, new Order("RECLAIM", 0, metal, 0, 0, 0));
                         order->flags = 0;
                         return 3;
                     }
                     if (energy && unit->owner->energy + energyAmount <= unit->owner->energyCapacity) {
-                        ((Order*)order)->SetAttachedFx(0);
+                        order->SetAttachedFx(0);
                         AppendOrder(unit, new Order("RECLAIM", 0, energy, 0, 0, 0));
                         order->flags = 0;
                         return 3;

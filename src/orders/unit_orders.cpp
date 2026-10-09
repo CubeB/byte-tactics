@@ -389,6 +389,7 @@ struct Unit {
 #pragma pack(pop)
 
 inline int Order::Advance(int distance) {
+    // The cast stays: without it BuildWeaponOrder (0x402b70) compiles to different code.
     ((Order*)this)->AttachApproachRadiusGoal(&target.owner->pos, distance);
     step++;
     return 1;
@@ -462,13 +463,13 @@ int __stdcall WaitOrder(Unit* unit, Order* order, int flags)
         if(order->wait<=0) return 5;
         int delay=RandomInt(30)+150;
         order->wait-=delay;
-        ((Order*)order)->SetDeadlineTicks(delay);
+        order->SetDeadlineTicks(delay);
         return 2;
     }
     unsigned state=0;
     state=order->state;
     switch(state) {
-    case 0: ((Order*)order)->SetDeadlineTicks(order->wait); return 1;
+    case 0: order->SetDeadlineTicks(order->wait); return 1;
     case 1: return 5;
     default: return 7;
     }
@@ -511,11 +512,11 @@ int __stdcall SelfDestructOrder(Unit* unit, Order* order, int flags)
             if(count>=0) {
                 QueueUnitSpeech(unit,sounds[count],0);
                 if(count>0) {
-                    ((Order*)order)->SetDeadlineTicks(30);
+                    order->SetDeadlineTicks(30);
                     order->flags|=2; return 1;
                 }
                 if(count==0) {
-                    ((Order*)order)->SetDeadlineTicks(RandomInt(15));
+                    order->SetDeadlineTicks(RandomInt(15));
                     order->flags|=2; return 1;
                 }
             }
@@ -532,7 +533,7 @@ int __stdcall AttackNoMoveOrder(Unit* unit, Order* order, int flags)
         return 5;
     switch (order->state) {
     case 0:
-        ((Order*)order)->AnnounceStatusIfFlagged(0);
+        order->AnnounceStatusIfFlagged(0);
         return 1;
     case 1:
         unit->ClaimWeapons(0);
@@ -560,7 +561,7 @@ int __stdcall GuardNoMoveOrder(Unit* unit, Order* order, int flags)
     switch (order->state) {
     case 0:
         unit->ReleaseWeapons(3);
-        ((Order*)order)->SetDeadlineTicks(0x1e);
+        order->SetDeadlineTicks(0x1e);
         return 1;
     case 1: {
         order->target.SetUnit(GetWeaponTargetUnit(unit, 0));
@@ -573,7 +574,7 @@ int __stdcall GuardNoMoveOrder(Unit* unit, Order* order, int flags)
             order->waitLimit = RandomInt(3) + 3;
             return 1;
         }
-        ((Order*)order)->SetDeadlineTicks(0x1e);
+        order->SetDeadlineTicks(0x1e);
         return 2;
     }
     case 2:
@@ -647,7 +648,7 @@ int __stdcall SelfRepairOrder(Unit* unit, Order* order, int unused)
             box.hi.y += unit->def->bounds.hi.y;
             EmitNanoParticles(&nano, &box, 6);
         }
-        ((Order*)order)->SetDeadlineTicks(1);
+        order->SetDeadlineTicks(1);
         order->flags |= 8;
         return 2;
     case 2:
@@ -728,14 +729,14 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
         UnitDef* ut = &g_game->unitTypes[order->unitType];
         Point16 cell = GridCell(order->pos, ut->footprint);
         if (!CanPlaceUnitFootprint(ut, 0, cell, unit->flags & 3)) {
-            ((Order*)order)->SetDeadlineTicks(15);
+            order->SetDeadlineTicks(15);
             order->flags |= 2;
             return 2;
         }
         order->target.SetUnit(CreateUnit(unit->playerIndex, order->unitType, order->pos, 0, 1, 0));
         if (order->target.owner == 0) {
             QueueUnitSpeech(unit, 7, "Unable to create any more units");
-            ((Order*)order)->SetDeadlineTicks(300);
+            order->SetDeadlineTicks(300);
             order->flags |= 2;
             return 2;
         }
@@ -764,7 +765,7 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
                 EmitNanoParticles(&nano, &box, 6);
             }
             if (order->target.owner->progress != 0.0f) {
-                ((Order*)order)->SetDeadlineTicks(1);
+                order->SetDeadlineTicks(1);
                 order->flags |= 0xa;
                 return 2;
             }
@@ -800,7 +801,7 @@ int __stdcall BuildWeaponOrder(Unit* unit, Order* order, int unused)
         if (order->count <= 0)
             return 5;
         if (unit->weapons[order->weapon].stockpile >= 200) {
-            ((Order*)order)->SetDeadlineTicks(300);
+            order->SetDeadlineTicks(300);
             return 2;
         }
         order->progress = 0;
@@ -821,10 +822,10 @@ int __stdcall BuildWeaponOrder(Unit* unit, Order* order, int unused)
             order->progress = next;
             if (next >= t->buildTime)
                 return 1;
-            ((Order*)order)->SetDeadlineTicks(5);
+            order->SetDeadlineTicks(5);
             return 2;
         }
-        ((Order*)order)->SetDeadlineTicks(10);
+        order->SetDeadlineTicks(10);
         return 2;
     }
     case 2:
@@ -851,8 +852,8 @@ int __stdcall ParalyzeOrder(Unit* unit, Order* order, int unused)
     unit->ClaimWeapons(3);
     for (char i = 0; i < 3; i++)
         ClearWeaponTarget(unit, i);
-    ((Order*)order)->SetAttachedFx(0);
-    ((Order*)order)->SetDeadlineTicks(order->ticks);
+    order->SetAttachedFx(0);
+    order->SetDeadlineTicks(order->ticks);
     order->ticks = 0;
     unit->SetStateBits(0x10, 1);
     return 1;
@@ -901,18 +902,18 @@ int __stdcall GetBuiltOrder(Unit* unit, Order* order, unsigned int flags)
     switch (state) {
     case 0:
         unit->ClaimWeapons(3);
-        ((Order*)order)->SetDeadlineTicks(300);
+        order->SetDeadlineTicks(300);
         order->Wait();
         return 1;
     case 1:
-        ((Order*)order)->SetDeadlineTicks(30);
+        order->SetDeadlineTicks(30);
         order->Wait();
         return 1;
     case 2:
         if (flags & 0x8000) {
-            ((Order*)order)->SetDeadlineTicks(30);
+            order->SetDeadlineTicks(30);
         } else if (flags & 1) {
-            ((Order*)order)->SetDeadlineTicks(11);
+            order->SetDeadlineTicks(11);
             ApplyUnfinishedBuildDecay(unit, 11);
         }
         order->Wait();
@@ -935,7 +936,7 @@ int __stdcall BeCarriedOrder(Unit* unit, Order* order, int unused)
         unit->ClaimWeapons(3);
         return 1;
     case 1:
-        ((Order*)order)->SetDeadlineTicks(10);
+        order->SetDeadlineTicks(10);
         return 2;
     default:
         return 7;
@@ -1041,8 +1042,8 @@ int __stdcall MoveGroundOrder(Unit* unit, Order* order, int flags)
     case 0:
         if (unit->transport != 0)
             return 7;
-        ((Order*)order)->AnnounceStatusIfFlagged(0);
-        ((Order*)order)->AttachApproachRadiusGoal(&order->pos, order->field_36 + 4);
+        order->AnnounceStatusIfFlagged(0);
+        order->AttachApproachRadiusGoal(&order->pos, order->field_36 + 4);
         order->flags = 0xe0;
         return 1;
     case 1:
@@ -1065,9 +1066,9 @@ int __stdcall AttackKamikazeOrder(Unit* unit, Order* order, unsigned flags)
     switch(state) {
     case 0:
         if(unit->transport) return 7;
-        ((Order*)order)->AnnounceStatusIfFlagged(0);
-        ((Order*)order)->AttachApproachRadiusGoal(&order->pos,unit->def->radius<16?16:unit->def->radius);
-        ((Order*)order)->SetDeadlineTicks(60);
+        order->AnnounceStatusIfFlagged(0);
+        order->AttachApproachRadiusGoal(&order->pos,unit->def->radius<16?16:unit->def->radius);
+        order->SetDeadlineTicks(60);
         order->flags|=0xe0; return 1;
     case 1:
         if(flags&0x20) {
@@ -1088,13 +1089,13 @@ int __stdcall PatrolOrder(Unit* unit, Order* order, int flags)
     switch(state) {
     case 0:
         if(!unit->motion) return 7;
-        ((Order*)order)->AnnounceStatusIfFlagged(0);
+        order->AnnounceStatusIfFlagged(0);
         EnsurePatrolReturnOrder(unit,order);
-        ((Order*)order)->SetDeadlineTicks(1); return 1;
+        order->SetDeadlineTicks(1); return 1;
     case 1:
         unit->ReleaseWeapons(3);
-        ((Order*)order)->AttachApproachRadiusGoal(&order->pos,0);
-        ((Order*)order)->SetDeadlineTicks(15);
+        order->AttachApproachRadiusGoal(&order->pos,0);
+        order->SetDeadlineTicks(15);
         order->flags|=0xe0; return 1;
     case 2:
         if(flags&0xe0) { order->state=1; return 6; }
@@ -1102,7 +1103,7 @@ int __stdcall PatrolOrder(Unit* unit, Order* order, int flags)
             Order* next=(Order*)FindBestTargetIfFireAtWill(unit);
             if(next && IssueAttackOrder(unit,next,0)) { order->flags=0; order->state=1; return 3; }
         }
-        ((Order*)order)->SetDeadlineTicks(RandomInt(30)+30);
+        order->SetDeadlineTicks(RandomInt(30)+30);
         order->state=1; return 4;
     default: return 7;
     }
@@ -1257,6 +1258,11 @@ void __stdcall AlignUnitToGround(Unit*);
 int __stdcall FindLandingPad(Unit*, int);
 unsigned short __stdcall ChooseBuildOption(unsigned int, Unit*);
 void __stdcall DetonateUnitWeapon(Unit*, int);
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+void WriteScreenshot(char*, char*, int, int, int, int);
+void DrawTextClipped(void*, char*, int, int, int, int);
+int ScanDirectory(char*, char*, char*, int, int, int);
+int CheckDirectXVersion(int, int, int, int, int);
 
 // Order handler: attack-move style state machine. The inner step switch
 // advances order->step after cases 6 and 7 in one `order->step++` after the
@@ -1275,13 +1281,13 @@ int __stdcall AttackChaseOrder(Unit* unit, Order* order, unsigned int flags)
     switch (state) {
     case 0:
         if (!unit->motion || unit->def->flying || !(unit->flags & 0x80000000)) break;
-        ((Order*)order)->AnnounceStatusIfFlagged(0);
+        order->AnnounceStatusIfFlagged(0);
         order->pos = unit->pos;
         order->step = 0;
         if (!weapon) order->weapon = unit->ChooseWeapon();
         return 1;
     case 1:
-        ((Order*)order)->SetAttachedFx(0);
+        order->SetAttachedFx(0);
         if (flags & 0x3000) return 1;
         if (!WeaponCanReachUnit(unit, order->target.owner, weapon)) return 1;
         unit->ClaimWeapons(0);
@@ -1296,7 +1302,7 @@ int __stdcall AttackChaseOrder(Unit* unit, Order* order, unsigned int flags)
             return order->Advance(weapon);
         case 1: case 2: case 3: case 4:
             if (abs(unit->pos.y - order->target.owner->pos.y) > 0x80000) {
-                ((Order*)order)->AttachApproachRadiusGoal(&order->target.owner->pos, weapon / 2);
+                order->AttachApproachRadiusGoal(&order->target.owner->pos, weapon / 2);
                 order->step = 6;
                 return 1;
             } else {
@@ -1307,19 +1313,19 @@ int __stdcall AttackChaseOrder(Unit* unit, Order* order, unsigned int flags)
                 int dz = -FUN_004b7123(angle, distance);
                 Vec3* target = &order->target.owner->pos;
                 Vec3 pos = *target + Vec3(dx, 0, dz);
-                ((Order*)order)->AttachApproachRadiusGoal(&pos, weapon / 4);
+                order->AttachApproachRadiusGoal(&pos, weapon / 4);
                 return 1;
             }
         case 5:
             return order->Advance(weapon / 2);
         case 6:
-            ((Order*)order)->AttachApproachRadiusGoal(&order->target.owner->pos, 0);
+            order->AttachApproachRadiusGoal(&order->target.owner->pos, 0);
             break;
         case 7:
-            ((Order*)order)->AttachRingApproachGoal(&order->target.owner->pos, weapon, weapon / 2);
+            order->AttachRingApproachGoal(&order->target.owner->pos, weapon, weapon / 2);
             break;
         case 8:
-            ((Order*)order)->AttachRingApproachGoal(&order->target.owner->pos, weapon * 2, weapon);
+            order->AttachRingApproachGoal(&order->target.owner->pos, weapon * 2, weapon);
             order->step = 0;
             return 1;
         default: return 7;
@@ -1333,12 +1339,12 @@ int __stdcall AttackChaseOrder(Unit* unit, Order* order, unsigned int flags)
             unit->ClaimWeapons(2);
             SetWeaponTargetUnit(unit, order->target.owner, weapon);
             order->flags = 0x148e8;
-            ((Order*)order)->SetDeadlineTicks(30);
+            order->SetDeadlineTicks(30);
             return 2;
         }
         unit->ReleaseWeapons(3);
         order->flags = 0x100e8;
-        ((Order*)order)->SetDeadlineTicks(30);
+        order->SetDeadlineTicks(30);
         return 2;
     }
     return 7;
@@ -1352,7 +1358,7 @@ int __stdcall SuppressOrder(Unit* unit,Order* order,unsigned flags)
     switch(state) {
     case 0:
         if(unit->def->flying) return 8;
-        ((Order*)order)->AnnounceStatusIfFlagged(0);
+        order->AnnounceStatusIfFlagged(0);
         order->radius=GetWeaponRange(unit,(unsigned char)order->weapon); return 1;
     case 1:
         if(order->weapon==2) {
@@ -1370,7 +1376,7 @@ int __stdcall SuppressOrder(Unit* unit,Order* order,unsigned flags)
         if(flags&0x400) { order->state=1; return 6; }
         if(unit->motion) {
             if(order->radius<=0) return 9;
-            ((Order*)order)->AttachApproachRadiusGoal(&order->pos,order->radius);
+            order->AttachApproachRadiusGoal(&order->pos,order->radius);
             order->flags=0xe0;
             order->radius-=RandomInt(GetWeaponRange(unit,(unsigned char)order->weapon)/3);
             order->state=1; return 4;
@@ -1433,7 +1439,7 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
             QueueUnitSpeech(unit, 7, "That unit is a cloud of vapor and cannot be captured");
             return 8;
         }
-        ((Order*)order)->AnnounceStatusIfFlagged("Capturing");
+        order->AnnounceStatusIfFlagged("Capturing");
         order->duration = (int)(order->target.Get()->def->EnergyCost() / 2000 + order->target.Get()->def->MetalCost() / 140 + 150);
         order->duration = order->duration < 1800 ? order->duration : 1800;
         order->duration = (order->target.Get()->health + order->target.Get()->def->MaxHealth()) * order->duration / (order->target.Get()->def->maxHealth * 2);
@@ -1441,7 +1447,7 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
         experience = order->target.Get()->experience;
         order->duration = ((experience / 5 + 10) * order->duration * 10) / 100;
         unit->ClaimWeapons(3);
-        ((Order*)order)->AttachBuildFootprintMarker(order->target.Get()->cell, order->target.Get()->footprint);
+        order->AttachBuildFootprintMarker(order->target.Get()->cell, order->target.Get()->footprint);
         order->flags = 0x100e8;
         return 1;
     }
@@ -1466,7 +1472,7 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
     case 4: {
         if (target->motion && (target->flags & 0xc)) {
             StopBuildingScript(unit, order);
-            ((Order*)order)->SetDeadlineTicks(30);
+            order->SetDeadlineTicks(30);
             return 0;
         }
         if (order->elapsed >= order->duration) return 1;
@@ -1483,7 +1489,7 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
         EmitReverseNanoParticles(bounds, &start, 6);
         unit->workTime = g_game->ticks + 900;
         order->elapsed += 2;
-        ((Order*)order)->SetDeadlineTicks(2);
+        order->SetDeadlineTicks(2);
         return 2;
     }
     case 5:
@@ -1522,7 +1528,7 @@ int __stdcall ReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
                 QueueUnitSpeech(unit, 7, "Reclamation failed");
                 return 8;
             }
-            ((Order*)order)->AnnounceStatusIfFlagged("Reclaiming");
+            order->AnnounceStatusIfFlagged("Reclaiming");
             unit->ClaimWeapons(3);
             return 1;
         }
@@ -1530,9 +1536,9 @@ int __stdcall ReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
         return 7;
     case 1:
         if (flags & 0x20) return 1;
-        ((Order*)order)->AttachBuildFootprintMarker(target->cell, target->footprint);
+        order->AttachBuildFootprintMarker(target->cell, target->footprint);
         order->flags |= 0x100e8;
-        ((Order*)order)->SetDeadlineTicks(15);
+        order->SetDeadlineTicks(15);
         order->elapsed = ComputeReclaimDamagePulse(unit, order->target.Get(), 15);
         order->duration = 0;
         return 2;
@@ -1568,11 +1574,11 @@ int __stdcall ReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
             bounds[1].z += order->target.Get()->def->bounds.hi.z;
             bounds[1].y += order->target.Get()->def->bounds.hi.y;
             EmitReverseNanoParticles(bounds, &start, 6);
-            ((Order*)order)->SetDeadlineTicks(2);
+            order->SetDeadlineTicks(2);
             order->duration += 2;
             return 2;
         }
-        ((Order*)order)->SetDeadlineTicks(15);
+        order->SetDeadlineTicks(15);
         StopBuildingScript(unit, order);
         return 0;
     }
@@ -1598,7 +1604,7 @@ int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
     switch (order->state) {
     case 0:
         if (unit->motion && (unit->def->flags241 & 0x40) && order->target.owner->progress == Zero_004fc920) {
-            ((Order*)order)->AnnounceStatusIfFlagged("Repairing");
+            order->AnnounceStatusIfFlagged("Repairing");
             return 1;
         }
         break;
@@ -1612,8 +1618,8 @@ int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
         unsigned int range = 0;
         range = unit->def->buildRange;
         if (gap > (int)range) {
-            ((Order*)order)->AttachBuildFootprintMarker(order->target.owner->cell, order->target.owner->footprint);
-            ((Order*)order)->SetDeadlineTicks(RandomInt(30) + 30);
+            order->AttachBuildFootprintMarker(order->target.owner->cell, order->target.owner->footprint);
+            order->SetDeadlineTicks(RandomInt(30) + 30);
             order->flags |= 0xe8;
             return 2;
         }
@@ -1628,7 +1634,7 @@ int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
             return 1;
         if (order->target.owner->flags & 0xc) {
             StopBuildingScript(unit, order);
-            ((Order*)order)->SetDeadlineTicks(15);
+            order->SetDeadlineTicks(15);
             return 0;
         }
         unit->workTime = g_game->ticks + 150;
@@ -1645,7 +1651,7 @@ int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
             box.hi.y += order->target.owner->def->bounds.hi.y;
             EmitNanoParticles(&nano, &box, 6);
         }
-        ((Order*)order)->SetDeadlineTicks(1);
+        order->SetDeadlineTicks(1);
         order->flags |= 8;
         return 2;
     case 4:
@@ -1669,7 +1675,7 @@ int __stdcall RepairUnitNoMoveOrder(Unit* unit, Order* order, int unused)
     case 0:
         if (!(unit->def->flags241 & 0x40)) return 7;
         if (target->progress == Zero_004fc920 && (unit->flags10e & 1)) {
-            ((Unit*)unit)->ClaimWeapons(3);
+            unit->ClaimWeapons(3);
             return 1;
         }
         return 8;
@@ -1692,7 +1698,7 @@ int __stdcall RepairUnitNoMoveOrder(Unit* unit, Order* order, int unused)
             bounds[1].y += order->target.Get()->def->bounds.hi.y;
             EmitNanoParticles(&start, bounds, 6);
         }
-        ((Order*)order)->SetDeadlineTicks(1);
+        order->SetDeadlineTicks(1);
         order->flags |= 8;
         return 2;
     }
@@ -1726,14 +1732,14 @@ int __stdcall StandbyOrder(Unit* unit,Order* order,int flags)
         if(!unit->motion) return 7;
         unit->ReleaseWeapons(3);
         order->flags|=0x10000;
-        ((Order*)order)->SetDeadlineTicks(1); return 1;
+        order->SetDeadlineTicks(1); return 1;
     case 1:
         {
             Unit* next=FindBestTargetIfFireAtWill(unit);
             if(next && IssueAttackOrder(unit,(Order*)next,0)) return 5;
         }
         order->flags|=0x10000;
-        ((Order*)order)->SetDeadlineTicks(RandomInt(30)+30); return 2;
+        order->SetDeadlineTicks(RandomInt(30)+30); return 2;
     default: return 7;
     }
 }
@@ -1746,7 +1752,7 @@ int __stdcall StandbyMineOrder(Unit* unit, Order* order, int unused)
         if (!(unit->flags & 0x20000000)) return 7;
         unit->ReleaseWeapons(3);
         order->flags |= 0x10000;
-        ((Order*)order)->SetDeadlineTicks(1);
+        order->SetDeadlineTicks(1);
         return 1;
     case 1:
         {
@@ -1756,7 +1762,7 @@ int __stdcall StandbyMineOrder(Unit* unit, Order* order, int unused)
                 return 5;
             }
             order->flags |= 0x10000;
-            ((Order*)order)->SetDeadlineTicks(RandomInt(30) + 30);
+            order->SetDeadlineTicks(RandomInt(30) + 30);
             return 2;
         }
     default: return 7;
@@ -1775,7 +1781,7 @@ int __stdcall ParkOrder(Unit* unit,Order* order,int flags)
         if(!unit->motion) return 7;
         if(unit->def->flying) {
             order->pos=unit->pos;
-            ((Order*)order)->MergeFlagsFromTable("VTOL_MOVE");
+            order->MergeFlagsFromTable("VTOL_MOVE");
             return 0;
         }
         {
@@ -1783,14 +1789,14 @@ int __stdcall ParkOrder(Unit* unit,Order* order,int flags)
             if(unit->def->height>=0) size+=3;
             Point16 start=SubPoint(Convert(unit->pos),MakePoint(size*4,size*3));
             Point16 extent=MakePoint(size*8,size*6);
-            ((Order*)order)->AttachBuildFootprintMarker(start,extent);
+            order->AttachBuildFootprintMarker(start,extent);
             order->flags=0xe0;
             return 1;
         }
     case 1:
         if(flags&0x20) return 5;
         if(order->next) return 5;
-        ((Order*)order)->SetDeadlineTicks(30); return 0;
+        order->SetDeadlineTicks(30); return 0;
     default: return 7;
     }
 }
@@ -1814,7 +1820,7 @@ int __stdcall GroundPickupOrder(Unit* unit, Order* order, unsigned char flags)
             if (target->footprint.x > (short)unit->def->capacity) {
                 QueueUnitSpeech(unit, 7, "Unit is too large to transport"); return 8;
             }
-            ((Order*)order)->AnnounceStatusIfFlagged("Loading unit"); return 1;
+            order->AnnounceStatusIfFlagged("Loading unit"); return 1;
         case 1: return WaitIfCobBusy(unit, order, 8);
         case 2:
             {
@@ -1822,15 +1828,15 @@ int __stdcall GroundPickupOrder(Unit* unit, Order* order, unsigned char flags)
             unit->script->StartScriptWithArgs("TransportPickup", 0, 1, 1, id, 0, 0, 0);
             QueueUnitSpeech(unit, 12, 0);
             ++order->attempts;
-            ((Order*)order)->SetDeadlineTicks(15); return 1;
+            order->SetDeadlineTicks(15); return 1;
             }
         case 3: return WaitIfCobBusy(unit, order, 8);
         case 4:
             if (target->transport) return 5;
             if (order->attempts >= 3) return 9;
-            ((Order*)order)->AttachApproachRadiusGoal(&target->pos, 0);
+            order->AttachApproachRadiusGoal(&target->pos, 0);
             order->flags = 0xe8; return 1;
-        case 5: ((Order*)order)->SetAttachedFx(0); return 0;
+        case 5: order->SetAttachedFx(0); return 0;
         default: break;
         }
         return 7;
@@ -1851,19 +1857,19 @@ int __stdcall GroundUnloadOrder(Unit* unit, Order* order, int flags)
         if (!(unit->def->flags245u&0x100)) break;
         order->target.SetUnit(unit->cargo);
         if (!order->target.owner) return 5;
-        ((Order*)order)->AnnounceStatusIfFlagged("Unloading");
+        order->AnnounceStatusIfFlagged("Unloading");
         unit->script->StartScriptWithArgs("TransportDrop",0,1,1,order->target.owner->id,
             (order->pos.x&0xffff0000)+(order->pos.z>>16),0,0);
         ++order->attempts;
-        ((Order*)order)->SetDeadlineTicks(15);
+        order->SetDeadlineTicks(15);
         return 1;
     case 1: return WaitIfCobBusy(unit,order,8);
     case 2:
         if (order->target.owner->transport!=unit) { QueueUnitSpeech(unit,13,0); return 5; }
         if (order->attempts>=3) return 9;
         if ((unsigned char)(unit->def->flags>>12)&1)
-            ((Order*)order)->AttachApproachRadiusGoal(&order->pos,(int)(unit->def->height180*1.5));
-        else ((Order*)order)->AttachApproachRadiusGoal(&order->pos,0);
+            order->AttachApproachRadiusGoal(&order->pos,(int)(unit->def->height180*1.5));
+        else order->AttachApproachRadiusGoal(&order->pos,0);
         order->flags=0xe8;
         return 1;
     case 3: return 0;

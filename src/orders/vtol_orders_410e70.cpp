@@ -117,7 +117,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -137,7 +137,7 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
         Vec3 dest = AddVec3(order->pos, Offset(angle, 0x1400000));
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->SetApproachRadius(0x150);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags |= 0xe0;
         // Landing block stays inline, no helper: the landed path returns 0
         // through the plain scope-exit destructor.
@@ -145,7 +145,7 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
             std::vector<Unit*> v;
             GetFactoriesInRadius(unit->player->index, &unit->pos, 0xf00, &v);
             if (!v.empty()) {
-                ((Order*)order)->SetAttachedFx(0);
+                order->SetAttachedFx(0);
                 Unit* target = v[RandomInt(v.size())];
                 AppendOrder(unit, new Order("VTOL_LANDING", (int)target, 0, 0, 0, 0));
                 order->flags = 0;
@@ -175,7 +175,7 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
             order->flags = 0;
             return 3;
         }
-        ((Order*)order)->SetDeadlineTicks(0x1e);
+        order->SetDeadlineTicks(0x1e);
         return 2;
     }
     case 1:
@@ -184,7 +184,7 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
     case 0:
         if (unit->type && (unit->def->flags1 & 0x800)) {
             EnsurePatrolReturnOrder(unit, order);
-            ((Order*)order)->AnnounceStatusIfFlagged("Patrolling");
+            order->AnnounceStatusIfFlagged("Patrolling");
             PrepVtolClimb(unit, order, 0);
             unit->ReleaseWeapons(3);
             return 1;

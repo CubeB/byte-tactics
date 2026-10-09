@@ -104,7 +104,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
         LandingPadList pads;
         FindPads(unit,&pads);
         if (!pads.empty()) {
-            ((Order*)order)->SetAttachedFx(0);
+            order->SetAttachedFx(0);
             Unit* pad=pads[RandomInt(pads.size())];
             AppendOrder(unit,new Order("VTOL_LANDING",pad,0,0,0,0));
             order->flags=0;
@@ -116,7 +116,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
     GroundAllyVisitor visitor(unit->owner,&units,unit);
     VisitObjectsInRange(&unit->pos,range,visitor);
     if (!units.empty()) {
-        ((Order*)order)->SetAttachedFx(0);
+        order->SetAttachedFx(0);
         Class_00438760 kind=GetOrderType(7,unit,units[0],0);
         AppendOrder(unit,new Order(kind,units[0],0,0,0,0));
         order->flags=0;
@@ -126,8 +126,8 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
     Vec3 pos=order->pos+Offset((short)order->angle,(unit->weapons[0].def->range+160)<<16);
     Class_0044e2d0* move=new Class_0044e2d0(order,pos);
     ((Class_0044e730*)move)->SetApproachRadius(128);
-    ((Order*)order)->SetAttachedFx((int)move);
-    ((Order*)order)->SetDeadlineTicks(30);
+    order->SetAttachedFx((int)move);
+    order->SetDeadlineTicks(30);
     order->flags|=0xf8;
     return 2;
 }
@@ -145,7 +145,7 @@ int __stdcall VtolSeekGuardOrder(Unit* unit, Order* order, int flags)
         Class_0044e2d0* move=new Class_0044e2d0(order,pos);
         ((Class_0044e730*)move)->SetApproachRadius(128);
         order->flags|=0xe0;
-        ((Order*)order)->SetAttachedFx((int)move);
+        order->SetAttachedFx((int)move);
         return 2;
     }
     switch(order->state) {

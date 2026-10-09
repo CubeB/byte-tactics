@@ -87,6 +87,8 @@ static inline void CellToWorld(Point origin, Point c, Vec3* v)
     v->x = (origin.x + c.x * 2) << 19;
     v->z = (origin.y + c.y * 2) << 19;
 }
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+struct Feature;
 // FUNCTION: 0x403a20
 int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
 {
@@ -107,7 +109,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
         Point cell = WorldToCell(order->pos, def->origin);
         CellToWorld(def->origin, cell, &order->pos);
         order->retries = 0;
-        ((Order*)order)->AttachBuildFootprintMarker(cell, def->origin);
+        order->AttachBuildFootprintMarker(cell, def->origin);
         order->flags = 0xe0;
         return 1;
     }
@@ -133,16 +135,16 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
                 return 8;
             }
             order->retries++;
-            ((Order*)order)->SetDeadlineTicks(30);
+            order->SetDeadlineTicks(30);
             return 2;
         }
-        ((Unit*)unit)->ClaimWeapons(3);
+        unit->ClaimWeapons(3);
         SnapWorldPosToFootprint(def, &order->pos);
         ((PathOrderAttach*)((char*)order + 0x12))->SetUnit(
             CreateUnit(unit->player, (short)order->type, order->pos, 0, 1, 0));
         if (!order->target) {
             QueueUnitSpeech(unit, 7, "Unable to create any more units");
-            ((Order*)order)->SetDeadlineTicks(300);
+            order->SetDeadlineTicks(300);
             return 2;
         }
         QueueUnitSpeech(unit, 9, "Starting construction");
@@ -166,7 +168,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
         }
         unit->timeout = g_game->tick + 300;
         if (order->target->progress != 0.0f) {
-            ((Order*)order)->SetDeadlineTicks(1);
+            order->SetDeadlineTicks(1);
             order->flags |= 0xa;
             return 2;
         }

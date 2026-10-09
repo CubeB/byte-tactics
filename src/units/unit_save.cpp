@@ -25,9 +25,7 @@ struct Bits10F {
     unsigned char b4 : 4;
 };
 
-struct Vec3 {
-    int x, y, z;
-};
+#include "../util/vec3.h"
 
 struct PieceBits {
     unsigned char b0 : 1;

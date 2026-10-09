@@ -10,16 +10,7 @@
 #include <math.h>
 
 struct Point { short x, y; };
-struct Vec3 {
-    int x, y, z;
-    Vec3 operator+(const Vec3& other) const {
-        Vec3 r;
-        r.x = x + other.x;
-        r.y = y + other.y;
-        r.z = z + other.z;
-        return r;
-    }
-};
+#include "../util/vec3.h"
 
 struct Unit;
 #include "unit_motion.h"
@@ -118,6 +109,15 @@ static inline Vec3 Offset(short angle, int distance)
     return v;
 }
 
+static inline Vec3 Add(const Vec3& a, const Vec3& b)
+{
+    Vec3 r;
+    r.x = a.x + b.x;
+    r.y = a.y + b.y;
+    r.z = a.z + b.z;
+    return r;
+}
+
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
 void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
@@ -180,7 +180,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
             order->state = 2;
             return 2;
         }
-        Vec3 dest = order->target.owner->pos + Offset(order->angle, radius << 16);
+        Vec3 dest = Add(order->target.owner->pos, Offset(order->angle, radius << 16));
         order->angle += 0x4000;
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->SetApproachRadius(0x80);

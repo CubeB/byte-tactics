@@ -6,7 +6,7 @@
 // (VTOL_RECLAIM).
 #include <vector>
 
-struct Vec3 { int x, y, z; };
+#include "../util/vec3.h"
 
 class Class_00438760 {
 public:

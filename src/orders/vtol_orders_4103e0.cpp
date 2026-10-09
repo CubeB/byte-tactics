@@ -14,10 +14,7 @@ public:
     Unit*& operator[](unsigned int n) { return *(begin()+n); }
 };
 }
-struct Vec3 {
-    int x, y, z;
-    Vec3 operator+(const Vec3& v) const { Vec3 r; r.x=x+v.x; r.y=y+v.y; r.z=z+v.z; return r; }
-};
+#include "../util/vec3.h"
 struct Order;
 class Class_00438760 { public: unsigned char index; Class_00438760() {} Class_00438760(const char*); int operator==(const Class_00438760& v) const { return index==v.index; } };
 

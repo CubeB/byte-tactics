@@ -3,18 +3,11 @@
 // compiler state: without it the energy + metal sum loads metal first.
 #include <stdio.h>
 
-struct Vec3 {
-    int x, y, z;
-};
+#include "../util/vec3.h"
 
 struct Box {
     Vec3 lo;
     Vec3 hi;
-};
-
-struct Point16 {
-    short x;
-    short z;
 };
 
 struct Unit;
@@ -159,7 +152,7 @@ int __stdcall VtolReclaimOrder(Unit* unit, Order* order, int flags)
             GetNanoPiecePosition(unit, &nano);
             Box box;
             box.lo.x = cell.x << 20;
-            box.lo.z = cell.z << 20;
+            box.lo.z = cell.y << 20;
             box.lo.y = GetGroundHeight(&box.lo) << 16;
             box.hi = box.lo;
             box.hi.x += f->footprintX << 20;

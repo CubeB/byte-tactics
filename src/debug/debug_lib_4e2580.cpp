@@ -29,7 +29,7 @@ public:
     Iter_004e2580(Node_004e2580* p) : ptr(p) {}
 };
 
-class Class_004e2580 {
+class NameMapTree {
 public:
     Less_004e2580 compare;             // +0x0
     Node_004e2580* head;               // +0x4
@@ -51,7 +51,7 @@ public:
 };
 
 // FUNCTION: 0x4e2580
-Iter_004e2580 Class_004e2580::LowerBound(const char* const& key)
+Iter_004e2580 NameMapTree::LowerBound(const char* const& key)
 {
     return Iter_004e2580(Lbound(key));
 }

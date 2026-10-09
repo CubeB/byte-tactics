@@ -12,7 +12,7 @@ extern char* g_performanceWindowName;
 void __cdecl RestoreWindow(HWND hwnd, char* name, double a, double b);
 void __cdecl SaveWindowPosition(HWND hwnd, char* name);
 
-class Class_004df280 {
+class PerformanceDialog {
 public:
     HWND hwnd;                          // +0x00
     char unknown_4[0x1c];
@@ -22,7 +22,7 @@ public:
 };
 
 // FUNCTION: 0x4df280
-void Class_004df280::SetPerformanceWindowVisible(char show)
+void PerformanceDialog::SetPerformanceWindowVisible(char show)
 {
     if (show) {
         if (hwnd) {

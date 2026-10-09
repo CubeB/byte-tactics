@@ -7,7 +7,7 @@ void __cdecl RestoreWindow(HWND hwnd, char* name, double a, double b);
 void __cdecl SaveWindowPosition(HWND hwnd, char* name);
 void __cdecl UnloadPsapi(void);
 
-class Class_004e05f0 {
+class MemoryStatusDialog {
 public:
     HWND hwnd;                  // +0x00
     char unknown_4[0x74];
@@ -16,7 +16,7 @@ public:
 };
 
 // FUNCTION: 0x4e05f0
-void Class_004e05f0::SetMemoryStatusWindowVisible(char on)
+void MemoryStatusDialog::SetMemoryStatusWindowVisible(char on)
 {
     if (on) {
         if (hwnd != NULL) {

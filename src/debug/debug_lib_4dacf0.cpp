@@ -28,28 +28,28 @@ struct Node_004dacf0 {
     int color;             // +0x14
 };
 
-class Class_004dbe10 {
+class FreeBlockIter {
 public:
     Node_004dacf0* ptr;
 
-    Class_004dbe10() {}
-    Class_004dbe10(Node_004dacf0* q) : ptr(q) {}
-    bool operator==(const Class_004dbe10& o) const { return ptr == o.ptr; }
-    bool operator!=(const Class_004dbe10& o) const { return !(*this == o); }
+    FreeBlockIter() {}
+    FreeBlockIter(Node_004dacf0* q) : ptr(q) {}
+    bool operator==(const FreeBlockIter& o) const { return ptr == o.ptr; }
+    bool operator!=(const FreeBlockIter& o) const { return !(*this == o); }
     Pair_004db000& operator*() const { return ptr->value; }
     Pair_004db000* operator->() const { return &ptr->value; }
-    Class_004dbe10 Previous(int); // operator--(int)
-    Class_004dbe10 Next(int); // operator++(int)
+    FreeBlockIter Previous(int); // operator--(int)
+    FreeBlockIter Next(int); // operator++(int)
 };
 
-class Class_004ddbe0 {
+class MapInsertResult {
 public:
-    Class_004dbe10 first;
+    FreeBlockIter first;
     unsigned char second;
-    Class_004ddbe0() {}
+    MapInsertResult() {}
 };
 
-class Class_004d8820 {
+class BlockInfo {
 public:
     unsigned int base;    // +0x0
     unsigned int size;    // +0x4
@@ -57,15 +57,10 @@ public:
     char unknown_c[0x20]; // +0xc
     unsigned int tag;     // +0x2c
 
-    Class_004d8820(unsigned int a, unsigned int b, unsigned int c, unsigned int d, const char* e);
+    BlockInfo(int a, int b, int c, int d, const char* e);
 };
 
-class Class_004dc620 { public: Class_004dbe10 LowerBound(const Pair_004db000& k); };
-class Class_004dbeb0 { public: Class_004dbe10 Begin(); };
-class Class_004dbd00 { public: Class_004dbe10 Erase(Class_004dbe10 it); };
-class Class_004dce60 { public: Class_004ddbe0 InsertOrFind(const Pair_004db000& v); };
-class Class_004db450 { public: bool GrowReservation(unsigned int); };
-class Class_004dc680 { public: Class_004ddbe0 Insert(const Class_004d8820& v); };
+class BlockMap { public: MapInsertResult Insert(const BlockInfo& v); };
 
 class FreeBlockMap {
 public:
@@ -75,18 +70,23 @@ public:
     unsigned int count;    // +0xc
     unsigned int total;    // +0x10
 
-    Class_004dbe10 begin() { return ((Class_004dbeb0*)this)->Begin(); }
-    Class_004dbe10 end() { return Class_004dbe10(head); }
+    FreeBlockIter begin() { return Begin(); }
+    FreeBlockIter end() { return FreeBlockIter(head); }
     unsigned int size() const { return count; }
     unsigned int TakeFreeBlock(unsigned int bytes);
     void AddFreeBlock(Pair_004db000);
+    FreeBlockIter lower_bound(const Pair_004db000& k);
+    FreeBlockIter Begin();
+    FreeBlockIter EraseCopyIter(FreeBlockIter it);
+    MapInsertResult InsertOrFind(const Pair_004db000& v);
+    bool GrowReservation(unsigned int);
 };
 
 CRITICAL_SECTION* GetAllocLock();
 unsigned int __cdecl RoundUpToDoublePage(unsigned int size);
 unsigned int __cdecl RoundUpToPage(unsigned int size);
 FreeBlockMap* GetFreeBlockSet();
-Class_004dc680* GetBlockMap();
+BlockMap* GetBlockMap();
 void __cdecl CountAlloc(unsigned int size);
 char IsBackAlign();
 int GetDebugFillPattern();
@@ -102,14 +102,14 @@ inline unsigned int FreeBlockMap::TakeFreeBlock(unsigned int bytes)
         Pair_004db000 k;
         k.offset = g_lastAllocOffset;
         k.length = 0;
-        Class_004dbe10 lb = ((Class_004dc620*)this)->LowerBound(k);
+        FreeBlockIter lb = lower_bound(k);
         if (lb != begin()) {
-            Class_004dbe10 it = lb;
+            FreeBlockIter it = lb;
             it.Previous(0);
             if (g_lastAllocOffset >= it->offset && g_lastAllocOffset + bytes <= it->offset + it->length)
                 lb = it;
         }
-        Class_004dbe10 cur = lb;
+        FreeBlockIter cur = lb;
         // Declared just before the loop, not at the top: it changes how zeros are allocated.
         int tries = 0;
         do {
@@ -122,7 +122,7 @@ inline unsigned int FreeBlockMap::TakeFreeBlock(unsigned int bytes)
             if (cur->length >= bytes) {
                 // Copies the free block's value: its fields share one 8-byte local.
                 Pair_004db000 b = *cur;
-                ((Class_004dbd00*)this)->Erase(cur);
+                EraseCopyIter(cur);
                 if (g_lastAllocOffset == 0)
                     g_lastAllocOffset = b.offset;
                 // The clamp reads g_lastAllocOffset directly; going through mark shifts registers.
@@ -132,18 +132,18 @@ inline unsigned int FreeBlockMap::TakeFreeBlock(unsigned int bytes)
                 else
                     mark = b.offset;
                 if (mark > b.offset)
-                    ((Class_004dce60*)this)->InsertOrFind(Pair_004db000(b.offset, mark - b.offset));
+                    InsertOrFind(Pair_004db000(b.offset, mark - b.offset));
                 unsigned int end = mark + bytes;
                 // Length written as offset - mark + length - bytes: the other form is shorter.
                 if (end < b.offset + b.length)
-                    ((Class_004dce60*)this)->InsertOrFind(Pair_004db000(end, b.offset - mark + b.length - bytes));
+                    InsertOrFind(Pair_004db000(end, b.offset - mark + b.length - bytes));
                 g_lastAllocOffset = end;
                 return mark;
             }
             cur.Next(0);
         } while (tries < 2);
     }
-    if (((Class_004db450*)this)->GrowReservation(bytes))
+    if (GrowReservation(bytes))
         return TakeFreeBlock(bytes);
     return 0;
 }
@@ -182,8 +182,8 @@ unsigned int __cdecl AllocDebugBlock(unsigned int n, unsigned int arg2)
     } else {
         FillPattern((void*)(res + n), GetDebugFillPattern(), pad);
     }
-    Class_004d8820 rec(res, n, g_allocSerial, arg2, 0);
-    Class_004dc680* blocks = GetBlockMap();
+    BlockInfo rec(res, n, g_allocSerial, arg2, 0);
+    BlockMap* blocks = GetBlockMap();
     blocks->Insert(rec);
     CountAlloc(n);
     g_committedBytes += (n + 0xfff) & 0xfffff000;

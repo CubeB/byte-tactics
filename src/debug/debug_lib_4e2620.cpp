@@ -33,7 +33,7 @@ struct Node_004e2620 {
 
 extern Node_004e2620* DAT_005292c4;    // the tree's _Nil
 
-class Class_004e2b60 {
+class NameMapAllocator {
 public:
     void* Allocate(unsigned int n);
 };
@@ -53,7 +53,7 @@ public:
     Iter_004e2620(Node_004e2620* p) : ptr(p) {}
 };
 
-class Class_004e2620 {
+class NameMapTree {
 public:
     Less_004e2620 compare;             // +0x0
     Node_004e2620* head;               // +0x4
@@ -108,10 +108,10 @@ public:
 };
 
 // FUNCTION: 0x4e2620
-Iter_004e2620 Class_004e2620::Insert(Node_004e2620* _X, Node_004e2620* _Y, const Value_004e2620& _V)
+Iter_004e2620 NameMapTree::Insert(Node_004e2620* _X, Node_004e2620* _Y, const Value_004e2620& _V)
 {
     std::_Lockit _Lk;
-    Node_004e2620* _Z = (Node_004e2620*)((Class_004e2b60*)this)->Allocate(0x208);
+    Node_004e2620* _Z = (Node_004e2620*)((NameMapAllocator*)this)->Allocate(0x208);
     _Parent(_Z) = _Y;
     _Color(_Z) = 0;
     _Left(_Z) = DAT_005292c4;

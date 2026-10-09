@@ -454,12 +454,15 @@ void __cdecl ProtectBlockReadWrite(void* param_1)
 // Memory block description, 0x30 bytes, passed by value to FormatBlockInfo.
 class BlockInfo {
 public:
-    void* address;                     // +0x00
+    unsigned int address;              // +0x00
     long size;                         // +0x04
     int allocNumber;                   // +0x08
-    char name[0x24];                   // +0x0c
+    char name[0x20];                   // +0x0c
+    unsigned int tag;                  // +0x2c
 
     BlockInfo(void);
+    BlockInfo(int p1, int p2, int p3, int p4, const char* p5);
+    void SetName(char* param_1);
 };
 
 // The original calls this out of line from the block histories and the block descriptions.
@@ -477,58 +480,40 @@ void __cdecl FormatBlockInfo(BlockInfo info, char* buf, int unused)
 }
 #pragma auto_inline(on)
 
-struct Class_004d8850 {
-    char unknown_0[0xc];
-    char field_c[0x20];
-
-    void SetName(char* param_1);
-};
-
 // The original calls this out of line from the block histories and the block descriptions.
 #pragma auto_inline(off)
-// FUNCTION: 0x4d87f0
+// FUNCTION: 0x4d87f0 ??0BlockInfo@@QAE@XZ
 BlockInfo::BlockInfo(void)
 {
     address = 0;
     size = 0;
     allocNumber = -1;
-    ((Class_004d8850*)this)->SetName(0);
+    SetName(0);
 }
 #pragma auto_inline(on)
 
-class Class_004d8820 {
-public:
-    unsigned int base;    // +0x0
-    unsigned int size;    // +0x4
-    unsigned int count;   // +0x8
-    char unknown_c[0x20]; // +0xc
-    unsigned int tag;     // +0x2c
-
-    Class_004d8820(int p1, int p2, int p3, int p4, const char* p5);
-};
 // The original calls this out of line from the block-map lookups and the tree inserts.
 #pragma auto_inline(off)
-// FUNCTION: 0x4d8820
-Class_004d8820::Class_004d8820(int p1, int p2, int p3, int p4, const char* p5)
+// FUNCTION: 0x4d8820 ??0BlockInfo@@QAE@HHHHPBD@Z
+BlockInfo::BlockInfo(int p1, int p2, int p3, int p4, const char* p5)
 {
-    base = p1;
+    address = p1;
     size = p2;
-    count = p3;
-    ((Class_004d8850*)this)->SetName((char*)p5);
+    allocNumber = p3;
+    SetName((char*)p5);
     tag = p4;
 }
 #pragma auto_inline(on)
 
-// The original calls this out of line from the BlockInfo and Class_004d8820
-// constructors.
+// The original calls this out of line from the BlockInfo constructors.
 #pragma auto_inline(off)
 // FUNCTION: 0x4d8850
-void Class_004d8850::SetName(char* param_1)
+void BlockInfo::SetName(char* param_1)
 {
     if (param_1 != 0) {
-        lstrcpynA(field_c, param_1, 0x20);
+        lstrcpynA(name, param_1, 0x20);
     } else {
-        field_c[0] = 0;
+        name[0] = 0;
     }
 }
 #pragma auto_inline(on)
@@ -658,6 +643,7 @@ class TraceRecord {
 public:
     char data[0x8c];
     TraceRecord(void);
+    TraceRecord(const char* name, int id, int count);
 };
 
 extern void __cdecl FormatBlockInfo(BlockInfo info, char* buf, int unused);
@@ -669,11 +655,12 @@ public:
     char field_148;                  // +0x148
 
     BlockHistory(void);
+    BlockHistory(const BlockInfo& h, const char* name, int id, int count);
     void FormatBlockHistory(char* buf, int size, char freed);
     void FUN_004d8d40(char freed);
 };
 
-// FUNCTION: 0x4d8bd0
+// FUNCTION: 0x4d8bd0 ??0BlockHistory@@QAE@XZ
 BlockHistory::BlockHistory(void) :
     BlockInfo(),
     allocSite(),
@@ -706,30 +693,16 @@ void BlockHistory::FUN_004d8d40(char freed)
     FormatBlockHistory(buf, 2000, freed);
 }
 
-class Class_004d88d0 {
-public:
-    char unknown_0[0x8c];
-
-    Class_004d88d0(const char* name, int id, int count);
-};
-
-class Class_004d8c00 {
-public:
-    BlockInfo header;                  // +0x0
-    Class_004d88d0 field_30;           // +0x30
-    TraceRecord field_bc;              // +0xbc
-    char field_148;                    // +0x148
-
-    Class_004d8c00(const BlockInfo& h, const char* name, int id, int count);
-};
-
-// A constructor: three member objects are constructed, then the first one is
-// overwritten with a copy of the header passed in and a flag is cleared.
-// FUNCTION: 0x4d8c00
-Class_004d8c00::Class_004d8c00(const BlockInfo& h, const char* name, int id, int count)
-    : field_30(name, id, count + 1)
+// A constructor: the base and the two sites are constructed, then the block
+// description is overwritten with a copy of the header passed in and a flag is
+// cleared.
+// FUNCTION: 0x4d8c00 ??0BlockHistory@@QAE@ABVBlockInfo@@PBDHH@Z
+BlockHistory::BlockHistory(const BlockInfo& h, const char* name, int id, int count)
+    : BlockInfo(),
+      allocSite(name, id, count + 1),
+      freeSite()
 {
-    header = h;
+    *(BlockInfo*)this = h;
     field_148 = 0;
 }
 
@@ -791,27 +764,14 @@ int __cdecl SetOutOfMemoryHandler(int param_1)
 
 class StackTrace {
 public:
-    char pad0[0x78];
-    int field_78;                      // +0x78
-    int field_7c;                      // +0x7c
-    char pad1[0x207c - 0x80];
-    int field_207c;                    // +0x207c
-    int* field_2080;                   // +0x2080
-    char dump_text[0xa44c];            // +0x2084
-
-    void CaptureStack(int* param_1, int* param_2, int param_3, int param_4);
-};
-
-// The same stack trace object under the name its formatter has.
-class Class_004d9ca0 {
-public:
     unsigned long ret[0x1e];           // +0x00
     int count;                         // +0x78
     int stack[0x800];                  // +0x7c
     int copied;                        // +0x207c
     unsigned long* pc;                 // +0x2080
-    char buf[0xa44c];                  // +0x2084
+    char dump_text[0xa44c];            // +0x2084
 
+    void CaptureStack(int* param_1, int* param_2, int param_3, int param_4);
     void FormatStackReport();
 };
 
@@ -840,7 +800,7 @@ int __cdecl ReportException(EXCEPTION_POINTERS* ep, char* handlerName)
     CONTEXT* ctx = ep->ContextRecord;
     EXCEPTION_RECORD* rec = ep->ExceptionRecord;
     obj.CaptureStack((int*)ctx->Ebp, (int*)ctx->Esp, ctx->Eip, 0);
-    ((Class_004d9ca0*)&obj)->FormatStackReport();
+    obj.FormatStackReport();
 
     // Each sprintf site keeps its destination form (`d`, `L` or inline strlen): it sets push order.
     // find the executable's directory and open the log there
@@ -1026,22 +986,22 @@ void __cdecl WalkFrameChain(int* param_1, int* param_2, int param_3, int param_4
 // FUNCTION: 0x4d9c60
 void StackTrace::CaptureStack(int* param_1, int* param_2, int param_3, int param_4)
 {
-    field_2080 = param_2;
-    WalkFrameChain(param_1, param_2, param_3, param_4, this, 0x1e, &field_78, &field_7c, 0x800, &field_207c);
+    pc = (unsigned long*)param_2;
+    WalkFrameChain(param_1, param_2, param_3, param_4, this, 0x1e, &count, stack, 0x800, &copied);
 }
 #pragma auto_inline(on)
 
 // Formats the saved call stack and stack dump into buf.
 
 // FUNCTION: 0x4d9ca0
-void Class_004d9ca0::FormatStackReport()
+void StackTrace::FormatStackReport()
 {
     int m = copied;
     unsigned long* q0 = pc;
     int n = count;
     // One len for both phases, not a second copy.
     unsigned int len = 0xa44c;
-    char* p = buf;
+    char* p = dump_text;
     int i;
 
     if (n > 0) {
@@ -1511,7 +1471,7 @@ struct Node_004da8d0 {
 extern void* g_blockMapNil;            // the tree's _Nil node
 
 // The pool allocator that sits at +0 of the tree; its method ignores `this`.
-class Class_004dddf0 {
+class BlockMapAllocator {
 public:
     void* Allocate(unsigned int n);
 };
@@ -1559,7 +1519,7 @@ void Tree_004da8d0::Init()
     std::_Lockit lock;
     if (g_blockMapNil == 0) {
         Node_004da8d0* nil =
-            (Node_004da8d0*)((Class_004dddf0*)this)->Allocate(0x40);
+            (Node_004da8d0*)((BlockMapAllocator*)this)->Allocate(0x40);
         nil->parent = 0;
         nil->color = 1;
         g_blockMapNil = nil;
@@ -1657,17 +1617,6 @@ Container_004da9f0<int>* GetFreedBlockRing()
 // kept, and the rest of a tree's views share the fullest one.
 
 class FreeBlockMap;
-struct Node_004dbec0;
-struct Node_004dc680;
-struct Node_004dbd00;
-struct Pair_004db450;
-struct InsertResult_004db450;
-struct Pair_004dbec0;
-struct Pair_004dc680;
-struct Node_004dd150;
-struct Node_004dd1f0;
-struct Node_004dd710;
-struct Node_004dd770;
 
 extern void* DAT_00528a54;             // the free-block tree's _Nil node
 extern void* g_blockMapNil;            // the file-record tree's _Nil node
@@ -1686,45 +1635,16 @@ struct Node_004daa30 {
     Node_004daa30* left;           // +0x0
     Node_004daa30* parent;         // +0x4
     Node_004daa30* right;          // +0x8
-    Class_004d8820 value;          // +0xc
+    BlockInfo value;              // +0xc
     unsigned int color;            // +0x3c
 };
 
 // size; each carves nodes from its own free list.
-class Class_004ddd70 {
+class FreeBlockAllocator {
 public:
     void* Allocate(unsigned int n);
 };
 
-// The node a pool carves, named by the files that only return it.
-struct Node_004ddc00;
-// A method that ignores `this`: its caller (0x4dbec0, an inlined tree insert
-// after its std::_Lockit) sets ecx to the tree. Shaped like
-// std::_Tree<...>::_Buynode(parent, colour) with a pooled allocator.
-class Class_004ddc00 {
-public:
-    Node_004ddc00* CreateNode(int param_1, int param_2);
-};
-struct Node_004ddc90;
-struct Less_004ddc90 {
-    bool operator()(const unsigned int& a, const unsigned int& b) const
-    {
-        return a < b;
-    }
-};
-
-class Class_004ddc90 {
-public:
-    Less_004ddc90 compare;             // +0x0
-    Node_004ddc90* head;               // +0x4
-
-    Node_004ddc90* LowerBound(const unsigned int& key);
-};
-struct Node_004ddce0;
-class Class_004ddce0 {
-public:
-    Node_004ddce0* CreateNode(int param_1, int param_2);
-};
 struct Pair_004db000 {
     unsigned int offset;               // +0x0
     unsigned int length;               // +0x4
@@ -1765,93 +1685,6 @@ static inline Node_004db000* Min(Node_004db000* p)
     return p;
 }
 
-// The free-block tree's iterator: one pointer. PrevNode is its _Dec().
-class Class_004dd2a0 {
-public:
-    Node_004db000* ptr;
-
-    Class_004dd2a0() {}
-    Class_004dd2a0(Node_004db000* q) : ptr(q) {}
-    bool operator==(const Class_004dd2a0& o) const { return ptr == o.ptr; }
-    bool operator!=(const Class_004dd2a0& o) const { return !(*this == o); }
-    Pair_004db000& operator*() const { return ptr->value; }
-    Pair_004db000* operator->() const { return &ptr->value; }
-    Class_004dd2a0& operator++() { Inc(); return *this; }
-    Class_004dd2a0 operator++(int) { Class_004dd2a0 tmp = *this; ++*this; return tmp; }
-    Class_004dd2a0& operator--() { PrevNode(); return *this; }
-    Class_004dd2a0 operator--(int) { Class_004dd2a0 tmp = *this; --*this; return tmp; }
-    Node_004db000* Mynode() const { return ptr; }
-    void PrevNode();
-    void Inc()
-    {
-        std::_Lockit lock;
-        if (ptr->right != DAT_00528a54)
-            ptr = (Node_004db000*)FindLeftmost((Node_004dd1b0*)ptr->right);
-        else {
-            Node_004db000* p;
-            while (ptr == (p = ptr->parent)->right)
-                ptr = p;
-            if (ptr->right != p)
-                ptr = p;
-        }
-    }
-};
-
-class Class_004dd820 {
-public:
-    Node_004daa30* ptr;                // +0x0
-
-    Class_004dd820() {}
-    Class_004dd820(Node_004daa30* q) : ptr(q) {}
-    bool operator==(const Class_004dd820& o) const { return ptr == o.ptr; }
-    void PrevNode();
-};
-
-// The (iterator, inserted) pair the trees' insert functions return: an
-// iterator then a byte. 0x4ddbe0 is its out-of-line constructor.
-class Class_004ddbe0 {
-public:
-    Class_004dd2a0 field_0;            // +0x0
-    unsigned char field_4;             // +0x4
-
-    Class_004ddbe0() {}
-    Class_004ddbe0(const Class_004dd2a0& i, const unsigned char& b) : field_0(i), field_4(b) {}
-    Class_004ddbe0(const Class_004dd820& i, unsigned char b) : field_0((Node_004db000*)i.ptr), field_4(b) {}
-    // The byte is copied before the iterator on purpose: 0x4dbbc0 needs the
-    // byte in cl and the dword in edx at every return.
-    inline Class_004ddbe0(const Class_004ddbe0& o)
-    {
-        field_4 = o.field_4;
-        field_0 = o.field_0;
-    }
-    Class_004ddbe0* Assign(int* param_1, unsigned char* param_2);
-    Class_004ddbe0* Assign(const Class_004dd2a0& first, unsigned char& second);
-    Class_004ddbe0* Assign(const Class_004dd2a0& first, const bool& second);
-};
-
-// The free-block tree's iterator _Inc, out of line at 0x4dd340.
-class Class_004dd340 {
-public:
-    Node_004db000* ptr;                // +0x0
-
-    void NextNode();                   // _Inc, out of line at 0x4dd340
-
-    Class_004dd340& operator++()
-    {
-        NextNode();
-        return *this;
-    }
-
-    Class_004dd340 operator++(int)
-    {
-        Class_004dd340 _Tmp = *this;
-        ++*this;
-        return _Tmp;
-    }
-
-    Node_004db000* _Mynode() const { return ptr; }
-};
-
 static inline Node_004db000* Min_004dbd80(Node_004db000* p)
 {
     std::_Lockit lock;
@@ -1870,72 +1703,28 @@ static inline Node_004db000* Max_004dbd80(Node_004db000* p)
     return p;
 }
 
-static inline Node_004daa30* Max_004dd820(Node_004daa30* p)
-{
-    std::_Lockit lock;
-    while (p->right != g_blockMapNil) {
-        p = p->right;
-    }
-    return p;
-}
-
-// std::_Tree<...>::upper_bound: the first node whose key is greater than the
-// given key, or the head node; the out-of-line copy is 0x4dbd20.
-struct Less_004dbd20 {
-    bool operator()(const unsigned int& a, const unsigned int& b) const { return a < b; }
-};
-
-struct Node_004dbd20 {
-    Node_004dbd20* left;               // +0x0
-    Node_004dbd20* parent;             // +0x4
-    Node_004dbd20* right;              // +0x8
-    unsigned int key;                  // +0xc
-};
-
-class Iter_004dbd20 {
+// The free-block tree's iterator: one pointer. PrevNode is its _Dec(); Next
+// and Previous are its out-of-line operator++(int) and operator--(int).
+class FreeBlockIter {
 public:
-    Node_004dbd20* ptr;
-    Iter_004dbd20() : ptr(0) {}
-    Iter_004dbd20(Node_004dbd20* p) : ptr(p) {}
-};
+    Node_004db000* ptr;
 
-class Class_004dbd20 {
-public:
-    Less_004dbd20 key_compare;
-    Node_004dbd20* head;               // +0x4
-
-    Iter_004dbd20 UpperBound(const unsigned int& kv);
-};
-
-// Inlined std::_Tree<...>::_Ubound(const _K&): its own lock scope.
-static inline Node_004dbd20* Ubound_004dbd20(Class_004dbd20* self,
-                                             const unsigned int& kv)
-{
-    std::_Lockit lock;
-    Node_004dbd20* x = self->head->parent;
-    Node_004dbd20* y = self->head;
-    while (x != DAT_00528a54)
-        if (self->key_compare(kv, x->key))
-            y = x, x = x->left;
-        else
-            x = x->right;
-    return y;
-}
-
-// The free-block tree's iterator as 0x4dbd80 and 0x4dbe10 move it; the
-// callers in 0x4dacf0 and 0x4db000 name the same class.
-class Class_004dbe10 {
-public:
-    Node_004db000* ptr;                // +0x0
-
-    Class_004dbe10() {}
-    Class_004dbe10(Node_004db000* q) : ptr(q) {}
-    bool operator==(const Class_004dbe10& o) const { return ptr == o.ptr; }
-    bool operator!=(const Class_004dbe10& o) const { return !(*this == o); }
+    FreeBlockIter() {}
+    FreeBlockIter(Node_004db000* q) : ptr(q) {}
+    bool operator==(const FreeBlockIter& o) const { return ptr == o.ptr; }
+    bool operator!=(const FreeBlockIter& o) const { return !(*this == o); }
     Pair_004db000& operator*() const { return ptr->value; }
     Pair_004db000* operator->() const { return &ptr->value; }
-    Class_004dbe10 Previous(int); // operator--(int)
-    Class_004dbe10 Next(int); // operator++(int)
+    FreeBlockIter& operator++() { NextNode(); return *this; }
+    FreeBlockIter operator++(int) { FreeBlockIter tmp = *this; ++*this; return tmp; }
+    FreeBlockIter& operator--() { PrevNode(); return *this; }
+    FreeBlockIter operator--(int) { FreeBlockIter tmp = *this; --*this; return tmp; }
+    Node_004db000* Mynode() const { return ptr; }
+    Node_004db000* _Mynode() const { return ptr; }
+    void PrevNode();
+    void NextNode();                   // _Inc, out of line at 0x4dd340
+    FreeBlockIter Previous(int); // operator--(int)
+    FreeBlockIter Next(int); // operator++(int)
 
     void Inc()
     {
@@ -1970,48 +1759,260 @@ public:
     }
 };
 
-class Class_004dbeb0 {
+// The file-record tree's iterator: one node pointer. PrevNode is its _Dec and
+// NextNode its _Inc.
+class BlockMapIter {
 public:
-    char unknown_0[4];
-    int* field_4;
+    Node_004daa30* ptr;                // +0x0
 
-    Class_004dbe10 Begin();
-    int* Begin(int* param_1);
+    BlockMapIter() {}
+    BlockMapIter(Node_004daa30* q) : ptr(q) {}
+    bool operator==(const BlockMapIter& o) const { return ptr == o.ptr; }
+    BlockInfo& operator*() const { return ptr->value; }
+    BlockInfo* operator->() const { return &ptr->value; }
+    // Calls NextNode (the _Inc at 0x4dde70) by that exact name.
+    BlockMapIter operator++(int)
+    {
+        BlockMapIter _Tmp = *this;
+        NextNode();
+        return _Tmp;
+    }
+    Node_004daa30* _Mynode() const { return ptr; }
+    void PrevNode();
+    void NextNode();
+};
+
+// The (iterator, inserted) pair the trees' insert functions return: an
+// iterator then a byte. 0x4ddbe0 is its out-of-line constructor.
+class MapInsertResult {
+public:
+    FreeBlockIter field_0;            // +0x0
+    unsigned char field_4;             // +0x4
+
+    MapInsertResult() {}
+    MapInsertResult(const FreeBlockIter& i, const unsigned char& b) : field_0(i), field_4(b) {}
+    MapInsertResult(const BlockMapIter& i, unsigned char b) : field_0((Node_004db000*)i.ptr), field_4(b) {}
+    // The byte is copied before the iterator on purpose: 0x4dbbc0 needs the
+    // byte in cl and the dword in edx at every return.
+    inline MapInsertResult(const MapInsertResult& o)
+    {
+        field_4 = o.field_4;
+        field_0 = o.field_0;
+    }
+    MapInsertResult* Assign(int* param_1, unsigned char* param_2);
+    MapInsertResult* Assign(const FreeBlockIter& first, unsigned char& second);
+    MapInsertResult* Assign(const FreeBlockIter& first, const bool& second);
+};
+
+static inline Node_004daa30* Max_004dd820(Node_004daa30* p)
+{
+    std::_Lockit lock;
+    while (p->right != g_blockMapNil) {
+        p = p->right;
+    }
+    return p;
+}
+
+// std::_Tree<...>::upper_bound returns this; the out-of-line copy is 0x4dbd20.
+class Iter_004dbd20 {
+public:
+    Node_004db000* ptr;
+    Iter_004dbd20() : ptr(0) {}
+    Iter_004dbd20(Node_004db000* p) : ptr(p) {}
 };
 
 class Iter_004dbd00 {
 public:
-    Node_004dbd00* ptr;                // +0x0
+    Node_004db000* ptr;                // +0x0
 
     Iter_004dbd00() {}
-    Iter_004dbd00(Node_004dbd00* p) : ptr(p) {}
+    Iter_004dbd00(Node_004db000* p) : ptr(p) {}
 };
 
 class ConstIter_004dbd00 : public Iter_004dbd00 {
 public:
     ConstIter_004dbd00() {}
-    ConstIter_004dbd00(Node_004dbd00* p) : Iter_004dbd00(p) {}
+    ConstIter_004dbd00(Node_004db000* p) : Iter_004dbd00(p) {}
     ConstIter_004dbd00(const Iter_004dbd00& x) : Iter_004dbd00(x) {}
 };
 
-struct Alloc_004dc130 { };             // empty, at the tree's +0
-struct Less_004dc130 { };              // empty, at the tree's +1
+// The game's file-record tree: a std::map keyed on the block address, as
+// hand-walked red-black tree code. The nodes are 0x40 bytes, carved from the
+// pool at g_blockMapFreeList; g_blockMapNil is its _Nil node.
+struct Less_004dd3d0 {
+    bool operator()(const unsigned int& a, const unsigned int& b) const { return a < b; }
+};
 
-class Class_004dc130 {
+class BlockMap {
+public:
+    BlockMapAllocator allocator;       // +0x0
+    Less_004dd3d0 key_compare;         // +0x1
+    Node_004daa30* head;               // +0x4
+    unsigned char multi;             // +0x8
+    int size;                          // +0xc
+
+    BlockMapIter Begin() { return BlockMapIter(head->left); }
+    BlockMapIter End() { return BlockMapIter(head); }
+    BlockMapIter end() { return BlockMapIter(head); }
+    BlockMapIter find(const unsigned int& key)
+    {
+        BlockMapIter it = lower_bound(key);
+        return (it == End() || key_compare(key, it.ptr->value.address)) ? End() : it;
+    }
+
+    Node_004daa30* Lbound(const unsigned int& key) const
+    {
+        std::_Lockit lock;
+        Node_004daa30* x = head->parent;
+        Node_004daa30* y = head;
+        while (x != g_blockMapNil) {
+            if (key_compare(x->value.address, key))
+                x = x->right;
+            else
+                y = x, x = x->left;
+        }
+        return y;
+    }
+
+    Node_004daa30*& _Root() { return head->parent; }
+    Node_004daa30*& _Lmost() { return head->left; }
+    Node_004daa30*& _Rmost() { return head->right; }
+
+    static Node_004daa30* _Min(Node_004daa30* _P)
+        { std::_Lockit _Lk;
+          while (_P->left != g_blockMapNil)
+              _P = _P->left;
+          return _P; }
+
+    static Node_004daa30* _Max(Node_004daa30* _P)
+        { std::_Lockit _Lk;
+          while (_P->right != g_blockMapNil)
+              _P = _P->right;
+          return _P; }
+
+    void _Lrotate(Node_004daa30* _X)
+        { std::_Lockit _Lk;
+          Node_004daa30* _Y = _X->right;
+          _X->right = _Y->left;
+          if (_Y->left != g_blockMapNil)
+              _Y->left->parent = _X;
+          _Y->parent = _X->parent;
+          if (_X == _Root())
+              _Root() = _Y;
+          else if (_X == _X->parent->left)
+              _X->parent->left = _Y;
+          else
+              _X->parent->right = _Y;
+          _Y->left = _X;
+          _X->parent = _Y; }
+
+    void _Rrotate(Node_004daa30* _X)
+        { std::_Lockit _Lk;
+          Node_004daa30* _Y = _X->left;
+          _X->left = _Y->right;
+          if (_Y->right != g_blockMapNil)
+              _Y->right->parent = _X;
+          _Y->parent = _X->parent;
+          if (_X == _Root())
+              _Root() = _Y;
+          else if (_X == _X->parent->right)
+              _X->parent->right = _Y;
+          else
+              _X->parent->left = _Y;
+          _Y->right = _X;
+          _X->parent = _Y; }
+
+    void Lrotate(Node_004daa30* x)
+    {
+        std::_Lockit lock;
+        Node_004daa30* y = x->right;
+        x->right = y->left;
+        if (y->left != g_blockMapNil)
+            y->left->parent = x;
+        y->parent = x->parent;
+        if (x == head->parent)
+            head->parent = y;
+        else if (x == x->parent->left)
+            x->parent->left = y;
+        else
+            x->parent->right = y;
+        y->left = x;
+        x->parent = y;
+    }
+
+    void Rrotate(Node_004daa30* x)
+    {
+        std::_Lockit lock;
+        Node_004daa30* y = x->left;
+        x->left = y->right;
+        if (y->right != g_blockMapNil)
+            y->right->parent = x;
+        y->parent = x->parent;
+        if (x == head->parent)
+            head->parent = y;
+        else if (x == x->parent->right)
+            x->parent->right = y;
+        else
+            x->parent->left = y;
+        y->right = x;
+        x->parent = y;
+    }
+
+    MapInsertResult Insert(BlockInfo* p);
+    BlockMapIter InsertHinted(Node_004daa30* x, Node_004daa30* y, const BlockInfo& v);
+    BlockMapIter* InsertHinted(BlockMapIter* out, Node_004daa30* x, Node_004daa30* y, const BlockInfo* v);
+    BlockMapIter erase(BlockMapIter _P);
+    BlockMapIter Find(const unsigned int& key);
+    BlockMapIter lower_bound(const unsigned int& key);
+    Node_004daa30* LowerBound(const unsigned int& key);
+    Node_004daa30* Ubound(const unsigned int& key);
+    Node_004daa30* CreateNode(int param_1, int param_2);
+    void RotateLeft(Node_004daa30* x);
+    void RotateRight(Node_004daa30* x);
+};
+
+class Iter_004dc620 {
+public:
+    Node_004db000* ptr;
+    Iter_004dc620() : ptr(0) {}
+    Iter_004dc620(Node_004db000* p) : ptr(p) {}
+};
+
+struct Less_004db000 {
+    bool operator()(const unsigned int& a, const unsigned int& b) const { return a < b; }
+};
+
+struct Pair_004db450 {
+    unsigned int offset;               // +0x0
+    int length;                        // +0x4
+};
+
+struct InsertResult_004db450 { FreeBlockIter first; int second; };
+// The helper's one frame object: the pair, then the value_type.
+
+struct Frame_004db450 { InsertResult_004db450 r; Pair_004db450 p; };
+
+struct Kfn_004db000 {
+    const unsigned int& operator()(const Pair_004db000& x) const { return x.offset; }
+};
+
+class FreeBlockMap {
 public:
     enum Redbl { _Red, _Black };
 
-    Alloc_004dc130 allocator;          // +0x0
-    Less_004dc130 key_compare;         // +0x1
+    FreeBlockAllocator allocator;      // +0x0
+    Less_004db000 key_compare;         // +0x1
     Node_004db000* head;               // +0x4
     bool multi;                        // +0x8
-    unsigned int size;                 // +0xc
+    unsigned int count;                // +0xc
+    unsigned int total;                // +0x10
 
     static Node_004db000*& Left(Node_004db000* p) { return p->left; }
     static Node_004db000*& Parent(Node_004db000* p) { return p->parent; }
     static Node_004db000*& Right(Node_004db000* p) { return p->right; }
     static int& Color(Node_004db000* p) { return p->color; }
     static unsigned int* _Value(Node_004db000* p) { return (unsigned int*)&p->value; }
+    static const unsigned int& Key(Node_004db000* p) { return Kfn_004db000()(p->value); }
 
     Node_004db000*& Root() { return Parent(head); }
     Node_004db000*& Lmost() { return Left(head); }
@@ -2079,573 +2080,69 @@ public:
         }
     }
 
-    Class_004dd340 Erase(Class_004dd340 _P);
-    Class_004dd2a0 Erase(Class_004dd2a0 it);
-    void Erase(Class_004dd2a0* out, Class_004dd2a0 it);
-    Iter_004dbd00 Erase(Iter_004dbd00 it);
-};
-
-class Class_004dbd00 {
-public:
-    Class_004dc130 tree;               // +0x0
-
-    Class_004dbe10 Erase(Class_004dbe10 it);
-    ConstIter_004dbd00 Erase(ConstIter_004dbd00 it);
-};
-
-struct Less_004dd250 {
-    bool operator()(const unsigned int& a, const unsigned int& b) const { return a < b; }
-};
-
-struct Node_004dd250 {
-    Node_004dd250* left;               // +0x0
-    Node_004dd250* parent;             // +0x4
-    Node_004dd250* right;              // +0x8
-    unsigned int key;                  // +0xc
-};
-
-class Class_004dd250 {
-public:
-    Less_004dd250 key_compare;
-    Node_004dd250* head;               // +0x4
-
-    Node_004db000* LowerBound(const Pair_004db000& k);
-    Node_004dd250* LowerBound(const unsigned int& kv);
-};
-
-struct Node_004dd7d0 {
-    Node_004dd7d0* left;               // +0x0
-    Node_004dd7d0* parent;             // +0x4
-    Node_004dd7d0* right;              // +0x8
-    unsigned int key;                  // +0xc
-    int color;                         // +0x14
-};
-
-struct Less_004dd7d0 {
-    bool operator()(const unsigned int& a, const unsigned int& b) const { return a < b; }
-};
-
-class Class_004dd7d0 {
-public:
-    Less_004dd7d0 key_compare;         // +0x0
-    Node_004dd7d0* head;               // +0x4
-
-    Class_004dd820 End() { return Class_004dd820((Node_004daa30*)head); }
-    Class_004dd820 Begin() { return Class_004dd820((Node_004daa30*)head->left); }
-    Node_004dd7d0* LowerBound(const unsigned int& kv);
-};
-
-struct Less_004dd3d0 {
-    bool operator()(const unsigned int& a, const unsigned int& b) const { return a < b; }
-};
-
-class Iter_004dd3d0 {
-public:
-    Node_004daa30* ptr;                // +0x0
-
-    Iter_004dd3d0() {}
-    Iter_004dd3d0(Node_004daa30* p) : ptr(p) {}
-    bool operator==(const Iter_004dd3d0& o) const { return ptr == o.ptr; }
-};
-
-class Class_004dd3d0 {
-public:
-    Less_004dd3d0 compare;             // +0x0
-    Node_004daa30* head;               // +0x4
-
-    Iter_004dd3d0 End() { return Iter_004dd3d0(head); }
-    Iter_004dd3d0 LowerBound(const unsigned int& key);
-    Iter_004dd3d0 find(const unsigned int& key)
+    // The constructor (0x4db610) stays in its own file: it is the one function
+    // that constructs the std::map member, whose _Init allocates the two
+    // sentinel nodes; the walkers below use the same bytes as raw fields.
+    FreeBlockIter begin() { return FreeBlockIter(head->left); }
+    FreeBlockIter end() { return FreeBlockIter(head); }
+    unsigned int size() const { return count; }
+    // The original tests this as a value (sete; neg; sbb; inc; test), which
+    // MSVC 5 only does for a `!` applied to a bool-returning member.
+    bool Neq(FreeBlockIter a, FreeBlockIter b) { return !(a == b); }
+    FreeBlockIter upper_bound(const Pair_004db000& k)
     {
-        Iter_004dd3d0 it = LowerBound(key);
-        return (it == End() || compare(key, it.ptr->value.base)) ? End() : it;
+        return FreeBlockIter(LowerBound(k));
     }
 
-    Node_004daa30* Lbound(const unsigned int& key) const
+    // Inlined std::_Tree<...>::_Ubound(const _K&): its own lock scope.
+    Node_004db000* Ubound(const unsigned int& kv)
     {
         std::_Lockit lock;
-        Node_004daa30* x = head->parent;
-        Node_004daa30* y = head;
-        while (x != g_blockMapNil) {
-            if (compare(x->value.base, key))
-                x = x->right;
-            else
+        Node_004db000* x = head->parent;
+        Node_004db000* y = head;
+        while (x != DAT_00528a54)
+            if (key_compare(kv, x->value.offset))
                 y = x, x = x->left;
-        }
+            else
+                x = x->right;
         return y;
     }
-};
-
-struct Less_004dc620 {
-    bool operator()(const unsigned int& a, const unsigned int& b) const { return a < b; }
-};
-
-class Iter_004dc620 {
-public:
-    Node_004db000* ptr;
-    Iter_004dc620() : ptr(0) {}
-    Iter_004dc620(Node_004db000* p) : ptr(p) {}
-};
-
-class Class_004dc620 {
-public:
-    Less_004dc620 key_compare;
-    Node_004db000* head;               // +0x4
-
-    Class_004dbe10 LowerBound(const Pair_004db000& k);
-    void LowerBound(Class_004dd2a0* out, const unsigned int& kv);
-    Iter_004dc620 LowerBound(const unsigned int& kv);
-};
-
-class Class_004dd150 {
-public:
-    int unknown_0;
-    Node_004dd150* head;            // +0x4
-    void RotateLeft(Node_004dd150* x);
-    void RotateLeft(Node_004db000* x);
-};
-
-struct Node_004dd150 {
-    Node_004dd150* left;            // +0x0
-    Node_004dd150* parent;          // +0x4
-    Node_004dd150* right;           // +0x8
-};
-
-class Class_004dd1f0 {
-public:
-    int unknown_0;
-    Node_004dd1f0* head;            // +0x4
-    void RotateRight(Node_004dd1f0* x);
-    void RotateRight(Node_004db000* x);
-};
-
-struct Node_004dd1f0 {
-    Node_004dd1f0* left;            // +0x0
-    Node_004dd1f0* parent;          // +0x4
-    Node_004dd1f0* right;           // +0x8
-};
-
-struct Node_004dd710 {
-    Node_004dd710* left;               // +0x0
-    Node_004dd710* parent;             // +0x4
-    Node_004dd710* right;              // +0x8
-};
-
-class Class_004dd710 {
-public:
-    int unknown_0;
-    Node_004dd710* head;               // +0x4
-    void RotateLeft(Node_004dd710* x);
-    void RotateLeft(Node_004daa30* x);
-};
-
-struct Node_004dd770 {
-    Node_004dd770* left;               // +0x0
-    Node_004dd770* parent;             // +0x4
-    Node_004dd770* right;              // +0x8
-};
-
-class Class_004dd770 {
-public:
-    int unknown_0;
-    Node_004dd770* head;               // +0x4
-    void RotateRight(Node_004dd770* x);
-    void RotateRight(Node_004daa30* x);
-};
-
-struct Less_004dd430 {
-    bool operator()(unsigned int a, unsigned int b) const { return a < b; }
-};
-
-struct Pair_004dd430 {
-    unsigned int key;                 // +0x0
-    char unknown_4[44];
-};
-
-struct Node_004dd430 {
-    Node_004dd430* left;              // +0x0
-    Node_004dd430* parent;            // +0x4
-    Node_004dd430* right;             // +0x8
-    Pair_004dd430 value;              // +0xc
-    int color;                        // +0x3c
-};
-
-class Class_004dd430 {
-public:
-    Less_004dd430 key_compare;        // +0x0
-    Node_004dd430* head;              // +0x4
-    unsigned char unknown_8;          // +0x8
-    int size;                         // +0xc
-
-    void Lrotate(Node_004dd430* x)
-    {
-        std::_Lockit lock;
-        Node_004dd430* y = x->right;
-        x->right = y->left;
-        if (y->left != g_blockMapNil)
-            y->left->parent = x;
-        y->parent = x->parent;
-        if (x == head->parent)
-            head->parent = y;
-        else if (x == x->parent->left)
-            x->parent->left = y;
-        else
-            x->parent->right = y;
-        y->left = x;
-        x->parent = y;
-    }
-
-    void Rrotate(Node_004dd430* x)
-    {
-        std::_Lockit lock;
-        Node_004dd430* y = x->left;
-        x->left = y->right;
-        if (y->right != g_blockMapNil)
-            y->right->parent = x;
-        y->parent = x->parent;
-        if (x == head->parent)
-            head->parent = y;
-        else if (x == x->parent->right)
-            x->parent->right = y;
-        else
-            x->parent->left = y;
-        y->right = x;
-        x->parent = y;
-    }
-
-    Class_004dd2a0 Insert(Node_004dd430* x, Node_004dd430* y,
-                                const Pair_004dd430& v);
-    Class_004dd820* Insert(Class_004dd820* out, Node_004daa30* x,
-                                 Node_004daa30* y, const Pair_004dc680* v);
-};
-
-struct Pair_004dc680 {
-    unsigned int key;                  // +0x0
-    char unknown_4[44];
-};
-
-struct Less_004dc680 {
-    bool operator()(unsigned int a, unsigned int b) const { return a < b; }
-};
-
-class Class_004dc680 {
-public:
-    Less_004dc680 key_compare;         // +0x0
-    Node_004daa30* head;               // +0x4
-    unsigned char rebuild;             // +0x8
-    int size;                          // +0xc
-
-    Class_004dd820 Begin() { return Class_004dd820(head->left); }
-
-    Class_004ddbe0 Insert(Pair_004dc680* p);
-    Class_004ddbe0 Insert(const Class_004d8820& v);
-};
-
-struct Value_004dc910 { char unknown_0[0x30]; };
-
-struct Node_004dc910 {
-    Node_004dc910* _Left;
-    Node_004dc910* _Parent;
-    Node_004dc910* _Right;
-    Value_004dc910 _Value;
-    int _Color;
-};
-
-struct Node_004dde70;
-class Class_004dde70 {
-public:
-    Node_004dde70* ptr;                // +0x0
-    void NextNode();
-};
-class Iter_004dc910 {
-public:
-    Node_004dc910* _Ptr;
-    Iter_004dc910() {}
-    Iter_004dc910(Node_004dc910* _P) : _Ptr(_P) {}
-    // Calls Class_004dde70::NextNode (the _Inc at 0x4dde70) by that exact name.
-    Iter_004dc910 operator++(int)
-        { Iter_004dc910 _Tmp = *this;
-          ((Class_004dde70*)this)->NextNode();
-          return (_Tmp); }
-    Node_004dc910* _Mynode() const { return _Ptr; }
-};
-
-class Class_004dc910 {
-public:
-    int unknown_0;
-    Node_004dc910* _Head;              // +4
-    unsigned char _Multi;              // +8
-    int _Size;                         // +0xc
-
-    Node_004dc910*& _Root() { return _Head->_Parent; }
-    Node_004dc910*& _Lmost() { return _Head->_Left; }
-    Node_004dc910*& _Rmost() { return _Head->_Right; }
-
-    static Node_004dc910* _Min(Node_004dc910* _P)
-        { std::_Lockit _Lk;
-          while (_P->_Left != g_blockMapNil)
-              _P = _P->_Left;
-          return _P; }
-
-    static Node_004dc910* _Max(Node_004dc910* _P)
-        { std::_Lockit _Lk;
-          while (_P->_Right != g_blockMapNil)
-              _P = _P->_Right;
-          return _P; }
-
-    void _Lrotate(Node_004dc910* _X)
-        { std::_Lockit _Lk;
-          Node_004dc910* _Y = _X->_Right;
-          _X->_Right = _Y->_Left;
-          if (_Y->_Left != g_blockMapNil)
-              _Y->_Left->_Parent = _X;
-          _Y->_Parent = _X->_Parent;
-          if (_X == _Root())
-              _Root() = _Y;
-          else if (_X == _X->_Parent->_Left)
-              _X->_Parent->_Left = _Y;
-          else
-              _X->_Parent->_Right = _Y;
-          _Y->_Left = _X;
-          _X->_Parent = _Y; }
-
-    void _Rrotate(Node_004dc910* _X)
-        { std::_Lockit _Lk;
-          Node_004dc910* _Y = _X->_Left;
-          _X->_Left = _Y->_Right;
-          if (_Y->_Right != g_blockMapNil)
-              _Y->_Right->_Parent = _X;
-          _Y->_Parent = _X->_Parent;
-          if (_X == _Root())
-              _Root() = _Y;
-          else if (_X == _X->_Parent->_Right)
-              _X->_Parent->_Right = _Y;
-          else
-              _X->_Parent->_Left = _Y;
-          _Y->_Right = _X;
-          _X->_Parent = _Y; }
-
-    Iter_004dc910 erase(Iter_004dc910 _P);
-};
-
-struct Less_004dce00 {
-    bool operator()(const unsigned int& a, const unsigned int& b) const { return a < b; }
-};
-
-class Iter_004dce00 {
-public:
-    Node_004daa30* ptr;
-
-    Iter_004dce00() {}
-    Iter_004dce00(Node_004daa30* p) : ptr(p) {}
-    bool operator==(const Iter_004dce00& other) const { return ptr == other.ptr; }
-    Class_004d8820& operator*() const { return ptr->value; }
-    Class_004d8820* operator->() const { return &ptr->value; }
-};
-
-class Class_004dce00 {
-public:
-    Less_004dce00 compare;             // +0x0
-    Node_004daa30* head;               // +0x4
-
-    Iter_004dce00 end() { return Iter_004dce00(head); }
-    Iter_004dce00 End() { return Iter_004dce00(head); }
-    Iter_004dce00 Find(const unsigned int& key);
-};
-
-struct Less_004db000 {
-    bool operator()(const unsigned int& a, const unsigned int& b) const { return a < b; }
-};
-
-struct Less_004dbec0 {
-    bool operator()(unsigned int a, unsigned int b) const { return a < b; }
-};
-
-struct Pair_004dbec0 {
-    unsigned int offset;               // +0x0
-    int length;                        // +0x4
-};
-
-class Class_004dbec0 {
-public:
-    Less_004dbec0 key_compare;         // +0x0
-    Node_004db000* head;               // +0x4
-    unsigned char rebuild;             // +0x8
-    int size;                          // +0xc
-
-    Class_004dd2a0 Begin() { return Class_004dd2a0(head->left); }
-
-    Class_004ddbe0 Insert(const Pair_004db000& v);
-    void Insert(InsertResult_004db450* it, Pair_004db450* p);
-    Class_004ddbe0 Insert(Pair_004dbec0* p);
-};
-
-struct Pair_004db450 {
-    unsigned int offset;               // +0x0
-    int length;                        // +0x4
-};
-
-struct InsertResult_004db450 { Class_004dd2a0 first; int second; };
-// The helper's one frame object: the pair, then the value_type.
-
-struct Frame_004db450 { InsertResult_004db450 r; Pair_004db450 p; };
-
-class Class_004db450 {
-public:
-    char unknown_0[4];
-    Node_004db000* head;               // +0x4
-    char unknown_8[8];
-    int total;                         // +0x10
 
     // The original tests the iterators as a value (sete; neg; sbb; inc; test),
     // which MSVC 5 only does for a `!` applied to a bool-returning member.
-    bool Neq(Class_004dd2a0 a, Class_004dd2a0 b) { return !(a == b); }
-
-    inline void Tail(unsigned base, unsigned len, Class_004dd2a0& it) {
+    inline void Tail(unsigned base, unsigned len, FreeBlockIter& it) {
     total += len;
-    Class_004dd2a0 n;
+    FreeBlockIter n;
     // One frame object (pair, then value_type): separate locals move the stack slots.
     Frame_004db450 f;
     f.p.offset = base;
     f.p.length = len;
-    ((Class_004dc620*)this)->LowerBound(&n, f.p.offset);
+    lower_bound(&n, f.p.offset);
     it = n;
-    ((Class_004dbeb0*)this)->Begin((int*)&f.r);
+    Begin((int*)&f.r);
     if (it == f.r.first)
         it.ptr = head;
     else
         it.PrevNode();
-    if (Neq(n, Class_004dd2a0(head))) {
+    if (Neq(n, FreeBlockIter(head))) {
         if (n.ptr->value.offset == f.p.offset + f.p.length) {
             f.p.length = f.p.length + n.ptr->value.length;
-            ((Class_004dc130*)this)->Erase(&f.r.first, n);
+            Erase(&f.r.first, n);
         }
     }
-    if (Neq(it, Class_004dd2a0(head))) {
+    if (Neq(it, FreeBlockIter(head))) {
         if (it.ptr->value.offset + it.ptr->value.length == f.p.offset) {
             f.p.length = f.p.length + it.ptr->value.length;
             f.p.offset = it.ptr->value.offset;
-            ((Class_004dc130*)this)->Erase(&f.r.first, it);
+            Erase(&f.r.first, it);
         }
     }
-    ((Class_004dbec0*)this)->Insert(&f.r, &f.p);
-    }
-    bool GrowReservation(unsigned int size);
-};
-
-struct Pair_004dbbc0 {
-    unsigned int offset;               // +0x0
-    int length;                        // +0x4
-};
-
-struct Node_004dbbc0 {
-    Node_004dbbc0* left;               // +0x0
-    Node_004dbbc0* parent;             // +0x4
-    Node_004dbbc0* right;              // +0x8
-    Pair_004dbbc0 value;               // +0xc
-    int color;                         // +0x14
-};
-
-struct Kfn_004dbbc0 {
-    const unsigned int& operator()(const Pair_004dbbc0& x) const { return x.offset; }
-};
-
-struct Less_004dbbc0 {
-    bool operator()(const unsigned int& a, const unsigned int& b) const
-    {
-        return a < b;
-    }
-};
-
-class Class_004dce60 {
-public:
-    unsigned char allocator;           // +0x0
-    Less_004dbbc0 key_compare;         // +0x1
-    Node_004dbbc0* head;               // +0x4
-    bool multi;                        // +0x8
-    int size;                          // +0xc
-
-    static Node_004dbbc0*& Left(Node_004dbbc0* p) { return p->left; }
-    static Node_004dbbc0*& Right(Node_004dbbc0* p) { return p->right; }
-    static const unsigned int& Key(Node_004dbbc0* p) { return Kfn_004dbbc0()(p->value); }
-    Node_004dbbc0*& Root() { return head->parent; }
-    Node_004dbbc0*& Lmost() { return Left(head); }
-    Class_004dd2a0 begin() { return Class_004dd2a0((Node_004db000*)Lmost()); }
-
-    // Left rotation of x, shaped like std::_Tree<...>::_Lrotate.
-    void Lrotate(Node_004dbbc0* x)
-    {
-        std::_Lockit lock;
-        Node_004dbbc0* y = x->right;
-        x->right = y->left;
-        if (y->left != DAT_00528a54)
-            y->left->parent = x;
-        y->parent = x->parent;
-        if (x == head->parent)
-            head->parent = y;
-        else if (x == x->parent->left)
-            x->parent->left = y;
-        else
-            x->parent->right = y;
-        y->left = x;
-        x->parent = y;
-    }
-
-    // Right rotation of x, shaped like std::_Tree<...>::_Rrotate.
-    void Rrotate(Node_004dbbc0* x)
-    {
-        std::_Lockit lock;
-        Node_004dbbc0* y = x->left;
-        x->left = y->right;
-        if (y->right != DAT_00528a54)
-            y->right->parent = x;
-        y->parent = x->parent;
-        if (x == head->parent)
-            head->parent = y;
-        else if (x == x->parent->right)
-            x->parent->right = y;
-        else
-            x->parent->left = y;
-        y->right = x;
-        x->parent = y;
-    }
-
-    Class_004dd2a0 Insert(Node_004dbbc0* x, Node_004dbbc0* y,
-                                const Pair_004dbbc0* v);
-    Class_004dd2a0 Insert(Node_004db000* x, Node_004db000* y,
-                                Pair_004db000* v);
-    Class_004dd2a0 Insert(Node_004db000* x, Node_004db000* y,
-                                const Pair_004dbec0* v);
-
-    Class_004ddbe0 TreeInsert(const Pair_004dbbc0& V);
-    Class_004ddbe0 InsertOrFind(const Pair_004dbbc0& V);
-    Class_004ddbe0 InsertOrFind(const Pair_004db000& v);
-};
-
-class FreeBlockMap {
-public:
-    Less_004db000 key_compare;         // +0x0
-    Node_004db000* head;               // +0x4
-    unsigned char rebuild;             // +0x8
-    unsigned int count;                // +0xc
-    unsigned int total;                // +0x10
-
-    // The constructor (0x4db610) stays in its own file: it is the one function
-    // that constructs the std::map member, whose _Init allocates the two
-    // sentinel nodes; the walkers below use the same bytes as raw fields.
-    Class_004dd2a0 begin() { return Class_004dd2a0(head->left); }
-    Class_004dd2a0 end() { return Class_004dd2a0(head); }
-    unsigned int size() const { return count; }
-    // The original tests this as a value (sete; neg; sbb; inc; test), which
-    // MSVC 5 only does for a `!` applied to a bool-returning member.
-    bool Neq(Class_004dd2a0 a, Class_004dd2a0 b) { return !(a == b); }
-    Class_004dd2a0 upper_bound(const Pair_004db000& k)
-    {
-        return Class_004dd2a0(((Class_004dd250*)this)->LowerBound(k));
+    InsertOrFindInline(&f.r, &f.p);
     }
 
     void AddFreeBlock(Pair_004db000 p);
     unsigned int TakeFreeBlock(unsigned int bytes);
+    bool GrowReservation(unsigned int size);
 
     // 0x4db450: reserve more address space and add it to the free blocks.
     bool Grow(unsigned int size)
@@ -2676,6 +2173,29 @@ public:
         return true;
     }
 
+    FreeBlockIter Begin() { return FreeBlockIter(head->left); }
+    int* Begin(int* param_1);
+    // A method that ignores `this`: its caller (0x4dbec0, an inlined tree insert
+    // after its std::_Lockit) sets ecx to the tree. Shaped like
+    // std::_Tree<...>::_Buynode(parent, colour) with a pooled allocator.
+    Node_004db000* CreateNode(int param_1, int param_2);
+    MapInsertResult TreeInsert(const Pair_004db000& V);
+    MapInsertResult InsertOrFind(const Pair_004db000& V);
+    MapInsertResult InsertOrFindInline(Pair_004db000* p);
+    void InsertOrFindInline(InsertResult_004db450* it, Pair_004db450* p);
+    FreeBlockIter Insert(Node_004db000* x, Node_004db000* y, const Pair_004db000* v);
+    FreeBlockIter Erase(FreeBlockIter _P);
+    void Erase(FreeBlockIter* out, FreeBlockIter it);
+    Iter_004dbd00 Erase(Iter_004dbd00 it);
+    ConstIter_004dbd00 EraseCopyIter(ConstIter_004dbd00 it);
+    Iter_004dbd20 UpperBound(const unsigned int& kv);
+    Iter_004dc620 lower_bound(const unsigned int& kv);
+    void lower_bound(FreeBlockIter* out, const unsigned int& kv);
+    // Takes the pair; the out-of-line function reads only its first dword.
+    Node_004db000* LowerBound(const Pair_004db000& k);
+    Node_004db000* LowerBound(const unsigned int& kv);
+    void RotateLeft(Node_004db000* x);
+    void RotateRight(Node_004db000* x);
 };
 
 FreeBlockMap* GetFreeBlockSet();
@@ -2726,8 +2246,8 @@ typedef void (Vec_004dd8c0::*InsertFn_004dd8c0)(
 // The free functions the gathered functions call.
 // AllocDebugBlock (0x4dacf0), GetFreeBlockSet (0x4db610) and FreeDebugBlock
 // (0x4db7d0) stay in their own files: each inlines a tree helper written
-// against that file's own view of the classes (Class_004dbe10's begin/end in
-// 0x4dacf0, the std::map member's _Init in 0x4db610, the Class_004dbd20
+// against that file's own view of the classes (FreeBlockIter's begin/end in
+// 0x4dacf0, the std::map member's _Init in 0x4db610, the FreeBlockMap
 // upper_bound stub in 0x4db7d0), and the gathered file holds only one view
 // of each class.
 char IsMemFussy();
@@ -2742,7 +2262,6 @@ void __cdecl CountAlloc(unsigned int size);
 void __cdecl CountFree(int size);
 void __cdecl FillPattern(void* at, int value, unsigned int count);
 void __cdecl CheckFillPattern(void* at, int value, unsigned int count);
-void __cdecl FindBlocksAroundAddress(unsigned int key, BlockInfo* prev, BlockInfo* next);
 void __cdecl FormatBlockInfo(BlockInfo info, char* buf, int unused);
 unsigned int __cdecl LookupBlockSize(unsigned int key);
 void __cdecl RoundRangeToPages(unsigned int* lo, unsigned int* hi);
@@ -2754,24 +2273,24 @@ size_t __cdecl GetBlockSize(void* p);
 // ---- from src/debug/debug_lib_4daa30.cpp --------------------
 
 // FUNCTION: 0x4daa30
-void __cdecl FindBlocksAroundAddress(unsigned int key, Class_004d8820* prev, Class_004d8820* next)
+void __cdecl FindBlocksAroundAddress(unsigned int key, BlockInfo* prev, BlockInfo* next)
 {
     LPCRITICAL_SECTION cs = (LPCRITICAL_SECTION)GetAllocLock();
     EnterCriticalSection(cs);
-    Class_004d8820 rec(key, 0, 0, 0, 0);
+    BlockInfo rec(key, 0, 0, 0, 0);
     // Named local: chaining the call changes the register allocation.
-    Class_004dd7d0* tree = (Class_004dd7d0*)GetBlockMap();
-    // Must be Class_004dd820 (the map's _Dec), not an ad hoc type.
-    Class_004dd820 it;
-    it.ptr = (Node_004daa30*)tree->LowerBound(rec.base);
-    if (it == ((Class_004dd7d0*)GetBlockMap())->End()) {
-        next->base = 0;
+    BlockMap* tree = (BlockMap*)GetBlockMap();
+    // Must be BlockMapIter (the map's _Dec), not an ad hoc type.
+    BlockMapIter it;
+    it.ptr = tree->Ubound(rec.address);
+    if (it == ((BlockMap*)GetBlockMap())->End()) {
+        next->address = 0;
         next->size = 0;
     } else {
         *next = it.ptr->value;
     }
-    if (it == ((Class_004dd7d0*)GetBlockMap())->Begin()) {
-        prev->base = 0;
+    if (it == ((BlockMap*)GetBlockMap())->Begin()) {
+        prev->address = 0;
         prev->size = 0;
     } else {
         it.PrevNode();
@@ -2838,13 +2357,13 @@ char __cdecl DescribeFreedBlocks(unsigned int address, char* buf, unsigned int n
 // FUNCTION: 0x4db000
 void FreeBlockMap::AddFreeBlock(Pair_004db000 p)
 {
-    Class_004dd2a0 it;
-    Class_004dd2a0 it2;
+    FreeBlockIter it;
+    FreeBlockIter it2;
     // One function-scope object for all three calls: lets their identical endings merge.
-    Class_004ddbe0 result;
+    MapInsertResult result;
     unsigned char inserted;
 
-    Class_004dd2a0 n(((Class_004dd250*)this)->LowerBound(p));
+    FreeBlockIter n(LowerBound(p));
     it = n;
     if (n == begin()) {
         it = end();
@@ -2854,7 +2373,7 @@ void FreeBlockMap::AddFreeBlock(Pair_004db000 p)
     if (Neq(n, end())) {
         if (n->offset == p.length + p.offset) {
             p.length = p.length + n->length;
-            ((Class_004dc130*)this)->Erase(n);
+            Erase(n);
         }
     }
     if (Neq(it, end())) {
@@ -2862,7 +2381,7 @@ void FreeBlockMap::AddFreeBlock(Pair_004db000 p)
         if (m->value.length + m->value.offset == p.offset) {
             p.length = p.length + m->value.length;
             p.offset = m->value.offset;
-            ((Class_004dc130*)this)->Erase(it);
+            Erase(it);
         }
     }
 
@@ -2878,23 +2397,23 @@ void FreeBlockMap::AddFreeBlock(Pair_004db000 p)
         }
     }
 
-    if (rebuild) {
-        Class_004dd2a0 t(((Class_004dce60*)this)->Insert(x, y, &p));
+    if (multi) {
+        FreeBlockIter t(Insert(x, y, &p));
         return;
     }
     it2.ptr = y;
     if (less) {
-        if (Class_004dd2a0(y) == begin()) {
+        if (FreeBlockIter(y) == begin()) {
             inserted = 1;
             // Insert call passed straight in, not via a local: fixes the argument push order.
-            result.Assign(((Class_004dce60*)this)->Insert(x, y, &p), inserted);
+            result.Assign(Insert(x, y, &p), inserted);
             goto done;
         }
         it2.PrevNode();
     }
     if (key_compare(it2->offset, p.offset)) {
         inserted = 1;
-        result.Assign(((Class_004dce60*)this)->Insert(x, y, &p), inserted);
+        result.Assign(Insert(x, y, &p), inserted);
     } else {
         inserted = 0;
         result.Assign(it2, inserted);
@@ -2915,13 +2434,13 @@ done: ;
 // ---- from src/debug/debug_lib_4db450.cpp --------------------
 
 // FUNCTION: 0x4db450
-bool Class_004db450::GrowReservation(unsigned int size)
+bool FreeBlockMap::GrowReservation(unsigned int size)
 {
     unsigned int len = 0x10000000;
     unsigned int base;
     // Once the reservation loop is done the parameter is dead, and the original
     // reuses its stack slot for the map iterator.
-    Class_004dd2a0& it = *(Class_004dd2a0*)&size;
+    FreeBlockIter& it = *(FreeBlockIter*)&size;
 
     if (2 * size > len && size < 0x40000000u)
         len = ((size + 0x1fff) & 0xffffe000) * 2;
@@ -2940,7 +2459,7 @@ bool Class_004db450::GrowReservation(unsigned int size)
         base = (unsigned int)VirtualAlloc(0, len + 0x2000, 0x2000,
                                           PAGE_READWRITE);
     }
-    Tail(base, len, *(Class_004dd2a0*)&size);
+    Tail(base, len, *(FreeBlockIter*)&size);
     return true;
 }
 // ---- from src/debug/debug_lib_4db760.cpp --------------------
@@ -3007,10 +2526,10 @@ unsigned int __cdecl LookupBlockSize(unsigned int key)
     LPCRITICAL_SECTION cs = (LPCRITICAL_SECTION)GetAllocLock();
     EnterCriticalSection(cs);
     // Named local fetched before rec is built: GetBlockMap must be called first.
-    Class_004dd3d0* tree = (Class_004dd3d0*)GetBlockMap();
-    Class_004d8820 rec(key, 0, 0, 0, 0);
-    Iter_004dd3d0 it = tree->find(rec.base);
-    if (it == ((Class_004dd3d0*)GetBlockMap())->End()) {
+    BlockMap* tree = (BlockMap*)GetBlockMap();
+    BlockInfo rec(key, 0, 0, 0, 0);
+    BlockMapIter it = tree->find(rec.address);
+    if (it == ((BlockMap*)GetBlockMap())->End()) {
         LeaveCriticalSection(cs);
         return 0;
     }
@@ -3034,40 +2553,40 @@ void __cdecl RoundRangeToPages(unsigned int* param_1, unsigned int* param_2)
 
 // ---- from src/debug/debug_lib_4dbbc0.cpp --------------------
 
-inline Class_004ddbe0 Class_004dce60::TreeInsert(const Pair_004dbbc0& V)
+inline MapInsertResult FreeBlockMap::TreeInsert(const Pair_004db000& V)
 {
-    Node_004dbbc0* X = Root();
-    Node_004dbbc0* Y = head;
+    Node_004db000* X = Root();
+    Node_004db000* Y = head;
     bool Ans = true;
     {
         std::_Lockit Lk;
         while (X != DAT_00528a54) {
             Y = X;
-            Ans = key_compare(Kfn_004dbbc0()(V), Key(X));
+            Ans = key_compare(Kfn_004db000()(V), Key(X));
             X = Ans ? Left(X) : Right(X);
         }
     }
     if (multi)
-        return Class_004ddbe0(Insert(X, Y, &V), true);
-    Class_004dd2a0 P = Class_004dd2a0((Node_004db000*)Y);
+        return MapInsertResult(Insert(X, Y, &V), true);
+    FreeBlockIter P = FreeBlockIter(Y);
     if (!Ans)
         ;
     else if (P == begin())
-        return Class_004ddbe0(Insert(X, Y, &V), true);
+        return MapInsertResult(Insert(X, Y, &V), true);
     else
         P.PrevNode();
-    if (key_compare(Key((Node_004dbbc0*)P.Mynode()), Kfn_004dbbc0()(V)))
-        return Class_004ddbe0(Insert(X, Y, &V), true);
-    Class_004ddbe0 res;
+    if (key_compare(Key(P.Mynode()), Kfn_004db000()(V)))
+        return MapInsertResult(Insert(X, Y, &V), true);
+    MapInsertResult res;
     res.Assign(P, false);
     return res;
 }
 
 // FUNCTION: 0x4dbbc0
-Class_004ddbe0 Class_004dce60::InsertOrFind(const Pair_004dbbc0& V)
+MapInsertResult FreeBlockMap::InsertOrFind(const Pair_004db000& V)
 {
-    Class_004ddbe0 ans = TreeInsert(V);
-    return Class_004ddbe0(ans.field_0, ans.field_4);
+    MapInsertResult ans = TreeInsert(V);
+    return MapInsertResult(ans.field_0, ans.field_4);
 }
 
 // The out-of-line tree insert for the allocator's free-block map, shaped like
@@ -3078,18 +2597,18 @@ Class_004ddbe0 Class_004dce60::InsertOrFind(const Pair_004dbbc0& V)
 // the node is linked in. Then the red-black fixup walks up from the new node
 // with a cursor z, colouring and rotating until z's parent is black or the root
 // is reached, and finally blackens the root.
-// FUNCTION: 0x4dce60
-Class_004dd2a0 Class_004dce60::Insert(Node_004dbbc0* x, Node_004dbbc0* y,
-                                            const Pair_004dbbc0* v)
+// FUNCTION: 0x4dce60 ?Insert@FreeBlockMap@@QAE?AVFreeBlockIter@@PAUNode_004db000@@0PBUPair_004db000@@@Z
+FreeBlockIter FreeBlockMap::Insert(Node_004db000* x, Node_004db000* y,
+                                         const Pair_004db000* v)
 {
     std::_Lockit lock;
-    Node_004dbbc0* p = (Node_004dbbc0*)((Class_004ddd70*)this)->Allocate(0x18);
+    Node_004db000* p = (Node_004db000*)allocator.Allocate(0x18);
     p->parent = y;
     p->color = 0;                      // red
-    p->left = (Node_004dbbc0*)DAT_00528a54;
-    p->right = (Node_004dbbc0*)DAT_00528a54;
-    new ((void*)&p->value) Pair_004dbbc0(*v);
-    ++size;
+    p->left = (Node_004db000*)DAT_00528a54;
+    p->right = (Node_004db000*)DAT_00528a54;
+    new ((void*)&p->value) Pair_004db000(*v);
+    ++count;
 
     // A positive disjunction through the bool comparator: keeps the left-child block as the then-part.
     if (y == head || x != DAT_00528a54 || key_compare(v->offset, y->value.offset)) {
@@ -3107,14 +2626,14 @@ Class_004dd2a0 Class_004dce60::Insert(Node_004dbbc0* x, Node_004dbbc0* y,
             head->right = p;
     }
 
-    Node_004dbbc0* z = p;
+    Node_004db000* z = p;
     // Explicit break, and z->parent->... re-read from the cursor: parent/grandparent locals cost a register.
     while (z != head->parent) {
         if (z->parent->color != 0)
             break;
 
         if (z->parent == z->parent->parent->left) {
-            Node_004dbbc0* u = z->parent->parent->right;
+            Node_004db000* u = z->parent->parent->right;
             if (u->color == 0) {
                 // Red uncle: recolour and carry on two levels up.
                 z->parent->color = 1;
@@ -3131,7 +2650,7 @@ Class_004dd2a0 Class_004dce60::Insert(Node_004dbbc0* x, Node_004dbbc0* y,
                 Rrotate(z->parent->parent);
             }
         } else {
-            Node_004dbbc0* u = z->parent->parent->left;
+            Node_004db000* u = z->parent->parent->left;
             if (u->color == 0) {
                 z->parent->color = 1;
                 u->color = 1;
@@ -3149,31 +2668,31 @@ Class_004dd2a0 Class_004dce60::Insert(Node_004dbbc0* x, Node_004dbbc0* y,
         }
     }
     head->parent->color = 1;
-    return Class_004dd2a0((Node_004db000*)p);
+    return FreeBlockIter(p);
 }
 
 // ---- from src/debug/debug_lib_4dbd00.cpp --------------------
 
 // FUNCTION: 0x4dbd00
-ConstIter_004dbd00 Class_004dbd00::Erase(ConstIter_004dbd00 it)
+ConstIter_004dbd00 FreeBlockMap::EraseCopyIter(ConstIter_004dbd00 it)
 {
-    return tree.Erase((Iter_004dbd00&)it);
+    return Erase((Iter_004dbd00&)it);
 }
 
 // ---- from src/debug/debug_lib_4dbd20.cpp --------------------
 
 // FUNCTION: 0x4dbd20
-Iter_004dbd20 Class_004dbd20::UpperBound(const unsigned int& kv)
+Iter_004dbd20 FreeBlockMap::UpperBound(const unsigned int& kv)
 {
-    return Iter_004dbd20(Ubound_004dbd20(this, kv));
+    return Iter_004dbd20(Ubound(kv));
 }
 
 // ---- from src/debug/debug_lib_4dbd80.cpp --------------------
 
 // FUNCTION: 0x4dbd80
-Class_004dbe10 Class_004dbe10::Next(int)
+FreeBlockIter FreeBlockIter::Next(int)
 {
-    Class_004dbe10 tmp = *this;
+    FreeBlockIter tmp = *this;
     Inc();
     return tmp;
 }
@@ -3181,9 +2700,9 @@ Class_004dbe10 Class_004dbe10::Next(int)
 // Tree iterator operator--(int): copy the iterator, step it to the in-order
 // predecessor and return the copy. DAT_00528a54 is the tree's _Nil node.
 // FUNCTION: 0x4dbe10
-Class_004dbe10 Class_004dbe10::Previous(int)
+FreeBlockIter FreeBlockIter::Previous(int)
 {
-    Class_004dbe10 tmp = *this;
+    FreeBlockIter tmp = *this;
     Dec();
     return tmp;
 }
@@ -3193,9 +2712,9 @@ Class_004dbe10 Class_004dbe10::Previous(int)
 // 0x4db450's inlined Tail calls this out of line in the original.
 #pragma auto_inline(off)
 // FUNCTION: 0x4dbeb0
-int* Class_004dbeb0::Begin(int* param_1)
+int* FreeBlockMap::Begin(int* param_1)
 {
-    *param_1 = *field_4;
+    *param_1 = (int)head->left;
     return param_1;
 }
 #pragma auto_inline(on)
@@ -3203,15 +2722,15 @@ int* Class_004dbeb0::Begin(int* param_1)
 // ---- from src/debug/debug_lib_4dbec0.cpp --------------------
 
 // FUNCTION: 0x4dbec0
-Class_004ddbe0 Class_004dbec0::Insert(Pair_004dbec0* p)
+MapInsertResult FreeBlockMap::InsertOrFindInline(Pair_004db000* p)
 {
     // The pair is returned by value (no out parameter) and _Insert returns its
     // iterator by value too; a &p result slot would make p address-taken.
     Node_004db000* y = head;
     bool less = true;
     Node_004db000* x = y->parent;
-    Class_004dd2a0 it2;
-    Class_004dd2a0 it;
+    FreeBlockIter it2;
+    FreeBlockIter it;
     {
         std::_Lockit lock;
         while (x != DAT_00528a54) {
@@ -3220,15 +2739,15 @@ Class_004ddbe0 Class_004dbec0::Insert(Pair_004dbec0* p)
             x = less ? x->left : x->right;
         }
     }
-    if (rebuild) {
+    if (multi) {
         {
             std::_Lockit lock;
-            it = Class_004dd2a0((Node_004db000*)((Class_004ddc00*)this)->CreateNode((int)y, 0));
+            it = FreeBlockIter(CreateNode((int)y, 0));
             Node_004db000* z = it.ptr;
             z->left = (Node_004db000*)DAT_00528a54;
             z->right = (Node_004db000*)DAT_00528a54;
-            new ((void*)&z->value) Pair_004dbec0(*p);
-            size++;
+            new ((void*)&z->value) Pair_004db000(*p);
+            count++;
             if (y == head || x != DAT_00528a54 || key_compare(p->offset, y->value.offset)) {
                 y->left = z;
                 if (y == head) {
@@ -3254,11 +2773,11 @@ Class_004ddbe0 Class_004dbec0::Insert(Pair_004dbec0* p)
                     } else {
                         if (q == q->parent->right) {
                             q = q->parent;
-                            ((Class_004dd150*)this)->RotateLeft(q);
+                            RotateLeft(q);
                         }
                         q->parent->color = 1;
                         q->parent->parent->color = 0;
-                        ((Class_004dd1f0*)this)->RotateRight(q->parent->parent);
+                        RotateRight(q->parent->parent);
                     }
                 } else {
                     Node_004db000* w = q->parent->parent->left;
@@ -3270,33 +2789,33 @@ Class_004ddbe0 Class_004dbec0::Insert(Pair_004dbec0* p)
                     } else {
                         if (q == q->parent->left) {
                             q = q->parent;
-                            ((Class_004dd1f0*)this)->RotateRight(q);
+                            RotateRight(q);
                         }
                         q->parent->color = 1;
                         q->parent->parent->color = 0;
-                        ((Class_004dd150*)this)->RotateLeft(q->parent->parent);
+                        RotateLeft(q->parent->parent);
                     }
                 }
             }
             head->parent->color = 1;
         }
-        return Class_004ddbe0(it, 1);
+        return MapInsertResult(it, 1);
     }
-    it2 = Class_004dd2a0(y);
+    it2 = FreeBlockIter(y);
     if (less) {
-        if (Class_004dd2a0(y) == Begin())
-            return Class_004ddbe0(((Class_004dce60*)this)->Insert(x, y, p), 1);
+        if (FreeBlockIter(y) == Begin())
+            return MapInsertResult(Insert(x, y, p), 1);
         it2.PrevNode();
     }
     if (key_compare(it2.ptr->value.offset, p->offset))
-        return Class_004ddbe0(((Class_004dce60*)this)->Insert(x, y, p), 1);
-    return Class_004ddbe0(it2, 0);
+        return MapInsertResult(Insert(x, y, p), 1);
+    return MapInsertResult(it2, 0);
 }
 
 // ---- from src/debug/debug_lib_4dc130.cpp --------------------
 
-// FUNCTION: 0x4dc130 ?Erase@Class_004dc130@@QAE?AVClass_004dd340@@V2@@Z
-Class_004dd340 Class_004dc130::Erase(Class_004dd340 _P)
+// FUNCTION: 0x4dc130 ?Erase@FreeBlockMap@@QAE?AVFreeBlockIter@@V2@@Z
+FreeBlockIter FreeBlockMap::Erase(FreeBlockIter _P)
 {
     Node_004db000* _X;
     Node_004db000* _Y = (_P++)._Mynode();
@@ -3404,14 +2923,14 @@ Class_004dd340 Class_004dc130::Erase(Class_004dd340 _P)
     }
     Destval(_Value(_Y));
     Freenode(_Y);
-    --size;
+    --count;
     return (_P);
 }
 
 // ---- from src/debug/debug_lib_4dc620.cpp --------------------
 
 // FUNCTION: 0x4dc620
-Iter_004dc620 Class_004dc620::LowerBound(const unsigned int& kv)
+Iter_004dc620 FreeBlockMap::lower_bound(const unsigned int& kv)
 {
     Iter_004dc620 y;
     {
@@ -3429,33 +2948,33 @@ Iter_004dc620 Class_004dc620::LowerBound(const unsigned int& kv)
 
 // ---- from src/debug/debug_lib_4dc680.cpp --------------------
 
-// FUNCTION: 0x4dc680
-Class_004ddbe0 Class_004dc680::Insert(Pair_004dc680* p)
+// FUNCTION: 0x4dc680 ?Insert@BlockMap@@QAE?AVMapInsertResult@@PAVBlockInfo@@@Z
+MapInsertResult BlockMap::Insert(BlockInfo* p)
 {
     Node_004daa30* y = head;
     bool less = true;
     // Read before the first _Lockit.
     Node_004daa30* x = y->parent;
-    Class_004dd820 it2;
-    Class_004dd820 it;
+    BlockMapIter it2;
+    BlockMapIter it;
     {
         std::_Lockit lock;
         while (x != g_blockMapNil) {
             y = x;
-            less = p->key < x->value.base;
+            less = p->address < x->value.address;
             x = less ? x->left : x->right;
         }
     }
-    if (rebuild) {
+    if (multi) {
         {
             std::_Lockit lock;
-            it = Class_004dd820((Node_004daa30*)((Class_004ddce0*)this)->CreateNode((int)y, 0));
+            it = BlockMapIter(CreateNode((int)y, 0));
             Node_004daa30* z = it.ptr;
             z->left = (Node_004daa30*)g_blockMapNil;
             z->right = (Node_004daa30*)g_blockMapNil;
-            new ((void*)&z->value) Pair_004dc680(*p);
+            new ((void*)&z->value) BlockInfo(*p);
             size++;
-            if (y == head || x != g_blockMapNil || key_compare(p->key, y->value.base)) {
+            if (y == head || x != g_blockMapNil || key_compare(p->address, y->value.address)) {
                 y->left = z;
                 if (y == head) {
                     head->parent = z;
@@ -3480,11 +2999,11 @@ Class_004ddbe0 Class_004dc680::Insert(Pair_004dc680* p)
                     } else {
                         if (q == q->parent->right) {
                             q = q->parent;
-                            ((Class_004dd710*)this)->RotateLeft(q);
+                            RotateLeft(q);
                         }
                         q->parent->color = 1;
                         q->parent->parent->color = 0;
-                        ((Class_004dd770*)this)->RotateRight(q->parent->parent);
+                        RotateRight(q->parent->parent);
                     }
                 } else {
                     Node_004daa30* w = q->parent->parent->left;
@@ -3496,182 +3015,182 @@ Class_004ddbe0 Class_004dc680::Insert(Pair_004dc680* p)
                     } else {
                         if (q == q->parent->left) {
                             q = q->parent;
-                            ((Class_004dd770*)this)->RotateRight(q);
+                            RotateRight(q);
                         }
                         q->parent->color = 1;
                         q->parent->parent->color = 0;
-                        ((Class_004dd710*)this)->RotateLeft(q->parent->parent);
+                        RotateLeft(q->parent->parent);
                     }
                 }
             }
             head->parent->color = 1;
         }
         // Outside the _Lockit scope: the pair is built after ~_Lockit.
-        return Class_004ddbe0(it, 1);
+        return MapInsertResult(it, 1);
     }
-    it2 = Class_004dd820(y);
+    it2 = BlockMapIter(y);
     if (less) {
-        if (Class_004dd820(y) == Begin())
-            return Class_004ddbe0(*((Class_004dd430*)this)->Insert((Class_004dd820*)&p, x, y, p), 1);
+        if (BlockMapIter(y) == Begin())
+            return MapInsertResult(*InsertHinted((BlockMapIter*)&p, x, y, p), 1);
         it2.PrevNode();
     }
-    if (key_compare(it2.ptr->value.base, p->key))
-        return Class_004ddbe0(*((Class_004dd430*)this)->Insert((Class_004dd820*)&p, x, y, p), 1);
-    return Class_004ddbe0(it2, 0);
+    if (key_compare(it2.ptr->value.address, p->address))
+        return MapInsertResult(*InsertHinted((BlockMapIter*)&p, x, y, p), 1);
+    return MapInsertResult(it2, 0);
 }
 
 // ---- from src/debug/debug_lib_4dc910.cpp --------------------
 
 // FUNCTION: 0x4dc910
-Iter_004dc910 Class_004dc910::erase(Iter_004dc910 _P)
+BlockMapIter BlockMap::erase(BlockMapIter _P)
 {
-    Node_004dc910* _X;
-    Node_004dc910* _Y = (_P++)._Mynode();
-    Node_004dc910* _Z = _Y;
+    Node_004daa30* _X;
+    Node_004daa30* _Y = (_P++)._Mynode();
+    Node_004daa30* _Z = _Y;
     std::_Lockit _Lk;
-    if (_Y->_Left == g_blockMapNil)
-        _X = _Y->_Right;
-    else if (_Y->_Right == g_blockMapNil)
-        _X = _Y->_Left;
+    if (_Y->left == g_blockMapNil)
+        _X = _Y->right;
+    else if (_Y->right == g_blockMapNil)
+        _X = _Y->left;
     else
-        _Y = _Min(_Y->_Right), _X = _Y->_Right;
+        _Y = _Min(_Y->right), _X = _Y->right;
     if (_Y != _Z)
         {
-        _Z->_Left->_Parent = _Y;
-        _Y->_Left = _Z->_Left;
-        if (_Y == _Z->_Right)
-            _X->_Parent = _Y;
+        _Z->left->parent = _Y;
+        _Y->left = _Z->left;
+        if (_Y == _Z->right)
+            _X->parent = _Y;
         else
             {
-            _X->_Parent = _Y->_Parent;
-            _Y->_Parent->_Left = _X;
-            _Y->_Right = _Z->_Right;
-            _Z->_Right->_Parent = _Y;
+            _X->parent = _Y->parent;
+            _Y->parent->left = _X;
+            _Y->right = _Z->right;
+            _Z->right->parent = _Y;
             }
         if (_Root() == _Z)
             _Root() = _Y;
-        else if (_Z->_Parent->_Left == _Z)
-            _Z->_Parent->_Left = _Y;
+        else if (_Z->parent->left == _Z)
+            _Z->parent->left = _Y;
         else
-            _Z->_Parent->_Right = _Y;
-        _Y->_Parent = _Z->_Parent;
-        std::swap(_Y->_Color, _Z->_Color);
+            _Z->parent->right = _Y;
+        _Y->parent = _Z->parent;
+        std::swap(_Y->color, _Z->color);
         _Y = _Z;
         }
     else
         {
-        _X->_Parent = _Y->_Parent;
+        _X->parent = _Y->parent;
         if (_Root() == _Z)
             _Root() = _X;
-        else if (_Z->_Parent->_Left == _Z)
-            _Z->_Parent->_Left = _X;
+        else if (_Z->parent->left == _Z)
+            _Z->parent->left = _X;
         else
-            _Z->_Parent->_Right = _X;
+            _Z->parent->right = _X;
         if (_Lmost() != _Z)
             ;
-        else if (_Z->_Right == g_blockMapNil)
-            _Lmost() = _Z->_Parent;
+        else if (_Z->right == g_blockMapNil)
+            _Lmost() = _Z->parent;
         else
             _Lmost() = _Min(_X);
         if (_Rmost() != _Z)
             ;
-        else if (_Z->_Left == g_blockMapNil)
-            _Rmost() = _Z->_Parent;
+        else if (_Z->left == g_blockMapNil)
+            _Rmost() = _Z->parent;
         else
             _Rmost() = _Max(_X);
         }
-    if (_Y->_Color == 1)
+    if (_Y->color == 1)
         {
-        while (_X != _Root() && _X->_Color == 1)
-            if (_X == _X->_Parent->_Left)
+        while (_X != _Root() && _X->color == 1)
+            if (_X == _X->parent->left)
                 {
-                Node_004dc910* _W = _X->_Parent->_Right;
-                if (_W->_Color == 0)
+                Node_004daa30* _W = _X->parent->right;
+                if (_W->color == 0)
                     {
-                    _W->_Color = 1;
-                    _X->_Parent->_Color = 0;
-                    _Lrotate(_X->_Parent);
-                    _W = _X->_Parent->_Right;
+                    _W->color = 1;
+                    _X->parent->color = 0;
+                    _Lrotate(_X->parent);
+                    _W = _X->parent->right;
                     }
-                if (_W->_Left->_Color == 1 && _W->_Right->_Color == 1)
+                if (_W->left->color == 1 && _W->right->color == 1)
                     {
-                    _W->_Color = 0;
-                    _X = _X->_Parent;
+                    _W->color = 0;
+                    _X = _X->parent;
                     }
                 else
                     {
-                    if (_W->_Right->_Color == 1)
+                    if (_W->right->color == 1)
                         {
-                        _W->_Left->_Color = 1;
-                        _W->_Color = 0;
+                        _W->left->color = 1;
+                        _W->color = 0;
                         _Rrotate(_W);
-                        _W = _X->_Parent->_Right;
+                        _W = _X->parent->right;
                         }
-                    _W->_Color = _X->_Parent->_Color;
-                    _X->_Parent->_Color = 1;
-                    _W->_Right->_Color = 1;
-                    _Lrotate(_X->_Parent);
+                    _W->color = _X->parent->color;
+                    _X->parent->color = 1;
+                    _W->right->color = 1;
+                    _Lrotate(_X->parent);
                     break;
                     }
                 }
             else
                 {
-                Node_004dc910* _W = _X->_Parent->_Left;
-                if (_W->_Color == 0)
+                Node_004daa30* _W = _X->parent->left;
+                if (_W->color == 0)
                     {
-                    _W->_Color = 1;
-                    _X->_Parent->_Color = 0;
-                    _Rrotate(_X->_Parent);
-                    _W = _X->_Parent->_Left;
+                    _W->color = 1;
+                    _X->parent->color = 0;
+                    _Rrotate(_X->parent);
+                    _W = _X->parent->left;
                     }
-                if (_W->_Right->_Color == 1 && _W->_Left->_Color == 1)
+                if (_W->right->color == 1 && _W->left->color == 1)
                     {
-                    _W->_Color = 0;
-                    _X = _X->_Parent;
+                    _W->color = 0;
+                    _X = _X->parent;
                     }
                 else
                     {
-                    if (_W->_Left->_Color == 1)
+                    if (_W->left->color == 1)
                         {
-                        _W->_Right->_Color = 1;
-                        _W->_Color = 0;
+                        _W->right->color = 1;
+                        _W->color = 0;
                         _Lrotate(_W);
-                        _W = _X->_Parent->_Left;
+                        _W = _X->parent->left;
                         }
-                    _W->_Color = _X->_Parent->_Color;
-                    _X->_Parent->_Color = 1;
-                    _W->_Left->_Color = 1;
-                    _Rrotate(_X->_Parent);
+                    _W->color = _X->parent->color;
+                    _X->parent->color = 1;
+                    _W->left->color = 1;
+                    _Rrotate(_X->parent);
                     break;
                     }
                 }
-        _X->_Color = 1;
+        _X->color = 1;
         }
     if (_Y != 0)
         {
         *(void**)_Y = g_blockMapFreeList;
         g_blockMapFreeList = _Y;
         }
-    --_Size;
+    --size;
     return (_P);
 }
 
 // ---- from src/debug/debug_lib_4dce00.cpp --------------------
 
 // FUNCTION: 0x4dce00
-Iter_004dce00 Class_004dce00::Find(const unsigned int& key)
+BlockMapIter BlockMap::Find(const unsigned int& key)
 {
-    Iter_004dce00 p = Iter_004dce00((Node_004daa30*)((Class_004ddc90*)this)->LowerBound(key));
-    return (p == End() || compare(key, p.ptr->value.base)) ? End() : p;
+    BlockMapIter p = BlockMapIter(LowerBound(key));
+    return (p == End() || key_compare(key, p.ptr->value.address)) ? End() : p;
 }
 
 // ---- from src/debug/debug_lib_4dd150.cpp --------------------
 
 // FUNCTION: 0x4dd150
-void Class_004dd150::RotateLeft(Node_004dd150* x)
+void FreeBlockMap::RotateLeft(Node_004db000* x)
 {
     std::_Lockit lock;
-    Node_004dd150* y = x->right;
+    Node_004db000* y = x->right;
     x->right = y->left;
     if (y->left != DAT_00528a54)
         y->left->parent = x;
@@ -3704,10 +3223,10 @@ Node_004dd1b0* __cdecl FindLeftmost(Node_004dd1b0* p)
 // ---- from src/debug/debug_lib_4dd1f0.cpp --------------------
 
 // FUNCTION: 0x4dd1f0
-void Class_004dd1f0::RotateRight(Node_004dd1f0* x)
+void FreeBlockMap::RotateRight(Node_004db000* x)
 {
     std::_Lockit lock;
-    Node_004dd1f0* y = x->left;
+    Node_004db000* y = x->left;
     x->left = y->right;
     if (y->right != DAT_00528a54)
         y->right->parent = x;
@@ -3725,13 +3244,13 @@ void Class_004dd1f0::RotateRight(Node_004dd1f0* x)
 // ---- from src/debug/debug_lib_4dd250.cpp --------------------
 
 // FUNCTION: 0x4dd250
-Node_004dd250* Class_004dd250::LowerBound(const unsigned int& kv)
+Node_004db000* FreeBlockMap::LowerBound(const unsigned int& kv)
 {
     std::_Lockit lock;
-    Node_004dd250* x = head->parent;
-    Node_004dd250* y = head;
+    Node_004db000* x = head->parent;
+    Node_004db000* y = head;
     while (x != DAT_00528a54)
-        if (key_compare(kv, x->key))
+        if (key_compare(kv, x->value.offset))
             y = x, x = x->left;
         else
             x = x->right;
@@ -3744,7 +3263,7 @@ Node_004dd250* Class_004dd250::LowerBound(const unsigned int& kv)
 // their files had no definition to inline.
 #pragma auto_inline(off)
 // FUNCTION: 0x4dd2a0
-void Class_004dd2a0::PrevNode()
+void FreeBlockIter::PrevNode()
 {
     std::_Lockit lock;
     if (ptr->color == 0 && ptr->parent->parent == ptr) {
@@ -3764,7 +3283,7 @@ void Class_004dd2a0::PrevNode()
 // ---- from src/debug/debug_lib_4dd340.cpp --------------------
 
 // FUNCTION: 0x4dd340
-void Class_004dd340::NextNode()
+void FreeBlockIter::NextNode()
 {
     std::_Lockit lock;
     if (ptr->right != DAT_00528a54)
@@ -3784,28 +3303,27 @@ void Class_004dd340::NextNode()
 // file had no definition to inline.
 #pragma auto_inline(off)
 // FUNCTION: 0x4dd3d0
-Iter_004dd3d0 Class_004dd3d0::LowerBound(const unsigned int& key)
+BlockMapIter BlockMap::lower_bound(const unsigned int& key)
 {
-    return Iter_004dd3d0(Lbound(key));
+    return BlockMapIter(Lbound(key));
 }
 #pragma auto_inline(on)
 
 // ---- from src/debug/debug_lib_4dd430.cpp --------------------
 
 // FUNCTION: 0x4dd430
-Class_004dd2a0 Class_004dd430::Insert(Node_004dd430* x, Node_004dd430* y,
-                                            const Pair_004dd430& v)
+BlockMapIter BlockMap::InsertHinted(Node_004daa30* x, Node_004daa30* y,
+                                    const BlockInfo& v)
 {
     std::_Lockit lock;
-    Node_004dd430* z = (Node_004dd430*)
-                       ((Class_004dddf0*)this)->Allocate(0x40);
+    Node_004daa30* z = (Node_004daa30*)allocator.Allocate(0x40);
     z->parent = y;
     z->color = 0;
-    z->left = (Node_004dd430*)g_blockMapNil;
-    z->right = (Node_004dd430*)g_blockMapNil;
-    new ((void*)&z->value) Pair_004dd430(v);
+    z->left = (Node_004daa30*)g_blockMapNil;
+    z->right = (Node_004daa30*)g_blockMapNil;
+    new ((void*)&z->value) BlockInfo(v);
     size++;
-    if (y == head || x != g_blockMapNil || key_compare(v.key, y->value.key)) {
+    if (y == head || x != g_blockMapNil || key_compare(v.address, y->value.address)) {
         y->left = z;
         if (y == head) {
             head->parent = z;
@@ -3821,7 +3339,7 @@ Class_004dd2a0 Class_004dd430::Insert(Node_004dd430* x, Node_004dd430* y,
     }
     for (x = z; x != head->parent && x->parent->color == 0; ) {
         if (x->parent == x->parent->parent->left) {
-            Node_004dd430* w = x->parent->parent->right;
+            Node_004daa30* w = x->parent->parent->right;
             if (w->color == 0) {
                 x->parent->color = 1;
                 w->color = 1;
@@ -3837,7 +3355,7 @@ Class_004dd2a0 Class_004dd430::Insert(Node_004dd430* x, Node_004dd430* y,
                 Rrotate(x->parent->parent);
             }
         } else {
-            Node_004dd430* w = x->parent->parent->left;
+            Node_004daa30* w = x->parent->parent->left;
             if (w->color == 0) {
                 x->parent->color = 1;
                 w->color = 1;
@@ -3855,16 +3373,16 @@ Class_004dd2a0 Class_004dd430::Insert(Node_004dd430* x, Node_004dd430* y,
         }
     }
     head->parent->color = 1;
-    return Class_004dd2a0((Node_004db000*)z);
+    return BlockMapIter(z);
 }
 
 // ---- from src/debug/debug_lib_4dd710.cpp --------------------
 
 // FUNCTION: 0x4dd710
-void Class_004dd710::RotateLeft(Node_004dd710* x)
+void BlockMap::RotateLeft(Node_004daa30* x)
 {
     std::_Lockit lock;
-    Node_004dd710* y = x->right;
+    Node_004daa30* y = x->right;
     x->right = y->left;
     if (y->left != g_blockMapNil)
         y->left->parent = x;
@@ -3882,10 +3400,10 @@ void Class_004dd710::RotateLeft(Node_004dd710* x)
 // ---- from src/debug/debug_lib_4dd770.cpp --------------------
 
 // FUNCTION: 0x4dd770
-void Class_004dd770::RotateRight(Node_004dd770* x)
+void BlockMap::RotateRight(Node_004daa30* x)
 {
     std::_Lockit lock;
-    Node_004dd770* y = x->left;
+    Node_004daa30* y = x->left;
     x->left = y->right;
     if (y->right != g_blockMapNil)
         y->right->parent = x;
@@ -3906,13 +3424,13 @@ void Class_004dd770::RotateRight(Node_004dd770* x)
 // definition to inline.
 #pragma auto_inline(off)
 // FUNCTION: 0x4dd7d0
-Node_004dd7d0* Class_004dd7d0::LowerBound(const unsigned int& kv)
+Node_004daa30* BlockMap::Ubound(const unsigned int& kv)
 {
     std::_Lockit lock;
-    Node_004dd7d0* x = head->parent;
-    Node_004dd7d0* y = head;
+    Node_004daa30* x = head->parent;
+    Node_004daa30* y = head;
     while (x != g_blockMapNil)
-        if (key_compare(kv, x->key))
+        if (key_compare(kv, x->value.address))
             y = x, x = x->left;
         else
             x = x->right;
@@ -3923,7 +3441,7 @@ Node_004dd7d0* Class_004dd7d0::LowerBound(const unsigned int& kv)
 // ---- from src/debug/debug_lib_4dd820.cpp --------------------
 
 // FUNCTION: 0x4dd820
-void Class_004dd820::PrevNode()
+void BlockMapIter::PrevNode()
 {
     std::_Lockit lock;
     if (ptr->color == 0 && ptr->parent->parent == ptr) {
@@ -3947,9 +3465,9 @@ InsertFn_004dd8c0 g_insert_004dd8c0 = &Vec_004dd8c0::insert;
 // ---- from src/debug/debug_lib_4ddbe0.cpp --------------------
 
 // FUNCTION: 0x4ddbe0
-Class_004ddbe0* Class_004ddbe0::Assign(int* param_1, unsigned char* param_2)
+MapInsertResult* MapInsertResult::Assign(int* param_1, unsigned char* param_2)
 {
-    Class_004ddbe0* eax = this;
+    MapInsertResult* eax = this;
     int* ecx = param_1;
     int edx = *ecx;
     unsigned char* ecx2 = (unsigned char*)param_2;
@@ -3978,22 +3496,15 @@ Class_004ddbe0* Class_004ddbe0::Assign(int* param_1, unsigned char* param_2)
 #include <algorithm>
 
 // A 0x18-byte pooled node, allocated 0x155 at a time (one 0x2000 block).
-struct Node_004ddc00 {
-    Node_004ddc00* next;               // +0x0
-    int field_4;                       // +0x4
-    char unknown_8[0x14 - 0x8];
-    int field_14;                      // +0x14
-};
-
 extern void* g_freeBlockFreeList;      // free list
 extern void (*g_outOfMemoryHandler)();  // out-of-memory handler
 
-static inline Node_004ddc00* AllocNode_004ddc00()
+static inline Node_004db000* AllocNode_004db000()
 {
     if (g_freeBlockFreeList == 0) {
-        Node_004ddc00* block;
+        Node_004db000* block;
         do {
-            block = (Node_004ddc00*)GlobalAlloc(0, 0x2000);
+            block = (Node_004db000*)GlobalAlloc(0, 0x2000);
             if (block == 0 && g_outOfMemoryHandler != 0) {
                 g_outOfMemoryHandler();
             }
@@ -4001,16 +3512,16 @@ static inline Node_004ddc00* AllocNode_004ddc00()
         if (block == 0) {
             return 0;
         }
-        Node_004ddc00* head = (Node_004ddc00*)g_freeBlockFreeList;
+        Node_004db000* head = (Node_004db000*)g_freeBlockFreeList;
         for (int i = 0; i < 0x155; i++) {
-            block->next = head;
+            block->left = head;
             head = block;
             block++;
         }
         g_freeBlockFreeList = head;
     }
-    Node_004ddc00* node = (Node_004ddc00*)g_freeBlockFreeList;
-    g_freeBlockFreeList = node->next;
+    Node_004db000* node = (Node_004db000*)g_freeBlockFreeList;
+    g_freeBlockFreeList = node->left;
     return node;
 }
 
@@ -4021,11 +3532,11 @@ static inline Node_004ddc00* AllocNode_004ddc00()
 // The original calls this out of line from the file-record tree insert.
 #pragma auto_inline(off)
 // FUNCTION: 0x4ddc00
-Node_004ddc00* Class_004ddc00::CreateNode(int param_1, int param_2)
+Node_004db000* FreeBlockMap::CreateNode(int param_1, int param_2)
 {
-    Node_004ddc00* node = AllocNode_004ddc00();
-    node->field_4 = param_1;
-    node->field_14 = param_2;
+    Node_004db000* node = AllocNode_004db000();
+    node->parent = (Node_004db000*)param_1;
+    node->color = param_2;
     return node;
 }
 #pragma auto_inline(on)
@@ -4034,25 +3545,18 @@ Node_004ddc00* Class_004ddc00::CreateNode(int param_1, int param_2)
 // written out by hand: g_blockMapNil is the tree's _Nil node, keys are
 // unsigned ints compared with less<>.
 
-struct Node_004ddc90 {
-    Node_004ddc90* left;               // +0x0
-    Node_004ddc90* parent;             // +0x4
-    Node_004ddc90* right;              // +0x8
-    unsigned int key;                  // +0xc
-};
-
 extern void* g_blockMapNil;            // the tree's _Nil node
 
-// The original calls this out of line from Class_004dce00::Find.
+// The original calls this out of line from BlockMap::Find.
 #pragma auto_inline(off)
 // FUNCTION: 0x4ddc90
-Node_004ddc90* Class_004ddc90::LowerBound(const unsigned int& key)
+Node_004daa30* BlockMap::LowerBound(const unsigned int& key)
 {
     std::_Lockit lock;
-    Node_004ddc90* x = head->parent;
-    Node_004ddc90* y = head;
+    Node_004daa30* x = head->parent;
+    Node_004daa30* y = head;
     while (x != g_blockMapNil) {
-        if (compare(x->key, key))
+        if (key_compare(x->value.address, key))
             x = x->right;
         else
             y = x, x = x->left;
@@ -4062,21 +3566,14 @@ Node_004ddc90* Class_004ddc90::LowerBound(const unsigned int& key)
 #pragma auto_inline(on)
 
 // A 0x40-byte pooled node, allocated 0x80 at a time.
-struct Node_004ddce0 {
-    Node_004ddce0* next;               // +0x0
-    int field_4;                       // +0x4
-    char unknown_8[0x3c - 0x8];
-    int field_3c;                      // +0x3c
-};
-
 extern void* g_blockMapFreeList;       // free list
 
-static inline Node_004ddce0* AllocNode_004ddce0()
+static inline Node_004daa30* AllocNode_004daa30()
 {
     if (g_blockMapFreeList == 0) {
-        Node_004ddce0* block;
+        Node_004daa30* block;
         do {
-            block = (Node_004ddce0*)GlobalAlloc(0, 0x2000);
+            block = (Node_004daa30*)GlobalAlloc(0, 0x2000);
             if (block == 0 && g_outOfMemoryHandler != 0) {
                 g_outOfMemoryHandler();
             }
@@ -4084,16 +3581,16 @@ static inline Node_004ddce0* AllocNode_004ddce0()
         if (block == 0) {
             return 0;
         }
-        Node_004ddce0* head = (Node_004ddce0*)g_blockMapFreeList;
+        Node_004daa30* head = (Node_004daa30*)g_blockMapFreeList;
         for (int i = 0; i < 0x80; i++) {
-            block->next = head;
+            block->left = head;
             head = block;
             block++;
         }
         g_blockMapFreeList = head;
     }
-    Node_004ddce0* node = (Node_004ddce0*)g_blockMapFreeList;
-    g_blockMapFreeList = node->next;
+    Node_004daa30* node = (Node_004daa30*)g_blockMapFreeList;
+    g_blockMapFreeList = node->left;
     return node;
 }
 
@@ -4104,11 +3601,11 @@ static inline Node_004ddce0* AllocNode_004ddce0()
 // The original calls this out of line from the file-record tree insert.
 #pragma auto_inline(off)
 // FUNCTION: 0x4ddce0
-Node_004ddce0* Class_004ddce0::CreateNode(int param_1, int param_2)
+Node_004daa30* BlockMap::CreateNode(int param_1, int param_2)
 {
-    Node_004ddce0* node = AllocNode_004ddce0();
-    node->field_4 = param_1;
-    node->field_3c = param_2;
+    Node_004daa30* node = AllocNode_004daa30();
+    node->parent = (Node_004daa30*)param_1;
+    node->color = param_2;
     return node;
 }
 #pragma auto_inline(on)
@@ -4124,7 +3621,7 @@ Node_004ddce0* Class_004ddce0::CreateNode(int param_1, int param_2)
 // The original calls this out of line from the free-block tree.
 #pragma auto_inline(off)
 // FUNCTION: 0x4ddd70
-void* Class_004ddd70::Allocate(unsigned int n)
+void* FreeBlockAllocator::Allocate(unsigned int n)
 {
     if (g_freeBlockFreeList == 0) {
         unsigned int rem = 0x2000;
@@ -4161,7 +3658,7 @@ void* Class_004ddd70::Allocate(unsigned int n)
 // The original calls this out of line from the file-record tree.
 #pragma auto_inline(off)
 // FUNCTION: 0x4dddf0
-void* Class_004dddf0::Allocate(unsigned int n)
+void* BlockMapAllocator::Allocate(unsigned int n)
 {
     if (g_blockMapFreeList == 0) {
         unsigned int rem = 0x2000;
@@ -4191,13 +3688,7 @@ void* Class_004dddf0::Allocate(unsigned int n)
 // (step an iterator to the in-order successor) under a lock object;
 // g_blockMapNil is the tree's _Nil node. Compare 0x4dd710 and 0x4ddc90.
 
-struct Node_004dde70 {
-    Node_004dde70* left;               // +0x0
-    Node_004dde70* parent;             // +0x4
-    Node_004dde70* right;              // +0x8
-};
-
-static inline Node_004dde70* Min_004dde70(Node_004dde70* p)
+static inline Node_004daa30* Min_004dde70(Node_004daa30* p)
 {
     std::_Lockit lock;
     while (p->left != g_blockMapNil)
@@ -4208,13 +3699,13 @@ static inline Node_004dde70* Min_004dde70(Node_004dde70* p)
 // The original calls this out of line from the const_iterator increment.
 #pragma auto_inline(off)
 // FUNCTION: 0x4dde70
-void Class_004dde70::NextNode()
+void BlockMapIter::NextNode()
 {
     std::_Lockit lock;
     if (ptr->right != g_blockMapNil)
         ptr = Min_004dde70(ptr->right);
     else {
-        Node_004dde70* p;
+        Node_004daa30* p;
         while (ptr == (p = ptr->parent)->right)
             ptr = p;
         if (ptr->right != p)
@@ -4222,17 +3713,6 @@ void Class_004dde70::NextNode()
     }
 }
 #pragma auto_inline(on)
-
-class Class_004e1590 {
-public:
-    HANDLE hFile;      // +0x0
-    HANDLE hMapping;   // +0x4
-    void* view;        // +0x8
-    DWORD size;        // +0xc
-    int state;         // +0x10
-
-    void OpenMappedFile(const char* fileName);
-};
 
 class MappedFile {
 public:
@@ -4243,6 +3723,7 @@ public:
     int state;        // +0x10
 
     MappedFile(const char* fileName);
+    void OpenMappedFile(const char* fileName);
     void CloseMappedFile();
 };
 
@@ -4267,40 +3748,13 @@ public:
     LoadedImage(HMODULE m);
     ~LoadedImage();
     Fpo_004de020* GetFpoRecords();
+    unsigned int GetFpoRecordCount();
+    Fpo_004de020* FindFpoRecord(unsigned int address);
 };
 
 // The loaded-image reader of the debug library; 0x4de0a0's function-local
 // static builds the one at 0x528a78 lazily.
 extern LoadedImage g_loadedImage;
-
-struct DebugDir_004ddfa0 {
-    unsigned int characteristics;      // +0x00
-    unsigned int timeDateStamp;        // +0x04
-    unsigned short majorVersion;       // +0x08
-    unsigned short minorVersion;       // +0x0a
-    unsigned int type;                 // +0x0c
-    unsigned int sizeOfData;           // +0x10
-    unsigned int addressOfRawData;     // +0x14
-    unsigned int pointerToRawData;     // +0x18
-};
-
-class Class_004ddfe0 {
-public:
-    char unknown_0[0x8];
-    char* base;                        // +0x08, the mapped file
-    char unknown_c[0x24 - 0xc];
-    DebugDir_004ddfa0* debugDirs;      // +0x24
-    int numDebugDirs;                  // +0x28
-
-    unsigned int GetFpoRecordCount();
-};
-
-class Class_004de020 {
-public:
-    char unknown_0[0x18];
-    unsigned int imageBase;            // +0x18
-    Fpo_004de020* FindFpoRecord(unsigned int address);
-};
 
 // FUNCTION: 0x4ddf00
 LoadedImage::LoadedImage(HMODULE m) : MappedFile(0)
@@ -4313,7 +3767,7 @@ LoadedImage::LoadedImage(HMODULE m) : MappedFile(0)
         path[sizeof(path) - 1] = 0;
     else
         path[0] = 0;
-    ((Class_004e1590*)this)->OpenMappedFile(path);
+    OpenMappedFile(path);
     ntHeaders = (IMAGE_NT_HEADERS*)((char*)dosHeader + dosHeader->e_lfanew);
     numDebugDirs = ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG].Size / sizeof(IMAGE_DEBUG_DIRECTORY);
     // Count stored before debugDirs is cleared: ntHeaders is reloaded for the sum.
@@ -4348,25 +3802,25 @@ Fpo_004de020* LoadedImage::GetFpoRecords()
 // The original calls this out of line from 0x4de020.
 #pragma auto_inline(off)
 // FUNCTION: 0x4ddfe0
-unsigned int Class_004ddfe0::GetFpoRecordCount()
+unsigned int LoadedImage::GetFpoRecordCount()
 {
     if (debugDirs == 0)
         return 0;
     for (int i = 0; i < numDebugDirs; i++) {
-        if (debugDirs[i].type == 3)
-            return debugDirs[i].sizeOfData / sizeof(Fpo_004de020);
+        if (debugDirs[i].Type == 3)
+            return debugDirs[i].SizeOfData / sizeof(Fpo_004de020);
     }
     return 0;
 }
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4de020
-Fpo_004de020* Class_004de020::FindFpoRecord(unsigned int address)
+Fpo_004de020* LoadedImage::FindFpoRecord(unsigned int address)
 {
-    Fpo_004de020* first = ((LoadedImage*)this)->GetFpoRecords();
+    Fpo_004de020* first = GetFpoRecords();
     if (first == 0)
         return 0;
-    int n = ((Class_004ddfe0*)this)->GetFpoRecordCount();
+    int n = GetFpoRecordCount();
     if (n == 0)
         return 0;
     Fpo_004de020* last = first + n;
@@ -4387,8 +3841,8 @@ Fpo_004de020* Class_004de020::FindFpoRecord(unsigned int address)
 // FUNCTION: 0x4de0a0
 void __stdcall FunctionTableAccess(int unused, unsigned int address)
 {
-    static LoadedImage table(GetModuleHandleA(0));
-    ((Class_004de020*)&table)->FindFpoRecord(address);
+    static LoadedImage imageTable(GetModuleHandleA(0));
+    imageTable.FindFpoRecord(address);
 }
 
 // FUNCTION: 0x4de0f0
@@ -4878,7 +4332,7 @@ void FpuFussyAtexitHandler(void)
 }
 
 // The performance status window and the name table it shows. The singleton at
-// 0x5292d0 is the Class_004df1e0 0x4df1e0 builds and 0x4dfd10 hands out; its
+// 0x5292d0 is the PerformanceDialog 0x4df1e0 builds and 0x4dfd10 hands out; its
 // name map at +0x21c is the same tree the global name table uses, so the two
 // share the node and iterator types below. 0x4dfd10 and 0x4dfd50 stay in
 // their own files: the singleton's atexit term function is that file's first
@@ -4904,16 +4358,6 @@ struct Node_004df590 {
     Value_004df590 value;              // +0xc
 };
 
-// The map's node, as the erase machinery sees it: the 0x1f8-byte value and
-// the red/black colour at +0x204.
-struct Node_004dfea0 {
-    Node_004dfea0* _Left;              // +0x0
-    Node_004dfea0* _Parent;            // +0x4
-    Node_004dfea0* _Right;             // +0x8
-    char _Value[0x1f8];                // +0xc
-    int _Color;                        // +0x204  (0 = _Red, 1 = _Black)
-};
-
 extern void* DAT_005292c4;             // tree _Nil
 extern void* g_nameMapFreeList;        // node free list
 extern unsigned int DAT_00529500;      // tree _Nilrefs
@@ -4926,71 +4370,124 @@ struct Iterator_004df590 {
     bool operator!=(const Iterator_004df590& other) const { return !(*this == other); }
 };
 
-// The tree iterator; passed by value and returned by value, so the caller
-// supplies a hidden return buffer.
-struct Node_004e0450;
-class Class_004e0450 {
+// The key: a C string ordered by strcmp.
+class NameKey {
 public:
-    Node_004e0450* ptr;                // +0x0
-
-    void NextNode();                   // _Inc
-    Class_004e0450& operator++() { NextNode(); return *this; }
-    Class_004e0450 operator++(int)
-    {
-        Class_004e0450 t = *this;
-        ++*this;
-        return t;
-    }
-    Node_004dfea0* _Mynode() const { return (Node_004dfea0*)ptr; }
-    bool operator==(const Class_004e0450& x) const { return ptr == x.ptr; }
-    bool operator!=(const Class_004e0450& x) const { return !(*this == x); }
+    char* name;                        // +0x0
+    bool LessThan(const NameKey& other) const;
 };
 
-// std::_Tree<...>::_Erase(_Nodeptr): frees a whole subtree.
-struct Node_004e03f0;
+struct Value_004e2250 {
+    char text[500];
+};
+
+struct Data1;
+struct Data2;
+typedef std::pair<const NameKey, Value_004e2250> Pair_004e2250;
+
+// std::less<key>.
+struct Less_004e2250 : public std::binary_function<NameKey, NameKey, bool> {
+    bool operator()(const NameKey& _X, const NameKey& _Y) const
+    {
+        return (_X.LessThan(_Y));
+    }
+};
+
+// std::map<...>::_Kfn.
+struct Kfn_004e2250 : public std::unary_function<Pair_004e2250, NameKey> {
+    const NameKey& operator()(const Pair_004e2250& _X) const
+    {
+        return (_X.first);
+    }
+};
+
+class Alloc_004e2b60 {
+public:
+    char* Allocate(unsigned int n);
+};
+
+enum _Redbl_004e2250 { _Red, _Black };
+
+struct Node_004e2250 {
+    void* _Left;                       // +0x0
+    void* _Parent;                     // +0x4
+    void* _Right;                      // +0x8
+    Pair_004e2250 _Value;              // +0xc
+    _Redbl_004e2250 _Color;            // +0x204
+};
+
+typedef Node_004e2250* _Nodeptr;
+
 struct Node_004e18c0;
-class Class_004e03f0 {
-public:
-    void EraseSubtree(Node_004e03f0* x);
-    void EraseSubtree(Node_004e18c0* x);   // 4e04e0's view
-};
-
-// std::_Tree<...>::erase(iterator): erases one node, returns the next.
 class Iter_004e18c0;
-class Class_004dfea0 {
+
+// std::_Tree<...>::iterator; _Inc is 0x4e0450 and _Dec is 0x4e2ab0. Passed by
+// value and returned by value, so the caller supplies a hidden return buffer.
+class NameMapIter : public std::_Bidit<Pair_004e2250, int> {
 public:
-    char _Alnod[4];                    // +0x0
-    Node_004dfea0* _Head;              // +0x4
-    char _Multi;                       // +0x8
-    char pad_9[3];
-    unsigned int _Size;                // +0xc
-
-    static int& _Color(Node_004dfea0* _P) { return _P->_Color; }
-    static Node_004dfea0*& _Left(Node_004dfea0* _P) { return _P->_Left; }
-    static Node_004dfea0*& _Parent(Node_004dfea0* _P) { return _P->_Parent; }
-    static Node_004dfea0*& _Right(Node_004dfea0* _P) { return _P->_Right; }
-    Node_004dfea0*& _Root() const { return _Head->_Parent; }
-    Node_004dfea0*& _Lmost() const { return _Head->_Left; }
-    Node_004dfea0*& _Rmost() const { return _Head->_Right; }
-
-    static Node_004dfea0* _Min(Node_004dfea0* _P)
-    {
-        std::_Lockit _Lk;
-        while (_Left(_P) != DAT_005292c4)
-            _P = _Left(_P);
-        return (_P);
-    }
-    static Node_004dfea0* _Max(Node_004dfea0* _P)
-    {
-        std::_Lockit _Lk;
+    NameMapIter()
+        {}
+    NameMapIter(_Nodeptr _P)
+        : _Ptr(_P) {}
+    NameMapIter& operator++()
+        {NextNode();
+        return (*this); }
+    NameMapIter operator++(int)
+        {NameMapIter _Tmp = *this;
+        ++*this;
+        return (_Tmp); }
+    NameMapIter& operator--()
+        {PrevNode();
+        return (*this); }
+    bool operator==(const NameMapIter& _X) const
+        {return (_Ptr == _X._Ptr); }
+    bool operator!=(const NameMapIter& _X) const
+        {return (!(*this == _X)); }
+    void NextNode();
+    void PrevNode();
+    _Nodeptr _Mynode() const
+        {return (_Ptr); }
+    _Nodeptr _Ptr;
+};
+// std::pair<iterator, bool>; its constructor is 0x4e2a10.
+// std::pair<iterator, bool>; its constructor is 0x4e2a10.
+class NameMapInsertResult {
+public:
+    NameMapInsertResult(const NameMapIter& _V1, const bool& _V2)
+        : first(_V1), second(_V2) {}
+    NameMapInsertResult* Assign(const Data1* param_1, const Data2* param_2);
+    NameMapIter first;
+    bool second;
+};
+// The members and static accessors of std::_Tree.
+// Kept as the XTREE bodies and accessors: the inline budget follows their shape.
+class NameMapTree {
+public:
+    static _Redbl_004e2250& _Color(_Nodeptr _P)
+        {return ((_Redbl_004e2250&)(*_P)._Color); }
+    static const NameKey& _Key(_Nodeptr _P)
+        {return (Kfn_004e2250()(_Value(_P))); }
+    static _Nodeptr& _Left(_Nodeptr _P)
+        {return ((_Nodeptr&)(*_P)._Left); }
+    static _Nodeptr& _Parent(_Nodeptr _P)
+        {return ((_Nodeptr&)(*_P)._Parent); }
+    static _Nodeptr& _Right(_Nodeptr _P)
+        {return ((_Nodeptr&)(*_P)._Right); }
+    static Pair_004e2250& _Value(_Nodeptr _P)
+        {return ((Pair_004e2250&)(*_P)._Value); }
+    static _Nodeptr _Max(_Nodeptr _P)
+        {std::_Lockit _Lk;
         while (_Right(_P) != DAT_005292c4)
             _P = _Right(_P);
-        return (_P);
-    }
-    void _Lrotate(Node_004dfea0* _X)
-    {
-        std::_Lockit _Lk;
-        Node_004dfea0* _Y = _Right(_X);
+        return (_P); }
+    static _Nodeptr _Min(_Nodeptr _P)
+        {std::_Lockit _Lk;
+        while (_Left(_P) != DAT_005292c4)
+            _P = _Left(_P);
+        return (_P); }
+    void _Lrotate(_Nodeptr _X)
+        {std::_Lockit _Lk;
+        _Nodeptr _Y = _Right(_X);
         _Right(_X) = _Left(_Y);
         if (_Left(_Y) != DAT_005292c4)
             _Parent(_Left(_Y)) = _X;
@@ -5002,12 +4499,10 @@ public:
         else
             _Right(_Parent(_X)) = _Y;
         _Left(_Y) = _X;
-        _Parent(_X) = _Y;
-    }
-    void _Rrotate(Node_004dfea0* _X)
-    {
-        std::_Lockit _Lk;
-        Node_004dfea0* _Y = _Left(_X);
+        _Parent(_X) = _Y; }
+    void _Rrotate(_Nodeptr _X)
+        {std::_Lockit _Lk;
+        _Nodeptr _Y = _Left(_X);
         _Left(_X) = _Right(_Y);
         if (_Right(_Y) != DAT_005292c4)
             _Parent(_Right(_Y)) = _X;
@@ -5019,18 +4514,94 @@ public:
         else
             _Left(_Parent(_X)) = _Y;
         _Right(_Y) = _X;
-        _Parent(_X) = _Y;
-    }
-    static void _Freenode(Node_004dfea0* _P)
-    {
-        if (_P != 0) {
-            *(void**)_P = g_nameMapFreeList;
-            g_nameMapFreeList = _P;
-        }
-    }
+        _Parent(_X) = _Y; }
+    static void _Freenode(_Nodeptr _P)
+        {if (_P != 0)
+            {*(void**)_P = g_nameMapFreeList;
+            g_nameMapFreeList = _P; }}
+    _Nodeptr& _Lmost()
+        {return (_Left(_Head)); }
+    _Nodeptr& _Rmost()
+        {return (_Right(_Head)); }
+    _Nodeptr& _Root()
+        {return (_Parent(_Head)); }
 
-    Class_004e0450 Erase(Class_004e0450 _P);
+    Alloc_004e2b60 allocator;          // +0x0
+    Less_004e2250 key_compare;         // +0x1
+    _Nodeptr _Head;                    // +0x4
+    bool _Multi;                       // +0x8
+    unsigned int _Size;                // +0xc
+
+    // std::_Tree<...>::erase(iterator): erases one node, returns the next.
+    NameMapIter Erase(NameMapIter _P);
     Iter_004e18c0 Erase(Iter_004e18c0 it);          // 4e04e0's view
+    // std::_Tree<...>::_Erase(_Nodeptr): frees a whole subtree.
+    void EraseSubtree(_Nodeptr x);
+    void EraseSubtree(Node_004e18c0* x);   // 4e04e0 view, declared only so the call stays out of line
+    // _Rrotate (0x4e29b0).
+    void RotateRight(_Nodeptr _X);
+    // _Lrotate (0x4e2950).
+    void RotateLeft(_Nodeptr _X);
+    // _Buynode (0x4e2a30).
+    _Nodeptr CreateNode(_Nodeptr _Parg, _Redbl_004e2250 _Carg);
+    void _Consval(Pair_004e2250* _P, const Pair_004e2250& _V)
+        {std::_Construct(&*_P, _V); }
+    // _Insert (0x4e2620).
+    NameMapIter Insert(_Nodeptr _X, _Nodeptr _Y, const Pair_004e2250& _V)
+        {std::_Lockit _Lk;
+        _Nodeptr _Z = CreateNode(_Y, _Red);
+        _Left(_Z) = (_Nodeptr)DAT_005292c4, _Right(_Z) = (_Nodeptr)DAT_005292c4;
+        _Consval(&_Value(_Z), _V);
+        ++_Size;
+        if (_Y == _Head || _X != DAT_005292c4
+            || key_compare(Kfn_004e2250()(_V), _Key(_Y)))
+            {_Left(_Y) = _Z;
+            if (_Y == _Head)
+                {_Root() = _Z;
+                _Rmost() = _Z; }
+            else if (_Y == _Lmost())
+                _Lmost() = _Z; }
+        else
+            {_Right(_Y) = _Z;
+            if (_Y == _Rmost())
+                _Rmost() = _Z; }
+        for (_X = _Z; _X != _Root()
+            && _Color(_Parent(_X)) == _Red; )
+            if (_Parent(_X) == _Left(_Parent(_Parent(_X))))
+                {_Y = _Right(_Parent(_Parent(_X)));
+                if (_Color(_Y) == _Red)
+                    {_Color(_Parent(_X)) = _Black;
+                    _Color(_Y) = _Black;
+                    _Color(_Parent(_Parent(_X))) = _Red;
+                    _X = _Parent(_Parent(_X)); }
+                else
+                    {if (_X == _Right(_Parent(_X)))
+                        {_X = _Parent(_X);
+                        RotateLeft(_X); }
+                    _Color(_Parent(_X)) = _Black;
+                    _Color(_Parent(_Parent(_X))) = _Red;
+                    RotateRight(_Parent(_Parent(_X))); }}
+            else
+                {_Y = _Left(_Parent(_Parent(_X)));
+                if (_Color(_Y) == _Red)
+                    {_Color(_Parent(_X)) = _Black;
+                    _Color(_Y) = _Black;
+                    _Color(_Parent(_Parent(_X))) = _Red;
+                    _X = _Parent(_Parent(_X)); }
+                else
+                    {if (_X == _Left(_Parent(_X)))
+                        {_X = _Parent(_X);
+                        RotateRight(_X); }
+                    _Color(_Parent(_X)) = _Black;
+                    _Color(_Parent(_Parent(_X))) = _Red;
+                    RotateLeft(_Parent(_Parent(_X))); }}
+        _Color(_Root()) = _Black;
+        return (NameMapIter(_Z)); }
+
+    // std::_Tree<...>::insert(const value_type&).
+    NameMapIter begin()
+        {return (NameMapIter(_Lmost())); }
+    NameMapInsertResult InsertOrFind(const Pair_004e2250& _V);
 };
 
 // The name map: comparator and allocator bytes, _Head, _Multi, _Size and the
@@ -5049,19 +4620,19 @@ struct Map_004df590 {
     Node_004df590*& _Lmost() const { return head->left; }
     Node_004df590*& _Rmost() const { return head->right; }
     unsigned int Size() const { return size; }
-    Class_004e0450 begin() const { Class_004e0450 i; i.ptr = (Node_004e0450*)head->left; return i; }
-    Class_004e0450 end() const { Class_004e0450 i; i.ptr = (Node_004e0450*)head; return i; }
+    NameMapIter begin() const { NameMapIter i; i._Ptr = (_Nodeptr)head->left; return i; }
+    NameMapIter end() const { NameMapIter i; i._Ptr = (_Nodeptr)head; return i; }
 
     // Shaped exactly like the MSVC 5 STL, including the dead `_F != begin()` test.
-    Class_004e0450 erase(Class_004e0450 _F, Class_004e0450 _L)
+    NameMapIter erase(NameMapIter _F, NameMapIter _L)
     {
         if (Size() == 0 || _F != begin() || _L != end()) {
             while (_F != _L)
-                ((Class_004dfea0*)this)->Erase(_F++);
+                ((NameMapTree*)this)->Erase(_F++);
             return _F;
         } else {
             std::_Lockit Lk;
-            ((Class_004e03f0*)this)->EraseSubtree((Node_004e03f0*)_Root());
+            ((NameMapTree*)this)->EraseSubtree((_Nodeptr)_Root());
             _Root() = (Node_004df590*)DAT_005292c4;
             size = 0;
             _Lmost() = head;
@@ -5113,7 +4684,7 @@ struct Value_004e17c0 {
 typedef std::pair<const char*, Value_004e17c0> ValueType_004e17c0;
 
 // The pooled allocator; its _Charalloc is the out-of-line 0x4e2b60.
-class Class_004e2b60 {
+class NameMapAllocator {
 public:
     typedef ValueType_004e17c0 value_type;
     typedef value_type* pointer;
@@ -5142,7 +4713,7 @@ public:
     void* Allocate(size_type n);       // out of line at 0x4e2b60
 };
 
-typedef std::map<const char*, Value_004e17c0, Less_004e17c0, Class_004e2b60>
+typedef std::map<const char*, Value_004e17c0, Less_004e17c0, NameMapAllocator>
     Map_004e17c0;
 
 class NameTable {
@@ -5151,6 +4722,7 @@ public:
     bool changed;                      // +0x10
 
     NameTable();
+    void Upsert(void* key);
 };
 
 NameTable* GetNameTable();
@@ -5179,13 +4751,13 @@ public:
     bool operator!=(const Iter_004e18c0& x) const { return !(*this == x); }
     Iter_004e18c0& operator++()
     {
-        ((Class_004e0450*)&ptr)->NextNode();
+        ((NameMapIter*)&ptr)->NextNode();
         return *this;
     }
     Iter_004e18c0 operator++(int)
     {
         Iter_004e18c0 tmp = *this;
-        ((Class_004e0450*)&ptr)->NextNode();
+        ((NameMapIter*)&ptr)->NextNode();
         return tmp;
     }
 };
@@ -5213,12 +4785,12 @@ public:
     {
         if (size == 0 || _F != begin() || _L != end()) {
             while (_F != _L)
-                ((Class_004dfea0*)this)->Erase(_F++);
+                ((NameMapTree*)this)->Erase(_F++);
             return _F;
         }
         // Early return above, not an else: keeps the return slot apart from the lock.
         std::_Lockit Lk;
-        ((Class_004e03f0*)this)->EraseSubtree(head->parent);
+        ((NameMapTree*)this)->EraseSubtree(head->parent);
         head->parent = (Node_004e18c0*)DAT_005292c4;
         size = 0;
         head->left = head;
@@ -5227,11 +4799,6 @@ public:
     }
 
     void Clear();
-};
-
-class Class_004e1990 {
-public:
-    void Upsert(void* key);
 };
 
 struct Entry_004df590 {
@@ -5254,36 +4821,6 @@ void __cdecl SaveWindowPosition(HWND hwnd, char* name);
 void __cdecl OpenUrl(HWND hwnd, const char* url, const char* ext);
 void __cdecl RestoreWindow(HWND hwnd, char* name, double a, double b);
 
-class Class_004df280 {
-public:
-    HWND hwnd;                         // +0x00
-    char unknown_4[0x1c];
-    unsigned char flag_20;             // +0x20
-
-    void SetPerformanceWindowVisible(char show);
-};
-
-class Class_004df380 {
-public:
-    HWND hwnd;                          // +0x00
-    char unknown_4[0x20];
-    const char* name;                   // +0x24
-
-    // The key test, with the pointer compare the original does first: the
-    // key is loaded before this->name, which is the order the code needs.
-    bool Same(const char* key)
-    {
-        return key == name || strcmp(key, name) == 0;
-    }
-    void SyncSelectedText();
-};
-
-class Class_004df4e0 {
-public:
-    HWND hwnd;                          // +0x00
-    void EnableControls();
-};
-
 class Id_004df1e0 {
 public:
     const char* id;                    // +0x0
@@ -5297,38 +4834,34 @@ public:
     }
 };
 
-class Class_004df1e0 {
-public:
-    int unknown_0;                     // +0x0
-    int unknown_4;                     // +0x4
-    int unknown_8;                     // +0x8
-    int unknown_c;                     // +0xc
-    double time;                       // +0x10
-    int count;                         // +0x18
-    void* table;                       // +0x1c
-    char flag_20;                      // +0x20
-    Id_004df1e0 ident;                 // +0x24
-    NameTable map;                     // +0x21c
-
-    Class_004df1e0();
-    ~Class_004df1e0() {}
-};
-
 class PerformanceDialog {
 public:
     HWND hwnd;                         // +0x00
     int left;                          // +0x04
     int top;                           // +0x08
-    char unknown_0c[0xc];
+    int unknown_c;                     // +0x0c
+    double time;                       // +0x10
     int count;                         // +0x18
     Entry_004df590* entries;           // +0x1c
     char flag_20;                      // +0x20
-    char unknown_21[3];
-    Value_004df590 selected;           // +0x24
-    Map_004df590 set;                  // +0x21c
+    Id_004df1e0 selected;              // +0x24
+    NameTable map;                     // +0x21c
 
+    PerformanceDialog();
+    ~PerformanceDialog() {}
+    // The name map as the message handler walks it.
+    Map_004df590& set() { return *(Map_004df590*)&map; }
+    // The key test, with the pointer compare the original does first: the
+    // key is loaded before the selected name, which is the order the code needs.
+    bool Same(const char* key)
+    {
+        return key == selected.id || strcmp(key, selected.id) == 0;
+    }
     BOOL HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM lParam);
     void CreatePerformanceDialog(void);
+    void SetPerformanceWindowVisible(char show);
+    void SyncSelectedText();
+    void EnableControls();
 };
 
 HWND __cdecl CreateDialogFromTemplate(int id, HWND parent, DLGPROC proc, LPARAM param);
@@ -5347,18 +4880,18 @@ static inline bool NamesEqual_004df590(const char* a, const char* b) { return a 
 // The original calls this out of line from 0x4dfd10.
 #pragma auto_inline(off)
 // FUNCTION: 0x4df1e0
-Class_004df1e0::Class_004df1e0()
-    : ident("This is a unique identifier, isn't it - tell me the truth!")
+PerformanceDialog::PerformanceDialog()
+    : selected("This is a unique identifier, isn't it - tell me the truth!")
 {
-    unknown_0 = 0;
-    unknown_4 = -1;
-    unknown_8 = -1;
+    hwnd = 0;
+    left = -1;
+    top = -1;
     flag_20 = 0;
     InitPerformanceEvents();
     count = g_pmcEventCount;
-    table = g_pmcEventCatalog;
+    entries = g_pmcEventCatalog;
     time = GetTimeSeconds();
-    ((PerformanceDialog*)this)->CreatePerformanceDialog();
+    CreatePerformanceDialog();
 }
 #pragma auto_inline(on)
 
@@ -5374,7 +4907,7 @@ void PerformanceDialog::CreatePerformanceDialog(void)
 #pragma auto_inline(on)
 
 // The original calls this out of line from 0x4df590 and 0x4dfd00.
-// 0x4df280 Class_004df280::SetPerformanceWindowVisible stays in src/debug/debug_lib_4df280.cpp: joined into
+// 0x4df280 PerformanceDialog::SetPerformanceWindowVisible stays in src/debug/debug_lib_4df280.cpp: joined into
 // this file its register allocation lands differently
 // (docs/c2-regalloc.md).
 
@@ -5449,7 +4982,7 @@ public:
 };
 
 // FUNCTION: 0x4df380
-void Class_004df380::SyncSelectedText()
+void PerformanceDialog::SyncSelectedText()
 {
     CriticalSection* lock = (CriticalSection*)GetNameTableLock();
     EnterCriticalSection(&lock->cs);
@@ -5469,7 +5002,7 @@ void Class_004df380::SyncSelectedText()
 unsigned char __cdecl HasPerfCounters(void);
 
 // FUNCTION: 0x4df4e0
-void Class_004df4e0::EnableControls()
+void PerformanceDialog::EnableControls()
 {
     unsigned char b = HasPerfCounters() && g_perfEnabled;
     EnableWindow(GetDlgItem(hwnd, 0x3f5), b);
@@ -5492,7 +5025,7 @@ BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM
         switch (id) {
         case IDOK:
         case IDCANCEL:
-            ((Class_004df280*)this)->SetPerformanceWindowVisible(0);
+            SetPerformanceWindowVisible(0);
             return 0;
 
         case 0x3ed:
@@ -5542,7 +5075,7 @@ BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM
             case 0x3ef:
                 g_perfEnabled = (g_perfEnabled == 0);
                 SyncPerformanceSettings(0);
-                ((Class_004df4e0*)this)->EnableControls();
+                EnableControls();
                 return 0;
 
             case 0x3f1:
@@ -5570,10 +5103,10 @@ BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM
                     return 0;
                 int sel = (int)SendDlgItemMessageA(hwnd, id, 0x188, 0, 0);
                 int j = 0;
-                Node_004df590* node = set.head->left;
-                while (Iterator_004df590(node) != Iterator_004df590(set.head)) {
+                Node_004df590* node = set().head->left;
+                while (Iterator_004df590(node) != Iterator_004df590(set().head)) {
                     if (j == sel) {
-                        selected = *(Value_004df590*)((char*)node + 0xc);
+                        selected = *(Id_004df1e0*)((char*)node + 0xc);
                     }
                     j++;
                     {
@@ -5590,7 +5123,7 @@ BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM
                         }
                     }
                 }
-                ((Class_004df380*)this)->SyncSelectedText();
+                SyncSelectedText();
                 return 0;
             }
         }
@@ -5615,23 +5148,23 @@ BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM
             int n = 0;
             Node_004df590* node = ((Map_004df590*)&info->names)->head->left;
             SendDlgItemMessageA(hwnd, 0x3f4, 0x184, 0, 0);
-            ((Class_004e18c0*)&set)->Clear();
+            ((Class_004e18c0*)&map)->Clear();
             // Guarded do-while: a while or for loop moves the loop registers.
             if (Iterator_004df590(node) != Iterator_004df590(((Map_004df590*)&info->names)->head)) {
                 do {
-                    ((Class_004e1990*)&set)->Upsert(&node->value);
+                    map.Upsert(&node->value);
                     SendDlgItemMessageA(hwnd, 0x3f4, 0x180, 0, (LPARAM)node->value.name);
-                    if (NamesEqual_004df590(node->value.name, selected.name))
+                    if (NamesEqual_004df590(node->value.name, selected.id))
                         sel = n;
                     n++;
-                    ((Class_004e0450*)&node)->NextNode();
+                    ((NameMapIter*)&node)->NextNode();
                 } while (Iterator_004df590(node) != Iterator_004df590(((Map_004df590*)&info->names)->head));
             }
             if (sel >= 0)
                 SendDlgItemMessageA(hwnd, 0x3f4, 0x186, sel, 0);
             info->changed = 0;
         }
-        ((Class_004df380*)this)->SyncSelectedText();
+        SyncSelectedText();
         LeaveCriticalSection(&cs->cs);
         return 0;
     }
@@ -5666,15 +5199,15 @@ BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM
         CheckDlgButton(hwnd, 0x3f6, g_perfDisplayInDebugger);
         CheckDlgButton(hwnd, 0x3f7, g_perfDisplayInWindow);
         CheckDlgButton(hwnd, 0x3f8, g_perfAutoPairing);
-        ((Class_004df4e0*)this)->EnableControls();
+        EnableControls();
         if (flag_20)
-            ((Class_004df280*)this)->SetPerformanceWindowVisible(1);
+            SetPerformanceWindowVisible(1);
         return 1;
     }
 
     case 0x312:
         if (wParam == 10) {
-            ((Class_004df280*)this)->SetPerformanceWindowVisible(IsWindowVisible(hwnd) == 0);
+            SetPerformanceWindowVisible(IsWindowVisible(hwnd) == 0);
         }
         return 0;
 
@@ -5682,14 +5215,14 @@ BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM
     return 0;
 }
 
-Class_004df1e0* GetPerformanceWindow(void);
+PerformanceDialog* GetPerformanceWindow(void);
 
 // The original calls this out of line from 0x4dfe80.
 #pragma auto_inline(off)
 // FUNCTION: 0x4dfd00
 void ShowPerformanceStatus()
 {
-    ((Class_004df280*)GetPerformanceWindow())->SetPerformanceWindowVisible(1);
+    GetPerformanceWindow()->SetPerformanceWindowVisible(1);
 }
 #pragma auto_inline(on)
 
@@ -5705,11 +5238,11 @@ void StartPerformanceStatus() {
 }
 
 // FUNCTION: 0x4dfea0
-Class_004e0450 Class_004dfea0::Erase(Class_004e0450 _P)
+NameMapIter NameMapTree::Erase(NameMapIter _P)
 {
-    Node_004dfea0* _X;
-    Node_004dfea0* _Y = (_P++)._Mynode();
-    Node_004dfea0* _Z = _Y;
+    _Nodeptr _X;
+    _Nodeptr _Y = (_P++)._Mynode();
+    _Nodeptr _Z = _Y;
     std::_Lockit _Lk;
     if (_Left(_Y) == DAT_005292c4)
         _X = _Right(_Y);
@@ -5758,60 +5291,60 @@ Class_004e0450 Class_004dfea0::Erase(Class_004e0450 _P)
         else
             _Rmost() = _Max(_X);
     }
-    if (_Color(_Y) == 1) {
-        while (_X != _Root() && _Color(_X) == 1)
+    if (_Color(_Y) == _Black) {
+        while (_X != _Root() && _Color(_X) == _Black)
             if (_X == _Left(_Parent(_X))) {
-                Node_004dfea0* _W = _Right(_Parent(_X));
-                if (_Color(_W) == 0) {
-                    _Color(_W) = 1;
-                    _Color(_Parent(_X)) = 0;
+                _Nodeptr _W = _Right(_Parent(_X));
+                if (_Color(_W) == _Red) {
+                    _Color(_W) = _Black;
+                    _Color(_Parent(_X)) = _Red;
                     _Lrotate(_Parent(_X));
                     _W = _Right(_Parent(_X));
                 }
-                if (_Color(_Left(_W)) == 1
-                    && _Color(_Right(_W)) == 1) {
-                    _Color(_W) = 0;
+                if (_Color(_Left(_W)) == _Black
+                    && _Color(_Right(_W)) == _Black) {
+                    _Color(_W) = _Red;
                     _X = _Parent(_X);
                 } else {
-                    if (_Color(_Right(_W)) == 1) {
-                        _Color(_Left(_W)) = 1;
-                        _Color(_W) = 0;
+                    if (_Color(_Right(_W)) == _Black) {
+                        _Color(_Left(_W)) = _Black;
+                        _Color(_W) = _Red;
                         _Rrotate(_W);
                         _W = _Right(_Parent(_X));
                     }
                     _Color(_W) = _Color(_Parent(_X));
-                    _Color(_Parent(_X)) = 1;
-                    _Color(_Right(_W)) = 1;
+                    _Color(_Parent(_X)) = _Black;
+                    _Color(_Right(_W)) = _Black;
                     _Lrotate(_Parent(_X));
                     break;
                 }
             } else {
-                Node_004dfea0* _W = _Left(_Parent(_X));
-                if (_Color(_W) == 0) {
-                    _Color(_W) = 1;
-                    _Color(_Parent(_X)) = 0;
+                _Nodeptr _W = _Left(_Parent(_X));
+                if (_Color(_W) == _Red) {
+                    _Color(_W) = _Black;
+                    _Color(_Parent(_X)) = _Red;
                     _Rrotate(_Parent(_X));
                     _W = _Left(_Parent(_X));
                 }
-                if (_Color(_Right(_W)) == 1
-                    && _Color(_Left(_W)) == 1) {
-                    _Color(_W) = 0;
+                if (_Color(_Right(_W)) == _Black
+                    && _Color(_Left(_W)) == _Black) {
+                    _Color(_W) = _Red;
                     _X = _Parent(_X);
                 } else {
-                    if (_Color(_Left(_W)) == 1) {
-                        _Color(_Right(_W)) = 1;
-                        _Color(_W) = 0;
+                    if (_Color(_Left(_W)) == _Black) {
+                        _Color(_Right(_W)) = _Black;
+                        _Color(_W) = _Red;
                         _Lrotate(_W);
                         _W = _Left(_Parent(_X));
                     }
                     _Color(_W) = _Color(_Parent(_X));
-                    _Color(_Parent(_X)) = 1;
-                    _Color(_Left(_W)) = 1;
+                    _Color(_Parent(_X)) = _Black;
+                    _Color(_Left(_W)) = _Black;
                     _Rrotate(_Parent(_X));
                     break;
                 }
             }
-        _Color(_X) = 1;
+        _Color(_X) = _Black;
     }
     _Freenode(_Y);
     --_Size;
@@ -5822,27 +5355,21 @@ Class_004e0450 Class_004dfea0::Erase(Class_004e0450 _P)
 // (recursively frees a subtree) under a lock object; DAT_005292c4 is the
 // tree's _Nil node. Nodes are returned to a free list (g_nameMapFreeList) linked
 // through their first dword instead of being deleted.
-struct Node_004e03f0 {
-    Node_004e03f0* left;               // +0x0
-    Node_004e03f0* parent;             // +0x4
-    Node_004e03f0* right;              // +0x8
-};
-
-static inline void FreeNode(Node_004e03f0* p)
+static inline void FreeNode(_Nodeptr p)
 {
     if (p != 0) {
-        p->left = (Node_004e03f0*)g_nameMapFreeList;
+        p->_Left = g_nameMapFreeList;
         g_nameMapFreeList = p;
     }
 }
 
 // FUNCTION: 0x4e03f0
-void Class_004e03f0::EraseSubtree(Node_004e03f0* x)
+void NameMapTree::EraseSubtree(_Nodeptr x)
 {
     std::_Lockit lock;
-    for (Node_004e03f0* y = x; y != (Node_004e03f0*)DAT_005292c4; x = y) {
-        EraseSubtree(y->right);
-        y = y->left;
+    for (_Nodeptr y = x; y != (_Nodeptr)DAT_005292c4; x = y) {
+        EraseSubtree((_Nodeptr)y->_Right);
+        y = (_Nodeptr)y->_Left;
         FreeNode(x);
     }
 }
@@ -5851,34 +5378,28 @@ void Class_004e03f0::EraseSubtree(Node_004e03f0* x)
 // the iterator (a node pointer at +0) to the next node in order, under a lock.
 // DAT_005292c4 is the tree's _Nil node; the inlined _Min (0x4e04e0) takes its
 // own lock.
-struct Node_004e0450 {
-    Node_004e0450* left;               // +0x0
-    Node_004e0450* parent;             // +0x4
-    Node_004e0450* right;              // +0x8
-};
-
-static inline Node_004e0450* Min_004e0450(Node_004e0450* p)
+static inline _Nodeptr Min_004e0450(_Nodeptr p)
 {
     std::_Lockit lock;
-    while (p->left != (Node_004e0450*)DAT_005292c4)
-        p = p->left;
+    while (p->_Left != (_Nodeptr)DAT_005292c4)
+        p = (_Nodeptr)p->_Left;
     return p;
 }
 
 // The original calls this out of line from 0x4df590.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e0450
-void Class_004e0450::NextNode()
+void NameMapIter::NextNode()
 {
     std::_Lockit lock;
-    if (ptr->right != (Node_004e0450*)DAT_005292c4)
-        ptr = Min_004e0450(ptr->right);
+    if (_Ptr->_Right != (_Nodeptr)DAT_005292c4)
+        _Ptr = Min_004e0450((_Nodeptr)_Ptr->_Right);
     else {
-        Node_004e0450* p;
-        while (ptr == (p = ptr->parent)->right)
-            ptr = p;
-        if (ptr->right != p)
-            ptr = p;
+        _Nodeptr p;
+        while (_Ptr == (p = (_Nodeptr)_Ptr->_Parent)->_Right)
+            _Ptr = p;
+        if (_Ptr->_Right != p)
+            _Ptr = p;
     }
 }
 #pragma auto_inline(on)
@@ -5897,7 +5418,7 @@ void Class_004e0450::NextNode()
 // and 5.0 constants sit in a different constant pool from the memory status
 // dialog's 0.0, so the original had it in another translation unit.
 // 0x4e2580 (src/debug/debug_lib_4e2580.cpp) and 0x4e2620 (src/debug/debug_lib_4e2620.cpp)
-// stay in their own files: their views of Class_004e2580 and Class_004e2620
+// stay in their own files: their views of NameMapTree and NameMapTree
 // disagree with the views the tree methods here compile from.
 #define NOMINMAX
 #include <windows.h>
@@ -5940,6 +5461,15 @@ public:
     CavedogRegistryKey(char readOnly, char* app, char* section);
     ~CavedogRegistryKey();
     DWORD ReadDword(LPCSTR name, DWORD minValue, DWORD maxValue, DWORD defaultValue);
+    // Reads a REG_DWORD value clamped to [minValue, maxValue], or returns
+    // defaultValue (signed counterpart of 0x4e2d90).
+    int ReadInt(LPCSTR name, int minValue, int maxValue, int defaultValue);
+    bool ReadBool(const char* param1, unsigned int param2);
+    void WriteBool(LPCSTR param1, DWORD param2);
+    void WriteDword(LPCSTR param_1, DWORD param_2);
+    void WriteInt(LPCSTR name, int value);
+    void ApplyDword(LPCSTR name, DWORD* value, DWORD minValue, DWORD maxValue, DWORD defaultValue);
+    void ApplyBool(char* name, bool* value, bool defaultValue);
     void ApplyInt(char* name, int* value, int minValue, int maxValue, int defaultValue);
     void ApplyInt2(char* name, int* value, int minValue, int maxValue, int defaultValue);
     void ApplyShort(char* name, short* value, short minValue, short maxValue, short defaultValue);
@@ -5949,31 +5479,7 @@ public:
 };
 
 
-class Class_004e2fe0 {
-public:
-    HKEY key;                        // +0x0
-    char reading;                    // +0x4
-    void ApplyBool(char* name, bool* value, bool defaultValue);
-};
 extern char* g_memoryStatusWindowName;
-
-class Class_004e0520 {
-public:
-    char unknown_0[0x79];
-    unsigned char workingSet;          // +0x79
-    void LoadWorkingSetPref(int readOnly);
-};
-
-// The original calls this from 0x4e0570 and HandleMemoryStatusMessage rather
-// than inlining it.
-#pragma auto_inline(off)
-// FUNCTION: 0x4e0520
-void Class_004e0520::LoadWorkingSetPref(int readOnly)
-{
-    CavedogRegistryKey key(readOnly, g_memoryStatusWindowName, "CavedogLibrary");
-    ((Class_004e2fe0*)&key)->ApplyBool("WorkingSet", (bool*)&workingSet, 0);
-}
-#pragma auto_inline(on)
 
 double __cdecl GetTimeSeconds();
 
@@ -5990,30 +5496,6 @@ struct Sub_004e0570 {
     Sub_004e0570() { memset(table, 0, sizeof(table)); }
 };
 
-class Class_004e0570 {
-public:
-    int field_0;                       // +0x00
-    int field_4;                       // +0x04
-    int field_8;                       // +0x08
-    int field_c;                       // +0x0c
-    double time;                       // +0x10
-    Sub_004e0570 sub;                  // +0x18
-    int unknown_74;                    // +0x74
-    unsigned char flag_78;             // +0x78
-    Class_004e0570();
-    // The empty inline destructor makes MSVC register the empty atexit thunk
-    // MemoryStatusAtexitHandler.
-    ~Class_004e0570() {}
-};
-
-class Class_004e05f0 {
-public:
-    HWND hwnd;                         // +0x00
-    char unknown_4[0x74];
-    char flag_78;                      // +0x78
-    void SetMemoryStatusWindowVisible(char on);
-};
-
 struct Rate_004e0b90 {
     double table[10]; double total; int index; int unknown_5c;
 };
@@ -6025,27 +5507,45 @@ public:
     int left;                          // +0x08
     int top;                           // +0x0c
     double time;                       // +0x10
-    Rate_004e0b90 rates;              // +0x18
+    Sub_004e0570 rates;                // +0x18
+    int unknown_74;                    // +0x74
     char flag_78;                      // +0x78
     unsigned char workingSet;          // +0x79
 
+    MemoryStatusDialog();
+    // The empty inline destructor makes MSVC register the empty atexit thunk
+    // MemoryStatusAtexitHandler.
+    ~MemoryStatusDialog() {}
     int HandleMemoryStatusMessage(unsigned int msg, int wParam, int lParam);
     void CreateMemoryStatusDialog();
+    void LoadWorkingSetPref(int readOnly);
+    void SetMemoryStatusWindowVisible(char on);
 };
+
+// The original calls this from 0x4e0570 and HandleMemoryStatusMessage rather
+// than inlining it.
+#pragma auto_inline(off)
+// FUNCTION: 0x4e0520
+void MemoryStatusDialog::LoadWorkingSetPref(int readOnly)
+{
+    CavedogRegistryKey key(readOnly, g_memoryStatusWindowName, "CavedogLibrary");
+    key.ApplyBool("WorkingSet", (bool*)&workingSet, 0);
+}
+#pragma auto_inline(on)
 
 // The original calls the constructor from GetMemoryStatusDialog rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e0570
-Class_004e0570::Class_004e0570()
+MemoryStatusDialog::MemoryStatusDialog()
 {
-    field_0 = 0;
+    hwnd = 0;
     field_4 = 0;
-    field_8 = -1;
-    field_c = -1;
+    left = -1;
+    top = -1;
     flag_78 = 0;
     time = GetTimeSeconds();
-    ((Class_004e0520*)this)->LoadWorkingSetPref(1);
-    ((MemoryStatusDialog*)this)->CreateMemoryStatusDialog();
+    LoadWorkingSetPref(1);
+    CreateMemoryStatusDialog();
 }
 #pragma auto_inline(on)
 
@@ -6072,7 +5572,7 @@ void UnloadPsapi(void);
 
 // The original calls this from HandleMemoryStatusMessage and ShowMemoryStatus
 // rather than inlining it.
-// 0x4e05f0 Class_004e05f0::SetMemoryStatusWindowVisible stays in src/debug/debug_lib_4e05f0.cpp: joined into
+// 0x4e05f0 MemoryStatusDialog::SetMemoryStatusWindowVisible stays in src/debug/debug_lib_4e05f0.cpp: joined into
 // this file its register allocation lands differently
 // (docs/c2-regalloc.md).
 
@@ -6343,25 +5843,25 @@ static void __inline fmt_004e0b90(char* buf, unsigned int n)
 // this file its register allocation lands differently
 // (docs/c2-regalloc.md).
 
-Class_004e0570* GetMemoryStatusDialog();
+MemoryStatusDialog* GetMemoryStatusDialog();
 
 // The original calls this from StartMemoryStatus rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e1400
 void ShowMemoryStatus()
 {
-    ((Class_004e05f0*)GetMemoryStatusDialog())->SetMemoryStatusWindowVisible(1);
+    GetMemoryStatusDialog()->SetMemoryStatusWindowVisible(1);
 }
 #pragma auto_inline(on)
 
-// Returns a function-local static Class_004e0570; the empty inline destructor
+// Returns a function-local static MemoryStatusDialog; the empty inline destructor
 // makes MSVC register the empty atexit thunk MemoryStatusAtexitHandler.
 // The original calls this from 0x4e1400 and 0x4e1460 rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e1410
-Class_004e0570* GetMemoryStatusDialog()
+MemoryStatusDialog* GetMemoryStatusDialog()
 {
-    static Class_004e0570 timer;
+    static MemoryStatusDialog timer;
     return &timer;
 }
 #pragma auto_inline(on)
@@ -6399,7 +5899,7 @@ MappedFile::MappedFile(const char* fileName)
     size = 0;
     state = 0;
     if (fileName != 0)
-        ((Class_004e1590*)this)->OpenMappedFile(fileName);
+        OpenMappedFile(fileName);
 }
 #pragma auto_inline(on)
 
@@ -6409,7 +5909,7 @@ MappedFile::MappedFile(const char* fileName)
 // The original calls this out of line from the mapped-file users.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e1590
-void Class_004e1590::OpenMappedFile(const char* fileName)
+void MappedFile::OpenMappedFile(const char* fileName)
 {
     hFile = CreateFileA(fileName, GENERIC_READ, FILE_SHARE_READ, NULL,
                         OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -6540,201 +6040,6 @@ void Class_004e18c0::Clear()
 }
 #pragma auto_inline(on)
 
-// The key: a C string ordered by strcmp.
-class NameKey {
-public:
-    char* name;                        // +0x0
-    bool LessThan(const NameKey& other) const;
-};
-
-struct Value_004e2250 {
-    char text[500];
-};
-
-struct Data1;
-struct Data2;
-typedef std::pair<const NameKey, Value_004e2250> Pair_004e2250;
-
-// std::less<key>.
-struct Less_004e2250 : public std::binary_function<NameKey, NameKey, bool> {
-    bool operator()(const NameKey& _X, const NameKey& _Y) const
-    {
-        return (_X.LessThan(_Y));
-    }
-};
-
-// std::map<...>::_Kfn.
-struct Kfn_004e2250 : public std::unary_function<Pair_004e2250, NameKey> {
-    const NameKey& operator()(const Pair_004e2250& _X) const
-    {
-        return (_X.first);
-    }
-};
-
-class Alloc_004e2b60 {
-public:
-    char* Allocate(unsigned int n);
-};
-
-enum _Redbl_004e2250 { _Red, _Black };
-
-struct Node_004e2250 {
-    void* _Left;                       // +0x0
-    void* _Parent;                     // +0x4
-    void* _Right;                      // +0x8
-    Pair_004e2250 _Value;              // +0xc
-    _Redbl_004e2250 _Color;            // +0x204
-};
-
-typedef Node_004e2250* _Nodeptr;
-
-// The members and static accessors of std::_Tree.
-// Kept as the XTREE bodies and accessors: the inline budget follows their shape.
-class Tree_004e2250 {
-public:
-    static _Redbl_004e2250& _Color(_Nodeptr _P)
-        {return ((_Redbl_004e2250&)(*_P)._Color); }
-    static const NameKey& _Key(_Nodeptr _P)
-        {return (Kfn_004e2250()(_Value(_P))); }
-    static _Nodeptr& _Left(_Nodeptr _P)
-        {return ((_Nodeptr&)(*_P)._Left); }
-    static _Nodeptr& _Parent(_Nodeptr _P)
-        {return ((_Nodeptr&)(*_P)._Parent); }
-    static _Nodeptr& _Right(_Nodeptr _P)
-        {return ((_Nodeptr&)(*_P)._Right); }
-    static Pair_004e2250& _Value(_Nodeptr _P)
-        {return ((Pair_004e2250&)(*_P)._Value); }
-    static _Nodeptr _Max(_Nodeptr _P)
-        {std::_Lockit _Lk;
-        while (_Right(_P) != DAT_005292c4)
-            _P = _Right(_P);
-        return (_P); }
-    _Nodeptr& _Lmost()
-        {return (_Left(_Head)); }
-    _Nodeptr& _Rmost()
-        {return (_Right(_Head)); }
-    _Nodeptr& _Root()
-        {return (_Parent(_Head)); }
-
-    Alloc_004e2b60 allocator;          // +0x0
-    Less_004e2250 key_compare;         // +0x1
-    _Nodeptr _Head;                    // +0x4
-    bool _Multi;                       // +0x8
-    unsigned int _Size;                // +0xc
-};
-
-// std::_Tree<...>::iterator; _Dec is 0x4e2ab0.
-// std::_Tree<...>::iterator; _Dec is 0x4e2ab0.
-class Class_004e2ab0 : public std::_Bidit<Pair_004e2250, int> {
-public:
-    Class_004e2ab0()
-        {}
-    Class_004e2ab0(_Nodeptr _P)
-        : _Ptr(_P) {}
-    Class_004e2ab0& operator--()
-        {PrevNode();
-        return (*this); }
-    bool operator==(const Class_004e2ab0& _X) const
-        {return (_Ptr == _X._Ptr); }
-    void PrevNode();
-    _Nodeptr _Mynode() const
-        {return (_Ptr); }
-protected:
-    _Nodeptr _Ptr;
-};
-// std::pair<iterator, bool>; its constructor is 0x4e2a10.
-// std::pair<iterator, bool>; its constructor is 0x4e2a10.
-class Class_004e2a10 {
-public:
-    Class_004e2a10(const Class_004e2ab0& _V1, const bool& _V2)
-        : first(_V1), second(_V2) {}
-    Class_004e2a10* Assign(const Data1* param_1, const Data2* param_2);
-    Class_004e2ab0 first;
-    bool second;
-};
-// _Rrotate (0x4e29b0).
-// _Rrotate (0x4e29b0).
-class Class_004e29b0 : public Tree_004e2250 {
-public:
-    void RotateRight(_Nodeptr _X);
-};
-// _Lrotate (0x4e2950).
-// _Lrotate (0x4e2950).
-class Class_004e2950 : public Class_004e29b0 {
-public:
-    void RotateLeft(_Nodeptr _X);
-};
-// _Buynode (0x4e2a30).
-// _Buynode (0x4e2a30).
-class Class_004e2a30 : public Class_004e2950 {
-public:
-    _Nodeptr CreateNode(_Nodeptr _Parg, _Redbl_004e2250 _Carg);
-    void _Consval(Pair_004e2250* _P, const Pair_004e2250& _V)
-        {std::_Construct(&*_P, _V); }
-};
-// _Insert (0x4e2620).
-class Class_004e2620 : public Class_004e2a30 {
-public:
-    Class_004e2ab0 Insert(_Nodeptr _X, _Nodeptr _Y, const Pair_004e2250& _V)
-        {std::_Lockit _Lk;
-        _Nodeptr _Z = CreateNode(_Y, _Red);
-        _Left(_Z) = (_Nodeptr)DAT_005292c4, _Right(_Z) = (_Nodeptr)DAT_005292c4;
-        _Consval(&_Value(_Z), _V);
-        ++_Size;
-        if (_Y == _Head || _X != DAT_005292c4
-            || key_compare(Kfn_004e2250()(_V), _Key(_Y)))
-            {_Left(_Y) = _Z;
-            if (_Y == _Head)
-                {_Root() = _Z;
-                _Rmost() = _Z; }
-            else if (_Y == _Lmost())
-                _Lmost() = _Z; }
-        else
-            {_Right(_Y) = _Z;
-            if (_Y == _Rmost())
-                _Rmost() = _Z; }
-        for (_X = _Z; _X != _Root()
-            && _Color(_Parent(_X)) == _Red; )
-            if (_Parent(_X) == _Left(_Parent(_Parent(_X))))
-                {_Y = _Right(_Parent(_Parent(_X)));
-                if (_Color(_Y) == _Red)
-                    {_Color(_Parent(_X)) = _Black;
-                    _Color(_Y) = _Black;
-                    _Color(_Parent(_Parent(_X))) = _Red;
-                    _X = _Parent(_Parent(_X)); }
-                else
-                    {if (_X == _Right(_Parent(_X)))
-                        {_X = _Parent(_X);
-                        RotateLeft(_X); }
-                    _Color(_Parent(_X)) = _Black;
-                    _Color(_Parent(_Parent(_X))) = _Red;
-                    RotateRight(_Parent(_Parent(_X))); }}
-            else
-                {_Y = _Left(_Parent(_Parent(_X)));
-                if (_Color(_Y) == _Red)
-                    {_Color(_Parent(_X)) = _Black;
-                    _Color(_Y) = _Black;
-                    _Color(_Parent(_Parent(_X))) = _Red;
-                    _X = _Parent(_Parent(_X)); }
-                else
-                    {if (_X == _Left(_Parent(_X)))
-                        {_X = _Parent(_X);
-                        RotateRight(_X); }
-                    _Color(_Parent(_X)) = _Black;
-                    _Color(_Parent(_Parent(_X))) = _Red;
-                    RotateLeft(_Parent(_Parent(_X))); }}
-        _Color(_Root()) = _Black;
-        return (Class_004e2ab0(_Z)); }
-};
-
-// std::_Tree<...>::insert(const value_type&).
-class Class_004e2250 : public Class_004e2620 {
-public:
-    Class_004e2ab0 begin()
-        {return (Class_004e2ab0(_Lmost())); }
-    Class_004e2a10 InsertOrFind(const Pair_004e2250& _V);
-};
-
 class CritSec_004e1ac0 {
 public:
     CRITICAL_SECTION cs;
@@ -6807,12 +6112,6 @@ extern EventEntry g_pentiumProEvents[];
 extern EventEntry g_pentiumEvents[];
 extern EventEntry g_pmcEvent1;         // "Event1"
 
-class Class_004e2e20 {
-public:
-    HKEY key;                        // +0x0
-    char reading;                    // +0x4
-    void ApplyDword(LPCSTR name, DWORD* value, DWORD minValue, DWORD maxValue, DWORD defaultValue);
-};
 extern unsigned char g_perfEnabled;
 extern unsigned char g_perfRaisePriority;
 extern unsigned char g_perfDisplayInDebugger;
@@ -6826,13 +6125,13 @@ extern unsigned char g_perfAutoPairing;
 void __cdecl SyncPerformanceSettings(int readOnly)
 {
     CavedogRegistryKey key(readOnly, "PerformanceSettings", "CavedogLibrary");
-    ((Class_004e2fe0*)&key)->ApplyBool("EnabledInRelease", (bool*)&g_perfEnabled, 0);
-    ((Class_004e2fe0*)&key)->ApplyBool("RaisePriority", (bool*)&g_perfRaisePriority, 1);
-    ((Class_004e2fe0*)&key)->ApplyBool("DisplayInDebugger", (bool*)&g_perfDisplayInDebugger, 0);
-    ((Class_004e2fe0*)&key)->ApplyBool("DisplayInWindow", (bool*)&g_perfDisplayInWindow, 1);
-    ((Class_004e2fe0*)&key)->ApplyBool("AutoPairing", (bool*)&g_perfAutoPairing, 1);
-    ((Class_004e2e20*)&key)->ApplyDword("Event0", (DWORD*)&g_pmcEvent0, 0, -1, 0);
-    ((Class_004e2e20*)&key)->ApplyDword("Event1", (DWORD*)&g_pmcEvent1, 0, -1, 0);
+    key.ApplyBool("EnabledInRelease", (bool*)&g_perfEnabled, 0);
+    key.ApplyBool("RaisePriority", (bool*)&g_perfRaisePriority, 1);
+    key.ApplyBool("DisplayInDebugger", (bool*)&g_perfDisplayInDebugger, 0);
+    key.ApplyBool("DisplayInWindow", (bool*)&g_perfDisplayInWindow, 1);
+    key.ApplyBool("AutoPairing", (bool*)&g_perfAutoPairing, 1);
+    key.ApplyDword("Event0", (DWORD*)&g_pmcEvent0, 0, -1, 0);
+    key.ApplyDword("Event1", (DWORD*)&g_pmcEvent1, 0, -1, 0);
 }
 #pragma auto_inline(on)
 
@@ -6842,30 +6141,6 @@ int GetCpuFamily(void);
 // 0x4e1be0 InitPerformanceEvents stays in src/debug/debug_lib_4e1be0.cpp: joined into
 // this file its register allocation lands differently
 // (docs/c2-regalloc.md).
-
-class Class_004e1d60 {
-public:
-    char unknown_0[0x40];
-    int field_40;                      // +0x40
-    int field_44;                      // +0x44
-    char field_48;                     // +0x48
-    char boosted;                      // +0x49
-    char unknown_4a[2];
-    DWORD oldPriorityClass;            // +0x4c
-    int oldThreadPriority;             // +0x50
-
-    void StartTimer(int a, int b);
-};
-
-class Class_004e20a0 {
-public:
-    double RestartTimer();
-};
-
-class Class_004e1e50 {
-public:
-    void ReportElapsedTime(char* text);
-};
 
 extern int g_reportIndent;
 extern char g_reportIndentText[];
@@ -6877,7 +6152,7 @@ public:
     double time;                       // +0x00
     char unknown_8[0x18 - 0x8];
     double history[5];                 // +0x18, the last five sample times
-    char unknown_40[0x44 - 0x40];
+    int flags;                         // +0x40
     char* name;                        // +0x44
     char stopped;                      // +0x48
     char boosted;                      // +0x49
@@ -6894,6 +6169,10 @@ public:
     void AddElapsed(double delta);
     void SetElapsed(double elapsed);
     double ComputeSampleRate();
+    void StartTimer(int a, int b);
+    double RestartTimer();
+    void ReportElapsedTime(char* text);
+    void StopTimer();
 };
 
 // A timer object: starts timing (0x4e1d60, which saves and raises the thread
@@ -6901,8 +6180,8 @@ public:
 // FUNCTION: 0x4e1d20 ??0Timer@@QAE@H@Z
 Timer::Timer(int param_1)
 {
-    ((Class_004e1d60*)this)->StartTimer(0, param_1);
-    ((Class_004e20a0*)this)->RestartTimer();
+    StartTimer(0, param_1);
+    RestartTimer();
 }
 
 // A second constructor of the timer object of 0x4e1d20: starts timing
@@ -6910,17 +6189,17 @@ Timer::Timer(int param_1)
 // FUNCTION: 0x4e1d40 ??0Timer@@QAE@HH@Z
 Timer::Timer(int a, int b)
 {
-    ((Class_004e1d60*)this)->StartTimer(a, b);
+    StartTimer(a, b);
 }
 
 // The original calls this from the two Timer constructors rather than
 // inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e1d60
-void Class_004e1d60::StartTimer(int a, int b)
+void Timer::StartTimer(int a, int b)
 {
-    field_40 = b;
-    field_44 = a;
+    flags = b;
+    name = (char*)a;
     g_reportIndentText[g_reportIndent++] = 9;
     boosted = g_perfRaisePriority;
     if (boosted) {
@@ -6931,7 +6210,7 @@ void Class_004e1d60::StartTimer(int a, int b)
         oldPriorityClass = GetPriorityClass(process);
         SetPriorityClass(process, HIGH_PRIORITY_CLASS);
     }
-    ((Class_004e20a0*)this)->RestartTimer();
+    RestartTimer();
 }
 #pragma auto_inline(on)
 
@@ -6944,7 +6223,7 @@ Timer::~Timer()
 {
     g_reportIndentText[--g_reportIndent] = 0;
     if (name) {
-        ((Class_004e1e50*)this)->ReportElapsedTime(0);
+        ReportElapsedTime(0);
     }
     if (boosted) {
         HANDLE process = GetCurrentProcess();
@@ -6973,21 +6252,11 @@ double Timer::GetElapsedSeconds()
 // 0x4e1e50 and 0x4e20a0 (src/debug/debug_lib_4e1e50.cpp) stay in their own
 // file: it is the source of a gap region and uses inline rdpmc.
 
-// The timer's elapsed-time getter (0x4e1e30), a method on the same object.
-struct Class_004e2150 {
-public:
-    double field_0;
-    char unknown_8[0x40];
-    unsigned char field_48;
-    
-    void StopTimer();
-};
-
 // FUNCTION: 0x4e2150
-void Class_004e2150::StopTimer()
+void Timer::StopTimer()
 {
-    field_0 = ((Timer*)this)->GetElapsedSeconds();
-    field_48 = 1;
+    time = GetElapsedSeconds();
+    stopped = 1;
 }
 
 // FUNCTION: 0x4e2160
@@ -7045,7 +6314,7 @@ Iter_004e18c0 Class_004e2240::Begin()
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4e2250
-Class_004e2a10 Class_004e2250::InsertOrFind(const Pair_004e2250& _V)
+NameMapInsertResult NameMapTree::InsertOrFind(const Pair_004e2250& _V)
 {
     _Nodeptr _X = _Root();
     _Nodeptr _Y = _Head;
@@ -7059,25 +6328,25 @@ Class_004e2a10 Class_004e2250::InsertOrFind(const Pair_004e2250& _V)
         }
     }
     if (_Multi)
-        return (Class_004e2a10(Insert(_X, _Y, _V), true));
-    Class_004e2ab0 _P = Class_004e2ab0(_Y);
+        return (NameMapInsertResult(Insert(_X, _Y, _V), true));
+    NameMapIter _P = NameMapIter(_Y);
     if (!_Ans)
         ;
     else if (_P == begin())
-        return (Class_004e2a10(Insert(_X, _Y, _V), true));
+        return (NameMapInsertResult(Insert(_X, _Y, _V), true));
     else
         --_P;
     if (key_compare(_Key(_P._Mynode()), Kfn_004e2250()(_V)))
-        return (Class_004e2a10(Insert(_X, _Y, _V), true));
-    return (Class_004e2a10(_P, false));
+        return (NameMapInsertResult(Insert(_X, _Y, _V), true));
+    return (NameMapInsertResult(_P, false));
 }
 
 // 0x4e2580 (src/debug/debug_lib_4e2580.cpp) stays in its own file: its view
-// of Class_004e2580 is keyed by const char* and returns Iter_004e2580, which
+// of NameMapTree is keyed by const char* and returns Iter_004e2580, which
 // cannot be one class with the NameKey-keyed view the tree methods above use.
 // 0x4e2620 (src/debug/debug_lib_4e2620.cpp) stays in its own file: its
-// Class_004e2620 carries the tree's fields and its own _Lrotate/_Rrotate,
-// while 0x4e2250's Class_004e2620 inherits them from the XTREE chain above.
+// NameMapTree carries the tree's fields and its own _Lrotate/_Rrotate,
+// while 0x4e2250's NameMapTree inherits them from the XTREE chain above.
 // The std::_Tree rotations and node allocators, the Cavedog registry key
 // helper with the window position save and restore, and the GDPERF driver
 // calls. 0x4e35b0 (OpenGdperf) is in a gap region and stays in its own file.
@@ -7098,7 +6367,7 @@ extern bool g_gdperfDriverReady;       // the driver is open
 extern int g_cpuFamily;                // the CPU family
 
 // FUNCTION: 0x4e2950
-void Class_004e2950::RotateLeft(_Nodeptr _X)
+void NameMapTree::RotateLeft(_Nodeptr _X)
 {
     std::_Lockit _Lk;
     _Nodeptr _Y = _Right(_X);
@@ -7117,7 +6386,7 @@ void Class_004e2950::RotateLeft(_Nodeptr _X)
 }
 
 // FUNCTION: 0x4e29b0
-void Class_004e29b0::RotateRight(_Nodeptr _X)
+void NameMapTree::RotateRight(_Nodeptr _X)
 {
     std::_Lockit _Lk;
     _Nodeptr _Y = _Left(_X);
@@ -7144,7 +6413,7 @@ struct Data2 {
 };
 
 // FUNCTION: 0x4e2a10
-Class_004e2a10* Class_004e2a10::Assign(const Data1* param_1, const Data2* param_2)
+NameMapInsertResult* NameMapInsertResult::Assign(const Data1* param_1, const Data2* param_2)
 {
     *(int*)&first = param_1->field_0;
     *(char*)&second = param_2->field_0;
@@ -7179,7 +6448,7 @@ static inline void* PoolAlloc(unsigned int n)
 }
 
 // FUNCTION: 0x4e2a30
-_Nodeptr Class_004e2a30::CreateNode(_Nodeptr _Parg, _Redbl_004e2250 _Carg)
+_Nodeptr NameMapTree::CreateNode(_Nodeptr _Parg, _Redbl_004e2250 _Carg)
 {
     // The original inlines the pool allocator into this definition (0x4e2b60
     // is its out-of-line copy).
@@ -7190,23 +6459,23 @@ _Nodeptr Class_004e2a30::CreateNode(_Nodeptr _Parg, _Redbl_004e2250 _Carg)
 }
 
 // FUNCTION: 0x4e2ab0
-void Class_004e2ab0::PrevNode()
+void NameMapIter::PrevNode()
 {
     std::_Lockit _Lk;
-    if (Tree_004e2250::_Color(_Ptr) == _Red
-        && Tree_004e2250::_Parent(Tree_004e2250::_Parent(_Ptr)) == _Ptr)
-        _Ptr = Tree_004e2250::_Right(_Ptr);
-    else if (Tree_004e2250::_Left(_Ptr) != DAT_005292c4)
-        _Ptr = Tree_004e2250::_Max(Tree_004e2250::_Left(_Ptr));
+    if (NameMapTree::_Color(_Ptr) == _Red
+        && NameMapTree::_Parent(NameMapTree::_Parent(_Ptr)) == _Ptr)
+        _Ptr = NameMapTree::_Right(_Ptr);
+    else if (NameMapTree::_Left(_Ptr) != DAT_005292c4)
+        _Ptr = NameMapTree::_Max(NameMapTree::_Left(_Ptr));
     else
         {_Nodeptr _P;
-        while (_Ptr == Tree_004e2250::_Left(_P = Tree_004e2250::_Parent(_Ptr)))
+        while (_Ptr == NameMapTree::_Left(_P = NameMapTree::_Parent(_Ptr)))
             _Ptr = _P;
         _Ptr = _P; }
 }
 
 // FUNCTION: 0x4e2b60
-void* Class_004e2b60::Allocate(unsigned int n)
+void* NameMapAllocator::Allocate(unsigned int n)
 {
     if (g_nameMapFreeList == 0) {
         unsigned int rem = 0x2000;
@@ -7231,37 +6500,6 @@ void* Class_004e2b60::Allocate(unsigned int n)
     return p;
 }
 
-// Reads a REG_DWORD value clamped to [minValue, maxValue], or returns
-// defaultValue (signed counterpart of 0x4e2d90).
-class Class_004e2d00 {
-public:
-    HKEY key;                        // +0x00
-    int ReadInt(LPCSTR name, int minValue, int maxValue, int defaultValue);
-};
-
-class Class_004e2d70 {
-public:
-    HKEY field_0;
-
-    void WriteDword(LPCSTR param_1, DWORD param_2);
-};
-
-class Class_004e2cc0 {
-public:
-    bool ReadBool(const char* param1, unsigned int param2);
-};
-
-class Class_004e2ce0 {
-public:
-    void WriteBool(LPCSTR param1, DWORD param2);
-};
-
-class Class_004e2e00 {
-public:
-    HKEY key;                          // +0x0
-
-    void WriteInt(LPCSTR name, int value);
-};
 
 // Registry key helper: the constructor opens (or creates) a key under
 // HKCU\Software\Cavedog Entertainment, the destructor is empty.
@@ -7307,9 +6545,9 @@ CavedogRegistryKey::~CavedogRegistryKey()
 // The original calls this out of line from RestoreWindowPosition.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e2cc0
-bool Class_004e2cc0::ReadBool(const char* param1, unsigned int param2)
+bool CavedogRegistryKey::ReadBool(const char* param1, unsigned int param2)
 {
-    int r = ((Class_004e2d00*)this)->ReadInt(param1, 0, 1, param2 & 0xff);
+    int r = ReadInt(param1, 0, 1, param2 & 0xff);
     return r != 0 ? true : false;
 }
 #pragma auto_inline(on)
@@ -7317,16 +6555,16 @@ bool Class_004e2cc0::ReadBool(const char* param1, unsigned int param2)
 // The original calls this out of line from SaveWindowPosition.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e2ce0
-void Class_004e2ce0::WriteBool(LPCSTR param1, DWORD param2)
+void CavedogRegistryKey::WriteBool(LPCSTR param1, DWORD param2)
 {
-    ((Class_004e2d70*)this)->WriteDword(param1, param2 & 0xff);
+    WriteDword(param1, param2 & 0xff);
 }
 #pragma auto_inline(on)
 
 // The original calls this out of line from its callers.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e2d00
-int Class_004e2d00::ReadInt(LPCSTR name, int minValue, int maxValue, int defaultValue)
+int CavedogRegistryKey::ReadInt(LPCSTR name, int minValue, int maxValue, int defaultValue)
 {
     int value;
     DWORD size = 4;
@@ -7348,8 +6586,8 @@ int Class_004e2d00::ReadInt(LPCSTR name, int minValue, int maxValue, int default
 // The original calls this out of line from its callers.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e2d70
-void Class_004e2d70::WriteDword(LPCSTR param_1, DWORD param_2) {
-    RegSetValueExA(field_0, param_1, 0, REG_DWORD, (LPBYTE)&param_2, 4);
+void CavedogRegistryKey::WriteDword(LPCSTR param_1, DWORD param_2) {
+    RegSetValueExA(key, param_1, 0, REG_DWORD, (LPBYTE)&param_2, 4);
 }
 #pragma auto_inline(on)
 
@@ -7379,7 +6617,7 @@ DWORD CavedogRegistryKey::ReadDword(LPCSTR name, DWORD minValue, DWORD maxValue,
 // The original calls this out of line from 0x4e2e20.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e2e00
-void Class_004e2e00::WriteInt(LPCSTR name, int value)
+void CavedogRegistryKey::WriteInt(LPCSTR name, int value)
 {
     RegSetValueExA(key, name, 0, REG_DWORD, (LPBYTE)&value, 4);
 }
@@ -7391,12 +6629,12 @@ void Class_004e2e00::WriteInt(LPCSTR name, int value)
 // The original calls this out of line from the performance settings.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e2e20
-void Class_004e2e20::ApplyDword(LPCSTR name, DWORD* value, DWORD minValue, DWORD maxValue, DWORD defaultValue)
+void CavedogRegistryKey::ApplyDword(LPCSTR name, DWORD* value, DWORD minValue, DWORD maxValue, DWORD defaultValue)
 {
-    if (reading) {
-        *value = ((CavedogRegistryKey*)this)->ReadDword(name, minValue, maxValue, defaultValue);
+    if (readOnly) {
+        *value = ReadDword(name, minValue, maxValue, defaultValue);
     } else {
-        ((Class_004e2e00*)this)->WriteInt(name, *value);
+        WriteInt(name, *value);
     }
 }
 #pragma auto_inline(on)
@@ -7407,9 +6645,9 @@ void Class_004e2e20::ApplyDword(LPCSTR name, DWORD* value, DWORD minValue, DWORD
 void CavedogRegistryKey::ApplyInt(char* name, int* value, int minValue, int maxValue, int defaultValue)
 {
     if (readOnly) {
-        *value = ((Class_004e2d00*)this)->ReadInt(name, minValue, maxValue, defaultValue);
+        *value = ReadInt(name, minValue, maxValue, defaultValue);
     } else {
-        ((Class_004e2d70*)this)->WriteDword(name, *value);
+        WriteDword(name, *value);
     }
 }
 
@@ -7419,9 +6657,9 @@ void CavedogRegistryKey::ApplyInt(char* name, int* value, int minValue, int maxV
 void CavedogRegistryKey::ApplyInt2(char* name, int* value, int minValue, int maxValue, int defaultValue)
 {
     if (readOnly) {
-        *value = ((Class_004e2d00*)this)->ReadInt(name, minValue, maxValue, defaultValue);
+        *value = ReadInt(name, minValue, maxValue, defaultValue);
     } else {
-        ((Class_004e2d70*)this)->WriteDword(name, *value);
+        WriteDword(name, *value);
     }
 }
 
@@ -7429,9 +6667,9 @@ void CavedogRegistryKey::ApplyInt2(char* name, int* value, int minValue, int max
 void CavedogRegistryKey::ApplyShort(char* name, short* value, short minValue, short maxValue, short defaultValue)
 {
     if (readOnly) {
-        *value = ((Class_004e2d00*)this)->ReadInt(name, minValue, maxValue, defaultValue);
+        *value = ReadInt(name, minValue, maxValue, defaultValue);
     } else {
-        ((Class_004e2d70*)this)->WriteDword(name, *value);
+        WriteDword(name, *value);
     }
 }
 
@@ -7439,9 +6677,9 @@ void CavedogRegistryKey::ApplyShort(char* name, short* value, short minValue, sh
 void CavedogRegistryKey::ApplyWord(char* name, unsigned short* value, unsigned short minValue, unsigned short maxValue, unsigned short defaultValue)
 {
     if (readOnly) {
-        *value = ((Class_004e2d00*)this)->ReadInt(name, minValue, maxValue, defaultValue);
+        *value = ReadInt(name, minValue, maxValue, defaultValue);
     } else {
-        ((Class_004e2d70*)this)->WriteDword(name, *value);
+        WriteDword(name, *value);
     }
 }
 
@@ -7449,9 +6687,9 @@ void CavedogRegistryKey::ApplyWord(char* name, unsigned short* value, unsigned s
 void CavedogRegistryKey::ApplyChar(char* name, char* value, char minValue, char maxValue, char defaultValue)
 {
     if (readOnly) {
-        *value = ((Class_004e2d00*)this)->ReadInt(name, minValue, maxValue, defaultValue);
+        *value = ReadInt(name, minValue, maxValue, defaultValue);
     } else {
-        ((Class_004e2d70*)this)->WriteDword(name, *value);
+        WriteDword(name, *value);
     }
 }
 
@@ -7461,12 +6699,12 @@ void CavedogRegistryKey::ApplyChar(char* name, char* value, char minValue, char 
 // The original calls this out of line from the memory status dialog.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e2fe0
-void Class_004e2fe0::ApplyBool(char* name, bool* value, bool defaultValue)
+void CavedogRegistryKey::ApplyBool(char* name, bool* value, bool defaultValue)
 {
-    if (reading) {
-        *value = ((Class_004e2d00*)this)->ReadInt(name, 0, 1, defaultValue) ? true : false;
+    if (readOnly) {
+        *value = ReadInt(name, 0, 1, defaultValue) ? true : false;
     } else {
-        ((Class_004e2d70*)this)->WriteDword(name, *value);
+        WriteDword(name, *value);
     }
 }
 #pragma auto_inline(on)
@@ -7475,9 +6713,9 @@ void Class_004e2fe0::ApplyBool(char* name, bool* value, bool defaultValue)
 void CavedogRegistryKey::ApplyByte(char* name, unsigned char* value, unsigned char minValue, unsigned char maxValue, unsigned char defaultValue)
 {
     if (readOnly) {
-        *value = ((Class_004e2d00*)this)->ReadInt(name, minValue, maxValue, defaultValue);
+        *value = ReadInt(name, minValue, maxValue, defaultValue);
     } else {
-        ((Class_004e2d70*)this)->WriteDword(name, *value);
+        WriteDword(name, *value);
     }
 }
 
@@ -7516,17 +6754,17 @@ unsigned char __cdecl RestoreWindowPosition(HWND hwnd, char* name, double zoomX,
     strncat(buf, name, sizeof(buf) - 1 - strlen(buf));
 
     CavedogRegistryKey key(1, buf, "Cavedog library");
-    x = ((Class_004e2d00*)&key)->ReadInt("LeftEdge", -500, 50000, -500);
-    y = ((Class_004e2d00*)&key)->ReadInt("TopEdge", -500, 50000, -500);
+    x = key.ReadInt("LeftEdge", -500, 50000, -500);
+    y = key.ReadInt("TopEdge", -500, 50000, -500);
 
     long style = GetWindowLongA(hwnd, GWL_STYLE);
     resizable = false;
     GetWindowRect(hwnd, &cur);
     if ((style & WS_THICKFRAME) == WS_THICKFRAME) {
         resizable = true;
-        w = ((Class_004e2d00*)&key)->ReadInt("Width", 0, work.right - work.left, 0);
-        h = ((Class_004e2d00*)&key)->ReadInt("Height", 0, work.bottom - work.top, 0);
-        zoomed = ((Class_004e2cc0*)&key)->ReadBool("Zoomed", 0);
+        w = key.ReadInt("Width", 0, work.right - work.left, 0);
+        h = key.ReadInt("Height", 0, work.bottom - work.top, 0);
+        zoomed = key.ReadBool("Zoomed", 0);
         if (w < 100) {
             w = 100;
         }
@@ -7615,12 +6853,12 @@ void __cdecl SaveWindowPosition(HWND hwnd, char* name)
         if (r.top <= -500) {
             r.top = -499;
         }
-        ((Class_004e2d70*)&key)->WriteDword("LeftEdge", r.left);
-        ((Class_004e2d70*)&key)->WriteDword("TopEdge", r.top);
+        key.WriteDword("LeftEdge", r.left);
+        key.WriteDword("TopEdge", r.top);
         if ((GetWindowLongA(hwnd, GWL_STYLE) & WS_THICKFRAME) == WS_THICKFRAME) {
-            ((Class_004e2d70*)&key)->WriteDword("Width", r.right);
-            ((Class_004e2d70*)&key)->WriteDword("Height", r.bottom);
-            ((Class_004e2ce0*)&key)->WriteBool("Zoomed", IsZoomed(hwnd) != 0);
+            key.WriteDword("Width", r.right);
+            key.WriteDword("Height", r.bottom);
+            key.WriteBool("Zoomed", IsZoomed(hwnd) != 0);
         }
     }
 }

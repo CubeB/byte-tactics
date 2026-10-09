@@ -16,33 +16,21 @@ struct Node_004dfd50 {
 // The tree's iterator (std::_Tree<...>::iterator); passed by value and
 // returned by value, so the caller supplies a hidden return buffer.
 // Hand-written <xtree>, not <map>: only classes with the literal callee names
-// (Class_004e03f0, Class_004e0450, Class_004dfea0) produce those symbols.
-class Class_004e0450 {
+// (NameMapTree, NameMapIter, NameMapTree) produce those symbols.
+class NameMapIter {
 public:
     Node_004dfd50* ptr;                // +0x0
 
     void NextNode();                   // _Inc
-    Class_004e0450& operator++() { NextNode(); return *this; }
-    Class_004e0450 operator++(int)
+    NameMapIter& operator++() { NextNode(); return *this; }
+    NameMapIter operator++(int)
     {
-        Class_004e0450 t = *this;
+        NameMapIter t = *this;
         ++*this;
         return t;
     }
-    bool operator==(const Class_004e0450& x) const { return ptr == x.ptr; }
-    bool operator!=(const Class_004e0450& x) const { return !(*this == x); }
-};
-
-// std::_Tree<...>::_Erase(_Nodeptr): frees a whole subtree.
-class Class_004e03f0 {
-public:
-    void EraseSubtree(Node_004dfd50* x);
-};
-
-// std::_Tree<...>::erase(iterator): erases one node, returns the next.
-class Class_004dfea0 {
-public:
-    Class_004e0450 Erase(Class_004e0450 it);
+    bool operator==(const NameMapIter& x) const { return ptr == x.ptr; }
+    bool operator!=(const NameMapIter& x) const { return !(*this == x); }
 };
 
 // _Nil and _Nilrefs are shared with the instantiation in 0x4e17c0.
@@ -53,7 +41,7 @@ extern unsigned int DAT_00529500;      // tree _Nilrefs
 // The map's _Tree. Only the fields the destructor touches are modelled:
 // the empty pooled allocator and comparator occupy +0x0, _Head sits at +0x4,
 // _Multi at +0x8 and _Size at +0xc, exactly as in <xtree>.
-class Tree_004dfd50 {
+class NameMapTree {
 public:
     char unknown_0[4];
     Node_004dfd50* _Head;              // +0x4
@@ -65,19 +53,23 @@ public:
     Node_004dfd50* &_Lmost() const { return _Head->left; }
     Node_004dfd50* &_Rmost() const { return _Head->right; }
     unsigned int size() const { return _Size; }
-    Class_004e0450 begin() const { Class_004e0450 i; i.ptr = _Head->left; return i; }
-    Class_004e0450 end() const { Class_004e0450 i; i.ptr = _Head; return i; }
+    // std::_Tree<...>::_Erase(_Nodeptr): frees a whole subtree.
+    void EraseSubtree(Node_004dfd50* x);
+    // std::_Tree<...>::erase(iterator): erases one node, returns the next.
+    NameMapIter Erase(NameMapIter it);
+    NameMapIter begin() const { NameMapIter i; i.ptr = _Head->left; return i; }
+    NameMapIter end() const { NameMapIter i; i.ptr = _Head; return i; }
 
     // Shaped exactly like the MSVC 5 STL, including the dead `_F != begin()` test.
-    Class_004e0450 erase(Class_004e0450 _F, Class_004e0450 _L)
+    NameMapIter erase(NameMapIter _F, NameMapIter _L)
     {
         if (size() == 0 || _F != begin() || _L != end()) {
             while (_F != _L)
-                ((Class_004dfea0*)this)->Erase(_F++);
+                Erase(_F++);
             return _F;
         } else {
             std::_Lockit Lk;
-            ((Class_004e03f0*)this)->EraseSubtree(_Root());
+            EraseSubtree(_Root());
             _Root() = DAT_005292c4;
             _Size = 0;
             _Lmost() = _Head;
@@ -86,7 +78,7 @@ public:
         }
     }
 
-    ~Tree_004dfd50()
+    ~NameMapTree()
     {
         erase(begin(), end());
         // Loaded nodes kept in locals (h, n) for the free-list push: re-reading shifts registers.
@@ -112,15 +104,15 @@ public:
 
 // The object at 0x5292d0 (0x4df1e0 builds it, 0x4dfd10 hands it out): only
 // its map at +0x21c has anything to destroy.
-class Class_004df1e0 {
+class PerformanceDialog {
 public:
     char unknown_0[0x21c];
-    Tree_004dfd50 map;                 // +0x21c
+    NameMapTree map;                 // +0x21c
     bool changed;                      // +0x22c
 };
 
 // FUNCTION: 0x4dfd50 _$E2
 void trigger_004dfd50()
 {
-    static Class_004df1e0 obj;
+    static PerformanceDialog obj;
 }

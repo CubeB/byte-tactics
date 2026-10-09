@@ -39,13 +39,12 @@ public:
     }
 };
 
-class NameTable;
-NameTable* GetNameTable();
-
-class Class_004e1990 {
+class NameTable {
 public:
     void Upsert(const NameKey& key);
 };
+
+NameTable* GetNameTable();
 
 // A named timer that also reads the two performance counters.
 class Timer {
@@ -110,7 +109,7 @@ void Timer::ReportElapsedTime(const char* label)
     if (g_perfDisplayInWindow) {
         NameKey report(label);
         strcpy(report.text, text);
-        ((Class_004e1990*)GetNameTable())->Upsert(report);
+        GetNameTable()->Upsert(report);
     }
 }
 

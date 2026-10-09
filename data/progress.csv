@@ -1264,7 +1264,7 @@ address,size,file,symbol,status,similarity
 0x461860,56,src/network/packets.cpp,?ReleaseAllChannels@PacketManager@@QAEXXZ,matched,100.0
 0x4618a0,84,src/network/packets.cpp,?SendAllQueued@PacketManager@@QAEHH@Z,matched,100.0
 0x461900,144,src/network/packets.cpp,?SendFrameState@PacketManager@@QAEHHPAUMsg_00461900@@@Z,matched,100.0
-0x461990,27,src/network/packets.cpp,?QueueOnChannel@PacketManager@@QAEXHPAVPacketChannel@@HH@Z,matched,100.0
+0x461990,27,src/network/packets.cpp,?QueueOnChannel@PacketManager@@QAEHHPAVPacketChannel@@HH@Z,matched,100.0
 0x4619b0,46,src/network/packets.cpp,?QueuePacket@PacketManager@@QAEPAXHHPAXI@Z,matched,100.0
 0x4619e0,143,src/network/packets.cpp,?SetDefaultSendPacing@PacketManager@@QAEXH@Z,matched,100.0
 0x461a70,70,src/network/packets.cpp,??0PacketChannel@@QAE@XZ,matched,100.0

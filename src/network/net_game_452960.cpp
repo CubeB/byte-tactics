@@ -37,10 +37,7 @@ struct Game {
 
 #pragma pack(pop)
 
-class PacketManager {
-public:
-    int SendAllQueued(int param_1);
-};
+#include "packet_manager.h"
 
 extern Game* g_game;
 extern int g_usePacketManager;

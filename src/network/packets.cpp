@@ -361,7 +361,7 @@ public:
     void ReleaseAllChannels();
     int SendAllQueued(int param_1);
     int SendFrameState(int from, Msg_00461900* msg);
-    void QueueOnChannel(int param_1, PacketChannel* param_2, int param_3, int param_4);
+    int QueueOnChannel(int param_1, PacketChannel* param_2, int param_3, int param_4);
     void* QueuePacket(int param_1, int param_2, void* param_3, unsigned int param_4);
     void SetDefaultSendPacing(int rate);
     void HandleIntegrityNop(int, int, int);
@@ -660,12 +660,12 @@ int PacketManager::SendFrameState(int from, Msg_00461900* msg)
 // it) that ignores `this` and forwards to 0x462710 on the object it is
 // given, which that caller passes as &g_packetManager + 8.
 // FUNCTION: 0x461990
-void PacketManager::QueueOnChannel(int param_1, PacketChannel* param_2, int param_3, int param_4)
+int PacketManager::QueueOnChannel(int param_1, PacketChannel* param_2, int param_3, int param_4)
 {
     int a = param_4;
     int b = param_3;
     int c = param_1;
-    param_2->AddPacket(c, (void*)b, a);
+    return param_2->AddPacket(c, (void*)b, a);
 }
 
 // FUNCTION: 0x4619b0

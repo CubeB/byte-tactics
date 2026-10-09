@@ -145,6 +145,11 @@ static inline Vec3 Offset(short angle, int distance)
     return v;
 }
 
+// Declared here, defined after AirStrikeOrder: the definition's local object
+// is numbered before the function otherwise, which moves its register
+// allocation (docs/c2-regalloc.md).
+static inline void AttachMove(Order* order, const Vec3& dest, short radius);
+
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
 void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
@@ -201,9 +206,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
         if ((int)_hypot(order->pos.x - unit->pos.x, order->pos.z - unit->pos.z) < 0x1e00000) {
             int angle = GetHeadingBetween(up, op);
             Vec3 dest = unit->pos + Offset(angle, 0x8c00000);
-            Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
-            ((Class_0044e730*)obj)->SetApproachRadius(0x3c0);
-            ((Order*)order)->SetAttachedFx((int)obj);
+            AttachMove(order, dest, 0x3c0);
             order->flags |= 0xe2;
             return 1;
         }
@@ -219,9 +222,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
         int angle = GetHeadingBetween(up2, op2);
         int radius = dist / 2;
         Vec3 dest = unit->pos + Offset(RandomInt(0x4000) + angle - 0x2000, radius);
-        Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
-        ((Class_0044e730*)obj)->SetApproachRadius(0x1e0);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        AttachMove(order, dest, 0x1e0);
         order->flags = 0x100e8;
         return 1;
     }
@@ -257,18 +258,14 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
         SetWeaponTargetPos(unit, &order->pos, 0);
         int angle = GetHeadingBetween(&unit->pos, &order->pos);
         Vec3 dest = unit->pos + Offset(angle, (unit->def->attackrunlength + 0x3c0) << 16);
-        Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
-        ((Class_0044e730*)obj)->SetApproachRadius(0x3c0);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        AttachMove(order, dest, 0x3c0);
         order->flags = 0xe2;
         return 1;
     }
     case 6: {
         ClearWeaponTarget(unit, 0);
         Vec3 dest = unit->pos + Offset(unit->heading, 0x5a00000);
-        Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
-        ((Class_0044e730*)obj)->SetApproachRadius(0x80);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        AttachMove(order, dest, 0x80);
         order->flags = 0xe2;
         if (unit->health < unit->def->maxHealth / 4 * 3) {
             std::vector<Unit*> pads;
@@ -287,4 +284,11 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
     }
     }
     return 7;
+}
+
+static inline void AttachMove(Order* order, const Vec3& dest, short radius)
+{
+    Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
+    ((Class_0044e730*)obj)->SetApproachRadius(radius);
+    ((Order*)order)->SetAttachedFx((int)obj);
 }

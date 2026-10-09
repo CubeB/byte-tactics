@@ -33,7 +33,10 @@ class Object_004a1450;
 struct Dialog;
 struct Surface;
 struct Mode_0045e4c0;
-struct Gui_0045e100;
+struct Link_0045ead0;
+struct GadgetOwner_004605c0;
+struct Screen_0045e100;
+struct Gui;
 
 #pragma pack(push, 1)
 
@@ -217,14 +220,28 @@ union Los_0045cf60 {
     } bits;
 };
 
-// The GUI object at g_game+0x519: the logo GAF at +0x4, the menu's holder at
-// +0x18 and the settings block's changed flag at +0xcca.
-struct Gui_0045cf60 {
+// The GUI object at g_game+0x519. Its +0x04 is the logo GAF, its +0x18 the
+// layer above it, its +0x60 the id of the entry that was clicked (-1 when the
+// menu is closing), its +0xa2 the selection dirty flag and its +0xcca the
+// settings block's changed flag.
+struct Gui {
     char unknown_0[4];
     void* logos32;                     // +0x04 (g_game+0x51d)
     char unknown_8[0x18 - 0x8];
-    void* holder;                      // +0x18 (g_game+0x531)
-    char unknown_1c[0x8b2 - 0x1c];
+    union {                            // +0x18
+        Link_0045ead0* link;
+        GadgetOwner_004605c0* owner;
+        void* holder;
+        Screen_0045e100* top;
+    };
+    char unknown_1c[0x60 - 0x1c];
+    union {
+        int selected;                  // +0x60
+        int hotGadgetIndex;
+    };
+    char unknown_64[0xa2 - 0x64];
+    int field_a2;                      // +0xa2
+    char unknown_a6[0x8b2 - 0xa6];
     unsigned char field_dcb;           // +0x8b2 (g_game+0xdcb)
     char unknown_8b3[0xcca - 0x8b3];
     int field_cca;                     // +0xcca
@@ -289,7 +306,7 @@ struct Game {
     char unknown_14[0x519 - 0x14];
     union {
         Menu_0045b800 menu;            // +0x519, the menu helpers' view
-        Gui_0045cf60 gui;              // +0x519, the options screens' view
+        Gui gui;                       // +0x519, the options screens' view
     };
     char unknown_11e7[0x1b63 - 0x11e7];
     Player players[10];         // +0x1b63, the info pointer at +0x27
@@ -481,14 +498,6 @@ struct List_0045e5e0 {                 // the "SELECT VIDEO MODE" object
     char* buffer;                      // +0x14
 };
 
-struct Layer_0045e5e0 {                // object returned by LoadGuiLayer
-    char unknown_0[4];
-    Gadget* entries;           // +0x4
-    void (__stdcall* handler)(void*);  // +0x8
-    void* data;                        // +0xc
-    char unknown_10[0x15b];
-};
-
 struct Holder_0045e5e0 {
     char unknown_0[4];
     Gadget* entries;           // +0x4
@@ -503,12 +512,6 @@ struct Object_0045ed50 {
     char unknown_0[4];
     Gadget* entries;           // +0x04
     void (__stdcall* fn)(void* obj, int arg);   // +0x08
-};
-
-struct Layer_0045f1d0 {
-    int unknown_0;
-    Gadget* entries;           // +0x4
-    void (__stdcall* handler)(void*);  // +0x8
 };
 
 struct Rule_0045f1d0 {                 // 0x18 bytes, the record g_game->rules is
@@ -555,15 +558,6 @@ struct Sub_004608b0 {
 
 struct Sub_004609b0 {
     char unknown_0[0x10];
-};
-
-struct Gui_00460cc0 {
-    char unknown_0[0x18];
-    void* holder;                      // +0x18
-    char unknown_1c[0xa2 - 0x1c];
-    int field_a2;                      // +0xa2
-    char unknown_a6[0xcca - 0xa6];
-    int field_cca;                     // +0xcca
 };
 
 #pragma pack(pop)
@@ -635,24 +629,13 @@ struct GadgetOwner_004605c0 {
     int field_4;                       // +0x4
 };
 
-// The menu object at g_game+0x519: its +0x18 is the layer above, its +0x60 the
-// id of the entry that was clicked (-1 when the menu is closing).
-struct Gui {
-    char unknown_0[0x18];
-    union {                            // +0x18
-        Link_0045ead0* link;
-        GadgetOwner_004605c0* owner;
-    };
-    char unknown_1c[0x60 - 0x1c];
-    int selected;                      // +0x60
-};
-
 // A layer of the menu stack, what LoadGuiLayer returns: its gadget array and
 // the click handler.
 struct Layer {
     char unknown_0[0x4];
     Gadget* entries;                   // +0x4
     void (__stdcall* handler)(void*);  // +0x8
+    void* data;                        // +0xc
 };
 
 // The surface laid out by AllocSurface: the pixels follow a 0x30-byte header.
@@ -669,7 +652,7 @@ struct GafFrame {
     char unknown_8[0xc];
 };
 
-typedef int (__stdcall* Handler_0045e100)(Gui_0045e100*);
+typedef int (__stdcall* Handler_0045e100)(Gui*);
 
 struct Screen_0045e100 {
     Screen_0045e100* next;             // +0x0
@@ -687,20 +670,6 @@ struct FreeObj_0045e100 {
     void* field_14;                    // +0x14
 };
 
-struct Gui_0045e100 {
-    char unknown_0[0x18];
-    Screen_0045e100* top;              // +0x18
-    char unknown_1c[0x60 - 0x1c];
-    int hotGadgetIndex;                // +0x60
-};
-
-// A dialog loaded from a .GUI file.
-struct Dialog_004604a0 {
-    int unknown_0;
-    Gadget* gadgets;         // +0x4
-    void (__stdcall* handler)(void*); // +0x8
-};
-
 // The GUI system object, at g_game + 0x519.
 struct Menu_004604a0 {
     int unknown_0;
@@ -710,12 +679,6 @@ struct Menu_004604a0 {
     int unknown_10;
     int field_14;                     // +0x14
     char unknown_18[0x1c - 0x18];
-};
-
-struct Dialog_004608b0 {
-    int unknown_0;                     // +0x0
-    void* gadgets;                     // +0x4
-    void (__stdcall* handler)(void*);  // +0x8
 };
 
 // GLOBAL: 0x511de8
@@ -810,21 +773,20 @@ void __stdcall RenderLayer(Sub_0045cf60* sub, int value);
 void __stdcall RenderLayer(void* obj, int n);
 void __stdcall RenderLayer(Menu_0045de30* obj, int value);
 void __stdcall RenderLayer(Menu_0045e5e0* menu, int value);
-void __stdcall RenderLayer(Layer_0045f1d0* menu, int flag);
+void __stdcall RenderLayer(Layer* menu, int flag);
 void __stdcall RenderLayer(Sub_0045f800* sub, int value);
 void __stdcall RenderLayer(Sub_0045fb30* sub, int value);
 void __stdcall RenderLayer(Menu_00460160* menu, int value);
 void __stdcall RenderLayer(Sub_00460680* sub, int value);
 void __stdcall RenderLayer(Sub_004608b0* sub, int value);
 void __stdcall RenderLayer(Sub_004609b0* sub, int value);
-void __stdcall RenderLayer(Gui_00460cc0* sub, int value);
+void __stdcall RenderLayer(Gui* sub, int value);
 void __stdcall RenderLayer(char* menu, int value);
 
 void __stdcall MarkChanged(Sub_0045cf60* sub);
 void __stdcall MarkChanged(Dialog* obj);
 void __stdcall MarkChanged(void* obj);
 void __stdcall MarkChanged(Menu_0045de30* obj);
-void __stdcall MarkChanged(Gui_0045e100* gui);
 void __stdcall MarkChanged(Gui* gui);
 void __stdcall MarkChanged(Sub_0045f8c0* sub);
 void __stdcall MarkChanged(char* menu);
@@ -838,32 +800,32 @@ void FlipScreen();
 
 int __stdcall LoadGuiLayer(void* obj, char* buf, int size);
 int __stdcall LoadGuiLayer(Menu_0045de30* obj, char* name, int size);
-Layer_0045e5e0* __stdcall LoadGuiLayer(Menu_0045e5e0* menu, char* name, int flags);
-Layer_0045f1d0* __stdcall LoadGuiLayer(Layer_0045f1d0* menu, const char* name, int flags);
+Layer* __stdcall LoadGuiLayer(Menu_0045e5e0* menu, char* name, int flags);
+Layer* __stdcall LoadGuiLayer(Layer* menu, const char* name, int flags);
 Layer* __stdcall LoadGuiLayer(Sub_0045f800* sub, const char* name, int flags);
 Layer* __stdcall LoadGuiLayer(Sub_0045fb30* sub, const char* name, int flags);
-Dialog_004604a0* __stdcall LoadGuiLayer(Menu_004604a0* menu, const char* name, int flags);
+Layer* __stdcall LoadGuiLayer(Menu_004604a0* menu, const char* name, int flags);
 Layer* __stdcall LoadGuiLayer(Sub_00460680* sub, const char* name, int flags);
-Dialog_004608b0* __stdcall LoadGuiLayer(Sub_004608b0* sub, const char* name, int flags);
+Layer* __stdcall LoadGuiLayer(Sub_004608b0* sub, const char* name, int flags);
 Layer* __stdcall LoadGuiLayer(Sub_004609b0* sub, const char* name, int flags);
-Layer* __stdcall LoadGuiLayer(Gui_00460cc0* sub, const char* name, int flags);
+Layer* __stdcall LoadGuiLayer(Gui* sub, const char* name, int flags);
 
 void __stdcall SetGrayedOutByName(void* obj, char* name, int value);
 void __stdcall SetGrayedOutByName(Dialog* obj, char* name, int value);
-void __stdcall SetGrayedOut(Gui_00460cc0* sub, int index, int value);
+void __stdcall SetGrayedOut(Gui* sub, int index, int value);
 int __stdcall GetGadgetText(void* settings, const char* key, char* out);
 
 void __stdcall EnableKeyCommands(void* obj);
-void __stdcall EnableKeyCommands(Gui_00460cc0* sub);
+void __stdcall EnableKeyCommands(Gui* sub);
 void __stdcall DisableKeyCommands(Sub_004609b0* sub);
 void __stdcall SetKeyboardInput(void* obj, int value);
-void __stdcall SetKeyboardInput(Layer_0045f1d0* menu, int flag);
+void __stdcall SetKeyboardInput(Layer* menu, int flag);
 void __stdcall SetKeyboardInput(Menu_00460160* menu, int value);
 void __stdcall SetKeyboardInput(Menu_004604a0* menu, int value);
 void __stdcall SetKeyboardInput(Sub_00460680* sub, int value);
 void __stdcall SetKeyboardInput(Sub_004608b0* sub, int value);
 void __stdcall SetKeyboardInput(Sub_004609b0* sub, int value);
-void __stdcall SetKeyboardInput(Gui_00460cc0* sub, int value);
+void __stdcall SetKeyboardInput(Gui* sub, int value);
 
 int __stdcall SetButtonStageByName(void* obj, char* name, int value);
 int __stdcall SetButtonStageByName(Class_004a1080* obj, char* name, int value);
@@ -877,14 +839,12 @@ void __stdcall SetTranslatedTextByName(void* obj, char* name, char* text, int va
 void __stdcall SetTranslatedTextByName(Menu_004604a0* menu, const char* name, int value, int count);
 void __stdcall SetTranslatedTextByName(Sub_00460680* sub, const char* name, const char* text, int param_4);
 void __stdcall SetTranslatedTextByName(Sub_004608b0* sub, const char* name, int value, int param_4);
-void __stdcall SetTranslatedTextByName(Gui_00460cc0* sub, const char* name, const char* value, int flags);
+void __stdcall SetTranslatedTextByName(Gui* sub, const char* name, const char* value, int flags);
 
 int __stdcall IsCurrentGadgetNamed(void* obj, char* name);
-int __stdcall IsCurrentGadgetNamed(Gui_0045e100* gui, char* name);
 int __stdcall IsCurrentGadgetNamed(Gui* gui, char* name);
 
 int __stdcall GetButtonStageByName(void* obj, char* name);
-int __stdcall GetButtonStageByName(Gui_0045e100* gui, char* name);
 int __stdcall GetButtonStageByName(Gui* gui, char* name);
 
 void __stdcall PlaySoundByName(char* name, int value);
@@ -892,11 +852,9 @@ void __stdcall PlayLoopingSoundByName(char* name, int value);
 void __stdcall PlaySoundFile(char* name);
 void __stdcall StopAllSounds();
 void __stdcall ClearSelectedGadget(void* obj);
-void __stdcall ClearSelectedGadget(Gui_0045e100* gui);
 void __stdcall ClearSelectedGadget(Gui* gui);
 
 void __stdcall CloseTopScreen(void* queue);
-void __stdcall CloseTopScreen(Gui_0045e100* gui);
 void __stdcall CloseTopScreen(Gui* gui);
 void __stdcall SetGadgetStatusByName(void* obj, char* name, int value);
 void __stdcall SetGadgetStatusByName(Menu_0045e5e0* menu, char* name, int value);
@@ -916,7 +874,7 @@ void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 int __stdcall AddTextGadget(Layer_0045f8c0* layer, char* type, char* text, int x, int y,
                             int width, int attr);
-void __stdcall AddTextGadget(Layer_0045f1d0* layer, char* type, char* text, int x, int y,
+void __stdcall AddTextGadget(Layer* layer, char* type, char* text, int x, int y,
                              int width, int attr);
 char* __stdcall SkipTextLines(char* text, int n);
 char* __stdcall Translate(char* text);
@@ -955,7 +913,7 @@ void ShowSaveGameScreen();
 
 void __cdecl GameFreeThunk(void* p);
 void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
-int __stdcall IsScreenNamed(Gui_0045e100* gui, const char* name);
+int __stdcall IsScreenNamed(Gui* gui, const char* name);
 void __stdcall SortDisplayModes(List_0045e5e0* list);
 int __stdcall GetDisplayModes(List_0045e5e0* list);
 int FindHostSlot();
@@ -1600,7 +1558,7 @@ int __cdecl OpenOptionsLayout()
     } else {
         strcpy(buf, "STARTOPT.GUI");
     }
-    int result = LoadGuiLayer(&g_game->gui, buf, 0x80);
+    int result = LoadGuiLayer((void*)&g_game->gui, buf, 0x80);
     SetGrayedOutByName(&g_game->gui, "MUSIC", *(int*)g_game->sound == 0);
     EnableKeyCommands(&g_game->gui);
     if (g_game->bits_2a44.prefsWord.prefs && g_game->mode->GetGameType() != 3) {
@@ -1932,7 +1890,7 @@ void OpenSoundOptions()
 }
 
 // FUNCTION: 0x45e100
-void __stdcall HandleVisualOptionsClick(Gui_0045e100* gui)
+void __stdcall HandleVisualOptionsClick(Gui* gui)
 {
     int save = gui->hotGadgetIndex;
     Screen_0045e100* top = gui->top;
@@ -2063,13 +2021,13 @@ void __stdcall OpenVisualOptions(int param_1)
 {
     // Declared up front: esi holds this zero for the later args and stores.
     int i = 0;
-    Layer_0045e5e0* layer;
+    Layer* layer;
     Menu_0045e5e0* menu;
 
     if (param_1 != i) {
         layer = LoadGuiLayer((Menu_0045e5e0*)&g_game->gui, "SELVMODE.GUI", 0x800);
     } else {
-        layer = (Layer_0045e5e0*)OpenOptionsLayout();
+        layer = (Layer*)OpenOptionsLayout();
         RenderLayer(&g_game->gui, 2);
         EnsureOptionsPanelGadget();
         if (g_game->flags_37ebe.byte & 1) {
@@ -2335,7 +2293,7 @@ void ShowGameSettingsDialog()
 {
 
 
-    Layer_0045f1d0* layer = LoadGuiLayer((Layer_0045f1d0*)&g_game->gui, "GAMEOPTIONS.GUI", 0x1881);
+    Layer* layer = LoadGuiLayer((Layer*)&g_game->gui, "GAMEOPTIONS.GUI", 0x1881);
     Gadget* entries = layer->entries;
     layer->handler = HandleGameSettingsDialogClick;
     LoadPictureCached("GameSettings", 0, 0, 0);
@@ -2412,8 +2370,8 @@ void ShowGameSettingsDialog()
     int i;
     for (i = count + 1; i <= layer->entries->count; i++)
         entries[i].attribs = 1;
-    SetKeyboardInput((Layer_0045f1d0*)&g_game->gui, 1);
-    RenderLayer((Layer_0045f1d0*)&g_game->gui, 0x40);
+    SetKeyboardInput((Layer*)&g_game->gui, 1);
+    RenderLayer((Layer*)&g_game->gui, 0x40);
 }
 
 // FUNCTION: 0x45f770
@@ -2797,8 +2755,8 @@ void __stdcall HandleRestartDialogClick(Gui* gui)
 void OpenRestartDialog()
 {
     Menu_004604a0* menu = (Menu_004604a0*)&g_game->gui;
-    Dialog_004604a0* dialog = LoadGuiLayer(menu, "RESTART.GUI", 0x1000);
-    Gadget* gadgets = dialog->gadgets;
+    Layer* dialog = LoadGuiLayer(menu, "RESTART.GUI", 0x1000);
+    Gadget* gadgets = dialog->entries;
     dialog->handler = HandleRestartDialogClick;
     LoadPictureCached("drestart", 0, 0, 0);
     int index = FindGadgetIndex(gadgets, "MISSIONNAME", 5);
@@ -2909,9 +2867,9 @@ void __stdcall HandleExitMenuClick(Gui* gui)
 // FUNCTION: 0x4608b0
 void OpenExitMenu()
 {
-    Dialog_004608b0* dialog = LoadGuiLayer((Sub_004608b0*)&g_game->gui, "EXITMENU.GUI", 0x1800);
+    Layer* dialog = LoadGuiLayer((Sub_004608b0*)&g_game->gui, "EXITMENU.GUI", 0x1800);
     dialog->handler = HandleExitMenuClick;
-    FindGadgetIndex(dialog->gadgets, "RESTART", 1);
+    FindGadgetIndex(dialog->entries, "RESTART", 1);
     if (g_game->mode->GetGameType() == 1) {
         SetGadgetActiveByName((Sub_004608b0*)&g_game->gui, "RESTART", 1);
         SetTranslatedTextByName((Sub_004608b0*)&g_game->gui, "RESTART", (int)Translate("Restart"), 0x80);
@@ -3022,18 +2980,18 @@ void __stdcall HandleInGameOptionsClick(Gui* gui)
 // FUNCTION: 0x460cc0
 void OpenInGameOptions()
 {
-    Layer* layer = LoadGuiLayer((Gui_00460cc0*)&g_game->gui, "ARMOPT.GUI", 0x800);
+    Layer* layer = LoadGuiLayer((Gui*)&g_game->gui, "ARMOPT.GUI", 0x800);
     layer->handler = HandleInGameOptionsClick;
-    SetGrayedOut((Gui_00460cc0*)&g_game->gui, FindGadgetIndex(layer->entries, "SAVEGAME", 1),
+    SetGrayedOut((Gui*)&g_game->gui, FindGadgetIndex(layer->entries, "SAVEGAME", 1),
                  g_game->mode->GetGameType() == 3);
-    SetGrayedOut((Gui_00460cc0*)&g_game->gui, FindGadgetIndex(layer->entries, "LOADGAME", 1),
+    SetGrayedOut((Gui*)&g_game->gui, FindGadgetIndex(layer->entries, "LOADGAME", 1),
                  g_game->mode->GetGameType() == 3);
     if (g_game->mode->GetGameType() == 3 || g_game->mode->GetGameType() == 2) {
-        SetTranslatedTextByName((Gui_00460cc0*)&g_game->gui, "MISSION", Translate("Settings"), 0x80);
+        SetTranslatedTextByName((Gui*)&g_game->gui, "MISSION", Translate("Settings"), 0x80);
     }
-    EnableKeyCommands((Gui_00460cc0*)&g_game->gui);
-    SetKeyboardInput((Gui_00460cc0*)&g_game->gui, 1);
-    RenderLayer((Gui_00460cc0*)&g_game->gui, 0x40);
+    EnableKeyCommands((Gui*)&g_game->gui);
+    SetKeyboardInput((Gui*)&g_game->gui, 1);
+    RenderLayer((Gui*)&g_game->gui, 0x40);
     if (g_game->mode->GetGameType() != 3) {
         g_game->flags_38a51 |= 1;
     }

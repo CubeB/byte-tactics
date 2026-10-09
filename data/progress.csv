@@ -1219,7 +1219,7 @@ address,size,file,symbol,status,similarity
 0x45d9d0,177,src/frontend/options.cpp,?UpdateSoundGadgets@@YGXXZ,matched,100.0
 0x45da90,923,src/frontend/options.cpp,?HandleSoundOptionsClick@@YGXPAUObject_0045da90@@@Z,matched,100.0
 0x45de30,710,src/frontend/options.cpp,?OpenSoundOptions@@YGXXZ,matched,100.0
-0x45e100,946,src/frontend/options.cpp,?HandleVisualOptionsClick@@YGXPAUGui_0045e100@@@Z,matched,100.0
+0x45e100,946,src/frontend/options.cpp,?HandleVisualOptionsClick@@YGXPAUGui@@@Z,matched,100.0
 0x45e4c0,287,src/frontend/options.cpp,?SortDisplayModes@@YGXPAUModeList_0045e4c0@@@Z,matched,100.0
 0x45e5e0,1262,src/frontend/options.cpp,?OpenVisualOptions@@YGXH@Z,matched,100.0
 0x45ead0,632,src/frontend/options.cpp,?HandleSpeedOptionsClick@@YGXPAUGui@@@Z,matched,100.0

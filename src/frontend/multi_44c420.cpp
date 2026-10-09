@@ -54,11 +54,7 @@ struct Menu_0044c420 {
     int current;                       // +0x60 current gadget, -1 for none
 };
 
-struct UnitSync {
-    void SetUnitLimit(Item_0044c420* unit, int value);
-    int DisallowUnit(Item_0044c420* unit);
-    int AllowUnit(Item_0044c420* unit);
-};
+#include "../network/unit_sync.h"
 
 struct Game {
     char unknown_0[0x2a30];
@@ -129,9 +125,9 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
                     if (item->flags2.bits.flag) {
                     } else {
                         if (g_unitRestrictEntries[i].max == 0)
-                            ((UnitSync*)g_game->queue)->DisallowUnit(item);
+                            ((UnitSync*)g_game->queue)->DisallowUnit((Unit_0046e330*)item);
                         else
-                            ((UnitSync*)g_game->queue)->AllowUnit(item);
+                            ((UnitSync*)g_game->queue)->AllowUnit((Unit_0046e330*)item);
                     }
                 }
             }
@@ -169,7 +165,7 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
                     g_unitRestrictEntries[i].max = 0;
                 if (g_unitRestrictEntries[i].max != g_unitRestrictEntries[i].previousMax) {
                     ((UnitSync*)g_game->queue)->SetUnitLimit(
-                        &g_game->items[g_unitRestrictEntries[i].unitIndex],
+                        (Unit_0046e330*)&g_game->items[g_unitRestrictEntries[i].unitIndex],
                         g_unitRestrictEntries[i].max);
                 }
             }
@@ -192,7 +188,7 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
             if (g_game->items[i].flags2.bits.flag) {
             } else if (g_game->items[i].name != 0) {
                 ((UnitSync*)g_game->queue)->SetUnitLimit(
-                    &g_game->items[i], g_unitRestrictOldCounts[n]);
+                    (Unit_0046e330*)&g_game->items[i], g_unitRestrictOldCounts[n]);
                 n++;
             }
         }

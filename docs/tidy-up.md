@@ -61,7 +61,7 @@ one row per address range, with the folder, the module and the evidence.
 
 The gap regions (`src/gap/` before) go to the folder of their code like any
 other file: WinMain is `game/main_49eda0.cpp`, the surface drawing
-`graphics/blit_4cbbe0.cpp`. Their kind follows from their addresses
+`graphics/blit.cpp`. Their kind follows from their addresses
 (`tools/sources.py`), not from a folder. zlib (0x4d1c80 to 0x4d7d70) is
 runtime library code built from its own source, so it has no files here.
 `link/` (the generated `globals.h` and `data.cpp`, and the import

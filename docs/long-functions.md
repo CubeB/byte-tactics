@@ -154,7 +154,7 @@ A switch on the order mode. `Selectable`, `RECLAIM_CHECK`, `Visible` and
 `GetFeature` are already helpers (lines 532-579), and the comment at line 628
 records that an inline helper there blows the budget.
 
-**`0x47ae60 HandleSkirmishClick`** (2947, `src/frontend/skirmish_menu_479660.cpp:905-1180`).
+**`0x47ae60 HandleSkirmishClick`** (2947, `src/frontend/skirmish_menu.cpp:905-1180`).
 Four copies of the loop that counts table players (`active == 2` at lines
 932-941, 952-961; `active == 1` at 964-971, 990-1008), the Energy and Metal
 branches (1059-1106) reduce to an adjust-and-refresh pair each, and the

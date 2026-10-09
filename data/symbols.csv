@@ -4039,10 +4039,10 @@ address,name
 0x4fcc68,g_movementClassColors
 0x4fccd8,IID_IDirectDraw2
 0x4fcd78,IID_IDirectPlay3A
-0x4fcd98,DAT_004fcd98
-0x4fcda8,DAT_004fcda8
-0x4fcdb8,DAT_004fcdb8
-0x4fcdc8,DAT_004fcdc8
+0x4fcd98,g_dpspGuidIpx
+0x4fcda8,g_dpspGuidTcpip
+0x4fcdb8,g_dpspGuidSerial
+0x4fcdc8,g_dpspGuidModem
 0x4fce18,IID_IDirectPlayLobby2A
 0x4fce88,DPAID_ServiceProvider
 0x4fcea8,DPAID_Phone
@@ -4056,7 +4056,7 @@ address,name
 0x4fd2b8,ONE_EIGHTH
 0x4fd2c8,??_7Order@@6B@
 0x4fd2cc,??_7Class_0043a1e0@@6B@
-0x4fd2f8,DAT_004fd2f8
+0x4fd2f8,g_orderFxVtable
 0x4fd328,g_approachRadiusVtable
 0x4fd358,g_ringApproachVtable
 0x4fd388,g_pointMarkerVtable
@@ -4145,7 +4145,7 @@ address,name
 0x502910,g_dotExtSep
 0x502a20,DAT_00502a20
 0x502a78,g_difficultyKey
-0x502ae8,DAT_00502ae8
+0x502ae8,g_okGadgetName
 0x502b38,g_optionsSoundName
 0x502bf8,g_faceVertexIndices
 0x502e30,g_animsDirName
@@ -4172,7 +4172,7 @@ address,name
 0x503374,g_pathSepBackslash
 0x50338c,g_fontsDirName
 0x50341c,g_tdfExtension
-0x50372c,DAT_0050372c
+0x50372c,g_star
 0x503ea0,g_noneString
 0x504314,g_sayChoiceArrayName
 0x5048f8,g_maxUnitsKey
@@ -4278,7 +4278,7 @@ address,name
 0x509018,g_numLeftToKillKey
 0x509028,g_killUnitTypeKey
 0x5090fc,g_allUnitsKilledKey
-0x5091c8,DAT_005091c8
+0x5091c8,g_savegameDir
 0x5091cc,g_nonCampaignGame
 0x5091d0,g_lastCdActivityMode
 0x5091d4,g_offscreenSurfaceName
@@ -4428,7 +4428,7 @@ address,name
 0x512764,g_battleRoomBaseGadgetCount
 0x512768,g_unitRestrictPicLoadIndex
 0x51276c,DAT_0051276c
-0x512770,DAT_00512770
+0x512770,g_serialPortNumber
 0x512774,g_serialBaudRate
 0x512788,g_reporterNames
 0x5127c8,g_linkInfo
@@ -4460,14 +4460,14 @@ address,name
 0x512c78,g_loungeRefreshTime
 0x512c7c,g_timeoutTimerStart
 0x512c80,DAT_00512c80
-0x512c84,DAT_00512c84
+0x512c84,g_cmdlineHostMode
 0x512c8c,DAT_00512c8c
 0x512c94,g_netFrameRateConfig
 0x512c98,DAT_00512c98
 0x512ca8,g_cmdlineHostGameName
 0x512ce8,g_lobbyMapName
-0x512d28,DAT_00512d28
-0x512d48,DAT_00512d48
+0x512d28,g_onlineLobbyPassword
+0x512d48,g_onlineLobbyPlayerName
 0x512d68,g_lobbyLock
 0x512d6c,g_lobbyMaxUnits
 0x512d70,g_lobbyEnergy
@@ -4478,7 +4478,7 @@ address,name
 0x512d84,g_lobbyFixedLoc
 0x512d88,g_lobbyMapping
 0x512d8c,g_lobbyWatching
-0x512d90,DAT_00512d90
+0x512d90,g_cmdlineTcpJoinAddress
 0x512dd0,g_onlineDllPath
 0x512ee8,g_onlineConfigLoaded
 0x512eec,g_onlineDll

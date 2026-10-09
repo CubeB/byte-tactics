@@ -209,7 +209,7 @@ extern Anim_00478b40 g_briefingPlanetFrameCursor;
 extern unsigned char g_briefingTextColors[];
 extern int g_campaignSimplifiedLayout;
 extern char g_tdfExtension[];          // "TDF"
-extern char DAT_0050372c[];            // "*"
+extern char g_star[];                  // "*"
 extern char g_campsDirName[];          // "camps"
 extern int DAT_00511de8;               // the same pointer as g_game
 
@@ -726,7 +726,7 @@ void ApplyDifficultyButtons()
 int HasFewerThanThreeCampaignFiles(void)
 {
     char local_100[256];
-    BuildDataPath(local_100, g_campsDirName, DAT_0050372c, g_tdfExtension);
+    BuildDataPath(local_100, g_campsDirName, g_star, g_tdfExtension);
     int n = CountDirectoryEntries(local_100, 0);
     return n <= 2;
 }

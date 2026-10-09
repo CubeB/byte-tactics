@@ -923,7 +923,7 @@ struct PaletteDialog_004aa8f0 {
 
 #pragma pack(pop)
 
-extern char DAT_00502ae8[];        // "OK"
+extern char g_okGadgetName[];      // "OK"
 
 int __stdcall FindGadgetIndex(Gadget* entries, const char* name, int type);
 int __stdcall IsGadgetNamed(Gadget* entries, int index, char* name);
@@ -1001,7 +1001,7 @@ int __stdcall OpenYesNoDialog(Gui* sub, char* param_2, char* param_3, char* para
 void __stdcall MessageBoxHandler(Gui* menu)
 {
     Layer_004aa8f0* layer = menu->layer;
-    IsGadgetNamed(layer->entries, menu->hotGadgetIndex, DAT_00502ae8);
+    IsGadgetNamed(layer->entries, menu->hotGadgetIndex, g_okGadgetName);
 }
 
 // Returns 1 when the object's entry is named "MSGBOX.GUI" (after a
@@ -1105,7 +1105,7 @@ int __stdcall OpenMessageBox(Gui* gui, char* text, int wrapWidth, int centre, in
 // FUNCTION: 0x4ac080
 void __stdcall NotExistDialogHandler(Gui* obj)
 {
-    IsGadgetNamed(obj->layer->entries, obj->hotGadgetIndex, DAT_00502ae8);
+    IsGadgetNamed(obj->layer->entries, obj->hotGadgetIndex, g_okGadgetName);
 }
 
 // Opens the "file does not exist" dialog (NOTEXIST.GUI), puts the name in

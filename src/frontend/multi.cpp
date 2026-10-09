@@ -218,7 +218,7 @@ struct Entry_004426e0 {
     char number[0x81];                 // +0x81
 };
 
-// The serial address block written to DAT_00512770.
+// The serial address block written to g_serialPortNumber.
 struct Serial_00441c30 {               // 0x14 bytes
     int unknown_0;                     // +0x00
     char unknown_4[4];                 // +0x04
@@ -720,9 +720,9 @@ typedef void (__stdcall* Callback_0044c7e0)(Gui* gui, int index);
 // GLOBAL: 0x511de8
 extern Game* g_game;
 // GLOBAL: 0x512c84
-extern int DAT_00512c84;
+extern int g_cmdlineHostMode;
 // GLOBAL: 0x512d90
-extern char DAT_00512d90[];
+extern char g_cmdlineTcpJoinAddress[];
 extern int g_unitRestrictPicLoadIndex;
 extern int g_unitRestrictPicCursor;
 extern int g_unitRestrictRecordCursor;
@@ -736,9 +736,9 @@ extern int* g_unitRestrictOldCounts;
 // GLOBAL: 0x5129c8
 extern int g_unitRestrictNextPicTick;
 extern unsigned int g_lastPlayerCount;
-extern char* DAT_005091c8;             // savegame directory
+extern char* g_savegameDir;            // savegame directory
 extern char DAT_005119b8[];
-extern char DAT_0050372c[];            // "*"
+extern char g_star[];                  // "*"
 extern char g_lstExtension[];          // "LST"
 extern char g_gamesGadgetName[];       // "GAMES"
 extern char g_savegameNamesName[];     // "SAVEGAME NAMES"
@@ -756,35 +756,35 @@ extern int g_lobbyCheating;
 extern int g_lobbyFixedLoc;
 extern int g_lobbyMapping;
 extern int g_lobbyWatching;
-extern void* DAT_004fd2f8;
+extern void* g_orderFxVtable;
 extern int g_usePacketManager;
 extern PacketManager g_packetManager;
 // GLOBAL: 0x5129b4
 extern Record_00446f50* g_unitRestrictEntries;
-extern char DAT_00512d28;
-extern char DAT_00512d48;
+extern char g_onlineLobbyPassword;
+extern char g_onlineLobbyPlayerName;
 extern int DAT_00512c80;
 extern char* g_modemInfo;
 extern int g_modemCount;
 extern Entry_004426e0* g_modemAccounts;
 extern char* g_modemAccountNames;
-extern GUID DAT_004fcdc8;
-extern GUID DAT_004fcda8;
-extern GUID DAT_004fcd98;
-extern GUID DAT_004fcdb8;
+extern GUID g_dpspGuidModem;
+extern GUID g_dpspGuidTcpip;
+extern GUID g_dpspGuidIpx;
+extern GUID g_dpspGuidSerial;
 extern GUID DPAID_Modem;
 extern GUID DPAID_ServiceProvider;
 extern GUID DPAID_Phone;
 extern GUID DPAID_INet;
 extern GUID DPAID_ComPort;
 extern char DAT_004fcfb8[];
-extern Serial_00441c30 DAT_00512770;
+extern Serial_00441c30 g_serialPortNumber;
 extern int g_serialBaudRate;
 extern int g_serialBaudRateTable[];
 extern unsigned int g_reporterCount;
 extern unsigned int g_reporterNames;
 extern LinkInfo g_linkInfo[];
-extern char DAT_00502ae8[];                // "OK"
+extern char g_okGadgetName[];              // "OK"
 extern char g_multiSoundName[];            // "Multi"
 extern char* g_oldMapName;
 extern int DAT_00512760;
@@ -1080,9 +1080,9 @@ void OpenNewMultiDialog()
     layer->owner = g_game;
     LoadPictureCached("createnew", 0, 0, 0);
     Gadget* entries = layer->entries;
-    if (IsOnlineConfigLoaded() && DAT_00512d48 != 0) {
+    if (IsOnlineConfigLoaded() && g_onlineLobbyPlayerName != 0) {
         g_game->nickname[0] = 0;
-        strncat(g_game->nickname, &DAT_00512d48, 0x10);
+        strncat(g_game->nickname, &g_onlineLobbyPlayerName, 0x10);
     }
     if (strlen(g_game->nickname) == 0) {
         size = 0x11;
@@ -1122,21 +1122,21 @@ int __cdecl GetLocalPlayerPassword()
 
 // Maps the selected DirectPlay service provider GUID to an index:
 // 0 modem, 1 TCP/IP, 2 IPX, 3 serial, 4 anything else. The four globals hold
-// DPSPGUID_MODEM, DPSPGUID_TCPIP, DPSPGUID_IPX and DPSPGUID_SERIAL.
+// g_dpspGuidModem, g_dpspGuidTcpip, g_dpspGuidIpx and g_dpspGuidSerial.
 // FUNCTION: 0x441bc0
 int GetServiceProviderIndex()
 {
     GUID* guid = &g_game->info.guid;
-    if (memcmp(guid, &DAT_004fcdc8, sizeof(GUID)) == 0) {
+    if (memcmp(guid, &g_dpspGuidModem, sizeof(GUID)) == 0) {
         return 0;
     }
-    if (memcmp(guid, &DAT_004fcda8, sizeof(GUID)) == 0) {
+    if (memcmp(guid, &g_dpspGuidTcpip, sizeof(GUID)) == 0) {
         return 1;
     }
-    if (memcmp(guid, &DAT_004fcd98, sizeof(GUID)) == 0) {
+    if (memcmp(guid, &g_dpspGuidIpx, sizeof(GUID)) == 0) {
         return 2;
     }
-    if (memcmp(guid, &DAT_004fcdb8, sizeof(GUID)) == 0) {
+    if (memcmp(guid, &g_dpspGuidSerial, sizeof(GUID)) == 0) {
         return 3;
     }
     return 4;
@@ -1162,10 +1162,10 @@ int __stdcall BuildCompoundAddress(int* addressOut, int* sizeOut)
 
     guid = g_game->info.guid;
 
-    if (memcmp(&guid, &DAT_004fcdc8, sizeof(GUID)) == 0) {
+    if (memcmp(&guid, &g_dpspGuidModem, sizeof(GUID)) == 0) {
         elements[0].guid = DPAID_ServiceProvider;
         elements[0].size = 0x10;
-        elements[0].data = &DAT_004fcdc8;
+        elements[0].data = &g_dpspGuidModem;
         // memset, not = "": plain rep stosd.
         memset(buf1, 0, sizeof(buf1));
         char* s = g_modemInfo;
@@ -1181,10 +1181,10 @@ int __stdcall BuildCompoundAddress(int* addressOut, int* sizeOut)
         elements[2].size = lstrlenA(buf2) + 1;
         elements[2].data = buf2;
         count = 3;
-    } else if (memcmp(&guid, &DAT_004fcda8, sizeof(GUID)) == 0) {
+    } else if (memcmp(&guid, &g_dpspGuidTcpip, sizeof(GUID)) == 0) {
         elements[0].guid = DPAID_ServiceProvider;
         elements[0].size = 0x10;
-        elements[0].data = &DAT_004fcda8;
+        elements[0].data = &g_dpspGuidTcpip;
         char* t = GetGadgetText(&g_game->menu, "ADDRESS", 0);
         if (t == 0) {
             t = DAT_005119b8;
@@ -1194,21 +1194,21 @@ int __stdcall BuildCompoundAddress(int* addressOut, int* sizeOut)
         elements[1].size = lstrlenA(buf3) + 1;
         elements[1].data = buf3;
         count = 2;
-    } else if (memcmp(&guid, &DAT_004fcd98, sizeof(GUID)) == 0) {
+    } else if (memcmp(&guid, &g_dpspGuidIpx, sizeof(GUID)) == 0) {
         elements[0].guid = DPAID_ServiceProvider;
         elements[0].size = 0x10;
-        elements[0].data = &DAT_004fcd98;
+        elements[0].data = &g_dpspGuidIpx;
         count = 1;
-    } else if (memcmp(&guid, &DAT_004fcdb8, sizeof(GUID)) == 0) {
+    } else if (memcmp(&guid, &g_dpspGuidSerial, sizeof(GUID)) == 0) {
         elements[0].guid = DPAID_ServiceProvider;
         elements[0].size = 0x10;
-        elements[0].data = &DAT_004fcdb8;
-        DAT_00512770.unknown_8 = 0;
-        DAT_00512770.unknown_c = 0;
-        DAT_00512770.unknown_10 = 3;
+        elements[0].data = &g_dpspGuidSerial;
+        g_serialPortNumber.unknown_8 = 0;
+        g_serialPortNumber.unknown_c = 0;
+        g_serialPortNumber.unknown_10 = 3;
         elements[1].guid = DPAID_ComPort;
         elements[1].size = 0x14;
-        elements[1].data = &DAT_00512770;
+        elements[1].data = &g_serialPortNumber;
         count = 2;
     } else {
         elements[0].guid = DPAID_ServiceProvider;
@@ -1280,9 +1280,9 @@ static int TryConnect_00442050()
 void __stdcall HandleTcpDialogClick(Gui* gadget)
 {
     Gadget* entries = gadget->layer->entries;
-    if (DAT_00512d90[0] != 0) {
-        if (DAT_00512c84 == 0)
-            DAT_00512d90[0] = 0;
+    if (g_cmdlineTcpJoinAddress[0] != 0) {
+        if (g_cmdlineHostMode == 0)
+            g_cmdlineTcpJoinAddress[0] = 0;
     }
     else if (gadget->selected == -1) {
         return;
@@ -1320,7 +1320,7 @@ tcpaddr:
 
 // Opens the TCP settings dialog (TCP.GUI) with HandleTcpDialogClick as its handler.
 // The "ADDRESS" setting gets the direct-connect address typed on the command
-// line (DAT_00512d90) when there is one, otherwise the "TCPADDR" value; the
+// line (g_cmdlineTcpJoinAddress) when there is one, otherwise the "TCPADDR" value; the
 // ADDRESS gadget is then selected in the dialog.
 // FUNCTION: 0x4421f0
 void OpenTcpDialog()
@@ -1333,11 +1333,11 @@ void OpenTcpDialog()
     HAPINET_initlobbiedconnection(&g_game->net);
     FindGadgetIndex(dialog->entries, "ADDRESS", 3);
     char* address = GetGadgetText(&g_game->menu, "ADDRESS", 0);
-    int direct = DAT_00512d90[0];
+    int direct = g_cmdlineTcpJoinAddress[0];
     unsigned int len = 0x80;
     if (direct) {
         address[0] = 0;
-        strncat(address, DAT_00512d90, len - 1);
+        strncat(address, g_cmdlineTcpJoinAddress, len - 1);
     } else {
         if (!ReadGameRegistryValue("TCPADDR", address, &len)) {
             address[0] = 0;
@@ -1346,7 +1346,7 @@ void OpenTcpDialog()
     SetTranslatedTextByName(&g_game->menu, "ADDRESS", address, 0);
     if (direct) {
         HandleTcpDialogClick(&g_game->menu);
-        g_game->dplayAddressDialogFlags = g_game->dplayAddressDialogFlags ^ ((DAT_00512c84 != 0) ^ g_game->dplayAddressDialogFlags) & 1;
+        g_game->dplayAddressDialogFlags = g_game->dplayAddressDialogFlags ^ ((g_cmdlineHostMode != 0) ^ g_game->dplayAddressDialogFlags) & 1;
     } else {
         SelectGadgetByIndex(&g_game->menu, FindGadgetIndex(dialog->entries, "ADDRESS", 3));
         TrySetFocus(&g_game->menu, FindGadgetIndex(dialog->entries, "ADDRESS", 3));
@@ -1372,7 +1372,7 @@ void __stdcall SetSerialPortFromGadget(Gui* menu, Gadget* entry)
 {
     int val = entry->index;
     if (val >= 0) {
-        DAT_00512770.unknown_0 = val + 1;
+        g_serialPortNumber.unknown_0 = val + 1;
     }
 }
 #pragma auto_inline(on)
@@ -1695,7 +1695,7 @@ void __stdcall OpenModemDialog()
     Layer_00440d70* gadget;
     // 8-byte local, not the large Mission type.
     struct { void* dp; void* dp3; } net;
-    GUID iid = DAT_004fcdc8;
+    GUID iid = g_dpspGuidModem;
 
     gadget = LoadGuiLayer(&g_game->menu, "MODEM.GUI", 0x800);
     gadget->handler = HandleModemDialogClick;
@@ -1871,9 +1871,9 @@ void __stdcall HandleSelectGameClick(Gui* param_1)
     int id;
     int cur;
 
-    if (DAT_00512d90[0] != 0) {
-        DAT_00512d90[0] = 0;
-        if (DAT_00512c84 != 0)
+    if (g_cmdlineTcpJoinAddress[0] != 0) {
+        g_cmdlineTcpJoinAddress[0] = 0;
+        if (g_cmdlineHostMode != 0)
             goto startnew;
     }
 
@@ -2039,7 +2039,7 @@ void OpenSelectGameDialog()
         MarkLayerChanged(&g_game->menu);
         conn->status = 0;
     }
-    if (DAT_00512d90[0] != 0 && DAT_00512c84 != 0) {
+    if (g_cmdlineTcpJoinAddress[0] != 0 && g_cmdlineHostMode != 0) {
         if (strlen(g_game->nickname) != 0)
             HandleSelectGameClick(&g_game->menu);
     }
@@ -2137,7 +2137,7 @@ void ShowSelectedMapInfo()
 void __stdcall HandleViewMapClick(Gui* param_1)
 {
     if (param_1->selected != -1) {
-        if (IsCurrentGadgetNamed(param_1, DAT_00502ae8)) {
+        if (IsCurrentGadgetNamed(param_1, g_okGadgetName)) {
             PlaySoundByName(g_multiSoundName, 0);
         } else {
             ClearSelectedGadget(param_1);
@@ -4357,7 +4357,7 @@ void __stdcall HandleLoadListClick(Gui* menu)
     if (IsCurrentGadgetNamed(menu, "LOAD") || IsCurrentGadgetNamed(menu, "GAMES")) {
         PlaySoundByName("Options", 0);
         Gadget* games = FindGadgetChecked(gadgets, "GAMES");
-        sprintf(g_game->save_38c6b, "%s\\%s", DAT_005091c8,
+        sprintf(g_game->save_38c6b, "%s\\%s", g_savegameDir,
                 SkipTextLines(g_saveListFileNames, games->selected));
         LoadUnitRestrictListFile(g_game->save_38c6b);
         Layer_00446f50* inner = menu->table;
@@ -4379,7 +4379,7 @@ void __stdcall HandleLoadListClick(Gui* menu)
 void* __stdcall ListSaveGameFiles(int* out)
 {
     char path[0x100];
-    BuildDataPath(path, DAT_005091c8, DAT_0050372c, g_lstExtension);
+    BuildDataPath(path, g_savegameDir, g_star, g_lstExtension);
     int count = CountDirectoryEntries(path, 0);
     *out = count;
     if (count == 0) {
@@ -4432,7 +4432,7 @@ void __stdcall HandleSaveGameClick(Gui* menu)
         PlaySoundByName("SMLBUTTON", 0);
         Gadget* games = FindGadgetChecked(entries, "GAMES");
         char buf[0x100];
-        sprintf(buf, "%s\\%s", DAT_005091c8,
+        sprintf(buf, "%s\\%s", g_savegameDir,
                 SkipTextLines(g_saveListFileNames, games->selected));
         RemoveFile(buf);
         int count;
@@ -4467,7 +4467,7 @@ void __stdcall HandleSaveGameClick(Gui* menu)
         int idx = FindGadgetIndex(entries, "GAMENAME", 3);
         char* name = entries[idx].text;
         if (strlen(name) != 0) {
-            BuildDataPath(g_game->save_38c6b, DAT_005091c8, name, "LST");
+            BuildDataPath(g_game->save_38c6b, g_savegameDir, name, "LST");
             SaveUnitRestrictListFile(g_game->save_38c6b);
         }
     } else if (menu->current != -1) {
@@ -4488,7 +4488,7 @@ void __stdcall OpenSaveGameDialog()
     layer->handler = HandleSaveGameClick;
     layer->data = g_game;
     LoadPictureCached("DSaveList", 0, 0, 0);
-    MakeDirectoryPath(DAT_005091c8);
+    MakeDirectoryPath(g_savegameDir);
     ListSaveGameFiles(&count);
     SetTranslatedTextByName(&g_game->gui, "TITLE", "Save Game", 0);
     char* ptr = GetSaveDescriptions();
@@ -4868,6 +4868,6 @@ void OpenUnitRestrictions()
 // FUNCTION: 0x44ce20
 OrderFx::OrderFx(int param_1)
 {
-    vtable = &DAT_004fd2f8;
+    vtable = &g_orderFxVtable;
     field_4 = param_1;
 }

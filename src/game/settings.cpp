@@ -146,7 +146,7 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern char DAT_00512d48[];
+extern char g_onlineLobbyPlayerName[];
 extern char g_cmdlineHostGameName[];
 
 int __stdcall ReadRegistryDword(void* section, void* key, void* value);
@@ -392,9 +392,9 @@ void LoadSettings()
     if (ReadRegistryData("Total Annihilation", "Password", g_game->password, &value) == 0) {
         g_game->password[0] = 0;
     }
-    if (IsOnlineConfigLoaded() != 0 && DAT_00512d48[0] != 0) {
+    if (IsOnlineConfigLoaded() != 0 && g_onlineLobbyPlayerName[0] != 0) {
         g_game->nickname[0] = 0;
-        strncat(g_game->nickname, DAT_00512d48, 0x10);
+        strncat(g_game->nickname, g_onlineLobbyPlayerName, 0x10);
     } else {
         value = 0x11;
         if (ReadRegistryData("Total Annihilation", "Nickname", g_game->nickname, &value) == 0) {

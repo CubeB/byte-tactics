@@ -178,7 +178,7 @@ extern Game* g_game;
 
 #include "../map/mission.h"
 
-extern char* DAT_005091c8;
+extern char* g_savegameDir;
 extern char DAT_005119b8[];
 extern const char g_invalidSavegameText[]; // "Invalid savegame file"
 extern char g_savegameRadarFrame[];
@@ -288,7 +288,7 @@ void __stdcall ShowSavedGameInfo()
         && strlen(desc) != 0) {
         SetGadgetText(menu, index, desc);
         char* fname = SkipTextLines(g_savegameFileNames, games->u.list.field_ba);
-        sprintf(path, "%s\\%s", DAT_005091c8, fname);
+        sprintf(path, "%s\\%s", g_savegameDir, fname);
         HapiBank* file = OpenSummaryBank(path);
         if (file != 0) {
             file->OpenNamedBox("Radar Image");
@@ -417,7 +417,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         return;
     }
     Gadget* e = FindGadgetChecked(entries, "GAMES");
-    sprintf(buf, "%s\\%s", DAT_005091c8, SkipTextLines(g_savegameFileNames, e->u.list.field_ba));
+    sprintf(buf, "%s\\%s", g_savegameDir, SkipTextLines(g_savegameFileNames, e->u.list.field_ba));
     HapiBank* save = OpenSummaryBank(buf);
     if (save != 0) {
         int type = save->GetIntegerItem("Gametype", 0);
@@ -454,7 +454,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
             DisableKeyCommands(g_game->message);
         PlaySoundByName("SMLBUTTON", 0);
         e = FindGadgetChecked(entries, "GAMES");
-        sprintf(g_game->saveName, "%s\\%s", DAT_005091c8,
+        sprintf(g_game->saveName, "%s\\%s", g_savegameDir,
                 SkipTextLines(g_savegameFileNames, e->u.list.field_ba));
         if (g_game->flags_2a44.b2)
             ShutdownIngameSystems();
@@ -564,7 +564,7 @@ char* __stdcall ListSavedGames(int* count)
     int i;
     char* dp;
 
-    BuildDataPath(buf, DAT_005091c8, "*", "SAV");
+    BuildDataPath(buf, g_savegameDir, "*", "SAV");
     *count = CountDirectoryEntries(buf, 0);
     if (*count == 0) {
         ConfigureListBoxByName(g_game->menu, "GAMES", DAT_005119b8, 0, 0);
@@ -580,7 +580,7 @@ char* __stdcall ListSavedGames(int* count)
     copy = (char*)GameAllocIgnoreTag("SAVEGAME2", *count << 8);
     memcpy(copy, g_savegameFileNames, *count << 8);
     for (i = 0; i < *count; i++) {
-        sprintf(buf, "%s\\%s", DAT_005091c8, SkipTextLines(copy, i));
+        sprintf(buf, "%s\\%s", g_savegameDir, SkipTextLines(copy, i));
         HapiBank* file = OpenSummaryBank(buf);
         char* desc = 0;
         if (file)
@@ -648,7 +648,7 @@ void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
     if (IsCurrentGadgetNamed(gadget, "DELETE")) {
         PlaySoundByName("SmallButton", 0);
         Gadget* e = FindGadgetChecked(entries, "GAMES");
-        sprintf(save.path, "%s\\%s", DAT_005091c8, SkipTextLines(g_savegameFileNames, e->u.list.field_ba));
+        sprintf(save.path, "%s\\%s", g_savegameDir, SkipTextLines(g_savegameFileNames, e->u.list.field_ba));
         RemoveFile(save.path);
         ListSavedGames(&save.count);
         ClearSelectedGadget(gadget);
@@ -668,7 +668,7 @@ void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
     char* text = entries[index].u.text;
     if (strlen(text) != 0) {
         save.games = (int)FindGadgetChecked(entries, "GAMES");
-        BuildDataPath(g_game->saveName, DAT_005091c8, text, "SAV");
+        BuildDataPath(g_game->saveName, g_savegameDir, text, "SAV");
         SaveGameFile(g_game->saveName, text, time(0));
     }
 }
@@ -683,7 +683,7 @@ void ShowSaveGameScreen()
     layer->handler = SaveGameScreenHandler;
     layer->data = g_game;
     LoadPictureCached("DSAVEGAME2", 0, 0, 0);
-    MakeDirectoryPath(DAT_005091c8);
+    MakeDirectoryPath(g_savegameDir);
     ListSavedGames(&local);
     SetTranslatedTextByName(&g_game->menu_00493060, "TITLE", "Save Game", 0);
     if (local == 0) {

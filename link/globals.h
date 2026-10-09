@@ -51,7 +51,7 @@ extern char g_campaignKey[12];                                                  
 extern char g_dotExtSep[4];                                                                                     // 0x502910, 4 bytes; 1 of 1 files
 extern char DAT_00502a20[4];                                                                                    // 0x502a20, 4 bytes; 1 of 1 files
 extern char g_difficultyKey[12];                                                                                // 0x502a78, 12 bytes; 2 of 2 files
-extern char DAT_00502ae8[4];                                                                                    // 0x502ae8, 4 bytes; 2 of 2 files
+extern char g_okGadgetName[4];                                                                                  // 0x502ae8, 4 bytes; 2 of 2 files
 extern char g_optionsSoundName[8];                                                                              // 0x502b38, 8 bytes; 1 of 1 files
 extern unsigned short g_faceVertexIndices[6][4];                                                                // 0x502bf8, 48 bytes; 1 of 1 files
 extern const char g_animsDirName[8];                                                                            // 0x502e30, 8 bytes; 1 of 1 files
@@ -78,7 +78,7 @@ extern char* g_summaryAccountName;                                              
 extern char g_pathSepBackslash[4];                                                                              // 0x503374, 4 bytes; 3 of 3 files
 extern const char g_fontsDirName[8];                                                                            // 0x50338c, 8 bytes; 1 of 1 files
 extern char g_tdfExtension[4];                                                                                  // 0x50341c, 4 bytes; 1 of 1 files
-extern char DAT_0050372c[4];                                                                                    // 0x50372c, 4 bytes; 3 of 3 files
+extern char g_star[4];                                                                                          // 0x50372c, 4 bytes; 3 of 3 files
 extern char g_noneString[8];                                                                                    // 0x503ea0, 8 bytes; 1 of 1 files
 extern char g_sayChoiceArrayName[20];                                                                           // 0x504314, 20 bytes; 1 of 1 files
 extern char g_maxUnitsKey[12];                                                                                  // 0x5048f8, 12 bytes; 1 of 1 files
@@ -181,7 +181,7 @@ extern char g_buildUnitTypeKey[32];                                             
 extern char g_numLeftToKillKey[16];                                                                             // 0x509018, 16 bytes; 1 of 1 files
 extern char g_killUnitTypeKey[32];                                                                              // 0x509028, 32 bytes; 1 of 1 files
 extern char g_allUnitsKilledKey[32];                                                                            // 0x5090fc, 32 bytes; 1 of 1 files
-extern char* DAT_005091c8;                                                                                      // 0x5091c8, 4 bytes; 2 of 2 files
+extern char* g_savegameDir;                                                                                     // 0x5091c8, 4 bytes; 2 of 2 files
 extern int g_nonCampaignGame;                                                                                   // 0x5091cc, 4 bytes; 2 of 2 files
 extern int g_lastCdActivityMode;                                                                                // 0x5091d0, 4 bytes; 1 of 1 files
 extern const char g_offscreenSurfaceName[12];                                                                   // 0x5091d4, 12 bytes; 1 of 1 files
@@ -595,18 +595,18 @@ extern long g_squashThreadLockTicket;                                           
 
 // Not declared: 194 globals defined in a data file or whose type is not settled (see data/globals.csv).
 //   0x513000 g_packetManager: defined in src/network/packets_460e20.cpp
-//   0x4fcdb8 DPSPGUID_SERIAL: defined in src/data/guids.cpp
-//   0x4fcdc8 DPSPGUID_MODEM: defined in src/data/guids.cpp
-//   0x4fcd98 DPSPGUID_IPX: defined in src/data/guids.cpp
-//   0x4fcda8 DPSPGUID_TCPIP: defined in src/data/guids.cpp
+//   0x4fcdb8 g_dpspGuidSerial: defined in src/data/guids.cpp
+//   0x4fcdc8 g_dpspGuidModem: defined in src/data/guids.cpp
+//   0x4fcd98 g_dpspGuidIpx: defined in src/data/guids.cpp
+//   0x4fcda8 g_dpspGuidTcpip: defined in src/data/guids.cpp
 //   0x51e598 IUUnitSyncEntry::IU?$pair::?$_Tree::_Nil: defined in src/network/unit_sync.cpp
 //   0x51e6a0 g_losTables: defined in src/map/line_of_sight.cpp
 //   0x5292c4 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib.cpp
 //   0x4fcfb8 DAT_004fcfb8: defined in src/data/guids.cpp
-//   0x4fd2f8 DAT_004fd2f8: defined in src/data/vtables.cpp
+//   0x4fd2f8 g_orderFxVtable: defined in src/data/vtables.cpp
 //   0x512344 g_missionOrderTableBegin: part of another global: g_missionOrderTableVec+0x4
 //   0x512ca8 g_cmdlineHostGameName: part of another global: DAT_00512c80+0x28
-//   0x512d48 DAT_00512d48: part of another global: DAT_00512c80+0xc8
+//   0x512d48 g_onlineLobbyPlayerName: part of another global: DAT_00512c80+0xc8
 //   0x51e574 g_onlineReportPlayers: PlayerInfo_0046c2a0** (1), PlayerInfo_0046bce0** (1), int* (1)
 //   0x51e57c g_onlineReportScoreBoards: ScoreBoard_0046c2a0** (1), ScoreBoard_0046bce0** (1), void* (1)
 //   0x51e59c IUUnitSyncEntry::IU?$pair::?$_Tree::_Nilrefs: defined in src/network/unit_sync.cpp
@@ -643,13 +643,13 @@ extern long g_squashThreadLockTicket;                                           
 //   0x512348 g_missionOrderTableEnd: part of another global: g_missionOrderTableVec+0x8
 //   0x512358 MovementClassTable::g_movementClasses: defined in src/units/movement_class.cpp
 //   0x512764 g_battleRoomBaseGadgetCount: short (1), int (1)
-//   0x512770 DAT_00512770: char[] (1), Serial_00441c30 (1)
+//   0x512770 g_serialPortNumber: char[] (1), Serial_00441c30 (1)
 //   0x5129d0 g_sendCondenser: defined in src/network/net_condenser.cpp
 //   0x5129f8 g_receiveCondenser: defined in src/network/net_condenser.cpp
-//   0x512c84 DAT_00512c84: part of another global: DAT_00512c80+0x4
+//   0x512c84 g_cmdlineHostMode: part of another global: DAT_00512c80+0x4
 //   0x512c98 DAT_00512c98: part of another global: DAT_00512c80+0x18
-//   0x512d28 DAT_00512d28: part of another global: DAT_00512c80+0xa8
-//   0x512d90 DAT_00512d90: part of another global: DAT_00512c80+0x110
+//   0x512d28 g_onlineLobbyPassword: part of another global: DAT_00512c80+0xa8
+//   0x512d90 g_cmdlineTcpJoinAddress: part of another global: DAT_00512c80+0x110
 //   0x512f49 g_optionsBackupUnitChat: part of another global: g_optionsPrefsSnapshot+0x31
 //   0x51e548 g_riReportGameChat: int (__stdcall*)(int, char*) (1), int (__stdcall*)(int, int) (1)
 //   0x51e550 g_onlineReportScores: char** (1), int (1)
@@ -734,7 +734,7 @@ extern long g_squashThreadLockTicket;                                           
 //   0x5122c8 g_mapCacheEnd: part of another global: src/map/map_list.cpp:0x5122c0+0x8
 //   0x512340 g_missionOrderTableVec: defined in src/map/meteors.cpp
 //   0x512370 DAT_00512370: part of another global: MovementClassTable::g_movementClasses+0x18
-//   0x512774 g_serialBaudRate: part of another global: DAT_00512770+0x4
+//   0x512774 g_serialBaudRate: part of another global: g_serialPortNumber+0x4
 //   0x512a28 g_packetHandlerType2: part of another global: g_packetHandlers+0x8
 //   0x512c8c DAT_00512c8c: part of another global: DAT_00512c80+0xc
 //   0x512c94 g_netFrameRateConfig: part of another global: DAT_00512c80+0x14

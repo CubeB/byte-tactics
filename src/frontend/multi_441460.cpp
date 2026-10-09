@@ -70,10 +70,10 @@ struct Gadget_00441460 {
 };
 
 extern Game* g_game;
-extern Guid_00441460 DAT_004fcdc8;
-extern Guid_00441460 DAT_004fcda8;
-extern Guid_00441460 DAT_004fcd98;
-extern Guid_00441460 DAT_004fcdb8;
+extern Guid_00441460 g_dpspGuidModem;
+extern Guid_00441460 g_dpspGuidTcpip;
+extern Guid_00441460 g_dpspGuidIpx;
+extern Guid_00441460 g_dpspGuidSerial;
 
 char* __stdcall Translate(const char* text);
 void __stdcall OpenMessageBox(Sub_00441460* sub, char* text, int a, int b, int c);
@@ -102,24 +102,24 @@ int __stdcall ConnectToGame(Gadget_00441460* gadget) {
 #define temp (buf)
 
 #define PE(g) (memcmp(g_game->provider, &(g), 0x10) == 0)
-    if (!PE(DAT_004fcdc8) && !PE(DAT_004fcda8)) {
-        if (PE(DAT_004fcd98))
+    if (!PE(g_dpspGuidModem) && !PE(g_dpspGuidTcpip)) {
+        if (PE(g_dpspGuidIpx))
             goto upd;
         // Stores through the unused p[20]: keeps both dead memcmp results.
-        if (PE(DAT_004fcdb8))
+        if (PE(g_dpspGuidSerial))
             ;
         else
-            *(int*)&p[20] = memcmp(g_game->provider, &DAT_004fcdb8, 0x10) != 0;
+            *(int*)&p[20] = memcmp(g_game->provider, &g_dpspGuidSerial, 0x10) != 0;
     }
     // The a8 case falls into upd:, which is followed by conn:.
-    if (PE(DAT_004fcdc8))
+    if (PE(g_dpspGuidModem))
         goto conn;
-    if (!PE(DAT_004fcda8)) {
-        if (!PE(DAT_004fcd98)) {
-            if (PE(DAT_004fcdb8))
+    if (!PE(g_dpspGuidTcpip)) {
+        if (!PE(g_dpspGuidIpx)) {
+            if (PE(g_dpspGuidSerial))
                 ;
             else
-                *(int*)&p[20] = memcmp(g_game->provider, &DAT_004fcdb8, 0x10) != 0;
+                *(int*)&p[20] = memcmp(g_game->provider, &g_dpspGuidSerial, 0x10) != 0;
         }
         goto conn;
     }

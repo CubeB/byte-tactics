@@ -692,9 +692,9 @@ extern char g_modeGadgetName[];        // "MODE"
 extern char g_explodeSoundFile[];      // "sounds\\explode.wav"
 extern char DAT_005119b8[];
 extern int DAT_00512c80;
-extern int DAT_00512c84;
+extern int g_cmdlineHostMode;
 extern char g_cmdlineHostGameName[];
-extern char DAT_00512d90[];
+extern char g_cmdlineTcpJoinAddress[];
 extern int g_helpDialogBaseGadgetCount;
 extern Entry_45ffb0 g_optionsFlipFrame;
 extern int g_optionsLightbarY;
@@ -958,14 +958,14 @@ static inline void ApplySound()
 // FUNCTION: 0x45b800
 void __stdcall SetDirectConnectAddress(char* param_1)
 {
-    DAT_00512d90[0] = 0;
-    strncat(DAT_00512d90, param_1, 0x3f);
+    g_cmdlineTcpJoinAddress[0] = 0;
+    strncat(g_cmdlineTcpJoinAddress, param_1, 0x3f);
 }
 
 // FUNCTION: 0x45b820
 void __stdcall SetHostGameName(int flag, char* text)
 {
-    DAT_00512c84 = flag != 0;
+    g_cmdlineHostMode = flag != 0;
     if (text) {
         g_cmdlineHostGameName[0] = 0;
         strncat(g_cmdlineHostGameName, text, 0x3f);

@@ -194,7 +194,7 @@ struct Src_00440ca0 {
 
 extern Game* g_game;
 extern char DAT_00512370[];
-extern char DAT_00512770[];
+extern char g_serialPortNumber[];
 
 // FUNCTION: 0x440230 _$E6
 // FUNCTION: 0x440290 _$E3
@@ -456,7 +456,7 @@ void BuildAllPassMaps(void)
             g_game->progress = progress / count;
         }
         q += 8;
-    } while ((int)q < (int)DAT_00512770);
+    } while ((int)q < (int)g_serialPortNumber);
 
     g_game->progress = 100;
 }
@@ -484,7 +484,7 @@ void FreeMovementClasses(void)
         FreeA(p);
         FreeC(p);
         p += 0x20;
-    } while (p < (int)DAT_00512770);
+    } while (p < (int)g_serialPortNumber);
 }
 
 // Refreshes every entry in use of the table at 0x512358 (the loop that 0x440a70

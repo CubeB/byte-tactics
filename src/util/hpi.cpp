@@ -1430,7 +1430,7 @@ struct Node_004bd3b0 {
 
 extern char g_packageDataName[];  // "Package Data"
 extern char g_dirWildcard[];  // "\\*"
-extern char DAT_0050372c[];  // "*"
+extern char g_star[];        // "*"
 extern char g_dotDot[];      // ".."
 extern char g_dotExtSep[];   // "."
 extern char g_pathSepBackslash[];  // "\\"
@@ -1466,7 +1466,7 @@ unsigned int __stdcall HAPI_BuildArchiveDirectory(char* path, HapiBuf* out, int*
         strcat(buf, g_dirWildcard);
         trailing = 0;
     } else {
-        strcat(buf, DAT_0050372c);
+        strcat(buf, g_star);
         trailing = 1;
     }
 

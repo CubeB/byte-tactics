@@ -24,7 +24,7 @@ struct Point_0044eec0 {
 };
 
 // The vtables the area classes store by hand; the base class's is 0x4fd2f8.
-extern void* DAT_004fd2f8[];
+extern void* g_orderFxVtable[];
 extern void* g_approachRadiusVtable[];
 extern void* g_ringApproachVtable[];
 extern void* g_pointMarkerVtable[];
@@ -45,7 +45,7 @@ public:
     OrderFx() {}
     OrderFx(int param_1)
     {
-        vtable = DAT_004fd2f8;
+        vtable = g_orderFxVtable;
         field_4 = param_1;
     }
 
@@ -1112,7 +1112,7 @@ int OrderFx::GetType()
 // FUNCTION: 0x44ce50
 void* OrderFx::Destroy(unsigned char flag)
 {
-    vtable = DAT_004fd2f8;
+    vtable = g_orderFxVtable;
     if (flag & 1) {
         operator delete(this);
     }
@@ -1122,7 +1122,7 @@ void* OrderFx::Destroy(unsigned char flag)
 // FUNCTION: 0x44ce70 ??0OrderFx@@QAE@HHH@Z
 OrderFx::OrderFx(int arg1, int arg2, int arg3)
 {
-    vtable = DAT_004fd2f8;
+    vtable = g_orderFxVtable;
 }
 
 // FUNCTION: 0x44ce80
@@ -1224,7 +1224,7 @@ int ApproachRadius::GetType()
 // FUNCTION: 0x44cff0
 void* ApproachRadius::Destroy(unsigned char flag)
 {
-    vtable = DAT_004fd2f8;
+    vtable = g_orderFxVtable;
     if (flag & 1) {
         operator delete(this);
     }
@@ -1368,7 +1368,7 @@ int RingApproach::GetType()
 // FUNCTION: 0x44d450
 void* RingApproach::Destroy(unsigned char flag)
 {
-    vtable = DAT_004fd2f8;
+    vtable = g_orderFxVtable;
     if ((flag & 1) != 0) {
         operator delete(this);
     }
@@ -1538,7 +1538,7 @@ int PointMarker::GetType()
 void* PointMarker::Destroy(unsigned char should_delete)
 {
     PointMarker* esi = this;
-    esi->vtable = DAT_004fd2f8;
+    esi->vtable = g_orderFxVtable;
     if (should_delete & 1) {
         operator delete(esi);
     }
@@ -1721,7 +1721,7 @@ int PathOrder::GetType()
 void* PathOrder::Destroy(unsigned char flag)
 {
     ((UnitRef*)((char*)this + 0x16))->Unlink();
-    vtable = DAT_004fd2f8;
+    vtable = g_orderFxVtable;
     if (flag & 1) {
         operator delete(this);
     }
@@ -2054,7 +2054,7 @@ int AirManeuverOrder::GetType()
 // FUNCTION: 0x44e7b0
 void* AirManeuverOrder::Destroy(int param_1)
 {
-    vtable = &DAT_004fd2f8;
+    vtable = &g_orderFxVtable;
     if ((param_1 & 1) != 0) {
         operator delete(this);
     }

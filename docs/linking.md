@@ -272,7 +272,7 @@ extern const UnitOrderType g_unitOrders[23] = {
 | --- | --- |
 | `unit_orders.cpp` | the unit order types (`Move_Ground`, `VTOL_Patrol`, ...) with their functions and status texts, the four tables 0x43bc90 registers |
 | `console_commands.cpp` | the console commands, cheats and debug commands, with their handlers |
-| `vtables.cpp` | the vtables the code stores by hand (`this->vtable = &DAT_004fd2f8;`) for classes not yet written as classes |
+| `vtables.cpp` | the vtables the code stores by hand (`this->vtable = &g_orderFxVtable;`) for classes not yet written as classes |
 | `unit_messages.cpp` | what a unit reports (`select`, `underattack`), whose entry 0 is empty: the tree's `g_speechTypes` to `g_speechCategories` are fields of its first two entries |
 | `perf_counters.cpp` | the Pentium and Pentium Pro events the profiler can count |
 | `debug_dialogs.cpp` | the dialog templates of Cavedog's debug library, as `DLGTEMPLATE` structures |

@@ -1316,8 +1316,8 @@ extern PacketChannel g_packetChannels[];
 extern int g_broadcastPeersSeen[11];
 extern PacketReceiver g_packetManagerReceiver;
 extern int DAT_00512c8c;
-extern char DAT_00512d48;
-extern char DAT_00512d28;
+extern char g_onlineLobbyPlayerName;
+extern char g_onlineLobbyPassword;
 extern char* g_loungeChatter;
 extern int g_loungeRefreshTime;
 extern int g_timeoutPlayerDpid;
@@ -1519,7 +1519,7 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
         Net_4517b0* net = g_game->field_4e5;
         if (net != 0) {
             int v = IsOnlineConfigLoaded();
-            char* s = &DAT_00512d48;
+            char* s = &g_onlineLobbyPlayerName;
             if (v == 0)
                 s = DAT_005119b8;
 
@@ -1540,13 +1540,13 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
                 strncat(g_game->field_2bd2, s, 0x10);
             }
 
-            if (v != 0 && DAT_00512d28 != 0) {
-                lstrcpynA(p->info->password, &DAT_00512d28, 0xb);
+            if (v != 0 && g_onlineLobbyPassword != 0) {
+                lstrcpynA(p->info->password, &g_onlineLobbyPassword, 0xb);
                 // hasPassword must be a 16-bit 1-bit field, not a byte field.
                 p->info->hasPassword = 1;
                 // Cast on a reloaded field_4e5, not a cached local.
                 if ((*(unsigned char*)((char*)g_game->field_4e5 + 4) & 2) != 0)
-                    lstrcpynA(g_game->password, &DAT_00512d28, 0xb);
+                    lstrcpynA(g_game->password, &g_onlineLobbyPassword, 0xb);
             }
 
             ResetPlayerSlots();

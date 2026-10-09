@@ -26,11 +26,11 @@ struct Game {
 #pragma pack(pop)
 extern Game* g_game;
 extern int DAT_00512c80;
-extern char DAT_00512d28;
-extern Guid_443ff0 DAT_004fcda8;
-extern Guid_443ff0 DAT_004fcd98;
-extern Guid_443ff0 DAT_004fcdc8;
-extern Guid_443ff0 DAT_004fcdb8;
+extern char g_onlineLobbyPassword;
+extern Guid_443ff0 g_dpspGuidTcpip;
+extern Guid_443ff0 g_dpspGuidIpx;
+extern Guid_443ff0 g_dpspGuidModem;
+extern Guid_443ff0 g_dpspGuidSerial;
 void* __cdecl GameAllocIgnoreTag(const char* name, unsigned int size);
 int IsOnlineConfigLoaded();
 // FUNCTION: 0x443ff0
@@ -40,10 +40,10 @@ int __stdcall SelectConnection(int index)
         Guid_443ff0* guid = 0;
         switch (DAT_00512c80) {
         case 0: break;
-        case 1: guid = &DAT_004fcda8; break;
-        case 2: guid = &DAT_004fcd98; break;
-        case 3: guid = &DAT_004fcdc8; break;
-        case 4: guid = &DAT_004fcdb8; break;
+        case 1: guid = &g_dpspGuidTcpip; break;
+        case 2: guid = &g_dpspGuidIpx; break;
+        case 3: guid = &g_dpspGuidModem; break;
+        case 4: guid = &g_dpspGuidSerial; break;
         }
         DAT_00512c80 = 0;
         if (guid != 0) {
@@ -66,8 +66,8 @@ int __stdcall SelectConnection(int index)
         } else {
             g_game->info.conn.size = 0;
         }
-        if (IsOnlineConfigLoaded() && DAT_00512d28 != 0) {
-            lstrcpynA(g_game->name, &DAT_00512d28, 0xb);
+        if (IsOnlineConfigLoaded() && g_onlineLobbyPassword != 0) {
+            lstrcpynA(g_game->name, &g_onlineLobbyPassword, 0xb);
         }
         return 1;
     }

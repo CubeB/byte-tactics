@@ -229,13 +229,13 @@ extern char g_serviceErrorMessage[];
 extern char g_frontendStateChangeFormat[];
 
 // GLOBAL: 0x4fcdc8
-extern char DAT_004fcdc8[];
+extern char g_dpspGuidModem[];
 
 // GLOBAL: 0x4fcdb8
-extern char DAT_004fcdb8[];
+extern char g_dpspGuidSerial[];
 
 // GLOBAL: 0x4fcda8
-extern char DAT_004fcda8[];
+extern char g_dpspGuidTcpip[];
 
 // GLOBAL: 0x4fdaf0
 extern V4i DAT_004fdaf0;
@@ -1357,19 +1357,19 @@ void RunFrontendStateMachine(void)
             PresentFrontendFrame();
             return;
         case 2:
-            if (memcmp((char*)g_game + 0x39201, DAT_004fcdc8, 0x10) == 0) {
+            if (memcmp((char*)g_game + 0x39201, g_dpspGuidModem, 0x10) == 0) {
                 SetState(0x14, 0x547, g_frontendSourceFile);
                 SetSubState(1, 0x548, g_frontendSourceFile);
                 OpenModemDialog();
                 return;
             }
-            if (memcmp((char*)g_game + 0x39201, DAT_004fcdb8, 0x10) == 0) {
+            if (memcmp((char*)g_game + 0x39201, g_dpspGuidSerial, 0x10) == 0) {
                 SetState(0x14, 0x54e, g_frontendSourceFile);
                 SetSubState(1, 0x54f, g_frontendSourceFile);
                 OpenSerialDialog();
                 return;
             }
-            if (memcmp((char*)g_game + 0x39201, DAT_004fcda8, 0x10) == 0) {
+            if (memcmp((char*)g_game + 0x39201, g_dpspGuidTcpip, 0x10) == 0) {
                 SetState(0x14, 0x555, g_frontendSourceFile);
                 SetSubState(1, 0x556, g_frontendSourceFile);
                 OpenTcpDialog();
@@ -1413,8 +1413,8 @@ void RunFrontendStateMachine(void)
             HAPINET_guaranteepackets(1);
             SetSubState(1, 0x587, g_frontendSourceFile);
             ResetPlayerSlots();
-            if (memcmp((char*)g_game + 0x39201, DAT_004fcdc8, 0x10) == 0 ||
-                memcmp((char*)g_game + 0x39201, DAT_004fcdb8, 0x10) == 0) {
+            if (memcmp((char*)g_game + 0x39201, g_dpspGuidModem, 0x10) == 0 ||
+                memcmp((char*)g_game + 0x39201, g_dpspGuidSerial, 0x10) == 0) {
                 if (g_game->dplayAddressDialogFlags.b0) {
                     SetSubState(0x11, 0x58f, g_frontendSourceFile);
                     return;

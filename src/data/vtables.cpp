@@ -87,7 +87,7 @@ extern VirtualFunction const g_spatialTimerVtable[2] = {
 
 // The base class of the 0x44ce20 family: stored by the constructors 0x44ce20 to 0x44e330 before their own, and by the destructors 0x44ce50 to 0x44e7b0 last.
 // GLOBAL: 0x4fd2f8
-extern VirtualFunction const DAT_004fd2f8[12] = {
+extern VirtualFunction const g_orderFxVtable[12] = {
     OrderFx::Destroy, SerializeSave, OrderFx::GetType, OrderFx::IsFxStyle,
     Class_0044cf00::ContainsUnit, OrderFx::ContainsCell, OrderFx::FillGoalCells, OrderFx::ApproxDist,
     (VirtualFunction)_purecall, TryGetDesiredHeading, OrderFx::WriteBits, OrderFx::KeepAfterComplete,

@@ -36,9 +36,9 @@ struct ScoreBoard_0046bce0 {     // 0xc bytes
 
 extern Game* g_game;             // 0x511de8
 extern char DAT_00512c98[];      // 0x512c98
-extern Guid_0046bf30 DAT_004fcd98;
-extern Guid_0046bf30 DAT_004fcdb8;
-extern Guid_0046bf30 DAT_004fcdc8;
+extern Guid_0046bf30 g_dpspGuidIpx;
+extern Guid_0046bf30 g_dpspGuidSerial;
+extern Guid_0046bf30 g_dpspGuidModem;
 extern PlayerInfo_0046bce0** g_onlineReportPlayers;
 extern ScoreBoard_0046bce0** g_onlineReportScoreBoards;
 extern char** g_onlineReportScores;
@@ -195,9 +195,9 @@ int __stdcall LoadReporterDll(int* param_1, int param_2)
 
     if (DAT_00512c98[0] == 0) {
         // First two jump to the shared return 4, the third returns inline.
-        if (memcmp(g_game->field_39201, &DAT_004fcd98, 16) == 0) goto four;
-        if (memcmp(g_game->field_39201, &DAT_004fcdb8, 16) == 0) goto four;
-        if (memcmp(g_game->field_39201, &DAT_004fcdc8, 16) == 0) {
+        if (memcmp(g_game->field_39201, &g_dpspGuidIpx, 16) == 0) goto four;
+        if (memcmp(g_game->field_39201, &g_dpspGuidSerial, 16) == 0) goto four;
+        if (memcmp(g_game->field_39201, &g_dpspGuidModem, 16) == 0) {
             return 4;
         }
     }

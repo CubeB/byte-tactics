@@ -308,20 +308,23 @@ struct UnitSyncEntry {                 // the map's mapped type, 0x10 bytes
     int unknown_c;                     // +0xc
 };
 
-struct Node_0046e330 {
-    Node_0046e330* left;               // +0x0
-    Node_0046e330* parent;             // +0x4
-    Node_0046e330* right;              // +0x8
+// A node of the std::map<unsigned int, UnitSyncEntry> tree (MSVC 5 xtree's
+// _Node): the links, the pair (key at +0xc, entry at +0x10) and the colour.
+struct UnitSyncNode {
+    UnitSyncNode* left;                // +0x0
+    UnitSyncNode* parent;              // +0x4
+    UnitSyncNode* right;               // +0x8
     unsigned int key;                  // +0xc
     UnitSyncEntry value;               // +0x10
+    int color;                         // +0x20 (0 red, 1 black)
 };
 
-class Iter_0046e330 {
+class UnitSyncIter {
 public:
-    Node_0046e330* ptr;
-    Iter_0046e330() {}
-    Iter_0046e330(Node_0046e330* p) : ptr(p) {}
-    bool operator==(const Iter_0046e330& other) const { return ptr == other.ptr; }
+    UnitSyncNode* ptr;
+    UnitSyncIter() {}
+    UnitSyncIter(UnitSyncNode* p) : ptr(p) {}
+    bool operator==(const UnitSyncIter& other) const { return ptr == other.ptr; }
 };
 
 #pragma pack(push, 1)
@@ -347,98 +350,7 @@ struct Player_0046e0b0 {                // 0x14b bytes
     char unknown_74[0x14b - 0x74];
 };
 
-struct Ids_0046d970 {
-    int* begin;                        // +0x0
-    int* end;                          // +0x4
-    int* capacity;                     // +0x8
-};
-
-struct Entry_0046d970 {                // 0x5c bytes
-    int id;                            // +0x0
-    char unknown_4[0x8 - 0x4];
-    Ids_0046d970 ids;                  // +0x8
-    char unknown_14[0x18 - 0x14];
-    int* pairs;                        // +0x18, parallel to ids
-    char unknown_1c[0x5c - 0x1c];
-};
-
-struct Ids_0046e000 {
-    int* begin;                        // +0x0
-    int* end;                          // +0x4
-    int* capacity;                     // +0x8
-};
-
-struct Sub_0046e000 {
-    Ids_0046e000 ids;                 // +0x0
-    char unknown_c[0x1c - 0xc];
-    int count;                        // +0x1c
-    int field_20;                     // +0x20
-    int field_24;                     // +0x24
-    char unknown_28[0x5c - 0x28];
-};
-
-struct Entry_0046e000 {                // 0x5c bytes
-    int id;                            // +0x0
-    char unknown_4[0x5c - 0x4];
-};
 #pragma pack(pop)
-
-struct Unit_0046e0b0 { char unknown_0[0x5c]; };
-
-struct PlayerSync_0046e0b0 {            // 0x5c bytes
-    int id;                              // +0x0
-    std::vector<Unit_0046e0b0*> units;   // +0x4
-    char unknown_14[0x24 - 0x14];
-    int expected;                        // +0x24
-    int sent;                            // +0x28
-    int ackd;                            // +0x2c
-    char unknown_30[0x5c - 0x30];
-};
-
-struct Less_0046e330 {
-    bool operator()(const unsigned int& a, const unsigned int& b) const { return a < b; }
-};
-
-// The map's out-of-line find() (0x46e9b0) walks the tree through
-// UnitSyncMap::LowerBound, the tree's lower_bound().
-struct Node_0046e9b0 {
-    Node_0046e9b0* left;               // +0x0
-    Node_0046e9b0* parent;             // +0x4
-    Node_0046e9b0* right;              // +0x8
-    unsigned int key;                  // +0xc
-    UnitSyncEntry value;               // +0x10
-};
-
-class Iter_0046e9b0 {
-public:
-    Node_0046e9b0* ptr;
-
-    Iter_0046e9b0() {}
-    Iter_0046e9b0(Node_0046e9b0* p) : ptr(p) {}
-    bool operator==(const Iter_0046e9b0& other) const { return ptr == other.ptr; }
-};
-
-struct Less_0046e9b0 {
-    bool operator()(const unsigned int& a, const unsigned int& b) const { return a < b; }
-};
-
-// Shaped like std::_Tree<...>::_Lbound(const _K&) from MSVC 5's <xtree> for a
-// tree keyed by unsigned int (the std::map<unsigned int, Rect> of 0x46e330),
-// under a lock object; DAT_0051e598 is the tree's _Nil node and head->parent
-// is the root.
-struct Node_0046fe60 {
-    Node_0046fe60* left;            // +0x0
-    Node_0046fe60* parent;          // +0x4
-    Node_0046fe60* right;           // +0x8
-    unsigned int key;               // +0xc
-};
-
-struct Less_0046fe60 {
-    bool operator()(const unsigned int& a, const unsigned int& b) const
-    {
-        return a < b;
-    }
-};
 
 #pragma pack(push, 1)
 // The 0xe-byte command packet of type 0x1a that UnitSync sends and
@@ -479,13 +391,6 @@ struct Source_0046d630 {
 
 #pragma pack(pop)
 
-struct Event_0046e280 {                // 0x10 bytes
-    unsigned int key;                  // +0x0
-    int field_4;                       // +0x4
-    int field_8;                       // +0x8
-    int field_c;                       // +0xc
-};
-
 struct Cmp_0046d040 {                  // the map's empty key_compare
     char x;
 };
@@ -494,51 +399,99 @@ struct Alloc_0046d040 {                // the map's empty allocator
     char x;
 };
 
+// A std::vector<int>, whose insert() is the out-of-line 0x46e640. Leaving the
+// method undefined here is what keeps the call out of line.
+class Vec_0046d6c0 {                  // 0x10 bytes
+public:
+    int pad;                          // +0x0
+    int* first;                       // +0x4
+    int* last;                        // +0x8
+    int* cap;                         // +0xc
+
+    int* begin() { return first; }
+    int* end() { return last; }
+    unsigned int size() { return first == 0 ? 0 : last - first; }
+    void insert(int* pos, int n, int const& val);
+};
+
+// One player's record in the vector at UnitSync+0x10: the ids of the units the
+// player listed, their pairs (parallel to ids), and the packet counters.
+struct PlayerSync_0046e0b0 {            // 0x5c bytes
+    unsigned int id;                     // +0x0
+    Vec_0046d6c0 ids;                    // +0x4
+    Vec_0046d6c0 pairs;                  // +0x14
+    int expected;                        // +0x24
+    int sent;                            // +0x28
+    unsigned int ackd;                   // +0x2c
+    char unknown_30[0x5c - 0x30];
+};
+
+// The tree behind a std::map<unsigned int, UnitSyncEntry> (MSVC 5's <xtree>
+// layout: empty allocator and key_compare at +0 and +1, _Head, _Multi, _Size).
+// It is declared by hand, as a template with <xtree>'s own name and first two
+// arguments, because the real tree's insert is 0x46ef50 and <xtree>'s inline
+// insert would otherwise be expanded here (the real map gives 700 bytes).
+struct Kfn_0046d6c0 {};
+struct Alloc_0046d6c0 {};
+
+struct Less_0046d6c0 {
+    bool operator()(const unsigned int& a, const unsigned int& b) const { return a < b; }
+};
+
+template<class _K, class _Ty, class _Kfn, class _Pr, class _A>
+class _Tree {
+public:
+    typedef UnitSyncNode _Node;
+    struct _Pairib {
+        _Node* first;                 // the iterator
+        bool second;
+        _Pairib() {}
+    };
+
+    char _Alloc;                      // +0x0
+    union {
+        char _Pred;                   // +0x1
+        _Pr key_compare;
+    };
+    _Node* _Head;                     // +0x4
+    bool _Multi;                      // +0x8
+    int _Size;                        // +0xc
+
+    _Pairib insert(const _Ty& _V);    // 0x46ef50
+};
+
+typedef std::pair<const unsigned int, UnitSyncEntry> Value_0046d6c0;
+
 // std::_Tree<...>::_Init() from MSVC 5's <xtree>, written out by hand:
 // DAT_0051e598 is the tree's shared _Nil node and DAT_0051e59c its
 // reference count (_Nilrefs). Nodes are 0x24 bytes (a 0x14-byte value).
-struct Node_0046f720 {
-    Node_0046f720* left;               // +0x0
-    Node_0046f720* parent;             // +0x4
-    Node_0046f720* right;              // +0x8
-    char value[0x14];                  // +0xc
-    int color;                         // +0x20 (0 red, 1 black)
-};
-
-extern Node_0046f720* DAT_0051e598;
+extern UnitSyncNode* DAT_0051e598;
 extern int DAT_0051e59c;
 
 // The tree header of UnitSync::map, the std::map<unsigned int, UnitSyncEntry>
 // at +0x00, with the members the file calls out of line: _Init (0x46f720),
-// begin (0x46e880), find (0x46e9b0) and lower_bound (0x46fe60).
-class UnitSyncMap {
+// begin (0x46e880), find (0x46e9b0), insert (0x46ef50) and lower_bound
+// (0x46fe60).
+class UnitSyncMap : public _Tree<unsigned int, Value_0046d6c0, Kfn_0046d6c0,
+                                  Less_0046d6c0, Alloc_0046d6c0> {
 public:
-    char field_0;                      // +0x0
-    union {
-        char field_1;                  // +0x1
-        Less_0046fe60 key_compare;
-    };
-    char unknown_2[2];
-    Node_0046f720* head;               // +0x4
-    char multi;                        // +0x8
-    char unknown_9[3];
-    int size;                          // +0xc
-
     // Empty classes taken by value: the prologue copies them from the param slot.
     UnitSyncMap(Cmp_0046d040 c, Alloc_0046d040 a)
-        : field_0(c.x), field_1(a.x), multi(0)
     {
+        _Alloc = c.x;
+        _Pred = a.x;
+        _Multi = 0;
         Init();
     }
 
-    Iter_0046e9b0 End() { return Iter_0046e9b0((Node_0046e9b0*)head); }
-    Iter_0046e9b0 FindExact(const unsigned int& key);
-    Node_0046fe60* LowerBound(const unsigned int* key);
+    UnitSyncIter End() { return UnitSyncIter(_Head); }
+    UnitSyncIter FindExact(const unsigned int& key);
+    UnitSyncNode* LowerBound(const unsigned int* key);
     int* Begin(int* param_1);
 
-    Node_0046f720* Buynode(Node_0046f720* parent, int color)
+    UnitSyncNode* Buynode(UnitSyncNode* parent, int color)
     {
-        Node_0046f720* s = (Node_0046f720*)operator new(sizeof(Node_0046f720));
+        UnitSyncNode* s = (UnitSyncNode*)operator new(sizeof(UnitSyncNode));
         s->parent = parent;
         s->color = color;
         return s;
@@ -546,9 +499,15 @@ public:
 
     void Init();
 
-    UnitSyncEntry& operator[](unsigned int key)
+    // std::map<unsigned int, UnitSyncEntry>::operator[] from MSVC 5's <map>:
+    // insert a default value if the key is new, then hand back the mapped
+    // value. The default `UnitSyncEntry()` is an uninitialised temporary in
+    // this compiler, which is where the copies of uninitialised stack words in
+    // the original come from.
+    UnitSyncEntry& operator[](const unsigned int& k)
     {
-        return ((std::map<unsigned int, UnitSyncEntry>*)this)->operator[](key);
+        _Pairib p = insert(Value_0046d6c0(k, UnitSyncEntry()));
+        return p.first->value;
     }
 };
 
@@ -572,11 +531,16 @@ public:
 // UnitSyncPlayer (0x5c bytes): one player's unit-sync state, with four
 // std::vector members.
 #pragma pack(push, 2)
-struct Elem_0046faf0 {                 // 14 bytes
-    int a;                             // +0x0
-    int b;                             // +0x4
-    int c;                             // +0x8
-    short d;                           // +0xc
+struct Elem_0046faf0 {                 // 14 bytes, a queued sync packet
+    union {
+        struct {
+            int a;                     // +0x0
+            int b;                     // +0x4
+            int c;                     // +0x8
+            short d;                   // +0xc
+        };
+        UnitSyncPacket packet;
+    };
 };
 #pragma pack(pop)
 
@@ -632,10 +596,10 @@ public:
 
     UnitSync(int param);
 
-    Iter_0046e330 End() { return Iter_0046e330((Node_0046e330*)map.head); }
-    Iter_0046e330 Find(const unsigned int* key)
+    UnitSyncIter End() { return UnitSyncIter(map._Head); }
+    UnitSyncIter Find(const unsigned int* key)
     {
-        Iter_0046e330 p = Iter_0046e330((Node_0046e330*)map.LowerBound(key));
+        UnitSyncIter p = UnitSyncIter(map.LowerBound(key));
         return (p == End() || map.key_compare(*key, p.ptr->key)) ? End() : p;
     }
     void Send(Target_0046d530* target, void* packet)
@@ -658,7 +622,7 @@ public:
     char* GetSyncStatusText();
     int AllPlayersSynced();
     int IsPlayerSynced(int id);
-    int PopChangedEntry(Event_0046e280* out);
+    int PopChangedEntry(UnitSyncEntry* out);
     int GetUnitEntry(Unit_0046e330* unit, UnitSyncEntry* out);
     int ToggleUnitAllowed(Unit_0046e330* unit);
     int DisallowUnit(Unit_0046e330* unit);
@@ -780,8 +744,8 @@ void PacketSequencer::SendUnsequenced(unsigned int param_1, void* param_2)
 void PacketSequencer::ReceiveSequenced(UnitSyncPacket* packet, int param_2, void* param_3, unsigned int target)
 {
     if (packet->arg == 0x65) {
-        for (UnitSyncPacket* p = ((Class_0046eba0*)&list_c)->first; p != ((Class_0046eba0*)&list_c)->last; p++) {
-            if (p->id == packet->id) {
+        for (Elem_0046faf0* p = list_c.begin(); p != list_c.end(); p++) {
+            if (p->packet.id == packet->id) {
                 SendPacketToPlayer(GetLocalHumanDpid(), target, p, 0xe);
                 break;
             }
@@ -795,13 +759,13 @@ void PacketSequencer::ReceiveSequenced(UnitSyncPacket* packet, int param_2, void
         cur = packet->id;
         ((UnitSync*)param_3)->HandleSyncPacket(packet, param_2);
         for (unsigned int i = cur + 1; i <= max; i++) {
-            UnitSyncPacket* p;
-            for (p = ((Class_0046eba0*)&list_d)->first; p != ((Class_0046eba0*)&list_d)->last; p++) {
-                if (p->id == i) break;
+            Elem_0046faf0* p;
+            for (p = list_d.begin(); p != list_d.end(); p++) {
+                if (p->packet.id == i) break;
             }
-            if (p == ((Class_0046eba0*)&list_d)->last) break;
+            if (p == list_d.end()) break;
             cur = i;
-            ((UnitSync*)param_3)->HandleSyncPacket(p, param_2);
+            ((UnitSync*)param_3)->HandleSyncPacket(&p->packet, param_2);
         }
         return;
     }
@@ -813,11 +777,11 @@ void PacketSequencer::ReceiveSequenced(UnitSyncPacket* packet, int param_2, void
     Class_0046eba0& v = *(Class_0046eba0*)&list_d;
     v.InsertPacket(v.last, 1, packet);
     for (unsigned int i = cur + 1; i <= max; i++) {
-        UnitSyncPacket* p;
-        for (p = ((Class_0046eba0*)&list_d)->first; p != ((Class_0046eba0*)&list_d)->last; p++) {
-            if (p->id == i) break;
+        Elem_0046faf0* p;
+        for (p = list_d.begin(); p != list_d.end(); p++) {
+            if (p->packet.id == i) break;
         }
-        if (p == ((Class_0046eba0*)&list_d)->last) {
+        if (p == list_d.end()) {
             UnitSyncPacket msg;
             msg.type = 0x1a;
             msg.arg = 0x65;
@@ -960,80 +924,6 @@ void UnitSync::SendEntryTo(Target_0046d530* target, unsigned char arg, Source_00
     }
 }
 
-// A std::vector<int>, whose insert() is the out-of-line 0x46e640. Leaving the
-// method undefined here is what keeps the call out of line.
-class Vec_0046d6c0 {                  // 0x10 bytes
-public:
-    int pad;                          // +0x0
-    int* first;                       // +0x4
-    int* last;                        // +0x8
-    int* cap;                         // +0xc
-
-    int* begin() { return first; }
-    int* end() { return last; }
-    void insert(int* pos, int n, int const& val);
-};
-
-struct Entry_0046d6c0 {               // 0x5c bytes
-    int id;                           // +0x0
-    Vec_0046d6c0 ids;                 // +0x4
-    Vec_0046d6c0 pairs;               // +0x14
-    int field_24;                     // +0x24
-    char unknown_28[0x2c - 0x28];
-    unsigned int field_2c;            // +0x2c
-    char unknown_30[0x5c - 0x30];
-};
-
-// The tree behind a std::map<unsigned int, UnitSyncEntry> (MSVC 5's <xtree>
-// layout: empty allocator and key_compare at +0 and +1, _Head, _Multi, _Size).
-// It is declared by hand, as a template with <xtree>'s own name and first two
-// arguments, because the real tree's insert is 0x46ef50 and <xtree>'s inline
-// insert would otherwise be expanded here (the real map gives 700 bytes).
-struct Kfn_0046d6c0 {};
-struct Less_0046d6c0 {};
-struct Alloc_0046d6c0 {};
-
-template<class _K, class _Ty, class _Kfn, class _Pr, class _A>
-class _Tree {
-public:
-    struct _Node {
-        _Node* _Left;                 // +0x0
-        _Node* _Parent;               // +0x4
-        _Node* _Right;                // +0x8
-        _Ty _Value;                   // +0xc, the pair (key, Rect at +0x10)
-    };
-    struct _Pairib {
-        _Node* first;                 // the iterator
-        bool second;
-        _Pairib() {}
-    };
-
-    char _Alloc;                      // +0x0
-    char _Pred;                       // +0x1
-    _Node* _Head;                     // +0x4
-    int _Multi;                       // +0x8
-    int _Size;                        // +0xc
-
-    _Pairib insert(const _Ty& _V);    // 0x46ef50
-};
-
-typedef std::pair<const unsigned int, UnitSyncEntry> Value_0046d6c0;
-
-// std::map<unsigned int, UnitSyncEntry>::operator[] from MSVC 5's <map>: insert
-// a default value if the key is new, then hand back the mapped value. The
-// default `UnitSyncEntry()` is an uninitialised temporary in this compiler,
-// which is where the copies of uninitialised stack words in the original come
-// from.
-class Map_0046d6c0 : public _Tree<unsigned int, Value_0046d6c0, Kfn_0046d6c0,
-                                   Less_0046d6c0, Alloc_0046d6c0> {
-public:
-    UnitSyncEntry& operator[](const unsigned int& k)
-    {
-        _Pairib p = insert(Value_0046d6c0(k, UnitSyncEntry()));
-        return p.first->_Value.second;
-    }
-};
-
 // Handles one player-list packet. With `direct` set, the packet updates the
 // player's entry in the vector at +0x10 (arg 1 stores a word, arg 2 appends to
 // the entry's two std::vector<int> members through the out-of-line
@@ -1052,10 +942,10 @@ void UnitSync::HandleSyncPacket(UnitSyncPacket* packet, unsigned char player)
     }
     pendingPlayerCount++;
     if (direct != 0) {
-        std::vector<Entry_0046d6c0>::iterator i = ((std::vector<Entry_0046d6c0>*)&players)->begin();
-        if (i != ((std::vector<Entry_0046d6c0>*)&players)->end()) {
+        std::vector<PlayerSync_0046e0b0>::iterator i = players.begin();
+        if (i != players.end()) {
             unsigned int id = g_game->players[player].id;
-            for (; i != ((std::vector<Entry_0046d6c0>*)&players)->end(); i++) {
+            for (; i != players.end(); i++) {
                 if (i->id == id) {
                     break;
                 }
@@ -1067,7 +957,7 @@ void UnitSync::HandleSyncPacket(UnitSyncPacket* packet, unsigned char player)
             break;
 
         case 1:
-            i->field_24 = packet->value;
+            i->expected = packet->value;
             break;
 
         case 2:
@@ -1098,8 +988,8 @@ void UnitSync::HandleSyncPacket(UnitSyncPacket* packet, unsigned char player)
             break;
 
         case 4:
-            if (i->field_2c < (unsigned int)packet->value) {
-                i->field_2c = packet->value;
+            if (i->ackd < (unsigned int)packet->value) {
+                i->ackd = packet->value;
             }
             break;
         }
@@ -1111,37 +1001,11 @@ void UnitSync::HandleSyncPacket(UnitSyncPacket* packet, unsigned char player)
             r.w = packet->enabled;
             r.h = packet->match;
             r.unknown_c = packet->limit;
-            (*(Map_0046d6c0*)&map)[packet->key] = r;
+            map[packet->key] = r;
             this->NotifyEntryChanged(packet->key);
         }
     }
 }
-
-struct Event_0046d860 {               // 0x10 bytes, the map's value
-    unsigned int field_0;             // +0x0
-    unsigned int field_4;             // +0x4
-    unsigned char field_8;            // +0x8
-    unsigned char field_9;            // +0x9
-    unsigned char field_a;            // +0xa
-    unsigned char field_b;            // +0xb
-    short field_c;                    // +0xc
-    char unknown_e[0x10 - 0xe];
-};
-
-struct Player_0046d860 {              // 0x5c bytes
-    unsigned int id;                  // +0x0
-    char unknown_4[0x28 - 0x4];
-    int sent;                         // +0x28
-    char unknown_2c[0x5c - 0x2c];
-};
-
-struct Node_0046d860 {
-    Node_0046d860* left;              // +0x0
-    Node_0046d860* parent;            // +0x4
-    Node_0046d860* right;             // +0x8
-    unsigned int key;                 // +0xc
-    Event_0046d860 value;             // +0x10
-};
 
 // Sends the "units expected" (packet type 0x1a, sub-type 3) notice to every
 // player whose sync record this object holds, then queues the player's id on
@@ -1149,35 +1013,36 @@ struct Node_0046d860 {
 // FUNCTION: 0x46d860
 void UnitSync::NotifyEntryChanged(unsigned int param_1)
 {
-    std::vector<Player_0046d860>& ps = *(std::vector<Player_0046d860>*)&players;
+    std::vector<PlayerSync_0046e0b0>& ps = players;
     if (disabled != 0) {
         return;
     }
     if (direct != 0) {
-        Iter_0046e9b0 it = map.FindExact(param_1);
-        for (std::vector<Player_0046d860>::iterator i = ps.begin(); i != ps.end(); ++i) {
+        UnitSyncIter it = map.FindExact(param_1);
+        for (std::vector<PlayerSync_0046e0b0>::iterator i = ps.begin(); i != ps.end(); ++i) {
             // v is taken before the disabled check: MSVC then keeps it.ptr in eax
             // across the loop. The check stays a positive block, not a continue.
-            Event_0046d860* v = &((Node_0046d860*)it.ptr)->value;
+            UnitSyncEntry* v = &it.ptr->value;
             if (disabled == 0) {
                 UnitSyncPacket packet;
                 packet.type = 0x1a;
                 packet.arg = 3;
-                packet.key = v->field_0;
-                packet.enabled = v->field_8;
-                packet.match = v->field_a;
-                packet.limit = v->field_c;
-                this->SendSyncPacket((unsigned int*)&*i, &packet, 1);
+                packet.key = v->x;
+                packet.enabled = v->w;
+                packet.match = v->h;
+                packet.limit = v->unknown_c;
+                this->SendSyncPacket(&i->id, &packet, 1);
                 i->sent++;
             }
         }
     }
-    for (std::list<unsigned int>::iterator it = ((std::list<unsigned int>*)&ids)->begin(); it != ((std::list<unsigned int>*)&ids)->end(); ++it) {
+    for (std::list<int>::iterator it = ids.begin(); it != ids.end(); ++it) {
         if (*it == param_1) {
             return;
         }
     }
-    ((std::list<unsigned int>*)&ids)->push_back(param_1);
+    // push_back takes the parameter itself, not a temporary int copy of it.
+    ids.push_back((int&)param_1);
 }
 
 // Given the unit's key and a y value, makes sure the entry has that y (looking
@@ -1191,7 +1056,7 @@ void UnitSync::CheckUnitAvailable(unsigned int key, int y)
     if (disabled != 0)
         return;
 
-    Iter_0046e9b0 it = map.FindExact(key);
+    UnitSyncIter it = map.FindExact(key);
     if (it == map.End())
         return;
 
@@ -1215,7 +1080,7 @@ void UnitSync::CheckUnitAvailable(unsigned int key, int y)
     }
 
     {
-        for (Entry_0046d970* e = (Entry_0046d970*)players.begin(); e != (Entry_0046d970*)players.end(); e++) {
+        for (PlayerSync_0046e0b0* e = players.begin(); e != players.end(); e++) {
             int flag;
             if (y != 0) {
                 Player_0046e0b0* pl = FindPlayerByDpid(e->id);
@@ -1225,9 +1090,9 @@ void UnitSync::CheckUnitAvailable(unsigned int key, int y)
             } else {
                 flag = 0;
             }
-            int* p2 = e->pairs;
-            int* p1 = e->ids.begin;
-            int* p3 = e->ids.end;
+            int* p2 = e->pairs.first;
+            int* p1 = e->ids.first;
+            int* p3 = e->ids.last;
             while (p1 != p3) {
                 if (*p1 == key) {
                     if (flag && *p2 != y)
@@ -1264,8 +1129,8 @@ char* UnitSync::GetSyncStatusText()
         if (it->expected == 0) {
             return "No units_expected sent from player";
         }
-        if (it->units.size() != it->expected) {
-            sprintf(g_unitSyncStatusText, "expected %d units, got %d", it->expected, it->units.size());
+        if (it->ids.size() != it->expected) {
+            sprintf(g_unitSyncStatusText, "expected %d units, got %d", it->expected, it->ids.size());
             return g_unitSyncStatusText;
         }
         if (it->sent != it->ackd) {
@@ -1290,12 +1155,10 @@ int UnitSync::AllPlayersSynced()
         return 1;
     if (direct == 0)
         return 1;
-    Entry_0046e000* p = (Entry_0046e000*)players.begin();
-    if (p == (Entry_0046e000*)players.end())
+    PlayerSync_0046e0b0* p = players.begin();
+    if (p == players.end())
         return 1;
-    // The second half is walked through its own pointer stepping with the entry stride.
-    Sub_0046e000* s = (Sub_0046e000*)((char*)p + 8);
-    for (; p != (Entry_0046e000*)players.end(); p++, s++) {
+    for (; p != players.end(); p++) {
         Player_0046e0b0* pl = FindPlayerByDpid(p->id);
         if (pl != 0) {
             // pl->field_0 is tested again in the second test: the original
@@ -1304,14 +1167,11 @@ int UnitSync::AllPlayersSynced()
                 continue;
             if (pl->field_0 != 0 && pl->type == 2)
                 continue;
-            if (s->count == 0)
+            if (p->expected == 0)
                 return 0;
-            // The count comes from the byte distance between the list's ends,
-            // which keeps it a plain arithmetic shift.
-            if ((s->ids.begin == 0 ? 0 : ((char*)s->ids.end - (char*)s->ids.begin) >> 2)
-                != s->count)
+            if (p->ids.size() != p->expected)
                 return 0;
-            if (s->field_20 != s->field_24)
+            if (p->sent != p->ackd)
                 return 0;
         }
     }
@@ -1336,7 +1196,7 @@ int UnitSync::IsPlayerSynced(int id)
     for (std::vector<PlayerSync_0046e0b0>::iterator it = players.begin(); it != players.end(); ++it) {
         if (it->id != id)
             continue;
-        if (it->expected == 0 || it->units.size() != it->expected)
+        if (it->expected == 0 || it->ids.size() != it->expected)
             return 0;
         // Written as return 1; break;: keeps the shared return-0 block as the fallthrough.
         if (it->sent == it->ackd)
@@ -1357,7 +1217,7 @@ void UnitSync::ApplyToUnitTypes()
         return;
     for (unsigned short i = 1; i < g_game->count; i++) {
         Def_0046d040* def = &g_game->defs[i];
-        Iter_0046e330 it = Find(&def->key);
+        UnitSyncIter it = Find(&def->key);
         if (it == End()) {
             ProtectUnitDefsReadWrite();
             def->field_15a = 0;
@@ -1371,55 +1231,21 @@ void UnitSync::ApplyToUnitTypes()
     }
 }
 
-struct Less_0046e280 {
-    bool operator()(const unsigned int& a, const unsigned int& b) const { return a < b; }
-};
-
-struct Node_0046e280 {
-    Node_0046e280* left;               // +0x0
-    Node_0046e280* parent;             // +0x4
-    Node_0046e280* right;              // +0x8
-    unsigned int key;                  // +0xc
-    Event_0046e280 value;              // +0x10
-};
-
-class Iter_0046e280 {
-public:
-    Node_0046e280* ptr;
-
-    Iter_0046e280() {}
-    Iter_0046e280(Node_0046e280* p) : ptr(p) {}
-    bool operator==(const Iter_0046e280& other) const { return ptr == other.ptr; }
-};
-
-class Map_0046e280 {
-public:
-    Less_0046e280 compare;
-    Node_0046e280* head;               // +0x4
-
-    Iter_0046e280 End() { return Iter_0046e280(head); }
-    Iter_0046e280 Find(const unsigned int* key)
-    {
-        Iter_0046e280 p = Iter_0046e280((Node_0046e280*)((UnitSyncMap*)this)->LowerBound(key));
-        return (p == End() || compare(*key, p.ptr->key)) ? End() : p;
-    }
-};
-
 // Dequeues the front event of an insertion-ordered queue: the class holds a
-// std::map<unsigned int, Event> (key at map node +0xc, Event at +0x10) for
-// lookup and a std::list<Event> at +0x20 (_Head +0x24, _Size +0x28) for the
-// order. The list front's first field is the map key. The inlined find() is
-// copied from 0x46e330 (LowerBound is the tree's lower_bound(); a missing
-// key yields the head node, end()).
+// std::map<unsigned int, UnitSyncEntry> (key at map node +0xc, entry at +0x10)
+// for lookup and a std::list at +0x20 (_Head +0x24, _Size +0x28) for the
+// order. The list front is the map key. The inlined find() is copied from
+// 0x46e330 (LowerBound is the tree's lower_bound(); a missing key yields the
+// head node, end()).
 // FUNCTION: 0x46e280
-int UnitSync::PopChangedEntry(Event_0046e280* out)
+int UnitSync::PopChangedEntry(UnitSyncEntry* out)
 {
-    std::list<Event_0046e280>& q = *(std::list<Event_0046e280>*)&ids;
-    if (q.empty())
+    if (ids.empty())
         return 0;
-    Iter_0046e280 p = ((Map_0046e280*)this)->Find(&q.front().key);
+    // The queue holds the keys as ints; find() takes them as unsigned.
+    UnitSyncIter p = Find((unsigned int*)&ids.front());
     *out = p.ptr->value;
-    q.pop_front();
+    ids.pop_front();
     return 1;
 }
 
@@ -1436,7 +1262,7 @@ int UnitSync::GetUnitEntry(Unit_0046e330* unit, UnitSyncEntry* out)
 // FUNCTION: 0x46e3c0
 int UnitSync::ToggleUnitAllowed(Unit_0046e330* unit)
 {
-    Node_0046e330* n = Find(&unit->key).ptr;
+    UnitSyncNode* n = Find(&unit->key).ptr;
     n->value.w = (n->value.w == 0);
     NotifyEntryChanged(unit->key);
     return n->value.w != 0 && n->value.h != 0;
@@ -1447,7 +1273,7 @@ int UnitSync::ToggleUnitAllowed(Unit_0046e330* unit)
 // FUNCTION: 0x46e450
 int UnitSync::DisallowUnit(Unit_0046e330* unit)
 {
-    Node_0046e330* n = Find(&unit->key).ptr;
+    UnitSyncNode* n = Find(&unit->key).ptr;
     n->value.w = 0;
     NotifyEntryChanged(unit->key);
     return n->value.w != 0 && n->value.h != 0;
@@ -1458,7 +1284,7 @@ int UnitSync::DisallowUnit(Unit_0046e330* unit)
 // FUNCTION: 0x46e4d0
 int UnitSync::AllowUnit(Unit_0046e330* unit)
 {
-    Node_0046e330* n = Find(&unit->key).ptr;
+    UnitSyncNode* n = Find(&unit->key).ptr;
     n->value.w = 1;
     NotifyEntryChanged(unit->key);
     return n->value.w != 0 && n->value.h != 0;
@@ -1468,7 +1294,7 @@ int UnitSync::AllowUnit(Unit_0046e330* unit)
 // FUNCTION: 0x46e550
 void UnitSync::SetUnitLimit(Unit_0046e330* unit, int value)
 {
-    Iter_0046e330 it = Find(&unit->key);
+    UnitSyncIter it = Find(&unit->key);
     if (!(it == End())) {
         it.ptr->value.unknown_c = value;
         NotifyEntryChanged(unit->key);
@@ -1546,7 +1372,7 @@ DestroyFn_0046e870 Access_0046e870::fn = &Access_0046e870::_Destroy;
 // FUNCTION: 0x46e880
 int* UnitSyncMap::Begin(int* param_1)
 {
-    *param_1 = *(int*)head;
+    *param_1 = (int)_Head->left;
     return param_1;
 }
 
@@ -1570,9 +1396,9 @@ EraseFn_0046e890 g_erase_0046e890 = &Tree_0046e890::erase;
 // The original calls this from 0x46d860 and 0x46d970 rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x46e9b0
-Iter_0046e9b0 UnitSyncMap::FindExact(const unsigned int& key)
+UnitSyncIter UnitSyncMap::FindExact(const unsigned int& key)
 {
-    Iter_0046e9b0 p = Iter_0046e9b0((Node_0046e9b0*)LowerBound(&key));
+    UnitSyncIter p = UnitSyncIter(LowerBound(&key));
     return (p == End() || key_compare(key, p.ptr->key)) ? End() : p;
 }
 #pragma auto_inline(on)
@@ -1656,8 +1482,8 @@ void UnitSyncMap::Init()
         DAT_0051e598->left = 0, DAT_0051e598->right = 0;
     }
     ++DAT_0051e59c;
-    head = Buynode(DAT_0051e598, 0), size = 0;
-    head->left = head, head->right = head;
+    _Head = Buynode(DAT_0051e598, 0), _Size = 0;
+    _Head->left = _Head, _Head->right = _Head;
 }
 
 // --- the iterator's post-increment (0x46fac0) --------------------------------
@@ -1728,15 +1554,18 @@ UfillFn_0046faf0 Access_0046fb40::fn = &Access_0046fb40::_Ufill;
 
 // --- the map's lower_bound (0x46fe60) ----------------------------------------
 
+// Shaped like std::_Tree<...>::_Lbound(const _K&) from MSVC 5's <xtree> for a
+// tree keyed by unsigned int, under a lock object; DAT_0051e598 is the tree's
+// _Nil node and _Head->parent is the root.
 // The original calls this from 0x46e9b0 rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x46fe60
-Node_0046fe60* UnitSyncMap::LowerBound(const unsigned int* key)
+UnitSyncNode* UnitSyncMap::LowerBound(const unsigned int* key)
 {
     std::_Lockit lock;
-    Node_0046fe60* x = ((Node_0046fe60*)head)->parent;
-    Node_0046fe60* y = (Node_0046fe60*)head;
-    while (x != (Node_0046fe60*)DAT_0051e598)
+    UnitSyncNode* x = _Head->parent;
+    UnitSyncNode* y = _Head;
+    while (x != DAT_0051e598)
         if (key_compare(x->key, *key))
             x = x->right;
         else

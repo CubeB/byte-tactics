@@ -142,7 +142,7 @@ class Vec_0046d860 : public std::vector<Class_0046eaa0> {
 class UnitSync {
   public:
     std::map<unsigned int, UnitSyncEntry> map; // +0x00
-    std::vector<Class_0046eaa0> players;       // +0x10
+    Vec_0046d860 players;                      // +0x10
     std::list<unsigned int> queue;             // +0x20
     char unknown_2c[0x58 - 0x2c];
     int direct;   // +0x58
@@ -204,7 +204,7 @@ void UnitSync::ProcessSync() {
                     entry.field_2c = 0;
                     // Push models the inlined push_back: the lea of this+0x10
                     // comes before the end() load.
-                    ((Vec_0046d860*)&players)->Push(entry);
+                    players.Push(entry);
                     Class_0046eaa0* e = &players.back();
                     if (disabled == 0) {
                         UnitSyncPacket packet;

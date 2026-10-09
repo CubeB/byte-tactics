@@ -70,18 +70,18 @@ struct Obj18 {
     char* field_4;                   // +0x4
 };
 
-// The object behind FileRequester::field_4.
+// The slider gadget behind FileRequester::slider.
 struct ReqSub {
     char unknown_0[0x140];
-    short field_140;                 // +0x140
+    short knobPos;                   // +0x140
 };
 
 struct FileRequester {
     void* gui;                       // +0x00
-    ReqSub* field_4;                 // +0x04
-    char* field_8;                   // +0x08
-    char* field_c;                   // +0x0c
-    char* field_10;                  // +0x10
+    ReqSub* slider;                  // +0x04 (the SLID gadget)
+    char* nameGadget;                // +0x08 (NAME)
+    char* maskGadget;                // +0x0c (MASK)
+    char* pathGadget;                // +0x10 (PATH)
     char drive[0x10];                // +0x14
     char cwd[0x100];                 // +0x24
     char save_drive[0x10];           // +0x124
@@ -89,7 +89,7 @@ struct FileRequester {
     char* names;                     // +0x234
     char* sizes;                     // +0x238
     char* selected;                  // +0x23c
-    int field_240;                   // +0x240
+    int mask;                        // +0x240 (the mask text passed to OpenFileRequester)
     void (__stdcall* callback)(void*);   // +0x244
 };
 
@@ -323,12 +323,12 @@ void __stdcall RefreshFileList(FileRequester* obj)
 {
     GetCurrentDriveLetter(obj->drive);
     GetDriveDirectory(obj->drive, obj->cwd, 0x100);
-    int n = ScanDirectory(obj->field_c + 0xb6, obj->names, obj->sizes, 1, 0, 0);
+    int n = ScanDirectory(obj->maskGadget + 0xb6, obj->names, obj->sizes, 1, 0, 0);
     SortFileList(obj->names, obj->sizes, 0, n);
     ConfigureListBoxByName(obj->gui, "SWIN", (int)obj->names, n, 0);
     ConfigureListBoxByName(obj->gui, "SIZE", (int)obj->sizes, n, 0);
-    obj->field_4->field_140 = 0;
-    strcpy(obj->field_10 + 0xb6, obj->cwd);
+    obj->slider->knobPos = 0;
+    strcpy(obj->pathGadget + 0xb6, obj->cwd);
 }
 
 // Click handler of the file requester (FILEREQ.GUI, opened by 0x4afa30).
@@ -460,11 +460,11 @@ FileRequester* Dialog::OpenFileRequester(Dialog* self, char* arg2, char* arg3, c
     obj->callback = 0;
 
     Gadget* entries = (Gadget*)self->field_18->field_4;
-    obj->field_8 = (char*)FindGadgetChecked_B(entries, "NAME");
-    obj->field_c = (char*)FindGadgetChecked_B(entries, "MASK");
-    obj->field_10 = (char*)FindGadgetOrNull(entries, "PATH");
+    obj->nameGadget = (char*)FindGadgetChecked_B(entries, "NAME");
+    obj->maskGadget = (char*)FindGadgetChecked_B(entries, "MASK");
+    obj->pathGadget = (char*)FindGadgetOrNull(entries, "PATH");
     Gadget* titl = FindGadgetChecked_C(entries, "TITL");
-    obj->field_4 = (ReqSub*)FindGadgetChecked_D(entries, "SLID");
+    obj->slider = (ReqSub*)FindGadgetChecked_D(entries, "SLID");
 
     short none = -1;
     entries->x = none;
@@ -478,13 +478,13 @@ FileRequester* Dialog::OpenFileRequester(Dialog* self, char* arg2, char* arg3, c
     obj->sizes = (char*)GameAllocIgnoreTag("FILE SIZES", 0xea60);
     memset(obj->sizes, -1, 0xea60);
 
-    obj->field_240 = (int)arg3;
+    obj->mask = (int)arg3;
     obj->selected = arg2;
 
     StripPath(arg2);
 
-    strcpy(obj->field_8 + 0xb6, arg2);
-    strcpy(obj->field_c + 0xb6, arg3);
+    strcpy(obj->nameGadget + 0xb6, arg2);
+    strcpy(obj->maskGadget + 0xb6, arg3);
 
     GetCurrentDriveLetter(obj->save_drive);
     GetDriveDirectory(obj->save_drive, obj->save_cwd, 0x100);

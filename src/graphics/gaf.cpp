@@ -326,15 +326,15 @@ union Flags_004b8310 {
 };
 
 // The display object GetDisplay returns. Only the fields the gaf drawing
-// reads are named: the cached objects and palettes at +0xc0 to +0xd0, and the
-// flag word at +0xf0.
+// reads are named: the alpha, shade, light, gray and blue tables at +0xc0 to
+// +0xd0, and the flag word at +0xf0.
 struct Display_004b8310 {
     char unknown_0[0xc0];
-    unsigned char* field_c0;           // +0xc0
-    unsigned char* field_c4;           // +0xc4
-    unsigned char* field_c8;           // +0xc8
-    unsigned char* field_cc;           // +0xcc
-    unsigned char* field_d0;           // +0xd0
+    unsigned char* alphaTable;         // +0xc0
+    unsigned char* shadeTable;         // +0xc4
+    unsigned char* lightTable;         // +0xc8
+    unsigned char* grayTable;          // +0xcc
+    unsigned char* blueTable;          // +0xd0
     char unknown_d4[0xf0 - 0xd4];
     Flags_004b8310 flags;              // +0xf0
 };
@@ -349,10 +349,10 @@ struct Screen_004b8310 {
 // The 0x10-byte source descriptor the blended blitters read: width, height,
 // pitch and the bits pointer.
 struct Src_004b8310 {
-    int field_0;
-    int field_1;
-    int field_2;
-    GafFrame** field_3;
+    int width;
+    int height;
+    int pitch;
+    GafFrame** pixels;
 };
 
 // The clip rect and the source descriptor DrawFrameBlended builds together.
@@ -413,15 +413,15 @@ void __stdcall DrawFrameBlended(Surface* param_1, GafFrame* param_2, int x, int 
                     && sprite_rect.right >= sprite_rect.left && sprite_rect.bottom >= sprite_rect.top) {
                     if (param_2->flag9 == 0) {
                         Src_004b8310& src = bs.src;
-                        src.field_0 = param_2->width;
-                        src.field_1 = param_2->height;
-                        src.field_2 = param_2->width;
-                        src.field_3 = (GafFrame**)param_2->plane0;
+                        src.width = param_2->width;
+                        src.height = param_2->height;
+                        src.pitch = param_2->width;
+                        src.pixels = (GafFrame**)param_2->plane0;
                         BlitRectBlended(param_1, &src, &sprite_rect, &screen_rect,
-                            param_2->colour, d->field_c0);
+                            param_2->colour, d->alphaTable);
                     } else {
                         BlitCompressedBlended(param_1->pixels, param_1->pitch, &screen_rect,
-                            (GafFrame**)param_2->plane0, &sprite_rect, d->field_c0);
+                            (GafFrame**)param_2->plane0, &sprite_rect, d->alphaTable);
                     }
                 }
             }
@@ -491,7 +491,7 @@ void __stdcall DrawFrameGray(Surface* param_1, GafFrame* param_2, int x, int y)
                     s.flag0 = 1;
                     s.flag1 = 0;
                     ResetClipRect((int*)&s);
-                    BlitRectRemapDest(param_1, &s, &other, &rect, param_2->colour, d->field_cc);
+                    BlitRectRemapDest(param_1, &s, &other, &rect, param_2->colour, d->grayTable);
                 }
             }
         }
@@ -921,9 +921,9 @@ void __stdcall DrawFrameShadow(Surface* dst, GafFrame* bmp, int x, int y)
                         desc.pitch = bmp->width;
                         desc.height = bmp->height;
                         desc.pixels = bmp->plane0;
-                        BlitRectShadow(dst, &desc, &other, &rect, bmp->colour, d->field_c8);
+                        BlitRectShadow(dst, &desc, &other, &rect, bmp->colour, d->lightTable);
                     } else {
-                        BlitCompressedShadow(dst->pixels, dst->pitch, &rect, bmp->plane0, &other, d->field_c8);
+                        BlitCompressedShadow(dst->pixels, dst->pitch, &rect, bmp->plane0, &other, d->lightTable);
                     }
                 }
             }
@@ -1122,7 +1122,7 @@ void __stdcall TintFrameBelow(GafFrame* image, unsigned char level)
     Display_004b8310* pal = GetDisplay();
     while (count--) {
         if (*m <= level && *p != image->colour) {
-            *p = pal->field_d0[*p];
+            *p = pal->blueTable[*p];
         }
         p++;
         m++;
@@ -1189,7 +1189,7 @@ void __stdcall DrawFrameScaledBlended(Surface* dst, GafFrame* bmp, int x, int y,
                         unsigned char c = ((unsigned char*)bmp->plane0)[(fx >> 16) + srcRow];
                         if (c != bmp->colour) {
                             unsigned char* p = rowBase + col + dst->pixels;
-                            *p = d->field_c0[(c << 8) + *p];
+                            *p = d->alphaTable[(c << 8) + *p];
                         }
                     }
                 }

@@ -4557,9 +4557,9 @@ struct Amount {  // 0x8 bytes, 2 views
 struct FileRequester {   // 0x248 bytes, 8 views
     void* gui;  // +0x0
     Mode_00446310* modes;  // +0x4
-    char* field_8;  // +0x8
-    char* field_c;  // +0xc
-    char* field_10;  // +0x10
+    char* nameGadget;  // +0x8
+    char* maskGadget;  // +0xc
+    char* pathGadget;  // +0x10
     void* field_14;  // +0x14
     void* field_18;  // +0x18
     void* field_1c;  // +0x1c
@@ -4570,7 +4570,7 @@ struct FileRequester {   // 0x248 bytes, 8 views
     int field_234;  // +0x234
     int field_238;  // +0x238
     int field_23c;  // +0x23c
-    int field_240;  // +0x240
+    int mask;  // +0x240
     void (__stdcall *callback)(void*);  // +0x244
 };
 
@@ -16192,7 +16192,7 @@ struct Obj_004b7f70 {  // 0xc bytes, 1 view
 
 struct Display_004b8310 {  // 0xf4 bytes, 1 view
     char unknown_0[200];
-    unsigned char* field_c8;  // +0xc8
+    unsigned char* lightTable;  // +0xc8
     char unknown_cc[36];
     unsigned char flags;  // +0xf0
     char unknown_f1[3];
@@ -16204,10 +16204,10 @@ struct Screen_004b8310 {  // 0x50 bytes, 1 view
 };
 
 struct Src_004b8310 {  // 0x10 bytes, 2 views
-    int field_0;  // +0x0
-    int field_1;  // +0x4
-    int field_2;  // +0x8
-    Bitmap_00437b50** field_3;  // +0xc
+    int width;  // +0x0
+    int height;  // +0x4
+    int pitch;  // +0x8
+    Bitmap_00437b50** pixels;  // +0xc
 };
 
 struct Bounds_src_004b8310 {  // 0x20 bytes, 2 views

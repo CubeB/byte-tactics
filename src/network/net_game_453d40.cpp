@@ -97,11 +97,7 @@ public:
     void ReceiveSyncPacket(void*, unsigned char);
 };
 
-struct Settings {
-    int field_471;                     // +0x471
-    int flags_475;                     // +0x475
-    char unknown_479[0x48];
-};
+#include "settings.h"
 
 struct Game {
     char unknown_0[0x14];

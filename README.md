@@ -112,14 +112,14 @@ Counts in `src/` and `include/` at `origin/main`, against `e9367f13` (the roadma
 | Placeholder fields `field_<offset>` | 589 | 375 | 0, named | 36% | `[#######-------------]` |
 | Files that define `Unit` | 285 | 80 | 1, one shared definition | 72% | `[##############------]` |
 | Files opening with matching history | 301 | 0 | 0, none | 100% | `[####################]` |
-| Casts `((T*)x)->` | 1,698 | 568 | 0, casts the types allow | 67% | `[#############-------]` |
-| Byte-offset access `*(T*)(p + off)` and `(char*)p + off` | 1,284 | 751 | cases with no struct | | |
+| Casts `((T*)x)->` | 1,698 | 569 | 0, casts the types allow | 66% | `[#############-------]` |
+| Byte-offset access `*(T*)(p + off)` and `(char*)p + off` | 1,284 | 718 | cases with no struct | | |
 
 | Cleanup issues | | | |
 | --- | --- | --- | ---: |
 | Gather issues | 125 of 125 closed | `[####################]` | 100% |
 | Join issues | 28 of 31 closed | `[##################--]` | 90% |
-| Name issues | 135 of 156 closed | `[#################---]` | 86% |
+| Name issues | 136 of 156 closed | `[#################---]` | 87% |
 <!-- cleanup:end -->
 
 ## Next steps

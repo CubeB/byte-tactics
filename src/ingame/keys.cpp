@@ -105,20 +105,7 @@ struct BmpWriter {
 int RIReport(int, int, int, int, int, int, int, int, int, int);
 void WalkFrameChain(int*, int*, int, int, int*, int, int*, int*, int, int*);
 
-// 24 bytes, not 20: keeps the trailing 4 bytes of the sprite record.
-struct GafFrame {
-    unsigned short a;                       // +0x0
-    unsigned short b;                       // +0x2
-    unsigned short e;                       // +0x4
-    unsigned short f;                       // +0x6
-    unsigned char flag8;                    // +0x8
-    unsigned char flag9;                    // +0x9
-    unsigned char flaga;                    // +0xa
-    unsigned char flagb;                    // +0xb
-    char unknown_c[4];
-    int d;                                  // +0x10
-    int scratch;                            // +0x14
-};
+#include "../graphics/gaf_frame.h"
 
 struct Src_004b8ae0 {
     char unknown_0[0xbc];
@@ -423,7 +410,7 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
             SurfaceFromFrame(&surf, bm);
             FrameFromSurface(&pal, ((SrcHolder_00495a30*)GetDisplay())->frame);
 
-            pal.flag8 = 0;
+            pal.transparency = 0;
             int row = 0;
 
             if (h > row) {

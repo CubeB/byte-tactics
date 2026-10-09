@@ -66,8 +66,8 @@ struct Feature {
 
 #include "../units/cob_script.h"
 
-// Unused here: these forward declarations take the symbol ids that keep HandleNetPackets (0x453d40) matching
-// (docs/c2-regalloc.md).
+// Unused here: these forward declarations take the symbol ids that keep
+// HandleNetPackets (0x453d40) matching (docs/c2-regalloc.md).
 struct BmpFileHeader;
 struct BmpInfo;
 struct BmpInfoHeader;
@@ -76,9 +76,7 @@ struct FrameTable;
 struct Chunk;
 class DamagedAllyCollector;
 class SquadManager;
-class AssaultTimer;
-class EscortTimer;
-class SquadScoutTimer;
+
 
 class Unit {
 public:

@@ -492,13 +492,7 @@ public:
 
 // The frame-time profile at g_game+0x38d85: last tick at +0, one accumulator
 // per phase at +0x2c.
-struct FrameTimers {
-    unsigned long last;
-    int total;
-    int values[9];
-    int acc[9];
-    void AccumulateProfileTime(int i);
-};
+#include "frame_timers.h"
 
 // Bit 2 of the flags word at g_game+0x37f2f (like 0x416e00).
 struct Flags_0046a530 {

@@ -30,12 +30,7 @@ struct Flags_38d75 {
     };
 };
 
-struct FrameTimers {
-    int last;                          // +0x0
-    int total;                         // +0x4
-    int prev[9];                       // +0x8
-    int cur[9];                        // +0x2c
-};
+#include "../ingame/frame_timers.h"
 
 struct Sub_00496b10 {
     char unknown_0[0xa6];
@@ -337,7 +332,7 @@ static inline void Charge(int bucket)
 {
     FrameTimers* t = &g_game->timers;
     int now = GetMilliseconds();
-    t->cur[bucket] += now - t->last;
+    t->acc[bucket] += now - t->last;
     t->last = now;
 }
 #define CHARGE(bucket) Charge(bucket)
@@ -348,9 +343,9 @@ void MainLoopTick()
     FrameTimers* t = &g_game->timers;
     t->total = 0;
     for (int i = 0; i < 9; i++) {
-        t->total += t->cur[i];
-        t->prev[i] = t->cur[i];
-        t->cur[i] = 0;
+        t->total += t->acc[i];
+        t->values[i] = t->acc[i];
+        t->acc[i] = 0;
     }
     if (t->total <= 0)
         t->total = 1;

@@ -80,13 +80,7 @@ struct Surface { int data[12]; int SetClipRect(OverlayRect); };
 // one accumulator per phase at +0x2c. AccumulateProfileTime itself is defined after
 // this function in the original file, so only the hand-inlined copies below
 // were expanded; the last call stays out of line.
-struct FrameTimers {
-  unsigned long last;
-  int total;
-  int values[9];
-  int acc[9];
-  void AccumulateProfileTime(int i);
-};
+#include "frame_timers.h"
 static inline void ProfileMark(FrameTimers *p, int i)
 {
   unsigned long t = GetMilliseconds();

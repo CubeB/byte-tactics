@@ -277,11 +277,11 @@ struct UnitType_00488b10 {              // 0x249 bytes
 
 struct MissionUnit {               // 0x24 bytes
     char* name;                       // +0x0
-    char* unknown_4;                  // +0x4
-    char* extra;                      // +0x8
+    char* ident;                      // +0x4
+    char* initialMission;             // +0x8
     Vec3_00487bf0 pos;                // +0xc
-    short f18;                        // +0x18
-    short f1a;                        // +0x1a
+    short angle;                      // +0x18
+    short health;                     // +0x1a
     char unknown_1c[0x22 - 0x1c];
     unsigned char player;             // +0x22
     unsigned char flags;              // +0x23
@@ -391,15 +391,15 @@ void __cdecl CreateMissionUnits()
         if (u) {
             // The mask is 0xffffff80, not 0x80: keeps the byte zero-extension.
             u->flags = (u->flags & ~0x8000) | ((e->flags & 0xffffff80) << 8);
-            u->health = (unsigned short)((unsigned)(u->def->f1fa * e->f1a) / 100);
-            u->angles.heading = e->f18;
+            u->health = (unsigned short)((unsigned)(u->def->f1fa * e->health) / 100);
+            u->angles.heading = e->angle;
             units[i] = u;
         }
     }
     for (int j = 0; j < g_game->net->unitCount; j++) {
         MissionUnit* e = &g_game->net->units[j];
-        if (e->extra && units[j])
-            RunInitialMission(units[j], e->extra, (Table_00487bf0*)&units);
+        if (e->initialMission && units[j])
+            RunInitialMission(units[j], e->initialMission, (Table_00487bf0*)&units);
     }
     if (g_game->net->unitCount <= 0)
         g_game->mission->Deactivate();

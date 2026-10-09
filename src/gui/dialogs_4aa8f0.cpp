@@ -71,7 +71,7 @@ struct Layer_004aa8f0 {
     void (__stdcall* handler)(Gui*); // +0x08
     int data;                      // +0x0c
     int flags;                     // +0x10
-    int field_14;                  // +0x14
+    int redraw;                    // +0x14
     int keyboardInput;             // +0x18
     int field_1c;                  // +0x1c
     int current;                   // +0x20
@@ -271,7 +271,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Gui* menu, const char* name,
             rect[3] = rect[1] + e->h - 1;
             FadeRectangle(cur->entries->surface, rect, -0x18);
             if (menu->layer != 0)
-                menu->layer->field_14 = 1;
+                menu->layer->redraw = 1;
         } else {
             FadeRectangle(0, 0, -0x18);
         }
@@ -344,7 +344,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Gui* menu, const char* name,
         layer->flags = 0x80;
     layer->flags |= flags & 0x800;
     if (menu->layer != 0)
-        menu->layer->field_14 = 1;
+        menu->layer->redraw = 1;
     if (menu->layer != 0)
         menu->layer->keyboardInput = 0;
     strncpy((char*)&entry->name[0], guiName, 0x10);
@@ -491,15 +491,15 @@ int __stdcall BlitLayers(Layer_004aa8f0* node, void* param_2, Rect_004b6720* par
     rect.right = g->w + rect.left - 1;
     rect.bottom = g->h + rect.top - 1;
     if (param_3 == 0) {
-        if (node->field_14 == 1) {
-            node->field_14 = 0;
+        if (node->redraw == 1) {
+            node->redraw = 0;
             DrawSurface(param_2, g->surface, g->x, g->y);
         }
     } else {
-        if (node->field_14 != 1 && RectsOverlap(&rect, param_3) == 0) {
+        if (node->redraw != 1 && RectsOverlap(&rect, param_3) == 0) {
             goto finish;
         }
-        node->field_14 = 0;
+        node->redraw = 0;
         DrawSurface(param_2, g->surface, g->x, g->y);
     }
 finish:

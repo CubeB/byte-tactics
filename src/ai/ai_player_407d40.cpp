@@ -56,10 +56,10 @@ public:
     void* group;                       // +0x8
     int next;                          // +0xc
     unsigned int player;               // +0x10
-    Vec3_00407d40 a;                   // +0x14
-    Vec3_00407d40 b;                   // +0x20
-    Vec3_00407d40 c;                   // +0x2c
-    int field_38;                      // +0x38
+    Vec3_00407d40 best;                // +0x14, the best position found so far
+    Vec3_00407d40 probe;               // +0x20, the position being rated
+    Vec3_00407d40 step;                // +0x2c, added to probe each timer tick
+    int bestRating;                    // +0x38, the unit rating at best
 
     SpatialTimer(SquadManager* p, void* q);
 };
@@ -75,11 +75,11 @@ SpatialTimer::SpatialTimer(SquadManager* p, void* q)
     next = 0;
     player = p->index;
     vptr_slot = DAT_004fc980;
-    a = Vec3_00407d40(g_game);
-    b = Vec3_00407d40(g_game);
+    best = Vec3_00407d40(g_game);
+    probe = Vec3_00407d40(g_game);
     Vec3_00407d40 temp(g_game);
-    // Order matters: field_38, then the late vtable store, then c.
-    field_38 = 0;
+    // Order matters: bestRating, then the late vtable store, then step.
+    bestRating = 0;
     vptr_slot = g_spatialTimerVtable;
-    c = temp;
+    step = temp;
 }

@@ -114,6 +114,12 @@ Counts in `src/` and `include/` at `origin/main`, against `e9367f13` (the roadma
 | Files opening with matching history | 301 | 2 | 0, none | 99% | `[####################]` |
 | Casts `((T*)x)->` | 1,698 | 698 | 0, casts the types allow | 59% | `[############--------]` |
 | Byte-offset access `*(T*)(p + off)` and `(char*)p + off` | 1,284 | 825 | cases with no struct | | |
+
+| Cleanup issues | | | |
+| --- | --- | --- | ---: |
+| Gather issues | 125 of 125 closed | `[####################]` | 100% |
+| Join issues | 24 of 30 closed | `[################----]` | 80% |
+| Name issues | 127 of 148 closed | `[#################---]` | 85% |
 <!-- cleanup:end -->
 
 ## Next steps

@@ -21,16 +21,16 @@
 
 #pragma pack(push, 1)
 
-struct Point {
-    short x;
-    short y;
-};
+#include "../util/vec3.h"
 
-struct Vec3 {
-    int x;
-    int y;
-    int z;
-};
+// Unused here: these forward declarations take the symbol ids the shared
+// vec3.h header costs, so the file's functions keep their ids (docs/c2-regalloc.md).
+struct GafFrame;
+struct Script;
+struct UnitMotion;
+struct PathOrder;
+struct MissionOrder;
+struct TdfParser;
 
 class Class_00438760 {
 public:
@@ -161,7 +161,7 @@ struct Game {
     unsigned char localPlayer;         // +0x2a42
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x2c8e - 0x2a44];
-    Point point;                       // +0x2c8e
+    Point16 point;                    // +0x2c8e
     char unknown_2c92[0x2caa - 0x2c92];
     Vec3 pos;                          // +0x2caa
     char unknown_2cb6[0x2cbc - 0x2cb6];
@@ -313,11 +313,6 @@ struct Pos_00417bb0 {
     short y;                           // +0x6
     unsigned short z_frac;             // +0x8
     short z;                           // +0xa
-};
-
-struct Point16 {
-    short x;                           // +0x0
-    short z;                           // +0x2
 };
 
 class AiSearchGoal {
@@ -1403,7 +1398,7 @@ void __stdcall DrawWorldSegmentLine(void* surface, Point16 from, short dx, short
 {
     Pos_00417bb0 pos1, pos2;
     int x1 = from.x << 16;
-    int z1 = from.z << 16;
+    int z1 = from.y << 16;
     *(int*)&pos1.x_frac = x1;
     *(int*)&pos1.z_frac = z1;
     *(int*)&pos2.x_frac = x1 + (dx << 16);
@@ -1429,14 +1424,14 @@ void AiSearchGoal::DrawOnSurface(void* surface)
     for (int i = 0; i < this->count - 1; i++) {
         Pos_00417bb0 p1;
         *(int*)&p1.x_frac = this->points[i].x << 16;
-        *(int*)&p1.z_frac = this->points[i].z << 16;
+        *(int*)&p1.z_frac = this->points[i].y << 16;
         int h = GetGroundHeight(&p1);
         int x1 = p1.x - g_game->scrollX + 0x80;
         int y1 = p1.z - g_game->scrollY - (h >> 1) + 0x20;
 
         Pos_00417bb0 p2;
         *(int*)&p2.x_frac = this->points[i + 1].x << 16;
-        *(int*)&p2.z_frac = this->points[i + 1].z << 16;
+        *(int*)&p2.z_frac = this->points[i + 1].y << 16;
         h = GetGroundHeight(&p2);
         int x2 = p2.x - g_game->scrollX + 0x80;
         int y2 = p2.z - g_game->scrollY - (h >> 1) + 0x20;

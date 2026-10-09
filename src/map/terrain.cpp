@@ -33,11 +33,6 @@ struct Unit;
 
 #pragma pack(push, 1)
 
-struct Point {
-    short x;
-    short y;
-};
-
 #include "../util/vec3.h"
 
 struct Cell {                           // 13 bytes per cell
@@ -80,7 +75,7 @@ struct Owner {                          // 10 bytes: a grid cell's list head
 
 struct UnitDef {
     char unknown_0[0x14a];
-    Point origin;                       // +0x14a, footprint in map cells
+    Point16 origin;                    // +0x14a, footprint in map cells
     unsigned char* mask;                // +0x14e, one byte per footprint cell
     char unknown_152[0x1be - 0x152];
     short maxwaterdepth;                // +0x1be
@@ -127,9 +122,9 @@ struct Unit {                           // 0x118 bytes
             int y;                      // +0x72
         };
     };
-    Point pos;                          // +0x76
+    Point16 pos;                       // +0x76
     char unknown_7a[4];
-    Point size;                         // +0x7e, footprint in map cells
+    Point16 size;                      // +0x7e, footprint in map cells
     Owner* owner;                       // +0x82
     int carrier;                        // +0x86, the unit carrying this one
     Unit* child;                        // +0x8a
@@ -268,7 +263,8 @@ public:
 };
 
 // Unused here: these forward declarations take the symbol ids that keep 0x47d2e0 matching
-// after IsPadSlotFree took the file's Unit and Point16 came in with Vec3 (docs/c2-regalloc.md).
+// after IsPadSlotFree took the file's Unit and the shared vec3.h header replaced the
+// file's own Vec3 and Point16 (docs/c2-regalloc.md).
 struct Sound;
 struct HapiBank;
 struct TdfFile;
@@ -294,6 +290,13 @@ struct FileHandle;
 struct Surface;
 struct Gaf;
 struct GafEntry;
+struct GafFrame;
+struct Script;
+struct UnitMotion;
+struct WeaponDef;
+struct PathOrder;
+struct MissionOrder;
+struct TdfParser;
 
 struct Entry_0047ea40 {
     Vec3 pos;                          // +0x0
@@ -306,8 +309,8 @@ extern Game* g_game;
 extern ClaimFootprintVisitor g_claimFootprintVtable[];
 extern int g_lastPlaceHeight;
 extern int g_lastPlaceMetalSum;
-void __stdcall UpdateCellHeightRange(Point pos, Point size);
-void __stdcall RefreshAllPassMaps(Point pos, Point size);
+void __stdcall UpdateCellHeightRange(Point16 pos, Point16 size);
+void __stdcall RefreshAllPassMaps(Point16 pos, Point16 size);
 // Stays in a file of its own: see the note at its definition.
 void __stdcall RemoveUnitFromMap(Unit* unit);
 
@@ -322,7 +325,7 @@ void __stdcall ClaimFootprintCells(Unit* obj)
         return;
     f &= ~0x8000000;
     obj->flags = f;
-    Point size = obj->size;
+    Point16 size = obj->size;
     if (f & 0x20000000) {
         Cell* cell = GetMapCell(obj->pos.x, obj->pos.y);
         int index = 0;
@@ -412,10 +415,10 @@ void __stdcall ClaimFootprintCells(Unit* obj)
 
 // Runs VisitObjectsInArea over an area with a stack visitor of ClaimFootprintVisitor, as
 // ForceNeighborFootprintReclaim does for an object's area.
-void __stdcall VisitObjectsInArea(Point pos, Point size, ClaimFootprintVisitor* visitor);
+void __stdcall VisitObjectsInArea(Point16 pos, Point16 size, ClaimFootprintVisitor* visitor);
 
 // FUNCTION: 0x47cac0
-void __stdcall ClaimFootprintsInArea(Point pos, Point size)
+void __stdcall ClaimFootprintsInArea(Point16 pos, Point16 size)
 {
     ClaimFootprintVisitor visitor;
     VisitObjectsInArea(pos, size, &visitor);
@@ -498,7 +501,7 @@ void __stdcall ClearFootprintAndUnlink(Unit* unit)
 extern int g_lastPlaceHeight;
 extern int g_lastPlaceMetalSum;
 
-int __stdcall GetCellHeight(Point* p);
+int __stdcall GetCellHeight(Point16* p);
 
 struct Pos_0047d2e0 {
     Fixed x, y, z;
@@ -590,12 +593,12 @@ Cell* c)
 }
 
 // FUNCTION: 0x47d2e0
-int __stdcall CanBuildAt(UnitDef* unit, Point cell, short type, Los_0047d2e0* los)
+int __stdcall CanBuildAt(UnitDef* unit, Point16 cell, short type, Los_0047d2e0* los)
 {
     int ok;
     g_lastPlaceHeight = 0;
     g_lastPlaceMetalSum = 0;
-    Point origin = unit->origin;
+    Point16 origin = unit->origin;
     // The guard reads cell.x and cell.y directly.
     if (cell.x < 1 || cell.y < 1 || cell.x + origin.x >= g_game->width ||
         cell.y + origin.y >= g_game->height)
@@ -707,12 +710,12 @@ int __stdcall CanBuildAt(UnitDef* unit, Point cell, short type, Los_0047d2e0* lo
 int __stdcall IsFootprintClear(Unit* obj, int flag)
 {
     short* pp = &obj->pos.x;                  // x end reads pos.x through the alias
-    Point* q = &obj->pos;            // y end reads pos.y through this one
-    Point* r = &obj->size;
+    Point16* q = &obj->pos;            // y end reads pos.y through this one
+    Point16* r = &obj->size;
     short xend = pp[0] + obj->size.x;
     short yend = q->y + r->y;
-    // Stays a 4-byte Point copy, not two short locals.
-    Point p = obj->pos;
+    // Stays a 4-byte Point16 copy, not two short locals.
+    Point16 p = obj->pos;
     if (p.x < 1 || p.y < 1 || xend >= g_game->width || yend >= g_game->height)
         return 0;
     int width = g_game->width;
@@ -731,7 +734,7 @@ int __stdcall IsFootprintClear(Unit* obj, int flag)
 
 int __stdcall IsFootprintClear(Unit* obj, int flag);
 void __stdcall ClaimFootprintCells(Unit* obj);
-void __stdcall RefreshAllPassMaps(Point pos, Point size);
+void __stdcall RefreshAllPassMaps(Point16 pos, Point16 size);
 
 // FUNCTION: 0x47dac0
 void __stdcall SetYardOpen(Unit* obj, int flag)
@@ -744,8 +747,8 @@ void __stdcall SetYardOpen(Unit* obj, int flag)
     }
 }
 
-void __stdcall VisitObjectsInArea(Point pos, Point size, ClaimFootprintVisitor* visitor);
-void __stdcall RefreshAllPassMaps(Point pos, Point size);
+void __stdcall VisitObjectsInArea(Point16 pos, Point16 size, ClaimFootprintVisitor* visitor);
+void __stdcall RefreshAllPassMaps(Point16 pos, Point16 size);
 
 // The visitor is declared after the flag update so that it reuses obj's
 // stack slot; size and pos go through locals (in that order) so that pos is
@@ -755,8 +758,8 @@ void __stdcall ForceNeighborFootprintReclaim(Unit* obj)
 {
     obj->flags |= 0x8000000;
     ClaimFootprintVisitor visitor;
-    Point size = obj->size;
-    Point pos = obj->pos;
+    Point16 size = obj->size;
+    Point16 pos = obj->pos;
     VisitObjectsInArea(pos, size, &visitor);
     RefreshAllPassMaps(obj->pos, obj->size);
 }
@@ -765,7 +768,7 @@ void __stdcall ForceNeighborFootprintReclaim(Unit* obj)
 // the raw low 16 bits of the second argument, and that argument is never
 // dereferenced anywhere in the function. So either the parameter really is an
 // owner id dressed up as a pointer, or the original meant other->unit.
-int __stdcall CanBuildAt(UnitDef* unit, Point cell, short type, Los_0047d2e0* los);
+int __stdcall CanBuildAt(UnitDef* unit, Point16 cell, short type, Los_0047d2e0* los);
 
 // Returns non-zero when the cell's ground does not take a unit: water, a cliff
 // edge, or a feature type whose name entry has the "steep" bit set.
@@ -789,9 +792,9 @@ static inline int SteepCell(Cell* c)
 }
 
 // FUNCTION: 0x47db70
-int __stdcall CanPlaceUnitFootprint(UnitDef* unit, UnitDef* other, Point cell, int flags)
+int __stdcall CanPlaceUnitFootprint(UnitDef* unit, UnitDef* other, Point16 cell, int flags)
 {
-    Point fp = unit->origin;
+    Point16 fp = unit->origin;
     if (cell.x < 0 || cell.y < 0)
         return flags == 2;
     int fx = fp.x;
@@ -837,18 +840,18 @@ int __stdcall CanPlaceUnitFootprint(UnitDef* unit, UnitDef* other, Point cell, i
 // sets the height from the cell. The two conversions are inlined helpers that
 // take the origin and the position by value.
 // GetFootprintHeight stays in a file of its own: see the note at its definition.
-int __stdcall GetFootprintHeight(UnitDef* unit, Point cell);
+int __stdcall GetFootprintHeight(UnitDef* unit, Point16 cell);
 
 // The origin stays the last parameter: it is read before the position.
-static inline Point WorldToCell(Vec3 v, Point origin)
+static inline Point16 WorldToCell(Vec3 v, Point16 origin)
 {
-    Point c;
+    Point16 c;
     c.x = (v.x - (origin.x << 19) + 0x80000) >> 20;
     c.y = (v.z - (origin.y << 19) + 0x80000) >> 20;
     return c;
 }
 
-static inline void CellToWorld(Point origin, Point c, Vec3* v)
+static inline void CellToWorld(Point16 origin, Point16 c, Vec3* v)
 {
     v->x = (origin.x + c.x * 2) << 19;
     v->z = (origin.y + c.y * 2) << 19;
@@ -859,7 +862,7 @@ void __stdcall SnapWorldPosToFootprint(UnitDef* unit, Vec3* pos)
 {
     if (unit->mobile)
         return;
-    Point cell = WorldToCell(*pos, unit->origin);
+    Point16 cell = WorldToCell(*pos, unit->origin);
     CellToWorld(unit->origin, cell, pos);
     pos->y = GetFootprintHeight(unit, cell) << 16;
 }
@@ -1049,7 +1052,7 @@ int __stdcall IsPadSlotFree(Unit* pad, int id)
 // Scans every grid cell overlapping the rectangle [pos, pos+size), calling
 // visitor->ClaimFootprint for each object (and child) whose own rectangle overlaps.
 // FUNCTION: 0x47e5c0
-void __stdcall VisitObjectsInArea(Point pos, Point size, ClaimFootprintVisitor* visitor)
+void __stdcall VisitObjectsInArea(Point16 pos, Point16 size, ClaimFootprintVisitor* visitor)
 {
     // Declared apart from its assignment: keeps the sum from fusing.
     int sumy;
@@ -1071,14 +1074,14 @@ void __stdcall VisitObjectsInArea(Point pos, Point size, ClaimFootprintVisitor* 
                 continue;
             }
             for (Unit* o = grid->cells[grid->width * y + x].first; o != 0; o = o->next) {
-                Point op = o->pos;
-                Point os = o->size;
+                Point16 op = o->pos;
+                Point16 os = o->size;
                 if (pos.x < os.x + op.x && sumx > op.x && pos.y < os.y + op.y && sumy > op.y) {
                     visitor->ClaimFootprint(o);
                 }
                 for (Unit* c = o->child; c != 0; c = c->next) {
-                    Point cs = c->size;
-                    Point cp = c->pos;
+                    Point16 cs = c->size;
+                    Point16 cp = c->pos;
                     if (pos.x < cs.x + cp.x && sumx > cp.x && pos.y < cp.y + cs.y && sumy > cp.y) {
                         visitor->ClaimFootprint(c);
                     }

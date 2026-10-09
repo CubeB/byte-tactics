@@ -12,16 +12,7 @@
 
 #pragma pack(push, 1)
 
-struct Point {
-    short x;
-    short y;
-};
-
-struct Vec3 {
-    int x;
-    int y;
-    int z;
-};
+#include "../util/vec3.h"
 
 // The copy constructor is only declared: it is never called (the temporary is
 // elided), but declaring it makes MSVC build the by-value argument in place in
@@ -105,7 +96,7 @@ struct UnitType {
     char unknown_40[0x111 - 0x40];
     unsigned int field_111;            // +0x111
     char unknown_115[0x14a - 0x115];
-    Point origin;                      // +0x14a
+    Point16 origin;                   // +0x14a
     char unknown_14e[0x156 - 0x14e];
     int ids;                           // +0x156
     char unknown_15a[0x186 - 0x15a];
@@ -474,9 +465,9 @@ void __stdcall DefaultCommandHandler(int param_1);
 void __stdcall GetGadgetName(MenuEntry* entries, char* name, int index);
 void __stdcall IssueOrCancelOrder(Class_00438760 kind, int remove, Unit* owner,
                             int id, Vec3* pos, int param_6, int param_7);
-int __stdcall CanBuildAt(UnitType* type, Point cell, int a, Player* player);
+int __stdcall CanBuildAt(UnitType* type, Point16 cell, int a, Player* player);
 int GetBuildSiteHeight(void);
-int __stdcall GetFootprintHeight(UnitType* unit, Point cell);
+int __stdcall GetFootprintHeight(UnitType* unit, Point16 cell);
 MenuEntry* __stdcall FindGadgetOrNull(MenuEntry* entries, char* name);
 unsigned short __stdcall FindUnitTypeId(char* name);
 int __stdcall SumQueuedBuildCount(void* owner, int index);
@@ -511,15 +502,15 @@ void __stdcall DamageUnit(Unit* obj, Unit* unit, int n, int kind, int flag);
 void __stdcall FinishConstruction(Unit* builder, Unit* unit);
 int __stdcall AddBuildProgress(Unit* builder, Unit* unit, float amount);
 
-static inline Point WorldToCell(Vec3 v, Point origin)
+static inline Point16 WorldToCell(Vec3 v, Point16 origin)
 {
-    Point c;
+    Point16 c;
     c.x = (v.x - (origin.x << 19) + 0x80000) >> 20;
     c.y = (v.z - (origin.y << 19) + 0x80000) >> 20;
     return c;
 }
 
-static inline void CellToWorld(Point origin, Point c, Vec3* v)
+static inline void CellToWorld(Point16 origin, Point16 c, Vec3* v)
 {
     v->x = (origin.x + c.x * 2) << 19;
     v->z = (origin.y + c.y * 2) << 19;
@@ -583,8 +574,8 @@ void __stdcall IssueMobileBuildOrders(Arg_00419670* arg)
     UnitType* def = &g_game->buildTypes[index];
     Vec3 pos = g_game->pos;
     // origin read once into a local: passing def->origin to each helper changes the frame.
-    Point origin = def->origin;
-    Point cell = WorldToCell(pos, origin);
+    Point16 origin = def->origin;
+    Point16 cell = WorldToCell(pos, origin);
     CellToWorld(origin, cell, &pos);
     pos.y = g_game->boxStartHeight << 16;
 
@@ -608,10 +599,10 @@ void __stdcall IssueMobileBuildOrders(Arg_00419670* arg)
 int UpdatePlacementGhostValidity(void)
 {
     UnitType* item = &g_game->buildTypes[g_game->buildTypeIndex];
-    Point cell = WorldToCell(g_game->pos, item->origin);
+    Point16 cell = WorldToCell(g_game->pos, item->origin);
     g_game->boxStartX = cell.x << 4;
     g_game->boxStartZ = cell.y << 4;
-    Point origin = item->origin;
+    Point16 origin = item->origin;
     g_game->boxEndX = (origin.x << 4) + g_game->boxStartX;
     g_game->boxEndZ = (origin.y << 4) + g_game->boxStartZ;
     g_game->flags.bits.b6 = CanBuildAt(item, cell, 0, &g_game->players[g_game->localPlayer]);

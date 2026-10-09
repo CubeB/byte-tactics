@@ -27,10 +27,7 @@ struct Source_00440340 {
     TdfRecord* tdf;                    // +0x4
 };
 
-struct Point {
-    short x;
-    short y;
-};
+#include "../util/vec3.h"
 
 #pragma pack(push, 2)
 struct Unit_00440af0 {
@@ -41,9 +38,9 @@ struct Unit_00440af0 {
 struct Object_00440af0 {
     Unit_00440af0* unit;               // +0x0
     char unknown_4[0x76 - 0x4];
-    Point a;                  // +0x76
+    Point16 a;               // +0x76
     char unknown_7a[0x7e - 0x7a];
-    Point b;                  // +0x7e
+    Point16 b;               // +0x7e
 };
 #pragma pack(pop)
 
@@ -51,9 +48,9 @@ struct Object_00440af0 {
 struct Record_00440af0 {
     Unit_00440af0* unit;               // +0x0
     char unknown_4[0x76 - 0x4];
-    Point a;                  // +0x76
+    Point16 a;               // +0x76
     char unknown_7a[0x7e - 0x7a];
-    Point b;                  // +0x7e
+    Point16 b;               // +0x7e
     char unknown_82[0x110 - 0x82];
     unsigned int flags;                // +0x110
     char unknown_114[0x118 - 0x114];
@@ -85,7 +82,7 @@ struct MovementClass {
     void ReadMoveInfo(Source_00440340* src);
     void ResizePassMap(unsigned int w, unsigned int h);
     void SetPassMapCell(int param_1, int param_2, int param_3);
-    void RefreshPassMap(Point a, Point b);
+    void RefreshPassMap(Point16 a, Point16 b);
     void RefreshMovedUnits(Object_00440af0* p);
     void RefreshUnitIfStale(Object_00440af0* p);
 };
@@ -134,9 +131,9 @@ struct MovementClassTable {
 struct Struct_00440a70 {
     Unit_00440af0* unit;               // +0x0
     char unknown_4[0x76 - 0x4];
-    Point a;                  // +0x76
+    Point16 a;               // +0x76
     char unknown_7a[0x7e - 0x7a];
-    Point b;                  // +0x7e
+    Point16 b;               // +0x7e
 };
 #pragma pack(pop)
 
@@ -417,7 +414,7 @@ void Class_00440500::BuildPassMap()
 // Writes a rectangle of 2-bit cells into the transposed bitmap whose dword at
 // column x of row band (y>>4) holds 16 cells stacked down the column.
 // FUNCTION: 0x440830
-void MovementClass::RefreshPassMap(Point a, Point b)
+void MovementClass::RefreshPassMap(Point16 a, Point16 b)
 {
     int left = a.x - footprintX;
     int top = a.y - footprintZ;
@@ -523,7 +520,7 @@ void FreeMovementClasses(void)
 // Refreshes every entry in use of the table at 0x512358 (the loop that 0x440a70
 // inlines as its UpdateAll helper).
 // FUNCTION: 0x440a40
-void __stdcall RefreshAllPassMaps(Point a, Point b)
+void __stdcall RefreshAllPassMaps(Point16 a, Point16 b)
 {
     for (int i = 0; i < 32; i++) {
         if (MovementClassTable::g_movementClasses.entries[i].name != 0) {
@@ -532,7 +529,7 @@ void __stdcall RefreshAllPassMaps(Point a, Point b)
     }
 }
 
-static inline void UpdateAll(Point a, Point b)
+static inline void UpdateAll(Point16 a, Point16 b)
 {
     for (int i = 0; i < 32; i++) {
         if (MovementClassTable::g_movementClasses.entries[i].name != 0) {

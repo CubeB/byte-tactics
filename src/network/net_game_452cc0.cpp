@@ -22,7 +22,8 @@ struct PlayerInfo {
 
 struct Game {
     char unknown_0[0x14];
-    char unknown_14[0x1b63 - 0x14];
+    char session[0x471 - 0x14];        // +0x14
+    char unknown_471[0x1b63 - 0x471];
     Player players[10];                // +0x1b63
     char unknown_2851[0x2a3c - 0x2851];
     unsigned short numPlayers;         // +0x2a3c
@@ -151,7 +152,7 @@ void __stdcall RemovePlayer(int id)
             Remove(p);
     } else {
         if (IsPlaying(p))
-            HAPINET_removeplayer((char*)g_game + 0x14, p->id);
+            HAPINET_removeplayer((char*)&g_game->session[0], p->id);
         Remove(p);
     }
     g_game->numPlayers--;

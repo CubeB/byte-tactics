@@ -133,7 +133,7 @@ struct Display {
     GafFrame* bmp;                     // +0x1b2
     int x;                             // +0x1b6
     int y;                             // +0x1ba
-    int* saveMouse1;                   // +0x1be
+    Surface* saveMouse1;               // +0x1be
     char unknown_1c2[0x1ce - 0x1c2];
     int cursorThreadEnabled;           // +0x1ce
     int cursorOverlayEnabled;          // +0x1d2
@@ -579,7 +579,7 @@ void FlipScreen(void)
             DrawCursor(d, bmp);
             BlitSurface(&out, bmp, 0, 0);
             if (d->cursorThreadEnabled != 0 && d->cursorOverlayEnabled != 0)
-                DrawSurface(bmp, (Surface*)d->saveMouse1, d->x, d->y);
+                DrawSurface(bmp, d->saveMouse1, d->x, d->y);
             d->screen.primary->Unlock(0);
         } else if (lr == 0x887601c2) {
             RestoreSurfacesInline(d);
@@ -627,12 +627,12 @@ void FlipScreen(void)
 void __stdcall DrawCursor(Display* obj, Surface* dst)
 {
     if (obj->cursorThreadEnabled != 0 && obj->cursorOverlayEnabled != 0 && obj->bmp != 0) {
-        obj->saveMouse1[0] = obj->bmp->width;
-        obj->saveMouse1[1] = obj->bmp->height;
-        obj->saveMouse1[2] = obj->bmp->width;
+        obj->saveMouse1->width = obj->bmp->width;
+        obj->saveMouse1->height = obj->bmp->height;
+        obj->saveMouse1->pitch = obj->bmp->width;
         obj->x = obj->rect_x - obj->bmp->xOffset;
         obj->y = obj->rect_y - obj->bmp->yOffset;
-        DrawSurface((Surface*)obj->saveMouse1, dst, -obj->x, -obj->y);
+        DrawSurface(obj->saveMouse1, dst, -obj->x, -obj->y);
         DrawFrame(dst, obj->bmp, obj->rect_x, obj->rect_y);
     }
 }

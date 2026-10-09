@@ -221,7 +221,7 @@ static inline void LoadWeaponTDFs()
         char path[256];
         TdfFile* tdf = &s_weaponTdfParsers[s_weaponTdfLoadedCount];
         BuildDataPath(path, "Weapons", it->data, "TDF");
-        if (((TdfFile*)tdf)->LoadFile(path)) {
+        if (tdf->LoadFile(path)) {
             if (tdf->field_8 != 0 || FUN_0041d8a0() == 0)
                 s_weaponTdfLoadedCount++;
         }
@@ -234,8 +234,8 @@ static inline int FindWeapon(char* name)
     if (name != 0 && *name != 0) {
         for (int k = 0; k < s_weaponTdfLoadedCount; k++) {
             TdfFile* tdf = &s_weaponTdfParsers[k];
-            ((TdfFile*)tdf)->ResetCurrentRecord();
-            if (((TdfFile*)tdf)->SelectRecord(name))
+            tdf->ResetCurrentRecord();
+            if (tdf->SelectRecord(name))
                 return *(int*)((char*)tdf->current + 0x25);
         }
         return 0;

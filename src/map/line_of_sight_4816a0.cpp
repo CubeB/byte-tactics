@@ -58,13 +58,15 @@ struct Cell_004816a0 {
     void* entries;                     // +0x28
 };
 
-struct Params_004816a0 {
-    void* field_0;                     // +0x00
-    short* field_4;                    // +0x04
-    short field_8;                     // +0x08
-    unsigned char field_a;             // +0x0a
+// One unit's sight query (Thaldren's LosSightQuery): the player, the unit's cached sight
+// cell, its sight distance and eye height, and the byte that holds its sight frame.
+struct SightQuery {
+    void* player;                      // +0x00
+    short* cacheCell;                  // +0x04
+    short sightDistance;               // +0x08
+    unsigned char eyeHeight;           // +0x0a
     char unknown_b;                    // +0x0b
-    unsigned char* field_c;            // +0x0c
+    unsigned char* frameIdx;           // +0x0c
     Vec3_004816a0 pos;                 // +0x10
     int unknown_1c;                    // +0x1c
     int unknown_20;                    // +0x20
@@ -101,9 +103,9 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall UpdateLineOfSight(Params_004816a0* params);
-void __stdcall AddLineOfSight(Params_004816a0* params);
-void __stdcall RevealAroundUnit(Params_004816a0* params);
+void __stdcall UpdateLineOfSight(SightQuery* params);
+void __stdcall AddLineOfSight(SightQuery* params);
+void __stdcall RevealAroundUnit(SightQuery* params);
 GafFrame* __stdcall GetGafFrame(Cell_004816a0* table, int index);
 void UpdateRadarMapped();
 void DrawRadarUnits();
@@ -126,21 +128,21 @@ void __stdcall RecalculateLineOfSight(int arg)
     for (Unit* u = g_game->units + 1; u <= g_game->unitsEnd; u++) {
         if (u->unitDefIndex == 0)
             continue;
-        Params_004816a0 params;
-        params.field_0 = u->player;
-        params.field_4 = &u->losCacheCellX;
-        params.field_8 = u->def->range;
-        params.field_c = &u->losSightFrameIdx;
+        SightQuery params;
+        params.player = u->player;
+        params.cacheCell = &u->losCacheCellX;
+        params.sightDistance = u->def->range;
+        params.frameIdx = &u->losSightFrameIdx;
         params.pos = u->pos;
-        params.field_a = u->def->field_170;
+        params.eyeHeight = u->def->field_170;
         if (params.pos.y < (int)((g_game->seaLevel + 1) << 16))
             params.pos.y = (g_game->seaLevel + 1) << 16;
         if ((g_game->mapFlags & 2) == 2) {
-            *params.field_c = 0;
+            *params.frameIdx = 0;
             if ((g_game->mapFlags & 4) == 4) {
                 UpdateLineOfSight(&params);
             } else {
-                int i = params.field_8 / 32 - 5;
+                int i = params.sightDistance / 32 - 5;
                 if (i < 0)
                     i = 0;
                 else if (i >= g_game->losTable->count)
@@ -155,9 +157,9 @@ void __stdcall RecalculateLineOfSight(int arg)
                 // Full 32 bit subtractions, truncated only at the stores.
                 int vx = cx - e->xOffset;
                 int vz = cy - e->yOffset;
-                params.field_4[0] = (short)vx;
-                params.field_4[1] = (short)vz;
-                *params.field_c = (unsigned char)i;
+                params.cacheCell[0] = (short)vx;
+                params.cacheCell[1] = (short)vz;
+                *params.frameIdx = (unsigned char)i;
                 AddLineOfSight(&params);
                 RevealAroundUnit(&params);
             }

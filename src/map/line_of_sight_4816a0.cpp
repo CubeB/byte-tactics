@@ -14,15 +14,11 @@ struct UnitDef_004816a0 {
 
 #include "../network/player.h"
 
-struct Vec3_004816a0 {
-    int x;                             // +0x00
-    int y;                             // +0x04
-    int z;                             // +0x08
-};
+#include "sight_query.h"
 
 struct Unit {
     char unknown_0[0x6a];
-    Vec3_004816a0 pos;                 // +0x6a
+    Vec3 pos;                          // +0x6a
     char unknown_76[0x7a - 0x76];
     short losCacheCellX;                    // +0x7a
     char unknown_7c[0x92 - 0x7c];
@@ -47,20 +43,6 @@ struct FrameTable {
     unsigned short count;              // +0x00
     char unknown_2[0x28 - 0x2];
     void* entries;                     // +0x28
-};
-
-// One unit's sight query (Thaldren's LosSightQuery): the player, the unit's cached sight
-// cell, its sight distance and eye height, and the byte that holds its sight frame.
-struct SightQuery {
-    void* player;                      // +0x00
-    short* cacheCell;                  // +0x04
-    short sightDistance;               // +0x08
-    unsigned char eyeHeight;           // +0x0a
-    char unknown_b;                    // +0x0b
-    unsigned char* frameIdx;           // +0x0c
-    Vec3_004816a0 pos;                 // +0x10
-    int unknown_1c;                    // +0x1c
-    int unknown_20;                    // +0x20
 };
 
 struct Flags_142f1_004816a0 {

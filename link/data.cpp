@@ -115,11 +115,11 @@ char g_savegameNamesName[16] = "SAVEGAME NAMES";  // 0x505f30 .data
 char g_lstExtension[4] = "LST";  // 0x505f40 .data
 char* g_leftGameTexts[8] = {(char*)"has left the scene", (char*)"has been shown the door", (char*)"has gone to a better place", (char*)"has bowed out", (char*)"has terminated", (char*)"has been eradicated", (char*)"has been liquidated", (char*)"has been obliterated"};  // 0x5061b8 .data
 int g_timeoutPlayerDpid = -1;  // 0x5061d8 .data
-char DAT_00506290[8] = "%s %s";  // 0x506290 .data
+char g_playerMessageFormat[8] = "%s %s";  // 0x506290 .data
 char s_PACKET_DATA_00506524[12] = "PACKET DATA";  // 0x506524 .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
 char g_talkGadgetName[8] = "TALK";  // 0x506578 .data
-char DAT_0050658c[56] = "has modified his executable.  Game integrity breached.";  // 0x50658c .data
-char DAT_005065c4[28] = "Player %s has disconnected";  // 0x5065c4 .data
+char g_integrityBreachText[56] = "has modified his executable.  Game integrity breached.";  // 0x50658c .data
+char g_playerDisconnectedText[28] = "Player %s has disconnected";  // 0x5065c4 .data
 float g_lightX = -0.800000011920929f;  // 0x5065f8 .data
 float g_lightY = 1.0f;  // 0x5065fc .data
 float g_lightZ = 0.25f;  // 0x506600 .data
@@ -436,96 +436,9 @@ int DAT_005129c0;  // 0x5129c0 .bss
 int* g_unitRestrictOldCounts;  // 0x5129c4 .bss
 int g_unitRestrictNextPicTick;  // 0x5129c8 .bss
 unsigned char DAT_005129cc[4];  // 0x5129cc .bss
-void (__stdcall* g_packetHandlers[2])(void*);  // 0x512a20 .bss
-int (__stdcall* g_packetHandlerType2)(int);  // 0x512a28 .bss
-int (__stdcall* DAT_00512a2c)(int);  // 0x512a2c .bss
-unsigned char DAT_00512a30[4];  // 0x512a30 .bss
-int (__stdcall* DAT_00512a34)(int);  // 0x512a34 .bss
-int (__stdcall* DAT_00512a38)(int);  // 0x512a38 .bss
-int (__stdcall* DAT_00512a3c)(int);  // 0x512a3c .bss
-int (__stdcall* DAT_00512a40)(int);  // 0x512a40 .bss
-int (__stdcall* DAT_00512a44)(int);  // 0x512a44 .bss
-int (__stdcall* DAT_00512a48)(int);  // 0x512a48 .bss
-int (__stdcall* DAT_00512a4c)(int);  // 0x512a4c .bss
-int (__stdcall* DAT_00512a50)(int);  // 0x512a50 .bss
-int (__stdcall* DAT_00512a54)(int);  // 0x512a54 .bss
-int (__stdcall* DAT_00512a58)(int);  // 0x512a58 .bss
-int (__stdcall* DAT_00512a5c)(int);  // 0x512a5c .bss
-int (__stdcall* DAT_00512a60)(int);  // 0x512a60 .bss
-int (__stdcall* DAT_00512a64)(int);  // 0x512a64 .bss
-int (__stdcall* DAT_00512a68)(int);  // 0x512a68 .bss
-int (__stdcall* DAT_00512a6c)(int);  // 0x512a6c .bss
-int (__stdcall* DAT_00512a70)(int);  // 0x512a70 .bss
-int (__stdcall* DAT_00512a74)(int);  // 0x512a74 .bss
-int (__stdcall* DAT_00512a78)(int);  // 0x512a78 .bss
-int (__stdcall* DAT_00512a7c)(int);  // 0x512a7c .bss
-int (__stdcall* DAT_00512a80)(int);  // 0x512a80 .bss
-int (__stdcall* DAT_00512a84)(int);  // 0x512a84 .bss
-int (__stdcall* DAT_00512a88)(int);  // 0x512a88 .bss
-int (__stdcall* DAT_00512a8c)(int);  // 0x512a8c .bss
-int (__stdcall* DAT_00512a90)(int);  // 0x512a90 .bss
-int (__stdcall* DAT_00512a94)(int);  // 0x512a94 .bss
-int (__stdcall* DAT_00512a98)(int);  // 0x512a98 .bss
-int (__stdcall* DAT_00512a9c)(int);  // 0x512a9c .bss
-int (__stdcall* DAT_00512aa0)(int);  // 0x512aa0 .bss
-int (__stdcall* DAT_00512aa4)(int);  // 0x512aa4 .bss
-int (__stdcall* DAT_00512aa8)(int);  // 0x512aa8 .bss
-int (__stdcall* DAT_00512aac)(int);  // 0x512aac .bss
-int (__stdcall* DAT_00512ab0)(int);  // 0x512ab0 .bss
-int (__stdcall* DAT_00512ab4)(int);  // 0x512ab4 .bss
-int (__stdcall* DAT_00512ab8)(int);  // 0x512ab8 .bss
-int (__stdcall* DAT_00512abc)(int);  // 0x512abc .bss
-int (__stdcall* DAT_00512ac0)(int);  // 0x512ac0 .bss
-int (__stdcall* DAT_00512ac4)(int);  // 0x512ac4 .bss
-int (__stdcall* DAT_00512ac8)(int);  // 0x512ac8 .bss
-unsigned char DAT_00512acc[4];  // 0x512acc .bss
-int (__stdcall* DAT_00512ad0)(int);  // 0x512ad0 .bss
+int (__stdcall* g_packetHandlers[45])(int);  // 0x512a20 .bss (the type runs past the next known address, 0x512a20+0xb0)
 unsigned char DAT_00512ad4[4];  // 0x512ad4 .bss
-unsigned short g_packetSizes[2][2];  // 0x512ad8 .bss
-int DAT_00512adc;  // 0x512adc .bss
-int DAT_00512ae0;  // 0x512ae0 .bss
-int DAT_00512ae4;  // 0x512ae4 .bss
-unsigned char DAT_00512ae8[4];  // 0x512ae8 .bss
-int DAT_00512aec;  // 0x512aec .bss
-int DAT_00512af0;  // 0x512af0 .bss
-int DAT_00512af4;  // 0x512af4 .bss
-int DAT_00512af8;  // 0x512af8 .bss
-int DAT_00512afc;  // 0x512afc .bss
-int DAT_00512b00;  // 0x512b00 .bss
-int DAT_00512b04;  // 0x512b04 .bss
-int DAT_00512b08;  // 0x512b08 .bss
-int DAT_00512b0c;  // 0x512b0c .bss
-int DAT_00512b10;  // 0x512b10 .bss
-int DAT_00512b14;  // 0x512b14 .bss
-int DAT_00512b18;  // 0x512b18 .bss
-int DAT_00512b1c;  // 0x512b1c .bss
-int DAT_00512b20;  // 0x512b20 .bss
-int DAT_00512b24;  // 0x512b24 .bss
-int DAT_00512b28;  // 0x512b28 .bss
-int DAT_00512b2c;  // 0x512b2c .bss
-int DAT_00512b30;  // 0x512b30 .bss
-int DAT_00512b34;  // 0x512b34 .bss
-int DAT_00512b38;  // 0x512b38 .bss
-int DAT_00512b3c;  // 0x512b3c .bss
-int DAT_00512b40;  // 0x512b40 .bss
-int DAT_00512b44;  // 0x512b44 .bss
-int DAT_00512b48;  // 0x512b48 .bss
-int DAT_00512b4c;  // 0x512b4c .bss
-int DAT_00512b50;  // 0x512b50 .bss
-int DAT_00512b54;  // 0x512b54 .bss
-int DAT_00512b58;  // 0x512b58 .bss
-int DAT_00512b5c;  // 0x512b5c .bss
-int DAT_00512b60;  // 0x512b60 .bss
-int DAT_00512b64;  // 0x512b64 .bss
-int DAT_00512b68;  // 0x512b68 .bss
-int DAT_00512b6c;  // 0x512b6c .bss
-int DAT_00512b70;  // 0x512b70 .bss
-int DAT_00512b74;  // 0x512b74 .bss
-int DAT_00512b78;  // 0x512b78 .bss
-int DAT_00512b7c;  // 0x512b7c .bss
-int DAT_00512b80;  // 0x512b80 .bss
-unsigned char DAT_00512b84[4];  // 0x512b84 .bss
-int DAT_00512b88;  // 0x512b88 .bss
+int g_packetSizes[45];  // 0x512ad8 .bss (the type runs past the next known address, 0x512ad8+0x54)
 unsigned char DAT_00512b8c[4];  // 0x512b8c .bss
 int g_broadcastPeersSeen[12];  // 0x512b90 .bss
 int g_packetModes[2];  // 0x512bc0 .bss

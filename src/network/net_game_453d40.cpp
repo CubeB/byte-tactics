@@ -202,9 +202,9 @@ extern int g_packetModes[];
 extern int g_usePacketManager;
 extern PacketManager g_packetManager;
 extern char g_allySoundName[];
-extern char DAT_005065c4[];
-extern char DAT_0050658c[];
-extern char DAT_00506290[];
+extern char g_playerDisconnectedText[];
+extern char g_integrityBreachText[];
+extern char g_playerMessageFormat[];
 
 int ReceiveNetPacket();
 void CheckDuplicatePlayerIds();
@@ -655,7 +655,7 @@ int HandleNetPackets()
             if (FindPlayerIndex(id) == 10)
                 break;
             char text[200];
-            sprintf(text, Translate(DAT_005065c4), PlayerBySlot(id)->name);
+            sprintf(text, Translate(g_playerDisconnectedText), PlayerBySlot(id)->name);
             AddMessage(text, 4, 0, from);
             DropPlayer(*(int*)(packet + 1));
             if (*(int*)(packet + 1) == FirstJoinedId()) {
@@ -688,7 +688,7 @@ int HandleNetPackets()
                 break;
             from = p->index;
             char text[256];
-            sprintf(text, DAT_00506290, p->name, Translate(DAT_0050658c));
+            sprintf(text, g_playerMessageFormat, p->name, Translate(g_integrityBreachText));
             for (int i = 0; i < 12; i++)
                 AddMessage(text, 8, 0, from);
             break;

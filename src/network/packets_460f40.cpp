@@ -173,8 +173,9 @@ public:
     int ReadBits(int bits);
 };
 
-// Length of each packet command, one word per 4-byte entry.
-extern unsigned short g_packetSizes[][2];
+// Length of each packet command, one int per command byte (the size in
+// the low word, the writer leaves the high word zero).
+extern int g_packetSizes[45];
 
 class FrameQueue {
 public:
@@ -267,6 +268,9 @@ public:
 extern Game* g_game;
 extern NetCondenser g_sendCondenser;
 extern NetCondenser g_receiveCondenser;
+// Unused here: the symbol ids this declaration takes keep the allocation
+// of 0x461da0 (docs/c2-regalloc.md).  The destination is the send
+// condenser's field at +0x21, written through g_sendCondenser below.
 extern int DAT_005129f1;
 extern int g_usePacketManager;
 extern int g_netFrameRateConfig;
@@ -434,7 +438,7 @@ int __stdcall SendToDPID(int from, int to, void* data, int size)
 {
     PacketTrace("bytes to send to (DPID)(%ld): %ld\n", to, size);
     void* session = g_game->session;
-    DAT_005129f1 = to;
+    g_sendCondenser.field_21 = to;
     g_sendCondenser.Accumulate(data, size);
     int result = ((NetCondenser*)&g_sendCondenser)->SendPacket(session, from);
     return result == 0 ? 1 : 0;
@@ -456,7 +460,7 @@ static inline int SendTo(int from, int to, void* data, int size)
 {
     PacketTrace("bytes to send to (DPID)(%ld): %ld\n", to, size);
     void* session = g_game->session;
-    DAT_005129f1 = to;
+    g_sendCondenser.field_21 = to;
     g_sendCondenser.Accumulate(data, size);
     int result = ((NetCondenser*)&g_sendCondenser)->SendPacket(session, from);
     return result == 0 ? 1 : 0;
@@ -1939,7 +1943,7 @@ int FrameQueue::QueueFrames(char* src, unsigned int size, int tick, int a4, int 
             reader.ReadBits(8);
             w = (unsigned short)reader.ReadBits(0x10);
         } else {
-            w = g_packetSizes[c][0];
+            w = g_packetSizes[c];
         }
         remaining -= w;
         if (remaining < 0)
@@ -1983,7 +1987,7 @@ int FrameQueue::QueueFrames(char* src, unsigned int size, int tick, int a4, int 
                         continue;
                     }
                 } else {
-                    w = g_packetSizes[c][0];
+                    w = g_packetSizes[c];
                 }
                 if (!buffer->Push(x, q, w))
                     return 1;
@@ -2021,7 +2025,7 @@ int FrameQueue::QueueFrames(char* src, unsigned int size, int tick, int a4, int 
                     goto next2;
                 }
             } else {
-                w = g_packetSizes[c][0];
+                w = g_packetSizes[c];
             }
             rem -= w;
             if (rem < 0)

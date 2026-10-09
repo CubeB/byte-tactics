@@ -16,11 +16,13 @@ static inline Vec3 operator+(const Vec3& a, const Vec3& b)
     return r;
 }
 
-class CobScript {
-public:
-    int StartScriptWithArgs(char* name, void* param_2, int param_3, int param_4, int param_5, int param_6, int param_7, int param_8);
-    int QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5);
-};
+#include "cob_script.h"
+
+// Unused here: these headers take the symbol ids that keep
+// GetPieceOffset (0x43def0) and the piece position functions after it matching (docs/c2-regalloc.md).
+#include "../map/mission.h"
+#include "../sound/sound.h"
+
 
 struct Unit_0043e490;
 struct Feature_0043e490;

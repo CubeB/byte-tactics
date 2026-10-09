@@ -21,10 +21,10 @@ struct Entry_0044c420 {                // DESCLIST / PICLIST gadget
 
 struct Record_005129b4 {               // 0x62-byte slider/picture record
     char unknown_0[0x52];
-    int field_52;                      // +0x52 unit type index
-    int field_56;                      // +0x56 previous value
-    int field_5a;                      // +0x5a current value
-    int field_5e;                      // +0x5e
+    int unitIndex;                     // +0x52 unit type index
+    int previousMax;                   // +0x56 previous value
+    int max;                           // +0x5a current value
+    int peerEnabled;                   // +0x5e
 };
 
 union Flags_0044c420 {                 // the dword at +0x245
@@ -123,12 +123,12 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
         SetDescListCleanupFlag((int)menu, 1);
         if (IsHostLocal() != 0) {
             for (i = 0; i < g_game->count; i++) {
-                type = g_unitRestrictEntries[i].field_52;
+                type = g_unitRestrictEntries[i].unitIndex;
                 if (type != 0) {
                     item = &g_game->items[type];
                     if (item->flags2.bits.flag) {
                     } else {
-                        if (g_unitRestrictEntries[i].field_5a == 0)
+                        if (g_unitRestrictEntries[i].max == 0)
                             ((UnitSync*)g_game->queue)->DisallowUnit(item);
                         else
                             ((UnitSync*)g_game->queue)->AllowUnit(item);
@@ -161,16 +161,16 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
     if (IsCurrentGadgetNamed(menu, "Reset") != 0) {
         PlaySoundByName("Options", 0);
         for (i = 0; i < g_game->count; i++) {
-            type = g_unitRestrictEntries[i].field_52;
+            type = g_unitRestrictEntries[i].unitIndex;
             if (type != 0) {
                 if ((g_game->items[type].flags2.raw & 0x10000) == 0)
-                    g_unitRestrictEntries[i].field_5a = 100;
+                    g_unitRestrictEntries[i].max = 100;
                 else
-                    g_unitRestrictEntries[i].field_5a = 0;
-                if (g_unitRestrictEntries[i].field_5a != g_unitRestrictEntries[i].field_56) {
+                    g_unitRestrictEntries[i].max = 0;
+                if (g_unitRestrictEntries[i].max != g_unitRestrictEntries[i].previousMax) {
                     ((UnitSync*)g_game->queue)->SetUnitLimit(
-                        &g_game->items[g_unitRestrictEntries[i].field_52],
-                        g_unitRestrictEntries[i].field_5a);
+                        &g_game->items[g_unitRestrictEntries[i].unitIndex],
+                        g_unitRestrictEntries[i].max);
                 }
             }
         }

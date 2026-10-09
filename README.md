@@ -106,7 +106,7 @@ Counts in `src/` and `include/` at `origin/main`, against `e9367f13` (the roadma
 | | Start | Now | Target | Done | |
 | --- | ---: | ---: | --- | ---: | --- |
 | Source files (`.cpp`) | 2,727 | 315 | 112, one per module (`data/modules.csv`) | 92% | `[##################--]` |
-| Placeholder functions `FUN_<addr>` | 1,076 | 291 | 0, named | 73% | `[###############-----]` |
+| Placeholder functions `FUN_<addr>` | 1,076 | 287 | 0, named | 73% | `[###############-----]` |
 | Placeholder globals `DAT_<addr>` | 737 | 220 | 0, named | 70% | `[##############------]` |
 | Placeholder classes `Class_<addr>` | 769 | 673 | 0, named | 12% | `[##------------------]` |
 | Placeholder fields `field_<offset>` | 589 | 390 | 0, named | 34% | `[#######-------------]` |
@@ -119,7 +119,7 @@ Counts in `src/` and `include/` at `origin/main`, against `e9367f13` (the roadma
 | --- | --- | --- | ---: |
 | Gather issues | 125 of 125 closed | `[####################]` | 100% |
 | Join issues | 24 of 30 closed | `[################----]` | 80% |
-| Name issues | 127 of 148 closed | `[#################---]` | 85% |
+| Name issues | 128 of 148 closed | `[#################---]` | 86% |
 <!-- cleanup:end -->
 
 ## Next steps

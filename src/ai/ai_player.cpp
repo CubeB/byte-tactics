@@ -502,6 +502,16 @@ void InitCommands(void);
 int UpdatePlacementGhostValidity(void);
 void RefreshSelectionOrders(void);
 
+// Unused here: these take the symbol ids of the removed argument-list view, which
+// keep GetBuildRating (0x40bb00) matching (docs/c2-regalloc.md).
+void ResetCameraState(void);
+void FindLocalCommander(void);
+void ClampCameraPosition(void);
+void ClampCameraTarget(void);
+void UpdateScreenShake(void);
+void UpdateCameraFollow(void);
+void BeginMouseScroll(void);
+
 class Class_00438760 {
 public:
     unsigned char index;
@@ -724,12 +734,6 @@ static inline Vec3_0040beb0 operator-(const Vec3_0040beb0& p, const Vec3_0040beb
     return r;
 }
 
-class Class_004b74f0 {
-public:
-    char* args[0x34];                  // +0x00
-    int count;                         // +0xd0
-};
-
 struct Class_004800c0 {
 public:
     void EraseSwapBack(Unit**);
@@ -781,7 +785,7 @@ int GetBuildSiteMetal(void);
 float __stdcall GetEnergyUse(UnitDef* p);
 
 void EnableAICommands();
-int __stdcall ExecuteCommandText(char* text, int len, Class_004b74f0* vars, int param_4);
+int __stdcall ExecuteCommandText(char* text, int len, CommandArgs* vars, int param_4);
 void LoadDefaultAIScript();
 float __stdcall GetEnergyUse(int);
 int __stdcall GetWeaponRange(Unit*, unsigned char);
@@ -1649,8 +1653,8 @@ void __stdcall ParseDownloadableAiWeightScripts(int player)
             if (p->vec_bd[i].unknown_0 != 1) {
                 int len = strlen(def->command);
                 if (len != 0) {
-                    Class_004b74f0 vars;
-                    ((CommandArgs*)&vars)->InitArgs();
+                    CommandArgs vars;
+                    vars.InitArgs();
                     ExecuteCommandText(def->command, len, &vars, -1);
                 }
             }
@@ -1669,8 +1673,8 @@ void __stdcall ReparseAiWeightScriptsIfLimitNotSticky(int player)
             if (p->locked[i].unknown_0 != 1) {
                 int len = strlen(def->command);
                 if (len != 0) {
-                    Class_004b74f0 vars;
-                    ((CommandArgs*)&vars)->InitArgs();
+                    CommandArgs vars;
+                    vars.InitArgs();
                     ExecuteCommandText(def->command, len, &vars, -1);
                 }
             }

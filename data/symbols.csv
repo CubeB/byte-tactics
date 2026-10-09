@@ -2518,7 +2518,7 @@ address,name
 0x4b73e0,CommandArgs::GetIntArg
 0x4b7410,CommandArgs::GetFloatArg
 0x4b7440,CommandArgs::Tokenize
-0x4b74f0,Class_004b74f0::SubstituteArgs
+0x4b74f0,CommandArgs::SubstituteArgs
 0x4b7540,CommandArgs::ShiftArgs
 0x4b7590,ClearDefaultCommandHandler
 0x4b7620,RegisterCommand

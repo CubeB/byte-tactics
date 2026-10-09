@@ -126,24 +126,17 @@ public:
     int GetIntArg(int index, int default_val);
     float GetFloatArg(int index, float default_val);
     void ShiftArgs(int n);
-};
-
-// Command arguments: replaces each "%N" argument with argument N of another
-// list. The same 0xd4 bytes seen with a flat token array.
-class Class_004b74f0 {
-public:
-    char* args[0x34];                  // +0x00
-    int count;                         // +0xd0
 
     // Inline copy of the range-checked getter at 0x4b73c0; its redundant
     // range check folds away but the extra use of `other` decides registers.
-    char* GetArg(int index, char* def)
+    char* GetArgPtr(int index, char* def)
     {
         if (index < 0 || index >= count) return def;
         return args[index];
     }
 
-    void SubstituteArgs(Class_004b74f0* other);
+    // Replaces each "%N" argument with argument N of another list.
+    void SubstituteArgs(CommandArgs* other);
 };
 
 // The original calls these out of line from ExecuteCommand (GetArg) and
@@ -247,13 +240,13 @@ void CommandArgs::ShiftArgs(int n)
 // The original calls this out of line from ExecuteCommandText.
 #pragma auto_inline(off)
 // FUNCTION: 0x4b74f0
-void Class_004b74f0::SubstituteArgs(Class_004b74f0* other)
+void CommandArgs::SubstituteArgs(CommandArgs* other)
 {
     for (int i = 0; i < count; i++) {
         if (*args[i] == '%') {
             int n = atoi(args[i] + 1);
             if (n >= 0 && n < other->count) {
-                args[i] = other->GetArg(n, 0);
+                args[i] = other->GetArgPtr(n, 0);
             }
         }
     }
@@ -414,19 +407,19 @@ int __stdcall FindLineEnd(char* param_1, int param_2)
 // into a command object (Tokenize), substitutes "%N" arguments from vars
 // (SubstituteArgs) and executes it (ExecuteCommand); returns the OR of the results.
 // FUNCTION: 0x4b7a30
-int __stdcall ExecuteCommandText(char* text, int len, Class_004b74f0* vars, int param_4)
+int __stdcall ExecuteCommandText(char* text, int len, CommandArgs* vars, int param_4)
 {
     int result = 0;
-    Class_004b74f0 cmd;
-    ((CommandArgs*)&cmd)->InitArgs();
+    CommandArgs cmd;
+    cmd.InitArgs();
     while (len > 0) {
         int n = FindLineEnd(text, len);
         if (n > len)
             break;
         char* end = text + n;
-        ((CommandArgs*)&cmd)->Tokenize(text, end);
+        cmd.Tokenize(text, end);
         cmd.SubstituteArgs(vars);
-        result |= ExecuteCommand((CommandArgs*)&cmd, param_4);
+        result |= ExecuteCommand(&cmd, param_4);
         text = end + 1;
         len -= n + 1;
     }

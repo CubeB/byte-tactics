@@ -6,12 +6,7 @@
 #include <string.h>
 
 #include "../util/hapi_bank.h"
-
-class MissionConditions {
-public:
-    void LoadConditions(HapiBank* file);
-    int SaveConditions(void* file);
-};
+#include "mission_conditions.h"
 
 class Mission;
 

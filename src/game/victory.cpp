@@ -51,7 +51,8 @@ struct Vec3 {
 
 class TdfRecord;
 
-// The registration parameter: the command reader lives at +0x4.
+// The registration parameter: the reader, a TdfFile's current record, lives at
+// +0x4. The placeholder is the type the original's decorated name carries.
 struct Param_0048e010 {
     char unknown_0[4];
     TdfRecord* reader;                   // +0x4
@@ -426,29 +427,7 @@ extern int GetCdPathMismatch();
 
 extern unsigned int g_cdMismatchDefeatTick;
 
-class MissionConditions {
-public:
-    MissionCondition* victory[16];       // +0x00
-    int victoryCount;                    // +0x40
-    MissionCondition* defeat[16];        // +0x44
-    int defeatCount;                     // +0x84
-    int active;                          // +0x88, set to 1 by the constructor (0x48df90)
-
-    void FreeConditions();
-    void RegisterConditions(Param_0048e010* p);
-    void SaveConditions(HapiBank* file);
-    void LoadConditions(HapiBank* file);
-    int AllVictoryConditionsMet();
-    int AnyDefeatConditionMet();
-    // 0x490230, in victory_490230.cpp: it matches only in a file of its own,
-    // where few enough symbols come before it to keep its SIB operand order.
-    int CheckVictory();
-    int CheckDefeat();
-    void Deactivate();
-    void NotifyUnitDied(Unit* unit);
-    void NotifyUnitCaptured(Unit* unit);
-    void NotifyUnitCreated(Unit* unit);
-};
+#include "mission_conditions.h"
 
 // Appends a condition to one of the two lists, at the caller's count.
 static inline void AddCondition(MissionCondition** list, int* count, MissionCondition* value)

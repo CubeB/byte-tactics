@@ -6,12 +6,7 @@
 #include <string.h>
 
 #include "../map/mission.h"
-
-class MissionConditions {
-public:
-    int CheckVictory();
-    int CheckDefeat();
-};
+#include "mission_conditions.h"
 
 class Pathfinder {
 public:

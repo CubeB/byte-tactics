@@ -123,10 +123,10 @@ public:
     void FlushCache();
 };
 
-class MissionConditions {
-public:
-    void Deactivate();
-};
+#include "mission_conditions.h"
+// Unused here: the symbol id this declaration takes keeps 0x4181d0 matching
+// once the header above is in front of it (docs/c2-regalloc.md).
+struct AccountList;
 
 // The option flags word at +0x37f06.
 struct GameFlags {
@@ -1540,14 +1540,16 @@ void __stdcall DrawCellContours(void* surface, Point_00417f60* corners, unsigned
 // 0x4181d0 when g_contourSpacing is set.
 //
 // The header set fixes the operand order of the tile and fog multiplies.
-// <direct.h> is only for its symbol ids: it puts 0x418310 in the window it
-// matches in (docs/c2-regalloc.md), and must not sit at the top, where it
-// moves 0x4181d0 out of its own window. The three forward declarations take
-// the ids the unit_def.h include above adds before this function.
-struct TdfFile;
+// The forward declarations take the symbol ids that keep 0x4181d0 and
+// 0x418310 matching with mission_conditions.h in front of them
+// (docs/c2-regalloc.md).
 struct TdfRecord;
 struct Mission;
-#include <direct.h>
+struct MissionUnit;
+struct MissionRule;
+struct MissionFeature;
+struct HapiFile;
+struct StringPool;
 // FUNCTION: 0x418310
 void __stdcall DrawMapDebugOverlay(void* surface)
 {

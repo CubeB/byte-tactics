@@ -220,10 +220,6 @@ union Los_0045cf60 {
     } bits;
 };
 
-// The GUI object at g_game+0x519. Its +0x04 is the logo GAF, its +0x18 the
-// layer above it, its +0x60 the id of the entry that was clicked (-1 when the
-// menu is closing), its +0xa2 the selection dirty flag and its +0xcca the
-// settings block's changed flag.
 #include "../gui/gui.h"
 
 // One player's options at the player array's +0x27: the low bits of the word

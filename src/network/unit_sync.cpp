@@ -6,13 +6,25 @@
 // calls, PacketSequencer (the sequenced 0xe-byte command packets), UnitSync
 // (the shared unit list every player is checked against) and the out-of-line
 // std::map<unsigned int, UnitSyncEntry>, std::vector and std::list members
-// with the hand-written _Tree helpers, from 0x46c620 to 0x4707a0. The files
-// that need a hand-written std::vector, the /Gi insert, the UnitSyncPlayer
-// COMDAT and the conflicting _Tree models stay in their own files
-// (unit_sync_46ca60.cpp, unit_sync_46cc10.cpp, unit_sync_46d1a0.cpp,
-// unit_sync_46dad0.cpp, unit_sync_46e640.cpp,
-// unit_sync_46eba0.cpp, unit_sync_46f7a0.cpp and
-// unit_sync_player.cpp).
+// with the hand-written _Tree helpers, from 0x46c620 to 0x4707a0. Files that
+// stay apart, and the constraint that keeps each there:
+// - unit_sync_46ca60.cpp: FinishUnitSync calls the out-of-line _Destroy of the
+//   Elem_0046faf0 vector (0x46e870), where the real <vector> inlines its empty
+//   body; it needs a hand-written std::vector.
+// - unit_sync_46cc10.cpp: SendSequenced inlines vector::insert but calls the
+//   out-of-line _Destroy, _Ucopy and _Ufill, which the real <vector> inlines
+//   too (832 bytes against 678); it needs a hand-written std::vector.
+// - unit_sync_46d1a0.cpp: ~UnitSync needs real std::map, std::list and
+//   std::vector members, where UnitSync here holds the hand-written
+//   UnitSyncMap and element views.
+// - unit_sync_46dad0.cpp: ProcessSync needs UnitSync's player list as a
+//   vector of Class_0046eaa0 and the real std::map, which UnitSync here
+//   spells as the hand-written views.
+// - unit_sync_46e640.cpp, unit_sync_46eba0.cpp and unit_sync_46f7a0.cpp: the
+//   out-of-line vector::insert instances are built with /Gi, which this file
+//   cannot carry (unit_sync_46f7a0.cpp also needs a hand-written std::vector).
+// - unit_sync_player.cpp: the ??_GUnitSyncPlayer COMDAT is emitted with
+//   ~UnitSyncPlayer inlined, while 0x46c920 calls that destructor out of line.
 #include <stdio.h>
 #include <utility>
 

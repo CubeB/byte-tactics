@@ -43,6 +43,14 @@ reason is what stopped it. A module whose row list is empty is one file.
 | util/hpi | src/util/hpi_4bd830.cpp | Joined, its register allocation changes (the entry-name strlen takes another register) and the bytes only match with this file's declarations. |
 | util/hpi | src/util/hpi_4be320.cpp | `HAPI_ClearShadowFlags` would be inlined into its recursive call, where the original calls it out of line. |
 | util/hpi | src/util/hpi_4be6c0.cpp | The module's hand-written `std::vector` keeps this insert out of line; the real `<vector>` would inline it. |
+| network/net_game | src/network/net_game_453d40.cpp | HandleNetPackets' base/index orders and registers follow the symbol ids of a file that includes `<windows.h>` and `<memory.h>` before g_game; merged, it stays at 80 to 82% (swapped base/index pairs) for every count of real declarations before it (0 to 700) and before g_game (0 to 65536). |
+| network/unit_sync | src/network/unit_sync_46ca60.cpp | FinishUnitSync calls the out-of-line `_Destroy` of the `Elem_0046faf0` vector (0x46e870), where the real `<vector>` inlines its empty body (79.5% merged); it needs the file's hand-written `std::vector`. |
+| network/unit_sync | src/network/unit_sync_46cc10.cpp | SendSequenced inlines `vector::insert` but calls the out-of-line `_Destroy`, `_Ucopy` and `_Ufill`, which the real `<vector>` inlines too (832 bytes against 678); it needs the file's hand-written `std::vector`. |
+| network/unit_sync | src/network/unit_sync_46d1a0.cpp | `~UnitSync` needs real `std::map`, `std::list` and `std::vector` members; the module's `UnitSync` holds the hand-written `UnitSyncMap` and element views, and the destructor merged is 168 bytes against 312. |
+| network/unit_sync | src/network/unit_sync_46dad0.cpp | `ProcessSync` needs `UnitSync`'s player list as a `vector<Class_0046eaa0>` and the real `std::map`, and redefines `Class_0046e5c0`, `Class_0046e5e0` and `Class_0046eaa0` as the module has them. |
+| network/unit_sync | src/network/unit_sync_46e640.cpp | `// FLAGS: /Gi`, which the merged file cannot carry (89.6% without it). |
+| network/unit_sync | src/network/unit_sync_46eba0.cpp | `// FLAGS: /Gi`, which the merged file cannot carry. |
+| network/unit_sync | src/network/unit_sync_46f7a0.cpp | `// FLAGS: /Gi`, which the merged file cannot carry; it also needs a hand-written `std::vector`. |
 | orders/vtol_orders | src/orders/vtol_orders_40f790.cpp | The two reference arguments take the other registers; it matches only with 79 more symbol ids before it (one count in 0 to 127), and those move 0x413d80 and 0x415250 off their windows. |
 | orders/vtol_orders | src/orders/vtol_orders_410c70.cpp | Merged, its owner load takes the other base and index at every count from 0 to 79 more ids, and its inlined vector code moves 0x413bc0 off its window. |
 | ai/ai_player | src/ai/ai_player_407d40.cpp | The constructor's vtable stores need the plain view of SpatialTimer apart from the module's virtual one. |

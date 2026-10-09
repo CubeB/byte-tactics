@@ -8,8 +8,12 @@
 // handling, the script-call packets, heartbeat, ping, load progress, resource
 // sharing and the lobby connection. The module's three parts joined in
 // address order. The functions that only match with their own file's symbol
-// ids stay apart (net_game_450530.cpp, net_game_452960.cpp,
-// net_game_453360.cpp and net_game_453d40.cpp).
+// ids stay apart (net_game_450530.cpp, net_game_452960.cpp and
+// net_game_453360.cpp), and so does net_game_453d40.cpp: HandleNetPackets
+// only matches where its base/index orders and registers follow the symbol
+// ids of a file that includes <windows.h> and <memory.h> before g_game; no
+// count of real declarations before it or before g_game reaches that state
+// in this file.
 //
 // <stdio.h> and <stdlib.h> carry 0x450380's sprintf and rand, and <string.h>
 // the string copies of 0x450090, 0x450140, 0x450980, 0x451090 and 0x451220.

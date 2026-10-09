@@ -28,12 +28,24 @@ union Fixed {
     };
 };
 
-class CobScript {
-public:
-    int StartScriptWithArgs(char* name, void* param_2, int param_3, int param_4,
-                            int param_5, int param_6, int param_7, int param_8);
-    int StartScript(const char* name, void* param_2, int param_3);
-};
+#include "../units/cob_script.h"
+
+// Unused here: these headers and forward declarations take the symbol ids that keep
+// WeaponCanReachPos (0x49aa80) and WeaponCanReachUnit (0x49abb0) matching (docs/c2-regalloc.md).
+#include "../util/hapi_bank.h"
+#include "../map/mission.h"
+#include "../sound/sound.h"
+struct BmpFileHeader;
+struct BmpInfo;
+struct BmpInfoHeader;
+struct CalcedExplosion;
+struct FrameTable;
+struct Chunk;
+class DamagedAllyCollector;
+class AssaultTimer;
+class EscortTimer;
+class SquadScoutTimer;
+
 
 #include "../network/player.h"
 #include "../units/unit_def.h"
@@ -2946,7 +2958,7 @@ void __stdcall UpdateUnitWeapons(Unit* unit) {
                     e->f_16 = heading;
                     e->f_8 = 0;
                     // Name read afresh for each call, no cached local: lets the two tails merge.
-                    unit->script->StartScriptWithArgs(g_aimScriptNames[(e->flags >> 2) & 3], &e->name, 0, 2,
+                    unit->script->StartScriptWithArgs(g_aimScriptNames[(e->flags >> 2) & 3], (Callback*)&e->name, 0, 2,
                                                heading, angle, 0, 0);
                     SendScriptCallByName(unit, g_aimScriptNames[(e->flags >> 2) & 3], 2, heading, angle, 0, 0);
                     e->flags |= 1;
@@ -2957,7 +2969,7 @@ void __stdcall UpdateUnitWeapons(Unit* unit) {
             bool armed = attached->f_111.b4;
             if (armed && (!attached->f_111.b28 || e->f_1a) && !(e->flags & 1)) {
                 e->f_8 = 0;
-                unit->script->StartScriptWithArgs(g_aimScriptNames[(e->flags >> 2) & 3], &e->name, 0, 2, 0, 0,
+                unit->script->StartScriptWithArgs(g_aimScriptNames[(e->flags >> 2) & 3], (Callback*)&e->name, 0, 2, 0, 0,
                                            0, 0);
                 SendScriptCallByName(unit, g_aimScriptNames[(e->flags >> 2) & 3], 2, 0, 0, 0, 0);
                 e->flags |= 1;

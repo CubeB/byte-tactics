@@ -2,7 +2,7 @@
 // provisional.
 // Slot 0 of SpatialTimer (vtable 0x4fc9a0), derived from SquadTimer
 // (the family is listed in ai_player.cpp, whose declarations this copies).
-// Sets field_c to 30..179 ticks from now. When the group has units, moves the
+// Sets next to 30..179 ticks from now. When the group has units, moves the
 // probe point b by the step c (one time in ten it restarts from a with a new
 // random direction of length 0x140 map units), and when the owner can see or
 // has explored b, keeps b as the new target a if a random roll favours its
@@ -127,9 +127,9 @@ struct SquadManager {                   // the owner (constructor 0x408cb0)
 class SquadTimer {
 public:
     SquadManager* owner;                // +0x4
-    void* field_8;                      // +0x8
-    int field_c;                        // +0xc
-    unsigned int field_10;              // +0x10
+    void* group;                        // +0x8
+    int next;                           // +0xc
+    unsigned int player;                // +0x10
 
     SquadTimer(SquadManager* p, void* q);
     virtual void OnTimer();                         // slot 0

@@ -1341,7 +1341,7 @@ struct Gadget_004538f0 {
 // The 0x15b-byte entry table returned by FindGadgetChecked.
 struct OutEntry_00453a50 {
     char unknown_0[0x19];
-    short field_19;                    // +0x19
+    short height;                      // +0x19
 };
 
 // The dialog object returned by LoadGuiLayer.
@@ -1350,7 +1350,7 @@ struct Gui_00453a50 {
     void* entries;                     // +0x04
     void (__stdcall* callback)(void*); // +0x08
     char unknown_c[0x1c - 0xc];
-    void (__stdcall* field_1c)(void*); // +0x1c
+    void (__stdcall* onFrame)(void*); // +0x1c
 };
 
 // Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
@@ -2687,9 +2687,9 @@ void __stdcall OpenTimeoutDialog(int id)
 
     OutEntry_00453a50* out = (OutEntry_00453a50*)FindGadgetChecked(entries, "OUTPUT");
     ConfigureListBoxByName((char*)g_game + 0x519, "OUTPUT", g_loungeChatter,
-                 (int)out->field_19 / (GetFontLineHeight() + 2), 0);
+                 (int)out->height / (GetFontLineHeight() + 2), 0);
 
-    gui->field_1c = &UpdateTimeoutDialog;
+    gui->onFrame = &UpdateTimeoutDialog;
     BeginTextEdit((char*)g_game + 0x519, FindGadgetIndex(entries, "TALK", 3));
 
     SetTranslatedTextByName((char*)g_game + 0x519, "NAME",

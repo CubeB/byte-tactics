@@ -19,18 +19,12 @@
 struct ChatHudEntry {                  // 0x48 bytes
     char text[0x40];                   // +0x00
     union { unsigned int time; };      // +0x40
+    unsigned short unit;               // +0x44, ScrollToNextMessageUnit's index
     union {
-        unsigned short field_44;       // +0x44
-        unsigned short unit;           // +0x44, ScrollToNextMessageUnit's index
-    };
-    union {
-        char field_46;                 // +0x46
+        char player;                   // +0x46, the sender's slot, 10 for none
         unsigned char unit_46;         // +0x46, DrawMessages' index
     };
-    union {
-        unsigned char field_47;        // +0x47
-        unsigned char flags;           // +0x47
-    };
+    unsigned char flags;               // +0x47
 };
 
 #include "player.h"
@@ -122,10 +116,10 @@ void __stdcall AddMessage(char* text, unsigned char key, unsigned short value, c
     strncpy(g_game->entries[g_game->tail].text, text, 0x40);
     g_game->entries[g_game->tail].text[0x3f] = 0;
     g_game->entries[g_game->tail].time = g_game->now;
-    unsigned char c = g_game->entries[g_game->tail].field_47;
-    g_game->entries[g_game->tail].field_47 = (c ^ key) & 0xf ^ c;
-    g_game->entries[g_game->tail].field_44 = value;
-    g_game->entries[g_game->tail].field_46 = last;
+    unsigned char c = g_game->entries[g_game->tail].flags;
+    g_game->entries[g_game->tail].flags = (c ^ key) & 0xf ^ c;
+    g_game->entries[g_game->tail].unit = value;
+    g_game->entries[g_game->tail].player = last;
     g_game->tail++;
     if (g_game->tail == 30)
         g_game->tail = 0;

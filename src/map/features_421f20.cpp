@@ -15,9 +15,9 @@ struct AnimEntry_00421f20 {
 #pragma pack(push, 1)
 struct FeatureUnit_00421f20 {
     char unknown_0[0x92];
-    int field_92;                      // +0x92
+    int def;                           // +0x92
     char unknown_96[0xa6 - 0x96];
-    unsigned short field_a6;           // +0xa6
+    unsigned short unitDefIndex;       // +0xa6
     char unknown_a8[0x110 - 0xa8];
     int flags_110;                     // +0x110
     int flags_114;                     // +0x114
@@ -83,9 +83,9 @@ void __stdcall InitFeatureAnimPool(List_00421f20* list)
     memset(m->featureUnit, 0, 0x118);
     m->featureUnit->flags_110 |= 0x200;
     m->featureUnit->flags_110 |= 0x20000000;
-    m->featureUnit->field_a6 = 0;
+    m->featureUnit->unitDefIndex = 0;
     m->featureUnit->flags_114 |= 1;
-    m->featureUnit->field_92 = g_game->unitDefs;
+    m->featureUnit->def = g_game->unitDefs;
     m->names = 0;
     m->nameCount = 0;
 

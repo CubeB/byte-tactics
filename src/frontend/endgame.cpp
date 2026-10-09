@@ -46,8 +46,8 @@ struct Grid {
     void* cells;                       // +0x0
     int width;                         // +0x4
     int height;                        // +0x8
-    int field_c;                       // +0xc
-    Grid() { width = 0; height = 0; field_c = 0; cells = 0; }
+    int count;                         // +0xc
+    Grid() { width = 0; height = 0; count = 0; cells = 0; }
 };
 
 #pragma pack(push, 1)

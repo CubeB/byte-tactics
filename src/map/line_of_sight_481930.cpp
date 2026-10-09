@@ -37,7 +37,7 @@ struct Grid {
     unsigned char* cells;              // +0x00
     unsigned int width;                // +0x04
     unsigned int height;               // +0x08
-    int field_c;                       // +0x0c
+    int count;                         // +0x0c
 };
 
 struct Player_00481930 {

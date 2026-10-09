@@ -16,9 +16,9 @@ struct Src_004ab400;
 #pragma pack(push, 1)
 struct Gui_00491d70 {
     char unknown_0[8];
-    int field_8;                       // +0x8
+    int fontSlot0;                     // +0x8
     char unknown_c[8];
-    int field_14;                      // +0x14
+    int activeFontGaf;                 // +0x14
     void* current;                     // +0x18
 };
 
@@ -626,7 +626,7 @@ void InitGame()
     LoadGafFile(&g_game->gui, g_commonGuiName);
     LoadGafIntoSlot(&g_game->gui, g_hattFont12Name, 0);
     LoadGafIntoSlot(&g_game->gui, g_hattFont11Name, 1);
-    g_game->gui.field_14 = g_game->gui.field_8;
+    g_game->gui.activeFontGaf = g_game->gui.fontSlot0;
     SetTextKeyColor(0xfe);
     SetFont(g_game->fontComix);
     g_game->debugMode = 0;

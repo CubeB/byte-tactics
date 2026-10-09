@@ -124,8 +124,8 @@ struct Game {
 class DetectionVisitor {
 public:
     virtual void MarkUnitsInRadarOrSonarRadius(Unit* unit);
-    int field_4;                       // +0x4
-    int field_8;                       // +0x8
+    int radarRangeSq;                  // +0x4
+    int sonarRangeSq;                  // +0x8
     Vec3_00467440 pos;                 // +0xc
 };
 
@@ -205,8 +205,8 @@ void UpdateSensorRadarAndCloak(void)
                 }
                 Vec3_00467440* pp = &u->pos.vec;
                 DetectionVisitor v;
-                v.field_4 = t;
-                v.field_8 = s;
+                v.radarRangeSq = t;
+                v.sonarRangeSq = s;
                 v.pos = u->pos.vec;
                 VisitObjectsInRange(pp, (int)a << 16, &v);
             }

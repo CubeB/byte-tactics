@@ -68,8 +68,8 @@ struct Flags_00496ce0 {
 
 struct Slot_00497080 {                 // 0x18 bytes
     char unknown_0[0xc];
-    int field_c;                       // +0xc
-    int field_10;                      // +0x10
+    int metal;                         // +0xc
+    int energy;                        // +0x10
     char unknown_14[4];
 };
 
@@ -663,10 +663,10 @@ void InitStartingResourcesFromSkirmish()
     for (int i = 0; i < 10; i++) {
         if (IsPlaying(i)) {
             Slot_00497080* s = &g_game->slots[i];
-            if (s->field_c > h)
-                h = s->field_c;
-            if (s->field_10 > w)
-                w = s->field_10;
+            if (s->metal > h)
+                h = s->metal;
+            if (s->energy > w)
+                w = s->energy;
             SetSize_00496e90(&g_game->players[i], h, w);
         }
     }

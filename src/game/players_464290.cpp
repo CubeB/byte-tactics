@@ -617,14 +617,14 @@ float __stdcall GetMetalUsage(void* param_1)
 
 struct Class_464b10 {
     char unknown_0[0x9c];
-    float field_9c;
-    float field_a0;
+    float metalIncome;
+    float metalUsage;
 };
 
 // FUNCTION: 0x464b10
 float __stdcall GetNetMetal(Class_464b10* param_1)
 {
-    return param_1->field_9c - param_1->field_a0;
+    return param_1->metalIncome - param_1->metalUsage;
 }
 
 void __stdcall SendShareMetal(unsigned char from, unsigned char to, int value);

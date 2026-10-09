@@ -109,7 +109,7 @@ struct Proj_0049b090 {
     WordPair_0049b090 py;              // +0x8 (short at +0xa)
     WordPair_0049b090 pz;              // +0xc (short at +0xe)
     char unknown_10[0x20 - 0x10];
-    int field_20;                      // +0x20
+    int velY;                          // +0x20
     char unknown_24[0x56 - 0x24];
     Proj_0049b090* intercepted;        // +0x56, the projectile this one is chasing
     short cellX;                       // +0x5a
@@ -123,7 +123,7 @@ struct Proj_0049b090 {
 
 struct Net {
     char unknown_0[0xd48];
-    int field_d48;
+    int noSeaLevelTrigger;
 };
 
 struct Game {
@@ -244,14 +244,14 @@ void __stdcall CheckProjectileCollision(WeaponDef* type, Proj_0049b090* proj)
     }
     if (cell->ground > proj->py.s.hi) {
         if (type->flags.b.b15) {
-            proj->field_20 = -(proj->field_20 >> 2);
+            proj->velY = -(proj->velY >> 2);
             return;
         }
     } else if (type->flags.raw & 0x10000) {
         return;
     } else if (proj->py.s.hi >= g_game->limit) {
         return;
-    } else if (g_game->net->field_d48) {
+    } else if (g_game->net->noSeaLevelTrigger) {
         return;
     }
     DetonateProjectile(proj, 0);

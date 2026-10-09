@@ -74,11 +74,11 @@ struct PlayerInfo {
 };
 
 struct Owner_00467440 {
-    void* field_0;                     // +0x0
+    void* active;                      // +0x0
     char unknown_4[0x27 - 0x4];
     PlayerInfo* data;                  // +0x27
     char unknown_2b[0x73 - 0x2b];
-    char field_73;                     // +0x73
+    char type;                         // +0x73
     char unknown_74[0x108 - 0x74];
     unsigned char field_108[1];        // +0x108
 };
@@ -404,8 +404,8 @@ struct Game {
 class DetectionVisitor {
 public:
     virtual void MarkUnitsInRadarOrSonarRadius(Unit* unit);
-    int field_4;                       // +0x4
-    int field_8;                       // +0x8
+    int radarRangeSq;                  // +0x4
+    int sonarRangeSq;                  // +0x8
     Vec3 pos;                          // +0xc
 };
 
@@ -640,11 +640,11 @@ void DetectionVisitor::MarkUnitsInRadarOrSonarRadius(Unit* unit)
     int dx = unit->x - this->pos.x;
     int dist = (int)(((__int64)dx * dx) >> 32) + (int)(((__int64)dz * dz) >> 32);
 
-    if (unit->y <= ((int)g_game->seaLevel << 16) && dist < this->field_8) {
+    if (unit->y <= ((int)g_game->seaLevel << 16) && dist < this->sonarRangeSq) {
         unit->flags |= 0x200;
     }
 
-    if (def->modelMaxY + unit->y >= ((int)g_game->seaLevel << 16) && dist < this->field_4) {
+    if (def->modelMaxY + unit->y >= ((int)g_game->seaLevel << 16) && dist < this->radarRangeSq) {
         unit->flags |= 0x100;
     }
 }

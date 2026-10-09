@@ -116,7 +116,7 @@ struct Proj_0049b720 {
 
 struct Net_0049b720 {
     char unknown_0[0xd48];
-    int field_d48;
+    int noSeaLevelTrigger;
 };
 
 struct Game {
@@ -342,7 +342,7 @@ void UpdateProjectiles()
             }
             if (oldY > g_game->seaLevel && p->pos.yw.hi <= g_game->seaLevel) {
                 Cell* cell = GetMapCellAtPosition(&p->pos);
-                if (cell && cell->height < g_game->seaLevel && g_game->net->field_d48 == 0)
+                if (cell && cell->height < g_game->seaLevel && g_game->net->noSeaLevelTrigger == 0)
                     AddExplosionEffect(&p->pos, type->splash, 0, 1);
             }
         }

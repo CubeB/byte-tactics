@@ -489,17 +489,7 @@ public:
     Class_00438760(const char* name);
 };
 
-#pragma pack(push, 2)
-class Order {
-public:
-    char unknown_0[4];
-    unsigned char kind;                // +0x4
-    char unknown_5[0x36 - 0x5];
-    int field_36;                      // +0x36
-    char unknown_3a[0x56 - 0x3a];
-    Order(Class_00438760 k, void* owner, void* pos, int a, int b, int c);
-};
-#pragma pack(pop)
+#include "../orders/order.h"
 
 #pragma pack(push, 1)
 struct Event_00489ce0 {

@@ -4,18 +4,11 @@
 // copy `box.hi = box.lo` gives the early store of hi.x and puts order in
 // edi and the feature in esi.
 #include <windows.h>
-struct Vec3 {
-    int x, y, z;
-};
+#include "../util/vec3.h"
 
 struct Box {
     Vec3 lo;
     Vec3 hi;
-};
-
-struct Point16 {
-    short x;
-    short z;
 };
 
 #pragma pack(push, 1)
@@ -37,28 +30,7 @@ struct Unit {
     int workTime;                      // +0xb0
 };
 
-struct Order {
-    char unknown_0[5];
-    unsigned char state;               // +0x5
-    unsigned int flags;                // +0x6
-    char unknown_a[0x22 - 0xa];
-    Vec3 pos;                          // +0x22
-    char unknown_2e[0x36 - 0x2e];
-    int time;                          // +0x36
-    void AttachBuildFootprintMarker(Point16 cell, Point16 size);
-    void SetDeadlineTicks(int ticks);
-    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
-    void ReattachFxToUnit();
-    void MergeFlagsFromTable(int k);
-    void AttachRingApproachGoal(Vec3* pos, int radius1, int radius2);
-    ~Order();
-    Order(Unit* unit, void* file, char* name);
-    void OrStatusFlags(unsigned int flags);
-    Unit* Target();
-    void Wait();
-    Vec3* Position();
-    int Advance(int distance);
-};
+#include "order.h"
 
 struct Game {
     char unknown_0[0x1426f];
@@ -113,7 +85,7 @@ int __stdcall ReclaimOrder(Unit* unit, Order* order, int flags)
         order->time = (int)(15.0f - (f->metal + f->value) * -0.5f);
         Vec3 pos;
         pos.x = (size.x + cell.x * 2) << 19;
-        pos.z = (size.z + cell.z * 2) << 19;
+        pos.z = (size.y + cell.y * 2) << 19;
         pos.y = (RandomInt(f->height) + GetGroundHeight(&pos)) << 16;
         StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &pos) - unit->heading);
         return 1;
@@ -133,7 +105,7 @@ int __stdcall ReclaimOrder(Unit* unit, Order* order, int flags)
             GetNanoPiecePosition(unit, &nano);
             Box box;
             box.lo.x = cell.x << 20;
-            box.lo.z = cell.z << 20;
+            box.lo.z = cell.y << 20;
             box.lo.y = GetGroundHeight(&box.lo) << 16;
             box.hi = box.lo;
             box.hi.x += f->footprintX << 20;

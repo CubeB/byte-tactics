@@ -14,22 +14,7 @@ public:
 
 struct Unit;
 
-#pragma pack(push, 2)
-class Order {
-public:
-    char unknown_0[0x56];
-    Order(Class_00438760 type, Unit* target, void* pos, int c, int d, int e);
-    void SetDeadlineTicks(int ticks);
-    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
-    void ReattachFxToUnit();
-    void MergeFlagsFromTable(int k);
-    ~Order();
-    Order(Unit* unit, void* file, char* name);
-    void OrStatusFlags(unsigned int flags);
-    Unit* Target();
-    void Wait();
-};
-#pragma pack(pop)
+#include "order.h"
 
 #pragma pack(push, 1)
 struct UnitDef_00401e00 {

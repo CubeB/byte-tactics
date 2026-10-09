@@ -113,7 +113,7 @@ Counts in `src/` and `include/` at `origin/main`, against `e9367f13` (the roadma
 | Files that define `Unit` | 285 | 80 | 1, one shared definition | 72% | `[##############------]` |
 | Files opening with matching history | 301 | 0 | 0, none | 100% | `[####################]` |
 | Casts `((T*)x)->` | 1,698 | 569 | 0, casts the types allow | 66% | `[#############-------]` |
-| Byte-offset access `*(T*)(p + off)` and `(char*)p + off` | 1,284 | 718 | cases with no struct | | |
+| Byte-offset access `*(T*)(p + off)` and `(char*)p + off` | 1,284 | 651 | cases with no struct | | |
 
 | Cleanup issues | | | |
 | --- | --- | --- | ---: |

@@ -122,6 +122,10 @@ void ResetCameraState();
 void SetUpEndMissionScreen();
 void StartScreenFade();
 void StepScreenFade();
+void FreeRadar();
+void StopAllSounds();
+void FlipScreen();
+void RestoreStartDirectory();
 
 // One queued frame of a player's ring: the tick it is due, the data and size.
 struct Frame {
@@ -171,62 +175,36 @@ struct FrameRing {
 // the low word, the writer leaves the high word zero).
 extern int g_packetSizes[45];
 
-class FrameQueue {
-public:
-    int baseTick;                      // +0x00
-    unsigned int bufferSize;           // +0x04
-    int skipCount;                     // +0x08
-    char* recvBuffer;                  // +0x0c
-    FrameRing* buffer;                 // +0x10
-    int fromId;                        // +0x14
-    int toId;                          // +0x18
+#include "packet_receiver.h"
 
-    int Count() { return buffer ? buffer->count : 0; }
+static inline int QueueCount(FrameQueue* q) { return q->buffer ? q->buffer->count : 0; }
 
-    ~FrameQueue();
-    FrameQueue();
-    int ResetFrames();
-    int QueueFrames(char* src, unsigned int size, int tick, int a4, int a5, int a6);
-    Frame* Peek()
-    {
-        if (buffer == 0 || buffer->count <= 0)
-            return 0;
-        return &buffer->frames[buffer->head];
-    }
-    // Pops the frame at the head if it is due (or if there is no tick).
-    void* Take(Frame* f, int tick, int& size)
-    {
-        if (f != 0) {
-            int d = f->tick - tick;
-            if (tick == 0 || d <= 0 || d > 0x1e) {
-                f = buffer->Pop();
-                size = f->size;
-                return f->data;
-            }
-        }
+static inline Frame* PeekFrame(FrameQueue* q)
+{
+    if (q->buffer == 0 || q->buffer->count <= 0)
         return 0;
-    }
-    void* GetFrame(int tick, int& size)
-    {
-        size = 0;
-        return Take(Peek(), tick, size);
-    }
-};
+    return &q->buffer->frames[q->buffer->head];
+}
 
-class PlayerFrameInfo {
-public:
-    int playerNetId;                   // +0x00 the id
-    int pendingDpToId;                 // +0x04
-    int frameSeq;                      // +0x08 last sequence number, -1 for none
-    int pendingBytes;                  // +0x0c saved frame length
-    int pendingCap;                    // +0x10 saved frame capacity
-    char* frame;                       // +0x14 the saved out-of-order frame
-    FrameQueue tail;                   // +0x18
+// Pops the frame at the head if it is due (or if there is no tick).
+static inline void* TakeFrame(FrameQueue* q, Frame* f, int tick, int& size)
+{
+    if (f != 0) {
+        int d = f->tick - tick;
+        if (tick == 0 || d <= 0 || d > 0x1e) {
+            f = q->buffer->Pop();
+            size = f->size;
+            return f->data;
+        }
+    }
+    return 0;
+}
 
-    PlayerFrameInfo();
-    void Initialize(long id);
-    ~PlayerFrameInfo();
-};
+static inline void* GetFrame(FrameQueue* q, int tick, int& size)
+{
+    size = 0;
+    return TakeFrame(q, PeekFrame(q), tick, size);
+}
 
 #pragma pack(push, 1)
 struct GameEntry {
@@ -304,29 +282,6 @@ public:
     int AddPacket(int param_1, void* param_2, unsigned int param_3);
     void SetMinRetainMs(unsigned int ms);
     void SetSendPacingMs(int ms);
-};
-
-class PacketReceiver {
-public:
-    PacketReceiver(void* o);
-    virtual ~PacketReceiver();
-    int unused;                        // +0x04
-    void* owner;                       // +0x08
-    int fromId;                        // +0x0c current frame's sender
-    int toId;                          // +0x10
-    PlayerFrameInfo* savedFrameEntry;  // +0x14 entry whose saved frame is in use
-    char* buffer;                      // +0x18
-    char* spare;                       // +0x1c
-    PlayerFrameInfo entries[10];       // +0x20
-    int capacity;                      // +0x228
-    int length;                        // +0x22c
-    int spareLength;                   // +0x230 spare buffer's length
-    int spareFromId;                   // +0x234
-    int spareToId;                     // +0x238
-
-    PlayerFrameInfo* FindPlayerFrameInfo(long id);
-    int ResetReceiveBuffer();
-    int ReceiveFrame(void* net, unsigned char* data, int* size);
 };
 
 struct Msg_00461900 {
@@ -1599,7 +1554,7 @@ int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
         PlayerFrameInfo* e = &entries[i];
         if (e->playerNetId == -1)
             break;
-        src = e->tail.GetFrame(tick, len);
+        src = GetFrame(&e->tail, tick, len);
         if (src != 0) {
             *(int*)((char*)net + 0x4b5) = e->tail.fromId;
             *(int*)((char*)net + 0x4b9) = e->tail.toId;
@@ -1795,12 +1750,12 @@ int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
         if (tail->QueueFrames(buffer, length, tick, fromId, toId, savedFrameEntry == 0)) {
             length = 0;
             len = 0;
-            f = tail->Peek();
+            f = PeekFrame(tail);
         } else {
             len = 0;
-            f = tail->Peek();
+            f = PeekFrame(tail);
         }
-        src = tail->Take(f, tick, len);
+        src = TakeFrame(tail, f, tick, len);
     }
     if (src != 0) {
         *(int*)((char*)net + 0x4b5) = entry->tail.fromId;
@@ -1893,7 +1848,7 @@ int FrameQueue::QueueFrames(char* src, unsigned int size, int tick, int a4, int 
 {
     if (size <= 0)
         return 1;
-    if (Count() != 0) {
+    if (QueueCount(this) != 0) {
         skipCount++;
         int n = buffer->count;
         while (n--) {

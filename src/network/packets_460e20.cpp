@@ -23,6 +23,21 @@ public:
 
 #include "packet_receiver.h"
 
+// capacity stays in the initialiser list: the vtable store must come after it.
+inline PacketReceiver::PacketReceiver(void* o)
+    : unused(0), owner(o), fromId(-1), toId(-1), savedFrameEntry(0), buffer(0), spare(0),
+      capacity(0), length(0), spareLength(0), spareFromId(-1), spareToId(-1)
+{
+}
+
+inline PacketReceiver::~PacketReceiver()
+{
+    void* p = spare;
+    if (!p)
+        p = buffer;
+    operator delete(p);
+}
+
 struct PacketChannel {
     int bufferIndex;                   // +0x00
     unsigned int sendPacingTicks;      // +0x04, set by 0x4628a0

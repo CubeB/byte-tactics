@@ -473,11 +473,11 @@ address,size,file,symbol,status,similarity
 0x4239c0,559,src/map/features.cpp,?SpreadFire@@YGXPAUFeature@@PAUPoint16@@@Z,matched,100.0
 0x423bf0,88,src/map/features.cpp,?ReplaceFeatureWithBurnt@@YGXPAUObj@@@Z,matched,100.0
 0x423c50,1012,src/map/features.cpp,?PlaceFeature@@YGPAUSpot@@PAUCell@@GPAUVec3@@PAURot16@@E@Z,matched,100.0
-0x424050,1117,src/map/features.cpp,?UpdateFeatures@@YGXXZ,partial,99.4
+0x424050,1117,src/map/features.cpp,?UpdateFeatures@@YGXXZ,matched,100.0
 0x4244b0,505,src/map/features.cpp,?DamageFeature@@YGXPAUCell@@HHPAUWeapon@@@Z,matched,100.0
 0x4246b0,387,src/map/features.cpp,?RemoveFeature@@YGHPAUCell@@H@Z,matched,100.0
-0x424840,78,src/map/features.cpp,?RemoveAllFeatures@@YGXXZ,partial,92.3
-0x424890,874,src/map/features.cpp,?SaveFeatures@@YGXPAVHapiBank@@@Z,partial,99.2
+0x424840,78,src/map/features.cpp,?RemoveAllFeatures@@YGXXZ,matched,100.0
+0x424890,874,src/map/features.cpp,?SaveFeatures@@YGXPAVHapiBank@@@Z,matched,100.0
 0x424c00,1496,src/map/features_424c00.cpp,?LoadFeatures@@YGXPAVHapiBank@@@Z,matched,100.0
 0x4251e0,3,src/map/features.cpp,?_Destroy@?$vector@PAVTdfFile@@V?$allocator@PAVTdfFile@@@std@@@std@@IAEXPAPAVTdfFile@@0@Z,matched,100.0
 0x4251f0,18,src/map/features.cpp,?size@?$vector@GV?$allocator@G@std@@@std@@QBEIXZ,matched,100.0

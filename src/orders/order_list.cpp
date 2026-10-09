@@ -192,7 +192,15 @@ struct UnitType_0043cd20 {           // 0x249 bytes
     char unknown_245[0x249 - 0x245];
 };
 
-class CobScript { public: void StartScript(const char*, int, int); };
+#include "../units/cob_script.h"
+
+// Unused here: these forward declarations take the symbol ids that keep RegisterOrderTypes (0x43bc90), RegisterAllOrderTypes (0x43c050) and UpdatePosition (0x43d6d0) matching
+// (docs/c2-regalloc.md).
+struct BmpFileHeader;
+struct BmpInfo;
+struct BmpInfoHeader;
+struct CalcedExplosion;
+struct FrameTable;
 
 // The command kind, one byte wide, but not a POD type.
 class Class_00438760 {
@@ -2044,7 +2052,7 @@ void UnitMotion::UpdateMoveRate(Unit* unit)
     if (rate == (int)((unit->flags >> 2) & 3))
         return;
     if (rate == 0) {
-        unit->script->StartScript("StopMoving", rate, 1);
+        unit->script->StartScript("StopMoving", 0, 1);
     } else if ((unit->flags & 0xc) == 0) {
         unit->script->StartScript("StartMoving", 0, 1);
     }

@@ -17,16 +17,29 @@ refuses the job. This tool edits the views of one type only.
 The type's views are the views tools/gametypes.py extracts from each file
 whose name is the type's, `<Type>` or `<Type>_<address>`: the rule its
 base_name() strips the address with, and the one docs/tidy-up.md gives for a
-file's own view of a type (`Unit_0041b2e0` is a Unit), plus every view
+file's own view of a type (`Unit_0041b2e0` is a Unit), plus the view
 tools/gametypes.py's join (what `gametypes.py --explain` prints) puts in the
-type's group: the `Entry_*` views of a Gadget, the `PlayerData_*` views of a
-PlayerInfo. The join runs over every file this tool reads, so a view a gap
-file has joins with the game files'. The joined views are listed before the
-rename; `--no-explain-views` renames only the name family, and `--views` adds
-view names neither finds, such as those of a type tools/gametypes.py leaves
-out of the header. Re-running with the same pairs after a rebase is safe: a
-renamed member is no longer `field_`, so there is nothing left to do, and a
-name that is not found prints the extracted names that come closest.
+type's group and whose evidence is strong enough to trust: the `Entry_*` views
+of a Gadget, the `PlayerData_*` views of a PlayerInfo. The join runs over every
+file this tool reads, so a view a gap file has joins with the game files'.
+
+A join can be wrong, though: a short struct can match another's field offsets
+by chance, and a join of different names often rests on one caller's guess. So
+a view the name rule misses is taken from the join only when every one of these
+holds: gametypes joined it through a symbol the files share (its `--explain`
+reads "as its own file declares it", a global, "in two callers", or "the same
+name"), not through field offsets alone; the view and the type are the same
+size; the view shares more than one field offset with the type's own views (one
+offset is a coincidence); and the view is in one of the type's modules, the
+folders that hold the type's name-family views. A view that fails any of these
+is listed as refused and left alone. `--views` names a view that must be renamed
+anyway, and so overrides the checks. Every derived view, and why it joined or
+was refused, is printed before the rename; `--no-explain-views` renames only the
+name family, and `--views` adds view names neither finds, such as those of a type
+tools/gametypes.py leaves out of the header. Re-running with the same pairs
+after a rebase is safe: a renamed member is no longer `field_`, so there is
+nothing left to do, and a name that is not found prints the extracted names
+that come closest.
 
 The views are read from the same /Z7 objects tools/gametypes.py reads
 (`--dump` writes them as JSON), plus the gap files its header leaves out and
@@ -88,7 +101,7 @@ import hashlib
 import os
 import re
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -634,15 +647,37 @@ def extract_all(jobs: int) -> tuple[dict, dict[str, Path]]:
     return files, paths
 
 
-def explained_views(files: dict, name: str) -> dict[str, list[str]]:
-    """The views tools/gametypes.py's join puts in the type asked for.
+def module_of(path: Path) -> str:
+    """The module a file belongs to: the folder under src/, or `src` at its root."""
+    try:
+        parts = path.resolve().relative_to(ROOT).parts
+    except ValueError:
+        return ""
+    if parts and parts[0] == "src":
+        return parts[1] if len(parts) > 2 else "src"
+    return parts[0] if parts else ""
+
+
+def explained_views(files: dict, paths: dict, name: str,
+                    extra: set[str]) -> tuple[dict[str, list[str]], list[tuple]]:
+    """The trusted views tools/gametypes.py's join puts in the type asked for.
 
     The join is gametypes' own: the Program, its edges and its layouts, which
     are what `gametypes.py --explain` prints. It runs over every file this tool
     reads, the game files plus the gap, library and header views its extraction
     adds, so a view only a gap file has joins with the game files' as well.
-    `name` is the type's name or any view name in its group; the result is the
-    group's views as {file id: [view name]}, empty when none joins to it.
+    `name` is the type's name or any view name in its group.
+
+    A view the name rule misses joins only when its evidence says it is the
+    type: gametypes joined it through a symbol the files share (a function's
+    own file, a global, two callers, or the same name), not field offsets
+    alone; it and the type are the same size; they share more than one field
+    offset; and it sits in one of the type's modules, the folders of the
+    name-family views. A view named in `extra` (--views) skips the checks.
+
+    The result is (joined, report): `joined` is the group's trusted views as
+    {file id: [view name]}; `report` is one (stem, view, why, status, detail)
+    per derived view, in the group, so the run can print and explain each.
     """
     definers = {r["symbol"]: gt.file_id(gt.ROOT / r["file"])
                 for r in csv.DictReader(gt.PROGRESS.open())}
@@ -654,11 +689,52 @@ def explained_views(files: dict, name: str) -> dict[str, list[str]]:
     # Gadget wins and the names are not mixed with it).
     group = [lay for lay in layouts if lay.name == name] \
         or [lay for lay in layouts if any(node[1] == name for node in lay.nodes)]
-    out: dict[str, list[str]] = defaultdict(list)
+    exact = bool(gt.SUFFIX.search(name))
+    family: dict[str, list[str]] = defaultdict(list)
+    for stem, data in files.items():
+        for view in data["views"]:
+            if view == name or view in extra or (not exact and gt.base_name(view) == name):
+                family[stem].append(view)
+    home = {module_of(paths[stem]) for stem, views in family.items() for _ in views}
+    # The offsets the type's own views declare, to test a derived view against.
+    offsets: set[int] = set()
     for lay in group:
-        for stem, view in lay.nodes:
-            out[stem].append(view)
-    return dict(out)
+        for node in lay.nodes:
+            if node[1] in family.get(node[0], ()):
+                offsets.update(a[0] for a in gt.view_atoms(program.views[node]))
+
+    joined: dict[str, list[str]] = defaultdict(list)
+    report: list[tuple] = []
+    for lay in group:
+        for node in lay.nodes:
+            stem, view = node
+            if view in family.get(stem, ()):
+                continue  # the name rule (or --views) already has it
+            why: Counter = Counter()
+            for a, b, w in program.accepted:
+                if node in (a, b):
+                    why.update(w)
+            why_text = ", ".join(f"{r} ({n})" for r, n in sorted(why.items())) or "no joined edge"
+            v = program.views[node]
+            shared = len({a[0] for a in gt.view_atoms(v)} & offsets)
+            mod = module_of(paths[stem])
+            named = any(r != "fields at one offset" for r in why)
+            if named and shared >= 2 and v["size"] == lay.size and mod in home:
+                joined[stem].append(view)
+                report.append((stem, view, why_text, "joined",
+                               f"size {v['size']:#x}, {shared} shared offset(s)"))
+                continue
+            if not named:
+                detail = "joined by field offsets alone"
+            elif shared < 2:
+                detail = f"only {shared} shared offset(s)"
+            elif v["size"] != lay.size:
+                detail = f"size {v['size']:#x}, the type is {lay.size:#x}"
+            else:
+                detail = (f"another module ({mod or 'src'}, the type is in "
+                          f"{', '.join(sorted(home)) or 'nowhere'})")
+            report.append((stem, view, why_text, "refused", detail))
+    return dict(joined), report
 
 
 INCLUDE = re.compile(r'^\s*#\s*include\s+[<"]([^">]+)[>"]', re.M)
@@ -793,8 +869,9 @@ def main() -> int:
     extra = [v for v in re.split(r"[,\s]+", args.views) if v]
     files, paths = extract_all(args.jobs)
     joined: dict[str, list[str]] = {}
+    report: list[tuple] = []
     if not args.no_explain_views:
-        joined = explained_views(files, args.type)
+        joined, report = explained_views(files, paths, args.type, set(extra))
     rename = Renamer(args.type, files, extra, joined)
     if not rename.family:
         names = sorted({v for data in files.values() for v in data["views"]})
@@ -887,13 +964,18 @@ def main() -> int:
             edits_by_file[stem] = edits
 
     count = sum(len(e) for e in edits_by_file.values())
-    joined_names = sorted({v for views in joined.values() for v in views})
     if not args.no_explain_views:
-        if joined_names:
-            print(f"{args.type}: gametypes joins {len(joined_names)} view name(s): "
-                  + ", ".join(joined_names))
+        n_join = sum(1 for r in report if r[3] == "joined")
+        n_ref = len(report) - n_join
+        if report:
+            print(f"{args.type}: gametypes' join adds {n_join} derived view(s), "
+                  f"{n_ref} refused")
+            for stem, view, why, status, detail in sorted(
+                    report, key=lambda r: (str(paths[r[0]]), r[1])):
+                print(f"  {status} {paths[stem].relative_to(ROOT)} {view}: {why}; {detail}")
         else:
-            print(f"{args.type}: gametypes joins no view name, the name rule and --views apply")
+            print(f"{args.type}: gametypes' join adds no derived view, the name rule "
+                  f"and --views apply")
     print(f"{args.type}: {len(rename.family)} file(s) with a view, {len(planned)} planned, "
           f"{len(pairs)} pair(s), {'would rename' if args.dry_run else 'renamed'} {count} "
           f"occurrence(s) in {len(edits_by_file)} file(s)")

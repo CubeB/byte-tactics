@@ -11,27 +11,14 @@
 
 #pragma pack(push, 1)
 
-struct PlayerInfo {
-    char unknown_0[0x90];
-    int id;                            // +0x90
-    char unknown_94[2];
-    unsigned char color;               // +0x96
-    unsigned char flags_97;            // +0x97
-    char unknown_98[3];
-    union {
-        unsigned char flags_9b;        // +0x9b
-        struct {
-            unsigned short : 4;
-            unsigned short bit4 : 1;
-        } b9b;
-        struct {
-            unsigned short : 15;
-            unsigned short bit15 : 1;
-        } w9b;
-    };
-    unsigned char flags_9d;            // +0x9d
-    char unknown_9e[0xb9 - 0x9e];
-};
+#include "player_info.h"
+
+// Unused here: real functions declared to keep the file's symbol count (docs/c2-regalloc.md).
+double DotProduct(float, float, float, float, float, float);
+int CheckDirectXVersion(int, int, int, int, int);
+short SolveLaunchAngle(int, int, int, int, float);
+void EmitThrustParticles(int, int, int, int, short);
+int AimCobStub(int, int, int, int);
 
 class Player {
 public:
@@ -473,7 +460,7 @@ int HandleNetPackets()
                     char name[32];
                     int a, b, c, d;
                     BuildGameInfo(name, &d, &c, &b, &a);
-                    if (LocalPlayer()->info->b9b.bit4)
+                    if (LocalPlayer()->info->started)
                         g_game->settings.flags_475 |= 0x20;
                     HAPINET_updategameinfo(g_game->session, name, DAT_005119b8, d, c, b, a);
                 }
@@ -490,7 +477,7 @@ int HandleNetPackets()
                 // info is read before payload: on equal priority the register goes to the first written.
                 PlayerInfo* info = LocalPlayer()->info;
                 char* payload = msg->createData;
-                if (info->w9b.bit15) {
+                if (info->closed) {
                     RejectPlayer(GetPlayerId(target), 3);
                     break;
                 }

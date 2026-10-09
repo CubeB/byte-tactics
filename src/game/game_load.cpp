@@ -92,10 +92,13 @@ struct Menu_00497ce0 {
     void* data;                         // +0x18 (g_game + 0x531)
 };
 
-struct PlayerInfo {
-    char unknown_0[0x9b];
-    unsigned char gameFlags;            // +0x9b
-};
+#include "../network/player_info.h"
+
+// Unused here: real functions declared to keep the file's symbol count (docs/c2-regalloc.md).
+int CheckDirectXVersion(int, int, int, int, int);
+void EnumPlayersCallback(int, int, int, int, int);
+int AimCobStub(int, int, int, int);
+void EmitBubbles(int, int, int, short);
 
 union LoadFlags_00497f40 {
     unsigned short value;
@@ -955,7 +958,7 @@ void LoadingScreenFrame(void)
             } else {
                 g_game->slots.inGame[i] = 1;
             }
-            g_game->slots.flag40[i] = (pi->active != 0 && (pi->data->gameFlags & 0x40) != 0) ? 1 : 0;
+            g_game->slots.flag40[i] = (pi->active != 0 && (pi->data->flags_9b & 0x40) != 0) ? 1 : 0;
         }
         if (!StartThread(LoadThreadMain, 0, 0)) {
             FatalError("Unable to start the loading thread!");

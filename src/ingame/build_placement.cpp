@@ -109,12 +109,7 @@ struct Game {
 };
 #pragma pack(pop)
 
-class MissionType {
-public:
-    unsigned char index;
-    MissionType(const char* name);
-    MissionType() : index(0) {}
-};
+#include "../orders/mission_type.h"
 
 extern Game* g_game;
 

@@ -108,11 +108,6 @@ struct SaveDesc_0043a1f0 {             // the 0x3a-byte snapshot, read and writt
 
 #include "../units/cob_script.h"
 
-// Unused here: this header takes the symbol ids that keep
-// ComputeReclaimDamagePulse (0x438650) matching (docs/c2-regalloc.md).
-#include "../map/mission.h"
-
-
 #include "../units/unit_ref.h"
 
 // The parsed text file the writer is handed (the same object as HapiBank).
@@ -121,19 +116,31 @@ public:
     char unknown_0[1];
 };
 
-// The object at +0x52, deleted through its virtual destructor.
-class Attached_0043a1f0 {
-public:
-    virtual ~Attached_0043a1f0();
-    virtual int Slot1(Order* obj, File_0043a970* file, char* name);
-    virtual int Slot2();
-};
+#include "../util/vec3.h"
+#include "air_maneuver_order.h"
+
+// Unused here: forward declarations of real functions; their symbol ids keep
+// ComputeReclaimDamagePulse (0x438650) matching (docs/c2-regalloc.md).
+void UpdateMouseScroll();
+void UpdateEdgeScroll();
+void CenterCameraOnRadarClick();
+void CenterCameraOnStartPosition();
+void RegisterDataArchives();
+int GetCdPathMismatch();
+void CreateGameObject();
+void InitMissionStatus();
+void SetUpEndMissionScreen();
+void StartScreenFade();
+void StepScreenFade();
+void ScheduleFadeTick();
+int IsFadeDone();
+void StepPaletteFade();
 
 class Slot_0043a1f0 {
 public:
     virtual void Slot0();
     virtual void Attach(void* obj);
-    Attached_0043a1f0* current;        // +0x4
+    OrderFx* current;                  // +0x4
 };
 
 int __stdcall OrderTypeNameLess(int param_1, char* param_2);
@@ -172,21 +179,10 @@ public:
 
 // The attachments the file constructor makes, by the kind of attachment.
 #pragma pack(push, 1)
-class Class_0044de80 : public Attached_0043a1f0 {
+class Class_0044de80 : public OrderFx {
 public:
-    char pad[0x32];
+    char pad[0x2e];
     Class_0044de80(int owner, HapiBank* file, char* name);
-};
-
-class AirManeuverOrder : public Attached_0043a1f0 {
-public:
-    char pad[0x28];
-    AirManeuverOrder(int owner, HapiBank* file, char* name);
-    // Unused here: the type's members the other views declare keep the symbol
-    // ids of the functions after the merged classes (docs/c2-regalloc.md).
-    void* Destroy(int param_1);
-    int GetDesiredHeading(unsigned short* out);
-    int SerializeToSave(int unused, HapiBank* file, char* name);
 };
 
 // The attachments the order functions make from a position.
@@ -196,9 +192,9 @@ struct Point_00438ad0 {
     short y;
 };
 
-class ApproachRadius : public Attached_0043a1f0 {
+class ApproachRadius : public OrderFx {
 public:
-    char pad[0x10];
+    char pad[0xc];
     ApproachRadius(int owner, HapiBank* file, char* name);
     ApproachRadius(Source_0044cf60* source, int x, int y, int r);
     // Unused here: the type's members the other views declare keep the symbol
@@ -210,9 +206,9 @@ public:
     int Serialize(int unused, HapiBank* file, char* name);
 };
 
-class RingApproach : public Attached_0043a1f0 {
+class RingApproach : public OrderFx {
 public:
-    char pad[0x18];
+    char pad[0x14];
     RingApproach(int owner, HapiBank* file, char* name);
     RingApproach(void* source, int x, int y, int r1, int r2);
     // Unused here: the type's members the other views declare keep the symbol
@@ -222,9 +218,9 @@ public:
     int ContainsUnit(Unit* unit);
 };
 
-class PointMarker : public Attached_0043a1f0 {
+class PointMarker : public OrderFx {
 public:
-    char pad[0x14];
+    char pad[0x10];
     PointMarker(int owner, HapiBank* file, char* name);
     PointMarker(void* owner, Point_00438ad0 pos, Point_00438ad0 size);
     // Unused here: the type's members the other views declare keep the symbol
@@ -271,7 +267,7 @@ public:
     unsigned int created;              // +0x46
     Order* next;                       // +0x4a
     int field_4e;                      // +0x4e
-    Attached_0043a1f0* attached;       // +0x52
+    OrderFx* attached;                 // +0x52
 
     // The real constructor is 0x43a0c0, in order_list.cpp: it needs
     // `kind(k)` as a plain member initialiser, which this class's second base
@@ -282,7 +278,7 @@ public:
     int SerializeToSave(Unit* punit, File_0043a970* file, char* name);
     void AnnounceStatusIfFlagged(char* text);
     void ReattachFxToUnit();
-    void SetAttachedFx(Attached_0043a1f0* obj);
+    void SetAttachedFx(OrderFx* obj);
     void AttachApproachRadiusGoal(int* p, int n);
     void AttachRingApproachGoal(Vec3_0043a1f0* pos, int radius1, int radius2);
     void AttachBuildFootprintMarker(Point_00438ad0 cell, Point_00438ad0 size);
@@ -481,7 +477,7 @@ void Order::ReattachFxToUnit()
 }
 
 // FUNCTION: 0x4388d0
-void Order::SetAttachedFx(Attached_0043a1f0* obj)
+void Order::SetAttachedFx(OrderFx* obj)
 {
     if (unit->owner) {
         if (attached) {
@@ -818,7 +814,7 @@ int Order::SerializeToSave(Unit* punit, File_0043a970* file, char* name)
     // fresh read of link.owner keeps the compiler from dropping the third test.
     Unit* o = link.owner;
     desc.ownerType = (o != 0 && (link.owner->flags & 0x10000000) != 0 && link.owner != 0) ? o->typeId : 0;
-    desc.field_4 = attached ? attached->Slot2() : 0;
+    desc.field_4 = attached ? attached->GetType() : 0;
     desc.kind = kind;
     desc.flag5 = flag5;
     desc.flags6 = flags6;
@@ -853,7 +849,7 @@ int Order::SerializeToSave(Unit* punit, File_0043a970* file, char* name)
     if (desc.field_4 != 0) {
         char buf3[0x20];
         sprintf(buf3, "%s%s", name, "g");
-        attached->Slot1(this, file, buf3);
+        attached->SerializeToSave(this, (HapiBank*)file, buf3);
     }
     return 1;
 }

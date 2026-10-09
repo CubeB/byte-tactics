@@ -76,7 +76,7 @@ inline void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0((Order*)order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
-        order->SetAttachedFx((Attached_0043a1f0*)obj);
+        order->SetAttachedFx((OrderFx*)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -133,7 +133,7 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
                 return 6;
             Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
             ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
-            order->SetAttachedFx((Attached_0043a1f0*)obj);
+            order->SetAttachedFx((OrderFx*)obj);
             order->SetDeadlineTicks(0x2d);
             order->flags |= 0xe0;
             if (Land(unit, order))

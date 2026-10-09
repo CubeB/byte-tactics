@@ -34,16 +34,6 @@ struct ViewFlags_497180 {               // g_game + 0x14281
     unsigned short rest : 13;
 };
 
-struct PlayerFlags_497180 {             // player + 0x9b
-    unsigned short low : 8;
-    unsigned short b8 : 1;              // +0x9c bit 0
-    unsigned short b9 : 1;              // +0x9c bit 1
-    unsigned short b10 : 1;             // +0x9c bit 2
-    unsigned short b11_12 : 2;
-    unsigned short b13 : 1;
-    unsigned short rest : 2;
-};
-
 union Fixed_497180 {
     int i;                              // 16.16
     struct {
@@ -63,10 +53,9 @@ struct RecFlag_497180 {
     unsigned short : 15;
 };
 
-struct PlFlags_497180 {
-    unsigned short : 6;
-    unsigned short b6 : 1;
-    unsigned short : 9;
+struct Display_00497f40 {
+    char unknown_0[0x40];
+    HWND hwnd;                          // +0x40
 };
 
 struct Sub_497180 {
@@ -243,7 +232,7 @@ class Sound;
 
 struct Game {
     char unknown_0[0xc];
-    int displayContext;                 // +0xc
+    Display_00497f40* displayContext;   // +0xc
     Sound* sound;                       // +0x10
     char unknown_10[0x519 - 0x14];
     union {                             // +0x519
@@ -442,6 +431,10 @@ void UpdateEdgeScroll(void);
 void CenterCameraOnRadarClick(void);
 void RegisterDataArchives(void);
 void InitMissionStatus(void);
+void ScheduleFadeTick(void);
+void InitExplosions(void);
+void FreeExplosions(void);
+void UpdateExplosions(void);
 
 void __stdcall SeedRandom(int x);
 void __stdcall SleepMilliseconds(int x);
@@ -977,7 +970,7 @@ void LoadingScreenFrame(void)
             g_game->screen = 0;
             SetRestoreSurface(0);
             RestoreScreen();
-            SetWindowPos(*(HWND*)(g_game->displayContext + 0x40), 0, 0, 0, 0x280, 0x1e0, 4);
+            SetWindowPos(g_game->displayContext->hwnd, 0, 0, 0, 0x280, 0x1e0, 4);
             SetResolution(0x280, 0x1e0);
             g_game->screen = (int)AllocSurface("OFFSCREEN", g_game->width, g_game->height);
             SetRestoreSurface(g_game->screen);
@@ -1031,7 +1024,7 @@ void LoadingScreenFrame(void)
             g_game->screen = 0;
             SetRestoreSurface(0);
             RestoreScreen();
-            SetWindowPos(*(HWND*)(g_game->displayContext + 0x40), 0, 0, 0, g_game->displayWidth,
+            SetWindowPos(g_game->displayContext->hwnd, 0, 0, 0, g_game->displayWidth,
                          g_game->displayHeight, 4);
             SetResolution(g_game->displayWidth, g_game->displayHeight);
             g_game->screen = (int)AllocSurface("OFFSCREEN", g_game->width, g_game->height);

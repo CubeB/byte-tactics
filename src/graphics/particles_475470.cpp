@@ -149,19 +149,7 @@ public:
                      const SmokeParticle& x);
 };
 
-class ParticleSystem {
-public:
-    int deadline;                                       // +0x4
-
-    ParticleSystem();
-    virtual ~ParticleSystem();                          // slot 0
-    virtual void Update() = 0;                          // slot 1
-    virtual void Render(int) = 0;                       // slot 2
-    virtual int IsFinished() = 0;                       // slot 3
-    static void* __stdcall operator new(size_t size);   // 0x471d10
-    static void __stdcall operator delete(void* p);     // 0x471d50
-    void SetLifetime(int ticks);
-};
+#include "particle_system.h"
 
 class SmokeParticles : public ParticleSystem {
 public:

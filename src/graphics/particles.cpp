@@ -433,21 +433,7 @@ public:
 };
 
 // Vtable 0x4fd5a8, constructor 0x471cc0, destructor 0x471d00, ??_G 0x471cd0.
-// The base of the family: the pool's operator new/delete, the three virtual
-// slots and the lifetime field at +0x4.
-class ParticleSystem {
-public:
-    int deadline;                                       // +0x4
-
-    ParticleSystem();
-    virtual ~ParticleSystem();                          // slot 0
-    virtual void Update() = 0;                          // slot 1
-    virtual void Render(int) = 0;                       // slot 2
-    virtual int IsFinished() = 0;                       // slot 3
-    static void* __stdcall operator new(size_t size);   // 0x471d10
-    static void __stdcall operator delete(void* p);     // 0x471d50
-    void SetLifetime(int ticks);
-};
+#include "particle_system.h"
 
 // Vtable 0x4fd588, ??_G 0x471430; 0x44 bytes.
 class TeleportParticles : public ParticleSystem {

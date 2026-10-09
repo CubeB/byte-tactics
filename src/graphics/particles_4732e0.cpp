@@ -2,10 +2,7 @@
 // FLAGS: /Gi
 #include <vector>
 
-class ParticleSystem {
-public:
-    int deadline;                      // the base class's +0x4: this view has no vtable pointer
-};
+#include "particle_system.h"
 
 typedef std::vector<ParticleSystem*> Vec_004732e0;
 typedef void (Vec_004732e0::*InsertFn_004732e0)(

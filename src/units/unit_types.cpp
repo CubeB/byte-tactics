@@ -286,8 +286,9 @@ void StartScreenShake(int, int, int);
 int RegisterUnitOrders();
 
 // A parsed TDF file; the getters read the current section.
-// Keeps its own view of the parser classes: the header has no FindFieldValue or
-// Fixed-returning GetFieldFixed, so the file's own views stay.
+// Keeps its own view of the parser classes: the header's GetFieldFixed takes
+// the result pointer first, while these calls pass and return a Fixed by value,
+// and spelling them with the header's form changes the frame and the pushes.
 class TdfRecord;
 
 class TdfRecord {

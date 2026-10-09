@@ -64,10 +64,7 @@ struct UnitDef {
     unsigned int flags;                // +0x245
 };
 
-struct PlayerInfo {
-    char unknown_0[4];
-    int id;                            // +0x4
-};
+#include "../network/player.h"
 
 struct Unit {
     // +0x0 holds the unit's UnitMotion pointer; only its non-nullness is read
@@ -78,7 +75,7 @@ struct Unit {
     Vec3 pos;                          // +0x6a
     char unknown_76[0x92 - 0x76];
     UnitDef* type;                     // +0x92
-    PlayerInfo* player;                // +0x96
+    Player* player;                    // +0x96
     char unknown_9a[0xb0 - 0x9a];
     int workTime;                      // +0xb0
     char unknown_b4[0xff - 0xb4];

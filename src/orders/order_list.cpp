@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free, Space Bunny Free, Sonnet, Opus, Haiku, Claude Sonnet 5.5, Claude Opus 5.5, DeepSeek V4.1 Flash, GPT-6.1-sol, GPT-6, deepseek-v4.1, deepseek-v4.1-flash and mimo-v2.6-pro. Names are provisional.
-// The unit's order list: the nodes (Class_0043a1f0) linked through the unit's
+// The unit's order list: the nodes (Order) linked through the unit's
 // two lists at +0x5c and +0x60, their creation, insertion, deletion, and the
 // dispatcher that walks the list and calls one helper per kind flag bit; then
 // adding, removing and driving the command nodes in the two lists, the global
@@ -203,7 +203,7 @@ public:
 };
 
 struct Unit;
-class Class_0043a1f0;
+class Order;
 
 // The 0x10-byte link at +0x12: its constructor puts the object in its
 // owner's list; 0x489650 is its destructor.
@@ -226,7 +226,7 @@ public:
     virtual void OrStatusFlags(unsigned int);  // slot 0: 0x43a1e0, empty
 };
 
-class Class_0043a1f0 : public Class_0043a1e0 {
+class Order : public Class_0043a1e0 {
 public:
     // Slot 0 of vtable 0x4fd2c8, overriding the base's: 0x438870 (defined
     // in order_queue_4384a0.cpp).
@@ -246,14 +246,21 @@ public:
     int field_3e;                    // +0x3e
     unsigned int flags;              // +0x42
     unsigned int created;            // +0x46
-    Class_0043a1f0* next;            // +0x4a
+    Order* next;                     // +0x4a
     unsigned int field_4e;           // +0x4e
     void* attached;                  // +0x52
 
-    Class_0043a1f0(unsigned char k, Unit* o, Vec3* p, int a, int b, int c);
-    Class_0043a1f0(Class_00438760 kind, Unit* o, Vec3* p, int a, int b, int c);
-    Class_0043a1f0(unsigned char type, int a, int b, int c, int d, int e);
-    ~Class_0043a1f0();
+    Order(unsigned char k, Unit* o, Vec3* p, int a, int b, int c);
+    Order(Class_00438760 kind, Unit* o, Vec3* p, int a, int b, int c);
+    Order(unsigned char type, int a, int b, int c, int d, int e);
+    ~Order();
+    void SetDeadlineTicks(int param);
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void ReattachFxToUnit();
+    void AttachApproachRadiusGoal(Vec3* pos, int radius);
+    Unit* Target();
+    void Wait();
+    Vec3* Position();
 };
 
 // One of the unit's two order-target slots (+0x10); its target's +0xe4 is the
@@ -286,8 +293,8 @@ struct Unit {                          // 0x118 bytes
     char unknown_0[0x10];
     Slot_0043a1f0 entries[2];          // +0x10
     char unknown_48[0x5c - 0x48];
-    Class_0043a1f0* list;              // +0x5c
-    Class_0043a1f0* list2;             // +0x60, nodes with flag 0x40000
+    Order* list;                       // +0x5c
+    Order* list2;                      // +0x60, nodes with flag 0x40000
     union {
         Short3 f64;                    // +0x64
         struct {
@@ -336,20 +343,12 @@ struct Unit {                          // 0x118 bytes
 static inline short PosXWhole(Unit* unit) { return *(short*)((char*)&unit->pos + 2); }
 static inline short PosZWhole(Unit* unit) { return *(short*)((char*)&unit->pos + 0xa); }
 
-// A partial view of Class_0043a1f0 (flags6 at +0x6, wakeFrame at +0xa), named
-// after its method's address: its callers spell this class.
-class Class_00439e80
-{
-public:
-    void SetDeadlineTicks(int param);
-};
-
 // One 25-byte record of the global order-type table at 0x512344 (a
 // std::vector's _First): the status text at +0, a per-kind notify callback at
 // +4, the draw mask at +0xc and its name at +0x15.
 struct Elem_0043c390 {
     int value;                         // +0x0, the status string
-    int (__stdcall* notify)(void* unit, Class_0043a1f0* obj, unsigned int code); // +4
+    int (__stdcall* notify)(void* unit, Order* obj, unsigned int code); // +4
     char unknown_8[0xc - 8];
     int field_c;                       // +0xc, the flags 0x439b30 masks
     char unknown_10[0x11 - 0x10];
@@ -367,17 +366,17 @@ struct Elem_0043c390 {
 extern Game* g_game;
 extern Elem_0043c390* g_missionOrderTableBegin;
 
-void __stdcall DeleteOrder(Unit* owner, Class_0043a1f0* node);
+void __stdcall DeleteOrder(Unit* owner, Order* node);
 
 extern int __cdecl _strcmpi(const char*, const char*);
 
 short __stdcall FindUnitTypeId(char* name);
 
-void __stdcall DrawBuildFootprint(void* a, void* b, Class_0043a1f0* e, Vec3* p, int c);
-void __stdcall DrawUnitRangeRings(void* a, void* b, Class_0043a1f0* e, Vec3* p, int c);
-void __stdcall DrawPathAnim(void* a, void* b, Class_0043a1f0* e, Vec3* p, int c);
-void __stdcall DrawWeaponCoverage(void* a, void* b, Class_0043a1f0* e, Vec3* p, int c);
-void __stdcall DrawOrderRangeRing(void* a, void* b, Class_0043a1f0* e, Vec3* p, int c);
+void __stdcall DrawBuildFootprint(void* a, void* b, Order* e, Vec3* p, int c);
+void __stdcall DrawUnitRangeRings(void* a, void* b, Order* e, Vec3* p, int c);
+void __stdcall DrawPathAnim(void* a, void* b, Order* e, Vec3* p, int c);
+void __stdcall DrawWeaponCoverage(void* a, void* b, Order* e, Vec3* p, int c);
+void __stdcall DrawOrderRangeRing(void* a, void* b, Order* e, Vec3* p, int c);
 
 // The list-walking dispatcher of the unit: for every object linked into the unit's
 // list at +0x5c (link field at +0x4a, kind byte at +0x4) it looks up the kind's
@@ -396,7 +395,7 @@ void __stdcall DrawOrderOverlays(Unit* unit, unsigned int mask, void* obj,
     Vec3 base = unit->pos;
     Vec3 pos = unit->pos;
     bool done = false;
-    for (Class_0043a1f0* e = unit->list; e != 0; e = e->next) {
+    for (Order* e = unit->list; e != 0; e = e->next) {
         if (g_missionOrderTableBegin[e->kind].field_c & mask & 1) {
             pos = base;
             DrawBuildFootprint(obj, sel, e, &pos, flag);
@@ -444,7 +443,7 @@ int __stdcall GetOrderTargetIfFlagged(void* param_1)
 // FUNCTION: 0x439d20
 int __stdcall GetBuildWeaponPercent(Unit* owner)
 {
-    Class_0043a1f0* p;
+    Order* p;
     for (p = owner->list2; p; p = p->next) {
         if (p->flags & 0x80000)
             return p->field_3e * 100 / owner->entries[p->id].target->field_e4;
@@ -458,7 +457,7 @@ int __stdcall GetBuildWeaponPercent(Unit* owner)
 int __stdcall SumQueuedBuildCount(Unit* owner, int index)
 {
     int total = 0;
-    Class_0043a1f0* p;
+    Order* p;
     for (p = owner->list; p; p = p->next) {
         if ((p->flags & 0x100) && p->id == index)
             total += p->amount;
@@ -496,9 +495,9 @@ int __stdcall GetOrderName(Unit* obj)
 // Finds the object's list node of the given kind; the kind table's flag
 // 0x40000 selects which of the object's two lists (+0x60 or +0x5c) to search.
 // FUNCTION: 0x439e30
-Class_0043a1f0* __stdcall FindOrderByType(Unit* obj, unsigned char kind)
+Order* __stdcall FindOrderByType(Unit* obj, unsigned char kind)
 {
-    Class_0043a1f0* n;
+    Order* n;
     if (g_missionOrderTableBegin[kind].flags & 0x40000)
         n = obj->list2;
     else
@@ -512,7 +511,7 @@ Class_0043a1f0* __stdcall FindOrderByType(Unit* obj, unsigned char kind)
 }
 
 // FUNCTION: 0x439e80
-void Class_00439e80::SetDeadlineTicks(int param)
+void Order::SetDeadlineTicks(int param)
 {
     *(unsigned int*)((char*)this + 0x6) |= 1;
     int val = *(int*)((char*)g_game + 0x38a47);
@@ -533,9 +532,9 @@ int __stdcall ReadyOrder(int arg1, int arg2, int arg3)
 // FUNCTION: 0x439eb0
 void __stdcall DeleteOrders(Unit* owner, int all)
 {
-    Class_0043a1f0* first = owner->list;
-    Class_0043a1f0** pp = &owner->list;
-    Class_0043a1f0* node;
+    Order* first = owner->list;
+    Order** pp = &owner->list;
+    Order* node;
     while ((node = *pp) != 0) {
         if (!all && (node->flags & 4)) {
             pp = &node->next;
@@ -557,11 +556,11 @@ void __stdcall DeleteOrders(Unit* owner, int all)
 // flag 0x40000) and deletes it; every node except the head of the +0x5c list
 // is marked 0x10000 first. 0x439eb0 inlines the same code.
 // FUNCTION: 0x439f80
-void __stdcall DeleteOrder(Unit* owner, Class_0043a1f0* node)
+void __stdcall DeleteOrder(Unit* owner, Order* node)
 {
-    Class_0043a1f0* first = owner->list;
-    Class_0043a1f0** link = (node->flags & 0x40000) ? &owner->list2 : &owner->list;
-    for (Class_0043a1f0* n = *link; n != 0; n = n->next) {
+    Order* first = owner->list;
+    Order** link = (node->flags & 0x40000) ? &owner->list2 : &owner->list;
+    for (Order* n = *link; n != 0; n = n->next) {
         if (n == node) {
             *link = node->next;
             if (node != first) {
@@ -592,9 +591,9 @@ void __stdcall MoveOrderToTail(char* param_1, char* param_2)
 }
 
 // Links `child` into the parent's list in front of `before` (see EnqueueOrderType).
-static inline void InsertBefore(Unit* p, Class_0043a1f0* child, Class_0043a1f0* before)
+static inline void InsertBefore(Unit* p, Order* child, Order* before)
 {
-    Class_0043a1f0** link = (child->flags & 0x40000) ? &p->list2 : &p->list;
+    Order** link = (child->flags & 0x40000) ? &p->list2 : &p->list;
     while (*link != before) {
         link = &(*link)->next;
     }
@@ -607,23 +606,23 @@ static inline void InsertBefore(Unit* p, Class_0043a1f0* child, Class_0043a1f0* 
 }
 
 // FUNCTION: 0x43a020
-void __stdcall EnsurePatrolReturnOrder(Unit* p, Class_0043a1f0* item)
+void __stdcall EnsurePatrolReturnOrder(Unit* p, Order* item)
 {
     int add = 1;
-    for (Class_0043a1f0* c = p->list; c != 0; c = c->next) {
+    for (Order* c = p->list; c != 0; c = c->next) {
         if (c->flags & 0x8000) {
             add = 0;
             break;
         }
     }
     if (add) {
-        Class_0043a1f0* child = new Class_0043a1f0(item->kind, 0, &p->pos, 0, 0, 0);
+        Order* child = new Order(item->kind, 0, &p->pos, 0, 0, 0);
         InsertBefore(p, child, 0);
     }
     item->flags |= 0x8000;
 }
 
-// The constructor of Class_0043a1f0 (destructor 0x43a1f0, vtable 0x4fd2c8).
+// The constructor of Order (destructor 0x43a1f0, vtable 0x4fd2c8).
 // The rest of the class is in order_queue_4384a0.cpp.
 // It first stores 0x4fd2cc, the vtable of the inline constructor of the base
 // class Class_0043a1e0, then runs the member initialisers, then stores its
@@ -639,7 +638,7 @@ void __stdcall EnsurePatrolReturnOrder(Unit* p, Class_0043a1f0* item)
 // This view keeps `kind(k)` a plain member initialiser; the other file's view
 // adds a second base that rules it out.
 // FUNCTION: 0x43a0c0
-Class_0043a1f0::Class_0043a1f0(unsigned char k, Unit* o, Vec3* p, int a, int b, int c)
+Order::Order(unsigned char k, Unit* o, Vec3* p, int a, int b, int c)
     : kind(k), link(o, 0), field_2e(PointInit_0043a1f0(0, 0)), field_32(PointInit_0043a1f0(0, 0)),
       id(a), amount(b), field_3e(c), created(g_game->ticks)
 {
@@ -664,7 +663,7 @@ Class_0043a1f0::Class_0043a1f0(unsigned char k, Unit* o, Vec3* p, int a, int b, 
 }
 
 // Slot 0 of Class_0043a1e0's vtable (0x4fd2cc): an empty virtual method.
-// Class_0043a1e0 is the base of Class_0043a1f0 (vtable 0x4fd2c8), which
+// Class_0043a1e0 is the base of Order (vtable 0x4fd2c8), which
 // overrides this slot with 0x438870 (see order_queue_4384a0.cpp).
 // FUNCTION: 0x43a1e0
 void Class_0043a1e0::OrStatusFlags(unsigned int)
@@ -714,10 +713,10 @@ int __stdcall OrderTypeNameLess(int param_1, char* param_2)
 }
 
 // FUNCTION: 0x43ac60
-void __stdcall InsertOrderBefore(Unit* owner, Class_0043a1f0* node,
-                            Class_0043a1f0* before)
+void __stdcall InsertOrderBefore(Unit* owner, Order* node,
+                            Order* before)
 {
-    Class_0043a1f0** link = (node->flags & 0x40000) ? &owner->list2
+    Order** link = (node->flags & 0x40000) ? &owner->list2
                                                    : &owner->list;
     while (*link != before)
         link = &(*link)->next;
@@ -729,11 +728,11 @@ void __stdcall InsertOrderBefore(Unit* owner, Class_0043a1f0* node,
 }
 
 // FUNCTION: 0x43acb0
-void __stdcall AppendOrder(Unit* owner, Class_0043a1f0* node)
+void __stdcall AppendOrder(Unit* owner, Order* node)
 {
     unsigned int which = node->flags & 0x40000;
-    Class_0043a1f0* before = which ? owner->list2 : owner->list;
-    Class_0043a1f0** link = which ? &owner->list2 : &owner->list;
+    Order* before = which ? owner->list2 : owner->list;
+    Order** link = which ? &owner->list2 : &owner->list;
     while (*link != before) {
         link = &(*link)->next;
     }
@@ -748,10 +747,10 @@ void __stdcall AppendOrder(Unit* owner, Class_0043a1f0* node)
 // Appends a node to the end of the owner's list that its flag 0x40000
 // selects (+0x60 when set, +0x5c otherwise); compare 0x43acb0.
 // FUNCTION: 0x43ad10
-void __stdcall AppendOrderToTail(Unit* owner, Class_0043a1f0* node)
+void __stdcall AppendOrderToTail(Unit* owner, Order* node)
 {
-    Class_0043a1f0** link = (node->flags & 0x40000) ? &owner->list2 : &owner->list;
-    for (Class_0043a1f0* n = *link; n != 0; n = n->next)
+    Order** link = (node->flags & 0x40000) ? &owner->list2 : &owner->list;
+    for (Order* n = *link; n != 0; n = n->next)
         link = &n->next;
     *link = node;
     node->unit = owner;
@@ -762,12 +761,12 @@ void __stdcall AppendOrderToTail(Unit* owner, Class_0043a1f0* node)
 // just after the node currently carrying that mark (moving the mark to the
 // new node), or at the end of the list when no node has it; compare 0x43ad10.
 // FUNCTION: 0x43ad50
-void __stdcall InsertOrderAfterMarked(Unit* owner, Class_0043a1f0* node)
+void __stdcall InsertOrderAfterMarked(Unit* owner, Order* node)
 {
-    Class_0043a1f0** link = &owner->list;
+    Order** link = &owner->list;
     node->unit = owner;
     node->flags |= 0x1000;
-    for (Class_0043a1f0* n = *link; n != 0; n = n->next) {
+    for (Order* n = *link; n != 0; n = n->next) {
         if (n->flags & 0x1000) {
             n->flags &= ~0x1000;
             node->unit = owner;
@@ -783,7 +782,7 @@ void __stdcall InsertOrderAfterMarked(Unit* owner, Class_0043a1f0* node)
 
 // Unlinks the node `link` points at and deletes it, marking it 0x10000 (so its
 // destructor does not unlink it again) unless it is the list head.
-static inline void UnlinkNode(Class_0043a1f0** link, Class_0043a1f0* node, Class_0043a1f0* first)
+static inline void UnlinkNode(Order** link, Order* node, Order* first)
 {
     *link = node->next;
     if (node != first)
@@ -792,10 +791,10 @@ static inline void UnlinkNode(Class_0043a1f0** link, Class_0043a1f0* node, Class
 }
 
 // Unlinks `node` from the list starting at `list` and deletes it.
-static inline void RemoveFromList(Class_0043a1f0** list, Class_0043a1f0* node, Class_0043a1f0* first)
+static inline void RemoveFromList(Order** list, Order* node, Order* first)
 {
-    Class_0043a1f0** link = list;
-    for (Class_0043a1f0* n = *link; n != 0; n = n->next) {
+    Order** link = list;
+    for (Order* n = *link; n != 0; n = n->next) {
         if (n == node) {
             UnlinkNode(link, node, first);
             return;
@@ -805,9 +804,9 @@ static inline void RemoveFromList(Class_0043a1f0** list, Class_0043a1f0* node, C
 }
 
 // Drops every node of the owner's +0x5c list that has no flag 4.
-static inline void PruneLoose(Class_0043a1f0** link, Class_0043a1f0* first)
+static inline void PruneLoose(Order** link, Order* first)
 {
-    Class_0043a1f0* n = *link;
+    Order* n = *link;
     while (n != 0) {
         if (n->flags & 4)
             link = &n->next;
@@ -821,21 +820,21 @@ static inline void PruneLoose(Class_0043a1f0** link, Class_0043a1f0* first)
 // own flag 0x40000 selects.
 static inline void PruneUsed(Unit* owner)
 {
-    Class_0043a1f0** base = &owner->list;
-    for (Class_0043a1f0* n = owner->list; n != 0; n = owner->list) {
+    Order** base = &owner->list;
+    for (Order* n = owner->list; n != 0; n = owner->list) {
         if (!(n->flags & 0x4000))
             break;
         // Keep the `node = n` copy and the fresh owner->list read at the call.
-        Class_0043a1f0* node = n;
+        Order* node = n;
         RemoveFromList((node->flags & 0x40000) ? &owner->list2 : base, node, owner->list);
     }
 }
 
 // Puts `node` in front of the list head its flag 0x40000 selects (0x43acb0).
-static inline void AddFront(Unit* owner, Class_0043a1f0* node)
+static inline void AddFront(Unit* owner, Order* node)
 {
-    Class_0043a1f0* before = (node->flags & 0x40000) ? owner->list2 : owner->list;
-    Class_0043a1f0** link = (node->flags & 0x40000) ? &owner->list2 : &owner->list;
+    Order* before = (node->flags & 0x40000) ? owner->list2 : owner->list;
+    Order** link = (node->flags & 0x40000) ? &owner->list2 : &owner->list;
     while (*link != before)
         link = &(*link)->next;
     *link = node;
@@ -848,12 +847,12 @@ static inline void AddFront(Unit* owner, Class_0043a1f0* node)
 }
 
 // Puts `node` right after the node carrying flag 0x1000 (0x43ad50).
-static inline void AddMarked(Unit* owner, Class_0043a1f0* node)
+static inline void AddMarked(Unit* owner, Order* node)
 {
-    Class_0043a1f0** link = &owner->list;
+    Order** link = &owner->list;
     node->unit = owner;
     node->flags |= 0x1000;
-    for (Class_0043a1f0* n = *link; n != 0; n = n->next) {
+    for (Order* n = *link; n != 0; n = n->next) {
         if (n->flags & 0x1000) {
             n->flags &= ~0x1000;
             node->unit = owner;
@@ -867,7 +866,7 @@ static inline void AddMarked(Unit* owner, Class_0043a1f0* node)
     *link = node;
 }
 
-// Creates a new Class_0043a1f0 node of the given kind and links it into the
+// Creates a new Order node of the given kind and links it into the
 // owner's two lists (+0x60 when the node has flag 0x40000, otherwise +0x5c),
 // after pruning them.  With `remove` clear and the new node lacking flag 0x40,
 // every node of the +0x5c list that has no flag 4 is deleted, all but the
@@ -885,7 +884,7 @@ void __stdcall AddOrder(int kind, int remove, Unit* owner, void* id,
 {
     // The constructor's owner argument is the fourth parameter, not `owner`,
     // which stays in its stack slot.
-    Class_0043a1f0* obj = new Class_0043a1f0(kind, (Unit*)id, pos, param_6, param_7, 0);
+    Order* obj = new Order(kind, (Unit*)id, pos, param_6, param_7, 0);
 
     if (remove == 0 && !(obj->flags & 0x40))
         // Link and head passed separately so the two loads of owner->list stay.
@@ -1022,10 +1021,10 @@ void RegisterGroundOrders();
 void RegisterVtolOrders();
 void RegisterAICommands();
 void RegisterUnitOrders();
-void __stdcall DeleteOrder(Unit* owner, Class_0043a1f0* node);
+void __stdcall DeleteOrder(Unit* owner, Order* node);
 void __stdcall DeleteOrders(Unit* owner, int all);
-void __stdcall MoveOrderToTail(Unit* owner, Class_0043a1f0* node);
-void __stdcall InsertOrderBefore(Unit* owner, Class_0043a1f0* node, Class_0043a1f0* before);
+void __stdcall MoveOrderToTail(Unit* owner, Order* node);
+void __stdcall InsertOrderBefore(Unit* owner, Order* node, Order* before);
 
 // |d| <= 0x100000
 static inline int InRange(int d)
@@ -1035,20 +1034,20 @@ static inline int InRange(int d)
 
 // Matches and RemoveNode stay helpers: written in place, the parameters
 // get other registers and the blocks lay out differently.
-static inline int Matches(Class_0043a1f0* node, unsigned char kind, int id, int* pos)
+static inline int Matches(Order* node, unsigned char kind, int id, int* pos)
 {
     return kind == node->kind && (id == 0 || id == (int)node->link.owner) &&
            (!pos || (InRange(pos[0] - node->pos.x) && InRange(pos[2] - node->pos.z)));
 }
 
 // Unlinks `node` from the list its flag 0x40000 selects and deletes it.
-static inline void RemoveNode(Unit* owner, Class_0043a1f0* node, Class_0043a1f0* first)
+static inline void RemoveNode(Unit* owner, Order* node, Order* first)
 {
-    Class_0043a1f0** link = &owner->list;
+    Order** link = &owner->list;
     if (node->flags & 0x40000) {
         link = &owner->list2;
     }
-    for (Class_0043a1f0* n = *link; n != 0; n = n->next) {
+    for (Order* n = *link; n != 0; n = n->next) {
         if (n == node) {
             *link = node->next;
             if (node != first) {
@@ -1069,8 +1068,8 @@ static inline void RemoveNode(Unit* owner, Class_0043a1f0* node, Class_0043a1f0*
 void __stdcall IssueOrCancelOrder(unsigned char kind, int remove, Unit* owner, int id, int* pos, int param_6, int param_7)
 {
     if (remove) {
-        Class_0043a1f0* first = owner->list;
-        for (Class_0043a1f0* node = first; node != 0; node = node->next) {
+        Order* first = owner->list;
+        for (Order* node = first; node != 0; node = node->next) {
             if (Matches(node, kind, id, pos)) {
                 RemoveNode(owner, node, first);
                 return;
@@ -1088,7 +1087,7 @@ void __stdcall IssueOrCancelOrder(unsigned char kind, int remove, Unit* owner, i
 // FUNCTION: 0x43b0b0
 void __stdcall AdjustBuildCount(int kind, Unit* owner, int id, int amount)
 {
-    Class_0043a1f0* node;
+    Order* node;
     if (amount > 0) {
         if (g_missionOrderTableBegin[kind & 0xff].flags & 0x40000)
             node = owner->list2;
@@ -1105,7 +1104,7 @@ void __stdcall AdjustBuildCount(int kind, Unit* owner, int id, int amount)
         return;
     }
     for (;;) {
-        Class_0043a1f0* found = 0;
+        Order* found = 0;
         if (g_missionOrderTableBegin[kind & 0xff].flags & 0x40000)
             node = owner->list2;
         else
@@ -1120,9 +1119,9 @@ void __stdcall AdjustBuildCount(int kind, Unit* owner, int id, int amount)
             found->amount += amount;
             break;
         }
-        Class_0043a1f0* first = owner->list;
+        Order* first = owner->list;
         amount += found->amount;
-        Class_0043a1f0** link = &owner->list;
+        Order** link = &owner->list;
         if (found->flags & 0x40000)
             link = &owner->list2;
         for (node = *link; node != 0; node = node->next) {
@@ -1140,11 +1139,11 @@ void __stdcall AdjustBuildCount(int kind, Unit* owner, int id, int amount)
 
 // Puts `cmd` in front of `before` in the list its own flag 0x40000 picks, and
 // copies bit 0x4000 of the command it displaces.
-static inline void Insert(Unit* unit, Class_0043a1f0* cmd, Class_0043a1f0* before)
+static inline void Insert(Unit* unit, Order* cmd, Order* before)
 {
     unsigned int which = cmd->flags & 0x40000;
-    Class_0043a1f0* last = which ? unit->list2 : unit->list;
-    Class_0043a1f0** link = which ? &unit->list2 : &unit->list;
+    Order* last = which ? unit->list2 : unit->list;
+    Order** link = which ? &unit->list2 : &unit->list;
     while (*link != before) {
         link = &(*link)->next;
     }
@@ -1156,7 +1155,7 @@ static inline void Insert(Unit* unit, Class_0043a1f0* cmd, Class_0043a1f0* befor
     }
 }
 
-// Appends a command object (Class_0043a1f0, 0x56 bytes) to the unit's list
+// Appends a command object (Order, 0x56 bytes) to the unit's list
 // when the unit is allowed to use one on the target: GetOrderType (with
 // relation 3, then 2) picks the kind of the command. The unit's flags at
 // +0x110 gate it (bits 18-19 and 20-21), except when the third argument is
@@ -1176,20 +1175,20 @@ int __stdcall IssueAttackOrder(Unit* unit, Unit* target, int param_3)
         return 0;
     if ((unit->flags & 0xc0000) == 0x40000 && !param_3) {
         Class_00438760 kind2 = GetOrderType(2, unit, 0, &unit->pos);
-        Class_0043a1f0* cmd = new Class_0043a1f0(kind2, 0, &unit->pos, 0, 0, 0);
+        Order* cmd = new Order(kind2, 0, &unit->pos, 0, 0, 0);
         Insert(unit, cmd, (cmd->flags & 0x40000) ? unit->list2 : unit->list);
-        Class_0043a1f0* cmd2 = new Class_0043a1f0(kind, target, 0, 0, 0, unit->type->field_214);
+        Order* cmd2 = new Order(kind, target, 0, 0, 0, unit->type->field_214);
         cmd2->field_2e.x = PosXWhole(unit);
         cmd2->field_2e.y = PosZWhole(unit);
         Insert(unit, cmd2, (cmd2->flags & 0x40000) ? unit->list2 : unit->list);
     } else {
-        Class_0043a1f0* cmd3 = new Class_0043a1f0(kind, target, 0, 0, 0, 0);
+        Order* cmd3 = new Order(kind, target, 0, 0, 0, 0);
         Insert(unit, cmd3, (cmd3->flags & 0x40000) ? unit->list2 : unit->list);
     }
     return 1;
 }
 
-// Sibling of 0x43b1f0: appends command objects (Class_0043a1f0, 0x56 bytes)
+// Sibling of 0x43b1f0: appends command objects (Order, 0x56 bytes)
 // to the unit's list. GetOrderType (relation 8, then 2) picks the kinds; the
 // unit's flags at +0x110 gate the three cases (bits 18-19 equal to 0, 0x40000
 // or 0x80000), and when bit 18 alone is set a second, positional command is
@@ -1206,9 +1205,9 @@ int __stdcall IssueRepairOrder(Unit* unit, Unit* target, int param_3)
     unsigned int f = unit->flags & 0xc0000;
     if (f == 0 && !param_3) {
         Class_00438760 kind2 = GetOrderType(2, unit, 0, &unit->pos);
-        Class_0043a1f0* cmd = new Class_0043a1f0(kind2, 0, &unit->pos, 0, 0, 0);
+        Order* cmd = new Order(kind2, 0, &unit->pos, 0, 0, 0);
         Insert(unit, cmd, (cmd->flags & 0x40000) ? unit->list2 : unit->list);
-        Class_0043a1f0* cmd2 = new Class_0043a1f0(kind, target, 0, 0, 0, unit->type->range);
+        Order* cmd2 = new Order(kind, target, 0, 0, 0, unit->type->range);
         cmd2->field_2e.x = PosXWhole(unit);
         cmd2->field_2e.y = PosZWhole(unit);
         Insert(unit, cmd2, (cmd2->flags & 0x40000) ? unit->list2 : unit->list);
@@ -1216,15 +1215,15 @@ int __stdcall IssueRepairOrder(Unit* unit, Unit* target, int param_3)
         return 1;
     } else if (f == 0x40000 && !param_3) {
         Class_00438760 kind2 = GetOrderType(2, unit, 0, &unit->pos);
-        Class_0043a1f0* cmd = new Class_0043a1f0(kind2, 0, &unit->pos, 0, 0, 0);
+        Order* cmd = new Order(kind2, 0, &unit->pos, 0, 0, 0);
         Insert(unit, cmd, (cmd->flags & 0x40000) ? unit->list2 : unit->list);
-        Class_0043a1f0* cmd2 = new Class_0043a1f0(kind, target, 0, 0, 0, unit->type->field_214);
+        Order* cmd2 = new Order(kind, target, 0, 0, 0, unit->type->field_214);
         cmd2->field_2e.x = PosXWhole(unit);
         cmd2->field_2e.y = PosZWhole(unit);
         Insert(unit, cmd2, (cmd2->flags & 0x40000) ? unit->list2 : unit->list);
         return 1;
     } else if (f == 0x80000 && !param_3) {
-        Class_0043a1f0* cmd3 = new Class_0043a1f0(kind, target, 0, 0, 0, 0);
+        Order* cmd3 = new Order(kind, target, 0, 0, 0, 0);
         Insert(unit, cmd3, (cmd3->flags & 0x40000) ? unit->list2 : unit->list);
         return 1;
     } else {
@@ -1243,16 +1242,16 @@ int __stdcall FindBestTargetIfFireAtWill(Unit* unit)
 // FUNCTION: 0x43b730
 void __stdcall EnqueueOrderType(Unit* p, unsigned char type)
 {
-    Class_0043a1f0* child = new Class_0043a1f0(type, 0, 0, 0, 0, 0);
+    Order* child = new Order(type, 0, 0, 0, 0, 0);
     child->flags |= 0x4000;
     InsertBefore(p, child, (child->flags & 0x40000) ? p->list2 : p->list);
 }
 
 // 0x439fe0: moves `node` to the end of the +0x5c list.
-void __stdcall MoveOrderToTail(Unit* owner, Class_0043a1f0* node)
+void __stdcall MoveOrderToTail(Unit* owner, Order* node)
 {
-    Class_0043a1f0** pp = &owner->list;
-    Class_0043a1f0* n = *pp;
+    Order** pp = &owner->list;
+    Order* n = *pp;
     for (; n != node; n = n->next) {
         pp = &n->next;
     }
@@ -1269,14 +1268,14 @@ void __stdcall MoveOrderToTail(Unit* owner, Class_0043a1f0* node)
 // inlining its body, so the call stays.
 static void InsertCommand(Unit* p, unsigned char type)
 {
-    Class_0043a1f0* child = new Class_0043a1f0(type, 0, 0, 0, 0, 0);
+    Order* child = new Order(type, 0, 0, 0, 0, 0);
     child->flags |= 0x4000;
     InsertOrderBefore(p, child, (child->flags & 0x40000) ? p->list2 : p->list);
 }
 
 // Puts the node to sleep: it is due again a random delay (RandomInt(n))
 // plus 30 frames from now.
-static void Wait_0043b7c0(Class_0043a1f0* node, int n)
+static void Wait_0043b7c0(Order* node, int n)
 {
     unsigned int when = RandomInt(n) + 0x1e;
     node->flags6 |= 1;
@@ -1299,7 +1298,7 @@ static void ClearTargets_0043b7c0(Unit* unit)
 // FUNCTION: 0x43b7c0
 void __stdcall RunOrders(Unit* unit)
 {
-    Class_0043a1f0* node;
+    Order* node;
     // This loop shape puts the early returns on the default case's epilogue.
     for (;;) {
         node = unit->list;
@@ -1368,11 +1367,11 @@ void __stdcall RunOrders(Unit* unit)
 // when the node is not in the list at all, and then nothing is freed. The head
 // of the list is read before the unlink, so a node that was the head does not
 // get the 0x10000 flag. The local `first` is what forces that early read.
-static void RemoveAndDelete(Unit* p, Class_0043a1f0* child)
+static void RemoveAndDelete(Unit* p, Order* child)
 {
-    Class_0043a1f0* first = p->list;
-    Class_0043a1f0** link = (child->flags & 0x40000) ? &p->list2 : &p->list;
-    Class_0043a1f0* node = *link;
+    Order* first = p->list;
+    Order** link = (child->flags & 0x40000) ? &p->list2 : &p->list;
+    Order* node = *link;
     while (node != 0) {
         if (node == child) {
             *link = child->next;
@@ -1386,7 +1385,7 @@ static void RemoveAndDelete(Unit* p, Class_0043a1f0* child)
     }
 }
 
-// Drives a parent's list of attach/spot nodes (Class_0043a1f0) once per pass:
+// Drives a parent's list of attach/spot nodes (Order) once per pass:
 // every node that is due (or not waiting) is offered to the callback table
 // g_missionOrderTableBegin, and the answer decides what happens to it. The list is
 // restarted from the head after every node, so nodes added by the callback
@@ -1394,7 +1393,7 @@ static void RemoveAndDelete(Unit* p, Class_0043a1f0* child)
 // FUNCTION: 0x43bad0
 void __stdcall RunSecondaryOrders(Unit* p)
 {
-    Class_0043a1f0* child = p->list2;
+    Order* child = p->list2;
     while (child != 0) {
         if (child->flags6 == 0 || g_game->frame >= child->wakeFrame) {
             child->flags6 = 0;

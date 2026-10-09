@@ -19,14 +19,12 @@ struct Vec3 {
 };
 struct Unit;
 class UnitMotion { public: char pad0[0x2e]; unsigned char flags; void SetFlightMode(Unit*,int); };
-class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
-class Class_004388d0 { public: void SetAttachedFx(int); };
+
 class Class_0044e730 { public: void SetApproachRadius(int); };
 class Class_0044e720 { public: void SetHeading(int); };
 class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
-class Class_00438ad0 { public: void AttachBuildFootprintMarker(Point, Point); };
-class Class_00439e80 { public: void SetDeadlineTicks(int); };
+
 class PathOrderAttach { public: void SetUnit(Unit*); };
 #pragma pack(push, 1)
 struct UnitDef {
@@ -67,6 +65,23 @@ struct Order {
     char pad1A[8]; Vec3 pos;
     char pad2E[8]; int type;
     int unused; int retries;
+    void AnnounceStatusIfFlagged(const char*);
+    void SetAttachedFx(int);
+    void AttachBuildFootprintMarker(Point, Point);
+    void SetDeadlineTicks(int);
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void ReattachFxToUnit();
+    void MergeFlagsFromTable(int k);
+    void AttachRingApproachGoal(Vec3* pos, int radius1, int radius2);
+    ~Order();
+    Order(Unit* unit, void* file, char* name);
+    int SerializeToSave(Unit* unit, void* file, char* name);
+    void OrStatusFlags(unsigned int flags);
+    void AttachApproachRadiusGoal(Vec3* pos, int radius);
+    Unit* Target();
+    void Wait();
+    Vec3* Position();
+    int Advance(int distance);
 };
 struct Game {
     char pad0[0x1439b]; UnitDef* defs;
@@ -121,7 +136,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
         if (unit->motion) {
             if (unit->def->flags&0x800) {
                 if (!unit->def->canBuild) return 7;
-                ((Class_00438880*)order)->AnnounceStatusIfFlagged("Building");
+                ((Order*)order)->AnnounceStatusIfFlagged("Building");
                 ((Unit*)unit)->ClaimWeapons(3);
                 if (unit->busy) AttachUnitToPiece(unit,0,-1,2);
                 ((Unit*)unit)->SetStateBits(1,1);
@@ -129,7 +144,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
                     unit->motion->SetFlightMode(unit,2);
                     Class_0044e2d0* move=new Class_0044e2d0(order,unit->pos);
                     ((Class_0044e6c0*)move)->SetAltitude(unit->def->altitude/2);
-                    ((Class_004388d0*)order)->SetAttachedFx((int)move);
+                    ((Order*)order)->SetAttachedFx((int)move);
                     order->flags|=0xe0;
                 }
                 return 1;
@@ -140,7 +155,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
         order->retries=0;
         Class_0044e2d0* move=new Class_0044e2d0(order,order->target.Get()->pos);
         ((Class_0044e730*)move)->SetApproachRadius(unit->def->buildRange);
-        ((Class_004388d0*)order)->SetAttachedFx((int)move);
+        ((Order*)order)->SetAttachedFx((int)move);
         order->flags=0xe0;
         return 1;
     }
@@ -158,7 +173,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
             Vec3 pos=order->target.Get()->pos-Offset(angle,range);
             Class_0044e2d0* move=new Class_0044e2d0(order,pos);
             ((Class_0044e720*)move)->SetHeading((unsigned short)angle);
-            ((Class_004388d0*)order)->SetAttachedFx((int)move);
+            ((Order*)order)->SetAttachedFx((int)move);
         }
         int rate=0; rate=unit->def->buildRate;
         // The ok local is needed: it adds a register candidate that keeps order in esi.
@@ -172,7 +187,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
             EmitNanoParticles(&start,bounds,6);
         }
         if (order->target.Get()->progress!=0.0f) {
-            ((Class_00439e80*)order)->SetDeadlineTicks(1);
+            ((Order*)order)->SetDeadlineTicks(1);
             order->flags|=0xa;
             return 2;
         }

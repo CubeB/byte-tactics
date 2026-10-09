@@ -15,17 +15,21 @@ public:
 struct Unit;
 
 #pragma pack(push, 2)
-class Class_0043a1f0 {
+class Order {
 public:
     char unknown_0[0x56];
-    Class_0043a1f0(Class_00438760 type, Unit* target, void* pos, int c, int d, int e);
+    Order(Class_00438760 type, Unit* target, void* pos, int c, int d, int e);
+    void SetDeadlineTicks(int ticks);
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void ReattachFxToUnit();
+    void MergeFlagsFromTable(int k);
+    ~Order();
+    Order(Unit* unit, void* file, char* name);
+    void OrStatusFlags(unsigned int flags);
+    Unit* Target();
+    void Wait();
 };
 #pragma pack(pop)
-
-class Class_00439e80 {
-public:
-    void SetDeadlineTicks(int ticks);
-};
 
 #pragma pack(push, 1)
 struct UnitDef_00401e00 {
@@ -71,7 +75,7 @@ extern Game* g_game;
 int __stdcall RandomInt(int range);
 Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit* unit,
                                        Unit* target, int flags);
-void __stdcall AppendOrder(Unit* owner, Class_0043a1f0* node);
+void __stdcall AppendOrder(Unit* owner, Order* node);
 
 // FUNCTION: 0x401e00
 int __stdcall AttackUTypeOrder(Unit* unit, Order_00401e00* order, int unused)
@@ -82,7 +86,7 @@ int __stdcall AttackUTypeOrder(Unit* unit, Order_00401e00* order, int unused)
     case 0:
         if (!(unit->def->flags & 0x10))
             return 7;
-        ((Class_00439e80*)order)->SetDeadlineTicks(RandomInt(0x5a) + 1);
+        ((Order*)order)->SetDeadlineTicks(RandomInt(0x5a) + 1);
         return 1;
     case 1: {
         Unit* best = 0;
@@ -101,7 +105,7 @@ int __stdcall AttackUTypeOrder(Unit* unit, Order_00401e00* order, int unused)
         }
         if (best) {
             Class_00438760 kind = GetOrderType(3, unit, best, 0);
-            AppendOrder(unit, new Class_0043a1f0(kind, best, 0, 0, 0, 0));
+            AppendOrder(unit, new Order(kind, best, 0, 0, 0, 0));
             return 0;
         }
         return 5;

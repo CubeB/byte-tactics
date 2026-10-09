@@ -1,5 +1,5 @@
 // Decompiled by Opus, Haiku, deepseek-v4.1, DeepSeek V4.1 Flash, deepseek-v4.1-flash, space-bunny-free, Space Bunny Free and Claude Opus 5.5. Names are provisional.
-// The build-queue object Class_0043a1f0 and the code around it: the unit's
+// The build-queue object Order and the code around it: the unit's
 // list of orders at +0x5c, the order-type table at g_missionOrderTableBegin, the
 // StartBuilding and StopBuilding script calls and the objects attached to an
 // order. A build-queue object holds a kind from the order-type table, the unit
@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 
-class Class_0043a1f0;
+class Order;
 class HapiBank;
 
 #pragma pack(push, 1)
@@ -43,8 +43,8 @@ struct UnitType {                      // 0x249 bytes
 struct Unit {                          // 0x118 bytes
     Owner_0043a1f0* owner;             // +0x0
     char unknown_4[0x5c - 0x4];
-    Class_0043a1f0* first;             // +0x5c
-    Class_0043a1f0* firstTop;          // +0x60, for children with flag 0x40000
+    Order* first;                      // +0x5c
+    Order* firstTop;                   // +0x60, for children with flag 0x40000
     char unknown_64[0x86 - 0x64];
     int carrier;                      // +0x86
     char unknown_8a[0x92 - 0x8a];
@@ -64,7 +64,7 @@ struct Unit {                          // 0x118 bytes
 
 struct Entry_0043a1f0 {                // 0x19-byte entries at g_missionOrderTableBegin
     char unknown_0[4];
-    void (__stdcall* notify)(Unit* unit, Class_0043a1f0* obj, int code);   // +0x4
+    void (__stdcall* notify)(Unit* unit, Order* obj, int code);            // +0x4
     char unknown_8[0x11 - 0x8];
     union {
         unsigned int flags;            // +0x11, default flags of the kind
@@ -127,7 +127,7 @@ public:
 class Attached_0043a1f0 {
 public:
     virtual ~Attached_0043a1f0();
-    virtual int Slot1(Class_0043a1f0* obj, File_0043a970* file, char* name);
+    virtual int Slot1(Order* obj, File_0043a970* file, char* name);
     virtual int Slot2();
 };
 
@@ -262,7 +262,7 @@ struct Head_0043a1f0 {
     Head_0043a1f0() : kind(0) {}
 };
 
-class Class_0043a1f0 : public Class_0043a1e0, public Head_0043a1f0 {
+class Order : public Class_0043a1e0, public Head_0043a1f0 {
 public:
     // Slot 0 of vtable 0x4fd2c8, overriding the base's.
     virtual void OrStatusFlags(unsigned int);
@@ -276,24 +276,33 @@ public:
     int field_3e;                      // +0x3e
     unsigned int flags;                // +0x42
     unsigned int created;              // +0x46
-    Class_0043a1f0* next;              // +0x4a
+    Order* next;                       // +0x4a
     int field_4e;                      // +0x4e
     Attached_0043a1f0* attached;       // +0x52
 
     // The real constructor is 0x43a0c0, in order_list.cpp: it needs
     // `kind(k)` as a plain member initialiser, which this class's second base
     // rules out (98.9%).
-    Class_0043a1f0(Class_00438760, int, void*, int, int, int);
-    ~Class_0043a1f0();
-    Class_0043a1f0(Unit* punit, HapiBank* file, char* name);
+    Order(Class_00438760, int, void*, int, int, int);
+    ~Order();
+    Order(Unit* punit, HapiBank* file, char* name);
     int SerializeToSave(Unit* punit, File_0043a970* file, char* name);
+    void AnnounceStatusIfFlagged(char* text);
+    void ReattachFxToUnit();
+    void SetAttachedFx(Attached_0043a1f0* obj);
+    void AttachApproachRadiusGoal(int* p, int n);
+    void AttachRingApproachGoal(Vec3_0043a1f0* pos, int radius1, int radius2);
+    void AttachBuildFootprintMarker(Point_00438ad0 cell, Point_00438ad0 size);
+    void MergeFlagsFromTable(int k);
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    Unit* Target();
 };
 #pragma pack(pop)
 
 // Links `child` into the owner's list in front of `before`.
-static inline void InsertBefore(Unit* p, Class_0043a1f0* child, Class_0043a1f0* before)
+static inline void InsertBefore(Unit* p, Order* child, Order* before)
 {
-    Class_0043a1f0** link = (child->flags & 0x40000) ? &p->firstTop : &p->first;
+    Order** link = (child->flags & 0x40000) ? &p->firstTop : &p->first;
     while (*link != before) {
         link = &(*link)->next;
     }
@@ -313,9 +322,9 @@ static inline void InsertBefore(Unit* p, Class_0043a1f0* child, Class_0043a1f0* 
 void __stdcall AddBeCarriedOrder(Unit* p)
 {
     if (p->carrier) {
-        Class_0043a1f0* first = p->first;
-        Class_0043a1f0** pp = &p->first;
-        Class_0043a1f0* node;
+        Order* first = p->first;
+        Order** pp = &p->first;
+        Order* node;
         while ((node = *pp) != 0) {
             if (node->flags & 4) {
                 pp = &node->next;
@@ -327,14 +336,14 @@ void __stdcall AddBeCarriedOrder(Unit* p)
                 delete node;
             }
         }
-        Class_0043a1f0* child =
-            new Class_0043a1f0("BECARRIED", p->carrier, 0, 0, 0, 0);
+        Order* child =
+            new Order("BECARRIED", p->carrier, 0, 0, 0, 0);
         InsertBefore(p, child, (child->flags & 0x40000) ? p->firstTop : p->first);
     }
 }
 
 // FUNCTION: 0x438590
-void __stdcall StartBuildingScript(Unit* obj, Class_0043a1f0* target, unsigned short param_3)
+void __stdcall StartBuildingScript(Unit* obj, Order* target, unsigned short param_3)
 {
     int index = obj->names->FindScript("StartBuilding");
     ((CobScript*)obj->names)->StartScriptWithArgsByIndex(index, 0, 0, 1, param_3, 0, 0, 0);
@@ -343,7 +352,7 @@ void __stdcall StartBuildingScript(Unit* obj, Class_0043a1f0* target, unsigned s
 }
 
 // FUNCTION: 0x4385f0
-void __stdcall StopBuildingScript(Unit* obj, Class_0043a1f0* target)
+void __stdcall StopBuildingScript(Unit* obj, Order* target)
 {
     if (target->flags & 0x400000) {
         int index = obj->names->FindScript("StopBuilding");
@@ -450,27 +459,15 @@ int __fastcall GetTableEntryByTypeByte(unsigned char* param_1)
 }
 
 // FUNCTION: 0x438870
-void Class_0043a1f0::OrStatusFlags(unsigned int param_1)
+void Order::OrStatusFlags(unsigned int param_1)
 {
     field_4e |= param_1;
 }
 
 // Clears flag 0x2000 of an order and, if it was set, posts message kind 5
 // with the given text for the order's unit.
-#pragma pack(push, 1)
-class Class_00438880 {
-public:
-    char unknown_0[0xe];
-    Unit* unit;                        // +0xe
-    char unknown_12[0x42 - 0x12];
-    unsigned int flags;                // +0x42
-
-    void AnnounceStatusIfFlagged(char* text);
-};
-#pragma pack(pop)
-
 // FUNCTION: 0x438880
-void Class_00438880::AnnounceStatusIfFlagged(char* text)
+void Order::AnnounceStatusIfFlagged(char* text)
 {
     if (flags & 0x2000) {
         flags &= ~0x2000;
@@ -478,45 +475,20 @@ void Class_00438880::AnnounceStatusIfFlagged(char* text)
     }
 }
 
-#pragma pack(push, 1)
-class Class_004388b0 {
-public:
-    char unknown_0[0x0e];
-    void* obj_ptr;
-    char unknown_1[0x40];
-    int value;
-
-    void ReattachFxToUnit();
-};
-#pragma pack(pop)
-
 // FUNCTION: 0x4388b0
-void Class_004388b0::ReattachFxToUnit()
+void Order::ReattachFxToUnit()
 {
-    if (value != 0) {
-        void* p1 = *(void**)obj_ptr;
+    if (attached != 0) {
+        void* p1 = *(void**)unit;
         void* p2 = *(void**)p1;
         void* p3 = *(void**)p2;
         void* fn_ptr = *(void**)((char*)p3 + 4);
-        ((void (__stdcall*)(int))fn_ptr)(value);
+        ((void (__stdcall*)(int))fn_ptr)((int)attached);
     }
 }
 
-#pragma pack(push, 1)
-class Class_004388d0 {
-public:
-    char unknown_0[0xe];
-    Unit* unit;                         // +0xe
-    char unknown_12[0x4e - 0x12];
-    unsigned int flags;                 // +0x4e
-    Attached_0043a1f0* attached;        // +0x52
-
-    void SetAttachedFx(Attached_0043a1f0* obj);
-};
-#pragma pack(pop)
-
 // FUNCTION: 0x4388d0
-void Class_004388d0::SetAttachedFx(Attached_0043a1f0* obj)
+void Order::SetAttachedFx(Attached_0043a1f0* obj)
 {
     if (unit->owner) {
         if (attached) {
@@ -525,7 +497,7 @@ void Class_004388d0::SetAttachedFx(Attached_0043a1f0* obj)
             attached = 0;
         }
         if (obj) {
-            flags &= ~0x3e0;
+            field_4e &= ~0x3e0;
             unit->owner->slot->Attach(obj);
             attached = obj;
         }
@@ -535,21 +507,8 @@ void Class_004388d0::SetAttachedFx(Attached_0043a1f0* obj)
 // Creates an ApproachRadius from an order position when the unit's definition
 // does not have flag 0x800 set, detaches the current attachment and attaches
 // the new one. Same class as 0x4388d0; the flag test comes first here.
-#pragma pack(push, 1)
-class Class_00438930 {
-public:
-    char unknown_0[0xe];
-    Unit* unit;                         // +0xe
-    char unknown_12[0x4e - 0x12];
-    unsigned int flags;                 // +0x4e
-    Attached_0043a1f0* attached;        // +0x52
-
-    void AttachApproachRadiusGoal(int* p, int n);
-};
-#pragma pack(pop)
-
 // FUNCTION: 0x438930
-void Class_00438930::AttachApproachRadiusGoal(int* p, int n)
+void Order::AttachApproachRadiusGoal(int* p, int n)
 {
     if ((unit->type->flags32 & 0x800) == 0) {
         ApproachRadius* obj = new ApproachRadius((Source_0044cf60*)this, p[0], p[2], n);
@@ -560,7 +519,7 @@ void Class_00438930::AttachApproachRadiusGoal(int* p, int n)
                 attached = 0;
             }
             if (obj) {
-                flags &= ~0x3e0;
+                field_4e &= ~0x3e0;
                 unit->owner->slot->Attach(obj);
                 attached = obj;
             }
@@ -574,21 +533,8 @@ void Class_00438930::AttachApproachRadiusGoal(int* p, int n)
     }
 }
 
-#pragma pack(push, 1)
-class Class_00438a00 {
-public:
-    char unknown_0[0xe];
-    Unit* unit;                        // +0xe
-    char unknown_12[0x4e - 0x12];
-    unsigned int flags;                // +0x4e
-    Attached_0043a1f0* attached;       // +0x52
-
-    void AttachRingApproachGoal(Vec3_0043a1f0* pos, int radius1, int radius2);
-};
-#pragma pack(pop)
-
 // FUNCTION: 0x438a00
-void Class_00438a00::AttachRingApproachGoal(Vec3_0043a1f0* pos, int radius1, int radius2)
+void Order::AttachRingApproachGoal(Vec3_0043a1f0* pos, int radius1, int radius2)
 {
     if (!(unit->type->flags32 & 0x800)) {
         RingApproach* obj = new RingApproach(this, pos->x, pos->z, radius1, radius2);
@@ -599,7 +545,7 @@ void Class_00438a00::AttachRingApproachGoal(Vec3_0043a1f0* pos, int radius1, int
                 attached = 0;
             }
             if (obj) {
-                flags &= ~0x3e0;
+                field_4e &= ~0x3e0;
                 unit->owner->slot->Attach(obj);
                 attached = obj;
             }
@@ -615,21 +561,8 @@ void Class_00438a00::AttachRingApproachGoal(Vec3_0043a1f0* pos, int radius1, int
     }
 }
 
-#pragma pack(push, 1)
-class Class_00438ad0 {
-public:
-    char unknown_0[0xe];
-    Unit* unit;                        // +0xe
-    char unknown_12[0x4e - 0x12];
-    unsigned int flags;                // +0x4e
-    Attached_0043a1f0* attached;       // +0x52
-
-    void AttachBuildFootprintMarker(Point_00438ad0 cell, Point_00438ad0 size);
-};
-#pragma pack(pop)
-
 // FUNCTION: 0x438ad0
-void Class_00438ad0::AttachBuildFootprintMarker(Point_00438ad0 cell, Point_00438ad0 size)
+void Order::AttachBuildFootprintMarker(Point_00438ad0 cell, Point_00438ad0 size)
 {
     if (!(unit->type->flags32 & 0x800)) {
         PointMarker* obj = new PointMarker(this, cell, size);
@@ -640,7 +573,7 @@ void Class_00438ad0::AttachBuildFootprintMarker(Point_00438ad0 cell, Point_00438
                 attached = 0;
             }
             if (obj) {
-                flags &= ~0x3e0;
+                field_4e &= ~0x3e0;
                 unit->owner->slot->Attach(obj);
                 attached = obj;
             }
@@ -659,22 +592,10 @@ void Class_00438ad0::AttachBuildFootprintMarker(Point_00438ad0 cell, Point_00438
 // Changes the object's kind: stores the new kind and reloads its flags from
 // the kind table (g_missionOrderTableBegin, 0x19-byte entries, default flags at +0x11),
 // keeping the object's own bits 9 and 10 (0x600; the constructor 0x43a0c0
-// clears them individually). The layout (kind at +0x4, flags at +0x42)
-// matches Class_0043a1f0, which this probably is.
-#pragma pack(push, 1)
-class Class_00438b90 {
-public:
-    char unknown_0[4];
-    unsigned char kind;                // +0x4
-    char unknown_5[0x42 - 5];
-    unsigned int flags;                // +0x42
-
-    void MergeFlagsFromTable(int k);
-};
-#pragma pack(pop)
-
+// clears them individually). The layout (kind at +0x4, flags at +0x42) is
+// Order's.
 // FUNCTION: 0x438b90
-void Class_00438b90::MergeFlagsFromTable(int k)
+void Order::MergeFlagsFromTable(int k)
 {
     kind = k;
     // The two table index expressions must differ, or the entry load is shared.
@@ -697,7 +618,7 @@ int __stdcall GetOrderFlags(void* param)
 // same code as StopBuildingScript), releases the attached object at +0x52 and
 // unlinks the list node at +0x12 (0x489650 is the link's destructor).
 // FUNCTION: 0x43a1f0
-Class_0043a1f0::~Class_0043a1f0()
+Order::~Order()
 {
     if (flags6 & 2) {
         g_missionOrderTableBegin[kind].notify(unit, this, 2);
@@ -771,11 +692,11 @@ static unsigned char KindByIndex_0043a420(unsigned char want)
     return (unsigned char)idx;
 }
 
-// The constructor of Class_0043a1f0 that loads the object from the parsed
+// The constructor of Order that loads the object from the parsed
 // text file (the other one is 0x43a0c0; 0x43a970 is the matching writer).
-// data/symbols.csv still names this address Class_0043a420::Class_0043a420
+// data/symbols.csv still names this address Order::Order
 // (the name its caller 0x487080 uses), but the vtables it stores are
-// Class_0043a1f0's, so it is that class's second constructor.
+// Order's, so it is that class's second constructor.
 //
 // The kind is resolved by two helpers, one per branch, each
 // returning an unsigned char: by name through the sorted kind table
@@ -786,7 +707,7 @@ static unsigned char KindByIndex_0043a420(unsigned char want)
 // 0x44e7d0, which shares its name with 0x44e740; data/aliases.csv has a row
 // for it.
 // FUNCTION: 0x43a420
-Class_0043a1f0::Class_0043a1f0(Unit* punit, HapiBank* file, char* name)
+Order::Order(Unit* punit, HapiBank* file, char* name)
     : link(0, 0)
 {
     link.SetValue(this);
@@ -879,12 +800,12 @@ Class_0043a1f0::Class_0043a1f0(Unit* punit, HapiBank* file, char* name)
     }
 }
 
-// Serialises one build-queue object (Class_0043a1f0) into the parsed text file
+// Serialises one build-queue object (Order) into the parsed text file
 // under the key `name`: a raw 0x3a-byte snapshot, a "<name>_name" string value
 // pointing at the kind's name, a "UTYPENAME<id>" value when the object is a
 // build kind, and finally "<name>g" handed to the attached object.
 // FUNCTION: 0x43a970
-int Class_0043a1f0::SerializeToSave(Unit* punit, File_0043a970* file, char* name)
+int Order::SerializeToSave(Unit* punit, File_0043a970* file, char* name)
 {
     if (unit->typeId != punit->typeId || !file || !name)
         return 0;

@@ -37,9 +37,7 @@ public:
     void SetUnit(Unit* o);
 };
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
-class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
-class Class_004388d0 { public: void SetAttachedFx(int); };
-class Class_00439e80 { public: void SetDeadlineTicks(int); };
+
 class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_0044e730 { public: void SetApproachRadius(short); };
 class CobScript { public: void StartScript(const char*, int, int); int QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5); };
@@ -74,7 +72,27 @@ struct Order {
     char padA[0x12 - 0xa]; PathOrderAttach target;
     Vec3 pos;
     char pad2e[8]; int angle;
+    void AnnounceStatusIfFlagged(const char*);
+    void SetAttachedFx(int);
+    void SetDeadlineTicks(int);
+    Order(Class_00438760 type, Unit* target, void* pos, int c, int d, int e);
+    char unknown_3a[0x1c];
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void ReattachFxToUnit();
+    void MergeFlagsFromTable(int k);
+    void AttachRingApproachGoal(Vec3* pos, int radius1, int radius2);
+    ~Order();
+    Order(Unit* unit, void* file, char* name);
+    int SerializeToSave(Unit* unit, void* file, char* name);
+    void OrStatusFlags(unsigned int flags);
+    void AttachApproachRadiusGoal(Vec3* pos, int radius);
+    Unit* Target();
+    void Wait();
+    Vec3* Position();
+    int Advance(int distance);
 };
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+int __stdcall DirectionFromStep(int, int);
 class Class_0044e2d0 {
 public:
     char unknown_0[0x36];
@@ -88,21 +106,13 @@ public:
 };
 #pragma pack(pop)
 
-#pragma pack(push, 2)
-class Class_0043a1f0 {
-public:
-    char unknown_0[0x56];
-    Class_0043a1f0(Class_00438760 type, Unit* target, void* pos, int c, int d, int e);
-};
-#pragma pack(pop)
-
 int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 int __stdcall IsPadSlotFree(Unit* unit, int id);
 void __stdcall QueueUnitSpeech(Unit*, int, const char*);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, int p3, int p4);
-void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
+void __stdcall AppendOrder(Unit*, Order*);
 
 static inline Vec3 Offset(short angle, int distance)
 {
@@ -124,7 +134,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
-        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
+        ((Order*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -164,7 +174,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
     switch (state) {
     case 0:
         if (unit->type && (unit->def->flags1 & 0x800)) {
-            ((Class_00438880*)order)->AnnounceStatusIfFlagged("Landing");
+            ((Order*)order)->AnnounceStatusIfFlagged("Landing");
             PrepVtolClimb(unit, order, 0);
             order->angle = RandomInt(0x10000);
             return 1;
@@ -179,7 +189,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
         order->angle += 0x4000;
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->SetApproachRadius(0x80);
-        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
+        ((Order*)order)->SetAttachedFx((int)obj);
         order->flags = 0xe8;
         order->state = 1;
         return 2;
@@ -187,7 +197,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
     case 2: {
         Class_0044e250* obj = new Class_0044e250(order, order->target.owner, -1);
         ((Class_0044e730*)obj)->SetApproachRadius(0xa0);
-        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
+        ((Order*)order)->SetAttachedFx((int)obj);
         order->flags = 0xe8;
         return 1;
     }
@@ -200,7 +210,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
         }
         Class_0044e250* obj = new Class_0044e250(order, order->target.owner, order->angle);
         ((Class_0044e730*)obj)->SetApproachRadius(0x30);
-        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
+        ((Order*)order)->SetAttachedFx((int)obj);
         order->flags = 0xe8;
         return 1;
     }
@@ -221,8 +231,8 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
         else
             ((Class_0044e6c0*)obj)->SetAltitude(0);
         unit->script->StartScript("EndTransport", 0, 1);
-        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
-        ((Class_00439e80*)order)->SetDeadlineTicks(0xf);
+        ((Order*)order)->SetAttachedFx((int)obj);
+        ((Order*)order)->SetDeadlineTicks(0xf);
         order->state = 5;
         order->flags |= 0xe8;
         return 2;
@@ -246,8 +256,8 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
             && (order->target.owner->def->flags1 & 0x200)
             && (order->target.owner->def->flags1 & 0x40)
             && order->target.owner->buildLeft == 0.0f) {
-            ((Class_004388d0*)order)->SetAttachedFx(0);
-            AppendOrder(unit, new Class_0043a1f0("SELFREPAIR", order->target.owner, 0, 0, 0, 0));
+            ((Order*)order)->SetAttachedFx(0);
+            AppendOrder(unit, new Order("SELFREPAIR", order->target.owner, 0, 0, 0, 0));
         }
         return 5;
     }

@@ -25,10 +25,8 @@ public:
     unsigned char flags;               // +0x2e
     void SetFlightMode(Unit* unit, int state);
 };
-class Class_004388d0 { public: void SetAttachedFx(int); };
-class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
+
 class Class_0044e6c0 { public: void SetAltitude(int); };
-class Class_00439e80 { public: void SetDeadlineTicks(int ticks); };
 
 #pragma pack(push, 1)
 struct Feature {
@@ -66,7 +64,6 @@ void __stdcall ClearWeaponTarget(Unit*, int);
 void __stdcall DetonateUnitWeapon(Unit*, int);
 void __stdcall DrawUnit(void*, Unit*);
 
-
 struct Order {
     char unknown_0[5];
     unsigned char state;               // +0x5
@@ -75,6 +72,20 @@ struct Order {
     Vec3 pos;                          // +0x22
     char unknown_2e[0x36 - 0x2e];
     int time;                          // +0x36
+    void AnnounceStatusIfFlagged(const char*);
+    void SetAttachedFx(int);
+    void SetDeadlineTicks(int ticks);
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void ReattachFxToUnit();
+    void MergeFlagsFromTable(int k);
+    void AttachRingApproachGoal(Vec3* pos, int radius1, int radius2);
+    Order(Unit* unit, void* file, char* name);
+    void OrStatusFlags(unsigned int flags);
+    void AttachApproachRadiusGoal(Vec3* pos, int radius);
+    void AttachBuildFootprintMarker(Point16 cell, Point16 size);
+    Unit* Target();
+    void Wait();
+    Vec3* Position();
 };
 
 class Class_0044e2d0 {
@@ -112,7 +123,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
-        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
+        ((Order*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -136,14 +147,14 @@ int __stdcall VtolReclaimOrder(Unit* unit, Order* order, int flags)
     switch (order->state) {
     case 0:
         if (unit->type && (unit->def->flags1 & 0x800) && (unit->def->flags2 & 0x400)) {
-            ((Class_00438880*)order)->AnnounceStatusIfFlagged("Reclaiming");
+            ((Order*)order)->AnnounceStatusIfFlagged("Reclaiming");
             PrepVtolClimb(unit, order, 0);
             return 1;
         }
         break;
     case 1: {
         Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
-        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
+        ((Order*)order)->SetAttachedFx((int)obj);
         order->flags = 0xe0;
         return 1;
     }
@@ -154,7 +165,7 @@ int __stdcall VtolReclaimOrder(Unit* unit, Order* order, int flags)
         QueueUnitSpeech(unit, 11, 0);
         return 1;
     case 3:
-        ((Class_00439e80*)order)->SetDeadlineTicks(2);
+        ((Order*)order)->SetDeadlineTicks(2);
         order->time -= 2;
         if (order->time <= 0)
             return 1;

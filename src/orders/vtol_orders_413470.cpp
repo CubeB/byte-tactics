@@ -35,8 +35,7 @@ public:
     unsigned char flags;               // +0x2e
     void SetFlightMode(Unit* unit, int state);
 };
-class Class_004388d0 { public: void SetAttachedFx(int); };
-class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
+
 class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_0044e730 { public: void SetApproachRadius(short); };
 
@@ -70,6 +69,21 @@ struct Order {
     int range;
     unsigned int field_42;
     char pad46[4]; int field_4a;
+    void AnnounceStatusIfFlagged(const char*);
+    void SetAttachedFx(int);
+    Order(Class_00438760 type, int a, Vec3* b, int c, int d, int e);
+    char unknown_4e[0x8];
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void ReattachFxToUnit();
+    void MergeFlagsFromTable(int k);
+    void AttachRingApproachGoal(Vec3* pos, int radius1, int radius2);
+    ~Order();
+    Order(Unit* unit, void* file, char* name);
+    void OrStatusFlags(unsigned int flags);
+    Unit* Target();
+    void Wait();
+    Vec3* Position();
+    int Advance(int distance);
 };
 struct Game {
     char pad0[0x1422b]; int width; int height;
@@ -87,14 +101,6 @@ public:
 };
 #pragma pack(pop)
 
-#pragma pack(push, 2)
-class Class_0043a1f0 {
-public:
-    char unknown_0[0x56];
-    Class_0043a1f0(Class_00438760 type, int a, Vec3* b, int c, int d, int e);
-};
-#pragma pack(pop)
-
 extern Game* g_game;
 
 int __stdcall RandomInt(int);
@@ -104,8 +110,8 @@ int __stdcall GetHeadingBetween(Vec3*, Vec3*);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
 int __stdcall WeaponCanReachUnit(Unit*, Unit*, int);
-void __stdcall AppendOrderToTail(Unit*, Class_0043a1f0*);
-void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
+void __stdcall AppendOrderToTail(Unit*, Order*);
+void __stdcall AppendOrder(Unit*, Order*);
 void __stdcall GetFactoriesInRadius(int player, Vec3* pos, int range, std::vector<Unit*>* out);
 Vec3 __stdcall AddVec3(const Vec3& a, const Vec3& b);
 
@@ -143,7 +149,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
-        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
+        ((Order*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -154,12 +160,12 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
 {
     if (flags & 0x10008) {
         if (order->field_4a == 0 && (unit->flags & 0x300000))
-            AppendOrderToTail(unit, new Class_0043a1f0("VTOL_SEEKATTACK", (int)order->target, &order->pos, 0, 0, 0));
+            AppendOrderToTail(unit, new Order("VTOL_SEEKATTACK", (int)order->target, &order->pos, 0, 0, 0));
         return 5;
     }
     if (order->target == 0 && (order->field_42 & 0x200)) {
         if (order->field_4a == 0)
-            AppendOrderToTail(unit, new Class_0043a1f0("VTOL_SEEKATTACK", 0, &unit->pos, 0, 0, 0));
+            AppendOrderToTail(unit, new Order("VTOL_SEEKATTACK", 0, &unit->pos, 0, 0, 0));
         return 5;
     }
     if (unit->spatialBucket == g_game->overflowBucket) {
@@ -171,7 +177,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->SetApproachRadius(0x80);
         order->flags |= 0xe0;
-        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
+        ((Order*)order)->SetAttachedFx((int)obj);
         return 2;
     }
     // short& references: they fix the first _hypot's load order.
@@ -185,7 +191,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
     switch (state) {
     case 0:
         if (unit->type && (unit->def->flags1 & 0x800)) {
-            ((Class_00438880*)order)->AnnounceStatusIfFlagged("Attacking");
+            ((Order*)order)->AnnounceStatusIfFlagged("Attacking");
             PrepVtolClimb(unit, order, 0);
             return 1;
         }
@@ -198,7 +204,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         Vec3 p = unit->pos + off;
         Class_0044e2d0* obj = new Class_0044e2d0(order, p);
         ((Class_0044e730*)obj)->SetApproachRadius(0x80);
-        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
+        ((Order*)order)->SetAttachedFx((int)obj);
         order->flags = 0x100e8;
         return 1;
     }
@@ -207,7 +213,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         SetWeaponTargetUnit(unit, order->target, 0);
         Class_0044e2d0* obj = new Class_0044e2d0(order, order->target->pos);
         ((Class_0044e730*)obj)->SetApproachRadius(range);
-        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
+        ((Order*)order)->SetAttachedFx((int)obj);
         order->flags = 0x100e8;
         order->side = 0;
         order->misses = 0;
@@ -240,15 +246,15 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         Class_0044e330* obj = new Class_0044e330(order, order->target, p);
         ((Class_0044e730*)obj)->SetApproachRadius(0x10);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
-        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
+        ((Order*)order)->SetAttachedFx((int)obj);
         order->flags = 0x100e8;
         if ((unsigned int)unit->health < (unit->def->maxHealth >> 2) * 3) {
             std::vector<Unit*> v;
             GetFactoriesInRadius(unit->player->index, &unit->pos, 0xf00, &v);
             if (!v.empty()) {
-                ((Class_004388d0*)order)->SetAttachedFx(0);
+                ((Order*)order)->SetAttachedFx(0);
                 int target = (int)v[RandomInt(v.size())];
-                AppendOrder(unit, new Class_0043a1f0("VTOL_LANDING", target, 0, 0, 0, 0));
+                AppendOrder(unit, new Order("VTOL_LANDING", target, 0, 0, 0, 0));
                 order->flags = 0;
                 return 0;
             }

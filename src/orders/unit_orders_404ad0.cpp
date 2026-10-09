@@ -18,16 +18,6 @@ struct Point16 {
     short z;
 };
 
-class Class_00438ad0 {
-public:
-    void AttachBuildFootprintMarker(Point16 cell, Point16 size);
-};
-
-class Class_00439e80 {
-public:
-    void SetDeadlineTicks(int ticks);
-};
-
 #pragma pack(push, 1)
 struct Feature {
     char unknown_0[0x94];
@@ -66,6 +56,19 @@ struct Order {
     Vec3 pos;                          // +0x22
     char unknown_2e[0x36 - 0x2e];
     int time;                          // +0x36
+    void AttachBuildFootprintMarker(Point16 cell, Point16 size);
+    void SetDeadlineTicks(int ticks);
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void ReattachFxToUnit();
+    void MergeFlagsFromTable(int k);
+    void AttachRingApproachGoal(Vec3* pos, int radius1, int radius2);
+    ~Order();
+    Order(Unit* unit, void* file, char* name);
+    void OrStatusFlags(unsigned int flags);
+    Unit* Target();
+    void Wait();
+    Vec3* Position();
+    int Advance(int distance);
 };
 
 struct Game {
@@ -88,6 +91,9 @@ int __stdcall WaitIfNotInBuildStance(Unit* unit, Order* order, int flags);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
 void __stdcall EmitReverseNanoParticles(Box* from, Vec3* to, int count);
 void __stdcall ReclaimFeature(Unit* unit, Vec3* pos);
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+void __stdcall AddOrder(int kind, int remove, Unit* owner, void* id, Vec3* pos, int param_6, int param_7);
+void __stdcall AdjustBuildCount(int kind, Unit* owner, int id, int amount);
 
 // Order handler "Reclaiming" for a feature (wreck, tree, rock) at the order
 // position.
@@ -107,7 +113,7 @@ int __stdcall ReclaimOrder(Unit* unit, Order* order, int flags)
     switch (order->state) {
     case 0:
         if (unit->motion && (unit->type->flags2 & 0x400)) {
-            ((Class_00438ad0*)order)->AttachBuildFootprintMarker(cell, size);
+            ((Order*)order)->AttachBuildFootprintMarker(cell, size);
             order->flags = 0xe0;
             return 1;
         }
@@ -128,7 +134,7 @@ int __stdcall ReclaimOrder(Unit* unit, Order* order, int flags)
     case 3:
         QueueUnitSpeech(unit, 11, 0);
     case 4:
-        ((Class_00439e80*)order)->SetDeadlineTicks(2);
+        ((Order*)order)->SetDeadlineTicks(2);
         order->time -= 2;
         if (order->time <= 0)
             return 1;

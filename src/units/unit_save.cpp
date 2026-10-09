@@ -200,25 +200,30 @@ public:
 
 #pragma pack(push, 1)
 // An order (0x56 bytes); 0x43a420 is its constructor from a saved record.
-class Class_0043a420 {
+class Order {
 public:
     char pad[0x42];
     unsigned int flags;                 // +0x42
     char gap_46[4];
-    Class_0043a420* next;               // +0x4a
+    Order* next;                        // +0x4a
     char gap_4e[8];
-    Class_0043a420(Unit* unit, HapiBank* file, char* name);
+    Order(Unit* unit, HapiBank* file, char* name);
+    void SerializeToSave(Unit* unit, void* file, char* name);
+    void ReattachFxToUnit();
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void MergeFlagsFromTable(int k);
+    void AttachRingApproachGoal(Vec3* pos, int radius1, int radius2);
+    ~Order();
+    Order(Unit* unit, void* file, char* name);
+    void OrStatusFlags(unsigned int flags);
+    void AttachApproachRadiusGoal(Vec3* pos, int radius);
+    Unit* Target();
+    void Wait();
+    Vec3* Position();
 };
 
-class Class_0043a1f0 {
-public:
-    char gap_0[0x4a];
-    Class_0043a1f0* next;               // +0x4a
-    void SerializeToSave(Unit* unit, void* file, char* name);
-};
 #pragma pack(pop)
 
-class Class_004388b0 { public: void ReattachFxToUnit(); };
 class UnitResources {
 public:
     void LoadUnitAccounts(Unit*, HapiBank*);
@@ -263,7 +268,7 @@ void __stdcall LoadUnits(HapiBank* file)
 // section of a saved game: finds its 0xb8-byte record by id, creates the unit and copies the
 // record into it.
 // 0x43a420 runs on the result of operator new and stores vtables, so it is written as a
-// constructor, `new Class_0043a420(unit, file, name)`, as the naming rule asks.
+// constructor, `new Order(unit, file, name)`, as the naming rule asks.
 // FUNCTION: 0x487080
 Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
 {
@@ -354,13 +359,13 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
     if (rec.f27 != 0)
         ((UnitMotion*)unit->vtable)->LoadMotion(unit, file);
 
-    Class_0043a420** normal = (Class_0043a420**)&unit->listHead;
-    Class_0043a420** special = (Class_0043a420**)&unit->listTail;
+    Order** normal = (Order**)&unit->listHead;
+    Order** special = (Order**)&unit->listTail;
     int k = 0;
     if (rec.f23 > 0) {
         do {
             sprintf(name, "u%04xm%04x", unit->id, k);
-            Class_0043a420* p = new Class_0043a420(unit, file, name);
+            Order* p = new Order(unit, file, name);
             if (p->flags & 0x40000) {
                 *special = p;
                 special = &p->next;
@@ -372,7 +377,7 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
         } while (k < rec.f23);
     }
     if (unit->listHead != 0)
-        ((Class_004388b0*)unit->listHead)->ReattachFxToUnit();
+        ((Order*)unit->listHead)->ReattachFxToUnit();
     sprintf(script, "Script%i", i);
     file->OpenNamedBox(script);
     ((CobScript*)unit->script)->LoadScriptState(file);
@@ -392,7 +397,6 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
         unit->pieces[j].fl.b23 = rec.pieces[j].fl.b23;
         unit->pieces[j].fl.b4 = rec.pieces[j].fl.b4;
     }
-
 
     if (unit->b_10f & 4)
         ForceNeighborFootprintReclaim(unit);
@@ -423,14 +427,14 @@ void __stdcall SaveUnits(HapiBank* file)
             ((CobScript*)unit->script)->SaveScriptState(file);
 
             int n = 0;
-            Class_0043a1f0* c = (Class_0043a1f0*)unit->listHead;
+            Order* c = (Order*)unit->listHead;
             while (c != 0) {
                 sprintf(bufHead, "u%04xm%04x", unit->id, n);
                 c->SerializeToSave(unit, file, bufHead);
                 c = c->next;
                 n++;
             }
-            c = (Class_0043a1f0*)unit->listTail;
+            c = (Order*)unit->listTail;
             while (c != 0) {
                 sprintf(bufTail, "u%04xm%04x", unit->id, n);
                 c->SerializeToSave(unit, file, bufTail);

@@ -24,10 +24,7 @@ struct Vec3 {
 struct Unit;
 struct Order;
 class Class_00438760 { public: unsigned char index; Class_00438760() {} Class_00438760(const char*); int operator==(const Class_00438760& v) const { return index==v.index; } };
-class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
-class Class_004388d0 { public: void SetAttachedFx(int); };
-class Class_00438930 { public: void AttachApproachRadiusGoal(Vec3*, int); };
-class Class_00439e80 { public: void SetDeadlineTicks(int); };
+
 #pragma pack(push, 1)
 struct WeaponDef { char pad0[0xdc]; int range; char pade0[0x111-0xe0]; unsigned int flags; };
 struct Weapon { char pad0[8]; WeaponDef* def; char padc[11]; unsigned char flags; char pad18[4]; };
@@ -42,8 +39,19 @@ struct Unit {
     char pad10a[6]; unsigned int flags;
     void ReleaseWeapons(int);
 };
-struct Order { char pad0[4]; Class_00438760 kind; unsigned char state; unsigned int flags; char pada[12]; Unit* target; char pad1a[8]; Vec3 pos; char pad2e[8]; int angle, parity; char pad3e[4]; unsigned int capabilities; char pad46[4]; int next; };
-class Class_0043a1f0 { public: char data[0x56]; Class_0043a1f0(Class_00438760, Unit*, Vec3*, int, int, int); };
+struct Order { char pad0[4]; Class_00438760 kind; unsigned char state; unsigned int flags; char pada[12]; Unit* target; char pad1a[8]; Vec3 pos; char pad2e[8]; int angle, parity; char pad3e[4]; unsigned int capabilities; char pad46[4]; int next; void AnnounceStatusIfFlagged(const char*); void SetAttachedFx(int); void AttachApproachRadiusGoal(Vec3*, int); void SetDeadlineTicks(int); Order(Class_00438760, Unit*, Vec3*, int, int, int); char unknown_4e[0x8];     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void ReattachFxToUnit();
+    void MergeFlagsFromTable(int k);
+    void AttachRingApproachGoal(Vec3* pos, int radius1, int radius2);
+    ~Order();
+    Order(Unit* unit, void* file, char* name);
+    void OrStatusFlags(unsigned int flags);
+    Unit* Target();
+    void Wait();
+    Vec3* Position();
+    int Advance(int distance);
+};
+
 class Class_0044e2d0 { public: char data[0x36]; Class_0044e2d0(Order*, const Vec3&); };
 struct Game { char pad0[0x1422b]; int width, height; char pad14233[0x142b7-0x14233]; int overflowBucket; };
 #pragma pack(pop)
@@ -51,7 +59,7 @@ extern Game* g_game;
 class Class_0044e730 { public: void SetApproachRadius(int); };
 short __stdcall GetHeadingBetween(Vec3*, Vec3*);
 Class_00438760 __stdcall GetOrderType(unsigned char, Unit*, Unit*, int);
-void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
+void __stdcall AppendOrder(Unit*, Order*);
 int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
@@ -96,9 +104,9 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
         LandingPadList pads;
         FindPads(unit,&pads);
         if (!pads.empty()) {
-            ((Class_004388d0*)order)->SetAttachedFx(0);
+            ((Order*)order)->SetAttachedFx(0);
             Unit* pad=pads[RandomInt(pads.size())];
-            AppendOrder(unit,new Class_0043a1f0("VTOL_LANDING",pad,0,0,0,0));
+            AppendOrder(unit,new Order("VTOL_LANDING",pad,0,0,0,0));
             order->flags=0;
             return 0;
         }
@@ -108,9 +116,9 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
     GroundAllyVisitor visitor(unit->owner,&units,unit);
     VisitObjectsInRange(&unit->pos,range,visitor);
     if (!units.empty()) {
-        ((Class_004388d0*)order)->SetAttachedFx(0);
+        ((Order*)order)->SetAttachedFx(0);
         Class_00438760 kind=GetOrderType(7,unit,units[0],0);
-        AppendOrder(unit,new Class_0043a1f0(kind,units[0],0,0,0,0));
+        AppendOrder(unit,new Order(kind,units[0],0,0,0,0));
         order->flags=0;
         return 3;
     }
@@ -118,8 +126,8 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
     Vec3 pos=order->pos+Offset((short)order->angle,(unit->weapons[0].def->range+160)<<16);
     Class_0044e2d0* move=new Class_0044e2d0(order,pos);
     ((Class_0044e730*)move)->SetApproachRadius(128);
-    ((Class_004388d0*)order)->SetAttachedFx((int)move);
-    ((Class_00439e80*)order)->SetDeadlineTicks(30);
+    ((Order*)order)->SetAttachedFx((int)move);
+    ((Order*)order)->SetDeadlineTicks(30);
     order->flags|=0xf8;
     return 2;
 }
@@ -137,7 +145,7 @@ int __stdcall VtolSeekGuardOrder(Unit* unit, Order* order, int flags)
         Class_0044e2d0* move=new Class_0044e2d0(order,pos);
         ((Class_0044e730*)move)->SetApproachRadius(128);
         order->flags|=0xe0;
-        ((Class_004388d0*)order)->SetAttachedFx((int)move);
+        ((Order*)order)->SetAttachedFx((int)move);
         return 2;
     }
     switch(order->state) {

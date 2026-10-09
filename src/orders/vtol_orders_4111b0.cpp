@@ -21,8 +21,7 @@ public:
     unsigned char flags;               // +0x2e
     void SetFlightMode(Unit* unit, int state);
 };
-class Class_004388d0 { public: void SetAttachedFx(int); };
-class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
+
 class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_0044e730 { public: void SetApproachRadius(short); };
 class CobScript { public: int StartScriptWithArgs(char*, void*, int, int, int, int, int, int); void StartScript(const char*, int, int); int QueryScript(char* name, int* p2, int* p3, int* p4, int* p5); };
@@ -43,6 +42,19 @@ struct Order {
     char pad0[5]; unsigned char state; unsigned int flags;
     char padA[0x16 - 0xa]; Unit* target;
     char pad1a[0x36 - 0x1a]; int piece;
+    void AnnounceStatusIfFlagged(const char*);
+    void SetAttachedFx(int);
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void ReattachFxToUnit();
+    void MergeFlagsFromTable(int k);
+    void AttachRingApproachGoal(Vec3* pos, int radius1, int radius2);
+    ~Order();
+    Order(Unit* unit, void* file, char* name);
+    void OrStatusFlags(unsigned int flags);
+    Unit* Target();
+    void Wait();
+    Vec3* Position();
+    int Advance(int distance);
 };
 struct Game {
     char pad0[0x1427f]; unsigned char seaLevel;
@@ -84,7 +96,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
-        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
+        ((Order*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -117,7 +129,7 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
                     QueueUnitSpeech(unit, 7, "Unit is too heavy to transport");
                     return 8;
                 }
-                ((Class_00438880*)order)->AnnounceStatusIfFlagged("Loading");
+                ((Order*)order)->AnnounceStatusIfFlagged("Loading");
                 PrepVtolClimb(unit, order, 0);
                 return 1;
             }
@@ -126,12 +138,12 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
             Class_0044e190* obj = new Class_0044e190(order, order->target);
             ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
             ((Class_0044e730*)obj)->SetApproachRadius(0x30);
-            ((Class_004388d0*)order)->SetAttachedFx((int)obj);
+            ((Order*)order)->SetAttachedFx((int)obj);
             order->flags = 0x100e8;
             return 1;
         }
         case 2:
-            ((Class_00438880*)order)->AnnounceStatusIfFlagged("Preparing for transport");
+            ((Order*)order)->AnnounceStatusIfFlagged("Preparing for transport");
             order->piece = -1;
             unit->script->QueryScript("QueryTransport", &order->piece, 0, 0, 0);
             order->flags = 0x100e8;
@@ -143,7 +155,7 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
             Vec3 offset = GetPieceOffset(unit, order->piece);
             Class_0044e250* obj = new Class_0044e250(order, order->target, -1);
             ((Class_0044e6c0*)obj)->SetAltitude(-offset.yw);
-            ((Class_004388d0*)order)->SetAttachedFx((int)obj);
+            ((Order*)order)->SetAttachedFx((int)obj);
             order->flags = 0x100ea;
             return 1;
         }

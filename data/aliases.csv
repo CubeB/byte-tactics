@@ -56,3 +56,4 @@ TraceRecord::TraceRecord,0x4d88d0,"overload: the constructor (name, id, count); 
 BlockHistory::BlockHistory,0x4d8c00,"overload: the constructor (header, name, id, count); the default constructor is 0x4d8bd0, and the checker gives both one name"
 IUUnitSyncEntry::IU?$pair::?$_Tree::begin,0x46e880,"the real std name of UnitSyncMap::Begin; the real map in UnitSync::ResetEntries calls it"
 IUUnitSyncEntry::IU?$pair::?$_Tree::Viterator::?$pair::?$pair,0x46fad0,"the real std name of InsertResult::InsertResult; the real map in UnitSync::ResetEntries calls it"
+Order::Order,0x43a420,"overload: the saved-record constructor of Order; the other constructor is 0x43a0c0, and the checker gives both one name"

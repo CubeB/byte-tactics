@@ -17,7 +17,7 @@ public:
 class Unit;
 class UnitRef;
 class PathOrderAttach;
-class Class_0043a1f0;
+class Order;
 
 // One virtual slot, called on the object a link belongs to.
 class Listener_004896f0 {
@@ -101,7 +101,7 @@ public:
     Body_0048a1e0* body;               // +0x0
     Entry_004898b0 entries[3];         // +0x4
     char unknown_58[0x5c - 0x58];
-    Class_0043a1f0* effect;            // +0x5c
+    Order* effect;                     // +0x5c
     char unknown_60[0x64 - 0x60];
     unsigned short hdg;                // +0x64
     unsigned short aim;                // +0x66
@@ -490,14 +490,14 @@ public:
 };
 
 #pragma pack(push, 2)
-class Class_0043a1f0 {
+class Order {
 public:
     char unknown_0[4];
     unsigned char kind;                // +0x4
     char unknown_5[0x36 - 0x5];
     int field_36;                      // +0x36
     char unknown_3a[0x56 - 0x3a];
-    Class_0043a1f0(Class_00438760 k, void* owner, void* pos, int a, int b, int c);
+    Order(Class_00438760 k, void* owner, void* pos, int a, int b, int c);
 };
 #pragma pack(pop)
 
@@ -516,7 +516,7 @@ extern char s_paralyze_00508d80[];
 extern char s_HitByWeapon_00508d74[];
 extern char s_TakeDamage_00508d68[];
 
-void __stdcall AppendOrder(Unit* owner, Class_0043a1f0* node);
+void __stdcall AppendOrder(Unit* owner, Order* node);
 void __stdcall MarkRecentlyDamaged(Unit* unit);
 void __stdcall ReactToAttack(Unit* target, Unit* attacker, int amount);
 void __stdcall AddCdActivitySample(int flag);
@@ -574,12 +574,12 @@ void __stdcall ApplyUnitDamage(Event_00489ce0* ev)
                 if (owner->active && (owner->type == 1 || owner->type == 2)) {
                     if (!(unit->def->f241 & 0x4000000)) {
                         Class_00438760 kind(s_paralyze_00508d80);
-                        Class_0043a1f0* e = unit->effect;
+                        Order* e = unit->effect;
                         if (e && e->kind == kind.index) {
                             e->field_36 += ticks;
                             return;
                         }
-                        AppendOrder(unit, new Class_0043a1f0(kind, 0, 0, ticks, 0, 0));
+                        AppendOrder(unit, new Order(kind, 0, 0, ticks, 0, 0));
                         return;
                     }
                 }
@@ -627,12 +627,12 @@ void __stdcall ParalyzeUnit(Unit* unit, int ticks)
     if (owner->type == 1 || owner->type == 2) {
         if (!(unit->def->f241 & 0x4000000)) {
             Class_00438760 kind("paralyze");
-            Class_0043a1f0* effect = unit->effect;
+            Order* effect = unit->effect;
             if (effect && effect->kind == kind.index) {
                 effect->field_36 += ticks;
                 return;
             }
-            AppendOrder(unit, new Class_0043a1f0(kind, 0, 0, ticks, 0, 0));
+            AppendOrder(unit, new Order(kind, 0, 0, ticks, 0, 0));
         }
     }
 }
@@ -698,7 +698,6 @@ Unit* __stdcall GetWeaponTargetUnit(Unit* obj, int index)
     }
     return &g_game->units[p->a];
 }
-
 
 int __stdcall GetGroundHeight(Vec3_0048a1e0* pos);
 void __stdcall GetSweetSpot(Unit* def, int pos);
@@ -771,7 +770,6 @@ int __stdcall IsTargetingUnit(Unit* list, Unit* obj)
     }
     return 0;
 }
-
 
 #pragma pack(push, 1)
 struct MapVertex_0048a490 {

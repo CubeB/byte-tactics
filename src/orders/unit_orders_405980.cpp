@@ -3,9 +3,7 @@
 struct Vec3 { int x, y, z; };
 struct Unit;
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
-class Class_004388d0 { public: void SetAttachedFx(int); };
-class Class_00438930 { public: void AttachApproachRadiusGoal(Vec3*, int); };
-class Class_00439e80 { public: void SetDeadlineTicks(int); };
+
 #pragma pack(push, 1)
 #include "../units/unit_def.h"
 struct Owner {
@@ -15,13 +13,17 @@ struct Owner {
     char padac[0x108-0xac]; unsigned char allied[0x3e]; unsigned char index;
 };
 struct Unit { char pad0[0x6a]; Vec3 pos; char pad76[0x92-0x76]; UnitDef* def; Owner* owner; };
-struct Order { char pad0[5]; unsigned char state; unsigned int flags; char pada[12]; Unit* target; char pad1a[8]; Vec3 pos; };
-#pragma pack(pop)
-#pragma pack(push, 2)
-class Class_0043a1f0 {
-public:
-    char data[0x56];
-    Class_0043a1f0(Class_00438760, int, Vec3*, int, int, int);
+struct Order { char pad0[5]; unsigned char state; unsigned int flags; char pada[12]; Unit* target; char pad1a[8]; Vec3 pos; void SetAttachedFx(int); void AttachApproachRadiusGoal(Vec3*, int); void SetDeadlineTicks(int); Order(Class_00438760, int, Vec3*, int, int, int); char unknown_2e[0x28];     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void ReattachFxToUnit();
+    void MergeFlagsFromTable(int k);
+    void AttachRingApproachGoal(Vec3* pos, int radius1, int radius2);
+    ~Order();
+    Order(Unit* unit, void* file, char* name);
+    void OrStatusFlags(unsigned int flags);
+    Unit* Target();
+    void Wait();
+    Vec3* Position();
+    int Advance(int distance);
 };
 #pragma pack(pop)
 class DamagedAllyCollector {
@@ -38,7 +40,7 @@ int __stdcall RandomInt(int);
 Class_00438760 __stdcall GetOrderType(unsigned char, Unit*, Unit*, int);
 int __stdcall IssueRepairOrder(Unit*, Unit*, int);
 int __stdcall PickRandomReclaimableResourcesInRadius(Vec3*, int, Vec3**, float*, Vec3**, float*);
-void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
+void __stdcall AppendOrder(Unit*, Order*);
 
 // FUNCTION: 0x405980
 int __stdcall RepairPatrolOrder(Unit* unit, Order* order, int flags)
@@ -52,8 +54,8 @@ int __stdcall RepairPatrolOrder(Unit* unit, Order* order, int flags)
             return 1;
         case 1: {
             if (flags & 0xe0) return 6;
-            ((Class_00438930*)order)->AttachApproachRadiusGoal(&order->pos, 16);
-            ((Class_00439e80*)order)->SetDeadlineTicks(60);
+            ((Order*)order)->AttachApproachRadiusGoal(&order->pos, 16);
+            ((Order*)order)->SetDeadlineTicks(60);
             order->flags |= 0xe0;
             if (unit->owner->energy >= unit->owner->energyCapacity * 0.2) {
                 std::vector<Unit*> units;
@@ -83,27 +85,27 @@ int __stdcall RepairPatrolOrder(Unit* unit, Order* order, int flags)
                 float energyAmount, metalAmount;
                 if (PickRandomReclaimableResourcesInRadius(&unit->pos, range2, &energy, &energyAmount, &metal, &metalAmount)) {
                     if (metal && unit->owner->metal < unit->owner->metalCapacity * 0.2) {
-                        ((Class_004388d0*)order)->SetAttachedFx(0);
-                        AppendOrder(unit, new Class_0043a1f0("RECLAIM", 0, metal, 0, 0, 0));
-                        ((Class_004388d0*)order)->SetAttachedFx(0);
+                        ((Order*)order)->SetAttachedFx(0);
+                        AppendOrder(unit, new Order("RECLAIM", 0, metal, 0, 0, 0));
+                        ((Order*)order)->SetAttachedFx(0);
                         order->flags = 0;
                         return 3;
                     }
                     if (energy && unit->owner->energy < unit->owner->energyCapacity * 0.2) {
-                        ((Class_004388d0*)order)->SetAttachedFx(0);
-                        AppendOrder(unit, new Class_0043a1f0("RECLAIM", 0, energy, 0, 0, 0));
+                        ((Order*)order)->SetAttachedFx(0);
+                        AppendOrder(unit, new Order("RECLAIM", 0, energy, 0, 0, 0));
                         order->flags = 0;
                         return 3;
                     }
                     if (metal && unit->owner->metal + metalAmount <= unit->owner->metalCapacity) {
-                        ((Class_004388d0*)order)->SetAttachedFx(0);
-                        AppendOrder(unit, new Class_0043a1f0("RECLAIM", 0, metal, 0, 0, 0));
+                        ((Order*)order)->SetAttachedFx(0);
+                        AppendOrder(unit, new Order("RECLAIM", 0, metal, 0, 0, 0));
                         order->flags = 0;
                         return 3;
                     }
                     if (energy && unit->owner->energy + energyAmount <= unit->owner->energyCapacity) {
-                        ((Class_004388d0*)order)->SetAttachedFx(0);
-                        AppendOrder(unit, new Class_0043a1f0("RECLAIM", 0, energy, 0, 0, 0));
+                        ((Order*)order)->SetAttachedFx(0);
+                        AppendOrder(unit, new Order("RECLAIM", 0, energy, 0, 0, 0));
                         order->flags = 0;
                         return 3;
                     }

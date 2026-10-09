@@ -25,9 +25,7 @@ public:
     unsigned char flags;               // +0x2e
     void SetFlightMode(Unit* unit, int state);
 };
-class Class_004388d0 { public: void SetAttachedFx(int); };
-class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
-class Class_00439e80 { public: void SetDeadlineTicks(int); };
+
 class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_0044e730 { public: void SetApproachRadius(short); };
 
@@ -49,6 +47,22 @@ struct Order {
     char pad0[5]; unsigned char state; unsigned int flags;
     char padA[0x22 - 0xa]; Vec3 pos;
     char pad2e[0x4e - 0x2e]; unsigned int field_4e;
+    void AnnounceStatusIfFlagged(const char*);
+    void SetAttachedFx(int);
+    void SetDeadlineTicks(int);
+    Order(Class_00438760 type, int a, Vec3* b, int c, int d, int e);
+    char unknown_52[0x4];
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void ReattachFxToUnit();
+    void MergeFlagsFromTable(int k);
+    void AttachRingApproachGoal(Vec3* pos, int radius1, int radius2);
+    ~Order();
+    Order(Unit* unit, void* file, char* name);
+    void OrStatusFlags(unsigned int flags);
+    Unit* Target();
+    void Wait();
+    Vec3* Position();
+    int Advance(int distance);
 };
 class Class_0044e2d0 {
 public:
@@ -57,20 +71,12 @@ public:
 };
 #pragma pack(pop)
 
-#pragma pack(push, 2)
-class Class_0043a1f0 {
-public:
-    char unknown_0[0x56];
-    Class_0043a1f0(Class_00438760 type, int a, Vec3* b, int c, int d, int e);
-};
-#pragma pack(pop)
-
 int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 int __stdcall GetHeadingBetween(Vec3*, Vec3*);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
-void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
+void __stdcall AppendOrder(Unit*, Order*);
 void __stdcall EnsurePatrolReturnOrder(Unit*, Order*);
 Unit* __stdcall FindBestTargetIfFireAtWill(Unit*);
 int __stdcall IssueAttackOrder(Unit*, Unit*, int);
@@ -111,7 +117,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
-        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
+        ((Order*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -131,7 +137,7 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
         Vec3 dest = AddVec3(order->pos, Offset(angle, 0x1400000));
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->SetApproachRadius(0x150);
-        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
+        ((Order*)order)->SetAttachedFx((int)obj);
         order->flags |= 0xe0;
         // Landing block stays inline, no helper: the landed path returns 0
         // through the plain scope-exit destructor.
@@ -139,9 +145,9 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
             std::vector<Unit*> v;
             GetFactoriesInRadius(unit->player->index, &unit->pos, 0xf00, &v);
             if (!v.empty()) {
-                ((Class_004388d0*)order)->SetAttachedFx(0);
+                ((Order*)order)->SetAttachedFx(0);
                 Unit* target = v[RandomInt(v.size())];
-                AppendOrder(unit, new Class_0043a1f0("VTOL_LANDING", (int)target, 0, 0, 0, 0));
+                AppendOrder(unit, new Order("VTOL_LANDING", (int)target, 0, 0, 0, 0));
                 order->flags = 0;
                 return 0;
             }
@@ -169,7 +175,7 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
             order->flags = 0;
             return 3;
         }
-        ((Class_00439e80*)order)->SetDeadlineTicks(0x1e);
+        ((Order*)order)->SetDeadlineTicks(0x1e);
         return 2;
     }
     case 1:
@@ -178,7 +184,7 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
     case 0:
         if (unit->type && (unit->def->flags1 & 0x800)) {
             EnsurePatrolReturnOrder(unit, order);
-            ((Class_00438880*)order)->AnnounceStatusIfFlagged("Patrolling");
+            ((Order*)order)->AnnounceStatusIfFlagged("Patrolling");
             PrepVtolClimb(unit, order, 0);
             unit->ReleaseWeapons(3);
             return 1;

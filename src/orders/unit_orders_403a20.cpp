@@ -14,8 +14,7 @@ struct Vec3 {
 };
 struct Unit;
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
-class Class_00438ad0 { public: void AttachBuildFootprintMarker(Point, Point); };
-class Class_00439e80 { public: void SetDeadlineTicks(int); };
+
 class PathOrderAttach { public: void SetUnit(Unit*); };
 #pragma pack(push, 1)
 struct UnitDef {
@@ -44,6 +43,17 @@ struct Order {
     char pad1A[8]; Vec3 pos;
     char pad2E[8]; int type;
     int unused; int retries;
+    void AttachBuildFootprintMarker(Point, Point);
+    void SetDeadlineTicks(int);
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void ReattachFxToUnit();
+    void MergeFlagsFromTable(int k);
+    Order(Unit* unit, void* file, char* name);
+    void OrStatusFlags(unsigned int flags);
+    void AttachApproachRadiusGoal(Vec3* pos, int radius);
+    Unit* Target();
+    void Wait();
+    Vec3* Position();
 };
 struct Game {
     char pad0[0x1439b]; UnitDef* defs;
@@ -97,7 +107,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
         Point cell = WorldToCell(order->pos, def->origin);
         CellToWorld(def->origin, cell, &order->pos);
         order->retries = 0;
-        ((Class_00438ad0*)order)->AttachBuildFootprintMarker(cell, def->origin);
+        ((Order*)order)->AttachBuildFootprintMarker(cell, def->origin);
         order->flags = 0xe0;
         return 1;
     }
@@ -123,7 +133,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
                 return 8;
             }
             order->retries++;
-            ((Class_00439e80*)order)->SetDeadlineTicks(30);
+            ((Order*)order)->SetDeadlineTicks(30);
             return 2;
         }
         ((Unit*)unit)->ClaimWeapons(3);
@@ -132,7 +142,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
             CreateUnit(unit->player, (short)order->type, order->pos, 0, 1, 0));
         if (!order->target) {
             QueueUnitSpeech(unit, 7, "Unable to create any more units");
-            ((Class_00439e80*)order)->SetDeadlineTicks(300);
+            ((Order*)order)->SetDeadlineTicks(300);
             return 2;
         }
         QueueUnitSpeech(unit, 9, "Starting construction");
@@ -156,7 +166,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
         }
         unit->timeout = g_game->tick + 300;
         if (order->target->progress != 0.0f) {
-            ((Class_00439e80*)order)->SetDeadlineTicks(1);
+            ((Order*)order)->SetDeadlineTicks(1);
             order->flags |= 0xa;
             return 2;
         }

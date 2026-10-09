@@ -50,9 +50,7 @@ public:
     void SetUnit(Unit* o);
 };
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
-class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
-class Class_004388d0 { public: void SetAttachedFx(int); };
-class Class_00439e80 { public: void SetDeadlineTicks(int); };
+
 class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_0044e730 { public: void SetApproachRadius(short); };
 #pragma pack(push, 1)
@@ -90,6 +88,22 @@ struct Order {
     char pad32[0x3e - 0x32]; int range;
     unsigned int field_42;
     char pad46[0x4a - 0x46]; int field_4a;
+    void AnnounceStatusIfFlagged(const char*);
+    void SetAttachedFx(int);
+    void SetDeadlineTicks(int);
+    Order(Class_00438760 type, Unit* target, Vec3* pos, int c, int d, int e);
+    char unknown_4e[0x8];
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void ReattachFxToUnit();
+    void MergeFlagsFromTable(int k);
+    void AttachRingApproachGoal(Vec3* pos, int radius1, int radius2);
+    Order(Unit* unit, void* file, char* name);
+    void OrStatusFlags(unsigned int flags);
+    void AttachApproachRadiusGoal(Vec3* pos, int radius);
+    void AttachBuildFootprintMarker(Point cell, Point size);
+    Unit* Target();
+    void Wait();
+    Vec3* Position();
 };
 struct Struct_Game391e9 {
     char pad0[0xd3c]; int field_d3c;
@@ -109,14 +123,6 @@ public:
 };
 #pragma pack(pop)
 
-#pragma pack(push, 2)
-class Class_0043a1f0 {
-public:
-    char unknown_0[0x56];
-    Class_0043a1f0(Class_00438760 type, Unit* target, Vec3* pos, int c, int d, int e);
-};
-#pragma pack(pop)
-
 extern Game* g_game;
 
 int __stdcall RandomInt(int);
@@ -126,8 +132,8 @@ int __stdcall GetHeadingBetween(Vec3*, Vec3*);
 void __stdcall SetWeaponTargetPos(Unit*, Vec3*, int);
 void __stdcall ClearWeaponTarget(Unit*, int);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
-void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
-void __stdcall AppendOrderToTail(Unit*, Class_0043a1f0*);
+void __stdcall AppendOrder(Unit*, Order*);
+void __stdcall AppendOrderToTail(Unit*, Order*);
 void __stdcall GetFactoriesInRadius(int player, Vec3* pos, int range, std::vector<Unit*>* out);
 
 static inline Vec3 Offset(short angle, int distance)
@@ -150,7 +156,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
-        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
+        ((Order*)order)->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -161,13 +167,13 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
 {
     if (flags & 0x1000a) {
         if (!order->field_4a && (unit->flags & 0x300000))
-            AppendOrderToTail(unit, new Class_0043a1f0("VTOL_SEEKATTACK", order->target.owner, &order->pos, 0, 0, 0));
+            AppendOrderToTail(unit, new Order("VTOL_SEEKATTACK", order->target.owner, &order->pos, 0, 0, 0));
         return 5;
     }
     Unit* target = order->target.owner;
     if (!target && (order->field_42 & 0x200)) {
         if (!order->field_4a)
-            AppendOrderToTail(unit, new Class_0043a1f0("VTOL_SEEKATTACK", 0, &unit->pos, 0, 0, 0));
+            AppendOrderToTail(unit, new Order("VTOL_SEEKATTACK", 0, &unit->pos, 0, 0, 0));
         return 5;
     }
     if (target)
@@ -179,7 +185,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
     switch (state) {
     case 0:
         if (unit->type && (unit->def->flags & 0x800)) {
-            ((Class_00438880*)order)->AnnounceStatusIfFlagged("Attacking");
+            ((Order*)order)->AnnounceStatusIfFlagged("Attacking");
             PrepVtolClimb(unit, order, 0);
             return 1;
         }
@@ -197,7 +203,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
             Vec3 dest = unit->pos + Offset(angle, 0x8c00000);
             Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
             ((Class_0044e730*)obj)->SetApproachRadius(0x3c0);
-            ((Class_004388d0*)order)->SetAttachedFx((int)obj);
+            ((Order*)order)->SetAttachedFx((int)obj);
             order->flags |= 0xe2;
             return 1;
         }
@@ -215,7 +221,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
         Vec3 dest = unit->pos + Offset(RandomInt(0x4000) + angle - 0x2000, radius);
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->SetApproachRadius(0x1e0);
-        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
+        ((Order*)order)->SetAttachedFx((int)obj);
         order->flags = 0x100e8;
         return 1;
     }
@@ -241,8 +247,8 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
         else
             obj = new Class_0044e2d0(order, order->pos);
         ((Class_0044e730*)obj)->SetApproachRadius(time);
-        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
-        ((Class_00439e80*)order)->SetDeadlineTicks(1);
+        ((Order*)order)->SetAttachedFx((int)obj);
+        ((Order*)order)->SetDeadlineTicks(1);
         order->flags |= 0x100e8;
         return 2;
     }
@@ -253,7 +259,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
         Vec3 dest = unit->pos + Offset(angle, (unit->def->attackrunlength + 0x3c0) << 16);
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->SetApproachRadius(0x3c0);
-        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
+        ((Order*)order)->SetAttachedFx((int)obj);
         order->flags = 0xe2;
         return 1;
     }
@@ -262,15 +268,15 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
         Vec3 dest = unit->pos + Offset(unit->heading, 0x5a00000);
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->SetApproachRadius(0x80);
-        ((Class_004388d0*)order)->SetAttachedFx((int)obj);
+        ((Order*)order)->SetAttachedFx((int)obj);
         order->flags = 0xe2;
         if (unit->health < unit->def->maxHealth / 4 * 3) {
             std::vector<Unit*> pads;
             GetFactoriesInRadius(unit->player->field_146, &unit->pos, 0xf00, &pads);
             if (!pads.empty()) {
-                ((Class_004388d0*)order)->SetAttachedFx(0);
+                ((Order*)order)->SetAttachedFx(0);
                 Unit* pad = pads[RandomInt(pads.size())];
-                AppendOrder(unit, new Class_0043a1f0("VTOL_LANDING", pad, 0, 0, 0, 0));
+                AppendOrder(unit, new Order("VTOL_LANDING", pad, 0, 0, 0, 0));
                 order->flags = 0;
                 return 0;
             }

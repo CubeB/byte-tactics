@@ -8,10 +8,7 @@ struct Vec3 {
 struct Unit;
 struct Order;
 class Class_00438760 { public: unsigned char index; Class_00438760() {} Class_00438760(const char*); int operator==(const Class_00438760& v) const { return index==v.index; } };
-class Class_00438880 { public: void AnnounceStatusIfFlagged(const char*); };
-class Class_004388d0 { public: void SetAttachedFx(int); };
-class Class_00438930 { public: void AttachApproachRadiusGoal(Vec3*, int); };
-class Class_00439e80 { public: void SetDeadlineTicks(int); };
+
 #pragma pack(push, 1)
 struct WeaponDef { char pad0[0x111]; unsigned int flags; };
 struct Weapon { char pad0[8]; WeaponDef* def; char padc[11]; unsigned char flags; char pad18[4]; };
@@ -27,20 +24,25 @@ struct Unit {
     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
     void SetStateBits(int, int);
 };
-struct Order { Unit* Target() { return target; } Vec3* Position() { return &pos; } char pad0[4]; Class_00438760 kind; unsigned char state; unsigned int flags; char pada[12]; Unit* target; char pad1a[8]; Vec3 pos; char pad2e[8]; int radius; char pad3a[8]; unsigned int capabilities; };
-class Class_0043a1f0 { public: char data[0x56]; Class_0043a1f0(Class_00438760, Unit*, Vec3*, int, int, int); };
+struct Order { Unit* Target() { return target; } Vec3* Position() { return &pos; } char pad0[4]; Class_00438760 kind; unsigned char state; unsigned int flags; char pada[12]; Unit* target; char pad1a[8]; Vec3 pos; char pad2e[8]; int radius; char pad3a[8]; unsigned int capabilities; void AnnounceStatusIfFlagged(const char*); void SetAttachedFx(int); void AttachApproachRadiusGoal(Vec3*, int); void SetDeadlineTicks(int); Order(Class_00438760, Unit*, Vec3*, int, int, int); char unknown_46[0x10];     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void ReattachFxToUnit();
+    void MergeFlagsFromTable(int k);
+};
+
 #pragma pack(pop)
 int __stdcall IssueAttackOrder(Unit*, Unit*, int);
 Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
 int __stdcall WeaponCanReachUnit(Unit*, Unit*, unsigned char);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
 Class_00438760 __stdcall GetOrderType(unsigned char, Unit*, Unit*, int);
-void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
+void __stdcall AppendOrder(Unit*, Order*);
 int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 static inline int Contains(unsigned int* bits, unsigned short index) { return bits[index >> 5] & (1 << (index & 31)); }
 static inline Vec3 Offset(short angle, int distance) { Vec3 v; v.x=-FUN_004b70ef(angle,distance); v.y=0; v.z=-FUN_004b7123(angle,distance); return v; }
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+int __stdcall GetOrderTarget(int param_1);
 // FUNCTION: 0x406300
 int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
 {
@@ -50,7 +52,7 @@ int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
     unsigned int state=0; state=order->state;
     switch(state) {
     case 0: {
-        ((Class_00438880*)order)->AnnounceStatusIfFlagged("Guarding");
+        ((Order*)order)->AnnounceStatusIfFlagged("Guarding");
         ((Unit*)unit)->ReleaseWeapons(3);
         order->radius=(unit->width + order->target->width + 2) << 4;
         int distance=order->radius << 16;
@@ -77,8 +79,8 @@ int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
         if ((unsigned int)order->target->health < order->target->def->maxHealth && (unit->def->flags1&0x40)) {
             Class_00438760 kind=GetOrderType(8,unit,order->target,0);
             if(kind.index) {
-                ((Class_004388d0*)order)->SetAttachedFx(0);
-                AppendOrder(unit,new Class_0043a1f0(kind,order->target,0,0,0,0));
+                ((Order*)order)->SetAttachedFx(0);
+                AppendOrder(unit,new Order(kind,order->target,0,0,0,0));
                 order->flags=0; return 3;
             }
         }
@@ -91,23 +93,23 @@ int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
             int actionable=((other->capabilities&0x200) && other->target) || (other->capabilities&0x400);
             Class_00438760 kind;
             if (!building && actionable) {
-                ((Class_004388d0*)order)->SetAttachedFx(0);
+                ((Order*)order)->SetAttachedFx(0);
                 kind=order->target->order->kind;
                 // Target() and Position() on the base: keeps the two order->order loads from merging.
-                AppendOrder(unit,new Class_0043a1f0(kind,order->Target()->order->target,order->Target()->order->Position(),0,0,0));
+                AppendOrder(unit,new Order(kind,order->Target()->order->target,order->Target()->order->Position(),0,0,0));
                 order->flags=0; return 3;
             }
             if (building && other->target) {
-                ((Class_004388d0*)order)->SetAttachedFx(0);
+                ((Order*)order)->SetAttachedFx(0);
                 kind=Class_00438760("HelpBuild");
-                AppendOrder(unit,new Class_0043a1f0(kind,order->Target()->order->target,order->Target()->order->Position(),0,0,0));
+                AppendOrder(unit,new Order(kind,order->Target()->order->target,order->Target()->order->Position(),0,0,0));
                 order->flags=0; return 3;
             }
         }
 follow:
         Vec3 pos=order->target->pos+order->pos;
-        ((Class_00438930*)order)->AttachApproachRadiusGoal(&pos,order->radius/2);
-        ((Class_00439e80*)order)->SetDeadlineTicks(30);
+        ((Order*)order)->AttachApproachRadiusGoal(&pos,order->radius/2);
+        ((Order*)order)->SetDeadlineTicks(30);
         order->flags|=0x18;
         return 2;
     }

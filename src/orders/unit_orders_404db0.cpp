@@ -27,14 +27,6 @@ public:
     Class_00438760(const char* name);
 };
 
-#pragma pack(push, 2)
-class Class_0043a1f0 {
-public:
-    char unknown_0[0x56];
-    Class_0043a1f0(Class_00438760 type, Unit* target, void* pos, int c, int d, int e);
-};
-#pragma pack(pop)
-
 class PathOrderAttach {
 public:
     Unit* owner;                       // +0x4
@@ -43,16 +35,6 @@ public:
 
     virtual ~PathOrderAttach();
     void SetUnit(Unit* o);
-};
-
-class Class_00438ad0 {
-public:
-    void AttachBuildFootprintMarker(Point16 cell, Point16 size);
-};
-
-class Class_00439e80 {
-public:
-    void SetDeadlineTicks(int ticks);
 };
 
 #include "../map/mission.h"
@@ -124,6 +106,21 @@ struct Order {
     char unknown_2e[0x36 - 0x2e];
     int unitType;                      // +0x36
     int time;                          // +0x3a
+    void AttachBuildFootprintMarker(Point16 cell, Point16 size);
+    void SetDeadlineTicks(int ticks);
+    Order(Class_00438760 type, Unit* target, void* pos, int c, int d, int e);
+    char unknown_3e[0x18];
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void ReattachFxToUnit();
+    void MergeFlagsFromTable(int k);
+    void AttachRingApproachGoal(Vec3* pos, int radius1, int radius2);
+    ~Order();
+    Order(Unit* unit, void* file, char* name);
+    void OrStatusFlags(unsigned int flags);
+    Unit* Target();
+    void Wait();
+    Vec3* Position();
+    int Advance(int distance);
 };
 
 struct Game {
@@ -171,7 +168,7 @@ void __stdcall RemoveFeature(void* target, int flag);
 int __stdcall BroadcastPacket(int player, void* data, int size);
 void __stdcall MarkSelectionOrdersDirty(Unit* unit);
 Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit* unit, Unit* target, int flags);
-void __stdcall AppendOrder(Unit* owner, Class_0043a1f0* node);
+void __stdcall AppendOrder(Unit* owner, Order* node);
 
 // Order handler "Resurrecting": raises the unit a wreck (feature) came from.
 // FUNCTION: 0x404db0
@@ -196,7 +193,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
     switch (order->state) {
     case 0:
         if (unit->motion && (unit->type->flags & 0x800)) {
-            ((Class_00438ad0*)order)->AttachBuildFootprintMarker(cell, size);
+            ((Order*)order)->AttachBuildFootprintMarker(cell, size);
             order->flags = 0xe0;
             return 1;
         }
@@ -245,7 +242,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
             box.hi.y += f->height << 16;
             EmitNanoParticles(&nano, &box, 6);
             unit->workTime = g_game->ticks + 300;
-            ((Class_00439e80*)order)->SetDeadlineTicks(1);
+            ((Order*)order)->SetDeadlineTicks(1);
             return 2;
         }
         break;
@@ -253,7 +250,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
         order->target.SetUnit(CreateUnit(unit->playerIndex, order->unitType, order->pos, 0, 1, 0));
         if (!order->target.owner) {
             QueueUnitSpeech(unit, 7, "Unable to create any more units");
-            ((Class_00439e80*)order)->SetDeadlineTicks(300);
+            ((Order*)order)->SetDeadlineTicks(300);
             return 2;
         }
         Cell* c = GetOriginCellAtPosition(&order->pos);
@@ -285,7 +282,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
         QueueUnitSpeech(unit, 8, "Resurrection complete");
         Class_00438760 kind = GetOrderType(8, unit, order->target.owner, 0);
         if (kind.index)
-            AppendOrder(unit, new Class_0043a1f0(kind, order->target.owner, 0, 0, 0, 0));
+            AppendOrder(unit, new Order(kind, order->target.owner, 0, 0, 0, 0));
         return 5;
     }
     default:

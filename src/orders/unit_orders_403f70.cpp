@@ -15,8 +15,7 @@ struct Vec3 {
 };
 struct Unit;
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
-class Class_00438ad0 { public: void AttachBuildFootprintMarker(Point, Point); };
-class Class_00439e80 { public: void SetDeadlineTicks(int); };
+
 class PathOrderAttach { public: void SetUnit(Unit*); };
 #pragma pack(push, 1)
 struct UnitDef {
@@ -48,6 +47,20 @@ struct Order {
     char pad1A[8]; Vec3 pos;
     char pad2E[8]; int type;
     int unused; int retries;
+    void AttachBuildFootprintMarker(Point, Point);
+    void SetDeadlineTicks(int);
+    void AttachRingApproachGoal(Vec3*, int, int);
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void ReattachFxToUnit();
+    void MergeFlagsFromTable(int k);
+    ~Order();
+    Order(Unit* unit, void* file, char* name);
+    int SerializeToSave(Unit* unit, void* file, char* name);
+    void OrStatusFlags(unsigned int flags);
+    Unit* Target();
+    void Wait();
+    Vec3* Position();
+    int Advance(int distance);
 };
 struct Game {
     char pad0[0x1439b]; UnitDef* defs;
@@ -69,7 +82,7 @@ int __stdcall WaitIfNotInBuildStance(Unit*, Order*, int);
 int __stdcall AddBuildProgress(Unit*, Unit*, float);
 void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
 void __stdcall EmitNanoParticles(Vec3*, Vec3*, int);
-class Class_00438a00 { public: void AttachRingApproachGoal(Vec3*, int, int); };
+
 // The original radius expression adds the second dimension twice rather than
 // squaring it: fld x; fld y; fld st(1); fmul st(2); fadd st(1); fadd st(1).
 // FUNCTION: 0x403f70
@@ -91,7 +104,7 @@ int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
         int radius = (int)(sqrt(x * x + y + y) * 16.0) / 2;
         unsigned int range = 0;
         range = unit->def->buildRange;
-        ((Class_00438a00*)order)->AttachRingApproachGoal(&target->pos, range + radius, radius);
+        ((Order*)order)->AttachRingApproachGoal(&target->pos, range + radius, radius);
         order->flags = 0xe8;
         return 1;
     }
@@ -120,7 +133,7 @@ int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
         }
         unit->timeout = g_game->tick + 300;
         if (order->target->progress != 0.0f) {
-            ((Class_00439e80*)order)->SetDeadlineTicks(1);
+            ((Order*)order)->SetDeadlineTicks(1);
             order->flags |= 0xa;
             return 2;
         }

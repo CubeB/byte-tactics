@@ -236,11 +236,11 @@ struct Owner_0040eb70 {
 };
 
 struct Unit {                          // 0x118 bytes
-    Owner_0040eb70* owner;             // +0x0
+    Owner_0040eb70* motion;            // +0x0
     char unknown_4[0x66 - 0x4];
     unsigned short heading;            // +0x66
     char unknown_68[0x76 - 0x68];
-    Point16 pos;                       // +0x76
+    Point16 cell;                      // +0x76
     char unknown_7a[0xa6 - 0x7a];
     short unitDefIndex;                    // +0xa6
     char unknown_a8[0x118 - 0xa8];
@@ -984,9 +984,9 @@ greedy:
 // FUNCTION: 0x40e630
 void Pathfinder::StartSearch(Target* t)
 {
-    owner = (MovementClass*)object->owner->owner;
+    owner = (MovementClass*)object->motion->owner;
     target = t;
-    start = object->pos;
+    start = object->cell;
     owner->RefreshMovedUnits(object);
     ResetTable();
     ClearDirtyCells();
@@ -1169,8 +1169,8 @@ void Pathfinder::RunSearches()
             else
                 (*c)++;
             Unit* u = cursor[player];
-            if (u->unitDefIndex != 0 && u->owner != 0 && u->owner->owner != 0) {
-                path = u->owner->planner->GetPath();
+            if (u->unitDefIndex != 0 && u->motion != 0 && u->motion->owner != 0) {
+                path = u->motion->planner->GetPath();
                 if (path != 0) {
                     object = u;
                     steps += 100;

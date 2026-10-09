@@ -14,6 +14,12 @@ type is the cast's, the access becomes `x->member` (`x.member`, `x->arr[i]`,
 carries: `(char*)x + 0x14b * i + 0x1f`, with the view's array of 0x14b-byte
 elements, becomes `x->arr[i].member`.
 
+A file built with /Gi (a `// FLAGS: /Gi` line) is read the same way: its views
+come from a /Z7 copy with the /Gi line stripped, compiled with the original
+file's directory on the include path so its relative includes still resolve.
+Only that copy is read, for the member offsets; the rewrite is always applied to
+the original file.
+
 What is left alone is counted, because the offset does not land on a member
 (padding, or a view that does not split the range), x is a `char*`/`void*` or
 a scalar with no view, or the access is not one offset from the operand

@@ -186,11 +186,16 @@ FILE_FLAGS = {"/Gi"}
 GAP_FILE_FLAGS = FILE_FLAGS | {"/Op", "/GX", "/Od", "/Gy"}
 
 
-def compile_source(src: Path, flags: str = DEFAULT_FLAGS, out_dir: str = "obj") -> tuple[Path | None, str]:
+def compile_source(src: Path, flags: str = DEFAULT_FLAGS, out_dir: str = "obj",
+                   includes: tuple[Path, ...] = ()) -> tuple[Path | None, str]:
     """Returns (object path, compiler output). Object path is None on failure.
 
     out_dir (under build/) keeps concurrent users, e.g. agents running check.py
     while progress.py re-verifies everything, from clobbering each other's objects.
+    includes are extra directories for `#include "..."`, searched before
+    include/. A source compiled from a copy away from its own directory (a
+    gametypes /Gi-stripped copy) passes its original directory here, so the
+    copy's relative includes resolve as the original's would.
     """
     text = src.read_text(errors="replace")
     gap = is_gap_source(src)
@@ -218,7 +223,8 @@ def compile_source(src: Path, flags: str = DEFAULT_FLAGS, out_dir: str = "obj") 
     # /Gi keeps its incremental state in vc50.idb beside the .pdb, by default
     # in the working directory: one per object, or parallel builds collide (C1033).
     fd = [f"/Fd{winpath(out.with_suffix('.pdb'))}"] if "/Gi" in flags.split() else []
-    cmd = [str(ROOT / "tools" / "wcl"), "/c", *flags.split(), *fd, f"/I{winpath(ROOT / 'include')}",
+    cmd = [str(ROOT / "tools" / "wcl"), "/c", *flags.split(), *fd,
+           *(f"/I{winpath(d)}" for d in (*includes, ROOT / "include")),
            f"/Fo{winpath(out)}", winpath(src.resolve())]
     proc = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)
     log = (proc.stdout + proc.stderr).replace("\r", "")

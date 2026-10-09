@@ -2233,13 +2233,18 @@ def compile_cached(src: Path, stem: str) -> Path | None:
     if stamp.exists() and stamp.read_text() == key and obj.exists():
         return obj
     text = src.read_text(errors="replace")
+    includes: tuple[Path, ...] = ()
     if re.search(r"^// FLAGS:", text, re.M):
-        # /Z7 cannot be combined with /Gi, which changes no layout: compile a copy without it.
+        # /Z7 cannot be combined with /Gi, which changes no layout: compile a
+        # copy without it. The copy is written under build/, away from the
+        # original's own directory, so its relative includes no longer resolve:
+        # keep that directory on the include path.
+        includes = (src.resolve().parent,)
         copy = CACHE / "nogi" / (stem + ".cpp")
         copy.parent.mkdir(parents=True, exist_ok=True)
         copy.write_text(re.sub(r"^// FLAGS:.*$", "", text, flags=re.M))
         src = copy
-    built, _ = compile_source(src, FLAGS, out_dir="typeshdr")
+    built, _ = compile_source(src, FLAGS, out_dir="typeshdr", includes=includes)
     if built:
         obj.parent.mkdir(parents=True, exist_ok=True)
         obj.write_bytes(built.read_bytes())

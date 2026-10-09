@@ -9,10 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 
-class PacketManager {
-public:
-    void SendAllQueued(int param_1);
-};
+#include "../network/packet_manager.h"
 
 #pragma pack(push, 1)
 // The network flags at +0x38d75. The bitfield overlay is not volatile (so the

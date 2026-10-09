@@ -14,12 +14,7 @@
 
 #include "../util/angles.h"
 
-// What GetGafSequenceFrame looks a frame up with: an index and the table it is in.
-struct Handle {
-    unsigned short index;
-    char unknown_2[6];
-    void* table;
-};
+#include "../graphics/handle.h"
 
 #pragma pack(push, 1)
 struct Feature {

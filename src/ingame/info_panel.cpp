@@ -230,11 +230,7 @@ struct Sub_004679a0_b {
     unsigned short* lightbar;          // +0x34
 };
 
-struct Handle {
-    unsigned short index;
-    char unknown_2[6];
-    void* table;
-};
+#include "../graphics/handle.h"
 
 struct Feature {
     char name[0x94];

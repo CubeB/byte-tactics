@@ -145,10 +145,10 @@ public:
     char ai_weight[0x40];              // +0x0be
     char ai_limit[0x40];               // +0x0fe
     unsigned int checksum;             // +0x13e
-    int field_142;                     // +0x142
+    int scriptChecksum;                // +0x142
     int weapons;                       // +0x146
     char unknown_14a[0x10];
-    int field_15a;                     // +0x15a
+    int maxThisUnit;                   // +0x15a
     char unknown_15e[0x28];
     float buildcostenergy;             // +0x186
     float buildcostmetal;              // +0x18a
@@ -335,7 +335,7 @@ int LoadUnitInfo()
                 u->flags1 &= ~0x800000;
                 bad = 1;
             }
-            u->field_15a = -1;
+            u->maxThisUnit = -1;
             HAPI_CloseFile(f);
             GameFreeThunk(buf);
         }

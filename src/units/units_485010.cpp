@@ -867,11 +867,11 @@ void __stdcall InitUnit(int unitType, Pos_00485a40 pos, int param_5, Unit* unit)
 // requested unit slot (or the first free one) from the player's unit list,
 // initialises it (InitUnit inlined) and registers it.
 
-class MissionConditions {
-public:
-    void NotifyUnitCreated(Unit* unit);
-    void NotifyUnitDied(Unit* unit);
-};
+#include "../game/mission_conditions.h"
+
+// Unused here: the symbol id this declaration takes keeps 0x4854a0 matching
+// after the header moved the file's symbol count (docs/c2-regalloc.md).
+void FreeUnitInfo();
 
 void __stdcall UpdateUnitHeight(Unit* unit);
 void __stdcall AddUnitToMap(Unit* unit);

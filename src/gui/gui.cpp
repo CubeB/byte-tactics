@@ -4243,22 +4243,7 @@ int IsFootprintVisible(int, int, int, int, int, int);
 int DrawProgressBar(int, int, int, int, int, int);
 int PickRandomReclaimableResourcesInRadius(int, int, int, int, int, int);
 int CreateUnit(int, int, int, int, int, int);
-struct Layer {                          // a screen on the stack
-    Layer* next;                        // +0x00
-    Gadget* entries;                    // +0x04
-    void (__stdcall* handler)(Gui*);    // +0x08
-    char unknown_0c[4];
-    unsigned int flags;                 // +0x10
-    int dirty;                          // +0x14
-    int keyboardInput;                  // +0x18
-    void (__stdcall* cb1c)();           // +0x1c
-    int current;                        // +0x20 (entry index, -1 for none)
-    void* surface;                      // +0x24
-    char text[0xe];                     // +0x28
-    char lastKey;                       // +0x36
-    char unknown_37[0x3b - 0x37];
-    void (__stdcall* cb3b)(Gui*);       // +0x3b
-};
+#include "layer.h"
 
 struct Language {
     char unknown_0[0xc];
@@ -6643,8 +6628,8 @@ int __stdcall UpdateMenu(Gui* menu)
             for (int n = 0; n < 0xe; n++)
                 menu->layer->text[n] = menu->layer->text[n + 1];
             menu->layer->lastKey = (char)toupper(key);
-            if (menu->layer->cb3b != 0)
-                menu->layer->cb3b(menu);
+            if (menu->layer->textHandler != 0)
+                menu->layer->textHandler(menu);
             menu->hotGadgetIndex = -1;
         }
     }

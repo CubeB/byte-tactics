@@ -72,12 +72,7 @@ struct FileRequester {
     void (__stdcall* callback)(void*);   // +0x244
 };
 
-struct Layer {
-    char unknown_0[4];
-    Gadget* entries;                 // +0x04
-    char unknown_8[4];
-    FileRequester* req;              // +0x0c
-};
+#include "layer.h"
 
 struct Gui {
     char unknown_0[0x18];
@@ -325,7 +320,7 @@ void __stdcall FileRequesterHandler(Gui* gadget)
     int n;
     // Declared after n: the operand order of the cwd[] accesses follows it.
     FileRequester* req;
-    req = gadget->layer->req;
+    req = (FileRequester*)gadget->layer->data;
     if (gadget->selected == -1) {
         ChangeDrive(req->save_drive);
         ChangeDirectory(req->save_cwd);

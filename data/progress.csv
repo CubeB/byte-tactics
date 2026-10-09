@@ -109,8 +109,8 @@ address,size,file,symbol,status,similarity
 0x408f30,546,src/ai/ai_player_408f30.cpp,?insert@?$vector@PAUUnit@@V?$allocator@PAUUnit@@@std@@@std@@QAEXPAPAUUnit@@IABQAU3@@Z,matched,100.0
 0x409160,783,src/ai/ai_player.cpp,??0PlayerAI@@QAE@E@Z,matched,100.0
 0x409470,176,src/ai/ai_player.cpp,?InitUnitTables@PlayerAI@@QAEXXZ,matched,100.0
-0x409520,166,src/ai/ai_player_409520.cpp,?RateWeapons@@YGHPAUUnitDef@@@Z,matched,100.0
-0x4095d0,346,src/ai/ai_player_4095d0.cpp,?RateUnitType@@YGHPAUUnitDef@@@Z,matched,100.0
+0x409520,166,src/ai/ai_player.cpp,?RateWeapons@@YGHPAUUnitDef@@@Z,matched,100.0
+0x4095d0,346,src/ai/ai_player.cpp,?RateUnitType@@YGHPAUUnitDef@@@Z,matched,100.0
 0x409730,1678,src/ai/ai_player_409730.cpp,?ComputeBaseWeights@PlayerAI@@QAEXXZ,matched,100.0
 0x409dc0,208,src/ai/ai_player.cpp,?ScaleUnitWeights@@YGXHPAIMH@Z,matched,100.0
 0x409e90,144,src/ai/ai_player.cpp,?SetUnitLimits@@YGXHPAIHH@Z,matched,100.0

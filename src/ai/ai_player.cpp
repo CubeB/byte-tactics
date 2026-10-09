@@ -1,8 +1,8 @@
 // Decompiled by Opus, GPT-6, Claude Opus 5.5, Sonnet, Haiku, GPT-6 Astra, deepseek-v4.1-flash, GPT-6.1-sol, mimo-v2.6-pro, space-bunny-free, deepseek-v4.1, Sonnet 5.5 and DeepSeek V4.1 Flash. Names are provisional.
 // The AI player translation unit, parts 1 and 2 joined in address order: the
 // plan, weight and limit console commands, the SquadManager and its SquadTimer
-// family, the reaction and weapon retarget helpers, the player AI object's
-// tables, placement helpers and the player dump.
+// family, the reaction and weapon retarget helpers, the type-table weapon
+// scores, the player AI object's tables, placement helpers and the player dump.
 //
 // Kept in files of their own, each matching only in its old file's compilation
 // context:
@@ -12,11 +12,12 @@
 //   0x407d40, 0x407e70, 0x407e90  ai_player_407d40.cpp, ai_player_407e70.cpp
 //     (the constructor's vtable stores need the plain and the derived view of
 //     SpatialTimer apart)
-//   0x408090  ai_player_408090.cpp
+//   0x408090  ai_player_408090.cpp (the joined file folds the cell index's
+//     width load into the imul, so the function is two bytes short)
 //   0x408100  ai_player_408100.cpp (its symbol count comes from ta_types.h)
-//   0x408620  ai_player_408620.cpp
+//   0x408620  ai_player_408620.cpp (in the joined file the definition's table
+//     access takes the opposite SIB base)
 //   0x408f30  ai_player_408f30.cpp (the vector::insert built with /Gi)
-//   0x409520, 0x4095d0  ai_player_409520.cpp, ai_player_4095d0.cpp
 //   0x409730  ai_player_409730.cpp (ComputeBaseWeights needs that file's
 //     cut-down <vector> and its small symbol count)
 //   0x40aa40  player_ai.cpp
@@ -500,7 +501,6 @@ void StepAllGafSequences(void);
 void ResetNetStats(void);
 void InitCommands(void);
 int UpdatePlacementGhostValidity(void);
-void RefreshSelectionOrders(void);
 
 // Unused here: these take the symbol ids of the removed argument-list view, which
 // keep GetBuildRating (0x40bb00) matching (docs/c2-regalloc.md).
@@ -1588,6 +1588,59 @@ void PlayerAI::InitUnitTables()
         values[i].unknown_0 = -1;
         locked[i].unknown_0 = 0;
     }
+}
+
+// The weapon-score helpers of the type table, no callers in the exe: both were
+// inlined into 0x409730's loop.
+#define MIN(a, b) (((a) > (b)) ? (b) : (a))
+
+// Sums a score over the three sub-objects at +0x1ee: each live sub-object
+// contributes its +0xdc value / 100 plus its +0xd4 value / 40 plus 5. The
+// seed is 1, or 0xb when bit 4 of the flags at +0x245 is set. The result is
+// clamped to [-100, 100].
+// FUNCTION: 0x409520
+int __stdcall RateWeapons(UnitDef* p)
+{
+    int result = 1;
+    if (p->flag4)
+        result = 0xb;
+    Sub_00409520** pp = p->arr;
+    for (int i = 3; i != 0; i--) {
+        Sub_00409520* s = *pp;
+        if (s->field_10a != 0)
+            result = result + s->field_d4 / 40 + s->field_dc / 100 + 5;
+        pp++;
+    }
+    if (MIN(result, 100) < -100)
+        return -100;
+    return MIN(result, 100);
+}
+
+// FUNCTION: 0x4095d0
+int __stdcall RateUnitType(UnitDef* p)
+{
+    int result = 1;
+    if (p->field_1ce != 0.0f)
+        result = 0xb;
+    if (p->field_22d != 0)
+        result += 10;
+    if (GetEnergyUse(p) < 0.0f)
+        result += 10;
+    result = (int)((int)(result - p->field_18a * -0.01f) - p->field_186 * -0.002f);
+    int extra = 1;
+    if (p->flag4)
+        extra = 0xb;
+    Sub_00409520** pp = p->arr;
+    for (int i = 3; i != 0; i--) {
+        Sub_00409520* s = *pp;
+        if (s->field_10a != 0)
+            extra = extra + s->field_d4 / 40 + s->field_dc / 100 + 5;
+        pp++;
+    }
+    result += (signed char)((MIN(extra, 100) < -100) ? -100 : MIN(extra, 100));
+    if (MIN(result, 100) < -100)
+        return -100;
+    return MIN(result, 100);
 }
 
 // Picks a build cell near a world position: every candidate in `list` (a

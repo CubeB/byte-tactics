@@ -45,3 +45,13 @@ reason is what stopped it. A module whose row list is empty is one file.
 | util/hpi | src/util/hpi_4be6c0.cpp | The module's hand-written `std::vector` keeps this insert out of line; the real `<vector>` would inline it. |
 | orders/vtol_orders | src/orders/vtol_orders_40f790.cpp | The two reference arguments take the other registers; it matches only with 79 more symbol ids before it (one count in 0 to 127), and those move 0x413d80 and 0x415250 off their windows. |
 | orders/vtol_orders | src/orders/vtol_orders_410c70.cpp | Merged, its owner load takes the other base and index at every count from 0 to 79 more ids, and its inlined vector code moves 0x413bc0 off its window. |
+| ai/ai_player | src/ai/ai_player_407d40.cpp | The constructor's vtable stores need the plain view of SpatialTimer apart from the module's virtual one. |
+| ai/ai_player | src/ai/ai_player_407e70.cpp | SpatialTimer's slot 0 and scalar deleting destructor need the derived view of SpatialTimer apart from the module's. |
+| ai/ai_player | src/ai/ai_player_408090.cpp | The joined file folds the cell index's width load into the imul, so the function is two bytes short. |
+| ai/ai_player | src/ai/ai_player_408100.cpp | Its symbol count comes from ta_types.h. |
+| ai/ai_player | src/ai/ai_player_408620.cpp | In the joined file its table access takes the opposite SIB base. |
+| ai/ai_player | src/ai/ai_player_408f30.cpp | The vector::insert is built with /Gi, which the merged file cannot carry. |
+| ai/ai_player | src/ai/ai_player_409730.cpp | ComputeBaseWeights needs that file's cut-down `<vector>` and its small symbol count. |
+| ai/ai_player | src/ai/ai_player_40b1c0.cpp | In the joined file the compiler encodes its table access as `[pointer + id]` instead of the original's `[id + pointer]`. |
+| ai/ai_player | src/ai/ai_player_40b530.cpp | Its `std::_Construct` hook, declared before `<vector>`, changes every `vector<Unit*>` copy in the file. |
+| ai/ai_player | src/ai/ai_player_40c530.cpp | The out-of-line vector members' register allocation follows the emissions in that file; in the joined file four fall out of their windows and splitting just those four out does not help. |

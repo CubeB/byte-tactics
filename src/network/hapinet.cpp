@@ -176,8 +176,8 @@ struct Net_4c97b0 {
 // The player data block HAPINET_addplayer passes to CreatePlayer.
 struct PlayerData_004ca6a0 {
     char name[17];                     // +0x00
-    short field_11;                    // +0x11
-    short field_13;                    // +0x13
+    short versionMajor;                // +0x11, the host rejects a joiner unless 0
+    short versionMinor;                // +0x13, the host rejects a joiner unless 0x50
 };
 #pragma pack(pop)
 
@@ -800,7 +800,7 @@ int __stdcall HAPINET_initmultiplay(Net_4c97b0* net, GUID_004c9920* sp, GUID_004
 
 // FUNCTION: 0x4ca6a0
 int __stdcall HAPINET_addplayer(Net_4c97b0* net, unsigned long* id, char* shortName, char* longName,
-                           char* name, short field_11, short field_13)
+                           char* name, short versionMajor, short versionMinor)
 {
     HapinetTrace((int)"HAPINET_addplayer\n");
     if (net->dp != 0) {
@@ -814,8 +814,8 @@ int __stdcall HAPINET_addplayer(Net_4c97b0* net, unsigned long* id, char* shortN
         PlayerData_004ca6a0 data;
         memset(&data, 0, sizeof(data));
         strncpy(data.name, name, 16);
-        data.field_11 = field_11;
-        data.field_13 = field_13;
+        data.versionMajor = versionMajor;
+        data.versionMinor = versionMinor;
         int hr = net->dp->CreatePlayer(id, &dpname, 0, &data, sizeof(data), 0);
         return hr == 0 ? 1 : 0;
     }

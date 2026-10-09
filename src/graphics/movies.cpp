@@ -11,10 +11,10 @@ struct Smk_0047c3a0 {
     unsigned int height;                // +0x8
     unsigned int frames;                // +0xc
     char unknown_10[0x68 - 0x10];
-    unsigned int field_68;              // +0x68, the palette changed
+    unsigned int newPalette;            // +0x68, the palette changed
     unsigned char rgb[256][3];          // +0x6c
     char unknown_36c[0x370 - 0x36c];
-    unsigned short field_370;           // +0x370
+    unsigned short palType;             // +0x370
     char unknown_372[0x374 - 0x372];
     int frameNum;                       // +0x374
     char unknown_378[0x380 - 0x378];
@@ -282,9 +282,9 @@ int MoviePlayer::SetupDirectDraw()
         }
         SetWindowPos(hwnd, 0, 0, 0, smack->width, smack->height, 2);
     }
-    if (smack->field_68) {
+    if (smack->newPalette) {
         Smk_0047bf70_b *smk = SmackBufferOpen(hwnd, 0, 0x280, 0x1e0, 0, 0);
-        SmackBufferNewPalette(smk, &smack->rgb[0][0], smack->field_370);
+        SmackBufferNewPalette(smk, &smack->rgb[0][0], smack->palType);
         SmackColorRemap(smack, &smk->palette, smk->paletteColors, smk->paletteType);
     }
     return 1;
@@ -380,7 +380,7 @@ void MoviePlayer::PlayFrame(HWND hwnd)
         return;
     if (stopped)
         return;
-    if (smack->field_68) {
+    if (smack->newPalette) {
         unsigned char* src = smack->rgb[0];
         for (int i = 0; i < 256; i++) {
             entries[i].peRed = *src++;

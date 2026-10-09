@@ -69,8 +69,8 @@ struct DirectDrawState {
     IDirectDrawSurface *back;    // +0x8c
     IDirectDrawClipper *clipper; // +0x90
     IDirectDrawPalette *palette; // +0x94
-    void *field_98;              // +0x98
-    int field_9c;                // +0x9c
+    void *activeSurface;         // +0x98
+    int haveBackBuffer;          // +0x9c
 };
 
 // The display context at g_display. Packed to 2: the mode struct and the two
@@ -514,7 +514,7 @@ int __stdcall SetFullScreen(int mode) {
     }
     d = g_display;
     DirectDrawState *dd = &d->draw;
-    dd->field_9c = 0;
+    dd->haveBackBuffer = 0;
     ReleaseDirectDraw(g_display);
 
     FreeGdi_004b5510(g_display, g_display->dc);
@@ -545,7 +545,7 @@ int __stdcall SetFullScreen(int mode) {
                         hr = dd->primary->GetAttachedSurface(&caps, &dd->back);
                         if (hr == DD_OK) {
 
-                            dd->field_9c = 1;
+                            dd->haveBackBuffer = 1;
                             hr = dd->ddraw->CreateClipper(0, &dd->clipper, NULL);
                             if (hr == DD_OK) {
                                 hr = dd->clipper->SetHWnd(0, d->hwnd);
@@ -561,9 +561,9 @@ int __stdcall SetFullScreen(int mode) {
                                                 goto fail;
                                         }
 
-                                        if (g_display->draw.field_98) {
+                                        if (g_display->draw.activeSurface) {
                                             LockScreen(&surf);
-                                            BlitSurface(&surf, g_display->draw.field_98, 0, 0);
+                                            BlitSurface(&surf, g_display->draw.activeSurface, 0, 0);
                                             UnlockScreen(&surf);
                                         }
                                     } else
@@ -666,7 +666,7 @@ int __stdcall InitEnvironment(App_4b5980* d)
     d->draw.back = 0;
     d->draw.clipper = 0;
     d->draw.palette = 0;
-    d->draw.field_98 = 0;
+    d->draw.activeSurface = 0;
     d->unknown_624 = 0;
     d->unknown_dc = 0;
     // Three plain bitfield statements, not one whole-word expression.

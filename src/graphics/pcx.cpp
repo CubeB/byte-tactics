@@ -248,9 +248,9 @@ struct Game_004caec0 {
     char unknown_44[0xbc - 0x44];
     Bitmap_004caec0* bitmap;           // +0xbc
     char unknown_c0[0x1c];
-    int field_dc;                      // +0xdc
+    int useOverrideSurface;            // +0xdc
     char unknown_e0[0x1b2 - 0xe0];
-    int field_1b2;                     // +0x1b2
+    int cursorFrame;                   // +0x1b2
     char unknown_1b6[0x214 - 0x1b6];
     PALETTEENTRY palette[256];         // +0x214
 };
@@ -400,7 +400,7 @@ int __stdcall SaveScreenshot(char* param_1, char* param_2)
         if (param_1[len - 1] != '\\')
             flag = 1;
     }
-    if (game->field_dc == 0)
+    if (game->useOverrideSurface == 0)
         return 0;
 
     const char* sep = flag ? g_pathSepBackslash : DAT_005119b8;
@@ -875,7 +875,7 @@ static inline void Unlock(LONG held)
 }
 
 // Takes the 'MAIN' spin lock (g_gfxBlitLockHeld, owner tag g_gfxBlitLockOwner, event
-// g_gfxBlitLockEvent), clears field_1b2 of the display object, pops the screen lock
+// g_gfxBlitLockEvent), clears cursorFrame of the display object, pops the screen lock
 // stack and releases the display, then restores the window to non-topmost.
 // FUNCTION: 0x4cbab0
 int __stdcall ExceptionFilter(int param_1, int param_2)
@@ -884,7 +884,7 @@ int __stdcall ExceptionFilter(int param_1, int param_2)
     Game_004caec0* app = GetDisplay();
     if (app != 0) {
         LONG held = Lock();
-        app->field_1b2 = 0;
+        app->cursorFrame = 0;
         UnlockAllScreens();
         Unlock(held);
         ReleaseDirectDraw(app);

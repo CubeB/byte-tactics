@@ -997,7 +997,7 @@ public:
 
 // The vector's own out-of-line size() (0x475840) under the name
 // data/symbols.csv gives that address.
-class Class_00475840 {
+class NanoParticleVector {
 public:
     int unknown_0;
     int field_4;
@@ -2400,7 +2400,7 @@ ReserveFn_004739b0 Access_00475770::fn = &Access_00475770::reserve;
 // The vector's own out-of-line size(): three words of a std::vector, the first
 // pointer at +0x4 and the second at +0x8.
 // FUNCTION: 0x475840
-int Class_00475840::GetCount()
+int NanoParticleVector::GetCount()
 {
     return field_4 == 0 ? 0 : (field_8 - field_4) / 48;
 }

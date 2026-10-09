@@ -388,12 +388,12 @@ class Class_0046e330;
 class Class_0046e3c0;
 struct Class_0046e450;
 struct Class_0046e4d0;
-struct Class_0046e5c0;
-class Class_0046e5e0;
-class Class_0046e610;
+struct SyncTaggedVector;
+class SyncTempTaggedVector;
+class SyncChecksumVector;
 class Class_0046e880;
 class Class_0046e9b0;
-struct Class_0046eaa0;
+struct SyncPlayerRecord;
 class Class_0046eba0;
 class Class_0046f720;
 class InsertResult;
@@ -460,7 +460,7 @@ class TimedSubParticles;
 class Class_004750f0;
 class Class_00475150;
 class Class_00475440;
-struct Class_00475840;
+struct NanoParticleVector;
 class Class_00475bd0;
 class Class_00476210;
 class Vec_00476490;
@@ -696,7 +696,7 @@ class Class_004c5470;
 class Class_004c54a0;
 class Class_004c54d0;
 class TranslationTable;
-class Class_004c5ba0;
+class TdfFieldVector;
 struct Class_004c5c60;
 struct Class_004c61f0;
 struct Class_004c6890;
@@ -10059,10 +10059,10 @@ struct Class_0046c620 {  // 0x4d4 bytes, 2 views
     char unknown_4d0[4];
 };
 
-class Class_0046e610 {  // 0x10 bytes, 4 views
+class SyncChecksumVector {  // 0x10 bytes, 4 views
 public:
     std::vector<int> vec;  // +0x0
-    ~Class_0046e610(void);
+    ~SyncChecksumVector(void);
 };
 
 struct Elem_0046faf0 {  // 0xe bytes, 12 views
@@ -10401,13 +10401,13 @@ struct Alloc_0046e5c0 {  // 0x1 bytes, 1 view
     char unknown_0[1];
 };
 
-struct Class_0046e5c0 {  // 0x10 bytes, 2 views
+struct SyncTaggedVector {  // 0x10 bytes, 2 views
     char field_0x0;  // +0x0
     char unknown_1[3];
     int field_0x4;  // +0x4
     int field_0x8;  // +0x8
     int field_0xc;  // +0xc
-    Class_0046e5c0* InitTaggedVector(char*);
+    SyncTaggedVector* InitTaggedVector(char*);
 };
 
 struct Data_0046dad0 {  // 0x95 bytes, 1 view
@@ -10427,8 +10427,8 @@ struct PlayerInfo_0046dad0 {  // 0x74 bytes, 1 view
 class Vec_0046d860 {  // 0x10 bytes, 1 view
 public:
     char unknown_0[16];
-    void InsertPlayerRecord(Class_0046eaa0*, unsigned int, Class_0046eaa0&);
-    void Push(Class_0046eaa0&);
+    void InsertPlayerRecord(SyncPlayerRecord*, unsigned int, SyncPlayerRecord&);
+    void Push(SyncPlayerRecord&);
 };
 
 struct Entry_0046e000 {  // 0x5c bytes, 1 view
@@ -10549,34 +10549,34 @@ struct Elem_0046e5e0 {  // 0x4 bytes, 1 view
     int value;  // +0x0
 };
 
-class Class_0046e5e0 {  // 0x10 bytes, 5 views
+class SyncTempTaggedVector {  // 0x10 bytes, 5 views
 public:
     std::vector<Elem_0046e5e0> vec;  // +0x0
-    Class_0046e5e0(Alloc_0046e5c0&);
-    ~Class_0046e5e0(void);
+    SyncTempTaggedVector(Alloc_0046e5c0&);
+    ~SyncTempTaggedVector(void);
     int FUN_00470270(void);
     Elem_004702a0* begin(void);
     Elem_004702a0* end(void);
     static void burn(int);
-    void assign_first(Class_0046e5e0*, Class_0046e5e0*);
-    void assign_second(Class_0046e5e0*, Class_0046e5e0*);
+    void assign_first(SyncTempTaggedVector*, SyncTempTaggedVector*);
+    void assign_second(SyncTempTaggedVector*, SyncTempTaggedVector*);
 };
 
-struct Class_0046eaa0 {  // 0x5c bytes, 5 views
+struct SyncPlayerRecord {  // 0x5c bytes, 5 views
     int field_0;  // +0x0
-    Class_0046e5e0 list_a;  // +0x4
-    Class_0046e5e0 list_b;  // +0x14
+    SyncTempTaggedVector list_a;  // +0x4
+    SyncTempTaggedVector list_b;  // +0x14
     int field_24;  // +0x24
     int field_28;  // +0x28
     int field_2c;  // +0x2c
     Class_00470560 sub;  // +0x30
-    Class_0046eaa0& operator=(Class_0046eaa0&);
+    SyncPlayerRecord& operator=(SyncPlayerRecord&);
 };
 
 class Class_0046d860 {  // 0x68 bytes, 9 views
 public:
     std::map<unsigned int, Rect> map;  // +0x0
-    std::vector<Class_0046eaa0> players;  // +0x10
+    std::vector<SyncPlayerRecord> players;  // +0x10
     std::list<unsigned int> queue;  // +0x20
     char unknown_2c[44];
     int direct;  // +0x58
@@ -10588,7 +10588,7 @@ public:
     void CheckUnitAvailable(unsigned int, int);
 };
 
-class UnitSyncPlayer : public Class_0046eaa0 {  // 0x5c bytes, 10 views
+class UnitSyncPlayer : public SyncPlayerRecord {  // 0x5c bytes, 10 views
 public:
     UnitSyncPlayer(UnitSyncPlayer&);
     ~UnitSyncPlayer(void);
@@ -11195,7 +11195,7 @@ public:
     void FUN_00473b50(Seg_00473b50*, Seg_00473b50*, int);
 };
 
-struct Class_00475840 {  // 0xc bytes, 2 views
+struct NanoParticleVector {  // 0xc bytes, 2 views
     int unknown_0;  // +0x0
     int field_4;  // +0x4
     int field_8;  // +0x8
@@ -17070,7 +17070,7 @@ public:
     TranslationTable(char);
 };
 
-class Class_004c5ba0 {  // 0x10 bytes, 3 views
+class TdfFieldVector {  // 0x10 bytes, 3 views
 public:
     char count;  // +0x0
     char unknown_1[3];

@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5. Names are provisional.
 // A method of UnitSync, whose other methods are in unit_sync.cpp.
-// Stays in its own file: its PacketSequencer holds Class_0046e610 members, so
+// Stays in its own file: its PacketSequencer holds SyncChecksumVector members, so
 // its element view cannot share unit_sync.cpp's PacketSequencer.
 #include <list>
 #include <map>
@@ -62,14 +62,14 @@ struct UnitSyncEntry {
 // destructors of vectors of 4 and 14 byte elements.
 struct Alloc_0046e5c0 {}; // the empty std::allocator temporary
 
-struct Class_0046e5c0 {
+struct SyncTaggedVector {
     char field_0x0;
     char unknown_1[3];
     int field_0x4;
     int field_0x8;
     int field_0xc;
 
-    Class_0046e5c0* InitTaggedVector(char* param_1) {
+    SyncTaggedVector* InitTaggedVector(char* param_1) {
         field_0x0 = *param_1;
         field_0x4 = 0;
         field_0x8 = 0;
@@ -78,23 +78,23 @@ struct Class_0046e5c0 {
     }
 };
 
-class Class_0046e5e0 : public Class_0046e5c0 {
+class SyncTempTaggedVector : public SyncTaggedVector {
   public:
-    Class_0046e5e0(const Alloc_0046e5c0& al = Alloc_0046e5c0()) {
+    SyncTempTaggedVector(const Alloc_0046e5c0& al = Alloc_0046e5c0()) {
         InitTaggedVector((char*)&al);
     }
-    ~Class_0046e5e0();
+    ~SyncTempTaggedVector();
 };
 
-class Wrap_0046e5e0 : public Class_0046e5e0 {
+class Wrap_0046e5e0 : public SyncTempTaggedVector {
   public:
-    Wrap_0046e5e0(const Alloc_0046e5c0& al = Alloc_0046e5c0()) : Class_0046e5e0(al) {}
+    Wrap_0046e5e0(const Alloc_0046e5c0& al = Alloc_0046e5c0()) : SyncTempTaggedVector(al) {}
 };
 
-class Class_0046e610 {
+class SyncChecksumVector {
   public:
     std::vector<int> vec;
-    ~Class_0046e610();
+    ~SyncChecksumVector();
 };
 
 int __cdecl GetLocalHumanDpid();
@@ -105,8 +105,8 @@ struct PacketSequencer { // 0x2c bytes, the entry's +0x30 member
     int lastSent;
     int cur;
     int max;
-    Class_0046e610 list_c; // +0xc
-    Class_0046e610 list_d; // +0x1c
+    SyncChecksumVector list_c; // +0xc
+    SyncChecksumVector list_d; // +0x1c
 
     PacketSequencer();
     void SendUnsequenced(unsigned int param_1, void* param_2);
@@ -116,16 +116,16 @@ struct PacketSequencer { // 0x2c bytes, the entry's +0x30 member
     }
 };
 
-struct Class_0046eaa0 {    // 0x5c bytes, one vector element
+struct SyncPlayerRecord {  // 0x5c bytes, one vector element
     int id;                // +0x0
-    Class_0046e5e0 list_a; // +0x4
+    SyncTempTaggedVector list_a; // +0x4
     Wrap_0046e5e0 list_b;  // +0x14
     int expected;          // +0x24
     int sent;              // +0x28
     int ackd;              // +0x2c
     PacketSequencer sub;   // +0x30
 
-    Class_0046eaa0& operator=(const Class_0046eaa0& src);
+    SyncPlayerRecord& operator=(const SyncPlayerRecord& src);
 };
 
 extern Game* g_game;
@@ -135,11 +135,11 @@ int __stdcall ComputeUnitScriptChecksum(UnitDef* def);
 
 // 0x46f7a0 has no name in the exe, so it is modelled as a method of a
 // vector subclass to keep the call out of line (it is the out-of-line
-// vector<Class_0046eaa0>::insert).
-class Vec_0046d860 : public std::vector<Class_0046eaa0> {
+// vector<SyncPlayerRecord>::insert).
+class Vec_0046d860 : public std::vector<SyncPlayerRecord> {
   public:
-    void InsertPlayerRecord(iterator where, size_type n, const Class_0046eaa0& x);
-    void Push(const Class_0046eaa0& x) { InsertPlayerRecord(end(), 1, x); }
+    void InsertPlayerRecord(iterator where, size_type n, const SyncPlayerRecord& x);
+    void Push(const SyncPlayerRecord& x) { InsertPlayerRecord(end(), 1, x); }
 };
 
 class UnitSync {
@@ -165,7 +165,7 @@ void UnitSync::ProcessSync() {
 
     if (direct != 0) {
         int changed = 0;
-        std::vector<Class_0046eaa0>::iterator it = players.begin();
+        std::vector<SyncPlayerRecord>::iterator it = players.begin();
         if (it != players.end()) {
             do {
                 int live = 0;
@@ -190,7 +190,7 @@ void UnitSync::ProcessSync() {
             PlayerInfo_0046dad0* p = &g_game->players[i];
             if (p->field_0 != 0 && p->type == 3 && p->data->kind == 1) {
                 int found = 0;
-                for (std::vector<Class_0046eaa0>::iterator j = players.begin(); j != players.end();
+                for (std::vector<SyncPlayerRecord>::iterator j = players.begin(); j != players.end();
                      ++j) {
                     if (j->id == p->field_4) {
                         found = 1;
@@ -198,7 +198,7 @@ void UnitSync::ProcessSync() {
                     }
                 }
                 if (found == 0) {
-                    Class_0046eaa0 entry;
+                    SyncPlayerRecord entry;
                     entry.id = p->field_4;
                     // expected/28/2c are zeroed by assignments after id.
                     entry.expected = 0;
@@ -207,7 +207,7 @@ void UnitSync::ProcessSync() {
                     // Push models the inlined push_back: the lea of this+0x10
                     // comes before the end() load.
                     players.Push(entry);
-                    Class_0046eaa0* e = &players.back();
+                    SyncPlayerRecord* e = &players.back();
                     if (disabled == 0) {
                         UnitSyncPacket packet;
                         packet.type = 0x1a;

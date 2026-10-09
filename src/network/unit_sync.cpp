@@ -18,7 +18,7 @@
 //   std::vector members, where UnitSync here holds the hand-written
 //   UnitSyncMap and element views.
 // - unit_sync_46dad0.cpp: ProcessSync needs UnitSync's player list as a
-//   vector of Class_0046eaa0 and the real std::map, which UnitSync here
+//   vector of SyncPlayerRecord and the real std::map, which UnitSync here
 //   spells as the hand-written views.
 // - unit_sync_46e640.cpp, unit_sync_46eba0.cpp and unit_sync_46f7a0.cpp: the
 //   out-of-line vector::insert instances are built with /Gi, which this file
@@ -563,10 +563,10 @@ public:
     ~UnitSyncPlayer();
 };
 
-class Class_0046e610 {
+class SyncChecksumVector {
 public:
     std::vector<int> vec;
-    ~Class_0046e610();
+    ~SyncChecksumVector();
 };
 
 int __cdecl GetLocalHumanDpid();
@@ -663,7 +663,7 @@ public:
     std::vector<UnitSyncPlayer> elems;             // +0x10
     std::list<int> ids;                            // +0x20
     Sub_0046d040 sub;                              // +0x2c
-    Class_0046e610 list_a;                         // +0x38
+    SyncChecksumVector list_a;                     // +0x38
     std::vector<int> list_b;                       // +0x48
     int direct;                                    // +0x58
     int pendingPlayerCount;                        // +0x5c
@@ -1331,18 +1331,18 @@ void UnitSync::SetUnitLimit(Unit_0046e330* unit, int value)
     }
 }
 
-struct Class_0046e5c0 {
+struct SyncTaggedVector {
     char field_0x0;
     char unknown_1[3];
     int field_0x4;
     int field_0x8;
     int field_0xc;
 
-    Class_0046e5c0* InitTaggedVector(char* param_1);
+    SyncTaggedVector* InitTaggedVector(char* param_1);
 };
 
 // FUNCTION: 0x46e5c0
-Class_0046e5c0* Class_0046e5c0::InitTaggedVector(char* param_1)
+SyncTaggedVector* SyncTaggedVector::InitTaggedVector(char* param_1)
 {
     field_0x0 = *param_1;
     field_0x4 = 0;
@@ -1359,15 +1359,15 @@ struct Elem_0046e5e0 {
     int value;                         // +0x0
 };
 
-class Class_0046e5e0 {
+class SyncTempTaggedVector {
 public:
     std::vector<Elem_0046e5e0> vec;
 
-    ~Class_0046e5e0();
+    ~SyncTempTaggedVector();
 };
 
 // FUNCTION: 0x46e5e0
-Class_0046e5e0::~Class_0046e5e0()
+SyncTempTaggedVector::~SyncTempTaggedVector()
 {
 }
 
@@ -1376,7 +1376,7 @@ Class_0046e5e0::~Class_0046e5e0()
 // The original calls this from 0x46c920 rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x46e610
-Class_0046e610::~Class_0046e610()
+SyncChecksumVector::~SyncChecksumVector()
 {
 }
 #pragma auto_inline(on)
@@ -1448,7 +1448,7 @@ UnitSyncIter UnitSyncMap::FindExact(const unsigned int& key)
 // protected ones (the rotations) cannot be reached by a member pointer.
 template class std::_Tree<unsigned int, std::pair<const unsigned int, UnitSyncEntry>, std::map<unsigned int, UnitSyncEntry>::_Kfn, std::less<unsigned int>, std::allocator<UnitSyncEntry> >;
 
-// --- vector<Class_0046eaa0>::_Destroy (0x46eaa0) -----------------------------
+// --- vector<SyncPlayerRecord>::_Destroy (0x46eaa0) -----------------------------
 
 void __stdcall NopChecksumEntryDtor(int);
 
@@ -1574,7 +1574,7 @@ public:
     }
 };
 
-struct Class_0046eaa0 {                // 0x5c bytes, one vector element
+struct SyncPlayerRecord {              // 0x5c bytes, one vector element
     int id;                            // +0x00
     std::vector<Elem_004702a0> list_a; // +0x04
     std::vector<Elem_004702a0> list_b; // +0x14
@@ -1583,21 +1583,21 @@ struct Class_0046eaa0 {                // 0x5c bytes, one vector element
     int ackd;                          // +0x2c
     PacketSequencer sub;               // +0x30
 
-    Class_0046eaa0& operator=(const Class_0046eaa0& src);
+    SyncPlayerRecord& operator=(const SyncPlayerRecord& src);
 };
 
-typedef std::vector<Class_0046eaa0> Vec_0046eaa0;
+typedef std::vector<SyncPlayerRecord> Vec_0046eaa0;
 typedef void (Vec_0046eaa0::*DestroyFn_0046eaa0)(Vec_0046eaa0::iterator, Vec_0046eaa0::iterator);
 
 struct Access_0046eaa0 : Vec_0046eaa0 {
     static DestroyFn_0046eaa0 fn;
 };
 
-// std::vector<Class_0046eaa0>::_Destroy(first, last) from MSVC 5's <vector>,
+// std::vector<SyncPlayerRecord>::_Destroy(first, last) from MSVC 5's <vector>,
 // called from the inlined erase at 0x46db82 (0x46dad0) with ecx set to the
 // vector. It runs each 0x5c-byte element's implicit destructor, which frees
 // the element's four std::vector members last-first.
-// FUNCTION: 0x46eaa0 ?_Destroy@?$vector@UClass_0046eaa0@@V?$allocator@UClass_0046eaa0@@@std@@@std@@IAEXPAUClass_0046eaa0@@0@Z
+// FUNCTION: 0x46eaa0 ?_Destroy@?$vector@USyncPlayerRecord@@V?$allocator@USyncPlayerRecord@@@std@@@std@@IAEXPAUSyncPlayerRecord@@0@Z
 DestroyFn_0046eaa0 Access_0046eaa0::fn = &Access_0046eaa0::_Destroy;
 
 // --- std::list<int> members (0x46eb60, 0x46fac0) -----------------------------
@@ -1752,7 +1752,7 @@ void __stdcall NopChecksumEntryDtor(int)
 {
 }
 
-// Class_0046eaa0::operator=. list_a and list_b are two vectors of 4-byte
+// SyncPlayerRecord::operator=. list_a and list_b are two vectors of 4-byte
 // elements, each with an out-of-line capacity() (0x470250) and size()
 // (0x470270) that both return the element count, i.e. a byte difference
 // shifted right by 2. The first list inlines its size() for the first
@@ -1761,7 +1761,7 @@ void __stdcall NopChecksumEntryDtor(int)
 // vector subclass as the member type changes how deep that inlines, so the
 // assign helpers are reached through casts.
 // FUNCTION: 0x470040
-Class_0046eaa0& Class_0046eaa0::operator=(const Class_0046eaa0& src)
+SyncPlayerRecord& SyncPlayerRecord::operator=(const SyncPlayerRecord& src)
 {
     id = src.id;
 

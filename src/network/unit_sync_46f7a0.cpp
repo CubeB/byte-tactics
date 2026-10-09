@@ -11,20 +11,20 @@
 #include <memory>
 #include <xutility>
 
-struct Class_0046eaa0 {
+struct SyncPlayerRecord {
 public:
     char unknown_0[0x5c];
-    Class_0046eaa0& operator=(const Class_0046eaa0& rhs);
+    SyncPlayerRecord& operator=(const SyncPlayerRecord& rhs);
 };
 
 // Must declare its copy constructor and operator=: the original calls both.
-class UnitSyncPlayer : public Class_0046eaa0 {
+class UnitSyncPlayer : public SyncPlayerRecord {
 public:
     UnitSyncPlayer(const UnitSyncPlayer& other);
     ~UnitSyncPlayer();
     UnitSyncPlayer& operator=(const UnitSyncPlayer& rhs)
     {
-        return (UnitSyncPlayer&)Class_0046eaa0::operator=(rhs);
+        return (UnitSyncPlayer&)SyncPlayerRecord::operator=(rhs);
     }
 };
 

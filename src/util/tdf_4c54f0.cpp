@@ -105,7 +105,7 @@ static inline TdfField MakeElem(const Class_004c91a0& a, const Class_004c91a0& b
 }
 
 // The vector of entries.
-class Class_004c5ba0 : public std::vector<TdfField> {
+class TdfFieldVector : public std::vector<TdfField> {
 public:
     iterator Insert(iterator p, const TdfField& x);
 
@@ -144,7 +144,7 @@ extern TranslationTable* g_translations;
 // the end of the return statement.
 static inline Class_004c93f0* InsertNew(TranslationTable* s, TdfField* e, const Class_004c91a0& key)
 {
-    return (Class_004c93f0*)&((Class_004c5ba0*)&s->v)->Insert(e, MakeElem(key, Class_004c9180()))->value;
+    return (Class_004c93f0*)&((TdfFieldVector*)&s->v)->Insert(e, MakeElem(key, Class_004c9180()))->value;
 }
 
 #include "tdf.h"
@@ -164,7 +164,7 @@ void __stdcall LoadTranslations(char* filename, char* section)
     // Global read once for the vector and once into old: separate registers.
     if (g_translations) {
         TranslationTable* old = g_translations;
-        ((Class_004c5ba0*)&g_translations->v)->DestroyAll();
+        ((TdfFieldVector*)&g_translations->v)->DestroyAll();
         ::operator delete(old);
     }
     g_translations = new TranslationTable(alloc);

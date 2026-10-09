@@ -71,7 +71,7 @@ UnitSyncPlayer::~UnitSyncPlayer()
 // That caller is rebuilt below, unannotated and only approximately (about
 // 63%), to emit this COMDAT. Its sibling 0x46c920 deletes the same object
 // one inline level shallower and calls ~UnitSyncPlayer instead.
-class Class_0046e610 {
+class SyncChecksumVector {
 public:
     std::vector<int> vec;
 };
@@ -84,7 +84,7 @@ public:
     int seqSent;                                   // +0x2c
     int seqCur;                                    // +0x30
     int seqMax;                                    // +0x34
-    Class_0046e610 list_a;                         // +0x38
+    SyncChecksumVector list_a;                     // +0x38
     std::vector<int> list_b;                       // +0x48
     int direct;                                    // +0x58
     int pendingPlayerCount;                        // +0x5c

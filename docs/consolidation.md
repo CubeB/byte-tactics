@@ -424,7 +424,7 @@ can disagree on types (a real link would fail). Known cases:
   `IURect_0046e160::IU?$pair::?$_Tree::erase,0x46f1e0` in
   `data/aliases.csv` (checked in #249: with it 0x46e890 matches and no other
   status changes), or overload-aware names in the checker.
-- The element of the vector erased in 0x46dad0 is `Class_0046eaa0`
+- The element of the vector erased in 0x46dad0 is `SyncPlayerRecord`
   (0x5c bytes, operator= 0x470040, `_Destroy` 0x46eaa0): an int, two
   `vector<Elem_004702a0>` (+0x4, +0x14), three dwords, and at +0x30 a
   struct `PacketSequencer` (its operator= is 0x470560) holding three dwords

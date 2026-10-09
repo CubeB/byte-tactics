@@ -61,7 +61,7 @@ namespace std {
 
 // The game's vector of entries. size() is also reached through the out-of-line
 // copy at 0x4c5ba0 for the last use below.
-class Class_004c5ba0 : public std::vector<TdfField> {
+class TdfFieldVector : public std::vector<TdfField> {
 public:
     int GetPairCount(void);
 
@@ -74,7 +74,7 @@ TdfField* __stdcall AssignPairRangeBack(TdfField* first, TdfField* last, TdfFiel
 
 // Own file: with the real <vector> (tdf_4c54f0.cpp) the helpers below are inlined into this insert.
 // FUNCTION: 0x4c59d0
-TdfField* Class_004c5ba0::Insert(iterator p, const TdfField& x)
+TdfField* TdfFieldVector::Insert(iterator p, const TdfField& x)
 {
     size_type off = (size_type)(p - begin());
 
@@ -118,7 +118,7 @@ TdfField* Class_004c5ba0::Insert(iterator p, const TdfField& x)
 // The original calls this from 0x4c59d0 rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4c5ba0
-int Class_004c5ba0::GetPairCount(void)
+int TdfFieldVector::GetPairCount(void)
 {
     if (_First == 0) {
         return 0;

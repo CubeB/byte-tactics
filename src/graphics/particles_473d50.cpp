@@ -59,7 +59,7 @@ struct NanoParticle {
 // The vector's own out-of-line size() (0x475840) under the name
 // data/symbols.csv gives that address. It is this vector's first pointer at
 // +0x04 and its second at +0x08, so the cast below is a no-op.
-class Class_00475840 {
+class NanoParticleVector {
 public:
     unsigned int GetCount() const;
 };
@@ -104,7 +104,7 @@ _BI2 copy_backward(_BI1 _F, _BI1 _L, _BI2 _X)
 // buffers are _First, _Last and _End, behind the empty allocator at +0x00.
 // It derives from the size() view, which is the same object, so the out-of-line
 // GetCount is reached without a cast (the empty base costs nothing).
-template <class _Ty, class _A = allocator<_Ty> > class vector : public Class_00475840 {
+template <class _Ty, class _A = allocator<_Ty> > class vector : public NanoParticleVector {
 public:
     typedef vector<_Ty, _A> _Myt;
     typedef _A allocator_type;

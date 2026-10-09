@@ -661,7 +661,7 @@ public:
 
 // The vector's own out-of-line size() (0x475840) under the name
 // data/symbols.csv gives that address.
-class Class_00475840 {
+class NanoParticleVector {
 public:
     int unknown_0;
     int field_4;

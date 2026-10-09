@@ -1653,7 +1653,7 @@ int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
         }
         if (n == 0) {
             length = capacity;
-            rc = g_receiveCondenser.ReceivePacket((char*)g_game + 0x14, buffer, &length);
+            rc = g_receiveCondenser.ReceivePacket((char*)&g_game->session[0], buffer, &length);
             // Plain while with no test of rc after it; each DPERR_NOMESSAGES exit is
             // its own `length = 0; return` block, not a shared goto label.
             while (rc != 0) {
@@ -1674,7 +1674,7 @@ int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
                     return (int)0x8007000e;
                 }
                 length = capacity;
-                rc = g_receiveCondenser.ReceivePacket((char*)g_game + 0x14, buffer, &length);
+                rc = g_receiveCondenser.ReceivePacket((char*)&g_game->session[0], buffer, &length);
             }
             // Always true here (the enclosing test), so MSVC emits no test; the error
             // block stays after B only as this if's else arm.

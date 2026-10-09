@@ -460,7 +460,7 @@ void Sound::CloseCdAudio()
 // FUNCTION: 0x4ce450
 int Sound::GetTrackCount()
 {
-    return *(int*)((char*)this + 0x200);
+    return trackCount;
 }
 
 // FUNCTION: 0x4ce460
@@ -505,7 +505,7 @@ void Sound::SetLockedTrack(int v)
 // FUNCTION: 0x4ce5a0
 int Sound::GetLockedTrack()
 {
-    return *(int*)((char*)this + 0x204);
+    return this->lockedTrack;
 }
 
 // FUNCTION: 0x4ce5b0
@@ -541,7 +541,7 @@ void __stdcall OnCdFadeTimer(void*)
 // FUNCTION: 0x4ce680
 int Sound::GetTrackCategory()
 {
-    return *(int*)((char*)this + 0x278);
+    return this->trackCategory;
 }
 
 // FUNCTION: 0x4ce690
@@ -591,13 +591,13 @@ int Sound::SetPlaybackOrder(int value)
 // FUNCTION: 0x4ce7c0
 void Sound::SetCategoryOfTrack(int index, unsigned char value)
 {
-    *(unsigned char*)((char*)this + 0x214 + index) = value;
+    arr_214[index] = value;
 }
 
 // FUNCTION: 0x4ce7e0
 unsigned char Sound::GetCategoryOfTrack(int param_1)
 {
-    return *(unsigned char*)((char*)this + param_1 + 0x214);
+    return arr_214[param_1];
 }
 
 // FUNCTION: 0x4ce7f0

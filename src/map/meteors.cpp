@@ -19,11 +19,8 @@ struct Game {
 };
 #pragma pack(pop)
 
-// The 0x115-byte weapon definition; flags is its low byte here.
-struct WeaponDef {
-    char unknown_0[0x111];
-    unsigned char flags;            // +0x111
-};
+// The 0x115-byte weapon definition, its flags read as a byte here.
+#include "../weapons/weapon_def.h"
 
 #include "../util/vec3.h"
 
@@ -102,7 +99,7 @@ void InitMeteors()
         g_meteorWeapon = (WeaponDef*)((char*)g_game + 0x2cf3);
         return;
     }
-    if (!(g_meteorWeapon->flags & 0x20))
+    if (!(g_meteorWeapon->flags.flags8 & 0x20))
         g_meteorWeapon = (WeaponDef*)((char*)g_game + 0x2cf3);
 }
 

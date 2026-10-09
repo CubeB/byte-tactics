@@ -69,11 +69,11 @@ struct Weapon {
     int field_e0;                     // +0xe0
 };
 
-struct UnitWeaponSlot {
-    Weapon* weapon;                   // +0x0
-    char unknown_4[0xf - 4];
-    unsigned char flags;              // +0xf
-    char unknown_10[0x1c - 0x10];
+struct UnitWeaponSlot {                // 0x1c bytes
+    char unknown_0[0xc];              // the aim target pair and the aim callback
+    Weapon* weapon;                   // +0xc
+    char unknown_10[0x1b - 0x10];
+    unsigned char flags;              // +0x1b
 };
 
 struct UnitType {
@@ -111,9 +111,8 @@ struct Player;
 
 struct Unit {
     int motion;                      // +0x0
-    char unknown_4[0x10 - 4];
-    UnitWeaponSlot slots[3];          // +0x10
-    char unknown_64[0x6a - 0x64];
+    UnitWeaponSlot weapons[3];        // +0x4, stride 0x1c
+    char unknown_58[0x6a - 0x58];
     Pos pos;                          // +0x6a
     char unknown_76[0x92 - 0x76];
     UnitType* def;                    // +0x92
@@ -355,8 +354,8 @@ void __stdcall DrawRangeCircle(void* surface, View* view, Pos* pos, int radius,
     }
 }
 
-// Suspected bug: the weapon3 test reads slots[0].flags (unit+0x1f) but the
-// range from slots[2].weapon (unit+0x48); slots[2].flags is at unit+0x57.
+// Suspected bug: the weapon3 test reads weapons[0].flags (unit+0x1f) but the
+// range from weapons[2].weapon (unit+0x48); weapons[2].flags is at unit+0x57.
 // FUNCTION: 0x4390a0
 void __stdcall DrawUnitRangeRings(void* surface, View* view, Order* order,
                             int unused1, int unused2)
@@ -430,18 +429,18 @@ void __stdcall DrawUnitRangeRings(void* surface, View* view, Order* order,
             color = g_game->color1;
         else
             color = g_game->field_dd7;
-        if ((unit->slots[0].flags & 2) && unit->slots[0].weapon->range != 0) {
-            DrawRangeCircle(surface, view, &order->unit->pos, unit->slots[0].weapon->range, color,
+        if ((unit->weapons[0].flags & 2) && unit->weapons[0].weapon->range != 0) {
+            DrawRangeCircle(surface, view, &order->unit->pos, unit->weapons[0].weapon->range, color,
                          "weapon1 range", 0);
         }
-        if ((unit->slots[1].flags & 2) && unit->slots[1].weapon->range != 0) {
-            DrawRangeCircle(surface, view, &order->unit->pos, unit->slots[1].weapon->range, color,
+        if ((unit->weapons[1].flags & 2) && unit->weapons[1].weapon->range != 0) {
+            DrawRangeCircle(surface, view, &order->unit->pos, unit->weapons[1].weapon->range, color,
                          "weapon2 range", 1);
         }
-        // Original bug: tests slots[0].flags (unit+0x1f) but reads slots[2].weapon
-        // (unit+0x48); slots[2].flags is at unit+0x57.
-        if ((unit->slots[0].flags & 2) && unit->slots[2].weapon->range != 0) {
-            DrawRangeCircle(surface, view, &order->unit->pos, unit->slots[2].weapon->range, color,
+        // Original bug: tests weapons[0].flags (unit+0x1f) but reads weapons[2].weapon
+        // (unit+0x48); weapons[2].flags is at unit+0x57.
+        if ((unit->weapons[0].flags & 2) && unit->weapons[2].weapon->range != 0) {
+            DrawRangeCircle(surface, view, &order->unit->pos, unit->weapons[2].weapon->range, color,
                          "weapon3 range", 2);
         }
     }
@@ -571,14 +570,14 @@ void __stdcall DrawWeaponCoverage(void* surface, View* view, Order* order,
         else
             color = g_game->field_dd7;
         for (int i = 0; i < 3; i++) {
-            if (u->slots[(unsigned char)i].flags & 2) {
-                if (u->slots[i].weapon->field_d6 != 0) {
+            if (u->weapons[(unsigned char)i].flags & 2) {
+                if (u->weapons[i].weapon->field_d6 != 0) {
                     sprintf(buf, "weapon %d - area of effect", i);
-                    DrawRangeCircle(surface, view, &pos, u->slots[i].weapon->field_d6, color, buf, 0);
+                    DrawRangeCircle(surface, view, &pos, u->weapons[i].weapon->field_d6, color, buf, 0);
                 }
-                if (u->slots[i].weapon->field_e0 != 0) {
+                if (u->weapons[i].weapon->field_e0 != 0) {
                     sprintf(buf, "weapon %d - coverage", i);
-                    DrawRangeCircle(surface, view, &pos, u->slots[i].weapon->field_e0, color, buf, 1);
+                    DrawRangeCircle(surface, view, &pos, u->weapons[i].weapon->field_e0, color, buf, 1);
                 }
             }
         }

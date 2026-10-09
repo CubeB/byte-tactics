@@ -12,8 +12,11 @@
 
 #include "../util/vec3.h"
 
-struct Rot16 {
-    short x, y, z;
+// A unit's or a spot's three angles (+0x64 of the unit).
+struct Angles {
+    short bank;
+    unsigned short heading;
+    short pitch;
 };
 
 // What GetGafSequenceFrame looks a frame up with: an index and the table it is in.
@@ -78,14 +81,14 @@ struct FeatureSpot {
             Vec3 vel;                  // +0x14
         };
     };
-    Rot16 rot;                         // +0x20
+    Angles rot;                        // +0x20
     char unknown_26[0x2f - 0x26];
     unsigned char spotFlags;           // +0x2f
 };
 
 struct Unit {
     char unknown_0[0x64];
-    Rot16 rot;                         // +0x64
+    Angles angles;                     // +0x64
     Vec3 pos;                          // +0x6a
     char unknown_76[0x9e - 0x76];
     ObjectState* state;                // +0x9e
@@ -161,7 +164,7 @@ void __stdcall BlitFeatureGaf(void* dest, Cell* cell, int ix, int iy)
             ObjectState* st = spot->state;
             unit->state = st;
             st->unit = unit;
-            unit->rot = spot->rot;
+            unit->angles = spot->rot;
             unit->pos = spot->pos;
             DrawUnit(dest, unit);
         }

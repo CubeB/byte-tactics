@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "../weapons/unit_weapon_slot.h"
+
 struct Item_00485940;
 
 #pragma pack(push, 1)
@@ -13,10 +15,10 @@ struct Vec3_00487bf0 {
     int x, y, z;
 };
 
-struct Tail_00488570 {
-    short f64;                         // +0x0
-    short f66;                         // +0x2
-    unsigned short b;                  // +0x4
+struct Angles_00488570 {
+    short bank;                        // +0x0
+    unsigned short heading;            // +0x2
+    short pitch;                       // +0x4
 };
 
 struct Player_00488310 {              // 0x14b bytes
@@ -36,17 +38,9 @@ struct Def_00488310 {
 
 struct Unit {
     int motion;                       // +0x0
-    char unknown_4[0x1e - 4];
-    unsigned char b1e;                 // +0x1e
-    unsigned char b1f;                 // +0x1f
-    char unknown_20[0x3a - 0x20];
-    unsigned char b3a;                 // +0x3a
-    unsigned char b3b;                 // +0x3b
-    char unknown_3c[0x56 - 0x3c];
-    unsigned char b56;                 // +0x56
-    unsigned char b57;                 // +0x57
+    UnitWeaponSlot weapons[3];         // +0x4, stride 0x1c
     char unknown_58[0x64 - 0x58];
-    Tail_00488570 tail;                // +0x64
+    Angles_00488570 angles;            // +0x64
     Vec3_00487bf0 pos;                 // +0x6a
     char unknown_76[0x92 - 0x76];
     Def_00488310* def;                 // +0x92
@@ -402,7 +396,7 @@ void __cdecl CreateMissionUnits()
             // The mask is 0xffffff80, not 0x80: keeps the byte zero-extension.
             u->flags = (u->flags & ~0x8000) | ((e->flags & 0xffffff80) << 8);
             u->health = (unsigned short)((unsigned)(u->def->f1fa * e->f1a) / 100);
-            u->tail.f66 = e->f18;
+            u->angles.heading = e->f18;
             units[i] = u;
         }
     }
@@ -430,7 +424,7 @@ struct OwnershipTransferPacket {       // 0x18 bytes
     int newOwnerNetId;                 // +0x3
     int buildPercent;                  // +0x7
     int hitPoints;                     // +0xb
-    Tail_00488570 tail;                // +0xf
+    Angles_00488570 angles;            // +0xf
     unsigned char stockpile0;          // +0x15
     unsigned char stockpile1;          // +0x16
     unsigned char stockpile2;          // +0x17
@@ -466,11 +460,11 @@ void __stdcall GiveUnitToPlayer(Unit* unit, Player_00488310* other, OwnershipTra
             pk.unitId = unit->id;
             pk.buildPercent = (int)unit->buildLeft;
             pk.hitPoints = unit->health;
-            pk.tail = unit->tail;
-            unsigned char a = unit->b1f & 2;
-            pk.stockpile0 = a ? unit->b1e : 0;
-            pk.stockpile1 = a ? unit->b3a : 0;
-            pk.stockpile2 = a ? unit->b56 : 0;
+            pk.angles = unit->angles;
+            unsigned char a = unit->weapons[0].flags & 2;
+            pk.stockpile0 = a ? unit->weapons[0].stockpile : 0;
+            pk.stockpile1 = a ? unit->weapons[1].stockpile : 0;
+            pk.stockpile2 = a ? unit->weapons[2].stockpile : 0;
             BroadcastPacket(unit->player->f4, &pk, 0x18);
             DamageUnit(0, unit, 30000, 4, 0);
             return;
@@ -488,23 +482,23 @@ void __stdcall GiveUnitToPlayer(Unit* unit, Player_00488310* other, OwnershipTra
     if (p) {
         n->health = (short)p->hitPoints;
         n->buildLeft = (float)p->buildPercent;
-        n->tail = p->tail;
-        if (n->b1f & 2)
-            n->b1e = p->stockpile0;
-        if (n->b3b & 2)
-            n->b3a = p->stockpile1;
-        if (n->b57 & 2)
-            n->b56 = p->stockpile2;
+        n->angles = p->angles;
+        if (n->weapons[0].flags & 2)
+            n->weapons[0].stockpile = p->stockpile0;
+        if (n->weapons[1].flags & 2)
+            n->weapons[1].stockpile = p->stockpile1;
+        if (n->weapons[2].flags & 2)
+            n->weapons[2].stockpile = p->stockpile2;
     } else {
         n->health = unit->health;
         n->speed_bits = unit->speed_bits;
-        n->tail = unit->tail;
-        if (n->b1f & 2)
-            n->b1e = unit->b1e;
-        if (n->b3b & 2)
-            n->b3a = unit->b3a;
-        if (n->b57 & 2)
-            n->b56 = unit->b56;
+        n->angles = unit->angles;
+        if (n->weapons[0].flags & 2)
+            n->weapons[0].stockpile = unit->weapons[0].stockpile;
+        if (n->weapons[1].flags & 2)
+            n->weapons[1].stockpile = unit->weapons[1].stockpile;
+        if (n->weapons[2].flags & 2)
+            n->weapons[2].stockpile = unit->weapons[2].stockpile;
         DamageUnit(0, unit, 30000, 4, 0);
     }
     n->SetStateBits(unit->activateFlags, 1);

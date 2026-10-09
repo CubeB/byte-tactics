@@ -101,7 +101,7 @@ union UnitFlags {
 
 struct Unit {                          // 0x118 bytes
     char unknown_0[0x64];
-    short angles[3];                   // +0x64, heading, aim and pitch
+    short angles[3];                   // +0x64, bank, heading and pitch
     Fixed pos_x;                       // +0x6a
     Fixed pos_y;                       // +0x6e
     Fixed pos_z;                       // +0x72

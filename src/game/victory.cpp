@@ -112,14 +112,8 @@ struct UnitList {
     }
 };
 
-struct PlayerInfo {                    // flags at +0x9b and +0x9d
-    char unknown_0[0x9b];
-    unsigned char flags_9b;            // +0x9b, bit 0x40 is tested
-    unsigned char unknown_9c;
-    unsigned char flags_9d;            // +0x9d, bit 2 is tested
-};
-
 #include "../network/player.h"
+#include "../network/player_info.h"
 
 // One side's SideDef record (0x232 bytes, Thaldren): the commander name at
 // +0x22 is what the victory conditions match against a unit type name.

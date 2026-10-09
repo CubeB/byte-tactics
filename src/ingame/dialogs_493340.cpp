@@ -118,21 +118,8 @@ struct Menu {
     int current;                       // +0x60
 };
 
-struct PlayerInfo {
-    char unknown_0[0x96];
-    unsigned char color;               // +0x96
-    char unknown_97[0x9b - 0x97];
-    union {
-        unsigned char gameFlags;       // +0x9b
-        struct {
-            unsigned short pad : 6;
-            unsigned short bit6 : 1;   // mask 0x40
-            unsigned short rest : 9;
-        };
-    };
-};
-
 #include "../network/player.h"
+#include "../network/player_info.h"
 
 struct Unit {
     char unknown_0[0x86];
@@ -464,7 +451,7 @@ void __stdcall HandleShareDialogEvent(Menu* obj)
             return;
         int pi = FindSlotByDpid(g_shareDialogPlayerNetIds[idx]);
         Player* p = &g_game->players[pi];
-        if (IsPlaying_4934b0(p) && !(p->info->gameFlags & 0x40) && IsCounted_4934b0(p)) {
+        if (IsPlaying_4934b0(p) && !(p->info->flags_9b & 0x40) && IsCounted_4934b0(p)) {
             TransferEnergy(g_game->localPlayer, pi,
                          (float)ReadSliderValue(FindGadgetChecked_D(data, "METAL")), 1);
             TransferMetal(g_game->localPlayer, pi,
@@ -1043,7 +1030,7 @@ void __stdcall DrawScorePanel(void* surface)
                 continue;
             if (p->unitCount == 0 && p->unitsCreated != 0)
                 continue;
-            if (p->info->gameFlags & 0x40)
+            if (p->info->flags_9b & 0x40)
                 continue;
             if (p->rank != i)
                 continue;
@@ -1091,7 +1078,7 @@ void __stdcall DrawScorePanel(void* surface)
                     continue;
                 if (q->unitCount == 0 && q->unitsCreated != 0)
                     continue;
-                if (q->info->gameFlags & 0x40)
+                if (q->info->flags_9b & 0x40)
                     continue;
                 if (q->rank > i)
                     q->rank--;

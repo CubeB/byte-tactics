@@ -94,15 +94,8 @@ struct Table {
     int difficulty;                    // +0x228
 };
 
-// The player's info object, the pointer at the player record's +0x27; not a
-// game unit. Same view as players_464290.cpp's PlayerInfo.
-struct PlayerInfo {
-    char unknown_0[0x95];
-    unsigned char side;                // +0x95, 1 for Core
-    unsigned char color;               // +0x96
-};
-
 #include "../network/player.h"
+#include "../network/player_info.h"
 
 struct Game {
     char unknown_0[0x519];

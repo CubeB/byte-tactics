@@ -11,15 +11,9 @@
 #include "../map/mission.h"
 
 #include "../network/player.h"
+#include "../network/player_info.h"
 
 #pragma pack(push, 1)
-struct PlayerInfo {
-    char unknown_0[0x9b];
-    unsigned short bits_9b_0 : 6;      // +0x9b, bits 0 to 5
-    unsigned short flag_9b_6 : 1;      // bit 6 (mask 0x40)
-    unsigned short bits_9b_7 : 9;
-};
-
 struct Stat_0041dc20 {                 // 0x3a bytes
     char name[30];                     // +0x00
     int kills;                         // +0x1e
@@ -84,7 +78,7 @@ void CollectEndGameStats()
     memset(stats, 0, sizeof g_game->stats);
     for (int i = 0; i < 10; i++) {
         Player* p = &g_game->players[i];
-        if ((p->active && (p->type == 1 || p->type == 2 || p->type == 3) && p->index != 10 && !p->info->flag_9b_6) || p->unitsCreated) {
+        if ((p->active && (p->type == 1 || p->type == 2 || p->type == 3) && p->index != 10 && !p->info->bit6) || p->unitsCreated) {
             if (p->rejectReason == 0) {
                 strncpy(stats[i].name, p->name, 30);
                 stats[i].kills = p->kills;

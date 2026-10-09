@@ -8,10 +8,7 @@
 #include "player.h"
 
 #pragma pack(push, 1)
-struct PlayerInfo {
-    char unknown_0[0x97];
-    unsigned char flags;               // +0x97
-};
+#include "player_info.h"
 
 struct Game {
     char unknown_0[0x1b63];
@@ -55,7 +52,7 @@ static inline int GetPlayerId_00450530(unsigned char i)
 static inline unsigned char FindPlayer_00450530()
 {
     for (unsigned char i = 0; i < 10; i++) {
-        if (g_game->players[i].type != 0 && (g_game->players[i].info->flags & 1))
+        if (g_game->players[i].type != 0 && (g_game->players[i].info->flags_97 & 1))
             return i;
     }
     return 10;
@@ -73,7 +70,7 @@ static inline int FindFrom_00450530()
 static inline int FindTo_00450530()
 {
     for (int j = 0; j < 10; j++) {
-        if (g_game->players[j].info->flags & 1)
+        if (g_game->players[j].info->flags_97 & 1)
             return GetSlotDpid(j);
     }
     return -1;
@@ -82,7 +79,7 @@ static inline int FindTo_00450530()
 static inline int FindToB_00450530()
 {
     for (int j = 0; j < 10; j++) {
-        if (g_game->players[j].info->flags & 1)
+        if (g_game->players[j].info->flags_97 & 1)
             return GetPlayerId_00450530(j);
     }
     return -1;

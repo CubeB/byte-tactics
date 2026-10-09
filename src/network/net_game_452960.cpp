@@ -14,10 +14,7 @@
 
 #pragma pack(push, 1)
 
-struct PlayerInfo {
-    char unknown_0[0x94];
-    unsigned char kind;                // +0x94
-};
+#include "player_info.h"
 
 struct AllyFlagsPacket {
     unsigned char type;                // +0x0

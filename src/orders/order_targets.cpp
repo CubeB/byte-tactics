@@ -55,6 +55,7 @@ public:
     int IsFxStyle();
     int ContainsCell(int, int);
     int ApproxDist(int, int);
+    void AddFlags(int param_1);
     void WriteBits(int);
     int KeepAfterComplete();
     void FillGoalCells(std::vector<Elem_0044ce90*>* list);
@@ -91,13 +92,15 @@ int GetCdPathMismatch();
 void CreateGameObject();
 void InitMissionStatus();
 void SetUpEndMissionScreen();
-
-struct Class_0044ced0 {
-    char unknown_0[4];
-    int field_4;
-
-    void AddFlags(int param_1);
-};
+void StartScreenFade();
+void StepScreenFade();
+void ScheduleFadeTick();
+int IsFadeDone();
+void StepPaletteFade();
+void FillEndGameStatistics();
+int AreStatBarsComplete();
+int ShouldShowNextMission();
+void OpenEndMissionScreen();
 
 // A view of the order base whose six virtual slots are named after the base's: ContainsUnit
 // (slot 4) is the function defined below, so its stand-in has the slot suffix.
@@ -1149,7 +1152,7 @@ int OrderFx::ApproxDist(int, int)
 // this out of line in the original; in one file MSVC would inline it.
 #pragma auto_inline(off)
 // FUNCTION: 0x44ced0
-void Class_0044ced0::AddFlags(int param_1)
+void OrderFx::AddFlags(int param_1)
 {
     int val = field_4;
     if (val != 0) {
@@ -2311,7 +2314,7 @@ int PathGoal::HasReadyWaypoints()
 void PathGoal::SetPathOrder(void* param)
 {
     if (field_4 != 0) {
-        ((Class_0044ced0*)field_4)->AddFlags(0x80);
+        ((OrderFx*)field_4)->AddFlags(0x80);
     }
     field_4 = (Base_00490a10*)param;
 }
@@ -2374,7 +2377,7 @@ void AiSearchGoal::SetWaypoints(Point_0044f080* src, int n)
 {
     if (n == 0) {
         if (field_4 && field_4->ContainsUnit(owner) == 0)
-            ((Class_0044ced0*)field_4)->AddFlags(0x40);
+            ((OrderFx*)field_4)->AddFlags(0x40);
         active = 0;
     } else {
         if (n >= 20)
@@ -2422,7 +2425,7 @@ void AiSearchGoal::TickTowardGoal()
 {
     if (field_4) {
         if (field_4->ContainsUnit(owner)) {
-            ((Class_0044ced0*)field_4)->AddFlags(0x20);
+            ((OrderFx*)field_4)->AddFlags(0x20);
             if (!field_4->KeepAfterComplete())
                 SetPathOrder(0);
         }
@@ -2478,7 +2481,7 @@ void AiSearchGoal::SetPathOrder(void* param)
 {
     g_game->pathfinder->AbortIfGoalMatch(this);
     if (field_4)
-        ((Class_0044ced0*)field_4)->AddFlags(0x80);
+        ((OrderFx*)field_4)->AddFlags(0x80);
     active = 0;
     field_4 = (Base_00490a10*)param;
     if (param == 0) {

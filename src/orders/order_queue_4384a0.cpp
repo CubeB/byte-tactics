@@ -122,9 +122,9 @@ public:
 };
 
 // The object at +0x52, deleted through its virtual destructor.
-class Attached_0043a1f0 {
+class OrderFx {
 public:
-    virtual ~Attached_0043a1f0();
+    virtual ~OrderFx();
     virtual int Slot1(Order* obj, File_0043a970* file, char* name);
     virtual int Slot2();
 };
@@ -133,7 +133,7 @@ class Slot_0043a1f0 {
 public:
     virtual void Slot0();
     virtual void Attach(void* obj);
-    Attached_0043a1f0* current;        // +0x4
+    OrderFx* current;                  // +0x4
 };
 
 int __stdcall OrderTypeNameLess(int param_1, char* param_2);
@@ -177,13 +177,13 @@ public:
 
 // The attachments the file constructor makes, by the kind of attachment.
 #pragma pack(push, 1)
-class Class_0044de80 : public Attached_0043a1f0 {
+class Class_0044de80 : public OrderFx {
 public:
     char pad[0x32];
     Class_0044de80(int owner, HapiBank* file, char* name);
 };
 
-class AirManeuverOrder : public Attached_0043a1f0 {
+class AirManeuverOrder : public OrderFx {
 public:
     char pad[0x28];
     AirManeuverOrder(int owner, HapiBank* file, char* name);
@@ -201,7 +201,7 @@ struct Point_00438ad0 {
     short y;
 };
 
-class ApproachRadius : public Attached_0043a1f0 {
+class ApproachRadius : public OrderFx {
 public:
     char pad[0x10];
     ApproachRadius(int owner, HapiBank* file, char* name);
@@ -215,7 +215,7 @@ public:
     int Serialize(int unused, HapiBank* file, char* name);
 };
 
-class RingApproach : public Attached_0043a1f0 {
+class RingApproach : public OrderFx {
 public:
     char pad[0x18];
     RingApproach(int owner, HapiBank* file, char* name);
@@ -227,7 +227,7 @@ public:
     int ContainsUnit(Unit* unit);
 };
 
-class PointMarker : public Attached_0043a1f0 {
+class PointMarker : public OrderFx {
 public:
     char pad[0x14];
     PointMarker(int owner, HapiBank* file, char* name);
@@ -276,7 +276,7 @@ public:
     unsigned int created;              // +0x46
     Order* next;                       // +0x4a
     int field_4e;                      // +0x4e
-    Attached_0043a1f0* attached;       // +0x52
+    OrderFx* attached;                 // +0x52
 
     // The real constructor is 0x43a0c0, in order_list.cpp: it needs
     // `kind(k)` as a plain member initialiser, which this class's second base
@@ -287,7 +287,7 @@ public:
     int SerializeToSave(Unit* punit, File_0043a970* file, char* name);
     void AnnounceStatusIfFlagged(char* text);
     void ReattachFxToUnit();
-    void SetAttachedFx(Attached_0043a1f0* obj);
+    void SetAttachedFx(OrderFx* obj);
     void AttachApproachRadiusGoal(int* p, int n);
     void AttachRingApproachGoal(Vec3_0043a1f0* pos, int radius1, int radius2);
     void AttachBuildFootprintMarker(Point_00438ad0 cell, Point_00438ad0 size);
@@ -486,7 +486,7 @@ void Order::ReattachFxToUnit()
 }
 
 // FUNCTION: 0x4388d0
-void Order::SetAttachedFx(Attached_0043a1f0* obj)
+void Order::SetAttachedFx(OrderFx* obj)
 {
     if (unit->owner) {
         if (attached) {

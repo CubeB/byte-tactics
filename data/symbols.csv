@@ -931,7 +931,7 @@ address,name
 0x44ce80,SerializeSave
 0x44ce90,OrderFx::FillGoalCells
 0x44cec0,OrderFx::ApproxDist
-0x44ced0,Class_0044ced0::AddFlags
+0x44ced0,OrderFx::AddFlags
 0x44cef0,OrderFx::KeepAfterComplete
 0x44cf00,Class_0044cf00::ContainsUnit
 0x44cf20,OrderFx::ContainsCell

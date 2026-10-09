@@ -1645,9 +1645,9 @@ struct Struct_004907e0 {               // the owner, the object at +0x8
 class AiSearchGoal;                    // slot 6's result
 
 // The object at +0x4. Only the offsets of the virtuals it is asked for matter.
-class Class_0044ced0 {
+class OrderFx {
 public:
-    virtual ~Class_0044ced0();
+    virtual ~OrderFx();
     virtual void vf1();
     virtual int GetType();                          // +0x08
     virtual void vf3();
@@ -1665,7 +1665,7 @@ public:
 // Vtable 0x4fd428, constructor 0x44ef20, ??_G 0x44ef60.
 class PathGoal {
 public:
-    Class_0044ced0* field_4;            // +0x4
+    OrderFx* field_4;                   // +0x4
     Struct_004907e0* owner;             // +0x8
 
     PathGoal(Struct_004907e0* p);
@@ -1847,7 +1847,7 @@ void LiteGoal::SerializeNetUnitState(BitWriter* stream)
 }
 
 #pragma pack(push, 2)
-class Class_0044e080 : public Class_0044ced0 {
+class Class_0044e080 : public OrderFx {
 public:
     char unknown_4[0x36 - 0x4];
     Class_0044e080(Struct_004907e0* owner, BitReader* reader);
@@ -1855,7 +1855,7 @@ public:
 
 struct Owner_0044e9c0;
 
-class AirManeuverOrder : public Class_0044ced0 {
+class AirManeuverOrder : public OrderFx {
 public:
     char unknown_4[0x2c - 0x4];
     AirManeuverOrder(Owner_0044e9c0* owner, BitReader* reader);

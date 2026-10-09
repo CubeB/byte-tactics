@@ -39,13 +39,7 @@ struct Anim_00478b40 {
     char unknown_2[6];
 };
 
-// One animation frame: size, then the blit offsets.
-struct GafFrame {
-    unsigned short width;              // +0x0
-    unsigned short height;             // +0x2
-    unsigned short xoffset;            // +0x4
-    unsigned short yoffset;            // +0x6
-};
+#include "../graphics/gaf_frame.h"
 
 struct Rect {
     int x1;
@@ -1280,8 +1274,8 @@ void __stdcall UpdateSolarSystem(Menu* arg1, Gadget* arg2)
         for (int k = 0; k <= n; k++) {
             GafFrame* fr =
                 (GafFrame*)GetGafFrame((unsigned short*)arg2->field_be, k % n);
-            fr->xoffset = 0;
-            fr->yoffset = 0;
+            fr->xOffset = 0;
+            fr->yOffset = 0;
             DrawFrame(surface, fr, x, y);
             x += fr->width;
             n = *(unsigned short*)arg2->field_be;
@@ -1292,8 +1286,8 @@ void __stdcall UpdateSolarSystem(Menu* arg1, Gadget* arg2)
         PlayerInfo* info =
             g_game->players[g_game->localPlayer].info;
         GafFrame* pf = (GafFrame*)GetGafFrame((unsigned short*)pan, info->side);
-        pf->yoffset = 0;
-        pf->xoffset = 0;
+        pf->yOffset = 0;
+        pf->xOffset = 0;
         DrawFrame(surface, pf, 0, 0);
     } else {
         MarkChanged(arg1);
@@ -1333,9 +1327,9 @@ void __stdcall UpdatePlanet(Menu* arg1, Gadget* arg2)
             if (frame == 0) {
                 return;
             }
-            frame->xoffset = 0;
+            frame->xOffset = 0;
             int px = arg2->x + arg2->w / 2 - frame->width / 2;
-            frame->yoffset = 0;
+            frame->yOffset = 0;
             int py = arg2->y + arg2->h / 2 - frame->height / 2;
             unsigned char colour =
                 ((unsigned char*)arg2->colours)[(int)arg1 + 0x8b2];

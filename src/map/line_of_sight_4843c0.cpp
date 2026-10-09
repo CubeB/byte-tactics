@@ -4,13 +4,13 @@
 
 #pragma pack(push, 1)
 
-struct Cell {
-    unsigned char lo;                  // +0x0
-    unsigned char hi;                  // +0x1
+struct FogEdge {                       // 2 bytes per viewport cell: the fog edge masks
+    unsigned char lo;                  // +0x0, edges of unexplored cells
+    unsigned char hi;                  // +0x1, edges of explored cells in no sight
 };
 
 struct Grid {
-    Cell* cells;                       // +0x0
+    FogEdge* cells;                    // +0x0
     unsigned int width;                // +0x4
     unsigned int height;               // +0x8
     int count;                         // +0xc

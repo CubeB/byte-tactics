@@ -1607,10 +1607,7 @@ struct UnitDefFlags_0048dfb0 {
 
 struct Struct_004907e0;
 
-class UnitMotion {
-public:
-    void SetFlightMode(Struct_004907e0* owner, int state);
-};
+#include "../orders/unit_motion.h"
 
 struct Target_00490880 {
     char unknown_0[0x2e];
@@ -1907,7 +1904,7 @@ void PackedPosGoal::DeserializeNetUnitState(BitReader* reader)
     else if (kind == 2)
         field_4 = new AirManeuverOrder((Owner_0044e9c0*)owner, reader);
     int state = reader->ReadBits(2);
-    owner->obj->SetFlightMode(owner, state);
+    owner->obj->SetFlightMode((Unit*)owner, state);
 }
 
 // FUNCTION: 0x490aa0

@@ -156,7 +156,7 @@ struct Mover {
 };
 
 // The player object at the unit's +0x96.
-struct Owner {
+struct PlayerView {
     char unknown_0[0x8c];
     float energy;                      // +0x8c
     float GetEnergy() { return energy; }
@@ -340,7 +340,7 @@ struct Unit {
     Unit* cargo;                       // +0x8a
     char unknown_8e[4];
     UnitDef* def;                      // +0x92
-    Owner* owner;                      // +0x96
+    PlayerView* owner;                 // +0x96
     CobScript* script;                 // +0x9a
     char unknown_9e[0xa6 - 0x9e];
     unsigned short category;           // +0xa6
@@ -411,8 +411,8 @@ class Class_0044e720 { public: void SetHeading(int); };
 class GroundAllyVisitor {
 public:
     virtual void CollectGroundAlly(Unit*);
-    GroundAllyVisitor(Owner* o, std::vector<Unit*>* u, Unit* s) : owner(o), units(u), self(s) {}
-    Owner* owner;
+    GroundAllyVisitor(PlayerView* o, std::vector<Unit*>* u, Unit* s) : owner(o), units(u), self(s) {}
+    PlayerView* owner;
     std::vector<Unit*>* units;
     Unit* self;
 };
@@ -422,8 +422,8 @@ public:
 class RepairableUnitVisitor {
 public:
     virtual void CollectRepairableUnit(Unit*);
-    RepairableUnitVisitor(Owner* o, std::vector<Unit*>* v, Unit* s) : owner(o), units(v), self(s) {}
-    Owner* owner;
+    RepairableUnitVisitor(PlayerView* o, std::vector<Unit*>* v, Unit* s) : owner(o), units(v), self(s) {}
+    PlayerView* owner;
     std::vector<Unit*>* units;
     Unit* self;
 };

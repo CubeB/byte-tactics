@@ -131,14 +131,14 @@ struct Node {
     NodeData data;                     // +0x4
 };
 
-struct Cell {
+struct PathCell {
     unsigned char flags;               // +0 bit 0 open, bit 2 goal, bit 3 visited
     unsigned char dir;                 // +1 the step taken into this cell
     unsigned short node;               // +2 index into the node pool
 };
 
 struct Grid {
-    Cell* cells;                       // +0x0
+    PathCell* cells;                    // +0x0
     unsigned int width;                // +0x4
     unsigned int height;               // +0x8
     int count;                         // +0xc
@@ -157,7 +157,7 @@ struct Grid {
     {
         return width * y + x;
     }
-    Cell* At(int x, int y)
+    PathCell* At(int x, int y)
     {
         return &cells[width * y + x];
     }
@@ -166,11 +166,11 @@ struct Grid {
         if (dirty[i]) {
             unsigned int bits = dirty[i];
             dirty[i] = 0;
-            Cell* p = &cells[i * 256];
+            PathCell* p = &cells[i * 256];
             while (bits) {
                 if (bits & 1) {
                     int c = i << 8;
-                    Cell* q = p;
+                    PathCell* q = p;
                     for (int k = 8; k; k--) {
                         if (!last || c < count)
                             q->flags = 0;
@@ -191,7 +191,7 @@ struct Grid {
         if (dirty[i]) {
             unsigned int bits = dirty[i];
             dirty[i] = 0;
-            Cell* p = cells;
+            PathCell* p = cells;
             int t = 0;
             if (t)
                 bits = 0;
@@ -199,7 +199,7 @@ struct Grid {
             while (bits) {
                 if (bits & 1) {
                     int c = i << 8;
-                    Cell* q = p;
+                    PathCell* q = p;
                     for (int k = 8; k; k--) {
                         if (c < count)
                             q->flags = 0;
@@ -521,7 +521,7 @@ public:
     {
         unsigned int i = grid.width * y + x;
         grid.dirty[i >> 8] |= 1 << ((i >> 3) & 0x1f);
-        Cell* c = &grid.cells[i];
+        PathCell* c = &grid.cells[i];
         c->dir = dir;
         return c->flags |= 8;
     }
@@ -567,7 +567,7 @@ public:
     __int64 Estimate(int param1, int param2);
     // Inlines the node pool's growth (0x40f110) that StartSearch calls out of
     // line.
-    void ExpandNeighbour(NodeData* from, Cell* fromCell, int turn);
+    void ExpandNeighbour(NodeData* from, PathCell* fromCell, int turn);
     int ExpandBestNode();
     void TracePath();
     int ProbeStraightPath();
@@ -729,7 +729,7 @@ __int64 Pathfinder::Estimate(int param1, int param2)
 // directions in [fromCell->dir - range, fromCell->dir + range], update the
 // neighbour cell's cost and push it or sift it up in the open heap.
 // FUNCTION: 0x40da70
-void Pathfinder::ExpandNeighbour(NodeData* from, Cell* fromCell, int turn)
+void Pathfinder::ExpandNeighbour(NodeData* from, PathCell* fromCell, int turn)
 {
     int dir = (fromCell->dir + turn) & 7;
     unsigned int x = from->pos.x + g_dirDeltaX[dir];
@@ -737,7 +737,7 @@ void Pathfinder::ExpandNeighbour(NodeData* from, Cell* fromCell, int turn)
     if (!grid.InBounds(x, y))
         return;
     unsigned int i = grid.width * y + x;
-    Cell* cell = &grid.cells[i];
+    PathCell* cell = &grid.cells[i];
     switch (cell->flags & 3) {
     case 0: {
         grid.dirty[i >> 8] |= 1 << ((i >> 3) & 0x1f);
@@ -800,7 +800,7 @@ int Pathfinder::ExpandBestNode()
         Pop();
     int y = local.pos.y;
     int i = grid.width * y + local.pos.x;
-    Cell* c = &grid.cells[i];
+    PathCell* c = &grid.cells[i];
     if (c->flags & 4) {
         found = local.pos;
         return 1;
@@ -827,7 +827,7 @@ void Pathfinder::TracePath()
 
     // Point::operator!= inline, not a plain `||`: sets the cur.x/cur.y load order.
     while (cur != start) {
-        Cell* c = grid.At(cur.x, cur.y);
+        PathCell* c = grid.At(cur.x, cur.y);
         // dir is read twice on purpose: keeps the cell address lea in the loop.
         if ((char)c->dir != dir) {
             dir = (char)c->dir;
@@ -1055,7 +1055,7 @@ Pathfinder::Pathfinder()
     grid.height = h;
     operator delete(grid.cells);
     grid.count = (h * w + 7) & ~7;
-    grid.cells = grid.count ? new Cell[grid.count] : 0;
+    grid.cells = grid.count ? new PathCell[grid.count] : 0;
 
     unsigned int m = (grid.count + 0xff) >> 8;
     unsigned int n = m * 4;
@@ -1174,7 +1174,7 @@ void Pathfinder::RunSearches()
                     topPopped = 1;
                 else
                     ((Pathfinder*)this)->RemoveNode(items[0] - pool);
-                Cell* cell = &grid.cells[grid.width * d.pos.y + d.pos.x];
+                PathCell* cell = &grid.cells[grid.width * d.pos.y + d.pos.x];
                 if (cell->flags & 4) {
                     found = d.pos;
                     ((Pathfinder*)this)->TracePath();

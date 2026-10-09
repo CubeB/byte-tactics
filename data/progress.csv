@@ -188,7 +188,7 @@ address,size,file,symbol,status,similarity
 0x40d900,191,src/ai/pathfind.cpp,?ClearDirtyCells@Pathfinder@@QAEXXZ,matched,100.0
 0x40d9c0,123,src/ai/pathfind.cpp,?DirectionFromStep@@YGHHH@Z,matched,100.0
 0x40da40,38,src/ai/pathfind.cpp,?Estimate@Pathfinder@@QAE_JHH@Z,matched,100.0
-0x40da70,1167,src/ai/pathfind.cpp,?ExpandNeighbour@Pathfinder@@QAEXPAUNodeData@@PAUCell@@H@Z,matched,100.0
+0x40da70,1167,src/ai/pathfind.cpp,?ExpandNeighbour@Pathfinder@@QAEXPAUNodeData@@PAUPathCell@@H@Z,matched,100.0
 0x40df00,330,src/ai/pathfind.cpp,?ExpandBestNode@Pathfinder@@QAEHXZ,matched,100.0
 0x40e050,270,src/ai/pathfind.cpp,?TracePath@Pathfinder@@QAEXXZ,matched,100.0
 0x40e160,1224,src/ai/pathfind.cpp,?ProbeStraightPath@Pathfinder@@QAEHXZ,matched,100.0
@@ -1658,7 +1658,7 @@ address,size,file,symbol,status,similarity
 0x47caf0,1,src/map/terrain.cpp,?FUN_0047caf0@@YGXXZ,matched,100.0
 0x47cb00,51,src/map/terrain.cpp,?UnlinkUnit@SpatialBucket@@QAEXPAUNode_0047cb00@@@Z,matched,100.0
 0x47cb40,19,src/map/terrain.cpp,?PrependUnit@SpatialBucket@@QAEXH@Z,matched,100.0
-0x47cb60,99,src/map/terrain.cpp,?SetOwner@@YGXPAUUnit@@PAUOwner@@@Z,matched,100.0
+0x47cb60,99,src/map/terrain.cpp,?SetOwner@@YGXPAUUnit@@PAUUnitBucket@@@Z,matched,100.0
 0x47cbd0,83,src/map/terrain.cpp,?ClearFootprintAndUnlink@@YGXPAUUnit@@@Z,matched,100.0
 0x47cc30,1199,src/map/terrain_47cc30.cpp,?AddUnitToMap@@YGXPAUObj_0047cc30@@@Z,matched,100.0
 0x47d0e0,505,src/map/terrain_47d0e0.cpp,?RemoveUnitFromMap@@YGXPAUObj_0047db20@@@Z,matched,100.0
@@ -1710,10 +1710,10 @@ address,size,file,symbol,status,similarity
 0x4800c0,60,src/sound/sound_47ed40.cpp,?EraseSwapBack@Class_004800c0@@QAEPAPAUUnit@@PAPAU2@@Z,matched,100.0
 0x480100,93,src/sound/sound_47ed40.cpp,?EraseByValue@IntDynArray@@QAEHH@Z,matched,100.0
 0x480160,42,src/sound/sound_47ed40.cpp,??0Squad@@QAE@HH@Z,matched,100.0
-0x480190,86,src/units/squads.cpp,?CreateSquads@@YGXPAUOwner@@@Z,matched,100.0
-0x4801f0,83,src/units/squads.cpp,?FreeSquads@@YGXPAUOwner@@@Z,matched,100.0
+0x480190,86,src/units/squads.cpp,?CreateSquads@@YGXPAUPlayerView@@@Z,matched,100.0
+0x4801f0,83,src/units/squads.cpp,?FreeSquads@@YGXPAUPlayerView@@@Z,matched,100.0
 0x480250,520,src/units/squads.cpp,?SetUnitSquad@@YGXPAUUnit@@H@Z,matched,100.0
-0x480460,120,src/units/squads.cpp,?OrderSquad@@YGXPAUOwner@@HEHPAUUnit@@HHH@Z,matched,100.0
+0x480460,120,src/units/squads.cpp,?OrderSquad@@YGXPAUPlayerView@@HEHPAUUnit@@HHH@Z,matched,100.0
 0x4804e0,40,src/units/unit_script_calls.cpp,?StepTowards@@YGHHHH@Z,matched,100.0
 0x480510,83,src/units/unit_script_calls.cpp,?StepPointTowards@@YG?AUPoint_00480510@@U1@0F@Z,matched,100.0
 0x480570,49,src/units/unit_script_calls.cpp,?ChebyshevDistance@@YGHUPoint_00480570@@0@Z,matched,100.0

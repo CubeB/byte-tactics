@@ -6,21 +6,16 @@ class Class_00438760 { public: unsigned char index; Class_00438760(const char*);
 
 #pragma pack(push, 1)
 #include "../units/unit_def.h"
-struct Owner {
-    char pad0[0x8c]; float energy;
-    char pad90[8]; float metal;
-    char pad9c[8]; float energyCapacity, metalCapacity;
-    char padac[0x108-0xac]; unsigned char allied[0x3e]; unsigned char index;
-};
-struct Unit { char pad0[0x6a]; Vec3 pos; char pad76[0x92-0x76]; UnitDef* def; Owner* owner; };
+#include "../network/player.h"
+struct Unit { char pad0[0x6a]; Vec3 pos; char pad76[0x92-0x76]; UnitDef* def; Player* owner; };
 #include "order.h"
 #pragma pack(pop)
 class DamagedAllyCollector {
 public:
-    Owner* owner;
+    Player* owner;
     std::vector<Unit*>* units;
     Unit* self;
-    DamagedAllyCollector(Owner* o, std::vector<Unit*>* v, Unit* s) : owner(o), units(v), self(s) {}
+    DamagedAllyCollector(Player* o, std::vector<Unit*>* v, Unit* s) : owner(o), units(v), self(s) {}
     virtual void CollectDamagedAlly(Unit*);
 };
 void __stdcall EnsurePatrolReturnOrder(Unit*, Order*);
@@ -61,8 +56,8 @@ int __stdcall RepairPatrolOrder(Unit* unit, Order* order, int flags)
                     }
                 }
             }
-            // Owner* local with `energy < 0.2 * capacity` in this operand order and `<`.
-            Owner* owner = unit->owner;
+            // Player* local with `energy < 0.2 * capacity` in this operand order and `<`.
+            Player* owner = unit->owner;
             if (unit->owner->energy < 0.2 * owner->energyCapacity ||
                 unit->owner->metal < unit->owner->metalCapacity * 0.2) {
                 Vec3 energyPos, metalPos;

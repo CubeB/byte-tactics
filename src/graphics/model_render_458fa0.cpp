@@ -28,7 +28,7 @@ struct PieceInfo_00458fa0 {
     char unknown_0[4];
     int vertexCount;                 // +0x4
     int faceCount;                   // +0x8
-    int field_c;                     // +0xc -1 skips the first face
+    int firstFace;               // +0xc -1 skips the first face
     char unknown_10[0x28 - 0x10];
     Face_00458fa0* faces;            // +0x28
 };
@@ -102,7 +102,7 @@ void CMemoryCache::DrawPieceEdges(GafFrame* view, Model_00458fa0* model, int col
                 }
                 // f is assigned in both arms, not set before the if.
                 Face_00458fa0* f;
-                if (info->field_c != -1) {
+                if (info->firstFace != -1) {
                     f = info->faces + 1;
                     faceno = 1;
                 } else {

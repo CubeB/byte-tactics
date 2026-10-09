@@ -159,7 +159,7 @@ struct Def_0046d040 {                   // 0x249 bytes, one unit type
     unsigned int key;                   // +0x13e
     int y;                              // +0x142
     char unknown_146[0x15a - 0x146];
-    int field_15a;                      // +0x15a
+    int limit;                          // +0x15a
     char unknown_15e[0x241 - 0x15e];
     union {
         unsigned int flags241;          // +0x241
@@ -342,7 +342,7 @@ struct Data_0046e0b0 {
 };
 
 struct Player_0046e0b0 {                // 0x14b bytes
-    int field_0;                         // +0x0
+    int active;                         // +0x0
     char unknown_4[0x27 - 0x4];
     Data_0046e0b0* data;                 // +0x27
     char unknown_2b[0x73 - 0x2b];
@@ -1159,11 +1159,11 @@ int UnitSync::AllPlayersSynced()
     for (; p != players.end(); p++) {
         Player_0046e0b0* pl = FindPlayerByDpid(p->id);
         if (pl != 0) {
-            // pl->field_0 is tested again in the second test: the original
+            // pl->active is tested again in the second test: the original
             // reloads it rather than reusing the first test's result.
-            if (pl->field_0 != 0 && pl->type == 3 && pl->data->kind == 2)
+            if (pl->active != 0 && pl->type == 3 && pl->data->kind == 2)
                 continue;
-            if (pl->field_0 != 0 && pl->type == 2)
+            if (pl->active != 0 && pl->type == 2)
                 continue;
             if (p->expected == 0)
                 return 0;
@@ -1188,8 +1188,8 @@ int UnitSync::IsPlayerSynced(int id)
     Player_0046e0b0* player;
     if (disabled != 0
         || (player = FindPlayerByDpid(id)) == 0
-        || (player->field_0 != 0 && player->type == 3 && player->data->kind == 2)
-        || (player->field_0 != 0 && player->type == 2))
+        || (player->active != 0 && player->type == 3 && player->data->kind == 2)
+        || (player->active != 0 && player->type == 2))
         return 1;
     for (std::vector<PlayerSync_0046e0b0>::iterator it = players.begin(); it != players.end(); ++it) {
         if (it->id != id)
@@ -1218,12 +1218,12 @@ void UnitSync::ApplyToUnitTypes()
         UnitSyncIter it = Find(&def->key);
         if (it == End()) {
             ProtectUnitDefsReadWrite();
-            def->field_15a = 0;
+            def->limit = 0;
             def->flags_241.flag_23 = 0;
         } else {
             ProtectUnitDefsReadWrite();
             def->flags_241.flag_23 = (it.ptr->value.w != 0 && it.ptr->value.h != 0);
-            def->field_15a = it.ptr->value.limit;
+            def->limit = it.ptr->value.limit;
         }
         ProtectUnitDefsReadOnly();
     }

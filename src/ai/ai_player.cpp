@@ -39,9 +39,9 @@
 class CommandArgs {
 public:
     char unknown_0[0xd0];
+    // The union stays for the match: its type ids set GetBuildRating (0x40bb00)'s registers.
     union {
         int count;                     // +0xd0
-        int field_d0;
     };
     char* GetArg(int index, char* fallback);
     float GetFloatArg(int index, float default_val);

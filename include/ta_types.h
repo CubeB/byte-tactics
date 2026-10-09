@@ -4493,7 +4493,7 @@ struct Grid {  // 0x10 bytes, 9 views
     unsigned char* cells;  // +0x0
     int width;  // +0x4
     int height;  // +0x8
-    int field_c;  // +0xc
+    int count;  // +0xc
     Grid(void);
 };
 
@@ -13008,7 +13008,7 @@ struct Point_0048c6a0 {  // 0x8 bytes, 3 views
 };
 
 struct Slot_0048cd80 {  // 0xa bytes, 1 view
-    unsigned short field_0;  // +0x0
+    unsigned short unitId;  // +0x0
     int x;  // +0x2
     int y;  // +0x6
 };
@@ -14241,7 +14241,7 @@ struct Angles_0049be60 {  // 0x6 bytes, 1 view
 
 struct Sprite_0049be60 {  // 0x34 bytes, 1 view
     char unknown_0[48];
-    void* field_30;  // +0x30
+    void* child;  // +0x30
 };
 
 struct Object_0049c920 {  // 0x4a bytes, 1 view

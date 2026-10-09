@@ -317,7 +317,7 @@ class PacketReceiver {
 public:
     PacketReceiver(void* o);
     virtual ~PacketReceiver();
-    int field_4;                       // +0x04
+    int unused;                        // +0x04
     void* owner;                       // +0x08
     int fromId;                        // +0x0c current frame's sender
     int toId;                          // +0x10
@@ -1470,7 +1470,7 @@ int NetPacketPendingEntry::GetData()
 // destructor 0x462cc0, destructor 0x462d30).
 // FUNCTION: 0x462c00
 PacketReceiver::PacketReceiver(void* o)
-    : field_4(0), owner(o), fromId(-1), toId(-1), savedFrameEntry(0), buffer(0), spare(0),
+    : unused(0), owner(o), fromId(-1), toId(-1), savedFrameEntry(0), buffer(0), spare(0),
       capacity(0), length(0), spareLength(0), spareFromId(-1), spareToId(-1)
 {
 }
@@ -2067,8 +2067,8 @@ struct Grid_00463be0 {
     void* cells;                       // +0x0
     int width;                         // +0x4
     int height;                        // +0x8
-    int field_c;                       // +0xc
-    Grid_00463be0() { width = 0; height = 0; field_c = 0; cells = 0; }
+    int count;                         // +0xc
+    Grid_00463be0() { width = 0; height = 0; count = 0; cells = 0; }
 };
 
 struct Player {

@@ -4,7 +4,7 @@
 
 class ParticleSystem {
 public:
-    int field_4;
+    int deadline;                      // the base class's +0x4: this view has no vtable pointer
 };
 
 typedef std::vector<ParticleSystem*> Vec_004732e0;

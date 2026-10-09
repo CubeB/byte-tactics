@@ -145,7 +145,7 @@ union Orders_37ebe {
 };
 
 struct Slot_0048cd80 {
-    unsigned short field_0;            // +0x0
+    unsigned short unitId;             // +0x0
     int x;                             // +0x2
     int y;                             // +0x6
 };
@@ -766,7 +766,7 @@ unsigned short __stdcall PickUnitUnderCursor(void)
             int d = dx * dx + dy * dy;
             if (d < 4 && d < best) {
                 best = d;
-                result = s->field_0;
+                result = s->unitId;
             }
             s++;
         }

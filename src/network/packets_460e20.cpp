@@ -101,7 +101,7 @@ public:
             p = buffer;
         operator delete(p);
     }
-    int field_4;                       // +0x04
+    int unused;                        // +0x04
     void* owner;                       // +0x08
     int fromId;                        // +0x0c
     int toId;                          // +0x10
@@ -117,7 +117,7 @@ public:
 
     // capacity stays in the initialiser list: the vtable store must come after it.
     PacketReceiver(void* o)
-        : field_4(0), owner(o), fromId(-1), toId(-1), savedFrameEntry(0), buffer(0), spare(0),
+        : unused(0), owner(o), fromId(-1), toId(-1), savedFrameEntry(0), buffer(0), spare(0),
           capacity(0), length(0), spareLength(0), spareFromId(-1), spareToId(-1)
     {
     }

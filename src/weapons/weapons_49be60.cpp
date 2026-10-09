@@ -64,7 +64,7 @@ struct Type_0049be60 {
 
 struct Sprite_0049be60 {
     char unknown_0[0x30];
-    void* field_30;                    // +0x30
+    void* child;                       // +0x30
 };
 
 struct Angles_0049be60 {
@@ -257,12 +257,12 @@ void __stdcall DrawProjectiles(void* surface)
                     rot.z += 0x8000;
                     DrawModel3doProjected(surface, &sp, type->field_74, &rot);
                     Sprite_0049be60* s = (Sprite_0049be60*)type->field_74;
-                    if (0 != s->field_30 && p->time > time) {
+                    if (0 != s->child && p->time > time) {
                         if (type->flag_21) {
                             rot.x = p->propellerSpin;
-                            DrawModel3doProjected(surface, &sp, s->field_30, &rot);
+                            DrawModel3doProjected(surface, &sp, s->child, &rot);
                         } else {
-                            DrawModel3doProjected(surface, &sp, s->field_30, &rot);
+                            DrawModel3doProjected(surface, &sp, s->child, &rot);
                         }
                     }
                 } else if (type->field_10c == 2) {

@@ -354,26 +354,7 @@ struct Group {                         // 0x20 bytes, one of a player's squads
 
 void __stdcall OrderSquad(Player*, int, unsigned char, int, Unit*, Vec3*, int, int);
 
-class SquadManager {                   // 0x3d bytes, one per player
-public:
-    Player* player;                    // +0x0
-    unsigned char field_4;             // +0x4
-    int countdown;                     // +0x5
-    int field_9;                       // +0x9
-    int nextAction;                    // +0xd
-    SquadTimer* timers[10];            // +0x11
-    Unit* cursor;                      // +0x39
-
-    SquadManager(Player* p);
-    void MarkOwnerNetDirtyFromDamageSplit(struct Obj_00406f50* obj, int a, int b);
-    void AssignSquads();
-    void RetargetWeapons(int force);
-    void TickIfActive();
-    void DeleteTimers();
-    Unit* FindNearestEnemyUnit(int x, int y, int z);
-    Unit* FindNearestEnemyUnit(Vec3 pos);
-    void TickTimers();
-};
+#include "squad_manager.h"
 
 struct Target_00406f50 {
     char unknown_0[0xbb];
@@ -509,7 +490,6 @@ void FindLocalCommander(void);
 void ClampCameraPosition(void);
 void ClampCameraTarget(void);
 void UpdateScreenShake(void);
-void UpdateCameraFollow(void);
 void BeginMouseScroll(void);
 
 class Class_00438760 {
@@ -1029,7 +1009,7 @@ Unit* SquadManager::FindNearestEnemyUnit(int x,int y,int z)
 //   BuildTimer  0x4fc9b0  0x4087e0     0x408810  0x4086d0
 // FUNCTION: 0x407350
 SquadTimer::SquadTimer(SquadManager* p, Group* q)
-    : owner(p), group(q), next(0), player(p->field_4)
+    : owner(p), group(q), next(0), player(p->index)
 {
 }
 
@@ -1496,7 +1476,7 @@ void SquadManager::TickIfActive()
 SquadManager::SquadManager(Player* p)
 {
     player = p;
-    field_4 = p->index;
+    index = p->index;
     field_9 = 0;
     countdown = 30;
     cursor = 0;

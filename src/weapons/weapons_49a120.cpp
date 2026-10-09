@@ -64,6 +64,7 @@ struct Weapon_0049a120 {
     unsigned short flags;              // +0x69
 };
 
+// Not ai/squad_manager.h: its declarations take more symbol ids than this view, and 0x49a120 matches only with this count.
 class SquadManager {
 public:
     void MarkOwnerNetDirtyFromDamageSplit(Weapon_0049a120* weapon, int enemyDamage, int friendlyDamage);

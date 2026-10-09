@@ -118,10 +118,7 @@ public:
     Class_00438760() : index(0) {}
 };
 
-struct SquadManager {                   // the owner (constructor 0x408cb0)
-    char unknown_0[4];
-    unsigned char field_4;              // +0x4
-};
+#include "squad_manager.h"
 
 // Vtable 0x4fc980, constructor 0x407350, ??_G 0x407390.
 class SquadTimer {

@@ -41,21 +41,23 @@ struct Surface_4589c0 {
 };
 
 struct Model_459200;
-struct Team_459200;
+struct UnitDef_459200;
 
+// The unit def's type flags at +0x241 (Thaldren's UnitTypeFlags): bit 25 is noshadow and
+// bit 30 is digger.
 #pragma pack(push, 1)
-union TeamFlags_459200 {
+union UnitTypeFlags_459200 {
     unsigned int word;
     struct {
         unsigned int hi : 30;
-        unsigned int b30 : 1;
+        unsigned int digger : 1;
         unsigned int lo : 1;
     } bits;
 };
 
-struct Team_459200 {
+struct UnitDef_459200 {
     char unknown_0[0x241];
-    TeamFlags_459200 flags;            // +0x241
+    UnitTypeFlags_459200 flags;        // +0x241
 };
 
 struct Unit_459200 {
@@ -66,17 +68,17 @@ struct Unit_459200 {
     char unknown_76[0x8a-0x76];
     Unit_459200* list_head;
     Unit_459200* list_next;
-    Team_459200* field_92;
+    UnitDef_459200* def;
     char unknown_96[8];
     Model_459200* sprites;
     char unknown_a2[4];
-    short field_a6;
+    short unitDefIndex;
     char unknown_a8[0xff-0xa8];
     unsigned char kind;
     char unknown_100[4];
     float intensity;
     char unknown_108[6];
-    unsigned char field_10e;
+    unsigned char activateFlags;
     char unknown_10f;
     int flags;
 };
@@ -183,17 +185,17 @@ void __stdcall DrawFrameDepth(GafFrame* bmp, GafFrame* param_2, int x, int y, in
 void __stdcall TintFrameBelow(GafFrame* param_1, int value);
 void __stdcall CutFrameBelow(GafFrame* param_1, int value);
 
-// team_bias (if/return) is used only in the b30 arm; other sites keep shade_bias.
-static inline int team_bias(Model_459200* model)
+// digger_bias (if/return) is used only in the digger arm; other sites keep shade_bias.
+static inline int digger_bias(Model_459200* model)
 {
-    if (model->owner->field_92->flags.bits.b30)
+    if (model->owner->def->flags.bits.digger)
         return 125;
     return 50;
 }
 
 static inline int shade_bias(Model_459200* model)
 {
-    bool c = ((model->owner->field_92->flags.word >> 30) & 1) != 0;
+    bool c = ((model->owner->def->flags.word >> 30) & 1) != 0;
     return c ? 125 : 50;
 }
 
@@ -202,9 +204,9 @@ static inline int shade_bias(Model_459200* model)
 // the merged model_render.cpp cannot place it at the symbol count its
 // registers need.
 //
-// BUG/ODDITY (kept as found): the far-sprite test is `field_a6 != 0 || dx >=
-//   seaLevel`, so the sprite is drawn when the unit is off the ground OR
-//   in view range, which reads as if it should be AND. Both halves have it.
+// BUG/ODDITY (kept as found): the far-sprite test is `unitDefIndex != 0 || dx >=
+//   seaLevel`, so the shadow is drawn for every unit whose def index is not
+//   0, whatever dx is, which reads as if it should be AND. Both halves have it.
 //   Also `v.v[1] = pos_y` is a plain copy where x and z are deltas.
 //
 // Must stay before MergeIntoComposite (0x4589c0): compiled after it, the sum in
@@ -213,7 +215,7 @@ static inline int shade_bias(Model_459200* model)
 void CMemoryCache::DrawObjectPicture(int param_2, Model_459200* model, Vec3_459200 v, int useColor)
 {
     GafFrame* bmp = model->bitmap;
-    TeamFlags_459200 f;
+    UnitTypeFlags_459200 f;
     if (bmp == 0)
         return;
 
@@ -233,11 +235,11 @@ void CMemoryCache::DrawObjectPicture(int param_2, Model_459200* model, Vec3_4592
     if (bmp->shade == 0) {
         GameFlags_459200 gameFlags = g_game->visualFlags;
         if (gameFlags.whole & 4) {
-            f = model->owner->field_92->flags;
+            f = model->owner->def->flags;
             if ((f.word & 0x2000000) == 0) {
                 if ((model->owner->flags & 0x20000000)
                     && (f.word & 0x40000000) == 0) {
-                    if (model->owner->field_a6 != 0 || dx >= g_game->seaLevel) {
+                    if (model->owner->unitDefIndex != 0 || dx >= g_game->seaLevel) {
                         if (model->field_14 == 0)
                             BuildShadow(model,bmp);
                         DrawFrameBlended(param_2, model->field_14, v.p.x.whole + 0x85, y);
@@ -256,7 +258,7 @@ void CMemoryCache::DrawObjectPicture(int param_2, Model_459200* model, Vec3_4592
             ((UnitTable*)this)->BuildObjectPicture(model, 0, 1);
             bmp = model->bitmap;
         }
-        if (!(model->owner->field_10e & 4) && g_game->debugMode == 0)
+        if (!(model->owner->activateFlags & 4) && g_game->debugMode == 0)
             DrawFrame((Surface*)param_2, bmp, v.p.x.whole + 0x80, z);
         else
             DrawFrameBlended(param_2, bmp, v.p.x.whole + 0x80, z);
@@ -285,15 +287,15 @@ void CMemoryCache::DrawObjectPicture(int param_2, Model_459200* model, Vec3_4592
     {
         GameFlags_459200 gameFlags = g_game->visualFlags;
         if (gameFlags.whole & 4) {
-            f = model->owner->field_92->flags;
+            f = model->owner->def->flags;
             if ((f.word & 0x2000000) == 0) {
-                if (f.bits.b30) {
+                if (f.bits.digger) {
                     MakeSilhouette(bmp);
-                    CutFrameBelow(this->bitmap, team_bias(model));
+                    CutFrameBelow(this->bitmap, digger_bias(model));
                     DrawFrameBlended(param_2, this->bitmap, v.p.x.whole + 0x85, y);
                 } else {
                     if (model->owner->flags & 0x20000000) {
-                        if (model->owner->field_a6 != 0 || dx >= g_game->seaLevel) {
+                        if (model->owner->unitDefIndex != 0 || dx >= g_game->seaLevel) {
                             if (model->field_14 == 0)
                                 BuildShadow(model,bmp);
                             DrawFrameBlended(param_2, model->field_14, v.p.x.whole + 0x85, y);
@@ -350,9 +352,9 @@ void CMemoryCache::DrawObjectPicture(int param_2, Model_459200* model, Vec3_4592
                 TintFrameBelow(this->bitmap, diff);
             }
         }
-        if (model->owner->field_92->flags.bits.b30)
+        if (model->owner->def->flags.bits.digger)
             CutFrameBelow(this->bitmap, 0x7d);
-        if (!(model->owner->field_10e & 4) && g_game->debugMode == 0)
+        if (!(model->owner->activateFlags & 4) && g_game->debugMode == 0)
             DrawFrame((Surface*)param_2, this->bitmap, v.p.x.whole + 0x80, z);
         else
             DrawFrameBlended(param_2, this->bitmap, v.p.x.whole + 0x80, z);

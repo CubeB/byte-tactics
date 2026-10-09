@@ -2017,7 +2017,7 @@ struct Target_0046d630;
 struct Target_004908c0;
 struct Target_0049e1a0;
 struct Target_439d20;
-union TeamFlags_459200;
+union UnitTypeFlags_459200;
 struct ShareLosAckPacket;
 struct Team_0048d9a0;
 struct Texture_00421700;
@@ -8442,7 +8442,7 @@ struct Ints_459200 {  // 0xc bytes, 1 view
     int z;  // +0x8
 };
 
-union TeamFlags_459200 {  // 0x4 bytes, 1 view
+union UnitTypeFlags_459200 {  // 0x4 bytes, 1 view
     union { unsigned int word; struct { unsigned int hi : 30; unsigned int b30 : 1; unsigned int lo : 1; } bits; };  // +0x0
 };
 

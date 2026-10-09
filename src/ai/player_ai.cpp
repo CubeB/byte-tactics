@@ -51,18 +51,9 @@ struct Unit { char pad[0x6a]; Vec3 pos; char pad76[0x92-0x76]; Def* def; Player*
 
 #include "../map/mission.h"
 
-struct Feature {
-    char unknown_0[0xf0];
-    float value;                       // +0xf0
-    char unknown_f4[0xfe - 0xf4];
-    unsigned short flags;              // +0xfe
-};
+#include "../map/feature.h"
 
-struct Cell {
-    char unknown_0[8];
-    unsigned short feature;            // +0x8
-    char unknown_a[0xd - 0xa];
-};
+#include "../map/cell.h"
 
 struct Game {
     char unknown_0[0x14233];

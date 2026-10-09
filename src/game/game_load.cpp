@@ -209,13 +209,7 @@ struct View_00498da0 {
     char unknown_8[0x18 - 0x8];
 };
 
-struct Cell {
-    char unknown_0[8];
-    unsigned short feature;             // +0x8
-    unsigned char offsetY;              // +0xa
-    unsigned char offsetX;              // +0xb
-    char unknown_c;
-};
+#include "../map/cell.h"
 
 // One view of the game state. The ranges two views name differently sit in
 // anonymous unions, so each function keeps the names it matched with.

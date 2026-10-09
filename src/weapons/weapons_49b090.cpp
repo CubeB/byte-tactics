@@ -5,7 +5,7 @@
 // dead flag and returns. Otherwise: (1) if the projectile is chasing another projectile (the
 // intercepted one), the 64-bit squared distance is checked against type->radius^2 and the
 // projectile is killed on contact; (2) proj->radius is set to
-// (cell->radius + cell->ground) / 2; (3) the two unit indices in the cell are
+// (cell->high + cell->low) / 2; (3) the two unit indices in the cell are
 // tested against proj->owner and the height window
 // [type->low + pos.y, type->high + pos.y]; (4) the map-feature id is resolved,
 // including the 0xfffe "read the neighbour cell" case, and if the feature is new
@@ -27,18 +27,7 @@
 #include "../util/vec3.h"
 
 // 13 bytes, the stride the cell arithmetic at +0x6e walks with `n * 13`.
-struct Cell {
-    unsigned short unit;              // +0x0
-    unsigned short unit2;             // +0x2
-    unsigned char height;             // +0x4
-    unsigned char radius;             // +0x5
-    unsigned char ground;             // +0x6
-    unsigned char metal;              // +0x7
-    unsigned short feature;           // +0x8
-    unsigned char offY;               // +0xa
-    unsigned char offX;               // +0xb
-    unsigned char unknown_c;          // +0xc
-};
+#include "../map/cell.h"
 
 // The feature records are an array of these, indexed as `features[f * 256]`.
 struct MapFeature_0049b090 {
@@ -181,7 +170,7 @@ void __stdcall CheckProjectileCollision(WeaponDef* type, Proj_0049b090* proj)
         if (d < r * r)
             DetonateProjectile(proj, 0);
     }
-    proj->radius = (cell->radius + cell->ground) / 2;
+    proj->radius = (cell->high + cell->low) / 2;
     if (cell->unit) {
         Unit* u = &g_game->units[cell->unit];
         if (u->playerIndex != proj->owner && proj->py.i < u->def->high + u->pos.y) {
@@ -216,7 +205,7 @@ void __stdcall CheckProjectileCollision(WeaponDef* type, Proj_0049b090* proj)
             mf = 0;
         } else {
             // This index spelling and `unsigned short f2` merge the feature tails.
-            int n = cell->offX + g_game->width * cell->offY;
+            int n = cell->offsetX + g_game->width * cell->offsetY;
             unsigned short f2 = (cell - n)->feature;
             if (f2 >= 0xfffb) {
                 mf = 0;
@@ -226,7 +215,7 @@ void __stdcall CheckProjectileCollision(WeaponDef* type, Proj_0049b090* proj)
         }
         if (mf) {
             // Positive direction (sum > hi, else mf = 0): sets the compare operand order.
-            if (mf->height + cell->ground > proj->py.s.hi) {
+            if (mf->height + cell->low > proj->py.s.hi) {
                 if (proj->cellX == cx && proj->cellZ == cz) {
                     mf = 0;
                 } else {
@@ -242,7 +231,7 @@ void __stdcall CheckProjectileCollision(WeaponDef* type, Proj_0049b090* proj)
             return;
         }
     }
-    if (cell->ground > proj->py.s.hi) {
+    if (cell->low > proj->py.s.hi) {
         if (type->flags.b.b15) {
             proj->velY = -(proj->velY >> 2);
             return;

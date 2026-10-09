@@ -60,18 +60,7 @@ struct Record_00440af0 {
 };
 
 // One terrain cell as 0x440500 reads it.
-struct Cell {
-    unsigned short unit;               // +0x0
-    char unknown_2[2];
-    unsigned char height;
-    unsigned char high;                // +0x5
-    unsigned char low;                 // +0x6
-    unsigned char metal;
-    unsigned short feature;            // +0x8
-    unsigned char spotY;               // +0xa
-    unsigned char spotX;               // +0xb
-    unsigned char flags;               // +0xc
-};
+#include "../map/cell.h"
 #pragma pack(pop)
 
 // The 32-byte entry: a movement class with its own 2-bit-per-cell passability

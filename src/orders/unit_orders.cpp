@@ -1167,18 +1167,7 @@ union Fixed {
 // Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
 int DrawWrappedText(char*, char*, int, int, int, int, int);
 
-struct Feature {
-    char name[0x94];                   // +0x0
-    Point16 footprint;                 // +0x94
-    char unknown_98[0xec - 0x98];
-    float metal;                       // +0xec
-    float energy;                      // +0xf0
-    char unknown_f4[0xfa - 0xf4];
-    unsigned char height;              // +0xfa
-    char unknown_fb[0xfe - 0xfb];
-    unsigned char flags;               // +0xfe
-    char unknown_ff[0x100 - 0xff];
-};
+#include "../map/feature.h"
 
 struct FeatureSpot {
     char unknown_0[0x20];
@@ -1186,12 +1175,7 @@ struct FeatureSpot {
     char unknown_26[0x30 - 0x26];
 };
 
-struct Cell {
-    char unknown_0[8];
-    unsigned short feature;            // +0x8
-    unsigned short spot;               // +0xa
-    char unknown_c;
-};
+#include "../map/cell.h"
 
 class Mission {
 public:

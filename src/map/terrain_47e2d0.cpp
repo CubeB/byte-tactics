@@ -18,24 +18,9 @@ struct Unit {
 
 #include "../units/unit_def.h"
 
-struct Feature {
-    char unknown_0[0xfe];
-    unsigned char flags;               // +0xfe
-    char unknown_ff;
-};
+#include "feature.h"
 
-struct Cell {
-    unsigned short unit;               // +0
-    unsigned short unit2;              // +2
-    unsigned char height;              // +4
-    unsigned char high;                // +5
-    unsigned char low;                 // +6
-    unsigned char metal;               // +7
-    unsigned short feature;            // +8
-    unsigned char spotY;               // +0xa
-    unsigned char spotX;               // +0xb
-    unsigned char flags;               // +0xc
-};
+#include "cell.h"
 
 struct Game {
     char unknown_0[0x14233];
@@ -109,7 +94,7 @@ int __stdcall CanPlaceFootprintAt(Unit* unit, Vec3* pos)
                 if (f != 0xfffe) {
                     occ = 1;
                 } else {
-                    unsigned short f2 = cell[-(cell->spotY * w + cell->spotX)].feature;
+                    unsigned short f2 = cell[-(cell->offsetY * w + cell->offsetX)].feature;
                     if (f2 >= 0xfffb)
                         occ = 0;
                     else

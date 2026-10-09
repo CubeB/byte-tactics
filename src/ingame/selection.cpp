@@ -222,11 +222,7 @@ UnitTypeSet* __stdcall GetCategoryMask(char* name);
 // apart: x1, y1, z1, x2, y2, z2. The screen box is (x + xOff - scrollX,
 // z + zOff - scrollY - (y + yOff) / 2), so the top corner pairs x1 with y2
 // and z1 and the bottom corner pairs x2 with y1 and z2.
-struct Cell {
-    char unknown_0[4];
-    unsigned char height;              // +0x4
-    char unknown_5[8];
-};
+#include "../map/cell.h"
 
 Cell* __stdcall GetMapCellAtPosition(Vec3* pos);
 int __stdcall IsUnitVisibleToPlayer(Player* player, Unit* unit);

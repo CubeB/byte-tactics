@@ -140,10 +140,7 @@ struct Game {
     Net_0049b720* net;                 // +0x391e9
 };
 
-struct Cell {
-    char unknown_0[5];
-    unsigned char height;              // +0x5
-};
+#include "../map/cell.h"
 
 #pragma pack(pop)
 
@@ -342,7 +339,7 @@ void UpdateProjectiles()
             }
             if (oldY > g_game->seaLevel && p->pos.yw.hi <= g_game->seaLevel) {
                 Cell* cell = GetMapCellAtPosition(&p->pos);
-                if (cell && cell->height < g_game->seaLevel && g_game->net->noSeaLevelTrigger == 0)
+                if (cell && cell->high < g_game->seaLevel && g_game->net->noSeaLevelTrigger == 0)
                     AddExplosionEffect(&p->pos, type->splash, 0, 1);
             }
         }

@@ -24,18 +24,7 @@ struct Unit;
 class Class_0044e6c0 { public: void SetAltitude(int); };
 
 #pragma pack(push, 1)
-struct Feature {
-    char unknown_0[0x94];
-    Point16 footprint;                 // +0x94
-    char unknown_98[0xec - 0x98];
-    float metal;                       // +0xec
-    float energy;                      // +0xf0
-    char unknown_f4[0xfa - 0xf4];
-    unsigned char height;              // +0xfa
-    char unknown_fb[0xfe - 0xfb];
-    unsigned char flags;               // +0xfe
-    char unknown_ff[0x100 - 0xff];
-};
+#include "../map/feature.h"
 
 #include "../units/unit_def.h"
 
@@ -156,7 +145,7 @@ int __stdcall VtolReclaimOrder(Unit* unit, Order* order, int flags)
     case 2:
         if (flags & 0x40)
             return 8;
-        order->time = (int)(30.0f - (f->energy + f->metal) * -0.5f);
+        order->time = (int)(30.0f - (f->value + f->metal) * -0.5f);
         QueueUnitSpeech(unit, 11, 0);
         return 1;
     case 3:
@@ -173,8 +162,8 @@ int __stdcall VtolReclaimOrder(Unit* unit, Order* order, int flags)
             box.lo.z = cell.z << 20;
             box.lo.y = GetGroundHeight(&box.lo) << 16;
             box.hi = box.lo;
-            box.hi.x += f->footprint.x << 20;
-            box.hi.z += f->footprint.z << 20;
+            box.hi.x += f->footprintX << 20;
+            box.hi.z += f->footprintZ << 20;
             box.hi.y += f->height << 16;
             EmitReverseNanoParticles(&box, &nano, 6);
             EmitReverseNanoParticles(&box, &nano, 6);

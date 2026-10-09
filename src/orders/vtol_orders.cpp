@@ -202,18 +202,7 @@ struct UnitDef {
     unsigned int flags2;               // +0x245
 };
 
-struct Feature {
-    char unknown_0[0x94];
-    Point16 footprint;                 // +0x94
-    char unknown_98[0xec - 0x98];
-    float metal;                       // +0xec
-    float energy;                      // +0xf0
-    char unknown_f4[0xfa - 0xf4];
-    unsigned char height;              // +0xfa
-    char unknown_fb[0xfe - 0xfb];
-    unsigned char flags;               // +0xfe
-    char unknown_ff[0x100 - 0xff];
-};
+#include "../map/feature.h"
 
 struct Struct_Game391e9 {
     char unknown_0[0xd3c];

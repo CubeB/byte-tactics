@@ -525,11 +525,7 @@ struct Feature {
     unsigned short flags;              // +0xfe
 };
 
-struct Cell {
-    char unknown_0[8];
-    unsigned short feature;            // +0x8
-    char unknown_a[0xd - 0xa];
-};
+#include "../map/cell.h"
 
 class Mission {
 public:

@@ -26,12 +26,7 @@ struct UnitRec_0047cc30 {               // 0x118 bytes
     char unknown_114[0x118 - 0x114];
 };
 
-struct Cell {
-    unsigned short unit;                // +0x0
-    unsigned short unit2;               // +0x2
-    char unknown_4[0xc - 0x4];
-    unsigned char flags;                // +0xc
-};
+#include "cell.h"
 
 struct Point_0047cc30 {
     short x;

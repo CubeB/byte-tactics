@@ -40,15 +40,7 @@ public:
 #include "../map/mission.h"
 
 #pragma pack(push, 1)
-struct Feature {
-    char name[0x94];                   // +0x0
-    Point16 footprint;                 // +0x94
-    char unknown_98[0xfa - 0x98];
-    unsigned char height;              // +0xfa
-    char unknown_fb[0xfe - 0xfb];
-    unsigned char flags;               // +0xfe
-    char unknown_ff[0x100 - 0xff];
-};
+#include "../map/feature.h"
 
 struct FeatureSpot {
     char unknown_0[0x20];
@@ -237,8 +229,8 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
             box.lo.z = cell.z << 20;
             box.lo.y = GetGroundHeight(&box.lo) << 16;
             box.hi = box.lo;
-            box.hi.x += f->footprint.x << 20;
-            box.hi.z += f->footprint.z << 20;
+            box.hi.x += f->footprintX << 20;
+            box.hi.z += f->footprintZ << 20;
             box.hi.y += f->height << 16;
             EmitNanoParticles(&nano, &box, 6);
             unit->workTime = g_game->ticks + 300;

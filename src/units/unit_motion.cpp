@@ -14,10 +14,7 @@ public:
                      int param_5, int param_6, int param_7, int param_8);
 };
 
-struct Cell {
-    char unknown_0[7];
-    unsigned char metal;               // +0x7
-};
+#include "../map/cell.h"
 
 struct Point16_437840 {
     short x;

@@ -2,11 +2,7 @@
 // Bilinear terrain height at a 12.4 fixed point position (x in the high word at
 // +2, z at +10), or -1 outside the map.
 #pragma pack(push, 1)
-struct Cell {
-    char unknown_0[0x4];
-    unsigned char height;              // +0x4
-    char unknown_5[0xd - 0x5];
-};
+#include "../map/cell.h"
 
 struct Game {
     char unknown_0[0x14233];

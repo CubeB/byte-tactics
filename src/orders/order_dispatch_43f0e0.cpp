@@ -112,13 +112,7 @@ struct Pos_0043e490 {
     short zf, z;
 };
 
-struct Cell {
-    char unknown_0[8];
-    unsigned short feature; // +0x8
-    unsigned char offsetY;  // +0xa
-    unsigned char offsetX;  // +0xb
-    unsigned char flags;    // +0xc
-};
+#include "../map/cell.h"
 class Class_00438760 {
   public:
     unsigned char index;

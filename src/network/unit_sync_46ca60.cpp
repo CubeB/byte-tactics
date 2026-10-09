@@ -124,9 +124,9 @@ public:
     std::map<unsigned int, UnitSyncEntry> rects;
     VecElems_0046ca60 elems;
     std::list<int> ids;
-    int field_2c;
-    int field_30;
-    int field_34;
+    int seqSent;
+    int seqCur;
+    int seqMax;
     std::vector<Elem_0046faf0> list_a;
     std::vector<Elem_0046faf0> list_b;
     int direct;

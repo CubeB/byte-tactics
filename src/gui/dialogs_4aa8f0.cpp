@@ -31,8 +31,8 @@ struct Gadget {
         int attribs;               // +0x1b
         unsigned char attribsLow;  // +0x1b
     };
-    int field_1f;                  // +0x1f
-    int field_23;                  // +0x23
+    int color;                     // +0x1f
+    int color2;                    // +0x23
     unsigned char field_27;        // +0x27
     char field_28;                 // +0x28
     unsigned char field_29;        // +0x29
@@ -408,7 +408,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Gui* menu, const char* name,
         int r = GetTextKeyColor();
         // Zeroed before the byte load; SetTextColors stays declared (int, int).
         unsigned int v = 0;
-        v = menu->colours[sub->field_1f];
+        v = menu->colours[sub->color];
         SetTextColors(v, r);
         int i = 0;
         int j;
@@ -545,10 +545,10 @@ void __stdcall AddTextGadget(Layer_004aa8f0* obj, char* name, char* text,
     else
         e->w = w;
     e->h = 0xf;
-    e->field_1f = 0xf;
+    e->color = 0xf;
     e->attribs = flags;
     e->group = 0;
-    e->field_23 = 0;
+    e->color2 = 0;
     e->field_27 = 0;
     e->field_28 = 0;
     e->field_29 = 1;

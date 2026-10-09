@@ -165,7 +165,7 @@ struct Net {
 class CMemoryCache {
 public:
     char unknown_0[4];
-    int* field_4;                      // +0x4
+    int* base;                         // +0x4
 
     void InitCache(int);
     void FreeCache();

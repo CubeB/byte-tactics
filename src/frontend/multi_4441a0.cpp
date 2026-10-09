@@ -8,7 +8,7 @@ struct Gadget {                         // a gadget of the menu, 0x15b bytes
     short unknown_0;
     char name[0x10];                    // +0x02
     char unknown_12[0xba - 0x12];
-    short field_ba;                     // +0xba
+    short selected;                     // +0xba
     char unknown_bc[0x15b - 0xbc];
 };
 
@@ -89,7 +89,7 @@ void __stdcall HandleSelectProviderClick(Menu_004441a0* menu)
         return;
     }
     if (IsCurrentGadgetNamed(menu, "DPLAY") || IsCurrentGadgetNamed(menu, "SELECT")) {
-        SelectConnection(FindGadgetChecked(entries, "DPLAY")->field_ba);
+        SelectConnection(FindGadgetChecked(entries, "DPLAY")->selected);
         g_game->frontendSubstateRequest = 2;
         PlaySoundByName("BigButton", 0);
         return;

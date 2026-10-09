@@ -6,7 +6,7 @@
 // position (+0x136), and refresh the gadget with DrawSliderBar.
 //
 // Suspected original bug, reproduced: the 0x20 arm divides by the line total
-// unguarded, so a `field_c0` of zero or less divides by zero (the jle at
+// unguarded, so a `lineCount` of zero or less divides by zero (the jle at
 // 0x4a40b2 skips the multiply and 0x4a40d1 does `idiv ecx` with ecx = 0),
 // where the 0x80 arm tests both of its divisors first.
 
@@ -23,12 +23,12 @@ struct Gadget {                        // 0x15b bytes
     char unknown_29[0xb6 - 0x29];
     short count;                       // +0xb6 (only meaningful in entry 0)
     char unknown_b8[0xc0 - 0xb8];
-    short field_c0;                    // +0xc0
+    short lineCount;                   // +0xc0
     char unknown_c2[0xc6 - 0xc2];
     struct Font_004a3ef0** font;       // +0xc6
     char unknown_ca[0xd6 - 0xca];
     int id;                            // +0xd6
-    short field_da;                    // +0xda
+    short lineHeight;                  // +0xda
     char unknown_dc[0x136 - 0xdc];
     short range;                       // +0x136
     char unknown_138[0x140 - 0x138];
@@ -88,7 +88,7 @@ static inline int Find_004a3ef0(Gadget* entries, unsigned char kind)
 // Reads the count and the font pointer before the count > 0 test.
 static inline int LineSize_004a3ef0(Gadget* e)
 {
-    int count = e->field_c0;
+    int count = e->lineCount;
     Font_004a3ef0** font = e->font;
     int lines = 0;
     if (count > 0)
@@ -128,9 +128,9 @@ void __stdcall DrawSlider(Dialog* param_1, int param_2)
                 int size = (g_guiContext->list == 0) ? GetFontHeight()
                     : GetGlyph_004a3ef0(0x49)->height + 2;
                 int numerator = e->height - 2;
-                int denominator = (e->field_da > size + 1) ? e->field_da : size + 1;
+                int denominator = (e->lineHeight > size + 1) ? e->lineHeight : size + 1;
                 int step = numerator / denominator;
-                int last = e->field_c0;
+                int last = e->lineCount;
                 int rows = (int)((float)step / last * (me->height - 3));
                 me->knobSize = rows;
                 if (me->knobSize < 10) {
@@ -151,8 +151,8 @@ void __stdcall DrawSlider(Dialog* param_1, int param_2)
                     me->range = me->height - s;
                 }
             } else if (e->attribs & 0x80) {
-                if (e->field_da != 0 && e->field_c0 != 0) {
-                    int s = e->height / e->field_da * me->height / e->field_c0;
+                if (e->lineHeight != 0 && e->lineCount != 0) {
+                    int s = e->height / e->lineHeight * me->height / e->lineCount;
                     me->knobSize = s;
                     if (me->attribs & 1) {
                         me->range = me->width - s;

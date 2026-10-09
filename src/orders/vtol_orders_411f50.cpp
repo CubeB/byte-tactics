@@ -161,7 +161,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -190,7 +190,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
     switch (state) {
     case 0:
         if (unit->type && (unit->def->flags & 0x800)) {
-            ((Order*)order)->AnnounceStatusIfFlagged("Attacking");
+            order->AnnounceStatusIfFlagged("Attacking");
             PrepVtolClimb(unit, order, 0);
             return 1;
         }
@@ -248,8 +248,8 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
         else
             obj = new Class_0044e2d0(order, order->pos);
         ((Class_0044e730*)obj)->SetApproachRadius(time);
-        ((Order*)order)->SetAttachedFx((int)obj);
-        ((Order*)order)->SetDeadlineTicks(1);
+        order->SetAttachedFx((int)obj);
+        order->SetDeadlineTicks(1);
         order->flags |= 0x100e8;
         return 2;
     }
@@ -271,7 +271,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
             std::vector<Unit*> pads;
             GetFactoriesInRadius(unit->player->field_146, &unit->pos, 0xf00, &pads);
             if (!pads.empty()) {
-                ((Order*)order)->SetAttachedFx(0);
+                order->SetAttachedFx(0);
                 Unit* pad = pads[RandomInt(pads.size())];
                 AppendOrder(unit, new Order("VTOL_LANDING", pad, 0, 0, 0, 0));
                 order->flags = 0;

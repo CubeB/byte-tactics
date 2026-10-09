@@ -96,7 +96,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -129,7 +129,7 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
                     QueueUnitSpeech(unit, 7, "Unit is too heavy to transport");
                     return 8;
                 }
-                ((Order*)order)->AnnounceStatusIfFlagged("Loading");
+                order->AnnounceStatusIfFlagged("Loading");
                 PrepVtolClimb(unit, order, 0);
                 return 1;
             }
@@ -138,12 +138,12 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
             Class_0044e190* obj = new Class_0044e190(order, order->target);
             ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
             ((Class_0044e730*)obj)->SetApproachRadius(0x30);
-            ((Order*)order)->SetAttachedFx((int)obj);
+            order->SetAttachedFx((int)obj);
             order->flags = 0x100e8;
             return 1;
         }
         case 2:
-            ((Order*)order)->AnnounceStatusIfFlagged("Preparing for transport");
+            order->AnnounceStatusIfFlagged("Preparing for transport");
             order->piece = -1;
             unit->script->QueryScript("QueryTransport", &order->piece, 0, 0, 0);
             order->flags = 0x100e8;
@@ -155,7 +155,7 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
             Vec3 offset = GetPieceOffset(unit, order->piece);
             Class_0044e250* obj = new Class_0044e250(order, order->target, -1);
             ((Class_0044e6c0*)obj)->SetAltitude(-offset.yw);
-            ((Order*)order)->SetAttachedFx((int)obj);
+            order->SetAttachedFx((int)obj);
             order->flags = 0x100ea;
             return 1;
         }

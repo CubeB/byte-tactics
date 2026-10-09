@@ -107,7 +107,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
         Point cell = WorldToCell(order->pos, def->origin);
         CellToWorld(def->origin, cell, &order->pos);
         order->retries = 0;
-        ((Order*)order)->AttachBuildFootprintMarker(cell, def->origin);
+        order->AttachBuildFootprintMarker(cell, def->origin);
         order->flags = 0xe0;
         return 1;
     }
@@ -133,7 +133,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
                 return 8;
             }
             order->retries++;
-            ((Order*)order)->SetDeadlineTicks(30);
+            order->SetDeadlineTicks(30);
             return 2;
         }
         ((Unit*)unit)->ClaimWeapons(3);
@@ -142,7 +142,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
             CreateUnit(unit->player, (short)order->type, order->pos, 0, 1, 0));
         if (!order->target) {
             QueueUnitSpeech(unit, 7, "Unable to create any more units");
-            ((Order*)order)->SetDeadlineTicks(300);
+            order->SetDeadlineTicks(300);
             return 2;
         }
         QueueUnitSpeech(unit, 9, "Starting construction");
@@ -166,7 +166,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
         }
         unit->timeout = g_game->tick + 300;
         if (order->target->progress != 0.0f) {
-            ((Order*)order)->SetDeadlineTicks(1);
+            order->SetDeadlineTicks(1);
             order->flags |= 0xa;
             return 2;
         }

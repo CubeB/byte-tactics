@@ -152,7 +152,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -190,7 +190,7 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->SetApproachRadius(0x80);
         order->flags |= 0xe0;
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         return 2;
     }
     if (order->range && (int)_hypot(unit->p.x - order->x, unit->p.z - order->z) >= order->range)
@@ -198,9 +198,9 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
     switch (order->state) {
     case 0:
         if (unit->type && (unit->def->flags & 0x800)) {
-            ((Order*)order)->AnnounceStatusIfFlagged("Attacking");
+            order->AnnounceStatusIfFlagged("Attacking");
             PrepVtolClimb(unit, order, 0);
-            ((Order*)order)->SetDeadlineTicks(1);
+            order->SetDeadlineTicks(1);
             order->field_36 = 0;
             return 1;
         }
@@ -215,8 +215,8 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
                 Vec3 to = Offset(unit->heading, unit->def->maxvelocity);
                 AirManeuverOrder* obj = new AirManeuverOrder(order, from, to);
                 obj->SetAltitude(unit->def->altitude);
-                ((Order*)order)->SetAttachedFx((int)obj);
-                ((Order*)order)->SetDeadlineTicks(RandomInt(0x1e) + 0x3c);
+                order->SetAttachedFx((int)obj);
+                order->SetDeadlineTicks(RandomInt(0x1e) + 0x3c);
                 order->field_36 = 0;
                 return 2;
             }
@@ -232,14 +232,14 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
                 Vec3 p = order->target->pos;
                 p.x += order->target->type->v.x * 45;
                 p.z += order->target->type->v.z * 45;
-                ((Order*)order)->SetAttachedFx((int)new AirManeuverOrder(order, p,
+                order->SetAttachedFx((int)new AirManeuverOrder(order, p,
                     order->target->type->v + Offset(order->target->heading, order->target->def->maxvelocity / 2)));
             }
-            ((Order*)order)->SetDeadlineTicks(0x2d);
+            order->SetDeadlineTicks(0x2d);
             order->flags |= 0x100e8;
             return 2;
         }
-        ((Order*)order)->SetAttachedFx(0);
+        order->SetAttachedFx(0);
         AppendOrder(unit, new Order("VTOL_EVADE", (int)order->target, 0, 0, 0, 0));
         order->field_36 = 0;
         order->flags = 0;

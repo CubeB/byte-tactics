@@ -105,7 +105,7 @@ inline void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0((Order*)order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -116,7 +116,7 @@ static inline int Land(Unit* unit, Order* order)
         LandingPadList pads;
         GetFactoriesInRadius(unit->owner->index, &unit->pos, 0xf00, &pads);
         if (!pads.empty()) {
-            ((Order*)order)->SetAttachedFx(0);
+            order->SetAttachedFx(0);
             Unit* pad = pads[RandomInt(pads.size())];
             AppendOrder(unit, new Order("VTOL_LANDING", pad, 0, 0, 0, 0));
             order->flags = 0;
@@ -141,7 +141,7 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
 {
     // flags is unsigned int: the repeated 0xe0 then keeps order in esi.
     if ((flags & 0x48) != 0) {
-        ((Order*)order)->SetDeadlineTicks(0x1e);
+        order->SetDeadlineTicks(0x1e);
         return 0;
     }
     // The loop lets the four reclaim arms share the last arm's constructor tail.
@@ -152,7 +152,7 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
                 if (order->target != 0)
                     order->pos = order->target->pos;
                 EnsurePatrolReturnOrder(unit, order);
-                ((Order*)order)->AnnounceStatusIfFlagged("Patrolling");
+                order->AnnounceStatusIfFlagged("Patrolling");
                 PrepVtolClimb(unit, order, 0);
                 return 1;
             }
@@ -162,8 +162,8 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
                 return 6;
             Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
             ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
-            ((Order*)order)->SetAttachedFx((int)obj);
-            ((Order*)order)->SetDeadlineTicks(0x2d);
+            order->SetAttachedFx((int)obj);
+            order->SetDeadlineTicks(0x2d);
             order->flags |= 0xe0;
             if (Land(unit, order))
                 return 0;
@@ -179,7 +179,7 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
                         return 3;
                     }
                     if (unit->CanRepair(target) && target->progress != 0.0f) {
-                        ((Order*)order)->SetAttachedFx(0);
+                        order->SetAttachedFx(0);
                         AppendOrder(unit, new Order("VTOL_HELPBUILD", target, 0, 0, 0, 0));
                         order->flags = 0;
                         return 3;
@@ -195,25 +195,25 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
             if (PickRandomReclaimableResourcesInRadius(&unit->pos, range, &energy, &energyAmount, &metal, &metalAmount)) {
                 // Amounts read through GetEnergy/GetMetal and Total: gives the x87 load order.
                 if (unit->owner->GetMetal() < unit->owner->metalCapacity * 0.2 && metal) {
-                    ((Order*)order)->SetAttachedFx(0);
+                    order->SetAttachedFx(0);
                     AppendOrder(unit, new Order("VTOL_RECLAIM", 0, metal, 0, 0, 0));
                     order->flags = 0;
                     return 3;
                 }
                 if (unit->owner->GetEnergy() < unit->owner->energyCapacity * 0.2 && energy) {
-                    ((Order*)order)->SetAttachedFx(0);
+                    order->SetAttachedFx(0);
                     AppendOrder(unit, new Order("VTOL_RECLAIM", 0, energy, 0, 0, 0));
                     order->flags = 0;
                     return 3;
                 }
                 if (metal && Total(unit->owner->GetMetal(), metalAmount) <= unit->owner->metalCapacity) {
-                    ((Order*)order)->SetAttachedFx(0);
+                    order->SetAttachedFx(0);
                     AppendOrder(unit, new Order("VTOL_RECLAIM", 0, metal, 0, 0, 0));
                     order->flags = 0;
                     return 3;
                 }
                 if (energy && Total(unit->owner->GetEnergy(), energyAmount) <= unit->owner->energyCapacity) {
-                    ((Order*)order)->SetAttachedFx(0);
+                    order->SetAttachedFx(0);
                     AppendOrder(unit, new Order("VTOL_RECLAIM", 0, energy, 0, 0, 0));
                     order->flags = 0;
                     return 3;

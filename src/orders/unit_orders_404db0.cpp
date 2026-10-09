@@ -193,7 +193,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
     switch (order->state) {
     case 0:
         if (unit->motion && (unit->type->flags & 0x800)) {
-            ((Order*)order)->AttachBuildFootprintMarker(cell, size);
+            order->AttachBuildFootprintMarker(cell, size);
             order->flags = 0xe0;
             return 1;
         }
@@ -242,7 +242,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
             box.hi.y += f->height << 16;
             EmitNanoParticles(&nano, &box, 6);
             unit->workTime = g_game->ticks + 300;
-            ((Order*)order)->SetDeadlineTicks(1);
+            order->SetDeadlineTicks(1);
             return 2;
         }
         break;
@@ -250,7 +250,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
         order->target.SetUnit(CreateUnit(unit->playerIndex, order->unitType, order->pos, 0, 1, 0));
         if (!order->target.owner) {
             QueueUnitSpeech(unit, 7, "Unable to create any more units");
-            ((Order*)order)->SetDeadlineTicks(300);
+            order->SetDeadlineTicks(300);
             return 2;
         }
         Cell* c = GetOriginCellAtPosition(&order->pos);

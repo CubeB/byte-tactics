@@ -157,15 +157,15 @@ static inline int GetSpeed(Unit* unit)
 
 void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Unit*)unit)->ClaimWeapons(3);
+    unit->ClaimWeapons(3);
     if (unit->carrier)
         AttachUnitToPiece(unit, 0, -1, 2);
-    ((Unit*)unit)->SetStateBits(1, 1);
+    unit->SetStateBits(1, 1);
     if ((unit->type->flags & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -194,7 +194,7 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
     if (order->target)
         order->pos = order->target->pos;
     if (unit->spatialBucket == g_game->overflowBucket) {
-        ((Order*)order)->SetDeadlineTicks(0x1e);
+        order->SetDeadlineTicks(0x1e);
         order->state = 2;
     }
     if (order->range && (int)_hypot(unit->p.x - order->x, unit->p.z - order->z) >= order->range)
@@ -204,32 +204,32 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
     switch (state) {
     case 0:
         if (unit->type && (unit->def->flags & 0x800)) {
-            ((Order*)order)->AnnounceStatusIfFlagged("Attacking");
+            order->AnnounceStatusIfFlagged("Attacking");
             PrepVtolClimb(unit, order, 0);
             return 1;
         }
         break;
     case 1: {
-        ((Unit*)unit)->ReleaseWeapons(3);
+        unit->ReleaseWeapons(3);
         int dist = (int)_hypot(order->pos.x - unit->pos.x, order->pos.z - unit->pos.z);
         int angle = GetHeadingBetween(&unit->pos, &order->pos);
         Vec3 off = Offset(RandomInt(0x4000) + angle - 0x2000, dist / 2);
         Vec3 p = unit->pos + off;
         Class_0044e2d0* obj = new Class_0044e2d0(order, p);
         ((Class_0044e730*)obj)->SetApproachRadius(0x80);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags = 0x100e8;
         return 1;
     }
     case 2: {
-        ((Unit*)unit)->ClaimWeapons(0);
+        unit->ClaimWeapons(0);
         if (order->target)
             SetWeaponTargetUnit(unit, order->target, 0);
         else
             SetWeaponTargetPos(unit, &order->pos, 0);
         Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
         ((Class_0044e730*)obj)->SetApproachRadius(speed);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags = 0x100e8;
         return 1;
     }
@@ -239,7 +239,7 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
         Vec3 p = order->pos + off;
         Class_0044e2d0* obj = new Class_0044e2d0(order, p);
         ((Class_0044e730*)obj)->SetApproachRadius(RandomInt(0x80) + 0x80);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags = 0x100ea;
         return 1;
     }
@@ -248,7 +248,7 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
             LandingPadList v;
             GetFactoriesInRadius(unit->player->index, &unit->pos, 0xf00, &v);
             if (!v.empty()) {
-                ((Order*)order)->SetAttachedFx(0);
+                order->SetAttachedFx(0);
                 Unit* target = v[RandomInt(v.size())];
                 AppendOrder(unit, new Order("VTOL_LANDING", (int)target, 0, 0, 0, 0));
                 order->flags = 0;
@@ -264,7 +264,7 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
         Vec3 p = sum;
         Class_0044e2d0* obj = new Class_0044e2d0(order, p);
         ((Class_0044e730*)obj)->SetApproachRadius(0x80);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags = 0x100ea;
         // The empty Dummy() calls make the landed ~vector call _Destroy out of
         // line and the empty one inline it.

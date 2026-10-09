@@ -126,15 +126,15 @@ static inline Vec3 Offset(short angle, int distance)
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
 void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Unit*)unit)->ClaimWeapons(3);
+    unit->ClaimWeapons(3);
     if (unit->carrier)
         AttachUnitToPiece(unit, 0, -1, 2);
-    ((Unit*)unit)->SetStateBits(1, 1);
+    unit->SetStateBits(1, 1);
     if ((unit->type->flags & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -150,7 +150,7 @@ int __stdcall FindLandingPad(Unit* unit, int pad)
     pads[1] = -1;
     pads[2] = -1;
     pads[3] = -1;
-    ((CobScript*)unit->script)->QueryScript("QueryLandingPad", &pads[0], &pads[1], &pads[2], &pads[3]);
+    unit->script->QueryScript("QueryLandingPad", &pads[0], &pads[1], &pads[2], &pads[3]);
     for (int i = 0; i < 4; i++) {
         if (pads[i] != -1 && IsPadSlotFree(unit, pads[i])) {
             return pads[i];
@@ -174,7 +174,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
     switch (state) {
     case 0:
         if (unit->type && (unit->def->flags1 & 0x800)) {
-            ((Order*)order)->AnnounceStatusIfFlagged("Landing");
+            order->AnnounceStatusIfFlagged("Landing");
             PrepVtolClimb(unit, order, 0);
             order->angle = RandomInt(0x10000);
             return 1;
@@ -189,7 +189,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
         order->angle += 0x4000;
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->SetApproachRadius(0x80);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags = 0xe8;
         order->state = 1;
         return 2;
@@ -197,7 +197,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
     case 2: {
         Class_0044e250* obj = new Class_0044e250(order, order->target.owner, -1);
         ((Class_0044e730*)obj)->SetApproachRadius(0xa0);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags = 0xe8;
         return 1;
     }
@@ -210,7 +210,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
         }
         Class_0044e250* obj = new Class_0044e250(order, order->target.owner, order->angle);
         ((Class_0044e730*)obj)->SetApproachRadius(0x30);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags = 0xe8;
         return 1;
     }
@@ -231,8 +231,8 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
         else
             ((Class_0044e6c0*)obj)->SetAltitude(0);
         unit->script->StartScript("EndTransport", 0, 1);
-        ((Order*)order)->SetAttachedFx((int)obj);
-        ((Order*)order)->SetDeadlineTicks(0xf);
+        order->SetAttachedFx((int)obj);
+        order->SetDeadlineTicks(0xf);
         order->state = 5;
         order->flags |= 0xe8;
         return 2;
@@ -256,7 +256,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
             && (order->target.owner->def->flags1 & 0x200)
             && (order->target.owner->def->flags1 & 0x40)
             && order->target.owner->buildLeft == 0.0f) {
-            ((Order*)order)->SetAttachedFx(0);
+            order->SetAttachedFx(0);
             AppendOrder(unit, new Order("SELFREPAIR", order->target.owner, 0, 0, 0, 0));
         }
         return 5;

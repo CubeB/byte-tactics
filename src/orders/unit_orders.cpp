@@ -1669,7 +1669,7 @@ int __stdcall RepairUnitNoMoveOrder(Unit* unit, Order* order, int unused)
     case 0:
         if (!(unit->def->flags241 & 0x40)) return 7;
         if (target->progress == Zero_004fc920 && (unit->flags10e & 1)) {
-            ((Unit*)unit)->ClaimWeapons(3);
+            unit->ClaimWeapons(3);
             return 1;
         }
         return 8;

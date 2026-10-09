@@ -149,7 +149,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -177,7 +177,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->SetApproachRadius(0x80);
         order->flags |= 0xe0;
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         return 2;
     }
     // short& references: they fix the first _hypot's load order.
@@ -191,7 +191,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
     switch (state) {
     case 0:
         if (unit->type && (unit->def->flags1 & 0x800)) {
-            ((Order*)order)->AnnounceStatusIfFlagged("Attacking");
+            order->AnnounceStatusIfFlagged("Attacking");
             PrepVtolClimb(unit, order, 0);
             return 1;
         }
@@ -204,7 +204,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         Vec3 p = unit->pos + off;
         Class_0044e2d0* obj = new Class_0044e2d0(order, p);
         ((Class_0044e730*)obj)->SetApproachRadius(0x80);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags = 0x100e8;
         return 1;
     }
@@ -213,7 +213,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         SetWeaponTargetUnit(unit, order->target, 0);
         Class_0044e2d0* obj = new Class_0044e2d0(order, order->target->pos);
         ((Class_0044e730*)obj)->SetApproachRadius(range);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags = 0x100e8;
         order->side = 0;
         order->misses = 0;
@@ -246,13 +246,13 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         Class_0044e330* obj = new Class_0044e330(order, order->target, p);
         ((Class_0044e730*)obj)->SetApproachRadius(0x10);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags = 0x100e8;
         if ((unsigned int)unit->health < (unit->def->maxHealth >> 2) * 3) {
             std::vector<Unit*> v;
             GetFactoriesInRadius(unit->player->index, &unit->pos, 0xf00, &v);
             if (!v.empty()) {
-                ((Order*)order)->SetAttachedFx(0);
+                order->SetAttachedFx(0);
                 int target = (int)v[RandomInt(v.size())];
                 AppendOrder(unit, new Order("VTOL_LANDING", target, 0, 0, 0, 0));
                 order->flags = 0;

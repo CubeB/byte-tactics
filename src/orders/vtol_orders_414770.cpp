@@ -123,7 +123,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -147,14 +147,14 @@ int __stdcall VtolReclaimOrder(Unit* unit, Order* order, int flags)
     switch (order->state) {
     case 0:
         if (unit->type && (unit->def->flags1 & 0x800) && (unit->def->flags2 & 0x400)) {
-            ((Order*)order)->AnnounceStatusIfFlagged("Reclaiming");
+            order->AnnounceStatusIfFlagged("Reclaiming");
             PrepVtolClimb(unit, order, 0);
             return 1;
         }
         break;
     case 1: {
         Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags = 0xe0;
         return 1;
     }
@@ -165,7 +165,7 @@ int __stdcall VtolReclaimOrder(Unit* unit, Order* order, int flags)
         QueueUnitSpeech(unit, 11, 0);
         return 1;
     case 3:
-        ((Order*)order)->SetDeadlineTicks(2);
+        order->SetDeadlineTicks(2);
         order->time -= 2;
         if (order->time <= 0)
             return 1;

@@ -47,13 +47,14 @@ public:
     char unknown_22[5];
     PlayerInfo* info;                  // +0x27
     char name[0x1e];                   // +0x2b
-    char field_49[0x1e];               // +0x49
+    char fullName[0x1e];               // +0x49
     char unknown_67[0x73 - 0x67];
     unsigned char state;               // +0x73
     char unknown_74[0x108 - 0x74];
     unsigned char allies[0x16];        // +0x108
-    unsigned char field_11e[0x16];     // +0x11e
-    unsigned char field_134[0xb];      // +0x134
+    unsigned char shareLos[11];        // +0x11e
+    unsigned char shareVision[11];     // +0x129
+    unsigned char shareMapping[11];    // +0x134
     unsigned char alliance;            // +0x13f
     char unknown_140[6];
     unsigned char index;               // +0x146
@@ -542,7 +543,7 @@ int HandleNetPackets()
                 Player* p = PlayerById(msg->id);
                 if (p) {
                     strncpy(p->name, msg->longName, 0x1e);
-                    strncpy(p->field_49, (char*)msg->dataSize, 0x1e);
+                    strncpy(p->fullName, (char*)msg->dataSize, 0x1e);
                 }
                 break;
             }
@@ -814,9 +815,9 @@ int HandleNetPackets()
             break;
         case 41:
             if (packet[1]) {
-                recipient->field_11e[from] = 1;
+                recipient->shareLos[from] = 1;
                 if (packet[2])
-                    recipient->field_134[from] = 1;
+                    recipient->shareMapping[from] = 1;
             }
             break;
         case 25:

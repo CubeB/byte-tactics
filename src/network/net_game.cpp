@@ -103,74 +103,7 @@ union GameFlags_2a44 {
     } bits;
 };
 
-// The info block a player record points at (+0x27). One type for every view:
-// where two views name the same bytes differently the union carries both
-// names, and the bitfields carry every name the views give a bit.
-struct PlayerInfo {
-    char unknown_0[0x80];
-    char name[0xb];                    // +0x80
-    unsigned short width;              // +0x8b
-    unsigned short height;             // +0x8d
-    char unknown_8f;
-    union {
-        int field_90;                  // +0x90
-        int id;
-    };
-    unsigned char kind;                // +0x94
-    char side;
-    union {
-        unsigned char color;           // +0x96
-        unsigned char group;
-    };
-    union {
-        unsigned char flags_97;        // +0x97
-        unsigned char flags;
-        unsigned short flag_97_0 : 1;
-        unsigned short ready : 1;
-        struct {
-            unsigned short b0 : 1;
-            unsigned short b1 : 1;
-            unsigned short b2 : 1;
-            unsigned short b3 : 1;
-            unsigned short b4 : 1;
-            unsigned short b5 : 1;
-            unsigned short b6 : 1;
-            unsigned short b7 : 1;
-            unsigned short b8 : 1;
-            unsigned short b9 : 1;
-            unsigned short b10 : 1;
-            unsigned short b11 : 1;
-            unsigned short b12 : 1;
-            unsigned short b13 : 1;
-            unsigned short b14 : 1;
-            unsigned short b15 : 1;
-        } bits_97;
-    };
-    char unknown_99[0x9b - 0x99];
-    union {
-        unsigned short gameFlags;      // +0x9b
-        unsigned char flags_9b;
-        struct {
-            unsigned short : 4;
-            unsigned short flag_9b_4 : 1;
-            unsigned short : 1;
-            unsigned short flag6 : 1;
-            unsigned short : 7;
-            unsigned short flag14 : 1;
-        } bits_9b;
-    };
-    union {
-        unsigned char flags_9d;        // +0x9d
-        unsigned short word_9d;
-        unsigned short hasPassword : 1;
-        unsigned short flag_9d_0 : 1;
-    };
-    char unknown_9f[0xa5 - 0x9f];
-    unsigned short maxUnits;           // +0xa5
-    unsigned char versionMajor;        // +0xa7
-    unsigned char versionMinor;        // +0xa8
-    char unknown_a9[0xb9 - 0xa9];
-};
+#include "player_info.h"
 
 // A player record at g_game+0x1b63 (0x14b bytes). One type for every view:
 // where two views name the same bytes differently the union carries both
@@ -956,7 +889,7 @@ int __stdcall AddNetPlayer(int param_1)
             Player* q = &g_game->players[i];
             if (q->active != 0 && (q->type == 1 || q->type == 2)) {
                 packet.data = *q->data;
-                packet.data.field_90 = q->id;
+                packet.data.id = q->id;
                 packet.type = 0x20;
                 BroadcastPacket(q->id, &packet, sizeof(packet));
                 if (q->active != 0 && (q->type == 1 || q->type == 2)) {
@@ -1092,7 +1025,7 @@ void BroadcastPlayerInfo()
             Player* player = &g_game->players[i];
             if (IsPlaying_00450f90(player)) {
                 packet.data = *player->data;
-                packet.data.field_90 = player->id;
+                packet.data.id = player->id;
                 packet.type = 0x20;
                 BroadcastPacket(player->id, &packet, sizeof(packet));
                 if (IsPlaying_00450f90(player)) {
@@ -1156,7 +1089,7 @@ void UpdateNetGameInfo(void)
     char name[32];
 
     BuildGameInfo(name, &d, &c, &b, &a);
-    if (g_game->players[g_game->localPlayer].info->bits_9b.flag_9b_4) {
+    if (g_game->players[g_game->localPlayer].info->started) {
         g_game->settings.bits_475.flag_475_5 = 1;
     }
     HAPINET_updategameinfo(g_game->net, name, DAT_005119b8, d, c, b, a);
@@ -1167,7 +1100,7 @@ void UpdateNetGameInfo(void)
 static inline unsigned char FindPlayerInUse()
 {
     for (unsigned char i = 0; i < 10; i++) {
-        if (g_game->players[i].type != 0 && g_game->players[i].info->flag_97_0)
+        if (g_game->players[i].type != 0 && g_game->players[i].info->ready)
             return i;
     }
     return 10;
@@ -1196,13 +1129,13 @@ int __stdcall CreateLocalPlayer(unsigned char playerIndex, int flag)
         buf[16] = 0;
     }
 
-    player->info->flag_97_0 = same;
+    player->info->ready = same;
     player->info->color = 0xff;
     player->keepaliveFlags &= 0xfd;
     player->joinTime = GetTicks();
     PlayerInfo* info = player->info;
-    info->gameFlags = (info->gameFlags ^ ((g_game->numPlayersSigned ^ info->gameFlags) & 0xf)) & 0x7fff;
-    info->flag_9d_0 = (strlen(g_game->passWord) != 0);
+    info->flags = (info->flags ^ ((g_game->numPlayersSigned ^ info->flags) & 0xf)) & 0x7fff;
+    info->hasPassword = (strlen(g_game->passWord) != 0);
     info->maxUnits = 0x64;
     info->width = g_game->displayWidth;
     info->height = g_game->displayHeight;
@@ -1499,7 +1432,7 @@ void CreateNetGame(void)
     int d;
     char name[32];
 
-    g_game->players[g_game->localPlayer].info->flag_97_0 = 1;
+    g_game->players[g_game->localPlayer].info->ready = 1;
     BuildGameInfo(name, &d, &c, &b, &a);
     g_game->numPlayers = 0;
     HAPINET_createnewgame(g_game->session, name, DAT_005119b8, d, c, b, a);
@@ -1618,7 +1551,7 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
             }
 
             if (v != 0 && DAT_00512d28 != 0) {
-                lstrcpynA(p->info->name, &DAT_00512d28, 0xb);
+                lstrcpynA(p->info->password, &DAT_00512d28, 0xb);
                 // hasPassword must be a 16-bit 1-bit field, not a byte field.
                 p->info->hasPassword = 1;
                 // Cast on a reloaded field_4e5, not a cached local.
@@ -1644,7 +1577,7 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
         }
 
         p->info->color = 0xff;
-        p->info->gameFlags &= 0xffdf;
+        p->info->flags &= 0xffdf;
         p->info->width = g_game->displayWidth;
         p->info->height = g_game->displayHeight;
         g_game->numPlayers = 0;
@@ -2018,7 +1951,7 @@ int __stdcall AssignPlayerColor(int from, int to, int group)
         int j;
         for (j = 0; j < 10; j++) {
             Player* p = &g_game->players[j];
-            if (p->state != 0 && p->state != 4 && p->id != to && p->data->group == group)
+            if (p->state != 0 && p->state != 4 && p->id != to && p->data->color == group)
                 break;
         }
         if (j == 10) {
@@ -2027,13 +1960,13 @@ int __stdcall AssignPlayerColor(int from, int to, int group)
         }
     }
     if (to == g_game->players[g_game->localPlayer].id) {
-        g_game->players[g_game->localPlayer].data->group = group;
+        g_game->players[g_game->localPlayer].data->color = group;
         return 1;
     }
     packet[2] = 0x18;
     int result = SendPacketToPlayer(from, to, packet + 2, 2);
     if (result != 0 && g_usePacketManager != 0) {
-        g_game->players[FindPlayerIndex_004523e0(to)].data->group = group;
+        g_game->players[FindPlayerIndex_004523e0(to)].data->color = group;
         g_packetManager.SendAllQueued(1);
     }
     return result;
@@ -2337,9 +2270,9 @@ void __stdcall RemovePlayer(int id)
         return;
 
     unsigned char slot = p->index;
-    int f = p->info->flags;
+    int f = p->info->flags_97;
     // The no-op |= 0 must stay: without it the zero-extension folds into the mask.
-    p->info->flags |= 0;               // emits no code; needed for the match
+    p->info->flags_97 |= 0;           // emits no code; needed for the match
     int host = f & 1;
 
     for (int i = 0; i < 10; i++) {
@@ -2362,7 +2295,7 @@ void __stdcall RemovePlayer(int id)
         Remove_00452cc0(p);
     }
     g_game->numPlayers--;
-    p->info->word_9d &= 0xfffb;
+    p->info->flags_9d_wide &= 0xfffb;
     memset(&p->allied, 0, 11);
 
     if (g_game->campaign->GetGameType() == 3)
@@ -2379,7 +2312,7 @@ void __stdcall RemovePlayer(int id)
         }
         Player* r = FindPlayer_00452cc0(best);
         if (r != 0)
-            r->info->flags |= 1;
+            r->info->flags_97 |= 1;
     }
 }
 
@@ -2991,7 +2924,7 @@ void SendNetHeartbeat()
             if (p->info->color == 0xff)
                 RequestPlayerColor(0);
 
-            if (p->info->bits_97.b0 & 1) {
+            if (p->info->ready & 1) {
                 for (int k = 0; k < 10; k++) {
                     unsigned char st = g_game->players[k].type;
                     if (st == 4)
@@ -3016,7 +2949,7 @@ void SendNetHeartbeat()
             Player* p = &g_game->players[i];
             if (p->active != 0 && (p->type == 1 || p->type == 2)) {
                 msg.info = *p->info;
-                msg.info.field_90 = p->id;
+                msg.info.id = p->id;
                 msg.type = 0x20;
                 BroadcastPacket(p->id, (unsigned char*)&msg, 0xba);
 
@@ -3155,7 +3088,7 @@ void __stdcall ReportPacketGap(int, int, int)
 
 static inline unsigned char FindOccupied_004568c0() {
     for (unsigned char i = 0; i < 10; i++) {
-        if (g_game->players[i].type != 0 && g_game->players[i].info->bits_97.b0)
+        if (g_game->players[i].type != 0 && g_game->players[i].info->ready)
             return i;
     }
     return 10;
@@ -3189,12 +3122,12 @@ int AssignStartPositions() {
     int res = g_game->players[idx].IsPlayableSlot();
     if (res != 0 && g_game->startPosShuffleReady == 0) {
         int* out = g_game->startPosShuffle;
-        if (g_game->players[g_game->localPlayer].info->bits_9b.flag14) {
+        if (g_game->players[g_game->localPlayer].info->fixedloc) {
             int n = 0;
             for (int k0 = 0; k0 < 10; k0++) {
                 Player* q = &g_game->players[k0];
                 if (q->active != 0 && (q->type == 1 || q->type == 2 || q->type == 3) &&
-                    q->index != 10 && (q->info->bits_9b.flag6) == 0)
+                    q->index != 10 && (q->info->bit6) == 0)
                     out[k0] = n++;
                 else
                     out[k0] = -1;
@@ -3207,7 +3140,7 @@ int AssignStartPositions() {
             for (int k1 = 0; k1 < 10; k1++) {
                 Player* p = &g_game->players[k1];
                 if (p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3) &&
-                    p->index != 10 && (p->info->bits_9b.flag6) == 0) {
+                    p->index != 10 && (p->info->bit6) == 0) {
                     cand[n] = n;
                     n++;
                 }
@@ -3219,7 +3152,7 @@ int AssignStartPositions() {
                 Player* q2 = &g_game->players[k2];
                 if (q2->active != 0 && (q2->type == 1 || q2->type == 2 || q2->type == 3) &&
                     q2->index != 10) {
-                    if (g_game->players[k2].active != 0 && (q2->info->bits_9b.flag6))
+                    if (g_game->players[k2].active != 0 && (q2->info->bit6))
                         out[k2] = -1;
                     else
                         // Candidates read by index, cand[j++].
@@ -3833,7 +3766,7 @@ void __stdcall UpdateResourceSharing(Player* player)
 
     if (g_game->ticks % 60 == 0) {
         Player* found = player;
-        if (player->info->bits_97.b1 && player->metal > player->shareMetal) {
+        if (player->info->shareMetal && player->metal > player->shareMetal) {
             for (int i = 0; i < 10; i++) {
                 Player* p = &g_game->players[i];
                 if (p->active != 0
@@ -3858,7 +3791,7 @@ void __stdcall UpdateResourceSharing(Player* player)
         }
 
         found = player;
-        if (player->info->bits_97.b2 && player->energy > player->shareEnergy) {
+        if (player->info->shareEnergy && player->energy > player->shareEnergy) {
             for (int i = 0; i < 10; i++) {
                 Player* p = &g_game->players[i];
                 if (p->active != 0
@@ -3885,7 +3818,7 @@ void __stdcall UpdateResourceSharing(Player* player)
 
     if (g_game->ticks % 450 == 0) {
         // Must stay a standalone bitfield test, not a mask or shift.
-        if (player->info->bits_97.b5) {
+        if (player->info->shareMapping) {
         for (int i = 0; i < 10; i++) {
             Player* p = &g_game->players[i];
             if (p->active != 0

@@ -13,6 +13,10 @@
 // Unused here: real declarations that keep the file's symbol count (docs/c2-regalloc.md).
 void StepAllGafSequences(void);
 void StartScreenFade(void);
+void StepScreenFade(void);
+void ScheduleFadeTick(void);
+void StepPaletteFade(void);
+int IsFadeDone(void);
 
 // The display flags word at +0xf0: set through the bitfield, read whole
 // (FlipScreen) or as its low byte (FillSurface).
@@ -712,7 +716,13 @@ static inline void Init(Surface* s, int width, int height, int a, int b)
     s->colorKey = -1;
     s->flag0 = 1;
     s->flag1 = 0;
-    s->clip = Rect(0, 0, width - 1, height - 1);
+    // Built in a local and copied: storing into s->clip changes the code.
+    Rect r;
+    r.left = 0;
+    r.top = 0;
+    r.right = width - 1;
+    r.bottom = height - 1;
+    s->clip = r;
 }
 
 // FUNCTION: 0x4c69f0
@@ -736,7 +746,13 @@ void __stdcall InitSurface(Surface* s, int width, int height, int a, int b)
     s->colorKey = -1;
     s->flag0 = 1;
     s->flag1 = 0;
-    s->clip = Rect(0, 0, width - 1, height - 1);
+    // Built in a local and copied: storing into s->clip changes the code.
+    Rect r;
+    r.left = 0;
+    r.top = 0;
+    r.right = width - 1;
+    r.bottom = height - 1;
+    s->clip = r;
 }
 
 // Frees an object if its "owned" flag (bit 0 of +0x2c) is set.
@@ -932,7 +948,13 @@ static inline Surface* NewSurface(char* name, int w, int h)
     s->y = 0;
     s->zPriority = 10000;
     s->colorKey = -1;
-    s->clip = Rect(0, 0, w - 1, h - 1);
+    // Built in a local and copied: storing into s->clip changes the code.
+    Rect r;
+    r.left = 0;
+    r.top = 0;
+    r.right = w - 1;
+    r.bottom = h - 1;
+    s->clip = r;
     return s;
 }
 

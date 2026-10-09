@@ -2,19 +2,11 @@
 // pointer, the draw priority and colour key, the hotspot, the clip rectangle
 // and the owned flag. The one declaration of the struct for the files that
 // draw through it; surface.cpp defines the two methods. An allocated image's
-// pixels follow the header at +0x30. Rect is here because the clip is held by
-// value. Nothing is included.
+// pixels follow the header at +0x30. Only rect.h is included, for the clip.
 #ifndef SURFACE_H
 #define SURFACE_H
 
-struct Rect {
-    int left;
-    int top;
-    int right;
-    int bottom;
-    Rect() {}
-    Rect(int l, int t, int r, int b) : left(l), top(t), right(r), bottom(b) {}
-};
+#include "rect.h"
 
 struct Surface {
     int width;                         // +0x00
@@ -29,6 +21,7 @@ struct Surface {
     unsigned int flag0 : 1;            // +0x2c, set when the surface owns its allocation
     unsigned int flag1 : 1;            // +0x2c bit 1
 
+    Surface() {}                       // keeps the struct non-trivial: it is copied member by member
     Rect* GetClipRect(Rect* out);
     void SetClipRect(Rect r);
 };

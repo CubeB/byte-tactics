@@ -36,6 +36,7 @@ public:
 };
 
 #include "../network/player.h"
+#include "../units/unit_def.h"
 
 struct Gun_0049c9c0 {
     short angle;
@@ -171,21 +172,6 @@ struct Weapon_0049d580 {
     Flags_0049d580 flags;             // +0x111
 };
 
-struct UnitDef_0049d580 {
-    char unknown_0[0x1fa];
-    unsigned int divisor;             // +0x1fa
-};
-
-struct UnitType_0049e070 {
-    char unknown_0[0x1ee];
-    Unit* attached[3];                // +0x1ee
-};
-
-struct UnitType_0049e1a0 {
-    char unknown_0[0x1fa];
-    unsigned int f_1fa;
-};
-
 union Fbb_0049d580 {
     unsigned short value;
     struct {
@@ -224,9 +210,8 @@ struct Vec3_0049abb0 {
 // The unit, as the weapon code sees it. The views disagree about the bytes at
 // +0x4 (49e1a0's three weapon entries, 49d270's one, 49d580's fire state and
 // 49c740's and 49e070's weapon slots all overlap there), about +0x0 (49d000's
-// type, 49d270's type and 49dd60's owner), about +0x92 (49e070's and 49e1a0's
-// type and 49d580's def), about +0xbc (49e1a0's resources, 49e070's field_e4
-// and 49c920's and 49c9c0's f_dc and f_e6) and about the flag word (+0x110 in 49c740, 49d880 and 49d270, +0x111 in
+// type, 49d270's type and 49dd60's owner), about +0xbc (49e1a0's resources,
+// 49e070's field_e4 and 49c920's and 49c9c0's f_dc and f_e6) and about the flag word (+0x110 in 49c740, 49d880 and 49d270, +0x111 in
 // 49c920 and 49c9c0); the rest keep one name. Size 0x118, the unit array's
 // stride.
 struct Unit {
@@ -288,11 +273,7 @@ struct Unit {
         };
     };
     char unknown_8a[0x92 - 0x8a];
-    union {                            // +0x92
-        UnitType_0049e070* utype;      // 49e070's unit type
-        UnitType_0049e1a0* mtype;      // 49e1a0's unit type
-        UnitDef_0049d580* f_92;        // 49d580's unit definition
-    };
+    UnitDef* utype;                    // +0x92
     Player* player;                    // +0x96
     union {                            // +0x9a
         CobScript* anims;
@@ -421,6 +402,11 @@ struct Projectile_0049c880 {
 // view (now, frame, ticks, teamColor); 49d270's defs and 49e5b0's entries
 // are one union, as are the two tracked-projectile pointers, 499a30's selected
 // and 49c740's tracked.
+struct Net {
+    char unknown_0[0xd48];
+    int field_d48;
+};
+
 struct Game {
     char unknown_0[0x2a42];
     char localPlayer;                  // +0x2a42
@@ -466,7 +452,7 @@ struct Game {
         int teamColor;
     };
     char unknown_38a4b[0x391e9 - 0x38a4b];
-    void* net;                         // +0x391e9
+    Net* net;                          // +0x391e9
 };
 
 #pragma pack(pop)
@@ -642,11 +628,6 @@ public:
     void MarkOwnerNetDirtyFromDamageSplit(Weapon_0049a120* weapon, int enemyDamage, int friendlyDamage);
 };
 
-struct Player_499c70 {
-    char unknown_0[0x74];
-    SquadManager* field_74;            // +0x74
-};
-
 #pragma pack(push, 1)
 struct Weapon_499c70 {
     char unknown_0[0x52];
@@ -670,7 +651,8 @@ void __stdcall ApplyWeaponHit(Weapon_499c70* weapon, Unit* target)
             a = damage;
         else
             b = damage;
-        ((Player_499c70*)attacker->player)->field_74->MarkOwnerNetDirtyFromDamageSplit(weapon, a, b);
+        // The player's ai pointer is the SquadManager the method belongs to.
+        ((SquadManager*)attacker->player->ai)->MarkOwnerNetDirtyFromDamageSplit(weapon, a, b);
     }
 }
 
@@ -702,11 +684,6 @@ struct Def_00499cd0 {
     unsigned short field_d4;        // +0xd4
     char unknown_d6[0x111 - 0xd6];
     unsigned int flags;             // +0x111
-};
-
-struct UnitDef_00499cd0 {
-    char unknown_0[0x20];
-    char name[1];                   // +0x20
 };
 
 struct Weapon_00499cd0 {
@@ -764,7 +741,7 @@ int __stdcall ApplyWeaponDamage(Weapon_00499cd0* weapon, Unit* target,
     int damage = def->field_d4;
     Table_00499cd0* table = def->table;
     if (table) {
-        int* p = Find_00499cd0(table, ((UnitDef_00499cd0*)target->utype)->name);
+        int* p = Find_00499cd0(table, target->utype->unitname);
         if (p)
             damage = *p;
     }
@@ -849,23 +826,6 @@ struct Projectile_00499eb0 {
     unsigned short flags;
 };
 
-struct Net_00499eb0 {
-    char unknown_0[0xd48];
-    int field_d48;
-};
-
-struct Player_00499eb0 {
-    int active;
-    char unknown_4[0x73 - 4];
-    unsigned char state;
-    char unknown_74[0x14b - 0x74];
-};
-
-struct Holder_00499eb0 {
-    char unknown_0[0x74];
-    SquadManager* object;
-};
-
 #pragma pack(pop)
 
 void* __stdcall GetMapCellAtPosition(Vec3_0049b720* position);
@@ -893,7 +853,7 @@ void __stdcall DetonateProjectile(Projectile_00499eb0* projectile, Unit* unit)
         }
         projectile->flags = projectile->flags | 2;
     }
-    if (((Net_00499eb0*)g_game->net)->field_d48 && hostile && !unit) {
+    if (g_game->net->field_d48 && hostile && !unit) {
         if (projectile == g_game->selected) {
             g_game->trackedPos = ((Projectile_00499eb0*)g_game->selected)->position;
             g_game->trackedValue = *(unsigned short*)((char*)projectile->type + 0xfe);
@@ -914,8 +874,8 @@ void __stdcall DetonateProjectile(Projectile_00499eb0* projectile, Unit* unit)
             AddExplosionEffect(position, type->field_78, 0, hostile);
     }
     unsigned int player = projectile->owner;
-    Player_00499eb0* record = (Player_00499eb0*)((char*)g_game + player * 0x14b + 0x1b63);
-    if (!record->active || record->state != 3) {
+    Player* record = (Player*)((char*)g_game + player * 0x14b + 0x1b63);
+    if (!record->active || record->type != 3) {
         if (type->field_d6 <= 0x10 && unit) {
             int damage = ApplyWeaponDamage(projectile, unit, 1.0f);
             Unit* source = projectile->unit;
@@ -926,7 +886,8 @@ void __stdcall DetonateProjectile(Projectile_00499eb0* projectile, Unit* unit)
                     a = damage;
                 else
                     b = damage;
-                ((Holder_00499eb0*)source->player)->object->MarkOwnerNetDirtyFromDamageSplit(projectile, a & 0xffff, b & 0xffff);
+                // The player's ai pointer is the SquadManager the method belongs to.
+                ((SquadManager*)source->player->ai)->MarkOwnerNetDirtyFromDamageSplit(projectile, a & 0xffff, b & 0xffff);
                 return;
             }
         } else {
@@ -990,7 +951,7 @@ union Fixed_0049a120 {
     } part;
 };
 
-struct FixedVec3_0049a120 {
+struct FixedVec3 {
     Fixed_0049a120 x;
     Fixed_0049a120 y;
     Fixed_0049a120 z;
@@ -1234,6 +1195,19 @@ short __stdcall SolveLaunchAngle(int x, int height, int z, int speed, float angl
     return (short)(use / PI);
 }
 
+// Unused here: real functions declared for their symbol ids, which keep
+// 0x49aa80 matching (docs/c2-regalloc.md).
+void RegisterUnitOrders();
+void RegisterGroundOrders();
+void EnableAICommands();
+void RegisterAICommands();
+void ResetAIPlayers();
+void RegisterVtolOrders();
+void StepAllGafSequences();
+void ResetNetStats();
+void InitCommands();
+void RefreshSelectionOrders();
+
 // 0x49aa80's file included <windows.h> and <stdio.h> here for the operand
 // order in the height check; both are already included above.
 #pragma pack(push, 1)
@@ -1264,11 +1238,6 @@ struct WeaponDef_0049aa80 {
         unsigned int bit16 : 1;        // tested here (skip the team check)
         unsigned int bit17_31 : 15;
     } flags;                           // +0x111
-};
-
-struct UnitDef_0049aa80 {
-    char unknown_0[0x170];
-    short field_170;                   // +0x170
 };
 
 #pragma pack(pop)
@@ -1311,7 +1280,7 @@ int __stdcall WeaponCanReachPos(Unit* a1, Vec3_0049aa80* a2, Vec3_0049aa80* a3, 
     if (wdef->flags.bit16)
         return 1;
 
-    if (a2->y.parts.whole + ((UnitDef_0049aa80*)a1->utype)->field_170 <= g_game->seaLevel)
+    if (a2->y.parts.whole + a1->utype->field_170 <= g_game->seaLevel)
         return 0;
 
     if (wdef->flags.bit1) {
@@ -1342,19 +1311,6 @@ struct WeaponDef_0049abb0 {
         unsigned int bit17 : 1;                     // target must be landed
         unsigned int bit18_31 : 14;
     } flags;                                        // +0x111
-};
-
-struct UnitDef_0049abb0 {
-    char unknown_0[0x170];
-    short height;                                   // +0x170
-    char unknown_172[0x241 - 0x172];
-    struct {
-        unsigned int bit0_11 : 12;
-        unsigned int bit12 : 1;                     // half height counts
-        unsigned int bit13_18 : 6;
-        unsigned int bit19 : 1;                     // ignore sea level
-        unsigned int bit20_31 : 12;
-    } flags;                                        // +0x241
 };
 
 #pragma pack(pop)
@@ -1399,17 +1355,17 @@ int __stdcall WeaponCanReachUnit(Unit* unit1, Unit* unit2, unsigned char weapon)
     WeaponDef_0049abb0* w = (WeaponDef_0049abb0*)unit1->slots[weapon].shot;
 
     if (w->flags.bit16) {
-        if (!((UnitDef_0049abb0*)unit2->utype)->flags.bit19 && unit2->pos_0049abb0.y.parts.whole > g_game->seaLevel)
+        if (!(unit2->utype->flags1 & 0x80000) && unit2->pos_0049abb0.y.parts.whole > g_game->seaLevel)
             return 0;
         // Written (height >> 1) + whole: sets the add's operand order.
-        if (((UnitDef_0049abb0*)unit2->utype)->flags.bit12 && (((UnitDef_0049abb0*)unit2->utype)->height >> 1) + unit2->pos_0049abb0.y.parts.whole > g_game->seaLevel)
+        if ((unit2->utype->flags1 & 0x1000) && (unit2->utype->field_170 >> 1) + unit2->pos_0049abb0.y.parts.whole > g_game->seaLevel)
             return 0;
         return Dist2_0049abb0(&unit1->pos_0049abb0, &unit2->pos_0049abb0) <= w->range * w->range;
     }
 
-    if (unit1->pos_0049abb0.y.parts.whole + ((UnitDef_0049abb0*)unit1->utype)->height <= g_game->seaLevel)
+    if (unit1->pos_0049abb0.y.parts.whole + unit1->utype->field_170 <= g_game->seaLevel)
         return 0;
-    if (unit2->pos_0049abb0.y.parts.whole + ((UnitDef_0049abb0*)unit2->utype)->height <= g_game->seaLevel)
+    if (unit2->pos_0049abb0.y.parts.whole + unit2->utype->field_170 <= g_game->seaLevel)
         return 0;
     if (w->flags.bit17 && (unit2->flags & 3) != 2)
         return 0;
@@ -1552,12 +1508,6 @@ void __stdcall ApplyProjectileHitPacket(int unused, ProjectileDetonatePacket* p)
 
 struct Weapon_0049b000;
 
-struct UnitType_0049b000 {
-    char unknown_0[0x220];
-    Weapon_0049b000* weapon1;          // +0x220
-    Weapon_0049b000* weapon2;          // +0x224
-};
-
 #pragma pack(push, 1)
 struct Projectile_0049b000 {
     Weapon_0049b000* weapon;           // +0x0
@@ -1579,8 +1529,9 @@ void __stdcall DetonateProjectile(Projectile_0049b000* proj, int flag);
 // FUNCTION: 0x49b000
 void __stdcall DetonateUnitWeapon(Unit* unit, int second)
 {
-    Weapon_0049b000* weapon = second ? ((UnitType_0049b000*)unit->utype)->weapon2
-                                     : ((UnitType_0049b000*)unit->utype)->weapon1;
+    // The self-destruct and explosion weapons of the unit's definition.
+    Weapon_0049b000* weapon = second ? (Weapon_0049b000*)unit->utype->selfdestructas
+                                     : (Weapon_0049b000*)unit->utype->explodeas;
     if (weapon) {
         Projectile_0049b000 proj;
         proj.weapon = weapon;
@@ -2595,7 +2546,7 @@ int __stdcall FireTurretWeapon(Unit* fire, Unit* unit,
         GetWeaponPiecePosition(fire, &gunpos, unit->f_1b >> 2 & 3, -1);
         unit->f_16 += fire->f_66;
         // Re-read unit->f_c here and in the tail instead of using def.
-        short spread = unit->f_c->f_104 - (short)((fire->f_108 << 11) / fire->f_92->divisor) + 0x800;
+        short spread = unit->f_c->f_104 - (short)((fire->f_108 << 11) / fire->utype->maxHealth) + 0x800;
         int parts = fire->f_b8 / 12;
         if (parts > 1)
             spread = (unsigned short)spread / parts;
@@ -3070,9 +3021,9 @@ void __stdcall InitUnitWeaponSlots(Unit* unit)
         UnitWeaponSlot* s = &unit->slots[frame.i];
         s->field_8 = 0;
         s->flags = (s->flags & 0xf2) | ((frame.i & 3) << 2);
-        s->attached = unit->utype->attached[frame.i];
+        s->attached = (Unit*)unit->utype->weapons[frame.i];
         // Read team inline with no named temporary; field_e is zeroed after this line.
-        s->flags = (s->flags & 0xfd) | (((unit->utype->attached[frame.i]->team != 0) & 1 | 8) * 2);
+        s->flags = (s->flags & 0xfd) | (((((Unit*)unit->utype->weapons[frame.i])->team != 0) & 1 | 8) * 2);
         s->field_e = 0;
         Vec3 a;
         GetWeaponPiecePosition(unit, &a, frame.i, -1);
@@ -3189,7 +3140,7 @@ void __stdcall UpdateUnitWeapons(Unit* unit) {
                 int n = unit->f_b8 / 5;
                 if (n > 5)
                     n = 5;
-                int q = unit->f_108 * 20 / unit->mtype->f_1fa;
+                int q = unit->f_108 * 20 / unit->utype->maxHealth;
                 int pct = 100 - n * 6;
                 e->f_14 = (short)((120 - q) * (pct * attached->f_e4 / 100) / 100);
             }

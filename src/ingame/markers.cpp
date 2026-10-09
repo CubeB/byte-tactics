@@ -63,10 +63,10 @@ struct View {
 
 struct Weapon {
     char unknown_0[0xd6];
-    unsigned short field_d6;          // +0xd6
+    unsigned short areaOfEffect;      // +0xd6
     char unknown_d8[0xdc - 0xd8];
     int range;                        // +0xdc
-    int field_e0;                     // +0xe0
+    int coverage;                     // +0xe0
 };
 
 struct UnitWeaponSlot {                // 0x1c bytes
@@ -369,7 +369,7 @@ void __stdcall DrawUnitRangeRings(void* surface, View* view, Order* order,
             DrawRangeCircle(surface, view, &order->unit->pos, mincloak, g_game->shadowColor, 0, 0);
         }
         if ((def->flags & 0x10000000) && def->weapon_220 != 0) {
-            int r = def->weapon_220->field_d6;
+            int r = def->weapon_220->areaOfEffect;
             r = r >> 1;
             unsigned int t = (g_game->frame % 60) * r * 2 / 60;
             // Single ternary: any if-form spills radius.
@@ -571,13 +571,13 @@ void __stdcall DrawWeaponCoverage(void* surface, View* view, Order* order,
             color = g_game->field_dd7;
         for (int i = 0; i < 3; i++) {
             if (u->weapons[(unsigned char)i].flags & 2) {
-                if (u->weapons[i].weapon->field_d6 != 0) {
+                if (u->weapons[i].weapon->areaOfEffect != 0) {
                     sprintf(buf, "weapon %d - area of effect", i);
-                    DrawRangeCircle(surface, view, &pos, u->weapons[i].weapon->field_d6, color, buf, 0);
+                    DrawRangeCircle(surface, view, &pos, u->weapons[i].weapon->areaOfEffect, color, buf, 0);
                 }
-                if (u->weapons[i].weapon->field_e0 != 0) {
+                if (u->weapons[i].weapon->coverage != 0) {
                     sprintf(buf, "weapon %d - coverage", i);
-                    DrawRangeCircle(surface, view, &pos, u->weapons[i].weapon->field_e0, color, buf, 1);
+                    DrawRangeCircle(surface, view, &pos, u->weapons[i].weapon->coverage, color, buf, 1);
                 }
             }
         }

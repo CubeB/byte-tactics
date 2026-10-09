@@ -20200,10 +20200,10 @@ union Fixed_00407ae0 {  // 0x4 bytes, 1 view
 
 class SpatialTimer : public Base {    // 0x3c bytes, 4 views
 public:
-    Vec3 a;  // +0x14
-    Vec3 b;  // +0x20
-    Vec3 c;  // +0x2c
-    int field_38;  // +0x38
+    Vec3 best;  // +0x14
+    Vec3 probe;  // +0x20
+    Vec3 step;  // +0x2c
+    int bestRating;  // +0x38
     SpatialTimer(SpatialTimer&);
     SpatialTimer(AI*, void*);
     virtual void OnTimer(void);

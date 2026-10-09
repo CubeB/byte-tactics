@@ -773,8 +773,8 @@ public:
 struct Def_0042a610 {
     char unknown_0[0x20];
     char name[0x122];                  // +0x20
-    unsigned int field_142;            // +0x142
-    unsigned int field_146;            // +0x146
+    unsigned int scriptChecksum;       // +0x142
+    unsigned int weaponHashXor;        // +0x146
 };
 #pragma pack(pop)
 
@@ -786,12 +786,12 @@ void __cdecl ProtectBlockReadOnly(void* p);
 
 // Loads a unit type's script (scripts\NAME.cob), every GUI file matching
 // guis\NAME*.gui and its download file (download\NAME.tdf), XORs the 4-byte
-// checksum of each file into field_142, and locks the unit type table while
-// reading. Does nothing once field_142 is nonzero.
+// checksum of each file into scriptChecksum, and locks the unit type table while
+// reading. Does nothing once scriptChecksum is nonzero.
 // FUNCTION: 0x42a610
 void __stdcall ComputeUnitScriptChecksum(Def_0042a610* def)
 {
-    if (def->field_142)
+    if (def->scriptChecksum)
         return;
 
     ProtectBlockReadWrite(g_game->unitDefs);
@@ -801,7 +801,7 @@ void __stdcall ComputeUnitScriptChecksum(Def_0042a610* def)
     BuildDataPath(path, "scripts", def->name, "cob");
     void* data = HAPI_LoadFile(path, &size);
     if (data) {
-        def->field_142 ^= ComputeChecksum((unsigned char*)data, size);
+        def->scriptChecksum ^= ComputeChecksum((unsigned char*)data, size);
         GameFreeThunk(data);
     }
 
@@ -817,7 +817,7 @@ void __stdcall ComputeUnitScriptChecksum(Def_0042a610* def)
         BuildDataPath(path, "guis", files[i].p, "gui");
         void* data2 = HAPI_LoadFile(path, &size);
         if (data2) {
-            def->field_142 ^= ComputeChecksum((unsigned char*)data2, size);
+            def->scriptChecksum ^= ComputeChecksum((unsigned char*)data2, size);
             GameFreeThunk(data2);
         }
     }
@@ -829,14 +829,14 @@ void __stdcall ComputeUnitScriptChecksum(Def_0042a610* def)
         if (size > 0) {
             void* data3 = HAPI_LoadOpenFile(path, f, 0);
             if (data3) {
-                def->field_142 ^= ComputeChecksum((unsigned char*)data3, size);
+                def->scriptChecksum ^= ComputeChecksum((unsigned char*)data3, size);
                 GameFreeThunk(data3);
             }
         }
         HAPI_CloseFile(f);
     }
 
-    def->field_142 ^= def->field_146;
+    def->scriptChecksum ^= def->weaponHashXor;
     ProtectBlockReadOnly(g_game->unitDefs);
 }
 

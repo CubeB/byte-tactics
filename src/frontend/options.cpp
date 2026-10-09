@@ -638,11 +638,7 @@ struct Layer {
     void* data;                        // +0xc
 };
 
-// The surface laid out by AllocSurface: the pixels follow a 0x30-byte header.
-struct Surface {
-    char unknown_0[0xc];
-    char* pixels;                   // +0xc
-};
+#include "../graphics/surface.h"
 
 struct GafFrame {
     unsigned short width;              // +0x0

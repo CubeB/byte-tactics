@@ -3148,7 +3148,7 @@ address,size,file,symbol,status,similarity
 0x4de0f0,10,src/debug/debug_lib.cpp,?CloseLoadedImage@@YGXXZ,matched,100.0
 0x4de100,8,src/debug/debug_lib.cpp,?GetModuleBase@@YGXHH@Z,matched,100.0
 0x4de110,105,src/debug/debug_lib.cpp,?UnloadImageHelp@@YGXXZ,matched,100.0
-0x4de180,823,src/debug/debug_lib_4de180.cpp,?LoadImageHelp@@YADD@Z,matched,100.0
+0x4de180,823,src/debug/debug_lib.cpp,?LoadImageHelp@@YADD@Z,matched,100.0
 0x4de4c0,1,src/debug/debug_lib.cpp,?ImageHlpAtexitHandler@@YGXXZ,matched,100.0
 0x4de4d0,109,src/debug/debug_lib.cpp,?TryEnableImageHlpLines@@YGDXZ,matched,100.0
 0x4de540,1,src/debug/debug_lib.cpp,?ImageHlpLinesAtexitHandler@@YGXXZ,matched,100.0
@@ -3163,7 +3163,7 @@ address,size,file,symbol,status,similarity
 0x4df1d0,1,src/debug/debug_lib.cpp,?FpuFussyAtexitHandler@@YGXXZ,matched,100.0
 0x4df1e0,102,src/debug/debug_lib.cpp,??0PerformanceDialog@@QAE@XZ,matched,100.0
 0x4df250,46,src/debug/debug_lib.cpp,?CreatePerformanceDialog@PerformanceDialog@@QAEXXZ,matched,100.0
-0x4df280,163,src/debug/debug_lib_4df280.cpp,?SetPerformanceWindowVisible@PerformanceDialog@@QAEXD@Z,matched,100.0
+0x4df280,163,src/debug/debug_lib.cpp,?SetPerformanceWindowVisible@PerformanceDialog@@QAEXD@Z,matched,100.0
 0x4df330,76,src/debug/debug_lib.cpp,?PerformanceDlgProc@@YGHPAXIIJ@Z,matched,100.0
 0x4df380,340,src/debug/debug_lib.cpp,?SyncSelectedText@PerformanceDialog@@QAEXXZ,matched,100.0
 0x4df4e0,175,src/debug/debug_lib.cpp,?EnableControls@PerformanceDialog@@QAEXXZ,matched,100.0
@@ -3179,7 +3179,7 @@ address,size,file,symbol,status,similarity
 0x4e0520,67,src/debug/debug_lib.cpp,?LoadWorkingSetPref@MemoryStatusDialog@@QAEXH@Z,matched,100.0
 0x4e0570,73,src/debug/debug_lib.cpp,??0MemoryStatusDialog@@QAE@XZ,matched,100.0
 0x4e05c0,46,src/debug/debug_lib.cpp,?CreateMemoryStatusDialog@MemoryStatusDialog@@QAEXXZ,matched,100.0
-0x4e05f0,168,src/debug/debug_lib_4e05f0.cpp,?SetMemoryStatusWindowVisible@MemoryStatusDialog@@QAEXD@Z,matched,100.0
+0x4e05f0,168,src/debug/debug_lib.cpp,?SetMemoryStatusWindowVisible@MemoryStatusDialog@@QAEXD@Z,matched,100.0
 0x4e06a0,76,src/debug/debug_lib.cpp,?MemoryStatusDlgProc@@YGHPAXIIJ@Z,matched,100.0
 0x4e06f0,50,src/debug/debug_lib.cpp,?GetMemStatusLock@@YGPAU_RTL_CRITICAL_SECTION@@XZ,matched,100.0
 0x4e0730,1,src/debug/debug_lib.cpp,?MemStatusLockAtexitHandler@@YGXXZ,matched,100.0
@@ -3206,7 +3206,7 @@ address,size,file,symbol,status,similarity
 0x4e1ac0,50,src/debug/debug_lib.cpp,?GetNameTableLock@@YGPAVCritSec_004e1ac0@@XZ,matched,100.0
 0x4e1b00,1,src/debug/debug_lib.cpp,?NameTableLockAtexitHandler@@YGXXZ,matched,100.0
 0x4e1b10,195,src/debug/debug_lib.cpp,?SyncPerformanceSettings@@YAXH@Z,matched,100.0
-0x4e1be0,305,src/debug/debug_lib_4e1be0.cpp,?InitPerformanceEvents@@YGXXZ,matched,100.0
+0x4e1be0,305,src/debug/debug_lib.cpp,?InitPerformanceEvents@@YGXXZ,matched,100.0
 0x4e1d20,30,src/debug/debug_lib.cpp,??0Timer@@QAE@H@Z,matched,100.0
 0x4e1d40,26,src/debug/debug_lib.cpp,??0Timer@@QAE@HH@Z,matched,100.0
 0x4e1d60,122,src/debug/debug_lib.cpp,?StartTimer@Timer@@QAEXHH@Z,matched,100.0

@@ -11,18 +11,16 @@
 // name table.
 //
 // The files the gathers left in their own places stay there: 0x4d8310,
-// 0x4d8870, 0x4d8d70, 0x4d9ab0, 0x4da120, 0x4da2c0, 0x4e16b0 and
-// 0x4e1e50 (with 0x4e20a0) are gap regions; 0x4dacf0, 0x4db610,
+// 0x4d8870, 0x4d8d70, 0x4d9ab0, 0x4da120, 0x4da2c0, 0x4e16b0, 0x4e1e50
+// (with 0x4e20a0) and 0x4e35b0 are gap regions; 0x4dacf0, 0x4db610,
 // 0x4db7d0, 0x4dfd10, 0x4dfd50, 0x4e1990, 0x4e21f0, 0x4e2580 and
 // 0x4e2620 each match only in their own file (see the notes where the
 // rest of their part's functions sit).
 //
-// The join left eight more functions in files of their own, because in
+// The join left four more functions in files of their own, because in
 // this file's symbol context their register allocation lands differently
 // (docs/c2-regalloc.md): 0x4da3f0 (debug_lib_4da3f0.cpp), 0x4db1c0
-// (free_block_map.cpp), 0x4de180 (debug_lib_4de180.cpp), 0x4df280
-// (debug_lib_4df280.cpp), 0x4e05f0 (debug_lib_4e05f0.cpp), 0x4e0b90
-// (memory_status_dialog.cpp), 0x4e1be0 (debug_lib_4e1be0.cpp) and
+// (free_block_map.cpp), 0x4e0b90 (memory_status_dialog.cpp) and
 // 0x4e3750 (debug_lib_4e3750.cpp).
 #define NOMINMAX
 // The debug library's allocator and page protection: the memfussy, gonzo and
@@ -3904,10 +3902,80 @@ void UnloadImageHelp()
 }
 #pragma auto_inline(on)
 
-// 0x4de180 LoadImageHelp stays in src/debug/debug_lib_4de180.cpp: joined into
-// this file its register allocation lands differently
-// (docs/c2-regalloc.md).
-char __cdecl LoadImageHelp(char param);
+// FUNCTION: 0x4de180
+char __cdecl LoadImageHelp(char param)
+{
+    static CommandLineSwitch imagehlp("imagehlp", 0, 1, "-enableimagehlp",
+                                   "-disableimagehlp", 0, 0);
+    char path[0x100];
+    char symPath[0x3e8];
+    // Declared bare and assigned 0 as a statement just before GetModuleFileNameA.
+    char* searchPath;
+    char* windir;
+    char* slash;
+    typedef int (__stdcall *GetProcAddress_004de180)(HMODULE, char*);
+    GetProcAddress_004de180 getProcAddress = (GetProcAddress_004de180)GetProcAddress;
+    HANDLE (__stdcall *getCurrentProcess)(void) = GetCurrentProcess;
+
+    if (!param && !imagehlp.on)
+        return 0;
+    if (g_imageHelpLoaded)
+        return g_imageHelpInited;
+    g_imageHelpLoaded = 1;
+    if (!(g_imageHelpModule = LoadLibraryA("IMAGEHLP.DLL")))
+        return 0;
+    if (!(g_pfnSymSetOptions = (SymSetOptions_004de180)getProcAddress(g_imageHelpModule, "SymSetOptions")))
+        return 0;
+    if (!(g_pfnSymInitialize = (SymInitialize_004de180)getProcAddress(g_imageHelpModule, "SymInitialize")))
+        return 0;
+    if (!(g_pfnSymCleanup = (BOOL (__stdcall*)(HANDLE))getProcAddress(g_imageHelpModule, "SymCleanup")))
+        return 0;
+    if (!(g_pfnStackWalk = (StackWalk_004de700)getProcAddress(g_imageHelpModule, "StackWalk")))
+        return 0;
+    if (!(g_pfnSymFunctionTableAccess = (SymProc_004de180)getProcAddress(g_imageHelpModule, "SymFunctionTableAccess")))
+        return 0;
+    if (!(g_pfnSymGetModuleBase = (SymProc_004de180)getProcAddress(g_imageHelpModule, "SymGetModuleBase")))
+        return 0;
+    g_pfnSymGetSymFromAddr = (SymProc_004de180)getProcAddress(g_imageHelpModule, "SymGetSymFromAddr");
+    g_pfnSymGetLineFromAddr = (SymProc_004de180)getProcAddress(g_imageHelpModule, "SymGetLineFromAddr");
+    g_pfnUnDecorateSymbolName = (SymProc_004de180)getProcAddress(g_imageHelpModule, "UnDecorateSymbolName");
+    DWORD symOpts = 4;
+    if (g_pfnSymGetLineFromAddr)
+        symOpts = 0x14;
+    g_pfnSymSetOptions(symOpts);
+    searchPath = 0;
+    if (GetModuleFileNameA((HMODULE)searchPath, path, sizeof(path))) {
+        windir = getenv("windir");
+        if (windir) {
+            if (strlen(path) + strlen(windir) < 0x3e8) {
+                strcpy(symPath, windir);
+                slash = strrchr(path, '\\');
+                if (slash) {
+                    *slash = 0;
+                    strcat(symPath, ";");
+                    strcat(symPath, path);
+                }
+                searchPath = symPath;
+            }
+        }
+    }
+    // The second SymInitialize passes this result as its last argument, not a literal.
+    BOOL inited = g_pfnSymInitialize(getCurrentProcess(), searchPath, 1);
+    if (!inited) {
+        g_pfnSymFunctionTableAccess = (SymProc_004de180)FunctionTableAccess;
+        g_pfnSymGetModuleBase = (SymProc_004de180)GetModuleBase;
+        g_pfnSymGetSymFromAddr = 0;
+        g_pfnSymGetLineFromAddr = 0;
+        if (!g_pfnSymInitialize(getCurrentProcess(), searchPath, inited)) {
+            GetLastError();
+            UnloadImageHelp();
+            g_imageHelpLoaded = 1;
+            return 0;
+        }
+    }
+    g_imageHelpInited = 1;
+    return 1;
+}
 
 // FUNCTION: 0x4de4c0
 void ImageHlpAtexitHandler(void)
@@ -4905,9 +4973,25 @@ void PerformanceDialog::CreatePerformanceDialog(void)
 #pragma auto_inline(on)
 
 // The original calls this out of line from 0x4df590 and 0x4dfd00.
-// 0x4df280 PerformanceDialog::SetPerformanceWindowVisible stays in src/debug/debug_lib_4df280.cpp: joined into
-// this file its register allocation lands differently
-// (docs/c2-regalloc.md).
+// FUNCTION: 0x4df280
+void PerformanceDialog::SetPerformanceWindowVisible(char show)
+{
+    if (show) {
+        if (hwnd) {
+            EnableWindow(hwnd, 1);
+            SetFocus(hwnd);
+            SetForegroundWindow(hwnd);
+            RestoreWindow(hwnd, g_performanceWindowName, 1.0, 1.0);
+            SetTimer(hwnd, 1, 200, 0);
+        } else {
+            flag_20 = 1;
+        }
+    } else if (IsWindowVisible(hwnd)) {
+        KillTimer(hwnd, 1);
+        SaveWindowPosition(hwnd, g_performanceWindowName);
+        ShowWindow(hwnd, 0);
+    }
+}
 
 // FUNCTION: 0x4df330
 BOOL __stdcall PerformanceDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -5571,9 +5655,28 @@ void UnloadPsapi(void);
 
 // The original calls this from HandleMemoryStatusMessage and ShowMemoryStatus
 // rather than inlining it.
-// 0x4e05f0 MemoryStatusDialog::SetMemoryStatusWindowVisible stays in src/debug/debug_lib_4e05f0.cpp: joined into
-// this file its register allocation lands differently
-// (docs/c2-regalloc.md).
+// FUNCTION: 0x4e05f0
+void MemoryStatusDialog::SetMemoryStatusWindowVisible(char on)
+{
+    if (on) {
+        if (hwnd != NULL) {
+            EnableWindow(hwnd, TRUE);
+            SetFocus(hwnd);
+            SetForegroundWindow(hwnd);
+            RestoreWindow(hwnd, g_memoryStatusWindowName, 1.0, 1.0);
+            SetTimer(hwnd, 1, 200, NULL);
+            return;
+        }
+        flag_78 = 1;
+        return;
+    }
+    if (IsWindowVisible(hwnd)) {
+        KillTimer(hwnd, 1);
+        SaveWindowPosition(hwnd, g_memoryStatusWindowName);
+        ShowWindow(hwnd, SW_HIDE);
+        UnloadPsapi();
+    }
+}
 
 // Dialog procedure: on WM_INITDIALOG it stores the object passed as lParam in
 // the window's user data (and the window handle in the object's first field),
@@ -6137,9 +6240,37 @@ void __cdecl SyncPerformanceSettings(int readOnly)
 void __cdecl SyncPerformanceSettings(int arg);
 int GetCpuFamily(void);
 
-// 0x4e1be0 InitPerformanceEvents stays in src/debug/debug_lib_4e1be0.cpp: joined into
-// this file its register allocation lands differently
-// (docs/c2-regalloc.md).
+// FUNCTION: 0x4e1be0
+void InitPerformanceEvents(void)
+{
+    if (g_pmcEventCatalog == 0) {
+        g_pmcEventCatalog = g_pentiumProEvents;
+        g_pmcEventCount = 0x11;
+        SyncPerformanceSettings(1);
+        if (HasPerfCounters() != 0) {
+            if (GetCpuFamily() < 6) {
+                g_pmcEventCatalog = g_pentiumEvents;
+                g_pmcEventCount = 8;
+            }
+            EventEntry* table = g_pmcEventCatalog;
+            int count = g_pmcEventCount;
+            // The pointer locals (declared in this order) make MSVC hoist the
+            // two Event ids into the loop preheader in the original order.
+            EventEntry* e1 = &g_pmcEvent1;
+            EventEntry* e0 = &g_pmcEvent0[0];
+            for (int i = 0; i < count; i++) {
+                if (e0->field_0 == table[i].field_0)
+                    *e0 = table[i];
+                if (e1->field_0 == table[i].field_0)
+                    *e1 = table[i];
+            }
+            if (g_pmcEvent0[0].text == 0)
+                g_pmcEvent0[0] = table[0];
+            if (g_pmcEvent1.text == 0)
+                g_pmcEvent1 = table[0];
+        }
+    }
+}
 
 extern int g_reportIndent;
 extern char g_reportIndentText[];
@@ -6815,12 +6946,19 @@ unsigned char __cdecl RestoreWindowPosition(HWND hwnd, char* name, double zoomX,
     return 0;
 }
 
+// Defined here ahead of its callers, so /Ob2 would inline it into 0x4df280
+// and 0x4e05f0, which the original calls it from out of line.
+#pragma auto_inline(off)
 // FUNCTION: 0x4e33d0
 void __cdecl RestoreWindow(HWND hwnd, char* name, double a, double b)
 {
     RestoreWindowPosition(hwnd, name, a, b, 1);
 }
+#pragma auto_inline(on)
 
+// Defined here ahead of its caller, so /Ob2 would inline it into 0x4df280,
+// which the original calls it from out of line.
+#pragma auto_inline(off)
 // FUNCTION: 0x4e3400
 // Saves where a resizable window sits, under
 // HKCU\Software\Cavedog Entertainment\Cavedog library\WindowPositions\<name>.
@@ -6861,6 +6999,7 @@ void __cdecl SaveWindowPosition(HWND hwnd, char* name)
         }
     }
 }
+#pragma auto_inline(on)
 
 // FUNCTION: 0x4e3710
 bool CloseGdperf()
@@ -6934,11 +7073,15 @@ bool __cdecl WriteGdperf(DWORD a, DWORD b, DWORD c)
 }
 #pragma auto_inline(on)
 
+// The merged file defines this ahead of its only caller, so /Ob2 would inline
+// it into 0x4e1be0, which the original calls it from out of line.
+#pragma auto_inline(off)
 // FUNCTION: 0x4e39a0
 int GetCpuFamily(void)
 {
     return g_cpuFamily;
 }
+#pragma auto_inline(on)
 
 // FUNCTION: 0x4e3e10
 int StringMaxSize(void)

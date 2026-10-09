@@ -55,3 +55,23 @@ reason is what stopped it. A module whose row list is empty is one file.
 | ai/ai_player | src/ai/ai_player_40b1c0.cpp | In the joined file the compiler encodes its table access as `[pointer + id]` instead of the original's `[id + pointer]`. |
 | ai/ai_player | src/ai/ai_player_40b530.cpp | Its `std::_Construct` hook, declared before `<vector>`, changes every `vector<Unit*>` copy in the file. |
 | ai/ai_player | src/ai/ai_player_40c530.cpp | The out-of-line vector members' register allocation follows the emissions in that file; in the joined file four fall out of their windows and splitting just those four out does not help. |
+| debug/debug_lib | src/debug/debug_lib_4d8310.cpp | Gap region: its `int 3` inline assembly, which the merged game file cannot carry. |
+| debug/debug_lib | src/debug/debug_lib_4d8870.cpp | Gap region: the `TraceRecord` constructor's inline stack-walk assembly. |
+| debug/debug_lib | src/debug/debug_lib_4d8d70.cpp | Gap region: the inline `mov top, esp`. |
+| debug/debug_lib | src/debug/debug_lib_4d9ab0.cpp | Gap region: its `int 3` inline assembly and `__except` handler. |
+| debug/debug_lib | src/debug/debug_lib_4da120.cpp | Gap region compiled `/Od`; every value goes through its local. |
+| debug/debug_lib | src/debug/debug_lib_4da2c0.cpp | Gap region compiled `/Od`; the debug thread started by 0x4da1d0. |
+| debug/debug_lib | src/debug/debug_lib_4da3f0.cpp | Joined, the `text + (size - len) - 1` destination is computed with its operands in the other order. |
+| debug/debug_lib | src/debug/debug_lib_4dacf0.cpp | It inlines `FreeBlockIter`'s begin/end from the file's own view of the free-block classes. |
+| debug/debug_lib | src/debug/debug_lib_4db610.cpp | Its constructor builds the `std::map` member from the file's own view of the class. |
+| debug/debug_lib | src/debug/debug_lib_4db7d0.cpp | It inlines the FreeBlockMap `upper_bound` stub from the file's own view of the class. |
+| debug/debug_lib | src/debug/debug_lib_4dfd10.cpp | The singleton's atexit term function is the file's first static; joined, 0x4dfd50 loses the `_$E2` name the placement build knows. |
+| debug/debug_lib | src/debug/debug_lib_4dfd50.cpp | It is the `_$E2` term function the static in 0x4dfd10 generates; joined it is not the file's first static. |
+| debug/debug_lib | src/debug/debug_lib_4e16b0.cpp | Gap region. |
+| debug/debug_lib | src/debug/debug_lib_4e1990.cpp | Merged, `/Ob2` inlines `NameKey::LessThan` at the 0x4e1a30 call site, which the original calls out of line. |
+| debug/debug_lib | src/debug/debug_lib_4e1e50.cpp | Gap region (with 0x4e20a0). |
+| debug/debug_lib | src/debug/debug_lib_4e21f0.cpp | Its 0.0 and 5.0 constants sit in a different constant pool from the memory status dialog's 0.0. |
+| debug/debug_lib | src/debug/debug_lib_4e2580.cpp | Its `NameMapTree` is keyed by `const char*` and returns its own iterator, not the `NameKey`-keyed view the tree methods use. |
+| debug/debug_lib | src/debug/debug_lib_4e2620.cpp | Its `NameMapTree` carries the tree fields and its own rotations, where 0x4e2250's inherits them from the XTREE chain. |
+| debug/debug_lib | src/debug/debug_lib_4e35b0.cpp | Gap region. |
+| debug/debug_lib | src/debug/debug_lib_4e3750.cpp | Joined, its register allocation lands differently, and its inlined GDPERF calls come out differently. |

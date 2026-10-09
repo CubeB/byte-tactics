@@ -9,15 +9,15 @@
 // on), so a lookup is the angle's top 10 bits.
 //
 // int  FixedSine(unsigned short angle)        sine table entry (sin * 0x2000)
-// int  FUN_004b70c0(unsigned short angle)        cosine table entry
-// int  FUN_004b70e0(int a, int b)                (a * b) >> 32
+// int  (unsigned short angle)                    cosine table entry (0x4b70c0)
+// int  (int a, int b)                            (a * b) >> 32 (0x4b70e0)
 // int  FUN_004b70ef(short angle, int scale)      scale * sin(angle), rounded
 // int  FUN_004b7123(short angle, int scale)      scale * cos(angle), rounded
 // int  FUN_004b715a(int x, int z)                atan2(z, x) as an angle
 // void FUN_004b7173(short angle, int* xz)        rotate the point xz by angle
-// void FUN_004b71a7(short* angles)               build the rotation matrix DAT_0050a400
-//                                                from the angles at +0xc, +0xe, +0x10
-// void FUN_004b72e2(int* in, int* out)           out = DAT_0050a400 applied to in
+// void (short* angles)                           build the rotation matrix DAT_0050a400
+//                                                from the angles at +0xc, +0xe, +0x10 (0x4b71a7)
+// void (int* in, int* out)                       out = DAT_0050a400 applied to in (0x4b72e2)
 // int  FUN_004b7381(int a, int b, int c)         a * b / c, or 0 when c is 0
 
 // GLOBAL: 0x509f00
@@ -27,7 +27,7 @@ extern "C" short DAT_0050a000[];        // the sine table from a quarter turn on
 extern "C" double g_radToAngle16;       // 0x8000 / pi: radians to angle units
 // GLOBAL: 0x509ef8
 extern "C" double g_angle16ToRad;       // pi / 0x8000: angle units to radians
-extern "C" int DAT_0050a400[9];         // the rotation matrix FUN_004b71a7 builds
+extern "C" int DAT_0050a400[9];         // the rotation matrix 0x4b71a7 builds
 
 // Stays in its own file: it is a gap region's hand-written assembly, which
 // the builds place apart from the game's functions in src/util/math.cpp.

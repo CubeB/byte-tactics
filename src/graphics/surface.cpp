@@ -2223,11 +2223,9 @@ Class_004c9310* Class_004c9310::MakeUpper()
 
 // Reference-count decrement and free for a reference-counted string handle
 // (see the copy constructor at 0x4c91a0 and assignment at 0x4c93b0, which
-// share the same shape). data/symbols.csv already names this address and
-// class independently (Class_004c9390::ReleaseRef), and every existing
-// caller (map_list.cpp, 0x432c00.cpp, 0x488a00.cpp, 0x4b75d0.cpp) already
-// calls it that way as a plain method, so that established name is kept
-// here rather than renamed to Class_004c91a0::~Class_004c91a0.
+// share the same shape). data/symbols.csv names this address and its class
+// Class_004c9390::ReleaseRef, and every caller (map_list.cpp, 0x432c00.cpp,
+// 0x488a00.cpp, 0x4b75d0.cpp) calls it as a plain method of that class.
 
 extern "C" void __cdecl free(void*);
 

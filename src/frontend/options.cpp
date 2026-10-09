@@ -74,7 +74,9 @@ struct Gadget {                        // 0x15b bytes
             void* records;             // +0xd2
         };
         struct {                       // entry 0's own fields
-            char unknown_b6b[0xc4 - 0xb6];
+            char unknown_b6b[0xbc - 0xb6];
+            Surface* surface;          // +0xbc, the layer's draw surface
+            char unknown_c0[0xc4 - 0xc0];
             int field_c4;              // +0xc4
         };
     };
@@ -537,28 +539,6 @@ struct Sub_0045fb30 {
     char unknown_0[0x10];
 };
 
-struct Info_0045fb30 {
-    char unknown_0[0xb6];
-    short field_b6;                    // +0xb6
-};
-
-struct Layer_00460160 {
-    char unknown_0[8];
-    int (__stdcall* handler)(void*);   // +0x8
-    char unknown_c[0x15 - 0xc];
-    short field_15;                    // +0x15
-    short field_17;                    // +0x17
-    short field_19;                    // +0x19
-    int attribs;                       // +0x1b
-    char unknown_1f[0xbc - 0x1f];
-    Surface* field_bc;                 // +0xbc
-};
-
-struct Holder_00460160 {
-    char unknown_0[4];
-    Layer_00460160* field_4;           // +0x4
-};
-
 struct Menu_00460160 {
     char unknown_0[0x18];
 };
@@ -637,36 +617,10 @@ void AddDownloadBuildOptions();
 void RegisterVtolOrders();
 void StepAllGafSequences();
 void ResetNetStats();
-
-struct Gadget_0045f190 {
-    char unknown_0[0x60];
-    int selected;                      // +0x60
-};
-
-struct Gadget_0045f770 {
-    char unknown_0[0x60];
-    int selected;                      // +0x60
-};
-
-struct Gadget_0045fac0 {
-    char unknown_0[0x60];
-    int selected;                      // +0x60
-};
-
-struct Gadget_0045fc60 {
-    char unknown_0[0x60];
-    int selected;                      // +0x60
-};
-
-struct Gadget_00460340 {
-    char unknown_0[0x60];
-    int selected;                      // +0x60
-};
-
-struct Gadget_00460800 {
-    char unknown_0[0x60];
-    int selected;                      // +0x60
-};
+void __stdcall StartScreenShake(int dx, int dy, int value);
+void __stdcall KillFeature(int x, int z, int flag);
+void __stdcall ToggleShareLos(int unused);
+void EnableAICommands();
 
 struct Link_0045ead0 {
     void* obj;                                 // +0x0
@@ -674,39 +628,28 @@ struct Link_0045ead0 {
     void (__stdcall* reselect)(void* gadget);  // +0x8
 };
 
-struct Gadget_0045ead0 {
-    char unknown_0[0x18];
-    Link_0045ead0* link;                // +0x18
-    char unknown_1c[0x60 - 0x1c];
-    int selected;                      // +0x60
-};
-
 struct GadgetOwner_004605c0 {
     int unknown_0;
     int field_4;                       // +0x4
 };
 
-struct Gadget_004605c0 {
+// The menu object at g_game+0x519: its +0x18 is the layer above, its +0x60 the
+// id of the entry that was clicked (-1 when the menu is closing).
+struct Gui {
     char unknown_0[0x18];
-    GadgetOwner_004605c0* owner;       // +0x18
+    union {                            // +0x18
+        Link_0045ead0* link;
+        GadgetOwner_004605c0* owner;
+    };
     char unknown_1c[0x60 - 0x1c];
     int selected;                      // +0x60
 };
 
-struct Gadget_004609b0 {
-    char unknown_0[0x60];
-    int selected;                      // +0x60
-};
-
-struct Gadget_00460680 {
+// A layer of the menu stack, what LoadGuiLayer returns: its gadget array and
+// the click handler.
+struct Layer {
     char unknown_0[0x4];
-    char* entries;                     // +0x4
-    void (__stdcall* handler)(void*);  // +0x8
-};
-
-struct Gadget_00460cc0 {
-    char unknown_0[4];
-    Gadget* info;              // +0x4
+    Gadget* entries;                   // +0x4
     void (__stdcall* handler)(void*);  // +0x8
 };
 
@@ -749,18 +692,6 @@ struct Gui_0045e100 {
     int hotGadgetIndex;                // +0x60
 };
 
-struct Info_0045f800 {
-    char unknown_0[0x4];
-    Gadget* info;              // +0x4
-    int (__stdcall* handler)(void*);   // +0x8
-};
-
-struct Gadget_0045fb30 {
-    char unknown_0[0x4];
-    Info_0045fb30* info;               // +0x4
-    int (__stdcall* handler)(void*);   // +0x8
-};
-
 // A dialog loaded from a .GUI file.
 struct Dialog_004604a0 {
     int unknown_0;
@@ -783,12 +714,6 @@ struct Dialog_004608b0 {
     int unknown_0;                     // +0x0
     void* gadgets;                     // +0x4
     void (__stdcall* handler)(void*);  // +0x8
-};
-
-struct Info_004609b0 {
-    char unknown_0[0x4];
-    Gadget* info;              // +0x4
-    int (__stdcall* handler)(void*);   // +0x8
 };
 
 // GLOBAL: 0x511de8
@@ -898,7 +823,7 @@ void __stdcall MarkChanged(Dialog* obj);
 void __stdcall MarkChanged(void* obj);
 void __stdcall MarkChanged(Menu_0045de30* obj);
 void __stdcall MarkChanged(Gui_0045e100* gui);
-void __stdcall MarkChanged(Gadget_0045f770* gadget);
+void __stdcall MarkChanged(Gui* gui);
 void __stdcall MarkChanged(Sub_0045f8c0* sub);
 void __stdcall MarkChanged(char* menu);
 
@@ -913,13 +838,13 @@ int __stdcall LoadGuiLayer(void* obj, char* buf, int size);
 int __stdcall LoadGuiLayer(Menu_0045de30* obj, char* name, int size);
 Layer_0045e5e0* __stdcall LoadGuiLayer(Menu_0045e5e0* menu, char* name, int flags);
 Layer_0045f1d0* __stdcall LoadGuiLayer(Layer_0045f1d0* menu, const char* name, int flags);
-Info_0045f800* __stdcall LoadGuiLayer(Sub_0045f800* sub, const char* name, int flags);
-Gadget_0045fb30* __stdcall LoadGuiLayer(Sub_0045fb30* sub, const char* name, int flags);
+Layer* __stdcall LoadGuiLayer(Sub_0045f800* sub, const char* name, int flags);
+Layer* __stdcall LoadGuiLayer(Sub_0045fb30* sub, const char* name, int flags);
 Dialog_004604a0* __stdcall LoadGuiLayer(Menu_004604a0* menu, const char* name, int flags);
-Gadget_00460680* __stdcall LoadGuiLayer(Sub_00460680* sub, const char* name, int flags);
+Layer* __stdcall LoadGuiLayer(Sub_00460680* sub, const char* name, int flags);
 Dialog_004608b0* __stdcall LoadGuiLayer(Sub_004608b0* sub, const char* name, int flags);
-Info_004609b0* __stdcall LoadGuiLayer(Sub_004609b0* sub, const char* name, int flags);
-Gadget_00460cc0* __stdcall LoadGuiLayer(Gui_00460cc0* sub, const char* name, int flags);
+Layer* __stdcall LoadGuiLayer(Sub_004609b0* sub, const char* name, int flags);
+Layer* __stdcall LoadGuiLayer(Gui_00460cc0* sub, const char* name, int flags);
 
 void __stdcall SetGrayedOutByName(void* obj, char* name, int value);
 void __stdcall SetGrayedOutByName(Dialog* obj, char* name, int value);
@@ -954,19 +879,11 @@ void __stdcall SetTranslatedTextByName(Gui_00460cc0* sub, const char* name, cons
 
 int __stdcall IsCurrentGadgetNamed(void* obj, char* name);
 int __stdcall IsCurrentGadgetNamed(Gui_0045e100* gui, char* name);
-int __stdcall IsCurrentGadgetNamed(Gadget_0045ead0* gadget, char* name);
-int __stdcall IsCurrentGadgetNamed(Gadget_0045f190* gadget, char* name);
-int __stdcall IsCurrentGadgetNamed(Gadget_0045f770* gadget, char* name);
-int __stdcall IsCurrentGadgetNamed(Gadget_0045fac0* gadget, char* name);
-int __stdcall IsCurrentGadgetNamed(Gadget_00460340* gadget, char* name);
-int __stdcall IsCurrentGadgetNamed(Gadget_00460800* gadget, char* name);
-int __stdcall IsCurrentGadgetNamed(Gadget_004609b0* gadget, char* name);
+int __stdcall IsCurrentGadgetNamed(Gui* gui, char* name);
 
 int __stdcall GetButtonStageByName(void* obj, char* name);
 int __stdcall GetButtonStageByName(Gui_0045e100* gui, char* name);
-int __stdcall GetButtonStageByName(Gadget_0045ead0* gadget, char* name);
-int __stdcall GetButtonStageByName(Gadget_0045fac0* gadget, char* name);
-int __stdcall GetButtonStageByName(Gadget_00460340* gadget, char* name);
+int __stdcall GetButtonStageByName(Gui* gui, char* name);
 
 void __stdcall PlaySoundByName(char* name, int value);
 void __stdcall PlayLoopingSoundByName(char* name, int value);
@@ -974,22 +891,14 @@ void __stdcall PlaySoundFile(char* name);
 void __stdcall StopAllSounds();
 void __stdcall ClearSelectedGadget(void* obj);
 void __stdcall ClearSelectedGadget(Gui_0045e100* gui);
-void __stdcall ClearSelectedGadget(Gadget_0045ead0* gadget);
-void __stdcall ClearSelectedGadget(Gadget_0045f190* gadget);
-void __stdcall ClearSelectedGadget(Gadget_0045f770* gadget);
-void __stdcall ClearSelectedGadget(Gadget_0045fac0* gadget);
-void __stdcall ClearSelectedGadget(Gadget_0045fc60* gadget);
-void __stdcall ClearSelectedGadget(Gadget_004605c0* gadget);
-void __stdcall ClearSelectedGadget(Gadget_00460800* gadget);
-void __stdcall ClearSelectedGadget(Gadget_004609b0* gadget);
+void __stdcall ClearSelectedGadget(Gui* gui);
 
 void __stdcall CloseTopScreen(void* queue);
 void __stdcall CloseTopScreen(Gui_0045e100* gui);
-void __stdcall CloseTopScreen(Gadget_0045ead0* gadget);
-void __stdcall CloseTopScreen(Gadget_00460800* gadget);
+void __stdcall CloseTopScreen(Gui* gui);
 void __stdcall SetGadgetStatusByName(void* obj, char* name, int value);
 void __stdcall SetGadgetStatusByName(Menu_0045e5e0* menu, char* name, int value);
-void __stdcall SetGadgetStatus(Gadget_0045fc60* gadget, int id, int flag);
+void __stdcall SetGadgetStatus(Gui* gui, int id, int flag);
 void __stdcall SetButtonStage(Menu_0045e5e0* menu, int index, int value);
 void __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
 int __stdcall LockScreen(Surface_0045fbc0* out);
@@ -1016,10 +925,10 @@ void __stdcall AllocBlinkWords(Sub_0045f800* sub, int value);
 void __stdcall AllocBlinkWords(Sub_004609b0* sub, int value);
 void DrawHelpPage();
 
-int __stdcall HandleBriefingClick(void* gadget);
-int __stdcall HandleHelpClick(void* gadget);
+void __stdcall HandleBriefingClick(void* gadget);
+void __stdcall HandleHelpClick(void* gadget);
 void __stdcall FillHelpPage(Sub_0045fb30* sub, int a, int b);
-void __stdcall FillHelpPage(Gadget_0045fac0* gadget, int a, int b);
+void __stdcall FillHelpPage(Gui* gui, int a, int b);
 int __stdcall FillHelpPage(Sub_004609b0* sub, int a, int b);
 void __stdcall HandleVisualOptionsClick(void* layer);
 void __stdcall HandleVideoModeSlider(Menu_0045b800* obj, int unused);
@@ -1037,7 +946,7 @@ void __stdcall HandleGameSettingsDialogClick(void*);
 void __stdcall HandleRestartDialogClick(void* dialog);
 void __stdcall HandleSurrenderChoice(void* gadget);
 void __stdcall HandleExitMenuClick(void* gadget);
-int __stdcall HandleOptionsPanelClick(void* gadget);
+void __stdcall HandleOptionsPanelClick(void* gadget);
 void __stdcall HandleInGameOptionsClick(void* gadget);
 void ShowLoadGameScreen();
 void ShowSaveGameScreen();
@@ -2259,26 +2168,26 @@ void __stdcall OpenVisualOptions(int param_1)
 }
 
 // FUNCTION: 0x45ead0
-void __stdcall HandleSpeedOptionsClick(Gadget_0045ead0* gadget)
+void __stdcall HandleSpeedOptionsClick(Gui* gui)
 {
-    char* data = gadget->link->data;
-    if (gadget->selected == -1) {
+    char* data = gui->link->data;
+    if (gui->selected == -1) {
         g_game->flags_37ebe.word &= 0xfffe;
         return;
     }
-    if (IsCurrentGadgetNamed((Gadget_0045ead0*)&g_game->gui, "LEFTCLICK")) {
+    if (IsCurrentGadgetNamed((Gui*)&g_game->gui, "LEFTCLICK")) {
         PlaySoundByName("Options", 0);
-        g_game->interfaceType = GetButtonStageByName((Gadget_0045ead0*)&g_game->gui, "LEFTCLICK");
-        ClearSelectedGadget(gadget);
+        g_game->interfaceType = GetButtonStageByName((Gui*)&g_game->gui, "LEFTCLICK");
+        ClearSelectedGadget(gui);
         return;
     }
-    if (IsCurrentGadgetNamed((Gadget_0045ead0*)&g_game->gui, "UNITCHAT")) {
+    if (IsCurrentGadgetNamed((Gui*)&g_game->gui, "UNITCHAT")) {
         PlaySoundByName("Options", 0);
-        ClearSelectedGadget(gadget);
-        g_game->unitChatText = (unsigned char)(GetButtonStageByName((Gadget_0045ead0*)&g_game->gui, "UNITCHAT") * 5);
+        ClearSelectedGadget(gui);
+        g_game->unitChatText = (unsigned char)(GetButtonStageByName((Gui*)&g_game->gui, "UNITCHAT") * 5);
         return;
     }
-    if (IsCurrentGadgetNamed(gadget, "UNDO")) {
+    if (IsCurrentGadgetNamed(gui, "UNDO")) {
         PlaySoundByName("Options", 0);
         g_game->textScroll = g_optionsBackupTextScroll;
         g_game->gameSpeed = g_optionsBackupGameSpeed.s;
@@ -2288,11 +2197,11 @@ void __stdcall HandleSpeedOptionsClick(Gadget_0045ead0* gadget)
         g_game->unitChat = g_optionsBackupUnitChat;
         g_game->unitChatText = g_optionsBackupUnitChatText;
         g_game->textLines = g_optionsBackupTextLines;
-        CloseTopScreen(gadget);
+        CloseTopScreen(gui);
         OpenSpeedOptions();
         return;
     }
-    if (IsCurrentGadgetNamed(gadget, "RESTORE")) {
+    if (IsCurrentGadgetNamed(gui, "RESTORE")) {
         PlaySoundByName("Options", 0);
         g_game->textScroll = 10;
         g_game->textLines = 10;
@@ -2302,22 +2211,22 @@ void __stdcall HandleSpeedOptionsClick(Gadget_0045ead0* gadget)
         g_game->interfaceType = 0;
         g_game->unitChat = 10;
         g_game->unitChatText = 5;
-        CloseTopScreen(gadget);
+        CloseTopScreen(gui);
         OpenSpeedOptions();
         return;
     }
-    int i = gadget->selected;
-    // Index with gadget->selected * 347, not the local i: selects the original lea.
-    if (data[gadget->selected * 347] != 1) {
-        ClearSelectedGadget(gadget);
+    int i = gui->selected;
+    // Index with gui->selected * 347, not the local i: selects the original lea.
+    if (data[gui->selected * 347] != 1) {
+        ClearSelectedGadget(gui);
         return;
     }
     if (i != -1) {
-        Link_0045ead0* link = gadget->link;
+        Link_0045ead0* link = gui->link;
         void* obj = link->obj;
-        CloseTopScreen(gadget);
-        gadget->selected = i;
-        ((Link_0045ead0*)obj)->reselect(gadget);
+        CloseTopScreen(gui);
+        gui->selected = i;
+        ((Link_0045ead0*)obj)->reselect(gui);
     }
 }
 
@@ -2408,14 +2317,14 @@ void OpenSpeedOptions()
 }
 
 // FUNCTION: 0x45f190
-void __stdcall HandleGameSettingsDialogClick(Gadget_0045f190* gadget)
+void __stdcall HandleGameSettingsDialogClick(Gui* gui)
 {
-    if (gadget->selected != -1) {
-        if (IsCurrentGadgetNamed(gadget, "OK")) {
+    if (gui->selected != -1) {
+        if (IsCurrentGadgetNamed(gui, "OK")) {
             PlaySoundByName("Options", 0);
             return;
         }
-        ClearSelectedGadget(gadget);
+        ClearSelectedGadget(gui);
     }
 }
 
@@ -2506,31 +2415,31 @@ void ShowGameSettingsDialog()
 }
 
 // FUNCTION: 0x45f770
-void __stdcall HandleBriefingClick(Gadget_0045f770* gadget)
+void __stdcall HandleBriefingClick(Gui* gui)
 {
-    if (gadget->selected == -1) {
+    if (gui->selected == -1) {
         FreeBlinkWords((int)&g_game->gui);
         return;
     }
-    if (IsCurrentGadgetNamed(gadget, "OK")) {
+    if (IsCurrentGadgetNamed(gui, "OK")) {
         PlaySoundByName("Options", 0);
         return;
     }
-    if (IsCurrentGadgetNamed(gadget, "TextRegion") || IsCurrentGadgetNamed(gadget, "MOREBAR")) {
+    if (IsCurrentGadgetNamed(gui, "TextRegion") || IsCurrentGadgetNamed(gui, "MOREBAR")) {
         PlaySoundByName("Options", 0);
         DrawHelpPage();
-        MarkChanged(gadget);
-        ClearSelectedGadget(gadget);
+        MarkChanged(gui);
+        ClearSelectedGadget(gui);
     }
-    if (gadget->selected != -1)
-        ClearSelectedGadget(gadget);
+    if (gui->selected != -1)
+        ClearSelectedGadget(gui);
 }
 
 // FUNCTION: 0x45f800
 void OpenBriefingDialog()
 {
-    Info_0045f800* g = LoadGuiLayer((Sub_0045f800*)&g_game->gui, "BRIEFING.GUI", 0);
-    Gadget* gadgets = g->info;
+    Layer* g = LoadGuiLayer((Sub_0045f800*)&g_game->gui, "BRIEFING.GUI", 0);
+    Gadget* gadgets = g->entries;
     g->handler = HandleBriefingClick;
     int i = FindGadgetIndex(gadgets, "MOREBAR", 0xe);
     gadgets[i].attribs &= ~0x10;
@@ -2603,28 +2512,28 @@ void __stdcall FillHelpPage(Sub_0045f8c0* sub, int page, int lineCount)
 }
 
 // FUNCTION: 0x45fac0
-void __stdcall HandleHelpClick(Gadget_0045fac0* gadget)
+void __stdcall HandleHelpClick(Gui* gui)
 {
-    if (gadget->selected != -1) {
-        if (IsCurrentGadgetNamed(gadget, "OK")) {
+    if (gui->selected != -1) {
+        if (IsCurrentGadgetNamed(gui, "OK")) {
             PlaySoundByName("Options", 0);
             return;
         }
-        if (IsCurrentGadgetNamed(gadget, "Page")) {
+        if (IsCurrentGadgetNamed(gui, "Page")) {
             PlaySoundByName("Options", 0);
-            FillHelpPage(gadget, GetButtonStageByName(gadget, "Page"), 0x11);
+            FillHelpPage(gui, GetButtonStageByName(gui, "Page"), 0x11);
         }
-        ClearSelectedGadget(gadget);
+        ClearSelectedGadget(gui);
     }
 }
 
 // FUNCTION: 0x45fb30
 void OpenHelpDialog()
 {
-    Gadget_0045fb30* g = LoadGuiLayer((Sub_0045fb30*)&g_game->gui, "HELP.GUI", 0x1881);
+    Layer* g = LoadGuiLayer((Sub_0045fb30*)&g_game->gui, "HELP.GUI", 0x1881);
     g->handler = HandleHelpClick;
     LoadPictureCached("dhelp", 0, 0, 0);
-    g_helpDialogBaseGadgetCount = g->info->field_b6;
+    g_helpDialogBaseGadgetCount = g->entries->count;
     FillHelpPage((Sub_0045fb30*)&g_game->gui, 0, 0x11);
     SetKeyboardInput((Sub_0045fb30*)&g_game->gui, 1);
     RenderLayer((Sub_0045fb30*)&g_game->gui, 0x40);
@@ -2654,14 +2563,14 @@ void CloseOptionsPanel()
 }
 
 // FUNCTION: 0x45fc60
-void __stdcall HandleOptionsPanelClick(Gadget_0045fc60* gadget)
+void __stdcall HandleOptionsPanelClick(Gui* gui)
 {
     // goto, not a return: the label after the g_optionsShellClosing = 0 store keeps the
     // teardown tail shared.
-    if (gadget->selected == -1)
+    if (gui->selected == -1)
         goto cleanup;
     {
-        SetGadgetStatus(gadget, gadget->selected, 1);
+        SetGadgetStatus(gui, gui->selected, 1);
         // Empty then-arm: the positive test alone changes the codegen.
         if (g_game->bits_2a44.bits.bit2) {
         } else {
@@ -2671,21 +2580,21 @@ void __stdcall HandleOptionsPanelClick(Gadget_0045fc60* gadget)
             SetOffscreenSurface((int)g_game->screen);
             FlipScreen();
         }
-        if (IsCurrentGadgetNamed(gadget, "SPEEDS")) {
+        if (IsCurrentGadgetNamed(gui, "SPEEDS")) {
             PlaySoundByName("Options", 0);
             OpenSpeedOptions();
-        } else if (IsCurrentGadgetNamed(gadget, "VISUALS")) {
+        } else if (IsCurrentGadgetNamed(gui, "VISUALS")) {
             PlaySoundByName("Options", 0);
             OpenVisualOptions(0);
-        } else if (IsCurrentGadgetNamed(gadget, "MUSIC")) {
+        } else if (IsCurrentGadgetNamed(gui, "MUSIC")) {
             PlaySoundByName("Options", 0);
             OpenMusicOptions();
-        } else if (IsCurrentGadgetNamed(gadget, "PREV")) {
+        } else if (IsCurrentGadgetNamed(gui, "PREV")) {
             PlaySoundByName("Options", 0);
             SaveSettings();
             g_optionsShellClosing = 1;
             return;
-        } else if (IsCurrentGadgetNamed(gadget, "CANCEL")) {
+        } else if (IsCurrentGadgetNamed(gui, "CANCEL")) {
             PlaySoundByName("Previous", 0);
             RestoreSoundOptions();
             g_game->volume2 = g_optionsBackupMusicVolume;
@@ -2712,12 +2621,12 @@ void __stdcall HandleOptionsPanelClick(Gadget_0045fc60* gadget)
             RestoreVisualOptions();
             g_optionsShellClosing = 1;
             return;
-        } else if (IsCurrentGadgetNamed(gadget, "SOUND")) {
+        } else if (IsCurrentGadgetNamed(gui, "SOUND")) {
             PlaySoundByName("Options", 0);
             OpenSoundOptions();
         } else {
-            if (gadget->selected != -1)
-                ClearSelectedGadget(gadget);
+            if (gui->selected != -1)
+                ClearSelectedGadget(gui);
             return;
         }
         g_optionsShellClosing = 0;
@@ -2801,23 +2710,23 @@ void __stdcall DrawOptionsScrollBar(void* surf)
 // FUNCTION: 0x460160
 void OpenOptionsPanel()
 {
-    Holder_00460160* holder = (Holder_00460160*)g_game->gui.holder;
+    Layer* layer = (Layer*)g_game->gui.holder;
     if (!g_game->bits_2a44.bits.bit2) {
         BlankScreen();
     }
-    // Re-read holder->field_4 at every use; do not cache it in a local.
-    g_optionsFlipSurface = AllocSurface("FLIPSURFACE", holder->field_4->field_17, holder->field_4->field_19);
-    memcpy(g_optionsFlipSurface->pixels, holder->field_4->field_bc->pixels,
-           holder->field_4->field_17 * holder->field_4->field_19);
+    // Re-read layer->entries at every use; do not cache it in a local.
+    g_optionsFlipSurface = AllocSurface("FLIPSURFACE", layer->entries->width, layer->entries->height);
+    memcpy(g_optionsFlipSurface->pixels, layer->entries->surface->pixels,
+           layer->entries->width * layer->entries->height);
     FrameFromSurface((GafFrame*)&g_optionsFlipFrame, g_optionsFlipSurface);
     g_optionsLightbarX = 0;
-    g_optionsLightbarMaxX = holder->field_4->field_17 - 1;
-    g_optionsLightbarY = holder->field_4->field_15;
+    g_optionsLightbarMaxX = layer->entries->width - 1;
+    g_optionsLightbarY = layer->entries->y;
     g_optionsShellActive = 1;
     g_optionsBackupSurface = AllocSurface("BKUPSURFACE", 300, 480);
     DrawSurface(g_optionsBackupSurface, 0, 0, 0);
     g_optionsLightbarAnim = 0;
-    Layer_00460160* panel = (Layer_00460160*)OpenOptionsLayout();
+    Layer* panel = (Layer*)OpenOptionsLayout();
     if (!g_game->bits_2a44.bits.bit2) {
         LoadPictureCached("options4x", 0, 0, 0);
     }
@@ -2839,12 +2748,12 @@ void OpenOptionsPanel()
 }
 
 // FUNCTION: 0x460340
-void __stdcall HandleRestartDialogClick(Gadget_00460340* gadget)
+void __stdcall HandleRestartDialogClick(Gui* gui)
 {
-    if (gadget->selected == -1)
+    if (gui->selected == -1)
         return;
     PlaySoundByName("Options", 0);
-    if (IsCurrentGadgetNamed(gadget, "RESTART")) {
+    if (IsCurrentGadgetNamed(gui, "RESTART")) {
         int ok = 0;
         int mode = g_game->mode->GetGameType();
         switch (mode) {
@@ -2872,13 +2781,13 @@ void __stdcall HandleRestartDialogClick(Gadget_00460340* gadget)
         if (!ok)
             return;
         RegisterDataArchives();
-        g_game->difficulty = GetButtonStageByName(gadget, "Difficulty");
+        g_game->difficulty = GetButtonStageByName(gui, "Difficulty");
         g_game->restartMissionRequest = 1;
-    } else if (IsCurrentGadgetNamed(gadget, "Difficulty")) {
+    } else if (IsCurrentGadgetNamed(gui, "Difficulty")) {
         PlaySoundByName("Options", 0);
-        ClearSelectedGadget(gadget);
-    } else if (!IsCurrentGadgetNamed(gadget, "CANCEL") && gadget->selected != -1) {
-        ClearSelectedGadget(gadget);
+        ClearSelectedGadget(gui);
+    } else if (!IsCurrentGadgetNamed(gui, "CANCEL") && gui->selected != -1) {
+        ClearSelectedGadget(gui);
     }
 }
 
@@ -2909,13 +2818,13 @@ void OpenRestartDialog()
 }
 
 // FUNCTION: 0x4605c0
-void __stdcall HandleSurrenderChoice(Gadget_004605c0* gadget)
+void __stdcall HandleSurrenderChoice(Gui* gui)
 {
-    int owner = gadget->owner->field_4;
-    if (gadget->selected == -1)
+    int owner = gui->owner->field_4;
+    if (gui->selected == -1)
         return;
     PlaySoundByName("Exit", 0);
-    if (IsGadgetNamed(owner, gadget->selected, "CHOICE1")) {
+    if (IsGadgetNamed(owner, gui->selected, "CHOICE1")) {
         g_game->sound->SetTrackCategory(4);
         switch (g_battleQuitIntent) {
         case 0:
@@ -2931,27 +2840,27 @@ void __stdcall HandleSurrenderChoice(Gadget_004605c0* gadget)
             ShutdownIngameAndQuit();
             return;
         }
-    } else if (!IsGadgetNamed(owner, gadget->selected, "CHOICE2")) {
-        ClearSelectedGadget(gadget);
+    } else if (!IsGadgetNamed(owner, gui->selected, "CHOICE2")) {
+        ClearSelectedGadget(gui);
     }
 }
 
 // FUNCTION: 0x460680
 void OpenSurrenderDialog()
 {
-    Gadget_00460680* gadget = LoadGuiLayer((Sub_00460680*)&g_game->gui, "YESORNO.GUI", 0x1000);
-    if (gadget == 0) {
+    Layer* layer = LoadGuiLayer((Sub_00460680*)&g_game->gui, "YESORNO.GUI", 0x1000);
+    if (layer == 0) {
         return;
     }
     SetKeyboardInput((Sub_00460680*)&g_game->gui, 1);
-    char* entries = gadget->entries;
+    Gadget* entries = layer->entries;
     FindGadgetIndex(entries, "CHOICE1", 1);
     FindGadgetIndex(entries, "CHOICE2", 1);
     // Suspected original bug: the sibling dialog setup at 0x464e70 copies
     // "CHOICE1" to entries+0xcc and "CHOICE2" to entries+0xdc, but this
     // function copies "CHOICE2" (0x503120) into both fields.
-    strcpy(entries + 0xcc, "CHOICE2");
-    strcpy(entries + 0xdc, "CHOICE2");
+    strcpy(entries->text + 0x16, "CHOICE2");
+    strcpy(entries->text + 0x26, "CHOICE2");
     SetTranslatedTextByName((Sub_00460680*)&g_game->gui, "CHOICE1", "Yes", 0);
     SetTranslatedTextByName((Sub_00460680*)&g_game->gui, "CHOICE2", "No", 0);
     if (g_battleQuitIntent == 0) {
@@ -2962,35 +2871,35 @@ void OpenSurrenderDialog()
         SetTranslatedTextByName((Sub_00460680*)&g_game->gui, "TITLE", title, 0);
     }
     SelectGadgetByName((Sub_00460680*)&g_game->gui, "CHOICE2");
-    gadget->handler = HandleSurrenderChoice;
+    layer->handler = HandleSurrenderChoice;
     RenderLayer((Sub_00460680*)&g_game->gui, 0x40);
 }
 
 // FUNCTION: 0x460800
-void __stdcall HandleExitMenuClick(Gadget_00460800* gadget)
+void __stdcall HandleExitMenuClick(Gui* gui)
 {
-    if (gadget->selected != -1) {
+    if (gui->selected != -1) {
         PlaySoundByName("Options", 0);
-        if (IsCurrentGadgetNamed(gadget, "MAINMENU")) {
+        if (IsCurrentGadgetNamed(gui, "MAINMENU")) {
             g_battleQuitIntent = 0;
-            CloseTopScreen(gadget);
+            CloseTopScreen(gui);
             OpenSurrenderDialog();
             return;
         }
-        if (IsCurrentGadgetNamed(gadget, "EXITGAME")) {
+        if (IsCurrentGadgetNamed(gui, "EXITGAME")) {
             g_battleQuitIntent = 2;
-            CloseTopScreen(gadget);
+            CloseTopScreen(gui);
             OpenSurrenderDialog();
             return;
         }
-        if (!IsCurrentGadgetNamed(gadget, "CANCEL")) {
-            if (IsCurrentGadgetNamed(gadget, "RESTART")) {
-                CloseTopScreen(gadget);
+        if (!IsCurrentGadgetNamed(gui, "CANCEL")) {
+            if (IsCurrentGadgetNamed(gui, "RESTART")) {
+                CloseTopScreen(gui);
                 OpenRestartDialog();
                 return;
             }
-            if (gadget->selected != -1)
-                ClearSelectedGadget(gadget);
+            if (gui->selected != -1)
+                ClearSelectedGadget(gui);
         }
     }
 }
@@ -3029,9 +2938,9 @@ void __cdecl HandleBattleQuitPrompt(int)
 }
 
 // FUNCTION: 0x4609b0
-void __stdcall HandleInGameOptionsClick(Gadget_004609b0* gadget)
+void __stdcall HandleInGameOptionsClick(Gui* gui)
 {
-    if (gadget->selected == -1) {
+    if (gui->selected == -1) {
         DisableKeyCommands((Sub_004609b0*)&g_game->gui);
         g_optionsShellActive = 0;
         if (g_optionsFlipSurface) {
@@ -3050,37 +2959,37 @@ void __stdcall HandleInGameOptionsClick(Gadget_004609b0* gadget)
         g_game->sound->PauseCdAudio(0);
         return;
     }
-    if (IsCurrentGadgetNamed(gadget, "LOADGAME")) {
+    if (IsCurrentGadgetNamed(gui, "LOADGAME")) {
         PlaySoundByName("Options", 0);
         ShowLoadGameScreen();
         return;
     }
-    if (IsCurrentGadgetNamed(gadget, "SAVEGAME")) {
+    if (IsCurrentGadgetNamed(gui, "SAVEGAME")) {
         PlaySoundByName("Options", 0);
         ShowSaveGameScreen();
         return;
     }
-    if (IsCurrentGadgetNamed(gadget, "PREFS")) {
+    if (IsCurrentGadgetNamed(gui, "PREFS")) {
         PlaySoundByName("Options", 0);
         OpenOptionsPanel();
         return;
     }
-    if (IsCurrentGadgetNamed(gadget, "HELP")) {
+    if (IsCurrentGadgetNamed(gui, "HELP")) {
         PlaySoundByName("Options", 0);
-        Info_004609b0* g = LoadGuiLayer((Sub_004609b0*)&g_game->gui, "HELP.GUI", 0x1881);
+        Layer* g = LoadGuiLayer((Sub_004609b0*)&g_game->gui, "HELP.GUI", 0x1881);
         g->handler = HandleHelpClick;
         LoadPictureCached("dhelp", 0, 0, 0);
-        g_helpDialogBaseGadgetCount = g->info->count;
+        g_helpDialogBaseGadgetCount = g->entries->count;
         FillHelpPage((Sub_004609b0*)&g_game->gui, 0, 0x11);
         SetKeyboardInput((Sub_004609b0*)&g_game->gui, 1);
         RenderLayer((Sub_004609b0*)&g_game->gui, 0x40);
         return;
     }
-    if (IsCurrentGadgetNamed(gadget, "MISSION")) {
+    if (IsCurrentGadgetNamed(gui, "MISSION")) {
         PlaySoundByName("Options", 0);
         if (g_game->mode->GetGameType() == 1) {
-            Info_004609b0* g = LoadGuiLayer((Sub_004609b0*)&g_game->gui, "BRIEFING.GUI", 0);
-            Gadget* gadgets = g->info;
+            Layer* g = LoadGuiLayer((Sub_004609b0*)&g_game->gui, "BRIEFING.GUI", 0);
+            Gadget* gadgets = g->entries;
             g->handler = HandleBriefingClick;
             int i = FindGadgetIndex(gadgets, "MOREBAR", 0xe);
             gadgets[i].attribs &= ~0x10;
@@ -3095,27 +3004,27 @@ void __stdcall HandleInGameOptionsClick(Gadget_004609b0* gadget)
         ShowGameSettingsDialog();
         return;
     }
-    if (IsCurrentGadgetNamed(gadget, "EXIT")) {
+    if (IsCurrentGadgetNamed(gui, "EXIT")) {
         PlaySoundByName("Options", 0);
         OpenExitMenu();
         return;
     }
-    if (IsCurrentGadgetNamed(gadget, "OK")) {
+    if (IsCurrentGadgetNamed(gui, "OK")) {
         PlaySoundByName("Options", 0);
         return;
     }
-    if (gadget->selected != -1)
-        ClearSelectedGadget(gadget);
+    if (gui->selected != -1)
+        ClearSelectedGadget(gui);
 }
 
 // FUNCTION: 0x460cc0
 void OpenInGameOptions()
 {
-    Gadget_00460cc0* gadget = LoadGuiLayer((Gui_00460cc0*)&g_game->gui, "ARMOPT.GUI", 0x800);
-    gadget->handler = HandleInGameOptionsClick;
-    SetGrayedOut((Gui_00460cc0*)&g_game->gui, FindGadgetIndex(gadget->info, "SAVEGAME", 1),
+    Layer* layer = LoadGuiLayer((Gui_00460cc0*)&g_game->gui, "ARMOPT.GUI", 0x800);
+    layer->handler = HandleInGameOptionsClick;
+    SetGrayedOut((Gui_00460cc0*)&g_game->gui, FindGadgetIndex(layer->entries, "SAVEGAME", 1),
                  g_game->mode->GetGameType() == 3);
-    SetGrayedOut((Gui_00460cc0*)&g_game->gui, FindGadgetIndex(gadget->info, "LOADGAME", 1),
+    SetGrayedOut((Gui_00460cc0*)&g_game->gui, FindGadgetIndex(layer->entries, "LOADGAME", 1),
                  g_game->mode->GetGameType() == 3);
     if (g_game->mode->GetGameType() == 3 || g_game->mode->GetGameType() == 2) {
         SetTranslatedTextByName((Gui_00460cc0*)&g_game->gui, "MISSION", Translate("Settings"), 0x80);

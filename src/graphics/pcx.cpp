@@ -84,11 +84,6 @@ int __stdcall DecodePcx(void* file, PCX_004caa40* pcx)
 
 #include <stdio.h>
 
-struct FileHandle {
-    FILE* file;
-    int error;
-};
-
 extern void* __stdcall HAPI_OpenFileAppend(void* thing);
 extern void __stdcall HAPI_CloseFile(void* file);
 extern unsigned int __stdcall HAPI_WriteFile(void* file, void* buf, unsigned int size);
@@ -123,7 +118,7 @@ struct Header_004cac40 {
 int __stdcall WritePcx(void* filename, unsigned char* data, int width, int height, unsigned char* block)
 {
     Header_004cac40 hdr;
-    FileHandle* file = (FileHandle*)HAPI_OpenFileAppend(filename);
+    void* file = HAPI_OpenFileAppend(filename);
     int total;
     int rows;
     int n;

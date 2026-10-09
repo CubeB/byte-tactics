@@ -10,10 +10,7 @@
 
 #include "../util/tdf.h"
 
-struct FileHandle {
-    FILE* file;                        // +0x0
-    int error;                         // +0x4
-};
+#include "../util/file_handle.h"
 
 extern char DAT_005119b8[];
 extern int DAT_0051fba8;

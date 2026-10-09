@@ -49,16 +49,7 @@ struct AccountList {                 // 0x0c bytes
     int current;                     // +0x08
 };
 
-// An open HAPI file.
-struct FileHandle {
-    void* fp;                        // +0x00
-    void* shared;                    // +0x04
-    void* info;                      // +0x08
-    int pos;                         // +0x0c
-    void* buffer;                    // +0x10, the block sizes
-    void* buffer2;                   // +0x14, the current block
-    char name[0x100];                // +0x18
-};
+#include "file_handle.h"
 
 FileHandle* __stdcall HAPI_OpenFileRead(char* name);
 int __stdcall HAPI_CloseFile(FileHandle* file);

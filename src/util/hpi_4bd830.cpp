@@ -26,22 +26,16 @@ struct OPENHAPIFILE {
     char name[0x100];                    // +0x14
 };
 
-struct Info_004bd830 {
+struct Info {
     long offset;                         // +0x0
     unsigned int size;                   // +0x4
     unsigned char compressed;            // +0x8
 };
+#pragma pack(pop)
 
-struct FileHandle {
-    FILE* fp;                            // +0x0
-    OPENHAPIFILE* shared;                // +0x4
-    Info_004bd830* info;                 // +0x8
-    unsigned int pos;                    // +0xc
-    int* buffer;                         // +0x10
-    unsigned char* buffer2;              // +0x14
-    char name[0x100];                    // +0x18
-};
+#include "file_handle.h"
 
+#pragma pack(push, 1)
 struct ArchiveEntry {
     int name;                            // +0x0, offset of the name string
     int offset;                          // +0x4, offset of the record data
@@ -83,7 +77,7 @@ void __stdcall HAPI_WriteArchiveData(char* path, char* base, int off, FILE* f,
                             void (__cdecl* cb)(unsigned), unsigned extra,
                             int key, int flags)
 {
-    Info_004bd830* info;
+    Info* info;
     int len;
     ArchiveEntry* e;
     unsigned size;
@@ -113,7 +107,7 @@ void __stdcall HAPI_WriteArchiveData(char* path, char* base, int off, FILE* f,
             HAPI_WriteArchiveData(full, base, e->offset, f, cb, extra, key, flags);
         } else {
             file = HAPI_OpenFile(full, "rb");
-            info = (Info_004bd830*)(base + e->offset);
+            info = (Info*)(base + e->offset);
             info->offset = ftell(f);
             info->size = HAPI_FileLength(file);
             info->compressed = (char)flags;

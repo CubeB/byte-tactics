@@ -6,12 +6,17 @@
 #include <malloc.h>
 #include <ddraw.h>
 
-class CobScript {
-public:
-    int StartScriptWithArgs(char* name, void* param_2, int param_3, int param_4, int param_5, int param_6, int param_7, int param_8);
-    int FindScript(char* name);
-    void StartScript(const char* name, int a, int b);
-};
+#include "cob_script.h"
+
+// Unused here: these headers and declarations take the symbol ids that keep
+// CanLoad (0x489a90) and SetStateBits (0x48b090) matching (docs/c2-regalloc.md).
+#include "../util/hapi_bank.h"
+#include "../map/mission.h"
+#include "../sound/sound.h"
+struct BmpFileHeader;
+struct BmpInfo;
+struct BmpInfoHeader;
+
 
 class Unit;
 

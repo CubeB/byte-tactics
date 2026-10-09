@@ -46,10 +46,10 @@ struct Stat_0041dc20 {                 // 0x3a bytes
     char name[30];                     // +0x00
     int kills;                         // +0x1e
     int losses;                        // +0x22
-    int field_26;                      // +0x26
-    int field_2a;                      // +0x2a
-    int field_2e;                      // +0x2e
-    int field_32;                      // +0x32
+    int energyProduced;                // +0x26
+    int metalProduced;                 // +0x2a
+    int energyWasted;                  // +0x2e
+    int metalWasted;                   // +0x32
     int score;                         // +0x36
 };
 
@@ -111,10 +111,10 @@ void CollectEndGameStats()
                 strncpy(stats[i].name, p->name, 30);
                 stats[i].kills = p->kills;
                 stats[i].losses = p->losses;
-                stats[i].field_26 = (int)p->totalEnergyProduced;
-                stats[i].field_2a = (int)p->totalMetalProduced;
-                stats[i].field_2e = (int)p->energyWasted;
-                stats[i].field_32 = (int)p->metalWasted;
+                stats[i].energyProduced = (int)p->totalEnergyProduced;
+                stats[i].metalProduced = (int)p->totalMetalProduced;
+                stats[i].energyWasted = (int)p->energyWasted;
+                stats[i].metalWasted = (int)p->metalWasted;
                 Mission* c = g_game->campaign;
                 int t = (int)(g_game->ticks / 60 * c->timeMul);
                 stats[i].score = t + (int)(stats[i].kills * c->killMul);
@@ -124,14 +124,14 @@ void CollectEndGameStats()
                     g_game->maxKills = stats[i].kills;
                 if (stats[i].losses > g_game->maxLosses)
                     g_game->maxLosses = stats[i].losses;
-                if (stats[i].field_26 > g_game->max_26)
-                    g_game->max_26 = stats[i].field_26;
-                if (stats[i].field_2a > g_game->max_2a)
-                    g_game->max_2a = stats[i].field_2a;
-                if (stats[i].field_2e > g_game->max_2e)
-                    g_game->max_2e = stats[i].field_2e;
-                if (stats[i].field_32 > g_game->max_32)
-                    g_game->max_32 = stats[i].field_32;
+                if (stats[i].energyProduced > g_game->max_26)
+                    g_game->max_26 = stats[i].energyProduced;
+                if (stats[i].metalProduced > g_game->max_2a)
+                    g_game->max_2a = stats[i].metalProduced;
+                if (stats[i].energyWasted > g_game->max_2e)
+                    g_game->max_2e = stats[i].energyWasted;
+                if (stats[i].metalWasted > g_game->max_32)
+                    g_game->max_32 = stats[i].metalWasted;
                 if (stats[i].score > g_game->maxScore)
                     g_game->maxScore = stats[i].score;
             }

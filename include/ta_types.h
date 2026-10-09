@@ -7034,10 +7034,10 @@ public:
 
 struct Record_005129b4 {  // 0x62 bytes, 7 views
     char name[82];  // +0x0
-    int field_52;  // +0x52
-    int field_56;  // +0x56
-    int field_5a;  // +0x5a
-    int field_5e;  // +0x5e
+    int unitIndex;  // +0x52
+    int previousMax;  // +0x56
+    int max;  // +0x5a
+    int peerEnabled;  // +0x5e
 };
 
 struct Inner_44b3c0 {  // 0x8 bytes, 1 view

@@ -328,8 +328,8 @@ struct Unit_459200 {
 #pragma pack(push, 2)
 struct Model_459200 {
     int count;                         // +0x00
-    int field_4;                       // +0x04
-    int field_8;                       // +0x08
+    int cacheDrawCount;                // +0x04
+    int animDirty;                     // +0x08
     Unit_459200* owner;                // +0x0c
     GafFrame* bitmap;                  // +0x10
     GafFrame* shadow;                  // +0x14
@@ -1034,7 +1034,7 @@ Model_459200* __stdcall CreateObjectState(Object3do* obj)
     Model_459200* state = (Model_459200*)GameAllocIgnoreTag("Object State", size);
     memset(state, 0, size);
     state->root = AddStateEntries(state, obj, 0);
-    state->field_8 = 1;
+    state->animDirty = 1;
     return state;
 }
 
@@ -1060,7 +1060,7 @@ Model_459200* __stdcall CreatePlayerObjectState(Object3do* obj, BuildList_0045a9
     Model_459200* state = (Model_459200*)GameAllocIgnoreTag("Object State", size);
     memset(state, 0, size);
     state->root = AddStateEntries(state, obj, 0);
-    state->field_8 = 1;
+    state->animDirty = 1;
     state->owner = (Unit_459200*)player;
     for (int i = 0; i < list->count; i++) {
         for (int j = i; j < state->count; j++) {
@@ -1132,16 +1132,16 @@ void __stdcall UpdateObjectState(Unit_459200* unit)
     if (FarFrom(state, &unit->pos)) {
         // One 6-byte struct copy.
         state->pos = unit->pos;
-        state->field_8 = 1;
+        state->animDirty = 1;
         state->root->modified = 0;
         if (state->root->flags.bits.colored) {
-            state->field_4 = 0;
+            state->cacheDrawCount = 0;
         }
     }
-    if (unit->sprites->field_8 != 0) {
+    if (unit->sprites->animDirty != 0) {
         RestorePieceVertices(unit->sprites->root, 0);
         PoseModel(unit->sprites, unit->sprites->root, 0);
-        unit->sprites->field_8 = 0;
+        unit->sprites->animDirty = 0;
     }
 }
 
@@ -1153,32 +1153,32 @@ void __stdcall DrawUnit(void* context, Unit_459200* unit)
         if (FarFrom(state, &unit->pos)) {
             // One 6-byte struct copy.
             state->pos = unit->pos;
-            state->field_8 = 1;
+            state->animDirty = 1;
             state->root->modified = 0;
             if (state->root->flags.bits.colored) {
-                state->field_4 = 0;
+                state->cacheDrawCount = 0;
             }
         }
-        if (unit->sprites->field_8 != 0) {
+        if (unit->sprites->animDirty != 0) {
             RestorePieceVertices(unit->sprites->root, 0);
             PoseModel(unit->sprites, unit->sprites->root, 0);
-            unit->sprites->field_8 = 0;
+            unit->sprites->animDirty = 0;
         }
         for (Unit_459200* u = unit->list_head; u; u = u->list_next) {
             if (!(u->flags & 0x20000)) {
                 Model_459200* child = u->sprites;
                 if (FarFrom(child, &u->pos)) {
                     child->pos = u->pos;
-                    child->field_8 = 1;
+                    child->animDirty = 1;
                     child->root->modified = 0;
                     if (child->root->flags.bits.colored) {
-                        child->field_4 = 0;
+                        child->cacheDrawCount = 0;
                     }
                 }
-                if (u->sprites->field_8 != 0) {
+                if (u->sprites->animDirty != 0) {
                     RestorePieceVertices(u->sprites->root, 0);
                     PoseModel(u->sprites, u->sprites->root, 0);
-                    u->sprites->field_8 = 0;
+                    u->sprites->animDirty = 0;
                 }
             }
         }

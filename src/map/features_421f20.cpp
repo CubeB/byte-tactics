@@ -39,9 +39,9 @@ struct AnimManager_00421f20 {
     char unknown_0[0x10];
     AnimEntry_00421f20* anim;          // +0x10
     FeatureUnit_00421f20* featureUnit; // +0x14
-    int field_18;                      // +0x18
-    int field_1c;                      // +0x1c
-    int field_20;                      // +0x20
+    int activeHead;                    // +0x18
+    int idleHead;                      // +0x1c
+    int freeHead;                      // +0x20
     char unknown_24[0x58 - 0x24];
     int nameCount;                     // +0x58
     char unknown_5c[0x74 - 0x5c];
@@ -69,9 +69,9 @@ void __stdcall InitFeatureAnimPool(List_00421f20* list)
 
     m->anim = (AnimEntry_00421f20*)GameAllocIgnoreTag("FEATURE ANIM DATA", 0x18000);
     memset(m->anim, 0, 0x18000);
-    m->field_18 = -1;
-    m->field_1c = -1;
-    m->field_20 = 0;
+    m->activeHead = -1;
+    m->idleHead = -1;
+    m->freeHead = 0;
     for (int i = 0; i < 0x800; i++) {
         m->anim[i].next = i + 1;
         m->anim[i].prev = i - 1;

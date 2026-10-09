@@ -105,10 +105,10 @@ class ObjectPool {
 public:
     int unknown_0;                             // +0x0, the vtable pointer
     std::vector<Elem_00470f00> items;          // +0x4, the blocks in use
-    Elem_00470f00** field_14;                  // +0x14, the slot table
-    int field_18;                              // +0x18, the slot size
-    int field_1c;                              // +0x1c, the slot count
-    int field_20;                              // +0x20, slots handed out
+    Elem_00470f00** slots;                     // +0x14, the slot table
+    int slotSize;                              // +0x18, the slot size
+    int capacity;                              // +0x1c, the slot count
+    int used;                                  // +0x20, slots handed out
 
     int Grow(int param_1, int param_2);
 };
@@ -117,25 +117,25 @@ public:
 int ObjectPool::Grow(int param_1, int param_2)
 {
     int result = 0;
-    if (param_1 > field_1c) {
-        Elem_00470f00** table = (Elem_00470f00**)GameReallocIgnoreTag(field_14, param_1 * 4);
+    if (param_1 > capacity) {
+        Elem_00470f00** table = (Elem_00470f00**)GameReallocIgnoreTag(slots, param_1 * 4);
         if (table != 0) {
             Elem_00470f00 block;
-            block.p = GameAllocShared((param_1 - field_1c) * param_2);
-            field_14 = table;
+            block.p = GameAllocShared((param_1 - capacity) * param_2);
+            slots = table;
             if (block.p != 0) {
-                int i = field_1c;
+                int i = capacity;
                 if (i < param_1) {
                     int offset = 0;
                     do {
-                        field_14[i] = (Elem_00470f00*)((char*)block.p + offset);
+                        slots[i] = (Elem_00470f00*)((char*)block.p + offset);
                         offset += param_2;
                         i++;
                     } while (i < param_1);
                 }
                 items.push_back(block);
-                field_1c = param_1;
-                field_18 = param_2;
+                capacity = param_1;
+                slotSize = param_2;
                 result = 1;
             }
         }

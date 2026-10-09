@@ -59,14 +59,14 @@ struct GafFrame {
 #pragma pack(push, 1)
 struct Owner_459c70 {
     char unknown_0[0x92];
-    char* field_92;                  // +0x92
+    char* def;                       // +0x92
     char unknown_96[0xff - 0x96];
     unsigned char kind;              // +0xff
     char unknown_100[0x104 - 0x100];
-    float field_104;                 // +0x104
+    float intensity;                 // +0x104
     char unknown_108[0x110 - 0x108];
-    unsigned int field_110;          // +0x110
-    unsigned char field_114;         // +0x114
+    unsigned int flags;              // +0x110
+    unsigned char zBufferFlag;       // +0x114
 };
 
 struct FaceFlags_459c70 {
@@ -143,7 +143,7 @@ struct UnitTable {
 
 static __inline int shade_bias(Owner_459c70* owner)
 {
-    bool c = ((*(unsigned int*)(owner->field_92 + 0x241) >> 30) & 1) != 0;
+    bool c = ((*(unsigned int*)(owner->def + 0x241) >> 30) & 1) != 0;
     return c ? 125 : 50;
 }
 
@@ -151,7 +151,7 @@ static __inline int shade_bias(Owner_459c70* owner)
 // doubled-bitmap test, once per projected vertex.
 static __inline int shade_bias(List_459c70* list)
 {
-    bool c = ((*(unsigned int*)(list->owner->field_92 + 0x241) >> 30) & 1) != 0;
+    bool c = ((*(unsigned int*)(list->owner->def + 0x241) >> 30) & 1) != 0;
     return c ? 125 : 50;
 }
 
@@ -176,7 +176,7 @@ void UnitTable::DrawLitPieces(GafFrame* bitmap, List_459c70* list,
     int mode;
     GafFrame* src;
     if (((Flags_37f06*)(g_game + 0x37f06))->antiAlias) {
-        if ((list->owner->field_110 & 0x20000000) != 0 && useColor != 0) {
+        if ((list->owner->flags & 0x20000000) != 0 && useColor != 0) {
             GafFrame* shadow = this->shadow;
             mode = 1;
             shadow->width = (unsigned short)(bitmap->width << 1);
@@ -200,7 +200,7 @@ void UnitTable::DrawLitPieces(GafFrame* bitmap, List_459c70* list,
     for (int p = list->count - 1; p >= 0; p--) {
         if (list->pieces[p].flags.visible) {
             if (useColor == -1 || useColor == list->pieces[p].flags.colored
-                    || list->owner->field_104 != 0.0f) {
+                    || list->owner->intensity != 0.0f) {
                 Vec3* verts = list->pieces[p].vertices;
                 // Own read of the vertices, between verts and info: not v = verts.
                 Vec3* v = list->pieces[p].vertices;

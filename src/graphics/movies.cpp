@@ -130,15 +130,15 @@ struct SurfaceDesc_0047bf70 {
     DWORD dwCaps;                      // +0x68, DDSCAPS_PRIMARYSURFACE
 };
 
-// The object smackw32.dll ordinal 2 hands back; its fields are not named
-// because no other call site reads them.
+// The object smackw32.dll ordinal 2 hands back (a SmackBuf); only the colour
+// remap arguments SmackColorRemap takes from it are named.
 struct Smk_0047bf70_b {
     char unknown_0[0x2c];
-    DWORD field_2c;                    // +0x2c
+    DWORD paletteColors;               // +0x2c
     char unknown_30[0x3c - 0x30];
-    DWORD field_3c;                    // +0x3c
+    DWORD palette;                     // +0x3c
     char unknown_40[0x43c - 0x40];
-    DWORD field_43c;                   // +0x43c
+    DWORD paletteType;                 // +0x43c
 };
 
 extern int __stdcall DirectDrawCreateThunk(int guid, void *display, int zero);
@@ -148,7 +148,7 @@ extern int __stdcall DirectDrawCreateThunk(int guid, void *display, int zero);
 // palette, and ordinal 25 is given the movie and three fields of that state.
 extern "C" __declspec(dllimport) Smk_0047bf70_b *__stdcall SmackBufferOpen(HWND hwnd, HDC hdc, int width, int height, int flags, int background);
 extern "C" __declspec(dllimport) void __stdcall SmackBufferNewPalette(Smk_0047bf70_b *smk, unsigned char *rgb, unsigned short flag);
-extern "C" __declspec(dllimport) void __stdcall SmackColorRemap(Smk_0047c3a0 *smk, DWORD *field_3c, DWORD field_2c, DWORD field_43c);
+extern "C" __declspec(dllimport) void __stdcall SmackColorRemap(Smk_0047c3a0 *smk, DWORD *palette, DWORD paletteColors, DWORD paletteType);
 
 typedef void (__stdcall *GetPixelFormatFn)(void* self, DDPIXELFORMAT* format);
 
@@ -285,7 +285,7 @@ int MoviePlayer::SetupDirectDraw()
     if (smack->field_68) {
         Smk_0047bf70_b *smk = SmackBufferOpen(hwnd, 0, 0x280, 0x1e0, 0, 0);
         SmackBufferNewPalette(smk, &smack->rgb[0][0], smack->field_370);
-        SmackColorRemap(smack, &smk->field_3c, smk->field_2c, smk->field_43c);
+        SmackColorRemap(smack, &smk->palette, smk->paletteColors, smk->paletteType);
     }
     return 1;
 fail:

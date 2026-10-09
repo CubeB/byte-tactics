@@ -1100,7 +1100,7 @@ void UpdateNetGameInfo(void)
 static inline unsigned char FindPlayerInUse()
 {
     for (unsigned char i = 0; i < 10; i++) {
-        if (g_game->players[i].type != 0 && g_game->players[i].info->ready)
+        if (g_game->players[i].type != 0 && g_game->players[i].info->host)
             return i;
     }
     return 10;
@@ -1129,7 +1129,7 @@ int __stdcall CreateLocalPlayer(unsigned char playerIndex, int flag)
         buf[16] = 0;
     }
 
-    player->info->ready = same;
+    player->info->host = same;
     player->info->color = 0xff;
     player->keepaliveFlags &= 0xfd;
     player->joinTime = GetTicks();
@@ -1432,7 +1432,7 @@ void CreateNetGame(void)
     int d;
     char name[32];
 
-    g_game->players[g_game->localPlayer].info->ready = 1;
+    g_game->players[g_game->localPlayer].info->host = 1;
     BuildGameInfo(name, &d, &c, &b, &a);
     g_game->numPlayers = 0;
     HAPINET_createnewgame(g_game->session, name, DAT_005119b8, d, c, b, a);
@@ -1571,9 +1571,9 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
 
         // ready must be a 1-bit field.
         if (g_game->field_4e5 != 0) {
-            p->info->ready = g_game->field_4e5->flags >> 1;
+            p->info->host = g_game->field_4e5->flags >> 1;
         } else {
-            p->info->ready = 0;
+            p->info->host = 0;
         }
 
         p->info->color = 0xff;
@@ -2024,7 +2024,7 @@ static inline unsigned char FindReadyPlayer()
 {
     // Tests the fields directly, not through a per-index helper.
     for (unsigned char i = 0; i < 10; i++) {
-        if (g_game->players[i].flag_73 && g_game->players[i].info->ready)
+        if (g_game->players[i].flag_73 && g_game->players[i].info->host)
             return i;
     }
     return 10;
@@ -2924,7 +2924,7 @@ void SendNetHeartbeat()
             if (p->info->color == 0xff)
                 RequestPlayerColor(0);
 
-            if (p->info->ready & 1) {
+            if (p->info->host & 1) {
                 for (int k = 0; k < 10; k++) {
                     unsigned char st = g_game->players[k].type;
                     if (st == 4)
@@ -3088,7 +3088,7 @@ void __stdcall ReportPacketGap(int, int, int)
 
 static inline unsigned char FindOccupied_004568c0() {
     for (unsigned char i = 0; i < 10; i++) {
-        if (g_game->players[i].type != 0 && g_game->players[i].info->ready)
+        if (g_game->players[i].type != 0 && g_game->players[i].info->host)
             return i;
     }
     return 10;

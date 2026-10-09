@@ -23,7 +23,7 @@ struct PlayerInfo {
         unsigned char flags_97;        // bit 0: host
         unsigned short flags_97_wide;
         struct {
-            unsigned short ready : 1;
+            unsigned short host : 1;
             unsigned short shareMetal : 1;
             unsigned short shareEnergy : 1;
             unsigned short shareLOS : 1;
@@ -62,7 +62,7 @@ struct PlayerInfo {
             unsigned short f9d_rest : 13;
         };
     };
-    char unknown_9f[2];                // +0x9f
+    unsigned short pingLimit;          // +0x9f
     unsigned short energy;             // +0xa1
     unsigned short metal;              // +0xa3
     unsigned short maxUnits;           // +0xa5

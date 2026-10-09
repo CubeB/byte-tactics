@@ -1458,9 +1458,9 @@ void RunFrontendStateMachine(void)
         case 21: {
             int unit = g_game->net;
             if (unit)
-                g_game->players[(unsigned char)g_game->localPlayer].info->ready = *(unsigned int*)(unit + 4) >> 1;
+                g_game->players[(unsigned char)g_game->localPlayer].info->host = *(unsigned int*)(unit + 4) >> 1;
             else
-                g_game->players[(unsigned char)g_game->localPlayer].info->ready = 0;
+                g_game->players[(unsigned char)g_game->localPlayer].info->host = 0;
             if (g_game->frontendSubstate == 0x13)
                 g_game->players[(unsigned char)g_game->localPlayer].info->bit6 = 1;
             unsigned char* q = (unsigned char*)g_game + 0x14b * (unsigned char)g_game->localPlayer + 0x1b84;

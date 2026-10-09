@@ -347,7 +347,7 @@ void ResetPlayerSlots()
         p->info->kind = 0;
         p->info->memory = 0;
         p->info->started = 0;
-        p->info->ready = 0;
+        p->info->host = 0;
         p->info->color = (char)i;
         p->info->side = 0;
         strcpy(p->info->map, DAT_005119b8);

@@ -4,12 +4,8 @@
 // copy `box.hi = box.lo` gives the early store of hi.x and puts order in
 // edi and the feature in esi.
 #include <windows.h>
-#include "../util/vec3.h"
 
-struct Box {
-    Vec3 lo;
-    Vec3 hi;
-};
+#include "box.h"
 
 #pragma pack(push, 1)
 #include "../map/feature.h"

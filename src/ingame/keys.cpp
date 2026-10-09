@@ -224,10 +224,7 @@ struct Game {
 
 #pragma pack(pop)
 
-class Mission {
-public:
-    int GetGameType();
-};
+#include "../map/mission.h"
 
 class Class_00438760 {
 public:
@@ -360,6 +357,10 @@ void __stdcall BuildScreenshotPath(char* out, const char* dir, const char* name,
 
 // Screenshot writer: renders the map in screen-sized tiles into an offscreen
 // bitmap and appends each band to a .bmp file.
+// Unused here: real declarations from the in-game interface whose symbol ids
+// keep the allocation (docs/c2-regalloc.md).
+void UpdateBuildMenuIfFocusUnit(void*);
+void ActivatePlayerGadgets(char*);
 // FUNCTION: 0x495a30
 void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h)
 {

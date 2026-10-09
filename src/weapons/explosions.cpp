@@ -162,15 +162,17 @@ struct Net {
     int f_d48;                         // +0xd48
 };
 
-class CMemoryCache {
-public:
-    char unknown_0[4];
-    int* base;                         // +0x4
+// Unused here: the symbol ids these declarations take keep UpdateExplosions
+// and BreakPieceIntoDebris in the register windows they match in now that
+// CMemoryCache comes from a shared header (docs/c2-regalloc.md).
+void WriteScreenshot(char*, char*, int, int, int, int);
+void SetCameraPosition(int, int, int);
+void StartScreenShake(int, int, int);
+void AccumulateScreenShake(int, int, int);
+void CenterCameraOnPoint(int, int, int);
+void SetMissionStatus(int, int, int);
 
-    void InitCache(int);
-    void FreeCache();
-    int AllocHandle(int* slot, int size);
-};
+#include "../graphics/memory_cache.h"
 
 #pragma pack(push, 1)
 struct Owner {
@@ -795,7 +797,7 @@ void __stdcall StartExplodePiece(ExplodedPiece* param_1)
         return;
     }
     int num = rec->desc->vertexCount;
-    if (g_debrisMemCache.AllocHandle((int*)&g_explodedPieces[index], num * 12 + 0x66) == 0) {
+    if (g_debrisMemCache.AllocHandle((void**)&g_explodedPieces[index], num * 12 + 0x66) == 0) {
         return;
     }
     ExplodedBlock* block = (ExplodedBlock*)g_explodedPieces[index];

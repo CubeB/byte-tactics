@@ -109,15 +109,7 @@ struct Gadget {                        // 0x15b bytes
     };
 };
 
-// A dialog record: the root of a dialog's gadget array and what it carries.
-struct Layer {
-    int unknown_0;                     // +0x0
-    Gadget* entries;                   // +0x4
-    void (__stdcall* handler)(Menu*);  // +0x8
-    void* data;                        // +0xc
-    char unknown_10[0x3b - 0x10];
-    void (__stdcall* textHandler)(Object_00477510*);  // +0x3b
-};
+#include "../gui/layer.h"
 
 // The GUI system object at g_game + 0x519.
 struct Menu {
@@ -815,7 +807,7 @@ void __stdcall HandleSingleMenuClick(Menu* gadget)
 void OpenSingleMenu()
 {
     Layer* gui = LoadGuiLayer(&g_game->menu, "SINGLE.GUI", 0);
-    gui->handler = HandleSingleMenuClick;
+    gui->handler = (void (__stdcall*)(void*))HandleSingleMenuClick;
     gui->data = g_game;
     BlankScreen();
     LoadPictureCached("singlebg", 0, 0, 0);
@@ -835,7 +827,7 @@ void OpenSingleMenu()
         // Original oddity, kept: the test guards an |= of the same bit.
         g_game->flags_38d7f |= 1;
     }
-    g_game->menu.layer->textHandler = ToggleAnyMission;
+    g_game->menu.layer->textHandler = (void (__stdcall*)(void*))ToggleAnyMission;
     if (GetPreferredLanguage() && _strcmpi((char*)GetPreferredLanguage(), "spanish") == 0) {
         SetQuickKeyByName(&g_game->menu, "Skirmish", 0x73);
     }
@@ -1047,7 +1039,7 @@ void __stdcall OpenNewGameMenu(int param_1)
     Layer* layer =
         LoadGuiLayer(&g_game->menu, "NEWGAME.GUI", 0x400);
     Gadget* entries = layer->entries;
-    layer->handler = HandleNewGameClick;
+    layer->handler = (void (__stdcall*)(void*))HandleNewGameClick;
     layer->data = g_game;
 
     if (param_1 != 0) {
@@ -1406,7 +1398,7 @@ void OpenMissionBriefing(void)
     sprintf(buf, "mbrief%s", (char*)g_game + 0x37f5b + side * 0x232);
 
     dialog = LoadGuiLayer(&g_game->menu, "MSNBRIEF.GUI", 0x80);
-    dialog->handler = HandleMissionBriefingClick;
+    dialog->handler = (void (__stdcall*)(void*))HandleMissionBriefingClick;
     dialog->data = g_game;
 
     LoadPictureCached(buf, 1, 1, 0);

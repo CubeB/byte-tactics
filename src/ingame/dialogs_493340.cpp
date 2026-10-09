@@ -57,14 +57,7 @@ struct Menu;
 
 #include "../gui/gadget.h"
 
-struct Layer {
-    int unknown_0;
-    Gadget* entries;                   // +0x04
-    void (__stdcall* handler)(Menu*);  // +0x08
-    Game* owner;                       // +0x0c
-    char unknown_10[0x20 - 0x10];
-    int current;                       // +0x20
-};
+#include "../gui/layer.h"
 
 struct Menu {
     char unknown_0[0x18];
@@ -443,8 +436,8 @@ void OpenShareDialog()
     Layer* layer = LoadGuiLayer(&g_game->menu, "SHARE.GUI", 0x800);
     g_game->bit6_37ebe = 1;
     Gadget* entries = layer->entries;
-    layer->handler = HandleShareDialogEvent;
-    layer->owner = g_game;
+    layer->handler = (void (__stdcall*)(void*))HandleShareDialogEvent;
+    layer->data = g_game;
     int idx = FindGadgetIndex(entries, "METAL", 0xe);
     if (idx != -1) {
         Gadget* e = &entries[idx];
@@ -700,7 +693,7 @@ void OpenTalkDialog()
                             multi ? "TALK2.GUI" : "TALK.GUI",
                             multi ? 0x800 : 0x880);
     Gadget* entries = d->entries;
-    d->handler = HandleTalkDialogEvent;
+    d->handler = (void (__stdcall*)(void*))HandleTalkDialogEvent;
     g_game->flags_37ebe |= 4;
     SetTranslatedTextByName(&g_game->menu, "TALK", g_chatDraftText, 0);
     SetButtonStageByName(&g_game->menu, "SENDTO", multi);
@@ -713,7 +706,7 @@ void OpenTalkDialog()
     }
     TrySetFocus(&g_game->menu, FindGadgetIndex(entries, "TALK", 3));
     d->current = FindGadgetIndex(entries, "TALK", 3);
-    d->owner = g_game;
+    d->data = g_game;
     RenderLayer(&g_game->menu, 0x40 | (multi ? 0 : 0x80));
 }
 
@@ -779,8 +772,8 @@ void __stdcall OpenUnitInfoDialog(void)
 
     Layer* layer = LoadGuiLayer(&g_game->menu, "UNITINFOx.GUI", 0x1000);
     Gadget* entries = layer->entries;
-    layer->handler = HandleUnitInfoDialogEvent;
-    layer->owner = g_game;
+    layer->handler = (void (__stdcall*)(void*))HandleUnitInfoDialogEvent;
+    layer->data = g_game;
     Gadget* hotr = FindGadgetChecked_E(entries, "HOTR");
     hotr->u.hotspot.callback = (void (__stdcall*)(Gui*, Gadget*))DrawUnitInfoImage;
     char* def = g_game->unitDefs + 0x249 * (unsigned)type;
@@ -1152,8 +1145,8 @@ void ToggleTabMenu()
     g_game->lobbyUiDirtyFlags = (f & 0xff3f) | 0x20;
     HideSoftwareCursor();
     Layer* d = LoadGuiLayer(&g_game->menu, "TABMENU.GUI", 0x800);
-    d->owner = g_game;
-    d->handler = HandleTabMenuEvent;
+    d->data = g_game;
+    d->handler = (void (__stdcall*)(void*))HandleTabMenuEvent;
 
     // Single count++ body, no extra locals: sets the register split of the scan.
     int count = 0;
@@ -1190,8 +1183,8 @@ void ToggleTabMenu()
 void OpenMain2Layout()
 {
     Layer* gadget = LoadGuiLayer(&g_game->menu, g_game->guiName, 0x20);
-    gadget->handler = HandleMain2LayoutEvent;
-    gadget->owner = g_game;
+    gadget->handler = (void (__stdcall*)(void*))HandleMain2LayoutEvent;
+    gadget->data = g_game;
 }
 
 // Frame pacing: measures the time since the last call, finds the slowest

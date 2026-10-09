@@ -121,14 +121,7 @@ struct Menu {
     int current;                       // +0x60
 };
 
-struct Layer {
-    int unknown_0;
-    Gadget* entries;                   // +0x4
-    void (__stdcall* handler)(Menu*);  // +0x8
-    Data* data;                        // +0xc
-    char unknown_10[0x24 - 0x10];
-    void* surface;                     // +0x24
-};
+#include "../gui/layer.h"
 
 struct Display {
     char unknown_0[0xd4];
@@ -748,7 +741,7 @@ char* __stdcall BuildScrollItems2(char* names, int a, int b)
 void __stdcall HandleEndMissionClick(Menu* gadget)
 {
     Gadget* entries = gadget->layer->entries;
-    Data* data = gadget->layer->data;
+    Data* data = (Data*)gadget->layer->data;
     if (gadget->current == -1) {
         BlankScreen();
         if (g_game->lastFrame != 0)
@@ -889,7 +882,7 @@ void __stdcall OpenEndMissionScreen()
     FillSurface(g_game->surface, 0);
     FlipScreen();
     Layer* layer = LoadGuiLayer(&g_game->menu, "ENDMSN.GUI", 0x80);
-    layer->handler = HandleEndMissionClick;
+    layer->handler = (void (__stdcall*)(void*))HandleEndMissionClick;
     Data* data = (Data*)GameAllocIgnoreTag("EndMsnGUI", 0x20);
     data->items = 0;
     layer->data = data;
@@ -1013,7 +1006,7 @@ void __stdcall HandleCdCheckClick(Menu* gadget)
 // FUNCTION: 0x41f700
 void OpenCdCheckDialog()
 {
-    LoadGuiLayer(&g_game->menu, "CDCHECK.GUI", 0x101)->handler = HandleCdCheckClick;
+    LoadGuiLayer(&g_game->menu, "CDCHECK.GUI", 0x101)->handler = (void (__stdcall*)(void*))HandleCdCheckClick;
     SetCursorOverlayEnabled(1);
     SetKeyboardInput(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
@@ -1126,7 +1119,7 @@ void __stdcall RunEndGameState()
     case 4:
         if(g_game->campaign->GetGameType()==1 && !FindGameCdDrive(0)) {
             Layer* l=LoadGuiLayer(&g_game->menu,"CDCHECK.GUI",0x101);
-            l->handler=HandleCdCheckClick;
+            l->handler=(void (__stdcall*)(void*))HandleCdCheckClick;
             SetCursorOverlayEnabled(1);
             SetKeyboardInput(&g_game->menu,1);
             RenderLayer(&g_game->menu,0x40);

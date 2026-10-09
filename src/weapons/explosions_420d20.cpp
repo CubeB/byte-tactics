@@ -5,18 +5,7 @@
 // The aligned frame (`and esp, -8`) comes from the default flags here, no /Op:
 // MSVC 5 aligns the frame itself once enough doubles live in stack slots.
 
-struct GafFrame {
-    short width;              // +0x0
-    short height;             // +0x2
-    short xOffset;            // +0x4
-    short yOffset;            // +0x6
-    unsigned char transparency;  // +0x8
-    unsigned char compressed;  // +0x9
-    unsigned char layers;     // +0xa
-    unsigned char blend;      // +0xb
-    int reserved;             // +0xc
-    unsigned char* data;      // +0x10
-};
+#include "../graphics/gaf_frame.h"
 
 GafFrame* __stdcall AllocFrame(const char* name, int width, int height);
 
@@ -36,11 +25,11 @@ GafFrame* BuildExplosionFrame(int size)
             double d = (double)(int)(rand() * (__int64)10 / 0x8000) + sqrt(dx * dx + dy2);
             unsigned char c = 32 - (unsigned char)(int)(d / half * 32.0);
             if (c >= 0x22)
-                img->data[y * size + x] = 0xff;
+                img->pixelsOrLayers[y * size + x] = 0xff;
             else if (c >= 0x20)
-                img->data[y * size + x] = 0x6e;
+                img->pixelsOrLayers[y * size + x] = 0x6e;
             else
-                img->data[y * size + x] = c + 0x4f;
+                img->pixelsOrLayers[y * size + x] = c + 0x4f;
         }
     }
     img->transparency = 0xff;

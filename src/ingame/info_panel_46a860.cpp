@@ -56,13 +56,113 @@ struct Player_0046a860 {
     int nIncomingPacketCount;         // +0x10
     char unknown_14[0x27 - 0x14];
     SideData_0046a860* info;          // +0x27, pSideData
-    char unknown_2b[331 - 0x2b];
+    char name[0x1e];                  // +0x2b
+    char unknown_49[0x146 - 0x49];
+    unsigned char index;              // +0x146
+    char unknown_147[331 - 0x147];
 };
 #pragma pack(pop)
 
 struct Rect_0046a860 {
     int left, top, right, bottom;
 };
+
+struct WeaponDef_0046a860;
+struct UnitDef_0046a860;
+struct Unit_0046a860;
+
+#pragma pack(push, 1)
+// A weapon type (Thaldren: WeaponDef); only the reload time is read here.
+struct WeaponDef_0046a860 {
+    char unknown_0[0xe4];
+    unsigned short reloadTime;        // +0xe4
+};
+
+// A unit's type (Thaldren: UnitDef, 0x249 bytes), the elements of the table
+// at g_game+0x1439b.
+struct UnitDef_0046a860 {
+    char name[0x40];                  // +0x000
+    char description[0x40];           // +0x040
+    char unknown_80[0x186 - 0x80];
+    float energyCost;                 // +0x186
+    float metalCost;                  // +0x18a
+    char unknown_18e[0x1fa - 0x18e];
+    unsigned int maxHealth;           // +0x1fa
+    char unknown_1fe[0x241 - 0x1fe];
+    unsigned int f241;                // +0x241
+    unsigned int f245;                // +0x245
+};
+
+// A unit, 0x118 bytes, the elements of the array at g_game+0x14357. The two
+// signednesses of +0x108 both appear in this file, so the field is a union.
+struct Unit_0046a860 {
+    char unknown_0[0x92];
+    UnitDef_0046a860* def;            // +0x92
+    Player_0046a860* player;          // +0x96
+    char unknown_9a[0xa6 - 0x9a];
+    unsigned short unitDefIndex;      // +0xa6
+    unsigned short id;                // +0xa8
+    char unknown_aa[0xb8 - 0xaa];
+    unsigned short killCount;         // +0xb8
+    char unknown_ba[0xcc - 0xba];
+    float energyMakePrev;             // +0xcc
+    float energyUsePrev;              // +0xd0
+    char unknown_d4[0xe4 - 0xd4];
+    float metalMakePrev;              // +0xe4
+    float metalUsePrev;               // +0xe8
+    char unknown_ec[0xff - 0xec];
+    unsigned char playerIndex;        // +0xff
+    char unknown_100[0x108 - 0x100];
+    union {
+        short health;                 // +0x108
+        unsigned short healthRaw;     // +0x108, the unsigned reads
+    };
+    char unknown_10a[0x110 - 0x10a];
+    unsigned int flags;               // +0x110
+    char unknown_114[0x118 - 0x114];
+};
+
+// A feature's 0x100-byte record, the elements of the table at g_game+0x1426f
+// (Thaldren: FeatureDef).
+struct Feature_0046a860 {
+    char name[0x80];                  // +0x000
+    char description[0x14];           // +0x080
+    char unknown_94[0xec - 0x94];
+    float energy;                     // +0x0ec
+    float metal;                      // +0x0f0
+    char unknown_f4[0xff - 0xf4];
+    unsigned char flags;              // +0x0ff
+};
+
+// One map cell, 13 bytes, the elements of the table at g_game+0x14287.
+struct Cell_0046a860 {
+    char unknown_0[4];
+    unsigned char shade;              // +0x04
+    char unknown_5[0x0d - 0x5];
+};
+
+// A GAF frame's header.
+struct GafFrame_0046a860 {
+    unsigned short width;             // +0x0
+    unsigned short height;            // +0x2
+    unsigned short xoffset;           // +0x4
+    unsigned short yoffset;           // +0x6
+};
+
+// The display context at g_game+0xc; only two fields are read here.
+struct Display_0046a860 {
+    char unknown_0[0x9c];
+    int field_9c;                     // +0x09c
+    char unknown_a0[0xf0 - 0xa0];
+    unsigned char flags;              // +0x0f0, low byte of the state flags word
+};
+
+// The object g_game+0x531 points at (0x495860's shape).
+struct Struct_0046a860 {
+    int unknown_0;
+    int value;                        // +0x4
+};
+#pragma pack(pop)
 
 static void DrawBar_0046a860(void* surface, Rect_0046a860* bounds, int value, int maximum, int dy,
                              unsigned char* palette) {
@@ -133,9 +233,9 @@ struct SideDef_0046a860 {
 
 struct Game {
     char unknown_0[0xc];
-    char* displayContext;                 // +0xc
+    Display_0046a860* displayContext;    // +0xc
     char unknown_10[0x531 - 0x10];
-    int field_531;                        // +0x531
+    Struct_0046a860* field_531;           // +0x531
     char unknown_535[0x581 - 0x535];
     int selected;                         // +0x581
     char unknown_585[0xdcb - 0x585];
@@ -153,19 +253,19 @@ struct Game {
     char unknown_2cbe[0x14233 - 0x2cbe];
     int mapWidthTiles;                    // +0x14233
     char unknown_14237[0x1426f - 0x14237];
-    int features;                         // +0x1426f
+    Feature_0046a860* features;           // +0x1426f
     char unknown_14273[0x14287 - 0x14273];
-    int cells;                            // +0x14287
+    Cell_0046a860* cells;                 // +0x14287
     char unknown_1428b[0x1431f - 0x1428b];
     int scrollX;                          // +0x1431f
     int scrollY;                         // +0x14323
     char unknown_14327[0x14353 - 0x14327];
     int field_14353;                      // +0x14353
-    char* units;                          // +0x14357
+    Unit_0046a860* units;                 // +0x14357
     char unknown_1435b[0x14367 - 0x1435b];
     int count;                            // +0x14367
     char unknown_1436b[0x1439b - 0x1436b];
-    int unitDefs;                         // +0x1439b
+    UnitDef_0046a860* unitDefs;           // +0x1439b
     char unknown_1439f[0x147a7 - 0x1439f];
     int baseHeight;                       // +0x147a7
     char unknown_147ab[0x14833 - 0x147ab];
@@ -210,25 +310,25 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
         do {
             int dy = GetScreenHeight() - 0x20;
             unsigned short* icon = g_game->sidePanelBotSeq[idx];
-            int bmp = GetGafFrame(icon, 0);
-            DrawFrame(surface, (void*)bmp, (short)*(unsigned short*)(bmp + 4) + y,
-                         (short)*(unsigned short*)(bmp + 6) + dy);
-            y += *(unsigned short*)bmp;
+            GafFrame_0046a860* bmp = (GafFrame_0046a860*)GetGafFrame(icon, 0);
+            DrawFrame(surface, (void*)bmp, (short)bmp->xoffset + y,
+                         (short)bmp->yoffset + dy);
+            y += bmp->width;
         } while (y < g_game->width);
 
         SetFont(g_game->fontComix);
         SetTextColors(0x53, GetTextKeyColor());
         // No pfable or field_c locals: the PFSTATE sprintf re-reads g_game->displayContext per argument.
         int pfstate = g_game->height - GetFontHeight() - 1;
-        sprintf(text, "PFSTATE %d, PFABLE %d\n", *(unsigned char*)(g_game->displayContext + 0xf0) & 1,
-                *(int*)(g_game->displayContext + 0x9c));
+        sprintf(text, "PFSTATE %d, PFABLE %d\n", g_game->displayContext->flags & 1,
+                g_game->displayContext->field_9c);
         DrawString(surface, (unsigned char*)text, 0x82, pfstate, -1);
 
         if (g_game->hoverUnitId != 0) {
             int idx = g_game->hoverUnitId & 0xffff;
-            char* unit = g_game->units + idx * 0x118;
-            sprintf(text, "MOVEORD: %d FIREORD: %d\n", (*(unsigned int*)(unit + 0x110) >> 0x12) & 3,
-                    (*(unsigned int*)(unit + 0x110) >> 0x14) & 3);
+            Unit_0046a860* unit = g_game->units + idx;
+            sprintf(text, "MOVEORD: %d FIREORD: %d\n", (unit->flags >> 0x12) & 3,
+                    (unit->flags >> 0x14) & 3);
             DrawString(surface, (unsigned char*)text, 0x108, pfstate, -1);
         }
 
@@ -252,7 +352,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
         int v = g_game->mapWidthTiles;
         v *= (short)g_game->field_2c90;
         v += (short)g_game->field_2c8e;
-        unsigned char c = *(unsigned char*)(g_game->cells + v * 13 + 4);
+        unsigned char c = g_game->cells[v].shade;
         sprintf(text, "XYH: %d %d %d\n", (short)g_game->field_2c8e,
                 (short)g_game->field_2c90, c);
         DrawString(surface, (unsigned char*)text, 0x208, pfstate, -1);
@@ -266,25 +366,25 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
     snapshot.nTotalUnitsPanelSlide = g_game->selectionInfoCache.nTotalUnitsPanelSlide;
 
     if (snapshot.selected != 0) {
-        char* unit = g_game->units + snapshot.selected * 0x118;
-        snapshot.health = *(unsigned short*)(unit + 0x108);
-        snapshot.build = *(unsigned short*)(unit + 0xb8);
+        Unit_0046a860* unit = g_game->units + snapshot.selected;
+        snapshot.health = unit->healthRaw;
+        snapshot.build = unit->killCount;
         snapshot.orderName = GetOrderName(unit);
         // Copied through float temporaries; direct assignment gives integer moves.
-        float f0 = *(float*)(unit + 0xd0);
-        float f1 = *(float*)(unit + 0xcc);
-        float f2 = *(float*)(unit + 0xe8);
-        float f3 = *(float*)(unit + 0xe4);
+        float f0 = unit->energyUsePrev;
+        float f1 = unit->energyMakePrev;
+        float f2 = unit->metalUsePrev;
+        float f3 = unit->metalMakePrev;
         snapshot.values[0] = f0;
         snapshot.values[1] = f1;
         snapshot.values[2] = f2;
         snapshot.values[3] = f3;
-        char* slot = unit + 0x1f;
+        char* slot = (char*)unit + 0x1f;
         int* out = snapshot.weapons;
         // Keep both `*out = -1` stores (nested ifs): the extra use sets the register of out.
         for (int i = 0; i < 3; i++, out++, slot += 0x1c) {
-            char* weapon = *(char**)(slot - 0xf);
-            if (*(unsigned short*)(weapon + 0xe4) > 0x1e) {
+            WeaponDef_0046a860* weapon = *(WeaponDef_0046a860**)(slot - 0xf);
+            if (weapon->reloadTime > 0x1e) {
                 if (*(unsigned char*)slot & 2)
                     *out = *(unsigned short*)(slot - 7);
                 else
@@ -294,11 +394,11 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
         }
 
         snapshot.targetType = 0;
-        if (*(unsigned char*)(unit + 0xff) == g_game->playerIndex) {
-            int result = GetOrderTarget(unit);
+        if (unit->playerIndex == g_game->playerIndex) {
+            Unit_0046a860* result = (Unit_0046a860*)GetOrderTarget(unit);
             if (result != 0) {
-                snapshot.targetType = *(unsigned short*)(result + 0xa8);
-                snapshot.targetHealth = *(unsigned short*)(result + 0x108);
+                snapshot.targetType = result->id;
+                snapshot.targetHealth = result->healthRaw;
             }
         }
     }
@@ -323,53 +423,53 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
         SideData_0046a860* loopInfo = playerInfo->info;
         int loopSide = loopInfo->bSideId;
         unsigned short* icon = g_game->sidePanelBotSeq[loopSide];
-        int bmp = GetGafFrame(icon, 0);
-        DrawFrame(surface, (void*)bmp, (short)*(unsigned short*)(bmp + 4) + y,
-                     (short)*(unsigned short*)(bmp + 6) + dy);
-        y += *(unsigned short*)bmp;
+        GafFrame_0046a860* bmp = (GafFrame_0046a860*)GetGafFrame(icon, 0);
+        DrawFrame(surface, (void*)bmp, (short)bmp->xoffset + y,
+                     (short)bmp->yoffset + dy);
+        y += bmp->width;
     } while (y < g_game->width);
 
     if (snapshot.button != -1) {
-        strncpy(text, (char*)(snapshot.button * 0x15b + *(int*)(g_game->field_531 + 4) + 2), 0x10);
+        strncpy(text, (char*)(snapshot.button * 0x15b + g_game->field_531->value + 2), 0x10);
         text[0x10] = 0;
         unsigned short type = FindUnitTypeId(text);
         if (type != 0) {
-            char* entry = (char*)(0x249 * type + g_game->unitDefs);
+            UnitDef_0046a860* entry = g_game->unitDefs + type;
             if (_strcmpi(text, "CORBUILD") != 0) {
-                sprintf(text, "%s  M:%d E:%d", entry, (int)*(float*)(entry + 0x18a),
-                        (int)*(float*)(entry + 0x186));
+                sprintf(text, "%s  M:%d E:%d", entry, (int)entry->metalCost,
+                        (int)entry->energyCost);
                 DrawString(surface, (unsigned char*)text, panel->rcName.left,
                              panel->rcName.top + yOffset, -1);
-                DrawString(surface, (unsigned char*)(entry + 0x40), panel->rcDescription.left,
+                DrawString(surface, (unsigned char*)entry->description, panel->rcDescription.left,
                              panel->rcDescription.top + yOffset, -1);
                 return;
             }
         }
     } else if (snapshot.selected != 0) {
-        char* unit = g_game->units + snapshot.selected * 0x118;
-        if (*(unsigned short*)(unit + 0xa6) != 0) {
+        Unit_0046a860* unit = g_game->units + snapshot.selected;
+        if (unit->unitDefIndex != 0) {
             char* playerMap = (char*)&g_game->players[g_game->playerIndex];
             if (IsUnitVisibleToPlayer(playerMap, unit)) {
-                char* definition = *(char**)(unit + 0x92);
-                unsigned int unitFlags = *(unsigned int*)(definition + 0x245);
+                UnitDef_0046a860* definition = unit->def;
+                unsigned int unitFlags = definition->f245;
                 int flagsOk = ((unitFlags & 0x20000) | ((unitFlags >> 1) & 0x20000)) >> 0x11;
-                int gameMode = ((Mission*)*(void**)((char*)g_game + 0x391e9))->GetGameType();
+                int gameMode = g_game->mapInfo->GetGameType();
                 if (gameMode == 3 && flagsOk)
-                    strcpy(text, *(char**)(unit + 0x96) + 0x2b);
+                    strcpy(text, unit->player->name);
                 else
-                    strcpy(text, *(char**)(unit + 0x92));
+                    strcpy(text, (char*)unit->def);
                 int titleX = panel->rcUnitName.left -
                              GetTextWidth((void*)panel->pFontData, (unsigned char*)text) / 2;
                 SetTextColors(0x53, GetTextKeyColor());
                 DrawString(surface, (unsigned char*)text, titleX, yOffset + panel->rcUnitName.top, -1);
-                if (*(unsigned char*)(*(char**)(unit + 0x96) + 0x146) == g_game->playerIndex ||
-                    !(*(unsigned int*)(*(char**)(unit + 0x92) + 0x241) & 0x4000)) {
-                    int maximum = *(int*)(*(char**)(unit + 0x92) + 0x1fa);
-                    DrawBar_0046a860(surface, &panel->rcDamageBar, *(short*)(unit + 0x108),
+                if (unit->player->index == g_game->playerIndex ||
+                    !(unit->def->f241 & 0x4000)) {
+                    int maximum = unit->def->maxHealth;
+                    DrawBar_0046a860(surface, &panel->rcDamageBar, unit->health,
                                      maximum, yOffset, (unsigned char*)palette);
                 }
-                BlitSideLogoToRect(surface, *(void**)(unit + 0x96), &panel->rcLogo2, yOffset);
-                if (*(unsigned char*)(unit + 0xff) == g_game->playerIndex ||
+                BlitSideLogoToRect(surface, unit->player, &panel->rcLogo2, yOffset);
+                if (unit->playerIndex == g_game->playerIndex ||
                     (g_game->flagsByte_3923b & 2)) {
                     // Declared in this block, not at function scope: affects load scheduling.
                     char amount[100];
@@ -388,17 +488,17 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
                     sprintf(amount, "-%.0f", Positive_0046a860(snapshot.values[0]));
                     DrawString(surface, (unsigned char*)amount, panel->rcUnitEnergyUse.left,
                                  panel->rcUnitEnergyUse.top + yOffset, -1);
-                    if ((*(unsigned int*)(unit + 0x110) & 0x80000000) && *(unsigned short*)(unit + 0xb8)) {
+                    if ((unit->flags & 0x80000000) && unit->killCount) {
                         int killsY = panel->rcDamageBar.bottom + yOffset + 2, killsX = panel->rcDamageBar.left;
                         char* plural = Translate("kills");
                         char* singular = Translate("kill");
-                        if (*(unsigned short*)(unit + 0xb8) > 4)
-                            sprintf(killsText, "%d %s - %s", *(unsigned short*)(unit + 0xb8),
-                                    *(unsigned short*)(unit + 0xb8) == 1 ? singular : plural,
+                        if (unit->killCount > 4)
+                            sprintf(killsText, "%d %s - %s", unit->killCount,
+                                    unit->killCount == 1 ? singular : plural,
                                     Translate("Veteran"));
                         else
-                            sprintf(killsText, "%d %s", *(unsigned short*)(unit + 0xb8),
-                                    *(unsigned short*)(unit + 0xb8) == 1 ? singular : plural);
+                            sprintf(killsText, "%d %s", unit->killCount,
+                                    unit->killCount == 1 ? singular : plural);
                         SetTextColors(g_game->colors[15], GetTextKeyColor());
                         DrawString(surface, (unsigned char*)killsText, killsX, killsY, -1);
                     }
@@ -412,7 +512,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
                 }
                 int progress = GetBuildWeaponPercent(unit);
                 if (progress) {
-                    if (*(unsigned char*)(*(char**)(unit + 0x96) + 0x146) != g_game->playerIndex)
+                    if (unit->player->index != g_game->playerIndex)
                         return;
                     char* weaponText = Translate("Weapon");
                     int progressX = panel->rcUnitName2.left -
@@ -424,23 +524,23 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
                     return;
                 }
                 if (snapshot.targetType) {
-                    char* target = g_game->units + snapshot.targetType * 0x118;
-                    if (!*(unsigned short*)(target + 0xa6) || !IsUnitVisibleToPlayer(playerMap, target))
+                    Unit_0046a860* target = g_game->units + snapshot.targetType;
+                    if (!target->unitDefIndex || !IsUnitVisibleToPlayer(playerMap, target))
                         return;
                     int targetX = panel->rcUnitName2.left -
-                                  GetTextWidth((void*)panel->pFontData, (unsigned char*)*(char**)(target + 0x92)) / 2;
+                                  GetTextWidth((void*)panel->pFontData, (unsigned char*)target->def) / 2;
                     SetTextColors(0x53, GetTextKeyColor());
-                    DrawString(surface, (unsigned char*)*(char**)(target + 0x92), targetX,
+                    DrawString(surface, (unsigned char*)target->def, targetX,
                                  panel->rcUnitName2.top + yOffset, -1);
-                    if (*(unsigned char*)(*(char**)(target + 0x96) + 0x146) == g_game->playerIndex ||
-                        !(*(unsigned int*)(*(char**)(target + 0x92) + 0x241) & 0x4000)) {
-                        int maximum = *(int*)(*(char**)(target + 0x92) + 0x1fa);
-                        DrawBar_0046a860(surface, &panel->rcDamageBar2, *(short*)(target + 0x108),
+                    if (target->player->index == g_game->playerIndex ||
+                        !(target->def->f241 & 0x4000)) {
+                        int maximum = target->def->maxHealth;
+                        DrawBar_0046a860(surface, &panel->rcDamageBar2, target->health,
                                          maximum, yOffset, (unsigned char*)palette);
                     }
                 }
             } else {
-                char* prefix = ((unsigned char)(*(unsigned int*)(unit + 0x110) >> 9) & 1) != 0 ? "S: " : "R: ";
+                char* prefix = ((unsigned char)(unit->flags >> 9) & 1) != 0 ? "S: " : "R: ";
                 char* s = Translate("Unidentified object");
                 sprintf(text, "%s%s", prefix, s);
                 int w = GetTextWidth((void*)panel->pFontData, (unsigned char*)text);
@@ -451,20 +551,20 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
             }
         }
     } else if (snapshot.feature != 0xffff) {
-        char* feature = (char*)(g_game->features + snapshot.feature * 0x100);
-        if ((*(unsigned char*)(feature + 0xff) & 4) == 0 || (g_game->flagsByte_3923b & 2) != 0) {
+        Feature_0046a860* feature = g_game->features + snapshot.feature;
+        if ((feature->flags & 4) == 0 || (g_game->flagsByte_3923b & 2) != 0) {
             char mText[16];
-            if (*(float*)(feature + 0xf0) != 0.0f)
-                sprintf(mText, " M:%d", (int)*(float*)(feature + 0xf0));
+            if (feature->metal != 0.0f)
+                sprintf(mText, " M:%d", (int)feature->metal);
             else
                 mText[0] = 0;
             char eText[16];
-            if (*(float*)(feature + 0xec) != 0.0f)
-                sprintf(eText, " E:%d", (int)*(float*)(feature + 0xec));
+            if (feature->energy != 0.0f)
+                sprintf(eText, " E:%d", (int)feature->energy);
             else
                 eText[0] = 0;
-            char* name = g_game->bits_3923b.b1 ? feature : feature + 0x80;
-            if ((*(unsigned char*)(feature + 0xff) & 2) == 0)
+            char* name = g_game->bits_3923b.b1 ? feature->name : feature->description;
+            if ((feature->flags & 2) == 0)
                 sprintf(text, "%s %s%s", Translate(name), mText, eText);
             else
                 strcpy(text, Translate(name));

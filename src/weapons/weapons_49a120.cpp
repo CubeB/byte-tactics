@@ -115,10 +115,12 @@ struct FeatureDef_0049a120 {
     char unknown_0[0x100];
 };
 
-struct Packet_0049a120 {
-    unsigned char type;
-    Vec3_0049a120 pos;
-    unsigned char kind;
+// One view of the 0xe byte projectile detonate packet (type 0xe): the
+// receiver at 0x49af90 in the weapons file holds the other.
+struct ProjectileDetonatePacket {
+    unsigned char type;                // +0x0
+    Vec3_0049a120 aim;                 // +0x1
+    unsigned char weaponIndex;         // +0xd
 };
 
 struct Game_0049a120 {
@@ -375,14 +377,14 @@ void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
             if ((int)(((__int64)dx * dx) >> 32) + (int)(((__int64)dy * dy) >> 32) + (int)(((__int64)dz * dz) >> 32)
                 < reach * reach) {
                 DetonateProjectile(other, 0);
-                Packet_0049a120 packet;
+                ProjectileDetonatePacket packet;
                 packet.type = 0xe;
-                packet.pos = other->aim;
-                packet.kind = other->def->kind;
+                packet.aim = other->aim;
+                packet.weaponIndex = other->def->kind;
                 BroadcastPacket(weapon->attacker->holder->playerId, &packet, sizeof(packet));
                 packet.type = 0xe;
-                packet.pos = weapon->aim;
-                packet.kind = weapon->def->kind;
+                packet.aim = weapon->aim;
+                packet.weaponIndex = weapon->def->kind;
                 BroadcastPacket(weapon->attacker->holder->playerId, &packet, sizeof(packet));
             }
         }

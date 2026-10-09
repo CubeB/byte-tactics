@@ -528,17 +528,22 @@ struct Obj_00499ab0 {
     unsigned short team;             // +0xa8
 };
 
-struct Packet_00499ab0 {
+// One view of the 0x24 byte weapon fire packet (type 0xd): the two partial
+// senders at 0x499ba0 and 0x49df10, the four firing routines' views and the
+// receiver at 0x49d270 were folded in. Where their own views were, an unused
+// declaration keeps the file's symbol ids (docs/c2-regalloc.md).
+struct WeaponFirePacket {
     unsigned char type;              // +0x0
-    Vec3_00499ab0 a;                 // +0x1
-    Vec3_00499ab0 b;                 // +0xd
-    unsigned char f19;               // +0x19
+    Vec3 origin;                     // +0x1
+    Vec3 aimOrVel;                   // +0xd
+    unsigned char weaponDefIndex;    // +0x19
     unsigned char flag : 1;          // +0x1a, bit 0
-    unsigned short f1b;              // +0x1b
-    unsigned short f1d;              // +0x1d
-    unsigned short f1f;              // +0x1f
-    unsigned short f21;              // +0x21
-    unsigned char f23;               // +0x23
+    unsigned char : 7;
+    unsigned short fireHeading;      // +0x1b
+    unsigned short firePitch;        // +0x1d
+    unsigned short targetUnitId;     // +0x1f
+    unsigned short ownerUnitId;      // +0x21
+    unsigned char weaponSlotIndex;   // +0x23
 };
 
 #pragma pack(pop)
@@ -557,17 +562,17 @@ void __stdcall SendWeaponFirePacket(Unit* unit, Obj_00499ab0* source,
                             Obj_00499ab0* target, Vec3_00499ab0* a,
                             Vec3_00499ab0* b)
 {
-    Packet_00499ab0 packet;
+    WeaponFirePacket packet;
     if (g_game->flags_2a44 & 1) {
         packet.type = 0xd;
-        packet.a = *a;
-        packet.b = *b;
-        packet.f19 = unit->f_c->team;
-        packet.f23 = (unit->f_1b >> 2) & 3;
-        packet.f21 = !source ? 0 : source->team;
-        packet.f1f = !target ? 0 : target->team;
-        packet.f1b = unit->f_16;
-        packet.f1d = unit->f_18;
+        packet.origin = *(Vec3*)a;
+        packet.aimOrVel = *(Vec3*)b;
+        packet.weaponDefIndex = unit->f_c->team;
+        packet.weaponSlotIndex = (unit->f_1b >> 2) & 3;
+        packet.ownerUnitId = !source ? 0 : source->team;
+        packet.targetUnitId = !target ? 0 : target->team;
+        packet.fireHeading = unit->f_16;
+        packet.firePitch = unit->f_18;
         packet.flag = unit->f_c->flags.value >> 30;
         BroadcastPacket(source->kind->f4, &packet, 0x24);
     }
@@ -580,13 +585,8 @@ struct Vec3_00499ba0 {
 };
 
 #pragma pack(push, 1)
-struct Packet_00499ba0 {
-    unsigned char type;                // +0x0
-    Vec3_00499ba0 a;                   // +0x1
-    Vec3_00499ba0 b;                   // +0xd
-    char field_19;                     // +0x19
-    char unknown_1a[0x24 - 0x1a];
-};
+// Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
+void Unused_00499ba0(int a, int b, int c, int d, int e, int f);
 #pragma pack(pop)
 
 int __cdecl GetLocalDpid();
@@ -594,12 +594,12 @@ int __cdecl GetLocalDpid();
 // FUNCTION: 0x499ba0
 void __stdcall BroadcastWeaponFire(char param_1, Vec3_00499ba0* a, Vec3_00499ba0* b)
 {
-    Packet_00499ba0 packet;
+    WeaponFirePacket packet;
     if (g_game->flags_2a44 & 1) {
         packet.type = 0xd;
-        packet.a = *a;
-        packet.b = *b;
-        packet.field_19 = param_1;
+        packet.origin = *(Vec3*)a;
+        packet.aimOrVel = *(Vec3*)b;
+        packet.weaponDefIndex = param_1;
         BroadcastPacket(GetLocalDpid(), &packet, 0x24);
     }
 }
@@ -1083,11 +1083,8 @@ struct FeatureDef_0049a120 {
     char unknown_0[0x100];
 };
 
-struct Packet_0049a120 {
-    unsigned char type;
-    Vec3_0049a120 pos;
-    unsigned char kind;
-};
+// Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
+void Unused_0049a120(int a, int b, int c, int d, int e, int f);
 #pragma pack(pop)
 
 // <vector> comes after the game's own declarations: the symbol ids it gives
@@ -1522,10 +1519,12 @@ struct Projectile_0049af90 {
     char unknown_34[0x6b - 0x34];
 };
 
-struct Packet_0049af90 {
-    char kind;                         // +0x0
-    Vec3_0049af90 pos;                 // +0x1
-    unsigned char typeId;              // +0xd
+// One view of the 0xe byte projectile detonate packet (type 0xe): the sender
+// at 0x49a120, a view of which is in the gap file, holds the other.
+struct ProjectileDetonatePacket {
+    unsigned char type;                // +0x0
+    Vec3_0049af90 aim;                 // +0x1
+    unsigned char weaponIndex;         // +0xd
 };
 #pragma pack(pop)
 
@@ -1540,11 +1539,11 @@ static inline int SamePos(const Vec3_0049af90& a, const Vec3_0049af90& b)
 // removes it. The position compare is an inlined helper taking references;
 // written inline, MSVC keeps one induction pointer instead of two.
 // FUNCTION: 0x49af90
-void __stdcall ApplyProjectileHitPacket(int unused, Packet_0049af90* p)
+void __stdcall ApplyProjectileHitPacket(int unused, ProjectileDetonatePacket* p)
 {
     Projectile_0049af90* proj = (Projectile_0049af90*)g_game->projectiles;
     for (int i = 0; i < g_game->projectileCount; i++, proj++) {
-        if (SamePos(proj->pos, p->pos) && proj->type->id == p->typeId) {
+        if (SamePos(proj->pos, p->aim) && proj->type->id == p->weaponIndex) {
             DetonateProjectile(proj, 0);
             return;
         }
@@ -2445,18 +2444,8 @@ struct Proj_0049d270 {                // 0x6b bytes
     unsigned short flags;             // +0x69
 };
 
-struct Event_0049d270 {
-    char unknown_0[0xd];
-    Vec3 pos;                         // +0xd
-    unsigned char team;               // +0x19
-    unsigned char b0 : 1;             // +0x1a
-    unsigned char unknown_1a : 7;
-    unsigned short f_1b;              // +0x1b
-    unsigned short f_1d;              // +0x1d
-    unsigned short ownerId;           // +0x1f
-    unsigned short unitId;            // +0x21
-    unsigned char entryIndex;         // +0x23
-};
+// Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
+void Unused_0049d270(int a, int b, int c, int d, int e, int f);
 #pragma pack(pop)
 
 static inline int SamePos_0049d270(Vec3& a, Vec3& b)
@@ -2466,17 +2455,17 @@ static inline int SamePos_0049d270(Vec3& a, Vec3& b)
 
 // The projectile scan of 0x49d1e0, defined here unannotated so that /Ob2
 // inlines it into ApplyWeaponFirePacket as it did in the original. It has no
-// callers in the exe. Written with the positive `if (ev->b0) { ... } return 0;`
-// test, which also matches 0x49d1e0 on its own; the `if (!ev->b0) return 0;`
+// callers in the exe. Written with the positive `if (ev->flag) { ... } return 0;`
+// test, which also matches 0x49d1e0 on its own; the `if (!ev->flag) return 0;`
 // spelling above compiles to the same standalone bytes but, inlined here,
 // gives the cursor a register and spills `unit` (73.4%).
-Proj_0049d270* __stdcall FindRemoteProjectile_0049d270(Event_0049d270* ev)
+Proj_0049d270* __stdcall FindRemoteProjectile_0049d270(WeaponFirePacket* ev)
 {
-    if (ev->b0) {
+    if (ev->flag) {
         char me = g_game->localPlayer;
         Proj_0049d270* proj = (Proj_0049d270*)g_game->projectiles;
         for (int i = 0; i < g_game->projCount; i++, proj++) {
-            if (proj->player != me && SamePos_0049d270(proj->aim, ev->pos) && proj->owner->f_a8u == ev->ownerId)
+            if (proj->player != me && SamePos_0049d270(proj->aim, ev->aimOrVel) && proj->owner->f_a8u == ev->targetUnitId)
                 return proj;
         }
     }
@@ -2489,12 +2478,12 @@ void __stdcall FireVLaunchProjectile(void*, void*, void*, void*, void*, void*);
 void __stdcall FireBallisticProjectile(void*, void*, void*, void*, void*);
 
 // FUNCTION: 0x49d270
-void __stdcall ApplyWeaponFirePacket(int arg1, Event_0049d270* ev)
+void __stdcall ApplyWeaponFirePacket(int arg1, WeaponFirePacket* ev)
 {
-    unsigned char team = ev->team;
-    Def_0049d270* def = &g_game->defs[team];
+    unsigned char defIndex = ev->weaponDefIndex;
+    Def_0049d270* def = &g_game->defs[defIndex];
     if (def->flags.b5) {
-        Vec3* pos = &ev->pos;
+        Vec3* pos = &ev->aimOrVel;
         void* arg = (void*)((char*)ev + 1);
         Proj_0049d270* proj = 0;
         if (g_game->projCount < 300) {
@@ -2508,27 +2497,27 @@ void __stdcall ApplyWeaponFirePacket(int arg1, Event_0049d270* ev)
         proj->pos = *pos;
         return;
     }
-    Unit* unit = ev->unitId == 0 ? 0 : &g_game->units[ev->unitId];
+    Unit* unit = ev->ownerUnitId == 0 ? 0 : &g_game->units[ev->ownerUnitId];
     if (!unit)
         return;
     if (!unit->b28)
         return;
-    Entry_0049d270* entry = &unit->entry[ev->entryIndex];
-    entry->f_18 = ev->f_1d;
-    entry->f_16 = ev->f_1b;
-    unsigned short ownerId = ev->ownerId;
-    Unit* owner = ownerId == 0 ? 0 : &g_game->units[ownerId];
+    Entry_0049d270* entry = &unit->entry[ev->weaponSlotIndex];
+    entry->f_18 = ev->firePitch;
+    entry->f_16 = ev->fireHeading;
+    unsigned short targetId = ev->targetUnitId;
+    Unit* target = targetId == 0 ? 0 : &g_game->units[targetId];
     Proj_0049d270* found = FindRemoteProjectile_0049d270(ev);
     if (def->flags.b1) {
-        FireBallisticProjectile(entry, unit, (void*)((char*)ev + 1), &ev->pos, owner);
+        FireBallisticProjectile(entry, unit, (void*)((char*)ev + 1), &ev->aimOrVel, target);
         return;
     }
     if (def->flags.b4) {
-        FireVLaunchProjectile(entry, unit, (void*)((char*)ev + 1), &ev->pos, owner, found);
+        FireVLaunchProjectile(entry, unit, (void*)((char*)ev + 1), &ev->aimOrVel, target, found);
         return;
     }
     if (def->flags.b0 || def->flags.b20) {
-        FireLineOfSightProjectile(entry, unit, (void*)((char*)ev + 1), &ev->pos, owner);
+        FireLineOfSightProjectile(entry, unit, (void*)((char*)ev + 1), &ev->aimOrVel, target);
         return;
     }
     if (def->flags.b8) {
@@ -2551,18 +2540,8 @@ void __stdcall ApplyWeaponFirePacket(int arg1, Event_0049d270* ev)
 }
 
 #pragma pack(push, 1)
-struct Packet_0049d580 {
-    unsigned char type;               // +0x00
-    Vec3 a;                           // +0x01, the gun's world position
-    Vec3 b;                           // +0x0d, the aimed at point
-    unsigned char team;               // +0x19
-    unsigned char unknown_1a;         // +0x1a, never assigned
-    short heading;                    // +0x1b
-    short pitch;                      // +0x1d
-    short target_a8;                  // +0x1f
-    short unit_a8;                    // +0x21
-    unsigned char weapon;             // +0x23
-};
+// Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
+void Unused_0049d580(int a, int b, int c, int d, int e, int f);
 #pragma pack(pop)
 
 void __stdcall GetAimFromPosition(Unit* obj, Vec3* out, unsigned char weapon);
@@ -2636,20 +2615,20 @@ int __stdcall FireTurretWeapon(Unit* fire, Unit* unit,
         unit->f_8 = 0;
         unit->f_1b &= 0xfe;
         if (g_game->flags & 1) {
-            Packet_0049d580 msg;
+            WeaponFirePacket msg;
             msg.type = 0xd;
-            msg.a = gunpos;
-            msg.b = *point;
-            msg.team = unit->f_c->team;
-            msg.weapon = unit->f_1b >> 2 & 3;
+            msg.origin = gunpos;
+            msg.aimOrVel = *point;
+            msg.weaponDefIndex = unit->f_c->team;
+            msg.weaponSlotIndex = unit->f_1b >> 2 & 3;
             if (fire == 0)
-                msg.unit_a8 = 0;
+                msg.ownerUnitId = 0;
             else
-                msg.unit_a8 = fire->f_a8;
-            msg.target_a8 = target ? target->f_a8 : 0;
-            msg.heading = unit->f_16;
-            msg.pitch = unit->f_18;
-            msg.unknown_1a = msg.unknown_1a ^ ((unit->f_c->flags.value >> 30 ^ msg.unknown_1a) & 1);
+                msg.ownerUnitId = fire->f_a8;
+            msg.targetUnitId = target ? target->f_a8 : 0;
+            msg.fireHeading = unit->f_16;
+            msg.firePitch = unit->f_18;
+            msg.flag = unit->f_c->flags.value >> 30;
             BroadcastPacket(fire->player->id, &msg, 0x24);
         }
         return 1;
@@ -2748,18 +2727,8 @@ struct Aim_0049d9c0 {
     unsigned char weapon;             // +0x1b
 };
 
-struct Packet_0049d9c0 {
-    unsigned char type;               // +0x00
-    Vec3 a;                           // +0x01
-    Vec3 b;                           // +0x0d
-    unsigned char team;               // +0x19
-    unsigned char unknown_1a;         // +0x1a
-    short heading;                    // +0x1b
-    short pitch;                      // +0x1d
-    short target_a8;                  // +0x1f
-    short unit_a8;                    // +0x21
-    unsigned char weapon;             // +0x23
-};
+// Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
+void Unused_0049d9c0(int a, int b, int c, int d, int e, int f);
 #pragma pack(pop)
 
 int __stdcall AimWithinTolerance(Unit* unit, Aim_0049d9c0* aim, short angle1, short angle2);
@@ -2782,21 +2751,21 @@ int __stdcall FireLineOfSightWeapon(Unit* unit, Aim_0049d9c0* aim,
     if (AimWithinTolerance(unit, aim, unit->heading, unit->pitch)) {
         if (FireLineOfSightProjectile(aim, unit, &p, point, target)) {
             if (g_game->flags & 1) {
-                Packet_0049d9c0 msg;
+                WeaponFirePacket msg;
                 msg.type = 0xd;
-                msg.a = unit->pos;
-                msg.b = *point;
-                msg.team = aim->type->team;
-                msg.weapon = aim->weapon >> 2 & 3;
+                msg.origin = unit->pos;
+                msg.aimOrVel = *point;
+                msg.weaponDefIndex = aim->type->team;
+                msg.weaponSlotIndex = aim->weapon >> 2 & 3;
                 // if/else testing the unit, not a ternary: the ternary flips the branches.
                 if (unit == 0)
-                    msg.unit_a8 = 0;
+                    msg.ownerUnitId = 0;
                 else
-                    msg.unit_a8 = unit->field_a8;
-                msg.target_a8 = target ? target->field_a8 : 0;
-                msg.heading = aim->field_16;
-                msg.pitch = aim->field_18;
-                msg.unknown_1a = msg.unknown_1a ^ ((aim->type->flags >> 30 ^ msg.unknown_1a) & 1);
+                    msg.ownerUnitId = unit->field_a8;
+                msg.targetUnitId = target ? target->field_a8 : 0;
+                msg.fireHeading = aim->field_16;
+                msg.firePitch = aim->field_18;
+                msg.flag = aim->type->flags >> 30;
                 BroadcastPacket(unit->player->id, &msg, 0x24);
             }
             return 1;
@@ -2842,18 +2811,8 @@ struct Object_0049db70 {
     short team;
 };
 
-struct Packet_0049db70 {
-    unsigned char type;
-    Vec3 pos;
-    Vec3 aim;
-    unsigned char field_19;
-    unsigned char flag : 1;
-    short heading;
-    short pitch;
-    short target_team;
-    short source_team;
-    unsigned char weapon;
-};
+// Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
+void Unused_0049db70(int a, int b, int c, int d, int e, int f);
 #pragma pack(pop)
 
 void __stdcall GetWeaponPiecePosition(Object_0049db70* obj, Vec3* out, unsigned char weapon, int piece);
@@ -2890,17 +2849,17 @@ int __stdcall FireVLaunchWeapon(Object_0049db70* source, Shot_0049db70* shot,
         }
         if (FireVLaunchProjectile(shot, source, &pos, aim, target, p)) {
             if (g_game->flags_2a44 & 1) {
-                Packet_0049db70 packet;
+                WeaponFirePacket packet;
                 packet.type = 0xd;
-                packet.pos = pos;
-                packet.aim = *aim;
-                packet.field_19 = shot->def->field_10a;
-                packet.weapon = (shot->weapon >> 2) & 3;
+                packet.origin = pos;
+                packet.aimOrVel = *aim;
+                packet.weaponDefIndex = shot->def->field_10a;
+                packet.weaponSlotIndex = (shot->weapon >> 2) & 3;
                 // Keep the `== 0 ? 0 : team` ternaries: they put the zero store on the fall-through.
-                packet.source_team = source == 0 ? 0 : source->team;
-                packet.target_team = target == 0 ? 0 : target->team;
-                packet.heading = shot->heading;
-                packet.pitch = shot->pitch;
+                packet.ownerUnitId = source == 0 ? 0 : source->team;
+                packet.targetUnitId = target == 0 ? 0 : target->team;
+                packet.fireHeading = shot->heading;
+                packet.firePitch = shot->pitch;
                 packet.flag = shot->def->flags.special;
                 BroadcastPacket(source->kind->player, &packet, 0x24);
             }
@@ -2945,18 +2904,8 @@ struct Projectile_0049dd60 {
     unsigned short flags;
 };
 
-struct Packet_0049dd60 {
-    unsigned char type;
-    Vec3 a;
-    Vec3 b;
-    unsigned char team;
-    unsigned char unknown_1a;
-    short heading;
-    short pitch;
-    short target_a8;
-    short unit_a8;
-    unsigned char weapon;
-};
+// Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
+void Unused_0049dd60(int a, int b, int c, int d, int e, int f);
 #pragma pack(pop)
 
 void __stdcall InitProjectile(Projectile_0049dd60*, Type_0049dd60*, Vec3*, int, int, Unit*);
@@ -2981,23 +2930,23 @@ int __stdcall FireDroppedWeapon(Unit* unit, Aim_0049dd60* aim,
         projectile->velX = -FUN_004b70ef(projectile->heading, unit->owner->id);
         projectile->velZ = -FUN_004b7123(projectile->heading, unit->owner->id);
         if (g_game->flags & 1) {
-            Packet_0049dd60 packet;
+            WeaponFirePacket packet;
             packet.type = 0xd;
-            packet.a = p;
-            packet.b = *point;
-            packet.team = aim->type->team;
-            packet.weapon = aim->weapon >> 2 & 3;
+            packet.origin = p;
+            packet.aimOrVel = *point;
+            packet.weaponDefIndex = aim->type->team;
+            packet.weaponSlotIndex = aim->weapon >> 2 & 3;
             if (unit == 0)
-                packet.unit_a8 = 0;
+                packet.ownerUnitId = 0;
             else
-                packet.unit_a8 = unit->field_a8;
+                packet.ownerUnitId = unit->field_a8;
             if (target == 0)
-                packet.target_a8 = 0;
+                packet.targetUnitId = 0;
             else
-                packet.target_a8 = target->field_a8;
-            packet.heading = aim->field_16;
-            packet.pitch = aim->field_18;
-            packet.unknown_1a = packet.unknown_1a ^ ((aim->type->flags >> 30 ^ packet.unknown_1a) & 1);
+                packet.targetUnitId = target->field_a8;
+            packet.fireHeading = aim->field_16;
+            packet.firePitch = aim->field_18;
+            packet.flag = aim->type->flags >> 30;
             BroadcastPacket(unit->player->id, &packet, 0x24);
         }
         return 1;
@@ -3020,13 +2969,8 @@ struct Unit_0049df10 {
     unsigned char team;                // +0x10a
 };
 
-struct Packet_0049df10 {
-    unsigned char type;                // +0x0
-    Vec3 a;                   // +0x1
-    Vec3 b;                   // +0xd
-    unsigned char field_19;            // +0x19
-    char unknown_1a[0x24 - 0x1a];
-};
+// Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
+void Unused_0049df10(int a, int b, int c, int d, int e, int f);
 #pragma pack(pop)
 
 int __cdecl GetLocalDpid();
@@ -3052,11 +2996,11 @@ int __stdcall SpawnProjectile(Unit_0049df10* unit, Vec3* a, Vec3* b, int flag)
         // pushes the +0xd store and the type store in their original places.
         unsigned char team = unit->team;
         if (g_game->flags_2a44 & 1) {
-            Packet_0049df10 packet;
+            WeaponFirePacket packet;
             packet.type = 0xd;
-            packet.a = *a;
-            packet.b = *b;
-            packet.field_19 = team;
+            packet.origin = *a;
+            packet.aimOrVel = *b;
+            packet.weaponDefIndex = team;
             BroadcastPacket(GetLocalDpid(), &packet, 0x24);
         }
     }

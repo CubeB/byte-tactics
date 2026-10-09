@@ -1705,9 +1705,9 @@ struct Packet_0047f0c0;
 struct Packet_0047f300;
 struct OwnershipTransferPacket;
 struct ActivateFlagsPacket;
-struct Packet_00499ab0;
+struct WeaponFirePacket;
 struct Packet_00499ba0;
-struct Packet_0049af90;
+struct ProjectileDetonatePacket;
 struct Packet_0049d580;
 struct Packet_0049d9c0;
 struct Packet_0049db70;
@@ -14130,7 +14130,7 @@ struct Obj_00499ab0 {  // 0xaa bytes, 1 view
     unsigned short team;  // +0xa8
 };
 
-struct Packet_00499ab0 {  // 0x24 bytes, 1 view
+struct WeaponFirePacket {  // 0x24 bytes, 1 view
     unsigned char type;  // +0x0
     Vec3 a;  // +0x1
     Vec3 b;  // +0xd
@@ -14196,7 +14196,7 @@ struct Weapon_0049abb0 {  // 0x1c bytes, 1 view
     char unknown_4[24];
 };
 
-struct Packet_0049af90 {  // 0xe bytes, 1 view
+struct ProjectileDetonatePacket {  // 0xe bytes, 1 view
     char kind;  // +0x0
     Vec3 pos;  // +0x1
     unsigned char typeId;  // +0xd

@@ -152,12 +152,13 @@ struct Unit {
     char unknown_0[0x6a];
     Vec3 pos;                          // +0x6a
     char unknown_76[4];                // +0x76
-    short cell[2];                     // +0x7a
+    short losCacheCellX;               // +0x7a
+    short losCacheCellZ;               // +0x7c
     char unknown_7e[0x92 - 0x7e];
-    UnitDef* type;                     // +0x92
-    Player* owner;                     // +0x96
+    UnitDef* def;                      // +0x92
+    Player* player;                    // +0x96
     char unknown_9a[0xa6 - 0x9a];
-    unsigned short id;                 // +0xa6
+    unsigned short unitDefIndex;       // +0xa6
     char unknown_a8[0xf8 - 0xa8];
     unsigned char losSightFrameIdx[4];         // +0xf8
     char unknown_fc[0x118 - 0xfc];     // stride 0x118
@@ -545,12 +546,12 @@ Cell* __stdcall GetOriginCellAtPosition(Vec3* pos)
 void __stdcall RemoveUnitLineOfSight(Unit* unit)
 {
     SightQuery p;
-    p.player = unit->owner;
-    p.cacheCell = unit->cell;
-    p.sightDistance = unit->type->range;
+    p.player = unit->player;
+    p.cacheCell = &unit->losCacheCellX;
+    p.sightDistance = unit->def->range;
     p.frameIdx = unit->losSightFrameIdx;
     p.pos = unit->pos;
-    p.eyeHeight = unit->type->field_170;
+    p.eyeHeight = unit->def->field_170;
     int minY = (g_game->seaLevel + 1) << 16;
     if (p.pos.y < minY) {
         p.pos.y = minY;
@@ -660,12 +661,12 @@ void __stdcall UpdateLineOfSight(SightQuery* params)
 void __stdcall UpdateUnitLineOfSight(Unit* unit)
 {
     SightQuery p;
-    p.player = unit->owner;
-    p.cacheCell = unit->cell;
-    p.sightDistance = unit->type->range;
+    p.player = unit->player;
+    p.cacheCell = &unit->losCacheCellX;
+    p.sightDistance = unit->def->range;
     p.frameIdx = unit->losSightFrameIdx;
     p.pos = unit->pos;
-    p.eyeHeight = unit->type->field_170;
+    p.eyeHeight = unit->def->field_170;
     int minY = (g_game->seaLevel + 1) << 16;
     if (p.pos.y < minY) {
         p.pos.y = minY;

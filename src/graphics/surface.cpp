@@ -949,7 +949,7 @@ void __stdcall DrawTile(Surface* dst, Surface* src, Rect* rect, Point* pos)
 // FUNCTION: 0x4c6f10
 void __stdcall SaveSurface(Surface* surface, HapiBank* file)
 {
-    ((HapiBank*)file)->SeekBox(0);
+    file->SeekBox(0);
     int header[2];
     header[0] = surface->width;
     header[1] = surface->height;

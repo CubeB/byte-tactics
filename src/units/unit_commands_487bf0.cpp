@@ -786,20 +786,20 @@ UnitTypeSet* __stdcall GetCategoryMask(char* name)
 
 // Search and final comparison stay one inlined helper: it fixes the register
 // use and the opposite strcmpi argument orders.
-static inline char* FindByName(char* first, char* last, char* text)
+static inline UnitType_00488b10* FindByName(UnitType_00488b10* first, UnitType_00488b10* last, char* text)
 {
-    int n = (last - first) / 0x249;
+    int n = (int)((char*)last - (char*)first) / 0x249;
     while (n > 0) {
         int m = n / 2;
-        UnitType_00488b10* e = (UnitType_00488b10*)(first + m * 0x249);
+        UnitType_00488b10* e = first + m;
         if (_strcmpi(e->name, text) < 0) {
             n = n - m - 1;
-            first = (char*)e + 0x249;
+            first = e + 1;
         } else {
             n = m;
         }
     }
-    if (first == last || _strcmpi(text, ((UnitType_00488b10*)first)->name) != 0)
+    if (first == last || _strcmpi(text, first->name) != 0)
         return 0;
     return first;
 }
@@ -807,10 +807,10 @@ static inline char* FindByName(char* first, char* last, char* text)
 // FUNCTION: 0x488d30
 void UnitTypeSet::AddTypeOrCategory(char* text, int* out)
 {
-    char* base = (char*)g_game->types;
-    char* last = base + g_game->count * 0x249;
-    char* first = FindByName(base + 0x249, last, text);
-    unsigned short v = first ? ((UnitType_00488b10*)first)->id : 0;
+    UnitType_00488b10* base = g_game->types;
+    UnitType_00488b10* last = base + g_game->count;
+    UnitType_00488b10* first = FindByName(base + 1, last, text);
+    unsigned short v = first ? first->id : 0;
     if (v != 0) {
         bits[v >> 5] |= 1 << (v & 31);
         *out = 1;

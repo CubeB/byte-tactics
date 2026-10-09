@@ -125,7 +125,7 @@ struct Class_0046eaa0 {    // 0x5c bytes, one vector element
     Class_0046eaa0& operator=(const Class_0046eaa0& src);
 };
 
-extern char* g_game;
+extern Game* g_game;
 extern int DAT_00000000;
 
 int __stdcall ComputeUnitScriptChecksum(Def_0046dad0* def);
@@ -168,7 +168,7 @@ void UnitSync::ProcessSync() {
                 int live = 0;
                 for (int i = 0; i < 10; i++) {
                     PlayerInfo_0046dad0* p =
-                        (PlayerInfo_0046dad0*)(g_game + 0x1b63 + i * 0x14b);
+                        (PlayerInfo_0046dad0*)((char*)g_game + 0x1b63 + i * 0x14b);
                     if (p->field_0 != 0 && p->type == 3 && p->data->kind == 1 &&
                         it->id == p->field_4) {
                         live = 1;
@@ -185,7 +185,7 @@ void UnitSync::ProcessSync() {
         }
 
         for (int i = 0; i < 10; i++) {
-            PlayerInfo_0046dad0* p = (PlayerInfo_0046dad0*)(g_game + 0x1b63 + i * 0x14b);
+            PlayerInfo_0046dad0* p = (PlayerInfo_0046dad0*)((char*)g_game + 0x1b63 + i * 0x14b);
             if (p->field_0 != 0 && p->type == 3 && p->data->kind == 1) {
                 int found = 0;
                 for (std::vector<Class_0046eaa0>::iterator j = players.begin(); j != players.end();
@@ -235,11 +235,11 @@ void UnitSync::ProcessSync() {
     }
 
     if (pendingPlayerCount > 0) {
-        if (checksumProgress < ((Game*)g_game)->count) {
+        if (checksumProgress < g_game->count) {
             if (checksumProgress == 0) {
                 if (GetHostDpid() == -1)
                     return;
-                int v = ((Game*)g_game)->count - 1;
+                int v = g_game->count - 1;
                 if (disabled == 0) {
                     UnitSyncPacket packet;
                     packet.type = 0x1a;
@@ -260,7 +260,7 @@ void UnitSync::ProcessSync() {
             // Nested if/else with this loop: it re-reads g_game first and returns
             // when checksumProgress >= count.
             for (int n = 0; n < 4;) {
-                Game* game = (Game*)g_game;
+                Game* game = g_game;
                 if (checksumProgress >= game->count)
                     return;
                 Def_0046dad0* def = &game->defs[checksumProgress];

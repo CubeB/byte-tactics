@@ -38,11 +38,7 @@ struct Point {
     short y;
 };
 
-struct Vec3 {
-    int x;
-    int y;
-    int z;
-};
+#include "../util/vec3.h"
 
 struct Cell {                           // 13 bytes per cell
     union {
@@ -272,7 +268,7 @@ public:
 };
 
 // Unused here: these forward declarations take the symbol ids that keep 0x47d2e0 matching
-// after IsPadSlotFree took the file's Unit (docs/c2-regalloc.md).
+// after IsPadSlotFree took the file's Unit and Point16 came in with Vec3 (docs/c2-regalloc.md).
 struct Sound;
 struct HapiBank;
 struct TdfFile;
@@ -290,6 +286,14 @@ struct Chunk;
 struct MovementClassTable;
 struct PointMarker;
 class OpenHeap;
+struct Order;
+struct Menu;
+struct Gui;
+struct Dialog;
+struct FileHandle;
+struct Surface;
+struct Gaf;
+struct GafEntry;
 
 struct Entry_0047ea40 {
     Vec3 pos;                          // +0x0

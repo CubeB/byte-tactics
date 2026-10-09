@@ -25,11 +25,7 @@ union Fixed {
     } parts;
 };
 
-struct Vec3 {
-    int x;
-    int y;
-    int z;
-};
+#include "../util/vec3.h"
 
 struct Point {
     int x;

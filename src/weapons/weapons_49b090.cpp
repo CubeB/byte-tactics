@@ -24,11 +24,7 @@
 
 #pragma pack(push, 1)
 
-struct Pos_0049b090 {
-    int x;
-    int y;
-    int z;
-};
+#include "../util/vec3.h"
 
 // 13 bytes, the stride the cell arithmetic at +0x6e walks with `n * 13`.
 struct Cell_0049b090 {
@@ -79,7 +75,7 @@ struct UnitType_0049b090 {
 
 struct Unit {
     char unknown_0[0x6a];
-    Pos_0049b090 pos;                  // +0x6a
+    Vec3 pos;                          // +0x6a
     char unknown_76[0x92 - 0x76];
     UnitType_0049b090* def;            // +0x92
     char unknown_96[0xff - 0x96];
@@ -142,7 +138,7 @@ struct Game {
     char unknown_14280[0x142f7 - 0x14280];
     Proj_0049b090* selected;           // +0x142f7
     char unknown_142fb[0x1433f - 0x142fb];
-    Pos_0049b090 lastPos;              // +0x1433f
+    Vec3 lastPos;                      // +0x1433f
     unsigned short lastSound;          // +0x1434b
     char unknown_1434d[0x14357 - 0x1434d];
     Unit* units;                       // +0x14357
@@ -153,7 +149,7 @@ struct Game {
 
 extern Game* g_game;
 
-Cell_0049b090* __stdcall GetMapCellAtPosition(Pos_0049b090* pos);
+Cell_0049b090* __stdcall GetMapCellAtPosition(Vec3* pos);
 void __stdcall DetonateProjectile(Proj_0049b090* proj, Unit* unit);
 
 // Stays in its own file: its feature block matches only at this file's symbol
@@ -163,12 +159,12 @@ void __stdcall CheckProjectileCollision(ProjType_0049b090* type, Proj_0049b090* 
 {
     // No `Game* g = g_game` local: g_game is read at each use to stay in edi.
     // Named pos local, used again after the lookup: gives the original's prologue.
-    Pos_0049b090* pos = (Pos_0049b090*)&proj->px;
+    Vec3* pos = (Vec3*)&proj->px;
     Cell_0049b090* cell = GetMapCellAtPosition(pos);
 
     if (!cell) {
         if (proj == g_game->selected) {
-            g_game->lastPos = *(Pos_0049b090*)&g_game->selected->px;
+            g_game->lastPos = *(Vec3*)&g_game->selected->px;
             g_game->lastSound = proj->type->sound;
             g_game->selected = 0;
         }

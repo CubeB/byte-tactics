@@ -12,17 +12,7 @@
 
 template<class T> struct List : std::vector<T> { void Clear() { clear(); } };
 
-struct Point16 {
-    short x;
-    short y;
-};
-
-struct Vec3 {
-    int x;
-    int y;
-    int z;
-    Vec3 operator+(const Vec3& o) const { Vec3 r; r.x = x + o.x; r.y = y + o.y; r.z = z + o.z; return r; }
-};
+#include "../util/vec3.h"
 
 struct Vec { int x,y,z; Vec(int a,int b,int c):x(a),y(b),z(c){} };
 

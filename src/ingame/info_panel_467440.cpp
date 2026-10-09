@@ -43,13 +43,13 @@ struct PlayerInfo {
 };
 
 struct Owner_00467440 {
-    void* field_0;                     // +0x0
+    void* active;                      // +0x0
     char unknown_4[0x27 - 0x4];
     PlayerInfo* data;                  // +0x27
     char unknown_2b[0x73 - 0x2b];
-    char field_73;                     // +0x73
+    char type;                         // +0x73
     char unknown_74[0x108 - 0x74];
-    unsigned char field_108[1];        // +0x108
+    unsigned char allied[1];           // +0x108
 };
 
 struct Unit {
@@ -181,7 +181,7 @@ void UpdateSensorRadarAndCloak(void)
         if (a->flags & 0x10000000) {
             a->flags &= ~0x1000;
             if (a->playerIndex == player
-                || (a->player->field_108[pl->index] != 0
+                || (a->player->allied[pl->index] != 0
                     && (a->player->data->flags & 0x40) != 0)
                 || (*(int*)pl != 0 && (pl->data->gameFlags & 0x40) != 0)) {
                 a->flags |= 0x300;
@@ -233,8 +233,8 @@ void UpdateSensorRadarAndCloak(void)
     }
 
     for (u = first; u <= last; u++) {
-        if ((u->flags & 0x10000000) && u->player->field_0 != 0) {
-            char c = u->player->field_73;
+        if ((u->flags & 0x10000000) && u->player->active != 0) {
+            char c = u->player->type;
             if (c == 1 || c == 2) {
                 if (u->def->flags2 & 0x2000) {
                     if (HasReadyUnitInRange(u->playerIndex, &u->pos.vec, u->def->mincloakdistance)) {

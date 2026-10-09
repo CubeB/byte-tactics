@@ -30,8 +30,8 @@ struct Unit {
 
 struct Entry_482ac0 {                   // one element of Cell_482ac0, 8 bytes
     int field_0;
-    short field_4;
-    short field_6;
+    short xOffset;
+    short yOffset;
     short field_8;
 };
 
@@ -101,8 +101,8 @@ void __stdcall RevealNewUnit(Unit* unit)
             int cell_x = p.pos.x / 0x200000;
             int cell_y = p.pos.z / 0x200000 - ((short*)&p.pos.y)[1] / 64;   // high half of y
             Entry_482ac0* e = (Entry_482ac0*)GetGafFrame((unsigned short*)g_game->losTable, i);
-            cell_x -= e->field_4;
-            cell_y -= e->field_6;
+            cell_x -= e->xOffset;
+            cell_y -= e->yOffset;
             p.cacheCell[0] = (short)cell_x;
             p.cacheCell[1] = (short)cell_y;
             *p.frameIdx = i;

@@ -121,9 +121,9 @@ struct AnimManager {
     char unknown_0[0x10];
     AnimEntry* anim;                   // +0x10
     FeatureUnit* featureUnit;          // +0x14
-    int field_18;                      // +0x18
-    int field_1c;                      // +0x1c
-    int field_20;                      // +0x20
+    int activeHead;                    // +0x18
+    int idleHead;                      // +0x1c
+    int freeHead;                      // +0x20
     char unknown_24[0x58 - 0x24];
     int nameCount;                     // +0x58
     char unknown_5c[0x74 - 0x5c];

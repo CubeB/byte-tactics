@@ -4903,11 +4903,11 @@ struct Piece_00458310 {  // 0x36 bytes, 19 views
 
 struct SpotState {  // 0x76 bytes, 20 views
     int count;  // +0x0
-    int field_4;  // +0x4
-    int field_8;  // +0x8
+    int cacheDrawCount;  // +0x4
+    int animDirty;  // +0x8
     Owner_459c70* owner;  // +0xc
     Bitmap_00437b50* bitmap;  // +0x10
-    int field_14;  // +0x14
+    int shadow;  // +0x14
     Rot16 pos;  // +0x18
     Piece_00458310* root;  // +0x1e
     Piece_00458310 pieces[1];  // +0x22
@@ -4949,9 +4949,9 @@ struct AnimManager_00421f20 {  // 0x78 bytes, 1 view
     char unknown_0[16];
     AnimEntry_00421f20* anim;  // +0x10
     FeatureUnit_00421f20* featureUnit;  // +0x14
-    int field_18;  // +0x18
-    int field_1c;  // +0x1c
-    int field_20;  // +0x20
+    int activeHead;  // +0x18
+    int idleHead;  // +0x1c
+    int freeHead;  // +0x20
     char unknown_24[52];
     int nameCount;  // +0x58
     char unknown_5c[24];
@@ -10688,10 +10688,10 @@ struct Elem_00470a40 {  // 0xe bytes, 1 view
 class ObjectPool {      // 0x24 bytes, 3 views
 public:
     std::vector<Item_00470ae0*> items;  // +0x4
-    void* field_14;  // +0x14
-    int field_18;  // +0x18
-    int field_1c;  // +0x1c
-    int field_20;  // +0x20
+    void* slots;  // +0x14
+    int slotSize;  // +0x18
+    int capacity;  // +0x1c
+    int used;  // +0x20
     virtual ~ObjectPool(void);
     ObjectPool(ObjectPool&);
     ObjectPool(int, int);
@@ -11679,11 +11679,11 @@ struct Smk_0047bf70 {  // 0x390 bytes, 2 views
 
 struct Smk_0047bf70_b {  // 0x440 bytes, 1 view
     char unknown_0[44];
-    unsigned long field_2c;  // +0x2c
+    unsigned long paletteColors;  // +0x2c
     char unknown_30[12];
-    unsigned long field_3c;  // +0x3c
+    unsigned long palette;  // +0x3c
     char unknown_40[1020];
-    unsigned long field_43c;  // +0x43c
+    unsigned long paletteType;  // +0x43c
 };
 
 struct SurfaceDesc_0047bf70 {  // 0x6c bytes, 1 view
@@ -12403,8 +12403,8 @@ struct Frame_482270 {  // 0x14 bytes, 1 view
 
 struct Entry_482ac0 {  // 0xc bytes, 1 view
     int field_0;  // +0x0
-    short field_4;  // +0x4
-    short field_6;  // +0x6
+    short xOffset;  // +0x4
+    short yOffset;  // +0x6
     short field_8;  // +0x8
     char unknown_a[2];
 };
@@ -14703,7 +14703,7 @@ struct Dialog {  // 0xcce bytes, 350 views
     Point_0049fc50 saved;  // +0x7c
     short field_94;  // +0x94
     char unknown_96[12];
-    int field_a2;  // +0xa2
+    int keyCommands;  // +0xa2
     char unknown_a6[2060];
     unsigned char colour;  // +0x8b2
     char unknown_8b3[259];
@@ -14712,7 +14712,7 @@ struct Dialog {  // 0xcce bytes, 350 views
     char str_bb6[256];  // +0xbb6
     char unknown_cb6[16];
     int field_cc6;  // +0xcc6
-    int field_cca;  // +0xcca
+    int changed;  // +0xcca
     ~Dialog(void);
 };
 
@@ -15132,10 +15132,10 @@ struct Param2_004addf0 {  // 0x8 bytes, 1 view
 
 struct Struct_004addf0 {  // 0xdc bytes, 1 view
     char unknown_0[206];
-    int field_ce;  // +0xce
+    int callback;  // +0xce
     char unknown_d2[4];
-    int field_d6;  // +0xd6
-    unsigned short field_da;  // +0xda
+    int user;  // +0xd6
+    unsigned short itemheight;  // +0xda
 };
 
 struct Obj_004ade20 {  // 0x13a bytes, 1 view
@@ -16699,7 +16699,7 @@ struct Point_004c0c70 {  // 0x10 bytes, 1 view
 
 struct Obj_004c13d0 {  // 0x214 bytes, 1 view
     char unknown_0[528];
-    int field_210;  // +0x210
+    int keyColor;  // +0x210
 };
 
 struct Obj_6 {  // 0x214 bytes, 1 view

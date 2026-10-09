@@ -207,9 +207,9 @@ struct PieceRec {
 struct ExplodedPiece {
     Unit* unit;                        // +0x00
     int index;                         // +0x04
-    int field_8;                       // +0x08
-    int field_c;                       // +0x0c
-    int field_10;                      // +0x10
+    int angVelZ;                       // +0x08
+    int angVelX;                       // +0x0c
+    int angVelY;                       // +0x10
     int vel_x;                         // +0x14
     int vel_y;                         // +0x18
     int vel_z;                         // +0x1c
@@ -485,9 +485,9 @@ void __stdcall ExplodeUnitPieces(Unit* unit)
         s.b1 = RandomInt(100) & 1;
         s.b2 = 1;
         s.b3 = 1;
-        s.field_8 = RandomInt(3000);
-        s.field_c = RandomInt(3000);
-        s.field_10 = RandomInt(3000);
+        s.angVelZ = RandomInt(3000);
+        s.angVelX = RandomInt(3000);
+        s.angVelY = RandomInt(3000);
         s.vel_x = (20 - RandomInt(40)) << 14;
         s.vel_y = RandomInt(10) << 16;
         s.vel_z = (20 - RandomInt(40)) << 14;
@@ -737,9 +737,9 @@ int __stdcall UpdateExplodedPiece(ExplodedPiece* obj)
     inner->pos.x += obj->vel_x;
     inner->pos.y += obj->vel_y;
     inner->pos.z += obj->vel_z;
-    inner->angle_10 += (short)obj->field_c;
-    inner->angle_12 += (short)obj->field_10;
-    inner->angle_14 += (short)obj->field_8;
+    inner->angle_10 += (short)obj->angVelX;
+    inner->angle_12 += (short)obj->angVelY;
+    inner->angle_14 += (short)obj->angVelZ;
     if (obj->b3)
         obj->vel_y -= g_game->gravity;
     return 1;

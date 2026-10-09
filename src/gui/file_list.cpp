@@ -111,13 +111,13 @@ struct Dialog {
     char path[0x13];                 // +0x00
     short field_13;                  // +0x13
     char unknown_15[0x18 - 0x15];    // +0x15
-    Obj18* field_18;                 // +0x18
+    Obj18* holder;                   // +0x18
     char unknown_1c[0xa6 - 0x1c];
     BlinkWord* words;                // +0xa6
     int count;                       // +0xaa
     int active;                      // +0xae
     char unknown_b2[0xcca - 0xb2];
-    int field_cca;                   // +0xcca
+    int changed;                     // +0xcca
 
     // self is really the first stack argument, not `this`.
     FileRequester* OpenFileRequester(Dialog* self, char* arg2, char* arg3, char* arg4);
@@ -459,7 +459,7 @@ FileRequester* Dialog::OpenFileRequester(Dialog* self, char* arg2, char* arg3, c
     ((void**)gui)[3] = obj;
     obj->callback = 0;
 
-    Gadget* entries = (Gadget*)self->field_18->field_4;
+    Gadget* entries = (Gadget*)self->holder->field_4;
     obj->nameGadget = (char*)FindGadgetChecked_B(entries, "NAME");
     obj->maskGadget = (char*)FindGadgetChecked_B(entries, "MASK");
     obj->pathGadget = (char*)FindGadgetOrNull(entries, "PATH");
@@ -607,7 +607,7 @@ void __stdcall DrawBlinkWords(Dialog* obj)
     int time = GetTicks();
 
     if (obj->words->value != -1)
-        SelectFontForEntry((Entry_004a1810*)obj->field_18->field_4,
+        SelectFontForEntry((Entry_004a1810*)obj->holder->field_4,
                      obj->words->value);
 
     for (int i = 0; i < obj->count; i++) {
@@ -632,7 +632,7 @@ void __stdcall DrawBlinkWords(Dialog* obj)
         else
             SetTextColors(obj->words[i].colourA, GetTextKeyColor());
 
-        DrawString((void*)*(int*)(obj->field_18->field_4 + 0xbc),
+        DrawString((void*)*(int*)(obj->holder->field_4 + 0xbc),
                      obj->words[i].text, obj->words[i].x,
                      obj->words[i].y, -1);
     }

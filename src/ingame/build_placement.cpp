@@ -6,10 +6,10 @@
 struct View {
     int x;                             // +0x0
     int y;                             // +0x4
-    unsigned int field_8;              // +0x8
-    int field_c;                       // +0xc
+    unsigned int keyFlags;             // +0x8
+    int tick;                          // +0xc
     int msg;                           // +0x10
-    int field_14;                      // +0x14
+    int doubleClick;                   // +0x14
 };
 
 #include "../util/vec3.h"
@@ -162,7 +162,7 @@ void __stdcall HandleLeftClick(View* param_1)
         if (g_game->flags_2cc6 & 0x40) {
             IssueMobileBuildOrders(param_1);
             PlaySoundByName("oktobuild", 0);
-            if (param_1->field_8 & 4) {
+            if (param_1->keyFlags & 4) {
                 g_game->flags_2cc6 |= 0x20;
                 return;
             }
@@ -193,7 +193,7 @@ void __stdcall HandleLeftClick(View* param_1)
         kind.index = 0;
         IssueOrderToSelection(param_1, g_game->orderMode, kind, &g_game->pos, 0, 0);
     }
-    if (param_1->field_8 & 4) {
+    if (param_1->keyFlags & 4) {
         g_game->flags_2cc6 |= 0x20;
         return;
     }
@@ -224,7 +224,7 @@ void __stdcall HandleRightClick(View* param_1)
     }
     if (g_game->interfaceType == 0) {
         if (g_game->flags_2cc6 & 2) {
-            if (param_1->field_8 & 8) {
+            if (param_1->keyFlags & 8) {
                 BeginMouseScroll();
                 return;
             }

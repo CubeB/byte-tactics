@@ -42,7 +42,7 @@ struct Pair_00419560 {
 
 struct Arg_00419670 {
     char unknown_0[8];
-    unsigned int field_8;              // +0x8
+    unsigned int keyFlags;             // +0x8
 };
 
 struct Unit;
@@ -574,11 +574,11 @@ int __stdcall MenuEntryNameContains(MenuEntry* entries, char* text, int index)
 // type selected at +0x2cc4, then passes it to IssueOrCancelOrder as a
 // "MOBILEBUILD" (def flag bit 11 clear) or "VTOL_MOBILEBUILD" (bit 11 set)
 // order for each of the local player's units with flag 0x10 whose def has
-// flag 0x40. Bit 2 of the argument's field_8 is passed through.
+// flag 0x40. Bit 2 of the argument's keyFlags is passed through.
 // FUNCTION: 0x419670
 void __stdcall IssueMobileBuildOrders(Arg_00419670* arg)
 {
-    unsigned int remove = (arg->field_8 >> 2) & 1;
+    unsigned int remove = (arg->keyFlags >> 2) & 1;
     unsigned short index = g_game->buildTypeIndex;
     UnitType* def = &g_game->buildTypes[index];
     Vec3 pos = g_game->pos;

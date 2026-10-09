@@ -119,15 +119,15 @@ struct Game_004bfe10 {
 // The display object at +0x210.
 struct Obj_004c13d0 {
     char unknown_0[0x210];
-    int field_210;                     // +0x210
+    int keyColor;                      // +0x210
 };
 
 // The display object's text colours at +0x208, +0x20c and +0x210.
 struct Obj {
     char unknown_0[0x208];
-    int field_208;                     // +0x208
-    int field_20c;                     // +0x20c
-    int field_210;                     // +0x210
+    int foreColor;                     // +0x208
+    int backColor;                     // +0x20c
+    int keyColor;                      // +0x210
 };
 
 int __stdcall LockScreen(Surface* out);
@@ -1736,7 +1736,7 @@ void __stdcall SetTextColors(int param_1, int param_2)
 void __stdcall SetTextKeyColor(int value)
 {
     Obj_004c13d0* obj = (Obj_004c13d0*)GetDisplay();
-    obj->field_210 = value;
+    obj->keyColor = value;
 }
 
 
@@ -1744,7 +1744,7 @@ void __stdcall SetTextKeyColor(int value)
 int GetTextKeyColor()
 {
     Obj* obj = (Obj*)GetDisplay();
-    return obj->field_210;
+    return obj->keyColor;
 }
 
 
@@ -1752,7 +1752,7 @@ int GetTextKeyColor()
 int GetTextForeColor()
 {
     Obj* obj = (Obj*)GetDisplay();
-    return obj->field_208;
+    return obj->foreColor;
 }
 
 
@@ -1760,7 +1760,7 @@ int GetTextForeColor()
 int GetTextBackColor()
 {
     Obj* obj = (Obj*)GetDisplay();
-    return obj->field_20c;
+    return obj->backColor;
 }
 
 

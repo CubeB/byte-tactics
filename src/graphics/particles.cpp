@@ -54,24 +54,24 @@ struct Elem_00470f00 {
 class ObjectPool {
 public:
     std::vector<Item_00470ae0*> items;  // +0x4
-    void* field_14;                     // +0x14, the slot table
-    int field_18;                       // +0x18
-    int field_1c;                       // +0x1c, the slot count
-    int field_20;                       // +0x20, slots handed out
+    void* slots;                        // +0x14, the slot table
+    int slotSize;                       // +0x18
+    int capacity;                       // +0x1c, the slot count
+    int used;                           // +0x20, slots handed out
 
     ObjectPool(int param_1, int param_2)
     {
-        field_14 = 0;
-        field_18 = 0;
-        field_1c = 0;
-        field_20 = 0;
+        slots = 0;
+        slotSize = 0;
+        capacity = 0;
+        used = 0;
         if (param_1 != 0 && param_2 != 0)
             Grow(param_1, param_2);
     }
     virtual ~ObjectPool()
     {
-        if (field_14 != 0)
-            GameFreeThunk(field_14);
+        if (slots != 0)
+            GameFreeThunk(slots);
         std::vector<Item_00470ae0*>::iterator it = items.begin();
         while (it != items.end()) {
             GameFreeThunk(*it);
@@ -1160,7 +1160,7 @@ ObjectPool* ObjectPool::Construct(int param_1, int param_2)
 
 // The compiler-generated scalar deleting destructor of the class whose
 // vtable (one slot) is at 0x4fd580. Its constructor is 0x470a90 and its
-// out-of-line destructor 0x470b80. It frees field_14, then frees each item of
+// out-of-line destructor 0x470b80. It frees slots, then frees each item of
 // a std::vector while erasing it from the front, then the vector's own
 // destructor frees the storage.
 //
@@ -1183,8 +1183,8 @@ void ObjectPool::Destroy()
 // FUNCTION: 0x470e50
 void ObjectPool::FreeBlocks()
 {
-    if (field_14 != 0) {
-        GameFreeThunk(field_14);
+    if (slots != 0) {
+        GameFreeThunk(slots);
     }
     std::vector<Item_00470ae0*>::iterator it = items.begin();
     while (it != items.end()) {
@@ -1200,15 +1200,15 @@ void ObjectPool::FreeBlocks()
 // FUNCTION: 0x470eb0
 int ObjectPool::AllocSlot(int unused)
 {
-    int edx = field_20;
-    int esi = field_1c;
+    int edx = used;
+    int esi = capacity;
     int eax = 0;
 
     if (edx < esi) {
-        void* ptr = field_14;
+        void* ptr = slots;
         edx++;
         eax = *(int*)((char*)ptr + edx * 4 - 4);
-        field_20 = edx;
+        used = edx;
     }
 
     return eax;
@@ -1217,9 +1217,9 @@ int ObjectPool::AllocSlot(int unused)
 // FUNCTION: 0x470ed0
 void ObjectPool::FreeSlot(int param_1)
 {
-    int eax = field_20 - 1;
-    field_20 = eax;
-    ((int*)field_14)[eax] = param_1;
+    int eax = used - 1;
+    used = eax;
+    ((int*)slots)[eax] = param_1;
 }
 #pragma auto_inline(on)
 

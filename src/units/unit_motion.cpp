@@ -119,7 +119,7 @@ struct List_458810 {
     char unknown_8[4];
     Unit_458810* owner;           // +0x0c
     GafFrame* bitmap;               // +0x10
-    int field_14;                 // +0x14
+    int shadow;                   // +0x14
     char unknown_18[0x22 - 0x18];
     Piece_458810 pieces[1];       // +0x22
 };
@@ -449,7 +449,7 @@ void CMemoryCache::DrawObjectState(List_458810* list, Vec3_458810* result)
     if (list->frame == 0)
         rebuild = 1;
     if (list->bitmap == 0)
-        list->field_14 = 0;
+        list->shadow = 0;
     GafFrame* bitmap = list->bitmap;
     if ((owner->flags & 0x20000000) != 0) {
         // The bitmap-null case is its own `rebuild = 1` statement.
@@ -467,7 +467,7 @@ void CMemoryCache::DrawObjectState(List_458810* list, Vec3_458810* result)
     if ((owner->zBufferFlag & 1) != 0 && list->bitmap == 0)
         rebuild = 1;
     if (rebuild) {
-        list->field_14 = 0;
+        list->shadow = 0;
         this->BuildObjectPicture(list, 0, 1);
     }
     Vec3_458810 coords;

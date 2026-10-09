@@ -97,7 +97,7 @@ struct Model_459200 {
     char unknown_4[0xc - 0x4];
     Unit_459200* owner;                // +0xc
     GafFrame* bitmap;                  // +0x10
-    GafFrame* field_14;                // +0x14
+    GafFrame* shadow;                  // +0x14
     char unknown_18[0x22 - 0x18];
     Piece_459200 pieces[1];            // +0x22
     char unknown_58[0x6a - 0x58];
@@ -244,9 +244,9 @@ void CMemoryCache::DrawObjectPicture(int param_2, Model_459200* model, Vec3_4592
                 if ((model->owner->flags & 0x20000000)
                     && (f.word & 0x40000000) == 0) {
                     if (model->owner->unitDefIndex != 0 || dx >= g_game->seaLevel) {
-                        if (model->field_14 == 0)
+                        if (model->shadow == 0)
                             BuildShadow(model,bmp);
-                        DrawFrameBlended(param_2, model->field_14, v.p.x.whole + 0x85, y);
+                        DrawFrameBlended(param_2, model->shadow, v.p.x.whole + 0x85, y);
                     }
                 } else {
                     if (gameFlags.bits.b3) {
@@ -300,9 +300,9 @@ void CMemoryCache::DrawObjectPicture(int param_2, Model_459200* model, Vec3_4592
                 } else {
                     if (model->owner->flags & 0x20000000) {
                         if (model->owner->unitDefIndex != 0 || dx >= g_game->seaLevel) {
-                            if (model->field_14 == 0)
+                            if (model->shadow == 0)
                                 BuildShadow(model,bmp);
-                            DrawFrameBlended(param_2, model->field_14, v.p.x.whole + 0x85, y);
+                            DrawFrameBlended(param_2, model->shadow, v.p.x.whole + 0x85, y);
                         }
                     } else {
                         if (gameFlags.bits.b3) {

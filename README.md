@@ -105,15 +105,15 @@ Counts in `src/` and `include/` at `origin/main`, against `e9367f13` (the roadma
 
 | | Start | Now | Target | Done | |
 | --- | ---: | ---: | --- | ---: | --- |
-| Source files (`.cpp`) | 2,727 | 311 | 112, one per module (`data/modules.csv`) | 92% | `[##################--]` |
+| Source files (`.cpp`) | 2,727 | 307 | 112, one per module (`data/modules.csv`) | 93% | `[###################-]` |
 | Placeholder functions `FUN_<addr>` | 1,076 | 282 | 0, named | 74% | `[###############-----]` |
 | Placeholder globals `DAT_<addr>` | 737 | 93 | 0, named | 87% | `[#################---]` |
 | Placeholder classes `Class_<addr>` | 769 | 673 | 0, named | 12% | `[##------------------]` |
 | Placeholder fields `field_<offset>` | 589 | 375 | 0, named | 36% | `[#######-------------]` |
 | Files that define `Unit` | 285 | 80 | 1, one shared definition | 72% | `[##############------]` |
 | Files opening with matching history | 301 | 0 | 0, none | 100% | `[####################]` |
-| Casts `((T*)x)->` | 1,698 | 582 | 0, casts the types allow | 66% | `[#############-------]` |
-| Byte-offset access `*(T*)(p + off)` and `(char*)p + off` | 1,284 | 788 | cases with no struct | | |
+| Casts `((T*)x)->` | 1,698 | 577 | 0, casts the types allow | 66% | `[#############-------]` |
+| Byte-offset access `*(T*)(p + off)` and `(char*)p + off` | 1,284 | 751 | cases with no struct | | |
 
 | Cleanup issues | | | |
 | --- | --- | --- | ---: |

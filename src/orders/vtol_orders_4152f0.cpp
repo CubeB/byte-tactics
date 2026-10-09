@@ -6,7 +6,7 @@
 // (VTOL_RECLAIM).
 #include <vector>
 
-struct Vec3 { int x, y, z; };
+#include "../util/vec3.h"
 
 class Class_00438760 {
 public:
@@ -42,27 +42,7 @@ struct Unit {
     void SetStateBits(int, int);
     int CanRepair(Unit*);
 };
-struct Order {
-    char pad0[5]; unsigned char state; unsigned int flags;
-    char padA[0x16 - 0xa]; Unit* target;
-    char pad1a[0x22 - 0x1a]; Vec3 pos;
-    void AnnounceStatusIfFlagged(const char*);
-    void SetAttachedFx(int);
-    void SetDeadlineTicks(int);
-    Order(Class_00438760 type, Unit* a, Vec3* b, int c, int d, int e);
-    char unknown_2e[0x28];
-    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
-    void ReattachFxToUnit();
-    void MergeFlagsFromTable(int k);
-    void AttachRingApproachGoal(Vec3* pos, int radius1, int radius2);
-    ~Order();
-    Order(Unit* unit, void* file, char* name);
-    void OrStatusFlags(unsigned int flags);
-    Unit* Target();
-    void Wait();
-    Vec3* Position();
-    int Advance(int distance);
-};
+#include "order.h"
 class Class_0044e2d0 {
 public:
     char unknown_0[0x36];
@@ -100,7 +80,7 @@ inline void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0((Order*)order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
-        order->SetAttachedFx((int)obj);
+        order->SetAttachedFx((Attached_0043a1f0*)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -157,7 +137,7 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
                 return 6;
             Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
             ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
-            order->SetAttachedFx((int)obj);
+            order->SetAttachedFx((Attached_0043a1f0*)obj);
             order->SetDeadlineTicks(0x2d);
             order->flags |= 0xe0;
             if (Land(unit, order))

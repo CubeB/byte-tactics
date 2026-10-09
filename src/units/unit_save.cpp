@@ -25,9 +25,7 @@ struct Bits10F {
     unsigned char b4 : 4;
 };
 
-struct Vec3 {
-    int x, y, z;
-};
+#include "../util/vec3.h"
 
 struct PieceBits {
     unsigned char b0 : 1;
@@ -195,28 +193,7 @@ public:
 #include "../orders/unit_motion.h"
 
 #pragma pack(push, 1)
-// An order (0x56 bytes); 0x43a420 is its constructor from a saved record.
-class Order {
-public:
-    char pad[0x42];
-    unsigned int flags;                 // +0x42
-    char gap_46[4];
-    Order* next;                        // +0x4a
-    char gap_4e[8];
-    Order(Unit* unit, HapiBank* file, char* name);
-    void SerializeToSave(Unit* unit, void* file, char* name);
-    void ReattachFxToUnit();
-    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
-    void MergeFlagsFromTable(int k);
-    void AttachRingApproachGoal(Vec3* pos, int radius1, int radius2);
-    ~Order();
-    Order(Unit* unit, void* file, char* name);
-    void OrStatusFlags(unsigned int flags);
-    void AttachApproachRadiusGoal(Vec3* pos, int radius);
-    Unit* Target();
-    void Wait();
-    Vec3* Position();
-};
+#include "../orders/order.h"
 
 #pragma pack(pop)
 
@@ -362,7 +339,7 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
         do {
             sprintf(name, "u%04xm%04x", unit->id, k);
             Order* p = new Order(unit, file, name);
-            if (p->flags & 0x40000) {
+            if (p->flags_42 & 0x40000) {
                 *special = p;
                 special = &p->next;
             } else {
@@ -426,14 +403,14 @@ void __stdcall SaveUnits(HapiBank* file)
             Order* c = (Order*)unit->listHead;
             while (c != 0) {
                 sprintf(bufHead, "u%04xm%04x", unit->id, n);
-                c->SerializeToSave(unit, file, bufHead);
+                c->SerializeToSave(unit, (File_0043a970*)file, bufHead);
                 c = c->next;
                 n++;
             }
             c = (Order*)unit->listTail;
             while (c != 0) {
                 sprintf(bufTail, "u%04xm%04x", unit->id, n);
-                c->SerializeToSave(unit, file, bufTail);
+                c->SerializeToSave(unit, (File_0043a970*)file, bufTail);
                 c = c->next;
                 n++;
             }

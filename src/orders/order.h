@@ -95,7 +95,7 @@ struct Order {
     Order(unsigned char kind, Unit* unit, Vec3* pos, int a, int b, int c);
     Order(Class_00438760 kind, Unit* unit, void* pos, int a, int b, int c);
     Order(unsigned char kind, int a, int b, int c, int d, int e);
-    Order(Unit* unit, void* file, char* name);
+    Order(Unit* unit, HapiBank* file, char* name);
     ~Order();
     void SetDeadlineTicks(int param);
     void ReattachFxToUnit();

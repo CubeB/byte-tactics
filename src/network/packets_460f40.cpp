@@ -268,10 +268,9 @@ public:
 extern Game* g_game;
 extern NetCondenser g_sendCondenser;
 extern NetCondenser g_receiveCondenser;
-// Unused here: the symbol ids this declaration takes keep the allocation
-// of 0x461da0 (docs/c2-regalloc.md).  The destination is the send
-// condenser's field at +0x21, written through g_sendCondenser below.
-extern int DAT_005129f1;
+// Unused here: the symbol id this declaration takes keeps the allocation
+// of 0x461da0 and 0x462bf0 (docs/c2-regalloc.md).
+extern int g_packetModes[];
 extern int g_usePacketManager;
 extern int g_netFrameRateConfig;
 

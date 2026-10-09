@@ -219,14 +219,11 @@ union Flags114_485a40 {
     } bits;
 };
 
-class UnitResources {
-public:
-    int unknown[6];
-    float field_18;                    // +0x18
-    int unknown_1c[5];
-    Player* player;                    // +0x30
-    void Reset(unsigned char playerIndex);
-};
+#include "../game/unit_resources.h"
+
+// Unused here: a real function declared to keep the file's symbol count; the
+// header's declarations moved 0x485140 and 0x4854a0 (docs/c2-regalloc.md).
+void RegisterUnitOrders();
 
 struct Unit {                          // 0x118 bytes
     UnitMotion* obj;                   // +0x0
@@ -1298,16 +1295,16 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
         if ((*par)->playerRef.player->active != 0 && (*par)->playerRef.player->type == 2) {
             switch (g_game->difficulty) {
             case 0:
-                (*par)->playerRef.field_18 = (*par)->playerRef.field_18 - f * -0.5;
+                (*par)->playerRef.metalMake = (*par)->playerRef.metalMake - f * -0.5;
                 break;
             case 1:
-                (*par)->playerRef.field_18 = (*par)->playerRef.field_18 - f * -0.7;
+                (*par)->playerRef.metalMake = (*par)->playerRef.metalMake - f * -0.7;
                 break;
             default:
-                (*par)->playerRef.field_18 += f;
+                (*par)->playerRef.metalMake += f;
             }
         } else {
-            (*par)->playerRef.field_18 += f;
+            (*par)->playerRef.metalMake += f;
         }
     }
     if (cmd->amount > 0 && unit->buildLeft == 0.0f)

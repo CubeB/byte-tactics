@@ -113,23 +113,7 @@ struct Entry_0049e1a0 {        // 0x1c bytes
     unsigned char flags; // +0x1b
 };
 
-struct Store_0049e1a0 {
-    char unknown_0[0x8c];
-    float metal; // +0x8c
-    char unknown_90[0x98 - 0x90];
-    float energy; // +0x98
-};
-
-class UnitResources {
-public:
-    char unknown_0[0x4];
-    float x0;
-    char unknown_8[0x1c - 0x8];
-    float y0;
-    char unknown_20[0x30 - 0x20];
-    Store_0049e1a0* store; // +0x30
-    int SpendEnergyAndMetal(float dx, float dy);
-};
+#include "../game/unit_resources.h"
 
 struct Owner_0049dd60 {
     char unknown_0[0x20];
@@ -2979,8 +2963,8 @@ void __stdcall UpdateUnitWeapons(Unit* unit) {
                 if (e->f_1a)
                     can = 1;
             } else {
-                if (unit->f_bc.store->metal >= attached->f_c0 &&
-                    unit->f_bc.store->energy >= attached->f_c4)
+                if (unit->f_bc.player->energy >= attached->f_c0 &&
+                    unit->f_bc.player->metal >= attached->f_c4)
                     can = 1;
             }
             if (can == 0)

@@ -7,6 +7,7 @@
 
 #include "../map/mission.h"
 #include "mission_conditions.h"
+#include "../game/unit_resources.h"
 
 class Pathfinder {
 public:
@@ -17,17 +18,6 @@ struct Player;
 struct Unit;
 
 #pragma pack(push, 1)
-class UnitResources {                  // 0x34 bytes
-public:
-    float metal;                       // +0x0
-    char unknown_4[0x18 - 0x4];
-    float energy;                      // +0x18
-    char unknown_1c[0x30 - 0x1c];
-    Player* player;                    // +0x30
-    void Reset(unsigned char playerIndex);
-    int SpendEnergy(float amount);
-    int SpendMetal(float amount);
-};
 
 class SquadManager {                   // 0x3d bytes
 public:
@@ -621,26 +611,26 @@ void __stdcall TransferMetal(unsigned char from, unsigned char to, float amount,
     if (player->active != 0 && player->type == 2) {
         switch (g_game->difficulty) {
         case 0:
-            g_game->players[to].econ->metal
-                = g_game->players[to].econ->metal - amount * -0.5;
+            g_game->players[to].econ->energyMake
+                = g_game->players[to].econ->energyMake - amount * -0.5;
             break;
         case 1:
-            g_game->players[to].econ->metal
-                = g_game->players[to].econ->metal - amount * -0.7;
+            g_game->players[to].econ->energyMake
+                = g_game->players[to].econ->energyMake - amount * -0.7;
             break;
         default: {
             // Add goes through a local float: fixes the x87 operand order.
-            float m = g_game->players[to].econ->metal;
+            float m = g_game->players[to].econ->energyMake;
             m += amount;
-            g_game->players[to].econ->metal = m;
+            g_game->players[to].econ->energyMake = m;
             break;
         }
         }
     } else {
         // Add goes through a local float: fixes the x87 operand order.
-        float m = g_game->players[to].econ->metal;
+        float m = g_game->players[to].econ->energyMake;
         m += amount;
-        g_game->players[to].econ->metal = m;
+        g_game->players[to].econ->energyMake = m;
     }
     if (flag)
         SendShareMetal(from, to, *(int*)&amount);
@@ -674,19 +664,19 @@ void __stdcall TransferEnergy(unsigned char from, unsigned char to, float amount
     if (player->active != 0 && player->type == 2) {
         switch (g_game->difficulty) {
         case 0:
-            g_game->players[to].econ->energy += amount * 0.5;
+            g_game->players[to].econ->metalMake += amount * 0.5;
             break;
         case 1:
-            g_game->players[to].econ->energy += amount * 0.7;
+            g_game->players[to].econ->metalMake += amount * 0.7;
             break;
         default:
             // Full `players[to].econ` expression: keeps the store from folding
             // into the load.
-            g_game->players[to].econ->energy = amount + g_game->players[to].econ->energy;
+            g_game->players[to].econ->metalMake = amount + g_game->players[to].econ->metalMake;
             break;
         }
     } else {
-        g_game->players[to].econ->energy = amount + g_game->players[to].econ->energy;
+        g_game->players[to].econ->metalMake = amount + g_game->players[to].econ->metalMake;
     }
     if (flag)
         SendShareEnergy(from, to, *(int*)&amount);

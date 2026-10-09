@@ -459,7 +459,7 @@ int HandleNetPackets()
                     RejectPlayer(p->id, 1);
                     RejectPlayer(LocalPlayer()->id, 10);
                     p->SetType(0);
-                    ((Player*)LocalPlayer())->SetType(0);
+                    LocalPlayer()->SetType(0);
                 } else {
                     RejectPlayer(p->id, 1);
                     p->SetType(0);

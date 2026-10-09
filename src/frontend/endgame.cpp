@@ -473,8 +473,7 @@ void SetUpEndMissionScreen()
     char* name = g_game->campaign->GetNameSlot(5);
     if (name == 0)
         g_game->image_3907b = 0;
-    // Cast stays: removing it changes the symbol state (docs/c2-regalloc.md).
-    if (((Mission*)g_game->campaign)->GetGameType() == 1
+    if (g_game->campaign->GetGameType() == 1
         && g_game->bit4_3923b && name != 0) {
         BuildDataPath(path, "bitmaps\\glamour", name + 1, "PCX");
         if (HAPI_FileLengthByName(path) == 0)
@@ -485,8 +484,7 @@ void SetUpEndMissionScreen()
         g_game->palette_3907f = palette;
         return;
     }
-    // Cast stays: removing it changes the symbol state (docs/c2-regalloc.md).
-    if (((Mission*)g_game->campaign)->GetGameType() == 1)
+    if (g_game->campaign->GetGameType() == 1)
         LoadPictureCached("Outcome1", 0, 0, 1);
     else
         LoadPictureCached("Outcome0", 0, 0, 1);
@@ -854,11 +852,10 @@ void __stdcall HandleEndMissionClick(Menu* gadget)
 // FUNCTION: 0x41f040
 int ShouldShowNextMission()
 {
-    // Cast stays: removing it changes the symbol state (docs/c2-regalloc.md).
-    if (((Mission*)g_game->campaign)->GetGameType() == 1 &&
+    if (g_game->campaign->GetGameType() == 1 &&
         ((g_game->won == 0 &&
-          ((Mission*)g_game->campaign)->MissionExists(g_game->mission + 1) == 0) ||
-         ((Mission*)g_game->campaign)->MissionExists(g_game->mission + 1) != 0)) {
+          g_game->campaign->MissionExists(g_game->mission + 1) == 0) ||
+         g_game->campaign->MissionExists(g_game->mission + 1) != 0)) {
         return 1;
     }
     return 0;
@@ -867,7 +864,9 @@ int ShouldShowNextMission()
 // Inlined copy of ShouldShowNextMission.
 static inline int HasNextMission()
 {
-    // Casts stay: removing one changes the symbol state (docs/c2-regalloc.md).
+    // Casts stay: this helper is inlined into OpenEndMissionScreen and
+    // EnableEndMissionButtons, which RunEndGameState calls, so its allocation
+    // follows them (docs/c2-regalloc.md).
     if (g_game->campaign->GetGameType() == 1 &&
         ((g_game->won == 0 &&
           ((Mission*)g_game->campaign)->MissionExists(g_game->mission + 1) == 0) ||
@@ -897,8 +896,7 @@ void __stdcall OpenEndMissionScreen()
     char* entries = (char*)layer->entries;
     char next = HasNextMission();
     if (next) {
-        // Cast stays: removing it changes the symbol state (docs/c2-regalloc.md).
-        ((Mission*)g_game->campaign)->SelectMission(g_game->mission);
+        g_game->campaign->SelectMission(g_game->mission);
         LoadPictureCached("outcome1", 1, 1, 0);
         strcpy(layer->entries->okName, "Start");
     } else {
@@ -907,8 +905,7 @@ void __stdcall OpenEndMissionScreen()
     }
     next = HasNextMission();
     if (next) {
-        // Cast stays: removing it changes the symbol state (docs/c2-regalloc.md).
-        int count = ((Mission*)g_game->campaign)->BuildMissionList((int*)&data->items);
+        int count = g_game->campaign->BuildMissionList((int*)&data->items);
         data->items = BuildScrollItems1((char*)data->items, g_game->missionFlags, count);
         // Suspected original bug: this finds the first 'U' mission flag but
         // the index is never used (perhaps a lost "select the first
@@ -1138,8 +1135,7 @@ void __stdcall RunEndGameState()
         break;
     case 5: {
         SetUpEndMissionScreen();
-        // Cast stays: removing it changes the symbol state (docs/c2-regalloc.md).
-        int next=((Mission*)g_game->campaign)->MissionExists(g_game->mission+1);
+        int next=g_game->campaign->MissionExists(g_game->mission+1);
         if(g_game->campaign->GetGameType()==1 && g_game->bit4_3923b && !next && !g_game->skip) {
             if((unsigned char)GetDisplay()->network) {
                 if(!g_game->players[0].info->side) SetFrontendState(4,0x4ce,"c:\\cavedog\\wargame\\endgame.cpp");

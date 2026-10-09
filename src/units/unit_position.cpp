@@ -252,11 +252,13 @@ struct Block {
     int field_10;                      // +0x10
 };
 
-class CobScript {
-public:
-    char unknown_0[8];
-    void RunScripts(int n);
-};
+#include "cob_script.h"
+
+// Unused here: these headers take the symbol ids that keep
+// SendUnitStates (0x48b710) matching (docs/c2-regalloc.md).
+#include "../sound/sound.h"
+#include "../util/tdf.h"
+
 
 class BitWriter {
 public:

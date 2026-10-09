@@ -35,7 +35,17 @@ class Class_00438760 { public: unsigned char index; Class_00438760(const char*);
 
 class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_0044e730 { public: void SetApproachRadius(short); };
-class CobScript { public: void StartScript(const char*, int, int); int QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5); };
+#include "../units/cob_script.h"
+
+// Unused here: these headers and forward declarations take the symbol ids that keep
+// VtolLandingOrder (0x4118e0) matching (docs/c2-regalloc.md).
+#include "../util/hapi_bank.h"
+#include "../sound/sound.h"
+struct BmpFileHeader;
+struct BmpInfo;
+struct BmpInfoHeader;
+struct CalcedExplosion;
+
 #pragma pack(push, 1)
 #include "../units/unit_def.h"
 struct WeaponDef {

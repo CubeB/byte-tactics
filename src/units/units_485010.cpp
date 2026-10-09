@@ -61,7 +61,7 @@ struct Name_004864b0 {
     char name[0x232];                  // +0x0
 };
 
-struct Data_00485d40 {                 // the definition data at type+0x18e
+struct ScriptTable {                 // the definition data at type+0x18e
     char unknown_0[8];
 };
 
@@ -110,7 +110,7 @@ struct UnitType {                      // 0x249 bytes
     };
     char unknown_172[0x18a - 0x172];
     float x18a;                        // +0x18a
-    Data_00485d40* data;               // +0x18e
+    ScriptTable* data;               // +0x18e
     char unknown_192[0x1bc - 0x192];
     unsigned short field_1bc;          // +0x1bc
     char unknown_1be[0x1fa - 0x1be];
@@ -733,51 +733,15 @@ struct ObjectState_00485d40 {
     int drawFrame;                     // +0x10
 };
 
-struct Elem_4b0610 {
-    int value;         // +0x0
-    char pad[0xa0];    // pad to stride 0xa4
-};
+#include "cob_script.h"
 
-class CobScript {
-public:
-    int field_4;                   // +0x4
-    int field_8;                   // +0x8
-    char unknown_c[0x10 - 0xc];
-    void* ptr10;                   // +0x10
-    void* ptr14;                   // +0x14
-    char unknown_18[0x1c - 0x18];
-    Elem_4b0610 arr[8];            // +0x1c
-    int field_53c;                 // +0x53c
+// Unused here: this header and these forward declarations take the symbol ids that keep
+// AllocateUnitMemory (0x4854a0) and KillUnit (0x4864b0) matching (docs/c2-regalloc.md).
+#include "../sound/sound.h"
+struct BmpFileHeader;
+struct BmpInfo;
+struct BmpInfoHeader;
 
-    CobScript();
-
-    virtual void SetPieceTranslation(int, int, int) = 0;  // slot 0
-    virtual void SetPieceRotation(int, int, int) = 0;  // slot 1
-    virtual void SetPieceVisible(int, int) = 0;       // slot 2
-    virtual void SetPieceCached(int, int) = 0;        // slot 3
-    virtual void SetPieceShaded(int, int) = 0;        // slot 4
-    virtual int GetPieceTranslation(int, int) = 0;    // slot 5
-    virtual int GetPieceRotation(int, int) = 0;       // slot 6
-    virtual int IsPieceVisible(int);                  // slot 7
-    virtual int IsPieceCached(int);                   // slot 8
-    virtual int IsPieceShaded(int);                   // slot 9
-    virtual void ExplodeLegacy(int, int, int);        // slot 10
-    virtual void PlaySoundNoop(int);                  // slot 11
-    virtual void EmitSfx(int, int);                   // slot 12
-    virtual void ExplodePiece(int, unsigned int);     // slot 13
-    virtual void AttachUnit(unsigned short, int, int); // slot 14
-    virtual void DropUnit(unsigned short);            // slot 15
-    virtual void SetUnitValue(int, int);              // slot 16
-    virtual int GetUnitValue(int, int, int, int, int); // slot 17
-    virtual int IsCarryingUnit(int);                  // slot 18
-    virtual int GetTransporterId();                   // slot 19
-    virtual ~CobScript();                             // slot 20
-
-    void SetCob(Data_00485d40* data);
-    void StartScript(const char* name, int a, int b);
-    int QueryScript(char* name, int* a, int* b, int c, int d);
-    int StartScriptWithArgs(char* name, void* a, int b, int c, int d, int e, int f, int g);
-};
 
 class UnitScript : public CobScript {
 public:
@@ -808,7 +772,7 @@ public:
 };
 
 void* __cdecl operator new(size_t size);
-ObjectState_00485d40* __stdcall CreatePlayerObjectState(Object3do* obj, Data_00485d40* data, int player);
+ObjectState_00485d40* __stdcall CreatePlayerObjectState(Object3do* obj, ScriptTable* data, int player);
 ObjectState_00485d40* __stdcall CreateObjectState(Object3do* obj);
 
 // FUNCTION: 0x485d40

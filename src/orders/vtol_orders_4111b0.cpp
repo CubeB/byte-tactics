@@ -24,7 +24,12 @@ public:
 
 class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_0044e730 { public: void SetApproachRadius(short); };
-class CobScript { public: int StartScriptWithArgs(char*, void*, int, int, int, int, int, int); void StartScript(const char*, int, int); int QueryScript(char* name, int* p2, int* p3, int* p4, int* p5); };
+#include "../units/cob_script.h"
+
+// Unused here: this header takes the symbol ids that keep
+// VtolPickupOrder (0x4111b0) matching (docs/c2-regalloc.md).
+#include "../util/hapi_bank.h"
+
 
 #pragma pack(push, 1)
 #include "../units/unit_def.h"

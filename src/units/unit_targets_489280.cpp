@@ -8,11 +8,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-class CobScript {
-public:
-    int StartScriptWithArgs(char* name, void* param_2, int param_3, int param_4, int param_5, int param_6, int param_7, int param_8);
-    int FindScript(char* name);
-};
+#include "cob_script.h"
 
 class Unit;
 class UnitRef;

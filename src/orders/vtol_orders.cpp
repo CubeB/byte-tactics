@@ -88,12 +88,28 @@ union Fixed {
     struct { unsigned short frac; short whole; } parts;
 };
 
-class CobScript {
-public:
-    int StartScriptWithArgs(char* name, void* p2, int p3, int p4, int p5, int p6, int p7, int p8);
-    void StartScript(const char* name, int p2, int p3);
-    int QueryScript(char* name, int* p2, int* p3, int* p4, int* p5);
-};
+#include "../units/cob_script.h"
+
+// Unused here: these headers and forward declarations take the symbol ids that keep
+// 0x413bc0, 0x413d80, 0x414e70, 0x415250 and 0x4158d0 matching (docs/c2-regalloc.md).
+#include "../util/hapi_bank.h"
+#include "../map/mission.h"
+#include "../sound/sound.h"
+struct BmpFileHeader;
+struct BmpInfo;
+struct BmpInfoHeader;
+struct CalcedExplosion;
+struct FrameTable;
+struct Chunk;
+class SquadManager;
+class AssaultTimer;
+class EscortTimer;
+class SquadScoutTimer;
+class SpatialTimer;
+class ScoutTimer;
+class OpenHeap;
+class BitWriter;
+
 
 // The command kind, one byte wide, but not a POD type.
 class Class_00438760 {

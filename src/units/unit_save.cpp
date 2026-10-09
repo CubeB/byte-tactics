@@ -192,11 +192,7 @@ public:
     int SaveScriptState(void* file);
 };
 
-class UnitMotion {
-public:
-    void LoadMotion(Unit*, HapiBank*);
-    void SaveMotion(Unit* unit, void* file);
-};
+#include "../orders/unit_motion.h"
 
 #pragma pack(push, 1)
 // An order (0x56 bytes); 0x43a420 is its constructor from a saved record.

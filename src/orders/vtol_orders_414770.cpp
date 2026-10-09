@@ -19,12 +19,7 @@ struct Point16 {
 
 struct Unit;
 
-class UnitMotion {
-public:
-    char unknown_0[0x2e];
-    unsigned char flags;               // +0x2e
-    void SetFlightMode(Unit* unit, int state);
-};
+#include "unit_motion.h"
 
 class Class_0044e6c0 { public: void SetAltitude(int); };
 

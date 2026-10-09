@@ -852,13 +852,7 @@ static UnitScript* s_object;
 // base constructor reads a global that is not set until later.
 UnitScript* emit_00485e30() { return new UnitScript; }
 
-class UnitMotion {
-public:
-    char unknown_0[0x2f];
-
-    UnitMotion(Unit* unit);
-    void DestroyObject();
-};
+#include "../orders/unit_motion.h"
 
 // Creates the unit's 0x2f-byte object (constructor 0x43dc00) and copies a
 // value from the unit type.

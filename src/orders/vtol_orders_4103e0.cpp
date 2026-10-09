@@ -26,7 +26,7 @@ struct WeaponDef { char pad0[0xdc]; int range; char pade0[0x111-0xe0]; unsigned 
 struct Weapon { char pad0[8]; WeaponDef* def; char padc[11]; unsigned char flags; char pad18[4]; };
 #include "../units/unit_def.h"
 struct Owner { char pad0[0x108]; unsigned char allied[0x3e]; unsigned char index; };
-class UnitMotion { public: char pad0[0x2e]; unsigned char flags; void SetFlightMode(Unit*, int); };
+#include "unit_motion.h"
 struct Unit {
     UnitMotion* motion; char pad4[4]; Weapon weapons[3]; Order* order;
     char pad60[10]; Vec3 pos; char pad76[8]; short width; short depth; int terrain; int busy;

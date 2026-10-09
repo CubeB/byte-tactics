@@ -22,12 +22,7 @@ struct Vec3 {
 };
 
 struct Unit;
-class UnitMotion {
-public:
-    char unknown_0[0x2e];
-    unsigned char flags;               // +0x2e
-    void SetFlightMode(Unit* unit, int state);
-};
+#include "unit_motion.h"
 class PathOrderAttach {
 public:
     Unit* owner;                       // +0x4

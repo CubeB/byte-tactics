@@ -213,13 +213,13 @@ int __stdcall ComputeChecksum(unsigned char* data, int len);
 class MapCacheEntry {
 public:
     Class_004c91a0 handle;             // +0x0
-    int field_4;                       // +0x4
+    int tntChecksum;                   // +0x4
 
     MapCacheEntry(const Class_004c91a0& other) : handle(other) {}
 
     MapCacheEntry& SetChecksum(Mission* self)
     {
-        field_4 = self->tntChecksum;
+        tntChecksum = self->tntChecksum;
         return *this;
     }
 };
@@ -1323,7 +1323,7 @@ int Mission::ComputeMapChecksum()
     // reference s_mapCache with a displacement, the wrong address.
     for (it = g_mapCacheBegin; it != g_mapCacheEnd; it++) {
         if (_strcmpi(it->handle.data, name) == 0) {
-            tntChecksum = it->field_4;
+            tntChecksum = it->tntChecksum;
             return headerChecksum ^ tntChecksum;
         }
     }

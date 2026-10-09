@@ -119,7 +119,7 @@ struct PlayerGrid {
     unsigned char* cells;              // +0x0
     unsigned int width;                // +0x4
     unsigned int height;               // +0x8
-    int field_c;                       // +0xc
+    int size;                          // +0xc
     unsigned char& at(int x, int y) { return cells[y * width + x]; }
 };
 

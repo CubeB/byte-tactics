@@ -72,7 +72,7 @@ struct Grid_00481d50 {
     unsigned char* cells;              // +0x0
     unsigned int width;                // +0x4
     unsigned int height;               // +0x8
-    int field_c;                       // +0xc
+    int count;                         // +0xc
 };
 
 struct Game {

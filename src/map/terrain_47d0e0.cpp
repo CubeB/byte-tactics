@@ -12,7 +12,7 @@ struct Cell_0047db20 {
     short unit;
     short unit2;
     char unknown_4[0xc - 0x4];
-    unsigned char field_c;
+    unsigned char flags;
 };
 
 struct Unit_0047db20 {
@@ -87,7 +87,7 @@ void __stdcall RemoveUnitFromMap(Obj_0047db20* obj)
                     unsigned char m = obj->unit->mask[index];
                     index++;
                     if (cell->unit == obj->id) cell->unit = 0;
-                    if (m & 1) cell->field_c &= 0xfd;
+                    if (m & 1) cell->flags &= 0xfd;
                     cell++;
                 }
                 cell += g_game->width - size.x;

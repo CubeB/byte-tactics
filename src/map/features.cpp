@@ -199,7 +199,7 @@ struct Spot {                          // a feature spot (0x30 bytes)
 
 struct Pool {                          // the feature spot pool
     Spot* entries;                     // +0x0
-    void* field_4;                     // +0x4
+    void* featureUnit;                 // +0x4
     int usedHead;                      // +0x8
     int restHead;                      // +0xc
     int freeHead;                      // +0x10
@@ -587,9 +587,9 @@ void FreeFeaturePool()
         }
     }
 
-    GameFreeThunk(g_game->pool.field_4);
+    GameFreeThunk(g_game->pool.featureUnit);
     GameFreeThunk(g_game->pool.entries);
-    g_game->pool.field_4 = 0;
+    g_game->pool.featureUnit = 0;
     g_game->pool.entries = 0;
 
     Feature* t = g_game->features;

@@ -30,7 +30,7 @@ public:
 class MapCacheEntry {
 public:
     Class_004c91a0 handle;             // +0x0
-    int field_4;                       // +0x4
+    int tntChecksum;                   // +0x4
 
     MapCacheEntry(const MapCacheEntry& other);
     MapCacheEntry& operator=(const MapCacheEntry& other);
@@ -111,13 +111,13 @@ InsertFn_00437580 g_insert_00437580 = &Vec_00437580::insert;
 MapCacheEntry& MapCacheEntry::operator=(const MapCacheEntry& other)
 {
     ((Class_004c93b0*)this)->Assign(other.handle);
-    field_4 = other.field_4;
+    tntChecksum = other.tntChecksum;
     return *this;
 }
 
 // FUNCTION: 0x437820
 MapCacheEntry::MapCacheEntry(const MapCacheEntry& other)
-    : handle(other.handle), field_4(other.field_4)
+    : handle(other.handle), tntChecksum(other.tntChecksum)
 {
 }
 #pragma auto_inline()

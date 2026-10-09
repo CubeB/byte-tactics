@@ -28,7 +28,7 @@ struct Point16_437840 {
 struct UnitType_437840 {
     char unknown_0[0x1ce];
     float extractsMetal;               // +0x1ce
-    float field_1d2;                   // +0x1d2
+    float windGenerator;               // +0x1d2
 };
 
 struct Unit {
@@ -230,7 +230,7 @@ void __stdcall UpdateMetalExtraction(Unit* unit)
 // FUNCTION: 0x437910
 void __stdcall UpdateWindGenerator(Unit* unit)
 {
-    if (unit->def->field_1d2 > 0.0f && g_game->windEnabled) {
+    if (unit->def->windGenerator > 0.0f && g_game->windEnabled) {
         unit->script->StartScriptWithArgs("SetDirection", 0, 0, 1, g_game->windDirection, 0, 0, 0);
         unit->script->StartScriptWithArgs("SetSpeed", 0, 0, 1, g_game->windSpeed << 4, 0, 0, 0);
     }

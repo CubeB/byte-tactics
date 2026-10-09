@@ -1,6 +1,6 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
 // Stays in a file of its own: this initialiser matches only with the views of
-// PacketChannel and PacketRing below, which packets_460f40.cpp cannot share.
+// PacketChannel and PacketRing below, which packets.cpp cannot share.
 // The compiler-generated dynamic initialiser (_$E4) of the global
 // g_packetManager (vtable 0x4fd514): it runs the constructor (0x4611e0) and
 // registers the atexit destructor _$E2 (0x460f60).

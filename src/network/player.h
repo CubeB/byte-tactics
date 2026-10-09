@@ -1,6 +1,6 @@
 // Player: one slot of the player table (Thaldren's PlayerState, 0x14b bytes),
 // ten of them at g_game+0x1b63. The one declaration of the struct for the files
-// that read or write a slot. packets_460f40.cpp, which defines the methods,
+// that read or write a slot. packets.cpp, which defines the methods,
 // keeps its own view: it also defines the constructor (the slot is built by
 // 0x463be0 with a by-value Grid_00463be0 at +0x7c), and a struct with a
 // constructor cannot be a member of the unions some Game views put the player

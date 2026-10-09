@@ -46,7 +46,7 @@ static inline int CellX(Gadget_004ac970* gadgets, int index)
     return gadgets[index].x + gadgets->x;
 }
 
-// Stays out of dialogs_4aa8f0.cpp: it matches only while the symbol ids of
+// Stays out of dialogs.cpp: it matches only while the symbol ids of
 // its file stay small, and no header set or declaration count in the joined
 // file reaches them (docs/c2-regalloc.md).
 // FUNCTION: 0x4ac970

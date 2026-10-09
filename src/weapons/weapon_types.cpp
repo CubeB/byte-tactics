@@ -3,20 +3,10 @@
 #include <string.h>
 #include <vector>
 
+#include "../util/tdf.h"
+
 // 3.14159265358979 / 180 is exactly the exe's 0.017453292519943278.
 #define PI 3.14159265358979
-
-// Keeps its own view of the parser classes: the header has no GetRecordName or
-// GetFieldName, and adding them moves features.cpp and screenshots_499890.cpp.
-class TdfRecord {
-  public:
-    char* GetRecordName();
-    int GetFieldString(char* dst, const char* key, int size, char* def);
-    int GetFieldInt(const char* key, int def);
-    double GetFieldDouble(const char* key, double def);
-    TdfRecord* FindSubRecord(const char* key);
-    char* GetFieldName(int index);
-};
 
 class Class_004c9390 {
   public:
@@ -181,21 +171,9 @@ void __stdcall BindModelTextures(void* a, char* b);
 void* __stdcall LoadAnimGaf(char* name);
 void* __stdcall FindGafEntry(void* a, char* b);
 int __stdcall LoadSoundByName(void* a, char* b);
-class TdfFile {
-public:
-    int root;                          // +0x0
-    int current;                       // +0x4
-    int field_8;                       // +0x8
-
-    TdfFile();
-    ~TdfFile();
-    int LoadFile(char* file);
-    void ResetCurrentRecord();
-    int SelectRecordAt(int index);
-};
 
 void __stdcall ListDirectory(const char* pattern, int flags, std::vector<Class_004c91a0>* out);
-void __stdcall LoadWeaponType(int section);
+void __stdcall LoadWeaponType(TdfRecord* section);
 int FUN_0041d8a0(void);
 extern void __cdecl operator delete(void*);
 void __cdecl GameFreeThunk(void* p);
@@ -238,7 +216,7 @@ void LoadWeaponTypes()
 // a table sorted by unit name (w->sub).
 // FUNCTION: 0x42e440
 void __stdcall LoadWeaponType(TdfRecord* parser) {
-    char* id = parser->GetRecordName();
+    char* id = (char*)parser->GetRecordName();
     Weapon_0042e440* w = &g_game->weapons[parser->GetFieldInt("ID", -1)];
     strcpy(w->name, id);
     parser->GetFieldString(w->name2, "name", 0x40, DAT_005119b8);

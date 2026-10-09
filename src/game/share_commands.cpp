@@ -30,6 +30,9 @@ struct Game {
     unsigned char localPlayer;         // +0x2a42
     unsigned char playerIndex;         // +0x2a43
     unsigned char flags;               // +0x2a44
+    char unknown_2a45[0x391bf - 0x2a45];
+    int showRanges;                    // +0x391bf
+    int showBps;                       // +0x391c3
 };
 #pragma pack(pop)
 
@@ -238,7 +241,7 @@ void __stdcall CmdSetShareEnergy(CommandArgs* args)
 // FUNCTION: 0x4194c0
 void __stdcall CmdShowRanges(int unused)
 {
-    int* ptr = (int*)((char*)g_game + 0x391bf);
+    int* ptr = &g_game->showRanges;
     *ptr ^= 1;
 }
 
@@ -258,7 +261,7 @@ void __stdcall CmdCompression(int unused)
 // FUNCTION: 0x419540
 void __stdcall CmdBPS(int unused)
 {
-    *(int*)((char*)g_game + 0x391c3) ^= 1;
+    g_game->showBps ^= 1;
 }
 
 // FUNCTION: 0x419550

@@ -6,6 +6,9 @@
 #include <windows.h>
 #include <stdio.h>
 #include <ddraw.h>
+// Included only for its symbol ids: FormatNetStats matches at this count with
+// the BitReader header's inline ReadBit (see bit_reader.h).
+#include <io.h>
 
 #pragma pack(push, 1)
 struct Game {
@@ -39,15 +42,7 @@ public:
     void SetByteAt(int offset, unsigned char value);
 };
 
-// Reads bit fields from an array of dwords, lowest bits first.
-class BitReader {
-public:
-    unsigned int* data;                // +0x00
-    int index;                         // +0x04
-    int bit;                           // +0x08
-    int ReadBits(int bits);
-    int ReadSignedBits(int bits);
-};
+#include "bit_reader.h"
 
 class PacketManager {
 public:

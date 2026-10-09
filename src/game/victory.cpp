@@ -1606,10 +1606,7 @@ public:
     void WriteBits(int value, int bits);
 };
 
-class BitReader {
-public:
-    int ReadBits(int bits);
-};
+#include "../network/bit_reader.h"
 
 struct Struct_004907e0;
 

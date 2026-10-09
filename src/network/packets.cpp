@@ -15,6 +15,7 @@
 // Included only for their symbol ids: the functions below match at this count.
 #include <setjmp.h>
 #include <signal.h>
+#include <malloc.h>
 
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* ptr);
@@ -164,14 +165,7 @@ struct FrameRing {
     }
 };
 
-// Bit reader, see src/network/net_stats.cpp.
-class BitReader {
-public:
-    unsigned int* data;                // +0x00
-    int index;                         // +0x04
-    int bit;                           // +0x08
-    int ReadBits(int bits);
-};
+#include "bit_reader.h"
 
 // Length of each packet command, one int per command byte (the size in
 // the low word, the writer leaves the high word zero).

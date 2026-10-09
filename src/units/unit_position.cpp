@@ -275,26 +275,7 @@ public:
     void WriteBits(int value, int bits);
 };
 
-// Bit reader, the counterpart of the writer (see src/network/net_stats.cpp).
-class BitReader {
-public:
-    unsigned int* data;                // +0x00
-    int index;                         // +0x04
-    int bit;                           // +0x08
-
-    int ReadBits(int bits);
-    int ReadSignedBits(int bits);
-
-    int ReadBit()
-    {
-        int r = (data[index] & (1 << bit)) != 0;
-        if (++bit == 32) {
-            bit = 0;
-            index++;
-        }
-        return r;
-    }
-};
+#include "../network/bit_reader.h"
 
 #pragma pack(pop)
 

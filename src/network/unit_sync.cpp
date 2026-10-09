@@ -11,7 +11,7 @@
 // COMDAT and the conflicting _Tree models stay in their own files
 // (unit_sync_46ca60.cpp, unit_sync_46cc10.cpp, unit_sync_46d1a0.cpp,
 // unit_sync_46d2e0.cpp, unit_sync_46dad0.cpp, unit_sync_46e640.cpp,
-// unit_sync_46eba0.cpp, unit_sync_46f7a0.cpp, unit_sync_470040.cpp and
+// unit_sync_46eba0.cpp, unit_sync_46f7a0.cpp and
 // unit_sync_player.cpp).
 #include <stdio.h>
 #include <utility>
@@ -789,6 +789,8 @@ void PacketSequencer::ReceiveSequenced(UnitSyncPacket* packet, int param_2, void
     }
 }
 
+// The original calls this out of line from 0x470040.
+#pragma auto_inline(off)
 // FUNCTION: 0x470560 ??4PacketSequencer@@QAEAAU0@ABU0@@Z
 PacketSequencer& PacketSequencer::operator=(const PacketSequencer& rhs)
 {
@@ -799,6 +801,7 @@ PacketSequencer& PacketSequencer::operator=(const PacketSequencer& rhs)
     list_d = rhs.list_d;
     return *this;
 }
+#pragma auto_inline(on)
 
 // The constructor of the 0x68-byte object held at g_game+0x2a30: the map
 // header at +0x00 (UnitSyncMap), the player vector, the id list and the
@@ -1433,7 +1436,119 @@ struct Elem_004702a0 {
     int unknown_0;
 };
 
-struct Class_0046eaa0 {                // operator= is 0x470040
+// Unused here: real functions declared to keep the file's symbol count (docs/c2-regalloc.md).
+void RegisterUnitOrders(void);
+void RegisterGroundOrders(void);
+void EnableAICommands(void);
+void RegisterAICommands();
+
+int* __stdcall CopyDwordRangeOverwrite(int* first, int* last, int* dest);
+
+class Class_00470250 : public std::vector<Elem_004702a0> {
+public:
+    unsigned int Capacity() const;
+
+    unsigned int __inline count() const
+    {
+        if (!_First)
+            return 0;
+        return (int)((char *)_Last - (char *)_First) >> 2;
+    }
+};
+
+class Class_00470270 : public Class_00470250 {
+public:
+    unsigned int Size() const;
+
+    __inline Elem_004702a0* begin() { return _First; }
+    __inline Elem_004702a0* end() { return _Last; }
+    __inline const Elem_004702a0* begin() const { return _First; }
+    __inline const Elem_004702a0* end() const { return _Last; }
+
+    // Three dead one-statement calls standing in for whatever the original
+    // spent its inline budget on: /Ob2 inlines _Ucopy and _Destroy here only
+    // as deep as this budget allows.
+    static __inline void burn(int a)
+    {
+        int t = a;
+        t = t * 3 + 1;
+        (void)t;
+    }
+
+    // Separate from assign_second: list_a inlines size(), list_b does not.
+    // the first list
+    void __inline assign_first(Class_00470270* d, const Class_00470270* s)
+    {
+        if (d == s)
+            ;
+        else if (s->count() <= d->count()) {
+            int* p = (int*)s->_First;
+            int* e = (int*)s->_Last;
+            int* q = (int*)d->_First;
+            for (; p != e; ++p, ++q)
+                *q = *p;
+            d->_Last = d->_First + s->Size();
+        } else {
+            unsigned int room = d->Capacity();
+            if (s->Size() <= room) {
+                Elem_004702a0* mid = s->_First;
+                mid += d->Size();
+                CopyDwordRangeOverwrite((int*)s->begin(), (int*)mid, (int*)d->_First);
+                d->_Ucopy(mid, s->_Last, d->_Last);
+
+                d->_Last = d->_First + s->Size();
+            } else {
+                d->_Destroy(d->_First, d->_Last);
+                // begin()/end() here, raw fields in assign_second: sets the register split.
+                operator delete(d->begin());
+                int n = (int)s->Size();
+                if (n < 0)
+                    n = 0;
+                Elem_004702a0* p = (Elem_004702a0*)operator new(n * 4);
+                d->_First = p;
+                Elem_004702a0* q = d->_Ucopy(s->begin(), s->end(), p);
+                d->_Last = q;
+                d->_End = q;
+            }
+        }
+    }
+
+    // the second list
+    void __inline assign_second(Class_00470270* d, const Class_00470270* s)
+    {
+        if (d == s)
+            ;
+        else if (s->Size() <= d->Size()) {
+            Elem_004702a0* r = (Elem_004702a0*)CopyDwordRangeOverwrite(
+                (int*)s->_First, (int*)s->_Last, (int*)d->_First);
+            d->_Destroy(r, d->_Last);
+            d->_Last = d->_First + s->Size();
+        } else {
+            unsigned int room = d->Capacity();
+            if (s->Size() <= room) {
+                Elem_004702a0* mid = s->_First;
+                mid += d->Size();
+                CopyDwordRangeOverwrite((int*)s->_First, (int*)mid, (int*)d->_First);
+                d->_Ucopy(mid, s->_Last, d->_Last);
+
+                d->_Last = d->_First + s->Size();
+            } else {
+                d->_Destroy(d->_First, d->_Last);
+                operator delete((void*)d->_First);
+                int n = (int)s->Size();
+                if (n < 0)
+                    n = 0;
+                Elem_004702a0* p = (Elem_004702a0*)operator new(n * 4);
+                d->_First = p;
+                Elem_004702a0* q = d->_Ucopy(s->_First, s->_Last, p);
+                d->_Last = q;
+                d->_End = q;
+            }
+        }
+    }
+};
+
+struct Class_0046eaa0 {                // 0x5c bytes, one vector element
     int id;                            // +0x00
     std::vector<Elem_004702a0> list_a; // +0x04
     std::vector<Elem_004702a0> list_b; // +0x14
@@ -1441,6 +1556,8 @@ struct Class_0046eaa0 {                // operator= is 0x470040
     int sent;                          // +0x28
     int ackd;                          // +0x2c
     PacketSequencer sub;               // +0x30
+
+    Class_0046eaa0& operator=(const Class_0046eaa0& src);
 };
 
 typedef std::vector<Class_0046eaa0> Vec_0046eaa0;
@@ -1609,42 +1726,51 @@ void __stdcall NopChecksumEntryDtor(int)
 {
 }
 
-// --- Class_00470250's and Class_00470270's counts (0x470250, 0x470270) --------
-
-class Class_00470250 {
-public:
-    char unknown_0[4];
-    int first;
-    char unknown_8[4];
-    int last;
-
-    int Capacity();
-};
-
-// FUNCTION: 0x470250
-int Class_00470250::Capacity()
+// Class_0046eaa0::operator=. list_a and list_b are two vectors of 4-byte
+// elements, each with an out-of-line capacity() (0x470250) and size()
+// (0x470270) that both return the element count, i.e. a byte difference
+// shifted right by 2. The first list inlines its size() for the first
+// comparison, the second does not.
+// The members stay plain std::vector for the element destructor (0x46eaa0): a
+// vector subclass as the member type changes how deep that inlines, so the
+// assign helpers are reached through casts.
+// FUNCTION: 0x470040
+Class_0046eaa0& Class_0046eaa0::operator=(const Class_0046eaa0& src)
 {
-    if (!first) {
-        return 0;
-    }
-    return (last - first) >> 2;
+    id = src.id;
+
+    ((Class_00470270*)&list_a)->assign_first((Class_00470270*)&list_a, (const Class_00470270*)&src.list_a);
+    ((Class_00470270*)&list_b)->assign_second((Class_00470270*)&list_b, (const Class_00470270*)&src.list_b);
+
+    Class_00470270::burn(1);
+    Class_00470270::burn(2);
+    Class_00470270::burn(3);
+
+    expected = src.expected;
+    sent = src.sent;
+    ackd = src.ackd;
+    sub = src.sub;
+    return *this;
 }
 
-class Class_00470270 {
-public:
-    char unknown_0[4];
-    int field_4;
-    int field_8;
+// --- Class_00470250's and Class_00470270's counts (0x470250, 0x470270) --------
 
-    int Size();
-};
-
-// FUNCTION: 0x470270
-int Class_00470270::Size() {
-    if (field_4 == 0) {
+// FUNCTION: 0x470250
+unsigned int Class_00470250::Capacity() const
+{
+    if (!_First) {
         return 0;
     }
-    return (field_8 - field_4) >> 2;
+    return _End - _First;
+}
+
+// FUNCTION: 0x470270
+unsigned int Class_00470270::Size() const
+{
+    if (_First == 0) {
+        return 0;
+    }
+    return _Last - _First;
 }
 
 // --- std::copy for 4-byte elements (0x4702d0) --------------------------------

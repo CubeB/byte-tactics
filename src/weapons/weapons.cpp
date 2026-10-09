@@ -37,6 +37,7 @@ public:
 
 #include "../network/player.h"
 #include "../units/unit_def.h"
+#include "unit_weapon_slot.h"
 
 struct Gun_0049c9c0 {
     short angle;
@@ -51,21 +52,6 @@ struct Shot_0049c740 {
 };
 
 struct Unit;
-
-// One of a unit's three weapon slots: 49c740's shot pointer at +0x0 is
-// 49e070's attached unit; the rest is 49e070's view.
-struct UnitWeaponSlot {
-    union {
-        Shot_0049c740* shot;           // +0x0
-        Unit* attached;                // +0x0
-    };
-    int field_4;                       // +0x4
-    short field_8;                     // +0x8
-    char unknown_a[4];
-    unsigned char field_e;             // +0xe
-    unsigned char flags;               // +0xf
-    char unknown_10[0xc];
-};
 
 struct Type_0049d270 {
     char unknown_0[0x20];
@@ -233,10 +219,7 @@ struct Unit {
             char unknown_1a;
             unsigned char f_1b;        // +0x1b
         };
-        struct {                       // 49c740's and 49e070's weapon slots
-            char unknown_4b[0xc];
-            UnitWeaponSlot slots[3];   // +0x10, stride 0x1c
-        };
+        UnitWeaponSlot slots[3];       // +0x4, stride 0x1c
         struct {                       // 49c9c0's gun array
             char unknown_4c[0x16];
             Gun_0049c9c0 f_1a[19];     // +0x1a, indexed as f_1a[i * 7]
@@ -398,6 +381,8 @@ struct Projectile_0049c880 {
 };
 #pragma pack(pop)
 
+struct Projectile_00499eb0;
+
 // The game state, as the weapon code sees it. The time word keeps one name per
 // view (now, frame, ticks, teamColor); 49d270's defs and 49e5b0's entries
 // are one union, as are the two tracked-projectile pointers, 499a30's selected
@@ -438,6 +423,7 @@ struct Game {
         Proj_0049c740* trackedProj;    // +0x142f7
         Projectile_0049c880* tracked;
         void* selected;                // 499a30's spelling
+        Projectile_00499eb0* selectedProjectile; // 499e50's and 499eb0's
     };
     char unknown_142fb[0x1433f - 0x142fb];
     Vec3 trackedPos;                   // +0x1433f
@@ -618,7 +604,6 @@ void __stdcall RockUnit(Object_00499c10* obj, Source_00499c10* src)
 }
 
 struct Weapon_499c70;
-struct Projectile_00499eb0;
 struct Weapon_0049a120;
 
 class SquadManager {
@@ -766,29 +751,6 @@ int __stdcall ApplyWeaponDamage(Weapon_00499cd0* weapon, Unit* target,
     return damage;
 }
 
-struct UnitType_499e50 {
-    char unknown_0[0xfe];
-    short value;                 // +0xfe
-};
-
-struct Unit_499e50 {
-    UnitType_499e50* type;       // +0
-    Vec3_0049b720 pos;           // +4
-    char unknown_10[0x69 - 0x10];
-    unsigned char flags;         // +0x69
-};
-
-// FUNCTION: 0x499e50
-void __stdcall UntrackProjectile(Unit_499e50* unit)
-{
-    if (unit == g_game->selected) {
-        g_game->trackedPos = ((Unit_499e50*)g_game->selected)->pos;
-        g_game->trackedValue = unit->type->value;
-        g_game->selected = 0;
-    }
-    unit->flags |= 2;
-}
-
 #pragma pack(push, 1)
 
 struct ProjectileType_00499eb0 {
@@ -803,7 +765,9 @@ struct ProjectileType_00499eb0 {
     char unknown_d8[0xf6 - 0xd8];
     unsigned short sound1;
     unsigned short sound2;
-    char unknown_fa[0x111 - 0xfa];
+    char unknown_fa[0xfe - 0xfa];
+    unsigned short value;              // +0xfe
+    char unknown_100[0x111 - 0x100];
     // Bitfield struct: the bit tests need this form.
     struct {
         unsigned int bits0_9 : 10;
@@ -828,6 +792,17 @@ struct Projectile_00499eb0 {
 
 #pragma pack(pop)
 
+// FUNCTION: 0x499e50
+void __stdcall UntrackProjectile(Projectile_00499eb0* projectile)
+{
+    if (projectile == g_game->selected) {
+        g_game->trackedPos = g_game->selectedProjectile->position;
+        g_game->trackedValue = projectile->type->value;
+        g_game->selected = 0;
+    }
+    projectile->flags |= 2;
+}
+
 void* __stdcall GetMapCellAtPosition(Vec3_0049b720* position);
 void __stdcall AccumulateScreenShake(int a, int b, int c);void __stdcall AddExplosionEffect(Vec3_0049b720* position, void* value, int a, int b);
 void __stdcall EmitWhiteSmoke(Vec3_0049b720* position, int value);
@@ -847,16 +822,16 @@ void __stdcall DetonateProjectile(Projectile_00499eb0* projectile, Unit* unit)
         hostile = value[5] < g_game->seaLevel;
     if (!type->flags.bit22) {
         if (projectile == g_game->selected) {
-            g_game->trackedPos = ((Projectile_00499eb0*)g_game->selected)->position;
-            g_game->trackedValue = *(unsigned short*)((char*)projectile->type + 0xfe);
+            g_game->trackedPos = g_game->selectedProjectile->position;
+            g_game->trackedValue = projectile->type->value;
             g_game->selected = 0;
         }
         projectile->flags = projectile->flags | 2;
     }
     if (g_game->net->field_d48 && hostile && !unit) {
         if (projectile == g_game->selected) {
-            g_game->trackedPos = ((Projectile_00499eb0*)g_game->selected)->position;
-            g_game->trackedValue = *(unsigned short*)((char*)projectile->type + 0xfe);
+            g_game->trackedPos = g_game->selectedProjectile->position;
+            g_game->trackedValue = projectile->type->value;
             g_game->selected = 0;
         }
         projectile->flags = projectile->flags | 2;
@@ -1207,6 +1182,11 @@ void StepAllGafSequences();
 void ResetNetStats();
 void InitCommands();
 void RefreshSelectionOrders();
+int RIReport(int, int, int, int, int, int, int, int, int, int);
+void EnumPlayersCallback(int, int, int, int, int);
+int CheckDirectXVersion(int, int, int, int, int);
+void EmitThrustParticles(int, int, int, int, short);
+int AimCobStub(int, int, int, int);
 
 // 0x49aa80's file included <windows.h> and <stdio.h> here for the operand
 // order in the height check; both are already included above.
@@ -1269,7 +1249,7 @@ static inline short LineOfFire_0049aa80(Vec3_0049aa80 to, Vec3_0049aa80 from, in
 // FUNCTION: 0x49aa80
 int __stdcall WeaponCanReachPos(Unit* a1, Vec3_0049aa80* a2, Vec3_0049aa80* a3, int a4)
 {
-    WeaponDef_0049aa80* wdef = (WeaponDef_0049aa80*)a1->slots[a4 & 0xff].shot;
+    WeaponDef_0049aa80* wdef = (WeaponDef_0049aa80*)a1->slots[a4 & 0xff].weapon;
 
     // z difference first, as named int locals: the original's order.
     int dz = a3->z - a2->z;
@@ -1352,7 +1332,7 @@ static inline int Dist2_0049abb0(Vec3_0049abb0* b, Vec3_0049abb0* a)
 // FUNCTION: 0x49abb0
 int __stdcall WeaponCanReachUnit(Unit* unit1, Unit* unit2, unsigned char weapon)
 {
-    WeaponDef_0049abb0* w = (WeaponDef_0049abb0*)unit1->slots[weapon].shot;
+    WeaponDef_0049abb0* w = (WeaponDef_0049abb0*)unit1->slots[weapon].weapon;
 
     if (w->flags.bit16) {
         if (!(unit2->utype->flags1 & 0x80000) && unit2->pos_0049abb0.y.parts.whole > g_game->seaLevel)
@@ -1548,30 +1528,26 @@ void __stdcall DetonateUnitWeapon(Unit* unit, int second)
 
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
-// 16.16 fixed point seen as the short above the short below.
-union Fix_0049b3e0 {
-    int whole;
-    short half[2];
-};
-
 struct Vec3_0049b3e0 {
-    int x, y, z;
+    int x;
+    Fixed y;
+    int z;
 
     Vec3_0049b3e0 operator-(const Vec3_0049b3e0& o) const
     {
         Vec3_0049b3e0 r;
         r.x = x - o.x;
-        r.y = y - o.y;
+        r.y.value = y.value - o.y.value;
         r.z = z - o.z;
         return r;
     }
-    Fix_0049b3e0 Length() const
+    Fixed Length() const
     {
         double fx = x;
-        double fy = y;
+        double fy = y.value;
         double fz = z;
-        Fix_0049b3e0 r;
-        r.whole = (int)sqrt(fx * fx + fy * fy + fz * fz);
+        Fixed r;
+        r.value = (int)sqrt(fx * fx + fy * fy + fz * fz);
         return r;
     }
 };
@@ -1606,10 +1582,10 @@ Vec3_0049b3e0* __stdcall GetProjectileAimPoint(Proj_0049b3e0* p)
 {
     unsigned char flag = (unsigned char)((p->weapon->flags >> 0x19) & 1);
     if (flag) {
-        Fix_0049b3e0 dist = (p->pos - p->target).Length();
-        if (dist.half[1] > 0x400) {
+        Fixed dist = (p->pos - p->target).Length();
+        if (dist.whole > 0x400) {
             p->start = p->target;
-            ((Fix_0049b3e0*)&p->start.y)->half[1] = 0x2bc;
+            p->start.y.whole = 0x2bc;
             return &p->start;
         }
     } else {
@@ -1621,7 +1597,7 @@ Vec3_0049b3e0* __stdcall GetProjectileAimPoint(Proj_0049b3e0* p)
     }
     if (flag) {
         p->start = p->target;
-        p->start.y = max(GetGroundHeight(&p->target), g_game->seaLevel) << 16;
+        p->start.y.value = max(GetGroundHeight(&p->target), g_game->seaLevel) << 16;
         return &p->start;
     }
     return &p->target;
@@ -1775,7 +1751,7 @@ void __stdcall InitProjectile(Proj_0049c740* proj, Shot_0049c740* shot, Vec3* po
         if ((unit->flags & 0x20000000) && g_game->trackedUnit == unit)
             g_game->trackedProj = proj;
         for (i = 0; i < 3; i++)
-            if (unit->slots[i].shot == shot)
+            if (unit->slots[i].weapon == (WeaponDef*)shot)
                 break;
         proj->piece = (short)QueryWeaponPiece(unit, i);
         unit->workTime = g_game->ticks + 0x258;
@@ -3019,19 +2995,19 @@ void __stdcall InitUnitWeaponSlots(Unit* unit)
     Frame_0049e070 frame = {0, 0};
     for (frame.i = 0; frame.i < 3; frame.i++) {
         UnitWeaponSlot* s = &unit->slots[frame.i];
-        s->field_8 = 0;
+        s->reloadTimer = 0;
         s->flags = (s->flags & 0xf2) | ((frame.i & 3) << 2);
-        s->attached = (Unit*)unit->utype->weapons[frame.i];
-        // Read team inline with no named temporary; field_e is zeroed after this line.
+        s->weapon = unit->utype->weapons[frame.i];
+        // Read team inline with no named temporary; stockpile is zeroed after this line.
         s->flags = (s->flags & 0xfd) | (((((Unit*)unit->utype->weapons[frame.i])->team != 0) & 1 | 8) * 2);
-        s->field_e = 0;
+        s->stockpile = 0;
         Vec3 a;
         GetWeaponPiecePosition(unit, &a, frame.i, -1);
         Vec3 b;
         GetAimFromPosition(unit, &b, frame.i);
-        s->field_4 = (a.z - b.z) * 1.25;
-        if (s->attached->field_e4 > frame.maxTime)
-            frame.maxTime = s->attached->field_e4;
+        s->muzzleAimFromDeltaZ = (a.z - b.z) * 1.25;
+        if (((Unit*)s->weapon)->field_e4 > frame.maxTime)
+            frame.maxTime = ((Unit*)s->weapon)->field_e4;
     }
     unit->script->StartScriptWithArgs("SetMaxReloadTime", 0, 0, 1, frame.maxTime * 1000 / 30, 0, 0, 0);
 }

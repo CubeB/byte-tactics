@@ -201,10 +201,10 @@ struct Team_004689c0 {                 // 347 bytes
     char unknown_8[347 - 8];
 };
 
-// The player array seen from +0x1b8e: field_119 is its +0x144 unitCount.
+// The player array seen from +0x1b8e: unitCount is its +0x144.
 struct Player_004689c0 {               // 331 bytes
     char unknown_0[0x119];
-    unsigned short field_119;          // +0x119
+    unsigned short unitCount;          // +0x119
     char unknown_11b[331 - 0x11b];
 };
 
@@ -1167,7 +1167,7 @@ void __stdcall DrawStatusPanel(Surface* win)
     DrawTextClipped(win, buf, left + 0x19, bottom + 0xa, -1, 0);
     int team = g_game->team_number;
     sprintf(buf, "%s : %d  (Max %d)", Translate("Total Units"),
-            g_game->players_004689c0[team].field_119, g_game->max_units);
+            g_game->players_004689c0[team].unitCount, g_game->max_units);
     DrawTextClipped(win, buf, left + 0xbe, bottom + 0xa, -1, 0);
     if (g_game->speed2 == 10)
         sprintf(num, Translate("Normal"));

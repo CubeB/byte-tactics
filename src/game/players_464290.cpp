@@ -160,8 +160,8 @@ struct Player {
     int displayTimer;                  // +0xf8
     short kills;                       // +0xfc
     short losses;                      // +0xfe
-    short field_100;                   // +0x100
-    short field_102;                   // +0x102
+    short unused_100;                  // +0x100
+    short unused_102;                  // +0x102
     short commanderKills;              // +0x104
     short commanderLosses;             // +0x106
     unsigned char team_108[11];        // +0x108
@@ -452,7 +452,7 @@ guard:
     p->losses = 0;
     p->commanderKills = 0;
     p->commanderLosses = 0;
-    p->field_102 = p->field_100 = -1;
+    p->unused_102 = p->unused_100 = -1;
     // w declared first: puts height/2 in edi and width/2 in ebx.
     int w, h;
     h = g_game->height / 2;

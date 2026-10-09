@@ -33,7 +33,7 @@ struct Gadget_00444580 {
     int unknown_0;
     Entry_00444580* entries;            // +0x4
     void (__stdcall* handler)(void*);   // +0x8
-    int field_c;                        // +0xc
+    int userData;                       // +0xc
 };
 
 struct Conn_00444580 {
@@ -119,7 +119,7 @@ void FillProviderList()
     RemapPaletteToClosestIndices(&g_game->menu, g_game->palette, g_game->field_5cb);
     Gadget_00444580* menu = LoadGuiLayer(&g_game->menu, "SELPROV.GUI", 0x80);
     menu->handler = HandleSelectProviderClick;
-    menu->field_c = (int)g_game;
+    menu->userData = (int)g_game;
     LoadPictureCached("selconnect2", 1, 0, 0);
     g_game->descriptions = GameAllocIgnoreTag("PROVIDER DESCRIPTIONS", 0x500);
     g_game->guids = GameAllocIgnoreTag("PROVIDER GUIDS", 0xa0);

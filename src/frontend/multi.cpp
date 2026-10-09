@@ -201,7 +201,7 @@ struct Net_00443100 {
     void* lobby;                       // +0x4b9
     char unknown_4bd[0x4e5 - 0x4bd];   // +0x4bd
     int count;                         // +0x4e5
-    int field_4fd;                     // +0x4e9
+    int gameCount;                     // +0x4e9
     char unknown_4ed[0x505 - 0x4ed];   // +0x4ed
 };
 
@@ -257,7 +257,7 @@ struct Settings_00441460 {
 
 struct Record_00441460 {               // 0x54 bytes
     Settings_00441460 settings;        // +0x00
-    int field_10;                      // +0x10
+    int maxPlayers;                    // +0x10
     char name[0x20];                   // +0x14
     char name2[0x20];                  // +0x34
 };
@@ -361,21 +361,20 @@ struct PlayerInfo {
 // with the header's, and this module's functions match only with this view.
 struct Player_00444930 {
     int active;                        // +0x00
-    int field_4;                       // +0x04
+    int id;                            // +0x04
     unsigned int time;                 // +0x08
     char unknown_c[0x14 - 0xc];        // +0x0c
     unsigned int ping;                 // +0x14
     char unknown_18[0x22 - 0x18];      // +0x18
     union {                            // +0x22
         unsigned char status;
-        unsigned char field_22;
+        unsigned char rejectReason;
     };
     char unknown_23[0x27 - 0x23];      // +0x23
     union {                            // +0x27
         PlayerInfo* info;
         PlayerInfo* data;
         PlayerInfo* unit;
-        int field_27;
     };
     char name[0x73 - 0x2b];            // +0x2b
     unsigned char type;                // +0x73
@@ -389,7 +388,7 @@ struct Player_00444930 {
     };
     int unitsCreated;                  // +0x140
     short unitCount;                   // +0x144
-    unsigned char field_146;           // +0x146
+    unsigned char index;               // +0x146
     char unknown_147[0x14b - 0x147];   // +0x147
 };
 
@@ -624,7 +623,7 @@ struct Data_00444ea0 {
 // The map dialog's layout block at holder+0xc (0x444cb0).
 struct Layout_00444cb0 {
     char unknown_0[0x14];                  // +0x00
-    void* field_14;                        // +0x14
+    void* items;                           // +0x14
 };
 
 // The logo dialog's layout block at holder+0xc (0x445110): the byte list of
@@ -632,7 +631,7 @@ struct Layout_00444cb0 {
 // animation sequences.
 struct AnimSeq_00445110 {
     char unknown_0[0x28];                  // +0x00
-    void* field_28;                        // +0x28
+    void* frame;                           // +0x28
     char unknown_2c[0x30 - 0x2c];          // +0x2c
 };
 
@@ -653,7 +652,7 @@ struct Layout_00444930 {
 struct Mode_00446310 {
     int width;                             // +0x00
     int height;                            // +0x04
-    int field_8;                           // +0x08
+    int refreshRate;                       // +0x08
 };
 
 struct ModeList {
@@ -704,7 +703,7 @@ struct UnitType_00446f50 {
         };
         struct {
             char unknown_13e[0x13e - 0x20];
-            int field_13e;             // +0x13e
+            int fbiChecksum;           // +0x13e
         };
     };
     union {
@@ -2266,7 +2265,7 @@ void __stdcall HandleMapSelectClick(Gui* param_1)
             GameFreeThunk(entry->text_c2);
             entry->text_c2 = 0;
         }
-        GameFreeThunk(layout->field_14);
+        GameFreeThunk(layout->items);
         GameFreeThunk(layout);
         GameFreeThunk(g_oldMapName);
         g_oldMapName = 0;
@@ -2403,7 +2402,7 @@ void OpenLogoSelectDialog()
                 break;
         }
         layout->seqs[j] = *(AnimSeq_00445110*)g_game->logos32;
-        layout->seqs[j].field_28 = g_game->logos32->entries[j].ptr;
+        layout->seqs[j].frame = g_game->logos32->entries[j].ptr;
         if (k == 10) {
             *cursor = &layout->seqs[j];
             ((char*)layout)[n] = (char)j;
@@ -2440,7 +2439,7 @@ void __stdcall ExpandGadgetTextToType5(Gadget* param_1)
 }
 
 // Swaps two player slots, clears the first one (type 0, not active), then
-// stamps field_146 of every playing slot with its own index, or 10 for the
+// stamps index of every playing slot with its own index, or 10 for the
 // others.
 
 // FUNCTION: 0x4453a0
@@ -2460,19 +2459,19 @@ void __stdcall SwapPlayerSlots(Player_00444930* param_1, Player_00444930* param_
         Player_00444930* p = &g_game->players[i];
         if (p->active != 0
             && (p->type == 1 || p->type == 2 || p->type == 3)
-            && p->field_146 != 10) {
-            p->field_146 = i;
+            && p->index != 10) {
+            p->index = i;
         } else {
             // Re-derived: with the same pointer variable in both arms MSVC
             // keeps g_game in edx instead of ecx.
-            g_game->players[i].field_146 = 10;
+            g_game->players[i].index = 10;
         }
     }
 }
 
 // Compacts the player list: finds the first slot the renumbering pass would
 // call dead, moves the next live slot into it, clears the slot it left, then
-// renumbers every slot's field_146.
+// renumbers every slot's index.
 // FUNCTION: 0x445450
 void CompactActivePlayerSlots()
 {
@@ -2485,7 +2484,7 @@ void CompactActivePlayerSlots()
         // Step over slots that are in use, and over type 4 slots.
         while ((p->active != 0
                     && (p->type == 1 || p->type == 2 || p->type == 3)
-                    && p->field_146 != 10)
+                    && p->index != 10)
                || p->type == 4) {
             if (p >= end)
                 break;
@@ -2495,7 +2494,7 @@ void CompactActivePlayerSlots()
         // Find the next slot that is in use.
         for (; q->active == 0
                || (q->type != 1 && q->type != 2 && q->type != 3)
-               || q->field_146 == 10;
+               || q->index == 10;
              q++) {
             if (q >= end)
                 break;
@@ -2513,7 +2512,7 @@ void CompactActivePlayerSlots()
             // Global read into a local first: moves the reload into ecx.
             Game* g = g_game;
             // Through a byte pointer: avoids a reload via an extra lea.
-            unsigned char* f = &g->players[i].field_146;
+            unsigned char* f = &g->players[i].index;
             if (g->players[i].active != 0
                 && (g->players[i].type == 1 || g->players[i].type == 2
                     || g->players[i].type == 3) && *f != 10) {
@@ -2964,7 +2963,7 @@ void __stdcall HandleControlDialogClick(Gui* gui)
                     if (g_game->players[i].active != 0) {
                         if (g_game->players[i].type == 3) {
                             if (g_game->players[i].info->bit6) {
-                                RejectPlayer(g_game->players[i].field_4, 9);
+                                RejectPlayer(g_game->players[i].id, 9);
                             }
                         }
                     }
@@ -3013,7 +3012,7 @@ bool __stdcall ArePlayersAllied(Player_00444930* a, Player_00444930* b)
 static inline int IsPlaying(Player_00444930* p)
 {
     return p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3)
-        && p->field_146 != 10;
+        && p->index != 10;
 }
 
 static inline int IsCounted(Player_00444930* p)
@@ -3173,7 +3172,7 @@ void SyncMutualAlliances()
         unsigned char type = p->type;
         if (type != 1 && type != 2 && type != 3)
             continue;
-        if (p->field_146 == 10)
+        if (p->index == 10)
             continue;
         if (type == 4)
             continue;
@@ -3196,7 +3195,7 @@ void SyncMutualAlliances()
 static inline int IsSelectable(Player_00444930* p)
 {
     return (p->type == 1 || p->type == 2 || p->type == 3)
-        && p->field_146 != 10;
+        && p->index != 10;
 }
 
 // For every other player on the same side, marks the relation and clears
@@ -3217,8 +3216,8 @@ void __stdcall ClearAlliances(Player_00444930* player)
                 && IsSelectable(p)
                 && g_game->players[i].type != 4
                 && g_game->players[i].alliance == player->alliance
-                && i != player->field_146) {
-                SetAlliance(player->field_4, p->field_4, 0, 1);
+                && i != player->index) {
+                SetAlliance(player->id, p->id, 0, 1);
                 player->info->flags_9d &= 0xfffd;
             }
         }
@@ -3257,7 +3256,7 @@ __inline int IsAlly_00446fb0(Player_00446f50* p)
         return 0;
     if (!IsLiveType_00446fb0(p))
         return 0;
-    if (p->field_146 == 10)
+    if (p->index == 10)
         return 0;
     if (!IsLiveType_00446fb0(p))
         return 0;
@@ -3273,7 +3272,7 @@ __inline int IsLive_00446fb0(Player_00446f50* p)
         return 0;
     if (!IsLiveType_00446fb0(p))
         return 0;
-    if (p->field_146 == 10)
+    if (p->index == 10)
         return 0;
     if (p->unitCount == 0 && p->unitsCreated != 0)
         return 0;
@@ -3324,9 +3323,9 @@ void __stdcall HandleAlliesClick(Gui* gadget)
         Player_00446f50* p = &g_game->players[i];
         if (IsCurrentGadgetNamed(gadget, buf) && p->active
             && (p->type == 1 || p->type == 2 || p->type == 3)
-            && p->field_146 != 10) {
+            && p->index != 10) {
             PlaySoundByName("Options", 0);
-            SetAlliance(local->field_4, p->field_4, local->allied[i] ^= 1, 0);
+            SetAlliance(local->id, p->id, local->allied[i] ^= 1, 0);
             char* verb = local->allied[i] ? "allied with" : "broke alliance with";
             sprintf(buf, " %s %s", Translate(verb),
                     (char*)g_game + 0x1b8e + i * 0x14b);
@@ -3377,7 +3376,7 @@ static inline int IsActive_00447380(Player_00446f50* p)
 {
     return p->active != 0
         && (p->type == 1 || p->type == 2 || p->type == 3)
-        && p->field_146 != 10;
+        && p->index != 10;
 }
 
 // FUNCTION: 0x447380
@@ -3432,7 +3431,7 @@ void __stdcall RefreshAlliesScreen(int param_1)
 
             if (p->active != 0
                 && IsType_00447380(p)
-                && p->field_146 != 10
+                && p->index != 10
                 && (p->unitCount != 0 || p->unitsCreated == 0)
                 && p->type != 1
                 && p->type != 2
@@ -3440,7 +3439,7 @@ void __stdcall RefreshAlliesScreen(int param_1)
                 Player_00446f50* q = &g_game->players[g_game->localPlayer];
                 if (q->active != 0
                     && IsType_00447380(q)
-                    && q->field_146 != 10
+                    && q->index != 10
                     && (q->unitCount != 0 || q->unitsCreated == 0)) {
                     SetGadgetActiveByName((char*)g_game + 0x519, ally, 1);
                 }
@@ -3481,7 +3480,7 @@ static inline int IsPlaying_004478b0(Player_00446f50* p)
 {
     return p->active != 0
         && (p->type == 1 || p->type == 2 || p->type == 3)
-        && p->field_146 != 10;
+        && p->index != 10;
 }
 
 // Repeats the type test of IsPlaying (dead): must stay.
@@ -3545,7 +3544,7 @@ static inline int IsPlaying_00447b10(Player_00446f50* p)
 {
     return p->active != 0
         && (p->type == 1 || p->type == 2 || p->type == 3)
-        && p->field_146 != 10;
+        && p->index != 10;
 }
 
 static inline int IsCounted_00447b10(Player_00446f50* p)
@@ -3596,7 +3595,7 @@ inline int FindUnusedLogo()
     memset(used, 0, sizeof(used));
     for (int i = 0; i < 10; i++) {
         Player_00446f50* p = &g_game->players[i];
-        if (p->active && (p->type == 1 || p->type == 2 || p->type == 3) && p->field_146 != 10)
+        if (p->active && (p->type == 1 || p->type == 2 || p->type == 3) && p->index != 10)
             used[p->info->color < 9 ? p->info->color : 9] = 1;
     }
     int result = 0;
@@ -3685,11 +3684,11 @@ void __stdcall HandleBattleRoomClick(Gui* gadget)
             if (type == 0 && canAdd) {
                 // SetType is a Player method: called through a cast, as 0x445450 does.
                 ((Player*)p)->SetType(4);
-                p->field_4 = -1;
+                p->id = -1;
                 g_game->field_499--;
             } else if (type != 4 && type != 0) {
                 if (p->active != 0 && type == 2 && GetTicks() - p->time > 30) {
-                    RejectPlayer(p->field_4, 1);
+                    RejectPlayer(p->id, 1);
                     ((Player*)p)->SetType(0);
                 } else if (canAdd && p->active != 0 && p->type == 3) {
                     OpenRejectDialog(i);
@@ -3743,7 +3742,7 @@ void __stdcall HandleBattleRoomClick(Gui* gadget)
         sprintf(text, "ALLY%d", i);
         if (IsCurrentGadgetNamed(gadget, text)) {
             me->allied[i] ^= 1;
-            SetAlliance(me->field_4, p->field_4, me->allied[i], 0);
+            SetAlliance(me->id, p->id, me->allied[i], 0);
             char same;
             if (me->colour == 5)
                 same = 0;
@@ -3817,7 +3816,7 @@ void __stdcall HandleBattleRoomClick(Gui* gadget)
         for (int j = 0; j < 10; j++) {
             Player_00446f50* q = &g_game->players[j];
             if (IsLocal_00447b10(q))
-                RejectPlayer(q->field_4, 2);
+                RejectPlayer(q->id, 2);
         }
         g_game->state = 3;
         return;
@@ -3915,7 +3914,7 @@ void __stdcall HandleBattleRoomClick(Gui* gadget)
             for (int j = 0; j < 10; j++) {
                 Player_00446f50* q = &g_game->players[j];
                 if (q->active != 0 && q->type == 3 && (q->info->flags_9b & 0x40))
-                    RejectPlayer(q->field_4, 9);
+                    RejectPlayer(q->id, 9);
             }
         }
         g_game->state = 0x11;
@@ -3979,7 +3978,7 @@ static inline int IsPlaying_00448c70(Player_00446f50* p)
 {
     return p->active != 0
         && (p->type == 1 || p->type == 2 || p->type == 3)
-        && p->field_146 != 10;
+        && p->index != 10;
 }
 
 static inline int IsWatching_00448c70(Player_00446f50* p)
@@ -4125,7 +4124,7 @@ void RefreshBattleRoomRows()
         Player_00446f50* p = &g_game->players[i];
         if (g_game->players[g_game->localPlayer].info->b.commander == 2
             && (IsLocalAI_00448c70(p) || IsRemoteAI_00448c70(p))) {
-            RejectPlayer(p->field_4, 0xb);
+            RejectPlayer(p->id, 0xb);
             BroadcastPlayerInfo();
         }
         if (FindHostSlot() != 10
@@ -4377,7 +4376,7 @@ void __stdcall LoadUnitRestrictListFile(char* name)
         fread(&b, 4, 1, f);
         int n = g_game->count;
         for (int idx = 1; idx < n; idx++) {
-            if (g_game->unitTypes[idx].field_13e == a) {
+            if (g_game->unitTypes[idx].fbiChecksum == a) {
                 for (int j = 0; j < n; j++) {
                     if (g_unitRestrictEntries[j].unitIndex == idx) {
                         g_unitRestrictEntries[j].max = b;
@@ -4403,7 +4402,7 @@ void __stdcall SaveUnitRestrictListFile(char* filename)
     for (int i = 1; i < count; i++) {
         for (int j = 0; j < g_game->count; j++) {
             if (*(int*)((char*)g_unitRestrictEntries + 0x52 + j * 0x62) == i) {
-                int v = g_game->unitTypes[i].field_13e;
+                int v = g_game->unitTypes[i].fbiChecksum;
                 fwrite(&v, 4, 1, f);
                 v = *(int*)((char*)g_unitRestrictEntries + 0x5a + j * 0x62);
                 fwrite(&v, 4, 1, f);
@@ -4776,7 +4775,7 @@ void UnitRestrictDialogFrame()
     while (g_game->sync->PopChangedEntry(&event) != 0) {
         n++;
         for (int i = 0; i < entry->list.count; i++) {
-            if (event.fbiChecksum == g_game->unitTypes[g_unitRestrictEntries[i].unitIndex].field_13e) {
+            if (event.fbiChecksum == g_game->unitTypes[g_unitRestrictEntries[i].unitIndex].fbiChecksum) {
                 entry->flags[i] = (event.peerEnabled == 0);
                 g_unitRestrictEntries[i].peerEnabled = event.peerEnabled;
                 g_unitRestrictEntries[i].max = event.max;

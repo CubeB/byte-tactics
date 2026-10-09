@@ -135,7 +135,7 @@ struct Gadget_00425d80 {
 
 struct GadgetOwner_00426190 {
     int unknown_0;
-    int field_4;                       // +0x4
+    int gadgets;                       // +0x4
 };
 
 struct Gadget_00426190 {
@@ -727,7 +727,7 @@ void __stdcall HandleMainMenuClick(Gadget_00425d80* gadget)
 // FUNCTION: 0x426190
 void __stdcall HandleCloseCdPlayerChoice(Gadget_00426190* gadget)
 {
-    int owner = gadget->owner->field_4;
+    int owner = gadget->owner->gadgets;
     if (gadget->selected == -1)
         return;
     PlaySoundByName("SmallButton", 0);

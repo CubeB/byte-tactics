@@ -1268,7 +1268,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
         }
         break;
     case 3:
-        if (unit->player != 0 && g_game->players[g_game->localPlayer].field_129[unit->player->index] == 0) {
+        if (unit->player != 0 && g_game->players[g_game->localPlayer].shareVision[unit->player->index] == 0) {
             unit->player->losses++;
             int same = _strcmpi(g_game->names[unit->player->info->side].name,
                                 unit->type->name) == 0;

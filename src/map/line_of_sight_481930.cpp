@@ -58,7 +58,14 @@ struct LosTable_00481930 {
     unsigned short count;              // +0x00
 };
 
-#include "../graphics/gaf_frame.h"
+struct GafFrame {
+    unsigned short width;              // +0x00
+    unsigned short height;             // +0x02
+    char unknown_4[4];                 // +0x04
+    unsigned char mask;                // +0x08
+    char unknown_9[0x10 - 9];
+    unsigned char* data;               // +0x10
+};
 
 struct Game {
     char unknown_0[0x2a43];
@@ -191,11 +198,11 @@ void __stdcall RevealAroundUnit(SightQuery* params)
                 // dst is declared before src, the reverse of the order of use.
                 unsigned short* dst =
                     (unsigned short*)((unsigned char*)g_game->visibilityMask + off);
-                unsigned char* src = frame->pixelsOrLayers + i * frame->width + nx;
+                unsigned char* src = frame->data + i * frame->width + nx;
                 if (nx < limitX) {
                     int n = limitX - nx;
                     do {
-                        if (*src != frame->transparency && (unsigned short)(bit & *dst) == 0) {
+                        if (*src != frame->mask && (unsigned short)(bit & *dst) == 0) {
                             changed = 1;
                             *dst ^= bit;
                         }

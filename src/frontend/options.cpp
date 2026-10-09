@@ -617,10 +617,6 @@ void __stdcall StartScreenShake(int dx, int dy, int value);
 void __stdcall KillFeature(int x, int z, int flag);
 void __stdcall ToggleShareLos(int unused);
 void EnableAICommands();
-void ResetCameraState();
-void UpdateScreenShake();
-void FlushKeyQueue();
-void OpenMainMenu();
 
 struct Link_0045ead0 {
     void* obj;                                 // +0x0
@@ -648,7 +644,13 @@ struct Surface {
     char* pixels;                   // +0xc
 };
 
-#include "../graphics/gaf_frame.h"
+struct GafFrame {
+    unsigned short width;              // +0x0
+    unsigned short height;             // +0x2
+    short xOffset;                     // +0x4
+    short yOffset;                     // +0x6
+    char unknown_8[0xc];
+};
 
 typedef int (__stdcall* Handler_0045e100)(Gui*);
 

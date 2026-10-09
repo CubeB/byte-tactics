@@ -5,11 +5,7 @@
 // no /Op: the doubles they pass and receive are enough for MSVC to align.
 
 #pragma pack(push, 1)
-struct PlayerInfo {
-    char unknown_0[0x95];
-    unsigned char side;                // +0x95
-    unsigned char color;               // +0x96
-};
+#include "../network/player_info.h"
 
 // The header's type, kept local: the +0x149 storage flag must stay a 1-bit
 // bitfield (a plain word moves LoadPlayers).

@@ -268,92 +268,7 @@ struct LinkInfo {
     char name[32];                     // +0x04
 };
 
-// The per-player block g_game->players[i].info points at. Every view of it
-// meets here: part 1's player name at +0x80, part 2's connection flags and
-// part 3's battle room fields share the memory.
-struct PlayerInfo {
-    union {
-        struct {
-            char unknown_0a[0x80];     // +0x00
-            char name[0x1b];           // +0x80
-        };
-        struct {
-            char map[0x8b];            // +0x00
-            unsigned short width;      // +0x8b
-            unsigned short height;     // +0x8d
-            char unknown_8f[0x94 - 0x8f];  // +0x8f
-            char kind;                 // +0x94
-            unsigned char side;        // +0x95
-            unsigned char color;       // +0x96
-            union {                    // +0x97
-                unsigned char flags_97;
-                struct {
-                    unsigned char f97_0 : 1;
-                    unsigned char f97_rest : 7;
-                };
-                struct {
-                    unsigned short f97_0_wide : 1;
-                    unsigned short f97_rest_wide : 15;
-                };
-            };
-            unsigned short memory;     // +0x99
-            union {                    // +0x9b
-                unsigned char flags_9b;
-                unsigned short flags;
-                struct {
-                    unsigned short bits_9b_0 : 6;
-                    unsigned short bit6 : 1;
-                    unsigned short watching : 1;
-                    unsigned short mapping : 1;
-                    unsigned short bit9 : 1;
-                    unsigned short bit10 : 1;
-                    unsigned short commander : 2;
-                    unsigned short cheating : 1;
-                    unsigned short fixedloc : 1;
-                    unsigned short closed : 1;
-                };
-                struct {
-                    unsigned short low : 4;
-                    unsigned short started : 1;
-                    unsigned short ready : 1;
-                    unsigned short bit6 : 1;
-                    unsigned short watching : 1;
-                    unsigned short mapping : 1;
-                    unsigned short los : 1;
-                    unsigned short losType : 1;
-                    unsigned short commander : 2;
-                    unsigned short cheating : 1;
-                    unsigned short fixedloc : 1;
-                    unsigned short closed : 1;
-                } b;
-            };
-            union {                    // +0x9d
-                unsigned short flags_9d;
-                struct {
-                    unsigned short f9d_0 : 2;
-                    unsigned short f9d_2 : 1;
-                    unsigned short f9d_rest : 13;
-                };
-                struct {
-                    unsigned char f9d_0_byte : 2;
-                    unsigned char f9d_2_byte : 1;
-                    unsigned char f9d_rest_byte : 5;
-                };
-            };
-            union {                    // +0x9f
-                unsigned short pingLimit;
-                char unknown_9f[2];
-            };
-            unsigned short energy;     // +0xa1
-            unsigned short metal;      // +0xa3
-            unsigned short maxUnits;   // +0xa5
-            unsigned char versionMajor;    // +0xa7
-            unsigned char versionMinor;    // +0xa8
-            unsigned int mapCrc;       // +0xa9
-            char unknown_ad[0xb9 - 0xad];  // +0xad
-        };
-    };
-};
+#include "../network/player_info.h"
 
 // The 0x14b-byte player slot at g_game+0x1b63: the union of the three parts'
 // views (the info pointer at +0x27, the type at +0x73, the alliance at
@@ -1179,7 +1094,7 @@ void OpenNewMultiDialog()
     Gadget* nname = FindGadgetChecked_B(entries, "NICKNAME");
     SetTranslatedTextByName(&g_game->menu, "NICKNAME", g_game->nickname, 0);
     nname->field_138 = 0x10;
-    char* pw = g_game->players[g_game->localPlayer].info->name;
+    char* pw = g_game->players[g_game->localPlayer].info->password;
     if (strlen(pw) == 0)
         pw = g_game->password;
     SetTranslatedTextByName(&g_game->menu, "PASSWORD", pw, 0xa);
@@ -1978,7 +1893,7 @@ void __stdcall HandleSelectGameClick(Gui* param_1)
         char* pass = (char*)FindGadgetChecked_B(entries, "PASSWORD");
         if (pass != 0) {
             cur = g_game->localPlayer;
-            strcpy(g_game->players[cur].info->name, pass + 0xb6);
+            strcpy(g_game->players[cur].info->password, pass + 0xb6);
         }
         PlaySoundByName("Multi", 0);
         ConnectToGame(param_1->layer);
@@ -2025,7 +1940,7 @@ void __stdcall HandleSelectGameClick(Gui* param_1)
             pass = (char*)FindGadgetChecked_B(entries, "PASSWORD");
             lstrcpynA(g_game->password, pass + 0xb6, 0xb);
             cur = g_game->localPlayer;
-            lstrcpynA(g_game->players[cur].info->name, pass + 0xb6, 0xb);
+            lstrcpynA(g_game->players[cur].info->password, pass + 0xb6, 0xb);
             b = FindHostSlot();
             if (b != 0xa &&
                 (g_game->players[b].info->flags & 0x10) == 0x10)
@@ -2774,10 +2689,10 @@ void UpdateBattleRoomFlags()
     SetButtonStageByName((Class_004a1080*)&g_game->menu, "COMMANDER", info->commander);
     SetButtonStageByName((Class_004a1080*)&g_game->menu, "MAPPING", !info->mapping);
     int los;
-    if (!info->bit9) {
+    if (!info->los) {
         los = 2;
     } else {
-        los = !info->bit10;
+        los = !info->losType;
     }
     SetButtonStageByName((Class_004a1080*)&g_game->menu, "LOSTYPE", los);
     SetButtonStageByName((Class_004a1080*)&g_game->menu, "WATCHING", info->watching);
@@ -3182,11 +3097,11 @@ void SyncMutualAlliances()
             p->alliedBy[k] = 1;
             p->allied[k] = 1;
             Player_00444930* q = &g_game->players[k];
-            q->info->flags_9d |= 2;
-            p->info->flags_9d |= 2;
+            q->info->flags_9d_wide |= 2;
+            p->info->flags_9d_wide |= 2;
         }
         if (CountAlliance(p->alliance) < 2)
-            p->info->flags_9d &= 0xfffd;
+            p->info->flags_9d_wide &= 0xfffd;
     }
 }
 
@@ -3199,7 +3114,7 @@ static inline int IsSelectable(Player_00444930* p)
 }
 
 // For every other player on the same side, marks the relation and clears
-// bit 1 in player->info->flags_9d. The extra "g_game->players[i].type != 4"
+// bit 1 in player->info->flags_9d_wide. The extra "g_game->players[i].type != 4"
 // check is dead: IsSelectable already restricts type to 1, 2 or 3, so the
 // condition can never be false; kept because the compiler emitted it.
 
@@ -3218,7 +3133,7 @@ void __stdcall ClearAlliances(Player_00444930* player)
                 && g_game->players[i].alliance == player->alliance
                 && i != player->index) {
                 SetAlliance(player->id, p->id, 0, 1);
-                player->info->flags_9d &= 0xfffd;
+                player->info->flags_9d_wide &= 0xfffd;
             }
         }
     }
@@ -3342,11 +3257,11 @@ void __stdcall HandleAlliesClick(Gui* gadget)
     }
     if (IsCurrentGadgetNamed(gadget, "OK")) {
         PlaySoundByName("Options", 0);
-        int old = (local->info->flags_9d >> 1) & 1;
+        int old = (local->info->flags_9d_wide >> 1) & 1;
         int index = FindGadgetIndex(entries, "VICTORY", 1);
         unsigned int value = GetButtonStage(gadget, index);
-        local->info->flags_9d = (local->info->flags_9d & 0xfffd) | ((value & 1) << 1);
-        if (old != ((local->info->flags_9d >> 1) & 1))
+        local->info->flags_9d_wide = (local->info->flags_9d_wide & 0xfffd) | ((value & 1) << 1);
+        if (old != ((local->info->flags_9d_wide >> 1) & 1))
             BroadcastPlayerInfo();
     } else {
         ClearSelectedGadget(gadget);
@@ -3525,7 +3440,7 @@ void OpenAlliesDialog()
     RebuildAllyList();
     RefreshTeamIcons();
     Player_00446f50* local = &g_game->players[g_game->localPlayer];
-    int old = (local->info->flags_9d >> 1) & 1;
+    int old = (local->info->flags_9d_wide >> 1) & 1;
     unsigned char win = (local->info->flags_9b >> 6) & 1;
     SetButtonStageByName((Class_004a1080*)&g_game->gui, "VICTORY", old);
     int alliance = local->colour;
@@ -3699,13 +3614,13 @@ void __stdcall HandleBattleRoomClick(Gui* gadget)
                     g_game->field_499++;
                     UpdateNetGameInfo();
                 }
-                if (g_game->players[FindHostSlot()].info->b.closed) {
+                if (g_game->players[FindHostSlot()].info->closed) {
                     OpenMessageBox(&g_game->gui, Translate("Can't add another player when game is closed."), 500, 1, 1);
                     ((Player*)p)->SetType(0);
                     g_game->dirty = 1;
                     break;
                 }
-                if (g_game->players[FindHostSlot()].info->b.commander != 2 && !CountLocalComputerPlayers()) {
+                if (g_game->players[FindHostSlot()].info->commander != 2 && !CountLocalComputerPlayers()) {
                     CreateLocalPlayer(i, 2);
                     p->info->color = FindUnusedLogo();
                 }
@@ -3718,16 +3633,16 @@ void __stdcall HandleBattleRoomClick(Gui* gadget)
         sprintf(text, "SIDE%d", i);
         if (IsCurrentGadgetNamed(gadget, text)) {
             PlaySoundByName("Multi", 0);
-            if (p->active != 0 && p->info->b.bit6) {
-                p->info->b.bit6 = 0;
+            if (p->active != 0 && p->info->bit6) {
+                p->info->bit6 = 0;
                 p->info->side = 0;
             } else {
                 p->info->side++;
                 if (p->info->side >= g_game->sides) {
                     p->info->side = 0;
-                    if (g_game->players[FindHostSlot()].info->b.watching
+                    if (g_game->players[FindHostSlot()].info->watching
                         && p->active != 0 && p->type == 1) {
-                        p->info->b.bit6 = 1;
+                        p->info->bit6 = 1;
                     } else {
                         SetButtonStageByName(gadget, text, 0);
                         DrawButton(gadget, gadget->current);
@@ -3788,15 +3703,15 @@ void __stdcall HandleBattleRoomClick(Gui* gadget)
         if (IsCurrentGadgetNamed(gadget, text) && IsLocalHuman_00447b10(p)) {
             PlaySoundByName("Multi", 0);
             if (CheckMapCrc_00447b10()) {
-                p->info->b.ready = GetGadgetStatus(&g_game->gui, FindGadgetIndex(entries, text, 1));
-                if (p->info->f97_0) {
+                p->info->bit5 = GetGadgetStatus(&g_game->gui, FindGadgetIndex(entries, text, 1));
+                if (p->info->host) {
                     strcpy(entries->label, "START");
                     g_game->gui.table->current = FindGadgetIndex(entries, "START", 1);
                 }
                 for (int j = 0; j < 10; j++) {
                     Player_00446f50* q = &g_game->players[j];
                     if (IsLocal_00447b10(q))
-                        q->info->b.ready = g_game->players[g_game->localPlayer].info->b.ready;
+                        q->info->bit5 = g_game->players[g_game->localPlayer].info->bit5;
                 }
                 g_game->dirty = 1;
                 BroadcastPlayerInfo();
@@ -3840,46 +3755,46 @@ void __stdcall HandleBattleRoomClick(Gui* gadget)
         BeginTextEdit(&g_game->gui, FindGadgetIndex(g_game->gui.table->entries, "MESSAGE", 3));
     } else if (IsCurrentGadgetNamed(gadget, "COMMANDER")) {
         PlaySoundByName("Multi", 0);
-        me->info->b.commander++;
-        if (me->info->b.commander > 2)
-            me->info->b.commander = 0;
+        me->info->commander++;
+        if (me->info->commander > 2)
+            me->info->commander = 0;
         BroadcastPlayerInfo();
         UpdateNetGameInfo();
         g_game->dirty = 1;
     } else if (IsCurrentGadgetNamed(gadget, "LOSTYPE")) {
         PlaySoundByName("Multi", 0);
-        if (!me->info->b.los) {
-            me->info->b.los = 1;
-            me->info->b.losType = 1;
-        } else if (me->info->b.losType == 1) {
-            me->info->b.losType = 0;
+        if (!me->info->los) {
+            me->info->los = 1;
+            me->info->losType = 1;
+        } else if (me->info->losType == 1) {
+            me->info->losType = 0;
         } else {
-            me->info->b.los = 0;
+            me->info->los = 0;
         }
         BroadcastPlayerInfo();
         UpdateNetGameInfo();
         g_game->dirty = 1;
     } else if (IsCurrentGadgetNamed(gadget, "WATCHING")) {
         PlaySoundByName("Multi", 0);
-        me->info->b.watching = !me->info->b.watching;
-        if (!me->info->b.watching && me->active != 0 && me->info->b.bit6)
-            me->info->b.bit6 = 0;
+        me->info->watching = !me->info->watching;
+        if (!me->info->watching && me->active != 0 && me->info->bit6)
+            me->info->bit6 = 0;
         BroadcastPlayerInfo();
         UpdateNetGameInfo();
         g_game->dirty = 1;
     } else if (IsCurrentGadgetNamed(gadget, "CHEATING")) {
         PlaySoundByName("Multi", 0);
-        me->info->b.cheating = !me->info->b.cheating;
+        me->info->cheating = !me->info->cheating;
         BroadcastPlayerInfo();
         g_game->dirty = 1;
     } else if (IsCurrentGadgetNamed(gadget, "FIXEDLOC")) {
         PlaySoundByName("Multi", 0);
-        me->info->b.fixedloc = !me->info->b.fixedloc;
+        me->info->fixedloc = !me->info->fixedloc;
         BroadcastPlayerInfo();
         g_game->dirty = 1;
     } else if (IsCurrentGadgetNamed(gadget, "MAPPING")) {
         PlaySoundByName("Multi", 0);
-        me->info->b.mapping = GetButtonStageByName(gadget, "MAPPING") == 0;
+        me->info->mapping = GetButtonStageByName(gadget, "MAPPING") == 0;
         BroadcastPlayerInfo();
         UpdateNetGameInfo();
         g_game->dirty = 1;
@@ -3888,7 +3803,7 @@ void __stdcall HandleBattleRoomClick(Gui* gadget)
         PlaySoundByName("BigButton", 0);
         for (int j = 0; j < 10; j++) {
             Player_00446f50* q = &g_game->players[j];
-            if ((IsLocalHuman_00447b10(q) || IsRemoteHuman_00447b10(q)) && q->info->f9d_2_byte)
+            if ((IsLocalHuman_00447b10(q) || IsRemoteHuman_00447b10(q)) && q->info->f9d_2)
                 count++;
         }
         if (count < 1 || (count < 2 && CountHumanPlayers() > 3) || (count < 3 && CountHumanPlayers() > 6)) {
@@ -3910,7 +3825,7 @@ void __stdcall HandleBattleRoomClick(Gui* gadget)
             // Emits no code, but keeps the gadget in esi for the button tests.
             goto done;
         }
-        if (!me->info->b.watching) {
+        if (!me->info->watching) {
             for (int j = 0; j < 10; j++) {
                 Player_00446f50* q = &g_game->players[j];
                 if (q->active != 0 && q->type == 3 && (q->info->flags_9b & 0x40))
@@ -3918,19 +3833,19 @@ void __stdcall HandleBattleRoomClick(Gui* gadget)
             }
         }
         g_game->state = 0x11;
-        me->info->b.started = 1;
+        me->info->started = 1;
         UpdateNetGameInfo();
-        g_game->los = me->info->b.los;
-        g_game->losType = me->info->b.losType;
-        g_game->commander = me->info->b.commander;
-        g_game->options->fixedloc = me->info->b.fixedloc;
-        g_game->mapping = me->info->b.mapping;
+        g_game->los = me->info->los;
+        g_game->losType = me->info->losType;
+        g_game->commander = me->info->commander;
+        g_game->options->fixedloc = me->info->fixedloc;
+        g_game->mapping = me->info->mapping;
         SaveSettings();
         g_game->difficulty = 2;
         return;
     } else if (IsCurrentGadgetNamed(gadget, "GAMEOPEN")) {
         PlaySoundByName("Multi", 0);
-        me->info->b.closed = GetButtonStageByName(gadget, "GAMEOPEN") == 0;
+        me->info->closed = GetButtonStageByName(gadget, "GAMEOPEN") == 0;
         BroadcastPlayerInfo();
         UpdateNetGameInfo();
         g_game->dirty = 1;
@@ -3947,7 +3862,7 @@ void __stdcall HandleBattleRoomClick(Gui* gadget)
             hit = IsCurrentGadgetNamed(gadget, "MAPNAME");
         if (hit) {
             PlaySoundByName("Multi", 0);
-            if (me->info->f97_0) {
+            if (me->info->host) {
                 OpenMultiMapSelector();
             } else {
                 Layer_00446f50* view = LoadGuiLayer(&g_game->gui, "VIEWMAP.GUI", 0x900);
@@ -4056,7 +3971,7 @@ void RefreshBattleRoomRows()
     unsigned int minPing = 0xffffffff;
     int count = 0;
     Player_00446f50* me = &g_game->players[g_game->localPlayer];
-    int ready = me->info->b.ready;
+    int ready = me->info->bit5;
     Gadget* output = FindGadgetChecked(g_game->gui.table->entries, "OUTPUT");
 
     int end = g_game->scrollEnd;
@@ -4100,12 +4015,12 @@ void RefreshBattleRoomRows()
             mapname->colour = ((int)GetTicks() / 30 & 1) ? 0xc : 0;
             if (differs) {
                 SendChatMessage(me, Translate("does not have this map"), 4, 0);
-                me->info->b.ready = 0;
+                me->info->bit5 = 0;
                 sprintf(name, "READY%d", g_game->localPlayer);
                 SetGadgetStatusByName(&g_game->gui, name, 0);
                 BroadcastPlayerInfo();
             }
-            if (!g_game->players[g_game->localPlayer].info->f97_0)
+            if (!g_game->players[g_game->localPlayer].info->host)
                 SetGadgetGrayedOutByName(&g_game->gui, "MAP", 1);
         } else {
             mapname->colour = 0;
@@ -4118,17 +4033,17 @@ void RefreshBattleRoomRows()
     for (i = 0; i < 10; i++) {
         Player_00446f50* p = &g_game->players[i];
         if (IsLocal_00448c70(p))
-            p->info->b.ready = g_game->players[g_game->localPlayer].info->b.ready;
+            p->info->bit5 = g_game->players[g_game->localPlayer].info->bit5;
     }
     for (i = 0; i < 10; i++) {
         Player_00446f50* p = &g_game->players[i];
-        if (g_game->players[g_game->localPlayer].info->b.commander == 2
+        if (g_game->players[g_game->localPlayer].info->commander == 2
             && (IsLocalAI_00448c70(p) || IsRemoteAI_00448c70(p))) {
             RejectPlayer(p->id, 0xb);
             BroadcastPlayerInfo();
         }
         if (FindHostSlot() != 10
-            && !g_game->players[FindHostSlot()].info->b.watching
+            && !g_game->players[FindHostSlot()].info->watching
             && p->active != 0) {
             unsigned short flags = p->info->flags;
             if (flags & 0x40) {
@@ -4205,7 +4120,7 @@ void RefreshBattleRoomRows()
             sprintf(name, "CD%d", n);
             SetGadgetActiveByName(&g_game->gui, name,
                          ((IsLocalHuman_00448c70(p) || IsRemoteHuman_00448c70(p))
-                          && p->info->f9d_2_byte) ? 1 : 0);
+                          && p->info->f9d_2) ? 1 : 0);
             SetGadgetGrayedOutByName(&g_game->gui, name, 0);
             sprintf(name, "LOGO%d", n);
             e = FindGadgetChecked_E(entries, name);
@@ -4289,7 +4204,7 @@ void RefreshBattleRoomRows()
             sprintf(name, "READY%d", n);
             e = FindGadgetOrNull(entries, name);
             if (e) {
-                e->field_138 = g_game->players[n].info->b.ready;
+                e->field_138 = g_game->players[n].info->bit5;
                 e->visible = 1;
                 e->b13c_0 = !IsLocalHuman_00448c70(p);
             }
@@ -4297,7 +4212,7 @@ void RefreshBattleRoomRows()
     }
     MarkChanged(&g_game->gui);
     PlayerInfo* info = me->info;
-    if (info->f97_0 && minPing < info->pingLimit) {
+    if (info->host && minPing < info->pingLimit) {
         info->pingLimit = minPing;
         UpdateNetGameInfo();
     }
@@ -4833,7 +4748,7 @@ void __stdcall BindNamedSliderWithCallback_0044c7e0(char* name, int max, int val
 // FUNCTION: 0x44c7e0
 void OpenUnitRestrictions()
 {
-    int host = g_game->players[g_game->localPlayer].info->f97_0 & 1;
+    int host = g_game->players[g_game->localPlayer].info->host & 1;
     Layer_00446f50* layer;
     Gadget* entries;
     char* flags;

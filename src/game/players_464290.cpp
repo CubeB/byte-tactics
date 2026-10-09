@@ -73,38 +73,7 @@ struct Unit {
     char unknown_114[0x118 - 0x114];
 };
 
-struct PlayerInfo {
-    char name[0x94];                   // +0x00
-    unsigned char kind;                // +0x94
-    unsigned char side;                // +0x95
-    unsigned char color;               // +0x96
-    unsigned short bit_97 : 1;         // +0x97
-    unsigned short rest_97 : 15;
-    unsigned short memory;             // +0x99
-    // unsigned short bitfields: the only spelling that gives a direct
-    // `or byte ptr [m], K`.
-    union {
-        unsigned char flags_9b;        // +0x9b
-        struct {
-            unsigned short low : 4;
-            unsigned short bit4 : 1;
-            unsigned short bit5 : 1;
-            unsigned short bit6 : 1;
-            unsigned short watching : 1;
-            unsigned short mapping : 1;
-            unsigned short bit9 : 1;
-            unsigned short bit10 : 1;
-            unsigned short commander : 2;
-            unsigned short cheating : 1;
-            unsigned short fixedloc : 1;
-            unsigned short closed : 1;
-        } b;
-    };
-    char unknown_9d[0xa1 - 0x9d];
-    unsigned short energy;             // +0xa1
-    unsigned short metal;              // +0xa3
-    char unknown_a5[0xb9 - 0xa5];
-};
+#include "../network/player_info.h"
 
 struct Player {
     int active;                        // +0x00
@@ -309,7 +278,7 @@ void __stdcall SetupPlayerSlot(int player, char type)
     p->active = 1;
     p->startPos = (char)player;
     p->alliance = 5;
-    p->info->b.bit5 = 0;
+    p->info->bit5 = 0;
     p->index = player & 0xff;
     p->lobbyDataSynced = 0;
     p->rejectReason = 0;
@@ -377,11 +346,11 @@ void ResetPlayerSlots()
         p->Clear();
         p->info->kind = 0;
         p->info->memory = 0;
-        p->info->b.bit4 = 0;
-        p->info->bit_97 = 0;
+        p->info->started = 0;
+        p->info->host = 0;
         p->info->color = (char)i;
         p->info->side = 0;
-        strcpy(p->info->name, DAT_005119b8);
+        strcpy(p->info->map, DAT_005119b8);
         p->unit = 0;
         p->lobbyDataSynced = 0;
         p->syncTick = 0;
@@ -396,7 +365,7 @@ void ResetPlayerSlots()
         p->index = -1;
         p->team = 10;
         p->alliance = 5;
-        p->info->b.bit5 = 0;
+        p->info->bit5 = 0;
     }
 
     g_game->tail = 0;
@@ -1087,7 +1056,7 @@ void __stdcall UpdatePlayers()
             pi->rejectReason == 0) {
             if ((g_game->players[FindHostSlot()].info->flags_9b & 0x80) != 0 ||
                 CountActiveAIPlayers() > 0) {
-                pi->info->b.bit6 = 1;
+                pi->info->bit6 = 1;
                 if (bl == g_game->localPlayer) {
                     g_game->mapFlags &= 0xfffe;
                     g_game->mapFlags &= 0xfffd;

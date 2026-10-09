@@ -16,12 +16,7 @@ public:
 class Mission;
 
 #pragma pack(push, 1)
-// The player's info object, the pointer at the player record's +0x27; not a
-// game unit. Same view as players_464290.cpp's PlayerInfo.
-struct PlayerInfo {
-    char unknown_0[0x95];
-    unsigned char side;                // +0x95
-};
+#include "../network/player_info.h"
 
 struct PlayerEntry_004326b0 {
     PlayerInfo* info;                  // +0x00

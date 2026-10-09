@@ -13,17 +13,7 @@
 #include "../network/player.h"
 
 #pragma pack(push, 1)
-struct PlayerInfo {
-    char unknown_0[0x94];
-    unsigned char kind;                // +0x94
-    unsigned char side;                // +0x95
-    char unknown_96;
-    unsigned char flags;               // +0x97
-    char unknown_98[0x9b - 0x98];
-    unsigned short bits_9b_0 : 6;      // +0x9b, bits 0 to 5
-    unsigned short flag_9b_6 : 1;      // bit 6 (mask 0x40)
-    unsigned short bits_9b_7 : 9;
-};
+#include "../network/player_info.h"
 
 struct Game_0046c2a0 {
     char unknown_0[0x1b63];
@@ -88,9 +78,9 @@ int FillScoreTables()
             g_onlineReportPlayers[i]->flags = 1;
             if ((p->active && p->type == 2) || (p->active && p->type == 3 && p->info->kind == 2))
                 g_onlineReportPlayers[i]->flags |= 2;
-            if (p->active && p->info->flag_9b_6)
+            if (p->active && p->info->bit6)
                 g_onlineReportPlayers[i]->flags |= 4;
-            if (p->active && (p->info->flags & 1))
+            if (p->active && (p->info->flags_97 & 1))
                 g_onlineReportPlayers[i]->flags |= 8;
             g_onlineReportPlayers[i]->side = g_sideNames[p->info->side];
             int n = 0;

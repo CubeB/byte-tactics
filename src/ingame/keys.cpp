@@ -70,10 +70,13 @@ union Flags_00495e90_3923b {
     };
 };
 
-struct PlayerInfo {
-    char unknown_0[0x9b];
-    unsigned char gameFlags;            // +0x9b
-};
+#include "../network/player_info.h"
+
+// Unused here: real functions declared to keep the file's symbol count (docs/c2-regalloc.md).
+int CheckDirectXVersion(int, int, int, int, int);
+void EnumPlayersCallback(int, int, int, int, int);
+int StepTowards(int, int, int);
+void NopRetC(int, int, int);
 
 struct Player_495e90 {
     int valid;                          // +0x00
@@ -784,7 +787,7 @@ void HandleGameKey(void)
     case 0x5f:
         if (!(g_game->flags_3923b.raw & 2)) {
             Player_495e90* pl = &g_game->players[g_game->localPlayer];
-            if (pl->valid != 0 && (pl->data->gameFlags & 0x40) != 0)
+            if (pl->valid != 0 && (pl->data->flags_9b & 0x40) != 0)
                 break;
             if (g_game->gameSpeed <= 1)
                 break;
@@ -796,7 +799,7 @@ void HandleGameKey(void)
     case 0x3d:
         if (!(g_game->flags_3923b.raw & 2)) {
             Player_495e90* pl = &g_game->players[g_game->localPlayer];
-            if (pl->valid != 0 && (pl->data->gameFlags & 0x40) != 0)
+            if (pl->valid != 0 && (pl->data->flags_9b & 0x40) != 0)
                 break;
             if (g_game->gameSpeed >= 0x14)
                 break;

@@ -15,21 +15,12 @@ struct Mission;
 #pragma pack(push, 1)
 #include "../network/player.h"
 
-struct PlayerInfo {
-    char map[0x97];                     // +0x00
-    unsigned char flags;                // +0x97, bit 0: host
-    char unknown_98[0x9d - 0x98];
-    unsigned short f9d_0 : 2;           // +0x9d
-    unsigned short f9d_2 : 1;
-    unsigned short f9d_rest : 13;
-    char unknown_9f[0xa1 - 0x9f];
-    unsigned short energy;              // +0xa1
-    unsigned short metal;               // +0xa3
-    unsigned short maxUnits;            // +0xa5
-    unsigned char versionMajor;         // +0xa7
-    unsigned char versionMinor;         // +0xa8
-    int mapCrc;                         // +0xa9
-};
+#include "../network/player_info.h"
+
+// Unused here: real functions declared to keep the file's symbol count (docs/c2-regalloc.md).
+int RIReport(int, int, int, int, int, int, int, int, int, int);
+int CheckDirectXVersion(int, int, int, int, int);
+int AimCobStub(int, int, int, int);
 
 struct Gadget_0044a680 {                // 0x15b bytes
     char unknown_0[0x1b];
@@ -218,7 +209,7 @@ void __stdcall UpdateEnergyText(Gui_0044a680* gui, int unused)
         SetTranslatedTextByName(gui, "ENERGYTEXT", text, 0);
         info = g_game->players[g_game->localPlayer].info;
         info->energy = (unsigned short)(shown / 100);
-        if (info->flags & 1) {
+        if (info->flags_97 & 1) {
             BroadcastPlayerInfo();
             UpdateNetGameInfo();
         }
@@ -271,7 +262,7 @@ void UpdateBattleRoom()
             UpdateNetGameInfo();
         }
 
-        if ((pl->info->flags & 1) == 0) {
+        if ((pl->info->flags_97 & 1) == 0) {
             unsigned char host = FindHostSlot();
             if (host != 10) {
                 if (IsScreenNamed(&g_game->gui, "LOUNGE2.GUI") != 0) {
@@ -295,7 +286,7 @@ void UpdateBattleRoom()
         }
         g_game->dirty = 0;
         if (IsScreenNamed(&g_game->gui, "LOUNGE2.GUI") != 0) {
-            if (pl->info->flags & 1) {
+            if (pl->info->flags_97 & 1) {
                 int synched = ((UnitSync*)g_game->net)->AllPlayersSynced();
                 int ready = AreAllPlayersReady();
                 Gadget_0044a680* start;

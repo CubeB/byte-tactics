@@ -64,14 +64,7 @@ struct UnitType_004685a0 {
     unsigned char mobile;              // +0x22f
 };
 
-struct PlayerInfo {
-    char unknown_0[0x95];
-    unsigned char side;                // +0x95
-    unsigned char color;               // +0x96
-    unsigned char flags;               // +0x97
-    char unknown_98[0x9b - 0x98];
-    unsigned char gameFlags;           // +0x9b
-};
+#include "../network/player_info.h"
 
 struct Owner_00467440 {
     void* active;                      // +0x0

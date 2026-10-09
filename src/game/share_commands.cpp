@@ -3,23 +3,8 @@
 #include <stdlib.h>
 
 #pragma pack(push, 1)
-struct PlayerInfo {
-    char unknown_0[0x97];
-    union {
-        unsigned short flags;              // +0x97
-        struct {
-            unsigned short unknownBit0 : 1;
-            unsigned short shareMetal : 1;     // +0x97, bit 1
-            unsigned short unknownBit2 : 1;
-            unsigned short shareLOS : 1;       // bit 3
-            unsigned short unknownBits4_5 : 2;
-            unsigned short share_radar : 1;    // bit 6
-            unsigned short unknownRest : 9;
-        };
-    };
-};
-
 #include "../network/player.h"
+#include "../network/player_info.h"
 
 struct Game {
     char unknown_0[0x4ed];
@@ -74,9 +59,9 @@ void __stdcall CmdShareEnergy(int unused)
     char buf[256];
     if (g_game->flags & 1) {
         PlayerInfo* data = g_game->players[g_game->localPlayer].info;
-        data->flags = (data->flags & ~4) | (~data->flags & 4);
+        data->flags_97_wide = (data->flags_97_wide & ~4) | (~data->flags_97_wide & 4);
         sprintf(buf, "Toggled ShareEnergy to: %s",
-                (g_game->players[g_game->localPlayer].info->flags & 4)
+                (g_game->players[g_game->localPlayer].info->flags_97_wide & 4)
                     ? "ON" : "OFF");
         AddMessage(buf, 2, 0, 10);
         BroadcastPlayerInfo();
@@ -91,9 +76,9 @@ void __stdcall CmdShareMapping(int unused)
     char buf[256];
     if (g_game->flags & 1) {
         PlayerInfo* data = g_game->players[g_game->localPlayer].info;
-        data->flags = (data->flags & ~0x20) | (~data->flags & 0x20);
+        data->flags_97_wide = (data->flags_97_wide & ~0x20) | (~data->flags_97_wide & 0x20);
         sprintf(buf, "Toggled ShareMapping to: %s",
-                (g_game->players[g_game->localPlayer].info->flags & 0x20)
+                (g_game->players[g_game->localPlayer].info->flags_97_wide & 0x20)
                     ? "ON" : "OFF");
         AddMessage(buf, 2, 0, 10);
         BroadcastPlayerInfo();
@@ -123,10 +108,10 @@ void __stdcall CmdShareRadar(int unused)
 {
     char buf[256];
     if (g_game->flags & 1) {
-        g_game->players[g_game->localPlayer].info->share_radar =
-            !g_game->players[g_game->localPlayer].info->share_radar;
+        g_game->players[g_game->localPlayer].info->shareRadar =
+            !g_game->players[g_game->localPlayer].info->shareRadar;
         sprintf(buf, "Toggled ShareRadar to: %s",
-                (g_game->players[g_game->localPlayer].info->flags & 0x40)
+                (g_game->players[g_game->localPlayer].info->flags_97_wide & 0x40)
                     ? "ON" : "OFF");
         AddMessage(buf, 2, 0, 10);
         BroadcastPlayerInfo();
@@ -143,9 +128,9 @@ static inline void ShareMetal(int unused)
     char buf[256];
     if (g_game->flags & 1) {
         PlayerInfo* data = g_game->players[g_game->localPlayer].info;
-        data->flags = (data->flags & ~2) | (~data->flags & 2);
+        data->flags_97_wide = (data->flags_97_wide & ~2) | (~data->flags_97_wide & 2);
         sprintf(buf, "Toggled ShareMetal to: %s",
-                (g_game->players[g_game->localPlayer].info->flags & 2)
+                (g_game->players[g_game->localPlayer].info->flags_97_wide & 2)
                     ? "ON" : "OFF");
         AddMessage(buf, 2, 0, 10);
         BroadcastPlayerInfo();
@@ -157,9 +142,9 @@ static inline void ShareEnergy(int unused)
     char buf[256];
     if (g_game->flags & 1) {
         PlayerInfo* data = g_game->players[g_game->localPlayer].info;
-        data->flags = (data->flags & ~4) | (~data->flags & 4);
+        data->flags_97_wide = (data->flags_97_wide & ~4) | (~data->flags_97_wide & 4);
         sprintf(buf, "Toggled ShareEnergy to: %s",
-                (g_game->players[g_game->localPlayer].info->flags & 4)
+                (g_game->players[g_game->localPlayer].info->flags_97_wide & 4)
                     ? "ON" : "OFF");
         AddMessage(buf, 2, 0, 10);
         BroadcastPlayerInfo();
@@ -171,9 +156,9 @@ static inline void ShareMapping(int unused)
     char buf[256];
     if (g_game->flags & 1) {
         PlayerInfo* data = g_game->players[g_game->localPlayer].info;
-        data->flags = (data->flags & ~0x20) | (~data->flags & 0x20);
+        data->flags_97_wide = (data->flags_97_wide & ~0x20) | (~data->flags_97_wide & 0x20);
         sprintf(buf, "Toggled ShareMapping to: %s",
-                (g_game->players[g_game->localPlayer].info->flags & 0x20)
+                (g_game->players[g_game->localPlayer].info->flags_97_wide & 0x20)
                     ? "ON" : "OFF");
         AddMessage(buf, 2, 0, 10);
         BroadcastPlayerInfo();
@@ -185,9 +170,9 @@ static inline void ShareRadar(int unused)
     char buf[256];
     if (g_game->flags & 1) {
         PlayerInfo* data = g_game->players[g_game->localPlayer].info;
-        data->flags = (data->flags & ~0x40) | (~data->flags & 0x40);
+        data->flags_97_wide = (data->flags_97_wide & ~0x40) | (~data->flags_97_wide & 0x40);
         sprintf(buf, "Toggled ShareRadar to: %s",
-                (g_game->players[g_game->localPlayer].info->flags & 0x40)
+                (g_game->players[g_game->localPlayer].info->flags_97_wide & 0x40)
                     ? "ON" : "OFF");
         AddMessage(buf, 2, 0, 10);
         BroadcastPlayerInfo();

@@ -133,7 +133,7 @@ struct Size {
     int z;                             // +0x10
 };
 
-struct Player {
+struct PlayerInfoView {
     char unknown_0[0x96];
     unsigned char color;               // +0x96
 };
@@ -175,9 +175,9 @@ void SetMissionStatus(int, int, int);
 #include "../graphics/memory_cache.h"
 
 #pragma pack(push, 1)
-struct Owner {
+struct PlayerView {
     char unknown_0[0x27];
-    Player* player;                    // +0x27
+    PlayerInfoView* info;              // +0x27
 };
 
 struct Unit {
@@ -185,7 +185,7 @@ struct Unit {
     char unknown_4[0x6a - 4];
     Vec3 pos;                          // +0x6a
     char unknown_76[0x96 - 0x76];
-    Owner* player;                     // +0x96
+    PlayerView* player;                // +0x96
     char unknown_9a[4];
     PieceList* state;                  // +0x9e
 };
@@ -666,7 +666,7 @@ void __stdcall DrawExplodedPieceFaces(void* surface, ExplodedPiece* obj, PieceRe
                 void* pic;
                 if (flags.bits.b) {
                     if (flags.bits.c) {
-                        pic = GetGafFrame(face->tex.src, obj->unit->player->player->color);
+                        pic = GetGafFrame(face->tex.src, obj->unit->player->info->color);
                     } else {
                         pic = GetGafSequenceFrame(&face->tex);
                     }
@@ -918,7 +918,7 @@ void __stdcall BreakPieceIntoDebris(ExplodedPiece* param)
                 o->faces[m].color = desc->faces[i].color;
                 int flags = o->faces[m].flags.raw;
                 if (!(flags & 1) && (flags & 2) && (flags & 4)) {
-                    o->faces[m].tex.pic = GetGafFrame(o->faces[m].tex.src, unit->player->player->color);
+                    o->faces[m].tex.pic = GetGafFrame(o->faces[m].tex.src, unit->player->info->color);
                     o->faces[m].flags.raw &= ~2;
                 }
             }

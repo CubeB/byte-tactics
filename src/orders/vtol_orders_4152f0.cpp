@@ -22,7 +22,7 @@ class LandingPadList : public std::vector<Unit*> {};
 class Class_0044e6c0 { public: void SetAltitude(int); };
 #pragma pack(push, 1)
 #include "../units/unit_def.h"
-struct Owner {
+struct PlayerView {
     char pad0[0x8c]; float energy;
     float GetEnergy() { return energy; }
     char pad90[8]; float metal;
@@ -35,7 +35,7 @@ struct Unit {
     char pad4[0x6a - 4]; Vec3 pos;
     char pad76[0x86 - 0x76]; int carrier;
     char pad8a[8]; UnitDef* def;
-    Owner* owner;
+    PlayerView* owner;
     char pad9a[0x104 - 0x9a]; float progress;
     short health;
     void ClaimWeapons(int);
@@ -72,10 +72,10 @@ public:
 
 class RepairableUnitVisitor {
 public:
-    Owner* owner;
+    PlayerView* owner;
     std::vector<Unit*>* units;
     Unit* self;
-    RepairableUnitVisitor(Owner* o, std::vector<Unit*>* v, Unit* s) : owner(o), units(v), self(s) {}
+    RepairableUnitVisitor(PlayerView* o, std::vector<Unit*>* v, Unit* s) : owner(o), units(v), self(s) {}
     virtual void CollectRepairableUnit(Unit*);
 };
 

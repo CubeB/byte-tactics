@@ -75,7 +75,7 @@ struct Ring_00453640 {                 // 0x48 bytes, 30 of them at g_game+0x12e
     unsigned char flags;               // +0x47
 };
 
-struct Feature {
+struct WeaponDef {
     char data[0x115];
 };
 
@@ -314,8 +314,8 @@ struct Game {
         int table_2c28[10];
     };
     char unknown_2c54[0x2cf3 - 0x2c54];
-    Feature features[256];             // +0x2cf3
-    char unknown_after_features[0x14357 - (0x2cf3 + 0x115 * 256)];
+    WeaponDef weapons[256];            // +0x2cf3
+    char unknown_after_weapons[0x14357 - (0x2cf3 + 0x115 * 256)];
     Unit* units;                       // +0x14357
     char unknown_1435b[0x37f1b - 0x1435b];
     unsigned short displayWidth;       // +0x37f1b
@@ -1384,7 +1384,7 @@ void __stdcall ApplyProjectileHitPacket(Player* player, void* packet);
 void __stdcall KillFeature(int x, int y, int param_3);
 void __stdcall StartFeatureBurning(int x, int y, int param_3);
 int __stdcall GetMapCell(int x, int y);
-void __stdcall DamageFeature(int cell, int x, int y, Feature* feature);
+void __stdcall DamageFeature(int cell, int x, int y, WeaponDef* weapon);
 void __stdcall FinishConstruction(Unit* unit, Unit* builder);
 void __stdcall PlaySoundByIndex(int index, int param_2);
 void __stdcall PlaySoundAt(int index, void* pos, int param_3);

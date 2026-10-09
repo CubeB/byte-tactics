@@ -14,7 +14,7 @@ public:
 #pragma pack(push, 1)
 struct Unit;
 
-struct Owner {
+struct PlayerView {
     char unknown_0[0x67];
     Unit* first;                       // +0x67
     Unit* last;                        // +0x6b
@@ -24,7 +24,7 @@ struct Owner {
 
 struct Unit {
     char unknown_0[0x96];
-    Owner* player;                     // +0x96
+    PlayerView* player;                     // +0x96
     char unknown_9a[0xa6 - 0x9a];
     short unitDefIndex;                // +0xa6
     char unknown_a8[0xac - 0xa8];
@@ -56,7 +56,7 @@ void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* owner, Unit* id, 
 // Allocates the owner's ten squads and constructs each in place with the
 // owner and its index (Squad's constructor, inlined here).
 // FUNCTION: 0x480190
-void __stdcall CreateSquads(Owner* owner)
+void __stdcall CreateSquads(PlayerView* owner)
 {
     owner->squads = (Squad*)GameAllocIgnoreTag("SQUADS", 10 * sizeof(Squad));
     for (int i = 0; i < 10; i++)
@@ -65,7 +65,7 @@ void __stdcall CreateSquads(Owner* owner)
 
 // Destroys the owner's ten squads allocated by 0x480190 and frees them.
 // FUNCTION: 0x4801f0
-void __stdcall FreeSquads(Owner* owner)
+void __stdcall FreeSquads(PlayerView* owner)
 {
     if (owner->squads) {
         for (int i = 0; i < 10; i++)
@@ -112,7 +112,7 @@ void __stdcall SetUnitSquad(Unit* unit, int index)
 // equals `key`, asks GetOrderType for an order kind and hands it, with the
 // remaining arguments, to AddOrder.
 // FUNCTION: 0x480460
-void __stdcall OrderSquad(Owner* owner, int key, unsigned char mode, int remove,
+void __stdcall OrderSquad(PlayerView* owner, int key, unsigned char mode, int remove,
                             Unit* target, int flags, int param_7, int param_8)
 {
     for (Unit* u = owner->first; u <= owner->last; u++) {

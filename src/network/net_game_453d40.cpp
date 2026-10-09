@@ -60,7 +60,7 @@ int __stdcall IsHostLocal();
 int __stdcall FindFreeSlot();
 
 
-struct Feature {
+struct WeaponDef {
     char data[0x115];
 };
 
@@ -122,8 +122,8 @@ struct Game {
     char unknown_2bf0[0x2c28 - 0x2bf0];
     int playerIds[11];                 // +0x2c28
     char unknown_2c54[0x2cf3 - 0x2c54];
-    Feature features[256];             // +0x2cf3
-    char unknown_after_features[0x14357 - (0x2cf3 + 0x115 * 256)];
+    WeaponDef weapons[256];            // +0x2cf3
+    char unknown_after_weapons[0x14357 - (0x2cf3 + 0x115 * 256)];
     Unit* units;                       // +0x14357
     char unknown_1435b[0x38a51 - 0x1435b];
     unsigned short bit_38a51 : 1;      // +0x38a51
@@ -233,7 +233,7 @@ void __stdcall ApplyProjectileHitPacket(Player*, void*);
 void __stdcall KillFeature(int, int, int);
 void __stdcall StartFeatureBurning(int, int, int);
 int __stdcall GetMapCell(int, int);
-void __stdcall DamageFeature(int, int, int, Feature*);
+void __stdcall DamageFeature(int, int, int, WeaponDef*);
 void __stdcall FinishConstruction(Unit*, Unit*);
 void __stdcall PlaySoundByIndex(int, int);
 void __stdcall PlaySoundAt(int, void*, int);
@@ -733,7 +733,7 @@ int HandleNetPackets()
             default:
                 DamageFeature(GetMapCell(*(unsigned short*)(packet + 2), *(unsigned short*)(packet + 4)),
                              *(unsigned short*)(packet + 2), *(unsigned short*)(packet + 4),
-                             &g_game->features[packet[1]]);
+                             &g_game->weapons[packet[1]]);
                 break;
             }
             break;

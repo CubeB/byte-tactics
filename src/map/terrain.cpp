@@ -68,7 +68,7 @@ union Flags {
 
 #include "../network/player.h"
 
-struct Owner {                          // 10 bytes: a grid cell's list head
+struct UnitBucket {                     // 10 bytes: a spatial bucket, the head of its unit list
     char unknown_0[6];
     Unit* first;                        // +0x6
 };
@@ -125,7 +125,7 @@ struct Unit {                           // 0x118 bytes
     Point16 pos;                       // +0x76
     char unknown_7a[4];
     Point16 size;                      // +0x7e, footprint in map cells
-    Owner* owner;                       // +0x82
+    UnitBucket* bucket;                 // +0x82
     int carrier;                        // +0x86, the unit carrying this one
     Unit* child;                        // +0x8a
     Unit* next;                         // +0x8e
@@ -146,7 +146,7 @@ struct Unit {                           // 0x118 bytes
 };
 
 struct Grid {
-    Owner* cells;                       // +0x0
+    UnitBucket* cells;                  // +0x0
     unsigned int width;                 // +0x4
     unsigned int height;                // +0x8
 };
@@ -178,12 +178,12 @@ struct Game {
     union {
         Grid grid;                      // +0x1429f
         struct {
-            Owner* owners;              // +0x1429f
-            unsigned int ownerCols;     // +0x142a3
+            UnitBucket* buckets;            // +0x1429f
+            unsigned int bucketCols;        // +0x142a3
         };
     };
     char unknown_142ab[0x142b7 - 0x142ab];
-    Owner* overflowBucket;              // +0x142b7
+    UnitBucket* overflowBucket;         // +0x142b7
     char unknown_142bb[0x14357 - 0x142bb];
     Unit* units;                        // +0x14357
     char unknown_1435b[0x38a47 - 0x1435b];
@@ -451,10 +451,10 @@ void SpatialBucket::PrependUnit(int param_1)
 }
 
 // FUNCTION: 0x47cb60
-void __stdcall SetOwner(Unit* unit, Owner* owner)
+void __stdcall SetOwner(Unit* unit, UnitBucket* bucket)
 {
-    Owner* cur = unit->owner;
-    if (owner != cur) {
+    UnitBucket* cur = unit->bucket;
+    if (bucket != cur) {
         if (unit->carrier == 0) {
             if (cur != 0) {
                 Unit** pp = &cur->first;
@@ -463,16 +463,16 @@ void __stdcall SetOwner(Unit* unit, Owner* owner)
                 *pp = unit->next;
                 unit->next = 0;
             }
-            unit->next = owner->first;
-            owner->first = unit;
+            unit->next = bucket->first;
+            bucket->first = unit;
         }
-        unit->owner = owner;
+        unit->bucket = bucket;
     }
 }
 
-// Detaches a unit from its owner: RemoveUnitFromMap first, then (unless +0x86 is
-// set) unlinks it from the owner's list (head at owner +0x6, link at unit
-// +0x8e) and clears the owner. The reverse of 0x47cb60.
+// Detaches a unit from its bucket: RemoveUnitFromMap first, then (unless +0x86 is
+// set) unlinks it from the bucket's list (head at bucket +0x6, link at unit
+// +0x8e) and clears the bucket. The reverse of 0x47cb60.
 void __stdcall RemoveUnitFromMap(Unit* unit);
 
 // FUNCTION: 0x47cbd0
@@ -480,7 +480,7 @@ void __stdcall ClearFootprintAndUnlink(Unit* unit)
 {
     RemoveUnitFromMap(unit);
     if (unit->carrier == 0) {
-        Owner* cur = unit->owner;
+        UnitBucket* cur = unit->bucket;
         if (cur != 0) {
             Unit** pp = &cur->first;
             while (*pp != unit)
@@ -489,7 +489,7 @@ void __stdcall ClearFootprintAndUnlink(Unit* unit)
             unit->next = 0;
         }
     }
-    unit->owner = 0;
+    unit->bucket = 0;
 }
 
 // Can a unit's footprint stand on the map cell `cell`? The guards are the map

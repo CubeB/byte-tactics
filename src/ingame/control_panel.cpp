@@ -205,15 +205,18 @@ union UnitFlags {
     UnitFlagsBits bits;
 };
 
+struct UnitWeaponSlot {                // 0x1c bytes, one of a unit's three
+    char unknown_0[0xc];               // the aim target pair and the aim callback
+    void* weapon;                      // +0xc
+    char unknown_10[0x1a - 0x10];
+    unsigned char stockpile;           // +0x1a
+    unsigned char flags;               // +0x1b
+};
+
 struct Unit {
     int motion;                       // +0x0
-    char unknown_4[0x8 - 4];
-    unsigned int field_8;              // +0x8
-    char unknown_c[0x10 - 0xc];
-    void* field_10;                    // +0x10
-    char unknown_14[0x1e - 0x14];
-    unsigned char field_1e;            // +0x1e
-    char unknown_1f[0x6a - 0x1f];
+    UnitWeaponSlot weapons[3];         // +0x4, stride 0x1c
+    char unknown_58[0x6a - 0x58];
     Vec3 pos;                          // +0x6a
     char unknown_76[0x86 - 0x76];
     int carrier;                      // +0x86
@@ -675,7 +678,7 @@ void __stdcall RefreshBuildCountTexts(Menu* menu, Unit* unit)
                         text[0] = 0;
                 }
             } else if (e->field_2a & 8) {
-                int n = unit->field_1e;
+                int n = unit->weapons[0].stockpile;
                 int r = SumQueuedBuildCount(unit, 0);
                 text[0] = 0;
                 if (n != 0)
@@ -1140,7 +1143,7 @@ void __stdcall HandleBuildPanelClick(Menu* menu)
                         QueueBuildOrder(text, unit, -1);
                 }
                 if (unit->flags.bits.flag_29
-                    || (((UnitType*)unit->field_10)->field_111 & 0x10000000))
+                    || (((UnitType*)unit->weapons[0].weapon)->field_111 & 0x10000000))
                     RefreshBuildCountTexts(menu, unit);
                 MarkChanged(&g_game->menu);
             }

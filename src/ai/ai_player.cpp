@@ -79,11 +79,11 @@ struct WeaponDef {                     // 0x115 bytes
     };
 };
 
-struct Weapon {                        // 0x1c bytes, one of a unit's three
-    WeaponDef* def;                    // +0x0
-    char unknown_4[0xb];
-    unsigned char flags;               // +0xf
-    char unknown_10[0xc];
+struct UnitWeaponSlot {                // 0x1c bytes, one of a unit's three
+    char unknown_0[0xc];               // the aim target pair and the aim callback
+    WeaponDef* weapon;                 // +0xc
+    char unknown_10[0x1b - 0x10];
+    unsigned char flags;               // +0x1b
 };
 
 struct Order {
@@ -279,16 +279,10 @@ class SquadTimer;
 
 struct Unit {                          // 0x118 bytes
     int motion;                       // +0x0
-    char unknown_4[0xc];
-    // Two views of +0x10: the three weapons, or the order list at +0x5c.
-    union {
-        Weapon weapons[3];             // +0x10
-        struct {
-            char unknown_10[0x5c - 0x10];
-            Order* orders;             // +0x5c
-        };
-    };
-    char unknown_64[0x6a - 0x64];
+    UnitWeaponSlot weapons[3];         // +0x4, stride 0x1c
+    char unknown_58[0x5c - 0x58];
+    Order* orders;                     // +0x5c
+    char unknown_60[0x6a - 0x60];
     Vec3 pos;                          // +0x6a
     char unknown_76[0x92 - 0x76];
     UnitDef* def;                      // +0x92
@@ -501,6 +495,17 @@ int GetDebugFillPattern(void);
 char IsBackAlign();
 char IsMemSet();
 char IsPentiumOrBetter();
+
+// Unused here: the symbol ids these declarations take keep GetBuildRating (0x40bb00)
+// matching now that the weapon slot view is one type (docs/c2-regalloc.md).
+void RegisterUnitOrders(void);
+void RegisterGroundOrders(void);
+void RegisterVtolOrders(void);
+void StepAllGafSequences(void);
+void ResetNetStats(void);
+void InitCommands(void);
+int UpdatePlacementGhostValidity(void);
+void RefreshSelectionOrders(void);
 
 class Class_00438760 {
 public:
@@ -976,9 +981,9 @@ void __stdcall ReactToAttack(Unit* attacker, Unit* unit, int unused)
             ordered=IssueAttackOrder(unit,attacker,0);
         if (!ordered && (unit->flags&0x300000)) {
             for (unsigned char i=0;i<3;++i) {
-                Weapon* weapon=&unit->weapons[i];
+                UnitWeaponSlot* weapon=&unit->weapons[i];
                 if ((weapon->flags&2) && (weapon->flags&0x10) && WeaponCanReachUnit(unit,attacker,i) &&
-                    !((unsigned char)(weapon->def->flags>>26)&1)) {
+                    !((unsigned char)(weapon->weapon->flags>>26)&1)) {
                     Unit* target=GetWeaponTargetUnit(unit,i);
                     if (!target || !WeaponCanReachUnit(unit,target,i) || Contains(unit->def->weaponCategories[i],target->category))
                         SetWeaponTargetUnit(unit,attacker,i);
@@ -1408,7 +1413,7 @@ void SquadManager::AssignSquads()
 // FUNCTION: 0x408920
 void __stdcall RetargetWeapon(Unit* unit, unsigned int weapon)
 {
-    if (unit->weapons[weapon].def->flag30) {
+    if (unit->weapons[weapon].weapon->flag30) {
         int* p = FindTargetableProjectile(unit, weapon);
         if (p)
             SetWeaponTargetPos(unit, p + 1, weapon);
@@ -1439,12 +1444,12 @@ void SquadManager::RetargetWeapons(int force)
             // The counter stays a byte, and the flag8 test keeps its (unsigned char) cast.
             for (unsigned char w = 0; w < 3; w++) {
                 if ((cursor->weapons[w].flags & 2) && (cursor->weapons[w].flags & 0x10)
-                    && !(unsigned char)cursor->weapons[w].def->flag8
-                    && (force || !cursor->weapons[w].def->flag26)) {
+                    && !(unsigned char)cursor->weapons[w].weapon->flag8
+                    && (force || !cursor->weapons[w].weapon->flag26)) {
                     Unit* target = GetWeaponTargetUnit(cursor, w);
                     if (target && (player->allied[target->owner->index]
                         || Contains(cursor->def->weaponCategories[w], target->category)
-                        || (cursor->weapons[w].def->flag7 && (target->activateFlags & 0x10))))
+                        || (cursor->weapons[w].weapon->flag7 && (target->activateFlags & 0x10))))
                         target = 0;
                     if (!target)
                         RetargetWeapon(cursor, w);
@@ -1949,7 +1954,7 @@ Unit* __stdcall FindWeaponTarget(Unit* unit,unsigned char weapon,int useRange)
            ((target->def->flags&0x8000) || ai || (g_game->matchFlags&4)) &&
            ((unit->def->flags&0x10000000) || WeaponCanReachUnit(unit,target,weapon)) &&
            (useRange || !unit->def->exclude.Test(target->id)) &&
-           (!(unit->weapons[weapon].def->flags8&0x80) || !(target->status&0x10))) {
+           (!(unit->weapons[weapon].weapon->flags8&0x80) || !(target->status&0x10))) {
             int dz=unit->pos.z-target->pos.z;
             int dx=unit->pos.x-target->pos.x;
             int d=RandomInt((int)(((__int64)dx*dx)>>32)+(int)(((__int64)dz*dz)>>32));

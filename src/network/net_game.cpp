@@ -75,8 +75,10 @@ struct Settings {
     char unknown_479[0x48];
 };
 
-struct Short3_00456050 {
-    short a, b, c;
+struct Angles_00456050 {
+    short bank;
+    unsigned short heading;
+    short pitch;
 };
 
 struct Vec3_00456050 {
@@ -288,7 +290,7 @@ struct Player {
 // game reads. One type for the views of the part files.
 struct Unit {
     char unknown_0[0x64];
-    Short3_00456050 rot;          // +0x64
+    Angles_00456050 angles;            // +0x64
     Vec3_00456050 pos;            // +0x6a
     char unknown_76[0x96 - 0x76];
     Player* player;                    // +0x96
@@ -1389,7 +1391,7 @@ struct UnitCreatePacket {
     short defIndex;                    // +0x1
     short unitId;                      // +0x3
     Vec3_00456050 pos;                 // +0x5
-    Short3_00456050 rot;               // +0x11
+    Angles_00456050 angles;            // +0x11
 };
 
 struct BuilderLinkPacket {
@@ -2750,7 +2752,7 @@ void __stdcall SendNewUnit(Unit* obj)
     packet.defIndex = obj->unitDefIndex;
     packet.unitId = obj->id;
     packet.pos = obj->pos;
-    packet.rot = obj->rot;
+    packet.angles = obj->angles;
     BroadcastPacket(obj->player->field_4, &packet, 0x17);
 }
 

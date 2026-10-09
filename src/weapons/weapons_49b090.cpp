@@ -2,12 +2,12 @@
 // 0x49b090 is the projectile collision test. It looks up the map cell holding
 // the projectile with GetMapCellAtPosition(&proj->pos); if there is none it stores the
 // selected projectile's last position and sound, clears the selection, sets the
-// dead flag and returns. Otherwise: (1) if the projectile is attached to a unit,
-// the 64-bit squared distance is checked against type->radius^2 and the
+// dead flag and returns. Otherwise: (1) if the projectile is chasing another projectile (the
+// intercepted one), the 64-bit squared distance is checked against type->radius^2 and the
 // projectile is killed on contact; (2) proj->radius is set to
 // (cell->radius + cell->ground) / 2; (3) the two unit indices in the cell are
 // tested against proj->owner and the height window
-// [type->low + elev, type->high + elev]; (4) the map-feature id is resolved,
+// [type->low + pos.y, type->high + pos.y]; (4) the map-feature id is resolved,
 // including the 0xfffe "read the neighbour cell" case, and if the feature is new
 // for this cell the cell coordinates are stored; (5) the 0x8000 and 0x10000 flag
 // rules, the g_game->limit ceiling and the netgame check are applied before the
@@ -78,11 +78,9 @@ struct UnitType_0049b090 {
 };
 
 struct Unit {
-    char unknown_0[4];
-    Pos_0049b090 pos;                  // +0x4
-    char unknown_10[0x6e - 0x10];
-    int elev;                          // +0x6e
-    char unknown_72[0x92 - 0x72];
+    char unknown_0[0x6a];
+    Pos_0049b090 pos;                  // +0x6a
+    char unknown_76[0x92 - 0x76];
     UnitType_0049b090* def;            // +0x92
     char unknown_96[0xff - 0x96];
     unsigned char playerIndex;         // +0xff
@@ -117,7 +115,7 @@ struct Proj_0049b090 {
     char unknown_10[0x20 - 0x10];
     int field_20;                      // +0x20
     char unknown_24[0x56 - 0x24];
-    Unit* unit;                        // +0x56
+    Proj_0049b090* intercepted;        // +0x56, the projectile this one is chasing
     short cellX;                       // +0x5a
     short cellZ;                       // +0x5c
     short radius;                      // +0x5e
@@ -177,10 +175,10 @@ void __stdcall CheckProjectileCollision(ProjType_0049b090* type, Proj_0049b090* 
         proj->flags.bits.dead = 1;
         return;
     }
-    if (proj->unit) {
-        int dx = pos->x - proj->unit->pos.x;
-        int dy = pos->y - proj->unit->pos.y;
-        int dz = pos->z - proj->unit->pos.z;
+    if (proj->intercepted) {
+        int dx = pos->x - proj->intercepted->px.i;
+        int dy = pos->y - proj->intercepted->py.i;
+        int dz = pos->z - proj->intercepted->pz.i;
         int r = proj->type->radius;
         int d = (int)(((__int64)dx * dx) >> 32) + (int)(((__int64)dy * dy) >> 32)
             + (int)(((__int64)dz * dz) >> 32);
@@ -190,7 +188,7 @@ void __stdcall CheckProjectileCollision(ProjType_0049b090* type, Proj_0049b090* 
     proj->radius = (cell->radius + cell->ground) / 2;
     if (cell->unit) {
         Unit* u = &g_game->units[cell->unit];
-        if (u->playerIndex != proj->owner && proj->py.i < u->def->high + u->elev) {
+        if (u->playerIndex != proj->owner && proj->py.i < u->def->high + u->pos.y) {
             DetonateProjectile(proj, u);
             return;
         }
@@ -198,8 +196,8 @@ void __stdcall CheckProjectileCollision(ProjType_0049b090* type, Proj_0049b090* 
     if (cell->unit2) {
         Unit* u = &g_game->units[cell->unit2];
         if (u->playerIndex != proj->owner) {
-            if (proj->py.i >= u->def->low + u->elev
-                && proj->py.i <= u->def->high + u->elev) {
+            if (proj->py.i >= u->def->low + u->pos.y
+                && proj->py.i <= u->def->high + u->pos.y) {
                 DetonateProjectile(proj, u);
                 return;
             }

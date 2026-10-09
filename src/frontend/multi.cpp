@@ -28,7 +28,7 @@ struct Gadget_00440d70;
 struct Game;
 struct Record_00446f50;
 struct Options_00446f50;
-struct PlayerInfo_00444930;
+struct PlayerInfo;
 struct Player_00444930;
 struct UnitType_00446f50;
 struct Logos_00445110;
@@ -249,7 +249,7 @@ struct Elem_00441c30 {                 // 0x18 bytes
 // The record header of a game description block: a flag word with bitfields
 // at offset 2, then the fields up to version.
 struct Settings_00441460 {
-    unsigned short field_0;
+    unsigned short memory;
     unsigned short players : 4;
     unsigned short playing : 1;
     unsigned short pad5 : 3;
@@ -259,11 +259,11 @@ struct Settings_00441460 {
     unsigned short mode : 2;
     unsigned short pad13 : 2;
     unsigned short lock : 1;
-    unsigned short field_4;
-    unsigned short field_6;
-    unsigned short field_8;
-    unsigned short field_a;
-    unsigned short field_c;
+    unsigned short allyWinFlags;
+    unsigned short pingLimit;
+    unsigned short energy;
+    unsigned short metal;
+    unsigned short maxUnits;
     unsigned short version;
 };
 
@@ -283,7 +283,7 @@ struct LinkInfo {
 // The per-player block g_game->players[i].info points at. Every view of it
 // meets here: part 1's player name at +0x80, part 2's connection flags and
 // part 3's battle room fields share the memory.
-struct PlayerInfo_00444930 {
+struct PlayerInfo {
     union {
         struct {
             char unknown_0a[0x80];     // +0x00
@@ -291,14 +291,8 @@ struct PlayerInfo_00444930 {
         };
         struct {
             char map[0x8b];            // +0x00
-            union {                    // +0x8b
-                unsigned short width;
-                unsigned short field_8b;
-            };
-            union {                    // +0x8d
-                unsigned short height;
-                unsigned short field_8d;
-            };
+            unsigned short width;      // +0x8b
+            unsigned short height;     // +0x8d
             char unknown_8f[0x94 - 0x8f];  // +0x8f
             char kind;                 // +0x94
             unsigned char side;        // +0x95
@@ -362,31 +356,16 @@ struct PlayerInfo_00444930 {
                 unsigned short pingLimit;
                 char unknown_9f[2];
             };
-            union {                    // +0xa1
-                unsigned short energy;
-                unsigned short field_a1;
-            };
-            union {                    // +0xa3
-                unsigned short metal;
-                unsigned short field_a3;
-            };
-            union {                    // +0xa5
-                unsigned short maxUnits;
-                unsigned short maxunits;
-            };
+            unsigned short energy;     // +0xa1
+            unsigned short metal;      // +0xa3
+            unsigned short maxUnits;   // +0xa5
             unsigned char versionMajor;    // +0xa7
             unsigned char versionMinor;    // +0xa8
-            union {                    // +0xa9
-                unsigned int mapCrc;
-                unsigned int field_a9;
-            };
+            unsigned int mapCrc;       // +0xa9
             char unknown_ad[0xb9 - 0xad];  // +0xad
         };
     };
 };
-
-typedef PlayerInfo_00444930 PlayerInfo_441080;
-typedef PlayerInfo_00444930 PlayerInfo_00446f50;
 
 // The 0x14b-byte player slot at g_game+0x1b63: the union of the three parts'
 // views (the info pointer at +0x27, the type at +0x73, the alliance at
@@ -404,9 +383,9 @@ struct Player_00444930 {
     };
     char unknown_23[0x27 - 0x23];      // +0x23
     union {                            // +0x27
-        PlayerInfo_00444930* info;
-        PlayerInfo_00444930* data;
-        PlayerInfo_00444930* unit;
+        PlayerInfo* info;
+        PlayerInfo* data;
+        PlayerInfo* unit;
         int field_27;
     };
     char name[0x73 - 0x2b];            // +0x2b
@@ -2310,7 +2289,7 @@ void __stdcall HandleMapSelectClick(Gadget_00444930* param_1)
         Player_00444930* player = &g_game->players[g_game->localPlayer];
         strcpy(player->data->map,
                g_game->map->GetMissionName());
-        player->data->field_a9 =
+        player->data->mapCrc =
             g_game->map->ComputeMapChecksum();
 
         BroadcastPlayerInfo();
@@ -2685,14 +2664,14 @@ void __stdcall UpdateMaxUnitsText(Gadget_00444930* gui, int index)
         if (player == g_game->localPlayer || player == 10) {
             count = ReadSliderValue(maxunits) + 0x14;
         } else {
-            count = g_game->players[player].data->maxunits;
+            count = g_game->players[player].data->maxUnits;
         }
         _itoa(count, text, 10);
         SetTranslatedTextByName(gui, "MAXUNITSTEXT", text, 0);
-        g_game->players[g_game->localPlayer].data->maxunits = count;
-        PlayerInfo_00444930* data = g_game->players[g_game->localPlayer].data;
+        g_game->players[g_game->localPlayer].data->maxUnits = count;
+        PlayerInfo* data = g_game->players[g_game->localPlayer].data;
         unsigned char f = data->flags_97;
-        data->maxunits = count;
+        data->maxUnits = count;
         if (f & 1) {
             BroadcastPlayerInfo();
         }
@@ -2713,16 +2692,16 @@ void __stdcall UpdateMetalText(Gadget_00444930* sub, int unused)
     if (value != 0) {
         int shown = ReadSliderValue(value) / 100 * 100;
         int hundreds;
-        PlayerInfo_00444930* unit;
+        PlayerInfo* unit;
 
         _itoa(shown, text, 10);
         SetTranslatedTextByName(sub, "METALTEXT", text, 0);
         hundreds = shown / 100;
-        g_game->players[g_game->localPlayer].unit->field_a3 = (unsigned short)hundreds;
+        g_game->players[g_game->localPlayer].unit->metal = (unsigned short)hundreds;
         // The original writes the same value to the same field a second time,
         // through a freshly looked up unit pointer, before testing its flag.
         unit = g_game->players[g_game->localPlayer].unit;
-        unit->field_a3 = (unsigned short)hundreds;
+        unit->metal = (unsigned short)hundreds;
         if (unit->flags_97 & 1) {
             BroadcastPlayerInfo();
             UpdateNetGameInfo();
@@ -2743,12 +2722,12 @@ void __stdcall UpdateEnergyText(Gadget_00444930* sub, int unused)
 
     if (value != 0) {
         int shown = ReadSliderValue(value) / 100 * 100;
-        PlayerInfo_00444930* unit;
+        PlayerInfo* unit;
 
         _itoa(shown, text, 10);
         SetTranslatedTextByName(sub, "ENERGYTEXT", text, 0);
         unit = g_game->players[g_game->localPlayer].unit;
-        unit->field_a1 = (unsigned short)(shown / 100);
+        unit->energy = (unsigned short)(shown / 100);
         if (unit->flags_97 & 1) {
             BroadcastPlayerInfo();
             UpdateNetGameInfo();
@@ -2798,7 +2777,7 @@ void UpdateBattleRoomFlags()
     if (i == 10) {
         i = g_game->localPlayer;
     }
-    PlayerInfo_00444930* info = g_game->players[i].info;
+    PlayerInfo* info = g_game->players[i].info;
 
     SetButtonStageByName((Class_004a1080*)&g_game->menu, "COMMANDER", info->commander);
     SetButtonStageByName((Class_004a1080*)&g_game->menu, "MAPPING", !info->mapping);
@@ -2883,8 +2862,8 @@ void __stdcall HandleDisplayModesClick(Gadget_00444930* gui)
         Mode_00446310* mode = &obj->modes[entry->selected];
         g_game->displayWidth = mode->width;
         g_game->displayHeight = mode->height;
-        player->data->field_8b = (unsigned short)mode->width;
-        player->data->field_8d = (unsigned short)mode->height;
+        player->data->width = (unsigned short)mode->width;
+        player->data->height = (unsigned short)mode->height;
         BroadcastPlayerInfo();
         SaveSettings();
         return;
@@ -2920,8 +2899,8 @@ void CyclePlayerDisplayMode(void)
         Player_00444930* player = &g_game->players[g_game->localPlayer];
         int count = obj->count;
         for (int i = 0; i < count; i++) {
-            if (obj->modes[i].width == player->data->field_8b
-                && obj->modes[i].height == player->data->field_8d) {
+            if (obj->modes[i].width == player->data->width
+                && obj->modes[i].height == player->data->height) {
                 if (g_game->menu.holder->clickMode == 2) {
                     i--;
                     if (i < 0)
@@ -2932,8 +2911,8 @@ void CyclePlayerDisplayMode(void)
                         i = 0;
                 }
                 Mode_00446310& mode = obj->modes[i];
-                player->data->field_8b = (unsigned short)mode.width;
-                player->data->field_8d = (unsigned short)mode.height;
+                player->data->width = (unsigned short)mode.width;
+                player->data->height = (unsigned short)mode.height;
                 BroadcastPlayerInfo();
                 g_game->displayWidth = mode.width;
                 g_game->displayHeight = mode.height;
@@ -2952,7 +2931,7 @@ void CyclePlayerDisplayMode(void)
 // FUNCTION: 0x446450
 void UpdateWatchingGadgets()
 {
-    PlayerInfo_00444930* info = g_game->players[g_game->localPlayer].info;
+    PlayerInfo* info = g_game->players[g_game->localPlayer].info;
     SetButtonStageByName((Class_004a1080*)&g_game->menu, "WATCHING", info->watching);
     SetButtonStageByName((Class_004a1080*)&g_game->menu, "GAMEOPEN", !info->closed);
     MarkChanged((Dialog*)&g_game->menu);
@@ -2966,7 +2945,7 @@ void UpdateWatchingGadgets()
 // FUNCTION: 0x4464d0
 void __stdcall HandleControlDialogClick(Gadget_00444930* gui)
 {
-    PlayerInfo_00444930* info = g_game->players[g_game->localPlayer].info;
+    PlayerInfo* info = g_game->players[g_game->localPlayer].info;
     if (gui->selected != -1) {
         char buf[100];
         for (int i = 0; i < 10; i++) {
@@ -3012,7 +2991,7 @@ void __stdcall HandleControlDialogClick(Gadget_00444930* gui)
 // FUNCTION: 0x4466b0
 void OpenControlDialog()
 {
-    PlayerInfo_00444930* info = g_game->players[g_game->localPlayer].info;
+    PlayerInfo* info = g_game->players[g_game->localPlayer].info;
     if (info->bit6) {
         return;
     }
@@ -3644,7 +3623,7 @@ int CheckMapCrc_00447b10()
         return 0;
     }
     unsigned char me = FindHostSlot();
-    PlayerInfo_00446f50* data = 0;
+    PlayerInfo* data = 0;
     int check = 0;
     if (me != 10) {
         data = g_game->players[me].info;
@@ -4047,7 +4026,7 @@ int CheckMapCrc_00448c70()
         return 0;
     }
     unsigned char me = FindHostSlot();
-    PlayerInfo_00446f50* data = 0;
+    PlayerInfo* data = 0;
     int check = 0;
     if (me != 10) {
         data = g_game->players[me].info;
@@ -4325,7 +4304,7 @@ void RefreshBattleRoomRows()
         }
     }
     MarkChanged(&g_game->gui);
-    PlayerInfo_00446f50* info = me->info;
+    PlayerInfo* info = me->info;
     if (info->f97_0 && minPing < info->pingLimit) {
         info->pingLimit = minPing;
         UpdateNetGameInfo();

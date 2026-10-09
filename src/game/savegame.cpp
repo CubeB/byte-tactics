@@ -53,11 +53,11 @@ struct Gadget_00492360 {
 
 struct Obj_00492360 {
     char unknown_0[0x108];
-    int field_108;                       // +0x108
-    int field_10c;                       // +0x10c
-    int field_110;                       // +0x110
-    int field_114;                       // +0x114
-    int field_118;                       // +0x118
+    int commanderDeath;                  // +0x108
+    int mapping;                         // +0x10c
+    int lineOfSight;                     // +0x110
+    int losType;                         // +0x114
+    int fixedLocations;                  // +0x118
     char text_11c[1];                    // +0x11c
 };
 
@@ -497,15 +497,15 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
             ((HapiBank*)g_game->p38d6b)->OpenAccount("summary");
             g_game->numPlayers =
                 (short)((HapiBank*)g_game->p38d6b)->GetIntegerItem("Players", 0);
-            g_game->p29a0->field_108 =
+            g_game->p29a0->commanderDeath =
                 ((HapiBank*)g_game->p38d6b)->GetIntegerItem("CommanderDeath", 1);
-            g_game->p29a0->field_118 =
+            g_game->p29a0->fixedLocations =
                 ((HapiBank*)g_game->p38d6b)->GetIntegerItem("Location", 1);
-            g_game->p29a0->field_10c =
+            g_game->p29a0->mapping =
                 ((HapiBank*)g_game->p38d6b)->GetIntegerItem("Mapping", 1);
-            g_game->p29a0->field_110 =
+            g_game->p29a0->lineOfSight =
                 ((HapiBank*)g_game->p38d6b)->GetIntegerItem("LineOfSight", 1);
-            g_game->p29a0->field_114 =
+            g_game->p29a0->losType =
                 ((HapiBank*)g_game->p38d6b)->GetIntegerItem("LineOfSightType", 1);
         }
         g_game->flags_2a44.b2 = 1;

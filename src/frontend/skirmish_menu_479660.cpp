@@ -83,15 +83,15 @@ struct SkirmishPlayerSlot {            // 0x18 bytes
 
 struct Table {
     SkirmishPlayerSlot players[11];    // +0x00 .. +0x108
-    int field_108;                     // +0x108
-    int field_10c;                     // +0x10c
-    int field_110;                     // +0x110
-    int field_114;                     // +0x114
-    int field_118;                     // +0x118
+    int commanderDeath;                // +0x108
+    int mapping;                       // +0x10c
+    int lineOfSight;                   // +0x110
+    int losType;                       // +0x114
+    int fixedLocations;                // +0x118
     char mapName[0x220 - 0x11c];       // +0x11c
-    int field_220;                     // +0x220
+    int baseGadgetCount;               // +0x220
     int current;                       // +0x224
-    int field_228;                     // +0x228
+    int difficulty;                    // +0x228
 };
 
 // The player's info object, the pointer at the player record's +0x27; not a
@@ -482,7 +482,7 @@ void RefreshSkirmishSetup()
     int index;
 
     Gadget* entries = g_game->menu.holder->entries;
-    g_game->table->field_220 = entries[0].count;
+    g_game->table->baseGadgetCount = entries[0].count;
     BuildSkirmishPlayerRows();
 
     int empty = 1;
@@ -581,7 +581,7 @@ void RefreshSkirmishSetup()
     index = FindGadgetIndex(entries, "StartLocation", 1);
     {
         Gadget* g = &entries[index];
-        if (g_game->table->field_118 != 0) {
+        if (g_game->table->fixedLocations != 0) {
             g->stageIndex = 0;
             strcpy(g->text, Translate("Commanders are placed at pre-determined locations."));
         } else {
@@ -593,7 +593,7 @@ void RefreshSkirmishSetup()
     index = FindGadgetIndex(entries, "CommanderDeath", 1);
     {
         Gadget* g = &entries[index];
-        if (g_game->table->field_108 != 0) {
+        if (g_game->table->commanderDeath != 0) {
             g->stageIndex = 0;
             strcpy(g->text, Translate("Game ends when commander is destroyed."));
         } else {
@@ -605,7 +605,7 @@ void RefreshSkirmishSetup()
     index = FindGadgetIndex(entries, "Mapping", 1);
     {
         Gadget* g = &entries[index];
-        if (g_game->table->field_10c != 0) {
+        if (g_game->table->mapping != 0) {
             g->stageIndex = 0;
             strcpy(g->text, Translate("Terrain is blacked out until explored."));
         } else {
@@ -617,10 +617,10 @@ void RefreshSkirmishSetup()
     index = FindGadgetIndex(entries, "LineOfSight", 1);
     {
         Gadget* g = &entries[index];
-        if (g_game->table->field_110 == 0) {
+        if (g_game->table->lineOfSight == 0) {
             g->stageIndex = 0;
             strcpy(g->text, Translate("All mapped terrain is visible."));
-        } else if (g_game->table->field_114 == 1) {
+        } else if (g_game->table->losType == 1) {
             g->stageIndex = 1;
             strcpy(g->text, Translate("Terrain elevations affect a unit's view."));
         } else {
@@ -1114,10 +1114,10 @@ void __stdcall HandleSkirmishClick(Menu* menu)
     } else if (IsCurrentGadgetNamed(menu, "CommanderDeath")) {
         PlaySoundByName("Skirmish", 0);
         Table* t = g_game->table;
-        t->field_108 ^= 1;
+        t->commanderDeath ^= 1;
         int index = FindGadgetIndex(entries, "CommanderDeath", 1);
         Gadget* e = &entries[index];
-        if (g_game->table->field_108 != 0)
+        if (g_game->table->commanderDeath != 0)
             strcpy(e->text, Translate("Game ends when commander is destroyed."));
         else
             strcpy(e->text, Translate("Game continues after Commander is destroyed."));
@@ -1125,10 +1125,10 @@ void __stdcall HandleSkirmishClick(Menu* menu)
     } else if (IsCurrentGadgetNamed(menu, "StartLocation")) {
         PlaySoundByName("Skirmish", 0);
         Table* t = g_game->table;
-        t->field_118 ^= 1;
+        t->fixedLocations ^= 1;
         int index = FindGadgetIndex(entries, "StartLocation", 1);
         Gadget* e = &entries[index];
-        if (g_game->table->field_118 != 0)
+        if (g_game->table->fixedLocations != 0)
             strcpy(e->text, Translate("Commanders are placed at pre-determined locations."));
         else
             strcpy(e->text, Translate("Commanders are randomly placed on the battle field."));
@@ -1136,10 +1136,10 @@ void __stdcall HandleSkirmishClick(Menu* menu)
     } else if (IsCurrentGadgetNamed(menu, "Mapping")) {
         PlaySoundByName("Skirmish", 0);
         Table* t = g_game->table;
-        t->field_10c ^= 1;
+        t->mapping ^= 1;
         int index = FindGadgetIndex(entries, "Mapping", 1);
         Gadget* e = &entries[index];
-        if (g_game->table->field_10c != 0)
+        if (g_game->table->mapping != 0)
             strcpy(e->text, Translate("Terrain is blacked out until explored."));
         else
             strcpy(e->text, Translate("Terrain is visible."));
@@ -1149,17 +1149,17 @@ void __stdcall HandleSkirmishClick(Menu* menu)
         int index = FindGadgetIndex(entries, "LineOfSight", 1);
         Gadget* e = &entries[index];
         Table* t = g_game->table;
-        if (t->field_110 == 0) {
-            t->field_110 = 1;
-            // The field_114 stores precede the strcpy.
-            g_game->table->field_114 = 1;
+        if (t->lineOfSight == 0) {
+            t->lineOfSight = 1;
+            // The losType stores precede the strcpy.
+            g_game->table->losType = 1;
             strcpy(e->text, Translate("Terrain elevations affect a unit's view."));
-        } else if (t->field_114 == 1) {
-            t->field_114 = 0;
+        } else if (t->losType == 1) {
+            t->losType = 0;
             strcpy(e->text, Translate("Terrain elevations do not affect a unit's view."));
         } else {
-            t->field_110 = 0;
-            g_game->table->field_114 = 1;
+            t->lineOfSight = 0;
+            g_game->table->losType = 1;
             strcpy(e->text, Translate("All mapped terrain is visible."));
         }
         UpdateHelpText(&g_game->menu);
@@ -1172,13 +1172,13 @@ void __stdcall HandleSkirmishClick(Menu* menu)
         PlaySoundByName("SKirmish", 0);
         int d = g_game->difficulty;
         if (d == 0) {
-            g_game->table->field_228 = 1;
+            g_game->table->difficulty = 1;
             g_game->difficulty = 1;
         } else if (d == 1) {
-            g_game->table->field_228 = 2;
+            g_game->table->difficulty = 2;
             g_game->difficulty = 2;
         } else if (d == 2) {
-            g_game->table->field_228 = 0;
+            g_game->table->difficulty = 0;
             g_game->difficulty = 0;
         }
     }
@@ -1243,7 +1243,7 @@ void __stdcall HandleSkirmishCheatText(Cheat* cheat)
         g_game->playerCount = code;
         SaveNumSkirmishPlayers();
         LoadSettings();
-        cheat->text->target->count = g_game->table->field_220;
+        cheat->text->target->count = g_game->table->baseGadgetCount;
         RefreshSkirmishSetup();
         PlaySoundByName(g_skirmishCheatSoundName, 0);
         SelectAdjacentGadget(cheat, 1);
@@ -1274,7 +1274,7 @@ void OpenSkirmishMenu(void)
     dialog->data = (Data*)g_game;
     LoadPictureCached(g_skirmishSetupPictureName, 0, 0, 0);
 
-    g_game->difficulty = g_game->table->field_228;
+    g_game->difficulty = g_game->table->difficulty;
     difficulty = FindGadgetOrNull(g_game->menu.holder->entries, g_difficultyKey);
     if (g_game->difficulty == 0) {
         difficulty->stageIndex = 0;

@@ -14,10 +14,10 @@ struct Sub_00441460 {
 };
 
 #pragma pack(push, 1)
-// The record header: field_0, a 16-bit flag word with bit-fields at offset 2, then
-// field_4..version. Read by the original as unaligned dwords.
+// The record header: memory, a 16-bit flag word with bit-fields at offset 2, then
+// allyWinFlags..version. Read by the original as unaligned dwords.
 struct Settings_00441460 {
-    unsigned short field_0;
+    unsigned short memory;
     // Bit-fields: reproduce the original shifts and byte tests.
     unsigned short players : 4;
     unsigned short playing : 1;
@@ -28,11 +28,11 @@ struct Settings_00441460 {
     unsigned short mode : 2;
     unsigned short pad13 : 2;
     unsigned short lock : 1;
-    unsigned short field_4;
-    unsigned short field_6;
-    unsigned short field_8;
-    unsigned short field_a;
-    unsigned short field_c;
+    unsigned short allyWinFlags;
+    unsigned short pingLimit;
+    unsigned short energy;
+    unsigned short metal;
+    unsigned short maxUnits;
     unsigned short version;
 };
 
@@ -196,13 +196,13 @@ shown:
                 sprintf(p[4], "%s", Translate("VER!"));
             }
             p[4] += strlen(p[4]) + 1;
-            sprintf(p[5], "%d", sb.s.field_0);
+            sprintf(p[5], "%d", sb.s.memory);
             p[5] += strlen(p[5]) + 1;
-            sprintf(p[6], "%d", sb.s.field_a * 100);
+            sprintf(p[6], "%d", sb.s.metal * 100);
             p[6] += strlen(p[6]) + 1;
-            sprintf(p[7], "%d", sb.s.field_8 * 100);
+            sprintf(p[7], "%d", sb.s.energy * 100);
             p[7] += strlen(p[7]) + 1;
-            sprintf(p[8], "%d", sb.s.field_6);
+            sprintf(p[8], "%d", sb.s.pingLimit);
             p[8] += strlen(p[8]) + 1;
 
             if (sb.s.mode != 0) {

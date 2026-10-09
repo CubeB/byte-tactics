@@ -111,12 +111,7 @@ struct Group_00407e90 {
     std::vector<Unit*> units;           // +0x10
 };
 
-class MissionType {
-public:
-    unsigned char index;
-    MissionType(const char* name);
-    MissionType() : index(0) {}
-};
+#include "../orders/mission_type.h"
 
 #include "squad_manager.h"
 

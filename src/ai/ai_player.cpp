@@ -492,11 +492,7 @@ void ClampCameraTarget(void);
 void UpdateScreenShake(void);
 void BeginMouseScroll(void);
 
-class MissionType {
-public:
-    unsigned char index;
-    MissionType(const char* name);
-};
+#include "../orders/mission_type.h"
 
 struct Feature {
     char unknown_0[0xf0];

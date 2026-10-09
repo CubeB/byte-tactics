@@ -260,20 +260,7 @@ struct Block {
 #include "../util/tdf.h"
 
 
-class BitWriter {
-public:
-    int bit;                           // +0x0 current word index
-    int index;                         // +0x4 bits used in the current word
-    int capacity;                      // +0x8
-    unsigned int* data;                // +0xc
-    unsigned int buffer[0x100];        // +0x10
-
-    void GrowBuffer();
-    BitWriter();
-    void SetByteAt(int index, unsigned char value);
-    void FreeBuffer();
-    void WriteBits(int value, int bits);
-};
+#include "../network/bit_writer.h"
 
 #include "../network/bit_reader.h"
 
@@ -647,28 +634,28 @@ void __stdcall WriteUnitState(BitWriter* stream, Unit* u)
     stream->WriteBits(u->flags & 3, 2);
     if (u->owner) {
         // Hand-written advance: the store through stream->data reloads and retests the link.
-        stream->data[stream->bit] |= 1 << stream->index;
-        stream->index++;
-        if (stream->index == 0x20) {
-            stream->index = 0;
-            stream->bit++;
-            if (stream->bit == stream->capacity) {
+        stream->data[stream->index] |= 1 << stream->bit;
+        stream->bit++;
+        if (stream->bit == 0x20) {
+            stream->bit = 0;
+            stream->index++;
+            if (stream->index == stream->capacity) {
                 stream->GrowBuffer();
             }
-            stream->data[stream->bit] = 0;
+            stream->data[stream->index] = 0;
         }
         // `!owner ? 0 : ...` lays the zero arm ahead of the load; keep the redundant `& 0xffff`.
         stream->WriteBits((!u->owner ? 0 : u->owner->id) & 0xffff, 0xf);
         stream->WriteBits(u->f9, 8);
     } else {
-        stream->index++;
-        if (stream->index == 0x20) {
-            stream->index = 0;
-            stream->bit++;
-            if (stream->bit == stream->capacity) {
+        stream->bit++;
+        if (stream->bit == 0x20) {
+            stream->bit = 0;
+            stream->index++;
+            if (stream->index == stream->capacity) {
                 stream->GrowBuffer();
             }
-            stream->data[stream->bit] = 0;
+            stream->data[stream->index] = 0;
         }
         stream->WriteBits(u->pos.x, 0x20);
         stream->WriteBits(u->pos.y.value, 0x20);
@@ -814,29 +801,29 @@ void __stdcall SendUnitStates(Player* p)
         u->motion->player->WriteTo(&stream);
         // `>> 3`, not `/ 8`: that is the original's `add ecx, 7; sar ecx, 3`
         // with no sign fix-up.
-        if (((stream.index + 7) >> 3) + stream.bit * 4 >= 0x200)
+        if (((stream.bit + 7) >> 3) + stream.index * 4 >= 0x200)
             break;
     }
     stream.WriteBits(-1, 0x10);
     int i = g_game->ticks % g_game->maxUnits;
-    stream.data[stream.bit] |= 1 << stream.index;
-    stream.index++;
-    if (stream.index == 0x20) {
-        stream.index = 0;
-        stream.bit++;
-        if (stream.bit == stream.capacity)
+    stream.data[stream.index] |= 1 << stream.bit;
+    stream.bit++;
+    if (stream.bit == 0x20) {
+        stream.bit = 0;
+        stream.index++;
+        if (stream.index == stream.capacity)
             stream.GrowBuffer();
-        stream.data[stream.bit] = 0;
+        stream.data[stream.index] = 0;
     }
     WriteUnitState(&stream, &p->unitsBegin[i]);
     // The packet's length, little-endian at bytes 1 and 2, is only known here.
     // The `char` cast is what makes MSVC 5 narrow the first sum to a byte and
     // push the register unmasked; the second is pushed as a dword.
     stream.SetByteAt(
-        1, (char)(((stream.index + 7) >> 3) + (unsigned char)stream.bit * 4));
+        1, (char)(((stream.bit + 7) >> 3) + (unsigned char)stream.index * 4));
     stream.SetByteAt(
-        2, (char)((((stream.index + 7) >> 3) + stream.bit * 4) >> 8));
-    BroadcastPacket(p->id, stream.data, ((stream.index + 7) >> 3) + stream.bit * 4);
+        2, (char)((((stream.bit + 7) >> 3) + stream.index * 4) >> 8));
+    BroadcastPacket(p->id, stream.data, ((stream.bit + 7) >> 3) + stream.index * 4);
     stream.FreeBuffer();
 }
 

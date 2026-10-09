@@ -1601,10 +1601,7 @@ struct UnitDefFlags_0048dfb0 {
 };
 #pragma pack(pop)
 
-class BitWriter {
-public:
-    void WriteBits(int value, int bits);
-};
+#include "../network/bit_writer.h"
 
 #include "../network/bit_reader.h"
 

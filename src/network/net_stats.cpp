@@ -25,22 +25,7 @@ struct Pair_00419560 {
     int b;
 };
 
-// A bit writer with a 0x100-dword inline buffer (a 0x410-byte stack object in
-// 0x48b710). The read counterpart is 0x415dc0.
-class BitWriter {
-public:
-    int bit;                           // +0x0 current word index
-    int index;                         // +0x4 bits used in the current word
-    int capacity;                      // +0x8
-    unsigned int* data;                // +0xc
-    unsigned int buffer[0x100];        // +0x10
-
-    BitWriter();
-    void FreeBuffer();
-    void GrowBuffer();
-    void WriteBits(int value, int bits);
-    void SetByteAt(int offset, unsigned char value);
-};
+#include "bit_writer.h"
 
 #include "bit_reader.h"
 
@@ -102,8 +87,8 @@ void StepAllGafSequences(void)
 // FUNCTION: 0x415b60
 BitWriter::BitWriter()
 {
-    bit = 0;
     index = 0;
+    bit = 0;
     capacity = 0x100;
     data = buffer;
     *data = 0;
@@ -146,28 +131,28 @@ void BitWriter::GrowBuffer()
 // FUNCTION: 0x415c10
 void BitWriter::WriteBits(int value, int bits)
 {
-    if (bits + index < 0x20) {
-        data[bit] |= (value & ((1 << bits) - 1)) << index;
-        index += bits;
+    if (bits + bit < 0x20) {
+        data[index] |= (value & ((1 << bits) - 1)) << bit;
+        bit += bits;
         return;
     }
-    if (index == 0) {
-        data[bit] = value;
-        bit++;
-        if (bit == capacity) {
+    if (bit == 0) {
+        data[index] = value;
+        index++;
+        if (index == capacity) {
             GrowBuffer();
         }
-        data[bit] = 0;
+        data[index] = 0;
         return;
     }
-    int n = 0x20 - index;
-    data[bit] |= (value & ((1 << n) - 1)) << index;
-    bit++;
-    if (bit == capacity) {
+    int n = 0x20 - bit;
+    data[index] |= (value & ((1 << n) - 1)) << bit;
+    index++;
+    if (index == capacity) {
         GrowBuffer();
     }
-    index = bits - n;
-    data[bit] = ((unsigned int)value >> n) & ((1 << index) - 1);
+    bit = bits - n;
+    data[index] = ((unsigned int)value >> n) & ((1 << bit) - 1);
 }
 
 // FUNCTION: 0x415da0

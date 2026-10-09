@@ -35,11 +35,11 @@ struct List_004a32a0 {
     };
 };
 
-struct Entry_004a32a0;
+struct Gadget;
 
 struct Holder_004a32a0 {
     int unknown_0;
-    Entry_004a32a0* entries;           // +0x04
+    Gadget* entries;           // +0x04
 };
 
 struct Root_004a32a0 {                 // g_guiContext
@@ -521,64 +521,187 @@ void __stdcall SetGadgetActive(Dialog* menu, int index, int value)
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
 struct Pad_p2_0 { int field; };
 
-#pragma pack(push, 1)
+struct GafEntry;
+struct GafFrame;
+struct Gui;
 
-// The 0x15b-byte GUI layout entry: entry 0 holds the entry count at +0xb6 and
-// the surface at +0xbc, the other entries hold their text there, and the
-// selected entry's text lines sit at +0x136.
-struct Entry_004a04f0 {
-    unsigned char type;                // +0x00
-    unsigned char group;               // +0x01
-    char name[0x10];                   // +0x02
-    char unknown_12[0x13 - 0x12];
-    short x;                           // +0x13
-    short y;                           // +0x15
-    short width;                       // +0x17
-    short height;                      // +0x19
-    int attribs;                       // +0x1b
-    int state;                         // +0x1f
-    char unknown_23[0x27 - 0x23];
-    char field_27;                     // +0x27
-    char group_28;                     // +0x28
-    char value;                        // +0x29
-    char unknown_2a[0xb6 - 0x2a];
+// The file's one Gadget view: every entry list below and the functions at the
+// end share it. The per-function views were joined onto it.
+#pragma pack(push, 1)
+struct Gadget {                         // 0x15b bytes, one GUI list entry
+    unsigned char type;                 // +0x00
+    unsigned char team;                 // +0x01
+    char name[0x11];                    // +0x02 (strncpy 0x10)
+    short x;                            // +0x13
+    short y;                            // +0x15
+    short width;                        // +0x17
+    short height;                       // +0x19
+    int attribs;                        // +0x1b
+    int colours;                        // +0x1f
+    int image;                          // +0x23
+    char field_27;                      // +0x27
+    signed char tab;                    // +0x28
+    unsigned char field_29;             // +0x29
+    char unknown_2a;
+    void* archive;                      // +0x2b
+    GafEntry* gaf;                      // +0x2f
+    char helpKey[0xb4 - 0x33];          // +0x33
+    unsigned char resourceFlags;        // +0xb4
+    char unknown_b5;
     union {
-        struct {
-            short count;               // +0xb6 (entry 0 holds the entry count)
-            char unknown_b8[0xbc - 0xb8];
+        short count;                    // +0xb6 (entry 0 only)
+        char text[0x80];                // +0xb6
+        struct {                        // entry 0
+            char unknown_b6[2];
+            void* saveUnder;            // +0xb8, the SAVE UNDER bitmap
+            void* surface;              // +0xbc, the GUI SURFACE bitmap
+            void* archive;              // +0xc0
+            GafEntry* background;       // +0xc4
+        } assets;
+        struct {                        // type 12
+            char unknown_b6[2];
+            GafFrame* glyph;                    // +0xb8
+            unsigned short flag;        // +0xbc, bit 0 set by type 12
+        } frame;
+        struct {                        // type 2
+            int sortKey;                // +0xb6
+            short field_ba;             // +0xba
+            short field_bc;             // +0xbc
+            short field_be;             // +0xbe
+            short field_c0;             // +0xc0
+            char* field_c2;             // +0xc2
+            void* field_c6;             // +0xc6, the cell or item array
+            GafEntry* gaf;              // +0xca
+            void (__stdcall* callback)(Gui*, Gadget*);  // +0xce
+            char unknown_d2[4];
             union {
-                unsigned short flag_bc;    // +0xbc, bit 0 set by type 12
-                int surface;               // +0xbc (entry 0 holds the surface)
+                int language;           // +0xd6
+                void* filebuf;          // +0xd6, buffer type 7/8 loads
             };
-            char unknown_c0[0xd6 - 0xc0];
-            int id;                        // +0xd6
-            char unknown_da[0x136 - 0xda];
-            unsigned char count_136;       // +0x136, the text line count
-            unsigned char stageIndex;      // +0x137, the button stage
-            short field_138;               // +0x138
-            char field_13a;                // +0x13a
-            char unknown_13b[0x13c - 0x13b];
-            union {
-                unsigned short flag;       // +0x13c, bit 0 set by type 1
+            short scroll;               // +0xda
+        } list;
+        struct {                        // entry 0
+            char unknown_b6[0x16];
+            char choice[0x10];          // +0xcc
+            char choice2[0x10];         // +0xdc
+        } names;
+        struct {                        // type 6, a hotspot
+            void (__stdcall* callback)(Gui*, Gadget*);  // +0xb6
+            char unknown_ba[4];
+            GafEntry* gaf;              // +0xbe
+            GafFrame* frame;            // +0xc2
+            short index;                // +0xc6
+            unsigned char flags;        // +0xc8
+        } hotspot;
+        struct {                        // type 13, a progress bar
+            int total;                  // +0xb6, the divisor of the fill
+            int value;                  // +0xba
+            int max;                    // +0xbe
+            int interval;               // +0xc2
+            int next;                   // +0xc6
+            float step;                 // +0xca
+            int active;                 // +0xce
+            int showText;               // +0xd2
+        } anim;
+    } u;
+    union {                             // +0x136
+        short range;
+        struct {
+            unsigned char stages;       // +0x136
+            unsigned char stageIndex;   // +0x137
+        };
+    };
+    short field_138;                    // +0x138 (the text length limit of a text input)
+    union {                             // +0x13a
+        struct {
+            unsigned char field_13a;
+            unsigned char field_13b;
+            union {                     // +0x13c
+                unsigned char grayedout;
+                unsigned short flag;    // bit 0 set by type 1
                 struct {
                     unsigned short flag_bit : 1;
                     unsigned short unknown_13c_1 : 15;
                 };
+                int max;
             };
-            char unknown_13e[0x148 - 0x13e];
-            unsigned int flag_148;         // +0x148, bit 0 set by type 5
-            char unknown_14c[0x157 - 0x14c];
-            int field_157;                 // +0x157
         };
-        char text[0x15b - 0xb6];       // +0xb6
+        GafEntry* inputGaf;
+        struct {
+            char unknown_13a_b[0x14e - 0x13a];
+            GafEntry* sliderGaf;        // +0x14e
+            unsigned char sliderStyle;  // +0x152
+        };
+        struct {
+            char unknown_13a_c[0x140 - 0x13a];
+            short knobPos;              // +0x140
+            short knobSize;             // +0x142
+            void (__stdcall* sliderCallback)(Gui*, int);      // +0x144
+            short unknown_148;
+            int sliderUser;             // +0x14a
+        };
+        struct {
+            char unknown_13a_d[0x147 - 0x13a];
+            unsigned char field_147;    // +0x147
+            unsigned int flag_148;      // +0x148, bit 0 set by type 5
+        };
     };
+    char unknown_153[0x157 - 0x153];
+    int field_157;                      // +0x157
 };
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+
+// Unused here: real declarations that keep the file's symbol count.
+void OpenInGameOptions();
+void RegisterEmptyAtexit();
+void EmptyAtexitHandler();
+void ResetChatHudIndices();
+int ExpireOldestMessage();
+int ScrollToNextMessageUnit();
+void CycleMessageUnits();
+void ResetPlayerSlots();
+void LoadDefaultAIScript();
+void InitPlayers();
+void RebuildAIFeatureCells();
+void FreePlayers();
+void ShowContinueWatchingDialog();
+void UpdatePlayers();
+void InitPlayerResources();
+void UpdateBlink();
+void BuildRadarPicture();
+void InitRadar();
+void FreeRadar();
+void UpdateRadarMapped();
+void DrawRadarUnits();
+void UpdateSensorRadarAndCloak();
+void LoadLightBar();
+void DrawLightBars();
+void ShutdownScoreTables();
+void ReportIntervalTimer();
+void InitParticlePool();
+void ExitParticlePool();
+void CreateParticleLists();
+void DestroyParticleLists();
+void UpdateParticles();
+int GetSideCount();
+void CountCampaignFiles();
+void StartBriefingNarration();
+void StartGlamourSound();
+void InitBriefingText();
+void DrawHelpPage();
+int HasFewerThanThreeCampaignFiles();
+void OpenSingleMenu();
+void OpenMissionBriefing();
+int CountComputerSlots();
+int __cdecl CountHumanSlots();
 
 // The layer a dialog's +0x18 points at: the entry table at +4. In 0x4a0e00
 // the +0 is a second layer whose entries are searched.
 struct Holder_004a04f0 {
     Holder_004a04f0* unknown_0;        // +0x00
-    Entry_004a04f0* entries;           // +0x04
+    Gadget* entries;                   // +0x04
 };
 
 // The GUI context at g_game's +0x519: the group at +0, the layer at +0x18,
@@ -607,9 +730,9 @@ void __stdcall SetFont(int id);
 int __cdecl tolower(int c);
 
 
-static inline int FindEntry(Entry_004a04f0* entries, char* name)
+static inline int FindEntry_004a04f0(Gadget* entries, char* name)
 {
-    for (int i = 1; i < entries->count + 1; i++) {
+    for (int i = 1; i < entries->u.count + 1; i++) {
         if (strncmp(entries[i].name, name, 0x10) == 0) {
             return i;
         }
@@ -617,12 +740,12 @@ static inline int FindEntry(Entry_004a04f0* entries, char* name)
     return -1;
 }
 
-static inline Entry_004a04f0* GetEntry(Dialog_004a04f0* obj, int index)
+static inline Gadget* GetEntry(Dialog_004a04f0* obj, int index)
 {
     return obj->holder->entries + index;
 }
 
-static inline Entry_004a04f0* GetEntries(Dialog_004a04f0* obj)
+static inline Gadget* GetEntries(Dialog_004a04f0* obj)
 {
     return obj->holder->entries;
 }
@@ -635,19 +758,19 @@ static inline char* GetData(Dialog_004a04f0* obj)
 // FUNCTION: 0x4a04f0
 char __stdcall GetGadgetActiveByName(Dialog_004a04f0* obj, char* name)
 {
-    Entry_004a04f0* entries = obj->holder->entries;
-    int i = FindEntry(entries, name);
+    Gadget* entries = obj->holder->entries;
+    int i = FindEntry_004a04f0(entries, name);
     if (i == -1) {
         return -1;
     }
-    return entries[i].value;
+    return entries[i].field_29;
 }
 
 // FUNCTION: 0x4a0570
 void __stdcall SetGadgetActiveByName(Dialog_004a04f0* obj, char* name, int param_3)
 {
     if (obj->holder) {
-        int index = FindEntry(obj->holder->entries, name);
+        int index = FindEntry_004a04f0(obj->holder->entries, name);
         if (index != -1)
             SetGadgetActive(obj, index, param_3);
     }
@@ -659,11 +782,11 @@ void __stdcall SetGadgetActiveByName(Dialog_004a04f0* obj, char* name, int param
 // FUNCTION: 0x4a05e0
 void __stdcall AssignQuickKey(Dialog_004a04f0* obj, int index)
 {
-    Entry_004a04f0* entries;
-    Entry_004a04f0* scan;
+    Gadget* entries;
+    Gadget* scan;
     char* text;
     int length;
-    Entry_004a04f0* entry;
+    Gadget* entry;
     int i;
     int j;
 
@@ -676,23 +799,23 @@ void __stdcall AssignQuickKey(Dialog_004a04f0* obj, int index)
         if ((entry->attribs & 0x10000) != 0)
             return;
     }
-    if (entry->type == 5 && strlen(&entry->text[0x136 - 0xb6]) == 0)
+    if (entry->type == 5 && strlen((char*)&entry->stages) == 0)
         return;
     if (entry->type != 5 && entry->type != 1)
         return;
 
-    if (entry->type == 1 && entry->text[0x136 - 0xb6] != 0) {
-        entry->text[0x13a - 0xb6] = 0;
+    if (entry->type == 1 && entry->stages != 0) {
+        entry->field_13a = 0;
         return;
     }
     if (entry->type == 1) {
-        if (strlen(entry->text) == 0)
+        if (strlen(entry->u.text) == 0)
             return;
-        entry->text[0x13a - 0xb6] = 0;
-        text = entry->text;
+        entry->field_13a = 0;
+        text = entry->u.text;
     } else if (entry->type == 5) {
-        text = entry->text;
-        entry->text[0x147 - 0xb6] = 0;
+        text = entry->u.text;
+        entry->field_147 = 0;
     }
 
     length = strlen(text);
@@ -701,23 +824,23 @@ void __stdcall AssignQuickKey(Dialog_004a04f0* obj, int index)
 
     for (i = 0; i < length; i++) {
         if (text[i] != ' ') {
-            for (j = 0; j <= entries->count; j++) {
+            for (j = 0; j <= entries->u.count; j++) {
                 scan = entries + j;
                 if (scan->type == 1) {
-                    if (tolower((signed char)scan->text[0x13a - 0xb6]) == tolower((signed char)text[i]))
+                    if (tolower((signed char)scan->field_13a) == tolower((signed char)text[i]))
                         break;
                 } else if (scan->type == 5) {
-                    if (tolower((signed char)scan->text[0x147 - 0xb6]) == tolower((signed char)text[i]))
+                    if (tolower((signed char)scan->field_147) == tolower((signed char)text[i]))
                         break;
                 }
             }
-            if (j > entries->count) {
+            if (j > entries->u.count) {
                 if (entry->type == 1) {
-                    entry->text[0x13a - 0xb6] = text[i];
+                    entry->field_13a = text[i];
                     return;
                 }
                 if (entry->type == 5) {
-                    entry->text[0x147 - 0xb6] = text[i];
+                    entry->field_147 = text[i];
                     return;
                 }
                 return;
@@ -730,10 +853,10 @@ void __stdcall AssignQuickKey(Dialog_004a04f0* obj, int index)
 void __stdcall SetGadgetTextByName(Dialog_004a04f0* obj, char* name, char* text)
 {
     if (obj->holder) {
-        Entry_004a04f0* entries = obj->holder->entries;
-        int index = FindEntry(entries, name);
+        Gadget* entries = obj->holder->entries;
+        int index = FindEntry_004a04f0(entries, name);
         if (index != -1) {
-            strncpy(entries[index].text, text, 0x80);
+            strncpy(entries[index].u.text, text, 0x80);
             obj->changed = 1;
             AssignQuickKey(obj, index);
         }
@@ -748,18 +871,18 @@ void __stdcall SetGadgetText(Object_004a0880* obj, int index, char* text);
 // FUNCTION: 0x4a08f0
 void __stdcall TranslateGadgetItems(Dialog_004a04f0* obj, int index)
 {
-    Entry_004a04f0* entry = GetEntry(obj, index);
+    Gadget* entry = GetEntry(obj, index);
     char temp[0x80];
     char* dst = temp;
-    char* src = entry->text;
+    char* src = entry->u.text;
     int i = 0;
-    while (i < entry->count_136) {
+    while (i < entry->stages) {
         strcpy(dst, Translate(src));
         dst += strlen(dst) + 1;
         src += strlen(src) + 1;
         i++;
     }
-    memcpy(entry->text, temp, 0x80);
+    memcpy(entry->u.text, temp, 0x80);
 }
 
 // FUNCTION: 0x4a09c0
@@ -767,18 +890,18 @@ void __stdcall SetTranslatedText(Dialog_004a04f0* context, int index, char* sour
 {
     if (index == -1 || context->holder == 0)
         return;
-    Entry_004a04f0* entries = context->holder->entries;
+    Gadget* entries = context->holder->entries;
     char* text = Translate(source);
 
     switch (entries[index].type) {
     case 5:
-        strncpy(entries[index].text, text, 0x80);
-        if (entries[index].count_136 != 0)
+        strncpy(entries[index].u.text, text, 0x80);
+        if (entries[index].stages != 0)
             AssignQuickKey(context, index);
         break;
     case 3:
         if (text != 0) {
-            strcpy(context->holder->entries[index].text, text);
+            strcpy(context->holder->entries[index].u.text, text);
             if (context->current == index)
                 context->length = strlen(text);
         }
@@ -786,27 +909,27 @@ void __stdcall SetTranslatedText(Dialog_004a04f0* context, int index, char* sour
             entries[index].field_138 = (short)value;
         break;
     case 1:
-        strncpy(entries[index].text, text, 0x80);
+        strncpy(entries[index].u.text, text, 0x80);
         AssignQuickKey(context, index);
-        if (entries[index].count_136 != 0) {
-            char* p = entries[index].text;
+        if (entries[index].stages != 0) {
+            char* p = entries[index].u.text;
             while (*p != 0) {
                 if (*p == '|')
                     *p = 0;
                 p++;
             }
-            Entry_004a04f0* entry = &context->holder->entries[index];
+            Gadget* entry = &context->holder->entries[index];
             char temp[0x80];
             char* dst = temp;
-            char* src = entry->text;
+            char* src = entry->u.text;
             int i = 0;
-            while (i < entry->count_136) {
+            while (i < entry->stages) {
                 strcpy(dst, Translate(src));
                 dst += strlen(dst) + 1;
                 src += strlen(src) + 1;
                 i++;
             }
-            memcpy(entry->text, temp, 0x80);
+            memcpy(entry->u.text, temp, 0x80);
         }
         break;
     }
@@ -817,7 +940,7 @@ void __stdcall SetTranslatedText(Dialog_004a04f0* context, int index, char* sour
 void __stdcall SetTranslatedTextByName(Dialog_004a04f0* obj, char* name, char* param_3, int param_4)
 {
     if (obj->holder != 0) {
-        int index = FindEntry(obj->holder->entries, name);
+        int index = FindEntry_004a04f0(obj->holder->entries, name);
         if (index != -1) {
             SetTranslatedText(obj, index, param_3, param_4);
         }
@@ -830,10 +953,10 @@ void __stdcall SetTranslatedTextByName(Dialog_004a04f0* obj, char* name, char* p
 void __stdcall SetGadgetColorByName(Dialog_004a04f0* obj, char* name, int value)
 {
     if (obj->holder) {
-        Entry_004a04f0* entries = obj->holder->entries;
-        int index = FindEntry(entries, name);
+        Gadget* entries = obj->holder->entries;
+        int index = FindEntry_004a04f0(entries, name);
         if (index != -1) {
-            entries[index].state = value;
+            entries[index].colours = value;
             obj->changed = 1;
         }
     }
@@ -851,14 +974,14 @@ char* __stdcall GetGadgetText(Dialog_004a04f0* obj, char* name, char* buf)
     if (obj->holder == 0) {
         FatalError("Internal error");
     }
-    Entry_004a04f0* entries = obj->holder->entries;
-    int index = FindEntry(entries, name);
+    Gadget* entries = obj->holder->entries;
+    int index = FindEntry_004a04f0(entries, name);
     if (index != -1) {
         switch (entries[index].type) {
         case 1:
         case 3:
         case 5:
-            desc = entries[index].text;
+            desc = entries[index].u.text;
             break;
         }
         if (desc != 0 && buf != 0) {
@@ -885,24 +1008,24 @@ void __stdcall SetControlTextByName(Dialog_004a04f0* obj, char* name, char* text
 {
     // Loaded before the null test on purpose: the original loads the entries
     // pointer before the `je`.
-    Entry_004a04f0* entries = obj->holder->unknown_0->entries;
+    Gadget* entries = obj->holder->unknown_0->entries;
     // Guards are early returns, not nested ifs.
     if (obj->holder->unknown_0 == 0)
         return;
-    int index = FindEntry(entries, name);
+    int index = FindEntry_004a04f0(entries, name);
     if (index == -1)
         return;
     switch (entries[index].type) {
     case 3:
-        strcpy(obj->holder->entries[index].text, text);
+        strcpy(obj->holder->entries[index].u.text, text);
         if (obj->current == index)
             obj->length = strlen(text);
         break;
     case 1:
-        strncpy(entries[index].text, text, 0x80);
+        strncpy(entries[index].u.text, text, 0x80);
         break;
     case 5:
-        strncpy(entries[index].text, text, 0x80);
+        strncpy(entries[index].u.text, text, 0x80);
         break;
     }
     obj->changed = 1;
@@ -920,8 +1043,8 @@ int __stdcall GetGadgetStatus(Dialog_004a04f0* obj, int index)
 // FUNCTION: 0x4a0f60
 int __stdcall GetButtonStageByName(Dialog_004a04f0* obj, char* name)
 {
-    Entry_004a04f0* entries = obj->holder->entries;
-    int i = FindEntry(entries, name);
+    Gadget* entries = obj->holder->entries;
+    int i = FindEntry_004a04f0(entries, name);
     if (i != -1 && entries[i].type == 1) {
         return entries[i].stageIndex;
     }
@@ -934,7 +1057,7 @@ int __stdcall GetButtonStageByName(Dialog_004a04f0* obj, char* name)
 // FUNCTION: 0x4a0ff0
 int __stdcall GetButtonStage(Dialog_004a04f0* obj, int index)
 {
-    Entry_004a04f0* entries = obj->holder->entries;
+    Gadget* entries = obj->holder->entries;
     if (entries[index].type == 1) {
         return entries[index].stageIndex;
     }
@@ -944,7 +1067,7 @@ int __stdcall GetButtonStage(Dialog_004a04f0* obj, int index)
 // FUNCTION: 0x4a1030
 int __stdcall SetButtonStage(Dialog_004a04f0* obj, int index, char value)
 {
-    Entry_004a04f0* entries = obj->holder->entries;
+    Gadget* entries = obj->holder->entries;
     if (entries[index].type == 1) {
         entries[index].stageIndex = value;
         return 1;
@@ -955,8 +1078,8 @@ int __stdcall SetButtonStage(Dialog_004a04f0* obj, int index, char value)
 // FUNCTION: 0x4a1080
 int __stdcall SetButtonStageByName(Dialog_004a04f0* obj, char* name, char value)
 {
-    Entry_004a04f0* entries = obj->holder->entries;
-    int i = FindEntry(entries, name);
+    Gadget* entries = obj->holder->entries;
+    int i = FindEntry_004a04f0(entries, name);
     if (i != -1) {
         entries[i].stageIndex = value;
         return 1;
@@ -970,8 +1093,8 @@ int __stdcall SetButtonStageByName(Dialog_004a04f0* obj, char* name, char value)
 // FUNCTION: 0x4a1110
 int __stdcall SetGadgetStatusByName(Dialog_004a04f0* obj, char* name, int value)
 {
-    Entry_004a04f0* entries = obj->holder->entries;
-    int i = FindEntry(entries, name);
+    Gadget* entries = obj->holder->entries;
+    int i = FindEntry_004a04f0(entries, name);
     if (i != -1) {
         entries[i].field_138 = value;
         obj->changed = 1;
@@ -982,6 +1105,10 @@ int __stdcall SetGadgetStatusByName(Dialog_004a04f0* obj, char* name, int value)
     }
     return 0;
 }
+
+// Unused here: real declarations that keep the file's symbol count.
+void ClearBorderFeatures();
+void LoadTntMap();
 
 // FUNCTION: 0x4a11c0
 void __stdcall SetGadgetStatus(Dialog_004a04f0* param_1, int param_2, short param_3)
@@ -1001,8 +1128,8 @@ void __stdcall SetGrayedOut(Dialog_004a04f0* obj, int index, int value)
 // FUNCTION: 0x4a1250
 void __stdcall SetGrayedOutByName(Dialog_004a04f0* obj, char* name, int value)
 {
-    Entry_004a04f0* entries = obj->holder->entries;
-    int i = FindEntry(entries, name);
+    Gadget* entries = obj->holder->entries;
+    int i = FindEntry_004a04f0(entries, name);
     if (i != -1) {
         entries[i].flag_bit = value;
     }
@@ -1016,17 +1143,17 @@ void __stdcall SetGrayedOutByName(Dialog_004a04f0* obj, char* name, int value)
 // FUNCTION: 0x4a12e0
 void __stdcall SetGadgetGrayedOut(Dialog_004a04f0* obj, int index, int value)
 {
-    Entry_004a04f0* entries = obj->holder->entries;
+    Gadget* entries = obj->holder->entries;
     if (index == -1) {
         return;
     }
-    Entry_004a04f0* e = &entries[index];
+    Gadget* e = &entries[index];
     switch (e->type) {
     case 4: {
         e->field_157 = value;
-        unsigned char group = e->group;
-        for (int i = 1; i < entries->count + 1; i++) {
-            if (entries[i].type == 1 && entries[i].group == group && (entries[i].attribs & 0x1800)) {
+        unsigned char group = e->team;
+        for (int i = 1; i < entries->u.count + 1; i++) {
+            if (entries[i].type == 1 && entries[i].team == group && (entries[i].attribs & 0x1800)) {
                 entries[i].flag = (entries[i].flag & 0xfffe) | (value & 1);
             }
         }
@@ -1046,7 +1173,7 @@ void __stdcall SetGadgetGrayedOut(Dialog_004a04f0* obj, int index, int value)
         e->flag_148 = (e->flag_148 & 0xfffffffe) | (value & 1);
         break;
     case 12:
-        e->flag_bc = (e->flag_bc & 0xfffe) | (value & 1);
+        e->u.frame.flag = (e->u.frame.flag & 0xfffe) | (value & 1);
         break;
     default:
         break;
@@ -1058,7 +1185,7 @@ void __stdcall SetGadgetGrayedOut(Dialog_004a04f0* obj, int index, int value)
 // FUNCTION: 0x4a1450
 void __stdcall SetGadgetGrayedOutByName(Dialog_004a04f0* obj, char* name, int param_3)
 {
-    int index = FindEntry(obj->holder->entries, name);
+    int index = FindEntry_004a04f0(obj->holder->entries, name);
     if (index != -1)
         SetGadgetGrayedOut(obj, index, param_3);
 }
@@ -1068,7 +1195,7 @@ void __stdcall SetGadgetGrayedOutByName(Dialog_004a04f0* obj, char* name, int pa
 // FUNCTION: 0x4a14c0
 void __stdcall FUN_004a14c0(Dialog_004a04f0* obj, char* name, int param_3)
 {
-    int index = FindEntry(obj->holder->entries, name);
+    int index = FindEntry_004a04f0(obj->holder->entries, name);
     if (index != -1)
         SetGadgetGrayedOut(obj, index, param_3);
 }
@@ -1076,7 +1203,7 @@ void __stdcall FUN_004a14c0(Dialog_004a04f0* obj, char* name, int param_3)
 // FUNCTION: 0x4a1530
 void __stdcall SetQuickKeyByName(Dialog_004a04f0* obj, char* name, char value)
 {
-    int i = FindEntry(obj->holder->entries, name);
+    int i = FindEntry_004a04f0(obj->holder->entries, name);
     obj->holder->entries[i].field_13a = value;
     obj->changed = 1;
 }
@@ -1099,7 +1226,7 @@ void __stdcall GetGadgetRectByIndex(char* param_1, int param_2, Rect* param_3)
 // Fills the bounding rectangle of a gadget entry: the entry's position and
 // size when it is active, or a degenerate rectangle at the origin otherwise.
 // FUNCTION: 0x4a1630
-void __stdcall GetGadgetRect(Entry_004a04f0* entry, Rect* rect)
+void __stdcall GetGadgetRect(Gadget* entry, Rect* rect)
 {
     if (entry->type == 0) {
         rect->left = 0;
@@ -1132,7 +1259,7 @@ void __stdcall GetGadgetScreenRect(char* param_1, int param_2, Rect* param_3)
 // FUNCTION: 0x4a16f0
 void __stdcall DrawGadgetSelectionBox(Dialog_004a04f0* obj, int index, int param_3)
 {
-    Entry_004a04f0* entries = obj->holder->entries;
+    Gadget* entries = obj->holder->entries;
     int i;
     // Declared up here, used only at the bottom: in this scope MSVC keeps the
     // entry field loads in source order instead of hoisting them together.
@@ -1140,13 +1267,13 @@ void __stdcall DrawGadgetSelectionBox(Dialog_004a04f0* obj, int index, int param
     int level;
     int step;
     obj->changed = 1;
-    for (i = 1; i <= entries->count; i++) {
+    for (i = 1; i <= entries->u.count; i++) {
         if (entries[i].type == 3) {
-            entries[i].state = 0;
+            entries[i].colours = 0;
         }
     }
     if (entries[index].type == 3) {
-        entries[index].state = 0x1e;
+        entries[index].colours = 0x1e;
         return;
     }
     if (entries[index].type == 5) {
@@ -1156,7 +1283,7 @@ void __stdcall DrawGadgetSelectionBox(Dialog_004a04f0* obj, int index, int param
         return;
     }
     {
-        Entry_004a04f0* e = &entries[index];
+        Gadget* e = &entries[index];
         if (e->type == 0) {
             rect.left = 0;
             rect.top = 0;
@@ -1172,7 +1299,7 @@ void __stdcall DrawGadgetSelectionBox(Dialog_004a04f0* obj, int index, int param
             rect.top--;
             rect.right++;
             rect.bottom++;
-            DrawLitRectangle(obj->holder->entries->surface, &rect, level);
+            DrawLitRectangle((int)obj->holder->entries->u.assets.surface, &rect, level);
             level += -3 - step;
         }
     }
@@ -1182,20 +1309,20 @@ void __stdcall DrawGadgetSelectionBox(Dialog_004a04f0* obj, int index, int param
 // before it) matches the group of entry `index`, and makes that entry's id the
 // current one. Returns the entry's number, or -1 when there is no such entry.
 // FUNCTION: 0x4a1810
-int __stdcall SelectFontForEntry(Entry_004a04f0* entries, int index)
+int __stdcall SelectFontForEntry(Gadget* entries, int index)
 {
     int n = 0;
     int i = 1;
-    for (; i < entries->count + 1; i++) {
+    for (; i < entries->u.count + 1; i++) {
         if (entries[i].type == 7) {
-            if (n == entries[index].group_28) {
-                SetFont(entries[i].id);
+            if (n == entries[index].tab) {
+                SetFont(entries[i].u.list.language);
                 break;
             }
             n++;
         }
     }
-    if (i == entries->count + 1) {
+    if (i == entries->u.count + 1) {
         SetFont(g_guiContext->group);
         i = -1;
     }
@@ -1205,10 +1332,10 @@ int __stdcall SelectFontForEntry(Entry_004a04f0* entries, int index)
 // Counts the type-8 entries up to the one numbered by entries[index].field_27.
 // Both paths return 0 in the original, although the caller tests the result.
 // FUNCTION: 0x4a18c0
-int __stdcall FindBackgroundCell(Entry_004a04f0* entries, int index)
+int __stdcall FindBackgroundCell(Gadget* entries, int index)
 {
     int n = 0;
-    for (int i = 1; i < entries->count + 1; i++) {
+    for (int i = 1; i < entries->u.count + 1; i++) {
         if (entries[i].type == 8) {
             if (n == entries[index].field_27) {
                 return 0;
@@ -1250,64 +1377,64 @@ int __stdcall FUN_004a1970(Struct_004a1970* obj, int value)
 }
 
 
-#pragma pack(push, 1)
-struct Entry_004a1990 {
-    unsigned char type;                // +0x0
-    unsigned char id;                  // +0x1
-    char unknown_2[0xb6 - 0x2];
-    short count;                       // +0xb6 (only meaningful in entry 0)
-    char unknown_b8[0x15b - 0xb8];
-};
-#pragma pack(pop)
+
+// Unused here: real declarations that keep the file's symbol count.
+int FindOpenSlot();
+int AreAllSlotsEmpty();
+int FindFreeColor();
+void RefreshAllyIcons();
+int AreAllPlayersInOneAllyGroup();
+void BuildSkirmishPlayerRows();
+void RefreshSkirmishSetup();
 
 // FUNCTION: 0x4a1990
-int __stdcall FindAssocListBox(Entry_004a1990* entries, int index)
+int __stdcall FindAssocListBox(Gadget* entries, int index)
 {
-    unsigned char id = entries[index].id;
-    for (int i = 1; i < entries->count + 1; i++) {
-        if (entries[i].type == 2 && entries[i].id == id) {
+    unsigned char id = entries[index].team;
+    for (int i = 1; i < entries->u.count + 1; i++) {
+        if (entries[i].type == 2 && entries[i].team == id) {
             return i;
         }
     }
     return 0;
 }
-#pragma pack(push, 1)
-struct Entry_004a19f0 {
-    unsigned char type;                // +0x0
-    unsigned char id;                  // +0x1
-    char unknown_2[0xb6 - 0x2];
-    short count;                       // +0xb6 (only meaningful in entry 0)
-    char unknown_b8[0x15b - 0xb8];
-};
-#pragma pack(pop)
+
+// Unused here: real declarations that keep the file's symbol count.
+void ApplySlotsToGamePlayers();
+void __cdecl CycleCurrentPlayerSide();
+void OpenSkirmishMapSelector();
+void __cdecl CycleCurrentPlayerAllyGroup();
+void OpenSkirmishMenu();
+void ShowStatsSummary();
+int GetBuildSiteMetal();
 
 // FUNCTION: 0x4a19f0
-int __stdcall FindAssocSlider(Entry_004a19f0* entries, int index)
+int __stdcall FindAssocSlider(Gadget* entries, int index)
 {
-    unsigned char id = entries[index].id;
-    for (int i = 1; i < entries->count + 1; i++) {
-        if (entries[i].type == 4 && entries[i].id == id) {
+    unsigned char id = entries[index].team;
+    for (int i = 1; i < entries->u.count + 1; i++) {
+        if (entries[i].type == 4 && entries[i].team == id) {
             return i;
         }
     }
     return 0;
 }
-#pragma pack(push, 1)
-struct Entry_004a1a50 {
-    unsigned char type;                // +0x0
-    unsigned char id;                  // +0x1
-    char unknown_2[0xb6 - 0x2];
-    short count;                       // +0xb6 (only meaningful in entry 0)
-    char unknown_b8[0x15b - 0xb8];
-};
-#pragma pack(pop)
+
+// Unused here: real declarations that keep the file's symbol count.
+int GetBuildSiteHeight();
+void InitSound();
+void ResetSpeech();
+void ShutdownSound();
+void SetNoDirectSound();
+void SetUseWindowsSound();
+void PlayNextSpeech();
 
 // FUNCTION: 0x4a1a50
-int __stdcall FindAssocTextInput(Entry_004a1a50* entries, int index)
+int __stdcall FindAssocTextInput(Gadget* entries, int index)
 {
-    unsigned char id = entries[index].id;
-    for (int i = 1; i < entries->count + 1; i++) {
-        if (entries[i].type == 3 && entries[i].id == id) {
+    unsigned char id = entries[index].team;
+    for (int i = 1; i < entries->u.count + 1; i++) {
+        if (entries[i].type == 3 && entries[i].team == id) {
             return i;
         }
     }
@@ -1318,24 +1445,19 @@ int __stdcall FindAssocTextInput(Entry_004a1a50* entries, int index)
 
 struct Surface_004a1ab0;
 
-#pragma pack(push, 1)
-struct Entry_004a1ab0 {                // 0x15b bytes
-    unsigned char type;                // +0x0
-    char unknown_1[0x13 - 0x1];
-    short x;                           // +0x13
-    short y;                           // +0x15
-    short width;                       // +0x17
-    short height;                      // +0x19
-    int attribs;                       // +0x1b
-    char unknown_1f[0xbc - 0x1f];
-    Surface_004a1ab0* surface;         // +0xbc (only meaningful in entry 0)
-    char unknown_c0[0x15b - 0xc0];
-};
-#pragma pack(pop)
+
+// Unused here: real declarations that keep the file's symbol count.
+void StopAllSounds();
+void FreeLosTables();
+void InitEyeballs();
+void FreeEyeballs();
+void ExpireEyeballs();
+void BuildDerivedLayers();
+void UpdateAllCellHeightRanges();
 
 struct Holder_004a1ab0 {
     char unknown_0[4];
-    Entry_004a1ab0* entries;           // +0x4
+    Gadget* entries;                   // +0x4
 };
 
 struct Dialog_4a1ab0 {
@@ -1356,8 +1478,8 @@ void __stdcall FadeRectangle(Surface_004a1ab0* dst, Rect_004a1ab0* rect, int lev
 // FUNCTION: 0x4a1ab0
 void __stdcall RedrawGadgetRect(Dialog_4a1ab0* obj, int index)
 {
-    Entry_004a1ab0* entries = obj->holder->entries;
-    Entry_004a1ab0* e = &entries[index];
+    Gadget* entries = obj->holder->entries;
+    Gadget* e = &entries[index];
     Rect_004a1ab0 rect;
     if (e->type == 0) {
         rect.left = 0;
@@ -1368,8 +1490,8 @@ void __stdcall RedrawGadgetRect(Dialog_4a1ab0* obj, int index)
     }
     rect.right = e->width + rect.left - 1;
     rect.bottom = e->height + rect.top - 1;
-    GrayRectangle(entries->surface, &rect);
-    FadeRectangle(entries->surface, &rect, -0x14);
+    GrayRectangle((Surface_004a1ab0*)entries->u.assets.surface, &rect);
+    FadeRectangle((Surface_004a1ab0*)entries->u.assets.surface, &rect, -0x14);
 }
 // Draws one entry of a list gadget: the frame, then either the text rows
 // (flags 0x10) or the cell rows (flags 0x20/0x80).
@@ -1381,131 +1503,6 @@ void __stdcall RedrawGadgetRect(Dialog_4a1ab0* obj, int index)
 
 #pragma pack(push, 1)
 
-struct GafEntry;
-struct GafFrame;
-struct Gui;
-
-// The file's one Gadget view: every entry list below and the functions at the
-// end share it. The per-function views were joined onto it.
-#pragma pack(push, 1)
-struct Gadget {                         // 0x15b bytes, one GUI list entry
-    unsigned char type;                 // +0x00
-    unsigned char team;                 // +0x01
-    char name[0x11];                    // +0x02 (strncpy 0x10)
-    short x;                            // +0x13
-    short y;                            // +0x15
-    short width;                        // +0x17
-    short height;                       // +0x19
-    int attribs;                        // +0x1b
-    int colours;                        // +0x1f
-    int image;                          // +0x23
-    char unknown_27;
-    signed char tab;                    // +0x28
-    unsigned char field_29;             // +0x29
-    char unknown_2a;
-    void* archive;                      // +0x2b
-    GafEntry* gaf;                      // +0x2f
-    char helpKey[0xb4 - 0x33];          // +0x33
-    unsigned char resourceFlags;        // +0xb4
-    char unknown_b5;
-    union {
-        short count;                    // +0xb6 (entry 0 only)
-        char text[0x80];                // +0xb6
-        struct {                        // entry 0
-            char unknown_b6[2];
-            void* saveUnder;            // +0xb8, the SAVE UNDER bitmap
-            void* surface;              // +0xbc, the GUI SURFACE bitmap
-            void* archive;              // +0xc0
-            GafEntry* background;       // +0xc4
-        } assets;
-        struct {                        // type 12
-            char unknown_b6[2];
-            GafFrame* glyph;                    // +0xb8
-            unsigned char flag;         // +0xbc
-        } frame;
-        struct {                        // type 2
-            int sortKey;                // +0xb6
-            short field_ba;             // +0xba
-            short field_bc;             // +0xbc
-            short field_be;             // +0xbe
-            short field_c0;             // +0xc0
-            char* field_c2;             // +0xc2
-            void* field_c6;             // +0xc6, the cell or item array
-            GafEntry* gaf;              // +0xca
-            void (__stdcall* callback)(Gui*, Gadget*);  // +0xce
-            char unknown_d2[4];
-            union {
-                int language;           // +0xd6
-                void* filebuf;          // +0xd6, buffer type 7/8 loads
-            };
-            short scroll;               // +0xda
-        } list;
-        struct {                        // entry 0
-            char unknown_b6[0x16];
-            char choice[0x10];          // +0xcc
-            char choice2[0x10];         // +0xdc
-        } names;
-        struct {                        // type 6
-            int f_b6;
-            int f_ba;
-            int f_be;
-            int f_c2;
-            short f_c6;
-        } t6;
-        struct {                        // type 13
-            char unknown_b6[4];
-            int field_ba;               // +0xba
-            int field_be;               // +0xbe
-            int field_c2;               // +0xc2
-            int field_c6;               // +0xc6
-            float field_ca;             // +0xca
-            int field_ce;               // +0xce
-            int field_d2;               // +0xd2
-        } anim;
-    } u;
-    union {                             // +0x136
-        short range;
-        struct {
-            unsigned char stages;       // +0x136
-            unsigned char stageIndex;   // +0x137
-        };
-    };
-    short field_138;                    // +0x138 (the text length limit of a text input)
-    union {                             // +0x13a
-        struct {
-            unsigned char field_13a;
-            unsigned char field_13b;
-            unsigned char max;
-            char unknown_13d;
-        };
-        GafEntry* inputGaf;
-    };
-    union {                             // +0x13e
-        struct {
-            char unknown_13e[0x142 - 0x13e];
-            short sliderThumb;          // +0x142
-            char unknown_144[0x14e - 0x144];
-            GafEntry* sliderGaf;        // +0x14e
-            unsigned char sliderStyle;  // +0x152
-        };
-        struct {
-            char unknown_13e_b[2];
-            short knobPos;              // +0x140
-            char unknown_142_b[2];
-            void (__stdcall* sliderCallback)(Gui*, int);      // +0x144
-            short unknown_148;
-            int sliderUser;            // +0x14a
-        };
-        struct {
-            char unknown_13e_c[0x147 - 0x13e];
-            unsigned char field_147;    // +0x147
-            unsigned char field_148;    // +0x148
-        };
-    };
-    char unknown_153[0x157 - 0x153];
-    int field_157;                      // +0x157
-};
-#pragma pack(pop)
 
 struct Holder_004a1b40 {
     char unknown_00[4];
@@ -1567,6 +1564,7 @@ struct Quad_004a1b40 { Point_004a1b40 points[4]; };
 void __stdcall AccumulateScreenShake(int dx, int dy, int value);
 void __stdcall ActivatePlayerGadgets(char* prefix);
 void AddDownloadBuildOptions();
+void ResetFrontendState();
 
 struct Item_004a1b40 {
     char unknown_0[0x28];
@@ -1629,7 +1627,11 @@ static inline int LineHeight_004a1b40()
 
 
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
-struct Pad_a1b40_0 { int field; };
+void CyclePlayerDisplayMode();
+void UpdateWatchingGadgets();
+void OpenControlDialog();
+char AreAllPlayersInOneAlliance();
+void RefreshTeamIcons();
 extern int Pad_a1b40_e0;
 extern int Pad_a1b40_e1;
 extern int Pad_a1b40_e2;
@@ -1653,7 +1655,7 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
     Gadget* me = &entries[index];
     int h = me->height;
     void* surface;
-    GetGadgetRect((Entry_004a04f0*)&entries[index], (Rect*)&bounds);
+    GetGadgetRect(&entries[index], (Rect*)&bounds);
     surface = holder->surface;
     if (surface == 0)
         surface = obj->fallback;
@@ -1837,41 +1839,35 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
         ((Surface*)surf)->SetClipRect(clip);
     }
 }
-#pragma pack(push, 1)
-struct Entry_004a23b0 {
-    char unknown_0[0x13];
-    short x;                    // +0x13
-    short y;                    // +0x15
-    short width;                // +0x17
-    short height;               // +0x19
-    int attribs;                // +0x1b
-    char unknown_1f[0x140 - 0x1f];
-    short off;                  // +0x140
-    short size;                 // +0x142
-    void* sliderCallback;       // +0x144 (a typed function pointer here takes symbol ids)
-    char unknown_148[0x15b - 0x148];
-};
-#pragma pack(pop)
+
+// Unused here: real declarations that keep the file's symbol count.
+struct Params_00481930;
+struct Parent_0043b730;
+struct Pathfinder_0047dfc0;
+struct Player_00401360;
+struct Player_004467c0;
+struct Player_0044fed0;
+struct Player_004573d0;
 
 // FUNCTION: 0x4a23b0
-void __stdcall GetSliderRects(Entry_004a23b0* base, int index, int* r1, int* r2)
+void __stdcall GetSliderRects(Gadget* base, int index, int* r1, int* r2)
 {
-    Entry_004a23b0* e = base + index;
+    Gadget* e = base + index;
     r1[0] = e->x;
     r1[1] = e->y;
     r1[2] = r1[0] + e->width;
     r1[3] = r1[1] + e->height;
     if (e->attribs & 1) {
-        int left = r1[0] + e->off + 1;
+        int left = r1[0] + e->knobPos + 1;
         r2[0] = left;
         r2[1] = r1[1] + 1;
-        r2[2] = left + e->size;
+        r2[2] = left + e->knobSize;
         r2[3] = r2[1] + e->height - 2;
     } else {
         r2[0] = r1[0] + 1;
-        r2[1] = r1[1] + e->off + 2;
+        r2[1] = r1[1] + e->knobPos + 2;
         r2[2] = r2[0] + e->width - 2;
-        r2[3] = r2[1] + e->size;
+        r2[3] = r2[1] + e->knobSize;
     }
 }
 // Draws one gadget entry's three glyphs (start, repeated middle, end) across
@@ -1884,21 +1880,15 @@ int __stdcall AssignPlayerColor(int from, int to, int group);
 void __stdcall AddAnimplayPointer(void* item);
 int AllocFeatureSpot();
 
-#pragma pack(push, 1)
-struct Entry_004a2480 {
-    char unknown_0[0x13];
-    short x;                           // +0x13
-    short y;                           // +0x15
-    short width;                       // +0x17
-    short height;                      // +0x19
-    int attribs;                       // +0x1b
-    char unknown_1f[0xbc - 0x1f];
-    void* surface;                     // +0xbc
-    char unknown_c0[0x13a - 0xc0];
-    unsigned short* glyphs;            // +0x13a
-    char unknown_13e[0x15b - 0x13e];
-};
-#pragma pack(pop)
+
+// Unused here: real declarations that keep the file's symbol count.
+struct Player_00463e50;
+struct Player_0047bd70;
+struct Player_0048b920;
+struct Point_0044eef0;
+struct Point_00480510;
+struct Point_00480720;
+struct Point_004bf060;
 
 // Unused here: forward declarations of real functions; their symbol ids keep
 // the allocation the removed Class_004a2480 and Holder_004a2480 types moved
@@ -1932,10 +1922,10 @@ extern int Pad_a2480_e4;
 // FUNCTION: 0x4a2480
 void __stdcall DrawGafBar(Dialog_004a04f0* param_1, int index)
 {
-    Entry_004a2480* base = (Entry_004a2480*)param_1->holder->entries;
-    void* surface = base->surface;
-    Entry_004a2480* e = &base[index];
-    unsigned short* glyphs = e->glyphs;
+    Gadget* base = param_1->holder->entries;
+    void* surface = base->u.assets.surface;
+    Gadget* e = &base[index];
+    GafEntry* glyphs = e->inputGaf;
     GafFrame* glyph = (GafFrame*)GetGafFrame(glyphs, 0);
     int x = e->x;
     int y = e->y + e->height / 2;
@@ -1957,48 +1947,41 @@ void __stdcall DrawGafBar(Dialog_004a04f0* param_1, int index)
     GafFrame* last = (GafFrame*)GetGafFrame(glyphs, 2);
     DrawFrame(surface, last, limit - last->width, y);
 }
-#pragma pack(push, 1)
 // Unused here: real functions declared to keep the file's symbol count.
 int __stdcall BroadcastPacket(int id, unsigned char* packet, int size);
 void __stdcall AddCdActivitySample(int param_1);
 int AllocScoreTables();
 
-struct Entry_004a2580 {                // 0x15b bytes
-    unsigned char type;                // +0x00
-    char unknown_01[0x13 - 0x01];
-    short x;                           // +0x13
-    short y;                           // +0x15
-    short width;                       // +0x17
-    short height;                      // +0x19
-    int attribs;                       // +0x1b
-    char unknown_1f[0x28 - 0x1f];
-    char group;                        // +0x28
-    char unknown_29[0xb6 - 0x29];
-    union {
-        struct {
-            short count;               // +0xb6 (entry 0)
-            char head_pad[0xbc - 0xb8];
-            void* surface;             // +0xbc (entry 0)
-            char head_tail[0x13c - 0xc0];
-        } head;
-        char text[0x13c - 0xb6];       // +0xb6
-    } u;
-    int field_13c;                     // +0x13c
-    short off;                         // +0x140
-    short size;                        // +0x142
-    void* sliderCallback;              // +0x144 (a typed function pointer here takes symbol ids)
-    char unknown_148[0x14a - 0x148];
-    int field_14a;                     // +0x14a
-    unsigned short* glyphs;            // +0x14e
-    unsigned char field_152;           // +0x152
-    char unknown_153[0x157 - 0x153];
-    int field_157;                     // +0x157
-};
-#pragma pack(pop)
+
+// Unused here: real declarations that keep the file's symbol count.
+void __cdecl ClearCameraFollowState();
+struct Point_004c07b0;
+struct Point_004c1000;
+struct Point_004c6dc0;
+struct Pos_00420a30;
+struct Pos_00438ea0;
+struct Pos_0043e490;
+struct Pos_00484b50;
+struct Pos_00485330;
+struct Pos_0048a9f0;
+struct ProjType_0049b090;
+struct Proj_0049c740;
+struct Projectile_0049b6e0;
+void CreateGameObject();
+void InitMissionStatus();
+void SetUpEndMissionScreen();
+void StartScreenFade();
+void StepScreenFade();
+void ScheduleFadeTick();
+int IsFadeDone();
+void StepPaletteFade();
+void BlankScreen();
+void FlushKeyQueue();
+void ApplyPendingSubState();
 
 struct Holder_004a2580 {
     char unknown_0[4];
-    Entry_004a2580* entries;           // +0x04
+    Gadget* entries;           // +0x04
 };
 
 struct Object_004a2580 {
@@ -2026,7 +2009,7 @@ struct Dialog_4a2580 {
 };
 
 void __stdcall SetFont(int id);
-void __stdcall GetSliderRects(Entry_004a2580* base, int index, int* r1, int* r2);
+void __stdcall GetSliderRects(Gadget* base, int index, int* r1, int* r2);
 void __stdcall DrawRaisedBox(void* surface, int* r, int a, int b, int c);
 void __stdcall DrawSunkenBox(void* surface, int* r, int a, int b, int c);
 char* __stdcall GetGafFrame(void* glyphs, int c);
@@ -2042,39 +2025,60 @@ void __stdcall FadeRectangle(void* surface, void* rect, int a);
 
 static inline void* Surface_004a2580(Object_004a2580* o)
 {
-    return o->holder->entries->u.head.surface;
+    return o->holder->entries->u.assets.surface;
 }
 
 #include <setjmp.h>
 
+// Unused here: real declarations that keep the file's symbol count.
+struct Arg_00498f70;
+struct Args_00451770;
+struct Bitmap_004b8150;
+struct Bitmap_004b8da0;
+struct Bitmap_004b8ec0;
+struct Bitmap_004b9a50;
+struct BlockInfo_004d8790;
+struct Button_004a7f70;
+struct Cell_00423c50;
+struct Cell_0047de60;
+struct Cell_004815f0;
+struct Class_004095d0;
+struct Class_0045ba20;
+struct Class_0048a190;
+struct Class_0049fa90;
+struct Class_004a04f0;
+struct Class_004a1030;
+struct Class_004a1200;
+struct Class_004a1530;
+
 // FUNCTION: 0x4a2580
 void __stdcall DrawSliderBar(Object_004a2580* obj, int index)
 {
-    Entry_004a2580* entries = obj->holder->entries;
-    Entry_004a2580* e = &entries[index];
+    Gadget* entries = obj->holder->entries;
+    Gadget* e = &entries[index];
     void* surface = Surface_004a2580(obj);
     // One glyph pointer for every fetch, and one limit in the w<h arm: frame slot order.
     GafFrame* g;
 
     int n = 0;
     int i = 1;
-    for (; i < entries->u.head.count + 1; i++) {
+    for (; i < entries->u.count + 1; i++) {
         if (entries[i].type == 7) {
-            if (n == e->group) {
-                SetFont(*(int*)((char*)&entries[i] + 0xd6));
+            if (n == e->tab) {
+                SetFont(entries[i].u.list.language);
                 break;
             }
             n++;
         }
     }
-    if (i == entries->u.head.count + 1)
+    if (i == entries->u.count + 1)
         SetFont(g_guiContext->group);
 
     int r1[4];
     int r2[4];
     GetSliderRects(entries, index, r1, r2);
 
-    unsigned short* gl = e->glyphs;
+    GafEntry* gl = e->sliderGaf;
     if (gl == 0) {
         DrawRaisedBox(surface, r1, obj->field_8b2, obj->field_8c3, obj->field_8c6);
         DrawSunkenBox(surface, r2, obj->field_8b2, obj->field_8c3, obj->field_8c6);
@@ -2086,23 +2090,23 @@ void __stdcall DrawSliderBar(Object_004a2580* obj, int index)
             int y = e->y;
             int x = e->x;
             int limit = y + e->height - 1;
-            g = (GafFrame*)GetGafFrame(e->glyphs, e->field_152);
+            g = (GafFrame*)GetGafFrame(e->sliderGaf, e->sliderStyle);
             if (g != 0)
                 DrawFrame(surf, g, x, y);
             y += g->height;
-            g = (GafFrame*)GetGafFrame(e->glyphs, e->field_152 + 1);
+            g = (GafFrame*)GetGafFrame(e->sliderGaf, e->sliderStyle + 1);
             while (y + g->height <= limit) {
                 DrawFrame(surf, g, x, y);
                 y += g->height;
             }
-            g = (GafFrame*)GetGafFrame(e->glyphs, e->field_152 + 2);
+            g = (GafFrame*)GetGafFrame(e->sliderGaf, e->sliderStyle + 2);
             DrawFrame(surf, g, x, limit - g->height + 1);
             x += g->width / 2;
-            g = (GafFrame*)GetGafFrame(e->glyphs, e->field_152 + 3);
+            g = (GafFrame*)GetGafFrame(e->sliderGaf, e->sliderStyle + 3);
             x -= g->width / 2;
-            int ybase = e->off + e->y + 3;
+            int ybase = e->knobPos + e->y + 3;
             // The clamps use the <windows.h> min() macro, pulled in by <ddraw.h>.
-            int lc = min(e->height - 6, e->size);
+            int lc = min(e->height - 6, e->knobSize);
             limit = lc + ybase - 1;
             int t = e->height + e->y - 4;
             limit = min(limit, t);
@@ -2111,35 +2115,35 @@ void __stdcall DrawSliderBar(Object_004a2580* obj, int index)
             DrawFrame(surf, g, x, ybase);
             lc -= g->height;
             ybase += g->height;
-            g = (GafFrame*)GetGafFrame(e->glyphs, e->field_152 + 4);
+            g = (GafFrame*)GetGafFrame(e->sliderGaf, e->sliderStyle + 4);
             while (ybase <= limit - g->height) {
                 DrawFrame(surf, g, x, ybase);
                 ybase += g->height;
                 lc -= g->height;
             }
             DrawFrame(surf, g, x, limit - g->height);
-            g = (GafFrame*)GetGafFrame(e->glyphs, e->field_152 + 5);
+            g = (GafFrame*)GetGafFrame(e->sliderGaf, e->sliderStyle + 5);
             DrawFrame(surf, g, x, limit - g->height + 1);
         } else {
             void* surf = Surface_004a2580(obj);
             int x = e->x;
             int y = e->y;
             int limit = x + e->width - 1;
-            g = (GafFrame*)GetGafFrame(e->glyphs, e->field_152);
+            g = (GafFrame*)GetGafFrame(e->sliderGaf, e->sliderStyle);
             if (g != 0)
                 DrawFrame(surf, g, x, y);
             x += g->width;
-            g = (GafFrame*)GetGafFrame(e->glyphs, e->field_152 + 1);
+            g = (GafFrame*)GetGafFrame(e->sliderGaf, e->sliderStyle + 1);
             while (x + g->width <= limit) {
                 DrawFrame(surf, g, x, y);
                 x += g->width;
             }
-            g = (GafFrame*)GetGafFrame(e->glyphs, e->field_152 + 2);
+            g = (GafFrame*)GetGafFrame(e->sliderGaf, e->sliderStyle + 2);
             DrawFrame(surf, g, limit - g->width + 1, y);
             y += g->height / 2;
-            g = (GafFrame*)GetGafFrame(e->glyphs, e->field_152 + 3);
+            g = (GafFrame*)GetGafFrame(e->sliderGaf, e->sliderStyle + 3);
             y -= g->height / 2;
-            int a = e->off + e->x + 3;
+            int a = e->knobPos + e->x + 3;
             a = min(a, limit - g->width - 2);
             DrawFrame(surf, g, a, y);
         }
@@ -2156,13 +2160,13 @@ void __stdcall DrawSliderBar(Object_004a2580* obj, int index)
         // saved registers.
         if (e->u.text[0] != 0) {
             strcpy(buf, e->u.text);
-        } else if (e->field_13c != 0) {
-            int num = (int)((float)e->off * e->field_13c / (e->width - e->size));
+        } else if (e->max != 0) {
+            int num = (int)((float)e->knobPos * e->max / (e->width - e->knobSize));
             _itoa(num, buf, 10);
         } else if (e->attribs & 8) {
-            _itoa(e->off + 1, buf, 10);
+            _itoa(e->knobPos + 1, buf, 10);
         } else {
-            _itoa(e->off, buf, 10);
+            _itoa(e->knobPos, buf, 10);
         }
         char* text = buf;
         int total = 0;
@@ -2197,8 +2201,8 @@ void __stdcall DrawSliderBar(Object_004a2580* obj, int index)
         }
         rect[2] = e->width + rect[0] - 1;
         rect[3] = e->height + rect[1] - 1;
-        GrayRectangle(entries->u.head.surface, rect);
-        FadeRectangle(entries->u.head.surface, rect, -0x14);
+        GrayRectangle(entries->u.assets.surface, rect);
+        FadeRectangle(entries->u.assets.surface, rect, -0x14);
     }
 }
 #pragma pack(push, 1)
@@ -2408,24 +2412,15 @@ void __stdcall SetListBoxScrollByName(Dialog_4a2e40* param_1, char* param_2, int
 // quantises this entry's height (+0x19) down to a multiple of the current font
 // line step and stamps the current time into +0xb6.
 
-#pragma pack(push, 1)
-struct Entry_004a30c0 {                // 0x15b bytes
-    unsigned char type;               // +0x00
-    char unknown_01[0x19 - 0x01];
-    short height;                     // +0x19
-    int attribs;                      // +0x1b
-    char unknown_1f[0x28 - 0x1f];
-    char group;                       // +0x28
-    char unknown_29[0xb6 - 0x29];
-    short count;                      // +0xb6 (only meaningful in entry 0)
-    char unknown_b8[0xba - 0xb8];
-    short field_ba;                   // +0xba
-    short field_bc;                   // +0xbc
-    char unknown_be[0xd6 - 0xbe];
-    int id;                           // +0xd6
-    char unknown_da[0x15b - 0xda];
-};
-#pragma pack(pop)
+
+// Unused here: real declarations that keep the file's symbol count.
+void FillEndGameStatistics();
+int AreStatBarsComplete();
+int ShouldShowNextMission();
+void OpenEndMissionScreen();
+void EnableEndMissionButtons();
+void ShowEndMissionScreen();
+void OpenCdCheckDialog();
 
 struct Font_004a30c0 {
     char unknown_0[0xc];
@@ -2461,22 +2456,22 @@ unsigned int __cdecl GetTicks();
 // FUNCTION: 0x4a30c0
 void __stdcall ResetListBox(Dialog_004a04f0* obj, int index)
 {
-    Entry_004a30c0* entries = (Entry_004a30c0*)obj->holder->entries;
-    Entry_004a30c0* e = &entries[index];
-    e->field_bc = 0;
-    e->field_ba = 0;
+    Gadget* entries = obj->holder->entries;
+    Gadget* e = &entries[index];
+    e->u.list.field_bc = 0;
+    e->u.list.field_ba = 0;
     int n = 0;
     int i = 1;
-    for (; i < entries->count + 1; i++) {
+    for (; i < entries->u.count + 1; i++) {
         if (entries[i].type == 7) {
-            if (n == e->group) {
-                SetFont(entries[i].id);
+            if (n == e->tab) {
+                SetFont(entries[i].u.list.language);
                 break;
             }
             n++;
         }
     }
-    if (i == entries->count + 1) {
+    if (i == entries->u.count + 1) {
         SetFont(g_guiContext->group);
     }
     int step;
@@ -2487,7 +2482,7 @@ void __stdcall ResetListBox(Dialog_004a04f0* obj, int index)
     }
     int h = e->height;
     e->height = h - h % (step + 2);
-    *(int*)&e->count = GetTicks();
+    e->u.list.sortKey = GetTicks();
 }
 void* __cdecl GameAllocIgnoreTag(const char* name, unsigned int size);
 char* __stdcall SkipTextLines(char* text, int n);
@@ -2515,30 +2510,15 @@ void __stdcall TruncateListItems(int a1, int a2, char* a3, int a4)
 // The missing-name path calls the fatal-error routine FatalError, which
 // exits the process. Its following null-entry accesses are unreachable.
 
-#pragma pack(push, 1)
-struct Entry_004a32a0 { // 0x15b bytes
-    unsigned char type; // +0x00
-    unsigned char kind; // +0x01, matched by the type-4 search
-    char name[0x10];    // +0x02
-    char unknown_12[0x19 - 0x12];
-    short height; // +0x19, the rows are fitted into this
-    int attribs;  // +0x1b
-    char unknown_1f[0x29 - 0x1f];
-    unsigned char f_29; // +0x29, gates the whole second half
-    char unknown_2a[0xb6 - 0x2a];
-    short count; // +0xb6, entry 0 holds the entry count
-    char unknown_b8[0xba - 0xb8];
-    short f_ba;  // +0xba
-    short f_bc;  // +0xbc
-    short first; // +0xbe, first row that still fits
-    short num;   // +0xc0, the row count
-    int bitmap;  // +0xc2
-    char unknown_c6[0xd6 - 0xc6];
-    int id;     // +0xd6
-    short f_da; // +0xda, the line height
-    char unknown_dc[0x15b - 0xdc];
-};
-#pragma pack(pop)
+
+// Unused here: real declarations that keep the file's symbol count.
+void EnterMainMenuState();
+void PresentFrontendFrame();
+void UpdateMenuSparks();
+void OpenCloseCdPlayerDialog();
+void OpenMainMenu();
+void HandleFrontendDebugKey();
+int ConnectToService();
 
 // Unused here: real functions declared to keep the file's symbol count.
 void __stdcall BuildEntryGuiName(char* dest, unsigned short index, int n);
@@ -2568,8 +2548,8 @@ static inline int FontHeight_004a32a0() {
 }
 
 // The entry search of 0x4a0180, 0x4a0200, 0x4a0280 and 0x4a35a0.
-static inline int FindName_004a32a0(Entry_004a32a0* entries, char* name) {
-    for (int i = 1; i < entries->count + 1; i++) {
+static inline int FindName_004a32a0(Gadget* entries, char* name) {
+    for (int i = 1; i < entries->u.count + 1; i++) {
         if (strncmp(entries[i].name, name, 0x10) == 0)
             return i;
     }
@@ -2577,9 +2557,9 @@ static inline int FindName_004a32a0(Entry_004a32a0* entries, char* name) {
 }
 
 // The type-4 entry search; returns 0 when nothing matches.
-static inline int FindType_004a32a0(Entry_004a32a0* entries, unsigned char kind) {
-    for (int i = 1; i < entries->count + 1; i++) {
-        if (entries[i].type == 4 && entries[i].kind == kind)
+static inline int FindType_004a32a0(Gadget* entries, unsigned char kind) {
+    for (int i = 1; i < entries->u.count + 1; i++) {
+        if (entries[i].type == 4 && entries[i].team == kind)
             return i;
     }
     return 0;
@@ -2588,46 +2568,46 @@ static inline int FindType_004a32a0(Entry_004a32a0* entries, unsigned char kind)
 // FUNCTION: 0x4a32a0
 void __stdcall ConfigureListBoxByName(Dialog_4a32a0* param_1, char* name, int bitmap, int count, int flag) {
     Holder_004a32a0* holder = param_1->holder;
-    Entry_004a32a0* entries = holder->entries;
+    Gadget* entries = holder->entries;
     int index = FindName_004a32a0(entries, name);
-    Entry_004a32a0* me;
+    Gadget* me;
     if (index != -1) {
         me = &entries[index];
     } else {
         FatalError("Error in GUI layout");
         me = 0;
     }
-    me->num = (short)count;
-    me->bitmap = bitmap;
+    me->u.list.field_c0 = (short)count;
+    me->u.list.field_c2 = (char*)bitmap;
     me->attribs |= 0x10;
-    me->f_da =
-        (short)((me->f_da > FontHeight_004a32a0() + 1) ? (int)me->f_da : FontHeight_004a32a0() + 1);
+    me->u.list.scroll =
+        (short)((me->u.list.scroll > FontHeight_004a32a0() + 1) ? (int)me->u.list.scroll : FontHeight_004a32a0() + 1);
     if (flag != 0) {
-        me->id = flag;
+        me->u.list.language = flag;
         me->attribs |= 0x800;
     }
-    me->f_bc = 0;
-    me->f_ba = 0;
-    // Initialised before the me->first store: sets the final stack-store order.
+    me->u.list.field_bc = 0;
+    me->u.list.field_ba = 0;
+    // Initialised before the me->u.list.field_be store: sets the final stack-store order.
     int remain = me->height;
-    me->first = (short)(count - 1);
+    me->u.list.field_be = (short)(count - 1);
     int step;
-    if (me->f_da == 0) {
+    if (me->u.list.scroll == 0) {
         step = FontHeight_004a32a0() + 1;
     } else {
-        step = me->f_da;
+        step = me->u.list.scroll;
     }
     for (int j = count - 1; j > -1; j--) {
         remain -= step;
         if (remain < 0)
             break;
-        me->first = (short)j;
+        me->u.list.field_be = (short)j;
     }
-    if (me->f_29 == 0)
+    if (me->field_29 == 0)
         return;
     int i2 = FindName_004a32a0(holder->entries, name);
-    Entry_004a32a0* list = holder->entries;
-    unsigned char kind = list[i2].kind;
+    Gadget* list = holder->entries;
+    unsigned char kind = list[i2].team;
     int found = FindType_004a32a0(list, kind);
     if (found == -1)
         return;
@@ -2655,27 +2635,17 @@ void __stdcall ConfigureListBoxByName(Dialog_4a32a0* param_1, char* name, int bi
 // A missing entry is reported and then treated as a null entry (the stores
 // that follow then go through a null pointer, as in the original).
 
-#pragma pack(push, 1)
-struct Entry_004a35a0 {                // 0x15b-byte GUI entry
-    char unknown_0[0x2];
-    char name[0x10];                   // +0x02
-    char unknown_12[0x19 - 0x12];
-    short height;                      // +0x19
-    int attribs;                       // +0x1b
-    char unknown_1f[0xb6 - 0x1f];
-    short count;                       // +0xb6 (entry 0 holds the entry count)
-    char unknown_b8[0xba - 0xb8];
-    short f_ba;                        // +0xba
-    short f_bc;                        // +0xbc
-    short first;                       // +0xbe
-    short num;                         // +0xc0
-    char unknown_c2[0xc6 - 0xc2];
-    int f_c6;                          // +0xc6
-    char unknown_ca[0xda - 0xca];
-    short f_da;                        // +0xda
-    char unknown_dc[0x15b - 0xdc];
-};
 
+// Unused here: real declarations that keep the file's symbol count.
+void RunFrontendStateMachine();
+void FreePictureCache();
+void ClearPictureCache();
+void OrLabelAttribs();
+void EmptyPreFrontendInitHook();
+int CodeChecksumFailed();
+void EmptyPostSimStepHook();
+
+#pragma pack(push, 1)
 struct Row_004a35a0 {
     char unknown_0[2];
     unsigned short height;             // +0x2
@@ -2684,15 +2654,15 @@ struct Row_004a35a0 {
 
 struct Table_004a35a0 {
     int unknown_0;
-    Entry_004a35a0* entries;           // +0x4
+    Gadget* entries;           // +0x4
 };
 #pragma pack(pop)
 
 void __stdcall FatalError(const char* msg);
 
-static inline int FindEntry(Entry_004a35a0* entries, char* name)
+static inline int FindEntry_004a35a0(Gadget* entries, char* name)
 {
-    for (int i = 1; i < entries->count + 1; i++) {
+    for (int i = 1; i < entries->u.count + 1; i++) {
         if (strncmp(entries[i].name, name, 0x10) == 0)
             return i;
     }
@@ -2703,31 +2673,31 @@ static inline int FindEntry(Entry_004a35a0* entries, char* name)
 void __stdcall SetGadgetRows(Table_004a35a0* table, char* name,
                             Row_004a35a0* rows, int count)
 {
-    Entry_004a35a0* entries = table->entries;
-    int index = FindEntry(entries, name);
-    Entry_004a35a0* e;
+    Gadget* entries = table->entries;
+    int index = FindEntry_004a35a0(entries, name);
+    Gadget* e;
     if (index != -1) {
         e = &entries[index];
     } else {
         FatalError("Error in GUI layout");
         e = 0;
     }
-    e->f_c6 = (int)rows;
+    e->u.list.field_c6 = rows;
     // Computed right after the f_c6 store and before the num store.
     Row_004a35a0* row = rows + count - 1;
-    e->num = (short)count;
+    e->u.list.field_c0 = (short)count;
     e->attribs |= 0x80;
-    e->f_bc = 0;
-    e->f_ba = 0;
-    e->first = (short)(count - 1);
+    e->u.list.field_bc = 0;
+    e->u.list.field_ba = 0;
+    e->u.list.field_be = (short)(count - 1);
     int remain = e->height;
     // The test is i > -1, not i >= 0.
     for (int i = count - 1; i > -1; i--, row--) {
         // An if/else with one remain -= per arm, not one remain -= cond ? a : b.
-        if (e->f_da != 0) remain -= e->f_da; else remain -= row->height;
+        if (e->u.list.scroll != 0) remain -= e->u.list.scroll; else remain -= row->height;
         if (remain < 0)
             break;
-        e->first = (short)i;
+        e->u.list.field_be = (short)i;
     }
 }
 // Finds the GUI layout entry whose name matches `name`. The entry table holds
@@ -2890,7 +2860,7 @@ int __stdcall HandleListBoxInput(Object_004a3780* obj, int index, int param_3)
     Rect_004a3780 r;
     unsigned int flags;
     // Called on &entries[index], not me: with me the y1 lea operands swap.
-    GetGadgetRect((Entry_004a04f0*)&entries[index], (Rect*)&r);
+    GetGadgetRect(&entries[index], (Rect*)&r);
     int n = 0;
     r.y0 += 2;
     r.y1 -= 3;
@@ -3068,21 +3038,22 @@ end:
 // an inline helper taking the entry pointer; a local pointer to the entry
 // loads the entries pointer before the index multiply instead of after it.
 
-#pragma pack(push, 1)
-struct Entry_004a3eb0 {
-    char unknown_0[0x140];
-    short field_140;                   // +0x140
-    char unknown_142[2];
-    void* sliderCallback;              // +0x144 (a typed function pointer here takes symbol ids)
-    char unknown_148[2];
-    int field_14a;                     // +0x14a
-    char unknown_14e[0x15b - 0x14e];
-};
-#pragma pack(pop)
+
+// Unused here: real declarations that keep the file's symbol count.
+void EmptyPostSimStepHook_B();
+void EmptyPostSimStepHook_C();
+int MainLoopContinueStub();
+int MainLoopContinueStub_B();
+int MainLoopContinueStub_C();
+void EmptyMainLoopHook();
+void EmptyMainLoopHook_B();
+
+struct Source_004adf10;
+struct Source_004ae410;
 
 struct Table_004a3eb0 {
     char unknown_0[4];
-    Entry_004a3eb0* entries;           // +0x4
+    Gadget* entries;           // +0x4
 };
 
 struct Dialog_4a3eb0 {
@@ -3090,11 +3061,11 @@ struct Dialog_4a3eb0 {
     Table_004a3eb0* table;             // +0x18
 };
 
-static inline void ClearEntry(Entry_004a3eb0* e)
+static inline void ClearEntry(Gadget* e)
 {
-    e->field_140 = 0;
+    e->knobPos = 0;
     e->sliderCallback = 0;
-    e->field_14a = 0;
+    e->sliderUser = 0;
 }
 
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
@@ -3119,29 +3090,19 @@ void __stdcall FUN_004a3eb0(Dialog_4a3eb0* obj, int i)
 // the focus, a left or right press inside the gadget takes the focus, and a
 // press on the thumb starts a drag.
 
-#pragma pack(push, 1)
-struct Entry_004a4170 {                // 0x15b bytes, the table of 0x4a23b0
-    char unknown_00[0x13];
-    short x1;                          // +0x13
-    short y1;                          // +0x15
-    char unknown_17[0x1b - 0x17];
-    int attribs;                       // +0x1b, bit 1 = vertical, 0x10 = dead
-    char unknown_1f[0x136 - 0x1f];
-    short range;                       // +0x136, largest usable offset
-    char unknown_138[0x140 - 0x138];
-    short off;                         // +0x140, the scroll offset
-    char unknown_142[0x144 - 0x142];
-    void (__stdcall* sliderCallback)(void*, int); // +0x144, called when off changed
-    char unknown_148[0x14a - 0x148];
-    int field_14a;                     // +0x14a, cb's second argument
-    char unknown_14e[0x157 - 0x14e];
-    int field_157;                     // +0x157, entry is being dragged
-};
-#pragma pack(pop)
+
+// Unused here: real declarations that keep the file's symbol count.
+void EmptyMainLoopHook_C();
+void ProtectUnitDefsReadOnly();
+void ProtectUnitDefsReadWrite();
+void CheckGpfVersion();
+void LoadGameResources();
+void FreeAnimFiles();
+void LoadGameFonts();
 
 struct Holder_004a4170 {
     char unknown_00[4];
-    Entry_004a4170* entries;           // +0x04
+    Gadget* entries;           // +0x04
     char unknown_08[0x14 - 0x08];
     int field_14;                      // +0x14, set when off changed
 };
@@ -3166,42 +3127,42 @@ struct Object_004a4170 {
 };
 
 void __stdcall TrySetFocus(Object_004a4170* obj, int index);
-void __stdcall GetSliderRects(Entry_004a4170* base, int index, int* r1, int* r2);
+void __stdcall GetSliderRects(Gadget* base, int index, int* r1, int* r2);
 void __stdcall DrawSliderBar(Object_004a4170* obj, int index);
 void __stdcall SyncAssocGadgets(Object_004a4170* obj, int index);
 int __stdcall IsMouseButtonMessage(Object_004a4170* obj, unsigned char buttons);
 int __stdcall HasMouseKeyFlags(Object_004a4170* obj, unsigned int mask);
 void __stdcall SetClickMode(Object_004a4170* obj, int param_2);
 
-static inline void OffsetChanged_004a4170(Object_004a4170* obj, int index, Entry_004a4170* e, int old)
+static inline void OffsetChanged_004a4170(Object_004a4170* obj, int index, Gadget* e, int old)
 {
-    if (e->off > e->range - 1)
-        e->off = e->range - 1;
-    if (e->off < 0)
-        e->off = 0;
-    if (e->off == old)
+    if (e->knobPos > e->range - 1)
+        e->knobPos = e->range - 1;
+    if (e->knobPos < 0)
+        e->knobPos = 0;
+    if (e->knobPos == old)
         return;
     if (obj->holder)
         obj->holder->field_14 = 1;
     DrawSliderBar(obj, index);
     SyncAssocGadgets(obj, index);
     if (e->sliderCallback)
-        e->sliderCallback(obj, e->field_14a);
+        e->sliderCallback((Gui*)obj, e->sliderUser);
 }
 
 // FUNCTION: 0x4a4170
 void __stdcall HandleSliderInput(Object_004a4170* obj, int index)
 {
-    Entry_004a4170* entries = obj->holder->entries;
-    Entry_004a4170* e = &entries[index];
+    Gadget* entries = obj->holder->entries;
+    Gadget* e = &entries[index];
     if (e->attribs & 0x10)
         return;
     if (e->field_157)
         return;
 
     Point_004a4170 p = obj->point;
-    p.x -= entries->x1;
-    p.y -= entries->y1;
+    p.x -= entries->x;
+    p.y -= entries->y;
     int r1[4];
     int r2[4];
     GetSliderRects(entries, index, r1, r2);
@@ -3213,25 +3174,25 @@ void __stdcall HandleSliderInput(Object_004a4170* obj, int index)
         }
         // Inline OffsetChanged ends both arms: the duplicated zero uses keep 0 in EDX.
         if (obj->field_78) {
-            int old = e->off;
+            int old = e->knobPos;
             if (e->attribs & 1)
-                e->off = obj->field_94 - obj->saved.x + p.x;
+                e->knobPos = obj->field_94 - obj->saved.x + p.x;
             else
-                e->off = obj->field_94 - obj->saved.y + p.y;
+                e->knobPos = obj->field_94 - obj->saved.y + p.y;
             OffsetChanged_004a4170(obj, index, e, old);
         } else {
-            // Per-path stores to e->off (not one after the if/else): keeps the 16-bit loads.
-            int old = e->off;
+            // Per-path stores to e->knobPos (not one after the if/else): keeps the 16-bit loads.
+            int old = e->knobPos;
             if (e->attribs & 1) {
                 if (p.x < r2[0])
-                    e->off--;
+                    e->knobPos--;
                 else if (p.x > r2[2])
-                    e->off++;
+                    e->knobPos++;
             } else {
                 if (p.y < r2[1])
-                    e->off--;
+                    e->knobPos--;
                 else if (p.y > r2[3])
-                    e->off++;
+                    e->knobPos++;
             }
             OffsetChanged_004a4170(obj, index, e, old);
         }
@@ -3250,7 +3211,7 @@ void __stdcall HandleSliderInput(Object_004a4170* obj, int index)
             return;
         obj->saved = p;
         obj->field_78 = 1;
-        obj->field_94 = e->off;
+        obj->field_94 = e->knobPos;
         return;
     }
     if (IsMouseButtonMessage(obj, 2)) {
@@ -3263,29 +3224,25 @@ void __stdcall HandleSliderInput(Object_004a4170* obj, int index)
             return;
         obj->saved = p;
         obj->field_78 = 1;
-        obj->field_94 = e->off;
+        obj->field_94 = e->knobPos;
     }
 }
 int __cdecl tolower(int);
 int __cdecl toupper(int);
 
-#pragma pack(push, 1)
-struct Entry_0049fc50 {                // 0x15b bytes
-    unsigned char type;                // +0x0
-    char unknown_1[0x13 - 0x1];
-    short x1;                          // +0x13
-    short y1;                          // +0x15
-    short x2;                          // +0x17
-    short y2;                          // +0x19
-    int attribs;                       // +0x1b
-    char unknown_1f[0xb6 - 0x1f];
-    char text[0x15b - 0xb6];           // +0xb6
-};
-#pragma pack(pop)
+
+// Unused here: real declarations that keep the file's symbol count.
+void SyncMutualAlliances();
+void RebuildAllyList();
+void OpenAlliesDialog();
+void RefreshBattleRoomRows();
+void OpenBattleRoom();
+void UpdateBattleRoom();
+void OpenEndMultiScreen();
 
 struct Holder_0049fc50 {
     int unknown_0;
-    Entry_0049fc50* entries;           // +0x4
+    Gadget* entries;           // +0x4
 };
 
 struct Point_0049fc50 {
@@ -3317,29 +3274,29 @@ int __stdcall IsKeyDown(int key);
 // FUNCTION: 0x4a4440
 int __stdcall HandleLabelInput(Object_0049fc50* obj, int index, char key)
 {
-    Entry_0049fc50* entries = obj->holder->entries;
-    Entry_0049fc50* entry = &entries[index];
+    Gadget* entries = obj->holder->entries;
+    Gadget* entry = &entries[index];
     struct Rect_0049fc50 { int x1, y1, x2, y2; } rect;
     Point_0049fc50 point;
     int rel_x, rel_y;
 
-    if (entry->text[0x147 - 0xb6] == 0 && (entry->attribs & 0x10))
+    if (entry->field_147 == 0 && (entry->attribs & 0x10))
         return 0;
 
     if (entry->type == 0) {
         rect.x1 = 0;
         rect.y1 = 0;
     } else {
-        rect.x1 = entry->x1;
-        rect.y1 = entry->y1;
+        rect.x1 = entry->x;
+        rect.y1 = entry->y;
     }
-    rect.x2 = entry->x2 + rect.x1 - 1;
-    rect.y2 = entry->y2 + rect.y1 - 1;
+    rect.x2 = entry->width + rect.x1 - 1;
+    rect.y2 = entry->height + rect.y1 - 1;
 
     memcpy(&point, &obj->point, 24);
 
-    rel_x = point.x - entries->x1;
-    rel_y = point.y - entries->y1;
+    rel_x = point.x - entries->x;
+    rel_y = point.y - entries->y;
 
     if (IsMouseButtonMessage(obj, 1)) {
         if (rel_x < rect.x1 || rel_x > rect.x2 || rel_y < rect.y1 || rel_y > rect.y2)
@@ -3365,7 +3322,7 @@ fail:
 
 check_queue:
     if (obj->focus != -1) {
-        Entry_0049fc50* e = &entries[obj->focus];
+        Gadget* e = &entries[obj->focus];
         if (e->type == 3 && !IsKeyDown(0xfb))
             return 0;
     }
@@ -3373,26 +3330,27 @@ check_queue:
 final_check:
     if (obj->field_cc6 != 1 || *(int*)&key == 0)
         return 0;
-    if ((char)tolower(entry->text[0x147 - 0xb6]) != key &&
-        (char)toupper(entry->text[0x147 - 0xb6]) != key)
+    if ((char)tolower((char)entry->field_147) != key &&
+        (char)toupper((char)entry->field_147) != key)
         return 0;
     PopKey();
     return 1;
 }
 // Sets entry i's end time to now plus its duration.
 
-#pragma pack(push, 1)
-struct Entry_004a4620 {
-    char unknown_0[0xc2];
-    unsigned int duration;             // +0xc2
-    unsigned int end;                  // +0xc6
-    char unknown_ca[0x15b - 0xca];
-};
-#pragma pack(pop)
+
+// Unused here: real declarations that keep the file's symbol count.
+void EmptyShutdownPreCleanup();
+void EnableMeteors();
+void DisableMeteors();
+void UpdateMeteors();
+void StartMeteorShower();
+void RegisterAllOrderTypes();
+void ClearOrderTypeTable();
 
 struct Table_004a4620 {
     char unknown_0[4];
-    Entry_004a4620* entries;           // +0x4
+    Gadget* entries;           // +0x4
 };
 
 struct Dialog_4a4620 {
@@ -3410,31 +3368,22 @@ extern int Pad_a4620_e0;
 // FUNCTION: 0x4a4620
 void __stdcall ScheduleGadgetEndTick(Dialog_4a4620* obj, int i)
 {
-    Entry_004a4620* e = &obj->table->entries[i];
-    e->end = GetTicks() + e->duration;
+    Gadget* e = &obj->table->entries[i];
+    e->u.anim.next = GetTicks() + e->u.anim.interval;
 }
-#pragma pack(push, 1)
-struct Entry_004a4660 {
-    unsigned char type;
-    char unknown_01[0x13 - 1];
-    short x;
-    short y;
-    short width;
-    short height;
-    int attribs;                   // +0x1b
-    int color1;
-    int color2;
-    char unknown_27[0xba - 0x27];
-    int number;
-    char unknown_be[0xd2 - 0xbe];
-    int showText;
-    char unknown_d6[0x15b - 0xd6];
-};
-#pragma pack(pop)
+
+// Unused here: real declarations that keep the file's symbol count.
+void NopAfterFeatureEnum();
+void BuildAllPassMaps();
+void FreeMovementClasses();
+int FindUnusedLogo();
+int CheckMapCrc();
+void OpenNewMultiDialog();
+int __cdecl GetLocalPlayerPassword();
 
 struct Holder_004a4660 {
     char unknown_0[4];
-    Entry_004a4660 *entries;
+    Gadget *entries;
 };
 
 struct Dialog_4a4660 {
@@ -3496,11 +3445,11 @@ static inline int Measure_004a4660(char *text)
 // FUNCTION: 0x4a4660
 void __stdcall DrawProgressBarGadget(Dialog_4a4660 *obj, int index)
 {
-    Entry_004a4660 *entries = obj->holder->entries;
-    Entry_004a4660 *entry = (Entry_004a4660 *)((char *)entries + index * 0x15b);
+    Gadget *entries = obj->holder->entries;
+    Gadget *entry = (Gadget *)((char *)entries + index * 0x15b);
     obj->oldSurface = obj->surface;
 
-    void *surface = *(void **)((char *)entries + 0xbc);
+    void *surface = entries->u.assets.surface;
     if (surface == 0)
         surface = *(void **)((char *)obj + 0xcd2);
     LockScreen(surface);
@@ -3516,15 +3465,15 @@ void __stdcall DrawProgressBarGadget(Dialog_4a4660 *obj, int index)
     rect.top += 2;
     rect.right -= 2;
     rect.bottom -= 2;
-    FillRectangle(surface, &rect, *(int *)((char *)entry + 0x23));
+    FillRectangle(surface, &rect, entry->image);
 
-    float scale = (float)*(int *)((char *)entry + 0xba) / *(int *)((char *)entry + 0xb6);
+    float scale = (float)entry->u.anim.value / entry->u.anim.total;
     rect.right = (int)(scale * (entry->width - 4)) + rect.left;
-    FillRectangle(surface, &rect, *(int *)((char *)entry + 0x1f));
+    FillRectangle(surface, &rect, entry->colours);
 
-    if (entry->showText != 0) {
+    if (entry->u.anim.showText != 0) {
         char text[20];
-        _itoa(entry->number, text, 10);
+        _itoa(entry->u.anim.value, text, 10);
         int width = Measure_004a4660(text);
         int height;
         if (g_guiContext->language == 0) {
@@ -3547,22 +3496,31 @@ void __stdcall DrawProgressBarGadget(Dialog_4a4660 *obj, int index)
 // Needs a header (any of <windows.h>, <stdio.h>, ...: tools/headers.py) for
 // the table pointer to be loaded between the steps of the index multiply.
 
-#pragma pack(push, 1)
-struct Entry_004a4890 {
-    char unknown_0[0xba];
-    int value;                         // +0xba
-    int max;                           // +0xbe
-    int interval;                      // +0xc2
-    int next;                          // +0xc6
-    float step;                        // +0xca
-    int active;                        // +0xce
-    char unknown_d2[0x15b - 0xd2];
-};
-#pragma pack(pop)
+
+// Unused here: real declarations that keep the file's symbol count.
+int GetServiceProviderIndex();
+void OpenTcpDialog();
+void OpenSerialDialog();
+void FillAccountList();
+void RefreshAccountList();
+void SaveModemNumbers();
+void OpenModemDialog();
+
+// Unused here: real declarations that keep the file's symbol count.
+void ReportDialogFrame();
+int InitScoreReporting();
+void OpenSelectGameDialog();
+void ShowSelectedMapInfo();
+void OpenViewMapDialog();
+void OpenMultiMapSelector();
+void OpenLogoSelectDialog();
+void CompactActivePlayerSlots();
+void __cdecl BuildPlayerSlotGadgets();
+void UpdateBattleRoomFlags();
 
 struct Table_004a4890 {
     char unknown_0[4];
-    Entry_004a4890* entries;           // +0x4
+    Gadget* entries;           // +0x4
 };
 
 struct Dialog_4a4890 {
@@ -3576,15 +3534,15 @@ void __stdcall DrawProgressBarGadget(Dialog_4a4890* obj, int i);
 // FUNCTION: 0x4a4890
 void __stdcall TickProgressBar(Dialog_4a4890* obj, int i)
 {
-    Entry_004a4890* e = &obj->table->entries[i];
-    if (e->active && e->value < e->max) {
-        if ((int)GetTicks() > e->next) {
-            e->value += (int)e->step;
-            if (e->value > e->max) {
-                e->value = e->max;
-                e->active = 0;
+    Gadget* e = &obj->table->entries[i];
+    if (e->u.anim.active && e->u.anim.value < e->u.anim.max) {
+        if ((int)GetTicks() > e->u.anim.next) {
+            e->u.anim.value += (int)e->u.anim.step;
+            if (e->u.anim.value > e->u.anim.max) {
+                e->u.anim.value = e->u.anim.max;
+                e->u.anim.active = 0;
             }
-            e->next = GetTicks() + e->interval;
+            e->u.anim.next = GetTicks() + e->u.anim.interval;
         }
         DrawProgressBarGadget(obj, i);
     }
@@ -3612,29 +3570,19 @@ void __stdcall ResetProgressBar(GameState_4a4930* param_1, int index)
 // quad, then either blits a texture (field_be via GetGafFrame, or field_c2)
 // onto it, or fills the rect with the colour at obj+0x8b9.
 
-#pragma pack(push, 1)
-struct Entry_004a4980 {
-    unsigned char type;               // +0x00
-    char unknown_01[0x13 - 0x01];
-    short x;                          // +0x13
-    short y;                          // +0x15
-    short width;                      // +0x17
-    short height;                     // +0x19
-    int attribs;                      // +0x1b
-    char unknown_1f[0xbc - 0x1f];
-    union {
-        void* surface;                // +0xbc (entry 0 only)
-        char unknown_bc[0xc2 - 0xbc]; // +0xbc to +0xc1
-    };
-    void* field_c2;                   // +0xc2
-    short field_c6;                   // +0xc6
-    char unknown_c8[0x15b - 0xc8];
-};
-#pragma pack(pop)
+
+// Unused here: real declarations that keep the file's symbol count.
+void FreeSaveListBuffers();
+void CopySelectedGameName();
+void OpenSaveGameDialog();
+void OpenLoadListDialog();
+void LoadUnitPortrait();
+void UnitRestrictDialogFrame();
+void OpenUnitRestrictions();
 
 struct Holder_004a4980 {
     char unknown_0[4];
-    Entry_004a4980* entries;           // +0x04
+    Gadget* entries;           // +0x04
 };
 
 #pragma pack(push, 1)
@@ -3675,8 +3623,8 @@ void __stdcall DrawFrameQuad(void* surf, void* entry, Quad_004a4980* dst, Quad_0
 // FUNCTION: 0x4a4980
 void __stdcall DrawHotspot(Dialog_4a4980* obj, int index)
 {
-    Entry_004a4980* entries = obj->holder->entries;
-    Entry_004a4980* e = &entries[index];
+    Gadget* entries = obj->holder->entries;
+    Gadget* e = &entries[index];
 
     Rect_004a4980 rect;
     if (e->type == 0) {
@@ -3705,29 +3653,29 @@ void __stdcall DrawHotspot(Dialog_4a4980* obj, int index)
     src.p[3].x = 1;
     src.p[1].y = 1;
 
-    void* field_be = *(void**)((char*)e + 0xbe);
+    void* field_be = e->u.hotspot.gaf;
     if (field_be != 0) {
-        GafFrame* result = (GafFrame*)GetGafFrame(field_be, e->field_c6);
+        GafFrame* result = (GafFrame*)GetGafFrame(field_be, e->u.hotspot.index);
         if (result != 0) {
             src.p[1].x = result->width - 1;
             src.p[2].x = result->width - 1;
             src.p[2].y = result->height - 1;
             src.p[3].y = result->height - 1;
             if (result->compressed == 0) {
-                DrawFrameQuad(*(void**)((char*)entries + 0xbc), result, &dst, &src);
+                DrawFrameQuad(entries->u.assets.surface, result, &dst, &src);
                 return;
             }
-            DrawFrame(*(void**)((char*)entries + 0xbc), result, result->xOffset + rect.x1, result->yOffset + rect.y1);
+            DrawFrame(entries->u.assets.surface, result, result->xOffset + rect.x1, result->yOffset + rect.y1);
             return;
         }
-    } else if (e->field_c2 != 0) {
-        src.p[1].x = ((GafFrame*)e->field_c2)->width - 1;
-        src.p[2].x = ((GafFrame*)e->field_c2)->width - 1;
-        src.p[2].y = ((GafFrame*)e->field_c2)->height - 1;
-        src.p[3].y = ((GafFrame*)e->field_c2)->height - 1;
-        DrawFrameQuad(*(void**)((char*)entries + 0xbc), e->field_c2, &dst, &src);
+    } else if (e->u.hotspot.frame != 0) {
+        src.p[1].x = ((GafFrame*)e->u.hotspot.frame)->width - 1;
+        src.p[2].x = ((GafFrame*)e->u.hotspot.frame)->width - 1;
+        src.p[2].y = ((GafFrame*)e->u.hotspot.frame)->height - 1;
+        src.p[3].y = ((GafFrame*)e->u.hotspot.frame)->height - 1;
+        DrawFrameQuad(entries->u.assets.surface, e->u.hotspot.frame, &dst, &src);
     } else {
-        FillRectangle(*(void**)((char*)entries + 0xbc), &rect, obj->field_8b9);
+        FillRectangle(entries->u.assets.surface, &rect, obj->field_8b9);
     }
 }
 // GUI hit test for menu entry `index` (0x15b-byte entries in the object's table
@@ -3743,24 +3691,19 @@ void __stdcall DrawHotspot(Dialog_4a4980* obj, int index)
 struct Dialog_4a4b50;
 struct Point_004a4b50 { int x, y; };
 
-struct Entry_004a4b50 {                       // 0x15b bytes
-    unsigned char type;                       // +0x0
-    char unknown_1[0x13 - 0x1];
-    short x;                                  // +0x13
-    short y;                                  // +0x15
-    short width;                              // +0x17
-    short height;                             // +0x19
-    int attribs;                              // +0x1b
-    char unknown_1f[0xb6 - 0x1f];
-    void (__stdcall* callback)(Dialog_4a4b50*, Entry_004a4b50*);          // +0xb6
-    char unknown_ba[0xc8 - 0xba];
-    unsigned char flags;                      // +0xc8
-    char unknown_c9[0x15b - 0xc9];
-};
+
+// Unused here: real declarations that keep the file's symbol count.
+int GetType();
+int KeepAfterComplete();
+int IsFxStyle();
+void TickTowardGoal();
+int HasNetUnitState();
+int TryClaimRepath();
+void CreatePathfinder();
 
 struct Table_004a4b50 {
     char unknown_0[4];
-    Entry_004a4b50* entries;                  // +0x4
+    Gadget* entries;                  // +0x4
 };
 
 struct Dialog_4a4b50 {
@@ -3781,7 +3724,7 @@ extern int __stdcall TrySetFocus(Dialog_4a4b50* obj, int index);
 // FUNCTION: 0x4a4b50
 int __stdcall HandleHotspotInput(Dialog_4a4b50* obj, int index)
 {
-    Entry_004a4b50* entries = obj->table->entries;
+    Gadget* entries = obj->table->entries;
     // Entries are indexed as entries[index], not through a stored pointer.
     // 16-byte stack struct: gives the frame its size.
     struct Rect { int left, top, right, bottom; } r;
@@ -3794,9 +3737,9 @@ int __stdcall HandleHotspotInput(Dialog_4a4b50* obj, int index)
     }
     r.right = entries[index].width - 1 + r.left;
     r.bottom = entries[index].height - 1 + r.top;
-    if (entries[index].callback)
-        entries[index].callback(obj, &entries[index]);
-    if (entries[index].flags & 1) {
+    if (entries[index].u.hotspot.callback)
+        entries[index].u.hotspot.callback((Gui*)obj, &entries[index]);
+    if (entries[index].u.hotspot.flags & 1) {
         if (IsMouseButtonMessage(obj, 1)) {
             // Position copied into a local Point before each hit test.
             Point_004a4b50 p = obj->pos;
@@ -3827,30 +3770,26 @@ int __stdcall HandleHotspotInput(Dialog_4a4b50* obj, int index)
 // side is chosen by bits 0/1/2 of the entry's flags and the colour comes from
 // the index `(int)obj + 0x8b2` into the entry's colour table at +0x1f.
 
-#pragma pack(push, 1)
-struct Entry_004a4c90 {                // 0x15b bytes
-    char type;                         // +0x00
-    char unknown_1[0x12];
-    short x;                           // +0x13
-    short y;                           // +0x15
-    short width;                       // +0x17
-    short height;                      // +0x19
-    int attribs;                       // +0x1b
-    unsigned char* colours;            // +0x1f
-    char unknown_23[0xbc - 0x23];
-    void* surface;                     // +0xbc
-    char unknown_c0[0x15b - 0xc0];
-};
-#pragma pack(pop)
+
+// Unused here: real declarations that keep the file's symbol count.
+void DestroyPathfinder();
+int GetLocalDpid();
+int GetLocalHumanDpid();
+int GetHostDpid();
+int FindFreeSlot();
+void SendLobbySyncRequests();
+char FindFreePlayerId();
 
 struct Holder_004a4c90 {
     char unknown_0[4];
-    Entry_004a4c90* entries;           // +0x4
+    Gadget* entries;           // +0x4
 };
 
 struct Dialog_4a4c90 {
     char unknown_0[0x18];
     Holder_004a4c90* holder;           // +0x18
+    char unknown_1c[0x8b2 - 0x1c];
+    unsigned char colour[0x100];       // +0x8b2
 };
 
 struct Rect_004a4c90 {
@@ -3861,7 +3800,7 @@ struct Rect_004a4c90 {
 void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2,
                             int color);
 
-static inline void FillRect_004a4c90(Entry_004a4c90* e, Rect_004a4c90* r)
+static inline void FillRect_004a4c90(Gadget* e, Rect_004a4c90* r)
 {
     if (e->type == 0) {
         r->x1 = 0;
@@ -3877,20 +3816,20 @@ static inline void FillRect_004a4c90(Entry_004a4c90* e, Rect_004a4c90* r)
 // FUNCTION: 0x4a4c90
 void __stdcall DrawLineGadget(Dialog_4a4c90* obj, int index, unsigned char param_3)
 {
-    Entry_004a4c90* entries = obj->holder->entries;
-    Entry_004a4c90* e = (Entry_004a4c90*)((char*)entries + index * 0x15b);
+    Gadget* entries = obj->holder->entries;
+    Gadget* e = (Gadget*)((char*)entries + index * 0x15b);
     Rect_004a4c90 rect;
     FillRect_004a4c90(e, &rect);
     if (param_3 & 1) {
         if (e->attribs & 1)
-            DrawLine(entries->surface, rect.x1, rect.y1, rect.x2, rect.y1,
-                         e->colours[(int)obj + 0x8b2]);
+            DrawLine(entries->u.assets.surface, rect.x1, rect.y1, rect.x2, rect.y1,
+                         obj->colour[e->colours]);
         else if (e->attribs & 2)
-            DrawLine(entries->surface, rect.x1, rect.y1, rect.x1, rect.y2,
-                         e->colours[(int)obj + 0x8b2]);
+            DrawLine(entries->u.assets.surface, rect.x1, rect.y1, rect.x1, rect.y2,
+                         obj->colour[e->colours]);
         else if (e->attribs & 4)
-            DrawLine(entries->surface, rect.x1, rect.y1, rect.x2, rect.y2,
-                         e->colours[(int)obj + 0x8b2]);
+            DrawLine(entries->u.assets.surface, rect.x1, rect.y1, rect.x2, rect.y2,
+                         obj->colour[e->colours]);
     }
 }
 // Draws one list-gadget
@@ -3903,29 +3842,17 @@ void __stdcall DrawLineGadget(Dialog_4a4c90* obj, int index, unsigned char param
 // around the width measurement is `text[obj->cursor]`, the character at the
 // cursor, so the measured width is that of the text before the cursor.
 
-#pragma pack(push, 1)
-struct Entry_004a4d70 {                // 0x15b bytes
-    unsigned char type;                // +0x00
-    char unknown_01[0x13 - 0x01];
-    short x;                           // +0x13
-    short y;                           // +0x15
-    short width;                       // +0x17
-    short height;                      // +0x19
-    int attribs;                       // +0x1b
-    int colours;                       // +0x1f, index into Class::colours
-    char unknown_23[0x28 - 0x23];
-    char tab;                          // +0x28
-    char unknown_29[0xb6 - 0x29];
-    union {
-        short count;                   // +0xb6 (entry 0 only)
-        char text[0xbc - 0xb6];        // +0xb6
-    } b6;
-    void* surface;                     // +0xbc
-    char unknown_c0[0xd6 - 0xc0];
-    int language;                      // +0xd6
-    char unknown_da[0x15b - 0xda];
-};
 
+// Unused here: real declarations that keep the file's symbol count.
+void CheckDuplicatePlayerIds();
+void InitNetConnection();
+void CloseNetSession();
+void LeaveNetGame();
+void BroadcastPlayerInfo();
+void UpdateNetGameInfo();
+void CreateNetGame();
+
+#pragma pack(push, 1)
 struct List_004a4d70 {
     char unknown_0[0x0c];
     unsigned short* glyphs;            // +0x0c
@@ -3933,7 +3860,7 @@ struct List_004a4d70 {
 
 struct Holder_004a4d70 {
     int current;                       // +0x00
-    Entry_004a4d70* entries;           // +0x04
+    Gadget* entries;           // +0x04
     char unknown_08[0x14 - 0x08];
     List_004a4d70* language;           // +0x14
     char unknown_18[0x24 - 0x18];
@@ -4007,22 +3934,22 @@ static inline int Measure_004a4d70(char* text)
 // FUNCTION: 0x4a4d70
 void __stdcall DrawTextInput(Dialog_4a4d70* obj, int index)
 {
-    Entry_004a4d70* entries = obj->holder->entries;
+    Gadget* entries = obj->holder->entries;
     int i = 1;
     int t = 0;
-    for (; i < entries->b6.count + 1; i++) {
+    for (; i < entries->u.count + 1; i++) {
         if (entries[i].type == 7) {
             if (t == entries[index].tab) {
-                SetFont(entries[i].language);
+                SetFont(entries[i].u.list.language);
                 break;
             }
             t++;
         }
     }
-    if (i == entries->b6.count + 1)
+    if (i == entries->u.count + 1)
         SetFont(g_guiContext->current);
 
-    Entry_004a4d70* me = &entries[index];
+    Gadget* me = &entries[index];
 
     Rect_004a4d70 rect;
     if (me->type == 0) {
@@ -4036,7 +3963,7 @@ void __stdcall DrawTextInput(Dialog_4a4d70* obj, int index)
     rect.bottom = me->height + rect.top - 1;
 
     if (me->attribs & 1) {
-        FillRectangle(entries->surface, &rect, obj->colours[0]);
+        FillRectangle(entries->u.assets.surface, &rect, obj->colours[0]);
     } else {
         void* surface = obj->holder->surface;
         if (surface == 0)
@@ -4044,7 +3971,7 @@ void __stdcall DrawTextInput(Dialog_4a4d70* obj, int index)
         if (surface == 0) {
             DrawListboxFrame(obj, index, 0);
         } else {
-            CopySurfaceRect(entries->surface, surface, &rect, (int*)&rect);
+            CopySurfaceRect(entries->u.assets.surface, surface, &rect, (int*)&rect);
         }
     }
 
@@ -4053,14 +3980,14 @@ void __stdcall DrawTextInput(Dialog_4a4d70* obj, int index)
     // The style is read as entries[index].colours rather than me->colours:
     // sharing one load with the colour read above swaps the SIB registers of
     // that read (see the 0x4a4d70 entry in docs/field-notes.md, Part 5).
-    DrawTextClipped(entries->surface, me->b6.text, rect.left, rect.top,
+    DrawTextClipped(entries->u.assets.surface, me->u.text, rect.left, rect.top,
                  rect.right - rect.left, entries[index].colours);
 
     if (index == obj->focus) {
-        char* at = &me->b6.text[obj->cursor];
+        char* at = &me->u.text[obj->cursor];
         char save = *at;
         *at = 0;
-        int w = Measure_004a4d70(me->b6.text);
+        int w = Measure_004a4d70(me->u.text);
         *at = save;
         int height;
         if (g_guiContext->language == 0)
@@ -4070,7 +3997,7 @@ void __stdcall DrawTextInput(Dialog_4a4d70* obj, int index)
             height = GetGlyph_004a4d70(0x49)->height + 2;
         int x = rect.left + w;
         // Arguments stay expressions; only x is a local.
-        DrawLine(entries->surface, x, rect.top, x, height + rect.top, obj->colours[9]);
+        DrawLine(entries->u.assets.surface, x, rect.top, x, height + rect.top, obj->colours[9]);
     }
 }
 // The glyph of a character in the current font (see 0x4a5030).
@@ -4467,7 +4394,9 @@ int __stdcall HandleListBoxInput(Gui* obj, int index, int key);
 void __stdcall HandleSliderInput(Gui* obj, int index);
 int __stdcall HandleTextEditKey(Gui* obj, int index, int key);
 void __cdecl GameFreeThunk(void* p);
-int __stdcall SelectFontForEntry(Gadget* entries, int index);
+// Out of line like the original, which calls it from another unit: a void* parameter
+// keeps /Ob2 from inlining the definition at 0x4a1810 into the callers.
+int __stdcall SelectFontForEntry(void* entries, int index);
 
 // The real GetTextPixelWidth (0x4a5030), which /Ob2 inlines into its callers here.
 static inline int GetTextPixelWidth(char* text)
@@ -4632,7 +4561,7 @@ void __stdcall DrawLabel(Gui* obj, int index)
         DrawString(entries->u.assets.surface, entries[index].u.text, nx, rect.top, -1);
     }
 
-    if (entries[index].field_148 & 1) {
+    if (entries[index].flag_148 & 1) {
         Gadget* entries2 = obj->layer->entries;
         Rect rect2;
         if (entries2[index].type == 0) {
@@ -4671,7 +4600,7 @@ void __stdcall DrawLabel(Gui* obj, int index)
         }
     }
 
-    // One tail after both arms of the field_148 if/else, not a copy per exit.
+    // One tail after both arms of the flag_148 if/else, not a copy per exit.
     obj->language = obj->values[0];
 }
 
@@ -4748,6 +4677,23 @@ void __stdcall DrawGadgetGlyph(Gui* obj, int index)
 // Needed with the named glyph local in LineHeight: sets the flags 0x20 registers.
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
 
+// Unused here: real declarations that keep the file's symbol count.
+void RemoveLocalPlayers();
+int ReceiveNetPacket();
+void UpdateTimeoutDialog();
+void CheckPlayerTimeouts();
+int HandleNetPackets();
+void SendNetHeartbeat();
+int AreAllPlayersReady();
+int AssignStartPositions();
+void SendLoadProgress();
+int BroadcastPendingViewState();
+
+// Unused here: real declarations that keep the file's symbol count.
+struct Class_004a1b40;
+struct Class_004a32a0;
+struct Class_004a4620;
+
 // FUNCTION: 0x4a5f40
 void __stdcall DrawButton(Gui* menu, int index)
 {
@@ -4804,7 +4750,7 @@ void __stdcall DrawButton(Gui* menu, int index)
     surface = entries->u.assets.surface;
     if (me->gaf != 0) {
         GafFrame* glyph;
-        if (me->max & 1) {
+        if (me->grayedout & 1) {
             if (me->attribs & 0x100) {
                 glyph = GetGafFrame(me->gaf, me->gaf->count - 1);
             } else if (me->stages != 0) {
@@ -4839,7 +4785,7 @@ void __stdcall DrawButton(Gui* menu, int index)
                 DrawFrame(surface, glyph, glyph->xOffset + rect.left, glyph->yOffset + rect.top);
         }
     } else {
-        if (me->max & 1) {
+        if (me->grayedout & 1) {
             FillBevelBox(surface, &rect, menu->colours[0], menu->colours[0x13], menu->colours[0x13]);
         } else if (me->field_138 != 0) {
             FillBevelBox(surface, &rect, menu->colours[0], menu->colours[0x11], menu->colours[0x14]);
@@ -4886,7 +4832,7 @@ void __stdcall DrawButton(Gui* menu, int index)
         } else if (me->attribs & 2) {
             x = (rect.right - textw - rect.left) / 2 + t;
             x += rect.left + 1;
-            if (me->field_13a == 0 || (me->max & 1)) {
+            if (me->field_13a == 0 || (me->grayedout & 1)) {
                 DrawTextClipped(surface, p, x, y, 1 + (rect.right - rect.left), 0);
             } else {
                 // Declared in this block: key1[1] = 0 hoists into the inlined strcpy.
@@ -5011,7 +4957,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
 {
     Gadget* entries = obj->layer->entries;
     Gadget* entry = &entries[index];
-    if (entry->max & 1)
+    if (entry->grayedout & 1)
         goto fail;
 
     Rect r;
@@ -5277,7 +5223,7 @@ static inline void Activate(Gui* obj, int index)
     Gadget* ep = obj->layer->entries;
     GetGadgetRectByIndex((char*)ep, index, &rect);
     SetTextColors(obj->colours[ep[index].colours], GetTextKeyColor());
-    SelectFontForEntry(ep, index);
+    SelectFontForEntry((void*)ep, index);
     TrySetFocus(obj, index);
     obj->layer->current = index;
     CommitTextEdit(obj, index, ep[index].u.text, ep[index].field_138, 0);
@@ -5863,8 +5809,8 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                     entries[i].width += (short)(frame->width * -2);
                     entries[i].x += frame->width;
                     frame = GetGafFrame(g, entries[i].sliderStyle + 5);
-                    entries[i].sliderThumb = frame->width;
-                    entries[i].range = entries[i].width - entries[i].sliderThumb - 4;
+                    entries[i].knobSize = frame->width;
+                    entries[i].range = entries[i].width - entries[i].knobSize - 4;
                 } else {
                     secondEnd->y = entries[i].y - (frame->height - entries[i].height);
                     secondEnd->x = entries[i].x;
@@ -6029,7 +5975,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
 
         case 13: {
             Gadget* en = menu->layer->entries;
-            en[i].u.anim.field_c6 = GetTicks() + en[i].u.anim.field_c2;
+            en[i].u.anim.next = GetTicks() + en[i].u.anim.interval;
             break;
         }
 
@@ -6134,10 +6080,10 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
             case 6:
                 if (force) {
                     Gadget* base = menu->layer->entries;
-                    base[i].u.t6.f_b6 = 0;
-                    base[i].u.t6.f_be = 0;
-                    base[i].u.t6.f_c2 = 0;
-                    base[i].u.t6.f_c6 = 0;
+                    base[i].u.hotspot.callback = 0;
+                    base[i].u.hotspot.gaf = 0;
+                    base[i].u.hotspot.frame = 0;
+                    base[i].u.hotspot.index = 0;
                 }
                 if (force || (flags & 0x40))
                     DrawHotspot(menu, i);
@@ -6145,7 +6091,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
             case 13:
                 if (force) {
                     Gadget* base = menu->layer->entries;
-                    base[i].u.anim.field_c6 = GetTicks() + base[i].u.anim.field_c2;
+                    base[i].u.anim.next = GetTicks() + base[i].u.anim.interval;
                 }
                 if (force || (flags & 0x40))
                     DrawProgressBarGadget(menu, i);
@@ -6224,6 +6170,9 @@ void __stdcall CloseTopScreen(Gui* gui)
 // [0, field_136 - 1]. When the value actually changes it marks the object
 // changed, refreshes the gadget and runs the entry's callback (if any).
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+int DrawEndGameFrame();
+void RunEndGameState();
+
 extern int Pad_a96d0_e0;
 extern int Pad_a96d0_e1;
 extern int Pad_a96d0_e2;
@@ -6267,6 +6216,14 @@ static inline Gadget* entry_at(Gui* obj, int index)
 // changed, refreshes the gadget and runs the entry's callback (if any).
 // Note: the upper clamp still uses field_136 - 1, as the copy-paste source of
 // this function did, even though this side scrolls the other way.
+// Unused here: real declarations that keep the file's symbol count.
+struct Object_004a07d0;
+struct Object_004a0c70;
+struct Object_004a14c0;
+struct Object_004a9780;
+struct Object_004ab060;
+struct Object_004ab5b0;
+
 // FUNCTION: 0x4a9780
 void __stdcall IncrementKnobPos(Gui* obj, int index)
 {
@@ -6301,6 +6258,17 @@ void __stdcall IncrementKnobPos(Gui* obj, int index)
 // gadget. A selection on line 0 is not moved, and a line whose text starts
 // with "&G" is not moved either.
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+int InitLobbiedConnection();
+void __cdecl LeaveNetGameCallback();
+int IsHostLocal();
+int CountHumanPlayers();
+int CountComputerPlayers();
+int CountLocalComputerPlayers();
+int CountActiveAIPlayers();
+int CountActiveHumanOrAiPlayers();
+int CountRemotePlayers();
+int CountCombatPlayers();
+
 struct Pad_a9830_0 { int field; };
 struct Pad_a9830_1 { int field; };
 struct Pad_a9830_2 { int field; };
@@ -6507,7 +6475,7 @@ int __stdcall HandleGuiCommand(Gui* obj, int cmd)
             break;
         if (e->field_29 == 0)
             break;
-        if (type == 1 && (e->max & 1))
+        if (type == 1 && (e->grayedout & 1))
             break;
         newsel = index;
         if (type == 1) {
@@ -6583,7 +6551,7 @@ static inline void SelectCurrentByName(Gui* menu, Gadget* entries, int sel)
 {
     Gadget* entry = &entries[sel];
     SetTextColors(menu->colours[entry->colours], GetTextKeyColor());
-    SelectFontForEntry(entries, sel);
+    SelectFontForEntry((void*)entries, sel);
     TrySetFocus(menu, sel);
     menu->layer->current = sel;
     CommitTextEdit(menu, sel, entry->u.text, entry->field_138, 0);
@@ -6611,14 +6579,14 @@ static inline void TickProgressBar(Gui* menu, int i)
     // Entries in their own local first: the one-expression form shifts registers.
     Gadget* entries = menu->layer->entries;
     Gadget* e = &entries[i];
-    if (e->u.anim.field_ce && e->u.anim.field_ba < e->u.anim.field_be) {
-        if ((int)GetTicks() > e->u.anim.field_c6) {
-            e->u.anim.field_ba += (int)e->u.anim.field_ca;
-            if (e->u.anim.field_ba > e->u.anim.field_be) {
-                e->u.anim.field_ba = e->u.anim.field_be;
-                e->u.anim.field_ce = 0;
+    if (e->u.anim.active && e->u.anim.value < e->u.anim.max) {
+        if ((int)GetTicks() > e->u.anim.next) {
+            e->u.anim.value += (int)e->u.anim.step;
+            if (e->u.anim.value > e->u.anim.max) {
+                e->u.anim.value = e->u.anim.max;
+                e->u.anim.active = 0;
             }
-            e->u.anim.field_c6 = GetTicks() + e->u.anim.field_c2;
+            e->u.anim.next = GetTicks() + e->u.anim.interval;
         }
         DrawProgressBarGadget(menu, i);
     }
@@ -6795,7 +6763,7 @@ int __stdcall UpdateMenu(Gui* menu)
                         sel = found;
                         me = &entries[found];
                         if (me->type == 1) {
-                            if (me->field_29 == 0 || (me->max & 1) != 0) {
+                            if (me->field_29 == 0 || (me->grayedout & 1) != 0) {
                                 sel = -1;
                             } else {
                                 me->stageIndex++;

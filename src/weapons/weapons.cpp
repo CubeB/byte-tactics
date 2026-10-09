@@ -360,7 +360,9 @@ struct Net {
 };
 
 struct Game {
-    char unknown_0[0x2a42];
+    char unknown_0[0x1b63];
+    Player players[10];                // +0x1b63
+    char unknown_2851[0x2a42 - 0x2851];
     char localPlayer;                  // +0x2a42
     char playerIndex;
     union {
@@ -798,7 +800,7 @@ void __stdcall DetonateProjectile(Projectile_00499eb0* projectile, Unit* unit)
             AddExplosionEffect(position, type->field_78, 0, hostile);
     }
     unsigned int player = projectile->owner;
-    Player* record = (Player*)((char*)g_game + player * 0x14b + 0x1b63);
+    Player* record = &g_game->players[player];
     if (!record->active || record->type != 3) {
         if (type->field_d6 <= 0x10 && unit) {
             int damage = ApplyWeaponDamage(projectile, unit, 1.0f);
@@ -1459,7 +1461,9 @@ struct Vec3_0049b3e0 {
 };
 
 struct Obj_0049b3e0 {
-    char unknown_0[0x110];
+    char unknown_0[0x6a];
+    Vec3_0049b3e0 pos;                 // +0x6a
+    char unknown_76[0x110 - 0x76];
     unsigned int flags;                // +0x110
 };
 
@@ -1494,7 +1498,7 @@ Vec3_0049b3e0* __stdcall GetProjectileAimPoint(Proj_0049b3e0* p)
             return (Vec3_0049b3e0*)(p->field_56 + 1);
         Obj_0049b3e0* q = p->field_4e;
         if (q != 0 && (q->flags & 0x10000000) != 0)
-            return (Vec3_0049b3e0*)((char*)q + 0x6a);
+            return &q->pos;
     }
     if (flag) {
         p->start = p->target;

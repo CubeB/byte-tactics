@@ -52,6 +52,8 @@ unsigned short __stdcall ChooseBuildOption(unsigned int, Unit*);
 void __stdcall ClearWeaponTarget(Unit*, int);
 void __stdcall DetonateUnitWeapon(Unit*, int);
 
+// Keeps its own view: the shared header's extra declarations move this
+// function's bounds-add register allocation.
 struct UnitRef {
     void* table;
     Unit* ptr;

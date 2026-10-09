@@ -113,10 +113,7 @@ struct SaveDesc_0043a1f0 {             // the 0x3a-byte snapshot, read and writt
 #include "../map/mission.h"
 
 
-class UnitRef {
-public:
-    void Unlink();
-};
+#include "../units/unit_ref.h"
 
 // The parsed text file the writer is handed (the same object as HapiBank).
 class File_0043a970 {

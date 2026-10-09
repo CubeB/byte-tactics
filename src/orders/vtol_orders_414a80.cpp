@@ -49,11 +49,7 @@ struct Unit {
     int CanReclaim(Unit*);
 };
 
-struct UnitRef {
-    int vtable;
-    Unit* ptr;
-    Unit* Get() { return ptr; }
-};
+#include "../units/unit_ref.h"
 
 struct Order {
     char unknown_0[5];
@@ -62,7 +58,6 @@ struct Order {
     char unknown_a[0xe - 0xa];
     Unit* source;                      // +0xe
     UnitRef target;                    // +0x12
-    char unknown_1a[0x22 - 0x1a];
     Vec3 pos;                          // +0x22
     char unknown_2e[0x36 - 0x2e];
     int elapsed;                       // +0x36

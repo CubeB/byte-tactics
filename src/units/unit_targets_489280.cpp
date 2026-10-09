@@ -242,17 +242,7 @@ int __stdcall UnitCanBuild(Unit* unit, short id)
     return 0;
 }
 
-class UnitRef {
-public:
-    char unknown_0[4];
-    Unit* owner;                    // +0x4
-    UnitRef* next;                  // +0x8
-    Listener_004896f0* listener;    // +0xc
-    void ClearRef(void);
-    void LinkToUnit(Unit* o);
-    void UnlinkFromUnit();
-    void Unlink();
-};
+#include "unit_ref.h"
 
 // FUNCTION: 0x489540
 void UnitRef::LinkToUnit(Unit* o)

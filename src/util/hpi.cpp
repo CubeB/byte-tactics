@@ -1113,13 +1113,15 @@ void __stdcall FindFilesRecursive(char* path, const char* pat, FileList* tree, i
     sprintf(buf, "%s\\*", path);
     int h = HAPI_FindFirst(buf, &fd, state, recursive);
     if (h != -1) {
+        // A second variable, cast from h: the -1 test is dropped if written on h.
+        FindFiles* f = (FindFiles*)h;
         // Never read: the extra live value demotes the handle from ebx to ebp.
         int r;
         do {
             if (strcmp(fd.name, ".") != 0 && strcmp(fd.name, "..") != 0) {
                 if ((fd.attrib & 0x10) != 0) {
                     sprintf(buf, "%s\\%s", path, fd.name);
-                    FindFilesRecursive(buf, pat, tree, ((FindFiles*)h)->state, 0);
+                    FindFilesRecursive(buf, pat, tree, f->state, 0);
                 } else if (MatchWildcard(fd.name, pat)) {
                     sprintf(buf, "%s\\%s", path, fd.name);
                     Class_004c91b0 key(buf);
@@ -1127,8 +1129,6 @@ void __stdcall FindFilesRecursive(char* path, const char* pat, FileList* tree, i
                 }
             }
         } while ((r = HAPI_FindNext((FindFiles*)h, &fd)) != -1);
-        // A second variable, cast from h: the -1 test is dropped if written on h.
-        FindFiles* f = (FindFiles*)h;
         if (f != (FindFiles*)-1 && f != 0) {
             if (f->state < 0)
                 _findclose(f->handle);
@@ -1457,7 +1457,7 @@ unsigned int __stdcall HAPI_BuildArchiveDirectory(char* path, HapiBuf* out, int*
     char buf[0x104];
     struct _finddata_t fd;
     char* base;
-    int h;
+    FindFiles* h;
     int trailing;
     unsigned int root;
     unsigned int entries;
@@ -1481,24 +1481,24 @@ unsigned int __stdcall HAPI_BuildArchiveDirectory(char* path, HapiBuf* out, int*
         trailing = 1;
     }
 
-    h = HAPI_FindFirst(buf, &fd, -1, 1);
-    if (h != -1) {
+    h = (FindFiles*)HAPI_FindFirst(buf, &fd, -1, 1);
+    if (h != (FindFiles*)-1) {
         do {
             if (strcmp(fd.name, g_dotExtSep) != 0 && strcmp(fd.name, g_dotDot) != 0)
                 ++(*(unsigned int*)(base + root));
-        } while (HAPI_FindNext((FindFiles*)h, &fd) == 0);
+        } while (HAPI_FindNext(h, &fd) == 0);
         if (h != 0) {
-            if (((FindFiles*)h)->state < 0)
-                _findclose(((FindFiles*)h)->handle);
-            GameFreeThunk((FindFiles*)h);
+            if (h->state < 0)
+                _findclose(h->handle);
+            GameFreeThunk(h);
         }
     }
 
     entries = Grow(out, *(unsigned int*)(base + root) * 9);
     *(unsigned int*)(out->buf + root + 4) = entries;
 
-    h = HAPI_FindFirst(buf, &fd, -1, 1);
-    if (h != -1) {
+    h = (FindFiles*)HAPI_FindFirst(buf, &fd, -1, 1);
+    if (h != (FindFiles*)-1) {
         k = 0;
         do {
             if (strcmp(fd.name, g_dotExtSep) != 0 && strcmp(fd.name, g_dotDot) != 0) {
@@ -1534,11 +1534,11 @@ unsigned int __stdcall HAPI_BuildArchiveDirectory(char* path, HapiBuf* out, int*
                 }
                 k++;
             }
-        } while (HAPI_FindNext((FindFiles*)h, &fd) == 0);
+        } while (HAPI_FindNext(h, &fd) == 0);
         if (h != 0) {
-            if (((FindFiles*)h)->state < 0)
-                _findclose(((FindFiles*)h)->handle);
-            GameFreeThunk((FindFiles*)h);
+            if (h->state < 0)
+                _findclose(h->handle);
+            GameFreeThunk(h);
         }
     }
     return root;
@@ -1799,6 +1799,8 @@ void __stdcall HAPI_MarkShadowedFiles(char* path, int state, int recursive)
     int h = HAPI_FindFirst(buf, &fd, state, recursive);
     if (h == -1)
         return;
+    // A second variable, cast from h: the -1 test is dropped if written on h.
+    FindFiles* f = (FindFiles*)h;
     do {
         if (fd.attrib & 0x10) {
             // Two nested ifs, not one &&.
@@ -1807,11 +1809,11 @@ void __stdcall HAPI_MarkShadowedFiles(char* path, int state, int recursive)
                     strcpy(buf, path);
                     strcat(buf, fd.name);
                     strcat(buf, "\\");
-                    HAPI_MarkShadowedFiles(buf, ((FindFiles*)h)->state, 0);
+                    HAPI_MarkShadowedFiles(buf, f->state, 0);
                 }
             }
         } else {
-            i = ((FindFiles*)h)->state;
+            i = f->state;
             if (i < 0)
                 i = 0;
             else
@@ -1825,7 +1827,6 @@ void __stdcall HAPI_MarkShadowedFiles(char* path, int state, int recursive)
             }
         }
     } while (HAPI_FindNext((FindFiles*)h, &fd) != -1);
-    FindFiles* f = (FindFiles*)h;
     if (f) {
         if (f->state < 0)
             _findclose(f->handle);
@@ -1833,10 +1834,13 @@ void __stdcall HAPI_MarkShadowedFiles(char* path, int state, int recursive)
     }
 }
 
-// The path helpers before 0x4bb190 (0x4bb0a0 to 0x4bb150, in their own files):
-// the symbol ids these declarations take keep 0x4bb2e0's allocation
-// (docs/c2-regalloc.md).
+// The path helpers before 0x4bb190 (0x4bb0a0 to 0x4bb150, in their own files),
+// then three more prototypes: the symbol ids these declarations take keep
+// 0x4bb2e0's allocation (docs/c2-regalloc.md).
 int __stdcall HasExtension(char* name);
 char* __stdcall StripExtension(char* name);
 char* __stdcall StripFileName(char* name);
 char* __stdcall StripPath(char* name);
+void RegisterVtolOrders(void);
+void StepAllGafSequences(void);
+void ResetNetStats(void);

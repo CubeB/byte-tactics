@@ -289,9 +289,6 @@ struct MissionUnit {               // 0x24 bytes
 
 #include "../map/mission.h"
 #include "../game/mission_conditions.h"
-// Unused here: the symbol id this declaration takes keeps 0x488810 matching
-// with the header above in front of it (docs/c2-regalloc.md).
-struct AccountList;
 
 struct Game {
     char unknown_0[0x1b63];

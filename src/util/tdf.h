@@ -10,7 +10,10 @@
 class TdfRecord {
 public:
     TdfRecord* FindSubRecord(const char* name);
-    int GetFieldCount();
+    int GetRecordName();
+    char* GetFieldName(int index);
+    int FindFieldValue(char* name);
+    int* GetFieldFixed(int* dst, char* key, int def);
     int GetFieldInt(const char* name, int def);
     double GetFieldDouble(const char* name, double def);
     int GetFieldString(char* dst, char* key, unsigned int size, char* def);
@@ -28,7 +31,6 @@ public:
     TdfFile();
     ~TdfFile();
     int LoadFile(char* path);
-    void LoadBuffer(char* data, int size, int flag, char* path);
     void Unload();
     int SelectRecord(char* name);
     int SelectRecordAt(int index);

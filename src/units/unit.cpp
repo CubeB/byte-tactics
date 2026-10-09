@@ -13,9 +13,6 @@
 #include "../util/hapi_bank.h"
 #include "../map/mission.h"
 #include "../sound/sound.h"
-struct BmpFileHeader;
-struct BmpInfo;
-struct BmpInfoHeader;
 
 
 class Unit;

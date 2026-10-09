@@ -137,7 +137,7 @@ struct Order {
     Unit* target;                     // +0x16
     char unknown_1a[0x22 - 0x1a];
     Pos pos;                          // +0x22
-    Point field_2e;                   // +0x2e
+    Point start;                   // +0x2e
     Point cached;                     // +0x32
     unsigned short type;              // +0x36
     char unknown_38[0x42 - 0x38];

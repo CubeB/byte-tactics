@@ -25,7 +25,6 @@ public:
 };
 
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
-int RIReport(int, int, int, int, int, int, int, int, int, int);
 void CopyDwordIfNonNull(int*, int*);
 int ScanDirectory(char*, char*, char*, int, int, int);
 void RegisterUnitOrders(void);
@@ -54,17 +53,7 @@ struct Player_482270 {
     unsigned char playerIndex;         // +0x146
 };
 
-// One unit's sight query (Thaldren's LosSightQuery): the player, the unit's cached sight
-// cell, its sight distance and eye height, and the byte that holds its sight frame.
-struct SightQuery {
-    void* player;                      // +0x00
-    short* cacheCell;                  // +0x04
-    short sightDistance;               // +0x08
-    unsigned char eyeHeight;           // +0x0a
-    char unknown_b;                    // +0x0b
-    unsigned char* frameIdx;           // +0x0c
-    char unknown_10[0xc];              // +0x10
-};
+#include "sight_query.h"
 
 struct Game {
     char unknown_0[0x2a43];

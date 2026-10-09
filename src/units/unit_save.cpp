@@ -186,7 +186,11 @@ struct Struct_00487af0 {
 
 #include "../util/hapi_bank.h"
 
-#include "cob_script.h"
+class CobScript {
+public:
+    void LoadScriptState(HapiBank*);
+    int SaveScriptState(void* file);
+};
 
 #include "../orders/unit_motion.h"
 

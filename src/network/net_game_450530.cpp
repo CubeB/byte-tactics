@@ -5,29 +5,17 @@
 // has bit 0, from = first slot in state 1 or 2). State 1 sets the flag byte and
 // arg = -1, state 2 sets the flag byte and arg = the local player's id, state 3
 // clears the flag and arg = -1.
+#include "player.h"
+
 #pragma pack(push, 1)
 struct PlayerInfo {
     char unknown_0[0x97];
     unsigned char flags;               // +0x97
 };
 
-struct Player_00450530 {
-    int active;                        // +0x00
-    int id;                            // +0x04
-    char unknown_8[0xc - 0x8];
-    int lobbyDataSynced;               // +0x0c
-    char unknown_10[0x27 - 0x10];
-    PlayerInfo* data;                  // +0x27
-    char unknown_2b[0x73 - 0x2b];
-    unsigned char state;               // +0x73
-    char unknown_74[0x146 - 0x74];
-    unsigned char f_146;               // +0x146
-    char unknown_147[0x14b - 0x147];
-};
-
 struct Game {
     char unknown_0[0x1b63];
-    Player_00450530 players[10];       // +0x1b63
+    Player players[10];                // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char local_player;        // +0x2a42
     char unknown_2a43[0x391f1 - 0x2a43];
@@ -48,18 +36,18 @@ int __stdcall GetSlotDpid(unsigned char index);
 int __stdcall SendPacketToPlayer(int from, int to, void* packet, int size);
 unsigned char FindHostSlot();
 
-static inline int IsPlaying_00450530(Player_00450530* player)
+static inline int IsPlaying_00450530(Player* player)
 {
     if (player->active == 0)
         return 0;
-    if (player->state == 1 || player->state == 2)
+    if (player->type == 1 || player->type == 2)
         return 1;
     return 0;
 }
 
 static inline int GetPlayerId_00450530(unsigned char i)
 {
-    if (i != 10 && g_game->players[i].state != 0)
+    if (i != 10 && g_game->players[i].type != 0)
         return g_game->players[i].id;
     return -1;
 }
@@ -67,7 +55,7 @@ static inline int GetPlayerId_00450530(unsigned char i)
 static inline unsigned char FindPlayer_00450530()
 {
     for (unsigned char i = 0; i < 10; i++) {
-        if (g_game->players[i].state != 0 && (g_game->players[i].data->flags & 1))
+        if (g_game->players[i].type != 0 && (g_game->players[i].info->flags & 1))
             return i;
     }
     return 10;
@@ -85,7 +73,7 @@ static inline int FindFrom_00450530()
 static inline int FindTo_00450530()
 {
     for (int j = 0; j < 10; j++) {
-        if (g_game->players[j].data->flags & 1)
+        if (g_game->players[j].info->flags & 1)
             return GetSlotDpid(j);
     }
     return -1;
@@ -94,7 +82,7 @@ static inline int FindTo_00450530()
 static inline int FindToB_00450530()
 {
     for (int j = 0; j < 10; j++) {
-        if (g_game->players[j].data->flags & 1)
+        if (g_game->players[j].info->flags & 1)
             return GetPlayerId_00450530(j);
     }
     return -1;
@@ -108,13 +96,13 @@ void SendLobbySyncRequests()
     if (g_game->mode == 6)
         return;
     for (int i = 0; i < 10; i++) {
-        Player_00450530* p = &g_game->players[i];
+        Player* p = &g_game->players[i];
         if (p->active != 0
-            && (p->state == 1 || p->state == 2 || p->state == 3)
-            && p->f_146 != 10
+            && (p->type == 1 || p->type == 2 || p->type == 3)
+            && p->index != 10
             && p->lobbyDataSynced == 0) {
-            if (IsPlaying_00450530(p) && p->state == 1) {
-                Player_00450530* q = &g_game->players[FindHostSlot()];
+            if (IsPlaying_00450530(p) && p->type == 1) {
+                Player* q = &g_game->players[FindHostSlot()];
                 if (IsPlaying_00450530(q)) {
                     p->lobbyDataSynced = 1;
                     continue;
@@ -128,8 +116,8 @@ void SendLobbySyncRequests()
                 // from and to stay call arguments, not locals.
                 SendPacketToPlayer(FindFrom_00450530(), FindTo_00450530(), &msg, 10);
             }
-            else if (IsPlaying_00450530(p) && p->state == 2) {
-                Player_00450530* q = &g_game->players[FindHostSlot()];
+            else if (IsPlaying_00450530(p) && p->type == 2) {
+                Player* q = &g_game->players[FindHostSlot()];
                 if (IsPlaying_00450530(q)) {
                     p->lobbyDataSynced = 1;
                     continue;
@@ -142,7 +130,7 @@ void SendLobbySyncRequests()
                     continue;
                 SendPacketToPlayer(FindFrom_00450530(), FindToB_00450530(), &msg, 10);
             }
-            else if (p->state == 3) {
+            else if (p->type == 3) {
                 msg.type = 0x21;
                 msg.flag = 0;
                 msg.id = p->id;

@@ -33,16 +33,7 @@ struct ChatHudEntry {                  // 0x48 bytes
     };
 };
 
-struct Player_00463e50 {
-    char unknown_0[0x49];
-    char name[1];                      // +0x49
-};
-
-struct Player_00464060 {               // 0x14b bytes
-    char unknown_0[0x27];
-    void* data;                        // +0x27
-    char unknown_2b[0x14b - 0x2b];
-};
+#include "player.h"
 
 struct Unit {
     char unknown_0[0x6c];
@@ -60,7 +51,7 @@ struct Game {
     char unknown_ddb[0x12ef - 0xddb];
     ChatHudEntry entries[30];          // +0x12ef
     char unknown_1b5f[0x1b63 - 0x1b5f];
-    Player_00464060 players[11];       // +0x1b63
+    Player players[11];       // +0x1b63
     char unknown_299c[0x2a3e - 0x299c];
     unsigned short tail;               // +0x2a3e
     unsigned short head;               // +0x2a40
@@ -147,11 +138,11 @@ void __stdcall AddMessage(char* text, unsigned char key, unsigned short value, c
 }
 
 // FUNCTION: 0x463e50
-void __stdcall SendChatMessage(Player_00463e50* from, char* text, int param_3, char* to)
+void __stdcall SendChatMessage(Player* from, char* text, int param_3, char* to)
 {
     char buf[200];
 
-    sprintf(buf, "<%s%s%s> %s", from->name, to ? "->" : DAT_005119b8,
+    sprintf(buf, "<%s%s%s> %s", from->fullName, to ? "->" : DAT_005119b8,
             to ? to : DAT_005119b8, text);
     SendChatPacket(buf);
     if (g_game->mapInfo->GetGameType() == 3) {

@@ -253,7 +253,9 @@ struct Opts_0045f1d0 {                 // 0x14b bytes
     char unknown_a5[0x14b - 0xa5];
 };
 
-struct Player_45c070 {
+// The header's type, kept local: its declarations would move this file's
+// many functions (docs/c2-regalloc.md).
+struct Player {
     int active;                       // +0x00
     char unknown_4[0x27 - 0x4];
     Opts_0045f1d0* info;              // +0x27
@@ -290,7 +292,7 @@ struct Game {
         Gui_0045cf60 gui;              // +0x519, the options screens' view
     };
     char unknown_11e7[0x1b63 - 0x11e7];
-    Player_45c070 players[10];         // +0x1b63, the info pointer at +0x27
+    Player players[10];         // +0x1b63, the info pointer at +0x27
     char unknown_2851[0x29a0 - 0x2851];
     RuleSet_0045f1d0* rules;           // +0x29a0
     char unknown_29a4[0x2a42 - 0x29a4];
@@ -1251,7 +1253,7 @@ void __stdcall SetGadgetTextFromValueTable(Entry_0045c010* table, char* name, in
 // FUNCTION: 0x45c070
 void __stdcall HandleGameSpeedSlider(Menu_0045b800* obj, int unused)
 {
-    Player_45c070* player = &g_game->players[g_game->localPlayer];
+    Player* player = &g_game->players[g_game->localPlayer];
     if (player->active == 0 || !player->info->u.flag_9b_6) {
         Gadget* e = FindGadgetChecked_D(obj->holder->entries, "GAME");
         if (e != 0) {

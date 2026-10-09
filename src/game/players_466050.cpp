@@ -11,12 +11,14 @@ struct PlayerInfo {
     unsigned char color;               // +0x96
 };
 
-struct Player_00466050 {               // 0x14b bytes
+// The header's type, kept local: the +0x149 storage flag must stay a 1-bit
+// bitfield (a plain word moves LoadPlayers).
+struct Player {                        // 0x14b bytes
     int active;                        // +0x00
     char unknown_4[0x27 - 0x4];
-    PlayerInfo* data;                  // +0x27
+    PlayerInfo* info;                  // +0x27
     char unknown_2b[0x73 - 0x2b];
-    unsigned char controller;          // +0x73
+    unsigned char type;                // +0x73
     char unknown_74[0x8c - 0x74];
     float energy;                      // +0x8c
     char unknown_90[0x98 - 0x90];
@@ -28,8 +30,8 @@ struct Player_00466050 {               // 0x14b bytes
     double totalMetalConsumed;         // +0xc4
     double energyWasted;               // +0xcc
     double metalWasted;                // +0xd4
-    float energyStorage;               // +0xdc
-    float metalStorage;                // +0xe0
+    float field_dc;                    // +0xdc
+    float field_e0;                    // +0xe0
     char unknown_e4[0xf0 - 0xe4];
     int updateTime;                    // +0xf0
     int winLoseTime;                   // +0xf4
@@ -39,13 +41,13 @@ struct Player_00466050 {               // 0x14b bytes
     char unknown_100[0x108 - 0x100];
     char allied[11];                   // +0x108
     char unknown_113[0x149 - 0x113];
-    unsigned short addStorage : 1;     // +0x149, bit 0
+    unsigned short flags : 1;          // +0x149, bit 0
     unsigned short bits_149_1 : 15;
 };
 
 struct Game_00466050 {
     char unknown_0[0x1b63];
-    Player_00466050 players[10];       // +0x1b63
+    Player players[10];                // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char localPlayer;         // +0x2a42
     unsigned char playerIndex;         // +0x2a43
@@ -72,7 +74,7 @@ void __stdcall LoadPlayers(HapiBank* file)
     if (file->ReadBox(g_game->gameTime, 0x1c) != 0x1c)
         return;
     for (int i = 0; i < 10; i++) {
-        Player_00466050* p = &g_game->players[i];
+        Player* p = &g_game->players[i];
         sprintf(name, "Player%i", i);
         if (file->OpenAccount(name)) {
             p->energy = file->GetDoubleItem("Energy", 0);
@@ -83,22 +85,22 @@ void __stdcall LoadPlayers(HapiBank* file)
             p->totalMetalConsumed = file->GetDoubleItem("TotalMetalConsumed", 0);
             p->energyWasted = file->GetDoubleItem("EnergyWasted", 0);
             p->metalWasted = file->GetDoubleItem("MetalWasted", 0);
-            p->energyStorage = file->GetDoubleItem("PlayerEnergyStorage", 0);
-            p->metalStorage = file->GetDoubleItem("PlayerMetalStorage", 0);
-            p->addStorage = file->GetIntegerItem("AddPlayerStorage", 0);
+            p->field_dc = file->GetDoubleItem("PlayerEnergyStorage", 0);
+            p->field_e0 = file->GetDoubleItem("PlayerMetalStorage", 0);
+            p->flags = file->GetIntegerItem("AddPlayerStorage", 0);
             p->kills = file->GetIntegerItem("Kills", 0);
             p->losses = file->GetIntegerItem("Losses", 0);
             p->updateTime = file->GetIntegerItem("UpdateTime", 0);
             p->winLoseTime = file->GetIntegerItem("WinLoseTime", 0);
             p->displayTimer = file->GetIntegerItem("DisplayTimer", 0);
-            p->data->color = file->GetIntegerItem("Logo", 0);
-            p->data->side = file->GetIntegerItem("Side", 0);
+            p->info->color = file->GetIntegerItem("Logo", 0);
+            p->info->side = file->GetIntegerItem("Side", 0);
             file->OpenNamedBox("Alliances");
             if (file->GetBoxSize() == 11)
                 file->ReadBox(p->allied, 11);
             p->allied[i] = 1;
         } else {
-            p->controller = 0;
+            p->type = 0;
         }
     }
 }
@@ -113,8 +115,8 @@ void __stdcall SavePlayers(HapiBank* file)
     file->OpenNamedBox("GameTime");
     file->WriteBox(g_game->gameTime, 0x1c);
     for (int i = 0; i < 10; i++) {
-        Player_00466050* p = &g_game->players[i];
-        if (p->controller) {
+        Player* p = &g_game->players[i];
+        if (p->type) {
             sprintf(name, "Player%i", i);
             file->OpenAccount(name);
             file->SetDoubleItem("Energy", p->energy);
@@ -125,17 +127,17 @@ void __stdcall SavePlayers(HapiBank* file)
             file->SetDoubleItem("TotalMetalConsumed", p->totalMetalConsumed);
             file->SetDoubleItem("EnergyWasted", p->energyWasted);
             file->SetDoubleItem("MetalWasted", p->metalWasted);
-            file->SetDoubleItem("PlayerEnergyStorage", p->energyStorage);
-            file->SetDoubleItem("PlayerMetalStorage", p->metalStorage);
-            file->SetIntegerItem("AddPlayerStorage", p->addStorage);
+            file->SetDoubleItem("PlayerEnergyStorage", p->field_dc);
+            file->SetDoubleItem("PlayerMetalStorage", p->field_e0);
+            file->SetIntegerItem("AddPlayerStorage", p->flags);
             file->SetIntegerItem("Kills", p->kills);
             file->SetIntegerItem("Losses", p->losses);
             file->SetIntegerItem("UpdateTime", p->updateTime);
             file->SetIntegerItem("WinLoseTime", p->winLoseTime);
             file->SetIntegerItem("DisplayTimer", p->displayTimer);
-            file->SetIntegerItem("Controller", p->controller);
-            file->SetIntegerItem("Logo", p->data->color);
-            file->SetIntegerItem("Side", p->data->side);
+            file->SetIntegerItem("Controller", p->type);
+            file->SetIntegerItem("Logo", p->info->color);
+            file->SetIntegerItem("Side", p->info->side);
             file->OpenNamedBox("Alliances");
             file->WriteBox(p->allied, 11);
         }

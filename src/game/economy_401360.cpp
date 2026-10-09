@@ -10,7 +10,7 @@
 // <float.h> after <ddraw.h>: the file's symbol count decides the x87 code of UseEnergy.
 #include <float.h>
 struct Unit;
-struct Player_00401360;
+struct Player;
 
 #pragma pack(push, 1)
 struct Res_00401360 {
@@ -26,7 +26,7 @@ struct Res_00401360 {
 class Econ_00401360 {
 public:
     Res_00401360 res[2];               // +0x0
-    Player_00401360* owner;            // +0x30
+    Player* owner;                     // +0x30
     int RequestEnergy(Econ_00401360* e, float amount);
     int RequestEnergyAndMetal(float energy, float metal);
     int SpendEnergy(float amount);
@@ -56,7 +56,9 @@ struct PlayerRes_00401360 {
     float used;                        // +0x8
 };
 
-struct Player_00401360 {
+// The header's type, kept local: this view's resource arrays cannot agree
+// with the header's named scalars (see economy.cpp, which keeps the same).
+struct Player {
     int active;                        // +0x0
     char unknown_4[0x67 - 4];
     Unit* units;                       // +0x67
@@ -191,7 +193,7 @@ void __stdcall SettleResourceAccount(Res_00401360* r, float ratioBacklog, float 
 
 static inline void AddIncome(Unit* u, float* dst, float v)
 {
-    Player_00401360* o = u->resourceSlot.owner;
+    Player* o = u->resourceSlot.owner;
     if (o->active && o->type == 2) {
         switch (g_game->difficulty) {
         case 0:
@@ -210,7 +212,7 @@ static inline void AddIncome(Unit* u, float* dst, float v)
 
 static inline void AddIncomeD(Unit* u, float* dst, double v)
 {
-    Player_00401360* o = u->resourceSlot.owner;
+    Player* o = u->resourceSlot.owner;
     if (o->active && o->type == 2) {
         switch (g_game->difficulty) {
         case 0:
@@ -231,7 +233,7 @@ static inline void AddIncomeD(Unit* u, float* dst, double v)
 // else branch (see the top).
 static inline void AddIncomeDB(Unit* u, float* dst, double v)
 {
-    Player_00401360* o = u->resourceSlot.owner;
+    Player* o = u->resourceSlot.owner;
     if (o->active && o->type == 2) {
         switch (g_game->difficulty) {
         case 0:
@@ -251,7 +253,7 @@ static inline void AddIncomeDB(Unit* u, float* dst, double v)
 // Takes a double but adds (float)v: its case blocks merge into the else branch's.
 static inline void AddIncomeW(Unit* u, float* dst, double v)
 {
-    Player_00401360* o = u->resourceSlot.owner;
+    Player* o = u->resourceSlot.owner;
     if (o->active && o->type == 2) {
         switch (g_game->difficulty) {
         case 0:
@@ -305,7 +307,7 @@ static int UseEnergyD(Unit* u, float v)
 }
 
 // FUNCTION: 0x401360
-void __stdcall UpdatePlayerEconomy(Player_00401360* p)
+void __stdcall UpdatePlayerEconomy(Player* p)
 {
     // Separate float[2] arrays, with avail and demandRatio split off: sets the frame order.
     float usedA[2];

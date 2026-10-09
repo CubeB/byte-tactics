@@ -99,7 +99,9 @@ struct SoundCat_0047fd70 {
     Slot_0047fd70 slots[24];           // +0x40
 };
 
-struct Player_0047f300 {
+// The header's type, kept local: its explored sizes are ints where these
+// compares are unsigned.
+struct Player {
     char unknown_0[0x7c];
     unsigned char* explored;           // +0x7c
     unsigned int exploredWidth;        // +0x80
@@ -112,7 +114,7 @@ struct Game {
     SoundParams_0047ed40* displayContext;  // +0xc
     Sound* sound;                      // +0x10
     char unknown_14[0x1b63 - 0x14];
-    Player_0047f300 players[10];       // +0x1b63
+    Player players[10];       // +0x1b63
     char unknown_2851[0x2a43 - 0x2851];
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x14233 - 0x2a44];
@@ -141,8 +143,8 @@ struct Game {
     char unknown_37f1a[0x38a47 - 0x37f1a];
     unsigned int frame;                // +0x38a47
 
-    Player_0047f300* Current() { return &players[playerIndex]; }
-    Player_0047f300* Current2() { int i = playerIndex; return &players[i]; }
+    Player* Current() { return &players[playerIndex]; }
+    Player* Current2() { int i = playerIndex; return &players[i]; }
 };
 
 // One queued speech (0x11 bytes).
@@ -493,8 +495,8 @@ int __stdcall PlaySoundAt(int index, Pos_0047f300* pos, int param_3)
 
     // pi stays an int; the player address goes through the inline Current() to get the original's lea.
     int pi = g_game->playerIndex;
-    Player_0047f300* player = g_game->Current();
-    Player_0047f300* player2 = g_game->Current();
+    Player* player = g_game->Current();
+    Player* player2 = g_game->Current();
     // vis stays an int (char or bool changes the 1/0 pair); the flag is compared to 2 explicitly.
     int vis;
     if ((g_game->mapFlags & 2) == 2) {

@@ -350,6 +350,8 @@ struct Position_00475150 {             // 16.16 fixed point; only high words rea
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x1b63];
+    // The five partial views of one player slot the inlined fog tests below
+    // were matched with; one file cannot hold five of the header's type.
     union {
         Player_00473590 players_00473590[10];   // +0x1b63, stride 0x14b
         Player_00473a00 players_00473a00[10];

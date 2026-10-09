@@ -129,9 +129,11 @@ struct FixedPos_00496ee0 {
 // in anonymous unions. +0xdc and +0xe0 are the two clamped sizes as floats,
 // +0x149 a 1-bit unsigned short bitfield (setting it gives the straight-to-
 // memory `or byte ptr [ecx+0x149], 1`).
-struct Player_00496ce0 {               // 0x14b bytes, array at g_game+0x1b63
+// The header's type, kept local: the info union and the +0x149 bitfield keep
+// the match (docs/c2-regalloc.md).
+struct Player {                        // 0x14b bytes, array at g_game+0x1b63
     int active;                        // +0x0
-    int dpid;                          // +0x4
+    int id;                            // +0x4
     char unknown_8[0x27 - 0x8];
     union {
         PlayerInfo_00496ce0* info;     // +0x27
@@ -176,7 +178,7 @@ struct Game {
     Sub_00496b10 sub;                          // +0x519
     char unknown_5bf[0x1b63 - 0x5bf];
     union {
-        Player_00496ce0 players[10];           // +0x1b63
+        Player players[10];                // +0x1b63
         struct {
             char unknown_1b63[0x1cd5 - 0x1b63];
             Sub_00496db0* sub_1cd5;            // +0x1cd5
@@ -506,11 +508,11 @@ void PreBattleFrame()
 {
     // Declared at function scope: keeps its store before the pushes.
     char msg;
-    Player_00496ce0* p = &g_game->players[g_game->localPlayer];
+    Player* p = &g_game->players[g_game->localPlayer];
     // Each branch keeps its own copy of the state change.
     if (p->info->flags & 1) {
         msg = 8;
-        BroadcastPacket(p->dpid, &msg, 1);
+        BroadcastPacket(p->id, &msg, 1);
         g_game->mode = 5;
         g_game->handler = LoadingScreenFrame;
         SetCloseHandler(LeaveNetGameCallback, 0);
@@ -593,7 +595,7 @@ void __stdcall SpawnCommanderAtStartPos(int team, int startpos)
 {
     g_game->players[team].player->side = g_game->teams[team].nameIndex;
     g_game->players[team].player->color = g_game->teams[team].index2;
-    Player_00496ce0* p = &g_game->players[team];
+    Player* p = &g_game->players[team];
     int w = g_game->teams[team].size2;
     int v = g_game->teams[team].size1;
     p->started = 1;
@@ -634,7 +636,7 @@ void __stdcall SpawnCommanderAtStartPos(int team, int startpos)
 static int IsPlaying(unsigned char i)
 {
     if (i < 10) {
-        Player_00496ce0* p = &g_game->players[i];
+        Player* p = &g_game->players[i];
         if (p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3)
             && p->index != 10)
             return 1;
@@ -643,7 +645,7 @@ static int IsPlaying(unsigned char i)
 }
 
 // Inlined copy of SetStartingStorageBonus.
-static inline void __stdcall SetSize_00496e90(Player_00496ce0* obj, int height, int width)
+static inline void __stdcall SetSize_00496e90(Player* obj, int height, int width)
 {
     obj->flag_149 = 1;
     obj->width = (float)(width >= 200 ? width : 200);

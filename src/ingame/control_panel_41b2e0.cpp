@@ -61,13 +61,6 @@ struct Unit_0041b2e0 {
     char unknown_114[0x118 - 0x114];
 };
 
-struct Player_0041b2e0 {
-    char unknown_0[0x67];
-    Unit_0041b2e0* unitsBegin;         // +0x67
-    Unit_0041b2e0* unitsEnd;           // +0x6b
-    char unknown_6f[0x14b - 0x6f];
-};
-
 struct BuildType_0041b2e0 {
     char unknown_0[0x20];
     char name[0x229];                  // +0x20
@@ -103,7 +96,7 @@ struct Game_0041b2e0 {
     char unknown_0[0x519];
     Menu_0041b2e0 menu;                // +0x519
     char unknown_529[0x1b63 - 0x529];
-    Player_0041b2e0 players[10];       // +0x1b63
+    Player players[10];                 // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char localPlayer;         // +0x2a42
     char unknown_2a43[0x14357 - 0x2a43];
@@ -157,7 +150,7 @@ void RefreshSelectionOrders()
     int canBlast = 0;
     int canStop = 0;
     int canRepair = 0;
-    Player_0041b2e0* player = &g_game->players[g_game->localPlayer];
+    Player* player = &g_game->players[g_game->localPlayer];
     if (g_game->unitIndex != 0) {
         count = 1;
         first = GetUnit(g_game->unitIndex);
@@ -168,8 +161,8 @@ void RefreshSelectionOrders()
     } else {
         first = 0;
         count = 0;
-        Unit_0041b2e0* last = player->unitsEnd;
-        for (u = player->unitsBegin; u <= last; u++) {
+        Unit_0041b2e0* last = (Unit_0041b2e0*)player->unitsEnd;
+        for (u = (Unit_0041b2e0*)player->unitsBegin; u <= last; u++) {
             if (u->typeIndex == 0)
                 continue;
             UnitFlags_0041b2e0 flags = u->flags;

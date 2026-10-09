@@ -10,25 +10,13 @@
 // byte stores.
 #include <stdio.h>
 
+#include "player.h"
+
 #pragma pack(push, 1)
 
 struct PlayerInfo {
     char unknown_0[0x94];
     unsigned char kind;                // +0x94
-};
-
-struct Player_00452960 {
-    int active;                        // +0x00
-    char unknown_4[0x27 - 0x4];
-    PlayerInfo* data;                  // +0x27
-    char unknown_2b[0x73 - 0x2b];
-    unsigned char type;                // +0x73
-    char unknown_74[0x108 - 0x74];
-    unsigned char allies[0xb];         // +0x108
-    unsigned char alliedBy[0xb];       // +0x113
-    char unknown_11e[0x146 - 0x11e];
-    unsigned char index;               // +0x146
-    char unknown_147[0x14b - 0x147];
 };
 
 struct AllyFlagsPacket {
@@ -43,7 +31,7 @@ struct AllyFlagsPacket {
 
 struct Game {
     char unknown_0[0x1b63];
-    Player_00452960 players[10];       // +0x1b63
+    Player players[10];       // +0x1b63
     char unknown_2851[0x2a38 - 0x2851];
     unsigned char* buffer;             // +0x2a38
     char unknown_2a3c[0x391e9 - 0x2a3c];
@@ -76,7 +64,7 @@ static inline unsigned char FindIndex_00452960(int id)
 }
 
 // The state helpers keep one return per outcome and each re-tests active.
-static inline int IsActive12_00452960(Player_00452960* p)
+static inline int IsActive12_00452960(Player* p)
 {
     if (p->active == 0)
         return 0;
@@ -85,7 +73,7 @@ static inline int IsActive12_00452960(Player_00452960* p)
     return 0;
 }
 
-static inline int IsType3_00452960(Player_00452960* p)
+static inline int IsType3_00452960(Player* p)
 {
     if (p->active == 0)
         return 0;
@@ -94,7 +82,7 @@ static inline int IsType3_00452960(Player_00452960* p)
     return 0;
 }
 
-static inline int IsState2_00452960(Player_00452960* p)
+static inline int IsState2_00452960(Player* p)
 {
     if (p->active == 0)
         return 0;
@@ -103,7 +91,7 @@ static inline int IsState2_00452960(Player_00452960* p)
     return 0;
 }
 
-static inline int IsState3_00452960(Player_00452960* p)
+static inline int IsState3_00452960(Player* p)
 {
     if (p->active == 0)
         return 0;
@@ -125,13 +113,13 @@ int __stdcall SetAlliance(int from, int to, unsigned char value, int extra)
     else
         fi = FindIndex_00452960(from);
 
-    Player_00452960* p1;
+    Player* p1;
     if (fi == 10)
         p1 = 0;
     else
         p1 = &g_game->players[FindSlotByDpid(from)];
 
-    Player_00452960* p2;
+    Player* p2;
     if (FindSlotByDpid(to) == 10)
         p2 = 0;
     else
@@ -147,9 +135,9 @@ int __stdcall SetAlliance(int from, int to, unsigned char value, int extra)
     unsigned char& idx = idx_;
     if (IsActive12_00452960(p1)) {
         idx = p2->index;
-        p1->allies[idx] = value;
+        p1->allied[idx] = value;
         if (IsState2_00452960(p2)
-            || (IsState3_00452960(p2) && p2->data->kind == 2)
+            || (IsState3_00452960(p2) && p2->info->kind == 2)
             || extra != 0) {
             idx = p2->index;
             p1->alliedBy[idx] = value;
@@ -161,7 +149,7 @@ int __stdcall SetAlliance(int from, int to, unsigned char value, int extra)
         p2->alliedBy[idx] = value;
         if (IsState2_00452960(p2) || extra != 0) {
             idx = p1->index;
-            p2->allies[idx] = value;
+            p2->allied[idx] = value;
         }
         result = 1;
     } else if (IsType3_00452960(p2)) {

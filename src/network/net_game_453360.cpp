@@ -4,20 +4,12 @@
 // 1 (GetLocalHumanDpid inlined), and returns the last send's result.
 #include <string.h>
 
-#pragma pack(push, 1)
-struct Player_00453360 {
-    int active;                        // +0x00
-    int id;                            // +0x04
-    char unknown_8[0x73 - 0x8];
-    char state;                        // +0x73
-    char unknown_74[0x108 - 0x74];
-    unsigned char allied[0x3e];        // +0x108
-    char unknown_146[0x14b - 0x146];
-};
+#include "player.h"
 
+#pragma pack(push, 1)
 struct Game {
     char unknown_0[0x1b63];
-    Player_00453360 players[10];       // +0x1b63
+    Player players[10];                // +0x1b63
     char unknown_2851[0x2a38 - 0x2851];
     char* buffer;                      // +0x2a38
     char unknown_2a3c[0x2a42 - 0x2a3c];
@@ -35,7 +27,7 @@ int __stdcall SendPacketToPlayer(int from, int to, void* packet, int size);
 static inline int FindTarget(Game* game)
 {
     for (int i = 0; i < 10; i++) {
-        if (game->players[i].state == 1)
+        if (game->players[i].type == 1)
             return game->players[i].id;
     }
     return -1;
@@ -69,10 +61,10 @@ int __stdcall SendChatPacket(char* text)
             }
         }
     } else {
-        Player_00453360* lp = &g_game->players[g_game->localPlayer];
+        Player* lp = &g_game->players[g_game->localPlayer];
         for (int i = 0; i < 10; i++) {
-            Player_00453360* p = &g_game->players[i];
-            if (p->active != 0 && p->state == 3) {
+            Player* p = &g_game->players[i];
+            if (p->active != 0 && p->type == 3) {
                 if ((g_game->mode == 1 && lp->allied[i] != 0) ||
                     (g_game->mode == 2 && lp->allied[i] == 0))
                     result = SendPacketToPlayer(target, p->id, g_game->buffer, 0x41);

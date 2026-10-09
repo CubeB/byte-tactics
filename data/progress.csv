@@ -10,7 +10,7 @@ address,size,file,symbol,status,similarity
 0x401260,61,src/game/economy.cpp,?SpendMetal@UnitResources@@QAEHM@Z,matched,100.0
 0x4012a0,126,src/game/economy.cpp,?SpendEnergyAndMetal@UnitResources@@QAEHMM@Z,matched,100.0
 0x401320,53,src/game/economy.cpp,?SettleResourceAccount@@YGXPAUObj_00401320@@MM@Z,matched,100.0
-0x401360,2239,src/game/economy_401360.cpp,?UpdatePlayerEconomy@@YGXPAUPlayer_00401360@@@Z,matched,100.0
+0x401360,2239,src/game/economy_401360.cpp,?UpdatePlayerEconomy@@YGXPAUPlayer@@@Z,matched,100.0
 0x401c20,155,src/orders/unit_orders.cpp,?StopOrder@@YGHPAUUnit@@PAVClass_00438880@@H@Z,matched,100.0
 0x401cc0,30,src/orders/unit_orders.cpp,?MakeSelectableOrder@@YGHPAUUnit@@PAVClass_00438880@@H@Z,matched,100.0
 0x401ce0,275,src/orders/unit_orders.cpp,?WaitOrder@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
@@ -1314,7 +1314,7 @@ address,size,file,symbol,status,similarity
 0x463c60,24,src/network/packets.cpp,?SetType@Player@@QAEXH@Z,matched,100.0
 0x463c80,29,src/network/packets.cpp,?ResetChatHudIndices@@YGXXZ,matched,100.0
 0x463ca0,417,src/network/net_chat.cpp,?AddMessage@@YGXPADEGD@Z,matched,100.0
-0x463e50,146,src/network/net_chat.cpp,?SendChatMessage@@YGXPAUPlayer_00463e50@@PADH1@Z,matched,100.0
+0x463e50,146,src/network/net_chat.cpp,?SendChatMessage@@YGXPAUPlayer@@PADH1@Z,matched,100.0
 0x463ef0,111,src/network/net_chat.cpp,?ExpireOldestMessage@@YGHXZ,matched,100.0
 0x463f60,160,src/network/net_chat.cpp,?ScrollToNextMessageUnit@@YGHXZ,matched,100.0
 0x464000,87,src/network/net_chat_464000.cpp,?CycleMessageUnits@@YGXXZ,matched,100.0
@@ -1360,7 +1360,7 @@ address,size,file,symbol,status,similarity
 0x467a20,40,src/ingame/info_panel.cpp,?BlitGafFrameAtOffset@@YGXPAXPAFHH@Z,matched,100.0
 0x467a50,259,src/ingame/info_panel.cpp,?DrawRotatedQuadOutline@@YGXPAXPAUVec3@@1PAF@Z,matched,100.0
 0x467b60,157,src/ingame/info_panel.cpp,?DrawProgressBar@@YGXPAXHHPAURect_004b0510@@PAUColors_00467b60@@H@Z,matched,100.0
-0x467c00,175,src/ingame/info_panel.cpp,?BlitSideLogoToRect@@YGXPAXPAUPlayer_467c00@@PAURect_467c00@@H@Z,matched,100.0
+0x467c00,175,src/ingame/info_panel.cpp,?BlitSideLogoToRect@@YGXPAXPAUPlayer@@PAURect_467c00@@H@Z,matched,100.0
 0x467cb0,192,src/ingame/info_panel.cpp,?DrawKillCount@@YGXPAXPAUPlayer_00467cb0@@HH@Z,matched,100.0
 0x467d70,218,src/ingame/info_panel.cpp,?DrawLightBars@@YGXXZ,matched,100.0
 0x467e50,1212,src/ingame/info_panel.cpp,?DrawUnitStateProbe@@YGHPAX@Z,matched,100.0

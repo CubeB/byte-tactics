@@ -62,14 +62,16 @@ struct ByteMap_00408090 {
     unsigned char Get(int x, int y) { return data[size.width * y + x]; }
 };
 
-struct Player_00408090 {
+// The header's type, kept local: its explored pointer cannot spell the
+// ByteMap this fog test needs.
+struct Player {
     char unknown_0[0x7c];
     ByteMap_00408090 explored;          // +0x7c
 };
 
-int __stdcall IsPointVisible(Player_00408090* player, Position_00408090* pos);
+int __stdcall IsPointVisible(Player* player, Position_00408090* pos);
 
-static inline int IsExplored(Player_00408090* player, Position_00408090* pos)
+static inline int IsExplored(Player* player, Position_00408090* pos)
 {
     // Plain int: an unsigned tx shortens the shift to 16 bits.
     int tx = pos->x >> 5;
@@ -79,7 +81,7 @@ static inline int IsExplored(Player_00408090* player, Position_00408090* pos)
     return 0;
 }
 
-static inline int IsVisible(Player_00408090* player, Position_00408090* pos)
+static inline int IsVisible(Player* player, Position_00408090* pos)
 {
     if ((g_game->mapFlags & 2) == 2)
         return IsExplored(player, pos);
@@ -103,7 +105,7 @@ struct Unit {
 #pragma pack(pop)
 
 struct Group_00407e90 {
-    Player_00408090* player;            // +0x0
+    Player* player;                     // +0x0
     int id;                             // +0x4
     char unknown_8[0x10 - 0x8];
     std::vector<Unit*> units;           // +0x10

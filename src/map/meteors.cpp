@@ -19,7 +19,8 @@ struct Game {
 };
 #pragma pack(pop)
 
-struct Player_00437cd0 {
+// The 0x115-byte weapon definition; flags is its low byte here.
+struct WeaponDef {
     char unknown_0[0x111];
     unsigned char flags;            // +0x111
 };
@@ -79,12 +80,12 @@ extern int g_meteorActive;             // shower active
 extern int g_meteorNextStrikeTime;     // next strike time
 extern int g_meteorsEnabled;           // enabled
 extern int g_meteorNextHitTime;        // next meteor time
-extern Player_00437cd0* g_meteorWeapon;  // owning player
+extern WeaponDef* g_meteorWeapon;        // the meteor weapon definition
 extern Game* g_game;
 extern Point16 g_meteorOrigin;         // origin
 extern Point16 g_meteorTarget;         // target
 
-Player_00437cd0* __stdcall FindWeaponByName(char* name);
+WeaponDef* __stdcall FindWeaponByName(char* name);
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
 int __stdcall SpawnProjectile(void* player, Vec3_00437de0* pos, Vec3_00437de0* vel, int count);
@@ -98,11 +99,11 @@ void InitMeteors()
     g_meteorNextStrikeTime = g_meteorSpawnInterval;
     g_meteorWeapon = FindWeaponByName(g_meteorWeaponName);
     if (g_meteorWeapon == 0) {
-        g_meteorWeapon = (Player_00437cd0*)((char*)g_game + 0x2cf3);
+        g_meteorWeapon = (WeaponDef*)((char*)g_game + 0x2cf3);
         return;
     }
     if (!(g_meteorWeapon->flags & 0x20))
-        g_meteorWeapon = (Player_00437cd0*)((char*)g_game + 0x2cf3);
+        g_meteorWeapon = (WeaponDef*)((char*)g_game + 0x2cf3);
 }
 
 // FUNCTION: 0x437d30

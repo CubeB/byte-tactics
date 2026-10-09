@@ -43,6 +43,7 @@ struct Rot16 {
 };
 
 #include "../units/unit_def.h"
+#include "../network/player.h"
 
 // The flags at +0x241 read as the original's bitfield; the header keeps the
 // plain word.
@@ -200,12 +201,14 @@ struct Team_004689c0 {                 // 347 bytes
     char unknown_8[347 - 8];
 };
 
+// The player array seen from +0x1b8e: field_119 is its +0x144 unitCount.
 struct Player_004689c0 {               // 331 bytes
     char unknown_0[0x119];
     unsigned short field_119;          // +0x119
     char unknown_11b[331 - 0x11b];
 };
 
+// The player array seen from +0x1b8a, where the info pointer sits at +0x00.
 struct Player_467d70 {
     PlayerInfo* info;                  // +0x00
     char unknown_4[0x14b - 4];
@@ -430,16 +433,6 @@ struct Colors_00467b60 {
     unsigned char full;                // +0xa
 };
 
-struct PlayerData_467c00 {
-    char unknown_0[0x96];
-    unsigned char color;               // +0x96
-};
-
-struct Player_467c00 {
-    char unknown_0[0x27];
-    PlayerData_467c00* data;           // +0x27
-};
-
 struct Rect_467c00 {
     int left;                          // +0
     int top;                           // +4
@@ -456,6 +449,7 @@ struct Entry_467c00 {
     unsigned short h;                  // +2
 };
 
+// Not a player: the kills word of a unit at +0xb8 (see DrawKillCount).
 struct Player_00467cb0 {
     char unknown_0[0xb8];
     unsigned short kills;              // +0xb8
@@ -757,9 +751,9 @@ void __stdcall DrawProgressBar(void* surface, int value, int max, Rect_004b0510*
 // texture rectangle, dst the screen rectangle.
 
 // FUNCTION: 0x467c00
-void __stdcall BlitSideLogoToRect(void* surf, Player_467c00* player, Rect_467c00* rect, int dy)
+void __stdcall BlitSideLogoToRect(void* surf, Player* player, Rect_467c00* rect, int dy)
 {
-    unsigned char idx = player->data->color;
+    unsigned char idx = player->info->color;
     Entry_467c00* entry = (Entry_467c00*)*(void**)((char*)g_game->logos32 + idx * 8 + 0x28);
 
     Quad_467c00 src;

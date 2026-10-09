@@ -52,7 +52,7 @@ struct Bits_00426e80 {
 #pragma pack(push, 1)
 // The player's data object, reached from the player block's owner pointer:
 // the flag at +0x95 and the ready/synced bits at +0x97 and +0x9b.
-struct PlayerOwner_004269d0 {
+struct PlayerInfo {
     char unknown_0[0x95];
     unsigned char side;                // +0x95
     char unknown_96[0x97 - 0x96];
@@ -62,19 +62,6 @@ struct PlayerOwner_004269d0 {
     unsigned short : 6;                // +0x9b
     unsigned short b6 : 1;             // +0x9b, mask 0x40
     unsigned short : 9;
-};
-
-// One of the game object's ten player blocks, 0x14b bytes each.
-struct Player_004269d0 {
-    int active;                        // +0x0
-    int id;                            // +0x4
-    char unknown_8[0x21 - 8];
-    unsigned char keepaliveFlags;      // +0x21
-    char unknown_22[0x27 - 0x22];
-    PlayerOwner_004269d0* owner;       // +0x27
-    char unknown_2b[0x73 - 0x2b];
-    unsigned char type;                // +0x73
-    char unknown_74[0x14b - 0x74];
 };
 
 // 13-byte smoke puff record: the loop steps the pointer by 13.
@@ -179,7 +166,7 @@ struct Game {
     char unknown_ddb[0x11eb - 0xddb];
     void* surface;                     // +0x11eb
     char surfaceName[0x1b63 - 0x11ef]; // +0x11ef
-    Player_004269d0 players[10];       // +0x1b63
+    Player players[10];                // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char localPlayer;         // +0x2a42
     char unknown_2a43[1];
@@ -934,11 +921,11 @@ void HandleFrontendDebugKey(void)
     switch (event) {
     case 'A':
     case 'a':
-        g_game->players[g_game->localPlayer].owner->side = 0;
+        g_game->players[g_game->localPlayer].info->side = 0;
         return;
     case 'C':
     case 'c':
-        g_game->players[g_game->localPlayer].owner->side = 1;
+        g_game->players[g_game->localPlayer].info->side = 1;
         return;
     case 'E':
     case 'e':
@@ -1460,7 +1447,7 @@ void RunFrontendStateMachine(void)
             SetState(0x11, 0x5ab, g_frontendSourceFile);
             return;
         case 19:
-            g_game->players[(unsigned char)g_game->localPlayer].owner->b6 = 1;
+            g_game->players[(unsigned char)g_game->localPlayer].info->b6 = 1;
         case 18:
             if (JoinNetGame(*(V4i*)((char*)g_game + 0x2ba2), (unsigned char)g_game->localPlayer) == 0) {
                 SetSubState(0, 0x5b3, g_frontendSourceFile);
@@ -1483,11 +1470,11 @@ void RunFrontendStateMachine(void)
         case 21: {
             int unit = g_game->net;
             if (unit)
-                g_game->players[(unsigned char)g_game->localPlayer].owner->ready = *(unsigned int*)(unit + 4) >> 1;
+                g_game->players[(unsigned char)g_game->localPlayer].info->ready = *(unsigned int*)(unit + 4) >> 1;
             else
-                g_game->players[(unsigned char)g_game->localPlayer].owner->ready = 0;
+                g_game->players[(unsigned char)g_game->localPlayer].info->ready = 0;
             if (g_game->frontendSubstate == 0x13)
-                g_game->players[(unsigned char)g_game->localPlayer].owner->b6 = 1;
+                g_game->players[(unsigned char)g_game->localPlayer].info->b6 = 1;
             unsigned char* q = (unsigned char*)g_game + 0x14b * (unsigned char)g_game->localPlayer + 0x1b84;
             *q = (g_game->flags_2b4c.b4 << 1) | (*q & 0xfd);
             if (g_game->flags_2b4c.b4) {

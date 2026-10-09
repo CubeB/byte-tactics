@@ -401,7 +401,7 @@ int g_meteorActive;  // 0x512318 .bss
 int g_meteorStrikeEndTime;  // 0x51231c .bss
 unsigned char g_meteorOrigin[4];  // 0x512320 .bss
 int g_meteorShowerDuration;  // 0x512324 .bss
-Player_00437cd0* g_meteorWeapon;  // 0x512328 .bss
+WeaponDef* g_meteorWeapon;  // 0x512328 .bss
 int g_meteorsEnabled;  // 0x51232c .bss
 int g_meteorNextHitTime;  // 0x512330 .bss
 unsigned char g_meteorTarget[4];  // 0x512334 .bss
@@ -621,6 +621,10 @@ char g_lineProcessHandleRead;  // 0x528aac .bss
 void* g_stackProcessHandle;  // 0x528ab0 .bss
 void (__stdcall* g_pfnSymGetLineFromAddr)(void);  // 0x528ab4 .bss
 int (__stdcall* g_pfnSymInitialize)(void*, char*, unsigned long);  // 0x528ab8 .bss
+int (__stdcall* g_pfnSymCleanup)(void*);  // 0x528abc .bss
+int (__stdcall* g_pfnStackWalk)(unsigned long, void*, void*, void*, void*, void*, void*, void*, void*);  // 0x528ac0 .bss
+void* g_pfnSymFunctionTableAccess;  // 0x528ac4 .bss
+void* g_pfnSymGetModuleBase;  // 0x528ac8 .bss
 void (__stdcall* g_pfnSymGetSymFromAddr)(void);  // 0x528acc .bss
 unsigned long (__stdcall* g_pfnSymSetOptions)(unsigned long);  // 0x528ad0 .bss
 void (__stdcall* g_pfnUnDecorateSymbolName)(void);  // 0x528ad4 .bss
@@ -654,7 +658,7 @@ int g_reportIndent;  // 0x529dd0 .bss
 unsigned char g_perfRaisePriority;  // 0x529dd4 .bss
 unsigned char g_perfEnabled;  // 0x529dd8 .bss
 unsigned char g_perfDisplayInDebugger;  // 0x529ddc .bss
-EventEntry* g_pmcEventCatalog;  // 0x529df8 .bss
+Entry_004df590* g_pmcEventCatalog;  // 0x529df8 .bss
 unsigned char DAT_00529dfc[4];  // 0x529dfc .bss
 char g_reportIndentText[56];  // 0x529e20 .bss
 void* g_nameMapFreeList;  // 0x529e58 .bss

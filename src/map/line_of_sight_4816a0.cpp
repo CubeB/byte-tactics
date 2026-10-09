@@ -12,18 +12,7 @@ struct UnitDef_004816a0 {
     unsigned short range;              // +0x202
 };
 
-struct Player_004816a0 {
-    int active;                        // +0x00
-    char unknown_4[0x73 - 0x4];
-    unsigned char type;                // +0x73
-    char unknown_74[0x7c - 0x74];
-    unsigned char* seenMap;            // +0x7c
-    char unknown_80[0x88 - 0x80];
-    int seenCount;                     // +0x88
-    char unknown_8c[0x146 - 0x8c];
-    unsigned char index;               // +0x146
-    char unknown_147[0x14b - 0x147];
-};
+#include "../network/player.h"
 
 struct Vec3_004816a0 {
     int x;                             // +0x00
@@ -38,7 +27,7 @@ struct Unit {
     short losCacheCellX;                    // +0x7a
     char unknown_7c[0x92 - 0x7c];
     UnitDef_004816a0* def;             // +0x92
-    Player_004816a0* player;           // +0x96
+    Player* player;           // +0x96
     char unknown_9a[0xa6 - 0x9a];
     unsigned short unitDefIndex;       // +0xa6
     char unknown_a8[0xf8 - 0xa8];
@@ -81,7 +70,7 @@ struct Flags_142f1_004816a0 {
 
 struct Game {
     char unknown_0[0x1b63];
-    Player_004816a0 players[10];       // +0x1b63
+    Player players[10];       // +0x1b63
     char unknown_2851[0x14233 - 0x2851];
     int width;                         // +0x14233
     int height;                        // +0x14237
@@ -119,11 +108,11 @@ void __stdcall RecalculateLineOfSight(int arg)
     }
     for (unsigned char i = 0; i < 10; i++) {
         if (i >= 10) continue;
-        Player_004816a0* p = &g_game->players[i];
+        Player* p = &g_game->players[i];
         if (p->active == 0) continue;
         if (p->type != 1 && p->type != 2 && p->type != 3) continue;
         if (p->index == 10) continue;
-        memset(p->seenMap, (unsigned char)~((unsigned char)g_game->mapFlags >> 1) & 1, p->seenCount);
+        memset(p->explored, (unsigned char)~((unsigned char)g_game->mapFlags >> 1) & 1, p->exploredSize);
     }
     for (Unit* u = g_game->units + 1; u <= g_game->unitsEnd; u++) {
         if (u->unitDefIndex == 0)

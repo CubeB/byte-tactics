@@ -39,7 +39,9 @@ struct ByteMap_00474b80 {
     unsigned char Get(int x, int y) { return data[size.width * y + x]; }
 };
 
-struct Player_00474b80 {
+// The header's type, kept local: its explored pointer cannot spell the
+// ByteMap this fog test needs.
+struct Player {
     char unknown_0[0x7c];
     ByteMap_00474b80 explored;     // +0x7c
     char unknown_88[0x14b - 0x88];
@@ -47,7 +49,7 @@ struct Player_00474b80 {
 
 struct Game {
     char unknown_0[0x1b63];
-    Player_00474b80 players[10];   // +0x1b63, stride 0x14b
+    Player players[10];   // +0x1b63, stride 0x14b
     char unknown_2851[0x2a43 - 0x2851];
     unsigned char playerIndex;     // +0x2a43
     char unknown_2a44[0x14263 - 0x2a44];
@@ -95,7 +97,7 @@ extern Game* g_game;
 // pre-branch block. Remove it and the whole frame rotates.
 static inline int Identity_00474b80(int v) { return v; }
 
-static inline int IsSeen_00474b80(Player_00474b80* p, Player_00474b80* q, int col, int row)
+static inline int IsSeen_00474b80(Player* p, Player* q, int col, int row)
 {
     if (!p->explored.size.Contains(col, row))
         return 0;
@@ -109,11 +111,11 @@ void SmokeParticle::DrawParticle(void* dest, short px, short py)
     Pos_00474b80* q = &posw;
     short sx = q->x - px + 0x80;
     short sy = q->y - (q->h >> 1) - py + 0x20;
-    Player_00474b80* p = &g_game->players[g_game->playerIndex];
+    Player* p = &g_game->players[g_game->playerIndex];
     // The second spelling of the same record: the bounds test reads p, the mask
     // index re-reads the width through p2, which keeps both of the original's
     // two width loads.
-    Player_00474b80* p2 = &g_game->players[g_game->playerIndex];
+    Player* p2 = &g_game->players[g_game->playerIndex];
     int visible;
     if ((g_game->mapFlags & 2) == 2) {
         int col = posw.x >> 5;

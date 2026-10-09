@@ -357,7 +357,8 @@ struct PlayerInfo {
 
 // The 0x14b-byte player slot at g_game+0x1b63: the union of the three parts'
 // views (the info pointer at +0x27, the type at +0x73, the alliance at
-// +0x13f).
+// +0x13f). Kept out of the header: its field names and alias unions disagree
+// with the header's, and this module's functions match only with this view.
 struct Player_00444930 {
     int active;                        // +0x00
     int field_4;                       // +0x04

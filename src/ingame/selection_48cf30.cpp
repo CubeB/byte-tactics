@@ -51,16 +51,17 @@ struct Unit {
     char unknown_111[0x118 - 0x111];
 };
 
-struct Player_0048cf30 {
+// Kept a view of its own at this file's symbol count; the header's names.
+struct Player {
     char unknown_0[0x67];
-    Unit* first;                        // +0x67
-    Unit* last;                         // +0x6b
+    Unit* unitsBegin;                   // +0x67
+    Unit* unitsEnd;                     // +0x6b
     char unknown_6f[0x14b - 0x6f];
 };
 
 struct Game {
     char unknown_0[0x1b63];
-    Player_0048cf30 players[10];        // +0x1b63
+    Player players[10];                 // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char localPlayer;          // +0x2a42
     char unknown_2a43[0x2caa - 0x2a43];
@@ -99,12 +100,12 @@ void __stdcall IssueOrderToSelection(UnitType_0048cf30* entry, unsigned char mod
         else
             except = (Unit*)((char*)g_game->units + 280 * g_game->hoverUnitId);
     }
-    Player_0048cf30* p = &g_game->players[g_game->localPlayer];
+    Player* p = &g_game->players[g_game->localPlayer];
     int count = 0;
     int sum_x = 0;
     int sum_z = 0;
     Unit* u;
-    for (u = p->first; u <= p->last; u++) {
+    for (u = p->unitsBegin; u <= p->unitsEnd; u++) {
         if ((u->flags & 0x10) && u != except) {
             count++;
             sum_x += (short)(u->x >> 16);
@@ -118,7 +119,7 @@ void __stdcall IssueOrderToSelection(UnitType_0048cf30* entry, unsigned char mod
     avg[0] = (sum_x / count) * 65536.0;
     avg[2] = (sum_z / count) * 65536.0;
     int range = count * 3000;
-    for (u = p->first; u <= p->last; u++) {
+    for (u = p->unitsBegin; u <= p->unitsEnd; u++) {
         if (!(u->flags & 0x10) || u == except)
             continue;
         if (mode)

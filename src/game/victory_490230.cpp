@@ -36,18 +36,12 @@ public:
     virtual void LoadState(HapiBank* file);
 };
 
-#pragma pack(push, 1)
-struct Player_00490230 {                // 0x14b bytes
-    char unknown_0[0x108];
-    unsigned char allied[10];            // +0x108, one entry per other team
-    char unknown_112[0x144 - 0x112];
-    short count;                         // +0x144
-    char unknown_146[0x14b - 0x146];
-};
+#include "../network/player.h"
 
+#pragma pack(push, 1)
 struct Game {
     char unknown_0[0x1b63];
-    Player_00490230 players[10];          // +0x1b63
+    Player players[10];                   // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char player;                 // +0x2a42
     char unknown_2a43[0x391e9 - 0x2a43];
@@ -98,7 +92,7 @@ int MissionConditions::CheckVictory()
         return AllVictoryConditionsMet();
     case 2: {
         unsigned char player = g_game->player;
-        Player_00490230* me = &g_game->players[player];
+        Player* me = &g_game->players[player];
         for (unsigned char i = 0; i < 10; i++) {
             // Separate unsigned char copy of the counter: puts it in the base slot
             // and keeps the zero-extension after the player test.
@@ -107,7 +101,7 @@ int MissionConditions::CheckVictory()
                 continue;
             if (me->allied[j])
                 continue;
-            if (g_game->players[j].count != 0)
+            if (g_game->players[j].unitCount != 0)
                 return 0;
         }
         return 1;

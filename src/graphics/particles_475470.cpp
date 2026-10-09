@@ -44,7 +44,9 @@ struct ByteMap_00475470 {
 };
 
 #pragma pack(push, 1)
-struct Player_00475470 {
+// The header's type, kept local: its explored pointer cannot spell the
+// ByteMap this fog test needs.
+struct Player {
     char unknown_0[0x7c];
     ByteMap_00475470 explored;         // +0x7c
     char unknown_88[0x14b - 0x88];
@@ -52,7 +54,7 @@ struct Player_00475470 {
 
 struct Game {
     char unknown_0[0x1b63];
-    Player_00475470 players[10];       // +0x1b63
+    Player players[10];       // +0x1b63
     char unknown_2851[0x2a43 - 0x2851];
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x14263 - 0x2a44];
@@ -82,7 +84,7 @@ int __stdcall GetGafFrameCount(void* ptr);
 void* __stdcall GetGafFrame(void* a, int b);
 void __stdcall DrawFrameBlended(void* dest, void* src, int x, int y);
 
-static inline int IsExplored(Player_00475470* map, Position_00475470* pos)
+static inline int IsExplored(Player* map, Position_00475470* pos)
 {
     int tx = pos->x >> 5;
     int ty = (pos->z - (pos->y >> 1)) >> 5;
@@ -92,7 +94,7 @@ static inline int IsExplored(Player_00475470* map, Position_00475470* pos)
 }
 
 // The body of the matched 0x408090.
-static inline int IsSeen(Player_00475470* map, Position_00475470* pos)
+static inline int IsSeen(Player* map, Position_00475470* pos)
 {
     int tx = pos->x >> 5;
     int ty = (pos->z - (pos->y >> 1)) >> 5;
@@ -106,7 +108,7 @@ static inline int IsSeen(Player_00475470* map, Position_00475470* pos)
             (1 << g_game->playerIndex)) != 0;
 }
 
-static inline int IsVisible(Player_00475470* map, Position_00475470* pos)
+static inline int IsVisible(Player* map, Position_00475470* pos)
 {
     if ((g_game->mapFlags & 2) == 2)
         return IsExplored(map, pos);

@@ -10,6 +10,8 @@
 // The campaign object at g_game+0x391e9 (see 0x435da0.cpp).
 #include "../map/mission.h"
 
+#include "../network/player.h"
+
 #pragma pack(push, 1)
 struct PlayerInfo {
     char unknown_0[0x94];
@@ -23,36 +25,9 @@ struct PlayerInfo {
     unsigned short bits_9b_7 : 9;
 };
 
-struct Player_0046c2a0 {               // 0x14b bytes
-    int active;                        // +0x00
-    int id;                            // +0x04
-    char unknown_8[0x27 - 0x8];
-    PlayerInfo* data;                  // +0x27
-    char name[0x73 - 0x2b];            // +0x2b
-    unsigned char type;                // +0x73
-    char unknown_74[0xac - 0x74];
-    double totalEnergyProduced;        // +0xac
-    double totalMetalProduced;         // +0xb4
-    char unknown_bc[0xcc - 0xbc];
-    double energyWasted;               // +0xcc
-    double metalWasted;                // +0xd4
-    char unknown_dc[0xfc - 0xdc];
-    short kills;                       // +0xfc
-    short losses;                      // +0xfe
-    char unknown_100[0x104 - 0x100];
-    short commandersKilled;            // +0x104
-    short commandersLost;              // +0x106
-    char allied[10];                   // +0x108
-    char unknown_112[0x140 - 0x112];
-    int unitsCreated;                  // +0x140
-    char unknown_144[0x146 - 0x144];
-    char index;                        // +0x146
-    char unknown_147[0x14b - 0x147];
-};
-
 struct Game_0046c2a0 {
     char unknown_0[0x1b63];
-    Player_0046c2a0 players[10];       // +0x1b63
+    Player players[10];                // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char localPlayer;         // +0x2a42
     char unknown_2a43[0x38a47 - 0x2a43];
@@ -105,19 +80,19 @@ int FillScoreTables()
     int j;
     int count = 0;
     for (int i = 0; i < 10; i++) {
-        Player_0046c2a0* p = &g_game->players[i];
+        Player* p = &g_game->players[i];
         if ((p->active && (p->type == 1 || p->type == 2 || p->type == 3) && p->index != 10) || p->unitsCreated || p->active) {
             count++;
             g_onlineReportPlayers[i]->name = p->name;
             g_onlineReportPlayers[i]->id = p->id;
             g_onlineReportPlayers[i]->flags = 1;
-            if ((p->active && p->type == 2) || (p->active && p->type == 3 && p->data->kind == 2))
+            if ((p->active && p->type == 2) || (p->active && p->type == 3 && p->info->kind == 2))
                 g_onlineReportPlayers[i]->flags |= 2;
-            if (p->active && p->data->flag_9b_6)
+            if (p->active && p->info->flag_9b_6)
                 g_onlineReportPlayers[i]->flags |= 4;
-            if (p->active && (p->data->flags & 1))
+            if (p->active && (p->info->flags & 1))
                 g_onlineReportPlayers[i]->flags |= 8;
-            g_onlineReportPlayers[i]->side = g_sideNames[p->data->side];
+            g_onlineReportPlayers[i]->side = g_sideNames[p->info->side];
             int n = 0;
             PlayerInfo_0046c2a0** allies = g_onlineReportPlayers[i]->allies;
             PlayerInfo_0046c2a0** a = allies;
@@ -156,10 +131,10 @@ int FillScoreTables()
             s->value = (int)p->metalWasted;
             s = g_onlineReportScoreBoards[i]->scores[6];
             s->name = g_scoreNames[6];
-            s->value = p->commandersKilled;
+            s->value = p->commanderKills;
             s = g_onlineReportScoreBoards[i]->scores[7];
             s->name = g_scoreNames[7];
-            s->value = p->commandersLost;
+            s->value = p->commanderLosses;
             s = g_onlineReportScoreBoards[i]->scores[8];
             s->name = g_scoreNames[8];
             s->value = (i == g_game->localPlayer || (p->active && p->type == 2)) ? g_game->bit4_3923b : 0;

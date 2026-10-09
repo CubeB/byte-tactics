@@ -99,7 +99,7 @@ union Flags14281_00466dc0 {
     } bits;
 };
 
-struct Player_00466dc0 {
+struct PlayerInfo {
     char unknown_0[0x96];
     unsigned char color;                 // +0x96
 };
@@ -122,9 +122,9 @@ struct ByteMap_00466dc0 {
     unsigned char Get(int x, int y) { return data[Index(x, y)]; }
 };
 
-struct PlayerInfo_00466dc0 {
+struct Player {
     char unknown_0[0x27];
-    Player_00466dc0* data;               // +0x27
+    PlayerInfo* info;               // +0x27
     char unknown_2b[0x7c - 0x2b];
     ByteMap_00466dc0 explored;           // +0x7c
     char unknown_88[0x14b - 0x88];
@@ -251,7 +251,7 @@ struct Game {
     char unknown_dcc[0xdd9 - 0xdcc];
     unsigned char field_dd9;             // +0xdd9
     char unknown_dda[0x1b63 - 0xdda];
-    PlayerInfo_00466dc0 players[1];      // +0x1b63, 0x14b bytes each
+    Player players[1];      // +0x1b63, 0x14b bytes each
     char unknown_1cae[0x2a43 - 0x1cae];
     unsigned char currentPlayer;         // +0x2a43
     char unknown_2a44[0x2cba - 0x2a44];
@@ -523,7 +523,7 @@ void UpdateRadarMapped()
     if (g_game->timer.word.flags.mapChanged) {
         g_game->timer.word.flags.mapChanged = 0;
         unsigned char fog = g_game->fogColor;
-        PlayerInfo_00466dc0* t = &g_game->players[g_game->currentPlayer];
+        Player* t = &g_game->players[g_game->currentPlayer];
         unsigned int mask = 1 << g_game->currentPlayer;
         unsigned char* dst = *(unsigned char**)((char*)g_game->mappedSurface + 0xc);
         unsigned char* src = *(unsigned char**)((char*)g_game->pictureSurface + 0xc);
@@ -563,14 +563,14 @@ void UpdateRadarMapped()
 // The radar helpers use the ByteMap Index/Get methods (width materialised,
 // `mov ecx, [edx+0x80]; imul ecx, edi`) and the slot loop reads `slot->shot`
 // at each use instead of a `shot` local.
-static PlayerInfo_00466dc0* PlayerInfo_00466dc0_Get(unsigned char p)
+static Player* Player_Get(unsigned char p)
 {
     return &g_game->players[0] + p;
 }
 
 // True when (px, py) is inside the current player's visible area. The two
 // halves match the uint8 terrain bitmap and the packed 16-bit bitfield variant.
-static inline int OnRadarByte_00466dc0(PlayerInfo_00466dc0* pi, int px, int py)
+static inline int OnRadarByte_00466dc0(Player* pi, int px, int py)
 {
     int tx = px >> 5;
     int ty = py >> 5;
@@ -579,7 +579,7 @@ static inline int OnRadarByte_00466dc0(PlayerInfo_00466dc0* pi, int px, int py)
     return 0;
 }
 
-static inline int OnRadarShort_00466dc0(PlayerInfo_00466dc0* pi, int px, int py)
+static inline int OnRadarShort_00466dc0(Player* pi, int px, int py)
 {
     int tx = px >> 5;
     int ty = py >> 5;
@@ -593,7 +593,7 @@ static inline int OnRadarShort_00466dc0(PlayerInfo_00466dc0* pi, int px, int py)
 
 static inline int OnRadar_00466dc0(int px, int py)
 {
-    PlayerInfo_00466dc0* pi = PlayerInfo_00466dc0_Get(g_game->currentPlayer);
+    Player* pi = Player_Get(g_game->currentPlayer);
     if ((g_game->mapFlags.all & 2) == 2)
         return OnRadarByte_00466dc0(pi, px, py);
     return OnRadarShort_00466dc0(pi, px, py);
@@ -638,7 +638,7 @@ void DrawRadarUnits(void)
                         (g_game->timer.byte.field_142f0.b.hi & 1) != 0) {
                         DrawFrame(surface,
                             GetGafFrame(g_game->radlogo,
-                                PlayerInfo_00466dc0_Get(u->playerIndex)->data->color),
+                                Player_Get(u->playerIndex)->info->color),
                             x, y);
                     }
                     if (u->id == g_game->hoverUnitId) {
@@ -719,8 +719,8 @@ void DrawRadarUnits(void)
                         g_game->currentPlayer) {
                     DrawFrame(surface,
                         GetGafFrame(g_game->nuclogo,
-                            PlayerInfo_00466dc0_Get(
-                                ((Tail_00466dc0*)q)->player)->data->color),
+                            Player_Get(
+                                ((Tail_00466dc0*)q)->player)->info->color),
                         x, y);
                 }
             }

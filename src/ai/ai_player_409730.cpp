@@ -223,7 +223,9 @@ struct Game {
     int windSpeedDenominator;          // +0x37ec8
 };
 
-struct Player_00409730 {
+// The header's type, kept local: the header's declarations move this
+// function's store SIB and weapon divisions (docs/c2-regalloc.md).
+struct Player {
     char unknown_0[0x144];
     unsigned short unitCount;          // +0x144
 };
@@ -234,7 +236,7 @@ struct UnitList_00409730 {
 
 class PlayerAI {
 public:
-    Player_00409730* player;           // +0x00
+    Player* player;                    // +0x00
     unsigned char index;               // +0x04
     UnitList_00409730 list_5;          // +0x05
     UnitList_00409730 list_15;         // +0x15

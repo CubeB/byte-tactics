@@ -52,13 +52,6 @@ struct PlayerInfo_00449bb0 {
     int mapCrc;                         // +0xa9
 };
 
-struct Player_00449bb0 {                // 0x14b bytes
-    int active;                         // +0x00
-    char unknown_4[0x27 - 0x4];
-    PlayerInfo_00449bb0* info;          // +0x27
-    char unknown_2b[0x14b - 0x2b];
-};
-
 struct Gadget_00449bb0;
 struct Gui_00449bb0;
 typedef void (__stdcall* Callback_00449bb0)(Gui_00449bb0* gui, int index);
@@ -119,7 +112,7 @@ struct Game_00449bb0 {
     char unknown_0[0x519];
     Gui_00449bb0 gui;                   // +0x519
     char unknown_535[0x1b63 - 0x535];
-    Player_00449bb0 players[10];        // +0x1b63
+    Player players[10];                 // +0x1b63
     char unknown_2851[0x29a0 - 0x2851];
     Options_00449bb0* options;          // +0x29a0
     char unknown_29a4[0x2a30 - 0x29a4];
@@ -227,7 +220,7 @@ void __stdcall UpdateEnergyText(Gui_00449bb0* gui, int unused)
 
         _itoa(shown, text, 10);
         SetTranslatedTextByName(gui, "ENERGYTEXT", text, 0);
-        info = g_game->players[g_game->localPlayer].info;
+        info = (PlayerInfo_00449bb0*)g_game->players[g_game->localPlayer].info;
         info->energy = (unsigned short)(shown / 100);
         if (info->f97_0 & 1) {
             BroadcastPlayerInfo();
@@ -260,7 +253,7 @@ void OpenBattleRoom()
     int energy = 1000;
     int metal = 1000;
     Layer_00449bb0* layer;
-    Player_00449bb0* player;
+    Player* player;
     PlayerInfo_00449bb0* info;
     Gadget_00449bb0* entries;
     short host;
@@ -272,7 +265,7 @@ void OpenBattleRoom()
     g_game->dirty = 1;
     memset(g_game->playerIds, 0, sizeof(g_game->playerIds));
     // info before player: stores the player pointer without its 0x1b63 bias.
-    info = g_game->players[g_game->localPlayer].info;
+    info = (PlayerInfo_00449bb0*)g_game->players[g_game->localPlayer].info;
     player = &g_game->players[g_game->localPlayer];
     host = info->f97_0;
     g_game->lobbyInitScratch = 0;
@@ -312,8 +305,8 @@ void OpenBattleRoom()
                 g_game->commander = commander;
                 g_game->commanderDeath = commander;
                 // Block-local pointer: the original forms 0x1b63 first, then reads +0x27.
-                Player_00449bb0* p = &g_game->players[g_game->localPlayer];
-                p->info->b.commander = commander;
+                Player* p = &g_game->players[g_game->localPlayer];
+                ((PlayerInfo_00449bb0*)p->info)->b.commander = commander;
             }
         }
         if (g_lobbyEnergy)
@@ -361,10 +354,10 @@ void OpenBattleRoom()
     *g_game->chatter = 0;
     {
         Gadget_00449bb0* mem = FindGadgetChecked_C(g_game->gui.table->entries, "MEMx");
-        mem->colour = player->info->memory < ((Class_00435920*)g_game->map)->GetTerrainSizeTier() ? 0xc : 0;
-        sprintf(mem->text, "%d", g_game->players[g_game->localPlayer].info->memory);
+        mem->colour = ((PlayerInfo_00449bb0*)player->info)->memory < ((Class_00435920*)g_game->map)->GetTerrainSizeTier() ? 0xc : 0;
+        sprintf(mem->text, "%d", ((PlayerInfo_00449bb0*)g_game->players[g_game->localPlayer].info)->memory);
     }
-    isHost = g_game->players[g_game->localPlayer].info->f97_0;
+    isHost = ((PlayerInfo_00449bb0*)g_game->players[g_game->localPlayer].info)->f97_0;
     CreateUnitSync(isHost);
     SetGadgetActiveByName(&g_game->gui, "START", ((UnitSync*)g_game->net)->AllPlayersSynced());
     SetGrayedOutByName(&g_game->gui, "START",

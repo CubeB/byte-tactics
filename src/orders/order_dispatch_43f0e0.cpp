@@ -68,13 +68,7 @@ struct Size_0043e490 {
     unsigned int height; // +0x4
 };
 
-struct Player_0043e490 {
-    char unknown_0[0x80];
-    Size_0043e490 size; // +0x80
-    char unknown_88[0x108 - 0x88];
-    char allied[0x3e]; // +0x108
-    unsigned char index; // +0x146
-};
+#include "../network/player.h"
 
 struct Stats_0043e490 {
     char unknown_0[0x8c];
@@ -100,7 +94,7 @@ struct Unit_0043e490 {
     Unit_0043e490* f86; // +0x86
     char unknown_8a[0x92 - 0x8a];
     Def_0043e490* def;       // +0x92
-    Player_0043e490* player; // +0x96
+    Player* player; // +0x96
     char unknown_9a[0xec - 0x9a];
     Stats_0043e490* fec; // +0xec
     char unknown_f0[0xfb - 0xf0];
@@ -238,15 +232,6 @@ struct Size_0043f0e0 {
     unsigned int height; // +0x4
 };
 
-struct Player_0043f0e0 {
-    char unknown_0[0x80];
-    Size_0043f0e0 size; // +0x80
-    char unknown_88[0x108 - 0x88];
-    char allied[1]; // +0x108
-    char unknown_109[0x146 - 0x109];
-    unsigned char index; // +0x146
-};
-
 struct Unit_0043f0e0 {
     int moving; // +0x0
     char unknown_4[0x10 - 0x4];
@@ -261,7 +246,7 @@ struct Unit_0043f0e0 {
     Unit_0043f0e0* f86; // +0x86
     char unknown_8a[0x92 - 0x8a];
     Def_0043f0e0* def;       // +0x92
-    Player_0043f0e0* player; // +0x96
+    Player* player; // +0x96
     char unknown_9a[0xfb - 0x9a];
     int ffb; // +0xfb
     unsigned char unknown_ff[1];
@@ -330,12 +315,12 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
 // MSVC folds it back into the CSE'd load, which it then reloads into edx for
 // the imul as the original does.
 static inline int Visible(Unit_0043e490* unit, Pos_0043e490* pos) {
-    Player_0043e490* p = unit->player;
+    Player* p = unit->player;
     int y, x;
     x = pos->x >> 5;
     y = (pos->z - (pos->y >> 1)) >> 5;
-    return (unsigned int)x < p->size.width && (unsigned int)y < p->size.height &&
-           0 != ((1 << g_game->localPlayerBit) & g_game->visibilityMask[x + y * unit->player->size.width]);
+    return (unsigned int)x < p->exploredWidth && (unsigned int)y < p->exploredHeight &&
+           0 != ((1 << g_game->localPlayerBit) & g_game->visibilityMask[x + y * unit->player->exploredWidth]);
 }
 
 // The feature on a map cell, as GetFeature in 0x4237d0.cpp but with the id in
@@ -503,11 +488,11 @@ static inline Class_00438760 Pick(Def_0043f0e0* def, const char* vtol, const cha
 }
 
 static inline int Visible(Unit_0043f0e0* unit, Pos_0043f0e0* pos) {
-    Player_0043f0e0* p = unit->player;
+    Player* p = unit->player;
     int x = pos->x >> 5;
     int y = (pos->z - (pos->y >> 1)) >> 5;
-    return (unsigned int)x < p->size.width && (unsigned int)y < p->size.height &&
-           0 != ((1 << g_game->localPlayerBit) & g_game->visibilityMask[x + y * unit->player->size.width]);
+    return (unsigned int)x < p->exploredWidth && (unsigned int)y < p->exploredHeight &&
+           0 != ((1 << g_game->localPlayerBit) & g_game->visibilityMask[x + y * unit->player->exploredWidth]);
 }
 
 #define FEATURE_CHECK(def, unit, pos, mask, result)                                            \

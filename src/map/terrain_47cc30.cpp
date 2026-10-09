@@ -15,16 +15,12 @@ struct Unit_0047cc30 {
     unsigned char* mask;                // +0x14e
 };
 
-struct Player_0047cc30 {
-    int active;                         // +0x0
-    char unknown_4[0x73 - 0x4];
-    unsigned char type;                 // +0x73
-};
+#include "../network/player.h"
 
 struct UnitRec_0047cc30 {               // 0x118 bytes
     char unknown_0[0x92];
     void* def;                          // +0x92
-    Player_0047cc30* owner;             // +0x96
+    Player* owner;                      // +0x96
     char unknown_9a[0x110 - 0x9a];
     unsigned int flags;                 // +0x110
     char unknown_114[0x118 - 0x114];

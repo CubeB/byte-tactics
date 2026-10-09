@@ -108,18 +108,18 @@ Counts in `src/` and `include/` at `origin/main`, against `e9367f13` (the roadma
 | Source files (`.cpp`) | 2,727 | 304 | 112, one per module (`data/modules.csv`) | 93% | `[###################-]` |
 | Placeholder functions `FUN_<addr>` | 1,076 | 282 | 0, named | 74% | `[###############-----]` |
 | Placeholder globals `DAT_<addr>` | 737 | 65 | 0, named | 91% | `[##################--]` |
-| Placeholder classes `Class_<addr>` | 769 | 672 | 0, named | 13% | `[###-----------------]` |
+| Placeholder classes `Class_<addr>` | 769 | 666 | 0, named | 13% | `[###-----------------]` |
 | Placeholder fields `field_<offset>` | 589 | 367 | 0, named | 38% | `[########------------]` |
 | Files that define `Unit` | 285 | 80 | 1, one shared definition | 72% | `[##############------]` |
 | Files opening with matching history | 301 | 0 | 0, none | 100% | `[####################]` |
 | Casts `((T*)x)->` | 1,698 | 318 | 0, casts the types allow | 81% | `[################----]` |
-| Byte-offset access `*(T*)(p + off)` and `(char*)p + off` | 1,284 | 536 | cases with no struct | | |
+| Byte-offset access `*(T*)(p + off)` and `(char*)p + off` | 1,284 | 484 | cases with no struct | | |
 
 | Cleanup issues | | | |
 | --- | --- | --- | ---: |
 | Gather issues | 125 of 125 closed | `[####################]` | 100% |
 | Join issues | 28 of 32 closed | `[##################--]` | 87% |
-| Name issues | 141 of 161 closed | `[##################--]` | 87% |
+| Name issues | 142 of 161 closed | `[##################--]` | 88% |
 <!-- cleanup:end -->
 
 ## Next steps

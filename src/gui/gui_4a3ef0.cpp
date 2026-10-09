@@ -48,7 +48,7 @@ struct Font_004a3ef0 {
 
 struct List_004a3ef0 {
     char unknown_0[0x0c];
-    unsigned short* field_0c;          // +0x0c
+    unsigned short* glyphs;            // +0x0c
 };
 
 struct Holder_004a3ef0 {
@@ -73,7 +73,7 @@ void __stdcall DrawSliderBar(Dialog* param_1, int param_2);
 // The one helper for every GetGafFrame glyph fetch.
 static inline GafFrame* GetGlyph_004a3ef0(unsigned char c)
 {
-    return (GafFrame*)GetGafFrame(g_guiContext->list->field_0c, c);
+    return (GafFrame*)GetGafFrame(g_guiContext->list->glyphs, c);
 }
 
 static inline int Find_004a3ef0(Gadget* entries, unsigned char kind)

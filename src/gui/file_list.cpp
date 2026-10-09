@@ -67,7 +67,7 @@ struct Gadget {
 
 struct Obj18 {
     char unknown_0[4];
-    char* field_4;                   // +0x4
+    char* entries;                   // +0x4
 };
 
 // The slider gadget behind FileRequester::slider.
@@ -459,7 +459,7 @@ FileRequester* Dialog::OpenFileRequester(Dialog* self, char* arg2, char* arg3, c
     ((void**)gui)[3] = obj;
     obj->callback = 0;
 
-    Gadget* entries = (Gadget*)self->holder->field_4;
+    Gadget* entries = (Gadget*)self->holder->entries;
     obj->nameGadget = (char*)FindGadgetChecked_B(entries, "NAME");
     obj->maskGadget = (char*)FindGadgetChecked_B(entries, "MASK");
     obj->pathGadget = (char*)FindGadgetOrNull(entries, "PATH");
@@ -607,7 +607,7 @@ void __stdcall DrawBlinkWords(Dialog* obj)
     int time = GetTicks();
 
     if (obj->words->value != -1)
-        SelectFontForEntry((Entry_004a1810*)obj->holder->field_4,
+        SelectFontForEntry((Entry_004a1810*)obj->holder->entries,
                      obj->words->value);
 
     for (int i = 0; i < obj->count; i++) {
@@ -632,7 +632,7 @@ void __stdcall DrawBlinkWords(Dialog* obj)
         else
             SetTextColors(obj->words[i].colourA, GetTextKeyColor());
 
-        DrawString((void*)*(int*)(obj->holder->field_4 + 0xbc),
+        DrawString((void*)*(int*)(obj->holder->entries + 0xbc),
                      obj->words[i].text, obj->words[i].x,
                      obj->words[i].y, -1);
     }

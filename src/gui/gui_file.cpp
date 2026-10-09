@@ -342,7 +342,7 @@ struct Source_004ad890 {
 #pragma pack(push, 1)
 struct Obj_004ad890 {
     char unknown_0[0xb6];
-    short field_b6;                    // +0xb6
+    short totalGadgets;                // +0xb6
     char unknown_b8[0x11];             // +0xb8
     char major;                        // +0xc9
     char minor;                        // +0xca
@@ -357,7 +357,7 @@ struct Obj_004ad890 {
 // FUNCTION: 0x4ad890
 void __stdcall ReadPanelFields(Obj_004ad890* obj, Source_004ad890* src)
 {
-    obj->field_b6 = (short)src->tdf->GetFieldInt("totalgadgets", 0);
+    obj->totalGadgets = (short)src->tdf->GetFieldInt("totalgadgets", 0);
     src->tdf->GetFieldString(obj->panel, "panel", 0x10, DAT_005119b8);
     src->tdf->GetFieldString(obj->crdefault, "crdefault", 0x10, DAT_005119b8);
     src->tdf->GetFieldString(obj->escdefault, "escdefault", 0x10, DAT_005119b8);
@@ -392,18 +392,18 @@ void __stdcall WriteStatusField(Struct_004ad980* obj, FileHandle* out, int inden
 
 struct StructA_004ada10 {
     char unknown_0[0xb6];
-    short field_b6;
+    short status;
 };
 
 struct StructB_004ada10 {
     char unknown_0[4];
-    TdfRecord* field_4;
+    TdfRecord* tdf;
 };
 
 // FUNCTION: 0x4ada10
 void __stdcall ReadStatusField(StructA_004ada10* a, StructB_004ada10* b)
 {
-    a->field_b6 = (short)b->field_4->GetFieldInt("status", 0);
+    a->status = (short)b->tdf->GetFieldInt("status", 0);
 }
 
 #pragma pack(push, 2)
@@ -697,14 +697,14 @@ struct Obj_004ae300 {
     char unknown_0[0xb6];
     char text[0x80];                   // +0xb6
     char link[0x11];                   // +0x136
-    char field_147;                    // +0x147
+    char hotkey;                       // +0x147
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x4ae300
 void __stdcall ReadTextLinkFields(Obj_004ae300* obj, Source_004ae300* src)
 {
-    obj->field_147 = 0;
+    obj->hotkey = 0;
     obj->link[0] = 0;
     memset(obj->text, 0, sizeof(obj->text));
     src->tdf->GetFieldString(obj->text, "text", 0x80, DAT_005119b8);
@@ -835,7 +835,7 @@ void __stdcall ReadSurfFilenameField(Obj_004ae550* obj, Source_004ae550* src)
 #pragma pack(push, 1)
 struct Obj_004ae580 {
     char unknown_0[0xb6];
-    int field_b6;                      // +0xb6
+    int nuttin;                        // +0xb6
 };
 #pragma pack(pop)
 
@@ -848,7 +848,7 @@ void __stdcall WriteNuttinField(Obj_004ae580* obj, FileHandle* out, int indent)
     char tab;
     char line[100];
     char num[100];
-    char* value = _itoa(obj->field_b6, num, 10);
+    char* value = _itoa(obj->nuttin, num, 10);
     tab = '\t';
     for (int i = 0; i < indent; i++)
         HAPI_WriteFile(out, &tab, 1);
@@ -859,19 +859,19 @@ void __stdcall WriteNuttinField(Obj_004ae580* obj, FileHandle* out, int indent)
 #pragma pack(push, 1)
 struct StructA_004ae610 {
     char unknown_0[0xb6];
-    int field_b6;                      // +0xb6
+    int nuttin;                        // +0xb6
 };
 #pragma pack(pop)
 
 struct StructB_004ae610 {
     char unknown_0[4];
-    TdfRecord* field_4;                // +0x4
+    TdfRecord* tdf;                    // +0x4
 };
 
 // FUNCTION: 0x4ae610
 void __stdcall ReadNuttinField(StructA_004ae610* a, StructB_004ae610* b)
 {
-    a->field_b6 = b->field_4->GetFieldInt("nuttin", 0);
+    a->nuttin = b->tdf->GetFieldInt("nuttin", 0);
 }
 
 // Writes a whole GUI file: for each of the object's records, its header, its
@@ -1012,7 +1012,7 @@ struct Sub34_004aeac0 {
 
 struct Sub5_004aeac0 {
     char link[0x11];                   // +0x136
-    char field_147;                    // +0x147
+    char hotkey;                       // +0x147
     char pad0[0x15b - 0x148];
 };
 
@@ -1081,7 +1081,7 @@ int __stdcall ReadGuiFile(Elem_004aeac0* obj, char* name)
                 break;
             case 5:
                 e->tail.s5.link[0] = 0;
-                e->tail.s5.field_147 = 0;
+                e->tail.s5.hotkey = 0;
                 memset(e->body.text, 0, sizeof(e->body.text));
                 parser.current->GetFieldString(e->body.text, "text", 0x80, DAT_005119b8);
                 strncpy(e->body.text, Translate(e->body.text), 0x7f);
@@ -1115,17 +1115,17 @@ int __stdcall ReadGuiFile(Elem_004aeac0* obj, char* name)
 struct Obj_004aeda0 {
     char unknown_0[8];
     int* buffers[3];                   // +0x8
-    int field_14;                      // +0x14
+    int activeFontGaf;                 // +0x14
 };
 
-// Frees one of the three buffers at +0x8 and clears it and field_14.
+// Frees one of the three buffers at +0x8 and clears it and activeFontGaf.
 // FUNCTION: 0x4aeda0
 void __stdcall FreeGafSlot(Obj_004aeda0* obj, int i)
 {
     if (obj->buffers[i] != 0) {
         GameFreeThunk(obj->buffers[i]);
         obj->buffers[i] = 0;
-        obj->field_14 = 0;
+        obj->activeFontGaf = 0;
     }
 }
 
@@ -1139,14 +1139,14 @@ struct Object_004aedd0 {
     char unknown_0[8];
     void* items[1];                    // +0x8
     char unknown_c[0x14 - 0xc];
-    void* field_14;                    // +0x14
+    void* activeFontGaf;               // +0x14
     char unknown_18[0xab6 - 0x18];
     char dir[0x100];                   // +0xab6
 };
 
 // Loads the GAF named by `name` (prefixed with obj->dir) and stores the loaded
 // GAF in obj->items[index], after shifting every frame by the offset of the
-// glyph/entry 0x49. obj->field_14 receives the same GAF pointer. When the file
+// glyph/entry 0x49. obj->activeFontGaf receives the same GAF pointer. When the file
 // does not exist, obj->items[index] is zeroed.
 // FUNCTION: 0x4aedd0
 void __stdcall LoadGafIntoSlot(Object_004aedd0* obj, char* name, int index)
@@ -1174,7 +1174,7 @@ void __stdcall LoadGafIntoSlot(Object_004aedd0* obj, char* name, int index)
             if (f)
                 *(short*)(f + 6) -= d;
         }
-        obj->field_14 = obj->items[index];
+        obj->activeFontGaf = obj->items[index];
     } else {
         obj->items[index] = 0;
         return;
@@ -1202,14 +1202,14 @@ void __stdcall LoadGafFile(Object_004aeee0* obj, char* name)
 
 struct Obj_004aef80 {
     char unknown_0[4];
-    int* field_4;                      // +0x4
+    int* gaf;                          // +0x4
 };
 
 // FUNCTION: 0x4aef80
 void __stdcall FreeCommonGuiGaf(Obj_004aef80* obj)
 {
-    if (obj->field_4) {
-        GameFreeThunk(obj->field_4);
-        obj->field_4 = 0;
+    if (obj->gaf) {
+        GameFreeThunk(obj->gaf);
+        obj->gaf = 0;
     }
 }

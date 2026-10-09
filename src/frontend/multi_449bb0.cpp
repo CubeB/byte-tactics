@@ -87,7 +87,7 @@ struct Gadget_00449bb0 {                // 0x15b bytes
     unsigned int c8_0 : 1;              // +0xc8
     unsigned int c8_rest : 31;
     char unknown_cc[0x138 - 0xcc];
-    unsigned short field_138;           // +0x138
+    unsigned short maxchars;            // +0x138
     char unknown_13a[0x13c - 0x13a];
     int max;                            // +0x13c
     short value;                        // +0x140
@@ -291,7 +291,7 @@ void OpenBattleRoom()
 
     i = FindGadgetIndex(entries, "MESSAGE", 3);
     if (i != -1)
-        entries[i].field_138 = 0x7f;
+        entries[i].maxchars = 0x7f;
     if (!IsHostLocal()) {
         i = FindGadgetIndex(entries, "MAP", 1);
         if (i != -1) {

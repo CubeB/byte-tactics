@@ -15100,12 +15100,12 @@ struct Struct_004ad980 {  // 0xb8 bytes, 1 view
 
 struct StructA_004ada10 {  // 0xb8 bytes, 1 view
     char unknown_0[182];
-    short field_b6;  // +0xb6
+    short status;  // +0xb6
 };
 
 struct StructB_004ada10 {  // 0x8 bytes, 1 view
     char unknown_0[4];
-    TdfRecord* field_4;       // +0x4
+    TdfRecord* tdf;       // +0x4
 };
 
 struct Obj_004ada40 {  // 0x13e bytes, 1 view
@@ -15192,7 +15192,7 @@ struct Obj_004ae300 {  // 0x148 bytes, 1 view
     char unknown_0[182];
     char text[128];  // +0xb6
     char link[17];  // +0x136
-    char field_147;  // +0x147
+    char hotkey;  // +0x147
 };
 
 struct Source_004ae300 {  // 0x8 bytes, 1 view
@@ -15249,17 +15249,17 @@ struct Source_004ae550 {  // 0x8 bytes, 1 view
 
 struct Obj_004ae580 {  // 0xba bytes, 1 view
     char unknown_0[182];
-    int field_b6;  // +0xb6
+    int nuttin;  // +0xb6
 };
 
 struct StructA_004ae610 {  // 0xba bytes, 1 view
     char unknown_0[182];
-    int field_b6;  // +0xb6
+    int nuttin;  // +0xb6
 };
 
 struct StructB_004ae610 {  // 0x8 bytes, 1 view
     char unknown_0[4];
-    TdfRecord* field_4;       // +0x4
+    TdfRecord* tdf;       // +0x4
 };
 
 struct Sub2_004aeac0 {  // 0x80 bytes, 1 view
@@ -15284,7 +15284,7 @@ struct Sub34_004aeac0 {  // 0x25 bytes, 1 view
 
 struct Sub5_004aeac0 {  // 0x25 bytes, 1 view
     char link[17];  // +0x0
-    char field_147;  // +0x11
+    char hotkey;  // +0x11
     char unknown_12[19];
 };
 
@@ -15328,7 +15328,7 @@ struct Common_004ad350 {  // 0x15b bytes, 4 views
 struct Obj_004aeda0 {  // 0x18 bytes, 1 view
     char unknown_0[8];
     int* buffers[3];  // +0x8
-    int field_14;  // +0x14
+    int activeFontGaf;  // +0x14
 };
 
 struct Table_004aedd0 {  // 0x2c bytes, 1 view
@@ -15339,7 +15339,7 @@ struct Table_004aedd0 {  // 0x2c bytes, 1 view
 
 struct Obj_004aef80 {  // 0x8 bytes, 1 view
     char unknown_0[4];
-    int* field_4;  // +0x4
+    int* gaf;  // +0x4
 };
 
 struct BlinkWord_004afc60 {  // 0xa4 bytes, 1 view

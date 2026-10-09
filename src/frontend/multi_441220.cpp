@@ -16,7 +16,7 @@ struct Entry_00441220 {
     char unknown_0[0xba];
     short index;                     // +0xba
     char unknown_bc[0xc0 - 0xbc];
-    unsigned short field_c0;         // +0xc0
+    unsigned short count;            // +0xc0
     char unknown_c2[0xd2 - 0xc2];
     char* records;                   // +0xd2
     char unknown_d6[0x13c - 0xd6];
@@ -51,7 +51,7 @@ void __stdcall MarkChanged(void* menu);
 
 static inline void Apply_00441220(unsigned short* p, unsigned short r, int ge, Entry_00441220* entry)
 {
-    unsigned short on = (unsigned short)(((entry->field_c0 == 0) | (ge == 0)) & 1);
+    unsigned short on = (unsigned short)(((entry->count == 0) | (ge == 0)) & 1);
     *p = (unsigned short)((r | on) | (*p & 0xfffe));
 }
 

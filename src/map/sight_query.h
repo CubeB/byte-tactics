@@ -2,8 +2,9 @@
 // of the line-of-sight routines: the owning player, the unit's cached sight
 // cell, its sight distance and eye height, the byte that holds its sight frame
 // and its position. The one declaration of the struct for the files in
-// map/line_of_sight*.cpp. map/line_of_sight.cpp, whose Vec3 splits y and z into
-// halves, keeps its own view.
+// map/line_of_sight*.cpp. The position is the shared Vec3 of util/vec3.h; the
+// player stays a pointer to an incomplete Player, which each file casts to its
+// own view of the fields it reads.
 #ifndef SIGHT_QUERY_H
 #define SIGHT_QUERY_H
 

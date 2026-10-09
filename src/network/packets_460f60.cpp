@@ -1,9 +1,9 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 // Stays in a file of its own: this destructor matches only with the inline
-// PacketReceiver destructor in packet_receiver.h, where packets.cpp needs
-// another form. The compiler-generated static destructor (_$E2) of the global
-// object g_packetManager, whose dynamic initialiser is 0x460e20 and whose
-// out-of-line destructor is 0x461420.
+// PacketReceiver, PlayerFrameInfo and FrameQueue destructors below, where
+// packets.cpp needs them out of line. The compiler-generated static
+// destructor (_$E2) of the global object g_packetManager, whose dynamic
+// initialiser is 0x460e20 and whose out-of-line destructor is 0x461420.
 
 void __cdecl operator delete(void*);
 
@@ -32,11 +32,23 @@ public:
 // FUNCTION: 0x460f60 _$E2
 PacketManager g_packetManager;
 
-Buffers_00462d30::~Buffers_00462d30()
+inline FrameQueue::~FrameQueue()
 {
-    delete a;
-    delete c;
-    delete b;
+    operator delete(buffer);
+    operator delete(recvBuffer);
+}
+
+inline PlayerFrameInfo::~PlayerFrameInfo()
+{
+    operator delete(frame);
+}
+
+inline PacketReceiver::~PacketReceiver()
+{
+    void* p = spare;
+    if (!p)
+        p = buffer;
+    operator delete(p);
 }
 
 Sub_00460f60::~Sub_00460f60()

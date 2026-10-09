@@ -262,11 +262,7 @@ struct Record_00441460 {               // 0x54 bytes
     char name2[0x20];                  // +0x34
 };
 
-// One online service: its id and its name.
-struct LinkInfo {
-    int id;                            // +0x00, -1: unused
-    char name[32];                     // +0x04
-};
+#include "../network/link_info.h"
 
 #include "../network/player_info.h"
 

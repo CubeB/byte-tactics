@@ -61,10 +61,7 @@ struct Game_00444580 {
 };
 #pragma pack(pop)
 
-struct LinkInfo {
-    int id;             // -1: unused
-    char name[32];
-};
+#include "../network/link_info.h"
 
 extern Game_00444580* g_game;
 // GLOBAL: 0x5127c8

@@ -9,10 +9,7 @@ extern HMODULE g_onlineDll;
 
 char* __stdcall Translate(char* text);
 
-struct LinkInfo {
-    int id;             // -1: unused
-    char name[32];
-};
+#include "link_info.h"
 
 typedef unsigned int (__stdcall* OnlGetVersion)(void);
 typedef unsigned int (__stdcall* OnlGetLinkInfo)(LinkInfo* links);

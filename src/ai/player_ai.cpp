@@ -49,10 +49,7 @@ struct Unit { char pad[0x6a]; Vec3 pos; char pad76[0x92-0x76]; Def* def; Player*
 
 #include "../units/unit_def.h"
 
-struct Mission {
-    char unknown_0[0xd30];
-    int surfaceMetal;                  // +0xd30
-};
+#include "../map/mission.h"
 
 struct Feature {
     char unknown_0[0xf0];

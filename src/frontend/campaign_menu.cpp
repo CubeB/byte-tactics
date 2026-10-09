@@ -9,6 +9,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+// Included only for its symbol ids: DrawHelpPage matches only with it
+// (docs/c2-regalloc.md).
+#include <math.h>
 
 #include "../util/tdf.h"
 
@@ -18,19 +21,7 @@ public:
     void StopStream();
 };
 
-class Mission {
-public:
-    char unknown_0[0xd34];
-    int minWindSpeed;                  // +0xd34
-    int maxWindSpeed;                  // +0xd38
-    int gravity;                       // +0xd3c
-    int GetNameSlot(int param_1);
-    char* GetBriefing();
-    char* GetPlanet();
-    int LoadCampaign(char* name);
-    int BuildMissionList(int* list);
-    int SelectMission(int index);
-};
+#include "../map/mission.h"
 
 struct Info_00477510 {
     char unknown_0[0x30];
@@ -898,7 +889,7 @@ void __stdcall FillMissionList(Menu* menu, int unused)
     Gadget* layout =
         FindGadgetChecked(g_game->menu.layer->entries, "Campaign");
     g_game->net->LoadCampaign(SkipTextLines(layout->text, layout->selected));
-    int count = g_game->net->BuildMissionList((int*)&g_missionNameList);
+    int count = g_game->net->BuildMissionList(&g_missionNameList);
     ConfigureListBoxByName(menu, "Missions", g_missionNameList, count, 0);
     SyncAssocGadgets(&g_game->menu,
                  FindGadgetIndex(layer->entries, "Missions", 2));
@@ -934,7 +925,7 @@ static inline void FillMissionListInline(Menu* menu, Gadget* unused)
         FindGadgetChecked(g_game->menu.layer->entries, "Campaign");
     g_game->net->LoadCampaign(
         SkipTextLines(layout->text, layout->selected));
-    int count = g_game->net->BuildMissionList((int*)&g_missionNameList);
+    int count = g_game->net->BuildMissionList(&g_missionNameList);
     ConfigureListBoxByName(menu, "Missions", g_missionNameList, count, 0);
     SyncAssocGadgets(&g_game->menu,
                  FindGadgetIndex(layer->entries, "Missions", 2));
@@ -1187,7 +1178,7 @@ void __stdcall OpenNewGameMenu(int param_1)
             char* text = SkipTextLines(m->text, m->selected);
             g_game->net->LoadCampaign(text);
             int mc = g_game->net->BuildMissionList(
-                (int*)&g_missionNameList);
+                &g_missionNameList);
             ConfigureListBoxByName(menu, "Missions", g_missionNameList, mc, 0);
             int mi = FindGadgetIndex(mlayer->entries, "Missions", 2);
             SyncAssocGadgets(&g_game->menu, mi);

@@ -52,10 +52,15 @@ struct Elem_00434360 {
 typedef std::vector<Elem_00434360> W1_00433130;
 typedef std::vector<W1_00433130> W2_00433130;
 
+class TdfRecord {
+public:
+    int GetFieldInt(const char* name, int def);
+};
+
 class TdfFile {
 public:
     int field_0;                       // +0x0
-    int field_4;                       // +0x4
+    TdfRecord* field_4;                // +0x4
     int field_8;                       // +0x8
 
     TdfFile();
@@ -63,11 +68,6 @@ public:
     int LoadFile(char* path);
     int SelectRecord(char* name);
     void Unload();
-};
-
-class TdfRecord {
-public:
-    int GetFieldInt(const char* name, int def);
 };
 
 // Stays in its own file: it needs a hand-written std::vector so that insert
@@ -91,7 +91,7 @@ void LosTables::LoadLosTables()
     BuildDataPath(path, "gamedata", "los", "TDF");
     if ((&tdf)->LoadFile(path) != 0) {
         if ((&tdf)->SelectRecord("TABLEINFO") != 0) {
-            short numtables = (short)((TdfRecord*)tdf.field_4)->GetFieldInt("numtables", 0);
+            short numtables = (short)tdf.field_4->GetFieldInt("numtables", 0);
             {
                 W1_00433130 temp;
                 unsigned n = (unsigned)numtables;

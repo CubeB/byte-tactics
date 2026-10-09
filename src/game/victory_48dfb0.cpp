@@ -49,10 +49,12 @@ struct Vec3 {
     Vec3(int ax, int ay, int az) : x(ax), y(ay), z(az) {}
 };
 
+class TdfRecord;
+
 // The registration parameter: the command reader lives at +0x4.
 struct Param_0048e010 {
     char unknown_0[4];
-    void* reader;                        // +0x4
+    TdfRecord* reader;                   // +0x4
 };
 
 #pragma pack(push, 1)
@@ -480,92 +482,92 @@ void MissionConditions::RegisterConditions(Param_0048e010* p)
 
     // Every reader result goes into a named int before the != 0 test: a bare
     // call folds to test instead of cmp against the zero register.
-    int r1 = ((TdfRecord*)p->reader)->GetFieldInt("KillEnemyCommander", 0);
+    int r1 = p->reader->GetFieldInt("KillEnemyCommander", 0);
     if (r1 != 0) {
         AddCondition(victory, &victoryCount, new VictoryKillEnemyCommander);
     }
-    int r2 = ((TdfRecord*)p->reader)->GetFieldInt("DestroyAllUnits", 0);
+    int r2 = p->reader->GetFieldInt("DestroyAllUnits", 0);
     if (r2 != 0) {
         AddCondition(victory, &victoryCount, new VictoryDestroyAllUnits);
     }
-    int r3 = ((TdfRecord*)p->reader)->GetFieldInt("KillAllMobileUnits", 0);
+    int r3 = p->reader->GetFieldInt("KillAllMobileUnits", 0);
     if (r3 != 0) {
         AddCondition(victory, &victoryCount, new VictoryKillAllMobileUnits);
     }
-    int r4 = ((TdfRecord*)p->reader)->GetFieldString(buf, "BuildUnitType", 0x100, (char*)&DAT_005119b8);
+    int r4 = p->reader->GetFieldString(buf, "BuildUnitType", 0x100, (char*)&DAT_005119b8);
     if (r4 != 0) {
         AddCondition(victory, &victoryCount, new VictoryBuildUnitType(buf));
     }
-    int r5 = ((TdfRecord*)p->reader)->GetFieldString(buf, "CaptureUnitType", 0x100, (char*)&DAT_005119b8);
+    int r5 = p->reader->GetFieldString(buf, "CaptureUnitType", 0x100, (char*)&DAT_005119b8);
     if (r5 != 0) {
         AddCondition(victory, &victoryCount, new VictoryCaptureUnitType(buf));
     }
-    int r6 = ((TdfRecord*)p->reader)->GetFieldString(buf, "KillAllOfType", 0x100, (char*)&DAT_005119b8);
+    int r6 = p->reader->GetFieldString(buf, "KillAllOfType", 0x100, (char*)&DAT_005119b8);
     if (r6 != 0) {
         AddCondition(victory, &victoryCount, new VictoryKillAllOfType(buf));
     }
-    int r7 = ((TdfRecord*)p->reader)->GetFieldString(buf, "KillUnitType", 0x100, (char*)&DAT_005119b8);
+    int r7 = p->reader->GetFieldString(buf, "KillUnitType", 0x100, (char*)&DAT_005119b8);
     if (r7 != 0) {
         int n;
         sscanf(buf, "%[a-zA-Z],%i", stype, &n);
         AddCondition(victory, &victoryCount, new VictoryKillUnitType(stype, n));
     }
-    int r8 = ((TdfRecord*)p->reader)->GetFieldString(buf, "MoveUnitToRadius", 0x100, (char*)&DAT_005119b8);
+    int r8 = p->reader->GetFieldString(buf, "MoveUnitToRadius", 0x100, (char*)&DAT_005119b8);
     if (r8 != 0) {
         int a, b, c;
         sscanf(buf, "%[a-zA-Z],%i,%i,%i", stype, &a, &b, &c);
         AddCondition(victory, &victoryCount, new VictoryMoveUnitToRadius(stype, a, b, c));
     }
-    int r9 = ((TdfRecord*)p->reader)->GetFieldString(buf, "UnitTypePassesX", 0x100, (char*)&DAT_005119b8);
+    int r9 = p->reader->GetFieldString(buf, "UnitTypePassesX", 0x100, (char*)&DAT_005119b8);
     if (r9 != 0) {
         int n;
         sscanf(buf, "%[a-zA-Z],%i", stype, &n);
         AddCondition(victory, &victoryCount, new VictoryUnitTypePassesX(stype, n));
     }
-    int r10 = ((TdfRecord*)p->reader)->GetFieldString(buf, "UnitTypePassesZ", 0x100, (char*)&DAT_005119b8);
+    int r10 = p->reader->GetFieldString(buf, "UnitTypePassesZ", 0x100, (char*)&DAT_005119b8);
     if (r10 != 0) {
         int n;
         sscanf(buf, "%[a-zA-Z],%i", stype, &n);
         AddCondition(victory, &victoryCount, new VictoryUnitTypePassesZ(stype, n));
     }
     {
-        int t = ((TdfRecord*)p->reader)->GetFieldInt("VictoryTimerRunsOut", 0);
+        int t = p->reader->GetFieldInt("VictoryTimerRunsOut", 0);
         if (t > 0) {
             AddCondition(victory, &victoryCount, new VictoryTimerRunsOut(t));
         }
     }
-    int r11 = ((TdfRecord*)p->reader)->GetFieldInt("CommanderKilled", 0);
+    int r11 = p->reader->GetFieldInt("CommanderKilled", 0);
     if (r11 != 0) {
         AddCondition(defeat, &defeatCount, new DefeatCommanderKilled);
     }
-    int r12 = ((TdfRecord*)p->reader)->GetFieldInt("AllUnitsKilled", 0);
+    int r12 = p->reader->GetFieldInt("AllUnitsKilled", 0);
     if (r12 != 0) {
         AddCondition(defeat, &defeatCount, new DefeatAllUnitsKilled);
     }
-    int r13 = ((TdfRecord*)p->reader)->GetFieldString(buf, "AllUnitsKilledOfType", 0x100, (char*)&DAT_005119b8);
+    int r13 = p->reader->GetFieldString(buf, "AllUnitsKilledOfType", 0x100, (char*)&DAT_005119b8);
     if (r13 != 0) {
         AddCondition(defeat, &defeatCount, new DefeatAllUnitsKilledOfType(buf));
     }
-    int r14 = ((TdfRecord*)p->reader)->GetFieldString(buf, "UnitTypeKilled", 0x100, (char*)&DAT_005119b8);
+    int r14 = p->reader->GetFieldString(buf, "UnitTypeKilled", 0x100, (char*)&DAT_005119b8);
     if (r14 != 0) {
         int n;
         sscanf(buf, "%[a-zA-Z],%i", stype, &n);
         AddCondition(defeat, &defeatCount, new DefeatUnitTypeKilled(stype, n));
     }
     {
-        int t = ((TdfRecord*)p->reader)->GetFieldInt("DeathTimerRunsOut", 0);
+        int t = p->reader->GetFieldInt("DeathTimerRunsOut", 0);
         if (t > 0) {
             AddCondition(defeat, &defeatCount, new DefeatDeathTimerRunsOut(t));
         }
     }
     {
-        int t = ((TdfRecord*)p->reader)->GetFieldInt("AnyUnitPassesX", -1);
+        int t = p->reader->GetFieldInt("AnyUnitPassesX", -1);
         if (t >= 0) {
             AddCondition(defeat, &defeatCount, new DefeatAnyUnitPassesX(t));
         }
     }
     {
-        int t = ((TdfRecord*)p->reader)->GetFieldInt("AnyUnitPassesZ", -1);
+        int t = p->reader->GetFieldInt("AnyUnitPassesZ", -1);
         if (t >= 0) {
             AddCondition(defeat, &defeatCount, new DefeatAnyUnitPassesZ(t));
         }

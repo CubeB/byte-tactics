@@ -6848,7 +6848,7 @@ struct Src_00440ca0 {  // 0x14 bytes, 1 view
 };
 
 struct Settings_00441460 {  // 0x10 bytes, 1 view
-    unsigned short field_0;  // +0x0
+    unsigned short memory;  // +0x0
     unsigned short players : 4;  // +0x2
     unsigned short playing : 1;
     unsigned short pad5 : 3;
@@ -6858,11 +6858,11 @@ struct Settings_00441460 {  // 0x10 bytes, 1 view
     unsigned short mode : 2;
     unsigned short pad13 : 2;
     unsigned short lock : 1;
-    unsigned short field_4;  // +0x4
-    unsigned short field_6;  // +0x6
-    unsigned short field_8;  // +0x8
-    unsigned short field_a;  // +0xa
-    unsigned short field_c;  // +0xc
+    unsigned short allyWinFlags;  // +0x4
+    unsigned short pingLimit;  // +0x6
+    unsigned short energy;  // +0x8
+    unsigned short metal;  // +0xa
+    unsigned short maxUnits;  // +0xc
     unsigned short version;  // +0xe
 };
 
@@ -11607,15 +11607,15 @@ struct Player_0047ae60 {  // 0x18 bytes, 1 view
 
 struct Table_0047ae60 {  // 0x22c bytes, 1 view
     Player_0047ae60 players[11];  // +0x0
-    int field_108;  // +0x108
-    int field_10c;  // +0x10c
-    int field_110;  // +0x110
-    int field_114;  // +0x114
-    int field_118;  // +0x118
+    int commanderDeath;  // +0x108
+    int mapping;  // +0x10c
+    int lineOfSight;  // +0x110
+    int losType;  // +0x114
+    int fixedLocations;  // +0x118
     char mapName[260];  // +0x11c
-    int field_220;  // +0x220
-    int field_224;  // +0x224
-    int field_228;  // +0x228
+    int baseGadgetCount;  // +0x220
+    int current;  // +0x224
+    int difficulty;  // +0x228
 };
 
 struct Surfaces_0047bdf0 {  // 0x14 bytes, 2 views

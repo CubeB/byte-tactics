@@ -31,14 +31,14 @@ int GetTextKeyColor();
 // the whole 0xa0 as text, and both put the value at +0xa0.
 struct BlinkWord {
     char text[0x80];                 // +0x0
-    int field_80;                    // +0x80
-    int field_84;                    // +0x84
-    int field_88;                    // +0x88
-    float field_8c;                  // +0x8c
-    int field_90;                    // +0x90
-    float field_94;                  // +0x94
-    int field_98;                    // +0x98
-    float field_9c;                  // +0x9c
+    int x;                           // +0x80
+    int y;                           // +0x84
+    int colourA;                     // +0x88
+    float periodA;                   // +0x8c
+    int colourB;                     // +0x90
+    float periodB;                   // +0x94
+    int phase;                       // +0x98
+    float nextToggle;                // +0x9c
     int value;                       // +0xa0
 };
 
@@ -562,16 +562,16 @@ int __stdcall AddBlinkWord(Dialog* obj, const char* text, int p2, int p3,
     int time = GetTicks();
 
     strncpy(obj->words[i].text, text, 0x80);
-    obj->words[i].field_80 = p2;
-    obj->words[i].field_84 = p3;
-    obj->words[i].field_88 = p4;
-    obj->words[i].field_90 = p5;
-    obj->words[i].field_8c = f6;
-    obj->words[i].field_94 = f7;
+    obj->words[i].x = p2;
+    obj->words[i].y = p3;
+    obj->words[i].colourA = p4;
+    obj->words[i].colourB = p5;
+    obj->words[i].periodA = f6;
+    obj->words[i].periodB = f7;
 
     int rate = GetTickRate();
-    obj->words[i].field_9c = (float)rate * f6 + (float)time;
-    obj->words[i].field_98 = 0;
+    obj->words[i].nextToggle = (float)rate * f6 + (float)time;
+    obj->words[i].phase = 0;
     return 1;
 }
 
@@ -615,25 +615,25 @@ void __stdcall DrawBlinkWords(Dialog* obj)
             continue;
 
         float ft = (float)time;
-        if (obj->words[i].field_9c < ft) {
-            if (obj->words[i].field_98 != 0) {
-                obj->words[i].field_9c =
-                    (float)GetTickRate() * obj->words[i].field_8c + ft;
-                obj->words[i].field_98 = 0;
+        if (obj->words[i].nextToggle < ft) {
+            if (obj->words[i].phase != 0) {
+                obj->words[i].nextToggle =
+                    (float)GetTickRate() * obj->words[i].periodA + ft;
+                obj->words[i].phase = 0;
             } else {
-                obj->words[i].field_9c =
-                    (float)GetTickRate() * obj->words[i].field_94 + ft;
-                obj->words[i].field_98 = 1;
+                obj->words[i].nextToggle =
+                    (float)GetTickRate() * obj->words[i].periodB + ft;
+                obj->words[i].phase = 1;
             }
         }
 
-        if (obj->words[i].field_98 != 0)
-            SetTextColors(obj->words[i].field_90, GetTextKeyColor());
+        if (obj->words[i].phase != 0)
+            SetTextColors(obj->words[i].colourB, GetTextKeyColor());
         else
-            SetTextColors(obj->words[i].field_88, GetTextKeyColor());
+            SetTextColors(obj->words[i].colourA, GetTextKeyColor());
 
         DrawString((void*)*(int*)(obj->field_18->field_4 + 0xbc),
-                     obj->words[i].text, obj->words[i].field_80,
-                     obj->words[i].field_84, -1);
+                     obj->words[i].text, obj->words[i].x,
+                     obj->words[i].y, -1);
     }
 }

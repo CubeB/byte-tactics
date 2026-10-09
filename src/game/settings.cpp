@@ -130,7 +130,7 @@ struct Game {
     MissionFlags_0042f9a0 missionFlags;  // +0x38d7f
     int numSkirmishPlayers;              // +0x38d81
     char unknown_38d85[0x391e9 - 0x38d85];
-    void* campaign;                      // +0x391e9
+    Mission* campaign;                   // +0x391e9
     char unknown_391ed[0x39219 - 0x391ed];
     int singleCommanderDeath;            // +0x39219
     int singleMapping;                   // +0x3921d
@@ -499,9 +499,9 @@ void LoadSettings()
     if (ReadRegistryData("Total Annihilation", "SkirmishMap",
                      g_game->options->skirmishMap, &value) == 0) {
         SetMissionType(2);
-        ((Mission*)g_game->campaign)->RefreshMapList(0);
+        g_game->campaign->RefreshMapList(0);
         strncpy(g_game->options->skirmishMap,
-                ((Mission*)g_game->campaign)->GetMissionName(), 0x100);
+                g_game->campaign->GetMissionName(), 0x100);
         SetMissionType(0);
         WriteRegistryString("Total Annihilation", "SkirmishMap", g_game->options->skirmishMap);
     }
@@ -656,7 +656,7 @@ void ApplyUseOnlyUnits()
 {
     TdfFile parser;
     char name[256];
-    char* file = ((Mission*)g_game->campaign)->GetNameSlot(6);
+    char* file = g_game->campaign->GetNameSlot(6);
     if (file == 0)
         return;
     if (!parser.LoadFile(file))

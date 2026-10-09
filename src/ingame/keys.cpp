@@ -29,7 +29,7 @@ struct Struct_00495860 {
 typedef Struct_00495860 Struct_004958c0;
 
 class Mission;
-class Class_00438760;
+class MissionType;
 
 struct Sub_495e90 {
     char unknown_0[0x10];
@@ -212,9 +212,9 @@ struct Game {
 
 #include "../map/mission.h"
 
-class Class_00438760 {
+class MissionType {
 public:
-    Class_00438760(const char* name);
+    MissionType(const char* name);
     unsigned char index;                // +0
 };
 
@@ -279,8 +279,8 @@ void __stdcall HandleDebugHotkey(int eventType);
 void __stdcall OpenInGameOptions(void);
 void __stdcall MakeDirectoryPath(char* path);
 void __stdcall SaveScreenshot(char* param_1, const char* param_2);
-void __stdcall IssueOrderToSelection(void* a, int b, Class_00438760 kind, int d, int e, int f);
-int __stdcall FindOrderByType(int unit, Class_00438760 kind);
+void __stdcall IssueOrderToSelection(void* a, int b, MissionType kind, int d, int e, int f);
+int __stdcall FindOrderByType(int unit, MissionType kind);
 void __stdcall DeleteOrder(int unit, int arg);
 void __cdecl operator delete(void* p);
 
@@ -744,7 +744,7 @@ void HandleGameKey(void)
         std::vector<int> sel;
         CollectSelectedUnits(&sel);
         int found = 0;
-        Class_00438760 order("SELFDESTRUCT");
+        MissionType order("SELFDESTRUCT");
         for (std::vector<int>::iterator it = sel.begin(); it != sel.end(); ++it) {
             int r = FindOrderByType(*it, order);
             if (r != 0) {

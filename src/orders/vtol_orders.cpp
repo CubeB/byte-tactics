@@ -109,12 +109,12 @@ class SpatialTimer;
 
 
 // The command kind, one byte wide, but not a POD type.
-class Class_00438760 {
+class MissionType {
 public:
     unsigned char index;
-    Class_00438760() {}
-    Class_00438760(const char* name);
-    int operator==(const Class_00438760& v) const { return index == v.index; }
+    MissionType() {}
+    MissionType(const char* name);
+    int operator==(const MissionType& v) const { return index == v.index; }
 };
 
 // The mover object (UnitMotion) at the unit's +0x0: its +0x8 is a velocity,
@@ -257,7 +257,7 @@ struct Link_004895c0 {
 
 struct Order {
     char unknown_0[4];
-    Class_00438760 kind;               // +0x4
+    MissionType kind;                  // +0x4
     unsigned char state;               // +0x5
     union {
         unsigned int flags;            // +0x6
@@ -305,7 +305,7 @@ struct Order {
     void AttachApproachRadiusGoal(Vec3*, int);
     void SetDeadlineTicks(int);
     void AttachBuildFootprintMarker(Point, Point);
-    Order(Class_00438760 type, Unit* target, Vec3* pos, int c, int d, int e);
+    Order(MissionType type, Unit* target, Vec3* pos, int c, int d, int e);
     char unknown_52[0x4];
     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
     void ReattachFxToUnit();
@@ -451,7 +451,7 @@ int __stdcall IssueRepairOrder(Unit*, Unit*, int);
 void __stdcall AppendOrder(Unit*, Order*);
 void __stdcall AppendOrderToTail(Unit*, Order*);
 void __stdcall EnsurePatrolReturnOrder(Unit*, Order*);
-Class_00438760 __stdcall GetOrderType(unsigned char, Unit*, Unit*, int);
+MissionType __stdcall GetOrderType(unsigned char, Unit*, Unit*, int);
 Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
 int __stdcall WeaponCanReachUnit(Unit*, Unit*, unsigned char);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
@@ -461,7 +461,7 @@ int __stdcall IsPadSlotFree(Unit*, int);
 int __stdcall CanPlaceUnitFootprint(UnitDef*, int, Point, int);
 void __stdcall SnapWorldPosToFootprint(UnitDef*, Vec3*);
 Unit* __stdcall CreateUnit(unsigned char, short, Vec3, int, int, int);
-void __stdcall AddOrder(Class_00438760, int, Unit*, Unit*, Vec3*, int, int);
+void __stdcall AddOrder(MissionType, int, Unit*, Unit*, Vec3*, int, int);
 void __stdcall StartBuildingScript(Unit*, Order*, short);
 int __stdcall WaitIfNotInBuildStance(Unit*, Order*, int);
 int __stdcall AddBuildProgress(Unit*, Unit*, float);
@@ -761,7 +761,7 @@ int __stdcall VtolStandbyOrder(Unit* unit, Order* order, int flags)
                 order->state = 1;
                 return 2;
             }
-            AppendOrder(unit, new Order(Class_00438760("VTOL_LANDIFCAN"), 0, &order->pos, 0, 0, 0));
+            AppendOrder(unit, new Order(MissionType("VTOL_LANDIFCAN"), 0, &order->pos, 0, 0, 0));
             return 5;
         }
         order->flags |= 0x10000;
@@ -873,7 +873,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
     VisitObjectsInRange(&unit->pos,range,visitor);
     if (!units.empty()) {
         order->SetAttachedFx(0);
-        Class_00438760 kind=GetOrderType(7,unit,units[0],0);
+        MissionType kind=GetOrderType(7,unit,units[0],0);
         AppendOrder(unit,new Order(kind,units[0],0,0,0,0));
         order->flags=0;
         return 3;

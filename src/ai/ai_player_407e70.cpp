@@ -111,11 +111,11 @@ struct Group_00407e90 {
     std::vector<Unit*> units;           // +0x10
 };
 
-class Class_00438760 {
+class MissionType {
 public:
     unsigned char index;
-    Class_00438760(const char* name);
-    Class_00438760() : index(0) {}
+    MissionType(const char* name);
+    MissionType() : index(0) {}
 };
 
 #include "squad_manager.h"
@@ -160,9 +160,9 @@ static inline Vec3_00407d40 Offset(int angle, int distance)
 
 int __stdcall SumUnitRatingsInRange(int index, Vec3_00407d40* pos, int range);
 int __stdcall WeaponCanReachPos(Unit* unit, Vec3_00407d40* from, Vec3_00407d40* to, int flags);
-Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit* unit,
+MissionType __stdcall GetOrderType(unsigned char mode, Unit* unit,
                                       Unit* target, Vec3_00407d40* pos);
-void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* unit,
+void __stdcall AddOrder(MissionType kind, int remove, Unit* unit,
                             Unit* target, Vec3_00407d40* pos, int a, int b);
 
 // Constructor 0x407d40 defined again, unannotated: emits the vtable and the
@@ -211,7 +211,7 @@ void SpatialTimer::OnTimer()
         Unit* u = *it;
         if (u->def->flag4) {
             if (u->motion || WeaponCanReachPos(u, &u->pos, &a, 0)) {
-                Class_00438760 kind = GetOrderType(3, u, 0, &a);
+                MissionType kind = GetOrderType(3, u, 0, &a);
                 if (kind.index)
                     AddOrder(kind, 0, u, 0, &a, 0, 0);
             }

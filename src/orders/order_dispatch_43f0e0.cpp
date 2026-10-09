@@ -1,6 +1,6 @@
 // Decompiled by Claude Sonnet 5.5, finished by DeepSeek V4.1 Flash and GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by claude-opus-5-5. Names are provisional.
 //
-// Returns the order type (Class_00438760, built from its name) for an order of
+// Returns the order type (MissionType, built from its name) for an order of
 // type `mode` given by `unit` on `target` / `pos`. GetOrderCursor, the function just before this one
 // in the exe, is its sibling that returns the cursor code.
 // Keep the headers and the unused declarations below: their count before the function matters.
@@ -113,11 +113,11 @@ struct Pos_0043e490 {
 };
 
 #include "../map/cell.h"
-class Class_00438760 {
+class MissionType {
   public:
     unsigned char index;
-    Class_00438760(const char* name);
-    Class_00438760() { index = 0; }
+    MissionType(const char* name);
+    MissionType() { index = 0; }
 };
 
 union Flags110_0043f0e0 {
@@ -295,7 +295,7 @@ void __stdcall ClearWeaponTarget(Unit*, int);
 void __stdcall DetonateUnitWeapon(Unit*, int);
 void __stdcall DrawUnit(void*, Unit*);
 
-Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
+MissionType __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
                                       Unit_0043f0e0* target, Pos_0043f0e0* pos);
 
 // GetOrderCursor as in 0x43e490.cpp (the annotated copy). It precedes GetOrderType in the
@@ -479,8 +479,8 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
 }
 
 // A ternary: the flag is tested before the name is loaded.
-static inline Class_00438760 Pick(Def_0043f0e0* def, const char* vtol, const char* ground) {
-    return Class_00438760(def->f241bits.flag_11 ? vtol : ground);
+static inline MissionType Pick(Def_0043f0e0* def, const char* vtol, const char* ground) {
+    return MissionType(def->f241bits.flag_11 ? vtol : ground);
 }
 
 static inline int Visible(Unit_0043f0e0* unit, Pos_0043f0e0* pos) {
@@ -518,7 +518,7 @@ static inline Thing_0043f0e0* Lookup(Pos_0043f0e0* pos) {
 }
 
 // FUNCTION: 0x43f0e0
-Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
+MissionType __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
                                       Unit_0043f0e0* target, Pos_0043f0e0* pos) {
     Def_0043f0e0* def;
     int friendly = 0;
@@ -544,10 +544,10 @@ Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
                 if (node->f111bits.flag_17)
                     break;
                 if (!(def->f241 & 0x800))
-                    return Class_00438760("SUPPRESS");
+                    return MissionType("SUPPRESS");
                 if (def->f1ee->f111bits.flag_8)
-                    return Class_00438760("AIRSTRIKE");
-                return Class_00438760("AIRTOGROUND");
+                    return MissionType("AIRSTRIKE");
+                return MissionType("AIRTOGROUND");
             }
             if ((target->f110 & 3) != 2) {
                 if (node->f111 & 0x20000)
@@ -566,44 +566,44 @@ Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
                     if (node->f111 & 0x10000)
                         break;
                     if ((unit->f3b & 2) && (unit->f2c->f111 & 0x10000))
-                        return Class_00438760();
+                        return MissionType();
                 }
             }
             unsigned int f = def->f241;
             if (def->f241bits.flag_11) {
                 unsigned int air = def->f1ee->f111 & 0x100;
                 if (air && !(target->def->f241 & 0x800))
-                    return Class_00438760("AIRSTRIKE");
+                    return MissionType("AIRSTRIKE");
                 if (!air && (target->def->f241 & 0x800))
-                    return Class_00438760("AIRTOAIR");
+                    return MissionType("AIRTOAIR");
                 unsigned int tv = target->def->f241 & 0x800;
                 if (!tv && !(f & 0x8000000))
-                    return Class_00438760("AIRTOGROUND");
+                    return MissionType("AIRTOGROUND");
                 if (!tv && (f & 0x8000000))
-                    return Class_00438760("AIRTOGROUNDHOVER");
+                    return MissionType("AIRTOGROUNDHOVER");
                 break;
             }
             if (unit->moving != 0)
-                return Class_00438760("ATTACK_CHASE");
+                return MissionType("ATTACK_CHASE");
             if (flags.raw & 0x20000000)
-                return Class_00438760("ATTACK_NOMOVE");
+                return MissionType("ATTACK_NOMOVE");
         }
         if (def->f241bits.flag_28)
-            return Class_00438760("ATTACK_KAMIKAZE");
+            return MissionType("ATTACK_KAMIKAZE");
         break;
     }
     case 9:
         if (def->f245 & 0x40) {
             if (unit->moving == 0)
-                return Class_00438760("QPATROL");
+                return MissionType("QPATROL");
             if (def->f245bits.flag_9) {
                 if (def->f241bits.flag_11)
-                    return Class_00438760("VTOL_REPAIRPATROL");
-                return Class_00438760("REPAIRPATROL");
+                    return MissionType("VTOL_REPAIRPATROL");
+                return MissionType("REPAIRPATROL");
             }
             if (def->f241bits.flag_11)
-                return Class_00438760("VTOL_PATROL");
-            return Class_00438760("PATROL");
+                return MissionType("VTOL_PATROL");
+            return MissionType("PATROL");
         }
         break;
     case 8:
@@ -625,7 +625,7 @@ Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
         // RESURRECT check stays nested, with pos tested again for RECLAIM.
         if (pos && (def->f245 & 0x800)) {
             if (Visible(unit, pos) && t && (t->ffe & 0x80))
-                return Class_00438760("RESURRECT");
+                return MissionType("RESURRECT");
         }
         if (pos && Visible(unit, pos) && t && (t->ffe & 0x80))
             return Pick(def, "VTOL_RECLAIM", "RECLAIM");
@@ -635,7 +635,7 @@ Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
     }
     case 13:
         if ((def->f245 & 0x1000) && target && unit->player != target->player)
-            return Class_00438760("CAPTURE");
+            return MissionType("CAPTURE");
         break;
     case 6:
         if (!target || !((Unit*)unit)->CanLoad(target))
@@ -643,7 +643,7 @@ Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
         return Pick(def, "VTOL_PICKUP", "GROUND_PICKUP");
     case 5:
         if ((def->f245 & 0x100) && (def->f241 & 0x800) && target && (target->def->f241 & 0x200))
-            return Class_00438760("VTOL_LANDING");
+            return MissionType("VTOL_LANDING");
         if (def->f245bits.flag_8)
             return Pick(def, "VTOL_UNLOAD", "GROUND_UNLOAD");
         break;
@@ -653,21 +653,21 @@ Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
         return Pick(def, "VTOL_MOBILEBUILD", "MOBILEBUILD");
     case 4:
         if (def->f245bits.flag_14)
-            return Class_00438760("ATTACKSPECIAL");
+            return MissionType("ATTACKSPECIAL");
         break;
     case 11:
-        return Class_00438760("TELEPORT");
+        return MissionType("TELEPORT");
     case 10:
-        return Class_00438760("STOP");
+        return MissionType("STOP");
     case 2:
         if (!(def->f245 & 0x80))
             break;
         if (unit->moving == 0)
-            return Class_00438760("QMOVE");
+            return MissionType("QMOVE");
         if (!target)
             return Pick(def, "VTOL_MOVE", "MOVE_GROUND");
         if ((def->f245 & 0x1000) && enemy)
-            return Class_00438760("CAPTURE");
+            return MissionType("CAPTURE");
         if ((def->f245 & 0x400) && enemy)
             return Pick(def, "VTOL_RECLAIMUNIT", "RECLAIMUNIT");
         if (friendly && ((Unit*)unit)->CanRepair(target) && target->f104 != 0.0f)
@@ -676,7 +676,7 @@ Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
             (unsigned int)target->f108 < target->def->f1fa)
             return Pick(def, "VTOL_REPAIRUNIT", "REPAIRUNIT");
         if ((def->f241 & 0x800) && friendly && (target->def->f241 & 0x200))
-            return Class_00438760("VTOL_LANDING");
+            return MissionType("VTOL_LANDING");
         if (((Unit*)unit)->CanLoad(target))
             return Pick(def, "VTOL_PICKUP", "GROUND_PICKUP");
         if ((def->f245 & 0x20) && friendly)
@@ -694,12 +694,12 @@ Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
             if (friendly && ((Unit*)unit)->CanRepair(target))
                 return Pick(def, "VTOL_REPAIRUNIT", "REPAIRUNIT");
             if ((def->f241 & 0x800) && friendly && (target->def->f241 & 0x200))
-                return Class_00438760("VTOL_LANDING");
+                return MissionType("VTOL_LANDING");
             if (target && ((Unit*)unit)->CanLoad(target))
                 return Pick(def, "VTOL_PICKUP", "GROUND_PICKUP");
             if ((def->f245 & 0x20) && friendly)
                 return Pick(def, "VTOL_FOLLOW", "FOLLOW_GROUND");
-            FEATURE_CHECK(def, unit, pos, 0x800, Class_00438760("RESURRECT"));
+            FEATURE_CHECK(def, unit, pos, 0x800, MissionType("RESURRECT"));
             FEATURE_CHECK(def, unit, pos, 0x400, Pick(def, "VTOL_RECLAIM", "RECLAIM"));
             if (!(def->f245 & 0x80) || unit->moving == 0)
                 break;
@@ -715,7 +715,7 @@ Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
                 target->f104 == 0.0f && target->ffb == 0 &&
                 (!target->f86 || (target->f86->f110 & 0x40000000)))
                 break;
-            FEATURE_CHECK(def, unit, pos, 0x800, Class_00438760("RESURRECT"));
+            FEATURE_CHECK(def, unit, pos, 0x800, MissionType("RESURRECT"));
             FEATURE_CHECK(def, unit, pos, 0x400, Pick(def, "VTOL_RECLAIM", "RECLAIM"));
             if (!(def->f245 & 0x80) || unit->moving == 0)
                 break;
@@ -724,5 +724,5 @@ Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
     }
     }
 none:
-    return Class_00438760();
+    return MissionType();
 }

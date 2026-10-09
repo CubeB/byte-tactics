@@ -492,10 +492,10 @@ void ClampCameraTarget(void);
 void UpdateScreenShake(void);
 void BeginMouseScroll(void);
 
-class Class_00438760 {
+class MissionType {
 public:
     unsigned char index;
-    Class_00438760(const char* name);
+    MissionType(const char* name);
 };
 
 struct Feature {
@@ -655,8 +655,8 @@ void __stdcall ClearWeaponTarget(Unit* unit, unsigned int weapon);
 void __stdcall GetBasePosition(int index, Vec3* out);
 unsigned short __stdcall ChooseBuildOption(unsigned int player, Unit* unit);
 int __stdcall GetBuilderCount(unsigned int player);
-Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit* unit, Unit* target, Vec3* pos);
-void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* unit, Unit* target, Vec3* pos, int param_6, int param_7);
+MissionType __stdcall GetOrderType(unsigned char mode, Unit* unit, Unit* target, Vec3* pos);
+void __stdcall AddOrder(MissionType kind, int remove, Unit* unit, Unit* target, Vec3* pos, int param_6, int param_7);
 float __stdcall GetNetEnergy(Economy* economy);
 void __stdcall QueueBuildOrder(char* name, Unit* unit, int count);
 int __cdecl FUN_004b70ef(short angle, int scale);

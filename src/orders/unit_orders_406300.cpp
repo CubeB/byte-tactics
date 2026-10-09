@@ -7,7 +7,7 @@ struct Vec3 {
 };
 struct Unit;
 struct Order;
-class Class_00438760 { public: unsigned char index; Class_00438760() {} Class_00438760(const char*); int operator==(const Class_00438760& v) const { return index==v.index; } };
+class MissionType { public: unsigned char index; MissionType() {} MissionType(const char*); int operator==(const MissionType& v) const { return index==v.index; } };
 
 #pragma pack(push, 1)
 struct WeaponDef { char pad0[0x111]; unsigned int flags; };
@@ -24,7 +24,7 @@ struct Unit {
     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
     void SetStateBits(int, int);
 };
-struct Order { Unit* Target() { return target; } Vec3* Position() { return &pos; } char pad0[4]; Class_00438760 kind; unsigned char state; unsigned int flags; char pada[12]; Unit* target; char pad1a[8]; Vec3 pos; char pad2e[8]; int radius; char pad3a[8]; unsigned int capabilities; void AnnounceStatusIfFlagged(const char*); void SetAttachedFx(int); void AttachApproachRadiusGoal(Vec3*, int); void SetDeadlineTicks(int); Order(Class_00438760, Unit*, Vec3*, int, int, int); char unknown_46[0x10];     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+struct Order { Unit* Target() { return target; } Vec3* Position() { return &pos; } char pad0[4]; MissionType kind; unsigned char state; unsigned int flags; char pada[12]; Unit* target; char pad1a[8]; Vec3 pos; char pad2e[8]; int radius; char pad3a[8]; unsigned int capabilities; void AnnounceStatusIfFlagged(const char*); void SetAttachedFx(int); void AttachApproachRadiusGoal(Vec3*, int); void SetDeadlineTicks(int); Order(MissionType, Unit*, Vec3*, int, int, int); char unknown_46[0x10];           // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
     void ReattachFxToUnit();
     void MergeFlagsFromTable(int k);
 };
@@ -34,7 +34,7 @@ int __stdcall IssueAttackOrder(Unit*, Unit*, int);
 Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
 int __stdcall WeaponCanReachUnit(Unit*, Unit*, unsigned char);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
-Class_00438760 __stdcall GetOrderType(unsigned char, Unit*, Unit*, int);
+MissionType __stdcall GetOrderType(unsigned char, Unit*, Unit*, int);
 void __stdcall AppendOrder(Unit*, Order*);
 int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);
@@ -80,7 +80,7 @@ int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
             }
         }
         if ((unsigned int)order->target->health < order->target->def->maxHealth && (unit->def->flags1&0x40)) {
-            Class_00438760 kind=GetOrderType(8,unit,order->target,0);
+            MissionType kind=GetOrderType(8,unit,order->target,0);
             if(kind.index) {
                 order->SetAttachedFx(0);
                 AppendOrder(unit,new Order(kind,order->target,0,0,0,0));
@@ -94,7 +94,7 @@ int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
                          order->target->order->kind=="BuildingBuild";
             Order* other=order->target->order;
             int actionable=((other->capabilities&0x200) && other->target) || (other->capabilities&0x400);
-            Class_00438760 kind;
+            MissionType kind;
             if (!building && actionable) {
                 order->SetAttachedFx(0);
                 kind=order->target->order->kind;
@@ -104,7 +104,7 @@ int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
             }
             if (building && other->target) {
                 order->SetAttachedFx(0);
-                kind=Class_00438760("HelpBuild");
+                kind=MissionType("HelpBuild");
                 AppendOrder(unit,new Order(kind,order->Target()->order->target,order->Target()->order->Position(),0,0,0));
                 order->flags=0; return 3;
             }

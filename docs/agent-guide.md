@@ -1460,7 +1460,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   as in the original (0x402430 in 0x402640.cpp).
 - **Passing a by-value class argument built from a literal**: write it
   implicitly (`AddOrder("PARK", ...)`), which constructs it in place on the
-  stack; an explicit `Class_00438760("PARK")` makes a temporary and copies it.
+  stack; an explicit `MissionType("PARK")` makes a temporary and copies it.
 - **A vector sum whose last coordinate comes out in the wrong register**: use a
   member `operator+` taking its operand by const reference, not a free helper
   (0x403a20).

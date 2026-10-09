@@ -5,10 +5,10 @@
 
 class Squad;
 
-class Class_00438760 {
+class MissionType {
 public:
     unsigned char index;
-    Class_00438760(const char* name);
+    MissionType(const char* name);
 };
 
 #pragma pack(push, 1)
@@ -49,9 +49,9 @@ public:
 
 void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 void __cdecl GameFreeThunk(int* param_1);
-Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit* unit,
+MissionType __stdcall GetOrderType(unsigned char mode, Unit* unit,
                                        Unit* target, int flags);
-void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* owner, Unit* id, int flags, int param_6, int param_7);
+void __stdcall AddOrder(MissionType kind, int remove, Unit* owner, Unit* id, int flags, int param_6, int param_7);
 
 // Allocates the owner's ten squads and constructs each in place with the
 // owner and its index (Squad's constructor, inlined here).
@@ -117,7 +117,7 @@ void __stdcall OrderSquad(PlayerView* owner, int key, unsigned char mode, int re
 {
     for (Unit* u = owner->first; u <= owner->last; u++) {
         if (u->unitDefIndex != 0 && u->group == key) {
-            Class_00438760 kind = GetOrderType(mode, u, target, flags);
+            MissionType kind = GetOrderType(mode, u, target, flags);
             AddOrder(kind, remove, u, target, flags, param_7, param_8);
         }
     }

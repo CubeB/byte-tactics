@@ -32,10 +32,10 @@ struct PathOrder;
 struct MissionOrder;
 struct TdfParser;
 
-class Class_00438760 {
+class MissionType {
 public:
     unsigned char index;
-    Class_00438760(const char* name);
+    MissionType(const char* name);
 };
 
 struct PlayerData {
@@ -473,7 +473,7 @@ void __stdcall RemoveFeature(void* target, int flag);
 short __stdcall FindFeatureType(char* name);
 void* __stdcall PlaceFeature(void* target, unsigned short id, void* pos, void* active,
                              unsigned char owner);
-void __stdcall IssueOrderToSelection(void* a, int b, Class_00438760 kind, int d, int e, int f);
+void __stdcall IssueOrderToSelection(void* a, int b, MissionType kind, int d, int e, int f);
 void SaveSettings();
 void KillAllUnits(void);
 void __stdcall KillPlayerUnits(unsigned char player);
@@ -562,7 +562,7 @@ void __stdcall CmdAI(CommandArgs* args)
 // FUNCTION: 0x416310
 void __stdcall CmdAssign(CommandArgs* args)
 {
-    Class_00438760 kind(((CommandArgs*)args)->GetArg(1, DAT_005119b8));
+    MissionType kind(((CommandArgs*)args)->GetArg(1, DAT_005119b8));
     if (kind.index) {
         int a = args->GetIntArg(1, 0);
         int b = args->GetIntArg(2, 0);

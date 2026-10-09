@@ -340,18 +340,18 @@ public:
     ~Class_004c91a0() { ((Class_004c9390*)this)->ReleaseRef(); }
 };
 
-class Class_00438760 {
+class MissionType {
 public:
     char value;                        // +0x0
-    Class_00438760(char* text);
+    MissionType(char* text);
 };
 
-// Puts the one-byte Class_00438760 temporary at [esp+0x23], the top byte of
+// Puts the one-byte MissionType temporary at [esp+0x23], the top byte of
 // its slot, where the original builds it; a plain named local lands at the
 // bottom of the slot.
 struct MissionHolder {
     char pad[3];
-    Class_00438760 mission;
+    MissionType mission;
     MissionHolder(char* text) : mission(text) {}
 };
 

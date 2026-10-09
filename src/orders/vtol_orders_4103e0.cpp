@@ -19,7 +19,7 @@ struct Vec3 {
     Vec3 operator+(const Vec3& v) const { Vec3 r; r.x=x+v.x; r.y=y+v.y; r.z=z+v.z; return r; }
 };
 struct Order;
-class Class_00438760 { public: unsigned char index; Class_00438760() {} Class_00438760(const char*); int operator==(const Class_00438760& v) const { return index==v.index; } };
+class MissionType { public: unsigned char index; MissionType() {} MissionType(const char*); int operator==(const MissionType& v) const { return index==v.index; } };
 
 #pragma pack(push, 1)
 struct WeaponDef { char pad0[0xdc]; int range; char pade0[0x111-0xe0]; unsigned int flags; };
@@ -38,7 +38,7 @@ struct Unit {
     void ClaimWeapons(int);
     void SetStateBits(int, int);
 };
-struct Order { char pad0[4]; Class_00438760 kind; unsigned char state; unsigned int flags; char pada[12]; Unit* target; char pad1a[8]; Vec3 pos; char pad2e[8]; int angle, parity; char pad3e[4]; unsigned int capabilities; char pad46[4]; int next; void AnnounceStatusIfFlagged(const char*); void SetAttachedFx(int); void AttachApproachRadiusGoal(Vec3*, int); void SetDeadlineTicks(int); Order(Class_00438760, Unit*, Vec3*, int, int, int); char unknown_4e[0x8];     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+struct Order { char pad0[4]; MissionType kind; unsigned char state; unsigned int flags; char pada[12]; Unit* target; char pad1a[8]; Vec3 pos; char pad2e[8]; int angle, parity; char pad3e[4]; unsigned int capabilities; char pad46[4]; int next; void AnnounceStatusIfFlagged(const char*); void SetAttachedFx(int); void AttachApproachRadiusGoal(Vec3*, int); void SetDeadlineTicks(int); Order(MissionType, Unit*, Vec3*, int, int, int); char unknown_4e[0x8];           // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
     void ReattachFxToUnit();
     void MergeFlagsFromTable(int k);
     void AttachRingApproachGoal(Vec3* pos, int radius1, int radius2);
@@ -67,7 +67,7 @@ int __stdcall IssueAttackOrder(Unit*, Unit*, int);
 Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
 int __stdcall WeaponCanReachUnit(Unit*, Unit*, unsigned char);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
-Class_00438760 __stdcall GetOrderType(unsigned char, Unit*, Unit*, int);
+MissionType __stdcall GetOrderType(unsigned char, Unit*, Unit*, int);
 void __stdcall AppendOrder(Unit*, Order*);
 int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);

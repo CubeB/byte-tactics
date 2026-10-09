@@ -10,7 +10,7 @@
 #include "../util/vec3.h"
 
 struct Unit;
-class Class_00438760;
+class MissionType;
 struct Attached_0043a1f0;
 struct File_0043a970;
 class HapiBank;
@@ -93,7 +93,7 @@ struct Order {
     void* attached;                // +0x52
 
     Order(unsigned char kind, Unit* unit, Vec3* pos, int a, int b, int c);
-    Order(Class_00438760 kind, Unit* unit, void* pos, int a, int b, int c);
+    Order(MissionType kind, Unit* unit, void* pos, int a, int b, int c);
     Order(unsigned char kind, int a, int b, int c, int d, int e);
     Order(Unit* unit, HapiBank* file, char* name);
     ~Order();

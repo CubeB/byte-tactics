@@ -23,7 +23,7 @@ class UnitMotion { public: char pad0[0x2e]; unsigned char flags; void SetFlightM
 class Class_0044e730 { public: void SetApproachRadius(int); };
 class Class_0044e720 { public: void SetHeading(int); };
 class Class_0044e6c0 { public: void SetAltitude(int); };
-class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
+class MissionType { public: unsigned char index; MissionType(const char*); };
 
 class PathOrderAttach { public: void SetUnit(Unit*); };
 #pragma pack(push, 1)
@@ -99,7 +99,7 @@ void __stdcall MarkSelectionOrdersDirty(Unit*);
 int __stdcall CanPlaceUnitFootprint(UnitDef*, int, Point, int);
 void __stdcall SnapWorldPosToFootprint(UnitDef*, Vec3*);
 Unit* __stdcall CreateUnit(unsigned char, short, Vec3, int, int, int);
-void __stdcall AddOrder(Class_00438760, int, Unit*, Unit*, Vec3*, int, int);
+void __stdcall AddOrder(MissionType, int, Unit*, Unit*, Vec3*, int, int);
 int __stdcall GetHeadingBetween(Vec3*, Vec3*);
 void __stdcall StartBuildingScript(Unit*, Order*, short);
 int __stdcall WaitIfNotInBuildStance(Unit*, Order*, int);

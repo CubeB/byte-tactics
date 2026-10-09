@@ -6,10 +6,10 @@
 // of the allied lookup below flips ([eax+ecx+0x108] against [ecx+eax+0x108]),
 // and no pad count or view permutation of that file restored it.
 
-class Class_00438760 {
+class MissionType {
 public:
     unsigned char index;
-    Class_00438760(const char* name);
+    MissionType(const char* name);
 };
 
 struct Unit;
@@ -58,7 +58,7 @@ struct Game {
 extern Game* g_game;
 
 int __stdcall RandomInt(int range);
-Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit* unit,
+MissionType __stdcall GetOrderType(unsigned char mode, Unit* unit,
                                        Unit* target, int flags);
 void __stdcall AppendOrder(Unit* owner, Order* node);
 
@@ -89,7 +89,7 @@ int __stdcall AttackUTypeOrder(Unit* unit, Order_00401e00* order, int unused)
             }
         }
         if (best) {
-            Class_00438760 kind = GetOrderType(3, unit, best, 0);
+            MissionType kind = GetOrderType(3, unit, best, 0);
             AppendOrder(unit, new Order(kind, best, 0, 0, 0, 0));
             return 0;
         }

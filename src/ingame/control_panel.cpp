@@ -17,11 +17,11 @@
 // The copy constructor is only declared: it is never called (the temporary is
 // elided), but declaring it makes MSVC build the by-value argument in place in
 // the callee's argument slot, which is what the original does.
-class Class_00438760 {
+class MissionType {
 public:
     unsigned char index;
-    Class_00438760(const char* name);
-    Class_00438760(const Class_00438760& other);
+    MissionType(const char* name);
+    MissionType(const MissionType& other);
 };
 
 struct Option_00419560;
@@ -463,7 +463,7 @@ void __stdcall SetDefaultCommandHandler(void (__stdcall* callback)(int), int par
 void __stdcall DefaultCommandHandler(int param_1);
 
 void __stdcall GetGadgetName(MenuEntry* entries, char* name, int index);
-void __stdcall IssueOrCancelOrder(Class_00438760 kind, int remove, Unit* owner,
+void __stdcall IssueOrCancelOrder(MissionType kind, int remove, Unit* owner,
                             int id, Vec3* pos, int param_6, int param_7);
 int __stdcall CanBuildAt(UnitType* type, Point16 cell, int a, Player* player);
 int GetBuildSiteHeight(void);
@@ -476,8 +476,8 @@ int __stdcall FindGadgetIndexBySubstring(int value, char* name);
 int __stdcall FindGadgetIndexBySubstring(MenuEntry* entries, char* name);
 void __stdcall SetGadgetStatus(Menu* menu, int index, int value);
 void __stdcall PlaySoundByName(char* name, int param_2);
-void __stdcall AdjustBuildCount(Class_00438760 kind, Unit* unit, int id, int count);
-void __stdcall IssueOrderToSelection(void* a, int b, Class_00438760 kind,
+void __stdcall AdjustBuildCount(MissionType kind, Unit* unit, int id, int count);
+void __stdcall IssueOrderToSelection(void* a, int b, MissionType kind,
                                      int d, int e, int f);
 void __stdcall SetGrayedOut(Menu* menu, int index, int value);
 void __stdcall SetGadgetActive(Menu* menu, int index, char value);
@@ -693,7 +693,7 @@ void __stdcall QueueBuildOrder(char* name, Unit* unit, int count)
             PlaySoundByName("subbuild", 0);
     }
     if (strstr(name, "MAKENUKE") != 0 || strstr(name, "MAKEANTI") != 0) {
-        AdjustBuildCount(Class_00438760("BUILDWEAPON"), unit, 0, count);
+        AdjustBuildCount(MissionType("BUILDWEAPON"), unit, 0, count);
         return;
     }
     unsigned short id = FindUnitTypeId(name);
@@ -701,7 +701,7 @@ void __stdcall QueueBuildOrder(char* name, Unit* unit, int count)
         return;
     int mobile = unit->motion;
     const char* kind = mobile ? "MOBILEBUILD" : "BUILDINGBUILD";
-    AdjustBuildCount(Class_00438760(kind), unit, id, count);
+    AdjustBuildCount(MissionType(kind), unit, id, count);
 }
 
 // FUNCTION: 0x419bc0

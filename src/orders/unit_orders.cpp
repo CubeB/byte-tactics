@@ -83,12 +83,12 @@ public:
     int RequestEnergyAndMetal(float energy, float metal);
 };
 
-class Class_00438760 {
+class MissionType {
 public:
     unsigned char index;
-    Class_00438760(const char* name);
-    Class_00438760() : index(0) {}
-    int operator==(Class_00438760 o) const { return index == o.index; }
+    MissionType(const char* name);
+    MissionType() : index(0) {}
+    int operator==(MissionType o) const { return index == o.index; }
 };
 
 class PathOrderAttach {
@@ -231,7 +231,7 @@ struct Rot16 {
 
 struct Order {
     char unknown_0[4];
-    Class_00438760 kind;               // +0x4
+    MissionType kind;                  // +0x4
     unsigned char state;               // +0x5
     union {
         unsigned int flags;            // +0x6
@@ -288,8 +288,8 @@ struct Order {
     void AnnounceStatusIfFlagged(const char* text);
     void AttachApproachRadiusGoal(Vec3* pos, int param);
     void SetAttachedFx(int param);
-    Order(Class_00438760 type, Unit* target, Vec3* pos, int c, int d, int e);
-    void MergeFlagsFromTable(Class_00438760 kind);
+    Order(MissionType type, Unit* target, Vec3* pos, int c, int d, int e);
+    void MergeFlagsFromTable(MissionType kind);
     void AttachRingApproachGoal(Vec3* pos, int param, int param_3);
     void AttachBuildFootprintMarker(Point16 cell, Point16 size);
     char unknown_4e[0x8];
@@ -414,7 +414,7 @@ void __stdcall AppendOrder(Unit* owner, Order* node);
 int __stdcall RandomInt(int range);
 void __stdcall GetVisibleEnemiesInRadius(int player, Vec3* pos, int radius, int flags,
                                          std::vector<Unit*>* out);
-Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit* unit, Unit* target, void* flags);
+MissionType __stdcall GetOrderType(unsigned char mode, Unit* unit, Unit* target, void* flags);
 void __stdcall QueueUnitSpeech(Unit* unit, int kind, const char* text);
 void __stdcall DamageUnit(Unit* unit, Unit* target, int n, int kind, int flag);
 void __stdcall SetWeaponTargetUnit(Unit* unit, Unit* target, int weapon);
@@ -428,7 +428,7 @@ int __stdcall CanPlaceUnitFootprint(UnitDef* type, short a, Point16 cell, int b)
 Unit* __stdcall CreateUnit(unsigned char player, unsigned short type, Vec3 pos,
                            int a, int b, int c);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* builder, char piece, char p4);
-void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* owner, Unit* id, void* pos,
+void __stdcall AddOrder(MissionType kind, int remove, Unit* owner, Unit* id, void* pos,
                         int param_6, int param_7);
 int __stdcall AddRepairProgress(Unit* builder, Unit* unit, float amount);
 int __stdcall AddBuildProgress(Unit* unit, Unit* target, float amount);
@@ -870,7 +870,7 @@ int __stdcall ParalyzeOrder(Unit* unit, Order* order, int unused)
     return 1;
 }
 
-// Class_00438760's operator== compares the index bytes, so the loop head is
+// MissionType's operator== compares the index bytes, so the loop head is
 // `cmp cl, dl` and `order` lands in ebp, `queued` in ebx. Order::Target() is
 // a trivial inline accessor: every `order->Target()->X` in the flag-merge
 // tail goes through it, and the temporary it adds shifts the rotation of the
@@ -883,10 +883,10 @@ int __stdcall GetBuiltOrder(Unit* unit, Order* order, unsigned int flags)
         if (unit->motion) {
             int queued = 0;
             if (order->target.owner) {
-                Class_00438760 move("QMove");
-                Class_00438760 patrol("QPatrol");
+                MissionType move("QMove");
+                MissionType patrol("QPatrol");
                 for (Order* node = order->target.owner->order; node; node = node->next) {
-                    Class_00438760 kind;
+                    MissionType kind;
                     if (node->kind == move)
                         kind = GetOrderType(2, unit, 0, node->Position());
                     else if (node->kind.index == patrol.index)
@@ -1033,7 +1033,7 @@ void RegisterUnitOrders()
 }
 
 // Order handler: asks GetOrderType for the next order kind (returned as a
-// Class_00438760 by value), passes it on by value (the 0x406240 call site
+// MissionType by value), passes it on by value (the 0x406240 call site
 // builds the same argument in place) and returns state 2.
 // FUNCTION: 0x403190
 int __stdcall AttackSpecialOrder(Unit* unit, Order* order, int unused)

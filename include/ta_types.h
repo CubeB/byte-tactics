@@ -212,7 +212,7 @@ class Class_00437a20;
 class CMemoryCache;
 class Class_00437c80;
 class MeteorParams;
-class Class_00438760;
+class MissionType;
 class Class_00438760_2;
 struct Class_00438870;
 class Class_00438880;
@@ -2226,13 +2226,13 @@ struct PlayerRes_00401360 {  // 0xc bytes, 1 view
     float used;  // +0x8
 };
 
-class Class_00438760 {  // 0x1 bytes, 46 views
+class MissionType {     // 0x1 bytes, 46 views
 public:
     unsigned char index;  // +0x0
-    Class_00438760(char*);
-    Class_00438760(void);
+    MissionType(char*);
+    MissionType(void);
     int GetTableEntry(void);
-    int operator==(Class_00438760&);
+    int operator==(MissionType&);
 };
 
 class Class_00438880 {  // 0x46 bytes, 30 views
@@ -5506,7 +5506,7 @@ public:
 
 struct MissionHolder {  // 0x4 bytes, 1 view
     char unknown_0[3];
-    Class_00438760 mission;  // +0x3
+    MissionType mission;     // +0x3
     MissionHolder(char*);
 };
 

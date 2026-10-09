@@ -168,11 +168,11 @@ public:
 // An order type held as its index in the sorted order-type table. Callers
 // build it from a name as a by-value temporary (0x403260, 0x4118e0, ...), so
 // this is its constructor.
-class Class_00438760 {
+class MissionType {
 public:
     unsigned char index;
     char unknown_1[3];
-    Class_00438760(const char* name);
+    MissionType(const char* name);
 };
 
 // The attachments the file constructor makes, by the kind of attachment.
@@ -281,7 +281,7 @@ public:
     // The real constructor is 0x43a0c0, in order_list.cpp: it needs
     // `kind(k)` as a plain member initialiser, which this class's second base
     // rules out (98.9%).
-    Order(Class_00438760, int, void*, int, int, int);
+    Order(MissionType, int, void*, int, int, int);
     ~Order();
     Order(Unit* punit, HapiBank* file, char* name);
     int SerializeToSave(Unit* punit, File_0043a970* file, char* name);
@@ -406,7 +406,7 @@ int __stdcall WaitIfCobBusy(char* param_1, char* param_2, unsigned int param_3)
 extern int __cdecl _strcmpi(const char*, const char*);
 
 // FUNCTION: 0x438760
-Class_00438760::Class_00438760(const char* name)
+MissionType::MissionType(const char* name)
 {
     Entry_0043a1f0* first = g_missionOrderTableBegin;
     int n = g_missionOrderTableEnd - g_missionOrderTableBegin;

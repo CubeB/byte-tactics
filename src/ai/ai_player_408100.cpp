@@ -66,7 +66,7 @@ struct Group_00408100 {
     std::vector<Unit_00408100*> units; // +0x10
 };
 
-inline Class_00438760::Class_00438760() {}
+inline MissionType::MissionType() {}
 
 
 
@@ -76,8 +76,8 @@ void __stdcall GetBasePosition(int index, Vec3* out);
 unsigned short __stdcall ChooseBuildOption(unsigned int player, Unit_00408100* unit);
 int __stdcall FindBuildPosition(unsigned int player, Vec3* from, Item_00408100* item, Vec3* out);
 int __stdcall GetBuilderCount(unsigned int player);
-Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit_00408100* unit, Unit_00408100* target, Vec3* pos);
-void __stdcall AddOrder(Class_00438760 kind, int remove, Unit_00408100* unit, Unit_00408100* target, Vec3* pos, int param_6, int param_7);
+MissionType __stdcall GetOrderType(unsigned char mode, Unit_00408100* unit, Unit_00408100* target, Vec3* pos);
+void __stdcall AddOrder(MissionType kind, int remove, Unit_00408100* unit, Unit_00408100* target, Vec3* pos, int param_6, int param_7);
 int __stdcall RandomInt(int range);
 
 // Fixed-point trig helpers written in assembly.
@@ -148,7 +148,7 @@ void ScoutTimer::OnTimer()
                         ok = 0;
                 }
                 if (ok) {
-                    Class_00438760 kind = GetOrderType(0xe, u, 0, &pos);
+                    MissionType kind = GetOrderType(0xe, u, 0, &pos);
                     AddOrder(kind, 0, u, 0, &pos, idx, 1);
                 }
             }
@@ -168,7 +168,7 @@ void ScoutTimer::OnTimer()
                     d = Direction(RandomInt(0x10000), 0x2800000);
                 // operator+ builds all three sums before storing; named sums differ.
                 target = origin + d;
-                Class_00438760 kind;
+                MissionType kind;
                 kind = GetOrderType(2, u, 0, &target);
                 AddOrder(kind, 0, u, 0, &target, 0, 0);
                 kind = GetOrderType(9, u, 0, &origin);
@@ -188,7 +188,7 @@ void ScoutTimer::OnTimer()
                     }
                     target = u->pos + d;
                 }
-                Class_00438760 kind = GetOrderType(9, u, 0, &target);
+                MissionType kind = GetOrderType(9, u, 0, &target);
                 AddOrder(kind, 0, u, 0, &target, 0, 0);
             }
         }

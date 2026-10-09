@@ -258,14 +258,14 @@ can disagree on types (a real link would fail). Known cases:
 
 - `SetBrightness`: its file takes `int`; callers such as 0x417290 pass `float`.
 - `LoadSample`: its file returns `void`; 0x47efe0 uses a `void*` result.
-- `Class_00438b90::MergeFlagsFromTable` takes the 1-byte class `Class_00438760` by value
+- `Class_00438b90::MergeFlagsFromTable` takes the 1-byte class `MissionType` by value
   (see 0x403190); its own file declares `int k`. GetOrderType returns the same
   class through a hidden buffer.
 - `GameAllocIgnoreTag` returns a pointer (0x481500) but its file says `void`.
 - `Class_0043a1f0`'s constructor 0x43a0c0: its own file takes `int`, 0x43a020
   and 0x43b730 declare its first parameter `unsigned char`, but 0x401c20
   shows it is a 1-byte class passed by value, built by
-  `Class_00438760::Class_00438760`.
+  `MissionType::MissionType`.
 
 - 0x40d7b0 returns `int` in its own file, but 0x40da70 uses its result as
   unsigned (`cmp eax, 1; jae` and `cmp 1, eax; sbb`), so 0x40da70.cpp
@@ -293,7 +293,7 @@ can disagree on types (a real link would fail). Known cases:
 - 0x44e190, 0x44e250 and 0x44e2d0 all store vtables 0x4fd2f8 then 0x4fd3b8
   and are called on `operator new(0x36)`: overloaded constructors of one
   class, matched under three placeholder names (see #96, #97).
-- 0x438760 is the constructor of `Class_00438760`, an order type held as its
+- 0x438760 is the constructor of `MissionType`, an order type held as its
   index in the sorted order-type table and passed by value (#31).
 
 - SetGadgetStatus's third parameter is `short` in 0x4a11c0.cpp, but 0x41a120

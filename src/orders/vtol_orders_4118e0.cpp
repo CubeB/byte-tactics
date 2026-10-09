@@ -24,7 +24,7 @@ struct Vec3 {
 struct Unit;
 #include "unit_motion.h"
 #include "path_order_attach.h"
-class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
+class MissionType { public: unsigned char index; MissionType(const char*); };
 
 class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_0044e730 { public: void SetApproachRadius(short); };
@@ -73,7 +73,7 @@ struct Order {
     void AnnounceStatusIfFlagged(const char*);
     void SetAttachedFx(int);
     void SetDeadlineTicks(int);
-    Order(Class_00438760 type, Unit* target, void* pos, int c, int d, int e);
+    Order(MissionType type, Unit* target, void* pos, int c, int d, int e);
     char unknown_3a[0x1c];
     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
     void ReattachFxToUnit();

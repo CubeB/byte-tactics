@@ -42,7 +42,7 @@ public:
     void SetFlightMode(Unit* unit, int state);
 };
 #include "path_order_attach.h"
-class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
+class MissionType { public: unsigned char index; MissionType(const char*); };
 
 class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_0044e730 { public: void SetApproachRadius(short); };
@@ -84,7 +84,7 @@ struct Order {
     void AnnounceStatusIfFlagged(const char*);
     void SetAttachedFx(int);
     void SetDeadlineTicks(int);
-    Order(Class_00438760 type, Unit* target, Vec3* pos, int c, int d, int e);
+    Order(MissionType type, Unit* target, Vec3* pos, int c, int d, int e);
     char unknown_4e[0x8];
     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
     void ReattachFxToUnit();

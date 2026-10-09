@@ -8,10 +8,10 @@
 
 #include "../util/vec3.h"
 
-class Class_00438760 {
+class MissionType {
 public:
     unsigned char index;
-    Class_00438760(const char* name);
+    MissionType(const char* name);
 };
 
 struct Unit;

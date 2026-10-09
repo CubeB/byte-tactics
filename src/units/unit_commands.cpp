@@ -66,24 +66,24 @@ struct Table_00487bf0 {
 };
 #pragma pack(pop)
 
-class Class_00438760 {
+class MissionType {
 public:
     unsigned char index;
     char pad[3]; // makes each Outs_t member a dword slot like the original
-    Class_00438760(const char* name);
-    Class_00438760() {}
+    MissionType(const char* name);
+    MissionType() {}
 };
 
-void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* owner,
+void __stdcall AddOrder(MissionType kind, int remove, Unit* owner,
                             int id, Vec3_00487bf0* pos, int param_6, int param_7);
-void __stdcall GetOrderType(Class_00438760* out, int mode, Unit* unit,
+void __stdcall GetOrderType(MissionType* out, int mode, Unit* unit,
                             int target, Vec3_00487bf0* pos);
 int __stdcall FindMissionUnit(char* name, Table_00487bf0* table, int value);
 unsigned short __stdcall FindUnitTypeId(const char* name);
 void __stdcall AttachUnitToPiece(Unit* unit, int target, int a, int b);
 
 struct Outs_t {
-    Class_00438760 g, a, m, u, p;
+    MissionType g, a, m, u, p;
 };
 
 // FUNCTION: 0x487bf0

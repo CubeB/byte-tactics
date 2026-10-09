@@ -469,10 +469,10 @@ void __stdcall DamageUnit(Unit* source, Unit* target, int amount, int type, unsi
     }
 }
 
-class Class_00438760 {
+class MissionType {
 public:
     unsigned char index;
-    Class_00438760(const char* name);
+    MissionType(const char* name);
 };
 
 #include "../orders/order.h"
@@ -549,7 +549,7 @@ void __stdcall ApplyUnitDamage(Event_00489ce0* ev)
                 Player_0048b090* owner = unit->player;
                 if (owner->active && (owner->type == 1 || owner->type == 2)) {
                     if (!(unit->def->f241 & 0x4000000)) {
-                        Class_00438760 kind(s_paralyze_00508d80);
+                        MissionType kind(s_paralyze_00508d80);
                         Order* e = unit->effect;
                         if (e && e->kind == kind.index) {
                             e->field_36 += ticks;
@@ -602,7 +602,7 @@ void __stdcall ParalyzeUnit(Unit* unit, int ticks)
         return;
     if (owner->type == 1 || owner->type == 2) {
         if (!(unit->def->f241 & 0x4000000)) {
-            Class_00438760 kind("paralyze");
+            MissionType kind("paralyze");
             Order* effect = unit->effect;
             if (effect && effect->kind == kind.index) {
                 effect->field_36 += ticks;

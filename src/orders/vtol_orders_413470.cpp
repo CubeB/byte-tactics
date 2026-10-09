@@ -22,10 +22,10 @@ struct Vec3 {
     Vec3 operator-(const Vec3& v) const { Vec3 r = *this; r -= v; return r; }
 };
 
-class Class_00438760 {
+class MissionType {
 public:
     unsigned char index;
-    Class_00438760(const char* name);
+    MissionType(const char* name);
 };
 
 struct Unit;
@@ -66,7 +66,7 @@ struct Order {
     char pad46[4]; int field_4a;
     void AnnounceStatusIfFlagged(const char*);
     void SetAttachedFx(int);
-    Order(Class_00438760 type, int a, Vec3* b, int c, int d, int e);
+    Order(MissionType type, int a, Vec3* b, int c, int d, int e);
     char unknown_4e[0x8];
     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
     void ReattachFxToUnit();

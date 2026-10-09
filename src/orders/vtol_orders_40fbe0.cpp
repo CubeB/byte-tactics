@@ -10,7 +10,7 @@ struct Vec3 {
 };
 struct Unit;
 struct Order;
-class Class_00438760 { public: unsigned char index; Class_00438760() {} Class_00438760(const char*); int operator==(const Class_00438760& v) const { return index==v.index; } };
+class MissionType { public: unsigned char index; MissionType() {} MissionType(const char*); int operator==(const MissionType& v) const { return index==v.index; } };
 
 #pragma pack(push, 1)
 struct WeaponDef { char pad0[0xdc]; int range; char pade0[0x111-0xe0]; unsigned int flags; };
@@ -29,7 +29,7 @@ struct Unit {
     void ClaimWeapons(int);
     void SetStateBits(int, int);
 };
-struct Order { char pad0[4]; Class_00438760 kind; unsigned char state; unsigned int flags; char pada[12]; Unit* target; char pad1a[8]; Vec3 pos; char pad2e[8]; int angle, parity; char pad3e[4]; unsigned int capabilities; char pad46[4]; int next; void AnnounceStatusIfFlagged(const char*); void SetAttachedFx(int); void AttachApproachRadiusGoal(Vec3*, int); void SetDeadlineTicks(int); Order(Class_00438760, Unit*, Vec3*, int, int, int); char unknown_4e[0x8];     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+struct Order { char pad0[4]; MissionType kind; unsigned char state; unsigned int flags; char pada[12]; Unit* target; char pad1a[8]; Vec3 pos; char pad2e[8]; int angle, parity; char pad3e[4]; unsigned int capabilities; char pad46[4]; int next; void AnnounceStatusIfFlagged(const char*); void SetAttachedFx(int); void AttachApproachRadiusGoal(Vec3*, int); void SetDeadlineTicks(int); Order(MissionType, Unit*, Vec3*, int, int, int); char unknown_4e[0x8];           // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
     void ReattachFxToUnit();
     void MergeFlagsFromTable(int k);
     void AttachRingApproachGoal(Vec3* pos, int radius1, int radius2);
@@ -60,7 +60,7 @@ int __stdcall IssueAttackOrder(Unit*, Unit*, int);
 Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
 int __stdcall WeaponCanReachUnit(Unit*, Unit*, unsigned char);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
-Class_00438760 __stdcall GetOrderType(unsigned char, Unit*, Unit*, int);
+MissionType __stdcall GetOrderType(unsigned char, Unit*, Unit*, int);
 void __stdcall AppendOrder(Unit*, Order*);
 int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);
@@ -140,7 +140,7 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
                 }
             }
             if (unit->CanRepair(order->target)) {
-                Class_00438760 kind=GetOrderType(8,unit,order->target,0);
+                MissionType kind=GetOrderType(8,unit,order->target,0);
                 if (kind.index) {
                     order->SetAttachedFx(0);
                     AppendOrder(unit,new Order(kind,order->target,0,0,0,0));
@@ -149,7 +149,7 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
             }
             // `order->target->order` is spelled out at every use, with no
             // local for it: that is what makes MSVC reload it after each
-            // Class_00438760 constructor call, and what frees the callee-saved
+            // MissionType constructor call, and what frees the callee-saved
             // register the block's zero constant ends up in.
             if (order->target->order && order->target->order->kind.index && (unit->def->flags1&0x40) &&
                 unit->CanRepair(order->target->order->target) &&
@@ -157,20 +157,20 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
                 (order->target->order->capabilities&0x100000) && unit!=order->target->order->target) {
                 int building = order->target->order->kind=="MobileBuild" || order->target->order->kind=="BuildingBuild" || order->target->order->kind=="VTOL_MobileBuild";
                 int actionable = ((order->target->order->capabilities&0x200) && order->target->order->target) || (order->target->order->capabilities&0x400);
-                Class_00438760 kind;
+                MissionType kind;
                 if (!building && actionable) {
                     kind=order->target->order->kind;
-                    if (kind=="REPAIRUNIT") kind=Class_00438760("VTOL_REPAIRUNIT");
-                    if (kind=="RECLAIM") kind=Class_00438760("VTOL_RECLAIM");
-                    if (kind=="RECLAIMUNIT") kind=Class_00438760("VTOL_RECLAIMUNIT");
-                    if (kind=="HELPBUILD") kind=Class_00438760("VTOL_HELPBUILD");
+                    if (kind=="REPAIRUNIT") kind=MissionType("VTOL_REPAIRUNIT");
+                    if (kind=="RECLAIM") kind=MissionType("VTOL_RECLAIM");
+                    if (kind=="RECLAIMUNIT") kind=MissionType("VTOL_RECLAIMUNIT");
+                    if (kind=="HELPBUILD") kind=MissionType("VTOL_HELPBUILD");
                     order->SetAttachedFx(0);
                     AppendOrder(unit,new Order(kind,OrderTarget(order)->order->target,&order->target->order->pos,0,0,0));
                     order->flags=0; return 3;
                 }
                 if (building && order->target->order->target) {
                     order->SetAttachedFx(0);
-                    kind=Class_00438760("VTOL_HelpBuild");
+                    kind=MissionType("VTOL_HelpBuild");
                     AppendOrder(unit,new Order(kind,OrderTarget(order)->order->target,&order->target->order->pos,0,0,0));
                     order->flags=0; return 3;
                 }

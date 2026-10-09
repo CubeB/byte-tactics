@@ -21,10 +21,10 @@ struct Rot16 {
 
 struct Unit;
 
-class Class_00438760 {
+class MissionType {
 public:
     unsigned char index;
-    Class_00438760(const char* name);
+    MissionType(const char* name);
 };
 
 #include "path_order_attach.h"
@@ -89,7 +89,7 @@ struct Order {
     int time;                          // +0x3a
     void AttachBuildFootprintMarker(Point16 cell, Point16 size);
     void SetDeadlineTicks(int ticks);
-    Order(Class_00438760 type, Unit* target, void* pos, int c, int d, int e);
+    Order(MissionType type, Unit* target, void* pos, int c, int d, int e);
     char unknown_3e[0x18];
     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
     void ReattachFxToUnit();
@@ -148,7 +148,7 @@ Cell* __stdcall GetMapCellAtPosition(Vec3* pos);
 void __stdcall RemoveFeature(void* target, int flag);
 int __stdcall BroadcastPacket(int player, void* data, int size);
 void __stdcall MarkSelectionOrdersDirty(Unit* unit);
-Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit* unit, Unit* target, int flags);
+MissionType __stdcall GetOrderType(unsigned char mode, Unit* unit, Unit* target, int flags);
 void __stdcall AppendOrder(Unit* owner, Order* node);
 
 // Order handler "Resurrecting": raises the unit a wreck (feature) came from.
@@ -261,7 +261,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
     }
     case 6: {
         QueueUnitSpeech(unit, 8, "Resurrection complete");
-        Class_00438760 kind = GetOrderType(8, unit, order->target.owner, 0);
+        MissionType kind = GetOrderType(8, unit, order->target.owner, 0);
         if (kind.index)
             AppendOrder(unit, new Order(kind, order->target.owner, 0, 0, 0, 0));
         return 5;

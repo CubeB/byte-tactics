@@ -203,11 +203,11 @@ struct CalcedExplosion;
 struct FrameTable;
 
 // The command kind, one byte wide, but not a POD type.
-class Class_00438760 {
+class MissionType {
 public:
     unsigned char index;
 
-    Class_00438760() {}
+    MissionType() {}
 };
 
 struct Unit;
@@ -259,7 +259,7 @@ public:
     void* attached;                  // +0x52
 
     Order(unsigned char k, Unit* o, Vec3* p, int a, int b, int c);
-    Order(Class_00438760 kind, Unit* o, Vec3* p, int a, int b, int c);
+    Order(MissionType kind, Unit* o, Vec3* p, int a, int b, int c);
     Order(unsigned char type, int a, int b, int c, int d, int e);
     ~Order();
     void SetDeadlineTicks(int param);
@@ -1019,7 +1019,7 @@ int __stdcall CanPlaceUnitFootprint(UnitType_0043cd20* type, short a8, Point cel
 void __stdcall RemoveUnitFromMap(Unit* unit);
 void __stdcall AddUnitToMap(Unit* unit);
 void __stdcall UpdateUnitLineOfSight(Unit* unit);
-Class_00438760 __stdcall GetOrderType(unsigned char relation, Unit* unit, Unit* target, Vec3* pos);
+MissionType __stdcall GetOrderType(unsigned char relation, Unit* unit, Unit* target, Vec3* pos);
 void __stdcall AddOrder(unsigned char kind, int remove, Unit* owner, int id, int* pos, int param_6, int param_7);
 int __stdcall FindWeaponTarget(Unit* unit, int a, int b);
 void __stdcall ClearWeaponTarget(Unit* unit, int index);
@@ -1178,11 +1178,11 @@ int __stdcall IssueAttackOrder(Unit* unit, Unit* target, int param_3)
         return 0;
     if (!(unit->flags & 0x300000) && !param_3)
         return 0;
-    Class_00438760 kind = GetOrderType(3, unit, target, 0);
+    MissionType kind = GetOrderType(3, unit, target, 0);
     if (!kind.index)
         return 0;
     if ((unit->flags & 0xc0000) == 0x40000 && !param_3) {
-        Class_00438760 kind2 = GetOrderType(2, unit, 0, &unit->pos);
+        MissionType kind2 = GetOrderType(2, unit, 0, &unit->pos);
         Order* cmd = new Order(kind2, 0, &unit->pos, 0, 0, 0);
         Insert(unit, cmd, (cmd->flags & 0x40000) ? unit->list2 : unit->list);
         Order* cmd2 = new Order(kind, target, 0, 0, 0, unit->type->field_214);
@@ -1207,12 +1207,12 @@ int __stdcall IssueAttackOrder(Unit* unit, Unit* target, int param_3)
 // FUNCTION: 0x43b400
 int __stdcall IssueRepairOrder(Unit* unit, Unit* target, int param_3)
 {
-    Class_00438760 kind = GetOrderType(8, unit, target, 0);
+    MissionType kind = GetOrderType(8, unit, target, 0);
     if (!kind.index)
         return 0;
     unsigned int f = unit->flags & 0xc0000;
     if (f == 0 && !param_3) {
-        Class_00438760 kind2 = GetOrderType(2, unit, 0, &unit->pos);
+        MissionType kind2 = GetOrderType(2, unit, 0, &unit->pos);
         Order* cmd = new Order(kind2, 0, &unit->pos, 0, 0, 0);
         Insert(unit, cmd, (cmd->flags & 0x40000) ? unit->list2 : unit->list);
         Order* cmd2 = new Order(kind, target, 0, 0, 0, unit->type->range);
@@ -1222,7 +1222,7 @@ int __stdcall IssueRepairOrder(Unit* unit, Unit* target, int param_3)
         // Explicit `return 1;` in each case: a single trailing return splits the store blocks.
         return 1;
     } else if (f == 0x40000 && !param_3) {
-        Class_00438760 kind2 = GetOrderType(2, unit, 0, &unit->pos);
+        MissionType kind2 = GetOrderType(2, unit, 0, &unit->pos);
         Order* cmd = new Order(kind2, 0, &unit->pos, 0, 0, 0);
         Insert(unit, cmd, (cmd->flags & 0x40000) ? unit->list2 : unit->list);
         Order* cmd2 = new Order(kind, target, 0, 0, 0, unit->type->field_214);

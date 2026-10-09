@@ -722,7 +722,7 @@ address,size,file,symbol,status,similarity
 0x438650,161,src/orders/order_queue_4384a0.cpp,?ComputeReclaimDamagePulse@@YGHPAUUnit@@0H@Z,matched,100.0
 0x438700,39,src/orders/order_queue_4384a0.cpp,?WaitIfNotInBuildStance@@YGIPAX0I@Z,matched,100.0
 0x438730,42,src/orders/order_queue_4384a0.cpp,?WaitIfCobBusy@@YGHPAD0I@Z,matched,100.0
-0x438760,198,src/orders/order_queue_4384a0.cpp,??0Class_00438760@@QAE@PBD@Z,matched,100.0
+0x438760,198,src/orders/order_queue_4384a0.cpp,??0MissionType@@QAE@PBD@Z,matched,100.0
 0x438830,19,src/orders/order_queue_4384a0.cpp,?GetTableEntry@OrderType@@QAEHXZ,matched,100.0
 0x438850,19,src/orders/order_queue_4384a0.cpp,?GetTableEntryByTypeByte@@YIHPAE@Z,matched,100.0
 0x438870,15,src/orders/order_queue_4384a0.cpp,?OrStatusFlags@Order@@UAEXI@Z,matched,100.0
@@ -812,7 +812,7 @@ address,size,file,symbol,status,similarity
 0x43e400,103,src/units/unit_scripts.cpp,?GetNanoPiecePosition@@YGXPAUObject@@PAUVec3@@@Z,matched,100.0
 0x43e470,29,src/units/unit_scripts.cpp,?OrderModeTakesTarget@@YGHE@Z,matched,100.0
 0x43e490,3152,src/units/unit_scripts.cpp,?GetOrderCursor@@YGHEPAUUnit_0043e490@@0PAUPos_0043e490@@@Z,matched,100.0
-0x43f0e0,4420,src/orders/order_dispatch_43f0e0.cpp,?GetOrderType@@YG?AVClass_00438760@@EPAUUnit_0043f0e0@@0PAUPos_0043f0e0@@@Z,matched,100.0
+0x43f0e0,4420,src/orders/order_dispatch_43f0e0.cpp,?GetOrderType@@YG?AVMissionType@@EPAUUnit_0043f0e0@@0PAUPos_0043f0e0@@@Z,matched,100.0
 0x440230,92,src/units/movement_class.cpp,_$E6,matched,100.0
 0x440290,65,src/units/movement_class.cpp,_$E3,matched,100.0
 0x4402e0,53,src/units/movement_class.cpp,??0MovementClass@@QAE@XZ,matched,100.0

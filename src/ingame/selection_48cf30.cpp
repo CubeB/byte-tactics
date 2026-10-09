@@ -28,10 +28,10 @@ public:
 };
 
 // A unit type index built from a name.
-class Class_00438760 {
+class MissionType {
 public:
     unsigned char index;
-    Class_00438760(const char* name);
+    MissionType(const char* name);
 };
 
 struct UnitDef_0048cf30 {
@@ -75,12 +75,12 @@ struct Game {
 extern Game* g_game;
 
 int __stdcall OrderModeTakesTarget(unsigned char type);
-Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit* unit,
+MissionType __stdcall GetOrderType(unsigned char mode, Unit* unit,
                                        Unit* target, void* param_5);
 void __stdcall IssueOrCancelOrder(OrderType kind, int flag, Unit* unit,
                             Unit* target, int* pos, int param_5, int param_6);
 
-static inline Class_00438760 Order(const char* name) { return Class_00438760(name); }
+static inline MissionType Order(const char* name) { return MissionType(name); }
 
 // Kept out of the merged selection.cpp: it only matches at this file's symbol count.
 // FUNCTION: 0x48cf30
@@ -128,9 +128,9 @@ void __stdcall IssueOrderToSelection(UnitType_0048cf30* entry, unsigned char mod
             continue;
         // fire and move are named locals from the Order() wrapper, not constructed
         // directly: that decides their frame slots.
-        Class_00438760 fire = Order("Standing_FireOrder");
+        MissionType fire = Order("Standing_FireOrder");
         if (kind.index != fire.index || (u->def->flags & 2)) {
-            Class_00438760 move = Order("Standing_MoveOrder");
+            MissionType move = Order("Standing_MoveOrder");
             if (kind.index != move.index || (u->def->flags & 1)) {
                 if (pos && (kind.GetTableEntry()->flags & 2)) {
                     // Two-step deltas, z first then x: one-step avoids a CSE across the branch.

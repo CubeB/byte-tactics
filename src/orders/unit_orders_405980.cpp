@@ -2,7 +2,7 @@
 #include <vector>
 #include "../util/vec3.h"
 struct Unit;
-class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
+class MissionType { public: unsigned char index; MissionType(const char*); };
 
 #pragma pack(push, 1)
 #include "../units/unit_def.h"
@@ -21,7 +21,7 @@ public:
 void __stdcall EnsurePatrolReturnOrder(Unit*, Order*);
 void __stdcall VisitObjectsInRange(Vec3*, int, const DamagedAllyCollector&);
 int __stdcall RandomInt(int);
-Class_00438760 __stdcall GetOrderType(unsigned char, Unit*, Unit*, int);
+MissionType __stdcall GetOrderType(unsigned char, Unit*, Unit*, int);
 int __stdcall IssueRepairOrder(Unit*, Unit*, int);
 int __stdcall PickRandomReclaimableResourcesInRadius(Vec3*, int, Vec3**, float*, Vec3**, float*);
 void __stdcall AppendOrder(Unit*, Order*);
@@ -48,7 +48,7 @@ int __stdcall RepairPatrolOrder(Unit* unit, Order* order, int flags)
                 if (!units.empty()) {
                     Unit* target = units[RandomInt(units.size())];
                     if (unit->owner->allied[target->owner->index]) {
-                        Class_00438760 kind = GetOrderType(8, unit, target, 0);
+                        MissionType kind = GetOrderType(8, unit, target, 0);
                         if (kind.index) {
                             if (IssueRepairOrder(unit, target, 0)) return 6;
                             return 3;

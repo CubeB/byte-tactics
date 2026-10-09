@@ -12,10 +12,10 @@ struct Vec3 {
     int x, y, z;
 };
 
-class Class_00438760 {
+class MissionType {
 public:
     unsigned char index;
-    Class_00438760(const char* name);
+    MissionType(const char* name);
 };
 
 struct Unit;
@@ -50,7 +50,7 @@ struct Order {
     void AnnounceStatusIfFlagged(const char*);
     void SetAttachedFx(int);
     void SetDeadlineTicks(int);
-    Order(Class_00438760 type, int a, Vec3* b, int c, int d, int e);
+    Order(MissionType type, int a, Vec3* b, int c, int d, int e);
     char unknown_52[0x4];
     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
     void ReattachFxToUnit();

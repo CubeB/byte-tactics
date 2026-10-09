@@ -109,11 +109,11 @@ struct Game {
 };
 #pragma pack(pop)
 
-class Class_00438760 {
+class MissionType {
 public:
     unsigned char index;
-    Class_00438760(const char* name);
-    Class_00438760() : index(0) {}
+    MissionType(const char* name);
+    MissionType() : index(0) {}
 };
 
 extern Game* g_game;
@@ -139,7 +139,7 @@ void __stdcall UpdateCursorWorldPos(View* p);
 void __stdcall IssueMobileBuildOrders(View* arg);
 void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall ClickSelectHoverUnit(View* arg);
-void __stdcall IssueOrderToSelection(void* a, unsigned char b, Class_00438760 kind, Vec3* d, int e, int f);
+void __stdcall IssueOrderToSelection(void* a, unsigned char b, MissionType kind, Vec3* d, int e, int f);
 int __stdcall FindGadgetIndexBySubstring(int value, char* name);
 void __stdcall ClearGroupStatus(void* obj, int index);
 void __stdcall CloseTopScreen(void* a);
@@ -189,7 +189,7 @@ void __stdcall HandleLeftClick(View* param_1)
         return;
     }
     {
-        Class_00438760 kind;
+        MissionType kind;
         kind.index = 0;
         IssueOrderToSelection(param_1, g_game->orderMode, kind, &g_game->pos, 0, 0);
     }
@@ -241,7 +241,7 @@ void __stdcall HandleRightClick(View* param_1)
             }
         }
     } else if (g_game->flags_2cc6 & 4) {
-        Class_00438760 kind;
+        MissionType kind;
         IssueOrderToSelection(param_1, 1, kind, &g_game->pos, 0, 0);
     }
 }

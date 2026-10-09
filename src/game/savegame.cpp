@@ -10,17 +10,28 @@ class Mission;
 
 // Pack 1: the 4-byte pad after the pointer at +0x391e9 would shift later fields.
 #pragma pack(push, 1)
-struct Entry_00491ec0 {
-    char unknown_0[0xba];
+struct Gadget {                         // 0x15b bytes
+    char unknown_0[0x1b];
+    int attribs;                       // +0x1b
+    char unknown_1f[0xb6 - 0x1f];
+    char text[4];                      // +0xb6
     short field_ba;                    // +0xba selected game index
     char unknown_bc[0xc2 - 0xbc];
     char* field_c2;                    // +0xc2 text/gaf pointer
-    char unknown_c6[0x15b - 0xc6];
+    char unknown_c6[0xce - 0xc6];
+    void* handler;                     // +0xce
+    char unknown_d2[0x15b - 0xd2];
 };
+
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+int DrawTriangleContours(int, int, int, int, int, int, int);
+int DrawRangeCircle(int, int, int, int, int, int, int);
+int AddOrder(int, int, int, int, int, int, int);
+int UpdatePlayerEconomy(int);
 
 struct Layer_00491ec0 {
     int unknown_0;
-    Entry_00491ec0* entries;           // +0x04
+    Gadget* entries;                   // +0x04
 };
 
 struct Menu_00491ec0 {
@@ -28,16 +39,9 @@ struct Menu_00491ec0 {
     Layer_00491ec0* layer;             // +0x18
 };
 
-struct Entry_00492360 {                  // 0x15b bytes
-    char unknown_0[0xb6];
-    char text[4];                        // +0xb6
-    short field_ba;                      // +0xba
-    char unknown_bc[0x15b - 0xbc];
-};
-
 struct Layer_00492360 {
     int unknown_0;
-    Entry_00492360* entries;             // +0x04
+    Gadget* entries;                     // +0x04
 };
 
 struct Gadget_00492360 {
@@ -57,16 +61,9 @@ struct Obj_00492360 {
     char text_11c[1];                    // +0x11c
 };
 
-struct Entry_00492df0 {                  // 0x15b bytes
-    char unknown_0[0xb6];
-    char text[4];                        // +0xb6
-    short field_ba;                      // +0xba
-    char unknown_bc[0x15b - 0xbc];
-};
-
 struct Layer_00492df0 {
     int unknown_0;
-    Entry_00492df0* entries;             // +0x04
+    Gadget* entries;                     // +0x04
 };
 
 struct Gadget_00492df0 {
@@ -76,17 +73,9 @@ struct Gadget_00492df0 {
     int selected;                        // +0x60
 };
 
-struct Entry_00493060 {                // 0x15b bytes
-    char unknown_0[0x1b];
-    int attribs;                       // +0x1b
-    char unknown_1f[0xce - 0x1f];
-    void* handler;                     // +0xce
-    char unknown_d2[0x15b - 0xd2];
-};
-
 struct Layer_00493060 {
     int unknown_0;
-    Entry_00493060* entries;           // +0x04
+    Gadget* entries;                   // +0x04
     void (__stdcall* handler)(Gadget_00492df0*); // +0x08
     void* data;                        // +0x0c
 };
@@ -201,16 +190,16 @@ extern char* g_savegameSideList;
 extern char* g_savegameRadarPreview;
 
 void __stdcall MarkChanged(Menu_00491ec0* menu);
-Entry_00491ec0* __stdcall FindGadgetChecked(Entry_00491ec0* entries, char* name);
-Entry_00492360* __stdcall FindGadgetChecked(Entry_00492360* entries, char* name);
-Entry_00492df0* __stdcall FindGadgetChecked(Entry_00492df0* entries, char* name);
-Entry_00493060* __stdcall FindGadgetChecked(Entry_00493060* entries, char* name);
+Gadget* __stdcall FindGadgetChecked(Gadget* entries, char* name);
+Gadget* __stdcall FindGadgetChecked(Gadget* entries, char* name);
+Gadget* __stdcall FindGadgetChecked(Gadget* entries, char* name);
+Gadget* __stdcall FindGadgetChecked(Gadget* entries, char* name);
 Entry_004931d0* __stdcall FindGadgetChecked(void* entries, char* name);
-int __stdcall FindGadgetIndex(Entry_00491ec0* entries, char* name, int type);
-int __stdcall FindGadgetIndex(Entry_00492df0* entries, char* name, int type);
-int __stdcall FindGadgetIndex(Entry_00493060* entries, char* name, int type);
+int __stdcall FindGadgetIndex(Gadget* entries, char* name, int type);
+int __stdcall FindGadgetIndex(Gadget* entries, char* name, int type);
+int __stdcall FindGadgetIndex(Gadget* entries, char* name, int type);
 void __stdcall SetGadgetText(Menu_00491ec0* menu, int index, char* text);
-Entry_00491ec0* __stdcall FindGadgetChecked_E(Entry_00491ec0* entries, char* name);
+Gadget* __stdcall FindGadgetChecked_E(Gadget* entries, char* name);
 void __stdcall SetGadgetActiveByName(void* menu, char* name, int value);
 void __stdcall SetTranslatedTextByName(void* menu, char* name, char* text, int param_4);
 char* __stdcall SkipTextLines(char* text, int n);
@@ -283,8 +272,8 @@ void __stdcall ShowSavedGameInfo()
 {
     Menu_00491ec0* menu = &g_game->menu_00491ec0;
     Layer_00491ec0* layer = g_game->menu_00491ec0.layer;
-    Entry_00491ec0* entries = layer->entries;
-    Entry_00491ec0* games = FindGadgetChecked(entries, "GAMES");
+    Gadget* entries = layer->entries;
+    Gadget* games = FindGadgetChecked(entries, "GAMES");
     if (games == 0)
         return;
 
@@ -305,7 +294,7 @@ void __stdcall ShowSavedGameInfo()
         HapiBank* file = OpenSummaryBank(path);
         if (file != 0) {
             file->OpenNamedBox("Radar Image");
-            Entry_00491ec0* radar = FindGadgetChecked_E(menu->layer->entries, "RADAR");
+            Gadget* radar = FindGadgetChecked_E(menu->layer->entries, "RADAR");
             if (g_savegameRadarPreview != 0)
                 FreeSurface(g_savegameRadarPreview);
             g_savegameRadarPreview = (char*)LoadSurface(file);
@@ -400,7 +389,7 @@ void __stdcall ShowInvalidSavegameDialog(void* param_1)
 // FUNCTION: 0x492360
 void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
 {
-    Entry_00492360* entries = gadget->layer->entries;
+    Gadget* entries = gadget->layer->entries;
     char buf[0x104];
 
     if (gadget->selected == -1)
@@ -429,7 +418,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
             ClearSelectedGadget(gadget);
         return;
     }
-    Entry_00492360* e = FindGadgetChecked(entries, "GAMES");
+    Gadget* e = FindGadgetChecked(entries, "GAMES");
     sprintf(buf, "%s\\%s", DAT_005091c8, SkipTextLines(g_savegameFileNames, e->field_ba));
     void* save = OpenSummaryBank(buf);
     if (save != 0) {
@@ -634,7 +623,7 @@ void __stdcall SavedGameSelectHandler(int arg1, int arg2)
 // FUNCTION: 0x492df0
 void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
 {
-    Entry_00492df0* entries = gadget->layer->entries;
+    Gadget* entries = gadget->layer->entries;
     Save_00492df0 save;
     if (gadget->selected == -1) {
         SetDescListCleanupFlag(gadget, 1);
@@ -660,7 +649,7 @@ void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
     }
     if (IsCurrentGadgetNamed(gadget, "DELETE")) {
         PlaySoundByName("SmallButton", 0);
-        Entry_00492df0* e = FindGadgetChecked(entries, "GAMES");
+        Gadget* e = FindGadgetChecked(entries, "GAMES");
         sprintf(save.path, "%s\\%s", DAT_005091c8, SkipTextLines(g_savegameFileNames, e->field_ba));
         RemoveFile(save.path);
         ListSavedGames(&save.count);
@@ -702,7 +691,7 @@ void ShowSaveGameScreen()
     if (local == 0) {
         SetGadgetActiveByName(&g_game->menu_00493060, "DELETE", 0);
     }
-    Entry_00493060* games = FindGadgetChecked(layer->entries, "GAMES");
+    Gadget* games = FindGadgetChecked(layer->entries, "GAMES");
     if (games != 0) {
         games->handler = SavedGameSelectHandler;
     }

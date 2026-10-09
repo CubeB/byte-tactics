@@ -11,12 +11,12 @@
 // where the 0x80 arm tests both of its divisors first.
 
 #pragma pack(push, 1)
-struct Gadget_004a3ef0 {               // 0x15b bytes
+struct Gadget {                        // 0x15b bytes
     unsigned char type;                // +0x00
     unsigned char kind;                // +0x01
     char unknown_02[0x17 - 0x02];
-    short field_17;                    // +0x17
-    short field_19;                    // +0x19
+    short width;                       // +0x17
+    short height;                      // +0x19
     int attribs;                       // +0x1b
     char unknown_1f[0x28 - 0x1f];
     char group;                        // +0x28
@@ -32,7 +32,7 @@ struct Gadget_004a3ef0 {               // 0x15b bytes
     char unknown_dc[0x136 - 0xdc];
     short range;                       // +0x136
     char unknown_138[0x140 - 0x138];
-    short field_140;                   // +0x140
+    short knobPos;                     // +0x140
     short knobSize;                    // +0x142
     void* sliderCallback;              // +0x144 (a typed function pointer here takes symbol ids)
     char unknown_148[0x15b - 0x148];
@@ -53,7 +53,7 @@ struct List_004a3ef0 {
 
 struct Holder_004a3ef0 {
     int current;                       // +0x00
-    Gadget_004a3ef0* entries;          // +0x04
+    Gadget* entries;                   // +0x04
     char unknown_08[0x14 - 0x08];
     List_004a3ef0* list;               // +0x14
 };
@@ -76,7 +76,7 @@ static inline GafFrame* GetGlyph_004a3ef0(unsigned char c)
     return (GafFrame*)GetGafFrame(g_guiContext->list->field_0c, c);
 }
 
-static inline int Find_004a3ef0(Gadget_004a3ef0* entries, unsigned char kind)
+static inline int Find_004a3ef0(Gadget* entries, unsigned char kind)
 {
     for (int i = 1; i < entries->count + 1; i++) {
         if (entries[i].type == 2 && entries[i].kind == kind)
@@ -86,7 +86,7 @@ static inline int Find_004a3ef0(Gadget_004a3ef0* entries, unsigned char kind)
 }
 
 // Reads the count and the font pointer before the count > 0 test.
-static inline int LineSize_004a3ef0(Gadget_004a3ef0* e)
+static inline int LineSize_004a3ef0(Gadget* e)
 {
     int count = e->field_c0;
     Font_004a3ef0** font = e->font;
@@ -99,8 +99,8 @@ static inline int LineSize_004a3ef0(Gadget_004a3ef0* e)
 // FUNCTION: 0x4a3ef0
 void __stdcall DrawSlider(Dialog* param_1, int param_2)
 {
-    Gadget_004a3ef0* entries = param_1->holder->entries;
-    Gadget_004a3ef0* me = &entries[param_2];
+    Gadget* entries = param_1->holder->entries;
+    Gadget* me = &entries[param_2];
     unsigned char kind = me->kind;
     int found = Find_004a3ef0(entries, kind);
     // Must stay a union with both zero stores: a plain int changes the register choices.
@@ -108,7 +108,7 @@ void __stdcall DrawSlider(Dialog* param_1, int param_2)
     lines.full = 0;
     lines.word = 0;
     if (found != 0) {
-        Gadget_004a3ef0* e = &entries[found];
+        Gadget* e = &entries[found];
         if (e->type == 2) {
             if (e->attribs & 0x10) {
                 int i = 1;
@@ -127,11 +127,11 @@ void __stdcall DrawSlider(Dialog* param_1, int param_2)
                 }
                 int size = (g_guiContext->list == 0) ? GetFontHeight()
                     : GetGlyph_004a3ef0(0x49)->height + 2;
-                int numerator = e->field_19 - 2;
+                int numerator = e->height - 2;
                 int denominator = (e->field_da > size + 1) ? e->field_da : size + 1;
                 int step = numerator / denominator;
                 int last = e->field_c0;
-                int rows = (int)((float)step / last * (me->field_19 - 3));
+                int rows = (int)((float)step / last * (me->height - 3));
                 me->knobSize = rows;
                 if (me->knobSize < 10) {
                     me->knobSize = 10;
@@ -139,25 +139,25 @@ void __stdcall DrawSlider(Dialog* param_1, int param_2)
                 if (last <= step) {
                     me->range = 0;
                 } else {
-                    me->range = me->field_19 - me->knobSize - 3;
+                    me->range = me->height - me->knobSize - 3;
                 }
             } else if (e->attribs & 0x20) {
                 lines.full = LineSize_004a3ef0(e);
-                int s = e->field_19 * me->field_19 / lines.full;
+                int s = e->height * me->height / lines.full;
                 me->knobSize = s;
                 if (me->attribs & 1) {
-                    me->range = me->field_17 - s;
+                    me->range = me->width - s;
                 } else {
-                    me->range = me->field_19 - s;
+                    me->range = me->height - s;
                 }
             } else if (e->attribs & 0x80) {
                 if (e->field_da != 0 && e->field_c0 != 0) {
-                    int s = e->field_19 / e->field_da * me->field_19 / e->field_c0;
+                    int s = e->height / e->field_da * me->height / e->field_c0;
                     me->knobSize = s;
                     if (me->attribs & 1) {
-                        me->range = me->field_17 - s;
+                        me->range = me->width - s;
                     } else {
-                        me->range = me->field_19 - s;
+                        me->range = me->height - s;
                     }
                 }
             }

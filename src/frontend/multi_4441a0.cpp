@@ -4,7 +4,7 @@
 #include <string.h>
 
 #pragma pack(push, 1)
-struct Entry_004441a0 {                 // a gadget of the menu, 0x15b bytes
+struct Gadget {                         // a gadget of the menu, 0x15b bytes
     short unknown_0;
     char name[0x10];                    // +0x02
     char unknown_12[0xba - 0x12];
@@ -14,7 +14,7 @@ struct Entry_004441a0 {                 // a gadget of the menu, 0x15b bytes
 
 struct Holder_004441a0 {
     int unknown_0;
-    Entry_004441a0* entries;            // +0x4
+    Gadget* entries;                    // +0x4
 };
 
 struct Menu_004441a0 {
@@ -51,7 +51,7 @@ extern LinkInfo g_linkInfo[];
 
 void __cdecl GameFreeThunk(void* p);
 int __stdcall IsCurrentGadgetNamed(void* menu, char* name);
-Entry_004441a0* __stdcall FindGadgetChecked(void* entries, char* name);
+Gadget* __stdcall FindGadgetChecked(void* entries, char* name);
 int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
 int __stdcall SelectConnection(int index);
 void __stdcall PlaySoundByName(char* name, int flag);
@@ -67,7 +67,7 @@ void OpenOptionsPanel();
 // FUNCTION: 0x4441a0
 void __stdcall HandleSelectProviderClick(Menu_004441a0* menu)
 {
-    Entry_004441a0* entries = menu->holder->entries;
+    Gadget* entries = menu->holder->entries;
     int i;
     // Unused id and cur, and the names link/message/result/msg, set the stack slot order.
     int id;

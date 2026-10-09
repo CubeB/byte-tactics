@@ -172,7 +172,7 @@ struct Item {
         int active;                    // CountPlayersInAllyGroup's
     };
     int unknown_4;                     // +0x4
-    int field_8;                       // +0x8, the ally group
+    int allyGroup;                     // +0x8, the ally group
     char unknown_c[0x14 - 0xc];
     int owner;                         // +0x14
 };
@@ -1662,7 +1662,7 @@ int __stdcall CountPlayersInAllyGroup(int owner)
 {
     int n = 0;
     for (int i = 0; i < g_game->itemCount; i++) {
-        if (g_game->items[i].field_8 == owner && g_game->items[i].active != 0) {
+        if (g_game->items[i].allyGroup == owner && g_game->items[i].active != 0) {
             n++;
         }
     }

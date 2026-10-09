@@ -2700,9 +2700,9 @@ address,size,file,symbol,status,similarity
 0x4c1450,18,src/graphics/draw.cpp,?GetFontHeight@@YGHXZ,matched,100.0
 0x4c1470,11,src/graphics/draw.cpp,?FontHeight@@YGEPAX@Z,matched,100.0
 0x4c1480,97,src/graphics/font.cpp,?GetTextWidth@@YGHPAUFont@@PAE@Z,matched,100.0
-0x4c14f0,617,src/graphics/font.cpp,?DrawString@@YGXPAVSurface@@PAEHHH@Z,matched,100.0
-0x4c1760,201,src/graphics/font.cpp,?DrawStringCentered@@YGXPAVSurface@@PAEH@Z,matched,100.0
-0x4c1830,516,src/graphics/font.cpp,?DrawOutlinedString@@YGXPAVSurface@@PAEHHH@Z,matched,100.0
+0x4c14f0,617,src/graphics/font.cpp,?DrawString@@YGXPAUSurface@@PAEHHH@Z,matched,100.0
+0x4c1760,201,src/graphics/font.cpp,?DrawStringCentered@@YGXPAUSurface@@PAEH@Z,matched,100.0
+0x4c1830,516,src/graphics/font.cpp,?DrawOutlinedString@@YGXPAUSurface@@PAEHHH@Z,matched,100.0
 0x4c1a40,20,src/gui/keyboard.cpp,?ClearKeyQueue@@YGXXZ,matched,100.0
 0x4c1a60,54,src/gui/keyboard.cpp,?InitKeyQueue@@YGXH@Z,matched,100.0
 0x4c1aa0,1,src/gui/keyboard.cpp,?DestroyPreCleanup@@YGXXZ,matched,100.0

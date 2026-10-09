@@ -162,9 +162,7 @@ struct View_4b5980 {
     int unknown_14;
 };
 
-struct Surface {
-    int data[12];
-};
+#include "surface.h"
 
 struct BitmapInfo_004b5510 {
     BITMAPINFOHEADER bmiHeader;

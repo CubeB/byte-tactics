@@ -55,14 +55,13 @@ struct Root_004a32a0 {                 // g_guiContext
 
 extern Root_004a32a0* g_guiContext;
 
-// The inclusive bounding rectangle the gadget helpers fill: left/top at the
-// top left, right/bottom at the bottom right.
-struct Rect {
-    int left;                          // +0x0
-    int top;                           // +0x4
-    int right;                         // +0x8
-    int bottom;                        // +0xc
-};
+#include "../graphics/rect.h"
+
+// Unused here: real declarations that keep the file's symbol count (docs/c2-regalloc.md).
+void ShowFrontendErrorText(void);
+void FreeGameFonts(void);
+void LoadDefaultPalette(void);
+class SquadManager;
 
 
 #pragma pack(push, 1)
@@ -1538,13 +1537,6 @@ struct LanguageRoot_004a1b40 {
     Language_004a1b40* language;        // +0x14
 };
 
-struct Rect_004a1b40 {
-    int left;
-    int top;
-    int right;
-    int bottom;
-};
-
 struct Point_004a1b40 { int x; int y; };
 struct Quad_004a1b40 { Point_004a1b40 points[4]; };
 
@@ -1559,15 +1551,16 @@ struct Item_004a1b40 {
     GafFrame* cell;                      // +0x28
 };
 
-struct Surface {
-    void GetClipRect(Rect_004a1b40* rect);
-    void SetClipRect(Rect_004a1b40 rect);
-};
-
 #pragma pack(pop)
 
+#include "../graphics/surface.h"
+
+// Unused here: real declarations that keep the file's symbol count (docs/c2-regalloc.md).
+void FreeLogos(void);
+void FreeSideFonts(void);
+
 void __stdcall DrawListboxFrame(Dialog_4a1b40* obj, int index, void* bmp);
-void __stdcall CopySurfaceRect(void* dst, void* src, Rect_004a1b40* rect, Rect_004a1b40* pos);
+void __stdcall CopySurfaceRect(void* dst, void* src, Rect* rect, Rect* pos);
 void __stdcall SetFont(int id);
 int GetFont();
 int __stdcall GetTextWidth(int font, char* text);
@@ -1582,7 +1575,7 @@ int __stdcall DrawWrappedText(void* surface, char* text, int x, int y, int maxw,
                             int rem, int style);
 void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2,
                             int colour);
-void __stdcall FadeRectangle(void* surface, Rect_004a1b40* rect, int id);
+void __stdcall FadeRectangle(void* surface, Rect* rect, int id);
 void __stdcall DrawFrameQuad(void* surface, void* bitmap, Quad_004a1b40* dst,
                             Quad_004a1b40* src);
 
@@ -1632,7 +1625,7 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
     unsigned char font;
     int yoff;
     int xx;
-    Rect_004a1b40 bounds;
+    Rect bounds;
     int xw;
     int flag = 0;
     if (0 != obj->holder)
@@ -1661,7 +1654,7 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
     flags = me->attribs;
     if ((flags & 0x10) && me->u.list.field_c2 && 0 != me->u.list.field_c0) {
         // Separate from cellRect: one shared rect changes the spill homes.
-        Rect_004a1b40 rowRect;
+        Rect rowRect;
         int i;
         int t = 0;
         // Loop test and not-found test both use count + 1.
@@ -1745,8 +1738,8 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
     } else if (flags & 0xa0) {
         Item_004a1b40** colPtr;
         GafFrame* cellPtr;
-        Rect_004a1b40 cellRect;
-        Rect_004a1b40 clip;
+        Rect cellRect;
+        Rect clip;
         unsigned int bp = (flags >> 7) & 1;
         void* surf = entries->u.assets.surface;
         ((Surface*)surf)->GetClipRect(&clip);
@@ -1808,7 +1801,7 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
             // A selected row reads cell->width/height even when cell is null
             // (docs/bugs.md).
             if (!(me->attribs & 0x100) && me->u.list.field_ba == k) {
-                Rect_004a1b40 hl;
+                Rect hl;
                 hl.left = bounds.left;
                 hl.top = yy;
                 hl.right = bounds.left + cell->width - 1;
@@ -1906,6 +1899,19 @@ extern int Pad_a2480_e2;
 extern int Pad_a2480_e3;
 extern int Pad_a2480_e4;
 
+// Unused here: real declarations that keep the file's symbol count (docs/c2-regalloc.md).
+struct Point_004c07b0;
+struct Point_004c1000;
+struct Point_004c6dc0;
+struct Pos_00420a30;
+struct Pos_00438ea0;
+struct Pos_0043e490;
+struct Pos_00484b50;
+struct Pos_00485330;
+struct Pos_0048a9f0;
+struct ProjType_0049b090;
+struct Proj_0049c740;
+
 // FUNCTION: 0x4a2480
 void __stdcall DrawGafBar(Dialog_004a04f0* param_1, int index)
 {
@@ -1942,17 +1948,6 @@ int AllocScoreTables();
 
 // Unused here: real declarations that keep the file's symbol count.
 void __cdecl ClearCameraFollowState();
-struct Point_004c07b0;
-struct Point_004c1000;
-struct Point_004c6dc0;
-struct Pos_00420a30;
-struct Pos_00438ea0;
-struct Pos_0043e490;
-struct Pos_00484b50;
-struct Pos_00485330;
-struct Pos_0048a9f0;
-struct ProjType_0049b090;
-struct Proj_0049c740;
 struct Projectile_0049b6e0;
 void CreateGameObject();
 void InitMissionStatus();

@@ -2,6 +2,8 @@
 
 #include <string.h>
 
+#include "surface.h"
+
 struct Font {
     unsigned char glyphs[1];            // +0x0, first byte of a glyph is its width
     char unknown_1[2];
@@ -15,22 +17,6 @@ struct Game {
     int colour1;                        // +0x208
     int colour2;                        // +0x20c
     int colour3;                        // +0x210
-};
-
-struct Rect {
-    int left;
-    int top;
-    int right;
-    int bottom;
-};
-
-class Surface {
-public:
-    int unknown_0[2];
-    int pitch;                          // +0x8
-    unsigned char* pixels;              // +0xc
-    int unknown_10[8];                  // 0x30 bytes, the lock descriptor
-    Rect* GetClipRect(Rect* out);
 };
 
 Game* GetDisplay(void);
@@ -169,11 +155,11 @@ void __stdcall DrawStringCentered(Surface* dst, unsigned char* text, int flag)
     if (dst == 0) {
         Surface r;
         if (LockScreen(&r) != 0) {
-            DrawString(&r, text, (r.unknown_0[0] - width) >> 1, flag, -1);
+            DrawString(&r, text, (r.width - width) >> 1, flag, -1);
             UnlockScreen(&r);
         }
     } else {
-        DrawString(dst, text, (dst->unknown_0[0] - width) >> 1, flag, -1);
+        DrawString(dst, text, (dst->width - width) >> 1, flag, -1);
     }
 }
 
@@ -212,7 +198,7 @@ void __stdcall DrawOutlinedString(Surface* dst, unsigned char* text, int fore,
     if (dst == 0) {
         Surface r;
         if (LockScreen(&r) != 0) {
-            int x = (r.unknown_0[0] - width) >> 1;
+            int x = (r.width - width) >> 1;
             SetColour(fore, CurrentColour());
             DrawString(&r, text, x - 1, y, -1);
             DrawString(&r, text, x + 1, y, -1);
@@ -224,7 +210,7 @@ void __stdcall DrawOutlinedString(Surface* dst, unsigned char* text, int fore,
             return;
         }
     } else {
-        int x = (dst->unknown_0[0] - width) >> 1;
+        int x = (dst->width - width) >> 1;
         SetColour(fore, CurrentColour());
         DrawString(dst, text, x - 1, y, -1);
         DrawString(dst, text, x + 1, y, -1);

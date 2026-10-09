@@ -7,7 +7,7 @@
 #pragma pack(push, 1)
 struct Net_0044f9c0 {
     char unknown_0[0x4b5];
-    int field_4b5;                   // +0x4b5
+    int from;                        // +0x4b5
 };
 #pragma pack(pop)
 
@@ -130,7 +130,7 @@ int NetCondenser::ReceivePacket(void* net, char* data, int* size)
     }
 
     int result = HAPINET_receivepacket(net, data, size);
-    if (((Net_0044f9c0*)net)->field_4b5 != 0) {
+    if (((Net_0044f9c0*)net)->from != 0) {
         if (result == 0) {
             CountPacket(*size, 0, 0);
             if (data[0] != 3 && data[0] != 4)

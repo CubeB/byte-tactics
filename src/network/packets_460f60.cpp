@@ -36,7 +36,7 @@ struct PlayerFrameInfo {
 class PacketReceiver {
 public:
     virtual ~PacketReceiver();
-    int field_4;
+    int unused;
     int owner;
     int fromId;
     int toId;

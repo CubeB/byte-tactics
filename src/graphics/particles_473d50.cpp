@@ -51,7 +51,7 @@ struct NanoParticle {
     Vec3_00473d50 pos;                 // +0x00
     Vec3_00473d50 tgt;                 // +0x0c
     Vec3_00473d50 vel;                 // +0x18
-    int field_24;                      // +0x24
+    int unused;                        // +0x24
     int flags;                         // +0x28
     int endTime;                       // +0x2c
 };
@@ -209,7 +209,7 @@ void NanoParticles::Emit()
             e.vel.y = e.vel.y / s;
             e.vel.z = e.vel.z / s;
             e.endTime = *(int*)(g_game + 0x38a47) + s;
-            e.field_24 = 0x100;
+            e.unused = 0x100;
             e.flags = i % 7 + 0xa1;
             // push_back, not insert(end(), e): the insert position is copied out of ecx.
             records.push_back(e);

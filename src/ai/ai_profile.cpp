@@ -25,12 +25,12 @@ void __cdecl ProtectBlockReadWrite(void* param_1);
 class AIProfileParser {
 public:
     char token[0x80];                   // +0
-    char* field_80;                     // +0x80
-    char* field_84;                     // +0x84
-    char* field_88;                     // +0x88
+    char* bufferStart;                  // +0x80
+    char* bufferEnd;                    // +0x84
+    char* cursor;                       // +0x88
     int errorReported;                  // +0x8c
-    int field_90;                       // +0x90
-    int field_94;                       // +0x94
+    int tokenPending;                   // +0x90
+    int tokenType;                      // +0x94
 
     AIProfileParser();
     void SetBuffer(char* param_1, int param_2);
@@ -45,24 +45,24 @@ public:
 // FUNCTION: 0x428c60
 AIProfileParser::AIProfileParser()
 {
-    field_80 = 0;
-    field_84 = 0;
-    field_88 = 0;
+    bufferStart = 0;
+    bufferEnd = 0;
+    cursor = 0;
     errorReported = 0;
-    field_90 = 0;
-    field_94 = 0x102;
+    tokenPending = 0;
+    tokenType = 0x102;
     token[0] = 0;
 }
 
 // FUNCTION: 0x428c90
 void AIProfileParser::SetBuffer(char* param_1, int param_2)
 {
-    field_80 = param_1;
-    field_84 = param_1 + param_2;
-    field_88 = param_1;
+    bufferStart = param_1;
+    bufferEnd = param_1 + param_2;
+    cursor = param_1;
     errorReported = 0;
-    field_90 = 0;
-    field_94 = 0x102;
+    tokenPending = 0;
+    tokenType = 0x102;
     token[0] = 0;
 }
 
@@ -71,12 +71,12 @@ int AIProfileParser::NextToken()
 {
     if (errorReported != 0)
         return 0x102;
-    if (field_90 != 0) {
-        field_90 = 0;
-        return field_94;
+    if (tokenPending != 0) {
+        tokenPending = 0;
+        return tokenType;
     }
-    field_94 = ScanToken();
-    return field_94;
+    tokenType = ScanToken();
+    return tokenType;
 }
 
 // AI profile tokenizer.
@@ -86,21 +86,21 @@ int AIProfileParser::ScanToken()
     if (errorReported != 0)
         return 0x102;
 
-    while (isspace(*field_88) && field_88 != field_84)
-        field_88++;
+    while (isspace(*cursor) && cursor != bufferEnd)
+        cursor++;
 
-    if (field_88 == field_84 || *field_88 == '\0')
+    if (cursor == bufferEnd || *cursor == '\0')
         return 0;
 
-    if (ispunct(*field_88))
-        return *field_88++;
+    if (ispunct(*cursor))
+        return *cursor++;
 
     int len = 0;
-    if (!isdigit(*field_88) && *field_88 != '-' && *field_88 != '.') {
-        while (isalnum(*field_88) && field_88 != field_84 && len < 0x7f) {
-            token[len] = *field_88;
+    if (!isdigit(*cursor) && *cursor != '-' && *cursor != '.') {
+        while (isalnum(*cursor) && cursor != bufferEnd && len < 0x7f) {
+            token[len] = *cursor;
             len++;
-            field_88++;
+            cursor++;
         }
         token[len] = 0;
         if (len != 0 && len != 0x7f)
@@ -108,15 +108,15 @@ int AIProfileParser::ScanToken()
         return 0x102;
     }
 
-    token[0] = *field_88;
+    token[0] = *cursor;
     int i = 1;
     for (;;) {
-        // Increment through a local, not `++field_88`: the stores differ.
-        char* q = field_88;
-        field_88 = q + 1;
-        if (!(isdigit(*field_88) || *field_88 == '.'))
+        // Increment through a local, not `++cursor`: the stores differ.
+        char* q = cursor;
+        cursor = q + 1;
+        if (!(isdigit(*cursor) || *cursor == '.'))
             break;
-        token[i++] = *field_88;
+        token[i++] = *cursor;
     }
     token[i] = 0;
     return 0x101;
@@ -129,12 +129,12 @@ int AIProfileParser::ReadInt()
     int token;
     if (errorReported != 0) {
         token = 0x102;
-    } else if (field_90 != 0) {
-        token = field_94;
-        field_90 = 0;
+    } else if (tokenPending != 0) {
+        token = tokenType;
+        tokenPending = 0;
     } else {
         token = ScanToken();
-        field_94 = token;
+        tokenType = token;
     }
     if (token != 0x101) {
         if (errorReported == 0) {

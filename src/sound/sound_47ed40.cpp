@@ -868,8 +868,8 @@ int IntDynArray::EraseByValue(int value)
 
 class Squad {
 public:
-    int field_0;                       // +0x0
-    int field_4;                       // +0x4
+    int owner;                         // +0x0
+    int index;                         // +0x4
     int field_8;                       // +0x8
     int field_c;                       // +0xc
     std::vector<int> items;            // +0x10
@@ -883,6 +883,6 @@ public:
 // allocator byte; MSVC keeps it in the first parameter's stack slot.
 // FUNCTION: 0x480160
 Squad::Squad(int a, int b)
-    : field_0(a), field_4(b), field_8(0), field_c(0)
+    : owner(a), index(b), field_8(0), field_c(0)
 {
 }

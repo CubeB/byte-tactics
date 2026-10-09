@@ -1658,8 +1658,8 @@ struct Struct_004907e0 {               // the owner, the object at +0x8
         UnitMotion* obj;               // +0x0
     };
     char pad4[0x66 - 0x4];
-    short field_66;                    // +0x66
-    short field_68;                    // +0x68
+    short heading;                     // +0x66
+    short bank;                        // +0x68
     Vec3 pos;                 // +0x6a
     char pad76[0x82 - 0x76];
     unsigned char* field_82;           // +0x82
@@ -1747,7 +1747,7 @@ PackedGoal::PackedGoal(Struct_004907e0* p)
 {
     pos = p->pos;
     vel = Vec3(0, 0, 0);
-    field_24 = p->field_66;
+    field_24 = p->heading;
 }
 
 // PackedGoal's override of slot 4 (vtable 0x4fd980, inherited by

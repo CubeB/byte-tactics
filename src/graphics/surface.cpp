@@ -7,40 +7,12 @@
 #include <string.h>
 #include <ddraw.h>
 
-// A 16-byte rectangle: the surface's clip, the display's cached vector.
-struct Rect {
-    int left;
-    int top;
-    int right;
-    int bottom;
-    Rect() {}
-    Rect(int l, int t, int r, int b) : left(l), top(t), right(r), bottom(b) {}
-};
-
-struct Surface;
-int __stdcall UnlockScreen(Surface* s);
-
-// A surface header, 0x30 bytes. An allocated image's pixels follow it at
-// +0x30, and its pointer is the field at +0xc.
-struct Surface {
-    int width;                         // +0x0
-    int height;                        // +0x4
-    int pitch;                         // +0x8
-    char* pixels;                      // +0xc
-    int field_10;                      // +0x10
-    int field_14;                      // +0x14
-    short x;                           // +0x18
-    short y;                           // +0x1a
-    Rect clip;                         // +0x1c
-    unsigned int flag0 : 1;            // +0x2c bit 0
-    unsigned int flag1 : 1;            // +0x2c bit 1
-
-    Rect* GetClipRect(Rect* out);
-    void SetClipRect(Rect r);
-    void Unlock() { UnlockScreen(this); }
-};
-
+#include "surface.h"
 #include "gaf_frame.h"
+
+// Unused here: real declarations that keep the file's symbol count (docs/c2-regalloc.md).
+void StepAllGafSequences(void);
+void StartScreenFade(void);
 
 // The display flags word at +0xf0: set through the bitfield, read whole
 // (FlipScreen) or as its low byte (FillSurface).
@@ -142,11 +114,11 @@ struct Display {
         out->width = width;
         out->height = height;
         out->pitch = desc.lPitch;
-        out->pixels = (char*)desc.lpSurface;
+        out->pixels = (unsigned char*)desc.lpSurface;
         out->x = 0;
         out->y = 0;
-        out->field_10 = 10000;
-        out->field_14 = -1;
+        out->zPriority = 10000;
+        out->colorKey = -1;
         out->flag0 = 0;
         out->clip = vec;
         if (g_screenLockCount < 10) {
@@ -172,11 +144,11 @@ struct Display {
         out->width = width;
         out->height = height;
         out->pitch = desc.lPitch;
-        out->pixels = (char*)desc.lpSurface;
+        out->pixels = (unsigned char*)desc.lpSurface;
         out->x = 0;
         out->y = 0;
-        out->field_10 = 10000;
-        out->field_14 = -1;
+        out->zPriority = 10000;
+        out->colorKey = -1;
         out->flag0 = 0;
         out->clip = vec;
         return 1;
@@ -559,7 +531,7 @@ void FlipScreen(void)
             out.width = d->width;
             out.height = d->height;
             out.pitch = desc.lPitch;
-            out.pixels = (char*)desc.lpSurface;
+            out.pixels = (unsigned char*)desc.lpSurface;
             DrawCursor(d, bmp);
             BlitSurface(&out, bmp, 0, 0);
             if (d->cursorThreadEnabled != 0 && d->cursorOverlayEnabled != 0)
@@ -653,7 +625,7 @@ struct Driver_004c6890 {
 // which the count and the fill value are evaluated decides which of the two
 // count operands the inlined imul takes, and the original has a different
 // order in each of the three branches.
-static void set_mem(char* p, int count, int colour)
+static void set_mem(unsigned char* p, int count, int colour)
 {
     memset(p, colour, count);
 }
@@ -733,11 +705,11 @@ static inline void Init(Surface* s, int width, int height, int a, int b)
     s->width = width;
     s->height = height;
     s->pitch = a;
-    s->pixels = (char*)b;
+    s->pixels = (unsigned char*)b;
     s->x = 0;
     s->y = 0;
-    s->field_10 = 10000;
-    s->field_14 = -1;
+    s->zPriority = 10000;
+    s->colorKey = -1;
     s->flag0 = 1;
     s->flag1 = 0;
     s->clip = Rect(0, 0, width - 1, height - 1);
@@ -757,11 +729,11 @@ void __stdcall InitSurface(Surface* s, int width, int height, int a, int b)
     s->width = width;
     s->height = height;
     s->pitch = a;
-    s->pixels = (char*)b;
+    s->pixels = (unsigned char*)b;
     s->x = 0;
     s->y = 0;
-    s->field_10 = 10000;
-    s->field_14 = -1;
+    s->zPriority = 10000;
+    s->colorKey = -1;
     s->flag0 = 1;
     s->flag1 = 0;
     s->clip = Rect(0, 0, width - 1, height - 1);
@@ -954,12 +926,12 @@ static inline Surface* NewSurface(char* name, int w, int h)
     s->pitch = w;
     s->height = h;
     s->x = 0;
-    s->pixels = (char*)(s + 1);
+    s->pixels = (unsigned char*)(s + 1);
     s->flag0 = 1;
     s->flag1 = 0;
     s->y = 0;
-    s->field_10 = 10000;
-    s->field_14 = -1;
+    s->zPriority = 10000;
+    s->colorKey = -1;
     s->clip = Rect(0, 0, w - 1, h - 1);
     return s;
 }
@@ -1314,7 +1286,7 @@ void __stdcall DrawFrameQuad(void* surf, GafFrame* bmp,
         ymax = clip.bottom;
     if (ymax == ymin) {
         // Method wrapper, not UnlockScreen(&local): keeps this tail from merging with check 2.
-        if (locked) local.Unlock();
+        if (locked) UnlockScreen(&local);
         return;
     }
 

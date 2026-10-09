@@ -984,16 +984,16 @@ static inline Surface* NewSurface(char* name, int w, int h)
 // height, then one row per scan line into a freshly allocated surface.
 // Must stay: <ddraw.h> decides the operand order of the row-loop multiply.
 // FUNCTION: 0x4c6f80
-Surface* __stdcall LoadSurface(void* file)
+Surface* __stdcall LoadSurface(HapiBank* file)
 {
-    ((HapiBank*)file)->SeekBox(0);
+    file->SeekBox(0);
     int header[2];
-    if (((HapiBank*)file)->ReadBox(header, 8) < 8u) {
+    if (file->ReadBox(header, 8) < 8u) {
         return 0;
     }
     Surface* s = NewSurface("Loaded Surface", header[0], header[1]);
     for (int i = 0; i < header[1]; i++) {
-        if (((HapiBank*)file)->ReadBox(s->pixels + i * s->pitch, header[0]) < header[0]) {
+        if (file->ReadBox(s->pixels + i * s->pitch, header[0]) < header[0]) {
             GameFreeThunk(s);
             return 0;
         }

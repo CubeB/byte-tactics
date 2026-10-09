@@ -2822,7 +2822,7 @@ address,size,file,symbol,status,similarity
 0x4c6dc0,163,src/graphics/surface.cpp,?CopySurfaceRectKeyed@@YGXPAUSurface@@0PAURect@@PAUPoint@@E@Z,matched,100.0
 0x4c6e70,149,src/graphics/surface.cpp,?DrawTile@@YGXPAUSurface@@0PAURect@@PAUPoint@@@Z,matched,100.0
 0x4c6f10,100,src/graphics/surface.cpp,?SaveSurface@@YGXPAUSurface@@PAVHapiBank@@@Z,matched,100.0
-0x4c6f80,251,src/graphics/surface.cpp,?LoadSurface@@YGPAUSurface@@PAX@Z,matched,100.0
+0x4c6f80,251,src/graphics/surface.cpp,?LoadSurface@@YGPAUSurface@@PAVHapiBank@@@Z,matched,100.0
 0x4c7080,72,src/graphics/surface.cpp,?InitSurfaceIndexFreeList@@YGXH@Z,matched,100.0
 0x4c70d0,280,src/graphics/surface.cpp,?InterpEdgeUvFromScanline@@YGXHPAURange@@HH@Z,matched,100.0
 0x4c71f0,280,src/graphics/surface.cpp,?InterpEdgeUvFromScanline_B@@YGXHPAURange@@HH@Z,matched,100.0

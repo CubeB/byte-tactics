@@ -108,15 +108,15 @@ public:
 };
 
 // The override file object: 0x4b3620 builds it and 0x4b3630 frees it.
-class OvrFile {
+class OvrFile : public HapiBank {
 public:
     void* table;
-    OvrFile() { ((HapiBank*)this)->InitBank(); }
-    ~OvrFile() { ((HapiBank*)this)->CloseBank(); }
+    OvrFile() { InitBank(); }
+    ~OvrFile() { CloseBank(); }
 };
 
 // Unused here: the symbol ids these declarations take keep the allocation,
-// standing in for the three HapiBank views merged into the class above
+// standing in for the HapiBank views merged into the class above
 // (docs/c2-regalloc.md).
 void SetMissionStatus(int, int, int);
 void StartFeatureBurning(int, int, int);
@@ -124,6 +124,14 @@ void KillFeature(int, int, int);
 void ReplaceFeatureWithDead(int, int, int);
 void FillWaypointWorldPos(int, int, int);
 void ResetAIPlayers(void);
+void RegisterGroundOrders(void);
+void EnableAICommands(void);
+void RegisterAICommands(void);
+void InitCommands(void);
+void RegisterVtolOrders(void);
+void StepAllGafSequences(void);
+void ResetNetStats(void);
+void ResetCameraState(void);
 
 #pragma pack(push, 1)
 // One unit type, 0x249 bytes.
@@ -274,8 +282,8 @@ int LoadUnitInfo()
             OvrFile ovr;
             char ovrpath[256];
             BuildDataPath(ovrpath, "units", files[i - 1], "OVR");
-            if (((HapiBank*)&ovr)->OpenBank(ovrpath, "TA Unit Override", 0)) {
-                if (((HapiBank*)&ovr)->OpenAccount("Compatability")) {
+            if (ovr.OpenBank(ovrpath, "TA Unit Override", 0)) {
+                if (ovr.OpenAccount("Compatability")) {
                     char num[16];
                     sprintf(num, "%u", u->checksum);
                     u->checksum = ((Class_004b4800*)&ovr)->GetIntegerItem(num, u->checksum);

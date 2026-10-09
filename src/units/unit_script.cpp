@@ -312,7 +312,7 @@ void UnitScript::SetUnitValue(int which, int value)
     Unit* unit = state->unit;
     switch (which) {
     case 1:
-        ((Unit*)unit)->SetStateBits(1, value);
+        unit->SetStateBits(1, value);
         break;
     case 5:
         unit->bit0 = value;
@@ -327,7 +327,7 @@ void UnitScript::SetUnitValue(int which, int value)
         unit->bit3 = value;
         break;
     case 20:
-        ((Unit*)unit)->SetStateBits(2, value);
+        unit->SetStateBits(2, value);
         break;
     }
     // After the switch, not inside the cases.

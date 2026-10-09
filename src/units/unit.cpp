@@ -184,7 +184,7 @@ void Unit::ReleaseWeapons(unsigned char index)
             p->a = 0;
             p->b = (short)0x8000;
             script->FindScript("StartBuilding");
-            ((CobScript*)script)->StartScriptWithArgs("TargetCleared", 0, 0, 1, i, 0, 0, 0);
+            script->StartScriptWithArgs("TargetCleared", 0, 0, 1, i, 0, 0, 0);
         }
     }
 }
@@ -214,7 +214,7 @@ void Unit::ClaimWeapons(unsigned char index)
             p->a = 0;
             p->b = (short)0x8000;
             script->FindScript("StartBuilding");
-            ((CobScript*)script)->StartScriptWithArgs("TargetCleared", 0, 0, 1, i, 0, 0, 0);
+            script->StartScriptWithArgs("TargetCleared", 0, 0, 1, i, 0, 0, 0);
         }
     }
     // The guard only fires when bit 4 is *set* and then clears it, so this
@@ -327,6 +327,10 @@ static inline int LostBits(unsigned char was, int is) { return (unsigned char)wa
 static inline unsigned char GainedBits(unsigned char was, int is) { return (unsigned char)(~was & (int)is); }
 
 static inline unsigned char AsByte(unsigned char bits) { return (unsigned char)bits; }
+
+// Unused here: a real declaration from the neighbouring COB code, kept
+// because its symbol ids are what SetStateBits matches at (docs/c2-regalloc.md).
+void FreeCobScript(int);
 
 // FUNCTION: 0x48b090
 void Unit::SetStateBits(int mask, int set)

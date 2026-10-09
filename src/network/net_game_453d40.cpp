@@ -13,13 +13,6 @@
 
 #include "player_info.h"
 
-// Unused here: real functions declared to keep the file's symbol count (docs/c2-regalloc.md).
-double DotProduct(float, float, float, float, float, float);
-int CheckDirectXVersion(int, int, int, int, int);
-short SolveLaunchAngle(int, int, int, int, float);
-void EmitThrustParticles(int, int, int, int, short);
-int AimCobStub(int, int, int, int);
-
 class Player {
 public:
     int active;                        // +0x00
@@ -52,31 +45,12 @@ public:
     Player();
     void FreeSideDataAndFogSightCounts();
 };
-// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
-int __stdcall GetPlayerDpid(Player*);
-int __stdcall CountHumanPlayers();
-int __stdcall CountComputerPlayers();
-int __stdcall IsHostLocal();
-int __stdcall FindFreeSlot();
-
 
 struct WeaponDef {
     char data[0x115];
 };
 
 #include "../units/cob_script.h"
-
-// Unused here: these forward declarations take the symbol ids that keep
-// HandleNetPackets (0x453d40) matching (docs/c2-regalloc.md).
-struct BmpFileHeader;
-struct BmpInfo;
-struct BmpInfoHeader;
-struct CalcedExplosion;
-struct FrameTable;
-struct Chunk;
-class DamagedAllyCollector;
-class SquadManager;
-
 
 class Unit {
 public:
@@ -164,6 +138,102 @@ struct Packet_00453d40 {
     char* longName;                    // +0x18
 };
 
+// The player-info broadcast packet (type 0x20): a type byte then the sender's
+// PlayerInfo, whose id sits at +0x91. net_game.cpp has the same record.
+struct SideDataPacket {
+    unsigned char type;                // +0x0
+    PlayerInfo data;                   // +0x1
+};
+
+// The packets whose payload is a player id dword at +0x1: reject (0x1b), drop
+// (0x1c), integrity (0x1d), start-position ack (0x1f), team assignment (0x22),
+// alliance (0x24) and breach (0x27) all start with it, and nothing reads a byte
+// before it. The integrity packet's second dword follows at +0x5.
+struct PlayerIdPacket {
+    unsigned char type;                // +0x0
+    int id;                            // +0x1
+    int field_5;                       // +0x5
+};
+
+// A feature's damage (0x0f): the sub-command (a weapon index or 0xfd to
+// 0xff), then the cell. map/features.cpp and orders/unit_orders.cpp name it;
+// the fields are unsigned here because this file loads them zero-extended.
+struct FeatureDamagePacket {
+    unsigned char type;                // +0x0
+    unsigned char sub;                 // +0x1
+    unsigned short x;                  // +0x2
+    unsigned short z;                  // +0x4
+};
+
+// A unit script call (0x10): the unit, the script index, the argument count
+// and four arguments. net_game.cpp has the same record, but this file's unit id
+// and argument count are unsigned (zero-extended loads).
+struct UnitScriptCallPacket {
+    unsigned char type;                // +0x0
+    unsigned short id;                 // +0x1
+    short index;                       // +0x3
+    unsigned char argCount;            // +0x5
+    int arg0;                          // +0x6
+    int arg1;                          // +0xa
+    int arg2;                          // +0xe
+    int arg3;                          // +0x12
+};
+
+// A builder link (0x12): the constructed unit and the builder. net_game.cpp
+// has the same record.
+struct BuilderLinkPacket {
+    unsigned char type;                // +0x0
+    short constructedUnitId;           // +0x1
+    short builderUnitId;               // +0x3
+};
+
+// A sound (0x13): the positional flag, the sound index and the sound's
+// position. sound/sound_47ed40.cpp names the same record.
+struct Packet_0047f0c0 {
+    unsigned char type;                // +0x0
+    unsigned char flag;                // +0x1
+    int index;                         // +0x2
+    int unknown_6[3];                  // +0x6
+};
+
+// A unit ownership transfer (0x14): the unit, the new owner and the rest of
+// the unit's state. units/unit_commands.cpp names the same record.
+struct OwnershipTransferPacket {
+    unsigned char type;                // +0x0
+    short unitId;                      // +0x1
+    int newOwnerNetId;                 // +0x3
+    char unknown_7[0x18 - 7];          // +0x7
+};
+
+// A metal, energy or map share (0x16): the subtype, the two players and the
+// amount. net_game.cpp has the same record.
+struct ResourceSharePacket {
+    unsigned char type;                // +0x0
+    int subtype;                       // +0x1
+    int fromNetId;                     // +0x5
+    int toNetId;                       // +0x9
+    int amount;                        // +0xd
+};
+
+// A lobby sync request (0x21): the flag, the player asked about and the
+// caller. net_game_450530.cpp names the same record.
+struct Msg_00450530 {
+    unsigned char type;                // +0x0
+    unsigned char flag;                // +0x1
+    int id;                            // +0x2
+    int arg;                           // +0x6
+};
+
+// An alliance flag change (0x23): the two players, the flag and the mode.
+// net_game.cpp and net_game_452960.cpp name the same record.
+struct AllyFlagsPacket {
+    unsigned char type;                // +0x0
+    int fromNetId;                     // +0x1
+    int toNetId;                       // +0x5
+    char allied;                       // +0x9
+    int force;                         // +0xa
+};
+
 #pragma pack(pop)
 
 class PacketManager {
@@ -173,21 +243,11 @@ public:
 };
 
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
-int RIReport(int, int, int, int, int, int, int, int, int, int);
-int DrawWrappedText(char*, char*, int, int, int, int, int);
-void ParseDownloadableAiWeightScripts(int);
-
-// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
 int __stdcall CountLocalComputerPlayers();
 int __stdcall CountActiveAIPlayers();
 int __stdcall CountActiveHumanOrAiPlayers();
 int __stdcall CountRemotePlayers();
 int __stdcall CountCombatPlayers();
-int __stdcall AreAllPlayersReady();
-int __stdcall BroadcastPendingViewState();
-int __stdcall InitLobbiedConnection();
-void __stdcall SendNetHeartbeat();
-void __stdcall RemoveLocalPlayers();
 
 extern Game* g_game;
 extern char DAT_005119b8[];
@@ -344,9 +404,10 @@ static inline int FirstConnectedId()
 
 static inline unsigned char* InfoPacket(unsigned char* buf, Player* p)
 {
-    memcpy(buf + 1, p->info, 0xb9);
-    *(int*)(buf + 0x91) = p->id;
-    buf[0] = 0x20;
+    SideDataPacket* pkt = (SideDataPacket*)buf;
+    memcpy(&pkt->data, p->info, 0xb9);
+    pkt->data.id = p->id;
+    pkt->type = 0x20;
     return buf;
 }
 
@@ -397,9 +458,9 @@ static inline void DropPlayer(int id)
 {
     if (FindPlayerSlot(id) == 10)
         return;
-    unsigned char* out = g_game->packet;
-    out[0] = 0x1c;
-    *(int*)(out + 1) = id;
+    PlayerIdPacket* out = (PlayerIdPacket*)g_game->packet;
+    out->type = 0x1c;
+    out->id = id;
     Player* p = &g_game->players[FindPlayerSlot(id)];
     if ((p->active && p->state == 3) || !(g_game->net_flags & 1) || (g_game->net_flags & 2))
         RemovePlayer(id);
@@ -564,11 +625,12 @@ int HandleNetPackets()
         player->messages++;
         switch (packet[0]) {
         case 32: {
-            int target = FindPlayerIndex(*(int*)(packet + 0x91));
+            SideDataPacket* infoPacket = (SideDataPacket*)packet;
+            int target = FindPlayerIndex(infoPacket->data.id);
             if (target == 10)
                 break;
             if (g_game->players[target].active && g_game->players[target].state == 3) {
-                memcpy(g_game->players[target].info, packet + 1, 0xb9);
+                memcpy(g_game->players[target].info, &infoPacket->data, 0xb9);
                 CheckDuplicatePlayerIds();
             }
             break;
@@ -612,25 +674,27 @@ int HandleNetPackets()
             g_game->dirty = 1;
             break;
         case 35: {
-            Player* a = PlayerBySlot(*(int*)(packet + 1));
-            Player* b = PlayerBySlot(*(int*)(packet + 5));
+            AllyFlagsPacket* ally = (AllyFlagsPacket*)packet;
+            Player* a = PlayerBySlot(ally->fromNetId);
+            Player* b = PlayerBySlot(ally->toNetId);
             if (!a || !b)
                 break;
-            if (packet[9])
+            if (ally->allied)
                 PlaySoundByName(g_allySoundName, 0);
             if (IsConnected(b)) {
-                SetAlliance(*(int*)(packet + 1), *(int*)(packet + 5), packet[9],
-                             *(int*)(packet + 10));
+                SetAlliance(ally->fromNetId, ally->toNetId, ally->allied,
+                             ally->force);
                 if (!(g_game->flags_2a44 & 4))
                     g_game->dirty = 1;
                 else
                     RebuildAllyList();
             }
-            g_game->players[a->index].allies[b->index] = packet[9];
+            g_game->players[a->index].allies[b->index] = ally->allied;
             break;
         }
         case 36: {
-            Player* p = PlayerBySlot(*(int*)(packet + 1));
+            PlayerIdPacket* allyTeam = (PlayerIdPacket*)packet;
+            Player* p = PlayerBySlot(allyTeam->id);
             if (p)
                 p->alliance = packet[5];
             if (!(g_game->flags_2a44 & 4))
@@ -638,20 +702,22 @@ int HandleNetPackets()
             break;
         }
         case 27: {
-            Player* p = PlayerBySlot(*(int*)(packet + 1));
+            PlayerIdPacket* reject = (PlayerIdPacket*)packet;
+            Player* p = PlayerBySlot(reject->id);
             if (p)
                 RejectPlayer(p->id, packet[5]);
             break;
         }
         case 28: {
-            int id = *(int*)(packet + 1);
+            PlayerIdPacket* drop = (PlayerIdPacket*)packet;
+            int id = drop->id;
             if (FindPlayerIndex(id) == 10)
                 break;
             char text[200];
             sprintf(text, Translate(g_playerDisconnectedText), PlayerBySlot(id)->name);
             AddMessage(text, 4, 0, from);
-            DropPlayer(*(int*)(packet + 1));
-            if (*(int*)(packet + 1) == FirstJoinedId()) {
+            DropPlayer(drop->id);
+            if (drop->id == FirstJoinedId()) {
                 g_game->bit2_3923b = 1;
                 g_game->bit4_3923b = 0;
             }
@@ -659,14 +725,16 @@ int HandleNetPackets()
         }
         case 30: {
             unsigned char reply[5];
-            reply[0] = 0x1f;
+            PlayerIdPacket* replyPacket = (PlayerIdPacket*)reply;
+            replyPacket->type = 0x1f;
             recipient->startPos = packet[1];
-            *(int*)(reply + 1) = recipient->id;
+            replyPacket->id = recipient->id;
             SendPacketToPlayer(recipient->id, player->id, reply, 5);
             break;
         }
         case 31: {
-            int target = FindPlayerIndex(*(int*)(packet + 1));
+            PlayerIdPacket* ack = (PlayerIdPacket*)packet;
+            int target = FindPlayerIndex(ack->id);
             if (target != 10)
                 g_game->startPosAssignAck[target] = 1;
             break;
@@ -676,7 +744,8 @@ int HandleNetPackets()
                 AddMessage(packet + 1, 8, 0, from);
             break;
         case 39: {
-            Player* p = PlayerBySlot(*(int*)(packet + 1));
+            PlayerIdPacket* breach = (PlayerIdPacket*)packet;
+            Player* p = PlayerBySlot(breach->id);
             if (!p)
                 break;
             from = p->index;
@@ -719,30 +788,32 @@ int HandleNetPackets()
         case 14:
             ApplyProjectileHitPacket(player, packet);
             break;
-        case 15:
-            switch (packet[1]) {
+        case 15: {
+            FeatureDamagePacket* damage = (FeatureDamagePacket*)packet;
+            switch (damage->sub) {
             case 0xfd:
-                KillFeature(*(unsigned short*)(packet + 2), *(unsigned short*)(packet + 4), 0);
+                KillFeature(damage->x, damage->z, 0);
                 break;
             case 0xfe:
-                StartFeatureBurning(*(unsigned short*)(packet + 2), *(unsigned short*)(packet + 4), 1);
+                StartFeatureBurning(damage->x, damage->z, 1);
                 break;
             case 0xff:
-                KillFeature(*(unsigned short*)(packet + 2), *(unsigned short*)(packet + 4), 1);
+                KillFeature(damage->x, damage->z, 1);
                 break;
             default:
-                DamageFeature(GetMapCell(*(unsigned short*)(packet + 2), *(unsigned short*)(packet + 4)),
-                             *(unsigned short*)(packet + 2), *(unsigned short*)(packet + 4),
-                             &g_game->weapons[packet[1]]);
+                DamageFeature(GetMapCell(damage->x, damage->z),
+                             damage->x, damage->z,
+                             &g_game->weapons[damage->sub]);
                 break;
             }
             break;
+        }
         case 16: {
-            Unit* unit = UnitAt(*(unsigned short*)(packet + 1));
+            UnitScriptCallPacket* call = (UnitScriptCallPacket*)packet;
+            Unit* unit = UnitAt(call->id);
             if (unit->flags & 0x10000000)
-                unit->script->StartScriptWithArgsByIndex(*(short*)(packet + 3), 0, 0, packet[5],
-                                             *(int*)(packet + 6), *(int*)(packet + 10),
-                                             *(int*)(packet + 14), *(int*)(packet + 18));
+                unit->script->StartScriptWithArgsByIndex(call->index, 0, 0, call->argCount,
+                                             call->arg0, call->arg1, call->arg2, call->arg3);
             break;
         }
         case 17: {
@@ -754,21 +825,25 @@ int HandleNetPackets()
             break;
         }
         case 18: {
-            Unit* a = UnitAt(*(unsigned short*)(packet + 1));
-            FinishConstruction(UnitAt(*(unsigned short*)(packet + 3)), a);
+            BuilderLinkPacket* link = (BuilderLinkPacket*)packet;
+            Unit* a = UnitAt(link->constructedUnitId);
+            FinishConstruction(UnitAt(link->builderUnitId), a);
             break;
         }
-        case 19:
-            if (packet[1])
-                PlaySoundByIndex(*(int*)(packet + 2), 0);
+        case 19: {
+            Packet_0047f0c0* sound = (Packet_0047f0c0*)packet;
+            if (sound->flag)
+                PlaySoundByIndex(sound->index, 0);
             else
-                PlaySoundAt(*(int*)(packet + 2), packet + 6, 0);
+                PlaySoundAt(sound->index, packet + 6, 0);
             break;
+        }
         case 20: {
-            Unit* unit = UnitAt(*(unsigned short*)(packet + 1));
+            OwnershipTransferPacket* transfer = (OwnershipTransferPacket*)packet;
+            Unit* unit = UnitAt(transfer->unitId);
             if (!unit || !(unit->flags & 0x10000000))
                 break;
-            int id = *(int*)(packet + 3);
+            int id = transfer->newOwnerNetId;
             Player* p;
             if (FindPlayerIndex(id) == 10)
                 p = 0;
@@ -785,16 +860,17 @@ int HandleNetPackets()
                 g_game->shareVisionReady[from] = 1;
             break;
         case 22: {
-            unsigned char a = FindPlayerIndex(*(int*)(packet + 5));
-            unsigned char b = FindPlayerIndex(*(int*)(packet + 9));
+            ResourceSharePacket* share = (ResourceSharePacket*)packet;
+            unsigned char a = FindPlayerIndex(share->fromNetId);
+            unsigned char b = FindPlayerIndex(share->toNetId);
             if (a == 10 || b == 10)
                 break;
-            switch (*(int*)(packet + 1)) {
+            switch (share->subtype) {
             case 1:
-                TransferMetal(a, b, *(int*)(packet + 13), 0);
+                TransferMetal(a, b, share->amount, 0);
                 break;
             case 2:
-                TransferEnergy(a, b, *(int*)(packet + 13), 0);
+                TransferEnergy(a, b, share->amount, 0);
                 break;
             case 3:
                 ShareMapInfo(a, b);
@@ -822,35 +898,39 @@ int HandleNetPackets()
             if (g_game->sync && recipient->active && recipient->state == 1)
                 g_game->sync->ReceiveSyncPacket(packet, from);
             break;
-        case 29:
+        case 29: {
+            PlayerIdPacket* integrity = (PlayerIdPacket*)packet;
             if (g_usePacketManager)
-                g_packetManager.HandleIntegrityNop(g_game->from_id, *(int*)(packet + 1),
-                                                   *(int*)(packet + 5));
+                g_packetManager.HandleIntegrityNop(g_game->from_id, integrity->id,
+                                                   integrity->field_5);
             break;
+        }
         case 33: {
-            Player* a = PlayerByIndex(*(int*)(packet + 2));
-            Player* b = PlayerByIndex(*(int*)(packet + 6));
+            Msg_00450530* request = (Msg_00450530*)packet;
+            Player* a = PlayerByIndex(request->id);
+            Player* b = PlayerByIndex(request->arg);
             if (!IsConnected(&g_game->players[FindHost()]))
                 break;
             if (!a)
                 break;
             unsigned char reply[6];
-            reply[0] = 0x22;
-            *(int*)(reply + 1) = -1;
+            PlayerIdPacket* replyPacket = (PlayerIdPacket*)reply;
+            replyPacket->type = 0x22;
+            replyPacket->id = -1;
             reply[5] = 0;
-            if (!packet[1]) {
-                *(int*)(reply + 1) = a->id;
+            if (!request->flag) {
+                replyPacket->id = a->id;
                 reply[5] = a->lobbyDataSynced;
                 if (!reply[5])
                     break;
                 BroadcastPacket(GetHostDpid(), reply, 6);
             } else {
                 if (b) {
-                    *(int*)(reply + 1) = a->id;
+                    replyPacket->id = a->id;
                     if (InGame(b))
                         reply[5] = b->lobbyDataSynced;
                 } else {
-                    *(int*)(reply + 1) = a->id;
+                    replyPacket->id = a->id;
                     if (!a->lobbyDataSynced)
                         reply[5] = FreeTeam();
                 }
@@ -862,7 +942,8 @@ int HandleNetPackets()
             break;
         }
         case 34: {
-            Player* p = PlayerByIndex(*(int*)(packet + 1));
+            PlayerIdPacket* team = (PlayerIdPacket*)packet;
+            Player* p = PlayerByIndex(team->id);
             if (p)
                 p->lobbyDataSynced = packet[5];
             break;

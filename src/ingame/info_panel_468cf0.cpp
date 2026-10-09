@@ -115,10 +115,80 @@ struct UnitFlags { uint kind:2; uint b2:1; uint b3:1; uint b4:1; uint b5:1; uint
 // The game state this file reads, with the member names the other Game views
 // use. The bit words share a union with each view's bitfield type.
 #pragma pack(push, 1)
+// A player's entry at g_game+0x1b63, stride 0x14b (Thaldren: PlayerState).
+struct SideData_00468cf0 {
+  char unknown_0[0x95];
+  unsigned char bSideId;              // +0x95
+  char unknown_96[0x9b - 0x96];
+  unsigned char gameOptFlags;         // +0x9b, low byte of wGameOptFlags
+  char unknown_9c[0xb9 - 0x9c];
+};
+
+struct PlayerState_00468cf0 {
+  char unknown_0[0x27];
+  SideData_00468cf0* info;            // +0x27, pSideData
+  char unknown_2b[0x8c - 0x2b];
+  float flEnergyAmount;               // +0x8c
+  char unknown_90[0x98 - 0x90];
+  float flMetalAmount;                // +0x98
+  char unknown_9c[0xa4 - 0x9c];
+  float flEnergyStorage;              // +0xa4
+  float flMetalStorage;               // +0xa8
+  char unknown_ac[0xe4 - 0xac];
+  float flShareThresholdMetal;        // +0xe4
+  float flShareThresholdEnergy;       // +0xe8
+  char unknown_ec[0xf8 - 0xec];
+  unsigned int nDisplayTimer;         // +0xf8
+  char unknown_fc[0x146 - 0xfc];
+  unsigned char bSlotIndex;           // +0x146
+  char unknown_147[0x14b - 0x147];
+};
+
+// A side's panel layout at g_game+0x37f3d, stride 0x232 (Thaldren: SideDef).
+struct SideDef_00468cf0 {
+  char aName[0x1e];                   // +0x000
+  char aNamePrefix[4];                // +0x01e
+  char aCommander[0x20];              // +0x022
+  OverlayRect rcLogo;                 // +0x042
+  OverlayRect rcEnergyBar;            // +0x052
+  OverlayRect rcEnergyNum;            // +0x062
+  OverlayRect rcMetalBar;             // +0x072
+  OverlayRect rcMetalNum;             // +0x082
+  OverlayRect rcTotalUnits;           // +0x092
+  OverlayRect rcTotalTime;            // +0x0a2
+  OverlayRect rcEnergyMax;            // +0x0b2
+  OverlayRect rcMetalMax;             // +0x0c2
+  OverlayRect rcEnergy0;              // +0x0d2
+  OverlayRect rcMetal0;               // +0x0e2
+  OverlayRect rcEnergyProduced;       // +0x0f2
+  OverlayRect rcEnergyConsumed;       // +0x102
+  OverlayRect rcMetalProduced;        // +0x112
+  OverlayRect rcMetalConsumed;        // +0x122
+  OverlayRect rcLogo2;                // +0x132
+  OverlayRect rcUnitName;             // +0x142
+  OverlayRect rcDamageBar;            // +0x152
+  OverlayRect rcUnitEnergyMake;       // +0x162
+  OverlayRect rcUnitEnergyUse;        // +0x172
+  OverlayRect rcUnitMetalMake;        // +0x182
+  OverlayRect rcUnitMetalUse;         // +0x192
+  OverlayRect rcMissionText;          // +0x1a2
+  OverlayRect rcUnitName2;            // +0x1b2
+  OverlayRect rcDamageBar2;           // +0x1c2
+  OverlayRect rcName;                 // +0x1d2
+  OverlayRect rcDescription;          // +0x1e2
+  OverlayRect aReloadRects[3];        // +0x1f2
+  int nEnergyColor;                   // +0x222
+  int nMetalColor;                    // +0x226
+  int nSideIndex;                     // +0x22a
+  char* pFontData;                    // +0x22e
+};
+
 struct Game {
   char unknown_0[0xdcb];
   unsigned char colors[16];             // +0xdcb
-  char unknown_ddb[0x2a42 - 0xddb];
+  char unknown_ddb[0x1b63 - 0xddb];
+  PlayerState_00468cf0 players[11];     // +0x1b63, stride 0x14b
+  char unknown_299c[0x2a42 - 0x299c];
   unsigned char localPlayer;            // +0x2a42
   unsigned char playerIndex;            // +0x2a43
   unsigned char flags_2a44;             // +0x2a44
@@ -168,11 +238,10 @@ struct Game {
   int igvictory;                        // +0x14813
   int igdefeat;                         // +0x14817
   int igpaused;                         // +0x1481b
-  union {                               // +0x1481f
-    int panelSide[5];
-    unsigned short* sidePanelTopSeq[5];
-  };
-  char unknown_14833[0x148cf - 0x14833];
+  // The side panel's GAF frames at +0x1481f: the top row's five entries
+  // followed by the bottom row's (Thaldren: apSidePanelTopSeq, apSidePanelBotSeq).
+  unsigned short* sidePanelRows[10];
+  char unknown_14847[0x148cf - 0x14847];
   int cursorHourglass;                  // +0x148cf
   char unknown_148d3[0x37e1b - 0x148d3];
   int screen;                           // +0x37e1b
@@ -199,7 +268,9 @@ struct Game {
     unsigned short uiOptionFlags;
     Bits8 bits_37f2f;
   };
-  char unknown_37f31[0x38a47 - 0x37f31];
+  char unknown_37f31[0x37f3d - 0x37f31];
+  SideDef_00468cf0 sideDefs[5];         // +0x37f3d, stride 0x232
+  char unknown_38a37[0x38a47 - 0x38a37];
   unsigned int ticks;                   // +0x38a47
   char unknown_38a4b[0x38a51 - 0x38a4b];
   union {                               // +0x38a51
@@ -248,79 +319,79 @@ static inline float Approach(float fcur, float ftarget)
 }
 
 // pl must be a parameter: a load through it then schedules above the bar copy.
-static void DrawResourcePanel(Surface *ctx, int pl, Resources *res)
+static void DrawResourcePanel(Surface *ctx, PlayerState_00468cf0 *pl, Resources *res)
 {
   OverlayRect bar, box;
   char text[32];
-  int side = *(byte *)(*(int *)(pl + 0x27) + 0x95);
-  int sd = (int)g_game + 0x37f3d + side * 0x232;
-  SetFont(*(int *)(sd + 0x22e));
+  int side = pl->info->bSideId;
+  SideDef_00468cf0 *sideDef = &g_game->sideDefs[side];
+  SetFont((int)sideDef->pFontData);
   GetFontHeight();
   byte *pal = &g_game->colors[0];
   SetTextColors(pal[0xf], GetTextKeyColor());
   int bx = 0x81;
   // do/while, not a for loop.
   do {
-    ushort *gaf = (ushort *)GetGafFrame(*(int *)((char*)g_game + 0x1481f + (side + (bx > 0x81) * 5) * 4), 0);
+    ushort *gaf = (ushort *)GetGafFrame((int)g_game->sidePanelRows[side + (bx > 0x81) * 5], 0);
     BlitGafFrameAtOffset((int)ctx, (int)gaf, bx, 0);
     bx += *gaf;
   } while (bx < g_game->width);
-  BlitSideLogoToRect((int)ctx, pl, sd + 0x42, 0);
-  OverlayRect *r = (OverlayRect *)(sd + 0x52);
+  BlitSideLogoToRect((int)ctx, (int)pl, (int)&sideDef->rcLogo, 0);
+  OverlayRect *r = &sideDef->rcEnergyBar;
   bar = *r;
-  if (*(float *)(pl + 0xa4) > 0.0f) {
-    bar.right = (int)((bar.right - bar.left) * res->metal / *(float *)(pl + 0xa4) + bar.left);
-    FillRectangle((int)ctx, (int)&bar, *(int *)(sd + 0x222));
-    if (*(float *)(pl + 0xe8) > 0.0f && *(float *)(pl + 0x8c) > *(float *)(pl + 0xe8)) {
+  if (pl->flEnergyStorage > 0.0f) {
+    bar.right = (int)((bar.right - bar.left) * res->metal / pl->flEnergyStorage + bar.left);
+    FillRectangle((int)ctx, (int)&bar, sideDef->nEnergyColor);
+    if (pl->flShareThresholdEnergy > 0.0f && pl->flEnergyAmount > pl->flShareThresholdEnergy) {
       box = *r;
-      box.left = (int)((box.right - box.left) * *(float *)(pl + 0xe8) / *(float *)(pl + 0xa4) + box.left);
+      box.left = (int)((box.right - box.left) * pl->flShareThresholdEnergy / pl->flEnergyStorage + box.left);
       box.right = box.left + 2;
       FillRectangle((int)ctx, (int)&box, pal[0xc]);
     }
   }
   sprintf(text, "%d", (int)res->metal);
-  DrawString((int)ctx, (int)text, *(int *)(sd + 0x62), *(int *)(sd + 0x66), -1);
-  DrawString((int)ctx, (int)"0", *(int *)(sd + 0xd2), *(int *)(sd + 0xd6), -1);
-  sprintf(text, "%d", (int)*(float *)(pl + 0xa4));
-  int w = GetTextWidth(*(int *)(sd + 0x22e), (int)text);
-  DrawString((int)ctx, (int)text, *(int *)(sd + 0xb2) - w, *(int *)(sd + 0xb6), -1);
+  DrawString((int)ctx, (int)text, sideDef->rcEnergyNum.left, sideDef->rcEnergyNum.top, -1);
+  DrawString((int)ctx, (int)"0", sideDef->rcEnergy0.left, sideDef->rcEnergy0.top, -1);
+  sprintf(text, "%d", (int)pl->flEnergyStorage);
+  int w = GetTextWidth((int)sideDef->pFontData, (int)text);
+  DrawString((int)ctx, (int)text, sideDef->rcEnergyMax.left - w, sideDef->rcEnergyMax.top, -1);
   if (res->metalIncome > 99999.0f)
     sprintf(text, "%dK", (int)res->metalIncome / 1000);
   else
     sprintf(text, "%d", (int)res->metalIncome);
   SetTextColors(pal[0xa], GetTextKeyColor());
-  DrawString((int)ctx, (int)text, *(int *)(sd + 0xf2), *(int *)(sd + 0xf6), -1);
+  DrawString((int)ctx, (int)text, sideDef->rcEnergyProduced.left, sideDef->rcEnergyProduced.top, -1);
   if (res->metalUse < -99999.0f)
     sprintf(text, "%dK", (int)res->metalUse / 1000);
   else
     sprintf(text, "%d", abs((int)res->metalUse));
   SetTextColors(pal[0xc], GetTextKeyColor());
-  DrawString((int)ctx, (int)text, *(int *)(sd + 0x102), *(int *)(sd + 0x106), -1);
-  r = (OverlayRect *)(sd + 0x72);
+  DrawString((int)ctx, (int)text, sideDef->rcEnergyConsumed.left, sideDef->rcEnergyConsumed.top, -1);
+  r = &sideDef->rcMetalBar;
   bar = *r;
-  if (*(float *)(pl + 0xa8) > 0.0f) {
-    bar.right = (int)((bar.right - bar.left) * res->energy / *(float *)(pl + 0xa8) + bar.left);
-    FillRectangle((int)ctx, (int)&bar, *(int *)(sd + 0x226));
-    if (*(float *)(pl + 0xe4) > 0.0f && *(float *)(pl + 0x98) > *(float *)(pl + 0xe4)) {
+  if (pl->flMetalStorage > 0.0f) {
+    bar.right = (int)((bar.right - bar.left) * res->energy / pl->flMetalStorage + bar.left);
+    FillRectangle((int)ctx, (int)&bar, sideDef->nMetalColor);
+    if (pl->flShareThresholdMetal > 0.0f && pl->flMetalAmount > pl->flShareThresholdMetal) {
       box = *r;
-      box.left = (int)((box.right - box.left) * *(float *)(pl + 0xe4) / *(float *)(pl + 0xa8) + box.left);
+      box.left = (int)((box.right - box.left) * pl->flShareThresholdMetal / pl->flMetalStorage + box.left);
       box.right = box.left + 2;
       FillRectangle((int)ctx, (int)&box, pal[0xc]);
     }
   }
   SetTextColors(pal[0xf], GetTextKeyColor());
   sprintf(text, "%d", (int)res->energy);
-  DrawString((int)ctx, (int)text, *(int *)(sd + 0x82), *(int *)(sd + 0x86), -1);
-  DrawString((int)ctx, (int)"0", *(int *)(sd + 0xe2), *(int *)(sd + 0xe6), -1);
-  sprintf(text, "%d", (int)*(float *)(pl + 0xa8));
-  w = GetTextWidth(*(int *)(sd + 0x22e), (int)text);
-  DrawString((int)ctx, (int)text, *(int *)(sd + 0xc2) - w, *(int *)(sd + 0xc6), -1);
+  DrawString((int)ctx, (int)text, sideDef->rcMetalNum.left, sideDef->rcMetalNum.top, -1);
+  DrawString((int)ctx, (int)"0", sideDef->rcMetal0.left, sideDef->rcMetal0.top, -1);
+  sprintf(text, "%d", (int)pl->flMetalStorage);
+  w = GetTextWidth((int)sideDef->pFontData, (int)text);
+  DrawString((int)ctx, (int)text, sideDef->rcMetalMax.left - w, sideDef->rcMetalMax.top, -1);
   sprintf(text, "%.1f", res->energyIncome);
   SetTextColors(pal[0xa], GetTextKeyColor());
-  DrawString((int)ctx, (int)text, *(int *)(sd + 0x112), *(int *)(sd + 0x116), -1);
+  DrawString((int)ctx, (int)text, sideDef->rcMetalProduced.left, sideDef->rcMetalProduced.top, -1);
   sprintf(text, "%.1f", fabs(res->energyUse));
   SetTextColors(pal[0xc], GetTextKeyColor());
-  DrawString((int)ctx, (int)text, *(int *)(sd + 0x122), *(int *)(sd + 0x126), -1);
+  DrawString((int)ctx, (int)text, sideDef->rcMetalConsumed.left, sideDef->rcMetalConsumed.top, -1);
 }
 
 static inline int ShowSelectBox(int drawObjects)
@@ -350,7 +421,8 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   MapGrid *mv;
   byte *colors;
   int cx;
-  int x, player;
+  int x;
+  PlayerState_00468cf0 *player;
   int i, k;
 
   cx = (g_game->width + 0x80) / 2;
@@ -377,24 +449,24 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
 
   // resource bars
   {
-    int pl = (int)g_game + g_game->playerIndex * 0x14b + 0x1b63;
+    PlayerState_00468cf0 *pl = &g_game->players[g_game->playerIndex];
     res = g_game->resources;
     // owner is read through pl: gives the folded addresses.
-    res.owner = *(char *)(pl + 0x146);
-    res.metal = Approach(res.metal, *(float *)(pl + 0x8c));
-    res.energy = Approach(res.energy, *(float *)(pl + 0x98));
-    res.maxMetal = *(float *)(pl + 0xa4);
-    res.maxEnergy = *(float *)(pl + 0xa8);
+    res.owner = pl->bSlotIndex;
+    res.metal = Approach(res.metal, pl->flEnergyAmount);
+    res.energy = Approach(res.energy, pl->flMetalAmount);
+    res.maxMetal = pl->flEnergyStorage;
+    res.maxEnergy = pl->flMetalStorage;
     if (res.metal > res.maxMetal)
       res.metal = res.maxMetal;
     if (res.energy > res.maxEnergy)
       res.energy = res.maxEnergy;
-    if (*(uint *)(pl + 0xf8) < g_game->ticks) {
-      *(uint *)(pl + 0xf8) += 0x1e;
-      res.metalIncome = GetEnergyIncome(pl);
-      res.metalUse = GetEnergyUsage(pl);
-      res.energyIncome = GetMetalIncome(pl);
-      res.energyUse = GetMetalUsage(pl);
+    if (pl->nDisplayTimer < g_game->ticks) {
+      pl->nDisplayTimer += 0x1e;
+      res.metalIncome = GetEnergyIncome((int)pl);
+      res.metalUse = GetEnergyUsage((int)pl);
+      res.energyIncome = GetMetalIncome((int)pl);
+      res.energyUse = GetMetalUsage((int)pl);
     }
     if (memcmp((char*)&g_game->resources, &res, sizeof(res)) != 0) {
       g_game->resources = res;
@@ -409,8 +481,8 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   // features and units on the visible part of the map
   idx = g_game->playerIndex;
   mv = &g_game->sortUnits;
-  player = (int)g_game + idx * 0x14b + 0x1b63;
-  SetFont(*(int *)((char*)g_game + 0x3816b + *(byte *)(*(int *)(player + 0x27) + 0x95) * 0x232));
+  player = &g_game->players[idx];
+  SetFont((int)g_game->sideDefs[player->info->bSideId].pFontData);
   SetTextColors(g_game->colors[15], GetTextKeyColor());
   {
     int vx = g_game->scrollX / 16, vy = g_game->scrollY / 16, h, w, x0, y0, skip;
@@ -472,7 +544,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
           int feat = g_game->features + *(ushort *)(tile + 8) * 0x100;
           if (*(byte *)(feat + 0xfa) < 10) {
             if ((*(byte *)(feat + 0xff) & 8) && ((*(byte *)(tile + 0xc) >> 3 & 0xf) != idx)) {
-              if (IsFootprintVisible(player, x, y, *(short *)(feat + 0x94), *(short *)(feat + 0x96), *(byte *)(tile + 4)))
+              if (IsFootprintVisible((int)player, x, y, *(short *)(feat + 0x94), *(short *)(feat + 0x96), *(byte *)(tile + 4)))
                 BlitFeatureGaf((int)&ctx, tile, x, y);
             }
             else
@@ -512,7 +584,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
         if (*(byte *)(tile + 0xc) & 4) {
           int feat = g_game->features + *(ushort *)(tile + 8) * 0x100;
           if ((*(byte *)(feat + 0xff) & 8) && ((*(byte *)(tile + 0xc) >> 3 & 0xf) != idx)) {
-            if (IsFootprintVisible(player, x, y, (int)*(short *)(feat + 0x94), *(short *)(feat + 0x96), *(byte *)(tile + 4)))
+            if (IsFootprintVisible((int)player, x, y, (int)*(short *)(feat + 0x94), *(short *)(feat + 0x96), *(byte *)(tile + 4)))
               BlitFeatureGaf((int)&ctx, tile, x, y);
           }
           else
@@ -646,7 +718,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   }
   if (g_game->pauseFlags & 1)
     DrawFrame((int)&ctx, GetGafFrame(g_game->igpaused, 0), cx, cy);
-  if ((*(byte *)(*(int *)((char*)g_game + *(byte *)((char*)g_game + 0x2a42) * 0x14b + 0x1b8a) + 0x9b) & 0x40) == 0) {
+  if ((g_game->players[g_game->localPlayer].info->gameOptFlags & 0x40) == 0) {
     if (g_game->bits_3923b.b5)
       DrawFrame((int)&ctx, GetGafFrame(g_game->igvictory, 0), cx, cy);
     if (g_game->bits_3923b.b6)

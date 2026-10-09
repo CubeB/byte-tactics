@@ -53,11 +53,7 @@ public:
     void SetDefaultSendPacing(int param);
 };
 
-class CobScript {
-public:
-    int StartScriptWithArgsByIndex(int, int, int, int, int, int, int, int);
-    int FindScript(char* name);
-};
+#include "../units/cob_script.h"
 
 #include "../game/mission_conditions.h"
 

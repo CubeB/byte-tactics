@@ -69,20 +69,7 @@ struct Chunk_00437a30 {
     int size;                          // +0x4
 };
 
-// A 0x18-byte frame header, followed in the arena by its planes.
-struct GafFrame {
-    unsigned short width;              // +0x0
-    unsigned short height;             // +0x2
-    short xOffset;                     // +0x4
-    short yOffset;                     // +0x6
-    unsigned char transparency;        // +0x8, the key colour
-    char compressed;                   // +0x9
-    char layers;                       // +0xa
-    char blend;                        // +0xb
-    int reserved;                      // +0xc
-    unsigned char* pixels;             // +0x10
-    unsigned char* plane2;             // +0x14, the second plane, mask or compressed copy
-};
+#include "../graphics/gaf_frame.h"
 
 struct Vertex_458810 { int x; int y; int z; };
 
@@ -355,7 +342,7 @@ int CMemoryCache::AllocBitmap(GafFrame** handle, int w, int h)
     GafFrame* b = *handle;
     if (!b)
         return 0;
-    b->plane2 = 0;
+    b->scratch = 0;
     b->xOffset = 0;
     b->yOffset = 0;
     b->layers = 0;
@@ -364,9 +351,9 @@ int CMemoryCache::AllocBitmap(GafFrame** handle, int w, int h)
     b->compressed = 0;
     b->width = w;
     b->height = h;
-    b->pixels = (unsigned char*)(b + 1);
+    b->pixelsOrLayers = (unsigned char*)(b + 1);
     b->transparency = 1;
-    memset(b->pixels, 1, n);
+    memset(b->pixelsOrLayers, 1, n);
     return 1;
 }
 #pragma auto_inline(on)
@@ -392,11 +379,11 @@ int CMemoryCache::AllocTwoPlaneBitmap(GafFrame** handle, int w, int h)
     b->compressed = 0;
     b->width = w;
     b->height = h;
-    b->pixels = p;
-    b->plane2 = p + n;
-    memset(b->plane2, 0, n);
+    b->pixelsOrLayers = p;
+    b->scratch = p + n;
+    memset(b->scratch, 0, n);
     b->transparency = 1;
-    memset(b->pixels, 1, n);
+    memset(b->pixelsOrLayers, 1, n);
     return 1;
 }
 
@@ -461,8 +448,8 @@ void CMemoryCache::DrawObjectState(List_458810* list, Vec3_458810* result)
         // The last conjunct goes through `bitmap`, the one before it through `list->bitmap`.
         else if (owner->intensity != 0.0f
                 && (owner->flags & 0x2000) != 0
-                && list->bitmap->plane2 == 0
-                && bitmap->plane2 == 0)
+                && list->bitmap->scratch == 0
+                && bitmap->scratch == 0)
             rebuild = 1;
     }
     if (list->bitmap == 0 && (owner->flags & 0x20000000) != 0)
@@ -490,9 +477,9 @@ void CMemoryCache::CopyPicture(GafFrame* source)
     image->xOffset = source->xOffset;
     image->yOffset = source->yOffset;
     image->transparency = source->transparency;
-    memcpy(image->pixels, source->pixels, source->width * source->height);
-    if (source->plane2)
-        memcpy(image->plane2, source->plane2, source->width * source->height);
+    memcpy(image->pixelsOrLayers, source->pixelsOrLayers, source->width * source->height);
+    if (source->scratch)
+        memcpy(image->scratch, source->scratch, source->width * source->height);
 }
 
 // Builds the picture of a piece: MeasureShadow measures the piece bounding box
@@ -509,14 +496,14 @@ void CMemoryCache::BuildShadow(State_0045a790* obj, GafFrame* dest)
     image->height = (unsigned short)h;
     image->xOffset = (unsigned short)x;
     image->yOffset = (unsigned short)y;
-    memset(image->pixels, image->transparency, h * w);
-    memset(image->plane2, 0, h * w);
+    memset(image->pixelsOrLayers, image->transparency, h * w);
+    memset(image->scratch, 0, h * w);
     DrawShadowShape(image, obj);
     CutOutFrame(dest, image, 5, 0);
-    int size = CompressFrame(image->plane2, image);
+    int size = CompressFrame(image->scratch, image);
     AllocBitmap(&obj->sprite, size, 1);
     GafFrame* bmp = obj->sprite;
-    memcpy(bmp->pixels, image->plane2, size);
+    memcpy(bmp->pixelsOrLayers, image->scratch, size);
     bmp->width = image->width;
     bmp->height = image->height;
     bmp->xOffset = image->xOffset;

@@ -40,23 +40,7 @@ struct Surface {
     void Unlock() { UnlockScreen(this); }
 };
 
-// A GAF frame header: the cursor bitmap, and the frames the quad and polygon
-// drawing read pixels from and draw into.
-#pragma pack(push, 1)
-struct GafFrame {
-    unsigned short width;              // +0x0
-    unsigned short height;             // +0x2
-    short xOffset;                     // +0x4
-    short yOffset;                     // +0x6
-    unsigned char transparency;        // +0x8
-    unsigned char compressed;          // +0x9
-    unsigned char layers;              // +0xa
-    unsigned char blend;               // +0xb
-    int reserved;                      // +0xc
-    unsigned char* pixelsOrLayers;     // +0x10
-    unsigned char* scratch;            // +0x14
-};
-#pragma pack(pop)
+#include "gaf_frame.h"
 
 // The display flags word at +0xf0: set through the bitfield, read whole
 // (FlipScreen) or as its low byte (FillSurface).

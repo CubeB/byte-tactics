@@ -37,20 +37,9 @@ struct Surface_4665d0 {
     unsigned int flag1 : 1;
 };
 
+#include "../graphics/gaf_frame.h"
+
 #pragma pack(push, 1)
-struct GafFrame {
-    unsigned short width;               // +0x0
-    unsigned short height;              // +0x2
-    unsigned short xOffset;             // +0x4
-    unsigned short yOffset;             // +0x6
-    unsigned char transparency;         // +0x8
-    unsigned char compressed;           // +0x9
-    unsigned char layers;               // +0xa
-    unsigned char blend;                // +0xb
-    char unknown_c[4];                  // +0xc
-    int pixelsOrLayers;                 // +0x10
-    char unknown_14[4];                 // +0x14
-};
 
 struct IconSet_00466780 {
     int count;                      // +0x0

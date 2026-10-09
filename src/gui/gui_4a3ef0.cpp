@@ -39,7 +39,7 @@ struct Gadget {                        // 0x15b bytes
 };
 #pragma pack(pop)
 
-struct GafFrame { unsigned short width, height; };
+#include "../graphics/gaf_frame.h"
 
 struct Font_004a3ef0 {
     char unknown_0[0x28];

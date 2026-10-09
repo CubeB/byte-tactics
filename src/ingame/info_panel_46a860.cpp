@@ -141,13 +141,7 @@ struct Cell_0046a860 {
     char unknown_5[0x0d - 0x5];
 };
 
-// A GAF frame's header.
-struct GafFrame_0046a860 {
-    unsigned short width;             // +0x0
-    unsigned short height;            // +0x2
-    unsigned short xoffset;           // +0x4
-    unsigned short yoffset;           // +0x6
-};
+#include "../graphics/gaf_frame.h"
 
 // The display context at g_game+0xc; only two fields are read here.
 struct Display_0046a860 {
@@ -310,9 +304,9 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
         do {
             int dy = GetScreenHeight() - 0x20;
             unsigned short* icon = g_game->sidePanelBotSeq[idx];
-            GafFrame_0046a860* bmp = (GafFrame_0046a860*)GetGafFrame(icon, 0);
-            DrawFrame(surface, (void*)bmp, (short)bmp->xoffset + y,
-                         (short)bmp->yoffset + dy);
+            GafFrame* bmp = (GafFrame*)GetGafFrame(icon, 0);
+            DrawFrame(surface, (void*)bmp, (short)bmp->xOffset + y,
+                         (short)bmp->yOffset + dy);
             y += bmp->width;
         } while (y < g_game->width);
 
@@ -423,9 +417,9 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
         SideData_0046a860* loopInfo = playerInfo->info;
         int loopSide = loopInfo->bSideId;
         unsigned short* icon = g_game->sidePanelBotSeq[loopSide];
-        GafFrame_0046a860* bmp = (GafFrame_0046a860*)GetGafFrame(icon, 0);
-        DrawFrame(surface, (void*)bmp, (short)bmp->xoffset + y,
-                     (short)bmp->yoffset + dy);
+        GafFrame* bmp = (GafFrame*)GetGafFrame(icon, 0);
+        DrawFrame(surface, (void*)bmp, (short)bmp->xOffset + y,
+                     (short)bmp->yOffset + dy);
         y += bmp->width;
     } while (y < g_game->width);
 

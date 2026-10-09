@@ -16,13 +16,7 @@ struct Pos_482910 {
     short y;
 };
 
-// The first 8 bytes of the frame GetGafFrame returns: width and height as one
-// dword, then the offsets.
-struct GafFrame {
-    int field_0;
-    short xOffset;
-    short yOffset;
-};
+#include "../graphics/gaf_frame.h"
 
 struct Table_482910 {
     unsigned short count;              // +0

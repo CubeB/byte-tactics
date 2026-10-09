@@ -35,11 +35,13 @@ struct Unit {
     char unknown_f9[0x118 - 0xf9];
 };
 
-struct GafFrame {
-    int field_0;                       // +0x00
-    short xOffset;                     // +0x04
-    short yOffset;                     // +0x06
-};
+#include "../graphics/gaf_frame.h"
+// Unused here: real functions declared to keep the file's symbol count.
+void ResetCameraState();
+void UpdateScreenShake();
+void FlushKeyQueue();
+void OpenMainMenu();
+void ClampCameraPosition();
 
 struct FrameTable {
     unsigned short count;              // +0x00

@@ -1525,19 +1525,7 @@ struct Dialog_4a1b40 {
     void* fallback;                     // +0xcd2
 };
 
-struct GafFrame {
-    unsigned short width;               // +0x0
-    unsigned short height;              // +0x2
-    short xOffset;                      // +0x4
-    short yOffset;                      // +0x6
-    unsigned char transparency;         // +0x8
-    unsigned char compressed;           // +0x9
-    unsigned char layers;               // +0xa
-    unsigned char blend;                // +0xb
-    int reserved;                       // +0xc
-    unsigned char* pixelsOrLayers;      // +0x10
-    unsigned char* scratch;             // +0x14
-};
+#include "../graphics/gaf_frame.h"
 
 struct Language_004a1b40 {
     char unknown_0[0xc];

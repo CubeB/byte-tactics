@@ -288,20 +288,7 @@ int __stdcall LoadSoundByName(char* name, const char* file)
     return i;
 }
 
-struct GafFrame {
-    short width;              // +0x0
-    short height;             // +0x2
-    short xOffset;            // +0x4
-    short yOffset;            // +0x6
-    unsigned char transparency;  // +0x8
-    unsigned char compressed;  // +0x9
-    unsigned char layers;     // +0xa
-    unsigned char blend;      // +0xb
-    int reserved;             // +0xc
-    unsigned char* data;      // +0x10
-    int scratch;              // +0x14
-    unsigned char pixels[1];  // +0x18
-};
+#include "../graphics/gaf_frame.h"
 
 struct Pic_004295b0 {
     int w;               // +0x0
@@ -336,7 +323,7 @@ GafFrame* __stdcall LoadRadarPic(char* path, int* outX, int* outY)
         HAPI_SeekFile(file, *(int*)(pic.header + 0x28));
         HAPI_readfromfile(file, &pic.w, 8);
         bmp = AllocFrame("RADARPIC", pic.w, pic.h);
-        HAPI_readfromfile(file, bmp->data, pic.w * pic.h);
+        HAPI_readfromfile(file, bmp->pixelsOrLayers, pic.w * pic.h);
     } else {
         bmp = 0;
     }

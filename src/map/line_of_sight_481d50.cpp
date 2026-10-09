@@ -93,14 +93,7 @@ struct Game {
     void* losTable;                    // +0x1485b
 };
 
-struct GafFrame {
-    unsigned short width;              // +0x0
-    unsigned short height;             // +0x2
-    char unknown_4[4];
-    unsigned char mask;                // +0x8
-    char unknown_9[0x10 - 9];
-    unsigned char* data;               // +0x10
-};
+#include "../graphics/gaf_frame.h"
 
 #pragma pack(pop)
 
@@ -194,9 +187,9 @@ void __stdcall RemoveLineOfSight(SightQuery* params)
         for (int i = ny; i < limitY; i++) {
             ByteMap_00481d50* ex = &params->player->explored;
             unsigned char* dst = ex->data + (y + i) * ex->size.width + nx + x;
-            unsigned char* src = frame->data + i * frame->width + nx;
+            unsigned char* src = frame->pixelsOrLayers + i * frame->width + nx;
             for (int j = nx; j < limitX; j++) {
-                if (*src != frame->mask)
+                if (*src != frame->transparency)
                     (*dst)--;
                 dst++;
                 src++;

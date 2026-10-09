@@ -2080,7 +2080,7 @@ address,size,file,symbol,status,similarity
 0x499c10,87,src/weapons/weapons.cpp,?RockUnit@@YGXPAUObject_00499c10@@PAUSource_00499c10@@@Z,matched,100.0
 0x499c70,88,src/weapons/weapons.cpp,?ApplyWeaponHit@@YGXPAUWeapon_499c70@@PAUUnit@@@Z,matched,100.0
 0x499cd0,376,src/weapons/weapons.cpp,?ApplyWeaponDamage@@YGHPAUWeapon_00499cd0@@PAUUnit@@M@Z,matched,100.0
-0x499e50,91,src/weapons/weapons.cpp,?UntrackProjectile@@YGXPAUUnit_499e50@@@Z,matched,100.0
+0x499e50,91,src/weapons/weapons.cpp,?UntrackProjectile@@YGXPAUProjectile_00499eb0@@@Z,matched,100.0
 0x499eb0,517,src/weapons/weapons.cpp,?DetonateProjectile@@YGXPAUProjectile_00499eb0@@PAUUnit@@@Z,matched,100.0
 0x49a0c0,85,src/weapons/weapons.cpp,?ApplyAreaDamageAt@@YGXPAXPAUVec3_0049a0c0@@@Z,matched,100.0
 0x49a850,64,src/weapons/weapons.cpp,?VectorLength@@YGHPAUVec3i_0049a850@@@Z,matched,100.0

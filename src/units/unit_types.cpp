@@ -570,6 +570,11 @@ static inline unsigned int ReplaceFlagField(unsigned int flags, unsigned int val
     return flags & ~(mask << shift) | (value & mask) << shift;
 }
 
+// Included only for its symbols, here so the functions above keep their own
+// numbers: with <malloc.h> it puts LoadUnitFbi's yardmap stores back in the
+// original's base/index order (docs/c2-regalloc.md).
+#include <conio.h>
+
 // Reads a unit's FBI file (the UNITINFO section of a TDF) into its 0x249-byte
 // unit definition: names, costs, movement, energy, the two flag words, the
 // self-destruct countdown, the sound category, corpse, movement class,
@@ -625,168 +630,167 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
                 parser.current->GetFieldFixed("moverate2", Fixed(unitdef->maxvelocity * 2)).value;
             unitdef->turnrate =
                 (short)parser.current->GetFieldInt("turnrate", 0);
-            // Keep the (TdfRecord*) casts on parser.current: each takes a symbol id.
-            unitdef->waterline = (char)((TdfRecord*)parser.current)->GetFieldInt("waterline", 0);
+            unitdef->waterline = (char)parser.current->GetFieldInt("waterline", 0);
             unitdef->transportsize =
-                (char)((TdfRecord*)parser.current)->GetFieldInt("transportsize", 0);
+                (char)parser.current->GetFieldInt("transportsize", 0);
             unitdef->transportcapacity =
-                (char)((TdfRecord*)parser.current)->GetFieldInt("transportcapacity", 0);
+                (char)parser.current->GetFieldInt("transportcapacity", 0);
             unitdef->energymake = GETFLOAT(parser.current, "energymake");
             unitdef->energyuse = GETFLOAT(parser.current, "energyuse");
             unitdef->metalmake = GETFLOAT(parser.current, "metalmake");
             unitdef->extractsmetal = GETFLOAT(parser.current, "extractsmetal");
-            unitdef->makesmetal = (char)((TdfRecord*)parser.current)->GetFieldInt("makesmetal", 0);
+            unitdef->makesmetal = (char)parser.current->GetFieldInt("makesmetal", 0);
             unitdef->windgenerator = GETFLOAT(parser.current, "windgenerator");
             unitdef->tidalgenerator = GETFLOAT(parser.current, "tidalgenerator");
             unitdef->energystorage = GETFLOAT(parser.current, "energystorage");
             unitdef->metalstorage = GETFLOAT(parser.current, "metalstorage");
             unitdef->buildtime =
-                ((TdfRecord*)parser.current)->GetFieldInt("buildtime", 0);
+                parser.current->GetFieldInt("buildtime", 0);
             unitdef->workertime =
-                (short)((TdfRecord*)parser.current)->GetFieldInt("workertime", 0);
+                (short)parser.current->GetFieldInt("workertime", 0);
             unitdef->healtime =
-                (short)((TdfRecord*)parser.current)->GetFieldInt("healtime", 0);
+                (short)parser.current->GetFieldInt("healtime", 0);
             unitdef->maxdamage =
-                ((TdfRecord*)parser.current)->GetFieldInt("maxdamage", 0);
+                parser.current->GetFieldInt("maxdamage", 0);
             unitdef->sightdistance =
-                (short)((TdfRecord*)parser.current)->GetFieldInt("sightdistance", 0);
+                (short)parser.current->GetFieldInt("sightdistance", 0);
             unitdef->radardistance =
-                (short)((TdfRecord*)parser.current)->GetFieldInt("radardistance", 0);
+                (short)parser.current->GetFieldInt("radardistance", 0);
             unitdef->sonardistance =
-                (short)((TdfRecord*)parser.current)->GetFieldInt("sonardistance", 0);
+                (short)parser.current->GetFieldInt("sonardistance", 0);
             unitdef->radardistancejam =
-                (short)((TdfRecord*)parser.current)->GetFieldInt("radardistancejam", 0);
+                (short)parser.current->GetFieldInt("radardistancejam", 0);
             unitdef->sonardistancejam =
-                (short)((TdfRecord*)parser.current)->GetFieldInt("sonardistancejam", 0);
-            unitdef->bmcode = (char)((TdfRecord*)parser.current)->GetFieldInt("bmcode", 0);
+                (short)parser.current->GetFieldInt("sonardistancejam", 0);
+            unitdef->bmcode = (char)parser.current->GetFieldInt("bmcode", 0);
             unsigned int value2;
             unsigned int value;
-            value = ((TdfRecord*)parser.current)->GetFieldInt("standingmoveorder", 2);
+            value = parser.current->GetFieldInt("standingmoveorder", 2);
             unitdef->flags1 =
                 (value ^ unitdef->flags1) & 3 ^ unitdef->flags1;
-            value = ((TdfRecord*)parser.current)->GetFieldInt("standingfireorder", 2);
+            value = parser.current->GetFieldInt("standingfireorder", 2);
             unitdef->flags1 = SetFlagField(unitdef->flags1, value, 2, 3);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("init_cloaked", 0);
+            value = parser.current->GetFieldInt("init_cloaked", 0);
             unitdef->flags1 = SetFlagField(unitdef->flags1, value, 4, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("downloadable", 0);
+            value = parser.current->GetFieldInt("downloadable", 0);
             unitdef->flags1 = SetFlagField(unitdef->flags1, value, 5, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("builder", 0);
+            value = parser.current->GetFieldInt("builder", 0);
             unitdef->flags1 = SetFlagField(unitdef->flags1, value, 6, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("stealth", 0);
+            value = parser.current->GetFieldInt("stealth", 0);
             unitdef->flags1 = SetFlagField(unitdef->flags1, value, 8, 1);
-            unitdef->cloakcost = (float)((TdfRecord*)parser.current)->GetFieldInt("cloakcost", 0);
-            unitdef->cloakcostmoving = (float)((TdfRecord*)parser.current)->GetFieldInt("cloakcostmoving", (int)unitdef->cloakcost);
+            unitdef->cloakcost = (float)parser.current->GetFieldInt("cloakcost", 0);
+            unitdef->cloakcostmoving = (float)parser.current->GetFieldInt("cloakcostmoving", (int)unitdef->cloakcost);
             unitdef->mincloakdistance =
-                (short)((TdfRecord*)parser.current)->GetFieldInt("mincloakdistance", 0);
+                (short)parser.current->GetFieldInt("mincloakdistance", 0);
             unitdef->buildangle =
-                (short)((TdfRecord*)parser.current)->GetFieldInt("buildangle", 0);
+                (short)parser.current->GetFieldInt("buildangle", 0);
             unitdef->builddistance =
-                (short)((TdfRecord*)parser.current)->GetFieldInt("builddistance", 0);
+                (short)parser.current->GetFieldInt("builddistance", 0);
             unitdef->sortbias =
-                (short)((TdfRecord*)parser.current)->GetFieldInt("sortbias", 0);
+                (short)parser.current->GetFieldInt("sortbias", 0);
             unitdef->cruisealt =
-                (short)((TdfRecord*)parser.current)->GetFieldInt("cruisealt", 0);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("zbuffer", 0);
+                (short)parser.current->GetFieldInt("cruisealt", 0);
+            value = parser.current->GetFieldInt("zbuffer", 0);
             unitdef->flags1 = SetFlagField(unitdef->flags1, value, 7, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("isairbase", 0);
+            value = parser.current->GetFieldInt("isairbase", 0);
             unitdef->flags1 = SetFlagField(unitdef->flags1, value, 9, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("istargetingupgrade", 0);
+            value = parser.current->GetFieldInt("istargetingupgrade", 0);
             unitdef->flags1 = SetFlagField(unitdef->flags1, value, 10, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("teleporter", 0);
+            value = parser.current->GetFieldInt("teleporter", 0);
             unitdef->flags1 = ReplaceFlagField(unitdef->flags1, value, 13, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("hidedamage", 0);
+            value = parser.current->GetFieldInt("hidedamage", 0);
             unitdef->flags1 = ReplaceFlagField(unitdef->flags1, value, 14, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("shootme", 0);
+            value = parser.current->GetFieldInt("shootme", 0);
             unitdef->flags1 = ReplaceFlagField(unitdef->flags1, value, 15, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("armoredstate", 0);
+            value = parser.current->GetFieldInt("armoredstate", 0);
             unitdef->flags1 = SetFlagField(unitdef->flags1, value, 17, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("activatewhenbuilt", 0);
+            value = parser.current->GetFieldInt("activatewhenbuilt", 0);
             unitdef->flags1 = SetFlagField(unitdef->flags1, value, 18, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("canfly", 0);
+            value = parser.current->GetFieldInt("canfly", 0);
             unitdef->flags1 = SetFlagField(unitdef->flags1, value, 11, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("canhover", 0);
+            value = parser.current->GetFieldInt("canhover", 0);
             unitdef->flags1 = ReplaceFlagField(unitdef->flags1, value, 12, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("upright", 0);
+            value = parser.current->GetFieldInt("upright", 0);
             unitdef->flags1 = SetFlagField(unitdef->flags1, value, 20, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("floater", 0);
+            value = parser.current->GetFieldInt("floater", 0);
             unitdef->flags1 = SetFlagField(unitdef->flags1, value, 19, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("amphibious", 0);
+            value = parser.current->GetFieldInt("amphibious", 0);
             unitdef->flags1 = SetFlagField(unitdef->flags1, value, 21, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("isfeature", 0);
+            value = parser.current->GetFieldInt("isfeature", 0);
             unitdef->flags1 = SetFlagField(unitdef->flags1, value, 24, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("noshadow", 0);
+            value = parser.current->GetFieldInt("noshadow", 0);
             unitdef->flags1 = SetFlagField(unitdef->flags1, value, 25, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("immunetoparalyzer", 0);
+            value = parser.current->GetFieldInt("immunetoparalyzer", 0);
             unitdef->flags1 = SetFlagField(unitdef->flags1, value, 26, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("hoverattack", 0);
+            value = parser.current->GetFieldInt("hoverattack", 0);
             unitdef->flags1 = SetFlagField(unitdef->flags1, value, 27, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("antiweapons", 0);
+            value = parser.current->GetFieldInt("antiweapons", 0);
             unitdef->flags1 = ReplaceFlagField(unitdef->flags1, value, 29, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("digger", 0);
+            value = parser.current->GetFieldInt("digger", 0);
             unitdef->flags1 = ReplaceFlagField(unitdef->flags1, value, 30, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("onoffable", 0);
+            value = parser.current->GetFieldInt("onoffable", 0);
             unitdef->flags2 = SetFlagField(unitdef->flags2, value, 2, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("mobilestandorders", 0);
+            value = parser.current->GetFieldInt("mobilestandorders", 0);
             unitdef->flags2 =
                 (value ^ unitdef->flags2) & 1 ^ unitdef->flags2;
-            value = ((TdfRecord*)parser.current)->GetFieldInt("firestandorders", 0);
+            value = parser.current->GetFieldInt("firestandorders", 0);
             unitdef->flags2 = SetFlagField(unitdef->flags2, value, 1, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("canstop", 0);
+            value = parser.current->GetFieldInt("canstop", 0);
             unitdef->flags2 = SetFlagField(unitdef->flags2, value, 3, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("canattack", 0);
+            value = parser.current->GetFieldInt("canattack", 0);
             unitdef->flags2 = SetFlagField(unitdef->flags2, value, 4, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("canguard", 0);
+            value = parser.current->GetFieldInt("canguard", 0);
             unitdef->flags2 = SetFlagField(unitdef->flags2, value, 5, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("canpatrol", 0);
+            value = parser.current->GetFieldInt("canpatrol", 0);
             unitdef->flags2 = SetFlagField(unitdef->flags2, value, 6, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("canmove", 0);
+            value = parser.current->GetFieldInt("canmove", 0);
             unitdef->flags2 = SetFlagField(unitdef->flags2, value, 7, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("canload", 0);
+            value = parser.current->GetFieldInt("canload", 0);
             unitdef->flags2 = SetFlagField(unitdef->flags2, value, 8, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("canreclamate", 0);
+            value = parser.current->GetFieldInt("canreclamate", 0);
             unitdef->flags2 = SetFlagField(unitdef->flags2, value, 10, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("canresurrect", 0);
+            value = parser.current->GetFieldInt("canresurrect", 0);
             value2 = (value & 1) << 0xb | unitdef->flags2 & 0xfffff7ff;
             unitdef->flags2 = value2 & 0xfffffdff | (value2 & 0x400) >> 1;
-            value2 = ((TdfRecord*)parser.current)->GetFieldInt("cancapture", 0);
+            value2 = parser.current->GetFieldInt("cancapture", 0);
             value = unitdef->flags2;
             value2 = (value2 & 1) << 0xc;
             value = value & 0xffffefff | value2;
             unitdef->flags2 = value;
             value2 = (unsigned int)(unitdef->cloakcost > 0.0f);
             unitdef->flags2 = value & 0xffffdfff | (value2 & 1) << 0xd;
-            value = ((TdfRecord*)parser.current)->GetFieldInt("candgun", 0);
+            value = parser.current->GetFieldInt("candgun", 0);
             unitdef->flags2 =
                 unitdef->flags2 & 0xffffbfff | (value & 1) << 0xe;
             unitdef->maneuverleashlength =
-                (short)((TdfRecord*)parser.current)->GetFieldInt("maneuverleashlength", 0);
+                (short)parser.current->GetFieldInt("maneuverleashlength", 0);
             unitdef->attackrunlength =
-                (short)((TdfRecord*)parser.current)->GetFieldInt("attackrunlength", 0);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("kamikaze", 0);
+                (short)parser.current->GetFieldInt("attackrunlength", 0);
+            value = parser.current->GetFieldInt("kamikaze", 0);
             unitdef->flags1 =
                 unitdef->flags1 & 0xefffffff | (value & 1) << 0x1c;
             unitdef->kamikazedistance =
-                (short)((TdfRecord*)parser.current)->GetFieldInt("kamikazedistance", 0);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("norestrict", 0);
+                (short)parser.current->GetFieldInt("kamikazedistance", 0);
+            value = parser.current->GetFieldInt("norestrict", 0);
             unitdef->flags2 =
                 unitdef->flags2 & 0xffff7fff | (value & 1) << 0xf;
-            value = ((TdfRecord*)parser.current)->GetFieldInt("showplayername", 0);
+            value = parser.current->GetFieldInt("showplayername", 0);
             unitdef->flags2 = SetFlagField(unitdef->flags2, value, 17, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("commander", 0);
+            value = parser.current->GetFieldInt("commander", 0);
             unitdef->flags2 = SetFlagField(unitdef->flags2, value, 18, 1);
-            value = ((TdfRecord*)parser.current)->GetFieldInt("cantbetransported", 0);
+            value = parser.current->GetFieldInt("cantbetransported", 0);
             unitdef->flags2 = SetFlagField(unitdef->flags2, value, 19, 1);
 
             char* countdown =
-                ((TdfRecord*)parser.current)->FindFieldValue("selfdestructcountdown");
+                parser.current->FindFieldValue("selfdestructcountdown");
             if (countdown != (char*)0)
                 unitdef->selfdestructcountdown = atoi(countdown);
             else
                 unitdef->selfdestructcountdown = 5;
-            ((TdfRecord*)parser.current)->GetFieldString(buf, "category", 100, DAT_005119b8);
+            parser.current->GetFieldString(buf, "category", 100, DAT_005119b8);
             unitdef->AddToCategories(buf);
             // The test goes through an int local, and default arguments are literal 0.
-            int found = ((TdfRecord*)parser.current)
+            int found = parser.current
                     ->GetFieldString(buf, "soundcategory", 100, DAT_005119b8);
             if (found) {
                 // Own loop counter, with the store and goto on a hit.
@@ -803,10 +807,10 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
             }
         SOUND_DONE:
             unitdef->corpse = -1;
-            if (((TdfRecord*)parser.current)->GetFieldString(buf, "corpse", 100, DAT_005119b8))
+            if (parser.current->GetFieldString(buf, "corpse", 100, DAT_005119b8))
                 unitdef->corpse = FindOrLoadFeatureType(buf);
             unitdef->movementclass = 0;
-            if (((TdfRecord*)parser.current)
+            if (parser.current
                     ->GetFieldString(buf, "movementclass", 100, DAT_005119b8))
                 unitdef->movementclass = FindMovementClass(buf);
             MovementClass movement;
@@ -824,19 +828,19 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
             unitdef->maxslopevelocity = (int)(((__int64)unitdef->maxvelocity << 16) /
                                              ((unitdef->maxslope + 1) * 0x10000));
             char* defaultWeapon = (char*)g_game + 0x2cf3;
-            ((TdfRecord*)parser.current)->GetFieldString(weapon, "weapon1", 128, DAT_005119b8);
+            parser.current->GetFieldString(weapon, "weapon1", 128, DAT_005119b8);
             char* weapon1 = FindWeaponByName(weapon);
             unitdef->weapons[0] = weapon1 ? weapon1 : defaultWeapon;
-            ((TdfRecord*)parser.current)->GetFieldString(weapon, "weapon2", 128, DAT_005119b8);
+            parser.current->GetFieldString(weapon, "weapon2", 128, DAT_005119b8);
             char* weapon2 = FindWeaponByName(weapon);
             unitdef->weapons[1] = weapon2 ? weapon2 : defaultWeapon;
-            ((TdfRecord*)parser.current)->GetFieldString(weapon, "weapon3", 128, DAT_005119b8);
+            parser.current->GetFieldString(weapon, "weapon3", 128, DAT_005119b8);
             char* weapon3 = FindWeaponByName(weapon);
             unitdef->weapons[2] = weapon3 ? weapon3 : defaultWeapon;
-            ((TdfRecord*)parser.current)->GetFieldString(weapon, "explodeas", 128, DAT_005119b8);
+            parser.current->GetFieldString(weapon, "explodeas", 128, DAT_005119b8);
             char* explodeas = FindWeaponByName(weapon);
             unitdef->explodeas = explodeas ? explodeas : defaultWeapon;
-            ((TdfRecord*)parser.current)
+            parser.current
                 ->GetFieldString(weapon, "selfdestructas", 128, DAT_005119b8);
             char* selfdestructas = FindWeaponByName(weapon);
             unitdef->selfdestructas = selfdestructas ? selfdestructas : defaultWeapon;
@@ -849,7 +853,7 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
             // Cleared here and again in the else branch: the original has both stores.
             unitdef->yardmap = 0;
             if (unitdef->bmcode == 0) {
-                ((TdfRecord*)parser.current)
+                parser.current
                     ->GetFieldString(yard, "YardMap", 1024, DAT_005119b8);
                 unitdef->yardmap = (char*)GameAllocIgnoreTag(
                     "BUILDING YARD", unitdef->footprintx * unitdef->footprintz);

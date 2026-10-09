@@ -153,7 +153,7 @@ class CMemoryCache : public UnitTable {
 public:
     int cap;                           // +0x0, the arena's length
     int base;                          // +0x4, the arena
-    int cur;                           // +0x8, the next chunk to hand out
+    Chunk_00437a30* cur;               // +0x8, the next chunk to hand out
     void* handle;                      // +0xc
     GafFrame* image;                   // +0x10, the scratch image
 
@@ -258,9 +258,9 @@ int CMemoryCache::InitCache(unsigned int newSize)
     Chunk_00437a30* chunk = (Chunk_00437a30*)GameAllocIgnoreTag("CMemoryCache CCH", newSize);
     base = (int)chunk;
     cap = newSize;
-    cur = (int)chunk;
+    cur = chunk;
     chunk->owner = 0;
-    ((Chunk_00437a30*)cur)->size = cap;
+    cur->size = cap;
     return 1;
 }
 
@@ -301,11 +301,11 @@ int CMemoryCache::AllocHandle(void** p, int need)
         *p = 0;
         return 0;
     }
-    int start;
+    Chunk_00437a30* start;
     int end = base + cap;
-    if (cur + size > end) {
-        int q = cur;
-        start = base;
+    if ((int)cur + size > end) {
+        int q = (int)cur;
+        start = (Chunk_00437a30*)base;
         while (q < end) {
             void** owner = *(void***)q;
             if (owner != 0 && (int)*owner == q + 8)
@@ -316,7 +316,7 @@ int CMemoryCache::AllocHandle(void** p, int need)
     } else {
         start = cur;
     }
-    int q = start;
+    int q = (int)start;
     while (total < size) {
         total += *(int*)(q + 4);
         void** owner = *(void***)q;
@@ -325,20 +325,20 @@ int CMemoryCache::AllocHandle(void** p, int need)
         q += *(int*)(q + 4);
     }
     if (total - size > 8u) {
-        Chunk_00437a30* nc = (Chunk_00437a30*)(start + size);
+        Chunk_00437a30* nc = (Chunk_00437a30*)((char*)start + size);
         nc->owner = 0;
         nc->size = total - size;
-        cur = (int)nc;
+        cur = nc;
     } else {
         size = total;
-        int e = start + total;
+        int e = (int)start + total;
         if (e >= base + cap)
             e = base;
-        cur = e;
+        cur = (Chunk_00437a30*)e;
     }
-    ((Chunk_00437a30*)start)->owner = p;
-    ((Chunk_00437a30*)start)->size = size;
-    *p = (void*)(start + 8);
+    start->owner = p;
+    start->size = size;
+    *p = (void*)((char*)start + 8);
     return 1;
 }
 

@@ -277,7 +277,7 @@ uv run python3 build/scratch/6334/swap.py                    # the 83 verdicts
 | `src/ai/pathfind.cpp` | does not compile | C2039 is not a member of 'Unit' |
 | `src/ai/player_ai.cpp` | does not compile | C2039 is not a member of 'Unit' |
 | `src/frontend/campaign_menu.cpp` | does not compile | C2039 is not a member of 'Unit' |
-| `src/frontend/skirmish_menu_479660.cpp` | does not compile | C2039 is not a member of 'Unit' |
+| `src/frontend/skirmish_menu.cpp` | does not compile | C2039 is not a member of 'Unit' |
 | `src/game/console_commands.cpp` | drops | `0x417030` 28.6%, `0x417600` 41.7%, `0x4181d0` 98.6%, `0x418310` 82.7% |
 | `src/game/economy.cpp` | does not compile | C2011 'struct' type redefinition |
 | `src/game/economy_401360.cpp` | does not compile | C2039 is not a member of 'Unit' |
@@ -338,7 +338,7 @@ uv run python3 build/scratch/6334/swap.py                    # the 83 verdicts
 | `src/sound/sound_47ed40.cpp` | does not compile | C2039 is not a member of 'Unit' |
 | `src/units/squads.cpp` | does not compile | C2039 is not a member of 'Unit' |
 | `src/units/unit.cpp` | does not compile | C2065 undeclared identifier |
-| `src/units/unit_commands_487bf0.cpp` | does not compile | C2039 is not a member of 'Unit' |
+| `src/units/unit_commands.cpp` | does not compile | C2039 is not a member of 'Unit' |
 | `src/units/unit_motion.cpp` | does not compile | C2039 is not a member of 'Unit' |
 | `src/units/unit_position.cpp` | does not compile | C2039 is not a member of 'Unit' |
 | `src/units/unit_save.cpp` | does not compile | C2011 'class' type redefinition |

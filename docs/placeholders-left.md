@@ -35,10 +35,10 @@ over twenty files).
 | `FUN_004b71a7` | `src/util/math_4b70a0.cpp` | `Trig_BuildRotationMatrix` |
 | `FUN_004b72e2` | `src/util/math_4b70a0.cpp` | `Math_MulVec3ByMatrix3x3` |
 | `FUN_004b7381` | `src/util/math_4b70a0.cpp` | `Math_MulDiv` |
-| `FUN_004cca33` | `src/graphics/blit_4cbbe0.cpp` | `Gfx_XorLineBresenham` |
-| `FUN_004ccb65` | `src/graphics/blit_4cbbe0.cpp` | `Rect_ClipLineToWidthHeight` |
-| `FUN_004ccd1c` | `src/graphics/blit_4cbbe0.cpp` | `Gfx_DrawRectOutlineRaw` |
-| `FUN_004ccd85` | `src/graphics/blit_4cbbe0.cpp` | `Gfx_XorRectOutlineBresenham` |
+| `FUN_004cca33` | `src/graphics/blit.cpp` | `Gfx_XorLineBresenham` |
+| `FUN_004ccb65` | `src/graphics/blit.cpp` | `Rect_ClipLineToWidthHeight` |
+| `FUN_004ccd1c` | `src/graphics/blit.cpp` | `Gfx_DrawRectOutlineRaw` |
+| `FUN_004ccd85` | `src/graphics/blit.cpp` | `Gfx_XorRectOutlineBresenham` |
 
 ## Functions and methods
 

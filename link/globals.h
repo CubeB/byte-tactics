@@ -775,8 +775,8 @@ extern long g_squashThreadLockTicket;                                           
 //   0x51e854 DAT_0051e854: part of another global: g_cdListsDiscEntries+0x2c
 //   0x51e858 DAT_0051e858: part of another global: g_cdListsDiscEntries+0x30
 //   0x51f310 g_tdfGlobalParser: defined in src/weapons/weapons.cpp
-//   0x51fbb8 std::HH::HU?$pair::?$_Tree::_Nilrefs: defined in src/util/int_map_4b2290.cpp
-//   0x51fbbc std::HH::HU?$pair::?$_Tree::_Nil: defined in src/util/int_map_4b2290.cpp
+//   0x51fbb8 std::HH::HU?$pair::?$_Tree::_Nilrefs: defined in src/util/int_map.cpp
+//   0x51fbbc std::HH::HU?$pair::?$_Tree::_Nil: defined in src/util/int_map.cpp
 //   0x51fbe0 g_timerSlot0Interval: part of another global: g_timerSlots+0x8
 //   0x51fc78 g_closeHandler: part of another global: g_timerSlots+0xa0
 //   0x51fc7c g_closeHandlerArg: part of another global: g_timerSlots+0xa4

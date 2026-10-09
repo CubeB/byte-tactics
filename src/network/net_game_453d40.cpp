@@ -154,14 +154,21 @@ struct Game {
     unsigned short : 11;
 };
 
+// The DirectPlay system message HandleNetPackets reads when the sender is 0:
+// +0x00 is its DPSYS_ type (3 create, 5 destroy, 0x102 set data, 0x103 set
+// name, 0x104 set session description). The fields are named for the
+// create-player layout and the set-data layout, which overlay: a create has
+// its data at createData/dataSize, a set-data has it at data, a set-name has
+// its short name at +0x14 and the long name at longName, and a set-session
+// description starts at +0x04.
 struct Packet_00453d40 {
     unsigned int type;                 // +0x00
-    int field_4;                       // +0x04
+    int playerType;                    // +0x04, 1 is a player
     int id;                            // +0x08
-    char* field_c;                     // +0x0c
-    char* field_10;                    // +0x10
-    int field_14;                      // +0x14
-    char* field_18;                    // +0x18
+    char* data;                        // +0x0c
+    char* createData;                  // +0x10
+    int dataSize;                      // +0x14
+    char* longName;                    // +0x18
 };
 
 #pragma pack(pop)
@@ -448,7 +455,7 @@ int HandleNetPackets()
             Packet_00453d40* msg = (Packet_00453d40*)packet;
             switch (msg->type) {
             case 5: {
-                if (msg->field_4 != 1)
+                if (msg->playerType != 1)
                     break;
                 Player* p = PlayerById(msg->id);
                 if (!p)
@@ -485,12 +492,12 @@ int HandleNetPackets()
                     break;
                 // info is read before payload: on equal priority the register goes to the first written.
                 PlayerInfo* info = LocalPlayer()->info;
-                char* payload = msg->field_10;
+                char* payload = msg->createData;
                 if (info->w9b.bit15) {
                     RejectPlayer(GetPlayerId(target), 3);
                     break;
                 }
-                if (msg->field_14 != 0x15) {
+                if (msg->dataSize != 0x15) {
                     RejectPlayer(GetPlayerId(target), 8);
                     break;
                 }
@@ -506,7 +513,7 @@ int HandleNetPackets()
                 break;
             }
             case 0x102: {
-                if (msg->field_4 != 1)
+                if (msg->playerType != 1)
                     break;
                 Player temp;
                 Player* p = PlayerById(msg->id);
@@ -516,7 +523,7 @@ int HandleNetPackets()
                         temp.FreeSideDataAndFogSightCounts();
                         continue;
                     }
-                    char* payload = msg->field_c;
+                    char* payload = msg->data;
                     memcpy(g_game->players[target].info, payload, 0xb9);
                     if (FindHost() == g_game->local && !(LocalPlayer()->info->flags_9b & 0x80)
                         && (payload[0x9b] & 0x40))
@@ -527,15 +534,15 @@ int HandleNetPackets()
             }
             case 0x104:
                 if (FindHost() != g_game->local)
-                    memcpy(&g_game->settings, &msg->field_4, sizeof(Settings));
+                    memcpy(&g_game->settings, &msg->playerType, sizeof(Settings));
                 break;
             case 0x103: {
-                if (msg->field_4 != 1)
+                if (msg->playerType != 1)
                     break;
                 Player* p = PlayerById(msg->id);
                 if (p) {
-                    strncpy(p->name, msg->field_18, 0x1e);
-                    strncpy(p->field_49, (char*)msg->field_14, 0x1e);
+                    strncpy(p->name, msg->longName, 0x1e);
+                    strncpy(p->field_49, (char*)msg->dataSize, 0x1e);
                 }
                 break;
             }

@@ -87,16 +87,16 @@ struct ByteMap_00467440 {
 };
 
 struct PlayerInfo_00467440 {
-    void* field_0;                     // +0x0
+    void* active;                      // +0x0
     char unknown_4[0x27 - 0x4];
     PlayerInfo* data;                  // +0x27
     char unknown_2b[0x67 - 0x2b];
-    Unit* field_67;                    // +0x67
-    Unit* field_6b;                    // +0x6b
+    Unit* unitsBegin;                  // +0x67
+    Unit* unitsEnd;                    // +0x6b
     char unknown_6f[0x7c - 0x6f];
     ByteMap_00467440 explored;         // +0x7c
     char unknown_88[0x146 - 0x88];
-    unsigned char field_146;           // +0x146
+    unsigned char index;               // +0x146
     char unknown_147[0x14b - 0x147];
 };
 
@@ -181,7 +181,7 @@ void UpdateSensorRadarAndCloak(void)
         if (a->flags & 0x10000000) {
             a->flags &= ~0x1000;
             if (a->playerIndex == player
-                || (a->player->field_108[pl->field_146] != 0
+                || (a->player->field_108[pl->index] != 0
                     && (a->player->data->flags & 0x40) != 0)
                 || (*(int*)pl != 0 && (pl->data->gameFlags & 0x40) != 0)) {
                 a->flags |= 0x300;
@@ -191,7 +191,7 @@ void UpdateSensorRadarAndCloak(void)
         }
     }
 
-    for (u = pl->field_67; u <= pl->field_6b; u++) {
+    for (u = pl->unitsBegin; u <= pl->unitsEnd; u++) {
         if ((u->flags & 0x10000000) && !(u->flags & 0x4000) && (u->activateFlags & 1)) {
             if (u->def->radardistance != 0 || u->def->sonardistance != 0) {
                 // t is computed before b is loaded, then squared.
@@ -216,7 +216,7 @@ void UpdateSensorRadarAndCloak(void)
     for (u = first; u <= last; u++) {
         // The ff local and the `, 1` term keep the playerIndex load a separate term.
         unsigned char ff;
-        if ((u->flags & 0x10000000) && (ff = u->playerIndex, 1) && ff != pl->field_146 && (u->activateFlags & 1)) {
+        if ((u->flags & 0x10000000) && (ff = u->playerIndex, 1) && ff != pl->index && (u->activateFlags & 1)) {
             if (u->def->radardistancejam != 0) {
                 int r = (int)u->def->radardistancejam << 16;
                 Vec3_00467440* pp = &u->pos.vec;

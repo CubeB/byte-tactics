@@ -139,7 +139,7 @@ struct Unit {
     int carrier;                      // +0x86
     int cargo;                      // +0x8a
     char unknown_8e[0xa6 - 0x8e];
-    unsigned short type;               // +0xa6
+    unsigned short unitDefIndex;       // +0xa6
     char unknown_a8[0xf0 - 0xa8];
     int attacker;                      // +0xf0
     unsigned char lastAttackerSlot;            // +0xf4
@@ -414,7 +414,7 @@ void __stdcall GiveSelectedUnitsToPlayer(unsigned char player)
     for (std::vector<Unit*>::iterator it = list.begin(); it != list.end(); it++) {
         Unit* unit = *it;
         if ((unit->flags & 3) != 2 && unit->cargo == 0 && unit->carrier == 0
-            && !TestBit(set, unit->type)) {
+            && !TestBit(set, unit->unitDefIndex)) {
             GiveUnitToPlayer(unit, p, 0);
         }
     }
@@ -828,7 +828,7 @@ void __stdcall OpenUnitInfoDialog(void)
             if (IsUnitVisibleToPlayer(owner, unit) == 0)
                 type = 0;
             else
-                type = unit->type;
+                type = unit->unitDefIndex;
         }
     }
 
@@ -1402,7 +1402,7 @@ void __stdcall HandleDebugHotkey(int eventType)
         break;
     case 0x5d: {
         Unit* u = &g_game->units[g_game->hoverUnitId];
-        if (u->type != 0) {
+        if (u->unitDefIndex != 0) {
             u->lastAttackerSlot = 10;
             u->flag_110 = 1;
             u->attacker = 0;

@@ -77,15 +77,15 @@ struct Unit {
     short cell;                    // +0x76
     short field_78;                    // +0x78
     char unknown_7a[0x86 - 0x7a];
-    Unit* owner;                       // +0x86
+    Unit* carrier;                     // +0x86
     char unknown_8a[0x92 - 0x8a];
-    UnitType* info;                    // +0x92
-    Link_0048ea40* link;               // +0x96
+    UnitType* def;                     // +0x92
+    Link_0048ea40* player;             // +0x96
     char unknown_9a[0xa6 - 0x9a];
     short unitDefIndex;                    // +0xa6
     char unknown_a8[0xfb - 0xa8];
     int postTransferHoldoff;                      // +0xfb
-    unsigned char kind;                // +0xff
+    unsigned char playerIndex;         // +0xff
     char unknown_100[0x104 - 0x100];
     float buildLeft;                   // +0x104
     char unknown_108[0x110 - 0x108];
@@ -612,13 +612,13 @@ extern char DAT_00508f30[]; // "Satisfied"
 extern char DAT_00508f24[]; // "Celebrated"
 
 // Slot 1 of the "kill enemy commander" victory condition (vtable 0x4fd960,
-// compare 0x48f6b0 and 0x48ec20): when a unit of kind 1 is named after its
+// compare 0x48f6b0 and 0x48ec20): when a unit of player index 1 is named after its
 // owner, marks the condition met and announces it once.
 // FUNCTION: 0x48ea40
 void VictoryKillEnemyCommander::OnUnitDied(Unit* unit)
 {
-    if (unit->kind == 1) {
-        if (_strcmpi(unit->info->name, g_game->names[unit->link->owner->side].name) == 0) {
+    if (unit->playerIndex == 1) {
+        if (_strcmpi(unit->def->name, g_game->names[unit->player->owner->side].name) == 0) {
             satisfied = 1;
             if (celebrated == 0) {
                 PlaySoundByName("Victory Condition", 0);
@@ -710,7 +710,7 @@ int VictoryKillAllMobileUnits::VisitUnit(Unit* unit)
 // FUNCTION: 0x48ec20
 void VictoryKillAllMobileUnits::OnUnitDied(Unit* unit)
 {
-    if (unit->kind == 1 && unit->motion != 0) {
+    if (unit->playerIndex == 1 && unit->motion != 0) {
         numUnits = 0;
         g_game->units2.ForEach(this);
         if (numUnits <= 1) {
@@ -798,7 +798,7 @@ void VictoryBuildUnitType::LoadState(HapiBank* obj)
 // FUNCTION: 0x48eeb0
 void VictoryCaptureUnitType::OnUnitCaptured(Unit* unit)
 {
-    if (unit->kind == 1 && _strcmpi(name, unit->info->name) == 0) {
+    if (unit->playerIndex == 1 && _strcmpi(name, unit->def->name) == 0) {
         satisfied = 1;
         if (celebrated == 0) {
             PlaySoundByName("Victory Condition", 0);
@@ -842,7 +842,7 @@ int VictoryKillAllOfType::VisitUnit(Unit* unit)
 // FUNCTION: 0x48efb0
 void VictoryKillAllOfType::OnUnitDied(Unit* unit)
 {
-    if (satisfied == 0 && unit->kind == 1 && _strcmpi(name, unit->info->name) == 0) {
+    if (satisfied == 0 && unit->playerIndex == 1 && _strcmpi(name, unit->def->name) == 0) {
         id = FindUnitTypeId(name);
         count = 0;
         g_game->units2.ForEach(this);
@@ -884,7 +884,7 @@ extern char DAT_00509018[]; // "NumLeftToKill"
 // FUNCTION: 0x48f0f0
 void VictoryKillUnitType::OnUnitDied(Unit* unit)
 {
-    if (numLeftToKill > 0 && unit->kind == 1 && _strcmpi(name, unit->info->name) == 0) {
+    if (numLeftToKill > 0 && unit->playerIndex == 1 && _strcmpi(name, unit->def->name) == 0) {
         if (--numLeftToKill <= 0) {
             satisfied = 1;
             if (celebrated == 0) {
@@ -933,12 +933,12 @@ int VictoryMoveUnitToRadius::IsSatisfied()
 // FUNCTION: 0x48f250
 void VictoryMoveUnitToRadius::VisitUnit(Unit* unit)
 {
-    if (unit->kind == 0) {
-        if (name[0] != 0 && _strcmpi(name, unit->info->name) != 0) {
+    if (unit->playerIndex == 0) {
+        if (name[0] != 0 && _strcmpi(name, unit->def->name) != 0) {
             return;
         }
         if ((unit->flags & 0x20) && unit->buildLeft == 0.0f && unit->postTransferHoldoff == 0
-            && (unit->owner == 0 || (unit->owner->flags & 0x40000000))) {
+            && (unit->carrier == 0 || (unit->carrier->flags & 0x40000000))) {
             satisfied = 1;
             if (celebrated == 0) {
                 PlaySoundByName("Victory Condition", 0);
@@ -972,7 +972,7 @@ void VictoryMoveUnitToRadius::LoadState(HapiBank* obj)
 // FUNCTION: 0x48f370
 int VictoryUnitTypePassesX::VisitUnit(Unit* unit)
 {
-    if (name[0] == 0 || _strcmpi(name, unit->info->name) == 0) {
+    if (name[0] == 0 || _strcmpi(name, unit->def->name) == 0) {
         if (abs(unit->cell - field_30) <= 2) {
             satisfied = 1;
             if (celebrated == 0) {
@@ -1021,7 +1021,7 @@ void VictoryUnitTypePassesX::LoadState(HapiBank* obj)
 // FUNCTION: 0x48f4c0
 int VictoryUnitTypePassesZ::VisitUnit(Unit* unit)
 {
-    if (name[0] == 0 || _strcmpi(name, unit->info->name) == 0) {
+    if (name[0] == 0 || _strcmpi(name, unit->def->name) == 0) {
         if (abs(unit->field_78 - field_30) <= 2) {
             satisfied = 1;
             if (celebrated == 0) {
@@ -1099,8 +1099,8 @@ void VictoryTimerRunsOut::LoadState(HapiBank* obj)
 // FUNCTION: 0x48f6b0
 void DefeatCommanderKilled::OnUnitDied(Unit* unit)
 {
-    if (unit->kind == 0) {
-        if (_strcmpi(unit->info->name, g_game->names[unit->link->owner->side].name) == 0) {
+    if (unit->playerIndex == 0) {
+        if (_strcmpi(unit->def->name, g_game->names[unit->player->owner->side].name) == 0) {
             satisfied = 1;
         }
     }
@@ -1136,7 +1136,7 @@ extern char DAT_005090fc[]; // "DefeatCondition_AllUnitsKilled"
 int DefeatAllUnitsKilled::VisitUnit(Unit* unit)
 {
     if ((unit->flags & 0x20) && unit->buildLeft == 0.0f && unit->postTransferHoldoff == 0
-        && (unit->owner == 0 || (unit->owner->flags & 0x40000000))) {
+        && (unit->carrier == 0 || (unit->carrier->flags & 0x40000000))) {
         satisfied = 0;
     }
     return satisfied;
@@ -1177,7 +1177,7 @@ void DefeatAllUnitsKilled::LoadState(HapiBank* obj)
 // FUNCTION: 0x48f8c0
 void DefeatUnitTypeKilled::OnUnitDied(Unit* unit)
 {
-    if (_strcmpi(name, unit->info->name) == 0) {
+    if (_strcmpi(name, unit->def->name) == 0) {
         if (--numLeftToKill <= 0) {
             satisfied = 1;
         }
@@ -1224,7 +1224,7 @@ int DefeatAllUnitsKilledOfType::VisitUnit(Unit* unit)
 // FUNCTION: 0x48f9d0
 void DefeatAllUnitsKilledOfType::OnUnitDied(Unit* unit)
 {
-    if (_strcmpi(name, unit->info->name) == 0) {
+    if (_strcmpi(name, unit->def->name) == 0) {
         id = FindUnitTypeId(name);
         count = 0;
         g_game->units.ForEach(this);

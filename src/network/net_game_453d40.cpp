@@ -86,7 +86,7 @@ public:
     char unknown_0[0x9a];
     CobScript* script;               // +0x9a
     char unknown_9e[0x110 - 0x9e];
-    unsigned int flags_110;            // +0x110
+    unsigned int flags;                // +0x110
     char unknown_114[4];
     void SetStateBits(unsigned char, int);
 };
@@ -739,7 +739,7 @@ int HandleNetPackets()
             break;
         case 16: {
             Unit* unit = UnitAt(*(unsigned short*)(packet + 1));
-            if (unit->flags_110 & 0x10000000)
+            if (unit->flags & 0x10000000)
                 unit->script->StartScriptWithArgsByIndex(*(short*)(packet + 3), 0, 0, packet[5],
                                              *(int*)(packet + 6), *(int*)(packet + 10),
                                              *(int*)(packet + 14), *(int*)(packet + 18));
@@ -747,7 +747,7 @@ int HandleNetPackets()
         }
         case 17: {
             Unit* unit = UnitAt(*(unsigned short*)(packet + 1));
-            if (unit->flags_110 & 0x10000000) {
+            if (unit->flags & 0x10000000) {
                 unit->SetStateBits(packet[3], 1);
                 unit->SetStateBits(~packet[3], 0);
             }
@@ -766,7 +766,7 @@ int HandleNetPackets()
             break;
         case 20: {
             Unit* unit = UnitAt(*(unsigned short*)(packet + 1));
-            if (!unit || !(unit->flags_110 & 0x10000000))
+            if (!unit || !(unit->flags & 0x10000000))
                 break;
             int id = *(int*)(packet + 3);
             Player* p;

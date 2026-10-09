@@ -64,10 +64,21 @@ struct Feature {
     char data[0x115];
 };
 
-class CobScript {
-public:
-    int StartScriptWithArgsByIndex(int, int, int, int, int, int, int, int);
-};
+#include "../units/cob_script.h"
+
+// Unused here: these forward declarations take the symbol ids that keep HandleNetPackets (0x453d40) matching
+// (docs/c2-regalloc.md).
+struct BmpFileHeader;
+struct BmpInfo;
+struct BmpInfoHeader;
+struct CalcedExplosion;
+struct FrameTable;
+struct Chunk;
+class DamagedAllyCollector;
+class SquadManager;
+class AssaultTimer;
+class EscortTimer;
+class SquadScoutTimer;
 
 class Unit {
 public:

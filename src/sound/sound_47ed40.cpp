@@ -69,13 +69,8 @@ struct Packet_0047f300 {
     Pos_0047f300 pos;                  // +0x6
 };
 
-// The unit type at a unit's +0x92 (see units/unit_def.h): its name array at
-// +0x0 and the sound category at +0x20e.
-struct UnitDef {
-    char name[0x20];                   // +0x0
-    char unknown_20[0x20e - 0x20];
-    short soundcategory;               // +0x20e
-};
+// The unit type at a unit's +0x92.
+#include "../units/unit_def.h"
 
 struct Unit {
     char unknown_0[0x92];

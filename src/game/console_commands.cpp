@@ -71,14 +71,11 @@ struct Movement {
     unsigned int* states;              // +0x18, 2 bits per cell, 16 rows per word
 };
 
-struct UnitDef {
-    char unknown_0[0x20];
-    char name[0x15e - 0x20];
-    Vec3 min, max;
-    char unknown_176[0x1b6 - 0x176];
-    Movement* movement;                // +0x1b6
-    char unknown_1ba[0x249 - 0x1ba];
-};
+// The original declares the tag as a struct here (the decorated name of
+// SnapWorldPosToFootprint), so forward-declare it before the header: the key of
+// the first declaration decorates the name.
+struct UnitDef;
+#include "../units/unit_def.h"
 
 struct Unit {
     char unknown_0[0x92];
@@ -297,9 +294,10 @@ public:
     int StopCdAudio();
 };
 
-// Unused here: the symbol ids this declaration takes keep the allocation after the
-// Sound join (docs/c2-regalloc.md).
-int ScanDirectory(char*, char*, char*, int, int, int);
+// Unused here: the symbol ids this declaration takes keep the allocation after
+// the Sound join (docs/c2-regalloc.md). The unit_def.h include above takes the
+// ids the rest of the parameter list used to, so the declaration keeps two.
+int ScanDirectory(char*, char*);
 
 struct Display_00417a60 {
     char unknown_0[0xf0];
@@ -1272,11 +1270,11 @@ void __stdcall DefaultCommandHandler(CommandArgs* args)
     int count=0;
     for (unsigned short i=1;i<g_game->count;++i) {
         UnitDef* def=&g_game->defs[i];
-        if (MatchWildcard(def->name,args->GetArg(0,DAT_005119b8))) {
-            if (count) pos.x-=def->min.x;
+        if (MatchWildcard(def->unitname,args->GetArg(0,DAT_005119b8))) {
+            if (count) pos.x-=def->modelMinX;
             SnapWorldPosToFootprint(def,&pos);
             CreateUnit(((CommandArgs*)args)->GetIntArg(1,0),i,pos,1,1,0);
-            pos.x+=def->max.x+0x200000;
+            pos.x+=def->modelMaxX+0x200000;
             if (pos.x >= (g_game->mapWidth<<16)) { pos.x=0xa00000; pos.z+=0xa00000; }
             ++count;
         }
@@ -1544,7 +1542,11 @@ void __stdcall DrawCellContours(void* surface, Point_00417f60* corners, unsigned
 // The header set fixes the operand order of the tile and fog multiplies.
 // <direct.h> is only for its symbol ids: it puts 0x418310 in the window it
 // matches in (docs/c2-regalloc.md), and must not sit at the top, where it
-// moves 0x4181d0 out of its own window.
+// moves 0x4181d0 out of its own window. The three forward declarations take
+// the ids the unit_def.h include above adds before this function.
+struct TdfFile;
+struct TdfRecord;
+struct Mission;
 #include <direct.h>
 // FUNCTION: 0x418310
 void __stdcall DrawMapDebugOverlay(void* surface)
@@ -1554,7 +1556,7 @@ void __stdcall DrawMapDebugOverlay(void* surface)
     Player* player = &g_game->players[g_game->playerIndex];
     if (g_game->mode == 1) {
         Unit* unit = FindNextSelectedUnit(0, 0);
-        if (unit) movement = unit->def->movement;
+        if (unit) movement = (Movement*)unit->def->movementclass;
     }
     int firstY = g_game->scrollY / 16;
     int firstX = g_game->scrollX / 16;

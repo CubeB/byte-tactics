@@ -812,27 +812,23 @@ void UnitTypeSet::AddTypeOrCategory(char* text, int* out)
     *out = 0;
 }
 
-#pragma pack(push, 1)
-struct UnitDef {
-    char unknown_0[0x1c6];
-    float energyUse;                   // +0x1c6
-    char unknown_1ca[0x1d2 - 0x1ca];
-    float windGenerator;               // +0x1d2
-    float tidalGenerator;              // +0x1d6
-};
-#pragma pack(pop)
+// The original declares the tag as a struct here (the decorated name of
+// GetEnergyUse), so forward-declare it before the header: the key of the first
+// declaration decorates the name.
+struct UnitDef;
+#include "../units/unit_def.h"
 
 // FUNCTION: 0x488f30
 float __stdcall GetEnergyUse(UnitDef* def)
 {
-    if (def->energyUse != 0.0) {
-        return def->energyUse;
+    if (def->energyuse != 0.0) {
+        return def->energyuse;
     }
-    if (def->windGenerator > 0.0f) {
-        return -(g_game->windStrength * def->windGenerator);
+    if (def->windgenerator > 0.0f) {
+        return -(g_game->windStrength * def->windgenerator);
     }
-    if (def->tidalGenerator > 0.0f) {
-        return -(g_game->tidal * def->tidalGenerator);
+    if (def->tidalgenerator > 0.0f) {
+        return -(g_game->tidal * def->tidalgenerator);
     }
     return 0.0f;
 }

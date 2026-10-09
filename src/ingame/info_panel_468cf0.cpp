@@ -108,7 +108,29 @@ struct Resources {          // g_game+0x37e3f, 33 bytes
 };
 #pragma pack(pop)
 
-struct MapGrid { int *buf; int **cursor; ushort *count; char pad1[0x2c]; int width; int height; char pad2[0x10]; int stride; int rows; char pad3[0x34]; int tiles; };
+#pragma pack(push, 1)
+struct Tile_00468cf0 {       // 0xd bytes
+  char unknown_0[4];
+  byte field_4;              // +0x04
+  char unknown_5[3];
+  ushort feature;            // +0x08, a feature index; 0xfffb and up is none
+  char unknown_a[2];
+  byte flags;                // +0x0c
+};
+
+struct Feature_00468cf0 {    // 0x100 bytes
+  char unknown_0[0x94];
+  short field_94;            // +0x94
+  short field_96;            // +0x96
+  char unknown_98[0xfa - 0x98];
+  byte field_fa;             // +0xfa
+  char unknown_fb[4];
+  byte flags;                // +0xff
+};
+#pragma pack(pop)
+
+struct Unit_00468cf0;
+struct MapGrid { Unit_00468cf0 **buf; Unit_00468cf0 ***cursor; ushort *count; char pad1[0x2c]; int width; int height; char pad2[0x10]; int stride; int rows; char pad3[0x34]; Tile_00468cf0 *tiles; };
 struct Bits8 { ushort b0:1; ushort b1:1; ushort b2:1; ushort b3:1; ushort b4:1; ushort b5:1; ushort b6:1; ushort b7:1; };
 struct UnitFlags { uint kind:2; uint b2:1; uint b3:1; uint b4:1; uint b5:1; uint b6:1; uint b7:1; };
 
@@ -142,6 +164,23 @@ struct PlayerState_00468cf0 {
   char unknown_fc[0x146 - 0xfc];
   unsigned char bSlotIndex;           // +0x146
   char unknown_147[0x14b - 0x147];
+};
+
+struct Unit_00468cf0 {                 // 0x118 bytes
+  char unknown_0[0x6c];
+  short field_6c;                     // +0x6c
+  char unknown_6e[2];
+  short field_70;                     // +0x70
+  char unknown_72[2];
+  short field_74;                     // +0x74
+  char unknown_76[0x96 - 0x76];
+  PlayerState_00468cf0* player;       // +0x96
+  void* script;                       // +0x9a
+  char unknown_9e[0xac - 0x9e];
+  int group;                          // +0xac, the control group number
+  char unknown_b0[0x110 - 0xb0];
+  UnitFlags flags;                    // +0x110
+  char unknown_111[0x118 - 0x111];
 };
 
 // A side's panel layout at g_game+0x37f3d, stride 0x232 (Thaldren: SideDef).
@@ -184,7 +223,9 @@ struct SideDef_00468cf0 {
 };
 
 struct Game {
-  char unknown_0[0xdcb];
+  char unknown_0[0x519];
+  int menu;                             // +0x519, the GUI system object
+  char unknown_51d[0xdcb - 0x51d];
   unsigned char colors[16];             // +0xdcb
   char unknown_ddb[0x1b63 - 0xddb];
   PlayerState_00468cf0 players[11];     // +0x1b63, stride 0x14b
@@ -217,7 +258,7 @@ struct Game {
     MapGrid sortUnits;                  // the map/sort grid view of this block
     struct {
       char unknown_141fb[0x1426f - 0x141fb];
-      int features;                     // +0x1426f
+      Feature_00468cf0* features;       // +0x1426f
       char unknown_14273[0x14280 - 0x14273];
       char debugMode;                   // +0x14280
       char unknown_14281[0x1428b - 0x14281];
@@ -401,9 +442,15 @@ static inline int ShowSelectBox(int drawObjects)
   if (g_game->inputFlags & 8)
     return 1;
   if (g_game->orderMode == '\x0e')
-    return PointInRect((int)((char*)g_game + 0x37e27), g_game->cursorScreenX, g_game->cursorScreenY) != 0;
+    return PointInRect((int)&g_game->lim, g_game->cursorScreenX, g_game->cursorScreenY) != 0;
   return 0;
 }
+
+// Unused here: these declarations take the symbol ids that keep DrawBattleFrame
+// matching (docs/c2-regalloc.md).
+int GetScreenWidth();
+int DrawFrameRate();
+void DrawSoftwareCursor();
 
 // FUNCTION: 0x468cf0
 void __stdcall DrawBattleFrame(int param_1, int param_2)
@@ -428,7 +475,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   cx = (g_game->width + 0x80) / 2;
   cy = g_game->height / 2;
   SetOffscreenSurface(g_game->screen);
-  ctx = **(Surface **)((char*)g_game + 0x37e1b);
+  ctx = **(Surface **)&g_game->screen;
   colors = &g_game->colors[0];
   HideSoftwareCursor();
   ctx.SetClipRect(g_game->lim);
@@ -439,7 +486,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   // Compiler state, not meaning: reading viewY through this char* alias of
   // g_game is what makes MSVC subtract (h >> 1) first, as the original does.
   char *&game = *(char**)&g_game;
-  int *viewY = (int *)(game + 0x14323);
+  int *viewY = &((Game *)game)->scrollY;
   y = g_game->field_2cb4 - (g_game->field_2cb0 >> 1) - *viewY + 0x20;
   if (g_game->debugMode == '\x02') {
     DrawLine((int)&ctx, x - 2, y, x + 2, y, colors[0xf]);
@@ -515,10 +562,10 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
     ushort *pIdx = g_game->visibleUnitIds;
     k = 0;
     while (k < g_game->count) {
-      int unit = g_game->units + *pIdx * 0x118;
-      int row = ((int)*(short *)(unit + 0x74) - g_game->scrollY) / 16 + 0x10;
+      Unit_00468cf0 *unit = (Unit_00468cf0 *)(g_game->units + *pIdx * 0x118);
+      int row = ((int)unit->field_74 - g_game->scrollY) / 16 + 0x10;
       if (row >= 0 && row < mv->rows) {
-        int **pCur = &mv->cursor[row];
+        Unit_00468cf0 ***pCur = &mv->cursor[row];
         mv->count[row]++;
         if (*pCur != 0) {
           **pCur = unit;
@@ -536,26 +583,26 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
     i = 0;
     while (i < h) {
       x = x0;
-      int tile = (mv->width * y + x) * 0xd + mv->tiles;
+      Tile_00468cf0 *tile = mv->tiles + (mv->width * y + x);
       int c = 0;
       while (c < w) {
-        *(byte *)(tile + 0xc) &= 0xfb;
-        if (*(ushort *)(tile + 8) < 0xfffb) {
-          int feat = g_game->features + *(ushort *)(tile + 8) * 0x100;
-          if (*(byte *)(feat + 0xfa) < 10) {
-            if ((*(byte *)(feat + 0xff) & 8) && ((*(byte *)(tile + 0xc) >> 3 & 0xf) != idx)) {
-              if (IsFootprintVisible((int)player, x, y, *(short *)(feat + 0x94), *(short *)(feat + 0x96), *(byte *)(tile + 4)))
-                BlitFeatureGaf((int)&ctx, tile, x, y);
+        tile->flags &= 0xfb;
+        if (tile->feature < 0xfffb) {
+          Feature_00468cf0 *feat = g_game->features + tile->feature;
+          if (feat->field_fa < 10) {
+            if ((feat->flags & 8) && ((tile->flags >> 3 & 0xf) != idx)) {
+              if (IsFootprintVisible((int)player, x, y, feat->field_94, feat->field_96, tile->field_4))
+                BlitFeatureGaf((int)&ctx, (int)tile, x, y);
             }
             else
-              BlitFeatureGaf((int)&ctx, tile, x, y);
+              BlitFeatureGaf((int)&ctx, (int)tile, x, y);
           }
           else
-            *(byte *)(tile + 0xc) |= 4;
+            tile->flags |= 4;
         }
         c++;
         x++;
-        tile += 0xd;
+        tile++;
       }
       i++;
       y++;
@@ -566,29 +613,29 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
       // row and y are computed inside the loop: y becomes the induction variable.
       int row = i + skip;
       y = y0 + i;
-      int *pUnit = mv->buf + row * mv->stride;
+      Unit_00468cf0 **pUnit = mv->buf + row * mv->stride;
       for (k = 0; k < mv->count[row]; k++, pUnit++) {
 
-        int u = *pUnit;
-        if (((UnitFlags *)(u + 0x110))->kind == 1 && param_1 != 0) {
-          if (((UnitFlags *)(u + 0x110))->b4)
-            DrawSelectionBox((int)&ctx, u);
-          if (*(int *)(u + 0x9a) != 0)
-            DrawUnit((int)&ctx, u);
+        Unit_00468cf0 *u = *pUnit;
+        if (u->flags.kind == 1 && param_1 != 0) {
+          if (u->flags.b4)
+            DrawSelectionBox((int)&ctx, (int)u);
+          if (u->script != 0)
+            DrawUnit((int)&ctx, (int)u);
         }
       }
-      int tile = (y * mv->width + x0) * 0xd + mv->tiles;
-      for (int c = 0; c < w; c++, tile += 0xd) {
+      Tile_00468cf0 *tile = mv->tiles + (y * mv->width + x0);
+      for (int c = 0; c < w; c++, tile++) {
         x = x0 + c;
 
-        if (*(byte *)(tile + 0xc) & 4) {
-          int feat = g_game->features + *(ushort *)(tile + 8) * 0x100;
-          if ((*(byte *)(feat + 0xff) & 8) && ((*(byte *)(tile + 0xc) >> 3 & 0xf) != idx)) {
-            if (IsFootprintVisible((int)player, x, y, (int)*(short *)(feat + 0x94), *(short *)(feat + 0x96), *(byte *)(tile + 4)))
-              BlitFeatureGaf((int)&ctx, tile, x, y);
+        if (tile->flags & 4) {
+          Feature_00468cf0 *feat = g_game->features + tile->feature;
+          if ((feat->flags & 8) && ((tile->flags >> 3 & 0xf) != idx)) {
+            if (IsFootprintVisible((int)player, x, y, (int)feat->field_94, feat->field_96, tile->field_4))
+              BlitFeatureGaf((int)&ctx, (int)tile, x, y);
           }
           else
-            BlitFeatureGaf((int)&ctx, tile, x, y);
+            BlitFeatureGaf((int)&ctx, (int)tile, x, y);
         }
       }
     }
@@ -600,15 +647,15 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
     DrawExplosions((int)&ctx);
     DrawParticleList((int)&ctx, 7);
     for (i = 0; i < mv->rows; i++) {
-      int *pUnit = mv->buf + mv->stride * i;
+      Unit_00468cf0 **pUnit = mv->buf + mv->stride * i;
       k = 0;
       while (k < mv->count[i]) {
-        int u = *pUnit;
-        if (((UnitFlags *)(u + 0x110))->kind != 1) {
-          if (((UnitFlags *)(u + 0x110))->b4)
-            DrawSelectionBox((int)&ctx, u);
-          if (*(int *)(u + 0x9a) != 0)
-            DrawUnit((int)&ctx, u);
+        Unit_00468cf0 *u = *pUnit;
+        if (u->flags.kind != 1) {
+          if (u->flags.b4)
+            DrawSelectionBox((int)&ctx, (int)u);
+          if (u->script != 0)
+            DrawUnit((int)&ctx, (int)u);
         }
         k++;
         pUnit++;
@@ -617,26 +664,27 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   }
   DrawParticleList((int)&ctx, 8);
   if (IsKeyDown(0xf9))
-    DrawSelectedUnitOrderOverlays((int)&ctx, (int)((char*)g_game + 0x142f3));
+    DrawSelectedUnitOrderOverlays((int)&ctx, (int)&g_game->followUnit);
 
   // unit group numbers. Suspected original bug: the outer test lets a unit
-  // with a group number (+0xac) through when the 0x37f06 bit is clear, but the
+  // with a group number (group) through when the 0x37f06 bit is clear, but the
   // inner test requires that bit for the number as well, so the position is
   // computed and nothing is drawn (0x469c4a to 0x469c9a).
   if (param_1 != 0) {
     ushort *pIdx = g_game->visibleUnitIds;
     for (k = 0; k < g_game->count; k++, pIdx++) {
-      int unit = g_game->units + *pIdx * 0x118;
-      if ((g_game->visualFlagsByte & 1) || *(int *)(unit + 0xac) != 0) {
+      Unit_00468cf0 *unit = (Unit_00468cf0 *)(g_game->units + *pIdx * 0x118);
+      if ((g_game->visualFlagsByte & 1) || unit->group != 0) {
         char str[2];
         str[1] = 0;
-        x = *(short *)(unit + 0x6c) - g_game->scrollX + 0x80;
-        y = *(short *)(unit + 0x74) - g_game->scrollY - (*(short *)(unit + 0x70) >> 1) + 0x20;
+        x = unit->field_6c - g_game->scrollX + 0x80;
+        y = unit->field_74 - g_game->scrollY - (unit->field_70 >> 1) + 0x20;
         if (g_game->visualFlagsByte & 1) {
-          if (*(char *)(*(int *)(unit + 0x96) + 0x146) == (char)idx)
-            DrawHitPointBar((int)&ctx, unit, x, y + 10);
-          if (*(char *)(*(int *)(unit + 0x96) + 0x146) == (char)idx && *(int *)(unit + 0xac) != 0) {
-            str[0] = *(char *)(unit + 0xac) + '0';
+          // The slot compares as a signed char, as the original does.
+          if ((char)unit->player->bSlotIndex == (char)idx)
+            DrawHitPointBar((int)&ctx, (int)unit, x, y + 10);
+          if ((char)unit->player->bSlotIndex == (char)idx && unit->group != 0) {
+            str[0] = (char)unit->group + '0';
             DrawString((int)&ctx, (int)str, x, y + 0xe, -1);
           }
         }
@@ -737,7 +785,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   if (g_game->pauseBits.b1)
     DrawFrame((int)&ctx, GetGafFrame(g_game->cursorHourglass, 0), g_game->width - 0x10, g_game->height - 0x50);
   ResetClipRect((int)&ctx);
-  BlitMenuLayers((int)((char*)g_game + 0x519), (int)&ctx, (int)((char*)g_game + 0x37e27));
+  BlitMenuLayers((int)&g_game->menu, (int)&ctx, (int)&g_game->lim);
   if (g_game->profileBarsEnabled != 0 && param_1 != 0) {
     DrawProfileBarLine((int)&ctx, (int)"Network", 0);
     DrawProfileBarLine((int)&ctx, (int)"Units", 1);

@@ -35,7 +35,25 @@ class Class_00438760 { public: unsigned char index; Class_00438760(const char*);
 
 class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_0044e730 { public: void SetApproachRadius(short); };
-class CobScript { public: void StartScript(const char*, int, int); int QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5); };
+#include "../units/cob_script.h"
+
+// Unused here: these forward declarations take the symbol ids that keep VtolLandingOrder (0x4118e0) matching
+// (docs/c2-regalloc.md).
+struct BmpFileHeader;
+struct BmpInfo;
+struct BmpInfoHeader;
+struct CalcedExplosion;
+struct FrameTable;
+struct Chunk;
+class DamagedAllyCollector;
+class SquadManager;
+class AssaultTimer;
+class EscortTimer;
+class SquadScoutTimer;
+class SpatialTimer;
+class ScoutTimer;
+class OpenHeap;
+class LandingPadList;
 #pragma pack(push, 1)
 #include "../units/unit_def.h"
 struct WeaponDef {

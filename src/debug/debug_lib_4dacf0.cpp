@@ -6,48 +6,13 @@
 // VirtualAlloc, pads the block and records it in the second set.
 #include <windows.h>
 #include <set>
+#include "free_block_map.h"
 
 extern unsigned int g_lastAllocOffset; // offset the last block was handed out at
 extern unsigned int g_freeBlockWraps; // how often the search wrapped around
 extern unsigned int g_committedBytes; // bytes committed
 extern unsigned int g_committedBytesPeak; // high-water mark of g_committedBytes
 extern unsigned int g_allocSerial;
-
-struct Pair_004db000 {
-    unsigned int offset; // +0x0
-    unsigned int length; // +0x4
-    Pair_004db000() {}
-    Pair_004db000(unsigned int o, unsigned int l) : offset(o), length(l) {}
-};
-
-struct Node_004dacf0 {
-    Node_004dacf0* left;   // +0x0
-    Node_004dacf0* parent; // +0x4
-    Node_004dacf0* right;  // +0x8
-    Pair_004db000 value;   // +0xc  the free block: offset, length
-    int color;             // +0x14
-};
-
-class FreeBlockIter {
-public:
-    Node_004dacf0* ptr;
-
-    FreeBlockIter() {}
-    FreeBlockIter(Node_004dacf0* q) : ptr(q) {}
-    bool operator==(const FreeBlockIter& o) const { return ptr == o.ptr; }
-    bool operator!=(const FreeBlockIter& o) const { return !(*this == o); }
-    Pair_004db000& operator*() const { return ptr->value; }
-    Pair_004db000* operator->() const { return &ptr->value; }
-    FreeBlockIter Previous(int); // operator--(int)
-    FreeBlockIter Next(int); // operator++(int)
-};
-
-class MapInsertResult {
-public:
-    FreeBlockIter first;
-    unsigned char second;
-    MapInsertResult() {}
-};
 
 class BlockInfo {
 public:
@@ -61,26 +26,6 @@ public:
 };
 
 class BlockMap { public: MapInsertResult Insert(const BlockInfo& v); };
-
-class FreeBlockMap {
-public:
-    char unknown_0[4];     // +0x0
-    Node_004dacf0* head;   // +0x4
-    unsigned char rebuild; // +0x8
-    unsigned int count;    // +0xc
-    unsigned int total;    // +0x10
-
-    FreeBlockIter begin() { return Begin(); }
-    FreeBlockIter end() { return FreeBlockIter(head); }
-    unsigned int size() const { return count; }
-    unsigned int TakeFreeBlock(unsigned int bytes);
-    void AddFreeBlock(Pair_004db000);
-    FreeBlockIter lower_bound(const Pair_004db000& k);
-    FreeBlockIter Begin();
-    FreeBlockIter EraseCopyIter(FreeBlockIter it);
-    MapInsertResult InsertOrFind(const Pair_004db000& v);
-    bool GrowReservation(unsigned int);
-};
 
 CRITICAL_SECTION* GetAllocLock();
 unsigned int __cdecl RoundUpToDoublePage(unsigned int size);

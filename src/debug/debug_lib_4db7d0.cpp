@@ -7,6 +7,7 @@
 // to the free-block set.
 #include <windows.h>
 #include <vector>
+#include "free_block_map.h"
 
 extern unsigned int g_committedBytes; // bytes committed
 extern void (*g_outOfMemoryHandler)();
@@ -101,89 +102,32 @@ struct Arena_004da9f0 {
 
 // ---- the allocator's free-block set -----------------------------------------
 
-struct Pair_004db000 {
-    unsigned int offset; // +0x0
-    unsigned int length; // +0x4
-    Pair_004db000() {}
-    Pair_004db000(unsigned int o, unsigned int l) : offset(o), length(l) {}
-};
-
-struct Node_004dacf0 {
-    Node_004dacf0* left;   // +0x0
-    Node_004dacf0* parent; // +0x4
-    Node_004dacf0* right;  // +0x8
-    Pair_004db000 value;   // +0xc
-    int color;             // +0x14
-};
-
-class FreeBlockIter {
-public:
-    Node_004dacf0* ptr;
-
-    FreeBlockIter() {}
-    FreeBlockIter(Node_004dacf0* q) : ptr(q) {}
-    bool operator==(const FreeBlockIter& o) const { return ptr == o.ptr; }
-    bool operator!=(const FreeBlockIter& o) const { return !(*this == o); }
-    Pair_004db000& operator*() const { return ptr->value; }
-    Pair_004db000* operator->() const { return &ptr->value; }
-    FreeBlockIter Previous(int); // operator--(int)
-};
-
-class MapInsertResult {
-public:
-    FreeBlockIter first;
-    unsigned char second;
-    MapInsertResult() {}
-};
-
-class FreeBlockMap {
-public:
-    char unknown_0[4];     // +0x0
-    Node_004dacf0* head;   // +0x4
-    unsigned char rebuild; // +0x8
-    unsigned int count;    // +0xc
-    unsigned int total;    // +0x10
-
-    FreeBlockIter UpperBound(const unsigned int& k);
-    FreeBlockIter Begin();
-    FreeBlockIter EraseCopyIter(FreeBlockIter it);
-    MapInsertResult InsertOrFind(const Pair_004db000& v);
-
-    FreeBlockIter begin() { return Begin(); }
-    FreeBlockIter end() { return FreeBlockIter(head); }
-    FreeBlockIter upper_bound(const unsigned int& k)
-    {
-        return UpperBound(k);
-    }
-    FreeBlockIter erase(FreeBlockIter it) { return EraseCopyIter(it); }
-    MapInsertResult insert(const Pair_004db000& v) { return InsertOrFind(v); }
-
-    // 0x4db000: add a free block, merged with the free blocks on either side.
-    void AddFreeBlock(Pair_004db000 p)
-    {
-        FreeBlockIter it;
-        FreeBlockIter n = upper_bound(p.offset);
-        it = n;
-        if (it == begin())
-            it = end();
-        else
-            it.Previous(0);
-        if (n != end()) {
-            if (n->offset == p.offset + p.length) {
-                p.length = p.length + n->length;
-                erase(n);
-            }
+// 0x4db000: add a free block, merged with the free blocks on either side. The
+// original inlines this into FreeDebugBlock, so the definition stays here.
+inline void FreeBlockMap::AddFreeBlock(Pair_004db000 p)
+{
+    FreeBlockIter it;
+    FreeBlockIter n = UpperBound(p.offset);
+    it = n;
+    if (it == begin())
+        it = end();
+    else
+        it.Previous(0);
+    if (n != end()) {
+        if (n->offset == p.offset + p.length) {
+            p.length = p.length + n->length;
+            EraseCopyIter(n);
         }
-        if (it != end()) {
-            if (it->length + it->offset == p.offset) {
-                p.length = p.length + it->length;
-                p.offset = it->offset;
-                erase(it);
-            }
-        }
-        insert(p);
     }
-};
+    if (it != end()) {
+        if (it->length + it->offset == p.offset) {
+            p.length = p.length + it->length;
+            p.offset = it->offset;
+            EraseCopyIter(it);
+        }
+    }
+    InsertOrFind(p);
+}
 
 CRITICAL_SECTION* GetAllocLock();
 BlockMap* GetBlockMap();

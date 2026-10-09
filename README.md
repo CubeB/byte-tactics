@@ -101,15 +101,15 @@ The matching is done; this is how far the source has got toward reading like sou
 
 `[############################------------]`
 
-Counts in `src/` and `include/` at `origin/main`, against `e9367f13` (the roadmap's starting point).
+Counts in `src/` and `include/` at `fork-main`, against `e9367f13` (the roadmap's starting point).
 
 | | Start | Now | Target | Done | |
 | --- | ---: | ---: | --- | ---: | --- |
 | Source files (`.cpp`) | 2,727 | 304 | 112, one per module (`data/modules.csv`) | 93% | `[###################-]` |
 | Placeholder functions `FUN_<addr>` | 1,076 | 282 | 0, named | 74% | `[###############-----]` |
-| Placeholder globals `DAT_<addr>` | 737 | 65 | 0, named | 91% | `[##################--]` |
-| Placeholder classes `Class_<addr>` | 769 | 666 | 0, named | 13% | `[###-----------------]` |
-| Placeholder fields `field_<offset>` | 589 | 367 | 0, named | 38% | `[########------------]` |
+| Placeholder globals `DAT_<addr>` | 737 | 66 | 0, named | 91% | `[##################--]` |
+| Placeholder classes `Class_<addr>` | 769 | 665 | 0, named | 14% | `[###-----------------]` |
+| Placeholder fields `field_<offset>` | 589 | 366 | 0, named | 38% | `[########------------]` |
 | Files that define `Unit` | 285 | 80 | 1, one shared definition | 72% | `[##############------]` |
 | Files opening with matching history | 301 | 0 | 0, none | 100% | `[####################]` |
 | Casts `((T*)x)->` | 1,698 | 318 | 0, casts the types allow | 81% | `[################----]` |

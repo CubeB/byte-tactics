@@ -59,10 +59,7 @@ public:
     int FindScript(char* name);
 };
 
-class MissionConditions {
-public:
-    int CheckVictory();
-};
+#include "../game/mission_conditions.h"
 
 #pragma pack(push, 1)
 

@@ -288,15 +288,10 @@ struct MissionUnit {               // 0x24 bytes
 };
 
 #include "../map/mission.h"
-
-class MissionConditions {
-public:
-    char unknown_0[0x88];
-    int field_88;
-
-    void Deactivate();
-    void NotifyUnitCaptured(Unit* unit);
-};
+#include "../game/mission_conditions.h"
+// Unused here: the symbol id this declaration takes keeps 0x488810 matching
+// with the header above in front of it (docs/c2-regalloc.md).
+struct AccountList;
 
 struct Game {
     char unknown_0[0x1b63];

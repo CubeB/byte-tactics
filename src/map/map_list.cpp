@@ -79,15 +79,7 @@ char* __stdcall Translate(char* text);
 
 int __stdcall LoadMapList(char** out, int param_2, int param_3);
 
-class MissionConditions {
-public:
-    char unknown_0[0x8c];
-
-    MissionConditions();
-    ~MissionConditions() { FreeConditions(); }
-    void FreeConditions();
-    void RegisterConditions(TdfFile* parser);
-};
+#include "../game/mission_conditions.h"
 
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
 void WalkFrameChain(int*, int*, int, int, int*, int, int*, int*, int, int*);
@@ -960,7 +952,9 @@ int Mission::LoadMission(char* map)
     noSeaLevelTrigger = parser.current->GetFieldInt("nosealeveltrigger", 0);
     waterDoesDamage = parser.current->GetFieldInt("waterdoesdamage", 0);
     waterDamage = parser.current->GetFieldInt("waterdamage", 0);
-    g_game->victoryConditions->RegisterConditions(&parser);
+    // The parameter is a TdfFile; the method takes the placeholder type that
+    // carries the same pointer, as the original's decorated name has it.
+    g_game->victoryConditions->RegisterConditions((Param_0048e010*)&parser);
     killMul = GetFloat(parser.current, "killmul");
     timeMul = GetFloat(parser.current, "timemul");
     if (!SelectSchema(type, &parser, schema)) {

@@ -29,22 +29,8 @@ struct CellPos_0049a120 {
 };
 
 #pragma pack(push, 1)
-struct WeaponDef {
-    char unknown_0[0xd6];
-    unsigned short radius;             // +0xd6
-    float edgeDamage;                  // +0xd8
-    char unknown_dc[0x10a - 0xdc];
-    unsigned char kind;                // +0x10a
-    char unknown_10b[0x111 - 0x10b];
-    union {
-        unsigned int all;
-        struct {
-            unsigned int bits0_29 : 30;
-            unsigned int detonatesWeapons : 1;
-            unsigned int bit31 : 1;
-        } bits;
-    } flags;                           // +0x111
-};
+
+#include "weapon_def.h"
 
 struct UnitDef_0049a120 {
     char unknown_0[0x15e];
@@ -229,7 +215,7 @@ void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
 {
     Hits_0049a120 hits;
     memset(&hits, 0, 8);
-    int radius = weapon->def->radius >> 1;
+    int radius = weapon->def->areaOfEffect >> 1;
     int r = radius / 16 + 1;
     int cx = ((FixedVec3*)pos)->x.part.whole;
     int x0 = cx / 16 - r;
@@ -322,7 +308,7 @@ void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
                         enemyDamage += damage;
                 }
             }
-            if (weapon->def->flags.all & 0x4000)
+            if (weapon->def->flags.value & 0x4000)
                 continue;
             Cell* origin = cell;
             int fx = x;
@@ -362,7 +348,7 @@ void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
         }
     }
 
-    if (weapon->def->flags.bits.detonatesWeapons) {
+    if (weapon->def->flags.b.f30) {
         // Every field is read through `other` (no weapons[j]): the derived
         // pointer is stepped after it.
         Weapon_0049a120* other = g_game->weapons;
@@ -373,18 +359,18 @@ void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
             int dx = weapon->pos.x - p->x;
             int dy = weapon->pos.y - p->y;
             int dz = weapon->pos.z - p->z;
-            int reach = weapon->def->radius;
+            int reach = weapon->def->areaOfEffect;
             if ((int)(((__int64)dx * dx) >> 32) + (int)(((__int64)dy * dy) >> 32) + (int)(((__int64)dz * dz) >> 32)
                 < reach * reach) {
                 DetonateProjectile(other, 0);
                 ProjectileDetonatePacket packet;
                 packet.type = 0xe;
                 packet.aim = other->aim;
-                packet.weaponIndex = other->def->kind;
+                packet.weaponIndex = other->def->index;
                 BroadcastPacket(weapon->attacker->holder->playerId, &packet, sizeof(packet));
                 packet.type = 0xe;
                 packet.aim = weapon->aim;
-                packet.weaponIndex = weapon->def->kind;
+                packet.weaponIndex = weapon->def->index;
                 BroadcastPacket(weapon->attacker->holder->playerId, &packet, sizeof(packet));
             }
         }

@@ -75,3 +75,10 @@ reason is what stopped it. A module whose row list is empty is one file.
 | debug/debug_lib | src/debug/debug_lib_4e2620.cpp | Its `NameMapTree` carries the tree fields and its own rotations, where 0x4e2250's inherits them from the XTREE chain. |
 | debug/debug_lib | src/debug/debug_lib_4e35b0.cpp | Gap region. |
 | debug/debug_lib | src/debug/debug_lib_4e3750.cpp | Joined, its register allocation lands differently, and its inlined GDPERF calls come out differently. |
+| map/features | src/map/features_421f20.cpp | The module is built with `/Gi`, and in the joined file the loop address's base and index swap (`lea [edx+ebx+4]` against the original's `[ebx+edx+4]`). |
+| map/features | src/map/features_4224b0.cpp | Merged, the symbol ids schedule the `name` load after the strncpy setup, and adding its prototypes moves 0x425210 off its window. |
+| map/features | src/map/features_422ea0.cpp | `/Gi` changes the base and index of the feature-table address and of the dead, burnt and reclamate stores; merged it falls to 81.4%. |
+| map/features | src/map/features_424c00.cpp | It matches only with `include/ta_types.h` at its exact size and with the 3D loop's `c` numbered past 65536; `/Gi` alone leaves it at 89.6%. |
+| network/online | src/network/online_45b250.cpp | Gap code: `tools/gapcheck.py` sizes a gap region by the file it is in, so it cannot share online.cpp. |
+| network/online | src/network/online_45b490.cpp | Gap code, same as online_45b250.cpp. |
+| network/online | src/network/online_45b670.cpp | Gap code, same as online_45b250.cpp. |

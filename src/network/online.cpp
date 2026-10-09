@@ -1,4 +1,8 @@
 // Decompiled by Haiku, gathered by DeepSeek V4.1 Flash. Names are provisional.
+// The online.dll glue. 0x45b250, 0x45b490 and 0x45b670 are gap code
+// (data/functions.csv), so they stay in online_45b250.cpp, online_45b490.cpp
+// and online_45b670.cpp: tools/gapcheck.py sizes a gap region by the file it
+// is in.
 
 #include <windows.h>
 

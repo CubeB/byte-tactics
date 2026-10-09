@@ -21,11 +21,7 @@ struct Rect_004b0230 {
     int y1;                          // +0xc
 };
 
-struct GafFrame {
-    unsigned short width;            // +0x0
-    unsigned short height;           // +0x2
-    char unknown_4[0x28 - 0x4];
-};
+#include "../graphics/gaf_frame.h"
 
 struct Bits_004b0230 {
     unsigned short count;            // +0x0

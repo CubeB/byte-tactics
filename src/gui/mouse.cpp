@@ -5,16 +5,9 @@
 #include <windows.h>
 #include <string.h>
 
-#pragma pack(push, 2)
+#include "../graphics/gaf_frame.h"
 
-// The cursor bitmap at +0x1b2: its size and the hotspot its origin is
-// offset by.
-struct GafFrame {
-    unsigned short width;              // +0x0
-    unsigned short height;             // +0x2
-    short dx;                          // +0x4
-    short dy;                          // +0x6
-};
+#pragma pack(push, 2)
 
 // A saved-background surface descriptor at +0x1be.
 struct Desc_004c25e0 {
@@ -198,8 +191,8 @@ void __stdcall CaptureBackgroundAndDrawCursor(Obj_004c2380* obj)
             GetCursorPos(&pt);
             obj->rect.x = pt.x;
             obj->rect.y = pt.y;
-            obj->x = pt.x - obj->sprite->dx;
-            obj->y = pt.y - obj->sprite->dy;
+            obj->x = pt.x - obj->sprite->xOffset;
+            obj->y = pt.y - obj->sprite->yOffset;
             obj->saved->width = obj->sprite->width;
             obj->saved->height = obj->sprite->height;
             obj->saved->pitch = obj->sprite->width;
@@ -237,8 +230,8 @@ void __stdcall RedrawMouseCursor(Obj_004c2380* app)
     int y = pt.y;
     app->rect.x = x;
     app->rect.y = y;
-    x -= app->sprite->dx;
-    y -= app->sprite->dy;
+    x -= app->sprite->xOffset;
+    y -= app->sprite->yOffset;
     app->under->width = app->sprite->width;
     app->under->height = app->sprite->height;
     app->under->pitch = app->sprite->width;
@@ -249,7 +242,7 @@ void __stdcall RedrawMouseCursor(Obj_004c2380* app)
     BlitSurface(app->under, app->saved, app->x - x, app->y - y);
     BlitSurface(app->work, app->under, 0, 0);
     ResetClipRect(app->work);
-    DrawFrame(app->work, app->sprite, app->sprite->dx, app->sprite->dy);
+    DrawFrame(app->work, app->sprite, app->sprite->xOffset, app->sprite->yOffset);
     BlitSurface(app->saved, app->work, x - app->x, y - app->y);
     r1.left = app->x;
     r1.top = app->y;
@@ -288,8 +281,8 @@ void __fastcall ShowSoftwareCursor(void)
             o->rect.x = pt.x;
             o->rect.y = pt.y;
             if (o->sprite != 0) {
-                o->x = pt.x - o->sprite->dx;
-                o->y = pt.y - o->sprite->dy;
+                o->x = pt.x - o->sprite->xOffset;
+                o->y = pt.y - o->sprite->yOffset;
                 o->saved->width = o->sprite->width;
                 o->saved->height = o->sprite->height;
                 o->saved->pitch = o->sprite->width;

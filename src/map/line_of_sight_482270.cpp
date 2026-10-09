@@ -6,28 +6,31 @@
 
 #pragma pack(push, 1)
 
-class LosTables {
-public:
-    void* GetLosTable(int n);
-    short GetLosTableCount();
-};
-
-class LosTable {
-public:
-    short GetLosLineCount();
-    void* GetLosLine(short i);
-};
-
 class LosLine {
 public:
     short GetLosLineStepCount();
     void GetLosLineStep(short i, int* a, int* b);
 };
 
+class LosTable {
+public:
+    short GetLosLineCount();
+    LosLine* GetLosLine(short i);
+};
+
+class LosTables {
+public:
+    LosTable* GetLosTable(int n);
+    short GetLosTableCount();
+};
+
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
 int RIReport(int, int, int, int, int, int, int, int, int, int);
 void CopyDwordIfNonNull(int*, int*);
 int ScanDirectory(char*, char*, char*, int, int, int);
+void RegisterUnitOrders(void);
+void RegisterGroundOrders(void);
+void EnableAICommands(void);
 
 extern char g_losTables[];
 
@@ -125,7 +128,7 @@ void __stdcall AddLineOfSight(SightQuery* params)
         if ((unsigned)y >= grid->height)
             return;
         // Clamp written inline as the GetLosTable argument, with no temporary.
-        void* table = ((LosTables*)g_losTables)
+        LosTable* table = ((LosTables*)g_losTables)
                           ->GetLosTable(
                               (params->sightDistance / 32 < 0 ? 0 : params->sightDistance / 32)
                                       < ((LosTables*)g_losTables)
@@ -133,13 +136,13 @@ void __stdcall AddLineOfSight(SightQuery* params)
                                   ? (params->sightDistance / 32 < 0 ? 0 : params->sightDistance / 32)
                                   : ((LosTables*)g_losTables)
                                         ->GetLosTableCount() - 1);
-        short count = ((LosTable*)table)->GetLosLineCount();
+        short count = table->GetLosLineCount();
         short i = 0;
         ((Player_482270*)params->player)->grid.at(x, y)++;
         int ref = *params->frameIdx;
         for (i = 0; i < count; i++) {
-            void* line = ((LosTable*)table)->GetLosLine(i);
-            short num = ((LosLine*)line)->GetLosLineStepCount();
+            LosLine* line = table->GetLosLine(i);
+            short num = line->GetLosLineStepCount();
             // Declared in this order: bestIdx, j1, bestDiff, j; dx and dy stay int locals.
             int bestIdx = 0;
             int j1;
@@ -150,7 +153,7 @@ void __stdcall AddLineOfSight(SightQuery* params)
                 do {
                     int dx;
                     int dy;
-                    ((LosLine*)line)->GetLosLineStep(j, &dx, &dy);
+                    line->GetLosLineStep(j, &dx, &dy);
                     dx += x;
                     dy += y;
                     if ((unsigned)(short)dx >= grid->width)

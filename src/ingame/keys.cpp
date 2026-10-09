@@ -129,7 +129,14 @@ struct SrcHolder_00495a30 {
     Src_004b8ae0* frame;                    // +0xbc
 };
 
-struct Surface_00495a30 {
+struct Rect_00495a30 {
+    int left;                               // +0x0
+    int top;                                // +0x4
+    int right;                              // +0x8
+    int bottom;                             // +0xc
+};
+
+struct Surface {
     int width;                              // +0x0
     int height;                             // +0x4
     int pitch;                              // +0x8
@@ -141,17 +148,6 @@ struct Surface_00495a30 {
     char unknown_1c[0x10];
     unsigned int flag0 : 1;                 // +0x2c
     unsigned int flag1 : 1;
-};
-
-struct Rect_00495a30 {
-    int left;                               // +0x0
-    int top;                                // +0x4
-    int right;                              // +0x8
-    int bottom;                             // +0xc
-};
-
-struct Surface {
-    char unknown_0[0x1c];
     void SetClipRect(Rect_00495a30 r);
 };
 
@@ -245,13 +241,13 @@ void __stdcall BuildScreenshotPath(char* out, const char* dir, const char* name,
 GafFrame* __stdcall AllocFrame(const char* name, int width, int height);
 void __cdecl SetOutOfMemoryHandler(int param);
 void __stdcall InstallOutOfMemoryHandler();
-void __stdcall SurfaceFromFrame(Surface_00495a30* dst, void* src);
+void __stdcall SurfaceFromFrame(Surface* dst, void* src);
 void* __stdcall GetDisplay();
 void __stdcall FrameFromSurface(GafFrame* dst, Src_004b8ae0* src);
 void __stdcall SetCameraPosition(int x, int y, int z);
 void __stdcall CollectVisibleUnitIds();
 void __stdcall DrawBattleFrame(int param_1, int param_2);
-void __stdcall DrawFrame(Surface_00495a30* surf, GafFrame* pal, int x, int y);
+void __stdcall DrawFrame(Surface* surf, GafFrame* pal, int x, int y);
 void __stdcall ClearFrame(void* b, int color);
 void __stdcall RecalculateLineOfSight(int param);
 void __cdecl GameFreeThunk(void* b);
@@ -361,6 +357,18 @@ void __stdcall BuildScreenshotPath(char* out, const char* dir, const char* name,
 // keep the allocation (docs/c2-regalloc.md).
 void UpdateBuildMenuIfFocusUnit(void*);
 void ActivatePlayerGadgets(char*);
+// Unused here: real zero-argument functions whose symbol ids keep
+// WriteScreenshot's allocation after Surface_00495a30 and Surface became one
+// (docs/c2-regalloc.md).
+void ResetCameraState(void);
+void ClampCameraPosition(void);
+void ClampCameraTarget(void);
+void UpdateScreenShake(void);
+void UpdateCameraFollow(void);
+void BeginMouseScroll(void);
+void EndMouseScroll(void);
+void UpdateMouseScroll(void);
+void UpdateEdgeScroll(void);
 // FUNCTION: 0x495a30
 void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h)
 {
@@ -391,7 +399,7 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
         InstallOutOfMemoryHandler();
         if (bm != 0) {
             int scrollX;
-            Surface_00495a30 surf;
+            Surface surf;
             scrollX = g_game->scrollX;
             GafFrame pal;
             fl = g_game->mapFlags;
@@ -440,7 +448,7 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
                         box.top = 0;
                         box.right = right;
                         box.bottom = bh - 1;
-                        ((Surface*)&surf)->SetClipRect(box);
+                        surf.SetClipRect(box);
                         DrawFrame(&surf, &pal, g_game->scrollX - x - off27,
                                      g_game->scrollY - row - y - off2b);
                     } while (((col += bw), (col < w)));

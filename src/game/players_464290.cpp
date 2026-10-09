@@ -487,14 +487,8 @@ public:
     CommandArgs* InitArgs();
 };
 
-class Class_004b74f0 {
-public:
-    char* args[0x34];                  // +0x00
-    int count;                         // +0xd0
-};
-
 char* __stdcall HAPI_LoadFile(const char* name, int* size);
-int __stdcall ExecuteCommandText(char* text, int len, Class_004b74f0* vars, int param_4);
+int __stdcall ExecuteCommandText(char* text, int len, CommandArgs* vars, int param_4);
 void __cdecl GameFreeThunk(char* text);
 void __stdcall ParseDownloadableAiWeightScripts(int player);
 void __stdcall ReparseAiWeightScriptsIfLimitNotSticky(int player);
@@ -509,8 +503,8 @@ void LoadDefaultAIScript()
         text = HAPI_LoadFile("ai\\default.txt", &size);
     }
     if (text != 0) {
-        Class_004b74f0 vars;
-        ((CommandArgs*)&vars)->InitArgs();
+        CommandArgs vars;
+        vars.InitArgs();
         ExecuteCommandText(text, size, &vars, -1);
         GameFreeThunk(text);
     }

@@ -9,22 +9,22 @@
 
 #pragma pack(push, 1)
 
-class LosTables {
+class LosLine {
 public:
-    void* GetLosTable(int n);
-    short GetLosTableCount();
+    short GetLosLineStepCount();
+    void GetLosLineStep(short i, unsigned short* a, unsigned short* b);
 };
 
 class LosTable {
 public:
     short GetLosLineCount();
-    void* GetLosLine(short i);
+    LosLine* GetLosLine(short i);
 };
 
-class LosLine {
+class LosTables {
 public:
-    short GetLosLineStepCount();
-    void GetLosLineStep(short i, unsigned short* a, unsigned short* b);
+    LosTable* GetLosTable(int n);
+    short GetLosTableCount();
 };
 
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
@@ -129,14 +129,14 @@ void __stdcall RevealAroundUnit(SightQuery* params)
     if (g_game->flag2 == 1) {
         Grid_00481930* grid = &g_game->grid1;
         if ((unsigned)x < grid->width && (unsigned)y < grid->height) {
-            void* table =
+            LosTable* table =
                 ((LosTables*)g_losTables)
                     ->GetLosTable(
                         (params->sightDistance / 32 < 0 ? 0 : params->sightDistance / 32) <
                                 ((LosTables*)g_losTables)->GetLosTableCount() - 1
                             ? (params->sightDistance / 32 < 0 ? 0 : params->sightDistance / 32)
                             : ((LosTables*)g_losTables)->GetLosTableCount() - 1);
-            short count = ((LosTable*)table)->GetLosLineCount();
+            short count = table->GetLosLineCount();
             unsigned short* cell = &g_game->visibilityMask[halfW * y + x];
             if ((unsigned short)(bit & *cell) == 0) {
                 *cell ^= bit;
@@ -144,8 +144,8 @@ void __stdcall RevealAroundUnit(SightQuery* params)
             }
             int ref = *params->frameIdx;
             for (short i = 0; (short)i < count; i++) {
-                void* line = ((LosTable*)table)->GetLosLine(i);
-                short num = ((LosLine*)line)->GetLosLineStepCount();
+                LosLine* line = table->GetLosLine(i);
+                short num = line->GetLosLineStepCount();
                 // Declared in this order: bestIdx, j1, bestDiff; j1 is set in the guard.
                 int bestIdx = 0;
                 int j1;
@@ -155,7 +155,7 @@ void __stdcall RevealAroundUnit(SightQuery* params)
                     j1 = 1;
                     do {
                         int y2, x2;
-                        ((LosLine*)line)->GetLosLineStep((short)j, (unsigned short*)&x2, (unsigned short*)&y2);
+                        line->GetLosLineStep((short)j, (unsigned short*)&x2, (unsigned short*)&y2);
                         x2 += x;
                         y2 += y;
                         if ((unsigned)(short)x2 < grid->width &&

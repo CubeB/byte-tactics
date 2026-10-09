@@ -1,7 +1,4 @@
 // Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
-// Codex / GPT-6 retry, following the 2026-10-03 maintainer lead: try the real
-// vector header with /Gi and an operator= instantiation before exploring other
-// same-vector members.
 // FLAGS: /Gi
 #include <vector>
 

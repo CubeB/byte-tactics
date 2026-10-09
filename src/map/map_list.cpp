@@ -49,10 +49,7 @@ struct Game {
 
 extern Game* g_game;
 
-class PacketManager {
-public:
-    void SendAllQueued(int param);
-};
+#include "../network/packet_manager.h"
 
 extern char* g_otaEnumFileList;
 extern int g_otaEnumCacheComplete;

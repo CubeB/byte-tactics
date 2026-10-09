@@ -586,9 +586,9 @@ void MissionCondition::OnUnitCreated(Unit*)
 {
 }
 
-extern char DAT_00508f3c[]; // "VictoryCondition_KillEnemyCommander"
-extern char DAT_00508f30[]; // "Satisfied"
-extern char DAT_00508f24[]; // "Celebrated"
+extern char g_killEnemyCommanderKey[]; // "VictoryCondition_KillEnemyCommander"
+extern char g_satisfiedKey[]; // "Satisfied"
+extern char g_celebratedKey[]; // "Celebrated"
 
 // Slot 1 of the "kill enemy commander" victory condition (vtable 0x4fd960,
 // compare 0x48f6b0 and 0x48ec20): when a unit of player index 1 is named after its
@@ -612,9 +612,9 @@ void VictoryKillEnemyCommander::OnUnitDied(Unit* unit)
 // FUNCTION: 0x48eac0
 void VictoryKillEnemyCommander::SaveState(HapiBank* obj)
 {
-    obj->OpenAccount(DAT_00508f3c);
-    obj->SetIntegerItem(DAT_00508f30, satisfied);
-    obj->SetIntegerItem(DAT_00508f24, celebrated);
+    obj->OpenAccount(g_killEnemyCommanderKey);
+    obj->SetIntegerItem(g_satisfiedKey, satisfied);
+    obj->SetIntegerItem(g_celebratedKey, celebrated);
 }
 
 // Reads the "kill enemy commander" victory condition's state from a section;
@@ -622,12 +622,12 @@ void VictoryKillEnemyCommander::SaveState(HapiBank* obj)
 // FUNCTION: 0x48eb00
 void VictoryKillEnemyCommander::LoadState(HapiBank* obj)
 {
-    obj->OpenAccount(DAT_00508f3c);
-    satisfied = obj->GetIntegerItem(DAT_00508f30, 0);
-    celebrated = obj->GetIntegerItem(DAT_00508f24, 0);
+    obj->OpenAccount(g_killEnemyCommanderKey);
+    satisfied = obj->GetIntegerItem(g_satisfiedKey, 0);
+    celebrated = obj->GetIntegerItem(g_celebratedKey, 0);
 }
 
-extern char DAT_00508f60[]; // "VictoryCondition_DestroyAllUnits"
+extern char g_destroyAllUnitsKey[]; // "VictoryCondition_DestroyAllUnits"
 
 // Slot 0 (IsSatisfied) of the "destroy all units" victory condition (vtable
 // 0x4fd948, state saved by 0x48eb80): satisfied while the game field at
@@ -650,9 +650,9 @@ int VictoryDestroyAllUnits::IsSatisfied()
 // FUNCTION: 0x48eb80
 void VictoryDestroyAllUnits::SaveState(HapiBank* obj)
 {
-    obj->OpenAccount(DAT_00508f60);
-    obj->SetIntegerItem(DAT_00508f30, satisfied);
-    obj->SetIntegerItem(DAT_00508f24, celebrated);
+    obj->OpenAccount(g_destroyAllUnitsKey);
+    obj->SetIntegerItem(g_satisfiedKey, satisfied);
+    obj->SetIntegerItem(g_celebratedKey, celebrated);
 }
 
 // Same shape as 0x48faf0: reads the "destroy all units" victory condition's
@@ -665,8 +665,8 @@ void VictoryDestroyAllUnits::LoadState(HapiBank* obj)
     celebrated = obj->GetIntegerItem("Celebrated", 0);
 }
 
-extern char DAT_00508f90[]; // "VictoryCondition_KillAllMobileUnits"
-extern char DAT_00508f84[]; // "NumUnits"
+extern char g_killAllMobileUnitsKey[]; // "VictoryCondition_KillAllMobileUnits"
+extern char g_numUnitsKey[]; // "NumUnits"
 
 // Slot 0 of the unit visitor at +0xc of the "kill all mobile units" victory
 // condition (visitor vtable 0x4fd920, driven by 0x48ec20): counts the units
@@ -705,10 +705,10 @@ void VictoryKillAllMobileUnits::OnUnitDied(Unit* unit)
 // FUNCTION: 0x48ecb0
 void VictoryKillAllMobileUnits::SaveState(HapiBank* obj)
 {
-    obj->OpenAccount(DAT_00508f90);
-    obj->SetIntegerItem(DAT_00508f84, numUnits);
-    obj->SetIntegerItem(DAT_00508f30, satisfied);
-    obj->SetIntegerItem(DAT_00508f24, celebrated);
+    obj->OpenAccount(g_killAllMobileUnitsKey);
+    obj->SetIntegerItem(g_numUnitsKey, numUnits);
+    obj->SetIntegerItem(g_satisfiedKey, satisfied);
+    obj->SetIntegerItem(g_celebratedKey, celebrated);
 }
 
 // The load counterpart of 0x48ecb0.
@@ -721,7 +721,7 @@ void VictoryKillAllMobileUnits::LoadState(HapiBank* obj)
     celebrated = obj->GetIntegerItem("Celebrated", 0);
 }
 
-extern char DAT_00508fb4[]; // "VictoryCondition_BuildUnitType"
+extern char g_buildUnitTypeKey[]; // "VictoryCondition_BuildUnitType"
 
 // Slot 0 of the unit visitor at +0xc of the "build unit type" victory
 // condition (visitor vtable 0x4fd900, driven by 0x48edb0). VisitUnit overrides
@@ -768,9 +768,9 @@ void VictoryBuildUnitType::SaveState(HapiBank* obj)
 // FUNCTION: 0x48ee70
 void VictoryBuildUnitType::LoadState(HapiBank* obj)
 {
-    obj->OpenAccount(DAT_00508fb4);
-    satisfied = obj->GetIntegerItem(DAT_00508f30, 0);
-    celebrated = obj->GetIntegerItem(DAT_00508f24, 0);
+    obj->OpenAccount(g_buildUnitTypeKey);
+    satisfied = obj->GetIntegerItem(g_satisfiedKey, 0);
+    celebrated = obj->GetIntegerItem(g_celebratedKey, 0);
 }
 
 // Slot 2 of the condition (state saved by 0x48ef00).
@@ -854,8 +854,8 @@ void VictoryKillAllOfType::LoadState(HapiBank* obj)
     celebrated = obj->GetIntegerItem("Celebrated", 0);
 }
 
-extern char DAT_00509028[]; // "VictoryCondition_KillUnitType"
-extern char DAT_00509018[]; // "NumLeftToKill"
+extern char g_killUnitTypeKey[]; // "VictoryCondition_KillUnitType"
+extern char g_numLeftToKillKey[]; // "NumLeftToKill"
 
 // Slot 1 of the "kill unit type" victory condition (vtable 0x4fd8b0, state
 // saved by 0x48f160): called with a unit; counts the named unit type down and
@@ -877,20 +877,20 @@ void VictoryKillUnitType::OnUnitDied(Unit* unit)
 // FUNCTION: 0x48f160
 void VictoryKillUnitType::SaveState(HapiBank* obj)
 {
-    obj->OpenAccount(DAT_00509028);
-    obj->SetIntegerItem(DAT_00509018, numLeftToKill);
-    obj->SetIntegerItem(DAT_00508f30, satisfied);
-    obj->SetIntegerItem(DAT_00508f24, celebrated);
+    obj->OpenAccount(g_killUnitTypeKey);
+    obj->SetIntegerItem(g_numLeftToKillKey, numLeftToKill);
+    obj->SetIntegerItem(g_satisfiedKey, satisfied);
+    obj->SetIntegerItem(g_celebratedKey, celebrated);
 }
 
 // Load counterpart of 0x48f160 (the "kill unit type" victory condition).
 // FUNCTION: 0x48f1b0
 void VictoryKillUnitType::LoadState(HapiBank* obj)
 {
-    obj->OpenAccount(DAT_00509028);
-    numLeftToKill = obj->GetIntegerItem(DAT_00509018, 0);
-    satisfied = obj->GetIntegerItem(DAT_00508f30, 0);
-    celebrated = obj->GetIntegerItem(DAT_00508f24, 0);
+    obj->OpenAccount(g_killUnitTypeKey);
+    numLeftToKill = obj->GetIntegerItem(g_numLeftToKillKey, 0);
+    satisfied = obj->GetIntegerItem(g_satisfiedKey, 0);
+    celebrated = obj->GetIntegerItem(g_celebratedKey, 0);
 }
 
 // The "move unit to radius" victory condition (vtable 0x4fd890, visitor
@@ -1105,7 +1105,7 @@ void DefeatCommanderKilled::LoadState(HapiBank* obj)
     celebrated = obj->GetIntegerItem("Celebrated", 0);
 }
 
-extern char DAT_005090fc[]; // "DefeatCondition_AllUnitsKilled"
+extern char g_allUnitsKilledKey[]; // "DefeatCondition_AllUnitsKilled"
 
 // Slot 0 of the unit visitor at +0xc of the "all units killed" defeat
 // condition (vtable 0x4fd7f8, stored by the constructors inlined at 0x48e6e5
@@ -1135,9 +1135,9 @@ int DefeatAllUnitsKilled::IsSatisfied()
 // FUNCTION: 0x48f840
 void DefeatAllUnitsKilled::SaveState(HapiBank* obj)
 {
-    obj->OpenAccount(DAT_005090fc);
-    obj->SetIntegerItem(DAT_00508f30, satisfied);
-    obj->SetIntegerItem(DAT_00508f24, celebrated);
+    obj->OpenAccount(g_allUnitsKilledKey);
+    obj->SetIntegerItem(g_satisfiedKey, satisfied);
+    obj->SetIntegerItem(g_celebratedKey, celebrated);
 }
 
 // Reads the "all units killed" defeat condition's state from a section;

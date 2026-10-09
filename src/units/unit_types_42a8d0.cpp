@@ -122,7 +122,7 @@ void SetMissionStatus(int, int, int);
 void StartFeatureBurning(int, int, int);
 void KillFeature(int, int, int);
 void ReplaceFeatureWithDead(int, int, int);
-void FUN_0044ef40(int, int, int);
+void FillWaypointWorldPos(int, int, int);
 void ResetAIPlayers(void);
 
 #pragma pack(push, 1)

@@ -99,15 +99,17 @@ struct Class_0044ced0 {
     void AddFlags(int param_1);
 };
 
+// A view of the order base whose six virtual slots are named after the base's: ContainsUnit
+// (slot 4) is the function defined below, so its stand-in has the slot suffix.
 class Class_0044cf00
 {
 public:
-    virtual void FUN_00000000();
-    virtual void FUN_00000001();
-    virtual void FUN_00000002();
-    virtual void FUN_00000003();
-    virtual void FUN_00000004();
-    virtual void FUN_00000005(int param_1, int param_2);
+    virtual void Destroy();
+    virtual void SerializeSave();
+    virtual void GetType();
+    virtual void IsFxStyle();
+    virtual void ContainsUnitSlot();
+    virtual void ContainsCell(int param_1, int param_2);
 
     void ContainsUnit(int param_1);
 };
@@ -961,7 +963,7 @@ public:
     virtual int ContainsCell(int x, int y);             // slot 5
     virtual void FillGoalCells();                       // slot 6
     virtual void ApproxDist();                          // slot 7
-    virtual int FUN_004e6110(Vec3_004907e0* out);       // slot 8
+    virtual int FillWorldPos(Vec3_004907e0* out);       // slot 8
     virtual int TryGetDesiredHeading();                 // slot 9
     virtual void WriteBits();                           // slot 10
     virtual int KeepAfterComplete();                    // slot 11
@@ -979,13 +981,13 @@ public:
     virtual ~PathGoal() {}                          // slot 0
     virtual void SetPathOrder(void* param);         // slot 1
     virtual void TickTowardGoal();                  // slot 2
-    virtual void FUN_0044ef40(Vec3_004907e0*, int, int);  // slot 3
+    virtual void FillWaypointWorldPos(Vec3_004907e0*, int, int);  // slot 3
     virtual void ExportGoalPose(Vec3_004907e0*, Vec3_004907e0*, short*);  // slot 4
-    virtual int FUN_0044ef80();                     // slot 5
+    virtual int HasReadyWaypoints();                // slot 5
     virtual AiSearchGoal* TryClaimRepath();         // slot 6
     virtual int HasNetUnitState();                  // slot 7
     virtual void SerializeNetUnitState(BitWriter*);  // slot 8
-    virtual void FUN_0044efd0(BitReader*);          // slot 9
+    virtual void DeserializeNetUnitState(BitReader*);  // slot 9
     virtual void DrawOnSurface(void*);              // slot 10
 };
 
@@ -1016,8 +1018,8 @@ public:
     virtual ~AiSearchGoal();                        // slot 0
     virtual void SetPathOrder(void* param);         // slot 1, 0x44f2a0
     virtual void TickTowardGoal();                  // slot 2, 0x44f1a0
-    virtual void FUN_0044ef40(Vec3_004907e0*, int, int);  // slot 3, 0x44f150
-    virtual int FUN_0044ef80();                     // slot 5, 0x44f290
+    virtual void FillWaypointWorldPos(Vec3_004907e0*, int, int);  // slot 3, 0x44f150
+    virtual int HasReadyWaypoints();                // slot 5, 0x44f290
     virtual AiSearchGoal* TryClaimRepath();         // slot 6, 0x44f260
     virtual int HasNetUnitState();                  // slot 7, 0x44f480
     virtual void SerializeNetUnitState(BitWriter*);  // slot 8, 0x44f4a0
@@ -1052,10 +1054,9 @@ public:
     int count;                         // +0x18
 
     PatrolGoal(Struct_004907e0* p);
-    virtual void FUN_0044ef40(Vec3_004907e0*, int, int);  // slot 3, 0x44f650
-    virtual int FUN_0044ef80();                     // slot 5, 0x44f5b0
-    virtual void FUN_0044efd0(BitReader*);          // slot 9, 0x44f5c0
-    void FUN_0044f5c0(BitReader* reader);
+    virtual void FillWaypointWorldPos(Vec3_004907e0*, int, int);  // slot 3, 0x44f650
+    virtual int HasReadyWaypoints();                // slot 5, 0x44f5b0
+    virtual void DeserializeNetUnitState(BitReader*);  // slot 9, 0x44f5c0
 };
 
 // Unused here: a forward declaration of a later function of this file; its
@@ -1103,6 +1104,9 @@ void LoadUnitTypes();
 void FreeUnitTypes();
 void LoadDownloadMenus();
 void FreeDownloadMenus();
+// Two more, for the declaration PatrolGoal::DeserializeNetUnitState no longer needs.
+void StartScreenFade();
+void StepScreenFade();
 
 Unit* __stdcall LoadUnit(unsigned short index, HapiBank* file);
 Vec3_0044e3c0 __stdcall GetPiecePosition(Unit* obj, int param);
@@ -1177,7 +1181,7 @@ void Class_0044cf00::ContainsUnit(int param_1)
     short esi = *(short*)(param_1 + 0x78);
     short eax = *(short*)(param_1 + 0x76);
 
-    FUN_00000005(eax, esi);
+    ContainsCell(eax, esi);
 }
 
 // FUNCTION: 0x44cf20
@@ -2295,7 +2299,7 @@ PathGoal::PathGoal(Struct_004907e0* p)
 
 // Slot 3: does nothing.
 // FUNCTION: 0x44ef40
-void PathGoal::FUN_0044ef40(Vec3_004907e0*, int, int)
+void PathGoal::FillWaypointWorldPos(Vec3_004907e0*, int, int)
 {
 }
 
@@ -2307,7 +2311,7 @@ void PathGoal::DrawOnSurface(void*)
 
 // Slot 5: whether there is an object at +0x4.
 // FUNCTION: 0x44ef80
-int PathGoal::FUN_0044ef80()
+int PathGoal::HasReadyWaypoints()
 {
     return field_4 != 0;
 }
@@ -2336,7 +2340,7 @@ void PathGoal::SerializeNetUnitState(BitWriter*)
 
 // Slot 9: does nothing.
 // FUNCTION: 0x44efd0
-void PathGoal::FUN_0044efd0(BitReader*)
+void PathGoal::DeserializeNetUnitState(BitReader*)
 {
 }
 
@@ -2410,7 +2414,7 @@ void AiSearchGoal::TruncateWaypointsFrom(int n)
 // Slot 3: fills n positions from the path points, repeating the last point past the
 // end of the path.
 // FUNCTION: 0x44f150
-void AiSearchGoal::FUN_0044ef40(Vec3_004907e0* out, int unused, int n)
+void AiSearchGoal::FillWaypointWorldPos(Vec3_004907e0* out, int unused, int n)
 {
     for (int i = 0; i < n; i++) {
         int j = i < count ? i : count - 1;
@@ -2468,7 +2472,7 @@ AiSearchGoal* AiSearchGoal::TryClaimRepath()
 
 // Slot 5: the active flag (bit 0 of +0x64).
 // FUNCTION: 0x44f290
-int AiSearchGoal::FUN_0044ef80()
+int AiSearchGoal::HasReadyWaypoints()
 {
     return field_64 & 1;
 }
@@ -2499,7 +2503,7 @@ void AiSearchGoal::SetPathOrder(void* param)
         }
         if (!active) {
             Vec3_004907e0 p;
-            if (field_4->FUN_004e6110(&p)) {
+            if (field_4->FillWorldPos(&p)) {
                 if (count >= 3) {
                     int sx = points[count - 1].x << 16;
                     int sz = points[count - 1].y << 16;
@@ -2595,13 +2599,14 @@ PatrolGoal::PatrolGoal(Struct_004907e0* p)
 
 // Slot 5: whether the patrol has at least two waypoints.
 // FUNCTION: 0x44f5b0
-int PatrolGoal::FUN_0044ef80()
+int PatrolGoal::HasReadyWaypoints()
 {
     return count >= 2;
 }
 
+// Slot 9: reads the owner's target flag (bit 2 of +0x2e) and up to three waypoints from the stream.
 // FUNCTION: 0x44f5c0
-void PatrolGoal::FUN_0044f5c0(BitReader* reader)
+void PatrolGoal::DeserializeNetUnitState(BitReader* reader)
 {
     ((Owner_0044f5c0*)owner)->target->flag_2 = reader->ReadBit();
     count = reader->ReadBits(2);
@@ -2614,7 +2619,7 @@ void PatrolGoal::FUN_0044f5c0(BitReader* reader)
 // Slot 3: converts up to `n` short 2D points into 16.16 fixed-point 3D vectors
 // (x, 0, y), repeating the last point once the list runs out.
 // FUNCTION: 0x44f650
-void PatrolGoal::FUN_0044ef40(Vec3_004907e0* out, int unused, int n)
+void PatrolGoal::FillWaypointWorldPos(Vec3_004907e0* out, int unused, int n)
 {
     for (int i = 0; i < n; i++) {
         int j = i < count ? i : count - 1;

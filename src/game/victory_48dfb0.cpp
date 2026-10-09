@@ -1680,7 +1680,7 @@ public:
     virtual void vf6();
     virtual void vf7();
     virtual void SerializeNetUnitState(Vec3* param);  // slot 8
-    virtual int FUN_0044efd0(short* param);         // slot 9
+    virtual int TryGetDesiredHeading(short* param);         // slot 9
     virtual void Write(BitWriter* stream);          // +0x28
     virtual int FUN_0044ef50_11();                  // slot 11
     void AddFlags(int param);
@@ -1696,13 +1696,13 @@ public:
     virtual ~PathGoal() {}                          // slot 0
     virtual void SetPathOrder(void* param);         // slot 1
     virtual void TickTowardGoal();                  // slot 2
-    virtual void FUN_0044ef40(Vec3*, int, int);  // slot 3
+    virtual void FillWaypointWorldPos(Vec3*, int, int);  // slot 3
     virtual void ExportGoalPose(Vec3*, Vec3*, short*);  // slot 4
-    virtual int FUN_0044ef80();                     // slot 5
+    virtual int HasReadyWaypoints();                // slot 5
     virtual AiSearchGoal* TryClaimRepath();         // slot 6
     virtual int HasNetUnitState();                  // slot 7
     virtual void SerializeNetUnitState(BitWriter*);  // slot 8
-    virtual void FUN_0044efd0(BitReader*);          // slot 9
+    virtual void DeserializeNetUnitState(BitReader*);  // slot 9
     virtual void DrawOnSurface(void*);              // slot 10
 };
 
@@ -1789,7 +1789,7 @@ void PackedGoal::TickTowardGoal()
             // branches from being tail-merged.
             pos.y = (owner->def->altitude + owner->field_82[1]) << 16;
     }
-    if (dist > 0x1400000 || (!field_4->FUN_0044efd0(&field_24) && dist > 0x100000))
+    if (dist > 0x1400000 || (!field_4->TryGetDesiredHeading(&field_24) && dist > 0x100000))
         field_24 = (short)GetHeadingBetween(&owner->pos, &pos);
     if (field_4->ExportGoalPose(owner)) {
         field_4->AddFlags(0x20);
@@ -1895,7 +1895,7 @@ class PackedPosGoal : public PackedGoal {
 public:
     PackedPosGoal(Struct_004907e0* p);
     virtual ~PackedPosGoal();                       // slot 0
-    virtual void FUN_0044efd0(BitReader*);          // slot 9, 0x490a10
+    virtual void DeserializeNetUnitState(BitReader*);  // slot 9, 0x490a10
 };
 
 // The constructor: the base constructor (0x44ef20) is out of line, the middle
@@ -1922,7 +1922,7 @@ PackedPosGoal::~PackedPosGoal()
 // 2 pick its class, anything else leaves none), then passes a 2-bit state read
 // after it to the owner.
 // FUNCTION: 0x490a10
-void PackedPosGoal::FUN_0044efd0(BitReader* reader)
+void PackedPosGoal::DeserializeNetUnitState(BitReader* reader)
 {
     if (field_4) {
         delete field_4;

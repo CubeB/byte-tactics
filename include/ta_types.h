@@ -3569,11 +3569,11 @@ public:
     virtual void SetPathOrder(void*);
     virtual void FUN_0044ce40(void);
     virtual void TickTowardGoal(void);
-    virtual int FUN_0044ef40(int, int, int);
+    virtual int FillWaypointWorldPos(int, int, int);
     virtual void IsFxStyle(void);
     virtual int FUN_0044cf00(Unit*);
     virtual int ExportGoalPose(Unit*);
-    virtual int FUN_0044ef80(void);
+    virtual int HasReadyWaypoints(void);
     virtual void ContainsCell(void);
     virtual int TryClaimRepath(void);
     virtual void FillGoalCells(void);
@@ -3581,7 +3581,7 @@ public:
     virtual void ApproxDist(void);
     virtual void SerializeNetUnitState(Vec3*);
     virtual void FUN_004e6110(void);
-    virtual int FUN_0044efd0(short*);
+    virtual int DeserializeNetUnitState(short*);
     virtual void TryGetDesiredHeading(void);
     virtual void FUN_0044cf50(void);
     virtual void DrawOnSurface(int);
@@ -7212,7 +7212,7 @@ public:
     virtual void FUN_00000001(void);
     virtual void FUN_00000002(void);
     virtual void FUN_00000003(void);
-    virtual void FUN_00000004(void);
+    virtual void ContainsUnitSlot(void);
     virtual void FUN_00000005(int, int);
     void FUN_0044cf00(int);
 };
@@ -7739,14 +7739,14 @@ public:
     PathGoal(Unit*);
     virtual void SetPathOrder(void*);
     virtual void TickTowardGoal(void);
-    virtual void FUN_0044ef40(int, int, int);
+    virtual void FillWaypointWorldPos(int, int, int);
     virtual void ExportGoalPose(int, int, int);
-    virtual int FUN_0044ef80(void);
+    virtual int HasReadyWaypoints(void);
     virtual int TryClaimRepath(void);
     virtual int HasNetUnitState(void);
     virtual void SerializeNetUnitState(int);
-    virtual void FUN_0044efd0(int);
-    virtual void FUN_0044efd0(void);
+    virtual void DeserializeNetUnitState(int);
+    virtual void DeserializeNetUnitState(void);
     virtual void DrawOnSurface(int);
     virtual void DrawOnSurface(void);
 };
@@ -7766,8 +7766,8 @@ public:
     AiSearchGoal(int);
     virtual void SetPathOrder(void*);
     virtual void TickTowardGoal(void);
-    virtual void FUN_0044ef40(int, int, int);
-    virtual int FUN_0044ef80(void);
+    virtual void FillWaypointWorldPos(int, int, int);
+    virtual int HasReadyWaypoints(void);
     virtual int TryClaimRepath(void);
     virtual int HasNetUnitState(void);
     virtual void SerializeNetUnitState(int);
@@ -7781,16 +7781,16 @@ public:
     char unknown_c[12];
     int field_18;  // +0x18
     Class_0044f570(int);
-    virtual void FUN_0044ef40(int, int, int);
-    virtual int FUN_0044ef80(void);
-    virtual void FUN_0044efd0(int);
+    virtual void FillWaypointWorldPos(int, int, int);
+    virtual int HasReadyWaypoints(void);
+    virtual void DeserializeNetUnitState(int);
 };
 
 class Class_0044ef80 {  // 0x8 bytes, 1 view
 public:
     char unknown_0[4];
     int field_4;  // +0x4
-    int FUN_0044ef80(void);
+    int HasReadyWaypoints(void);
 };
 
 class Class_44ef90 {  // 0x8 bytes, 2 views
@@ -13845,7 +13845,7 @@ class PackedPosGoal : public PackedGoal {       // 0x28 bytes, 6 views
 public:
     virtual ~PackedPosGoal(void);
     PackedPosGoal(Unit*);
-    virtual void FUN_0044efd0(int);
+    virtual void DeserializeNetUnitState(int);
     virtual void FUN_00490690(void);
     void FUN_00490880(void);
 };

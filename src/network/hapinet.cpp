@@ -153,7 +153,7 @@ struct Net_4c97b0 {
     GUID_004c9920 application;        // +0x43d
     GUID_004c9920 sp;                 // +0x44d
     SessionDesc_4c9890 desc;          // +0x45d
-    int field_4ad;                    // +0x4ad
+    int hwnd;                         // +0x4ad
     char unknown_4b1[4];              // +0x4b1
     unsigned long from;               // +0x4b5
     unsigned long to;                 // +0x4b9
@@ -166,8 +166,8 @@ struct Net_4c97b0 {
     int connection_size;              // +0x4d5
     char unknown_4d9[4];              // +0x4d9
     int maxPlayers;                   // +0x4dd
-    int field_4e1;                    // +0x4e1
-    int field_4e5;                    // +0x4e5
+    int enumTimeout;                  // +0x4e1
+    int providerCount;                // +0x4e5
     int count;                        // +0x4e9
 };
 #pragma pack(pop)
@@ -479,7 +479,7 @@ void __stdcall HAPINET_initmultiplaydefaults(Net_4c97b0* net)
 {
     HapinetTrace((int)"HAPINET_initmultiplaydefaults\n");
     net->maxPlayers = 0x10;
-    net->field_4e1 = 0x5dc;
+    net->enumTimeout = 0x5dc;
 }
 
 // DPENUMSESSIONSCALLBACK2 for IDirectPlay3::EnumSessions (HAPINET_getgamescallback).
@@ -579,7 +579,7 @@ int __stdcall HAPINET_getgames(Net_4c97b0* net, void* sessions, int unused)
     net->games = (GameRec_4c9c50*)sessions;
     int result;
     do {
-        result = net->dp->EnumSessions(&desc, net->field_4e1, HAPINET_getgamescallback, net, 0x81);
+        result = net->dp->EnumSessions(&desc, net->enumTimeout, HAPINET_getgamescallback, net, 0x81);
         g_enumSessionsResult = result;
         MSG msg;
         if (PeekMessageA(&msg, 0, 0, 0, 0)) {
@@ -653,16 +653,16 @@ int __stdcall HAPINET_enumconnections(GUID_004c9920* guid, void* connection, uns
         if (memcmp(guid, g_skippedProviders[i], sizeof(GUID_004c9920)) == 0)
             return 1;
     }
-    net->guids[net->field_4e5] = *guid;
-    net->conns[net->field_4e5].data = GameAllocIgnoreTag("DPLAY CONNECTION", size);
-    if (net->conns[net->field_4e5].data == 0)
+    net->guids[net->providerCount] = *guid;
+    net->conns[net->providerCount].data = GameAllocIgnoreTag("DPLAY CONNECTION", size);
+    if (net->conns[net->providerCount].data == 0)
         return 0;
-    memcpy(net->conns[net->field_4e5].data, connection, size);
-    net->conns[net->field_4e5].size = size;
+    memcpy(net->conns[net->providerCount].data, connection, size);
+    net->conns[net->providerCount].size = size;
     sprintf(local, "%s", name->lpszShortNameA);
-    char* dest = SkipTextLines(net->names, net->field_4e5);
+    char* dest = SkipTextLines(net->names, net->providerCount);
     strcpy(dest, local);
-    net->field_4e5++;
+    net->providerCount++;
     return 1;
 }
 
@@ -678,7 +678,7 @@ int __stdcall HAPINET_getconnections(Net_4c97b0* net, int a, int b, int c, GUID_
         }
     }
     net->guids = (GUID_004c9920*)a;
-    net->field_4e5 = 0;
+    net->providerCount = 0;
     net->conns = (Conn_4ca100*)b;
     net->names = (char*)c;
     int hr = net->dp->EnumConnections(application, HAPINET_enumconnections, net, 1);
@@ -690,11 +690,11 @@ int __stdcall HAPINET_enumproviders(GUID_004c9920* guid, char* name, unsigned lo
 {
     char local[200];
     HapinetTrace((int)"HAPINET_enumproviders\n");
-    net->guids[net->field_4e5] = *guid;
+    net->guids[net->providerCount] = *guid;
     sprintf(local, "%s %d.%d", name, major, minor);
-    char* slot = SkipTextLines(net->names, net->field_4e5);
+    char* slot = SkipTextLines(net->names, net->providerCount);
     strcpy(slot, local);
-    net->field_4e5++;
+    net->providerCount++;
     return 1;
 }
 
@@ -704,7 +704,7 @@ int __stdcall HAPINET_enumproviders(GUID_004c9920* guid, char* name, unsigned lo
 int __stdcall HAPINET_getproviders(Net_4c97b0* net, int a, int c)
 {
     HapinetTrace((int)"HAPINET_getproviders\n");
-    net->field_4e5 = 0;
+    net->providerCount = 0;
     net->guids = (GUID_004c9920*)a;
     net->names = (char*)c;
     DirectPlayEnumerateA(HAPINET_enumproviders, net);
@@ -781,7 +781,7 @@ int __stdcall HAPINET_initmultiplay(Net_4c97b0* net, GUID_004c9920* sp, GUID_004
 {
     HapinetTrace((int)"HAPINET_initmultiplay\n");
     g_guaranteePackets = 0;
-    net->field_4ad = *(int*)(GetDisplay() + 0x40);
+    net->hwnd = *(int*)(GetDisplay() + 0x40);
     net->application = *application;
     net->created = 0;
     net->lobby = 0;

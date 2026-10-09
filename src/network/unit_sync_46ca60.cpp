@@ -49,7 +49,7 @@ struct UnitSyncEntry {                 // the map mapped type, 0x10 bytes
     int y;
     short w;
     short h;
-    int unknown_c;
+    int limit;
 };
 
 class VecInt_0046ca60 {               // std::vector<int>

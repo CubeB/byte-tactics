@@ -122,21 +122,21 @@ public:
 };
 
 struct PacketSequencer {
-    int field_0;                       // +0x00
-    int field_4;                       // +0x04
-    int field_8;                       // +0x08
+    int lastSent;                      // +0x00
+    int cur;                           // +0x04
+    int max;                           // +0x08
     char unknown_c[0x20];              // +0x0c
 
     PacketSequencer& operator=(const PacketSequencer& src);
 };
 
 struct Class_0046eaa0 {
-    int field_0;                       // +0x00
+    int id;                            // +0x00
     Class_00470270 list_a;             // +0x04
     Class_00470270 list_b;             // +0x14
-    int field_24;                      // +0x24
-    int field_28;                      // +0x28
-    int field_2c;                      // +0x2c
+    int expected;                      // +0x24
+    int sent;                          // +0x28
+    int ackd;                          // +0x2c
     PacketSequencer sub;               // +0x30
 
     Class_0046eaa0& operator=(const Class_0046eaa0& src);
@@ -145,7 +145,7 @@ struct Class_0046eaa0 {
 // FUNCTION: 0x470040
 Class_0046eaa0& Class_0046eaa0::operator=(const Class_0046eaa0& src)
 {
-    field_0 = src.field_0;
+    id = src.id;
 
     list_a.assign_first(&list_a, &src.list_a);
     list_b.assign_second(&list_b, &src.list_b);
@@ -154,9 +154,9 @@ Class_0046eaa0& Class_0046eaa0::operator=(const Class_0046eaa0& src)
     Class_00470270::burn(2);
     Class_00470270::burn(3);
 
-    field_24 = src.field_24;
-    field_28 = src.field_28;
-    field_2c = src.field_2c;
+    expected = src.expected;
+    sent = src.sent;
+    ackd = src.ackd;
     sub = src.sub;
     return *this;
 }

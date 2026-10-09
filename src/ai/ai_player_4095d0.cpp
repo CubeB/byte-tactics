@@ -6,11 +6,11 @@ struct UnitDef;
 
 struct Sub_004095d0 {
     char unknown_0[0xd4];
-    unsigned short field_d4;       // +0xd4
+    unsigned short damage;         // +0xd4
     char unknown_d6[6];
-    int field_dc;                  // +0xdc
+    int range;                     // +0xdc
     char unknown_e0[0x2a];
-    char field_10a;                // +0x10a
+    char id;                       // +0x10a
 };
 
 // The flags at +0x245 read as the original's bitfield; the header keeps the
@@ -45,8 +45,8 @@ int __stdcall RateUnitType(UnitDef* p)
     Sub_004095d0** pp = (Sub_004095d0**)p->weapons;
     for (int i = 3; i != 0; i--) {
         Sub_004095d0* s = *pp;
-        if (s->field_10a != 0)
-            extra = extra + s->field_d4 / 40 + s->field_dc / 100 + 5;
+        if (s->id != 0)
+            extra = extra + s->damage / 40 + s->range / 100 + 5;
         pp++;
     }
     result += (signed char)((MIN(extra, 100) < -100) ? -100 : MIN(extra, 100));

@@ -29,16 +29,16 @@ struct Vec3_00407d40 {
 
 struct SquadManager {                  // the owner (constructor 0x408cb0)
     char unknown_0[4];
-    unsigned char field_4;             // +0x4
+    unsigned char index;               // +0x4
 };
 
 // Vtable 0x4fc980, constructor 0x407350, ??_G 0x407390.
 class SquadTimer {
 public:
     SquadManager* owner;               // +0x4
-    void* field_8;                     // +0x8
-    int field_c;                       // +0xc
-    unsigned int field_10;             // +0x10
+    void* group;                       // +0x8
+    int next;                          // +0xc
+    unsigned int player;               // +0x10
 
     SquadTimer(SquadManager* p, void* q);
     virtual void OnTimer();                         // slot 0
@@ -53,9 +53,9 @@ public:
     // Plain field, not a virtual class: both vtable stores come from source.
     void* vptr_slot;                   // +0x0
     SquadManager* owner;               // +0x4
-    void* field_8;                     // +0x8
-    int field_c;                       // +0xc
-    unsigned int field_10;             // +0x10
+    void* group;                       // +0x8
+    int next;                          // +0xc
+    unsigned int player;               // +0x10
     Vec3_00407d40 a;                   // +0x14
     Vec3_00407d40 b;                   // +0x20
     Vec3_00407d40 c;                   // +0x2c
@@ -65,15 +65,15 @@ public:
 };
 
 SquadTimer::SquadTimer(SquadManager* p, void* q)
-    : owner(p), field_8(q), field_c(0), field_10(p->field_4) {}
+    : owner(p), group(q), next(0), player(p->index) {}
 
 // FUNCTION: 0x407d40
 SpatialTimer::SpatialTimer(SquadManager* p, void* q)
 {
     owner = p;
-    field_8 = q;
-    field_c = 0;
-    field_10 = p->field_4;
+    group = q;
+    next = 0;
+    player = p->index;
     vptr_slot = DAT_004fc980;
     a = Vec3_00407d40(g_game);
     b = Vec3_00407d40(g_game);

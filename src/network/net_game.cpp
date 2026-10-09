@@ -84,9 +84,9 @@ struct Vec3_00456050 {
 struct Ring_00453640 {                 // 0x48 bytes, 30 of them at g_game+0x12ef
     char text[0x40];                   // +0x00
     unsigned int time;                 // +0x40
-    unsigned short field_44;           // +0x44
-    char field_46;                     // +0x46
-    unsigned char field_47;            // +0x47
+    unsigned short unit;               // +0x44
+    char unit_46;                      // +0x46
+    unsigned char flags;               // +0x47
 };
 
 struct Feature {
@@ -1285,15 +1285,15 @@ struct Guid_4517b0 {
 
 struct Net2_4517b0 {
     char unknown_0[8];
-    char* field_8;                     // +0x8
-    char* field_c;                     // +0xc
+    char* shortName;                   // +0x8
+    char* longName;                    // +0xc
 };
 
 struct Net_4517b0 {
     char unknown_0[4];
-    unsigned int field_4;              // +0x4
-    char* field_8;                     // +0x8
-    Net2_4517b0* field_c;              // +0xc
+    unsigned int flags;                // +0x4
+    char* desc;                        // +0x8
+    Net2_4517b0* name;                 // +0xc
 };
 
 // The display object of 0x451640 and 0x4517b0: one type for both views.
@@ -1317,9 +1317,9 @@ struct Args_00451640 {
 // The packet data object of 0x451fd0 and 0x452370: one type for both views.
 struct Class_00451fd0 {
     char unknown_0[0x870];
-    unsigned int field_870;            // +0x870
+    unsigned int lobbySyncTick;        // +0x870
     char unknown_874[0x1745 - 0x874];
-    int field_1745;                    // +0x1745
+    int recvPacketSize;                // +0x1745
     union {
         int* field_1749;               // +0x1749
         int* buffer;                   // +0x1749
@@ -1747,13 +1747,13 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
             if (v == 0)
                 s = DAT_005119b8;
 
-            Net2_4517b0* n2 = net->field_c;
+            Net2_4517b0* n2 = net->name;
             if (n2 != 0) {
-                char* t = n2->field_8;
+                char* t = n2->shortName;
                 if (t != 0 && *t != 0) {
                     s = t;
                 } else {
-                    char* t2 = n2->field_c;
+                    char* t2 = n2->longName;
                     if (t2 != 0 && *t2 != 0)
                         s = t2;
                 }
@@ -1785,7 +1785,7 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
 
         // ready must be a 1-bit field.
         if (g_game->field_4e5 != 0) {
-            p->info->ready = g_game->field_4e5->field_4 >> 1;
+            p->info->ready = g_game->field_4e5->flags >> 1;
         } else {
             p->info->ready = 0;
         }
@@ -2112,8 +2112,8 @@ int __stdcall InitPacketTables(Class_00451fd0* param_1)
     DAT_00512b80 = 2;
     DAT_00512ac8 = DefaultPacketHandler;
     DAT_00512c68 = 7;
-    param_1->field_870 = GetTicks();
-    param_1->field_1745 = 0x2000;
+    param_1->lobbySyncTick = GetTicks();
+    param_1->recvPacketSize = 0x2000;
     param_1->field_1749 = (int*)GameAllocIgnoreTag(s_PACKET_DATA_00506524, 0x2000);
     return 0 != param_1->field_1749;
 }

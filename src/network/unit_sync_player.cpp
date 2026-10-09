@@ -22,7 +22,7 @@ struct Rect_0046e330 {                 // 0x10 bytes
     int y;                             // +0x4
     short w;                           // +0x8
     short h;                           // +0xa
-    int unknown_c;                     // +0xc
+    int limit;                         // +0xc
 };
 
 // The two 14-byte-element vectors, a sub-struct with a copy constructor of its
@@ -45,9 +45,9 @@ public:
     int expected;                              // +0x24
     int sent;                                  // +0x28
     int ackd;                                  // +0x2c
-    int field_30;                              // +0x30
-    int field_34;                              // +0x34
-    int field_38;                              // +0x38
+    int lastSent;                              // +0x30
+    int cur;                                   // +0x34
+    int max;                                   // +0x38
     Pair_0046faf0 pair;                        // +0x3c
 
     UnitSyncPlayer(const UnitSyncPlayer& other);
@@ -122,7 +122,7 @@ void FinishUnitSync()
 UnitSyncPlayer::UnitSyncPlayer(const UnitSyncPlayer& other)
     : id(other.id), list_a(other.list_a), list_b(other.list_b),
       expected(other.expected), sent(other.sent), ackd(other.ackd),
-      field_30(other.field_30), field_34(other.field_34), field_38(other.field_38),
+      lastSent(other.lastSent), cur(other.cur), max(other.max),
       pair(other.pair)
 {
 }

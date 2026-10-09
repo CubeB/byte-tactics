@@ -114,7 +114,7 @@ public:
     Point16 spacing1;                  // +0xfd
     Point16 offset1;                   // +0x101
     int margin1;                       // +0x105
-    int field_109;                     // +0x109
+    int searchRadius;                  // +0x109
 
     // In ai_player.cpp: it builds the unit lists one and two wrapper
     // levels deep to spend its inline budget as the original does.

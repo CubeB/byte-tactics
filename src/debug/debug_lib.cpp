@@ -545,7 +545,7 @@ struct Stack_004d89b0 {
     int count;                  // +0x38
 };
 
-// The same record as TraceRecord, under the name its formatter has.
+// The part of a TraceRecord its formatter reads (TraceRecord derives from it).
 class CallSite {
 public:
     char name[0x40];            // +0x00
@@ -639,9 +639,9 @@ void RunningStats::AddSample(unsigned int value)
 }
 
 // One allocation or free site, 0x8c bytes.
-class TraceRecord {
+class TraceRecord : public CallSite {
 public:
-    char data[0x8c];
+    char unknown_80[0xc];            // +0x80
     TraceRecord(void);
     TraceRecord(const char* name, int id, int count);
 };
@@ -677,11 +677,11 @@ void BlockHistory::FormatBlockHistory(char* buf, int size, char freed)
     FormatBlockInfo(*this, buf, size);
     strcat(buf, ", allocated from:");
     char* p = buf + strlen(buf);
-    ((CallSite*)&allocSite)->FormatCallSite(p, size - strlen(buf));
+    allocSite.FormatCallSite(p, size - strlen(buf));
     if (freed) {
         strcat(buf, "\n\tfreed from:");
         char* q = buf + strlen(buf);
-        ((CallSite*)&freeSite)->FormatCallSite(q, size - strlen(buf));
+        freeSite.FormatCallSite(q, size - strlen(buf));
     }
 }
 #pragma auto_inline(on)
@@ -1524,6 +1524,7 @@ void Tree_004da8d0::Init()
         nil->color = 1;
         g_blockMapNil = nil;
         nil->left = 0;
+        // Reads the global back: nil->right would reuse the register.
         ((Node_004da8d0*)g_blockMapNil)->right = 0;
     }
     Node_004da8d0* nil = (Node_004da8d0*)g_blockMapNil;
@@ -2331,7 +2332,7 @@ char __cdecl DescribeFreedBlocks(unsigned int address, char* buf, unsigned int n
         char found = 0;
         // One `&&` loop condition: a do/while with a break duplicates the size test.
         while (p != (BlockInfo*)GetFreedBlockRing()->field_4 && n > 100) {
-            p = (BlockInfo*)((char*)p - 0x30);
+            p--;
             BlockInfo info = *p;
             bool inRange = address >= (unsigned int)info.address
                         && address < (unsigned int)info.size + (unsigned int)info.address;
@@ -2607,7 +2608,7 @@ FreeBlockIter FreeBlockMap::Insert(Node_004db000* x, Node_004db000* y,
     p->color = 0;                      // red
     p->left = (Node_004db000*)DAT_00528a54;
     p->right = (Node_004db000*)DAT_00528a54;
-    new ((void*)&p->value) Pair_004db000(*v);
+    new (&p->value) Pair_004db000(*v);
     ++count;
 
     // A positive disjunction through the bool comparator: keeps the left-child block as the then-part.
@@ -2746,7 +2747,7 @@ MapInsertResult FreeBlockMap::InsertOrFindInline(Pair_004db000* p)
             Node_004db000* z = it.ptr;
             z->left = (Node_004db000*)DAT_00528a54;
             z->right = (Node_004db000*)DAT_00528a54;
-            new ((void*)&z->value) Pair_004db000(*p);
+            new (&z->value) Pair_004db000(*p);
             count++;
             if (y == head || x != DAT_00528a54 || key_compare(p->offset, y->value.offset)) {
                 y->left = z;
@@ -2972,7 +2973,7 @@ MapInsertResult BlockMap::Insert(BlockInfo* p)
             Node_004daa30* z = it.ptr;
             z->left = (Node_004daa30*)g_blockMapNil;
             z->right = (Node_004daa30*)g_blockMapNil;
-            new ((void*)&z->value) BlockInfo(*p);
+            new (&z->value) BlockInfo(*p);
             size++;
             if (y == head || x != g_blockMapNil || key_compare(p->address, y->value.address)) {
                 y->left = z;
@@ -3321,7 +3322,7 @@ BlockMapIter BlockMap::InsertHinted(Node_004daa30* x, Node_004daa30* y,
     z->color = 0;
     z->left = (Node_004daa30*)g_blockMapNil;
     z->right = (Node_004daa30*)g_blockMapNil;
-    new ((void*)&z->value) BlockInfo(v);
+    new (&z->value) BlockInfo(v);
     size++;
     if (y == head || x != g_blockMapNil || key_compare(v.address, y->value.address)) {
         y->left = z;
@@ -3777,7 +3778,7 @@ LoadedImage::LoadedImage(HMODULE m) : MappedFile(0)
         // base local and the second test pick the registers of the sum.
         char* base = (char*)imageBase;
         if (numDebugDirs)
-            debugDirs = (IMAGE_DEBUG_DIRECTORY*)((char*)base + ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG].VirtualAddress);
+            debugDirs = (IMAGE_DEBUG_DIRECTORY*)(base + ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG].VirtualAddress);
     }
 }
 
@@ -4345,17 +4346,25 @@ extern Entry_004df590* g_pmcEventCatalog;
 extern double __cdecl GetTimeSeconds();
 void InitPerformanceEvents();
 
-// The map value: the name key and its 500-byte text.
-struct Value_004df590 {
-    const char* name;                  // +0x00
-    char text[500];                    // +0x04
+// The map value: the name key and its 500-byte text, also the selected name.
+class Id_004df1e0 {
+public:
+    const char* id;                    // +0x0
+    char text[0x1f4];                  // +0x4
+    Id_004df1e0(const char* s)
+    {
+        id = s;
+        if (id == 0)
+            id = DAT_005119b8;
+        text[0] = 0;
+    }
 };
 
 struct Node_004df590 {
     Node_004df590* left;               // +0x0
     Node_004df590* parent;             // +0x4
     Node_004df590* right;              // +0x8
-    Value_004df590 value;              // +0xc
+    Id_004df1e0 value;                 // +0xc
 };
 
 extern void* DAT_005292c4;             // tree _Nil
@@ -4626,13 +4635,14 @@ struct Map_004df590 {
     // Shaped exactly like the MSVC 5 STL, including the dead `_F != begin()` test.
     NameMapIter erase(NameMapIter _F, NameMapIter _L)
     {
+        NameMapTree* tree = (NameMapTree*)this;
         if (Size() == 0 || _F != begin() || _L != end()) {
             while (_F != _L)
-                ((NameMapTree*)this)->Erase(_F++);
+                tree->Erase(_F++);
             return _F;
         } else {
             std::_Lockit Lk;
-            ((NameMapTree*)this)->EraseSubtree((_Nodeptr)_Root());
+            tree->EraseSubtree((_Nodeptr)_Root());
             _Root() = (Node_004df590*)DAT_005292c4;
             size = 0;
             _Lmost() = head;
@@ -4783,14 +4793,15 @@ public:
 
     Iter_004e18c0 erase(Iter_004e18c0 _F, Iter_004e18c0 _L)
     {
+        NameMapTree* tree = (NameMapTree*)this;
         if (size == 0 || _F != begin() || _L != end()) {
             while (_F != _L)
-                ((NameMapTree*)this)->Erase(_F++);
+                tree->Erase(_F++);
             return _F;
         }
         // Early return above, not an else: keeps the return slot apart from the lock.
         std::_Lockit Lk;
-        ((NameMapTree*)this)->EraseSubtree(head->parent);
+        tree->EraseSubtree(head->parent);
         head->parent = (Node_004e18c0*)DAT_005292c4;
         size = 0;
         head->left = head;
@@ -4820,19 +4831,6 @@ void __cdecl SyncPerformanceSettings(int flag);
 void __cdecl SaveWindowPosition(HWND hwnd, char* name);
 void __cdecl OpenUrl(HWND hwnd, const char* url, const char* ext);
 void __cdecl RestoreWindow(HWND hwnd, char* name, double a, double b);
-
-class Id_004df1e0 {
-public:
-    const char* id;                    // +0x0
-    char text[0x1f4];                  // +0x4
-    Id_004df1e0(const char* s)
-    {
-        id = s;
-        if (id == 0)
-            id = DAT_005119b8;
-        text[0] = 0;
-    }
-};
 
 class PerformanceDialog {
 public:
@@ -5106,7 +5104,7 @@ BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM
                 Node_004df590* node = set().head->left;
                 while (Iterator_004df590(node) != Iterator_004df590(set().head)) {
                     if (j == sel) {
-                        selected = *(Id_004df1e0*)((char*)node + 0xc);
+                        selected = node->value;
                     }
                     j++;
                     {
@@ -5146,19 +5144,20 @@ BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM
         if (info->changed) {
             int sel = -1;
             int n = 0;
-            Node_004df590* node = ((Map_004df590*)&info->names)->head->left;
+            Map_004df590* names = (Map_004df590*)&info->names;
+            Node_004df590* node = names->head->left;
             SendDlgItemMessageA(hwnd, 0x3f4, 0x184, 0, 0);
             ((Class_004e18c0*)&map)->Clear();
             // Guarded do-while: a while or for loop moves the loop registers.
-            if (Iterator_004df590(node) != Iterator_004df590(((Map_004df590*)&info->names)->head)) {
+            if (Iterator_004df590(node) != Iterator_004df590(names->head)) {
                 do {
                     map.Upsert(&node->value);
-                    SendDlgItemMessageA(hwnd, 0x3f4, 0x180, 0, (LPARAM)node->value.name);
-                    if (NamesEqual_004df590(node->value.name, selected.id))
+                    SendDlgItemMessageA(hwnd, 0x3f4, 0x180, 0, (LPARAM)node->value.id);
+                    if (NamesEqual_004df590(node->value.id, selected.id))
                         sel = n;
                     n++;
                     ((NameMapIter*)&node)->NextNode();
-                } while (Iterator_004df590(node) != Iterator_004df590(((Map_004df590*)&info->names)->head));
+                } while (Iterator_004df590(node) != Iterator_004df590(names->head));
             }
             if (sel >= 0)
                 SendDlgItemMessageA(hwnd, 0x3f4, 0x186, sel, 0);

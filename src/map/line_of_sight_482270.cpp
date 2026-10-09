@@ -45,12 +45,7 @@ struct ByteMap_482270 {
     unsigned char& at(int x, int y) { return data[y * size.width + x]; }
 };
 
-struct Grid {
-    unsigned char* cells;              // +0x0
-    unsigned int width;                // +0x4
-    unsigned int height;               // +0x8
-    int field_c;                       // +0xc
-};
+#include "grid.h"
 
 struct Player_482270 {
     char unknown_0[0x7c];

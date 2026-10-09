@@ -33,12 +33,7 @@ void CopyDwordIfNonNull(int*, int*);
 
 extern char g_losTables[];
 
-struct Grid {
-    unsigned char* cells;              // +0x00
-    unsigned int width;                // +0x04
-    unsigned int height;               // +0x08
-    int field_c;                       // +0x0c
-};
+#include "grid.h"
 
 struct Player_00481930 {
     char unknown_0[0x7c];

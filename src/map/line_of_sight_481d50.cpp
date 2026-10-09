@@ -68,12 +68,7 @@ struct SightQuery {
     char unknown_10[0xc];              // +0x10
 };
 
-struct Grid {
-    unsigned char* cells;              // +0x0
-    unsigned int width;                // +0x4
-    unsigned int height;               // +0x8
-    int count;                         // +0xc
-};
+#include "grid.h"
 
 struct Game {
     char unknown_0[0x2a43];

@@ -616,7 +616,6 @@ void ResetNetStats();
 void __stdcall StartScreenShake(int dx, int dy, int value);
 void __stdcall KillFeature(int x, int z, int flag);
 void __stdcall ToggleShareLos(int unused);
-void EnableAICommands();
 
 struct Link_0045ead0 {
     void* obj;                                 // +0x0
@@ -629,14 +628,7 @@ struct GadgetOwner_004605c0 {
     int gadgets;                       // +0x4
 };
 
-// A layer of the menu stack, what LoadGuiLayer returns: its gadget array and
-// the click handler.
-struct Layer {
-    char unknown_0[0x4];
-    Gadget* entries;                   // +0x4
-    void (__stdcall* handler)(void*);  // +0x8
-    void* data;                        // +0xc
-};
+#include "../gui/layer.h"
 
 #include "../graphics/surface.h"
 

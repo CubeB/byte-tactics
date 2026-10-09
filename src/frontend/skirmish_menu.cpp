@@ -62,15 +62,7 @@ struct Data {                          // "SELECT MAP DATA", 0x20 bytes
     char* items;                       // +0x14
 };
 
-struct Layer {
-    int unknown_0;
-    Gadget* entries;                   // +0x04
-    void (__stdcall* handler)(Menu*);  // +0x08
-    Data* data;                        // +0x0c
-    char unknown_10[0x37 - 0x10];
-    int clickMode;                     // +0x37
-    void (__stdcall* textHandler)(Cheat*);   // +0x3b
-};
+#include "../gui/layer.h"
 
 struct SkirmishPlayerSlot {            // 0x18 bytes
     int active;                        // +0x00
@@ -718,7 +710,7 @@ void __stdcall HandleSkirmishMapClick(Menu* menu)
 {
     char buffer[0x100];
     Layer* holder = menu->holder;
-    Data* list = holder->data;
+    Data* list = (Data*)holder->data;
     Gadget* entries = holder->entries;
 
     if (menu->current == -1) {
@@ -787,7 +779,7 @@ void OpenSkirmishMapSelector()
         return;
     }
     Layer* layer = LoadGuiLayer(&g_game->menu, "SELMAP.GUI", 0x880);
-    layer->handler = HandleSkirmishMapClick;
+    layer->handler = (void (__stdcall*)(void*))HandleSkirmishMapClick;
     Data* data = (Data*)GameAllocIgnoreTag("SELECT MAP DATA", 0x20);
     layer->data = data;
     LoadPictureCached("DSELECTMAP2", 0, 0, 0);
@@ -1256,7 +1248,7 @@ void OpenSkirmishMenu(void)
 
     BlankScreen();
     dialog = LoadGuiLayer(&g_game->menu, g_skirmishGuiName, 0);
-    dialog->handler = HandleSkirmishClick;
+    dialog->handler = (void (__stdcall*)(void*))HandleSkirmishClick;
     dialog->data = (Data*)g_game;
     LoadPictureCached(g_skirmishSetupPictureName, 0, 0, 0);
 
@@ -1282,7 +1274,7 @@ void OpenSkirmishMenu(void)
     }
 
     RefreshSkirmishSetup();
-    g_game->menu.holder->textHandler = HandleSkirmishCheatText;
+    g_game->menu.holder->textHandler = (void (__stdcall*)(void*))HandleSkirmishCheatText;
     SetKeyboardInput(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);
     SetCursorMode(0x13);

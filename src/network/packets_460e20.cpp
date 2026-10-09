@@ -21,34 +21,7 @@ public:
     PacketRing() { count = 0; readIdx = 0; writeIdx = -1; }
 };
 
-struct Buffers_00462d30 {
-    char* a;                           // +0x0
-    int baseTick;
-    int bufferSize;
-    int skipCount;
-    char* b;                           // +0x10
-    char* c;                           // +0x14
-    ~Buffers_00462d30()
-    {
-        operator delete(a);
-        operator delete(c);
-        operator delete(b);
-    }
-};
-
-class PlayerFrameInfo {
-public:
-    int playerNetId;
-    int pendingDpToId;
-    int frameSeq;
-    int pendingBytes;
-    int pendingCap;
-    Buffers_00462d30 buffers;          // +0x14
-    int queuedFromId;
-    int queuedToId;
-
-    PlayerFrameInfo();
-};
+#include "packet_receiver.h"
 
 struct PacketChannel {
     int bufferIndex;                   // +0x00
@@ -89,37 +62,6 @@ struct PacketChannel {
             operator delete(items);
         }
         operator delete(packets);
-    }
-};
-
-class PacketReceiver {
-public:
-    virtual ~PacketReceiver()
-    {
-        void* p = spare;
-        if (!p)
-            p = buffer;
-        operator delete(p);
-    }
-    int unused;                        // +0x04
-    void* owner;                       // +0x08
-    int fromId;                        // +0x0c
-    int toId;                          // +0x10
-    int savedFrameEntry;               // +0x14
-    void* buffer;                      // +0x18
-    void* spare;                       // +0x1c
-    PlayerFrameInfo entries[10];       // +0x20
-    int capacity;                      // +0x228
-    int length;                        // +0x22c
-    int spareLength;                   // +0x230
-    int spareFromId;                   // +0x234
-    int spareToId;                     // +0x238
-
-    // capacity stays in the initialiser list: the vtable store must come after it.
-    PacketReceiver(void* o)
-        : unused(0), owner(o), fromId(-1), toId(-1), savedFrameEntry(0), buffer(0), spare(0),
-          capacity(0), length(0), spareLength(0), spareFromId(-1), spareToId(-1)
-    {
     }
 };
 

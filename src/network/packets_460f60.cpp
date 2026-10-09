@@ -1,50 +1,13 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 // Stays in a file of its own: this destructor matches only with the inline
-// PacketReceiver destructor below, where packets.cpp needs another form.
-// The compiler-generated static destructor (_$E2) of the global object
-// g_packetManager, whose dynamic initialiser is 0x460e20 and whose out-of-line
-// destructor is 0x461420.
+// PacketReceiver destructor in packet_receiver.h, where packets.cpp needs
+// another form. The compiler-generated static destructor (_$E2) of the global
+// object g_packetManager, whose dynamic initialiser is 0x460e20 and whose
+// out-of-line destructor is 0x461420.
 
 void __cdecl operator delete(void*);
 
-struct Obj_00462d30 {
-    int a, b, c;
-    Obj_00462d30() { a = 0; b = 0; c = -1; }
-};
-
-struct Buffers_00462d30 {
-    char* a;                           // +0x0
-    int baseTick;
-    int bufferSize;
-    int skipCount;
-    char* b;                           // +0x10
-    Obj_00462d30* c;                   // +0x14
-    ~Buffers_00462d30();
-};
-
-struct PlayerFrameInfo {
-    int playerNetId;
-    int pendingDpToId;
-    int frameSeq;
-    int pendingBytes;
-    int pendingCap;
-    Buffers_00462d30 buffers;          // +0x14
-    int queuedFromId;
-    int queuedToId;
-};
-
-class PacketReceiver {
-public:
-    virtual ~PacketReceiver();
-    int unused;
-    int owner;
-    int fromId;
-    int toId;
-    int savedFrameEntry;
-    void* buffer;                      // +0x18
-    void* spare;                       // +0x1c
-    PlayerFrameInfo entries[10];       // +0x20
-};
+#include "packet_receiver.h"
 
 // One of the eleven per-player objects embedded in the global.
 struct Sub_00460f60 {
@@ -74,14 +37,6 @@ Buffers_00462d30::~Buffers_00462d30()
     delete a;
     delete c;
     delete b;
-}
-
-PacketReceiver::~PacketReceiver()
-{
-    void* p = spare;
-    if (!p)
-        p = buffer;
-    operator delete(p);
 }
 
 Sub_00460f60::~Sub_00460f60()

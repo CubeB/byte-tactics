@@ -1169,10 +1169,7 @@ int __stdcall CreateLocalPlayer(unsigned char playerIndex, int flag)
 
 #pragma pack(push, 1)
 
-class PacketReceiver {
-public:
-    int ReceiveFrame(void* net, unsigned char* data, int* size);
-};
+#include "packet_receiver.h"
 
 class UnitSync {
 public:

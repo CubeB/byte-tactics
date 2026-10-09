@@ -167,8 +167,7 @@ void UpdateSensorRadarAndCloak(void)
     unsigned char player = g_game->playerIndex;
     Unit* first = g_game->units + 1;
     Unit* last = g_game->unitsEnd;
-    PlayerInfo_00467440* pl = (PlayerInfo_00467440*)((char*)g_game + 0x1b63
-        + (unsigned int)g_game->playerIndex * 0x14b);
+    PlayerInfo_00467440* pl = &g_game->players[g_game->playerIndex];
     Unit* u;
 
     Unit* a;

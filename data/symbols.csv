@@ -2472,8 +2472,8 @@ address,name
 0x4b6720,PointInRect
 0x4b6750,RectInsideRect
 0x4b67d0,RectsOverlap
-0x4b6820,FUN_004b6820
-0x4b6840,FUN_004b6840
+0x4b6820,CompareByte1Equal
+0x4b6840,SetBytes1To3
 0x4b6860,ReadRegistryValue
 0x4b6880,AccessRegistryValue
 0x4b69b0,ReadRegistryData

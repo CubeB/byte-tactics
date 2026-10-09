@@ -12,15 +12,24 @@
 #include <math.h>
 #include <vector>
 
-struct Vec3 {
-    union { int x; struct { unsigned short xf; short xw; }; };
-    int y;
-    union { int z; struct { unsigned short zf; short zw; }; };
-    void operator+=(const Vec3& v) { x += v.x; y += v.y; z += v.z; }
-    void operator-=(const Vec3& v) { x -= v.x; y -= v.y; z -= v.z; }
-    Vec3 operator+(const Vec3& v) const { Vec3 r = *this; r += v; return r; }
-    Vec3 operator-(const Vec3& v) const { Vec3 r = *this; r -= v; return r; }
-};
+#include "../util/vec3.h"
+
+// The whole part (high 16 bits) of a 16.16 coordinate.
+static inline short Whole(const int& v) { return ((short*)&v)[1]; }
+
+static inline Vec3 Sum(const Vec3& a, const Vec3& b)
+{
+    Vec3 r = a;
+    r.x += b.x; r.y += b.y; r.z += b.z;
+    return r;
+}
+
+static inline Vec3 Diff(const Vec3& a, const Vec3& b)
+{
+    Vec3 r = a;
+    r.x -= b.x; r.y -= b.y; r.z -= b.z;
+    return r;
+}
 
 class MissionType {
 public:
@@ -178,7 +187,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
     // short& references: they fix the first _hypot's load order.
     short& ox = order->x;
     short& oz = order->z;
-    if (order->range && (int)_hypot(unit->pos.xw - ox, unit->pos.zw - oz) >= order->range)
+    if (order->range && (int)_hypot(Whole(unit->pos.x) - ox, Whole(unit->pos.z) - oz) >= order->range)
         return 5;
     int range = unit->weapon->range;
     unsigned int state = 0;
@@ -196,7 +205,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         int dist = (int)_hypot(order->target->pos.x - unit->pos.x, order->target->pos.z - unit->pos.z);
         int angle = GetHeadingBetween(&unit->pos, &order->target->pos);
         Vec3 off = Offset(RandomInt(0x4000) + angle - 0x2000, dist / 2);
-        Vec3 p = unit->pos + off;
+        Vec3 p = Sum(unit->pos, off);
         Class_0044e2d0* obj = new Class_0044e2d0(order, p);
         ((Class_0044e730*)obj)->SetApproachRadius(0x80);
         order->SetAttachedFx((int)obj);
@@ -237,7 +246,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
             order->side = 1;
         }
         Vec3 off = Offset(angle, range * 2 / 3 << 16);
-        Vec3 p = order->target->pos - off;
+        Vec3 p = Diff(order->target->pos, off);
         Class_0044e330* obj = new Class_0044e330(order, order->target, p);
         ((Class_0044e730*)obj)->SetApproachRadius(0x10);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);

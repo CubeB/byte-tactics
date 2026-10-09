@@ -43,11 +43,17 @@ public:
     virtual void VisitUnit(Unit* unit) = 0;
 };
 
-struct Vec3 {
-    int x, y, z;
-    Vec3() {}
-    Vec3(int ax, int ay, int az) : x(ax), y(ay), z(az) {}
-};
+#include "../util/vec3.h"
+
+// Builds the zero velocity through a temporary, as the original constructor did.
+static inline Vec3 MakeVec3(int ax, int ay, int az)
+{
+    Vec3 r;
+    r.x = ax;
+    r.y = ay;
+    r.z = az;
+    return r;
+}
 
 class TdfRecord;
 
@@ -1714,7 +1720,7 @@ PackedGoal::PackedGoal(Struct_004907e0* p)
     : PathGoal(p)
 {
     pos = p->pos;
-    vel = Vec3(0, 0, 0);
+    vel = MakeVec3(0, 0, 0);
     field_24 = p->heading;
 }
 

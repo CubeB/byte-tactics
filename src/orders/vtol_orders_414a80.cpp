@@ -1,14 +1,16 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
-struct Vec3 {
-    int x, y, z;
-    Vec3 operator-(const Vec3& other) const {
-        Vec3 r; r.z = z - other.z; r.y = y - other.y; r.x = x - other.x; return r;
-    }
-    int Square() const {
-        __int64 a = x, b = z;
-        return (int)((a*a) >> 32) + (int)((b*b) >> 32);
-    }
-};
+#include "../util/vec3.h"
+
+static inline Vec3 Sub(const Vec3& a, const Vec3& b)
+{
+    Vec3 r; r.z = a.z - b.z; r.y = a.y - b.y; r.x = a.x - b.x; return r;
+}
+
+static inline int Square(const Vec3& v)
+{
+    __int64 a = v.x, b = v.z;
+    return (int)((a*a) >> 32) + (int)((b*b) >> 32);
+}
 
 struct Point {
     short x, y;
@@ -160,10 +162,10 @@ int __stdcall VtolReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
         if (flags & 0x40)
             return 9;
         order->flags |= 0x10008;
-        Vec3 delta = unit->pos - order->target.Get()->pos;
+        Vec3 delta = Sub(unit->pos, order->target.Get()->pos);
         int range = 0;
         range = unit->def->buildRange;
-        int square = delta.Square();
+        int square = Square(delta);
         if (square <= range * range && unit->CanReclaim(order->target.Get())) {
             if (order->duration >= 15) {
                 DamageUnit(unit, order->target.Get(), order->elapsed, 5, 0);

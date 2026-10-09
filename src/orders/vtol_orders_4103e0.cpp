@@ -14,10 +14,7 @@ public:
     Unit*& operator[](unsigned int n) { return *(begin()+n); }
 };
 }
-struct Vec3 {
-    int x, y, z;
-    Vec3 operator+(const Vec3& v) const { Vec3 r; r.x=x+v.x; r.y=y+v.y; r.z=z+v.z; return r; }
-};
+#include "../util/vec3.h"
 struct Order;
 class MissionType { public: unsigned char index; MissionType() {} MissionType(const char*); int operator==(const MissionType& v) const { return index==v.index; } };
 
@@ -27,6 +24,13 @@ struct Weapon { char pad0[8]; WeaponDef* def; char padc[11]; unsigned char flags
 #include "../units/unit_def.h"
 struct Owner { char pad0[0x108]; unsigned char allied[0x3e]; unsigned char index; };
 #include "unit_motion.h"
+// Unused here: real forward declarations whose symbol ids keep 0x4103e0 matching (docs/c2-regalloc.md).
+class BitWriter;
+class OpenHeap;
+class ScoutTimer;
+class EscortTimer;
+class AssaultTimer;
+class SquadManager;
 struct Unit {
     UnitMotion* motion; char pad4[4]; Weapon weapons[3]; Order* order;
     char pad60[10]; Vec3 pos; char pad76[8]; short width; short depth; int terrain; int busy;

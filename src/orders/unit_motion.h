@@ -4,16 +4,42 @@
 // and the flags at +0x2e, and the methods that steer ground units and
 // aircraft, update the position and save and load it. The one declaration of
 // the class for the files that call it. The types behind the pointers stay
-// private to their own files, and the velocity keeps the two spellings the
-// views give it.
+// private to their own files.
 #ifndef UNIT_MOTION_H
 #define UNIT_MOTION_H
 
+#include "../util/vec3.h"
+
 struct Unit;
-struct Vec3;
 class HapiBank;
 class Iface_0043dd20;
 class PlayerData;
+
+// Unused here: these forward declarations take the symbol ids that the
+// anonymous vector structs took, which keep the includers matching
+// (docs/c2-regalloc.md).
+class PathGoal;
+class OrderFx;
+class BlockMap;
+class BlockMapIter;
+class BlockInfo;
+class FreeBlockMap;
+class FreeBlockIter;
+class FreeBlockAllocator;
+class GroundAllyVisitor;
+class DetectionVisitor;
+class ClaimFootprintVisitor;
+class SonarJamVisitor;
+class RadarJamVisitor;
+class NameMapTree;
+class NameMapIter;
+class NameMapAllocator;
+class NameTable;
+class NameKey;
+class MapInsertResult;
+class MapCacheEntry;
+class UnitTypeSet;
+class UnitTable;
 
 #pragma pack(push, 1)
 
@@ -24,11 +50,8 @@ public:
         PlayerData* player;            // +0x0, the serialisation interface
     };
     int movementClass;                 // +0x4
-    union {
-        struct { int x, y, z; } velocity;  // +0x8
-        struct { int x, y, z; } v;
-    };
-    struct { int x, y, z; } p2;        // +0x14
+    Vec3 velocity;                     // +0x8
+    Vec3 p2;                           // +0x14
     union {
         int speed;                     // +0x20
         struct {

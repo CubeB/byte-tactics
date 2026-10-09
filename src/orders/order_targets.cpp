@@ -36,7 +36,8 @@ struct Elem_0044ce90 {
 };
 
 // The base of the family: vtable 0x4fd2f8 and, at +0x4, the source object
-// (or its index) the subclass was built with.
+// (or its index) the subclass was built with. Not order_fx.h: the constructors
+// store the vtable by hand, which a class with virtual functions cannot spell.
 class OrderFx {
 public:
     void* vtable;                      // +0x0
@@ -833,6 +834,7 @@ struct Object_0044ea60 {
 #pragma pack(pop)
 
 #pragma pack(push, 2)
+// Not air_maneuver_order.h: this view derives from the hand-vtable OrderFx above.
 // The air order: the target and other points, the heading and the owner unit.
 // FillWorldPos (0x44ea60) advances the target towards other. The bit-stream
 // loader 0x44e9c0 stores its owner in self and reads the two points into it.

@@ -395,12 +395,28 @@ public:
     Class_0044e330(Order* order, Unit* unit, const Vec3& p);
 };
 
-class AirManeuverOrder {
-public:
-    char unknown_0[0x2c];
-    AirManeuverOrder(Order* order, const Vec3& a, const Vec3& b);
-    void SetAltitude(int);
-};
+#include "air_maneuver_order.h"
+
+// Unused here: forward declarations of real functions; their symbol ids keep
+// the allocation of the functions after the AirManeuverOrder view (docs/c2-regalloc.md).
+void BeginMouseScroll();
+void EndMouseScroll();
+void UpdateMouseScroll();
+void UpdateEdgeScroll();
+void CenterCameraOnRadarClick();
+void CenterCameraOnStartPosition();
+void RegisterDataArchives();
+void OpenEndMissionScreen();
+int GetCdPathMismatch();
+void CreateGameObject();
+void InitMissionStatus();
+void SetUpEndMissionScreen();
+void StartScreenFade();
+void StepScreenFade();
+void ScheduleFadeTick();
+int IsFadeDone();
+void StepPaletteFade();
+void FillEndGameStatistics();
 
 class Class_0044e6c0 { public: void SetAltitude(int); };
 class Class_0044e730 { public: void SetApproachRadius(int); };

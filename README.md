@@ -109,17 +109,17 @@ Counts in `src/` and `include/` at `origin/main`, against `e9367f13` (the roadma
 | Placeholder functions `FUN_<addr>` | 1,076 | 282 | 0, named | 74% | `[###############-----]` |
 | Placeholder globals `DAT_<addr>` | 737 | 157 | 0, named | 79% | `[################----]` |
 | Placeholder classes `Class_<addr>` | 769 | 673 | 0, named | 12% | `[##------------------]` |
-| Placeholder fields `field_<offset>` | 589 | 382 | 0, named | 35% | `[#######-------------]` |
+| Placeholder fields `field_<offset>` | 589 | 381 | 0, named | 35% | `[#######-------------]` |
 | Files that define `Unit` | 285 | 80 | 1, one shared definition | 72% | `[##############------]` |
 | Files opening with matching history | 301 | 0 | 0, none | 100% | `[####################]` |
-| Casts `((T*)x)->` | 1,698 | 603 | 0, casts the types allow | 64% | `[#############-------]` |
-| Byte-offset access `*(T*)(p + off)` and `(char*)p + off` | 1,284 | 811 | cases with no struct | | |
+| Casts `((T*)x)->` | 1,698 | 590 | 0, casts the types allow | 65% | `[#############-------]` |
+| Byte-offset access `*(T*)(p + off)` and `(char*)p + off` | 1,284 | 802 | cases with no struct | | |
 
 | Cleanup issues | | | |
 | --- | --- | --- | ---: |
 | Gather issues | 125 of 125 closed | `[####################]` | 100% |
 | Join issues | 26 of 31 closed | `[#################---]` | 83% |
-| Name issues | 129 of 155 closed | `[#################---]` | 83% |
+| Name issues | 130 of 155 closed | `[#################---]` | 83% |
 <!-- cleanup:end -->
 
 ## Next steps

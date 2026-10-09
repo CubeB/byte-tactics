@@ -92,12 +92,17 @@ void CreateGameObject();
 void InitMissionStatus();
 void SetUpEndMissionScreen();
 
-struct Class_0044ced0 {
-    char unknown_0[4];
-    int field_4;
-
-    void AddFlags(int param_1);
-};
+// Unused here: one id each, where the merged ArcOrder view stood; they keep the
+// allocation of the classes declared after it (docs/c2-regalloc.md).
+extern int Pad6260_C1;
+extern int Pad6260_C2;
+extern int Pad6260_C3;
+extern int Pad6260_C4;
+extern int Pad6260_C5;
+extern int Pad6260_C6;
+extern int Pad6260_C7;
+extern int Pad6260_C8;
+extern int Pad6260_C9;
 
 // A view of the order base whose six virtual slots are named after the base's: ContainsUnit
 // (slot 4) is the function defined below, so its stand-in has the slot suffix.
@@ -430,19 +435,65 @@ public:
     void WriteBits(int value, int bits);
 };
 
+// The path target: the flag word at +8, the linked order at +0x16 and the
+// position at +0x26. One class in several files' views: the constructors and
+// setters declared below are its own methods, so the views merge here
+// (docs/c2-regalloc.md). The field names each view needs coexist in unions.
+class BitReader;
+struct Order;
+struct Owner_0044e080;
+struct Source_0044e250;
+struct Source_0044e2d0;
+struct Vec3_0044e2d0;
+struct Source_0044e330;
+struct Vec3_0044e330;
+#include "path_order_attach.h"
+
 class PathOrder : public OrderFx {
 public:
-    unsigned short flags;           // +0x8
-    short field_a;                  // +0xa
-    short field_c;                  // +0xc
-    short field_e;                  // +0xe
-    short field_10;                 // +0x10
-    Unit* unit;                     // +0x12
-    char unknown_16[4];             // +0x16
-    Unit* target;                   // +0x1a
-    char unknown_1e[8];             // +0x1e
-    Vec3_0044e3c0 pos;              // +0x26
-    int field_32;                   // +0x32
+    union {
+        unsigned short flags;              // +0x8
+        short field_8;                     // +0x8, the setters' word
+        struct {
+            unsigned short : 6;
+            unsigned short headingFlag : 1;  // +0x8 bit 6, SetHeading
+            unsigned short : 9;
+        };
+        struct {
+            unsigned short : 4;
+            unsigned short radiusFlag : 1;   // +0x8 bit 4, SetApproachRadius
+            unsigned short : 11;
+        };
+    };
+    short field_a;                     // +0xa
+    short field_c;                     // +0xc
+    short field_e;                     // +0xe
+    short field_10;                    // +0x10
+    union {
+        Unit* unit;                    // +0x12
+        Owner_0044e080* owner;         // +0x12, the bit-stream loader's view
+    };
+    PathOrderAttach ref;               // +0x16
+    union {
+        Vec3_0044e3c0 pos;             // +0x26
+        struct {
+            int pos_x;                 // +0x26, the bit-stream loader's view
+            int pos_y;                 // +0x2a
+            int pos_z;                 // +0x2e
+        };
+    };
+    int field_32;                      // +0x32
+
+    void AddFlags(int param_1);
+    PathOrder(int owner, HapiBank* file, char* name);
+    PathOrder(Owner_0044e080* owner_, BitReader* reader);
+    PathOrder(Order* order, Unit* unit);
+    PathOrder(Source_0044e250* source, int unit, short value);
+    PathOrder(Source_0044e2d0* source, const Vec3_0044e2d0& p);
+    PathOrder(Source_0044e330* source, int unit, const Vec3_0044e330& p);
+    void SetAltitude(int param_1);
+    void SetHeading(short v);
+    void SetApproachRadius(short v);
 
     void SerializeToBits(BitWriter* stream);
     int GetType();
@@ -505,20 +556,6 @@ struct Rec_0044de80 {
     int i4;                            // +0x32
 };
 
-class Class_0044de80 : public OrderFx {
-public:
-    short field_8;                     // +0x8
-    short field_a;                     // +0xa
-    short field_c;                     // +0xc
-    short field_e;                     // +0xe
-    short field_10;                    // +0x10
-    Unit* field_12;                    // +0x12
-    PathOrderAttach ref;               // +0x16
-    Vec3_0044de80 pos;                 // +0x26
-    int field_32;                      // +0x32
-
-    Class_0044de80(int owner, HapiBank* file, char* name);
-};
 #pragma pack(pop)
 
 // Reads bit fields from an array of dwords, lowest bits first.
@@ -571,59 +608,14 @@ public:
 };
 
 #pragma pack(push, 2)
-class Class_0044e080 : public OrderFx {
-public:
-    unsigned short flags;              // +0x8
-    short field_a;                     // +0xa
-    short field_c;                     // +0xc
-    short field_e;                     // +0xe
-    short field_10;                    // +0x10
-    Owner_0044e080* owner;             // +0x12
-    PathOrderAttach ref;               // +0x16
-    int pos_x;                         // +0x26
-    int pos_y;                         // +0x2a
-    int pos_z;                         // +0x2e
-
-    Class_0044e080(Owner_0044e080* owner_, BitReader* reader);
-};
-
 struct Order {
     char unknown_0[0xe];
     Unit* unit;                        // +0xe
 };
 
-class Class_0044e190 : public OrderFx {
-public:
-    short field_8;                     // +0x8
-    short field_a;                     // +0xa
-    short field_c;                     // +0xc
-    short field_e;                     // +0xe
-    short field_10;                    // +0x10
-    Unit* field_12;                    // +0x12
-    PathOrderAttach ref;               // +0x16
-    Vec3_0044e3c0 pos;                 // +0x26
-    int field_32;                      // +0x32
-
-    Class_0044e190(Order* order, Unit* unit);
-};
-
 struct Source_0044e250 {
     char unknown_0[0xe];
     Unit* unit;                        // +0xe
-};
-
-class Class_0044e250 : public OrderFx {
-public:
-    short field_8;                     // +0x8
-    short field_a;                     // +0xa
-    short field_c;                     // +0xc
-    short field_e;                     // +0xe
-    short field_10;                    // +0x10
-    Unit* field_12;                    // +0x12
-    PathOrderAttach ref;               // +0x16
-    Vec3_0044e3c0 pos;                 // +0x26
-
-    Class_0044e250(Source_0044e250* source, int unit, short value);
 };
 
 struct Source_0044e2d0 {
@@ -637,20 +629,6 @@ struct Vec3_0044e2d0 {
     int z;
 };
 
-class Class_0044e2d0 : public OrderFx {
-public:
-    short field_8;                     // +0x8
-    short field_a;                     // +0xa
-    short field_c;                     // +0xc
-    short field_e;                     // +0xe
-    short field_10;                    // +0x10
-    int field_12;                      // +0x12
-    PathOrderAttach ref;               // +0x16
-    Vec3_0044e2d0 pos;                 // +0x26
-
-    Class_0044e2d0(Source_0044e2d0* source, const Vec3_0044e2d0& p);
-};
-
 struct Source_0044e330 {
     char unknown_0[0xe];
     int unit;                          // +0xe
@@ -662,19 +640,6 @@ struct Vec3_0044e330 {
     int z;
 };
 
-class Class_0044e330 : public OrderFx {
-public:
-    short field_8;                     // +0x8
-    short field_a;                     // +0xa
-    short field_c;                     // +0xc
-    short field_e;                     // +0xe
-    short field_10;                    // +0x10
-    int field_12;                      // +0x12
-    PathOrderAttach ref;               // +0x16
-    Vec3_0044e330 pos;                 // +0x26
-
-    Class_0044e330(Source_0044e330* source, int unit, const Vec3_0044e330& p);
-};
 #pragma pack(pop)
 
 #pragma pack(push, 1)
@@ -717,39 +682,7 @@ struct Pos_0044e6c0 {
 };
 
 #pragma pack(push, 2)
-class Class_0044e6c0 {
-public:
-    char unknown_0[8];
-    unsigned short field_8;            // +0x8
-    short field_a;                     // +0xa
-    short field_c;                     // +0xc
-    char unknown_e[0x26 - 0xe];
-    Pos_0044e6c0 pos;                  // +0x26
-
-    void SetAltitude(int param_1);
-};
 #pragma pack(pop)
-
-struct Class_0044e720 {
-    char unknown_0[8];
-    unsigned short unknown_bits : 6;   // +0x8
-    unsigned short flag : 1;           // +0x8 bit 6
-    unsigned short unknown_rest : 9;
-    char unknown_a[4];
-    short value;                       // +0xe
-
-    void SetHeading(short v);
-};
-
-struct Class_0044e730 {
-    char unknown_0[8];
-    unsigned short unknown_bits : 4;   // +0x8
-    unsigned short flag : 1;           // +0x8 bit 4
-    unsigned short unknown_rest : 11;
-    short value;                       // +0xa
-
-    void SetApproachRadius(short v);
-};
 
 struct Vec3_0044e740 {
     int x;
@@ -1097,6 +1030,75 @@ void FreeDownloadMenus();
 // Two more, for the declaration PatrolGoal::DeserializeNetUnitState no longer needs.
 void StartScreenFade();
 void StepScreenFade();
+// Unused here: one id each, to keep the allocation the merged PathOrder views
+// moved (docs/c2-regalloc.md).
+extern int Pad6260_01;
+extern int Pad6260_02;
+extern int Pad6260_03;
+extern int Pad6260_04;
+extern int Pad6260_05;
+extern int Pad6260_06;
+extern int Pad6260_07;
+extern int Pad6260_08;
+extern int Pad6260_09;
+extern int Pad6260_10;
+extern int Pad6260_11;
+extern int Pad6260_12;
+extern int Pad6260_13;
+extern int Pad6260_14;
+extern int Pad6260_15;
+extern int Pad6260_16;
+extern int Pad6260_17;
+extern int Pad6260_18;
+extern int Pad6260_19;
+extern int Pad6260_20;
+extern int Pad6260_21;
+extern int Pad6260_22;
+extern int Pad6260_23;
+extern int Pad6260_24;
+extern int Pad6260_25;
+extern int Pad6260_26;
+extern int Pad6260_27;
+extern int Pad6260_28;
+extern int Pad6260_29;
+extern int Pad6260_30;
+extern int Pad6260_31;
+extern int Pad6260_32;
+extern int Pad6260_33;
+extern int Pad6260_34;
+extern int Pad6260_35;
+extern int Pad6260_36;
+extern int Pad6260_37;
+extern int Pad6260_38;
+extern int Pad6260_39;
+extern int Pad6260_40;
+extern int Pad6260_41;
+extern int Pad6260_42;
+extern int Pad6260_43;
+extern int Pad6260_44;
+extern int Pad6260_45;
+extern int Pad6260_46;
+extern int Pad6260_47;
+extern int Pad6260_48;
+extern int Pad6260_49;
+extern int Pad6260_50;
+extern int Pad6260_51;
+extern int Pad6260_52;
+extern int Pad6260_53;
+extern int Pad6260_54;
+extern int Pad6260_55;
+extern int Pad6260_56;
+extern int Pad6260_57;
+extern int Pad6260_58;
+extern int Pad6260_59;
+extern int Pad6260_60;
+extern int Pad6260_61;
+extern int Pad6260_62;
+extern int Pad6260_63;
+extern int Pad6260_64;
+extern int Pad6260_65;
+extern int Pad6260_66;
+extern int Pad6260_67;
 
 Unit* __stdcall LoadUnit(unsigned short index, HapiBank* file);
 Vec3_0044e3c0 __stdcall GetPiecePosition(Unit* obj, int param);
@@ -1149,7 +1151,7 @@ int OrderFx::ApproxDist(int, int)
 // this out of line in the original; in one file MSVC would inline it.
 #pragma auto_inline(off)
 // FUNCTION: 0x44ced0
-void Class_0044ced0::AddFlags(int param_1)
+void PathOrder::AddFlags(int param_1)
 {
     int val = field_4;
     if (val != 0) {
@@ -1662,7 +1664,7 @@ void PathOrder::SerializeToBits(BitWriter* stream)
     stream->WriteBits(flags, 8);
     if ((flags & 1) != 0) {
         stream->WriteBits(field_10, 0x10);
-        stream->WriteBits((int)(unsigned short)(target == 0 ? 0 : (unsigned short)target->id), 0x10);
+        stream->WriteBits((int)(unsigned short)(ref.owner == 0 ? 0 : (unsigned short)ref.owner->id), 0x10);
     }
     if ((flags & 0x10) != 0) {
         stream->WriteBits(field_a, 0x10);
@@ -1684,8 +1686,8 @@ void PathOrder::SerializeToBits(BitWriter* stream)
 // g_pathOrderVtable, slot 1): reads a 0x36-byte record from a named entry of an
 // open file and copies its fields into this object. The record it reads is
 // built by 0x44dfb0 and by 0x44e330 / 0x44e250.
-// FUNCTION: 0x44de80
-Class_0044de80::Class_0044de80(int owner, HapiBank* file, char* name)
+// FUNCTION: 0x44de80 ??0PathOrder@@QAE@HPAVHapiBank@@PAD@Z
+PathOrder::PathOrder(int owner, HapiBank* file, char* name)
     : OrderFx(owner), ref(0, 0)
 {
     vtable = g_pathOrderVtable;
@@ -1694,14 +1696,14 @@ Class_0044de80::Class_0044de80(int owner, HapiBank* file, char* name)
     file->OpenNamedBox(name);
     file->SeekBox(0);
     if (file->ReadBox(&rec, 0x36) == 0x36) {
-        field_12 = LoadUnit(rec.id1, file);
+        unit = LoadUnit(rec.id1, file);
         ref.SetUnit((Unit*)LoadUnit(rec.id2, file));
         field_8 = rec.f1;
         field_a = rec.f2;
         field_c = rec.f3;
         field_e = rec.f4;
         field_10 = rec.f5;
-        pos = rec.pos;
+        pos = *(Vec3_0044e3c0*)&rec.pos;
         field_32 = rec.i4;
     }
     ((UnitRef*)&rec.ref_vt)->Unlink();
@@ -1769,10 +1771,10 @@ int PathOrder::SerializeToSave(int unused, HapiBank* file, char* name)
         rec.id1 = 0;
     else
         rec.id1 = unit->id;
-    if (target == 0)
+    if (this->ref.owner == 0)
         rec.id2 = 0;
     else
-        rec.id2 = target->id;
+        rec.id2 = this->ref.owner->id;
     rec.f1 = flags;
     rec.f2 = field_a;
     rec.f3 = field_c;
@@ -1787,8 +1789,8 @@ int PathOrder::SerializeToSave(int unused, HapiBank* file, char* name)
     return 1;
 }
 
-// FUNCTION: 0x44e080
-Class_0044e080::Class_0044e080(Owner_0044e080* owner_, BitReader* reader)
+// FUNCTION: 0x44e080 ??0PathOrder@@QAE@PAUOwner_0044e080@@PAVBitReader@@@Z
+PathOrder::PathOrder(Owner_0044e080* owner_, BitReader* reader)
     : OrderFx(0), owner(owner_), ref(0, 0)
 {
     vtable = g_pathOrderVtable;
@@ -1820,20 +1822,20 @@ Class_0044e080::Class_0044e080(Owner_0044e080* owner_, BitReader* reader)
 // Another constructor of the class built by 0x44e250 / 0x44e2d0 / 0x44e330
 // (vtable g_pathOrderVtable): it copies the position from the order's unit and
 // picks a type of 7 or 1 from the unit definition's flag bit 11.
-// FUNCTION: 0x44e190
-Class_0044e190::Class_0044e190(Order* order, Unit* unit)
+// FUNCTION: 0x44e190 ??0PathOrder@@QAE@PAUOrder@@PAUUnit@@@Z
+PathOrder::PathOrder(Order* order, Unit* unit)
     : OrderFx((int)order), ref(0, 0)
 {
     vtable = g_pathOrderVtable;
     ref.SetUnit((Unit*)unit);
     field_a = 0;
     field_c = 0;
-    field_12 = order->unit;
-    pos = field_12->pos;
+    this->unit = order->unit;
+    pos = this->unit->pos;
     field_10 = -1;
     if ((unsigned char)(ref.owner->def->flags >> 11) & 1) {
         field_8 = 7;
-        int t = field_12->weapon->range;
+        int t = this->unit->weapon->range;
         if (t != 0)
             field_32 = t << 16;
         else
@@ -1845,50 +1847,50 @@ Class_0044e190::Class_0044e190(Order* order, Unit* unit)
 
 // A second constructor for the class built by 0x44e330 (same vtable
 // g_pathOrderVtable): it takes its position from the source's unit instead.
-// FUNCTION: 0x44e250
-Class_0044e250::Class_0044e250(Source_0044e250* source, int unit, short value)
+// FUNCTION: 0x44e250 ??0PathOrder@@QAE@PAUSource_0044e250@@HF@Z
+PathOrder::PathOrder(Source_0044e250* source, int unit, short value)
     : OrderFx((int)source), field_10(value), ref(0, 0)
 {
     vtable = g_pathOrderVtable;
     field_a = 0;
     field_c = 0;
     field_8 = 5;
-    field_12 = source->unit;
-    pos = field_12->pos;
+    this->unit = source->unit;
+    pos = this->unit->pos;
     ref.SetUnit((Unit*)unit);
 }
 
 // Another constructor of the class built by 0x44e330 and 0x44e250 (vtable
 // g_pathOrderVtable), with a type of 0x20 and the position passed in.
-// FUNCTION: 0x44e2d0
-Class_0044e2d0::Class_0044e2d0(Source_0044e2d0* source, const Vec3_0044e2d0& p)
-    : OrderFx((int)source), ref(0, 0), pos(p)
+// FUNCTION: 0x44e2d0 ??0PathOrder@@QAE@PAUSource_0044e2d0@@ABUVec3_0044e2d0@@@Z
+PathOrder::PathOrder(Source_0044e2d0* source, const Vec3_0044e2d0& p)
+    : OrderFx((int)source), ref(0, 0), pos(*(const Vec3_0044e3c0*)&p)
 {
     vtable = g_pathOrderVtable;
     field_a = 0;
     field_c = 0;
     field_10 = -1;
     field_8 = 0x20;
-    field_12 = source->unit;
+    unit = (Unit*)source->unit;
 }
 
-// FUNCTION: 0x44e330
-Class_0044e330::Class_0044e330(Source_0044e330* source, int unit, const Vec3_0044e330& p)
+// FUNCTION: 0x44e330 ??0PathOrder@@QAE@PAUSource_0044e330@@HABUVec3_0044e330@@@Z
+PathOrder::PathOrder(Source_0044e330* source, int unit, const Vec3_0044e330& p)
     : OrderFx((int)source), ref(0, 0)
 {
     vtable = g_pathOrderVtable;
     ref.SetUnit((Unit*)unit);
-    pos = p;
+    pos = *(const Vec3_0044e3c0*)&p;
     field_a = 0;
     field_c = 0;
     field_10 = -1;
-    field_12 = source->unit;
+    this->unit = (Unit*)source->unit;
     field_8 = 0xa3;
 }
 
 // FUNCTION: 0x44e3a0
 int PathOrder::KeepAfterComplete() {
-    if ((flags & 1) == 0 || target == 0) {
+    if ((flags & 1) == 0 || ref.owner == 0) {
         return 0;
     }
     return 1;
@@ -1913,13 +1915,13 @@ int PathOrder::FillWorldPos(Vec3_0044e3c0* out)
 {
     unsigned short f = flags;
     if ((f & 1) && !(f & 0x80)) {
-        if (target == 0 || target->spatialBucket == g_game->overflowBucket)
+        if (ref.owner == 0 || ref.owner->spatialBucket == g_game->overflowBucket)
             return 0;
         // Through a local pointer: keeps the struct-assignment destination in edi.
         Vec3_0044e3c0* p = &pos;
-        *p = GetPiecePosition(target, field_10);
+        *p = GetPiecePosition(ref.owner, field_10);
         if (flags & 2) {
-            short angle = target->heading;
+            short angle = ref.owner->heading;
             if (flags & 0x40)
                 angle += field_e;
             Vec3_0044e3c0 d = Direction_0044e3c0(angle, field_32);
@@ -1947,16 +1949,16 @@ int PathOrder::FillWorldPos(Vec3_0044e3c0* out)
 int PathOrder::GetDesiredHeading(unsigned short* out)
 {
     unsigned short f = flags;
-    if ((f & 0x84) && target != 0) {
+    if ((f & 0x84) && ref.owner != 0) {
         if (f & 2) {
-            *out = GetHeadingBetween(&unit->pos, &target->pos);
+            *out = GetHeadingBetween(&unit->pos, &ref.owner->pos);
             return 1;
         }
         if (f & 0x40) {
             *out = field_e;
             return 1;
         }
-        *out = target->heading;
+        *out = ref.owner->heading;
         return 1;
     }
     if (f & 0x40) {
@@ -2003,12 +2005,12 @@ int PathOrder::IsFxStyle()
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
 // FUNCTION: 0x44e6c0
-void Class_0044e6c0::SetAltitude(int param_1)
+void PathOrder::SetAltitude(int param_1)
 {
     field_8 |= 8;
     field_c = param_1;
     if ((unsigned char)field_8 & 0x20) {
-        pos.y = (max(GetGroundHeight(&pos), g_game->seaLevel) + param_1) << 16;
+        pos.y = (max(GetGroundHeight((Pos_0044e6c0*)&pos), g_game->seaLevel) + param_1) << 16;
         if (pos.y > 0x1ff0000)
             pos.y = 0x1ff0000;
     }
@@ -2017,19 +2019,19 @@ void Class_0044e6c0::SetAltitude(int param_1)
 // Sets a flag bit in the word at +0x8 (a 1-bit unsigned short bitfield, which
 // MSVC sets with `or byte ptr` straight to memory) and stores a short.
 // FUNCTION: 0x44e720
-void Class_0044e720::SetHeading(short v)
+void PathOrder::SetHeading(short v)
 {
-    flag = 1;
-    value = v;
+    headingFlag = 1;
+    field_e = v;
 }
 
 // Sets a flag bit in the word at +0x8 (a 1-bit unsigned short bitfield, which
 // MSVC sets with `or byte ptr` straight to memory) and stores a short.
 // FUNCTION: 0x44e730
-void Class_0044e730::SetApproachRadius(short v)
+void PathOrder::SetApproachRadius(short v)
 {
-    flag = 1;
-    value = v;
+    radiusFlag = 1;
+    field_a = v;
 }
 
 // The constructor.
@@ -2311,7 +2313,7 @@ int PathGoal::HasReadyWaypoints()
 void PathGoal::SetPathOrder(void* param)
 {
     if (field_4 != 0) {
-        ((Class_0044ced0*)field_4)->AddFlags(0x80);
+        ((PathOrder*)field_4)->AddFlags(0x80);
     }
     field_4 = (Base_00490a10*)param;
 }
@@ -2374,7 +2376,7 @@ void AiSearchGoal::SetWaypoints(Point_0044f080* src, int n)
 {
     if (n == 0) {
         if (field_4 && field_4->ContainsUnit(owner) == 0)
-            ((Class_0044ced0*)field_4)->AddFlags(0x40);
+            ((PathOrder*)field_4)->AddFlags(0x40);
         active = 0;
     } else {
         if (n >= 20)
@@ -2422,7 +2424,7 @@ void AiSearchGoal::TickTowardGoal()
 {
     if (field_4) {
         if (field_4->ContainsUnit(owner)) {
-            ((Class_0044ced0*)field_4)->AddFlags(0x20);
+            ((PathOrder*)field_4)->AddFlags(0x20);
             if (!field_4->KeepAfterComplete())
                 SetPathOrder(0);
         }
@@ -2478,7 +2480,7 @@ void AiSearchGoal::SetPathOrder(void* param)
 {
     g_game->pathfinder->AbortIfGoalMatch(this);
     if (field_4)
-        ((Class_0044ced0*)field_4)->AddFlags(0x80);
+        ((PathOrder*)field_4)->AddFlags(0x80);
     active = 0;
     field_4 = (Base_00490a10*)param;
     if (param == 0) {

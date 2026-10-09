@@ -254,7 +254,13 @@ struct Game {
 class CMemoryCache {
 public:
     char unknown_0[0x10];
-    GafFrame* bitmap;                  // +0x10
+    union {
+        GafFrame* bitmap;              // +0x10
+        int field_10;                  // +0x10
+        void* buffer;                  // +0x10
+        void* ptr;                     // +0x10
+        GafFrame* shadow;              // +0x10
+    };
 
     void ClearPointers(void);
     int InitCache(unsigned int size);
@@ -333,16 +339,10 @@ struct Model_459200 {
 };
 #pragma pack(pop)
 
-class UnitTable {
+// The cache seen by the picture builder: the same object as CMemoryCache, so
+// it derives from it rather than repeating the members (the base costs nothing).
+class UnitTable : public CMemoryCache {
 public:
-    char unknown_0[0x10];
-    union {
-        int field_10;                  // +0x10
-        void* buffer;                  // +0x10
-        void* ptr;                     // +0x10
-        GafFrame* shadow;              // +0x10
-    };
-
     UnitTable* Construct(void);
     int Initialize(unsigned int size);
     void Destroy();
@@ -411,7 +411,7 @@ void __fastcall TransformPieces(Model_459200* model, Piece_459c70* piece,
 // FUNCTION: 0x458160
 UnitTable* UnitTable::Construct(void)
 {
-    ((CMemoryCache*)this)->ClearPointers();
+    this->ClearPointers();
     field_10 = 0;
     return this;
 }
@@ -419,7 +419,7 @@ UnitTable* UnitTable::Construct(void)
 // FUNCTION: 0x458180
 int UnitTable::Initialize(unsigned int size)
 {
-    if (!((CMemoryCache*)this)->InitCache(size))
+    if (!this->InitCache(size))
         return 0;
     buffer = AllocDepthFrame("CompositeBuffer", 600, 600);
     return buffer != 0;
@@ -431,7 +431,7 @@ void UnitTable::Destroy()
     if (ptr) {
         GameFreeThunk(ptr);
     }
-    ((CMemoryCache*)this)->FreeBuffer();
+    this->FreeBuffer();
 }
 
 // The 50 or 125 bias the original materialises separately in each arm of the
@@ -500,9 +500,9 @@ int UnitTable::BuildObjectPicture(Model_459200* list, int param_2, int param_3)
     Unit_459200* owner = list->owner;
     MeasureModel(&w, &h, &oy, &ox, list, 0);
     if (param_2 == 0 && (owner->zBufferFlag & 1) == 0 && owner->intensity == 0.0f) {
-        ((CMemoryCache*)this)->AllocBitmap(&list->bitmap, w, h);
+        this->AllocBitmap(&list->bitmap, w, h);
     } else {
-        ((CMemoryCache*)this)->AllocTwoPlaneBitmap(&list->bitmap, w, h);
+        this->AllocTwoPlaneBitmap(&list->bitmap, w, h);
     }
     GafFrame* bitmap = list->bitmap;
     if (bitmap != 0) {

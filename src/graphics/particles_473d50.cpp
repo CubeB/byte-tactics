@@ -102,7 +102,9 @@ _BI2 copy_backward(_BI1 _F, _BI1 _L, _BI2 _X)
 
 // <vector> with the members the original calls left undefined: the three
 // buffers are _First, _Last and _End, behind the empty allocator at +0x00.
-template <class _Ty, class _A = allocator<_Ty> > class vector {
+// It derives from the size() view, which is the same object, so the out-of-line
+// GetCount is reached without a cast (the empty base costs nothing).
+template <class _Ty, class _A = allocator<_Ty> > class vector : public Class_00475840 {
 public:
     typedef vector<_Ty, _A> _Myt;
     typedef _A allocator_type;
@@ -131,7 +133,7 @@ public:
     size_type raw_size() const
         {return (_First == 0 ? 0 : _Last - _First); }
     size_type size() const
-        {return (((Class_00475840*)this)->GetCount()); }
+        {return (this->GetCount()); }
     void reserve(size_type _N);
     void push_back(const _Ty& _X)
         {insert(end(), 1, _X); }

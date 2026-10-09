@@ -166,7 +166,12 @@ template <class T> inline void Swap(T& a, T& b)
 extern Game* g_game;
 extern const float DAT_004fd4c0;
 
-struct CMemoryCache {
+struct UnitTable { void BuildObjectPicture(Model_459200*,int,int); void DrawPieces(GafFrame*,Model_459200*,int,int); };
+
+// The cache under the name the picture code uses: the same object, so it
+// derives from UnitTable to reach BuildObjectPicture and DrawPieces without a
+// cast (the empty base costs nothing).
+struct CMemoryCache : UnitTable {
     char unknown_0[0x10];
     GafFrame* bitmap;               // +0x10
 
@@ -177,7 +182,6 @@ struct CMemoryCache {
     int ShadeByIntensity(GafFrame* image, Model_459200* model);
     GafFrame* MakeSilhouette(GafFrame* src);
 };
-struct UnitTable { void BuildObjectPicture(Model_459200*,int,int); void DrawPieces(GafFrame*,Model_459200*,int,int); };
 
 int __stdcall GetGroundHeight(Pos_459200* p);
 void __stdcall DrawFrameBlended(int param_1, GafFrame* param_2, int x, int y);
@@ -255,7 +259,7 @@ void CMemoryCache::DrawObjectPicture(int param_2, Model_459200* model, Vec3_4592
             }
         }
         if (model->bitmap == 0) {
-            ((UnitTable*)this)->BuildObjectPicture(model, 0, 1);
+            this->BuildObjectPicture(model, 0, 1);
             bmp = model->bitmap;
         }
         if (!(model->owner->activateFlags & 4) && g_game->debugMode == 0)
@@ -319,16 +323,16 @@ void CMemoryCache::DrawObjectPicture(int param_2, Model_459200* model, Vec3_4592
             }
         }
         if (model->bitmap == 0) {
-            ((UnitTable*)this)->BuildObjectPicture(model, 0, 1);
+            this->BuildObjectPicture(model, 0, 1);
             bmp = model->bitmap;
         }
         MergeIntoComposite(bmp, model);
         if ((model->owner->flags & 0x20000000) == 0 || model->owner->intensity == DAT_004fd4c0)
-            ((UnitTable*)this)->DrawPieces(this->bitmap,model,model->owner->kind,0);
+            this->DrawPieces(this->bitmap,model,model->owner->kind,0);
         Unit_459200* unit = model->owner->list_head;
         while (unit) {
             if (!(unit->flags & 0x20000)) {
-                ((UnitTable*)this)->BuildObjectPicture(unit->sprites,1,-1);
+                this->BuildObjectPicture(unit->sprites,1,-1);
                 if (unit->sprites->bitmap) {
                     ShadeByIntensity(unit->sprites->bitmap,unit->sprites);
                     // Owner position read through int* op.

@@ -143,7 +143,10 @@ struct State_0045a790 {
 void __stdcall CutOutFrame(GafFrame* dst, GafFrame* src, int x, int y);
 int __stdcall CompressFrame(unsigned char* dest, GafFrame* img);
 
-class CMemoryCache {
+// The cache under the name the picture code uses: the same object, so it
+// derives from UnitTable to reach BuildObjectPicture without a cast (the empty
+// base costs nothing).
+class CMemoryCache : public UnitTable {
 public:
     int cap;                           // +0x0, the arena's length
     int base;                          // +0x4, the arena
@@ -465,7 +468,7 @@ void CMemoryCache::DrawObjectState(List_458810* list, Vec3_458810* result)
         rebuild = 1;
     if (rebuild) {
         list->field_14 = 0;
-        ((UnitTable*)this)->BuildObjectPicture(list, 0, 1);
+        this->BuildObjectPicture(list, 0, 1);
     }
     Vec3_458810 coords;
     coords.x = x;

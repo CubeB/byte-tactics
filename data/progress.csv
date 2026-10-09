@@ -610,13 +610,13 @@ address,size,file,symbol,status,similarity
 0x432cb0,51,src/map/los_tables.cpp,?AssignRangeBack@@YGPAUElem_432cb0@@PAU1@00@Z,matched,100.0
 0x432cf0,33,src/map/los_tables.cpp,?construct@?$allocator@UEntry_00432cf0@@@std@@QAEXPAUEntry_00432cf0@@ABU3@@Z,matched,100.0
 0x432d20,27,src/map/los_tables.cpp,?AssignPair@Class_004c93b0@@QAEPAXPAV1@@Z,matched,100.0
-0x432d40,612,src/map/los_tables_432d40.cpp,?SortUnitTypes@@YGXPAVUnitDef@@0P6GHABV1@1@ZH@Z,matched,100.0
+0x432d40,612,src/map/los_tables.cpp,?SortUnitTypes@@YGXPAVUnitDef@@0P6GHABV1@1@ZH@Z,matched,100.0
 0x432fb0,244,src/map/los_tables.cpp,?InsertionSortUnitTypes@@YGXPAVUnitDef@@0P6GHABV1@1@ZPAX@Z,matched,100.0
 0x4330b0,119,src/map/los_tables.cpp,?FreeTables@LosTables@@QAEXXZ,matched,100.0
 0x433130,312,src/map/los_tables_433130.cpp,?LoadLosTables@LosTables@@QAEXXZ,matched,100.0
 0x433270,270,src/map/los_tables_433270.cpp,?ResizeTables@LosTables@@QAEXF@Z,matched,100.0
 0x433380,377,src/map/los_tables.cpp,?LoadLosTable@LosTables@@QAEXPAVTdfFile@@F@Z,matched,100.0
-0x433500,19,src/map/los_tables_433500.cpp,?GetLosTable@LosTables@@QAEPAV?$vector@UElem_00434020@@V?$allocator@UElem_00434020@@@std@@@std@@H@Z,matched,100.0
+0x433500,19,src/map/los_tables.cpp,?GetLosTable@LosTables@@QAEPAV?$vector@UElem_00434020@@V?$allocator@UElem_00434020@@@std@@@std@@H@Z,matched,100.0
 0x433520,19,src/map/los_tables.cpp,?GetLosTableCount@LosTables@@QAEHXZ,matched,100.0
 0x433540,119,src/map/los_tables.cpp,?FreeLines@LosTable@@QAEXXZ,matched,100.0
 0x4335c0,19,src/map/los_tables.cpp,?GetLosLineCount@LosTable@@QAEHXZ,matched,100.0

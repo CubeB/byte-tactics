@@ -2,10 +2,10 @@
 // The HAPI file and archive APIs: the CD drive helpers, the archive
 // directory tree, the file handles, the directory search, the path
 // helpers, the package reader and writer, and the list of open archives.
-// The gap function, HAPI_WriteArchiveData, the vector insert and the
+// The two gap functions, HAPI_WriteArchiveData, the vector insert and the
 // function the compiler would inline into its caller stay in their own
-// files (hpi_4bc800.cpp, hpi_4bd830.cpp, hpi_4be6c0.cpp and
-// hpi_4be320.cpp).
+// files (hpi_4bb4e0.cpp and hpi_4bc800.cpp, hpi_4bd830.cpp, hpi_4be6c0.cpp
+// and hpi_4be320.cpp).
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>

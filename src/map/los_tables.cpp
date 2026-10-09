@@ -7,19 +7,19 @@
 // insert, erase, _Destroy, _Ucopy, allocator, copy-constructor and
 // assignment members the table code uses, each emitted out of line by taking
 // an address.
-// Eight of the module's functions stay in files of their own: 0x432d40
-// (los_tables_432d40.cpp) and 0x433500 (los_tables_433500.cpp), whose
-// registers land differently in this file's symbol context
-// (docs/c2-regalloc.md); 0x433130 (los_tables_433130.cpp) needs a
-// hand-written std::vector so that insert and erase stay out of line, which
-// the real <vector> here would redefine; 0x433270 (los_tables_433270.cpp)
-// needs its Wrap_00433270 element view so that the innermost
-// _Destroy/deallocate calls stay out of line; 0x433a80, 0x434020 and 0x4344e0
-// (los_tables_433a80.cpp) need std::_Destroy and std::_Construct overloads
-// that call the out-of-line DestroyPoint and StoreDwordIfDst; and 0x434360
-// (los_tables_434360.cpp) needs the same _Destroy name for the element type to
-// call DestroyLine. Those overloads disagree with the plain template this
-// file's functions need.
+// Six of the module's functions stay in files of their own: 0x433130
+// (los_tables_433130.cpp) needs a hand-written std::vector so that insert and
+// erase stay out of line, which the real <vector> here would redefine; 0x433270
+// (los_tables_433270.cpp) needs its Wrap_00433270 element view so that the
+// innermost _Destroy/deallocate calls stay out of line; 0x433a80, 0x434020 and
+// 0x4344e0 (los_tables_433a80.cpp) need std::_Destroy and std::_Construct
+// overloads that call the out-of-line DestroyPoint and StoreDwordIfDst; and
+// 0x434360 (los_tables_434360.cpp) needs the same _Destroy name for the element
+// type to call DestroyLine. Those overloads disagree with the plain template
+// this file's functions need. 0x432d40 and 0x433500 have joined this file, at
+// the end and out of address order: their own bodies' symbol ids would
+// otherwise move other functions' register windows (docs/c2-regalloc.md), and
+// GetLosTable's body before SortUnitTypes puts SortUnitTypes on its window.
 #include <windows.h>
 #include <algorithm>
 #include <memory>
@@ -751,3 +751,36 @@ struct Access_004349c0 : Vec_004349c0 {
 
 // FUNCTION: 0x4349c0 ?_Ucopy@?$vector@UElem_00434020@@V?$allocator@UElem_00434020@@@std@@@std@@IAEPAUElem_00434020@@PBU3@0PAU3@@Z
 UcopyFn_004349c0 Access_004349c0::fn = &Access_004349c0::_Ucopy;
+
+// The two functions below are kept after 0x51e6a0's methods and out of address
+// order: defined at their addresses their bodies' symbol ids would move other
+// functions' register windows (docs/c2-regalloc.md), and SortUnitTypes needs
+// GetLosTable's body, declared here just before it, to land on its window.
+// Returns the address of element n - 1 of the table vector held at +0 (the
+// global at 0x51e6a0). The index is narrowed to a short before indexing. The
+// vector really holds Column_00433270 (the same 16-byte element as
+// Inner_00433500, so the pointer arithmetic is the same), but the original's
+// return type names the inner element vector.
+// FUNCTION: 0x433500
+Inner_00433500* LosTables::GetLosTable(int n)
+{
+    return (Inner_00433500*)&tables[(short)(n - 1)];
+}
+
+// 585-byte GUI list entry (same class as 0x432fb0 below). The 4th parameter is
+// the template's unused _Ty* tag, passed as 0 and never read.
+// FUNCTION: 0x432d40
+void __stdcall SortUnitTypes(UnitDef* first, UnitDef* last,
+                            Compare comp, int unused)
+{
+    for (; std::_SORT_MAX < last - first; ) {
+        UnitDef* _M = std::_Unguarded_partition(first, last,
+            std::_Median(UnitDef(*first),
+                UnitDef(*(first + (last - first) / 2)),
+                UnitDef(*(last - 1)), comp), comp);
+        if (last - _M <= _M - first)
+            SortUnitTypes(_M, last, comp, 0), last = _M;
+        else
+            SortUnitTypes(first, _M, comp, 0), first = _M;
+    }
+}

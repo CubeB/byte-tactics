@@ -29,5 +29,19 @@ reason is what stopped it. A module whose row list is empty is one file.
 | map/terrain | src/map/terrain_47d0e0.cpp | The count clears bit 14 of g_game's id, which decides how the cell index multiply folds. |
 | map/terrain | src/map/terrain_47d820.cpp | The count changes the operand order of the footprint mask load. |
 | map/terrain | src/map/terrain_47e2d0.cpp | The symbol ids move the def load and the feature lookup's operand order. |
+| map/los_tables | src/map/los_tables_433130.cpp | It needs a hand-written `std::vector` so that insert and erase stay out of line, which the module's real `<vector>` would redefine. |
+| map/los_tables | src/map/los_tables_433270.cpp | It needs its `Wrap_00433270` element view so that the innermost `_Destroy`/`deallocate` calls stay out of line. |
+| map/los_tables | src/map/los_tables_433a80.cpp | `std::_Destroy` and `std::_Construct` overloads must call the out-of-line `DestroyPoint` and `StoreDwordIfDst`; the module's plain template cannot. |
+| map/los_tables | src/map/los_tables_434360.cpp | It needs the same `_Destroy` name for the element type to call `DestroyLine`. |
+| util/tdf | src/util/tdf_4c2f60.cpp | It needs its own `TdfRecord` view: each path that deletes the root section destroys its entries a different way. |
+| util/tdf | src/util/tdf_4c3120.cpp | Same `TdfRecord` view as tdf_4c2f60.cpp. |
+| util/tdf | src/util/tdf_4c51b0.cpp | Same `TdfRecord` view as tdf_4c2f60.cpp, for the destructor and `??_GTdfField`. |
+| util/tdf | src/util/tdf_4c54f0.cpp | A unit of its own: it calls the TDF methods (not inlined) and each file sees `TdfField` its own way. |
+| util/tdf | src/util/tdf_4c59d0.cpp | With the real `<vector>` (tdf_4c54f0.cpp) the helpers are inlined into this insert. |
+| util/hpi | src/util/hpi_4bb4e0.cpp | Gap code (`tools/gapcheck.py` sizes a region by the next annotation in the file, so it cannot share a file). |
+| util/hpi | src/util/hpi_4bc800.cpp | Gap code, same as hpi_4bb4e0.cpp. |
+| util/hpi | src/util/hpi_4bd830.cpp | Joined, its register allocation changes (the entry-name strlen takes another register) and the bytes only match with this file's declarations. |
+| util/hpi | src/util/hpi_4be320.cpp | `HAPI_ClearShadowFlags` would be inlined into its recursive call, where the original calls it out of line. |
+| util/hpi | src/util/hpi_4be6c0.cpp | The module's hand-written `std::vector` keeps this insert out of line; the real `<vector>` would inline it. |
 | orders/vtol_orders | src/orders/vtol_orders_40f790.cpp | The two reference arguments take the other registers; it matches only with 79 more symbol ids before it (one count in 0 to 127), and those move 0x413d80 and 0x415250 off their windows. |
 | orders/vtol_orders | src/orders/vtol_orders_410c70.cpp | Merged, its owner load takes the other base and index at every count from 0 to 79 more ids, and its inlined vector code moves 0x413bc0 off its window. |

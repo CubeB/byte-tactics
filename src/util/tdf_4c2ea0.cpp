@@ -5,7 +5,11 @@
 // (TdfFile) keeps a root and a current section. The std::string, logic_error,
 // out_of_range and vector members the compiler emitted for the unit follow
 // the code that uses them. The translation tables built on these files
-// (0x4c54f0 to 0x4c5d60) are a unit of their own: tdf_4c54f0.cpp.
+// (0x4c54f0 to 0x4c5d60) are a unit of their own: tdf_4c54f0.cpp. The paths
+// that delete the root section (LoadFile, LoadBuffer, and the destructor with
+// ??_GTdfField) and the field-vector insert stay in files of their own
+// (tdf_4c2f60.cpp, tdf_4c3120.cpp, tdf_4c51b0.cpp and tdf_4c59d0.cpp): no one
+// view of TdfRecord, and not the real <vector>, gives all of them.
 
 #include <string>
 #include <vector>

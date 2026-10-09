@@ -68,7 +68,7 @@ struct SightQuery {
     char unknown_10[0xc];              // +0x10
 };
 
-struct Grid_00481d50 {
+struct Grid {
     unsigned char* cells;              // +0x0
     unsigned int width;                // +0x4
     unsigned int height;               // +0x8
@@ -88,7 +88,7 @@ struct Game {
     unsigned short flag3 : 1;
     unsigned short rest : 12;
     char unknown_14283[0x1428f - 0x14283];
-    Grid_00481d50 grid1;               // +0x1428f
+    Grid grid1;                        // +0x1428f
     char unknown_1429f[0x142f1 - 0x1429f];
     unsigned short flags_142f1_bit0 : 1;  // +0x142f1
     unsigned short flags_142f1_bit1 : 1;
@@ -127,7 +127,7 @@ void __stdcall RemoveLineOfSight(SightQuery* params)
     int x = params->cacheCell[0];
     int y = params->cacheCell[1];
     if (g_game->flag2 == 1) {
-        Grid_00481d50* grid = &g_game->grid1;
+        Grid* grid = &g_game->grid1;
         if ((unsigned)x >= grid->width)
             return;
         if ((unsigned)y >= grid->height)

@@ -2062,12 +2062,12 @@ void __cdecl AllocNotifyNop(int);
 // Constructor of the per-player record (0x14b bytes, 11 of them inside the
 // game object built by 0x41d920).
 #pragma pack(push, 1)
-struct Grid_00463be0 {
+struct Grid {
     void* cells;                       // +0x0
     int width;                         // +0x4
     int height;                        // +0x8
     int count;                         // +0xc
-    Grid_00463be0() { width = 0; height = 0; count = 0; cells = 0; }
+    Grid() { width = 0; height = 0; count = 0; cells = 0; }
 };
 
 struct Player {
@@ -2080,7 +2080,7 @@ struct Player {
     char unknown_2b[0x73 - 0x2b];
     char type;                         // +0x73
     char unknown_74[0x7c - 0x74];
-    Grid_00463be0 grid;                // +0x7c
+    Grid grid;                         // +0x7c
     char unknown_8c[0x146 - 0x8c];
     char index;                        // +0x146
     char unknown_147[0x14b - 0x147];

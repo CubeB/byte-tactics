@@ -33,7 +33,7 @@ void CopyDwordIfNonNull(int*, int*);
 
 extern char g_losTables[];
 
-struct Grid_00481930 {
+struct Grid {
     unsigned char* cells;              // +0x00
     unsigned int width;                // +0x04
     unsigned int height;               // +0x08
@@ -42,7 +42,7 @@ struct Grid_00481930 {
 
 struct Player_00481930 {
     char unknown_0[0x7c];
-    Grid_00481930 grid;                // +0x7c
+    Grid grid;                         // +0x7c
     char unknown_8c[0x146 - 0x8c];
     unsigned char index;               // +0x146
 };
@@ -87,7 +87,7 @@ struct Game {
     unsigned short flag3 : 1;
     unsigned short rest : 12;
     char unknown_14283[0x1428f - 0x14283];
-    Grid_00481930 grid1;               // +0x1428f
+    Grid grid1;                        // +0x1428f
     char unknown_1429f[0x142f1 - 0x1429f];
     unsigned char flags_142f1;         // +0x142f1
     char unknown_142f2[0x1485b - 0x142f2];
@@ -127,7 +127,7 @@ void __stdcall RevealAroundUnit(SightQuery* params)
     x = params->cacheCell[0];
     y = params->cacheCell[1];
     if (g_game->flag2 == 1) {
-        Grid_00481930* grid = &g_game->grid1;
+        Grid* grid = &g_game->grid1;
         if ((unsigned)x < grid->width && (unsigned)y < grid->height) {
             LosTable* table =
                 ((LosTables*)g_losTables)

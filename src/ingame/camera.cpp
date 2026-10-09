@@ -136,8 +136,8 @@ void __stdcall ReadCameraPosition(HapiBank* file)
 void __stdcall WriteCameraPosition(HapiBank* file)
 {
     file->OpenAccount(g_cameraAccount);
-    file->SetIntegerItem(g_cameraXPosition, *(int*)((char*)g_game + 0x1431f));
-    file->SetIntegerItem(g_cameraZPosition, *(int*)((char*)g_game + 0x14323));
+    file->SetIntegerItem(g_cameraXPosition, g_game->scrollX);
+    file->SetIntegerItem(g_cameraZPosition, g_game->scrollY);
 }
 
 // FUNCTION: 0x41d3b0

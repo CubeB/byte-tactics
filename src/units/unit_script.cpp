@@ -61,7 +61,7 @@ struct Unit {
 
 // The animation state of one piece of a unit's model.
 struct PieceState {                     // 0x36 bytes
-    int field_0;                        // +0x00
+    int object;                         // +0x00
     int translation[3];                 // +0x04
     unsigned short rotation[3];         // +0x10
     Vec3 pos;                           // +0x16
@@ -112,7 +112,7 @@ struct Header_00481140 {
     int f20;                           // +0x20
     int f24;                           // +0x24
     unsigned int bits;                 // +0x28
-    void* field_2c;                    // +0x2c
+    void* rec;                         // +0x2c
 };
 #pragma pack(pop)
 

@@ -10,7 +10,7 @@
 // that need a hand-written std::vector, the /Gi insert, the UnitSyncPlayer
 // COMDAT and the conflicting _Tree models stay in their own files
 // (unit_sync_46ca60.cpp, unit_sync_46cc10.cpp, unit_sync_46d1a0.cpp,
-// unit_sync_46d2e0.cpp, unit_sync_46dad0.cpp, unit_sync_46e640.cpp,
+// unit_sync_46dad0.cpp, unit_sync_46e640.cpp,
 // unit_sync_46eba0.cpp, unit_sync_46f7a0.cpp and
 // unit_sync_player.cpp).
 #include <stdio.h>
@@ -629,6 +629,7 @@ public:
     int AllowUnit(Unit_0046e330* unit);
     void SetUnitLimit(Unit_0046e330* unit, int value);
     void ApplyToUnitTypes();
+    void ResetEntries();
 };
 
 static inline Def_0046d040* Defs_0046d040()
@@ -829,6 +830,22 @@ UnitSync::UnitSync(int param)
             v.limit = FlagOf_0046d040(&g_game->defs[i]) ? 0 : -1;
             map[key] = v;
         }
+    }
+}
+
+// Resets every unit type's entry in the map.
+// FUNCTION: 0x46d2e0
+void UnitSync::ResetEntries()
+{
+    UnitSyncEntry v;
+    for (unsigned short i = 1; i < g_game->count; i++) {
+        v.x = g_game->defs[i].key;
+        // Dead store that must stay: the uninitialised slot is what the insert copies.
+        v.y = 0;
+        v.w = 1;
+        v.h = (short)direct;
+        v.limit = FlagOf_0046d040(&g_game->defs[i]) ? 0 : -1;
+        ((std::map<unsigned int, UnitSyncEntry>&)map)[v.x] = v;
     }
 }
 

@@ -1399,7 +1399,7 @@ address,size,file,symbol,status,similarity
 0x46cef0,325,src/network/unit_sync.cpp,?ReceiveSequenced@PacketSequencer@@QAEXPAUUnitSyncPacket@@HPAXI@Z,matched,100.0
 0x46d040,342,src/network/unit_sync.cpp,??0UnitSync@@QAE@H@Z,matched,100.0
 0x46d1a0,312,src/network/unit_sync_46d1a0.cpp,??1UnitSync@@QAE@XZ,matched,100.0
-0x46d2e0,475,src/network/unit_sync_46d2e0.cpp,?ResetEntries@UnitSync@@QAEXXZ,matched,100.0
+0x46d2e0,475,src/network/unit_sync.cpp,?ResetEntries@UnitSync@@QAEXXZ,matched,100.0
 0x46d4c0,49,src/network/unit_sync.cpp,?SendSyncPacket@UnitSync@@QAEXPAIPAUUnitSyncPacket@@H@Z,matched,100.0
 0x46d500,33,src/network/unit_sync.cpp,?ReceiveSyncPacket@UnitSync@@QAEXPAXH@Z,matched,100.0
 0x46d530,122,src/network/unit_sync.cpp,?SendSyncMessage@UnitSync@@QAEXEHHH@Z,matched,100.0

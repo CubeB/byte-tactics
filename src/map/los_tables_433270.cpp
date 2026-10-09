@@ -9,6 +9,7 @@
 // LosTables::ResizeTables(short): resizes the vector at +0 (its _First at
 // +4, 16-byte elements) to n columns, filled with a default-constructed Column.
 #include <vector>
+#include "los_tables.h"
 
 struct Elem_00434020 {
     unsigned short a;                  // +0x0
@@ -26,17 +27,9 @@ struct Elem_00434360 {
 
 typedef std::vector<Elem_00434360> Column_00433270;
 
-// Stays in its own file: the Wrap_00433270 element view keeps the innermost
-// _Destroy/deallocate calls out of line, and los_tables_432ba0.cpp's direct
-// Elem_00434360 view (which 0x433380 needs) inlines them.
-class LosTables : public std::vector<Column_00433270> {
-public:
-    void ResizeTables(short n);
-};
-
 // FUNCTION: 0x433270
 void LosTables::ResizeTables(short n)
 {
     Column_00433270 x;
-    resize(n, x);
+    ((std::vector<Column_00433270>*)this)->resize(n, x);
 }

@@ -28,6 +28,7 @@
 #include <string.h>
 #include <math.h>
 #include <vector>
+#include "los_tables.h"
 
 class Class_004c9390 {
 public:
@@ -140,24 +141,8 @@ public:
     void FreeLines();
 };
 
+
 typedef std::vector<Elem_00434020> Inner_00433500;
-
-class LosTables {
-public:
-    std::vector<Column_00433270> tables; // +0x0
-
-    void FreeTables();
-    // Inline copy of GetLosTable: table number n, counted from 1.
-    LosTable* GetTable(short n)
-    {
-        // Decrements the parameter itself: keeps table 16 bits wide.
-        n--;
-        return (LosTable*)&tables[n];
-    }
-    void LoadLosTable(TdfFile* file, short table);
-    Inner_00433500* GetLosTable(int n);
-    int GetLosTableCount();
-};
 
 struct Elem_004336c0 {
     int value;                         // +0x0
@@ -346,6 +331,15 @@ void LosTables::FreeTables()
 // has each line read itself (LoadLosLine) from the four quarter blocks
 // (line i, numlines + i, 2 * numlines + i, 3 * numlines + i).
 // Header set matters: fewer headers change the table index's register choice.
+// Inline copy of the table accessor: table number n, counted from 1. Its
+// inline body is load-bearing, SortUnitTypes matches only with it present
+// (docs/c2-regalloc.md).
+static inline LosTable* GetTable(LosTables* self, short n)
+{
+    n--;
+    return (LosTable*)&(*(Outer_004330b0*)self)[n];
+}
+
 // FUNCTION: 0x433380
 void LosTables::LoadLosTable(TdfFile* file, short table)
 {
@@ -353,7 +347,9 @@ void LosTables::LoadLosTable(TdfFile* file, short table)
     sprintf(name, "TABLE%d", table + 1);
     file->ResetCurrentRecord();
     if (file->SelectRecord(name)) {
-        LosTable* t = GetTable(table + 1);
+        // The table vector at +0: table number n, counted from 1, so the
+        // caller's table + 1 lands on element table.
+        LosTable* t = GetTable(this, table + 1);
         short numlines = (short)file->current->GetFieldInt("numlines", 0);
         t->SetNumLines(numlines);
         // Short locals before the loop: match the original induction variables.
@@ -371,7 +367,7 @@ void LosTables::LoadLosTable(TdfFile* file, short table)
 // FUNCTION: 0x433520
 int LosTables::GetLosTableCount()
 {
-    return tables.size();
+    return ((Outer_004330b0*)this)->size();
 }
 
 // std::vector<std::vector<Elem_00434020> >::~vector(): each inner vector's
@@ -759,15 +755,16 @@ UcopyFn_004349c0 Access_004349c0::fn = &Access_004349c0::_Ucopy;
 // functions' register windows (docs/c2-regalloc.md), and SortUnitTypes needs
 // GetLosTable's body, declared here just before it, to land on its window.
 // Returns the address of element n - 1 of the table vector held at +0 (the
-// global at 0x51e6a0). The index is narrowed to a short before indexing. The
-// vector really holds Column_00433270 (the same 16-byte element as
-// Inner_00433500, so the pointer arithmetic is the same), but the original's
-// return type names the inner element vector.
+// global at 0x51e6a0). The index is narrowed to a short before indexing.
 // FUNCTION: 0x433500
 Inner_00433500* LosTables::GetLosTable(int n)
 {
-    return (Inner_00433500*)&tables[(short)(n - 1)];
+    return (Inner_00433500*)&(*(Outer_004330b0*)this)[(short)(n - 1)];
 }
+
+// Unused here: the symbol ids these declarations take keep SortUnitTypes on
+// its register window (docs/c2-regalloc.md).
+void StepAllGafSequences(void);
 
 // 585-byte GUI list entry (same class as 0x432fb0 below). The 4th parameter is
 // the template's unused _Ty* tag, passed as 0 and never read.

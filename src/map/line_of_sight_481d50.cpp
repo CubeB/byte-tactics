@@ -6,6 +6,8 @@
 #include <windows.h>
 #include <stdio.h>
 
+#include "los_tables.h"
+
 #pragma pack(push, 1)
 
 class LosLine {
@@ -20,12 +22,6 @@ public:
     LosLine* GetLosLine(short i);
 };
 
-class LosTables {
-public:
-    LosTable* GetLosTable(int n);
-    short GetLosTableCount();
-};
-
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
 void RegisterUnitOrders(void);
 void RegisterGroundOrders(void);
@@ -33,6 +29,7 @@ void EnableAICommands(void);
 void RegisterAICommands(void);
 void FUN_00406f40(void);
 void ResetAIPlayers(void);
+void RegisterVtolOrders(void);
 
 extern LosTables g_losTables;
 
@@ -108,11 +105,11 @@ void __stdcall RemoveLineOfSight(SightQuery* params)
             return;
         if ((unsigned)y >= grid->height)
             return;
-        LosTable* table = g_losTables.GetLosTable(
+        LosTable* table = (LosTable*)g_losTables.GetLosTable(
             (params->sightDistance / 32 < 0 ? 0 : params->sightDistance / 32) <
-                    g_losTables.GetLosTableCount() - 1
+                    (short)g_losTables.GetLosTableCount() - 1
                 ? (params->sightDistance / 32 < 0 ? 0 : params->sightDistance / 32)
-                : g_losTables.GetLosTableCount() - 1);
+                : (short)g_losTables.GetLosTableCount() - 1);
         short count = table->GetLosLineCount();
         short i = 0;
         ((Map_00481d50*)params->player)->explored.at(x, y)--;

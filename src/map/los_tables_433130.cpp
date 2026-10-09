@@ -53,17 +53,7 @@ typedef std::vector<Elem_00434360> W1_00433130;
 typedef std::vector<W1_00433130> W2_00433130;
 
 #include "../util/tdf.h"
-
-// Stays in its own file: it needs a hand-written std::vector so that insert
-// and erase stay out of line, and los_tables_432ba0.cpp's real <vector>
-// would redefine it.
-class LosTables {
-public:
-    W2_00433130 tables;                // +0x0
-
-    void LoadLosTable(TdfFile* tdf, short index);
-    void LoadLosTables();
-};
+#include "los_tables.h"
 
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 
@@ -77,6 +67,9 @@ void LosTables::LoadLosTables()
         if ((&tdf)->SelectRecord("TABLEINFO") != 0) {
             short numtables = (short)tdf.current->GetFieldInt("numtables", 0);
             {
+                // The vector of tables held at +0, reached through the class's
+                // member-free declaration.
+                W2_00433130& tables = *(W2_00433130*)this;
                 W1_00433130 temp;
                 unsigned n = (unsigned)numtables;
                 if (tables.size() < n)

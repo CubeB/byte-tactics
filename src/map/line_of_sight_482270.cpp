@@ -4,6 +4,8 @@
 #include <math.h>
 #include <windows.h>
 
+#include "los_tables.h"
+
 #pragma pack(push, 1)
 
 class LosLine {
@@ -18,18 +20,18 @@ public:
     LosLine* GetLosLine(short i);
 };
 
-class LosTables {
-public:
-    LosTable* GetLosTable(int n);
-    short GetLosTableCount();
-};
-
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
 void CopyDwordIfNonNull(int*, int*);
 int ScanDirectory(char*, char*, char*, int, int, int);
 void RegisterUnitOrders(void);
 void RegisterGroundOrders(void);
 void EnableAICommands(void);
+void RegisterAICommands(void);
+void FUN_00406f40(void);
+void ResetAIPlayers(void);
+void FUN_004161f0(void);
+void InitCommands(void);
+void ResetNetStats(void);
 
 extern char g_losTables[];
 
@@ -112,13 +114,13 @@ void __stdcall AddLineOfSight(SightQuery* params)
         if ((unsigned)y >= grid->height)
             return;
         // Clamp written inline as the GetLosTable argument, with no temporary.
-        LosTable* table = ((LosTables*)g_losTables)
+        LosTable* table = (LosTable*)((LosTables*)g_losTables)
                           ->GetLosTable(
                               (params->sightDistance / 32 < 0 ? 0 : params->sightDistance / 32)
-                                      < ((LosTables*)g_losTables)
+                                      < (short)((LosTables*)g_losTables)
                                             ->GetLosTableCount() - 1
                                   ? (params->sightDistance / 32 < 0 ? 0 : params->sightDistance / 32)
-                                  : ((LosTables*)g_losTables)
+                                  : (short)((LosTables*)g_losTables)
                                         ->GetLosTableCount() - 1);
         short count = table->GetLosLineCount();
         short i = 0;

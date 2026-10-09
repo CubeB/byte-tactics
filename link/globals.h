@@ -354,50 +354,7 @@ extern unsigned char DAT_00512ad4[4];                                           
 extern int g_packetSizes[45];                                                                     // 0x512ad8, 180 bytes; 2 of 2 files
 extern unsigned char DAT_00512b8c[4];                                                             // 0x512b8c, 4 bytes; nothing refers to it
 extern int g_broadcastPeersSeen[12];                                                              // 0x512b90, 48 bytes (declared int[11]); 1 of 1 files
-extern int g_packetModes[2];                                                                      // 0x512bc0, 8 bytes; 1 of 1 files
-extern int DAT_00512bc8;                                                                          // 0x512bc8, 4 bytes; 1 of 1 files
-extern int DAT_00512bcc;                                                                          // 0x512bcc, 4 bytes; 1 of 1 files
-extern unsigned char DAT_00512bd0[4];                                                             // 0x512bd0, 4 bytes; nothing refers to it
-extern int DAT_00512bd4;                                                                          // 0x512bd4, 4 bytes; 1 of 1 files
-extern int DAT_00512bd8;                                                                          // 0x512bd8, 4 bytes; 1 of 1 files
-extern int DAT_00512bdc;                                                                          // 0x512bdc, 4 bytes; 1 of 1 files
-extern int DAT_00512be0;                                                                          // 0x512be0, 4 bytes; 1 of 1 files
-extern int DAT_00512be4;                                                                          // 0x512be4, 4 bytes; 1 of 1 files
-extern int DAT_00512be8;                                                                          // 0x512be8, 4 bytes; 1 of 1 files
-extern int DAT_00512bec;                                                                          // 0x512bec, 4 bytes; 1 of 1 files
-extern int DAT_00512bf0;                                                                          // 0x512bf0, 4 bytes; 1 of 1 files
-extern int DAT_00512bf4;                                                                          // 0x512bf4, 4 bytes; 1 of 1 files
-extern int DAT_00512bf8;                                                                          // 0x512bf8, 4 bytes; 1 of 1 files
-extern int DAT_00512bfc;                                                                          // 0x512bfc, 4 bytes; 1 of 1 files
-extern int DAT_00512c00;                                                                          // 0x512c00, 4 bytes; 1 of 1 files
-extern int DAT_00512c04;                                                                          // 0x512c04, 4 bytes; 1 of 1 files
-extern int DAT_00512c08;                                                                          // 0x512c08, 4 bytes; 1 of 1 files
-extern int DAT_00512c0c;                                                                          // 0x512c0c, 4 bytes; 1 of 1 files
-extern int DAT_00512c10;                                                                          // 0x512c10, 4 bytes; 1 of 1 files
-extern int DAT_00512c14;                                                                          // 0x512c14, 4 bytes; 1 of 1 files
-extern int DAT_00512c18;                                                                          // 0x512c18, 4 bytes; 1 of 1 files
-extern int DAT_00512c1c;                                                                          // 0x512c1c, 4 bytes; 1 of 1 files
-extern int DAT_00512c20;                                                                          // 0x512c20, 4 bytes; 1 of 1 files
-extern int DAT_00512c24;                                                                          // 0x512c24, 4 bytes; 1 of 1 files
-extern int DAT_00512c28;                                                                          // 0x512c28, 4 bytes; 1 of 1 files
-extern int DAT_00512c2c;                                                                          // 0x512c2c, 4 bytes; 1 of 1 files
-extern int DAT_00512c30;                                                                          // 0x512c30, 4 bytes; 1 of 1 files
-extern unsigned char DAT_00512c34[4];                                                             // 0x512c34, 4 bytes; nothing refers to it
-extern int DAT_00512c38;                                                                          // 0x512c38, 4 bytes; 1 of 1 files
-extern int DAT_00512c3c;                                                                          // 0x512c3c, 4 bytes; 1 of 1 files
-extern int DAT_00512c40;                                                                          // 0x512c40, 4 bytes; 1 of 1 files
-extern int DAT_00512c44;                                                                          // 0x512c44, 4 bytes; 1 of 1 files
-extern int DAT_00512c48;                                                                          // 0x512c48, 4 bytes; 1 of 1 files
-extern int DAT_00512c4c;                                                                          // 0x512c4c, 4 bytes; 1 of 1 files
-extern int DAT_00512c50;                                                                          // 0x512c50, 4 bytes; 1 of 1 files
-extern int DAT_00512c54;                                                                          // 0x512c54, 4 bytes; 1 of 1 files
-extern int DAT_00512c58;                                                                          // 0x512c58, 4 bytes; 1 of 1 files
-extern int DAT_00512c5c;                                                                          // 0x512c5c, 4 bytes; 1 of 1 files
-extern int DAT_00512c60;                                                                          // 0x512c60, 4 bytes; 1 of 1 files
-extern int DAT_00512c64;                                                                          // 0x512c64, 4 bytes; 1 of 1 files
-extern int DAT_00512c68;                                                                          // 0x512c68, 4 bytes; 1 of 1 files
-extern unsigned char DAT_00512c6c[4];                                                             // 0x512c6c, 4 bytes; nothing refers to it
-extern int DAT_00512c70;                                                                          // 0x512c70, 4 bytes; 1 of 1 files
+extern int g_packetModes[45];                                                                     // 0x512bc0, 180 bytes; 2 of 2 files
 extern char* g_loungeChatter;                                                                     // 0x512c74, 4 bytes; 1 of 1 files
 extern int g_loungeRefreshTime;                                                                   // 0x512c78, 4 bytes; 1 of 1 files
 extern unsigned int g_timeoutTimerStart;                                                          // 0x512c7c, 4 bytes; 1 of 1 files
@@ -632,7 +589,7 @@ extern int g_lzssLockOwner;                                                     
 extern void* g_squashThreadLockEvent;                                                             // 0x52a4f8, 4 bytes; 2 of 2 files
 extern long g_squashThreadLockTicket;                                                             // 0x52a4fc, 4 bytes; 1 of 2 files (conflicting: signedness or const)
 
-// Not declared: 220 globals defined in a data file or whose type is not settled (see data/globals.csv).
+// Not declared: 198 globals defined in a data file or whose type is not settled (see data/globals.csv).
 //   0x513000 g_packetManager: defined in src/network/packets_460e20.cpp
 //   0x4fcdb8 DPSPGUID_SERIAL: defined in src/data/guids.cpp
 //   0x4fcdc8 DPSPGUID_MODEM: defined in src/data/guids.cpp
@@ -779,28 +736,6 @@ extern long g_squashThreadLockTicket;                                           
 //   0x512370 DAT_00512370: part of another global: MovementClassTable::g_movementClasses+0x18
 //   0x512774 g_serialBaudRate: part of another global: DAT_00512770+0x4
 //   0x512a28 g_packetHandlerType2: part of another global: g_packetHandlers+0x8
-//   0x512b30 DAT_00512b30: part of another global: g_packetSizes+0x58
-//   0x512b34 DAT_00512b34: part of another global: g_packetSizes+0x5c
-//   0x512b38 DAT_00512b38: part of another global: g_packetSizes+0x60
-//   0x512b3c DAT_00512b3c: part of another global: g_packetSizes+0x64
-//   0x512b40 DAT_00512b40: part of another global: g_packetSizes+0x68
-//   0x512b44 DAT_00512b44: part of another global: g_packetSizes+0x6c
-//   0x512b48 DAT_00512b48: part of another global: g_packetSizes+0x70
-//   0x512b4c DAT_00512b4c: part of another global: g_packetSizes+0x74
-//   0x512b50 DAT_00512b50: part of another global: g_packetSizes+0x78
-//   0x512b54 DAT_00512b54: part of another global: g_packetSizes+0x7c
-//   0x512b58 DAT_00512b58: part of another global: g_packetSizes+0x80
-//   0x512b5c DAT_00512b5c: part of another global: g_packetSizes+0x84
-//   0x512b60 DAT_00512b60: part of another global: g_packetSizes+0x88
-//   0x512b64 DAT_00512b64: part of another global: g_packetSizes+0x8c
-//   0x512b68 DAT_00512b68: part of another global: g_packetSizes+0x90
-//   0x512b6c DAT_00512b6c: part of another global: g_packetSizes+0x94
-//   0x512b70 DAT_00512b70: part of another global: g_packetSizes+0x98
-//   0x512b74 DAT_00512b74: part of another global: g_packetSizes+0x9c
-//   0x512b78 DAT_00512b78: part of another global: g_packetSizes+0xa0
-//   0x512b7c DAT_00512b7c: part of another global: g_packetSizes+0xa4
-//   0x512b80 DAT_00512b80: part of another global: g_packetSizes+0xa8
-//   0x512b88 DAT_00512b88: part of another global: g_packetSizes+0xb0
 //   0x512c8c DAT_00512c8c: part of another global: DAT_00512c80+0xc
 //   0x512c94 g_netFrameRateConfig: part of another global: DAT_00512c80+0x14
 //   0x512ce8 g_lobbyMapName: part of another global: DAT_00512c80+0x68
@@ -827,7 +762,7 @@ extern long g_squashThreadLockTicket;                                           
 //   0x512f51 g_optionsBackupDisplayHeight: part of another global: g_optionsPrefsSnapshot+0x39
 //   0x512f55 g_optionsBackupTextScroll: part of another global: g_optionsPrefsSnapshot+0x3d
 //   0x512f59 g_optionsBackupTextLines: part of another global: g_optionsPrefsSnapshot+0x41
-//   0x513008 DAT_00513008: part of another global: g_packetManager+0x8
+//   0x513008 g_packetChannels: part of another global: g_packetManager+0x8
 //   0x51e300 g_packetManagerReceiver: part of another global: g_packetManager+0xb300
 //   0x51e6cc DAT_0051e6cc: part of another global: g_loadingBarFlashAlpha+0x4
 //   0x51e821 DAT_0051e821: part of another global: g_loadingBarPrevPercent+0x1

@@ -438,53 +438,10 @@ int g_unitRestrictNextPicTick;  // 0x5129c8 .bss
 unsigned char DAT_005129cc[4];  // 0x5129cc .bss
 int (__stdcall* g_packetHandlers[45])(int);  // 0x512a20 .bss (the type runs past the next known address, 0x512a20+0xb0)
 unsigned char DAT_00512ad4[4];  // 0x512ad4 .bss
-int g_packetSizes[45];  // 0x512ad8 .bss (the type runs past the next known address, 0x512ad8+0x54)
+int g_packetSizes[45];  // 0x512ad8 .bss (the type runs past the next known address, 0x512ad8+0xb0)
 unsigned char DAT_00512b8c[4];  // 0x512b8c .bss
 int g_broadcastPeersSeen[12];  // 0x512b90 .bss
-int g_packetModes[2];  // 0x512bc0 .bss
-int DAT_00512bc8;  // 0x512bc8 .bss
-int DAT_00512bcc;  // 0x512bcc .bss
-unsigned char DAT_00512bd0[4];  // 0x512bd0 .bss
-int DAT_00512bd4;  // 0x512bd4 .bss
-int DAT_00512bd8;  // 0x512bd8 .bss
-int DAT_00512bdc;  // 0x512bdc .bss
-int DAT_00512be0;  // 0x512be0 .bss
-int DAT_00512be4;  // 0x512be4 .bss
-int DAT_00512be8;  // 0x512be8 .bss
-int DAT_00512bec;  // 0x512bec .bss
-int DAT_00512bf0;  // 0x512bf0 .bss
-int DAT_00512bf4;  // 0x512bf4 .bss
-int DAT_00512bf8;  // 0x512bf8 .bss
-int DAT_00512bfc;  // 0x512bfc .bss
-int DAT_00512c00;  // 0x512c00 .bss
-int DAT_00512c04;  // 0x512c04 .bss
-int DAT_00512c08;  // 0x512c08 .bss
-int DAT_00512c0c;  // 0x512c0c .bss
-int DAT_00512c10;  // 0x512c10 .bss
-int DAT_00512c14;  // 0x512c14 .bss
-int DAT_00512c18;  // 0x512c18 .bss
-int DAT_00512c1c;  // 0x512c1c .bss
-int DAT_00512c20;  // 0x512c20 .bss
-int DAT_00512c24;  // 0x512c24 .bss
-int DAT_00512c28;  // 0x512c28 .bss
-int DAT_00512c2c;  // 0x512c2c .bss
-int DAT_00512c30;  // 0x512c30 .bss
-unsigned char DAT_00512c34[4];  // 0x512c34 .bss
-int DAT_00512c38;  // 0x512c38 .bss
-int DAT_00512c3c;  // 0x512c3c .bss
-int DAT_00512c40;  // 0x512c40 .bss
-int DAT_00512c44;  // 0x512c44 .bss
-int DAT_00512c48;  // 0x512c48 .bss
-int DAT_00512c4c;  // 0x512c4c .bss
-int DAT_00512c50;  // 0x512c50 .bss
-int DAT_00512c54;  // 0x512c54 .bss
-int DAT_00512c58;  // 0x512c58 .bss
-int DAT_00512c5c;  // 0x512c5c .bss
-int DAT_00512c60;  // 0x512c60 .bss
-int DAT_00512c64;  // 0x512c64 .bss
-int DAT_00512c68;  // 0x512c68 .bss
-unsigned char DAT_00512c6c[4];  // 0x512c6c .bss
-int DAT_00512c70;  // 0x512c70 .bss
+int g_packetModes[45];  // 0x512bc0 .bss (the type runs past the next known address, 0x512bc0+0xb0)
 char* g_loungeChatter;  // 0x512c74 .bss
 int g_loungeRefreshTime;  // 0x512c78 .bss
 unsigned int g_timeoutTimerStart;  // 0x512c7c .bss

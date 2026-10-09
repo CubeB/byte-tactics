@@ -42,7 +42,7 @@ struct PlayerInfo;
 struct Nano_0041b8d0;
 struct MenuEntry;
 struct Layer;
-struct Menu;
+struct Gui;
 struct BuildList_0041ace0;
 
 #include "../game/unit_resources.h"
@@ -144,18 +144,14 @@ struct MenuEntry {
 struct Layer {
     int unknown_0;                     // +0x0
     MenuEntry* entries;                // +0x4
-    void (__stdcall* handler)(Menu*);  // +0x8
+    void (__stdcall* handler)(Gui*);   // +0x8
     int data;                          // +0xc
 };
 
-struct Menu {
-    char unknown_0[0x18];
-    Layer* layer;                      // +0x18
-    char unknown_1c[0x60 - 0x1c];
-    int index;                         // +0x60
-    char unknown_64[0xcca - 0x64];
-    int changed;                       // +0xcca
-};
+#include "../gui/gui.h"
+
+// Unused here: a real function declared to keep the file's symbol count (docs/c2-regalloc.md).
+void StepAllGafSequences();
 
 struct PlayerInfo {
     Unit* unit;                        // +0x0
@@ -332,8 +328,8 @@ struct Follow_0041ca10 {
 
 struct Game {
     char unknown_0[0x519];
-    Menu menu;                         // +0x519, the GUI context TALK.GUI lives in
-    char unknown_11e7[0x1b63 - 0x11e7];
+    Gui menu;                          // +0x519, the GUI context TALK.GUI lives in
+    char unknown_120f[0x1b63 - 0x120f];
     Player players[10];                // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char localPlayer;         // +0x2a42
@@ -474,28 +470,28 @@ int __stdcall SumQueuedBuildCount(void* owner, int index);
 void __stdcall MarkChanged(void* obj);
 int __stdcall FindGadgetIndexBySubstring(int value, char* name);
 int __stdcall FindGadgetIndexBySubstring(MenuEntry* entries, char* name);
-void __stdcall SetGadgetStatus(Menu* menu, int index, int value);
+void __stdcall SetGadgetStatus(Gui* menu, int index, int value);
 void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall AdjustBuildCount(MissionType kind, Unit* unit, int id, int count);
 void __stdcall IssueOrderToSelection(void* a, int b, MissionType kind,
                                      int d, int e, int f);
-void __stdcall SetGrayedOut(Menu* menu, int index, int value);
-void __stdcall SetGadgetActive(Menu* menu, int index, char value);
-void __stdcall RenderLayer(Menu* menu, int value);
-void __stdcall SetGadgetActiveByName(Menu* menu, char* name, int param_3);
-void __stdcall ClearSelectedGadget(Menu* menu);
-int __stdcall HandleOrdersPanelClick(Menu* menu, MenuEntry* entries);
-int __stdcall HandleOrderButtonClick(Menu* menu, MenuEntry* entries);
+void __stdcall SetGrayedOut(Gui* menu, int index, int value);
+void __stdcall SetGadgetActive(Gui* menu, int index, char value);
+void __stdcall RenderLayer(Gui* menu, int value);
+void __stdcall SetGadgetActiveByName(Gui* menu, char* name, int param_3);
+void __stdcall ClearSelectedGadget(Gui* menu);
+int __stdcall HandleOrdersPanelClick(Gui* menu, MenuEntry* entries);
+int __stdcall HandleOrderButtonClick(Gui* menu, MenuEntry* entries);
 int __stdcall IsKeyDown(int key);
-int __stdcall GetClickMode(Menu* menu);
+int __stdcall GetClickMode(Gui* menu);
 void __stdcall QueueBuildOrder(char* name, Unit* unit, int count);
-void __stdcall RefreshBuildCountTexts(Menu* menu, Unit* unit);
+void __stdcall RefreshBuildCountTexts(Gui* menu, Unit* unit);
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 int __stdcall HAPI_FileLengthByName(char* path);
-Layer* __stdcall LoadGuiLayer(Menu* menu, const char* name, int flags);
-void __stdcall HandleBuildPanelClick(Menu* menu);
+Layer* __stdcall LoadGuiLayer(Gui* menu, const char* name, int flags);
+void __stdcall HandleBuildPanelClick(Gui* menu);
 void __stdcall RefreshOrderButtons(Unit* unit);
-int __stdcall IsScreenNamed(Menu* menu, const char* name);
+int __stdcall IsScreenNamed(Gui* menu, const char* name);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 void __stdcall BroadcastBuilderLink(Unit* obj, Unit* target);
 void __stdcall DamageUnit(Unit* obj, Unit* unit, int n, int kind, int flag);
@@ -620,7 +616,7 @@ int UpdatePlacementGhostValidity(void)
 // table at +0x1439b and sets its text at +0xb6 to "+<n>", or clears it
 // when n is 0.
 // FUNCTION: 0x419940
-void __stdcall SetBuildCountText(Menu* obj, unsigned short index, int n)
+void __stdcall SetBuildCountText(Gui* obj, unsigned short index, int n)
 {
     MenuEntry* e = FindGadgetOrNull(obj->layer->entries, g_game->buildTypes[index].name);
     if (e) {
@@ -638,7 +634,7 @@ void __stdcall SetBuildCountText(Menu* obj, unsigned short index, int n)
 // (printing "+<amount>") or show the unit's own count at +0x1e. Entry 0 holds
 // only the count, so the loop starts at entry 1.
 // FUNCTION: 0x4199b0
-void __stdcall RefreshBuildCountTexts(Menu* menu, Unit* unit)
+void __stdcall RefreshBuildCountTexts(Gui* menu, Unit* unit)
 {
     MenuEntry* e = menu->layer->entries;
     // Read as an int so it is sign-extended once.
@@ -847,7 +843,7 @@ int __stdcall HandleOrderButtonClick(MenuEntry* button, MenuEntry* entries)
 // FUNCTION: 0x41a120
 void __stdcall RefreshOrderButtons(Unit* unit)
 {
-    Menu* menu = &g_game->menu;
+    Gui* menu = &g_game->menu;
     int layer = (int)g_game->menu.layer->entries;
     int index;
 
@@ -982,11 +978,11 @@ static inline int Contains(MenuEntry* entries, char* text, int index)
 }
 
 // FUNCTION: 0x41a490
-int __stdcall HandleOrdersPanelClick(Menu* menu, MenuEntry* entries)
+int __stdcall HandleOrdersPanelClick(Gui* menu, MenuEntry* entries)
 {
     Unit* unit = &g_game->units[g_game->unitIndex];
     void* orders = g_game->orders;
-    int index = menu->index;
+    int index = menu->hotGadgetIndex;
 
     if (Contains(entries, "MOVEORD", index)) {
         switch (g_game->orderState.bits.moveOrder) {
@@ -1079,18 +1075,18 @@ void __stdcall SetPrevNextGadgetNames(Unit* unit)
 // the orders buttons go to HandleOrdersPanelClick, and any other entry adds or removes
 // build queue entries (5 at a time when IsKeyDown(0xf9) is set).
 // FUNCTION: 0x41aa00
-void __stdcall HandleBuildPanelClick(Menu* menu)
+void __stdcall HandleBuildPanelClick(Gui* menu)
 {
-    if (menu->index != -1) {
+    if (menu->hotGadgetIndex != -1) {
         MenuEntry* entries = menu->layer->entries;
         // char[17]: a [20] buffer is placed above the name buffer.
         char idName[17];
-        GetGadgetName(entries, idName, menu->index);
+        GetGadgetName(entries, idName, menu->hotGadgetIndex);
         idName[16] = 0;
         unsigned short id = FindUnitTypeId(idName);
         Unit* unit = &g_game->units[g_game->unitIndex];
         char name[32];
-        GetGadgetName(entries, name, menu->index);
+        GetGadgetName(entries, name, menu->hotGadgetIndex);
         if (strstr(name, "PREV")) {
             g_game->orderState.bits.prev = 1;
         } else if (strstr(name, "NEXT")) {
@@ -1109,7 +1105,7 @@ void __stdcall HandleBuildPanelClick(Menu* menu)
             // Own nested if: inside the && chain the bit test is compiled differently.
             if (unit->flags.bits.selected) {
                 char text[256];
-                GetGadgetName(entries, text, menu->index);
+                GetGadgetName(entries, text, menu->hotGadgetIndex);
                 if (IsKeyDown(0xf9)) {
                     if (GetClickMode(menu) == 1)
                         QueueBuildOrder(text, unit, 5);
@@ -1138,7 +1134,7 @@ static inline MenuEntry* Entries(MenuEntry* t)
 }
 
 // FUNCTION: 0x41ac90
-void __stdcall DisableUnavailableBuildMenuEntries(Menu* obj)
+void __stdcall DisableUnavailableBuildMenuEntries(Gui* obj)
 {
     MenuEntry* t = obj->layer->entries;
     int n = t->u.count;
@@ -1162,7 +1158,7 @@ static inline void SetPrevNext(Unit* unit)
 }
 
 // Inlined copy of DisableUnavailableBuildMenuEntries.
-static inline void UpdateCounts(Menu* menu)
+static inline void UpdateCounts(Gui* menu)
 {
     MenuEntry* entry = menu->layer->entries;
     int n = entry->u.count;

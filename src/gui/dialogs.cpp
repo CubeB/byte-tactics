@@ -10,8 +10,7 @@
 
 #pragma pack(push, 1)
 
-struct Layer_004aa8f0;
-struct Gui;
+struct Layer;
 
 // 0x15b-byte GUI control record: entry 0 holds the count at +0xb6 and the
 // dialog's own fields from +0xbc on, the other entries hold NUL terminated
@@ -20,8 +19,8 @@ struct Gui;
 
 // The layer a dialog's +0x18 points at: its entry table at +4 and the
 // installed handler at +8.
-struct Layer_004aa8f0 {
-    Layer_004aa8f0* next;          // +0x00
+struct Layer {
+    Layer* next;                   // +0x00
     Gadget* entries;               // +0x04
     void (__stdcall* handler)(Gui*); // +0x08
     int data;                      // +0x0c
@@ -38,7 +37,7 @@ struct Layer_004aa8f0 {
 
 struct Src_004ab400;
 
-// The animation reference at +0x30 of a dialog.
+// The animation reference at +0x30 of a dialog (gui.h's cursorIndex to cursorSrc).
 struct Ref_004ab400 {
     unsigned short index;          // +0x0
     unsigned short value;          // +0x2
@@ -47,13 +46,15 @@ struct Ref_004ab400 {
     Src_004ab400* src;             // +0x8
 };
 
+// Unused here: the bitfield view of gui.h's cursorFlags; its symbol ids keep
+// the allocation (docs/c2-regalloc.md).
 struct Flags_004ab400 {
     unsigned int active : 1;
     unsigned int rest : 31;
 };
 
-// A mouse event, 0x18 bytes: the point at +0x0/+0x4, the code at +0x8 and
-// the message at +0x10.
+// A mouse event, 0x18 bytes (gui.h's pointX to pointDoubleClick): the point
+// at +0x0/+0x4, the code at +0x8 and the message at +0x10.
 struct Event_004ab5d0 {
     int data[6];
 };
@@ -65,33 +66,7 @@ struct Rect_004b6720 {
     int bottom;
 };
 
-// The dialog: a layer at +0x18, the animation reference at +0x30, the last
-// mouse event at +0x3c, the current entry index at +0x60, the text cursor at
-// +0x74, and the menu's own fields.
-struct Gui {
-    char unknown_0[0x18];
-    Layer_004aa8f0* layer;         // +0x18
-    int cursorSharedFrame;         // +0x1c
-    int cursorDefaultFrame;        // +0x20
-    int cursorHoverFrame;          // +0x24
-    Src_004ab400* src_28;          // +0x28
-    Src_004ab400* src_2c;          // +0x2c
-    Ref_004ab400 ref;              // +0x30
-    Event_004ab5d0 event;          // +0x3c
-    int mouseKeyFlags;             // +0x54
-    int clickMode;                 // +0x58
-    Flags_004ab400 flags_5c;       // +0x5c
-    int hotGadgetIndex;            // +0x60
-    // Must stay a second field after hotGadgetIndex.
-    int focus;                     // +0x64
-    char unknown_68[0x74 - 0x68];
-    int cursor;                    // +0x74
-    char unknown_78[0x9a - 0x78];
-    int animTimer;                 // +0x9a
-    char unknown_9e[0x8b2 - 0x9e];
-    unsigned char colours[0x104];  // +0x8b2
-    char name[0x100];              // +0x9b6
-};
+#include "gui.h"
 
 // The records AddButtonGadget, AddHotspotGadget and AddBarGadget copy into an
 // entry slot: the slot's first bytes viewed as the control's definition.
@@ -184,7 +159,7 @@ void* GetDisplay();
 
 
 // Must stay an inline helper returning an index or -1: sets the search's registers.
-static inline int FindPanel_004aa8f0(Layer_004aa8f0* layer)
+static inline int FindPanel_004aa8f0(Layer* layer)
 {
     Gadget* base = layer->entries;
     int i;
@@ -203,10 +178,10 @@ static inline int FindPanel_004aa8f0(Layer_004aa8f0* layer)
 // 0x4aaa3b) and then writes layer->entries/field_1c/surface/textHandler
 // through it and returns the garbage pointer.
 // FUNCTION: 0x4aa8f0
-Layer_004aa8f0* __stdcall LoadGuiLayer(Gui* menu, const char* name,
+Layer* __stdcall LoadGuiLayer(Gui* menu, const char* name,
                                        unsigned int flags)
 {
-    Layer_004aa8f0* layer;
+    Layer* layer;
     int ret = 1;
     int mask;
     int rect[4];
@@ -215,7 +190,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Gui* menu, const char* name,
     Gadget* entry = 0;
 
     if (flags & 0x800) {
-        Layer_004aa8f0* cur = menu->layer;
+        Layer* cur = menu->layer;
         if (cur != 0) {
             Gadget* e = cur->entries;
             if (e->type == 0) {
@@ -234,7 +209,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Gui* menu, const char* name,
             FadeRectangle(0, 0, -0x18);
         }
     }
-    strncpy(layerName, menu->name, 0x100);
+    strncpy(layerName, menu->str_9b6, 0x100);
     strcat(layerName, name);
     strncpy(guiName, name, 0x100);
     StripPath(guiName);
@@ -246,7 +221,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Gui* menu, const char* name,
             layer = menu->layer;
             entry = &layer->entries[layer->entries->u.count + 1];
         } else {
-            layer = (Layer_004aa8f0*)GameAllocIgnoreTag(guiName, 0x10f57);
+            layer = (Layer*)GameAllocIgnoreTag(guiName, 0x10f57);
             memset(layer, 0, 0x10f57);
             entry = layer->gadgets;
         }
@@ -409,7 +384,7 @@ int __stdcall IsPointInEntryRect(Gui* obj)
     r.top = info->y;
     r.right = r.left + info->width - 1;
     r.bottom = r.top + info->height - 1;
-    return PointInRect(&r, obj->event.data[0], obj->event.data[1]);
+    return PointInRect(&r, obj->pointX, obj->pointY);
 }
 
 // FUNCTION: 0x4ab040
@@ -436,7 +411,7 @@ void __stdcall ClearSelectedGadget(void* param_1)
 }
 
 // FUNCTION: 0x4ab0b0
-int __stdcall BlitLayers(Layer_004aa8f0* node, void* param_2, Rect_004b6720* param_3)
+int __stdcall BlitLayers(Layer* node, void* param_2, Rect_004b6720* param_3)
 {
     Rect_004b6720 rect;
     if (node == 0) {
@@ -486,7 +461,7 @@ void __stdcall SetDescListCleanupFlag(int param_1, int param_2)
 // passes the literal "Player%dController" (0x5029f8, 18 characters plus the
 // terminator), which spills past the name into the x field at +0x13.
 // FUNCTION: 0x4ab1b0
-void __stdcall AddTextGadget(Layer_004aa8f0* obj, char* name, char* text,
+void __stdcall AddTextGadget(Layer* obj, char* name, char* text,
                             int x, short y, int w, int flags)
 {
     Gadget* entries = obj->entries;
@@ -584,9 +559,9 @@ int __stdcall AddBarGadget(Gui* obj, Record_004ab3a0* record)
 void __stdcall SetCursorAnimation(Gui* p, Src_004ab400* src)
 {
     p->src_2c = src;
-    InitGafSequence(&p->ref, src, 0);
-    p->flags_5c.active = 1;
-    SetCursorSprite(GetGafSequenceFrame(&p->ref));
+    InitGafSequence((Ref_004ab400*)&p->cursorIndex, src, 0);
+    p->cursorFlags |= 1;
+    SetCursorSprite(GetGafSequenceFrame((Ref_004ab400*)&p->cursorIndex));
 }
 
 // Picks the source at +0x28 (alt) or +0x2c; with a source, points the
@@ -596,11 +571,11 @@ void __stdcall SetCursorAnimation(Gui* p, Src_004ab400* src)
 // or value is already current.
 static inline void SetSource(Gui* p, Src_004ab400* src)
 {
-    if (p->ref.src == src)
+    if ((Src_004ab400*)p->cursorSrc == src)
         return;
-    InitGafSequence(&p->ref, src, 0);
-    SetCursorSprite(GetGafSequenceFrame(&p->ref));
-    p->flags_5c.active = 1;
+    InitGafSequence((Ref_004ab400*)&p->cursorIndex, src, 0);
+    SetCursorSprite(GetGafSequenceFrame((Ref_004ab400*)&p->cursorIndex));
+    p->cursorFlags |= 1;
 }
 
 static inline void SetValue(Gui* p, int value)
@@ -608,8 +583,8 @@ static inline void SetValue(Gui* p, int value)
     if (GetCursorSprite() == value)
         return;
     SetCursorSprite(value);
-    p->ref.src = 0;
-    p->flags_5c.active = 0;
+    p->cursorSrc = 0;
+    p->cursorFlags &= ~1;
 }
 
 // FUNCTION: 0x4ab440
@@ -617,12 +592,12 @@ void __stdcall SetCursorHover(Gui* p, int alt)
 {
     if (alt) {
         if (p->src_28)
-            SetSource(p, p->src_28);
+            SetSource(p, (Src_004ab400*)p->src_28);
         else
             SetValue(p, p->cursorHoverFrame);
     } else {
         if (p->src_2c)
-            SetSource(p, p->src_2c);
+            SetSource(p, (Src_004ab400*)p->src_2c);
         else
             SetValue(p, p->cursorDefaultFrame);
     }
@@ -636,7 +611,7 @@ void __stdcall SetCursorHover(Gui* p, int alt)
 void __stdcall ApplySharedCursorFrame(Gui* p)
 {
     SetCursorSprite(p->cursorSharedFrame);
-    p->flags_5c.active = 0;
+    p->cursorFlags &= ~1;
 }
 
 // Compare 0x4ab4c0 and 0x4ab400: sets the three values at +0x1c..+0x24,
@@ -648,7 +623,7 @@ void __stdcall InitCursorFrames(Gui* p, int value)
     p->cursorDefaultFrame = value;
     p->cursorHoverFrame = value;
     SetCursorSprite(value);
-    p->flags_5c.active = 0;
+    p->cursorFlags &= ~1;
     p->mouseKeyFlags = 0;
     p->src_28 = 0;
     p->src_2c = 0;
@@ -661,7 +636,7 @@ void __stdcall InitCursorFrames(Gui* p, int value)
 // FUNCTION: 0x4ab510
 int __stdcall IsMouseButtonMessage(Gui* obj, unsigned char buttons)
 {
-    int& msg = obj->event.data[4];
+    int& msg = obj->pointMessage;
     if (buttons & 1) {
         if (msg == WM_LBUTTONDOWN)
             return 1;
@@ -681,7 +656,7 @@ int __stdcall IsMouseButtonMessage(Gui* obj, unsigned char buttons)
 // FUNCTION: 0x4ab570
 int __stdcall IsDoubleClickMessage(Gui* obj, unsigned char buttons)
 {
-    int& msg = obj->event.data[4];
+    int& msg = obj->pointMessage;
     if (buttons & 1) {
         if (msg == WM_LBUTTONDBLCLK)
             return 1;
@@ -706,11 +681,11 @@ int __stdcall HasMouseKeyFlags(Gui* obj, unsigned int mask)
 // FUNCTION: 0x4ab5d0
 void __stdcall UpdateCursorAndMouse(Gui* p)
 {
-    if (p->flags_5c.active) {
-        int old = p->ref.index;
-        AdvanceGafSequence(&p->ref, p->animTimer);
-        if (p->ref.index != old)
-            SetCursorSprite(GetGafSequenceFrame(&p->ref));
+    if (p->cursorFlags & 1) {
+        int old = p->cursorIndex;
+        AdvanceGafSequence((Ref_004ab400*)&p->cursorIndex, p->animTimer);
+        if (p->cursorIndex != old)
+            SetCursorSprite(GetGafSequenceFrame((Ref_004ab400*)&p->cursorIndex));
     }
 
     Event_004ab5d0 e;
@@ -721,11 +696,11 @@ void __stdcall UpdateCursorAndMouse(Gui* p)
             if (IsPointInRect(&r, e.data[0], e.data[1]) != 0 || e.data[2] == 0) {
                 PopMouseEvent(&e);
                 p->mouseKeyFlags = e.data[2];
-                p->event = e;
+                *(Event_004ab5d0*)&p->pointX = e;
             }
         }
     } else {
-        GetCurrentMouseEvent(&p->event);
+        GetCurrentMouseEvent((Event_004ab5d0*)&p->pointX);
     }
 }
 
@@ -771,7 +746,7 @@ void __stdcall CommitTextEdit(Gui* control, int index, char* text,
 // FUNCTION: 0x4ab720
 int __stdcall HandleTextEditKey(Gui* control, int index, int key)
 {
-    Layer_004aa8f0* holder = control->layer;
+    Layer* holder = control->layer;
     Gadget* entry = &holder->entries[index];
     // Declared before text: makes the subscript the addressing-mode index.
     int i;
@@ -955,7 +930,7 @@ void __stdcall InputDialogHandler(Gui* menu);
 // FUNCTION: 0x4abb20
 int __stdcall OpenConfirmDialog(Gui* sub, char* title)
 {
-    Layer_004aa8f0* layer = LoadGuiLayer(sub, "CONFIRM.GUI", 0);
+    Layer* layer = LoadGuiLayer(sub, "CONFIRM.GUI", 0);
     if (layer) {
         Gadget* gadgets = layer->entries;
         int i = FindGadgetIndex(gadgets, "TITL", 5);
@@ -982,7 +957,7 @@ void __stdcall YesNoDialogHandler(Gui* gadget)
 // FUNCTION: 0x4abbd0
 int __stdcall OpenYesNoDialog(Gui* sub, char* param_2, char* param_3, char* param_4)
 {
-    Layer_004aa8f0* layer = LoadGuiLayer(sub, "YESORNO.GUI", 0x800);
+    Layer* layer = LoadGuiLayer(sub, "YESORNO.GUI", 0x800);
     if (layer) {
         Gadget* entries = sub->layer->entries;
         Gadget* p1 = &entries[FindGadgetIndex(entries, "CHC1", 1)];
@@ -1000,7 +975,7 @@ int __stdcall OpenYesNoDialog(Gui* sub, char* param_2, char* param_3, char* para
 // FUNCTION: 0x4abd00
 void __stdcall MessageBoxHandler(Gui* menu)
 {
-    Layer_004aa8f0* layer = menu->layer;
+    Layer* layer = menu->layer;
     IsGadgetNamed(layer->entries, menu->hotGadgetIndex, g_okGadgetName);
 }
 
@@ -1032,7 +1007,7 @@ int __stdcall IsMessageBoxScreen(Gui* obj)
 // FUNCTION: 0x4abd90
 int __stdcall OpenMessageBox(Gui* gui, char* text, int wrapWidth, int centre, int autoHeight)
 {
-    Layer_004aa8f0* layer = LoadGuiLayer(gui, "MSGBOX.GUI", 0x800);
+    Layer* layer = LoadGuiLayer(gui, "MSGBOX.GUI", 0x800);
     if (layer) {
         char name[0x100];
         char buf[0x100];
@@ -1113,7 +1088,7 @@ void __stdcall NotExistDialogHandler(Gui* obj)
 // FUNCTION: 0x4ac0a0
 int __stdcall OpenNotExistDialog(Gui* sub, char* name)
 {
-    Layer_004aa8f0* dialog = LoadGuiLayer(sub, "NOTEXIST.GUI", 0);
+    Layer* dialog = LoadGuiLayer(sub, "NOTEXIST.GUI", 0);
     if (dialog) {
         Gadget* gadgets = sub->layer->entries;
         int i = FindGadgetIndex(gadgets, "NAME", 5);
@@ -1142,7 +1117,7 @@ void __stdcall Choice3DialogHandler(Gui* param_1)
 int __stdcall OpenChoice3Dialog(Gui* menu, const char* title, const char* choice1,
                            const char* choice2, const char* choice3)
 {
-    Layer_004aa8f0* dialog = LoadGuiLayer(menu, "CHOICE3.GUI", 0);
+    Layer* dialog = LoadGuiLayer(menu, "CHOICE3.GUI", 0);
     if (dialog != 0) {
         Gadget* entries = menu->layer->entries;
         RenderLayer(menu, 1);
@@ -1177,7 +1152,7 @@ void __stdcall InputDialogHandler(Gui* param_1)
 // FUNCTION: 0x4ac340
 int __stdcall OpenInputDialog(Gui* sub, char* title, char* input, char* chc2, char* chc1, int unused)
 {
-    Layer_004aa8f0* dialog = LoadGuiLayer(sub, "INPUT.GUI", 0);
+    Layer* dialog = LoadGuiLayer(sub, "INPUT.GUI", 0);
     if (dialog) {
         Gadget* gadgets = sub->layer->entries;
         Gadget* g = &gadgets[FindGadgetIndex(gadgets, "INPT", 3)];
@@ -1326,18 +1301,6 @@ void __stdcall TruncateTextWithEllipsis(Gui* obj, unsigned char* text, int limit
 // helpers (here and before 0x4ac7d0, 0x4ac8c0 and 0x4acbe0) match at
 // (docs/c2-regalloc.md), and the forward declaration of a later function of
 // this file.
-struct Arr_00421550;
-struct ArrayA;
-struct ArrayB;
-struct Attached_00438a00;
-struct Bank_004b4d70;
-struct Base_004d8ae0;
-struct Big_004b1ec0;
-struct BitFlags16_00499200;
-struct BitFlags_004197d0;
-struct BitmapInfo_004b5510;
-struct Bitmap_00437b50;
-struct Bitmap_004caec0;
 struct Bitmap_004cb170;
 struct Bits10F_00487080;
 struct Bits_0045c570;

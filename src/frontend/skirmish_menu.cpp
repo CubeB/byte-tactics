@@ -10,7 +10,7 @@
 
 struct GafEntry;
 struct Gaf;
-struct Menu;
+struct Gui;
 struct Layer;
 struct Cheat;
 class Mission;
@@ -35,7 +35,7 @@ struct Gadget {                        // GUI entry, 0x15b bytes
     char* items;                       // +0xc2
     unsigned short frame;              // +0xc6
     char unknown_c8[6];
-    void (__stdcall* onSelect)(Menu*, int);   // +0xce
+    void (__stdcall* onSelect)(Gui*, int);   // +0xce
     void* records;                     // +0xd2
     char unknown_d6[0x136 - 0xd6];
     union {                            // +0x136
@@ -46,16 +46,11 @@ struct Gadget {                        // GUI entry, 0x15b bytes
         };
     };
     char unknown_138[0x144 - 0x138];
-    void (__stdcall* sliderCallback)(Menu*, int); // +0x144
+    void (__stdcall* sliderCallback)(Gui*, int); // +0x144
     char unknown_148[0x15b - 0x148];
 };
 
-struct Menu {
-    char unknown_0[0x18];
-    Layer* holder;                     // +0x18
-    char unknown_1c[0x60 - 0x1c];
-    int current;                       // +0x60
-};
+#include "../gui/gui.h"
 
 struct Data {                          // "SELECT MAP DATA", 0x20 bytes
     char unknown_0[0x14];
@@ -91,8 +86,8 @@ struct Table {
 
 struct Game {
     char unknown_0[0x519];
-    Menu menu;                         // +0x519
-    char unknown_57d[0x1b63 - 0x57d];
+    Gui gui;                          // +0x519
+    char unknown_120f[0x1b63 - 0x120f];
     Player slots[10];                  // +0x1b63
     char unknown_2851[0x29a0 - 0x2851];
     Table* table;                      // +0x29a0
@@ -120,13 +115,13 @@ struct Game {
 extern Game* g_game;
 
 int __stdcall FindGadgetIndex(Gadget* entries, const char* name, int flag);
-void __stdcall MarkChanged(Menu* menu);
+void __stdcall MarkChanged(Gui* menu);
 
 // FUNCTION: 0x479660
 void RefreshAllyIcons(void)
 {
     int i = 0;
-    Gadget* entries = g_game->menu.holder->entries;
+    Gadget* entries = g_game->gui.layer->entries;
     for (; i < g_game->playerCount; i++) {
         char name[64];
         wsprintfA(name, "Allies%d", i);
@@ -157,7 +152,7 @@ void RefreshAllyIcons(void)
             }
         }
     }
-    MarkChanged(&g_game->menu);
+    MarkChanged(&g_game->gui);
 }
 
 // Returns 1 when every active player (other than type 5) has the same type
@@ -183,8 +178,8 @@ int AreAllPlayersInOneAllyGroup(void)
 }
 #pragma auto_inline(on)
 
-void __stdcall SetGadgetActiveByName(Menu* menu, char* name, int value);
-void __stdcall SetTranslatedTextByName(Menu* menu, char* key, char* text, int flag);
+void __stdcall SetGadgetActiveByName(Gui* menu, char* name, int value);
+void __stdcall SetTranslatedTextByName(Gui* menu, char* key, char* text, int flag);
 char* __stdcall Translate(char* key);
 
 // Copies of the campaign_menu functions at 0x479500, 0x479590 and 0x4795e0:
@@ -234,7 +229,7 @@ static void NewColour(int playerIndex)
 {
     // Separate helper with its own name buffer: the players array is re-read.
     char name[64];
-    Gadget* entries = g_game->menu.holder->entries;
+    Gadget* entries = g_game->gui.layer->entries;
     g_game->table->players[playerIndex].color = FindFreeColor();
     wsprintfA(name, "Color%d", playerIndex);
     int index = FindGadgetIndex(entries, name, 6);
@@ -259,51 +254,51 @@ void __stdcall CycleSlotController(int playerIndex)
     switch (g_game->table->players[playerIndex].active) {
     case 0:
         g_game->table->players[playerIndex].active = 2;
-        SetTranslatedTextByName(&g_game->menu, buffer, Translate("Computer"), 0);
+        SetTranslatedTextByName(&g_game->gui, buffer, Translate("Computer"), 0);
         break;
     case 1:
         g_game->table->players[playerIndex].active = 0;
-        SetTranslatedTextByName(&g_game->menu, buffer, Translate("Open"), 0);
+        SetTranslatedTextByName(&g_game->gui, buffer, Translate("Open"), 0);
         break;
     case 2:
         if (CountHumanSlots() == 0) {
             g_game->table->players[playerIndex].active = 1;
-            SetTranslatedTextByName(&g_game->menu, buffer, Translate("Player"), 0);
+            SetTranslatedTextByName(&g_game->gui, buffer, Translate("Player"), 0);
         } else {
             g_game->table->players[playerIndex].active = 0;
-            SetTranslatedTextByName(&g_game->menu, buffer, Translate("Open"), 0);
+            SetTranslatedTextByName(&g_game->gui, buffer, Translate("Open"), 0);
         }
         break;
     }
 
     if (g_game->table->players[playerIndex].active == 0) {
         wsprintfA(buffer, "Player%d", playerIndex);
-        SetGadgetActiveByName(&g_game->menu, buffer, 1);
+        SetGadgetActiveByName(&g_game->gui, buffer, 1);
         wsprintfA(buffer, "Side%d", playerIndex);
-        SetGadgetActiveByName(&g_game->menu, buffer, 0);
+        SetGadgetActiveByName(&g_game->gui, buffer, 0);
         wsprintfA(buffer, "Allies%d", playerIndex);
-        SetGadgetActiveByName(&g_game->menu, buffer, 0);
+        SetGadgetActiveByName(&g_game->gui, buffer, 0);
         wsprintfA(buffer, "Metal%d", playerIndex);
-        SetGadgetActiveByName(&g_game->menu, buffer, 0);
+        SetGadgetActiveByName(&g_game->gui, buffer, 0);
         wsprintfA(buffer, "Energy%d", playerIndex);
-        SetGadgetActiveByName(&g_game->menu, buffer, 0);
+        SetGadgetActiveByName(&g_game->gui, buffer, 0);
         wsprintfA(buffer, "Color%d", playerIndex);
-        SetGadgetActiveByName(&g_game->menu, buffer, 0);
+        SetGadgetActiveByName(&g_game->gui, buffer, 0);
     } else {
         if (IsColorTaken(g_game->table->players[playerIndex].color, playerIndex))
             NewColour(playerIndex);
         wsprintfA(buffer, "Player%d", playerIndex);
-        SetGadgetActiveByName(&g_game->menu, buffer, 1);
+        SetGadgetActiveByName(&g_game->gui, buffer, 1);
         wsprintfA(buffer, "Side%d", playerIndex);
-        SetGadgetActiveByName(&g_game->menu, buffer, 1);
+        SetGadgetActiveByName(&g_game->gui, buffer, 1);
         wsprintfA(buffer, "Allies%d", playerIndex);
-        SetGadgetActiveByName(&g_game->menu, buffer, 1);
+        SetGadgetActiveByName(&g_game->gui, buffer, 1);
         wsprintfA(buffer, "Metal%d", playerIndex);
-        SetGadgetActiveByName(&g_game->menu, buffer, 1);
+        SetGadgetActiveByName(&g_game->gui, buffer, 1);
         wsprintfA(buffer, "Energy%d", playerIndex);
-        SetGadgetActiveByName(&g_game->menu, buffer, 1);
+        SetGadgetActiveByName(&g_game->gui, buffer, 1);
         wsprintfA(buffer, "Color%d", playerIndex);
-        SetGadgetActiveByName(&g_game->menu, buffer, 1);
+        SetGadgetActiveByName(&g_game->gui, buffer, 1);
     }
     RefreshAllyIcons();
 }
@@ -353,7 +348,7 @@ int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 // FUNCTION: 0x479bf0
 void __stdcall BindGadgetAnimSequence(Rec1* obj, char* name)
 {
-    Backdrop* h = (Backdrop*)g_game->menu.holder->entries;
+    Backdrop* h = (Backdrop*)g_game->gui.layer->entries;
     obj->entry = 0;
     if (h->gaf) {
         GafEntry* e = FindGafEntry(h->gaf, name);
@@ -397,7 +392,7 @@ void BuildSkirmishPlayerRows(void)
         rec1.h.attribs = 2;
         rec1.text[0] = 0;
         BindGadgetAnimSequence(&rec1, "skirmname");
-        AddButtonGadget(&g_game->menu, &rec1);
+        AddButtonGadget(&g_game->gui, &rec1);
 
         wsprintfA(rec1.h.name, "Side%d", i);
         rec1.h.x = 0xa3;
@@ -405,21 +400,21 @@ void BuildSkirmishPlayerRows(void)
         BindGadgetAnimSequence(&rec1, "SIDEx");
         rec1.frame = 0;
         rec1.stages = 2;
-        AddButtonGadget(&g_game->menu, &rec1);
+        AddButtonGadget(&g_game->gui, &rec1);
 
         wsprintfA(rec2.h.name, "Color%d", i);
         rec2.h.x = 0xd6;
         rec2.h.w = 0x14;
         rec2.h.h = 0x14;
         rec2.text[0] = 0;
-        AddHotspotGadget(&g_game->menu, &rec2);
+        AddHotspotGadget(&g_game->gui, &rec2);
 
         wsprintfA(rec2.h.name, "Allies%d", i);
         rec2.h.x = 0xf1;
         rec2.h.w = 0x28;
         rec2.h.h = 0x14;
         strcpy(rec2.text, Translate("Click to select an allegiance symbol."));
-        AddHotspotGadget(&g_game->menu, &rec2);
+        AddHotspotGadget(&g_game->gui, &rec2);
 
         wsprintfA(rec1.h.name, "Metal%d", i);
         rec1.h.x = 0x11e;
@@ -432,20 +427,20 @@ void BuildSkirmishPlayerRows(void)
         rec1.entry = 0;
         BindGadgetAnimSequence(&rec1, "skirmmet");
         strcpy(rec1.text, Translate("Left click to increase metal. Right click to decrease metal."));
-        AddButtonGadget(&g_game->menu, &rec1);
+        AddButtonGadget(&g_game->gui, &rec1);
 
         wsprintfA(rec1.h.name, "Energy%d", i);
         rec1.h.x = 0x151;
         rec1.h.w = 0x2d;
         BindGadgetAnimSequence(&rec1, "skirmmet");
         strcpy(rec1.text, Translate("Left click to increase energy. Right click to decrease energy."));
-        AddButtonGadget(&g_game->menu, &rec1);
+        AddButtonGadget(&g_game->gui, &rec1);
         y += step;
         ++i;
     }
 }
 
-int __stdcall SetButtonStageByName(Menu* menu, char* name, int value);
+int __stdcall SetButtonStageByName(Gui* menu, char* name, int value);
 
 // Skirmish setup screen refresh: fills every player/game-option gadget with the
 // current lobby state (player name, side, allies, metal, energy, colour, the
@@ -459,7 +454,7 @@ void RefreshSkirmishSetup()
     char num[0x40];
     int index;
 
-    Gadget* entries = g_game->menu.holder->entries;
+    Gadget* entries = g_game->gui.layer->entries;
     g_game->table->baseGadgetCount = entries[0].count;
     BuildSkirmishPlayerRows();
 
@@ -500,37 +495,37 @@ void RefreshSkirmishSetup()
             int type = g_game->table->players[i].active;
             switch (type) {
             case 2:
-                SetTranslatedTextByName(&g_game->menu, buf, Translate("Computer"), 0);
+                SetTranslatedTextByName(&g_game->gui, buf, Translate("Computer"), 0);
                 break;
             case 1:
-                SetTranslatedTextByName(&g_game->menu, buf, Translate("Player"), 0);
+                SetTranslatedTextByName(&g_game->gui, buf, Translate("Player"), 0);
                 break;
             case 0:
-                SetTranslatedTextByName(&g_game->menu, buf, "Open", 0);
-                SetGadgetActiveByName(&g_game->menu, buf, 1);
+                SetTranslatedTextByName(&g_game->gui, buf, "Open", 0);
+                SetGadgetActiveByName(&g_game->gui, buf, 1);
                 wsprintfA(buf, "Side%d", i);
-                SetGadgetActiveByName(&g_game->menu, buf, 0);
+                SetGadgetActiveByName(&g_game->gui, buf, 0);
                 wsprintfA(buf, "Allies%d", i);
-                SetGadgetActiveByName(&g_game->menu, buf, 0);
+                SetGadgetActiveByName(&g_game->gui, buf, 0);
                 wsprintfA(buf, "Metal%d", i);
-                SetGadgetActiveByName(&g_game->menu, buf, 0);
+                SetGadgetActiveByName(&g_game->gui, buf, 0);
                 wsprintfA(buf, "Energy%d", i);
-                SetGadgetActiveByName(&g_game->menu, buf, 0);
+                SetGadgetActiveByName(&g_game->gui, buf, 0);
                 wsprintfA(buf, "Color%d", i);
-                SetGadgetActiveByName(&g_game->menu, buf, 0);
+                SetGadgetActiveByName(&g_game->gui, buf, 0);
                 break;
             }
 
             wsprintfA(buf, "Side%d", i);
-            SetButtonStageByName(&g_game->menu, buf, g_game->table->players[i].shade);
+            SetButtonStageByName(&g_game->gui, buf, g_game->table->players[i].shade);
 
             wsprintfA(buf, "Metal%d", i);
             _itoa(g_game->table->players[i].metal, num, 10);
-            SetTranslatedTextByName(&g_game->menu, buf, num, 0);
+            SetTranslatedTextByName(&g_game->gui, buf, num, 0);
 
             wsprintfA(buf, "Energy%d", i);
             _itoa(g_game->table->players[i].energy, num, 10);
-            SetTranslatedTextByName(&g_game->menu, buf, num, 0);
+            SetTranslatedTextByName(&g_game->gui, buf, num, 0);
 
             wsprintfA(buf, "Color%d", i);
             index = FindGadgetIndex(entries, buf, 6);
@@ -607,8 +602,8 @@ void RefreshSkirmishSetup()
         }
     }
 
-    SetTranslatedTextByName(&g_game->menu, "MapName", g_game->table->mapName, 0);
-    MarkChanged(&g_game->menu);
+    SetTranslatedTextByName(&g_game->gui, "MapName", g_game->table->mapName, 0);
+    MarkChanged(&g_game->gui);
 }
 
 // Searches the player table from index `start` for the first active player
@@ -694,27 +689,27 @@ void __cdecl CycleCurrentPlayerSide()
 
 void __cdecl GameFreeThunk(void* ptr);
 void __stdcall PlaySoundByName(const char* name, int param_2);
-int __stdcall IsCurrentGadgetNamed(Menu* menu, char* name);
+int __stdcall IsCurrentGadgetNamed(Gui* menu, char* name);
 Gadget* __stdcall FindGadgetChecked(Gadget* entries, char* name);
 Gadget* __stdcall FindGadgetChecked_E(Gadget* entries, char* name);
-void __stdcall SetControlTextByName(Menu* menu, char* name, char* value);
-void __stdcall ClearSelectedGadget(Menu* menu);
+void __stdcall SetControlTextByName(Gui* menu, char* name, char* value);
+void __stdcall ClearSelectedGadget(Gui* menu);
 char* __stdcall SkipTextLines(char* text, int line);
 
-// Menu gadget callback. With no gadget selected it frees the MAPPIC bitmap and
+// Gui gadget callback. With no gadget selected it frees the MAPPIC bitmap and
 // the map list object; for MAPNAMES or LOAD it clicks, copies the picked line
 // out of the MAPNAMES list into the current player and refreshes "MapName".
 // PREVMENU just clicks, anything else clears the selection.
 // FUNCTION: 0x47a910
-void __stdcall HandleSkirmishMapClick(Menu* menu)
+void __stdcall HandleSkirmishMapClick(Gui* menu)
 {
     char buffer[0x100];
-    Layer* holder = menu->holder;
+    Layer* holder = menu->layer;
     Data* list = (Data*)holder->data;
     Gadget* entries = holder->entries;
 
-    if (menu->current == -1) {
-        Gadget* pic = FindGadgetChecked_E(g_game->menu.holder->entries, "MAPPIC");
+    if (menu->hotGadgetIndex == -1) {
+        Gadget* pic = FindGadgetChecked_E(g_game->gui.layer->entries, "MAPPIC");
         if (pic->items != 0) {
             GameFreeThunk(pic->items);
             pic->items = 0;
@@ -745,24 +740,24 @@ void ShowSelectedMapInfo();
 
 // Like 0x444c40, without the MAPPIC update.
 // FUNCTION: 0x47aaa0
-void __stdcall UpdateSkirmishMapSelection(Menu* menu, int unused)
+void __stdcall UpdateSkirmishMapSelection(Gui* menu, int unused)
 {
-    Gadget* g = FindGadgetChecked(menu->holder->entries, "MAPNAMES");
+    Gadget* g = FindGadgetChecked(menu->layer->entries, "MAPNAMES");
     if (g_game->mission->LoadMissionByName(SkipTextLines(g->items, g->selected)) != 0) {
         ShowSelectedMapInfo();
     }
 }
 
 int __stdcall LoadMapList(char** out, int param_2, int param_3);
-void __stdcall OpenMessageBox(Menu* menu, char* text, int width, int a, int b);
-Layer* __stdcall LoadGuiLayer(Menu* menu, const char* name, int flags);
+void __stdcall OpenMessageBox(Gui* menu, char* text, int width, int a, int b);
+Layer* __stdcall LoadGuiLayer(Gui* menu, const char* name, int flags);
 void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void __stdcall SortFileList(char* items, int b, int c, int count);
-void __stdcall ConfigureListBoxByName(Menu* menu, char* name, char* items, int count, int flag);
-void __stdcall SetListBoxScrollByName(Menu* menu, char* name, int index);
-void __stdcall SetKeyboardInput(Menu* menu, int value);
-void __stdcall RenderLayer(Menu* menu, int value);
+void __stdcall ConfigureListBoxByName(Gui* menu, char* name, char* items, int count, int flag);
+void __stdcall SetListBoxScrollByName(Gui* menu, char* name, int index);
+void __stdcall SetKeyboardInput(Gui* menu, int value);
+void __stdcall RenderLayer(Gui* menu, int value);
 void __stdcall SetCursorMode(int value);
 
 // Opens the skirmish map selector (SELMAP.GUI): counts the skirmish maps,
@@ -773,44 +768,44 @@ void OpenSkirmishMapSelector()
 {
     int n = LoadMapList(0, 0, 0);
     if (n == 0) {
-        OpenMessageBox(&g_game->menu,
+        OpenMessageBox(&g_game->gui,
                      Translate("There are no skirmish maps to choose from"),
                      0x140, 1, 1);
         return;
     }
-    Layer* layer = LoadGuiLayer(&g_game->menu, "SELMAP.GUI", 0x880);
+    Layer* layer = LoadGuiLayer(&g_game->gui, "SELMAP.GUI", 0x880);
     layer->handler = (void (__stdcall*)(void*))HandleSkirmishMapClick;
     Data* data = (Data*)GameAllocIgnoreTag("SELECT MAP DATA", 0x20);
     layer->data = data;
     LoadPictureCached("DSELECTMAP2", 0, 0, 0);
     LoadMapList(&data->items, 0, 0);
     SortFileList(data->items, 0, 0, n);
-    ConfigureListBoxByName(&g_game->menu, "MAPNAMES", data->items, n, 0);
+    ConfigureListBoxByName(&g_game->gui, "MAPNAMES", data->items, n, 0);
     FindGadgetChecked(layer->entries, "MAPNAMES")->onSelect = UpdateSkirmishMapSelection;
 
     for (int i = 0; i < n; i++) {
         if (strcmp(g_game->table->mapName, SkipTextLines(data->items, i)) == 0) {
-            SetListBoxScrollByName(&g_game->menu, "MAPNAMES", i);
+            SetListBoxScrollByName(&g_game->gui, "MAPNAMES", i);
             break;
         }
     }
 
-    Gadget* g = FindGadgetChecked(g_game->menu.holder->entries, "MAPNAMES");
+    Gadget* g = FindGadgetChecked(g_game->gui.layer->entries, "MAPNAMES");
     if (g_game->mission->LoadMissionByName(SkipTextLines(g->items, g->selected)) != 0) {
         ShowSelectedMapInfo();
     }
-    SetKeyboardInput(&g_game->menu, 1);
-    RenderLayer(&g_game->menu, 0x40);
+    SetKeyboardInput(&g_game->gui, 1);
+    RenderLayer(&g_game->gui, 0x40);
     SetCursorMode(0x13);
 }
 
 // FUNCTION: 0x47acb0
-void __stdcall SelectLogosGadget(Menu* obj, void* unused)
+void __stdcall SelectLogosGadget(Gui* obj, void* unused)
 {
-    Layer* ptr = obj->holder;
+    Layer* ptr = obj->layer;
     Gadget* val = ptr->entries;
     int result = FindGadgetIndex(val, "LOGOS", 2);
-    obj->current = result;
+    obj->hotGadgetIndex = result;
 }
 
 // Steps the colour of the current player one step round the colour wheel (a
@@ -836,7 +831,7 @@ static inline int color_taken(int me)
 void __stdcall CyclePlayerColor(int param_1)
 {
     char buf[0x40];
-    Gadget* entries = g_game->menu.holder->entries;
+    Gadget* entries = g_game->gui.layer->entries;
     int current = g_game->table->current;
 
     do {
@@ -855,7 +850,7 @@ void __stdcall CyclePlayerColor(int param_1)
             gadget->frame = (unsigned short)g_game->table->players[current].color;
         }
     }
-    MarkChanged(&g_game->menu);
+    MarkChanged(&g_game->gui);
 }
 
 // Advances the current player's cyclic counter (0..5), then refreshes.
@@ -884,16 +879,16 @@ char __stdcall FindGameCdDrive(int param_1);
 void RegisterDataArchives();
 void InitMissionStatus();
 void SaveSettings();
-void __stdcall UpdateHelpText(Menu* param_1);
+void __stdcall UpdateHelpText(Gui* param_1);
 void __stdcall GetCurrentMouseEvent(int* out);
 
 // FUNCTION: 0x47ae60
-void __stdcall HandleSkirmishClick(Menu* menu)
+void __stdcall HandleSkirmishClick(Gui* menu)
 {
     Frame frame;
 
-    Gadget* entries = menu->holder->entries;
-    int cmd = menu->current;
+    Gadget* entries = menu->layer->entries;
+    int cmd = menu->hotGadgetIndex;
     if (cmd == -1) {
         return;
     }
@@ -907,10 +902,10 @@ void __stdcall HandleSkirmishClick(Menu* menu)
     if (IsCurrentGadgetNamed(menu, "Start")) {
         PlaySoundByName("BigButton", 0);
         if (!FindGameCdDrive(1)) {
-            OpenMessageBox(&g_game->menu,
+            OpenMessageBox(&g_game->gui,
                          Translate("Please insert the Multiplayer CD (Disc 1) and try again"),
                          0xc8, 1, 1);
-            ClearSelectedGadget(&g_game->menu);
+            ClearSelectedGadget(&g_game->gui);
         }
         RegisterDataArchives();
 
@@ -927,7 +922,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
         g_game->numPlayers = n + 1;
 
         if (g_game->mission->LoadMissionByName(g_game->table->mapName) == 0) {
-            OpenMessageBox(&g_game->menu,
+            OpenMessageBox(&g_game->gui,
                          Translate("The terrain for the selected map does not exist."),
                          0x1e0, 1, 1);
             ClearSelectedGadget(menu);
@@ -957,7 +952,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
             if (c1 >= 1) {
                 int maxPlayers = g_game->mission->CountStartPositions();
                 if ((int)g_game->numPlayers > maxPlayers) {
-                    OpenMessageBox(&g_game->menu,
+                    OpenMessageBox(&g_game->gui,
                                  Translate("There are too many players enabled for this map"),
                                  0x1e0, 1, 1);
                     ClearSelectedGadget(menu);
@@ -965,7 +960,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
                 }
 
                 if (AreAllPlayersInOneAllyGroup() != 0) {
-                    OpenMessageBox(&g_game->menu,
+                    OpenMessageBox(&g_game->gui,
                                  Translate("All players may not be in the same allied group."),
                                  0x1e0, 1, 1);
                     ClearSelectedGadget(menu);
@@ -1001,7 +996,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
                 return;
             }
         }
-        OpenMessageBox(&g_game->menu,
+        OpenMessageBox(&g_game->gui,
                      Translate("There must be at least one player and one computer opponent"),
                      0x1e0, 1, 1);
         ClearSelectedGadget(menu);
@@ -1035,15 +1030,15 @@ void __stdcall HandleSkirmishClick(Menu* menu)
     } else if (strcmp(frame.bf, "Color") == 0) {
         PlaySoundByName("Skirmish", 0);
         GetCurrentMouseEvent(frame.ev);
-        if (menu->holder->clickMode == 1) {
+        if (menu->layer->clickMode == 1) {
             CyclePlayerColor(0);
         }
-        if (menu->holder->clickMode == 2) {
+        if (menu->layer->clickMode == 2) {
             CyclePlayerColor(1);
         }
     } else if (strcmp(frame.bf, "Energy") == 0) {
         GetCurrentMouseEvent(frame.ev);
-        if (menu->holder->clickMode == 1) {
+        if (menu->layer->clickMode == 1) {
             PlaySoundByName("Skirmish", 0);
             Table* t = g_game->table;
             int* p = &t->players[player].energy;
@@ -1056,7 +1051,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
             _itoa(g_game->table->players[player].energy, frame.sA, 10);
             SetTranslatedTextByName(menu, frame.sB, frame.sA, 10);
         }
-        if (menu->holder->clickMode == 2) {
+        if (menu->layer->clickMode == 2) {
             PlaySoundByName("Skirmish", 0);
             Table* t = g_game->table;
             int* p = &t->players[player].energy;
@@ -1067,7 +1062,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
             SetTranslatedTextByName(menu, frame.sB, frame.sA, 10);
         }
     } else if (strcmp(frame.bf, "Metal") == 0) {
-        if (menu->holder->clickMode == 1) {
+        if (menu->layer->clickMode == 1) {
             PlaySoundByName("Skirmish", 0);
             Table* t = g_game->table;
             int* p = &t->players[player].metal;
@@ -1080,7 +1075,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
             _itoa(g_game->table->players[player].metal, frame.sB, 10);
             SetTranslatedTextByName(menu, frame.sA, frame.sB, 10);
         }
-        if (menu->holder->clickMode == 2) {
+        if (menu->layer->clickMode == 2) {
             PlaySoundByName("Skirmish", 0);
             Table* t = g_game->table;
             int* p = &t->players[player].metal;
@@ -1099,7 +1094,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
             strcpy(e->text, Translate("Game ends when commander is destroyed."));
         else
             strcpy(e->text, Translate("Game continues after Commander is destroyed."));
-        UpdateHelpText(&g_game->menu);
+        UpdateHelpText(&g_game->gui);
     } else if (IsCurrentGadgetNamed(menu, "StartLocation")) {
         PlaySoundByName("Skirmish", 0);
         Table* t = g_game->table;
@@ -1110,7 +1105,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
             strcpy(e->text, Translate("Commanders are placed at pre-determined locations."));
         else
             strcpy(e->text, Translate("Commanders are randomly placed on the battle field."));
-        UpdateHelpText(&g_game->menu);
+        UpdateHelpText(&g_game->gui);
     } else if (IsCurrentGadgetNamed(menu, "Mapping")) {
         PlaySoundByName("Skirmish", 0);
         Table* t = g_game->table;
@@ -1121,7 +1116,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
             strcpy(e->text, Translate("Terrain is blacked out until explored."));
         else
             strcpy(e->text, Translate("Terrain is visible."));
-        UpdateHelpText(&g_game->menu);
+        UpdateHelpText(&g_game->gui);
     } else if (IsCurrentGadgetNamed(menu, "LineOfSight")) {
         PlaySoundByName("Skirmish", 0);
         int index = FindGadgetIndex(entries, "LineOfSight", 1);
@@ -1140,7 +1135,7 @@ void __stdcall HandleSkirmishClick(Menu* menu)
             g_game->table->losType = 1;
             strcpy(e->text, Translate("All mapped terrain is visible."));
         }
-        UpdateHelpText(&g_game->menu);
+        UpdateHelpText(&g_game->gui);
     } else if (IsCurrentGadgetNamed(menu, "SelectMap")) {
         PlaySoundByName("Skirmish", 0);
         SetCursorMode(0x14);
@@ -1225,7 +1220,7 @@ void __stdcall HandleSkirmishCheatText(Cheat* cheat)
         RefreshSkirmishSetup();
         PlaySoundByName(g_skirmishCheatSoundName, 0);
         SelectAdjacentGadget(cheat, 1);
-        MarkChanged(&g_game->menu);
+        MarkChanged(&g_game->gui);
     }
 }
 
@@ -1238,7 +1233,7 @@ extern char g_hardGadgetName[];
 
 void BlankScreen();
 Gadget* __stdcall FindGadgetOrNull(Gadget* entries, char* name);
-void __stdcall SetGadgetStatusByName(Menu* menu, char* name, int value);
+void __stdcall SetGadgetStatusByName(Gui* menu, char* name, int value);
 
 // FUNCTION: 0x47bbb0
 void OpenSkirmishMenu(void)
@@ -1247,26 +1242,26 @@ void OpenSkirmishMenu(void)
     Layer* dialog;
 
     BlankScreen();
-    dialog = LoadGuiLayer(&g_game->menu, g_skirmishGuiName, 0);
+    dialog = LoadGuiLayer(&g_game->gui, g_skirmishGuiName, 0);
     dialog->handler = (void (__stdcall*)(void*))HandleSkirmishClick;
     dialog->data = (Data*)g_game;
     LoadPictureCached(g_skirmishSetupPictureName, 0, 0, 0);
 
     g_game->difficulty = g_game->table->difficulty;
-    difficulty = FindGadgetOrNull(g_game->menu.holder->entries, g_difficultyKey);
+    difficulty = FindGadgetOrNull(g_game->gui.layer->entries, g_difficultyKey);
     if (g_game->difficulty == 0) {
         difficulty->stageIndex = 0;
-        SetGadgetStatusByName(&g_game->menu, g_easyGadgetName, 1);
+        SetGadgetStatusByName(&g_game->gui, g_easyGadgetName, 1);
     }
     if (g_game->difficulty == 1) {
         difficulty->stageIndex = 1;
-        SetGadgetStatusByName(&g_game->menu, g_mediumGadgetName, 1);
+        SetGadgetStatusByName(&g_game->gui, g_mediumGadgetName, 1);
     }
     if (g_game->difficulty == 2) {
         difficulty->stageIndex = 2;
-        SetGadgetStatusByName(&g_game->menu, g_hardGadgetName, 1);
+        SetGadgetStatusByName(&g_game->gui, g_hardGadgetName, 1);
     }
-    MarkChanged(&g_game->menu);
+    MarkChanged(&g_game->gui);
 
     if (!g_game->mission->LoadMissionByName(g_game->table->mapName)) {
         g_game->mission->RefreshMapList(0);
@@ -1274,9 +1269,9 @@ void OpenSkirmishMenu(void)
     }
 
     RefreshSkirmishSetup();
-    g_game->menu.holder->textHandler = (void (__stdcall*)(void*))HandleSkirmishCheatText;
-    SetKeyboardInput(&g_game->menu, 1);
-    RenderLayer(&g_game->menu, 0x40);
+    g_game->gui.layer->textHandler = (void (__stdcall*)(void*))HandleSkirmishCheatText;
+    SetKeyboardInput(&g_game->gui, 1);
+    RenderLayer(&g_game->gui, 0x40);
     SetCursorMode(0x13);
 }
 

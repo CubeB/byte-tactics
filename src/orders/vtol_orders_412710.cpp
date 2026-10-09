@@ -17,11 +17,7 @@ struct Vec3 {
     Vec3 operator+(const Vec3& v) const { Vec3 r = *this; r += v; return r; }
 };
 
-class MissionType {
-public:
-    unsigned char index;
-    MissionType(const char* name);
-};
+#include "mission_type.h"
 
 struct Unit;
 class UnitMotion {

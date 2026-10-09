@@ -109,13 +109,7 @@ class SpatialTimer;
 
 
 // The command kind, one byte wide, but not a POD type.
-class MissionType {
-public:
-    unsigned char index;
-    MissionType() {}
-    MissionType(const char* name);
-    int operator==(const MissionType& v) const { return index == v.index; }
-};
+#include "mission_type.h"
 
 // The mover object (UnitMotion) at the unit's +0x0: its +0x8 is a velocity,
 // its +0x22 a turn rate and its +0x2e the low bits the VTOL handlers test.

@@ -25,11 +25,7 @@ union Fixed {
     struct { unsigned short frac; short whole; } p;
 };
 
-class MissionType {
-public:
-    unsigned char index;
-    MissionType(const char* name);
-};
+#include "mission_type.h"
 
 struct Unit;
 #include "unit_motion.h"

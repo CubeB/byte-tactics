@@ -14,7 +14,7 @@ struct Vec3 {
     }
 };
 struct Unit;
-class MissionType { public: unsigned char index; MissionType(const char*); };
+#include "mission_type.h"
 
 #include "path_order_attach.h"
 #pragma pack(push, 1)

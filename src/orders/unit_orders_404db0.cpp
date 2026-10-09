@@ -21,11 +21,7 @@ struct Rot16 {
 
 struct Unit;
 
-class MissionType {
-public:
-    unsigned char index;
-    MissionType(const char* name);
-};
+#include "mission_type.h"
 
 #include "path_order_attach.h"
 

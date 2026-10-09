@@ -2,7 +2,7 @@
 #include <vector>
 #include "../util/vec3.h"
 struct Unit;
-class MissionType { public: unsigned char index; MissionType(const char*); };
+#include "mission_type.h"
 
 #pragma pack(push, 1)
 #include "../units/unit_def.h"

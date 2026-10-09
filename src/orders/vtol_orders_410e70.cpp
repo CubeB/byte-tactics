@@ -12,11 +12,7 @@ struct Vec3 {
     int x, y, z;
 };
 
-class MissionType {
-public:
-    unsigned char index;
-    MissionType(const char* name);
-};
+#include "mission_type.h"
 
 struct Unit;
 class UnitMotion {

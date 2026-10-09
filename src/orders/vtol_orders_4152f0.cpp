@@ -8,11 +8,7 @@
 
 #include "../util/vec3.h"
 
-class MissionType {
-public:
-    unsigned char index;
-    MissionType(const char* name);
-};
+#include "mission_type.h"
 
 struct Unit;
 class LandingPadList : public std::vector<Unit*> {};

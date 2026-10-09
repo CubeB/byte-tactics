@@ -168,12 +168,7 @@ public:
 // An order type held as its index in the sorted order-type table. Callers
 // build it from a name as a by-value temporary (0x403260, 0x4118e0, ...), so
 // this is its constructor.
-class MissionType {
-public:
-    unsigned char index;
-    char unknown_1[3];
-    MissionType(const char* name);
-};
+#include "mission_type.h"
 
 // The attachments the file constructor makes, by the kind of attachment.
 #pragma pack(push, 1)

@@ -6,11 +6,7 @@
 // of the allied lookup below flips ([eax+ecx+0x108] against [ecx+eax+0x108]),
 // and no pad count or view permutation of that file restored it.
 
-class MissionType {
-public:
-    unsigned char index;
-    MissionType(const char* name);
-};
+#include "mission_type.h"
 
 struct Unit;
 

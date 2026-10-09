@@ -113,12 +113,7 @@ struct Pos_0043e490 {
 };
 
 #include "../map/cell.h"
-class MissionType {
-  public:
-    unsigned char index;
-    MissionType(const char* name);
-    MissionType() { index = 0; }
-};
+#include "mission_type.h"
 
 union Flags110_0043f0e0 {
     unsigned int raw;

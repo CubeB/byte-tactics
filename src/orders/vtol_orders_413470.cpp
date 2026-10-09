@@ -31,11 +31,7 @@ static inline Vec3 Diff(const Vec3& a, const Vec3& b)
     return r;
 }
 
-class MissionType {
-public:
-    unsigned char index;
-    MissionType(const char* name);
-};
+#include "mission_type.h"
 
 struct Unit;
 #include "unit_motion.h"

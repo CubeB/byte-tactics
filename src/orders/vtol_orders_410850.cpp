@@ -23,7 +23,7 @@ struct Vec3 {
 };
 struct Unit;
 struct Order;
-class MissionType { public: unsigned char index; MissionType() {} MissionType(const char*); int operator==(const MissionType& v) const { return index==v.index; } };
+#include "mission_type.h"
 
 #pragma pack(push, 1)
 struct WeaponDef { char pad0[0xdc]; int range; char pade0[0x111-0xe0]; unsigned int flags; };

@@ -622,7 +622,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
 }
@@ -648,7 +648,7 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->SetApproachRadius(0x80);
         order->flags |= 0xe0;
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         return 2;
     }
     unsigned int state = 0;
@@ -671,7 +671,7 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
             Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
             int h = max(GetGroundHeight(&unit->pos), g_game->seaLevel);
             ((Class_0044e6c0*)obj)->SetAltitude(h <= g_game->seaLevel ? GetGroundHeight(&unit->pos) - g_game->seaLevel : 0);
-            ((Order*)order)->SetAttachedFx((int)obj);
+            order->SetAttachedFx((int)obj);
             order->flags = 0xe0;
             unit->SetStateBits(1, 0);
             return 1;
@@ -684,7 +684,7 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
             Point cell = WorldToCellMul(p, fp);
             CellToWorld(fp, cell, &p);
             if (CanPlaceFootprintAt(unit, &p)) {
-                ((Order*)order)->SetAttachedFx((int)new Class_0044e2d0(order, p));
+                order->SetAttachedFx((int)new Class_0044e2d0(order, p));
                 order->flags = 0xe0;
                 return 2;
             }
@@ -701,7 +701,7 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
         Vec3 dest = sum;
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->SetApproachRadius(0x40);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags |= 0xe0;
         return 2;
     }
@@ -734,7 +734,7 @@ int __stdcall VtolStandbyOrder(Unit* unit, Order* order, int flags)
         if (unit->type && (unit->def->flags & 0x800)) {
             unit->ClaimWeapons(3);
             order->flags |= 0x10000;
-            ((Order*)order)->SetDeadlineTicks(1);
+            order->SetDeadlineTicks(1);
             order->x = order->source->pos.xw;
             order->z = order->source->pos.zw;
             return 1;
@@ -761,8 +761,8 @@ int __stdcall VtolStandbyOrder(Unit* unit, Order* order, int flags)
                 p += Offset(angle, distance);
                 Class_0044e2d0* obj = new Class_0044e2d0(order, p);
                 ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
-                ((Order*)order)->SetAttachedFx((int)obj);
-                ((Order*)order)->SetDeadlineTicks(RandomInt(0xf) + 0x1e);
+                order->SetAttachedFx((int)obj);
+                order->SetDeadlineTicks(RandomInt(0xf) + 0x1e);
                 order->state = 1;
                 return 2;
             }
@@ -770,7 +770,7 @@ int __stdcall VtolStandbyOrder(Unit* unit, Order* order, int flags)
             return 5;
         }
         order->flags |= 0x10000;
-        ((Order*)order)->SetDeadlineTicks(RandomInt(0x1e) + 0x1e);
+        order->SetDeadlineTicks(RandomInt(0x1e) + 0x1e);
         order->state = 1;
         return 2;
     }
@@ -793,10 +793,10 @@ int __stdcall VtolMoveOrder(Unit* unit, Order* order, int flags)
         }
         break;
     case 1:
-        ((Order*)order)->AnnounceStatusIfFlagged(0);
+        order->AnnounceStatusIfFlagged(0);
         unit->ReleaseWeapons(3);
         Snap(&order->pos, unit->footprint);
-        ((Order*)order)->SetAttachedFx((int)new Class_0044e2d0(order, order->pos));
+        order->SetAttachedFx((int)new Class_0044e2d0(order, order->pos));
         order->flags = 0xe0;
         return 1;
     case 2:
@@ -865,7 +865,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
         LandingPadList pads;
         FindPads(unit,&pads);
         if (!pads.empty()) {
-            ((Order*)order)->SetAttachedFx(0);
+            order->SetAttachedFx(0);
             Unit* pad=pads[RandomInt(pads.size())];
             AppendOrder(unit,new Order("VTOL_LANDING",pad,0,0,0,0));
             order->flags=0;
@@ -877,7 +877,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
     GroundAllyVisitor visitor(unit->owner,&units,unit);
     VisitObjectsInRange(&unit->pos,range,visitor);
     if (!units.empty()) {
-        ((Order*)order)->SetAttachedFx(0);
+        order->SetAttachedFx(0);
         Class_00438760 kind=GetOrderType(7,unit,units[0],0);
         AppendOrder(unit,new Order(kind,units[0],0,0,0,0));
         order->flags=0;
@@ -887,8 +887,8 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
     Vec3 pos=Add(order->pos,Offset((short)order->angle,(unit->weapons[0].def->range+160)<<16));
     Class_0044e2d0* move=new Class_0044e2d0(order,pos);
     ((Class_0044e730*)move)->SetApproachRadius(128);
-    ((Order*)order)->SetAttachedFx((int)move);
-    ((Order*)order)->SetDeadlineTicks(30);
+    order->SetAttachedFx((int)move);
+    order->SetDeadlineTicks(30);
     order->flags|=0xf8;
     return 2;
 }
@@ -932,12 +932,12 @@ int __stdcall VtolUnloadOrder(Unit* unit, Order* order, int flags)
     switch (state) {
     case 0:
         if (unit->type && (unit->def->flags & 0x800)) {
-            ((Order*)order)->AnnounceStatusIfFlagged("Unloading");
+            order->AnnounceStatusIfFlagged("Unloading");
             ((PathOrderAttach*)&order->target)->SetUnit(unit->cargo);
             Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
             ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
             ((Class_0044e730*)obj)->SetApproachRadius(0x140);
-            ((Order*)order)->SetAttachedFx((int)obj);
+            order->SetAttachedFx((int)obj);
             order->flags = 0xe8;
             return 1;
         }
@@ -949,7 +949,7 @@ int __stdcall VtolUnloadOrder(Unit* unit, Order* order, int flags)
             // Through an int local: passing the expression straight sign-extends differently.
             int h = unit->cargo->def->field_170;
             ((Class_0044e6c0*)obj)->SetAltitude(h);
-            ((Order*)order)->SetAttachedFx((int)obj);
+            order->SetAttachedFx((int)obj);
             order->flags = 0xe8;
             return 1;
         }
@@ -968,7 +968,7 @@ int __stdcall VtolUnloadOrder(Unit* unit, Order* order, int flags)
         AttachUnitToPiece(unit->cargo, 0, -1, 1);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags = 0xe0;
         return 1;
     }
@@ -1065,7 +1065,7 @@ int __stdcall VtolEvadeOrder(Unit* unit,Order* order,int flags)
         else pos=unit->pos+Offset(unit->heading+0x4000,range<<16);
             Class_0044e2d0* move=new Class_0044e2d0(order,pos);
             ((Class_0044e730*)move)->SetApproachRadius(128);
-            ((Order*)order)->SetAttachedFx((int)move);
+            order->SetAttachedFx((int)move);
             order->flags=0x100e8;
             return 1;
         }
@@ -1076,7 +1076,7 @@ int __stdcall VtolEvadeOrder(Unit* unit,Order* order,int flags)
         else pos=unit->pos+Offset(unit->heading+0x4000,range<<17);
         Class_0044e2d0* move=new Class_0044e2d0(order,pos);
         ((Class_0044e730*)move)->SetApproachRadius(128);
-        ((Order*)order)->SetAttachedFx((int)move);
+        order->SetAttachedFx((int)move);
         order->flags=0x100e8;
         return 1;
     }
@@ -1096,7 +1096,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
     switch(state) {
     case 0:
         if (unit->type && (unit->def->flags&0x800)) {
-            ((Order*)order)->AnnounceStatusIfFlagged("Building");
+            order->AnnounceStatusIfFlagged("Building");
             unit->ClaimWeapons(3);
             if (unit->carrier) AttachUnitToPiece(unit,0,-1,2);
             unit->SetStateBits(1,1);
@@ -1104,7 +1104,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
                 unit->type->SetFlightMode(unit,2);
                 Class_0044e2d0* move=new Class_0044e2d0(order,unit->pos);
                 ((Class_0044e6c0*)move)->SetAltitude(unit->def->altitude/2);
-                ((Order*)order)->SetAttachedFx((int)move);
+                order->SetAttachedFx((int)move);
                 order->flags|=0xe0;
             }
             return 1;
@@ -1118,7 +1118,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
         CellToWorldPos(cell,&order->pos,origin);
         Class_0044e2d0* move=new Class_0044e2d0(order,order->pos);
         ((Class_0044e730*)move)->SetApproachRadius(unit->def->buildRange);
-        ((Order*)order)->SetAttachedFx((int)move);
+        order->SetAttachedFx((int)move);
         order->flags=0xe0;
         return 1;
     }
@@ -1129,7 +1129,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
             if (!order->retries) QueueUnitSpeech(unit,7,"Waiting for target area to clear");
             else if (order->retries>10) { QueueUnitSpeech(unit,7,"Target area was blocked"); return 8; }
             ++order->retries;
-            ((Order*)order)->SetDeadlineTicks(30);
+            order->SetDeadlineTicks(30);
             return 2;
         }
         SnapWorldPosToFootprint(def,&order->pos);
@@ -1151,7 +1151,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
             Vec3 pos=order->targetUnit->pos-Offset(angle,range);
             Class_0044e2d0* move=new Class_0044e2d0(order,pos);
             ((Class_0044e720*)move)->SetHeading((unsigned short)angle);
-            ((Order*)order)->SetAttachedFx((int)move);
+            order->SetAttachedFx((int)move);
         }
         int rate=0; rate=unit->def->buildRate;
         if (AddBuildProgress(unit,order->targetUnit,(float)(rate/30))) {
@@ -1163,7 +1163,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
             EmitNanoParticles(&start,(Box*)bounds,6);
         }
         if (order->targetUnit->progress!=0.0f) {
-            ((Order*)order)->SetDeadlineTicks(1);
+            order->SetDeadlineTicks(1);
             order->flags|=0xa;
             return 2;
         }
@@ -1186,6 +1186,13 @@ void __stdcall CellToWorldPos(Point a, Vec3* out, Point b)
     out->z = (b.y + a.y * 2) << 19;
 }
 #pragma auto_inline(on)
+
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+void WriteScreenshot(char*, char*, int, int, int, int);
+void DrawTextClipped(void*, char*, int, int, int, int);
+int CheckDirectXVersion(int, int, int, int, int);
+void EmitThrustParticles(int, int, int, int, short);
+void SubtractVec3(int*, int*, int*, int*, int*);
 
 // Kept: the operand order of the six bounds adds follows symbol ids, so this
 // header set matters.
@@ -1223,7 +1230,7 @@ int __stdcall VtolRepairUnitOrder(Unit* unit, Order* order, int flags)
                 QueueUnitSpeech(unit, 7, "Repair mission failed");
                 return 8;
             }
-            ((Order*)order)->AnnounceStatusIfFlagged("Repairing");
+            order->AnnounceStatusIfFlagged("Repairing");
             PrepVtolClimb(unit, order, 0);
             return 1;
         }
@@ -1231,7 +1238,7 @@ int __stdcall VtolRepairUnitOrder(Unit* unit, Order* order, int flags)
     case 1: {
         Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
-        ((Order*)order)->SetAttachedFx((int)obj);
+        order->SetAttachedFx((int)obj);
         order->flags = 0xe8;
         return 1;
     }
@@ -1241,7 +1248,7 @@ int __stdcall VtolRepairUnitOrder(Unit* unit, Order* order, int flags)
         if (order->targetUnit->bits.mode != 1)
             return 8;
         if (order->targetUnit->flags & 0xc) {
-            ((Order*)order)->SetDeadlineTicks(15);
+            order->SetDeadlineTicks(15);
             return 0;
         }
         if ((unsigned int)order->targetUnit->health >= order->targetUnit->def->maxHealth)
@@ -1260,7 +1267,7 @@ int __stdcall VtolRepairUnitOrder(Unit* unit, Order* order, int flags)
             box.hi.y += order->targetUnit->def->max.y;
             EmitNanoParticles(&nano, &box, 6);
         }
-        ((Order*)order)->SetDeadlineTicks(1);
+        order->SetDeadlineTicks(1);
         order->flags |= 8;
         return 2;
     case 3:
@@ -1283,7 +1290,7 @@ int __stdcall VtolGetRepairedOrder(Unit* unit, Order* order, int unused)
     case 0:
         if (unit->health >= unit->def->maxHealth)
             return 1;
-        ((Order*)order)->SetDeadlineTicks(0x1e);
+        order->SetDeadlineTicks(0x1e);
         order->started = 1;
         return 2;
     case 1:
@@ -1300,7 +1307,7 @@ static inline int Land(Unit* unit, Order* order)
         std::vector<Unit*> pads;
         GetFactoriesInRadius(unit->owner->index, &unit->pos, 0xf00, &pads);
         if (!pads.empty()) {
-            ((Order*)order)->SetAttachedFx(0);
+            order->SetAttachedFx(0);
             Unit* pad = pads[RandomInt(pads.size())];
             AppendOrder(unit, new Order("VTOL_LANDING", pad, 0, 0, 0, 0));
             order->flags = 0;

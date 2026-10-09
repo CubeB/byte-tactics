@@ -189,8 +189,8 @@ void SpatialTimer::OnTimer()
 {
     // Computed first or the sum folds into one lea.
     int delay = RandomInt(150) + 30;
-    field_c = g_game->ticks + delay;
-    if (((Group_00407e90*)field_8)->units.empty())
+    next = g_game->ticks + delay;
+    if (((Group_00407e90*)group)->units.empty())
         return;
     // Unused on purpose: it emits the operator delete call after the loop.
     std::vector<Unit*> unused;
@@ -201,16 +201,16 @@ void SpatialTimer::OnTimer()
         c = Offset(angle, 0x1400000);
     }
     b += c;
-    if (IsVisible(((Group_00407e90*)field_8)->player, (Position_00408090*)&b)) {
-        int r = SumUnitRatingsInRange(field_10, &b, 0xa0);
+    if (IsVisible(((Group_00407e90*)group)->player, (Position_00408090*)&b)) {
+        int r = SumUnitRatingsInRange(player, &b, 0xa0);
         // Operand order: the field_38 roll is called first.
         if (RandomInt(r) > RandomInt(field_38)) {
             field_38 = r;
             a = b;
         }
     }
-    for (std::vector<Unit*>::iterator it = ((Group_00407e90*)field_8)->units.begin();
-         it != ((Group_00407e90*)field_8)->units.end(); ++it) {
+    for (std::vector<Unit*>::iterator it = ((Group_00407e90*)group)->units.begin();
+         it != ((Group_00407e90*)group)->units.end(); ++it) {
         Unit* u = *it;
         if (u->def->flag4) {
             if (u->motion || WeaponCanReachPos(u, &u->pos, &a, 0)) {

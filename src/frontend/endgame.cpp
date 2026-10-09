@@ -147,15 +147,11 @@ struct Display {
     float paletteBrightness;           // +0x614
 };
 
-struct PlayerInfo {
-    char unknown_0[0x95];
-    unsigned char side;                // +0x95
-    unsigned char color;               // +0x96
-    char unknown_97[0x9b - 0x97];
-    unsigned short bits_9b_0 : 6;      // +0x9b
-    unsigned short flag_9b_6 : 1;
-    unsigned short bits_9b_7 : 9;
-};
+#include "../network/player_info.h"
+
+// Unused here: real functions declared to keep the file's symbol count (docs/c2-regalloc.md).
+int AimCobStub(int, int, int, int);
+int StepTowards(int, int, int);
 
 // The per-player statistics row: 41e420 indexes the seven ints at +0x1e;
 // 41dc20's names for them stay as their own view, unused here, since the
@@ -938,7 +934,7 @@ void __stdcall OpenEndMissionScreen()
     }
     Player* player = &g_game->players[g_game->localPlayer];
     int x = g_game->width / 2;
-    if (g_game->won != 0 && (player->active == 0 || !player->info->flag_9b_6)) {
+    if (g_game->won != 0 && (player->active == 0 || !player->info->bit6)) {
         DrawFrame(layer->surface, GetGafFrame(g_game->image_14813, 0), x, 0x1c);
     } else {
         DrawFrame(layer->surface, GetGafFrame(g_game->image_14817, 0), x, 0x1c);

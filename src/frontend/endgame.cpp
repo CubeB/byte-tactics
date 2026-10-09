@@ -54,12 +54,7 @@ struct Grid {
 
 struct Surface_0041df20;
 
-struct Rect {
-    int left;                          // +0x0
-    int top;                           // +0x4
-    int right;                         // +0x8
-    int bottom;                        // +0xc
-};
+#include "../graphics/rect.h"
 
 struct Data {
     char unknown_0[0x14];
@@ -149,7 +144,8 @@ struct Display {
 
 #include "../network/player_info.h"
 
-// Unused here: real functions declared to keep the file's symbol count (docs/c2-regalloc.md).
+// Unused here: a real type and functions declared to keep the file's symbol count (docs/c2-regalloc.md).
+struct Unit;
 int AimCobStub(int, int, int, int);
 int StepTowards(int, int, int);
 
@@ -214,9 +210,6 @@ struct Options {
 class Player {                         // 0x14b bytes
 public:
     Player();
-    // Unused here: the symbol id this declaration takes keeps 0x41f0a0's and
-    // 0x41f7f0's register allocation (docs/c2-regalloc.md).
-    void SetType(int param_1);
     int active;                        // +0x00
     char unknown_4[0x22 - 0x4];
     unsigned char message;             // +0x22

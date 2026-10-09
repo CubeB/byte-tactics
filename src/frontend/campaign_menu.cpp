@@ -41,12 +41,7 @@ struct Anim_00478b40 {
 
 #include "../graphics/gaf_frame.h"
 
-struct Rect {
-    int x1;
-    int y1;
-    int x2;
-    int y2;
-};
+#include "../graphics/rect.h"
 
 struct Menu;
 struct Layer;
@@ -1207,10 +1202,10 @@ void __stdcall UpdateSolarSystem(Menu* arg1, Gadget* arg2)
     Gadget* g = FindGadgetChecked_E(arg1->layer->entries, "SOLARSYSTEM");
 
     Rect rect;
-    rect.x1 = g->x;
-    rect.y1 = g->y;
-    rect.x2 = rect.x1 + g->w - 1;
-    rect.y2 = rect.y1 + g->h - 1;
+    rect.left = g->x;
+    rect.top = g->y;
+    rect.right = rect.left + g->w - 1;
+    rect.bottom = rect.top + g->h - 1;
 
     FillRectangle(surface, &rect, arg1->colour);
     SelectFontForEntry(arg1->layer->entries, i);
@@ -1218,13 +1213,13 @@ void __stdcall UpdateSolarSystem(Menu* arg1, Gadget* arg2)
     char text[0x34];
     sprintf(text, "%s : %d", Translate("Wind Speed"), g_briefingWindSpeed);
     SetTextColors(g_briefingTextColors[g_game->flag_37ef2 * 4], GetTextKeyColor());
-    DrawString(surface, text, rect.x1 + 0x50, rect.y1 + 0x14,
-                 rect.x2 - rect.x1 - 0x50);
+    DrawString(surface, text, rect.left + 0x50, rect.top + 0x14,
+                 rect.right - rect.left - 0x50);
 
     sprintf(text, "%s : %.1f", Translate("Gravity"),
             (double)g_game->net->gravity * 0.008928571428571428);
-    DrawString(surface, text, rect.x1 + 0x50, rect.y1 + 0x28,
-                 rect.x2 - rect.x1 - 0x50);
+    DrawString(surface, text, rect.left + 0x50, rect.top + 0x28,
+                 rect.right - rect.left - 0x50);
 
     DrawBlinkWords(&g_game->menu);
 
@@ -1243,10 +1238,10 @@ void __stdcall UpdateSolarSystem(Menu* arg1, Gadget* arg2)
         MarkLayerChanged(arg1);
 
         Rect rect2;
-        rect2.x1 = arg2->x;
-        rect2.y1 = arg2->y;
-        rect2.x2 = arg2->x + arg2->w - 1;
-        rect2.y2 = arg2->y + arg2->h - 1;
+        rect2.left = arg2->x;
+        rect2.top = arg2->y;
+        rect2.right = arg2->x + arg2->w - 1;
+        rect2.bottom = arg2->y + arg2->h - 1;
         void* gaf = arg2->field_be;
         surface = arg1->layer->entries->surface;
 
@@ -1309,10 +1304,10 @@ void __stdcall UpdatePlanet(Menu* arg1, Gadget* arg2)
             int y1 = arg2->y;
             int y2 = y1 + arg2->h - 1;
             Rect rect;
-            rect.x1 = x1;
-            rect.x2 = x2;
-            rect.y1 = y1;
-            rect.y2 = y2;
+            rect.left = x1;
+            rect.right = x2;
+            rect.top = y1;
+            rect.bottom = y2;
 
             if (GetTicks() != g_briefingPlanetLastTick) {
                 StepGafSequence(&g_briefingPlanetFrameCursor);

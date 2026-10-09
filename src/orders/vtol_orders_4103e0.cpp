@@ -24,6 +24,13 @@ struct Weapon { char pad0[8]; WeaponDef* def; char padc[11]; unsigned char flags
 #include "../units/unit_def.h"
 struct Owner { char pad0[0x108]; unsigned char allied[0x3e]; unsigned char index; };
 #include "unit_motion.h"
+// Unused here: real forward declarations whose symbol ids keep 0x4103e0 matching (docs/c2-regalloc.md).
+class BitWriter;
+class OpenHeap;
+class ScoutTimer;
+class EscortTimer;
+class AssaultTimer;
+class SquadManager;
 struct Unit {
     UnitMotion* motion; char pad4[4]; Weapon weapons[3]; Order* order;
     char pad60[10]; Vec3 pos; char pad76[8]; short width; short depth; int terrain; int busy;

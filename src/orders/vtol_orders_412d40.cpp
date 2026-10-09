@@ -220,10 +220,10 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
             d.v = (int)_hypot(unit->pos.x - order->target->pos.x, unit->pos.z - order->target->pos.z);
             if (d.p.whole > 0xa0) {
                 Vec3 p = order->target->pos;
-                p.x += order->target->type->v.x * 45;
-                p.z += order->target->type->v.z * 45;
+                p.x += order->target->type->velocity.x * 45;
+                p.z += order->target->type->velocity.z * 45;
                 order->SetAttachedFx((int)new AirManeuverOrder(order, p,
-                    Sum(order->target->type->v, Offset(order->target->heading, order->target->def->maxvelocity / 2))));
+                    Sum(order->target->type->velocity, Offset(order->target->heading, order->target->def->maxvelocity / 2))));
             }
             order->SetDeadlineTicks(0x2d);
             order->flags |= 0x100e8;

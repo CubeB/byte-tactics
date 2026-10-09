@@ -4,8 +4,7 @@
 // and the flags at +0x2e, and the methods that steer ground units and
 // aircraft, update the position and save and load it. The one declaration of
 // the class for the files that call it. The types behind the pointers stay
-// private to their own files, and the velocity keeps the two spellings the
-// views give it.
+// private to their own files.
 #ifndef UNIT_MOTION_H
 #define UNIT_MOTION_H
 
@@ -41,7 +40,6 @@ class MapInsertResult;
 class MapCacheEntry;
 class UnitTypeSet;
 class UnitTable;
-class SquadTimer;
 
 #pragma pack(push, 1)
 
@@ -52,10 +50,7 @@ public:
         PlayerData* player;            // +0x0, the serialisation interface
     };
     int movementClass;                 // +0x4
-    union {
-        Vec3 velocity;                 // +0x8
-        Vec3 v;
-    };
+    Vec3 velocity;                     // +0x8
     Vec3 p2;                           // +0x14
     union {
         int speed;                     // +0x20

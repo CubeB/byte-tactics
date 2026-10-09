@@ -458,11 +458,11 @@ int HandleNetPackets()
                 if (!(g_game->flags_2a44 & 4) && (p->info->flags_97 & 1) && p->state == 3) {
                     RejectPlayer(p->id, 1);
                     RejectPlayer(LocalPlayer()->id, 10);
-                    ((Player*)p)->SetType(0);
+                    p->SetType(0);
                     ((Player*)LocalPlayer())->SetType(0);
                 } else {
                     RejectPlayer(p->id, 1);
-                    ((Player*)p)->SetType(0);
+                    p->SetType(0);
                 }
                 g_game->dirty = 1;
                 if (LocalPlayer()->info->flags_97 & 1) {

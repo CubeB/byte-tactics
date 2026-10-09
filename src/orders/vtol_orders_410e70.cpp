@@ -42,7 +42,7 @@ struct Unit {
 struct Order {
     char pad0[5]; unsigned char state; unsigned int flags;
     char padA[0x22 - 0xa]; Vec3 pos;
-    char pad2e[0x4e - 0x2e]; unsigned int field_4e;
+    char pad2e[0x4e - 0x2e]; unsigned int subFlags;
     void AnnounceStatusIfFlagged(const char*);
     void SetAttachedFx(int);
     void SetDeadlineTicks(int);
@@ -175,7 +175,7 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
         return 2;
     }
     case 1:
-        order->field_4e &= ~0xe0;
+        order->subFlags &= ~0xe0;
         return 1;
     case 0:
         if (unit->type && (unit->def->flags1 & 0x800)) {

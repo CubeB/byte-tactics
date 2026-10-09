@@ -247,15 +247,15 @@ public:
     void* unit;                      // +0xe
     PathOrderAttach link;            // +0x12
     Vec3 pos;                        // +0x22
-    Point field_2e;                  // +0x2e
-    Point field_32;                  // +0x32
+    Point start;                     // +0x2e
+    Point cached;                    // +0x32
     int id;                          // +0x36
     int amount;                      // +0x3a
-    int field_3e;                    // +0x3e
+    int progress;                    // +0x3e
     unsigned int flags;              // +0x42
     unsigned int created;            // +0x46
     Order* next;                     // +0x4a
-    unsigned int field_4e;           // +0x4e
+    unsigned int subFlags;           // +0x4e
     void* attached;                  // +0x52
 
     Order(unsigned char k, Unit* o, Vec3* p, int a, int b, int c);
@@ -454,7 +454,7 @@ int __stdcall GetBuildWeaponPercent(Unit* owner)
     Order* p;
     for (p = owner->list2; p; p = p->next) {
         if (p->flags & 0x80000)
-            return p->field_3e * 100 / owner->entries[p->id].target->field_e4;
+            return p->progress * 100 / owner->entries[p->id].target->field_e4;
     }
     return 0;
 }
@@ -647,15 +647,15 @@ void __stdcall EnsurePatrolReturnOrder(Unit* p, Order* item)
 // adds a second base that rules it out.
 // FUNCTION: 0x43a0c0
 Order::Order(unsigned char k, Unit* o, Vec3* p, int a, int b, int c)
-    : kind(k), link(o, 0), field_2e(PointInit_0043a1f0(0, 0)), field_32(PointInit_0043a1f0(0, 0)),
-      id(a), amount(b), field_3e(c), created(g_game->ticks)
+    : kind(k), link(o, 0), start(PointInit_0043a1f0(0, 0)), cached(PointInit_0043a1f0(0, 0)),
+      id(a), amount(b), progress(c), created(g_game->ticks)
 {
     // Through the inline method: a plain `link.value = this` reorders the
     // position pointer's compare before the vtable store.
     link.SetValue(this);
     count = 0;
     flags6 = 0;
-    field_4e = 0;
+    subFlags = 0;
     wakeFrame = -1;
     pos = p ? *p : Vec3Init_0043a1f0(0, 0, 0);
     flags = g_missionOrderTableBegin[k & 0xff].flags;
@@ -1186,8 +1186,8 @@ int __stdcall IssueAttackOrder(Unit* unit, Unit* target, int param_3)
         Order* cmd = new Order(kind2, 0, &unit->pos, 0, 0, 0);
         Insert(unit, cmd, (cmd->flags & 0x40000) ? unit->list2 : unit->list);
         Order* cmd2 = new Order(kind, target, 0, 0, 0, unit->type->field_214);
-        cmd2->field_2e.x = PosXWhole(unit);
-        cmd2->field_2e.y = PosZWhole(unit);
+        cmd2->start.x = PosXWhole(unit);
+        cmd2->start.y = PosZWhole(unit);
         Insert(unit, cmd2, (cmd2->flags & 0x40000) ? unit->list2 : unit->list);
     } else {
         Order* cmd3 = new Order(kind, target, 0, 0, 0, 0);
@@ -1216,8 +1216,8 @@ int __stdcall IssueRepairOrder(Unit* unit, Unit* target, int param_3)
         Order* cmd = new Order(kind2, 0, &unit->pos, 0, 0, 0);
         Insert(unit, cmd, (cmd->flags & 0x40000) ? unit->list2 : unit->list);
         Order* cmd2 = new Order(kind, target, 0, 0, 0, unit->type->range);
-        cmd2->field_2e.x = PosXWhole(unit);
-        cmd2->field_2e.y = PosZWhole(unit);
+        cmd2->start.x = PosXWhole(unit);
+        cmd2->start.y = PosZWhole(unit);
         Insert(unit, cmd2, (cmd2->flags & 0x40000) ? unit->list2 : unit->list);
         // Explicit `return 1;` in each case: a single trailing return splits the store blocks.
         return 1;
@@ -1226,8 +1226,8 @@ int __stdcall IssueRepairOrder(Unit* unit, Unit* target, int param_3)
         Order* cmd = new Order(kind2, 0, &unit->pos, 0, 0, 0);
         Insert(unit, cmd, (cmd->flags & 0x40000) ? unit->list2 : unit->list);
         Order* cmd2 = new Order(kind, target, 0, 0, 0, unit->type->field_214);
-        cmd2->field_2e.x = PosXWhole(unit);
-        cmd2->field_2e.y = PosZWhole(unit);
+        cmd2->start.x = PosXWhole(unit);
+        cmd2->start.y = PosZWhole(unit);
         Insert(unit, cmd2, (cmd2->flags & 0x40000) ? unit->list2 : unit->list);
         return 1;
     } else if (f == 0x80000 && !param_3) {
@@ -1314,13 +1314,13 @@ void __stdcall RunOrders(Unit* unit)
             break;
         if (g_game->frame >= node->wakeFrame) {
             node->wakeFrame = 0xffffffff;
-            node->field_4e |= 1;
+            node->subFlags |= 1;
         }
-        unsigned int pending = (node->field_4e | unit->netDirtyFlags) & node->flags6;
+        unsigned int pending = (node->subFlags | unit->netDirtyFlags) & node->flags6;
         if (node->flags6 != 0 && pending == 0)
             return;
         unit->netDirtyFlags &= ~pending;
-        node->field_4e &= ~pending;
+        node->subFlags &= ~pending;
         node->flags6 = 0;
         if (pending & 0x10000)
             ClearTargets_0043b7c0(unit);

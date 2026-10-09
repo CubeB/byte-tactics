@@ -260,7 +260,7 @@ struct Order {
         int attempts;
         int time;
         int guardRange;
-        int field_36;
+        int approachRadius;
     };
     union {
         int radius;                    // +0x3a
@@ -1054,7 +1054,7 @@ int __stdcall MoveGroundOrder(Unit* unit, Order* order, int flags)
         if (unit->transport != 0)
             return 7;
         order->AnnounceStatusIfFlagged(0);
-        order->AttachApproachRadiusGoal(&order->pos, order->field_36 + 4);
+        order->AttachApproachRadiusGoal(&order->pos, order->approachRadius + 4);
         order->flags = 0xe0;
         return 1;
     case 1:

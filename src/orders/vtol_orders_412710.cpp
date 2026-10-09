@@ -79,8 +79,8 @@ struct Order {
     char pad1a[0x22 - 0x1a]; Vec3 pos;
     short x; short z;
     char pad32[0x3e - 0x32]; int range;
-    unsigned int field_42;
-    char pad46[4]; int field_4a;
+    unsigned int flags_42;
+    char pad46[4]; int next;
     void AnnounceStatusIfFlagged(const char*);
     void SetAttachedFx(int);
     void SetDeadlineTicks(int);
@@ -178,12 +178,12 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
 {
     int speed = GetSpeed(unit);
     if (flags & 0x1000a) {
-        if (order->field_4a == 0 && (unit->flags & 0x300000))
+        if (order->next == 0 && (unit->flags & 0x300000))
             AppendOrderToTail(unit, new Order("VTOL_SEEKATTACK", (int)order->target, &order->pos, 0, 0, 0));
         return 5;
     }
-    if (order->target == 0 && (order->field_42 & 0x200)) {
-        if (order->field_4a == 0)
+    if (order->target == 0 && (order->flags_42 & 0x200)) {
+        if (order->next == 0)
             AppendOrderToTail(unit, new Order("VTOL_SEEKATTACK", 0, &unit->pos, 0, 0, 0));
         return 5;
     }

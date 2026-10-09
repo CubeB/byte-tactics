@@ -43,13 +43,12 @@ struct Order {
     Unit* target;                  // +0x16, the link's owner
     char unknown_1a[8];
     Vec3 pos;                      // +0x22
+    // One-arm unions: each costs symbol ids the including files match at.
     union {
         Point16 start;             // +0x2e
-        Point16 field_2e;
     };
     union {
-        Point16 field_32;          // +0x32
-        Point16 cached;
+        Point16 cached;            // +0x32
     };
     union {
         int type;                  // +0x36
@@ -64,7 +63,7 @@ struct Order {
         int attempts;
         int time;
         int guardRange;
-        int field_36;
+        int approachRadius;
         int angle;
         int side;
         int piece;
@@ -89,7 +88,7 @@ struct Order {
     unsigned int flags_42;         // +0x42
     unsigned int created;          // +0x46
     Order* next;                   // +0x4a
-    unsigned int field_4e;         // +0x4e
+    unsigned int subFlags;         // +0x4e
     void* attached;                // +0x52
 
     Order(unsigned char kind, Unit* unit, Vec3* pos, int a, int b, int c);

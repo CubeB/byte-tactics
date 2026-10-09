@@ -15,6 +15,14 @@
 #include <direct.h>
 #include <stddef.h>
 
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+void RegisterUnitOrders(void);
+void RegisterGroundOrders(void);
+void EnableAICommands(void);
+void RegisterAICommands(void);
+void FUN_00406f40(void);
+void ResetAIPlayers(void);
+
 // Returns the letter of the first CD-ROM drive after the given drive letter
 // (from 'A' when the letter is not a valid drive), or 0 when there is none.
 // FUNCTION: 0x4bb190
@@ -67,14 +75,32 @@ DWORD __stdcall GetVolumeSerial(char drive)
     return serial;
 }
 
+// A file's entry data: the block's offset, its size and whether the data is
+// compressed.
+#pragma pack(push, 1)
+struct Info {
+    int offset;                        // +0x0
+    int size;                          // +0x4
+    unsigned char compressed;          // +0x8
+};
+#pragma pack(pop)
+
+struct ArchiveDirectory;
+
 // An archive's directory tree: entries are packed at 9 bytes each. While the
 // archive is being built the first two fields are offsets into the package;
-// once it is loaded they are pointers, so the code that walks the loaded tree
-// casts them.
+// once it is loaded they are pointers, which the union members name.
 #pragma pack(push, 1)
 struct ArchiveEntry {
-    int name;                          // +0x0
-    int data;                          // +0x4
+    union {                            // +0x0
+        int name;
+        char* text;
+    };
+    union {                            // +0x4
+        int data;
+        Info* info;
+        ArchiveDirectory* dir;
+    };
     unsigned char flags;               // +0x8, bit 0: a directory, bit 1: shadowed
 };
 #pragma pack(pop)
@@ -93,16 +119,6 @@ struct Header {
     char unknown_d[3];
     ArchiveDirectory* list;            // +0x10
 };
-
-// A file's entry data: the block's offset, its size and whether the data is
-// compressed.
-#pragma pack(push, 1)
-struct Info {
-    int offset;                        // +0x0
-    int size;                          // +0x4
-    unsigned char compressed;          // +0x8
-};
-#pragma pack(pop)
 
 // An open archive: the file, the read position, its header, the open count
 // and the mode it was opened in.
@@ -202,7 +218,7 @@ FileHandle* __stdcall HAPI_OpenFile(char* filename, const char* mode)
             state->files[i]->pos = 0;
         }
         state->files[i]->count++;
-        h->info = (Info*)e->data;
+        h->info = e->info;
         h->shared = state->files[i];
         h->pos = 0;
         if (h->info->compressed) {
@@ -251,7 +267,7 @@ int __stdcall HAPI_CloseFile(FileHandle* file)
     if (file->buffer2 != 0) {
         GameFreeThunk(file->buffer2);
     }
-    GameFreeThunk((int*)file);
+    GameFreeThunk(file);
     return result;
 }
 
@@ -484,9 +500,9 @@ long __stdcall HAPI_FileLengthByName(char* param_1)
     }
 
     if (h->buffer != 0)
-        GameFreeThunk((void*)h->buffer);
+        GameFreeThunk(h->buffer);
     if (h->buffer2 != 0)
-        GameFreeThunk((void*)h->buffer2);
+        GameFreeThunk(h->buffer2);
     GameFreeThunk(h);
 
     return len;
@@ -534,7 +550,7 @@ void* __stdcall HAPI_ReadFileAt(char* name, void* buffer, long pos, unsigned int
     if (file->buffer2 != 0) {
         GameFreeThunk(file->buffer2);
     }
-    GameFreeThunk((int*)file);
+    GameFreeThunk(file);
     return buffer;
 
 fail:
@@ -553,7 +569,7 @@ fail:
     if (file->buffer2 != 0) {
         GameFreeThunk(file->buffer2);
     }
-    GameFreeThunk((int*)file);
+    GameFreeThunk(file);
     return 0;
 }
 
@@ -869,7 +885,10 @@ struct FindFiles {
     char pattern[0x100];     // +0x100
     int state;               // +0x200, negative while a _findfirst handle is open
     char recursive;          // +0x204
-    long handle;             // +0x205, the _findfirst handle or the current directory list
+    union {                  // +0x205, the _findfirst handle or the current directory list
+        long handle;
+        ArchiveDirectory* list;
+    };
     int index;               // +0x209
 };
 #pragma pack(pop)
@@ -955,26 +974,26 @@ int __stdcall HAPI_FindNext(FindFiles* f, struct _finddata_t* fd)
     // Both latch statements stay in the increment clause.
     for (; f->state < g->count; f->index = -1, f->state++) {
         if (f->index < 0) {
-            f->handle = (long)HAPI_FindDirectory(g->files[f->state]->node->list, (char*)f);
-            if (f->handle == 0)
+            f->list = HAPI_FindDirectory(g->files[f->state]->node->list, f->dir);
+            if (f->list == 0)
                 continue;
         }
-        while (++f->index < ((ArchiveDirectory*)f->handle)->count) {
+        while (++f->index < f->list->count) {
             // The index sits in a local: read inline, the entry address operands swap.
             int i = f->index;
-            ArchiveEntry* e = &((ArchiveDirectory*)f->handle)->entries[i];
-            if (MatchWildcard((char*)e->name, f->pattern) && !(e->flags & 2)) {
+            ArchiveEntry* e = &f->list->entries[i];
+            if (MatchWildcard(e->text, f->pattern) && !(e->flags & 2)) {
                 if (e->flags & 1) {
                     fd->attrib = 0x11;
                     fd->size = 0;
                 } else {
                     fd->attrib = 1;
-                    fd->size = *(unsigned long*)((char*)e->data + 4);
+                    fd->size = e->info->size;
                 }
                 fd->time_create = 0;
                 fd->time_access = 0;
                 fd->time_write = 0;
-                strcpy(fd->name, (char*)e->name);
+                strcpy(fd->name, e->text);
                 return 0;
             }
         }
@@ -1642,7 +1661,7 @@ void __stdcall HAPI_RelocateDirectory(ArchiveDirectory* h, int delta)
         p->name += delta;
         p->data += delta;
         if (p->flags & 1)
-            HAPI_RelocateDirectory((ArchiveDirectory*)p->data, delta);
+            HAPI_RelocateDirectory(p->dir, delta);
     }
 }
 
@@ -1670,7 +1689,7 @@ void* __stdcall HAPI_AddArchive(LPCSTR param_1, int param_2)
     GetFullPathNameA(param_1, 0x100, fullPath, &filePart);
 
     for (int i = 0; i < display->count; i++) {
-        if (_strcmpi(fullPath, (char*)&display->files[i]->name[0]) == 0)
+        if (_strcmpi(fullPath, display->files[i]->name) == 0)
             return 0;
     }
 
@@ -1756,7 +1775,7 @@ void __stdcall HAPI_ClearShadowFlags(ArchiveDirectory* list)
     for (int i = list->count - 1; i >= 0; i--) {
         list->entries[i].flags &= ~2;
         if (list->entries[i].flags & 1)
-            HAPI_ClearShadowFlags((ArchiveDirectory*)list->entries[i].data);
+            HAPI_ClearShadowFlags(list->entries[i].dir);
     }
 }
 

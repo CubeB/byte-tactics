@@ -34,9 +34,7 @@ union UnitPos_00467440 {
     } half;
 };
 
-struct Rot16 {
-    short x, y, z;
-};
+#include "../util/angles.h"
 
 #include "../units/unit_def.h"
 #include "../network/player.h"
@@ -106,7 +104,7 @@ struct Unit {
     char unknown_58[0x5c - 0x58];
     void* f_5c;                        // +0x5c, the mission queue
     void* f_60;                        // +0x60, the background mission queue
-    Rot16 rot;                         // +0x64
+    Angles16 rot;                      // +0x64
     union {
         UnitPos_00467440 pos;          // +0x6a
         struct {
@@ -238,26 +236,7 @@ struct Feature {
     unsigned short unknown_bits : 4;
 };
 
-// A spot, 0x30 bytes: either a pair of animation handles or the live state of
-// a moving feature (its state, position and velocity).
-struct FeatureSpot {
-    short next;                        // +0x0
-    short prev;                        // +0x2
-    union {
-        struct {
-            Handle anim;               // +0x4
-            Handle shadow;             // +0x10
-        };
-        struct {
-            SpotState* state;          // +0x4
-            UnitPos_00467440 pos;      // +0x8
-            UnitPos_00467440 vel;      // +0x14
-        };
-    };
-    Rot16 rot;                         // +0x20
-    char unknown_26[0x2f - 0x26];
-    unsigned char spotFlags;           // +0x2f
-};
+#include "feature_spot.h"
 
 struct Def_004685a0 {
     char unknown_0[0x20];

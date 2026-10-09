@@ -55,26 +55,7 @@ struct Cell {
     unsigned char unknown_d : 7;
 };
 
-// A spot, 0x30 bytes: either a pair of animation handles or the live state of
-// a moving feature (its state, position and velocity).
-struct FeatureSpot {
-    short next;                        // +0x0
-    short prev;                        // +0x2
-    union {
-        struct {
-            Handle anim;               // +0x4
-            Handle shadow;             // +0x10
-        };
-        struct {
-            ObjectState* state;        // +0x4
-            Vec3 pos;                  // +0x8
-            Vec3 vel;                  // +0x14
-        };
-    };
-    Angles16 rot;                  // +0x20
-    char unknown_26[0x2f - 0x26];
-    unsigned char spotFlags;           // +0x2f
-};
+#include "feature_spot.h"
 
 struct Unit {
     char unknown_0[0x64];
@@ -151,7 +132,7 @@ void __stdcall BlitFeatureGaf(void* dest, Cell* cell, int ix, int iy)
             }
         } else {
             Unit* unit = g_game->unit;
-            ObjectState* st = spot->state;
+            ObjectState* st = (ObjectState*)spot->state;
             unit->state = st;
             st->unit = unit;
             unit->angles = spot->rot;

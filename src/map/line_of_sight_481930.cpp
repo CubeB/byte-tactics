@@ -27,10 +27,6 @@ public:
     short GetLosTableCount();
 };
 
-// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
-int RIReport(int, int, int, int, int, int, int, int, int, int);
-void CopyDwordIfNonNull(int*, int*);
-
 extern char g_losTables[];
 
 #include "grid.h"
@@ -42,17 +38,7 @@ struct Player_00481930 {
     unsigned char index;               // +0x146
 };
 
-// One unit's sight query (Thaldren's LosSightQuery): the player, the unit's cached sight
-// cell, its sight distance and eye height, and the byte that holds its sight frame.
-struct SightQuery {
-    Player_00481930* player;           // +0x00
-    short* cacheCell;                  // +0x04
-    short sightDistance;               // +0x08
-    unsigned char eyeHeight;           // +0x0a
-    char unknown_b;                    // +0x0b
-    unsigned char* frameIdx;           // +0x0c
-    char unknown_10[0xc];              // +0x10
-};
+#include "sight_query.h"
 
 struct LosTable_00481930 {
     unsigned short count;              // +0x00
@@ -115,7 +101,7 @@ void __stdcall RevealAroundUnit(SightQuery* params)
     int x, y;
     int limitX, limitY, nx, ny;
     int i, stride, off;
-    unsigned int bit = 1 << params->player->index;
+    unsigned int bit = 1 << ((Player_00481930*)params->player)->index;
     GafFrame* frame;
     int halfW = g_game->width / 2;
     int halfH = g_game->height / 2;
@@ -215,7 +201,7 @@ void __stdcall RevealAroundUnit(SightQuery* params)
             } while (i < limitY);
         }
     }
-    if (changed && params->player->index == g_game->playerIndex) {
+    if (changed && ((Player_00481930*)params->player)->index == g_game->playerIndex) {
         g_game->flag3 = 0;
         g_game->flags_142f1 |= 4;
     }

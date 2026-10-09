@@ -8,21 +8,17 @@ struct UnitType_482ac0 {
     short range;                        // +0x202
 };
 
-struct Vec3_482ac0 {
-    int x;
-    int y;
-    int z;
-};
+#include "sight_query.h"
 
 #pragma pack(push, 2)
 struct Unit {
     char unknown_0[0x6a];
-    Vec3_482ac0 pos;                    // +0x6a
+    Vec3 pos;                           // +0x6a
     char unknown_76[0x7a - 0x76];
     short cell[2];                      // +0x7a
     char unknown_7e[0x92 - 0x7e];
     UnitType_482ac0* type;              // +0x92
-    void* player;                     // +0x96
+    Player* player;                     // +0x96
     char unknown_9a[0xf8 - 0x9a];
     unsigned char cell_id[4];           // +0xf8
 };
@@ -51,20 +47,6 @@ struct Game {
     FrameTable* losTable;               // +0x1485b
 };
 #pragma pack(pop)
-
-// One unit's sight query (Thaldren's LosSightQuery): the player, the unit's cached sight
-// cell, its sight distance and eye height, and the byte that holds its sight frame.
-struct SightQuery {
-    void* player;                      // +0x0
-    short* cacheCell;                  // +0x4
-    short sightDistance;               // +0x8
-    unsigned char eyeHeight;           // +0xa
-    char unknown_b;
-    unsigned char* frameIdx;           // +0xc
-    Vec3_482ac0 pos;                   // +0x10
-    int unknown_1c;
-    int unknown_20;
-};
 
 extern Game* g_game;
 

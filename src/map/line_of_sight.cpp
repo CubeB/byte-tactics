@@ -20,23 +20,7 @@
 
 #pragma pack(push, 1)
 
-struct Vec3 {
-    int x;
-    union {
-        int y;
-        struct {
-            short y_lo;
-            short y_hi;
-        };
-    };
-    union {
-        int z;
-        struct {
-            short z_lo;
-            short z_hi;
-        };
-    };
-};
+#include "sight_query.h"
 
 struct Pos {
     short x;
@@ -128,17 +112,6 @@ struct PlayerGrid {
 struct Sound;
 void RegisterUnitOrders();
 void RegisterGroundOrders();
-void EnableAICommands();
-void RegisterAICommands();
-void FUN_00406f40();
-void ResetAIPlayers();
-void RegisterVtolOrders();
-void StepAllGafSequences();
-void ResetNetStats();
-void FUN_004161f0();
-void InitCommands();
-int UpdatePlacementGhostValidity();
-void RefreshSelectionOrders();
 #include "../network/player.h"
 
 struct UnitDef {
@@ -211,20 +184,6 @@ struct Eye {
         flagB = s.flagB;
         return *this;
     }
-};
-
-// One unit's sight query (Thaldren's LosSightQuery): the player, the unit's cached sight
-// cell, its sight distance and eye height, and the byte that holds its sight frame.
-struct SightQuery {
-    void* player;                      // +0x00
-    short* cacheCell;                  // +0x04
-    short sightDistance;               // +0x08
-    unsigned char eyeHeight;           // +0x0a
-    char unknown_b;                    // +0x0b
-    unsigned char* frameIdx;           // +0x0c
-    Vec3 pos;                          // +0x10
-    int unknown_1c;                    // +0x1c
-    int unknown_20;                    // +0x20
 };
 
 union Flags_14281 {
@@ -699,7 +658,7 @@ void __stdcall InitUnitSightCircleReveal(SightQuery* params)
         }
     }
     int x = params->pos.x / 0x200000;
-    int y = params->pos.z / 0x200000 - params->pos.y_hi / 64;
+    int y = params->pos.z / 0x200000 - ((short*)&params->pos.y)[1] / 64;
     GafFrame* entry = GetGafFrame(g_game->losTable, lod);
     x -= entry->xOffset;
     y -= entry->yOffset;
@@ -1517,7 +1476,7 @@ void __stdcall ClampWorldPosToTerrain(int x, int y, Vec3* out)
         // z comes from the counter, not from a variable of its own.
         p.z = (t + i) << 16;
         p.y = max(GetGroundHeight(&p), g_game->seaLevel) << 16;
-        s1 = p.z_hi - (p.y_hi >> 1);
+        s1 = ((short*)&p.z)[1] - (((short*)&p.y)[1] >> 1);
         if (s1 <= y)
             goto found;
     }
@@ -1528,7 +1487,7 @@ found:
         Vec3 q = p;
         q.z = p.z + 0x100000;
         q.y = max(GetGroundHeight(&q), g_game->seaLevel) << 16;
-        s2 = q.z_hi - (q.y_hi >> 1);
+        s2 = ((short*)&q.z)[1] - (((short*)&q.y)[1] >> 1);
         if ((s1 < s2 && y >= s1) || y <= s2) {
             p.z = p.z + ((y - s1) << 20) / (s2 - s1);
             p.y = max(GetGroundHeight(&p), g_game->seaLevel) << 16;

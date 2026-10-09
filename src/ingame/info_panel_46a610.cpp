@@ -12,12 +12,7 @@
 
 #include "../util/vec3.h"
 
-// A unit's or a spot's three angles (+0x64 of the unit).
-struct Angles {
-    short bank;
-    unsigned short heading;
-    short pitch;
-};
+#include "../util/angles.h"
 
 // What GetGafSequenceFrame looks a frame up with: an index and the table it is in.
 struct Handle {
@@ -81,14 +76,14 @@ struct FeatureSpot {
             Vec3 vel;                  // +0x14
         };
     };
-    Angles rot;                        // +0x20
+    Angles16 rot;                  // +0x20
     char unknown_26[0x2f - 0x26];
     unsigned char spotFlags;           // +0x2f
 };
 
 struct Unit {
     char unknown_0[0x64];
-    Angles angles;                     // +0x64
+    Angles16 angles;               // +0x64
     Vec3 pos;                          // +0x6a
     char unknown_76[0x9e - 0x76];
     ObjectState* state;                // +0x9e

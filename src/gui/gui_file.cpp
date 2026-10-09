@@ -201,15 +201,10 @@ void __stdcall WriteCommonFields(Common_004ad350* obj, FileHandle* out, int inde
 }
 #pragma auto_inline(on)
 
-struct Tree_004ad350 {
-    char unknown_0[4];
-    TdfRecord* current;           // +0x4
-};
-
 // FUNCTION: 0x4ad350
-void __stdcall ReadCommonSection(Common_004ad350* obj, Tree_004ad350* tree)
+void __stdcall ReadCommonSection(Common_004ad350* obj, TdfFile* tree)
 {
-    if (((TdfFile*)tree)->SelectRecord("COMMON") == 1) {
+    if (tree->SelectRecord("COMMON") == 1) {
         obj->id = (unsigned char)tree->current->GetFieldInt("id", 0);
         obj->assoc = (unsigned char)tree->current->GetFieldInt("assoc", 0);
         tree->current->GetFieldString(obj->name, "name", 0x10, DAT_005119b8);
@@ -334,11 +329,6 @@ void __stdcall WritePanelFields(Obj_004ad4f0* obj, FileHandle* out, int indent)
 }
 #pragma auto_inline(on)
 
-struct Source_004ad890 {
-    char unknown_0[4];
-    TdfRecord* tdf;                    // +0x4
-};
-
 #pragma pack(push, 1)
 struct Obj_004ad890 {
     char unknown_0[0xb6];
@@ -355,17 +345,17 @@ struct Obj_004ad890 {
 #pragma pack(pop)
 
 // FUNCTION: 0x4ad890
-void __stdcall ReadPanelFields(Obj_004ad890* obj, Source_004ad890* src)
+void __stdcall ReadPanelFields(Obj_004ad890* obj, TdfFile* src)
 {
-    obj->totalGadgets = (short)src->tdf->GetFieldInt("totalgadgets", 0);
-    src->tdf->GetFieldString(obj->panel, "panel", 0x10, DAT_005119b8);
-    src->tdf->GetFieldString(obj->crdefault, "crdefault", 0x10, DAT_005119b8);
-    src->tdf->GetFieldString(obj->escdefault, "escdefault", 0x10, DAT_005119b8);
-    src->tdf->GetFieldString(obj->defaultfocus, "defaultfocus", 0x10, DAT_005119b8);
-    if (((TdfFile*)src)->SelectRecord("VERSION") == 1) {
-        obj->major = (char)src->tdf->GetFieldInt("major", 0);
-        obj->minor = (char)src->tdf->GetFieldInt("minor", 0);
-        obj->revision = (char)src->tdf->GetFieldInt("revision", 0);
+    obj->totalGadgets = (short)src->current->GetFieldInt("totalgadgets", 0);
+    src->current->GetFieldString(obj->panel, "panel", 0x10, DAT_005119b8);
+    src->current->GetFieldString(obj->crdefault, "crdefault", 0x10, DAT_005119b8);
+    src->current->GetFieldString(obj->escdefault, "escdefault", 0x10, DAT_005119b8);
+    src->current->GetFieldString(obj->defaultfocus, "defaultfocus", 0x10, DAT_005119b8);
+    if (src->SelectRecord("VERSION") == 1) {
+        obj->major = (char)src->current->GetFieldInt("major", 0);
+        obj->minor = (char)src->current->GetFieldInt("minor", 0);
+        obj->revision = (char)src->current->GetFieldInt("revision", 0);
     }
 }
 
@@ -1049,11 +1039,11 @@ int __stdcall ReadGuiFile(Elem_004aeac0* obj, char* name)
                 break;
             int cur = (&parser)->GetCurrentRecord();
             Elem_004aeac0* e = obj + i;
-            ReadCommonSection((Common_004ad350*)e, (Tree_004ad350*)&parser);
+            ReadCommonSection((Common_004ad350*)e, &parser);
             (&parser)->SetCurrentRecord(cur);
             switch (e->type) {
             case 0:
-                ReadPanelFields((Obj_004ad890*)e, (Source_004ad890*)&parser);
+                ReadPanelFields((Obj_004ad890*)e, &parser);
                 break;
             case 1:
                 ReadButtonFields((Obj_004adc70*)e, (Source_004adc70*)&parser);

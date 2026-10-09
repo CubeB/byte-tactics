@@ -2321,9 +2321,9 @@ address,size,file,symbol,status,similarity
 0x4acda0,55,src/gui/gui_file.cpp,?WriteSectionEnd@@YGXPAUFileHandle@@H@Z,matched,100.0
 0x4acde0,108,src/gui/gui_file.cpp,?WriteKeyValue@@YGXPAUFileHandle@@PAD1H@Z,matched,100.0
 0x4ace50,1280,src/gui/gui_file.cpp,?WriteCommonFields@@YGXPAUCommon_004ad350@@PAUFileHandle@@H@Z,matched,100.0
-0x4ad350,407,src/gui/gui_file.cpp,?ReadCommonSection@@YGXPAUCommon_004ad350@@PAUTree_004ad350@@@Z,matched,100.0
+0x4ad350,407,src/gui/gui_file.cpp,?ReadCommonSection@@YGXPAUCommon_004ad350@@PAVTdfFile@@@Z,matched,100.0
 0x4ad4f0,914,src/gui/gui_file.cpp,?WritePanelFields@@YGXPAUObj_004ad4f0@@PAUFileHandle@@H@Z,matched,100.0
-0x4ad890,225,src/gui/gui_file.cpp,?ReadPanelFields@@YGXPAUObj_004ad890@@PAUSource_004ad890@@@Z,matched,100.0
+0x4ad890,225,src/gui/gui_file.cpp,?ReadPanelFields@@YGXPAUObj_004ad890@@PAVTdfFile@@@Z,matched,100.0
 0x4ad980,142,src/gui/gui_file.cpp,?WriteStatusField@@YGXPAUStruct_004ad980@@PAUFileHandle@@H@Z,matched,100.0
 0x4ada10,33,src/gui/gui_file.cpp,?ReadStatusField@@YGXPAUStructA_004ada10@@PAUStructB_004ada10@@@Z,matched,100.0
 0x4ada40,554,src/gui/gui_file.cpp,?WriteButtonFields@@YGXPAUObj_004ada40@@PAUFileHandle@@H@Z,matched,100.0

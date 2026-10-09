@@ -112,8 +112,8 @@ Counts in `src/` and `include/` at `origin/main`, against `e9367f13` (the roadma
 | Placeholder fields `field_<offset>` | 589 | 390 | 0, named | 34% | `[#######-------------]` |
 | Files that define `Unit` | 285 | 80 | 1, one shared definition | 72% | `[##############------]` |
 | Files opening with matching history | 301 | 2 | 0, none | 99% | `[####################]` |
-| Casts `((T*)x)->` | 1,698 | 717 | 0, casts the types allow | 58% | `[############--------]` |
-| Byte-offset access `*(T*)(p + off)` and `(char*)p + off` | 1,284 | 826 | cases with no struct | | |
+| Casts `((T*)x)->` | 1,698 | 698 | 0, casts the types allow | 59% | `[############--------]` |
+| Byte-offset access `*(T*)(p + off)` and `(char*)p + off` | 1,284 | 825 | cases with no struct | | |
 
 | Cleanup issues | | | |
 | --- | --- | --- | ---: |

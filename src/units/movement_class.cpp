@@ -60,32 +60,7 @@ struct Record_00440af0 {
 #include "../map/cell.h"
 #pragma pack(pop)
 
-// The 32-byte entry: a movement class with its own 2-bit-per-cell passability
-// map. name holds its name; the table below owns 32 of them.
-struct MovementClass {
-    int* name;                         // +0x00
-    short footprintX;                  // +0x04
-    short footprintZ;                  // +0x06
-    short maxWaterDepth;               // +0x08
-    short minWaterDepth;               // +0x0a
-    unsigned char maxSlope;            // +0x0c
-    unsigned char badSlope;            // +0x0d
-    unsigned char maxWaterSlope;       // +0x0e
-    unsigned char badWaterSlope;       // +0x0f
-    unsigned int width;                // +0x10, of the pass map
-    unsigned int height;               // +0x14
-    unsigned int* cells;               // +0x18
-    unsigned int lastTick;             // +0x1c
-
-    MovementClass();
-    ~MovementClass();
-    void ReadMoveInfo(Source_00440340* src);
-    void ResizePassMap(unsigned int w, unsigned int h);
-    void SetPassMapCell(int param_1, int param_2, int param_3);
-    void RefreshPassMap(Point16 a, Point16 b);
-    void RefreshMovedUnits(Object_00440af0* p);
-    void RefreshUnitIfStale(Object_00440af0* p);
-};
+#include "movement_class.h"
 
 // The same 32 bytes as MovementClass under the view 0x440500 builds the map
 // with (the BuildPassMap method).
@@ -305,11 +280,6 @@ void MovementClass::ResizePassMap(unsigned int w, unsigned int h)
         cells = 0;
     }
 }
-
-// Unused here: the symbol ids these declarations take keep the allocation after
-// the TdfRecord view joined the shared header (docs/c2-regalloc.md).
-void __stdcall ScaleUnitWeights(int, unsigned int*, float, int);
-void __stdcall DrawFrame(void* surface, void* frame, int x, int y);
 
 // FUNCTION: 0x4404c0
 void MovementClass::SetPassMapCell(int param_1, int param_2, int param_3)

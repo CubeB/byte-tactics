@@ -246,13 +246,6 @@ struct Unit {                          // 0x118 bytes
     char unknown_a8[0x118 - 0xa8];
 };
 
-// Unused here: these forward declarations take the symbol ids that keep 0x40da70 and 0x40e160 matching (docs/c2-regalloc.md).
-struct Sound;
-struct HapiBank;
-struct TdfFile;
-struct TdfRecord;
-struct Mission;
-struct Gadget;
 #include "../network/player.h"
 
 struct Game {
@@ -275,28 +268,7 @@ extern int g_budgetRefreshCounter;
 extern int g_playerTickLoad[10];
 extern int g_playerBudgetCap[10];
 
-// The movement class the searched unit belongs to, and its pass map.
-class MovementClass {
-public:
-    char unknown_0[4];
-    short footprintX;                  // +0x4
-    short footprintZ;                  // +0x6
-    char unknown_8[0x10 - 0x8];
-    unsigned int width;                // +0x10
-    unsigned int height;               // +0x14
-    unsigned int* cells;               // +0x18, 16 2-bit cells per dword
-
-    int InBounds(unsigned int x, unsigned int y)
-    {
-        return x < width && y < height;
-    }
-    int Get(int x, int y)
-    {
-        return (cells[width * (y >> 4) + x] >> ((y & 0xf) << 1)) & 3;
-    }
-    void RefreshUnitIfStale(Unit* p);
-    void RefreshMovedUnits(Unit* p);
-};
+#include "../units/movement_class.h"
 
 // What the search is looking for.
 class Target {
@@ -527,7 +499,7 @@ public:
     }
     void Release()
     {
-        owner->RefreshUnitIfStale(object);
+        owner->RefreshUnitIfStale((Object_00440af0*)object);
         object = 0;
         owner = 0;
     }
@@ -987,7 +959,7 @@ void Pathfinder::StartSearch(Target* t)
     owner = (MovementClass*)object->motion->owner;
     target = t;
     start = object->cell;
-    owner->RefreshMovedUnits(object);
+    owner->RefreshMovedUnits((Object_00440af0*)object);
     ResetTable();
     ClearDirtyCells();
 
@@ -1041,7 +1013,7 @@ void Pathfinder::StartSearch(Target* t)
 // FUNCTION: 0x40e9a0
 void Pathfinder::ReleaseHeldPathLock()
 {
-    owner->RefreshUnitIfStale(object);
+    owner->RefreshUnitIfStale((Object_00440af0*)object);
     object = 0;
     owner = 0;
 }

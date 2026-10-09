@@ -190,22 +190,7 @@ struct Game {
     int ticks;                          // +0x38a47
 };
 
-class MovementClass {
-public:
-    void* name;                         // +0x0
-    short footprintX;                   // +0x4
-    short footprintZ;                   // +0x6
-    short maxWaterDepth;                // +0x8
-    short minWaterDepth;                // +0xa
-    unsigned char maxSlope;             // +0xc
-    unsigned char badSlope;             // +0xd
-    unsigned char maxWaterSlope;        // +0xe
-    unsigned char badWaterSlope;        // +0xf
-    unsigned int width;                 // +0x10
-    unsigned int height;                // +0x14
-    unsigned int* cells;                // +0x18
-    unsigned int lastTick;              // +0x1c
-};
+#include "../units/movement_class.h"
 
 union Fixed {
     int value;
@@ -261,42 +246,6 @@ class DamagedAllyCollector {
 public:
     virtual void CollectDamagedAlly(Unit* unit);
 };
-
-// Unused here: these forward declarations take the symbol ids that keep 0x47d2e0 matching
-// after IsPadSlotFree took the file's Unit and the shared vec3.h header replaced the
-// file's own Vec3 and Point16 (docs/c2-regalloc.md).
-struct Sound;
-struct HapiBank;
-struct TdfFile;
-struct TdfRecord;
-struct Gadget;
-struct Layer;
-struct Packet;
-struct Pathfinder;
-struct Mission;
-struct Weapon;
-struct Amount;
-struct Box;
-struct Channel;
-struct Chunk;
-struct MovementClassTable;
-struct PointMarker;
-class OpenHeap;
-struct Order;
-struct Menu;
-struct Gui;
-struct Dialog;
-struct FileHandle;
-struct Surface;
-struct Gaf;
-struct GafEntry;
-struct GafFrame;
-struct Script;
-struct UnitMotion;
-struct WeaponDef;
-struct PathOrder;
-struct MissionOrder;
-struct TdfParser;
 
 struct Entry_0047ea40 {
     Vec3 pos;                          // +0x0

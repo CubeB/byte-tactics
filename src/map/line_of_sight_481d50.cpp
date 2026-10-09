@@ -8,29 +8,35 @@
 
 #pragma pack(push, 1)
 
-class LosTables {
-public:
-    void* GetLosTable(int n);
-    short GetLosTableCount();
-};
-
-class LosTable {
-public:
-    short GetLosLineCount();
-    void* GetLosLine(short i);
-};
-
 class LosLine {
 public:
     short GetLosLineStepCount();
     void GetLosLineStep(short i, int* a, int* b);
 };
 
+class LosTable {
+public:
+    short GetLosLineCount();
+    LosLine* GetLosLine(short i);
+};
+
+class LosTables {
+public:
+    LosTable* GetLosTable(int n);
+    short GetLosTableCount();
+};
+
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
 int RIReport(int, int, int, int, int, int, int, int, int, int);
 void CopyDwordIfNonNull(int*, int*);
+void RegisterUnitOrders(void);
+void RegisterGroundOrders(void);
+void EnableAICommands(void);
+void RegisterAICommands(void);
+void FUN_00406f40(void);
+void ResetAIPlayers(void);
 
-extern char g_losTables[];
+extern LosTables g_losTables;
 
 struct MapSize_00481d50 {
     unsigned int width;                // +0x0
@@ -53,7 +59,7 @@ struct Map_00481d50 {
 // One unit's sight query (Thaldren's LosSightQuery): the player, the unit's cached sight
 // cell, its sight distance and eye height, and the byte that holds its sight frame.
 struct SightQuery {
-    void* player;                      // +0x00
+    Map_00481d50* player;              // +0x00
     short* cacheCell;                  // +0x04
     short sightDistance;               // +0x08
     unsigned char eyeHeight;           // +0x0a
@@ -112,7 +118,7 @@ GafFrame* __stdcall GetGafFrame(unsigned short* table, int index);
 // FUNCTION: 0x481d50
 void __stdcall RemoveLineOfSight(SightQuery* params)
 {
-    if (((Map_00481d50*)params->player)->playerIndex == g_game->playerIndex) {
+    if (params->player->playerIndex == g_game->playerIndex) {
         g_game->flag3 = 0;
         g_game->flags_142f1_mapChanged = 1;
     }
@@ -126,19 +132,18 @@ void __stdcall RemoveLineOfSight(SightQuery* params)
             return;
         if ((unsigned)y >= grid->height)
             return;
-        void* table = ((LosTables*)g_losTables)
-                          ->GetLosTable(
-                              (params->sightDistance / 32 < 0 ? 0 : params->sightDistance / 32) <
-                                      ((LosTables*)g_losTables)->GetLosTableCount() - 1
-                                  ? (params->sightDistance / 32 < 0 ? 0 : params->sightDistance / 32)
-                                  : ((LosTables*)g_losTables)->GetLosTableCount() - 1);
-        short count = ((LosTable*)table)->GetLosLineCount();
+        LosTable* table = g_losTables.GetLosTable(
+            (params->sightDistance / 32 < 0 ? 0 : params->sightDistance / 32) <
+                    g_losTables.GetLosTableCount() - 1
+                ? (params->sightDistance / 32 < 0 ? 0 : params->sightDistance / 32)
+                : g_losTables.GetLosTableCount() - 1);
+        short count = table->GetLosLineCount();
         short i = 0;
-        ((Map_00481d50*)params->player)->explored.at(x, y)--;
+        params->player->explored.at(x, y)--;
         int ref = *params->frameIdx;
         for (i = 0; i < count; i++) {
-            void* line = ((LosTable*)table)->GetLosLine(i);
-            short num = ((LosLine*)line)->GetLosLineStepCount();
+            LosLine* line = table->GetLosLine(i);
+            short num = line->GetLosLineStepCount();
             // Declared in this order: bestIdx, j1, bestDiff, j; j1 is set in the guard.
             int bestIdx = 0;
             int j1;
@@ -149,7 +154,7 @@ void __stdcall RemoveLineOfSight(SightQuery* params)
                 do {
                     int dx;
                     int dy;
-                    ((LosLine*)line)->GetLosLineStep(j, &dx, &dy);
+                    line->GetLosLineStep(j, &dx, &dy);
                     dx += x;
                     dy += y;
                     if ((unsigned)(short)dx >= grid->width)
@@ -161,7 +166,7 @@ void __stdcall RemoveLineOfSight(SightQuery* params)
                     int d1 = cell[1] - ref;
                     int d0 = cell[0] - ref;
                     if (d0 * bestIdx > bestDiff * j1) {
-                        ((Map_00481d50*)params->player)
+                        params->player
                             ->explored.at((short)dx, (short)dy)--;
                         if (d1 * bestIdx > bestDiff * j1) {
                             bestIdx = j1;
@@ -192,7 +197,7 @@ void __stdcall RemoveLineOfSight(SightQuery* params)
         if (nx >= limitX)
             return;
         for (int i = ny; i < limitY; i++) {
-            ByteMap_00481d50* ex = &((Map_00481d50*)params->player)->explored;
+            ByteMap_00481d50* ex = &params->player->explored;
             unsigned char* dst = ex->data + (y + i) * ex->size.width + nx + x;
             unsigned char* src = frame->data + i * frame->width + nx;
             for (int j = nx; j < limitX; j++) {

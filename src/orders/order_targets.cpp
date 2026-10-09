@@ -1028,14 +1028,6 @@ public:
     void TruncateWaypointsFrom(int n);
 };
 
-class Class_0044f5b0 {
-public:
-    char unknown_0[0x18];
-    int field_18;
-
-    int FUN_0044f5b0();
-};
-
 struct Target_0044f5c0 {
     char unknown_0[0x2e];
     unsigned char flag_0 : 1;          // +0x2e bit 0
@@ -1053,11 +1045,6 @@ struct Point_0044f5c0 {
     short y;                           // +0x2
 };
 
-// Unused here: a forward declaration of the type below; its symbol id, with
-// the two declarations in the class, keeps the allocation the merged class
-// moved (docs/c2-regalloc.md).
-struct Vec3_0044f650;
-
 // Vtable 0x4fd488, constructor 0x44f570, ??_G 0x44f590.
 class PatrolGoal : public PathGoal {
 public:
@@ -1069,35 +1056,53 @@ public:
     virtual int FUN_0044ef80();                     // slot 5, 0x44f5b0
     virtual void FUN_0044efd0(BitReader*);          // slot 9, 0x44f5c0
     void FUN_0044f5c0(BitReader* reader);
-    // Unused here: the slot methods the other views declare keep the symbol
-    // ids of the functions after the merged class (docs/c2-regalloc.md).
-    int FUN_0044f5b0();
-    void FUN_0044f650(Vec3_0044f650*, int, int);
 };
 
 // Unused here: a forward declaration of a later function of this file; its
 // symbol id keeps the allocation (docs/c2-regalloc.md).
 void CreatePathfinder();
 
-struct Point_0044f650 {
-    short x;                           // +0x0
-    short y;                           // +0x2
-};
-
-struct Vec3_0044f650 {
-    int x;                             // +0x0
-    int y;                             // +0x4
-    int z;                             // +0x8
-};
-
-class Class_0044f650 {
-public:
-    char unknown_0[0xc];
-    Point_0044f650 points[3];          // +0xc
-    int count;                         // +0x18
-
-    void FUN_0044f650(Vec3_0044f650* out, int unused, int n);
-};
+// Unused here: forward declarations of real functions; their symbol ids keep
+// the allocation the removed Class_0044f5b0 and Class_0044f650 views moved
+// (docs/c2-regalloc.md).
+void UpdateMenuSparks();
+void OpenCloseCdPlayerDialog();
+void OpenMainMenu();
+void HandleFrontendDebugKey();
+int ConnectToService();
+void RunFrontendStateMachine();
+void FreePictureCache();
+void ClearPictureCache();
+void OrLabelAttribs();
+void EmptyPreFrontendInitHook();
+int CodeChecksumFailed();
+void EmptyPostSimStepHook();
+void EmptyPostSimStepHook_B();
+void EmptyPostSimStepHook_C();
+int MainLoopContinueStub();
+int MainLoopContinueStub_B();
+int MainLoopContinueStub_C();
+void EmptyMainLoopHook();
+void EmptyMainLoopHook_B();
+void EmptyMainLoopHook_C();
+void ProtectUnitDefsReadOnly();
+void ProtectUnitDefsReadWrite();
+void CheckGpfVersion();
+void LoadGameResources();
+void FreeAnimFiles();
+void LoadGameFonts();
+void FreeGameFonts();
+int LoadDefaultPalette();
+void LoadTextureGafs();
+void FreeTextureGafs();
+void FreeUnitInfo();
+void RefreshUnitInfo();
+void CheckDownloadableFlags();
+void AddDownloadBuildOptions();
+void LoadUnitTypes();
+void FreeUnitTypes();
+void LoadDownloadMenus();
+void FreeDownloadMenus();
 
 Unit* __stdcall LoadUnit(unsigned short index, HapiBank* file);
 Vec3_0044e3c0 __stdcall GetPiecePosition(Unit* obj, int param);
@@ -2588,10 +2593,11 @@ PatrolGoal::PatrolGoal(Struct_004907e0* p)
     count = 0;
 }
 
+// Slot 5: whether the patrol has at least two waypoints.
 // FUNCTION: 0x44f5b0
-int Class_0044f5b0::FUN_0044f5b0()
+int PatrolGoal::FUN_0044ef80()
 {
-    return field_18 >= 2;
+    return count >= 2;
 }
 
 // FUNCTION: 0x44f5c0
@@ -2605,16 +2611,16 @@ void PatrolGoal::FUN_0044f5c0(BitReader* reader)
     }
 }
 
-// Converts up to `count` short 2D points into 16.16 fixed-point 3D vectors
+// Slot 3: converts up to `n` short 2D points into 16.16 fixed-point 3D vectors
 // (x, 0, y), repeating the last point once the list runs out.
 // FUNCTION: 0x44f650
-void Class_0044f650::FUN_0044f650(Vec3_0044f650* out, int unused, int n)
+void PatrolGoal::FUN_0044ef40(Vec3_004907e0* out, int unused, int n)
 {
     for (int i = 0; i < n; i++) {
         int j = i < count ? i : count - 1;
-        out[i].x = points[j].x << 16;
-        out[i].y = 0;
-        out[i].z = points[j].y << 16;
+        out[i].x.fixed = points[j].x << 16;
+        out[i].y.fixed = 0;
+        out[i].z.fixed = points[j].y << 16;
     }
 }
 

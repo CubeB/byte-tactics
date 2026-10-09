@@ -1032,9 +1032,9 @@ address,size,file,symbol,status,similarity
 0x44f4a0,196,src/orders/order_targets.cpp,?SerializeNetUnitState@AiSearchGoal@@UAEXPAVBitWriter@@@Z,matched,100.0
 0x44f570,26,src/orders/order_targets.cpp,??0PatrolGoal@@QAE@PAUStruct_004907e0@@@Z,matched,100.0
 0x44f590,32,src/orders/order_targets.cpp,??_GPatrolGoal@@UAEPAXI@Z,matched,100.0
-0x44f5b0,12,src/orders/order_targets.cpp,?FUN_0044f5b0@Class_0044f5b0@@QAEHXZ,matched,100.0
+0x44f5b0,12,src/orders/order_targets.cpp,?FUN_0044ef80@PatrolGoal@@UAEHXZ,matched,100.0
 0x44f5c0,137,src/orders/order_targets.cpp,?FUN_0044f5c0@PatrolGoal@@QAEXPAVBitReader@@@Z,matched,100.0
-0x44f650,74,src/orders/order_targets.cpp,?FUN_0044f650@Class_0044f650@@QAEXPAUVec3_0044f650@@HH@Z,matched,100.0
+0x44f650,74,src/orders/order_targets.cpp,?FUN_0044ef40@PatrolGoal@@UAEXPAUVec3_004907e0@@HH@Z,matched,100.0
 0x44f6a0,52,src/orders/order_targets.cpp,?CreatePathfinder@@YGXXZ,matched,100.0
 0x44f6e0,50,src/orders/order_targets.cpp,?DestroyPathfinder@@YGXXZ,matched,100.0
 0x44f720,126,src/network/net_condenser.cpp,_$E4,matched,100.0
@@ -1285,8 +1285,8 @@ address,size,file,symbol,status,similarity
 0x4624a0,570,src/network/packets_460f40.cpp,?SendQueued@PacketChannel@@QAEHH@Z,matched,100.0
 0x4626e0,48,src/network/packets_460f40.cpp,?SendPacketTo@NetCondenser@@QAEXPAXHH0H@Z,matched,100.0
 0x462710,324,src/network/packets_460f40.cpp,?AddPacket@PacketChannel@@QAEHHPAXI@Z,matched,100.0
-0x462860,59,src/network/packets_460f40.cpp,?SetMinRetainMs@Class_00462860@@QAEXI@Z,matched,100.0
-0x4628a0,33,src/network/packets_460f40.cpp,?SetSendPacingMs@Class_004628a0@@QAEXH@Z,matched,100.0
+0x462860,59,src/network/packets_460f40.cpp,?SetMinRetainMs@PacketChannel@@QAEXI@Z,matched,100.0
+0x4628a0,33,src/network/packets_460f40.cpp,?SetSendPacingMs@PacketChannel@@QAEXH@Z,matched,100.0
 0x4628d0,219,src/network/packets_460f40.cpp,?AppendPacket@PacketBuffer@@QAEHPAUNetPacketPendingEntry@@HPBXI0@Z,matched,100.0
 0x4629b0,144,src/network/packets_460f40.cpp,?FreePackets@PacketBuffer@@QAEXXZ,matched,100.0
 0x462a40,27,src/network/packets_460f40.cpp,?FindOwnerChainTail@PacketBuffer@@QAEXXZ,matched,100.0
@@ -2210,11 +2210,11 @@ address,size,file,symbol,status,similarity
 0x4a1ab0,143,src/gui/gui.cpp,?RedrawGadgetRect@@YGXPAUDialog_4a1ab0@@H@Z,matched,100.0
 0x4a1b40,2160,src/gui/gui.cpp,?DrawListBox@@YGXPAUDialog_4a1b40@@H@Z,matched,100.0
 0x4a23b0,196,src/gui/gui.cpp,?GetSliderRects@@YGXPAUEntry_004a23b0@@HPAH1@Z,matched,100.0
-0x4a2480,242,src/gui/gui.cpp,?DrawGafBar@@YGXPAUClass_004a2480@@H@Z,matched,100.0
+0x4a2480,242,src/gui/gui.cpp,?DrawGafBar@@YGXPAUDialog_004a04f0@@H@Z,matched,100.0
 0x4a2580,1631,src/gui/gui.cpp,?DrawSliderBar@@YGXPAUObject_004a2580@@H@Z,matched,100.0
 0x4a2be0,597,src/gui/gui.cpp,?SyncAssocGadgets@@YGXPAUDialog_4a2be0@@H@Z,matched,100.0
 0x4a2e40,640,src/gui/gui.cpp,?SetListBoxScrollByName@@YGXPAUDialog_4a2e40@@PADH@Z,matched,100.0
-0x4a30c0,244,src/gui/gui.cpp,?ResetListBox@@YGXPAUClass_004a30c0@@H@Z,matched,100.0
+0x4a30c0,244,src/gui/gui.cpp,?ResetListBox@@YGXPAUDialog_004a04f0@@H@Z,matched,100.0
 0x4a31c0,210,src/gui/gui.cpp,?TruncateListItems@@YGXHHPADH@Z,matched,100.0
 0x4a32a0,765,src/gui/gui.cpp,?ConfigureListBoxByName@@YGXPAUDialog_4a32a0@@PADHHH@Z,matched,100.0
 0x4a35a0,246,src/gui/gui.cpp,?SetGadgetRows@@YGXPAUTable_004a35a0@@PADPAURow_004a35a0@@H@Z,matched,100.0

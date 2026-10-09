@@ -1900,17 +1900,23 @@ struct Entry_004a2480 {
 };
 #pragma pack(pop)
 
-struct Holder_004a2480 {
-    char unknown_0[4];
-    Entry_004a2480* entries;           // +0x4
-};
-
-#pragma pack(push, 1)
-struct Class_004a2480 {
-    char unknown_0[0x18];
-    Holder_004a2480* holder;           // +0x18
-};
-#pragma pack(pop)
+// Unused here: forward declarations of real functions; their symbol ids keep
+// the allocation the removed Class_004a2480 and Holder_004a2480 types moved
+// (docs/c2-regalloc.md).
+void RegisterUnitOrders();
+void RegisterGroundOrders();
+void EnableAICommands();
+void RegisterAICommands();
+void ResetAIPlayers();
+void RegisterVtolOrders();
+void StepAllGafSequences();
+void ResetNetStats();
+void InitCommands();
+int UpdatePlacementGhostValidity();
+void RefreshSelectionOrders();
+void DispatchOrdersPanelPageFlags();
+void ResetCameraState();
+void FindLocalCommander();
 
 char* __stdcall GetGafFrame(void* glyphs, int c);
 void __stdcall DrawFrame(void* surface, void* image, int x, int y);
@@ -1924,9 +1930,9 @@ extern int Pad_a2480_e3;
 extern int Pad_a2480_e4;
 
 // FUNCTION: 0x4a2480
-void __stdcall DrawGafBar(Class_004a2480* param_1, int index)
+void __stdcall DrawGafBar(Dialog_004a04f0* param_1, int index)
 {
-    Entry_004a2480* base = param_1->holder->entries;
+    Entry_004a2480* base = (Entry_004a2480*)param_1->holder->entries;
     void* surface = base->surface;
     Entry_004a2480* e = &base[index];
     unsigned short* glyphs = e->glyphs;
@@ -2421,16 +2427,6 @@ struct Entry_004a30c0 {                // 0x15b bytes
 };
 #pragma pack(pop)
 
-struct Holder_004a30c0 {
-    char unknown_0[4];
-    Entry_004a30c0* entries;           // +0x04
-};
-
-struct Class_004a30c0 {
-    char unknown_0[0x18];
-    Holder_004a30c0* holder;           // +0x18
-};
-
 struct Font_004a30c0 {
     char unknown_0[0xc];
     void* glyphs;                      // +0x0c
@@ -2442,14 +2438,30 @@ struct Dialog_4a30c0 {
     Font_004a30c0* font;               // +0x14
 };
 
+// Unused here: forward declarations of real functions; their symbol ids keep
+// the allocation the removed Class_004a30c0 and Holder_004a30c0 types moved
+// (docs/c2-regalloc.md).
+void ClampCameraPosition();
+void ClampCameraTarget();
+void UpdateScreenShake();
+void UpdateCameraFollow();
+void BeginMouseScroll();
+void EndMouseScroll();
+void UpdateMouseScroll();
+void UpdateEdgeScroll();
+void CenterCameraOnRadarClick();
+void CenterCameraOnStartPosition();
+void RegisterDataArchives();
+int GetCdPathMismatch();
+
 void __stdcall SetFont(int id);
 int GetFontHeight();
 char* __stdcall GetGafFrame(void* glyphs, int c);
 unsigned int __cdecl GetTicks();
 // FUNCTION: 0x4a30c0
-void __stdcall ResetListBox(Class_004a30c0* obj, int index)
+void __stdcall ResetListBox(Dialog_004a04f0* obj, int index)
 {
-    Entry_004a30c0* entries = obj->holder->entries;
+    Entry_004a30c0* entries = (Entry_004a30c0*)obj->holder->entries;
     Entry_004a30c0* e = &entries[index];
     e->field_bc = 0;
     e->field_ba = 0;

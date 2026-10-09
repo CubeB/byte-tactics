@@ -21,17 +21,6 @@ public:
     PacketRing() { field_0 = 0; field_4 = 0; field_8 = -1; }
 };
 
-// Only declared: with bodies in this file /Ob2 inlines 0x4628a0.
-class Class_00462860 {
-public:
-    void SetMinRetainMs(unsigned int ms);
-};
-
-class Class_004628a0 {
-public:
-    void SetSendPacingMs(int ms);
-};
-
 struct Buffers_00462d30 {
     char* a;                           // +0x0
     int field_4;
@@ -79,12 +68,16 @@ struct PacketChannel {
     PacketRing queue;                  // +0x38
     char unknown_44[0x1044 - 0x44];
 
+    // Only declared: with bodies in this file /Ob2 inlines 0x4628a0.
+    void SetMinRetainMs(unsigned int ms);
+    void SetSendPacingMs(int ms);
+
     PacketChannel()
         : bufferIndex(-1), sendPacingTicks(0), items(0), count(0), frameNumber(-2), dpid(-1), timeoutTicks(0),
           packetIndex(-1), queuedBytes(0), nextSendTick(0), packets(0), packetCount(0), firstPacket(0), lastPacket(0)
     {
-        ((Class_00462860*)this)->SetMinRetainMs(4000);
-        ((Class_004628a0*)this)->SetSendPacingMs(200);
+        SetMinRetainMs(4000);
+        SetSendPacingMs(200);
     }
     // Element destructors (here and PlayerFrameInfo's) make the entries array
     // use the vector constructor iterator, not an inlined loop.

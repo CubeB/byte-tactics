@@ -116,7 +116,7 @@ struct Game_00449bb0 {
     char unknown_2851[0x29a0 - 0x2851];
     Options_00449bb0* options;          // +0x29a0
     char unknown_29a4[0x2a30 - 0x29a4];
-    void* net;                          // +0x2a30
+    UnitSync* net;                      // +0x2a30
     char unknown_2a34[0x2a42 - 0x2a34];
     unsigned char localPlayer;          // +0x2a42
     char unknown_2a43[0x2a9b - 0x2a43];
@@ -359,9 +359,9 @@ void OpenBattleRoom()
     }
     isHost = ((PlayerInfo_00449bb0*)g_game->players[g_game->localPlayer].info)->f97_0;
     CreateUnitSync(isHost);
-    SetGadgetActiveByName(&g_game->gui, "START", ((UnitSync*)g_game->net)->AllPlayersSynced());
+    SetGadgetActiveByName(&g_game->gui, "START", g_game->net->AllPlayersSynced());
     SetGrayedOutByName(&g_game->gui, "START",
-                 host && AreAllPlayersReady() && ((UnitSync*)g_game->net)->AllPlayersSynced() ? 0 : 1);
+                 host && AreAllPlayersReady() && g_game->net->AllPlayersSynced() ? 0 : 1);
     SetGrayedOutByName(&g_game->gui, "RESTRICTIONS", 0);
     ConfigureListBoxByName(&g_game->gui, "OUTPUT", g_game->chatter, 0, 0);
     {

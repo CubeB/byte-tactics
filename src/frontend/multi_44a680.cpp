@@ -45,13 +45,15 @@ struct Gui_0044a680 {
     Layer_0044a680* table;              // +0x18
 };
 
+struct UnitSync;
+
 struct Game {
     char unknown_0[0x519];
     Gui_0044a680 gui;                   // +0x519
     char unknown_535[0x1b63 - 0x535];
     Player players[10];                 // +0x1b63
     char unknown_2851[0x2a30 - 0x2851];
-    void* net;                          // +0x2a30
+    UnitSync* net;                      // +0x2a30
     char unknown_2a34[0x2a3c - 0x2a34];
     unsigned short numPlayers;          // +0x2a3c
     char unknown_2a3e[0x2a42 - 0x2a3e];
@@ -287,7 +289,7 @@ void UpdateBattleRoom()
         g_game->dirty = 0;
         if (IsScreenNamed(&g_game->gui, "LOUNGE2.GUI") != 0) {
             if (pl->info->flags_97 & 1) {
-                int synched = ((UnitSync*)g_game->net)->AllPlayersSynced();
+                int synched = g_game->net->AllPlayersSynced();
                 int ready = AreAllPlayersReady();
                 Gadget_0044a680* start;
 
@@ -361,7 +363,7 @@ void UpdateBattleRoom()
         SetCurrentFont(&g_game->gui, 0);
     }
 
-    ((UnitSync*)g_game->net)->ProcessSync();
+    g_game->net->ProcessSync();
     if (g_heartbeatNextTick < (unsigned int)GetTicks()) {
         unsigned char r;
         PlayerInfo* info;

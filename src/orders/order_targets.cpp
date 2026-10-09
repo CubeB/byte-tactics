@@ -55,6 +55,7 @@ public:
     int IsFxStyle();
     int ContainsCell(int, int);
     int ApproxDist(int, int);
+    void AddFlags(int param_1);
     void WriteBits(int);
     int KeepAfterComplete();
     void FillGoalCells(std::vector<Elem_0044ce90*>* list);
@@ -92,17 +93,19 @@ void CreateGameObject();
 void InitMissionStatus();
 void SetUpEndMissionScreen();
 
-// Unused here: one id each, where the merged ArcOrder view stood; they keep the
-// allocation of the classes declared after it (docs/c2-regalloc.md).
-extern int Pad6260_C1;
-extern int Pad6260_C2;
-extern int Pad6260_C3;
-extern int Pad6260_C4;
-extern int Pad6260_C5;
-extern int Pad6260_C6;
-extern int Pad6260_C7;
-extern int Pad6260_C8;
-extern int Pad6260_C9;
+// Unused here: forward declarations of real functions, one id each, where the
+// merged ArcOrder view stood; they keep the allocation of the classes declared
+// after it (docs/c2-regalloc.md).
+void StartScreenFade();
+void StepScreenFade();
+void ScheduleFadeTick();
+int IsFadeDone();
+void StepPaletteFade();
+void FillEndGameStatistics();
+int AreStatBarsComplete();
+void EnableEndMissionButtons();
+void ShowEndMissionScreen();
+void OpenCdCheckDialog();
 
 // A view of the order base whose six virtual slots are named after the base's: ContainsUnit
 // (slot 4) is the function defined below, so its stand-in has the slot suffix.
@@ -484,7 +487,6 @@ public:
     };
     int field_32;                      // +0x32
 
-    void AddFlags(int param_1);
     PathOrder(int owner, HapiBank* file, char* name);
     PathOrder(Owner_0044e080* owner_, BitReader* reader);
     PathOrder(Order* order, Unit* unit);
@@ -1151,7 +1153,7 @@ int OrderFx::ApproxDist(int, int)
 // this out of line in the original; in one file MSVC would inline it.
 #pragma auto_inline(off)
 // FUNCTION: 0x44ced0
-void PathOrder::AddFlags(int param_1)
+void OrderFx::AddFlags(int param_1)
 {
     int val = field_4;
     if (val != 0) {
@@ -2313,7 +2315,7 @@ int PathGoal::HasReadyWaypoints()
 void PathGoal::SetPathOrder(void* param)
 {
     if (field_4 != 0) {
-        ((PathOrder*)field_4)->AddFlags(0x80);
+        ((OrderFx*)field_4)->AddFlags(0x80);
     }
     field_4 = (Base_00490a10*)param;
 }
@@ -2376,7 +2378,7 @@ void AiSearchGoal::SetWaypoints(Point_0044f080* src, int n)
 {
     if (n == 0) {
         if (field_4 && field_4->ContainsUnit(owner) == 0)
-            ((PathOrder*)field_4)->AddFlags(0x40);
+            ((OrderFx*)field_4)->AddFlags(0x40);
         active = 0;
     } else {
         if (n >= 20)
@@ -2424,7 +2426,7 @@ void AiSearchGoal::TickTowardGoal()
 {
     if (field_4) {
         if (field_4->ContainsUnit(owner)) {
-            ((PathOrder*)field_4)->AddFlags(0x20);
+            ((OrderFx*)field_4)->AddFlags(0x20);
             if (!field_4->KeepAfterComplete())
                 SetPathOrder(0);
         }
@@ -2480,7 +2482,7 @@ void AiSearchGoal::SetPathOrder(void* param)
 {
     g_game->pathfinder->AbortIfGoalMatch(this);
     if (field_4)
-        ((PathOrder*)field_4)->AddFlags(0x80);
+        ((OrderFx*)field_4)->AddFlags(0x80);
     active = 0;
     field_4 = (Base_00490a10*)param;
     if (param == 0) {

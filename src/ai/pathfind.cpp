@@ -283,7 +283,7 @@ public:
     virtual int Cost(int x, int y);
 };
 
-class Class_0044ced0 {
+class OrderFx {
 public:
     void AddFlags(int param_1);
 };
@@ -980,21 +980,21 @@ void Pathfinder::StartSearch(Target* t)
 
     // Each early exit is its own `Finish(); return;`, not a goto to a shared block.
     if (target->IsGoal(start.x, start.y)) {
-        ((Class_0044ced0*)target)->AddFlags(0x100);
+        ((OrderFx*)target)->AddFlags(0x100);
         Finish();
         return;
     }
     int cost = Cost(start.x, start.y);
     if (!grid.InBounds(start.x, start.y)) {
-        ((Class_0044ced0*)target)->AddFlags(0x200);
+        ((OrderFx*)target)->AddFlags(0x200);
         Finish();
         return;
     }
     probe = ProbeStraightPath();
     if (probe == 0) {
-        ((Class_0044ced0*)target)->AddFlags(0x100);
+        ((OrderFx*)target)->AddFlags(0x100);
     } else {
-        ((Class_0044ced0*)target)->AddFlags(0x200);
+        ((OrderFx*)target)->AddFlags(0x200);
         if (probe >= cost) {
             Finish();
             return;

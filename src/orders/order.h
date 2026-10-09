@@ -11,7 +11,7 @@
 
 struct Unit;
 class MissionType;
-struct Attached_0043a1f0;
+class OrderFx;
 struct File_0043a970;
 class HapiBank;
 // Unused here: the symbol ids these declarations take keep the allocation of
@@ -101,7 +101,7 @@ struct Order {
     void ReattachFxToUnit();
     void MergeFlagsFromTable(int k);
     void OrStatusFlags(unsigned int flags);
-    void SetAttachedFx(Attached_0043a1f0* obj);
+    void SetAttachedFx(OrderFx* obj);
     void AttachApproachRadiusGoal(Vec3* pos, int n);
     void AttachRingApproachGoal(Vec3* pos, int radius1, int radius2);
     void AttachBuildFootprintMarker(Point16 cell, Point16 size);

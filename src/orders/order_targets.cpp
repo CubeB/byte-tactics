@@ -839,39 +839,22 @@ struct Object_0044ea60 {
 #pragma pack(push, 2)
 // The air order: the target and other points, the heading and the owner unit.
 // FillWorldPos (0x44ea60) advances the target towards other. The bit-stream
-// loader 0x44e9c0 reads the same bytes through the union's second struct.
+// loader 0x44e9c0 stores its owner in self and reads the two points into it.
 class AirManeuverOrder : public OrderFx {
 public:
     union {
+        unsigned short flags;          // +0x8, bit 0: heading set
         struct {
-            union {
-                unsigned short field_8;    // +0x8, bit 0: heading set
-                struct {
-                    unsigned short headingSet : 1;
-                    unsigned short unknown_rest : 15;
-                };
-            };
-            Vec3_0044e740 target;      // +0xa
-            Vec3_0044e740 other;       // +0x16
-            short field_22;            // +0x22
-            unsigned short heading;    // +0x24
-            unsigned short value_26;   // +0x26
-            Object_0044e740* self;     // +0x28
-        };
-        struct {
-            unsigned short flags;      // +0x8
-            int field_a;               // +0xa
-            int field_e;               // +0xe
-            int field_12;              // +0x12
-            int field_16;              // +0x16
-            int field_1a;              // +0x1a
-            int field_1e;              // +0x1e
-            short pad_22;              // +0x22
-            unsigned short field_24;   // +0x24
-            short pad_26;              // +0x26
-            Owner_0044e9c0* owner;     // +0x28
+            unsigned short headingSet : 1;
+            unsigned short unknown_rest : 15;
         };
     };
+    Vec3_0044e740 target;              // +0xa
+    Vec3_0044e740 other;               // +0x16
+    short saveOnly22;                  // +0x22
+    unsigned short heading;            // +0x24
+    unsigned short value_26;           // +0x26
+    Object_0044e740* self;             // +0x28
 
     int FillWorldPos(Vec3_0044e740* out);
     AirManeuverOrder(Source_0044e740* source, const Vec3_0044e740& a, const Vec3_0044e740& b);
@@ -889,6 +872,12 @@ public:
     void SetHeading(short v);
 };
 #pragma pack(pop)
+
+// Unused here: the symbol ids these declarations take keep the allocation
+// after the AirManeuverOrder views were joined (docs/c2-regalloc.md).
+int RIReport(int, int, int, int, int, int, int, int, int, int);
+int DrawWrappedText(char*, char*, int, int, int, int, int);
+void CmdMem(int);
 
 // The same vector as 0x44ee90 (_Ucopy) and 0x44eec0 (_Ufill): 0x44d0e0,
 // 0x44d560 and 0x44da00 call 0x44ee90 and then this with ecx set to it.
@@ -2051,8 +2040,8 @@ AirManeuverOrder::AirManeuverOrder(Source_0044e740* source, const Vec3_0044e740&
 {
     vtable = g_airManeuverOrderVtable;
     self = source->unit;
-    field_8 = 0;
-    field_22 = 0;
+    flags = 0;
+    saveOnly22 = 0;
     target = a;
     other = b;
 }
@@ -2085,10 +2074,10 @@ AirManeuverOrder::AirManeuverOrder(int owner, HapiBank* file, char* name)
     Header_0044e740 hdr;
     if (file->ReadBox(&hdr, 0x2a) == 0x2a) {
         self = (Object_0044e740*)LoadUnit(hdr.id, file);
-        field_8 = hdr.flag;
+        flags = hdr.flag;
         target = hdr.target;
         other = hdr.other;
-        field_22 = hdr.value_24;
+        saveOnly22 = hdr.value_24;
         heading = hdr.heading;
         value_26 = hdr.value_28;
     }
@@ -2110,10 +2099,10 @@ int AirManeuverOrder::SerializeToSave(int unused, HapiBank* file, char* name)
     } else {
         hdr.unit_id = self->id;
     }
-    hdr.flag = field_8;
+    hdr.flag = flags;
     hdr.target = target;
     hdr.other = other;
-    hdr.value_24 = field_22;
+    hdr.value_24 = saveOnly22;
     hdr.heading = heading;
     hdr.value_28 = value_26;
     file->OpenNamedBox(name);
@@ -2127,14 +2116,14 @@ int AirManeuverOrder::SerializeToSave(int unused, HapiBank* file, char* name)
 // FUNCTION: 0x44e930
 void AirManeuverOrder::SerializeToBits(BitWriter* stream)
 {
-    stream->WriteBits(field_8, 1);
+    stream->WriteBits(flags, 1);
     stream->WriteBits(target.x, 0x20);
     stream->WriteBits(target.y, 0x20);
     stream->WriteBits(target.z, 0x20);
     stream->WriteBits(other.x, 0x20);
     stream->WriteBits(other.y, 0x20);
     stream->WriteBits(other.z, 0x20);
-    if ((field_8 & 1) != 0) {
+    if ((flags & 1) != 0) {
         stream->WriteBits(heading, 0x10);
     }
 }
@@ -2143,17 +2132,17 @@ void AirManeuverOrder::SerializeToBits(BitWriter* stream)
 AirManeuverOrder::AirManeuverOrder(Owner_0044e9c0* owner, BitReader* reader)
 {
     field_4 = 0;
-    this->owner = owner;
+    self = (Object_0044e740*)owner;
     vtable = g_airManeuverOrderVtable;
     flags = reader->ReadBits(1);
-    field_a = reader->ReadBits(0x20);
-    field_e = reader->ReadBits(0x20);
-    field_12 = reader->ReadBits(0x20);
-    field_16 = reader->ReadBits(0x20);
-    field_1a = reader->ReadBits(0x20);
-    field_1e = reader->ReadBits(0x20);
+    target.x = reader->ReadBits(0x20);
+    target.y = reader->ReadBits(0x20);
+    target.z = reader->ReadBits(0x20);
+    other.x = reader->ReadBits(0x20);
+    other.y = reader->ReadBits(0x20);
+    other.z = reader->ReadBits(0x20);
     if (flags & 1) {
-        field_24 = reader->ReadBits(0x10);
+        heading = reader->ReadBits(0x10);
     }
 }
 
@@ -2178,7 +2167,7 @@ int AirManeuverOrder::FillWorldPos(Vec3_0044e740* out)
     Vec3_0044e740 v;
     v = Vec3_0044e740(0, 0, 0);
     unsigned short h = GetHeadingBetween(&v, &other);
-    if ((field_8 & 1) && h != heading) {
+    if ((flags & 1) && h != heading) {
         short diff = heading - h;
         v.x = other.x;
         v.y = other.z;
@@ -2214,7 +2203,7 @@ int AirManeuverOrder::IsComplete(Object_0044e740* unit)
 {
     if ((float)_hypot(unit->pos.x - target.x, unit->pos.z - target.z) / 65536.0f < 48.0f)
         return 1;
-    if (field_8 & 1) {
+    if (flags & 1) {
         Vec3_0044e740 origin;
         origin = Vec3_0044e740(0, 0, 0);
         if (GetHeadingBetween(&origin, &other) == heading)

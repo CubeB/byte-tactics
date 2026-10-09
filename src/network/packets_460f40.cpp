@@ -171,13 +171,13 @@ extern unsigned short g_packetSizes[][2];
 
 class FrameQueue {
 public:
-    int field_0;                       // +0x00
-    unsigned int field_4;              // +0x04
-    int field_8;                       // +0x08
-    char* field_c;                     // +0x0c
+    int baseTick;                      // +0x00
+    unsigned int bufferSize;           // +0x04
+    int skipCount;                     // +0x08
+    char* recvBuffer;                  // +0x0c
     FrameRing* buffer;                 // +0x10
-    int field_14;                      // +0x14
-    int field_18;                      // +0x18
+    int fromId;                        // +0x14
+    int toId;                          // +0x18
 
     int Count() { return buffer ? buffer->count : 0; }
 
@@ -1595,8 +1595,8 @@ int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
             break;
         src = e->tail.GetFrame(tick, len);
         if (src != 0) {
-            *(int*)((char*)net + 0x4b5) = e->tail.field_14;
-            *(int*)((char*)net + 0x4b9) = e->tail.field_18;
+            *(int*)((char*)net + 0x4b5) = e->tail.fromId;
+            *(int*)((char*)net + 0x4b9) = e->tail.toId;
             memcpy(data, src, len);
             *size = len;
             // Both copy-outs goto the one `ok: return 0;`.
@@ -1797,8 +1797,8 @@ int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
         src = tail->Take(f, tick, len);
     }
     if (src != 0) {
-        *(int*)((char*)net + 0x4b5) = entry->tail.field_14;
-        *(int*)((char*)net + 0x4b9) = entry->tail.field_18;
+        *(int*)((char*)net + 0x4b5) = entry->tail.fromId;
+        *(int*)((char*)net + 0x4b9) = entry->tail.toId;
         memcpy(data, src, len);
         *size = len;
         goto ok;
@@ -1839,12 +1839,12 @@ PlayerFrameInfo::~PlayerFrameInfo()
 FrameQueue::FrameQueue()
 {
     buffer = 0;
-    field_0 = 0;
-    field_4 = 0;
-    field_8 = 0;
-    field_c = 0;
-    field_14 = -1;
-    field_18 = -1;
+    baseTick = 0;
+    bufferSize = 0;
+    skipCount = 0;
+    recvBuffer = 0;
+    fromId = -1;
+    toId = -1;
     buffer = new FrameRing;
 }
 
@@ -1854,7 +1854,7 @@ FrameQueue::FrameQueue()
 FrameQueue::~FrameQueue()
 {
     operator delete(buffer);
-    operator delete(field_c);
+    operator delete(recvBuffer);
 }
 
 // Resets the object and allocates its 0x180c-byte buffer if it has none;
@@ -1862,12 +1862,12 @@ FrameQueue::~FrameQueue()
 // FUNCTION: 0x463730
 int FrameQueue::ResetFrames()
 {
-    field_0 = 0;
-    field_4 = 0;
-    field_8 = 0;
-    field_c = 0;
-    field_14 = -1;
-    field_18 = -1;
+    baseTick = 0;
+    bufferSize = 0;
+    skipCount = 0;
+    recvBuffer = 0;
+    fromId = -1;
+    toId = -1;
     if (!buffer) {
         buffer = new FrameRing;
         return 0;
@@ -1888,7 +1888,7 @@ int FrameQueue::QueueFrames(char* src, unsigned int size, int tick, int a4, int 
     if (size <= 0)
         return 1;
     if (Count() != 0) {
-        field_8++;
+        skipCount++;
         int n = buffer->count;
         while (n--) {
             Frame f = *buffer->Pop();
@@ -1897,26 +1897,26 @@ int FrameQueue::QueueFrames(char* src, unsigned int size, int tick, int a4, int 
         return 0;
     }
 
-    field_8 = 0;
-    if (size > field_4) {
+    skipCount = 0;
+    if (size > bufferSize) {
         // delete/new expressions, not operator calls: fixes the temporary rotation.
-        delete field_c;
-        field_c = new char[size + 0x100];
-        if (field_c == 0) {
-            field_4 = 0;
+        delete recvBuffer;
+        recvBuffer = new char[size + 0x100];
+        if (recvBuffer == 0) {
+            bufferSize = 0;
             return 1;
         }
-        field_4 = size + 0x100;
+        bufferSize = size + 0x100;
     }
-    memcpy(field_c, src, size);
-    field_14 = a4;
-    field_18 = a5;
+    memcpy(recvBuffer, src, size);
+    fromId = a4;
+    toId = a5;
     size -= 4;
 
-    // Declared in this order: gives the original's reload of this for field_c.
+    // Declared in this order: gives the original's reload of this for recvBuffer.
     int n = 0;
     int remaining = size;
-    char* p = field_c + 4;
+    char* p = recvBuffer + 4;
     while (remaining > 0) {
         unsigned char c = *p;
         if (c <= 1 || c >= 0x2d)
@@ -1942,7 +1942,7 @@ int FrameQueue::QueueFrames(char* src, unsigned int size, int tick, int a4, int 
     if (n > 0) {
         int left = n - 0x200;
         if (a6 != 0) {
-            int span = tick - field_0;
+            int span = tick - baseTick;
             if (span > 0x1e)
                 span = 0x1e;
             else if (span <= 0)
@@ -1954,7 +1954,7 @@ int FrameQueue::QueueFrames(char* src, unsigned int size, int tick, int a4, int 
             int x = tick;
             unsigned int progress = 0;
             unsigned int i = 0;
-            char* q = field_c + 4;
+            char* q = recvBuffer + 4;
             // Both tails end `remaining -= w; q += w; n--;` and the loop tests n > 0.
             do {
                 unsigned char c = *q;
@@ -1990,7 +1990,7 @@ int FrameQueue::QueueFrames(char* src, unsigned int size, int tick, int a4, int 
             return 1;
         }
 
-        char* q = field_c + 4;
+        char* q = recvBuffer + 4;
         int rem = size;
         // Exits are `break` to the single return 1 below.
         while (rem > 0) {

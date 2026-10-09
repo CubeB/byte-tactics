@@ -685,15 +685,13 @@ public:
     std::map<unsigned int, UnitSyncEntry> map;     // +0x00
     std::vector<UnitSyncPlayer> elems;             // +0x10
     std::list<int> ids;                            // +0x20
-    int field_2c;                                  // +0x2c
-    int field_30;                                  // +0x30
-    int field_34;                                  // +0x34
-    Class_0046e610 field_38;                       // +0x38
-    std::vector<int> field_48;                     // +0x48
-    short field_58;                                // +0x58
-    int field_5c;                                  // +0x5c
-    int field_60;                                  // +0x60
-    int field_64;                                  // +0x64
+    Sub_0046d040 sub;                              // +0x2c
+    Class_0046e610 list_a;                         // +0x38
+    std::vector<int> list_b;                       // +0x48
+    int direct;                                    // +0x58
+    int pendingPlayerCount;                        // +0x5c
+    int checksumProgress;                          // +0x60
+    int disabled;                                  // +0x64
 
     ~UnitSyncDel_0046c920() {}
 };
@@ -1117,30 +1115,11 @@ void UnitSync::HandleSyncPacket(UnitSyncPacket* packet, unsigned char player)
     }
 }
 
-struct Event_0046d860 {               // 0x10 bytes, the map's value
-    unsigned int field_0;             // +0x0
-    unsigned int field_4;             // +0x4
-    unsigned char field_8;            // +0x8
-    unsigned char field_9;            // +0x9
-    unsigned char field_a;            // +0xa
-    unsigned char field_b;            // +0xb
-    short field_c;                    // +0xc
-    char unknown_e[0x10 - 0xe];
-};
-
 struct Player_0046d860 {              // 0x5c bytes
     unsigned int id;                  // +0x0
     char unknown_4[0x28 - 0x4];
     int sent;                         // +0x28
     char unknown_2c[0x5c - 0x2c];
-};
-
-struct Node_0046d860 {
-    Node_0046d860* left;              // +0x0
-    Node_0046d860* parent;            // +0x4
-    Node_0046d860* right;             // +0x8
-    unsigned int key;                 // +0xc
-    Event_0046d860 value;             // +0x10
 };
 
 // Sends the "units expected" (packet type 0x1a, sub-type 3) notice to every
@@ -1158,15 +1137,15 @@ void UnitSync::NotifyEntryChanged(unsigned int param_1)
         for (std::vector<Player_0046d860>::iterator i = ps.begin(); i != ps.end(); ++i) {
             // v is taken before the disabled check: MSVC then keeps it.ptr in eax
             // across the loop. The check stays a positive block, not a continue.
-            Event_0046d860* v = &((Node_0046d860*)it.ptr)->value;
+            UnitSyncEntry* v = &it.ptr->value;
             if (disabled == 0) {
                 UnitSyncPacket packet;
                 packet.type = 0x1a;
                 packet.arg = 3;
-                packet.key = v->field_0;
-                packet.enabled = v->field_8;
-                packet.match = v->field_a;
-                packet.limit = v->field_c;
+                packet.key = v->x;
+                packet.enabled = v->w;
+                packet.match = v->h;
+                packet.limit = v->unknown_c;
                 this->SendSyncPacket((unsigned int*)&*i, &packet, 1);
                 i->sent++;
             }

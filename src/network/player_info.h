@@ -40,7 +40,7 @@ struct PlayerInfo {
         struct {
             unsigned short low : 4;
             unsigned short started : 1;
-            unsigned short ready : 1;
+            unsigned short bit5 : 1;
             unsigned short bit6 : 1;   // mask 0x40
             unsigned short watching : 1;
             unsigned short mapping : 1;

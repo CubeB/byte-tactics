@@ -234,25 +234,28 @@ struct UnitList_00409730 {
     std::vector<Unit*> units;
 };
 
+// Kept local, not player_ai.h: the header adds about 220 symbol ids here (its
+// vector members instantiate the cut-down <vector> again and again) and
+// 0x409730 holds at 97.6% with it.
 class PlayerAI {
 public:
-    Player* player;                    // +0x00
-    unsigned char index;               // +0x04
-    UnitList_00409730 list_5;          // +0x05
-    UnitList_00409730 list_15;         // +0x15
-    UnitList_00409730 list_25;         // +0x25
-    int pos_35[3];                     // +0x35
-    int pos_41[3];                     // +0x41
-    std::vector<Elem_0040cc40> vec_4d; // +0x4d
-    short centerX;                     // +0x5d
-    short centerY;                     // +0x5f
-    int field_61;                      // +0x61
-    std::vector<Elem_0040cfb0> vec_65; // +0x65
-    int field_75;                      // +0x75
-    int field_79;                      // +0x79
-    std::vector<short> vec_7d;  // +0x7d
-    std::vector<unsigned char> vec_8d; // +0x8d
-    std::vector<unsigned char> vec_9d; // +0x9d
+    Player* owner;                 // +0x00
+    unsigned char index;           // +0x04
+    UnitList_00409730 visible;     // +0x05
+    UnitList_00409730 known;       // +0x15
+    UnitList_00409730 factories;   // +0x25
+    int pos_35[3];                 // +0x35
+    int pos_41[3];                 // +0x41
+    std::vector<Elem_0040cc40> cells;// +0x4d
+    short centerX;                 // +0x5d
+    short centerY;                 // +0x5f
+    int field_61;                  // +0x61
+    std::vector<Elem_0040cfb0> vec_65;// +0x65
+    int builders;                  // +0x75
+    int hasSpecial;                // +0x79
+    std::vector<short> counts;     // +0x7d
+    std::vector<unsigned char> vec_8d;// +0x8d
+    std::vector<unsigned char> weights;// +0x9d
 
     void ComputeBaseWeights();
 };
@@ -316,7 +319,7 @@ void PlayerAI::ComputeBaseWeights()
 
         int a = 1;
         Elem_0040cfb0* e = &vec_65[i];
-        int n = (short)vec_7d[i];
+        int n = (short)counts[i];
         if (def->flag_245_4)
             a = 21;
         if (def->flags_241.flag_6 && n < 3)
@@ -342,7 +345,7 @@ void PlayerAI::ComputeBaseWeights()
             x *= 2;
         if (def->minwaterdepth >= 0)
             x *= 3;
-        if (player->unitCount > (unsigned short)(g_game->unitsPerPlayer / 2)) {
+        if (owner->unitCount > (unsigned short)(g_game->unitsPerPlayer / 2)) {
             x += (char)vec_8d[i] / 2;
         }
         if (def->flag_245_8)

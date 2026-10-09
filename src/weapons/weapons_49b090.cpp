@@ -57,7 +57,7 @@ union TypeFlags_0049b090 {
     } b;
 };
 
-struct ProjType_0049b090 {
+struct WeaponDef {
     char unknown_0[0xd6];
     unsigned short radius;             // +0xd6
     char unknown_d8[0xfe - 0xd8];
@@ -104,7 +104,7 @@ union WordPair_0049b090 {
 };
 
 struct Proj_0049b090 {
-    ProjType_0049b090* type;           // +0x0
+    WeaponDef* type;                   // +0x0
     WordPair_0049b090 px;              // +0x4 (short at +0x6)
     WordPair_0049b090 py;              // +0x8 (short at +0xa)
     WordPair_0049b090 pz;              // +0xc (short at +0xe)
@@ -155,7 +155,7 @@ void __stdcall DetonateProjectile(Proj_0049b090* proj, Unit* unit);
 // Stays in its own file: its feature block matches only at this file's symbol
 // count, which the joined weapons.cpp moves.
 // FUNCTION: 0x49b090
-void __stdcall CheckProjectileCollision(ProjType_0049b090* type, Proj_0049b090* proj)
+void __stdcall CheckProjectileCollision(WeaponDef* type, Proj_0049b090* proj)
 {
     // No `Game* g = g_game` local: g_game is read at each use to stay in edi.
     // Named pos local, used again after the lookup: gives the original's prologue.

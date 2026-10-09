@@ -2091,7 +2091,7 @@ address,size,file,symbol,status,similarity
 0x49ae20,356,src/weapons/weapons.cpp,?CompactProjectiles@@YGXXZ,matched,100.0
 0x49af90,103,src/weapons/weapons.cpp,?ApplyProjectileHitPacket@@YGXHPAUProjectileDetonatePacket@@@Z,matched,100.0
 0x49b000,129,src/weapons/weapons.cpp,?DetonateUnitWeapon@@YGXPAUUnit@@H@Z,matched,100.0
-0x49b090,844,src/weapons/weapons_49b090.cpp,?CheckProjectileCollision@@YGXPAUProjType_0049b090@@PAUProj_0049b090@@@Z,matched,100.0
+0x49b090,844,src/weapons/weapons_49b090.cpp,?CheckProjectileCollision@@YGXPAUWeaponDef@@PAUProj_0049b090@@@Z,matched,100.0
 0x49b3e0,317,src/weapons/weapons.cpp,?GetProjectileAimPoint@@YGPAUVec3_0049b3e0@@PAUProj_0049b3e0@@@Z,matched,100.0
 0x49b520,347,src/weapons/weapons.cpp,?TurnUnitTowardsPoint@@YGHPAUUnit_0049b520@@PAUVec3_0049b520@@@Z,matched,100.0
 0x49b680,88,src/weapons/weapons.cpp,?ComputeVelocityFromAngles@@YGXPAUObject_0049b680@@@Z,matched,100.0

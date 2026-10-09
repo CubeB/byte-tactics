@@ -29,7 +29,7 @@ struct CellPos_0049a120 {
 };
 
 #pragma pack(push, 1)
-struct WeaponDef_0049a120 {
+struct WeaponDef {
     char unknown_0[0xd6];
     unsigned short radius;             // +0xd6
     float edgeDamage;                  // +0xd8
@@ -66,7 +66,7 @@ struct Unit_0049a120 {
 };
 
 struct Weapon_0049a120 {
-    WeaponDef_0049a120* def;           // +0x0
+    WeaponDef* def;                    // +0x0
     Vec3_0049a120 pos;                 // +0x4
     char unknown_10[0x28 - 0x10];
     Vec3_0049a120 aim;                 // +0x28
@@ -190,7 +190,7 @@ int __stdcall ApplyWeaponDamage(Weapon_0049a120* weapon, Unit_0049a120* target, 
 void __stdcall DetonateProjectile(Weapon_0049a120* weapon, Unit_0049a120* unit);
 int __stdcall VectorLength(Vec3_0049a120* v);
 Vec3_0049a120 __stdcall GetFootprintCentre(CellPos_0049a120* cell, FeatureDef_0049a120* def);
-void __stdcall DamageFeature(Cell_0049a120* cell, int x, int z, WeaponDef_0049a120* def);
+void __stdcall DamageFeature(Cell_0049a120* cell, int x, int z, WeaponDef* def);
 int __stdcall BroadcastPacket(int id, void* data, int size);
 
 static inline int Length(Vec3_0049a120* v)

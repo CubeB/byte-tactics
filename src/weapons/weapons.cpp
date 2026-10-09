@@ -129,6 +129,8 @@ struct UnitType_0049d000 {
     int range;                         // +0x20
 };
 
+// One word of weapon flags. Every file that reads it names the bits it tests;
+// the merged view keeps the raw word and each caller's bit names.
 union Flags_0049d580 {
     struct {
         unsigned int f0 : 1;          // bit 0
@@ -137,15 +139,59 @@ union Flags_0049d580 {
         unsigned int f30 : 1;         // bit 30
         unsigned int f31 : 1;
     } b;
+    struct {                          // 49d270's bit view
+        unsigned int b0 : 1;
+        unsigned int b1 : 1;
+        unsigned int b2 : 2;
+        unsigned int b4 : 1;
+        unsigned int b5 : 1;
+        unsigned int b6 : 2;
+        unsigned int b8 : 1;
+        unsigned int b9 : 11;
+        unsigned int b20 : 1;
+        unsigned int b21 : 11;
+    };
+    struct {                          // 49aa80's and 49abb0's bit view
+        unsigned int bit0 : 1;
+        unsigned int bit1 : 1;
+        unsigned int bit2_15 : 14;
+        unsigned int bit16 : 1;
+        unsigned int bit17 : 1;
+        unsigned int bit18_31 : 14;
+    };
+    struct {                          // 49d120's bit view
+        unsigned int unused29 : 29;
+        unsigned int hitscan : 1;
+        unsigned int unused30 : 2;
+    };
+    struct {                          // 49db70's bit view
+        unsigned int unused29b : 30;
+        unsigned int special : 1;
+        unsigned int unused31 : 1;
+    };
     unsigned int value;               // +0x111
 };
 
+struct Table_00499cd0;
+
+// The weapon definition, 0x115 bytes (Thaldren's WeaponDef). One view for the
+// whole module: the damage table and default damage of 0x499cd0, the launch
+// angle and range of 0x49aa80 and 0x49abb0, the flags the firing code tests,
+// the coverage radius of 0x49d120 and the loader's name index.
 struct WeaponDef {
-    char unknown_0[0x68];
+    char unknown_0[0x64];
+    Table_00499cd0* table;            // +0x64, the name-keyed damage overrides
     int speed;                        // +0x68
     char unknown_6c[0xc8 - 0x6c];
-    float pitch;                      // +0xc8
-    char unknown_cc[0xe4 - 0xcc];
+    union {
+        float pitch;                  // +0xc8
+        int field_c8;                 // the launch-angle solvers read the float's bits
+    };
+    char unknown_cc[0xd4 - 0xcc];
+    unsigned short field_d4;          // +0xd4, the default damage
+    char unknown_d6[0xdc - 0xd6];
+    int range;                        // +0xdc
+    int radius;                       // +0xe0
     unsigned short reloadTime;        // +0xe4, in ticks
     char unknown_e6[0xf4 - 0xe6];
     unsigned short sound;             // +0xf4
@@ -336,24 +382,6 @@ struct Proj_0049c740 {
     void SetOwner(Unit* u) { player = u->playerIndex; owner = u; }
 };
 
-struct DefFlags_0049d270 {
-    unsigned int b0 : 1;
-    unsigned int b1 : 1;
-    unsigned int b2 : 2;
-    unsigned int b4 : 1;
-    unsigned int b5 : 1;
-    unsigned int b6 : 2;
-    unsigned int b8 : 1;
-    unsigned int b9 : 11;
-    unsigned int b20 : 1;
-    unsigned int b21 : 11;
-};
-
-struct Def_0049d270 {                  // 0x115 bytes
-    char unknown_0[0x111];
-    DefFlags_0049d270 flags;           // +0x111
-};
-
 struct Entry_0049e5b0 {
     char name[0x115];
 };
@@ -401,7 +429,7 @@ struct Game {
     };
     char unknown_2a46[0x2cf3 - 0x2a46];
     union {
-        Def_0049d270 defs[0x100];      // +0x2cf3
+        WeaponDef defs[0x100];         // +0x2cf3
         Entry_0049e5b0 entries[0x100];
     };
     union {
@@ -660,17 +688,8 @@ struct Table_00499cd0 {
     Pair_00499cd0* last;            // +0x9
 };
 
-struct Def_00499cd0 {
-    char unknown_0[0x64];
-    Table_00499cd0* table;          // +0x64
-    char unknown_68[0xd4 - 0x68];
-    unsigned short field_d4;        // +0xd4
-    char unknown_d6[0x111 - 0xd6];
-    unsigned int flags;             // +0x111
-};
-
 struct Weapon_00499cd0 {
-    Def_00499cd0* def;              // +0x0
+    WeaponDef* def;                 // +0x0
     int x;                          // +0x4
     int y;                          // +0x8
     int z;                          // +0xc
@@ -720,7 +739,7 @@ static inline int* Find_00499cd0(Table_00499cd0* table, char* name)
 int __stdcall ApplyWeaponDamage(Weapon_00499cd0* weapon, Unit* target,
                            float scale)
 {
-    Def_00499cd0* def = weapon->def;
+    WeaponDef* def = weapon->def;
     int damage = def->field_d4;
     Table_00499cd0* table = def->table;
     if (table) {
@@ -743,7 +762,7 @@ int __stdcall ApplyWeaponDamage(Weapon_00499cd0* weapon, Unit* target,
         damage *= 2;
     if (flags->flag8)
         damage /= 2;
-    bool veteran = (weapon->def->flags >> 7) & 1;
+    bool veteran = (weapon->def->flags.value >> 7) & 1;
     int type = veteran ? 2 : 1;
     DamageUnit(attacker, target, damage, type, angle);
     return damage;
@@ -935,23 +954,6 @@ struct CellPos_0049a120 {
 };
 
 #pragma pack(push, 1)
-struct WeaponDef_0049a120 {
-    char unknown_0[0xd6];
-    unsigned short radius;             // +0xd6
-    float edgeDamage;                  // +0xd8
-    char unknown_dc[0x10a - 0xdc];
-    unsigned char kind;                // +0x10a
-    char unknown_10b[0x111 - 0x10b];
-    union {
-        unsigned int all;
-        struct {
-            unsigned int bits0_29 : 30;
-            unsigned int detonatesWeapons : 1;
-            unsigned int bit31 : 1;
-        } bits;
-    } flags;                           // +0x111
-};
-
 struct UnitDef_0049a120 {
     char unknown_0[0x15e];
     Vec3_0049a120 boxMin;              // +0x15e
@@ -972,7 +974,7 @@ struct Unit_0049a120 {
 };
 
 struct Weapon_0049a120 {
-    WeaponDef_0049a120* def;           // +0x0
+    WeaponDef* def;                    // +0x0
     Vec3_0049a120 pos;                 // +0x4
     char unknown_10[0x28 - 0x10];
     Vec3_0049a120 aim;                 // +0x28
@@ -1066,7 +1068,7 @@ int __stdcall ApplyWeaponDamage(Weapon_0049a120* weapon, Unit_0049a120* target, 
 void __stdcall DetonateProjectile(Weapon_0049a120* weapon, Unit_0049a120* unit);
 int __stdcall VectorLength(Vec3_0049a120* v);
 Vec3_0049a120 __stdcall GetFootprintCentre(CellPos_0049a120* cell, FeatureDef_0049a120* def);
-void __stdcall DamageFeature(Cell_0049a120* cell, int x, int z, WeaponDef_0049a120* def);
+void __stdcall DamageFeature(Cell_0049a120* cell, int x, int z, WeaponDef* def);
 int __stdcall BroadcastPacket(int id, void* data, int size);
 
 static inline int Length(Vec3_0049a120* v)
@@ -1184,6 +1186,18 @@ void EnumPlayersCallback(int, int, int, int, int);
 int CheckDirectXVersion(int, int, int, int, int);
 void EmitThrustParticles(int, int, int, int, short);
 int AimCobStub(int, int, int, int);
+void DispatchOrdersPanelPageFlags();
+void ResetCameraState();
+void FindLocalCommander();
+void ClearCameraFollowState();
+void ClampCameraPosition();
+void ClampCameraTarget();
+void UpdateScreenShake();
+void UpdateCameraFollow();
+void BeginMouseScroll();
+void EndMouseScroll();
+void UpdateMouseScroll();
+void UpdateEdgeScroll();
 
 // 0x49aa80's file included <windows.h> and <stdio.h> here for the operand
 // order in the height check; both are already included above.
@@ -1198,23 +1212,6 @@ struct Vec3_0049aa80 {
     int x;                             // +0x0 (16.16 fixed point)
     Fixed_0049aa80 y;                  // +0x4
     int z;                             // +0x8
-};
-
-struct WeaponDef_0049aa80 {
-    char unknown_0[0x68];
-    int field_68;                      // +0x68
-    char unknown_6c[0xc8 - 0x6c];
-    int field_c8;                      // +0xc8
-    char unknown_cc[0xdc - 0xcc];
-    int range;                         // +0xdc
-    char unknown_e0[0x111 - 0xe0];
-    struct {
-        unsigned int bit0 : 1;
-        unsigned int bit1 : 1;         // tested here (line of fire)
-        unsigned int bit2_15 : 14;
-        unsigned int bit16 : 1;        // tested here (skip the team check)
-        unsigned int bit17_31 : 15;
-    } flags;                           // +0x111
 };
 
 #pragma pack(pop)
@@ -1246,7 +1243,7 @@ static inline short LineOfFire_0049aa80(Vec3_0049aa80 to, Vec3_0049aa80 from, in
 // FUNCTION: 0x49aa80
 int __stdcall WeaponCanReachPos(Unit* a1, Vec3_0049aa80* a2, Vec3_0049aa80* a3, int a4)
 {
-    WeaponDef_0049aa80* wdef = (WeaponDef_0049aa80*)a1->slots[a4 & 0xff].weapon;
+    WeaponDef* wdef = a1->slots[a4 & 0xff].weapon;
 
     // z difference first, as named int locals: the original's order.
     int dz = a3->z - a2->z;
@@ -1261,7 +1258,7 @@ int __stdcall WeaponCanReachPos(Unit* a1, Vec3_0049aa80* a2, Vec3_0049aa80* a3, 
         return 0;
 
     if (wdef->flags.bit1) {
-        if (LineOfFire_0049aa80(*a2, *a3, wdef->field_68, wdef->field_c8) == (short)0x8000)
+        if (LineOfFire_0049aa80(*a2, *a3, wdef->speed, wdef->field_c8) == (short)0x8000)
             return 0;
     }
     return 1;
@@ -1271,24 +1268,6 @@ int __stdcall WeaponCanReachPos(Unit* a1, Vec3_0049aa80* a2, Vec3_0049aa80* a3, 
 #include <stdlib.h>
 
 #pragma pack(push, 1)
-
-struct WeaponDef_0049abb0 {
-    char unknown_0[0x68];
-    int field_68;                                   // +0x68
-    char unknown_6c[0xc8 - 0x6c];
-    int field_c8;                                 // +0xc8
-    char unknown_cc[0xdc - 0xcc];
-    int range;                                      // +0xdc
-    char unknown_e0[0x111 - 0xe0];
-    struct {
-        unsigned int bit0 : 1;
-        unsigned int bit1 : 1;                      // line of fire
-        unsigned int bit2_15 : 14;
-        unsigned int bit16 : 1;                     // skip the ground test
-        unsigned int bit17 : 1;                     // target must be landed
-        unsigned int bit18_31 : 14;
-    } flags;                                        // +0x111
-};
 
 #pragma pack(pop)
 
@@ -1329,7 +1308,7 @@ static inline int Dist2_0049abb0(Vec3_0049abb0* b, Vec3_0049abb0* a)
 // FUNCTION: 0x49abb0
 int __stdcall WeaponCanReachUnit(Unit* unit1, Unit* unit2, unsigned char weapon)
 {
-    WeaponDef_0049abb0* w = (WeaponDef_0049abb0*)unit1->slots[weapon].weapon;
+    WeaponDef* w = unit1->slots[weapon].weapon;
 
     if (w->flags.bit16) {
         if (!(unit2->utype->flags1 & 0x80000) && unit2->pos_0049abb0.y.parts.whole > g_game->seaLevel)
@@ -1348,7 +1327,7 @@ int __stdcall WeaponCanReachUnit(Unit* unit1, Unit* unit2, unsigned char weapon)
         return 0;
     // Nested ifs, not one && condition: the flag test codegen differs.
     if (w->flags.bit1) {
-        if (LineOfFire_0049abb0(unit1->pos_0049abb0, unit2->pos_0049abb0, w->field_68, w->field_c8) == (short)0x8000)
+        if (LineOfFire_0049abb0(unit1->pos_0049abb0, unit2->pos_0049abb0, w->speed, w->field_c8) == (short)0x8000)
             return 0;
     }
     return Dist2_0049abb0(&unit1->pos_0049abb0, &unit2->pos_0049abb0) <= w->range * w->range;
@@ -1483,11 +1462,9 @@ void __stdcall ApplyProjectileHitPacket(int unused, ProjectileDetonatePacket* p)
     }
 }
 
-struct Weapon_0049b000;
-
 #pragma pack(push, 1)
 struct Projectile_0049b000 {
-    Weapon_0049b000* weapon;           // +0x0
+    WeaponDef* weapon;                 // +0x0
     Vec3_0049abb0 pos;                 // +0x4
     Vec3_0049abb0 start;               // +0x10
     char unknown_1c[0x4e - 0x1c];
@@ -1507,8 +1484,8 @@ void __stdcall DetonateProjectile(Projectile_0049b000* proj, int flag);
 void __stdcall DetonateUnitWeapon(Unit* unit, int second)
 {
     // The self-destruct and explosion weapons of the unit's definition.
-    Weapon_0049b000* weapon = second ? (Weapon_0049b000*)unit->utype->selfdestructas
-                                     : (Weapon_0049b000*)unit->utype->explodeas;
+    WeaponDef* weapon = second ? (WeaponDef*)unit->utype->selfdestructas
+                               : (WeaponDef*)unit->utype->explodeas;
     if (weapon) {
         Projectile_0049b000 proj;
         proj.weapon = weapon;
@@ -1549,18 +1526,13 @@ struct Vec3_0049b3e0 {
     }
 };
 
-struct Weapon_0049b3e0 {
-    char unknown_0[0x111];
-    unsigned int flags;                // +0x111
-};
-
 struct Obj_0049b3e0 {
     char unknown_0[0x110];
     unsigned int flags;                // +0x110
 };
 
 struct Proj_0049b3e0 {
-    Weapon_0049b3e0* weapon;           // +0x0
+    WeaponDef* weapon;                 // +0x0
     Vec3_0049b3e0 pos;                 // +0x4
     Vec3_0049b3e0 start;               // +0x10
     char unknown_1c[0x28 - 0x1c];
@@ -1577,7 +1549,7 @@ int __stdcall GetGroundHeight(Vec3_0049b3e0* pos);
 // FUNCTION: 0x49b3e0
 Vec3_0049b3e0* __stdcall GetProjectileAimPoint(Proj_0049b3e0* p)
 {
-    unsigned char flag = (unsigned char)((p->weapon->flags >> 0x19) & 1);
+    unsigned char flag = (unsigned char)((p->weapon->flags.value >> 0x19) & 1);
     if (flag) {
         Fixed dist = (p->pos - p->target).Length();
         if (dist.whole > 0x400) {
@@ -2233,22 +2205,9 @@ int __stdcall FireWeaponByFlags(Object_0049d0c0* obj, int a, int b, int d, int c
 }
 
 #pragma pack(push, 1)
-struct Flags_0049d120 {
-    unsigned int unknown_0 : 29;
-    unsigned int hitscan : 1;        // +0x111
-    unsigned int unknown_30 : 2;
-};
-
-struct Def_0049d120 {
-    char unknown_0[0xe0];
-    int radius;                      // +0xe0
-    char unknown_e4[0x111 - 0xe4];
-    Flags_0049d120 flags;            // +0x111
-};
-
 struct Entry_0049d120 {              // 0x1c bytes
     char unknown_0[0xc];
-    Def_0049d120* def;               // +0xc
+    WeaponDef* def;                  // +0xc
     char unknown_10[0x1a - 0x10];
     unsigned char active;            // +0x1a
     char unknown_1b;
@@ -2266,7 +2225,7 @@ struct Table_0049d120 {
 };
 
 struct Proj_0049d120 {               // 0x6b bytes
-    Def_0049d120* def;               // +0x0
+    WeaponDef* def;                  // +0x0
     char unknown_4[0x28 - 0x4];
     Vec3 pos;                        // +0x28
     char unknown_34[0x56 - 0x34];
@@ -2405,7 +2364,7 @@ void __stdcall FireBallisticProjectile(void*, void*, void*, void*, void*);
 void __stdcall ApplyWeaponFirePacket(int arg1, WeaponFirePacket* ev)
 {
     unsigned char defIndex = ev->weaponDefIndex;
-    Def_0049d270* def = &g_game->defs[defIndex];
+    WeaponDef* def = &g_game->defs[defIndex];
     if (def->flags.b5) {
         Vec3* pos = &ev->aimOrVel;
         void* arg = (void*)((char*)ev + 1);
@@ -2699,23 +2658,10 @@ int __stdcall FireLineOfSightWeapon(Unit* unit, Aim_0049d9c0* aim,
 }
 
 #pragma pack(push, 1)
-struct Flags_0049db70 {
-    unsigned int unknown_0 : 30;
-    unsigned int special : 1;
-    unsigned int unknown_31 : 1;
-};
-
-struct Def_0049db70 {
-    char unknown_0[0x10a];
-    unsigned char field_10a;
-    char unknown_10b[0x111 - 0x10b];
-    Flags_0049db70 flags;
-};
-
 struct Shot_0049db70 {
     char unknown_0[8];
     int piece;
-    Def_0049db70* def;
+    WeaponDef* def;
     char unknown_10[6];
     short heading;
     short pitch;
@@ -2777,7 +2723,7 @@ int __stdcall FireVLaunchWeapon(Object_0049db70* source, Shot_0049db70* shot,
                 packet.type = 0xd;
                 packet.origin = pos;
                 packet.aimOrVel = *aim;
-                packet.weaponDefIndex = shot->def->field_10a;
+                packet.weaponDefIndex = shot->def->index;
                 packet.weaponSlotIndex = (shot->weapon >> 2) & 3;
                 // Keep the `== 0 ? 0 : team` ternaries: they put the zero store on the fall-through.
                 packet.ownerUnitId = source == 0 ? 0 : source->team;

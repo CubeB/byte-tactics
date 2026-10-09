@@ -40,7 +40,7 @@ union TypeFlags_0049b720 {
     } b;
 };
 
-struct ProjType_0049b720 {
+struct WeaponDef {
     char unknown_0[0x68];
     unsigned int maxSpeed;             // +0x68
     char unknown_6c[4];
@@ -65,7 +65,7 @@ struct ProjType_0049b720 {
 
 struct Weapon_0049b720 {
     char unknown_0[0x10];
-    ProjType_0049b720* weapon;         // +0x10
+    WeaponDef* weapon;                 // +0x10
     char unknown_14[0x1c - 0x14];
 };
 
@@ -90,7 +90,7 @@ struct ProjFlags_0049b720 {
 };
 
 struct Proj_0049b720 {
-    ProjType_0049b720* type;           // +0x0
+    WeaponDef* type;                   // +0x0
     Vec3_0049b720 pos;                 // +0x4
     Vec3_0049b720 start;               // +0x10
     Vec3_0049b720 vel;                 // +0x1c
@@ -150,7 +150,7 @@ struct Cell_0049b720 {
 extern Game* g_game;
 
 void __stdcall CompactProjectiles();
-void __stdcall CheckProjectileCollision(ProjType_0049b720* type, Proj_0049b720* p);
+void __stdcall CheckProjectileCollision(WeaponDef* type, Proj_0049b720* p);
 Vec3_0049b720* __stdcall GetProjectileAimPoint(Proj_0049b720* p);
 int __stdcall TurnUnitTowardsPoint(Proj_0049b720* p, Vec3_0049b720* target);
 void __stdcall DetonateProjectile(Proj_0049b720* p, void* unit);
@@ -202,7 +202,7 @@ void UpdateProjectiles()
     for (int i = 0; i < n; i++) {
         Proj_0049b720* p = &g_game->projs[i];
         // type is read before oldY: orders the two spill stores.
-        ProjType_0049b720* type = p->type;
+        WeaponDef* type = p->type;
         int oldY = p->pos.yw.hi;
 
         if (p->counter != 0) {

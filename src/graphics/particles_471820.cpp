@@ -13,11 +13,7 @@
 // The object pool at g_particlePool (see 0x470a90.cpp): AllocSlot takes an
 // object from the free list and FreeSlot returns one to it; the inlined
 // operator new and delete need them.
-class ObjectPool {
-public:
-    void* AllocSlot(unsigned int size);
-    void FreeSlot(void* p);
-};
+#include "object_pool.h"
 
 extern ObjectPool g_particlePool;
 extern char g_fxEventPoolBlocked;
@@ -37,7 +33,7 @@ public:
     {
         if (g_fxEventPoolBlocked)
             return 0;
-        void* p = g_particlePool.AllocSlot(size);
+        void* p = (void*)g_particlePool.AllocSlot(size);
         if (p)
             memset(p, 0, size);
         return p;
@@ -45,7 +41,7 @@ public:
 
     static void __stdcall operator delete(void* p)
     {
-        g_particlePool.FreeSlot(p);
+        g_particlePool.FreeSlot((int)p);
     }
 };
 
@@ -55,11 +51,7 @@ struct Elem_00473500 {                 // the vector's element (see 0x473500.cpp
     SmokeParticles* p;
 };
 
-struct SmokeParticle {
-    int unknown[8];
-};
-
-struct Vec3_00474d50;
+#include "smoke_particle.h"
 
 // Vtable 0x4fd618, constructor 0x474cd0, ??_G 0x474d10; 0x38 bytes.
 class SmokeParticles : public ParticleSystem {

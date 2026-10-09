@@ -41,50 +41,13 @@ struct Elem_00470a40 {
 };
 #pragma pack(pop)
 
-struct Item_00470ae0 {
-    int unknown_0;
-};
-
 struct Elem_00470f00 {
     int unknown_0;
 };
 
 // The pool object at g_particlePool (vtable 0x4fd580). 0x470c10, its Grow,
 // stays in particles_470c10.cpp.
-class ObjectPool {
-public:
-    std::vector<Item_00470ae0*> items;  // +0x4
-    void* slots;                        // +0x14, the slot table
-    int slotSize;                       // +0x18
-    int capacity;                       // +0x1c, the slot count
-    int used;                           // +0x20, slots handed out
-
-    ObjectPool(int param_1, int param_2)
-    {
-        slots = 0;
-        slotSize = 0;
-        capacity = 0;
-        used = 0;
-        if (param_1 != 0 && param_2 != 0)
-            Grow(param_1, param_2);
-    }
-    virtual ~ObjectPool()
-    {
-        if (slots != 0)
-            GameFreeThunk(slots);
-        std::vector<Item_00470ae0*>::iterator it = items.begin();
-        while (it != items.end()) {
-            GameFreeThunk(*it);
-            items.erase(it);
-        }
-    }
-    void FreeBlocks();
-    int Grow(int param_1, int param_2);
-    int AllocSlot(int unused);
-    void FreeSlot(int param_1);
-    ObjectPool* Construct(int param_1, int param_2);
-    void Destroy();
-};
+#include "object_pool.h"
 
 // The 12-byte fixed-point vector. The teleport sparks use the first three
 // members and their Length; the teleport records' owner scales the vector
@@ -517,30 +480,7 @@ public:
 // The ten per-index lists owned by g_game (see 0x471d90). 0x471160, 0x471820
 // and 0x471a50 stay in their files: they need the std::vector<Elem_00473500>
 // view of the lists, whose inlined insert cannot agree with this one.
-class ParticleLists {
-public:
-    std::vector<ParticleSystem*> lists[10];             // 0x10 bytes each
-
-    void Add(short index, ParticleSystem* p)
-    {
-        if (lists[index].size() > 400) {
-            delete lists[index][0];
-            lists[index].erase(lists[index].begin());
-        }
-        lists[index].push_back(p);
-    }
-
-    ParticleLists();
-    ~ParticleLists();
-    void UpdateAll();
-    void DrawAll(void* param);
-    void DrawList(void* param, short index);
-    void AddTeleportParticles(int param_1, int param_2, int param_3, short index);
-    void AddNanoParticles(int param_1, int param_2, int param_3, short index);
-    void AddThrustParticles(int param_1, int param_2, int param_3, int param_4, short index);
-    void AddWakeParticles(int param_1, int param_2, int param_3, int param_4,
-                          short index, int param_6);
-};
+#include "particle_lists.h"
 
 class Listener_00471d90 {
 public:
@@ -682,27 +622,11 @@ struct Vec3_00474cd0 {
     int z;
 };
 
-struct Vec3_00474d50 {
-    int x;
-    int y;
-    int z;
-};
+// The smoke puff's position views and the record.
+#include "smoke_particle.h"
 
-struct Vec3_00475150 {
-    int x;
-    int y;
-    int z;
-};
-
-// The smoke puff's 16.16 position halves.
-struct Position_00475470 {             // 16.16 fixed point; only high words read
-    short xFrac;
-    short x;                           // +0x2
-    short yFrac;
-    short y;                           // +0x6
-    short zFrac;
-    short z;                           // +0xa
-};
+// The TimedSubParticles 16.16 position and the class.
+#include "timed_sub_particles.h"
 
 struct MapSize_00475470 {
     unsigned int width;                // +0x0
@@ -743,23 +667,6 @@ struct Rect_004b0510 {
     int y2;                          // +0xc
 };
 
-// One smoke puff (the element of SmokeParticles' vector), 0x20 bytes.
-struct SmokeParticle {
-    void* data;                        // +0x00, the animation
-    union {
-        Vec3_00474d50 pos;             // +0x04
-        Position_00475470 posw;
-    };
-    int limit;                         // +0x10, the rounds it lives
-    int count;                         // +0x14, the rounds so far (the frame)
-    int period;                        // +0x18
-    int timer;                         // +0x1c
-
-    void Step();
-    void DrawParticle(void* dest, short px, short py);
-    int IsExpired(int unused);
-};
-
 // One particle of TimedSubParticles, 0x20 bytes.
 struct TimedSubParticle {
     void* data;                        // +0x00, the animation
@@ -796,27 +703,6 @@ public:
     virtual int IsEmitDue();                            // slot 5, 0x475440
     virtual void Init(Vec3_00474d50* pos, int limit, int a, int b, int c,
                               int alt);                 // slot 6, 0x474d50
-};
-
-// Vtable 0x4fd638, constructor 0x4750b0, ??_G 0x475110; 0x34 bytes.
-class TimedSubParticles : public ParticleSystem {
-public:
-    int time;                                           // +0x8, the next emit tick
-    std::vector<TimedSubParticle> records;              // +0xc (_First +0x10)
-    int emitPeriod;                                     // +0x1c, the emit period
-    int holdPeriod;                                     // +0x20
-    int maxFrame;                                       // +0x24, the frame count - 1
-    Vec3_00475150 pos;                                  // +0x28
-
-    TimedSubParticles();
-    virtual void Update();                              // slot 1, 0x475600
-    virtual void Render(int);                           // slot 2, 0x475700
-    virtual int IsFinished();                           // slot 3, 0x475330
-    virtual void Emit();                                // slot 4, 0x4751c0
-    // In particles_4750f0.cpp: it is defined returning bool, and Update tests
-    // its result as an int.
-    virtual int IsEmitDue();                            // slot 5, 0x4750f0
-    virtual void Init(Vec3_00475150* pos, int a, int b, int c); // slot 6, 0x475150
 };
 
 // The explored-cell views of the smoke draws.

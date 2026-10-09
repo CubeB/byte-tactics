@@ -13,11 +13,7 @@
 // The object pool at g_particlePool (see 0x470a90.cpp): AllocSlot takes an
 // object from the free list and FreeSlot returns one to it; the inlined
 // operator new and delete need them.
-class ObjectPool {
-public:
-    void* AllocSlot(unsigned int size);
-    void FreeSlot(void* p);
-};
+#include "object_pool.h"
 
 extern ObjectPool g_particlePool;
 extern char g_fxEventPoolBlocked;
@@ -37,7 +33,7 @@ public:
     {
         if (g_fxEventPoolBlocked)
             return 0;
-        void* p = g_particlePool.AllocSlot(size);
+        void* p = (void*)g_particlePool.AllocSlot(size);
         if (p)
             // memset, not a dword loop: keeps inline budget free for insert.
             memset(p, 0, size);
@@ -46,7 +42,7 @@ public:
 
     static void __stdcall operator delete(void* p)
     {
-        g_particlePool.FreeSlot(p);
+        g_particlePool.FreeSlot((int)p);
     }
 };
 

@@ -15,11 +15,7 @@
 // The object pool at g_particlePool (see particles.cpp): AllocSlot takes an
 // object from the free list and FreeSlot returns one to it; the inlined
 // operator new and delete need them.
-class ObjectPool {
-public:
-    void* AllocSlot(unsigned int size);
-    void FreeSlot(void* p);
-};
+#include "object_pool.h"
 
 extern ObjectPool g_particlePool;
 extern char g_fxEventPoolBlocked;
@@ -44,7 +40,7 @@ public:
     {
         if (g_fxEventPoolBlocked)
             return 0;
-        void* p = g_particlePool.AllocSlot(size);
+        void* p = (void*)g_particlePool.AllocSlot(size);
         if (p)
         {
             int* q = (int*)p;
@@ -68,20 +64,7 @@ public:
 };
 
 // The owner of the per-index lists (see 0x471d90).
-class ParticleLists {
-public:
-    std::vector<ParticleSystem*> lists[10];             // 0x10 bytes each
-
-    // Inlined member helper: leaves std::vector::insert (0x4732e0) out of line.
-    void Add(short index, ParticleSystem* p)
-    {
-        if (lists[index].size() > 400) {
-            delete lists[index][0];
-            lists[index].erase(lists[index].begin());
-        }
-        lists[index].push_back(p);
-    }
-};
+#include "particle_lists.h"
 
 struct Vec3_00472630 {
     int x;
@@ -107,11 +90,8 @@ struct Vec3_00474cd0 {
     int z;
 };
 
-struct Vec3_00474d50 {
-    int x;
-    int y;
-    int z;
-};
+// The smoke puff's position views and the record.
+#include "smoke_particle.h"
 
 struct Vec3_00475150 {
     int x;
@@ -305,15 +285,6 @@ struct Player_00474b80 {
     char unknown_88[0x14b - 0x88];
 };
 
-struct Position_00475470 {             // 16.16 fixed point; only high words read
-    short xFrac;
-    short x;                           // +0x2
-    short yFrac;
-    short y;                           // +0x6
-    short zFrac;
-    short z;                           // +0xa
-};
-
 struct MapSize_00475470 {
     unsigned int width;                // +0x0
     unsigned int height;               // +0x4
@@ -489,23 +460,6 @@ struct Pos_004745e0 {
     }
 };
 #pragma pack(pop)
-
-// One smoke puff (the element of SmokeParticles' vector), 0x20 bytes.
-struct SmokeParticle {
-    void* data;                        // +0x00, the animation
-    union {
-        Vec3_00474d50 pos;             // +0x04
-        Position_00475470 posw;
-    };
-    int limit;                         // +0x10, the rounds it lives
-    int count;                         // +0x14, the rounds so far (the frame)
-    int period;                        // +0x18
-    int timer;                         // +0x1c
-
-    void Step();
-    void DrawParticle(void* dest, short px, short py);
-    int IsExpired(int unused);
-};
 
 // One particle of TimedSubParticles, 0x20 bytes.
 struct TimedSubParticle {

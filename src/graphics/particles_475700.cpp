@@ -10,11 +10,8 @@
 #include <stdlib.h>
 #include <vector>
 
-struct Vec3_00475150 {
-    int x;
-    int y;
-    int z;
-};
+// The TimedSubParticles 16.16 position and the class.
+#include "timed_sub_particles.h"
 
 struct Position_00475150 {             // 16.16 fixed point; only high words read
     short xFrac;
@@ -80,26 +77,6 @@ public:
 };
 
 #include "particle_system.h"
-
-class TimedSubParticles : public ParticleSystem {
-public:
-    int time;                                           // +0x8, the next emit tick
-    std::vector<TimedSubParticle> records;              // +0xc (_First +0x10)
-    int emitPeriod;                                     // +0x1c, the emit period
-    int holdPeriod;                                     // +0x20
-    int maxFrame;                                       // +0x24, the frame count - 1
-    Vec3_00475150 pos;                                  // +0x28
-
-    TimedSubParticles();
-    virtual void Update();                              // slot 1, 0x475600
-    virtual void Render(int);                           // slot 2, 0x475700
-    virtual int IsFinished();                           // slot 3, 0x475330
-    virtual void Emit();                                // slot 4, 0x4751c0
-    // In particles_4750f0.cpp: it is defined returning bool, and Update tests
-    // its result as an int.
-    virtual int IsEmitDue();                            // slot 5, 0x4750f0
-    virtual void Init(Vec3_00475150* pos, int a, int b, int c); // slot 6, 0x475150
-};
 
 // FUNCTION: 0x475700
 void TimedSubParticles::Render(int dest)

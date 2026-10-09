@@ -1027,9 +1027,9 @@ address,name
 0x44f4a0,AiSearchGoal::SerializeNetUnitState
 0x44f570,PatrolGoal::PatrolGoal
 0x44f590,??_GPatrolGoal@@UAEPAXI@Z
-0x44f5b0,Class_0044f5b0::FUN_0044f5b0
+0x44f5b0,PatrolGoal::FUN_0044ef80
 0x44f5c0,PatrolGoal::FUN_0044f5c0
-0x44f650,Class_0044f650::FUN_0044f650
+0x44f650,PatrolGoal::FUN_0044ef40
 0x44f6a0,CreatePathfinder
 0x44f6e0,DestroyPathfinder
 0x44f8a0,NetCondenser::NetCondenser
@@ -1277,8 +1277,8 @@ address,name
 0x4624a0,PacketChannel::SendQueued
 0x4626e0,NetCondenser::SendPacketTo
 0x462710,PacketChannel::AddPacket
-0x462860,Class_00462860::SetMinRetainMs
-0x4628a0,Class_004628a0::SetSendPacingMs
+0x462860,PacketChannel::SetMinRetainMs
+0x4628a0,PacketChannel::SetSendPacingMs
 0x4628d0,PacketBuffer::AppendPacket
 0x4629b0,PacketBuffer::FreePackets
 0x462a40,PacketBuffer::FindOwnerChainTail

@@ -103,17 +103,25 @@ public:
     }
 };
 
-// Sets the minimum retain time of a channel (0x462860).
-class Class_00462860 {
-public:
-    void SetMinRetainMs(unsigned int ms);
-};
-
-// Sets the ticks between sends of a channel (0x4628a0).
-class Class_004628a0 {
-public:
-    void SetSendPacingMs(int ms);
-};
+// Unused here: forward declarations of real functions; their symbol ids keep
+// the allocation the removed Class_00462860 and Class_004628a0 views moved
+// (docs/c2-regalloc.md).
+void RegisterUnitOrders();
+void RegisterGroundOrders();
+void EnableAICommands();
+void RegisterAICommands();
+void ResetAIPlayers();
+void RegisterVtolOrders();
+void StepAllGafSequences();
+void ResetNetStats();
+void InitCommands();
+int UpdatePlacementGhostValidity();
+void RefreshSelectionOrders();
+void DispatchOrdersPanelPageFlags();
+void ResetCameraState();
+void SetUpEndMissionScreen();
+void StartScreenFade();
+void StepScreenFade();
 
 // One queued frame of a player's ring: the tick it is due, the data and size.
 struct Frame {
@@ -298,6 +306,8 @@ public:
     void ResetChannel();
     int SendQueued(int force);
     int AddPacket(int param_1, void* param_2, unsigned int param_3);
+    void SetMinRetainMs(unsigned int ms);
+    void SetSendPacingMs(int ms);
 };
 
 class PacketReceiver {
@@ -718,8 +728,8 @@ PacketChannel::PacketChannel()
     : bufferIndex(-1), sendPacingTicks(0), buffers(0), bufferCount(0), frameNumber(-2), dpid(-1), timeoutTicks(0),
       packetIndex(-1), queuedBytes(0), nextSendTick(0), packets(0), count(0), firstPacket(0), lastPacket(0)
 {
-    ((Class_00462860*)this)->SetMinRetainMs(4000);
-    ((Class_004628a0*)this)->SetSendPacingMs(200);
+    SetMinRetainMs(4000);
+    SetSendPacingMs(200);
 }
 
 // Destructor of the class built by 0x461a70: frees each block of the pointer
@@ -1282,20 +1292,20 @@ int PacketChannel::AddPacket(int param_1, void* param_2, unsigned int param_3)
 // Clamps a time in milliseconds to 4000..60000 and stores it converted to
 // 30 Hz ticks, rounded up (compare 0x4628a0).
 // FUNCTION: 0x462860
-void Class_00462860::SetMinRetainMs(unsigned int ms)
+void PacketChannel::SetMinRetainMs(unsigned int ms)
 {
     if (ms > 60000)
         ms = 60000;
     else if (ms < 4000)
         ms = 4000;
-    ((PacketChannel*)this)->timeoutTicks = (ms * 30 + 999) / 1000;
+    timeoutTicks = (ms * 30 + 999) / 1000;
 }
 
 // FUNCTION: 0x4628a0
-void Class_004628a0::SetSendPacingMs(int param_1)
+void PacketChannel::SetSendPacingMs(int param_1)
 {
     unsigned int v = param_1 * 30 + 999;
-    ((PacketChannel*)this)->sendPacingTicks = v / 1000u;
+    sendPacingTicks = v / 1000u;
 }
 
 // Appends `size` bytes at `src` to the buffer's inline storage (at +0x14),

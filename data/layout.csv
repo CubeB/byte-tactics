@@ -3735,18 +3735,18 @@ piece,0x50a7fc,44,src/network/hapinet.cpp,5,0,game data
 piece,0x50a7c4,54,src/network/hapinet.cpp,4,0,game data
 piece,0x50a798,43,src/network/hapinet.cpp,3,0,game data
 piece,0x50a768,15,src/graphics/surface.cpp,63,0,game data
-piece,0x4fdc18,1,src/util/tdf_4c2ea0.cpp,32,0,game data
-piece,0x4fdc20,8,src/util/tdf_4c2ea0.cpp,97,0,game data
-piece,0x50a670,28,src/util/tdf_4c2ea0.cpp,29,0,game data
-piece,0x50a74c,27,src/util/tdf_4c2ea0.cpp,70,0,game data
-piece,0x50a730,27,src/util/tdf_4c2ea0.cpp,69,0,game data
-piece,0x50a714,27,src/util/tdf_4c2ea0.cpp,68,0,game data
-piece,0x50a6f0,35,src/util/tdf_4c2ea0.cpp,67,0,game data
-piece,0x50a6cc,35,src/util/tdf_4c2ea0.cpp,66,0,game data
-piece,0x50a6a8,33,src/util/tdf_4c2ea0.cpp,65,0,game data
-piece,0x50a68c,28,src/util/tdf_4c2ea0.cpp,64,0,game data
-piece,0x4fefd8,16,src/util/tdf_4c2ea0.cpp,41,0,game data
-piece,0x4fefc8,12,src/util/tdf_4c2ea0.cpp,40,0,game data
+piece,0x4fdc18,1,src/util/tdf.cpp,32,0,game data
+piece,0x4fdc20,8,src/util/tdf.cpp,97,0,game data
+piece,0x50a670,28,src/util/tdf.cpp,29,0,game data
+piece,0x50a74c,27,src/util/tdf.cpp,70,0,game data
+piece,0x50a730,27,src/util/tdf.cpp,69,0,game data
+piece,0x50a714,27,src/util/tdf.cpp,68,0,game data
+piece,0x50a6f0,35,src/util/tdf.cpp,67,0,game data
+piece,0x50a6cc,35,src/util/tdf.cpp,66,0,game data
+piece,0x50a6a8,33,src/util/tdf.cpp,65,0,game data
+piece,0x50a68c,28,src/util/tdf.cpp,64,0,game data
+piece,0x4fefd8,16,src/util/tdf.cpp,41,0,game data
+piece,0x4fefc8,12,src/util/tdf.cpp,40,0,game data
 piece,0x50a60c,9,src/util/tdf_4c3120.cpp,4,0,game data
 piece,0x50a604,5,src/util/tdf_4c3120.cpp,3,0,game data
 piece,0x50a5f4,13,src/gui/mouse.cpp,30,0,game data
@@ -4053,75 +4053,75 @@ piece,0x5091ec,18,src/game/game_state_490ac0.cpp,16,0,game data
 piece,0x507764,11,src/game/game_state_490ac0.cpp,15,0,game data
 piece,0x5091e0,10,src/game/game_state_490ac0.cpp,14,0,game data
 piece,0x4fda10,8,src/game/game_state_490ac0.cpp,9,0,game data
-piece,0x4fd9e0,44,src/game/victory_48dfb0.cpp,267,0,game data
-piece,0x4fd428,44,src/game/victory_48dfb0.cpp,245,0,game data
-piece,0x4fd980,44,src/game/victory_48dfb0.cpp,242,0,game data
-piece,0x4fd9b0,44,src/game/victory_48dfb0.cpp,254,0,game data
-piece,0x4fd940,4,src/game/victory_48dfb0.cpp,50,0,game data
-piece,0x4fd800,24,src/game/victory_48dfb0.cpp,19,0,game data
-piece,0x4fd7f8,4,src/game/victory_48dfb0.cpp,18,0,game data
+piece,0x4fd9e0,44,src/game/victory.cpp,267,0,game data
+piece,0x4fd428,44,src/game/victory.cpp,245,0,game data
+piece,0x4fd980,44,src/game/victory.cpp,242,0,game data
+piece,0x4fd9b0,44,src/game/victory.cpp,254,0,game data
+piece,0x4fd940,4,src/game/victory.cpp,50,0,game data
+piece,0x4fd800,24,src/game/victory.cpp,19,0,game data
+piece,0x4fd7f8,4,src/game/victory.cpp,18,0,game data
 piece,0x4fd948,24,src/game/victory_490230.cpp,3,0,game data
-piece,0x5091a4,34,src/game/victory_48dfb0.cpp,211,0,game data
-piece,0x509184,31,src/game/victory_48dfb0.cpp,204,0,game data
-piece,0x509164,31,src/game/victory_48dfb0.cpp,195,0,game data
-piece,0x50913c,37,src/game/victory_48dfb0.cpp,186,0,game data
-piece,0x50911c,31,src/game/victory_48dfb0.cpp,177,0,game data
-piece,0x4fd978,4,src/game/victory_48dfb0.cpp,92,0,game data
-piece,0x5090dc,32,src/game/victory_48dfb0.cpp,160,0,game data
-piece,0x5090b4,37,src/game/victory_48dfb0.cpp,153,0,game data
-piece,0x509090,33,src/game/victory_48dfb0.cpp,146,0,game data
-piece,0x508f10,18,src/game/victory_48dfb0.cpp,66,0,game data
-piece,0x50906c,33,src/game/victory_48dfb0.cpp,137,0,game data
-piece,0x509048,34,src/game/victory_48dfb0.cpp,128,0,game data
-piece,0x508ff8,31,src/game/victory_48dfb0.cpp,113,0,game data
-piece,0x508fd4,33,src/game/victory_48dfb0.cpp,104,0,game data
-piece,0x508efc,19,src/game/victory_48dfb0.cpp,55,0,game data
-piece,0x4fd960,24,src/game/victory_48dfb0.cpp,54,0,game data
-piece,0x508eec,16,src/game/victory_48dfb0.cpp,53,0,game data
-piece,0x508ed8,19,src/game/victory_48dfb0.cpp,51,0,game data
-piece,0x4fd928,24,src/game/victory_48dfb0.cpp,49,0,game data
-piece,0x4fd920,4,src/game/victory_48dfb0.cpp,48,0,game data
-piece,0x508ec8,14,src/game/victory_48dfb0.cpp,47,0,game data
-piece,0x4fd908,24,src/game/victory_48dfb0.cpp,46,0,game data
-piece,0x4fd900,4,src/game/victory_48dfb0.cpp,45,0,game data
-piece,0x508eb8,16,src/game/victory_48dfb0.cpp,44,0,game data
-piece,0x4fd8e8,24,src/game/victory_48dfb0.cpp,43,0,game data
-piece,0x508ea8,14,src/game/victory_48dfb0.cpp,42,0,game data
-piece,0x4fd8d0,24,src/game/victory_48dfb0.cpp,41,0,game data
-piece,0x4fd8c8,4,src/game/victory_48dfb0.cpp,40,0,game data
-piece,0x508e98,13,src/game/victory_48dfb0.cpp,39,0,game data
-piece,0x508e88,13,src/game/victory_48dfb0.cpp,38,0,game data
-piece,0x4fd8b0,24,src/game/victory_48dfb0.cpp,37,0,game data
-piece,0x508e74,17,src/game/victory_48dfb0.cpp,36,0,game data
-piece,0x508e60,19,src/game/victory_48dfb0.cpp,35,0,game data
-piece,0x508e58,8,src/game/victory_48dfb0.cpp,34,0,game data
-piece,0x4fd8a8,4,src/game/victory_48dfb0.cpp,33,0,game data
-piece,0x4fd890,24,src/game/victory_48dfb0.cpp,32,0,game data
-piece,0x4fd888,4,src/game/victory_48dfb0.cpp,31,0,game data
-piece,0x508e48,16,src/game/victory_48dfb0.cpp,30,0,game data
-piece,0x4fd870,24,src/game/victory_48dfb0.cpp,29,0,game data
-piece,0x4fd868,4,src/game/victory_48dfb0.cpp,28,0,game data
-piece,0x508e38,16,src/game/victory_48dfb0.cpp,27,0,game data
-piece,0x4fd850,24,src/game/victory_48dfb0.cpp,26,0,game data
-piece,0x4fd848,4,src/game/victory_48dfb0.cpp,25,0,game data
-piece,0x508e24,20,src/game/victory_48dfb0.cpp,24,0,game data
-piece,0x4fd830,24,src/game/victory_48dfb0.cpp,23,0,game data
-piece,0x508e14,16,src/game/victory_48dfb0.cpp,22,0,game data
-piece,0x4fd818,24,src/game/victory_48dfb0.cpp,21,0,game data
-piece,0x508e04,15,src/game/victory_48dfb0.cpp,20,0,game data
-piece,0x508dec,21,src/game/victory_48dfb0.cpp,17,0,game data
-piece,0x4fd7e0,24,src/game/victory_48dfb0.cpp,16,0,game data
-piece,0x4fd7d8,4,src/game/victory_48dfb0.cpp,15,0,game data
-piece,0x508ddc,15,src/game/victory_48dfb0.cpp,14,0,game data
-piece,0x4fd7c0,24,src/game/victory_48dfb0.cpp,13,0,game data
-piece,0x508dc8,18,src/game/victory_48dfb0.cpp,12,0,game data
-piece,0x4fd7a8,24,src/game/victory_48dfb0.cpp,11,0,game data
-piece,0x508db8,15,src/game/victory_48dfb0.cpp,10,0,game data
-piece,0x4fd790,24,src/game/victory_48dfb0.cpp,9,0,game data
-piece,0x4fd788,4,src/game/victory_48dfb0.cpp,8,0,game data
-piece,0x508da8,15,src/game/victory_48dfb0.cpp,7,0,game data
-piece,0x4fd770,24,src/game/victory_48dfb0.cpp,6,0,game data
-piece,0x4fd768,4,src/game/victory_48dfb0.cpp,5,0,game data
+piece,0x5091a4,34,src/game/victory.cpp,211,0,game data
+piece,0x509184,31,src/game/victory.cpp,204,0,game data
+piece,0x509164,31,src/game/victory.cpp,195,0,game data
+piece,0x50913c,37,src/game/victory.cpp,186,0,game data
+piece,0x50911c,31,src/game/victory.cpp,177,0,game data
+piece,0x4fd978,4,src/game/victory.cpp,92,0,game data
+piece,0x5090dc,32,src/game/victory.cpp,160,0,game data
+piece,0x5090b4,37,src/game/victory.cpp,153,0,game data
+piece,0x509090,33,src/game/victory.cpp,146,0,game data
+piece,0x508f10,18,src/game/victory.cpp,66,0,game data
+piece,0x50906c,33,src/game/victory.cpp,137,0,game data
+piece,0x509048,34,src/game/victory.cpp,128,0,game data
+piece,0x508ff8,31,src/game/victory.cpp,113,0,game data
+piece,0x508fd4,33,src/game/victory.cpp,104,0,game data
+piece,0x508efc,19,src/game/victory.cpp,55,0,game data
+piece,0x4fd960,24,src/game/victory.cpp,54,0,game data
+piece,0x508eec,16,src/game/victory.cpp,53,0,game data
+piece,0x508ed8,19,src/game/victory.cpp,51,0,game data
+piece,0x4fd928,24,src/game/victory.cpp,49,0,game data
+piece,0x4fd920,4,src/game/victory.cpp,48,0,game data
+piece,0x508ec8,14,src/game/victory.cpp,47,0,game data
+piece,0x4fd908,24,src/game/victory.cpp,46,0,game data
+piece,0x4fd900,4,src/game/victory.cpp,45,0,game data
+piece,0x508eb8,16,src/game/victory.cpp,44,0,game data
+piece,0x4fd8e8,24,src/game/victory.cpp,43,0,game data
+piece,0x508ea8,14,src/game/victory.cpp,42,0,game data
+piece,0x4fd8d0,24,src/game/victory.cpp,41,0,game data
+piece,0x4fd8c8,4,src/game/victory.cpp,40,0,game data
+piece,0x508e98,13,src/game/victory.cpp,39,0,game data
+piece,0x508e88,13,src/game/victory.cpp,38,0,game data
+piece,0x4fd8b0,24,src/game/victory.cpp,37,0,game data
+piece,0x508e74,17,src/game/victory.cpp,36,0,game data
+piece,0x508e60,19,src/game/victory.cpp,35,0,game data
+piece,0x508e58,8,src/game/victory.cpp,34,0,game data
+piece,0x4fd8a8,4,src/game/victory.cpp,33,0,game data
+piece,0x4fd890,24,src/game/victory.cpp,32,0,game data
+piece,0x4fd888,4,src/game/victory.cpp,31,0,game data
+piece,0x508e48,16,src/game/victory.cpp,30,0,game data
+piece,0x4fd870,24,src/game/victory.cpp,29,0,game data
+piece,0x4fd868,4,src/game/victory.cpp,28,0,game data
+piece,0x508e38,16,src/game/victory.cpp,27,0,game data
+piece,0x4fd850,24,src/game/victory.cpp,26,0,game data
+piece,0x4fd848,4,src/game/victory.cpp,25,0,game data
+piece,0x508e24,20,src/game/victory.cpp,24,0,game data
+piece,0x4fd830,24,src/game/victory.cpp,23,0,game data
+piece,0x508e14,16,src/game/victory.cpp,22,0,game data
+piece,0x4fd818,24,src/game/victory.cpp,21,0,game data
+piece,0x508e04,15,src/game/victory.cpp,20,0,game data
+piece,0x508dec,21,src/game/victory.cpp,17,0,game data
+piece,0x4fd7e0,24,src/game/victory.cpp,16,0,game data
+piece,0x4fd7d8,4,src/game/victory.cpp,15,0,game data
+piece,0x508ddc,15,src/game/victory.cpp,14,0,game data
+piece,0x4fd7c0,24,src/game/victory.cpp,13,0,game data
+piece,0x508dc8,18,src/game/victory.cpp,12,0,game data
+piece,0x4fd7a8,24,src/game/victory.cpp,11,0,game data
+piece,0x508db8,15,src/game/victory.cpp,10,0,game data
+piece,0x4fd790,24,src/game/victory.cpp,9,0,game data
+piece,0x4fd788,4,src/game/victory.cpp,8,0,game data
+piece,0x508da8,15,src/game/victory.cpp,7,0,game data
+piece,0x4fd770,24,src/game/victory.cpp,6,0,game data
+piece,0x4fd768,4,src/game/victory.cpp,5,0,game data
 piece,0x4fd758,4,src/ingame/selection.cpp,10,0,game data
 piece,0x508da0,7,src/ingame/selection.cpp,51,0,game data
 piece,0x4fd760,8,src/ingame/selection_48cf30.cpp,5,0,game data
@@ -5517,11 +5517,11 @@ piece,0x502c88,6,src/map/features.cpp,28,0,game data
 piece,0x4fd030,4,src/map/features.cpp,20,0,game data
 piece,0x502c68,18,src/map/features_421f20.cpp,4,0,game data
 piece,0x502c58,13,src/map/features_421f20.cpp,3,0,game data
-piece,0x4fd020,4,src/weapons/explosions_420620.cpp,35,0,game data
-piece,0x4fd024,4,src/weapons/explosions_420620.cpp,35,4,game data
-piece,0x4fd028,4,src/weapons/explosions_420620.cpp,35,8,game data
-piece,0x502c38,16,src/weapons/explosions_420620.cpp,4,0,game data
-piece,0x502c28,13,src/weapons/explosions_420620.cpp,3,0,game data
+piece,0x4fd020,4,src/weapons/explosions.cpp,35,0,game data
+piece,0x4fd024,4,src/weapons/explosions.cpp,35,4,game data
+piece,0x4fd028,4,src/weapons/explosions.cpp,35,8,game data
+piece,0x502c38,16,src/weapons/explosions.cpp,4,0,game data
+piece,0x502c28,13,src/weapons/explosions.cpp,3,0,game data
 piece,0x502be0,24,src/frontend/endgame.cpp,109,0,game data
 piece,0x502b40,12,src/frontend/endgame.cpp,92,0,game data
 piece,0x502a84,31,src/frontend/endgame.cpp,62,0,game data
@@ -12084,14 +12084,14 @@ same,0x508be8,7,src/units/units_485010.cpp,45,0,
 same,0x51e6b0,16,src/units/unit_commands_487bf0.cpp,36,0,
 same,0x4fd748,4,src/units/unit.cpp,15,0,
 same,0x508d80,9,src/units/unit_targets_489280.cpp,44,0,
-same,0x508f60,33,src/game/victory_48dfb0.cpp,79,0,
-same,0x508f30,10,src/game/victory_48dfb0.cpp,78,0,
-same,0x508f24,11,src/game/victory_48dfb0.cpp,77,0,
-same,0x508f90,36,src/game/victory_48dfb0.cpp,89,0,
-same,0x508f84,9,src/game/victory_48dfb0.cpp,88,0,
-same,0x508fb4,31,src/game/victory_48dfb0.cpp,97,0,
-same,0x5090fc,31,src/game/victory_48dfb0.cpp,171,0,
-same,0x509018,14,src/game/victory_48dfb0.cpp,176,0,
+same,0x508f60,33,src/game/victory.cpp,79,0,
+same,0x508f30,10,src/game/victory.cpp,78,0,
+same,0x508f24,11,src/game/victory.cpp,77,0,
+same,0x508f90,36,src/game/victory.cpp,89,0,
+same,0x508f84,9,src/game/victory.cpp,88,0,
+same,0x508fb4,31,src/game/victory.cpp,97,0,
+same,0x5090fc,31,src/game/victory.cpp,171,0,
+same,0x509018,14,src/game/victory.cpp,176,0,
 same,0x509200,8,src/game/game_state_490ac0.cpp,23,0,
 same,0x505f18,6,src/game/savegame.cpp,30,0,
 same,0x504904,12,src/game/savegame.cpp,27,0,
@@ -12143,7 +12143,7 @@ same,0x50a56c,13,src/util/hpi.cpp,115,0,
 same,0x4fdbf0,37,src/util/hpi.cpp,112,0,
 same,0x503374,2,src/util/hpi_4bd830.cpp,9,0,
 same,0x503374,2,src/util/hpi.cpp,136,0,
-same,0x5119b8,1,src/util/tdf_4c2ea0.cpp,35,0,
+same,0x5119b8,1,src/util/tdf.cpp,35,0,
 same,0x50b530,16,src/debug/debug_helper_4cbb70.cpp,6,0,
 same,0x50b524,11,src/debug/debug_helper_4cbb70.cpp,5,0,
 same,0x4d8130,16,src/debug/debug_lib.cpp,12,0,
@@ -12209,7 +12209,7 @@ same,0x4c3740,32,LIBCPMT.LIB#3@2,57,0,
 same,0x50a630,32,LIBCPMT.LIB#3@2,14,0,
 same,0x4febd0,24,LIBCPMT.LIB#3@2,7,0,
 same,0x5119b8,1,zlib/zutil.obj,9,0,
-same,0x4c38a0,80,src/util/tdf_4c2ea0.cpp,43,0,
+same,0x4c38a0,80,src/util/tdf.cpp,43,0,
 reloc,0x4588a6,,0x4fd4c0,,,
 reloc,0x46c3c0,,0x507948,,,
 reloc,0x46c48e,,0x507950,,,

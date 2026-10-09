@@ -69,7 +69,7 @@ public:
     void StripComments(char* p);
 };
 
-// Own file: needs its own view of TdfRecord (see the note in TdfFile, tdf_4c2ea0.cpp).
+// Own file: needs its own view of TdfRecord (see the note in TdfFile, tdf.cpp).
 // FUNCTION: 0x4c3120
 void TdfFile::LoadBuffer(char* data, int size, int flag, char* path)
 {

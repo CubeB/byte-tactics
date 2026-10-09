@@ -4,7 +4,7 @@
 // (key, value) string handles (g_translations), looked up by Translate and
 // FindTranslation, and the section parser's GetLocalizedString reads a TDF
 // key with the language prefix. This is a unit of its own, after the TDF
-// code in tdf_4c2ea0.cpp: it calls that code's methods (they are not inlined
+// code in tdf.cpp: it calls that code's methods (they are not inlined
 // here) and its vector<TdfField> instantiations follow it, so the two files
 // each see TdfField (and the element destructor, 0x4c5190) their own way.
 
@@ -19,7 +19,7 @@ extern char DAT_005119b8[];
 
 void __cdecl AllocNotifyNop(int);
 
-// The string handle (see tdf_4c2ea0.cpp): 0x4c9180 builds the empty one,
+// The string handle (see tdf.cpp): 0x4c9180 builds the empty one,
 // 0x4c91a0 copies, 0x4c91b0 builds from text, 0x4c9390 releases, 0x4c93b0 and
 // 0x4c93f0 assign.
 class Class_004c91a0;
@@ -79,7 +79,7 @@ static inline bool Ne(const Class_004c91a0& a, const Class_004c91a0& b)
 }
 
 // One entry of the translations: a key and a value, both string handles. Its
-// destructor (0x4c5190) is in tdf_4c2ea0.cpp.
+// destructor (0x4c5190) is in tdf.cpp.
 struct TdfField {
     Class_004c91a0 key;                  // +0x0
     Class_004c91a0 value;                // +0x4

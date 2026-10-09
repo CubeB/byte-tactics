@@ -63,7 +63,7 @@ public:
     ~TdfFile();
 };
 
-// Own file: needs its own view of TdfRecord (see the note in TdfFile, tdf_4c2ea0.cpp).
+// Own file: needs its own view of TdfRecord (see the note in TdfFile, tdf.cpp).
 // FUNCTION: 0x4c2eb0
 // FUNCTION: 0x4c51b0 ??_GTdfField@@QAEPAXI@Z
 TdfFile::~TdfFile()

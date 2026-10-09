@@ -292,7 +292,7 @@ The text-colour if/else (`SetTextColors(menu->colours[field_138 != 0 ? 0 : me->c
 **`0x4d8e60 ReportException`** (2644, `src/debug/debug_lib.cpp:828-978`).
 More than forty `sprintf` appends, most of the form `{ char* d = log + strlen(log); sprintf(d, ...); }`, plus the grouped register (906-917), Dr (940-945) and FPU (948-955) dumps. The comments record that each site's destination form (`d`, `L`, or `strlen` inline) is what sets the push order, so the repetition is deliberate and a helper would unify the forms. Not queued.
 
-**`0x48e010 MissionConditions::RegisterConditions`** (2542, `src/game/victory_48dfb0.cpp:482-606`).
+**`0x48e010 MissionConditions::RegisterConditions`** (2542, `src/game/victory.cpp:482-606`).
 Eighteen registration blocks and the two "if none registered" defaults (492-603) all end `victory[victoryCount] = ...; victoryCount++;` (or `defeat`). Queued as #6446 and proved below.
 
 **`0x464f80 UpdatePlayers`** (2392, `src/game/players_464290.cpp:863-1190`).

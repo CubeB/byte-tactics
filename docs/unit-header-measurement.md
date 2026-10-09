@@ -284,7 +284,7 @@ uv run python3 build/scratch/6334/swap.py                    # the 83 verdicts
 | `src/game/players_464290.cpp` | does not compile | C2011 'class' type redefinition |
 | `src/game/players_465ac0.cpp` | does not compile | C2039 is not a member of 'Unit' |
 | `src/game/settings_campaign.cpp` | does not compile | C2039 is not a member of 'Unit' |
-| `src/game/victory_48dfb0.cpp` | does not compile | C2039 is not a member of 'Unit' |
+| `src/game/victory.cpp` | does not compile | C2039 is not a member of 'Unit' |
 | `src/ingame/control_panel.cpp` | does not compile | C2011 'class' type redefinition |
 | `src/ingame/control_panel_41bde0.cpp` | does not compile | C2039 is not a member of 'Unit' |
 | `src/ingame/dialogs_493340.cpp` | does not compile | C2039 is not a member of 'Unit' |
@@ -347,7 +347,7 @@ uv run python3 build/scratch/6334/swap.py                    # the 83 verdicts
 | `src/units/unit_targets_489280.cpp` | does not compile | C2027 use of undefined type 'UnitDef' |
 | `src/units/units_485010.cpp` | does not compile | C2011 'struct' type redefinition |
 | `src/units/units_4851c0.cpp` | does not compile | C2039 is not a member of 'Unit' |
-| `src/weapons/explosions_420620.cpp` | does not compile | C2039 is not a member of 'Unit' |
+| `src/weapons/explosions.cpp` | does not compile | C2039 is not a member of 'Unit' |
 | `src/weapons/weapons.cpp` | does not compile | C2011 'struct' type redefinition |
 | `src/weapons/weapons_49b090.cpp` | does not compile | C2039 is not a member of 'Unit' |
 | `src/weapons/weapons_49b720.cpp` | does not compile | C2039 is not a member of 'UnitWeaponSlot' |

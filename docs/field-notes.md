@@ -733,7 +733,7 @@ we can compile reaches it.**
 `0x408f30` (`vector<Unit*>::insert`, wants `lea eax,[ebx+ecx] / sub / sub`,
 546 bytes) and `0x4c4d70` (`vector<Class_004c3e40*>::insert`, has
 `mov eax,ecx / sub / add / sub`, 547 bytes, **already MATCHED** by
-`src/util/tdf_4c2ea0.cpp`) are **the same template on the same 4-byte
+`src/util/tdf.cpp`) are **the same template on the same 4-byte
 dword-copied element**. Diff their instruction lists with jump targets masked and
 you get 225 against 226 instructions and **exactly one replace plus one insert**,
 both inside that group — and the same register assignment too (`_P` in ebx, `_Q`

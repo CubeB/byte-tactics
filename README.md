@@ -112,14 +112,14 @@ Counts in `src/` and `include/` at `origin/main`, against `e9367f13` (the roadma
 | Placeholder fields `field_<offset>` | 589 | 367 | 0, named | 38% | `[########------------]` |
 | Files that define `Unit` | 285 | 80 | 1, one shared definition | 72% | `[##############------]` |
 | Files opening with matching history | 301 | 0 | 0, none | 100% | `[####################]` |
-| Casts `((T*)x)->` | 1,698 | 326 | 0, casts the types allow | 81% | `[################----]` |
+| Casts `((T*)x)->` | 1,698 | 328 | 0, casts the types allow | 81% | `[################----]` |
 | Byte-offset access `*(T*)(p + off)` and `(char*)p + off` | 1,284 | 640 | cases with no struct | | |
 
 | Cleanup issues | | | |
 | --- | --- | --- | ---: |
 | Gather issues | 125 of 125 closed | `[####################]` | 100% |
 | Join issues | 28 of 32 closed | `[##################--]` | 87% |
-| Name issues | 137 of 156 closed | `[##################--]` | 87% |
+| Name issues | 137 of 159 closed | `[#################---]` | 86% |
 <!-- cleanup:end -->
 
 ## Next steps

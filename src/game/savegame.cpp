@@ -53,14 +53,22 @@ struct Gadget_00492360 {
     int selected;                        // +0x60
 };
 
-struct Obj_00492360 {
+// A player's side block, the SideData behind PlayerState::pSideData (Thaldren
+// SideData); the byte at +0x95 is the side id the campaign setup writes.
+struct SideData {
+    char unknown_0[0x95];
+    unsigned char bSideId;               // +0x95
+};
+
+// The skirmish setup block at g_game+0x29a0 (Thaldren SkirmishInfo, #6518).
+struct SkirmishInfo {
     char unknown_0[0x108];
     int commanderDeath;                  // +0x108
     int mapping;                         // +0x10c
     int lineOfSight;                     // +0x110
     int losType;                         // +0x114
     int fixedLocations;                  // +0x118
-    char text_11c[1];                    // +0x11c
+    char aMapName[0x100];                // +0x11c
 };
 
 struct Layer_00492df0 {
@@ -120,11 +128,11 @@ struct Game {
         Menu_00491ec0 menu_00491ec0;
         Menu_00493060 menu_00493060;
     };
-    void* p1b8a;                         // +0x1b8a
+    SideData* p1b8a;                     // +0x1b8a
     char unknown_1b8e[0x1cd5 - 0x1b8e];
-    void* p1cd5;                         // +0x1cd5
+    SideData* p1cd5;                     // +0x1cd5
     char unknown_1cd9[0x29a0 - 0x1cd9];
-    Obj_00492360* p29a0;                 // +0x29a0
+    SkirmishInfo* p29a0;                 // +0x29a0
     char unknown_29a4[0x2a3c - 0x29a4];
     short numPlayers;                    // +0x2a3c
     char unknown_2a3e[0x2a44 - 0x2a3e];
@@ -177,9 +185,10 @@ struct Game {
 };
 #pragma pack(pop)
 
+extern Game* g_game;
+
 #include "../map/mission.h"
 
-extern Game* g_game;
 extern char* DAT_005091c8;
 extern char DAT_005119b8[];
 extern const char g_invalidSavegameText[]; // "Invalid savegame file"
@@ -474,11 +483,11 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         g_game->difficulty = (g_game->p38d6b)->GetIntegerItem("Difficulty", 0);
         if (g_game->mapInfo->GetGameType() == 1) {
             if (g_game->side == 0) {
-                *(unsigned char*)((char*)g_game->p1b8a + 0x95) = 0;
-                *(unsigned char*)((char*)g_game->p1cd5 + 0x95) = 1;
+                g_game->p1b8a->bSideId = 0;
+                g_game->p1cd5->bSideId = 1;
             } else {
-                *(unsigned char*)((char*)g_game->p1b8a + 0x95) = 1;
-                *(unsigned char*)((char*)g_game->p1cd5 + 0x95) = 0;
+                g_game->p1b8a->bSideId = 1;
+                g_game->p1cd5->bSideId = 0;
             }
         }
         char* mission = (g_game->p38d6b)->GetStringItem("Mission", 0);
@@ -488,7 +497,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
             goto invalid;
         if (g_game->mapInfo->LoadMissionByName(mission) == 0)
             goto invalid;
-        strcpy((char*)g_game->p29a0 + 0x11c, mission);
+        strcpy((char*)&g_game->p29a0->aMapName[0], mission);
         char* thumbs = (g_game->p38d6b)->GetStringItem("Thumbs", 0);
         strncpy(g_game->buf391cf, thumbs, 0x19);
         if (strlen(g_game->buf391cf) != 0x19)
@@ -710,31 +719,31 @@ void ShowSaveGameScreen()
 // FUNCTION: 0x4931d0
 void ShowLoadGameScreen()
 {
-    Gadget_004931d0* gadget = LoadGuiLayer((char*)g_game + 0x519, "LOADGAME.GUI", 0x980);
+    Gadget_004931d0* gadget = LoadGuiLayer((char*)&g_game->message[0], "LOADGAME.GUI", 0x980);
     gadget->handler = LoadGameScreenHandler;
     gadget->context = g_game;
     LoadPictureCached("DLOADGAME2", 0, 0, 0);
     int count;
     if (ListSavedGames(&count) == 0) {
-        CloseTopScreen((char*)g_game + 0x519);
-        OpenMessageBox((char*)g_game + 0x519,
+        CloseTopScreen((char*)&g_game->message[0]);
+        OpenMessageBox((char*)&g_game->message[0],
                      Translate("There are no saved games to choose from"),
                      0x140, 1, 1);
         return;
     }
     g_savegameSideList = BuildSideList();
-    ConfigureListBoxByName((char*)g_game + 0x519, "GAMES", g_savegameDescs, count, 0);
-    SetGadgetActiveByName((char*)g_game + 0x519, "DELETE", 0);
-    SetGadgetActiveByName((char*)g_game + 0x519, "GAMENAME", 0);
+    ConfigureListBoxByName((char*)&g_game->message[0], "GAMES", g_savegameDescs, count, 0);
+    SetGadgetActiveByName((char*)&g_game->message[0], "DELETE", 0);
+    SetGadgetActiveByName((char*)&g_game->message[0], "GAMENAME", 0);
     Entry_004931d0* entry = FindGadgetChecked(gadget->info, "GAMES");
     if (entry != 0) {
         entry->field_ce = (void*)SavedGameSelectHandler;
     }
     ShowSavedGameInfo();
-    SetKeyboardInput((char*)g_game + 0x519, 1);
+    SetKeyboardInput((char*)&g_game->message[0], 1);
     OrLabelAttribs();
-    SetGadgetActiveByName((char*)g_game + 0x519, "SaveGame", 0);
-    EnableKeyCommands((char*)g_game + 0x519);
-    RenderLayer((char*)g_game + 0x519, 0x40);
+    SetGadgetActiveByName((char*)&g_game->message[0], "SaveGame", 0);
+    EnableKeyCommands((char*)&g_game->message[0]);
+    RenderLayer((char*)&g_game->message[0], 0x40);
     ((char*)g_game)[0x38a51] |= 1;
 }

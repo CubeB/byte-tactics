@@ -12,21 +12,7 @@
 #include <stdio.h>
 #include <string.h>
 
-class TdfRecord {
-public:
-    int GetFieldString(char* dst, char* key, int size, char* def);
-    int GetFieldInt(const char* name, int def);
-    double GetFieldDouble(const char* name, double def);
-};
-
-class TdfFile {
-public:
-    char unknown_0[4];
-    TdfRecord* parser;                  // +0x4
-
-    void ResetCurrentRecord();
-    int SelectRecord(char* name);
-};
+#include "../util/tdf.h"
 
 struct List_004224b0 {
     int unknown_0;
@@ -187,17 +173,17 @@ int __stdcall LoadFeatureType(char* name)
                                                           (g_game->featureCount + 1) * 0x100);
     FeatureDef_004224b0* def = &g_game->features[g_game->featureCount];
     strncpy(def->name, name, 0x80);
-    entry->parser->GetFieldString(def->description, "Description", 0x14, DAT_005119b8);
-    def->footprintx = entry->parser->GetFieldInt("footprintx", 0);
-    def->footprintz = entry->parser->GetFieldInt("footprintz", 0);
-    def->height = entry->parser->GetFieldInt("height", 0);
-    ok = entry->parser->GetFieldString(file, "object", 0x100, DAT_005119b8);
+    entry->current->GetFieldString(def->description, "Description", 0x14, DAT_005119b8);
+    def->footprintx = entry->current->GetFieldInt("footprintx", 0);
+    def->footprintz = entry->current->GetFieldInt("footprintz", 0);
+    def->height = entry->current->GetFieldInt("height", 0);
+    ok = entry->current->GetFieldString(file, "object", 0x100, DAT_005119b8);
     if (ok) {
         def->noobject = 0;
         def->object = LoadObject3d(file);
     } else {
         def->noobject = 1;
-        entry->parser->GetFieldString(file, "filename", 0x100, DAT_005119b8);
+        entry->current->GetFieldString(file, "filename", 0x100, DAT_005119b8);
         for (j = 0; j < g_game->featureCount; j++) {
             if (strncmp(g_game->features[j].filename, file, 0x10) == 0) {
                 def->anims = 0;
@@ -212,32 +198,32 @@ int __stdcall LoadFeatureType(char* name)
             strncpy(def->filename, file, 0x10);
             anims = def->anims;
         }
-        LoadFeatureSeq(entry->parser, "seqname", seqname, anims, &def->seq);
-        LoadFeatureSeq(entry->parser, "seqnameshad", seqname, anims, &def->seqshad);
-        LoadFeatureSeqOnce(entry->parser, "seqnameburn", seqname, anims, &def->seqburn);
-        LoadFeatureSeqOnce(entry->parser, "seqnameburnshad", seqname, anims, &def->seqburnshad);
-        LoadFeatureSeqOnce(entry->parser, "seqnamedie", seqname, anims, &def->seqdie);
-        LoadFeatureSeqOnce(entry->parser, "seqnamedieshad", seqname, anims, &def->seqdieshad);
-        LoadFeatureSeqOnce(entry->parser, "seqnamereclamate", seqname, anims, &def->seqreclamate);
-        LoadFeatureSeqOnce(entry->parser, "seqnamereclamateshad", seqname, anims, &def->seqreclamateshad);
+        LoadFeatureSeq(entry->current, "seqname", seqname, anims, &def->seq);
+        LoadFeatureSeq(entry->current, "seqnameshad", seqname, anims, &def->seqshad);
+        LoadFeatureSeqOnce(entry->current, "seqnameburn", seqname, anims, &def->seqburn);
+        LoadFeatureSeqOnce(entry->current, "seqnameburnshad", seqname, anims, &def->seqburnshad);
+        LoadFeatureSeqOnce(entry->current, "seqnamedie", seqname, anims, &def->seqdie);
+        LoadFeatureSeqOnce(entry->current, "seqnamedieshad", seqname, anims, &def->seqdieshad);
+        LoadFeatureSeqOnce(entry->current, "seqnamereclamate", seqname, anims, &def->seqreclamate);
+        LoadFeatureSeqOnce(entry->current, "seqnamereclamateshad", seqname, anims, &def->seqreclamateshad);
     }
-    def->spreadchance = entry->parser->GetFieldInt("spreadchance", 0);
-    def->reproduce = entry->parser->GetFieldInt("reproduce", 0);
-    def->reproducearea = entry->parser->GetFieldInt("reproducearea", 0);
-    def->metal = (unsigned short)entry->parser->GetFieldInt("metal", 0);
-    def->energy = (unsigned short)entry->parser->GetFieldInt("energy", 0);
-    def->damage = entry->parser->GetFieldInt("damage", 0);
-    def->animating = entry->parser->GetFieldInt("animating", 0);
-    def->animtrans = entry->parser->GetFieldInt("animtrans", 0);
-    def->shadtrans = entry->parser->GetFieldInt("shadtrans", 0);
-    def->flamable = entry->parser->GetFieldInt("flamable", 0);
-    def->geothermal = entry->parser->GetFieldInt("geothermal", 0);
-    def->blocking = entry->parser->GetFieldInt("blocking", 0);
-    def->reclaimable = entry->parser->GetFieldInt("reclaimable", 0);
-    def->autoreclaimable = entry->parser->GetFieldInt("autoreclaimable", 1);
-    def->indestructible = entry->parser->GetFieldInt("indestructible", 0);
-    def->nodisplayinfo = entry->parser->GetFieldInt("nodisplayinfo", 0);
-    def->nodrawundergray = entry->parser->GetFieldInt("nodrawundergray", 0);
+    def->spreadchance = entry->current->GetFieldInt("spreadchance", 0);
+    def->reproduce = entry->current->GetFieldInt("reproduce", 0);
+    def->reproducearea = entry->current->GetFieldInt("reproducearea", 0);
+    def->metal = (unsigned short)entry->current->GetFieldInt("metal", 0);
+    def->energy = (unsigned short)entry->current->GetFieldInt("energy", 0);
+    def->damage = entry->current->GetFieldInt("damage", 0);
+    def->animating = entry->current->GetFieldInt("animating", 0);
+    def->animtrans = entry->current->GetFieldInt("animtrans", 0);
+    def->shadtrans = entry->current->GetFieldInt("shadtrans", 0);
+    def->flamable = entry->current->GetFieldInt("flamable", 0);
+    def->geothermal = entry->current->GetFieldInt("geothermal", 0);
+    def->blocking = entry->current->GetFieldInt("blocking", 0);
+    def->reclaimable = entry->current->GetFieldInt("reclaimable", 0);
+    def->autoreclaimable = entry->current->GetFieldInt("autoreclaimable", 1);
+    def->indestructible = entry->current->GetFieldInt("indestructible", 0);
+    def->nodisplayinfo = entry->current->GetFieldInt("nodisplayinfo", 0);
+    def->nodrawundergray = entry->current->GetFieldInt("nodrawundergray", 0);
     if (_strcmpi(name, "DragonsTeeth") == 0)
         def->nodrawundergray = 1;
     if (_strcmpi(name, "DragonsTeeth_Core") == 0)
@@ -246,8 +232,8 @@ int __stdcall LoadFeatureType(char* name)
         def->nodrawundergray = 1;
     if (_strcmpi(name, "Fortification_Core") == 0)
         def->nodrawundergray = 1;
-    def->sparktime = (short)(entry->parser->GetFieldDouble("sparktime", 0.0) * 30.0);
-    entry->parser->GetFieldString(seqname, "burnweapon", 0x100, DAT_005119b8);
+    def->sparktime = (short)(entry->current->GetFieldDouble("sparktime", 0.0) * 30.0);
+    entry->current->GetFieldString(seqname, "burnweapon", 0x100, DAT_005119b8);
     def->burnweapon = FindWeaponByName(seqname);
     def->ref.index = 0;
     def->ref.value = 0;

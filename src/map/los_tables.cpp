@@ -95,6 +95,8 @@ struct Elem_00434360 {
 
 typedef std::vector<Elem_00434360> Column_00433270;
 
+// Keeps its own view of the parser classes: with the shared tdf.h LoadLosTable
+// (0x433380), GetLosLine (0x4335e0) and SortUnitTypes (0x432d40) drop.
 class TdfRecord {
 public:
     int GetFieldInt(const char* name, int def);

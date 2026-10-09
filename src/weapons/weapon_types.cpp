@@ -6,6 +6,8 @@
 // 3.14159265358979 / 180 is exactly the exe's 0.017453292519943278.
 #define PI 3.14159265358979
 
+// Keeps its own view of the parser classes: the header has no GetRecordName or
+// GetFieldName, and adding them moves features.cpp and screenshots_499890.cpp.
 class TdfRecord {
   public:
     char* GetRecordName();

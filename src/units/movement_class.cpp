@@ -12,6 +12,8 @@
 // Unused by the code, but it puts the pointer first in v[n] in BuildPassMap.
 #include <stdio.h>
 
+#include "../util/tdf.h"
+
 void __cdecl GameFreeThunk(void* p);
 
 void* __cdecl operator new(unsigned int size);
@@ -19,11 +21,6 @@ void __cdecl operator delete(void* p);
 
 struct MovementClass;
 unsigned int __stdcall GetPassMapFootprintValueWithEdgeStrips(MovementClass* obj, int x, int y);
-
-class TdfRecord {
-public:
-    int GetFieldInt(const char* name, int def);
-};
 
 struct Source_00440340 {
     char unknown_0[4];
@@ -322,6 +319,11 @@ void MovementClass::ResizePassMap(unsigned int w, unsigned int h)
         cells = 0;
     }
 }
+
+// Unused here: the symbol ids these declarations take keep the allocation after
+// the TdfRecord view joined the shared header (docs/c2-regalloc.md).
+void __stdcall ScaleUnitWeights(int, unsigned int*, float, int);
+void __stdcall DrawFrame(void* surface, void* frame, int x, int y);
 
 // FUNCTION: 0x4404c0
 void MovementClass::SetPassMapCell(int param_1, int param_2, int param_3)

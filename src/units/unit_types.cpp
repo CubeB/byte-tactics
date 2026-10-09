@@ -286,6 +286,8 @@ void StartScreenShake(int, int, int);
 int RegisterUnitOrders();
 
 // A parsed TDF file; the getters read the current section.
+// Keeps its own view of the parser classes: the header has no FindFieldValue or
+// Fixed-returning GetFieldFixed, so the file's own views stay.
 class TdfRecord;
 
 class TdfRecord {

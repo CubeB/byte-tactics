@@ -147,28 +147,7 @@ static inline Class_004c93f0* InsertNew(TranslationTable* s, TdfField* e, const 
     return (Class_004c93f0*)&((Class_004c5ba0*)&s->v)->Insert(e, MakeElem(key, Class_004c9180()))->value;
 }
 
-// A TDF section: its name and the entries under it.
-class TdfRecord {
-public:
-    const char* name;                    // +0x0
-
-    void CopyRecordName(char* dest, size_t count);
-    int GetFieldString(char* dst, const char* key, size_t size, const char* def);
-};
-
-class TdfFile {
-public:
-    int root;                            // +0x0
-    TdfRecord* current;                  // +0x4
-    int file;                            // +0x8
-
-    TdfFile();
-    ~TdfFile();
-    int LoadFile(char* filename);
-    TdfRecord* SelectRecordAt(int index);
-    void ResetCurrentRecord();
-    void Unload();
-};
+#include "tdf.h"
 
 // Reloads one TDF file into the global map (g_translations):
 // frees the old map when the section name changed, builds a new one and inserts

@@ -57,6 +57,8 @@ void StartScreenShake(int, int, int);
 void AccumulateScreenShake(int, int, int);
 int RegisterUnitOrders();
 
+// Keeps its own view of the parser classes: TdfFile's inline getters call
+// FindFieldValue, which the header does not declare.
 class TdfRecord {
 public:
     char* FindFieldValue(char* key);

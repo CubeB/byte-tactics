@@ -8,6 +8,8 @@
 // Must stay the only header.
 #include <string.h>
 
+// Keeps its own view of the parser classes: with the shared tdf.h the inlined
+// FindEntry's register allocation changes and 0x422ea0 drops.
 class TdfFile {
 public:
     char unknown_0[4];

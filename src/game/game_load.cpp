@@ -220,6 +220,7 @@ struct Cell_00498da0 {
 // One view of the game state. The ranges two views name differently sit in
 // anonymous unions, so each function keeps the names it matched with.
 class Sound;
+#include "../util/hapi_bank.h"
 
 struct Game {
     char unknown_0[0xc];
@@ -307,7 +308,8 @@ struct Game {
     int ticks;                          // +0x38a47
     char pad_38a4b[0x38a4f - 0x38a4b];
     short speedHysteresis;              // +0x38a4f
-    char unknown_38a51[0x38d6f - 0x38a51];
+    char unknown_38a51[0x38d6b - 0x38a51];
+    HapiBank* p38d6b;                   // +0x38d6b
     // volatile: the loader thread writes these; gives the bars' byte loads.
     volatile unsigned char progress[6]; // +0x38d6f
     union {                             // +0x38d75
@@ -368,13 +370,18 @@ public:
     void SendAllQueued(int a);
 };
 
-#include "../util/hapi_bank.h"
-
 extern PacketManager g_packetManager;
 
 #include "../sound/sound.h"
-// Unused here: the symbol id this declaration takes keeps LoadMatch's allocation (docs/c2-regalloc.md).
+// Unused here: the symbol ids these declarations take keep the allocation of LoadMatch and
+// OffsetWorldPosFromView, standing in for the casts of the bank pointer
+// (docs/c2-regalloc.md).
 int ScanDirectory();
+int RIReport(int, int, int, int, int, int, int, int, int, int);
+void __cdecl WalkFrameChain(int*, int*, int, int, int*, int, int*, int*, int, int*);
+void RegisterUnitOrders(void);
+void RegisterGroundOrders(void);
+void EnableAICommands(void);
 
 void __stdcall SeedRandom(int x);
 void __stdcall SleepMilliseconds(int x);
@@ -584,11 +591,10 @@ void __cdecl LoadMatch(void*)
         break;
     }
 
-    if (*(void**)((char*)g_game + 0x38d6b) != 0) {
-        ((HapiBank*)*(void**)((char*)g_game + 0x38d6b))->OpenAccount("summary");
-        if (((HapiBank*)*(void**)((char*)g_game + 0x38d6b))->HasItem("BetweenMissions") ==
-            0) {
-            LoadPlayerControllers(*(void**)((char*)g_game + 0x38d6b));
+    if (g_game->p38d6b != 0) {
+        g_game->p38d6b->OpenAccount("summary");
+        if (g_game->p38d6b->HasItem("BetweenMissions") == 0) {
+            LoadPlayerControllers(g_game->p38d6b);
             if (((Mission*)*(void**)((char*)g_game + 0x391e9))->GetGameType() == 2) {
                 int count = 0;
                 int* def = (int*)*(void**)((char*)g_game + 0x29a0);
@@ -670,7 +676,7 @@ void __cdecl LoadMatch(void*)
             SetCameraPosition(cx, cz, 0);
             ReportGameEvent(6);
         } else if (((Mission*)*(void**)((char*)g_game + 0x391e9))->GetGameType() == 2 &&
-            *(void**)((char*)g_game + 0x38d6b) == 0) {
+            g_game->p38d6b == 0) {
             if (*(int*)((char*)*(void**)((char*)g_game + 0x29a0) + 0x118) != 0) {
                 for (int i1 = 0; i1 < 10; i1++) {
                     if ((unsigned char)i1 < 10) {
@@ -720,11 +726,10 @@ void __cdecl LoadMatch(void*)
 
     RecalculateLineOfSight(1);
 
-    if (*(void**)((char*)g_game + 0x38d6b) != 0) {
-        ((HapiBank*)*(void**)((char*)g_game + 0x38d6b))->OpenAccount("summary");
-        if (((HapiBank*)*(void**)((char*)g_game + 0x38d6b))->HasItem("BetweenMissions") ==
-            0) {
-            LoadSavedGameState(*(void**)((char*)g_game + 0x38d6b));
+    if (g_game->p38d6b != 0) {
+        g_game->p38d6b->OpenAccount("summary");
+        if (g_game->p38d6b->HasItem("BetweenMissions") == 0) {
+            LoadSavedGameState(g_game->p38d6b);
             goto tail;
         }
     } else if (((Mission*)*(void**)((char*)g_game + 0x391e9))->GetGameType() != 1) {
@@ -754,11 +759,11 @@ tail:
     UpdatePlayers();
     InitPlayerResources();
 
-    void* mission = *(void**)((char*)g_game + 0x38d6b);
+    HapiBank* mission = g_game->p38d6b;
     if (mission != 0) {
-        ((HapiBank*)mission)->CloseBank();
+        mission->CloseBank();
         operator delete(mission);
-        *(void**)((char*)g_game + 0x38d6b) = 0;
+        g_game->p38d6b = 0;
     }
     RebuildAIFeatureCells();
 

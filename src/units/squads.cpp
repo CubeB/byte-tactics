@@ -5,11 +5,7 @@
 
 class Squad;
 
-class MissionType {
-public:
-    unsigned char index;
-    MissionType(const char* name);
-};
+#include "../orders/mission_type.h"
 
 #pragma pack(push, 1)
 struct Unit;

@@ -469,11 +469,7 @@ void __stdcall DamageUnit(Unit* source, Unit* target, int amount, int type, unsi
     }
 }
 
-class MissionType {
-public:
-    unsigned char index;
-    MissionType(const char* name);
-};
+#include "../orders/mission_type.h"
 
 #include "../orders/order.h"
 

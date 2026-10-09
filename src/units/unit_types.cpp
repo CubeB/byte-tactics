@@ -340,11 +340,7 @@ public:
     ~Class_004c91a0() { ((Class_004c9390*)this)->ReleaseRef(); }
 };
 
-class MissionType {
-public:
-    char value;                        // +0x0
-    MissionType(char* text);
-};
+#include "../orders/mission_type.h"
 
 // Puts the one-byte MissionType temporary at [esp+0x23], the top byte of
 // its slot, where the original builds it; a plain named local lands at the
@@ -600,7 +596,7 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
             GetLocalizedString(&parser, unitdef->description, "description", 0x40, 0);
             parser.current->GetFieldString(buf, "defaultmissiontype", 100, DAT_005119b8);
             MissionHolder m(buf);
-            unitdef->defaultmissiontype = m.mission.value;
+            unitdef->defaultmissiontype = m.mission.index;
             parser.current->GetFieldString(buf, "wpri_badTargetCategory", 100, g_noneString);
             unitdef->weaponCategories[0] = GetCategoryMask(buf);
             parser.current->GetFieldString(buf, "wsec_badTargetCategory", 100, g_noneString);

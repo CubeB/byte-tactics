@@ -15,19 +15,21 @@
 // int  FUN_004b7123(short angle, int scale)      scale * cos(angle), rounded
 // int  FUN_004b715a(int x, int z)                atan2(z, x) as an angle
 // void FUN_004b7173(short angle, int* xz)        rotate the point xz by angle
-// void (short* angles)                           build the rotation matrix DAT_0050a400
+// void (short* angles)                           build the rotation matrix g_rotationMatrix
 //                                                from the angles at +0xc, +0xe, +0x10 (0x4b71a7)
-// void (int* in, int* out)                       out = DAT_0050a400 applied to in (0x4b72e2)
+// void (int* in, int* out)                       out = g_rotationMatrix applied to in (0x4b72e2)
 // int  FUN_004b7381(int a, int b, int c)         a * b / c, or 0 when c is 0
 
 // GLOBAL: 0x509f00
 extern "C" short g_sinTable[];          // sine table
-extern "C" short DAT_0050a000[];        // the sine table from a quarter turn on (cosine)
+// GLOBAL: 0x50a000
+extern "C" short g_cosTable[];          // the sine table from a quarter turn on (cosine)
 // GLOBAL: 0x509ef0
 extern "C" double g_radToAngle16;       // 0x8000 / pi: radians to angle units
 // GLOBAL: 0x509ef8
 extern "C" double g_angle16ToRad;       // pi / 0x8000: angle units to radians
-extern "C" int DAT_0050a400[9];         // the rotation matrix 0x4b71a7 builds
+// GLOBAL: 0x50a400
+extern "C" int g_rotationMatrix[9];     // the rotation matrix 0x4b71a7 builds
 
 // Stays in its own file: it is a gap region's hand-written assembly, which
 // the builds place apart from the game's functions in src/util/math.cpp.
@@ -55,7 +57,7 @@ extern "C" __declspec(naked) int __cdecl FixedSine(unsigned short angle)
         mov ebp, esp
         push esi
         push ebx
-        lea esi, DAT_0050a000
+        lea esi, g_cosTable
         movzx ebx, word ptr [ebp + 8]
         shr ebx, 6
         and ebx, 0xfffe
@@ -176,7 +178,7 @@ extern "C" __declspec(naked) int __cdecl FixedSine(unsigned short angle)
         mov [ebp - 0xc], eax
         imul edi
         shrd eax, edx, 13
-        mov DAT_0050a400, eax
+        mov g_rotationMatrix, eax
         push word ptr [esi + 0xc]
         call L004b70c0
         mov [ebp - 4], eax
@@ -202,7 +204,7 @@ extern "C" __declspec(naked) int __cdecl FixedSine(unsigned short angle)
         shrd eax, edx, 13
         pop ebx
         add eax, ebx
-        mov DAT_0050a400[4], eax
+        mov g_rotationMatrix[4], eax
         mov eax, [ebp - 0x10]
         imul dword ptr [ebp - 0x18]
         shrd eax, edx, 13
@@ -213,12 +215,12 @@ extern "C" __declspec(naked) int __cdecl FixedSine(unsigned short angle)
         imul dword ptr [ebp - 0xc]
         shrd eax, edx, 13
         sub edi, eax
-        mov DAT_0050a400[8], edi
+        mov g_rotationMatrix[8], edi
         mov eax, [ebp - 8]
         imul dword ptr [ebp - 0x18]
         shrd eax, edx, 13
         neg eax
-        mov DAT_0050a400[12], eax
+        mov g_rotationMatrix[12], eax
         mov eax, [ebp - 4]
         imul dword ptr [ebp - 0xc]
         shrd eax, edx, 13
@@ -229,7 +231,7 @@ extern "C" __declspec(naked) int __cdecl FixedSine(unsigned short angle)
         imul dword ptr [ebp - 0x18]
         shrd eax, edx, 13
         sub edi, eax
-        mov DAT_0050a400[16], edi
+        mov g_rotationMatrix[16], edi
         mov eax, [ebp - 0x10]
         imul dword ptr [ebp - 0xc]
         shrd eax, edx, 13
@@ -240,18 +242,18 @@ extern "C" __declspec(naked) int __cdecl FixedSine(unsigned short angle)
         imul dword ptr [ebp - 0x18]
         shrd eax, edx, 13
         add eax, edi
-        mov DAT_0050a400[20], eax
+        mov g_rotationMatrix[20], eax
         mov eax, [ebp - 0x14]
-        mov DAT_0050a400[24], eax
+        mov g_rotationMatrix[24], eax
         mov eax, [ebp - 0x10]
         imul dword ptr [ebp - 8]
         shrd eax, edx, 13
         neg eax
-        mov DAT_0050a400[28], eax
+        mov g_rotationMatrix[28], eax
         mov eax, [ebp - 4]
         imul dword ptr [ebp - 8]
         shrd eax, edx, 13
-        mov DAT_0050a400[32], eax
+        mov g_rotationMatrix[32], eax
         pop edx
         pop ebx
         pop edi
@@ -269,41 +271,41 @@ extern "C" __declspec(naked) int __cdecl FixedSine(unsigned short angle)
         mov esi, [ebp + 8]
         mov edi, [ebp + 0xc]
         mov eax, [esi]
-        imul DAT_0050a400
+        imul g_rotationMatrix
         shrd eax, edx, 13
         mov ecx, eax
         mov eax, [esi + 4]
-        imul DAT_0050a400[12]
+        imul g_rotationMatrix[12]
         shrd eax, edx, 13
         add ecx, eax
         mov eax, [esi + 8]
-        imul DAT_0050a400[24]
+        imul g_rotationMatrix[24]
         shrd eax, edx, 13
         add eax, ecx
         mov [edi], eax
         mov eax, [esi]
-        imul DAT_0050a400[4]
+        imul g_rotationMatrix[4]
         shrd eax, edx, 13
         mov ecx, eax
         mov eax, [esi + 4]
-        imul DAT_0050a400[16]
+        imul g_rotationMatrix[16]
         shrd eax, edx, 13
         add ecx, eax
         mov eax, [esi + 8]
-        imul DAT_0050a400[28]
+        imul g_rotationMatrix[28]
         shrd eax, edx, 13
         add eax, ecx
         mov [edi + 4], eax
         mov eax, [esi]
-        imul DAT_0050a400[8]
+        imul g_rotationMatrix[8]
         shrd eax, edx, 13
         mov ecx, eax
         mov eax, [esi + 4]
-        imul DAT_0050a400[20]
+        imul g_rotationMatrix[20]
         shrd eax, edx, 13
         add ecx, eax
         mov eax, [esi + 8]
-        imul DAT_0050a400[32]
+        imul g_rotationMatrix[32]
         shrd eax, edx, 13
         add eax, ecx
         mov [edi + 8], eax

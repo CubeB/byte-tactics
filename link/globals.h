@@ -142,7 +142,7 @@ extern char g_volTextGadgetName[8];                                             
 extern char g_modeGadgetName[8];                                                                  // 0x5069d0, 8 bytes; 1 of 1 files
 extern char g_explodeSoundFile[20];                                                               // 0x5069d8, 20 bytes; 1 of 1 files
 extern int g_usePacketManager;                                                                    // 0x506dbc, 4 bytes; 9 of 9 files
-extern char DAT_00507318[32];                                                                     // 0x507318, 32 bytes; 1 of 1 files
+extern char g_continueWatchingTitle[32];                                                          // 0x507318, 32 bytes; 1 of 1 files
 extern char g_radarPicTempName[16];                                                               // 0x5074e8, 16 bytes; 1 of 1 files
 extern char g_radarPictureName[16];                                                               // 0x5074f8, 16 bytes; 1 of 1 files
 extern char g_radarMappedName[16];                                                                // 0x507508, 16 bytes; 1 of 1 files
@@ -212,8 +212,8 @@ extern const char g_errorCaption[20];                                           
 extern "C" double g_radToAngle16;                                                                 // 0x509ef0, 8 bytes; declared extern "C" in 1 of 1 files
 extern "C" double g_angle16ToRad;                                                                 // 0x509ef8, 8 bytes; declared extern "C" in 1 of 1 files
 extern "C" short g_sinTable[128];                                                                 // 0x509f00, 256 bytes; declared extern "C" in 1 of 1 files
-extern "C" short DAT_0050a000[512];                                                               // 0x50a000, 1024 bytes; declared extern "C" in 1 of 1 files
-extern "C" int DAT_0050a400[9];                                                                   // 0x50a400, 36 bytes; declared extern "C" in 1 of 1 files
+extern "C" short g_cosTable[512];                                                                 // 0x50a000, 1024 bytes; declared extern "C" in 1 of 1 files
+extern "C" int g_rotationMatrix[9];                                                               // 0x50a400, 36 bytes; declared extern "C" in 1 of 1 files
 extern char g_alphaTableName[12];                                                                 // 0x50a430, 12 bytes; 1 of 1 files
 extern const char g_shadeTableName[12];                                                           // 0x50a43c, 12 bytes; 1 of 1 files
 extern char g_dotDot[4];                                                                          // 0x50a548, 4 bytes; 1 of 1 files
@@ -488,9 +488,9 @@ extern unsigned char DAT_0051ff1c[4];                                           
 extern int g_cdCategorySavedTrack[10];                                                            // 0x51ff20, 40 bytes; 1 of 1 files
 extern int g_playBufferLooping;                                                                   // 0x51ff48, 4 bytes; 1 of 1 files
 extern unsigned char DAT_0051ff4c[12];                                                            // 0x51ff4c, 12 bytes; nothing refers to it
-extern int DAT_0051ff58;                                                                          // 0x51ff58, 4 bytes; 1 of 1 files
+extern int g_delayedSampleVolume;                                                                 // 0x51ff58, 4 bytes; 1 of 1 files
 extern unsigned char DAT_0051ff5c[4];                                                             // 0x51ff5c, 4 bytes; nothing refers to it
-extern char DAT_0051ff60[112];                                                                    // 0x51ff60, 112 bytes; 1 of 1 files
+extern char g_delayedSampleName[112];                                                             // 0x51ff60, 112 bytes; 1 of 1 files
 extern char g_lzssPresetWindow[176];                                                              // 0x51ffd0, 176 bytes; 1 of 1 files
 extern unsigned char DAT_00520080[3944];                                                          // 0x520080, 3944 bytes; nothing refers to it
 extern char g_lzssPresetTree[24584];                                                              // 0x520fe8, 24584 bytes; 1 of 1 files

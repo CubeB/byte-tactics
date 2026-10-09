@@ -140,7 +140,7 @@ char g_volTextGadgetName[8] = "VOLTEXT";  // 0x5069c8 .data
 char g_modeGadgetName[8] = "MODE";  // 0x5069d0 .data
 char g_explodeSoundFile[20] = "sounds\\explode.wav";  // 0x5069d8 .data
 int g_usePacketManager = 1;  // 0x506dbc .data
-char DAT_00507318[32] = "You're out!  Continue Watching?";  // 0x507318 .data
+char g_continueWatchingTitle[32] = "You're out!  Continue Watching?";  // 0x507318 .data
 char g_radarPicTempName[16] = "RADARPIC TEMP";  // 0x5074e8 .data
 char g_radarPictureName[16] = "RADAR PICTURE";  // 0x5074f8 .data
 char g_radarMappedName[16] = "RADAR MAPPED";  // 0x507508 .data
@@ -229,7 +229,7 @@ short g_sinTable[128] = {
     8153, 8162, 8170, 8177, 8182, 8186, 8190, 8191
 };
 // 0x50a000 .data
-short DAT_0050a000[512] = {
+short g_cosTable[512] = {
     8192, 8191, 8190, 8186, 8182, 8177, 8170, 8162,
     8153, 8142, 8130, 8117, 8103, 8088, 8071, 8054,
     8035, 8014, 7993, 7970, 7946, 7921, 7895, 7868,
@@ -295,7 +295,7 @@ short DAT_0050a000[512] = {
     8035, 8054, 8071, 8088, 8103, 8117, 8130, 8142,
     8153, 8162, 8170, 8177, 8182, 8186, 8190, 8191
 };
-int DAT_0050a400[9] = {0};  // 0x50a400 .data
+int g_rotationMatrix[9] = {0};  // 0x50a400 .data
 char g_alphaTableName[12] = "ALPHA TABLE";  // 0x50a430 .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
 const char g_shadeTableName[12] = "SHADE TABLE";  // 0x50a43c .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
 char g_dotDot[4] = "..";  // 0x50a548 .data
@@ -575,9 +575,9 @@ unsigned char DAT_0051ff1c[4];  // 0x51ff1c .bss
 int g_cdCategorySavedTrack[10];  // 0x51ff20 .bss
 int g_playBufferLooping;  // 0x51ff48 .bss
 unsigned char DAT_0051ff4c[12];  // 0x51ff4c .bss
-int DAT_0051ff58;  // 0x51ff58 .bss
+int g_delayedSampleVolume;  // 0x51ff58 .bss
 unsigned char DAT_0051ff5c[4];  // 0x51ff5c .bss
-char DAT_0051ff60[112];  // 0x51ff60 .bss
+char g_delayedSampleName[112];  // 0x51ff60 .bss
 char g_lzssPresetWindow[176];  // 0x51ffd0 .bss
 unsigned char DAT_00520080[3944];  // 0x520080 .bss
 char g_lzssPresetTree[24584];  // 0x520fe8 .bss

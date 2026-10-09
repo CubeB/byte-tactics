@@ -83,8 +83,8 @@ int __stdcall HAPI_readfromfile(FileHandle* file, void* buf, int size);
 void __stdcall OnStreamTimer(int unused1);
 int __stdcall AddTimer(int delay, int param, void (__stdcall* callback)(int));
 
-extern int DAT_0051ff58;
-extern char DAT_0051ff60[];
+extern int g_delayedSampleVolume;
+extern char g_delayedSampleName[];
 
 int __stdcall HAPI_SeekFile(void* file, int pos);
 int __stdcall HAPI_readfromfile(void* file, void* buf, int size);

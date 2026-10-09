@@ -780,7 +780,7 @@ extern char g_titleGadgetName[];
 extern char g_noText[];
 extern char g_yesText[];
 extern char g_yesNoGuiName[];
-extern char DAT_00507318[];
+extern char g_continueWatchingTitle[];
 
 Screen* __stdcall LoadGuiLayer(Menu* menu, char* name, int value);
 void __stdcall SetKeyboardInput(Menu* menu, int flag);
@@ -797,7 +797,7 @@ void ShowContinueWatchingDialog()
         form = screen->form;
         SetTranslatedTextByName(&g_game->menu, g_choice1GadgetName, g_yesText, 0);
         SetTranslatedTextByName(&g_game->menu, g_choice2GadgetName, g_noText, 0);
-        SetTranslatedTextByName(&g_game->menu, g_titleGadgetName, DAT_00507318, 0);
+        SetTranslatedTextByName(&g_game->menu, g_titleGadgetName, g_continueWatchingTitle, 0);
         strcpy(form->choice1, g_choice1GadgetName);
         strcpy(form->choice2, g_choice2GadgetName);
         screen->callback = ContinueWatchingCallback;

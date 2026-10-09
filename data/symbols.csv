@@ -4025,7 +4025,7 @@ address,name
 0x4fc6e8,g_groundOrders
 0x4fc920,Zero_004fc920$S6253
 0x4fc960,??_7DamagedAllyCollector@@6B@
-0x4fc968,Zero_004fc968$S34951
+0x4fc968,Zero_004fc968$S34949
 0x4fc980,??_7SquadTimer@@6B@
 0x4fc988,??_7AssaultTimer@@6B@
 0x4fc990,??_7EscortTimer@@6B@
@@ -4238,7 +4238,7 @@ address,name
 0x5069d0,g_modeGadgetName
 0x5069d8,g_explodeSoundFile
 0x506dbc,g_usePacketManager
-0x507318,DAT_00507318
+0x507318,g_continueWatchingTitle
 0x5074e8,g_radarPicTempName
 0x5074f8,g_radarPictureName
 0x507508,g_radarMappedName
@@ -4310,6 +4310,8 @@ address,name
 0x509ef0,g_radToAngle16
 0x509ef8,g_angle16ToRad
 0x509f00,g_sinTable
+0x50a000,g_cosTable
+0x50a400,g_rotationMatrix
 0x50a430,g_alphaTableName
 0x50a43c,g_shadeTableName
 0x50a548,g_dotDot
@@ -4389,7 +4391,7 @@ address,name
 0x511fa8,g_explosion2Duration
 0x511fac,g_explosion2StartSize
 0x511fb0,g_explosion2EndSize
-0x511fb4,s_featureTdfParsers$S23975
+0x511fb4,s_featureTdfParsers$S23882
 0x511fb8,g_frontendErrorText
 0x5120b8,g_pictureCache
 0x512288,DAT_00512288
@@ -4647,8 +4649,8 @@ address,name
 0x51ff18,g_cdPlayerWindow
 0x51ff20,g_cdCategorySavedTrack
 0x51ff48,g_playBufferLooping
-0x51ff58,DAT_0051ff58
-0x51ff60,DAT_0051ff60
+0x51ff58,g_delayedSampleVolume
+0x51ff60,g_delayedSampleName
 0x51ffd0,g_lzssPresetWindow
 0x520fe8,g_lzssPresetTree
 0x526ff0,g_squashDictTree

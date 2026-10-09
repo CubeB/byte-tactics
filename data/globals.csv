@@ -202,7 +202,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x5069d0,g_modeGadgetName,.data,8,gap,string,char[],1,0,1,one type,1,,DAT_005069d0,,,4d4f444500000000
 0x5069d8,g_explodeSoundFile,.data,20,gap,string,char[],1,0,1,one type,1,,s_sounds_explode_wav_005069d8,,,736f756e64735c6578706c6f64652e7761760000
 0x506dbc,g_usePacketManager,.data,4,type,data,int,9,0,1,one type,9,,DAT_00506dbc,,,01000000
-0x507318,DAT_00507318,.data,32,gap,string,char[],1,0,1,one type,1,,s_You_re_out__Continue_Watching__00507318,,,596f75277265206f7574212020436f6e74696e7565205761746368696e673f00
+0x507318,g_continueWatchingTitle,.data,32,gap,string,char[],1,0,1,one type,1,,s_You_re_out__Continue_Watching__00507318,,,596f75277265206f7574212020436f6e74696e7565205761746368696e673f00
 0x5074e8,g_radarPicTempName,.data,16,gap,string,char[],1,0,1,one type,1,,s_RADARPIC_TEMP_005074e8,,,52414441525049432054454d50000000
 0x5074f8,g_radarPictureName,.data,16,gap,string,char[],1,0,1,one type,1,,s_RADAR_PICTURE_005074f8,,,52414441522050494354555245000000
 0x507508,g_radarMappedName,.data,16,gap,string,char[],1,0,1,one type,1,,s_RADAR_MAPPED_00507508,,,5241444152204d415050454400000000
@@ -277,8 +277,8 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x509ef0,g_radToAngle16,.data,8,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,,,,,8ac7c96d305fc440
 0x509ef8,g_angle16ToRad,.data,8,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,,,,,5a2c4454fb21193f
 0x509f00,g_sinTable,.data,256,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,,,,,00006500c9002e019201f6015b02bf0223038703eb034e04b20415057905db053e06a10603076507c60728088908ea084a09aa090a0a690ac80a260b840be20b
-0x50a000,DAT_0050a000,.data,1024,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,,,,,0020ff1ffe1ffa1ff61ff11fea1fe21fd91fce1fc21fb51fa71f981f871f761f631f4e1f391f221f0a1ff11ed71ebc1e9f1e811e631e421e211eff1ddb1db61d
-0x50a400,DAT_0050a400,.data,36,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,0x20,,,,000000000000000000000000000000000000000000000000000000000000000000000000
+0x50a000,g_cosTable,.data,1024,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,,,,,0020ff1ffe1ffa1ff61ff11fea1fe21fd91fce1fc21fb51fa71f981f871f761f631f4e1f391f221f0a1ff11ed71ebc1e9f1e811e631e421e211eff1ddb1db61d
+0x50a400,g_rotationMatrix,.data,36,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,0x20,,,,000000000000000000000000000000000000000000000000000000000000000000000000
 0x50a430,g_alphaTableName,.data,12,gap,string,char[],1,0,1,one type,1,,s_ALPHA_TABLE_0050a430,1,,414c504841205441424c4500
 0x50a43c,g_shadeTableName,.data,12,gap,string,const char[],1,0,1,one type,1,,s_SHADE_TABLE_0050a43c,1,,5348414445205441424c4500
 0x50a548,g_dotDot,.data,4,gap,string,char[],1,0,1,one type,1,,DAT_0050a548,,,2e2e0000
@@ -648,9 +648,9 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51ff20,g_cdCategorySavedTrack,.bss,40,gap,data,int[],1,0,1,one type,1,,DAT_0051ff20,,,
 0x51ff48,g_playBufferLooping,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051ff48,,,
 0x51ff4c,DAT_0051ff4c,.bss,12,gap,unreferenced,unsigned char[12],0,0,0,,0,,,,,
-0x51ff58,DAT_0051ff58,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051ff58,,,
+0x51ff58,g_delayedSampleVolume,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051ff58,,,
 0x51ff5c,DAT_0051ff5c,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
-0x51ff60,DAT_0051ff60,.bss,112,gap,data,char[],1,0,1,one type,1,,DAT_0051ff60,,,
+0x51ff60,g_delayedSampleName,.bss,112,gap,data,char[],1,0,1,one type,1,,DAT_0051ff60,,,
 0x51ffd0,g_lzssPresetWindow,.bss,176,gap,data,char[],1,0,1,one type,1,,DAT_0051ffd0,,,
 0x520080,DAT_00520080,.bss,3944,gap,unreferenced,unsigned char[3944],0,0,0,,0,,,,,
 0x520fe8,g_lzssPresetTree,.bss,24584,gap,data,char[],1,0,1,one type,1,,DAT_00520fe8,,,

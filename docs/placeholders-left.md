@@ -116,3 +116,53 @@ over twenty files).
 | `DAT_0051e598` | `src/network/unit_sync.cpp`, `src/network/unit_sync_46d2e0.cpp` | `g_pSyncMapC_NilNode` | already named by the compiler that emits it: `IUUnitSyncEntry::IU?$pair::?$_Tree::_Nil`; renaming the hand spelling makes `tools/check.py` demand that decorated name |
 | `DAT_0051e59c` | `src/network/unit_sync.cpp` | `g_nSyncMapC_NilNodeRefs` | the same for the map's `_Nilrefs`: `IUUnitSyncEntry::IU?$pair::?$_Tree::_Nilrefs` |
 | `DAT_00512c8c` | `src/network/net_game.cpp` | none | a view of the online configuration block (`DAT_00512c80`) at +0xc: read only in `JoinLobbyGame`, clamped to 10 and passed as the lobby's max player count to `HAPINET_createorjoinlobbygame`, while the block itself has no name yet (Thaldren names the fields at +0, +4, +0x14 and +0x28 but not this one) |
+| `DAT_004fc978` | `src/data/unused.cpp` | none | unreferenced: a compiled function's pooled float constant, 2.0f |
+| `DAT_004fcc48` | `src/data/unused.cpp` | none | unreferenced: a compiled function's pooled double constant, 2.0 |
+| `DAT_004fd2e4` | `src/data/unused.cpp` | none | unreferenced: a compiled function's pooled float constant, 2.0f |
+| `DAT_004fda70` | `src/data/unused.cpp` | none | unreferenced: a compiled function's pooled double constant, 2.0 |
+| `DAT_004fdbe0` | `src/data/unused.cpp` | none | unreferenced: eight bytes of zeros between 0x4babd0's constants and the double at 0x4fdbe8 |
+| `DAT_004fc474` | `src/data/unused.cpp` | none | unreferenced: four bytes at the start of the game's constants, before 0x401360's |
+| `DAT_00502f98` | `src/data/unused.cpp` | none | unreferenced: the 16 before the "Code segment checksum error" message |
+| `DAT_00507b64` | `src/data/unused.cpp` | none | unreferenced: the 0 before 0x477ab0's flag at 0x507b6c |
+| `DAT_00507b68` | `src/data/unused.cpp` | none | unreferenced: the 1 among 0x477ab0's flag bytes |
+| `DAT_005066f8` | `src/data/unused.cpp` | none | unreferenced: the speed menu-option table (each label carries the setting's value); its menu is gone |
+| `DAT_00506718` | `src/data/unused.cpp` | none | unreferenced: the rates-of-fire menu-option table |
+| `DAT_00506738` | `src/data/unused.cpp` | none | unreferenced: the chat-level menu-option table ("How much the units say") |
+| `DAT_00506770` | `src/data/unused.cpp` | none | unreferenced: the CD music mode names (`g_notrakGadgetName` and the four -TRAK names) |
+| `DAT_0050b6e0` | `src/data/unused.cpp` | none | unreferenced: the wave formats a sound device may support, among the sound driver's data |
+| `DAT_004fcfc8` | `src/data/guids.cpp` | none | no evidence: one of the four GUIDs the DirectPlay connection list (0x4ca100) skips; no SDK header names it |
+| `DAT_004fcfd8` | `src/data/guids.cpp` | none | the same: one of the four skipped connection GUIDs |
+| `DAT_004fcfe8` | `src/data/guids.cpp` | none | the same: one of the four skipped connection GUIDs |
+| `DAT_004fcff8` | `src/data/guids.cpp` | none | the same: one of the four skipped connection GUIDs |
+| `DAT_00528a54` | `src/debug/debug_lib.cpp`, `src/debug/free_block_map.cpp` | `g_pFussyFreeSpanMapNil` | already named by the compiler that emits it: `std::IH::IU?$pair::?$_Tree::_Nil`; the hand spelling is the free-block tree's view of that node |
+| `DAT_005292c4` | `src/debug/debug_lib.cpp`, `src/debug/debug_lib_4dfd50.cpp`, `src/debug/debug_lib_4e2580.cpp` | `g_pPerfDlgStrMap_NilNode` | already named by the compiler that emits it: `QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nil` |
+| `DAT_00529500` | `src/debug/debug_lib.cpp`, `src/debug/debug_lib_4dfd50.cpp` | none | already named by the compiler that emits it: `QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nilrefs` |
+| `DAT_004fdaf0` | `src/frontend/frontend.cpp`, `src/network/hapinet.cpp` | none | no evidence: an all-zero GUID passed to `DirectPlayCreate` as the default service provider |
+| `DAT_005129c0` | `src/frontend/multi.cpp` | none | write-only: set to 0 when the lobby's gadget layer is built; nothing reads it |
+| `DAT_00512760` | `src/frontend/multi.cpp` | none | write-only: each battle-room slot's field_15 is copied into it; nothing reads it |
+| `DAT_0051276c` | `src/frontend/multi.cpp` | none | write-only: the first battle-room slot's field_19 is copied into it; nothing reads it |
+| `DAT_00512288` | `src/frontend/frontend.cpp` | none | read only, never written: compared with `GetTicks()` in `HandleFrontendDebugKey`; no source sets it |
+| `DAT_00511c20` | `src/game/console_commands.cpp`, `src/ingame/control_panel.cpp`, `src/network/net_stats.cpp` | none | write-only: the net-stats reset functions store a tick in it; nothing reads it |
+| `DAT_00512c98` | `src/game/statistics.cpp`, `src/network/net_game.cpp` | none | a view of the online configuration block (`DAT_00512c80`) at +0x18: a 16-byte player name read as the username fallback, while the block itself has no name yet |
+| `DAT_0051e6cc` | `src/game/game_load.cpp` | none | not a global of its own: the +4 view of `g_loadingBarFlashAlpha`; folding it into the array moves `LoadingScreenFrame`'s expression temporaries (docs/c2-regalloc.md) |
+| `DAT_00501fcc` | `src/game/console_commands.cpp` | none | unreferenced: the zero-initialised 4 bytes between `g_cheatCommands` and `g_debugCommands` |
+| `DAT_004fd4cc` | `src/graphics/model_render.cpp`, `src/graphics/model_render_4581e0.cpp` | none | no evidence: a pooled float constant, 5.0f, the shade scale the original wrote inline |
+| `DAT_004fd4c0` | `src/graphics/model_render.cpp`, `src/graphics/model_render_4589c0.cpp` | none | no evidence: a pooled float constant, 0.0f, compared with a unit's intensity |
+| `DAT_00502a20` | `src/gui/gui.cpp` | none | no evidence: the two characters "&G" a list box compares the start of a line with |
+| `DAT_0051fbac` | `src/gui/gui.cpp` | none | no evidence: a held button's repeat countdown, started at 0xf and decremented once per tick |
+| `DAT_0051fbb0` | `src/gui/gui.cpp` | none | no evidence: the tick of the last repeat check, compared with `GetTicks()` |
+| `DAT_0051fbb4` | `src/gui/gui.cpp` | none | no evidence: the tick of the last menu-hover update, compared with `GetTicks()` |
+| `DAT_0051fba8` | `src/gui/gui_file.cpp` | none | no evidence: a flag that lifts the first object's ypos by 0x1e0 when a GUI file is written |
+| `DAT_004fc930` | `src/orders/unit_orders.cpp` | none | not a global of its own: an unused declaration kept for the symbol ids it counts; the address is a pooled float constant, 30.0f |
+| `DAT_004fc934` | `src/orders/unit_orders.cpp` | none | the same: 0.0005f |
+| `DAT_004fc938` | `src/orders/unit_orders.cpp` | none | the same: -1/140 |
+| `DAT_004fc93c` | `src/orders/unit_orders.cpp` | none | the same: -150.0f |
+| `DAT_0051e821` | `src/game/game_load.cpp` | none | not a global of its own: the +1 view of `g_loadingBarPrevPercent`; folding it into the array moves `LoadingScreenFrame` (docs/c2-regalloc.md) |
+| `DAT_0051e822` | `src/game/game_load.cpp` | none | the same: the +2 view of `g_loadingBarPrevPercent` |
+| `DAT_0051e823` | `src/game/game_load.cpp` | none | the same: the +3 view of `g_loadingBarPrevPercent` |
+| `DAT_0051e824` | `src/game/game_load.cpp` | none | the same: the +4 view of `g_loadingBarPrevPercent` |
+| `DAT_0051e825` | `src/game/game_load.cpp` | none | the same: the +5 view of `g_loadingBarPrevPercent` |
+| `DAT_0051e848` | `src/game/game_state_490ac0.cpp` | none | not a global of its own: the +0x20 view of `g_cdListsDiscEntries` (the disc serial); folding it into the struct moves `ReopenCdAudio` (docs/c2-regalloc.md) |
+| `DAT_0051e850` | `src/game/game_state_490ac0.cpp` | none | the same: the +0x28 view (the first disc's second track category) |
+| `DAT_0051e854` | `src/game/game_state_490ac0.cpp` | none | the same: the +0x2c view (the third track category) |
+| `DAT_0051e858` | `src/game/game_state_490ac0.cpp` | none | the same: the +0x30 view (the fourth track category) |

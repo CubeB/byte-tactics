@@ -83,8 +83,8 @@ int __stdcall HAPI_readfromfile(FileHandle* file, void* buf, int size);
 void __stdcall OnStreamTimer(int unused1);
 int __stdcall AddTimer(int delay, int param, void (__stdcall* callback)(int));
 
-extern int DAT_0051ff58;
-extern char DAT_0051ff60[];
+extern int g_delayedSampleVolume;
+extern char g_delayedSampleName[];
 
 int __stdcall HAPI_SeekFile(void* file, int pos);
 int __stdcall HAPI_readfromfile(void* file, void* buf, int size);
@@ -1169,7 +1169,7 @@ void __stdcall OnStreamTimer(int unused1)
 {
     RemoveTimer(g_cdPlayer->streamTimer);
     g_cdPlayer->streamTimer = -1;
-    g_cdPlayer->OpenSample(DAT_0051ff60, 2, DAT_0051ff58, 0);
+    g_cdPlayer->OpenSample(g_delayedSampleName, 2, g_delayedSampleVolume, 0);
 }
 
 // Remembers a name and a value, then starts a timer whose callback
@@ -1177,8 +1177,8 @@ void __stdcall OnStreamTimer(int unused1)
 // FUNCTION: 0x4d06c0
 int Sound::StreamSampleDelayed(char* name, int value, int delay)
 {
-    strcpy(DAT_0051ff60, name);
-    DAT_0051ff58 = value;
+    strcpy(g_delayedSampleName, name);
+    g_delayedSampleVolume = value;
     streamTimer = AddTimer(delay, 0, OnStreamTimer);
     return 1;
 }

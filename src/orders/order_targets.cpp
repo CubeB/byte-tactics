@@ -290,7 +290,7 @@ struct UnitDef {
 // The second part's full view of the unit, with part 1's x and y at +0x76.
 struct Unit {
     char unknown_0[0x10];
-    Sub_0044e190* field_10;            // +0x10
+    Sub_0044e190* weapon;              // +0x10
     char unknown_14[0x66 - 0x14];
     short heading;                     // +0x66
     char unknown_68[0x6a - 0x68];
@@ -1842,7 +1842,7 @@ Class_0044e190::Class_0044e190(Order* order, Unit* unit)
     field_10 = -1;
     if ((unsigned char)(ref.owner->def->flags >> 11) & 1) {
         field_8 = 7;
-        int t = field_12->field_10->field_dc;
+        int t = field_12->weapon->field_dc;
         if (t != 0)
             field_32 = t << 16;
         else

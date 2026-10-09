@@ -30,7 +30,7 @@ struct Flags_38d75 {
     };
 };
 
-struct Timers_00496790 {
+struct FrameTimers {
     int last;                          // +0x0
     int total;                         // +0x4
     int prev[9];                       // +0x8
@@ -262,7 +262,7 @@ struct Game {
             char unknown_38c5f[0x38d75 - 0x38c5f];
             Flags_38d75 flags_38d75;           // +0x38d75
             char unknown_38d77[0x38d85 - 0x38d77];
-            Timers_00496790 timers;            // +0x38d85
+            FrameTimers timers;                // +0x38d85
         };
     };
     char unknown_390ef[0x391e9 - 0x390ef];
@@ -335,7 +335,7 @@ void __stdcall CreateUnit(int team, unsigned short id, FixedPos_00496ee0 pos, in
 
 static inline void Charge(int bucket)
 {
-    Timers_00496790* t = &g_game->timers;
+    FrameTimers* t = &g_game->timers;
     int now = GetMilliseconds();
     t->cur[bucket] += now - t->last;
     t->last = now;
@@ -345,7 +345,7 @@ static inline void Charge(int bucket)
 // FUNCTION: 0x496790
 void MainLoopTick()
 {
-    Timers_00496790* t = &g_game->timers;
+    FrameTimers* t = &g_game->timers;
     t->total = 0;
     for (int i = 0; i < 9; i++) {
         t->total += t->cur[i];

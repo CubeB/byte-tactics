@@ -2,17 +2,9 @@
 #include <malloc.h>
 #include <string.h>
 
+#include "archive_entry.h"
+
 // An archive's directory tree (hpi.cpp names the same structs).
-struct ArchiveDirectory;
-
-#pragma pack(push, 1)
-struct ArchiveEntry {
-    char* name;                          // +0x0
-    ArchiveDirectory* child;             // +0x4, the directory's own list
-    unsigned char flags;                 // +0x8, bit 0: a directory
-};
-#pragma pack(pop)
-
 struct ArchiveDirectory {
     int count;                           // +0x0
     ArchiveEntry* entries;               // +0x4
@@ -44,7 +36,7 @@ ArchiveEntry* __stdcall HAPI_FindEntry(ArchiveDirectory* list, char* path)
         for (;;) {
             if (i < 0)
                 return 0;
-            if (_strcmpi(name, list->entries[i].name) == 0)
+            if (_strcmpi(name, list->entries[i].text) == 0)
                 break;
             i--;
         }
@@ -53,6 +45,6 @@ ArchiveEntry* __stdcall HAPI_FindEntry(ArchiveDirectory* list, char* path)
         if (!(list->entries[i].flags & 1))
             return 0;
         path = sep + 1;
-        list = list->entries[i].child;
+        list = list->entries[i].dir;
     }
 }

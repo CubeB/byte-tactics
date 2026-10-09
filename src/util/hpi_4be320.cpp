@@ -3,15 +3,7 @@
 // would be inlined into the recursive call below, but the original calls it
 // out of line.
 
-struct ArchiveDirectory;
-
-#pragma pack(push, 1)
-struct ArchiveEntry {
-    int unknown_0;
-    ArchiveDirectory* child;        // +0x4
-    unsigned char flags;            // +0x8
-};
-#pragma pack(pop)
+#include "archive_entry.h"
 
 struct ArchiveDirectory {
     int count;
@@ -50,7 +42,7 @@ void HAPI_ResolveShadowedFiles(void)
             for (int j = list->count - 1; j >= 0; j--) {
                 list->entries[j].flags &= ~2;
                 if (list->entries[j].flags & 1)
-                    HAPI_ClearShadowFlags(list->entries[j].child);
+                    HAPI_ClearShadowFlags(list->entries[j].dir);
             }
         }
         HAPI_MarkShadowedFiles(DAT_005119b8, -1, 1);

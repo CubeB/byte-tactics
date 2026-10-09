@@ -10,37 +10,7 @@
 // symbol count.
 #include <io.h>
 
-template<class T> struct List : std::vector<T> { void Clear() { clear(); } };
-
 #include "../util/vec3.h"
-
-struct Vec { int x,y,z; Vec(int a,int b,int c):x(a),y(b),z(c){} };
-
-struct Elem_0040cc40 {
-    Point16 pos;                       // +0x0
-    float key;                         // +0x4
-    Elem_0040cc40() {}
-    // The value is taken as a float parameter: gives the original's fld/fstp copy.
-    Elem_0040cc40(short x, short y, float k) { pos.x = x; pos.y = y; key = k; }
-    Elem_0040cc40(const Elem_0040cc40& o) : pos(o.pos), key(o.key) {}
-    bool operator<(const Elem_0040cc40& o) const { return key < o.key; }
-};
-
-typedef std::vector<Elem_0040cc40> ElemVec;
-
-struct Elem_0040cfb0 {
-    char a;
-    char b;
-    char c;
-};
-
-struct Elem_0040d4f0 {
-    char value;
-};
-
-struct Elem_0040d550 {
-    int unknown_0;
-};
 
 #pragma pack(push,1)
 struct Player { char pad[0x108]; unsigned char allied[0x3e]; unsigned char index; int IsAllied(unsigned char p) const { return allied[p]; } };
@@ -74,50 +44,7 @@ struct Game {
     Mission* net;                      // +0x391e9
 };
 
-class PlayerAI {
-public:
-    Player* owner;                     // +0x00
-    unsigned char index;               // +0x04
-    List<Unit*> visible;               // +0x05
-    List<Unit*> known;                 // +0x15
-    List<Unit*> factories;             // +0x25
-    Vec centre;                        // +0x35
-    char unknown_41[0x4d - 0x41];
-    ElemVec cells;                     // +0x4d
-    char unknown_5d[0x65 - 0x5d];
-    std::vector<Elem_0040cfb0> vec_65; // +0x65
-    int builders;                      // +0x75
-    int hasSpecial;                    // +0x79
-    std::vector<short> counts;         // +0x7d
-    std::vector<unsigned char> vec_8d; // +0x8d
-    std::vector<char> weights;         // +0x9d
-    std::vector<Elem_0040d4f0> vec_ad; // +0xad
-    std::vector<Elem_0040d550> vec_bd; // +0xbd
-    std::vector<Elem_0040d550> values; // +0xcd
-    std::vector<Elem_0040d550> locked; // +0xdd
-    unsigned int lastTick;             // +0xed
-    Point16 spacing0;                  // +0xf1
-    Point16 offset0;                   // +0xf5
-    int margin0;                       // +0xf9
-    Point16 spacing1;                  // +0xfd
-    Point16 offset1;                   // +0x101
-    int margin1;                       // +0x105
-    int searchRadius;                  // +0x109
-
-    // In ai_player.cpp: it builds the unit lists one and two wrapper
-    // levels deep to spend its inline budget as the original does.
-    PlayerAI(unsigned char player);
-    void InitUnitTables();
-    // In ai_player_409730.cpp: it needs a cut-down <vector> for its symbol ids.
-    void ComputeBaseWeights();
-    bool FindCellNearFeatures(UnitDef* type, Vec3* pos, ElemVec* list, int range, Point16* out);
-    bool FindRandomPlacementCell(UnitDef* type, Vec3* pos, int range, Point16* out);
-    void BuildFeatureCells();
-    // Stays in this file: its weight load's addressing mode follows the file's
-    // symbol ids.
-    void RefreshUnitLists();
-    void UpdateEveryThirtyTicks();
-};
+#include "player_ai.h"
 #pragma pack(pop)
 
 extern Game* g_game;
@@ -179,14 +106,15 @@ void PlayerAI::RefreshUnitLists()
     for(Unit* u=g_game->units+1;u<=g_game->unitsEnd;++u) {
         if(u->Ready()) {
             if(!owner->IsAllied(u->PlayerIndex())) {
-                if(IsUnitVisibleToPlayer(owner,u) && !(u->flags&0x8000)) visible.push_back(u);
-                if((unsigned char)(u->flags>>8)&1) known.push_back(u);
+                if(IsUnitVisibleToPlayer(owner,u) && !(u->flags&0x8000)) visible.units.push_back(u);
+                if((unsigned char)(u->flags>>8)&1) known.units.push_back(u);
             } else if(u->PlayerIndex()==owner->index && u->buildLeft==0.0) {
                 ++counts[u->unitDefIndex];
                 if(u->def->builder) ++builders;
-                if((u->def->flags&0x40) && (u->def->flags&0x200) && (u->activateFlags&1)) factories.push_back(u);
+                if((u->def->flags&0x40) && (u->def->flags&0x200) && (u->activateFlags&1)) factories.list.units.push_back(u);
                 if((u->def->flags&0x400) && (u->activateFlags&1)) hasSpecial=1;
-                float weight=weights[u->unitDefIndex];
+                // The table holds signed bytes: the cast gives the sign-extending load.
+                float weight=(char)weights[u->unitDefIndex];
                 sum.total+=weight;
                 sum.x-=(float)u->pos.x*weight*-0.0000152587890625f;
                 sum.y-=(float)u->pos.y*weight*-0.0000152587890625f;
@@ -198,5 +126,5 @@ void PlayerAI::RefreshUnitLists()
     int ix=(int)(sum.x*65536.0);
     int iy=(int)(sum.y*65536.0);
     int iz=(int)(sum.z*65536.0);
-    centre=Vec(ix,iy,iz);
+    centre=Vec3_00409160(ix,iy,iz);
 }

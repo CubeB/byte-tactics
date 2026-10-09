@@ -17,13 +17,8 @@ struct Unit {
     unsigned short unitDefIndex;       // +0xa6
 };
 
-class PlayerAI {
-public:
-    char unknown_0[5];
-    std::vector<Unit*> units; // +0x5
-    char unknown_15[0x91 - 0x15];
-    signed char* table;                // +0x91
-};
+#include "../util/vec3.h"
+#include "player_ai.h"
 #pragma pack(pop)
 
 extern PlayerAI* g_playerAI[];
@@ -34,14 +29,14 @@ int __stdcall SumUnitRatingsInRange(int player, Vec_0040b1c0* pos, int range)
     int total = 0;
     PlayerAI* p = g_playerAI[player];
     int r2 = range * range;
-    std::vector<Unit*>& units = p->units;
+    std::vector<Unit*>& units = p->visible.units;
     for (std::vector<Unit*>::iterator it = units.begin(); it != units.end(); it++) {
         Unit* u = *it;
         int dz = pos->z - u->pos.z;
         int dx = pos->x - u->pos.x;
         int d = (int)(((__int64)dx * dx) >> 32) + (int)(((__int64)dz * dz) >> 32);
         if (d <= r2)
-            total += p->table[u->unitDefIndex];
+            total += (signed char)p->vec_8d[u->unitDefIndex];
     }
     return total;
 }

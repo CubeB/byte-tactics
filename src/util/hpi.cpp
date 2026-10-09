@@ -1670,7 +1670,7 @@ void* __stdcall HAPI_AddArchive(LPCSTR param_1, int param_2)
     GetFullPathNameA(param_1, 0x100, fullPath, &filePart);
 
     for (int i = 0; i < display->count; i++) {
-        if (_strcmpi(fullPath, (char*)display->files[i] + 0x14) == 0)
+        if (_strcmpi(fullPath, (char*)&display->files[i]->name[0]) == 0)
             return 0;
     }
 

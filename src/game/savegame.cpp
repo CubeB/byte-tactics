@@ -12,18 +12,7 @@ class Mission;
 
 // Pack 1: the 4-byte pad after the pointer at +0x391e9 would shift later fields.
 #pragma pack(push, 1)
-struct Gadget {                         // 0x15b bytes
-    char unknown_0[0x1b];
-    int attribs;                       // +0x1b
-    char unknown_1f[0xb6 - 0x1f];
-    char text[4];                      // +0xb6
-    short field_ba;                    // +0xba selected game index
-    char unknown_bc[0xc2 - 0xbc];
-    char* field_c2;                    // +0xc2 text/gaf pointer
-    char unknown_c6[0xce - 0xc6];
-    void* handler;                     // +0xce
-    char unknown_d2[0x15b - 0xd2];
-};
+#include "../gui/gadget.h"
 
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
 int DrawTriangleContours(int, int, int, int, int, int, int);
@@ -294,11 +283,11 @@ void __stdcall ShowSavedGameInfo()
 #define diffs b.diffs
 
     char* desc;
-    if (games->field_ba > -1
-        && (desc = SkipTextLines(g_savegameDescs, games->field_ba)) != 0
+    if (games->u.list.field_ba > -1
+        && (desc = SkipTextLines(g_savegameDescs, games->u.list.field_ba)) != 0
         && strlen(desc) != 0) {
         SetGadgetText(menu, index, desc);
-        char* fname = SkipTextLines(g_savegameFileNames, games->field_ba);
+        char* fname = SkipTextLines(g_savegameFileNames, games->u.list.field_ba);
         sprintf(path, "%s\\%s", DAT_005091c8, fname);
         HapiBank* file = OpenSummaryBank(path);
         if (file != 0) {
@@ -309,7 +298,7 @@ void __stdcall ShowSavedGameInfo()
             g_savegameRadarPreview = (char*)LoadSurface(file);
             if (g_savegameRadarPreview != 0) {
                 FrameFromSurface(g_savegameRadarFrame, g_savegameRadarPreview);
-                radar->field_c2 = g_savegameRadarFrame;
+                radar->u.list.field_c2 = g_savegameRadarFrame;
             }
             SetGadgetActiveByName(menu, "RADAR", g_savegameRadarPreview != 0);
 
@@ -428,7 +417,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         return;
     }
     Gadget* e = FindGadgetChecked(entries, "GAMES");
-    sprintf(buf, "%s\\%s", DAT_005091c8, SkipTextLines(g_savegameFileNames, e->field_ba));
+    sprintf(buf, "%s\\%s", DAT_005091c8, SkipTextLines(g_savegameFileNames, e->u.list.field_ba));
     HapiBank* save = OpenSummaryBank(buf);
     if (save != 0) {
         int type = save->GetIntegerItem("Gametype", 0);
@@ -466,7 +455,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         PlaySoundByName("SMLBUTTON", 0);
         e = FindGadgetChecked(entries, "GAMES");
         sprintf(g_game->saveName, "%s\\%s", DAT_005091c8,
-                SkipTextLines(g_savegameFileNames, e->field_ba));
+                SkipTextLines(g_savegameFileNames, e->u.list.field_ba));
         if (g_game->flags_2a44.b2)
             ShutdownIngameSystems();
         g_game->flags_3923b.b3 = 1;
@@ -659,7 +648,7 @@ void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
     if (IsCurrentGadgetNamed(gadget, "DELETE")) {
         PlaySoundByName("SmallButton", 0);
         Gadget* e = FindGadgetChecked(entries, "GAMES");
-        sprintf(save.path, "%s\\%s", DAT_005091c8, SkipTextLines(g_savegameFileNames, e->field_ba));
+        sprintf(save.path, "%s\\%s", DAT_005091c8, SkipTextLines(g_savegameFileNames, e->u.list.field_ba));
         RemoveFile(save.path);
         ListSavedGames(&save.count);
         ClearSelectedGadget(gadget);
@@ -676,7 +665,7 @@ void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
         DisableKeyCommands(g_game->message);
     PlaySoundByName("smlbutton", 0);
     int index = FindGadgetIndex(entries, "GAMENAME", 3);
-    char* text = entries[index].text;
+    char* text = entries[index].u.text;
     if (strlen(text) != 0) {
         save.games = (int)FindGadgetChecked(entries, "GAMES");
         BuildDataPath(g_game->saveName, DAT_005091c8, text, "SAV");
@@ -702,7 +691,7 @@ void ShowSaveGameScreen()
     }
     Gadget* games = FindGadgetChecked(layer->entries, "GAMES");
     if (games != 0) {
-        games->handler = SavedGameSelectHandler;
+        games->u.list.callback = (void (__stdcall*)(Gui*, Gadget*))SavedGameSelectHandler;
     }
     int index = FindGadgetIndex(layer->entries, "GAMENAME", 3);
     layer->entries[index].attribs |= 2;

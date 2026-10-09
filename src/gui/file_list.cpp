@@ -42,28 +42,7 @@ struct BlinkWord {
     int value;                       // +0xa0
 };
 
-// A gadget entry, 0x15b bytes, shared by the requester's callers and its
-// click handler. The name is a plain string; value (0xb6) holds the
-// highlighted file name, selected the selection index.
-struct Gadget {
-    char unknown_0[0x13];
-    short x;                         // +0x13
-    short y;                         // +0x15
-    short width;                     // +0x17
-    short height;                    // +0x19
-    int attribs;                     // +0x1b
-    char unknown_1f[0xb6 - 0x1f];
-    char value[4];                   // +0xb6
-    short selected;                  // +0xba
-    char unknown_bc[0x136 - 0xbc];
-    unsigned char stages;            // +0x136
-    unsigned char stageIndex;        // +0x137
-    char unknown_138[0x140 - 0x138];
-    short knobPos;                   // +0x140
-    short knobSize;                  // +0x142
-    void* sliderCallback;            // +0x144 (a typed function pointer here takes symbol ids)
-    char unknown_148[0x15b - 0x148];
-};
+#include "gadget.h"
 
 struct Obj18 {
     char unknown_0[4];
@@ -361,7 +340,7 @@ void __stdcall FileRequesterHandler(Gui* gadget)
     if (IsGadgetNamed(entries, gadget->selected, "LOAD")
         || IsGadgetNamed(entries, gadget->selected, "SWIN")) {
         char* name = SkipTextLines(req->names,
-                                  FindGadgetChecked(entries, "SWIN")->selected);
+                                  FindGadgetChecked(entries, "SWIN")->u.list.field_ba);
         if (name[0] == '\\') {
             strcpy(req->selected, name);
             for (i = 0; i < 10; i++) {
@@ -406,7 +385,7 @@ void __stdcall FileRequesterHandler(Gui* gadget)
         gadget->selected = FindGadgetIndex(entries, "LOAD", 14);
         n = FindGadgetIndex(entries, "NAME", 3);
         result = 1;
-        strcpy(req->selected, entries[n].value);
+        strcpy(req->selected, entries[n].u.text);
     } else if (IsGadgetNamed(entries, gadget->selected, "ADRV")) {
         drive[0] = 'A';
         ChangeDrive(drive);
@@ -469,7 +448,7 @@ FileRequester* Dialog::OpenFileRequester(Dialog* self, char* arg2, char* arg3, c
     short none = -1;
     entries->x = none;
     entries->y = none;
-    strcpy(titl->value, arg4);
+    strcpy(titl->u.text, arg4);
     titl->x = none;
 
     obj->names = (char*)GameAllocIgnoreTag("FILE NAMES", 0x17700);

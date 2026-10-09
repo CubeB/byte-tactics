@@ -16,52 +16,7 @@ struct Gui;
 // 0x15b-byte GUI control record: entry 0 holds the count at +0xb6 and the
 // dialog's own fields from +0xbc on, the other entries hold NUL terminated
 // text there.
-struct Gadget {
-    unsigned char type;            // +0x00
-    unsigned char group;           // +0x01
-    char name[0x10];               // +0x02
-    char unknown_12;
-    short x;                       // +0x13
-    short y;                       // +0x15
-    short w;                       // +0x17
-    short h;                       // +0x19
-    // AddTextGadget stores a dword here, HandleTextEditKey tests a byte; the
-    // union stays because its symbol ids keep the later functions' registers.
-    union {
-        int attribs;               // +0x1b
-        unsigned char attribsLow;  // +0x1b
-    };
-    int color;                     // +0x1f
-    int color2;                    // +0x23
-    unsigned char field_27;        // +0x27
-    char field_28;                 // +0x28
-    unsigned char field_29;        // +0x29
-    unsigned char field_2a;        // +0x2a
-    char unknown_2b[0xb6 - 0x2b];
-    union {
-        struct {                   // entry 0: the count and the dialog's fields
-            short count;           // +0xb6
-            char unknown_b8[4];
-            void* surface;         // +0xbc
-            char unknown_c0[0xc];
-            char okName[0x10];     // +0xcc
-            char prevName[0x10];   // +0xdc
-            char focusName[0x10];  // +0xec
-            char unknown_fc[0x5f];
-        };
-        struct {                   // the other entries: the NUL terminated text
-            char text[0x80];       // +0xb6
-            unsigned char stages;  // +0x136
-            unsigned char stageIndex; // +0x137
-            short capacity;        // +0x138
-            char unknown_13a[6];
-            unsigned short knobPos; // +0x140
-            short knobSize;           // +0x142
-            void* sliderCallback;     // +0x144 (a typed function pointer here takes symbol ids)
-            char unknown_148[0x13];
-        };
-    };
-};
+#include "gadget.h"
 
 // The layer a dialog's +0x18 points at: its entry table at +4 and the
 // installed handler at +8.
@@ -233,7 +188,7 @@ static inline int FindPanel_004aa8f0(Layer_004aa8f0* layer)
 {
     Gadget* base = layer->entries;
     int i;
-    for (i = 1; i < base->count + 1; i++) {
+    for (i = 1; i < base->u.count + 1; i++) {
         if (strncmp(base[i].name, "PANEL", 0x10) == 0)
             return i;
     }
@@ -270,9 +225,9 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Gui* menu, const char* name,
                 rect[0] = e->x;
                 rect[1] = e->y;
             }
-            rect[2] = rect[0] + e->w - 1;
-            rect[3] = rect[1] + e->h - 1;
-            FadeRectangle(cur->entries->surface, rect, -0x18);
+            rect[2] = rect[0] + e->width - 1;
+            rect[3] = rect[1] + e->height - 1;
+            FadeRectangle(cur->entries->u.assets.surface, rect, -0x18);
             if (menu->layer != 0)
                 menu->layer->redraw = 1;
         } else {
@@ -289,7 +244,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Gui* menu, const char* name,
         int mask = flags & 0x200;
         if (mask != 0) {
             layer = menu->layer;
-            entry = &layer->entries[layer->entries->count + 1];
+            entry = &layer->entries[layer->entries->u.count + 1];
         } else {
             layer = (Layer_004aa8f0*)GameAllocIgnoreTag(guiName, 0x10f57);
             memset(layer, 0, 0x10f57);
@@ -302,32 +257,32 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Gui* menu, const char* name,
                 layer->entries[idx].field_29 = 0;
                 flags |= 0x20;
                 // Index layer->entries at each use, no local base: gives the reloads.
-                int dx = (layer->entries[idx].w - entry->w) / 2 + layer->entries[idx].x;
-                int dy = (layer->entries[idx].h - entry->h) / 2 + layer->entries[idx].y;
+                int dx = (layer->entries[idx].width - entry->width) / 2 + layer->entries[idx].x;
+                int dy = (layer->entries[idx].height - entry->height) / 2 + layer->entries[idx].y;
                 int j = 1;
-                if (j <= entry->count) {
+                if (j <= entry->u.count) {
                     Gadget* e = &entry[1];
                     do {
                         e->x += dx;
                         e->y += dy;
                         j++;
                         e++;
-                    } while (j <= entry->count);
+                    } while (j <= entry->u.count);
                 }
             } else {
                 int j = 1;
-                if (j <= entry->count) {
+                if (j <= entry->u.count) {
                     Gadget* e = &entry[1];
                     do {
                         e->x += entry->x;
                         e->y += entry->y;
                         j++;
                         e++;
-                    } while (j <= entry->count);
+                    } while (j <= entry->u.count);
                 }
             }
-            layer->entries->count += entry->count;
-            memcpy(entry, &entry[1], entry->count * 0x15b);
+            layer->entries->u.count += entry->u.count;
+            memcpy(entry, &entry[1], entry->u.count * 0x15b);
             entry = layer->entries;
           }
         } else {
@@ -358,10 +313,10 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Gui* menu, const char* name,
         ShowSoftwareCursor();
     }
     {
-        char* dst = entry->okName;
+        char* dst = entry->u.names.choice;
         if (strlen(dst) == 0) {
             int i = 1;
-            while (i <= entry->count) {
+            while (i <= entry->u.count) {
                 if (entry[i].type == 1 && (_strnicmp(entry[i].name, "OK", 2) == 0
                         || _strnicmp(entry[i].name, "NEXT", 4) == 0)) {
                     strcpy(dst, entry[i].name);
@@ -370,11 +325,11 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Gui* menu, const char* name,
                 i++;
             }
         }
-        dst = entry->prevName;
+        dst = entry->u.names.choice2;
         if (strlen(dst) == 0) {
             int i = 1;
             // while, not do/while, as for okName; names indexed as entry[i].name.
-            while (i <= entry->count) {
+            while (i <= entry->u.count) {
                 if (entry[i].type == 1 && (_strnicmp(entry[i].name, "PREV", 4) == 0
                         || _strnicmp(entry[i].name, "Cancel", 6) == 0)) {
                     strcpy(dst, entry[i].name);
@@ -383,12 +338,12 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Gui* menu, const char* name,
                 i++;
             }
         }
-        dst = entry->focusName;
+        dst = entry->u.names.focusName;
         if (strlen(dst) != 0) {
             int i = 1;
             Gadget* e = &entry[1];
             // A while over i < count + 1.
-            while (i < entry->count + 1) {
+            while (i < entry->u.count + 1) {
                 if (strncmp(e->name, dst, 0x10) == 0)
                     goto focusFound;
                 i++;
@@ -405,33 +360,33 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Gui* menu, const char* name,
     menu->hotGadgetIndex = -1;
     // The free path stays last.
     if (ret == 1) {
-        if (entry->count == 1 && ((char*)entry)[0x15b] == 3) {
+        if (entry->u.count == 1 && ((char*)entry)[0x15b] == 3) {
         Gadget* base = menu->layer->entries;
         Gadget* sub = &base[1];
         int r = GetTextKeyColor();
         // Zeroed before the byte load; SetTextColors stays declared (int, int).
         unsigned int v = 0;
-        v = menu->colours[sub->color];
+        v = menu->colours[sub->colours];
         SetTextColors(v, r);
         int i = 0;
         int j;
         // Array indexing, not a walking pointer: a pointer spills i to memory.
-        int n = base->count + 1;
+        int n = base->u.count + 1;
         for (j = 1; j < n; j++) {
             if (base[j].type != 7) {
                 continue;
             }
-            if (i == base[1].field_28) {
+            if (i == base[1].tab) {
                 SetFont(*(int*)((char*)&base[j] + 0xd6));
                 break;
             }
             i++;
         }
-        if (j == base->count + 1)
+        if (j == base->u.count + 1)
             SetFont(*g_guiContext);
         TrySetFocus(menu, 1);
         menu->layer->current = 1;
-        CommitTextEdit(menu, 1, (char*)&sub->count,
+        CommitTextEdit(menu, 1, (char*)&sub->u.count,
                      *(short*)((char*)sub + 0x138), 0);
         ClearKeyQueue();
         }
@@ -452,8 +407,8 @@ int __stdcall IsPointInEntryRect(Gui* obj)
     Rect_004b6720 r;
     r.left = info->x;
     r.top = info->y;
-    r.right = r.left + info->w - 1;
-    r.bottom = r.top + info->h - 1;
+    r.right = r.left + info->width - 1;
+    r.bottom = r.top + info->height - 1;
     return PointInRect(&r, obj->event.data[0], obj->event.data[1]);
 }
 
@@ -491,19 +446,19 @@ int __stdcall BlitLayers(Layer_004aa8f0* node, void* param_2, Rect_004b6720* par
     Gadget* g = node->entries;
     rect.left = g->x;
     rect.top = g->y;
-    rect.right = g->w + rect.left - 1;
-    rect.bottom = g->h + rect.top - 1;
+    rect.right = g->width + rect.left - 1;
+    rect.bottom = g->height + rect.top - 1;
     if (param_3 == 0) {
         if (node->redraw == 1) {
             node->redraw = 0;
-            DrawSurface(param_2, g->surface, g->x, g->y);
+            DrawSurface(param_2, g->u.assets.surface, g->x, g->y);
         }
     } else {
         if (node->redraw != 1 && RectsOverlap(&rect, param_3) == 0) {
             goto finish;
         }
         node->redraw = 0;
-        DrawSurface(param_2, g->surface, g->x, g->y);
+        DrawSurface(param_2, g->u.assets.surface, g->x, g->y);
     }
 finish:
     return 1;
@@ -535,30 +490,30 @@ void __stdcall AddTextGadget(Layer_004aa8f0* obj, char* name, char* text,
                             int x, short y, int w, int flags)
 {
     Gadget* entries = obj->entries;
-    short n = entries->count;
+    short n = entries->u.count;
     int index = n + 1;
     n++;
-    entries->count = n;
+    entries->u.count = n;
     Gadget* e = &obj->entries[index];
     e->type = 5;
     e->x = x;
     e->y = y;
     if (w == -1)
-        e->w = entries->w - x - 5;
+        e->width = entries->width - x - 5;
     else
-        e->w = w;
-    e->h = 0xf;
-    e->color = 0xf;
+        e->width = w;
+    e->height = 0xf;
+    e->colours = 0xf;
     e->attribs = flags;
-    e->group = 0;
-    e->color2 = 0;
+    e->team = 0;
+    e->image = 0;
     e->field_27 = 0;
-    e->field_28 = 0;
+    e->tab = 0;
     e->field_29 = 1;
-    e->field_2a = 0;
+    e->unknown_2a = 0;
     strcpy(e->name, name);
-    strncpy(e->text, text, 0x7f);
-    e->text[0x7f] = 0;
+    strncpy(e->u.text, text, 0x7f);
+    e->u.text[0x7f] = 0;
 }
 
 // FUNCTION: 0x4ab290
@@ -575,10 +530,10 @@ int __stdcall SetBackgroundSurface(Gui* menu, int value)
 int __stdcall AddButtonGadget(Gui* obj, Record_004ab2b0* record)
 {
     Gadget* entries = obj->layer->entries;
-    if (entries->count == 200) {
+    if (entries->u.count == 200) {
         return 0;
     }
-    short n = ++entries->count;
+    short n = ++entries->u.count;
     Record_004ab2b0* dst = (Record_004ab2b0*)&entries[n];
     *dst = *record;
     dst->type = 1;
@@ -820,7 +775,7 @@ int __stdcall HandleTextEditKey(Gui* control, int index, int key)
     Gadget* entry = &holder->entries[index];
     // Declared before text: makes the subscript the addressing-mode index.
     int i;
-    char* text = entry->text;
+    char* text = entry->u.text;
     int changed = 0;
     int last = 0;
 
@@ -873,9 +828,9 @@ int __stdcall HandleTextEditKey(Gui* control, int index, int key)
                         if (size != 0) {
                             char* src = (char*)GlobalLock(hMem);
                             memset(text, 0, 0x80);
-                            memcpy(text, src, (int)size < entry->capacity - 1 ? (int)size : entry->capacity - 1);
+                            memcpy(text, src, (int)size < entry->field_138 - 1 ? (int)size : entry->field_138 - 1);
                             int width = GetTextPixelWidth((unsigned char*)text);
-                            while (width > entry->w) {
+                            while (width > entry->width) {
                                 if (strlen(text) == 0)
                                     break;
                                 text[strlen(text) - 1] = 0;
@@ -891,11 +846,11 @@ int __stdcall HandleTextEditKey(Gui* control, int index, int key)
             case 0x1b:
                 goto done;
             default: {
-                if (len == entry->capacity)
+                if (len == entry->field_138)
                     break;
                 if (key < 0x20 || key > 0x7f)
                     break;
-                if (entry->attribsLow & 2) {
+                if (*(unsigned char*)&entry->attribs & 2) {
                     if (!isalnum(key) && key != '_' && key != ' ' && key != '\'')
                         break;
                 }
@@ -904,10 +859,10 @@ int __stdcall HandleTextEditKey(Gui* control, int index, int key)
                 c[0] = (char)key;
                 c[1] = 0;
                 // entry->text, not the text local: sets the evaluation order of the two calls.
-                int width = GetTextPixelWidth((unsigned char*)entry->text) + GetTextPixelWidth((unsigned char*)c);
-                if (width > entry->w - 4)
+                int width = GetTextPixelWidth((unsigned char*)entry->u.text) + GetTextPixelWidth((unsigned char*)c);
+                if (width > entry->width - 4)
                     break;
-                int n = entry->capacity - 1;
+                int n = entry->field_138 - 1;
                 for (i = n; i > control->cursor; i--)
                     text[i] = text[i - 1];
                 text[control->cursor] = (char)key;
@@ -1004,7 +959,7 @@ int __stdcall OpenConfirmDialog(Gui* sub, char* title)
     if (layer) {
         Gadget* gadgets = layer->entries;
         int i = FindGadgetIndex(gadgets, "TITL", 5);
-        strcpy(gadgets[i].text, title);
+        strcpy(gadgets[i].u.text, title);
         gadgets[i].x = -1;
         return 1;
     }
@@ -1033,9 +988,9 @@ int __stdcall OpenYesNoDialog(Gui* sub, char* param_2, char* param_3, char* para
         Gadget* p1 = &entries[FindGadgetIndex(entries, "CHC1", 1)];
         Gadget* p2 = &entries[FindGadgetIndex(entries, "CHC2", 1)];
         Gadget* p3 = &entries[FindGadgetIndex(entries, "TITL", 5)];
-        strcpy(p1->text, param_4);
-        strcpy(p2->text, param_3);
-        strcpy(p3->text, param_2);
+        strcpy(p1->u.text, param_4);
+        strcpy(p2->u.text, param_3);
+        strcpy(p3->u.text, param_2);
         layer->handler = YesNoDialogHandler;
         return 1;
     }
@@ -1089,7 +1044,7 @@ int __stdcall OpenMessageBox(Gui* gui, char* text, int wrapWidth, int centre, in
         char* line = strtok(buf, "\n");
         int lines = 0;
         int y = 0x14;
-        int next = layer->entries->count + 1;
+        int next = layer->entries->u.count + 1;
         if (line) {
             do {
                 AddTextGadget(layer, "TEXT", line, 0, y, -1, 2);
@@ -1102,7 +1057,7 @@ int __stdcall OpenMessageBox(Gui* gui, char* text, int wrapWidth, int centre, in
         if (autoHeight) {
             width = 0;
             if (lines > 0) {
-                char* p = entries[next].text;
+                char* p = entries[next].u.text;
                 int i = lines;
                 do {
                     if (width <= GetTextPixelWidth((unsigned char*)p))
@@ -1114,24 +1069,24 @@ int __stdcall OpenMessageBox(Gui* gui, char* text, int wrapWidth, int centre, in
         } else {
             width = wrapWidth;
         }
-        entries->w = width;
-        entries->h = lines * 25 + entries[1].h + 0x28;
-        entries->x = (GetScreenWidth() - entries->w) / 2;
-        entries->y = (GetScreenHeight() - entries->h) / 2;
+        entries->width = width;
+        entries->height = lines * 25 + entries[1].height + 0x28;
+        entries->x = (GetScreenWidth() - entries->width) / 2;
+        entries->y = (GetScreenHeight() - entries->height) / 2;
         int i;
-        for (i = 0; i <= entries->count; i++) {
+        for (i = 0; i <= entries->u.count; i++) {
             if (entries[i].type == 5) {
-                entries[i].w = entries->w;
+                entries[i].width = entries->width;
                 entries[i].attribs = 2;
             }
         }
         if (centre) {
             int k = FindGadgetIndex(entries, "OK", 0xe);
             if (k != -1) {
-                entries[k].y = entries->h - entries[k].h - 0xf;
-                entries[k].x = entries->w - entries[k].w - 0xf;
-                strcpy(entries->okName, "OK");
-                strcpy(entries->prevName, "OK");
+                entries[k].y = entries->height - entries[k].height - 0xf;
+                entries[k].x = entries->width - entries[k].width - 0xf;
+                strcpy(entries->u.names.choice, "OK");
+                strcpy(entries->u.names.choice2, "OK");
             }
         } else {
             SetGadgetActiveByName(gui, "OK", 0);
@@ -1162,7 +1117,7 @@ int __stdcall OpenNotExistDialog(Gui* sub, char* name)
     if (dialog) {
         Gadget* gadgets = sub->layer->entries;
         int i = FindGadgetIndex(gadgets, "NAME", 5);
-        strcpy(gadgets[i].text, name);
+        strcpy(gadgets[i].u.text, name);
         gadgets[i].x = -1;
         dialog->handler = NotExistDialogHandler;
         return 1;
@@ -1195,10 +1150,10 @@ int __stdcall OpenChoice3Dialog(Gui* menu, const char* title, const char* choice
         Gadget* e2 = &entries[FindGadgetIndex(entries, "CHC2", 1)];
         Gadget* e3 = &entries[FindGadgetIndex(entries, "CHC3", 1)];
         Gadget* et = &entries[FindGadgetIndex(entries, "TITL", 5)];
-        strcpy(e1->text, choice1);
-        strcpy(e2->text, choice2);
-        strcpy(e3->text, choice3);
-        strcpy(et->text, title);
+        strcpy(e1->u.text, choice1);
+        strcpy(e2->u.text, choice2);
+        strcpy(e3->u.text, choice3);
+        strcpy(et->u.text, title);
         et->x = 0xffff;
         dialog->handler = Choice3DialogHandler;
         return 1;
@@ -1226,14 +1181,14 @@ int __stdcall OpenInputDialog(Gui* sub, char* title, char* input, char* chc2, ch
     if (dialog) {
         Gadget* gadgets = sub->layer->entries;
         Gadget* g = &gadgets[FindGadgetIndex(gadgets, "INPT", 3)];
-        strcpy(g->text, input);
+        strcpy(g->u.text, input);
         g = &gadgets[FindGadgetIndex(gadgets, "TITL", 5)];
-        strcpy(g->text, title);
+        strcpy(g->u.text, title);
         g->x = -1;
         Gadget* g1 = &gadgets[FindGadgetIndex(gadgets, "CHC1", 1)];
         Gadget* g2 = &gadgets[FindGadgetIndex(gadgets, "CHC2", 1)];
-        strcpy(g1->text, chc1);
-        strcpy(g2->text, chc2);
+        strcpy(g1->u.text, chc1);
+        strcpy(g2->u.text, chc2);
         dialog->handler = InputDialogHandler;
         return 1;
     }
@@ -1367,9 +1322,37 @@ void __stdcall TruncateTextWithEllipsis(Gui* obj, unsigned char* text, int limit
         strcpy((char*)end, "...");
 }
 
-// Unused here: forward declarations of later functions of this file. Their
-// symbol ids in front of each palette helper (here and before 0x4ac7d0,
-// 0x4ac8c0 and 0x4acbe0) set its register allocation (docs/c2-regalloc.md).
+// Unused here: real forward declarations that keep the symbol ids the palette
+// helpers (here and before 0x4ac7d0, 0x4ac8c0 and 0x4acbe0) match at
+// (docs/c2-regalloc.md), and the forward declaration of a later function of
+// this file.
+struct Arr_00421550;
+struct ArrayA;
+struct ArrayB;
+struct Attached_00438a00;
+struct Bank_004b4d70;
+struct Base_004d8ae0;
+struct Big_004b1ec0;
+struct BitFlags16_00499200;
+struct BitFlags_004197d0;
+struct BitmapInfo_004b5510;
+struct Bitmap_00437b50;
+struct Bitmap_004caec0;
+struct Bitmap_004cb170;
+struct Bits10F_00487080;
+struct Bits_0045c570;
+struct Bits_0045d280;
+struct BlinkWord_004afc60;
+struct Blk;
+struct Blob32_4cb330;
+struct BlobRec_004b4270;
+struct Block_00421620;
+struct Block_004b1ec0;
+struct Block_004c5ff0;
+struct BmpFileHeader;
+struct BmpInfo;
+struct BmpInfoHeader;
+struct Bounds_src_004b8310;
 void __stdcall CopyPaletteEntries(char* obj, void* dest);
 
 // Builds a 256-entry remap table: for each colour of the source palette,
@@ -1447,7 +1430,7 @@ void __stdcall DrawColorGrid(Gui* obj)
     gadgets = obj->layer->entries;
     int index = FindGadgetIndex(gadgets, "COLS", 6);
     grid = &gadgets[index];
-    void* surface = gadgets->surface;
+    void* surface = gadgets->u.assets.surface;
     int x0 = grid->x + gadgets->x;
     int y = gadgets->y + grid->y;
     Rect_004b6720 rect;

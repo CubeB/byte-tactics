@@ -61,46 +61,7 @@ struct Quad {
 
 struct Menu;
 
-struct Gadget {                        // GUI entry, 0x15b bytes
-    unsigned char type;                // +0x00
-    unsigned char group;               // +0x01
-    char name[0x10];                   // +0x02
-    char unknown_12[0x17 - 0x12];
-    short width;                       // +0x17
-    short height;                      // +0x19
-    int attribs;                       // +0x1b
-    char unknown_1f[0xb6 - 0x1f];
-    union {
-        short count;                   // +0xb6 (entry 0 only)
-        void* callback;                // +0xb6 (the HOTR entry)
-    } u;
-    union {
-        short selected;                // +0xba
-        void* image;                   // +0xba
-        struct {
-            char unknown_bc[2];
-            void* surface;             // +0xbc
-        };
-    };
-    char unknown_c0[0xd2 - 0xc0];
-    void* records;                     // +0xd2
-    char unknown_d6[0x136 - 0xd6];
-    union {                            // +0x136
-        short range;
-        struct {
-            unsigned char stages;      // +0x136
-            unsigned char stageIndex;  // +0x137
-        };
-    };
-    char unknown_138[0x13c - 0x138];
-    int max;                           // +0x13c
-    short knobPos;                     // +0x140
-    short knobSize;                    // +0x142
-    void (__stdcall* sliderCallback)(Menu*, int); // +0x144
-    char unknown_148[0x14a - 0x148];
-    void* sliderUser;                  // +0x14a
-    char unknown_14e[0x15b - 0x14e];
-};
+#include "../gui/gadget.h"
 
 struct Layer {
     int unknown_0;
@@ -427,7 +388,7 @@ void __stdcall HandleShareDialogEvent(Menu* obj)
 
     if (obj->current == -1) {
         Gadget* e = FindGadgetChecked(data, "PLYRLIST");
-        GameFreeThunk(e->records);
+        GameFreeThunk(e->u.list.records);
         g_game->flags_37ebe &= ~0x40;
         return;
     }
@@ -446,7 +407,7 @@ void __stdcall HandleShareDialogEvent(Menu* obj)
     if (IsCurrentGadgetNamed(obj, "OK")) {
         PlaySoundByName("Options", 0);
         Gadget* plyr = FindGadgetChecked(data, "PLYRLIST");
-        short idx = plyr->selected;
+        short idx = plyr->u.list.field_ba;
         if (idx < 0)
             return;
         int pi = FindSlotByDpid(g_shareDialogPlayerNetIds[idx]);
@@ -496,10 +457,10 @@ void OpenShareDialog()
         e->knobSize = layer->entries[idx].height;
         e->range = layer->entries[idx].width - e->knobSize;
         e->max = (int)g_game->players[g_game->localPlayer].metal;
-        e->sliderCallback = UpdateMetalReadout;
+        e->sliderCallback = (void (__stdcall*)(Gui*, int))UpdateMetalReadout;
         e->knobPos = 0;
         SetSliderFromValue(e, 0);
-        e->sliderUser = g_game;
+        e->sliderUser = (int)g_game;
     }
     idx = FindGadgetIndex(layer->entries, "ENERGY", 0xe);
     if (idx != -1) {
@@ -507,10 +468,10 @@ void OpenShareDialog()
         e->knobSize = layer->entries[idx].height;
         e->range = layer->entries[idx].width - e->knobSize;
         e->max = (int)g_game->players[g_game->localPlayer].energy;
-        e->sliderCallback = UpdateEnergyReadout;
+        e->sliderCallback = (void (__stdcall*)(Gui*, int))UpdateEnergyReadout;
         e->knobPos = 0;
         SetSliderFromValue(e, 0);
-        e->sliderUser = g_game;
+        e->sliderUser = (int)g_game;
     }
 
     char* names = (char*)GameAllocIgnoreTag("PLAYERS", g_game->numPlayers * 30);
@@ -767,7 +728,7 @@ void __stdcall HandleUnitInfoDialogEvent(Menu* gadget)
 {
     if (gadget->current == -1) {
         Gadget* e = FindGadgetChecked_E(gadget->layer->entries, "HOTR");
-        FreeSurface(e->image);
+        FreeSurface((void*)e->u.anim.value);
         g_game->flags_37ebe &= ~0x800;
         return;
     }
@@ -784,10 +745,10 @@ void __stdcall HandleUnitInfoDialogEvent(Menu* gadget)
 // FUNCTION: 0x494290
 void __stdcall DrawUnitInfoImage(Menu* gadget, Gadget* entry)
 {
-    if (entry->image) {
+    if (entry->u.anim.value) {
         Rect r;
         GetGadgetRect(entry, &r);
-        DrawSurface(gadget->layer->entries->surface, entry->image, r.left, r.top);
+        DrawSurface(gadget->layer->entries->u.assets.surface, (void*)entry->u.anim.value, r.left, r.top);
     }
 }
 
@@ -827,10 +788,10 @@ void __stdcall OpenUnitInfoDialog(void)
     layer->handler = HandleUnitInfoDialogEvent;
     layer->owner = g_game;
     Gadget* hotr = FindGadgetChecked_E(entries, "HOTR");
-    hotr->u.callback = (void*)DrawUnitInfoImage;
+    hotr->u.hotspot.callback = (void (__stdcall*)(Gui*, Gadget*))DrawUnitInfoImage;
     char* def = g_game->unitDefs + 0x249 * (unsigned)type;
     BuildDataPath(buf, "unitpics", def + 0x20, "PCX");
-    hotr->image = LoadPcx(buf, 0);
+    hotr->u.anim.value = (int)LoadPcx(buf, 0);
     stats = MakePropList(def);
     int n = entries->u.count;
 

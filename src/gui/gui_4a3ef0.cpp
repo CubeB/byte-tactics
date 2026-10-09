@@ -10,34 +10,7 @@
 // 0x4a40b2 skips the multiply and 0x4a40d1 does `idiv ecx` with ecx = 0),
 // where the 0x80 arm tests both of its divisors first.
 
-#pragma pack(push, 1)
-struct Gadget {                        // 0x15b bytes
-    unsigned char type;                // +0x00
-    unsigned char kind;                // +0x01
-    char unknown_02[0x17 - 0x02];
-    short width;                       // +0x17
-    short height;                      // +0x19
-    int attribs;                       // +0x1b
-    char unknown_1f[0x28 - 0x1f];
-    char group;                        // +0x28
-    char unknown_29[0xb6 - 0x29];
-    short count;                       // +0xb6 (only meaningful in entry 0)
-    char unknown_b8[0xc0 - 0xb8];
-    short lineCount;                   // +0xc0
-    char unknown_c2[0xc6 - 0xc2];
-    struct Font_004a3ef0** font;       // +0xc6
-    char unknown_ca[0xd6 - 0xca];
-    int id;                            // +0xd6
-    short lineHeight;                  // +0xda
-    char unknown_dc[0x136 - 0xdc];
-    short range;                       // +0x136
-    char unknown_138[0x140 - 0x138];
-    short knobPos;                     // +0x140
-    short knobSize;                    // +0x142
-    void* sliderCallback;              // +0x144 (a typed function pointer here takes symbol ids)
-    char unknown_148[0x15b - 0x148];
-};
-#pragma pack(pop)
+#include "gadget.h"
 
 #include "../graphics/gaf_frame.h"
 
@@ -78,8 +51,8 @@ static inline GafFrame* GetGlyph_004a3ef0(unsigned char c)
 
 static inline int Find_004a3ef0(Gadget* entries, unsigned char kind)
 {
-    for (int i = 1; i < entries->count + 1; i++) {
-        if (entries[i].type == 2 && entries[i].kind == kind)
+    for (int i = 1; i < entries->u.count + 1; i++) {
+        if (entries[i].type == 2 && entries[i].team == kind)
             return i;
     }
     return 0;
@@ -88,8 +61,8 @@ static inline int Find_004a3ef0(Gadget* entries, unsigned char kind)
 // Reads the count and the font pointer before the count > 0 test.
 static inline int LineSize_004a3ef0(Gadget* e)
 {
-    int count = e->lineCount;
-    Font_004a3ef0** font = e->font;
+    int count = e->u.list.field_c0;
+    Font_004a3ef0** font = (Font_004a3ef0**)e->u.list.field_c6;
     int lines = 0;
     if (count > 0)
         lines = (*font)->glyph->height * count;
@@ -101,7 +74,7 @@ void __stdcall DrawSlider(Dialog* param_1, int param_2)
 {
     Gadget* entries = param_1->holder->entries;
     Gadget* me = &entries[param_2];
-    unsigned char kind = me->kind;
+    unsigned char kind = me->team;
     int found = Find_004a3ef0(entries, kind);
     // Must stay a union with both zero stores: a plain int changes the register choices.
     union { int full; short word; } lines;
@@ -113,24 +86,24 @@ void __stdcall DrawSlider(Dialog* param_1, int param_2)
             if (e->attribs & 0x10) {
                 int i = 1;
                 int n = 0;
-                for (; i < entries->count + 1; i++) {
+                for (; i < entries->u.count + 1; i++) {
                     if (entries[i].type == 7) {
-                        if (n == e->group) {
-                            SetFont(entries[i].id);
+                        if (n == e->tab) {
+                            SetFont(entries[i].u.list.language);
                             break;
                         }
                         n++;
                     }
                 }
-                if (i == entries->count + 1) {
+                if (i == entries->u.count + 1) {
                     SetFont(g_guiContext->current);
                 }
                 int size = (g_guiContext->list == 0) ? GetFontHeight()
                     : GetGlyph_004a3ef0(0x49)->height + 2;
                 int numerator = e->height - 2;
-                int denominator = (e->lineHeight > size + 1) ? e->lineHeight : size + 1;
+                int denominator = (e->u.list.scroll > size + 1) ? e->u.list.scroll : size + 1;
                 int step = numerator / denominator;
-                int last = e->lineCount;
+                int last = e->u.list.field_c0;
                 int rows = (int)((float)step / last * (me->height - 3));
                 me->knobSize = rows;
                 if (me->knobSize < 10) {
@@ -151,8 +124,8 @@ void __stdcall DrawSlider(Dialog* param_1, int param_2)
                     me->range = me->height - s;
                 }
             } else if (e->attribs & 0x80) {
-                if (e->lineHeight != 0 && e->lineCount != 0) {
-                    int s = e->height / e->lineHeight * me->height / e->lineCount;
+                if (e->u.list.scroll != 0 && e->u.list.field_c0 != 0) {
+                    int s = e->height / e->u.list.scroll * me->height / e->u.list.field_c0;
                     me->knobSize = s;
                     if (me->attribs & 1) {
                         me->range = me->width - s;

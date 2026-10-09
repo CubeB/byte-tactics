@@ -15,11 +15,7 @@ struct Vec3_00487bf0 {
     int x, y, z;
 };
 
-struct Angles_00488570 {
-    short bank;                        // +0x0
-    unsigned short heading;            // +0x2
-    short pitch;                       // +0x4
-};
+#include "../util/angles.h"
 
 struct Player_00488310 {              // 0x14b bytes
     int active;                        // +0x0
@@ -40,7 +36,7 @@ struct Unit {
     int motion;                       // +0x0
     UnitWeaponSlot weapons[3];         // +0x4, stride 0x1c
     char unknown_58[0x64 - 0x58];
-    Angles_00488570 angles;            // +0x64
+    Angles16 angles;               // +0x64
     Vec3_00487bf0 pos;                 // +0x6a
     char unknown_76[0x92 - 0x76];
     Def_00488310* def;                 // +0x92
@@ -424,7 +420,7 @@ struct OwnershipTransferPacket {       // 0x18 bytes
     int newOwnerNetId;                 // +0x3
     int buildPercent;                  // +0x7
     int hitPoints;                     // +0xb
-    Angles_00488570 angles;            // +0xf
+    Angles16 angles;               // +0xf
     unsigned char stockpile0;          // +0x15
     unsigned char stockpile1;          // +0x16
     unsigned char stockpile2;          // +0x17

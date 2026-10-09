@@ -75,11 +75,7 @@ struct Settings {
     char unknown_479[0x48];
 };
 
-struct Angles_00456050 {
-    short bank;
-    unsigned short heading;
-    short pitch;
-};
+#include "../util/angles.h"
 
 struct Vec3_00456050 {
     int x, y, z;
@@ -290,7 +286,7 @@ struct Player {
 // game reads. One type for the views of the part files.
 struct Unit {
     char unknown_0[0x64];
-    Angles_00456050 angles;            // +0x64
+    Angles16 angles;               // +0x64
     Vec3_00456050 pos;            // +0x6a
     char unknown_76[0x96 - 0x76];
     Player* player;                    // +0x96
@@ -1391,7 +1387,7 @@ struct UnitCreatePacket {
     short defIndex;                    // +0x1
     short unitId;                      // +0x3
     Vec3_00456050 pos;                 // +0x5
-    Angles_00456050 angles;            // +0x11
+    Angles16 angles;               // +0x11
 };
 
 struct BuilderLinkPacket {

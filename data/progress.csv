@@ -553,7 +553,7 @@ address,size,file,symbol,status,similarity
 0x42a400,50,src/game/data_files.cpp,?LoadDefaultPalette@@YGHXZ,matched,100.0
 0x42a440,295,src/game/data_files.cpp,?LoadTextureGafs@@YGXXZ,matched,100.0
 0x42a570,159,src/game/data_files.cpp,?FreeTextureGafs@@YGXXZ,matched,100.0
-0x42a610,596,src/game/data_files.cpp,?ComputeUnitScriptChecksum@@YGXPAUDef_0042a610@@@Z,matched,100.0
+0x42a610,596,src/game/data_files.cpp,?ComputeUnitScriptChecksum@@YGXPAUUnitDef@@@Z,matched,100.0
 0x42a870,95,src/game/data_files.cpp,??_ETdfFile@@QAEPAXI@Z,matched,100.0
 0x42b370,2375,src/units/unit_types.cpp,??4UnitDef@@QAEAAV0@ABV0@@Z,matched,100.0
 0x42bcc0,77,src/units/unit_types.cpp,?FreeUnitInfo@@YGXXZ,matched,100.0

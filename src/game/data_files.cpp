@@ -770,7 +770,7 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Def_0042a610 {
+struct UnitDef {
     char unknown_0[0x20];
     char name[0x122];                  // +0x20
     unsigned int scriptChecksum;       // +0x142
@@ -789,7 +789,7 @@ void __cdecl ProtectBlockReadOnly(void* p);
 // checksum of each file into scriptChecksum, and locks the unit type table while
 // reading. Does nothing once scriptChecksum is nonzero.
 // FUNCTION: 0x42a610
-void __stdcall ComputeUnitScriptChecksum(Def_0042a610* def)
+void __stdcall ComputeUnitScriptChecksum(UnitDef* def)
 {
     if (def->scriptChecksum)
         return;

@@ -183,7 +183,7 @@ struct Flags241_00409730 {
     unsigned int bits_25 : 7;
 };
 
-struct Def_00409730 {
+struct UnitDef {
     int HasField1ce() { return extractsMetal != 0.0f; }
     char unknown_0[0x186];
     float energyCost;                  // +0x186
@@ -218,7 +218,7 @@ struct Game {
     char unknown_14351[0x1438f - 0x14351];
     int count;                         // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
-    Def_00409730* defs;                // +0x1439b
+    UnitDef* defs;                     // +0x1439b
     char unknown_1439f[0x37ec8 - 0x1439f];
     int windSpeedDenominator;          // +0x37ec8
 };
@@ -260,13 +260,13 @@ public:
 
 extern Game* g_game;
 
-float __stdcall GetEnergyUse(Def_00409730* def);
+float __stdcall GetEnergyUse(UnitDef* def);
 
 // 0x409520 and 0x4095d0 (matched in their own files): no callers in the
 // exe, both inlined into the loop below.
 #define MIN(a, b) (((a) > (b)) ? (b) : (a))
 
-int __stdcall RateWeapons(Def_00409730* p)
+int __stdcall RateWeapons(UnitDef* p)
 {
     int result = 1;
     if (p->flag_245_4)
@@ -283,7 +283,7 @@ int __stdcall RateWeapons(Def_00409730* p)
     return MIN(result, 100);
 }
 
-int __stdcall RateUnitType(Def_00409730* p)
+int __stdcall RateUnitType(UnitDef* p)
 {
     int result = 1;
     if (p->extractsMetal != 0.0f)
@@ -311,7 +311,7 @@ void PlayerAI::ComputeBaseWeights()
         vec_65.resize(g_game->count, e);
     }
     for (int i = 1; i < g_game->count; i++) {
-        Def_00409730* def = &g_game->defs[(unsigned short)i];
+        UnitDef* def = &g_game->defs[(unsigned short)i];
         vec_8d[i] = RateUnitType(def);
 
         int a = 1;

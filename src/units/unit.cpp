@@ -51,7 +51,7 @@ union Flags_00489a90 {
 };
 
 // The unit's type.
-struct Def_00489a90 {
+struct UnitDef {
     char unknown_0[0x14a];
     short f14a;                        // +0x14a, compared signed
     char unknown_14c[0x16e - 0x14c];
@@ -134,7 +134,7 @@ public:
     char unknown_72[0x8a - 0x72];
     Node_00489a90* cargo;           // +0x8a, list head of the cargo count
     char unknown_8e[4];
-    Def_00489a90* def;                 // +0x92
+    UnitDef* def;                      // +0x92
     Player_0048b090* player;           // +0x96
     CobScript* script;                 // +0x9a
     void* block;                       // +0x9e
@@ -291,10 +291,10 @@ int Unit::CountCargo()
 // FUNCTION: 0x489a90
 int Unit::CanLoad(Unit* other)
 {
-    Def_00489a90* theirDef = other->def;
+    UnitDef* theirDef = other->def;
     if (theirDef->f245.bits.flag19)
         return 0;
-    Def_00489a90* ourDef = def;
+    UnitDef* ourDef = def;
     if (!(ourDef->f245.all & 0x100))
         return 0;
     if (CountCargo() >= ourDef->f22b)

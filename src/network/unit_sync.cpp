@@ -166,7 +166,7 @@ struct PlayerEntry_0046d6c0 {           // 0x14b bytes, one slot of g_game's pla
     char unknown_4[0x14b - 4];
 };
 
-struct Def_0046d040 {                   // 0x249 bytes, one unit type
+struct UnitDef {                        // 0x249 bytes, one unit type
     char unknown_0[0x13e];
     unsigned int key;                   // +0x13e
     int y;                              // +0x142
@@ -200,8 +200,8 @@ struct Game {
     char unknown_2a43[0x1438f - 0x2a42 - sizeof(unsigned char)];
     int count;                          // +0x1438f
     char unknown_14393[0x1439b - 0x1438f - sizeof(int)];
-    Def_0046d040* defs;                 // +0x1439b
-    char unknown_1439f[0x391e9 - 0x1439b - sizeof(Def_0046d040*)];
+    UnitDef* defs;                      // +0x1439b
+    char unknown_1439f[0x391e9 - 0x1439b - sizeof(UnitDef*)];
     Mission* mapInfo;                   // +0x391e9
     char unknown_391ed[0x39201 - 0x391e9 - sizeof(Mission*)];
     char field_39201[1];                // +0x39201
@@ -573,7 +573,7 @@ int __cdecl GetLocalHumanDpid();
 unsigned int GetHostDpid();
 void __stdcall SendPacketToPlayer(int a, unsigned int b, void* c, int d);
 Player_0046e0b0* __stdcall FindPlayerByDpid(int id);
-int __stdcall ComputeUnitScriptChecksum(Def_0046d040* def);
+int __stdcall ComputeUnitScriptChecksum(UnitDef* def);
 void ProtectUnitDefsReadWrite();
 void ProtectUnitDefsReadOnly();
 extern char g_unitSyncStatusText[];
@@ -644,13 +644,13 @@ public:
     void ResetEntries();
 };
 
-static inline Def_0046d040* Defs_0046d040()
+static inline UnitDef* Defs_0046d040()
 {
     return g_game->defs;
 }
 
 // The flag expression in its own small inline helper.
-static inline bool FlagOf_0046d040(Def_0046d040* d)
+static inline bool FlagOf_0046d040(UnitDef* d)
 {
     return (d->flags >> 16) & 1;
 }
@@ -1095,7 +1095,7 @@ void UnitSync::CheckUnitAvailable(unsigned int key, int y)
         if (it.ptr->value.y == 0) {
             int n = g_game->count;
             for (int i = 1; i < n; i++) {
-                Def_0046d040* def = &g_game->defs[i];
+                UnitDef* def = &g_game->defs[i];
                 if (def->key == key) {
                     ComputeUnitScriptChecksum(def);
                     it.ptr->value.y = def->y;
@@ -1246,7 +1246,7 @@ void UnitSync::ApplyToUnitTypes()
     if (disabled != 0)
         return;
     for (unsigned short i = 1; i < g_game->count; i++) {
-        Def_0046d040* def = &g_game->defs[i];
+        UnitDef* def = &g_game->defs[i];
         UnitSyncIter it = Find(&def->key);
         if (it == End()) {
             ProtectUnitDefsReadWrite();

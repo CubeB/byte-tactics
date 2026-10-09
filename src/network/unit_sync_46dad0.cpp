@@ -29,7 +29,7 @@ struct UnitSyncPacket { // 0xe bytes
     int value;           // +0xa
 };
 
-struct Def_0046dad0 { // 0x249 bytes
+struct UnitDef { // 0x249 bytes
     char unknown_0[0x13e];
     unsigned int key; // +0x13e
     int y;            // +0x142
@@ -40,7 +40,7 @@ struct Game {
     char unknown_0[0x1438f];
     int count; // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
-    Def_0046dad0* defs; // +0x1439b
+    UnitDef* defs; // +0x1439b
 };
 #pragma pack(pop)
 
@@ -128,7 +128,7 @@ struct Class_0046eaa0 {    // 0x5c bytes, one vector element
 extern Game* g_game;
 extern int DAT_00000000;
 
-int __stdcall ComputeUnitScriptChecksum(Def_0046dad0* def);
+int __stdcall ComputeUnitScriptChecksum(UnitDef* def);
 
 // 0x46f7a0 has no name in the exe, so it is modelled as a method of a
 // vector subclass to keep the call out of line (it is the out-of-line
@@ -263,7 +263,7 @@ void UnitSync::ProcessSync() {
                 Game* game = g_game;
                 if (checksumProgress >= game->count)
                     return;
-                Def_0046dad0* def = &game->defs[checksumProgress];
+                UnitDef* def = &game->defs[checksumProgress];
                 ComputeUnitScriptChecksum(def);
                 // y then key, read into locals before the disabled test.
                 int y = def->y;

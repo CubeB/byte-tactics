@@ -431,7 +431,7 @@ struct Flags_0043e490 {
     unsigned int b15_31 : 17;
 };
 
-struct Def_0043e490 {
+struct UnitDef {
     char unknown_0[0x156];
     int f156; // +0x156
     char unknown_15a[0x1ee - 0x15a];
@@ -477,7 +477,7 @@ struct Unit_0043e490 {
     char f6a[0x86 - 0x6a]; // +0x6a
     Unit_0043e490* f86; // +0x86
     char unknown_8a[0x92 - 0x8a];
-    Def_0043e490* def;       // +0x92
+    UnitDef* def;            // +0x92
     Player* player; // +0x96
     char unknown_9a[0xec - 0x9a];
     Stats_0043e490* fec; // +0xec
@@ -575,7 +575,7 @@ static inline int Selectable(Unit_0043e490* t) {
 int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e490* target,
                            Pos_0043e490* pos) {
     // Declared friendly, enemy, then def (a real local); g_game read directly.
-    Def_0043e490* def;
+    UnitDef* def;
     Node_0043e490* node;
     int friendly;
     int enemy;

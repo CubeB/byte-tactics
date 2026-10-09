@@ -165,10 +165,10 @@ struct EndGamePlayerStat {             // 0x3a bytes
         struct {
             int kills;
             int losses;
-            int field_26;
-            int field_2a;
-            int field_2e;
-            int field_32;
+            int energyProduced;
+            int metalProduced;
+            int energyWasted;
+            int metalWasted;
             int score;
         };
     };
@@ -193,13 +193,13 @@ struct Header {
 struct Bar {                           // 0xd6 bytes, passed to AddBarGadget
     Header h;
     int max;                           // +0xb6
-    int field_ba;                      // +0xba
+    int current;                       // +0xba
     int value;                         // +0xbe
-    int field_c2;                      // +0xc2
-    int field_c6;                      // +0xc6
+    int interval;                      // +0xc2
+    int next;                          // +0xc6
     float scale;                       // +0xca
-    int field_ce;                      // +0xce
-    int field_d2;                      // +0xd2
+    int active;                        // +0xce
+    int showText;                      // +0xd2
 };
 
 struct Button {                        // 0xcc bytes, passed to AddHotspotGadget
@@ -622,10 +622,10 @@ void FillEndGameStatistics(void)
     bar.h.height = 0x12;
     bar.h.color = g_game->color1;
     bar.h.color2 = g_game->color2;
-    bar.field_d2 = 1;
-    bar.field_ce = 1;
-    bar.field_ba = 0;
-    bar.field_c2 = 1;
+    bar.showText = 1;
+    bar.active = 1;
+    bar.current = 0;
+    bar.interval = 1;
     memset(&button, 0, sizeof(button));
     button.h.flag = 1;
     button.h.attribs = 0x400;

@@ -56,11 +56,6 @@ public:
     void AddTypeOrCategory(char* text, int* out);
 };
 
-struct AI {                            // the owner's computer player state
-    char unknown_0[13];
-    int nextAction;                    // +0xd
-};
-
 struct WeaponDef {                     // 0x115 bytes
     char unknown_0[0x111];
     union {
@@ -364,7 +359,7 @@ public:
     unsigned char field_4;             // +0x4
     int countdown;                     // +0x5
     int field_9;                       // +0x9
-    int field_d;                       // +0xd
+    int nextAction;                    // +0xd
     SquadTimer* timers[10];            // +0x11
     Unit* cursor;                      // +0x39
 
@@ -1505,7 +1500,7 @@ SquadManager::SquadManager(Player* p)
     field_9 = 0;
     countdown = 30;
     cursor = 0;
-    field_d = 0;
+    nextAction = 0;
     for (int i = 0; i < 10; i++)
         timers[i] = 0;
     timers[1] = new BuildTimer(this, &player->groups[1]);

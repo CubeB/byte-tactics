@@ -46,11 +46,6 @@ struct Gun_0049c9c0 {
 
 #pragma pack(push, 1)
 
-struct Shot_0049c740 {
-    char unknown_0[0xf4];
-    unsigned short sound;              // +0xf4
-};
-
 struct Unit;
 
 struct Type_0049d270 {
@@ -145,15 +140,19 @@ union Flags_0049d580 {
     unsigned int value;               // +0x111
 };
 
-struct Weapon_0049d580 {
+struct WeaponDef {
     char unknown_0[0x68];
     int speed;                        // +0x68
     char unknown_6c[0xc8 - 0x6c];
     float pitch;                      // +0xc8
-    char unknown_cc[0x104 - 0xcc];
+    char unknown_cc[0xe4 - 0xcc];
+    unsigned short reloadTime;        // +0xe4, in ticks
+    char unknown_e6[0xf4 - 0xe6];
+    unsigned short sound;             // +0xf4
+    char unknown_f6[0x104 - 0xf6];
     short f_104;                      // +0x104
     char unknown_106[0x10a - 0x106];
-    unsigned char team;               // +0x10a
+    unsigned char index;              // +0x10a, the weapon's number in the definitions
     char unknown_10b[0x111 - 0x10b];
     Flags_0049d580 flags;             // +0x111
 };
@@ -212,7 +211,7 @@ struct Unit {
         struct {                       // 49d580's fire state
             char unknown_4[4];
             int f_8;                   // +0x8
-            Weapon_0049d580* f_c;      // +0xc
+            WeaponDef* f_c;      // +0xc
             char unknown_10[6];
             short f_16;                // +0x16
             short f_18;                // +0x18
@@ -312,7 +311,7 @@ struct Unit {
 };
 
 struct Proj_0049c740 {
-    Shot_0049c740* shot;               // +0x00
+    WeaponDef* shot;                   // +0x00
     Vec3 pos;                          // +0x04
     Vec3 pos2;                         // +0x10
     char unknown_1c[0x28 - 0x1c];
@@ -539,7 +538,7 @@ void __stdcall SendWeaponFirePacket(Unit* unit, Obj_00499ab0* source,
         packet.type = 0xd;
         packet.origin = *(Vec3*)a;
         packet.aimOrVel = *(Vec3*)b;
-        packet.weaponDefIndex = unit->f_c->team;
+        packet.weaponDefIndex = unit->f_c->index;
         packet.weaponSlotIndex = (unit->f_1b >> 2) & 3;
         packet.ownerUnitId = !source ? 0 : source->team;
         packet.targetUnitId = !target ? 0 : target->team;
@@ -636,8 +635,7 @@ void __stdcall ApplyWeaponHit(Weapon_499c70* weapon, Unit* target)
             a = damage;
         else
             b = damage;
-        // The player's ai pointer is the SquadManager the method belongs to.
-        ((SquadManager*)attacker->player->ai)->MarkOwnerNetDirtyFromDamageSplit(weapon, a, b);
+        attacker->player->ai->MarkOwnerNetDirtyFromDamageSplit(weapon, a, b);
     }
 }
 
@@ -861,8 +859,7 @@ void __stdcall DetonateProjectile(Projectile_00499eb0* projectile, Unit* unit)
                     a = damage;
                 else
                     b = damage;
-                // The player's ai pointer is the SquadManager the method belongs to.
-                ((SquadManager*)source->player->ai)->MarkOwnerNetDirtyFromDamageSplit(projectile, a & 0xffff, b & 0xffff);
+                source->player->ai->MarkOwnerNetDirtyFromDamageSplit(projectile, a & 0xffff, b & 0xffff);
                 return;
             }
         } else {
@@ -1727,7 +1724,7 @@ int __stdcall QueryWeaponPiece(Unit* unit, unsigned char weapon);
 void __stdcall PlaySoundAt(int sound, Vec3* pos, int param_3);
 
 // FUNCTION: 0x49c740
-void __stdcall InitProjectile(Proj_0049c740* proj, Shot_0049c740* shot, Vec3* pos,
+void __stdcall InitProjectile(Proj_0049c740* proj, WeaponDef* shot, Vec3* pos,
                            Vec3* aim, int field_5, Unit* unit)
 {
     unsigned char i;
@@ -1751,7 +1748,7 @@ void __stdcall InitProjectile(Proj_0049c740* proj, Shot_0049c740* shot, Vec3* po
         if ((unit->flags & 0x20000000) && g_game->trackedUnit == unit)
             g_game->trackedProj = proj;
         for (i = 0; i < 3; i++)
-            if (unit->slots[i].weapon == (WeaponDef*)shot)
+            if (unit->slots[i].weapon == shot)
                 break;
         proj->piece = (short)QueryWeaponPiece(unit, i);
         unit->workTime = g_game->ticks + 0x258;
@@ -2475,7 +2472,7 @@ void __stdcall GetAimFromPosition(Unit* obj, Vec3* out, unsigned char weapon);
 void __stdcall GetWeaponPiecePosition(Unit* obj, Vec3* out, unsigned char weapon, int piece);
 short __stdcall SolveLaunchAngle(int dx, int dy, int dz, int speed, float pitch);
 // The weapon parameter must stay an unsigned char.
-int __stdcall CalcAimAngles(Unit* unit, Weapon_0049d580* target, short* out_heading,
+int __stdcall CalcAimAngles(Unit* unit, WeaponDef* target, short* out_heading,
                            short* out_pitch, unsigned char weapon, Vec3* point);
 int __stdcall AimWithinTolerance(Unit* unit, Unit* aim, short angle1, short angle2);
 int __stdcall FireLineOfSightProjectile(Unit* fire, Unit* unit, Vec3* p3,
@@ -2490,7 +2487,7 @@ int __stdcall FireTurretWeapon(Unit* fire, Unit* unit,
                            Unit* target, Vec3* point)
 {
     if ((unit->f_1b & 1) && unit->f_8) {
-        Weapon_0049d580* def = unit->f_c;
+        WeaponDef* def = unit->f_c;
         short heading;
         short pitch;
         int ok;
@@ -2546,7 +2543,7 @@ int __stdcall FireTurretWeapon(Unit* fire, Unit* unit,
             msg.type = 0xd;
             msg.origin = gunpos;
             msg.aimOrVel = *point;
-            msg.weaponDefIndex = unit->f_c->team;
+            msg.weaponDefIndex = unit->f_c->index;
             msg.weaponSlotIndex = unit->f_1b >> 2 & 3;
             if (fire == 0)
                 msg.ownerUnitId = 0;
@@ -2998,16 +2995,16 @@ void __stdcall InitUnitWeaponSlots(Unit* unit)
         s->reloadTimer = 0;
         s->flags = (s->flags & 0xf2) | ((frame.i & 3) << 2);
         s->weapon = unit->utype->weapons[frame.i];
-        // Read team inline with no named temporary; stockpile is zeroed after this line.
-        s->flags = (s->flags & 0xfd) | (((((Unit*)unit->utype->weapons[frame.i])->team != 0) & 1 | 8) * 2);
+        // Read index inline with no named temporary; stockpile is zeroed after this line.
+        s->flags = (s->flags & 0xfd) | (((unit->utype->weapons[frame.i]->index != 0) & 1 | 8) * 2);
         s->stockpile = 0;
         Vec3 a;
         GetWeaponPiecePosition(unit, &a, frame.i, -1);
         Vec3 b;
         GetAimFromPosition(unit, &b, frame.i);
         s->muzzleAimFromDeltaZ = (a.z - b.z) * 1.25;
-        if (((Unit*)s->weapon)->field_e4 > frame.maxTime)
-            frame.maxTime = ((Unit*)s->weapon)->field_e4;
+        if (s->weapon->reloadTime > frame.maxTime)
+            frame.maxTime = s->weapon->reloadTime;
     }
     unit->script->StartScriptWithArgs("SetMaxReloadTime", 0, 0, 1, frame.maxTime * 1000 / 30, 0, 0, 0);
 }

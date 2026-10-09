@@ -11,7 +11,7 @@
 
 struct PlayerInfo;
 struct Unit;
-struct AI;
+class SquadManager;
 struct Group;
 struct UnitResources;
 
@@ -37,7 +37,7 @@ struct Player {
     unsigned short firstIndex;         // +0x6f
     unsigned short lastIndex;          // +0x71
     unsigned char type;                // +0x73
-    AI* ai;                            // +0x74
+    SquadManager* ai;                  // +0x74
     Group* groups;                     // +0x78
     unsigned char* explored;           // +0x7c
     int exploredWidth;                 // +0x80

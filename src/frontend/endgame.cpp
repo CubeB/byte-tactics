@@ -70,7 +70,7 @@ struct Data {
 struct Menu;
 
 // One 0x15b-byte GUI entry. The views disagree about the bytes at +0xba:
-// 41ea30's and 41f7f0's Amount against 41ec50's short field_ba and 41e420's
+// 41ea30's and 41f7f0's Amount against 41ec50's short selected and 41e420's
 // image pointer at +0xbe; the union keeps both readings.
 struct Gadget {
     unsigned char type;                // +0x0
@@ -91,11 +91,11 @@ struct Gadget {
     union {                            // +0xba
         Amount amount;                 // 41ea30's and 41f7f0's
         struct {
-            short field_ba;            // 41ec50's
+            short selected;            // 41ec50's
             char unknown_bc[2];
             void* image;               // +0xbe, 41e420's
             char unknown_c2[4];
-            unsigned short field_c6;   // +0xc6, 41e420's
+            unsigned short frame;      // +0xc6, 41e420's
         };
     };
     char unknown_c8[0x136 - 0xc8];
@@ -121,7 +121,7 @@ struct Menu {
     void* font;                        // +0x14
     Layer* layer;                      // +0x18
     char unknown_1c[0x60 - 0x1c];
-    int field_60;                      // +0x60
+    int current;                       // +0x60
 };
 
 struct Layer {
@@ -645,7 +645,7 @@ void FillEndGameStatistics(void)
                 Gadget* e = &entries[idx];
                 if (e) {
                     e->image = g_game->logos32;
-                    e->field_c6 = g_game->players[i].info->color;
+                    e->frame = g_game->players[i].info->color;
                 }
             }
             menu->font = menu->font_c;
@@ -758,7 +758,7 @@ void __stdcall HandleEndMissionClick(Menu* gadget)
 {
     Gadget* entries = gadget->layer->entries;
     Data* data = gadget->layer->data;
-    if (gadget->field_60 == -1) {
+    if (gadget->current == -1) {
         BlankScreen();
         if (g_game->lastFrame != 0)
             FreeSurface(g_game->lastFrame);
@@ -815,7 +815,7 @@ void __stdcall HandleEndMissionClick(Menu* gadget)
         g_game->frontendSubstateRequest = 10;
         SetCursorOverlayEnabled(1);
         SetCursorMode(0x14);
-        if (g_game->campaign->SelectMission(FindGadgetChecked(entries, "Missions")->field_ba)) {
+        if (g_game->campaign->SelectMission(FindGadgetChecked(entries, "Missions")->selected)) {
             EnterMainMenuState();
             g_game->bit2_2a44 = 0;
             g_game->bit3_2a44 = 1;
@@ -1000,7 +1000,7 @@ void ShowEndMissionScreen()
 // FUNCTION: 0x41f680
 void __stdcall HandleCdCheckClick(Menu* gadget)
 {
-    if (gadget->field_60 != -1) {
+    if (gadget->current != -1) {
         if (IsCurrentGadgetNamed(gadget, "OK")) {
             PlaySoundByName("Options", 0);
             if (FindGameCdDrive(0)) {

@@ -134,8 +134,8 @@ struct Surface_00495a30 {
     int height;                             // +0x4
     int pitch;                              // +0x8
     unsigned char* bits;                    // +0xc
-    int field_10;                           // +0x10
-    int field_14;                           // +0x14
+    int zPriority;                          // +0x10
+    int colorKey;                           // +0x14
     unsigned short x;                       // +0x18
     unsigned short y;                       // +0x1a
     char unknown_1c[0x10];

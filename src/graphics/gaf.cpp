@@ -147,8 +147,8 @@ struct Surface {
     int height;                        // +0x4
     int pitch;                         // +0x8
     unsigned char* pixels;             // +0xc
-    int field_10;                      // +0x10
-    int field_14;                      // +0x14
+    int zPriority;                     // +0x10
+    int colorKey;                      // +0x14
     unsigned short x;                  // +0x18
     unsigned short y;                  // +0x1a
     Rect_004b7e60 clip;                // +0x1c
@@ -484,8 +484,8 @@ void __stdcall DrawFrameGray(Surface* param_1, GafFrame* param_2, int x, int y)
                     s.height = param_2->height;
                     s.pitch = param_2->width;
                     s.pixels = (unsigned char*)param_2->plane0;
-                    s.field_10 = 10000;
-                    s.field_14 = -1;
+                    s.zPriority = 10000;
+                    s.colorKey = -1;
                     s.x = param_2->x;
                     s.y = param_2->y;
                     s.flag0 = 1;
@@ -589,8 +589,8 @@ void __stdcall SurfaceFromFrame(Surface* dst, GafFrame* src)
     dst->height = src->height;
     dst->pitch = src->width;
     dst->pixels = src->plane0;
-    dst->field_10 = 10000;
-    dst->field_14 = -1;
+    dst->zPriority = 10000;
+    dst->colorKey = -1;
     dst->x = src->x;
     dst->y = src->y;
     dst->flag1 = 0;
@@ -1017,8 +1017,8 @@ void __stdcall DrawLens(void* dst, GafFrame* sprite, int x, int y)
     surface.pitch = sprite->width;
     surface.height = sprite->height;
     surface.pixels = sprite->plane0;
-    surface.field_10 = 10000;
-    surface.field_14 = -1;
+    surface.zPriority = 10000;
+    surface.colorKey = -1;
     surface.x = sprite->x;
     surface.y = sprite->y;
     surface.flag0 = 1;
@@ -1074,8 +1074,8 @@ void __stdcall GrabBackground(void* dst, GafFrame* sprite, int x, int y)
     surface.height = sprite->height;
     surface.pitch = sprite->width;
     surface.pixels = sprite->plane0;
-    surface.field_10 = 10000;
-    surface.field_14 = -1;
+    surface.zPriority = 10000;
+    surface.colorKey = -1;
     surface.x = sprite->x;
     surface.y = sprite->y;
     surface.flag0 = 1;

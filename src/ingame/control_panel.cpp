@@ -163,7 +163,7 @@ struct Menu {
     char unknown_1c[0x60 - 0x1c];
     int index;                         // +0x60
     char unknown_64[0xcca - 0x64];
-    int field_cca;                     // +0xcca
+    int changed;                       // +0xcca
 };
 
 struct PlayerInfo {

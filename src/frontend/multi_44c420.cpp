@@ -51,7 +51,7 @@ struct Menu_0044c420 {
     char unknown_0[0x18];
     Inner_0044c420* inner;             // +0x18
     char unknown_1c[0x60 - 0x1c];
-    int field_60;                      // +0x60 current gadget, -1 for none
+    int current;                       // +0x60 current gadget, -1 for none
 };
 
 struct UnitSync {
@@ -105,7 +105,7 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
     Entry_0044c420* pic;
 
     desc = FindGadgetChecked(menu->inner->gadgets, "DESCLIST");
-    if (menu->field_60 == -1) {
+    if (menu->current == -1) {
         i = 0;
         p = g_unitRestrictPics;
         if (desc->count > 0) {
@@ -198,6 +198,6 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
         }
         return;
     }
-    if (menu->field_60 != -1)
+    if (menu->current != -1)
         ClearSelectedGadget(menu);
 }

@@ -120,9 +120,9 @@ public:
     std::map<unsigned int, UnitSyncEntry> rects;  // +0x00
     VecElems_0046d1a0 elems;              // +0x10
     ListWrap_0046d1a0 ids;                // +0x20
-    int field_2c;                         // +0x2c
-    int field_30;                         // +0x30
-    int field_34;                         // +0x34
+    int seqSent;                          // +0x2c
+    int seqCur;                           // +0x30
+    int seqMax;                           // +0x34
     std::vector<Elem_0046faf0> list_a;    // +0x38
     Vec_0046d1a0 list_b;                  // +0x48
     int direct;                           // +0x58

@@ -12,7 +12,7 @@ class TdfRecord {
     int GetFieldString(char* dst, const char* key, int size, char* def);
     int GetFieldInt(const char* key, int def);
     double GetFieldDouble(const char* key, double def);
-    void* FindSubRecord(const char* key);
+    TdfRecord* FindSubRecord(const char* key);
     char* GetFieldName(int index);
 };
 
@@ -380,14 +380,14 @@ model_done:
     } else {
         w->soundwater = 0xffff;
     }
-    void* damage = parser->FindSubRecord("DAMAGE");
+    TdfRecord* damage = parser->FindSubRecord("DAMAGE");
     if (damage != 0) {
-        w->damage = (short)((TdfRecord*)damage)->GetFieldInt("default", 0);
+        w->damage = (short)damage->GetFieldInt("default", 0);
         int index = 0;
-        char* key = ((TdfRecord*)damage)->GetFieldName(index);
+        char* key = damage->GetFieldName(index);
         while (key) {
             if (_strcmpi(key, "default") != 0) {
-                int value = ((TdfRecord*)damage)->GetFieldInt(key, 0);
+                int value = damage->GetFieldInt(key, 0);
                 if (!w->sub)
                     w->sub = new Map_0042e440;
                 Class_004c91b0 name(key);
@@ -404,7 +404,7 @@ model_done:
                 }
                 *r = value;
             }
-            key = ((TdfRecord*)damage)->GetFieldName(++index);
+            key = damage->GetFieldName(++index);
         }
     } else {
         w->damage = 0;

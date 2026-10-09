@@ -13,8 +13,8 @@ public:
 
 class TdfFile {
 public:
-    int field_0;                        // +0x0 (parsed tree root)
-    int field_4;                        // +0x4 (current node)
+    TdfRecord* field_0;                 // +0x0 (parsed tree root)
+    TdfRecord* field_4;                 // +0x4 (current node)
     int field_8;                        // +0x8
 
     TdfFile();
@@ -114,7 +114,7 @@ void LoadSoundCategories()
 
     BuildDataPath(path, "gamedata", "sound", "TDF");
     if (obj.LoadFile(path)) {
-        g_game->entry_count = ((TdfRecord*)obj.field_0)->GetSubRecordCount();
+        g_game->entry_count = obj.field_0->GetSubRecordCount();
         int size = g_game->entry_count * 0x160;
         g_game->entries = (Entry_0042f740*)GameAllocIgnoreTag("Sound Categories", size);
         memset(g_game->entries, 0, size);
@@ -122,7 +122,7 @@ void LoadSoundCategories()
             char* rec = (char*)g_game->entries + i * 0x160;
             obj.ResetCurrentRecord();
             if (obj.SelectRecordAt(i)) {
-                ((TdfRecord*)obj.field_4)->CopyRecordName(rec, 0x3f);
+                obj.field_4->CopyRecordName(rec, 0x3f);
                 p = g_speechCategories;
                 int* vals = (int*)(rec + 0x4c);
                 // Compared as signed ints, not pointers: keeps jl instead of jb.
@@ -177,8 +177,8 @@ void LoadAllSound()
         int i = 0;
         int more = obj.SelectRecordAt(i);
         while (more) {
-            ((TdfRecord*)obj.field_4)->CopyRecordName(name, 0x20);
-            if (((TdfRecord*)obj.field_4)->GetFieldString(value, "sound", 0x100, DAT_005119b8))
+            obj.field_4->CopyRecordName(name, 0x20);
+            if (obj.field_4->GetFieldString(value, "sound", 0x100, DAT_005119b8))
                 LoadSoundByName(name, value);
             i++;
             obj.ResetCurrentRecord();

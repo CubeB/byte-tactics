@@ -1890,9 +1890,8 @@ struct Point_00480510;
 struct Point_00480720;
 struct Point_004bf060;
 
-// Unused here: forward declarations of real functions; their symbol ids keep
-// the allocation the removed Class_004a2480 and Holder_004a2480 types moved
-// (docs/c2-regalloc.md).
+// Unused here: these declarations keep the symbol count the functions below
+// need (docs/c2-regalloc.md).
 void RegisterUnitOrders();
 void RegisterGroundOrders();
 void EnableAICommands();
@@ -2042,9 +2041,9 @@ struct Button_004a7f70;
 struct Cell_00423c50;
 struct Cell_0047de60;
 struct Cell_004815f0;
-struct Class_004095d0;
+struct UnitDef;
 struct Class_0045ba20;
-struct Class_0048a190;
+struct Unit;
 struct Class_0049fa90;
 struct Class_004a04f0;
 struct Class_004a1030;
@@ -2433,9 +2432,8 @@ struct Dialog_4a30c0 {
     Font_004a30c0* font;               // +0x14
 };
 
-// Unused here: forward declarations of real functions; their symbol ids keep
-// the allocation the removed Class_004a30c0 and Holder_004a30c0 types moved
-// (docs/c2-regalloc.md).
+// Unused here: these declarations keep the symbol count the functions below
+// need (docs/c2-regalloc.md).
 void ClampCameraPosition();
 void ClampCameraTarget();
 void UpdateScreenShake();

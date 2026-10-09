@@ -247,14 +247,7 @@ struct Game {
 };
 
 // The link node embedded in an order at +0x12: its +0x4 is the target unit.
-class PathOrderAttach {
-public:
-    Unit* owner;                       // +0x4
-    PathOrderAttach* next;             // +0x8
-    int value;                         // +0xc
-    virtual ~PathOrderAttach();
-    void SetUnit(Unit* o);
-};
+#include "path_order_attach.h"
 
 // The link node at an order's +0x12 seen without its virtual destructor, so
 // it can share a union with the plain target pointer the handlers use.

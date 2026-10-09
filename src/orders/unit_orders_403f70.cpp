@@ -16,7 +16,7 @@ struct Vec3 {
 struct Unit;
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
 
-class PathOrderAttach { public: void SetUnit(Unit*); };
+#include "path_order_attach.h"
 #pragma pack(push, 1)
 struct UnitDef {
     char pad0[0x14a]; Point origin;

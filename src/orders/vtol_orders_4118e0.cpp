@@ -23,14 +23,7 @@ struct Vec3 {
 
 struct Unit;
 #include "unit_motion.h"
-class PathOrderAttach {
-public:
-    Unit* owner;                       // +0x4
-    PathOrderAttach* next;             // +0x8
-    int value;                         // +0xc
-    virtual ~PathOrderAttach();
-    void SetUnit(Unit* o);
-};
+#include "path_order_attach.h"
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
 
 class Class_0044e6c0 { public: void SetAltitude(int); };

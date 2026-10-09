@@ -27,15 +27,7 @@ public:
     Class_00438760(const char* name);
 };
 
-class PathOrderAttach {
-public:
-    Unit* owner;                       // +0x4
-    PathOrderAttach* next;             // +0x8
-    int value;                         // +0xc
-
-    virtual ~PathOrderAttach();
-    void SetUnit(Unit* o);
-};
+#include "path_order_attach.h"
 
 #include "../map/mission.h"
 

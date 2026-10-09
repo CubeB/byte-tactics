@@ -476,16 +476,7 @@ struct Owner_004895c0 {
 };
 #pragma pack(pop)
 
-class PathOrderAttach {
-public:
-    Owner_004895c0* owner;             // +0x4
-    PathOrderAttach* next;             // +0x8
-    int value;                         // +0xc
-
-    PathOrderAttach(Owner_004895c0* o = 0, int v = 0);
-    virtual ~PathOrderAttach();
-    void SetUnit(Owner_004895c0* o);
-};
+#include "path_order_attach.h"
 
 class UnitRef {
 public:
@@ -1704,7 +1695,7 @@ Class_0044de80::Class_0044de80(int owner, HapiBank* file, char* name)
     file->SeekBox(0);
     if (file->ReadBox(&rec, 0x36) == 0x36) {
         field_12 = LoadUnit(rec.id1, file);
-        ref.SetUnit((Owner_004895c0*)LoadUnit(rec.id2, file));
+        ref.SetUnit((Unit*)LoadUnit(rec.id2, file));
         field_8 = rec.f1;
         field_a = rec.f2;
         field_c = rec.f3;
@@ -1805,7 +1796,7 @@ Class_0044e080::Class_0044e080(Owner_0044e080* owner_, BitReader* reader)
     if (flags & 1) {
         field_10 = reader->ReadBits(0x10);
         unsigned short index = reader->ReadBits(0x10);
-        ref.SetUnit(index == 0 ? 0 : (Owner_004895c0*)&g_game->units[index]);
+        ref.SetUnit(index == 0 ? 0 : (Unit*)&g_game->units[index]);
     }
     if (flags & 0x10)
         field_a = reader->ReadBits(0x10);
@@ -1834,7 +1825,7 @@ Class_0044e190::Class_0044e190(Order* order, Unit* unit)
     : OrderFx((int)order), ref(0, 0)
 {
     vtable = g_pathOrderVtable;
-    ref.SetUnit((Owner_004895c0*)unit);
+    ref.SetUnit((Unit*)unit);
     field_a = 0;
     field_c = 0;
     field_12 = order->unit;
@@ -1864,7 +1855,7 @@ Class_0044e250::Class_0044e250(Source_0044e250* source, int unit, short value)
     field_8 = 5;
     field_12 = source->unit;
     pos = field_12->pos;
-    ref.SetUnit((Owner_004895c0*)unit);
+    ref.SetUnit((Unit*)unit);
 }
 
 // Another constructor of the class built by 0x44e330 and 0x44e250 (vtable
@@ -1886,7 +1877,7 @@ Class_0044e330::Class_0044e330(Source_0044e330* source, int unit, const Vec3_004
     : OrderFx((int)source), ref(0, 0)
 {
     vtable = g_pathOrderVtable;
-    ref.SetUnit((Owner_004895c0*)unit);
+    ref.SetUnit((Unit*)unit);
     pos = p;
     field_a = 0;
     field_c = 0;

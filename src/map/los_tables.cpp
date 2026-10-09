@@ -162,11 +162,10 @@ struct Elem_004336c0 {
 };
 
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
-int RIReport(int, int, int, int, int, int, int, int, int, int);
 void CopyDwordIfNonNull(int*, int*);
-int FUN_0044cfe0(void);
-int FUN_0044d440(void);
-int FUN_0044d900(void);
+struct ApproachRadius { int GetType(); };
+struct RingApproach { int GetType(); };
+struct PointMarker { int GetType(); };
 int FUN_00490200();
 
 extern void __cdecl operator delete(void*);

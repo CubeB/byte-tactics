@@ -194,7 +194,7 @@ public:
     char* first;                       // +0x04
     char* last;                        // +0x08
     char* end;                         // +0x0c
-    void FUN_004758c0(char* where, int count, const TeleportParticle& val);
+    void insert(char* where, int count, const TeleportParticle& val);
 };
 
 struct Vec3_004739b0 {
@@ -339,7 +339,7 @@ typedef std::vector<ThrustParticle> Vec_004743a0;
 // The particle vector, to call its out-of-line insert under this name.
 class Class_00475bd0 {
 public:
-    void* FUN_00475bd0(ThrustParticle* at, unsigned int n, const ThrustParticle& x);
+    void* insert(ThrustParticle* at, unsigned int n, const ThrustParticle& x);
 };
 
 struct Pair_00474880 {
@@ -429,7 +429,7 @@ public:
     char* first;                       // +0x04
     char* last;                        // +0x08
     char* end;                         // +0x0c
-    void FUN_00475ef0(char* where, int count, const WakeParticle& val);
+    void insert(char* where, int count, const WakeParticle& val);
 };
 
 // Vtable 0x4fd5a8, constructor 0x471cc0, destructor 0x471d00, ??_G 0x471cd0.
@@ -1114,13 +1114,13 @@ struct Access_00476710 : Vec_004739b0 {
 // insert under this name.
 class Class_00476210 {
 public:
-    void FUN_00476210(std::vector<SmokeParticle>::iterator p, unsigned int m,
-                     const SmokeParticle& x);
+    void insert(std::vector<SmokeParticle>::iterator p, unsigned int m,
+                const SmokeParticle& x);
 };
 
 class Vec_00476490 {
 public:
-    void FUN_00476490(TimedSubParticle* pos, int count, const TimedSubParticle* src);
+    void insert(TimedSubParticle* pos, int count, const TimedSubParticle* src);
 };
 
 // The vector's own out-of-line size() (0x475840) under the name
@@ -2004,7 +2004,7 @@ void TeleportParticles::Emit()
         e.frame = (int)(((__int64)rand() * e.frameCount) / 0x8000);
         // Not push_back: calling through the List layout keeps the insert out of line.
         List_004737c0* v = (List_004737c0*)&items;
-        v->FUN_004758c0(v->last, 1, e);
+        v->insert(v->last, 1, e);
     }
 
     time = g_game->field_38a47 + 10;
@@ -2142,7 +2142,7 @@ void ThrustParticles::Emit()
         rec.bitmask = g_game->bits_147f3;
         rec.frameCount = (int)GetGafFrameCount(g_game->unknown_147f3) - 1;
         rec.frame = 0;
-        ((Class_00475bd0*)v)->FUN_00475bd0(v->end(), 1, rec);
+        ((Class_00475bd0*)v)->insert(v->end(), 1, rec);
     }
     time = g_game->ticks + 1;
 }
@@ -2260,7 +2260,7 @@ void WakeParticles::Emit()
             e.step = -1;
         }
         List_00474880* v = (List_00474880*)&items;
-        v->FUN_00475ef0(v->last, 1, e);
+        v->insert(v->last, 1, e);
     } while (--i);
 
     time = g_game->ticks + 1;
@@ -2339,7 +2339,7 @@ void SmokeParticles::Emit()
         rec.data = altAnimation ? g_game->unknown_147d3 : g_game->unknown_147cf;
         rec.limit = (int)(((__int64)rand() * (maxFrame - 2)) / 0x8000) + 2;
         rec.count = 0;
-        ((Class_00476210*)v)->FUN_00476210(v->end(), 1, rec);
+        ((Class_00476210*)v)->insert(v->end(), 1, rec);
     }
     time = g_game->ticks + emitPeriod;
 }
@@ -2441,7 +2441,7 @@ void TimedSubParticles::Emit()
         rec.data = g_game->unknown_147cf;
         rec.limit = (int)((__int64)rand() * (maxFrame - 2) / 0x8000) + 2;
         rec.count = 0;
-        ((Vec_00476490*)v)->FUN_00476490(v->end(), 1, &rec);
+        ((Vec_00476490*)v)->insert(v->end(), 1, &rec);
     } while (--i);
     time = g_game->ticks + emitPeriod;
 }

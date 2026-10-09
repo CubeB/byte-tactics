@@ -76,7 +76,7 @@ struct TimedSubParticle {
 // The particle vector, to call its out-of-line insert under this name.
 class Vec_00476490 {
 public:
-    void FUN_00476490(TimedSubParticle* pos, int count, const TimedSubParticle* src);
+    void insert(TimedSubParticle* pos, int count, const TimedSubParticle* src);
 };
 
 class ParticleSystem {

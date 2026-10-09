@@ -3,7 +3,7 @@
 // into a fresh block, copies it into a "TDF file" block that is NUL
 // terminated, blanks out comments in that copy (TdfFile::StripComments,
 // reached through a base class of the object that holds the tree) and parses
-// it into a new root section named "root" (FUN_004c3e40). The tree parsed by
+// it into a new root section named "root" (TdfRecord::TdfRecord). The tree parsed by
 // the previous load is deleted first. Returns 1 on success, 0 when the file
 // cannot be opened or the read fails. The tail of the function is the same
 // code as TdfFile::LoadBuffer (0x4c3120), written out again here.
@@ -51,7 +51,7 @@ public:
     char unknown_14;                           // +0x14
     std::vector<Elem_004c2f60> entries;        // +0x15 (_First at +0x19)
 
-    TdfRecord* FUN_004c3e40(char* name, char* text, int flag, char* path);
+    TdfRecord(char* name, char* text, char** nextblock, char* path);
 
     ~TdfRecord()
     {
@@ -107,7 +107,7 @@ int TdfFile::LoadFile(char* path)
             text[size] = 0;
             this->StripComments(text);
             TdfRecord* node = (TdfRecord*)operator new(0x29);
-            root = node ? node->FUN_004c3e40("root", text, 0, path) : 0;
+            root = node ? new (node) TdfRecord("root", text, 0, path) : 0;
             GameFreeThunk((int*)text);
             result = 1;
         }

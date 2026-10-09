@@ -3,7 +3,7 @@
 // from the previous load and parses the buffer again. The buffer is copied
 // into a fresh "TDF file" block that is NUL terminated, comments are blanked
 // out in that copy (TdfFile::StripComments), and the text is parsed
-// into a new root section named "root" (FUN_004c3e40). The class holding the
+// into a new root section named "root" (TdfRecord::TdfRecord). The class holding the
 // tree is the same one 0x4c2f60 loads files into.
 #include <vector>
 #include <string.h>
@@ -48,7 +48,7 @@ public:
     char unknown_14;                           // +0x14
     Entries_004c51b0 entries;                  // +0x15
 
-    TdfRecord* FUN_004c3e40(char* name, char* text, int flag, char* path);
+    TdfRecord(char* name, char* text, char** nextblock, char* path);
 
     ~TdfRecord()
     {
@@ -82,6 +82,6 @@ void TdfFile::LoadBuffer(char* data, int size, int flag, char* path)
     text[size] = 0;
     this->StripComments(text);
     TdfRecord* node = (TdfRecord*)operator new(0x29);
-    root = node ? node->FUN_004c3e40("root", text, 0, path) : 0;
+    root = node ? new (node) TdfRecord("root", text, 0, path) : 0;
     GameFreeThunk((int*)text);
 }

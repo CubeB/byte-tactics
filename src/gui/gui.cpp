@@ -3669,15 +3669,22 @@ void __stdcall DrawHotspot(Dialog_4a4980* obj, int index)
             return;
         }
     } else if (e->u.hotspot.frame != 0) {
-        src.p[1].x = ((GafFrame*)e->u.hotspot.frame)->width - 1;
-        src.p[2].x = ((GafFrame*)e->u.hotspot.frame)->width - 1;
-        src.p[2].y = ((GafFrame*)e->u.hotspot.frame)->height - 1;
-        src.p[3].y = ((GafFrame*)e->u.hotspot.frame)->height - 1;
+        src.p[1].x = e->u.hotspot.frame->width - 1;
+        src.p[2].x = e->u.hotspot.frame->width - 1;
+        src.p[2].y = e->u.hotspot.frame->height - 1;
+        src.p[3].y = e->u.hotspot.frame->height - 1;
         DrawFrameQuad(entries->u.assets.surface, e->u.hotspot.frame, &dst, &src);
     } else {
         FillRectangle(entries->u.assets.surface, &rect, obj->field_8b9);
     }
 }
+
+// Unused here: forward declarations of real types; their symbol ids keep the allocation (docs/c2-regalloc.md).
+struct Feature;
+struct Weapon;
+struct WeaponDef;
+struct Explosion;
+
 // GUI hit test for menu entry `index` (0x15b-byte entries in the object's table
 // at +0x18 -> +4). The entry's rectangle comes from its header (x,y,width,
 // height; a type-0 header uses origin 0,0), the entry may have a callback at

@@ -1095,7 +1095,7 @@ address,size,file,symbol,status,similarity
 0x452b70,82,src/network/net_game.cpp,?SendAlliance@@YGHHHDH@Z,matched,100.0
 0x452bd0,97,src/network/net_game.cpp,?BroadcastAllyTeam@@YGHPAUPlayer@@@Z,matched,100.0
 0x452c40,124,src/network/net_game.cpp,?GetRejectReasonText@@YGPADH@Z,matched,100.0
-0x452cc0,848,src/network/net_game_452cc0.cpp,?RemovePlayer@@YGXH@Z,matched,100.0
+0x452cc0,848,src/network/net_game.cpp,?RemovePlayer@@YGXH@Z,matched,100.0
 0x453010,772,src/network/net_game.cpp,?RejectPlayer@@YGHHE@Z,matched,100.0
 0x453320,52,src/network/net_game.cpp,?SendProbe@@YGXHH@Z,matched,100.0
 0x453360,380,src/network/net_game_453360.cpp,?SendChatPacket@@YGHPAD@Z,matched,100.0

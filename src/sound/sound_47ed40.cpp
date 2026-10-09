@@ -221,8 +221,8 @@ void ResumeLoopingWav();
 void StopWindowsSound();
 int __cdecl GetLocalDpid();
 int __stdcall BroadcastPacket(int player, void* data, int size);
-struct Cell_0047f300;
-Cell_0047f300* __stdcall GetMapCell(int x, int y);
+struct Cell;
+Cell* __stdcall GetMapCell(int x, int y);
 char* __stdcall Translate(char* text);
 int __stdcall IsUnitVisible(Unit* unit);
 

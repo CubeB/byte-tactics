@@ -28,14 +28,14 @@ struct Unit {
 };
 #pragma pack(pop)
 
-struct Entry_482ac0 {                   // one element of Cell_482ac0, 8 bytes
+struct Entry_482ac0 {                   // one element of FrameTable, 8 bytes
     int field_0;
     short xOffset;
     short yOffset;
     short field_8;
 };
 
-struct Cell_482ac0 {
+struct FrameTable {
     unsigned short count;               // +0
     char unknown_2[0x26];
     Entry_482ac0 entries[1];            // +0x28
@@ -48,7 +48,7 @@ struct Game {
     char debugMode;
     unsigned short mapFlags;            // +0x14281
     char unknown_14283[0x1485b - 0x14283];
-    Cell_482ac0* losTable;              // +0x1485b
+    FrameTable* losTable;               // +0x1485b
 };
 #pragma pack(pop)
 

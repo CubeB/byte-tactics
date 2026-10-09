@@ -496,7 +496,7 @@ struct Pos_0043e490 {
     short zf, z;
 };
 
-struct Cell_0043e490 {
+struct Cell {
     char unknown_0[8];
     unsigned short feature; // +0x8
     unsigned char offsetY;  // +0xa
@@ -511,7 +511,7 @@ struct Feature_0043e490 {
 };
 #pragma pack(pop)
 
-Cell_0043e490* __stdcall GetMapCellAtPosition(Pos_0043e490* pos);
+Cell* __stdcall GetMapCellAtPosition(Pos_0043e490* pos);
 int __stdcall WeaponCanReachPos(Unit_0043e490* unit, void* slot, Pos_0043e490* pos, int which);
 int __stdcall WeaponCanReachUnit(Unit_0043e490* unit, Unit_0043e490* target, int which);
 
@@ -531,7 +531,7 @@ static inline int Visible(Unit_0043e490* unit, Pos_0043e490* pos) {
 // The feature on a map cell, as GetFeature in 0x4237d0.cpp but with the id in
 // a local: 0xfffe marks a cell covered by a larger feature whose origin cell
 // lies (offsetY, offsetX) cells back.
-static inline Feature_0043e490* GetFeature(Cell_0043e490* cell) {
+static inline Feature_0043e490* GetFeature(Cell* cell) {
     if (cell == 0)
         return 0;
     unsigned short id = cell->feature;

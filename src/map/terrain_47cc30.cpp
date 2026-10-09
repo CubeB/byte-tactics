@@ -26,7 +26,7 @@ struct UnitRec_0047cc30 {               // 0x118 bytes
     char unknown_114[0x118 - 0x114];
 };
 
-struct Cell_0047cc30 {
+struct Cell {
     unsigned short unit;                // +0x0
     unsigned short unit2;               // +0x2
     char unknown_4[0xc - 0x4];
@@ -81,7 +81,7 @@ struct Game {
     int width;                          // +0x14233
     int height;                         // +0x14237
     char unknown_1423b[0x14287 - 0x1423b];
-    Cell_0047cc30* cells;               // +0x14287
+    Cell* cells;                        // +0x14287
     char unknown_1428b[0x1429f - 0x1428b];
     Owner_0047cc30* owners;             // +0x1429f
     int ownerCols;                      // +0x142a3
@@ -142,7 +142,7 @@ void __stdcall AddUnitToMap(Obj_0047cc30* obj)
             &g_game->owners[(p.x >> 23) + (p.z >> 23) * g_game->ownerCols]);
     }
     {
-        Cell_0047cc30* cell = &g_game->cells[g_game->width * obj->pos.y + obj->pos.x];
+        Cell* cell = &g_game->cells[g_game->width * obj->pos.y + obj->pos.x];
         unsigned int f = obj->flags.all;
         int index = 0;
 

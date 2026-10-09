@@ -481,7 +481,7 @@ struct Unit;
 struct Spot_0049a120;
 struct FeatureDef_0049a120;
 struct MapFeature_0049b090;
-struct Cell_0049a120;
+struct Cell;
 
 #pragma pack(pop)
 
@@ -993,7 +993,7 @@ struct Holder_0049a120 {
     SquadManager* object;              // +0x74
 };
 
-struct Cell_0049a120 {
+struct Cell {
     unsigned short unit;               // +0x0
     unsigned short unit2;              // +0x2
     char unknown_4[4];
@@ -1033,7 +1033,7 @@ struct Hits_0049a120 {
     int numUnits;
     int numFeatures;
     Unit_0049a120* units[20];
-    Cell_0049a120* features[64];
+    Cell* features[64];
 
     // Each returns 0 if the thing was hit already, else records it (while
     // there is room) and returns 1.
@@ -1049,7 +1049,7 @@ struct Hits_0049a120 {
         }
         return 1;
     }
-    int AddFeature(Cell_0049a120* cell)
+    int AddFeature(Cell* cell)
     {
         for (int k = 0; k < numFeatures; k++) {
             if (features[k] == cell)
@@ -1063,12 +1063,12 @@ struct Hits_0049a120 {
     }
 };
 
-Cell_0049a120* __stdcall GetMapCell(int x, int y);
+Cell* __stdcall GetMapCell(int x, int y);
 int __stdcall ApplyWeaponDamage(Weapon_0049a120* weapon, Unit_0049a120* target, float scale);
 void __stdcall DetonateProjectile(Weapon_0049a120* weapon, Unit_0049a120* unit);
 int __stdcall VectorLength(Vec3_0049a120* v);
 Vec3_0049a120 __stdcall GetFootprintCentre(CellPos_0049a120* cell, FeatureDef_0049a120* def);
-void __stdcall DamageFeature(Cell_0049a120* cell, int x, int z, WeaponDef* def);
+void __stdcall DamageFeature(Cell* cell, int x, int z, WeaponDef* def);
 int __stdcall BroadcastPacket(int id, void* data, int size);
 
 static inline int Length(Vec3_0049a120* v)

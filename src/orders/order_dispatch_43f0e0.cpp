@@ -112,7 +112,7 @@ struct Pos_0043e490 {
     short zf, z;
 };
 
-struct Cell_0043e490 {
+struct Cell {
     char unknown_0[8];
     unsigned short feature; // +0x8
     unsigned char offsetY;  // +0xa
@@ -266,13 +266,15 @@ struct Pos_0043f0e0 {
     short zf, z;
 };
 
-struct Cell_0043f0e0 {
-    char unknown_0[8];
-    unsigned short feature; // +0x8
-    unsigned char offsetY;  // +0xa
-    unsigned char offsetX;  // +0xb
-    char unknown_c;
-};
+// Unused here: these real declarations take the symbol ids of the removed
+// second Cell view (docs/c2-regalloc.md).
+void RegisterUnitOrders();
+void RegisterGroundOrders();
+void EnableAICommands();
+void RegisterAICommands();
+void FUN_00406f40();
+void ResetAIPlayers();
+void RegisterVtolOrders();
 
 struct Thing_0043f0e0 {
     char unknown_0[0xfe];
@@ -282,7 +284,7 @@ struct Thing_0043f0e0 {
 
 extern Game* g_game;
 
-Cell_0043f0e0* __stdcall GetMapCellAtPosition(Pos_0043f0e0* pos);
+Cell* __stdcall GetMapCellAtPosition(Pos_0043f0e0* pos);
 class Unit {
   public:
     int CanLoad(Unit_0043f0e0* other);
@@ -304,7 +306,7 @@ Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
 
 // GetOrderCursor as in 0x43e490.cpp (the annotated copy). It precedes GetOrderType in the
 // original file and is compiled first here for the compiler state it leaves; see the top.
-Cell_0043e490* __stdcall GetMapCellAtPosition(Pos_0043e490* pos);
+Cell* __stdcall GetMapCellAtPosition(Pos_0043e490* pos);
 int __stdcall WeaponCanReachPos(Unit_0043e490* unit, void* slot, Pos_0043e490* pos, int which);
 int __stdcall WeaponCanReachUnit(Unit_0043e490* unit, Unit_0043e490* target, int which);
 int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e490* target,
@@ -326,7 +328,7 @@ static inline int Visible(Unit_0043e490* unit, Pos_0043e490* pos) {
 // The feature on a map cell, as GetFeature in 0x4237d0.cpp but with the id in
 // a local: 0xfffe marks a cell covered by a larger feature whose origin cell
 // lies (offsetY, offsetX) cells back.
-static inline Feature_0043e490* GetFeature(Cell_0043e490* cell) {
+static inline Feature_0043e490* GetFeature(Cell* cell) {
     if (cell == 0)
         return 0;
     unsigned short id = cell->feature;
@@ -504,7 +506,7 @@ static inline int Visible(Unit_0043f0e0* unit, Pos_0043f0e0* pos) {
 static inline int Marked(Thing_0043f0e0* t) { return t && (t->ffe & 0x80); }
 
 static inline Thing_0043f0e0* Lookup(Pos_0043f0e0* pos) {
-    Cell_0043f0e0* cell = GetMapCellAtPosition(pos);
+    Cell* cell = GetMapCellAtPosition(pos);
     if (!cell)
         return 0;
     unsigned short id = cell->feature;

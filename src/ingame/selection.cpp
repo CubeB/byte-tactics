@@ -218,13 +218,13 @@ UnitTypeSet* __stdcall GetCategoryMask(char* name);
 // apart: x1, y1, z1, x2, y2, z2. The screen box is (x + xOff - scrollX,
 // z + zOff - scrollY - (y + yOff) / 2), so the top corner pairs x1 with y2
 // and z1 and the bottom corner pairs x2 with y1 and z2.
-struct Cell_0048bae0 {
+struct Cell {
     char unknown_0[4];
     unsigned char height;              // +0x4
     char unknown_5[8];
 };
 
-Cell_0048bae0* __stdcall GetMapCellAtPosition(Vec3* pos);
+Cell* __stdcall GetMapCellAtPosition(Vec3* pos);
 int __stdcall IsUnitVisibleToPlayer(Player* player, Unit* unit);
 
 // FUNCTION: 0x48bae0
@@ -247,7 +247,7 @@ void CollectVisibleUnitIds(void)
             int y1 = def->f164 + uy;
             int z2 = def->f174 + u->pos_z.parts.whole - g_game->scrollY;
             if ((u->flags.raw & 3) != 1) {
-                Cell_0048bae0* c = GetMapCellAtPosition((Vec3*)&u->pos_x);
+                Cell* c = GetMapCellAtPosition((Vec3*)&u->pos_x);
                 if (c != 0) {
                     int h = c->height;
                     if (y1 > h)

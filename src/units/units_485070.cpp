@@ -2,7 +2,7 @@
 // Bilinear terrain height at a 12.4 fixed point position (x in the high word at
 // +2, z at +10), or -1 outside the map.
 #pragma pack(push, 1)
-struct Cell_00485070 {
+struct Cell {
     char unknown_0[0x4];
     unsigned char height;              // +0x4
     char unknown_5[0xd - 0x5];
@@ -13,7 +13,7 @@ struct Game {
     int width;                         // +0x14233
     int height;                        // +0x14237
     char unknown_1423b[0x14287 - 0x1423b];
-    Cell_00485070* cells;              // +0x14287
+    Cell* cells;                       // +0x14287
 };
 #pragma pack(pop)
 
@@ -41,7 +41,7 @@ int __stdcall GetGroundHeight(Pos_00485070* p)
     int zf = z & 15;
     if (xc < 0 || xc + 1 >= g_game->width || zc < 0 || zc + 1 >= g_game->height)
         return -1;
-    Cell_00485070* c = &g_game->cells[zc * g_game->width + xc];
+    Cell* c = &g_game->cells[zc * g_game->width + xc];
     int a = c->height;
     int b = c[1].height;
     // Advance the pointer instead of indexing c[width]: gives the original's address chain.

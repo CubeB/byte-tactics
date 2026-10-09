@@ -8,7 +8,7 @@
 
 #include "../util/vec3.h"
 
-struct Cell_0047db20 {
+struct Cell {
     short unit;
     short unit2;
     char unknown_4[0xc - 0x4];
@@ -47,7 +47,7 @@ struct Game {
     char unknown_0[0x14233];
     int width;
     char unknown_14237[0x14287 - 0x14237];
-    Cell_0047db20* cells;
+    Cell* cells;
     char unknown_1428b[0x142b7 - 0x1428b];
     int overflowBucket;
 };
@@ -67,7 +67,7 @@ void __stdcall RefreshPassMapsForUnit(Obj_0047db20* obj);
 
 // Reads the position through a const reference: written inline, the two
 // obj->pos.y reads become one common subexpression.
-static inline Cell_0047db20* CellAt(const Point16& p)
+static inline Cell* CellAt(const Point16& p)
 {
     return &g_game->cells[p.y * g_game->width + p.x];
 }
@@ -79,7 +79,7 @@ void __stdcall RemoveUnitFromMap(Obj_0047db20* obj)
 {
     if (obj->spatialBucket != g_game->overflowBucket) {
         Point16 size = obj->size;
-        Cell_0047db20* cell = CellAt(obj->pos);
+        Cell* cell = CellAt(obj->pos);
         int index = 0;
         if (obj->flags.all & 0x20000000) {
             for (int j = size.y; j > 0; j--) {

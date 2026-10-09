@@ -27,7 +27,7 @@
 #include "../util/vec3.h"
 
 // 13 bytes, the stride the cell arithmetic at +0x6e walks with `n * 13`.
-struct Cell_0049b090 {
+struct Cell {
     unsigned short unit;              // +0x0
     unsigned short unit2;             // +0x2
     unsigned char height;             // +0x4
@@ -149,7 +149,7 @@ struct Game {
 
 extern Game* g_game;
 
-Cell_0049b090* __stdcall GetMapCellAtPosition(Vec3* pos);
+Cell* __stdcall GetMapCellAtPosition(Vec3* pos);
 void __stdcall DetonateProjectile(Proj_0049b090* proj, Unit* unit);
 
 // Stays in its own file: its feature block matches only at this file's symbol
@@ -160,7 +160,7 @@ void __stdcall CheckProjectileCollision(WeaponDef* type, Proj_0049b090* proj)
     // No `Game* g = g_game` local: g_game is read at each use to stay in edi.
     // Named pos local, used again after the lookup: gives the original's prologue.
     Vec3* pos = (Vec3*)&proj->px;
-    Cell_0049b090* cell = GetMapCellAtPosition(pos);
+    Cell* cell = GetMapCellAtPosition(pos);
 
     if (!cell) {
         if (proj == g_game->selected) {

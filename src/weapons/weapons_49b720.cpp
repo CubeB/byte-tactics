@@ -140,7 +140,7 @@ struct Game {
     Net_0049b720* net;                 // +0x391e9
 };
 
-struct Cell_0049b720 {
+struct Cell {
     char unknown_0[5];
     unsigned char height;              // +0x5
 };
@@ -157,7 +157,7 @@ void __stdcall DetonateProjectile(Proj_0049b720* p, void* unit);
 void __stdcall GetWeaponPiecePosition(Unit* unit, Vec3_0049b720* out, unsigned char weapon, int piece);
 int __stdcall PlaySoundAt(int sound, Vec3_0049b720* pos, int flag);
 void __stdcall EmitWhiteSmoke(Vec3_0049b720* pos, short kind);
-Cell_0049b720* __stdcall GetMapCellAtPosition(Vec3_0049b720* pos);
+Cell* __stdcall GetMapCellAtPosition(Vec3_0049b720* pos);
 void __stdcall AddExplosionEffect(Vec3_0049b720* pos, void* src, int index, int flag);
 int __stdcall RandomInt(int range);
 int __cdecl FUN_004b70ef(short angle, int scale);
@@ -341,7 +341,7 @@ void UpdateProjectiles()
                 p->f4a += type->smokeRate;
             }
             if (oldY > g_game->seaLevel && p->pos.yw.hi <= g_game->seaLevel) {
-                Cell_0049b720* cell = GetMapCellAtPosition(&p->pos);
+                Cell* cell = GetMapCellAtPosition(&p->pos);
                 if (cell && cell->height < g_game->seaLevel && g_game->net->field_d48 == 0)
                     AddExplosionEffect(&p->pos, type->splash, 0, 1);
             }

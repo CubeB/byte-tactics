@@ -41,7 +41,7 @@ struct GafFrame {
     short yOffset;                     // +0x06
 };
 
-struct Cell_004816a0 {
+struct FrameTable {
     unsigned short count;              // +0x00
     char unknown_2[0x28 - 0x2];
     void* entries;                     // +0x28
@@ -86,7 +86,7 @@ struct Game {
     Unit* units;                       // +0x14357
     Unit* unitsEnd;                    // +0x1435b
     char unknown_1435f[0x1485b - 0x1435f];
-    Cell_004816a0* losTable;           // +0x1485b
+    FrameTable* losTable;              // +0x1485b
 };
 #pragma pack(pop)
 
@@ -95,7 +95,7 @@ extern Game* g_game;
 void __stdcall UpdateLineOfSight(SightQuery* params);
 void __stdcall AddLineOfSight(SightQuery* params);
 void __stdcall RevealAroundUnit(SightQuery* params);
-GafFrame* __stdcall GetGafFrame(Cell_004816a0* table, int index);
+GafFrame* __stdcall GetGafFrame(FrameTable* table, int index);
 void UpdateRadarMapped();
 void DrawRadarUnits();
 

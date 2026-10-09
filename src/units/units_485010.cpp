@@ -22,7 +22,7 @@ struct ObjectState_00485d40;
 struct Object3do;                      // object definition, only passed on
 
 #pragma pack(push, 1)
-struct Cell_00485010 {
+struct Cell {
     unsigned short unit;               // +0x0
     char unknown_2[0x4 - 0x2];
     unsigned char height;              // +0x4
@@ -307,7 +307,7 @@ struct Game {
     char debugMode;
     unsigned short mapFlags;           // +0x14281
     char unknown_14283[0x14287 - 0x14283];
-    Cell_00485010* cells;              // +0x14287
+    Cell* cells;                       // +0x14287
     char unknown_1428b[0x1434f - 0x1428b];
     unsigned short unitsPerPlayer;     // +0x1434f
     unsigned short poolCount;          // +0x14351
@@ -354,7 +354,7 @@ struct Point16_00485010 {
     short y;
 };
 
-static inline Cell_00485010* GetCell(int x, int y)
+static inline Cell* GetCell(int x, int y)
 {
     if (x >= 0 && x < g_game->width && y >= 0 && y < g_game->height)
         return &g_game->cells[y * g_game->width + x];
@@ -364,7 +364,7 @@ static inline Cell_00485010* GetCell(int x, int y)
 // FUNCTION: 0x485010
 int __stdcall GetCellHeight(Point16_00485010* p)
 {
-    Cell_00485010* cell = GetCell(p->x, p->y);
+    Cell* cell = GetCell(p->x, p->y);
     if (cell)
         return cell->height;
     return 0;
@@ -373,7 +373,7 @@ int __stdcall GetCellHeight(Point16_00485010* p)
 // Returns the average of the two height bytes (+5, +6) of the map cell under a
 // 16.16 fixed-point position, or -1 off the map.
 
-static inline Cell_00485010* GetCellCachedWidth(int x, int y)
+static inline Cell* GetCellCachedWidth(int x, int y)
 {
     if (x >= 0) {
         // Width read into its own local after the x >= 0 test: decides the register tie.
@@ -389,7 +389,7 @@ int __stdcall GetCellMeanHeight(Pos_00485070* p)
 {
     // One statement for x and y: settles the order of the two height-byte loads.
     int x = p->x.whole / 16, y = p->z.whole / 16;
-    Cell_00485010* cell = GetCellCachedWidth(x, y);
+    Cell* cell = GetCellCachedWidth(x, y);
     if (cell)
         return (cell->low + cell->high) >> 1;
     return -1;
@@ -403,7 +403,7 @@ int __stdcall GetCellMeanHeight(Pos_00485070* p)
 // FUNCTION: 0x485330
 void __stdcall GetCellPosition(int x, int y, Pos_00485070* out)
 {
-    Cell_00485010* cell = GetCell(x, y);
+    Cell* cell = GetCell(x, y);
     if (cell) {
         memset(out, 0, sizeof(*out));
         out->x.whole = x << 4;

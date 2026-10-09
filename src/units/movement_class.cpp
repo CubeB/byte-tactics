@@ -60,7 +60,7 @@ struct Record_00440af0 {
 };
 
 // One terrain cell as 0x440500 reads it.
-struct Cell_00440500 {
+struct Cell {
     unsigned short unit;               // +0x0
     char unknown_2[2];
     unsigned char height;
@@ -122,7 +122,7 @@ public:
     void BuildPassMap();
 };
 
-int __stdcall GetPassMapCellValue(Class_00440500* obj, Cell_00440500* cell);
+int __stdcall GetPassMapCellValue(Class_00440500* obj, Cell* cell);
 
 // A static data member holding 32 entries. 0x440230 is its compiler-generated
 // initialiser (the entry constructor inlined as a loop), and 0x440290 the
@@ -199,7 +199,7 @@ struct Game {
     unsigned int width;                // +0x14233
     unsigned int height;               // +0x14237
     char unknown_1423b[0x14287 - 0x1423b];
-    Cell_00440500* cells;              // +0x14287
+    Cell* cells;                       // +0x14287
     char unknown_1428b[0x14357 - 0x1428b];
     Record_00440af0* units;            // +0x14357
     Record_00440af0* unitsEnd;         // +0x1435b
@@ -365,7 +365,7 @@ void Class_00440500::BuildPassMap()
     // Braces keep the two int j apart: MSVC 5 leaks a for-init variable into the enclosing scope.
     {
     for (int j = 0; j < height; j++) {
-        Cell_00440500* c = &g_game->cells[j * width];
+        Cell* c = &g_game->cells[j * width];
         for (n = 0; n < width; n++, c++)
             v[n] = (unsigned char)GetPassMapCellValue(this, c);
         v[-2] = 0;

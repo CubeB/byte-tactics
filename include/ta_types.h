@@ -108,7 +108,7 @@ struct Cell_0040e160;
 struct Cell_0040e630;
 struct Cell_00421eb0;
 struct Cell_0047e5c0;
-struct Cell_004816a0;
+struct FrameTable;
 struct Cell_004848e0;
 struct Cell_004b0230;
 struct Channel;
@@ -9756,7 +9756,7 @@ struct Game {  // 0x3924d bytes, 904 views
     unsigned short* sidePanelTopSeq[5];  // +0x1481f
     unsigned short* sidePanelBotSeq[5];  // +0x14833
     unsigned short* sidePanelSideSeq[5];  // +0x14847
-    Cell_004816a0* losTable;  // +0x1485b
+    FrameTable* losTable;     // +0x1485b
     void* black[4];  // +0x1485f
     void* gray[4];  // +0x1486f
     Src_004ab400* table[1];  // +0x1487f
@@ -12326,7 +12326,7 @@ struct WeaponAimCobCb {  // 0x1c bytes, 4 views
     void OnAimCobReturn(int);
 };
 
-struct Cell_004816a0 {  // 0x2c bytes, 6 views
+struct FrameTable {     // 0x2c bytes, 6 views
     unsigned short count;  // +0x0
     char unknown_2[38];
     Entry* entries;  // +0x28

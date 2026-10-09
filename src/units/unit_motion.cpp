@@ -14,7 +14,7 @@ public:
                      int param_5, int param_6, int param_7, int param_8);
 };
 
-struct Cell_437840 {
+struct Cell {
     char unknown_0[7];
     unsigned char metal;               // +0x7
 };
@@ -193,7 +193,7 @@ void CMemoryCache::DrawObjectPieces(Vec3_458810* result, List_458810* list, Vec3
 
 extern Game* g_game;
 
-Cell_437840* __stdcall GetMapCell(int x, int y);
+Cell* __stdcall GetMapCell(int x, int y);
 
 // Wind/metal picker for a metal extractor: when the unit type extracts metal
 // (+0x1ce > 0), sums the metal byte of every map cell under the unit's
@@ -212,7 +212,7 @@ void __stdcall UpdateMetalExtraction(Unit* unit)
         Point16_437840 fp = unit->footprint;
         for (int y = unit->cell.y; y < unit->cell.y + fp.y; y++) {
             for (int x = unit->cell.x; x < unit->cell.x + fp.x; x++) {
-                Cell_437840* c = GetMapCell(x, y);
+                Cell* c = GetMapCell(x, y);
                 if (c) {
                     total.parts.whole += c->metal + 1;
                 }

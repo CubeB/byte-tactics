@@ -209,7 +209,7 @@ struct View_00498da0 {
     char unknown_8[0x18 - 0x8];
 };
 
-struct Cell_00498da0 {
+struct Cell {
     char unknown_0[8];
     unsigned short feature;             // +0x8
     unsigned char offsetY;              // +0xa
@@ -473,8 +473,8 @@ int __stdcall ClampWorldPosToTerrain(int x, int y, int param_3);
 void __stdcall ClampWorldPosToTerrain(int x, int y, Pos_00498da0* out);
 int __stdcall GetGroundHeight(Pos_00498d00* pos);
 int __stdcall PointInRect(Rect_00498da0* r, int x, int y);
-Cell_00498da0* __stdcall GetMapCell(int x, int y);
-unsigned short __stdcall GetCellFeature(Cell_00498da0* cell);
+Cell* __stdcall GetMapCell(int x, int y);
+unsigned short __stdcall GetCellFeature(Cell* cell);
 
 
 // Game start: seeds the random generators, loads the match settings for the

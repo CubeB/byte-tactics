@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #pragma pack(push, 1)
-struct Cell_004851c0 {
+struct Cell {
     unsigned short unit;               // +0x0
     char unknown_2[0x4 - 0x2];
     unsigned char height;              // +0x4
@@ -40,7 +40,7 @@ struct Game {
     char unknown_1423b[0x1426f - 0x1423b];
     unsigned char* features;           // +0x1426f
     char unknown_14273[0x14287 - 0x14273];
-    Cell_004851c0* cells;              // +0x14287
+    Cell* cells;                       // +0x14287
     char unknown_1428b[0x14357 - 0x1428b];
     Unit* units;                       // +0x14357
 };
@@ -48,7 +48,7 @@ struct Game {
 
 extern Game* g_game;
 
-static inline Cell_004851c0* GetCell(int x, int y)
+static inline Cell* GetCell(int x, int y)
 {
     if (x >= 0 && x < g_game->width && y >= 0 && y < g_game->height)
         return &g_game->cells[y * g_game->width + x];
@@ -76,7 +76,7 @@ int __stdcall FindHighestPointOnLine(Vec3_004851c0 a, Vec3_004851c0 b)
     d.z /= n;
     short best = 0;
     for (int i = 0; i <= n; i++) {
-        Cell_004851c0* c = GetCell(a.x / 0x100000, a.z / 0x100000);
+        Cell* c = GetCell(a.x / 0x100000, a.z / 0x100000);
         if (c) {
             short v = g_game->features[c->feature * 256 + 0xfa] + c->height;
             if (best < v) best = v;

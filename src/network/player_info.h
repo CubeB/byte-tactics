@@ -22,7 +22,7 @@ struct PlayerInfo {
         unsigned char flags_97;        // bit 0: host
         unsigned short flags_97_wide;
         struct {
-            unsigned short unknownBit0 : 1;
+            unsigned short ready : 1;
             unsigned short shareMetal : 1;
             unsigned short unknownBit2 : 1;
             unsigned short shareLOS : 1;

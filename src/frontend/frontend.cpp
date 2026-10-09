@@ -50,19 +50,7 @@ struct Bits_00426e80 {
 };
 
 #pragma pack(push, 1)
-// The player's data object, reached from the player block's owner pointer:
-// the flag at +0x95 and the ready/synced bits at +0x97 and +0x9b.
-struct PlayerInfo {
-    char unknown_0[0x95];
-    unsigned char side;                // +0x95
-    char unknown_96[0x97 - 0x96];
-    unsigned short ready : 1;          // +0x97
-    unsigned short rest_97 : 15;
-    char unknown_99[2];
-    unsigned short : 6;                // +0x9b
-    unsigned short b6 : 1;             // +0x9b, mask 0x40
-    unsigned short : 9;
-};
+#include "../network/player_info.h"
 
 // 13-byte smoke puff record: the loop steps the pointer by 13.
 struct Smoke_00425b80 {
@@ -1447,7 +1435,7 @@ void RunFrontendStateMachine(void)
             SetState(0x11, 0x5ab, g_frontendSourceFile);
             return;
         case 19:
-            g_game->players[(unsigned char)g_game->localPlayer].info->b6 = 1;
+            g_game->players[(unsigned char)g_game->localPlayer].info->bit6 = 1;
         case 18:
             if (JoinNetGame(*(V4i*)((char*)g_game + 0x2ba2), (unsigned char)g_game->localPlayer) == 0) {
                 SetSubState(0, 0x5b3, g_frontendSourceFile);
@@ -1474,7 +1462,7 @@ void RunFrontendStateMachine(void)
             else
                 g_game->players[(unsigned char)g_game->localPlayer].info->ready = 0;
             if (g_game->frontendSubstate == 0x13)
-                g_game->players[(unsigned char)g_game->localPlayer].info->b6 = 1;
+                g_game->players[(unsigned char)g_game->localPlayer].info->bit6 = 1;
             unsigned char* q = (unsigned char*)g_game + 0x14b * (unsigned char)g_game->localPlayer + 0x1b84;
             *q = (g_game->flags_2b4c.b4 << 1) | (*q & 0xfd);
             if (g_game->flags_2b4c.b4) {

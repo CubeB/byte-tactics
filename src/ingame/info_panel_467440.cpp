@@ -35,12 +35,7 @@ struct UnitDef_00467440 {
     unsigned int flags2;               // +0x245
 };
 
-struct PlayerInfo {
-    char unknown_0[0x97];
-    unsigned char flags;               // +0x97
-    char unknown_98[0x9b - 0x98];
-    unsigned char gameFlags;           // +0x9b
-};
+#include "../network/player_info.h"
 
 struct Owner_00467440 {
     void* active;                      // +0x0
@@ -182,8 +177,8 @@ void UpdateSensorRadarAndCloak(void)
             a->flags &= ~0x1000;
             if (a->playerIndex == player
                 || (a->player->allied[pl->index] != 0
-                    && (a->player->data->flags & 0x40) != 0)
-                || (*(int*)pl != 0 && (pl->data->gameFlags & 0x40) != 0)) {
+                    && (a->player->data->flags_97 & 0x40) != 0)
+                || (*(int*)pl != 0 && (pl->data->flags_9b & 0x40) != 0)) {
                 a->flags |= 0x300;
             } else {
                 a->flags &= ~0x700;

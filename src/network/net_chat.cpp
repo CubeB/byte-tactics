@@ -40,7 +40,8 @@ struct Unit {
 };
 
 struct Game {
-    char unknown_0[0xdcb];
+    char unknown_0[0x519];
+    char menu[0xdcb - 0x519];           // +0x519, the GUI system object
     unsigned char colors[16];          // +0xdcb
     char unknown_ddb[0x12ef - 0xddb];
     ChatHudEntry entries[30];          // +0x12ef
@@ -125,9 +126,9 @@ void __stdcall AddMessage(char* text, unsigned char key, unsigned short value, c
         g_game->tail = 0;
     if (last != '\n')
         PlaySoundByName("MessageArrived", 0);
-    if (IsScreenNamed((char*)g_game + 0x519, "TIMEOUT.GUI")) {
-        MarkChanged((char*)g_game + 0x519);
-        MarkLayerChanged((char*)g_game + 0x519);
+    if (IsScreenNamed((char*)&g_game->menu[0], "TIMEOUT.GUI")) {
+        MarkChanged((char*)&g_game->menu[0]);
+        MarkLayerChanged((char*)&g_game->menu[0]);
     }
 }
 

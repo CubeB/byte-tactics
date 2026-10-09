@@ -19,6 +19,7 @@ struct PlayerInfo_0046dad0 {
     Data_0046dad0* data; // +0x27
     char unknown_2b[0x73 - 0x2b];
     unsigned char type; // +0x73
+    char unknown_74[0x14b - 0x74]; // the record's stride in g_game->players
 };
 
 struct UnitSyncPacket { // 0xe bytes
@@ -37,7 +38,9 @@ struct UnitDef { // 0x249 bytes
 };
 
 struct Game {
-    char unknown_0[0x1438f];
+    char unknown_0[0x1b63];
+    PlayerInfo_0046dad0 players[10]; // +0x1b63
+    char unknown_2851[0x1438f - 0x2851];
     int count; // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
     UnitDef* defs; // +0x1439b
@@ -144,7 +147,7 @@ class UnitSync {
     std::map<unsigned int, UnitSyncEntry> map; // +0x00
     Vec_0046d860 players;                      // +0x10
     std::list<unsigned int> queue;             // +0x20
-    char unknown_2c[0x58 - 0x2c];
+    PacketSequencer sequencer;                 // +0x2c
     int direct;   // +0x58
     int pendingPlayerCount; // +0x5c
     int checksumProgress; // +0x60
@@ -167,8 +170,7 @@ void UnitSync::ProcessSync() {
             do {
                 int live = 0;
                 for (int i = 0; i < 10; i++) {
-                    PlayerInfo_0046dad0* p =
-                        (PlayerInfo_0046dad0*)((char*)g_game + 0x1b63 + i * 0x14b);
+                    PlayerInfo_0046dad0* p = &g_game->players[i];
                     if (p->field_0 != 0 && p->type == 3 && p->data->kind == 1 &&
                         it->id == p->field_4) {
                         live = 1;
@@ -185,7 +187,7 @@ void UnitSync::ProcessSync() {
         }
 
         for (int i = 0; i < 10; i++) {
-            PlayerInfo_0046dad0* p = (PlayerInfo_0046dad0*)((char*)g_game + 0x1b63 + i * 0x14b);
+            PlayerInfo_0046dad0* p = &g_game->players[i];
             if (p->field_0 != 0 && p->type == 3 && p->data->kind == 1) {
                 int found = 0;
                 for (std::vector<Class_0046eaa0>::iterator j = players.begin(); j != players.end();
@@ -247,10 +249,10 @@ void UnitSync::ProcessSync() {
                     packet.key = 0;
                     packet.value = v;
                     if (direct != 0) {
-                        ((PacketSequencer*)((char*)this + 0x2c))->SendUnsequenced(DAT_00000000, &packet);
+                        (&this->sequencer)->SendUnsequenced(DAT_00000000, &packet);
                     } else {
                         unsigned int id = GetHostDpid();
-                        ((PacketSequencer*)((char*)this + 0x2c))->SendUnsequenced(id, &packet);
+                        (&this->sequencer)->SendUnsequenced(id, &packet);
                     }
                 }
                 checksumProgress = 1;
@@ -277,10 +279,10 @@ void UnitSync::ProcessSync() {
                     // Only this send is the inlined copy (Inl); all others are real
                     // SendUnsequenced calls with the id read into a local first.
                     if (direct != 0) {
-                        ((PacketSequencer*)((char*)this + 0x2c))->Inl(DAT_00000000, &packet);
+                        (&this->sequencer)->Inl(DAT_00000000, &packet);
                     } else {
                         unsigned int id = GetHostDpid();
-                        ((PacketSequencer*)((char*)this + 0x2c))->SendUnsequenced(id, &packet);
+                        (&this->sequencer)->SendUnsequenced(id, &packet);
                     }
                 }
                 n++;
@@ -293,7 +295,7 @@ void UnitSync::ProcessSync() {
             packet.key = 0;
             packet.value = pendingPlayerCount;
             unsigned int id = GetHostDpid();
-            ((PacketSequencer*)((char*)this + 0x2c))->SendUnsequenced(id, &packet);
+            (&this->sequencer)->SendUnsequenced(id, &packet);
         }
     }
 }

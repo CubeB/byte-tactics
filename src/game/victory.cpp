@@ -121,8 +121,12 @@ struct PlayerInfo {                    // flags at +0x9b and +0x9d
 
 #include "../network/player.h"
 
+// One side's SideDef record (0x232 bytes, Thaldren): the commander name at
+// +0x22 is what the victory conditions match against a unit type name.
 struct PlayerName {
-    char name[0x232];                  // +0x00
+    char unknown_0[0x22];              // +0x00
+    char commander[0x20];              // +0x22
+    char unknown_42[0x232 - 0x42];
 };
 
 #include "../map/mission.h"
@@ -146,11 +150,11 @@ struct Game {
     unsigned char seaLevel;            // +0x1427f
     char unknown_14280[0x37ef6 - 0x14280];
     int value_37ef6;                   // +0x37ef6
-    char unknown_37efa[0x37f5f - 0x37efa];
+    char unknown_37efa[0x37f3d - 0x37efa];
     union {
-        PlayerName names[10];          // +0x37f5f
+        PlayerName names[5];           // +0x37f3d, one SideDef per side
         struct {
-            char unknown_37f5f[0x38a47 - 0x37f5f];
+            char unknown_37f3d[0x38a47 - 0x37f3d];
             unsigned int ticks;        // +0x38a47
             char unknown_38a4b[0x391e9 - 0x38a4b];
             Mission* mode;             // +0x391e9
@@ -620,7 +624,7 @@ extern char DAT_00508f24[]; // "Celebrated"
 void VictoryKillEnemyCommander::OnUnitDied(Unit* unit)
 {
     if (unit->playerIndex == 1) {
-        if (_strcmpi(unit->def->name, g_game->names[unit->player->owner->side].name) == 0) {
+        if (_strcmpi(unit->def->name, g_game->names[unit->player->owner->side].commander) == 0) {
             satisfied = 1;
             if (celebrated == 0) {
                 PlaySoundByName("Victory Condition", 0);
@@ -1102,7 +1106,7 @@ void VictoryTimerRunsOut::LoadState(HapiBank* obj)
 void DefeatCommanderKilled::OnUnitDied(Unit* unit)
 {
     if (unit->playerIndex == 0) {
-        if (_strcmpi(unit->def->name, g_game->names[unit->player->owner->side].name) == 0) {
+        if (_strcmpi(unit->def->name, g_game->names[unit->player->owner->side].commander) == 0) {
             satisfied = 1;
         }
     }

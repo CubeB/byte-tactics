@@ -150,8 +150,12 @@ struct Slot_0048cd80 {
     int y;                             // +0x6
 };
 
+// One side's SideDef record (0x232 bytes): the commander name read at +0x22
+// is what FocusCommander matches against a unit type name.
 struct Name_0048d630 {
-    char name[0x232];                  // +0x00
+    char unknown_0[0x22];              // +0x00
+    char name[0x20];                   // +0x22, the commander name
+    char unknown_42[0x232 - 0x42];
 };
 
 struct Game {
@@ -195,8 +199,8 @@ struct Game {
     unsigned short unitIndex;          // +0x37e9c
     char unknown_37e9e[0x37ebe - 0x37e9e];
     Orders_37ebe orders;               // +0x37ebe
-    char unknown_37ec0[0x37f5f - 0x37ec0];
-    Name_0048d630 playerNames[10];     // +0x37f5f
+    char unknown_37ec0[0x37f3d - 0x37ec0];
+    Name_0048d630 playerNames[5];      // +0x37f3d, one SideDef per side
 };
 #pragma pack(pop)
 

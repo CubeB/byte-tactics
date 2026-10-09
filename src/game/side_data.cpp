@@ -55,11 +55,6 @@ struct Side_00431a60 {                  // 0x232 bytes
     void* font;                         // +0x22e
 };
 
-struct Entry_00431a20 {
-    int* buffer;                       // +0x0
-    char unknown_4[0x22e];
-};
-
 struct Game {
     char unknown_0[0x148d7];
     union {
@@ -68,16 +63,8 @@ struct Game {
     };
     void* logos32;                     // +0x148db
     char unknown_148df[0x37f39 - 0x148df];
-    union {
-        struct {
-            int sideCount;             // +0x37f39
-            Side_00431a60 sides[2];    // +0x37f3d
-        };
-        struct {
-            char pad_00431a20[0x3816b - 0x37f39];
-            Entry_00431a20 entries[5]; // +0x3816b
-        };
-    };
+    int sideCount;                     // +0x37f39
+    Side_00431a60 sides[5];            // +0x37f3d, stride 0x232
 };
 #pragma pack(pop)
 
@@ -129,13 +116,14 @@ void __stdcall ReadSideRect(TdfFile* obj, int* out, char* name, char* side)
     obj->SetCurrentRecord(saved);
 }
 
-// Frees the buffer of each of the five entries at g_game+0x3816b and clears
-// the pointers.
+// Frees the font of each of the five sides at g_game+0x37f3d and clears the
+// pointers.
 // FUNCTION: 0x431a20
 void FreeSideFonts()
 {
     for (int i = 0; i < 5; i++) {
-        int*& buffer = g_game->entries[i].buffer;
+        // The reference is load-bearing: it keeps FreeSideFonts at 59 bytes.
+        int*& buffer = (int*&)g_game->sides[i].font;
         if (buffer) {
             GameFreeThunk(buffer);
             buffer = 0;

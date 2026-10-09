@@ -95,8 +95,8 @@ struct Game {
     int vismasks;                      // +0x148fb
     int fog;                           // +0x148ff
     int cursors;                       // +0x14903
-    int panelTop[8];                   // +0x14907
-    char unknown_14927[0x33a0f - 0x14927];
+    int panelTop[5];                   // +0x14907, one int GAF per side
+    char unknown_1491b[0x33a0f - 0x1491b];
     int soundCount;                    // +0x33a0f
     void* sounds[0x100];               // +0x33a13
     char soundNames[0x100][0x20];      // +0x33e13

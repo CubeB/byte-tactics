@@ -23,7 +23,7 @@
 // 0x4cca33  (x0, y0, x1, y1, color)                                16-bit line; no callers, and it
 //                                                                  hands IsLineVisible no surface
 // 0x4ccb65  (surface in esi)                                       no callers
-// 0x4ccd1c  FUN_004ccd1c(surface, rect, color)                     rectangle outline, four BlitLine
+// 0x4ccd1c  (surface, rect, color)                                 rectangle outline, four BlitLine
 // 0x4ccd85  (rect, color)                                          the same through 0x4cca33; no callers
 // 0x4ccdea  FillSolidRect(surface, rect, color)                    fill a rectangle
 // 0x4cce87  XorRect(surface, rect, value)                          xor a rectangle with a byte

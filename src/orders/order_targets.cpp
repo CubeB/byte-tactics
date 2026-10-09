@@ -1064,8 +1064,7 @@ public:
 void CreatePathfinder();
 
 // Unused here: forward declarations of real functions; their symbol ids keep
-// the allocation the removed Class_0044f5b0 and Class_0044f650 views moved
-// (docs/c2-regalloc.md).
+// the allocation (docs/c2-regalloc.md).
 void UpdateMenuSparks();
 void OpenCloseCdPlayerDialog();
 void OpenMainMenu();

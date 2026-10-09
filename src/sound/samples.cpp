@@ -105,7 +105,7 @@ static inline int ClampVolume(int v)
 }
 
 // Unused here: forward declarations of real functions; their symbol ids keep
-// the allocation the removed Class_004d01b0 view moved (docs/c2-regalloc.md).
+// the allocation (docs/c2-regalloc.md).
 void EnableAICommands();
 void ResetAIPlayers();
 void StepAllGafSequences();

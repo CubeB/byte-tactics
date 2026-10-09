@@ -104,8 +104,7 @@ public:
 };
 
 // Unused here: forward declarations of real functions; their symbol ids keep
-// the allocation the removed Class_00462860 and Class_004628a0 views moved
-// (docs/c2-regalloc.md).
+// the allocation (docs/c2-regalloc.md).
 void RegisterUnitOrders();
 void RegisterGroundOrders();
 void EnableAICommands();

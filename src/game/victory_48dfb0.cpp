@@ -450,6 +450,13 @@ public:
     void NotifyUnitCreated(Unit* unit);
 };
 
+// Appends a condition to one of the two lists, at the caller's count.
+static inline void AddCondition(MissionCondition** list, int* count, MissionCondition* value)
+{
+    list[*count] = value;
+    (*count)++;
+}
+
 // FUNCTION: 0x48dfb0
 void MissionConditions::FreeConditions()
 {
@@ -475,119 +482,99 @@ void MissionConditions::RegisterConditions(Param_0048e010* p)
     // call folds to test instead of cmp against the zero register.
     int r1 = ((TdfRecord*)p->reader)->GetFieldInt("KillEnemyCommander", 0);
     if (r1 != 0) {
-        victory[victoryCount] = new VictoryKillEnemyCommander;
-        victoryCount++;
+        AddCondition(victory, &victoryCount, new VictoryKillEnemyCommander);
     }
     int r2 = ((TdfRecord*)p->reader)->GetFieldInt("DestroyAllUnits", 0);
     if (r2 != 0) {
-        victory[victoryCount] = new VictoryDestroyAllUnits;
-        victoryCount++;
+        AddCondition(victory, &victoryCount, new VictoryDestroyAllUnits);
     }
     int r3 = ((TdfRecord*)p->reader)->GetFieldInt("KillAllMobileUnits", 0);
     if (r3 != 0) {
-        victory[victoryCount] = new VictoryKillAllMobileUnits;
-        victoryCount++;
+        AddCondition(victory, &victoryCount, new VictoryKillAllMobileUnits);
     }
     int r4 = ((TdfRecord*)p->reader)->GetFieldString(buf, "BuildUnitType", 0x100, (char*)&DAT_005119b8);
     if (r4 != 0) {
-        victory[victoryCount] = new VictoryBuildUnitType(buf);
-        victoryCount++;
+        AddCondition(victory, &victoryCount, new VictoryBuildUnitType(buf));
     }
     int r5 = ((TdfRecord*)p->reader)->GetFieldString(buf, "CaptureUnitType", 0x100, (char*)&DAT_005119b8);
     if (r5 != 0) {
-        victory[victoryCount] = new VictoryCaptureUnitType(buf);
-        victoryCount++;
+        AddCondition(victory, &victoryCount, new VictoryCaptureUnitType(buf));
     }
     int r6 = ((TdfRecord*)p->reader)->GetFieldString(buf, "KillAllOfType", 0x100, (char*)&DAT_005119b8);
     if (r6 != 0) {
-        victory[victoryCount] = new VictoryKillAllOfType(buf);
-        victoryCount++;
+        AddCondition(victory, &victoryCount, new VictoryKillAllOfType(buf));
     }
     int r7 = ((TdfRecord*)p->reader)->GetFieldString(buf, "KillUnitType", 0x100, (char*)&DAT_005119b8);
     if (r7 != 0) {
         int n;
         sscanf(buf, "%[a-zA-Z],%i", stype, &n);
-        victory[victoryCount] = new VictoryKillUnitType(stype, n);
-        victoryCount++;
+        AddCondition(victory, &victoryCount, new VictoryKillUnitType(stype, n));
     }
     int r8 = ((TdfRecord*)p->reader)->GetFieldString(buf, "MoveUnitToRadius", 0x100, (char*)&DAT_005119b8);
     if (r8 != 0) {
         int a, b, c;
         sscanf(buf, "%[a-zA-Z],%i,%i,%i", stype, &a, &b, &c);
-        victory[victoryCount] = new VictoryMoveUnitToRadius(stype, a, b, c);
-        victoryCount++;
+        AddCondition(victory, &victoryCount, new VictoryMoveUnitToRadius(stype, a, b, c));
     }
     int r9 = ((TdfRecord*)p->reader)->GetFieldString(buf, "UnitTypePassesX", 0x100, (char*)&DAT_005119b8);
     if (r9 != 0) {
         int n;
         sscanf(buf, "%[a-zA-Z],%i", stype, &n);
-        victory[victoryCount] = new VictoryUnitTypePassesX(stype, n);
-        victoryCount++;
+        AddCondition(victory, &victoryCount, new VictoryUnitTypePassesX(stype, n));
     }
     int r10 = ((TdfRecord*)p->reader)->GetFieldString(buf, "UnitTypePassesZ", 0x100, (char*)&DAT_005119b8);
     if (r10 != 0) {
         int n;
         sscanf(buf, "%[a-zA-Z],%i", stype, &n);
-        victory[victoryCount] = new VictoryUnitTypePassesZ(stype, n);
-        victoryCount++;
+        AddCondition(victory, &victoryCount, new VictoryUnitTypePassesZ(stype, n));
     }
     {
         int t = ((TdfRecord*)p->reader)->GetFieldInt("VictoryTimerRunsOut", 0);
         if (t > 0) {
-            victory[victoryCount] = new VictoryTimerRunsOut(t);
-            victoryCount++;
+            AddCondition(victory, &victoryCount, new VictoryTimerRunsOut(t));
         }
     }
     int r11 = ((TdfRecord*)p->reader)->GetFieldInt("CommanderKilled", 0);
     if (r11 != 0) {
-        defeat[defeatCount] = new DefeatCommanderKilled;
-        defeatCount++;
+        AddCondition(defeat, &defeatCount, new DefeatCommanderKilled);
     }
     int r12 = ((TdfRecord*)p->reader)->GetFieldInt("AllUnitsKilled", 0);
     if (r12 != 0) {
-        defeat[defeatCount] = new DefeatAllUnitsKilled;
-        defeatCount++;
+        AddCondition(defeat, &defeatCount, new DefeatAllUnitsKilled);
     }
     int r13 = ((TdfRecord*)p->reader)->GetFieldString(buf, "AllUnitsKilledOfType", 0x100, (char*)&DAT_005119b8);
     if (r13 != 0) {
-        defeat[defeatCount] = new DefeatAllUnitsKilledOfType(buf);
-        defeatCount++;
+        AddCondition(defeat, &defeatCount, new DefeatAllUnitsKilledOfType(buf));
     }
     int r14 = ((TdfRecord*)p->reader)->GetFieldString(buf, "UnitTypeKilled", 0x100, (char*)&DAT_005119b8);
     if (r14 != 0) {
         int n;
         sscanf(buf, "%[a-zA-Z],%i", stype, &n);
-        defeat[defeatCount] = new DefeatUnitTypeKilled(stype, n);
-        defeatCount++;
+        AddCondition(defeat, &defeatCount, new DefeatUnitTypeKilled(stype, n));
     }
     {
         int t = ((TdfRecord*)p->reader)->GetFieldInt("DeathTimerRunsOut", 0);
         if (t > 0) {
-            defeat[defeatCount] = new DefeatDeathTimerRunsOut(t);
-            defeatCount++;
+            AddCondition(defeat, &defeatCount, new DefeatDeathTimerRunsOut(t));
         }
     }
     {
         int t = ((TdfRecord*)p->reader)->GetFieldInt("AnyUnitPassesX", -1);
         if (t >= 0) {
-            defeat[defeatCount] = new DefeatAnyUnitPassesX(t);
-            defeatCount++;
+            AddCondition(defeat, &defeatCount, new DefeatAnyUnitPassesX(t));
         }
     }
     {
         int t = ((TdfRecord*)p->reader)->GetFieldInt("AnyUnitPassesZ", -1);
         if (t >= 0) {
-            defeat[defeatCount] = new DefeatAnyUnitPassesZ(t);
-            defeatCount++;
+            AddCondition(defeat, &defeatCount, new DefeatAnyUnitPassesZ(t));
         }
     }
     if (victoryCount == 0) {
-        victory[victoryCount] = new VictoryDestroyAllUnits;
-        victoryCount++;
+        AddCondition(victory, &victoryCount, new VictoryDestroyAllUnits);
     }
     if (defeatCount == 0) {
-        defeat[defeatCount] = new DefeatAllUnitsKilled;
-        defeatCount++;
+        AddCondition(defeat, &defeatCount, new DefeatAllUnitsKilled);
     }
 }
 

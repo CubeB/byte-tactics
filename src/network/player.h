@@ -57,8 +57,8 @@ struct Player {
     double totalMetalConsumed;         // +0xc4
     double energyWasted;               // +0xcc
     double metalWasted;                // +0xd4
-    float field_dc;                    // +0xdc
-    float field_e0;                    // +0xe0
+    float energyStorageBonus;          // +0xdc
+    float metalStorageBonus;           // +0xe0
     float shareMetal;                  // +0xe4
     float shareEnergy;                 // +0xe8
     UnitResources* econ;               // +0xec
@@ -67,15 +67,15 @@ struct Player {
     int displayTimer;                  // +0xf8
     short kills;                       // +0xfc
     short losses;                      // +0xfe
-    unsigned short field_100;          // +0x100
-    unsigned short field_102;          // +0x102
+    unsigned short unused_100;         // +0x100, set to 0xffff when the slot is reset, never read
+    unsigned short unused_102;         // +0x102, same
     short commanderKills;              // +0x104
     short commanderLosses;             // +0x106
     unsigned char allied[11];          // +0x108
     unsigned char alliedBy[11];        // +0x113
-    unsigned char field_11e[11];       // +0x11e
+    unsigned char shareLos[11];        // +0x11e
     unsigned char field_129[11];       // +0x129
-    unsigned char field_134[11];       // +0x134
+    unsigned char shareMapping[11];    // +0x134
     unsigned char alliance;            // +0x13f
     int unitsCreated;                  // +0x140
     unsigned short unitCount;          // +0x144

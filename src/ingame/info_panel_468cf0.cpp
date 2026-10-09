@@ -73,8 +73,13 @@ int FlipScreen();
 int __stdcall SetOffscreenSurface(int);
 int __stdcall ResetClipRect(int);
 
-struct OverlayRect { int left, top, right, bottom; };
-struct Surface { int data[12]; int SetClipRect(OverlayRect); };
+#include "../graphics/surface.h"
+
+// Unused here: real declarations that keep the file's symbol count (docs/c2-regalloc.md).
+void UpdateScreenShake(void);
+void BeginMouseScroll(void);
+void EndMouseScroll(void);
+void UpdateMouseScroll(void);
 
 // The frame-time profile at g_game+0x38d85 (FrameTimers): last tick at +0,
 // one accumulator per phase at +0x2c. AccumulateProfileTime itself is defined after
@@ -182,34 +187,34 @@ struct SideDef_00468cf0 {
   char aName[0x1e];                   // +0x000
   char aNamePrefix[4];                // +0x01e
   char aCommander[0x20];              // +0x022
-  OverlayRect rcLogo;                 // +0x042
-  OverlayRect rcEnergyBar;            // +0x052
-  OverlayRect rcEnergyNum;            // +0x062
-  OverlayRect rcMetalBar;             // +0x072
-  OverlayRect rcMetalNum;             // +0x082
-  OverlayRect rcTotalUnits;           // +0x092
-  OverlayRect rcTotalTime;            // +0x0a2
-  OverlayRect rcEnergyMax;            // +0x0b2
-  OverlayRect rcMetalMax;             // +0x0c2
-  OverlayRect rcEnergy0;              // +0x0d2
-  OverlayRect rcMetal0;               // +0x0e2
-  OverlayRect rcEnergyProduced;       // +0x0f2
-  OverlayRect rcEnergyConsumed;       // +0x102
-  OverlayRect rcMetalProduced;        // +0x112
-  OverlayRect rcMetalConsumed;        // +0x122
-  OverlayRect rcLogo2;                // +0x132
-  OverlayRect rcUnitName;             // +0x142
-  OverlayRect rcDamageBar;            // +0x152
-  OverlayRect rcUnitEnergyMake;       // +0x162
-  OverlayRect rcUnitEnergyUse;        // +0x172
-  OverlayRect rcUnitMetalMake;        // +0x182
-  OverlayRect rcUnitMetalUse;         // +0x192
-  OverlayRect rcMissionText;          // +0x1a2
-  OverlayRect rcUnitName2;            // +0x1b2
-  OverlayRect rcDamageBar2;           // +0x1c2
-  OverlayRect rcName;                 // +0x1d2
-  OverlayRect rcDescription;          // +0x1e2
-  OverlayRect aReloadRects[3];        // +0x1f2
+  Rect rcLogo;                 // +0x042
+  Rect rcEnergyBar;            // +0x052
+  Rect rcEnergyNum;            // +0x062
+  Rect rcMetalBar;             // +0x072
+  Rect rcMetalNum;             // +0x082
+  Rect rcTotalUnits;           // +0x092
+  Rect rcTotalTime;            // +0x0a2
+  Rect rcEnergyMax;            // +0x0b2
+  Rect rcMetalMax;             // +0x0c2
+  Rect rcEnergy0;              // +0x0d2
+  Rect rcMetal0;               // +0x0e2
+  Rect rcEnergyProduced;       // +0x0f2
+  Rect rcEnergyConsumed;       // +0x102
+  Rect rcMetalProduced;        // +0x112
+  Rect rcMetalConsumed;        // +0x122
+  Rect rcLogo2;                // +0x132
+  Rect rcUnitName;             // +0x142
+  Rect rcDamageBar;            // +0x152
+  Rect rcUnitEnergyMake;       // +0x162
+  Rect rcUnitEnergyUse;        // +0x172
+  Rect rcUnitMetalMake;        // +0x182
+  Rect rcUnitMetalUse;         // +0x192
+  Rect rcMissionText;          // +0x1a2
+  Rect rcUnitName2;            // +0x1b2
+  Rect rcDamageBar2;           // +0x1c2
+  Rect rcName;                 // +0x1d2
+  Rect rcDescription;          // +0x1e2
+  Rect aReloadRects[3];        // +0x1f2
   int nEnergyColor;                   // +0x222
   int nMetalColor;                    // +0x226
   int nSideIndex;                     // +0x22a
@@ -283,7 +288,7 @@ struct Game {
   int width;                            // +0x37e1f
   int height;                           // +0x37e23
   union {                               // +0x37e27
-    OverlayRect lim;
+    Rect lim;
     struct {
       int viewCullMinX;
       int viewCullMinY;
@@ -356,7 +361,7 @@ static inline float Approach(float fcur, float ftarget)
 // pl must be a parameter: a load through it then schedules above the bar copy.
 static void DrawResourcePanel(Surface *ctx, PlayerState_00468cf0 *pl, Resources *res)
 {
-  OverlayRect bar, box;
+  Rect bar, box;
   char text[32];
   int side = pl->info->bSideId;
   SideDef_00468cf0 *sideDef = &g_game->sideDefs[side];
@@ -372,7 +377,7 @@ static void DrawResourcePanel(Surface *ctx, PlayerState_00468cf0 *pl, Resources 
     bx += *gaf;
   } while (bx < g_game->width);
   BlitSideLogoToRect((int)ctx, (int)pl, (int)&sideDef->rcLogo, 0);
-  OverlayRect *r = &sideDef->rcEnergyBar;
+  Rect *r = &sideDef->rcEnergyBar;
   bar = *r;
   if (pl->flEnergyStorage > 0.0f) {
     bar.right = (int)((bar.right - bar.left) * res->metal / pl->flEnergyStorage + bar.left);
@@ -695,7 +700,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
 
   // selection box
   if (ShowSelectBox(param_1)) {
-    OverlayRect box;
+    Rect box;
     int x1 = g_game->boxStartX - g_game->scrollX + 0x80;
     int y1 = g_game->boxStartZ - (g_game->boxStartHeight >> 1) - g_game->scrollY + 0x20;
     int x2 = g_game->boxEndX - g_game->scrollX + 0x80;

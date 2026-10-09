@@ -8,11 +8,6 @@ class TdfFile;
 #include "../util/tdf.h"
 
 
-struct Obj_00431950 {
-    char unknown_0[4];
-    TdfRecord* table;                   // +0x4
-};
-
 // One x1/y1/x2/y2 block of the TDF section.
 struct Rect_00431a60 {
     int x1;                             // +0x0
@@ -94,7 +89,7 @@ void* __stdcall LoadGaf(char* path);
 void* __stdcall FindGafEntry(void* gaf, const char* name);
 void __stdcall FatalError(char* message);
 void __cdecl GameFreeThunk(int* param_1);
-void __stdcall ReadSideRect(Obj_00431950* obj, int* out, char* name, char* side);
+void __stdcall ReadSideRect(TdfFile* obj, int* out, char* name, char* side);
 void* __stdcall HAPI_LoadFile(char* path, int flags);
 
 // FUNCTION: 0x4318c0
@@ -117,21 +112,21 @@ void FreeLogos(void)
 // Parses the x1/y1/x2/y2 fields of the current TDF node into four ints.
 // On a missing node it reports a fatal error and restores the cursor.
 // FUNCTION: 0x431950
-void __stdcall ReadSideRect(Obj_00431950* obj, int* out, char* name, char* side)
+void __stdcall ReadSideRect(TdfFile* obj, int* out, char* name, char* side)
 {
-    int saved = ((TdfFile*)obj)->GetCurrentRecord();
-    if (!((TdfFile*)obj)->SelectRecord(name)) {
+    int saved = obj->GetCurrentRecord();
+    if (!obj->SelectRecord(name)) {
         char buf[256];
         sprintf(buf, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", name, side);
         FatalError(buf);
-        ((TdfFile*)obj)->SetCurrentRecord(saved);
+        obj->SetCurrentRecord(saved);
         return;
     }
-    out[0] = obj->table->GetFieldInt("x1", 0);
-    out[1] = obj->table->GetFieldInt("y1", 0);
-    out[2] = obj->table->GetFieldInt("x2", 0);
-    out[3] = obj->table->GetFieldInt("y2", 0);
-    ((TdfFile*)obj)->SetCurrentRecord(saved);
+    out[0] = obj->current->GetFieldInt("x1", 0);
+    out[1] = obj->current->GetFieldInt("y1", 0);
+    out[2] = obj->current->GetFieldInt("x2", 0);
+    out[3] = obj->current->GetFieldInt("y2", 0);
+    obj->SetCurrentRecord(saved);
 }
 
 // Frees the buffer of each of the five entries at g_game+0x3816b and clears
@@ -250,28 +245,28 @@ void __stdcall LoadSideData(void)
 
         LoadSideRect(&parser, &s->metalMax.x1, "METALMAX", s->name, msgMetalmax);
 
-        ReadSideRect((Obj_00431950*)&parser, &s->energyProduced.x1, "ENERGYPRODUCED", s->name);
-        ReadSideRect((Obj_00431950*)&parser, &s->energyConsumed.x1, "ENERGYCONSUMED", s->name);
-        ReadSideRect((Obj_00431950*)&parser, &s->metalProduced.x1, "METALPRODUCED", s->name);
-        ReadSideRect((Obj_00431950*)&parser, &s->metalConsumed.x1, "METALCONSUMED", s->name);
-        ReadSideRect((Obj_00431950*)&parser, &s->logo2.x1, "LOGO2", s->name);
-        ReadSideRect((Obj_00431950*)&parser, &s->unitName.x1, "UNITNAME", s->name);
-        ReadSideRect((Obj_00431950*)&parser, &s->damageBar.x1, "DAMAGEBAR", s->name);
-        ReadSideRect((Obj_00431950*)&parser, &s->unitMetalMake.x1, "UNITMETALMAKE", s->name);
-        ReadSideRect((Obj_00431950*)&parser, &s->unitMetalUse.x1, "UNITMETALUSE", s->name);
-        ReadSideRect((Obj_00431950*)&parser, &s->unitEnergyMake.x1, "UNITENERGYMAKE", s->name);
-        ReadSideRect((Obj_00431950*)&parser, &s->unitEnergyUse.x1, "UNITENERGYUSE", s->name);
-        ReadSideRect((Obj_00431950*)&parser, &s->missionText.x1, "MISSIONTEXT", s->name);
-        ReadSideRect((Obj_00431950*)&parser, &s->unitName2.x1, "UNITNAME2", s->name);
-        ReadSideRect((Obj_00431950*)&parser, &s->damageBar2.x1, "DAMAGEBAR2", s->name);
-        ReadSideRect((Obj_00431950*)&parser, &s->nameBlock.x1, "NAME", s->name);
-        ReadSideRect((Obj_00431950*)&parser, &s->description.x1, "DESCRIPTION", s->name);
+        ReadSideRect(&parser, &s->energyProduced.x1, "ENERGYPRODUCED", s->name);
+        ReadSideRect(&parser, &s->energyConsumed.x1, "ENERGYCONSUMED", s->name);
+        ReadSideRect(&parser, &s->metalProduced.x1, "METALPRODUCED", s->name);
+        ReadSideRect(&parser, &s->metalConsumed.x1, "METALCONSUMED", s->name);
+        ReadSideRect(&parser, &s->logo2.x1, "LOGO2", s->name);
+        ReadSideRect(&parser, &s->unitName.x1, "UNITNAME", s->name);
+        ReadSideRect(&parser, &s->damageBar.x1, "DAMAGEBAR", s->name);
+        ReadSideRect(&parser, &s->unitMetalMake.x1, "UNITMETALMAKE", s->name);
+        ReadSideRect(&parser, &s->unitMetalUse.x1, "UNITMETALUSE", s->name);
+        ReadSideRect(&parser, &s->unitEnergyMake.x1, "UNITENERGYMAKE", s->name);
+        ReadSideRect(&parser, &s->unitEnergyUse.x1, "UNITENERGYUSE", s->name);
+        ReadSideRect(&parser, &s->missionText.x1, "MISSIONTEXT", s->name);
+        ReadSideRect(&parser, &s->unitName2.x1, "UNITNAME2", s->name);
+        ReadSideRect(&parser, &s->damageBar2.x1, "DAMAGEBAR2", s->name);
+        ReadSideRect(&parser, &s->nameBlock.x1, "NAME", s->name);
+        ReadSideRect(&parser, &s->description.x1, "DESCRIPTION", s->name);
         {
             int n = 3;
             int k = 1;
             while (n) {
                 sprintf(name, "RELOAD%d", k);
-                ReadSideRect((Obj_00431950*)&parser, &s->reload[k - 1].x1, name, s->name);
+                ReadSideRect(&parser, &s->reload[k - 1].x1, name, s->name);
                 n--;
                 k++;
             }

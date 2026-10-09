@@ -58,7 +58,7 @@ static inline TdfFile* FindEntry(char* name)
 {
     for (TdfFile** p = s_featureTdfParsers->first; p < s_featureTdfParsers->last; p++) {
         (*p)->ResetCurrentRecord();
-        if (((TdfFile*)*p)->SelectRecord(name))
+        if ((*p)->SelectRecord(name))
             return *p;
     }
     return 0;

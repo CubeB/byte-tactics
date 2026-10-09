@@ -479,12 +479,12 @@ void InitRadar()
 // FUNCTION: 0x466aa0
 void FreeRadar()
 {
-    FreeSurface(*(void**)((char*)g_game + 0x142e3));
-    FreeSurface(*(void**)((char*)g_game + 0x142df));
-    FreeSurface(*(void**)((char*)g_game + 0x142db));
-    *(void**)((char*)g_game + 0x142e3) = 0;
-    *(void**)((char*)g_game + 0x142df) = 0;
-    *(void**)((char*)g_game + 0x142db) = 0;
+    FreeSurface(g_game->pictureSurface);
+    FreeSurface(g_game->mappedSurface);
+    FreeSurface(g_game->finalSurface);
+    g_game->pictureSurface = 0;
+    g_game->mappedSurface = 0;
+    g_game->finalSurface = 0;
 }
 
 // FUNCTION: 0x466b00

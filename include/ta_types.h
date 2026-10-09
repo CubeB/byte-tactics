@@ -3063,7 +3063,7 @@ struct Player {  // 0x14b bytes, 312 views
     int last_time;  // +0x1c
     unsigned char progress;  // +0x20
     unsigned char field_21;  // +0x21
-    unsigned char field_22;  // +0x22
+    unsigned char rejectReason;  // +0x22
     char unknown_23[4];
     Data_0046d970* info;  // +0x27
     char name[16];  // +0x2b
@@ -3097,10 +3097,10 @@ struct Player {  // 0x14b bytes, 312 views
     float energyCapacity;  // +0xa4
     float metalCapacity;  // +0xa8
     char unknown_ac[8];
-    double field_b4;  // +0xb4
+    double totalMetalProduced;  // +0xb4
     char unknown_bc[8];
     double field_c4;  // +0xc4
-    double field_cc;  // +0xcc
+    double energyWasted;  // +0xcc
     char unknown_d4[8];
     float width;  // +0xdc
     float height;  // +0xe0
@@ -3124,9 +3124,9 @@ struct Player {  // 0x14b bytes, 312 views
     char unknown_133[1];
     unsigned char team_134[11];  // +0x134
     unsigned char alliance;  // +0x13f
-    int field_140;  // +0x140
+    int unitsCreated;  // +0x140
     short field_144;  // +0x144
-    unsigned char field_146;  // +0x146
+    unsigned char index;  // +0x146
     unsigned char field_147;  // +0x147
     unsigned char field_148;  // +0x148
     unsigned short flag_149 : 1;  // +0x149

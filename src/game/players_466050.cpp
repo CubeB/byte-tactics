@@ -30,8 +30,8 @@ struct Player {                        // 0x14b bytes
     double totalMetalConsumed;         // +0xc4
     double energyWasted;               // +0xcc
     double metalWasted;                // +0xd4
-    float field_dc;                    // +0xdc
-    float field_e0;                    // +0xe0
+    float energyStorageBonus;          // +0xdc
+    float metalStorageBonus;           // +0xe0
     char unknown_e4[0xf0 - 0xe4];
     int updateTime;                    // +0xf0
     int winLoseTime;                   // +0xf4
@@ -85,8 +85,8 @@ void __stdcall LoadPlayers(HapiBank* file)
             p->totalMetalConsumed = file->GetDoubleItem("TotalMetalConsumed", 0);
             p->energyWasted = file->GetDoubleItem("EnergyWasted", 0);
             p->metalWasted = file->GetDoubleItem("MetalWasted", 0);
-            p->field_dc = file->GetDoubleItem("PlayerEnergyStorage", 0);
-            p->field_e0 = file->GetDoubleItem("PlayerMetalStorage", 0);
+            p->energyStorageBonus = file->GetDoubleItem("PlayerEnergyStorage", 0);
+            p->metalStorageBonus = file->GetDoubleItem("PlayerMetalStorage", 0);
             p->flags = file->GetIntegerItem("AddPlayerStorage", 0);
             p->kills = file->GetIntegerItem("Kills", 0);
             p->losses = file->GetIntegerItem("Losses", 0);
@@ -127,8 +127,8 @@ void __stdcall SavePlayers(HapiBank* file)
             file->SetDoubleItem("TotalMetalConsumed", p->totalMetalConsumed);
             file->SetDoubleItem("EnergyWasted", p->energyWasted);
             file->SetDoubleItem("MetalWasted", p->metalWasted);
-            file->SetDoubleItem("PlayerEnergyStorage", p->field_dc);
-            file->SetDoubleItem("PlayerMetalStorage", p->field_e0);
+            file->SetDoubleItem("PlayerEnergyStorage", p->energyStorageBonus);
+            file->SetDoubleItem("PlayerMetalStorage", p->metalStorageBonus);
             file->SetIntegerItem("AddPlayerStorage", p->flags);
             file->SetIntegerItem("Kills", p->kills);
             file->SetIntegerItem("Losses", p->losses);

@@ -104,6 +104,20 @@ over twenty files).
 | `Class_004a32a0` | `src/gui/gui.cpp` | `Gui_ConfigureListboxByName` | the same: the first parameter of `ConfigureListBoxByName` (0x4a32a0) |
 | `Class_004a4620` | `src/gui/gui.cpp` | `Gui_ScheduleGadgetAnimEndTick` | the same: the first parameter of `ScheduleGadgetEndTick` (0x4a4620) |
 
+## Fields
+
+Member names (phase 4 of `docs/cleanup-roadmap.md`) that have no evidence: the
+member keeps its placeholder name.
+
+| placeholder | file | why it stays |
+| --- | --- | --- |
+| `SideName.field_224` | `src/ingame/control_panel.cpp` | no evidence: `InitCommands` (0x419560) reads the dword at +0x224 of the fifth side entry and stores it in the write-only `DAT_00511c20`; Thaldren has no member there (the side table has `nEnergyColor` at +0x222 and `nMetalColor` at +0x226), so the dword straddles two members |
+| `Sub_004679a0_b.field_30` | `src/ingame/info_panel.cpp` | no evidence: `LoadLightBar` (0x4679a0) writes 0 to it and nothing reads it; Thaldren has no name |
+| `Surfaces_0047bdf0.field_c` | `src/graphics/movies.cpp` | no evidence: `MoviePlayer::SetupDirectDraw` writes 0 to it between `back` and `palette` and nothing reads it |
+| `Entry_004df590.field_0` | `src/debug/debug_lib.cpp` | no evidence: the performance window compares it as an int with another entry's and with a name pointer; the exe has no name for it |
+| `Data1.field_0`, `Data2.field_0` | `src/debug/debug_lib.cpp` | not members of a type of their own: the int and the char that `NameMapInsertResult::Assign` (0x4e2a10) copies into the two halves of the pair |
+| `Settings.field_471` | `src/network/net_game.cpp`, `src/network/net_game_453d40.cpp` | no evidence: the first dword of the 80-byte block at g_game+0x471, declared and never read in either view |
+
 ## Globals
 
 | placeholder | file | Thaldren's name | why it stays |

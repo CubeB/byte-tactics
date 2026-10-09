@@ -98,9 +98,9 @@ struct FeatureDamagePacket {
 
 struct FeatureUnit {
     char unknown_0[0x92];
-    int field_92;                      // +0x92
+    int def;                           // +0x92
     char unknown_96[0xa6 - 0x96];
-    unsigned short field_a6;           // +0xa6
+    unsigned short unitDefIndex;       // +0xa6
     char unknown_a8[0x110 - 0xa8];
     int flags_110;                     // +0x110
     int flags_114;                     // +0x114

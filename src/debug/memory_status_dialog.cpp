@@ -85,7 +85,7 @@ static void __inline fmt_004e0b90(char* buf, unsigned int n)
 class MemoryStatusDialog {
 public:
     HWND hwnd;                         // +0x00
-    int field_4;                       // +0x04
+    int prevAllocSerial;               // +0x04
     int left;                          // +0x08
     int top;                           // +0x0c
     double time;                       // +0x10
@@ -171,12 +171,12 @@ int MemoryStatusDialog::HandleMemoryStatusMessage(unsigned int msg, int wParam, 
             SaveWindowPosition(hwnd, g_memoryStatusWindowName);
         }
 
-        int delta = g_allocSerial - field_4;
+        int delta = g_allocSerial - prevAllocSerial;
         double now = GetTimeSeconds();
         double speed = now - time;
         time = now;
         rate_add(&rates, delta, speed);
-        field_4 = g_allocSerial;
+        prevAllocSerial = g_allocSerial;
 
         buf[0] = DAT_005119b8;
         memset(buf + 1, 0, sizeof(buf) - 1);
@@ -198,7 +198,7 @@ int MemoryStatusDialog::HandleMemoryStatusMessage(unsigned int msg, int wParam, 
         fmt_004e0b90(s1, g_committedBytes);
         fmt_004e0b90(s2, g_currentBytesPeak);
         fmt_004e0b90(s3, g_currentBytes);
-        fmt_004e0b90(s4, (unsigned int)field_4);
+        fmt_004e0b90(s4, (unsigned int)prevAllocSerial);
         fmt_004e0b90(s5, g_liveAllocPeak);
         // Written out by hand: a tenth helper call would exceed the inline budget.
         {

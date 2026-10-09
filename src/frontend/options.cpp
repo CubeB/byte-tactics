@@ -438,7 +438,7 @@ struct Vtable_0045d280 {
 };
 
 struct Holder_0045d280 {
-    Vtable_0045d280* field_0;          // +0x00
+    Vtable_0045d280* next;             // +0x00
     Gadget* entries;           // +0x04
 };
 
@@ -447,7 +447,7 @@ struct Object_0045d280 {
     char unknown_0[0x18];
     Holder_0045d280* holder;           // +0x18
     char unknown_1c[0x60 - 0x1c];
-    int field_60;                      // +0x60
+    int hotGadgetIndex;                // +0x60
 };
 
 struct Holder_0045d7c0 {
@@ -469,7 +469,7 @@ struct Vtable_0045da90 {
 };
 
 struct Holder_0045da90 {
-    Vtable_0045da90* field_0;          // +0x00
+    Vtable_0045da90* next;             // +0x00
     Gadget* entries;           // +0x04
 };
 
@@ -477,7 +477,7 @@ struct Object_0045da90 {
     char unknown_0[0x18];
     Holder_0045da90* holder;           // +0x18
     char unknown_1c[0x60 - 0x1c];
-    int field_60;                      // +0x60
+    int hotGadgetIndex;                // +0x60
 };
 
 struct Object_0045de30 {
@@ -564,7 +564,7 @@ struct Sub_004609b0 {
 
 struct Sub_0045cf60 {
     char unknown_0[0xcca];
-    int field_cca;                     // +0xcca
+    int changed;                       // +0xcca
 };
 
 // The display mode record, shared by the sorter and the video mode page.
@@ -626,7 +626,7 @@ struct Link_0045ead0 {
 
 struct GadgetOwner_004605c0 {
     int unknown_0;
-    int field_4;                       // +0x4
+    int gadgets;                       // +0x4
 };
 
 // A layer of the menu stack, what LoadGuiLayer returns: its gadget array and
@@ -658,7 +658,7 @@ struct Screen_0045e100 {
     Screen_0045e100* next;             // +0x0
     Gadget* entries;           // +0x4
     Handler_0045e100 handler;          // +0x8
-    void* field_c;                     // +0xc
+    void* userData;                    // +0xc
     unsigned int flags;                // +0x10
     int active;                        // +0x14
 };
@@ -1226,7 +1226,7 @@ void __stdcall HandleGameSpeedSlider(Menu_0045b800* obj, int unused)
 
 // Reads the "SCREEN" slider of the menu object and stores its value in
 // g_game->scrollSpeed, writing 1 instead of any value of 1 or less, then
-// marks the object changed (MarkChanged sets obj->field_cca = 1).
+// marks the object changed (MarkChanged sets the changed flag at +0xcca).
 // FUNCTION: 0x45c170
 void __stdcall HandleScreenSlider(Menu_0045b800* obj, int unused)
 {
@@ -1601,7 +1601,7 @@ void UpdateMusicGadgets()
 void __stdcall HandleMusicOptionsClick(Object_0045d280* obj)
 {
     Gadget* entries = obj->holder->entries;
-    if (obj->field_60 == -1) {
+    if (obj->hotGadgetIndex == -1) {
         if (!g_game->bits_2a44.prefsByte.prefs) {
             g_game->sound->StopCdAudio();
             g_game->flags_37ebe.loadedBits.loaded = 0;
@@ -1641,8 +1641,8 @@ void __stdcall HandleMusicOptionsClick(Object_0045d280* obj)
         return;
     } else if (IsCurrentGadgetNamed(obj, g_trackTypeGadgetName)) {  // "TRACKTYPE"
         PlaySoundByName(g_optionsSoundName, 0);
-        // Index with obj->field_60 itself, not the saved copy.
-        int i = obj->field_60;
+        // Index with obj->hotGadgetIndex itself, not the saved copy.
+        int i = obj->hotGadgetIndex;
         g_game->sound->SetCategoryOfTrack(g_musicUiSelectedTrack, entries[i].stageIndex);
         UpdateTrackGadgets();
         ClearSelectedGadget(obj);
@@ -1694,15 +1694,15 @@ void __stdcall HandleMusicOptionsClick(Object_0045d280* obj)
         OpenMusicOptions();
         return;
     }
-    int save = obj->field_60;
-    if (obj->field_60 != -1) {
-        if (entries[obj->field_60].state != 1) {
+    int save = obj->hotGadgetIndex;
+    if (obj->hotGadgetIndex != -1) {
+        if (entries[obj->hotGadgetIndex].state != 1) {
             ClearSelectedGadget(obj);
             return;
         }
-        Vtable_0045d280* p = obj->holder->field_0;
+        Vtable_0045d280* p = obj->holder->next;
         CloseTopScreen(obj);
-        obj->field_60 = save;
+        obj->hotGadgetIndex = save;
         p->FUN_8(obj);
     }
 }
@@ -1768,16 +1768,16 @@ void UpdateSoundGadgets()
 void __stdcall HandleSoundOptionsClick(Object_0045da90* obj)
 {
     Gadget* entries = obj->holder->entries;
-    if (obj->field_60 == -1) {
+    if (obj->hotGadgetIndex == -1) {
         g_game->flags_37ebe.loadedBits.loaded = 0;
         return;
     }
     MarkChanged(obj);
-    int mode = obj->field_60;
+    int mode = obj->hotGadgetIndex;
     if (IsCurrentGadgetNamed(obj, g_speechGadgetName)) {
         PlaySoundByName(g_optionsSoundName, 0);
-        g_game->soundFlags.bits.speech = entries[obj->field_60].stageIndex != 0;
-        g_game->unitChat = entries[obj->field_60].stageIndex * 5;
+        g_game->soundFlags.bits.speech = entries[obj->hotGadgetIndex].stageIndex != 0;
+        g_game->unitChat = entries[obj->hotGadgetIndex].stageIndex * 5;
         ClearSelectedGadget(obj);
     } else if (IsCurrentGadgetNamed(obj, g_modeGadgetName)) {
         int v = GetButtonStageByName(obj, g_modeGadgetName);
@@ -1828,14 +1828,14 @@ void __stdcall HandleSoundOptionsClick(Object_0045da90* obj)
         ClearSelectedGadget(obj);
         return;
     }
-    if (obj->field_60 != -1) {
+    if (obj->hotGadgetIndex != -1) {
         if (entries[mode].type != 1) {
             ClearSelectedGadget(obj);
             return;
         }
-        Vtable_0045da90* p = obj->holder->field_0;
+        Vtable_0045da90* p = obj->holder->next;
         CloseTopScreen(obj);
-        obj->field_60 = mode;
+        obj->hotGadgetIndex = mode;
         p->FUN_8(obj);
     }
 }
@@ -1895,7 +1895,7 @@ void __stdcall HandleVisualOptionsClick(Gui* gui)
     int save = gui->hotGadgetIndex;
     Screen_0045e100* top = gui->top;
     Gadget* entries = top->entries;
-    FreeObj_0045e100* obj = (FreeObj_0045e100*)top->field_c;
+    FreeObj_0045e100* obj = (FreeObj_0045e100*)top->userData;
 
     if (gui->hotGadgetIndex == -1) {
         if (obj) {
@@ -1904,7 +1904,7 @@ void __stdcall HandleVisualOptionsClick(Gui* gui)
                 GameFreeThunk(obj->field_4);
             }
             GameFreeThunk(obj);
-            gui->top->field_c = 0;
+            gui->top->userData = 0;
         }
         g_game->flags_37ebe.bits.b0 = 0;
         return;
@@ -2780,7 +2780,7 @@ void OpenRestartDialog()
 // FUNCTION: 0x4605c0
 void __stdcall HandleSurrenderChoice(Gui* gui)
 {
-    int owner = gui->owner->field_4;
+    int owner = gui->owner->gadgets;
     if (gui->selected == -1)
         return;
     PlaySoundByName("Exit", 0);

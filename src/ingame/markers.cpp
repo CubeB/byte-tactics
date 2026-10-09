@@ -104,7 +104,7 @@ struct UnitType {
 struct Anim {
     unsigned short count;             // +0x0
     char unknown_2[0x2c - 2];
-    unsigned short field_2c;          // +0x2c
+    unsigned short duration;          // +0x2c
 };
 
 struct Player;
@@ -147,7 +147,7 @@ struct Order {
 
 struct MissionOrderTableEntry {       // 0x19-byte entries, table at g_missionOrderTableBegin
     char unknown_0[0x10];
-    unsigned char field_10;           // +0x10
+    unsigned char markerAnim;         // +0x10
     char unknown_11[0x19 - 0x11];
 };
 
@@ -496,7 +496,7 @@ struct Trail_004394e0 {
 // to `out`), and when `flag` is set walks the line from the snapshot to the
 // new position in 0x300000 steps, drawing frame `idx` of g_game->anims[21] at
 // each step. idx starts at (frames since order->timestamp, clamped at 0) /
-// max(1, anim->field_2c) % anim->count.
+// max(1, anim->duration) % anim->count.
 // FUNCTION: 0x4394e0
 void __stdcall DrawPathAnim(void* surface, View* view,
                             Order* order, Pos* out, int flag)
@@ -520,7 +520,7 @@ void __stdcall DrawPathAnim(void* surface, View* view,
 
     Anim* anim = g_game->anims[21];
     int pos = (t % 30) * 0x300000 / 30;
-    unsigned short len = anim->field_2c;
+    unsigned short len = anim->duration;
     int frames = len < 1 ? 1 : (int)len;
     unsigned int idx = (t / frames) % anim->count;
 
@@ -558,12 +558,12 @@ void __stdcall DrawWeaponCoverage(void* surface, View* view, Order* order,
     } else {
         pos = order->pos;
     }
-    if (g_missionOrderTableBegin[order->kind].field_10 == 0) {
+    if (g_missionOrderTableBegin[order->kind].markerAnim == 0) {
         *out = pos;
         return;
     }
     if (g_game->showRanges != 0 &&
-        (g_missionOrderTableBegin[order->kind].field_10 == 1 || g_missionOrderTableBegin[order->kind].field_10 == 2)) {
+        (g_missionOrderTableBegin[order->kind].markerAnim == 1 || g_missionOrderTableBegin[order->kind].markerAnim == 2)) {
         int color;
         if (g_game->frame & 1)
             color = g_game->color1;
@@ -585,8 +585,8 @@ void __stdcall DrawWeaponCoverage(void* surface, View* view, Order* order,
         if (len != 0)
             DrawRangeCircle(surface, view, &pos, len, color, "attack length", 2);
     }
-    Anim* anim = g_game->anims[g_missionOrderTableBegin[order->kind].field_10];
-    unsigned int n = g_game->frame / ((unsigned int)anim->field_2c * 2);
+    Anim* anim = g_game->anims[g_missionOrderTableBegin[order->kind].markerAnim];
+    unsigned int n = g_game->frame / ((unsigned int)anim->duration * 2);
     n = n % anim->count;
     void* bmp = *(void**)((char*)anim + n * 8 + 0x28);
     DrawFrameBlended(surface, bmp, pos.x.whole - view->scroll_x + 0x80,

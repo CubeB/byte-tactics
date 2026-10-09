@@ -547,7 +547,7 @@ struct Stack_004d89b0 {
 class CallSite {
 public:
     char name[0x40];            // +0x00
-    int field_40;               // +0x40
+    int id;                     // +0x40
     Stack_004d89b0 stack;       // +0x44
     void FormatCallSite(char* out, int size);
 };
@@ -566,7 +566,7 @@ void CallSite::FormatCallSite(char* out, int size)
     if (name[0]) {
         GetSourceFilePath(path, name);
         char* p = out + strlen(out);
-        sprintf(p, "%s(%d)", path, field_40);
+        sprintf(p, "%s(%d)", path, id);
         strcat(out, " : ");
         strcat(out, "\n");
     }
@@ -650,7 +650,7 @@ class BlockHistory : public BlockInfo {
 public:
     TraceRecord allocSite;           // +0x30
     TraceRecord freeSite;            // +0xbc
-    char field_148;                  // +0x148
+    char unused_148;                 // +0x148
 
     BlockHistory(void);
     BlockHistory(const BlockInfo& h, const char* name, int id, int count);
@@ -664,7 +664,7 @@ BlockHistory::BlockHistory(void) :
     allocSite(),
     freeSite()
 {
-    field_148 = 0;
+    unused_148 = 0;
 }
 
 // The original calls this from 0x4d8d40 rather than inlining it.
@@ -701,7 +701,7 @@ BlockHistory::BlockHistory(const BlockInfo& h, const char* name, int id, int cou
       freeSite()
 {
     *(BlockInfo*)this = h;
-    field_148 = 0;
+    unused_148 = 0;
 }
 
 // IsOutsideStack (0x4d8d70) stays in src/debug/debug_lib_4d8d70.cpp: it is the
@@ -5586,7 +5586,7 @@ struct Rate_004e0b90 {
 class MemoryStatusDialog {
 public:
     HWND hwnd;                         // +0x00
-    int field_4;                       // +0x04
+    int prevAllocSerial;               // +0x04
     int left;                          // +0x08
     int top;                           // +0x0c
     double time;                       // +0x10
@@ -5622,7 +5622,7 @@ void MemoryStatusDialog::LoadWorkingSetPref(int readOnly)
 MemoryStatusDialog::MemoryStatusDialog()
 {
     hwnd = 0;
-    field_4 = 0;
+    prevAllocSerial = 0;
     left = -1;
     top = -1;
     flag_78 = 0;

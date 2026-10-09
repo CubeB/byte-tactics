@@ -176,42 +176,30 @@ struct PlayerInfo {
 // where two views name the same bytes differently the union carries both
 // names.
 struct Player {
-    union {
-        int active;                    // +0x00
-        int field_0;
-    };
+    int active;                        // +0x00
     union {
         int id;                        // +0x04
         int dpid;
-        int field_4;
     };
     int joinTime;                      // +0x08
     int lobbyDataSynced;               // +0x0c
     int messages;                      // +0x10
     int ping;                          // +0x14
     char unknown_18[0x1c - 0x18];
-    union {
-        int field_1c;                  // +0x1c
-        int lastHeard;
-    };
-    union {
-        unsigned char field_20;        // +0x20
-        unsigned char progress;
-    };
+    int lastHeard;                     // +0x1c
+    unsigned char progress;            // +0x20
     union {
         unsigned char keepaliveFlags;  // +0x21
         unsigned char flags_21;
     };
     union {
-        unsigned char field_22;        // +0x22
-        unsigned char reason;
+        unsigned char reason;          // +0x22
         unsigned char rejectReason;
     };
     char unknown_23[0x27 - 0x23];
     union {
         PlayerInfo* info;              // +0x27
         PlayerInfo* data;
-        PlayerInfo* field_27;
     };
     char name[0x1e];                   // +0x2b
     char fullName[0x2a];               // +0x49
@@ -223,22 +211,22 @@ struct Player {
     };
     char unknown_74[0x8c - 0x74];
     union {
-        int field_8c;                  // +0x8c
-        float metal;
+        float energy;                  // +0x8c
+        int energyBits;
     };
     char unknown_90[0x98 - 0x90];
     union {
-        int field_98;                  // +0x98
-        float energy;
+        float metal;                   // +0x98
+        int metalBits;
     };
     char unknown_9c[0xa4 - 0x9c];
     union {
-        int energyCapacity;            // +0xa4
-        float field_a4f;
+        float energyCapacity;          // +0xa4
+        int energyCapacityBits;
     };
     union {
-        int metalCapacity;             // +0xa8
-        float field_a8f;
+        float metalCapacity;           // +0xa8
+        int metalCapacityBits;
     };
     double totalEnergyProduced;        // +0xac
     double totalMetalProduced;         // +0xb4
@@ -257,19 +245,13 @@ struct Player {
     short commanderLosses;             // +0x106
     unsigned char allied[11];          // +0x108
     unsigned char alliedBy[11];        // +0x113
-    unsigned char t0[11];              // +0x11e
-    unsigned char t1[11];              // +0x129
-    unsigned char t2[11];              // +0x134
-    union {
-        unsigned char field_13f;       // +0x13f
-        char alliance;
-    };
+    unsigned char shareLos[11];        // +0x11e
+    unsigned char shareVision[11];     // +0x129
+    unsigned char shareMapping[11];    // +0x134
+    unsigned char alliance;            // +0x13f
     int unitsCreated;                  // +0x140
     short unitCount;                   // +0x144
-    union {
-        unsigned char field_146;       // +0x146
-        unsigned char index;
-    };
+    unsigned char index;               // +0x146
     unsigned char startPos;            // +0x147
     char unknown_148[0x14b - 0x148];
     void SetType(int value);
@@ -603,7 +585,7 @@ unsigned char __stdcall GetPlayerSlot(Player* player)
     if (player == 0) {
         return 10;
     }
-    return player->field_146;
+    return player->index;
 }
 
 static inline int GetPlayerField_0044fed0(unsigned char i)
@@ -625,7 +607,7 @@ static inline unsigned char FindPlayerIndex_0044fed0(int id)
     return 10;
 }
 
-// Finds the player whose field_4 equals the given id and returns a pointer to
+// Finds the player whose id equals the given id and returns a pointer to
 // it, or null when there is none.
 // FUNCTION: 0x44fed0
 Player* __stdcall FindPlayerByDpid(int id)
@@ -653,7 +635,7 @@ int __stdcall GetSlotDpid(unsigned char index)
 int __stdcall GetPlayerDpid(Player* obj)
 {
     if (obj != 0 && obj->type != 0) {
-        return (int)obj->field_4;
+        return (int)obj->id;
     }
     return -1;
 }
@@ -721,7 +703,7 @@ int __stdcall GetPlayerName(int dpid, char* shortName, char* longName)
 static inline int GetPlayerField(unsigned char i)
 {
     if (i != 10 && g_game->players[i].type)
-        return g_game->players[i].field_4;
+        return g_game->players[i].id;
     return -1;
 }
 
@@ -744,8 +726,8 @@ static inline Player* FindPlayer(int id)
     return &g_game->players[FindPlayerIndex_00450240(id)];
 }
 
-// Finds the highest field_4 among the active players of type 1 or 3, looks
-// that player up by field_4 and sets bit 0 of its info flags. Nothing in the
+// Finds the highest id among the active players of type 1 or 3, looks
+// that player up by id and sets bit 0 of its info flags. Nothing in the
 // exe calls it. It returns the constant 10, the "no player" index.
 // FUNCTION: 0x450240
 unsigned char PickNewHost()
@@ -756,8 +738,8 @@ unsigned char PickNewHost()
     do {
         if ((p->active != 0 && p->type == 3)
             || (p->active != 0 && p->type == 1)) {
-            if (p->field_4 > max)
-                max = p->field_4;
+            if (p->id > max)
+                max = p->id;
         }
         p++;
     } while (--n);
@@ -794,7 +776,7 @@ static inline unsigned char FindPlayerIndex_00450380(int id)
 void __stdcall AnnouncePlayerLeft(int id)
 {
     char buf[200];
-    if (g_game->players[g_game->localPlayer].field_22 == 1)
+    if (g_game->players[g_game->localPlayer].rejectReason == 1)
         return;
     Player* p;
     if (FindPlayerIndex_00450380(id) == 10)
@@ -804,7 +786,7 @@ void __stdcall AnnouncePlayerLeft(int id)
     if (p == 0)
         return;
     sprintf(buf, "%s %s", p->name, Translate(g_leftGameTexts[rand() & 7]));
-    AddMessage(buf, 4, 0, p->field_146);
+    AddMessage(buf, 4, 0, p->index);
 }
 
 // Returns the first player slot that is inactive and not of type 4, or 10
@@ -845,7 +827,7 @@ char FindFreePlayerId(void)
             Player* p = &game->players[i];
             if (p->active != 0
                 && (p->type == 1 || p->type == 2 || p->type == 3)
-                && p->field_146 != 10
+                && p->index != 10
                 && p->lobbyDataSynced == id) {
                 used = 1;
             }
@@ -871,7 +853,7 @@ void CheckDuplicatePlayerIds(void)
     for (int i = 0; i < 10; i++) {
         if (g_game->players[i].active != 0
             && (g_game->players[i].type == 1 || g_game->players[i].type == 2 || g_game->players[i].type == 3)
-            && g_game->players[i].field_146 != 10
+            && g_game->players[i].index != 10
             && g_game->players[i].lobbyDataSynced > 0 && g_game->players[i].lobbyDataSynced <= 10) {
             if (++counts[g_game->players[i].lobbyDataSynced] > 1) {
                 dup = 1;
@@ -965,9 +947,9 @@ int __stdcall AddNetPlayer(int param_1)
         return 1;
     }
     SetupPlayerSlot(slot, g_game->players[slot].type);
-    p->field_22 = 0;
+    p->rejectReason = 0;
     p->id = param_1;
-    p->field_1c = GetTicks();
+    p->lastHeard = GetTicks();
     g_game->numPlayers++;
     if (g_game->flags_2a44_w & 1) {
         for (int i = 0; i < 10; i++) {
@@ -1117,7 +1099,7 @@ void BroadcastPlayerInfo()
                     unsigned char* msg = g_game->buffer;
                     msg[0] = 0x24;
                     *(int*)(msg + 1) = player->id;
-                    msg[5] = player->field_13f;
+                    msg[5] = player->alliance;
                     BroadcastPacket(player->id, msg, 6);
                     if (g_usePacketManager != 0) {
                         g_packetManager.SendAllQueued(1);
@@ -1227,7 +1209,7 @@ int __stdcall CreateLocalPlayer(unsigned char playerIndex, int flag)
     info->versionMajor = g_game->version;
     info->versionMinor = g_game->versionMinor;
 
-    int r = HAPINET_addplayer(g_game->net, (unsigned long*)&player->field_4,
+    int r = HAPINET_addplayer(g_game->net, (unsigned long*)&player->id,
                          buf, buf, g_game->passWord, 0, 0x50);
     if (r == 0) {
         g_game->players[playerIndex].SetType(0);
@@ -1348,7 +1330,7 @@ struct Gadget_004538f0 {
 // The 0x15b-byte entry table returned by FindGadgetChecked.
 struct OutEntry_00453a50 {
     char unknown_0[0x19];
-    short field_19;                    // +0x19
+    short height;                      // +0x19
 };
 
 // The dialog object returned by LoadGuiLayer.
@@ -1357,7 +1339,7 @@ struct Gui_00453a50 {
     void* entries;                     // +0x04
     void (__stdcall* callback)(void*); // +0x08
     char unknown_c[0x1c - 0xc];
-    void (__stdcall* field_1c)(void*); // +0x1c
+    void (__stdcall* onFrame)(void*); // +0x1c
 };
 
 // Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
@@ -1526,7 +1508,7 @@ void CreateNetGame(void)
 static inline int PlayerId_004515d0(unsigned char i)
 {
     if (i != 10 && g_game->players[i].flag_73)
-        return g_game->players[i].field_4;
+        return g_game->players[i].id;
     return -1;
 }
 
@@ -1697,7 +1679,7 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
                         unsigned char* msg = g_game->buffer;
                         msg[0] = 0x24;
                         *(int*)(msg + 1) = q->id;
-                        msg[5] = q->field_13f;
+                        msg[5] = q->alliance;
                         BroadcastPacket(q->id, msg, 6);
                         if (g_usePacketManager != 0)
                             g_packetManager.SendAllQueued(1);
@@ -1722,7 +1704,7 @@ void RemoveLocalPlayers()
     for (int i = 0; i < 10; i++) {
         if (g_game->players[i].active != 0
             && (g_game->players[i].type == 1 || g_game->players[i].type == 2)) {
-            RemovePlayer(g_game->players[i].field_4);
+            RemovePlayer(g_game->players[i].id);
         }
     }
     ShutdownScoreTables();
@@ -1783,8 +1765,8 @@ int __stdcall SendPacketToPlayer(int from, int to, unsigned char* packet, int si
 
     if ((g_game->flags_2a44 & 1) && fromPlayer != 0 && fromPlayer->active != 0 &&
         (fromPlayer->state == 1 || fromPlayer->state == 2) &&
-        fromPlayer->field_22 == 0 && toPlayer != 0 && toPlayer->active != 0 &&
-        toPlayer->state == 3 && toPlayer->field_22 == 0) {
+        fromPlayer->rejectReason == 0 && toPlayer != 0 && toPlayer->active != 0 &&
+        toPlayer->state == 3 && toPlayer->rejectReason == 0) {
         Player* target = &g_game->players[FindPlayerIndex_00451bc0(to)];
         if (target->active == 0 || (target->state != 1 && target->state != 2)) {
             if (g_usePacketManager != 0)
@@ -1826,7 +1808,7 @@ int __stdcall BroadcastPacket(int id, unsigned char* packet, int size)
         return 0;
     if (p->state != 1 && p->state != 2)
         return 0;
-    if (p->field_22 != 0)
+    if (p->rejectReason != 0)
         return 0;
     if ((g_game->flags_2a44 & 1) != 0) {
         if (g_game->duplicatePlayerTypeFlag == 0) {
@@ -1846,7 +1828,7 @@ int __stdcall BroadcastPacket(int id, unsigned char* packet, int size)
                 continue;
             if (g_broadcastPeersSeen[g_game->players[i].lobbyDataSynced] != 0)
                 continue;
-            SendPacketToPlayer(id, g_game->players[i].field_4, packet, size);
+            SendPacketToPlayer(id, g_game->players[i].id, packet, size);
             int c = g_game->players[i].lobbyDataSynced;
             if (c >= 0 && c < 10)
                 g_broadcastPeersSeen[c] = 1;
@@ -2122,8 +2104,8 @@ int __stdcall RequestPlayerColor(int param)
     // Widened into an int; localPlayer re-read from g_game, not cached.
     int i = FindReadyPlayer();
     if (i == g_game->localPlayer) {
-        if (IsColorFree(p->field_4, param) == 0) {
-            AssignPlayerColor(p->field_4, p->field_4, param);
+        if (IsColorFree(p->id, param) == 0) {
+            AssignPlayerColor(p->id, p->id, param);
             return 1;
         }
         p->info->color = param;
@@ -2136,9 +2118,9 @@ int __stdcall RequestPlayerColor(int param)
 
     int result;
     if (i == 10)
-        result = BroadcastPacket(p->field_4, buffer, 2);
+        result = BroadcastPacket(p->id, buffer, 2);
     else
-        result = SendPacketToPlayer(p->field_4, g_game->players[i].field_4, buffer, 2);
+        result = SendPacketToPlayer(p->id, g_game->players[i].id, buffer, 2);
 
     if (g_usePacketManager != 0)
         g_packetManager.SendAllQueued(1);
@@ -2148,7 +2130,7 @@ int __stdcall RequestPlayerColor(int param)
 static inline int PlayerId_00452800(unsigned char i)
 {
     if (i != 10 && g_game->players[i].flag_73)
-        return g_game->players[i].field_4;
+        return g_game->players[i].id;
     return -1;
 }
 
@@ -2174,12 +2156,12 @@ int __stdcall BroadcastPlayerLeft(int id)
     *(int*)(msg + 1) = id;
     unsigned char index = LookupPlayer(id);
     Player* player = &g_game->players[index];
-    if ((player->field_0 != 0 && player->flag_73 == 3)
+    if ((player->active != 0 && player->flag_73 == 3)
         || !(g_game->flags_38d75 & 1)
         || (g_game->flags_38d75 & 2)) {
         RemovePlayer(id);
     }
-    return BroadcastPacket(g_game->players[g_game->field_2a42].field_4, msg, 5);
+    return BroadcastPacket(g_game->players[g_game->field_2a42].id, msg, 5);
 }
 
 // FUNCTION: 0x452b70
@@ -2220,7 +2202,7 @@ int __stdcall BroadcastAllyTeam(Player* player)
     unsigned char* msg = g_game->buffer;
     msg[0] = 0x24;
     *(int*)(msg + 1) = player->id;
-    msg[5] = player->field_13f;
+    msg[5] = player->alliance;
     int result = BroadcastPacket(player->id, msg, 6);
     if (g_usePacketManager != 0) {
         g_packetManager.SendAllQueued(1);
@@ -2449,7 +2431,7 @@ int __stdcall RejectPlayer(int id, unsigned char value)
 
     if (p->active != 0
         && (p->state == 1 || p->state == 2)
-        && p->field_22 == 0) {
+        && p->rejectReason == 0) {
         if (p->state == 1) {
             for (int i = 0; i < 10; i++) {
                 if (g_game->players[i].active != 0
@@ -2457,7 +2439,7 @@ int __stdcall RejectPlayer(int id, unsigned char value)
                     *(int*)(msg + 1) = g_game->players[i].id;
                     BroadcastPacket(FindActiveId_00453010(), msg, 6);
                     RemovePlayer(p->id);
-                    g_game->players[i].field_22 = value;
+                    g_game->players[i].rejectReason = value;
                 }
             }
             result = 1;
@@ -2467,15 +2449,15 @@ int __stdcall RejectPlayer(int id, unsigned char value)
             RemovePlayer(p->id);
             result = 1;
         }
-    } else if (p->active != 0 && p->state == 3 && p->field_22 == 0) {
+    } else if (p->active != 0 && p->state == 3 && p->rejectReason == 0) {
         *(int*)(msg + 1) = id;
         result = BroadcastPacket(FindActiveId_00453010(), msg, 6);
-        if (p->active != 0 && p->state == 3 && p->field_27->kind == 1) {
+        if (p->active != 0 && p->state == 3 && p->info->kind == 1) {
             unsigned char c = p->lobbyDataSynced;
             for (int i = 0; i < 10; i++) {
                 if (g_game->players[i].lobbyDataSynced == c) {
                     RemovePlayer(g_game->players[i].id);
-                    g_game->players[i].field_22 = value;
+                    g_game->players[i].rejectReason = value;
                 }
             }
         } else {
@@ -2483,7 +2465,7 @@ int __stdcall RejectPlayer(int id, unsigned char value)
         }
     }
 
-    p->field_22 = value;
+    p->rejectReason = value;
     return result;
 }
 
@@ -2694,9 +2676,9 @@ void __stdcall OpenTimeoutDialog(int id)
 
     OutEntry_00453a50* out = (OutEntry_00453a50*)FindGadgetChecked(entries, "OUTPUT");
     ConfigureListBoxByName((char*)g_game + 0x519, "OUTPUT", g_loungeChatter,
-                 (int)out->field_19 / (GetFontLineHeight() + 2), 0);
+                 (int)out->height / (GetFontLineHeight() + 2), 0);
 
-    gui->field_1c = &UpdateTimeoutDialog;
+    gui->onFrame = &UpdateTimeoutDialog;
     BeginTextEdit((char*)g_game + 0x519, FindGadgetIndex(entries, "TALK", 3));
 
     SetTranslatedTextByName((char*)g_game + 0x519, "NAME",
@@ -2772,7 +2754,7 @@ void __stdcall SendNewUnit(Unit* obj)
     packet.unitId = obj->id;
     packet.pos = obj->pos;
     packet.angles = obj->angles;
-    BroadcastPacket(obj->player->field_4, &packet, 0x17);
+    BroadcastPacket(obj->player->id, &packet, 0x17);
 }
 
 // FUNCTION: 0x4560c0
@@ -2782,7 +2764,7 @@ void __stdcall BroadcastBuilderLink(Unit* obj, Unit* target)
     packet.type = 0x12;
     packet.constructedUnitId = target->id;
     packet.builderUnitId = obj->id;
-    BroadcastPacket(obj->player->field_4, &packet, 5);
+    BroadcastPacket(obj->player->id, &packet, 5);
 }
 
 // The module's third part (0x456110 to 0x457d30): the script-call packets,
@@ -3042,7 +3024,7 @@ void SendNetHeartbeat()
                     unsigned char* buf2 = g_game->buffer;
                     buf2[0] = 0x24;
                     *(int*)(buf2 + 1) = p->id;
-                    buf2[5] = p->field_13f;
+                    buf2[5] = p->alliance;
                     BroadcastPacket(p->id, buf2, 6);
                     if (g_usePacketManager != 0)
                         g_packetManager.SendAllQueued(1);
@@ -3212,7 +3194,7 @@ int AssignStartPositions() {
             for (int k0 = 0; k0 < 10; k0++) {
                 Player* q = &g_game->players[k0];
                 if (q->active != 0 && (q->type == 1 || q->type == 2 || q->type == 3) &&
-                    q->field_146 != 10 && (q->info->bits_9b.flag6) == 0)
+                    q->index != 10 && (q->info->bits_9b.flag6) == 0)
                     out[k0] = n++;
                 else
                     out[k0] = -1;
@@ -3225,7 +3207,7 @@ int AssignStartPositions() {
             for (int k1 = 0; k1 < 10; k1++) {
                 Player* p = &g_game->players[k1];
                 if (p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3) &&
-                    p->field_146 != 10 && (p->info->bits_9b.flag6) == 0) {
+                    p->index != 10 && (p->info->bits_9b.flag6) == 0) {
                     cand[n] = n;
                     n++;
                 }
@@ -3236,7 +3218,7 @@ int AssignStartPositions() {
             for (int k2 = 0; k2 < 10; k2++) {
                 Player* q2 = &g_game->players[k2];
                 if (q2->active != 0 && (q2->type == 1 || q2->type == 2 || q2->type == 3) &&
-                    q2->field_146 != 10) {
+                    q2->index != 10) {
                     if (g_game->players[k2].active != 0 && (q2->info->bits_9b.flag6))
                         out[k2] = -1;
                     else
@@ -3352,7 +3334,7 @@ static inline int PlayerReady(Player* p)
 {
     return p->active != 0
         && (p->type == 1 || p->type == 2 || p->type == 3)
-        && p->field_146 != 10
+        && p->index != 10
         && (p->unitCount != 0 || p->unitsCreated == 0);
 }
 
@@ -3384,11 +3366,11 @@ void __stdcall SendShareEnergy(unsigned char from, unsigned char to, int value)
     Player* second = &g_game->players[to];
     if (first->active != 0
         && (first->type == 1 || first->type == 2 || first->type == 3)
-        && first->field_146 != 10
+        && first->index != 10
         && (first->unitCount != 0 || first->unitsCreated == 0)
         && second->active != 0
         && (second->type == 1 || second->type == 2 || second->type == 3)
-        && second->field_146 != 10
+        && second->index != 10
         && (second->unitCount != 0 || second->unitsCreated == 0)) {
         ResourceSharePacket packet;
         packet.type = 0x16;
@@ -3425,9 +3407,9 @@ void __stdcall SendShareMapInfo(unsigned char from, unsigned char to)
 }
 
 // Scans the ten player slots twice. The outer pass picks every slot that looks
-// like a local player (active, type 1 or 2, unitsCreated set, field_22 clear); the
+// like a local player (active, type 1 or 2, unitsCreated set, rejectReason clear); the
 // inner pass then looks for a network slot (active, type 3) whose data->kind
-// is 1 and whose team (field_146) is still clear in the target's three per-team
+// is 1 and whose team (index) is still clear in the target's three per-team
 // byte tables, and hands the pair to SendPlayerEconomy, returning 0 in that case.
 // The three tables live at +0x11e, +0x129 and +0x134, eleven bytes each.
 // FUNCTION: 0x4572a0
@@ -3442,23 +3424,23 @@ int BroadcastPendingViewState()
             continue;
         if (pi->unitsCreated == 0)
             continue;
-        if (pi->field_22 != 0)
+        if (pi->rejectReason != 0)
             continue;
         for (int j = 0; j < 10; j++) {
             Player* pj = &g_game->players[j];
             if (pj->active != 0 && pj->type == 3 || pj->unitsCreated == 0
-                || pj->field_22 != 0) {
+                || pj->rejectReason != 0) {
                 // Two sibling ifs, each with its own call: the jump layout and
                 // registers follow the original.
                 if (pj->active != 0 && pj->type == 3) {
                     if (pj->data->kind == 1
-                        && (pi->t0[pj->field_146] == 0
-                            || pi->t2[pj->field_146] == 0
-                            || pi->t1[pj->field_146] == 0))
+                        && (pi->shareLos[pj->index] == 0
+                            || pi->shareMapping[pj->index] == 0
+                            || pi->shareVision[pj->index] == 0))
                         goto send;
                 }
                 if (pj->active != 0 && pj->type == 3) {
-                    if (pi->t1[pj->field_146] == 0) {
+                    if (pi->shareVision[pj->index] == 0) {
                         SendPlayerEconomy(pi, pj, 1);
                         result = 0;
                     }
@@ -3487,7 +3469,7 @@ void __stdcall SendPlayerEconomy(Player* player, Player* target,
         return;
     if (player->type != 1 && player->type != 2)
         return;
-    if (player->field_22 != 0)
+    if (player->rejectReason != 0)
         return;
 
     PlayerViewStatePacket packet;
@@ -3497,10 +3479,10 @@ void __stdcall SendPlayerEconomy(Player* player, Player* target,
     packet.unitsLost = player->losses;
     packet.commandersKilled = player->commanderKills;
     packet.commandersLost = player->commanderLosses;
-    packet.metalAmount = player->field_98;
-    packet.energyAmount = player->field_8c;
-    packet.metalStorage = player->metalCapacity;
-    packet.energyStorage = player->energyCapacity;
+    packet.metalAmount = player->metalBits;
+    packet.energyAmount = player->energyBits;
+    packet.metalStorage = player->metalCapacityBits;
+    packet.energyStorage = player->energyCapacityBits;
     packet.energyProduced = (float)player->totalEnergyProduced;
     packet.energyConsumed = (float)player->totalEnergyConsumed;
     packet.energyWasted = (float)player->energyWasted;
@@ -3509,7 +3491,7 @@ void __stdcall SendPlayerEconomy(Player* player, Player* target,
     packet.metalWasted = (float)player->metalWasted;
 
     if (target != 0) {
-        if (target->field_22 == 0)
+        if (target->rejectReason == 0)
             SendPacketToPlayer(player->dpid, target->dpid, &packet, 0x3a);
         return;
     }
@@ -3521,7 +3503,7 @@ void __stdcall SendPlayerEconomy(Player* player, Player* target,
             continue;
         if (g_game->players[i].data->kind != 1)
             continue;
-        if (g_game->players[i].field_22 != 0)
+        if (g_game->players[i].rejectReason != 0)
             continue;
         SendPacketToPlayer(player->dpid, g_game->players[i].dpid, &packet, 0x3a);
     }
@@ -3542,14 +3524,14 @@ void __stdcall HandlePlayerEconomy(PlayerViewStatePacket* packet, Player* player
 {
     if (player == 0)
         return;
-    if (player->field_22 != 0)
+    if (player->rejectReason != 0)
         return;
 
     int found = 0;
     for (int i = 0; i < 10; i++) {
         if (g_game->players[i].active != 0
             && (g_game->players[i].type == 1 || g_game->players[i].type == 2)
-            && g_game->players[i].t1[player->field_146] != 0)
+            && g_game->players[i].shareVision[player->index] != 0)
             found = 1;
     }
 
@@ -3558,10 +3540,10 @@ void __stdcall HandlePlayerEconomy(PlayerViewStatePacket* packet, Player* player
         player->losses = *(short*)&packet->unitsLost;
         player->commanderKills = *(short*)&packet->commandersKilled;
         player->commanderLosses = *(short*)&packet->commandersLost;
-        player->field_98 = packet->metalAmount;
-        player->field_8c = packet->energyAmount;
-        player->metalCapacity = packet->metalStorage;
-        player->energyCapacity = packet->energyStorage;
+        player->metalBits = packet->metalAmount;
+        player->energyBits = packet->energyAmount;
+        player->metalCapacityBits = packet->metalStorage;
+        player->energyCapacityBits = packet->energyStorage;
         player->totalEnergyProduced = packet->energyProduced;
         player->totalEnergyConsumed = packet->energyConsumed;
         player->energyWasted = packet->energyWasted;
@@ -3584,19 +3566,19 @@ void __stdcall HandlePlayerEconomy(PlayerViewStatePacket* packet, Player* player
             continue;
         if (p->type != 1 && p->type != 2)
             continue;
-        if (p->field_22 != 0)
+        if (p->rejectReason != 0)
             continue;
-        p->t1[player->field_146] = 1;
+        p->shareVision[player->index] = 1;
         // Must be an if/else of constant stores, not a bool expression, which
         // adds a 32 bit temporary.
-        if (p->t0[player->field_146] != 0)
+        if (p->shareLos[player->index] != 0)
             team.ackMapping = 1;
         else
             team.ackMapping = 0;
         SendPacketToPlayer(p->dpid, player->dpid, &team, 3);
         if (g_game->conditions->CheckVictory() != 0)
             continue;
-        if (p->t0[player->field_146] != 0)
+        if (p->shareLos[player->index] != 0)
             continue;
         SendPlayerEconomy(p, player, 1);
     }
@@ -3777,7 +3759,7 @@ int CountLocalComputerPlayers()
     return count;
 }
 
-// Counts active players of type 2 whose field_146 is not 10 (compare
+// Counts active players of type 2 whose index is not 10 (compare
 // 0x457c10).
 // FUNCTION: 0x457bc0
 int CountActiveAIPlayers()
@@ -3786,7 +3768,7 @@ int CountActiveAIPlayers()
     for (int i = 0; i < 10; i++) {
         if (g_game->players[i].active != 0
             && g_game->players[i].type == 2
-            && g_game->players[i].field_146 != 10
+            && g_game->players[i].index != 10
             && (g_game->players[i].unitCount != 0 || g_game->players[i].unitsCreated == 0))
             count++;
     }
@@ -3801,7 +3783,7 @@ int CountActiveHumanOrAiPlayers()
         if (g_game->players[i].active != 0
             && (g_game->players[i].type == 1 || g_game->players[i].type == 2)
             && (g_game->players[i].type == 1 || g_game->players[i].type == 2 || g_game->players[i].type == 3)
-            && g_game->players[i].field_146 != 10
+            && g_game->players[i].index != 10
             && (g_game->players[i].unitCount != 0 || g_game->players[i].unitsCreated == 0))
             count++;
     }
@@ -3828,7 +3810,7 @@ int CountCombatPlayers()
     for (int i = 0; i < 10; i++) {
         if (g_game->players[i].active != 0
             && (g_game->players[i].type == 1 || g_game->players[i].type == 2 || g_game->players[i].type == 3)
-            && g_game->players[i].field_146 != 10
+            && g_game->players[i].index != 10
             && (g_game->players[i].unitCount != 0 || g_game->players[i].unitsCreated == 0)
             && (g_game->players[i].type == 1
                 || (g_game->players[i].type == 3 && g_game->players[i].data->kind == 1))
@@ -3851,37 +3833,12 @@ void __stdcall UpdateResourceSharing(Player* player)
 
     if (g_game->ticks % 60 == 0) {
         Player* found = player;
-        if (player->info->bits_97.b1 && player->energy > player->shareMetal) {
+        if (player->info->bits_97.b1 && player->metal > player->shareMetal) {
             for (int i = 0; i < 10; i++) {
                 Player* p = &g_game->players[i];
                 if (p->active != 0
                     && (p->type == 1 || p->type == 2 || p->type == 3)
-                    && p->field_146 != 10
-                    && (p->type == 1 || p->type == 2 || p->type == 3)
-                    && (p->unitCount != 0 || p->unitsCreated == 0)
-                    && p->type == 3
-                    && p->info->kind == 1
-                    && player->allied[i] != 0
-                    && p->energy < player->energy)
-                    found = p;
-            }
-        }
-        if (found != player && player->energy > player->shareMetal) {
-            float amount = (player->energy - player->shareMetal) * 0.33333334f;
-            float limit = found->field_a8f - found->energy;
-            // The min() must be a ternary into a fresh local, not an if.
-            float result = amount < limit ? amount : limit;
-            amount = result;
-            TransferEnergy(player->field_146, found->field_146, amount, 1);
-        }
-
-        found = player;
-        if (player->info->bits_97.b2 && player->metal > player->shareEnergy) {
-            for (int i = 0; i < 10; i++) {
-                Player* p = &g_game->players[i];
-                if (p->active != 0
-                    && (p->type == 1 || p->type == 2 || p->type == 3)
-                    && p->field_146 != 10
+                    && p->index != 10
                     && (p->type == 1 || p->type == 2 || p->type == 3)
                     && (p->unitCount != 0 || p->unitsCreated == 0)
                     && p->type == 3
@@ -3891,13 +3848,38 @@ void __stdcall UpdateResourceSharing(Player* player)
                     found = p;
             }
         }
-        if (found != player && player->metal > player->shareEnergy) {
-            float amount = (player->metal - player->shareEnergy) * 0.5f;
-            float limit = found->field_a4f - found->metal;
+        if (found != player && player->metal > player->shareMetal) {
+            float amount = (player->metal - player->shareMetal) * 0.33333334f;
+            float limit = found->metalCapacity - found->metal;
             // The min() must be a ternary into a fresh local, not an if.
             float result = amount < limit ? amount : limit;
             amount = result;
-            TransferMetal(player->field_146, found->field_146, amount, 1);
+            TransferEnergy(player->index, found->index, amount, 1);
+        }
+
+        found = player;
+        if (player->info->bits_97.b2 && player->energy > player->shareEnergy) {
+            for (int i = 0; i < 10; i++) {
+                Player* p = &g_game->players[i];
+                if (p->active != 0
+                    && (p->type == 1 || p->type == 2 || p->type == 3)
+                    && p->index != 10
+                    && (p->type == 1 || p->type == 2 || p->type == 3)
+                    && (p->unitCount != 0 || p->unitsCreated == 0)
+                    && p->type == 3
+                    && p->info->kind == 1
+                    && player->allied[i] != 0
+                    && p->energy < player->energy)
+                    found = p;
+            }
+        }
+        if (found != player && player->energy > player->shareEnergy) {
+            float amount = (player->energy - player->shareEnergy) * 0.5f;
+            float limit = found->energyCapacity - found->energy;
+            // The min() must be a ternary into a fresh local, not an if.
+            float result = amount < limit ? amount : limit;
+            amount = result;
+            TransferMetal(player->index, found->index, amount, 1);
         }
     }
 
@@ -3908,14 +3890,14 @@ void __stdcall UpdateResourceSharing(Player* player)
             Player* p = &g_game->players[i];
             if (p->active != 0
                 && (p->type == 1 || p->type == 2 || p->type == 3)
-                && p->field_146 != 10
+                && p->index != 10
                 && (p->type == 1 || p->type == 2 || p->type == 3)
                 && (p->unitCount != 0 || p->unitsCreated == 0)
                 && p->type == 3
                 && p->info->kind == 1
                 && player->allied[i] != 0) {
-                unsigned char a = player->field_146;
-                unsigned char b = p->field_146;
+                unsigned char a = player->index;
+                unsigned char b = p->index;
                 if (a != 10 && b != 10) {
                     ResourceSharePacket packet;
                     packet.type = 0x16;

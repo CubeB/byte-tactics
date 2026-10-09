@@ -101,8 +101,8 @@ struct Grid2 {
     unsigned int width;                // +0x4
     unsigned int height;               // +0x8
     int count;                         // +0xc
-    int field_10;                      // +0x10
-    int field_14;                      // +0x14
+    int widthFixed;                    // +0x10
+    int heightFixed;                   // +0x14
 };
 
 // A 10-byte cell of the second fog grid.
@@ -720,8 +720,8 @@ void BuildDerivedLayers(void)
     Grid2* grid2 = &g_game->grid2;
     int b = g_game->baseY * 0x10000;
     int a = g_game->baseX * 0x10000;
-    grid2->field_14 = b;
-    grid2->field_10 = a;
+    grid2->heightFixed = b;
+    grid2->widthFixed = a;
     int w2;
     int h2;
     h2 = (b + 0x7fffff) >> 0x17;

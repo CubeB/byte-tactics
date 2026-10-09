@@ -38,7 +38,7 @@ struct Settings_00441460 {
 
 struct Record_00441460 {
     Settings_00441460 settings;
-    int field_10;
+    int maxPlayers;
     char name[0x20];
     char name2[0x20];
 };
@@ -161,7 +161,7 @@ shown:
             strncpy(p[1], names, 0x10);
             p[1][0x10] = 0;
             p[1] += strlen(p[1]) + 1;
-            sprintf(p[2], "%d/%d", sb.s.players, ((Record_00441460*)(p[0] - 0x14))->field_10);
+            sprintf(p[2], "%d/%d", sb.s.players, ((Record_00441460*)(p[0] - 0x14))->maxPlayers);
             p[2] += strlen(p[2]) + 1;
 
             memset(temp, 0, 0x80);

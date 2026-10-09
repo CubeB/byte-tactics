@@ -2,7 +2,7 @@
 // provisional.
 // Slot 0 of SpatialTimer (vtable 0x4fc9a0), derived from SquadTimer
 // (the family is listed in ai_player.cpp, whose declarations this copies).
-// Sets field_c to 30..179 ticks from now. When the group has units, moves the
+// Sets next to 30..179 ticks from now. When the group has units, moves the
 // probe point b by the step c (one time in ten it restarts from a with a new
 // random direction of length 0x140 map units), and when the owner can see or
 // has explored b, keeps b as the new target a if a random roll favours its
@@ -127,9 +127,9 @@ struct SquadManager {                   // the owner (constructor 0x408cb0)
 class SquadTimer {
 public:
     SquadManager* owner;                // +0x4
-    void* field_8;                      // +0x8
-    int field_c;                        // +0xc
-    unsigned int field_10;              // +0x10
+    void* group;                        // +0x8
+    int next;                           // +0xc
+    unsigned int player;                // +0x10
 
     SquadTimer(SquadManager* p, void* q);
     virtual void OnTimer();                         // slot 0
@@ -189,8 +189,8 @@ void SpatialTimer::OnTimer()
 {
     // Computed first or the sum folds into one lea.
     int delay = RandomInt(150) + 30;
-    field_c = g_game->ticks + delay;
-    if (((Group_00407e90*)field_8)->units.empty())
+    next = g_game->ticks + delay;
+    if (((Group_00407e90*)group)->units.empty())
         return;
     // Unused on purpose: it emits the operator delete call after the loop.
     std::vector<Unit*> unused;
@@ -201,16 +201,16 @@ void SpatialTimer::OnTimer()
         c = Offset(angle, 0x1400000);
     }
     b += c;
-    if (IsVisible(((Group_00407e90*)field_8)->player, (Position_00408090*)&b)) {
-        int r = SumUnitRatingsInRange(field_10, &b, 0xa0);
+    if (IsVisible(((Group_00407e90*)group)->player, (Position_00408090*)&b)) {
+        int r = SumUnitRatingsInRange(player, &b, 0xa0);
         // Operand order: the field_38 roll is called first.
         if (RandomInt(r) > RandomInt(field_38)) {
             field_38 = r;
             a = b;
         }
     }
-    for (std::vector<Unit*>::iterator it = ((Group_00407e90*)field_8)->units.begin();
-         it != ((Group_00407e90*)field_8)->units.end(); ++it) {
+    for (std::vector<Unit*>::iterator it = ((Group_00407e90*)group)->units.begin();
+         it != ((Group_00407e90*)group)->units.end(); ++it) {
         Unit* u = *it;
         if (u->def->flag4) {
             if (u->motion || WeaponCanReachPos(u, &u->pos, &a, 0)) {

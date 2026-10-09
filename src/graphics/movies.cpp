@@ -161,7 +161,7 @@ class MoviePlayer {
 public:
     Smk_0047c3a0* smack;               // +0x0
     unsigned int frame;                // +0x4, the last full frame seen
-    int field_8;                       // +0x8, the movie is done or stopped
+    int stopped;                       // +0x8, the movie is done or stopped
     HWND hwnd;                         // +0xc
     PALETTEENTRY entries[256];         // +0x10
     int paletteResult;                 // +0x410
@@ -196,7 +196,7 @@ extern int g_lastPlaceHeight;
 // FUNCTION: 0x47bdf0
 MoviePlayer::MoviePlayer(char* path, int a, int b, int c, int d, int e)
 {
-    field_8 = 0;
+    stopped = 0;
     frame = 0;
     if (a)
         SmackSoundEnable((HWND)b);
@@ -378,7 +378,7 @@ void MoviePlayer::PlayFrame(HWND hwnd)
 {
     if (GetFocus() != hwnd)
         return;
-    if (field_8)
+    if (stopped)
         return;
     if (smack->field_68) {
         unsigned char* src = smack->rgb[0];
@@ -398,7 +398,7 @@ void MoviePlayer::PlayFrame(HWND hwnd)
         frame = smack->frameNum + 1;
     }
     if (smack->frameNum == smack->frames - 1) {
-        field_8 = 1;
+        stopped = 1;
         return;
     }
     SmackNextFrame(smack);
@@ -444,18 +444,18 @@ void MoviePlayer::WriteSmackStats()
 void MoviePlayer::Play()
 {
     MSG msg;
-    while (!field_8) {
+    while (!stopped) {
         if (PeekMessageA(&msg, 0, 0, 0, PM_REMOVE)) {
             // 0x104 and 0x102 are the movie's own stop codes, not the Win95
             // WM_MOUSEMOVE (0x200) and WM_LBUTTONDOWN (0x201).
             if (msg.message == 0x104 && msg.wParam == 0x73) {
-                field_8 = 1;
+                stopped = 1;
                 g_game->introMovieLoop = 0;
                 PostQuitMessage(0);
                 return;
             }
             if (msg.message == 0x102) {
-                field_8 = 1;
+                stopped = 1;
                 g_game->introMovieLoop = 0;
             }
             TranslateMessage(&msg);

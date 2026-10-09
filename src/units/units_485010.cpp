@@ -729,9 +729,9 @@ void __stdcall InitUnitFromType(Unit* unit, Pos_00485a40 pos, int param_5)
 
 struct ObjectState_00485d40 {
     char unknown_0[8];
-    int field_8;                       // +0x8
-    void* field_c;                     // +0xc
-    int field_10;                      // +0x10
+    int dirty;                         // +0x8
+    void* unit;                        // +0xc
+    int drawFrame;                     // +0x10
 };
 
 struct Elem_4b0610 {
@@ -825,10 +825,10 @@ void __stdcall InitUnitScript(Unit* self)
     } else {
         self->script = 0;
         self->state = CreateObjectState(obj);
-        self->state->field_c = self;
+        self->state->unit = self;
     }
     // Shared tail after the if/else: reloads the block in both exits.
-    self->state->field_10 = 0;
+    self->state->drawFrame = 0;
 }
 
 // The compiler-generated scalar deleting destructor of UnitScript, the
@@ -1047,8 +1047,8 @@ Unit* __stdcall CreateUnitFromPacket(unsigned char player, Spawn_004861d0* spawn
 
 struct Result_486360 {
     char unknown_0[0x18];
-    int field_18;                    // +0x18
-    int field_1c;                    // +0x1c
+    int velY;                        // +0x18
+    int velZ;                        // +0x1c
 };
 
 void* __stdcall GetMapCell(int x, int y);
@@ -1078,8 +1078,8 @@ void __stdcall CreateUnitCorpse(Unit* unit, int depth, int flag)
                 Result_486360* r = PlaceFeature(target, id, pos, &unit->bank, unit->playerIndex);
                 if (r != 0) {
                     if (!(unit->type->flags.all & 0x1000000)) {
-                        r->field_18 = -11468;
-                        r->field_1c = 0;
+                        r->velY = -11468;
+                        r->velZ = 0;
                     }
                     flag = 0;
                 }
@@ -1268,7 +1268,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
         }
         break;
     case 3:
-        if (unit->player != 0 && g_game->players[g_game->localPlayer].field_129[unit->player->index] == 0) {
+        if (unit->player != 0 && g_game->players[g_game->localPlayer].shareVision[unit->player->index] == 0) {
             unit->player->losses++;
             int same = _strcmpi(g_game->names[unit->player->info->side].name,
                                 unit->type->name) == 0;

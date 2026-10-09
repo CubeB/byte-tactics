@@ -236,7 +236,7 @@ public:
 
 #pragma pack(push, 1)
 struct GameEntry {
-    int field_0;                       // +0x00
+    int active;                        // +0x00
     int id;                            // +0x04
     char unknown_8[0x14b - 8];
 };
@@ -256,7 +256,7 @@ struct Game {
 class NetCondenser {
 public:
     char unknown_0[0x21];
-    int field_21;                      // +0x21
+    int to;                            // +0x21
 
     void SendPacketTo(void* session, int from, int value, void* data, int size);
     void Accumulate(void* data, int size);
@@ -437,7 +437,7 @@ int __stdcall SendToDPID(int from, int to, void* data, int size)
 {
     PacketTrace("bytes to send to (DPID)(%ld): %ld\n", to, size);
     void* session = g_game->session;
-    g_sendCondenser.field_21 = to;
+    g_sendCondenser.to = to;
     g_sendCondenser.Accumulate(data, size);
     int result = ((NetCondenser*)&g_sendCondenser)->SendPacket(session, from);
     return result == 0 ? 1 : 0;
@@ -459,7 +459,7 @@ static inline int SendTo(int from, int to, void* data, int size)
 {
     PacketTrace("bytes to send to (DPID)(%ld): %ld\n", to, size);
     void* session = g_game->session;
-    g_sendCondenser.field_21 = to;
+    g_sendCondenser.to = to;
     g_sendCondenser.Accumulate(data, size);
     int result = ((NetCondenser*)&g_sendCondenser)->SendPacket(session, from);
     return result == 0 ? 1 : 0;
@@ -1237,7 +1237,7 @@ int PacketChannel::SendQueued(int force)
 // FUNCTION: 0x4626e0
 void NetCondenser::SendPacketTo(void* session, int from, int value, void* data, int size)
 {
-    field_21 = value;
+    to = value;
     this->Accumulate(data, size);
     this->SendPacket(session, from);
 }

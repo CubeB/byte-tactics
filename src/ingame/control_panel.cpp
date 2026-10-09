@@ -58,7 +58,7 @@ struct BuildList_0041ace0;
 
 struct Nano_0041b8d0 {
     char unknown_0[0x10];
-    int field_10;                      // +0x10
+    int drawFrame;                     // +0x10
 };
 
 struct UnitTypeFlagsBits {
@@ -133,7 +133,7 @@ struct MenuEntry {
     char name[0x26];                   // +0x2
     unsigned char flags;               // +0x28
     char unknown_29;
-    unsigned char field_2a;            // +0x2a
+    unsigned char commonAttribs;       // +0x2a
     char unknown_2b[0x60 - 0x2b];
     int index;                         // +0x60
     char unknown_64[0xb4 - 0x64];
@@ -656,7 +656,7 @@ void __stdcall RefreshBuildCountTexts(Menu* menu, Unit* unit)
     for (int i = 1; i < count + 1; i++) {
         char* text = e->u.text;
         if (e->type == 1) {
-            if (e->field_2a & 4) {
+            if (e->commonAttribs & 4) {
                 unsigned short v = FindUnitTypeId(e->name);
                 if (v != 0) {
                     int r = SumQueuedBuildCount(unit, v);
@@ -665,7 +665,7 @@ void __stdcall RefreshBuildCountTexts(Menu* menu, Unit* unit)
                     else
                         text[0] = 0;
                 }
-            } else if (e->field_2a & 8) {
+            } else if (e->commonAttribs & 8) {
                 int n = unit->weapons[0].stockpile;
                 int r = SumQueuedBuildCount(unit, 0);
                 text[0] = 0;
@@ -1214,7 +1214,7 @@ void __stdcall OpenBuildMenuGui(Unit* unit, char* guiName, int page)
                         char* src = entry->name;
                         MenuEntry* e = &layer->entries[entry->slot + 4];
                         e->enabled = 0;
-                        e->field_2a = 4;
+                        e->commonAttribs = 4;
                         strcpy(e->name, src);
                         found = 1;
                         e->shown = 1;
@@ -1308,7 +1308,7 @@ void __stdcall FinishConstruction(Unit* unit, Unit* target)
 {
     if (unit && (unit->flags.raw & 0x10000000) && unit->type->ids != 0
         && target && (target->flags.raw & 0x10000000)) {
-        target->state->field_10 = 0;
+        target->state->drawFrame = 0;
         target->buildLeft = 0;
         // In place, not through a local: the OR result is reused for the 0x20000000 test.
         target->flags.raw |= 0x2000;

@@ -46,8 +46,8 @@ struct Grid {
     void* cells;                       // +0x0
     int width;                         // +0x4
     int height;                        // +0x8
-    int field_c;                       // +0xc
-    Grid() { width = 0; height = 0; field_c = 0; cells = 0; }
+    int count;                         // +0xc
+    Grid() { width = 0; height = 0; count = 0; cells = 0; }
 };
 
 #pragma pack(push, 1)
@@ -229,18 +229,18 @@ public:
     char name[0x73 - 0x2b];            // +0x2b
     unsigned char type;                // +0x73
     char unknown_74[0xac - 0x74];
-    double field_ac;                   // +0xac
-    double field_b4;                   // +0xb4
+    double totalEnergyProduced;        // +0xac
+    double totalMetalProduced;         // +0xb4
     char unknown_bc[0xcc - 0xbc];
-    double field_cc;                   // +0xcc
-    double field_d4;                   // +0xd4
+    double energyWasted;               // +0xcc
+    double metalWasted;                // +0xd4
     char unknown_dc[0xfc - 0xdc];
     short kills;                       // +0xfc
     short losses;                      // +0xfe
     char unknown_100[0x140 - 0x100];
-    int field_140;                     // +0x140
+    int unitsCreated;                  // +0x140
     char unknown_144[0x146 - 0x144];
-    char field_146;                    // +0x146
+    char index;                        // +0x146
     char unknown_147[0x14b - 0x147];
 };
 

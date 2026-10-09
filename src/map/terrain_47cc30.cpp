@@ -30,7 +30,7 @@ struct Cell {
     unsigned short unit;                // +0x0
     unsigned short unit2;               // +0x2
     char unknown_4[0xc - 0x4];
-    unsigned char field_c;              // +0xc
+    unsigned char flags;                // +0xc
 };
 
 struct Point_0047cc30 {
@@ -172,7 +172,7 @@ void __stdcall AddUnitToMap(Obj_0047cc30* obj)
                     }
                 a_next:
                     if (m & 1)
-                        cell->field_c |= 2;
+                        cell->flags |= 2;
                     cell++;
                 }
                 cell += g_game->width - size.x;

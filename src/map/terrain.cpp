@@ -43,7 +43,7 @@ struct Point {
 struct Cell {                           // 13 bytes per cell
     union {
         unsigned short unit;            // +0x0, id of the unit owning the cell
-        short field_0s;                 // +0x0
+        short unitSigned;               // +0x0, read signed
     };
     unsigned short unit2;               // +0x2
     unsigned char height;               // +0x4
@@ -52,7 +52,7 @@ struct Cell {                           // 13 bytes per cell
     unsigned char metal;                // +0x7
     union {
         unsigned short feature;         // +0x8
-        short field_8;                  // +0x8
+        short featureSigned;            // +0x8, read signed
     };
     unsigned char spotY;                // +0xa
     unsigned char spotX;                // +0xb
@@ -552,7 +552,7 @@ static inline unsigned short VisWord_0047d2e0(Los_0047d2e0* los, int tx,
 // Blocked_ and Terrain_ stay early-return helpers.
 static int Blocked_0047d2e0(Cell* c)
 {
-    unsigned short v = c->field_8;
+    unsigned short v = c->featureSigned;
     if (v == 0xffff)
         return 0;
     if (v < 0xfffb) {
@@ -563,7 +563,7 @@ static int Blocked_0047d2e0(Cell* c)
     if (v != 0xfffe)
         return 1;
     Cell* ref = c - (c->spotY * g_game->width + c->spotX);
-    unsigned short v2 = ref->field_8;
+    unsigned short v2 = ref->featureSigned;
     if (v2 >= 0xfffb)
         return 0;
     return (g_game->featureBytes[v2 * 0x100 + 0xfe] >> 6) & 1;
@@ -574,7 +574,7 @@ Cell* c)
 {
     if (c == 0)
         return 0;
-    unsigned short v = c->field_8;
+    unsigned short v = c->featureSigned;
     if (v < 0xfffb) {
         if ((int)v >= g_game->featureCount)
             return 0;
@@ -583,7 +583,7 @@ Cell* c)
     if (v != 0xfffe)
         return 0;
     Cell* ref = c - (c->spotY * g_game->width + c->spotX);
-    unsigned short v2 = ref->field_8;
+    unsigned short v2 = ref->featureSigned;
     if (v2 >= 0xfffb)
         return 0;
     return g_game->featureBytes + v2 * 0x100;
@@ -651,7 +651,7 @@ int __stdcall CanBuildAt(UnitDef* unit, Point cell, short type, Los_0047d2e0* lo
                     max5b = c->high;
                 if ((m & 1) && (c->flags & 2) && ok)
                     return 0;
-                if ((m & 6) && c->field_0s != 0 && c->field_0s != type && ok)
+                if ((m & 6) && c->unitSigned != 0 && c->unitSigned != type && ok)
                     return 0;
                 if (m & 0x20) {
                     if (Blocked_0047d2e0(c) != 0)

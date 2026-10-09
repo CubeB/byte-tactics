@@ -166,11 +166,11 @@ struct Elem_0040cc40 {
 #pragma pack(push, 1)
 struct Weapon_00409730 {
     char unknown_0[0xd4];
-    unsigned short field_d4;           // +0xd4
+    unsigned short damage;             // +0xd4
     char unknown_d6[0xdc - 0xd6];
-    int field_dc;                      // +0xdc
+    int range;                         // +0xdc
     char unknown_e0[0x10a - 0xe0];
-    char field_10a;                    // +0x10a
+    char index;                        // +0x10a
 };
 
 struct Flags241_00409730 {
@@ -190,10 +190,10 @@ struct UnitDef {
     float metalCost;                   // +0x18a
     char unknown_18e[0x1c0 - 0x18e];
     short minwaterdepth;               // +0x1c0
-    float field_1c2;                   // +0x1c2
+    float energymake;                  // +0x1c2
     char unknown_1c6[0x1ce - 0x1c6];
     float extractsMetal;               // +0x1ce
-    float field_1d2;                   // +0x1d2
+    float windgenerator;               // +0x1d2
     char unknown_1d6[0x1ee - 0x1d6];
     Weapon_00409730* weapons[3];       // +0x1ee
     char unknown_1fa[0x204 - 0x1fa];
@@ -274,8 +274,8 @@ int __stdcall RateWeapons(UnitDef* p)
     Weapon_00409730** pp = p->weapons;
     for (int i = 3; i != 0; i--) {
         Weapon_00409730* s = *pp;
-        if (s->field_10a != 0)
-            result = result + s->field_d4 / 40 + s->field_dc / 100 + 5;
+        if (s->index != 0)
+            result = result + s->damage / 40 + s->range / 100 + 5;
         pp++;
     }
     if (MIN(result, 100) < -100)
@@ -335,7 +335,7 @@ void PlayerAI::ComputeBaseWeights()
             a += 15;
         if (def->radardistance)
             a += 5;
-        int x = (int)(a + min(max(def->field_1c2, 0.0f), 30.0f));
+        int x = (int)(a + min(max(def->energymake, 0.0f), 30.0f));
         if (n == 0)
             x *= 4;
         if (n == 1)
@@ -349,7 +349,7 @@ void PlayerAI::ComputeBaseWeights()
             x = 0;
         if (flags.flag_24)
             x = 0;
-        if (def->field_1d2 != 0.0f && g_game->windSpeedMax < g_game->windSpeedDenominator / 2)
+        if (def->windgenerator != 0.0f && g_game->windSpeedMax < g_game->windSpeedDenominator / 2)
             x = 0;
         x = min(x, 100);
         e->a = x;

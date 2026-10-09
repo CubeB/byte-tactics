@@ -9,7 +9,8 @@
 #include <ddraw.h>
 // <float.h> after <ddraw.h>: the file's symbol count decides the x87 code of UseEnergy.
 #include <float.h>
-struct Unit;
+// Load-bearing: the symbol id this forward declaration takes keeps UseEnergy's
+// x87 code; the header's own declaration of Player comes later.
 struct Player;
 
 #pragma pack(push, 1)
@@ -50,33 +51,7 @@ struct UnitDef_00401360 {
     unsigned char makesMetal;          // +0x22d
 };
 
-struct PlayerRes_00401360 {
-    float stored;                      // +0x0
-    float produced;                    // +0x4
-    float used;                        // +0x8
-};
-
-// The header's type, kept local: this view's resource arrays cannot agree
-// with the header's named scalars (see economy.cpp, which keeps the same).
-struct Player {
-    int active;                        // +0x0
-    char unknown_4[0x67 - 4];
-    Unit* units;                       // +0x67
-    Unit* units_end;                   // +0x6b
-    char unknown_6f[0x73 - 0x6f];
-    unsigned char type;                // +0x73
-    char unknown_74[0x8c - 0x74];
-    PlayerRes_00401360 res[2];         // +0x8c
-    float storage[2];                  // +0xa4
-    double totalProduced[2];           // +0xac
-    double totalUsed[2];               // +0xbc
-    double totalExcess[2];             // +0xcc
-    float storageBonus[2];             // +0xdc
-    char unknown_e4[0xec - 0xe4];
-    Econ_00401360* econ;               // +0xec
-    char unknown_f0[0x149 - 0xf0];
-    unsigned char flags149;            // +0x149
-};
+#include "../network/player.h"
 
 struct Unit {
     char unknown_0[0x58];
@@ -148,8 +123,8 @@ int Econ_00401360::RequestEnergyAndMetal(float energy, float metal)
 
 int Econ_00401360::SpendEnergy(float amount)
 {
-    if (owner->res[0].stored >= amount) {
-        owner->res[0].stored -= amount;
+    if (owner->energy >= amount) {
+        owner->energy -= amount;
         res[0].used += amount;
         return 1;
     }
@@ -158,8 +133,8 @@ int Econ_00401360::SpendEnergy(float amount)
 
 int Econ_00401360::SpendMetal(float amount)
 {
-    if (owner->res[1].stored >= amount) {
-        owner->res[1].stored -= amount;
+    if (owner->metal >= amount) {
+        owner->metal -= amount;
         res[1].used += amount;
         return 1;
     }
@@ -168,11 +143,11 @@ int Econ_00401360::SpendMetal(float amount)
 
 int Econ_00401360::SpendEnergyAndMetal(float energy, float metal)
 {
-    if (owner->res[0].stored >= energy && owner->res[1].stored >= metal) {
-        owner->res[0].stored -= energy;
+    if (owner->energy >= energy && owner->metal >= metal) {
+        owner->energy -= energy;
         res[0].used += energy;
-        if (owner->res[1].stored >= metal) {
-            owner->res[1].stored -= metal;
+        if (owner->metal >= metal) {
+            owner->metal -= metal;
             res[1].used += metal;
         }
         return 1;
@@ -320,8 +295,8 @@ void __stdcall UpdatePlayerEconomy(Player* p)
     Unit* u;
     int i;
 
-    p->storage[1] = 0;
-    p->storage[0] = 0;
+    p->metalCapacity = 0;
+    p->energyCapacity = 0;
     producedA[0] = 0;
     producedA[1] = 0;
     usedA[0] = 0;
@@ -330,7 +305,7 @@ void __stdcall UpdatePlayerEconomy(Player* p)
     demandA[1] = 0;
     backlogA[0] = 0;
     backlogA[1] = 0;
-    for (u = p->units; u <= p->units_end; u++) {
+    for (u = p->unitsBegin; u <= p->unitsEnd; u++) {
         if (!(u->flags & 0x10000000))
             continue;
         if (u->flags & 0x20000000) {
@@ -354,8 +329,8 @@ void __stdcall UpdatePlayerEconomy(Player* p)
         if (u->buildLeft == 0) {
             AddIncomeD(u, &u->resourceSlot.res[0].produced, u->def->energyMake);
             AddIncome(u, &u->resourceSlot.res[1].produced, u->def->metalMake);
-            p->storage[1] += u->def->metalStorage;
-            p->storage[0] += u->def->energyStorage;
+            p->metalCapacity += u->def->metalStorage;
+            p->energyCapacity += u->def->energyStorage;
         }
         if (!(p->active && p->type == 3)) {
             if (u->bit11) {
@@ -376,7 +351,7 @@ void __stdcall UpdatePlayerEconomy(Player* p)
         demandA[1] += u->resourceSlot.res[1].demand;
         backlogA[1] += u->resourceSlot.res[1].backlog;
     }
-    Econ_00401360* e = p->econ;
+    Econ_00401360* e = (Econ_00401360*)p->econ;
     producedA[0] += e->res[0].produced;
     usedA[0] += e->res[0].used;
     demandA[0] += e->res[0].demand;
@@ -385,20 +360,20 @@ void __stdcall UpdatePlayerEconomy(Player* p)
     usedA[1] += e->res[1].used;
     demandA[1] += e->res[1].demand;
     backlogA[1] += e->res[1].backlog;
-    if (p->flags149 & 1) {
-        p->storage[0] += p->storageBonus[0];
-        p->storage[1] += p->storageBonus[1];
+    if (p->flags & 1) {
+        p->energyCapacity += p->energyStorageBonus;
+        p->metalCapacity += p->metalStorageBonus;
     }
-    p->res[0].produced = producedA[0];
-    p->res[0].used = usedA[0];
-    p->totalProduced[0] += producedA[0];
-    p->totalUsed[0] += usedA[0];
-    p->res[1].produced = producedA[1];
-    p->res[1].used = usedA[1];
-    p->totalProduced[1] += producedA[1];
-    p->totalUsed[1] += usedA[1];
-    avail[0] = producedA[0] + p->res[0].stored;
-    avail[1] = producedA[1] + p->res[1].stored;
+    p->energyIncome = producedA[0];
+    p->energyUsage = usedA[0];
+    p->totalEnergyProduced += producedA[0];
+    p->totalEnergyConsumed += usedA[0];
+    p->metalIncome = producedA[1];
+    p->metalUsage = usedA[1];
+    p->totalMetalProduced += producedA[1];
+    p->totalMetalConsumed += usedA[1];
+    avail[0] = producedA[0] + p->energy;
+    avail[1] = producedA[1] + p->metal;
     for (i = 0; i < 2; i++) {
         float take;
         if (backlogA[i] <= avail[i]) {
@@ -420,22 +395,22 @@ void __stdcall UpdatePlayerEconomy(Player* p)
         }
         avail[i] = left - take;
     }
-    p->res[0].stored = avail[0];
-    if (avail[0] > p->storage[0]) {
-        p->res[0].stored = p->storage[0];
-        p->totalExcess[0] += avail[0] - p->storage[0];
+    p->energy = avail[0];
+    if (avail[0] > p->energyCapacity) {
+        p->energy = p->energyCapacity;
+        p->energyWasted += avail[0] - p->energyCapacity;
     }
-    p->res[1].stored = avail[1];
-    if (avail[1] > p->storage[1]) {
-        p->res[1].stored = p->storage[1];
-        p->totalExcess[1] += avail[1] - p->storage[1];
+    p->metal = avail[1];
+    if (avail[1] > p->metalCapacity) {
+        p->metal = p->metalCapacity;
+        p->metalWasted += avail[1] - p->metalCapacity;
     }
-    for (u = p->units; u <= p->units_end; u++) {
+    for (u = p->unitsBegin; u <= p->unitsEnd; u++) {
         if (u->flags & 0x10000000) {
             SettleResourceAccount(&u->resourceSlot.res[0], ratioA[0], demandRatio[0]);
             SettleResourceAccount(&u->resourceSlot.res[1], ratioA[1], demandRatio[1]);
         }
     }
-    SettleResourceAccount(&p->econ->res[0], ratioA[0], demandRatio[0]);
-    SettleResourceAccount(&p->econ->res[1], ratioA[1], demandRatio[1]);
+    SettleResourceAccount(&((Econ_00401360*)p->econ)->res[0], ratioA[0], demandRatio[0]);
+    SettleResourceAccount(&((Econ_00401360*)p->econ)->res[1], ratioA[1], demandRatio[1]);
 }

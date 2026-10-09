@@ -14,16 +14,7 @@
 #include <string.h>
 #include <math.h>
 
-struct Unit;
-struct Player;
-
 #pragma pack(push, 1)
-
-struct PlayerRes_00401360 {
-    float stored;                      // +0x0
-    float produced;                    // +0x4
-    float used;                        // +0x8
-};
 
 // The end-of-tick update's view of one 0x18-byte account: the same bytes as
 // Res_00401360. Kept a separate name so economy_401360.cpp, which defines the
@@ -49,26 +40,7 @@ struct UnitInfo {
 // 0x18-byte account blocks through SaveUnitAccounts and LoadUnitAccounts.
 #include "unit_resources.h"
 
-struct Player {
-    int active;                        // +0x0
-    char unknown_4[0x67 - 4];
-    Unit* units;                       // +0x67
-    Unit* units_end;                   // +0x6b
-    char unknown_6f[0x73 - 0x6f];
-    unsigned char type;                // +0x73
-    char unknown_74[0x8c - 0x74];
-    PlayerRes_00401360 res[2];         // +0x8c
-    float storage[2];                  // +0xa4
-    double totalProduced[2];           // +0xac
-    double totalUsed[2];               // +0xbc
-    double totalExcess[2];             // +0xcc
-    float storageBonus[2];             // +0xdc
-    char unknown_e4[0xec - 0xe4];
-    UnitResources* econ;               // +0xec
-    char unknown_f0[0x149 - 0xf0];
-    unsigned char flags149;            // +0x149
-    char unknown_14a;
-};
+#include "../network/player.h"
 
 struct UnitDef_00401360 {
     char unknown_0[0x1c2];
@@ -220,8 +192,8 @@ int UnitResources::RequestEnergyAndMetal(float dx, float dy)
 // FUNCTION: 0x401220
 int UnitResources::SpendEnergy(float amount)
 {
-    if (player->res[0].stored >= amount) {
-        player->res[0].stored -= amount;
+    if (player->energy >= amount) {
+        player->energy -= amount;
         energyUse += amount;
         return 1;
     }
@@ -232,8 +204,8 @@ int UnitResources::SpendEnergy(float amount)
 // FUNCTION: 0x401260
 int UnitResources::SpendMetal(float amount)
 {
-    if (player->res[1].stored >= amount) {
-        player->res[1].stored -= amount;
+    if (player->metal >= amount) {
+        player->metal -= amount;
         metalUse += amount;
         return 1;
     }
@@ -243,11 +215,11 @@ int UnitResources::SpendMetal(float amount)
 // FUNCTION: 0x4012a0
 int UnitResources::SpendEnergyAndMetal(float energy, float metal)
 {
-    if (player->res[0].stored >= energy && player->res[1].stored >= metal) {
-        player->res[0].stored -= energy;
+    if (player->energy >= energy && player->metal >= metal) {
+        player->energy -= energy;
         energyUse += energy;
-        if (player->res[1].stored >= metal) {
-            player->res[1].stored -= metal;
+        if (player->metal >= metal) {
+            player->metal -= metal;
             metalUse += metal;
         }
         return 1;

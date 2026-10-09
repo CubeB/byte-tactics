@@ -102,14 +102,7 @@ struct PlayerInfo {
     unsigned char color;               // +0x96
 };
 
-struct Player {                        // 0x14b bytes
-    char unknown_0[0x27];
-    PlayerInfo* info;                  // +0x27
-    char unknown_2b[0x108 - 0x2b];
-    unsigned char marks[0x146 - 0x108];   // +0x108
-    unsigned char color;               // +0x146
-    char unknown_147[4];
-};
+#include "../network/player.h"
 
 struct Game {
     char unknown_0[0x519];
@@ -655,7 +648,7 @@ int __stdcall FindNextAllySlot(int self, int start)
 void __stdcall SetupPlayerSlot(unsigned char player, unsigned char kind);
 
 // Marks, for each active player (active 1 or 2), every player slot that shares
-// its team type (or is the player itself), in the entry's `marks` array.
+// its team type (or is the player itself), in the entry's `allied` array.
 // FUNCTION: 0x47a760
 void ApplySlotsToGamePlayers()
 {
@@ -696,7 +689,7 @@ void ApplySlotsToGamePlayers()
             done:
                 if (k == -1)
                     break;
-                g_game->slots[i].marks[k] = 1;
+                g_game->slots[i].allied[k] = 1;
                 j = k + 1;
             }
         }
@@ -1316,5 +1309,5 @@ void __stdcall AnnounceForcesDestroyed(Player* player)
     if (!player->info->side)
         side = "Arm";
     sprintf(buf, "%s %s", side, Translate(g_forcesDestroyedTexts[(unsigned int)rand() % 3]));
-    AddMessage(buf, 4, 0, player->color);
+    AddMessage(buf, 4, 0, player->index);
 }

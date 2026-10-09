@@ -354,7 +354,11 @@ struct Game {
     Flags_004848e0 flags_37f06;        // +0x37f06
     char unknown_37f08[0x38a47 - 0x37f08];
     unsigned int ticks;                // +0x38a47
-    char unknown_38a4b[0x391e9 - 0x38a4b];
+    char unknown_38a4b[0x38d6b - 0x38a4b];
+    int pendingSaveStore;              // +0x38d6b
+    char unknown_38d6f;
+    unsigned char loadProgress;        // +0x38d70
+    char unknown_38d71[0x391e9 - 0x38d71];
     Mission* net;                      // +0x391e9
 };
 
@@ -1032,7 +1036,7 @@ void LoadTntMap()
     int* tnt;
 
     // REGION r1 begin
-    tnt = (int*)((Mission*)*(void**)((char*)g_game + 0x391e9))->GetNameSlot(1);
+    tnt = (int*)(g_game->net)->GetNameSlot(1);
     tnt = LoadFileWithProgress(tnt);
     info.version = *tnt;
     switch (info.version) {
@@ -1080,17 +1084,17 @@ void LoadTntMap()
     // REGION r1 end
 
     // REGION r2 begin
-    a.n = *(int*)(*(int*)((char*)g_game + 0x391e9) + 0xd34);
+    a.n = g_game->net->minWindSpeed;
     if (a.n >= 0 && info.version >= 0x2000)
         mapSettings->windSpeedMin = a.n;
     else
         mapSettings->windSpeedMin = info.sea_a;
-    a.n = *(int*)(*(int*)((char*)g_game + 0x391e9) + 0xd38);
+    a.n = g_game->net->maxWindSpeed;
     if (a.n >= 0 && info.version >= 0x2000)
         mapSettings->windSpeedMax = a.n;
     else
         mapSettings->windSpeedMax = info.sea_b;
-    a.n = *(int*)(*(int*)((char*)g_game + 0x391e9) + 0xd3c);
+    a.n = g_game->net->gravity;
     // Parenthesised so the two constant multiplies are not folded into one.
     if (a.n >= 0 && info.version >= 0x2000)
         mapSettings->rise = (int)((a.n * 65536.0) * 0.0011111111111111111);
@@ -1098,8 +1102,8 @@ void LoadTntMap()
         mapSettings->rise = (int)((info.sea_d * 65536.0) * 0.0011111111111111111);
     else
         mapSettings->rise = 0x1fdb;
-    if (*(float*)(*(int*)((char*)g_game + 0x391e9) + 0xd40) >= 0.0f)
-        mapSettings->tidal = *(int*)(*(int*)((char*)g_game + 0x391e9) + 0xd40);
+    if (g_game->net->tidalStrength >= 0.0f)
+        mapSettings->tidal = *(int*)&g_game->net->tidalStrength;
     else
         mapSettings->tidal = 0x3f000000;
     mapSettings->seaLevel = (unsigned char)info.flag;
@@ -1119,11 +1123,11 @@ void LoadTntMap()
         pic.reserved = 0;
         pic.data = (unsigned char*)(info.feature_data + 4);
         pic.scratch = 0;
-        *(void**)((char*)g_game + 0x1426b) = AllocFrame("TED GENERATED PIC", *(int*)info.feature_data, *(int*)(info.feature_data + 2));
-        SurfaceFromFrame(text, *(void**)((char*)g_game + 0x1426b));
+        g_game->radarFrame = AllocFrame("TED GENERATED PIC", *(int*)info.feature_data, *(int*)(info.feature_data + 2));
+        SurfaceFromFrame(text, g_game->radarFrame);
         DrawFrame(text, &pic, 0, 0);
     } else {
-        *(int*)((char*)g_game + 0x1426b) = 0;
+        g_game->radarFrame = 0;
     }
     // REGION r2 end
 
@@ -1135,7 +1139,7 @@ void LoadTntMap()
     a.n = mapSettings->width * mapSettings->height;
     unsigned char* plot = (unsigned char*)GameAllocIgnoreTag("PLOT MEMORY", a.n * 0xd);
     mapSettings->cells = (Cell*)plot;
-    int fill = *(int*)(*(int*)((char*)g_game + 0x391e9) + 0xd30);
+    int fill = g_game->net->surfaceMetal;
     if (fill < 0 || info.version < 0x2000)
         fill = 0;
     for (int i = a.n; i > 0; i--) {
@@ -1159,7 +1163,7 @@ void LoadTntMap()
                 src += 8;
             }
         }
-        if (*(int*)((char*)g_game + 0x38d6b) == 0) {
+        if (g_game->pendingSaveStore == 0) {
             q = (unsigned char*)mapSettings->cells;
             if (a.n > 0) {
                 unsigned char* src = info.attr_b + 2;
@@ -1188,7 +1192,7 @@ void LoadTntMap()
                     b.n--;
                 } while (b.n != 0);
             }
-            if (*(int*)((char*)g_game + 0x38d6b) == 0) {
+            if (g_game->pendingSaveStore == 0) {
                 q = (unsigned char*)mapSettings->cells;
                 if (a.n > 0) {
                     unsigned short* sp = (unsigned short*)(info.attr_a + 1);
@@ -1215,8 +1219,8 @@ void LoadTntMap()
     memcpy(mapSettings->iconSet->data, info.tile_set_src, info.tile_set_count * 0x400);
     GameFreeThunk(tnt);
     g_losTables.LoadLosTables();
-    int mw = *(int*)((char*)g_game + 0x37e37);
-    int mh = *(int*)((char*)g_game + 0x37e3b);
+    int mw = g_game->viewW;
+    int mh = g_game->viewH;
     mapSettings->screenTilesX = mw / 16;
     mapSettings->screenTilesY = mh / 16;
     mapSettings->blocksX = mw / 32;
@@ -1251,11 +1255,11 @@ void LoadTntMap()
     else
         buf = 0;
     obj[0] = buf;
-    *(unsigned short*)((char*)g_game + 0x14281) &= 0xfff7;
+    g_game->mapFlags.raw &= 0xfff7;
     b.p.x = 0;
     b.p.y = 0;
-    a.p.x = *(short*)((char*)g_game + 0x14233);
-    a.p.y = *(short*)((char*)g_game + 0x14237);
+    a.p.x = (short)g_game->width;
+    a.p.y = (short)g_game->height;
     UpdateCellHeightRange(b.p, a.p);
     // REGION r4 end
 
@@ -1275,10 +1279,10 @@ void LoadTntMap()
     mapSettings->sortIndices = (int*)GameAllocIgnoreTag("SORT INDICES", mapSettings->sortRowCount << 2);
     mapSettings->sortLineCount = (int*)GameAllocIgnoreTag("SORT LINE COUNT", mapSettings->sortRowCount << 1);
     StampFeatureMetal();
-    *(int*)((char*)g_game + 0x14277) = 0;
-    *(int*)((char*)g_game + 0x1427b) = (int)GameAllocIgnoreTag("EYEBALL MEMORY", 0x2d0);
+    g_game->count = 0;
+    g_game->eyes = (Eye*)GameAllocIgnoreTag("EYEBALL MEMORY", 0x2d0);
     mapSettings->featureReproduceCursor = 0;
-    *(unsigned char*)((char*)g_game + 0x38d70) = 100;
+    g_game->loadProgress = 100;
     // REGION r5 end
 }
 

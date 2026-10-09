@@ -443,7 +443,7 @@ void SpatialBucket::UnlinkUnit(Node_0047cb00* node)
 void SpatialBucket::PrependUnit(int param_1)
 {
     int temp = field_6;
-    *(int*)((char*)param_1 + 0x8e) = temp;
+    ((Node_0047cb00*)param_1)->next = (Node_0047cb00*)temp;
     field_6 = param_1;
 }
 

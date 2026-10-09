@@ -552,7 +552,7 @@ void Mission::BuildCampaignFilePath(int index, char* dir, char* name, char* ext)
 // FUNCTION: 0x4356c0
 char* Mission::GetNameSlot(int index)
 {
-    char* ptr = (char*)this + index * 0x100 + 0x104;
+    char* ptr = names[index];
     if (strlen(ptr) > 0)
         return ptr;
     return 0;
@@ -622,19 +622,19 @@ int Mission::BuildMissionList(char** out)
 // FUNCTION: 0x4358f0
 int Mission::GetTerrainLength()
 {
-    return *(int*)((char*)this + 0xa04);
+    return exists;
 }
 
 // FUNCTION: 0x435900
 char* Mission::GetDescription()
 {
-    return (char*)this + 0xc24;
+    return description;
 }
 
 // FUNCTION: 0x435910
 char* Mission::GetPlanet()
 {
-    return (char*)this + 0xca4;
+    return planet;
 }
 
 // FUNCTION: 0x435920
@@ -739,13 +739,13 @@ int Mission::SelectMission(int param_1)
 // FUNCTION: 0x435c20
 char* Mission::GetTranslatedName()
 {
-    return (char*)this + 0xb14;
+    return text_b14;
 }
 
 // FUNCTION: 0x435c30
 char* Mission::GetMissionName()
 {
-    return (char*)this + 0xa14;
+    return missionName;
 }
 
 // FUNCTION: 0x435c40
@@ -757,7 +757,7 @@ bool Mission::HasMissionName()
 // FUNCTION: 0x435c50
 int Mission::GetMissionIndex()
 {
-    return *(int*)((char*)this + 0xc18);
+    return missionIndex;
 }
 
 // Advances the current mission index when the embedded list holds more than

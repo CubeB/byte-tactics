@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <io.h>
+#include "archive_entry.h"
 
 #pragma pack(push, 1)
 struct Node_004bd830 {
@@ -35,13 +36,7 @@ struct Info {
 
 #include "file_handle.h"
 
-#pragma pack(push, 1)
-struct ArchiveEntry {
-    int name;                            // +0x0, offset of the name string
-    int offset;                          // +0x4, offset of the record data
-    unsigned char flags;                 // +0x8
-};
-#pragma pack(pop)
+struct ArchiveDirectory;
 
 FileHandle* __stdcall HAPI_OpenFile(char* filename, const char* mode);
 int __stdcall HAPI_readfromfile(FileHandle* file, unsigned char* buf, int size);
@@ -104,10 +99,10 @@ void __stdcall HAPI_WriteArchiveData(char* path, char* base, int off, FILE* f,
         strcpy(full, name);
         strcat(full, base + e->name);
         if ((e->flags & 1) != 0) {
-            HAPI_WriteArchiveData(full, base, e->offset, f, cb, extra, key, flags);
+            HAPI_WriteArchiveData(full, base, e->data, f, cb, extra, key, flags);
         } else {
             file = HAPI_OpenFile(full, "rb");
-            info = (Info*)(base + e->offset);
+            info = (Info*)(base + e->data);
             info->offset = ftell(f);
             info->size = HAPI_FileLength(file);
             info->compressed = (char)flags;

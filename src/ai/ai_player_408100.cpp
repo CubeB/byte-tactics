@@ -39,7 +39,7 @@ struct Order_00408100 {
 
 struct Unit_00408100 {
     char unknown_0[0x5c];
-    Order_00408100* order;             // +0x5c
+    Order_00408100* list;              // +0x5c
     char unknown_60[0x6a - 0x60];
     Vec3 pos;                          // +0x6a
     char unknown_76[0x92 - 0x76];
@@ -133,7 +133,7 @@ void ScoutTimer::OnTimer()
         if (u->def->count
             && (!(unsigned char)u->def->flag12
                 || (GetBuilderCount(field_10) < 5 && g_game->gameTick >= (unsigned int)owner->field_d))
-            && (!u->order || !(u->order->flags & 8))) {
+            && (!u->list || !(u->list->flags & 8))) {
             unsigned short idx = ChooseBuildOption(field_10, u);
             if (idx) {
                 Vec3 pos;
@@ -158,7 +158,7 @@ void ScoutTimer::OnTimer()
         Unit_00408100* u = *it;
         // Declared in the loop body: keeps the u->def load below the copy.
         Vec3 target;
-        if ((!u->order || (u->order->flags & 0x4000))
+        if ((!u->list || (u->list->flags & 0x4000))
             && (!(unsigned char)u->def->flag12 || GetBuilderCount(field_10) >= 5)) {
             target = origin;
             if (u->def->flag12) {

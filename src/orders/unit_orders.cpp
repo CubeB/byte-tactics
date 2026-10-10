@@ -51,10 +51,6 @@ struct UnitDef;
 // Unused here: this header and these forward declarations take the symbol ids that keep
 // BuildWeaponOrder (0x402b70) and the order handlers after it matching (docs/c2-regalloc.md).
 #include "../sound/sound.h"
-struct BmpFileHeader;
-struct BmpInfo;
-struct BmpInfoHeader;
-struct CalcedExplosion;
 struct FrameTable;
 struct Chunk;
 class SquadManager;
@@ -166,16 +162,6 @@ struct WeaponDef {
     unsigned int flags;                // +0x111
 };
 
-struct Weapon {
-    WeaponDef* type;                   // +0x0
-    char unknown_4[0x8 - 0x4];
-    WeaponDef* def;                    // +0x8, at +0x10 for weapon[0]
-    char unknown_c[0xe - 0xc];
-    unsigned char stockpile;           // +0xe, at +0x1e for weapon[0]
-    unsigned char flags;               // +0xf, at +0x1f for weapon[0]
-    char unknown_10[0x1c - 0x10];
-};
-
 struct Game {
     char unknown_0[0x14357];
     Unit* units;                       // +0x14357
@@ -202,6 +188,9 @@ struct Target {
 };
 
 #include "../util/angles.h"
+// This header's symbol ids replace those of the Weapon view and of the
+// declarations dropped above and below (docs/c2-regalloc.md).
+#include "../weapons/unit_weapon_slot.h"
 
 struct Order {
     char unknown_0[4];
@@ -291,16 +280,16 @@ struct Unit {
     // +0x0 holds the unit's UnitMotion pointer; only its non-nullness is read
     // here, and an int spelling keeps the file's symbol count (docs/c2-regalloc.md).
     int motion;                        // +0x0
-    char unknown_4[0x10 - 0x4];
-    // Two views of +0x10: the three weapons, or the order list at +0x5c.
+    // Two views of +0x4: the three weapon slots, or the order list at +0x5c.
     union {
-        Weapon weapons[3];             // +0x10
+        UnitWeaponSlot weapons[3];     // +0x4, stride 0x1c
         struct {
-            char unknown_10[0x5c - 0x10];
+            char unknown_4[0x5c - 0x4];
             Order* order;              // +0x5c
+            Order* backgroundOrder;    // +0x60, not read here
         };
     };
-    Angles16 rot;                      // +0x64
+    Angles16 angles;                   // +0x64
     Vec3 pos;                          // +0x6a
     Point16 cell;                      // +0x76
     char unknown_7a[0x7e - 0x7a];
@@ -816,7 +805,7 @@ int __stdcall BuildWeaponOrder(Unit* unit, Order* order, int unused)
     // energyCharge's declaration stays at function scope: the frame slots of
     // the locals below follow it.
     int energyCharge;
-    WeaponDef* t = unit->weapons[order->weapon].type;
+    WeaponDef* t = unit->weapons[order->weapon].weapon;
     switch (order->state) {
     case 0:
         if (order->count <= 0)
@@ -1140,10 +1129,6 @@ struct Pad_00400000_5 { int field; };
 struct Pad_00400000_6 { int field; };
 struct Pad_00400000_7 { int field; };
 
-extern int pad_00400000_0;
-extern int pad_00400000_1;
-extern int pad_00400000_2;
-
 char* __stdcall lstrcpynA(char* dest, const char* src, int count);
 #include <math.h>
 #include <memory.h>
@@ -1440,7 +1425,7 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
         unsigned int range = 0;
         range = unit->def->buildRange;
         if (gap > (int)range) return 0;
-        StartBuildingScript(unit, order, GetHeadingBetween(position, &order->target.Get()->pos) - unit->rot.heading);
+        StartBuildingScript(unit, order, GetHeadingBetween(position, &order->target.Get()->pos) - unit->angles.heading);
         return 1;
     }
     case 2:
@@ -1536,7 +1521,7 @@ int __stdcall ReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
         return 2;
     case 2:
         if (flags & 0x40) return 9;
-        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &target->pos) - unit->rot.heading);
+        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &target->pos) - unit->angles.heading);
         return 1;
     case 3:
         return WaitIfNotInBuildStance(unit, order, 0x10008);
@@ -1619,7 +1604,7 @@ int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
             return 2;
         }
         unit->ClaimWeapons(3);
-        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &order->target.owner->pos) - unit->rot.heading);
+        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &order->target.owner->pos) - unit->angles.heading);
         return 1;
     }
     case 2:
@@ -1703,9 +1688,6 @@ int __stdcall RepairUnitNoMoveOrder(Unit* unit, Order* order, int unused)
     }
     return 7;
 }
-
-// Unused here: the symbol ids this declaration takes keeps the allocation (docs/c2-regalloc.md).
-void InitMemoryCache();
 
 // FUNCTION: 0x405d90
 void DamagedAllyCollector::CollectDamagedAlly(Unit* unit)

@@ -192,14 +192,6 @@ struct UnitType_0043cd20 {           // 0x249 bytes
 
 #include "../units/cob_script.h"
 
-// Unused here: these forward declarations take the symbol ids that keep RegisterOrderTypes (0x43bc90), RegisterAllOrderTypes (0x43c050) and UpdatePosition (0x43d6d0) matching
-// (docs/c2-regalloc.md).
-struct BmpFileHeader;
-struct BmpInfo;
-struct BmpInfoHeader;
-struct CalcedExplosion;
-struct FrameTable;
-
 // The command kind, one byte wide, but not a POD type.
 class MissionType {
 public:
@@ -269,12 +261,15 @@ public:
     Vec3* Position();
 };
 
-// One of the unit's two order-target slots (+0x10); its target's +0xe4 is the
-// divisor 0x439d20 uses.
-struct Slot_0043a1f0 {
-    Target_0043d6d0* target;         // +0x0
-    char unknown_4[0x18];
+// The weapon a slot points to; its +0xe4 is the divisor 0x439d20 uses.
+struct WeaponDef {
+    char unknown_0[0xe4];
+    unsigned short buildTime;          // +0xe4
 };
+
+// This header's symbol ids replace those of the Slot view and of the
+// declarations dropped above and below (docs/c2-regalloc.md).
+#include "../weapons/unit_weapon_slot.h"
 
 struct Game {
     char unknown_0[0x14263];
@@ -296,9 +291,9 @@ struct Game {
 };
 
 struct Unit {                          // 0x118 bytes
-    char unknown_0[0x10];
-    Slot_0043a1f0 entries[2];          // +0x10
-    char unknown_48[0x5c - 0x48];
+    char unknown_0[0x4];
+    UnitWeaponSlot weapons[3];         // +0x4, stride 0x1c
+    char unknown_58[0x5c - 0x58];
     Order* list;                       // +0x5c
     Order* list2;                      // +0x60, nodes with flag 0x40000
     Angles16 angles;                   // +0x64, pitch in 2048ths of a circle
@@ -445,7 +440,7 @@ int __stdcall GetBuildWeaponPercent(Unit* owner)
     Order* p;
     for (p = owner->list2; p; p = p->next) {
         if (p->flags & 0x80000)
-            return p->progress * 100 / owner->entries[p->id].target->field_e4;
+            return p->progress * 100 / owner->weapons[p->id].weapon->buildTime;
     }
     return 0;
 }
@@ -916,7 +911,6 @@ public:
 
 // Unused here: forward declarations of real functions; their symbol ids keep
 // the allocation the merged UnitMotion view moved (docs/c2-regalloc.md).
-void EnableAICommands();
 void ResetAIPlayers();
 void StepAllGafSequences();
 void ResetNetStats();

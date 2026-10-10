@@ -170,6 +170,21 @@ static inline int FindPanel_004aa8f0(Layer* layer)
     return -1;
 }
 
+// Fills the bounding rectangle of a gadget entry (the body of GetGadgetRect at
+// 0x4a1630, which the compiler inlined into LoadGuiLayer).
+static inline void GetGadgetRect_inlined(Gadget* entry, Rect_004b6720* rect)
+{
+    if (entry->type == 0) {
+        rect->left = 0;
+        rect->top = 0;
+    } else {
+        rect->left = entry->x;
+        rect->top = entry->y;
+    }
+    rect->right = entry->width + rect->left - 1;
+    rect->bottom = entry->height + rect->top - 1;
+}
+
 // GUI layer loader.
 //
 // Suspected original bug: when HAPI_FileLengthByName(layerName) returns 0 (GUI file
@@ -192,16 +207,7 @@ Layer* __stdcall LoadGuiLayer(Gui* menu, const char* name,
     if (flags & 0x800) {
         Layer* cur = menu->layer;
         if (cur != 0) {
-            Gadget* e = cur->entries;
-            if (e->type == 0) {
-                rect[0] = 0;
-                rect[1] = 0;
-            } else {
-                rect[0] = e->x;
-                rect[1] = e->y;
-            }
-            rect[2] = rect[0] + e->width - 1;
-            rect[3] = rect[1] + e->height - 1;
+            GetGadgetRect_inlined(cur->entries, (Rect_004b6720*)rect);
             FadeRectangle(cur->entries->u.assets.surface, rect, -0x18);
             if (menu->layer != 0)
                 menu->layer->redraw = 1;
@@ -1302,10 +1308,6 @@ void __stdcall TruncateTextWithEllipsis(Gui* obj, unsigned char* text, int limit
 // (docs/c2-regalloc.md), and the forward declaration of a later function of
 // this file.
 struct Bitmap_004cb170;
-struct Bits10F_00487080;
-struct Bits_0045c570;
-struct Bits_0045d280;
-struct BlinkWord_004afc60;
 struct Blk;
 struct Blob32_4cb330;
 struct BlobRec_004b4270;

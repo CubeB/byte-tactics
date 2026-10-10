@@ -31,9 +31,9 @@ struct ChatHudEntry {                  // 0x48 bytes
 
 struct Unit {
     char unknown_0[0x6c];
-    short field_6c;                    // +0x6c
+    short xWhole;                      // +0x6c, the whole part of pos.x
     char unknown_6e[0x74 - 0x6e];
-    short field_74;                    // +0x74
+    short zWhole;                      // +0x74, the whole part of pos.z
     char unknown_76[0x110 - 0x76];
     unsigned int flags;                // +0x110
     char unknown_114[0x118 - 0x114];
@@ -182,7 +182,7 @@ int ScrollToNextMessageUnit(void)
             Unit* u = &g->units[id];
             if (u->flags & 0x10000000) {
                 e->flags |= 0x30;
-                CenterCameraOnPoint(u->field_6c, u->field_74, 1);
+                CenterCameraOnPoint(u->xWhole, u->zWhole, 1);
                 return 1;
             }
         }

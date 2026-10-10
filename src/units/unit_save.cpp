@@ -35,11 +35,9 @@ struct PieceBits {
     unsigned char b5 : 3;
 };
 
+#include "../util/angles.h"
+
 #pragma pack(push, 1)
-struct Pair {
-    int a;
-    short b;
-};
 
 struct SrcPiece {                       // 0x18 bytes at +0x41 + i*0x18
     int f0;                             // +0x0
@@ -63,7 +61,7 @@ struct SaveRec {                        // 0xb8 bytes, one saved unit
     int f23;                            // +0x23
     int f27;                            // +0x27
     Vec3 pos;                           // +0x2b
-    Pair s;                             // +0x37
+    Angles16 angles;                    // +0x37
     short f3d;                          // +0x3d
     short f3f;                          // +0x3f
     SrcPiece pieces[3];                 // +0x41
@@ -118,7 +116,7 @@ struct Unit {
     int extraction;                       // +0x58
     void* listHead;                     // +0x5c
     void* listTail;                     // +0x60
-    Pair rot;                      // +0x64 (int + short)
+    Angles16 angles;                  // +0x64
     Vec3 pos;                           // +0x6a
     int cell;                       // +0x76
     int losCacheCellX;                       // +0x7a
@@ -273,7 +271,7 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
     unit = CreateUnit(rec.player, FindUnitTypeId(rec.name), rec.pos, 1, rec.flags.b & 3, rec.id);
     if (unit != 0) {
 
-    unit->rot = rec.s;
+    unit->angles = rec.angles;
     unit->health = rec.f3d;
     unit->killCount = rec.f3f;
     unit->pos.y = rec.pos.y;
@@ -421,7 +419,7 @@ void __stdcall SaveUnits(HapiBank* file)
             rec.id = unit->id;
 
             rec.pos = unit->pos;
-            rec.s = unit->rot;
+            rec.angles = unit->angles;
             rec.f23 = n;
             rec.f3d = unit->health;
             rec.f3f = unit->killCount;

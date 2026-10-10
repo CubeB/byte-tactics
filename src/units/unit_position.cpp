@@ -31,11 +31,10 @@ struct Point16 {
     short y;
 };
 
-// The unit's tail at +0x64: 0x48b3f0 and 0x48b200 read it as three shorts,
-// 0x48b920 as an int and a short.
-struct Tail16 {
-    unsigned short a, b, c;
-};
+#include "../util/angles.h"
+
+// The angle triple at +0x64 (Angles16): 0x48b3f0 and 0x48b200 read it as three
+// shorts, 0x48b920 as an int and a short (Tail32).
 
 struct Tail32 {
     int a;
@@ -153,7 +152,7 @@ struct Unit {
     UnitMotion* motion;                // +0x00
     char unknown_4[0x64 - 4];
     union {
-        Tail16 tail16;                 // +0x64
+        Angles16 angles;                // +0x64
         Tail32 tail32;                 // +0x64
     };
     Vec3 pos;                          // +0x6a
@@ -244,7 +243,7 @@ struct Spawn {
     unsigned short id;                 // +0x03
     Vec3 pos;                          // +0x05
     union {
-        Tail16 words;                  // +0x11
+        Angles16 words;                // +0x11
         Tail32 dword;                  // +0x11
     } tail;
 };
@@ -662,9 +661,9 @@ void __stdcall WriteUnitState(BitWriter* stream, Unit* u)
         stream->WriteBits(u->pos.x, 0x20);
         stream->WriteBits(u->pos.y.value, 0x20);
         stream->WriteBits(u->pos.z, 0x20);
-        stream->WriteBits(u->tail16.b, 0x10);
-        stream->WriteBits(u->tail16.c, 0x10);
-        stream->WriteBits(u->tail16.a, 0x10);
+        stream->WriteBits(u->angles.heading, 0x10);
+        stream->WriteBits((unsigned short)u->angles.pitch, 0x10);
+        stream->WriteBits((unsigned short)u->angles.bank, 0x10);
         if (u->motion)
             stream->WriteBits(u->motion->speed, 0x20);
     }
@@ -709,8 +708,8 @@ void __stdcall ReadUnitState(BitReader* reader, Unit* u)
         spawn.id = u->id;
         spawn.player = 9;
         spawn.pos = u->pos;
-        spawn.tail.words = u->tail16;
-        CreateUnitFromPacket((u->tail16.a & ~0xff) | u->playerIndex, &spawn);
+        spawn.tail.words = u->angles;
+        CreateUnitFromPacket((u->angles.bank & ~0xff) | u->playerIndex, &spawn);
     }
     u->block->field_10 = zero;
     u->health = reader->ReadBits(0x10);
@@ -748,10 +747,10 @@ void __stdcall ReadUnitState(BitReader* reader, Unit* u)
     pos.x = reader->ReadBits(0x20);
     pos.y.value = reader->ReadBits(0x20);
     pos.z = reader->ReadBits(0x20);
-    Tail16 tail;
-    tail.b = (unsigned short)reader->ReadBits(0x10);
-    tail.c = (unsigned short)reader->ReadBits(0x10);
-    tail.a = (unsigned short)reader->ReadBits(0x10);
+    Angles16 tail;
+    tail.heading = (unsigned short)reader->ReadBits(0x10);
+    tail.pitch = (unsigned short)reader->ReadBits(0x10);
+    tail.bank = (unsigned short)reader->ReadBits(0x10);
     // Named local copy of the +0x7e pair and `* 0x80000` rather than a shift:
     // both keep the original's frame order.
     Point16 fixed = u->origin;
@@ -770,7 +769,7 @@ void __stdcall ReadUnitState(BitReader* reader, Unit* u)
         UpdateUnitLineOfSight(u);
     }
     u->f110.bits.b16 = 1;
-    u->tail16 = tail;
+    u->angles = tail;
     if (u->motion)
         u->motion->speed = reader->ReadBits(0x20);
 }

@@ -39,6 +39,7 @@ struct UnitDef_0048cf30 {
     unsigned char flags;                // +0x245
 };
 
+// pos stays as x and z: util/vec3.h adds 14 symbol ids and 0x48cf30 matches only within 5 of this count.
 struct Unit {
     char unknown_0[0x6a];
     int x;                              // +0x6a

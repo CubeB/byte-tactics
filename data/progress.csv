@@ -1091,14 +1091,14 @@ address,size,file,symbol,status,similarity
 0x452570,330,src/network/net_game.cpp,?IsColorFree@@YGHHH@Z,matched,100.0
 0x4526c0,307,src/network/net_game.cpp,?RequestPlayerColor@@YGHH@Z,matched,100.0
 0x452800,350,src/network/net_game.cpp,?BroadcastPlayerLeft@@YGHH@Z,matched,100.0
-0x452960,520,src/network/net_game_452960.cpp,?SetAlliance@@YGHHHEH@Z,matched,100.0
+0x452960,520,src/network/net_game.cpp,?SetAlliance@@YGHHHEH@Z,matched,100.0
 0x452b70,82,src/network/net_game.cpp,?SendAlliance@@YGHHHDH@Z,matched,100.0
 0x452bd0,97,src/network/net_game.cpp,?BroadcastAllyTeam@@YGHPAUPlayer@@@Z,matched,100.0
 0x452c40,124,src/network/net_game.cpp,?GetRejectReasonText@@YGPADH@Z,matched,100.0
 0x452cc0,848,src/network/net_game.cpp,?RemovePlayer@@YGXH@Z,matched,100.0
 0x453010,772,src/network/net_game.cpp,?RejectPlayer@@YGHHE@Z,matched,100.0
 0x453320,52,src/network/net_game.cpp,?SendProbe@@YGXHH@Z,matched,100.0
-0x453360,380,src/network/net_game_453360.cpp,?SendChatPacket@@YGHPAD@Z,matched,100.0
+0x453360,380,src/network/net_game.cpp,?SendChatPacket@@YGHPAD@Z,matched,100.0
 0x4534e0,349,src/network/net_game.cpp,?ReceiveNetPacket@@YGHXZ,matched,100.0
 0x453640,687,src/network/net_game.cpp,?UpdateTimeoutDialog@@YGXXZ,matched,100.0
 0x4538f0,338,src/network/net_game.cpp,?HandleTimeoutDialog@@YGXPAUGadget_004538f0@@@Z,matched,100.0

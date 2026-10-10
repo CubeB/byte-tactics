@@ -7,13 +7,9 @@
 // player colours and alliances, packet dispatch, rejection, timeout and chat
 // handling, the script-call packets, heartbeat, ping, load progress, resource
 // sharing and the lobby connection. The module's three parts joined in
-// address order. The functions that only match with their own file's symbol
-// ids stay apart (net_game_450530.cpp, net_game_452960.cpp and
-// net_game_453360.cpp), and so does net_game_453d40.cpp: HandleNetPackets
-// only matches where its base/index orders and registers follow the symbol
-// ids of a file that includes <windows.h> and <memory.h> before g_game; no
-// count of real declarations before it or before g_game reaches that state
-// in this file.
+// address order. 0x450530 and 0x453d40 stay in files of their own
+// (net_game_450530.cpp and net_game_453d40.cpp; docs/split-modules.md has the
+// reasons).
 //
 // <stdio.h> and <stdlib.h> carry 0x450380's sprintf and rand, and <string.h>
 // the string copies of 0x450090, 0x450140, 0x450980, 0x451090 and 0x451220.
@@ -731,15 +727,6 @@ int FindFreeSlot()
         i = 10;
     return i;
 }
-
-// SendLobbySyncRequests (0x450530) stays in net_game_450530.cpp. Its original
-// translation unit saw only a prototype of GetSlotDpid (0x44ffd0), so the
-// compiler could not inline it; here the definition is in the same file and
-// /Ob2 expands it into the FindTo helper, which then misses the inline budget
-// at one IsPlaying site and spills the loop counter, 989 bytes against 977.
-// Putting the definition after the caller does not help (MSVC inlines across
-// the whole file); #pragma auto_inline(off) does, but the guide allows that
-// only in a class's file, so 0x450530 keeps a file of its own.
 
 // FUNCTION: 0x450910
 char FindFreePlayerId(void)
@@ -2085,6 +2072,118 @@ int __stdcall BroadcastPlayerLeft(int id)
     return BroadcastPacket(g_game->players[g_game->localPlayer].id, msg, 5);
 }
 
+static inline unsigned char FindIndex_00452960(int id)
+{
+    for (unsigned char i = 0; i < 10; i++) {
+        if (GetSlotDpid(i) == id)
+            return i;
+    }
+    return 10;
+}
+
+// The state helpers keep one return per outcome and each re-tests active.
+static inline int IsActive12_00452960(Player* p)
+{
+    if (p->active == 0)
+        return 0;
+    if (p->type == 1 || p->type == 2)
+        return 1;
+    return 0;
+}
+
+static inline int IsType3_00452960(Player* p)
+{
+    if (p->active == 0)
+        return 0;
+    if (p->type == 3)
+        return 1;
+    return 0;
+}
+
+static inline int IsState2_00452960(Player* p)
+{
+    if (p->active == 0)
+        return 0;
+    if (p->type == 2)
+        return 1;
+    return 0;
+}
+
+static inline int IsState3_00452960(Player* p)
+{
+    if (p->active == 0)
+        return 0;
+    if (p->type == 3)
+        return 1;
+    return 0;
+}
+
+// FUNCTION: 0x452960
+int __stdcall SetAlliance(int from, int to, unsigned char value, int extra)
+{
+    unsigned char fi;
+    // -1 handled here, not in the helper: keeps the separate store of 10.
+    if (from == -1)
+        fi = 10;
+    else
+        fi = FindIndex_00452960(from);
+
+    Player* p1;
+    if (fi == 10)
+        p1 = 0;
+    else
+        p1 = &g_game->players[FindSlotByDpid(from)];
+
+    Player* p2;
+    if (FindSlotByDpid(to) == 10)
+        p2 = 0;
+    else
+        p2 = &g_game->players[FindSlotByDpid(to)];
+
+    int result = 0;
+    if (p1 == 0 || p2 == 0)
+        return 0;
+
+    // The reference is what makes MSVC keep this byte in its stack slot and
+    // reload it with the `and 0xff` widening the original has.
+    unsigned char idx_;
+    unsigned char& idx = idx_;
+    if (IsActive12_00452960(p1)) {
+        idx = p2->index;
+        p1->allied[idx] = value;
+        if (IsState2_00452960(p2)
+            || (IsState3_00452960(p2) && p2->info->kind == 2)
+            || extra != 0) {
+            idx = p2->index;
+            p1->alliedBy[idx] = value;
+        }
+        result = 1;
+    }
+    if (IsActive12_00452960(p2)) {
+        idx = p1->index;
+        p2->alliedBy[idx] = value;
+        if (IsState2_00452960(p2) || extra != 0) {
+            idx = p1->index;
+            p2->allied[idx] = value;
+        }
+        result = 1;
+    } else if (IsType3_00452960(p2)) {
+        AllyFlagsPacket* msg = (AllyFlagsPacket*)g_game->recvPacketPtr;
+        msg->allied = value;
+        msg->type = 0x23;
+        msg->fromNetId = from;
+        msg->toNetId = to;
+        msg->force = extra;
+        int r = SendPacketToPlayer(from, to, msg, 0xe);
+        if (g_usePacketManager != 0)
+            g_packetManager.SendAllQueued(1);
+        result = r;
+    }
+    if (g_game->mapInfo->GetGameType() == 3)
+        ReportGameEvent(4);
+    return result;
+}
+
 // FUNCTION: 0x452b70
 int __stdcall SendAlliance(int from, int to, char value, int extra)
 {
@@ -2400,6 +2499,54 @@ void __stdcall SendProbe(int from, int to)
     } else {
         SendPacketToPlayer(from, to, buf, 1);
     }
+}
+
+// The body of GetLocalHumanDpid, inlined here.
+static inline int FindTarget(Game* game)
+{
+    for (int i = 0; i < 10; i++) {
+        if (game->players[i].type == 1)
+            return game->players[i].id;
+    }
+    return -1;
+}
+
+// FUNCTION: 0x453360
+int __stdcall SendChatPacket(char* text)
+{
+    // Never initialised: a path with no send returns garbage, as in the
+    // original (the caller ignores it).
+    int result;
+    int i;
+    g_game->recvPacketPtr[0] = 5;
+    strncpy((char*)g_game->recvPacketPtr + 1, text, 0x40);
+
+    int target = FindTarget(g_game);
+
+    if (text[0] == '+' || g_game->chatMode == 0) {
+        result = BroadcastPacket(target, g_game->recvPacketPtr, 0x41);
+    } else if (g_game->chatMode == 3) {
+        for (i = 0; i < 10; i++) {
+            // A local copy declared after i: symbol order sets the SIB operand order of the 0x2bf1 read.
+            Game* const g = g_game;
+            if (g->chatRecipients[i] != 0) {
+                int id = g_game->players[i].id;
+                if (id != 0)
+                    result = SendPacketToPlayer(target, id, g_game->recvPacketPtr, 0x41);
+            }
+        }
+    } else {
+        Player* lp = &g_game->players[g_game->localPlayer];
+        for (int i = 0; i < 10; i++) {
+            Player* p = &g_game->players[i];
+            if (p->active != 0 && p->type == 3) {
+                if ((g_game->chatMode == 1 && lp->allied[i] != 0) ||
+                    (g_game->chatMode == 2 && lp->allied[i] == 0))
+                    result = SendPacketToPlayer(target, p->id, g_game->recvPacketPtr, 0x41);
+            }
+        }
+    }
+    return result;
 }
 
 // Declared __stdcall although it takes no arguments: places the size reload late.

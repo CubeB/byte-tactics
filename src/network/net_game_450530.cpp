@@ -85,6 +85,7 @@ static inline int FindToB_00450530()
     return -1;
 }
 
+// Stays in its own file: the module inlines FindHostSlot here, where the original calls it out of line.
 // FUNCTION: 0x450530
 void SendLobbySyncRequests()
 {

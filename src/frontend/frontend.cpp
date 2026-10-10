@@ -84,11 +84,11 @@ struct Dialog_004263b0 {
     char unknown_0[4];
     char* gadgets;                     // +0x4
     void (__stdcall* handler)(void*);  // +0x8
-    int field_c;                       // +0xc
+    int data;                          // +0xc
     char unknown_10[0x1c - 0x10];
-    void (__stdcall* field_1c)();      // +0x1c
+    void (__stdcall* cb1c)();          // +0x1c
     char unknown_20[0x24 - 0x20];
-    void* field_24;                    // +0x24
+    void* surface;                     // +0x24
 };
 
 // The layer stack at g_game+0x519: the current layer at +0x18.
@@ -525,8 +525,8 @@ void PresentFrontendFrame()
 void UpdateMenuSparks()
 {
     Dialog_004263b0* terrain = g_game->gui.current;
-    if (terrain->field_24 != 0) {
-        unsigned char* src = ((Map_00425b80*)terrain->field_24)->cells;
+    if (terrain->surface != 0) {
+        unsigned char* src = ((Map_00425b80*)terrain->surface)->cells;
         Smoke_00425b80* s = g_menuSparks;
         unsigned char* dest = ((World_00425b80*)terrain->gadgets)->map->cells;
         int count = 100;
@@ -777,8 +777,8 @@ void __stdcall OpenMainMenu()
 
     Dialog_004263b0* dialog = LoadGuiLayer(&g_game->gui, "MAINMENU.GUI", 0x80);
     dialog->handler = (void (__stdcall*)(void*))HandleMainMenuClick;
-    dialog->field_c = 0;
-    dialog->field_1c = UpdateMenuSparks;
+    dialog->data = 0;
+    dialog->cb1c = UpdateMenuSparks;
 
     LoadPictureCached("FrontendX", 1, 1, 0);
     PlayLoopingSoundByName("BGM", 0);
@@ -1558,8 +1558,8 @@ void FreePictureCache()
             if (g_game->surface == g_pictureCache[i].surface) {
                 g_game->surface = 0;
             }
-            if (g_game->gui.current != 0 && g_game->gui.current->field_24 == g_pictureCache[i].surface) {
-                g_game->gui.current->field_24 = 0;
+            if (g_game->gui.current != 0 && g_game->gui.current->surface == g_pictureCache[i].surface) {
+                g_game->gui.current->surface = 0;
             }
             g_pictureCache[i].surface = 0;
             g_pictureCache[i].data = 0;

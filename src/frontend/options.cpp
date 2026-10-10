@@ -61,7 +61,7 @@ struct Gadget {                        // 0x15b bytes
     short height;                      // +0x19
     int attribs;                       // +0x1b
     char unknown_1f[0x29 - 0x1f];
-    unsigned char field_29;            // +0x29
+    unsigned char active;              // +0x29
     char unknown_2a[0xb6 - 0x2a];
     union {                            // +0xb6
         short count;                   // entry 0's count
@@ -80,7 +80,7 @@ struct Gadget {                        // 0x15b bytes
             char unknown_b6b[0xbc - 0xb6];
             Surface* surface;          // +0xbc, the layer's draw surface
             char unknown_c0[0xc4 - 0xc0];
-            int field_c4;              // +0xc4
+            int background;            // +0xc4
         };
     };
     union {                            // +0x136
@@ -637,7 +637,7 @@ struct Menu_004604a0 {
     int field_8;
     int field_c;
     int unknown_10;
-    int field_14;                     // +0x14
+    int language;                     // +0x14
     char unknown_18[0x1c - 0x18];
 };
 
@@ -1486,8 +1486,8 @@ void EnsureOptionsPanelGadget()
             entries[i].width -= entries[i].x;
             entries[i].height = entries->height;
             strcpy(entries[i].name, "PANEL");
-            entries[i].field_29 = 1;
-            entries[i].field_c4 = entries->field_c4;
+            entries[i].active = 1;
+            entries[i].background = entries->background;
         }
     }
 }
@@ -2720,11 +2720,11 @@ void OpenRestartDialog()
     dialog->handler = HandleRestartDialogClick;
     LoadPictureCached("drestart", 0, 0, 0);
     int index = FindGadgetIndex(gadgets, "MISSIONNAME", 5);
-    menu->field_14 = menu->field_c;
+    menu->language = menu->field_c;
     char* text = WordWrapText((Menu_004604a0*)&g_game->gui,
                               g_game->mapInfo->GetMissionName(),
                               gadgets[index].width, -1);
-    menu->field_14 = menu->field_8;
+    menu->language = menu->field_8;
     char* first = strtok(text, "\n");
     SetTranslatedTextByName((Menu_004604a0*)&g_game->gui, "MISSIONNAME", (int)first, 0x80);
     char* second = strtok(0, "\n");

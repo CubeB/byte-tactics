@@ -8,7 +8,7 @@
 class Sound {
 public:
     char unknown_0[4];
-    int field_4;
+    int use3D;
 
     void Enable3D();
     void Disable3D();

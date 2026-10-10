@@ -194,9 +194,9 @@ public:
 };
 
 struct Arg_004c6210 {
-    int unknown_0;                     // +0x0
-    Intf_004c6210* field_4;            // +0x4
-    Intf_004c6210* field_8;            // +0x8
+    int ddraw;                         // +0x0
+    Intf_004c6210* primary;            // +0x4
+    Intf_004c6210* back;               // +0x8
 };
 
 Display* GetDisplay(void);
@@ -377,9 +377,9 @@ int __stdcall RestoreSurfaces(Arg_004c6210* arg)
     if (d->offscreenDC != 0)
         return 0;
 
-    int r = arg->field_4->Slot27();
+    int r = arg->primary->Slot27();
     if (r == 0) {
-        r = arg->field_8->Slot27();
+        r = arg->back->Slot27();
         if (r == 0) {
             Surface screen;
             LockScreen(&screen);

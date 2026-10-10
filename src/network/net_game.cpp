@@ -393,7 +393,7 @@ extern char DAT_005119b8[];
 int __stdcall HAPINET_setplayername(void* net, int dpid, DPNAME* name, int flags);
 int __stdcall HAPINET_getplayername(void* net, unsigned long id, void* data, unsigned long* size);
 int __stdcall HAPINET_addplayer(void* net, unsigned long* id, char* shortName, char* longName,
-                                char* name, short field_11, short field_13);
+                                char* name, short versionMajor, short versionMinor);
 void __stdcall HAPINET_updategameinfo(void* obj, char* name, char* data, int d, int c, int b, int a);
 void __stdcall HAPINET_initmultiplaydefaults(void* net);
 void __stdcall HAPINET_initconnection(void* net, void* connection);
@@ -1181,7 +1181,8 @@ struct Guid_4517b0 {
 };
 
 struct Net2_4517b0 {
-    char unknown_0[8];
+    unsigned int size;                 // +0x0, DPNAME dwSize
+    unsigned int flags;                // +0x4
     char* shortName;                   // +0x8
     char* longName;                    // +0xc
 };

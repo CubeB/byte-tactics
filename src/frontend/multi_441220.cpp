@@ -11,6 +11,7 @@ struct Menu_00441220 {
     Holder_00441220* holder;         // +0x18
 };
 
+// Not gadget.h's Gadget: that header's symbol ids move 0x441220 off its match.
 #pragma pack(push, 1)
 struct Entry_00441220 {
     char unknown_0[0xba];

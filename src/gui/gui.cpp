@@ -4245,50 +4245,21 @@ int PickRandomReclaimableResourcesInRadius(int, int, int, int, int, int);
 int CreateUnit(int, int, int, int, int, int);
 #include "layer.h"
 
+// Unused here: the font table behind gui.h's values and language; its symbol ids
+// keep the allocation (docs/c2-regalloc.md).
 struct Language {
     char unknown_0[0xc];
     GafEntry* glyphs;                   // +0x0c
 };
 
+// The mouse event at gui.h's pointX to pointDoubleClick.
 struct Point {                          // 24 bytes, copied with rep movsd
     int x;
     int y;
     int unknown_08[4];
 };
 
-struct Gui {
-    int font;                           // +0x00
-    void* gaf;                          // +0x04
-    Language* values[3];                // +0x08
-    Language* language;                 // +0x14
-    Layer* layer;                       // +0x18
-    char unknown_1c[0x3c - 0x1c];
-    Point point;                        // +0x3c
-    char unknown_54[0x60 - 0x54];
-    int hotGadgetIndex;                 // +0x60
-    int focus;                          // +0x64
-    int hoverGadgetIndex;               // +0x68
-    int prevHoverGadget;                // +0x6c
-    int clearQuickKeys;                 // +0x70
-    char unknown_74[0x78 - 0x74];
-    int knobDragging;                   // +0x78
-    char unknown_7c[0x96 - 0x7c];
-    int time;                           // +0x96
-    int animTimer;                      // +0x9a
-    int inputEnabled;                   // +0x9e
-    int dirty;                          // +0xa2 (nonzero = selection active)
-    char unknown_a6[0x8b2 - 0xa6];
-    unsigned char colours[0x100];       // +0x8b2
-    char unknown_9b2[0x9b6 - 0x9b2];
-    char str_9b6[0x100];                // +0x9b6
-    char str_ab6[0x100];                // +0xab6
-    char str_bb6[0x110];                // +0xbb6
-    int pathsReady;                     // +0xcc6
-    int changed;                        // +0xcca
-    int clickStatusCache;               // +0xcce
-    int fallback;                       // +0xcd2
-    char cachedBgName;                  // +0xcd6
-};
+#include "gui.h"
 
 #pragma pack(pop)
 
@@ -4944,7 +4915,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
     r.right = entry->width + r.left - 1;
     r.bottom = entry->height + r.top - 1;
 
-    Point point = obj->point;
+    Point point = *(Point*)&obj->pointX;
     point.x -= entries->x;
     point.y -= entries->y;
 
@@ -5215,7 +5186,7 @@ int __stdcall HandleTextInput(Gui* obj, int index, int key)
     GetGadgetRectByIndex((char*)entries, index, &rect);
     SelectFontForEntry_inlined(entries, index);
 
-    Point point = obj->point;
+    Point point = *(Point*)&obj->pointX;
     int rel_x = point.x - entries->x;
     int rel_y = point.y - entries->y;
 
@@ -6141,9 +6112,6 @@ int DrawEndGameFrame();
 void RunEndGameState();
 void StepBuildMenuPage(int);
 
-extern int Pad_a96d0_e0;
-extern int Pad_a96d0_e1;
-extern int Pad_a96d0_e2;
 
 // FUNCTION: 0x4a96d0
 void __stdcall DecrementKnobPos(Gui* obj, int index)
@@ -6647,7 +6615,7 @@ int __stdcall UpdateMenu(Gui* menu)
     if (entries == 0)
         return 1;
 
-    Point& pt = menu->point;
+    Point& pt = *(Point*)&menu->pointX;
     {
         // Rect local, not named ints: right/bottom spill into slots shared with `point`.
         Rect box;
@@ -6669,7 +6637,7 @@ int __stdcall UpdateMenu(Gui* menu)
     menu->hoverGadgetIndex = -1;
 
     Point point;
-    memcpy(&point, &menu->point, 24);
+    memcpy(&point, &menu->pointX, 24);
     point.x -= entries->x;
     point.y -= entries->y;
 

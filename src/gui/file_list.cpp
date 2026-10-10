@@ -74,12 +74,7 @@ struct FileRequester {
 
 #include "layer.h"
 
-struct Gui {
-    char unknown_0[0x18];
-    Layer* layer;                    // +0x18
-    char unknown_1c[0x60 - 0x1c];
-    int selected;                    // +0x60
-};
+#include "gui.h"
 
 struct Dialog {
     char path[0x13];                 // +0x00
@@ -321,7 +316,7 @@ void __stdcall FileRequesterHandler(Gui* gadget)
     // Declared after n: the operand order of the cwd[] accesses follows it.
     FileRequester* req;
     req = (FileRequester*)gadget->layer->data;
-    if (gadget->selected == -1) {
+    if (gadget->hotGadgetIndex == -1) {
         ChangeDrive(req->save_drive);
         ChangeDirectory(req->save_cwd);
         GameFreeThunk(req);
@@ -332,8 +327,8 @@ void __stdcall FileRequesterHandler(Gui* gadget)
     drive[1] = 0;
     result = 0;
 
-    if (IsGadgetNamed(entries, gadget->selected, "LOAD")
-        || IsGadgetNamed(entries, gadget->selected, "SWIN")) {
+    if (IsGadgetNamed(entries, gadget->hotGadgetIndex, "LOAD")
+        || IsGadgetNamed(entries, gadget->hotGadgetIndex, "SWIN")) {
         char* name = SkipTextLines(req->names,
                                   FindGadgetChecked(entries, "SWIN")->u.list.field_ba);
         if (name[0] == '\\') {
@@ -357,9 +352,9 @@ void __stdcall FileRequesterHandler(Gui* gadget)
             strcat(req->selected, "\\");
             strcat(req->selected, name);
         }
-    } else if (IsGadgetNamed(entries, gadget->selected, "CANC")) {
+    } else if (IsGadgetNamed(entries, gadget->hotGadgetIndex, "CANC")) {
         result = 1;
-    } else if (IsGadgetNamed(entries, gadget->selected, "PATH")) {
+    } else if (IsGadgetNamed(entries, gadget->hotGadgetIndex, "PATH")) {
         n = (int)strlen(req->cwd);
         if (n > 0) {
             while (n > 0) {
@@ -376,24 +371,24 @@ void __stdcall FileRequesterHandler(Gui* gadget)
                 n--;
             }
         }
-    } else if (IsGadgetNamed(entries, gadget->selected, "NAME")) {
-        gadget->selected = FindGadgetIndex(entries, "LOAD", 14);
+    } else if (IsGadgetNamed(entries, gadget->hotGadgetIndex, "NAME")) {
+        gadget->hotGadgetIndex = FindGadgetIndex(entries, "LOAD", 14);
         n = FindGadgetIndex(entries, "NAME", 3);
         result = 1;
         strcpy(req->selected, entries[n].u.text);
-    } else if (IsGadgetNamed(entries, gadget->selected, "ADRV")) {
+    } else if (IsGadgetNamed(entries, gadget->hotGadgetIndex, "ADRV")) {
         drive[0] = 'A';
         ChangeDrive(drive);
-    } else if (IsGadgetNamed(entries, gadget->selected, "BDRV")) {
+    } else if (IsGadgetNamed(entries, gadget->hotGadgetIndex, "BDRV")) {
         drive[0] = 'B';
         ChangeDrive(drive);
-    } else if (IsGadgetNamed(entries, gadget->selected, "CDRV")) {
+    } else if (IsGadgetNamed(entries, gadget->hotGadgetIndex, "CDRV")) {
         drive[0] = 'C';
         ChangeDrive(drive);
-    } else if (IsGadgetNamed(entries, gadget->selected, "DDRV")) {
+    } else if (IsGadgetNamed(entries, gadget->hotGadgetIndex, "DDRV")) {
         drive[0] = 'D';
         ChangeDrive(drive);
-    } else if (IsGadgetNamed(entries, gadget->selected, "VDRV")) {
+    } else if (IsGadgetNamed(entries, gadget->hotGadgetIndex, "VDRV")) {
         drive[0] = 'R';
         ChangeDrive(drive);
     }

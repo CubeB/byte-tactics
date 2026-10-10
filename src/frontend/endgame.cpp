@@ -62,7 +62,7 @@ struct Data {
     char unknown_18[8];
 };
 
-struct Menu;
+struct Gui;
 
 // One 0x15b-byte GUI entry. The views disagree about the bytes at +0xba:
 // 41ea30's and 41f7f0's Amount against 41ec50's short selected and 41e420's
@@ -105,21 +105,12 @@ struct Gadget {
     };
     char unknown_138[0x142 - 0x138];
     short knobSize;                    // +0x142
-    void (__stdcall* sliderCallback)(Menu*, int); // +0x144
+    void (__stdcall* sliderCallback)(Gui*, int); // +0x144
     char unknown_148[0x15b - 0x148];
 };
 
 struct Layer;
-struct Menu {
-    char unknown_0[8];
-    void* font_8;                      // +0x8
-    void* font_c;                      // +0xc
-    char unknown_10[4];
-    void* font;                        // +0x14
-    Layer* layer;                      // +0x18
-    char unknown_1c[0x60 - 0x1c];
-    int current;                       // +0x60
-};
+#include "../gui/gui.h"
 
 #include "../gui/layer.h"
 
@@ -137,9 +128,8 @@ struct Display {
 
 #include "../network/player_info.h"
 
-// Unused here: a real type and functions declared to keep the file's symbol count (docs/c2-regalloc.md).
+// Unused here: a real type and function declared to keep the file's symbol count (docs/c2-regalloc.md).
 struct Unit;
-int AimCobStub(int, int, int, int);
 int StepTowards(int, int, int);
 
 // The per-player statistics row: 41e420 indexes the seven ints at +0x1e;
@@ -233,16 +223,8 @@ struct Game {
     char unknown_c[0x10 - 0xc];
     Sound* sound;                      // +0x10
     char unknown_14[0x519 - 0x14];
-    Menu menu;                         // +0x519
-    char unknown_57d[0xdcb - 0x57d];
-    unsigned char textColor;           // +0xdcb
-    char unknown_dcc[0xdcf - 0xdcc];
-    unsigned char color1;              // +0xdcf
-    char unknown_dd0[3];
-    unsigned char color2;              // +0xdd3
-    char unknown_dd4[0xdda - 0xdd4];
-    unsigned char shadowColor;         // +0xdda
-    char unknown_ddb[0x1b63 - 0xddb];
+    Gui gui;                          // +0x519
+    char unknown_120f[0x1b63 - 0x120f];
     Player players[11];                // +0x1b63
     char unknown_299c[0x29a0 - 0x299c];
     Options* options;                  // +0x29a0
@@ -364,34 +346,34 @@ void ApplyDifficultyButtons();
 void StartGlamourSound();
 char __stdcall FindGameCdDrive(int param_1);
 const char* __stdcall Translate(const char* text);
-void __stdcall OpenMessageBox(Menu* menu, const char* text, int param_3, int param_4, int param_5);
+void __stdcall OpenMessageBox(Gui* menu, const char* text, int param_3, int param_4, int param_5);
 void __stdcall PlaySoundByName(const char* name, int param_2);
-int __stdcall IsCurrentGadgetNamed(Menu* gadget, char* name);
+int __stdcall IsCurrentGadgetNamed(Gui* gadget, char* name);
 int __stdcall FindGadgetIndex(Gadget* entries, char* name, int type);
 Gadget* __stdcall FindGadgetChecked(Gadget* entries, char* name);
-void __stdcall ClearSelectedGadget(Menu* menu);
-int __stdcall AddHotspotGadget(Menu* menu, Button* record);
-int __stdcall AddBarGadget(Menu* menu, Bar* record);
+void __stdcall ClearSelectedGadget(Gui* menu);
+int __stdcall AddHotspotGadget(Gui* menu, Button* record);
+int __stdcall AddBarGadget(Gui* menu, Bar* record);
 int GetFontLineHeight();
 int __stdcall AddTextGadget(Layer* holder, char* type, char* text, int x, int y,
                            int width, int attribs);
-Layer* __stdcall LoadGuiLayer(Menu* menu, const char* name, int flags);
-void __stdcall SelectGadgetByName(Menu* menu, const char* name);
+Layer* __stdcall LoadGuiLayer(Gui* menu, const char* name, int flags);
+void __stdcall SelectGadgetByName(Gui* menu, const char* name);
 char* __stdcall BuildScrollItems1(char* names, char* flags, int count);
-void __stdcall ConfigureListBoxByName(Menu* menu, char* name, void* items, int count, int flag);
+void __stdcall ConfigureListBoxByName(Gui* menu, char* name, void* items, int count, int flag);
 Gadget* __stdcall FindGadgetChecked_D(char* entries, char* name);
-void __stdcall SetListBoxScrollByName(Menu* menu, char* name, int index);
-void __stdcall SetGadgetActiveByName(Menu* menu, const char* name, int value);
-void __stdcall SetTranslatedTextByName(Menu* menu, char* name, char* text, int param_4);
+void __stdcall SetListBoxScrollByName(Gui* menu, char* name, int index);
+void __stdcall SetGadgetActiveByName(Gui* menu, const char* name, int value);
+void __stdcall SetTranslatedTextByName(Gui* menu, char* name, char* text, int param_4);
 int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 void __stdcall DrawFrame(void* param_1, int param_2, int x, int y);
-void __stdcall SetKeyboardInput(Menu* menu, int value);
-void __stdcall RenderLayer(Menu* menu, int value);
-void __stdcall MarkLayerChanged(Menu* menu);
-void __stdcall MarkChanged(Menu* menu);
-void __stdcall EnableKeyCommands(Menu* menu);
-void __stdcall UpdateMenu(Menu* menu);
-void __stdcall BlitMenuLayers(Menu* menu, void* param_2, void* param_3);
+void __stdcall SetKeyboardInput(Gui* menu, int value);
+void __stdcall RenderLayer(Gui* menu, int value);
+void __stdcall MarkLayerChanged(Gui* menu);
+void __stdcall MarkChanged(Gui* menu);
+void __stdcall EnableKeyCommands(Gui* menu);
+void __stdcall UpdateMenu(Gui* menu);
+void __stdcall BlitMenuLayers(Gui* menu, void* param_2, void* param_3);
 void __stdcall DrawSurface(void* dest, void* image, int x, int y);
 void __stdcall DrawMessages(void* surface);
 void __stdcall SetOffscreenSurface(void* surface);
@@ -407,7 +389,7 @@ void ShowSoftwareCursor();
 void HideSoftwareCursor();
 void __stdcall StartPaletteFade(unsigned char* target, unsigned char* current, int steps);
 void __stdcall SendPlayerEconomy(Player* player, int a, int b);
-int __stdcall IsScreenNamed(Menu* menu, const char* name);
+int __stdcall IsScreenNamed(Gui* menu, const char* name);
 
 // Creates the global game object at a random offset (0..6993 bytes) inside a
 // zeroed allocation, using placement new.
@@ -588,7 +570,7 @@ void StepPaletteFade(void)
     bar.max = g_game->maxStats[n];                                          \
     bar.scale = max(bar.value * 0.06666667f, 1.0f);                         \
     wsprintfA(bar.h.name, fmt, i);                                          \
-    AddBarGadget(&g_game->menu, &bar);
+    AddBarGadget(&g_game->gui, &bar);
 
 // FUNCTION: 0x41e420
 void FillEndGameStatistics(void)
@@ -596,7 +578,7 @@ void FillEndGameStatistics(void)
     Bar bar;
     Button button;
     char name[64];
-    Menu* menu = &g_game->menu;
+    Gui* menu = &g_game->gui;
     Gadget* entries = menu->layer->entries;
     // Keep the setup statements in this order: it fixes the register choice.
     memset(&bar, 0, sizeof(bar));
@@ -604,8 +586,8 @@ void FillEndGameStatistics(void)
     bar.h.y = 0x5d;
     bar.h.width = 0x43;
     bar.h.height = 0x12;
-    bar.h.color = g_game->color1;
-    bar.h.color2 = g_game->color2;
+    bar.h.color = g_game->gui.colours[4];
+    bar.h.color2 = g_game->gui.colours[8];
     bar.showText = 1;
     bar.active = 1;
     bar.current = 0;
@@ -623,7 +605,7 @@ void FillEndGameStatistics(void)
             button.h.y = bar.h.y;
             button.h.width = 0x5b;
             button.h.height = 0x15;
-            AddHotspotGadget(&g_game->menu, &button);
+            AddHotspotGadget(&g_game->gui, &button);
             int idx = FindGadgetIndex(entries, name, 6);
             if (idx != -1) {
                 Gadget* e = &entries[idx];
@@ -632,13 +614,13 @@ void FillEndGameStatistics(void)
                     e->frame = g_game->players[i].info->color;
                 }
             }
-            menu->font = menu->font_c;
+            menu->language = menu->values[1];
             int h = GetFontLineHeight();
-            AddTextGadget(g_game->menu.layer, "TEXT", g_game->slots[i].name, 0x10,
+            AddTextGadget(g_game->gui.layer, "TEXT", g_game->slots[i].name, 0x10,
                          (0x14 - h) / 2 + bar.h.y, -1, 2);
             entries[entries->count].attribs = 2;
             entries[entries->count].width = 0x5a;
-            menu->font = menu->font_8;
+            menu->language = menu->values[0];
             STAT_BAR(0, 0x70, "Kills%d")
             STAT_BAR(1, 0xba, "Losses%d")
             STAT_BAR(2, 0x104, "EProduced%d")
@@ -654,7 +636,7 @@ void FillEndGameStatistics(void)
 // FUNCTION: 0x41ea30
 int AreStatBarsComplete(void)
 {
-    Gadget* entries = g_game->menu.layer->entries;
+    Gadget* entries = g_game->gui.layer->entries;
     int count = entries->count;
     for (int i = 0; i < count; i++) {
         if (entries[i].type == 0xd) {
@@ -738,11 +720,11 @@ char* __stdcall BuildScrollItems2(char* names, int a, int b)
 // Start/Missions (checks the campaign CD and starts the chosen mission),
 // MainMenu and Difficulty (cycles easy, medium, hard).
 // FUNCTION: 0x41ec50
-void __stdcall HandleEndMissionClick(Menu* gadget)
+void __stdcall HandleEndMissionClick(Gui* gadget)
 {
     Gadget* entries = gadget->layer->entries;
     Data* data = (Data*)gadget->layer->data;
-    if (gadget->current == -1) {
+    if (gadget->hotGadgetIndex == -1) {
         BlankScreen();
         if (g_game->lastFrame != 0)
             FreeSurface(g_game->lastFrame);
@@ -789,10 +771,10 @@ void __stdcall HandleEndMissionClick(Menu* gadget)
     }
     if (IsCurrentGadgetNamed(gadget, "Start") || IsCurrentGadgetNamed(gadget, "Missions")) {
         if (!FindGameCdDrive(0)) {
-            OpenMessageBox(&g_game->menu,
+            OpenMessageBox(&g_game->gui,
                          Translate("Please insert the Campaign CD (Disc 2) and try again"),
                          200, 1, 1);
-            ClearSelectedGadget(&g_game->menu);
+            ClearSelectedGadget(&g_game->gui);
         }
         RegisterDataArchives();
         PlaySoundByName("BigButton", 0);
@@ -881,7 +863,7 @@ void __stdcall OpenEndMissionScreen()
     BlankScreen();
     FillSurface(g_game->surface, 0);
     FlipScreen();
-    Layer* layer = LoadGuiLayer(&g_game->menu, "ENDMSN.GUI", 0x80);
+    Layer* layer = LoadGuiLayer(&g_game->gui, "ENDMSN.GUI", 0x80);
     layer->handler = (void (__stdcall*)(void*))HandleEndMissionClick;
     Data* data = (Data*)GameAllocIgnoreTag("EndMsnGUI", 0x20);
     data->items = 0;
@@ -894,7 +876,7 @@ void __stdcall OpenEndMissionScreen()
         strcpy(layer->entries->okName, "Start");
     } else {
         LoadPictureCached("outcome0", 1, 1, 0);
-        SelectGadgetByName(&g_game->menu, "MainMenu");
+        SelectGadgetByName(&g_game->gui, "MainMenu");
     }
     next = HasNextMission();
     if (next) {
@@ -908,11 +890,11 @@ void __stdcall OpenEndMissionScreen()
             if (g_game->missionFlags[i] == 'U')
                 break;
         }
-        ConfigureListBoxByName(&g_game->menu, "Missions", data->items, count, 0);
+        ConfigureListBoxByName(&g_game->gui, "Missions", data->items, count, 0);
         Gadget* knob = FindGadgetChecked_D(entries, "KNOB");
         knob->range = knob->height - knob->knobSize - 3;
-        SetListBoxScrollByName(&g_game->menu, "Missions", g_game->mission);
-        SetListBoxScrollByName(&g_game->menu, "Missions", g_game->mission + (g_game->won != 0));
+        SetListBoxScrollByName(&g_game->gui, "Missions", g_game->mission);
+        SetListBoxScrollByName(&g_game->gui, "Missions", g_game->mission + (g_game->won != 0));
         ApplyDifficultyButtons();
     }
     Player* player = &g_game->players[g_game->localPlayer];
@@ -923,9 +905,9 @@ void __stdcall OpenEndMissionScreen()
         DrawFrame(layer->surface, GetGafFrame(g_game->image_14817, 0), x, 0x1c);
     }
     if (g_game->flag4)
-        SetTranslatedTextByName(&g_game->menu, "MainMenu", "OK", 0);
-    SetKeyboardInput(&g_game->menu, 1);
-    RenderLayer(&g_game->menu, 0x40);
+        SetTranslatedTextByName(&g_game->gui, "MainMenu", "OK", 0);
+    SetKeyboardInput(&g_game->gui, 1);
+    RenderLayer(&g_game->gui, 0x40);
     SetCursorMode(0x13);
 }
 
@@ -938,23 +920,23 @@ void EnableEndMissionButtons()
 {
     char next = HasNextMission();
     if (next) {
-        SetGadgetActiveByName(&g_game->menu, "Start", 1);
-        SetGadgetActiveByName(&g_game->menu, "LoadGame", 1);
-        SetGadgetActiveByName(&g_game->menu, "SaveGame", 1);
-        SetGadgetActiveByName(&g_game->menu, "KNOB", 1);
-        SetGadgetActiveByName(&g_game->menu, "Missions", 1);
-        SetGadgetActiveByName(&g_game->menu, "Difficulty", 1);
-        SetGadgetActiveByName(&g_game->menu, "AdjustDiff", 1);
-        SetGadgetActiveByName(&g_game->menu, "MainMenu", 1);
-        SelectGadgetByName(&g_game->menu, "Missions");
+        SetGadgetActiveByName(&g_game->gui, "Start", 1);
+        SetGadgetActiveByName(&g_game->gui, "LoadGame", 1);
+        SetGadgetActiveByName(&g_game->gui, "SaveGame", 1);
+        SetGadgetActiveByName(&g_game->gui, "KNOB", 1);
+        SetGadgetActiveByName(&g_game->gui, "Missions", 1);
+        SetGadgetActiveByName(&g_game->gui, "Difficulty", 1);
+        SetGadgetActiveByName(&g_game->gui, "AdjustDiff", 1);
+        SetGadgetActiveByName(&g_game->gui, "MainMenu", 1);
+        SelectGadgetByName(&g_game->gui, "Missions");
     } else {
-        SetGadgetActiveByName(&g_game->menu, "MainMenu", 1);
-        Gadget* entries = g_game->menu.layer->entries;
+        SetGadgetActiveByName(&g_game->gui, "MainMenu", 1);
+        Gadget* entries = g_game->gui.layer->entries;
         entries[FindGadgetIndex(entries, "MainMenu", 1)].y = 0x1a0;
-        SelectGadgetByName(&g_game->menu, "MainMenu");
+        SelectGadgetByName(&g_game->gui, "MainMenu");
     }
-    MarkLayerChanged(&g_game->menu);
-    MarkChanged(&g_game->menu);
+    MarkLayerChanged(&g_game->gui);
+    MarkChanged(&g_game->gui);
 }
 
 // For each of the 10 slots at +0x38dd9 that is in use, sets the menu entry
@@ -966,7 +948,7 @@ void __stdcall ActivatePlayerGadgets(char* prefix)
     for (int i = 0; i < 10; i++) {
         if (g_game->slots[i].name[0]) {
             wsprintfA(name, "%s%d", prefix, i);
-            SetGadgetActiveByName(&g_game->menu, name, 1);
+            SetGadgetActiveByName(&g_game->gui, name, 1);
         }
     }
 }
@@ -978,23 +960,23 @@ void ShowEndMissionScreen()
     OpenEndMissionScreen();
     FillEndGameStatistics();
     EnableEndMissionButtons();
-    MarkLayerChanged(&g_game->menu);
-    MarkChanged(&g_game->menu);
+    MarkLayerChanged(&g_game->gui);
+    MarkChanged(&g_game->gui);
     SetGameMode(7);
     g_game->state = 7;
 }
 
 // FUNCTION: 0x41f680
-void __stdcall HandleCdCheckClick(Menu* gadget)
+void __stdcall HandleCdCheckClick(Gui* gadget)
 {
-    if (gadget->current != -1) {
+    if (gadget->hotGadgetIndex != -1) {
         if (IsCurrentGadgetNamed(gadget, "OK")) {
             PlaySoundByName("Options", 0);
             if (FindGameCdDrive(0)) {
                 g_game->state = 5;
                 return;
             }
-            OpenMessageBox(&g_game->menu,
+            OpenMessageBox(&g_game->gui,
                          Translate("Please insert the Campaign CD (Disc 2) and try again"),
                          200, 1, 1);
         }
@@ -1006,10 +988,10 @@ void __stdcall HandleCdCheckClick(Menu* gadget)
 // FUNCTION: 0x41f700
 void OpenCdCheckDialog()
 {
-    LoadGuiLayer(&g_game->menu, "CDCHECK.GUI", 0x101)->handler = (void (__stdcall*)(void*))HandleCdCheckClick;
+    LoadGuiLayer(&g_game->gui, "CDCHECK.GUI", 0x101)->handler = (void (__stdcall*)(void*))HandleCdCheckClick;
     SetCursorOverlayEnabled(1);
-    SetKeyboardInput(&g_game->menu, 1);
-    RenderLayer(&g_game->menu, 0x40);
+    SetKeyboardInput(&g_game->gui, 1);
+    RenderLayer(&g_game->gui, 0x40);
 }
 
 // Called through a pointer (no direct callers): when the game state at
@@ -1022,8 +1004,8 @@ int DrawEndGameFrame()
         Display* d = GetDisplay();
         DrawSurface(g_game->surface, g_game->lastFrame, d->width, d->height);
         DrawMessages(g_game->surface);
-        UpdateMenu(&g_game->menu);
-        BlitMenuLayers(&g_game->menu, 0, 0);
+        UpdateMenu(&g_game->gui);
+        BlitMenuLayers(&g_game->gui, 0, 0);
         ShowSoftwareCursor();
         FlipScreen();
         return 1;
@@ -1035,13 +1017,13 @@ int DrawEndGameFrame()
     for(int i=0;i<10;++i) { \
         if(g_game->slots[i].name[0]) { \
             wsprintfA(text,"%s%d",label,i); \
-            SetGadgetActiveByName(&g_game->menu,text,1); \
+            SetGadgetActiveByName(&g_game->gui,text,1); \
         } \
     }
 
 static inline int StatsComplete()
 {
-    Gadget* entries=g_game->menu.layer->entries;
+    Gadget* entries=g_game->gui.layer->entries;
     int count=entries->count;
     for(int i=0;i<count;++i) {
         if(entries[i].type==13) {
@@ -1074,21 +1056,21 @@ void __stdcall RunEndGameState()
             Player* player=&g_game->players[g_game->localPlayer];
             if(player->message && player->message!=2) {
                 const char* name=GetRejectReasonText(player->message);
-                OpenMessageBox(&g_game->menu,Translate(name),320,1,1);
-                MarkChanged(&g_game->menu);
-                MarkLayerChanged(&g_game->menu);
+                OpenMessageBox(&g_game->gui,Translate(name),320,1,1);
+                MarkChanged(&g_game->gui);
+                MarkLayerChanged(&g_game->gui);
                 player->message=0;
             }
         } else { g_game->lastFrame=0; g_game->state=2; }
         break;
     case 1:
-        if(IsScreenNamed(&g_game->menu,"MSGBOX.GUI")) {
+        if(IsScreenNamed(&g_game->gui,"MSGBOX.GUI")) {
             if(g_game->state==1) {
                 Display* e=GetDisplay();
                 DrawSurface(g_game->surface,g_game->lastFrame,e->width,e->height);
                 DrawMessages(g_game->surface);
-                UpdateMenu(&g_game->menu);
-                BlitMenuLayers(&g_game->menu,0,0);
+                UpdateMenu(&g_game->gui);
+                BlitMenuLayers(&g_game->gui,0,0);
                 ShowSoftwareCursor();
                 FlipScreen();
             }
@@ -1118,11 +1100,11 @@ void __stdcall RunEndGameState()
         break;
     case 4:
         if(g_game->campaign->GetGameType()==1 && !FindGameCdDrive(0)) {
-            Layer* l=LoadGuiLayer(&g_game->menu,"CDCHECK.GUI",0x101);
+            Layer* l=LoadGuiLayer(&g_game->gui,"CDCHECK.GUI",0x101);
             l->handler=(void (__stdcall*)(void*))HandleCdCheckClick;
             SetCursorOverlayEnabled(1);
-            SetKeyboardInput(&g_game->menu,1);
-            RenderLayer(&g_game->menu,0x40);
+            SetKeyboardInput(&g_game->gui,1);
+            RenderLayer(&g_game->gui,0x40);
             g_game->state=8;
         } else g_game->state=5;
         break;
@@ -1143,7 +1125,7 @@ void __stdcall RunEndGameState()
             DrawSurface(g_game->surface,g_game->image_3907b,0,0);
         } else {
             OpenEndMissionScreen(); FillEndGameStatistics(); EnableEndMissionButtons();
-            MarkLayerChanged(&g_game->menu); MarkChanged(&g_game->menu);
+            MarkLayerChanged(&g_game->gui); MarkChanged(&g_game->gui);
             g_game->state=7;
         }
         break;
@@ -1162,22 +1144,22 @@ void __stdcall RunEndGameState()
                 if(PopKey() || g_game->advance) {
                     g_game->sound->StopStream();
                     OpenEndMissionScreen(); EnableEndMissionButtons(); FillEndGameStatistics();
-                    MarkLayerChanged(&g_game->menu); MarkChanged(&g_game->menu);
+                    MarkLayerChanged(&g_game->gui); MarkChanged(&g_game->gui);
                     g_game->state=7;
                 }
                 unsigned deadline=GetTickRate()*5+g_game->deadline;
                 if(deadline<GetTicks())
-                    DrawOutlinedString(g_game->surface,Translate("Click to continue."),g_game->textColor,g_game->shadowColor,g_game->height-20);
+                    DrawOutlinedString(g_game->surface,Translate("Click to continue."),g_game->gui.colours[0],g_game->gui.colours[0xf],g_game->height-20);
             }
         }
         break;
     case 7: {
         if(StatsComplete()) {
-            EnableKeyCommands(&g_game->menu);
+            EnableKeyCommands(&g_game->gui);
             g_game->state=8; SetCursorMode(19); SetCursorOverlayEnabled(1);
             break;
         }
-        UpdateMenu(&g_game->menu); BlitMenuLayers(&g_game->menu,0,0);
+        UpdateMenu(&g_game->gui); BlitMenuLayers(&g_game->gui,0,0);
         int skip=0;
         int clicked=PopKey();
         if(clicked && g_game->campaign->GetGameType()!=3) skip=1;
@@ -1211,8 +1193,8 @@ void __stdcall RunEndGameState()
         break;
     }
     case 8:
-        HideSoftwareCursor(); UpdateMenu(&g_game->menu); ShowSoftwareCursor(); FlipScreen();
-        HideSoftwareCursor(); BlitMenuLayers(&g_game->menu,0,0); ShowSoftwareCursor();
+        HideSoftwareCursor(); UpdateMenu(&g_game->gui); ShowSoftwareCursor(); FlipScreen();
+        HideSoftwareCursor(); BlitMenuLayers(&g_game->gui,0,0); ShowSoftwareCursor();
         break;
     }
     FlipScreen();

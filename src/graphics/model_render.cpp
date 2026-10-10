@@ -14,8 +14,8 @@
 // UnitTable to reach BuildObjectPicture and DrawPieces, where this file's
 // CMemoryCache is the base; DrawLitPieces (0x459c70, model_render_4581e0.cpp)
 // needs to be the first function defined after its types, and even then the
-// summing loop's lea moves above the fadd (99.8%); DrawPieceEdges (0x458fa0,
-// model_render_458fa0.cpp) is one load order short of the original (99.3%).
+// summing loop's lea moves above the fadd; DrawPieceEdges (0x458fa0,
+// model_render_458fa0.cpp) is one load order short of the original.
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>

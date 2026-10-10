@@ -69,7 +69,7 @@ void __stdcall DrawPolygonEdges(GafFrame* view, Vertex_0045a610* points, int cou
 // A method that ignores `this`: its one caller (0x458dd0, MATCH) passes its own
 // `this` through in ecx, and spells the parameters (image, model, palette).
 // It stays in its own file: merged, one of the copy loop's two pointer loads
-// is scheduled before the other, one instruction off (99.3%).
+// is scheduled before the other, one instruction off.
 class CMemoryCache {
 public:
     void DrawPieceEdges(GafFrame* view, Model_00458fa0* model, int color);
@@ -87,7 +87,7 @@ void CMemoryCache::DrawPieceEdges(GafFrame* view, Model_00458fa0* model, int col
         while (i >= 0) {
             // Byte flags local plus the empty do-while set the reload order after the copy loop.
             unsigned char flags = piece->flags;
-            do {} while (0);  // emits no code; without it 99.3% (header note 2)
+            do {} while (0);  // emits no code; the match needs it (header note 2)
             if (flags & 1) {
                 PieceInfo_00458fa0* info = piece->info;
                 Vertex_0045a610* v = piece->vertices;

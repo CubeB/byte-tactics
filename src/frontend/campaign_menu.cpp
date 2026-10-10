@@ -64,14 +64,14 @@ struct Gadget {                        // 0x15b bytes
     int colour_1f;                     // +0x1f
     void* colours;                     // +0x23
     char unknown_27[0x28 - 0x27];
-    unsigned char field_28;            // +0x28
+    unsigned char tab;                 // +0x28
     char unknown_29[0x60 - 0x29];
     int field_60;                      // +0x60
     char unknown_64[0xb6 - 0x64];
     union {                            // +0xb6
         short count;                   // 476ef0's text-gadget count
         char text_b6[0x80];            // 476ef0's text buffer
-        void* field_b6;                // 478e80's per-gadget callback
+        void* hotspotCallback;         // 478e80's per-gadget callback
         struct {
             char unknown_b6[4];
             short selected;            // +0xba, 4779e0's and 478240's
@@ -83,7 +83,7 @@ struct Gadget {                        // 0x15b bytes
                 };
                 struct {
                     char unknown_bc[2];
-                    void* field_be;    // +0xbe, 478e80's
+                    void* hotspotGaf;  // +0xbe, 478e80's
                     char unknown_c2[4];
                 };
                 struct {
@@ -485,10 +485,10 @@ void InitBriefingText()
         Gadget* gadgets = g_game->gui.layer->entries;
         int i = FindGadgetIndex(gadgets, "SOLARSYSTEM", 0xe);
         if (i != -1) {
-            gadgets[i].field_28 = g_game->side + 1;
+            gadgets[i].tab = g_game->side + 1;
         }
         int j = FindGadgetIndex(gadgets, "TextRegion", 0xe);
-        gadgets[j].field_28 = g_game->side + 1;
+        gadgets[j].tab = g_game->side + 1;
         SelectFontForEntry(gadgets, j);
         g_briefingPaginateReset = 1;
         g_briefingWrappedText = WordWrapText(&g_game->gui, text, gadgets[j].w, j);
@@ -576,7 +576,7 @@ void DrawHelpPage()
                  FindGadgetIndex(gadgets, "TextRegion", 5));
     int idx = FindGadgetIndex(gadgets, "TextRegion", 0xe);
     Gadget* gp = &gadgets[idx];
-    gp->field_28 = g_game->flag_37ef2 + 1;
+    gp->tab = g_game->flag_37ef2 + 1;
     SelectFontForEntry(gadgets, idx);
 
     int divisor = FontHeight(GetFont()) + 2;
@@ -614,7 +614,7 @@ void DrawHelpPage()
         count++;
         char* dst = gadgets[count].text_b6;
         gadgets[count].attribs = 0x411;
-        gadgets[count].field_28 = gp->field_28;
+        gadgets[count].tab = gp->tab;
         gadgets[count].colour_1f = g_briefingTextColors[g_game->flag_37ef2 * 4];
         memset(gadgets[count].text_b6, 0, 0x80);
 
@@ -1205,10 +1205,10 @@ void __stdcall UpdateSolarSystem(Gui* arg1, Gadget* arg2)
 
     DrawBlinkWords(&g_game->gui);
 
-    if (arg2->field_be != 0) {
+    if (arg2->hotspotGaf != 0) {
         int total = 0;
-        for (int j = 0; j < *(unsigned short*)arg2->field_be; j++)
-            total += ((GafFrame*)GetGafFrame((unsigned short*)arg2->field_be, j))->width;
+        for (int j = 0; j < *(unsigned short*)arg2->hotspotGaf; j++)
+            total += ((GafFrame*)GetGafFrame((unsigned short*)arg2->hotspotGaf, j))->width;
 
         if (g_briefingPanoramaNextTick < (int)GetTicks()) {
             g_briefingPanoramaScrollX++;
@@ -1224,7 +1224,7 @@ void __stdcall UpdateSolarSystem(Gui* arg1, Gadget* arg2)
         rect2.top = arg2->y;
         rect2.right = arg2->x + arg2->w - 1;
         rect2.bottom = arg2->y + arg2->h - 1;
-        void* gaf = arg2->field_be;
+        void* gaf = arg2->hotspotGaf;
         surface = arg1->layer->entries->surface;
 
         int now = (int)GetTicks();
@@ -1241,16 +1241,16 @@ void __stdcall UpdateSolarSystem(Gui* arg1, Gadget* arg2)
 
         int x = arg2->x - g_briefingPanoramaScrollX;
         int y = arg2->y;
-        int n = *(unsigned short*)arg2->field_be;
+        int n = *(unsigned short*)arg2->hotspotGaf;
         // Original quirk, kept: `<=` runs one frame past the count.
         for (int k = 0; k <= n; k++) {
             GafFrame* fr =
-                (GafFrame*)GetGafFrame((unsigned short*)arg2->field_be, k % n);
+                (GafFrame*)GetGafFrame((unsigned short*)arg2->hotspotGaf, k % n);
             fr->xOffset = 0;
             fr->yOffset = 0;
             DrawFrame(surface, fr, x, y);
             x += fr->width;
-            n = *(unsigned short*)arg2->field_be;
+            n = *(unsigned short*)arg2->hotspotGaf;
         }
 
         void* panGaf = arg1->layer->entries->gaf;
@@ -1278,7 +1278,7 @@ void __stdcall UpdatePlanet(Gui* arg1, Gadget* arg2)
                 MarkChanged(arg1);
             }
         }
-        if (arg2->field_be != 0) {
+        if (arg2->hotspotGaf != 0) {
             MarkLayerChanged(arg1);
 
             int x1 = arg2->x;
@@ -1295,7 +1295,7 @@ void __stdcall UpdatePlanet(Gui* arg1, Gadget* arg2)
                 StepGafSequence(&g_briefingPlanetFrameCursor);
                 arg2->frame = g_briefingPlanetFrameCursor.index;
             }
-            GafFrame* frame = (GafFrame*)GetGafFrame(arg2->field_be, arg2->frame);
+            GafFrame* frame = (GafFrame*)GetGafFrame(arg2->hotspotGaf, arg2->frame);
             if (frame == 0) {
                 return;
             }
@@ -1495,8 +1495,8 @@ void OpenMissionBriefing(void)
             g->frame = 0;
             void* gaf = FindGafEntry(gadgets->gaf, pans[i]);
             if (gaf != 0) {
-                g->field_be = gaf;
-                g->field_b6 = (void*)UpdateSolarSystem;
+                g->hotspotGaf = gaf;
+                g->hotspotCallback = (void*)UpdateSolarSystem;
             }
         }
         idx = FindGadgetIndex(gadgets, "PLANET", 6);
@@ -1506,8 +1506,8 @@ void OpenMissionBriefing(void)
                 InitGafSequence(&g_briefingPlanetFrameCursor, gaf, 0);
                 Gadget* g = &gadgets[idx];
                 g->frame = 0;
-                g->field_be = gaf;
-                g->field_b6 = (void*)UpdatePlanet;
+                g->hotspotGaf = gaf;
+                g->hotspotCallback = (void*)UpdatePlanet;
             }
         }
     }

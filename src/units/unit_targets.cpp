@@ -129,7 +129,7 @@ public:
     unsigned short killCount;           // +0xb8, armour: divided by 5, capped at 5
     char unknown_ba[0xf0 - 0xba];
     void* attacker;                    // +0xf0
-    char unknown_f4;
+    char lastAttackerSlot;
     unsigned char lastDamageType;      // +0xf5
     char unknown_f6[0xff - 0xf6];
     unsigned char playerIndex;         // +0xff
@@ -137,7 +137,7 @@ public:
     short health;                      // +0x108
     char unknown_10a[0x10e - 0x10a];
     unsigned char activateFlags;       // +0x10e
-    char unknown_10f;
+    char cobStateFlags;
     union {
         unsigned int flags;            // +0x110
         struct {
@@ -532,7 +532,7 @@ void __stdcall ApplyUnitDamage(Event_00489ce0* ev)
 
     if (target) {
         unsigned char c = target->playerIndex;
-        unit->unknown_f4 = c;
+        unit->lastAttackerSlot = c;
         unit->attacker = target;
         if (target->playerIndex == g_game->localPlayer || unit->playerIndex == g_game->localPlayer)
             AddCdActivitySample(1);

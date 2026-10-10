@@ -638,7 +638,9 @@ class HapiBank;
 class Class_004b4630;
 class Class_004b46c0;
 class Class_004b4750;
-class Class_004b4800;
+// Unused here: its symbol id stands in for the placeholder class forward
+// declaration that HapiBank::GetIntegerItem replaced (docs/c2-regalloc.md).
+void RegisterEmptyAtexitA(void);
 class Class_004b4850;
 class Class_004b48f0;
 class Class_004b49d0;
@@ -2168,6 +2170,7 @@ public:
     int OpenAccount(char*);
     int OpenNamedBox(char*);
     int ReadBox(void*, int);
+    int GetIntegerItem(char*, int);
 };
 
 class Class_004b4c10 {  // 0x4 bytes, 26 views
@@ -4446,12 +4449,6 @@ struct Mouse_0041ce90 {  // 0x18 bytes, 1 view
     int x;  // +0x0
     int y;  // +0x4
     int unknown_8[4];  // +0x8
-};
-
-class Class_004b4800 {  // 0x4 bytes, 28 views
-public:
-    File_004b4800* file;  // +0x0
-    int GetIntegerItem(char*, int);
 };
 
 class Class_004b4630 {  // 0x4 bytes, 25 views

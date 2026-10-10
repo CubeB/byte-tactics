@@ -107,6 +107,12 @@ class EscortTimer;
 class SquadScoutTimer;
 class SpatialTimer;
 
+// Unused here: the symbol ids these declarations take keep the allocation
+// (docs/c2-regalloc.md), standing in for the placeholder class ta_types.h
+// no longer declares.
+void RegisterEmptyAtexitB(void);
+bool __cdecl ReadGdperf(unsigned long, void*);
+
 
 // The command kind, one byte wide, but not a POD type.
 #include "mission_type.h"

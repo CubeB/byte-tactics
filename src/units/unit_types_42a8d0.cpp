@@ -102,10 +102,6 @@ public:
     void CloseBank();
     int OpenBank(char* path, char* type, int flag);
     int OpenAccount(char* name);
-};
-
-class Class_004b4800 {
-public:
     int GetIntegerItem(char* name, int def);
 };
 
@@ -118,8 +114,8 @@ public:
 };
 
 // Unused here: the symbol ids these declarations take keep the allocation,
-// standing in for the HapiBank views merged into the class above
-// (docs/c2-regalloc.md).
+// standing in for the HapiBank views merged into the class above and for
+// the placeholder class removed beside it (docs/c2-regalloc.md).
 void SetMissionStatus(int, int, int);
 void StartFeatureBurning(int, int, int);
 void KillFeature(int, int, int);
@@ -134,6 +130,11 @@ void RegisterVtolOrders(void);
 void StepAllGafSequences(void);
 void ResetNetStats(void);
 void ResetCameraState(void);
+void CountPacket(int, int, int);
+void SetCameraPosition(int, int, int);
+void StartScreenShake(int, int, int);
+void RegisterEmptyAtexitB(void);
+bool __cdecl ReadGdperf(unsigned long, void*);
 
 #pragma pack(push, 1)
 // One unit type, 0x249 bytes.
@@ -288,7 +289,7 @@ int LoadUnitInfo()
                 if (ovr.OpenAccount("Compatability")) {
                     char num[16];
                     sprintf(num, "%u", u->checksum);
-                    u->checksum = ((Class_004b4800*)&ovr)->GetIntegerItem(num, u->checksum);
+                    u->checksum = ovr.GetIntegerItem(num, u->checksum);
                 }
             }
             TdfFile parser;

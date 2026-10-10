@@ -4046,7 +4046,7 @@ void __stdcall HandleBattleRoomClick(Gui* gadget)
     } else {
         // MAP and MAPNAME through a local, not `MAP || MAPNAME` in the
         // else-if: with the `||` the MAP body joins the region where C2 keeps
-        // the constant 1 in ebp, and SetKeyboardInput gets `push ebp` (99.2%).
+        // the constant 1 in ebp, and SetKeyboardInput gets `push ebp`.
         int hit = IsCurrentGadgetNamed(gadget, "MAP");
         if (!hit)
             hit = IsCurrentGadgetNamed(gadget, "MAPNAME");

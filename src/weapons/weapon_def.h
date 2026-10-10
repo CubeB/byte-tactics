@@ -17,7 +17,11 @@ union Flags_0049d580 {
     struct {
         unsigned int f0 : 1;          // bit 0
         unsigned int f1 : 1;          // bit 1
-        unsigned int f2_29 : 28;
+        unsigned int f2_9 : 8;
+        unsigned int whiteSmoke : 1;  // bit 10, 499eb0's white smoke
+        unsigned int f11_21 : 11;
+        unsigned int keepsProjectile : 1;  // bit 22, 499eb0's keep-alive
+        unsigned int f23_29 : 7;
         unsigned int f30 : 1;         // bit 30, detonatesWeapons
         unsigned int f31 : 1;
     } b;
@@ -65,14 +69,16 @@ struct WeaponDef {
     int speed;                        // +0x68, 49b720's maxSpeed
     char unknown_6c[0x70 - 0x6c];
     int acceleration;                 // +0x70, 49b720's accel
-    char unknown_74[0x7c - 0x74];
+    char unknown_74[0x78 - 0x74];
+    void* explosionSeq;               // +0x78, the ground explosion sequence
     void* splash;                     // +0x7c, 49b720's water explosion sequence
     char unknown_80[0xc8 - 0x80];
     union {
         float pitch;                  // +0xc8
         int field_c8;                 // the launch-angle solvers read the float's bits
     };
-    char unknown_cc[0xd4 - 0xcc];
+    int shakeMagnitude;               // +0xcc, the screen shake of the blast
+    int shakeDuration;                // +0xd0
     unsigned short damage;            // +0xd4, the default damage
     unsigned short areaOfEffect;      // +0xd6, the splash radius
     float edgeDamage;                 // +0xd8, the falloff at the edge
@@ -86,7 +92,8 @@ struct WeaponDef {
     unsigned short duration;          // +0xf0, 49b720's f0
     unsigned short lifeRand;          // +0xf2
     unsigned short sound;             // +0xf4
-    char unknown_f6[0xfa - 0xf6];
+    unsigned short soundHit;          // +0xf6, played where the shot lands
+    unsigned short soundWater;        // +0xf8, played where it lands in water
     unsigned short smokeRate;         // +0xfa
     unsigned short flightTime;        // +0xfc, 49b720's fc
     unsigned short deathSound;        // +0xfe, 49b090's sound

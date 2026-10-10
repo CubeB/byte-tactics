@@ -683,33 +683,8 @@ int __stdcall ApplyWeaponDamage(Weapon_00499cd0* weapon, Unit* target,
 
 #pragma pack(push, 1)
 
-struct ProjectileType_00499eb0 {
-    char unknown_0[0x78];
-    void* explosionSeq;                // +0x78
-    void* splash;                      // +0x7c, the water explosion
-    char unknown_80[0xcc - 0x80];
-    int shakeMagnitude;                // +0xcc
-    int shakeDuration;                 // +0xd0
-    char unknown_d4[0xd6 - 0xd4];
-    unsigned short areaOfEffect;       // +0xd6
-    char unknown_d8[0xf6 - 0xd8];
-    unsigned short sound1;
-    unsigned short sound2;
-    char unknown_fa[0xfe - 0xfa];
-    unsigned short value;              // +0xfe
-    char unknown_100[0x111 - 0x100];
-    // Bitfield struct: the bit tests need this form.
-    struct {
-        unsigned int bits0_9 : 10;
-        unsigned int bit10 : 1;
-        unsigned int bits11_21 : 11;
-        unsigned int bit22 : 1;
-        unsigned int bits23_31 : 9;
-    } flags;
-};
-
 struct Projectile_00499eb0 {
-    ProjectileType_00499eb0* type;
+    WeaponDef* type;
     Vec3_0049b720 position;
     char unknown_10[0x52 - 0x10];
     Unit* unit;
@@ -727,7 +702,7 @@ void __stdcall UntrackProjectile(Projectile_00499eb0* projectile)
 {
     if (projectile == g_game->selected) {
         g_game->cameraSnapPos = g_game->selectedProjectile->position;
-        g_game->cameraSnapTicks = projectile->type->value;
+        g_game->cameraSnapTicks = projectile->type->deathSound;
         g_game->selected = 0;
     }
     projectile->flags |= 2;
@@ -745,15 +720,15 @@ void __stdcall ApplyAreaDamage(Projectile_00499eb0* projectile, Vec3_0049b720* p
 void __stdcall DetonateProjectile(Projectile_00499eb0* projectile, Unit* unit)
 {
     int hostile = 0;
-    ProjectileType_00499eb0* type = projectile->type;
+    WeaponDef* type = projectile->type;
     Vec3_0049b720* position = &projectile->position;
     unsigned char* value = (unsigned char*)GetMapCellAtPosition(position);
     if (value != 0)
         hostile = value[5] < g_game->seaLevel;
-    if (!type->flags.bit22) {
+    if (!type->flags.b.keepsProjectile) {
         if (projectile == g_game->selected) {
             g_game->cameraSnapPos = g_game->selectedProjectile->position;
-            g_game->cameraSnapTicks = projectile->type->value;
+            g_game->cameraSnapTicks = projectile->type->deathSound;
             g_game->selected = 0;
         }
         projectile->flags = projectile->flags | 2;
@@ -761,7 +736,7 @@ void __stdcall DetonateProjectile(Projectile_00499eb0* projectile, Unit* unit)
     if (g_game->net->noSeaLevelTrigger && hostile && !unit) {
         if (projectile == g_game->selected) {
             g_game->cameraSnapPos = g_game->selectedProjectile->position;
-            g_game->cameraSnapTicks = projectile->type->value;
+            g_game->cameraSnapTicks = projectile->type->deathSound;
             g_game->selected = 0;
         }
         projectile->flags = projectile->flags | 2;
@@ -769,11 +744,11 @@ void __stdcall DetonateProjectile(Projectile_00499eb0* projectile, Unit* unit)
     }
     AccumulateScreenShake(type->shakeMagnitude, type->shakeMagnitude, type->shakeDuration);
     if (hostile && !unit) {
-        PlaySoundAt(type->sound2, position, 0);
+        PlaySoundAt(type->soundWater, position, 0);
         AddExplosionEffect(position, type->splash, 0, hostile);
     } else {
-        PlaySoundAt(type->sound1, position, 0);
-        if (type->flags.bit10)
+        PlaySoundAt(type->soundHit, position, 0);
+        if (type->flags.b.whiteSmoke)
             EmitWhiteSmoke(position, 9);
         else
             AddExplosionEffect(position, type->explosionSeq, 0, hostile);

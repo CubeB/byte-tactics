@@ -1332,11 +1332,11 @@ void UnitSync::SetUnitLimit(Unit_0046e330* unit, int value)
 }
 
 struct SyncTaggedVector {
-    char field_0x0;
+    char allocator;
     char unknown_1[3];
-    int field_0x4;
-    int field_0x8;
-    int field_0xc;
+    int _First;
+    int _Last;
+    int _End;
 
     SyncTaggedVector* InitTaggedVector(char* param_1);
 };
@@ -1344,10 +1344,10 @@ struct SyncTaggedVector {
 // FUNCTION: 0x46e5c0
 SyncTaggedVector* SyncTaggedVector::InitTaggedVector(char* param_1)
 {
-    field_0x0 = *param_1;
-    field_0x4 = 0;
-    field_0x8 = 0;
-    field_0xc = 0;
+    allocator = *param_1;
+    _First = 0;
+    _Last = 0;
+    _End = 0;
     return this;
 }
 

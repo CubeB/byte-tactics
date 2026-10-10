@@ -63,17 +63,17 @@ struct UnitSyncEntry {
 struct Alloc_0046e5c0 {}; // the empty std::allocator temporary
 
 struct SyncTaggedVector {
-    char field_0x0;
+    char allocator;
     char unknown_1[3];
-    int field_0x4;
-    int field_0x8;
-    int field_0xc;
+    int _First;
+    int _Last;
+    int _End;
 
     SyncTaggedVector* InitTaggedVector(char* param_1) {
-        field_0x0 = *param_1;
-        field_0x4 = 0;
-        field_0x8 = 0;
-        field_0xc = 0;
+        allocator = *param_1;
+        _First = 0;
+        _Last = 0;
+        _End = 0;
         return this;
     }
 };

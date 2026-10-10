@@ -9,6 +9,8 @@
 // The lean <windows.h> and the two symbol-only headers below are what the
 // symbol-id windows of the drawing functions (0x417bb0 to 0x418310) need
 // (docs/c2-regalloc.md); the full <windows.h> moves them out.
+// The same window of 0x4181d0 keeps the (CommandArgs*) casts and the void*
+// parameters of the commands above it: removing any of them moves it.
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <stdio.h>
@@ -1687,7 +1689,7 @@ void __stdcall CmdPrintWeights(CommandArgs* args)
             Player* p = &g_game->players[i];
             if (p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3)
                 && p->index != 10) {
-                FILE* f = fopen(((CommandArgs*)args)->GetArg(2, DAT_005119b8), "w+b");
+                FILE* f = fopen(args->GetArg(2, DAT_005119b8), "w+b");
                 if (f != 0) {
                     DumpPlayerAI(args->GetIntArg(1, 0), f);
                     fclose(f);

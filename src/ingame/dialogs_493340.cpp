@@ -40,12 +40,7 @@ struct Game;
 
 #pragma pack(push, 1)
 
-struct Rect {
-    int left;
-    int top;
-    int right;
-    int bottom;
-};
+#include "../graphics/rect.h"
 
 #include "../util/point.h"
 

@@ -19,19 +19,7 @@ struct Unit;
 
 #pragma pack(push, 1)
 
-class SquadManager {                   // 0x3d bytes
-public:
-    void* player;                      // +0x0
-    unsigned char index;               // +0x4
-    int countdown;                     // +0x5
-    int field_9;                       // +0x9
-    int field_d;                       // +0xd
-    void* timers[10];                  // +0x11
-    void* cursor;                      // +0x39
-    SquadManager(void* p);
-    void DeleteTimers();
-    void TickIfActive();
-};
+#include "../ai/squad_manager.h"
 
 #include "../util/vec3.h"
 

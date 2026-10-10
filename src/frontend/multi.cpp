@@ -47,7 +47,7 @@ struct Gadget {                        // 0x15b bytes
         unsigned char type;
         unsigned char state;
     };
-    char unknown_1;                    // +0x01
+    char team;                         // +0x01
     char name[0x11];                   // +0x02
     short x;                           // +0x13
     short y;                           // +0x15
@@ -149,7 +149,7 @@ struct Gadget {                        // 0x15b bytes
         };
     };
     short knobPos;                     // +0x140
-    short unknown_142;                 // +0x142
+    short knobSize;                    // +0x142
     void (__stdcall* sliderCallback)(Gui* menu, int index); // +0x144
     char unknown_148[2];               // +0x148
     void* sliderUser;                  // +0x14a
@@ -315,7 +315,7 @@ typedef Player_00444930 Player_00446f50;
 // The layer LoadGuiLayer returns: the entry table at +4, the click handler at
 // +8 and the dialog's block or owner at +0xc.
 struct Layer {
-    Layer* unknown_0;                  // +0x00
+    Layer* next;                       // +0x00
     Gadget* entries;                   // +0x04
     void* handler;                     // +0x08
     union {                            // +0x0c
@@ -559,7 +559,7 @@ struct ModeList {
 // The first 0x13e bytes of an entry, copied out by 0x445300 and 0x4455b0.
 struct Head_00444930 {
     unsigned char state;                   // +0x00
-    char unknown_1;                        // +0x01
+    char team;                             // +0x01
     char name[0x13];                       // +0x02
     short y;                               // +0x15
     char unknown_17[2];                    // +0x17
@@ -657,9 +657,9 @@ struct Record_0044c0d0 {
     unsigned char flag9;               // +0x09
     unsigned char flaga;               // +0x0a
     unsigned char flagb;               // +0x0b
-    int unknown_c;                     // +0x0c
+    int reserved;                      // +0x0c
     int d;                             // +0x10
-    int unknown_14;                    // +0x14
+    int scratch;                       // +0x14
 };
 
 class OrderFx
@@ -2452,7 +2452,7 @@ void __cdecl BuildPlayerSlotGadgets(void)
             *dst = *rec;
             dst->name[strlen(dst->name) - 1] = (char)('0' + p);
             dst->y += p * 20;
-            dst->unknown_1 = 0;
+            dst->team = 0;
             dst->active = 1;
             if (dst->state != 5) {
                 switch (t) {
@@ -4339,7 +4339,7 @@ void __stdcall HandleLoadListClick(Gui* menu)
                 SkipTextLines(g_saveListFileNames, games->selected));
         LoadUnitRestrictListFile(g_game->save_38c6b);
         Layer_00446f50* inner = menu->layer;
-        menu->layer = inner->unknown_0;
+        menu->layer = inner->next;
         UpdateUnitSliders(menu, 0);
         menu->layer = inner;
         if (g_saveListFileNames)

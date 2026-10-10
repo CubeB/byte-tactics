@@ -13,8 +13,8 @@ struct Data_0046dad0 {
 
 #pragma pack(push, 1)
 struct PlayerInfo_0046dad0 {
-    int field_0; // +0x0
-    int field_4; // +0x4
+    int active;  // +0x0
+    int id;      // +0x4
     char unknown_8[0x27 - 0x8];
     Data_0046dad0* data; // +0x27
     char unknown_2b[0x73 - 0x2b];
@@ -58,7 +58,7 @@ struct UnitSyncEntry {
 
 // The vector members are modelled by the classes data/symbols.csv names
 // for their out-of-line pieces: 0x46e5c0 is the vector constructor body
-// (inlined for list_a, a call for list_b), 0x46e5e0 and 0x46e610 are the
+// (inlined for ids, a call for pairs), 0x46e5e0 and 0x46e610 are the
 // destructors of vectors of 4 and 14 byte elements.
 struct Alloc_0046e5c0 {}; // the empty std::allocator temporary
 
@@ -105,8 +105,8 @@ struct PacketSequencer { // 0x2c bytes, the entry's +0x30 member
     int lastSent;
     int cur;
     int max;
-    SyncChecksumVector list_c; // +0xc
-    SyncChecksumVector list_d; // +0x1c
+    SyncChecksumVector sentQueue; // +0xc
+    SyncChecksumVector heldQueue; // +0x1c
 
     PacketSequencer();
     void SendUnsequenced(unsigned int param_1, void* param_2);
@@ -118,8 +118,8 @@ struct PacketSequencer { // 0x2c bytes, the entry's +0x30 member
 
 struct SyncPlayerRecord {  // 0x5c bytes, one vector element
     int id;                // +0x0
-    SyncTempTaggedVector list_a; // +0x4
-    Wrap_0046e5e0 list_b;  // +0x14
+    SyncTempTaggedVector ids;    // +0x4
+    Wrap_0046e5e0 pairs;   // +0x14
     int expected;          // +0x24
     int sent;              // +0x28
     int ackd;              // +0x2c
@@ -171,8 +171,8 @@ void UnitSync::ProcessSync() {
                 int live = 0;
                 for (int i = 0; i < 10; i++) {
                     PlayerInfo_0046dad0* p = &g_game->players[i];
-                    if (p->field_0 != 0 && p->type == 3 && p->data->kind == 1 &&
-                        it->id == p->field_4) {
+                    if (p->active != 0 && p->type == 3 && p->data->kind == 1 &&
+                        it->id == p->id) {
                         live = 1;
                         break;
                     }
@@ -188,18 +188,18 @@ void UnitSync::ProcessSync() {
 
         for (int i = 0; i < 10; i++) {
             PlayerInfo_0046dad0* p = &g_game->players[i];
-            if (p->field_0 != 0 && p->type == 3 && p->data->kind == 1) {
+            if (p->active != 0 && p->type == 3 && p->data->kind == 1) {
                 int found = 0;
                 for (std::vector<SyncPlayerRecord>::iterator j = players.begin(); j != players.end();
                      ++j) {
-                    if (j->id == p->field_4) {
+                    if (j->id == p->id) {
                         found = 1;
                         break;
                     }
                 }
                 if (found == 0) {
                     SyncPlayerRecord entry;
-                    entry.id = p->field_4;
+                    entry.id = p->id;
                     // expected/28/2c are zeroed by assignments after id.
                     entry.expected = 0;
                     entry.sent = 0;
@@ -227,7 +227,7 @@ void UnitSync::ProcessSync() {
             typedef void (Tree::iterator::*Increment)();
             Increment increment = &Tree::iterator::_Inc;
             // Exactly ten Pass calls spend the inline budget: 9 or fewer inlines
-            // vector::_Destroy, 11 or more also un-inlines the list_b wrapper.
+            // vector::_Destroy, 11 or more also un-inlines the pairs wrapper.
             for (std::map<unsigned int, UnitSyncEntry>::iterator k = map.begin(); k != map.end();
                  (k.*increment)()) {
                 CheckUnitAvailable(Pass(Pass(Pass(Pass(Pass(Pass(Pass(Pass(Pass(Pass(k->second.x)))))))))), 0);

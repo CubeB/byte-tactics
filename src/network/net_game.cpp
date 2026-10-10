@@ -231,7 +231,7 @@ struct Game {
         };
     };
     char unknown_4dd[0x4e5 - 0x4dd];
-    Net_4517b0* field_4e5;             // +0x4e5
+    Net_4517b0* dplConnection;         // +0x4e5
     char unknown_4e9[0x4f1 - 0x4e9];
     int netMode;                       // +0x4f1
     char unknown_4f5[0x519 - 0x4f5];
@@ -275,7 +275,6 @@ struct Game {
     unsigned short head;               // +0x2a40
     union {
         unsigned char localPlayer;     // +0x2a42
-        unsigned char field_2a42;
         unsigned char local;
     };
     char playerIndex;
@@ -291,10 +290,7 @@ struct Game {
     char unknown_2a46[0x2bc1 - 0x2a46];
     char gameName[0x10];               // +0x2bc1
     char unknown_2bd1;
-    union {
-        char nickName[0x11];           // +0x2bd2
-        char field_2bd2[0x11];
-    };
+    char nickName[0x11];               // +0x2bd2
     union {
         char passWord[0x11];           // +0x2be3
         struct {
@@ -1218,10 +1214,7 @@ struct Class_00451fd0 {
     unsigned int lobbySyncTick;        // +0x870
     char unknown_874[0x1745 - 0x874];
     int recvPacketSize;                // +0x1745
-    union {
-        int* field_1749;               // +0x1749
-        int* buffer;                   // +0x1749
-    };
+    int* buffer;                       // +0x1749
 };
 
 struct Entry_00453640 {                // gadget returned by FindGadgetChecked
@@ -1517,7 +1510,7 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
     if (player == g_game->localPlayer) {
         Player* p = &g_game->players[player];
 
-        Net_4517b0* net = g_game->field_4e5;
+        Net_4517b0* net = g_game->dplConnection;
         if (net != 0) {
             int v = IsOnlineConfigLoaded();
             char* s = &g_onlineLobbyPlayerName;
@@ -1537,32 +1530,32 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
             }
 
             if (*s != 0) {
-                g_game->field_2bd2[0] = 0;
-                strncat(g_game->field_2bd2, s, 0x10);
+                g_game->nickName[0] = 0;
+                strncat(g_game->nickName, s, 0x10);
             }
 
             if (v != 0 && g_onlineLobbyPassword != 0) {
                 lstrcpynA(p->info->password, &g_onlineLobbyPassword, 0xb);
                 // hasPassword must be a 16-bit 1-bit field, not a byte field.
                 p->info->hasPassword = 1;
-                // Cast on a reloaded field_4e5, not a cached local.
-                if ((*(unsigned char*)((char*)g_game->field_4e5 + 4) & 2) != 0)
+                // Cast on a reloaded dplConnection, not a cached local.
+                if ((*(unsigned char*)((char*)g_game->dplConnection + 4) & 2) != 0)
                     lstrcpynA(g_game->password, &g_onlineLobbyPassword, 0xb);
             }
 
             ResetPlayerSlots();
         }
 
-        if (strlen(g_game->field_2bd2) == 0) {
+        if (strlen(g_game->nickName) == 0) {
             size = 0x100;
             GetUserNameA(name, &size);
         } else {
-            strcpy(name, g_game->field_2bd2);
+            strcpy(name, g_game->nickName);
         }
 
         // ready must be a 1-bit field.
-        if (g_game->field_4e5 != 0) {
-            p->info->host = g_game->field_4e5->flags >> 1;
+        if (g_game->dplConnection != 0) {
+            p->info->host = g_game->dplConnection->flags >> 1;
         } else {
             p->info->host = 0;
         }
@@ -1574,7 +1567,7 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
         g_game->numPlayers = 0;
 
         int result;
-        if (g_game->field_4e5 != 0) {
+        if (g_game->dplConnection != 0) {
             result = JoinLobbyGame(p);
             if (result == 0) {
                 if (GetDisplay()->flag) {
@@ -1891,8 +1884,8 @@ int __stdcall InitPacketTables(Class_00451fd0* param_1)
     g_packetModes[42] = 7;
     param_1->lobbySyncTick = GetTicks();
     param_1->recvPacketSize = 0x2000;
-    param_1->field_1749 = (int*)GameAllocIgnoreTag(s_PACKET_DATA_00506524, 0x2000);
-    return 0 != param_1->field_1749;
+    param_1->buffer = (int*)GameAllocIgnoreTag(s_PACKET_DATA_00506524, 0x2000);
+    return 0 != param_1->buffer;
 }
 
 // FUNCTION: 0x452370
@@ -2085,7 +2078,7 @@ int __stdcall BroadcastPlayerLeft(int id)
         || (g_game->flags_38d75 & 2)) {
         RemovePlayer(id);
     }
-    return BroadcastPacket(g_game->players[g_game->field_2a42].id, msg, 5);
+    return BroadcastPacket(g_game->players[g_game->localPlayer].id, msg, 5);
 }
 
 // FUNCTION: 0x452b70

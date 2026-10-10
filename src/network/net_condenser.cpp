@@ -30,8 +30,8 @@ class NetCondenser {
 public:
     char* buffer;                    // +0x0
     int unknown_4;                   // +0x4
-    int unknown_8;                   // +0x8
-    int unknown_c;                   // +0xc
+    int unpackedCached;              // +0x8
+    int unpackedSize;                // +0xc
     char* sendBuffer;                // +0x10
     char* buffer_14;                 // +0x14
     char* packet;                    // +0x18
@@ -65,8 +65,8 @@ NetCondenser::NetCondenser()
 {
     buffer = new char[0x6d60];
     unknown_4 = 0;
-    unknown_8 = 0;
-    unknown_c = 0;
+    unpackedCached = 0;
+    unpackedSize = 0;
     sendBuffer = new char[0xaf0];
     packet = new char[0xaf0];
     buffer_14 = new char[0xaf0];
@@ -115,17 +115,17 @@ int NetCondenser::ReceivePacket(void* net, char* data, int* size)
     unsigned int n;
     int clientSize = *size;
 
-    if (unknown_8 != 0) {
-        if (unknown_c > clientSize) {
+    if (unpackedCached != 0) {
+        if (unpackedSize > clientSize) {
             sprintf(msg, "netCondenser[1]: r_unpackedSize = %ld, client buffersize = %ld\n",
-                    unknown_c, clientSize);
-            unknown_8 = 1;
-            *size = unknown_c;
+                    unpackedSize, clientSize);
+            unpackedCached = 1;
+            *size = unpackedSize;
             return 0x8877001e;
         }
-        memcpy(data, buffer, unknown_c);
-        *size = unknown_c;
-        unknown_8 = 0;
+        memcpy(data, buffer, unpackedSize);
+        *size = unpackedSize;
+        unpackedCached = 0;
         return 0;
     }
 
@@ -147,21 +147,21 @@ int NetCondenser::ReceivePacket(void* net, char* data, int* size)
                 return 0x887700be;
             if (data[0] == 4) {
                 LzssEnablePreset();
-                unknown_c = LzssExpand(buffer, data + 3);
+                unpackedSize = LzssExpand(buffer, data + 3);
                 LzssDisablePreset();
             } else {
                 memcpy(buffer, data + 3, n);
-                unknown_c = n;
+                unpackedSize = n;
             }
-            if (unknown_c > clientSize) {
+            if (unpackedSize > clientSize) {
                 sprintf(msg, "netCondenser[2]: r_unpackedSize = %ld, client buffersize = %ld\n",
-                        unknown_c, clientSize);
-                unknown_8 = 1;
-                *size = unknown_c;
+                        unpackedSize, clientSize);
+                unpackedCached = 1;
+                *size = unpackedSize;
                 return 0x8877001e;
             }
-            memcpy(data, buffer, unknown_c);
-            *size = unknown_c;
+            memcpy(data, buffer, unpackedSize);
+            *size = unpackedSize;
             return 0;
         }
         if (result != 0x887700be) {

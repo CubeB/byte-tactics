@@ -123,8 +123,8 @@ public:
     int seqSent;                          // +0x2c
     int seqCur;                           // +0x30
     int seqMax;                           // +0x34
-    std::vector<Elem_0046faf0> list_a;    // +0x38
-    Vec_0046d1a0 list_b;                  // +0x48
+    std::vector<Elem_0046faf0> seqSentQueue; // +0x38
+    Vec_0046d1a0 seqHeldQueue;            // +0x48
     int direct;                           // +0x58
     int pendingPlayerCount;               // +0x5c
     int checksumProgress;                 // +0x60

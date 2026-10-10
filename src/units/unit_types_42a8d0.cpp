@@ -71,18 +71,18 @@ public:
 class TdfFile {
 public:
     int field_0;
-    void* current;                     // +0x4, the current section
+    TdfRecord* current;                // +0x4, the current section
     int field_8;                       // +0x8
     TdfFile();
     ~TdfFile();
 
     int GetString(char* dst, char* key, int size, char* def)
     {
-        return ((TdfRecord*)current)->GetFieldString(dst, key, size, def);
+        return current->GetFieldString(dst, key, size, def);
     }
-    int GetInt(char* key, int def) { return ((TdfRecord*)current)->GetFieldInt(key, def); }
-    double GetDouble(char* key, double def) { return ((TdfRecord*)current)->GetFieldDouble(key, def); }
-    char* GetValue(char* key) { return (char*)((TdfRecord*)current)->FindFieldValue(key); }
+    int GetInt(char* key, int def) { return current->GetFieldInt(key, def); }
+    double GetDouble(char* key, double def) { return current->GetFieldDouble(key, def); }
+    char* GetValue(char* key) { return (char*)current->FindFieldValue(key); }
     int LoadFile(char* path);
     void LoadBuffer(char* data, int size, int flag, char* name);
     int SelectRecord(char* name);

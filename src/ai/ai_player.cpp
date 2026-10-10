@@ -338,8 +338,8 @@ inline int Unit::Ready() const { return (flags & 0x10000000) && !(flags & 0x4000
 struct Economy {                       // a unit's resources
     char unknown_0[0x8c];
     float energy;                      // +0x8c
-    float field_90;                    // +0x90
-    float field_94;                    // +0x94
+    float energyIncome;                // +0x90
+    float energyUsage;                 // +0x94
     float cost;                        // +0x98
 };
 
@@ -433,10 +433,10 @@ public:
 // slot 0 stay in ai_player_407d40.cpp and ai_player_407e70.cpp.
 class SpatialTimer : public SquadTimer {
 public:
-    Vec3 a;                            // +0x14
-    Vec3 b;                            // +0x20
-    Vec3 c;                            // +0x2c
-    int field_38;                      // +0x38
+    Vec3 best;                         // +0x14, the best position found so far
+    Vec3 probe;                        // +0x20, the position being rated
+    Vec3 step;                         // +0x2c, added to probe each timer tick
+    int bestRating;                    // +0x38, the unit rating at best
 
     SpatialTimer(SquadManager* p, void* q);
     virtual void OnTimer();                         // slot 0, 0x407e90

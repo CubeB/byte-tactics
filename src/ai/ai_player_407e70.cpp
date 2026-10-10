@@ -3,12 +3,12 @@
 // Slot 0 of SpatialTimer (vtable 0x4fc9a0), derived from SquadTimer
 // (the family is listed in ai_player.cpp, whose declarations this copies).
 // Sets next to 30..179 ticks from now. When the group has units, moves the
-// probe point b by the step c (one time in ten it restarts from a with a new
+// probe point by the step (one time in ten it restarts from best with a new
 // random direction of length 0x140 map units), and when the owner can see or
-// has explored b, keeps b as the new target a if a random roll favours its
-// SumUnitRatingsInRange score. Then orders every unit whose def has flag4 set, and
-// that is active or can reach a (WeaponCanReachPos), to move to a with the order
-// GetOrderType picks.
+// has explored the probe point, keeps it as the new best if a random roll
+// favours its SumUnitRatingsInRange score. Then orders every unit whose def has
+// flag4 set, and that is active or can reach best (WeaponCanReachPos), to move to
+// best with the order GetOrderType picks.
 //
 // The explored-map test is the inlined player method 0x475470 describes: a
 // {data, width, height} ByteMap at +0x7c.
@@ -131,10 +131,10 @@ public:
 // Vtable 0x4fc9a0, constructor 0x407d40, ??_G 0x407e70.
 class SpatialTimer : public SquadTimer {
 public:
-    Vec3_00407d40 a;                    // +0x14
-    Vec3_00407d40 b;                    // +0x20
-    Vec3_00407d40 c;                    // +0x2c
-    int field_38;                       // +0x38
+    Vec3_00407d40 best;                 // +0x14, the best position found so far
+    Vec3_00407d40 probe;                // +0x20, the position being rated
+    Vec3_00407d40 step;                 // +0x2c, added to probe each timer tick
+    int bestRating;                     // +0x38, the unit rating at best
 
     SpatialTimer(SquadManager* p, void* q);
     virtual void OnTimer();                         // slot 0, 0x407e90
@@ -168,12 +168,12 @@ SpatialTimer::SpatialTimer(SquadManager* p, void* q)
 {
     // Half of g_game's baseX and baseY, in 16.16 fixed point.
     int x = (int)(g_game->baseX / 2 * 65536.0);
-    a = Vec3_00407d40(x, 0, (int)(g_game->baseY / 2 * 65536.0));
+    best = Vec3_00407d40(x, 0, (int)(g_game->baseY / 2 * 65536.0));
     x = (int)(g_game->baseX / 2 * 65536.0);
-    b = Vec3_00407d40(x, 0, (int)(g_game->baseY / 2 * 65536.0));
+    probe = Vec3_00407d40(x, 0, (int)(g_game->baseY / 2 * 65536.0));
     x = (int)(g_game->baseX / 2 * 65536.0);
-    c = Vec3_00407d40(x, 0, (int)(g_game->baseY / 2 * 65536.0));
-    field_38 = 0;
+    step = Vec3_00407d40(x, 0, (int)(g_game->baseY / 2 * 65536.0));
+    bestRating = 0;
 }
 
 // FUNCTION: 0x407e90
@@ -187,28 +187,28 @@ void SpatialTimer::OnTimer()
     // Unused on purpose: it emits the operator delete call after the loop.
     std::vector<Unit*> unused;
     if (RandomInt(10) == 0) {
-        b = a;
+        probe = best;
         int angle = RandomInt(0x10000);
         // Offset() keeps the call order and the zero y.
-        c = Offset(angle, 0x1400000);
+        step = Offset(angle, 0x1400000);
     }
-    b += c;
-    if (IsVisible(((Group_00407e90*)group)->player, (Position_00408090*)&b)) {
-        int r = SumUnitRatingsInRange(player, &b, 0xa0);
-        // Operand order: the field_38 roll is called first.
-        if (RandomInt(r) > RandomInt(field_38)) {
-            field_38 = r;
-            a = b;
+    probe += step;
+    if (IsVisible(((Group_00407e90*)group)->player, (Position_00408090*)&probe)) {
+        int r = SumUnitRatingsInRange(player, &probe, 0xa0);
+        // Operand order: the bestRating roll is called first.
+        if (RandomInt(r) > RandomInt(bestRating)) {
+            bestRating = r;
+            best = probe;
         }
     }
     for (std::vector<Unit*>::iterator it = ((Group_00407e90*)group)->units.begin();
          it != ((Group_00407e90*)group)->units.end(); ++it) {
         Unit* u = *it;
         if (u->def->flag4) {
-            if (u->motion || WeaponCanReachPos(u, &u->pos, &a, 0)) {
-                MissionType kind = GetOrderType(3, u, 0, &a);
+            if (u->motion || WeaponCanReachPos(u, &u->pos, &best, 0)) {
+                MissionType kind = GetOrderType(3, u, 0, &best);
                 if (kind.index)
-                    AddOrder(kind, 0, u, 0, &a, 0, 0);
+                    AddOrder(kind, 0, u, 0, &best, 0, 0);
             }
         }
     }

@@ -400,7 +400,7 @@ struct Obj_004ada40 {
     unsigned char stages;              // +0x136
     short status;                      // +0x138
     signed char quickkey;              // +0x13a
-    char padding_0x13b;                // +0x13b
+    char frameBase;                    // +0x13b
     unsigned char grayedout;           // +0x13c
 };
 #pragma pack(pop)
@@ -461,10 +461,10 @@ struct Obj_004adc70 {
     char unknown_0[0xb6];
     char text[0x80];                   // +0xb6
     unsigned char stages;              // +0x136
-    char unknown_137;                  // +0x137
+    char stageIndex;                   // +0x137
     short status;                      // +0x138
     unsigned char quickkey;            // +0x13a
-    char unknown_13b;                  // +0x13b
+    char frameBase;                    // +0x13b
     unsigned short grayedout;          // +0x13c
 };
 
@@ -1169,7 +1169,7 @@ void __stdcall LoadGafIntoSlot(Object_004aedd0* obj, char* name, int index)
 }
 
 struct Object_004aeee0 {
-    int unknown_0;
+    int font;                          // +0x0
     void* gaf;                         // +0x4
     char unknown_8[0xab6 - 0x8];
     char dir[0x100];                   // +0xab6

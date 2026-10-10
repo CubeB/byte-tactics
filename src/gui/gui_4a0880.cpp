@@ -4,7 +4,7 @@
 #include "gadget.h"
 
 struct Data_004a0880 {
-    int unknown_0;
+    int next;                  // +0x0
     Gadget* entries;           // +0x4
 };
 

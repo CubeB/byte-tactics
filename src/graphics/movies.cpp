@@ -77,7 +77,7 @@ struct Surfaces_0047bdf0 {
     IDirectDraw* ddraw;              // +0x0
     IDirectDrawSurface* primary;     // +0x4
     IDirectDrawSurface* back;        // +0x8
-    IDirectDrawSurface* field_c;     // +0xc
+    IDirectDrawSurface* clipper;     // +0xc
     IDirectDrawPalette* palette;     // +0x10
 };
 
@@ -218,7 +218,7 @@ MoviePlayer::MoviePlayer(char* path, int a, int b, int c, int d, int e)
         wrapper->primary = 0;
         wrapper->back = 0;
         wrapper->palette = 0;
-        wrapper->field_c = 0;
+        wrapper->clipper = 0;
         if (!SetupDirectDraw())
             FatalError("Could not setup Direct Draw to play movie.");
         hasSurfaces = 1;

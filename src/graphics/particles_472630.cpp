@@ -344,8 +344,8 @@ struct Game {
     int scrollX;                       // +0x1431f
     int scrollY;                       // +0x14323
     char unknown_14327[0x147cf - 0x14327];
-    void* unknown_147cf;               // +0x147cf, the smoke animation
-    void* unknown_147d3;               // +0x147d3, the other smoke animation
+    void* smoke1;                      // +0x147cf, the "smoke 1" animation
+    void* smoke2;                      // +0x147d3, the "smoke 2" animation
     char unknown_147d7[0x37ecc - 0x147d7];
     int windVelX;                      // +0x37ecc
     char unknown_37ed0[4];
@@ -663,9 +663,9 @@ public:
 // data/symbols.csv gives that address.
 class NanoParticleVector {
 public:
-    int unknown_0;
-    int field_4;
-    int field_8;
+    int alloc;
+    int _First;
+    int _Last;
 
     int GetCount();
 };

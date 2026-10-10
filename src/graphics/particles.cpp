@@ -800,8 +800,8 @@ struct Game {
     int scrollX;                       // +0x1431f, the map scroll
     int scrollY;                       // +0x14323
     char unknown_14327[0x147cf - 0x14327];
-    void* unknown_147cf;               // +0x147cf, the wake animation
-    void* unknown_147d3;               // +0x147d3, the other smoke animation
+    void* smoke1;                      // +0x147cf, the "smoke 1" animation
+    void* smoke2;                      // +0x147d3, the "smoke 2" animation
     char unknown_147d7[0x147f3 - 0x147d7];
     union {
         void* flameStreamSeq;          // +0x147f3, the spark animation
@@ -813,8 +813,7 @@ struct Game {
     int windZ;                         // +0x37ed4
     char unknown_37ed8[0x38a47 - 0x37ed8];
     union {
-        int field_38a47;               // +0x38a47, the tick
-        int ticks;
+        int ticks;                     // +0x38a47, the tick
         int time;
         unsigned int now;
     };
@@ -999,9 +998,9 @@ public:
 // data/symbols.csv gives that address.
 class NanoParticleVector {
 public:
-    int unknown_0;
-    int field_4;
-    int field_8;
+    int alloc;
+    int _First;
+    int _Last;
 
     int GetCount();
 };
@@ -1574,7 +1573,7 @@ void TeleportParticles::Update()
 
     while (it != items.end()) {
         it->Step();
-        if (it->IsExpired(g_game->field_38a47)) {
+        if (it->IsExpired(g_game->ticks)) {
             items.erase(it);
         } else {
             ++it;
@@ -1590,7 +1589,7 @@ void TeleportParticles::Update()
 int TeleportParticles::IsEmitDue()
 {
     if (time <= deadline) {
-        unsigned int game_val = g_game->field_38a47;
+        unsigned int game_val = g_game->ticks;
         if ((unsigned int)time <= game_val) {
             return 1;
         }
@@ -1858,7 +1857,7 @@ void TeleportParticles::Init(Vec3_004736e0* a, Vec3_004736e0* b, int c)
 // FUNCTION: 0x4737c0
 void TeleportParticles::Emit()
 {
-    int grow = (deadline - g_game->field_38a47 + 10) / 10;
+    int grow = (deadline - g_game->ticks + 10) / 10;
 
     // The inlined vector::reserve itself is needed, not a hand-written block.
     if (grow > 0)
@@ -1870,7 +1869,7 @@ void TeleportParticles::Emit()
         e.pos1 = pos1;
         e.pos2 = pos2;
         e.dir = dir;
-        e.endTime = g_game->field_38a47 + sparkLifetime;
+        e.endTime = g_game->ticks + sparkLifetime;
         e.data = g_game->flameStreamSeq;
         e.frameCount = GetGafFrameCount(g_game->flameStreamSeq) - 1;
         e.frame = (int)(((__int64)rand() * e.frameCount) / 0x8000);
@@ -1879,7 +1878,7 @@ void TeleportParticles::Emit()
         v->insert(v->last, 1, e);
     }
 
-    time = g_game->field_38a47 + 10;
+    time = g_game->ticks + 10;
 }
 
 // Advances the position by its velocity and steps a 1..7 animation counter
@@ -2121,7 +2120,7 @@ void WakeParticles::Emit()
         e.pos.zp.hi += (int)((__int64)rand() * 7 / 0x8000) - 3;
         e.pos2 = pos_b;
         e.vel = dir;
-        e.data = g_game->unknown_147cf;
+        e.data = g_game->smoke1;
         e.min = 0x61;
         e.max = 0x67;
         if (ascending) {
@@ -2178,9 +2177,9 @@ void SmokeParticles::Init(Vec3_00474d50* p, int limit, int a, int b, int c,
     emitPeriod = a;
     altAnimation = alt;
     if (alt)
-        maxFrame = GetGafFrameCount(g_game->unknown_147d3) - 1;
+        maxFrame = GetGafFrameCount(g_game->smoke2) - 1;
     else
-        maxFrame = GetGafFrameCount(g_game->unknown_147cf) - 1;
+        maxFrame = GetGafFrameCount(g_game->smoke1) - 1;
     if (limit != 0)
         maxFrame = limit < maxFrame ? limit : maxFrame;
     if (b != 0)
@@ -2208,7 +2207,7 @@ void SmokeParticles::Emit()
         rec.pos = *p;
         rec.period = holdPeriod;
         rec.timer = holdPeriod;
-        rec.data = altAnimation ? g_game->unknown_147d3 : g_game->unknown_147cf;
+        rec.data = altAnimation ? g_game->smoke2 : g_game->smoke1;
         rec.limit = (int)(((__int64)rand() * (maxFrame - 2)) / 0x8000) + 2;
         rec.count = 0;
         ((Class_00476210*)v)->insert(v->end(), 1, rec);
@@ -2281,7 +2280,7 @@ void TimedSubParticles::Init(Vec3_00475150* p, int a, int b, int c)
     SetLifetime(c);
     pos = *p;
     emitPeriod = a;
-    maxFrame = GetGafFrameCount(g_game->unknown_147cf) - 1;
+    maxFrame = GetGafFrameCount(g_game->smoke1) - 1;
     if (b != 0)
         holdPeriod = b;
     else
@@ -2290,7 +2289,7 @@ void TimedSubParticles::Init(Vec3_00475150* p, int a, int b, int c)
 }
 
 // Slot 4: appends one particle holding the effect named by
-// g_game->unknown_147cf at this->pos, a random lifetime of 2 to maxFrame - 1
+// g_game->smoke1 at this->pos, a random lifetime of 2 to maxFrame - 1
 // periods, and a countdown of holdPeriod periods.
 // FUNCTION: 0x4751c0
 void TimedSubParticles::Emit()
@@ -2310,7 +2309,7 @@ void TimedSubParticles::Emit()
         rec.pos = *p;
         rec.period = holdPeriod;
         rec.timer = holdPeriod;
-        rec.data = g_game->unknown_147cf;
+        rec.data = g_game->smoke1;
         rec.limit = (int)((__int64)rand() * (maxFrame - 2) / 0x8000) + 2;
         rec.count = 0;
         ((Vec_00476490*)v)->insert(v->end(), 1, &rec);
@@ -2397,12 +2396,12 @@ void TimedSubParticles::Update()
 // FUNCTION: 0x475770 ?reserve@?$vector@UNanoParticle@@V?$allocator@UNanoParticle@@@std@@@std@@QAEXI@Z
 ReserveFn_004739b0 Access_00475770::fn = &Access_00475770::reserve;
 
-// The vector's own out-of-line size(): three words of a std::vector, the first
-// pointer at +0x4 and the second at +0x8.
+// The vector's own out-of-line size(): three words of a std::vector, the
+// allocator at +0x0, _First at +0x4 and _Last at +0x8.
 // FUNCTION: 0x475840
 int NanoParticleVector::GetCount()
 {
-    return field_4 == 0 ? 0 : (field_8 - field_4) / 48;
+    return _First == 0 ? 0 : (_Last - _First) / 48;
 }
 
 // std::vector<NanoParticle>::_Destroy(first, last) from MSVC 5's <vector>:

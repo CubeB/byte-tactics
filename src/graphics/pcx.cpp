@@ -438,9 +438,9 @@ struct Vec3_004cb2f0 {
 };
 
 struct Primitive_004cb2f0 {            // 0x20 bytes
-    int unknown_0;
+    int colorIndex;                    // +0x0
     int count;                         // +0x4
-    int ptr_8;                         // +0x8
+    int always0;                       // +0x8
     union {
         int ptr_c;                     // +0xc
         unsigned short* indices;       // +0xc
@@ -450,15 +450,15 @@ struct Primitive_004cb2f0 {            // 0x20 bytes
 };
 
 struct Object_004cb2f0 {
-    int unknown_0;
+    int version;                       // +0x0
     int vertexCount;                   // +0x4
     int count;                         // +0x8 primitives
     int index;                         // +0xc
     int x;                             // +0x10
     int y;                             // +0x14
     int z;                             // +0x18
-    int ptr_1c;                        // +0x1c
-    int ptr_20;                        // +0x20
+    int name;                          // +0x1c
+    int always0;                       // +0x20
     Vec3_004cb2f0* vertices;           // +0x24
     Primitive_004cb2f0* elems;         // +0x28
     Object_004cb2f0* sibling;          // +0x2c
@@ -531,14 +531,14 @@ void __stdcall SortPrimitives(Object_004cb2f0* node)
 // Relocates a tree of nodes loaded from a file: adds `delta` to each
 // (non-null) stored pointer of the node, its element array and, recursively,
 // its sibling and child nodes, then hands the node to SortPrimitives.
-// Any common header must be included: it makes ptr_20 compile to lea.
+// Any common header must be included: it makes always0 compile to lea.
 // FUNCTION: 0x4cb4c0
 void __stdcall RelocateObject(int delta, Object_004cb2f0* node)
 {
-    if (node->ptr_1c)
-        node->ptr_1c += delta;
-    if (node->ptr_20)
-        node->ptr_20 += delta;
+    if (node->name)
+        node->name += delta;
+    if (node->always0)
+        node->always0 += delta;
     node->vertices = (Vec3_004cb2f0*)((char*)node->vertices + delta);
     node->elems = (Primitive_004cb2f0*)((char*)node->elems + delta);
     if (node->sibling) {
@@ -552,8 +552,8 @@ void __stdcall RelocateObject(int delta, Object_004cb2f0* node)
     // Pointer walking the element array: the loop needs it.
     Primitive_004cb2f0* e = node->elems;
     for (int i = 0; i < node->count; i++, e++) {
-        if (e->ptr_8)
-            e->ptr_8 += delta;
+        if (e->always0)
+            e->always0 += delta;
         e->ptr_c += delta;
         if (e->ptr_10)
             e->ptr_10 += delta;

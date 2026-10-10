@@ -12,7 +12,7 @@
 #pragma pack(push, 1)
 struct DisplayContext {
     char unknown_0[0x44];
-    int field_44;                      // +0x44
+    int dib;                           // +0x44, the DIB section
     HDC dc;                            // +0x48
     HPALETTE hpalette;                 // +0x4c
     char unknown_50[0x94 - 0x50];
@@ -127,7 +127,7 @@ int __stdcall SetPaletteColors(unsigned char* src, int start, int count)
         local[i * 4 + 3] = 0;
     }
 
-    if (d->field_44 != 0) {
+    if (d->dib != 0) {
         if (d->hpalette)
             DeleteObject(d->hpalette);
         LOGPALETTE* lp = (LOGPALETTE*)GameAllocIgnoreTag("Palette", 0x408);
@@ -165,7 +165,7 @@ int __stdcall GetPaletteColors(unsigned char* dest, int first, int count)
     PALETTEENTRY pal[256];
     DisplayContext* d = GetDisplay();
     if (d->gdi) {
-        if (d->field_44 != 0) {
+        if (d->dib != 0) {
             if (GetPaletteEntries(d->hpalette, 0, 0x100, pal) == 0)
                 return 0;
         } else {

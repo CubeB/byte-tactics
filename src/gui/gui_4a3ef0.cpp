@@ -61,8 +61,8 @@ static inline int Find_004a3ef0(Gadget* entries, unsigned char kind)
 // Reads the count and the font pointer before the count > 0 test.
 static inline int LineSize_004a3ef0(Gadget* e)
 {
-    int count = e->u.list.field_c0;
-    Font_004a3ef0** font = (Font_004a3ef0**)e->u.list.field_c6;
+    int count = e->u.list.rowCount;
+    Font_004a3ef0** font = (Font_004a3ef0**)e->u.list.rows;
     int lines = 0;
     if (count > 0)
         lines = (*font)->glyph->height * count;
@@ -103,7 +103,7 @@ void __stdcall DrawSlider(Dialog* param_1, int param_2)
                 int numerator = e->height - 2;
                 int denominator = (e->u.list.scroll > size + 1) ? e->u.list.scroll : size + 1;
                 int step = numerator / denominator;
-                int last = e->u.list.field_c0;
+                int last = e->u.list.rowCount;
                 int rows = (int)((float)step / last * (me->height - 3));
                 me->knobSize = rows;
                 if (me->knobSize < 10) {
@@ -124,8 +124,8 @@ void __stdcall DrawSlider(Dialog* param_1, int param_2)
                     me->range = me->height - s;
                 }
             } else if (e->attribs & 0x80) {
-                if (e->u.list.scroll != 0 && e->u.list.field_c0 != 0) {
-                    int s = e->height / e->u.list.scroll * me->height / e->u.list.field_c0;
+                if (e->u.list.scroll != 0 && e->u.list.rowCount != 0) {
+                    int s = e->height / e->u.list.scroll * me->height / e->u.list.rowCount;
                     me->knobSize = s;
                     if (me->attribs & 1) {
                         me->range = me->width - s;

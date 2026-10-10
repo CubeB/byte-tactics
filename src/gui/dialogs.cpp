@@ -27,7 +27,7 @@ struct Layer {
     int flags;                     // +0x10
     int redraw;                    // +0x14
     int keyboardInput;             // +0x18
-    int field_1c;                  // +0x1c
+    int cb1c;                      // +0x1c
     int current;                   // +0x20
     int surface;                   // +0x24
     char unknown_28[0x13];
@@ -91,8 +91,8 @@ struct Record_004ab310 {
     };
     char unknown_ba[0xbe - 0xba];
     int image;                     // +0xbe (the image pointer a caller sets)
-    int field_c2;                  // +0xc2
-    short frame;                   // +0xc6
+    int frame;                     // +0xc2 (the hotspot frame pointer)
+    short index;                   // +0xc6 (the hotspot image index)
     char unknown_c8[0xcc - 0xc8];
 };
 
@@ -175,7 +175,7 @@ static inline int FindPanel_004aa8f0(Layer* layer)
 // Suspected original bug: when HAPI_FileLengthByName(layerName) returns 0 (GUI file
 // missing) the code jumps to 0x4aac2d, which loads `layer` from [S+0x10]
 // before it was ever stored (the only store is the mask-path one at
-// 0x4aaa3b) and then writes layer->entries/field_1c/surface/textHandler
+// 0x4aaa3b) and then writes layer->entries/cb1c/surface/textHandler
 // through it and returns the garbage pointer.
 // FUNCTION: 0x4aa8f0
 Layer* __stdcall LoadGuiLayer(Gui* menu, const char* name,
@@ -229,7 +229,7 @@ Layer* __stdcall LoadGuiLayer(Gui* menu, const char* name,
           if (mask != 0) {
             int idx = FindPanel_004aa8f0(layer);
             if (idx != -1) {
-                layer->entries[idx].field_29 = 0;
+                layer->entries[idx].active = 0;
                 flags |= 0x20;
                 // Index layer->entries at each use, no local base: gives the reloads.
                 int dx = (layer->entries[idx].width - entry->width) / 2 + layer->entries[idx].x;
@@ -265,7 +265,7 @@ Layer* __stdcall LoadGuiLayer(Gui* menu, const char* name,
         }
     }
     layer->entries = entry;
-    layer->field_1c = 0;
+    layer->cb1c = 0;
     layer->surface = 0;
     layer->textHandler = 0;
     if ((flags & 0x200) == 0) {
@@ -482,10 +482,10 @@ void __stdcall AddTextGadget(Layer* obj, char* name, char* text,
     e->attribs = flags;
     e->team = 0;
     e->image = 0;
-    e->field_27 = 0;
+    e->textureNumber = 0;
     e->tab = 0;
-    e->field_29 = 1;
-    e->unknown_2a = 0;
+    e->active = 1;
+    e->commonAttribs = 0;
     strcpy(e->name, name);
     strncpy(e->u.text, text, 0x7f);
     e->u.text[0x7f] = 0;
@@ -531,8 +531,8 @@ int __stdcall AddHotspotGadget(Gui* obj, Record_004ab310* record)
     Entry_004ab310* dst = (Entry_004ab310*)&obj->layer->entries[n];
     dst->record.callback = 0;
     dst->record.image = 0;
-    dst->record.field_c2 = 0;
     dst->record.frame = 0;
+    dst->record.index = 0;
     return 1;
 }
 
@@ -803,7 +803,7 @@ int __stdcall HandleTextEditKey(Gui* control, int index, int key)
                         if (size != 0) {
                             char* src = (char*)GlobalLock(hMem);
                             memset(text, 0, 0x80);
-                            memcpy(text, src, (int)size < entry->field_138 - 1 ? (int)size : entry->field_138 - 1);
+                            memcpy(text, src, (int)size < entry->status - 1 ? (int)size : entry->status - 1);
                             int width = GetTextPixelWidth((unsigned char*)text);
                             while (width > entry->width) {
                                 if (strlen(text) == 0)
@@ -821,7 +821,7 @@ int __stdcall HandleTextEditKey(Gui* control, int index, int key)
             case 0x1b:
                 goto done;
             default: {
-                if (len == entry->field_138)
+                if (len == entry->status)
                     break;
                 if (key < 0x20 || key > 0x7f)
                     break;
@@ -837,7 +837,7 @@ int __stdcall HandleTextEditKey(Gui* control, int index, int key)
                 int width = GetTextPixelWidth((unsigned char*)entry->u.text) + GetTextPixelWidth((unsigned char*)c);
                 if (width > entry->width - 4)
                     break;
-                int n = entry->field_138 - 1;
+                int n = entry->status - 1;
                 for (i = n; i > control->cursor; i--)
                     text[i] = text[i - 1];
                 text[control->cursor] = (char)key;

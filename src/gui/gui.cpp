@@ -2780,6 +2780,13 @@ struct Point_004a3780 {                // 0x18 bytes, copied with rep movsd x6
     int unknown_08[4];                 // +0x08
 };
 
+// True when the point lies inside the rect, edges included (the body of IsPointInRect
+// at 0x4a1920, which the compiler inlined here).
+static inline int PointInListRect(const Rect_004a3780& r, const Point_004a3780& p)
+{
+    return p.x >= r.x0 && p.x <= r.x1 && p.y >= r.y0 && p.y <= r.y1;
+}
+
 struct Object_004a3780 {
     char unknown_00[0x18];
     Holder_004a3780* holder;           // +0x18
@@ -2871,7 +2878,7 @@ int __stdcall HandleListBoxInput(Object_004a3780* obj, int index, int param_3)
     char* s;
 
     if (IsDoubleClickMessage(obj, 1)) {
-        if (point.x >= r.x0 && point.x <= r.x1 && point.y >= r.y0 && point.y <= r.y1) {
+        if (PointInListRect(r, point)) {
             // skip0 sits at the end of the in-rect block: reloads point.x on this edge only.
             if (me->u.list.field_c0 == 0) goto skip0;
             if (!(me->attribs & 0x200))
@@ -2891,12 +2898,12 @@ int __stdcall HandleListBoxInput(Object_004a3780* obj, int index, int param_3)
 skip0:;
         }
     } else if (IsMouseButtonMessage(obj, 1)) {
-        if (point.x >= r.x0 && point.x <= r.x1 && point.y >= r.y0 && point.y <= r.y1) {
+        if (PointInListRect(r, point)) {
             TrySetFocus(obj, index);
             SetClickMode(obj, 1);
         }
     } else if (IsMouseButtonMessage(obj, 2)) {
-        if (point.x >= r.x0 && point.x <= r.x1 && point.y >= r.y0 && point.y <= r.y1) {
+        if (PointInListRect(r, point)) {
             TrySetFocus(obj, index);
             SetClickMode(obj, 2);
         }
@@ -2906,7 +2913,7 @@ skip0:;
         goto end;
     if (!HasMouseKeyFlags(obj, 3))
         obj->focus = -1;
-    if (point.x >= r.x0 && point.x <= r.x1 && point.y >= r.y0 && point.y <= r.y1) {
+    if (PointInListRect(r, point)) {
         obj->holder->field_20 = index;
         flags = me->attribs;
         if (flags & 0x10) {
@@ -3055,10 +3062,6 @@ static inline void ClearEntry(Gadget* e)
 struct Pad_a3eb0_0 { int field; };
 struct Pad_a3eb0_1 { int field; };
 struct Pad_a3eb0_2 { int field; };
-extern int Pad_a3eb0_e0;
-extern int Pad_a3eb0_e1;
-extern int Pad_a3eb0_e2;
-extern int Pad_a3eb0_e3;
 
 // FUNCTION: 0x4a3eb0
 void __stdcall FUN_004a3eb0(Dialog_4a3eb0* obj, int i)

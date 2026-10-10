@@ -514,7 +514,9 @@ public:
     int GetGameType();
 };
 
-// The per-player info array at +0x1b8e, which overlaps the players array.
+// A view of a Player slot: name is Player::name at +0x2b, control is Player::type
+// at +0x73, read through the array at +0x1b8e. It stays a local PlayerInfo: any
+// other type or name moves the symbol count and 0x40bb00 stops matching.
 struct PlayerInfo {
     char name[0x48];
     unsigned char control;             // +0x48

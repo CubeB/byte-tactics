@@ -76,6 +76,8 @@ struct UnitWeaponSlot {                // 0x1c bytes
     unsigned char flags;              // +0x1b
 };
 
+// A view of UnitDef (units/unit_def.h); it stays its own type because the
+// header's extra declarations move the symbol ids that 0x438c00 and 0x439740 depend on.
 struct UnitType {
     char unknown_0[0x15e];
     Pos lo;                           // +0x15e

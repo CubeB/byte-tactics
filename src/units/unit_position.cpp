@@ -63,7 +63,8 @@ public:
 
 #include "../network/player.h"
 
-// The unit's type; +0x241 is the flag word the position code tests: bit 12
+// A view of UnitDef (units/unit_def.h) whose +0x241 flag word has a bit view the
+// header lacks. +0x241 is the flag word the position code tests: bit 12
 // floats, bit 19 floats on water, bit 20 can leave the water.
 struct UnitType {
     char unknown_0[0x1fa];

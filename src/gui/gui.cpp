@@ -115,7 +115,7 @@ struct Dialog {
     char unknown_70[0x74 - 0x70];
     int length;                    // +0x74
     char unknown_78[0xa2 - 0x78];
-    int field_a2;                  // +0xa2
+    int dirty;                     // +0xa2
     char unknown_a6[0x9b6 - 0xa6];
     char path_9b6[0x100];          // +0x9b6
     char path_ab6[0x100];          // +0xab6
@@ -213,7 +213,7 @@ void __stdcall EnableKeyCommands(Dialog* p)
 // FUNCTION: 0x49fa70
 void __stdcall DisableKeyCommands(Dialog* obj)
 {
-    obj->field_a2 = 0;
+    obj->dirty = 0;
 }
 
 // FUNCTION: 0x49fa90
@@ -538,9 +538,9 @@ struct Gadget {                         // 0x15b bytes, one GUI list entry
     int attribs;                        // +0x1b
     int colours;                        // +0x1f
     int image;                          // +0x23
-    char field_27;                      // +0x27
+    char textureNumber;                 // +0x27
     signed char tab;                    // +0x28
-    unsigned char field_29;             // +0x29
+    unsigned char active;               // +0x29
     char unknown_2a;
     void* archive;                      // +0x2b
     GafEntry* gaf;                      // +0x2f
@@ -564,12 +564,12 @@ struct Gadget {                         // 0x15b bytes, one GUI list entry
         } frame;
         struct {                        // type 2
             int sortKey;                // +0xb6
-            short field_ba;             // +0xba
-            short field_bc;             // +0xbc
-            short field_be;             // +0xbe
-            short field_c0;             // +0xc0
+            short selected;             // +0xba
+            short firstRow;             // +0xbc
+            short maxFirstRow;          // +0xbe
+            short rowCount;             // +0xc0
             char* field_c2;             // +0xc2
-            void* field_c6;             // +0xc6, the cell or item array
+            void* rows;                 // +0xc6, the cell or item array
             GafEntry* gaf;              // +0xca
             void (__stdcall* callback)(Gui*, Gadget*);  // +0xce
             char unknown_d2[4];
@@ -610,11 +610,11 @@ struct Gadget {                         // 0x15b bytes, one GUI list entry
             unsigned char stageIndex;   // +0x137
         };
     };
-    short field_138;                    // +0x138 (the text length limit of a text input)
+    short status;                       // +0x138 (the text length limit of a text input)
     union {                             // +0x13a
         struct {
-            unsigned char field_13a;
-            unsigned char field_13b;
+            unsigned char quickKey;
+            unsigned char frameBase;
             union {                     // +0x13c
                 unsigned char grayedout;
                 unsigned short flag;    // bit 0 set by type 1
@@ -641,12 +641,12 @@ struct Gadget {                         // 0x15b bytes, one GUI list entry
         };
         struct {
             char unknown_13a_d[0x147 - 0x13a];
-            unsigned char field_147;    // +0x147
+            unsigned char hotkey;       // +0x147
             unsigned int flag_148;      // +0x148, bit 0 set by type 5
         };
     };
     char unknown_153[0x157 - 0x153];
-    int field_157;                      // +0x157
+    int sliderLocked;                   // +0x157
 };
 #pragma pack(pop)
 
@@ -762,7 +762,7 @@ char __stdcall GetGadgetActiveByName(Dialog_004a04f0* obj, char* name)
     if (i == -1) {
         return -1;
     }
-    return entries[i].field_29;
+    return entries[i].active;
 }
 
 // FUNCTION: 0x4a0570
@@ -804,17 +804,17 @@ void __stdcall AssignQuickKey(Dialog_004a04f0* obj, int index)
         return;
 
     if (entry->type == 1 && entry->stages != 0) {
-        entry->field_13a = 0;
+        entry->quickKey = 0;
         return;
     }
     if (entry->type == 1) {
         if (strlen(entry->u.text) == 0)
             return;
-        entry->field_13a = 0;
+        entry->quickKey = 0;
         text = entry->u.text;
     } else if (entry->type == 5) {
         text = entry->u.text;
-        entry->field_147 = 0;
+        entry->hotkey = 0;
     }
 
     length = strlen(text);
@@ -826,20 +826,20 @@ void __stdcall AssignQuickKey(Dialog_004a04f0* obj, int index)
             for (j = 0; j <= entries->u.count; j++) {
                 scan = entries + j;
                 if (scan->type == 1) {
-                    if (tolower((signed char)scan->field_13a) == tolower((signed char)text[i]))
+                    if (tolower((signed char)scan->quickKey) == tolower((signed char)text[i]))
                         break;
                 } else if (scan->type == 5) {
-                    if (tolower((signed char)scan->field_147) == tolower((signed char)text[i]))
+                    if (tolower((signed char)scan->hotkey) == tolower((signed char)text[i]))
                         break;
                 }
             }
             if (j > entries->u.count) {
                 if (entry->type == 1) {
-                    entry->field_13a = text[i];
+                    entry->quickKey = text[i];
                     return;
                 }
                 if (entry->type == 5) {
-                    entry->field_147 = text[i];
+                    entry->hotkey = text[i];
                     return;
                 }
                 return;
@@ -905,7 +905,7 @@ void __stdcall SetTranslatedText(Dialog_004a04f0* context, int index, char* sour
                 context->length = strlen(text);
         }
         if (value != 0)
-            entries[index].field_138 = (short)value;
+            entries[index].status = (short)value;
         break;
     case 1:
         strncpy(entries[index].u.text, text, 0x80);
@@ -1033,7 +1033,7 @@ void __stdcall SetControlTextByName(Dialog_004a04f0* obj, char* name, char* text
 // FUNCTION: 0x4a0f30
 int __stdcall GetGadgetStatus(Dialog_004a04f0* obj, int index)
 {
-    return GetEntries(obj)[index].field_138;
+    return GetEntries(obj)[index].status;
 }
 
 // Looks up the gadget entry by name (the lookup of 0x49fdf0, inlined) and
@@ -1095,7 +1095,7 @@ int __stdcall SetGadgetStatusByName(Dialog_004a04f0* obj, char* name, int value)
     Gadget* entries = obj->holder->entries;
     int i = FindEntry_004a04f0(entries, name);
     if (i != -1) {
-        entries[i].field_138 = value;
+        entries[i].status = value;
         obj->changed = 1;
         if (value) {
             ClearPeerStatus(obj, i);
@@ -1149,7 +1149,7 @@ void __stdcall SetGadgetGrayedOut(Dialog_004a04f0* obj, int index, int value)
     Gadget* e = &entries[index];
     switch (e->type) {
     case 4: {
-        e->field_157 = value;
+        e->sliderLocked = value;
         unsigned char group = e->team;
         for (int i = 1; i < entries->u.count + 1; i++) {
             if (entries[i].type == 1 && entries[i].team == group && (entries[i].attribs & 0x1800)) {
@@ -1203,7 +1203,7 @@ void __stdcall FUN_004a14c0(Dialog_004a04f0* obj, char* name, int param_3)
 void __stdcall SetQuickKeyByName(Dialog_004a04f0* obj, char* name, char value)
 {
     int i = FindEntry_004a04f0(obj->holder->entries, name);
-    obj->holder->entries[i].field_13a = value;
+    obj->holder->entries[i].quickKey = value;
     obj->changed = 1;
 }
 
@@ -1328,7 +1328,7 @@ int __stdcall SelectFontForEntry(Gadget* entries, int index)
     return i;
 }
 
-// Counts the type-8 entries up to the one numbered by entries[index].field_27.
+// Counts the type-8 entries up to the one numbered by entries[index].textureNumber.
 // Both paths return 0 in the original, although the caller tests the result.
 // FUNCTION: 0x4a18c0
 int __stdcall FindBackgroundCell(Gadget* entries, int index)
@@ -1336,7 +1336,7 @@ int __stdcall FindBackgroundCell(Gadget* entries, int index)
     int n = 0;
     for (int i = 1; i < entries->u.count + 1; i++) {
         if (entries[i].type == 8) {
-            if (n == entries[index].field_27) {
+            if (n == entries[index].textureNumber) {
                 return 0;
             }
             n++;
@@ -1497,7 +1497,7 @@ void __stdcall RedrawGadgetRect(Dialog_4a1ab0* obj, int index)
 //
 // Known original quirks kept as they are (docs/bugs.md): a selected cell row
 // reads cell->width/height even when the cell pointer is null (0x4a2233,
-// 0x4a224c), and both arms of `holder->field_20 == index` draw with 0x1e.
+// 0x4a224c), and both arms of `holder->current == index` draw with 0x1e.
 // Needed next to <stdio.h>; <windows.h> instead is worse.
 
 #pragma pack(push, 1)
@@ -1507,10 +1507,10 @@ struct Holder_004a1b40 {
     char unknown_00[4];
     Gadget* entries;                    // +0x04
     char unknown_08[0x10 - 0x08];
-    int field_10;                       // +0x10
-    int field_14;                       // +0x14
+    int flags;                          // +0x10
+    int dirty;                          // +0x14
     char unknown_18[0x20 - 0x18];
-    int field_20;                       // +0x20
+    int current;                        // +0x20
     void* surface;                      // +0x24
 };
 
@@ -1629,7 +1629,7 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
     int xw;
     int flag = 0;
     if (0 != obj->holder)
-        obj->holder->field_14 = 1;
+        obj->holder->dirty = 1;
     Holder_004a1b40* holder = obj->holder;
     Gadget* entries;
     entries = obj->holder->entries;
@@ -1640,7 +1640,7 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
     surface = holder->surface;
     if (surface == 0)
         surface = obj->fallback;
-    if (surface == 0 && !(holder->field_10 & 0x80))
+    if (surface == 0 && !(holder->flags & 0x80))
         DrawListboxFrame(obj, index, surface);
     else if (surface != 0)
         CopySurfaceRect(entries->u.assets.surface, surface, &bounds, &bounds);
@@ -1652,7 +1652,7 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
         step = me->u.list.scroll;
     unsigned int flags;
     flags = me->attribs;
-    if ((flags & 0x10) && me->u.list.field_c2 && 0 != me->u.list.field_c0) {
+    if ((flags & 0x10) && me->u.list.field_c2 && 0 != me->u.list.rowCount) {
         // Separate from cellRect: one shared rect changes the spill homes.
         Rect rowRect;
         int i;
@@ -1670,9 +1670,9 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
         if (i == entries->u.count + 1) { SetFont(g_guiContext->current); }
         GetFont();
         font = GetTextKeyColor();
-        char* q = SkipTextLines(me->u.list.field_c2, me->u.list.field_bc);
+        char* q = SkipTextLines(me->u.list.field_c2, me->u.list.firstRow);
         int line = 0;
-        int y = me->u.list.field_bc;
+        int y = me->u.list.firstRow;
         yoff = 0;
         while (1) {
             rowRect.left = 2 + bounds.left;
@@ -1715,8 +1715,8 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
                 FadeRectangle(entries->u.assets.surface, &rowRect, -0x14);
                 FadeRectangle(entries->u.assets.surface, &rowRect, -0x15);
                 FadeRectangle(entries->u.assets.surface, &rowRect, -0x16);
-            } else if (!(me->attribs & 0x100) && me->u.list.field_ba == line + me->u.list.field_bc && me->u.list.field_c0) {
-                if (obj->holder->field_20 == index)
+            } else if (!(me->attribs & 0x100) && me->u.list.selected == line + me->u.list.firstRow && me->u.list.rowCount) {
+                if (obj->holder->current == index)
                     FadeRectangle(entries->u.assets.surface, &rowRect, 0x1e);
                 else
                     FadeRectangle(entries->u.assets.surface, &rowRect, 0x1e);
@@ -1729,7 +1729,7 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
             h -= step;
             // Tests h >= lh first.
             if (h >= lh) {
-                if (line + me->u.list.field_bc >= me->u.list.field_c0)
+                if (line + me->u.list.firstRow >= me->u.list.rowCount)
                     return;
             } else {
                 break;
@@ -1745,13 +1745,13 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
         // surf stays void*: typing it as Surface* needs a cast at the declaration, and the file stops matching without the casts below.
         ((Surface*)surf)->GetClipRect(&clip);
         ((Surface*)surf)->SetClipRect(bounds);
-        int k = me->u.list.field_bc;
+        int k = me->u.list.firstRow;
         if (!bp) {
-            colPtr = &((Item_004a1b40**)me->u.list.field_c6)[k];
+            colPtr = &((Item_004a1b40**)me->u.list.rows)[k];
         } else {
             // colPtr is zeroed only in this arm.
             colPtr = 0;
-            cellPtr = &((GafFrame*)me->u.list.field_c6)[k];
+            cellPtr = &((GafFrame*)me->u.list.rows)[k];
         }
         int yy = bounds.top + 2;
         bounds.left += 2;
@@ -1801,7 +1801,7 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
             }
             // A selected row reads cell->width/height even when cell is null
             // (docs/bugs.md).
-            if (!(me->attribs & 0x100) && me->u.list.field_ba == k) {
+            if (!(me->attribs & 0x100) && me->u.list.selected == k) {
                 Rect hl;
                 hl.left = bounds.left;
                 hl.top = yy;
@@ -1815,7 +1815,7 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
                 colPtr++;
             yy += step;
             y += step;
-            if (yy >= bounds.bottom || k >= me->u.list.field_c0)
+            if (yy >= bounds.bottom || k >= me->u.list.rowCount)
                 break;
         }
         // Load-bearing: without this cast the file stops matching.
@@ -2174,7 +2174,7 @@ void __stdcall DrawSliderBar(Object_004a2580* obj, int index)
         DrawString(surface, buf, e->x + e->width + 2, e->y + 4, -1);
     }
 
-    if ((e->attribs & 0x10) || e->field_157 != 0) {
+    if ((e->attribs & 0x10) || e->sliderLocked != 0) {
         int rect[4];
         if (e->type == 0) {
             rect[0] = 0;
@@ -2351,7 +2351,7 @@ void __stdcall SetListBoxScrollByName(Dialog_4a2e40* param_1, char* param_2, int
         return;
 
     Gadget* me = &entries[found];
-    me->u.list.field_ba = param_3;
+    me->u.list.selected = param_3;
 
     int n = 0;
     int i;
@@ -2373,18 +2373,18 @@ void __stdcall SetListBoxScrollByName(Dialog_4a2e40* param_1, char* param_2, int
     else
         size = *(unsigned short*)(GetGafFrame(g_guiContext->list->glyphs, 0x49) + 2) + 2;
     int step = (me->height - 2) / (size + 1);
-    short last = me->u.list.field_bc;
-    short sel = me->u.list.field_ba;
+    short last = me->u.list.firstRow;
+    short sel = me->u.list.selected;
     if (sel > step + last - 1 || sel < last) {
-        if (me->u.list.field_be != 0)
-            me->u.list.field_bc = sel;
-        if (me->u.list.field_bc > me->u.list.field_be)
-            me->u.list.field_bc = me->u.list.field_be;
+        if (me->u.list.maxFirstRow != 0)
+            me->u.list.firstRow = sel;
+        if (me->u.list.firstRow > me->u.list.maxFirstRow)
+            me->u.list.firstRow = me->u.list.maxFirstRow;
         Gadget* peer = &entries[FindEntry_004a2e40(entries, param_2)];
         unsigned char pkind = peer->team;
         Gadget* e3 = &entries[FindKind_004a2e40(entries, pkind)];
         // Keep the float conversions: the original uses integer-memory FPU multiply/divide.
-        float q = (float)e3->range * me->u.list.field_bc / me->u.list.field_be;
+        float q = (float)e3->range * me->u.list.firstRow / me->u.list.maxFirstRow;
         if ((float)e3->knobPos != q)
             e3->knobPos = (short)q;
     }
@@ -2441,8 +2441,8 @@ void __stdcall ResetListBox(Dialog_004a04f0* obj, int index)
 {
     Gadget* entries = obj->holder->entries;
     Gadget* e = &entries[index];
-    e->u.list.field_bc = 0;
-    e->u.list.field_ba = 0;
+    e->u.list.firstRow = 0;
+    e->u.list.selected = 0;
     int n = 0;
     int i = 1;
     for (; i < entries->u.count + 1; i++) {
@@ -2560,7 +2560,7 @@ void __stdcall ConfigureListBoxByName(Dialog_4a32a0* param_1, char* name, int bi
         FatalError("Error in GUI layout");
         me = 0;
     }
-    me->u.list.field_c0 = (short)count;
+    me->u.list.rowCount = (short)count;
     me->u.list.field_c2 = (char*)bitmap;
     me->attribs |= 0x10;
     me->u.list.scroll =
@@ -2569,11 +2569,11 @@ void __stdcall ConfigureListBoxByName(Dialog_4a32a0* param_1, char* name, int bi
         me->u.list.language = flag;
         me->attribs |= 0x800;
     }
-    me->u.list.field_bc = 0;
-    me->u.list.field_ba = 0;
-    // Initialised before the me->u.list.field_be store: sets the final stack-store order.
+    me->u.list.firstRow = 0;
+    me->u.list.selected = 0;
+    // Initialised before the me->u.list.maxFirstRow store: sets the final stack-store order.
     int remain = me->height;
-    me->u.list.field_be = (short)(count - 1);
+    me->u.list.maxFirstRow = (short)(count - 1);
     int step;
     if (me->u.list.scroll == 0) {
         step = FontHeight_004a32a0() + 1;
@@ -2584,9 +2584,9 @@ void __stdcall ConfigureListBoxByName(Dialog_4a32a0* param_1, char* name, int bi
         remain -= step;
         if (remain < 0)
             break;
-        me->u.list.field_be = (short)j;
+        me->u.list.maxFirstRow = (short)j;
     }
-    if (me->field_29 == 0)
+    if (me->active == 0)
         return;
     int i2 = FindName_004a32a0(holder->entries, name);
     Gadget* list = holder->entries;
@@ -2665,14 +2665,14 @@ void __stdcall SetGadgetRows(Table_004a35a0* table, char* name,
         FatalError("Error in GUI layout");
         e = 0;
     }
-    e->u.list.field_c6 = rows;
+    e->u.list.rows = rows;
     // Computed right after the f_c6 store and before the num store.
     Row_004a35a0* row = rows + count - 1;
-    e->u.list.field_c0 = (short)count;
+    e->u.list.rowCount = (short)count;
     e->attribs |= 0x80;
-    e->u.list.field_bc = 0;
-    e->u.list.field_ba = 0;
-    e->u.list.field_be = (short)(count - 1);
+    e->u.list.firstRow = 0;
+    e->u.list.selected = 0;
+    e->u.list.maxFirstRow = (short)(count - 1);
     int remain = e->height;
     // The test is i > -1, not i >= 0.
     for (int i = count - 1; i > -1; i--, row--) {
@@ -2680,7 +2680,7 @@ void __stdcall SetGadgetRows(Table_004a35a0* table, char* name,
         if (e->u.list.scroll != 0) remain -= e->u.list.scroll; else remain -= row->height;
         if (remain < 0)
             break;
-        e->u.list.field_be = (short)i;
+        e->u.list.maxFirstRow = (short)i;
     }
 }
 // Finds the GUI layout entry whose name matches `name`. The entry table holds
@@ -2731,15 +2731,15 @@ void __stdcall SetGadgetItems(Table_004a36a0* table, char* name, int* items, int
         FatalError("Error in GUI layout");
         e = 0;
     }
-    // field_c0 is stored before field_c6: keeps the tail's store order.
-    e->u.list.field_c0 = (short)count;
-    e->u.list.field_c6 = items;
+    // rowCount is stored before rows: keeps the tail's store order.
+    e->u.list.rowCount = (short)count;
+    e->u.list.rows = items;
     int v = e->height;
-    e->u.list.field_bc = 0;
-    e->u.list.field_ba = 0;
+    e->u.list.firstRow = 0;
+    e->u.list.selected = 0;
     e->attribs |= 0x20;
     int* p = &items[count - 1];
-    e->u.list.field_be = (short)(count - 1);
+    e->u.list.maxFirstRow = (short)(count - 1);
     // Decrements stay in the body with no for-increment, and the test is j > -1.
     for (int j = count - 1; j > -1; ) {
         Item_004a36a0* item = (Item_004a36a0*)*p;
@@ -2748,7 +2748,7 @@ void __stdcall SetGadgetItems(Table_004a36a0* table, char* name, int* items, int
         if (v < 0) {
             break;
         }
-        e->u.list.field_be = (short)j;
+        e->u.list.maxFirstRow = (short)j;
         j--;
         p--;
     }
@@ -2866,8 +2866,8 @@ int __stdcall HandleListBoxInput(Object_004a3780* obj, int index, int param_3)
         return 0;
     Gadget* entries = obj->holder->entries;
     Gadget* me = &entries[index];
-    int orig_sel = me->u.list.field_ba;
-    if (me->u.list.field_c0 == 0)
+    int orig_sel = me->u.list.selected;
+    if (me->u.list.rowCount == 0)
         return 0;
     Rect_004a3780 r;
     unsigned int flags;
@@ -2891,20 +2891,20 @@ int __stdcall HandleListBoxInput(Object_004a3780* obj, int index, int param_3)
     if (IsDoubleClickMessage(obj, 1)) {
         if (PointInListRect(r, point)) {
             // skip0 sits at the end of the in-rect block: reloads point.x on this edge only.
-            if (me->u.list.field_c0 == 0) goto skip0;
+            if (me->u.list.rowCount == 0) goto skip0;
             if (!(me->attribs & 0x200))
                 goto ret1;
-            me->u.list.field_ba = (point.y - r.y0) / span + me->u.list.field_bc;
-            if (me->u.list.field_ba < 0)
+            me->u.list.selected = (point.y - r.y0) / span + me->u.list.firstRow;
+            if (me->u.list.selected < 0)
                 goto above;
-            if (me->u.list.field_ba - me->u.list.field_bc > step - 1)
-                me->u.list.field_ba = me->u.list.field_bc + step - 1;
-            if (me->u.list.field_ba >= me->u.list.field_c0 - 1)
-                me->u.list.field_ba = me->u.list.field_c0 - 1;
-            s = SkipTextLines(me->u.list.field_c2, me->u.list.field_ba);
+            if (me->u.list.selected - me->u.list.firstRow > step - 1)
+                me->u.list.selected = me->u.list.firstRow + step - 1;
+            if (me->u.list.selected >= me->u.list.rowCount - 1)
+                me->u.list.selected = me->u.list.rowCount - 1;
+            s = SkipTextLines(me->u.list.field_c2, me->u.list.selected);
             if (strncmp(DAT_00502a20, s, 2) != 0)
                 goto ret1;
-            me->u.list.field_ba = orig_sel;
+            me->u.list.selected = orig_sel;
             return 0;
 skip0:;
         }
@@ -2928,27 +2928,27 @@ skip0:;
         obj->holder->selected = index;
         flags = me->attribs;
         if (flags & 0x10) {
-            // Stores straight into me->u.list.field_ba and tests the field; clamps written plainly.
-            me->u.list.field_ba = (point.y - r.y0) / span + me->u.list.field_bc;
-            if (me->u.list.field_ba >= 0) {
-                if (me->u.list.field_ba - me->u.list.field_bc > step - 1)
-                    me->u.list.field_ba = me->u.list.field_bc + step - 1;
-                if (me->u.list.field_ba >= me->u.list.field_c0 - 1)
-                    me->u.list.field_ba = me->u.list.field_c0 - 1;
-                if (me->u.list.field_ba < 0)
-                    me->u.list.field_ba = 0;
+            // Stores straight into me->u.list.selected and tests the field; clamps written plainly.
+            me->u.list.selected = (point.y - r.y0) / span + me->u.list.firstRow;
+            if (me->u.list.selected >= 0) {
+                if (me->u.list.selected - me->u.list.firstRow > step - 1)
+                    me->u.list.selected = me->u.list.firstRow + step - 1;
+                if (me->u.list.selected >= me->u.list.rowCount - 1)
+                    me->u.list.selected = me->u.list.rowCount - 1;
+                if (me->u.list.selected < 0)
+                    me->u.list.selected = 0;
                 if (flags & 0x200) {
-                    s = SkipTextLines(me->u.list.field_c2, me->u.list.field_ba);
+                    s = SkipTextLines(me->u.list.field_c2, me->u.list.selected);
                     if (strncmp(DAT_00502a20, s, 2) == 0)
-                        me->u.list.field_ba = orig_sel;
+                        me->u.list.selected = orig_sel;
                 }
                 for (i = 1; i <= entries[0].u.count; i++) {
                     if (entries[i].type == 2 && entries[i].team == me->team)
                         // min() for the sync clamp.
-                        entries[i].u.list.field_ba = min(entries[i].u.list.field_c0 - 1, me->u.list.field_ba);
+                        entries[i].u.list.selected = min(entries[i].u.list.rowCount - 1, me->u.list.selected);
                 }
             } else {
-                me->u.list.field_ba = orig_sel;
+                me->u.list.selected = orig_sel;
             }
         } else if (flags & 0x20 | 0x80) {
             // Original bug, kept: `(flags & 0x20) | 0x80` is always true
@@ -2957,11 +2957,11 @@ skip0:;
             GafFrame* fixed;
             Item_004a3780** ip;
             if (flag8)
-                fixed = &((GafFrame*)me->u.list.field_c6)[me->u.list.field_bc];
+                fixed = &((GafFrame*)me->u.list.rows)[me->u.list.firstRow];
             else
-                ip = &((Item_004a3780**)me->u.list.field_c6)[me->u.list.field_bc];
+                ip = &((Item_004a3780**)me->u.list.rows)[me->u.list.firstRow];
             // k is declared after the pointer choice, not before the if (flag8).
-            int k = me->u.list.field_bc;
+            int k = me->u.list.firstRow;
             // remain stays declared before n2.
             int remain = point.y - r.y0 - 2;
             int n2 = 0;
@@ -2972,7 +2972,7 @@ skip0:;
                 else
                     remain -= row->height;
                 if (remain <= 0) {
-                    me->u.list.field_ba = n2 + me->u.list.field_bc;
+                    me->u.list.selected = n2 + me->u.list.firstRow;
                     break;
                 }
                 if (flag8)
@@ -2981,11 +2981,11 @@ skip0:;
                     ip++;
                 n2++;
                 k++;
-                if (k > me->u.list.field_c0 - 1)
+                if (k > me->u.list.rowCount - 1)
                     break;
             }
         }
-        if (orig_sel != me->u.list.field_ba) {
+        if (orig_sel != me->u.list.selected) {
             DrawListBox(obj, index);
             if (me->u.list.callback)
                 me->u.list.callback((Gui*)obj, me);
@@ -2998,33 +2998,33 @@ ret1:
         }
         obj->changed = 1;
     } else if (point.y < r.y0) {
-        if (me->u.list.field_bc > 0 && me->u.list.sortKey < (int)GetTicks()) {
+        if (me->u.list.firstRow > 0 && me->u.list.sortKey < (int)GetTicks()) {
             me->u.list.sortKey = GetTicks() + 2;
-            if (me->u.list.field_ba > me->u.list.field_bc)
-                me->u.list.field_ba = me->u.list.field_bc;
-            me->u.list.field_bc--;
-            me->u.list.field_ba--;
-            short sel = me->u.list.field_ba;
+            if (me->u.list.selected > me->u.list.firstRow)
+                me->u.list.selected = me->u.list.firstRow;
+            me->u.list.firstRow--;
+            me->u.list.selected--;
+            short sel = me->u.list.selected;
             if (me->u.list.field_c2 != 0) {
                 s = SkipTextLines(me->u.list.field_c2, sel < 0 ? 0 : sel);
                 if (strncmp(DAT_00502a20, s, 2) == 0)
-                    me->u.list.field_ba = orig_sel;
+                    me->u.list.selected = orig_sel;
             }
             goto finish;
         }
-        if (me->u.list.field_ba > 0) {
-            me->u.list.field_ba = 0;
+        if (me->u.list.selected > 0) {
+            me->u.list.selected = 0;
             goto finish;
         }
     } else if (point.y > r.y1) {
-        if (me->u.list.field_bc < me->u.list.field_be && me->u.list.sortKey < (int)GetTicks()) {
+        if (me->u.list.firstRow < me->u.list.maxFirstRow && me->u.list.sortKey < (int)GetTicks()) {
             me->u.list.sortKey = GetTicks() + 2;
-            me->u.list.field_bc++;
-            me->u.list.field_ba = me->u.list.field_bc + step - 1;
+            me->u.list.firstRow++;
+            me->u.list.selected = me->u.list.firstRow + step - 1;
             if (me->u.list.field_c2 != 0) {
-                s = SkipTextLines(me->u.list.field_c2, me->u.list.field_ba);
+                s = SkipTextLines(me->u.list.field_c2, me->u.list.selected);
                 if (strncmp(DAT_00502a20, s, 2) == 0)
-                    me->u.list.field_ba = orig_sel;
+                    me->u.list.selected = orig_sel;
             }
             // Shared by both scroll tails via goto: MSVC 5 does not merge return blocks.
 finish:
@@ -3148,7 +3148,7 @@ void __stdcall HandleSliderInput(Object_004a4170* obj, int index)
     Gadget* e = &entries[index];
     if (e->attribs & 0x10)
         return;
-    if (e->field_157)
+    if (e->sliderLocked)
         return;
 
     Point_004a4170 p = obj->point;
@@ -3271,7 +3271,7 @@ int __stdcall HandleLabelInput(Object_0049fc50* obj, int index, char key)
     Point_0049fc50 point;
     int rel_x, rel_y;
 
-    if (entry->field_147 == 0 && (entry->attribs & 0x10))
+    if (entry->hotkey == 0 && (entry->attribs & 0x10))
         return 0;
 
     if (entry->type == 0) {
@@ -3321,8 +3321,8 @@ check_queue:
 final_check:
     if (obj->pathsReady != 1 || *(int*)&key == 0)
         return 0;
-    if ((char)tolower((char)entry->field_147) != key &&
-        (char)toupper((char)entry->field_147) != key)
+    if ((char)tolower((char)entry->hotkey) != key &&
+        (char)toupper((char)entry->hotkey) != key)
         return 0;
     PopKey();
     return 1;
@@ -4553,7 +4553,7 @@ void __stdcall DrawLabel(Gui* obj, int index)
         GrayRectangle(entries2->u.assets.surface, &rect2);
         FadeRectangle(entries2->u.assets.surface, &rect2, -0x14);
     } else {
-        unsigned char c = entries[index].field_147;
+        unsigned char c = entries[index].hotkey;
         if (c != 0) {
             char pat[2];
             pat[0] = (char)c;
@@ -4707,26 +4707,26 @@ void __stdcall DrawButton(Gui* menu, int index)
                 glyph = GetGafFrame(me->gaf, me->stageIndex);
                 border = 1;
             } else if (me->attribs & 0x1800) {
-                glyph = GetGafFrame(me->gaf, me->field_13b);
+                glyph = GetGafFrame(me->gaf, me->frameBase);
                 border = 1;
             } else {
                 int val = me->gaf->count - 1;
-                if (me->field_138 + 2 < val)
-                    val = me->field_138 + 2;
-                glyph = GetGafFrame(me->gaf, val + me->field_13b);
+                if (me->status + 2 < val)
+                    val = me->status + 2;
+                glyph = GetGafFrame(me->gaf, val + me->frameBase);
                 if (!(me->attribs & 0x80))
                     border = 1;
             }
         } else {
-            if (me->field_138 != 0 && (unsigned short)me->gaf->count > (unsigned short)me->stages) {
+            if (me->status != 0 && (unsigned short)me->gaf->count > (unsigned short)me->stages) {
                 if (me->stages != 0)
                     glyph = GetGafFrame(me->gaf, me->gaf->count - 2);
                 else
-                    glyph = GetGafFrame(me->gaf, me->field_13b + me->field_138);
+                    glyph = GetGafFrame(me->gaf, me->frameBase + me->status);
             } else if (me->stages != 0)
                 glyph = GetGafFrame(me->gaf, me->stageIndex);
             else
-                glyph = GetGafFrame(me->gaf, me->field_13b);
+                glyph = GetGafFrame(me->gaf, me->frameBase);
         }
         if (glyph != 0) {
             if (me->colours != 0)
@@ -4737,7 +4737,7 @@ void __stdcall DrawButton(Gui* menu, int index)
     } else {
         if (me->grayedout & 1) {
             FillBevelBox(surface, &rect, menu->colours[0], menu->colours[0x13], menu->colours[0x13]);
-        } else if (me->field_138 != 0) {
+        } else if (me->status != 0) {
             FillBevelBox(surface, &rect, menu->colours[0], menu->colours[0x11], menu->colours[0x14]);
         } else {
             FillBevelBoxDarkFirst(surface, &rect, menu->colours[0], menu->colours[0x11], menu->colours[0x14]);
@@ -4746,14 +4746,14 @@ void __stdcall DrawButton(Gui* menu, int index)
 
     t = 0;
     flagy = 0;
-    if (me->field_138 != 0) {
+    if (me->status != 0) {
         t = 1;
         flagy = 1;
     }
     text = me->u.text;
     pass = 0;
     do {
-        if (me->field_138 != 0)
+        if (me->status != 0)
             SetTextColors(menu->colours[0], GetTextKeyColor());
         else
             SetTextColors(menu->colours[me->colours], GetTextKeyColor());
@@ -4782,14 +4782,14 @@ void __stdcall DrawButton(Gui* menu, int index)
         } else if (me->attribs & 2) {
             x = (rect.right - textw - rect.left) / 2 + t;
             x += rect.left + 1;
-            if (me->field_13a == 0 || (me->grayedout & 1)) {
+            if (me->quickKey == 0 || (me->grayedout & 1)) {
                 DrawTextClipped(surface, p, x, y, 1 + (rect.right - rect.left), 0);
             } else {
                 // Declared in this block: key1[1] = 0 hoists into the inlined strcpy.
                 char key1[2];
                 // Each hotkey branch declares its own found: one frame slot.
                 char* found;
-                key1[0] = me->field_13a;
+                key1[0] = me->quickKey;
                 width = rect.right - rect.left + 1;
                 strcpy(buf, p);
                 key1[1] = 0;
@@ -4801,13 +4801,13 @@ void __stdcall DrawButton(Gui* menu, int index)
                     DrawTextClipped(surface, buf, x, y, width, 0);
                     x += GetTextPixelWidth(buf);
                     saved = x;
-                    if (me->field_138 != 0)
+                    if (me->status != 0)
                         SetTextColors(menu->colours[0], GetTextKeyColor());
                     else
                         SetTextColors(menu->colours[me->colours], GetTextKeyColor());
                     DrawTextClipped(surface, key1, x, y, width, 0);
                     x += GetTextPixelWidth(key1);
-                    if (me->field_138 != 0) {
+                    if (me->status != 0) {
                         DrawLine(surface, saved, LineHeight() + y - 1,
                                      x - 1, LineHeight() + y - 1,
                                      menu->colours[0]);
@@ -4816,7 +4816,7 @@ void __stdcall DrawButton(Gui* menu, int index)
                                      x - 1, LineHeight() + y - 1,
                                      menu->colours[2]);
                     }
-                    if (me->field_138 != 0)
+                    if (me->status != 0)
                         SetTextColors(menu->colours[0], GetTextKeyColor());
                     else
                         SetTextColors(menu->colours[me->colours], GetTextKeyColor());
@@ -4832,9 +4832,9 @@ void __stdcall DrawButton(Gui* menu, int index)
             xb += rect.left + 1;
             int ys = flagy - LineHeight();
             ys += rect.bottom - 4;
-            if (me->field_13a != 0 && (found = strchr(p, (signed char)me->field_13a)) != 0) {
+            if (me->quickKey != 0 && (found = strchr(p, (signed char)me->quickKey)) != 0) {
                 width = rect.right - rect.left + 1;
-                key2[0] = me->field_13a;
+                key2[0] = me->quickKey;
                 key2[1] = 0;
                 GetFont();
                 *found = 0;
@@ -4868,8 +4868,8 @@ void __stdcall ClearAllStatus(Gui* param_1)
     Gadget* entries = param_1->layer->entries;
     Gadget* e = &entries[1];
     for (int i = 1; i < entries->u.count + 1; i++, e++) {
-        if (e->type == 1 && e->field_138 != 0) {
-            e->field_138 = 0;
+        if (e->type == 1 && e->status != 0) {
+            e->status = 0;
             DrawButton(param_1, i);
             param_1->changed = 1;
         }
@@ -4884,8 +4884,8 @@ void __stdcall ClearGroupStatus(Gui* param_1, int index)
     Gadget* e = &entries[1];
     unsigned char team = entries[index].team;
     for (int i = 1; i < entries->u.count + 1; i++, e++) {
-        if (e->type == 1 && e->team == team && e->field_138 != 0) {
-            e->field_138 = 0;
+        if (e->type == 1 && e->team == team && e->status != 0) {
+            e->status = 0;
             DrawButton(param_1, i);
             param_1->changed = 1;
         }
@@ -4930,12 +4930,12 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
             obj->focus = -1;
             TrySetFocus(obj, index);
             SetClickMode(obj, 1);
-            obj->clickStatusCache = entry->field_138;
+            obj->clickStatusCache = entry->status;
         } else if (IsMouseButtonMessage(obj, 2)) {
             obj->focus = -1;
             TrySetFocus(obj, index);
             SetClickMode(obj, 2);
-            obj->clickStatusCache = entry->field_138;
+            obj->clickStatusCache = entry->status;
         }
     }
 
@@ -4947,11 +4947,11 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
             // These three rect tests stay written out: through the helper the compares reorder.
             if (point.x < r.left || point.x > r.right
                 || point.y < r.top || point.y > r.bottom) {
-                entry->field_138 = obj->clickStatusCache;
+                entry->status = obj->clickStatusCache;
                 DrawButton(obj, index);
                 return 0;
             }
-            entry->field_138 = 1;
+            entry->status = 1;
             ClearPeerStatus(obj, index);
             DrawButton(obj, index);
             return 1;
@@ -4961,26 +4961,26 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
                 obj->focus = -1;
                 if (point.x < r.left || point.x > r.right
                     || point.y < r.top || point.y > r.bottom) {
-                    entry->field_138 = obj->clickStatusCache;
+                    entry->status = obj->clickStatusCache;
                     DrawButton(obj, index);
                     return 0;
                 }
-                entry->field_138 = (obj->clickStatusCache == 0);
+                entry->status = (obj->clickStatusCache == 0);
                 ClearPeerStatus(obj, index);
                 DrawButton(obj, index);
                 return 1;
             }
             if (point.x < r.left || point.x > r.right
                 || point.y < r.top || point.y > r.bottom) {
-                if (entry->field_138 == 0)
+                if (entry->status == 0)
                     goto fail;
-                entry->field_138 = 0;
+                entry->status = 0;
                 DrawButton(obj, index);
                 return 0;
             }
-            if (entry->field_138 != 0)
+            if (entry->status != 0)
                 goto fail;
-            entry->field_138 = 1;
+            entry->status = 1;
             DrawButton(obj, index);
             return 0;
         }
@@ -4989,10 +4989,10 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
                 goto fail;
             if (!PointInButtonRect(&r, point.x, point.y))
                 goto fail;
-            if (entry->field_138 == 1)
-                entry->field_138 = 0;
-            else if (entry->field_138 == 0)
-                entry->field_138 = 1;
+            if (entry->status == 1)
+                entry->status = 0;
+            else if (entry->status == 0)
+                entry->status = 1;
             ClearPeerStatus(obj, index);
             DrawButton(obj, index);
             obj->focus = -1;
@@ -5005,10 +5005,10 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
                 goto fail;
             GafEntry* p = entry->gaf;
             if (p != 0) {
-                if (entry->field_138 < p->count - 1)
-                    entry->field_138 += 1;
+                if (entry->status < p->count - 1)
+                    entry->status += 1;
                 else
-                    entry->field_138 = 0;
+                    entry->status = 0;
             }
             ClearPeerStatus(obj, index);
             DrawButton(obj, index);
@@ -5017,7 +5017,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
         }
         if (!HasMouseKeyFlags(obj, 3)) {
             obj->focus = -1;
-            entry->field_138 = 0;
+            entry->status = 0;
             ClearPeerStatus(obj, index);
             if (PointInButtonRect(&r, point.x, point.y)
                 && !(entry->attribs & 0x1800)) {
@@ -5033,7 +5033,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
             return 0;
         }
         // Keep this if / else-if / else chain: it gives the original block layout.
-        if (entry->field_138 != 0 && (entry->attribs & 0x2000)) {
+        if (entry->status != 0 && (entry->attribs & 0x2000)) {
             if (DAT_0051fbb0 == GetTicks())
                 goto fail;
             DAT_0051fbb0 = GetTicks();
@@ -5041,16 +5041,16 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
                 DAT_0051fbac -= 1;
                 return 0;
             }
-        } else if (entry->field_138 == 0
+        } else if (entry->status == 0
                    && PointInButtonRect(&r, point.x, point.y)) {
-            entry->field_138 = 1;
+            entry->status = 1;
             DAT_0051fbac = 0xf;
         } else {
-            if (entry->field_138 == 0)
+            if (entry->status == 0)
                 goto fail;
             if (PointInButtonRect(&r, point.x, point.y))
                 goto fail;
-            entry->field_138 = 0;
+            entry->status = 0;
             DrawButton(obj, index);
             return 0;
         }
@@ -5085,14 +5085,14 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
         if (!(obj->focus != -1 && entries[obj->focus].type == 3) || IsKeyDown(0xfb)) {
             if (obj->pathsReady == 1) {
                 if (param_3 != 0) {
-                    if ((char)tolower((char)entry->field_13a) == (char)param_3
-                        || (char)toupper((char)entry->field_13a) == (char)param_3) {
+                    if ((char)tolower((char)entry->quickKey) == (char)param_3
+                        || (char)toupper((char)entry->quickKey) == (char)param_3) {
                         if (entry->attribs & 0x40) {
-                            entry->field_138 = (entry->field_138 == 0);
+                            entry->status = (entry->status == 0);
                             DrawButton(obj, index);
                         } else if (entry->attribs & 0x10) {
-                            if (entry->field_138 == 0) {
-                                entry->field_138 = 1;
+                            if (entry->status == 0) {
+                                entry->status = 1;
                                 DrawButton(obj, index);
                             }
                         }
@@ -5133,7 +5133,7 @@ void __stdcall BeginTextEdit(Gui* obj, int index)
 
     TrySetFocus(obj, index);
     obj->layer->current = index;
-    CommitTextEdit(obj, index, target->u.text, target->field_138, 0);
+    CommitTextEdit(obj, index, target->u.text, target->status, 0);
     ClearKeyQueue();
 }
 
@@ -5149,7 +5149,7 @@ static inline void Activate(Gui* obj, int index)
     SelectFontForEntry((void*)ep, index);
     TrySetFocus(obj, index);
     obj->layer->current = index;
-    CommitTextEdit(obj, index, ep[index].u.text, ep[index].field_138, 0);
+    CommitTextEdit(obj, index, ep[index].u.text, ep[index].status, 0);
     ClearKeyQueue();
 }
 
@@ -5256,7 +5256,7 @@ static inline void DoSelect(Gui* menu, Gadget* entries, int sel)
         SetFont(g_guiContext->fontId);
     TrySetFocus(menu, sel);
     menu->layer->current = sel;
-    CommitTextEdit(menu, sel, entry->u.text, entry->field_138, 0);
+    CommitTextEdit(menu, sel, entry->u.text, entry->status, 0);
     ClearKeyQueue();
 }
 
@@ -5313,7 +5313,7 @@ void __stdcall SelectGadgetByIndex(Gui* menu, int index)
 
         TrySetFocus(menu, i);
         menu->layer->current = i;
-        CommitTextEdit(menu, i, entry->u.text, entry->field_138, 0);
+        CommitTextEdit(menu, i, entry->u.text, entry->status, 0);
         ClearKeyQueue();
     }
 }
@@ -5343,7 +5343,7 @@ static inline void FUN_004a7190_inlined(Gui* obj, int index)
 
     TrySetFocus(obj, index);
     obj->layer->current = index;
-    CommitTextEdit(obj, index, target->u.text, target->field_138, 0);
+    CommitTextEdit(obj, index, target->u.text, target->status, 0);
     ClearKeyQueue();
 }
 
@@ -5489,7 +5489,7 @@ void __stdcall FindButtonGaf(Gui* button, Gadget* obj)
     Gadget* holder = button->layer->entries;
     strncpy(name, obj->name, 0x10);
     name[0xf] = 0;
-    obj->field_13b = 0;
+    obj->frameBase = 0;
     void* gaf = holder->u.assets.archive;
     if (gaf)
         entry = FindGafEntry(gaf, name);
@@ -5525,7 +5525,7 @@ void __stdcall FindButtonGaf(Gui* button, Gadget* obj)
                         GafFrame* f = GetGafFrame(entry, j);
                         int d = abs(obj->height - f->height) + abs(obj->width - f->width);
                         if (d < best) {
-                            obj->field_13b = (unsigned char)j;
+                            obj->frameBase = (unsigned char)j;
                             best = d;
                         }
                     }
@@ -5535,7 +5535,7 @@ void __stdcall FindButtonGaf(Gui* button, Gadget* obj)
     }
     obj->gaf = entry;
     if (entry != 0) {
-        GafFrame* f = GetGafFrame(entry, obj->field_13b);
+        GafFrame* f = GetGafFrame(entry, obj->frameBase);
         if (f != 0) {
             obj->width = f->width;
             obj->height = f->height;
@@ -5545,7 +5545,7 @@ void __stdcall FindButtonGaf(Gui* button, Gadget* obj)
 
 // Appends a cleared entry of the given type to the GUI entry list (entry 0
 // holds the count) and returns its index.
-// The memset spelling and the type-before-field_29 order are what RenderLayer
+// The memset spelling and the type-before-active order are what RenderLayer
 // needs when it inlines this; the standalone function matches with either.
 // FUNCTION: 0x4a8150
 int __stdcall AddGadgetEntry(Gui* obj, unsigned char type)
@@ -5555,7 +5555,7 @@ int __stdcall AddGadgetEntry(Gui* obj, unsigned char type)
     Gadget* e = &entries[entries->u.count];
     memset(&entries[entries->u.count], 0, sizeof(Gadget));
     e->type = type;
-    e->field_29 = 1;
+    e->active = 1;
     return entries->u.count;
 }
 
@@ -5622,7 +5622,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
     if (menu->clearQuickKeys != 0) {
         for (i = 0; i <= entries[0].u.count; i++) {
             if (entries[i].type == 1)
-                entries[i].field_13a = 0;
+                entries[i].quickKey = 0;
         }
     }
     if (entries[0].width > GetScreenWidth() || entries[0].height > GetScreenHeight())
@@ -5688,7 +5688,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
         }
 
         case 4: {
-            entries[i].field_13b = 0;
+            entries[i].frameBase = 0;
             if (entries[0].u.assets.archive)
                 g = FindGafEntry(entries[0].u.assets.archive, "SLIDERS");
             if (g == 0 && menu->gaf != 0) {
@@ -5710,19 +5710,19 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                 firstEnd->x = entries[i].x;
                 firstEnd->y = entries[i].y;
                 firstEnd->gaf = g;
-                firstEnd->field_13b = entries[i].sliderStyle + 6;
+                firstEnd->frameBase = entries[i].sliderStyle + 6;
                 firstEnd->team = entries[i].team;
                 GafFrame* frame = GetGafFrame(g, entries[i].sliderStyle + 6);
                 firstEnd->width = frame->width;
                 firstEnd->height = frame->height;
                 firstEnd->attribs = 0x3400;
-                firstEnd->field_29 = entries[i].field_29;
+                firstEnd->active = entries[i].active;
                 Gadget* secondEnd = &entries[AddGadgetEntry(menu, 1)];
-                secondEnd->field_29 = entries[i].field_29;
+                secondEnd->active = entries[i].active;
                 frame = GetGafFrame(g, entries[i].sliderStyle + 8);
                 secondEnd->y = entries[i].y;
                 secondEnd->gaf = g;
-                secondEnd->field_13b = entries[i].sliderStyle + 8;
+                secondEnd->frameBase = entries[i].sliderStyle + 8;
                 secondEnd->team = entries[i].team;
                 secondEnd->attribs = 0x2c00;
                 secondEnd->width = frame->width;
@@ -5754,8 +5754,8 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                 ClearGlyphOffsets(input);
             }
             entries[i].inputGaf = input;
-            if (entries[i].field_138 >= 0x80)
-                entries[i].field_138 = 0x7f;
+            if (entries[i].status >= 0x80)
+                entries[i].status = 0x7f;
             memset(entries[i].u.text, 0, 0x80);
             break;
         }
@@ -5803,7 +5803,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                 break;
             AssignQuickKey(menu, i);
             strncpy(textbuf, entries[i].name, 0x10);
-            entries[i].field_13b = 0;
+            entries[i].frameBase = 0;
             textbuf[0x10] = 0;
             if (entries[0].u.assets.archive)
                 g = FindGafEntry(entries[0].u.assets.archive, textbuf);
@@ -5840,7 +5840,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                                 GafFrame* frame = GetGafFrame(g, j);
                                 int distance = abs(entries[i].height - frame->height) + abs(entries[i].width - frame->width);
                                 if (distance < best) {
-                                    entries[i].field_13b = (unsigned char)j;
+                                    entries[i].frameBase = (unsigned char)j;
                                     best = distance;
                                 }
                             }
@@ -5850,7 +5850,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
             }
             entries[i].gaf = g;
             if (g != 0) {
-                GafFrame* frame = GetGafFrame(g, entries[i].field_13b);
+                GafFrame* frame = GetGafFrame(g, entries[i].frameBase);
                 if (frame != 0) {
                     entries[i].width = frame->width;
                     entries[i].height = frame->height;
@@ -5932,7 +5932,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
         }
 
         for (i = 1; i < 1 + entries[0].u.count; i++) {
-            if (entries[i].field_29 == 0)
+            if (entries[i].active == 0)
                 continue;
             switch (entries[i].type) {
             case 11:
@@ -5951,8 +5951,8 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
                     Gadget* base = menu->layer->entries;
                     int t = 0;
                     int j;
-                    base[i].u.list.field_bc = 0;
-                    base[i].u.list.field_ba = 0;
+                    base[i].u.list.firstRow = 0;
+                    base[i].u.list.selected = 0;
                     for (j = 1; j < base[0].u.count + 1; j++) {
                         if (base[j].type == 7) {
                             if (t == base[i].tab) {
@@ -6025,7 +6025,7 @@ int __stdcall RenderLayer(Gui* menu, unsigned int flags)
             savedType = entries[menu->layer->current].type;
             DrawGadgetSelectionBox(menu, menu->layer->current, 8);
             int j = FindEntry(entries, entries[0].u.text + 0x16);
-            if (j != -1 && savedType != 1 && entries[i].field_29 != 0)
+            if (j != -1 && savedType != 1 && entries[i].active != 0)
                 DrawGadgetSelectionBox(menu, j, 8);
         }
     }
@@ -6215,33 +6215,33 @@ void __stdcall ListBoxSelectUp(Gui* param_1, int index)
     }
     size++;
     int step = (me->height - 2) / size;
-    short last = me->u.list.field_bc;
-    short sel = me->u.list.field_ba;
+    short last = me->u.list.firstRow;
+    short sel = me->u.list.selected;
     int isel = sel;
     if (sel < last + step && sel >= last) {
-        if (me->u.list.field_c0 == 0) {
+        if (me->u.list.rowCount == 0) {
             return;
         }
         if (sel == 0) {
             return;
         }
         short prev = sel - 1;
-        me->u.list.field_ba = prev;
+        me->u.list.selected = prev;
         if (prev < last) {
             last--;
-            me->u.list.field_bc = last;
+            me->u.list.firstRow = last;
         }
         if (me->u.list.field_c2 != 0) {
             char* line = SkipTextLines(me->u.list.field_c2, prev);
             if (strncmp(DAT_00502a20, line, 2) == 0) {
-                me->u.list.field_ba = isel;
+                me->u.list.selected = isel;
             }
         }
         DrawListBox(param_1, index);
         SyncAssocGadgets(param_1, index);
         return;
     }
-    if (me->u.list.field_c0 != 0) {
+    if (me->u.list.rowCount != 0) {
         SetListBoxScrollByName(param_1, me->name, isel);
     }
 }
@@ -6285,27 +6285,27 @@ void __stdcall ListBoxSelectDown(Gui* param_1, int index)
         : (*(unsigned short*)((int)GetGafFrame(g_guiContext->language->glyphs, 0x49) + 2) + 2);
     size++;
     int step = (me->height - 2) / size;
-    short last = me->u.list.field_bc;     // last line of the window
-    short sel = me->u.list.field_ba;      // selected line
+    short last = me->u.list.firstRow;     // last line of the window
+    short sel = me->u.list.selected;      // selected line
     // Int copy of sel, kept live across the calls below: using sel directly changes the code.
     int isel = sel;
     if (isel < last + step && sel >= last) {
-        if (me->u.list.field_c0 != 0) {
-            if (isel == me->u.list.field_be + step - 1) {
+        if (me->u.list.rowCount != 0) {
+            if (isel == me->u.list.maxFirstRow + step - 1) {
                 return;
             }
             short next = sel + 1;
-            me->u.list.field_ba = next;
+            me->u.list.selected = next;
             if (next > last + step - 1) {
-                me->u.list.field_bc = last + 1;
+                me->u.list.firstRow = last + 1;
             }
-            if (next >= me->u.list.field_c0 - 1) {
-                me->u.list.field_ba = me->u.list.field_c0 - 1;
+            if (next >= me->u.list.rowCount - 1) {
+                me->u.list.selected = me->u.list.rowCount - 1;
             }
             if (me->u.list.field_c2 != 0) {
-                char* line = SkipTextLines(me->u.list.field_c2, me->u.list.field_ba);
+                char* line = SkipTextLines(me->u.list.field_c2, me->u.list.selected);
                 if (strncmp(DAT_00502a20, line, 2) == 0) {
-                    me->u.list.field_ba = isel;
+                    me->u.list.selected = isel;
                 }
             }
             DrawListBox(param_1, index);
@@ -6313,7 +6313,7 @@ void __stdcall ListBoxSelectDown(Gui* param_1, int index)
             return;
         }
     }
-    if (me->u.list.field_c0 != 0) {
+    if (me->u.list.rowCount != 0) {
         SetListBoxScrollByName(param_1, me->name, isel);
     }
 }
@@ -6353,7 +6353,7 @@ int __stdcall HandleGuiCommand(Gui* obj, int cmd)
     case 0x1b:
         {
             int found = FindEntry(entries, entries[0].u.names.choice2);
-            if (found == -1 || entries[found].field_29 == 0)
+            if (found == -1 || entries[found].active == 0)
                 break;
             newsel = found;
         }
@@ -6364,7 +6364,7 @@ int __stdcall HandleGuiCommand(Gui* obj, int cmd)
             break;
         {
             int found = FindEntry(entries, entries[0].u.names.choice);
-            if (found != -1 && entries[found].field_29 != 0
+            if (found != -1 && entries[found].active != 0
                 && !(entries[found].type == 1 && (entries[found].max & 1))) {
                 newsel = found;
                 cmd = 0;
@@ -6377,14 +6377,14 @@ int __stdcall HandleGuiCommand(Gui* obj, int cmd)
             break;
         if (type != 1 && type != 2 && type != 6)
             break;
-        if (e->field_29 == 0)
+        if (e->active == 0)
             break;
         if (type == 1 && (e->grayedout & 1))
             break;
         newsel = index;
         if (type == 1) {
             if (e->attribs & 0x10) {
-                e->field_138 = 1;
+                e->status = 1;
                 ClearPeerStatus(obj, index);
                 DrawButton(obj, index);
             }
@@ -6458,7 +6458,7 @@ static inline void SelectCurrentByName(Gui* menu, Gadget* entries, int sel)
     SelectFontForEntry((void*)entries, sel);
     TrySetFocus(menu, sel);
     menu->layer->current = sel;
-    CommitTextEdit(menu, sel, entry->u.text, entry->field_138, 0);
+    CommitTextEdit(menu, sel, entry->u.text, entry->status, 0);
     ClearKeyQueue();
 }
 
@@ -6619,7 +6619,7 @@ int __stdcall UpdateMenu(Gui* menu)
     i = 1;
     for (; i < entries->u.count + 1; i++) {
         e = &entries[i];
-        if (e->field_29 != 0) {
+        if (e->active != 0) {
             int x, y;
             if (e->type == 0) {
                 x = 0;
@@ -6667,7 +6667,7 @@ int __stdcall UpdateMenu(Gui* menu)
                         sel = found;
                         me = &entries[found];
                         if (me->type == 1) {
-                            if (me->field_29 == 0 || (me->grayedout & 1) != 0) {
+                            if (me->active == 0 || (me->grayedout & 1) != 0) {
                                 sel = -1;
                             } else {
                                 me->stageIndex++;
@@ -6676,8 +6676,8 @@ int __stdcall UpdateMenu(Gui* menu)
                                 DrawButton(menu, found);
                             }
                         } else {
-                            if (me->field_29 != 0) {
-                                if (me->type == 4 && me->field_157 != 0) {
+                            if (me->active != 0) {
+                                if (me->type == 4 && me->sliderLocked != 0) {
                                     sel = -1;
                                 } else {
                                     // Helper call, not the inline chain: keeps the group scan an explicit call.

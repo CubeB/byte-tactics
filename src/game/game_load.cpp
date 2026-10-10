@@ -118,7 +118,7 @@ struct PlayerRec_00497f40 {             // 0x14b bytes, array at g_game+0x1b63
     unsigned int id;                    // +0x4
     char unknown_8[0x20 - 0x8];
     unsigned char percent;              // +0x20
-    unsigned char field_21;             // +0x21
+    unsigned char keepaliveFlags;       // +0x21
     char unknown_22[0x27 - 0x22];
     PlayerInfo* data;                   // +0x27
     char name[0x73 - 0x2b];             // +0x2b
@@ -131,7 +131,7 @@ struct PlayerRec_00497f40 {             // 0x14b bytes, array at g_game+0x1b63
     float size2;                        // +0xe0
     char unknown_e4[0x146 - 0xe4];
     unsigned char kind;                 // +0x146
-    unsigned char field_147;            // +0x147
+    unsigned char startPos;             // +0x147
     char unknown_148[0x149 - 0x148];
     RecFlag_497180 flags_149;           // +0x149
 };
@@ -608,7 +608,7 @@ void __cdecl LoadMatch(void*)
 
         int sel = FindHostSlot();
         unsigned char cur = g_game->localPlayer;
-        if (g_game->players[cur].field_21 & 2) {
+        if (g_game->players[cur].keepaliveFlags & 2) {
             do {
                 PlayerInfo* p = g_game->players[g_game->localPlayer].data;
                 if (g_usePacketManager)
@@ -697,7 +697,7 @@ void __cdecl LoadMatch(void*)
                     continue;
                 PlayerInfo* pl2 = rec->data;
                 int side = pl2->side;
-                int which = rec->field_147;
+                int which = rec->startPos;
                 ((Mission*)g_game->mapInfo)->GetStartPosition(&pos, which);
                 if (rec->active != 0 && rec->team == 1)
                     start = pos;

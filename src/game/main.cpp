@@ -178,7 +178,7 @@ struct App_0049e830 {
     int unknown_10;                    // +0x10
     int menuId;                        // +0x14
     char unknown_18[0xe0 - 0x18];
-    int field_e0;                      // +0xe0
+    int active;                        // +0xe0
     char unknown_e4[0xf0 - 0xe4];
     Dword_0051f410 flags;              // +0xf0
     char unknown_f4[0x1fa - 0xf4];
@@ -307,12 +307,12 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
     for (;;) {
         for (;;) {
-            if (g_displayContext.field_e0 == lzero && *(int*)g_game->sound != 0) {
+            if (g_displayContext.active == lzero && *(int*)g_game->sound != 0) {
                 SaveCdLists();
                 g_cdTrackCategory = g_game->sound->GetTrackCategory();
                 g_game->sound->CloseCdAudio();
                 g_cdNeedsReopenAfterFocus = 1;
-            } else if (g_displayContext.field_e0 != lzero && *(int*)g_game->sound == 0
+            } else if (g_displayContext.active != lzero && *(int*)g_game->sound == 0
                        && g_cdNeedsReopenAfterFocus != 0) {
                 g_game->sound->OpenCdAudio();
                 g_game->sound->SetCdCallback(ReopenCdAudio);
@@ -324,7 +324,7 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
             }
             if (PeekMessageA(&msg, NULL, 0, 0, 0) != 0)
                 break;
-            if (g_displayContext.field_e0 == 0 && (g_game->flags_2a44 & 1) == 0)
+            if (g_displayContext.active == 0 && (g_game->flags_2a44 & 1) == 0)
                 break;
             MainFrameTick();
             {

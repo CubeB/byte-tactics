@@ -192,12 +192,12 @@ struct Unit {
     Vec3_00456050 pos;            // +0x6a
     char unknown_76[0x96 - 0x76];
     Player* player;                    // +0x96
-    CobScript* names;                  // +0x9a
+    CobScript* script;                 // +0x9a
     char unknown_9e[0xa6 - 0x9e];
     short unitDefIndex;                    // +0xa6
     short id;                    // +0xa8
     char unknown_aa[0x110 - 0xaa];
-    unsigned int flags_110;            // +0x110
+    unsigned int flags;                // +0x110
     char unknown_114[4];
     void SetStateBits(unsigned char, int);
 };
@@ -2797,7 +2797,7 @@ void __stdcall SetMissionType(int a);
 int __stdcall SendScriptCallNoArgsByName(Unit* obj, char* name)
 {
     UnitScriptCallPacket packet;
-    int index = obj->names->FindScript(name);
+    int index = obj->script->FindScript(name);
     if (!(g_game->flags_2a44 & 1)) {
         return 0;
     }
@@ -2837,7 +2837,7 @@ int __stdcall SendScriptCallByName(Unit* obj, char* name, char argCount,
                            int arg0, int arg1, int arg2, int arg3)
 {
     UnitScriptCallPacket packet;
-    short index = obj->names->FindScript(name);
+    short index = obj->script->FindScript(name);
     if (!(g_game->flags_2a44 & 1)) {
         return 0;
     }

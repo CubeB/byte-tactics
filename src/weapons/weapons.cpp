@@ -156,7 +156,7 @@ struct Vec3_0049abb0 {
 // 499a30's views are folded in under the union's other members: its def at
 // +0xc is f_c (its f10a and f111 are team and flags.value), its weapons[3]
 // are slots[3], its f16/f18/f1b are f_16/f_18/f_1b, its owner is playerIndex,
-// its armour is f_b8, its state is flags, its type is utype and its pos is
+// its armour is killCount, its state is flags, its type is utype and its pos is
 // pos_0049abb0.
 // The unit, as the weapon code sees it. The views disagree about the bytes at
 // +0x4 (49e1a0's three weapon entries, 49d270's one, 49d580's fire state and
@@ -172,7 +172,7 @@ struct Unit {
         Owner_0049dd60* owner;         // 49dd60's owner
     };
     union {                            // +0x4
-        Entry_0049e1a0 entries[3];     // 49e1a0's weapon entries, stride 0x1c
+        Entry_0049e1a0 weapons[3];     // 49e1a0's weapon entries, stride 0x1c
         Entry_0049d270 entry[1];       // 49d270's entry, indexed by the packet
         struct {                       // 49d580's fire state
             char unknown_4[4];
@@ -236,13 +236,13 @@ struct Unit {
     char unknown_aa[0xb0 - 0xaa];
     int workTime;                      // +0xb0, 49c740's
     char unknown_b4[0xb8 - 0xb4];
-    unsigned short f_b8;               // +0xb8, the aiming inaccuracy
+    unsigned short killCount;          // +0xb8, the kill count, which scales the aiming inaccuracy
     union {                            // +0xba
         Fbb_0049d580 f_bb;
         Fba_0049e1a0 f_ba;
     };
     union {                            // +0xbc
-        UnitResources f_bc;            // 49e1a0's resources
+        UnitResources resourceSlot;    // 49e1a0's resources
         struct {
             char unknown_bc[0xdc - 0xbc];
             int f_dc;                  // +0xdc, 49c920's and 49c9c0's
@@ -255,7 +255,7 @@ struct Unit {
     char unknown_f0[0xff - 0xf0];
     unsigned char playerIndex;            // +0xff, the owner's player colour (49c740)
     char unknown_100[0x108 - 0x100];
-    short f_108;                       // +0x108
+    short health;                      // +0x108
     unsigned char team;                // +0x10a
     char unknown_10b[0x110 - 0x10b];
     union {                            // +0x110
@@ -665,7 +665,7 @@ int __stdcall ApplyWeaponDamage(Weapon_00499cd0* weapon, Unit* target,
                                weapon->z - target->pos_0049abb0.z) - target->heading;
     Unit* attacker = weapon->attacker;
     if (attacker) {
-        int armour = attacker->f_b8 / 5;
+        int armour = attacker->killCount / 5;
         if (armour > 5)
             armour = 5;
         damage = (armour * 6 + 100) * damage / 100;
@@ -2368,8 +2368,8 @@ int __stdcall FireTurretWeapon(Unit* fire, Unit* unit,
         GetWeaponPiecePosition(fire, &gunpos, unit->f_1b >> 2 & 3, -1);
         unit->f_16 += fire->f_66;
         // Re-read unit->f_c here and in the tail instead of using def.
-        short spread = unit->f_c->f_104 - (short)((fire->f_108 << 11) / fire->utype->maxHealth) + 0x800;
-        int parts = fire->f_b8 / 12;
+        short spread = unit->f_c->f_104 - (short)((fire->health << 11) / fire->utype->maxHealth) + 0x800;
+        int parts = fire->killCount / 12;
         if (parts > 1)
             spread = (unsigned short)spread / parts;
         if (spread) {
@@ -2873,7 +2873,7 @@ void __stdcall UpdateUnitWeapons(Unit* unit) {
     Vec3 aim;
 
     for (i = 0; i < 3; i++) {
-        Entry_0049e1a0* e = &unit->entries[i];
+        Entry_0049e1a0* e = &unit->weapons[i];
         unsigned char fl = e->flags;
         Target_0049e1a0* attached = e->attached;
         if (!(fl & 2))
@@ -2933,8 +2933,8 @@ void __stdcall UpdateUnitWeapons(Unit* unit) {
                 if (e->f_1a)
                     can = 1;
             } else {
-                if (unit->f_bc.player->energy >= attached->f_c0 &&
-                    unit->f_bc.player->metal >= attached->f_c4)
+                if (unit->resourceSlot.player->energy >= attached->f_c0 &&
+                    unit->resourceSlot.player->metal >= attached->f_c4)
                     can = 1;
             }
             if (can == 0)
@@ -2946,17 +2946,17 @@ void __stdcall UpdateUnitWeapons(Unit* unit) {
                 e->f_1a--;
                 UpdateBuildMenuIfFocusUnit(unit);
             } else {
-                int n = unit->f_b8 / 5;
+                int n = unit->killCount / 5;
                 if (n > 5)
                     n = 5;
-                int q = unit->f_108 * 20 / unit->utype->maxHealth;
+                int q = unit->health * 20 / unit->utype->maxHealth;
                 int pct = 100 - n * 6;
                 e->f_14 = (short)((120 - q) * (pct * attached->f_e4 / 100) / 100);
             }
             int m = (attached->f_111.b26) ? 0x800 : 0x400;
             unit->f_ba.w |= m;
             if (!attached->f_111.b28)
-                unit->f_bc.SpendEnergyAndMetal(attached->f_c0, attached->f_c4);
+                unit->resourceSlot.SpendEnergyAndMetal(attached->f_c0, attached->f_c4);
         } else {
             unit->f_ba.b[1] |= 0x10;
         }

@@ -33,10 +33,10 @@ struct Obj_0047db20 {
     char unknown_0[0x76];
     Point16 pos;
     char unknown_7a[4];
-    Point16 size;
+    Point16 footprint;
     int spatialBucket;
     char unknown_86[0x92 - 0x86];
-    Unit_0047db20* unit;
+    Unit_0047db20* def;
     char unknown_96[0xa8 - 0x96];
     short id;
     char unknown_aa[0x110 - 0xaa];
@@ -78,13 +78,13 @@ static inline Cell* CellAt(const Point16& p)
 void __stdcall RemoveUnitFromMap(Obj_0047db20* obj)
 {
     if (obj->spatialBucket != g_game->overflowBucket) {
-        Point16 size = obj->size;
+        Point16 size = obj->footprint;
         Cell* cell = CellAt(obj->pos);
         int index = 0;
         if (obj->flags.all & 0x20000000) {
             for (int j = size.y; j > 0; j--) {
                 for (int i = size.x; i > 0; i--) {
-                    unsigned char m = obj->unit->mask[index];
+                    unsigned char m = obj->def->mask[index];
                     index++;
                     if (cell->unit == obj->id) cell->unit = 0;
                     if (m & 1) cell->flags &= 0xfd;
@@ -121,7 +121,7 @@ void __stdcall RemoveUnitFromMap(Obj_0047db20* obj)
     if (obj->flags.bits.flag26) {
         obj->flags.all &= ~0x04000000;
         ClaimFootprintVisitor visitor;
-        VisitObjectsInArea(obj->pos, obj->size, &visitor);
+        VisitObjectsInArea(obj->pos, obj->footprint, &visitor);
     }
     RefreshPassMapsForUnit(obj);
 }

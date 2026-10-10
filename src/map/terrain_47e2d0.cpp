@@ -13,7 +13,7 @@ struct Unit {
     char unknown_96[0xa8 - 0x96];
     unsigned short id;                 // +0xa8
     char unknown_aa[0xff - 0xaa];
-    unsigned char player;              // +0xff
+    unsigned char playerIndex;         // +0xff
 };
 
 #include "../units/unit_def.h"
@@ -68,7 +68,7 @@ int __stdcall CanPlaceFootprintAt(Unit* unit, Vec3* pos)
     int x = footprint.x;
     int idx = ((c >> 1) + (footprint.x >> 2)) * (w >> 1)
             + (a >> 1) + (footprint.x >> 2);
-    if (!(g->visibilityMask[idx] & (1 << unit->player)))
+    if (!(g->visibilityMask[idx] & (1 << unit->playerIndex)))
         return 1;
     unsigned char field228 = def->maxslope;
     short bd0 = def->maxwaterdepth;

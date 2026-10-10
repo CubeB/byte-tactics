@@ -111,18 +111,18 @@ struct Obj {
 };
 
 struct Unit {
-    void* vtable;                       // +0x0
-    Piece pieces[3];                    // +0x4
+    void* motion;                       // +0x0
+    Piece weapons[3];                   // +0x4
     int extraction;                       // +0x58
-    void* listHead;                     // +0x5c
-    void* listTail;                     // +0x60
+    void* list;                         // +0x5c
+    void* list2;                        // +0x60
     Angles16 angles;                  // +0x64
     Vec3 pos;                           // +0x6a
     int cell;                       // +0x76
     int losCacheCellX;                       // +0x7a
     int footprint;                       // +0x7e
     char gap_82[4];
-    void* f86;                          // +0x86
+    void* carrier;                      // +0x86
     char gap_8a[8];
     void* def;                     // +0x92
     char gap_96[4];
@@ -135,22 +135,22 @@ struct Unit {
     char gap_b4[4];
     short killCount;                     // +0xb8
     short netDirtyFlags;                     // +0xba
-    char info[0x34];                    // +0xbc
-    Unit* child;                        // +0xf0
-    unsigned char b_f4;
-    unsigned char b_f5;
-    unsigned char b_f6;
-    unsigned char b_f7;
+    char resourceSlot[0x34];            // +0xbc
+    Unit* attacker;                     // +0xf0
+    unsigned char lastAttackerSlot;
+    unsigned char lastDamageType;
+    unsigned char healthPercent;
+    unsigned char prevHealthPercent;
     unsigned char b_f8;
-    unsigned char b_f9;
-    unsigned char b_fa;
+    unsigned char transportPiece;
+    unsigned char recentlyDamagedTimer;
     char gap_fb[4];
-    unsigned char b_ff;                 // +0xff
+    unsigned char playerIndex;          // +0xff
     char gap_100[4];
     int buildLeft;                      // +0x104
     short health;                    // +0x108
     char gap_10a[4];
-    unsigned char b_10e;
+    unsigned char activateFlags;
     union { unsigned char b_10f; Bits10F bf; };
     unsigned int flags;                 // +0x110
     char gap_114[4];
@@ -281,9 +281,9 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
         if (child != 0)
             AttachUnitToPiece(unit, child, rec.b8d, rec.flags.b & 3);
     }
-    unit->child = LoadUnit(rec.childB, file);
-    unit->b_f9 = rec.b8d;
-    unit->b_f4 = rec.b8e;
+    unit->attacker = LoadUnit(rec.childB, file);
+    unit->transportPiece = rec.b8d;
+    unit->lastAttackerSlot = rec.b8e;
     unit->extraction = rec.f8f;
     unit->cell = rec.f93;
     unit->losCacheCellX = rec.f97;
@@ -291,13 +291,13 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
     unit->group = rec.f9f;
     SetUnitSquad(unit, rec.f9f);
     unit->buildLeft = rec.fa7;
-    unit->b_f5 = rec.bab;
-    unit->b_f6 = rec.bac;
-    unit->b_f7 = rec.bad;
+    unit->lastDamageType = rec.bab;
+    unit->healthPercent = rec.bac;
+    unit->prevHealthPercent = rec.bad;
     unit->netDirtyFlags = rec.bae;
     unit->b_f8 = rec.bb0;
-    unit->b_fa = rec.bb1;
-    unit->b_10e = rec.bb2;
+    unit->recentlyDamagedTimer = rec.bb1;
+    unit->activateFlags = rec.bb2;
 
     unit->bf.b0 = rec.flags.a0;
     unit->bf.b1 = rec.flags.a1;
@@ -323,12 +323,12 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
     unit->flags = (unit->flags & ~0x400000) | ((rec.flags.e << 14) & 0x400000);
     unit->flags = (unit->flags & ~0x3800000) | ((rec.flags.e << 14) & 0x3800000);
 
-    ((UnitResources*)&unit->info)->LoadUnitAccounts((UnitInfo*)unit, file);
+    ((UnitResources*)&unit->resourceSlot)->LoadUnitAccounts((UnitInfo*)unit, file);
     if (rec.f27 != 0)
-        ((UnitMotion*)unit->vtable)->LoadMotion(unit, file);
+        ((UnitMotion*)unit->motion)->LoadMotion(unit, file);
 
-    Order** normal = (Order**)&unit->listHead;
-    Order** special = (Order**)&unit->listTail;
+    Order** normal = (Order**)&unit->list;
+    Order** special = (Order**)&unit->list2;
     int k = 0;
     if (rec.f23 > 0) {
         do {
@@ -344,26 +344,26 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
             k++;
         } while (k < rec.f23);
     }
-    if (unit->listHead != 0)
-        ((Order*)unit->listHead)->ReattachFxToUnit();
+    if (unit->list != 0)
+        ((Order*)unit->list)->ReattachFxToUnit();
     sprintf(script, "Script%i", i);
     file->OpenNamedBox(script);
     ((CobScript*)unit->script)->LoadScriptState(file);
 
     // Plain array indexing in this field order: it anchors the loop pointer.
     for (int j = 0; j < 3; j++) {
-        unit->pieces[j].f0 = rec.pieces[j].f0;
-        unit->pieces[j].f4 = rec.pieces[j].f4;
-        unit->pieces[j].obj[0x10a] = rec.pieces[j].f8b;
-        unit->pieces[j].fc = rec.pieces[j].fc;
-        unit->pieces[j].f10 = rec.pieces[j].f10;
-        unit->pieces[j].f12 = rec.pieces[j].f12;
-        unit->pieces[j].f14 = rec.pieces[j].f14;
-        unit->pieces[j].f16 = rec.pieces[j].f16;
-        unit->pieces[j].fl.b0 = rec.pieces[j].fl.b0;
-        unit->pieces[j].fl.b1 = rec.pieces[j].fl.b1;
-        unit->pieces[j].fl.b23 = rec.pieces[j].fl.b23;
-        unit->pieces[j].fl.b4 = rec.pieces[j].fl.b4;
+        unit->weapons[j].f0 = rec.pieces[j].f0;
+        unit->weapons[j].f4 = rec.pieces[j].f4;
+        unit->weapons[j].obj[0x10a] = rec.pieces[j].f8b;
+        unit->weapons[j].fc = rec.pieces[j].fc;
+        unit->weapons[j].f10 = rec.pieces[j].f10;
+        unit->weapons[j].f12 = rec.pieces[j].f12;
+        unit->weapons[j].f14 = rec.pieces[j].f14;
+        unit->weapons[j].f16 = rec.pieces[j].f16;
+        unit->weapons[j].fl.b0 = rec.pieces[j].fl.b0;
+        unit->weapons[j].fl.b1 = rec.pieces[j].fl.b1;
+        unit->weapons[j].fl.b23 = rec.pieces[j].fl.b23;
+        unit->weapons[j].fl.b4 = rec.pieces[j].fl.b4;
     }
 
     if (unit->b_10f & 4)
@@ -395,14 +395,14 @@ void __stdcall SaveUnits(HapiBank* file)
             ((CobScript*)unit->script)->SaveScriptState(file);
 
             int n = 0;
-            Order* c = (Order*)unit->listHead;
+            Order* c = (Order*)unit->list;
             while (c != 0) {
                 sprintf(bufHead, "u%04xm%04x", unit->id, n);
                 c->SerializeToSave(unit, file, bufHead);
                 c = c->next;
                 n++;
             }
-            c = (Order*)unit->listTail;
+            c = (Order*)unit->list2;
             while (c != 0) {
                 sprintf(bufTail, "u%04xm%04x", unit->id, n);
                 c->SerializeToSave(unit, file, bufTail);
@@ -410,12 +410,12 @@ void __stdcall SaveUnits(HapiBank* file)
                 n++;
             }
 
-            if (unit->vtable != 0)
-                ((UnitMotion*)unit->vtable)->SaveMotion(unit, file);
+            if (unit->motion != 0)
+                ((UnitMotion*)unit->motion)->SaveMotion(unit, file);
             ((UnitResources*)((char*)unit + 0xbc))->SaveUnitAccounts((UnitInfo*)unit, file);
 
             strcpy(rec.name, (char*)(*(char**)((char*)unit + 0x92) + 0x20));
-            rec.player = unit->b_ff;
+            rec.player = unit->playerIndex;
             rec.id = unit->id;
 
             rec.pos = unit->pos;
@@ -423,40 +423,40 @@ void __stdcall SaveUnits(HapiBank* file)
             rec.f23 = n;
             rec.f3d = unit->health;
             rec.f3f = unit->killCount;
-            rec.f27 = unit->vtable != 0;
+            rec.f27 = unit->motion != 0;
 
             // Plain short local assigned in the nested if, not a pointer.
             short id8b = 0;
-            Unit* a = (Unit*)unit->f86;
+            Unit* a = (Unit*)unit->carrier;
             if (a != 0 && (a->flags & 0x10000000)) {
-                rec.childA = unit->f86 == 0 ? 0 : a->id;
-                rec.b8d = unit->b_f9;
+                rec.childA = unit->carrier == 0 ? 0 : a->id;
+                rec.b8d = unit->transportPiece;
             } else {
                 rec.childA = 0;
                 rec.b8d = 0xff;
             }
-            Unit* a2 = (Unit*)unit->child;
+            Unit* a2 = (Unit*)unit->attacker;
             if (a2 != 0) {
                 if (a2->flags & 0x10000000)
-                    id8b = unit->child == 0 ? 0 : a2->id;
+                    id8b = unit->attacker == 0 ? 0 : a2->id;
             }
             rec.childB = id8b;
             // Keep this statement order: it decides the scratch register chains.
             rec.f93 = unit->cell;
-            rec.b8e = unit->b_f4;
+            rec.b8e = unit->lastAttackerSlot;
             rec.f8f = unit->extraction;
             rec.f9f = unit->group;
             rec.f97 = unit->losCacheCellX;
             rec.f9b = unit->footprint;
-            rec.bac = unit->b_f6;
+            rec.bac = unit->healthPercent;
             rec.fa7 = unit->buildLeft;
-            rec.bab = unit->b_f5;
+            rec.bab = unit->lastDamageType;
             rec.bb0 = unit->b_f8;
-            rec.bad = unit->b_f7;
+            rec.bad = unit->prevHealthPercent;
             rec.bae = unit->netDirtyFlags;
             rec.fa3 = unit->workTime;
-            rec.bb1 = unit->b_fa;
-            rec.fb2 = unit->b_10e;
+            rec.bb1 = unit->recentlyDamagedTimer;
+            rec.fb2 = unit->activateFlags;
             unsigned int u = unit->flags;
             // Four 1-bit copies: a 4-bit field or `& 0xf` loses the zero extension.
             rec.flags.a0 = unit->bf.b0;
@@ -469,18 +469,18 @@ void __stdcall SaveUnits(HapiBank* file)
 
             // Plain array indexing in this field order: it anchors the loop pointer.
             for (int k = 0; k < 3; k++) {
-                rec.pieces[k].f0 = unit->pieces[k].f0;
-                rec.pieces[k].f4 = unit->pieces[k].f4;
-                rec.pieces[k].f8 = ((Obj*)unit->pieces[k].obj)->f10a;
-                rec.pieces[k].fc = unit->pieces[k].fc;
-                rec.pieces[k].f10 = unit->pieces[k].f10;
-                rec.pieces[k].f12 = unit->pieces[k].f12;
-                rec.pieces[k].f14 = unit->pieces[k].f14;
-                rec.pieces[k].f16 = unit->pieces[k].f16;
-                rec.pieces[k].fl.b0 = unit->pieces[k].fl.b0;
-                rec.pieces[k].fl.b1 = unit->pieces[k].fl.b1;
-                rec.pieces[k].fl.b23 = unit->pieces[k].fl.b23;
-                rec.pieces[k].fl.b4 = unit->pieces[k].fl.b4;
+                rec.pieces[k].f0 = unit->weapons[k].f0;
+                rec.pieces[k].f4 = unit->weapons[k].f4;
+                rec.pieces[k].f8 = ((Obj*)unit->weapons[k].obj)->f10a;
+                rec.pieces[k].fc = unit->weapons[k].fc;
+                rec.pieces[k].f10 = unit->weapons[k].f10;
+                rec.pieces[k].f12 = unit->weapons[k].f12;
+                rec.pieces[k].f14 = unit->weapons[k].f14;
+                rec.pieces[k].f16 = unit->weapons[k].f16;
+                rec.pieces[k].fl.b0 = unit->weapons[k].fl.b0;
+                rec.pieces[k].fl.b1 = unit->weapons[k].fl.b1;
+                rec.pieces[k].fl.b23 = unit->weapons[k].fl.b23;
+                rec.pieces[k].fl.b4 = unit->weapons[k].fl.b4;
             }
 
             file->OpenNumberedBox(count);

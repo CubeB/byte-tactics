@@ -64,13 +64,13 @@ struct Unit {
     char unknown_5c[0x92 - 0x5c];
     UnitDef_00401360* def;             // +0x92
     char unknown_96[0xb0 - 0x96];
-    unsigned int nextTick;             // +0xb0
+    unsigned int workTime;             // +0xb0
     char unknown_b4[0xbc - 0xb4];
-    UnitResources econ;                // +0xbc (player at +0xec)
+    UnitResources resourceSlot;        // +0xbc (player at +0xec)
     char unknown_f0[0x104 - 0xf0];
     float buildLeft;                   // +0x104
     char unknown_108[0x10e - 0x108];
-    unsigned char flags10e;            // +0x10e
+    unsigned char activateFlags;       // +0x10e
     char unknown_10f;
     union {
         unsigned int flags;            // +0x110

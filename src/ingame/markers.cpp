@@ -118,7 +118,7 @@ struct Unit {
     Pos pos;                          // +0x6a
     char unknown_76[0x92 - 0x76];
     UnitType* def;                    // +0x92
-    Player* owner;                    // +0x96
+    Player* player;                   // +0x96
     char unknown_9a[0x10e - 0x9a];
     unsigned char activateFlags;          // +0x10e
     char unknown_10f[0x110 - 0x10f];
@@ -552,7 +552,7 @@ void __stdcall DrawWeaponCoverage(void* surface, View* view, Order* order,
     Pos pos;
     Unit* u = order->unit;
     if (order->target != 0) {
-        if (IsUnitVisibleToPlayer(u->owner, order->target) == 0 && (order->flags & 0x200000) != 0) {
+        if (IsUnitVisibleToPlayer(u->player, order->target) == 0 && (order->flags & 0x200000) != 0) {
             pos.x.value = order->cached.x << 16;
             pos.y.value = order->target->pos.y.value;
             pos.z.value = order->cached.y << 16;

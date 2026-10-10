@@ -225,7 +225,7 @@ union Flags114_485a40 {
 #include "../util/angles.h"
 
 struct Unit {                          // 0x118 bytes
-    UnitMotion* obj;                   // +0x0
+    UnitMotion* motion;                // +0x0
     char unknown_4[0x8 - 0x4];
     WeaponAimCobCb sub_8;              // +0x8
     WeaponAimCobCb sub_24;             // +0x24
@@ -236,17 +236,17 @@ struct Unit {                          // 0x118 bytes
     ShortPair_485a40 screen;           // +0x76
     short losCacheCellX;                    // +0x7a
     short losCacheCellZ;                    // +0x7c
-    ShortPair_485a40 offset;           // +0x7e
-    SpatialBucket* list;               // +0x82
-    Unit* owner;                       // +0x86
-    Unit* first;                       // +0x8a
-    Unit* next;                        // +0x8e
-    UnitType* type;                    // +0x92
+    ShortPair_485a40 footprint;        // +0x7e
+    SpatialBucket* spatialBucket;      // +0x82
+    Unit* carrier;                     // +0x86
+    Unit* cargo;                       // +0x8a
+    Unit* cargoNext;                   // +0x8e
+    UnitType* def;                     // +0x92
     Player* player;                    // +0x96
     CobScript* script;                 // +0x9a
     ObjectState_00485d40* state;       // +0x9e
     char unknown_a2[0xa6 - 0xa2];
-    unsigned short typeId;             // +0xa6
+    unsigned short unitDefIndex;       // +0xa6
     unsigned short id;           // +0xa8
     short hoverBobPhase;                    // +0xaa
     unsigned int group;             // +0xac
@@ -254,8 +254,8 @@ struct Unit {                          // 0x118 bytes
     char unknown_b4[0xb8 - 0xb4];
     short killCount;                    // +0xb8
     short netDirtyFlags;                    // +0xba
-    UnitResources playerRef;           // +0xbc
-    Unit* parent;                      // +0xf0
+    UnitResources resourceSlot;        // +0xbc
+    Unit* attacker;                    // +0xf0
     unsigned char lastAttackerSlot;            // +0xf4
     unsigned char lastDamageType;            // +0xf5
     unsigned char healthPercent;            // +0xf6
@@ -603,7 +603,7 @@ void FreeUnitMemory(void)
     Unit* end = g_game->unitsEnd;
     if (u != 0) {
         for (; u <= end; u = (Unit*)((char*)u + 0x118)) {
-            if (u->typeId != 0)
+            if (u->unitDefIndex != 0)
                 KillUnit(u, 8);
         }
     }
@@ -627,18 +627,18 @@ int __stdcall RandomInt(int range);
 // FUNCTION: 0x485a40
 void __stdcall InitUnitFromType(Unit* unit, Pos_00485a40 pos, int param_5)
 {
-    unit->type = &g_game->unitDefs[(unsigned short)unit->typeId];
+    unit->def = &g_game->unitDefs[(unsigned short)unit->unitDefIndex];
     unit->flags.bits.b28 = 1;
-    unit->flags.bits.b29 = (unit->type->mobile == 0);
+    unit->flags.bits.b29 = (unit->def->mobile == 0);
     unit->flags.bits.b14 = 0;
-    unit->offset = unit->type->offset;
-    unit->flags.bits.b31 = unit->type->flags.bits.hi;
-    unit->zBufferFlag.bits.b0 = unit->type->flags.bits.b7;
-    unit->flags.bits.b30 = unit->type->flags.bits.b9;
+    unit->footprint = unit->def->offset;
+    unit->flags.bits.b31 = unit->def->flags.bits.hi;
+    unit->zBufferFlag.bits.b0 = unit->def->flags.bits.b7;
+    unit->flags.bits.b30 = unit->def->flags.bits.b9;
 
     if (param_5) {
         unit->buildLeft = 0;
-        unit->health = unit->type->hp;
+        unit->health = unit->def->hp;
     } else {
         unit->buildLeft = 1.0f;
         unit->unfinishedInitZero = 0;
@@ -663,14 +663,14 @@ void __stdcall InitUnitFromType(Unit* unit, Pos_00485a40 pos, int param_5)
     unit->angles.pitch = 0;
     unit->pos = pos;
 
-    ShortPair_485a40 off = unit->offset;
+    ShortPair_485a40 off = unit->footprint;
     ShortPair_485a40 screen;
     screen.x = (short)((pos.x - off.x * 0x80000 + 0x80000) >> 20);
     screen.y = (short)((pos.z - off.y * 0x80000 + 0x80000) >> 20);
     unit->screen = screen;
 
-    unit->angles.heading = (short)(RandomInt(unit->type->buildangle)
-                                    + (0x8000 - unit->type->buildangle / 2));
+    unit->angles.heading = (short)(RandomInt(unit->def->buildangle)
+                                    + (0x8000 - unit->def->buildangle / 2));
     unit->angles.bank = 0;
     unit->losCacheCellX = 0;
     unit->losCacheCellZ = 0;
@@ -686,13 +686,13 @@ void __stdcall InitUnitFromType(Unit* unit, Pos_00485a40 pos, int param_5)
 
     unit->netDirtyFlags = 0;
     unit->killCount = 0;
-    unit->parent = 0;
+    unit->attacker = 0;
     unit->lastAttackerSlot = 0xa;
-    unit->flags.bits.moveOrder = unit->type->flags.bits.movOrder;
-    unit->flags.bits.fireOrder = unit->type->flags.bits.fireOrder;
-    unit->flags.bits.b11 = unit->type->flags.bits.canAttack;
+    unit->flags.bits.moveOrder = unit->def->flags.bits.movOrder;
+    unit->flags.bits.fireOrder = unit->def->flags.bits.fireOrder;
+    unit->flags.bits.b11 = unit->def->flags.bits.canAttack;
     unit->flags.bits.f26_27 = 0;
-    if (unit->type->buildMenuPageCount > 1) {
+    if (unit->def->buildMenuPageCount > 1) {
         unit->flags.bits.f22_23 = 3;
         unit->flags.bits.f24_25 = 0;
     } else {
@@ -701,7 +701,7 @@ void __stdcall InitUnitFromType(Unit* unit, Pos_00485a40 pos, int param_5)
     }
 
     unit->losSightFrameIdx = 0;
-    unit->playerRef.Reset(unit->playerIndex);
+    unit->resourceSlot.Reset(unit->playerIndex);
     unit->transportPiece = 0xff;
     unit->hoverBobPhase = (short)RandomInt(0x10000);
     SetUnitSquad(unit, 0);
@@ -772,11 +772,11 @@ ObjectState_00485d40* __stdcall CreateObjectState(Object3do* obj);
 // FUNCTION: 0x485d40
 void __stdcall InitUnitScript(Unit* self)
 {
-    Object3do* obj = g_game->unitModels[self->typeId];
-    if (self->type->data) {
+    Object3do* obj = g_game->unitModels[self->unitDefIndex];
+    if (self->def->data) {
         self->script = new UnitScript;
-        self->script->SetCob(self->type->data);
-        self->state = CreatePlayerObjectState(obj, self->type->data, (int)self);  // the owner, as an int
+        self->script->SetCob(self->def->data);
+        self->state = CreatePlayerObjectState(obj, self->def->data, (int)self);  // the owner, as an int
         ((UnitScript*)self->script)->SetObjectState(self->state);
         self->script->StartScript("Create", 0, 1);
     } else {
@@ -816,8 +816,8 @@ UnitScript* emit_00485e30() { return new UnitScript; }
 // FUNCTION: 0x485e50
 void __stdcall CreateUnitMotion(Unit* unit)
 {
-    unit->obj = new UnitMotion(unit);
-    unit->angles.heading = unit->type->buildangle;
+    unit->motion = new UnitMotion(unit);
+    unit->angles.heading = unit->def->buildangle;
 }
 
 extern void* g_weaponAimCobVtable[];
@@ -845,14 +845,14 @@ void __stdcall InitUnit(int unitType, Pos_00485a40 pos, int param_5, Unit* unit)
             sub = (WeaponAimCobCb*)((char*)sub + 0x1c);
         }
     }
-    unit->typeId = (short)unitType;
+    unit->unitDefIndex = (short)unitType;
     InitUnitFromType(unit, pos, param_5);
     InitUnitScript(unit);
     InitUnitWeaponSlots(unit);
     UpdateMetalExtraction(unit);
     if (type->mobile == 1) {
-        unit->obj = new UnitMotion(unit);
-        unit->angles.heading = unit->type->buildangle;
+        unit->motion = new UnitMotion(unit);
+        unit->angles.heading = unit->def->buildangle;
     }
 }
 
@@ -884,14 +884,14 @@ static inline void __stdcall InitUnit_00485e90(unsigned short unitType, Pos_0048
             sub = (WeaponAimCobCb*)((char*)sub + 0x1c);
         }
     }
-    unit->typeId = unitType;
+    unit->unitDefIndex = unitType;
     InitUnitFromType(unit, pos, param_5);
     InitUnitScript(unit);
     InitUnitWeaponSlots(unit);
     UpdateMetalExtraction(unit);
     if (type->mobile == 1) {
-        unit->obj = new UnitMotion(unit);
-        unit->angles.heading = unit->type->buildangle;
+        unit->motion = new UnitMotion(unit);
+        unit->angles.heading = unit->def->buildangle;
     }
 }
 
@@ -909,7 +909,7 @@ Unit* __stdcall CreateUnit(unsigned char player, unsigned short typeId, Pos_0048
     if (type->limit != -1) {
         int count = 0;
         for (Unit* u = pl->unitsBegin; u <= pl->unitsEnd; u++) {
-            if (u->typeId == typeId)
+            if (u->unitDefIndex == typeId)
                 count++;
         }
         if (count >= type->limit)
@@ -922,7 +922,7 @@ Unit* __stdcall CreateUnit(unsigned char player, unsigned short typeId, Pos_0048
             if (unit < pl->unitsBegin || unit > pl->unitsEnd)
                 return 0;
         }
-        if (unit->typeId == 0)
+        if (unit->unitDefIndex == 0)
             goto found;
         if (id != 0)
             return 0;
@@ -937,9 +937,9 @@ found:
     if (param_5) {
         if (type->mobile == 0)
             BroadcastBuilderLink(unit, unit);
-        if (unit->type->flags.bit18)
+        if (unit->def->flags.bit18)
             ((Unit*)unit)->SetStateBits(1, 1);
-        if (unit->type->flags.bit24) {
+        if (unit->def->flags.bit24) {
             unit->lastDamageType = 7;
             unit->flags.bit14 = 1;
         }
@@ -982,7 +982,7 @@ Unit* __stdcall CreateUnitFromPacket(unsigned char player, Spawn_004861d0* spawn
     if (pl->unitsBegin == 0) {
         return 0;
     }
-    if (unit->typeId != 0) {
+    if (unit->unitDefIndex != 0) {
         KillUnit(unit, 0);
     }
     InitUnit_00485e90(spawn->type, spawn->pos, 0, unit);
@@ -1014,7 +1014,7 @@ void __stdcall EmitSmoke(Pos_00485070* pos, int a, int b, int c);
 // FUNCTION: 0x486360
 void __stdcall CreateUnitCorpse(Unit* unit, int depth, int flag)
 {
-    unsigned short id = unit->type->corpse;
+    unsigned short id = unit->def->corpse;
     for (; depth > 1; depth--) {
         if (id >= 0xfffb) {
             return;
@@ -1028,7 +1028,7 @@ void __stdcall CreateUnitCorpse(Unit* unit, int depth, int flag)
             if (GetGroundHeight(pos) <= g_game->seaLevel) {
                 Result_486360* r = PlaceFeature(target, id, pos, &unit->angles, unit->playerIndex);
                 if (r != 0) {
-                    if (!(unit->type->flags.all & 0x1000000)) {
+                    if (!(unit->def->flags.all & 0x1000000)) {
                         r->velY = -11468;
                         r->velZ = 0;
                     }
@@ -1047,7 +1047,7 @@ void __stdcall CreateUnitCorpse(Unit* unit, int depth, int flag)
 // FUNCTION: 0x486460
 int __stdcall IsUnitCommander(Unit* unit)
 {
-    return _strcmpi(g_game->names[unit->player->info->side].name, unit->type->name) == 0;
+    return _strcmpi(g_game->names[unit->player->info->side].name, unit->def->name) == 0;
 }
 
 // A live unit that changed its type (the linked unit name at g_game+0x37f5f
@@ -1081,7 +1081,7 @@ void __stdcall KillUnit(Unit* unit, int param_2)
 {
     if ((unit->flags.all & 0x10000000) != 0) {
         int same = _strcmpi(g_game->names[unit->player->info->side].name,
-                            unit->type->name) == 0;
+                            unit->def->name) == 0;
         if (same) {
             unit->player->flags &= 0xfffe;
         }
@@ -1094,7 +1094,7 @@ void __stdcall KillUnit(Unit* unit, int param_2)
             amount = 0;
             flag = 0;
         } else {
-            amount = ((int)(unit->health * -100 / unit->type->maxHealth) + unit->prevHealthPercent) / 2;
+            amount = ((int)(unit->health * -100 / unit->def->maxHealth) + unit->prevHealthPercent) / 2;
             if (amount < 1)
                 amount = 1;
             if (amount > 100)
@@ -1112,10 +1112,10 @@ void __stdcall KillUnit(Unit* unit, int param_2)
         cmd.count = flag;
         cmd.kind = param_2;
         cmd.killerId = GetSlotDpid(unit->lastAttackerSlot);
-        if (unit->parent == 0)
+        if (unit->attacker == 0)
             cmd.parentId = 0;
         else
-            cmd.parentId = unit->parent->id;
+            cmd.parentId = unit->attacker->id;
         if (unit->player->active != 0 &&
             (unit->player->type == 1 || unit->player->type == 2)) {
             BroadcastPacket(unit->player->id, (unsigned char*)&cmd, 0xb);
@@ -1167,25 +1167,25 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
         return;
 
     if (unit->player->index == g_game->playerIndex)
-        AddEyeball(&unit->pos, unit->type->x202, unit->type->x170, 60);
+        AddEyeball(&unit->pos, unit->def->x202, unit->def->x170, 60);
     Unit* parent;
     if (cmd->parentId == 0)
         parent = 0;
     else
         parent = &g_game->units[cmd->parentId];
-    unit->parent = parent;
+    unit->attacker = parent;
     unit->lastAttackerSlot = FindSlotByDpid(cmd->killerId);
     g_game->conditions->NotifyUnitDied(unit);
     DeleteOrders(unit, 1);
     RemoveSpeechOfUnit(unit);
     SetUnitSquad(unit, -1);
     RemoveUnitProjectiles(unit);
-    if (unit->owner != 0)
+    if (unit->carrier != 0)
         AttachUnitToPiece(unit, 0, -1, 1);
-    while (unit->first != 0) {
+    while (unit->cargo != 0) {
         unsigned char depth = cmd->kind != 3 ? 6 : 3;
-        DamageUnit(unit->parent, unit->first, 30000, depth, 0);
-        AttachUnitToPiece(unit->first, 0, -1, 1);
+        DamageUnit(unit->attacker, unit->cargo, 30000, depth, 0);
+        AttachUnitToPiece(unit->cargo, 0, -1, 1);
     }
     ClearFootprintAndUnlink(unit);
     if ((g_game->mapFlags & 2) == 2)
@@ -1205,14 +1205,14 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
             if (unit->lastAttackerSlot != 10 && unit->buildLeft == 0.0f && unit->playerIndex != unit->lastAttackerSlot)
                 g_game->players[unit->lastAttackerSlot].kills++;
             int same = _strcmpi(g_game->names[unit->player->info->side].name,
-                                unit->type->name) == 0;
+                                unit->def->name) == 0;
             if (same) {
                 if (unit->lastAttackerSlot != 10)
                     g_game->players[unit->lastAttackerSlot].commanderKills++;
                 unit->player->commanderLosses++;
             }
-            if (unit->parent != 0 && unit->buildLeft == 0.0f && unit->playerIndex != unit->lastAttackerSlot)
-                unit->parent->killCount++;
+            if (unit->attacker != 0 && unit->buildLeft == 0.0f && unit->playerIndex != unit->lastAttackerSlot)
+                unit->attacker->killCount++;
             if (unit->lastAttackerSlot == g_game->localPlayer)
                 AddCdActivitySample(5);
             credited = 1;
@@ -1222,7 +1222,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
         if (unit->player != 0 && g_game->players[g_game->localPlayer].shareVision[unit->player->index] == 0) {
             unit->player->losses++;
             int same = _strcmpi(g_game->names[unit->player->info->side].name,
-                                unit->type->name) == 0;
+                                unit->def->name) == 0;
             if (same)
                 unit->player->commanderLosses++;
             credited = 1;
@@ -1283,25 +1283,25 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
             FlashScorePanelKillLoss(unit->lastAttackerSlot, unit->player->index);
     }
 
-    if (cmd->kind == 5 && unit->parent != 0) {
+    if (cmd->kind == 5 && unit->attacker != 0) {
         // Field pointer, not a Unit* copy; and the copy into f is needed too.
-        Unit** par = &unit->parent;
+        Unit** par = &unit->attacker;
         float health = 1.0f - unit->buildLeft;
         float f = health;
-        f *= unit->type->x18a;
-        if ((*par)->playerRef.player->active != 0 && (*par)->playerRef.player->type == 2) {
+        f *= unit->def->x18a;
+        if ((*par)->resourceSlot.player->active != 0 && (*par)->resourceSlot.player->type == 2) {
             switch (g_game->difficulty) {
             case 0:
-                (*par)->playerRef.metalMake = (*par)->playerRef.metalMake - f * -0.5;
+                (*par)->resourceSlot.metalMake = (*par)->resourceSlot.metalMake - f * -0.5;
                 break;
             case 1:
-                (*par)->playerRef.metalMake = (*par)->playerRef.metalMake - f * -0.7;
+                (*par)->resourceSlot.metalMake = (*par)->resourceSlot.metalMake - f * -0.7;
                 break;
             default:
-                (*par)->playerRef.metalMake += f;
+                (*par)->resourceSlot.metalMake += f;
             }
         } else {
-            (*par)->playerRef.metalMake += f;
+            (*par)->resourceSlot.metalMake += f;
         }
     }
     if (cmd->amount > 0 && unit->buildLeft == 0.0f)
@@ -1321,16 +1321,16 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
         FreeObjectState(unit->state);
         unit->state = 0;
     }
-    UnitMotion* head = unit->obj;
+    UnitMotion* head = unit->motion;
     if (head != 0) {
         head->DestroyObject();
         operator delete(head);
-        unit->obj = 0;
+        unit->motion = 0;
     }
-    unit->typeId = 0;
+    unit->unitDefIndex = 0;
     // Keep this order: adjacent clears would fold into one `and`.
     unit->flags.all &= ~0x10000000;
-    unit->type = g_game->unitDefs;
+    unit->def = g_game->unitDefs;
     unit->flags.all &= ~0x30;
     unit->player->unitCount--;
     if (unit->player->unitCount == 0) {
@@ -1348,7 +1348,7 @@ void __stdcall KillUnitsOfType(short id)
     Unit* end = g_game->unitsEnd;
     if (id != 0 && u != 0) {
         for (; u <= end; u = (Unit*)((char*)u + 0x118)) {
-            if ((short)u->typeId == id) {
+            if ((short)u->unitDefIndex == id) {
                 KillUnit(u, 8);
             }
         }
@@ -1362,7 +1362,7 @@ void KillAllUnits(void)
     Unit* end = g_game->unitsEnd;
     if (u != 0) {
         for (; u <= end; u = (Unit*)((char*)u + 0x118)) {
-            if (u->typeId != 0) {
+            if (u->unitDefIndex != 0) {
                 KillUnit(u, 8);
             }
         }

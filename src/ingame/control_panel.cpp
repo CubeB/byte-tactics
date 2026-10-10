@@ -170,7 +170,7 @@ struct Unit {
     char unknown_76[0x86 - 0x76];
     int carrier;                      // +0x86
     char unknown_8a[0x92 - 0x8a];
-    UnitType* type;                    // +0x92
+    UnitType* def;                     // +0x92
     Player* player;                    // +0x96
     char unknown_9a[0x9e - 0x9a];
     Nano_0041b8d0* state;           // +0x9e
@@ -179,14 +179,14 @@ struct Unit {
     unsigned short id;           // +0xa8
     char unknown_aa[0xbb - 0xaa];
     unsigned char flags_bb;            // +0xbb
-    UnitResources store;               // +0xbc, 0x34 bytes (metalMake at +0xd4, player at +0xec)
+    UnitResources resourceSlot;        // +0xbc, 0x34 bytes (metalMake at +0xd4, player at +0xec)
     char unknown_f0[0xf5 - 0xf0];
     unsigned char lastDamageType;            // +0xf5
     char unknown_f6[0xff - 0xf6];
     unsigned char playerIndex;            // +0xff
     char unknown_100[0x104 - 0x100];
     float buildLeft;                   // +0x104
-    short hp;                          // +0x108
+    short health;                      // +0x108
     char unknown_10a[0x10e - 0x10a];
     unsigned short onOff : 1;          // +0x10e bit 0
     unsigned short bits_10e : 15;
@@ -548,11 +548,11 @@ void __stdcall IssueMobileBuildOrders(Arg_00419670* arg)
     unsigned char team = g_game->localPlayer;
     Player* p = &g_game->players[team];
     for (Unit* u = p->unitsBegin; u <= p->unitsEnd; u++) {
-        if ((u->flags.raw & 0x10) && (u->type->flags.raw & 0x40)) {
-            if (!(u->type->flags.raw & 0x800)) {
+        if ((u->flags.raw & 0x10) && (u->def->flags.raw & 0x40)) {
+            if (!(u->def->flags.raw & 0x800)) {
                 IssueOrCancelOrder("MOBILEBUILD", remove, u, 0, &pos, index, 0);
             } else {
-                UnitTypeFlagsBits flags = u->type->flags.bits;
+                UnitTypeFlagsBits flags = u->def->flags.bits;
                 if (flags.flag_11) {
                     IssueOrCancelOrder("VTOL_MOBILEBUILD", remove, u, 0, &pos, index, 0);
                 }
@@ -819,7 +819,7 @@ void __stdcall RefreshOrderButtons(Unit* unit)
 
     index = FindGadgetIndexBySubstring(layer, "BUILD");
     if (index != -1) {
-        if (unit && unit->type->buildMenuPageCount) {
+        if (unit && unit->def->buildMenuPageCount) {
             SetGadgetStatus(menu, index, unit->flags.bits.buildPage);
         } else {
             SetGrayedOut(menu, index, 1);
@@ -827,7 +827,7 @@ void __stdcall RefreshOrderButtons(Unit* unit)
     }
     index = FindGadgetIndexBySubstring(layer, "ORDERS");
     if (index != -1) {
-        if (unit && unit->type->buildMenuPageCount) {
+        if (unit && unit->def->buildMenuPageCount) {
             SetGadgetStatus(menu, index, !unit->flags.bits.buildPage);
         } else {
             SetGrayedOut(menu, index, 1);
@@ -1031,7 +1031,7 @@ int __stdcall HandleOrdersPanelClick(Gui* menu, Gadget* entries)
 void __stdcall SetPrevNextGadgetNames(Unit* unit)
 {
     char buf[256];
-    if (unit->type->buildMenuPageCount < 2) {
+    if (unit->def->buildMenuPageCount < 2) {
         sprintf(buf, "%sPREV", g_game->sideNames[unit->player->info->side].name);
         SetGadgetActiveByName(&g_game->gui, buf, 0);
         sprintf(buf, "%sNEXT", g_game->sideNames[unit->player->info->side].name);
@@ -1121,7 +1121,7 @@ void __stdcall DisableUnavailableBuildMenuEntries(Gui* obj)
 static inline void SetPrevNext(Unit* unit)
 {
     char buf[256];
-    if (unit->type->buildMenuPageCount < 2) {
+    if (unit->def->buildMenuPageCount < 2) {
         sprintf(buf, "%sPREV", g_game->sideNames[unit->player->info->side].name);
         SetGadgetActiveByName(&g_game->gui, buf, 0);
         sprintf(buf, "%sNEXT", g_game->sideNames[unit->player->info->side].name);
@@ -1170,7 +1170,7 @@ void __stdcall OpenBuildMenuGui(Unit* unit, char* guiName, int page)
                     BuildList_0041ace0* lists = g_game->buildLists;
                     // The entry in a local: the address lea's base and index order follows it.
                     BuildEntry_0041ace0* entry = &lists[i].entries[j];
-                    if (unit->type->id == entry->typeId
+                    if (unit->def->id == entry->typeId
                         && entry->page - 1 == page) {
                         char* src = entry->name;
                         Gadget* e = &layer->entries[entry->slot + 4];
@@ -1267,7 +1267,7 @@ Unit* GetBuildMenuFocusUnit()
 // FUNCTION: 0x41b8d0
 void __stdcall FinishConstruction(Unit* unit, Unit* target)
 {
-    if (unit && (unit->flags.raw & 0x10000000) && unit->type->ids != 0
+    if (unit && (unit->flags.raw & 0x10000000) && unit->def->ids != 0
         && target && (target->flags.raw & 0x10000000)) {
         target->state->drawFrame = 0;
         target->buildLeft = 0;
@@ -1283,11 +1283,11 @@ void __stdcall FinishConstruction(Unit* unit, Unit* target)
                     AttachUnitToPiece(target, 0, -1, 1);
             }
         }
-        if (target->type->flags.bits.flag_18)
+        if (target->def->flags.bits.flag_18)
             target->SetStateBits(1, 1);
         if (g_game->unitIndex == unit->id)
             RefreshBuildCountTexts(&g_game->gui, unit);
-        if (target->type->flags.bits.flag_24) {
+        if (target->def->flags.bits.flag_24) {
             target->lastDamageType = 7;
             target->flags.raw |= 0x4000;
         }
@@ -1318,7 +1318,7 @@ int __stdcall AddBuildProgress(Unit* builder, Unit* unit, float amount)
         unit->flags_bb |= 0x80;
     if (amount == 0.0f)
         return 0;
-    UnitType* type = unit->type;
+    UnitType* type = unit->def;
     float prev = unit->buildLeft;
     float next = min(max(prev - amount / type->buildtime, 0.0f), 1.0f);
     float step = prev - next;
@@ -1327,9 +1327,9 @@ int __stdcall AddBuildProgress(Unit* builder, Unit* unit, float amount)
     int hp = (int)(prev * type->maxHealth) - (int)(next * type->maxHealth);
     if (amount < 0.0f) {
         float refund = -metalCharge;
-        // Through a float&: writing unit->store.metalMake directly moves the hp load and compare.
-        float& store = unit->store.metalMake;
-        if (unit->store.player->active != 0 && unit->store.player->type == 2) {
+        // Through a float&: writing unit->resourceSlot.metalMake directly moves the health load and compare.
+        float& store = unit->resourceSlot.metalMake;
+        if (unit->resourceSlot.player->active != 0 && unit->resourceSlot.player->type == 2) {
             switch (g_game->difficulty) {
             case 0:
                 store += refund * 0.5;
@@ -1344,14 +1344,14 @@ int __stdcall AddBuildProgress(Unit* builder, Unit* unit, float amount)
         } else {
             store += refund;
         }
-        // hp is set before remaining; the other order also changes the build path.
-        unit->hp = max(hp + unit->hp, 0);
+        // health is set before remaining; the other order also changes the build path.
+        unit->health = max(hp + unit->health, 0);
         unit->buildLeft = next;
         unit->flags.raw |= 0x2000;
         if (next >= 1.0f)
             DamageUnit(unit, unit, 30000, 9, 0);
-    } else if (builder->store.RequestEnergyAndMetal(energyCharge, metalCharge)) {
-        unit->hp = min(hp + unit->hp, unit->type->maxHealth);
+    } else if (builder->resourceSlot.RequestEnergyAndMetal(energyCharge, metalCharge)) {
+        unit->health = min(hp + unit->health, unit->def->maxHealth);
         unit->buildLeft = next;
         unit->flags.raw |= 0x2000;
         result = 1;
@@ -1364,7 +1364,7 @@ int __stdcall AddBuildProgress(Unit* builder, Unit* unit, float amount)
 // FUNCTION: 0x41bcd0
 void __stdcall ApplyUnfinishedBuildDecay(Unit* param_1, int param_2)
 {
-    float val = -((float)(param_1->type->buildtime * param_2) / param_1->type->energyCost);
+    float val = -((float)(param_1->def->buildtime * param_2) / param_1->def->energyCost);
     AddBuildProgress(param_1, param_1, val);
 }
 
@@ -1372,10 +1372,10 @@ void __stdcall ApplyUnfinishedBuildDecay(Unit* param_1, int param_2)
 int __stdcall AddRepairProgress(Unit* builder, Unit* unit, float f)
 {
     int result = 0;
-    UnitType* s = unit->type;
+    UnitType* s = unit->def;
     int max = s->maxHealth;
     int v = s->buildtime;
-    if (unit->hp >= max)
+    if (unit->health >= max)
         return 0;
     int n1 = (int)((max * f - 1.0f) / v + 1.0f);
     int n2 = (int)((s->energyCost * f - 1.0f) / v + 1.0f);
@@ -1383,7 +1383,7 @@ int __stdcall AddRepairProgress(Unit* builder, Unit* unit, float f)
         n1 = 1;
     if (n2 >= 1)
         n2 = 1;
-    if (builder->store.RequestEnergy(&builder->store, (float)n2)) {
+    if (builder->resourceSlot.RequestEnergy(&builder->resourceSlot, (float)n2)) {
         DamageUnit(builder, unit, n1, 10, 0);
         result = 1;
     }
@@ -1394,7 +1394,7 @@ int __stdcall AddRepairProgress(Unit* builder, Unit* unit, float f)
 // stepped down with wraparound when it is already past the first page.
 static inline unsigned int SetPage(Unit* u, unsigned int f)
 {
-    return (((u->type->buildMenuPageCount + 0x1ff) << 23) ^ f) & 0x3800000 ^ f;
+    return (((u->def->buildMenuPageCount + 0x1ff) << 23) ^ f) & 0x3800000 ^ f;
 }
 
 static inline unsigned int StepPage(unsigned int f)
@@ -1456,7 +1456,7 @@ void __stdcall OpenBuildMenuPage(int param_1)
         if (unit->unitDefIndex == 0)
             unit = 0;
         if (unit != 0) {
-            if (param_1 < unit->type->buildMenuPageCount) {
+            if (param_1 < unit->def->buildMenuPageCount) {
                 unit->flags.bits.buildPage = param_1 > 0;
                 if (param_1 != 0)
                     unit->flags.bits.page = param_1;

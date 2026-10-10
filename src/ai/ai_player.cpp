@@ -277,29 +277,29 @@ struct Unit {                          // 0x118 bytes
     int motion;                       // +0x0
     UnitWeaponSlot weapons[3];         // +0x4, stride 0x1c
     char unknown_58[0x5c - 0x58];
-    Order* orders;                     // +0x5c
+    Order* list;                       // +0x5c
     char unknown_60[0x6a - 0x60];
     Vec3 pos;                          // +0x6a
     char unknown_76[0x92 - 0x76];
     UnitDef* def;                      // +0x92
     union {
-        Player* owner;                 // +0x96
+        Player* player;                // +0x96
         Economy* economy;
     };
     char unknown_9a[0xa6 - 0x9a];
     union {
-        unsigned short category;       // +0xa6
+        unsigned short unitDefIndex;   // +0xa6
         unsigned short id;
     };
     char unknown_a8[0xac - 0xa8];
     int group;                         // +0xac
     char unknown_b0[0xf4 - 0xb0];
-    unsigned char player;              // +0xf4
-    unsigned char state;               // +0xf5
+    unsigned char lastAttackerSlot;    // +0xf4
+    unsigned char lastDamageType;      // +0xf5
     char unknown_f6[0xff - 0xf6];
-    unsigned char ownerIndex;          // +0xff
+    unsigned char playerIndex;         // +0xff
     char unknown_100[0x104 - 0x100];
-    float progress;                    // +0x104
+    float buildLeft;                   // +0x104
     unsigned char allied[6];           // +0x108
     union {
         unsigned short flags10e;       // +0x10e
@@ -851,17 +851,17 @@ void SquadManager::MarkOwnerNetDirtyFromDamageSplit(Obj_00406f50* obj, int a, in
 void __stdcall ReactToAttack(Unit* attacker, Unit* unit, int unused)
 {
     NotifyUnitRefs(unit,16);
-    if (attacker && !attacker->category) attacker=0;
-    if ((unit->def->flags2&0x1000) && unit->owner->active && unit->owner->type==2) {
-        unit->owner->ai->nextAction=RandomInt(300)+g_game->gameTick+30;
+    if (attacker && !attacker->unitDefIndex) attacker=0;
+    if ((unit->def->flags2&0x1000) && unit->player->active && unit->player->type==2) {
+        unit->player->ai->nextAction=RandomInt(300)+g_game->gameTick+30;
         DeleteOrders(unit,0);
     }
-    if (attacker && unit->owner->active && (unit->owner->type==1 || unit->owner->type==2) &&
-        (unit->def->flags&0x10010000) && unit->progress==Zero_004fc968 && !unit->owner->allied[attacker->owner->index]) {
+    if (attacker && unit->player->active && (unit->player->type==1 || unit->player->type==2) &&
+        (unit->def->flags&0x10010000) && unit->buildLeft==Zero_004fc968 && !unit->player->allied[attacker->player->index]) {
         int ordered=0;
-        if ((!unit->orders || (unit->orders->flags&0x20000)) &&
-            !Contains(unit->def->categories,attacker->category) &&
-            !Contains(unit->def->weaponCategories[0],attacker->category) && WeaponCanReachUnit(unit,attacker,0))
+        if ((!unit->list || (unit->list->flags&0x20000)) &&
+            !Contains(unit->def->categories,attacker->unitDefIndex) &&
+            !Contains(unit->def->weaponCategories[0],attacker->unitDefIndex) && WeaponCanReachUnit(unit,attacker,0))
             ordered=IssueAttackOrder(unit,attacker,0);
         if (!ordered && (unit->flags&0x300000)) {
             for (unsigned char i=0;i<3;++i) {
@@ -869,13 +869,13 @@ void __stdcall ReactToAttack(Unit* attacker, Unit* unit, int unused)
                 if ((weapon->flags&2) && (weapon->flags&0x10) && WeaponCanReachUnit(unit,attacker,i) &&
                     !((unsigned char)(weapon->weapon->flags>>26)&1)) {
                     Unit* target=GetWeaponTargetUnit(unit,i);
-                    if (!target || !WeaponCanReachUnit(unit,target,i) || Contains(unit->def->weaponCategories[i],target->category))
+                    if (!target || !WeaponCanReachUnit(unit,target,i) || Contains(unit->def->weaponCategories[i],target->unitDefIndex))
                         SetWeaponTargetUnit(unit,attacker,i);
                 }
             }
         }
     }
-    if (!(GetOrderFlags(unit)&0x80) && (unit->player!=unit->ownerIndex || unit->state==1))
+    if (!(GetOrderFlags(unit)&0x80) && (unit->lastAttackerSlot!=unit->playerIndex || unit->lastDamageType==1))
         QueueUnitSpeechIfNotVisible(unit,2,0);
 }
 
@@ -1255,7 +1255,7 @@ void BuildTimer::OnTimer()
                         u->SetStateBits(1, 1);
                 } else
                     u->SetStateBits(1, 0);
-            } else if (u->def->field_152 && !u->orders) {
+            } else if (u->def->field_152 && !u->list) {
                 unsigned short id = ChooseBuildOption(player, u);
                 if (id)
                     QueueBuildOrder((char*)&g_game->unitDefs[id].description[0], u, 1);
@@ -1323,7 +1323,7 @@ void SquadManager::RetargetWeapons(int force)
             cursor++;
         else
             cursor = player->unitsBegin;
-        if (cursor->category != 0 && cursor->progress == Zero_004fc968 && (cursor->flags & 0x80000000)
+        if (cursor->unitDefIndex != 0 && cursor->buildLeft == Zero_004fc968 && (cursor->flags & 0x80000000)
             && (cursor->flags & 0x300000) == 0x200000) {
             // The counter stays a byte, and the flag8 test keeps its (unsigned char) cast.
             for (unsigned char w = 0; w < 3; w++) {
@@ -1331,8 +1331,8 @@ void SquadManager::RetargetWeapons(int force)
                     && !(unsigned char)cursor->weapons[w].weapon->flag8
                     && (force || !cursor->weapons[w].weapon->flag26)) {
                     Unit* target = GetWeaponTargetUnit(cursor, w);
-                    if (target && (player->allied[target->owner->index]
-                        || Contains(cursor->def->weaponCategories[w], target->category)
+                    if (target && (player->allied[target->player->index]
+                        || Contains(cursor->def->weaponCategories[w], target->unitDefIndex)
                         || (cursor->weapons[w].weapon->flag7 && (target->activateFlags & 0x10))))
                         target = 0;
                     if (!target)
@@ -1874,14 +1874,14 @@ void __stdcall DestroyPlayerAI(int player)
 // FUNCTION: 0x40b7b0
 Unit* __stdcall FindWeaponTarget(Unit* unit,unsigned char weapon,int useRange)
 {
-    int ai=unit->owner->active && unit->owner->type==2;
+    int ai=unit->player->active && unit->player->type==2;
     Unit* fallback=0;
     int fallbackDistance=0x7fffffff;
     int bestDistance=0x7fffffff;
     Unit* best=0;
     std::vector<Unit*> candidates;
-    if(useRange) GetVisibleEnemiesInRadius(unit->ownerIndex,(const Vec*)&unit->pos,GetWeaponRange(unit,weapon),0,&candidates);
-    else GetVisibleEnemiesInRadius(unit->ownerIndex,(const Vec*)&unit->pos,unit->def->range,0,&candidates);
+    if(useRange) GetVisibleEnemiesInRadius(unit->playerIndex,(const Vec*)&unit->pos,GetWeaponRange(unit,weapon),0,&candidates);
+    else GetVisibleEnemiesInRadius(unit->playerIndex,(const Vec*)&unit->pos,unit->def->range,0,&candidates);
     for(int count=0;count<50;++count) {
         if(candidates.empty()) break;
         std::vector<Unit*>::iterator it=candidates.begin()+RandomInt(candidates.size());

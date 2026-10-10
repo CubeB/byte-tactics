@@ -5,7 +5,7 @@
 // spellings and its by-value animation types do not fit this one; the files
 // that read the animation handle by value (ingame/info_panel.cpp and
 // ingame/info_panel_46a610.cpp) do too, as do the network snapshots, which are
-// a different 0x115-byte record.
+// a WeaponDef (src/weapons/weapon_def.h).
 #ifndef FEATURE_H
 #define FEATURE_H
 

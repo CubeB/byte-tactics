@@ -35,24 +35,10 @@ struct Unit;
 
 #include "../util/vec3.h"
 
-struct Cell {                           // 13 bytes per cell
-    union {
-        unsigned short unit;            // +0x0, id of the unit owning the cell
-        short unitSigned;               // +0x0, read signed
-    };
-    unsigned short unit2;               // +0x2
-    unsigned char height;               // +0x4
-    unsigned char high;                 // +0x5, highest floor
-    unsigned char low;                  // +0x6, lowest floor
-    unsigned char metal;                // +0x7
-    union {
-        unsigned short feature;         // +0x8
-        short featureSigned;            // +0x8, read signed
-    };
-    unsigned char spotY;                // +0xa
-    unsigned char spotX;                // +0xb
-    unsigned char flags;                // +0xc
-};
+// Unused here: the forward declaration takes the symbol id replacing the
+// removed Cell view, keeping CanBuildAt in its register window (docs/c2-regalloc.md).
+struct Point;
+#include "../map/cell.h"
 
 // Unused here: the symbol ids this union takes keep CanBuildAt's allocation
 // (docs/c2-regalloc.md).
@@ -504,7 +490,7 @@ static inline unsigned short VisWord_0047d2e0(Los_0047d2e0* los, int tx,
 // Blocked_ and Terrain_ stay early-return helpers.
 static int Blocked_0047d2e0(Cell* c)
 {
-    unsigned short v = c->featureSigned;
+    unsigned short v = c->feature;
     if (v == 0xffff)
         return 0;
     if (v < 0xfffb) {
@@ -514,8 +500,8 @@ static int Blocked_0047d2e0(Cell* c)
     }
     if (v != 0xfffe)
         return 1;
-    Cell* ref = c - (c->spotY * g_game->width + c->spotX);
-    unsigned short v2 = ref->featureSigned;
+    Cell* ref = c - (c->offsetY * g_game->width + c->offsetX);
+    unsigned short v2 = ref->feature;
     if (v2 >= 0xfffb)
         return 0;
     return (g_game->featureBytes[v2 * 0x100 + 0xfe] >> 6) & 1;
@@ -526,7 +512,7 @@ Cell* c)
 {
     if (c == 0)
         return 0;
-    unsigned short v = c->featureSigned;
+    unsigned short v = c->feature;
     if (v < 0xfffb) {
         if ((int)v >= g_game->featureCount)
             return 0;
@@ -534,8 +520,8 @@ Cell* c)
     }
     if (v != 0xfffe)
         return 0;
-    Cell* ref = c - (c->spotY * g_game->width + c->spotX);
-    unsigned short v2 = ref->featureSigned;
+    Cell* ref = c - (c->offsetY * g_game->width + c->offsetX);
+    unsigned short v2 = ref->feature;
     if (v2 >= 0xfffb)
         return 0;
     return g_game->featureBytes + v2 * 0x100;
@@ -603,7 +589,7 @@ int __stdcall CanBuildAt(UnitDef* unit, Point16 cell, short type, Los_0047d2e0* 
                     max5b = c->high;
                 if ((m & 1) && (c->flags & 2) && ok)
                     return 0;
-                if ((m & 6) && c->unitSigned != 0 && c->unitSigned != type && ok)
+                if ((m & 6) && (short)c->unit != 0 && (short)c->unit != type && ok)
                     return 0;
                 if (m & 0x20) {
                     if (Blocked_0047d2e0(c) != 0)
@@ -733,7 +719,7 @@ static inline int SteepCell(Cell* c)
     }
     if (f != 0xfffe)
         return 1;
-    c = c - (c->spotY * g_game->width + c->spotX);
+    c = c - (c->offsetY * g_game->width + c->offsetX);
     f = c->feature;
     if (f >= 0xfffb)
         return 0;
@@ -846,8 +832,8 @@ int __stdcall GetPassMapCellValue(MovementClass* obj, Cell* cell)
         // block, which is the other half the original wants.
         int* width = &g_game->width;
         unsigned short f2 =
-            (cell - (cell->spotY * *width + cell->spotX))->feature;
-        if (0xfffb <= (cell - (cell->spotY * *width + cell->spotX))->feature) {
+            (cell - (cell->offsetY * *width + cell->offsetX))->feature;
+        if (0xfffb <= (cell - (cell->offsetY * *width + cell->offsetX))->feature) {
             blocked = 0;
         } else {
             blocked = (g_game->features[f2].flags >> 6) & 1;
@@ -912,7 +898,7 @@ int __stdcall GetPassMapFootprintValue(MovementClass* obj, int x, int y, int w, 
                 blocked = 1;
             } else {
                 Cell* other =
-                    cell - (cell->spotY * g_game->width + cell->spotX);
+                    cell - (cell->offsetY * g_game->width + cell->offsetX);
                 unsigned short f2 = other->feature;
                 if (f2 >= 0xfffb)
                     blocked = 0;

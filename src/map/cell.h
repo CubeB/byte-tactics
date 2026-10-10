@@ -1,7 +1,6 @@
 // Cell: one cell of the map's cell grid, 13 bytes, the array at
 // g_game+0x14287. The one declaration of the struct for the files that read or
-// write a map cell. map/features.cpp and map/terrain.cpp, which own the map
-// cell grid, keep their own views, since they read a word signed or spell a
+// write a map cell. map/features.cpp keeps its own view, since it spells a
 // byte differently; a view that splits the flags byte into bitfields
 // (map/plot_map.cpp, ingame/info_panel_46a610.cpp) keeps its own too.
 #ifndef CELL_H

@@ -739,7 +739,7 @@ struct BmpInfoHeader;
 
 class UnitScript : public CobScript {
 public:
-    void* field_540;               // +0x540
+    void* state;                   // +0x540
 
     virtual void SetPieceTranslation(int, int, int);  // slot 0
     virtual void SetPieceRotation(int, int, int);     // slot 1

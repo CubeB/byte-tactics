@@ -4,21 +4,12 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TC="$ROOT/toolchain/${BT_TOOLCHAIN:-msvc5-sp3}"
+. "$ROOT/tools/wineenv.sh"
 [ -f "$TC/BIN/LIB.EXE" ] || { echo "Toolchain missing, run tools/setup_toolchain.sh" >&2; exit 1; }
-
-winpath() { echo "Z:${1//\//\\}"; }
-
-export WINEPREFIX="$ROOT/toolchain/wineprefix" WINEDEBUG=-all
-if [ -z "${WINEARCH:-}" ]; then
-    WINEARCH="$(sed -n 's/^#arch=//p' "$WINEPREFIX/system.reg" 2>/dev/null | head -n 1 || true)"
-fi
-export WINEARCH="${WINEARCH:-win64}"
-export INCLUDE="$(winpath "$TC/INCLUDE")" LIB="$(winpath "$TC/LIB")"
 
 out="$(mktemp)"
 trap 'rm -f "$out"' EXIT
 rc=0
-wine "$TC/BIN/LIB.EXE" /nologo "$@" >"$out" 2>&1 </dev/null || rc=$?
+wine "$(winpath "$TC/BIN")/LIB.EXE" /nologo "$@" >"$out" 2>&1 </dev/null || rc=$?
 cat "$out"
 exit "$rc"

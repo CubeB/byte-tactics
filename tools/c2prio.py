@@ -761,7 +761,7 @@ def host_main() -> None:
     else:
         match = ["substr", [""]]
 
-    env = dict(os.environ, WINEPREFIX=str(root / "toolchain" / "wineprefix"), WINEDEBUG="-all")
+    env = dict(os.environ, WINEPREFIX=str(root / "build" / "wineprefix"), WINEDEBUG="-all")
     env.pop("BT_TOOLCHAIN", None)
     if not env.get("WINEARCH"):
         sysreg = root / "toolchain" / "wineprefix" / "system.reg"

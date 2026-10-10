@@ -6,21 +6,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TC="$ROOT/toolchain/${BT_TOOLCHAIN:-msvc5-sp3}"
+. "$ROOT/tools/wineenv.sh"
 [ -f "$TC/BIN/CL.EXE" ] || { echo "Toolchain missing, run tools/setup_toolchain.sh" >&2; exit 1; }
-
-winpath() { echo "Z:${1//\//\\}"; }
-
-export WINEPREFIX="$ROOT/toolchain/wineprefix" WINEDEBUG=-all
-# Keep an existing prefix's architecture: setups made before this change have a
-# win32 prefix, which Wine refuses to run as win64. New prefixes are win64,
-# which wow64-only Wine (Wine 11 on Fedora, for one) requires and which runs the
-# 32-bit compiler on other Wine builds too.
-if [ -z "${WINEARCH:-}" ]; then
-    WINEARCH="$(sed -n 's/^#arch=//p' "$WINEPREFIX/system.reg" 2>/dev/null | head -n 1 || true)"
-fi
-export WINEARCH="${WINEARCH:-win64}"
-export INCLUDE="$(winpath "$TC/INCLUDE")" LIB="$(winpath "$TC/LIB")"
 
 tool="$(basename "$0")"
 nologo=/nologo
@@ -38,6 +25,6 @@ esac
 out="$(mktemp)"
 trap 'rm -f "$out"' EXIT
 rc=0
-wine "$TC/BIN/$exe" $nologo "$@" >"$out" 2>&1 </dev/null || rc=$?
+wine "$(winpath "$TC/BIN")/$exe" $nologo "$@" >"$out" 2>&1 </dev/null || rc=$?
 cat "$out"
 exit "$rc"

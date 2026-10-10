@@ -41,7 +41,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from check import DEFAULT_FLAGS, ROOT, base_name, load_symbols
+from check import COMPILE_SCHEME, DEFAULT_FLAGS, ROOT, base_name, load_symbols
 from sources import link_order, source_files
 
 SRC = ROOT / "src"
@@ -192,7 +192,7 @@ def load_objects(quiet: bool = False) -> tuple[list[ObjectInfo], list[str]]:
     ihash = include_hash()
 
     def cached(src: Path) -> bool:
-        key = hashlib.sha256(src.read_bytes() + ihash.encode() + DEFAULT_FLAGS.encode()).hexdigest()[:16]
+        key = hashlib.sha256(src.read_bytes() + ihash.encode() + (DEFAULT_FLAGS + COMPILE_SCHEME).encode()).hexdigest()[:16]
         stamp = CACHE / src.relative_to(SRC).with_suffix(".key")
         return stamp.exists() and stamp.read_text() == key and stamp.with_suffix(".obj").exists()
 

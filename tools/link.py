@@ -62,7 +62,7 @@ from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from check import DEFAULT_FLAGS, ROOT, winpath
+from check import COMPILE_SCHEME, DEFAULT_FLAGS, ROOT, winpath
 from linkcheck import (CRT_LIBS, IMPORT_LIBS, Demangle, MEMBER_STATIC, address_of,
                        archive_symbols, base_name, data_symbol, include_hash, library_symbols,
                        load_known, read_object, type_size)
@@ -118,7 +118,7 @@ def compile_all(jobs: int) -> tuple[list[Path], list[tuple[Path, str]]]:
     ihash = include_hash()
 
     def cached(src: Path) -> bool:
-        key = hashlib.sha256(src.read_bytes() + ihash.encode() + DEFAULT_FLAGS.encode()).hexdigest()[:16]
+        key = hashlib.sha256(src.read_bytes() + ihash.encode() + (DEFAULT_FLAGS + COMPILE_SCHEME).encode()).hexdigest()[:16]
         stamp = ROOT / "build/progress" / src.relative_to(SRC).with_suffix(".key")
         return stamp.exists() and stamp.read_text() == key and stamp.with_suffix(".obj").exists()
 

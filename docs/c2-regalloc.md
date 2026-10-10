@@ -379,6 +379,18 @@ through a wine drive mapped to the checkout (`Y:\src\...`, `Y:\<out>`,
 originals here; a fixed staged path does the same job. Regenerate
 `data/symbols.csv` after the change, or keep the suffix-tolerant checker.
 
+The tools now do this (#6393). `tools/wineenv.sh`, which `tools/wcl` and
+`tools/wlib` source, gives each checkout its own Wine prefix
+(`build/wineprefix`) whose drive `Y:` is the checkout root, and
+`check.winpath` writes every path under the checkout as `Y:\...`, including
+`INCLUDE`, `/I`, `/Fo` and `/Fd`. The `/Fd` of a `/Gi` file is
+`build/pdb/<8 hex of out_dir>/<source path>.pdb`, so its length does not depend
+on which tool compiles. The prefix is per checkout because a drive mapping
+belongs to a prefix, and the compiler's temporary files (named after its
+process id) get a folder of their own, `build/wintemp`, so prefixes do not
+overwrite one another's. The exe built at four checkout paths of 10 to 125
+characters, compiling at once, has the shipped MD5.
+
 ### Symbols each header adds
 
 Measured with `--symbols g_game` on a probe file: the headers, then

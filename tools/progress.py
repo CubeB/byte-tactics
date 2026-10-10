@@ -21,7 +21,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from check import (DEFAULT_FLAGS, ROOT, SYMBOLS, Original, annotations, base_name, compare,
+from check import (COMPILE_SCHEME, DEFAULT_FLAGS, ROOT, SYMBOLS, Original, annotations, base_name, compare,
                    compile_source)
 from coff import parse_object
 from issues import BANDS
@@ -39,7 +39,7 @@ LOCAL_STATIC = re.compile(r"@\?[0-9A-P]{1,4}@\?\?")
 
 
 def compile_cached(src: Path, include_hash: str):
-    key = hashlib.sha256(src.read_bytes() + include_hash.encode() + DEFAULT_FLAGS.encode()).hexdigest()[:16]
+    key = hashlib.sha256(src.read_bytes() + include_hash.encode() + (DEFAULT_FLAGS + COMPILE_SCHEME).encode()).hexdigest()[:16]
     stamp = ROOT / "build/progress" / src.relative_to(ROOT / "src").with_suffix(".key")
     obj = stamp.with_suffix(".obj")
     if stamp.exists() and stamp.read_text() == key and obj.exists():

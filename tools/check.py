@@ -45,6 +45,9 @@ from sources import (ANNOTATION, GLOBAL_ANNOTATION, ROOT, annotations, data_anno
                      global_annotations, is_data_source, is_gap_source)
 
 DEFAULT_FLAGS = "/O2 /Ob2 /MT /Gz"
+# Which paths the compiler is given (winpath, compile_source, tools/wineenv.sh);
+# part of the cache keys of compiled objects, which depend on it.
+COMPILE_SCHEME = " paths:y-drive-1"
 PADDING = (0x90, 0xCC)
 SYMBOLS = ROOT / "data/symbols.csv"
 FORBIDDEN = re.compile(r"\b(__asm|_asm|_emit|__emit)\b|#\s*pragma\s+(optimize|code_seg)")
@@ -168,6 +171,13 @@ def load_symbols() -> dict[str, int]:
 
 
 def winpath(p: Path) -> str:
+    """A path as the compiler is given it. The compiler's symbol counter is
+    moved by the characters of every path it sees, so a path under this
+    checkout is written under drive Y:, which tools/wineenv.sh maps to the
+    checkout root: the strings are then the same wherever the checkout is."""
+    p = Path(p)
+    if p == ROOT or ROOT in p.parents:
+        return "Y:\\" + "\\".join(p.relative_to(ROOT).parts)
     return "Z:" + str(p).replace("/", "\\")
 
 
@@ -222,7 +232,14 @@ def compile_source(src: Path, flags: str = DEFAULT_FLAGS, out_dir: str = "obj",
     out.unlink(missing_ok=True)
     # /Gi keeps its incremental state in vc50.idb beside the .pdb, by default
     # in the working directory: one per object, or parallel builds collide (C1033).
-    fd = [f"/Fd{winpath(out.with_suffix('.pdb'))}"] if "/Gi" in flags.split() else []
+    # The .pdb's path moves the compiler's symbol counter (1 id per character),
+    # so it must not depend on which tool compiles: a folder named by a hash of
+    # out_dir, whose name is always as long, keeps each tool's objects apart.
+    fd = []
+    if "/Gi" in flags.split():
+        pdb = ROOT / "build" / "pdb" / hashlib.sha256(out_dir.encode()).hexdigest()[:8] / rel.with_suffix(".pdb")
+        pdb.parent.mkdir(parents=True, exist_ok=True)
+        fd = [f"/Fd{winpath(pdb)}"]
     cmd = [str(ROOT / "tools" / "wcl"), "/c", *flags.split(), *fd,
            *(f"/I{winpath(d)}" for d in (*includes, ROOT / "include")),
            f"/Fo{winpath(out)}", winpath(src.resolve())]

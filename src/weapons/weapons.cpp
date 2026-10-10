@@ -9,8 +9,9 @@
 // with its angle helpers, the remote fire packet and its projectile scan, the
 // weapon fire handlers, the unit's weapon slots and the loop that updates
 // them, and the weapon name table. The module's parts joined in address
-// order; 0x49a120 (a gap region), 0x49b090, 0x49b720 and 0x49be60 keep their
-// own files: their register plans follow their old files' symbol ids.
+// order; 0x49a120 (a gap region) and 0x49b720 keep their own files
+// (docs/split-modules.md). 0x49b090 and 0x49be60 come last, out of address
+// order: their register plans follow their symbol ids (docs/c2-regalloc.md).
 
 #include "../util/vec3.h"
 
@@ -328,6 +329,7 @@ struct Projectile_0049c880 {
 #pragma pack(pop)
 
 struct Projectile_00499eb0;
+struct MapFeature_0049b090;
 
 // The game state, as the weapon code sees it. The time word keeps one name per
 // view (now, frame, gameTick, teamColor); 49d270's defs and 49e5b0's entries
@@ -339,7 +341,9 @@ struct Net {
 };
 
 struct Game {
-    char unknown_0[0x1b63];
+    char unknown_0[0xdcb];
+    unsigned char palette[0x2a];       // +0xdcb, the line colours of the shots
+    char unknown_df5[0x1b63 - 0xdf5];
     Player players[10];                // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
     char localPlayer;                  // +0x2a42
@@ -359,9 +363,15 @@ struct Game {
         int projectile_count;
     };
     void* projectiles;                 // +0x141f7
-    char unknown_141fb[0x14263 - 0x141fb];
+    char unknown_141fb[0x14233 - 0x141fb];
+    int mapWidthTiles;                 // +0x14233
+    char unknown_14237[0x14253 - 0x14237];
+    int featureCount;                  // +0x14253
+    char unknown_14257[0x14263 - 0x14257];
     int gravity;                       // +0x14263
-    char unknown_14267[0x1427f - 0x14267];
+    char unknown_14267[0x1426f - 0x14267];
+    MapFeature_0049b090* features;     // +0x1426f
+    char unknown_14273[0x1427f - 0x14273];
     unsigned char seaLevel;            // +0x1427f
     char debugMode;
     unsigned short mapFlags;           // +0x14281
@@ -373,12 +383,30 @@ struct Game {
         void* selected;                // 499a30's spelling
         Projectile_00499eb0* selectedProjectile; // 499e50's and 499eb0's
     };
-    char unknown_142fb[0x1433f - 0x142fb];
+    char unknown_142fb[0x1431f - 0x142fb];
+    int scrollX;                       // +0x1431f
+    int scrollY;                       // +0x14323
+    char unknown_14327[0x1433f - 0x14327];
     Vec3 cameraSnapPos;                // +0x1433f
     short cameraSnapTicks;             // +0x1434b
     char unknown_1434d[0x14357 - 0x1434d];
     Unit* units;                       // +0x14357
-    char unknown_1435b[0x38a47 - 0x1435b];
+    char unknown_1435b[0x147bb - 0x1435b];
+    void* cannonShellSeq;              // +0x147bb
+    void* plasmaSmSeq;                 // +0x147bf
+    void* plasmaMdSeq;                 // +0x147c3
+    void* ultraShellSeq;               // +0x147c7
+    void* plasmaSmSeq2;                // +0x147cb
+    char unknown_147cf[0x147f3 - 0x147cf];
+    void* flameStreamSeq;              // +0x147f3
+    char unknown_147f7[0x1480f - 0x147f7];
+    void* shadowSeq;                   // +0x1480f
+    char unknown_14813[0x1ab9b - 0x14813];
+    void* explosionLensFrame;          // +0x1ab9b
+    char unknown_1ab9f[0x37e27 - 0x1ab9f];
+    char region_37e27[0x37ecc - 0x37e27];
+    Vec3 wind;                         // +0x37ecc
+    char unknown_37ed8[0x38a47 - 0x37ed8];
     union {
         int gameTick;                  // +0x38a47
         int frame;
@@ -708,7 +736,7 @@ void __stdcall UntrackProjectile(Projectile_00499eb0* projectile)
     projectile->flags |= 2;
 }
 
-void* __stdcall GetMapCellAtPosition(Vec3_0049b720* position);
+Cell* __stdcall GetMapCellAtPosition(Vec3_0049b720* position);
 void __stdcall AccumulateScreenShake(int a, int b, int c);void __stdcall AddExplosionEffect(Vec3_0049b720* position, void* value, int a, int b);
 void __stdcall EmitWhiteSmoke(Vec3_0049b720* position, int value);
 // The sound id stays unsigned int: gives the original's zero extension.
@@ -884,7 +912,10 @@ struct Holder_0049a120 {
 struct Cell {
     unsigned short unit;               // +0x0
     unsigned short unit2;              // +0x2
-    char unknown_4[4];
+    unsigned char height;              // +0x4
+    unsigned char high;                // +0x5, highest floor
+    unsigned char low;                 // +0x6, lowest floor
+    unsigned char metal;               // +0x7
     unsigned short feature;            // +0x8
     union {
         unsigned short spot;           // +0xa
@@ -2986,6 +3017,193 @@ char* __stdcall FindWeaponByName(char* name)
     return 0;
 }
 
+// 0x49b090 and 0x49be60 sit here, after the module's other functions, and
+// 0x49be60 after the TdfFile global below.
+#pragma pack(push, 1)
+
+// The weapon's flag word as 32 single bits, for the projectile tests of
+// 0x49b090 and 0x49be60: only 1-bit fields give them the shr/test the
+// original has.
+union WeaponFlagBits {
+    unsigned int raw;
+    struct {
+        unsigned int b0 : 1, b1 : 1, b2 : 1, b3 : 1, b4 : 1, b5 : 1, b6 : 1, b7 : 1;
+        unsigned int b8 : 1, b9 : 1, b10 : 1, b11 : 1, b12 : 1, b13 : 1, b14 : 1, b15 : 1;
+        unsigned int b16 : 1, b17 : 1, b18 : 1, b19 : 1, b20 : 1, b21 : 1, b22 : 1, b23 : 1;
+        unsigned int b24 : 1, b25 : 1, b26 : 1, b27 : 1, b28 : 1, b29 : 1, b30 : 1, b31 : 1;
+    } b;
+};
+
+#pragma pack(pop)
+
+static inline WeaponFlagBits& Bits(WeaponDef* type)
+{
+    return *(WeaponFlagBits*)&type->flags;
+}
+
+#pragma pack(push, 1)
+
+// The feature records are an array of these, indexed as `features[f * 256]`.
+struct MapFeature_0049b090 {
+    char unknown_0[0xfa];
+    unsigned char height;             // +0xfa
+    char unknown_fb[0x100 - 0xfb];
+};
+
+union Flags_0049b090 {
+    unsigned char value;
+    struct {
+        unsigned char b0 : 1;
+        unsigned char dead : 1;
+        unsigned char rest : 6;
+    } bits;
+};
+
+// The world position is three ints at +0x4 and, in the same bytes, three shorts
+// at +0x6, +0xa and +0xe: the map-cell coordinates. A union is the only way to
+// get the two views, and it is the shorts the code reaches for the cell.
+union WordPair_0049b090 {
+    int i;
+    struct {
+        char lo[2];
+        short hi;
+    } s;
+};
+
+struct Proj_0049b090 {
+    WeaponDef* type;                   // +0x0
+    WordPair_0049b090 px;              // +0x4 (short at +0x6)
+    WordPair_0049b090 py;              // +0x8 (short at +0xa)
+    WordPair_0049b090 pz;              // +0xc (short at +0xe)
+    char unknown_10[0x20 - 0x10];
+    int velY;                          // +0x20
+    char unknown_24[0x56 - 0x24];
+    Proj_0049b090* intercepted;        // +0x56, the projectile this one is chasing
+    short cellX;                       // +0x5a
+    short cellZ;                       // +0x5c
+    short radius;                      // +0x5e
+    char unknown_60[0x66 - 0x60];
+    unsigned char owner;               // +0x66
+    char unknown_67[2];
+    Flags_0049b090 flags;              // +0x69
+};
+#pragma pack(pop)
+
+void __stdcall DetonateProjectile(Proj_0049b090* proj, Unit* unit);
+
+// The projectile collision test. It looks up the map cell holding the
+// projectile; with none it drops the camera follow, sets the dead flag and
+// returns. Otherwise it kills a projectile that reaches the one it is chasing,
+// sets the projectile's floor radius, tests the cell's two units against the
+// owner and their height window, resolves the map feature (including the
+// 0xfffe "read the neighbour cell" case), and applies the flag rules, the sea
+// level ceiling and the net game check before the final kill.
+// The 0xfffe reload path re-tests the feature id only against 0xfffb and skips
+// the feature count check, so an id read from the neighbouring cell indexes
+// g_game->features unchecked (an original bug).
+// FUNCTION: 0x49b090
+void __stdcall CheckProjectileCollision(WeaponDef* type, Proj_0049b090* proj)
+{
+    // No `Game* g = g_game` local: g_game is read at each use to stay in edi.
+    // Named pos local, used again after the lookup: gives the original's prologue.
+    Vec3* pos = (Vec3*)&proj->px;
+    Cell* cell = GetMapCellAtPosition(pos);
+
+    if (!cell) {
+        if (proj == (Proj_0049b090*)g_game->cameraFollowTrackObj) {
+            g_game->cameraSnapPos = *(Vec3*)&((Proj_0049b090*)g_game->cameraFollowTrackObj)->px;
+            g_game->cameraSnapTicks = proj->type->deathSound;
+            g_game->cameraFollowTrackObj = 0;
+        }
+        proj->flags.bits.dead = 1;
+        return;
+    }
+    if (proj->intercepted) {
+        int dx = pos->x - proj->intercepted->px.i;
+        int dy = pos->y - proj->intercepted->py.i;
+        int dz = pos->z - proj->intercepted->pz.i;
+        int r = proj->type->areaOfEffect;
+        int d = (int)(((__int64)dx * dx) >> 32) + (int)(((__int64)dy * dy) >> 32)
+            + (int)(((__int64)dz * dz) >> 32);
+        if (d < r * r)
+            DetonateProjectile(proj, 0);
+    }
+    proj->radius = (cell->high + cell->low) / 2;
+    if (cell->unit) {
+        Unit* u = &g_game->units[cell->unit];
+        if (u->playerIndex != proj->owner && proj->py.i < u->utype->modelMaxY + u->pos.y) {
+            DetonateProjectile(proj, u);
+            return;
+        }
+    }
+    if (cell->unit2) {
+        Unit* u = &g_game->units[cell->unit2];
+        if (u->playerIndex != proj->owner) {
+            if (proj->py.i >= u->utype->modelMinY + u->pos.y
+                && proj->py.i <= u->utype->modelMaxY + u->pos.y) {
+                DetonateProjectile(proj, u);
+                return;
+            }
+        }
+    }
+    if (type->flags.value & 0x4000)
+        return;
+    {
+        short cx = proj->px.s.hi / 16;
+        short cz = proj->pz.s.hi / 16;
+        unsigned short f = cell->feature;
+        MapFeature_0049b090* mf;
+        // The `!(f == 0xfffe)` chain shape sets the block order.
+        if (f < 0xfffb) {
+            if (f < g_game->featureCount)
+                mf = g_game->features + f;
+            else
+                mf = 0;
+        } else if (!(f == 0xfffe)) {
+            mf = 0;
+        } else {
+            // This index spelling and `unsigned short f2` merge the feature tails.
+            int n = cell->origin.offsetX + g_game->mapWidthTiles * cell->origin.offsetZ;
+            unsigned short f2 = (cell - n)->feature;
+            if (f2 >= 0xfffb) {
+                mf = 0;
+            } else {
+                mf = g_game->features + f2;
+            }
+        }
+        if (mf) {
+            // Positive direction (sum > hi, else mf = 0): sets the compare operand order.
+            if (mf->height + cell->low > proj->py.s.hi) {
+                if (proj->cellX == cx && proj->cellZ == cz) {
+                    mf = 0;
+                } else {
+                    proj->cellX = cx;
+                    proj->cellZ = cz;
+                }
+            } else {
+                mf = 0;
+            }
+        }
+        if (mf) {
+            DetonateProjectile(proj, 0);
+            return;
+        }
+    }
+    if (cell->low > proj->py.s.hi) {
+        if (Bits(type).b.b15) {
+            proj->velY = -(proj->velY >> 2);
+            return;
+        }
+    } else if (type->flags.value & 0x10000) {
+        return;
+    } else if (proj->py.s.hi >= g_game->seaLevel) {
+        return;
+    } else if (g_game->mapInfo->noSeaLevelTrigger) {
+        return;
+    }
+    DetonateProjectile(proj, 0);
+}
+
 #include "../util/tdf.h"
 
 // A global object of the 12-byte class constructed by 0x4c2ea0 and destroyed
@@ -2994,3 +3212,291 @@ char* __stdcall FindWeaponByName(char* name)
 // FUNCTION: 0x49e610 _$E5
 // FUNCTION: 0x49e630 _$E3
 TdfFile g_tdfGlobalParser;
+
+// 0x49be60 sits after the TdfFile global: its palette and scroll register plan
+// follows the symbol ids.
+#pragma pack(push, 1)
+struct Sprite_0049be60 {
+    char unknown_0[0x30];
+    void* child;                       // +0x30
+};
+
+struct Angles_0049be60 {
+    short x;
+    short y;
+    short z;
+};
+
+struct Proj_0049be60 {
+    WeaponDef* type;                   // +0x0
+    Vec3 pos;                          // +0x4
+    Vec3 start;                        // +0x10
+    char unknown_1c[0x34 - 0x1c];
+    Angles_0049be60 angles;            // +0x34
+    char unknown_3a[0x42 - 0x3a];
+    int spawnTick;                     // +0x42
+    int time;                          // +0x46
+    char unknown_4a[0x5e - 0x4a];
+    short groundHeightAvg;             // +0x5e
+    short counter;                     // +0x60
+    char unknown_62[0x64 - 0x62];
+    short propellerSpin;               // +0x64
+    char unknown_66[0x69 - 0x66];
+    unsigned short flags;              // +0x69
+};
+
+struct MapSize_0049be60 {
+    unsigned int width;                // +0x0
+    unsigned int height;               // +0x4
+
+    int Contains(unsigned int tx, unsigned int ty)
+    {
+        return tx < width && ty < height;
+    }
+};
+
+struct ByteMap_0049be60 {
+    unsigned char* data;               // +0x0
+    MapSize_0049be60 size;             // +0x4
+
+    unsigned char Get(int x, int y) { return data[size.width * y + x]; }
+};
+
+struct PlayerInfo_0049be60 {
+    char unknown_0[0x7c];
+    ByteMap_0049be60 explored;         // +0x7c
+};
+#pragma pack(pop)
+
+void* __stdcall GetGafFrame(void* gaf, int frame);
+void __stdcall DrawFrame(void* dest, void* src, int x, int y);
+void __stdcall DrawFrameBlended(void* dest, void* src, int x, int y);
+void __stdcall DrawModel3doProjected(void* dest, Vec3* pos, void* sprite, void* rect);
+int __stdcall PointInRect(void* region, int x, int y);
+void __stdcall DrawLens(void* dest, void* src, int x, int y);
+void __stdcall DrawLine(void* dest, int x1, int y1, int x2, int y2, unsigned int color);
+int __stdcall GetGafFrameCount(void* gaf);
+int __stdcall IsPointVisible(PlayerInfo_0049be60* pi, Vec3* pos);
+
+// The projectile render pass: it walks the projectile array and draws every
+// live projectile (counter 0) that the local player can see, by the shot kind
+// (0 to 7). With map-flags bit 2 set the visibility test reads the player's
+// explored-cell grid, otherwise it calls IsPointVisible.
+//  - Kind 0's two line arms each make both DrawLine calls (colour2, then
+//    colour1).
+//  - Kinds 1, 3 and 6 pass a 3-short angle struct (the projectile's +0x34);
+//    kind 3 passes its own `rot3`, which is never written (docs/bugs.md).
+//  - Kind 7's jitter is 64-bit, `(rand() * 11) / 0x8000 - 5`, added to the
+//    high shorts of pt.
+// FUNCTION: 0x49be60
+void __stdcall DrawProjectiles(void* surface)
+{
+    WeaponDef* type;
+    int fr;
+    Vec3 sp;
+    Vec3 pt;
+    Vec3 prev;
+    Vec3 d;
+    __int64 n64;
+    int time = g_game->gameTick;
+    void* frame0 = GetGafFrame(g_game->shadowSeq, 0);
+    int index = 0;
+    int visible;
+    if (g_game->projectileCount <= 0)
+        return;
+    int offset = 0;
+    while (1) {
+        Proj_0049be60* p = (Proj_0049be60*)((char*)g_game->projectiles + offset);
+        if (p->counter == 0) {
+            unsigned char player = g_game->playerIndex;
+            char* pb = (char*)g_game + 0x1b63 + 0x14b * player;
+            Vec3* pos = &p->pos;
+            if ((g_game->mapFlags & 2) == 2) {
+                int col = (int)*(short*)((char*)pos + 2) >> 5;
+                PlayerInfo_0049be60* pi = (PlayerInfo_0049be60*)pb;
+                int row = ((int)*(short*)((char*)pos + 10)
+                           - ((int)*(short*)((char*)pos + 6) >> 1)) >> 5;
+                if (pi->explored.size.Contains(col, row) && pi->explored.Get(col, row))
+                    visible = 1;
+                else
+                    visible = 0;
+            } else {
+                visible = IsPointVisible((PlayerInfo_0049be60*)pb, pos);
+            }
+            if (visible) {
+                type = p->type;
+                if (type->shotKind == 0) {
+                    unsigned int color1 = g_game->palette[type->colour];
+                    unsigned int color2 = g_game->palette[type->colour2];
+                    int x1;
+                    int y1;
+                    int x2;
+                    int y2;
+                    x1 = (int)*(short*)((char*)pos + 2) - (short)g_game->scrollX + 0x80;
+                    y1 = ((int)*(short*)((char*)pos + 10)
+                              - ((int)*(short*)((char*)pos + 6) >> 1))
+                             - (short)g_game->scrollY + 0x20;
+                    x2 = (int)*(short*)((char*)&p->start + 2) - (short)g_game->scrollX + 0x80;
+                    y2 = ((int)*(short*)((char*)&p->start + 10)
+                              - ((int)*(short*)((char*)&p->start + 6) >> 1))
+                             - (short)g_game->scrollY + 0x20;
+                    if (type->colour2 != 0) {
+                        // Both calls stay in each arm: one shared colour1 call swaps the colour slots.
+                        if (abs(x1 - x2) > abs(y1 - y2)) {
+                            if (x1 > x2) {
+                                int t = x1; x1 = x2; x2 = t;
+                                t = y1; y1 = y2; y2 = t;
+                            }
+                            DrawLine(surface, x1, y1 - 1, x2, y2 - 1, color2);
+                            DrawLine(surface, x1, y1, x2, y2, color1);
+                        } else {
+                            if (y1 > y2) {
+                                int t = x1; x1 = x2; x2 = t;
+                                t = y1; y1 = y2; y2 = t;
+                            }
+                            DrawLine(surface, x1 - 1, y1, x2 + 1, y2, color2);
+                            DrawLine(surface, x1, y1, x2, y2, color1);
+                        }
+                    } else {
+                        DrawLine(surface, x1, y1, x2, y2, color1);
+                    }
+                } else if (type->shotKind == 1) {
+                    sp.x = pos->x - (g_game->scrollX << 16);
+                    sp.y = p->pos.y;
+                    sp.z = p->pos.z - (g_game->scrollY << 16);
+                    int sx = 0x80 + (int)*(short*)((char*)&sp + 2);
+                    int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->groundHeightAvg >> 1) + 0x20;
+                    DrawFrameBlended(surface, frame0, sx, sy);
+                    Angles_0049be60 rot = p->angles;
+                    rot.y += 0x8000;
+                    rot.z += 0x8000;
+                    DrawModel3doProjected(surface, &sp, type->model, &rot);
+                    Sprite_0049be60* s = (Sprite_0049be60*)type->model;
+                    if (0 != s->child && p->time > time) {
+                        if (Bits(type).b.b21) {
+                            rot.x = p->propellerSpin;
+                            DrawModel3doProjected(surface, &sp, s->child, &rot);
+                        } else {
+                            DrawModel3doProjected(surface, &sp, s->child, &rot);
+                        }
+                    }
+                } else if (type->shotKind == 2) {
+                    int sx = (int)*(short*)((char*)pos + 2) - (short)g_game->scrollX + 0x80;
+                    int sy = ((int)*(short*)((char*)pos + 10)
+                              - ((int)*(short*)((char*)pos + 6) >> 1))
+                             - (short)g_game->scrollY + 0x20;
+                    if (PointInRect(g_game->region_37e27, sx, sy) == 0)
+                        return;
+                    DrawLens(surface, g_game->explosionLensFrame, sx, sy);
+                } else if (type->shotKind == 3) {
+                    sp.x = pos->x - (g_game->scrollX << 16);
+                    sp.y = p->pos.y;
+                    sp.z = p->pos.z - (g_game->scrollY << 16);
+                    int sx = (int)*(short*)((char*)&sp + 2) + 0x80;
+                    int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->groundHeightAvg >> 1) + 0x20;
+                    DrawFrameBlended(surface, frame0, sx, sy);
+                    Angles_0049be60 rot3;
+                    DrawModel3doProjected(surface, &sp, type->model, &rot3);
+                } else if (type->shotKind == 4) {
+                    if (type->colour < 0xff) {
+                        void* gaf = 0;
+                        sp.x = pos->x - (g_game->scrollX << 16);
+                        sp.y = p->pos.y;
+                        sp.z = p->pos.z - (g_game->scrollY << 16);
+                        DrawFrameBlended(surface, frame0,
+                                     (int)*(short*)((char*)&sp + 2) + 0x80,
+                                     (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->groundHeightAvg >> 1) + 0x20);
+                        int sy = ((int)*(short*)((char*)&sp + 10)
+                                  - ((int)*(short*)((char*)&sp + 6) >> 1)) + 0x20;
+                        int sx = (int)*(short*)((char*)&sp + 2) + 0x80;
+                        switch (type->colour) {
+                        case 0: gaf = g_game->cannonShellSeq; break;
+                        case 1: gaf = g_game->plasmaSmSeq; break;
+                        case 2: gaf = g_game->plasmaMdSeq; break;
+                        case 3: gaf = g_game->ultraShellSeq; break;
+                        case 4: gaf = g_game->plasmaSmSeq2; break;
+                        }
+                        if (gaf) {
+                            int n = *(unsigned short*)gaf;
+                            DrawFrame(surface, GetGafFrame(gaf, (time - p->spawnTick) % n), sx, sy);
+                        }
+                    }
+                } else if (type->shotKind == 5) {
+                    int sx = (int)*(short*)((char*)pos + 2) - (short)g_game->scrollX + 0x80;
+                    int sy = ((int)*(short*)((char*)pos + 10)
+                              - ((int)*(short*)((char*)pos + 6) >> 1))
+                             - (short)g_game->scrollY + 0x20;
+                    void* gaf = g_game->flameStreamSeq;
+                    int n = GetGafFrameCount(gaf);
+                    fr = n - ((p->time - time) * n) / (int)type->lifetime;
+                    if (fr >= 0 && fr < n) {
+                        DrawFrameBlended(surface, GetGafFrame(gaf, fr), sx, sy);
+                    }
+                } else if (type->shotKind == 6) {
+                    sp.x = pos->x - (g_game->scrollX << 16);
+                    sp.y = p->pos.y;
+                    sp.z = p->pos.z - (g_game->scrollY << 16);
+                    int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->groundHeightAvg >> 1) + 0x20;
+                    int sx = (int)*(short*)((char*)&sp + 2) + 0x80;
+                    DrawFrameBlended(surface, frame0, sx, sy);
+                    DrawModel3doProjected(surface, &sp, type->model, &p->angles);
+                } else if (type->shotKind == 7) {
+                    unsigned int color = g_game->palette[type->colour];
+                    Vec3* start = &p->start;
+                    d.x = pos->x - start->x;
+                    d.y = pos->y - start->y;
+                    d.z = pos->z - start->z;
+                    union { int i; short s[2]; } nSeg;
+                    nSeg.i = (int)(((__int64)((int)sqrt(d.x * (double)d.x + (double)d.y * d.y + (double)d.z * d.z)) << 16) / 0x50000);
+                    if (0 != nSeg.i) {
+                        n64 = nSeg.i;
+                        d.x = (int)(((__int64)d.x << 16) / n64);
+                        d.y = (int)(((__int64)d.y << 16) / n64);
+                        d.z = (int)(((__int64)d.z << 16) / n64);
+                        for (int outer = 0; outer < 2; outer++) {
+                            pt = *start;
+                            sp = *start;
+                            {
+                                short n = nSeg.s[1];
+                                if (n > 0) {
+                                    int i = n;
+                                    do {
+                                        // The unused z stays: it gives pt.z the extra reference
+                                        // that sets the register assignment.
+                                        int z = pt.z;  // unused; needed for the match
+                                        prev = pt;
+                                        sp.x += d.x;
+                                        sp.y += d.y;
+                                        sp.z += d.z;
+                                        pt = sp;
+                                        *(short*)((char*)&pt + 2) +=
+                                            (short)((int)(((__int64)rand() * 11) / 0x8000) - 5);
+                                        *(short*)((char*)&pt + 6) +=
+                                            (short)((int)(((__int64)rand() * 11) / 0x8000) - 5);
+                                        *(short*)((char*)&pt + 10) +=
+                                            (short)((int)(((__int64)rand() * 11) / 0x8000) - 5);
+                                        DrawLine(surface,
+                                            (int)*(short*)(2 + (char*)&prev) - (short)g_game->scrollX + 0x80,
+                                            ((int)*(short*)(10 + (char*)&prev)
+                                             - ((int)*(short*)((char*)&prev + 6) >> 1))
+                                            - (short)g_game->scrollY + 0x20,
+                                            (int)*(short*)((char*)&pt + 2) - (short)g_game->scrollX + 0x80,
+                                            0x20 + (((int)*(short*)((char*)&pt + 10)
+                                             - ((int)*(short*)(6 + (char*)&pt) >> 1))
+                                            - (short)g_game->scrollY),
+                                            color);
+                                        i = i - 1;
+                                    } while (i != 0);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        index = index + 1;
+        offset += 0x6b;
+        if (index >= g_game->projectileCount)
+            break;
+    }
+}

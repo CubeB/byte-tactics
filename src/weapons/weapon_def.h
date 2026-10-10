@@ -1,9 +1,9 @@
 // WeaponDef: one weapon definition (Thaldren's WeaponDef, 0x115 bytes), the
 // elements of the table at g_game+0x2cf3. The one declaration of the struct for
 // every file that reads a weapon's range, damage, flags or projectile numbers;
-// the types behind the pointers stay private to their own files. The files that
-// match only at their old view's symbol count (weapons_49b090.cpp,
-// weapons_49b720.cpp) keep their own view.
+// the types behind the pointers stay private to their own files. The file that
+// matches only at its old view's symbol count (weapons_49b720.cpp) keeps its
+// own view.
 #ifndef WEAPON_DEF_H
 #define WEAPON_DEF_H
 
@@ -69,7 +69,7 @@ struct WeaponDef {
     int speed;                        // +0x68, 49b720's maxSpeed
     char unknown_6c[0x70 - 0x6c];
     int acceleration;                 // +0x70, 49b720's accel
-    char unknown_74[0x78 - 0x74];
+    void* model;                      // +0x74, the 3D model of the shot
     void* explosionSeq;               // +0x78, the ground explosion sequence
     void* splash;                     // +0x7c, 49b720's water explosion sequence
     char unknown_80[0xc8 - 0x80];
@@ -101,7 +101,11 @@ struct WeaponDef {
     short f_104;                      // +0x104
     char unknown_106[0x10a - 0x106];
     unsigned char index;              // +0x10a, the weapon's number in the definitions
-    char unknown_10b[0x111 - 0x10b];
+    char unknown_10b[1];
+    unsigned char shotKind;           // +0x10c, how the shot is drawn (0 to 7)
+    unsigned char colour;             // +0x10d, the palette index of the line
+    unsigned char colour2;            // +0x10e, the second line's palette index
+    char unknown_10f[0x111 - 0x10f];
     Flags_0049d580 flags;             // +0x111
 };
 

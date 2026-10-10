@@ -100,3 +100,12 @@ reason is what stopped it. A module whose row list is empty is one file.
 | frontend/multi | src/frontend/multi_449bb0.cpp | Merged, `/Ob2` inlines UpdateMetalText (0x445c70) into it through BindNamedSliderWithCallback, where the original calls it (2960 bytes against 2756). |
 | frontend/multi | src/frontend/multi_44a680.cpp | Merged (with its inlined helpers as local copies), `/Ob2` inlines UpdateMaxUnitsText (0x445b70) and UpdateMetalText (0x445c70) into it, where the original calls them (2549 bytes against 2340). |
 | frontend/multi | src/frontend/multi_44c420.cpp | Two address computations swap their operand order; it matches only with its symbol ids about 34,000 above anywhere the module can put it. |
+| orders/unit_orders | src/orders/unit_orders_403a20.cpp | Merged, the cell lookup in state 0 loads g_game before the type index (97.4% at best), and the nano box corners only compile with a member `operator+` view of Vec3. |
+| orders/unit_orders | src/orders/unit_orders_404ad0.cpp | Merged, the feature pointer in `g_game->features[index]` is added up in the other operand order (95.2%); the file needs the symbol ids of `<windows.h>`. |
+| orders/unit_orders | src/orders/unit_orders_404db0.cpp | Same feature pointer order as unit_orders_404ad0.cpp, and `lstrcpynA` is called directly instead of through the import (90.4%). |
+| orders/unit_orders | src/orders/unit_orders_405980.cpp | Merged, the stack addresses for the reclaim search arguments are set up in another order (98.9% at best). |
+| orders/unit_orders | src/orders/unit_orders_406300.cpp | Merged, the weapon slot loop keeps its counter in a register where the original keeps it in memory (75.8%). |
+| orders/unit_orders | src/orders/unit_orders_406aa0.cpp | It needs a `Vec` with a constructor; with the module's Vec3 both corners share one load of the unit position (75.7%). |
+| orders/unit_orders | src/orders/unit_orders_406c10.cpp | The module's inline `_Construct` hook changes its bytes (44 against 46). |
+| orders/unit_orders | src/orders/unit_orders_406c40.cpp | The module's inline `_Construct` hook turns its copy loop into calls (38 bytes against 35). |
+| orders/unit_orders | src/orders/unit_orders_406c70.cpp | The module inlines it into the repair patrol's vector insert. |

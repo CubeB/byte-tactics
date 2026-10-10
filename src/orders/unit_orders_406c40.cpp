@@ -1,4 +1,5 @@
 // Decompiled by Opus. Names are provisional.
+// Stays in its own file: in unit_orders.cpp the inline _Construct hook turns its copy loop into calls.
 // std::vector<Unit*>::_Ufill(first, n, value) from MSVC 5's <vector>:
 // copy-constructs n copies of value into raw storage at first.
 // Its callers (0x405d90, 0x40ad80, 0x40b530, 0x480250 and others) inline

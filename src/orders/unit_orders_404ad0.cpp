@@ -1,4 +1,5 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
+// Stays in its own file: in unit_orders.cpp the feature pointer is added up in the other operand order.
 // <windows.h> is needed: without it the feature pointer is loaded straight
 // into esi instead of being added up in eax and copied. The whole-struct
 // copy `box.hi = box.lo` gives the early store of hi.x and puts order in

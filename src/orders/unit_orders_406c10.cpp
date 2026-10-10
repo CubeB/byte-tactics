@@ -1,4 +1,5 @@
 // Decompiled by Opus. Names are provisional.
+// Stays in its own file: in unit_orders.cpp the inline _Construct hook changes its bytes.
 // std::vector<Unit*>::_Ucopy(first, last, dest) from MSVC 5's <vector>:
 // copies [first, last) into raw storage at dest and returns the end of the
 // copies.

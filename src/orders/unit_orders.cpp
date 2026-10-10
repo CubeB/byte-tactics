@@ -8,10 +8,10 @@
 // registrations at the end. The unit's order object (Order) carries the state
 // machine, the target and the position; the unit (Unit) and its type (UnitDef)
 // carry the fields the handlers read and write.
-// The handlers 0x401e00, 0x403a20, 0x403f70, 0x404ad0, 0x404db0, 0x405980,
-// 0x406300 and 0x406aa0 stay in files of their own: their register allocation
-// follows symbol ids this file's context cannot give them (0x401e00's address
-// mode at the allied lookup flips when the merged views share one file). The
+// The handlers 0x403a20, 0x404ad0, 0x404db0, 0x405980, 0x406300 and 0x406aa0
+// stay in files of their own: their register allocation follows symbol ids and
+// views this file's context cannot give them. 0x401e00 and 0x403f70 are
+// defined after the other handlers, ahead of the order tables. The
 // vector members 0x406c10, 0x406c40 and 0x406c70 stay in theirs: the inline
 // _Construct below makes the repair patrol call 0x406c70, which would then
 // also change their own bytes, and 0x406c70 itself would be inlined into the
@@ -481,7 +481,8 @@ int __stdcall WaitOrder(Unit* unit, Order* order, int flags)
     }
 }
 
-// 0x401e00 stays in its own file; the declaration keeps the symbol ids the handlers after it match at.
+// 0x401e00 is defined after the other handlers (its place would move the
+// symbol ids of the ones after it); this declaration keeps their ids.
 struct PadE_00401e00_0 { int field; };
 
 // FUNCTION: 0x401fd0
@@ -1902,6 +1903,124 @@ DestroyFn_00406c00 Access_00406c00::fn = &Access_00406c00::_Destroy;
 // vector insert (0x405d90) call 0x406c70, and with it in this file _Ucopy and
 // _Ufill call it too instead of inlining the placement new, and 0x406c70
 // itself is inlined into insert, so all three change bytes here.
+
+// FUNCTION: 0x401e00
+int __stdcall AttackUTypeOrder(Unit* unit, Order* order, int unused)
+{
+    unsigned int s = 0;
+    s = order->state;
+    switch (s) {
+    case 0:
+        if (!(unit->def->flags245 & 0x10))
+            return 7;
+        order->SetDeadlineTicks(RandomInt(0x5a) + 1);
+        return 1;
+    case 1: {
+        Unit* best = 0;
+        int bestDist = 0x7fffffff;
+        for (Unit* u = g_game->units + 1; u <= g_game->unitsEnd; u++) {
+            if (u->unitDefIndex == order->id && unit->player->allied[u->player->index] == 0) {
+                int dz = u->pos.z - unit->pos.z;
+                int dx = u->pos.x - unit->pos.x;
+                int d = (int)(((__int64)dx * dx) >> 32) + (int)(((__int64)dz * dz) >> 32);
+                d -= RandomInt(d / 2);
+                if (d <= bestDist) {
+                    best = u;
+                    bestDist = d;
+                }
+            }
+        }
+        if (best) {
+            MissionType kind = GetOrderType(3, unit, best, 0);
+            AppendOrder(unit, new Order(kind, best, 0, 0, 0, 0));
+            return 0;
+        }
+        return 5;
+    }
+    default:
+        return 7;
+    }
+}
+
+// Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
+struct Projectile;
+
+// A member operator+ on the unit's position: the nano box corners in 0x403f70
+// only compile this way, where the free Vec3Add would load the operands in
+// another order.
+struct Vec3Sum : Vec3 {
+    Vec3 operator+(const Vec3& other) const {
+        Vec3 r;
+        r.x = x + other.x;
+        r.y = y + other.y;
+        r.z = z + other.z;
+        return r;
+    }
+};
+
+// The original radius expression adds the second dimension twice rather than
+// squaring it: fld x; fld y; fld st(1); fmul st(2); fadd st(1); fadd st(1).
+// FUNCTION: 0x403f70
+int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
+{
+    if (flags & 2) { MarkSelectionOrdersDirty(unit); return 5; }
+    Unit* target = order->target.owner;
+    if (!target) {
+        QueueUnitSpeech(unit, 7, "Construction terminated");
+        return 8;
+    }
+    unsigned int state = 0;
+    state = order->state;
+    switch (state) {
+    case 0: {
+        if (!unit->motion || !(unit->def->flags241 & 0x40)) break;
+        double x = target->def->footprint.x;
+        double y = target->def->footprint.y;
+        int radius = (int)(sqrt(x * x + y + y) * 16.0) / 2;
+        unsigned int range = 0;
+        range = unit->def->buildRange;
+        order->AttachRingApproachGoal(&target->pos, range + radius, radius);
+        order->flags = 0xe8;
+        return 1;
+    }
+    case 1:
+        if (flags & 0x40) {
+            QueueUnitSpeech(unit, 7, "I can't get there");
+            return 8;
+        }
+        if (target->buildLeft == 0.0f) return 5;
+        unit->ClaimWeapons(3);
+        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &order->target.owner->pos) - unit->angles.heading);
+        MarkSelectionOrdersDirty(unit);
+        return 1;
+    case 2:
+        return WaitIfNotInBuildStance(unit, order, 10);
+    case 3: {
+        int rate = 0;
+        rate = unit->def->workerTime;
+        if (AddBuildProgress(unit, target, (float)(rate / 30))) {
+            Vec3 start;
+            GetNanoPiecePosition(unit, &start);
+            Vec3 bounds[2];
+            bounds[0] = (Vec3Sum&)order->target.owner->pos + order->target.owner->def->bounds.lo;
+            bounds[1] = (Vec3Sum&)order->target.owner->pos + order->target.owner->def->bounds.hi;
+            EmitNanoParticles(&start, (Box*)bounds, 6);
+        }
+        unit->workTime = g_game->gameTick + 300;
+        if (order->target.owner->buildLeft != 0.0f) {
+            order->SetDeadlineTicks(1);
+            order->flags |= 0xa;
+            return 2;
+        }
+        return 1;
+    }
+    case 4:
+        QueueUnitSpeech(unit, 8, "Building complete");
+        order->flags |= 2;
+        return 5;
+    }
+    return 7;
+}
 
 struct Unit;
 struct Order;

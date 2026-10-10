@@ -1,4 +1,5 @@
 // Decompiled by Claude Opus 5.5, finished by GPT-6, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Stays in its own file: in unit_orders.cpp the weapon slot loop keeps its counter in a register, where the original keeps it in memory.
 
 #include <stdio.h>
 #include "../util/vec3.h"

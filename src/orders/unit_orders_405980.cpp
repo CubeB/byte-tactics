@@ -1,4 +1,5 @@
 // Decompiled by Claude Opus 5.5, finished by GPT-6, verified by GPT-6.1-sol, edited by deepseek-v4.1, gate polarity checked by space-bunny-free, gate spelling changed by space-bunny-free, finished by Claude Sonnet 5.5, finished by Claude Opus 5.5. Names are provisional.
+// Stays in its own file: in unit_orders.cpp the stack address setup for the reclaim search arguments is scheduled differently.
 #include <vector>
 #include "../util/vec3.h"
 struct Unit;

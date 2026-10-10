@@ -5752,8 +5752,8 @@ piece,0x4fc934,4,src/orders/unit_orders.cpp,2,1780,game data
 piece,0x4fc938,4,src/orders/unit_orders.cpp,2,1784,game data
 piece,0x4fc93c,4,src/orders/unit_orders.cpp,2,1788,game data
 piece,0x5015d0,15,src/orders/unit_orders.cpp,176,0,game data
-piece,0x4fc928,8,src/orders/unit_orders_403f70.cpp,4,0,game data
-piece,0x5015bc,18,src/orders/unit_orders_403f70.cpp,5,0,game data
+piece,0x4fc928,8,src/orders/unit_orders.cpp,2,1760,game data
+piece,0x5015bc,18,src/orders/unit_orders.cpp,216,0,game data
 piece,0x501580,36,src/orders/unit_orders_403a20.cpp,10,0,game data
 piece,0x5012ec,9,src/orders/unit_orders_403a20.cpp,5,0,game data
 piece,0x4fc6d0,4,src/orders/unit_orders.cpp,2,1720,game data
@@ -11922,7 +11922,6 @@ same,0x4fc478,4,src/game/economy.cpp,22,0,
 same,0x4fc910,8,src/orders/unit_orders_403a20.cpp,4,0,
 same,0x4fc918,8,src/orders/unit_orders_403a20.cpp,4,8,
 same,0x4fc920,4,src/orders/unit_orders_403a20.cpp,4,16,
-same,0x4fc920,4,src/orders/unit_orders_403f70.cpp,4,8,
 same,0x4fc9bc,4,src/ai/ai_player.cpp,2,12,
 same,0x4fc9c0,4,src/ai/ai_player.cpp,2,16,
 same,0x4fc9b8,4,src/ai/ai_player_409730.cpp,5,0,
@@ -12208,6 +12207,8 @@ same,0x50a630,32,LIBCPMT.LIB#3@2,14,0,
 same,0x4febd0,24,LIBCPMT.LIB#3@2,7,0,
 same,0x5119b8,1,zlib/zutil.obj,9,0,
 same,0x4c38a0,80,src/util/tdf.cpp,43,0,
+reloc,0x404096,,0x4fc920,,,
+reloc,0x4041e9,,0x4fc920,,,
 reloc,0x4588a6,,0x4fd4c0,,,
 reloc,0x46c3c0,,0x507948,,,
 reloc,0x46c48e,,0x507950,,,

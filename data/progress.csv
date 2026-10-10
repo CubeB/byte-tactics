@@ -14,7 +14,7 @@ address,size,file,symbol,status,similarity
 0x401c20,155,src/orders/unit_orders.cpp,?StopOrder@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
 0x401cc0,30,src/orders/unit_orders.cpp,?MakeSelectableOrder@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
 0x401ce0,275,src/orders/unit_orders.cpp,?WaitOrder@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
-0x401e00,463,src/orders/unit_orders_401e00.cpp,?AttackUTypeOrder@@YGHPAUUnit@@PAUOrder_00401e00@@H@Z,matched,100.0
+0x401e00,463,src/orders/unit_orders.cpp,?AttackUTypeOrder@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
 0x401fd0,63,src/orders/unit_orders.cpp,?WaitForAttackOrder@@YGHHPAUOrder@@H@Z,matched,100.0
 0x402010,330,src/orders/unit_orders.cpp,?SelfDestructOrder@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
 0x402160,141,src/orders/unit_orders.cpp,?AttackNoMoveOrder@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
@@ -40,7 +40,7 @@ address,size,file,symbol,status,similarity
 0x4034a0,1016,src/orders/unit_orders.cpp,?AttackChaseOrder@@YGHPAUUnit@@PAUOrder@@I@Z,matched,100.0
 0x4038a0,380,src/orders/unit_orders.cpp,?SuppressOrder@@YGHPAUUnit@@PAUOrder@@I@Z,matched,100.0
 0x403a20,1360,src/orders/unit_orders_403a20.cpp,?MobileBuildOrder@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
-0x403f70,768,src/orders/unit_orders_403f70.cpp,?HelpBuildOrder@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
+0x403f70,768,src/orders/unit_orders.cpp,?HelpBuildOrder@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
 0x404270,1212,src/orders/unit_orders.cpp,?CaptureOrder@@YGHPAUUnit@@PAUOrder@@I@Z,matched,100.0
 0x404730,920,src/orders/unit_orders.cpp,?ReclaimUnitOrder@@YGHPAUUnit@@PAUOrder@@I@Z,matched,100.0
 0x404ad0,724,src/orders/unit_orders_404ad0.cpp,?ReclaimOrder@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0

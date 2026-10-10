@@ -110,12 +110,6 @@ struct SaveDesc_0043a1f0 {             // the 0x3a-byte snapshot, read and writt
 
 #include "../units/unit_ref.h"
 
-// The parsed text file the writer is handed (the same object as HapiBank).
-class File_0043a970 {
-public:
-    char unknown_0[1];
-};
-
 #include "../util/vec3.h"
 #include "air_maneuver_order.h"
 
@@ -275,7 +269,7 @@ public:
     Order(MissionType, int, void*, int, int, int);
     ~Order();
     Order(Unit* punit, HapiBank* file, char* name);
-    int SerializeToSave(Unit* punit, File_0043a970* file, char* name);
+    int SerializeToSave(Unit* punit, HapiBank* file, char* name);
     void AnnounceStatusIfFlagged(char* text);
     void ReattachFxToUnit();
     void SetAttachedFx(OrderFx* obj);
@@ -794,7 +788,7 @@ Order::Order(Unit* punit, HapiBank* file, char* name)
 // pointing at the kind's name, a "UTYPENAME<id>" value when the object is a
 // build kind, and finally "<name>g" handed to the attached object.
 // FUNCTION: 0x43a970
-int Order::SerializeToSave(Unit* punit, File_0043a970* file, char* name)
+int Order::SerializeToSave(Unit* punit, HapiBank* file, char* name)
 {
     if (unit->typeId != punit->typeId || !file || !name)
         return 0;
@@ -828,15 +822,13 @@ int Order::SerializeToSave(Unit* punit, File_0043a970* file, char* name)
     desc.flags = flags;
     desc.field_36 = subFlags;
 
-    // File_0043a970 is the same object as HapiBank (see its declaration).
-    HapiBank* bank = (HapiBank*)file;
-    bank->OpenNamedBox(name);
-    bank->SeekBox(0);
-    bank->WriteBox(&desc, 0x3a);
+    file->OpenNamedBox(name);
+    file->SeekBox(0);
+    file->WriteBox(&desc, 0x3a);
 
     char buf1[0x80];
     sprintf(buf1, "%s%s", name, "_name");
-    bank->SetStringItem(buf1, g_missionOrderTableBegin[kind].name);
+    file->SetStringItem(buf1, g_missionOrderTableBegin[kind].name);
 
     char* s = g_missionOrderTableBegin[kind].name;
     if (strcmp(s, "MobileBuild") == 0 || strcmp(s, "VTOL_MobileBuild") == 0 ||
@@ -844,14 +836,14 @@ int Order::SerializeToSave(Unit* punit, File_0043a970* file, char* name)
         unsigned short id = unitType;
         char buf2[0x80];
         sprintf(buf2, "UTYPENAME%4d", id);
-        if (!bank->HasItem(buf2) && id >= 1 && id < g_game->unitTypeCount)
-            bank->SetStringItem(buf2, g_game->unitTypes[id].name);
+        if (!file->HasItem(buf2) && id >= 1 && id < g_game->unitTypeCount)
+            file->SetStringItem(buf2, g_game->unitTypes[id].name);
     }
 
     if (desc.field_4 != 0) {
         char buf3[0x20];
         sprintf(buf3, "%s%s", name, "g");
-        attached->SerializeToSave(this, bank, buf3);
+        attached->SerializeToSave(this, file, buf3);
     }
     return 1;
 }

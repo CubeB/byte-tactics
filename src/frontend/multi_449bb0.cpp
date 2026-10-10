@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by claude-opus-5-5, finished by GPT-6, finished by Claude Opus 5.5. Names are provisional.
+// Stays out of multi.cpp: merged, UpdateMetalText is inlined into it (docs/split-modules.md).
 // Opens the multiplayer battle room (LOUNGE2.GUI): resets the room state,
 // copies the lobby's command-line options (g_lobbyLock..g_lobbyWatching) or the
 // host's game options into the local player's flags, sets up the chat list,

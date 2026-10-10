@@ -1,4 +1,5 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
+// Stays out of multi.cpp: a gap region (docs/split-modules.md).
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

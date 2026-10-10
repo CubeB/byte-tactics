@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by claude-opus-5-5. Names are provisional.
+// Stays out of multi.cpp: merged, UpdateMaxUnitsText and UpdateMetalText are inlined into it (docs/split-modules.md).
 // Per-frame update of the multiplayer battle room (LOUNGE2.GUI): checks the
 // map, compacts the player slots when the room is dirty, copies the host's
 // MAXUNITS/METAL/ENERGY sliders (or map) to a client, runs the host's start

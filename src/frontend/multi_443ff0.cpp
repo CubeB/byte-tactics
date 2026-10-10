@@ -1,4 +1,5 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free. Names are provisional.
+// Stays out of multi.cpp: merged, the session list pointer lands in ebp (docs/split-modules.md).
 // Resolves the connection index (searching the enumerated DirectPlay
 // connections for the provider GUID selected in DAT_00512c80 when the
 // incoming index is negative), then records that connection's GUID and

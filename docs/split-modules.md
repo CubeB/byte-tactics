@@ -94,3 +94,9 @@ reason is what stopped it. A module whose row list is empty is one file.
 | graphics/model_render | src/graphics/model_render_4581e0.cpp | Its summing loop needs to be the first function after the module's own types; even there the merged context puts the store's lea before the fadd (99.8%). |
 | graphics/model_render | src/graphics/model_render_4589c0.cpp | It calls BuildObjectPicture and DrawPieces on CMemoryCache, so it needs the class to derive from UnitTable, where the module makes CMemoryCache the base. |
 | graphics/model_render | src/graphics/model_render_458fa0.cpp | Merged, one of its copy loop's two pointer loads is scheduled before the other (99.3%). |
+| frontend/multi | src/frontend/multi_443ff0.cpp | Merged, the session list pointer lands in ebp and g_game is loaded early (85.8%); no symbol count from 0 to 66,000 moves it back. |
+| frontend/multi | src/frontend/multi_4441a0.cpp | Gap region (`data/functions.csv`): `tools/gapcheck.py` sizes a region by the file it is in, so it cannot share multi.cpp. |
+| frontend/multi | src/frontend/multi_444580.cpp | Gap region, same as multi_4441a0.cpp. |
+| frontend/multi | src/frontend/multi_449bb0.cpp | Merged, `/Ob2` inlines UpdateMetalText (0x445c70) into it through BindNamedSliderWithCallback, where the original calls it (2960 bytes against 2756). |
+| frontend/multi | src/frontend/multi_44a680.cpp | Merged (with its inlined helpers as local copies), `/Ob2` inlines UpdateMaxUnitsText (0x445b70) and UpdateMetalText (0x445c70) into it, where the original calls them (2549 bytes against 2340). |
+| frontend/multi | src/frontend/multi_44c420.cpp | Two address computations swap their operand order; it matches only with its symbol ids about 34,000 above anywhere the module can put it. |

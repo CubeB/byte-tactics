@@ -835,9 +835,9 @@ address,size,file,symbol,status,similarity
 0x440cd0,151,src/units/movement_class.cpp,?CheckMapCrc@@YGHXZ,matched,100.0
 0x440d70,775,src/frontend/multi.cpp,?HandleNewMultiClick@@YGXPAUGui@@@Z,matched,100.0
 0x441080,401,src/frontend/multi.cpp,?OpenNewMultiDialog@@YGXXZ,matched,100.0
-0x441220,517,src/frontend/multi_441220.cpp,?UpdateGameSelection@@YGXPAUMenu_00441220@@PAUEntry_00441220@@@Z,matched,100.0
+0x441220,517,src/frontend/multi.cpp,?UpdateGameSelection@@YGXPAUGui@@PAUGadget@@@Z,matched,100.0
 0x441430,39,src/frontend/multi.cpp,?GetLocalPlayerPassword@@YAHXZ,matched,100.0
-0x441460,1874,src/frontend/multi_441460.cpp,?ConnectToGame@@YGHPAUGadget_00441460@@@Z,matched,100.0
+0x441460,1874,src/frontend/multi.cpp,?ConnectToGame@@YGHPAULayer@@@Z,matched,100.0
 0x441bc0,112,src/frontend/multi.cpp,?GetServiceProviderIndex@@YGHXZ,matched,100.0
 0x441c30,973,src/frontend/multi.cpp,?BuildCompoundAddress@@YGHPAH0@Z,matched,100.0
 0x442000,78,src/frontend/multi.cpp,?TryConnect@@YGHH@Z,matched,100.0

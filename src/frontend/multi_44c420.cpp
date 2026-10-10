@@ -1,4 +1,5 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
+// Stays out of multi.cpp: its operand order needs symbol ids the module cannot give it (docs/split-modules.md).
 // Handler/teardown for the "Options" menu. When the menu closes (its current
 // gadget is -1) it frees the DESCLIST/PICLIST scratch globals (0x5129b4,
 // 0x5129b8, 0x5129c4) and unregisters the queued unit rectangles; otherwise it

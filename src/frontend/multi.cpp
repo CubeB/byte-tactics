@@ -8,12 +8,13 @@
 // per-frame refresh, the end-of-multi screen, the save and load game lists
 // and the unit restrictions dialog, in address order.
 //
-// 0x441220, 0x441460, 0x443ff0, 0x444580, 0x449bb0, 0x44a680 and 0x44c420
-// stay in files of their own: in this file's symbol context each one's
-// registers or operand order land differently (docs/c2-regalloc.md), and
-// each matches only in its own file. 0x4441a0 stays in multi_4441a0.cpp: it
-// is a gap region (data/functions.csv), and place.py builds a gap region
-// from a file that holds only that region's functions.
+// 0x441220 and 0x441460 sit after the Game type, ahead of the other types and
+// out of address order: their registers follow their symbol ids
+// (docs/c2-regalloc.md). 0x443ff0, 0x449bb0, 0x44a680 and 0x44c420 stay in
+// files of their own (docs/split-modules.md). 0x4441a0 and 0x444580 stay in
+// multi_4441a0.cpp and multi_444580.cpp: they are gap regions
+// (data/functions.csv), and place.py builds a gap region from a file that holds
+// only that region's functions.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -495,6 +496,245 @@ struct Game {
     };
 };
 
+// 0x441220 and 0x441460 sit here. The declarations they use came up from the
+// prototype block with them; the first two below are used only further down,
+// and are here for the symbol ids they take (docs/c2-regalloc.md).
+void __stdcall SetGadgetText(void* gui, int index, char* text);
+void __stdcall HandleNewMultiClick(Gui* gadget);
+// GLOBAL: 0x511de8
+extern Game* g_game;
+extern char g_onlineLobbyPassword;
+extern int DAT_00512c80;
+extern GUID g_dpspGuidModem;
+extern GUID g_dpspGuidTcpip;
+extern GUID g_dpspGuidIpx;
+extern GUID g_dpspGuidSerial;
+int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
+void __stdcall MarkChanged(void* menu);
+void __stdcall BlitMenuLayers(void* menu, int a, int b);
+void __stdcall SetGadgetActiveByName(void* menu, const char* name, int value);
+void __stdcall ConfigureListBoxByName(void* menu, const char* name, char* text, int count, int flag);
+void __stdcall CloseTopScreen(void* menu);
+void __stdcall OpenMessageBox(void* menu, const char* text, int a, int b, int c);
+char* __stdcall Translate(const char* text);
+void __stdcall SetOffscreenSurface(int a);
+void FlipScreen();
+int __stdcall HAPINET_getgames(char* net, void* desc, int a);
+void* __cdecl GameAllocIgnoreTag(const char* name, unsigned int size);
+int IsOnlineConfigLoaded();
+char* GetPreferredLanguage();
+void __stdcall UpdateGameSelection(Gui* menu, Gadget* entry);
+int __stdcall ConnectToGame(Layer* gadget);
+
+static inline void Apply_00441220(unsigned short* p, unsigned short r, int ge, Gadget* entry)
+{
+    unsigned short on = (unsigned short)(((entry->rowCount == 0) | (ge == 0)) & 1);
+    *p = (unsigned short)((r | on) | (*p & 0xfffe));
+}
+
+// FUNCTION: 0x441220
+void __stdcall UpdateGameSelection(Gui* menu, Gadget* entry)
+{
+    void* gadgets = menu->layer->entries;
+    // Reference to gv: makes ge a real 32-bit read, so ge == 0 tests edi.
+    int gv; int& ge = gv;
+    unsigned short* p;
+    Gadget* gd;
+    unsigned short on;
+    unsigned short r;
+    int idx = entry->index;
+    Group_00441220* rec = (Group_00441220*)((char*)entry->records + idx * 0x54 + 4);
+    Msg_00441220 msg;
+    msg.group = *rec;
+    memcpy(g_game->buffer, &msg, 185);
+
+    unsigned short flags = *(unsigned short*)((char*)&msg.group + 2);
+    int value = *(int*)((char*)&msg.group + 0xe);
+
+    int index = FindGadgetIndex(gadgets, "WATCH", 1);
+    if (index != -1) {
+        gd = (Gadget*)((char*)gadgets + index * 0x15b);
+        gv = ((value & 0xff) >= (int)g_game->version) ? 1 : 0;
+        p = (unsigned short*)((char*)gd + 0x13c);
+        r = (unsigned short)((~flags & 0x80) | (flags >> 8));
+        r >>= 3;
+        r |= flags & 0x10;
+        r >>= 4;
+        Apply_00441220(p, r, ge, entry);
+    }
+    index = FindGadgetIndex(gadgets, "JOINGAME", 1);
+    if (index != -1) {
+        gd = (Gadget*)((char*)gadgets + index * 0x15b);
+        gv = ((value & 0xff) >= (int)g_game->version) ? 1 : 0;
+        p = (unsigned short*)((char*)gd + 0x13c);
+        r = (unsigned short)((flags >> 11) | (flags & 0x10));
+        r >>= 4;
+        Apply_00441220(p, r, ge, entry);
+    }
+
+    int password = msg.group.b & 1;
+    SetGadgetActiveByName((char*)g_game + 0x519, "PASSWORDTEXT", password);
+    SetGadgetActiveByName((char*)g_game + 0x519, "PASSWORD", password);
+    MarkChanged(menu);
+}
+
+// FUNCTION: 0x441460
+int __stdcall ConnectToGame(Layer* gadget) {
+    int count;
+    int left;
+    int i;
+    char* p[21];
+    char names[0x20];
+    char buf[0x80];
+    // Never address-taken, bigger than temp and names so it lands after them.
+    struct { char pre[0x99]; Settings_00441460 s; char pad[0x13]; } sb;
+    const char* msg;
+    char* lang;
+#define temp (buf)
+
+#define PE(g) (memcmp(&g_game->info.guid, &(g), 0x10) == 0)
+    if (!PE(g_dpspGuidModem) && !PE(g_dpspGuidTcpip)) {
+        if (PE(g_dpspGuidIpx))
+            goto upd;
+        // Stores through the unused p[20]: keeps both dead memcmp results.
+        if (PE(g_dpspGuidSerial))
+            ;
+        else
+            *(int*)&p[20] = memcmp(&g_game->info.guid, &g_dpspGuidSerial, 0x10) != 0;
+    }
+    // The a8 case falls into upd:, which is followed by conn:.
+    if (PE(g_dpspGuidModem))
+        goto conn;
+    if (!PE(g_dpspGuidTcpip)) {
+        if (!PE(g_dpspGuidIpx)) {
+            if (PE(g_dpspGuidSerial))
+                ;
+            else
+                *(int*)&p[20] = memcmp(&g_game->info.guid, &g_dpspGuidSerial, 0x10) != 0;
+        }
+        goto conn;
+    }
+upd:
+    msg = "Updating...";
+    goto shown;
+conn:
+    msg = "Connecting  (ESC to abort)";
+shown:
+    OpenMessageBox(&g_game->gui, Translate(msg), 0x96, 0, 1);
+    BlitMenuLayers(&g_game->gui, g_game->screen, 0);
+    SetOffscreenSurface(g_game->screen);
+    FlipScreen();
+    FlipScreen();
+
+    count = HAPINET_getgames((char*)&g_game->net, g_game->desc, 0);
+    CloseTopScreen(&g_game->gui);
+    if (count < 0)
+        return 0;
+
+    i = 0;
+    do {
+        i++;
+        p[i] = (char*)g_game->data16[i];
+        memset(p[i], 0, 0xa00);
+    } while (i < 15);
+
+    // dsc is loaded before the if and used inside it.
+    char* dsc = (char*)g_game->desc;
+    if (count > 0) {
+        p[0] = dsc + 0x18;
+        // Separate counter: its store lands after the jle.
+        left = count;
+        do {
+            char* e;
+            sb.s = *(Settings_00441460*)(p[0] - 0x14);
+            memcpy(names, p[0], 0x20);
+
+            strncpy(p[1], names, 0x10);
+            p[1][0x10] = 0;
+            p[1] += strlen(p[1]) + 1;
+            sprintf(p[2], "%d/%d", sb.s.players, ((Record_00441460*)(p[0] - 0x14))->maxPlayers);
+            p[2] += strlen(p[2]) + 1;
+
+            memset(temp, 0, 0x80);
+            strncpy(temp, names + 0x10, 0xf);
+            e = temp + strlen(temp);
+            while (e != temp) {
+                e--;
+                if (*e != ' ')
+                    break;
+                *e = 0;
+            }
+            if (GetPreferredLanguage() != 0) {
+                if (_strcmpi(GetPreferredLanguage(), "english") != 0) {
+                    _strlwr(temp);
+                    lang = Translate(temp);
+                    strncpy(temp, lang, 0x80);
+                    temp[0x7f] = 0;
+                }
+            }
+            strcpy(p[3], temp);
+            p[3] += strlen(p[3]) + 1;
+
+            if ((sb.s.version & 0xff) >= (int)g_game->version) {
+                if (sb.s.lock)
+                    msg = "Lock";
+                else if (sb.s.playing)
+                    msg = "Play";
+                else
+                    msg = "Open";
+                sprintf(p[4], "%s", Translate(msg));
+            } else {
+                sprintf(p[4], "%s", Translate("VER!"));
+            }
+            p[4] += strlen(p[4]) + 1;
+            sprintf(p[5], "%d", sb.s.memory);
+            p[5] += strlen(p[5]) + 1;
+            sprintf(p[6], "%d", sb.s.metal * 100);
+            p[6] += strlen(p[6]) + 1;
+            sprintf(p[7], "%d", sb.s.energy * 100);
+            p[7] += strlen(p[7]) + 1;
+            sprintf(p[8], "%d", sb.s.pingLimit);
+            p[8] += strlen(p[8]) + 1;
+
+            if (sb.s.mode != 0) {
+                if (sb.s.mode == 1)
+                    msg = "Yes";
+                else
+                    msg = "DM";
+            } else {
+                msg = "No";
+            }
+            sprintf(p[9], "%s", Translate(msg));
+            p[9] += strlen(p[9]) + 1;
+
+            sprintf(p[10], "%s", Translate(sb.s.black ? "Blk" : "Gray"));
+            p[10] += strlen(p[10]) + 1;
+            sprintf(p[11], "%s", Translate(sb.s.nocmd ? "No" : "Yes"));
+            p[11] += strlen(p[11]) + 1;
+
+            p[0] += 0x54;
+        } while (--left);
+    }
+
+    ConfigureListBoxByName(&g_game->gui, "GAMENAME", (char*)g_game->data16[1], g_game->net.gameCount, 0);
+    ConfigureListBoxByName(&g_game->gui, "PLAYERS", (char*)g_game->data16[2], g_game->net.gameCount, 0);
+    ConfigureListBoxByName(&g_game->gui, "MAPNAME", (char*)g_game->data16[3], g_game->net.gameCount, 0);
+    ConfigureListBoxByName(&g_game->gui, "STATUS", (char*)g_game->data16[4], g_game->net.gameCount, 0);
+    ConfigureListBoxByName(&g_game->gui, "METAL", (char*)g_game->data16[6], g_game->net.gameCount, 0);
+    ConfigureListBoxByName(&g_game->gui, "ENERGY", (char*)g_game->data16[7], g_game->net.gameCount, 0);
+    ConfigureListBoxByName(&g_game->gui, "COMMANDER", (char*)g_game->data16[9], g_game->net.gameCount, 0);
+    ConfigureListBoxByName(&g_game->gui, "LOS", (char*)g_game->data16[11], g_game->net.gameCount, 0);
+    ConfigureListBoxByName(&g_game->gui, "PING", (char*)g_game->data16[8], g_game->net.gameCount, 0);
+    ConfigureListBoxByName(&g_game->gui, "FULLMAP", (char*)g_game->data16[10], g_game->net.gameCount, 0);
+
+    i = FindGadgetIndex(gadget->entries, "GAMENAME", 2);
+    if (i != -1)
+        UpdateGameSelection(&g_game->gui, gadget->entries + i);
+    return 1;
+}
+#undef PE
+#undef temp
+
 // One element of the team logo table at g_game+0x148db.
 struct LogoEntry_00445110 {
     void* ptr;                             // +0x00
@@ -695,8 +935,6 @@ void InitCommands();
 typedef void (__stdcall* Callback_00449bb0)(Gui* gui, int index);
 typedef void (__stdcall* Callback_0044c7e0)(Gui* gui, int index);
 
-// GLOBAL: 0x511de8
-extern Game* g_game;
 // GLOBAL: 0x512c84
 extern int g_cmdlineHostMode;
 // GLOBAL: 0x512d90
@@ -739,17 +977,11 @@ extern int g_usePacketManager;
 extern PacketManager g_packetManager;
 // GLOBAL: 0x5129b4
 extern Record_00446f50* g_unitRestrictEntries;
-extern char g_onlineLobbyPassword;
 extern char g_onlineLobbyPlayerName;
-extern int DAT_00512c80;
 extern char* g_modemInfo;
 extern int g_modemCount;
 extern Entry_004426e0* g_modemAccounts;
 extern char* g_modemAccountNames;
-extern GUID g_dpspGuidModem;
-extern GUID g_dpspGuidTcpip;
-extern GUID g_dpspGuidIpx;
-extern GUID g_dpspGuidSerial;
 extern GUID DPAID_Modem;
 extern GUID DPAID_ServiceProvider;
 extern GUID DPAID_Phone;
@@ -771,7 +1003,6 @@ extern int DAT_0051276c;
 extern int g_battleRoomSlotsBuilt;
 extern int g_rejectPlayer;
 
-int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
 Gadget* __stdcall FindGadgetChecked(void* entries, const char* name);
 int __stdcall IsCurrentGadgetNamed(void* menu, const char* name);
 int __stdcall IsCurrentGadgetNamed(Gui* gadget, const char* name);
@@ -784,19 +1015,15 @@ Gadget* __stdcall FindGadgetChecked_E(void* entries, char* name);
 void __stdcall SelectGadgetByIndex(void* menu, int index);
 void __stdcall BeginTextEdit(void* menu, int index);
 int __stdcall TrySetFocus(void* menu, int index);
-void __stdcall MarkChanged(void* menu);
 void __stdcall EnableKeyCommands(void* gui);
 void __stdcall SetKeyboardInput(void* menu, int value);
 void __stdcall MarkLayerChanged(void* menu);
 void __stdcall ClearSelectedGadget(void* menu);
-void __stdcall BlitMenuLayers(void* menu, int a, int b);
 void __stdcall SetDescListCleanupFlag(void* gui, int flag);
-void __stdcall SetGadgetActiveByName(void* menu, const char* name, int value);
 void __stdcall SetTranslatedTextByName(void* menu, const char* name, char* text, int param_4);
 void __stdcall SetGrayedOutByName(void* menu, const char* name, int value);
 void __stdcall SetGrayedOutByName(void* gui, char* name, int value);
 void __stdcall SetListBoxScrollByName(void* menu, const char* name, int index);
-void __stdcall ConfigureListBoxByName(void* menu, const char* name, char* text, int count, int flag);
 void __stdcall SetTranslatedText(void* menu, int index, int param_3, int param_4);
 void __stdcall SetGadgetGrayedOutByName(void* menu, char* name, int value);
 void __stdcall SetCurrentFont(void* gui, int flag);
@@ -810,18 +1037,14 @@ void __stdcall SetButtonStageByName(void* gui, char* name, int value);
 int __stdcall SetButtonStageByName(Class_004a1080* obj, char* name, int value);
 void __stdcall SetGadgetStatusByName(void* gui, char* name, int value);
 void __stdcall SetGadgetName(void* gui, char* name, char* text);
-void __stdcall SetGadgetText(void* gui, int index, char* text);
 void __stdcall SetGadgetRows(void* table, char* name, int* pics, int count);
 void __stdcall DrawButton(void* gadget, int value);
 void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 Layer* __stdcall LoadGuiLayer(void* menu, const char* name, int flags);
 void __stdcall RenderLayer(void* menu, int value);
-void __stdcall CloseTopScreen(void* menu);
 void __stdcall PlaySoundByName(const char* name, int flag);
 void __stdcall PlaySoundByName(char* str, int flag);
 void BlankScreen();
-void __stdcall OpenMessageBox(void* menu, const char* text, int a, int b, int c);
-char* __stdcall Translate(const char* text);
 char* __stdcall Translate(char* text);
 void __stdcall SetFrontendState(int state, int line, const char* file);
 void __stdcall SetFrontendState(int a, int line, char* file);
@@ -831,9 +1054,6 @@ int __stdcall ReadGameRegistryValue(const char* key, void* buf, unsigned int* si
 void __stdcall WriteGameRegistryValue(void* key, void* buf, int value);
 void __stdcall SetCursorMode(int value);
 void __stdcall EnableReporter(int value);
-void __stdcall SetOffscreenSurface(int a);
-void FlipScreen();
-int __stdcall HAPINET_getgames(char* net, void* desc, int a);
 int __stdcall BuildCompoundAddress(int* addressOut, int* sizeOut);
 int __stdcall HAPINET_createcompoundaddress(void* net, void* elements, unsigned long count,
                            void* address, unsigned long* size);
@@ -847,21 +1067,19 @@ int __stdcall HAPINET_releasedplayinterface(void* net);
 void __stdcall HAPINET_uninitmultiplay(void* net);
 void __stdcall HAPINET_getconnections(void* net, void* guids, void* conns,
                            void* descriptions, void* param_5);
-void* __cdecl GameAllocIgnoreTag(const char* name, unsigned int size);
 void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 void __cdecl GameFreeThunk(void* p);
-int IsOnlineConfigLoaded();
 void OrLabelAttribs();
 int __stdcall LoadReporterDll(unsigned int* a, unsigned int* b);
 void __stdcall RunWhileScreenNamed(void* p, char* name);
-char* GetPreferredLanguage();
 unsigned char FindHostSlot();
 char* __stdcall GetRejectReasonText(int value);
 unsigned int __stdcall OnlineGetLinkInfo(LinkInfo* links);
 int __stdcall OnlineProcessButtonCommand(int button, char* message, unsigned int size);
 void OnlineUnload();
 void OpenOptionsPanel();
-// Defined in multi_443ff0.cpp, which keeps its own view of the game.
+// Defined in multi_443ff0.cpp: gathered here, its pointer into the session list
+// lands in ebp, and no symbol count in this file moves it back.
 int __stdcall SelectConnection(int index);
 void __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
 void __stdcall RemapPaletteToClosestIndices(void* menu, void* palette, void* param_3);
@@ -869,18 +1087,12 @@ void SendNetHeartbeat(void);
 void __stdcall OpenSelectGameDialog();
 int InitScoreReporting();
 void __stdcall HandleSerialDialogClick(Gui* gadget);
-// Defined in multi_441220.cpp, which keeps its own views of the menu and the
-// entry record.
-void __stdcall UpdateGameSelection(Gui* menu, Gadget* entry);
 void __stdcall SetSerialBaudFromGadget(Gui* menu, Gadget* entry);
 void __stdcall SetSerialPortFromGadget(Gui* menu, Gadget* entry);
-void __stdcall HandleNewMultiClick(Gui* gadget);
 void __stdcall HandleTcpDialogClick(Gui* gadget);
 void __stdcall HandleModemDialogClick(Gui* gadget);
 void __stdcall HandleSelectGameClick(Gui* menu);
 void __stdcall HandleReportClick(Gui* obj);
-// Defined in multi_441460.cpp, which keeps its own view of the game.
-int __stdcall ConnectToGame(Layer* gadget);
 void __stdcall ShowSelectedAccount(Gui* menu, Gadget* entry);
 void __stdcall OpenReportDialog(unsigned int* count, char** names);
 void FillAccountList(void);
@@ -4196,14 +4408,13 @@ void RefreshBattleRoomRows()
     }
 }
 
-// 0x449bb0 OpenBattleRoom stays in src/frontend/multi_449bb0.cpp: it matches
-// only with the generated ta_types.h and ta_protos.h in front of its own
-// types and externs (docs/c2-regalloc.md), so its declarations cannot be
-// folded into this file.
+// 0x449bb0 OpenBattleRoom stays in src/frontend/multi_449bb0.cpp: gathered
+// here, /Ob2 inlines UpdateMetalText (0x445c70) into it through
+// BindNamedSliderWithCallback, where the original calls it.
 
-// 0x44a680 UpdateBattleRoom stays in src/frontend/multi_44a680.cpp: in this
-// file's symbol context the version text's rect sums and g_game loads land in
-// different registers; the file matches alone with its own includes.
+// 0x44a680 UpdateBattleRoom stays in src/frontend/multi_44a680.cpp: gathered
+// here, /Ob2 inlines UpdateMaxUnitsText (0x445b70) and UpdateMetalText
+// (0x445c70) into it, where the original calls them.
 
 // FUNCTION: 0x44afb0
 void __stdcall HandleEndMultiClick(Gui* obj)
@@ -4695,9 +4906,8 @@ void __stdcall ShowSelectedUnitCosts(void* panel, Gadget* unit)
 }
 
 // 0x44c420 HandleRestrictionsClick stays in src/frontend/multi_44c420.cpp:
-// in this file's symbol context two address computations swap their operand
-// order; its own file needs <stdio.h> without <windows.h>, which the rest of
-// this file needs.
+// gathered here, two address computations swap their operand order, which
+// follows symbol ids that this file cannot give the function.
 
 // FUNCTION: 0x44c7a0
 int __cdecl CompareUnitRestrictEntries(const char* a, const char* b)

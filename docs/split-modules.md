@@ -109,3 +109,4 @@ reason is what stopped it. A module whose row list is empty is one file.
 | orders/unit_orders | src/orders/unit_orders_406c10.cpp | The module's inline `_Construct` hook changes its bytes (44 against 46). |
 | orders/unit_orders | src/orders/unit_orders_406c40.cpp | The module's inline `_Construct` hook turns its copy loop into calls (38 bytes against 35). |
 | orders/unit_orders | src/orders/unit_orders_406c70.cpp | The module inlines it into the repair patrol's vector insert. |
+| units/units | src/units/units_485070.cpp | GetGroundHeight is compiled with other registers when merged into units_485010.cpp (58.8%); 0 to 100 added declarations before it, and 0 to 8 each before g_game and before it, do not change that, and the module file already records that its symbol ids have to stay low. |

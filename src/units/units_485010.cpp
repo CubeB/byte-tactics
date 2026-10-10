@@ -1,5 +1,5 @@
 // Decompiled by Opus, space-bunny-free, Sonnet 5.5, deepseek-v4.1-flash, GPT-6.1-sol, claude-opus-5-5, mimo-v2.6-pro, GPT-6, DeepSeek V4.1 Flash, deepseek-v4.1, Space Bunny Free, Haiku, Claude Opus 5.5, Claude Sonnet 5.5, claude-sonnet-5-5 and Sonnet. Names are provisional.
-// The unit code: map cell and height helpers, the unit memory pool, creating
+// The unit code: map cell and height helpers, the highest point along a line, the unit memory pool, creating
 // a unit (InitUnitFromType, InitUnitScript, InitUnit, CreateUnit and the
 // network CreateUnitFromPacket) and killing units (KillUnit, ApplyUnitDeath).
 
@@ -1003,8 +1003,8 @@ struct Result_486360 {
 };
 
 void* __stdcall GetMapCell(int x, int y);
-// GetGroundHeight (units_485070.cpp) and FindHighestPointOnLine (units_4851c0.cpp)
-// only match in files of their own: their symbol ids have to stay below a low limit.
+// GetGroundHeight (units_485070.cpp) only matches in a file of its own: its symbol
+// ids have to stay below a low limit.
 int __stdcall GetGroundHeight(Pos_00485070* pos);
 // Also declared for the symbol count that AllocateUnitMemory needs.
 int __stdcall FindHighestPointOnLine(Pos_00485a40 a, Pos_00485a40 b);
@@ -1402,4 +1402,49 @@ void __stdcall KillPlayerUnits(unsigned char player)
             }
         }
     }
+}
+
+// Unused here: a real function declared to keep the file's symbol count (docs/c2-regalloc.md).
+void __stdcall NopRetC_B(int, int, int);
+
+struct Vec3_004851c0 {
+    int x;
+    int y;
+    int z;
+};
+
+// FUNCTION: 0x4851c0
+int __stdcall FindHighestPointOnLine(Vec3_004851c0 a, Vec3_004851c0 b)
+{
+    // dz, then dx, as named locals written back into b before the copy; y stays in place on b.
+    int dz = b.z - a.z;
+    b.z = dz;
+    b.y -= a.y;
+    int dx = b.x - a.x;
+    b.x = dx;
+    Vec3_004851c0 d = b;
+    // n computed in each arm with one `n++` after: the two tails merge.
+    int n;
+    if (abs(dx) < abs(dz))
+        n = abs(dz) / 0x100000;
+    else
+        n = abs(dx) / 0x100000;
+    n++;
+    d.x /= n;
+    d.z /= n;
+    short best = 0;
+    for (int i = 0; i <= n; i++) {
+        Cell* c = GetCell(a.x / 0x100000, a.z / 0x100000);
+        if (c) {
+            short v = ((unsigned char*)g_game->features)[c->feature * 256 + 0xfa] + c->height;
+            if (best < v) best = v;
+            if (c->unit) {
+                Unit* o = &g_game->units[c->unit];
+                short w = (o->def->modelMaxY + o->pos.y) >> 16;
+                if (best < w) best = w;
+            }
+        }
+        a.x += d.x; a.y += d.y; a.z += d.z;
+    }
+    return best;
 }

@@ -1780,7 +1780,7 @@ address,size,file,symbol,status,similarity
 0x485010,88,src/units/units_485010.cpp,?GetCellHeight@@YGHPAUPoint16_00485010@@@Z,matched,100.0
 0x485070,208,src/units/units_485070.cpp,?GetGroundHeight@@YGHPAUPos_00485070@@@Z,matched,100.0
 0x485140,117,src/units/units_485010.cpp,?GetCellMeanHeight@@YGHPAUPos_00485070@@@Z,matched,100.0
-0x4851c0,354,src/units/units_4851c0.cpp,?FindHighestPointOnLine@@YGHUVec3_004851c0@@0@Z,matched,100.0
+0x4851c0,354,src/units/units_485010.cpp,?FindHighestPointOnLine@@YGHUVec3_004851c0@@0@Z,matched,100.0
 0x485330,117,src/units/units_485010.cpp,?GetCellPosition@@YGXHHPAUPos_00485070@@@Z,matched,100.0
 0x4853b0,106,src/units/units_485010.cpp,?ClampPositionToMap@@YGXPAUVec3_004853b0@@@Z,matched,100.0
 0x485420,115,src/units/units_485010.cpp,?ShareMapInfo@@YGXEE@Z,matched,100.0

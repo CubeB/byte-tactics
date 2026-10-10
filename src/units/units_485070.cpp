@@ -1,6 +1,8 @@
 // Decompiled by space-bunny-free, finished by Sonnet 5.5. Names are provisional.
 // Bilinear terrain height at a 12.4 fixed point position (x in the high word at
 // +2, z at +10), or -1 outside the map.
+// Kept its own file: merged into units_485010.cpp it is compiled with other
+// registers, and no count of added declarations brings the original back.
 #pragma pack(push, 1)
 #include "../map/cell.h"
 

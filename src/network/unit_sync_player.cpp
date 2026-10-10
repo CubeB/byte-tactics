@@ -29,10 +29,10 @@ struct Rect_0046e330 {                 // 0x10 bytes
 // own: that is what spends the copy constructor's inline budget so the fourth
 // _Ucopy stays a call (see there).
 struct Pair_0046faf0 {                 // 32 bytes
-    std::vector<Elem_0046faf0> list_c;
-    std::vector<Elem_0046faf0> list_d;
+    std::vector<Elem_0046faf0> sentQueue;
+    std::vector<Elem_0046faf0> heldQueue;
     Pair_0046faf0(const Pair_0046faf0& other)
-        : list_c(other.list_c), list_d(other.list_d)
+        : sentQueue(other.sentQueue), heldQueue(other.heldQueue)
     {
     }
 };
@@ -40,8 +40,8 @@ struct Pair_0046faf0 {                 // 32 bytes
 class UnitSyncPlayer {
 public:
     int id;                                    // +0x00
-    std::vector<int> list_a;                   // +0x04
-    std::vector<int> list_b;                   // +0x14
+    std::vector<int> ids;                      // +0x04
+    std::vector<int> pairs;                    // +0x14
     int expected;                              // +0x24
     int sent;                                  // +0x28
     int ackd;                                  // +0x2c
@@ -84,8 +84,8 @@ public:
     int seqSent;                                   // +0x2c
     int seqCur;                                    // +0x30
     int seqMax;                                    // +0x34
-    SyncChecksumVector list_a;                     // +0x38
-    std::vector<int> list_b;                       // +0x48
+    SyncChecksumVector seqSentQueue;               // +0x38
+    std::vector<int> seqHeldQueue;                 // +0x48
     int direct;                                    // +0x58
     int pendingPlayerCount;                        // +0x5c
     int checksumProgress;                          // +0x60
@@ -120,7 +120,7 @@ void FinishUnitSync()
 // size(), allocator.allocate() (??2@YAPAXI@Z, the array new) and _Ucopy.
 // FUNCTION: 0x470390
 UnitSyncPlayer::UnitSyncPlayer(const UnitSyncPlayer& other)
-    : id(other.id), list_a(other.list_a), list_b(other.list_b),
+    : id(other.id), ids(other.ids), pairs(other.pairs),
       expected(other.expected), sent(other.sent), ackd(other.ackd),
       lastSent(other.lastSent), cur(other.cur), max(other.max),
       pair(other.pair)

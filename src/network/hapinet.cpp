@@ -164,7 +164,7 @@ struct Net_4c97b0 {
     Lobby_4c9a70* lobby;              // +0x4cd
     Connection_4c9a70* connection;    // +0x4d1
     int connection_size;              // +0x4d5
-    char unknown_4d9[4];              // +0x4d9
+    char compressionOff[4];           // +0x4d9, a dword: nonzero stops outgoing compression
     int maxPlayers;                   // +0x4dd
     int enumTimeout;                  // +0x4e1
     int providerCount;                // +0x4e5

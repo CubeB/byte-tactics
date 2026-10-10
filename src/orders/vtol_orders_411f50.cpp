@@ -12,6 +12,7 @@
 #include <vector>
 
 struct Point { short x, y; };
+// Kept local, not util/vec3.h: the header's symbol ids change this function's registers.
 struct Vec3 {
     int x, y, z;
     Vec3 operator+(const Vec3& other) const {

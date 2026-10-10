@@ -10,6 +10,12 @@
 #include "ta_types.h"
 #include <string.h>
 
+// Unused here: the symbol ids these declarations take keep the allocation
+// (docs/c2-regalloc.md), standing in for the placeholder class ta_types.h
+// no longer declares.
+void SetMissionStatus(int, int, int);
+bool __cdecl WriteGdperf(unsigned long, unsigned long, unsigned long);
+
 // Own views of the cell, spot and Animating record: the header's differ.
 struct Spot_00424c00 {
     char unknown_0[4];
@@ -131,7 +137,7 @@ void __stdcall LoadFeatures(HapiBank* file)
     FreeFeatureList();
 
     int k, n;
-    n = ((Class_004b4800*)file)->GetIntegerItem("Number of Normal Features", 0);
+    n = file->GetIntegerItem("Number of Normal Features", 0);
     file->OpenNamedBox("Normal Features");
     for (k = 0; k < n; k++) {
         Normal_00424890 rec;
@@ -146,7 +152,7 @@ void __stdcall LoadFeatures(HapiBank* file)
         }
     }
 
-    n = ((Class_004b4800*)file)->GetIntegerItem("Number of Animating Features", 0);
+    n = file->GetIntegerItem("Number of Animating Features", 0);
     file->OpenNamedBox("Animating Features");
     for (k = 0; k < n; k++) {
         Anim_00424c00 rec;
@@ -175,7 +181,7 @@ void __stdcall LoadFeatures(HapiBank* file)
         }
     }
 
-    n = ((Class_004b4800*)file)->GetIntegerItem("Number of 3D Features", 0);
+    n = file->GetIntegerItem("Number of 3D Features", 0);
     file->OpenNamedBox("3D Features");
     for (k = 0; k < n; k++) {
         Model3D_00424c00 rec;

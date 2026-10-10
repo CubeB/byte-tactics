@@ -96,7 +96,7 @@ unitdef->flags1 = (value & 1) << N | unitdef->flags1 & MASK;
 Queued as #6272, with the xor forms (`standingmoveorder`,
 `mobilestandorders`) and the `value2` sites called out as the ones to keep.
 
-**`0x43f0e0 GetOrderType`** (4420, `src/orders/order_dispatch_43f0e0.cpp:542-749`).
+**`0x43f0e0 GetOrderType`** (4420, `src/orders/order_dispatch.cpp:542-749`).
 A switch on the order mode. `Pick`, `FEATURE_CHECK`, `Lookup` and `Visible`
 are already helpers (lines 504-540). The two arms of case 1 (lines 707-746)
 write out near-duplicate tails, but the comment at line 709 records that a
@@ -382,3 +382,286 @@ sites, lines 77-179), `UpdatePlayerEconomy` (accumulate and clamp blocks,
 lines 368-429), `DrawMapDebugOverlay` (height-colour pair, lines 1625-1656),
 `DrawListBox` (fade run, lines 1647-1650) and `DrawButton` (text-colour pair,
 lines 4950-5016).
+
+## The third 20 (issue #6493)
+
+The third audit covers the next 20 game functions by size (1655 to 1964
+bytes), read the same way as the first two: look for blocks that do one thing
+with different inputs, and for code that repeats the body of a function that
+is out of line elsewhere in the exe. Unlike the first two audits it is a
+reading pass only: no extraction was built or checked, so none of the
+candidates below is proved, and no follow-up issues are opened yet. Ten
+functions hold repeated blocks that could come out as inline helpers; ten are
+genuinely long. The line numbers are at the commit that added this section.
+
+What stands out is that the GUI functions in this group inline three small
+functions that are out of line elsewhere in `src/gui/gui.cpp`:
+
+- `GetGadgetRect` (0x4a1630, line 1228): the `type == 0` origin test plus
+  right and bottom from width and height. Written out in `LoadGuiLayer`,
+  `HandleButtonInput` and twice in `DrawLabel`.
+- `IsPointInRect` (0x4a1920, line 1349): the four-way bounds test. Written
+  out nine times in `HandleButtonInput` and four times in `HandleListBoxInput`.
+- `SelectFontForEntry` (0x4a1810, line 1311): the loop that finds the n-th
+  type 7 entry and sets the font. Written out in `HandleListBoxInput`,
+  `DrawLabel` and `LoadGuiLayer`. The file already holds a
+  `static inline` copy for `HandleTextInput` (`SelectFontForEntry_inlined`,
+  line 5141), which is the precedent for the shape of a helper.
+
+### Verdicts
+
+| Address | Bytes | Function | Verdict |
+| --- | ---: | --- | --- |
+| 0x4866d0 | 1964 | `ApplyUnitDeath` | genuinely long (death sequence; small two-site candidates) |
+| 0x492360 | 1964 | `LoadGameScreenHandler` | inlined helpers (list-free block twice) |
+| 0x429870 | 1938 | `LoadGameResources` | genuinely long (one lookup per resource) |
+| 0x477ab0 | 1935 | `HandleNewGameClick` | genuinely long (gadget dispatch) |
+| 0x4df590 | 1904 | `PerformanceDialog::HandlePerformanceMessage` | genuinely long (message switch) |
+| 0x441460 | 1874 | `ConnectToGame` | inlined helpers (ten column appends) |
+| 0x413470 | 1864 | `AirToGroundHoverOrder` | inlined helpers (move effect, shares the #6447 shape) |
+| 0x49b720 | 1853 | `UpdateProjectiles` | genuinely long (projectile-type chain) |
+| 0x4c8020 | 1845 | `DrawLitTexturedSpan` | inlined helpers (six span loops) |
+| 0x412d40 | 1838 | `AirToAirOrder` | genuinely long (state switch; prologue shared with other orders) |
+| 0x4a3780 | 1832 | `HandleListBoxInput` | inlined helpers (`IsPointInRect`, `GetGadgetRect` call, font select) |
+| 0x487bf0 | 1811 | `RunInitialMission` | inlined helpers (position parse, order add) |
+| 0x4aa8f0 | 1762 | `LoadGuiLayer` | inlined helpers (`GetGadgetRect`, name searches) |
+| 0x4a6ae0 | 1703 | `HandleButtonInput` | inlined helpers (`GetGadgetRect`, `IsPointInRect` nine times) |
+| 0x421700 | 1692 | `BreakPieceIntoDebris` | genuinely long (one debris builder) |
+| 0x409730 | 1678 | `PlayerAI::ComputeBaseWeights` | genuinely long (scoring chain) |
+| 0x466dc0 | 1662 | `DrawRadarUnits` | inlined helpers (four range circles) |
+| 0x4a56b0 | 1662 | `DrawLabel` | inlined helpers (`SelectFontForEntry`, `GetGadgetRect` twice) |
+| 0x499200 | 1655 | `BattleFrame` | genuinely long (input and state chain) |
+| 0x462f30 | 1653 | `PacketReceiver::ReceiveFrame` | genuinely long (receive state machine) |
+
+### The functions
+
+**`0x4866d0 ApplyUnitDeath`** (1964, `src/units/units_485010.cpp:1161-1345`).
+One straight death sequence: detach and unlink the unit, credit the kill by
+death kind (switch at 1200-1234), update the rank table, adjust the
+parent's metal, spawn the corpse, free the script, state and object. The
+repeats are small: the commander-name test `_strcmpi(g_game->names[...].name,
+unit->type->name)` twice (1210-1216, 1227-1230), the id-to-`Unit*` lookup
+twice (1165-1168, 1175-1178), and the two rank loops over ten players
+(1248-1266, 1270-1275). Comments at 1247, 1252, 1290, 1313 and 1334 record
+that the loop form, compare arms, pointer and flag order are what the
+registers need. Not queued.
+
+**`0x492360 LoadGameScreenHandler`** (1964, `src/game/savegame.cpp:387-549`).
+The list-free block (`GameFreeThunk` on the file names, descriptions, side
+list, then the radar preview, each cleared to 0) is written out twice here
+(399-410 and 513-524), and again in `SaveGameScreenHandler` (627-639) and
+`game_state_490ac0.cpp:993`. The "back to the menu" tail (`mode = 2; handler
+= MenuFrame; SetCloseHandler(LeaveNetGameCallback, 0)`, 534-536 and
+510-512) is a second three-line repeat. The load itself (426-541) is one
+sequence of summary-bank reads. Candidate: a `static inline` that frees the
+four lists, at the two sites here. No out-of-line function matches the block.
+
+**`0x429870 LoadGameResources`** (1938, `src/game/data_files.cpp:405-525`).
+About eighty `g_game->x = (int)FindGafEntry(gaf, "name")` lines in five
+groups, each preceded by `LoadAnimGaf` and followed by re-reading the field
+into `gaf` (the comment at 411 says that re-read is needed), then a TDF loop
+over the sides. `FindGafEntry` is already the helper and the lines differ in
+destination and string, so there is no block to pull out. Not queued.
+
+**`0x477ab0 HandleNewGameClick`** (1935, `src/frontend/campaign_menu.cpp:901-1020`).
+A chain of `IsCurrentGadgetNamed` tests. The Core and Arm side arms (986-1001
+and 1004-1015) mirror each other, but one is reached by `goto ArmSide` and
+they differ in order and in the mission-list tail, and the comment at 967
+records that the shared exit is what the registers need. Not queued.
+
+**`0x4df590 PerformanceDialog::HandlePerformanceMessage`** (1904, `src/debug/debug_lib.cpp:5105-5305`).
+A window-message switch (`WM_COMMAND`, `WM_TIMER`, `WM_INITDIALOG`, hotkey).
+The five check-box cases (5162-5186) share `flag = (flag == 0);
+SyncPerformanceSettings(0); return 0` but toggle different globals. The
+only block that repeats an out-of-line body is the tree-iterator advance at
+5199-5211, which is `NextNode` (called at 5249) with its `_Lockit` spelled
+out; it occurs once, and the comment at 5200 records why it stays. Genuinely
+long; not queued.
+
+**`0x441460 ConnectToGame`** (1874, `src/frontend/multi_441460.cpp:90-243`).
+The game-list builder writes eleven text columns, each ending in the same
+advance, `p[n] += strlen(p[n]) + 1;` (163-222), and nine of them are built
+by `sprintf(p[n], fmt, value)` just before it (the others use `strncpy`
+or `strcpy`). That pair is the repeated block; a helper would take the
+column pointer and the finished text. The ten `ConfigureListBoxByName`
+calls (228-237) differ only in name and column index. The frame is
+sensitive: the comments at 98, 108 and 154 place locals by size and
+declaration order, and the column pointers live in the `p[21]` array, so the
+helper has to take them by reference or by index. Candidate; moderate risk.
+
+**`0x413470 AirToGroundHoverOrder`** (1864, `src/orders/vtol_orders_413470.cpp:158-266`).
+Four arms build a move effect: `new Class_0044e2d0(order, dest)`,
+`SetApproachRadius`, `SetAttachedFx` (177-180, 205-207, 214-216; the fourth
+at 230-231 builds it but never attaches it, per the comment at 229). This is
+the shape #6447 is extracting from `AirStrikeOrder` (`AttachMove`), so the
+same helper applies here once #6447 shows whether it holds; the site at
+177-180 sets the flags between the radius and the attach, like the first site
+in `VtolFollowOrder`. The 22-line prologue (161-182) is identical in
+`AirToAirOrder`, and its first two blocks (the `VTOL_SEEKATTACK` queueing,
+161-170) recur in `AirToGroundOrder` (`vtol_orders_412710.cpp:181-190`) and
+`AirStrikeOrder` (with `order->target.owner`); it is shared code between
+functions, not a block repeated inside one. Candidate; wait for #6447.
+
+**`0x49b720 UpdateProjectiles`** (1853, `src/weapons/weapons_49b720.cpp:195-348`).
+One loop over the projectiles with a chain on the weapon type flags. The step
+`p->pos += p->vel; p->pos += g_game->wind; p->vel.y -= g_game->gravity;
+CheckProjectileCollision(type, p);` appears at 307-310, 318-321 and 324-327,
+and the plain `pos += vel; CheckProjectileCollision` at 289-290, 293 and 300,
+329-332. Each arm differs around it (lifetime tests, smoke, detonation), so
+the block is four lines. Genuinely long; not queued.
+
+**`0x4c8020 DrawLitTexturedSpan`** (1845, `src/graphics/surface.cpp:1583-1737`).
+Six depth-tested loops for texture widths 128, 64, 32, 16, 8 and the general
+case (1615-1704) are the same twelve lines (`value = z >> 16;` compare
+against depth; texel fetch; palette lookup with `light >> 16`; store both;
+step `v z light dest depth u`). They differ only in the texel index, where the
+`v` shift and mask change (`v >> 9 & ~127` down to `v >> 13 & ~7`, and
+`v >> 16` times the width for the default). The unlit half already calls
+`BlitSpan128`, `BlitSpan64`, `BlitSpan32` and `BlitSpan16` out of line, which
+is how the original wrote the unlit loops; the lit ones are the ones left
+spelled out. Candidate: a `static inline` loop taking the shift as a
+parameter, which must fold to a constant at each call. The comment at 1609
+(one shared temporary keeps the loop counters in place) says the frame is
+sensitive. Lower priority than the GUI candidates because the helper cannot
+be a plain `inline` if the shift does not fold.
+
+**`0x412d40 AirToAirOrder`** (1838, `src/orders/vtol_orders_412d40.cpp:158-236`).
+A switch on the order state with two live cases. The move effect appears once
+(177-180) and the `AirManeuverOrder` plus `SetAttachedFx` twice with
+different arguments (203-205, 222-223). The prologue noted under
+`AirToGroundHoverOrder` is the larger repeat, and it is across functions.
+Genuinely long; not queued.
+
+**`0x4a3780 HandleListBoxInput`** (1832, `src/gui/gui.cpp:2831-3017`).
+Three blocks repeat bodies of out-of-line functions or each other:
+
+- The bounds test `point.x >= r.x0 && point.x <= r.x1 && point.y >= r.y0 &&
+  point.y <= r.y1` at 2872, 2892, 2897 and 2907 is the body of
+  `IsPointInRect` (0x4a1920); here the rectangle is the local `Rect_004a3780`
+  with `x0`..`y1`.
+- The font search (2845-2862) is `SelectFontForEntry` (0x4a1810), which
+  differs from it only in the fallback font field (`current` here).
+- The separator-row test `s = SkipTextLines(field_c2, n); if
+  (strncmp(DAT_00502a20, s, 2) == 0) field_ba = orig_sel;` at 2884-2888,
+  2921-2923, 2989-2991 and 3005-3007, and the index clamp at 2877-2883 and
+  2912-2919.
+
+The call to `GetGadgetRect` (2844) is already out of line, so the comment
+there about the `y1` operands records an earlier near miss. The goto labels
+(`skip0`, `above`, `ret1`, `finish`) are load-bearing (comments at 2873,
+2974, 3009), so only the first two are candidates. Candidate; high risk.
+
+**`0x487bf0 RunInitialMission`** (1811, `src/units/unit_commands.cpp:89-268`).
+A command interpreter, one `switch` on the first letter of each comma-split
+token. Two repeats inside it: the position parse `pos.x = (int)(f1 * 65536.0);
+pos.y = 0; pos.z = (int)(f2 * 65536.0)` at 130-132, 141-143, 164-166,
+177-179 and 203-205, and the pair `GetOrderType(&out.k, id, unit, 0, &pos);
+AddOrder(out.k, 1, unit, 0, &pos, ...)` at 133-134, 144-145, 167-169 and
+180-181. The `processed`/`selected` stores differ per case. The comment at 93
+says loose locals change the frame, and the multiply is written `f * 65536.0`
+in some cases and `65536.0 * f` in others, so a shared helper would unify
+spellings that the compiler treats differently. Candidate; moderate risk.
+
+**`0x4aa8f0 LoadGuiLayer`** (1762, `src/gui/dialogs.cpp:180-372`).
+The fade rectangle at 193-204 is `GetGadgetRect` (0x4a1630) on `cur->entries`
+written out. Three search loops (292-302, 304-314, 317-328) find the first
+type 1 entry whose name starts with one of two prefixes (`OK` or `NEXT`,
+`PREV` or `Cancel`) or equals the focus name; the first two differ only in
+the prefixes and the destination, and the comments at 306 and 320 show they
+are already tuned individually. The two offset-the-gadgets loops (238-246,
+249-256) add different offsets. The final text-focus font search (350-361) is
+`SelectFontForEntry` with a different base. Candidates: `GetGadgetRect` (one
+site) and the two name searches (two sites).
+
+**`0x4a6ae0 HandleButtonInput`** (1703, `src/gui/gui.cpp:4899-5109`).
+The rectangle at 4907-4916 is `GetGadgetRect` written out, and the bounds
+test is `IsPointInRect` written out nine times (4922, 4943, 4957, 4968, 4985,
+5000, 5019, 5043 and 5050, in both the positive and negated form). With the
+mouse-up arms (4938-5014), these account for most of the function. This is
+the strongest example in the audit of a block that is verbatim an out-of-line
+function elsewhere. Candidate: `IsPointInRect`-shaped `static inline` taking
+the local `Rect` and the point; the comment at 5033 says the block order of
+the remaining chain is load-bearing, so the helper must not reorder tests.
+
+**`0x421700 BreakPieceIntoDebris`** (1692, `src/weapons/explosions.cpp:828-927`).
+One body for one face of the piece: allocate the debris object, copy the
+vertices, derive a normal, push the back face along it, centre the vertices,
+copy the face data. The repeats are three-field runs: the fixed-to-float
+conversion of three vertices (875-883), the three `RandomInt` velocity lines
+(856-858) and the three spin lines (859-861), and the three-axis add, divide
+and subtract loops (894-913). Each is a few lines and the casts are tuned
+(comment at 886). Genuinely long; not queued.
+
+**`0x409730 PlayerAI::ComputeBaseWeights`** (1678, `src/ai/ai_player_409730.cpp:305-363`).
+A per-unit-type scoring chain: add weights for flags, then the multipliers,
+then the clamps. The two clamps for `e->b` and `e->c` (359, 361) share the
+`(char)max(0.0f, min(100.0f, ...))` shape and the energy-use term appears
+twice (327, 359), but comments at 329 and 360 record that the method call and
+the conditional are what the first resize and `RateWeapons` need. Genuinely
+long; not queued.
+
+**`0x466dc0 DrawRadarUnits`** (1662, `src/map/radar.cpp:597-723`).
+Two loops (units, then projectiles). The unit loop draws four range circles
+with the same line, `if (type->d != 0) DrawCircle(surface, x, y, (int)g_game->
+width * type->d / g_game->mapWidth, base[c])`, for the radar, sonar, radar
+jam and sonar jam distances (640-655; the first two use `base[0xa]`, the
+second two `base[0xc]`). A fifth circle for weapon ranges (662-670) has the
+same scale expression with a dashed variant. Candidate: a `static inline` that
+takes the distance and colour. The projectile loop (693-715) is two arms with
+different drawing. The file already carries `ScaleY_00466dc0` and
+`OnRadar_00466dc0` as helpers, so a third in the same style fits.
+
+**`0x4a56b0 DrawLabel`** (1662, `src/gui/gui.cpp:4437-4549`).
+The font loop at 4443-4457 is `SelectFontForEntry` (0x4a1810) written out,
+and both rectangles (4463-4472 and 4510-4519) are `GetGadgetRect` (0x4a1630)
+written out, the second against a re-read `entries2`. The rest is one draw
+sequence (fill, shadow, text, then either grey and fade or the hotkey
+underline). Candidate; this function and `HandleButtonInput` are the two
+best proofs for the `GetGadgetRect` shape, since the inlined `rect` is a
+plain local in both.
+
+**`0x499200 BattleFrame`** (1655, `src/ingame/build_placement.cpp:258-412`).
+The per-frame input chain: a cursor pick, the order-panel flag dispatch, a
+mouse message chain (287-347), the end-game check, and the restart request.
+The two restart arms (380-409) share their shutdown and return-to-menu
+calls but differ in order and in what sits between them; the comment at 379
+records that the compiler merges their stores. The box start and end writes
+(331-337, 324-326) are three-field runs. Genuinely long; not queued.
+
+**`0x462f30 PacketReceiver::ReceiveFrame`** (1653, `src/network/packets.cpp:1542-1772`).
+A receive state machine over the saved-frame and spare buffers. Repeated
+four-line pieces: the copy-out to the caller (`net + 0x4b5`, `0x4b9`,
+`memcpy`, `*size`) at 1559-1562 and 1761-1764, the saved-frame swap at
+1587-1598 and 1693-1702, and the `Prev`/`Next` gap report pairs (1676-1688).
+The comments at 1553, 1563, 1606, 1615, 1644, 1741 and 1746 record that exit
+blocks, the `delete`/`new` spellings and the duplicated `Peek` are what the
+original code has, so the repetition is deliberate. Genuinely long; not
+queued.
+
+### Candidate extractions
+
+None of these has been built. They are listed in the order they look worth
+trying; each needs `check.py` on every function it touches, `place.py`, and
+the symbol-id note at the top of this document.
+
+| Function | Repeated block | Evidence |
+| --- | --- | --- |
+| `HandleButtonInput` 0x4a6ae0 | nine `IsPointInRect` tests, one `GetGadgetRect`, lines 4907-5051 | verbatim bodies of 0x4a1920 and 0x4a1630 |
+| `DrawLabel` 0x4a56b0 | `SelectFontForEntry` once, `GetGadgetRect` twice, lines 4443-4519 | verbatim bodies of 0x4a1810 and 0x4a1630 |
+| `HandleListBoxInput` 0x4a3780 | four `IsPointInRect` tests, the font search, lines 2845-2907 | verbatim bodies of 0x4a1920 and 0x4a1810 |
+| `LoadGuiLayer` 0x4aa8f0 | `GetGadgetRect`, two name searches, lines 193-314 | verbatim body of 0x4a1630; two near-identical loops |
+| `DrawRadarUnits` 0x466dc0 | four range circles, lines 640-655 | same call four times |
+| `AirToGroundHoverOrder` 0x413470 | three move effects, lines 177-216 | same shape as #6447 |
+| `ConnectToGame` 0x441460 | ten column advances, lines 161-222 | same two lines ten times |
+| `RunInitialMission` 0x487bf0 | five position parses, four order adds, lines 130-181 | same lines in four to five cases |
+| `LoadGameScreenHandler` 0x492360 | list-free block twice, lines 399-524 | same twelve lines twice (four in the file) |
+| `DrawLitTexturedSpan` 0x4c8020 | six lit span loops, lines 1615-1704 | same twelve lines six times; the shift must fold |
+
+The four GUI functions at the top are one family: a helper of the form
+`static inline` for each of the three out-of-line bodies, declared once above
+the first use in `gui.cpp` (and in `dialogs.cpp` for `LoadGuiLayer`), is the
+smallest first attempt, and `HandleListBoxInput` and `HandleButtonInput` can
+reuse the same `IsPointInRect` helper. Calling the out-of-line functions
+instead is not an option: `HandleButtonInput` and `LoadGuiLayer` inline them,
+and the first audit showed that replacing inlined code with a call changes
+the size (`LoadSideData`, 46.6%).

@@ -231,8 +231,7 @@ struct Unit {
     union {                            // +0xa8
         short f_a8;                    // 49d580's
         unsigned short f_a8u;          // 49d270's
-        short field_a8;                // 49d9c0's
-        short id;                      // 49d1e0's unit id
+        short id;                      // 49d1e0's and 49d9c0's unit id
     };
     char unknown_aa[0xb0 - 0xaa];
     int workTime;                      // +0xb0, 49c740's
@@ -684,33 +683,8 @@ int __stdcall ApplyWeaponDamage(Weapon_00499cd0* weapon, Unit* target,
 
 #pragma pack(push, 1)
 
-struct ProjectileType_00499eb0 {
-    char unknown_0[0x78];
-    void* field_78;
-    void* field_7c;
-    char unknown_80[0xcc - 0x80];
-    int field_cc;
-    int field_d0;
-    char unknown_d4[0xd6 - 0xd4];
-    unsigned short field_d6;
-    char unknown_d8[0xf6 - 0xd8];
-    unsigned short sound1;
-    unsigned short sound2;
-    char unknown_fa[0xfe - 0xfa];
-    unsigned short value;              // +0xfe
-    char unknown_100[0x111 - 0x100];
-    // Bitfield struct: the bit tests need this form.
-    struct {
-        unsigned int bits0_9 : 10;
-        unsigned int bit10 : 1;
-        unsigned int bits11_21 : 11;
-        unsigned int bit22 : 1;
-        unsigned int bits23_31 : 9;
-    } flags;
-};
-
 struct Projectile_00499eb0 {
-    ProjectileType_00499eb0* type;
+    WeaponDef* type;
     Vec3_0049b720 position;
     char unknown_10[0x52 - 0x10];
     Unit* unit;
@@ -728,7 +702,7 @@ void __stdcall UntrackProjectile(Projectile_00499eb0* projectile)
 {
     if (projectile == g_game->selected) {
         g_game->cameraSnapPos = g_game->selectedProjectile->position;
-        g_game->cameraSnapTicks = projectile->type->value;
+        g_game->cameraSnapTicks = projectile->type->deathSound;
         g_game->selected = 0;
     }
     projectile->flags |= 2;
@@ -746,15 +720,15 @@ void __stdcall ApplyAreaDamage(Projectile_00499eb0* projectile, Vec3_0049b720* p
 void __stdcall DetonateProjectile(Projectile_00499eb0* projectile, Unit* unit)
 {
     int hostile = 0;
-    ProjectileType_00499eb0* type = projectile->type;
+    WeaponDef* type = projectile->type;
     Vec3_0049b720* position = &projectile->position;
     unsigned char* value = (unsigned char*)GetMapCellAtPosition(position);
     if (value != 0)
         hostile = value[5] < g_game->seaLevel;
-    if (!type->flags.bit22) {
+    if (!type->flags.b.keepsProjectile) {
         if (projectile == g_game->selected) {
             g_game->cameraSnapPos = g_game->selectedProjectile->position;
-            g_game->cameraSnapTicks = projectile->type->value;
+            g_game->cameraSnapTicks = projectile->type->deathSound;
             g_game->selected = 0;
         }
         projectile->flags = projectile->flags | 2;
@@ -762,27 +736,27 @@ void __stdcall DetonateProjectile(Projectile_00499eb0* projectile, Unit* unit)
     if (g_game->net->noSeaLevelTrigger && hostile && !unit) {
         if (projectile == g_game->selected) {
             g_game->cameraSnapPos = g_game->selectedProjectile->position;
-            g_game->cameraSnapTicks = projectile->type->value;
+            g_game->cameraSnapTicks = projectile->type->deathSound;
             g_game->selected = 0;
         }
         projectile->flags = projectile->flags | 2;
         return;
     }
-    AccumulateScreenShake(type->field_cc, type->field_cc, type->field_d0);
+    AccumulateScreenShake(type->shakeMagnitude, type->shakeMagnitude, type->shakeDuration);
     if (hostile && !unit) {
-        PlaySoundAt(type->sound2, position, 0);
-        AddExplosionEffect(position, type->field_7c, 0, hostile);
+        PlaySoundAt(type->soundWater, position, 0);
+        AddExplosionEffect(position, type->splash, 0, hostile);
     } else {
-        PlaySoundAt(type->sound1, position, 0);
-        if (type->flags.bit10)
+        PlaySoundAt(type->soundHit, position, 0);
+        if (type->flags.b.whiteSmoke)
             EmitWhiteSmoke(position, 9);
         else
-            AddExplosionEffect(position, type->field_78, 0, hostile);
+            AddExplosionEffect(position, type->explosionSeq, 0, hostile);
     }
     unsigned int player = projectile->owner;
     Player* record = &g_game->players[player];
     if (!record->active || record->type != 3) {
-        if (type->field_d6 <= 0x10 && unit) {
+        if (type->areaOfEffect <= 0x10 && unit) {
             int damage = ApplyWeaponDamage(projectile, unit, 1.0f);
             Unit* source = projectile->unit;
             if (source) {
@@ -1454,9 +1428,9 @@ struct Proj_0049b3e0 {
     char unknown_1c[0x28 - 0x1c];
     Vec3_0049b3e0 target;              // +0x28
     char unknown_34[0x4e - 0x34];
-    Obj_0049b3e0* field_4e;            // +0x4e
+    Obj_0049b3e0* targetUnit;          // +0x4e
     char unknown_52[0x56 - 0x52];
-    int* field_56;                     // +0x56
+    int* interceptedProjectile;        // +0x56
 };
 #pragma pack(pop)
 
@@ -1474,9 +1448,9 @@ Vec3_0049b3e0* __stdcall GetProjectileAimPoint(Proj_0049b3e0* p)
             return &p->start;
         }
     } else {
-        if (p->field_56 != 0)
-            return (Vec3_0049b3e0*)(p->field_56 + 1);
-        Obj_0049b3e0* q = p->field_4e;
+        if (p->interceptedProjectile != 0)
+            return (Vec3_0049b3e0*)(p->interceptedProjectile + 1);
+        Obj_0049b3e0* q = p->targetUnit;
         if (q != 0 && (q->flags & 0x10000000) != 0)
             return &q->pos;
     }
@@ -1870,10 +1844,10 @@ struct UnitType_0049cc20 {
 
 struct Shot_0049cc20 {
     char unknown_0[0x8];
-    int field_8;
+    int aimCobDone;                    // +0x8, the slot's aimCob.nAimCobDone
     UnitType_0049cc20* def;            // +0xc, the unit type that fired
     char unknown_10[0x1b - 0x10];
-    unsigned char field_1b;            // +0x1b
+    unsigned char flags;               // +0x1b
 };
 
 struct Proj_0049cc20 {
@@ -1916,7 +1890,7 @@ int __stdcall FireVLaunchProjectile(Shot_0049cc20* shot, Unit* unit, Vec3* pos,
     InitProjectile(proj, shot->def, pos, aim, g_game->ticks, unit);
     proj->angle = 0;
     proj->pitch0 = 0x4000;
-    shot->field_8 = 0;
+    shot->aimCobDone = 0;
     if (shot->def->f_6c) {
         proj->speed = shot->def->f_6c;
     } else if (shot->def->f_70 == 0) {
@@ -1934,8 +1908,8 @@ int __stdcall FireVLaunchProjectile(Shot_0049cc20* shot, Unit* unit, Vec3* pos,
     proj->targetUnit = param_5;
     proj->interceptedProjectile = param_6;
     proj->active = shot->def->f_ea;
-    unit->anims->StartScript(g_fireScriptNames[(shot->field_1b >> 2) & 3], 0, 0);
-    short angle = unit->aim_0049cc20[(shot->field_1b >> 2) & 3][0][0] - unit->heading;
+    unit->anims->StartScript(g_fireScriptNames[(shot->flags >> 2) & 3], 0, 0);
+    short angle = unit->aim_0049cc20[(shot->flags >> 2) & 3][0][0] - unit->heading;
     int a = -FUN_004b70ef(angle, 800);
     int b = -FUN_004b7123(angle, 800);
     unit->anims->StartScriptWithArgs("RockUnit", 0, 0, 2, b, a, 0, 0);
@@ -1968,12 +1942,12 @@ struct UnitType_0049cde0 {
 struct Shot_0049cde0 {
     char unknown_0[0xc];
     UnitType_0049cde0* def;            // +0xc, the unit type that fired
-    unsigned int field_10;             // +0x10
+    unsigned int muzzleAimFromDeltaZ;  // +0x10
     char unknown_14[0x16 - 0x14];
     short heading;                     // +0x16
     short pitch;                       // +0x18
     char unknown_1a[0x1b - 0x1a];
-    unsigned char field_1b;            // +0x1b
+    unsigned char flags;               // +0x1b
 };
 
 struct Proj_0049cde0 {
@@ -2014,7 +1988,7 @@ int __stdcall FireBallisticProjectile(Shot_0049cde0* shot, Unit* unit, Vec3* pos
         proj->pitch0 = shot->pitch;
         // The whole product is its own statement: inside the assignment the
         // division and multiply sink after the call.
-        int q = (shot->field_10 / shot->def->f_68) * g_game->gravity;
+        int q = (shot->muzzleAimFromDeltaZ / shot->def->f_68) * g_game->gravity;
         proj->diry = FUN_004b70ef(shot->pitch, shot->def->f_68) - q;
         int scale = FUN_004b7123(shot->pitch, shot->def->f_68);
         proj->dirx = -FUN_004b70ef(shot->heading, scale);
@@ -2028,8 +2002,8 @@ int __stdcall FireBallisticProjectile(Shot_0049cde0* shot, Unit* unit, Vec3* pos
         // active before targetUnit: the reverse of the natural order is the original's.
         proj->active = shot->def->f_ea;
         proj->targetUnit = param_5;
-        unit->anims->StartScript(g_fireScriptNames[(shot->field_1b >> 2) & 3], 0, 0);
-        short angle = unit->aim_0049cde0[(shot->field_1b >> 2) & 3][0] - unit->heading;
+        unit->anims->StartScript(g_fireScriptNames[(shot->flags >> 2) & 3], 0, 0);
+        short angle = unit->aim_0049cde0[(shot->flags >> 2) & 3][0] - unit->heading;
         int a = -FUN_004b70ef(angle, 800);
         int b = -FUN_004b7123(angle, 800);
         unit->anims->StartScriptWithArgs("RockUnit", 0, 0, 2, b, a, 0, 0);
@@ -2450,16 +2424,16 @@ int __stdcall FireTurretWeapon(Unit* fire, Unit* unit,
 
 struct AimType_0049d880 {
     char unknown_0[0x106];
-    unsigned short field_106;          // +0x106
-    unsigned short field_108;          // +0x108
+    unsigned short tolerance;          // +0x106
+    unsigned short pitchTolerance;     // +0x108
 };
 
 struct Aim_0049d880 {
     char unknown_0[0xc];
     AimType_0049d880* type;            // +0xc
     char unknown_10[0x16 - 0x10];
-    short field_16;                    // +0x16
-    short field_18;                    // +0x18
+    short fireHeading;                 // +0x16
+    short firePitch;                   // +0x18
 };
 
 // True when both of the aim object's angles are within tolerance of the
@@ -2468,7 +2442,7 @@ struct Aim_0049d880 {
 // FUNCTION: 0x49d880
 int __stdcall AimWithinTolerance(Unit* unit, Aim_0049d880* aim, short angle1, short angle2)
 {
-    unsigned short a = aim->type->field_106;
+    unsigned short a = aim->type->tolerance;
     int x;
     int y;
     if (a == 0) {
@@ -2482,13 +2456,13 @@ int __stdcall AimWithinTolerance(Unit* unit, Aim_0049d880* aim, short angle1, sh
     } else {
         x = a;
         // if/else re-reading the field, not a ternary: it swaps the two tolerances.
-        if (aim->type->field_108)
-            y = aim->type->field_108;
+        if (aim->type->pitchTolerance)
+            y = aim->type->pitchTolerance;
         else
             y = a;
     }
-    if (abs((short)(aim->field_16 - angle1)) <= x
-        && abs((short)(aim->field_18 - angle2)) <= y)
+    if (abs((short)(aim->fireHeading - angle1)) <= x
+        && abs((short)(aim->firePitch - angle2)) <= y)
         return 1;
     return 0;
 }
@@ -2520,8 +2494,8 @@ struct Aim_0049d9c0 {
     char unknown_0[0xc];
     Type_0049d9c0* type;              // +0xc
     char unknown_10[0x16 - 0x10];
-    short field_16;                   // +0x16
-    short field_18;                   // +0x18
+    short fireHeading;                // +0x16
+    short firePitch;                  // +0x18
     char unknown_1a;
     unsigned char weapon;             // +0x1b
 };
@@ -2544,8 +2518,8 @@ int __stdcall FireLineOfSightWeapon(Unit* unit, Aim_0049d9c0* aim,
     Fixed dy;
     dy.value = p.y - point->y;
     int dz = p.z - point->z;
-    aim->field_16 = (short)FUN_004b715a(dx, dz);
-    aim->field_18 = (short)FUN_004b715a(-dy.whole,
+    aim->fireHeading = (short)FUN_004b715a(dx, dz);
+    aim->firePitch = (short)FUN_004b715a(-dy.whole,
                                        (short)((int)_hypot((double)dx, (double)dz) >> 16));
     if (AimWithinTolerance(unit, aim, unit->heading, unit->pitch)) {
         if (FireLineOfSightProjectile(aim, unit, &p, point, target)) {
@@ -2560,10 +2534,10 @@ int __stdcall FireLineOfSightWeapon(Unit* unit, Aim_0049d9c0* aim,
                 if (unit == 0)
                     msg.ownerUnitId = 0;
                 else
-                    msg.ownerUnitId = unit->field_a8;
-                msg.targetUnitId = target ? target->field_a8 : 0;
-                msg.fireHeading = aim->field_16;
-                msg.firePitch = aim->field_18;
+                    msg.ownerUnitId = unit->id;
+                msg.targetUnitId = target ? target->id : 0;
+                msg.fireHeading = aim->fireHeading;
+                msg.firePitch = aim->firePitch;
                 msg.flag = aim->type->flags >> 30;
                 BroadcastPacket(unit->player->id, &msg, 0x24);
             }
@@ -2669,8 +2643,8 @@ struct Aim_0049dd60 {
     char unknown_0[0xc];
     Type_0049dd60* type;
     char unknown_10[0x16 - 0x10];
-    short field_16;
-    short field_18;
+    short fireHeading;
+    short firePitch;
     char unknown_1a;
     unsigned char weapon;
 };
@@ -2725,13 +2699,13 @@ int __stdcall FireDroppedWeapon(Unit* unit, Aim_0049dd60* aim,
             if (unit == 0)
                 packet.ownerUnitId = 0;
             else
-                packet.ownerUnitId = unit->field_a8;
+                packet.ownerUnitId = unit->id;
             if (target == 0)
                 packet.targetUnitId = 0;
             else
-                packet.targetUnitId = target->field_a8;
-            packet.fireHeading = aim->field_16;
-            packet.firePitch = aim->field_18;
+                packet.targetUnitId = target->id;
+            packet.fireHeading = aim->fireHeading;
+            packet.firePitch = aim->firePitch;
             packet.flag = aim->type->flags >> 30;
             BroadcastPacket(unit->player->id, &packet, 0x24);
         }

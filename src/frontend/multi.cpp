@@ -47,7 +47,7 @@ struct Gadget {                        // 0x15b bytes
         unsigned char type;
         unsigned char state;
     };
-    char unknown_1;                    // +0x01
+    char team;                         // +0x01
     char name[0x11];                   // +0x02
     short x;                           // +0x13
     short y;                           // +0x15
@@ -58,7 +58,7 @@ struct Gadget {                        // 0x15b bytes
     int colour;                        // +0x23
     char unknown_27[0x29 - 0x27];      // +0x27
     union {                            // +0x29
-        char field_29;
+        char active;
         unsigned char visible;
     };
     char unknown_2a[0xb6 - 0x2a];      // +0x2a
@@ -73,7 +73,7 @@ struct Gadget {                        // 0x15b bytes
         struct {                       // the unit restrictions' flags list
             char unknown_b6f[0xbe - 0xb6];
             union {
-                int field_be;          // +0xbe
+                int hotspotGaf;        // +0xbe
                 struct {
                     short unknown_be;
                     short count;       // +0xc0, the list's length
@@ -91,24 +91,24 @@ struct Gadget {                        // 0x15b bytes
             union {                    // +0xbc
                 struct {
                     char unknown_bc[0xc0 - 0xbc];
-                    unsigned short field_c0;   // +0xc0
+                    unsigned short rowCount;   // +0xc0
                 };
                 struct {
-                    short field_bc;    // +0xbc
+                    short firstRow;    // +0xbc
                     char unknown_be2[0xc0 - 0xbe];
                 };
             };
             union {                    // +0xc2
                 char* text_c2;
-                void* field_c2;
+                void* hotspotFrame;
             };
             union {                    // +0xc6
                 char unknown_c6[0xcc - 0xc6];
-                void* field_c6;        // +0xc6
+                void* rows;            // +0xc6
                 struct {
                     short frame;       // +0xc6
                     union {
-                        unsigned int field_c8;     // +0xc8
+                        unsigned int hotspotFlags; // +0xc8
                         struct {
                             unsigned int c8_0 : 1;
                             unsigned int c8_rest : 31;
@@ -120,7 +120,7 @@ struct Gadget {                        // 0x15b bytes
             union {                    // +0xce
                 void (__stdcall* handler)(Gui* menu, Gadget* entry);
                 void (__stdcall* onSelect)(Gui* menu, int index);
-                void* field_ce;
+                void* callback;
             };
             union {                    // +0xd2
                 int data;
@@ -130,12 +130,12 @@ struct Gadget {                        // 0x15b bytes
                 char* flags;
                 unsigned char* bits;
             };
-            short field_da;            // +0xda
+            short scroll;              // +0xda
             char unknown_dc[0x138 - 0xdc]; // +0xdc
         };
     };
     unsigned short field_138;          // +0x138
-    unsigned char field_13a;           // +0x13a
+    unsigned char quickKey;            // +0x13a
     char unknown_13b;                  // +0x13b
     union {                            // +0x13c
         int max;
@@ -149,7 +149,7 @@ struct Gadget {                        // 0x15b bytes
         };
     };
     short knobPos;                     // +0x140
-    short unknown_142;                 // +0x142
+    short knobSize;                    // +0x142
     void (__stdcall* sliderCallback)(Gui* menu, int index); // +0x144
     char unknown_148[2];               // +0x148
     void* sliderUser;                  // +0x14a
@@ -315,7 +315,7 @@ typedef Player_00444930 Player_00446f50;
 // The layer LoadGuiLayer returns: the entry table at +4, the click handler at
 // +8 and the dialog's block or owner at +0xc.
 struct Layer {
-    Layer* unknown_0;                  // +0x00
+    Layer* next;                       // +0x00
     Gadget* entries;                   // +0x04
     void* handler;                     // +0x08
     union {                            // +0x0c
@@ -325,7 +325,7 @@ struct Layer {
         int field_c;
     };
     char unknown_10[0x1c - 0x10];      // +0x10
-    void* field_1c;                    // +0x1c
+    void* cb1c;                        // +0x1c
     int current;                       // +0x20
     char unknown_24[0x37 - 0x24];      // +0x24
     int clickMode;                     // +0x37
@@ -537,8 +537,8 @@ struct Layout_00445110 {
 // The map preview dialog's layout block at holder+0xc (0x444930).
 struct Layout_00444930 {
     char unknown_0[0x18];                  // +0x00
-    void* field_18;                        // +0x18
-    void* field_1c;                        // +0x1c
+    void* ptrList;                         // +0x18
+    void* seqs;                            // +0x1c
 };
 
 // The display mode list 0x4461d0 and 0x446310 share.
@@ -559,14 +559,14 @@ struct ModeList {
 // The first 0x13e bytes of an entry, copied out by 0x445300 and 0x4455b0.
 struct Head_00444930 {
     unsigned char state;                   // +0x00
-    char unknown_1;                        // +0x01
+    char team;                             // +0x01
     char name[0x13];                       // +0x02
-    short field_15;                        // +0x15
+    short y;                               // +0x15
     char unknown_17[2];                    // +0x17
-    short field_19;                        // +0x19
+    short height;                          // +0x19
     int attribs;                           // +0x1b
     char unknown_1f[0x29 - 0x1f];          // +0x1f
-    unsigned char field_29;                // +0x29
+    unsigned char active;                  // +0x29
     char unknown_2a[0xb6 - 0x2a];          // +0x2a
     char text[0x13e - 0xb6];               // +0xb6
 };
@@ -624,8 +624,8 @@ struct Event_44c220 {
 
 struct Info_0044c7e0 {                  // filled by UnitSync::GetUnitEntry
     char unknown_0[0xa];
-    short field_a;                     // +0x0a
-    int field_c;                       // +0x0c
+    short peerEnabled;                 // +0x0a
+    int max;                           // +0x0c
 };
 
 class UnitSync {
@@ -657,16 +657,16 @@ struct Record_0044c0d0 {
     unsigned char flag9;               // +0x09
     unsigned char flaga;               // +0x0a
     unsigned char flagb;               // +0x0b
-    int unknown_c;                     // +0x0c
+    int reserved;                      // +0x0c
     int d;                             // +0x10
-    int unknown_14;                    // +0x14
+    int scratch;                       // +0x14
 };
 
 class OrderFx
 {
 public:
     void* vtable;
-    int field_4;
+    int source;
 
     OrderFx(int param_1);
 };
@@ -1306,7 +1306,7 @@ void OpenTcpDialog()
     Layer* dialog = LoadGuiLayer(&g_game->gui, "TCP.GUI", 0x800);
     dialog->handler = HandleTcpDialogClick;
     dialog->owner = g_game;
-    dialog->field_1c = 0;
+    dialog->cb1c = 0;
     LoadPictureCached(0, 0, 0, 0);
     HAPINET_initlobbiedconnection(&g_game->net);
     FindGadgetIndex(dialog->entries, "ADDRESS", 3);
@@ -1412,7 +1412,7 @@ void OpenSerialDialog()
     Layer* gadget = LoadGuiLayer(&g_game->gui, "SERIAL.GUI", 0x800);
     gadget->handler = HandleSerialDialogClick;
     gadget->owner = g_game;
-    gadget->field_1c = 0;
+    gadget->cb1c = 0;
     LoadPictureCached(0, 0, 0, 0);
     HAPINET_initlobbiedconnection((char*)g_game + 0x14);
     ConfigureListBoxByName(&g_game->gui, "PORTS", "COM1\0COM2\0COM3\0COM4", 4, 0);
@@ -1792,7 +1792,7 @@ void __stdcall OpenReportDialog(unsigned int* count, char** names)
     Layer* gadget = LoadGuiLayer(&g_game->gui, "REPORT.GUI", 0x800);
     gadget->handler = HandleReportClick;
     gadget->owner = g_game;
-    gadget->field_1c = ReportDialogFrame;
+    gadget->cb1c = ReportDialogFrame;
     LoadPictureCached("scorebg", 0, 1, 0);
     for (unsigned int i = 0; i < *count; i++) {
         wsprintfA(name, "CHK%d", i);
@@ -2037,7 +2037,7 @@ int __stdcall CloneServiceSlot(Gadget* entries, int param_2, short param_3, int 
     SetTranslatedText((char*)g_game + 0x519, index, param_4, 0);
     strcpy(d->name, param_5);
     d->y = param_3;
-    d->field_29 = 1;
+    d->active = 1;
     d->colours = 0;
     return index;
 }
@@ -2058,8 +2058,8 @@ void __stdcall HandleLogoSelectClick(Gui* param_1)
     Layout_00444930* layout = (Layout_00444930*)param_1->layer->layout;
 
     if (param_1->hotGadgetIndex == -1) {
-        GameFreeThunk(layout->field_1c);
-        GameFreeThunk(layout->field_18);
+        GameFreeThunk(layout->seqs);
+        GameFreeThunk(layout->ptrList);
         GameFreeThunk(layout);
         PlaySoundByName("Multi", 0);
         return;
@@ -2095,13 +2095,13 @@ void ShowSelectedMapInfo()
     SetTranslatedTextByName(&g_game->gui, "SIZE", (char*)buffer, 0);
 
     Gadget* entry = FindGadgetChecked_E(g_game->gui.layer->entries, "MAPPIC");
-    if (entry->field_c2 != 0) {
-        GameFreeThunk(entry->field_c2);
-        entry->field_c2 = 0;
+    if (entry->hotspotFrame != 0) {
+        GameFreeThunk(entry->hotspotFrame);
+        entry->hotspotFrame = 0;
     }
     void* bmp = LoadRadarPic(
         (char*)g_game->map->GetNameSlot(1), &outX, &outY);
-    entry->field_c2 = bmp;
+    entry->hotspotFrame = bmp;
     if (bmp != 0) {
         ResizeRadarPicture(bmp, entry->width, entry->height, outX << 4, outY << 4);
     }
@@ -2306,7 +2306,7 @@ void OpenLogoSelectDialog()
     }
     Gadget* logo = FindGadgetChecked(gui->entries, "LOGOS");
     if (logo != 0) {
-        logo->field_ce = CacheLogosGadgetIndex;
+        logo->callback = CacheLogosGadgetIndex;
     }
     int index = FindGadgetIndex(gui->entries, "LOGOS", 2);
     if (index != -1) {
@@ -2452,8 +2452,8 @@ void __cdecl BuildPlayerSlotGadgets(void)
             *dst = *rec;
             dst->name[strlen(dst->name) - 1] = (char)('0' + p);
             dst->y += p * 20;
-            dst->unknown_1 = 0;
-            dst->field_29 = 1;
+            dst->team = 0;
+            dst->active = 1;
             if (dst->state != 5) {
                 switch (t) {
                 case 0:
@@ -2476,7 +2476,7 @@ void __cdecl BuildPlayerSlotGadgets(void)
                         // Indexed through g_game->players[p], not a byte offset: g_game is the SIB base.
                         Player_00444930* pl = &g_game->players[p];
                         if (pl->active == 0 || (pl->type != 1 && pl->type != 2))
-                            dst->field_29 = 0;
+                            dst->active = 0;
                     }
                     break;
                 case 3:
@@ -2485,21 +2485,21 @@ void __cdecl BuildPlayerSlotGadgets(void)
                         int ok = pl->active != 0 && (pl->type == 1 || pl->type == 2);
                         SetGadgetGrayedOutByName(&g_game->gui, dst->name, !ok);
                     }
-                    dst->field_29 = 0;
+                    dst->active = 0;
                     break;
                 case 6:
                     if (p != g_game->localPlayer && dst->state == 1)
                         CloneFix_004455b0(dst);
                     if (*(int*)&g_game->players[p] != 0 &&
                         (&g_game->players[p])->type == 2)
-                        dst->field_29 = 0;
+                        dst->active = 0;
                     break;
                 case 7:
                     if (p == g_game->localPlayer)
-                        dst->field_29 = 0;
+                        dst->active = 0;
                     break;
                 case 9:
-                    dst->field_29 = 0;
+                    dst->active = 0;
                     SetButtonStageByName((Class_004a1080*)&g_game->gui, dst->name, 10);
                     break;
                 default:
@@ -2526,7 +2526,7 @@ void __cdecl BuildPlayerSlotGadgets(void)
         index = FindGadgetIndex(base, name, 1);
         if (index != -1) {
             Gadget* rec = (Gadget*)(base + 0x15b * index);
-            rec->field_13a = (unsigned char)tolower(name[0]);
+            rec->quickKey = (unsigned char)tolower(name[0]);
             strcpy(base + 0xcc, name);
         }
     }
@@ -3359,9 +3359,9 @@ void __stdcall RefreshAlliesScreen(int param_1)
             Gadget* e2 = FindGadgetChecked_E(entries, logo);
             if (e2 != 0) {
                 e2->visible = 1;
-                e2->field_be = g_game->field_148db;
+                e2->hotspotGaf = g_game->field_148db;
                 e2->frame = p->info->color;
-                e2->field_c8 &= ~1;
+                e2->hotspotFlags &= ~1;
             }
 
             n++;
@@ -4105,7 +4105,7 @@ void RefreshBattleRoomRows()
             if (e) {
                 e->visible = (p->info->color == 0xff && !ready) ? 0 : 1;
                 e->c8_0 = !ready;
-                e->field_be = g_game->field_148db;
+                e->hotspotGaf = g_game->field_148db;
                 e->frame = p->info->color;
             }
             sprintf(name, "PLAYER%d", n);
@@ -4339,7 +4339,7 @@ void __stdcall HandleLoadListClick(Gui* menu)
                 SkipTextLines(g_saveListFileNames, games->selected));
         LoadUnitRestrictListFile(g_game->save_38c6b);
         Layer_00446f50* inner = menu->layer;
-        menu->layer = inner->unknown_0;
+        menu->layer = inner->next;
         UpdateUnitSliders(menu, 0);
         menu->layer = inner;
         if (g_saveListFileNames)
@@ -4484,7 +4484,7 @@ void __stdcall OpenSaveGameDialog()
         SetGadgetActiveByName(&g_game->gui, "DELETE", 0);
     Gadget* games = FindGadgetChecked(layer->entries, "GAMES");
     if (games != 0)
-        games->field_ce = ShowSelectedSaveGame;
+        games->callback = ShowSelectedSaveGame;
     int index = FindGadgetIndex(layer->entries, "GAMENAME", 3);
     layer->entries[index].attribs |= 2;
 
@@ -4538,7 +4538,7 @@ void OpenLoadListDialog()
     SetGadgetActiveByName(&g_game->gui, "GAMENAME", 0);
     Gadget* entry = FindGadgetChecked(gadget->entries, "GAMES");
     if (entry != 0) {
-        entry->field_ce = (void*)ShowSelectedSaveGame;
+        entry->callback = (void*)ShowSelectedSaveGame;
     }
     Gui* menu = &g_game->gui;
     void* gadgets = g_game->gui.layer->entries;
@@ -4573,11 +4573,11 @@ void __stdcall HandleUnitCountSlider(void* obj, char* gadget)
     } else {
         _itoa(value, buf, 10);
     }
-    g_unitRestrictEntries[n + desc->field_bc].max = value;
+    g_unitRestrictEntries[n + desc->firstRow].max = value;
     g_game->sync->SetUnitLimit(
-        &g_game->unitTypes[g_unitRestrictEntries[n + desc->field_bc].unitIndex], value);
-    desc->flags[n + desc->field_bc] = g_unitRestrictEntries[n + desc->field_bc].peerEnabled == 0;
-    desc->flags[n + desc->field_bc] |= g_unitRestrictEntries[n + desc->field_bc].max == 0 ? 2 : 0;
+        &g_game->unitTypes[g_unitRestrictEntries[n + desc->firstRow].unitIndex], value);
+    desc->flags[n + desc->firstRow] = g_unitRestrictEntries[n + desc->firstRow].peerEnabled == 0;
+    desc->flags[n + desc->firstRow] |= g_unitRestrictEntries[n + desc->firstRow].max == 0 ? 2 : 0;
     SetTranslatedTextByName(obj, count, (char*)buf, 0);
 }
 
@@ -4596,7 +4596,7 @@ void __stdcall UpdateUnitSliders(Gui* param_1, int unused)
 
     desc = FindGadgetChecked(param_1->layer->entries, "DESCLIST");
     human = IsHostLocal();
-    base = desc->field_bc;
+    base = desc->firstRow;
 
     for (i = 0; i < 12; i++) {
         sprintf(name, "SLIDER%d", i);
@@ -4624,7 +4624,7 @@ void LoadUnitPortrait()
     char path[256];
     Gadget* pic = FindGadgetChecked(g_game->gui.layer->entries, "PICLIST");
     if (g_unitRestrictPicLoadIndex == 0) {
-        g_unitRestrictRecordCursor = (int)pic->field_c6;
+        g_unitRestrictRecordCursor = (int)pic->rows;
         g_unitRestrictPicCursor = (int)g_unitRestrictPics;
     }
     int i = g_unitRestrictPicLoadIndex++;
@@ -4741,22 +4741,22 @@ void OpenUnitRestrictions()
     layer = LoadGuiLayer(&g_game->gui, "RESTRICT2.GUI", 0x880);
     layer->handler = HandleRestrictionsClick;
     layer->field_c = 0;
-    layer->field_1c = UnitRestrictDialogFrame;
+    layer->cb1c = UnitRestrictDialogFrame;
     g_unitRestrictPicLoadIndex = 0;
     LoadPictureCached("UnitRestrict5x", 0, 0, 0);
 
     entries = layer->entries;
     flags = (char*)GameAllocIgnoreTag("FLAGS", g_game->count);
     desc = FindGadgetChecked(entries, "DESCLIST");
-    desc->field_ce = ShowSelectedUnitCosts;
+    desc->callback = ShowSelectedUnitCosts;
     desc->flags = flags;
-    desc->field_da = 0x20;
+    desc->scroll = 0x20;
     desc->attribs |= 0x100;
 
     pic = FindGadgetChecked(layer->entries, "PICLIST");
     pic->flags = flags;
     pic->attribs |= 0x180;
-    pic->field_da = desc->field_da;
+    pic->scroll = desc->scroll;
 
     pics = (int*)GameAllocIgnoreTag("UNITPICARRAY", g_game->count * 0x18);
     memset(pics, 0, g_game->count * 0x18);
@@ -4790,10 +4790,10 @@ void OpenUnitRestrictions()
             g_unitRestrictEntries[n].unitIndex = i;
             g_game->sync->GetUnitEntry(&g_game->unitTypes[i], &info);
             // One ternary: the if-statement form swaps the ebx/ebp registers.
-            count = info.field_c == -1 ? 0x65 : info.field_c;
+            count = info.max == -1 ? 0x65 : info.max;
             g_unitRestrictEntries[n].max = count;
             g_unitRestrictOldCounts[n] = count;
-            g_unitRestrictEntries[n].peerEnabled = info.field_a;
+            g_unitRestrictEntries[n].peerEnabled = info.peerEnabled;
             n++;
         }
     }
@@ -4847,5 +4847,5 @@ void OpenUnitRestrictions()
 OrderFx::OrderFx(int param_1)
 {
     vtable = &g_orderFxVtable;
-    field_4 = param_1;
+    source = param_1;
 }

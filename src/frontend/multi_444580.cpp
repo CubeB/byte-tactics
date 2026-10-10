@@ -6,17 +6,17 @@
 struct Entry_00444580 {                 // a gadget of the menu, 0x15b bytes
     short unknown_0;
     char name[0x13];                    // +0x02
-    short field_15;                     // +0x15
+    short y;                            // +0x15
     char unknown_17[0x19 - 0x17];
-    short field_19;                     // +0x19
+    short height;                       // +0x19
     int attribs;                        // +0x1b
-    int field_1f;                       // +0x1f
+    int colours;                        // +0x1f
     char unknown_23[0x29 - 0x23];
-    char field_29;                      // +0x29
+    char active;                        // +0x29
     char unknown_2a[0xb6 - 0x2a];
     short count;                        // +0xb6 (entry 0 only)
     char unknown_b8[0xcc - 0xb8];
-    char field_cc[0x15b - 0xcc];        // +0xcc (entry 0 only)
+    char choice[0x15b - 0xcc];          // +0xcc (entry 0 only)
 };
 
 struct Holder_00444580 {
@@ -45,8 +45,8 @@ struct Conn_00444580 {
 
 struct Game_00444580 {
     char unknown_0[0x14];
-    char field_14[0x4f9 - 0x14];        // +0x14
-    int field_4f9;                      // +0x4f9
+    char net[0x4f9 - 0x14];             // +0x14
+    int count;                          // +0x4f9
     char unknown_4fd[0x519 - 0x4fd];
     Menu_00444580 menu;                 // +0x519
     char unknown_535[0x5cb - 0x535];
@@ -96,9 +96,9 @@ static int __stdcall CloneServiceSlot(Entry_00444580* entries, int from, short y
     entries[index] = entries[from];
     SetTranslatedText(&g_game->menu, index, param_4, 0);
     strcpy(entries[index].name, name);
-    entries[index].field_15 = y;
-    entries[index].field_29 = 1;
-    entries[index].field_1f = 0;
+    entries[index].y = y;
+    entries[index].active = 1;
+    entries[index].colours = 0;
     return index;
 }
 
@@ -124,8 +124,8 @@ void FillProviderList()
     if (g_game->conns != 0)
         memset(g_game->conns, 0, 0x50);
     g_game->mapInfo->RefreshMapList(1);
-    HAPINET_uninitmultiplay(g_game->field_14);
-    HAPINET_getconnections(g_game->field_14, g_game->guids, g_game->conns, g_game->descriptions, DAT_004fcfb8);
+    HAPINET_uninitmultiplay(g_game->net);
+    HAPINET_getconnections(g_game->net, g_game->guids, g_game->conns, g_game->descriptions, DAT_004fcfb8);
     Entry_00444580* entries = menu->entries;
     // The names tmpl, y, k and n, at function scope, set the stack slot order.
     int tmpl = FindGadgetIndex(entries, "SERVICEX", 1);
@@ -139,7 +139,7 @@ void FillProviderList()
     } catch (...) {
     }
     if (count != 0 && tmpl != -1) {
-        y = entries[tmpl].field_15;
+        y = entries[tmpl].y;
         k = 0;
         for (n = 0; n < count; k++) {
             if (g_linkInfo[k].id != -1) {
@@ -147,12 +147,12 @@ void FillProviderList()
                 char name[0x1c];
                 sprintf(name, "SERVICE%d", k);
                 CloneServiceSlot(entries, tmpl, y, (int)g_linkInfo[k].name, name);
-                y += entries[tmpl].field_19 + 1;
+                y += entries[tmpl].height + 1;
             }
         }
     }
-    strcpy(entries->field_cc, "SELECT");
-    ConfigureListBoxByName(&g_game->menu, "DPLAY", g_game->descriptions, g_game->field_4f9, 0);
+    strcpy(entries->choice, "SELECT");
+    ConfigureListBoxByName(&g_game->menu, "DPLAY", g_game->descriptions, g_game->count, 0);
     OrLabelAttribs();
     SetKeyboardInput(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);

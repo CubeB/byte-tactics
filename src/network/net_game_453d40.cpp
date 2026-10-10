@@ -193,7 +193,7 @@ struct Packet_0047f0c0 {
     unsigned char type;                // +0x0
     unsigned char flag;                // +0x1
     int index;                         // +0x2
-    int unknown_6[3];                  // +0x6
+    int pos[3];                        // +0x6, x, y and z in 16.16
 };
 
 // A unit ownership transfer (0x14): the unit, the new owner and the rest of

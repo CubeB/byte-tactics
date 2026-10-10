@@ -107,6 +107,12 @@ class EscortTimer;
 class SquadScoutTimer;
 class SpatialTimer;
 
+// Unused here: the symbol ids these declarations take keep the allocation
+// (docs/c2-regalloc.md), standing in for the placeholder class ta_types.h
+// no longer declares.
+void RegisterEmptyAtexitB(void);
+bool __cdecl ReadGdperf(unsigned long, void*);
+
 
 // The command kind, one byte wide, but not a POD type.
 #include "mission_type.h"
@@ -290,10 +296,10 @@ struct Order {
         int range;                         // +0x3e
         int retries;
     };
-    unsigned int field_42;             // +0x42
+    unsigned int flags_42;             // +0x42
     char unknown_46[4];
-    int field_4a;                      // +0x4a
-    unsigned int field_4e;             // +0x4e
+    int next;                          // +0x4a
+    unsigned int subFlags;             // +0x4e
     void AnnounceStatusIfFlagged(const char*);
     void SetAttachedFx(int);
     void AttachApproachRadiusGoal(Vec3*, int);
@@ -638,7 +644,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 // FUNCTION: 0x40f2a0
 int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
 {
-    if (order->field_4a)
+    if (order->next)
         return 5;
     if (flags & 0x40)
         return 5;
@@ -803,7 +809,7 @@ int __stdcall VtolMoveOrder(Unit* unit, Order* order, int flags)
         order->flags = 0xe0;
         return 1;
     case 2:
-        if (!order->field_4a)
+        if (!order->next)
             QueueUnitSpeech(unit, 6, 0);
         return 5;
     }

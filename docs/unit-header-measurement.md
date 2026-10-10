@@ -200,7 +200,7 @@ The failures fall into four groups:
    `vtol_orders_412710.cpp`, `vtol_orders_413470.cpp`), `active` as an
    `int` at +0x0 (`unit_orders_403a20.cpp` and the CreateUnit call), a
    bitfield view of `flags` (`terrain.cpp`), and
-   `CanRepair(Unit_0043e490*)` (`order_dispatch_43f0e0.cpp`).
+   `CanRepair(Unit_0043e490*)` (`order_dispatch.cpp`).
 
 The genuinely hard cases are in group 4: the `side` byte some campaign views
 read at +0x95 sits inside the `def` pointer, the `mover` pointer some VTOL
@@ -304,7 +304,7 @@ uv run python3 build/scratch/6334/swap.py                    # the 83 verdicts
 | `src/network/net_chat.cpp` | does not compile | C2039 is not a member of 'Unit' |
 | `src/network/net_game.cpp` | does not compile | C2679 =: no operator for the whole-value assignment |
 | `src/network/net_game_453d40.cpp` | does not compile | C2039 is not a member of 'Unit' |
-| `src/orders/order_dispatch_43f0e0.cpp` | does not compile | C2664 cannot convert parameter 1 from 'struct Unit_0043e490 *' to 'struct Unit *' |
+| `src/orders/order_dispatch.cpp` | does not compile | C2664 cannot convert parameter 1 from 'struct Unit_0043e490 *' to 'struct Unit *' |
 | `src/orders/order_list.cpp` | does not compile | C2440 cannot convert from 'struct ' to 'struct Vec3' |
 | `src/orders/order_queue_4384a0.cpp` | does not compile | C2039 is not a member of 'Unit' |
 | `src/orders/order_targets.cpp` | does not compile | C2039 is not a member of 'Unit' |

@@ -76,6 +76,8 @@ struct UnitWeaponSlot {                // 0x1c bytes
     unsigned char flags;              // +0x1b
 };
 
+// A view of UnitDef (units/unit_def.h); it stays its own type because the
+// header's extra declarations move the symbol ids that 0x438c00 and 0x439740 depend on.
 struct UnitType {
     char unknown_0[0x15e];
     Pos lo;                           // +0x15e
@@ -151,19 +153,21 @@ struct MissionOrderTableEntry {       // 0x19-byte entries, table at g_missionOr
     char unknown_11[0x19 - 0x11];
 };
 
+// The hudPalette members are the Gui colours (Thaldren's aHudPaletteIndices,
+// +0x8b2 of the Gui at +0x519) at the index in their name.
 struct Game {
     char unknown_0[0xdcc];
-    unsigned char field_dcc;          // +0xdcc
+    unsigned char hudPalette1;        // +0xdcc, Gui palette index 1
     char unknown_dcd[0xdce - 0xdcd];
-    unsigned char field_dce;          // +0xdce
+    unsigned char hudPalette3;        // +0xdce, Gui palette index 3
     unsigned char color1;             // +0xdcf
     char unknown_dd0[0xdd4 - 0xdd0];
-    unsigned char field_dd4;          // +0xdd4
+    unsigned char hudPalette9;        // +0xdd4, Gui palette index 9
     unsigned char color2;             // +0xdd5
     char unknown_dd6[0xdd7 - 0xdd6];
-    unsigned char field_dd7;          // +0xdd7
+    unsigned char hudPalette12;       // +0xdd7, Gui palette index 12
     char unknown_dd8[0xdd9 - 0xdd8];
-    unsigned char field_dd9;          // +0xdd9
+    unsigned char hudPalette14;       // +0xdd9, Gui palette index 14
     unsigned char shadowColor;        // +0xdda
     char unknown_ddb[0x1439b - 0xddb];
     UnitType* types;                  // +0x1439b
@@ -265,11 +269,11 @@ void __stdcall DrawBuildFootprint(void* surface, View* view, Order* order,
     unsigned char outer;
     unsigned char inner;
     if (order->unit->flag4) {
-        outer = g_game->field_dce;
+        outer = g_game->hudPalette3;
         inner = g_game->color2;
     } else {
-        outer = g_game->field_dcc;
-        inner = g_game->field_dd4;
+        outer = g_game->hudPalette1;
+        inner = g_game->hudPalette9;
     }
     DrawLine(surface, r.left + dx - 1, r.top - 1, r.left + dx - 1, r.bottom + 1, outer);
     DrawLine(surface, r.right - dx + 1, r.top - 1, r.right - dx + 1, r.bottom + 1, outer);
@@ -379,58 +383,58 @@ void __stdcall DrawUnitRangeRings(void* surface, View* view, Order* order,
             if (radius >= r)
                 radius = r;
             // Read as &order->unit->pos: a unit local would change it to lea.
-            DrawRangeCircle(surface, view, &order->unit->pos, radius, g_game->field_dd7, 0, 0);
+            DrawRangeCircle(surface, view, &order->unit->pos, radius, g_game->hudPalette12, 0, 0);
             if (unit->motion != 0) {
                 DrawRangeCircle(surface, view, &order->unit->pos, def->kamikazeDistance,
-                             g_game->field_dd7, 0, 0);
+                             g_game->hudPalette12, 0, 0);
                 return;
             }
-            DrawRangeCircle(surface, view, &order->unit->pos, def->sight, g_game->field_dd7, 0, 0);
+            DrawRangeCircle(surface, view, &order->unit->pos, def->sight, g_game->hudPalette12, 0, 0);
             return;
         }
     } else {
         short mincloak = def->minCloakDistance;
         if (mincloak != 0) {
-            DrawRangeCircle(surface, view, &order->unit->pos, mincloak, g_game->field_dd9,
+            DrawRangeCircle(surface, view, &order->unit->pos, mincloak, g_game->hudPalette14,
                          "mincloak", index++);
         }
         if (def->sight != 0) {
-            DrawRangeCircle(surface, view, &order->unit->pos, def->sight, g_game->field_dd9,
+            DrawRangeCircle(surface, view, &order->unit->pos, def->sight, g_game->hudPalette14,
                          "sight", index++);
         }
         if (def->radar != 0) {
-            DrawRangeCircle(surface, view, &order->unit->pos, def->radar, g_game->field_dd9,
+            DrawRangeCircle(surface, view, &order->unit->pos, def->radar, g_game->hudPalette14,
                          "radar", index++);
         }
         if (def->sonar != 0) {
-            DrawRangeCircle(surface, view, &order->unit->pos, def->sonar, g_game->field_dd9,
+            DrawRangeCircle(surface, view, &order->unit->pos, def->sonar, g_game->hudPalette14,
                          "sonar", index++);
         }
         if (def->radarJam != 0) {
-            DrawRangeCircle(surface, view, &order->unit->pos, def->radarJam, g_game->field_dd9,
+            DrawRangeCircle(surface, view, &order->unit->pos, def->radarJam, g_game->hudPalette14,
                          "radarjam", index++);
         }
         if (def->sonarJam != 0) {
-            DrawRangeCircle(surface, view, &order->unit->pos, def->sonarJam, g_game->field_dd9,
+            DrawRangeCircle(surface, view, &order->unit->pos, def->sonarJam, g_game->hudPalette14,
                          "sonarjam", index++);
         }
         if (def->buildDistance != 0) {
-            DrawRangeCircle(surface, view, &order->unit->pos, def->buildDistance, g_game->field_dd9,
+            DrawRangeCircle(surface, view, &order->unit->pos, def->buildDistance, g_game->hudPalette14,
                          "build distance", index++);
         }
         if (def->maneuver != 0) {
-            DrawRangeCircle(surface, view, &order->unit->pos, def->maneuver, g_game->field_dd9,
+            DrawRangeCircle(surface, view, &order->unit->pos, def->maneuver, g_game->hudPalette14,
                          "maneuver", index++);
         }
         if (def->kamikazeDistance != 0) {
             DrawRangeCircle(surface, view, &order->unit->pos, def->kamikazeDistance,
-                         g_game->field_dd9, "kamikazedistance", index);
+                         g_game->hudPalette14, "kamikazedistance", index);
         }
         int color;
         if (g_game->frame & 1)
             color = g_game->color1;
         else
-            color = g_game->field_dd7;
+            color = g_game->hudPalette12;
         if ((unit->weapons[0].flags & 2) && unit->weapons[0].weapon->range != 0) {
             DrawRangeCircle(surface, view, &order->unit->pos, unit->weapons[0].weapon->range, color,
                          "weapon1 range", 0);
@@ -570,7 +574,7 @@ void __stdcall DrawWeaponCoverage(void* surface, View* view, Order* order,
         if (g_game->frame & 1)
             color = g_game->color1;
         else
-            color = g_game->field_dd7;
+            color = g_game->hudPalette12;
         for (int i = 0; i < 3; i++) {
             if (u->weapons[(unsigned char)i].flags & 2) {
                 if (u->weapons[i].weapon->areaOfEffect != 0) {
@@ -619,7 +623,7 @@ void __stdcall DrawOrderRangeRing(void* surface, View* view, Order* order,
     for (int angle = 0x1000; angle <= 0x10000; angle += 0x1000) {
         int nx = FUN_004b7123(angle, height) + xc;
         int ny = FUN_004b70ef(angle, ry) + yc;
-        DrawLine(surface, x1, y1, nx, ny, g_game->field_dd7);
+        DrawLine(surface, x1, y1, nx, ny, g_game->hudPalette12);
         x1 = nx;
         y1 = ny;
     }

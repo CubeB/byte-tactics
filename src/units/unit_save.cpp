@@ -169,8 +169,8 @@ struct Game {
 
 class MissionUnit {
 public:
-    char* field_0;                     // +0x0
-    char* field_4;                     // +0x4
+    char* name;                        // +0x0
+    char* ident;                       // +0x4
     char unknown_8[0x24 - 8];
 };
 
@@ -184,6 +184,7 @@ struct Struct_00487af0 {
 
 #include "../util/hapi_bank.h"
 
+// Kept local, not the CobScript header: the header changes LoadUnit's code.
 class CobScript {
 public:
     void LoadScriptState(HapiBank*);
@@ -527,9 +528,9 @@ int __stdcall FindMissionUnit(char* name, Struct_00487af0* param_2, int value)
         return 0;
     for (; i < g_game->mapInfo->unitCount; i++) {
         MissionUnit* e = &g_game->mapInfo->units[i];
-        if (e->field_4 && _strcmpi(e->field_4, name) == 0 && param_2->field_4[i])
+        if (e->ident && _strcmpi(e->ident, name) == 0 && param_2->field_4[i])
             return param_2->field_4[i];
-        if (e->field_0 && _strcmpi(e->field_0, name) == 0 && param_2->field_4[i])
+        if (e->name && _strcmpi(e->name, name) == 0 && param_2->field_4[i])
             return param_2->field_4[i];
     }
     return 0;

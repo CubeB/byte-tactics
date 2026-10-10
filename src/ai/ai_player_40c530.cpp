@@ -21,6 +21,14 @@
 // follow the ids the unit's headers gave them. Its views of two element types
 // have no copy constructor a vector can use, so those two are renamed here and
 // defined below.
+
+// Unused here: the symbol ids these declarations take keep the allocation
+// (docs/c2-regalloc.md), standing in for the placeholder class ta_types.h
+// no longer declares. They sit before the header so the vector it
+// instantiates keeps its ids.
+void RegisterEmptyAtexitB(void);
+bool __cdecl ReadGdperf(unsigned long, void*);
+
 #define Elem_0040cc40 Elem_0040cc40_view
 #define Elem_0040d4f0 Elem_0040d4f0_view
 #include "ta_types.h"

@@ -22,8 +22,8 @@ public:
     // std::vector of player sync records (players or elems), then the
     // std::list<int> of changed keys (ids or queue), then the three-word
     // sequencer (unit_sync.cpp's Sub_0046d040, whose words the other views name
-    // seqSent, seqCur and seqMax), then the two queued-packet vectors (list_a
-    // and list_b).
+    // seqSent, seqCur and seqMax), then the two queued-packet vectors (seqSentQueue
+    // and seqHeldQueue).
     char unknown_0[0x2c];
     int seqSent;                       // +0x2c
     int seqCur;                        // +0x30

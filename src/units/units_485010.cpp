@@ -93,6 +93,8 @@ union TypeFlags {                      // the type's word at +0x241
     };
 };
 
+// A view of UnitDef (units/unit_def.h): its bit-field flag words and ShortPair
+// offset do not fit that header, so it stays a view of its own.
 struct UnitType {                      // 0x249 bytes
     char unknown_0[0x20];
     char name[0x20];                   // +0x20
@@ -112,7 +114,7 @@ struct UnitType {                      // 0x249 bytes
     float x18a;                        // +0x18a
     ScriptTable* data;               // +0x18e
     char unknown_192[0x1bc - 0x192];
-    unsigned short field_1bc;          // +0x1bc
+    unsigned short corpse;             // +0x1bc
     char unknown_1be[0x1fa - 0x1be];
     union {
         unsigned int maxHealth;        // +0x1fa
@@ -121,7 +123,7 @@ struct UnitType {                      // 0x249 bytes
     char unknown_1fe[0x202 - 0x1fe];
     short x202;                        // +0x202
     char unknown_204[0x210 - 0x204];
-    unsigned short field_210;          // +0x210
+    unsigned short buildangle;         // +0x210
     char unknown_212[0x22e - 0x212];
     unsigned char buildMenuPageCount;  // +0x22e
     unsigned char mobile;              // +0x22f
@@ -672,8 +674,8 @@ void __stdcall InitUnitFromType(Unit* unit, Pos_00485a40 pos, int param_5)
     screen.y = (short)((pos.z - off.y * 0x80000 + 0x80000) >> 20);
     unit->screen = screen;
 
-    unit->heading = (short)(RandomInt(unit->type->field_210)
-                             + (0x8000 - unit->type->field_210 / 2));
+    unit->heading = (short)(RandomInt(unit->type->buildangle)
+                             + (0x8000 - unit->type->buildangle / 2));
     unit->bank = 0;
     unit->losCacheCellX = 0;
     unit->losCacheCellZ = 0;
@@ -820,7 +822,7 @@ UnitScript* emit_00485e30() { return new UnitScript; }
 void __stdcall CreateUnitMotion(Unit* unit)
 {
     unit->obj = new UnitMotion(unit);
-    unit->heading = unit->type->field_210;
+    unit->heading = unit->type->buildangle;
 }
 
 extern void* g_weaponAimCobVtable[];
@@ -855,7 +857,7 @@ void __stdcall InitUnit(int unitType, Pos_00485a40 pos, int param_5, Unit* unit)
     UpdateMetalExtraction(unit);
     if (type->mobile == 1) {
         unit->obj = new UnitMotion(unit);
-        unit->heading = unit->type->field_210;
+        unit->heading = unit->type->buildangle;
     }
 }
 
@@ -894,7 +896,7 @@ static inline void __stdcall InitUnit_00485e90(unsigned short unitType, Pos_0048
     UpdateMetalExtraction(unit);
     if (type->mobile == 1) {
         unit->obj = new UnitMotion(unit);
-        unit->heading = unit->type->field_210;
+        unit->heading = unit->type->buildangle;
     }
 }
 
@@ -1017,7 +1019,7 @@ void __stdcall EmitSmoke(Pos_00485070* pos, int a, int b, int c);
 // FUNCTION: 0x486360
 void __stdcall CreateUnitCorpse(Unit* unit, int depth, int flag)
 {
-    unsigned short id = unit->type->field_1bc;
+    unsigned short id = unit->type->corpse;
     for (; depth > 1; depth--) {
         if (id >= 0xfffb) {
             return;

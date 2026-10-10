@@ -11,6 +11,7 @@
 #include <math.h>
 #include <vector>
 
+// Kept local, not util/vec3.h: its free operators inline differently from these members and the code size changes.
 struct Vec3 {
     int x, y, z;
     void operator+=(const Vec3& v) { x += v.x; y += v.y; z += v.z; }

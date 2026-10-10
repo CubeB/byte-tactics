@@ -5,6 +5,7 @@
 #include <memory.h>
 #include <windows.h>
 struct Point { short x, y; };
+// Kept local, not util/vec3.h: the header changes this function's code.
 struct Vec3 {
     int x, y, z;
     void operator-=(const Vec3& v) { x-=v.x; y-=v.y; z-=v.z; }

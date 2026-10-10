@@ -4019,7 +4019,7 @@ address,name
 0x4fc6e8,g_groundOrders
 0x4fc920,Zero_004fc920$S6350
 0x4fc960,??_7DamagedAllyCollector@@6B@
-0x4fc968,Zero_004fc968$S34950
+0x4fc968,Zero_004fc968$S34958
 0x4fc980,??_7SquadTimer@@6B@
 0x4fc988,??_7AssaultTimer@@6B@
 0x4fc990,??_7EscortTimer@@6B@
@@ -4385,7 +4385,7 @@ address,name
 0x511fa8,g_explosion2Duration
 0x511fac,g_explosion2StartSize
 0x511fb0,g_explosion2EndSize
-0x511fb4,s_featureTdfParsers$S23975
+0x511fb4,s_featureTdfParsers$S24626
 0x511fb8,g_frontendErrorText
 0x5120b8,g_pictureCache
 0x512288,DAT_00512288
@@ -4394,7 +4394,7 @@ address,name
 0x512294,g_noSoundDriverShown
 0x512298,g_menuSparks
 0x51229c,g_cdPlayerDialogShown
-0x5122c0,s_mapCache$S33116
+0x5122c0,s_mapCache$S33119
 0x5122c4,g_mapCacheBegin
 0x5122c8,g_mapCacheEnd
 0x5122d4,g_otaEnumFileList
@@ -4556,7 +4556,7 @@ address,name
 0x51e698,DAT_0051e698
 0x51e69c,g_playLooping
 0x51e6a0,g_losTables
-0x51e6b0,s_unitCategories$S5632
+0x51e6b0,s_unitCategories$S5634
 0x51e6c0,g_mapLoadFlag
 0x51e6c4,g_cdMismatchDefeatTick
 0x51e6c8,g_loadingBarFlashAlpha

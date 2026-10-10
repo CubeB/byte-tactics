@@ -2837,6 +2837,28 @@ static inline int LineHeight_004a3780()
     return ((GafFrame*)GetGafFrame(g_guiContext->list->field_0c, 0x49))->height + 2;
 }
 
+// The body of SelectFontForEntry at 0x4a1810, which the compiler inlined into several
+// functions: makes the font of the entry's group current and returns its number, or -1.
+static inline int SelectFontForEntry_inlined(Gadget* entries, int index)
+{
+    int n = 0;
+    int i = 1;
+    for (; i < entries->u.count + 1; i++) {
+        if (entries[i].type == 7) {
+            if (n == entries[index].tab) {
+                SetFont(entries[i].u.list.language);
+                break;
+            }
+            n++;
+        }
+    }
+    if (i == entries->u.count + 1) {
+        SetFont(g_guiContext->fontId);
+        i = -1;
+    }
+    return i;
+}
+
 // FUNCTION: 0x4a3780
 int __stdcall HandleListBoxInput(Object_004a3780* obj, int index, int param_3)
 {
@@ -2857,18 +2879,7 @@ int __stdcall HandleListBoxInput(Object_004a3780* obj, int index, int param_3)
     Point_004a3780 point = obj->point;
     point.x -= entries[0].x;
     point.y -= entries[0].y;
-    int i;
-    for (i = 1; i < entries[0].u.count + 1; i++) {
-        if (entries[i].type == 7) {
-            if (n == me->tab) {
-                SetFont(entries[i].u.list.language);
-                break;
-            }
-            n++;
-        }
-    }
-    if (i == entries[0].u.count + 1)
-        SetFont(g_guiContext->current);
+    int i = SelectFontForEntry_inlined(entries, index);
 
     int size = LineHeight_004a3780();
     short da = me->u.list.scroll;
@@ -3030,16 +3041,10 @@ end:
 
 
 // Unused here: real declarations that keep the file's symbol count.
-void EmptyPostSimStepHook_B();
 void EmptyPostSimStepHook_C();
-int MainLoopContinueStub();
 int MainLoopContinueStub_B();
 int MainLoopContinueStub_C();
-void EmptyMainLoopHook();
-void EmptyMainLoopHook_B();
 
-struct Source_004adf10;
-struct Source_004ae410;
 
 struct Table_004a3eb0 {
     char unknown_0[4];
@@ -3714,13 +3719,22 @@ extern int __stdcall HasMouseKeyFlags(Dialog_4a4b50* obj, unsigned int mask);
 extern void __stdcall SetClickMode(Dialog_4a4b50* obj, int value);
 extern int __stdcall TrySetFocus(Dialog_4a4b50* obj, int index);
 
+struct Rect_004a4b50 { int left, top, right, bottom; };
+
+// True when the point lies inside the rect, edges included (the body of IsPointInRect
+// at 0x4a1920, which the compiler inlined here).
+static inline int PointInHotspotRect(const Rect_004a4b50& r, const Point_004a4b50& p)
+{
+    return p.x >= r.left && p.x <= r.right && p.y >= r.top && p.y <= r.bottom;
+}
+
 // FUNCTION: 0x4a4b50
 int __stdcall HandleHotspotInput(Dialog_4a4b50* obj, int index)
 {
     Gadget* entries = obj->table->entries;
     // Entries are indexed as entries[index], not through a stored pointer.
     // 16-byte stack struct: gives the frame its size.
-    struct Rect { int left, top, right, bottom; } r;
+    Rect_004a4b50 r;
     if (entries[index].type == 0) {
         r.left = 0;
         r.top = 0;
@@ -3736,13 +3750,13 @@ int __stdcall HandleHotspotInput(Dialog_4a4b50* obj, int index)
         if (IsMouseButtonMessage(obj, 1)) {
             // Position copied into a local Point before each hit test.
             Point_004a4b50 p = obj->pos;
-            if (p.x >= r.left && p.x <= r.right && p.y >= r.top && p.y <= r.bottom) {
+            if (PointInHotspotRect(r, p)) {
                 TrySetFocus(obj, index);
                 SetClickMode(obj, 1);
             }
         } else if (IsMouseButtonMessage(obj, 2)) {
             Point_004a4b50 p = obj->pos;
-            if (p.x >= r.left && p.x <= r.right && p.y >= r.top && p.y <= r.bottom) {
+            if (PointInHotspotRect(r, p)) {
                 TrySetFocus(obj, index);
                 SetClickMode(obj, 2);
             }
@@ -3751,9 +3765,10 @@ int __stdcall HandleHotspotInput(Dialog_4a4b50* obj, int index)
             obj->focus = -1;
             // Read through a pointer so the two loads stay after the focus store.
             Point_004a4b50* pp = &obj->pos;
-            int py2 = pp->y;
-            int px2 = pp->x;
-            if (px2 >= r.left && px2 <= r.right && py2 >= r.top && py2 <= r.bottom)
+            Point_004a4b50 q;
+            q.y = pp->y;
+            q.x = pp->x;
+            if (PointInHotspotRect(r, q))
                 return 1;
         }
     }
@@ -4439,42 +4454,35 @@ void __stdcall LayoutLabelText(Gui* obj, int index)
     entry->height = (short)lh;
 }
 
+// Fills the bounding rectangle of a gadget entry (the body of GetGadgetRect at
+// 0x4a1630, which the compiler inlined here).
+static inline void GetGadgetRect_inlined(Gadget* entry, Rect* rect)
+{
+    if (entry->type == 0) {
+        rect->left = 0;
+        rect->top = 0;
+    } else {
+        rect->left = entry->x;
+        rect->top = entry->y;
+    }
+    rect->right = entry->width + rect->left - 1;
+    rect->bottom = entry->height + rect->top - 1;
+}
+
 // FUNCTION: 0x4a56b0
 void __stdcall DrawLabel(Gui* obj, int index)
 {
     obj->language = obj->values[1];
     Gadget* entries = obj->layer->entries;
 
-    int i = 1;
-    int t = 0;
-    for (; i < entries[0].u.count + 1; i++) {
-        if (entries[i].type == 7) {
-            if (t == entries[index].tab) {
-                SetFont(entries[i].u.list.language);
-                break;
-            }
-            t++;
-        }
-    }
-    if (i == entries[0].u.count + 1) {
-        SetFont(g_guiContext->fontId);
-        i = -1;
-    }
+    int i = SelectFontForEntry_inlined(entries, index);
 
 
     if (entries[index].x == -1)
         entries[index].x = (short)((entries[0].width - GetTextPixelWidth(entries[index].u.text)) / 2);
 
     Rect rect;
-    if (entries[index].type == 0) {
-        rect.left = 0;
-        rect.top = 0;
-    } else {
-        rect.left = entries[index].x;
-        rect.top = entries[index].y;
-    }
-    rect.right = entries[index].width + rect.left - 1;
-    rect.bottom = entries[index].height + rect.top - 1;
+    GetGadgetRect_inlined(&entries[index], &rect);
 
     if (entries[index].image != 0)
         FillRectangle(entries->u.assets.surface, &rect, obj->colours[entries[index].image]);
@@ -4634,14 +4642,7 @@ void CheckPlayerTimeouts();
 int HandleNetPackets();
 void SendNetHeartbeat();
 int AreAllPlayersReady();
-int AssignStartPositions();
-void SendLoadProgress();
-int BroadcastPendingViewState();
 
-// Unused here: real declarations that keep the file's symbol count.
-struct Class_004a1b40;
-struct Class_004a32a0;
-struct Class_004a4620;
 
 // FUNCTION: 0x4a5f40
 void __stdcall DrawButton(Gui* menu, int index)
@@ -4681,19 +4682,7 @@ void __stdcall DrawButton(Gui* menu, int index)
     if (me->attribs & 0x8000)
         menu->language = menu->values[1];
 
-    // Own counter, not t: it shares the slot of t.
-    int tab = 0;
-    for (i = 1; i < entries->u.count + 1; i++) {
-        if (entries[i].type == 7) {
-            if (tab == me->tab) {
-                SetFont(entries[i].u.list.language);
-                break;
-            }
-            tab++;
-        }
-    }
-    if (i == entries->u.count + 1)
-        SetFont(g_guiContext->fontId);
+    i = SelectFontForEntry_inlined(entries, index);
 
     textw = TruncateGadgetText(menu, index);
     surface = entries->u.assets.surface;
@@ -4891,6 +4880,13 @@ void __stdcall ClearGroupStatus(Gui* param_1, int index)
     }
 }
 
+// True when the point lies inside the rect, edges included (the body of IsPointInRect
+// at 0x4a1920, which the compiler inlined here).
+static inline int PointInButtonRect(const Rect* r, int px, int py)
+{
+    return px >= r->left && px <= r->right && py >= r->top && py <= r->bottom;
+}
+
 static inline int FindKind(Gadget* entries, unsigned char kind)
 {
     for (int i = 1; i < entries->u.count + 1; i++) {
@@ -4910,22 +4906,13 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
         goto fail;
 
     Rect r;
-    if (entry->type == 0) {
-        r.left = 0;
-        r.top = 0;
-    } else {
-        r.left = entry->x;
-        r.top = entry->y;
-    }
-    r.right = entry->width + r.left - 1;
-    r.bottom = entry->height + r.top - 1;
+    GetGadgetRect_inlined(entry, &r);
 
     Point point = *(Point*)&obj->pointX;
     point.x -= entries->x;
     point.y -= entries->y;
 
-    if (point.x >= r.left && point.x <= r.right
-        && point.y >= r.top && point.y <= r.bottom) {
+    if (PointInButtonRect(&r, point.x, point.y)) {
         obj->hoverGadgetIndex = index;
         if (IsMouseButtonMessage(obj, 1)) {
             obj->focus = -1;
@@ -4945,6 +4932,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
             if (!HasMouseKeyFlags(obj, 3))
                 goto fail;
             obj->focus = -1;
+            // These three rect tests stay written out: through the helper the compares reorder.
             if (point.x < r.left || point.x > r.right
                 || point.y < r.top || point.y > r.bottom) {
                 entry->field_138 = obj->clickStatusCache;
@@ -4987,8 +4975,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
         if (entry->attribs & 8) {
             if (HasMouseKeyFlags(obj, 3))
                 goto fail;
-            if (point.x < r.left || point.x > r.right
-                || point.y < r.top || point.y > r.bottom)
+            if (!PointInButtonRect(&r, point.x, point.y))
                 goto fail;
             if (entry->field_138 == 1)
                 entry->field_138 = 0;
@@ -5002,8 +4989,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
         if (entry->attribs & 0x100) {
             if (!IsMouseButtonMessage(obj, 1))
                 goto fail;
-            if (point.x < r.left || point.x > r.right
-                || point.y < r.top || point.y > r.bottom)
+            if (!PointInButtonRect(&r, point.x, point.y))
                 goto fail;
             GafEntry* p = entry->gaf;
             if (p != 0) {
@@ -5021,8 +5007,7 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
             obj->focus = -1;
             entry->field_138 = 0;
             ClearPeerStatus(obj, index);
-            if (point.x >= r.left && point.x <= r.right
-                && point.y >= r.top && point.y <= r.bottom
+            if (PointInButtonRect(&r, point.x, point.y)
                 && !(entry->attribs & 0x1800)) {
                 if (entry->stages != 0) {
                     entry->stageIndex += 1;
@@ -5045,15 +5030,13 @@ int __stdcall HandleButtonInput(Gui* obj, int index, int param_3)
                 return 0;
             }
         } else if (entry->field_138 == 0
-                   && point.x >= r.left && point.x <= r.right
-                   && point.y >= r.top && point.y <= r.bottom) {
+                   && PointInButtonRect(&r, point.x, point.y)) {
             entry->field_138 = 1;
             DAT_0051fbac = 0xf;
         } else {
             if (entry->field_138 == 0)
                 goto fail;
-            if (point.x >= r.left && point.x <= r.right
-                && point.y >= r.top && point.y <= r.bottom)
+            if (PointInButtonRect(&r, point.x, point.y))
                 goto fail;
             entry->field_138 = 0;
             DrawButton(obj, index);
@@ -5140,27 +5123,6 @@ void __stdcall BeginTextEdit(Gui* obj, int index)
     obj->layer->current = index;
     CommitTextEdit(obj, index, target->u.text, target->field_138, 0);
     ClearKeyQueue();
-}
-
-// A copy of the function at 0x4a1810 (another unit), inlined in HandleTextInput.
-static inline int SelectFontForEntry_inlined(Gadget* entries, int index)
-{
-    int n = 0;
-    int i = 1;
-    for (; i < entries->u.count + 1; i++) {
-        if (entries[i].type == 7) {
-            if (n == entries[index].tab) {
-                SetFont(entries[i].u.list.language);
-                break;
-            }
-            n++;
-        }
-    }
-    if (i == entries->u.count + 1) {
-        SetFont(g_guiContext->fontId);
-        i = -1;
-    }
-    return i;
 }
 
 // One mouse button's action on the entry: the rect GetGadgetRectByIndex fills here is
@@ -6112,11 +6074,10 @@ void __stdcall CloseTopScreen(Gui* gui)
 // Decrements the scroll offset (knobPos) of GUI entry `index`, clamped to
 // [0, field_136 - 1]. When the value actually changes it marks the object
 // changed, refreshes the gadget and runs the entry's callback (if any).
+
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
 int DrawEndGameFrame();
 void RunEndGameState();
-void StepBuildMenuPage(int);
-
 
 // FUNCTION: 0x4a96d0
 void __stdcall DecrementKnobPos(Gui* obj, int index)
@@ -6158,13 +6119,6 @@ static inline Gadget* entry_at(Gui* obj, int index)
 // changed, refreshes the gadget and runs the entry's callback (if any).
 // Note: the upper clamp still uses field_136 - 1, as the copy-paste source of
 // this function did, even though this side scrolls the other way.
-// Unused here: real declarations that keep the file's symbol count.
-struct Object_004a07d0;
-struct Object_004a0c70;
-struct Object_004a14c0;
-struct Object_004a9780;
-struct Object_004ab060;
-struct Object_004ab5b0;
 
 // FUNCTION: 0x4a9780
 void __stdcall IncrementKnobPos(Gui* obj, int index)

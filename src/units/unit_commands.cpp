@@ -296,9 +296,9 @@ struct Game {
     char unknown_2851[0x14267 - 0x2851];
     float tidal;                      // +0x14267
     char unknown_1426b[0x1438f - 0x1426b];
-    int count;                        // +0x1438f
+    int unitDefCount;                 // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
-    UnitType_00488b10* types;         // +0x1439b
+    UnitType_00488b10* unitDefs;      // +0x1439b
     char unknown_1439f[0x37ede - 0x1439f];
     float windStrength;               // +0x37ede
     char unknown_37ee2[0x391e9 - 0x37ee2];
@@ -660,8 +660,8 @@ static inline int Less_00488a50(const char* a, const char* b)
 UnitType_00488b10* __stdcall FindUnitType(const char* name)
 {
     // `end` before `lo`: the order decides which registers the base loads use.
-    UnitType_00488b10* end = g_game->types + g_game->count;
-    UnitType_00488b10* lo = g_game->types + 1;
+    UnitType_00488b10* end = g_game->unitDefs + g_game->unitDefCount;
+    UnitType_00488b10* lo = g_game->unitDefs + 1;
     int n = (int)(end - lo);
     while (n > 0) {
         int half = n / 2;
@@ -687,8 +687,8 @@ UnitType_00488b10* __stdcall FindUnitType(const char* name)
 unsigned short __stdcall FindUnitTypeId(const char* name)
 {
     // `last` before `first`: the order decides the register of the table base.
-    UnitType_00488b10* last = g_game->types + g_game->count;
-    UnitType_00488b10* first = g_game->types + 1;
+    UnitType_00488b10* last = g_game->unitDefs + g_game->unitDefCount;
+    UnitType_00488b10* first = g_game->unitDefs + 1;
     int n = ((char*)last - (char*)first) / 0x249;
     while (n > 0) {
         int mid = n / 2;
@@ -789,8 +789,8 @@ static inline UnitType_00488b10* FindByName(UnitType_00488b10* first, UnitType_0
 // FUNCTION: 0x488d30
 void UnitTypeSet::AddTypeOrCategory(char* text, int* out)
 {
-    UnitType_00488b10* base = g_game->types;
-    UnitType_00488b10* last = base + g_game->count;
+    UnitType_00488b10* base = g_game->unitDefs;
+    UnitType_00488b10* last = base + g_game->unitDefCount;
     UnitType_00488b10* first = FindByName(base + 1, last, text);
     unsigned short v = first ? first->id : 0;
     if (v != 0) {

@@ -41,9 +41,9 @@ struct Game {
     char unknown_0[0x1b63];
     PlayerInfo_0046dad0 players[10]; // +0x1b63
     char unknown_2851[0x1438f - 0x2851];
-    int count; // +0x1438f
+    int unitDefCount; // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
-    UnitDef* defs; // +0x1439b
+    UnitDef* unitDefs; // +0x1439b
 };
 #pragma pack(pop)
 
@@ -237,11 +237,11 @@ void UnitSync::ProcessSync() {
     }
 
     if (pendingPlayerCount > 0) {
-        if (checksumProgress < g_game->count) {
+        if (checksumProgress < g_game->unitDefCount) {
             if (checksumProgress == 0) {
                 if (GetHostDpid() == -1)
                     return;
-                int v = g_game->count - 1;
+                int v = g_game->unitDefCount - 1;
                 if (disabled == 0) {
                     UnitSyncPacket packet;
                     packet.type = 0x1a;
@@ -260,12 +260,12 @@ void UnitSync::ProcessSync() {
             }
 
             // Nested if/else with this loop: it re-reads g_game first and returns
-            // when checksumProgress >= count.
+            // when checksumProgress >= unitDefCount.
             for (int n = 0; n < 4;) {
                 Game* game = g_game;
-                if (checksumProgress >= game->count)
+                if (checksumProgress >= game->unitDefCount)
                     return;
-                UnitDef* def = &game->defs[checksumProgress];
+                UnitDef* def = &game->unitDefs[checksumProgress];
                 ComputeUnitScriptChecksum(def);
                 // y then key, read into locals before the disabled test.
                 int y = def->y;

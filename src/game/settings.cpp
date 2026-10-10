@@ -87,11 +87,11 @@ struct Game {
     char gameName[0x2bd2 - 0x2bc1];      // +0x2bc1
     char nickname[0x2be3 - 0x2bd2];      // +0x2bd2
     char password[0x1434d - 0x2be3];     // +0x2be3
-    unsigned char scrollspeed;           // +0x1434d
+    unsigned char scrollSpeed;           // +0x1434d
     char unknown_1434e[0x1438f - 0x1434e];
-    int count;                           // +0x1438f
+    int unitDefCount;                    // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
-    UnitDef_00431740* defs;              // +0x1439b
+    UnitDef_00431740* unitDefs;          // +0x1439b
     char unknown_1439f[0x37eee - 0x1439f];
     int difficulty;                      // +0x37eee
     int side;                            // +0x37ef2
@@ -278,10 +278,10 @@ void LoadSettings()
     }
     int ok6 = ReadRegistryDword("Total Annihilation", "scrollspeed", &value);
     if (ok6 != 0) {
-        g_game->scrollspeed = (unsigned char)value;
+        g_game->scrollSpeed = (unsigned char)value;
     } else {
-        g_game->scrollspeed = 0x20;
-        WriteRegistryDword("Total Annihilation", "scrollspeed", g_game->scrollspeed);
+        g_game->scrollSpeed = 0x20;
+        WriteRegistryDword("Total Annihilation", "scrollspeed", g_game->scrollSpeed);
     }
     ReadSettingInt("SingleCommanderDeath", &Game::singleCommanderDeath, 1, value);
     ReadSettingInt("SingleMapping", &Game::singleMapping, 1, value);
@@ -562,7 +562,7 @@ void SaveSettings()
     WriteRegistryDword("Total Annihilation", "DisplaymodeHeight", g_game->displaymodeHeight);
     WriteRegistryDword("Total Annihilation", "side", g_game->side);
     WriteRegistryDword("Total Annihilation", "FixedLocations", g_game->options->fixedLocations);
-    WriteRegistryDword("Total Annihilation", "scrollspeed", g_game->scrollspeed);
+    WriteRegistryDword("Total Annihilation", "scrollspeed", g_game->scrollSpeed);
     WriteRegistryDword("Total Annihilation", "SingleCommanderDeath", g_game->singleCommanderDeath);
     WriteRegistryDword("Total Annihilation", "SingleMapping", g_game->singleMapping);
     WriteRegistryDword("Total Annihilation", "SingleLineOfSight", g_game->singleLineOfSight);
@@ -662,19 +662,19 @@ void ApplyUseOnlyUnits()
     if (!parser.LoadFile(file))
         return;
     {
-        ProtectBlockReadWrite(g_game->defs);
-        for (int i = 1; i < g_game->count; i++)
-            g_game->defs[i].flags &= 0xff7fffff;
+        ProtectBlockReadWrite(g_game->unitDefs);
+        for (int i = 1; i < g_game->unitDefCount; i++)
+            g_game->unitDefs[i].flags &= 0xff7fffff;
         parser.ResetCurrentRecord();
         for (int j = 0; parser.SelectRecordAt(j); j++, parser.ResetCurrentRecord()) {
             parser.current->CopyRecordName(name, 0x100);
-            for (int k = 0; k < g_game->count; k++) {
-                if (_strcmpi(g_game->defs[k].name, name) == 0) {
-                    g_game->defs[k].flags |= 0x800000;
+            for (int k = 0; k < g_game->unitDefCount; k++) {
+                if (_strcmpi(g_game->unitDefs[k].name, name) == 0) {
+                    g_game->unitDefs[k].flags |= 0x800000;
                     break;
                 }
             }
         }
-        ProtectBlockReadOnly(g_game->defs);
+        ProtectBlockReadOnly(g_game->unitDefs);
     }
 }

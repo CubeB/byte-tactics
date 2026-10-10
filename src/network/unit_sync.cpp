@@ -198,9 +198,9 @@ struct Game {
     char unknown_2a34[0x2a42 - 0x2a30 - sizeof(UnitSync*)];
     unsigned char player;               // +0x2a42
     char unknown_2a43[0x1438f - 0x2a42 - sizeof(unsigned char)];
-    int count;                          // +0x1438f
+    int unitDefCount;                   // +0x1438f
     char unknown_14393[0x1439b - 0x1438f - sizeof(int)];
-    UnitDef* defs;                      // +0x1439b
+    UnitDef* unitDefs;                  // +0x1439b
     char unknown_1439f[0x391e9 - 0x1439b - sizeof(UnitDef*)];
     Mission* mapInfo;                   // +0x391e9
     char unknown_391ed[0x39201 - 0x391e9 - sizeof(Mission*)];
@@ -646,7 +646,7 @@ public:
 
 static inline UnitDef* Defs_0046d040()
 {
-    return g_game->defs;
+    return g_game->unitDefs;
 }
 
 // The flag expression in its own small inline helper.
@@ -833,13 +833,13 @@ UnitSync::UnitSync(int param)
     sub2.last = 0;
     {
         UnitSyncEntry v;
-        for (unsigned short i = 1; i < g_game->count; i++) {
-            unsigned int key = g_game->defs[i].key;
+        for (unsigned short i = 1; i < g_game->unitDefCount; i++) {
+            unsigned int key = g_game->unitDefs[i].key;
             v.x = key;
             v.y = 0;
             v.w = 1;
             v.h = (short)sub2.flag;
-            v.limit = FlagOf_0046d040(&g_game->defs[i]) ? 0 : -1;
+            v.limit = FlagOf_0046d040(&g_game->unitDefs[i]) ? 0 : -1;
             map[key] = v;
         }
     }
@@ -850,13 +850,13 @@ UnitSync::UnitSync(int param)
 void UnitSync::ResetEntries()
 {
     UnitSyncEntry v;
-    for (unsigned short i = 1; i < g_game->count; i++) {
-        v.x = g_game->defs[i].key;
+    for (unsigned short i = 1; i < g_game->unitDefCount; i++) {
+        v.x = g_game->unitDefs[i].key;
         // Dead store that must stay: the uninitialised slot is what the insert copies.
         v.y = 0;
         v.w = 1;
         v.h = (short)direct;
-        v.limit = FlagOf_0046d040(&g_game->defs[i]) ? 0 : -1;
+        v.limit = FlagOf_0046d040(&g_game->unitDefs[i]) ? 0 : -1;
         ((std::map<unsigned int, UnitSyncEntry>&)map)[v.x] = v;
     }
 }
@@ -1093,9 +1093,9 @@ void UnitSync::CheckUnitAvailable(unsigned int key, int y)
     int h = 1;
     if (y != 0) {
         if (it.ptr->value.y == 0) {
-            int n = g_game->count;
+            int n = g_game->unitDefCount;
             for (int i = 1; i < n; i++) {
-                UnitDef* def = &g_game->defs[i];
+                UnitDef* def = &g_game->unitDefs[i];
                 if (def->key == key) {
                     ComputeUnitScriptChecksum(def);
                     it.ptr->value.y = def->y;
@@ -1236,7 +1236,7 @@ int UnitSync::IsPlayerSynced(int id)
     return 0;
 }
 
-// Refreshes the map entry of every unit type: the 0x249-byte defs at
+// Refreshes the map entry of every unit type: the 0x249-byte unitDefs at
 // g_game+0x1439b are looked up in the same std::map<unsigned int, Rect> that
 // 0x46e330 uses (its find() is inlined here), the entry's bit 23 becomes "the
 // rect has a non-empty size", and def+0x15a takes the rect's last field.
@@ -1245,8 +1245,8 @@ void UnitSync::ApplyToUnitTypes()
 {
     if (disabled != 0)
         return;
-    for (unsigned short i = 1; i < g_game->count; i++) {
-        UnitDef* def = &g_game->defs[i];
+    for (unsigned short i = 1; i < g_game->unitDefCount; i++) {
+        UnitDef* def = &g_game->unitDefs[i];
         UnitSyncIter it = Find(&def->key);
         if (it == End()) {
             ProtectUnitDefsReadWrite();

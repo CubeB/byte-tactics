@@ -92,7 +92,7 @@ struct Game {
     char unknown_2ce3[0x14357 - 0x2ce3];
     char* units;                       // +0x14357
     char unknown_1435b[0x1487f - 0x1435b];
-    void* table[21];                   // +0x1487f
+    void* cursorModeSeq[21];           // +0x1487f
     char unknown_148d3[0x37e9c - 0x148d3];
     unsigned short unitIndex;          // +0x37e9c
     char unknown_37e9e[0x37efa - 0x37e9e];
@@ -231,7 +231,7 @@ void __stdcall HandleRightClick(View* param_1)
             g_game->flags_2cc6 = g_game->flags_2cc6 | 0x10;
             if (g_game->cursorMode != 0x13) {
                 g_game->cursorMode = 0x13;
-                SetCursorAnimation((void*)g_game->menu, g_game->table[0x13]);
+                SetCursorAnimation((void*)g_game->menu, g_game->cursorModeSeq[0x13]);
                 return;
             }
         }
@@ -246,7 +246,7 @@ static inline void SetCursor(int n)
 {
     if (g_game->cursorMode != n) {
         g_game->cursorMode = n;
-        SetCursorAnimation(g_game->menu, g_game->table[n]);
+        SetCursorAnimation(g_game->menu, g_game->cursorModeSeq[n]);
     }
 }
 

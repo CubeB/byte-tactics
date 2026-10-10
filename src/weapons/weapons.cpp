@@ -379,8 +379,8 @@ struct Game {
         Projectile_00499eb0* selectedProjectile; // 499e50's and 499eb0's
     };
     char unknown_142fb[0x1433f - 0x142fb];
-    Vec3 trackedPos;                   // +0x1433f
-    short trackedValue;                // +0x1434b
+    Vec3 cameraSnapPos;                // +0x1433f
+    short cameraSnapTicks;             // +0x1434b
     char unknown_1434d[0x14357 - 0x1434d];
     Unit* units;                       // +0x14357
     char unknown_1435b[0x38a47 - 0x1435b];
@@ -731,8 +731,8 @@ struct Projectile_00499eb0 {
 void __stdcall UntrackProjectile(Projectile_00499eb0* projectile)
 {
     if (projectile == g_game->selected) {
-        g_game->trackedPos = g_game->selectedProjectile->position;
-        g_game->trackedValue = projectile->type->value;
+        g_game->cameraSnapPos = g_game->selectedProjectile->position;
+        g_game->cameraSnapTicks = projectile->type->value;
         g_game->selected = 0;
     }
     projectile->flags |= 2;
@@ -757,16 +757,16 @@ void __stdcall DetonateProjectile(Projectile_00499eb0* projectile, Unit* unit)
         hostile = value[5] < g_game->seaLevel;
     if (!type->flags.bit22) {
         if (projectile == g_game->selected) {
-            g_game->trackedPos = g_game->selectedProjectile->position;
-            g_game->trackedValue = projectile->type->value;
+            g_game->cameraSnapPos = g_game->selectedProjectile->position;
+            g_game->cameraSnapTicks = projectile->type->value;
             g_game->selected = 0;
         }
         projectile->flags = projectile->flags | 2;
     }
     if (g_game->net->noSeaLevelTrigger && hostile && !unit) {
         if (projectile == g_game->selected) {
-            g_game->trackedPos = g_game->selectedProjectile->position;
-            g_game->trackedValue = projectile->type->value;
+            g_game->cameraSnapPos = g_game->selectedProjectile->position;
+            g_game->cameraSnapTicks = projectile->type->value;
             g_game->selected = 0;
         }
         projectile->flags = projectile->flags | 2;
@@ -1657,8 +1657,8 @@ void CompactProjectiles();
 static inline void Untrack_0049c880(Projectile_0049c880* proj)
 {
     if (proj == g_game->tracked) {
-        g_game->trackedPos = g_game->tracked->pos;
-        g_game->trackedValue = proj->type->value;
+        g_game->cameraSnapPos = g_game->tracked->pos;
+        g_game->cameraSnapTicks = proj->type->value;
         g_game->tracked = 0;
     }
     proj->flags |= 2;

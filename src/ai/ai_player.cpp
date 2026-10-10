@@ -550,9 +550,9 @@ struct Game {
     Unit* units;                       // +0x14357
     Unit* unitsEnd;                    // +0x1435b
     char unknown_9[0x1438f - 0x1435f];
-    int count;                         // +0x1438f
+    int unitDefCount;                  // +0x1438f
     char unknown_10[0x1439b - 0x14393];
-    UnitDef* defs;                     // +0x1439b
+    UnitDef* unitDefs;                 // +0x1439b
     char unknown_11[0x37ee6 - 0x1439f];
     unsigned short maxUnits;           // +0x37ee6
     char unknown_12[0x37eee - 0x37ee8];
@@ -1256,7 +1256,7 @@ void BuildTimer::OnTimer()
             } else if (u->def->field_152 && !u->orders) {
                 unsigned short id = ChooseBuildOption(player, u);
                 if (id)
-                    QueueBuildOrder((char*)&g_game->defs[id].description[0], u, 1);
+                    QueueBuildOrder((char*)&g_game->unitDefs[id].description[0], u, 1);
             }
         }
     }
@@ -1424,7 +1424,7 @@ PlayerAI::PlayerAI(unsigned char p)
     lastTick = 0;
     searchRadius = 0;
     InitPlacementGrid();
-    int n = g_game->count;
+    int n = g_game->unitDefCount;
     weights.resize(n, 0);
     counts.resize(n, 0);
     // Fill values stay in block scopes so they share the dead parameter slot.
@@ -1457,9 +1457,9 @@ PlayerAI::PlayerAI(unsigned char p)
 // FUNCTION: 0x409470
 void PlayerAI::InitUnitTables()
 {
-    int n = g_game->count;
+    int n = g_game->unitDefCount;
     for (int i = 0; i < n; ++i) {
-        UnitDef* def = &g_game->defs[i];
+        UnitDef* def = &g_game->unitDefs[i];
         weights[i] = 0;
         if (!def->field_22f)
             weights[i] += 40;
@@ -1536,7 +1536,7 @@ int __stdcall RateUnitType(UnitDef* p)
 void __stdcall ScaleUnitWeights(int player, unsigned int* mask, float scale, int lock)
 {
     PlayerAI* p = g_playerAI[player];
-    for (unsigned short i = 1; i < g_game->count; i++) {
+    for (unsigned short i = 1; i < g_game->unitDefCount; i++) {
         if (mask[i >> 5] & (1 << (i & 0x1f))) {
             // Own local: the address is then encoded as [offset + base].
             int off = i * 4;
@@ -1553,7 +1553,7 @@ void __stdcall ScaleUnitWeights(int player, unsigned int* mask, float scale, int
 void __stdcall SetUnitLimits(int player, unsigned int* mask, int value, int lock)
 {
     PlayerAI* p = g_playerAI[player];
-    for (unsigned short i = 1; i < g_game->count; i++) {
+    for (unsigned short i = 1; i < g_game->unitDefCount; i++) {
         if ((mask[i >> 5] & (1 << (i & 0x1f))) && p->locked[i].unknown_0 == 0) {
             p->values[i].unknown_0 = value;
             if (lock)
@@ -1568,7 +1568,7 @@ void __stdcall SetUnitLimits(int player, unsigned int* mask, int value, int lock
 // FUNCTION: 0x409f20
 int __stdcall IsUnderLimit(int player, unsigned short index, int value)
 {
-    if (index >= 1 && index < g_game->count) {
+    if (index >= 1 && index < g_game->unitDefCount) {
         int* values = (int*)&g_playerAI[player]->values[0];
         if (values[index] == -1)
             return 1;
@@ -1583,8 +1583,8 @@ void __stdcall ParseDownloadableAiWeightScripts(int player)
 {
     PlayerAI* p = g_playerAI[player];
     EnableAICommands();
-    for (unsigned short i = 1; i < g_game->count; i++) {
-        UnitDef* def = &g_game->defs[i];
+    for (unsigned short i = 1; i < g_game->unitDefCount; i++) {
+        UnitDef* def = &g_game->unitDefs[i];
         if (def->field_5) {
             if (p->vec_bd[i].unknown_0 != 1) {
                 int len = strlen(def->command);
@@ -1603,8 +1603,8 @@ void __stdcall ReparseAiWeightScriptsIfLimitNotSticky(int player)
 {
     PlayerAI* p = g_playerAI[player];
     EnableAICommands();
-    for (unsigned short i = 1; i < g_game->count; i++) {
-        UnitDef* def = &g_game->defs[i];
+    for (unsigned short i = 1; i < g_game->unitDefCount; i++) {
+        UnitDef* def = &g_game->unitDefs[i];
         if (def->field_5) {
             if (p->locked[i].unknown_0 != 1) {
                 int len = strlen(def->command);
@@ -1939,7 +1939,7 @@ int __stdcall GetBuildRating(int player,unsigned short type)
     Player* p=&g_game->players[player];
     if(p->energy<50.0f) return 0;
     if(p->metal<25.0f) return 0;
-    if(g_game->net->GetGameType()==1 && (g_game->defs[type].flags&0x20)) return 0;
+    if(g_game->net->GetGameType()==1 && (g_game->unitDefs[type].flags&0x20)) return 0;
     int energyCap=min(1000,(int)p->energyCapacity);
     int metalCap=min(500,(int)p->metalCapacity);
     int energy=(int)Max(0.0f,(energyCap-p->energy)*0.125f);
@@ -1973,7 +1973,7 @@ unsigned short __stdcall ChooseBuildOption(unsigned int player, Unit* unit)
         }
     }
     if (chosen != 0) {
-        if (strcmp(unit->def->side, g_game->defs[chosen].side) != 0)
+        if (strcmp(unit->def->side, g_game->unitDefs[chosen].side) != 0)
             chosen = 0;
     }
     return chosen;
@@ -2060,8 +2060,8 @@ void __stdcall DumpPlayerAI(int player, FILE* file)
     fprintf(file,"difficulty: '%s'\r\n",difficulties[g_game->difficulty]);
     fprintf(file,"================================================\r\n");
     fprintf(file,"<limit> - <base:baseML:baseEL> : <end result - before economy-based tweaks> - <unit name>\r\n");
-    for (unsigned short i=1;i<g_game->count;++i) {
-        UnitDef* type=&g_game->defs[i];
+    for (unsigned short i=1;i<g_game->unitDefCount;++i) {
+        UnitDef* type=&g_game->unitDefs[i];
         if (ai->values[i].unknown_0<0) fprintf(file,"n/a ");
         else fprintf(file,"%4d",ai->values[i].unknown_0);
         sprintf(buffer," - %3d : %3d : %3d = %3d - '%s\t\t:%s'\r\n",ai->vec_65[i].a,ai->vec_65[i].b,ai->vec_65[i].c,ai->vec_ad[i].value,type->description,type->name);

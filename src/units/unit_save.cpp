@@ -162,7 +162,7 @@ struct Mission;
 
 struct Game {
     char unknown_0[0x14357];
-    Unit* unitsBegin;                   // +0x14357
+    Unit* units;                        // +0x14357
     char unknown_1435b[0x391e9 - 0x1435b];
     Mission* mapInfo;                   // +0x391e9
 };

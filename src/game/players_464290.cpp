@@ -202,7 +202,7 @@ struct Game {
     unsigned short blinkOn : 1;        // +0x142f1, bit 0
     unsigned short rest_142f1 : 15;
     char unknown_142f3[0x1439b - 0x142f3];
-    UnitDef* types;                   // +0x1439b
+    UnitDef* unitDefs;                // +0x1439b
     char unknown_1439f[0x37eee - 0x1439f];
     int difficulty;                    // +0x37eee
     char unknown_37ef2[0x37ef6 - 0x37ef2];
@@ -938,7 +938,7 @@ void __stdcall UpdatePlayers()
                                     do {
                                         cell.x = xacc >> 20;
                                         if (CanPlaceUnitFootprint(
-                                                (UnitDef*)((char*)g_game->types + typeOff),
+                                                (UnitDef*)((char*)g_game->unitDefs + typeOff),
                                                 0, cell, 1) != 0)
                                             hits++;
                                         xacc += hw;

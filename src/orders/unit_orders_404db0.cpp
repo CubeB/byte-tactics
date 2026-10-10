@@ -110,7 +110,7 @@ struct Game {
     char unknown_14273[0x14287 - 0x14273];
     Cell* cells;                       // +0x14287
     char unknown_1428b[0x1439b - 0x1428b];
-    UnitDef* unitTypes;                // +0x1439b
+    UnitDef* unitDefs;                 // +0x1439b
     char unknown_1439f[0x38a47 - 0x1439f];
     int ticks;                         // +0x38a47
     char unknown_38a4b[0x391e9 - 0x38a4b];
@@ -201,7 +201,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
             QueueUnitSpeech(unit, 7, "Ressurection failed");
             return 8;
         }
-        order->time = (int)(g_game->unitTypes[order->unitType].buildTime * 0.3 / (unit->type->workerTime / 30));
+        order->time = (int)(g_game->unitDefs[order->unitType].buildTime * 0.3 / (unit->type->workerTime / 30));
         QueueUnitSpeech(unit, 11, 0);
         return 1;
     }

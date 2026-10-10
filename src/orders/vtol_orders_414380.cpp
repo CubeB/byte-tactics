@@ -86,13 +86,13 @@ struct Order {
     int Advance(int distance);
 };
 struct Game {
-    char pad0[0x1439b]; UnitDef* defs;
+    char pad0[0x1439b]; UnitDef* unitDefs;
     char pad1439f[0x38a47-0x1439f]; unsigned int tick;
 };
 class Class_0044e2d0 { public: char data[0x36]; Class_0044e2d0(Order*,const Vec3&); };
 #pragma pack(pop)
 extern Game* g_game;
-static inline UnitDef* Definitions() { return g_game->defs; }
+static inline UnitDef* Definitions() { return g_game->unitDefs; }
 union Fixed { int value; struct { unsigned short fraction; short whole; }; };
 void __stdcall QueueUnitSpeech(Unit*, int, const char*);
 void __stdcall MarkSelectionOrdersDirty(Unit*);

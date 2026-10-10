@@ -9,7 +9,7 @@ struct Item_00408620 {                 // 0x249 bytes
 
 struct Game {
     char unknown_0[0x1439b];
-    Item_00408620* items;              // +0x1439b
+    Item_00408620* unitDefs;           // +0x1439b
 };
 #pragma pack(pop)
 
@@ -38,5 +38,5 @@ void BuildTimer::TryIssueIdleFactoryBuildOrder(Obj_00408620* param_1)
         return;
     unsigned short idx = ChooseBuildOption(player, param_1);
     if (idx != 0)
-        QueueBuildOrder(g_game->items[idx].name, param_1, 1);
+        QueueBuildOrder(g_game->unitDefs[idx].name, param_1, 1);
 }

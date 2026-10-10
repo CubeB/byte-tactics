@@ -316,15 +316,15 @@ struct Game {
         Unit* unitsEnd;                // +0x1435b
         unsigned char* poolEnd;        // the same bytes, from the pool's end
     };
-    void* hotUnits;                    // +0x1435f
-    void* hotRadar;                    // +0x14363
+    void* visibleUnitIdList;           // +0x1435f
+    void* hotRadarUnitList;            // +0x14363
     char unknown_14367[0x1436f - 0x14367];
     unsigned short focusUnitId;        // +0x1436f
     char unknown_14371[0x14373 - 0x14371];
     unsigned int autoFollowFlags;      // +0x14373
-    Object3do** definitions;           // +0x14377
+    Object3do** unitModels;            // +0x14377
     char unknown_1437b[0x1439b - 0x1437b];
-    UnitType* unitTypes;               // +0x1439b
+    UnitType* unitDefs;                // +0x1439b
     char unknown_1439f[0x37ee6 - 0x1439f];
     unsigned short maxUnits;           // +0x37ee6
     char unknown_37ee8[0x37eee - 0x37ee8];
@@ -546,14 +546,14 @@ void __stdcall AllocateUnitMemory(void)
     memset(pool, 0, g_game->poolCount * 0x118);
 
     unsigned int ten = g_game->maxUnits * 10;
-    g_game->hotUnits = GameAllocIgnoreTag("HOT UNITS", ten * 2);
-    g_game->hotRadar = GameAllocIgnoreTag("HOT RADAR UNITS", ten * 10);
+    g_game->visibleUnitIdList = GameAllocIgnoreTag("HOT UNITS", ten * 2);
+    g_game->hotRadarUnitList = GameAllocIgnoreTag("HOT RADAR UNITS", ten * 10);
     g_game->poolEnd = g_game->pool + g_game->poolCount * 0x118 - 0x118;
 
     unsigned short n;
     for (n = 0; n < g_game->poolCount; n++) {
         *(unsigned short*)(pool + n * 0x118 + 0xa8) = n;
-        *(UnitType**)(pool + n * 0x118 + 0x92) = g_game->unitTypes;
+        *(UnitType**)(pool + n * 0x118 + 0x92) = g_game->unitDefs;
     }
 
     Player* v[10];
@@ -610,12 +610,12 @@ void FreeUnitMemory(void)
                 KillUnit(u, 8);
         }
     }
-    if (g_game->hotRadar != 0)
-        GameFreeThunk(g_game->hotRadar);
-    g_game->hotRadar = 0;
-    if (g_game->hotUnits != 0)
-        GameFreeThunk(g_game->hotUnits);
-    g_game->hotUnits = 0;
+    if (g_game->hotRadarUnitList != 0)
+        GameFreeThunk(g_game->hotRadarUnitList);
+    g_game->hotRadarUnitList = 0;
+    if (g_game->visibleUnitIdList != 0)
+        GameFreeThunk(g_game->visibleUnitIdList);
+    g_game->visibleUnitIdList = 0;
     if (g_game->units != 0)
         GameFreeThunk(g_game->units);
     g_game->units = 0;
@@ -630,7 +630,7 @@ int __stdcall RandomInt(int range);
 // FUNCTION: 0x485a40
 void __stdcall InitUnitFromType(Unit* unit, Pos_00485a40 pos, int param_5)
 {
-    unit->type = &g_game->unitTypes[(unsigned short)unit->typeId];
+    unit->type = &g_game->unitDefs[(unsigned short)unit->typeId];
     unit->flags.bits.b28 = 1;
     unit->flags.bits.b29 = (unit->type->mobile == 0);
     unit->flags.bits.b14 = 0;
@@ -719,7 +719,7 @@ void __stdcall InitUnitFromType(Unit* unit, Pos_00485a40 pos, int param_5)
 // pointer at +0xc is filled in by hand. Both arms store the block at +0x9e and
 // clear its flag at +0x10.
 //
-// Both calls take the definition object (g_game->definitions[id]) as their
+// Both calls take the definition object (g_game->unitModels[id]) as their
 // argument.
 
 
@@ -775,7 +775,7 @@ ObjectState_00485d40* __stdcall CreateObjectState(Object3do* obj);
 // FUNCTION: 0x485d40
 void __stdcall InitUnitScript(Unit* self)
 {
-    Object3do* obj = g_game->definitions[self->typeId];
+    Object3do* obj = g_game->unitModels[self->typeId];
     if (self->type->data) {
         self->script = new UnitScript;
         self->script->SetCob(self->type->data);
@@ -840,7 +840,7 @@ void __stdcall UpdateMetalExtraction(Unit* unit);
 // FUNCTION: 0x485e90
 void __stdcall InitUnit(int unitType, Pos_00485a40 pos, int param_5, Unit* unit)
 {
-    UnitType* type = &g_game->unitTypes[(unsigned short)unitType];
+    UnitType* type = &g_game->unitDefs[(unsigned short)unitType];
     if (unit) {
         WeaponAimCobCb* sub = (WeaponAimCobCb*)((char*)unit + 8);
         for (int i = 0; i < 3; i++) {
@@ -879,7 +879,7 @@ void __stdcall RevealNewUnit(Unit* unit);
 static inline void __stdcall InitUnit_00485e90(unsigned short unitType, Pos_00485a40 pos,
                                                int param_5, Unit* unit)
 {
-    UnitType* type = &g_game->unitTypes[unitType];
+    UnitType* type = &g_game->unitDefs[unitType];
     if (unit) {
         WeaponAimCobCb* sub = (WeaponAimCobCb*)((char*)unit + 8);
         for (int i = 0; i < 3; i++) {
@@ -906,7 +906,7 @@ Unit* __stdcall CreateUnit(unsigned char player, unsigned short typeId, Pos_0048
     Player* pl = (Player*)((char*)g_game + off + 0x1b63);
     if (typeId == 0)
         return 0;
-    UnitType* type = &g_game->unitTypes[typeId];
+    UnitType* type = &g_game->unitDefs[typeId];
     if (!(type->flags.all & 0x800000))
         return 0;
     if (type->limit != -1) {
@@ -1333,7 +1333,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
     unit->typeId = 0;
     // Keep this order: adjacent clears would fold into one `and`.
     unit->flags.all &= ~0x10000000;
-    unit->type = g_game->unitTypes;
+    unit->type = g_game->unitDefs;
     unit->flags.all &= ~0x30;
     unit->player->unitCount--;
     if (unit->player->unitCount == 0) {

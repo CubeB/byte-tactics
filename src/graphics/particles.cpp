@@ -804,7 +804,7 @@ struct Game {
     void* unknown_147d3;               // +0x147d3, the other smoke animation
     char unknown_147d7[0x147f3 - 0x147d7];
     union {
-        void* unknown_147f3;           // +0x147f3, the spark animation
+        void* flameStreamSeq;          // +0x147f3, the spark animation
         unsigned short* bits_147f3;
     };
     char unknown_147f7[0x37ecc - 0x147f7];
@@ -1871,8 +1871,8 @@ void TeleportParticles::Emit()
         e.pos2 = pos2;
         e.dir = dir;
         e.endTime = g_game->field_38a47 + sparkLifetime;
-        e.data = g_game->unknown_147f3;
-        e.frameCount = GetGafFrameCount(g_game->unknown_147f3) - 1;
+        e.data = g_game->flameStreamSeq;
+        e.frameCount = GetGafFrameCount(g_game->flameStreamSeq) - 1;
         e.frame = (int)(((__int64)rand() * e.frameCount) / 0x8000);
         // Not push_back: calling through the List layout keeps the insert out of line.
         List_004737c0* v = (List_004737c0*)&items;
@@ -2012,7 +2012,7 @@ void ThrustParticles::Emit()
         rec.pos1 = pos1;
         rec.pos2 = pos2;
         rec.bitmask = g_game->bits_147f3;
-        rec.frameCount = (int)GetGafFrameCount(g_game->unknown_147f3) - 1;
+        rec.frameCount = (int)GetGafFrameCount(g_game->flameStreamSeq) - 1;
         rec.frame = 0;
         ((Class_00475bd0*)v)->insert(v->end(), 1, rec);
     }

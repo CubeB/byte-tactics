@@ -216,9 +216,9 @@ struct Game {
     char unknown_14263[0x1434f - 0x14263];
     unsigned short unitsPerPlayer;     // +0x1434f
     char unknown_14351[0x1438f - 0x14351];
-    int count;                         // +0x1438f
+    int unitDefCount;                  // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
-    UnitDef* defs;                     // +0x1439b
+    UnitDef* unitDefs;                 // +0x1439b
     char unknown_1439f[0x37ec8 - 0x1439f];
     int windSpeedDenominator;          // +0x37ec8
 };
@@ -305,16 +305,16 @@ int __stdcall RateUnitType(UnitDef* p)
 // FUNCTION: 0x409730
 void PlayerAI::ComputeBaseWeights()
 {
-    vec_8d.resize(g_game->count, 0);
+    vec_8d.resize(g_game->unitDefCount, 0);
     {
         Elem_0040cfb0 e;
         e.a = 0;
         e.b = 0;
         e.c = 0;
-        vec_65.resize(g_game->count, e);
+        vec_65.resize(g_game->unitDefCount, e);
     }
-    for (int i = 1; i < g_game->count; i++) {
-        UnitDef* def = &g_game->defs[(unsigned short)i];
+    for (int i = 1; i < g_game->unitDefCount; i++) {
+        UnitDef* def = &g_game->unitDefs[(unsigned short)i];
         vec_8d[i] = RateUnitType(def);
 
         int a = 1;

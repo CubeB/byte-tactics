@@ -56,7 +56,7 @@ struct Game_00444580 {
     void* guids;                        // +0x2a9f
     Conn_00444580* conns;               // +0x2aa3
     char unknown_2aa7[0x143a7 - 0x2aa7];
-    unsigned char palette[0x391e9 - 0x143a7];   // +0x143a7
+    unsigned char paletteRgba[0x391e9 - 0x143a7];  // +0x143a7
     Mission* mapInfo;                   // +0x391e9
 };
 #pragma pack(pop)
@@ -112,8 +112,8 @@ void FillProviderList()
 {
     if (g_game->menu.holder != 0 && strcmp(g_game->menu.holder->entries->name, "SELPROV.GUI") == 0)
         CloseTopScreen(&g_game->menu);
-    SetPaletteColors(g_game->palette, 0, 0x100);
-    RemapPaletteToClosestIndices(&g_game->menu, g_game->palette, g_game->field_5cb);
+    SetPaletteColors(g_game->paletteRgba, 0, 0x100);
+    RemapPaletteToClosestIndices(&g_game->menu, g_game->paletteRgba, g_game->field_5cb);
     Gadget_00444580* menu = LoadGuiLayer(&g_game->menu, "SELPROV.GUI", 0x80);
     menu->handler = HandleSelectProviderClick;
     menu->userData = (int)g_game;

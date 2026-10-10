@@ -204,10 +204,10 @@ struct Game {
     char unknown_0[0xc];               // +0x0
     void* displayContext;              // +0xc
     char unknown_10[0x14377 - 0x10];
-    void** models;                     // +0x14377
+    void** unitModels;                 // +0x14377
     UnitTable* unitTable;              // +0x1437b
     char unknown_1437f[0x1438f - 0x1437f];
-    int unitTypeCount;                 // +0x1438f
+    int unitDefCount;                  // +0x1438f
     int unitDefCountBits;              // +0x14393
     int unitDefEnumDirty;              // +0x14397
     UnitDef* unitDefs;                 // +0x1439b
@@ -490,14 +490,14 @@ void FreeUnitInfo()
         ProtectBlockReadWrite(g_game->unitDefs);
         GameFreeThunk(g_game->unitDefs);
         g_game->unitDefs = 0;
-        g_game->unitTypeCount = 0;
+        g_game->unitDefCount = 0;
     }
 }
 
 // FUNCTION: 0x42bd10
 void RefreshUnitInfo()
 {
-    if (g_game->unitTypeCount == 0 || g_game->unitDefEnumDirty != 0) {
+    if (g_game->unitDefCount == 0 || g_game->unitDefEnumDirty != 0) {
         LoadUnitInfo();
         g_game->unitDefEnumDirty = 0;
     }
@@ -512,7 +512,7 @@ void CheckDownloadableFlags()
 {
     UnitDef* def = g_game->unitDefs;
     // One for statement with `i++, def += 0x249`; no source guard on the first test.
-    for (int i = 0; i < g_game->unitTypeCount;
+    for (int i = 0; i < g_game->unitDefCount;
          i++, def = (UnitDef*)((char*)def + 0x249)) {
         for (int j = 0; j < g_game->buildListCount; j++) {
             if (_strcmpi(g_game->buildLists[j].entries[0].name, def->unitname) == 0
@@ -537,7 +537,7 @@ void AddDownloadBuildOptions()
 {
     ProtectBlockReadWrite(g_game->unitDefs);
     UnitDef* e = g_game->unitDefs;
-    for (int a = 0; a < g_game->unitTypeCount; a++, e++) {
+    for (int a = 0; a < g_game->unitDefCount; a++, e++) {
         if (e->ids != 0) {
             for (int b = 0; b < g_game->buildListCount; b++) {
                 for (int c = 0; c < g_game->buildLists[b].count; c++) {
@@ -1007,7 +1007,7 @@ void LoadUnitTypes() {
 
     ProtectBlockReadWrite(g_game->unitDefs);
 
-    UnitDef* end = g_game->unitDefs + g_game->unitTypeCount;
+    UnitDef* end = g_game->unitDefs + g_game->unitDefCount;
     UnitDef* start = g_game->unitDefs + 1;
 
     UnitDef* p = start;
@@ -1029,7 +1029,7 @@ void LoadUnitTypes() {
         }
         d = w;
     }
-    g_game->unitTypeCount = (int)(d - g_game->unitDefs);
+    g_game->unitDefCount = (int)(d - g_game->unitDefs);
 
     start = g_game->unitDefs + 1;
     UnitDef* last = d;
@@ -1054,14 +1054,14 @@ void LoadUnitTypes() {
 
     {
         unsigned short index = 0;
-        if (g_game->unitTypeCount > 0) {
+        if (g_game->unitDefCount > 0) {
             do {
                 g_game->unitDefs[index].id = index;
                 index++;
-            } while ((int)index < g_game->unitTypeCount);
+            } while ((int)index < g_game->unitDefCount);
         }
     }
-    int c = g_game->unitTypeCount;
+    int c = g_game->unitDefCount;
     g_game->unitDefCountBits = 0;
     if (c) {
         do {
@@ -1070,14 +1070,14 @@ void LoadUnitTypes() {
         } while (c);
     }
 
-    g_game->models = (void**)GameAllocIgnoreTag("MODEL PTRS", g_game->unitTypeCount * 4);
+    g_game->unitModels = (void**)GameAllocIgnoreTag("MODEL PTRS", g_game->unitDefCount * 4);
 
     // `u` must be an unsigned short: an int counter breaks the loop.
-    for (unsigned short u = 1; u < g_game->unitTypeCount; u++) {
+    for (unsigned short u = 1; u < g_game->unitDefCount; u++) {
         UnitDef* type = &g_game->unitDefs[u];
         // Divisor read through this body-local pointer: g_game then takes ecx.
         Game* gp = g_game;
-        g_game->loadPctUnits = (unsigned char)((u * 100) / gp->unitTypeCount);
+        g_game->loadPctUnits = (unsigned char)((u * 100) / gp->unitDefCount);
         type->id = u;
         BuildDataPath(path, "units", type->unitname, "FBI");
         if (HAPI_FileLengthByName(path))
@@ -1091,9 +1091,9 @@ void LoadUnitTypes() {
             FatalError(objpath);
         MirrorObject(model);
         BindModelTextures(model, namebuf);
-        g_game->models[u] = model;
+        g_game->unitModels[u] = model;
         type->extentmin.y = 0;
-        type->extentmax.y = GetObjectHeight(g_game->models[u]);
+        type->extentmax.y = GetObjectHeight(g_game->unitModels[u]);
         type->extentsize.y = type->extentmax.y - type->extentmin.y;
 
         strcpy(namebuf, type->unitname);
@@ -1130,7 +1130,7 @@ void LoadUnitTypes() {
         type->data = LoadCobScript(path);
     }
 
-    ProtectBlockReadOnly(g_game->models);
+    ProtectBlockReadOnly(g_game->unitModels);
 
     TdfFile parser2;
     BuildDataPath(path, "gamedata", "sidedata", "TDF");
@@ -1138,7 +1138,7 @@ void LoadUnitTypes() {
         FatalError("Can't load GAMEDATA.TDF");
     } else {
         short* list = (short*)GameAllocIgnoreTag("TEMP UTYPE LIST", 0x3c);
-        for (unsigned short s = 1; s < g_game->unitTypeCount; s++) {
+        for (unsigned short s = 1; s < g_game->unitDefCount; s++) {
             UnitDef* type = &g_game->unitDefs[s];
             type->count = 0;
             type->ids = 0;
@@ -1189,14 +1189,14 @@ int __stdcall CompareUnitTypeNames(const char* param_1, const char* param_2)
 void FreeUnitTypes()
 {
     ProtectBlockReadWrite(g_game->unitDefs);
-    ProtectBlockReadWrite(g_game->models);
+    ProtectBlockReadWrite(g_game->unitModels);
 
-    for (unsigned short i = 1; i < g_game->unitTypeCount; i++) {
+    for (unsigned short i = 1; i < g_game->unitDefCount; i++) {
         UnitDef* type = &g_game->unitDefs[i];
-        void* p = g_game->models[i];
+        void* p = g_game->unitModels[i];
         if (p != 0) {
             GameFreeThunk(p);
-            g_game->models[i] = 0;
+            g_game->unitModels[i] = 0;
         }
         if (type->yardmap != 0) {
             GameFreeThunk(type->yardmap);
@@ -1220,10 +1220,10 @@ void FreeUnitTypes()
     }
     g_game->unitTable = 0;
 
-    GameFreeThunk(g_game->models);
+    GameFreeThunk(g_game->unitModels);
     GameFreeThunk(g_game->unitDefs);
 
-    g_game->models = 0;
+    g_game->unitModels = 0;
     g_game->unitDefs = 0;
 }
 
@@ -1277,7 +1277,7 @@ void LoadDownloadMenus()
                 g_game->buildLists[i].count = j + 1;
                 char* buf = unitbuf;
                 if (parser.current->GetFieldString(unitbuf, "UNITMENU", 0x20, DAT_005119b8)) {
-                    for (unsigned short u = 0; u < g_game->unitTypeCount; u++) {
+                    for (unsigned short u = 0; u < g_game->unitDefCount; u++) {
                         if (_strcmpi(g_game->unitDefs[u].unitname, buf) == 0) {
                             g_game->buildLists[i].entries[j].typeId = u;
                             g_game->buildLists[i].entries[j].page = (unsigned char)parser.current->GetFieldInt("MENU", 0);
@@ -1293,7 +1293,7 @@ void LoadDownloadMenus()
     }
 
     ProtectBlockReadWrite(g_game->unitDefs);
-    for (unsigned short u = 0; u < g_game->unitTypeCount; u++) {
+    for (unsigned short u = 0; u < g_game->unitDefCount; u++) {
         for (c = 0; c < n; c++) {
             for (int d = 0; d < g_game->buildLists[c].count; d++) {
                 if (g_game->buildLists[c].entries[d].typeId == u) {
@@ -1306,7 +1306,7 @@ void LoadDownloadMenus()
     ProtectBlockReadOnly(g_game->unitDefs);
 
     UnitDef* defs = g_game->unitDefs;
-    for (c = 0; c < g_game->unitTypeCount; c++) {
+    for (c = 0; c < g_game->unitDefCount; c++) {
         for (int i = 0; i < g_game->buildListCount; i++) {
             if (_strcmpi(g_game->buildLists[i].entries[0].name, defs[c].unitname) == 0
                 && !defs[c].downloadable) {

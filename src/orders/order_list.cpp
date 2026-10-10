@@ -4,10 +4,9 @@
 // dispatcher that walks the list and calls one helper per kind flag bit; then
 // adding, removing and driving the command nodes in the two lists, the global
 // order-type table at 0x512340 and its sort, and the unit's mover (UnitMotion).
-// The sort's five out-of-line instantiations stay in files of their own:
-// 0x43c720 (order_list_43c720.cpp), 0x43c940, 0x43c990, 0x43ca70 and
-// 0x43cb20, because the two registration functions (0x43bc90 and 0x43c050)
-// need the inlined sort here, and its inline chain defines the same functions.
+// The sort's five out-of-line instantiations (0x43c720, 0x43c940, 0x43c990,
+// 0x43ca70, 0x43cb20) are the inline helpers the two registration functions
+// (0x43bc90 and 0x43c050) use, so they are defined here.
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -1434,6 +1433,7 @@ void __stdcall RunSecondaryOrders(Unit* p)
 static Vec_0043c390 g_missionOrderTableVec;
 
 // std::_Unguarded_insert
+// FUNCTION: 0x43c940
 inline void __stdcall InsertShiftOrderTypes(Elem_0043c390* _L, Elem_0043c390 _V, Pred_0043c390 _P)
 {
     for (Elem_0043c390* _M = _L; _P(_V, *--_M); _L = _M)
@@ -1442,6 +1442,7 @@ inline void __stdcall InsertShiftOrderTypes(Elem_0043c390* _L, Elem_0043c390 _V,
 }
 
 // std::_Insertion_sort_1
+// FUNCTION: 0x43c990
 inline void __stdcall InsertionSortOrderTypes(Elem_0043c390* _F, Elem_0043c390* _L, Pred_0043c390 _P,
                                    Elem_0043c390*)
 {
@@ -1464,6 +1465,10 @@ inline void _Insertion_sort_0043bc90(Elem_0043c390* _F, Elem_0043c390* _L, Pred_
 }
 
 // std::_Median
+// Suspected original bug: the out-of-line copy's epilogue is `ret 0x5c`, four bytes
+// fewer than its callers push (0x60); the error cancels against 0x43cb20, which
+// pops 0x28 for 0x24 bytes of arguments.
+// FUNCTION: 0x43ca70
 inline Elem_0043c390 __stdcall MedianOrderTypes(Elem_0043c390 _X, Elem_0043c390 _Y, Elem_0043c390 _Z,
                                             Pred_0043c390 _P)
 {
@@ -1474,6 +1479,7 @@ inline Elem_0043c390 __stdcall MedianOrderTypes(Elem_0043c390 _X, Elem_0043c390 
 }
 
 // std::_Unguarded_partition
+// FUNCTION: 0x43cb20
 inline Elem_0043c390* __stdcall PartitionOrderTypes(Elem_0043c390* _F, Elem_0043c390* _L,
                                              Elem_0043c390 _Piv, Pred_0043c390 _P)
 {
@@ -1489,6 +1495,7 @@ inline Elem_0043c390* __stdcall PartitionOrderTypes(Elem_0043c390* _F, Elem_0043
 }
 
 // std::_Sort
+// FUNCTION: 0x43c720
 inline void __stdcall SortOrderTypes(Elem_0043c390* _F, Elem_0043c390* _L, Pred_0043c390 _P,
                                    Elem_0043c390*)
 {

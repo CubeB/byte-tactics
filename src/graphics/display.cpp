@@ -97,12 +97,12 @@ struct App_4b5980 {
     Rect_004b6720 mode;                  // +0xa0
     HFONT font;                          // +0xb0
     char unknown_b4[0xc4 - 0xb4];
-    int obj_c4;                          // +0xc4
-    int obj_c8;                          // +0xc8
+    int shadeTable;                      // +0xc4
+    int lightTable;                      // +0xc8
     char unknown_cc[0xd4 - 0xcc];
     int width;                           // +0xd4
     int height;                          // +0xd8
-    int unknown_dc;                      // +0xdc
+    int useOverrideSurface;              // +0xdc
     int active;                          // +0xe0
     char unknown_e4[0xe8 - 0xe4];
     int tickScale;                       // +0xe8, ticks per second
@@ -123,7 +123,7 @@ struct App_4b5980 {
     int availPhys;                       // +0x620
     int unknown_624;                     // +0x624
     char unknown_628[0x728 - 0x628];
-    unsigned char unknown_728;           // +0x728
+    unsigned char lastDir;               // +0x728, the first byte of the last directory set
 };
 #pragma pack(pop)
 
@@ -152,14 +152,14 @@ struct ModeList_004b5330 {
     Mode_004b5330* modes;              // +0x4
 };
 
-// A point the mouse code starts from.
+// A point the mouse code starts from: the 24 bytes of Event_4b5cc0.
 struct View_4b5980 {
     int x;
     int y;
-    int z;
-    int unknown_0c;
-    int unknown_10;
-    int unknown_14;
+    int buttons;
+    int time;
+    int message;
+    int flag;
 };
 
 #include "surface.h"
@@ -668,7 +668,7 @@ int __stdcall InitEnvironment(App_4b5980* d)
     d->draw.palette = 0;
     d->draw.activeSurface = 0;
     d->unknown_624 = 0;
-    d->unknown_dc = 0;
+    d->useOverrideSurface = 0;
     // Three plain bitfield statements, not one whole-word expression.
     d->flags.bits.quitting = 0;
     d->hwnd = 0;
@@ -678,8 +678,8 @@ int __stdcall InitEnvironment(App_4b5980* d)
     View_4b5980 view;
     view.x = 0;
     view.y = 0;
-    view.z = 0;
-    d->unknown_728 = 0;
+    view.buttons = 0;
+    d->lastDir = 0;
     SaveStartDirectory();
     SetCurrentMouseEvent((int *)&view);
 
@@ -697,7 +697,7 @@ int __stdcall InitEnvironment(App_4b5980* d)
     if (d->flags.bits.has_c4) {
         AllocShadeTable(d);
     } else {
-        d->obj_c4 = 0;
+        d->shadeTable = 0;
     }
     if (d->flags.bits.has_c0) {
         AllocAlphaTable(d);
@@ -705,7 +705,7 @@ int __stdcall InitEnvironment(App_4b5980* d)
     if (d->flags.bits.has_c8) {
         AllocLightTable(d);
     } else {
-        d->obj_c8 = 0;
+        d->lightTable = 0;
     }
     if (d->flags.bits.has_cc) {
         AllocGrayTable(d);

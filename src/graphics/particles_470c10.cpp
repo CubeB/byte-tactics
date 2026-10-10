@@ -103,7 +103,7 @@ namespace std {
 
 class ObjectPool {
 public:
-    int unknown_0;                             // +0x0, the vtable pointer
+    int vtable;                                // +0x0, the vtable pointer
     std::vector<Elem_00470f00> items;          // +0x4, the blocks in use
     Elem_00470f00** slots;                     // +0x14, the slot table
     int slotSize;                              // +0x18, the slot size

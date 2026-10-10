@@ -43,28 +43,29 @@ extern "C" __declspec(dllimport) unsigned int __stdcall SmackWait(Smk_0047c3a0* 
 // smackw32.dll ordinal 18 (SmackClose), called through its import slot.
 extern "C" __declspec(dllimport) void __stdcall SmackClose(void* smack);
 
-// The 0x54 byte statistics block SmackSummary fills in. Six of the twenty-one
+// The 0x54 byte statistics block SmackSummary fills in (the Smacker SDK's
+// SmackSum, whose field order the printed names follow). Six of the twenty-one
 // fields are never printed, and the seven printed before TotalBlitTime are
 // read from further in than the DLL writes.
 struct SmkStats_0047c530 {
     unsigned int totalTime;            // +0x00 divisor of the frame rate
-    unsigned int unknown_04;           // +0x04
+    unsigned int ms100PerFrame;        // +0x04
     unsigned int openTime;             // +0x08 "Time to Open File"
     unsigned int frames;               // +0x0c "Total Frames Played"
     unsigned int framesSkipped;        // +0x10 "SkippedFrames"
-    unsigned int unknown_14;           // +0x14
+    unsigned int soundSkips;           // +0x14
     unsigned int timeBlit;             // +0x18 "TotalBlitTime"
     unsigned int readTime;             // +0x1c "TotalReadTime"
     unsigned int decompTime;           // +0x20 "TotalDecompTime"
-    unsigned int unknown_24;           // +0x24
+    unsigned int backReadTime;         // +0x24
     unsigned int readSpeed;            // +0x28 "TotalReadSpeed"
     unsigned int slowestFrameTime;     // +0x2c "SlowestFrameTime"
     unsigned int slowest2FrameTime;    // +0x30 "Slowest2FrameTime"
-    unsigned int unknown_34;           // +0x34
-    unsigned int unknown_38;           // +0x38
+    unsigned int slowestFrameNum;      // +0x34
+    unsigned int slowest2FrameNum;     // +0x38
     unsigned int averageFrameSize;     // +0x3c "AverageFrameSize"
     unsigned int highest1SecRate;      // +0x40 "Highest1SecRate"
-    unsigned int unknown_44;           // +0x44
+    unsigned int highest1SecFrame;     // +0x44
     unsigned int highestMemAmount;     // +0x48 "HighestMemAmount"
     unsigned int totalExtraMemory;     // +0x4c "TotalExtraMemory"
     unsigned int highestExtraUsed;     // +0x50 "HighestExtraUsed"
@@ -77,7 +78,7 @@ struct Surfaces_0047bdf0 {
     IDirectDraw* ddraw;              // +0x0
     IDirectDrawSurface* primary;     // +0x4
     IDirectDrawSurface* back;        // +0x8
-    IDirectDrawSurface* field_c;     // +0xc
+    IDirectDrawSurface* clipper;     // +0xc
     IDirectDrawPalette* palette;     // +0x10
 };
 
@@ -218,7 +219,7 @@ MoviePlayer::MoviePlayer(char* path, int a, int b, int c, int d, int e)
         wrapper->primary = 0;
         wrapper->back = 0;
         wrapper->palette = 0;
-        wrapper->field_c = 0;
+        wrapper->clipper = 0;
         if (!SetupDirectDraw())
             FatalError("Could not setup Direct Draw to play movie.");
         hasSurfaces = 1;

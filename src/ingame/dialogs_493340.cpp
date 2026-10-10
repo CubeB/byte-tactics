@@ -382,7 +382,7 @@ void __stdcall HandleShareDialogEvent(Gui* obj)
     if (IsCurrentGadgetNamed(obj, "OK")) {
         PlaySoundByName("Options", 0);
         Gadget* plyr = FindGadgetChecked(data, "PLYRLIST");
-        short idx = plyr->u.list.field_ba;
+        short idx = plyr->u.list.selected;
         if (idx < 0)
             return;
         int pi = FindSlotByDpid(g_shareDialogPlayerNetIds[idx]);

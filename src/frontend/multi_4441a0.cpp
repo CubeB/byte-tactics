@@ -81,7 +81,7 @@ void __stdcall HandleSelectProviderClick(Menu_004441a0* menu)
         return;
     }
     if (IsCurrentGadgetNamed(menu, "DPLAY") || IsCurrentGadgetNamed(menu, "SELECT")) {
-        SelectConnection(FindGadgetChecked(entries, "DPLAY")->u.list.field_ba);
+        SelectConnection(FindGadgetChecked(entries, "DPLAY")->u.list.selected);
         g_game->frontendSubstateRequest = 2;
         PlaySoundByName("BigButton", 0);
         return;

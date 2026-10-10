@@ -330,7 +330,7 @@ void __stdcall FileRequesterHandler(Gui* gadget)
     if (IsGadgetNamed(entries, gadget->hotGadgetIndex, "LOAD")
         || IsGadgetNamed(entries, gadget->hotGadgetIndex, "SWIN")) {
         char* name = SkipTextLines(req->names,
-                                  FindGadgetChecked(entries, "SWIN")->u.list.field_ba);
+                                  FindGadgetChecked(entries, "SWIN")->u.list.selected);
         if (name[0] == '\\') {
             strcpy(req->selected, name);
             for (i = 0; i < 10; i++) {

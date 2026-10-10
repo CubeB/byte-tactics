@@ -1281,6 +1281,7 @@ void __stdcall DrawFrameQuad(void* surf, GafFrame* bmp,
             xmin = xx;
     }
 
+    // surf is the void* parameter shared with the gui.cpp declarations, so the cast stays.
     ((Surface*)surf)->GetClipRect(&clip);
     if (xmax < clip.left) {
         if (locked) UnlockScreen(&local);

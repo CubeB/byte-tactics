@@ -1742,6 +1742,7 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
         Rect clip;
         unsigned int bp = (flags >> 7) & 1;
         void* surf = entries->u.assets.surface;
+        // surf stays void*: typing it as Surface* needs a cast at the declaration, and the file stops matching without the casts below.
         ((Surface*)surf)->GetClipRect(&clip);
         ((Surface*)surf)->SetClipRect(bounds);
         int k = me->u.list.field_bc;
@@ -1817,6 +1818,7 @@ void __stdcall DrawListBox(Dialog_4a1b40* obj, int index)
             if (yy >= bounds.bottom || k >= me->u.list.field_c0)
                 break;
         }
+        // Load-bearing: without this cast the file stops matching.
         ((Surface*)surf)->SetClipRect(clip);
     }
 }

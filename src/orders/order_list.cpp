@@ -686,7 +686,7 @@ void __stdcall WriteUnitTypeNameKey(HapiBank* file, unsigned short id)
     char key[0x80];
     sprintf(key, "UTYPENAME%4d", id);
     if (!file->HasItem(key) && id >= 1 && id < g_game->unitTypeCount)
-        ((HapiBank*)file)->SetStringItem(key, g_game->unitTypes[id].name);
+        file->SetStringItem(key, g_game->unitTypes[id].name);
 }
 
 // Resolves a unit definition slot number to a unit type id. The parsed text
@@ -700,7 +700,7 @@ short __stdcall ResolveUnitTypeKey(HapiBank* file, unsigned short id)
     char key[0x80];
     sprintf(key, "UTYPENAME%4d", id);
     if (file->HasItem(key))
-        return FindUnitTypeId(((HapiBank*)file)->GetStringItem(key, 0));
+        return FindUnitTypeId(file->GetStringItem(key, 0));
     int i, n = 0;                     // n counts every table entry, k only the
     unsigned short k = 0;             // ones without flag bit 5
     for (i = 1; i < g_game->unitTypeCount; i++, n++) {

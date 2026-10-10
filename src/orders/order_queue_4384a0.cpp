@@ -712,9 +712,9 @@ Order::Order(Unit* punit, HapiBank* file, char* name)
         return;
 
     file->OpenNamedBox(name);
-    ((HapiBank*)file)->SeekBox(0);
+    file->SeekBox(0);
     SaveDesc_0043a1f0 desc;
-    if (((HapiBank*)file)->ReadBox(&desc, 0x3a) != 0x3a)
+    if (file->ReadBox(&desc, 0x3a) != 0x3a)
         return;
 
     char buf1[0x80];
@@ -756,7 +756,7 @@ Order::Order(Unit* punit, HapiBank* file, char* name)
     char* sname = g_missionOrderTableBegin[desc.kind].name;
     if (strcmp(sname, "MobileBuild") == 0 || strcmp(sname, "VTOL_MobileBuild") == 0 ||
         strcmp(sname, "BuildingBuild") == 0) {
-        unitType = (unsigned short)ResolveUnitTypeKey((HapiBank*)file, (unsigned short)unitType);
+        unitType = (unsigned short)ResolveUnitTypeKey(file, (unsigned short)unitType);
     }
 
     char buf3[0x20];
@@ -828,13 +828,15 @@ int Order::SerializeToSave(Unit* punit, File_0043a970* file, char* name)
     desc.flags = flags;
     desc.field_36 = subFlags;
 
-    ((HapiBank*)file)->OpenNamedBox(name);
-    ((HapiBank*)file)->SeekBox(0);
-    ((HapiBank*)file)->WriteBox(&desc, 0x3a);
+    // File_0043a970 is the same object as HapiBank (see its declaration).
+    HapiBank* bank = (HapiBank*)file;
+    bank->OpenNamedBox(name);
+    bank->SeekBox(0);
+    bank->WriteBox(&desc, 0x3a);
 
     char buf1[0x80];
     sprintf(buf1, "%s%s", name, "_name");
-    ((HapiBank*)file)->SetStringItem(buf1, g_missionOrderTableBegin[kind].name);
+    bank->SetStringItem(buf1, g_missionOrderTableBegin[kind].name);
 
     char* s = g_missionOrderTableBegin[kind].name;
     if (strcmp(s, "MobileBuild") == 0 || strcmp(s, "VTOL_MobileBuild") == 0 ||
@@ -842,14 +844,14 @@ int Order::SerializeToSave(Unit* punit, File_0043a970* file, char* name)
         unsigned short id = unitType;
         char buf2[0x80];
         sprintf(buf2, "UTYPENAME%4d", id);
-        if (!((HapiBank*)file)->HasItem(buf2) && id >= 1 && id < g_game->unitTypeCount)
-            ((HapiBank*)file)->SetStringItem(buf2, g_game->unitTypes[id].name);
+        if (!bank->HasItem(buf2) && id >= 1 && id < g_game->unitTypeCount)
+            bank->SetStringItem(buf2, g_game->unitTypes[id].name);
     }
 
     if (desc.field_4 != 0) {
         char buf3[0x20];
         sprintf(buf3, "%s%s", name, "g");
-        attached->SerializeToSave(this, (HapiBank*)file, buf3);
+        attached->SerializeToSave(this, bank, buf3);
     }
     return 1;
 }

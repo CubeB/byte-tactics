@@ -396,6 +396,7 @@ void __stdcall SaveUnits(HapiBank* file)
             file->OpenNamedBox(script);
             ((CobScript*)unit->script)->SaveScriptState(file);
 
+            // Order::SerializeToSave is declared (order.h) with File_0043a970, the same object as HapiBank.
             int n = 0;
             Order* c = (Order*)unit->listHead;
             while (c != 0) {

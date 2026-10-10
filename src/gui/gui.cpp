@@ -29,9 +29,9 @@ struct GafEntry;
 // (Language/Font/List in the individual file views).
 struct List_004a32a0 {
     char unknown_0[0xc];
+    // A union of one member: the anonymous union takes the symbol ids that later functions need.
     union {
         GafEntry* glyphs;              // +0x0c
-        GafEntry* field_0c;            // +0x0c
     };
 };
 
@@ -83,7 +83,7 @@ struct Entry_0049f8c0 {
         struct {
             short count;           // +0xb6, entry 0: the entry count
             char unknown_b8[0x138 - 0xb8];
-            short field_138;       // +0x138
+            short status;          // +0x138
             char unknown_13a[0x15b - 0x13a];
         };
         char text[0x15b - 0xb6];   // +0xb6, the other entries' text
@@ -463,8 +463,8 @@ void __stdcall ClearPeerStatus(Dialog* param_1, int index)
         Entry_0049f8c0* e = &entries[1];
         for (int i = 1; i < entries->count + 1; i++, e++) {
             if (e->type == 1 && i != index && e->team == me->team
-                && e->field_138 != 0) {
-                e->field_138 = 0;
+                && e->status != 0) {
+                e->status = 0;
                 DrawButton(param_1, i);
                 if (param_1->holder != 0) {
                     param_1->holder->dirty = 1;
@@ -1356,23 +1356,23 @@ int __stdcall IsPointInRect(Rect* r, int px, int py)
 
 struct Obj_004a1950 {
     char unknown_0[4];
-    int field_4;
+    int top;
 };
 
 // FUNCTION: 0x4a1950
 int __stdcall FUN_004a1950(Obj_004a1950* param_1, int param_2) {
-    return param_2 < param_1->field_4;
+    return param_2 < param_1->top;
 }
 
 struct Struct_004a1970 {
     char unknown_0[0xc];
-    int field_c;                       // +0xc
+    int bottom;                        // +0xc
 };
 
 // FUNCTION: 0x4a1970
 int __stdcall FUN_004a1970(Struct_004a1970* obj, int value)
 {
-    return value > obj->field_c;
+    return value > obj->bottom;
 }
 
 
@@ -2307,7 +2307,7 @@ struct Dialog_4a2e40 {
     char unknown_00[0x18];
     Holder_004a2e40* holder; // +0x18
     char unknown_1c[0xcca - 0x1c];
-    int field_cca; // +0xcca
+    int changed; // +0xcca
 };
 #pragma pack(pop)
 
@@ -2388,7 +2388,7 @@ void __stdcall SetListBoxScrollByName(Dialog_4a2e40* param_1, char* param_2, int
         if ((float)e3->knobPos != q)
             e3->knobPos = (short)q;
     }
-    param_1->field_cca = 1;
+    param_1->changed = 1;
 }
 // Refreshes GUI entry `index` (0x15b-byte entries, entry 0 holds the count at
 // +0xb6): clears the two words at +0xba/+0xbc, selects the entry of type 7
@@ -2704,7 +2704,7 @@ struct Table_004a36a0 {
 
 struct Item_004a36a0 {
     char unknown_0[0x28];
-    int field_28;                      // +0x28
+    int cell;                          // +0x28
 };
 
 void __stdcall FatalError(char* path);
@@ -2743,7 +2743,7 @@ void __stdcall SetGadgetItems(Table_004a36a0* table, char* name, int* items, int
     // Decrements stay in the body with no for-increment, and the test is j > -1.
     for (int j = count - 1; j > -1; ) {
         Item_004a36a0* item = (Item_004a36a0*)*p;
-        unsigned short w = *(unsigned short*)(item->field_28 + 2);
+        unsigned short w = *(unsigned short*)(item->cell + 2);
         v -= w;
         if (v < 0) {
             break;
@@ -2760,7 +2760,7 @@ int DrawRangeCircle(int, int, int, int, int);
 
 struct List_004a3780 {
     char unknown_0[0xc];
-    unsigned short* field_0c;          // +0x0c
+    unsigned short* glyphs;            // +0x0c
 };
 
 struct Holder_004a3780 {
@@ -2769,7 +2769,7 @@ struct Holder_004a3780 {
     char unknown_08[0x14 - 0x08];
     List_004a3780* list;               // +0x14
     char unknown_18[0x20 - 0x18];
-    int field_20;                      // +0x20
+    int selected;                      // +0x20
 };
 
 struct Rect_004a3780 { int x0, y0, x1, y1; };
@@ -2834,7 +2834,7 @@ static inline int LineHeight_004a3780()
 {
     if (0 == g_guiContext->list)
         return GetFontHeight();
-    return ((GafFrame*)GetGafFrame(g_guiContext->list->field_0c, 0x49))->height + 2;
+    return ((GafFrame*)GetGafFrame(g_guiContext->list->glyphs, 0x49))->height + 2;
 }
 
 // The body of SelectFontForEntry at 0x4a1810, which the compiler inlined into several
@@ -2925,7 +2925,7 @@ skip0:;
     if (!HasMouseKeyFlags(obj, 3))
         obj->focus = -1;
     if (PointInListRect(r, point)) {
-        obj->holder->field_20 = index;
+        obj->holder->selected = index;
         flags = me->attribs;
         if (flags & 0x10) {
             // Stores straight into me->u.list.field_ba and tests the field; clamps written plainly.
@@ -3095,7 +3095,7 @@ struct Holder_004a4170 {
     char unknown_00[4];
     Gadget* entries;           // +0x04
     char unknown_08[0x14 - 0x08];
-    int field_14;                      // +0x14, set when off changed
+    int dirty;                         // +0x14, set when off changed
 };
 
 struct Point_004a4170 {                // 24 bytes, copied with rep movsd
@@ -3134,7 +3134,7 @@ static inline void OffsetChanged_004a4170(Object_004a4170* obj, int index, Gadge
     if (e->knobPos == old)
         return;
     if (obj->holder)
-        obj->holder->field_14 = 1;
+        obj->holder->dirty = 1;
     DrawSliderBar(obj, index);
     SyncAssocGadgets(obj, index);
     if (e->sliderCallback)
@@ -3251,7 +3251,7 @@ struct Object_0049fc50 {
     char unknown_54[0x64 - 0x54];
     int focus;                         // +0x64
     char unknown_68[0xcc6 - 0x68];
-    int field_cc6;                     // +0xcc6
+    int pathsReady;                    // +0xcc6
 };
 #pragma pack(pop)
 
@@ -3319,7 +3319,7 @@ check_queue:
     }
 
 final_check:
-    if (obj->field_cc6 != 1 || *(int*)&key == 0)
+    if (obj->pathsReady != 1 || *(int*)&key == 0)
         return 0;
     if ((char)tolower((char)entry->field_147) != key &&
         (char)toupper((char)entry->field_147) != key)
@@ -3581,7 +3581,7 @@ struct Dialog_4a4980 {
     char unknown_0[0x18];
     Holder_004a4980* holder;           // +0x18
     char unknown_1c[0x8b9 - 0x1c];
-    unsigned char field_8b9;           // +0x8b9
+    unsigned char colour7;             // +0x8b9
 };
 #pragma pack(pop)
 
@@ -3666,7 +3666,7 @@ void __stdcall DrawHotspot(Dialog_4a4980* obj, int index)
         src.p[3].y = e->u.hotspot.frame->height - 1;
         DrawFrameQuad(entries->u.assets.surface, e->u.hotspot.frame, &dst, &src);
     } else {
-        FillRectangle(entries->u.assets.surface, &rect, obj->field_8b9);
+        FillRectangle(entries->u.assets.surface, &rect, obj->colour7);
     }
 }
 

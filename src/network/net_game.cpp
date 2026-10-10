@@ -290,7 +290,9 @@ struct Game {
     char unknown_2a46[0x2bc1 - 0x2a46];
     char gameName[0x10];               // +0x2bc1
     char unknown_2bd1;
-    char nickName[0x11];               // +0x2bd2
+    union {                            // one arm, kept: an anonymous union costs symbol ids
+        char nickName[0x11];           // +0x2bd2
+    };
     union {
         char passWord[0x11];           // +0x2be3
         struct {
@@ -1214,7 +1216,9 @@ struct Class_00451fd0 {
     unsigned int lobbySyncTick;        // +0x870
     char unknown_874[0x1745 - 0x874];
     int recvPacketSize;                // +0x1745
-    int* buffer;                       // +0x1749
+    union {                            // one arm, kept: an anonymous union costs symbol ids
+        int* buffer;                   // +0x1749
+    };
 };
 
 struct Entry_00453640 {                // gadget returned by FindGadgetChecked

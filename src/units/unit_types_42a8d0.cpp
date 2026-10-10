@@ -70,9 +70,9 @@ public:
 // A parsed TDF file; the getters read the current section.
 class TdfFile {
 public:
-    int field_0;
+    int root;
     TdfRecord* current;                // +0x4, the current section
-    int field_8;                       // +0x8
+    int flags;                         // +0x8
     TdfFile();
     ~TdfFile();
 
@@ -225,7 +225,7 @@ static inline void LoadWeaponTDFs()
         TdfFile* tdf = &s_weaponTdfParsers[s_weaponTdfLoadedCount];
         BuildDataPath(path, "Weapons", it->data, "TDF");
         if (tdf->LoadFile(path)) {
-            if (tdf->field_8 != 0 || FUN_0041d8a0() == 0)
+            if (tdf->flags != 0 || FUN_0041d8a0() == 0)
                 s_weaponTdfLoadedCount++;
         }
     }

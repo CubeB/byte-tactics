@@ -60,8 +60,8 @@ public:
 class TdfFile {
 public:
     TdfRecord* root;
-    int field_4;
-    int field_8;
+    int current;
+    int flags;
 
     ~TdfFile();
 };
@@ -73,6 +73,6 @@ TdfFile::~TdfFile()
 {
     delete root;
     root = 0;
-    field_4 = 0;
-    field_8 = 0;
+    current = 0;
+    flags = 0;
 }

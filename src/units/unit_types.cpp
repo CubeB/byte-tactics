@@ -302,9 +302,9 @@ public:
 
 class TdfFile {
 public:
-    int field_0;                       // +0x0
+    int root;                          // +0x0
     TdfRecord* current;                // +0x4
-    int field_8;                       // +0x8
+    int flags;                         // +0x8
 
     TdfFile();
     ~TdfFile();

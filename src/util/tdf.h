@@ -26,7 +26,7 @@ class TdfFile {
 public:
     TdfRecord* root;                   // +0x0
     TdfRecord* current;                // +0x4
-    int field_8;                       // +0x8
+    int flags;                         // +0x8
 
     TdfFile();
     ~TdfFile();

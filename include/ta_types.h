@@ -18930,8 +18930,8 @@ public:
 
 class Tree_004da8d0 {  // 0x10 bytes, 3 views
 public:
-    char field_0;  // +0x0
-    char field_1;  // +0x1
+    char allocator;  // +0x0
+    char key_compare;  // +0x1
     char unknown_2[2];
     LiveNode* _Head;  // +0x4
     unsigned char _Multi;  // +0x8

@@ -1476,8 +1476,8 @@ public:
 
 class Tree_004da8d0 {
 public:
-    char field_0;                      // +0x0
-    char field_1;                      // +0x1
+    char allocator;                    // +0x0
+    char key_compare;                  // +0x1
     Node_004da8d0* head;               // +0x4
     unsigned char multi;               // +0x8
     int size;                          // +0xc
@@ -1539,8 +1539,8 @@ void Tree_004da8d0::Init()
 
 inline Tree_004da8d0::Tree_004da8d0(const char& a, const char& b)
 {
-    field_0 = a;
-    field_1 = b;
+    allocator = a;
+    key_compare = b;
     multi = 0;
     Init();
 }
@@ -1786,18 +1786,18 @@ public:
 // iterator then a byte. 0x4ddbe0 is its out-of-line constructor.
 class MapInsertResult {
 public:
-    FreeBlockIter field_0;            // +0x0
-    unsigned char field_4;             // +0x4
+    FreeBlockIter first;              // +0x0
+    unsigned char second;             // +0x4
 
     MapInsertResult() {}
-    MapInsertResult(const FreeBlockIter& i, const unsigned char& b) : field_0(i), field_4(b) {}
-    MapInsertResult(const BlockMapIter& i, unsigned char b) : field_0((Node_004db000*)i.ptr), field_4(b) {}
+    MapInsertResult(const FreeBlockIter& i, const unsigned char& b) : first(i), second(b) {}
+    MapInsertResult(const BlockMapIter& i, unsigned char b) : first((Node_004db000*)i.ptr), second(b) {}
     // The byte is copied before the iterator on purpose: 0x4dbbc0 needs the
     // byte in cl and the dword in edx at every return.
     inline MapInsertResult(const MapInsertResult& o)
     {
-        field_4 = o.field_4;
-        field_0 = o.field_0;
+        second = o.second;
+        first = o.first;
     }
     MapInsertResult* Assign(int* param_1, unsigned char* param_2);
     MapInsertResult* Assign(const FreeBlockIter& first, unsigned char& second);
@@ -2586,7 +2586,7 @@ inline MapInsertResult FreeBlockMap::TreeInsert(const Pair_004db000& V)
 MapInsertResult FreeBlockMap::InsertOrFind(const Pair_004db000& V)
 {
     MapInsertResult ans = TreeInsert(V);
-    return MapInsertResult(ans.field_0, ans.field_4);
+    return MapInsertResult(ans.first, ans.second);
 }
 
 // The out-of-line tree insert for the allocator's free-block map, shaped like
@@ -3471,9 +3471,9 @@ MapInsertResult* MapInsertResult::Assign(int* param_1, unsigned char* param_2)
     int* ecx = param_1;
     int edx = *ecx;
     unsigned char* ecx2 = (unsigned char*)param_2;
-    eax->field_0.ptr = (Node_004db000*)edx;
+    eax->first.ptr = (Node_004db000*)edx;
     unsigned char dl = *ecx2;
-    eax->field_4 = dl;
+    eax->second = dl;
     return eax;
 }
 // The debug library's image and symbol handling, and the performance status

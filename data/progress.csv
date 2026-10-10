@@ -345,7 +345,7 @@ address,size,file,symbol,status,similarity
 0x419550,10,src/game/share_commands.cpp,?CmdSFX@@YGXH@Z,matched,100.0
 0x419560,138,src/ingame/control_panel.cpp,?InitCommands@@YGXXZ,matched,100.0
 0x4195f0,61,src/ingame/control_panel.cpp,?CopyMenuEntryName@@YGXPADG@Z,matched,100.0
-0x419630,53,src/ingame/control_panel.cpp,?MenuEntryNameContains@@YGHPAUMenuEntry@@PADH@Z,matched,100.0
+0x419630,53,src/ingame/control_panel.cpp,?MenuEntryNameContains@@YGHPAUGadget@@PADH@Z,matched,100.0
 0x419670,341,src/ingame/control_panel.cpp,?IssueMobileBuildOrders@@YGXPAUArg_00419670@@@Z,matched,100.0
 0x4197d0,368,src/ingame/control_panel.cpp,?UpdatePlacementGhostValidity@@YGHXZ,matched,100.0
 0x419940,98,src/ingame/control_panel.cpp,?SetBuildCountText@@YGXPAUGui@@GH@Z,matched,100.0
@@ -353,9 +353,9 @@ address,size,file,symbol,status,similarity
 0x419ac0,64,src/ingame/control_panel.cpp,?UpdateOnOffButton@@YGXPAUUnit@@@Z,matched,100.0
 0x419b00,179,src/ingame/control_panel.cpp,?QueueBuildOrder@@YGXPADPAUUnit@@H@Z,matched,100.0
 0x419bc0,30,src/ingame/control_panel.cpp,?SetOrderIntent@@YGXE@Z,matched,100.0
-0x419be0,1329,src/ingame/control_panel.cpp,?HandleOrderButtonClick@@YGHPAUMenuEntry@@0@Z,matched,100.0
+0x419be0,1329,src/ingame/control_panel.cpp,?HandleOrderButtonClick@@YGHPAUGadget@@0@Z,matched,100.0
 0x41a120,880,src/ingame/control_panel.cpp,?RefreshOrderButtons@@YGXPAUUnit@@@Z,matched,100.0
-0x41a490,1168,src/ingame/control_panel.cpp,?HandleOrdersPanelClick@@YGHPAUGui@@PAUMenuEntry@@@Z,matched,100.0
+0x41a490,1168,src/ingame/control_panel.cpp,?HandleOrdersPanelClick@@YGHPAUGui@@PAUGadget@@@Z,matched,100.0
 0x41a920,213,src/ingame/control_panel.cpp,?SetPrevNextGadgetNames@@YGXPAUUnit@@@Z,matched,100.0
 0x41aa00,646,src/ingame/control_panel.cpp,?HandleBuildPanelClick@@YGXPAUGui@@@Z,matched,100.0
 0x41ac90,74,src/ingame/control_panel.cpp,?DisableUnavailableBuildMenuEntries@@YGXPAUGui@@@Z,matched,100.0

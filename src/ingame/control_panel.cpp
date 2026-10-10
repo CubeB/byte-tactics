@@ -9,6 +9,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+// Unused here: the symbol ids <io.h> adds put OpenBuildMenuGui and
+// AddBuildProgress in the symbol-id windows they match in (docs/c2-regalloc.md);
+// the same is true in sound/samples.cpp and sound/cd_audio.cpp.
+#include <io.h>
 
 #pragma pack(push, 1)
 
@@ -40,7 +44,7 @@ struct Unit;
 struct Player;
 struct PlayerInfo;
 struct Nano_0041b8d0;
-struct MenuEntry;
+struct Gadget;
 struct Layer;
 struct Gui;
 struct BuildList_0041ace0;
@@ -116,48 +120,14 @@ struct UnitType {
     UnitTypeFlags2 flags2;             // +0x245
 };
 
-// A GUI layer's entry (0x15b bytes); entry 0 stores the entry count where the
-// others keep their text.
-struct MenuEntry {
-    unsigned char type;                // +0x0
-    char unknown_1;
-    char name[0x26];                   // +0x2
-    unsigned char flags;               // +0x28
-    char unknown_29;
-    unsigned char commonAttribs;       // +0x2a
-    char unknown_2b[0x60 - 0x2b];
-    int index;                         // +0x60
-    char unknown_64[0xb4 - 0x64];
-    unsigned short shown : 1;          // +0xb4 bit 0
-    unsigned short bits_b4 : 15;
-    union {
-        short count;                   // +0xb6 (entry 0 only)
-        char text[0x138 - 0xb6];       // +0xb6
-    } u;
-    short state;                       // +0x138
-    char unknown_13a[0x13c - 0x13a];
-    unsigned short enabled : 1;        // +0x13c bit 0
-    unsigned short bits_13c : 15;
-    char unknown_13e[0x15b - 0x13e];
-};
-
-struct Layer {
-    int unknown_0;                     // +0x0
-    MenuEntry* entries;                // +0x4
-    void (__stdcall* handler)(Gui*);   // +0x8
-    int data;                          // +0xc
-};
-
+#include "../gui/gadget.h"
+#include "../gui/layer.h"
 #include "../gui/gui.h"
 
 // Unused here: a real function declared to keep the file's symbol count (docs/c2-regalloc.md).
 void StepAllGafSequences();
 
-struct PlayerInfo {
-    Unit* unit;                        // +0x0
-    char unknown_4[0x95 - 4];
-    unsigned char playerIndex;         // +0x95
-};
+#include "../network/player_info.h"
 
 #include "../network/player.h"
 
@@ -458,18 +428,18 @@ void __stdcall RegisterCommands(Option_00419560* option);
 void __stdcall SetDefaultCommandHandler(void (__stdcall* callback)(int), int param_2);
 void __stdcall DefaultCommandHandler(int param_1);
 
-void __stdcall GetGadgetName(MenuEntry* entries, char* name, int index);
+void __stdcall GetGadgetName(Gadget* entries, char* name, int index);
 void __stdcall IssueOrCancelOrder(MissionType kind, int remove, Unit* owner,
                             int id, Vec3* pos, int param_6, int param_7);
 int __stdcall CanBuildAt(UnitType* type, Point16 cell, int a, Player* player);
 int GetBuildSiteHeight(void);
 int __stdcall GetFootprintHeight(UnitType* unit, Point16 cell);
-MenuEntry* __stdcall FindGadgetOrNull(MenuEntry* entries, char* name);
+Gadget* __stdcall FindGadgetOrNull(Gadget* entries, char* name);
 unsigned short __stdcall FindUnitTypeId(char* name);
 int __stdcall SumQueuedBuildCount(void* owner, int index);
 void __stdcall MarkChanged(void* obj);
 int __stdcall FindGadgetIndexBySubstring(int value, char* name);
-int __stdcall FindGadgetIndexBySubstring(MenuEntry* entries, char* name);
+int __stdcall FindGadgetIndexBySubstring(Gadget* entries, char* name);
 void __stdcall SetGadgetStatus(Gui* menu, int index, int value);
 void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall AdjustBuildCount(MissionType kind, Unit* unit, int id, int count);
@@ -480,8 +450,8 @@ void __stdcall SetGadgetActive(Gui* menu, int index, char value);
 void __stdcall RenderLayer(Gui* menu, int value);
 void __stdcall SetGadgetActiveByName(Gui* menu, char* name, int param_3);
 void __stdcall ClearSelectedGadget(Gui* menu);
-int __stdcall HandleOrdersPanelClick(Gui* menu, MenuEntry* entries);
-int __stdcall HandleOrderButtonClick(Gui* menu, MenuEntry* entries);
+int __stdcall HandleOrdersPanelClick(Gui* menu, Gadget* entries);
+int __stdcall HandleOrderButtonClick(Gui* menu, Gadget* entries);
 int __stdcall IsKeyDown(int key);
 int __stdcall GetClickMode(Gui* menu);
 void __stdcall QueueBuildOrder(char* name, Unit* unit, int count);
@@ -550,7 +520,7 @@ void __stdcall CopyMenuEntryName(char* dest, unsigned short index)
 
 // Returns whether the name of menu entry `index` contains `text`.
 // FUNCTION: 0x419630
-int __stdcall MenuEntryNameContains(MenuEntry* entries, char* text, int index)
+int __stdcall MenuEntryNameContains(Gadget* entries, char* text, int index)
 {
     char name[32];
     GetGadgetName(entries, name, index);
@@ -618,7 +588,7 @@ int UpdatePlacementGhostValidity(void)
 // FUNCTION: 0x419940
 void __stdcall SetBuildCountText(Gui* obj, unsigned short index, int n)
 {
-    MenuEntry* e = FindGadgetOrNull(obj->layer->entries, g_game->buildTypes[index].name);
+    Gadget* e = FindGadgetOrNull(obj->layer->entries, g_game->buildTypes[index].name);
     if (e) {
         if (n)
             sprintf(e->u.text, "+%d", n);
@@ -636,7 +606,7 @@ void __stdcall SetBuildCountText(Gui* obj, unsigned short index, int n)
 // FUNCTION: 0x4199b0
 void __stdcall RefreshBuildCountTexts(Gui* menu, Unit* unit)
 {
-    MenuEntry* e = menu->layer->entries;
+    Gadget* e = menu->layer->entries;
     // Read as an int so it is sign-extended once.
     int count = e->u.count;
     e++;
@@ -718,17 +688,17 @@ static inline void SetOrderMode(unsigned char mode)
 }
 
 // FUNCTION: 0x419be0
-int __stdcall HandleOrderButtonClick(MenuEntry* button, MenuEntry* entries)
+int __stdcall HandleOrderButtonClick(Gadget* button, Gadget* entries)
 {
     char name[32];
     void* orders = g_game->orders;
     // Uninitialised unless the entry is type 1, as in the original: a `: button` fallback changes the code.
-    MenuEntry* e;
+    Gadget* e;
     if (entries[button->index].type == 1) e = &entries[button->index];
 
     GetGadgetName(entries, name, button->index);
     if (strstr(name, "MOVE")) {
-        if (e->state == 0) {
+        if (e->status == 0) {
             SetOrderMode(1);
         } else {
             SetOrderMode(2);
@@ -745,7 +715,7 @@ int __stdcall HandleOrderButtonClick(MenuEntry* button, MenuEntry* entries)
     }
     GetGadgetName(entries, name, button->index);
     if (strstr(name, "ATTACK")) {
-        if (e->state == 0) {
+        if (e->status == 0) {
             SetOrderMode(1);
         } else {
             SetOrderMode(3);
@@ -755,7 +725,7 @@ int __stdcall HandleOrderButtonClick(MenuEntry* button, MenuEntry* entries)
     }
     GetGadgetName(entries, name, button->index);
     if (strstr(name, "BLAST")) {
-        if (e->state == 0) {
+        if (e->status == 0) {
             SetOrderMode(1);
         } else {
             SetOrderMode(4);
@@ -765,7 +735,7 @@ int __stdcall HandleOrderButtonClick(MenuEntry* button, MenuEntry* entries)
     }
     GetGadgetName(entries, name, button->index);
     if (strstr(name, "DEFEND")) {
-        if (e->state == 0) {
+        if (e->status == 0) {
             SetOrderMode(1);
         } else {
             SetOrderMode(7);
@@ -775,7 +745,7 @@ int __stdcall HandleOrderButtonClick(MenuEntry* button, MenuEntry* entries)
     }
     GetGadgetName(entries, name, button->index);
     if (strstr(name, "REPAIR")) {
-        if (e->state == 0) {
+        if (e->status == 0) {
             SetOrderMode(1);
         } else {
             SetOrderMode(8);
@@ -785,7 +755,7 @@ int __stdcall HandleOrderButtonClick(MenuEntry* button, MenuEntry* entries)
     }
     GetGadgetName(entries, name, button->index);
     if (strstr(name, "PATROL")) {
-        if (e->state == 0) {
+        if (e->status == 0) {
             SetOrderMode(1);
         } else {
             SetOrderMode(9);
@@ -795,7 +765,7 @@ int __stdcall HandleOrderButtonClick(MenuEntry* button, MenuEntry* entries)
     }
     GetGadgetName(entries, name, button->index);
     if (strstr(name, "RECLAIM")) {
-        if (e->state == 0) {
+        if (e->status == 0) {
             SetOrderMode(1);
         } else {
             SetOrderMode(0xc);
@@ -805,7 +775,7 @@ int __stdcall HandleOrderButtonClick(MenuEntry* button, MenuEntry* entries)
     }
     GetGadgetName(entries, name, button->index);
     if (strstr(name, "CAPTURE")) {
-        if (e->state == 0) {
+        if (e->status == 0) {
             SetOrderMode(1);
         } else {
             SetOrderMode(0xd);
@@ -815,7 +785,7 @@ int __stdcall HandleOrderButtonClick(MenuEntry* button, MenuEntry* entries)
     }
     GetGadgetName(entries, name, button->index);
     if (strstr(name, "UNLOAD")) {
-        if (e->state == 0) {
+        if (e->status == 0) {
             SetOrderMode(1);
         } else {
             SetOrderMode(5);
@@ -825,7 +795,7 @@ int __stdcall HandleOrderButtonClick(MenuEntry* button, MenuEntry* entries)
     }
     GetGadgetName(entries, name, button->index);
     if (strstr(name, "LOAD")) {
-        if (e->state == 0) {
+        if (e->status == 0) {
             SetOrderMode(1);
         } else {
             SetOrderMode(6);
@@ -970,7 +940,7 @@ void __stdcall RefreshOrderButtons(Unit* unit)
 // activation or cloak setting named by the clicked entry, sends the matching
 // order and updates the button. Returns 0 when the entry is none of these.
 // Inlined copy of MenuEntryNameContains.
-static inline int Contains(MenuEntry* entries, char* text, int index)
+static inline int Contains(Gadget* entries, char* text, int index)
 {
     char name[32];
     GetGadgetName(entries, name, index);
@@ -978,7 +948,7 @@ static inline int Contains(MenuEntry* entries, char* text, int index)
 }
 
 // FUNCTION: 0x41a490
-int __stdcall HandleOrdersPanelClick(Gui* menu, MenuEntry* entries)
+int __stdcall HandleOrdersPanelClick(Gui* menu, Gadget* entries)
 {
     Unit* unit = &g_game->units[g_game->unitIndex];
     void* orders = g_game->orders;
@@ -1062,9 +1032,9 @@ void __stdcall SetPrevNextGadgetNames(Unit* unit)
 {
     char buf[256];
     if (unit->type->buildMenuPageCount < 2) {
-        sprintf(buf, "%sPREV", g_game->sideNames[unit->player->info->playerIndex].name);
+        sprintf(buf, "%sPREV", g_game->sideNames[unit->player->info->side].name);
         SetGadgetActiveByName(&g_game->gui, buf, 0);
-        sprintf(buf, "%sNEXT", g_game->sideNames[unit->player->info->playerIndex].name);
+        sprintf(buf, "%sNEXT", g_game->sideNames[unit->player->info->side].name);
         SetGadgetActiveByName(&g_game->gui, buf, 0);
     }
 }
@@ -1078,7 +1048,7 @@ void __stdcall SetPrevNextGadgetNames(Unit* unit)
 void __stdcall HandleBuildPanelClick(Gui* menu)
 {
     if (menu->hotGadgetIndex != -1) {
-        MenuEntry* entries = menu->layer->entries;
+        Gadget* entries = menu->layer->entries;
         // char[17]: a [20] buffer is placed above the name buffer.
         char idName[17];
         GetGadgetName(entries, idName, menu->hotGadgetIndex);
@@ -1128,18 +1098,20 @@ void __stdcall HandleBuildPanelClick(Gui* menu)
     }
 }
 
-static inline MenuEntry* Entries(MenuEntry* t)
+static inline Gadget* Entries(Gadget* t)
 {
-    return (MenuEntry*)((char*)t + 2);
+    return (Gadget*)((char*)t + 2);
 }
 
 // FUNCTION: 0x41ac90
 void __stdcall DisableUnavailableBuildMenuEntries(Gui* obj)
 {
-    MenuEntry* t = obj->layer->entries;
+    Gadget* t = obj->layer->entries;
     int n = t->u.count;
     for (int i = 0; i < n; i++) {
-        if (Entries(t)[i].flags & 4) {
+        // +0x28 (Gadget::tab) holds the entry flags here: bit 2 marks an entry that
+        // names a unit, which is greyed out when its type id is 0.
+        if (Entries(t)[i].tab & 4) {
             SetGrayedOut(obj, i, FindUnitTypeId((char*)&Entries(t)[i]) == 0);
         }
     }
@@ -1150,9 +1122,9 @@ static inline void SetPrevNext(Unit* unit)
 {
     char buf[256];
     if (unit->type->buildMenuPageCount < 2) {
-        sprintf(buf, "%sPREV", g_game->sideNames[unit->player->info->playerIndex].name);
+        sprintf(buf, "%sPREV", g_game->sideNames[unit->player->info->side].name);
         SetGadgetActiveByName(&g_game->gui, buf, 0);
-        sprintf(buf, "%sNEXT", g_game->sideNames[unit->player->info->playerIndex].name);
+        sprintf(buf, "%sNEXT", g_game->sideNames[unit->player->info->side].name);
         SetGadgetActiveByName(&g_game->gui, buf, 0);
     }
 }
@@ -1160,14 +1132,16 @@ static inline void SetPrevNext(Unit* unit)
 // Inlined copy of DisableUnavailableBuildMenuEntries.
 static inline void UpdateCounts(Gui* menu)
 {
-    MenuEntry* entry = menu->layer->entries;
+    Gadget* entry = menu->layer->entries;
     int n = entry->u.count;
     int i = 0;
     if (n <= 0)
         return;
-    entry = (MenuEntry*)((char*)entry + 2);
+    entry = (Gadget*)((char*)entry + 2);
     do {
-        if (entry[i].flags & 4)
+        // +0x28 (Gadget::tab) holds the entry flags here: bit 2 marks an entry that
+        // names a unit, which is greyed out when its type id is 0.
+        if (entry[i].tab & 4)
             SetGrayedOut(menu, i, FindUnitTypeId((char*)&entry[i]) == 0);
     } while (++i < n);
 }
@@ -1184,12 +1158,12 @@ void __stdcall OpenBuildMenuGui(Unit* unit, char* guiName, int page)
         char name[256];
         BuildDataPath(path, "guis", guiName, "GUI");
         if (HAPI_FileLengthByName(path) == 0)
-            sprintf(name, "%sDL", g_game->sideNames[player->info->playerIndex].name);
+            sprintf(name, "%sDL", g_game->sideNames[player->info->side].name);
         else
             strcpy(name, guiName);
         Layer* layer = LoadGuiLayer(&g_game->gui, name, 0);
         if (layer != 0) {
-            layer->handler = HandleBuildPanelClick;
+            layer->handler = (void (__stdcall*)(void*))HandleBuildPanelClick;
             layer->data = 0;
             for (int i = 0; i < g_game->buildListCount; i++) {
                 for (int j = 0; j < g_game->buildLists[i].count; j++) {
@@ -1199,8 +1173,8 @@ void __stdcall OpenBuildMenuGui(Unit* unit, char* guiName, int page)
                     if (unit->type->id == entry->typeId
                         && entry->page - 1 == page) {
                         char* src = entry->name;
-                        MenuEntry* e = &layer->entries[entry->slot + 4];
-                        e->enabled = 0;
+                        Gadget* e = &layer->entries[entry->slot + 4];
+                        e->flag_bit = 0;
                         e->commonAttribs = 4;
                         strcpy(e->name, src);
                         found = 1;
@@ -1236,10 +1210,10 @@ void __stdcall OpenGeneratorDialog(Unit* unit)
 {
     char name[256];
     sprintf(name, "%sGEN.GUI",
-            g_game->sideNames[g_game->players[g_game->localPlayer].info->playerIndex].name);
+            g_game->sideNames[g_game->players[g_game->localPlayer].info->side].name);
     Layer* gadget = LoadGuiLayer(&g_game->gui, name, 0);
     if (gadget != 0) {
-        gadget->handler = HandleBuildPanelClick;
+        gadget->handler = (void (__stdcall*)(void*))HandleBuildPanelClick;
         gadget->data = 0;
         RefreshOrderButtons(unit);
         RenderLayer(&g_game->gui, 0x40);

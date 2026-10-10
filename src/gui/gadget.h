@@ -28,12 +28,14 @@ struct Gadget {                         // 0x15b bytes, one GUI list entry
     char textureNumber;                 // +0x27, the GUI file texturenumber
     signed char tab;                    // +0x28
     unsigned char active;               // +0x29
-    char commonAttribs;                 // +0x2a
+    char commonAttribs;                 // +0x2a, bit 2: a unit entry, bit 3: the stockpile entry
     void* archive;                      // +0x2b
     GafEntry* gaf;                      // +0x2f
-    char helpKey[0xb4 - 0x33];          // +0x33
-    unsigned char resourceFlags;        // +0xb4
-    char unknown_b5;
+    char helpKey[0x60 - 0x33];          // +0x33
+    int index;                          // +0x60
+    char unknown_64[0xb4 - 0x64];
+    unsigned short shown : 1;           // +0xb4 bit 0
+    unsigned short bits_b4 : 15;
     union {
         short count;                    // +0xb6 (entry 0 only)
         char text[0x80];                // +0xb6

@@ -1512,11 +1512,11 @@ void RunFrontendStateMachine(void)
             }
             return;
         case 17: {
-            char* p = (char*)g_game + 0x1b63;
+            Player* p = g_game->players;
             for (int i = 0; i < 10; i++) {
-                if (p[0x73] == 4)
-                    ((Player*)p)->SetType(0);
-                p += 0x14b;
+                if (p->type == 4)
+                    p->SetType(0);
+                p++;
             }
             FinishUnitSync();
             g_game->flags.b2 = 1;

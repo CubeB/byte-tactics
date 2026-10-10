@@ -355,7 +355,7 @@ struct Game {
     char unknown_38d77[0x38d81 - 0x38d77];
     int numSkirmishPlayers;             // +0x38d81
     char unknown_38d85[0x391e9 - 0x38d85];
-    int mapInfo;                        // +0x391e9
+    class Mission* mapInfo;             // +0x391e9
     char pad_391ed[0x391f1 - 0x391ed];
     int mode;                           // +0x391f1
     void (*handler)();                  // +0x391f5
@@ -587,6 +587,9 @@ void __cdecl LoadMatch(void*)
     srand((unsigned)time(NULL));
     g_game->ticks = 0;
 
+    // Six of these casts stay: taking more than two out in this function moves
+    // the symbol state that LoadingScreenFrame's allocation depends on
+    // (docs/c2-regalloc.md).
     switch (((Mission*)g_game->mapInfo)->GetGameType()) {
     case 1:
         g_nonCampaignGame = 0;
@@ -667,8 +670,8 @@ void __cdecl LoadMatch(void*)
 
     LoadBattleAssets();
 
-    if (((Mission*)g_game->mapInfo)->GetGameType() != 1) {
-        if (((Mission*)g_game->mapInfo)->GetGameType() == 3) {
+    if (g_game->mapInfo->GetGameType() != 1) {
+        if (g_game->mapInfo->GetGameType() == 3) {
             g_game->flags38d75.value |= 4;
             while ((g_game->flags38d75.value & 8) == 0)
                 SleepMilliseconds(0x32);
@@ -956,7 +959,7 @@ void LoadingScreenFrame(void)
         }
         SetFont(g_game->fontComix);
         SetPaletteColors(g_game->palette_143a7, 0, 0x100);
-        if (((Mission*)g_game->mapInfo)->GetGameType() != 2) {
+        if (g_game->mapInfo->GetGameType() != 2) {
             SaveSettings();
         }
         while (g_game->field_531 != 0) {
@@ -1086,10 +1089,10 @@ void LoadingScreenFrame(void)
         }
         SetFont(g_game->fontComix);
         DrawSurface(&gadget, (void*)g_game->surface, 0, 0);
-        if (((Mission*)g_game->mapInfo)->GetGameType() != 1) {
+        if (g_game->mapInfo->GetGameType() != 1) {
             SetTextColors(color, 0xfe);
             // Local for the strncpy source: the call comes before the length push.
-            char* name = ((Mission*)g_game->mapInfo)->GetMissionName();
+            char* name = g_game->mapInfo->GetMissionName();
             strncpy(namebuf, name, 100);
             namebuf[99] = 0;
             if (GetPreferredLanguage() != 0 && _strcmpi((const char*)GetPreferredLanguage(), "english") != 0) {
@@ -1117,7 +1120,7 @@ void LoadingScreenFrame(void)
                          rect[1] + *((short*)lightbar + 3));
             DrawLoadingBar(&gadget, lightbar, 5, &DAT_0051e825, (unsigned char*)&DAT_0051e6cc, 1, "Explosions", 0x15b, rect);
         }
-        if (((Mission*)g_game->mapInfo)->GetGameType() == 3) {
+        if (g_game->mapInfo->GetGameType() == 3) {
             DrawSyncStatus(&gadget);
             SendLoadProgress();
         }

@@ -1,19 +1,7 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 #include <windows.h>
 
-struct Vec3 {
-    int x, y, z;
-};
-
-struct Box {
-    Vec3 lo;
-    Vec3 hi;
-};
-
-struct Point16 {
-    short x;
-    short z;
-};
+#include "box.h"
 
 struct Rot16 {
     short x, y, z;
@@ -180,7 +168,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
             return 8;
         Vec3 pos;
         pos.x = (size.x + cell.x * 2) << 19;
-        pos.z = (size.z + cell.z * 2) << 19;
+        pos.z = (size.y + cell.y * 2) << 19;
         pos.y = (RandomInt(f->height) + GetGroundHeight(&pos)) << 16;
         StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &pos) - unit->rot.y);
         return 1;
@@ -211,7 +199,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
             GetNanoPiecePosition(unit, &nano);
             Box box;
             box.lo.x = cell.x << 20;
-            box.lo.z = cell.z << 20;
+            box.lo.z = cell.y << 20;
             box.lo.y = GetGroundHeight(&box.lo) << 16;
             box.hi = box.lo;
             box.hi.x += f->footprintX << 20;
@@ -245,9 +233,9 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
             packet.sub = 0xff;
             Point16 xz;
             xz.x = n % w;
-            xz.z = n / w;
+            xz.y = n / w;
             packet.x = xz.x;
-            packet.z = xz.z;
+            packet.z = xz.y;
             BroadcastPacket(unit->player->id, &packet, 6);
         }
         order->target.owner->buildLeft = 0;

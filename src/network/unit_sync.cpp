@@ -204,7 +204,7 @@ struct Game {
     char unknown_1439f[0x391e9 - 0x1439b - sizeof(UnitDef*)];
     Mission* mapInfo;                   // +0x391e9
     char unknown_391ed[0x39201 - 0x391e9 - sizeof(Mission*)];
-    char field_39201[1];                // +0x39201
+    char providerGuid[1];               // +0x39201, the selected service provider's GUID
 };
 #pragma pack(pop)
 
@@ -259,7 +259,7 @@ int __stdcall ReportGameEvent(int msg)
             // its own statement, not an argument: the call has to be emitted
             // ahead of the other nine arguments being set up
             int team = (int)g_game->mapInfo->GetMissionName();
-            if (RIReport(msg, &rect, (char*)&g_game->field_39201, thing, &g_reportPlayerName,
+            if (RIReport(msg, &rect, (char*)&g_game->providerGuid, thing, &g_reportPlayerName,
                              team, g_game->player,
                              id, g_onlineReportPlayers, g_onlineReportScoreBoards))
                 g_hapinetOnlineReport = 0;
@@ -268,7 +268,7 @@ int __stdcall ReportGameEvent(int msg)
 
     if (g_reporterDll) {
         int team = (int)g_game->mapInfo->GetMissionName();
-        g_riReport(msg, &rect, (char*)&g_game->field_39201, thing, &g_reportPlayerName,
+        g_riReport(msg, &rect, (char*)&g_game->providerGuid, thing, &g_reportPlayerName,
                      team, g_game->player,
                      id, g_onlineReportPlayers, g_onlineReportScoreBoards);
     }
@@ -525,19 +525,19 @@ public:
 
 class Sub_0046d040 {                   // the object at +0x2c
 public:
-    int a;                             // +0x0
-    int b;                             // +0x4
-    int c;                             // +0x8
+    int seqSent;                       // +0x0
+    int seqCur;                        // +0x4
+    int seqMax;                        // +0x8
 
     void SendUnsequenced(void* packet, int to);
 };
 
 class Sub2_0046d040 {                  // the object at +0x58
 public:
-    int flag;                          // +0x0
-    int* first;                        // +0x4
-    int* last;                         // +0x8
-    int* end;                          // +0xc
+    int direct;                        // +0x0
+    int* pendingPlayerCount;           // +0x4
+    int* checksumProgress;             // +0x8
+    int* disabled;                     // +0xc
 };
 
 // UnitSyncPlayer (0x5c bytes): one player's unit-sync state, with four
@@ -591,8 +591,8 @@ public:
     std::vector<PlayerSync_0046e0b0> players;  // +0x10
     std::list<int> ids;                        // +0x20
     Sub_0046d040 sub;                          // +0x2c
-    std::vector<int> list_a;                   // +0x38
-    std::vector<int> list_b;                   // +0x48
+    std::vector<int> seqSentQueue;             // +0x38
+    std::vector<int> seqHeldQueue;             // +0x48
     union {
         Sub2_0046d040 sub2;                    // +0x58
         struct {
@@ -601,7 +601,7 @@ public:
                 int* first;                    // +0x5c
                 int pendingPlayerCount;
             };
-            int* last;                         // +0x60
+            int* checksumProgress;             // +0x60
             int disabled;                      // +0x64
         };
     };
@@ -663,8 +663,8 @@ public:
     std::vector<UnitSyncPlayer> elems;             // +0x10
     std::list<int> ids;                            // +0x20
     Sub_0046d040 sub;                              // +0x2c
-    SyncChecksumVector list_a;                     // +0x38
-    std::vector<int> list_b;                       // +0x48
+    SyncChecksumVector seqSentQueue;               // +0x38
+    std::vector<int> seqHeldQueue;                 // +0x48
     int direct;                                    // +0x58
     int pendingPlayerCount;                        // +0x5c
     int checksumProgress;                          // +0x60
@@ -712,9 +712,9 @@ struct PacketSequencer {
     unsigned int cur;                  // +0x04
     unsigned int max;                  // +0x08
     // Nested struct with its own out-of-line operator=: sets the inline depth
-    // that keeps list_c's _Destroy out of line and list_d's inlined.
-    std::vector<Elem_0046faf0> list_c; // +0x0c (16 bytes, _First at +0x10)
-    std::vector<Elem_0046faf0> list_d; // +0x1c (operator= is 0x4707a0)
+    // that keeps sentQueue's _Destroy out of line and heldQueue's inlined.
+    std::vector<Elem_0046faf0> sentQueue; // +0x0c (16 bytes, _First at +0x10)
+    std::vector<Elem_0046faf0> heldQueue; // +0x1c (operator= is 0x4707a0)
     PacketSequencer();
     PacketSequencer& operator=(const PacketSequencer& rhs);
     // A method that ignores `this`: see its definition.
@@ -755,7 +755,7 @@ void PacketSequencer::SendUnsequenced(unsigned int param_1, void* param_2)
 void PacketSequencer::ReceiveSequenced(UnitSyncPacket* packet, int param_2, void* param_3, unsigned int target)
 {
     if (packet->arg == 0x65) {
-        for (Elem_0046faf0* p = list_c.begin(); p != list_c.end(); p++) {
+        for (Elem_0046faf0* p = sentQueue.begin(); p != sentQueue.end(); p++) {
             if (p->packet.id == packet->id) {
                 SendPacketToPlayer(GetLocalHumanDpid(), target, p, 0xe);
                 break;
@@ -771,10 +771,10 @@ void PacketSequencer::ReceiveSequenced(UnitSyncPacket* packet, int param_2, void
         ((UnitSync*)param_3)->HandleSyncPacket(packet, param_2);
         for (unsigned int i = cur + 1; i <= max; i++) {
             Elem_0046faf0* p;
-            for (p = list_d.begin(); p != list_d.end(); p++) {
+            for (p = heldQueue.begin(); p != heldQueue.end(); p++) {
                 if (p->packet.id == i) break;
             }
-            if (p == list_d.end()) break;
+            if (p == heldQueue.end()) break;
             cur = i;
             ((UnitSync*)param_3)->HandleSyncPacket(&p->packet, param_2);
         }
@@ -785,14 +785,14 @@ void PacketSequencer::ReceiveSequenced(UnitSyncPacket* packet, int param_2, void
     }
     // Through a reference, so the call sets up ecx before evaluating its
     // arguments, as the original does.
-    Class_0046eba0& v = *(Class_0046eba0*)&list_d;
+    Class_0046eba0& v = *(Class_0046eba0*)&heldQueue;
     v.InsertPacket(v.last, 1, packet);
     for (unsigned int i = cur + 1; i <= max; i++) {
         Elem_0046faf0* p;
-        for (p = list_d.begin(); p != list_d.end(); p++) {
+        for (p = heldQueue.begin(); p != heldQueue.end(); p++) {
             if (p->packet.id == i) break;
         }
-        if (p == list_d.end()) {
+        if (p == heldQueue.end()) {
             UnitSyncPacket msg;
             msg.type = 0x1a;
             msg.arg = 0x65;
@@ -810,8 +810,8 @@ PacketSequencer& PacketSequencer::operator=(const PacketSequencer& rhs)
     lastSent = rhs.lastSent;
     cur = rhs.cur;
     max = rhs.max;
-    list_c = rhs.list_c;
-    list_d = rhs.list_d;
+    sentQueue = rhs.sentQueue;
+    heldQueue = rhs.heldQueue;
     return *this;
 }
 #pragma auto_inline(on)
@@ -824,13 +824,13 @@ PacketSequencer& PacketSequencer::operator=(const PacketSequencer& rhs)
 UnitSync::UnitSync(int param)
     : map(Cmp_0046d040(), Alloc_0046d040())
 {
-    sub.a = 0;
-    sub.b = 0;
-    sub.c = 0;
-    sub2.end = 0;
-    sub2.flag = param;
-    sub2.first = 0;
-    sub2.last = 0;
+    sub.seqSent = 0;
+    sub.seqCur = 0;
+    sub.seqMax = 0;
+    sub2.disabled = 0;
+    sub2.direct = param;
+    sub2.pendingPlayerCount = 0;
+    sub2.checksumProgress = 0;
     {
         UnitSyncEntry v;
         for (unsigned short i = 1; i < g_game->unitDefCount; i++) {
@@ -838,7 +838,7 @@ UnitSync::UnitSync(int param)
             v.x = key;
             v.y = 0;
             v.w = 1;
-            v.h = (short)sub2.flag;
+            v.h = (short)sub2.direct;
             v.limit = FlagOf_0046d040(&g_game->unitDefs[i]) ? 0 : -1;
             map[key] = v;
         }
@@ -1501,7 +1501,7 @@ public:
         (void)t;
     }
 
-    // Separate from assign_second: list_a inlines size(), list_b does not.
+    // Separate from assign_second: ids inlines size(), pairs does not.
     // the first list
     void __inline assign_first(Class_00470270* d, const Class_00470270* s)
     {
@@ -1576,8 +1576,8 @@ public:
 
 struct SyncPlayerRecord {              // 0x5c bytes, one vector element
     int id;                            // +0x00
-    std::vector<Elem_004702a0> list_a; // +0x04
-    std::vector<Elem_004702a0> list_b; // +0x14
+    std::vector<Elem_004702a0> ids;    // +0x04
+    std::vector<Elem_004702a0> pairs;  // +0x14
     int expected;                      // +0x24
     int sent;                          // +0x28
     int ackd;                          // +0x2c
@@ -1752,7 +1752,7 @@ void __stdcall NopChecksumEntryDtor(int)
 {
 }
 
-// SyncPlayerRecord::operator=. list_a and list_b are two vectors of 4-byte
+// SyncPlayerRecord::operator=. ids and pairs are two vectors of 4-byte
 // elements, each with an out-of-line capacity() (0x470250) and size()
 // (0x470270) that both return the element count, i.e. a byte difference
 // shifted right by 2. The first list inlines its size() for the first
@@ -1765,8 +1765,8 @@ SyncPlayerRecord& SyncPlayerRecord::operator=(const SyncPlayerRecord& src)
 {
     id = src.id;
 
-    ((Class_00470270*)&list_a)->assign_first((Class_00470270*)&list_a, (const Class_00470270*)&src.list_a);
-    ((Class_00470270*)&list_b)->assign_second((Class_00470270*)&list_b, (const Class_00470270*)&src.list_b);
+    ((Class_00470270*)&ids)->assign_first((Class_00470270*)&ids, (const Class_00470270*)&src.ids);
+    ((Class_00470270*)&pairs)->assign_second((Class_00470270*)&pairs, (const Class_00470270*)&src.pairs);
 
     Class_00470270::burn(1);
     Class_00470270::burn(2);

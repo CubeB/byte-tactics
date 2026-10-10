@@ -69,11 +69,11 @@ public:
 class UnitSyncPlayer {                 // 0x5c bytes
 public:
     int id;                            // +0x00
-    VecInt_0046ca60 list_a;            // +0x04
-    VecInt_0046ca60 list_b;            // +0x14
+    VecInt_0046ca60 ids;               // +0x04
+    VecInt_0046ca60 pairs;             // +0x14
     char unknown_24[0x18];             // +0x24
-    VecInt_0046ca60 list_c;            // +0x3c
-    VecInt_0046ca60 list_d;            // +0x4c
+    VecInt_0046ca60 sentQueue;         // +0x3c
+    VecInt_0046ca60 heldQueue;         // +0x4c
 };
 
 static inline void DestroyR0_0046ca60(UnitSyncPlayer* _F, UnitSyncPlayer* _L);
@@ -127,8 +127,8 @@ public:
     int seqSent;
     int seqCur;
     int seqMax;
-    std::vector<Elem_0046faf0> list_a;
-    std::vector<Elem_0046faf0> list_b;
+    std::vector<Elem_0046faf0> seqSentQueue;
+    std::vector<Elem_0046faf0> seqHeldQueue;
     int direct;
     int pendingPlayerCount;
     int checksumProgress;

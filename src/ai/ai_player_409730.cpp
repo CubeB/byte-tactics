@@ -249,7 +249,7 @@ public:
     std::vector<Elem_0040cc40> cells;// +0x4d
     short centerX;                 // +0x5d
     short centerY;                 // +0x5f
-    int field_61;                  // +0x61
+    int unused_61;                 // +0x61, zeroed by the constructor, never read
     std::vector<Elem_0040cfb0> vec_65;// +0x65
     int builders;                  // +0x75
     int hasSpecial;                // +0x79

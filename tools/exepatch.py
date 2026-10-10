@@ -15,12 +15,16 @@ unpatched code until this step puts the patch back after the link:
     the zero padding past the end of .text goes the same distance past the
     end of the linked .text, whose virtual size then covers it. Every rel32
     branch in a row's bytes is retargeted the same way, and the bytes a row
-    replaces are checked before it is written.
+    replaces are checked before it is written. The relink can leave too little
+    padding for such a row (the end of .text moved), in which case it, and any
+    row whose jump reaches it, is left out with a note rather than stopping
+    the link.
 """
 
 import bisect
 import csv
 import struct
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -84,8 +88,13 @@ class Mover:
         self.starts = [a for a, _, _ in self.functions]
         self.orig_end, self.linked_end = orig_end, linked_end
 
+    def in_padding(self, va: int) -> bool:
+        """The original wrote this address in the zero padding past .text,
+        the page the linker left zeros at the end of the section."""
+        return self.orig_end <= va < self.orig_end + 0x1000
+
     def __call__(self, va: int) -> int:
-        if self.orig_end <= va < self.orig_end + 0x1000:
+        if self.in_padding(va):
             return self.linked_end + (va - self.orig_end)     # the zero padding past .text
         i = bisect.bisect_right(self.starts, va) - 1
         if i >= 0 and va < self.functions[i][0] + self.functions[i][1]:
@@ -94,11 +103,10 @@ class Mover:
         raise SystemExit(f"data/exe_patches.csv: {va:#x} is in no game function the link's map names")
 
 
-def retarget(code: bytes, at: int, to: int, move: Mover) -> bytes:
-    """code, which sits at `at` in the original, moved to `to`: every rel32
-    branch points at where its target moved."""
+def branches(code: bytes, at: int):
+    """Every 32-bit relative branch in `code`, which the original holds at
+    `at`: (offset, size, the displacement's offset, its target)."""
     md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
-    out = bytearray(code)
     pos = 0
     while pos < len(code):
         ins = next(md.disasm(code[pos:], at + pos, 1), None)
@@ -110,15 +118,24 @@ def retarget(code: bytes, at: int, to: int, move: Mover) -> bytes:
             2 if b[0] == 0x0F and 0x80 <= b[1] <= 0x8F and ins.size == 6 else None)
         if rel is not None:
             target = (ins.address + ins.size + struct.unpack_from("<i", b, rel)[0]) & 0xFFFFFFFF
-            moved = move(target)
-            struct.pack_into("<i", out, pos + rel, moved - (to + pos + ins.size))
+            yield pos, ins.size, rel, target
         pos += ins.size
+
+
+def retarget(code: bytes, at: int, to: int, move: Mover) -> bytes:
+    """code, which sits at `at` in the original, moved to `to`: every rel32
+    branch points at where its target moved."""
+    out = bytearray(code)
+    for pos, size, rel, target in branches(code, at):
+        moved = move(target)
+        struct.pack_into("<i", out, pos + rel, moved - (to + pos + size))
     return bytes(out)
 
 
 def apply_linked(exe: Path, map_path: Path) -> list[str]:
     """Apply every row to an ordinary link of the tree, in place. Returns a
-    line per row for the report."""
+    line per row applied; a row the relink left no padding for is reported on
+    stderr and left out."""
     patches = load_patches()
     if not patches:
         return []
@@ -129,9 +146,38 @@ def apply_linked(exe: Path, map_path: Path) -> list[str]:
     text, linked_end = text_end(pe)
     move = Mover(map_path, orig_end, linked_end)
     raw = bytearray(exe.read_bytes())
+
+    # A row in the zero padding past .text goes the same distance past the
+    # linked .text's virtual end, into its raw data. A relink can leave less
+    # padding there than the row is long (the end of .text moved), so such a
+    # row, and any row whose jump reaches it, is left out rather than failing.
+    skipped: dict[int, str] = {}
+    for p in patches:
+        into = move(p.address) - base - text.VirtualAddress
+        if move.in_padding(p.address) and into + len(p.patched) > text.SizeOfRawData:
+            skipped[p.address] = (f"{p.address:#x}: skipped, the {len(p.patched)}-byte padding patch does not fit "
+                                  f"in the {max(text.SizeOfRawData - into, 0)} bytes left in .text's raw data")
+    while True:
+        added = False
+        for p in patches:
+            if p.address in skipped:
+                continue
+            for _, _, _, target in branches(p.patched, p.address):
+                if any(q.address in skipped and q.address <= target < q.address + max(len(q.original), len(q.patched))
+                       for q in patches):
+                    skipped[p.address] = (f"{p.address:#x}: skipped, its jump reaches the skipped padding patch "
+                                          f"at {target:#x}")
+                    added = True
+                    break
+        if not added:
+            break
+
     lines = []
     new_end = linked_end
     for p in patches:
+        if p.address in skipped:
+            print(f"data/exe_patches.csv: {skipped[p.address]}", file=sys.stderr)
+            continue
         to = move(p.address)
         into = to - base - text.VirtualAddress
         if not 0 <= into <= text.SizeOfRawData - len(p.patched):

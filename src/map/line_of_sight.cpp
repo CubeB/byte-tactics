@@ -109,8 +109,14 @@ struct PlayerGrid {
 };
 
 // Unused here: the symbol ids of these declarations (a forward declaration and
-// real functions) keep 0x4825b0 and 0x483210 matching (docs/c2-regalloc.md).
+// real functions) keep 0x4825b0, 0x483210 and 0x4833b0 matching with the
+// GafFrame header (docs/c2-regalloc.md).
 struct Sound;
+struct Weapon;
+struct Feature;
+struct Camera;
+struct Palette;
+struct Pcx;
 void RegisterUnitOrders();
 void RegisterGroundOrders();
 #include "../network/player.h"
@@ -138,20 +144,7 @@ struct Unit {
     char unknown_fc[0x118 - 0xfc];     // stride 0x118
 };
 
-// A GAF frame (32x32 tile bitmap); GetGafFrame returns one of these.
-struct GafFrame {
-    unsigned short width;              // +0x0
-    unsigned short height;             // +0x2
-    short xOffset;                     // +0x4
-    short yOffset;                     // +0x6
-    unsigned char mask;                // +0x8
-    unsigned char flag9;               // +0x9
-    unsigned char count;               // +0xa
-    unsigned char kind;                // +0xb
-    int reserved;                      // +0xc
-    unsigned char* data;               // +0x10
-    int scratch;                       // +0x14
-};
+#include "../graphics/gaf_frame.h"
 
 // The table GetGafFrame indexes: a count and 8-byte entries at +0x28.
 struct FrameTable {
@@ -1076,12 +1069,12 @@ void LoadTntMap()
         pic.height = info.feature_data[2];
         pic.xOffset = 0;
         pic.yOffset = 0;
-        pic.mask = 0;
-        pic.flag9 = 0;
-        pic.count = 0;
-        pic.kind = 0;
+        pic.transparency = 0;
+        pic.compressed = 0;
+        pic.layers = 0;
+        pic.blend = 0;
         pic.reserved = 0;
-        pic.data = (unsigned char*)(info.feature_data + 4);
+        pic.pixelsOrLayers = (unsigned char*)(info.feature_data + 4);
         pic.scratch = 0;
         g_game->radarFrame = AllocFrame("TED GENERATED PIC", *(int*)info.feature_data, *(int*)(info.feature_data + 2));
         SurfaceFromFrame(text, g_game->radarFrame);
@@ -1331,8 +1324,8 @@ void __stdcall DrawMapTiles(void* surface)
     bmp.height = 32;
     bmp.xOffset = 0;
     bmp.yOffset = 0;
-    bmp.flag9 = 0;
-    bmp.count = 0;
+    bmp.compressed = 0;
+    bmp.layers = 0;
 
     // Left and right columns of partial tiles.
     if (offX != 0 || edgeX != 0) {
@@ -1341,11 +1334,11 @@ void __stdcall DrawMapTiles(void* surface)
         // Index loops: screen coordinates are written from the index, no counters.
         for (int j = 0; j < tilesY; j++) {
             if (offX != 0) {
-                bmp.data = g_game->iconSet->data + *left * 0x400;
+                bmp.pixelsOrLayers = g_game->iconSet->data + *left * 0x400;
                 DrawFrameOpaque(surface, &bmp, screenX - offX, (screenY + j * 32) - offY);
             }
             if (edgeX != 0) {
-                bmp.data = g_game->iconSet->data + *right * 0x400;
+                bmp.pixelsOrLayers = g_game->iconSet->data + *right * 0x400;
                 DrawFrameOpaque(surface, &bmp, tilesX * 32 + screenX - offX - 32, (screenY + j * 32) - offY);
             }
             left += stride;
@@ -1359,11 +1352,11 @@ void __stdcall DrawMapTiles(void* surface)
         unsigned short* bottom = g_game->mapValues + (tileY + tilesY - 1) * stride + tileX;
         for (int i = 0; i < tilesX; i++) {
             if (offY != 0) {
-                bmp.data = g_game->iconSet->data + *top * 0x400;
+                bmp.pixelsOrLayers = g_game->iconSet->data + *top * 0x400;
                 DrawFrameOpaque(surface, &bmp, (screenX + i * 32) - offX, screenY - offY);
             }
             if (edgeY != 0) {
-                bmp.data = g_game->iconSet->data + *bottom * 0x400;
+                bmp.pixelsOrLayers = g_game->iconSet->data + *bottom * 0x400;
                 DrawFrameOpaque(surface, &bmp, (screenX + i * 32) - offX, tilesY * 32 + screenY - offY - 32);
             }
             top++;

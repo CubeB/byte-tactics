@@ -607,13 +607,10 @@ struct GadgetOwner_004605c0 {
 
 #include "../graphics/surface.h"
 
-struct GafFrame {
-    unsigned short width;              // +0x0
-    unsigned short height;             // +0x2
-    short xOffset;                     // +0x4
-    short yOffset;                     // +0x6
-    char unknown_8[0xc];
-};
+#include "../graphics/gaf_frame.h"
+
+// Unused: keeps the symbol ids in line for 0x45e4c0 (docs/c2-regalloc.md).
+struct Unit;
 
 typedef int (__stdcall* Handler_0045e100)(Gui*);
 

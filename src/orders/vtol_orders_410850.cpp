@@ -18,9 +18,7 @@
 namespace ta {
 #include <ta_types.h>
 }
-struct Vec3 {
-    int x, y, z;
-};
+#include "../util/vec3.h"
 struct Unit;
 struct Order;
 #include "mission_type.h"

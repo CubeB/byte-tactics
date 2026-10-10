@@ -15,8 +15,8 @@ struct View {
 #include "../util/vec3.h"
 
 struct Struct_00499200_531 {
-    int unknown_0;
-    int value;                         // +0x4
+    int next;                          // +0x0, the previous layer
+    int entries;                       // +0x4, the layer's gadget array
 };
 
 struct BitFlags16_00499200 {
@@ -52,7 +52,7 @@ struct Game {
     Sound* sound;                      // +0x10
     char unknown_14[0x519 - 0x14];
     char menu[0x18];                   // +0x519
-    Struct_00499200_531* field_531;    // +0x531
+    Struct_00499200_531* layer;        // +0x531, Gui::layer
     char unknown_535[0x29a0 - 0x535];
     char* options;                     // +0x29a0
     char unknown_29a4[0x2a3c - 0x29a4];
@@ -72,11 +72,11 @@ struct Game {
         Vec3 pos;                      // +0x2caa
         struct {
             char unknown_2caa[2];
-            short field_2cac;          // +0x2cac
+            short xWhole;              // +0x2cac
             char unknown_2cae[2];
-            short field_2cb0;          // +0x2cb0
+            short yWhole;              // +0x2cb0
             char unknown_2cb2[2];
-            short field_2cb4;          // +0x2cb4
+            short zWhole;              // +0x2cb4
         };
     };
     int boxStartTick;                  // +0x2cb6
@@ -163,7 +163,7 @@ void __stdcall HandleLeftClick(View* param_1)
             }
             g_game->orderMode = 1;
             g_game->flags_2cc6 &= 0xdf;
-            index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
+            index = FindGadgetIndexBySubstring(g_game->layer->entries, "STOP");
             if (index != -1) {
                 ClearGroupStatus(g_game->menu, index);
             }
@@ -194,7 +194,7 @@ void __stdcall HandleLeftClick(View* param_1)
     }
     g_game->orderMode = 1;
     g_game->flags_2cc6 &= 0xdf;
-    index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
+    index = FindGadgetIndexBySubstring(g_game->layer->entries, "STOP");
     if (index != -1) {
         ClearGroupStatus(g_game->menu, index);
     }
@@ -211,7 +211,7 @@ void __stdcall HandleRightClick(View* param_1)
     if (g_game->orderMode != 1) {
         g_game->orderMode = 1;
         g_game->flags_2cc6 &= 0xdf;
-        int index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
+        int index = FindGadgetIndexBySubstring(g_game->layer->entries, "STOP");
         if (index != -1) {
             ClearGroupStatus(g_game->menu, index);
         }
@@ -276,7 +276,7 @@ void BattleFrame(void)
         if (IsKeyDown(0xf9) == 0) {
             g_game->orderMode = 1;
             g_game->flags_2cc6 &= 0xdf;
-            int index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
+            int index = FindGadgetIndexBySubstring(g_game->layer->entries, "STOP");
             if (index != -1) {
                 ClearGroupStatus(g_game->menu, index);
             }
@@ -321,20 +321,20 @@ void BattleFrame(void)
                 PopUntilNamedLayout(1);
             }
         } else {
-            g_game->boxEndX = g_game->field_2cac;
-            g_game->boxEndHeight = g_game->field_2cb0;
-            g_game->boxEndZ = g_game->field_2cb4;
+            g_game->boxEndX = g_game->xWhole;
+            g_game->boxEndHeight = g_game->yWhole;
+            g_game->boxEndZ = g_game->zWhole;
         }
     } else if (view.msg == 0x201) {
         if ((flags & 2) != 0) {
             g_game->flags_2cc6 = flags | 8;
             g_game->boxStartTick = GetTicks();
-            g_game->boxStartX = g_game->field_2cac;
-            g_game->boxStartHeight = g_game->field_2cb0;
-            g_game->boxStartZ = g_game->field_2cb4;
-            g_game->boxEndX = g_game->field_2cac;
-            g_game->boxEndHeight = g_game->field_2cb0;
-            g_game->boxEndZ = g_game->field_2cb4;
+            g_game->boxStartX = g_game->xWhole;
+            g_game->boxStartHeight = g_game->yWhole;
+            g_game->boxStartZ = g_game->zWhole;
+            g_game->boxEndX = g_game->xWhole;
+            g_game->boxEndHeight = g_game->yWhole;
+            g_game->boxEndZ = g_game->zWhole;
             SetCursor(0x13);
         } else if (g_game->interfaceType == 1) {
             if ((flags & 1) != 0) {
